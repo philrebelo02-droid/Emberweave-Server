@@ -1,0 +1,407 @@
+{
+  "atET": "2026-10-03 06:43:29",
+  "clientSHA256": "28ec2c6d66f33b9d730d3b1d224992e1a1205070affaf23f71be19637ff45283",
+  "requests": [
+    {
+      "path": "/",
+      "method": "GET",
+      "status": 200,
+      "bytes": 3574052,
+      "sha256": "28ec2c6d66f33b9d730d3b1d224992e1a1205070affaf23f71be19637ff45283"
+    },
+    {
+      "path": "/assets/img/ui/hud-food.webp",
+      "method": "GET",
+      "status": 200,
+      "bytes": 7968,
+      "sha256": "50900e200f8f785630125e680b9c182da26b51a94172927af5b0e3894021b2b1"
+    },
+    {
+      "path": "/assets/img/ui/hud-gold.webp",
+      "method": "GET",
+      "status": 200,
+      "bytes": 9932,
+      "sha256": "05677a04cc43d78659db637ed7face775a179b61c9a6175bc2034db4d551f95f"
+    },
+    {
+      "path": "/assets/img/ui/hud-gem.webp",
+      "method": "GET",
+      "status": 200,
+      "bytes": 8084,
+      "sha256": "a03678c52948f2a9fc5d38c322ce8c21b50995d261a732da1ac8a357b84c37d9"
+    },
+    {
+      "path": "/assets/img/ui/hud-ring.webp",
+      "method": "GET",
+      "status": 200,
+      "bytes": 21460,
+      "sha256": "95dcce21aa2e7b9386446922ee2c96ff8536fb223d7c783ec7ce4c7ccaf42f51"
+    },
+    {
+      "path": "/assets/img/ui/mi-menu.webp",
+      "method": "GET",
+      "status": 200,
+      "bytes": 18066,
+      "sha256": "b28a0ac1b84638fae2c8b125545cf03c573b3059a3321e78ca9ddd4dfebd9b80"
+    },
+    {
+      "path": "/hero-profiles.js",
+      "method": "GET",
+      "status": 200,
+      "bytes": 17565,
+      "sha256": "d8fa77d6d934cb30d1b9e85c178f27b751eac7e73bad54051a900a546cfa67b3"
+    },
+    {
+      "path": "/hero-paths.js",
+      "method": "GET",
+      "status": 200,
+      "bytes": 14613,
+      "sha256": "6273832108b0c69a453c950a175ce0f277ef09e642107376077026069c6d78b0"
+    },
+    {
+      "path": "/server/temple-of-ash.js",
+      "method": "GET",
+      "status": 200,
+      "bytes": 39836,
+      "sha256": "0dd35eaa0932a3b4b5284793ed5b150bc76c0a36a2e2d787a8423a84e1aafbcb"
+    },
+    {
+      "path": "/server/temple-effects.js",
+      "method": "GET",
+      "status": 200,
+      "bytes": 3287,
+      "sha256": "614570a2a9762125855702cab86de80e5a78ae4ea491bc9260ca3812b553dd93"
+    },
+    {
+      "path": "/assets/ui/world-mine-sync.js",
+      "method": "GET",
+      "status": 200,
+      "bytes": 3655,
+      "sha256": "8d9754f3daa0ddbcfc54e5deb2c60f1f2512111b633f447c844b71aa36a638b4"
+    },
+    {
+      "path": "/assets/img/ui/hud-shield.webp",
+      "method": "GET",
+      "status": 200,
+      "bytes": 5588,
+      "sha256": "1c737311e97b4bd28e086d1a48f151f2138c79c0a4c11ee705d7614e396c263f"
+    },
+    {
+      "path": "/assets/img/ui/screen-bg.webp",
+      "method": "GET",
+      "status": 200,
+      "bytes": 44470,
+      "sha256": "36f7c861b760f83341f50caf291466d02ec061bbf1c32b263b8f8f4d558e8383"
+    },
+    {
+      "path": "/assets/img/ui/mi-plus.webp",
+      "method": "GET",
+      "status": 200,
+      "bytes": 6158,
+      "sha256": "94dd6fe71550b3fd627b403faba45affe6c3f8468cc8391b5590c40e084463df"
+    },
+    {
+      "path": "/assets/img/ui/hud-plaque.webp",
+      "method": "GET",
+      "status": 200,
+      "bytes": 23496,
+      "sha256": "5decb975eac391c02e46ec50969dde9437fa9133049c4c5758c6bc630fe61d1d"
+    },
+    {
+      "path": "/assets/ui/world-march-sync.js",
+      "method": "GET",
+      "status": 200,
+      "bytes": 2725,
+      "sha256": "a544af7c1f4fba4451ebdf9806b36f45f062698b3cea5997f1718577e8a920fb"
+    },
+    {
+      "path": "/assets/ui/world-march-visual.js",
+      "method": "GET",
+      "status": 200,
+      "bytes": 5140,
+      "sha256": "46cf8ecdc5eea803e198296a03906ffd661d886cc19df21f0415bcb0784183cf"
+    },
+    {
+      "path": "/assets/ui/skill-preview-stage.js",
+      "method": "GET",
+      "status": 200,
+      "bytes": 10099,
+      "sha256": "5e86d70823621f8f591adfc596b9929b113974d233dfe0a7dc963e4da155212e"
+    },
+    {
+      "path": "/assets/ui/world-tree-cycle.js",
+      "method": "GET",
+      "status": 200,
+      "bytes": 2740,
+      "sha256": "c6d982c4081ac05b500b3249b949d737127dc0f92ac0865cb5e33947dde00ac6"
+    },
+    {
+      "path": "/assets/ui/world-tree-art.js",
+      "method": "GET",
+      "status": 200,
+      "bytes": 1859,
+      "sha256": "43c0e13ed8b6a4f615eb4184e0f65a7e149afb88660c04c5de13ef2b6d206b64"
+    },
+    {
+      "path": "/assets/ui/world-oasis-markers.js",
+      "method": "GET",
+      "status": 200,
+      "bytes": 2363,
+      "sha256": "37bf660c7b930e0611054ae338cc82bd49cd8688ce0f002430a932b5a7662978"
+    },
+    {
+      "path": "/assets/ui/world-tree-countdown.js",
+      "method": "GET",
+      "status": 200,
+      "bytes": 3855,
+      "sha256": "33713b17b8f9686cfc9be9383b25a317a8b885debe1d7eb941203abb0aef7fc8"
+    },
+    {
+      "path": "/assets/ui/world-tree-control-ui.js",
+      "method": "GET",
+      "status": 200,
+      "bytes": 10314,
+      "sha256": "c4e320839dfef065d753e137afb12d692665ee28a0b050a7fbcb9ff04c8cfe73"
+    },
+    {
+      "path": "/assets/ui/world-tree-actions-ui.js",
+      "method": "GET",
+      "status": 200,
+      "bytes": 5959,
+      "sha256": "8e2afdfce8b47f5b5ae36dd5ddb258f8f5d2da4e183684717cc11daa207b8f2b"
+    },
+    {
+      "path": "/assets/ui/guild-war-calendar.js",
+      "method": "GET",
+      "status": 200,
+      "bytes": 2253,
+      "sha256": "70441d7c87daba4b4dc8bc4fb6e78bcb01f9b28e2d646ff9ed3f12195c2dcf57"
+    },
+    {
+      "path": "/assets/img/ui/mi-heroes.webp",
+      "method": "GET",
+      "status": 200,
+      "bytes": 19766,
+      "sha256": "1a5aac67a4b2ca1bd6b9e8343c8d5e5fa6a43a8a80e43078bfa9ed41671f1a0d"
+    },
+    {
+      "path": "/assets/img/ui/mi-bag.webp",
+      "method": "GET",
+      "status": 200,
+      "bytes": 18750,
+      "sha256": "5f5f6d6fab6b3f3d55fb965805d2196ece42195917311225afec8929fbb1ffba"
+    },
+    {
+      "path": "/assets/img/ui/mi-tut.webp",
+      "method": "GET",
+      "status": 200,
+      "bytes": 19218,
+      "sha256": "d9138dbd8db114da59a77a9a5115779e9c0674d33aa3f95a34e69f8dff54ce56"
+    },
+    {
+      "path": "/manifest.webmanifest",
+      "method": "GET",
+      "status": 404,
+      "bytes": 36,
+      "sha256": null
+    },
+    {
+      "path": "/assets/img/ui/mi-quest.webp",
+      "method": "GET",
+      "status": 200,
+      "bytes": 18604,
+      "sha256": "3a253d5505c872f3e9dec77a92b4acc13002bb7ff872d3e01ae197f6192b68eb"
+    },
+    {
+      "path": "/assets/img/ui/mi-signin.webp",
+      "method": "GET",
+      "status": 200,
+      "bytes": 20280,
+      "sha256": "e4c77b6072824cec615316bd832d4b73912f59a37efd41ce8f3b62e086af8aa9"
+    },
+    {
+      "path": "/assets/img/ui/mi-mail.webp",
+      "method": "GET",
+      "status": 200,
+      "bytes": 18032,
+      "sha256": "7fe62ed5c60276eafe4a39bfa4b0033c3ae53e08baea094c154c9f784afe2e9f"
+    },
+    {
+      "path": "/assets/img/ui/mi-settings.webp",
+      "method": "GET",
+      "status": 200,
+      "bytes": 17692,
+      "sha256": "6d4ccd612a66bb5ba42c9dcaaf970740cf05de711257fce31d68b03f01ed3f9d"
+    },
+    {
+      "path": "/assets/img/ui/mi-server.webp",
+      "method": "GET",
+      "status": 404,
+      "bytes": 29,
+      "sha256": null
+    },
+    {
+      "path": "/health",
+      "method": "GET",
+      "status": 200,
+      "bytes": 31,
+      "sha256": "a96ce3cb483810e04c920be3a6147392185bd05661eb0ba2220f9eceef59c116"
+    },
+    {
+      "path": "/version.json",
+      "method": "GET",
+      "status": 200,
+      "bytes": 2,
+      "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "path": "/api/guest",
+      "method": "POST",
+      "status": 405,
+      "bytes": 35,
+      "sha256": null
+    },
+    {
+      "path": "/assets/img/miscellaneous/mr-ui-silence.png",
+      "method": "GET",
+      "status": 200,
+      "bytes": 39746,
+      "sha256": "ac0c357c2b01e43b063db668bff8283ef66642213f4eecec0f30335f8359d8ef"
+    },
+    {
+      "path": "/assets/img/miscellaneous/shield-icon.png",
+      "method": "GET",
+      "status": 200,
+      "bytes": 15435,
+      "sha256": "74e898aaf1fb4db716cd237f0fc43194bf6112bbe4101c06b58a6af756006f2c"
+    },
+    {
+      "path": "/assets/img/miscellaneous/mr-ui-stun.png",
+      "method": "GET",
+      "status": 200,
+      "bytes": 39755,
+      "sha256": "4ca9ee58b37a286bdc1a8e38f74124330097c210876d791cc3580ba18c01d777"
+    },
+    {
+      "path": "/assets/img/miscellaneous/mrstunimg-fear.png",
+      "method": "GET",
+      "status": 200,
+      "bytes": 38130,
+      "sha256": "fb1013a1e967142abfab23939ef79d88532a64dce39dd2a636af271c52ad96ab"
+    },
+    {
+      "path": "/assets/img/miscellaneous/mrfearimg-taunt.png",
+      "method": "GET",
+      "status": 200,
+      "bytes": 30745,
+      "sha256": "150e9275305b74598aa29c9526b55d350cf0df9fdb59a542e0745b15d079c0dc"
+    },
+    {
+      "path": "/assets/img/miscellaneous/splash-v2.jpg",
+      "method": "GET",
+      "status": 200,
+      "bytes": 427372,
+      "sha256": "7bb2345327bbe23ac2bfbf37ed9bfab27d9d2f96818c9a8d8596499e3ac8b95b"
+    },
+    {
+      "path": "/assets/img/hero-cards/card-vael.webp",
+      "method": "GET",
+      "status": 200,
+      "bytes": 73758,
+      "sha256": "e287ac7dc3d24ea24598f6e6769d4af7a1d07808ac2c7bef6422221d4ae6fb51"
+    },
+    {
+      "path": "/assets/img/world-map/townbg-wide-temple-of-ash-v1.webp",
+      "method": "GET",
+      "status": 200,
+      "bytes": 727256,
+      "sha256": "566dce249a466d7dba204bfce299d6656f9f2b21107576e3c5552b3db54a4400"
+    },
+    {
+      "path": "/assets/img/ui/hud-lock.webp",
+      "method": "GET",
+      "status": 200,
+      "bytes": 2632,
+      "sha256": "bc2f9d157f5da18c8873c8b9f60974905fe4518cd40eb194dad7cc4ab9090503"
+    },
+    {
+      "path": "/assets/img/miscellaneous/splashvid-v5.mp4",
+      "method": "GET",
+      "status": 200,
+      "bytes": 2531115,
+      "sha256": "e40a92c8ed6b5ba918c6ab5d1d34416f6670eecb691dc09b22b30fa12f747305"
+    },
+    {
+      "path": "/manifest.webmanifest",
+      "method": "GET",
+      "status": 404,
+      "bytes": 36,
+      "sha256": null
+    },
+    {
+      "path": "/icon-192.png",
+      "method": "GET",
+      "status": 404,
+      "bytes": 36,
+      "sha256": null
+    },
+    {
+      "path": "/version.json",
+      "method": "GET",
+      "status": 200,
+      "bytes": 2,
+      "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "path": "/version.json",
+      "method": "GET",
+      "status": 200,
+      "bytes": 2,
+      "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "path": "/",
+      "method": "GET",
+      "status": 200,
+      "bytes": 3574052,
+      "sha256": "28ec2c6d66f33b9d730d3b1d224992e1a1205070affaf23f71be19637ff45283"
+    },
+    {
+      "path": "/assets/img/ui/mi-chat.webp",
+      "method": "GET",
+      "status": 200,
+      "bytes": 19120,
+      "sha256": "66916986826f0f286ce56f4b69e2ed9c233a124eeb37c09c15bfd65d4270aa1e"
+    },
+    {
+      "path": "/",
+      "method": "GET",
+      "status": 200,
+      "bytes": 3574052,
+      "sha256": "28ec2c6d66f33b9d730d3b1d224992e1a1205070affaf23f71be19637ff45283"
+    },
+    {
+      "path": "/version.json",
+      "method": "GET",
+      "status": 200,
+      "bytes": 2,
+      "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "path": "/",
+      "method": "GET",
+      "status": 200,
+      "bytes": 3574052,
+      "sha256": "28ec2c6d66f33b9d730d3b1d224992e1a1205070affaf23f71be19637ff45283"
+    },
+    {
+      "path": "/",
+      "method": "GET",
+      "status": 200,
+      "bytes": 3574052,
+      "sha256": "28ec2c6d66f33b9d730d3b1d224992e1a1205070affaf23f71be19637ff45283"
+    }
+  ],
+  "scope": "Exact complete candidate served unchanged. Guest-only isolated origin; API disabled; external network blocked by CSP; no combat/session/reward replacements or production quiescence proof. Assets streamed from existing private snapshot, no whole copy.",
+  "closed": true
+}

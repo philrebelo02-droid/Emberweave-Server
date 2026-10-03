@@ -1,0 +1,72 @@
+{
+  "atET": "2026-10-03 03:15:13",
+  "dest": "C:/Users/Home/OneDrive/Desktop/Emberweave Archive/Open Projects/Guild raid namespaced client tools 03OCT2026",
+  "manifest": [
+    {
+      "name": "archive.cjs",
+      "bytes": 1186,
+      "sha256": "36bfb85fbabd109dea9fae8e8d3f1032c04d3b6a83cda70e03fe857e3cf1dcc8"
+    },
+    {
+      "name": "build-certificate.json",
+      "bytes": 881,
+      "sha256": "cb60dad9e9d693322b37f4431c04d20a21d3a4866d39d15691aac7a603aae34c"
+    },
+    {
+      "name": "build.cjs",
+      "bytes": 4307,
+      "sha256": "3aa582aaa7953a18f06a7b99d19cdd9f169d9fa2cca16302374459d42accb7a1"
+    },
+    {
+      "name": "edge-certificate.json",
+      "bytes": 8717,
+      "sha256": "1966a9038e53bd94dea5489d087d01145615b87f8d560def996647e329b95679"
+    },
+    {
+      "name": "edge-http.cjs",
+      "bytes": 2832,
+      "sha256": "013bca4c7db1a72a064d7ba275d9c2506180e0960b9a53b5681c03662c042d5d"
+    },
+    {
+      "name": "helper-certificate.json",
+      "bytes": 573,
+      "sha256": "244e2dda4fd840cc53430ea8febbffc3b1f8d34e666104b3ccdba0dd19cb5981"
+    },
+    {
+      "name": "helper-tests.cjs",
+      "bytes": 2678,
+      "sha256": "a987a04e8ec97d2e93884d7e1fb80e8365d400b0604eaf17868d5fa04ec26cf9"
+    },
+    {
+      "name": "integrated-certificate.json",
+      "bytes": 44655,
+      "sha256": "ce2643634b4c81fa768d3c07e3a23febeaf1d81b02a1f8557d4ba229ddc0db98"
+    },
+    {
+      "name": "integration.cjs",
+      "bytes": 2492,
+      "sha256": "a5f1b57ed3fd07c48765211b1f0d2ac231b041a45886df97e57d8810a000fcfc"
+    },
+    {
+      "name": "private-client-namespaced.html",
+      "bytes": 3564269,
+      "sha256": "ea8540e8afc23e8d541d104bb92b7e750c99555341ca224f8f1defa8a7a2d20e"
+    },
+    {
+      "name": "private-server-namespaced.js",
+      "bytes": 611961,
+      "sha256": "5865e9aaaf0701e64d8b8c210a83ea222787af251739feafb10d1ec0f5af4b1c"
+    },
+    {
+      "name": "README.json",
+      "bytes": 2839,
+      "sha256": "728770b8a5dc674b688839cc63c8bb17fc36b7abb82ebff86812f7de706552ff"
+    },
+    {
+      "name": "uppercase-original-control.json",
+      "bytes": 3080,
+      "sha256": "65a1ee2ea29ec679b318e8c7389c82bc6167315b4ba90269fdaac5dd01c6916a"
+    }
+  ],
+  "scope": "Bounded current private pair/tools/certificates only; no whole game clone, no overwrite. Official worklog/prose and shipping docs gates remain OPEN."
+}

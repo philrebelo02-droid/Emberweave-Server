@@ -1,0 +1,21 @@
+{
+  "atET": "2026-10-03 06:28:17",
+  "result": "PASS current HTML-hooks persisted-confirmation cleanup after native retirement abort",
+  "clientSHA256": "28ec2c6d66f33b9d730d3b1d224992e1a1205070affaf23f71be19637ff45283",
+  "hooksSHA256": "0fc29468726b880bc4d71d51d8947ca6fd0f55b5b1484c0a545ba4a8bd1225fc",
+  "serverSHA256": "7d2cb9f199382ea77a31ed36bfead8fc03808c9559a40ed5b18bb17c5ef5dbe9",
+  "rawSHA256": "e0b47cab74f4f329f514ad745283180320c5ef09e7d76bd979f7b958d9cbdb9a",
+  "adapterSHA256": "dbcbb597afe4078660302f759665aed41b61e37bf1da2bc2c1ea30f95041a259",
+  "verifierSHA256": "8110f52f82f01428dcff9ced070a32a773cd0f9cf97b671cbb98d59b21695cd0",
+  "screenshotSHA256": "ec18229c7d8f40290ae4673e114dec9b5514204cee1e8f14fe9f989b49f49ace",
+  "actualCalls": 3,
+  "entryCount": 1,
+  "raidTransactions": 1,
+  "cleanupAdditionalCalls": 0,
+  "renderedRewards": 0,
+  "finalPendingRows": 0,
+  "retainedConfirmedMarkers": 1,
+  "cleanup": "Own Chrome tab1124719398 closed; helper69403 exited0 after own /shutdown; snapshot71202733 restored.",
+  "scope": "Current28ec2c exact HTML hooks +7d2cb9 actual private authenticated API. Injected real native retirement transaction abort after delete request success; retained confirmed row/marker then cleanup-only without additional API/grant/renderadoption. Synthetic combat/session/render stubs and isolated-origin test-only quiescence proof, NOT production/fullgame/balance/deploy.",
+  "limits": "Synthetic combat/session/render adoption stubs; test-only isolated-origin quiescence proof. Real IDB retirement aborted after native delete request success. No browser reload in this sequence. Not fullgame/two actual fights, quota/process crash, physical phone/canonical bots, production quiescence, retention policy, G/DB backup/restore/nonregressing floor, current integrated full suite, balance/docs/installer or dual deployment approval. No game code changes or deployment."
+}

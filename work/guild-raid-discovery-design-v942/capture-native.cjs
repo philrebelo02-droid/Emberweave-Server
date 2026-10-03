@@ -1,0 +1,7 @@
+'use strict';const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
+(async()=>{const meta=JSON.parse(fs.readFileSync(path.join(__dirname,'browser-session.json'),'utf8'));const proof=await(await fetch(meta.url+'/evidence',{signal:AbortSignal.timeout(5000)})).json();
+ const completed=proof.reports.find(p=>!p.running&&p.results.filter(r=>r.pass&&!r.name.startsWith('cross-tab')).length===7);assert(completed,'Seven complete native cases');assert(completed.results.every(r=>r.pass));
+ const reopened=proof.reports.at(-1);assert.equal(reopened.saved.length,12);assert.equal(reopened.unrelatedFixtureKeys,600);assert.deepEqual(reopened.saved.filter(r=>r.id.startsWith('cross-')).map(r=>r.id),['cross-A','cross-B']);assert.equal(reopened.saved.filter(r=>r.accountId.endsWith('-abort')).length,0);
+ proof.capturedAtET=new Date().toLocaleString('en-US',{timeZone:'America/New_York'});proof.scope='Native Chrome IndexedDB results-only adapter seven cases; sequential two-tab registration and close-both/reopen retention of twelve exact fixture records. NOT contended cross-tab race, precommit tab-close, browser-process crash, paid/network integration, quota/permission denial or game readiness.';
+ fs.writeFileSync(path.join(__dirname,'native-evidence.json'),JSON.stringify(proof,null,2));console.log(JSON.stringify({atET:proof.capturedAtET,nativeCases:7,reopenedRows:12,unrelatedKeys:600,adapter:proof.adapterHash}));
+})().catch(e=>{console.error(e);process.exitCode=1});

@@ -1,0 +1,10 @@
+{
+  "accountId": "fixture-user",
+  "guest": true,
+  "deviceBinding": "fixture-user",
+  "accountCount": 2,
+  "gold": 100000,
+  "gems": 100000,
+  "px": 1000,
+  "raidTransactions": 0
+}

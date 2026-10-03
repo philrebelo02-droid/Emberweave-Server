@@ -1,0 +1,27 @@
+{
+  "atET": "2026-10-03 01:29:01",
+  "status": "NARROW_V948_SERVER_PARSE_ONLY_HTTP_OPEN",
+  "sourceCommit": "bbbc3a662a4f106153abafafec691cc6d70149a0",
+  "sourceSHA256": "2a5d60fe929dfe86487a26638775ec98c602022abacf7edd705ae096f6cfd885",
+  "incomingPrivateSHA256": "be7ff4dbc4a7e11b3b8dcd63b3e7baa012dd23ecfe1de25019e533f659195893",
+  "outputSHA256": "eca0b14dca679e554c29d8ae2ef88270b0bc15b7db1a9271f47b83759c2c1a2f",
+  "edits": [
+    {
+      "name": "raid-prepared-policy",
+      "start": 223563,
+      "end": 223648,
+      "originalSHA256": "191697d278a5e89d67242565c8dae67ddfe7db525e7800e60ab91e9c5d226366",
+      "replacementSHA256": "aabcf1a4c2040c4fb3dd88d11fb4cc803a6259700bc5c21615153318a62b16aa"
+    },
+    {
+      "name": "raid-start-resolve",
+      "start": 568551,
+      "end": 575152,
+      "originalSHA256": "e9024b834f778dc14eb163c3130601920fa2fcabf078f307a2ee323260a1d7e7",
+      "replacementSHA256": "8b6c77307356c34b3973fbe028a505725663b2ac603abe33b06e41e881305242"
+    }
+  ],
+  "outsideEditsPreserved": true,
+  "dependencies": "Existing current durableCommit/durableUserCommit/worldPlanningDB retained. Added RAID-ONLY prepared policy guild-raid-recovery related:false guilds only; explicit current membership at start/resolve. No other Guild management/read cutover.",
+  "open": "HTTP/regression/currentuserchanges/legacy compatibility/refusal policy/native two raids/quota/balance/package/release OPEN. Not deployed."
+}

@@ -1,0 +1,9 @@
+{
+  "at": "2026-10-03T03:30:36.826Z",
+  "exit": 1,
+  "signal": null,
+  "pass": 2,
+  "fail": 4,
+  "sourceHash": "acdf5baec6dce5081830ebde8521e94fed81ab2dd3553181ce22a4ac5788946a",
+  "scope": "Private actual HTTP server route; not facade/native/game integration. Lost response modeled by discarding first reply."
+}

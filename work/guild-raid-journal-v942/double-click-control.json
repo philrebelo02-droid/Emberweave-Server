@@ -1,0 +1,6 @@
+{
+ "originalCandidateSHA256":"ade8679c2d922cc5f77aa18018cc155fd518440e3038633343d2fbc539907ef7",
+ "control":"Double saved-result recovery click retains one active settlement request",
+ "observed":"FAIL naturally: two outbound settlement packets instead of one; assertion2!==1",
+ "status":"Reproduced before guard; no server duplicate award inferred from this client-only control"
+}

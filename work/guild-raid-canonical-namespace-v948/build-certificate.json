@@ -1,0 +1,7 @@
+{
+  "atET": "2026-10-03 03:21:42",
+  "serverSHA256": "45b523764006dcac35bfeee1effe3ad790f25a81326180ce67b79607696ef955",
+  "clientSHA256": "ea8540e8afc23e8d541d104bb92b7e750c99555341ca224f8f1defa8a7a2d20e",
+  "parentSHA256": "5865e9aaaf0701e64d8b8c210a83ea222787af251739feafb10d1ec0f5af4b1c",
+  "scope": "Two guarded private spans. Reserved identity case-fold lookup refuses variant new charge; only lowercase fresh v3 identity allowed AFTER exact live resume. Does not rewrite saved packet or entry binding, old exact live uppercase resumes. Legacy uid8 unaffected. Terminal/native/fullsuite/balance/release OPEN."
+}

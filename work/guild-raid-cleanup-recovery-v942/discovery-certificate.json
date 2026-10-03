@@ -1,0 +1,12 @@
+{
+ "atET":"2026-10-03 00:45:00",
+ "status":"PRIVATE_DISCOVERY_BOUNDARY_TESTED_NOT_GAME_WIRED_NOT_SHIPPED",
+ "facadeSHA256":"fb94714c6ca38ca890caa058e427c041fa1103028d647263ba3d4d71249e7b2c",
+ "testsSHA256":"89bfbe567478e602d305d69340b7fbdb11d0680858981039f22d7223447a7325",
+ "command":"node work/guild-raid-cleanup-recovery-v942/discovery.test.cjs",
+ "results":{"newModelPasses":10,"networkCalls":0,"freshEnrollmentCalls":0},
+ "acceptance":"Only bounded saved IDs/status exposed under account exclusive lock, current session and explicit legacy quiescence. Pending entry, staged result and durable confirmed-cleanup distinguishable. Busy/stale/legacy/out-of-scope/over-cap/corrupt/duplicate states held; empty discovery cannot start raid.",
+ "inverseControl":"discovery-control.cjs removes ONLY exact duplicate guard from current facade. Duplicate saved entry naturally exposed as two choices; fixed test refuses it. Inverse behavioral failure, not historical original implementation proof.",
+ "selfReview":"No packets/tokens/auth claims exposed. Transport not called. Session rechecked after storage await. The new facade hash invalidates automatic attribution of previous native/HTTP tests to this revision.",
+ "limitations":"Model storage, directory and locks. No new native/HTTP/DOM proof. Full HTML bootstrap, saved pending-instance binding, stage-before-timer, mixed-client quiescence, quota/retention, independent package and joint approval remain OPEN. Legacy writers quiescence is injected assertion, not established in live game."
+}

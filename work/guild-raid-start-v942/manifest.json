@@ -1,0 +1,18 @@
+{
+  "status": "PRIVATE_NARROW_GUILD_RAID_ENTRY_REVIEW_READY_NOT_SHIPPED",
+  "variants": [
+    {
+      "name": "combined",
+      "base": {
+        "server.js": "165fef2548604b6939c1bced8c84b8281fbc4d7d8a60217954ae3c9b6072318a",
+        "tests/run_all_tests.sh": "b63431a918a76bfe81914adb00df4cbc0f9abaf89486a184b60c23a42844f774",
+        "tests/guild-raid-start.test.cjs": null
+      },
+      "output": {
+        "server.js": "784bcf366ee53c6a5130c69ef85482b5941dc19c4dd690841786d34a6aef17de",
+        "tests/run_all_tests.sh": "83c998179992bf28d86ee19a33dcde6b9d48a9f65e44abcc90163e7953f7a10d",
+        "tests/guild-raid-start.test.cjs": "793f1e8b0c5a7dfa5b0c08053c1ce0d1883d516a97a9964da37b66aecff5bdfe"
+      }
+    }
+  ]
+}

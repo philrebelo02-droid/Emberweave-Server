@@ -1,0 +1,30 @@
+{
+  "base": "71ea32a8b8f60a70cf0429139ba66bb763991cca6c5ecb5349097cb8c9124155",
+  "output": "13dd1eb9a0b1445cad1608da4f95d57aa6ead741ff6c5de4590a5fa8ffd0a797",
+  "spans": [
+    [
+      "old.kind==='start'&&p.kind==='resolve'",
+      "old.kind==='start'&&p.kind==='resolve'&&p.entryRequestId===old.packet.requestId"
+    ],
+    [
+      "kind:p.kind,createdAt:p.createdAt,packet:p.packet,RB:",
+      "kind:p.kind,createdAt:p.createdAt,packet:p.packet,entryRequestId:p.entryRequestId||null,RB:"
+    ],
+    [
+      "raidSettlementQueue(p.packet,p.RB||{},p.createdAt);",
+      "raidSettlementQueue(p.packet,p.RB||{},p.createdAt,p.entryRequestId||null);"
+    ],
+    [
+      "function raidSettlementQueue(packet,RB,createdAt=Date.now()){",
+      "function raidSettlementQueue(packet,RB,createdAt=Date.now(),entryRequestId=CUR.raidEntryRequestId||null){"
+    ],
+    [
+      "packet,kind:'resolve',createdAt,busy:false,retry:null",
+      "packet,kind:'resolve',createdAt,entryRequestId,busy:false,retry:null"
+    ],
+    [
+      "CUR={mode:'graid', attemptId:st.attemptId, seed:",
+      "CUR={mode:'graid', attemptId:st.attemptId, raidEntryRequestId:pending.packet.requestId, seed:"
+    ]
+  ]
+}

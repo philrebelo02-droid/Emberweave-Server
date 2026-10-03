@@ -1,0 +1,249 @@
+{
+  "clientSHA256": "28ec2c6d66f33b9d730d3b1d224992e1a1205070affaf23f71be19637ff45283",
+  "moduleSHA256": "cafb44f504d9a5937ca1a2d647ad23e598ee0ee833a9ba1dee8ce93613041c7d",
+  "pageSHA256": "7d32f7222ab910814c35f0fcf6b1ccf245da5976211aec9860671612fb5614af",
+  "events": [
+    {
+      "kind": "storage-suite",
+      "at": "2026-10-03T09:27:47.879Z",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+      "cases": [
+        {
+          "name": "Native IndexedDB two connections same id/entry commit exactly once",
+          "status": "PASS",
+          "detail": [
+            {
+              "status": "fulfilled"
+            },
+            {
+              "status": "rejected",
+              "error": "Duplicate intent"
+            }
+          ]
+        },
+        {
+          "name": "Native different ids cannot duplicate entry identity",
+          "status": "PASS",
+          "detail": [
+            "fulfilled",
+            "rejected"
+          ]
+        },
+        {
+          "name": "Native queued reservations cannot exceed cap4",
+          "status": "PASS",
+          "detail": [
+            "fulfilled",
+            "rejected"
+          ]
+        },
+        {
+          "name": "Native add success followed by explicit commit abort rejects and leaves no row",
+          "status": "PASS",
+          "detail": {
+            "sawRequestSuccess": true,
+            "refused": true,
+            "retryCommitted": true
+          }
+        },
+        {
+          "name": "Native confirmed cleanup retains marker; occupied instance refuses before enrollment",
+          "status": "PASS",
+          "detail": {
+            "refused": true,
+            "retainedBytes": 216
+          }
+        },
+        {
+          "name": "Native absent legacy proof blocks actual facade before transport",
+          "status": "PASS",
+          "detail": {
+            "refused": true,
+            "transports": 0
+          }
+        },
+        {
+          "name": "Native close/reopen keeps committed fixture rows and terminal fence",
+          "status": "PASS",
+          "detail": {
+            "reopened": true
+          }
+        }
+      ],
+      "detail": {
+        "nonce": "c7a8d6e6",
+        "pass": 7,
+        "fail": 0,
+        "limits": "Actual Chrome IDB/localStorage/WebLocks, actual embedded components. No game UI/HTTP/auth/balance, quota or precommit tab close; no old-writer quiescence provider."
+      }
+    },
+    {
+      "kind": "lock-held",
+      "at": "2026-10-03T09:27:58.869Z",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+      "cases": [
+        {
+          "name": "Native IndexedDB two connections same id/entry commit exactly once",
+          "status": "PASS",
+          "detail": [
+            {
+              "status": "fulfilled"
+            },
+            {
+              "status": "rejected",
+              "error": "Duplicate intent"
+            }
+          ]
+        },
+        {
+          "name": "Native different ids cannot duplicate entry identity",
+          "status": "PASS",
+          "detail": [
+            "fulfilled",
+            "rejected"
+          ]
+        },
+        {
+          "name": "Native queued reservations cannot exceed cap4",
+          "status": "PASS",
+          "detail": [
+            "fulfilled",
+            "rejected"
+          ]
+        },
+        {
+          "name": "Native add success followed by explicit commit abort rejects and leaves no row",
+          "status": "PASS",
+          "detail": {
+            "sawRequestSuccess": true,
+            "refused": true,
+            "retryCommitted": true
+          }
+        },
+        {
+          "name": "Native confirmed cleanup retains marker; occupied instance refuses before enrollment",
+          "status": "PASS",
+          "detail": {
+            "refused": true,
+            "retainedBytes": 216
+          }
+        },
+        {
+          "name": "Native absent legacy proof blocks actual facade before transport",
+          "status": "PASS",
+          "detail": {
+            "refused": true,
+            "transports": 0
+          }
+        },
+        {
+          "name": "Native close/reopen keeps committed fixture rows and terminal fence",
+          "status": "PASS",
+          "detail": {
+            "reopened": true
+          }
+        }
+      ],
+      "detail": {
+        "lockHeld": true
+      }
+    },
+    {
+      "kind": "lock-discovery",
+      "at": "2026-10-03T09:28:14.237Z",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+      "cases": [],
+      "detail": {
+        "status": "refused",
+        "error": "Busy recovery",
+        "legacyCalls": 0,
+        "directoryCalls": 0,
+        "transports": 0
+      }
+    },
+    {
+      "kind": "lock-released",
+      "at": "2026-10-03T09:28:32.436Z",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+      "cases": [
+        {
+          "name": "Native IndexedDB two connections same id/entry commit exactly once",
+          "status": "PASS",
+          "detail": [
+            {
+              "status": "fulfilled"
+            },
+            {
+              "status": "rejected",
+              "error": "Duplicate intent"
+            }
+          ]
+        },
+        {
+          "name": "Native different ids cannot duplicate entry identity",
+          "status": "PASS",
+          "detail": [
+            "fulfilled",
+            "rejected"
+          ]
+        },
+        {
+          "name": "Native queued reservations cannot exceed cap4",
+          "status": "PASS",
+          "detail": [
+            "fulfilled",
+            "rejected"
+          ]
+        },
+        {
+          "name": "Native add success followed by explicit commit abort rejects and leaves no row",
+          "status": "PASS",
+          "detail": {
+            "sawRequestSuccess": true,
+            "refused": true,
+            "retryCommitted": true
+          }
+        },
+        {
+          "name": "Native confirmed cleanup retains marker; occupied instance refuses before enrollment",
+          "status": "PASS",
+          "detail": {
+            "refused": true,
+            "retainedBytes": 216
+          }
+        },
+        {
+          "name": "Native absent legacy proof blocks actual facade before transport",
+          "status": "PASS",
+          "detail": {
+            "refused": true,
+            "transports": 0
+          }
+        },
+        {
+          "name": "Native close/reopen keeps committed fixture rows and terminal fence",
+          "status": "PASS",
+          "detail": {
+            "reopened": true
+          }
+        }
+      ],
+      "detail": {
+        "lockHeld": false
+      }
+    },
+    {
+      "kind": "lock-discovery",
+      "at": "2026-10-03T09:28:43.424Z",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+      "cases": [],
+      "detail": {
+        "status": "available",
+        "choices": [],
+        "legacyCalls": 1,
+        "directoryCalls": 1,
+        "transports": 0
+      }
+    }
+  ]
+}

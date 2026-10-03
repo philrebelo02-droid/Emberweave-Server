@@ -1,0 +1,13 @@
+{
+ "atET":"2026-10-02 22:41:25 -04:00",
+ "status":"PRIVATE_NATIVE_PRECOMMIT_LOSS_VERIFIED_HYBRID_DESIGN_NOT_IMPLEMENTED_NOT_REVIEW_READY_NOT_SHIPPED",
+ "adapterSha256":"44028943a93652c92f5c63b684e66c15147a6690ab44385d3f4ebeb05d3b10dd",
+ "harnessSha256":"c3543b3f0c570b5665e135033bffa8adb96f5e9d6296bc19596309211094dec5",
+ "hybridDesignSha256":"c73660c29af13f2907b0a537148ab188db2147043ae4cbc2edd751ba3873c68c",
+ "evidence":"precommit-evidence.json;precommit-pending.jpg;precommit-reopened.jpg",
+ "verified":"Actual Chrome showed ADD_SUCCEEDED_TRANSACTION_PENDING, transactionComplete false, acknowledgment false. Captured screenshot, closed that tab, opened a fresh tab and read zero committed result rows. Held transaction uses bounded20second native requests to keep precommit phase observable. No process crash or arbitrary failure timing inferred.",
+ "interpretation":"Correct no-ack-before-commit behavior is verified, but cannot supply synchronous completion durability. Async results-only IndexedDB adapter does not solve completed battle transcript survival before commit. It remains held, not game-integrated or ready.",
+ "revision":"Hybrid proposal: account-indexed immutable instance-slot enrollment committed BEFORE paid entry, then synchronous per-instance completion packet storage/readback before send timer. Bounded discovery reads indexed known slots, not all origin keys. Cross-store cleanup, stale ownership/concurrent instance allocation, quota after entry and legacy enrollment remain unresolved controls; not implemented.",
+ "next":"Private hybrid directory/slot prototype: durable enrollment before paid callback, abort refusal, synchronous completion-slot survival, unrelated-key independence, empty enrollment/repeated clicks/conflicting packet/cleanup crash controls. Then native proof. Do not replay unchanged7/13 suites, deploy or migrate.",
+ "cleanup":"Own helper53210 exited0 after shutdown; both own tabs closed. Fixture DB retained. No livegame/userdata/Brain/process/Pause/settings/material changes."
+}

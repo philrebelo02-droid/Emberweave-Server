@@ -1,0 +1,10 @@
+{
+  "atET": "2026-10-03 02:19:45",
+  "status": "PRIVATE_PARSE_ONLY_NOT_FULL_RECOVERY_FIX",
+  "sourceCommit": "bbbc3a662a4f106153abafafec691cc6d70149a0",
+  "parentServerSHA256": "e1775ee9de03aa3f9fe2e6a9cf89123cc29eb07c7dc43da0e4bef6ddedfb93aa",
+  "serverSHA256": "489eec581a1163f206a452ed0dfe48799dbd7439eb94c95c710f49ad8d6b0678",
+  "clientSHA256": "a16689865954f8d2a9add81b21749cbbea0702aeb7d97608eaa478d404781552",
+  "edits": "One declared guard after strict unknown recovery refusal, before all new-charge paths; client copied unchanged exact a166. Preserves paid active slot, does not implement terminal/expired recovery or server-issued ticket protocol.",
+  "limits": "No native or balance approval, legacy clients encounter409 while another paid fight remains active; unknown new journal exit/expiry/retention still OPEN."
+}

@@ -1,0 +1,449 @@
+{
+  "session": "dbde024c-49ac-401e-9272-079eeb46f021",
+  "hashes": {
+    "hybrid": "490c601bad306af9ae471080b8d8dc5caf31c8b83efb8176094e7cae6ab3b7c6",
+    "directory": "56188c9d573ba9285cdd845addc229dfed38fc4c00156e34f3b36364dd5d2272"
+  },
+  "reports": [
+    {
+      "ready": true,
+      "session": "dbde024c-49ac-401e-9272-079eeb46f021"
+    },
+    {
+      "phase": "SYNC_SLOT_READBACK_TIMER_NOT_FIRED_HTTP_RECEIVED",
+      "stageAt": 1790997082487,
+      "timerDueAt": 1790997102487,
+      "at": 1790997082542,
+      "timerFired": false,
+      "server": {
+        "events": [
+          {
+            "phase": "HTTP_RECEIVED_PENDING",
+            "at": 1790997082487
+          }
+        ],
+        "settleCalls": 0,
+        "at": 1790997082540
+      },
+      "lockHeld": true
+    },
+    {
+      "phase": "SYNC_SLOT_READBACK_TIMER_NOT_FIRED_HTTP_RECEIVED",
+      "stageAt": 1790997082487,
+      "timerDueAt": 1790997102487,
+      "at": 1790997082794,
+      "timerFired": false,
+      "server": {
+        "events": [
+          {
+            "phase": "HTTP_RECEIVED_PENDING",
+            "at": 1790997082487
+          }
+        ],
+        "settleCalls": 0,
+        "at": 1790997082791
+      },
+      "lockHeld": true
+    },
+    {
+      "phase": "SYNC_SLOT_READBACK_TIMER_NOT_FIRED_HTTP_RECEIVED",
+      "stageAt": 1790997082487,
+      "timerDueAt": 1790997102487,
+      "at": 1790997083043,
+      "timerFired": false,
+      "server": {
+        "events": [
+          {
+            "phase": "HTTP_RECEIVED_PENDING",
+            "at": 1790997082487
+          }
+        ],
+        "settleCalls": 0,
+        "at": 1790997083041
+      },
+      "lockHeld": true
+    },
+    {
+      "phase": "SYNC_SLOT_READBACK_TIMER_NOT_FIRED_HTTP_RECEIVED",
+      "stageAt": 1790997082487,
+      "timerDueAt": 1790997102487,
+      "at": 1790997083292,
+      "timerFired": false,
+      "server": {
+        "events": [
+          {
+            "phase": "HTTP_RECEIVED_PENDING",
+            "at": 1790997082487
+          }
+        ],
+        "settleCalls": 0,
+        "at": 1790997083290
+      },
+      "lockHeld": true
+    },
+    {
+      "phase": "SYNC_SLOT_READBACK_TIMER_NOT_FIRED_HTTP_RECEIVED",
+      "stageAt": 1790997082487,
+      "timerDueAt": 1790997102487,
+      "at": 1790997083542,
+      "timerFired": false,
+      "server": {
+        "events": [
+          {
+            "phase": "HTTP_RECEIVED_PENDING",
+            "at": 1790997082487
+          }
+        ],
+        "settleCalls": 0,
+        "at": 1790997083540
+      },
+      "lockHeld": true
+    },
+    {
+      "phase": "SYNC_SLOT_READBACK_TIMER_NOT_FIRED_HTTP_RECEIVED",
+      "stageAt": 1790997082487,
+      "timerDueAt": 1790997102487,
+      "at": 1790997083790,
+      "timerFired": false,
+      "server": {
+        "events": [
+          {
+            "phase": "HTTP_RECEIVED_PENDING",
+            "at": 1790997082487
+          }
+        ],
+        "settleCalls": 0,
+        "at": 1790997083788
+      },
+      "lockHeld": true
+    },
+    {
+      "phase": "SYNC_SLOT_READBACK_TIMER_NOT_FIRED_HTTP_RECEIVED",
+      "stageAt": 1790997082487,
+      "timerDueAt": 1790997102487,
+      "at": 1790997084038,
+      "timerFired": false,
+      "server": {
+        "events": [
+          {
+            "phase": "HTTP_RECEIVED_PENDING",
+            "at": 1790997082487
+          }
+        ],
+        "settleCalls": 0,
+        "at": 1790997084036
+      },
+      "lockHeld": true
+    },
+    {
+      "phase": "SYNC_SLOT_READBACK_TIMER_NOT_FIRED_HTTP_RECEIVED",
+      "stageAt": 1790997082487,
+      "timerDueAt": 1790997102487,
+      "at": 1790997084288,
+      "timerFired": false,
+      "server": {
+        "events": [
+          {
+            "phase": "HTTP_RECEIVED_PENDING",
+            "at": 1790997082487
+          }
+        ],
+        "settleCalls": 0,
+        "at": 1790997084286
+      },
+      "lockHeld": true
+    },
+    {
+      "phase": "SYNC_SLOT_READBACK_TIMER_NOT_FIRED_HTTP_RECEIVED",
+      "stageAt": 1790997082487,
+      "timerDueAt": 1790997102487,
+      "at": 1790997084537,
+      "timerFired": false,
+      "server": {
+        "events": [
+          {
+            "phase": "HTTP_RECEIVED_PENDING",
+            "at": 1790997082487
+          }
+        ],
+        "settleCalls": 0,
+        "at": 1790997084535
+      },
+      "lockHeld": true
+    },
+    {
+      "phase": "SYNC_SLOT_READBACK_TIMER_NOT_FIRED_HTTP_RECEIVED",
+      "stageAt": 1790997082487,
+      "timerDueAt": 1790997102487,
+      "at": 1790997084787,
+      "timerFired": false,
+      "server": {
+        "events": [
+          {
+            "phase": "HTTP_RECEIVED_PENDING",
+            "at": 1790997082487
+          }
+        ],
+        "settleCalls": 0,
+        "at": 1790997084786
+      },
+      "lockHeld": true
+    },
+    {
+      "phase": "SYNC_SLOT_READBACK_TIMER_NOT_FIRED_HTTP_RECEIVED",
+      "stageAt": 1790997082487,
+      "timerDueAt": 1790997102487,
+      "at": 1790997085039,
+      "timerFired": false,
+      "server": {
+        "events": [
+          {
+            "phase": "HTTP_RECEIVED_PENDING",
+            "at": 1790997082487
+          }
+        ],
+        "settleCalls": 0,
+        "at": 1790997085037
+      },
+      "lockHeld": true
+    },
+    {
+      "phase": "SYNC_SLOT_READBACK_TIMER_NOT_FIRED_HTTP_RECEIVED",
+      "stageAt": 1790997082487,
+      "timerDueAt": 1790997102487,
+      "at": 1790997085290,
+      "timerFired": false,
+      "server": {
+        "events": [
+          {
+            "phase": "HTTP_RECEIVED_PENDING",
+            "at": 1790997082487
+          }
+        ],
+        "settleCalls": 0,
+        "at": 1790997085289
+      },
+      "lockHeld": true
+    },
+    {
+      "phase": "SYNC_SLOT_READBACK_TIMER_NOT_FIRED_HTTP_RECEIVED",
+      "stageAt": 1790997082487,
+      "timerDueAt": 1790997102487,
+      "at": 1790997085541,
+      "timerFired": false,
+      "server": {
+        "events": [
+          {
+            "phase": "HTTP_RECEIVED_PENDING",
+            "at": 1790997082487
+          }
+        ],
+        "settleCalls": 0,
+        "at": 1790997085539
+      },
+      "lockHeld": true
+    },
+    {
+      "phase": "SYNC_SLOT_READBACK_TIMER_NOT_FIRED_HTTP_RECEIVED",
+      "stageAt": 1790997082487,
+      "timerDueAt": 1790997102487,
+      "at": 1790997085789,
+      "timerFired": false,
+      "server": {
+        "events": [
+          {
+            "phase": "HTTP_RECEIVED_PENDING",
+            "at": 1790997082487
+          }
+        ],
+        "settleCalls": 0,
+        "at": 1790997085787
+      },
+      "lockHeld": true
+    },
+    {
+      "phase": "SYNC_SLOT_READBACK_TIMER_NOT_FIRED_HTTP_RECEIVED",
+      "stageAt": 1790997082487,
+      "timerDueAt": 1790997102487,
+      "at": 1790997086041,
+      "timerFired": false,
+      "server": {
+        "events": [
+          {
+            "phase": "HTTP_RECEIVED_PENDING",
+            "at": 1790997082487
+          }
+        ],
+        "settleCalls": 0,
+        "at": 1790997086039
+      },
+      "lockHeld": true
+    },
+    {
+      "phase": "SYNC_SLOT_READBACK_TIMER_NOT_FIRED_HTTP_RECEIVED",
+      "stageAt": 1790997082487,
+      "timerDueAt": 1790997102487,
+      "at": 1790997086288,
+      "timerFired": false,
+      "server": {
+        "events": [
+          {
+            "phase": "HTTP_RECEIVED_PENDING",
+            "at": 1790997082487
+          }
+        ],
+        "settleCalls": 0,
+        "at": 1790997086287
+      },
+      "lockHeld": true
+    },
+    {
+      "phase": "SYNC_SLOT_READBACK_TIMER_NOT_FIRED_HTTP_RECEIVED",
+      "stageAt": 1790997082487,
+      "timerDueAt": 1790997102487,
+      "at": 1790997086539,
+      "timerFired": false,
+      "server": {
+        "events": [
+          {
+            "phase": "HTTP_RECEIVED_PENDING",
+            "at": 1790997082487
+          }
+        ],
+        "settleCalls": 0,
+        "at": 1790997086537
+      },
+      "lockHeld": true
+    },
+    {
+      "phase": "SYNC_SLOT_READBACK_TIMER_NOT_FIRED_HTTP_RECEIVED",
+      "stageAt": 1790997082487,
+      "timerDueAt": 1790997102487,
+      "at": 1790997086792,
+      "timerFired": false,
+      "server": {
+        "events": [
+          {
+            "phase": "HTTP_RECEIVED_PENDING",
+            "at": 1790997082487
+          }
+        ],
+        "settleCalls": 0,
+        "at": 1790997086791
+      },
+      "lockHeld": true
+    },
+    {
+      "phase": "SYNC_SLOT_READBACK_TIMER_NOT_FIRED_HTTP_RECEIVED",
+      "stageAt": 1790997082487,
+      "timerDueAt": 1790997102487,
+      "at": 1790997087041,
+      "timerFired": false,
+      "server": {
+        "events": [
+          {
+            "phase": "HTTP_RECEIVED_PENDING",
+            "at": 1790997082487
+          }
+        ],
+        "settleCalls": 0,
+        "at": 1790997087039
+      },
+      "lockHeld": true
+    },
+    {
+      "phase": "SYNC_SLOT_READBACK_TIMER_NOT_FIRED_HTTP_RECEIVED",
+      "stageAt": 1790997082487,
+      "timerDueAt": 1790997102487,
+      "at": 1790997087294,
+      "timerFired": false,
+      "server": {
+        "events": [
+          {
+            "phase": "HTTP_RECEIVED_PENDING",
+            "at": 1790997082487
+          }
+        ],
+        "settleCalls": 0,
+        "at": 1790997087292
+      },
+      "lockHeld": true
+    },
+    {
+      "phase": "SYNC_SLOT_READBACK_TIMER_NOT_FIRED_HTTP_RECEIVED",
+      "stageAt": 1790997082487,
+      "timerDueAt": 1790997102487,
+      "at": 1790997087545,
+      "timerFired": false,
+      "server": {
+        "events": [
+          {
+            "phase": "HTTP_RECEIVED_PENDING",
+            "at": 1790997082487
+          }
+        ],
+        "settleCalls": 0,
+        "at": 1790997087543
+      },
+      "lockHeld": true
+    },
+    {
+      "phase": "SYNC_SLOT_READBACK_TIMER_NOT_FIRED_HTTP_RECEIVED",
+      "stageAt": 1790997082487,
+      "timerDueAt": 1790997102487,
+      "at": 1790997087796,
+      "timerFired": false,
+      "server": {
+        "events": [
+          {
+            "phase": "HTTP_RECEIVED_PENDING",
+            "at": 1790997082487
+          }
+        ],
+        "settleCalls": 0,
+        "at": 1790997087794
+      },
+      "lockHeld": true
+    },
+    {
+      "ready": true,
+      "session": "dbde024c-49ac-401e-9272-079eeb46f021"
+    },
+    {
+      "phase": "RECOVERY_CHECK",
+      "exactPacket": {
+        "requestId": "phase-result",
+        "attemptId": "phase-attempt",
+        "inputLog": [],
+        "dmg": 17
+      },
+      "status": "result-recovery-only",
+      "lockAvailable": true,
+      "server": {
+        "events": [
+          {
+            "phase": "HTTP_RECEIVED_PENDING",
+            "at": 1790997082487
+          },
+          {
+            "phase": "HTTP_CLOSED",
+            "at": 1790997088049
+          }
+        ],
+        "settleCalls": 0,
+        "at": 1790997094353
+      }
+    }
+  ],
+  "events": [
+    {
+      "phase": "HTTP_RECEIVED_PENDING",
+      "at": 1790997082487
+    },
+    {
+      "phase": "HTTP_CLOSED",
+      "at": 1790997088049
+    }
+  ],
+  "settleCalls": 0
+}

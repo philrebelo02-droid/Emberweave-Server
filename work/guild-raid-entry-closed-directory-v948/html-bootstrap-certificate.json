@@ -1,0 +1,29 @@
+{
+  "atET": "2026-10-03 04:26:25",
+  "clientSHA256": "c4f330ca4ae0df11f56caa2fab3db6d6483adcaddb0a970c02953ae8516ff115",
+  "pass": 5,
+  "fail": 0,
+  "cases": [
+    {
+      "name": "bootstrap entrycleanup never starts fight or schedules reward",
+      "status": "PASS"
+    },
+    {
+      "name": "owned active fight blocks entry closure before facade",
+      "status": "PASS"
+    },
+    {
+      "name": "closure button calls are singleflight",
+      "status": "PASS"
+    },
+    {
+      "name": "forged reward body does not pass cleanup-only contract",
+      "status": "PASS"
+    },
+    {
+      "name": "retained discovery keeps bootstrap cleanup held",
+      "status": "PASS"
+    }
+  ],
+  "scope": "Actual embedded bootstrap in VM with fake facade; not DOM/native/currentHTTP"
+}

@@ -1,0 +1,260 @@
+{
+  "atET": "2026-10-03 07:55:08",
+  "helperSHA256": "faea136408cf5d907166b23dd57f8ff6b1a370a1f7843e48434dd5dca9d9a6d2",
+  "rows": [
+    {
+      "sourceName": "private-server-start-only.js",
+      "sourceSHA256": "f2a253d669475884ee44dafd5bc8e51a45cc917860d19ba3752f546ebd382c9a",
+      "kind": "malformed",
+      "reply": {
+        "status": 200,
+        "body": {
+          "ok": true,
+          "attemptId": "5b2dd4402183a138",
+          "seed": 1977039258,
+          "snaps": [
+            {
+              "key": "vael",
+              "level": 1,
+              "rank": 0,
+              "boss": false,
+              "maxHp": 400,
+              "dmg": 30,
+              "range": 28,
+              "speed": 70,
+              "atkInterval": 2.3,
+              "combatDist": 24,
+              "r": 18,
+              "melee": true,
+              "reach": 28.2,
+              "apow": 0,
+              "apMul": 1,
+              "hybrid": false,
+              "glyphDR": 0,
+              "defRating": 100,
+              "penRating": 0,
+              "armorRating": 60,
+              "mrRating": 40,
+              "armorPen": 0,
+              "magicPen": 0,
+              "critDmg": 0.6,
+              "lifestealStat": 0,
+              "evaStat": 0,
+              "accStat": 0,
+              "blockStat": 0,
+              "dmgBonusMul2": 1,
+              "shieldStrMul": 1,
+              "ctrlHitF": 0,
+              "hasteEnergyMul": 1,
+              "glyphRegen": 0,
+              "glyphCrit": 0,
+              "critRes": 0,
+              "energyReg": 0,
+              "templeDamageEnergy": 0,
+              "energy": 35,
+              "ctrlRes": 0,
+              "skillLv": [
+                1,
+                1,
+                1,
+                1
+              ],
+              "passMul": 1,
+              "immovable": false,
+              "stunImmune": false,
+              "pass": null,
+              "gearSkill": null
+            }
+          ],
+          "engine": "1790961518061",
+          "entryBinding": {
+            "v": 1,
+            "accountId": "fixture-user",
+            "guildId": "control-guild",
+            "requestId": "r3:2026-10-02:first",
+            "heroIds": [
+              "vael"
+            ]
+          },
+          "boss": {
+            "key": "wintercrag",
+            "name": "Wintercrag",
+            "tier": 1,
+            "hp": 400000,
+            "lvl": 15,
+            "def": 30000,
+            "dmgMul": 1
+          },
+          "raid": {
+            "level": 1,
+            "max": 400000,
+            "hp": 400000,
+            "kills": 0,
+            "yourDmg": 0,
+            "guildDmg": 0,
+            "attemptsLeft": 2,
+            "top": [],
+            "name": "Wintercrag",
+            "bossKey": "wintercrag",
+            "attemptsMax": 3
+          }
+        }
+      },
+      "expectedRuleFailure": "Malformed array accepted; paid attempt property vanished during JSON persistence",
+      "used": 1,
+      "persistedAtt": []
+    },
+    {
+      "sourceName": "private-server-start-shape.js",
+      "sourceSHA256": "0ab8decf535823ffe79a080898fd0550b9be7708ecea73195cd16ee4e7f8b297",
+      "kind": "malformed",
+      "reply": {
+        "status": 409,
+        "body": {
+          "ok": false,
+          "bossBusy": true,
+          "error": "Saved raid attempts require recovery. No new attempt was spent."
+        }
+      },
+      "noDiskMutation": true
+    },
+    {
+      "sourceName": "private-server-start-shape.js",
+      "sourceSHA256": "0ab8decf535823ffe79a080898fd0550b9be7708ecea73195cd16ee4e7f8b297",
+      "kind": "race",
+      "replies": [
+        {
+          "status": 200,
+          "body": {
+            "ok": true,
+            "attemptId": "6dc3f7521a808b8d",
+            "seed": 3320098924,
+            "snaps": [
+              {
+                "key": "vael",
+                "level": 1,
+                "rank": 0,
+                "boss": false,
+                "maxHp": 400,
+                "dmg": 30,
+                "range": 28,
+                "speed": 70,
+                "atkInterval": 2.3,
+                "combatDist": 24,
+                "r": 18,
+                "melee": true,
+                "reach": 28.2,
+                "apow": 0,
+                "apMul": 1,
+                "hybrid": false,
+                "glyphDR": 0,
+                "defRating": 100,
+                "penRating": 0,
+                "armorRating": 60,
+                "mrRating": 40,
+                "armorPen": 0,
+                "magicPen": 0,
+                "critDmg": 0.6,
+                "lifestealStat": 0,
+                "evaStat": 0,
+                "accStat": 0,
+                "blockStat": 0,
+                "dmgBonusMul2": 1,
+                "shieldStrMul": 1,
+                "ctrlHitF": 0,
+                "hasteEnergyMul": 1,
+                "glyphRegen": 0,
+                "glyphCrit": 0,
+                "critRes": 0,
+                "energyReg": 0,
+                "templeDamageEnergy": 0,
+                "energy": 35,
+                "ctrlRes": 0,
+                "skillLv": [
+                  1,
+                  1,
+                  1,
+                  1
+                ],
+                "passMul": 1,
+                "immovable": false,
+                "stunImmune": false,
+                "pass": null,
+                "gearSkill": null
+              }
+            ],
+            "engine": "1790961518061",
+            "entryBinding": {
+              "v": 1,
+              "accountId": "fixture-user",
+              "guildId": "control-guild",
+              "requestId": "r3:2026-10-02:first",
+              "heroIds": [
+                "vael"
+              ]
+            },
+            "boss": {
+              "key": "wintercrag",
+              "name": "Wintercrag",
+              "tier": 1,
+              "hp": 400000,
+              "lvl": 15,
+              "def": 30000,
+              "dmgMul": 1
+            },
+            "raid": {
+              "level": 1,
+              "max": 400000,
+              "hp": 400000,
+              "kills": 0,
+              "yourDmg": 0,
+              "guildDmg": 0,
+              "attemptsLeft": 2,
+              "top": [],
+              "name": "Wintercrag",
+              "bossKey": "wintercrag",
+              "attemptsMax": 3
+            }
+          }
+        },
+        {
+          "status": 409,
+          "body": {
+            "ok": false,
+            "bossBusy": true,
+            "error": "The raid boss is reserved. No new attempt was spent."
+          }
+        }
+      ],
+      "used": {
+        "fixture-user": 1
+      },
+      "reservation": {
+        "v": 1,
+        "accountId": "fixture-user",
+        "guildId": "control-guild",
+        "attemptId": "6dc3f7521a808b8d",
+        "requestId": "r3:2026-10-02:first",
+        "tier": 1,
+        "bossKey": "wintercrag",
+        "startedAt": 1790928000000
+      }
+    },
+    {
+      "sourceName": "private-server-start-shape.js",
+      "sourceSHA256": "0ab8decf535823ffe79a080898fd0550b9be7708ecea73195cd16ee4e7f8b297",
+      "kind": "legacy",
+      "reply": {
+        "status": 409,
+        "body": {
+          "ok": false,
+          "bossBusy": true,
+          "error": "The raid boss is reserved. No new attempt was spent."
+        }
+      },
+      "noDiskMutation": true
+    }
+  ],
+  "status": "One natural malformed-map failure plus three scoped corrected start-only controls. NOT complete Q6/deploy/balance.",
+  "limits": "Private synthetic HTTP only. No settlement/release/expiry/dayrollover/legacyresume migration or witnessed damage fix. Q11/Q10 remain OPEN; no install/deploy."
+}

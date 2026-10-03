@@ -1,0 +1,8 @@
+{
+  "at": "2026-10-03T02:14:00.761Z",
+  "candidate": "bc71d3b276c22745f7dacfad167ef77510c6f95afeb1c22ec69b8cf927da299d",
+  "exit": 1,
+  "pass": 1,
+  "fail": 3,
+  "scope": "New acceptance controls; expected natural baseline failures, not passing verification credit"
+}

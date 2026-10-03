@@ -1,0 +1,20 @@
+{
+  "status": "PRIVATE_PACKAGE_AND_SMALL_COPY_TESTED_NOT_REVIEW_READY_NOT_SHIPPED",
+  "variants": [
+    {
+      "name": "combined",
+      "base": {
+        "emberweave-heroes.html": "b9f5e394011d1e1312d1c182f7e918887359fa75c6eab8ca8aff4b99190755da",
+        "tests/run_all_tests.sh": "6061084a83232de58135e27f5b05ebd3244a24243ac6f17e5a833a0ebe2e23ff",
+        "tests/guild-raid-client.test.cjs": "cbb21f897676e769649c8dba2795b0f6abd1999f6ce58760e59ad394406de33c",
+        "tests/guild-raid-journal.test.cjs": null
+      },
+      "output": {
+        "emberweave-heroes.html": "bc71d3b276c22745f7dacfad167ef77510c6f95afeb1c22ec69b8cf927da299d",
+        "tests/run_all_tests.sh": "8a39d83fd1eb1f39f5bc5ed8f40e562a3bcca88cd426ef76c62ae81464b91da7",
+        "tests/guild-raid-client.test.cjs": "0c675ae9456626ccc71f7a60891b3596f1c49bc24406fe28c47e4e37513637f6",
+        "tests/guild-raid-journal.test.cjs": "bfd7b24020c98a46d876e865c8360b89574e254c1ba22b5aa170e9ababe9e7fb"
+      }
+    }
+  ]
+}

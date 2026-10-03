@@ -1,0 +1,38 @@
+{
+  "atET": "2026-10-02T22:55:54-04:00",
+  "status": "PRIVATE_HYBRID_NATIVE_COMPONENT_TESTED_NOT_REVIEW_READY_NOT_SHIPPED",
+  "hybridSHA256": "490c601bad306af9ae471080b8d8dc5caf31c8b83efb8176094e7cae6ab3b7c6",
+  "directorySHA256": "33bbedda153f3f625516073036fd2d8c09a8146202b318c442acbc378158ad1c",
+  "fixtureSHA256": "68f2243bbd79ee1df18c6f12b95b27cf6b5ea2bf28d670f732f30f1ab11f44d2",
+  "evidence": "hybrid-native-evidence.json",
+  "screenshot": "hybrid-native-reopen.jpg",
+  "nativeChecks": 8,
+  "failed": 0,
+  "reopen": {
+    "writerTabClosed": true,
+    "freshTab": true,
+    "exactPacket": true,
+    "status": "result-recovery-only",
+    "abortedRows": 0
+  },
+  "checks": [
+    "Native enrollment commit then sync stage",
+    "Abort after native add: no acknowledgment or synthetic paid callback",
+    "Concurrent duplicate intent refusal",
+    "Concurrent native capacity four",
+    "Known-slot discovery with 600 unrelated keys",
+    "Fresh context no writer lease refusal",
+    "Unconfirmed cleanup refusal",
+    "Confirmed cleanup terminal marker refuses old writer"
+  ],
+  "limits": [
+    "No game/network/server-confirmation/real-charge/reward integration.",
+    "Concurrent tests are same-context native transactions, not contended multi-tab.",
+    "Tab closed after finished component tests, not immediately before a settlement timer or while network/Web Lock held.",
+    "No process crash, native quota denial, legacy enrollment or safe terminal-marker eviction proof.",
+    "Backend validation requires stronger hostile shape controls; unknown fields and confirmedPacket validation not yet hardened.",
+    "Directory account cap/list guild-transition policy awaits composition review; do not ship."
+  ],
+  "cleanup": "Own helper 31854 exited0; both owned Chrome tabs closed; private fixture DB/storage retained, no user data deletion.",
+  "next": "Add naturally failing strict directory unknown-field/invalid confirmed packet/malformed entry controls on preserved33bbedda; harden schemas and exact confirmation transitions in new revision. Then native multi-tab/held-network-lock immediate synchronous staging-close and cleanup interruption evidence before private game composition. No unchanged8/12/prior suites reruns."
+}

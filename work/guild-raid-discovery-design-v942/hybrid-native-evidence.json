@@ -1,0 +1,300 @@
+{
+  "session": "9b1d58ba-9d12-4e04-9577-0f19ab709675",
+  "reports": [
+    {
+      "session": "9b1d58ba-9d12-4e04-9577-0f19ab709675",
+      "hashes": {
+        "hybrid": "490c601bad306af9ae471080b8d8dc5caf31c8b83efb8176094e7cae6ab3b7c6",
+        "directory": "33bbedda153f3f625516073036fd2d8c09a8146202b318c442acbc378158ad1c"
+      },
+      "results": [],
+      "ready": true
+    },
+    {
+      "session": "9b1d58ba-9d12-4e04-9577-0f19ab709675",
+      "hashes": {
+        "hybrid": "490c601bad306af9ae471080b8d8dc5caf31c8b83efb8176094e7cae6ab3b7c6",
+        "directory": "33bbedda153f3f625516073036fd2d8c09a8146202b318c442acbc378158ad1c"
+      },
+      "results": [
+        {
+          "name": "native enrollment commit then synchronous stage",
+          "pass": true
+        }
+      ]
+    },
+    {
+      "session": "9b1d58ba-9d12-4e04-9577-0f19ab709675",
+      "hashes": {
+        "hybrid": "490c601bad306af9ae471080b8d8dc5caf31c8b83efb8176094e7cae6ab3b7c6",
+        "directory": "33bbedda153f3f625516073036fd2d8c09a8146202b318c442acbc378158ad1c"
+      },
+      "results": [
+        {
+          "name": "native enrollment commit then synchronous stage",
+          "pass": true
+        },
+        {
+          "name": "native abort after add never acknowledges or invokes paid callback",
+          "pass": true
+        }
+      ]
+    },
+    {
+      "session": "9b1d58ba-9d12-4e04-9577-0f19ab709675",
+      "hashes": {
+        "hybrid": "490c601bad306af9ae471080b8d8dc5caf31c8b83efb8176094e7cae6ab3b7c6",
+        "directory": "33bbedda153f3f625516073036fd2d8c09a8146202b318c442acbc378158ad1c"
+      },
+      "results": [
+        {
+          "name": "native enrollment commit then synchronous stage",
+          "pass": true
+        },
+        {
+          "name": "native abort after add never acknowledges or invokes paid callback",
+          "pass": true
+        },
+        {
+          "name": "native transaction serialization rejects repeated intent",
+          "pass": true
+        }
+      ]
+    },
+    {
+      "session": "9b1d58ba-9d12-4e04-9577-0f19ab709675",
+      "hashes": {
+        "hybrid": "490c601bad306af9ae471080b8d8dc5caf31c8b83efb8176094e7cae6ab3b7c6",
+        "directory": "33bbedda153f3f625516073036fd2d8c09a8146202b318c442acbc378158ad1c"
+      },
+      "results": [
+        {
+          "name": "native enrollment commit then synchronous stage",
+          "pass": true
+        },
+        {
+          "name": "native abort after add never acknowledges or invokes paid callback",
+          "pass": true
+        },
+        {
+          "name": "native transaction serialization rejects repeated intent",
+          "pass": true
+        },
+        {
+          "name": "native concurrent capacity is four",
+          "pass": true
+        }
+      ]
+    },
+    {
+      "session": "9b1d58ba-9d12-4e04-9577-0f19ab709675",
+      "hashes": {
+        "hybrid": "490c601bad306af9ae471080b8d8dc5caf31c8b83efb8176094e7cae6ab3b7c6",
+        "directory": "33bbedda153f3f625516073036fd2d8c09a8146202b318c442acbc378158ad1c"
+      },
+      "results": [
+        {
+          "name": "native enrollment commit then synchronous stage",
+          "pass": true
+        },
+        {
+          "name": "native abort after add never acknowledges or invokes paid callback",
+          "pass": true
+        },
+        {
+          "name": "native transaction serialization rejects repeated intent",
+          "pass": true
+        },
+        {
+          "name": "native concurrent capacity is four",
+          "pass": true
+        },
+        {
+          "name": "600 unrelated keys do not affect known-slot recovery",
+          "pass": true
+        }
+      ]
+    },
+    {
+      "session": "9b1d58ba-9d12-4e04-9577-0f19ab709675",
+      "hashes": {
+        "hybrid": "490c601bad306af9ae471080b8d8dc5caf31c8b83efb8176094e7cae6ab3b7c6",
+        "directory": "33bbedda153f3f625516073036fd2d8c09a8146202b318c442acbc378158ad1c"
+      },
+      "results": [
+        {
+          "name": "native enrollment commit then synchronous stage",
+          "pass": true
+        },
+        {
+          "name": "native abort after add never acknowledges or invokes paid callback",
+          "pass": true
+        },
+        {
+          "name": "native transaction serialization rejects repeated intent",
+          "pass": true
+        },
+        {
+          "name": "native concurrent capacity is four",
+          "pass": true
+        },
+        {
+          "name": "600 unrelated keys do not affect known-slot recovery",
+          "pass": true
+        },
+        {
+          "name": "fresh context cannot stage without writer lease",
+          "pass": true
+        }
+      ]
+    },
+    {
+      "session": "9b1d58ba-9d12-4e04-9577-0f19ab709675",
+      "hashes": {
+        "hybrid": "490c601bad306af9ae471080b8d8dc5caf31c8b83efb8176094e7cae6ab3b7c6",
+        "directory": "33bbedda153f3f625516073036fd2d8c09a8146202b318c442acbc378158ad1c"
+      },
+      "results": [
+        {
+          "name": "native enrollment commit then synchronous stage",
+          "pass": true
+        },
+        {
+          "name": "native abort after add never acknowledges or invokes paid callback",
+          "pass": true
+        },
+        {
+          "name": "native transaction serialization rejects repeated intent",
+          "pass": true
+        },
+        {
+          "name": "native concurrent capacity is four",
+          "pass": true
+        },
+        {
+          "name": "600 unrelated keys do not affect known-slot recovery",
+          "pass": true
+        },
+        {
+          "name": "fresh context cannot stage without writer lease",
+          "pass": true
+        },
+        {
+          "name": "unconfirmed cleanup refuses and preserves exact packet",
+          "pass": true
+        }
+      ]
+    },
+    {
+      "session": "9b1d58ba-9d12-4e04-9577-0f19ab709675",
+      "hashes": {
+        "hybrid": "490c601bad306af9ae471080b8d8dc5caf31c8b83efb8176094e7cae6ab3b7c6",
+        "directory": "33bbedda153f3f625516073036fd2d8c09a8146202b318c442acbc378158ad1c"
+      },
+      "results": [
+        {
+          "name": "native enrollment commit then synchronous stage",
+          "pass": true
+        },
+        {
+          "name": "native abort after add never acknowledges or invokes paid callback",
+          "pass": true
+        },
+        {
+          "name": "native transaction serialization rejects repeated intent",
+          "pass": true
+        },
+        {
+          "name": "native concurrent capacity is four",
+          "pass": true
+        },
+        {
+          "name": "600 unrelated keys do not affect known-slot recovery",
+          "pass": true
+        },
+        {
+          "name": "fresh context cannot stage without writer lease",
+          "pass": true
+        },
+        {
+          "name": "unconfirmed cleanup refuses and preserves exact packet",
+          "pass": true
+        },
+        {
+          "name": "native confirmed cleanup retains terminal marker against old writer",
+          "pass": true
+        }
+      ]
+    },
+    {
+      "session": "9b1d58ba-9d12-4e04-9577-0f19ab709675",
+      "hashes": {
+        "hybrid": "490c601bad306af9ae471080b8d8dc5caf31c8b83efb8176094e7cae6ab3b7c6",
+        "directory": "33bbedda153f3f625516073036fd2d8c09a8146202b318c442acbc378158ad1c"
+      },
+      "results": [
+        {
+          "name": "native enrollment commit then synchronous stage",
+          "pass": true
+        },
+        {
+          "name": "native abort after add never acknowledges or invokes paid callback",
+          "pass": true
+        },
+        {
+          "name": "native transaction serialization rejects repeated intent",
+          "pass": true
+        },
+        {
+          "name": "native concurrent capacity is four",
+          "pass": true
+        },
+        {
+          "name": "600 unrelated keys do not affect known-slot recovery",
+          "pass": true
+        },
+        {
+          "name": "fresh context cannot stage without writer lease",
+          "pass": true
+        },
+        {
+          "name": "unconfirmed cleanup refuses and preserves exact packet",
+          "pass": true
+        },
+        {
+          "name": "native confirmed cleanup retains terminal marker against old writer",
+          "pass": true
+        }
+      ],
+      "complete": true,
+      "pass": 8,
+      "fail": 0
+    },
+    {
+      "session": "9b1d58ba-9d12-4e04-9577-0f19ab709675",
+      "hashes": {
+        "hybrid": "490c601bad306af9ae471080b8d8dc5caf31c8b83efb8176094e7cae6ab3b7c6",
+        "directory": "33bbedda153f3f625516073036fd2d8c09a8146202b318c442acbc378158ad1c"
+      },
+      "results": [],
+      "ready": true
+    },
+    {
+      "session": "9b1d58ba-9d12-4e04-9577-0f19ab709675",
+      "hashes": {
+        "hybrid": "490c601bad306af9ae471080b8d8dc5caf31c8b83efb8176094e7cae6ab3b7c6",
+        "directory": "33bbedda153f3f625516073036fd2d8c09a8146202b318c442acbc378158ad1c"
+      },
+      "results": [],
+      "reopened": true,
+      "exactPacket": {
+        "requestId": "result1",
+        "attemptId": "attempt",
+        "inputLog": [],
+        "dmg": 10
+      },
+      "status": "result-recovery-only",
+      "abortedRows": 0
+    }
+  ]
+}

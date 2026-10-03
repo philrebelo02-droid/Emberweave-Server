@@ -1,0 +1,13 @@
+'use strict';const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),vm=require('node:vm'),a=require('node:assert/strict');
+if(fs.existsSync('C:/Users/Home/AppData/Local/Emberweave/shutdown-requested.json'))throw Error('Shutdown');
+const hash=x=>crypto.createHash('sha256').update(x).digest('hex');
+const source=fs.readFileSync(path.join(__dirname,'../guild-raid-strict-start-v948/private-server-strict-start.js'),'utf8');
+a.equal(hash(source),'e1775ee9de03aa3f9fe2e6a9cf89123cc29eb07c7dc43da0e4bef6ddedfb93aa');
+const needle="      if(b.recoverOnly===true)return send(res,409,{ok:false,recoveryUnknown:true,error:'Matching active raid entry unavailable. No new attempt was spent.'});";
+a.equal(source.split(needle).length,2);
+const guard="\n      // Preserve a paid, still playable raid instead of overwriting its only record.\n      if(open && Number.isFinite(open.startedAt) && Date.now()>=open.startedAt && Date.now()-open.startedAt<=RAID_SESSION_MS)\n        return send(res,409,{ok:false,activeRaidHeld:true,error:'Finish or recover the active raid first. No new attempt was spent.'});";
+const output=source.replace(needle,needle+guard);new vm.Script(output);
+fs.writeFileSync(path.join(__dirname,'private-server-active-guard.js'),output);
+fs.copyFileSync(path.join(__dirname,'../guild-raid-rebase-v948/private-client-v948.html'),path.join(__dirname,'private-client-v948.html'));
+fs.writeFileSync(path.join(__dirname,'build-certificate.json'),JSON.stringify({atET:new Date().toLocaleString('sv-SE',{timeZone:'America/New_York'}),status:'PRIVATE_PARSE_ONLY_NOT_FULL_RECOVERY_FIX',sourceCommit:'bbbc3a662a4f106153abafafec691cc6d70149a0',parentServerSHA256:hash(source),serverSHA256:hash(output),clientSHA256:hash(fs.readFileSync(path.join(__dirname,'private-client-v948.html'))),edits:'One declared guard after strict unknown recovery refusal, before all new-charge paths; client copied unchanged exact a166. Preserves paid active slot, does not implement terminal/expired recovery or server-issued ticket protocol.',limits:'No native or balance approval, legacy clients encounter409 while another paid fight remains active; unknown new journal exit/expiry/retention still OPEN.'},null,2));
+console.log('One-span active paid-slot guard built and parsed; private pair only.');

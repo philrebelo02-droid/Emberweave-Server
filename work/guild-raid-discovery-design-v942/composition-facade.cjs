@@ -1,0 +1,26 @@
+'use strict';
+// Private contract component. No HTML cutover, network adapter or auth authority.
+const H=require('./hybrid-adapter.cjs'),copy=x=>JSON.parse(JSON.stringify(x));
+function inspectLegacy(storage,accountId){
+ if(typeof accountId!=='string'||!accountId||accountId.length>128)throw Error('Legacy scope');
+ const canonical='ew_raid_pending_v1_'+encodeURIComponent(accountId),prefix=canonical+'_result_';
+ const n=storage.length;if(!Number.isSafeInteger(n)||n<0||n>4096)throw Error('Legacy inspection bound');
+ if(storage.getItem(canonical)!==null)throw Error('Legacy canonical unresolved');
+ const seen=new Set();for(let i=0;i<n;i++){const k=storage.key(i);if(typeof k!=='string'||seen.has(k))throw Error('Legacy enumeration uncertain');seen.add(k);if(k.startsWith(prefix))throw Error('Legacy stage unresolved');}
+ if(storage.length!==n||storage.getItem(canonical)!==null)throw Error('Legacy changed');return 'clear';
+}
+function create({directory,storage,context,locks,transport,legacyWritersQuiescent}){
+ const c=context();if(!c||typeof c.accountId!=='string'||!c.accountId||typeof c.guildId!=='string'||!c.guildId||typeof c.token!=='string'||!c.token||!Number.isSafeInteger(c.epoch))throw Error('Session required');const captured={...c};
+ const current=()=>{const now=context();return !!now&&['accountId','guildId','token','epoch'].every(k=>now[k]===captured[k]);};
+ function guard(){if(!current())throw Error('Stale session');}
+ async function legacy(){guard();if(await legacyWritersQuiescent(captured)!==true)throw Error('Legacy writers not proven quiescent');guard();return inspectLegacy(storage,captured.accountId)}
+ const scope={accountId:captured.accountId,guildId:captured.guildId},h=H.create(directory,storage,{isCurrent:current,legacyCheck:legacy});
+ async function locked(fn){guard();if(!locks||typeof locks.request!=='function')throw Error('Safe lock unavailable');const result=await locks.request('ew_raid_pending_v1_'+encodeURIComponent(scope.accountId),{mode:'exclusive',ifAvailable:true},async lock=>{guard();if(!lock)throw Error('Busy recovery');return fn()});guard();return result}
+ async function start(entry,id){return locked(async()=>{await legacy();guard();const outstanding=await h.recover(scope);guard();if(outstanding.length)throw Error('Recover existing instance first');const r=await h.enroll(scope,entry,id);guard();await legacy();guard();const reply=await transport({mode:'fresh-entry',packet:copy(r.entry),scope:copy(scope)});guard();return {row:r,reply};})}
+ function stage(r,p){guard();return h.stage(r,p)}
+ async function recover(id){return locked(async()=>{await legacy();guard();const rows=await h.recover(scope);guard();const found=rows.find(x=>x.row.id===id);if(!found||found.status==='confirmed-cleanup')throw Error('No recoverable instance');const entry=found.status==='entry-recovery-only',p=entry?found.row.entry:found.packet;
+  // Transport must prove server support for strict recovery-only; never paid fallback.
+  const reply=await transport({mode:entry?'entry-recovery-only':'result-recovery-only',packet:copy(p),scope:copy(scope)});guard();return {status:found.status,packet:copy(p),reply};})}
+ return {start,stage,recover,current};
+}
+module.exports={create,inspectLegacy};

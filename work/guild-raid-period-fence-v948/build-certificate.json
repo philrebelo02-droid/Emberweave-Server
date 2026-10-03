@@ -1,0 +1,8 @@
+{
+  "atET": "2026-10-03 03:01:33",
+  "serverParentSHA256": "ba1de8145a4fa71c94fb6193835faad63bf7ef10627afe3cf3b1db9a51232c47",
+  "serverSHA256": "7b91b71e72f80417e7459219d33147d892675aa4922c1e442f86da3a310944ba",
+  "clientSHA256": "a7f98abc7978dfc691c377e9566bb0c059642f2b7cfed604a141c7de932ec062",
+  "status": "PRIVATE_OPT_IN_PERIOD_FENCE_NOT_CLIENT_WIRED_OR_RELEASE",
+  "edits": "Four guarded spans: r3:YYYY-MM-DD:nonce namespace validates authoritative raid day; same-period account-scoped spent-ID/squad/guild record <=3 committed atomically with paid entry, survives expired snapshot pruning/settlement. Past period rejected before charge even after book rotates. Bare legacy IDs unchanged, still require separate quiescence/cutover. No terminal retirement proof or refund."
+}

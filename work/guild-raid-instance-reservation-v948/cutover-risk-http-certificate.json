@@ -1,0 +1,367 @@
+{
+  "atET": "2026-10-03 05:51:33",
+  "serverSHA256": "7d2cb9f199382ea77a31ed36bfead8fc03808c9559a40ed5b18bb17c5ef5dbe9",
+  "calls": [
+    {
+      "route": "/api/guild/raid/start",
+      "packet": {
+        "requestId": "r3:2026-10-02:known-paid",
+        "heroIds": [
+          "vael"
+        ]
+      },
+      "status": 200,
+      "body": {
+        "ok": true,
+        "attemptId": "ab7a5acaa27285df",
+        "seed": 4168384136,
+        "snaps": [
+          {
+            "key": "vael",
+            "level": 1,
+            "rank": 0,
+            "boss": false,
+            "maxHp": 400,
+            "dmg": 30,
+            "range": 28,
+            "speed": 70,
+            "atkInterval": 2.3,
+            "combatDist": 24,
+            "r": 18,
+            "melee": true,
+            "reach": 28.2,
+            "apow": 0,
+            "apMul": 1,
+            "hybrid": false,
+            "glyphDR": 0,
+            "defRating": 100,
+            "penRating": 0,
+            "armorRating": 60,
+            "mrRating": 40,
+            "armorPen": 0,
+            "magicPen": 0,
+            "critDmg": 0.6,
+            "lifestealStat": 0,
+            "evaStat": 0,
+            "accStat": 0,
+            "blockStat": 0,
+            "dmgBonusMul2": 1,
+            "shieldStrMul": 1,
+            "ctrlHitF": 0,
+            "hasteEnergyMul": 1,
+            "glyphRegen": 0,
+            "glyphCrit": 0,
+            "critRes": 0,
+            "energyReg": 0,
+            "templeDamageEnergy": 0,
+            "energy": 35,
+            "ctrlRes": 0,
+            "skillLv": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "passMul": 1,
+            "immovable": false,
+            "stunImmune": false,
+            "pass": null,
+            "gearSkill": null
+          }
+        ],
+        "engine": "1790961518061",
+        "entryBinding": {
+          "v": 1,
+          "accountId": "fixture-user",
+          "guildId": "own-guild",
+          "requestId": "r3:2026-10-02:known-paid",
+          "heroIds": [
+            "vael"
+          ]
+        },
+        "boss": {
+          "key": "wintercrag",
+          "name": "Wintercrag",
+          "tier": 1,
+          "hp": 400000,
+          "lvl": 15,
+          "def": 30000,
+          "dmgMul": 1
+        },
+        "raid": {
+          "level": 1,
+          "max": 400000,
+          "hp": 400000,
+          "kills": 0,
+          "yourDmg": 0,
+          "guildDmg": 0,
+          "attemptsLeft": 2,
+          "top": [],
+          "name": "Wintercrag",
+          "bossKey": "wintercrag",
+          "attemptsMax": 3
+        }
+      }
+    },
+    {
+      "route": "/api/guild/raid/start",
+      "packet": {
+        "requestId": "r3:2026-10-02:replacement",
+        "heroIds": [
+          "vael"
+        ]
+      },
+      "status": 200,
+      "body": {
+        "ok": true,
+        "attemptId": "c89fbbbb7762ee1b",
+        "seed": 2501290983,
+        "snaps": [
+          {
+            "key": "vael",
+            "level": 1,
+            "rank": 0,
+            "boss": false,
+            "maxHp": 400,
+            "dmg": 30,
+            "range": 28,
+            "speed": 70,
+            "atkInterval": 2.3,
+            "combatDist": 24,
+            "r": 18,
+            "melee": true,
+            "reach": 28.2,
+            "apow": 0,
+            "apMul": 1,
+            "hybrid": false,
+            "glyphDR": 0,
+            "defRating": 100,
+            "penRating": 0,
+            "armorRating": 60,
+            "mrRating": 40,
+            "armorPen": 0,
+            "magicPen": 0,
+            "critDmg": 0.6,
+            "lifestealStat": 0,
+            "evaStat": 0,
+            "accStat": 0,
+            "blockStat": 0,
+            "dmgBonusMul2": 1,
+            "shieldStrMul": 1,
+            "ctrlHitF": 0,
+            "hasteEnergyMul": 1,
+            "glyphRegen": 0,
+            "glyphCrit": 0,
+            "critRes": 0,
+            "energyReg": 0,
+            "templeDamageEnergy": 0,
+            "energy": 35,
+            "ctrlRes": 0,
+            "skillLv": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "passMul": 1,
+            "immovable": false,
+            "stunImmune": false,
+            "pass": null,
+            "gearSkill": null
+          }
+        ],
+        "engine": "1790961518061",
+        "entryBinding": {
+          "v": 1,
+          "accountId": "fixture-user",
+          "guildId": "own-guild",
+          "requestId": "r3:2026-10-02:replacement",
+          "heroIds": [
+            "vael"
+          ]
+        },
+        "boss": {
+          "key": "wintercrag",
+          "name": "Wintercrag",
+          "tier": 1,
+          "hp": 400000,
+          "lvl": 15,
+          "def": 30000,
+          "dmgMul": 1
+        },
+        "raid": {
+          "level": 1,
+          "max": 400000,
+          "hp": 400000,
+          "kills": 0,
+          "yourDmg": 0,
+          "guildDmg": 0,
+          "attemptsLeft": 1,
+          "top": [],
+          "name": "Wintercrag",
+          "bossKey": "wintercrag",
+          "attemptsMax": 3
+        }
+      }
+    },
+    {
+      "route": "/api/guild/raid/resolve",
+      "packet": {
+        "requestId": "result-known-paid",
+        "attemptId": "ab7a5acaa27285df",
+        "inputLog": [],
+        "dmg": 17
+      },
+      "status": 200,
+      "body": {
+        "ok": false,
+        "error": "No matching raid battle.",
+        "raid": {
+          "level": 1,
+          "max": 400000,
+          "hp": 400000,
+          "kills": 0,
+          "yourDmg": 0,
+          "guildDmg": 0,
+          "attemptsLeft": 1,
+          "top": [],
+          "name": "Wintercrag",
+          "bossKey": "wintercrag",
+          "attemptsMax": 3
+        }
+      }
+    },
+    {
+      "route": "/api/guild/raid/start",
+      "packet": {
+        "requestId": "r3:2026-10-02:closed-then-rewind",
+        "heroIds": [
+          "vael"
+        ]
+      },
+      "status": 409,
+      "body": {
+        "ok": false,
+        "entryPeriodHeld": true,
+        "entryClosure": {
+          "v": 1,
+          "kind": "period-closed",
+          "spent": "unknown",
+          "accountId": "fixture-user",
+          "guildId": "own-guild",
+          "requestId": "r3:2026-10-02:closed-then-rewind",
+          "heroIds": [
+            "vael"
+          ],
+          "serverPeriod": "2026-10-03",
+          "packetHash": "90b3b5cbfec6af5057a0ca0725cc4796e8aa705cafc7137b304173fa99f58336"
+        },
+        "error": "That saved raid request is from a different day. No new attempt was spent."
+      }
+    },
+    {
+      "route": "/api/guild/raid/start",
+      "packet": {
+        "requestId": "r3:2026-10-02:closed-then-rewind",
+        "heroIds": [
+          "vael"
+        ]
+      },
+      "status": 200,
+      "body": {
+        "ok": true,
+        "attemptId": "6a2e97e483a269a8",
+        "seed": 3870895299,
+        "snaps": [
+          {
+            "key": "vael",
+            "level": 1,
+            "rank": 0,
+            "boss": false,
+            "maxHp": 400,
+            "dmg": 30,
+            "range": 28,
+            "speed": 70,
+            "atkInterval": 2.3,
+            "combatDist": 24,
+            "r": 18,
+            "melee": true,
+            "reach": 28.2,
+            "apow": 0,
+            "apMul": 1,
+            "hybrid": false,
+            "glyphDR": 0,
+            "defRating": 100,
+            "penRating": 0,
+            "armorRating": 60,
+            "mrRating": 40,
+            "armorPen": 0,
+            "magicPen": 0,
+            "critDmg": 0.6,
+            "lifestealStat": 0,
+            "evaStat": 0,
+            "accStat": 0,
+            "blockStat": 0,
+            "dmgBonusMul2": 1,
+            "shieldStrMul": 1,
+            "ctrlHitF": 0,
+            "hasteEnergyMul": 1,
+            "glyphRegen": 0,
+            "glyphCrit": 0,
+            "critRes": 0,
+            "energyReg": 0,
+            "templeDamageEnergy": 0,
+            "energy": 35,
+            "ctrlRes": 0,
+            "skillLv": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "passMul": 1,
+            "immovable": false,
+            "stunImmune": false,
+            "pass": null,
+            "gearSkill": null
+          }
+        ],
+        "engine": "1790961518061",
+        "entryBinding": {
+          "v": 1,
+          "accountId": "fixture-user",
+          "guildId": "own-guild",
+          "requestId": "r3:2026-10-02:closed-then-rewind",
+          "heroIds": [
+            "vael"
+          ]
+        },
+        "boss": {
+          "key": "wintercrag",
+          "name": "Wintercrag",
+          "tier": 1,
+          "hp": 400000,
+          "lvl": 15,
+          "def": 30000,
+          "dmgMul": 1
+        },
+        "raid": {
+          "level": 1,
+          "max": 400000,
+          "hp": 400000,
+          "kills": 0,
+          "yourDmg": 0,
+          "guildDmg": 0,
+          "attemptsLeft": 0,
+          "top": [],
+          "name": "Wintercrag",
+          "bossKey": "wintercrag",
+          "attemptsMax": 3
+        }
+      }
+    }
+  ],
+  "failure": null,
+  "fixtureRestored": true,
+  "scope": "Two NEW actual private authenticated HTTP negative controls, exact7d2cb9 server. Paid spent-book identity lacks pruned attempt snapshot and resolves read-only without grant. Closed old period later accepts fresh entry only after deliberate synthetic fixture clock rewind; demonstrates nonregressing-clock dependency, NOT observed live clock regression or backup restore. No candidate fix, native/browser/client cutover, balance or deployment proof."
+}

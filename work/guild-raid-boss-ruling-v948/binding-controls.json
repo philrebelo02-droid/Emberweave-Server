@@ -1,0 +1,74 @@
+{
+  "atET": "2026-10-03 08:35:17",
+  "sourceSHA256": "4f66439ee5c0ca10e35ff1b4eec3aefda3c9824c7ce48760d8274a3624ce2d69",
+  "helperSHA256": "75b194cf4a4040fc42910acd0320183c13c3bc5a8b5b786ed5a4184eecb806b5",
+  "checks": [
+    {
+      "name": "missing legacy reservation",
+      "status": 200,
+      "held": true,
+      "diskUnchanged": true
+    },
+    {
+      "name": "null reservation",
+      "status": 200,
+      "held": true,
+      "diskUnchanged": true
+    },
+    {
+      "name": "array reservation",
+      "status": 200,
+      "held": true,
+      "diskUnchanged": true
+    },
+    {
+      "name": "wrong version",
+      "status": 200,
+      "held": true,
+      "diskUnchanged": true
+    },
+    {
+      "name": "wrong accountId",
+      "status": 200,
+      "held": true,
+      "diskUnchanged": true
+    },
+    {
+      "name": "wrong guildId",
+      "status": 200,
+      "held": true,
+      "diskUnchanged": true
+    },
+    {
+      "name": "wrong attemptId",
+      "status": 200,
+      "held": true,
+      "diskUnchanged": true
+    },
+    {
+      "name": "wrong requestId",
+      "status": 200,
+      "held": true,
+      "diskUnchanged": true
+    },
+    {
+      "name": "wrong bossKey",
+      "status": 200,
+      "held": true,
+      "diskUnchanged": true
+    },
+    {
+      "name": "wrong tier",
+      "status": 200,
+      "held": true,
+      "diskUnchanged": true
+    },
+    {
+      "name": "boss rollover",
+      "status": 200,
+      "held": true,
+      "diskUnchanged": true
+    }
+  ],
+  "limits": "Synthetic stopped-fixture persisted-state mutation, actual private HTTP. No live data. No legacy migration or release policy inferred, no combat/balance/deploy approval."
+}

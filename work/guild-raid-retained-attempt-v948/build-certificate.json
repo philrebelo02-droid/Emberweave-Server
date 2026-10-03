@@ -1,0 +1,27 @@
+{
+  "atET": "2026-10-03 02:25:26",
+  "status": "PRIVATE_PARSE_ONLY_NOT_RELEASE",
+  "sourceCommit": "bbbc3a662a4f106153abafafec691cc6d70149a0",
+  "parentServerSHA256": "e1775ee9de03aa3f9fe2e6a9cf89123cc29eb07c7dc43da0e4bef6ddedfb93aa",
+  "serverSHA256": "c44be6449a11d557522d1d6c5035c879214f762a7f5bb289ae0a313450caa75d",
+  "clientSHA256": "a16689865954f8d2a9add81b21749cbbea0702aeb7d97608eaa478d404781552",
+  "edits": [
+    {
+      "name": "resume-exact-history",
+      "originalSHA256": "7b7583237a893e5ce52f9fef1c25b40b1705b5c8b121dc32c4bf70126cc8e3c8",
+      "replacementSHA256": "0595379b250832608a0e157e76f478f049f468a0d2b964ce489a0c63ed3d5aaa"
+    },
+    {
+      "name": "retain-before-charge",
+      "originalSHA256": "154056470a556b08d7e25a39e6f0a23fa223c14af31f809ef0e56885b9fd4fb5",
+      "replacementSHA256": "06a63448c1c4a0e1323bb010afac04f23f57047a681a9ef66264057716d4142d"
+    },
+    {
+      "name": "resolve-independent-attempt",
+      "originalSHA256": "33c1986dfa05d72903f0a2f0c6478a7f3db6e20c4ab8c721f1157ea2ba8bac7b",
+      "replacementSHA256": "ebe9142a357052321ab4a719a3cfd5d72562370267b46e66182f19f56f9ce315"
+    }
+  ],
+  "semantics": "Alternative to489 blockingguard: preserves historically allowed second paid fresh entry and original3/day caps. Retains still-valid overwritten snapshots account-owned/guild-bound, resolves exact old attempt without deleting newer slot. Durable stageduser+guild+receipt commit unchanged.",
+  "open": "Cross-feature/save-field authority, guildswitch discovery/expired terminal/history malformed clocks/receipt pruning/boss-tier advancement, full native client integration and all release gates remain OPEN. Not a full issuedticket integration."
+}

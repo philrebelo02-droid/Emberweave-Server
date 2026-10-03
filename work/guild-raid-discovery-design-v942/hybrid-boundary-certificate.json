@@ -1,0 +1,26 @@
+{
+  "atET": "2026-10-02T23:08:09-04:00",
+  "status": "PRIVATE_REVISED_HYBRID_NATIVE_BOUNDARIES_TESTED_NOT_REVIEW_READY_NOT_SHIPPED",
+  "hybridSHA256": "490c601bad306af9ae471080b8d8dc5caf31c8b83efb8176094e7cae6ab3b7c6",
+  "directorySHA256": "56188c9d573ba9285cdd845addc229dfed38fc4c00156e34f3b36364dd5d2272",
+  "fixtureSHA256": "71da87c41bcdfec2b675077b799a2b787273d623898410b025e4b05509d87a24",
+  "evidence": [
+    "hybrid-boundary-first-evidence.json",
+    "hybrid-boundary-evidence.json",
+    "hybrid-boundary-recovery.jpg"
+  ],
+  "nativeChecks": 4,
+  "extraScenarios": [
+    "Two independent Chrome tabs released from HTTP barrier: one enrolled/one duplicate intent refused, one row.",
+    "Writer tab closed after SYNC_STAGED_LOCK_HELD; peer recovered exact packet as result-recovery-only and lockAvailable:true."
+  ],
+  "limits": [
+    "First race harness stalled before result; excluded. Distinct barrier URLs fixed suspected identical-GET coalescing; not independently diagnosed.",
+    "Four boundary cases include injected retirement failure, not abrupt process crash.",
+    "No actual delayed settlement timer or held HTTP server-arrival log; do not claim those exact boundaries yet.",
+    "No game/paid charge/raid grant/server-confirmation/auth or legacy integration.",
+    "Quota/terminal-marker eviction/process crash/physical phone/full canonical runs remain unverified."
+  ],
+  "cleanup": "Both helpers exited0, four owned tabs closed, fixture storage retained. No live game/Brain/Pause changes.",
+  "next": "Instrument private helper's held-request arrival and actual delayed-settlement timer; prove completion slot readback occurs before timer fires and tab closes while HTTP is received/pending and Web Lock held. Then guarded private game composition with legacy enrollment refuse, account/session checks, actual API lost-reply/restart exact packet recovery. No live cutover or unchanged six/13/older suites rerun. Quota and terminal-marker eviction still open."
+}

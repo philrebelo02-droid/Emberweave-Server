@@ -1,0 +1,21 @@
+{
+  "atET": "2026-10-03 02:44:08",
+  "clientSHA256": "9da6e0554c1c754f60adec9d25bbf4aad39310d545829a45c5bf6a853c5085b6",
+  "results": [
+    {
+      "name": "mixed guild rows discover current guild and preserve other guild without writes",
+      "status": "FAIL",
+      "error": "Directory shape"
+    },
+    {
+      "name": "new guild with only previous guild row discovers empty without deleting paid intent",
+      "status": "FAIL",
+      "error": "Directory shape"
+    },
+    {
+      "name": "foreign account, invalid guild and total account overflow still hold",
+      "status": "PASS"
+    }
+  ],
+  "scope": "Actual embedded hybrid/row validation with modeled directory read and no writes. NOT native IndexedDB, actual server guild leave/switch, full HTML/browser, balance or deployment."
+}

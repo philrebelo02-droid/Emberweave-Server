@@ -1,0 +1,19 @@
+{
+  "atET": "2026-10-03 08:54:03",
+  "helperSHA256": "e8cdfdfa48463a08c82d99bf530f8e1fe5af0042711c068bddd5f9d592d86a44",
+  "baseHarnessSHA256": "1e91667cb795f8b2126f9cff1d5abdf50a8586c4a69653238f1a286da6301063",
+  "checks": [
+    {
+      "label": "fixed",
+      "sourceSHA256": "ac915324eb523723f2106a49252686285fa5a466578c941932c55bfac0c93c7b",
+      "naturalMissingFlag": false,
+      "flags": 1001,
+      "temporaryWriteAtomic": true,
+      "prior1000Retained": true,
+      "restartExact": true,
+      "changedPacket409": true,
+      "oneReward": true
+    }
+  ],
+  "limits": "Synthetic actual privateHTTP replay with empty inputs, not witnessed combat. Temporary-file write/quota-like fault503 retains attempt/history/reward state acrossrestart;1000 synthetic priorrows retained plusone newflag. This is a bounded capacity sample, not real diskfull/global historycapacity proof or a retention cap. Case3/review4 pipeline still requires qualification. No balance/fullQ6/deploy approval."
+}

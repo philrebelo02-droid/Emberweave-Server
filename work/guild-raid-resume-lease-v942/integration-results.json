@@ -1,0 +1,90 @@
+{
+  "at": "2026-10-03T03:38:43.597Z",
+  "pass": true,
+  "serverHash": "bfa12775e2d2353973a50041ae798f9fb642e55e7baff2cb59d196fe546a3744",
+  "facadeHash": "b3cf927bec2193bf3d2885abb60ae237672e263dee52bc4650cab078bbb979ac",
+  "hybridHash": "48ec8b50c642e0b78a2510e1fd9962bca8f7b51b73b0ea3abaf75a8ee4025d16",
+  "calls": [
+    {
+      "mode": "fresh-entry",
+      "packet": {
+        "requestId": "composition-entry",
+        "heroIds": [
+          "vael"
+        ]
+      },
+      "body": {
+        "requestId": "composition-entry",
+        "heroIds": [
+          "vael"
+        ]
+      }
+    },
+    {
+      "mode": "entry-recovery-only",
+      "packet": {
+        "requestId": "composition-entry",
+        "heroIds": [
+          "vael"
+        ]
+      },
+      "body": {
+        "requestId": "composition-entry",
+        "heroIds": [
+          "vael"
+        ],
+        "recoverOnly": true
+      }
+    },
+    {
+      "mode": "entry-recovery-only",
+      "packet": {
+        "requestId": "composition-entry",
+        "heroIds": [
+          "vael"
+        ]
+      },
+      "body": {
+        "requestId": "composition-entry",
+        "heroIds": [
+          "vael"
+        ],
+        "recoverOnly": true
+      }
+    },
+    {
+      "mode": "result-recovery-only",
+      "packet": {
+        "requestId": "result",
+        "attemptId": "81ee8851ad0e7544",
+        "inputLog": [],
+        "dmg": 10
+      },
+      "body": {
+        "requestId": "result",
+        "attemptId": "81ee8851ad0e7544",
+        "inputLog": [],
+        "dmg": 10
+      }
+    },
+    {
+      "mode": "result-recovery-only",
+      "packet": {
+        "requestId": "result",
+        "attemptId": "81ee8851ad0e7544",
+        "inputLog": [],
+        "dmg": 10
+      },
+      "body": {
+        "requestId": "result",
+        "attemptId": "81ee8851ad0e7544",
+        "inputLog": [],
+        "dmg": 10
+      }
+    }
+  ],
+  "entryCount": 1,
+  "raidTransactions": 1,
+  "scope": "Fresh VM facade instances + actual private HTTP/restart, model storage/locks and injected quiescence. Entry validator checks fixture disk: evidence oracle ONLY, not production validator/auth integration. Synchronous staging proved, no actual game timer/native HTML.",
+  "open": "Production authenticated response validator, source guarded bootstrap/package, confirmation/cleanup, native integration and quiescence remain OPEN. Retained pending row deliberately not cleared."
+}

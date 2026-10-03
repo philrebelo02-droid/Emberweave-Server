@@ -1,0 +1,10 @@
+{
+ "status":"PRIVATE_COMPONENT_TESTED_WITH_KNOWN_CROSS_TAB_FAILURE_NOT_REVIEW_READY_NOT_SHIPPED",
+ "baseSHA256":"71ea32a8b8f60a70cf0429139ba66bb763991cca6c5ecb5349097cb8c9124155",
+ "htmlSHA256":"13dd1eb9a0b1445cad1608da4f95d57aa6ead741ff6c5de4590a5fa8ffd0a797",
+ "finding":"Two natural controlled shared-storage interleavings fail on prior journal: simultaneous fresh first writes send2differententryIDs; old result retry overwrites and clears newer entry after another tab confirms the oldresult.",
+ "fix":"Bind result journal transition to the original entry request identity, carried from successful start in CUR, persisted without tokens and recovered with saved result. An old result cannot replace an unrelated start row. No server packet/prices/rewards changed.",
+ "proof":"15journal regressionPASS;2cross-tabcontrols now1PASS1FAIL (fresh-entryrace remains OPEN). ActualAPI/privateHTTP freshVM reload+serverrestart entry/result recoveryPASS on newhash;onecharge/oneguildraidtransaction. Priorfixture71202733restored/childrenstopped. No inherited guards claimed for this new un-packaged hash.",
+ "limitations":"Controlled interleavings are not real multi-tab browser proof. Single localStorage read/check/write is not CAS; simultaneous fresh entry and cleanup TOCTOU remain unsafe. New candidate not packaged/installable/reviewready; do not use prior71ea guards as new13dd proof. Existing storagefault/expiry/legacy/realUI/phone/fullcanonical gates remain.",
+ "nextAction":"Implement account-scoped cross-context coordination with genuine atomic primitive (e.g. browser Web Locks/transactional storage), bounded wait and unsupported fail-closed behavior. Do NOT claim a localStorage timestamp lease or readback alone is atomic. Preserve saved transcript before result timer or reload; lock read/write/remove plus network intent selection. Add deterministic lock queue, lock unavailable/abort/tab-close, delayed/reversed replies and cleanup race controls. Retained same paid identity across manual recovery; no automatic fresh charge. Then package/guards and real DOM/UI proof."
+}

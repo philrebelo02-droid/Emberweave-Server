@@ -1,0 +1,29 @@
+{
+  "atET": "2026-10-03 07:00:17",
+  "status": "PASS scoped normal guest authentication/ledger adoption and reload; NOT Guild entry/combat/balance approval",
+  "clientSHA256": "28ec2c6d66f33b9d730d3b1d224992e1a1205070affaf23f71be19637ff45283",
+  "serverSHA256": "7d2cb9f199382ea77a31ed36bfead8fc03808c9559a40ed5b18bb17c5ef5dbe9",
+  "fixtureSourceSHA256": "ffef8de561f0f0d84e71932a08b7174dbcbfb162b61c919ce008b1f6359195f2",
+  "rawSHA256": "2a1a826025cf0ea7055806102bcc4e20f9cc0eba51e24fea7b0a542f3cace0f5",
+  "adapterSHA256": "97182ed715d38c7509f995ca29d170d56dc8a61738efaa89a000d002a5edd5e5",
+  "verifierSHA256": "3358c9723925223429c1a1c7afc3eb29d452f79085408b6c923d7213c8fa373e",
+  "screenshotSHA256": "212cda64d268813b25078b1018fede5a24386bf143dd9f10b369961645ddd89e",
+  "summary": {
+    "accountId": "fixture-user",
+    "guest": true,
+    "deviceBinding": "fixture-user",
+    "accountCount": 2,
+    "gold": 100000,
+    "gems": 100000,
+    "px": 1000,
+    "raidTransactions": 0
+  },
+  "actualApiCalls": 31,
+  "guestCalls": 1,
+  "allApiStatus200": true,
+  "raidCalls": 0,
+  "visibleObservation": "Actual UI town level14/food60of73/gold100000/gems100000 before and after reload. Separate landing page preseeded only synthetic device ID; exact full candidate unchanged, no session/combat/adoptLedger replacements or production proof.",
+  "failingObservations": "AX text click Guild Hall had no visible navigation; no Guild UI or fight proof. CSP worker registration denied; older private asset/PWA coverage limitations remain. First auth helper86873 missing generated-module bindings caught before browser and stoppedexit1 after scoped process cleanup. Second browser helper7841 shutdown exited1: ReferenceError Cannot access f before initialization due evidence-file local shadowing. Child32816 later absent; source restored from independently hashchecked71202733 copy. Corrected teardown separately rerun without browser gameplay, helper62162 /shutdown exit0, retained original browser request evidence separately. Do not call original browser helper exit0 or rawclosedtrue.",
+  "scope": "Exact complete page unchanged, normal guest/auth initialization against actual private7d2cb9 server; only isolated deviceId preseeded on separate fixture landing page. Synthetic preexisting guest; no combat/session/adoptLedger replacement or production proof. Older existing snapshot assets/scripts, CSPself workerdisabled.",
+  "limits": "Existing private fixture server clock pinned Oct2 and older snapshot dependency versions; no current live baseline/full integrated dependency verification, Guild membership, twoactualfights, quota/crash/phone/bots, productionquiescence/cutover/retention/GDBbackup/protectedfloorrestore/docs/balance/installer/dualapproval. No game/live/policy change or deployment."
+}

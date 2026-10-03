@@ -1,0 +1,8 @@
+{
+ "status":"PRIVATE PROPOSED ENTRY-ONLY RECOVERY CONTRACT; not shipped/live blueprint",
+ "baseServerSHA256":"45b523764006dcac35bfeee1effe3ad790f25a81326180ce67b79607696ef955",
+ "purpose":"An exact lower-case valid r3 prior-UTC-day identity cannot initiate a new paid entry. Preserve live paid resume BEFORE closing the old day. Return an authenticated scope+exact packet binding for client entry-only cleanup, NOT a proof nothing was previously paid.",
+ "reply":"409 entryPeriodHeld with entryClosure {v:1,kind:period-closed,spent:unknown,accountId,guildId,requestId,heroIds,serverPeriod,packetHash}",
+ "constraints":["No refund, grant, mutation, paid fallback or automatic remint","No closure for current/future day, invalid calendar dates, noncanonical/malformed ids, generic403/429/409, corrupt book/history or unknown legacy ids","Existing live entry must resume with original packet before this branch","Result-bearing/confirmed rows never cleaned from entryClosure; phase and captured account/guild/token/epoch must match under existing lock and atomic directory guard","Packet hash SHA256 JSON.stringify({requestId,heroIds}) exact ordered packet, not normalized identity","Pastday fence persists independently of receipt/history pruning; do NOT label spent false","Server proof is narrow UTC period closure, not recovery/refund of unknown historical fight; client/native integration pending"],
+ "blueprintRead":"06 Guild Hall raid flow/numbers/servercontract and shipped v672 sections read; master/06protocol full read03:47ET. Preserve existing3attempts/10slots/entry-spend/rewards. Authored damage discrepancy Q6 remains OPEN, no balance approval."
+}

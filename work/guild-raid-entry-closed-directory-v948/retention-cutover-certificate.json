@@ -1,0 +1,36 @@
+{
+  "atET": "2026-10-03 05:09:39",
+  "clientSHA256": "c4f330ca4ae0df11f56caa2fab3db6d6483adcaddb0a970c02953ae8516ff115",
+  "legacySourceSHA256": "71ea32a8b8f60a70cf0429139ba66bb763991cca6c5ecb5349097cb8c9124155",
+  "testSHA256": "b71069c3cce71db9673e57235734f1cefb2a70ee82983c9922e9e5d74f092065",
+  "pass": 6,
+  "fail": 0,
+  "cases": [
+    {
+      "name": "Historical legacy writer writes canonical storage while new account lock is held: negative quiescence witness",
+      "status": "PASS"
+    },
+    {
+      "name": "Historical legacy source has no new cutover proof or lock participation",
+      "status": "PASS"
+    },
+    {
+      "name": "Confirmed marker prevents raw retained old lease from staging after directory retirement",
+      "status": "PASS"
+    },
+    {
+      "name": "Deleting retained marker lets raw old lease recreate orphan result: unsafe eviction control",
+      "status": "PASS"
+    },
+    {
+      "name": "Confirmation cleanup quota preserves exact staged packet plus confirmed directory; retry retains fence",
+      "status": "PASS"
+    },
+    {
+      "name": "Retired marker at reused instance ID blocks new stage rather than overwriting terminal evidence",
+      "status": "PASS"
+    }
+  ],
+  "scope": "New actual embedded hybrid and historical legacy journal functions. Modeled storage/directory/held lock only. Unsafe controls intentionally delete a private MODEL marker, never game data. Raw hybrid lease bypasses facade, not a claim current facade sends an orphan result. No native, migration, eviction fix, activation, balance or deployment proof.",
+  "conclusion": "Retain terminal markers; do not infer old writers quiescent from a new Web Lock or empty legacy keys. Real all-writer cutover and bounded durable retention remain OPEN."
+}

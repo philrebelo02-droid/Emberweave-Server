@@ -1,0 +1,46 @@
+{
+  "status": "PROPOSED_CONTRACT_ONLY_NOT_IMPLEMENTED_TESTED_APPROVED_OR_SHIPPED",
+  "scope": "Guild recovery cutover, terminal-marker retention and player-progress backup. No gameplay numbers, outcome authority, rewards, refunds or new building rules are chosen here.",
+  "clientSHA256": "28ec2c6d66f33b9d730d3b1d224992e1a1205070affaf23f71be19637ff45283",
+  "serverSHA256": "7d2cb9f199382ea77a31ed36bfead8fc03808c9559a40ed5b18bb17c5ef5dbe9",
+  "currentAccessibleEvidence": [
+    "Exact hybrid key uses accountId and instanceId, not a durable generation. Writer leases are per-runtime Maps; stage checks current context, exact lease and immutable localStorage slot.",
+    "Cleanup writes and reads back a terminal marker BEFORE retiring the IndexedDB directory, preserving interrupted cleanup. It intentionally never evicts terminal markers.",
+    "Exact facade guards accepted attempts and current directory under the account Web Lock; raw hybrid stage has no durable retired-generation check. Its runtime context epoch is not a server-persisted cutover epoch.",
+    "Exact HTML bridge requires an external EW_RAID_LEGACY_QUIESCENCE_PROOF function returning Boolean true. No actual all-writer provider has been implemented or proven by this candidate.",
+    "Historical legacy writer ignores the new account Web Lock. Existing retention control uses the parent c4f330 hash; current native component evidence uses28ec2c. Neither establishes all old writers stopped.",
+    "Current hybrid packet and terminal data are in a separate native directory/localStorage prototype. Browser-only recovery data is not evidence of compliance with the master G/DB backup rule. No release backup test exists.",
+    "Past-period entry closure is not proof that every staged result is forfeited or that all matching receipts can be discarded. Prior expired-result recovery remains valid evidence for its pinned historical candidate only."
+  ],
+  "nonNegotiableSafetyProperties": [
+    "No deletion or compaction of unconfirmed entry/result records; ambiguity remains held with no fresh-charge fallback.",
+    "No assumption that Web Lock ownership, empty keys, absence of recent messages, build number, TTL or max-record cap proves old writer quiescence.",
+    "Do not install a constant-true proof provider. A server rejection fence and physical browser-writer quiescence are different claims.",
+    "Persist exact scope, entry/attempt identity and result digest with durable confirmation before retiring discoverability; a storage/save failure retains recoverable evidence.",
+    "No receipt retention policy can reinterpret a pruned unknown as unspent, unpaid or never accepted.",
+    "No forced logout, global client invalidation, old-claim forfeiture, compensation or balance policy is authorized by this design. Any such material policy choice must be explicit before implementation/deployment.",
+    "Keep player progress in the canonical G/DB backup path and independently inspect the first restored backup. No separate-store-only shortcut."
+  ],
+  "proposedEpochContractForJointReview": {
+    "durableOwner": "An account-scoped server DB monotonic generation/retirement fence, committed through the existing durable save boundary; precise schema and migration remain unselected.",
+    "identity": "Server-issued authenticated generation/attempt binding; client-provided version or epoch alone conveys no authority. Cross-guild recovery retains original scope without allowing duplicate account entry or spending.",
+    "acceptance": "New entry in a generation is accepted only after durable canonical reservation. Existing known paid attempts/results retain an explicit compatibility recovery path; unknown legacy identities do not acquire a fresh spend by being labeled recovery.",
+    "writerFence": "Every participating local writer must refuse an invalid or durably retired generation before staging. An older writer that never checks the fence cannot be declared stopped merely because the server now rejects it. The cutover provider must separately explain how old origin-local writers are fenced, or activation remains held.",
+    "compaction": "Only already-confirmed, exact-scope, exact-digest terminal records whose stale writers are independently fenced could become candidates for bounded compaction. A retained monotonic generation fence replaces individual markers only after proof that every relevant local and server path honors it; no compaction code is proposed for the current candidate.",
+    "restore": "Restoring old G/DB or browser data must not lower the effective fence or reauthorize retired writers. Backup/rollback plans must preserve accepted claims and fence monotonicity; restoring an older build is not permission to replay retired intents.",
+    "completionGap": "A local synchronous write protects the immediate completed transcript differently from a cloud acknowledgement. Merely sending a debounced G save is not cloud durability. Define and test the canonical completion/backup boundary without claiming asynchronous acknowledgement prevents a tab closing before it completes."
+  },
+  "newEvidenceRequiredBeforeImplementationApproval": [
+    "Inventory every current and supported legacy writer, recovery caller, local slot key and server entry/result path by exact source hash; unknown clients remain an explicit limit.",
+    "Natural controls: old retained lease after compaction, legacy writer ignoring new lock, delayed in-flight fresh entry after closure, altered generation/scope/digest, evicted receipt unknown, rollback/backup with older epoch, clock regression and interrupted durable fence save.",
+    "Native controls on the same candidate: two-tab directory-only contention; precommit tab closure; quota after paid entry; denied native storage; recovery after cleanup interruption. No transfer from a different hash or synthetic model.",
+    "Actual authenticated HTTP plus native storage recovery and backup restoration: one entry charge, at most one grant, zero network/grant for confirmed cleanup, no new authority from restore or migrated legacy unknown.",
+    "Document compatible claim retention, bounded storage sizing and unchanged or explicitly agreed balance. Complete full current regression and dual exact-artifact approvals before deployment."
+  ],
+  "questionsForClaude": [
+    "Do you agree the existing runtime context epoch is not a persisted cutover epoch and cannot justify terminal-marker eviction?",
+    "What exact existing server/G save mechanism should own the reservation, accepted result and monotonic fence so backup/restore evidence covers them without a separate-store-only progress path?",
+    "Can we preserve all known paid legacy claims while refusing unknown legacy fresh fallbacks, without treating server fencing as proof of origin-local writer quiescence? Please identify any reachable conflicting old writer or route.",
+    "Which backward-compatibility or retention choice needs Phil's explicit policy decision, rather than an engineering-only change? This is design review, not a request to approve deployment."
+  ]
+}

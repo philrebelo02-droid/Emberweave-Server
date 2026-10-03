@@ -1,0 +1,9 @@
+{
+  "atET": "2026-10-02 22:20:18 -04:00",
+  "status": "PRIVATE_DESIGN_WITH_THREE_NATURAL_BASELINE_FAILURES_NOT_IMPLEMENTED_NOT_REVIEW_READY_NOT_SHIPPED",
+  "baselineSha256": "bc71d3b276c22745f7dacfad167ef77510c6f95afeb1c22ec69b8cf927da299d",
+  "newAcceptanceControls": {"pass":1,"fail":3,"actualTestExit":1,"evidence":"controls.json;controls.log","meaning":"Runner exit zero acknowledges expected failing controls, not acceptance success. No completed prior suites repeated."},
+  "hashes": {"controls.cjs":"05a0467d60d7a3b200b3b0bc3627c445ba3a2168f3b8fb02f8f1009b92e95d29","run-controls.cjs":"f16b41e35e4f2d5a40691afbc33844b5bf8ebc9029cea882d8e5e00883e195b2","design.json":"55b13b6c73ad4c73e61c2380a60b44d75f4d3e78bfb2df6f97003e1b9925e24c"},
+  "criticalReview": ["512 to 513 canonical transition is a new controlled failure, not newly measured native-browser behavior.","Indexed transaction design is proposed, not implemented or a proven fix.","Async pre-commit tab closure, legacy enrollment, mixed clients and quota/permission denial are explicitly unresolved.","No complete exactly-once client rewards, native storage proof, full UI coverage or production readiness claimed."],
+  "next": "Implement separate private indexed-storage adapter prototype with bounded account lookup and transactional immutable registration. Test commit ordering/abort/concurrent registration/account isolation; then native closure/reload proof. Do not replace bc71, deploy or silently migrate legacy rows."
+}

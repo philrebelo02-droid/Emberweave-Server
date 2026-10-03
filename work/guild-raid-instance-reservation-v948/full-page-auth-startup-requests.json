@@ -1,0 +1,10 @@
+{
+  "atET": "2026-10-03 06:53:41",
+  "clientSHA256": "28ec2c6d66f33b9d730d3b1d224992e1a1205070affaf23f71be19637ff45283",
+  "requests": [],
+  "serverSHA256": "7d2cb9f199382ea77a31ed36bfead8fc03808c9559a40ed5b18bb17c5ef5dbe9",
+  "fixtureSourceSHA256": "ffef8de561f0f0d84e71932a08b7174dbcbfb162b61c919ce008b1f6359195f2",
+  "accountCount": 2,
+  "scope": "Exact complete page unchanged, normal guest/auth initialization against actual private7d2cb9 server; only isolated deviceId preseeded on separate fixture landing page. Synthetic preexisting guest; no combat/session/adoptLedger replacement or production proof. Older existing snapshot assets/scripts, CSPself workerdisabled.",
+  "closed": true
+}

@@ -1,0 +1,26 @@
+{
+  "at": "2026-10-02T23:56:11.307Z",
+  "results": [
+    {
+      "label": "original-controls",
+      "pass": 1,
+      "fail": 5
+    },
+    {
+      "label": "candidate6",
+      "pass": 6,
+      "fail": 0
+    },
+    {
+      "label": "combined119",
+      "pass": 119,
+      "fail": 0
+    },
+    {
+      "label": "adjacent9",
+      "pass": 9,
+      "fail": 0
+    }
+  ],
+  "exactRestored": true
+}

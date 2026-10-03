@@ -1,0 +1,9 @@
+{
+  "atET": "2026-10-03 02:31:07",
+  "status": "THREE_EMBEDDED_COMPONENT_TESTS_PASS_NOT_NATIVE_OR_RELEASE",
+  "clientSHA256": "9da6e0554c1c754f60adec9d25bbf4aad39310d545829a45c5bf6a853c5085b6",
+  "serverSHA256": "c44be6449a11d557522d1d6c5035c879214f762a7f5bb289ae0a313450caa75d",
+  "fixed": "3 PASS: ten ordered heroes enroll through actual embedded hybrid; ten reach embedded directory transaction boundary; eleven and duplicates reject before transaction.",
+  "original": "a166 client: first two naturally FAIL (Entry shape / Directory row); rejection control already PASS.",
+  "limitations": "Fake directory commit and transaction sentinel: NOT native IndexedDB, full client HTTP integration, render, phone, bots or balance approval. Exactly two private validation bounds 8->10; canonical v948 raid permits TEAM_SIZE5*2. No prices/rewards/cap/order changes. No deployment."
+}

@@ -1,0 +1,26 @@
+{
+  "atET": "2026-10-03 03:20:34",
+  "dest": "C:/Users/Home/OneDrive/Desktop/Emberweave Archive/Open Projects/Guild raid namespaced client tools 03OCT2026/Boundary and reviewer inspection 0319",
+  "manifest": [
+    {
+      "name": "midnight-get-start.cjs",
+      "sha256": "24e07bde5f6362954bc2aa71ed021fab581ff54a45483a6fb6621d61a076db9e"
+    },
+    {
+      "name": "midnight-get-start-certificate.json",
+      "sha256": "92e5978c1cc57d2d9de0542af31935bd5828f61c801e62cb3b9d96d8e7ad8996"
+    },
+    {
+      "name": "review6-inspect.cjs",
+      "sha256": "b8c90a702788e1372a72840c2a73cccfef65e3ccb6295529e7c879b74a680ad5"
+    },
+    {
+      "name": "review6-inspection.json",
+      "sha256": "c62cad898e36ffb1f2c4c3a7c593f9f18bc2f45abaf874d1303f9d48d4f76237"
+    },
+    {
+      "name": "archive-boundary.cjs",
+      "sha256": "4eb0c6ed3805ab988b68e1cd7f2e63576cf4640a82cf97ee086ed5c4e1498961"
+    }
+  ]
+}

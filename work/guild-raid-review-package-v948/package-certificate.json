@@ -1,0 +1,23 @@
+{
+  "atET": "2026-10-03 05:00:14",
+  "result": {
+    "files": 8,
+    "totalBytes": 4239749,
+    "inlineScriptsParsed": 3,
+    "serverParsed": true,
+    "deployApproved": false,
+    "installable": false
+  },
+  "controls": [
+    {
+      "name": "source-hash mismatch",
+      "status": "EXPECTED_REFUSAL"
+    },
+    {
+      "name": "approval flag contamination",
+      "status": "EXPECTED_REFUSAL"
+    }
+  ],
+  "manifestSHA256": "f8c030be9503ae47ee9e0c9ccf03cdcb121dd422b824c285eb09767e542fd20a",
+  "scope": "Package bytes/parse and rejection checks only. No completed gameplay suite rerun; no native/balance/release assertion."
+}

@@ -1,0 +1,8 @@
+'use strict';const test=require('node:test'),assert=require('node:assert/strict'),{validateEntryReply:V}=require('./validator.cjs'),copy=x=>JSON.parse(JSON.stringify(x));
+const input={scope:{accountId:'actor',guildId:'guild'},entry:{requestId:'entry',heroIds:['hero']},reply:{status:200,body:{ok:true,resumed:true,attemptId:'attempt',seed:1,entryBinding:{v:1,accountId:'actor',guildId:'guild',requestId:'entry',heroIds:['hero']}}}};
+test('bound response produces exact entry/attempt proof without fixture disk',()=>{assert.deepEqual(V(copy(input)),{accountId:'actor',guildId:'guild',entryRequestId:'entry',entry:input.entry,attemptId:'attempt'})});
+for(const field of ['accountId','guildId','requestId','heroIds'])test('mismatched '+field+' refuses',()=>{const x=copy(input);x.reply.body.entryBinding[field]=field==='heroIds'?['other']:'other';assert.throws(()=>V(x),/mismatch/)});
+for(const status of [403,409,503])test('HTTP '+status+' refuses',()=>{const x=copy(input);x.reply.status=status;assert.throws(()=>V(x),/binding/)});
+test('missing/extra binding refuses',()=>{for(const extra of [false,true]){const x=copy(input);if(extra)x.reply.body.entryBinding.extra=true;else delete x.reply.body.entryBinding;assert.throws(()=>V(x),/binding/)}});
+test('nonresumed or unsuccessful response refuses',()=>{for(const field of ['ok','resumed']){const x=copy(input);x.reply.body[field]=false;assert.throws(()=>V(x),/binding/)}});
+test('invalid attempt and seed shapes refuse',()=>{for(const body of [{attemptId:''},{attemptId:3},{seed:-1},{seed:1.5},{seed:4294967296}]){const x=copy(input);Object.assign(x.reply.body,body);assert.throws(()=>V(x),/shape/)}});

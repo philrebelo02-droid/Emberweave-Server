@@ -1,0 +1,112 @@
+{
+  "atET": "2026-10-03 05:16:35",
+  "serverSHA256": "7d2cb9f199382ea77a31ed36bfead8fc03808c9559a40ed5b18bb17c5ef5dbe9",
+  "clientSHA256": "28ec2c6d66f33b9d730d3b1d224992e1a1205070affaf23f71be19637ff45283",
+  "checks": 6,
+  "calls": [
+    {
+      "route": "/api/guild/raid/start",
+      "packet": {
+        "requestId": "r3:2026-10-02:reserved-slot",
+        "heroIds": [
+          "vael"
+        ]
+      },
+      "status": 200,
+      "body": {
+        "ok": true,
+        "attemptId": "ec2a5cd83117c4e4",
+        "seed": 1609185344,
+        "snaps": [
+          {
+            "key": "vael",
+            "level": 1,
+            "rank": 0,
+            "boss": false,
+            "maxHp": 400,
+            "dmg": 30,
+            "range": 28,
+            "speed": 70,
+            "atkInterval": 2.3,
+            "combatDist": 24,
+            "r": 18,
+            "melee": true,
+            "reach": 28.2,
+            "apow": 0,
+            "apMul": 1,
+            "hybrid": false,
+            "glyphDR": 0,
+            "defRating": 100,
+            "penRating": 0,
+            "armorRating": 60,
+            "mrRating": 40,
+            "armorPen": 0,
+            "magicPen": 0,
+            "critDmg": 0.6,
+            "lifestealStat": 0,
+            "evaStat": 0,
+            "accStat": 0,
+            "blockStat": 0,
+            "dmgBonusMul2": 1,
+            "shieldStrMul": 1,
+            "ctrlHitF": 0,
+            "hasteEnergyMul": 1,
+            "glyphRegen": 0,
+            "glyphCrit": 0,
+            "critRes": 0,
+            "energyReg": 0,
+            "templeDamageEnergy": 0,
+            "energy": 35,
+            "ctrlRes": 0,
+            "skillLv": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "passMul": 1,
+            "immovable": false,
+            "stunImmune": false,
+            "pass": null,
+            "gearSkill": null
+          }
+        ],
+        "engine": "1790961518061",
+        "entryBinding": {
+          "v": 1,
+          "accountId": "fixture-user",
+          "guildId": "own-guild",
+          "requestId": "r3:2026-10-02:reserved-slot",
+          "heroIds": [
+            "vael"
+          ]
+        },
+        "boss": {
+          "key": "wintercrag",
+          "name": "Wintercrag",
+          "tier": 1,
+          "hp": 400000,
+          "lvl": 15,
+          "def": 30000,
+          "dmgMul": 1
+        },
+        "raid": {
+          "level": 1,
+          "max": 400000,
+          "hp": 400000,
+          "kills": 0,
+          "yourDmg": 0,
+          "guildDmg": 0,
+          "attemptsLeft": 2,
+          "top": [],
+          "name": "Wintercrag",
+          "bossKey": "wintercrag",
+          "attemptsMax": 3
+        }
+      }
+    }
+  ],
+  "failure": null,
+  "fixtureRestored": true,
+  "scope": "Actual embedded candidate facade/hybrid/transport/fresh-validator with private authenticated HTTP server and whole DB bytes/restart. Storage/directory/locks/quiescence modeled, NOT native or real all-writer cutover, no activation/balance/deploy approval. Four zero-transport refusal checks, one distinct-instance paid entry, one restart unchanged check."
+}

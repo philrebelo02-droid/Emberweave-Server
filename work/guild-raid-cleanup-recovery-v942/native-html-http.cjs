@@ -1,0 +1,35 @@
+'use strict';
+const fs=require('node:fs'),path=require('node:path'),http=require('node:http'),Module=require('node:module'),crypto=require('node:crypto'),assert=require('node:assert/strict');
+const root=path.join(__dirname,'../shady-gold-v942/snapshot'),serverFile=path.join(root,'server.js'),saved=fs.readFileSync(serverFile),hash=x=>crypto.createHash('sha256').update(x).digest('hex');
+assert.equal(hash(saved),'71202733c70b7e0d5e301918a594214eef1087f7b3cdd8161e152ed6c113de65');assert(!fs.existsSync('C:/Users/Home/AppData/Local/Emberweave/shutdown-requested.json'));
+const candidate=fs.readFileSync(path.join(__dirname,'private-bootstrap-heroes.html'),'utf8');assert.equal(hash(candidate),'5636f71697dc6b75c59279b779fdaf76a837b4b2c878cf5232f551edc044f0e2');
+const b=candidate.indexOf('const EW_RAID_V3_MODULES='),e=candidate.indexOf('/* The damage this fight has done to the raid boss:',b),hooks=candidate.slice(b,e);assert(b>0&&e>b);
+let f,web,closing=false,lostEntry=true,lostResult=true,calls=[],reports=[];
+async function close(){if(closing)return;closing=true;if(web){web.close();web.closeAllConnections()}if(f)await f.stop();fs.writeFileSync(serverFile,saved);assert.equal(hash(fs.readFileSync(serverFile)),hash(saved));console.log('Owned fixture stopped; guarded snapshot restored');}
+process.on('SIGINT',()=>close().then(()=>process.exit(0)));process.on('SIGTERM',()=>close().then(()=>process.exit(0)));
+(async()=>{
+fs.copyFileSync(path.join(__dirname,'../guild-raid-settlement-binding-v942/payload/server.js'),serverFile);
+const fixtureFile=path.join(root,'tests/private-native-html-http.cjs'),m=new Module(fixtureFile);m.filename=fixtureFile;m.paths=Module._nodeModulePaths(path.dirname(fixtureFile));m._compile(fs.readFileSync(path.join(__dirname,'../guild-raid-recovery-only-v942/tests.cjs'),'utf8').split('const E=')[0].replace('root=process.env.GUILD_FIXTURE_ROOT','root='+JSON.stringify(root)).replace("path.join(root,'tests/guild-leadership.test.cjs')",JSON.stringify(path.join(__dirname,'../guild-leadership-v942/tests.cjs')))+'\nmodule.exports={setup};',fixtureFile);({f}=await m.exports.setup());
+const page=`<!doctype html><meta charset="utf-8"><title>Private Guild native HTML HTTP recovery</title><style>body{font:16px system-ui;margin:24px;background:#142033;color:white}button{padding:12px;margin:5px}pre{white-space:pre-wrap}</style><h1>Private Guild native HTML HTTP recovery</h1><p>Isolated synthetic account. Real browser storage/locks and private API; no live game or real combat.</p><button onclick="run(raidLaunch)">Fresh entry: lose committed reply</button><button onclick="run(raidRecoverSaved)">Recover saved request</button><button onclick="run(()=>raidSettlementQueue({requestId:'native-result',attemptId:CUR.attemptId,inputLog:[],dmg:10},CUR.raid))">Stage result: lose committed reply</button><button onclick="run(()=>fetch('/restart',{method:'POST'}))">Restart owned private API</button><pre id="out">Ready</pre><div id="resultTitle"></div><div id="resultReward"></div><div id="resultHint"></div><script>
+const G={guild:{id:'own-guild'}},ACC={id:'fixture-user',token:'generic-fixture-token'},TEAM_SIZE=3;let CUR={},gameSpeed=1;const evidence={fightStarts:0,notices:[],renderedRewards:0};
+const squadFor=()=>['vael'],uid8=()=>crypto.randomUUID().replace(/-/g,'').slice(0,20),escapeHTML=x=>String(x).replace(/&/g,'&amp;').replace(/</g,'&lt;'),resultStale=()=>false,setResultVerdict=()=>{},updateHubChrome=()=>{},show=()=>{},adoptLedger=()=>{evidence.renderedRewards++};
+function startBattle(){evidence.fightStarts++;report()}
+function bannerMsg(message){evidence.notices.push(message);report()}
+function resultLater(fn,ms){setTimeout(()=>Promise.resolve(fn(1)).finally(()=>report()),ms)}
+// TEST-ONLY isolated origin has no old game writer; not production quiescence.
+window.EW_RAID_LEGACY_QUIESCENCE_PROOF=async()=>true;
+${hooks}
+async function report(){const rows=await new Promise((resolve,reject)=>{const q=indexedDB.open('ew_raid_pending_v3',1);q.onsuccess=()=>{const db=q.result;if(!db.objectStoreNames.contains('slots')){db.close();resolve([]);return}const t=db.transaction('slots','readonly'),r=t.objectStore('slots').getAll();r.onsuccess=()=>{resolve(r.result);db.close()};r.onerror=()=>reject(r.error)};q.onerror=()=>reject(q.error)});const slots=Object.keys(localStorage).filter(k=>k.startsWith('codex_private_raid_slot_v3_')).map(k=>({key:k,value:JSON.parse(localStorage.getItem(k))}));const data={...evidence,CUR,rows,slots,secureContext:isSecureContext,webLocks:!!navigator.locks};document.getElementById('out').textContent=JSON.stringify(data,null,2);await fetch('/report',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(data)})}
+async function run(fn){try{await fn()}catch(e){bannerMsg(String(e))}await report()}
+</script>`;
+web=http.createServer(async(req,res)=>{try{
+if(req.url==='/shutdown'){res.end('Stopping');await close();return}
+if(req.url==='/restart'){await f.stop();await f.launch();res.end('Owned API restarted');return}
+if(req.url==='/evidence'){res.setHeader('content-type','application/json');res.end(JSON.stringify({calls,reports,db:f.disk(),htmlHash:hash(candidate)}));return}
+if(req.url==='/report'){let raw='';for await(const chunk of req){raw+=chunk;if(raw.length>250000)throw Error('Report bound')}reports.push(JSON.parse(raw));fs.writeFileSync(path.join(__dirname,'native-html-http-evidence.json'),JSON.stringify({at:new Date().toISOString(),htmlHash:hash(candidate),serverHash:hash(fs.readFileSync(serverFile)),calls,reports,entryCount:f.disk().users['fixture-user'].raidDay?.n||0,raidTransactions:f.disk().users['fixture-user'].led.txs.filter(x=>x.src==='guild-raid').length,scope:'Real native storage/locks/DOM with EXACT generated Guild block and actual private HTTP. Synthetic account/no combat; test-only quiescence true on isolated origin, not production/full game page.'},null,2));res.end('Saved');return}
+if(req.url.startsWith('/api/')){let raw='';for await(const chunk of req){raw+=chunk;if(raw.length>200000)throw Error('Packet bound')}const body=JSON.parse(raw),reply=await f.call(req.url,body,req.headers['x-token']);calls.push({route:req.url,packet:body,status:reply.status});if(req.url.endsWith('/start')&&!body.recoverOnly&&lostEntry){lostEntry=false;res.writeHead(200,{'content-type':'application/json'});res.end('Injected unreadable committed entry reply');return}if(req.url.endsWith('/resolve')&&lostResult){lostResult=false;res.writeHead(200,{'content-type':'application/json'});res.end('Injected unreadable committed result reply');return}res.writeHead(reply.status,{'content-type':'application/json'});res.end(JSON.stringify(reply.body));return}
+res.setHeader('content-type','text/html');res.end(page);
+}catch(error){res.writeHead(500,{'content-type':'application/json'});res.end(JSON.stringify({error:String(error)}))}});
+web.listen(0,'127.0.0.1',()=>console.log(JSON.stringify({url:'http://127.0.0.1:'+web.address().port,htmlHash:hash(candidate),testOnly:true})));
+setTimeout(()=>close().then(()=>process.exit(0)),420000).unref();
+})().catch(error=>{console.error(error);close().then(()=>process.exit(1))});

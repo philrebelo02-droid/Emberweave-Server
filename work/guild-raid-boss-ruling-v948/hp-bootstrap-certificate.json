@@ -1,0 +1,174 @@
+{
+  "atET": "2026-10-03 08:16:24",
+  "parentSHA256": "e7aa8fc6dd2c8f6b299511b062d82a253e78b0a18341d2dfa97c1d33fa3b545a",
+  "fixedSHA256": "ac471280aa2db00e21ce78764e09b2e92242dc72f5f972b61b290cbb37324577",
+  "acceptedSHA256": "eadbff5469fb7cdfd910800fe38891bc97081af41afa441a1bee223ee61a2589",
+  "replayConstructionSHA256": "402bef37ba0913f9f5df2dfadd3e09b4151d1e19fa16addd1c427f94b4df1876",
+  "helperSHA256": "c653aa6743d261522801b99c318c49b6df5efc79ad5a3b234040ccc94d71e44c",
+  "parsedInlineScripts": 3,
+  "rows": [
+    {
+      "hp": 1,
+      "parent": {
+        "live": {
+          "raid": 1,
+          "wave": 1
+        },
+        "replay": {
+          "raid": 1,
+          "wave": 1
+        }
+      },
+      "fixed": {
+        "live": {
+          "raid": 1,
+          "wave": 1
+        },
+        "replay": {
+          "raid": 1,
+          "wave": 1
+        }
+      }
+    },
+    {
+      "hp": 400000,
+      "parent": {
+        "live": {
+          "raid": 400000,
+          "wave": 400000
+        },
+        "replay": {
+          "raid": 400000,
+          "wave": 400000
+        }
+      },
+      "fixed": {
+        "live": {
+          "raid": 400000,
+          "wave": 400000
+        },
+        "replay": {
+          "raid": 400000,
+          "wave": 400000
+        }
+      }
+    },
+    {
+      "hp": 2147483647,
+      "parent": {
+        "live": {
+          "raid": 2147483647,
+          "wave": 2147483647
+        },
+        "replay": {
+          "raid": 2147483647,
+          "wave": 2147483647
+        }
+      },
+      "fixed": {
+        "live": {
+          "raid": 2147483647,
+          "wave": 2147483647
+        },
+        "replay": {
+          "raid": 2147483647,
+          "wave": 2147483647
+        }
+      }
+    },
+    {
+      "hp": 2147483648,
+      "parent": {
+        "live": {
+          "raid": 1,
+          "wave": 1
+        },
+        "replay": {
+          "raid": 1,
+          "wave": 1
+        }
+      },
+      "fixed": {
+        "live": {
+          "raid": 2147483648,
+          "wave": 2147483648
+        },
+        "replay": {
+          "raid": 2147483648,
+          "wave": 2147483648
+        }
+      }
+    },
+    {
+      "hp": 2261564243,
+      "parent": {
+        "live": {
+          "raid": 1,
+          "wave": 1
+        },
+        "replay": {
+          "raid": 1,
+          "wave": 1
+        }
+      },
+      "fixed": {
+        "live": {
+          "raid": 2261564243,
+          "wave": 2261564243
+        },
+        "replay": {
+          "raid": 2261564243,
+          "wave": 2261564243
+        }
+      }
+    },
+    {
+      "hp": 4294967296,
+      "parent": {
+        "live": {
+          "raid": 1,
+          "wave": 1
+        },
+        "replay": {
+          "raid": 1,
+          "wave": 1
+        }
+      },
+      "fixed": {
+        "live": {
+          "raid": 4294967296,
+          "wave": 4294967296
+        },
+        "replay": {
+          "raid": 4294967296,
+          "wave": 4294967296
+        }
+      }
+    },
+    {
+      "hp": 9007199254740991,
+      "parent": {
+        "live": {
+          "raid": 1,
+          "wave": 1
+        },
+        "replay": {
+          "raid": 1,
+          "wave": 1
+        }
+      },
+      "fixed": {
+        "live": {
+          "raid": 9007199254740991,
+          "wave": 9007199254740991
+        },
+        "replay": {
+          "raid": 9007199254740991,
+          "wave": 9007199254740991
+        }
+      }
+    }
+  ],
+  "qualification": "Actual extracted raidStartAccepted function and exact replay CUR construction only. startBattle stubbed, synthetic packets/units, NO combat/fullpage/browser/natural progression/server result/balance/deploy approval. Four guarded HP-only conversions changed; previous meter correction retained. Parent naturally shrinks tier36 live AND replay pool to1; numeric construction retains2261564243.",
+  "open": "Result HP display still uses bitwise coercion; Q11/Q10 policies and server witnessed-damage integration remain open. No release defaults or live edits."
+}

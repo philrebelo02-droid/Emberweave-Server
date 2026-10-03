@@ -1,0 +1,14 @@
+{
+  "atET": "2026-10-03 08:58:54",
+  "modelSHA256": "0eea582dd314f360489db7ec01845881422e8ebb84ce71f7038cee4a24ff410c",
+  "helperSHA256": "15404fcddd1c88aa206e41f02bd48ac1b58a7272933c639016ee1042964da268",
+  "checks": [
+    "No case before three flags: 0",
+    "No case before three flags: 1",
+    "No case before three flags: 2",
+    "Three flags draft stable case; distinct other players counted once, unknown history excluded, no mutation",
+    "Fourth retains same pending case and later flag, does not fabricate review or dispatch",
+    "Malformed/nonarray/duplicate histories held unchanged, never discarded"
+  ],
+  "limits": "Executable isolated design/model only; not server integrated, not actual HTTP/Ember delivery or review/specialist proof. No source game/Brain edits, no policy authorization/deployment claim."
+}

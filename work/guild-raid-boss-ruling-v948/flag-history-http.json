@@ -1,0 +1,40 @@
+{
+  "atET": "2026-10-03 08:48:57",
+  "helperSHA256": "3e48c995e347842dd5a2201dcafef49d282a21148d85bf5bcdd76186b8a27746",
+  "checks": [
+    {
+      "label": "parent object erased",
+      "naturalUnknownHistoryErasure": true
+    },
+    {
+      "label": "null",
+      "held": true,
+      "diskUnchanged": true,
+      "restartRetained": true
+    },
+    {
+      "label": "object",
+      "held": true,
+      "diskUnchanged": true,
+      "restartRetained": true
+    },
+    {
+      "label": "string",
+      "held": true,
+      "diskUnchanged": true,
+      "restartRetained": true
+    },
+    {
+      "label": "number",
+      "held": true,
+      "diskUnchanged": true,
+      "restartRetained": true
+    },
+    {
+      "label": "prior array",
+      "priorArrayRetained": true,
+      "oneNewFlag": true
+    }
+  ],
+  "limits": "Synthetic actual privateHTTP. Non-array history hold only; unknown array entries retained without validation/migration. No historyquota/case3/review4/combat/balance/fullQ6/deploy approval."
+}

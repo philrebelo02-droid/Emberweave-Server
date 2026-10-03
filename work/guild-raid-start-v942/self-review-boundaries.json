@@ -1,0 +1,18 @@
+{
+  "at": "2026-10-02T23:56:54.862Z",
+  "rows": [
+    {
+      "case": "Legacy skill migration staged; failed save no latercommit leak, valid success persists canonical defaults",
+      "pass": true
+    },
+    {
+      "case": "Exact10minute resume;10minute+1ms historical replacement/secondcharge retained",
+      "pass": true
+    },
+    {
+      "case": "Daily3gate and nextUTCday reset atomic fault/retry",
+      "pass": true
+    }
+  ],
+  "exactRestored": true
+}

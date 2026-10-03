@@ -1,0 +1,19 @@
+{
+  "atET": "2026-10-03 03:11:32",
+  "clientSHA256": "ea8540e8afc23e8d541d104bb92b7e750c99555341ca224f8f1defa8a7a2d20e",
+  "status": "PASS",
+  "passed": [
+    "actual uid8 accepted; authentic scope day namespaced",
+    "noToken",
+    "auth401",
+    "forbidden403",
+    "wrongAccount",
+    "wrongGuild",
+    "extra",
+    "badDate",
+    "wrongNamespace",
+    "fetchAccountSwitch",
+    "jsonGuildSwitch"
+  ],
+  "scope": "Actual extracted helper, launch, fence, uid8; mocked fetch/bootstrap/UI. No paid bootstrap call on rejected identity. Not native/network/fullHTML proof."
+}

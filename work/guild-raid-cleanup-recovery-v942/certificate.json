@@ -1,0 +1,12 @@
+{
+  "atET": "2026-10-03 00:11",
+  "status": "PRIVATE_CLEANUP_RECOVERY_MODEL_AND_HTTP_TESTED_NOT_REVIEW_READY_NOT_SHIPPED",
+  "hashes": {"facade":"2c7240bf510607ab0e2147d2614c755b2cdacf9635635ec596a83094c83bab0a","hybrid":"b08cc87917e853ae8dce6fb9dfc892ff80a3ae9cc6cd311e178b226c26547be2","server":"be7ff4dbc4a7e11b3b8dcd63b3e7baa012dd23ecfe1de25019e533f659195893"},
+  "original": {"pass":3,"naturalFail":2,"evidence":"original-controls.json/log","notRerun":true},
+  "fixed": {"modelPass":5,"evidence":"fixed-model.json/log","additionalEdgePass":4,"edgeCommand":"node --test --test-name-pattern='cleanup edge' tests.cjs"},
+  "integration": "integration-results.json: actual private HTTP/captured authenticated token/response-only binding validator; lost committed entry and result replies, own server restarts, injected retirement failure after confirmation, missing terminal slot, fresh VM cleanup-only restores exact immutable marker before retirement; ZERO extra HTTP, one spent entry, one raid transaction; old writer lease refused",
+  "criticalReview": "Confirmed-cleanup derives only from a confirmed directory row. Recovery still holds account/guild exclusive lock and session/legacy fences; no transport or reward mutation in this branch. Missing marker written/readback before directory retirement. Storage denial/readback failure/stale discovery preserve confirmed row; conflict refuses. Returning cleanupOnly is not a fresh server reward reply and must not trigger ledger adoption in future HTML adapter.",
+  "limits": "Directory/storage/locks/quiescence models, not native. Prototype CJS not wired to full game. Native commit failures/quota/fullHTML/sourceguards/package/legacy mixedclients remain open. Server fight outcome rule requires separate review before joint release approval; reward formulas unchanged here. No physical phone/full canonical bot/Brain/deployment proof.",
+  "next": "Native confirmed directory/marker interrupted cleanup + guarded HTML handling of cleanupOnly; preserve pending compatibility/quota holds. Cross-review exact candidate with Claude, no blanket deployment approval.",
+  "cleanup": "Owned HTTP fixture stopped in finally; private server restored71202733; no temporary leadership test created or removed. No live or Brain changes."
+}

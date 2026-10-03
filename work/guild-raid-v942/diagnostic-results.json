@@ -1,0 +1,229 @@
+{
+  "at": "2026-10-02T23:48:44.958Z",
+  "source": "165fef2548604b6939c1bced8c84b8281fbc4d7d8a60217954ae3c9b6072318a",
+  "rows": [
+    {
+      "kind": "start",
+      "status": 200,
+      "ok": true,
+      "diskUnchanged": true,
+      "memoryUnchanged": false,
+      "incident": null,
+      "reward": null,
+      "actorRaidDayDisk": null,
+      "restartView": {
+        "raid": {
+          "level": 1,
+          "max": 400000,
+          "hp": 400000,
+          "kills": 0,
+          "yourDmg": 0,
+          "guildDmg": 0,
+          "attemptsLeft": 3,
+          "top": [],
+          "name": "Wintercrag",
+          "bossKey": "wintercrag",
+          "attemptsMax": 3
+        }
+      },
+      "restartDiskGuildRaid": null,
+      "priorDiskGuildRaid": null,
+      "acceptance": false
+    },
+    {
+      "kind": "resolve",
+      "status": 200,
+      "ok": true,
+      "diskUnchanged": true,
+      "memoryUnchanged": false,
+      "incident": null,
+      "reward": {
+        "guildCoins": 0
+      },
+      "actorRaidDayDisk": {
+        "d": "2026-10-02",
+        "n": 1
+      },
+      "restartView": {
+        "raid": {
+          "level": 1,
+          "max": 400000,
+          "hp": 400000,
+          "kills": 0,
+          "yourDmg": 0,
+          "guildDmg": 0,
+          "attemptsLeft": 2,
+          "top": [],
+          "name": "Wintercrag",
+          "bossKey": "wintercrag",
+          "attemptsMax": 3
+        }
+      },
+      "restartDiskGuildRaid": {
+        "level": 1,
+        "max": 400000,
+        "hp": 400000,
+        "kills": 0,
+        "contrib": {},
+        "used": {
+          "fixture-user": 1
+        },
+        "day": "2026-10-02",
+        "att": {
+          "fixture-user": {
+            "id": "aa3119981528c9ba",
+            "heroIds": [
+              "vael"
+            ],
+            "snaps": [
+              {
+                "key": "vael",
+                "level": 1,
+                "rank": 0,
+                "boss": false,
+                "maxHp": 400,
+                "dmg": 30,
+                "range": 28,
+                "speed": 70,
+                "atkInterval": 2.3,
+                "combatDist": 24,
+                "r": 18,
+                "melee": true,
+                "reach": 28.2,
+                "apow": 0,
+                "apMul": 1,
+                "hybrid": false,
+                "glyphDR": 0,
+                "defRating": 100,
+                "penRating": 0,
+                "armorRating": 60,
+                "mrRating": 40,
+                "armorPen": 0,
+                "magicPen": 0,
+                "critDmg": 0.6,
+                "lifestealStat": 0,
+                "evaStat": 0,
+                "accStat": 0,
+                "blockStat": 0,
+                "dmgBonusMul2": 1,
+                "shieldStrMul": 1,
+                "ctrlHitF": 0,
+                "hasteEnergyMul": 1,
+                "glyphRegen": 0,
+                "glyphCrit": 0,
+                "critRes": 0,
+                "energyReg": 0,
+                "templeDamageEnergy": 0,
+                "energy": 35,
+                "ctrlRes": 0,
+                "skillLv": [
+                  1,
+                  1,
+                  1,
+                  1
+                ],
+                "passMul": 1,
+                "immovable": false,
+                "stunImmune": false,
+                "pass": null,
+                "gearSkill": null
+              }
+            ],
+            "seed": 2354711915,
+            "engine": "1790961518061",
+            "startedAt": 1790928000000,
+            "reqId": "private-seed",
+            "tier": 1,
+            "bossKey": "wintercrag",
+            "bossHp": 400000,
+            "bossLvl": 15
+          }
+        }
+      },
+      "priorDiskGuildRaid": {
+        "level": 1,
+        "max": 400000,
+        "hp": 400000,
+        "kills": 0,
+        "contrib": {},
+        "used": {
+          "fixture-user": 1
+        },
+        "day": "2026-10-02",
+        "att": {
+          "fixture-user": {
+            "id": "aa3119981528c9ba",
+            "heroIds": [
+              "vael"
+            ],
+            "snaps": [
+              {
+                "key": "vael",
+                "level": 1,
+                "rank": 0,
+                "boss": false,
+                "maxHp": 400,
+                "dmg": 30,
+                "range": 28,
+                "speed": 70,
+                "atkInterval": 2.3,
+                "combatDist": 24,
+                "r": 18,
+                "melee": true,
+                "reach": 28.2,
+                "apow": 0,
+                "apMul": 1,
+                "hybrid": false,
+                "glyphDR": 0,
+                "defRating": 100,
+                "penRating": 0,
+                "armorRating": 60,
+                "mrRating": 40,
+                "armorPen": 0,
+                "magicPen": 0,
+                "critDmg": 0.6,
+                "lifestealStat": 0,
+                "evaStat": 0,
+                "accStat": 0,
+                "blockStat": 0,
+                "dmgBonusMul2": 1,
+                "shieldStrMul": 1,
+                "ctrlHitF": 0,
+                "hasteEnergyMul": 1,
+                "glyphRegen": 0,
+                "glyphCrit": 0,
+                "critRes": 0,
+                "energyReg": 0,
+                "templeDamageEnergy": 0,
+                "energy": 35,
+                "ctrlRes": 0,
+                "skillLv": [
+                  1,
+                  1,
+                  1,
+                  1
+                ],
+                "passMul": 1,
+                "immovable": false,
+                "stunImmune": false,
+                "pass": null,
+                "gearSkill": null
+              }
+            ],
+            "seed": 2354711915,
+            "engine": "1790961518061",
+            "startedAt": 1790928000000,
+            "reqId": "private-seed",
+            "tier": 1,
+            "bossKey": "wintercrag",
+            "bossHp": 400000,
+            "bossLvl": 15
+          }
+        }
+      },
+      "acceptance": false
+    }
+  ],
+  "exactRestored": true,
+  "scope": "Two private synthetic HTTP raid operations, not full canonical bot/Brain or production"
+}

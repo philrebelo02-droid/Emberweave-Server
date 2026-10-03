@@ -1,0 +1,6 @@
+{
+  "at": "2026-10-03T01:05:51.421Z",
+  "pass": 5,
+  "fail": 0,
+  "scope": "Deterministic same-origin lock-manager VM; not native multi-tab browser proof. Entry-only, settlement/cleanup races remain open."
+}

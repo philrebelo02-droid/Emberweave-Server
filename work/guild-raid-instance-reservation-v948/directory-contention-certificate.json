@@ -1,0 +1,34 @@
+{
+  "atET": "2026-10-03 05:21:22",
+  "clientSHA256": "28ec2c6d66f33b9d730d3b1d224992e1a1205070affaf23f71be19637ff45283",
+  "testSHA256": "1b7a8dd507d8b7b5faa94bced77bea0ddaf52a2e1ea825ff1509925ece9a83cf",
+  "pass": 6,
+  "fail": 0,
+  "cases": [
+    {
+      "name": "two directory connections contend same instance+entry: exactly one commit",
+      "status": "PASS"
+    },
+    {
+      "name": "different instances cannot duplicate account entry identity",
+      "status": "PASS"
+    },
+    {
+      "name": "same instance cannot replace another entry identity",
+      "status": "PASS"
+    },
+    {
+      "name": "third and fourth queued connection reservations respect account cap4",
+      "status": "PASS"
+    },
+    {
+      "name": "first request success followed by commit abort leaves second contender able to commit",
+      "status": "PASS"
+    },
+    {
+      "name": "same account entry cannot fork across guilds during contention",
+      "status": "PASS"
+    }
+  ],
+  "scope": "Actual embedded directory.insertBounded with TWO directory connections over synthetic serialized readwrite transaction MODEL. Model implements assumed IndexedDB serialization, not evidence native browser does it. No facade/Web Locks, paid HTTP or old writers in this test. Directory source unchanged; no original-fix failure control claim. Native two-tab contention and all-writer quiescence remain OPEN."
+}

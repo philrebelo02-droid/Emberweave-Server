@@ -1,0 +1,14 @@
+{
+  "clientBaseSHA256": "4c320c08392feec669a41007f3ec8b239a2d277d9f5571c20d84df94bbd1a01d",
+  "direct": [
+    "vael",
+    "vael",
+    "other"
+  ],
+  "after": [
+    "vael",
+    "other"
+  ],
+  "status": "EXTRACTED_SOURCE_MODEL_PASS",
+  "proof": "squadFor itself does NOT deduplicate. Normal battle button calls syncActiveSquad before raidLaunch; exact prune deduplicates to owned heroes. Direct raidLaunch bypass has no proven pruning. Not a native click/mixed-client test."
+}

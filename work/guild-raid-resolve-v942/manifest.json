@@ -1,0 +1,21 @@
+{
+  "status": "PRIVATE_NARROW_REVIEW_READY_WITH_LEGACY_TRANSITION_GATE_NOT_SHIPPED",
+  "variants": [
+    {
+      "name": "combined",
+      "base": {
+        "server.js": "784bcf366ee53c6a5130c69ef85482b5941dc19c4dd690841786d34a6aef17de",
+        "tests/run_all_tests.sh": "83c998179992bf28d86ee19a33dcde6b9d48a9f65e44abcc90163e7953f7a10d",
+        "tests/guild-raid-resolve.test.cjs": null,
+        "tests/guild-route-auth.test.cjs": "2e434ee59b91dadb5d6ec742d2556833eaa7f52004ad1074f8c23f18c776fe49"
+      },
+      "output": {
+        "server.js": "acdf5baec6dce5081830ebde8521e94fed81ab2dd3553181ce22a4ac5788946a",
+        "tests/run_all_tests.sh": "8628553d8e10d7b7dd870b43b7e7d901b8d9c00f2a8adc3eb7862a87a2c3d336",
+        "tests/guild-raid-resolve.test.cjs": "f32325988c3d51ce76ed0afc8cec7b357146d27d467dba0b0b21f13af7e7626a",
+        "tests/guild-route-auth.test.cjs": "271a3d2ee70d2d8edce2690c422c9906b9d32076f8cd6462e95fc13f40dd31cc"
+      }
+    }
+  ],
+  "compatibility": "Unbound legacy resolve receipts now409. Deployment transition requires Phil approval; existing paid rewards are not removed or re-granted. Original test/payload preserved."
+}

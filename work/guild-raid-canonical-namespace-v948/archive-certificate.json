@@ -1,0 +1,43 @@
+{
+  "atET": "2026-10-03 03:24:06",
+  "dest": "C:/Users/Home/OneDrive/Desktop/Emberweave Archive/Open Projects/Guild raid canonical namespace tools 03OCT2026",
+  "manifest": [
+    {
+      "name": "archive.cjs",
+      "sha256": "9da0340d8b9094579a6de13a1bbae0869bdb2bd4a1fee68fb561a3f2a8a62844"
+    },
+    {
+      "name": "build-certificate.json",
+      "sha256": "f4b8930f7de62fc8282af6998262780e90a58d719e354c3698aba3a72f42d421"
+    },
+    {
+      "name": "build.cjs",
+      "sha256": "256d0c323d3633f83b01d255dfc205ca8bd2ad6ebce8d62379f26de84faf5e84"
+    },
+    {
+      "name": "certificate.json",
+      "sha256": "6e55fb48a6888084a69783c1fd47cebf68f152fbd640f1d3efe756cba0e4b59c"
+    },
+    {
+      "name": "http.cjs",
+      "sha256": "21ff447683731ff0b520d39072590bc7c903d5e854b4e96fe777ef01fb9d3244"
+    },
+    {
+      "name": "original-control.json",
+      "sha256": "cbcce35a590713b093f716c8809b598ccdce591474a271a357ac60dd94056162"
+    },
+    {
+      "name": "private-client-namespaced.html",
+      "sha256": "ea8540e8afc23e8d541d104bb92b7e750c99555341ca224f8f1defa8a7a2d20e"
+    },
+    {
+      "name": "private-server-canonical.js",
+      "sha256": "45b523764006dcac35bfeee1effe3ad790f25a81326180ce67b79607696ef955"
+    },
+    {
+      "name": "README.json",
+      "sha256": "e0a37e3a32f16afaa51572e1df998d9276ef53efc8de4a087c5985641591422c"
+    }
+  ],
+  "status": "BOUNDED_HASH_VERIFIED_NO_OVERWRITE_NO_WHOLE_GAME_COPY"
+}

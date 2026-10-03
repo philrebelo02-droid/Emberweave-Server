@@ -1,0 +1,244 @@
+{
+  "at": "2026-10-03T05:07:55.954Z",
+  "htmlHash": "5636f71697dc6b75c59279b779fdaf76a837b4b2c878cf5232f551edc044f0e2",
+  "serverHash": "be7ff4dbc4a7e11b3b8dcd63b3e7baa012dd23ecfe1de25019e533f659195893",
+  "calls": [
+    {
+      "route": "/api/guild/raid/start",
+      "packet": {
+        "heroIds": [
+          "vael"
+        ],
+        "requestId": "bdc5b95012b944258c8c"
+      },
+      "status": 200
+    },
+    {
+      "route": "/api/guild/raid/start",
+      "packet": {
+        "heroIds": [
+          "vael"
+        ],
+        "requestId": "bdc5b95012b944258c8c"
+      },
+      "status": 200
+    }
+  ],
+  "reports": [
+    {
+      "fightStarts": 1,
+      "notices": [],
+      "renderedRewards": 0,
+      "CUR": {
+        "mode": "graid",
+        "attemptId": "9e8631539d1044b0",
+        "raidInstanceId": "raid-255b9c6b6e86424fafdd",
+        "raidEntryRequestId": "bdc5b95012b944258c8c",
+        "seed": 930753253,
+        "serverSnaps": [
+          {
+            "key": "vael",
+            "level": 1,
+            "rank": 0,
+            "boss": false,
+            "maxHp": 400,
+            "dmg": 30,
+            "range": 28,
+            "speed": 70,
+            "atkInterval": 2.3,
+            "combatDist": 24,
+            "r": 18,
+            "melee": true,
+            "reach": 28.2,
+            "apow": 0,
+            "apMul": 1,
+            "hybrid": false,
+            "glyphDR": 0,
+            "defRating": 100,
+            "penRating": 0,
+            "armorRating": 60,
+            "mrRating": 40,
+            "armorPen": 0,
+            "magicPen": 0,
+            "critDmg": 0.6,
+            "lifestealStat": 0,
+            "evaStat": 0,
+            "accStat": 0,
+            "blockStat": 0,
+            "dmgBonusMul2": 1,
+            "shieldStrMul": 1,
+            "ctrlHitF": 0,
+            "hasteEnergyMul": 1,
+            "glyphRegen": 0,
+            "glyphCrit": 0,
+            "critRes": 0,
+            "energyReg": 0,
+            "templeDamageEnergy": 0,
+            "energy": 35,
+            "ctrlRes": 0,
+            "skillLv": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "passMul": 1,
+            "immovable": false,
+            "stunImmune": false,
+            "pass": null,
+            "gearSkill": null
+          }
+        ],
+        "backupSnaps": [],
+        "backups": [],
+        "raid": {
+          "key": "wintercrag",
+          "name": "Wintercrag",
+          "tier": 1,
+          "hp": 400000,
+          "lvl": 15
+        },
+        "cwaves": [
+          [
+            {
+              "key": "wintercrag",
+              "lvl": 15,
+              "boss": true,
+              "hp": 400000,
+              "def": 30000,
+              "dmgMul": 1
+            }
+          ]
+        ],
+        "engine": "1790961518061"
+      },
+      "rows": [
+        {
+          "v": 3,
+          "accountId": "fixture-user",
+          "guildId": "own-guild",
+          "id": "raid-255b9c6b6e86424fafdd",
+          "entry": {
+            "heroIds": [
+              "vael"
+            ],
+            "requestId": "bdc5b95012b944258c8c"
+          },
+          "state": "pending"
+        }
+      ],
+      "slots": [],
+      "secureContext": true,
+      "webLocks": true
+    },
+    {
+      "fightStarts": 1,
+      "notices": [],
+      "renderedRewards": 0,
+      "CUR": {
+        "mode": "graid",
+        "attemptId": "9e8631539d1044b0",
+        "raidInstanceId": "raid-255b9c6b6e86424fafdd",
+        "raidEntryRequestId": "bdc5b95012b944258c8c",
+        "seed": 930753253,
+        "serverSnaps": [
+          {
+            "key": "vael",
+            "level": 1,
+            "rank": 0,
+            "boss": false,
+            "maxHp": 400,
+            "dmg": 30,
+            "range": 28,
+            "speed": 70,
+            "atkInterval": 2.3,
+            "combatDist": 24,
+            "r": 18,
+            "melee": true,
+            "reach": 28.2,
+            "apow": 0,
+            "apMul": 1,
+            "hybrid": false,
+            "glyphDR": 0,
+            "defRating": 100,
+            "penRating": 0,
+            "armorRating": 60,
+            "mrRating": 40,
+            "armorPen": 0,
+            "magicPen": 0,
+            "critDmg": 0.6,
+            "lifestealStat": 0,
+            "evaStat": 0,
+            "accStat": 0,
+            "blockStat": 0,
+            "dmgBonusMul2": 1,
+            "shieldStrMul": 1,
+            "ctrlHitF": 0,
+            "hasteEnergyMul": 1,
+            "glyphRegen": 0,
+            "glyphCrit": 0,
+            "critRes": 0,
+            "energyReg": 0,
+            "templeDamageEnergy": 0,
+            "energy": 35,
+            "ctrlRes": 0,
+            "skillLv": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "passMul": 1,
+            "immovable": false,
+            "stunImmune": false,
+            "pass": null,
+            "gearSkill": null
+          }
+        ],
+        "backupSnaps": [],
+        "backups": [],
+        "raid": {
+          "key": "wintercrag",
+          "name": "Wintercrag",
+          "tier": 1,
+          "hp": 400000,
+          "lvl": 15
+        },
+        "cwaves": [
+          [
+            {
+              "key": "wintercrag",
+              "lvl": 15,
+              "boss": true,
+              "hp": 400000,
+              "def": 30000,
+              "dmgMul": 1
+            }
+          ]
+        ],
+        "engine": "1790961518061"
+      },
+      "rows": [
+        {
+          "v": 3,
+          "accountId": "fixture-user",
+          "guildId": "own-guild",
+          "id": "raid-255b9c6b6e86424fafdd",
+          "entry": {
+            "heroIds": [
+              "vael"
+            ],
+            "requestId": "bdc5b95012b944258c8c"
+          },
+          "state": "pending"
+        }
+      ],
+      "slots": [],
+      "secureContext": true,
+      "webLocks": true
+    }
+  ],
+  "entryCount": 1,
+  "raidTransactions": 0,
+  "scope": "Real native storage/locks/DOM with EXACT generated Guild block and actual private HTTP. Synthetic account/no combat; test-only quiescence true on isolated origin, not production/full game page."
+}

@@ -1,0 +1,272 @@
+{
+  "atET": "2026-10-03 07:50:23",
+  "status": "SCOPED private start-reservation PASS ONLY, NOT integrated fix/release/balance",
+  "sourceSHA256": "f2a253d669475884ee44dafd5bc8e51a45cc917860d19ba3752f546ebd382c9a",
+  "helperSHA256": "11ab9cb73462c35572c723f283d26823497a4cfd191681bbac2e1723439e0731",
+  "calls": [
+    {
+      "actor": "first",
+      "packet": {
+        "requestId": "r3:2026-10-02:first",
+        "heroIds": [
+          "vael"
+        ]
+      },
+      "status": 503,
+      "body": {
+        "error": "World save failed. Retry the same request."
+      }
+    },
+    {
+      "actor": "first",
+      "packet": {
+        "requestId": "r3:2026-10-02:first",
+        "heroIds": [
+          "vael"
+        ]
+      },
+      "status": 200,
+      "body": {
+        "ok": true,
+        "attemptId": "e5a6cae6a9e176c5",
+        "seed": 1126063640,
+        "snaps": [
+          {
+            "key": "vael",
+            "level": 1,
+            "rank": 0,
+            "boss": false,
+            "maxHp": 400,
+            "dmg": 30,
+            "range": 28,
+            "speed": 70,
+            "atkInterval": 2.3,
+            "combatDist": 24,
+            "r": 18,
+            "melee": true,
+            "reach": 28.2,
+            "apow": 0,
+            "apMul": 1,
+            "hybrid": false,
+            "glyphDR": 0,
+            "defRating": 100,
+            "penRating": 0,
+            "armorRating": 60,
+            "mrRating": 40,
+            "armorPen": 0,
+            "magicPen": 0,
+            "critDmg": 0.6,
+            "lifestealStat": 0,
+            "evaStat": 0,
+            "accStat": 0,
+            "blockStat": 0,
+            "dmgBonusMul2": 1,
+            "shieldStrMul": 1,
+            "ctrlHitF": 0,
+            "hasteEnergyMul": 1,
+            "glyphRegen": 0,
+            "glyphCrit": 0,
+            "critRes": 0,
+            "energyReg": 0,
+            "templeDamageEnergy": 0,
+            "energy": 35,
+            "ctrlRes": 0,
+            "skillLv": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "passMul": 1,
+            "immovable": false,
+            "stunImmune": false,
+            "pass": null,
+            "gearSkill": null
+          }
+        ],
+        "engine": "1790961518061",
+        "entryBinding": {
+          "v": 1,
+          "accountId": "fixture-user",
+          "guildId": "control-guild",
+          "requestId": "r3:2026-10-02:first",
+          "heroIds": [
+            "vael"
+          ]
+        },
+        "boss": {
+          "key": "wintercrag",
+          "name": "Wintercrag",
+          "tier": 1,
+          "hp": 400000,
+          "lvl": 15,
+          "def": 30000,
+          "dmgMul": 1
+        },
+        "raid": {
+          "level": 1,
+          "max": 400000,
+          "hp": 400000,
+          "kills": 0,
+          "yourDmg": 0,
+          "guildDmg": 0,
+          "attemptsLeft": 2,
+          "top": [],
+          "name": "Wintercrag",
+          "bossKey": "wintercrag",
+          "attemptsMax": 3
+        }
+      }
+    },
+    {
+      "actor": "second",
+      "packet": {
+        "requestId": "r3:2026-10-02:second",
+        "heroIds": [
+          "vael"
+        ]
+      },
+      "status": 409,
+      "body": {
+        "ok": false,
+        "bossBusy": true,
+        "error": "The raid boss is reserved. No new attempt was spent."
+      }
+    },
+    {
+      "actor": "first",
+      "packet": {
+        "requestId": "r3:2026-10-02:first",
+        "heroIds": [
+          "vael"
+        ]
+      },
+      "status": 200,
+      "body": {
+        "ok": true,
+        "resumed": true,
+        "attemptId": "e5a6cae6a9e176c5",
+        "seed": 1126063640,
+        "snaps": [
+          {
+            "key": "vael",
+            "level": 1,
+            "rank": 0,
+            "boss": false,
+            "maxHp": 400,
+            "dmg": 30,
+            "range": 28,
+            "speed": 70,
+            "atkInterval": 2.3,
+            "combatDist": 24,
+            "r": 18,
+            "melee": true,
+            "reach": 28.2,
+            "apow": 0,
+            "apMul": 1,
+            "hybrid": false,
+            "glyphDR": 0,
+            "defRating": 100,
+            "penRating": 0,
+            "armorRating": 60,
+            "mrRating": 40,
+            "armorPen": 0,
+            "magicPen": 0,
+            "critDmg": 0.6,
+            "lifestealStat": 0,
+            "evaStat": 0,
+            "accStat": 0,
+            "blockStat": 0,
+            "dmgBonusMul2": 1,
+            "shieldStrMul": 1,
+            "ctrlHitF": 0,
+            "hasteEnergyMul": 1,
+            "glyphRegen": 0,
+            "glyphCrit": 0,
+            "critRes": 0,
+            "energyReg": 0,
+            "templeDamageEnergy": 0,
+            "energy": 35,
+            "ctrlRes": 0,
+            "skillLv": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "passMul": 1,
+            "immovable": false,
+            "stunImmune": false,
+            "pass": null,
+            "gearSkill": null
+          }
+        ],
+        "entryBinding": {
+          "v": 1,
+          "accountId": "fixture-user",
+          "guildId": "control-guild",
+          "requestId": "r3:2026-10-02:first",
+          "heroIds": [
+            "vael"
+          ]
+        },
+        "boss": {
+          "key": "wintercrag",
+          "name": "Wintercrag",
+          "tier": 1,
+          "hp": 400000,
+          "lvl": 15,
+          "def": 30000,
+          "dmgMul": 1
+        },
+        "engine": "1790961518061",
+        "raid": {
+          "level": 1,
+          "max": 400000,
+          "hp": 400000,
+          "kills": 0,
+          "yourDmg": 0,
+          "guildDmg": 0,
+          "attemptsLeft": 2,
+          "top": [],
+          "name": "Wintercrag",
+          "bossKey": "wintercrag",
+          "attemptsMax": 3
+        }
+      }
+    },
+    {
+      "actor": "second",
+      "packet": {
+        "requestId": "r3:2026-10-02:second",
+        "heroIds": [
+          "vael"
+        ]
+      },
+      "status": 409,
+      "body": {
+        "ok": false,
+        "bossBusy": true,
+        "error": "The raid boss is reserved. No new attempt was spent."
+      }
+    }
+  ],
+  "reservation": {
+    "v": 1,
+    "accountId": "fixture-user",
+    "guildId": "control-guild",
+    "attemptId": "e5a6cae6a9e176c5",
+    "requestId": "r3:2026-10-02:first",
+    "tier": 1,
+    "bossKey": "wintercrag",
+    "startedAt": 1790928000000
+  },
+  "checks": [
+    "failed rename503 persists no reservation/spend",
+    "one committed reservation bound to account/guild/attempt/tier/boss",
+    "second actor409 zero spend",
+    "same exact start resumes once",
+    "restart retains reservation and zero-spend busy refusal"
+  ],
+  "limits": "Start-only experiment, no release/expiry/settlement or day rollover/migration semantics implemented. Existing exact resume path not redesigned. No player-damage fix/browserfight/currentfullsuite/balance/backup/production proof/approval/deploy. Q11/Q10 unresolved, do not install this artifact."
+}

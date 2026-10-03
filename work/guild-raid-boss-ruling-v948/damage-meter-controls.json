@@ -1,0 +1,67 @@
+{
+  "atET": "2026-10-03 08:06:04",
+  "clientSHA256": "28ec2c6d66f33b9d730d3b1d224992e1a1205070affaf23f71be19637ff45283",
+  "meterSHA256": "d45f26b2ad6cc358bf3923799f3ee0e60ab187bc8e5ab5c03b847c064cd32035",
+  "helperSHA256": "92410e48ad87237d727f6d0b032ea0e54ce70216410067fc6ed23659b810daa7",
+  "rows": [
+    {
+      "label": "No raid boss",
+      "boss": null,
+      "actual": 0
+    },
+    {
+      "label": "Cumulative landed damage survives healing",
+      "boss": {
+        "_raidStartHp": 400000,
+        "_raidDmgTaken": 12345,
+        "hp": 400000
+      },
+      "actual": 12345
+    },
+    {
+      "label": "Overkill stays within frozen pool",
+      "boss": {
+        "_raidStartHp": 400000,
+        "_raidDmgTaken": 500000,
+        "hp": -100000,
+        "alive": false
+      },
+      "actual": 400000
+    },
+    {
+      "label": "HP fallback when meter absent",
+      "boss": {
+        "_raidStartHp": 400000,
+        "hp": 387655
+      },
+      "actual": 12345
+    },
+    {
+      "label": "Fractional existing report rounds nearest integer",
+      "boss": {
+        "_raidStartHp": 400000,
+        "_raidDmgTaken": 12.6,
+        "hp": 399987.4
+      },
+      "actual": 13
+    },
+    {
+      "label": "Natural signed-32-bit frozen pool overflow",
+      "boss": {
+        "_raidStartHp": 2261564243,
+        "_raidDmgTaken": 12345,
+        "hp": 2261551898
+      },
+      "actual": 1
+    },
+    {
+      "expectedRuleFailure": "Frozen pool bitwise conversion shrinks a valid tier pool to1; landed12345 reports1",
+      "tier": 36,
+      "serverBossMax": 2261564243,
+      "expected": 12345,
+      "actual": 1
+    }
+  ],
+  "qualification": "Exact extracted client function with synthetic units, NOT actual witnessed combat or whole-page execution. One natural numeric overflow failure; five semantic observations, not complete Q6/balance approval.",
+  "limits": "No source fix, runtime/server integration, settlement/release policy chosen, or deployment. Fractional rounding observed not silently changed. Server bossMax formula inspected at7207; reachability through natural play not tested."
+}

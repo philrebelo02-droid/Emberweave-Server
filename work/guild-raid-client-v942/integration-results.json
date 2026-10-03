@@ -1,0 +1,53 @@
+{
+  "at": "2026-10-03T00:23:43.816Z",
+  "pass": true,
+  "chargedEntryCount": 1,
+  "raidTransactions": 1,
+  "packets": [
+    {
+      "route": "/api/guild/raid/start",
+      "packet": {
+        "heroIds": [
+          "vael"
+        ],
+        "requestId": "1"
+      }
+    },
+    {
+      "route": "/api/guild/raid/start",
+      "packet": {
+        "heroIds": [
+          "vael"
+        ],
+        "requestId": "1"
+      }
+    },
+    {
+      "route": "/api/guild/raid/resolve",
+      "packet": {
+        "attemptId": "ff6376df9440ce87",
+        "requestId": "2",
+        "inputLog": [
+          {
+            "t": 1
+          }
+        ],
+        "dmg": 1234
+      }
+    },
+    {
+      "route": "/api/guild/raid/resolve",
+      "packet": {
+        "attemptId": "ff6376df9440ce87",
+        "requestId": "2",
+        "inputLog": [
+          {
+            "t": 1
+          }
+        ],
+        "dmg": 1234
+      }
+    }
+  ],
+  "scope": "Extracted actual client launch/settlement + actual api + private HTTP/frozen-squad replay, synthetic render stubs, dropped committed replies. NOT physical UI, reload recovery, full canonical bot/Brain or deployment."
+}

@@ -1,0 +1,160 @@
+{
+  "session": "532103b2-22ca-4a3e-bebd-cf6229a10838",
+  "hashes": {
+    "hybrid": "b08cc87917e853ae8dce6fb9dfc892ff80a3ae9cc6cd311e178b226c26547be2",
+    "facade": "2c7240bf510607ab0e2147d2614c755b2cdacf9635635ec596a83094c83bab0a",
+    "directory": "56188c9d573ba9285cdd845addc229dfed38fc4c00156e34f3b36364dd5d2272"
+  },
+  "reports": [
+    {
+      "session": "532103b2-22ca-4a3e-bebd-cf6229a10838",
+      "hashes": {
+        "hybrid": "b08cc87917e853ae8dce6fb9dfc892ff80a3ae9cc6cd311e178b226c26547be2",
+        "facade": "2c7240bf510607ab0e2147d2614c755b2cdacf9635635ec596a83094c83bab0a",
+        "directory": "56188c9d573ba9285cdd845addc229dfed38fc4c00156e34f3b36364dd5d2272"
+      },
+      "results": [],
+      "calls": 0,
+      "ready": true,
+      "secureContext": true,
+      "webLocks": true
+    },
+    {
+      "session": "532103b2-22ca-4a3e-bebd-cf6229a10838",
+      "hashes": {
+        "hybrid": "b08cc87917e853ae8dce6fb9dfc892ff80a3ae9cc6cd311e178b226c26547be2",
+        "facade": "2c7240bf510607ab0e2147d2614c755b2cdacf9635635ec596a83094c83bab0a",
+        "directory": "56188c9d573ba9285cdd845addc229dfed38fc4c00156e34f3b36364dd5d2272"
+      },
+      "results": [],
+      "calls": 0,
+      "prepared": true,
+      "persistedAccounts": 4
+    },
+    {
+      "session": "532103b2-22ca-4a3e-bebd-cf6229a10838",
+      "hashes": {
+        "hybrid": "b08cc87917e853ae8dce6fb9dfc892ff80a3ae9cc6cd311e178b226c26547be2",
+        "facade": "2c7240bf510607ab0e2147d2614c755b2cdacf9635635ec596a83094c83bab0a",
+        "directory": "56188c9d573ba9285cdd845addc229dfed38fc4c00156e34f3b36364dd5d2272"
+      },
+      "results": [],
+      "calls": 0,
+      "ready": true,
+      "secureContext": true,
+      "webLocks": true
+    },
+    {
+      "session": "532103b2-22ca-4a3e-bebd-cf6229a10838",
+      "hashes": {
+        "hybrid": "b08cc87917e853ae8dce6fb9dfc892ff80a3ae9cc6cd311e178b226c26547be2",
+        "facade": "2c7240bf510607ab0e2147d2614c755b2cdacf9635635ec596a83094c83bab0a",
+        "directory": "56188c9d573ba9285cdd845addc229dfed38fc4c00156e34f3b36364dd5d2272"
+      },
+      "results": [
+        {
+          "name": "native persisted existing marker cleanup-only zero transport",
+          "pass": true
+        }
+      ],
+      "calls": 0
+    },
+    {
+      "session": "532103b2-22ca-4a3e-bebd-cf6229a10838",
+      "hashes": {
+        "hybrid": "b08cc87917e853ae8dce6fb9dfc892ff80a3ae9cc6cd311e178b226c26547be2",
+        "facade": "2c7240bf510607ab0e2147d2614c755b2cdacf9635635ec596a83094c83bab0a",
+        "directory": "56188c9d573ba9285cdd845addc229dfed38fc4c00156e34f3b36364dd5d2272"
+      },
+      "results": [
+        {
+          "name": "native persisted existing marker cleanup-only zero transport",
+          "pass": true
+        },
+        {
+          "name": "native persisted missing marker cleanup-only zero transport",
+          "pass": true
+        }
+      ],
+      "calls": 0
+    },
+    {
+      "session": "532103b2-22ca-4a3e-bebd-cf6229a10838",
+      "hashes": {
+        "hybrid": "b08cc87917e853ae8dce6fb9dfc892ff80a3ae9cc6cd311e178b226c26547be2",
+        "facade": "2c7240bf510607ab0e2147d2614c755b2cdacf9635635ec596a83094c83bab0a",
+        "directory": "56188c9d573ba9285cdd845addc229dfed38fc4c00156e34f3b36364dd5d2272"
+      },
+      "results": [
+        {
+          "name": "native persisted existing marker cleanup-only zero transport",
+          "pass": true
+        },
+        {
+          "name": "native persisted missing marker cleanup-only zero transport",
+          "pass": true
+        },
+        {
+          "name": "native confirmed row survives simulated marker write denial and retry",
+          "pass": true
+        }
+      ],
+      "calls": 0
+    },
+    {
+      "session": "532103b2-22ca-4a3e-bebd-cf6229a10838",
+      "hashes": {
+        "hybrid": "b08cc87917e853ae8dce6fb9dfc892ff80a3ae9cc6cd311e178b226c26547be2",
+        "facade": "2c7240bf510607ab0e2147d2614c755b2cdacf9635635ec596a83094c83bab0a",
+        "directory": "56188c9d573ba9285cdd845addc229dfed38fc4c00156e34f3b36364dd5d2272"
+      },
+      "results": [
+        {
+          "name": "native persisted existing marker cleanup-only zero transport",
+          "pass": true
+        },
+        {
+          "name": "native persisted missing marker cleanup-only zero transport",
+          "pass": true
+        },
+        {
+          "name": "native confirmed row survives simulated marker write denial and retry",
+          "pass": true
+        },
+        {
+          "name": "native retirement transaction abort preserves confirmation and terminal fence",
+          "pass": true
+        }
+      ],
+      "calls": 0
+    },
+    {
+      "session": "532103b2-22ca-4a3e-bebd-cf6229a10838",
+      "hashes": {
+        "hybrid": "b08cc87917e853ae8dce6fb9dfc892ff80a3ae9cc6cd311e178b226c26547be2",
+        "facade": "2c7240bf510607ab0e2147d2614c755b2cdacf9635635ec596a83094c83bab0a",
+        "directory": "56188c9d573ba9285cdd845addc229dfed38fc4c00156e34f3b36364dd5d2272"
+      },
+      "results": [
+        {
+          "name": "native persisted existing marker cleanup-only zero transport",
+          "pass": true
+        },
+        {
+          "name": "native persisted missing marker cleanup-only zero transport",
+          "pass": true
+        },
+        {
+          "name": "native confirmed row survives simulated marker write denial and retry",
+          "pass": true
+        },
+        {
+          "name": "native retirement transaction abort preserves confirmation and terminal fence",
+          "pass": true
+        }
+      ],
+      "calls": 0,
+      "complete": true
+    }
+  ]
+}

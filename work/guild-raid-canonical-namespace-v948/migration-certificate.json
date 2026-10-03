@@ -1,0 +1,331 @@
+{
+  "atET": "2026-10-03 03:32:25",
+  "serverSHA256": "45b523764006dcac35bfeee1effe3ad790f25a81326180ce67b79607696ef955",
+  "calls": [
+    {
+      "serverSHA256": "5865e9aaaf0701e64d8b8c210a83ea222787af251739feafb10d1ec0f5af4b1c",
+      "packet": {
+        "requestId": "R3:2026-10-02:migrated",
+        "heroIds": [
+          "vael"
+        ]
+      },
+      "status": 200,
+      "body": {
+        "ok": true,
+        "attemptId": "f96e8ab1701a4006",
+        "seed": 875148978,
+        "snaps": [
+          {
+            "key": "vael",
+            "level": 1,
+            "rank": 0,
+            "boss": false,
+            "maxHp": 400,
+            "dmg": 30,
+            "range": 28,
+            "speed": 70,
+            "atkInterval": 2.3,
+            "combatDist": 24,
+            "r": 18,
+            "melee": true,
+            "reach": 28.2,
+            "apow": 0,
+            "apMul": 1,
+            "hybrid": false,
+            "glyphDR": 0,
+            "defRating": 100,
+            "penRating": 0,
+            "armorRating": 60,
+            "mrRating": 40,
+            "armorPen": 0,
+            "magicPen": 0,
+            "critDmg": 0.6,
+            "lifestealStat": 0,
+            "evaStat": 0,
+            "accStat": 0,
+            "blockStat": 0,
+            "dmgBonusMul2": 1,
+            "shieldStrMul": 1,
+            "ctrlHitF": 0,
+            "hasteEnergyMul": 1,
+            "glyphRegen": 0,
+            "glyphCrit": 0,
+            "critRes": 0,
+            "energyReg": 0,
+            "templeDamageEnergy": 0,
+            "energy": 35,
+            "ctrlRes": 0,
+            "skillLv": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "passMul": 1,
+            "immovable": false,
+            "stunImmune": false,
+            "pass": null,
+            "gearSkill": null
+          }
+        ],
+        "engine": "1790961518061",
+        "entryBinding": {
+          "v": 1,
+          "accountId": "fixture-user",
+          "guildId": "own-guild",
+          "requestId": "R3:2026-10-02:migrated",
+          "heroIds": [
+            "vael"
+          ]
+        },
+        "boss": {
+          "key": "wintercrag",
+          "name": "Wintercrag",
+          "tier": 1,
+          "hp": 400000,
+          "lvl": 15,
+          "def": 30000,
+          "dmgMul": 1
+        },
+        "raid": {
+          "level": 1,
+          "max": 400000,
+          "hp": 400000,
+          "kills": 0,
+          "yourDmg": 0,
+          "guildDmg": 0,
+          "attemptsLeft": 2,
+          "top": [],
+          "name": "Wintercrag",
+          "bossKey": "wintercrag",
+          "attemptsMax": 3
+        }
+      }
+    },
+    {
+      "serverSHA256": "45b523764006dcac35bfeee1effe3ad790f25a81326180ce67b79607696ef955",
+      "packet": {
+        "requestId": "R3:2026-10-02:migrated",
+        "heroIds": [
+          "vael"
+        ],
+        "recoverOnly": true
+      },
+      "status": 200,
+      "body": {
+        "ok": true,
+        "resumed": true,
+        "attemptId": "f96e8ab1701a4006",
+        "seed": 875148978,
+        "snaps": [
+          {
+            "key": "vael",
+            "level": 1,
+            "rank": 0,
+            "boss": false,
+            "maxHp": 400,
+            "dmg": 30,
+            "range": 28,
+            "speed": 70,
+            "atkInterval": 2.3,
+            "combatDist": 24,
+            "r": 18,
+            "melee": true,
+            "reach": 28.2,
+            "apow": 0,
+            "apMul": 1,
+            "hybrid": false,
+            "glyphDR": 0,
+            "defRating": 100,
+            "penRating": 0,
+            "armorRating": 60,
+            "mrRating": 40,
+            "armorPen": 0,
+            "magicPen": 0,
+            "critDmg": 0.6,
+            "lifestealStat": 0,
+            "evaStat": 0,
+            "accStat": 0,
+            "blockStat": 0,
+            "dmgBonusMul2": 1,
+            "shieldStrMul": 1,
+            "ctrlHitF": 0,
+            "hasteEnergyMul": 1,
+            "glyphRegen": 0,
+            "glyphCrit": 0,
+            "critRes": 0,
+            "energyReg": 0,
+            "templeDamageEnergy": 0,
+            "energy": 35,
+            "ctrlRes": 0,
+            "skillLv": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "passMul": 1,
+            "immovable": false,
+            "stunImmune": false,
+            "pass": null,
+            "gearSkill": null
+          }
+        ],
+        "entryBinding": {
+          "v": 1,
+          "accountId": "fixture-user",
+          "guildId": "own-guild",
+          "requestId": "R3:2026-10-02:migrated",
+          "heroIds": [
+            "vael"
+          ]
+        },
+        "boss": {
+          "key": "wintercrag",
+          "name": "Wintercrag",
+          "tier": 1,
+          "hp": 400000,
+          "lvl": 15,
+          "def": 30000,
+          "dmgMul": 1
+        },
+        "engine": "1790961518061",
+        "raid": {
+          "level": 1,
+          "max": 400000,
+          "hp": 400000,
+          "kills": 0,
+          "yourDmg": 0,
+          "guildDmg": 0,
+          "attemptsLeft": 2,
+          "top": [],
+          "name": "Wintercrag",
+          "bossKey": "wintercrag",
+          "attemptsMax": 3
+        }
+      }
+    },
+    {
+      "serverSHA256": "45b523764006dcac35bfeee1effe3ad790f25a81326180ce67b79607696ef955",
+      "packet": {
+        "requestId": "r3:2026-10-02:migrated",
+        "heroIds": [
+          "vael"
+        ]
+      },
+      "status": 409,
+      "body": {
+        "ok": false,
+        "entryUsed": true,
+        "error": "That saved raid request was already spent. No new attempt was spent."
+      }
+    },
+    {
+      "serverSHA256": "45b523764006dcac35bfeee1effe3ad790f25a81326180ce67b79607696ef955",
+      "packet": {
+        "requestId": "R3:2026-10-02:migrated",
+        "heroIds": [
+          "vael"
+        ],
+        "recoverOnly": true
+      },
+      "status": 200,
+      "body": {
+        "ok": true,
+        "resumed": true,
+        "attemptId": "f96e8ab1701a4006",
+        "seed": 875148978,
+        "snaps": [
+          {
+            "key": "vael",
+            "level": 1,
+            "rank": 0,
+            "boss": false,
+            "maxHp": 400,
+            "dmg": 30,
+            "range": 28,
+            "speed": 70,
+            "atkInterval": 2.3,
+            "combatDist": 24,
+            "r": 18,
+            "melee": true,
+            "reach": 28.2,
+            "apow": 0,
+            "apMul": 1,
+            "hybrid": false,
+            "glyphDR": 0,
+            "defRating": 100,
+            "penRating": 0,
+            "armorRating": 60,
+            "mrRating": 40,
+            "armorPen": 0,
+            "magicPen": 0,
+            "critDmg": 0.6,
+            "lifestealStat": 0,
+            "evaStat": 0,
+            "accStat": 0,
+            "blockStat": 0,
+            "dmgBonusMul2": 1,
+            "shieldStrMul": 1,
+            "ctrlHitF": 0,
+            "hasteEnergyMul": 1,
+            "glyphRegen": 0,
+            "glyphCrit": 0,
+            "critRes": 0,
+            "energyReg": 0,
+            "templeDamageEnergy": 0,
+            "energy": 35,
+            "ctrlRes": 0,
+            "skillLv": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "passMul": 1,
+            "immovable": false,
+            "stunImmune": false,
+            "pass": null,
+            "gearSkill": null
+          }
+        ],
+        "entryBinding": {
+          "v": 1,
+          "accountId": "fixture-user",
+          "guildId": "own-guild",
+          "requestId": "R3:2026-10-02:migrated",
+          "heroIds": [
+            "vael"
+          ]
+        },
+        "boss": {
+          "key": "wintercrag",
+          "name": "Wintercrag",
+          "tier": 1,
+          "hp": 400000,
+          "lvl": 15,
+          "def": 30000,
+          "dmgMul": 1
+        },
+        "engine": "1790961518061",
+        "raid": {
+          "level": 1,
+          "max": 400000,
+          "hp": 400000,
+          "kills": 0,
+          "yourDmg": 0,
+          "guildDmg": 0,
+          "attemptsLeft": 2,
+          "top": [],
+          "name": "Wintercrag",
+          "bossKey": "wintercrag",
+          "attemptsMax": 3
+        }
+      }
+    }
+  ],
+  "failure": null,
+  "fixtureRestored": true,
+  "scope": "Actual privateHTTP syntheticaccount/clock. Opt-in namespace ONLY. Actual parent5865 upper paid entry, candidate45 swap ONLYowned fixture server and restart sameDB. ExactrecoverOnly binding/seed/snaps/boss preserved; casevariant409 nocharge; secondrestart exactrecover once. Not production migration/native/terminal/fullsuite/balance proof."
+}

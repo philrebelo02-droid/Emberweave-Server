@@ -1,0 +1,65 @@
+{
+  "atET": "2026-10-03 04:56:11",
+  "clientSHA256": "c4f330ca4ae0df11f56caa2fab3db6d6483adcaddb0a970c02953ae8516ff115",
+  "pass": 14,
+  "fail": 0,
+  "cases": [
+    {
+      "name": "clear scoped journal permits inspection without deleting retained v3 marker",
+      "status": "PASS"
+    },
+    {
+      "name": "malformed canonical legacy bytes remain held unchanged",
+      "status": "PASS"
+    },
+    {
+      "name": "encoded-account staged legacy bytes remain held unchanged",
+      "status": "PASS"
+    },
+    {
+      "name": "another account journal is not adopted or removed",
+      "status": "PASS"
+    },
+    {
+      "name": "over4096 storage enumeration refused before any key read",
+      "status": "PASS"
+    },
+    {
+      "name": "duplicate enumeration key refused",
+      "status": "PASS"
+    },
+    {
+      "name": "enumeration length change refused",
+      "status": "PASS"
+    },
+    {
+      "name": "canonical journal appearing after enumeration refused",
+      "status": "PASS"
+    },
+    {
+      "name": "storage read exception is held not clear",
+      "status": "PASS"
+    },
+    {
+      "name": "actualHTML absent quiescence blocks discovery before directory or HTTP",
+      "status": "PASS"
+    },
+    {
+      "name": "actualHTML false quiescence blocks discovery before directory or HTTP",
+      "status": "PASS"
+    },
+    {
+      "name": "actualHTML truthy-not-true quiescence blocks discovery before directory or HTTP",
+      "status": "PASS"
+    },
+    {
+      "name": "actualHTML rejected quiescence blocks discovery before directory or HTTP",
+      "status": "PASS"
+    },
+    {
+      "name": "session change while quiescence awaits blocks directory and HTTP",
+      "status": "PASS"
+    }
+  ],
+  "scope": "New legacy boundary tests on actual embedded facade and actual HTML quiescence bridge. Storage/locks/session modeled, NOT native browser, real cross-tab quiescence or quota/retention guarantee. No candidate change; no grants/deletes/HTTP."
+}

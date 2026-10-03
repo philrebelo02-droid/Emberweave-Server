@@ -1,0 +1,112 @@
+{
+  "atET": "2026-10-03 03:13:33",
+  "serverSHA256": "7b91b71e72f80417e7459219d33147d892675aa4922c1e442f86da3a310944ba",
+  "calls": [
+    {
+      "route": "/api/guild/raid/start",
+      "packet": {
+        "requestId": "R3:2026-10-01:upper",
+        "heroIds": [
+          "vael"
+        ]
+      },
+      "status": 200,
+      "body": {
+        "ok": true,
+        "attemptId": "91f9e66f0a3c624a",
+        "seed": 3309635699,
+        "snaps": [
+          {
+            "key": "vael",
+            "level": 1,
+            "rank": 0,
+            "boss": false,
+            "maxHp": 400,
+            "dmg": 30,
+            "range": 28,
+            "speed": 70,
+            "atkInterval": 2.3,
+            "combatDist": 24,
+            "r": 18,
+            "melee": true,
+            "reach": 28.2,
+            "apow": 0,
+            "apMul": 1,
+            "hybrid": false,
+            "glyphDR": 0,
+            "defRating": 100,
+            "penRating": 0,
+            "armorRating": 60,
+            "mrRating": 40,
+            "armorPen": 0,
+            "magicPen": 0,
+            "critDmg": 0.6,
+            "lifestealStat": 0,
+            "evaStat": 0,
+            "accStat": 0,
+            "blockStat": 0,
+            "dmgBonusMul2": 1,
+            "shieldStrMul": 1,
+            "ctrlHitF": 0,
+            "hasteEnergyMul": 1,
+            "glyphRegen": 0,
+            "glyphCrit": 0,
+            "critRes": 0,
+            "energyReg": 0,
+            "templeDamageEnergy": 0,
+            "energy": 35,
+            "ctrlRes": 0,
+            "skillLv": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "passMul": 1,
+            "immovable": false,
+            "stunImmune": false,
+            "pass": null,
+            "gearSkill": null
+          }
+        ],
+        "engine": "1790961518061",
+        "entryBinding": {
+          "v": 1,
+          "accountId": "fixture-user",
+          "guildId": "own-guild",
+          "requestId": "R3:2026-10-01:upper",
+          "heroIds": [
+            "vael"
+          ]
+        },
+        "boss": {
+          "key": "wintercrag",
+          "name": "Wintercrag",
+          "tier": 1,
+          "hp": 400000,
+          "lvl": 15,
+          "def": 30000,
+          "dmgMul": 1
+        },
+        "raid": {
+          "level": 1,
+          "max": 400000,
+          "hp": 400000,
+          "kills": 0,
+          "yourDmg": 0,
+          "guildDmg": 0,
+          "attemptsLeft": 2,
+          "top": [],
+          "name": "Wintercrag",
+          "bossKey": "wintercrag",
+          "attemptsMax": 3
+        }
+      }
+    }
+  ],
+  "failure": {
+    "message": "uppercase reserved namespace must not fall through to paid legacy\n\n200 !== 409\n"
+  },
+  "fixtureRestored": true,
+  "scope": "Actual privateHTTP syntheticaccount/clock. Opt-in namespace ONLY. Authenticated period GET returns exact scope/day unchanged disk; upper reserved namespace cannot bypass fence; current upper request book recorded and replayed once. Legacy bare IDs unchanged. No native/fullsuite/balance/terminal retirement proof."
+}

@@ -1,0 +1,10 @@
+{
+  "base": "13dd1eb9a0b1445cad1608da4f95d57aa6ead741ff6c5de4590a5fa8ffd0a797",
+  "output": "7a1a61f8437bd1ce1d1e8f14e7189f83b15284b9e47fa068df3725ab3d1a9cac",
+  "spans": [
+    [
+      "async function raidLaunch(){",
+      "async function raidLaunch(){\n const current=raidClientFence(),key=raidJournalKey();\n if(!key){bannerMsg('Sign in to raid with your guild.');return;}\n if(typeof navigator==='undefined'||!navigator.locks||typeof navigator.locks.request!=='function'){bannerMsg('Safe raid entry coordination is unavailable. No request sent.');return;}\n try{return await navigator.locks.request(key,{mode:'exclusive',ifAvailable:true},async(lock)=>{\n  if(!current())return;\n  if(!lock){bannerMsg('Another tab is handling this raid request. Recover the saved request after it finishes.');return;}\n  return await raidLaunchLocked();\n });}catch(e){if(current())bannerMsg('Could not coordinate raid entry. No replacement request sent.');}\n}\nasync function raidLaunchLocked(){"
+    ]
+  ]
+}

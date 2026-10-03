@@ -1,0 +1,38 @@
+{
+  "status": "PRIVATE_DESIGN_AND_NATURALLY_FAILING_CONTROLS_NOT_IMPLEMENTED_NOT_REVIEW_READY_NOT_SHIPPED",
+  "baselineSha256": "bc71d3b276c22745f7dacfad167ef77510c6f95afeb1c22ec69b8cf927da299d",
+  "finding": {
+    "measured": "Four new controlled-VM recovery acceptance cases: one passes, three naturally fail with zero outgoing packets rather than the required one. Cases cover 511 unrelated keys plus one stage, 513 unrelated keys plus one stage, and 513 unrelated keys plus stage and exact canonical packet.",
+    "sourceExplanation": "At 512 total keys discovery succeeds. raidJournalWrite adds canonical storage, then its readback calls combined raidJournalRead. The same global scan now rejects 513 keys. This explains the transition case; the log directly measures zero requests, not a native browser transition or lost money.",
+    "priorNativeEvidence": "native-edge-evidence.json separately proved valid recovery blocked at 516 keys. Neither evidence establishes deletion or duplicate charge. Existing package remains held."
+  },
+  "rejectedShortcuts": [
+    "Raising 512 relocates the unrelated-key failure and increases synchronous work; it is not a structural fix.",
+    "An unlocked localStorage directory can lose concurrent entries. Readback is not compare-and-swap.",
+    "Waiting for the account network lock before durable discovery registration reopens the busy-lock/tab-close loss already reproduced on 574fe553.",
+    "Fixed localStorage slots with read/check/write can overwrite competing results; a claimed four-result cap is not atomic.",
+    "Ignoring legacy unindexed rows or deleting unrelated keys to make room silently changes recovery semantics and is excluded."
+  ],
+  "proposedPrivatePrototype": {
+    "store": "IndexedDB immutable result records keyed by random result UUID, with account/guild index. Token-free exact packets and parent entry identity remain mandatory.",
+    "registration": "Separate short readwrite transaction checks bounded account result count and commits the immutable row. Do not hold a transaction open through network I/O. Queue the delayed send only after transaction completion, not request-success events.",
+    "selection": "Bounded indexed retrieval of at most five account rows exposes the over-four refusal without enumerating unrelated origin keys. Validate guild, account, exact packet and parent identity. Preserve conflicting evidence.",
+    "network": "Retain conditional exclusive account Web Lock, fresh account/session/guild fences and exact saved identity. Keep the lock through response handling; unknown/pruned/403/409 recovery never becomes fresh paid entry.",
+    "cleanup": "Short transaction deletes only matching confirmed row identities after current-account response validation. No automatic old-row eviction, refund or reward-policy change.",
+    "canonical": "Use the same indexed transaction domain for entry and settlement canonical identity, avoiding cross-store atomicity claims. Client response and server idempotency remain distinct proof obligations."
+  },
+  "compatibilityAndCrashGates": [
+    "IndexedDB can be unavailable, denied or out of quota. Refuse paid entry when capability/enrollment cannot be committed; never silently fall back to a fresh intent.",
+    "A tab can close before an asynchronous result transaction commits. Promise completion alone is not crash proof. Explicitly test closure before and after transaction completion and document any unavoidable pre-commit transcript loss; do not claim universal durable client rewards.",
+    "No live cutover or migration authorized. Prototype uses a separate fixture database. Legacy localStorage evidence must not be silently ignored. Enrollment/migration for existing accounts is a separate unresolved gate, especially where the old global bound prevents complete discovery.",
+    "Old and noncooperating clients do not gain coordination merely because new clients use transactions. Mixed-version behavior and rollout remain held.",
+    "Native browser indexed transactions, real quota/permission failures and full Guild UI remain unverified. Synthetic transaction mocks alone cannot close these gates."
+  ],
+  "nextAcceptance": [
+    "Build a private indexed-storage adapter prototype in a separate fixture database, with bounded account discovery and no game candidate replacement.",
+    "Controlled concurrent registration must preserve distinct rows atomically or refuse without overwriting; exact duplicate requests must not produce duplicate sends.",
+    "Test commit-versus-request-success ordering, transaction abort/quota denial, account/guild separation, ambiguity preservation and unrelated-key independence.",
+    "Then native close-before/after-commit and reload/restart evidence before adapting game handlers or packaging. Preserve bc71 and its old package as controls."
+  ],
+  "authority": "Design and isolated prototype only. No live files, Brain probes, process changes, deployment, prices/rewards/odds/ownership changes or migration. World Tree remains disabled."
+}

@@ -1,0 +1,70 @@
+{
+  "atET": "2026-10-03 04:26:25",
+  "clientSHA256": "c4f330ca4ae0df11f56caa2fab3db6d6483adcaddb0a970c02953ae8516ff115",
+  "facadeSHA256": "61661ea0cb705be06da99c1f9084790e87e6646f57e833064fa1d5539fdf7c68",
+  "pass": 15,
+  "fail": 0,
+  "cases": [
+    {
+      "name": "exact saved entry authenticated proof closes under shared lock",
+      "status": "PASS"
+    },
+    {
+      "name": "persisted closure retries cleanup with zero transport after retirement fault",
+      "status": "PASS"
+    },
+    {
+      "name": "persisted closure quota failure retains discovery and retries zero transport",
+      "status": "PASS"
+    },
+    {
+      "name": "staged result blocks closure before any transport",
+      "status": "PASS"
+    },
+    {
+      "name": "busy account lock blocks transport and all writes",
+      "status": "PASS"
+    },
+    {
+      "name": "unproven legacy quiescence blocks transport",
+      "status": "PASS"
+    },
+    {
+      "name": "legacy pending packet is not migrated or discarded",
+      "status": "PASS"
+    },
+    {
+      "name": "stale session after HTTP refuses proof mutation",
+      "status": "PASS"
+    },
+    {
+      "name": "stale session after digest refuses proof mutation",
+      "status": "PASS"
+    },
+    {
+      "name": "result appearing during validation stays immutable and blocks closure",
+      "status": "PASS"
+    },
+    {
+      "name": "unproven generic429 retains pending intent",
+      "status": "PASS"
+    },
+    {
+      "name": "unproven wrong hash retains pending intent",
+      "status": "PASS"
+    },
+    {
+      "name": "unproven wrong guild retains pending intent",
+      "status": "PASS"
+    },
+    {
+      "name": "unproven current period retains pending intent",
+      "status": "PASS"
+    },
+    {
+      "name": "generic recover will not send persisted closure as result",
+      "status": "PASS"
+    }
+  ],
+  "scope": "Actual extracted facade and hybrid, actual pure digest validator+directory row validator, modeled directory/storage/WebLock and authenticated-channel reply fixture. NOT actual HTTP/native/HTML/UI integration or balance. No grant/render functions supplied"
+}

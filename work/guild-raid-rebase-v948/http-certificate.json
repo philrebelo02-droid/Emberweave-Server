@@ -1,0 +1,657 @@
+{
+  "atET": "2026-10-03 01:30:04",
+  "status": "NARROW_V948_PRIVATE_HTTP_RECOVERY_SAVE_FAILURE_RESTART_SECOND_ENTRY_PASS",
+  "serverSHA256": "eca0b14dca679e554c29d8ae2ef88270b0bc15b7db1a9271f47b83759c2c1a2f",
+  "calls": [
+    {
+      "route": "/api/guild/raid/start",
+      "packet": {
+        "requestId": "rebase-entry",
+        "heroIds": [
+          "vael"
+        ],
+        "recoverOnly": true
+      },
+      "status": 409,
+      "body": {
+        "ok": false,
+        "recoveryUnknown": true,
+        "error": "Matching active raid entry unavailable. No new attempt was spent."
+      }
+    },
+    {
+      "route": "/api/guild/raid/start",
+      "packet": {
+        "requestId": "rebase-entry",
+        "heroIds": [
+          "vael"
+        ]
+      },
+      "status": 503,
+      "body": {
+        "error": "World save failed. Retry the same request."
+      }
+    },
+    {
+      "route": "/api/guild/raid/start",
+      "packet": {
+        "requestId": "rebase-entry",
+        "heroIds": [
+          "vael"
+        ]
+      },
+      "status": 200,
+      "body": {
+        "ok": true,
+        "attemptId": "f2ba4d3fce4ab886",
+        "seed": 3321625037,
+        "snaps": [
+          {
+            "key": "vael",
+            "level": 1,
+            "rank": 0,
+            "boss": false,
+            "maxHp": 400,
+            "dmg": 30,
+            "range": 28,
+            "speed": 70,
+            "atkInterval": 2.3,
+            "combatDist": 24,
+            "r": 18,
+            "melee": true,
+            "reach": 28.2,
+            "apow": 0,
+            "apMul": 1,
+            "hybrid": false,
+            "glyphDR": 0,
+            "defRating": 100,
+            "penRating": 0,
+            "armorRating": 60,
+            "mrRating": 40,
+            "armorPen": 0,
+            "magicPen": 0,
+            "critDmg": 0.6,
+            "lifestealStat": 0,
+            "evaStat": 0,
+            "accStat": 0,
+            "blockStat": 0,
+            "dmgBonusMul2": 1,
+            "shieldStrMul": 1,
+            "ctrlHitF": 0,
+            "hasteEnergyMul": 1,
+            "glyphRegen": 0,
+            "glyphCrit": 0,
+            "critRes": 0,
+            "energyReg": 0,
+            "templeDamageEnergy": 0,
+            "energy": 35,
+            "ctrlRes": 0,
+            "skillLv": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "passMul": 1,
+            "immovable": false,
+            "stunImmune": false,
+            "pass": null,
+            "gearSkill": null
+          }
+        ],
+        "engine": "1790961518061",
+        "entryBinding": {
+          "v": 1,
+          "accountId": "fixture-user",
+          "guildId": "own-guild",
+          "requestId": "rebase-entry",
+          "heroIds": [
+            "vael"
+          ]
+        },
+        "boss": {
+          "key": "wintercrag",
+          "name": "Wintercrag",
+          "tier": 1,
+          "hp": 400000,
+          "lvl": 15,
+          "def": 30000,
+          "dmgMul": 1
+        },
+        "raid": {
+          "level": 1,
+          "max": 400000,
+          "hp": 400000,
+          "kills": 0,
+          "yourDmg": 0,
+          "guildDmg": 0,
+          "attemptsLeft": 2,
+          "top": [],
+          "name": "Wintercrag",
+          "bossKey": "wintercrag",
+          "attemptsMax": 3
+        }
+      }
+    },
+    {
+      "route": "/api/guild/raid/start",
+      "packet": {
+        "requestId": "rebase-entry",
+        "heroIds": [
+          "vael"
+        ],
+        "recoverOnly": true
+      },
+      "status": 200,
+      "body": {
+        "ok": true,
+        "resumed": true,
+        "attemptId": "f2ba4d3fce4ab886",
+        "seed": 3321625037,
+        "snaps": [
+          {
+            "key": "vael",
+            "level": 1,
+            "rank": 0,
+            "boss": false,
+            "maxHp": 400,
+            "dmg": 30,
+            "range": 28,
+            "speed": 70,
+            "atkInterval": 2.3,
+            "combatDist": 24,
+            "r": 18,
+            "melee": true,
+            "reach": 28.2,
+            "apow": 0,
+            "apMul": 1,
+            "hybrid": false,
+            "glyphDR": 0,
+            "defRating": 100,
+            "penRating": 0,
+            "armorRating": 60,
+            "mrRating": 40,
+            "armorPen": 0,
+            "magicPen": 0,
+            "critDmg": 0.6,
+            "lifestealStat": 0,
+            "evaStat": 0,
+            "accStat": 0,
+            "blockStat": 0,
+            "dmgBonusMul2": 1,
+            "shieldStrMul": 1,
+            "ctrlHitF": 0,
+            "hasteEnergyMul": 1,
+            "glyphRegen": 0,
+            "glyphCrit": 0,
+            "critRes": 0,
+            "energyReg": 0,
+            "templeDamageEnergy": 0,
+            "energy": 35,
+            "ctrlRes": 0,
+            "skillLv": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "passMul": 1,
+            "immovable": false,
+            "stunImmune": false,
+            "pass": null,
+            "gearSkill": null
+          }
+        ],
+        "entryBinding": {
+          "v": 1,
+          "accountId": "fixture-user",
+          "guildId": "own-guild",
+          "requestId": "rebase-entry",
+          "heroIds": [
+            "vael"
+          ]
+        },
+        "boss": {
+          "key": "wintercrag",
+          "name": "Wintercrag",
+          "tier": 1,
+          "hp": 400000,
+          "lvl": 15,
+          "def": 30000,
+          "dmgMul": 1
+        },
+        "engine": "1790961518061",
+        "raid": {
+          "level": 1,
+          "max": 400000,
+          "hp": 400000,
+          "kills": 0,
+          "yourDmg": 0,
+          "guildDmg": 0,
+          "attemptsLeft": 2,
+          "top": [],
+          "name": "Wintercrag",
+          "bossKey": "wintercrag",
+          "attemptsMax": 3
+        }
+      }
+    },
+    {
+      "route": "/api/guild/raid/resolve",
+      "packet": {
+        "requestId": "rebase-result",
+        "attemptId": "f2ba4d3fce4ab886",
+        "inputLog": [],
+        "dmg": 10
+      },
+      "status": 503,
+      "body": {
+        "ok": false,
+        "error": "World save failed. Retry the same request."
+      }
+    },
+    {
+      "route": "/api/guild/raid/resolve",
+      "packet": {
+        "requestId": "rebase-result",
+        "attemptId": "f2ba4d3fce4ab886",
+        "inputLog": [],
+        "dmg": 10
+      },
+      "status": 200,
+      "body": {
+        "ok": true,
+        "dmg": 4,
+        "killed": false,
+        "reward": {
+          "guildCoins": 0
+        },
+        "incident": null,
+        "raid": {
+          "level": 1,
+          "max": 400000,
+          "hp": 399996,
+          "kills": 0,
+          "yourDmg": 4,
+          "guildDmg": 4,
+          "attemptsLeft": 2,
+          "top": [
+            {
+              "id": "fixture-user",
+              "name": "Generic Fixture",
+              "dmg": 4,
+              "pct": 100
+            }
+          ],
+          "name": "Wintercrag",
+          "bossKey": "wintercrag",
+          "attemptsMax": 3
+        },
+        "ledger": {
+          "rev": 2,
+          "born": 1790927999000,
+          "gold": 100000,
+          "gems": 100000,
+          "guildCoins": 0,
+          "px": 1000,
+          "playerLevel": 14,
+          "hero": {
+            "vael": {
+              "xp": 0,
+              "stars": 1,
+              "pips": 0,
+              "ref": 0
+            }
+          },
+          "unlocked": {
+            "vael": true
+          },
+          "frags": {},
+          "xpPotions": {},
+          "xpPotionUsed": {},
+          "tutVexXpBase": 0,
+          "eqMats": {},
+          "skill": {
+            "vael": [
+              1,
+              1,
+              1,
+              1
+            ]
+          },
+          "temple": {
+            "keeperPoints": 0,
+            "freeRitualDay": null,
+            "goldLadderStep": 0,
+            "gemTierCounts": {
+              "kindled": 0,
+              "stoked": 0,
+              "blazing": 0,
+              "inferno": 0
+            },
+            "discardsInRow": 0,
+            "heroes": {},
+            "bonusPrayers": 0,
+            "levelSeen": 1,
+            "_pending": null,
+            "playerLevel": 14
+          },
+          "camp": {
+            "cleared": 20,
+            "stars": {}
+          },
+          "prov": {
+            "gold": {
+              "stage": 0,
+              "sweepStage": 0,
+              "used": 0,
+              "playsLeft": 2,
+              "day": "2026-10-02"
+            },
+            "rune": {
+              "stage": 0,
+              "sweepStage": 0,
+              "used": 0,
+              "playsLeft": 2,
+              "day": "2026-10-02"
+            }
+          },
+          "portals": {
+            "normal": {
+              "cleared": 20,
+              "stars": {},
+              "locked": null
+            },
+            "elite": {
+              "cleared": 0,
+              "stars": {},
+              "locked": null
+            },
+            "veteran": {
+              "cleared": 0,
+              "stars": {},
+              "locked": "Veteran Portal opens after Normal 16-10."
+            }
+          },
+          "stamina": {
+            "v": 60,
+            "max": 73,
+            "regenMs": 360000
+          },
+          "dust": 0,
+          "shop": {
+            "food": 0,
+            "gold": 0,
+            "foodCost": 50,
+            "goldCost": 20
+          }
+        },
+        "settlementBinding": {
+          "v": 1,
+          "accountId": "fixture-user",
+          "guildId": "own-guild",
+          "requestId": "rebase-result",
+          "attemptId": "f2ba4d3fce4ab886",
+          "packetHash": "c1f16375448129759ded4900b00e94da0136af9f62b00ae3ad2f6385a9575d08"
+        }
+      }
+    },
+    {
+      "route": "/api/guild/raid/resolve",
+      "packet": {
+        "requestId": "rebase-result",
+        "attemptId": "f2ba4d3fce4ab886",
+        "inputLog": [],
+        "dmg": 10
+      },
+      "status": 200,
+      "body": {
+        "ok": true,
+        "dmg": 4,
+        "killed": false,
+        "reward": {
+          "guildCoins": 0
+        },
+        "incident": null,
+        "raid": {
+          "level": 1,
+          "max": 400000,
+          "hp": 399996,
+          "kills": 0,
+          "yourDmg": 4,
+          "guildDmg": 4,
+          "attemptsLeft": 2,
+          "top": [
+            {
+              "id": "fixture-user",
+              "name": "Generic Fixture",
+              "dmg": 4,
+              "pct": 100
+            }
+          ],
+          "name": "Wintercrag",
+          "bossKey": "wintercrag",
+          "attemptsMax": 3
+        },
+        "ledger": {
+          "rev": 2,
+          "born": 1790927999000,
+          "gold": 100000,
+          "gems": 100000,
+          "guildCoins": 0,
+          "px": 1000,
+          "playerLevel": 14,
+          "hero": {
+            "vael": {
+              "xp": 0,
+              "stars": 1,
+              "pips": 0,
+              "ref": 0
+            }
+          },
+          "unlocked": {
+            "vael": true
+          },
+          "frags": {},
+          "xpPotions": {},
+          "xpPotionUsed": {},
+          "tutVexXpBase": 0,
+          "eqMats": {},
+          "skill": {
+            "vael": [
+              1,
+              1,
+              1,
+              1
+            ]
+          },
+          "temple": {
+            "keeperPoints": 0,
+            "freeRitualDay": null,
+            "goldLadderStep": 0,
+            "gemTierCounts": {
+              "kindled": 0,
+              "stoked": 0,
+              "blazing": 0,
+              "inferno": 0
+            },
+            "discardsInRow": 0,
+            "heroes": {},
+            "bonusPrayers": 0,
+            "levelSeen": 1,
+            "_pending": null,
+            "playerLevel": 14
+          },
+          "camp": {
+            "cleared": 20,
+            "stars": {}
+          },
+          "prov": {
+            "gold": {
+              "stage": 0,
+              "sweepStage": 0,
+              "used": 0,
+              "playsLeft": 2,
+              "day": "2026-10-02"
+            },
+            "rune": {
+              "stage": 0,
+              "sweepStage": 0,
+              "used": 0,
+              "playsLeft": 2,
+              "day": "2026-10-02"
+            }
+          },
+          "portals": {
+            "normal": {
+              "cleared": 20,
+              "stars": {},
+              "locked": null
+            },
+            "elite": {
+              "cleared": 0,
+              "stars": {},
+              "locked": null
+            },
+            "veteran": {
+              "cleared": 0,
+              "stars": {},
+              "locked": "Veteran Portal opens after Normal 16-10."
+            }
+          },
+          "stamina": {
+            "v": 60,
+            "max": 73,
+            "regenMs": 360000
+          },
+          "dust": 0,
+          "shop": {
+            "food": 0,
+            "gold": 0,
+            "foodCost": 50,
+            "goldCost": 20
+          }
+        },
+        "settlementBinding": {
+          "v": 1,
+          "accountId": "fixture-user",
+          "guildId": "own-guild",
+          "requestId": "rebase-result",
+          "attemptId": "f2ba4d3fce4ab886",
+          "packetHash": "c1f16375448129759ded4900b00e94da0136af9f62b00ae3ad2f6385a9575d08"
+        }
+      }
+    },
+    {
+      "route": "/api/guild/raid/start",
+      "packet": {
+        "requestId": "rebase-second",
+        "heroIds": [
+          "vael"
+        ]
+      },
+      "status": 200,
+      "body": {
+        "ok": true,
+        "attemptId": "7340edbaaeba60cc",
+        "seed": 56393369,
+        "snaps": [
+          {
+            "key": "vael",
+            "level": 1,
+            "rank": 0,
+            "boss": false,
+            "maxHp": 400,
+            "dmg": 30,
+            "range": 28,
+            "speed": 70,
+            "atkInterval": 2.3,
+            "combatDist": 24,
+            "r": 18,
+            "melee": true,
+            "reach": 28.2,
+            "apow": 0,
+            "apMul": 1,
+            "hybrid": false,
+            "glyphDR": 0,
+            "defRating": 100,
+            "penRating": 0,
+            "armorRating": 60,
+            "mrRating": 40,
+            "armorPen": 0,
+            "magicPen": 0,
+            "critDmg": 0.6,
+            "lifestealStat": 0,
+            "evaStat": 0,
+            "accStat": 0,
+            "blockStat": 0,
+            "dmgBonusMul2": 1,
+            "shieldStrMul": 1,
+            "ctrlHitF": 0,
+            "hasteEnergyMul": 1,
+            "glyphRegen": 0,
+            "glyphCrit": 0,
+            "critRes": 0,
+            "energyReg": 0,
+            "templeDamageEnergy": 0,
+            "energy": 35,
+            "ctrlRes": 0,
+            "skillLv": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "passMul": 1,
+            "immovable": false,
+            "stunImmune": false,
+            "pass": null,
+            "gearSkill": null
+          }
+        ],
+        "engine": "1790961518061",
+        "entryBinding": {
+          "v": 1,
+          "accountId": "fixture-user",
+          "guildId": "own-guild",
+          "requestId": "rebase-second",
+          "heroIds": [
+            "vael"
+          ]
+        },
+        "boss": {
+          "key": "wintercrag",
+          "name": "Wintercrag",
+          "tier": 1,
+          "hp": 399996,
+          "lvl": 15,
+          "def": 30000,
+          "dmgMul": 1
+        },
+        "raid": {
+          "level": 1,
+          "max": 400000,
+          "hp": 399996,
+          "kills": 0,
+          "yourDmg": 4,
+          "guildDmg": 4,
+          "attemptsLeft": 1,
+          "top": [
+            {
+              "id": "fixture-user",
+              "name": "Generic Fixture",
+              "dmg": 4,
+              "pct": 100
+            }
+          ],
+          "name": "Wintercrag",
+          "bossKey": "wintercrag",
+          "attemptsMax": 3
+        }
+      }
+    }
+  ],
+  "entryCount": 2,
+  "raidTransactions": 1,
+  "scope": "Actual private HTTP synthetic account with current-v948 rebased raid routes. Unknown strict resume no mutation; entry/result rename faults503 unchanged disk; retry/restart same entry; result replay same hash onegrant; second explicit freshentry accepted. No native/fullpage/phone/fullsuite/balance or deployment approval."
+}

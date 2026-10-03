@@ -1,0 +1,5 @@
+{
+ "originalCandidateSHA256":"d5816abfcbd54bd7e399663ad9bb582eac0e7812d90ea26a3f4c7e98342ce4b7",
+ "control":"Actual delayed result timer has saved complete settlement before callback; cancellation keeps recovery",
+ "observed":"Natural assertion failure: journal kind undefined, expected resolve before800ms callback. Synchronous transcript persistence needed before scheduling; no writing tests on live game."
+}

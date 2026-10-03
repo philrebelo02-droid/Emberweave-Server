@@ -1,0 +1,18 @@
+{
+ "status":"PRIVATE_COMPONENT_TESTED_NOT_REVIEW_READY_NOT_SHIPPED",
+ "htmlSHA256":"71ea32a8b8f60a70cf0429139ba66bb763991cca6c5ecb5349097cb8c9124155",
+ "sourceSHA256":"b9f5e394011d1e1312d1c182f7e918887359fa75c6eab8ca8aff4b99190755da",
+ "evidence":["composition.json","integration-results.json","guards.json","double-click-control.json","delayed-timer-control.json","composition-first-failure.json"],
+ "verification":"52PASS:15journal+14prior assertions with supplied storage fixture+23adjacent. Original memory-only2controls fail. New journal revision self-review exposed2natural defects (double recovery click, missing synchronous save before800ms result callback), fixed with failing controls preserved. Actual extracted client/API plus privateHTTP server and frozen-squad replay across freshVM reload and serverrestart after committed lost entry/result replies: one charge/one raid transaction, complete same packet, doubleclick singleflight. 4rollback9refusal3inverse;4output3571021byte integritycopy, not runtime.",
+ "limitations":[
+  "Rendering, storage and timer execution use controlled VM fixtures; no physical browser/phone proof, full canonical bot/Brain or live deployment.",
+  "Cross-tab/multiple-client same-account journal races are NOT fenced. No storage CAS/lease; concurrent new intents remain an open audit boundary. Not complete exactly-once client rewards.",
+  "Storage denial/quota/corruption fails closed before outbound requests. If storage fails after a paid entry, unsent result can remain only in memory; cannot claim loss-proof recovery under persistent storage failure.",
+  "Expired saved entry is held and refuses a new charge. No authorized discard/new-purchase workflow implemented; an explicit safe decision/action remains needed.",
+  "Recovery is manual; old unknown/pruned/409 settlement stays pending, no automatic new paid intent. Other server transaction receipt pruning and legacy unbound receipt transition still gate deployment.",
+  "Stale account/game/token/guild/epoch responses cannot adopt ledger; refreshed authoritative view after stale confirmation remains unverified in real UI.",
+  "Initial original-harness15s timeout excluded. First composition51PASS1FAIL was banner-wording mismatch; unchanged test retained and compatible wording restored, then52PASS.",
+  "No prices/rewards/ownership/enablement decisions, no live/Brain/Pause/process changes. Genericconvert/unpairedrewards/Contributionpolicy remainOPEN;WorldTreeOFF."
+ ],
+ "nextAction":"Shared-storage two-VM same-account interleavings: entry identity race, start-to-resolve overwrite and cleanup races; bounded storage intent ownership/lease design without tokens or automatic fresh charge, preserving legitimate battle transition. Then discoverable actual DOM recovery UI/account-switch/error boundaries and critical review before review-ready. Do not repeat unchanged52/HTTP/guards."
+}

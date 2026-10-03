@@ -1,0 +1,40 @@
+{
+  "atET": "2026-10-03 05:09:25",
+  "clientSHA256": "c4f330ca4ae0df11f56caa2fab3db6d6483adcaddb0a970c02953ae8516ff115",
+  "legacySourceSHA256": "71ea32a8b8f60a70cf0429139ba66bb763991cca6c5ecb5349097cb8c9124155",
+  "testSHA256": "0224c58158cf62acf507aaa5fc722e92b705da906c0b028491f8c7e0e509e850",
+  "pass": 2,
+  "fail": 4,
+  "cases": [
+    {
+      "name": "Historical legacy writer writes canonical storage while new account lock is held: negative quiescence witness",
+      "status": "PASS"
+    },
+    {
+      "name": "Historical legacy source has no new cutover proof or lock participation",
+      "status": "PASS"
+    },
+    {
+      "name": "Confirmed marker prevents raw retained old lease from staging after directory retirement",
+      "status": "FAIL",
+      "error": "Values have same structure but are not reference-equal:\n\n{\n  accountId: 'actor',\n  confirmedPacket: {\n    attemptId: 'attempt-one',\n    dmg: 12,\n    inputLog: [],\n    requestId: 'result-one'\n  },\n  entry: {\n    heroIds: [\n      'hero1'\n    ],\n    requestId: 'r3:2026-10-02:one'\n  },\n  guildId: 'guild',\n  id: 'slot',\n  state: 'confirmed',\n  v: 3\n}\n"
+    },
+    {
+      "name": "Deleting retained marker lets raw old lease recreate orphan result: unsafe eviction control",
+      "status": "FAIL",
+      "error": "Values have same structure but are not reference-equal:\n\n{\n  accountId: 'actor',\n  confirmedPacket: {\n    attemptId: 'attempt-one',\n    dmg: 12,\n    inputLog: [],\n    requestId: 'result-one'\n  },\n  entry: {\n    heroIds: [\n      'hero1'\n    ],\n    requestId: 'r3:2026-10-02:one'\n  },\n  guildId: 'guild',\n  id: 'slot',\n  state: 'confirmed',\n  v: 3\n}\n"
+    },
+    {
+      "name": "Confirmation cleanup quota preserves exact staged packet plus confirmed directory; retry retains fence",
+      "status": "FAIL",
+      "error": "Values have same structure but are not reference-equal:\n\n{\n  accountId: 'actor',\n  confirmedPacket: {\n    attemptId: 'attempt-one',\n    dmg: 12,\n    inputLog: [],\n    requestId: 'result-one'\n  },\n  entry: {\n    heroIds: [\n      'hero1'\n    ],\n    requestId: 'r3:2026-10-02:one'\n  },\n  guildId: 'guild',\n  id: 'slot',\n  state: 'confirmed',\n  v: 3\n}\n"
+    },
+    {
+      "name": "Retired marker at reused instance ID blocks new stage rather than overwriting terminal evidence",
+      "status": "FAIL",
+      "error": "Values have same structure but are not reference-equal:\n\n{\n  accountId: 'actor',\n  confirmedPacket: {\n    attemptId: 'attempt-one',\n    dmg: 12,\n    inputLog: [],\n    requestId: 'result-one'\n  },\n  entry: {\n    heroIds: [\n      'hero1'\n    ],\n    requestId: 'r3:2026-10-02:one'\n  },\n  guildId: 'guild',\n  id: 'slot',\n  state: 'confirmed',\n  v: 3\n}\n"
+    }
+  ],
+  "scope": "New actual embedded hybrid and historical legacy journal functions. Modeled storage/directory/held lock only. Unsafe controls intentionally delete a private MODEL marker, never game data. Raw hybrid lease bypasses facade, not a claim current facade sends an orphan result. No native, migration, eviction fix, activation, balance or deployment proof.",
+  "conclusion": "Retain terminal markers; do not infer old writers quiescent from a new Web Lock or empty legacy keys. Real all-writer cutover and bounded durable retention remain OPEN."
+}

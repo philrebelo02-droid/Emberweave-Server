@@ -1,0 +1,11 @@
+{
+  "at": "2026-10-03T03:38:41.968Z",
+  "exit": 0,
+  "pass": 12,
+  "fail": 0,
+  "hashes": {
+    "hybrid-adapter.cjs": "48ec8b50c642e0b78a2510e1fd9962bca8f7b51b73b0ea3abaf75a8ee4025d16",
+    "composition-facade.cjs": "b3cf927bec2193bf3d2885abb60ae237672e263dee52bc4650cab078bbb979ac"
+  },
+  "scope": "Private dependency model; validator is injected, not independently proven auth"
+}

@@ -1,0 +1,23 @@
+{
+  "atET": "2026-10-03 06:12:06",
+  "clientSHA256": "28ec2c6d66f33b9d730d3b1d224992e1a1205070affaf23f71be19637ff45283",
+  "hooksSHA256": "0fc29468726b880bc4d71d51d8947ca6fd0f55b5b1484c0a545ba4a8bd1225fc",
+  "serverSHA256": "7d2cb9f199382ea77a31ed36bfead8fc03808c9559a40ed5b18bb17c5ef5dbe9",
+  "rawSHA256": "0a01c44a25a2e9783dd3e951f7d71c3c3a292baeb609f1d6a14e1cbebdfe0367",
+  "adapterSHA256": "a1e81d703fc2b69a0608bde1a541a3e85ba8ec16e7a8bc6583340c7458b428e5",
+  "verifierSHA256": "92d1a78951724ce895ebe44d9eac1fa566e93b74c59db56b53f90a1c5a58cb9a",
+  "screenshotSHA256": "10470f0544afdf7d5ebe9e42a5dd9d101874bff246e7b600be61dae2e29edc13",
+  "result": "PASS new current-source native hooks/private authenticated HTTP sequence; not full-game approval",
+  "actualCalls": 5,
+  "entryCount": 1,
+  "raidTransactions": 1,
+  "finalReload": {
+    "rows": 0,
+    "retainedConfirmedMarkers": 1,
+    "fightStarts": 0,
+    "renderedRewards": 0
+  },
+  "cleanup": "Own browser tab1124719396 closed; privateAPI stopped and source71202733 restored; own helper session87935 checked separately.",
+  "scope": "Current28ec2c exact extracted Guild HTML hooks plus7d2cb9 actual private authenticated HTTP. Native IDB/localStorage/WebLocks/DOM, synthetic combat and renderer hooks, not full game page/combat/authored balance. Strict proof true ONLY test origin has no legacy game writer; production provider remains missing, activation held.",
+  "limits": "Combat/startBattle, rendering adoption/session globals are fixture stubs; current exact hooks use real browser IDB/localStorage/WebLocks/DOM and actual authenticated privateHTTP. Two private API restarts, unreadable committed entry/result replies injected. Not fullgame combat/UI, physical phone, full canonicalbots, genuine quota/crash, production quiescence, backuprestore, currentintegratedfullsuite/balance/installer/docs or dualapproval. No policy/game code changes or deployment."
+}

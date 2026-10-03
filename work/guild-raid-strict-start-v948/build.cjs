@@ -1,0 +1,14 @@
+'use strict';
+const fs=require('node:fs'),path=require('node:path'),c=require('node:crypto'),a=require('node:assert/strict');
+const hash=x=>c.createHash('sha256').update(x).digest('hex');
+const source=fs.readFileSync(path.join(__dirname,'../guild-raid-rebase-v948/private-server-v948.js'),'utf8');
+a.equal(hash(source),'eca0b14dca679e554c29d8ae2ef88270b0bc15b7db1a9271f47b83759c2c1a2f');
+const start=source.indexOf("if(p==='/api/guild/raid/start' && req.method==='POST')"),end=source.indexOf("if(p==='/api/guild/raid/resolve'",start);a(start>0&&end>start);
+const old="const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});";
+const replacement="if(typeof b.requestId!=='string'||!b.requestId||b.requestId.length>48||!Array.isArray(b.heroIds)||!b.heroIds.length||b.heroIds.length>10||b.heroIds.some(k=>typeof k!=='string'||!k||k.length>128)||new Set(b.heroIds).size!==b.heroIds.length||Object.keys(b).some(k=>!['requestId','heroIds','recoverOnly'].includes(k)))return send(res,400,{ok:false,error:'Exact raid entry packet required.'});\n      const reqId=b.requestId;";
+const block=source.slice(start,end);a.equal(block.split(old).length,2);
+const revised=block.replace(old,replacement),out=source.slice(0,start)+revised+source.slice(end);
+a.equal(out.slice(0,start),source.slice(0,start));a.equal(out.slice(start+revised.length),source.slice(end));new(require('node:vm').Script)(out);
+fs.writeFileSync(path.join(__dirname,'private-server-strict-start.js'),out);
+fs.writeFileSync(path.join(__dirname,'build-certificate.json'),JSON.stringify({sourceSHA256:hash(source),outputSHA256:hash(out),span:{start,end},status:'PRIVATE_ONE_START_SHAPE_GUARD_ONLY_PARSE_PASS',scope:'Exact identities rejected before raid planning or entry spend. Existing 10-hero server maximum retained; no reward, fight or cap tuning. Source eca0 pair unchanged. HTTP verification pending; no shipping approval.'},null,2));
+console.log(hash(out));

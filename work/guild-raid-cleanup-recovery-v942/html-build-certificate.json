@@ -1,0 +1,22 @@
+{
+  "at": "2026-10-03T05:18:02.993Z",
+  "status": "PRIVATE_FULLHTML_BUILT_PARSE_ONLY_NOT_BROWSER_NOT_SHIPPED",
+  "sourceHash": "0f7ee8d2e850bebca11f736b291dc29d814d8b520564a576b0a27de03415b758",
+  "outputHash": "5d2950931b91ff972c9f846031f8e509d99c81e85667c3d02aa1f7bb00919be1",
+  "inputs": {
+    "hybrid": "56ffbf95e1f5929216dd5e8d905ad4b1ef49706ae4a9e87eb072118ab327f16c",
+    "directory": "56188c9d573ba9285cdd845addc229dfed38fc4c00156e34f3b36364dd5d2272",
+    "facade": "e4eb5b630d671b93512d95fbe187628cc06a2dee5e7997318708fbf57fcbb0af",
+    "bootstrap": "6ef36338fe2f775dbb13c4adff3767df6f69d5e87eca61fdd6c0375700a7fc58",
+    "presentation": "1290399624519233ee20ff3f508aebd3b341d74de98bcd9827b2fca09bf8ad49",
+    "transport": "950431e47e7964debd86ff2e6db8d3832edc463cf76b9ffc34cfa93a00c873e0",
+    "entry": "7a4c58b726df09235d8509540f1934515b14967003431a2476bb271011d3c3b9",
+    "fresh": "69b465e3101068a728a30601e025962c3d3f4bb4cb94287ea0e793b7115def56",
+    "settlement": "21b70d529a9440629072dfba288b4225f5d0b83a0cc5ef88dc9cf269db55f85d"
+  },
+  "hooksHash": "e58f84f60704f65f3a786cbfb775b8cc103dbd07954cf2f4f6447a869d4595ff",
+  "guardedOriginalBlockHash": "748a16bb7242d0dd578e9a29da48fa8c923e98785a7a57f79b091a4fe211e935",
+  "unchangedOutsideGuard": true,
+  "parsedInlineScripts": 3,
+  "limits": "Runtime/browser HTTP/DOM unverified. Default legacy quiescence gate false, old unresolved slots held, no silent migration. Native revised storage/permissions/quota/retention and full integration/release package OPEN. Uses historic private HTML baseline, not current live merge approval."
+}

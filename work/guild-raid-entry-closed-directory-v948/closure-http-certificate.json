@@ -1,0 +1,68 @@
+{
+  "atET": "2026-10-03 04:31:04",
+  "serverSHA256": "7d2cb9f199382ea77a31ed36bfead8fc03808c9559a40ed5b18bb17c5ef5dbe9",
+  "clientSHA256": "c4f330ca4ae0df11f56caa2fab3db6d6483adcaddb0a970c02953ae8516ff115",
+  "calls": [
+    {
+      "route": "/api/guild/raid/start",
+      "packet": {
+        "requestId": "r3:2026-10-02:paidclosure",
+        "heroIds": [
+          "vael"
+        ],
+        "recoverOnly": true
+      },
+      "status": 409,
+      "body": {
+        "ok": false,
+        "entryPeriodHeld": true,
+        "entryClosure": {
+          "v": 1,
+          "kind": "period-closed",
+          "spent": "unknown",
+          "accountId": "fixture-user",
+          "guildId": "own-guild",
+          "requestId": "r3:2026-10-02:paidclosure",
+          "heroIds": [
+            "vael"
+          ],
+          "serverPeriod": "2026-10-03",
+          "packetHash": "3dc147b0d6226426be01b7f2b8afa81d36e0990e7974db782cd39f03312662b6"
+        },
+        "error": "That saved raid request is from a different day. No new attempt was spent."
+      }
+    },
+    {
+      "route": "/api/guild/raid/start",
+      "packet": {
+        "requestId": "r3:2026-10-02:uncommitted",
+        "heroIds": [
+          "vael"
+        ],
+        "recoverOnly": true
+      },
+      "status": 409,
+      "body": {
+        "ok": false,
+        "entryPeriodHeld": true,
+        "entryClosure": {
+          "v": 1,
+          "kind": "period-closed",
+          "spent": "unknown",
+          "accountId": "fixture-user",
+          "guildId": "own-guild",
+          "requestId": "r3:2026-10-02:uncommitted",
+          "heroIds": [
+            "vael"
+          ],
+          "serverPeriod": "2026-10-03",
+          "packetHash": "7ce5592cb82865c314b81e23dbec8f5ea25c4ce7c44db9b4084431d80c8a4e5c"
+        },
+        "error": "That saved raid request is from a different day. No new attempt was spent."
+      }
+    }
+  ],
+  "failure": null,
+  "fixtureRestored": true,
+  "scope": "Actual privateHTTP syntheticaccount/clock. Opt-in namespace ONLY. Current embedded facade/hybrid/directory structuralvalidator/closure digestvalidator and authenticatedprivateHTTP, modeled directory/storage/locks/testquiescence ONLY; not native/fullcombat/UI/phone/fullsuite/balance."
+}

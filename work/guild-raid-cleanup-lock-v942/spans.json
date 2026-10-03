@@ -1,0 +1,10 @@
+{
+  "base": "7a1a61f8437bd1ce1d1e8f14e7189f83b15284b9e47fa068df3725ab3d1a9cac",
+  "output": "0f7ee8d2e850bebca11f736b291dc29d814d8b520564a576b0a27de03415b758",
+  "spans": [
+    [
+      "function raidJournalClear(p){",
+      "function raidJournalClear(p){\n const key=raidJournalKey();\n if(!key||!p.current()||typeof navigator==='undefined'||!navigator.locks||typeof navigator.locks.request!=='function')return Promise.resolve(false);\n try{return Promise.resolve(navigator.locks.request(key,{mode:'exclusive',ifAvailable:true},lock=>lock&&p.current()?raidJournalClearLocked(p):false)).catch(()=>false);}catch(e){return Promise.resolve(false);}\n}\nfunction raidJournalClearLocked(p){"
+    ]
+  ]
+}

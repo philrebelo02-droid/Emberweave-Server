@@ -1,0 +1,91 @@
+{
+  "atET": "2026-10-03 04:09:13",
+  "control": false,
+  "sourceSHA256": "79bc979c5916a4c481818de7a399ed5afd82214a642344bfcbfe038c690fbc72",
+  "pass": 20,
+  "fail": 0,
+  "cases": [
+    {
+      "name": "persists exact closed proof only after transaction complete",
+      "status": "PASS"
+    },
+    {
+      "name": "request success then commit abort retains pending row",
+      "status": "PASS"
+    },
+    {
+      "name": "fresh directory reads persisted closure structurally",
+      "status": "PASS"
+    },
+    {
+      "name": "exact closed row retirement after commit",
+      "status": "PASS"
+    },
+    {
+      "name": "retirement commit abort retains proof for cleanup-only retry",
+      "status": "PASS"
+    },
+    {
+      "name": "absent closed row retirement is idempotent false",
+      "status": "PASS"
+    },
+    {
+      "name": "stale row refuses closure without write",
+      "status": "PASS"
+    },
+    {
+      "name": "stale closed proof refuses retirement without delete",
+      "status": "PASS"
+    },
+    {
+      "name": "proof rejects wrong account before transaction writes",
+      "status": "PASS"
+    },
+    {
+      "name": "proof rejects wrong guild before transaction writes",
+      "status": "PASS"
+    },
+    {
+      "name": "proof rejects reordered squad before transaction writes",
+      "status": "PASS"
+    },
+    {
+      "name": "proof rejects current period before transaction writes",
+      "status": "PASS"
+    },
+    {
+      "name": "proof rejects invalid date before transaction writes",
+      "status": "PASS"
+    },
+    {
+      "name": "proof rejects false unspent before transaction writes",
+      "status": "PASS"
+    },
+    {
+      "name": "proof rejects extra key before transaction writes",
+      "status": "PASS"
+    },
+    {
+      "name": "proof rejects bad hash before transaction writes",
+      "status": "PASS"
+    },
+    {
+      "name": "confirmed result row cannot be closed",
+      "status": "PASS"
+    },
+    {
+      "name": "closed row cannot accept later result confirmation",
+      "status": "PASS"
+    },
+    {
+      "name": "pending row cannot carry closure",
+      "status": "PASS"
+    },
+    {
+      "name": "closed row cannot carry staged result",
+      "status": "PASS"
+    }
+  ],
+  "scope": "Actual extracted directory source in synthetic transactional fault model; not native IndexedDB, authenticated closure, hybrid recovery, marker, HTML wiring, network or balance verification",
+  "excluded": "Initial build extraction used incorrect module end marker; harness-only assertion failed before candidate output. Corrected against actual HTML return module.exports})();."
+}

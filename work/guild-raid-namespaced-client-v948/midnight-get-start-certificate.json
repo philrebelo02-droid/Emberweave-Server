@@ -1,0 +1,73 @@
+{
+  "atET": "2026-10-03 03:18:56",
+  "status": "PASS_EMBEDDED_VM_AND_ACTUAL_PRIVATE_HTTP",
+  "clientSHA256": "ea8540e8afc23e8d541d104bb92b7e750c99555341ca224f8f1defa8a7a2d20e",
+  "serverSHA256": "5865e9aaaf0701e64d8b8c210a83ea222787af251739feafb10d1ec0f5af4b1c",
+  "heroes": [
+    "cacklefang",
+    "calypsa",
+    "cardwraith",
+    "chainwheel",
+    "deepcleft",
+    "greatbrow",
+    "ironcoil",
+    "kharos",
+    "kilnmask",
+    "lysara"
+  ],
+  "calls": [
+    {
+      "route": "/api/guild/raid/start",
+      "packet": {
+        "requestId": "r3:2026-10-02:integratedtenentry",
+        "heroIds": [
+          "cacklefang",
+          "calypsa",
+          "cardwraith",
+          "chainwheel",
+          "deepcleft",
+          "greatbrow",
+          "ironcoil",
+          "kharos",
+          "kilnmask",
+          "lysara"
+        ]
+      },
+      "status": 409,
+      "body": {
+        "ok": false,
+        "entryPeriodHeld": true,
+        "error": "That saved raid request is from a different day. No new attempt was spent."
+      }
+    },
+    {
+      "route": "/api/guild/raid/start",
+      "packet": {
+        "requestId": "r3:2026-10-02:integratedtenentry",
+        "heroIds": [
+          "cacklefang",
+          "calypsa",
+          "cardwraith",
+          "chainwheel",
+          "deepcleft",
+          "greatbrow",
+          "ironcoil",
+          "kharos",
+          "kilnmask",
+          "lysara"
+        ],
+        "recoverOnly": true
+      },
+      "status": 409,
+      "body": {
+        "ok": false,
+        "entryPeriodHeld": true,
+        "error": "That saved raid request is from a different day. No new attempt was spent."
+      }
+    }
+  ],
+  "failure": null,
+  "fixtureRestored": true,
+  "identitySource": "Actual raidFreshIdentity and raidClientFence evaluated; authenticated GET period, unchanged whole disk; no browser date source.",
+  "scope": "Actual embedded client/helper and private HTTP: GET day just before midnight, start just after; 409 retains pending row and original request, freshVM/restart recovery only409 again, unchanged whole disk. This demonstrates SAFE HOLD but UX/terminal-capacity JAM remains OPEN, not a cleanup proof. Storage/locks are in-memory models, NOT native IndexedDB/WebLocks/DOM/full combat/phone or fullsuite. Synthetic ten owned heroes, injected unreadable replies and fresh VMs/server restarts. Test-only legacy quiescence true; not production authority or release approval."
+}

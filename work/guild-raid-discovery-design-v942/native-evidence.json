@@ -1,0 +1,1880 @@
+{
+  "session": "72a053a9-a514-44f7-a540-42fc023f0190",
+  "adapterHash": "44028943a93652c92f5c63b684e66c15147a6690ab44385d3f4ebeb05d3b10dd",
+  "reports": [
+    {
+      "session": "72a053a9-a514-44f7-a540-42fc023f0190",
+      "adapterHash": "44028943a93652c92f5c63b684e66c15147a6690ab44385d3f4ebeb05d3b10dd",
+      "running": false,
+      "results": [],
+      "logs": [],
+      "saved": [],
+      "unrelatedFixtureKeys": 0
+    },
+    {
+      "session": "72a053a9-a514-44f7-a540-42fc023f0190",
+      "adapterHash": "44028943a93652c92f5c63b684e66c15147a6690ab44385d3f4ebeb05d3b10dd",
+      "running": true,
+      "results": [
+        {
+          "name": "Native request success then transaction commit then acknowledgment",
+          "pass": true
+        }
+      ],
+      "logs": [
+        "add-request-success",
+        "transaction-complete",
+        "adapter-ack"
+      ],
+      "saved": [
+        {
+          "v": 2,
+          "id": "commit",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-commit",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "commit",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        }
+      ],
+      "unrelatedFixtureKeys": 0
+    },
+    {
+      "session": "72a053a9-a514-44f7-a540-42fc023f0190",
+      "adapterHash": "44028943a93652c92f5c63b684e66c15147a6690ab44385d3f4ebeb05d3b10dd",
+      "running": true,
+      "results": [
+        {
+          "name": "Native request success then transaction commit then acknowledgment",
+          "pass": true
+        },
+        {
+          "name": "Native abort after add success leaves no committed result",
+          "pass": true
+        }
+      ],
+      "logs": [
+        "add-request-success",
+        "transaction-complete",
+        "adapter-ack",
+        "add-request-success",
+        "transaction-abort"
+      ],
+      "saved": [
+        {
+          "v": 2,
+          "id": "commit",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-commit",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "commit",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        }
+      ],
+      "unrelatedFixtureKeys": 0
+    },
+    {
+      "session": "72a053a9-a514-44f7-a540-42fc023f0190",
+      "adapterHash": "44028943a93652c92f5c63b684e66c15147a6690ab44385d3f4ebeb05d3b10dd",
+      "running": true,
+      "results": [
+        {
+          "name": "Native request success then transaction commit then acknowledgment",
+          "pass": true
+        },
+        {
+          "name": "Native abort after add success leaves no committed result",
+          "pass": true
+        },
+        {
+          "name": "Native concurrent transactions preserve distinct immutable rows and hold ambiguity",
+          "pass": true
+        }
+      ],
+      "logs": [
+        "add-request-success",
+        "transaction-complete",
+        "adapter-ack",
+        "add-request-success",
+        "transaction-abort"
+      ],
+      "saved": [
+        {
+          "v": 2,
+          "id": "commit",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-commit",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "commit",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "A",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-distinct",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "A",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "B",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-distinct",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "B",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        }
+      ],
+      "unrelatedFixtureKeys": 0
+    },
+    {
+      "session": "72a053a9-a514-44f7-a540-42fc023f0190",
+      "adapterHash": "44028943a93652c92f5c63b684e66c15147a6690ab44385d3f4ebeb05d3b10dd",
+      "running": true,
+      "results": [
+        {
+          "name": "Native request success then transaction commit then acknowledgment",
+          "pass": true
+        },
+        {
+          "name": "Native abort after add success leaves no committed result",
+          "pass": true
+        },
+        {
+          "name": "Native concurrent transactions preserve distinct immutable rows and hold ambiguity",
+          "pass": true
+        },
+        {
+          "name": "Native concurrent duplicate packet reuses one immutable row",
+          "pass": true
+        }
+      ],
+      "logs": [
+        "add-request-success",
+        "transaction-complete",
+        "adapter-ack",
+        "add-request-success",
+        "transaction-abort"
+      ],
+      "saved": [
+        {
+          "v": 2,
+          "id": "commit",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-commit",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "commit",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "A",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-distinct",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "A",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "B",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-distinct",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "B",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "same",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-duplicate",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "same",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        }
+      ],
+      "unrelatedFixtureKeys": 0
+    },
+    {
+      "session": "72a053a9-a514-44f7-a540-42fc023f0190",
+      "adapterHash": "44028943a93652c92f5c63b684e66c15147a6690ab44385d3f4ebeb05d3b10dd",
+      "running": true,
+      "results": [
+        {
+          "name": "Native request success then transaction commit then acknowledgment",
+          "pass": true
+        },
+        {
+          "name": "Native abort after add success leaves no committed result",
+          "pass": true
+        },
+        {
+          "name": "Native concurrent transactions preserve distinct immutable rows and hold ambiguity",
+          "pass": true
+        },
+        {
+          "name": "Native concurrent duplicate packet reuses one immutable row",
+          "pass": true
+        },
+        {
+          "name": "Native atomic account cap refuses fifth without eviction",
+          "pass": true
+        }
+      ],
+      "logs": [
+        "add-request-success",
+        "transaction-complete",
+        "adapter-ack",
+        "add-request-success",
+        "transaction-abort"
+      ],
+      "saved": [
+        {
+          "v": 2,
+          "id": "cap0",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-cap",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "cap0",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "cap1",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-cap",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "cap1",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "cap2",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-cap",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "cap2",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "cap3",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-cap",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "cap3",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "commit",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-commit",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "commit",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "A",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-distinct",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "A",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "B",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-distinct",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "B",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "same",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-duplicate",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "same",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        }
+      ],
+      "unrelatedFixtureKeys": 0
+    },
+    {
+      "session": "72a053a9-a514-44f7-a540-42fc023f0190",
+      "adapterHash": "44028943a93652c92f5c63b684e66c15147a6690ab44385d3f4ebeb05d3b10dd",
+      "running": true,
+      "results": [
+        {
+          "name": "Native request success then transaction commit then acknowledgment",
+          "pass": true
+        },
+        {
+          "name": "Native abort after add success leaves no committed result",
+          "pass": true
+        },
+        {
+          "name": "Native concurrent transactions preserve distinct immutable rows and hold ambiguity",
+          "pass": true
+        },
+        {
+          "name": "Native concurrent duplicate packet reuses one immutable row",
+          "pass": true
+        },
+        {
+          "name": "Native atomic account cap refuses fifth without eviction",
+          "pass": true
+        },
+        {
+          "name": "Native indexed discovery independent of 600 unrelated fixture keys",
+          "pass": true
+        }
+      ],
+      "logs": [
+        "add-request-success",
+        "transaction-complete",
+        "adapter-ack",
+        "add-request-success",
+        "transaction-abort"
+      ],
+      "saved": [
+        {
+          "v": 2,
+          "id": "cap0",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-cap",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "cap0",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "cap1",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-cap",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "cap1",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "cap2",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-cap",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "cap2",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "cap3",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-cap",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "cap3",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "commit",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-commit",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "commit",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "A",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-distinct",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "A",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "B",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-distinct",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "B",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "same",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-duplicate",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "same",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "stored",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-unrelated",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "stored",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        }
+      ],
+      "unrelatedFixtureKeys": 600
+    },
+    {
+      "session": "72a053a9-a514-44f7-a540-42fc023f0190",
+      "adapterHash": "44028943a93652c92f5c63b684e66c15147a6690ab44385d3f4ebeb05d3b10dd",
+      "running": true,
+      "results": [
+        {
+          "name": "Native request success then transaction commit then acknowledgment",
+          "pass": true
+        },
+        {
+          "name": "Native abort after add success leaves no committed result",
+          "pass": true
+        },
+        {
+          "name": "Native concurrent transactions preserve distinct immutable rows and hold ambiguity",
+          "pass": true
+        },
+        {
+          "name": "Native concurrent duplicate packet reuses one immutable row",
+          "pass": true
+        },
+        {
+          "name": "Native atomic account cap refuses fifth without eviction",
+          "pass": true
+        },
+        {
+          "name": "Native indexed discovery independent of 600 unrelated fixture keys",
+          "pass": true
+        },
+        {
+          "name": "Native closed connection reopened retains committed exact packet",
+          "pass": true
+        }
+      ],
+      "logs": [
+        "add-request-success",
+        "transaction-complete",
+        "adapter-ack",
+        "add-request-success",
+        "transaction-abort"
+      ],
+      "saved": [
+        {
+          "v": 2,
+          "id": "cap0",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-cap",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "cap0",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "cap1",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-cap",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "cap1",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "cap2",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-cap",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "cap2",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "cap3",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-cap",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "cap3",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "commit",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-commit",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "commit",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "A",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-distinct",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "A",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "B",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-distinct",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "B",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "same",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-duplicate",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "same",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "reload",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-reopen",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "reload",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "stored",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-unrelated",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "stored",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        }
+      ],
+      "unrelatedFixtureKeys": 600
+    },
+    {
+      "session": "72a053a9-a514-44f7-a540-42fc023f0190",
+      "adapterHash": "44028943a93652c92f5c63b684e66c15147a6690ab44385d3f4ebeb05d3b10dd",
+      "running": false,
+      "results": [
+        {
+          "name": "Native request success then transaction commit then acknowledgment",
+          "pass": true
+        },
+        {
+          "name": "Native abort after add success leaves no committed result",
+          "pass": true
+        },
+        {
+          "name": "Native concurrent transactions preserve distinct immutable rows and hold ambiguity",
+          "pass": true
+        },
+        {
+          "name": "Native concurrent duplicate packet reuses one immutable row",
+          "pass": true
+        },
+        {
+          "name": "Native atomic account cap refuses fifth without eviction",
+          "pass": true
+        },
+        {
+          "name": "Native indexed discovery independent of 600 unrelated fixture keys",
+          "pass": true
+        },
+        {
+          "name": "Native closed connection reopened retains committed exact packet",
+          "pass": true
+        }
+      ],
+      "logs": [
+        "add-request-success",
+        "transaction-complete",
+        "adapter-ack",
+        "add-request-success",
+        "transaction-abort"
+      ],
+      "saved": [
+        {
+          "v": 2,
+          "id": "cap0",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-cap",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "cap0",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "cap1",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-cap",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "cap1",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "cap2",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-cap",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "cap2",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "cap3",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-cap",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "cap3",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "commit",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-commit",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "commit",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "A",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-distinct",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "A",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "B",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-distinct",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "B",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "same",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-duplicate",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "same",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "reload",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-reopen",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "reload",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "stored",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-unrelated",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "stored",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        }
+      ],
+      "unrelatedFixtureKeys": 600
+    },
+    {
+      "session": "72a053a9-a514-44f7-a540-42fc023f0190",
+      "adapterHash": "44028943a93652c92f5c63b684e66c15147a6690ab44385d3f4ebeb05d3b10dd",
+      "running": false,
+      "results": [
+        {
+          "name": "Native request success then transaction commit then acknowledgment",
+          "pass": true
+        },
+        {
+          "name": "Native abort after add success leaves no committed result",
+          "pass": true
+        },
+        {
+          "name": "Native concurrent transactions preserve distinct immutable rows and hold ambiguity",
+          "pass": true
+        },
+        {
+          "name": "Native concurrent duplicate packet reuses one immutable row",
+          "pass": true
+        },
+        {
+          "name": "Native atomic account cap refuses fifth without eviction",
+          "pass": true
+        },
+        {
+          "name": "Native indexed discovery independent of 600 unrelated fixture keys",
+          "pass": true
+        },
+        {
+          "name": "Native closed connection reopened retains committed exact packet",
+          "pass": true
+        },
+        {
+          "name": "cross-tab A",
+          "pass": true
+        }
+      ],
+      "logs": [
+        "add-request-success",
+        "transaction-complete",
+        "adapter-ack",
+        "add-request-success",
+        "transaction-abort"
+      ],
+      "saved": [
+        {
+          "v": 2,
+          "id": "cap0",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-cap",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "cap0",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "cap1",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-cap",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "cap1",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "cap2",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-cap",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "cap2",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "cap3",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-cap",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "cap3",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "commit",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-commit",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "commit",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "A",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-distinct",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "A",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "B",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-distinct",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "B",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "same",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-duplicate",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "same",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "reload",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-reopen",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "reload",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "stored",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-unrelated",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "stored",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "cross-A",
+          "accountId": "cross-tab-72a053a9-a514-44f7-a540-42fc023f0190",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "cross-A",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        }
+      ],
+      "unrelatedFixtureKeys": 600
+    },
+    {
+      "session": "72a053a9-a514-44f7-a540-42fc023f0190",
+      "adapterHash": "44028943a93652c92f5c63b684e66c15147a6690ab44385d3f4ebeb05d3b10dd",
+      "running": false,
+      "results": [],
+      "logs": [],
+      "saved": [
+        {
+          "v": 2,
+          "id": "cap0",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-cap",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "cap0",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "cap1",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-cap",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "cap1",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "cap2",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-cap",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "cap2",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "cap3",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-cap",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "cap3",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "commit",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-commit",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "commit",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "A",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-distinct",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "A",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "B",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-distinct",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "B",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "same",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-duplicate",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "same",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "reload",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-reopen",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "reload",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "stored",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-unrelated",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "stored",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "cross-A",
+          "accountId": "cross-tab-72a053a9-a514-44f7-a540-42fc023f0190",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "cross-A",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        }
+      ],
+      "unrelatedFixtureKeys": 600
+    },
+    {
+      "session": "72a053a9-a514-44f7-a540-42fc023f0190",
+      "adapterHash": "44028943a93652c92f5c63b684e66c15147a6690ab44385d3f4ebeb05d3b10dd",
+      "running": false,
+      "results": [
+        {
+          "name": "cross-tab B",
+          "pass": true
+        }
+      ],
+      "logs": [],
+      "saved": [
+        {
+          "v": 2,
+          "id": "cap0",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-cap",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "cap0",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "cap1",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-cap",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "cap1",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "cap2",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-cap",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "cap2",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "cap3",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-cap",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "cap3",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "commit",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-commit",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "commit",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "A",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-distinct",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "A",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "B",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-distinct",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "B",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "same",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-duplicate",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "same",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "reload",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-reopen",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "reload",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "stored",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-unrelated",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "stored",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "cross-A",
+          "accountId": "cross-tab-72a053a9-a514-44f7-a540-42fc023f0190",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "cross-A",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "cross-B",
+          "accountId": "cross-tab-72a053a9-a514-44f7-a540-42fc023f0190",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "cross-B",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        }
+      ],
+      "unrelatedFixtureKeys": 600
+    },
+    {
+      "session": "72a053a9-a514-44f7-a540-42fc023f0190",
+      "adapterHash": "44028943a93652c92f5c63b684e66c15147a6690ab44385d3f4ebeb05d3b10dd",
+      "running": false,
+      "results": [
+        {
+          "name": "Native request success then transaction commit then acknowledgment",
+          "pass": true
+        },
+        {
+          "name": "Native abort after add success leaves no committed result",
+          "pass": true
+        },
+        {
+          "name": "Native concurrent transactions preserve distinct immutable rows and hold ambiguity",
+          "pass": true
+        },
+        {
+          "name": "Native concurrent duplicate packet reuses one immutable row",
+          "pass": true
+        },
+        {
+          "name": "Native atomic account cap refuses fifth without eviction",
+          "pass": true
+        },
+        {
+          "name": "Native indexed discovery independent of 600 unrelated fixture keys",
+          "pass": true
+        },
+        {
+          "name": "Native closed connection reopened retains committed exact packet",
+          "pass": true
+        },
+        {
+          "name": "cross-tab A",
+          "pass": true
+        }
+      ],
+      "logs": [
+        "add-request-success",
+        "transaction-complete",
+        "adapter-ack",
+        "add-request-success",
+        "transaction-abort"
+      ],
+      "saved": [
+        {
+          "v": 2,
+          "id": "cap0",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-cap",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "cap0",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "cap1",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-cap",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "cap1",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "cap2",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-cap",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "cap2",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "cap3",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-cap",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "cap3",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "commit",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-commit",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "commit",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "A",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-distinct",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "A",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "B",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-distinct",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "B",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "same",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-duplicate",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "same",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "reload",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-reopen",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "reload",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "stored",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-unrelated",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "stored",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "cross-A",
+          "accountId": "cross-tab-72a053a9-a514-44f7-a540-42fc023f0190",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "cross-A",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "cross-B",
+          "accountId": "cross-tab-72a053a9-a514-44f7-a540-42fc023f0190",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "cross-B",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        }
+      ],
+      "unrelatedFixtureKeys": 600
+    },
+    {
+      "session": "72a053a9-a514-44f7-a540-42fc023f0190",
+      "adapterHash": "44028943a93652c92f5c63b684e66c15147a6690ab44385d3f4ebeb05d3b10dd",
+      "running": false,
+      "results": [],
+      "logs": [],
+      "saved": [
+        {
+          "v": 2,
+          "id": "cap0",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-cap",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "cap0",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "cap1",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-cap",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "cap1",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "cap2",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-cap",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "cap2",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "cap3",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-cap",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "cap3",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "commit",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-commit",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "commit",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "A",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-distinct",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "A",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "B",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-distinct",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "B",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "same",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-duplicate",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "same",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "reload",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-reopen",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "reload",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "stored",
+          "accountId": "220e4abe-b841-43af-b2b7-d3dd7c3fb5bd-unrelated",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "stored",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "cross-A",
+          "accountId": "cross-tab-72a053a9-a514-44f7-a540-42fc023f0190",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "cross-A",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        },
+        {
+          "v": 2,
+          "id": "cross-B",
+          "accountId": "cross-tab-72a053a9-a514-44f7-a540-42fc023f0190",
+          "guildId": "fixture-guild",
+          "createdAt": 1,
+          "entryRequestId": null,
+          "packet": {
+            "requestId": "cross-B",
+            "attemptId": "fixture-attempt",
+            "inputLog": [],
+            "dmg": 10
+          }
+        }
+      ],
+      "unrelatedFixtureKeys": 600
+    }
+  ],
+  "capturedAtET": "10/2/2026, 10:34:29 PM",
+  "scope": "Native Chrome IndexedDB results-only adapter seven cases; sequential two-tab registration and close-both/reopen retention of twelve exact fixture records. NOT contended cross-tab race, precommit tab-close, browser-process crash, paid/network integration, quota/permission denial or game readiness."
+}

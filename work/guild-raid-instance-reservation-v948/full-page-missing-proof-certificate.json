@@ -1,0 +1,26 @@
+{
+  "atET": "2026-10-03 07:30:49",
+  "status": "SCOPED PASS natural missing-quiescence-proof full-page launch refusal; NOT combat/balance/release approval",
+  "clientSHA256": "28ec2c6d66f33b9d730d3b1d224992e1a1205070affaf23f71be19637ff45283",
+  "serverSHA256": "7d2cb9f199382ea77a31ed36bfead8fc03808c9559a40ed5b18bb17c5ef5dbe9",
+  "rawSHA256": "c4216b05dc122719ca6e38dc1a9137fccf5672dd577908f7058f688f327bdbde",
+  "adapterSHA256": "fdf7243bd4c901294d491eb4650bd962871327b2ba9488adfdd64cf10f492188",
+  "verifierSHA256": "84a5d9d3f0756be6b76e30139ba40aa669294cb76f941fa4d22b0ec2ea708a58",
+  "screenshotSHA256": "7c3752a5c4f566b5b6270f6a911d98d3a5a97386253b245c61c7676974efb2fa",
+  "apiCalls": 27,
+  "entryPeriodGETs": 1,
+  "raidStartResolveCalls": 0,
+  "summary": {
+    "guildId": "proof-control-guild",
+    "hp": 400000,
+    "kills": 0,
+    "used": {},
+    "contrib": {},
+    "gold": 100000,
+    "gems": 100000,
+    "guildRewardTransactions": 0
+  },
+  "observed": "Normal guest initialization, Skip tutorial/Click to Play, actual Guild Hall hotspot, Raid tab, Fight boss, Vael card, BATTLE. CUA accessibility diff added text Legacy writers not proven quiescent; squad menu remained, no battle. Screenshot taken after transient text disappeared shows post-refusal squad menu, NOT the error banner. UI observation is recorded separately from independently asserted HTTP/DB facts.",
+  "limitations": "Synthetic preseeded guild/account, isolated private server clock and older snapshot dependencies, CSP worker denial. No injected proof, GS/show/session/startBattle/adoptLedger overrides. No actual fight/reward/recovery/balance/current integrated dependencies/fullsuite/quota/process-crash/phone/bots/production all-writer proof/cutover/retention/GDBbackup/protected-floor restore/docs/installer/exact dual approval. Q6/Q10 remain OPEN; no defaults/live/policy edits/deployment.",
+  "cleanup": "Own Chrome1124719406 closed; own helper69254 shutdown exit0; pinned private712 source restored."
+}

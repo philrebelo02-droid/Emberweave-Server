@@ -1,0 +1,45 @@
+{
+  "atET": "2026-10-03 04:14:37",
+  "hybridSHA256": "9cc1fbec5b4c1fda17686f041188cae4f1dddf61d5ba9b918dee81739278bead",
+  "pass": 9,
+  "fail": 0,
+  "cases": [
+    {
+      "name": "entry-only closure persists proof; fresh adapter returns cleanup-only",
+      "status": "PASS"
+    },
+    {
+      "name": "missing marker rebuilt before retirement and retained afterward",
+      "status": "PASS"
+    },
+    {
+      "name": "quota failure preserves closed proof and discovery",
+      "status": "PASS"
+    },
+    {
+      "name": "retirement failure preserves marker/proof; fresh cleanup retry needs no transport",
+      "status": "PASS"
+    },
+    {
+      "name": "staged result blocks closure and preserves exact packet",
+      "status": "PASS"
+    },
+    {
+      "name": "closed row conflicting result marker refuses retirement",
+      "status": "PASS"
+    },
+    {
+      "name": "stale context refuses cleanup without marker/retirement",
+      "status": "PASS"
+    },
+    {
+      "name": "pending row cleanup cannot be used as terminal proof",
+      "status": "PASS"
+    },
+    {
+      "name": "retained marker blocks different adapter old writer after retirement",
+      "status": "PASS"
+    }
+  ],
+  "scope": "Actual extracted hybrid source, structural actual directory validator, modeled async directory and storage; no transport/grant functions provided. NOT native, facade-lock/session/auth/digest or HTML integration proof"
+}

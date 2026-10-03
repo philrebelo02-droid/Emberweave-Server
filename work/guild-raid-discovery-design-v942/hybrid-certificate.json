@@ -1,0 +1,26 @@
+{
+  "atET": "2026-10-02T22:51:47-04:00",
+  "status": "PRIVATE_HYBRID_MODEL_TESTED_NOT_REVIEW_READY_NOT_SHIPPED",
+  "adapterSHA256": "490c601bad306af9ae471080b8d8dc5caf31c8b83efb8176094e7cae6ab3b7c6",
+  "testsSHA256": "8850bfbcd48e6dc9e9d7150b64ea39015c21ee79a3752ddf0f2e6e38e1845866",
+  "results": "hybrid-results.json",
+  "pass": 12,
+  "fail": 0,
+  "originalControl": {
+    "hash": "cdc97c3854bc1f98768d1f54e3cb2c02859cb5f588890dc4553e82de0b72134d",
+    "pass": 11,
+    "fail": 1,
+    "evidence": "hybrid-original-controls.json",
+    "cause": "Old writer recreated an orphan slot after another context confirmed and cleaned it.",
+    "fix": "Retain terminal confirmation marker in the unique synchronous slot; conflicting stale write refuses."
+  },
+  "limitations": [
+    "Dependency model only; native directory backend not implemented.",
+    "External paid callback ordering test is not game integration or real charge proof.",
+    "No actual server confirmation validation in adapter; caller must validate current session/account/guild.",
+    "Synchronous slot quota can fail after paid entry; unsaved RAM transcript may still be lost on closure.",
+    "Terminal marker retention is intentionally indefinite; quota and safe eviction unresolved.",
+    "Legacy enrollment, mixed clients, native closure/crash and cross-store cleanup proofs remain open."
+  ],
+  "next": "Implement private native IndexedDB v3 directory contract resolving only at transaction completion; then new hybrid native enrollment/abort/close/reopen/terminal stale-writer/cleanup fault/bounded discovery checks. Do not rerun unchanged completed suites."
+}

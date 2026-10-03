@@ -1,0 +1,46 @@
+{
+  "base": "0f7ee8d2e850bebca11f736b291dc29d814d8b520564a576b0a27de03415b758",
+  "output": "574fe553d3151a1335bbbdb157f8a5f27b28ed105010c99720997af19fb9fa0b",
+  "spans": [
+    [
+      "function raidJournalRead(){",
+      "function raidJournalReadCanonical(){"
+    ],
+    [
+      "function raidJournalWrite(p,RB){",
+      "function raidResultStageRead(){const key=raidJournalKey();if(!key)return null;try{\n const raw=sessionStorage.getItem(key+'_result');if(raw===null)return null;if(raw.length>160000)throw Error('Oversized staged result');\n const p=JSON.parse(raw),b=p.packet;\n if(!p||p.v!==1||p.accountId!==ACC.id||p.guildId!==(G.guild&&G.guild.id)||p.kind!=='resolve'||!Number.isFinite(p.createdAt)||p.createdAt<0||!b||typeof b.requestId!=='string'||!b.requestId||b.requestId.length>48||typeof b.attemptId!=='string'||!b.attemptId||b.attemptId.length>128||!Array.isArray(b.inputLog)||b.inputLog.length>400||!Number.isFinite(b.dmg)||b.dmg<0)throw Error('Invalid staged result');\n return p;\n }catch(e){return{blocked:true,error:'Saved result staging is unavailable. No replacement request sent.'};}}\nfunction raidSamePacket(a,b){return !!a&&!!b&&JSON.stringify(a)===JSON.stringify(b);}\nfunction raidJournalRead(){const old=raidJournalReadCanonical(),stage=raidResultStageRead();if(old?.blocked)return old;if(stage?.blocked)return stage;if(!stage)return old;\n if(!old||(old.kind==='start'&&old.packet.requestId===stage.entryRequestId)||(old.kind==='resolve'&&raidSamePacket(old.packet,stage.packet)&&old.entryRequestId===stage.entryRequestId))return stage;\n return{blocked:true,error:'Competing saved raid identities. No replacement request sent.'};}\nfunction raidResultStageWrite(p,RB){const key=raidJournalKey();if(!key||!p.current())return false;try{\n const old=raidResultStageRead();if(old?.blocked||(old&&(!raidSamePacket(old.packet,p.packet)||old.entryRequestId!==p.entryRequestId)))return false;\n const row={v:1,accountId:ACC.id,guildId:G.guild&&G.guild.id,kind:'resolve',createdAt:p.createdAt,packet:p.packet,entryRequestId:p.entryRequestId||null,RB:{name:String(RB.name||'Raid Boss').slice(0,120),tier:RB.tier|0}},raw=JSON.stringify(row);\n if(raw.length>160000)return false;sessionStorage.setItem(key+'_result',raw);return sessionStorage.getItem(key+'_result')===raw&&!raidResultStageRead()?.blocked;\n }catch(e){return false;}}\nfunction raidResultStageClear(p){try{const key=raidJournalKey(),old=raidResultStageRead();if(!key||!p.current()||!old||old.blocked||!raidSamePacket(old.packet,p.packet)||old.entryRequestId!==p.entryRequestId)return false;sessionStorage.removeItem(key+'_result');return sessionStorage.getItem(key+'_result')===null;}catch(e){return false;}}\nasync function raidSettlementSend(p,RB){const key=raidJournalKey();if(!key||!p.current()||typeof navigator==='undefined'||!navigator.locks||typeof navigator.locks.request!=='function')return{ok:false,error:'Safe result coordination unavailable. No request sent.'};\n try{return await navigator.locks.request(key,{mode:'exclusive',ifAvailable:true},async lock=>{\n  if(!lock||!p.current())return{ok:false,error:'Another tab is handling this raid. Retry the saved result after it finishes.'};\n  if(!raidJournalWrite(p,RB))return{ok:false,error:'Competing or unavailable saved result. No replacement request sent.'};\n  const r=await api('/api/guild/raid/resolve','POST',p.packet);\n  if(p.current()&&r&&(r.ok||r.expired)){raidJournalClearLocked(p);raidResultStageClear(p);}\n  return r;\n });}catch(e){return null;}}\nfunction raidJournalWrite(p,RB){"
+    ],
+    [
+      " const old=raidJournalRead();if(old&&old.blocked)return false;",
+      " const old=raidJournalReadCanonical();if(old&&old.blocked)return false;"
+    ],
+    [
+      "(old.kind!==p.kind||old.packet.requestId!==p.packet.requestId))return false;",
+      "(old.kind!==p.kind||!raidSamePacket(old.packet,p.packet)||old.entryRequestId!==(p.entryRequestId||null)))return false;"
+    ],
+    [
+      "function raidJournalClearLocked(p){if(!p.current())return false;const key=raidJournalKey();try{const old=raidJournalRead();if(!old||old.blocked||old.kind!==p.kind||old.packet.requestId!==p.packet.requestId)return false;localStorage.removeItem(key);return localStorage.getItem(key)===null;}catch(e){return false;}}",
+      "function raidJournalClearLocked(p){if(!p.current())return false;const key=raidJournalKey();try{const old=raidJournalReadCanonical();if(!old||old.blocked||old.kind!==p.kind||!raidSamePacket(old.packet,p.packet))return false;localStorage.removeItem(key);return localStorage.getItem(key)===null;}catch(e){return false;}}"
+    ],
+    [
+      "    const pending={current:raidClientFence(),packet,kind:'resolve',createdAt,entryRequestId,busy:false,retry:null};RAID_SETTLEMENT=pending;",
+      "    try{packet=JSON.parse(JSON.stringify(packet));}catch(e){bannerMsg('Invalid result packet. No request sent.');return;}\n    const pending={current:raidClientFence(),packet,kind:'resolve',createdAt,entryRequestId,busy:false,retry:null};RAID_SETTLEMENT=pending;"
+    ],
+    [
+      "try{r=raidJournalWrite(pending,RB)?await api('/api/guild/raid/resolve','POST',pending.packet):{ok:false,error:'Could not save result recovery identity. No request sent.'};}",
+      "try{r=raidResultStageWrite(pending,RB)?await raidSettlementSend(pending,RB):{ok:false,error:'Could not save result recovery identity. No request sent.'};}"
+    ],
+    [
+      "if(r&&(r.ok||r.expired)&&RAID_SETTLEMENT===pending){raidJournalClear(pending);RAID_SETTLEMENT=null;}",
+      "if(r&&(r.ok||r.expired)&&RAID_SETTLEMENT===pending){RAID_SETTLEMENT=null;}"
+    ],
+    [
+      "},800);raidJournalWrite(pending,RB);pending.retry();",
+      "},800);raidResultStageWrite(pending,RB);pending.retry();"
+    ],
+    [
+      "if(RAID_SETTLEMENT&&RAID_SETTLEMENT.current()&&RAID_SETTLEMENT.packet.requestId===packet.requestId&&RAID_SETTLEMENT.packet.attemptId===packet.attemptId){raidResolveRetry();return;}",
+      "if(RAID_SETTLEMENT&&RAID_SETTLEMENT.current()&&RAID_SETTLEMENT.packet.requestId===packet.requestId&&RAID_SETTLEMENT.packet.attemptId===packet.attemptId){if(!raidSamePacket(RAID_SETTLEMENT.packet,packet)||RAID_SETTLEMENT.entryRequestId!==entryRequestId){bannerMsg('Saved result identity has a different packet. No request sent.');return;}raidResolveRetry();return;}"
+    ]
+  ]
+}

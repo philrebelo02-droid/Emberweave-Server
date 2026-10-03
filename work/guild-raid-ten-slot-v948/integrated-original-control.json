@@ -1,0 +1,24 @@
+{
+  "atET": "2026-10-03 02:39:35",
+  "status": "FAIL",
+  "clientSHA256": "a16689865954f8d2a9add81b21749cbbea0702aeb7d97608eaa478d404781552",
+  "serverSHA256": "c44be6449a11d557522d1d6c5035c879214f762a7f5bb289ae0a313450caa75d",
+  "heroes": [
+    "cacklefang",
+    "calypsa",
+    "cardwraith",
+    "chainwheel",
+    "deepcleft",
+    "greatbrow",
+    "ironcoil",
+    "kharos",
+    "kilnmask",
+    "lysara"
+  ],
+  "calls": [],
+  "failure": {
+    "message": "The input did not match the regular expression /Injected committed entry reply lost/. Input:\n\n'Error: Entry shape'\n"
+  },
+  "fixtureRestored": true,
+  "scope": "Actual embedded current modules/validators and authenticated actual private HTTP. Storage/locks are in-memory models, NOT native IndexedDB/WebLocks/DOM/full combat/phone or fullsuite. Synthetic ten owned heroes, injected unreadable replies and fresh VMs/server restarts. Test-only legacy quiescence true; not production authority or release approval."
+}

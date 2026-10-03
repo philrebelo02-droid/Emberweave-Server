@@ -1,0 +1,77 @@
+{
+  "atET": "2026-10-03 08:10:55",
+  "parentSHA256": "28ec2c6d66f33b9d730d3b1d224992e1a1205070affaf23f71be19637ff45283",
+  "fixedSHA256": "e7aa8fc6dd2c8f6b299511b062d82a253e78b0a18341d2dfa97c1d33fa3b545a",
+  "meterSHA256": "490465134cdeab49856c38aa754d078bff38520f6a29aa82646643dc59f76003",
+  "helperSHA256": "5dda9b0c099e764fb38431d215997f3453c58df0d8ea2723a9677fbc4424d225",
+  "parsedInlineScripts": 3,
+  "rows": [
+    {
+      "label": "absent",
+      "old": 0,
+      "fixed": 0,
+      "expected": 0
+    },
+    {
+      "label": "healing",
+      "old": 12345,
+      "fixed": 12345,
+      "expected": 12345
+    },
+    {
+      "label": "overkill",
+      "old": 400000,
+      "fixed": 400000,
+      "expected": 400000
+    },
+    {
+      "label": "HP fallback",
+      "old": 12345,
+      "fixed": 12345,
+      "expected": 12345
+    },
+    {
+      "label": "fractional report preserved",
+      "old": 13,
+      "fixed": 13,
+      "expected": 13
+    },
+    {
+      "label": "large frozen pool",
+      "hp": 2147483647,
+      "old": 12345,
+      "fixed": 12345,
+      "expected": 12345
+    },
+    {
+      "label": "large frozen pool",
+      "hp": 2147483648,
+      "old": 1,
+      "fixed": 12345,
+      "expected": 12345
+    },
+    {
+      "label": "large frozen pool",
+      "hp": 2261564243,
+      "old": 1,
+      "fixed": 12345,
+      "expected": 12345
+    },
+    {
+      "label": "large frozen pool",
+      "hp": 4294967296,
+      "old": 1,
+      "fixed": 12345,
+      "expected": 12345
+    },
+    {
+      "label": "large frozen pool",
+      "hp": 9007199254740991,
+      "old": 1,
+      "fixed": 12345,
+      "expected": 12345
+    }
+  ],
+  "qualification": "One exact guarded meter-line change; parent failure retained and corrected extracted function checks. No actual witnessed combat/whole-page behavior/server settlement integration/full Q6/balance/deployment approval. Existing cumulative cap/HPfallback/fractional rounding preserved.",
+  "next": "Integrate actual witnessed damage/advisory replay without inventing Q11/Q10 release/expiry/late-result policies; all release gates remain open."
+}

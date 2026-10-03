@@ -1,0 +1,33 @@
+{
+  "atET": "2026-10-03 03:18:11",
+  "files": [
+    {
+      "name": "README.md",
+      "sha256": "6eac3cc31a5430757b3607ae5ec807910d1bce8c134cd63b024da92f6fc4af93"
+    },
+    {
+      "name": "probe6.cjs",
+      "sha256": "43b587be031b5d1668b84790c45b6a948d61b1c6726d0c805aec07100ebe738d"
+    },
+    {
+      "name": "clockhook.cjs",
+      "sha256": "85de7257f178da55a1f0d21f8cab355ff9d985605bb3584a240860cd0e92a8f7"
+    },
+    {
+      "name": "probe6-pairs.jsonl",
+      "sha256": "a13a62a14ef683bd222a271e3543ddd7d0f03baaaf5b5c6a8b9e6eb0a4c9cfea"
+    }
+  ],
+  "records": 43,
+  "passingAssertionRecords": 25,
+  "status": "ARCHIVED_SOURCE_RAW_RECORDS_INSPECTED_NOT_RERUN_OR_EXACT_RUN_HASH_ATTESTATION",
+  "findings": [
+    "Actual probe throws on false checks and records 25 true assertion records plus observable uppercase escape. These are assertions within one probe, not 25 independent suites.",
+    "Digest includes named account fields plus whole guild raid, not whole user ledger/receipts/DB. Must-change fresh-start control is present.",
+    "Clock hook uses shifted wall clock, not real overnight wait.",
+    "Archived source random-password edit disclosed README; probe does not guard or record server file SHA under test, so exact7b91 execution attribution remains reviewer declaration.",
+    "Raw records omit snapshots/ledger/guild raid and no before/after digest strings stored; source confirms comparison logic but raw records alone cannot recompute equality.",
+    "Probe would delete tempDB/offset and needs whole git archive; NOT rerun. Own private bounded fixture already independently proves uppercase original defect and final exact5865 fix."
+  ],
+  "scope": "Read-only independent inspection of accessible artifacts, not assumed PASS from chat. No shipping/balance approval."
+}

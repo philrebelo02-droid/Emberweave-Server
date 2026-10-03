@@ -1,0 +1,11 @@
+'use strict';
+const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),a=require('node:assert/strict'),c=require('node:crypto');
+const s=fs.readFileSync(path.join(__dirname,'../guild-raid-rebase-v948/client-base-v948.html'),'utf8'),hash=c.createHash('sha256').update(s).digest('hex');a.equal(hash,'4c320c08392feec669a41007f3ec8b239a2d277d9f5571c20d84df94bbd1a01d');
+const x={G:{squads:{graid:['vael','vael','other']},unlocked:{vael:true,other:true}},HERO_TYPES:{vael:{},other:{}},CUR:{mode:'graid'},wellLoan:()=>false,saveG:()=>{}};vm.createContext(x);
+const one=name=>s.split('\n').find(l=>l.startsWith('function '+name+'('));
+const b=s.indexOf('function pruneSquadArr('),e=s.indexOf('function syncActiveSquad()',b);a(b>0&&e>b);
+vm.runInContext([one('squadModeKey'),one('squadFor'),one('heroOwned'),s.slice(b,e),one('syncActiveSquad')].join('\n'),x);
+const direct=Array.from(x.squadFor('graid'));a.deepEqual(direct,['vael','vael','other']);x.syncActiveSquad();const after=Array.from(x.squadFor('graid'));a.deepEqual(after,['vael','other']);
+const entry=s.slice(s.indexOf('syncActiveSquad();',s.indexOf('The squad screen edits squadFor(mode)')),s.indexOf("if(CUR.mode==='well'){ if(!G.team.length)return; await wellLaunch(_ctx)",s.indexOf('The squad screen edits squadFor(mode)')));
+a(entry.indexOf('syncActiveSquad();')<entry.indexOf('await raidLaunch();'));
+fs.writeFileSync(path.join(__dirname,'squad-compat.json'),JSON.stringify({clientBaseSHA256:hash,direct,after,status:'EXTRACTED_SOURCE_MODEL_PASS',proof:'squadFor itself does NOT deduplicate. Normal battle button calls syncActiveSquad before raidLaunch; exact prune deduplicates to owned heroes. Direct raidLaunch bypass has no proven pruning. Not a native click/mixed-client test.'},null,2));console.log('PASS exactsource model: direct squad duplicate retained, normal battle entry prune removes it before launch');

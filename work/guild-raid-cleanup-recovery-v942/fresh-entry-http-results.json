@@ -1,0 +1,41 @@
+{
+  "at": "2026-10-03T04:49:46.592Z",
+  "pass": true,
+  "facadeHash": "e4eb5b630d671b93512d95fbe187628cc06a2dee5e7997318708fbf57fcbb0af",
+  "freshValidatorHash": "69b465e3101068a728a30601e025962c3d3f4bb4cb94287ea0e793b7115def56",
+  "serverHash": "be7ff4dbc4a7e11b3b8dcd63b3e7baa012dd23ecfe1de25019e533f659195893",
+  "calls": [
+    {
+      "mode": "fresh-entry",
+      "packet": {
+        "requestId": "fresh-bound-entry",
+        "heroIds": [
+          "vael"
+        ]
+      }
+    },
+    {
+      "mode": "result-recovery-only",
+      "packet": {
+        "requestId": "fresh-bound-result",
+        "attemptId": "3e8893b1a9e90b0a",
+        "inputLog": [],
+        "dmg": 10
+      }
+    },
+    {
+      "mode": "result-recovery-only",
+      "packet": {
+        "requestId": "fresh-bound-result",
+        "attemptId": "3e8893b1a9e90b0a",
+        "inputLog": [],
+        "dmg": 10
+      }
+    }
+  ],
+  "entryCount": 1,
+  "raidTransactions": 1,
+  "pendingRows": 0,
+  "retainedMarkers": 1,
+  "scope": "NEW actual private HTTP fresh authenticated bound entry, mismatched result attempt refused before staging, valid synchronous stage, committed result reply lost/server restart, freshVM same packet recovery exactly one entry/grant. Model storage/locks/directory/quiescence; not native/fullHTML."
+}

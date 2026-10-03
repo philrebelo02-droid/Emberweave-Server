@@ -1,0 +1,49 @@
+{
+  "atET": "2026-10-03 05:15:18",
+  "parentControl": true,
+  "clientSHA256": "c4f330ca4ae0df11f56caa2fab3db6d6483adcaddb0a970c02953ae8516ff115",
+  "testSHA256": "f498c5d7c82d00120df7ee67a270ea30734e23ea67e0493f2252ca1beaa16439",
+  "pass": 2,
+  "fail": 6,
+  "cases": [
+    {
+      "name": "confirmed occupied terminal/unknown slot refuses before facade directory enrollment or paid transport",
+      "status": "FAIL",
+      "error": "Missing expected rejection."
+    },
+    {
+      "name": "closed occupied terminal/unknown slot refuses before facade directory enrollment or paid transport",
+      "status": "FAIL",
+      "error": "Missing expected rejection."
+    },
+    {
+      "name": "malformed occupied terminal/unknown slot refuses before facade directory enrollment or paid transport",
+      "status": "FAIL",
+      "error": "Missing expected rejection."
+    },
+    {
+      "name": "empty occupied terminal/unknown slot refuses before facade directory enrollment or paid transport",
+      "status": "FAIL",
+      "error": "Missing expected rejection."
+    },
+    {
+      "name": "hybrid storage read failure refuses enrollment without a directory mutation",
+      "status": "FAIL",
+      "error": "Missing expected rejection."
+    },
+    {
+      "name": "context invalidated by slot read refuses before directory transaction",
+      "status": "FAIL",
+      "error": "Missing expected rejection."
+    },
+    {
+      "name": "new unoccupied slot still enrolls once and sends one exact entry",
+      "status": "PASS"
+    },
+    {
+      "name": "other account marker not adopted or deleted; own fresh entry permitted",
+      "status": "PASS"
+    }
+  ],
+  "scope": "Actual embedded facade/hybrid code with MODEL storage/directory/exclusive locks/session/transport. No native IDB/Web Locks or actual server charge. Legacy proof TRUE only fixture injection, not candidate provider. Parent failing assertions naturally witness enrollment/transport despite retained slot. No eviction/migration or balance/deployment approval."
+}

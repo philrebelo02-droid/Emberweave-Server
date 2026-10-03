@@ -1,0 +1,1 @@
+{"result":"4PASS1FAIL excluded","cause":"Cross-realm lock options object failed deepStrictEqual despite identical fields. Replaced with explicit mode/ifAvailable/keycount assertions; candidate code unchanged. This is harness correction, not a product defect control."}

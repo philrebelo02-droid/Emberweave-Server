@@ -1,0 +1,27 @@
+{
+  "atET": "2026-10-03 03:57:25",
+  "clientSHA256": "6559a3d50837800f46a5593c874895f666b472492ac57fff46d2725d3df14d7f",
+  "results": [
+    {
+      "name": "stage refuses held account lock before any slot write/network",
+      "status": "PASS"
+    },
+    {
+      "name": "stale writer cannot stage after its directory row is retired",
+      "status": "PASS"
+    },
+    {
+      "name": "successful guarded stage saves exact packet with no result network",
+      "status": "PASS"
+    },
+    {
+      "name": "bootstrap awaits successful stage before scheduling",
+      "status": "PASS"
+    },
+    {
+      "name": "bootstrap stage failure retains fight/no schedule",
+      "status": "PASS"
+    }
+  ],
+  "scope": "Actual embedded facade/bootstrap in VM with modeled directory/storage/locks and injected asynchronous stage. Not native locks/IDB/DOM/actualHTTP or complete closure integration."
+}

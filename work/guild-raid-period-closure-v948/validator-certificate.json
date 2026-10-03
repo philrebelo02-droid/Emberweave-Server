@@ -1,0 +1,23 @@
+{
+  "atET": "2026-10-03 03:51:35",
+  "results": [
+    "real HTTP closure accepted exact entry r3:2026-10-02:unspent",
+    "real HTTP closure accepted exact entry r3:2026-10-02:oldlive",
+    "real HTTP closure accepted exact entry r3:2026-10-02:unspent",
+    "refused wrongAccount",
+    "refused wrongGuild",
+    "refused resultRow",
+    "refused confirmedRow",
+    "refused unpaidClaim",
+    "refused wrongHash",
+    "refused differentPacket",
+    "refused futureDay",
+    "refused sameDay",
+    "refused badCalendar",
+    "refused wrongStatus",
+    "refused unboundError",
+    "refused extraProof",
+    "refused nullReply"
+  ],
+  "scope": "Actual authenticated HTTP recorded reply bytes through private pure validator; forged/refusal/phase mutations. Not native storage/locks/session fencing, atomic entry cleanup or HTML integration."
+}

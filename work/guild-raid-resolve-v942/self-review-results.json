@@ -1,0 +1,13 @@
+{
+  "at": "2026-10-03T00:15:29.922Z",
+  "passed": [
+    "One real frozen-squad replay fault/retry/restart; forged fallback claim unused; consumed attempt cannot pay with fresh request key. NOT full canonical run.",
+    "Same attempt/request retry keeps committed result despite altered damage/transcript, with no second award."
+  ],
+  "limitations": [
+    "Synthetic private HTTP/tempDB only; one real engine operation not full canonical bot/Brain.",
+    "Legacy unbound receipts deliberately409; not backward-compatible PASS. Phil must approve deployment transition.",
+    "Pruning by other routes remains; unknown consumed attempt refuses rather than grant.",
+    "No client UI/session/reset/multi-instance/PG/fsync/phone or production claim."
+  ]
+}

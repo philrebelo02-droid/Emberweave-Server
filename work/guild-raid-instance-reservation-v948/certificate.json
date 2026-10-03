@@ -1,0 +1,43 @@
+{
+  "atET": "2026-10-03 05:15:18",
+  "parentControl": false,
+  "clientSHA256": "28ec2c6d66f33b9d730d3b1d224992e1a1205070affaf23f71be19637ff45283",
+  "testSHA256": "f498c5d7c82d00120df7ee67a270ea30734e23ea67e0493f2252ca1beaa16439",
+  "pass": 8,
+  "fail": 0,
+  "cases": [
+    {
+      "name": "confirmed occupied terminal/unknown slot refuses before facade directory enrollment or paid transport",
+      "status": "PASS"
+    },
+    {
+      "name": "closed occupied terminal/unknown slot refuses before facade directory enrollment or paid transport",
+      "status": "PASS"
+    },
+    {
+      "name": "malformed occupied terminal/unknown slot refuses before facade directory enrollment or paid transport",
+      "status": "PASS"
+    },
+    {
+      "name": "empty occupied terminal/unknown slot refuses before facade directory enrollment or paid transport",
+      "status": "PASS"
+    },
+    {
+      "name": "hybrid storage read failure refuses enrollment without a directory mutation",
+      "status": "PASS"
+    },
+    {
+      "name": "context invalidated by slot read refuses before directory transaction",
+      "status": "PASS"
+    },
+    {
+      "name": "new unoccupied slot still enrolls once and sends one exact entry",
+      "status": "PASS"
+    },
+    {
+      "name": "other account marker not adopted or deleted; own fresh entry permitted",
+      "status": "PASS"
+    }
+  ],
+  "scope": "Actual embedded facade/hybrid code with MODEL storage/directory/exclusive locks/session/transport. No native IDB/Web Locks or actual server charge. Legacy proof TRUE only fixture injection, not candidate provider. Parent failing assertions naturally witness enrollment/transport despite retained slot. No eviction/migration or balance/deployment approval."
+}

@@ -1,0 +1,24 @@
+{
+  "atET": "2026-10-02T23:13:23-04:00",
+  "status": "PRIVATE_COMPOSITION_PLAN_ONLY_NOT_IMPLEMENTED",
+  "source": "work/guild-raid-durable-stage-v942/payload/combined/emberweave-heroes.html",
+  "touchpoints": [
+    "raidJournalKey line14187: account scoped legacy canonical.",
+    "raidResultStageRows line14202: old global enumeration512-key bound.",
+    "raidResultStageWrite line14218: synchronous completion path.",
+    "raidSettlementSend line14234: Web Lock spans canonical selection and network."
+  ],
+  "requirements": [
+    "Private copied candidate only; source hash guards and small output copy before review-ready.",
+    "Pre-enroll transaction-complete directory slot before first paid entry. Failure forbids paid request.",
+    "Replace fixture legacyCheck with authoritative legacy namespace compatibility facade; corrupt/unknown/unresolved old canonical or stage held. No silent migration/drop/clear.",
+    "Capture account/token/session/guild identity in memory, never persist tokens; recheck after every database/network/lock await.",
+    "Completion packet staged synchronously/readback before any settlement timer; no new writer lease to recovering context.",
+    "Recover exact saved packet in recovery-only route; expired/pruned/unknown403409 must not silently create fresh charged intent.",
+    "Server-confirmed current identity/exact packet before marking terminal or retiring directory; never derive confirmation from local or agent self-report.",
+    "Retain terminal marker against stale writers; no automatic quota eviction until separately designed/tested.",
+    "Integrate unchanged gameplay timing/prices/reward policy; no live deployment.",
+    "Naturally failing baseline tests, guarded composition/API lostreply/restart, small independent output copy and self-review needed."
+  ],
+  "next": "Implement isolated bootstrap/composition facade with actual legacy canonical/stage namespace inspection (unknown/corrupt/old unresolved => held, never injected 'clear'), live session/account/guild fences around every await and exact recovery-only packet binding. Reproduce natural old-reader global-key bound failure; new directory path independent of unrelated keys while legacy uncertainty refuses. Then private actual API lost-reply/reload/restart charge/grant tests; no live integration/cutover or unchanged native/schema suites."
+}

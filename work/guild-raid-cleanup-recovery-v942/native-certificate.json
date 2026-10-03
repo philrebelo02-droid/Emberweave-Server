@@ -1,0 +1,13 @@
+{
+  "atET":"2026-10-03 00:20:13",
+  "evidenceReadbackET":"2026-10-03 00:17:31",
+  "status":"PRIVATE_NATIVE_CLEANUP_TESTED_NOT_FULL_GAME_INTEGRATED_NOT_REVIEW_READY_NOT_SHIPPED",
+  "session":"532103b2-22ca-4a3e-bebd-cf6229a10838",
+  "hashes":{"hybrid":"b08cc87917e853ae8dce6fb9dfc892ff80a3ae9cc6cd311e178b226c26547be2","facade":"2c7240bf510607ab0e2147d2614c755b2cdacf9635635ec596a83094c83bab0a","directory":"56188c9d573ba9285cdd845addc229dfed38fc4c00156e34f3b36364dd5d2272"},
+  "proof":"4 PASS: native persisted existing marker; persisted missing marker; simulated marker write denial and retry; actual native IndexedDB retirement transaction abort after delete request success, before commit, preserves confirmed row and terminal marker then retries. Fresh browser context after preparation; real native localStorage, IndexedDB and Web Locks; ZERO transport calls.",
+  "evidence":["native-evidence.json","native-fixture.cjs","native-recovery.png"],
+  "limits":"Synthetic committed confirmations seeded through directory API, not authenticated game receipts. Storage denial injected, not actual browser permission/quota denial. Actual private HTTP receipt recovery proven separately in integration-results.json. Not full game HTML bootstrap, legacy compatibility/quiescence/quota, physical phone, full bot or release proof. cleanupOnly must never be adopted as a reward reply.",
+  "excluded":"Initial fixture initialization TDZ error from injected require shadowing H; fixed fixture alias only. Failed initialization excluded, no candidate source changed or old suite rerun.",
+  "cleanup":"Own helper shutdown and exit0 verified; both own browser tabs closed; isolated private-origin storage retained; no live game/Brain/accounts/Pause changes.",
+  "next":"Source-guarded HTML bootstrap handling cleanupOnly, legacy/mixedclient compatibility and quota, independent package and exact-candidate dual review. No deployment approval."
+}

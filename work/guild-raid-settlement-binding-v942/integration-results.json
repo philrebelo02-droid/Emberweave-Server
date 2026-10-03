@@ -1,0 +1,60 @@
+{
+  "at": "2026-10-03T03:50:16.748Z",
+  "pass": true,
+  "serverHash": "be7ff4dbc4a7e11b3b8dcd63b3e7baa012dd23ecfe1de25019e533f659195893",
+  "validatorHash": "21b70d529a9440629072dfba288b4225f5d0b83a0cc5ef88dc9cf269db55f85d",
+  "facadeHash": "38d0e687a1a058e46f31478886dd8b74e8b09a28af768494bf9bef4b5f0f4435",
+  "calls": [
+    {
+      "mode": "fresh-entry",
+      "packet": {
+        "requestId": "composition-entry",
+        "heroIds": [
+          "vael"
+        ]
+      }
+    },
+    {
+      "mode": "entry-recovery-only",
+      "packet": {
+        "requestId": "composition-entry",
+        "heroIds": [
+          "vael"
+        ]
+      }
+    },
+    {
+      "mode": "entry-recovery-only",
+      "packet": {
+        "requestId": "composition-entry",
+        "heroIds": [
+          "vael"
+        ]
+      }
+    },
+    {
+      "mode": "result-recovery-only",
+      "packet": {
+        "requestId": "result",
+        "attemptId": "f76447a1a9ec5097",
+        "inputLog": [],
+        "dmg": 10
+      }
+    },
+    {
+      "mode": "result-recovery-only",
+      "packet": {
+        "requestId": "result",
+        "attemptId": "f76447a1a9ec5097",
+        "inputLog": [],
+        "dmg": 10
+      }
+    }
+  ],
+  "entryCount": 1,
+  "raidTransactions": 1,
+  "pendingRows": 0,
+  "retainedTerminalMarkers": 1,
+  "scope": "FreshVM facade/captured-token transport/response-only validators + actual private HTTP entry/result lost reply/restarts; exact bound confirmation before cleanup, stale old writer refused, no duplicate entry or raid transaction. Storage/locks/quiescence are models, not native HTML.",
+  "open": "Native cleanup interruption/permission/legacy compatibility and guarded bootstrap/package remain OPEN."
+}

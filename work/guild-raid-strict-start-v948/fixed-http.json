@@ -1,0 +1,99 @@
+{
+  "atET": "2026-10-03 01:38:37",
+  "serverSHA256": "e1775ee9de03aa3f9fe2e6a9cf89123cc29eb07c7dc43da0e4bef6ddedfb93aa",
+  "results": [
+    {
+      "packet": {
+        "requestId": 17,
+        "heroIds": [
+          "vael"
+        ]
+      },
+      "status": 400,
+      "body": {
+        "ok": false,
+        "error": "Exact raid entry packet required."
+      },
+      "diskUnchanged": true,
+      "pass": true
+    },
+    {
+      "packet": {
+        "requestId": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "heroIds": [
+          "vael"
+        ]
+      },
+      "status": 400,
+      "body": {
+        "ok": false,
+        "error": "Exact raid entry packet required."
+      },
+      "diskUnchanged": true,
+      "pass": true
+    },
+    {
+      "packet": {
+        "requestId": "dup",
+        "heroIds": [
+          "vael",
+          "vael"
+        ]
+      },
+      "status": 400,
+      "body": {
+        "ok": false,
+        "error": "Exact raid entry packet required."
+      },
+      "diskUnchanged": true,
+      "pass": true
+    },
+    {
+      "packet": {
+        "requestId": "oversquad",
+        "heroIds": [
+          "vael",
+          "vael",
+          "vael",
+          "vael",
+          "vael",
+          "vael",
+          "vael",
+          "vael",
+          "vael",
+          "vael",
+          "vael"
+        ]
+      },
+      "status": 400,
+      "body": {
+        "ok": false,
+        "error": "Exact raid entry packet required."
+      },
+      "diskUnchanged": true,
+      "pass": true
+    },
+    {
+      "packet": {
+        "requestId": "extra",
+        "heroIds": [
+          "vael"
+        ],
+        "dmg": 10
+      },
+      "status": 400,
+      "body": {
+        "ok": false,
+        "error": "Exact raid entry packet required."
+      },
+      "diskUnchanged": true,
+      "pass": true
+    },
+    {
+      "case": "valid entry",
+      "pass": true,
+      "status": 200
+    }
+  ],
+  "scope": "Actual isolated private HTTP, synthetic account. Shape only; no native/fullgame/balance approval."
+}

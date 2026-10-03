@@ -1,0 +1,28 @@
+{
+  "atET": "2026-10-03 07:16:19",
+  "status": "SCOPED PASS normal full-page Guild create/membership reload/Raid view; NOT fight/balance/release approval",
+  "clientSHA256": "28ec2c6d66f33b9d730d3b1d224992e1a1205070affaf23f71be19637ff45283",
+  "serverSHA256": "7d2cb9f199382ea77a31ed36bfead8fc03808c9559a40ed5b18bb17c5ef5dbe9",
+  "rawSHA256": "65cba550a61a57b53edb5ec726cd2bc1385dcbc9a78a2a73baedc9fe94356187",
+  "adapterSHA256": "1dcc9a8dc0a3e36767b468d7969796480c462d1bf7cc041b877c0b3042416831",
+  "verifierSHA256": "9d2bf7e4fcf9811a31231df0980ee626e39fdfdc9c5e5991fbd3c0f9e51c857a",
+  "screenshotSHA256": "19468c2ea65efd882d3add9b7f91905b89bf553548306b621de0257958ff0f6d",
+  "apiCalls": 45,
+  "createCalls": 1,
+  "raidStartResolveCalls": 0,
+  "summary": {
+    "guildId": "a5b9794da88cd2c5",
+    "name": "Private Audit Guild",
+    "leader": "fixture-user",
+    "members": [
+      "fixture-user"
+    ],
+    "accountGuildId": "a5b9794da88cd2c5",
+    "accountCount": 2,
+    "gold": 100000,
+    "gems": 100000
+  },
+  "observed": "Actual map .hot title Guild Hall .hit navigated lobby; normal typed guild name and Create reached leader roster; reload/Click to Play/hotspot restored same guild; Raid tab shows Wintercrag400000HP/zero contribution/3 attempts and recovery controls. No show(), GS, session, combat or adoptLedger overrides; no quiescence proof supplied.",
+  "limitations": "Synthetic seededguest/privateAPI clock/older snapshot dependencies, CSPworker denied. No raid launched, no fight/reward/recovery/balance/current integrated deps/fullsuite/quota/crash/phone/bots/productionproof/cutover/retention/GDBbackup/protectedfloorrestore/docs/installer/exactdualapproval verification. Q6/Q10 remainOPEN; no game/live/policy edits or deployment.",
+  "cleanup": "OwnChrome1124719404 closed; ownserver73618 shutdownexit0; pinnedprivate712 source restored."
+}

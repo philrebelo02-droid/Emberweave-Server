@@ -1,0 +1,8 @@
+{
+  "at": "2026-10-03T02:25:26.666Z",
+  "exit": 1,
+  "pass": 11,
+  "fail": 2,
+  "adapterSha256": "784402a61f472b4206c9d759c3edc0d57fd59563a4b34f49d0e68f1eded7933a",
+  "scope": "Private adapter event handling under explicitly serialized transaction model. NOT native IndexedDB/concurrency/crash/game recovery verification."
+}

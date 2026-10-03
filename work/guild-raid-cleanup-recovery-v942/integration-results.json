@@ -1,0 +1,61 @@
+{
+  "at": "2026-10-03T04:09:32.221Z",
+  "pass": true,
+  "serverHash": "be7ff4dbc4a7e11b3b8dcd63b3e7baa012dd23ecfe1de25019e533f659195893",
+  "validatorHash": "21b70d529a9440629072dfba288b4225f5d0b83a0cc5ef88dc9cf269db55f85d",
+  "facadeHash": "2c7240bf510607ab0e2147d2614c755b2cdacf9635635ec596a83094c83bab0a",
+  "hybridHash": "b08cc87917e853ae8dce6fb9dfc892ff80a3ae9cc6cd311e178b226c26547be2",
+  "calls": [
+    {
+      "mode": "fresh-entry",
+      "packet": {
+        "requestId": "composition-entry",
+        "heroIds": [
+          "vael"
+        ]
+      }
+    },
+    {
+      "mode": "entry-recovery-only",
+      "packet": {
+        "requestId": "composition-entry",
+        "heroIds": [
+          "vael"
+        ]
+      }
+    },
+    {
+      "mode": "entry-recovery-only",
+      "packet": {
+        "requestId": "composition-entry",
+        "heroIds": [
+          "vael"
+        ]
+      }
+    },
+    {
+      "mode": "result-recovery-only",
+      "packet": {
+        "requestId": "result",
+        "attemptId": "213145b329103e70",
+        "inputLog": [],
+        "dmg": 10
+      }
+    },
+    {
+      "mode": "result-recovery-only",
+      "packet": {
+        "requestId": "result",
+        "attemptId": "213145b329103e70",
+        "inputLog": [],
+        "dmg": 10
+      }
+    }
+  ],
+  "entryCount": 1,
+  "raidTransactions": 1,
+  "pendingRows": 0,
+  "retainedTerminalMarkers": 1,
+  "scope": "Actual private HTTP authenticated bound result confirmation, lost committed replies/server restarts; injected retirement failure then freshVM cleanup-only recovery recreates missing terminal marker with ZERO additional network and one entry/grant. Storage/directory/locks/quiescence are models, not native HTML.",
+  "open": "Native cleanup/permissions/quota/legacy compatibility/bootstrap/package remain OPEN."
+}

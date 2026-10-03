@@ -1,0 +1,13 @@
+{
+ "atET":"2026-10-02 22:35:51 -04:00",
+ "status":"PRIVATE_RESULTS_ADAPTER_NATIVE_COMPONENT_TESTED_NOT_GAME_INTEGRATED_NOT_REVIEW_READY_NOT_SHIPPED",
+ "adapterSha256":"44028943a93652c92f5c63b684e66c15147a6690ab44385d3f4ebeb05d3b10dd",
+ "harnessSha256":"d192d6bcd585d1198a73b06310901c613fa1f8331d284bf89a2269f1476d362a",
+ "evidence":"native-evidence.json;native-results.jpg",
+ "nativeChecks":{"pass":7,"fail":0,"scope":"Actual Chrome IndexedDB on isolated localhost58736. Event sequence add-success -> transaction-complete -> adapter acknowledgment; explicitly aborted real transaction rolls back; same-context concurrent distinct/duplicate/cap registrations; indexed recovery after600unrelatedlocalStoragekeys; connectionclose/reopen exact packet."},
+ "additional":"Sequential separate-tab registration retains cross-A and cross-B. Close both tabs then fresh tab sees all12committedfixture rows,600unrelatedkeys,zeroabortedrows. This is NOT measured contended cross-tab race or process crash recovery.",
+ "excluded":"First private helper59882 served a fixture syntax error before any native test ran. Fixed/readbackparsed, restarted own helper58736. First attempt excluded from all pass counts.",
+ "limits":["Closing before transaction completion untested; cannot guarantee result durability before commit.","No genuine storage quota/permission denial; abort deliberately invoked, not quota.","No mixed-client/legacy enrollment or production migration.","Results-only adapter lacks entry/canonical/network/session/guild-response integration; cannot claim no duplicate real charge or raid grant from these native tests.","Full Guild UI/phone/full canonical bot/Brain remain unverified. Old bc71 package remains held unchanged."],
+ "cleanup":"Both own helper sessions81583 and19732 exited0; all3own fixture tabs closed. Isolated fixture DB and600keys retained, no user data deleted or browser settings changed.",
+ "next":"Target native precommit tab-close behavior with explicit transaction phase and preserved evidence. Design same-store entry/canonical transition and legacy enrollment refusal before private game-handler integration. Preserve original controls and current candidates; no repeat unchanged7/13/prior suites."
+}

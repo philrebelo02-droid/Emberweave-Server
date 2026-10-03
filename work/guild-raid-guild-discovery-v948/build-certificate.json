@@ -1,0 +1,8 @@
+{
+  "atET": "2026-10-03 02:44:08",
+  "clientParentSHA256": "9da6e0554c1c754f60adec9d25bbf4aad39310d545829a45c5bf6a853c5085b6",
+  "clientSHA256": "a7f98abc7978dfc691c377e9566bb0c059642f2b7cfed604a141c7de932ec062",
+  "serverSHA256": "c44be6449a11d557522d1d6c5035c879214f762a7f5bb289ae0a313450caa75d",
+  "status": "PRIVATE_ONE_SPAN_DISCOVERY_FIX_NOT_RELEASE",
+  "edits": "Validate every account-scoped directory row using its own valid guild identity, then select current guild only. Preserve all other-guild records, total account four-row cap, fail closed corrupt/foreign-account row. No server/mechanics change."
+}

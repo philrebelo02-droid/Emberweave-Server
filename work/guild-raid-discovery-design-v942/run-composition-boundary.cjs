@@ -1,0 +1,5 @@
+'use strict';const fs=require('node:fs'),path=require('node:path'),cp=require('node:child_process'),crypto=require('node:crypto');
+const original=process.argv.includes('--original'),source=path.join(__dirname,original?'composition-facade-original.cjs':'composition-facade.cjs'),prefix=original?'composition-original-boundary':'composition-fixed-boundary';
+const r=cp.spawnSync(process.execPath,['--test','--test-reporter=tap',path.join(__dirname,'composition-boundary-tests.cjs')],{env:{...process.env,FACADE_SOURCE:source},windowsHide:true,encoding:'utf8',timeout:10000}),log=r.stdout+(r.stderr||'');
+const out={at:new Date().toISOString(),exit:r.status,pass:Number(log.match(/# pass (\d+)/)?.[1]||0),fail:Number(log.match(/# fail (\d+)/)?.[1]||0),sourceHash:crypto.createHash('sha256').update(fs.readFileSync(source)).digest('hex'),scope:'New dependency-model controls only; no native/game/API credit'};
+fs.writeFileSync(path.join(__dirname,prefix+'.log'),log);fs.writeFileSync(path.join(__dirname,prefix+'.json'),JSON.stringify(out,null,2));console.log(JSON.stringify(out));process.exitCode=r.status;

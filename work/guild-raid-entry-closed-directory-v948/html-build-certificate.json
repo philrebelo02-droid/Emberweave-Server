@@ -1,0 +1,20 @@
+{
+  "atET": "2026-10-03 04:24:06",
+  "parentHTMLSHA256": "6559a3d50837800f46a5593c874895f666b472492ac57fff46d2725d3df14d7f",
+  "clientSHA256": "c4f330ca4ae0df11f56caa2fab3db6d6483adcaddb0a970c02953ae8516ff115",
+  "spans": 11,
+  "inlineScriptsParsed": 3,
+  "moduleKeys": [
+    "hybrid",
+    "directory",
+    "closure",
+    "facade",
+    "bootstrap",
+    "presentation",
+    "transport",
+    "entry",
+    "fresh",
+    "settlement"
+  ],
+  "status": "PRIVATE_HTML_PARSE_ONLY_NOT_HTTP_NATIVE_UI_VERIFIED"
+}

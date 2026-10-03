@@ -1,0 +1,17 @@
+{
+  "at": "2026-10-03T00:15:08.350Z",
+  "results": [
+    {
+      "label": "combined128-revised-legacy-refusal",
+      "pass": 128,
+      "fail": 0
+    },
+    {
+      "label": "adjacent9",
+      "pass": 9,
+      "fail": 0
+    }
+  ],
+  "exactRestored": true,
+  "legacyExpectationChangedExplicitly": true
+}

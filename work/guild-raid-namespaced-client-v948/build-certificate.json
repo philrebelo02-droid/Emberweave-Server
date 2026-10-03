@@ -1,0 +1,9 @@
+{
+  "atET": "2026-10-03 03:12:33",
+  "serverSHA256": "5865e9aaaf0701e64d8b8c210a83ea222787af251739feafb10d1ec0f5af4b1c",
+  "clientSHA256": "ea8540e8afc23e8d541d104bb92b7e750c99555341ca224f8f1defa8a7a2d20e",
+  "serverParentSHA256": "7b91b71e72f80417e7459219d33147d892675aa4922c1e442f86da3a310944ba",
+  "clientParentSHA256": "a7f98abc7978dfc691c377e9566bb0c059642f2b7cfed604a141c7de932ec062",
+  "status": "PRIVATE_NAMESPACED_PAIR_NOT_RELEASE",
+  "edits": "One authenticated read-only period route (no ensureRaid/read DB mutation). Guarded client helper captures session across fetch/json, strictly verifies server period/scope/namespace before bootstrap saves namespaced entry. No browser-date source, no paid request on failed identity verification. Existing bootstrap persists complete entry before paid transport. Legacy quiescence/terminal/native/fullsuite/balance gates OPEN."
+}

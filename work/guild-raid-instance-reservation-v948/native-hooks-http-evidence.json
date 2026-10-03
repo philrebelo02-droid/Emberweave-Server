@@ -1,0 +1,1105 @@
+{
+  "at": "2026-10-03T10:11:09.192Z",
+  "htmlHash": "28ec2c6d66f33b9d730d3b1d224992e1a1205070affaf23f71be19637ff45283",
+  "hooksHash": "0fc29468726b880bc4d71d51d8947ca6fd0f55b5b1484c0a545ba4a8bd1225fc",
+  "serverHash": "7d2cb9f199382ea77a31ed36bfead8fc03808c9559a40ed5b18bb17c5ef5dbe9",
+  "calls": [
+    {
+      "route": "/api/guild/raid/entry-period",
+      "status": 200
+    },
+    {
+      "route": "/api/guild/raid/start",
+      "packet": {
+        "heroIds": [
+          "vael"
+        ],
+        "requestId": "r3:2026-10-02:4235358f4ac5457ea4e3"
+      },
+      "status": 200
+    },
+    {
+      "route": "/api/guild/raid/start",
+      "packet": {
+        "heroIds": [
+          "vael"
+        ],
+        "requestId": "r3:2026-10-02:4235358f4ac5457ea4e3",
+        "recoverOnly": true
+      },
+      "status": 200
+    },
+    {
+      "route": "/api/guild/raid/resolve",
+      "packet": {
+        "requestId": "native-result",
+        "attemptId": "ab757fa24c004d11",
+        "inputLog": [],
+        "dmg": 10
+      },
+      "status": 200
+    },
+    {
+      "route": "/api/guild/raid/resolve",
+      "packet": {
+        "requestId": "native-result",
+        "attemptId": "ab757fa24c004d11",
+        "inputLog": [],
+        "dmg": 10
+      },
+      "status": 200
+    }
+  ],
+  "reports": [
+    {
+      "fightStarts": 0,
+      "notices": [
+        "Unexpected token 'I', \"Injected u\"... is not valid JSON"
+      ],
+      "renderedRewards": 0,
+      "CUR": {},
+      "rows": [
+        {
+          "v": 3,
+          "accountId": "fixture-user",
+          "guildId": "own-guild",
+          "id": "raid-4cbc283b5ecb4cad8e0e",
+          "entry": {
+            "heroIds": [
+              "vael"
+            ],
+            "requestId": "r3:2026-10-02:4235358f4ac5457ea4e3"
+          },
+          "state": "pending"
+        }
+      ],
+      "slots": [],
+      "secureContext": true,
+      "webLocks": true
+    },
+    {
+      "fightStarts": 0,
+      "notices": [
+        "Unexpected token 'I', \"Injected u\"... is not valid JSON"
+      ],
+      "renderedRewards": 0,
+      "CUR": {},
+      "rows": [
+        {
+          "v": 3,
+          "accountId": "fixture-user",
+          "guildId": "own-guild",
+          "id": "raid-4cbc283b5ecb4cad8e0e",
+          "entry": {
+            "heroIds": [
+              "vael"
+            ],
+            "requestId": "r3:2026-10-02:4235358f4ac5457ea4e3"
+          },
+          "state": "pending"
+        }
+      ],
+      "slots": [],
+      "secureContext": true,
+      "webLocks": true
+    },
+    {
+      "fightStarts": 0,
+      "notices": [
+        "Unexpected token 'I', \"Injected u\"... is not valid JSON"
+      ],
+      "renderedRewards": 0,
+      "CUR": {},
+      "rows": [
+        {
+          "v": 3,
+          "accountId": "fixture-user",
+          "guildId": "own-guild",
+          "id": "raid-4cbc283b5ecb4cad8e0e",
+          "entry": {
+            "heroIds": [
+              "vael"
+            ],
+            "requestId": "r3:2026-10-02:4235358f4ac5457ea4e3"
+          },
+          "state": "pending"
+        }
+      ],
+      "slots": [],
+      "secureContext": true,
+      "webLocks": true
+    },
+    {
+      "fightStarts": 1,
+      "notices": [
+        "Unexpected token 'I', \"Injected u\"... is not valid JSON"
+      ],
+      "renderedRewards": 0,
+      "CUR": {
+        "mode": "graid",
+        "attemptId": "ab757fa24c004d11",
+        "raidInstanceId": "raid-4cbc283b5ecb4cad8e0e",
+        "raidEntryRequestId": "r3:2026-10-02:4235358f4ac5457ea4e3",
+        "seed": 2439174192,
+        "serverSnaps": [
+          {
+            "key": "vael",
+            "level": 1,
+            "rank": 0,
+            "boss": false,
+            "maxHp": 400,
+            "dmg": 30,
+            "range": 28,
+            "speed": 70,
+            "atkInterval": 2.3,
+            "combatDist": 24,
+            "r": 18,
+            "melee": true,
+            "reach": 28.2,
+            "apow": 0,
+            "apMul": 1,
+            "hybrid": false,
+            "glyphDR": 0,
+            "defRating": 100,
+            "penRating": 0,
+            "armorRating": 60,
+            "mrRating": 40,
+            "armorPen": 0,
+            "magicPen": 0,
+            "critDmg": 0.6,
+            "lifestealStat": 0,
+            "evaStat": 0,
+            "accStat": 0,
+            "blockStat": 0,
+            "dmgBonusMul2": 1,
+            "shieldStrMul": 1,
+            "ctrlHitF": 0,
+            "hasteEnergyMul": 1,
+            "glyphRegen": 0,
+            "glyphCrit": 0,
+            "critRes": 0,
+            "energyReg": 0,
+            "templeDamageEnergy": 0,
+            "energy": 35,
+            "ctrlRes": 0,
+            "skillLv": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "passMul": 1,
+            "immovable": false,
+            "stunImmune": false,
+            "pass": null,
+            "gearSkill": null
+          }
+        ],
+        "backupSnaps": [],
+        "backups": [],
+        "raid": {
+          "key": "wintercrag",
+          "name": "Wintercrag",
+          "tier": 1,
+          "hp": 400000,
+          "lvl": 15
+        },
+        "cwaves": [
+          [
+            {
+              "key": "wintercrag",
+              "lvl": 15,
+              "boss": true,
+              "hp": 400000,
+              "def": 30000,
+              "dmgMul": 1
+            }
+          ]
+        ],
+        "engine": "1790961518061"
+      },
+      "rows": [
+        {
+          "v": 3,
+          "accountId": "fixture-user",
+          "guildId": "own-guild",
+          "id": "raid-4cbc283b5ecb4cad8e0e",
+          "entry": {
+            "heroIds": [
+              "vael"
+            ],
+            "requestId": "r3:2026-10-02:4235358f4ac5457ea4e3"
+          },
+          "state": "pending"
+        }
+      ],
+      "slots": [],
+      "secureContext": true,
+      "webLocks": true
+    },
+    {
+      "fightStarts": 1,
+      "notices": [
+        "Unexpected token 'I', \"Injected u\"... is not valid JSON"
+      ],
+      "renderedRewards": 0,
+      "CUR": {
+        "mode": "graid",
+        "attemptId": "ab757fa24c004d11",
+        "raidInstanceId": "raid-4cbc283b5ecb4cad8e0e",
+        "raidEntryRequestId": "r3:2026-10-02:4235358f4ac5457ea4e3",
+        "seed": 2439174192,
+        "serverSnaps": [
+          {
+            "key": "vael",
+            "level": 1,
+            "rank": 0,
+            "boss": false,
+            "maxHp": 400,
+            "dmg": 30,
+            "range": 28,
+            "speed": 70,
+            "atkInterval": 2.3,
+            "combatDist": 24,
+            "r": 18,
+            "melee": true,
+            "reach": 28.2,
+            "apow": 0,
+            "apMul": 1,
+            "hybrid": false,
+            "glyphDR": 0,
+            "defRating": 100,
+            "penRating": 0,
+            "armorRating": 60,
+            "mrRating": 40,
+            "armorPen": 0,
+            "magicPen": 0,
+            "critDmg": 0.6,
+            "lifestealStat": 0,
+            "evaStat": 0,
+            "accStat": 0,
+            "blockStat": 0,
+            "dmgBonusMul2": 1,
+            "shieldStrMul": 1,
+            "ctrlHitF": 0,
+            "hasteEnergyMul": 1,
+            "glyphRegen": 0,
+            "glyphCrit": 0,
+            "critRes": 0,
+            "energyReg": 0,
+            "templeDamageEnergy": 0,
+            "energy": 35,
+            "ctrlRes": 0,
+            "skillLv": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "passMul": 1,
+            "immovable": false,
+            "stunImmune": false,
+            "pass": null,
+            "gearSkill": null
+          }
+        ],
+        "backupSnaps": [],
+        "backups": [],
+        "raid": {
+          "key": "wintercrag",
+          "name": "Wintercrag",
+          "tier": 1,
+          "hp": 400000,
+          "lvl": 15
+        },
+        "cwaves": [
+          [
+            {
+              "key": "wintercrag",
+              "lvl": 15,
+              "boss": true,
+              "hp": 400000,
+              "def": 30000,
+              "dmgMul": 1
+            }
+          ]
+        ],
+        "engine": "1790961518061"
+      },
+      "rows": [
+        {
+          "v": 3,
+          "accountId": "fixture-user",
+          "guildId": "own-guild",
+          "id": "raid-4cbc283b5ecb4cad8e0e",
+          "entry": {
+            "heroIds": [
+              "vael"
+            ],
+            "requestId": "r3:2026-10-02:4235358f4ac5457ea4e3"
+          },
+          "state": "pending"
+        }
+      ],
+      "slots": [],
+      "secureContext": true,
+      "webLocks": true
+    },
+    {
+      "fightStarts": 1,
+      "notices": [
+        "Unexpected token 'I', \"Injected u\"... is not valid JSON"
+      ],
+      "renderedRewards": 0,
+      "CUR": {
+        "mode": "graid",
+        "attemptId": "ab757fa24c004d11",
+        "raidInstanceId": "raid-4cbc283b5ecb4cad8e0e",
+        "raidEntryRequestId": "r3:2026-10-02:4235358f4ac5457ea4e3",
+        "seed": 2439174192,
+        "serverSnaps": [
+          {
+            "key": "vael",
+            "level": 1,
+            "rank": 0,
+            "boss": false,
+            "maxHp": 400,
+            "dmg": 30,
+            "range": 28,
+            "speed": 70,
+            "atkInterval": 2.3,
+            "combatDist": 24,
+            "r": 18,
+            "melee": true,
+            "reach": 28.2,
+            "apow": 0,
+            "apMul": 1,
+            "hybrid": false,
+            "glyphDR": 0,
+            "defRating": 100,
+            "penRating": 0,
+            "armorRating": 60,
+            "mrRating": 40,
+            "armorPen": 0,
+            "magicPen": 0,
+            "critDmg": 0.6,
+            "lifestealStat": 0,
+            "evaStat": 0,
+            "accStat": 0,
+            "blockStat": 0,
+            "dmgBonusMul2": 1,
+            "shieldStrMul": 1,
+            "ctrlHitF": 0,
+            "hasteEnergyMul": 1,
+            "glyphRegen": 0,
+            "glyphCrit": 0,
+            "critRes": 0,
+            "energyReg": 0,
+            "templeDamageEnergy": 0,
+            "energy": 35,
+            "ctrlRes": 0,
+            "skillLv": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "passMul": 1,
+            "immovable": false,
+            "stunImmune": false,
+            "pass": null,
+            "gearSkill": null
+          }
+        ],
+        "backupSnaps": [],
+        "backups": [],
+        "raid": {
+          "key": "wintercrag",
+          "name": "Wintercrag",
+          "tier": 1,
+          "hp": 400000,
+          "lvl": 15
+        },
+        "cwaves": [
+          [
+            {
+              "key": "wintercrag",
+              "lvl": 15,
+              "boss": true,
+              "hp": 400000,
+              "def": 30000,
+              "dmgMul": 1
+            }
+          ]
+        ],
+        "engine": "1790961518061"
+      },
+      "rows": [
+        {
+          "v": 3,
+          "accountId": "fixture-user",
+          "guildId": "own-guild",
+          "id": "raid-4cbc283b5ecb4cad8e0e",
+          "entry": {
+            "heroIds": [
+              "vael"
+            ],
+            "requestId": "r3:2026-10-02:4235358f4ac5457ea4e3"
+          },
+          "state": "pending"
+        }
+      ],
+      "slots": [],
+      "secureContext": true,
+      "webLocks": true
+    },
+    {
+      "fightStarts": 1,
+      "notices": [
+        "Unexpected token 'I', \"Injected u\"... is not valid JSON",
+        "Saved raid result held: Unexpected token 'I', \"Injected u\"... is not valid JSON"
+      ],
+      "renderedRewards": 0,
+      "CUR": {
+        "mode": "graid",
+        "attemptId": "ab757fa24c004d11",
+        "raidInstanceId": "raid-4cbc283b5ecb4cad8e0e",
+        "raidEntryRequestId": "r3:2026-10-02:4235358f4ac5457ea4e3",
+        "seed": 2439174192,
+        "serverSnaps": [
+          {
+            "key": "vael",
+            "level": 1,
+            "rank": 0,
+            "boss": false,
+            "maxHp": 400,
+            "dmg": 30,
+            "range": 28,
+            "speed": 70,
+            "atkInterval": 2.3,
+            "combatDist": 24,
+            "r": 18,
+            "melee": true,
+            "reach": 28.2,
+            "apow": 0,
+            "apMul": 1,
+            "hybrid": false,
+            "glyphDR": 0,
+            "defRating": 100,
+            "penRating": 0,
+            "armorRating": 60,
+            "mrRating": 40,
+            "armorPen": 0,
+            "magicPen": 0,
+            "critDmg": 0.6,
+            "lifestealStat": 0,
+            "evaStat": 0,
+            "accStat": 0,
+            "blockStat": 0,
+            "dmgBonusMul2": 1,
+            "shieldStrMul": 1,
+            "ctrlHitF": 0,
+            "hasteEnergyMul": 1,
+            "glyphRegen": 0,
+            "glyphCrit": 0,
+            "critRes": 0,
+            "energyReg": 0,
+            "templeDamageEnergy": 0,
+            "energy": 35,
+            "ctrlRes": 0,
+            "skillLv": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "passMul": 1,
+            "immovable": false,
+            "stunImmune": false,
+            "pass": null,
+            "gearSkill": null
+          }
+        ],
+        "backupSnaps": [],
+        "backups": [],
+        "raid": {
+          "key": "wintercrag",
+          "name": "Wintercrag",
+          "tier": 1,
+          "hp": 400000,
+          "lvl": 15
+        },
+        "cwaves": [
+          [
+            {
+              "key": "wintercrag",
+              "lvl": 15,
+              "boss": true,
+              "hp": 400000,
+              "def": 30000,
+              "dmgMul": 1
+            }
+          ]
+        ],
+        "engine": "1790961518061"
+      },
+      "rows": [
+        {
+          "v": 3,
+          "accountId": "fixture-user",
+          "guildId": "own-guild",
+          "id": "raid-4cbc283b5ecb4cad8e0e",
+          "entry": {
+            "heroIds": [
+              "vael"
+            ],
+            "requestId": "r3:2026-10-02:4235358f4ac5457ea4e3"
+          },
+          "state": "pending"
+        }
+      ],
+      "slots": [
+        {
+          "key": "codex_private_raid_slot_v3_fixture-user_raid-4cbc283b5ecb4cad8e0e",
+          "value": {
+            "v": 3,
+            "accountId": "fixture-user",
+            "guildId": "own-guild",
+            "instanceId": "raid-4cbc283b5ecb4cad8e0e",
+            "entryRequestId": "r3:2026-10-02:4235358f4ac5457ea4e3",
+            "packet": {
+              "requestId": "native-result",
+              "attemptId": "ab757fa24c004d11",
+              "inputLog": [],
+              "dmg": 10
+            }
+          }
+        }
+      ],
+      "secureContext": true,
+      "webLocks": true
+    },
+    {
+      "fightStarts": 1,
+      "notices": [
+        "Unexpected token 'I', \"Injected u\"... is not valid JSON",
+        "Saved raid result held: Unexpected token 'I', \"Injected u\"... is not valid JSON"
+      ],
+      "renderedRewards": 0,
+      "CUR": {
+        "mode": "graid",
+        "attemptId": "ab757fa24c004d11",
+        "raidInstanceId": "raid-4cbc283b5ecb4cad8e0e",
+        "raidEntryRequestId": "r3:2026-10-02:4235358f4ac5457ea4e3",
+        "seed": 2439174192,
+        "serverSnaps": [
+          {
+            "key": "vael",
+            "level": 1,
+            "rank": 0,
+            "boss": false,
+            "maxHp": 400,
+            "dmg": 30,
+            "range": 28,
+            "speed": 70,
+            "atkInterval": 2.3,
+            "combatDist": 24,
+            "r": 18,
+            "melee": true,
+            "reach": 28.2,
+            "apow": 0,
+            "apMul": 1,
+            "hybrid": false,
+            "glyphDR": 0,
+            "defRating": 100,
+            "penRating": 0,
+            "armorRating": 60,
+            "mrRating": 40,
+            "armorPen": 0,
+            "magicPen": 0,
+            "critDmg": 0.6,
+            "lifestealStat": 0,
+            "evaStat": 0,
+            "accStat": 0,
+            "blockStat": 0,
+            "dmgBonusMul2": 1,
+            "shieldStrMul": 1,
+            "ctrlHitF": 0,
+            "hasteEnergyMul": 1,
+            "glyphRegen": 0,
+            "glyphCrit": 0,
+            "critRes": 0,
+            "energyReg": 0,
+            "templeDamageEnergy": 0,
+            "energy": 35,
+            "ctrlRes": 0,
+            "skillLv": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "passMul": 1,
+            "immovable": false,
+            "stunImmune": false,
+            "pass": null,
+            "gearSkill": null
+          }
+        ],
+        "backupSnaps": [],
+        "backups": [],
+        "raid": {
+          "key": "wintercrag",
+          "name": "Wintercrag",
+          "tier": 1,
+          "hp": 400000,
+          "lvl": 15
+        },
+        "cwaves": [
+          [
+            {
+              "key": "wintercrag",
+              "lvl": 15,
+              "boss": true,
+              "hp": 400000,
+              "def": 30000,
+              "dmgMul": 1
+            }
+          ]
+        ],
+        "engine": "1790961518061"
+      },
+      "rows": [
+        {
+          "v": 3,
+          "accountId": "fixture-user",
+          "guildId": "own-guild",
+          "id": "raid-4cbc283b5ecb4cad8e0e",
+          "entry": {
+            "heroIds": [
+              "vael"
+            ],
+            "requestId": "r3:2026-10-02:4235358f4ac5457ea4e3"
+          },
+          "state": "pending"
+        }
+      ],
+      "slots": [
+        {
+          "key": "codex_private_raid_slot_v3_fixture-user_raid-4cbc283b5ecb4cad8e0e",
+          "value": {
+            "v": 3,
+            "accountId": "fixture-user",
+            "guildId": "own-guild",
+            "instanceId": "raid-4cbc283b5ecb4cad8e0e",
+            "entryRequestId": "r3:2026-10-02:4235358f4ac5457ea4e3",
+            "packet": {
+              "requestId": "native-result",
+              "attemptId": "ab757fa24c004d11",
+              "inputLog": [],
+              "dmg": 10
+            }
+          }
+        }
+      ],
+      "secureContext": true,
+      "webLocks": true
+    },
+    {
+      "fightStarts": 1,
+      "notices": [
+        "Unexpected token 'I', \"Injected u\"... is not valid JSON",
+        "Saved raid result held: Unexpected token 'I', \"Injected u\"... is not valid JSON"
+      ],
+      "renderedRewards": 0,
+      "CUR": {
+        "mode": "graid",
+        "attemptId": "ab757fa24c004d11",
+        "raidInstanceId": "raid-4cbc283b5ecb4cad8e0e",
+        "raidEntryRequestId": "r3:2026-10-02:4235358f4ac5457ea4e3",
+        "seed": 2439174192,
+        "serverSnaps": [
+          {
+            "key": "vael",
+            "level": 1,
+            "rank": 0,
+            "boss": false,
+            "maxHp": 400,
+            "dmg": 30,
+            "range": 28,
+            "speed": 70,
+            "atkInterval": 2.3,
+            "combatDist": 24,
+            "r": 18,
+            "melee": true,
+            "reach": 28.2,
+            "apow": 0,
+            "apMul": 1,
+            "hybrid": false,
+            "glyphDR": 0,
+            "defRating": 100,
+            "penRating": 0,
+            "armorRating": 60,
+            "mrRating": 40,
+            "armorPen": 0,
+            "magicPen": 0,
+            "critDmg": 0.6,
+            "lifestealStat": 0,
+            "evaStat": 0,
+            "accStat": 0,
+            "blockStat": 0,
+            "dmgBonusMul2": 1,
+            "shieldStrMul": 1,
+            "ctrlHitF": 0,
+            "hasteEnergyMul": 1,
+            "glyphRegen": 0,
+            "glyphCrit": 0,
+            "critRes": 0,
+            "energyReg": 0,
+            "templeDamageEnergy": 0,
+            "energy": 35,
+            "ctrlRes": 0,
+            "skillLv": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "passMul": 1,
+            "immovable": false,
+            "stunImmune": false,
+            "pass": null,
+            "gearSkill": null
+          }
+        ],
+        "backupSnaps": [],
+        "backups": [],
+        "raid": {
+          "key": "wintercrag",
+          "name": "Wintercrag",
+          "tier": 1,
+          "hp": 400000,
+          "lvl": 15
+        },
+        "cwaves": [
+          [
+            {
+              "key": "wintercrag",
+              "lvl": 15,
+              "boss": true,
+              "hp": 400000,
+              "def": 30000,
+              "dmgMul": 1
+            }
+          ]
+        ],
+        "engine": "1790961518061"
+      },
+      "rows": [
+        {
+          "v": 3,
+          "accountId": "fixture-user",
+          "guildId": "own-guild",
+          "id": "raid-4cbc283b5ecb4cad8e0e",
+          "entry": {
+            "heroIds": [
+              "vael"
+            ],
+            "requestId": "r3:2026-10-02:4235358f4ac5457ea4e3"
+          },
+          "state": "pending"
+        }
+      ],
+      "slots": [
+        {
+          "key": "codex_private_raid_slot_v3_fixture-user_raid-4cbc283b5ecb4cad8e0e",
+          "value": {
+            "v": 3,
+            "accountId": "fixture-user",
+            "guildId": "own-guild",
+            "instanceId": "raid-4cbc283b5ecb4cad8e0e",
+            "entryRequestId": "r3:2026-10-02:4235358f4ac5457ea4e3",
+            "packet": {
+              "requestId": "native-result",
+              "attemptId": "ab757fa24c004d11",
+              "inputLog": [],
+              "dmg": 10
+            }
+          }
+        }
+      ],
+      "secureContext": true,
+      "webLocks": true
+    },
+    {
+      "fightStarts": 1,
+      "notices": [
+        "Unexpected token 'I', \"Injected u\"... is not valid JSON",
+        "Saved raid result held: Unexpected token 'I', \"Injected u\"... is not valid JSON"
+      ],
+      "renderedRewards": 0,
+      "CUR": {
+        "mode": "graid",
+        "attemptId": "ab757fa24c004d11",
+        "raidInstanceId": "raid-4cbc283b5ecb4cad8e0e",
+        "raidEntryRequestId": "r3:2026-10-02:4235358f4ac5457ea4e3",
+        "seed": 2439174192,
+        "serverSnaps": [
+          {
+            "key": "vael",
+            "level": 1,
+            "rank": 0,
+            "boss": false,
+            "maxHp": 400,
+            "dmg": 30,
+            "range": 28,
+            "speed": 70,
+            "atkInterval": 2.3,
+            "combatDist": 24,
+            "r": 18,
+            "melee": true,
+            "reach": 28.2,
+            "apow": 0,
+            "apMul": 1,
+            "hybrid": false,
+            "glyphDR": 0,
+            "defRating": 100,
+            "penRating": 0,
+            "armorRating": 60,
+            "mrRating": 40,
+            "armorPen": 0,
+            "magicPen": 0,
+            "critDmg": 0.6,
+            "lifestealStat": 0,
+            "evaStat": 0,
+            "accStat": 0,
+            "blockStat": 0,
+            "dmgBonusMul2": 1,
+            "shieldStrMul": 1,
+            "ctrlHitF": 0,
+            "hasteEnergyMul": 1,
+            "glyphRegen": 0,
+            "glyphCrit": 0,
+            "critRes": 0,
+            "energyReg": 0,
+            "templeDamageEnergy": 0,
+            "energy": 35,
+            "ctrlRes": 0,
+            "skillLv": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "passMul": 1,
+            "immovable": false,
+            "stunImmune": false,
+            "pass": null,
+            "gearSkill": null
+          }
+        ],
+        "backupSnaps": [],
+        "backups": [],
+        "raid": {
+          "key": "wintercrag",
+          "name": "Wintercrag",
+          "tier": 1,
+          "hp": 400000,
+          "lvl": 15
+        },
+        "cwaves": [
+          [
+            {
+              "key": "wintercrag",
+              "lvl": 15,
+              "boss": true,
+              "hp": 400000,
+              "def": 30000,
+              "dmgMul": 1
+            }
+          ]
+        ],
+        "engine": "1790961518061"
+      },
+      "rows": [
+        {
+          "v": 3,
+          "accountId": "fixture-user",
+          "guildId": "own-guild",
+          "id": "raid-4cbc283b5ecb4cad8e0e",
+          "entry": {
+            "heroIds": [
+              "vael"
+            ],
+            "requestId": "r3:2026-10-02:4235358f4ac5457ea4e3"
+          },
+          "state": "pending"
+        }
+      ],
+      "slots": [
+        {
+          "key": "codex_private_raid_slot_v3_fixture-user_raid-4cbc283b5ecb4cad8e0e",
+          "value": {
+            "v": 3,
+            "accountId": "fixture-user",
+            "guildId": "own-guild",
+            "instanceId": "raid-4cbc283b5ecb4cad8e0e",
+            "entryRequestId": "r3:2026-10-02:4235358f4ac5457ea4e3",
+            "packet": {
+              "requestId": "native-result",
+              "attemptId": "ab757fa24c004d11",
+              "inputLog": [],
+              "dmg": 10
+            }
+          }
+        }
+      ],
+      "secureContext": true,
+      "webLocks": true
+    },
+    {
+      "fightStarts": 1,
+      "notices": [
+        "Unexpected token 'I', \"Injected u\"... is not valid JSON",
+        "Saved raid result held: Unexpected token 'I', \"Injected u\"... is not valid JSON"
+      ],
+      "renderedRewards": 1,
+      "CUR": {
+        "mode": "graid",
+        "attemptId": "ab757fa24c004d11",
+        "raidInstanceId": "raid-4cbc283b5ecb4cad8e0e",
+        "raidEntryRequestId": "r3:2026-10-02:4235358f4ac5457ea4e3",
+        "seed": 2439174192,
+        "serverSnaps": [
+          {
+            "key": "vael",
+            "level": 1,
+            "rank": 0,
+            "boss": false,
+            "maxHp": 400,
+            "dmg": 30,
+            "range": 28,
+            "speed": 70,
+            "atkInterval": 2.3,
+            "combatDist": 24,
+            "r": 18,
+            "melee": true,
+            "reach": 28.2,
+            "apow": 0,
+            "apMul": 1,
+            "hybrid": false,
+            "glyphDR": 0,
+            "defRating": 100,
+            "penRating": 0,
+            "armorRating": 60,
+            "mrRating": 40,
+            "armorPen": 0,
+            "magicPen": 0,
+            "critDmg": 0.6,
+            "lifestealStat": 0,
+            "evaStat": 0,
+            "accStat": 0,
+            "blockStat": 0,
+            "dmgBonusMul2": 1,
+            "shieldStrMul": 1,
+            "ctrlHitF": 0,
+            "hasteEnergyMul": 1,
+            "glyphRegen": 0,
+            "glyphCrit": 0,
+            "critRes": 0,
+            "energyReg": 0,
+            "templeDamageEnergy": 0,
+            "energy": 35,
+            "ctrlRes": 0,
+            "skillLv": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "passMul": 1,
+            "immovable": false,
+            "stunImmune": false,
+            "pass": null,
+            "gearSkill": null
+          }
+        ],
+        "backupSnaps": [],
+        "backups": [],
+        "raid": {
+          "key": "wintercrag",
+          "name": "Wintercrag",
+          "tier": 1,
+          "hp": 400000,
+          "lvl": 15
+        },
+        "cwaves": [
+          [
+            {
+              "key": "wintercrag",
+              "lvl": 15,
+              "boss": true,
+              "hp": 400000,
+              "def": 30000,
+              "dmgMul": 1
+            }
+          ]
+        ],
+        "engine": "1790961518061"
+      },
+      "rows": [],
+      "slots": [
+        {
+          "key": "codex_private_raid_slot_v3_fixture-user_raid-4cbc283b5ecb4cad8e0e",
+          "value": {
+            "v": 3,
+            "accountId": "fixture-user",
+            "guildId": "own-guild",
+            "instanceId": "raid-4cbc283b5ecb4cad8e0e",
+            "entryRequestId": "r3:2026-10-02:4235358f4ac5457ea4e3",
+            "packet": {
+              "requestId": "native-result",
+              "attemptId": "ab757fa24c004d11",
+              "inputLog": [],
+              "dmg": 10
+            },
+            "confirmed": true
+          }
+        }
+      ],
+      "secureContext": true,
+      "webLocks": true
+    },
+    {
+      "fightStarts": 0,
+      "notices": [],
+      "renderedRewards": 0,
+      "CUR": {},
+      "rows": [],
+      "slots": [
+        {
+          "key": "codex_private_raid_slot_v3_fixture-user_raid-4cbc283b5ecb4cad8e0e",
+          "value": {
+            "v": 3,
+            "accountId": "fixture-user",
+            "guildId": "own-guild",
+            "instanceId": "raid-4cbc283b5ecb4cad8e0e",
+            "entryRequestId": "r3:2026-10-02:4235358f4ac5457ea4e3",
+            "packet": {
+              "requestId": "native-result",
+              "attemptId": "ab757fa24c004d11",
+              "inputLog": [],
+              "dmg": 10
+            },
+            "confirmed": true
+          }
+        }
+      ],
+      "secureContext": true,
+      "webLocks": true
+    }
+  ],
+  "entryCount": 1,
+  "raidTransactions": 1,
+  "scope": "Current28ec2c exact extracted Guild HTML hooks plus7d2cb9 actual private authenticated HTTP. Native IDB/localStorage/WebLocks/DOM, synthetic combat and renderer hooks, not full game page/combat/authored balance. Strict proof true ONLY test origin has no legacy game writer; production provider remains missing, activation held."
+}

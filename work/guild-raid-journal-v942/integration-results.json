@@ -1,0 +1,54 @@
+{
+  "at": "2026-10-03T00:53:03.355Z",
+  "pass": true,
+  "htmlSHA256": "71ea32a8b8f60a70cf0429139ba66bb763991cca6c5ecb5349097cb8c9124155",
+  "chargedEntryCount": 1,
+  "raidTransactions": 1,
+  "packets": [
+    {
+      "route": "/api/guild/raid/start",
+      "packet": {
+        "heroIds": [
+          "vael"
+        ],
+        "requestId": "1"
+      }
+    },
+    {
+      "route": "/api/guild/raid/start",
+      "packet": {
+        "heroIds": [
+          "vael"
+        ],
+        "requestId": "1"
+      }
+    },
+    {
+      "route": "/api/guild/raid/resolve",
+      "packet": {
+        "attemptId": "ac8ffebf4a5be2b9",
+        "requestId": "1",
+        "inputLog": [
+          {
+            "t": 1
+          }
+        ],
+        "dmg": 1234
+      }
+    },
+    {
+      "route": "/api/guild/raid/resolve",
+      "packet": {
+        "attemptId": "ac8ffebf4a5be2b9",
+        "requestId": "1",
+        "inputLog": [
+          {
+            "t": 1
+          }
+        ],
+        "dmg": 1234
+      }
+    }
+  ],
+  "scope": "Fresh VM per reload with shared account journal, extracted actual API and handlers, private HTTP/frozen-squad replay; dropped committed replies then server restart before each manual recovery. Double click singleflight. Synthetic rendering/timers/storage, NOT actual browser/phone/full canonical bot/Brain/deployment."
+}

@@ -1,0 +1,64 @@
+{
+  "atET": "2026-10-03 08:38:58",
+  "sourceSHA256": "4f66439ee5c0ca10e35ff1b4eec3aefda3c9824c7ce48760d8274a3624ce2d69",
+  "helperSHA256": "825b6966c89a8543a353d9d18393bc3146bba9a7a48643400dace91769692b54",
+  "checks": [
+    {
+      "name": "load error",
+      "kind": "raid-replay-unavailable",
+      "playerDamage": 12345,
+      "coins": 247,
+      "restartExact": true
+    },
+    {
+      "name": "missing raid",
+      "kind": "raid-replay-unavailable",
+      "playerDamage": 12345,
+      "coins": 247,
+      "restartExact": true
+    },
+    {
+      "name": "raid exception",
+      "kind": "raid-replay-error",
+      "playerDamage": 12345,
+      "coins": 247,
+      "restartExact": true
+    },
+    {
+      "name": "negative",
+      "kind": "raid-replay-invalid",
+      "playerDamage": 12345,
+      "coins": 247,
+      "restartExact": true
+    },
+    {
+      "name": "string",
+      "kind": "raid-replay-invalid",
+      "playerDamage": 12345,
+      "coins": 247,
+      "restartExact": true
+    },
+    {
+      "name": "NaN",
+      "kind": "raid-replay-invalid",
+      "playerDamage": 12345,
+      "coins": 247,
+      "restartExact": true
+    },
+    {
+      "name": "Infinity",
+      "kind": "raid-replay-invalid",
+      "playerDamage": 12345,
+      "coins": 247,
+      "restartExact": true
+    },
+    {
+      "name": "matching",
+      "kind": null,
+      "playerDamage": 12345,
+      "coins": 247,
+      "restartExact": true
+    }
+  ],
+  "limits": "Injected sim-host module fault/return controls in owned private child preload. Actual HTTP and saved receipt, not actual replay execution or witnessed combat. Diagnostic only, no prescribed flag escalation/release/balance/deployment claim."
+}

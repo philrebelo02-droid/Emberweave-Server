@@ -1,0 +1,58 @@
+{
+  "at": "2026-10-03T03:44:33.968Z",
+  "pass": true,
+  "serverHash": "3e515c746729c3b17e893b8b7dcd2431f0aac9283cec749018506d53c39f11a9",
+  "validatorHash": "7a4c58b726df09235d8509540f1934515b14967003431a2476bb271011d3c3b9",
+  "transportHash": "950431e47e7964debd86ff2e6db8d3832edc463cf76b9ffc34cfa93a00c873e0",
+  "calls": [
+    {
+      "mode": "fresh-entry",
+      "packet": {
+        "requestId": "composition-entry",
+        "heroIds": [
+          "vael"
+        ]
+      }
+    },
+    {
+      "mode": "entry-recovery-only",
+      "packet": {
+        "requestId": "composition-entry",
+        "heroIds": [
+          "vael"
+        ]
+      }
+    },
+    {
+      "mode": "entry-recovery-only",
+      "packet": {
+        "requestId": "composition-entry",
+        "heroIds": [
+          "vael"
+        ]
+      }
+    },
+    {
+      "mode": "result-recovery-only",
+      "packet": {
+        "requestId": "result",
+        "attemptId": "f80f31d96e884e9b",
+        "inputLog": [],
+        "dmg": 10
+      }
+    },
+    {
+      "mode": "result-recovery-only",
+      "packet": {
+        "requestId": "result",
+        "attemptId": "f80f31d96e884e9b",
+        "inputLog": [],
+        "dmg": 10
+      }
+    }
+  ],
+  "entryCount": 1,
+  "raidTransactions": 1,
+  "scope": "Fresh VM facades + captured-token transport + actual private HTTP/restart; actual response validator does not read fixture disk. Storage/locks/quiescence remain models. Fetch bridge to private HTTP is not native full HTML wiring.",
+  "open": "Source guarded native bootstrap/package, confirmation/cleanup, quiescence/native integration remain OPEN. Pending journal deliberately retained."
+}

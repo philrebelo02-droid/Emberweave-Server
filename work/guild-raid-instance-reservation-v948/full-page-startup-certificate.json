@@ -1,0 +1,53 @@
+{
+  "atET": "2026-10-03 06:44:23",
+  "status": "OBSERVED real complete-page guest startup/navigation; request/source verifier PASS; not authenticated Guild/combat approval",
+  "clientSHA256": "28ec2c6d66f33b9d730d3b1d224992e1a1205070affaf23f71be19637ff45283",
+  "rawSHA256": "aef2ba8cc5f587d5ba4ec673bc722e343e087d66b29e135c641569c61619f793",
+  "observationSHA256": "a10e131154569f7649c011f7624a2f0ca0cf0c18d5781b883590286cf78a140f",
+  "serverHelperSHA256": "0a59f2e8aa29dc9fc374f793046e7124041f89128f0ba5fb0e550d3599ec8752",
+  "verifierSHA256": "b01140f3e2fa877a5ed42e6c5cb245a12dbfc34d6c2dac0365e3ffee8b4ae539",
+  "screenshotSHA256": "aefd40fd2ed8b0ff55eb3776f5506acd25f4e7278dc9bb0aa884a9d636cea755",
+  "externalScriptsDelivered": 15,
+  "totalRequests": 57,
+  "failedRequests": [
+    {
+      "path": "/manifest.webmanifest",
+      "method": "GET",
+      "status": 404,
+      "bytes": 36,
+      "sha256": null
+    },
+    {
+      "path": "/assets/img/ui/mi-server.webp",
+      "method": "GET",
+      "status": 404,
+      "bytes": 29,
+      "sha256": null
+    },
+    {
+      "path": "/api/guest",
+      "method": "POST",
+      "status": 405,
+      "bytes": 35,
+      "sha256": null
+    },
+    {
+      "path": "/manifest.webmanifest",
+      "method": "GET",
+      "status": 404,
+      "bytes": 36,
+      "sha256": null
+    },
+    {
+      "path": "/icon-192.png",
+      "method": "GET",
+      "status": 404,
+      "bytes": 36,
+      "sha256": null
+    }
+  ],
+  "cleanup": "Own tab1124719400 closed; own server session44803 shutdown and exit0 checked separately. No game/server source modifications.",
+  "scope": "Exact complete candidate served unchanged. Guest-only isolated origin; API disabled; external network blocked by CSP; no combat/session/reward replacements or production quiescence proof. Assets streamed from existing private snapshot, no whole copy.",
+  "limits": "Town startup/navigation observed with unmodified complete page and real session initialization. Guest API POST was deliberately rejected405 by fixture, so no authenticated guest/Guild flow proof. CSP worker denial is intentional fixture limitation, not candidate bug verdict. Missing mi-server.webp/icon-192.png are absent in existing private snapshot, not independently verified absent live. Manifest exists but was deliberately outside fixture routes. No fight/reward/productionquiescence provider injected or verified.",
+  "next": "Provide isolated real synthetic guest/authenticated private API preserving normal complete-page initialization, then two actual Guild fights and durable recovery/reload. Existing private assets/scripts are older snapshot versions, not independently current integrated/live baseline. Fullsuite, phone/bots/quota/crash/realcutover/boundedretention/GDBbackup/restore/balance/docs/installer/dualapproval remain OPEN."
+}

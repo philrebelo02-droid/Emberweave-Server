@@ -1,0 +1,8 @@
+{
+  "at": "2026-10-03T03:24:34.760Z",
+  "exit": 0,
+  "pass": 9,
+  "fail": 0,
+  "hash": "8e8b4abab207edeac8a97ccf84e8881f326abb582bb47aa479bec1ad96b4e254",
+  "scope": "Regression after changed lock-release fence; not nine new distinct tests, no actual HTTP/game/auth"
+}

@@ -1,0 +1,14 @@
+{
+  "atET": "2026-10-03 02:27:30",
+  "serverSHA256": "c44be6449a11d557522d1d6c5035c879214f762a7f5bb289ae0a313450caa75d",
+  "results": [
+    "Unauthenticated401 no mutation",
+    "Same guild other account cannot resolve retained paid attempt; no mutation",
+    "Actual save ignores forged top-level history and daily counter",
+    "Existing three/day cap still refuses fourth fresh without mutation",
+    "Oldest of three paid entries recovers across restart without fourth charge"
+  ],
+  "status": "PASS_NEW_PRIVATE_HTTP_CHECKS",
+  "fixtureRestored": true,
+  "scope": "No original defect control claimed for already existing auth/save/cap rules; not full integration/native/balance."
+}

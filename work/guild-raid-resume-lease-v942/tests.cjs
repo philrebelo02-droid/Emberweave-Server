@@ -1,0 +1,15 @@
+'use strict';const test=require('node:test'),assert=require('node:assert/strict'),A=require('./composition-facade.cjs'),copy=x=>JSON.parse(JSON.stringify(x));
+function fixture(){const rows=new Map([['one',{v:3,accountId:'actor',guildId:'guild',id:'one',entry:{requestId:'entry',heroIds:['hero']},state:'pending'}]]),slots=new Map(),f={session:{accountId:'actor',guildId:'guild',token:'memory-only',epoch:1},reply:{status:200,body:{ok:true,resumed:true,attemptId:'attempt'}},calls:0};
+ const storage={get length(){return slots.size},key:i=>[...slots.keys()][i]??null,getItem:k=>slots.get(k)??null,setItem:(k,v)=>slots.set(k,v)};
+ const directory={list:async(a,n)=>[...rows.values()].slice(0,n).map(copy),insertBounded:async()=>{throw Error('No fresh enrollment permitted')},markConfirmed:async()=>{},retireConfirmed:async()=>{}};
+ f.validator=async()=>({accountId:'actor',guildId:'guild',entryRequestId:'entry',entry:copy(rows.get('one').entry),attemptId:'attempt'});f.rows=rows;
+ f.client=()=>A.create({directory,storage,context:()=>f.session,locks:{request:async(k,o,fn)=>fn({})},transport:async()=>{f.calls++;return copy(f.reply)},legacyWritersQuiescent:async()=>true,validateEntryReply:f.validator});f.slots=slots;return f;
+}
+const P={requestId:'result',attemptId:'attempt',inputLog:[],dmg:10};
+test('validated resume stages result synchronously in the existing instance',async()=>{const f=fixture(),c=f.client(),r=await c.resume('one');c.stage(r.row,P);assert.equal(f.slots.size,1);assert.equal(f.calls,1);assert.throws(()=>c.stage(r.row,{...P,attemptId:'other'}),/attempt binding/)});
+for(const field of ['accountId','guildId','entryRequestId','attemptId'])test('mismatched '+field+' validator proof yields no writer lease',async()=>{const f=fixture(),v=f.validator;f.validator=async()=>({...await v(),[field]:'wrong'});const c=f.client();await assert.rejects(c.resume('one'),/refused/);assert.equal(f.slots.size,0)});
+for(const status of [403,409,503])test('denial '+status+' yields no lease or fresh intent',async()=>{const f=fixture();f.reply.status=status;await assert.rejects(f.client().resume('one'),/refused/);assert.equal(f.calls,1);assert.equal(f.slots.size,0)});
+test('missing authenticated validator refuses',async()=>{const f=fixture();f.validator=null;await assert.rejects(f.client().resume('one'),/validator required/);assert.equal(f.slots.size,0)});
+test('session changes across validator await refuses before lease',async()=>{const f=fixture(),v=f.validator;f.validator=async()=>{f.session={...f.session,epoch:2};return v()};await assert.rejects(f.client().resume('one'),/Stale/);assert.equal(f.slots.size,0)});
+test('unknown local instance never reaches network',async()=>{const f=fixture();await assert.rejects(f.client().resume('missing'),/state refused/);assert.equal(f.calls,0)});
+test('entry changes during validation refuses lease even when request ID stays same',async()=>{const f=fixture(),v=f.validator;f.validator=async()=>{const proof=await v();f.rows.get('one').entry.heroIds=['other'];return proof};await assert.rejects(f.client().resume('one'),/binding/);assert.equal(f.slots.size,0)});

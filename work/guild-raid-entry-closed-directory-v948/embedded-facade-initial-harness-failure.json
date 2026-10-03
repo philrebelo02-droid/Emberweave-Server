@@ -1,0 +1,73 @@
+{
+  "atET": "2026-10-03 04:25:06",
+  "clientSHA256": "c4f330ca4ae0df11f56caa2fab3db6d6483adcaddb0a970c02953ae8516ff115",
+  "facadeSHA256": "61661ea0cb705be06da99c1f9084790e87e6646f57e833064fa1d5539fdf7c68",
+  "pass": 12,
+  "fail": 3,
+  "cases": [
+    {
+      "name": "exact saved entry authenticated proof closes under shared lock",
+      "status": "FAIL",
+      "error": "Values have same structure but are not reference-equal:\n\n{\n  accountId: 'actor',\n  entry: {\n    heroIds: [\n      'hero1',\n      'hero2'\n    ],\n    requestId: 'r3:2026-10-02:one'\n  },\n  guildId: 'guild',\n  id: 'slot',\n  state: 'pending',\n  v: 3\n}\n"
+    },
+    {
+      "name": "persisted closure retries cleanup with zero transport after retirement fault",
+      "status": "FAIL",
+      "error": "Expected values to be strictly deep-equal:\n+ actual - expected\n... Skipped lines\n\n  {\n    accountId: 'actor',\n    entry: {\n      heroIds: [\n        'hero1',\n...\n    },\n-   entryClosure: {\n-     accountId: 'actor',\n-     entry: {\n-       heroIds: [\n-         'hero1',\n-         'hero2'\n-       ],\n-       requestId: 'r3:2026-10-02:one'\n-     },\n-     guildId: 'guild',\n-     kind: 'period-closed',\n-     packetHash: '1da98282bf781bcee22d308cca3dd1ed1304ee725849ec363e1b5c44d185adf1',\n-     serverPeriod: '2026-10-03',\n-     spent: 'unknown',\n-     v: 1\n-   },\n    guildId: 'guild',\n    id: 'slot',\n+   state: 'pending',\n-   state: 'entry-closed',\n    v: 3\n  }\n"
+    },
+    {
+      "name": "persisted closure quota failure retains discovery and retries zero transport",
+      "status": "FAIL",
+      "error": "Values have same structure but are not reference-equal:\n\n{\n  accountId: 'actor',\n  entry: {\n    heroIds: [\n      'hero1',\n      'hero2'\n    ],\n    requestId: 'r3:2026-10-02:one'\n  },\n  entryClosure: {\n    accountId: 'actor',\n    entry: {\n      heroIds: [\n        'hero1',\n        'hero2'\n      ],\n      requestId: 'r3:2026-10-02:one'\n    },\n    guildId: 'guild',\n    kind: 'period-closed',\n    packetHash: '1da98282bf781bcee22d308cca3dd1ed1304ee725849ec363e1b5c44d185adf1',\n    serverPeriod: '2026-10-03',\n    spent: 'unknown',\n    v: 1\n  },\n  guildId: 'guild',\n  id: 'slot',\n  state: 'entry-closed',\n  v: 3\n}\n"
+    },
+    {
+      "name": "staged result blocks closure before any transport",
+      "status": "PASS"
+    },
+    {
+      "name": "busy account lock blocks transport and all writes",
+      "status": "PASS"
+    },
+    {
+      "name": "unproven legacy quiescence blocks transport",
+      "status": "PASS"
+    },
+    {
+      "name": "legacy pending packet is not migrated or discarded",
+      "status": "PASS"
+    },
+    {
+      "name": "stale session after HTTP refuses proof mutation",
+      "status": "PASS"
+    },
+    {
+      "name": "stale session after digest refuses proof mutation",
+      "status": "PASS"
+    },
+    {
+      "name": "result appearing during validation stays immutable and blocks closure",
+      "status": "PASS"
+    },
+    {
+      "name": "unproven generic429 retains pending intent",
+      "status": "PASS"
+    },
+    {
+      "name": "unproven wrong hash retains pending intent",
+      "status": "PASS"
+    },
+    {
+      "name": "unproven wrong guild retains pending intent",
+      "status": "PASS"
+    },
+    {
+      "name": "unproven current period retains pending intent",
+      "status": "PASS"
+    },
+    {
+      "name": "generic recover will not send persisted closure as result",
+      "status": "PASS"
+    }
+  ],
+  "scope": "Actual extracted facade and hybrid, actual pure digest validator+directory row validator, modeled directory/storage/WebLock and authenticated-channel reply fixture. NOT actual HTTP/native/HTML/UI integration or balance. No grant/render functions supplied"
+}

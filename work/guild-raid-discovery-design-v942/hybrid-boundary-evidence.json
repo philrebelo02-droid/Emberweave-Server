@@ -1,0 +1,106 @@
+{
+  "session": "4ca25264-3f2b-4114-b985-9cc67931ff77",
+  "reports": [
+    {
+      "session": "4ca25264-3f2b-4114-b985-9cc67931ff77",
+      "hashes": {
+        "hybrid": "490c601bad306af9ae471080b8d8dc5caf31c8b83efb8176094e7cae6ab3b7c6",
+        "directory": "56188c9d573ba9285cdd845addc229dfed38fc4c00156e34f3b36364dd5d2272"
+      },
+      "tabId": "2e77719a-b19d-4afa-9b76-30a31061ab93",
+      "phase": "ready",
+      "results": [],
+      "ready": true
+    },
+    {
+      "session": "4ca25264-3f2b-4114-b985-9cc67931ff77",
+      "hashes": {
+        "hybrid": "490c601bad306af9ae471080b8d8dc5caf31c8b83efb8176094e7cae6ab3b7c6",
+        "directory": "56188c9d573ba9285cdd845addc229dfed38fc4c00156e34f3b36364dd5d2272"
+      },
+      "tabId": "2e77719a-b19d-4afa-9b76-30a31061ab93",
+      "phase": "barrier-wait",
+      "results": []
+    },
+    {
+      "session": "4ca25264-3f2b-4114-b985-9cc67931ff77",
+      "hashes": {
+        "hybrid": "490c601bad306af9ae471080b8d8dc5caf31c8b83efb8176094e7cae6ab3b7c6",
+        "directory": "56188c9d573ba9285cdd845addc229dfed38fc4c00156e34f3b36364dd5d2272"
+      },
+      "tabId": "a2dddaba-38a3-40c1-ba65-c02a0b742cd0",
+      "phase": "ready",
+      "results": [],
+      "ready": true
+    },
+    {
+      "session": "4ca25264-3f2b-4114-b985-9cc67931ff77",
+      "hashes": {
+        "hybrid": "490c601bad306af9ae471080b8d8dc5caf31c8b83efb8176094e7cae6ab3b7c6",
+        "directory": "56188c9d573ba9285cdd845addc229dfed38fc4c00156e34f3b36364dd5d2272"
+      },
+      "tabId": "a2dddaba-38a3-40c1-ba65-c02a0b742cd0",
+      "phase": "barrier-wait",
+      "results": []
+    },
+    {
+      "session": "4ca25264-3f2b-4114-b985-9cc67931ff77",
+      "hashes": {
+        "hybrid": "490c601bad306af9ae471080b8d8dc5caf31c8b83efb8176094e7cae6ab3b7c6",
+        "directory": "56188c9d573ba9285cdd845addc229dfed38fc4c00156e34f3b36364dd5d2272"
+      },
+      "tabId": "2e77719a-b19d-4afa-9b76-30a31061ab93",
+      "phase": "race-complete",
+      "results": [],
+      "won": true,
+      "rows": 1
+    },
+    {
+      "session": "4ca25264-3f2b-4114-b985-9cc67931ff77",
+      "hashes": {
+        "hybrid": "490c601bad306af9ae471080b8d8dc5caf31c8b83efb8176094e7cae6ab3b7c6",
+        "directory": "56188c9d573ba9285cdd845addc229dfed38fc4c00156e34f3b36364dd5d2272"
+      },
+      "tabId": "a2dddaba-38a3-40c1-ba65-c02a0b742cd0",
+      "phase": "race-complete",
+      "results": [],
+      "won": false,
+      "error": "Error: Duplicate intent",
+      "rows": 1
+    },
+    {
+      "session": "4ca25264-3f2b-4114-b985-9cc67931ff77",
+      "hashes": {
+        "hybrid": "490c601bad306af9ae471080b8d8dc5caf31c8b83efb8176094e7cae6ab3b7c6",
+        "directory": "56188c9d573ba9285cdd845addc229dfed38fc4c00156e34f3b36364dd5d2272"
+      },
+      "tabId": "2e77719a-b19d-4afa-9b76-30a31061ab93",
+      "phase": "SYNC_STAGED_LOCK_HELD",
+      "results": [],
+      "exactPacket": {
+        "requestId": "result",
+        "attemptId": "attempt",
+        "inputLog": [],
+        "dmg": 10
+      }
+    },
+    {
+      "session": "4ca25264-3f2b-4114-b985-9cc67931ff77",
+      "hashes": {
+        "hybrid": "490c601bad306af9ae471080b8d8dc5caf31c8b83efb8176094e7cae6ab3b7c6",
+        "directory": "56188c9d573ba9285cdd845addc229dfed38fc4c00156e34f3b36364dd5d2272"
+      },
+      "tabId": "a2dddaba-38a3-40c1-ba65-c02a0b742cd0",
+      "phase": "RECOVERED_AFTER_CLOSURE",
+      "results": [],
+      "exactPacket": {
+        "requestId": "result",
+        "attemptId": "attempt",
+        "inputLog": [],
+        "dmg": 10
+      },
+      "status": "result-recovery-only",
+      "lockAvailable": true
+    }
+  ]
+}

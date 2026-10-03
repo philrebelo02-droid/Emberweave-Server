@@ -1,0 +1,16 @@
+{
+  "at": "2026-10-03T00:59:12.652Z",
+  "results": [
+    {
+      "label": "journal-regression",
+      "pass": 15,
+      "fail": 0
+    },
+    {
+      "label": "cross-tab-interleavings",
+      "pass": 1,
+      "fail": 1
+    }
+  ],
+  "open": "Simultaneous fresh-entry read/check/write race still fails naturally. Old-result overwrite refusal now passes. No review-ready/shipped claim."
+}

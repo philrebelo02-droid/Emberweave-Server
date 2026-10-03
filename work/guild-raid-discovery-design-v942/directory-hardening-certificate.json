@@ -1,0 +1,44 @@
+{
+  "atET": "2026-10-02T23:01:58-04:00",
+  "status": "PRIVATE_DIRECTORY_SCHEMA_AND_TRANSITION_TESTED_NOT_NATIVE_REVALIDATED_NOT_REVIEW_READY_NOT_SHIPPED",
+  "fixedSHA256": "56188c9d573ba9285cdd845addc229dfed38fc4c00156e34f3b36364dd5d2272",
+  "originalSHA256": "33bbedda153f3f625516073036fd2d8c09a8146202b318c442acbc378158ad1c",
+  "schema": {
+    "original": {
+      "pass": 2,
+      "fail": 8,
+      "exit": 1
+    },
+    "fixed": {
+      "pass": 10,
+      "fail": 0,
+      "exit": 0
+    },
+    "evidence": "directory-shape-original.json;directory-shape-fixed.json"
+  },
+  "transitions": {
+    "original": {
+      "pass": 1,
+      "fail": 2,
+      "exit": 1
+    },
+    "fixed": {
+      "pass": 3,
+      "fail": 0,
+      "exit": 0
+    },
+    "evidence": "directory-transition-original.json;directory-transition-fixed.json"
+  },
+  "changes": [
+    "Reject unknown root/entry/packet fields, duplicate hero IDs, invalid state-specific confirmation records.",
+    "Reject missing/negative/oversized confirmed packets.",
+    "Confirmed packet immutable, exact repeated terminal confirmation idempotent."
+  ],
+  "limits": [
+    "13 new schema/transition controls only; transition model simulates transaction completion/rollback.",
+    "Earlier 8 native checks belong to original33bbedda, NOT new56188c9d.",
+    "No gameplay input validation, actual auth/confirmation, charge/reward or game integration.",
+    "Quota, terminal marker retention/eviction, legacy clients, held-lock immediate closure and native multi-tab remain gates."
+  ],
+  "next": "Native targeted checks for revised56188c9d: malformed rows/refusals and immutable terminal confirmation, then two-tab enrollment contention/held-network Web Lock immediate sync-stage-before-timer closure and cleanup interruption. Preserve 33bbedda controls; no unchanged10schema/3transition/8oldnative/12model suite repeats. Only private fixture; game integration/legacy/quota/eviction gates remain."
+}

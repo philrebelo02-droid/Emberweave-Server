@@ -1,0 +1,43 @@
+{
+  "atET": "2026-10-02T23:13:23-04:00",
+  "status": "PRIVATE_HYBRID_EXACT_PHASE_NATIVE_CLOSURE_VERIFIED_NOT_GAME_INTEGRATED_NOT_REVIEW_READY_NOT_SHIPPED",
+  "hybridSHA256": "490c601bad306af9ae471080b8d8dc5caf31c8b83efb8176094e7cae6ab3b7c6",
+  "directorySHA256": "56188c9d573ba9285cdd845addc229dfed38fc4c00156e34f3b36364dd5d2272",
+  "fixtureSHA256": "32c13ec030ec8c7dbb7eae10fdfa9c99a1ef534d4f646e6cba1592c0f9081c7d",
+  "evidence": "hybrid-phase-evidence.json",
+  "screenshot": "hybrid-phase-recovery.jpg",
+  "phase": {
+    "syncStageAt": 1790997082487,
+    "timerDueAt": 1790997102487,
+    "httpReceivedAt": 1790997082487,
+    "httpClosedAt": 1790997088049,
+    "closedAfterMs": 5562,
+    "closedBeforeTimer": true,
+    "timerFiredBeforeClosure": false,
+    "lockHeldAtStage": true
+  },
+  "recovery": {
+    "exactPacket": {
+      "requestId": "phase-result",
+      "attemptId": "phase-attempt",
+      "inputLog": [],
+      "dmg": 17
+    },
+    "status": "result-recovery-only",
+    "lockAvailable": true
+  },
+  "postDeadlineHelperObservation": {
+    "at": 1790997116632,
+    "settleCalls": 0,
+    "source": "Read-only localhost /status observed in tool output; after timer deadline."
+  },
+  "limits": [
+    "Purpose-built 20-second delayed-settlement timer, not actual game scheduling.",
+    "Actual HTTP headers/body hold verified; no real financial charge, raid grant, auth or production network.",
+    "Not process/power crash; storage eviction/quota/native phone/legacy/mixed clients unverified.",
+    "Injected legacyCheck clear remains model/fixture dependency, not actual legacy enrollment proof.",
+    "Terminal markers retained indefinitely; policy/safe eviction not decided."
+  ],
+  "cleanup": "Own helper19733 exited0, two owned Chrome tabs closed, private storage retained; no live/Brain/Pause/material changes.",
+  "next": "Implement isolated bootstrap/composition facade with actual legacy canonical/stage namespace inspection (unknown/corrupt/old unresolved => held, never injected 'clear'), live session/account/guild fences around every await and exact recovery-only packet binding. Reproduce natural old-reader global-key bound failure; new directory path independent of unrelated keys while legacy uncertainty refuses. Then private actual API lost-reply/reload/restart charge/grant tests; no live integration/cutover or unchanged native/schema suites."
+}

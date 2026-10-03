@@ -1,0 +1,9 @@
+'use strict';const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),crypto=require('node:crypto'),hash=x=>crypto.createHash('sha256').update(x).digest('hex');assert(!fs.existsSync('C:/Users/Home/AppData/Local/Emberweave/shutdown-requested.json'));
+const source=fs.readFileSync(path.join(__dirname,'../guild-raid-journal-v942/payload/combined/emberweave-heroes.html'),'utf8');assert.equal(hash(source),'71ea32a8b8f60a70cf0429139ba66bb763991cca6c5ecb5349097cb8c9124155');let next=source;const spans=[];function change(a,b){assert.equal(next.split(a).length,2,a);next=next.replace(a,b);spans.push([a,b]);}
+change("old.kind==='start'&&p.kind==='resolve'","old.kind==='start'&&p.kind==='resolve'&&p.entryRequestId===old.packet.requestId");
+change('kind:p.kind,createdAt:p.createdAt,packet:p.packet,RB:', 'kind:p.kind,createdAt:p.createdAt,packet:p.packet,entryRequestId:p.entryRequestId||null,RB:');
+change('raidSettlementQueue(p.packet,p.RB||{},p.createdAt);','raidSettlementQueue(p.packet,p.RB||{},p.createdAt,p.entryRequestId||null);');
+change('function raidSettlementQueue(packet,RB,createdAt=Date.now()){','function raidSettlementQueue(packet,RB,createdAt=Date.now(),entryRequestId=CUR.raidEntryRequestId||null){');
+change("packet,kind:'resolve',createdAt,busy:false,retry:null", "packet,kind:'resolve',createdAt,entryRequestId,busy:false,retry:null");
+change("CUR={mode:'graid', attemptId:st.attemptId, seed:", "CUR={mode:'graid', attemptId:st.attemptId, raidEntryRequestId:pending.packet.requestId, seed:");
+const dest=path.join(__dirname,'payload/combined/emberweave-heroes.html');fs.mkdirSync(path.dirname(dest),{recursive:true});fs.writeFileSync(dest,next,{flag:'wx'});fs.writeFileSync(path.join(__dirname,'spans.json'),JSON.stringify({base:hash(source),output:hash(next),spans},null,2));console.log(hash(next));

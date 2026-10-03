@@ -1,0 +1,7 @@
+{
+  "purpose": "Private guarded two-bound correction for the canonical ten-slot Guild raid, paired with unchanged retained-attempt server c44.",
+  "build": "node work/guild-raid-ten-slot-v948/build.cjs",
+  "tests": "node --test work/guild-raid-ten-slot-v948/tests.cjs; TEN_SLOT_CONTROL=1 runs preserved original a166 expecting two failures.",
+  "status": "Component tested only; no dual release approval or deployment.",
+  "open": "Current native integrated client, terminal/refusal/expiry and old namespace fences, guild switch, full regression, authored combat/balance reconciliation, complete documentation/mirror/package/release gates."
+}

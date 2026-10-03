@@ -1,0 +1,9 @@
+{
+  "at": "2026-10-03T03:17:57.707Z",
+  "exit": 0,
+  "pass": 9,
+  "fail": 0,
+  "hash": "b822eea774d18b5bc96c87e795a8eaf39a4447dd1c95f7b0a7beaeead5ccc9e5",
+  "scope": "Private facade dependency model only, not actual HTTP/game/auth",
+  "reportCorrection": "Nine successful tests verified in original spec reporter log; parser expected TAP. No rerun."
+}

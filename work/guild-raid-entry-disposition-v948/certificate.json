@@ -1,0 +1,16 @@
+{
+  "atET": "2026-10-03 01:52:33",
+  "modelSHA256": "4b1a9ab3518bd79a2364126d56bf990a07347161aaffdccc45c967a20d2ab1c2",
+  "controlSHA256": "a113a03f75b6482b7f2d40901ce3be3a08e153a0bd26dcc80755f1430d875a82",
+  "original": {
+    "status": 1,
+    "stdout": "✖ future period is HELD, never receives a terminal proof before its future starts are fenced (2.8194ms)\n✔ cancel missing intent commits terminal proof and delayed identical start never spends (1.9683ms)\n✔ committed start then cancel returns original accepted identity, not a no-spend proof (0.7653ms)\n✔ failed cancellation save returns no proof; later retry commits before late start refusal (0.708ms)\n✔ same request with altered squad or guild cannot overwrite disposition (0.6023ms)\n✔ bounded active records refuse without eviction; old period remains fenced after rollover (0.2489ms)\n✔ racing start and cancel linearize to one durable disposition (0.3847ms)\nℹ tests 7\nℹ suites 0\nℹ pass 6\nℹ fail 1\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 102.6591\n\n✖ failing tests:\n\ntest at work\\guild-raid-entry-disposition-v948\\tests.cjs:4:1\n✖ future period is HELD, never receives a terminal proof before its future starts are fenced (2.8194ms)\n  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n  \n  200 !== 400\n  \n      at TestContext.<anonymous> (C:\\Users\\Home\\Documents\\Codex\\2026-09-26\\continue-my-emberweave-work-from-the\\work\\guild-raid-entry-disposition-v948\\tests.cjs:4:214)\n      at async Test.run (node:internal/test_runner/test:1389:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {\n    generatedMessage: true,\n    code: 'ERR_ASSERTION',\n    actual: 200,\n    expected: 400,\n    operator: 'strictEqual',\n    diff: 'simple'\n  }\n",
+    "stderr": ""
+  },
+  "fixed": {
+    "status": 0,
+    "stdout": "✔ future period is HELD, never receives a terminal proof before its future starts are fenced (8.1959ms)\n✔ cancel missing intent commits terminal proof and delayed identical start never spends (0.9118ms)\n✔ committed start then cancel returns original accepted identity, not a no-spend proof (0.8676ms)\n✔ failed cancellation save returns no proof; later retry commits before late start refusal (0.6194ms)\n✔ same request with altered squad or guild cannot overwrite disposition (0.3342ms)\n✔ bounded active records refuse without eviction; old period remains fenced after rollover (0.292ms)\n✔ racing start and cancel linearize to one durable disposition (0.5192ms)\nℹ tests 7\nℹ suites 0\nℹ pass 7\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 94.4005\n",
+    "stderr": ""
+  },
+  "scope": "7 isolated contract model passes, preserved preliminary model fails future-period fence. No server/client integration, API/native, result-side contract, authentication production proof, balance or shipping approval."
+}

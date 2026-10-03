@@ -1,0 +1,4 @@
+'use strict';
+const fs=require('node:fs'),path=require('node:path'),cp=require('node:child_process'),crypto=require('node:crypto');
+const mode=process.argv[2]||'fixed',file=mode==='original'?'native-directory-original.cjs':'native-directory.cjs',stem='directory-transition-'+mode;
+const r=cp.spawnSync(process.execPath,[path.join(__dirname,'directory-transition-tests.cjs'),path.join(__dirname,file)],{timeout:10000,windowsHide:true,encoding:'utf8'}),log=r.stdout+(r.stderr||'');fs.writeFileSync(path.join(__dirname,stem+'.log'),log);const out={at:new Date().toISOString(),exit:r.status,pass:(log.match(/^PASS /gm)||[]).length,fail:(log.match(/^FAIL /gm)||[]).length,hash:crypto.createHash('sha256').update(fs.readFileSync(path.join(__dirname,file))).digest('hex'),scope:'Synthetic transition model only'};fs.writeFileSync(path.join(__dirname,stem+'.json'),JSON.stringify(out,null,2));console.log(JSON.stringify(out));process.exitCode=r.status;

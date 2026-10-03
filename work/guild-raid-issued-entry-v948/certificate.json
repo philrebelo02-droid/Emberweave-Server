@@ -1,0 +1,11 @@
+{
+ "atET":"2026-10-03 02:05:01",
+ "status":"ISOLATED_CONTRACT_MODEL_ONLY_NOT_API_OR_RELEASE",
+ "modelSHA256":"5fd137bd05413efa835b2922450010a9aa233e7ead5f37eea86a6bade7328d74",
+ "priorModelSHA256":"2c2c805dc088f20e47cf4c4ee3c168927ad279c56940dca09528cf1a579186c0",
+ "tests":"node --test tests.cjs: 9 PASS after bounds revision; node --test edge-tests.cjs: 6 new PASS. TICKET_CONTROL=1 edge-tests: bounds test naturally FAIL missing expected exception; other 5 PASS. No claim these 5 reproduce defects in prior model.",
+ "proof":"Server-issued signed ordered intent persists before ticket exposure; exact recovery does not mint unknown; transaction save faults expose no proof/charge; cancellation and start race converge; prepared guild change/expiry cancels without charge, prior accepted receipt never falsely unspent; retained service session switch fails; pruned recovery held.",
+ "selfReview":"Caught unchecked maxRecords/sessionMs configuration; bounded safe integers and representable issue/expiry clock now required. New-protocol no-ticket legacy refusal is a STUB ONLY, not actual mixed-client compatibility.",
+ "open":["Production authentication, routes, database and signing-key management; constant-time signature comparison", "Existing RAID_ATT and daily charge attribution across midnight; synthetic spent counter is not game economics", "Accepted session expiry/result-overwrite disposition and safe bounded retention/quota", "Lost prepare before server arrival remains held; unknown cannot be declared unspent without a permanent delayed-send fence", "All old client/start paths must enforce namespace/ticket fence before spend; not implemented", "Client durable intent/ticket storage, cleanup UI, actual current native integration, regression and balance approval"],
+ "deployment":"a166/eca0 and separate strict e177 candidates unchanged. No dual approval or deployment."
+}

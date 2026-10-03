@@ -1,0 +1,60 @@
+{
+  "session": "3ffad680-dc24-456a-911d-e04d6770739e",
+  "adapterHash": "44028943a93652c92f5c63b684e66c15147a6690ab44385d3f4ebeb05d3b10dd",
+  "reports": [
+    {
+      "session": "3ffad680-dc24-456a-911d-e04d6770739e",
+      "adapterHash": "44028943a93652c92f5c63b684e66c15147a6690ab44385d3f4ebeb05d3b10dd",
+      "phase": "ready",
+      "acknowledged": false,
+      "done": false,
+      "reads": 0,
+      "startedAt": null,
+      "at": 1790995173818
+    },
+    {
+      "session": "3ffad680-dc24-456a-911d-e04d6770739e",
+      "adapterHash": "44028943a93652c92f5c63b684e66c15147a6690ab44385d3f4ebeb05d3b10dd",
+      "phase": "REGISTERING",
+      "acknowledged": false,
+      "done": false,
+      "reads": 0,
+      "startedAt": 1790995196622,
+      "at": 1790995196622
+    },
+    {
+      "session": "3ffad680-dc24-456a-911d-e04d6770739e",
+      "adapterHash": "44028943a93652c92f5c63b684e66c15147a6690ab44385d3f4ebeb05d3b10dd",
+      "phase": "ADD_SUCCEEDED_TRANSACTION_PENDING",
+      "acknowledged": false,
+      "done": false,
+      "reads": 0,
+      "startedAt": 1790995196622,
+      "at": 1790995196628,
+      "transactionComplete": false
+    },
+    {
+      "session": "3ffad680-dc24-456a-911d-e04d6770739e",
+      "adapterHash": "44028943a93652c92f5c63b684e66c15147a6690ab44385d3f4ebeb05d3b10dd",
+      "phase": "ready",
+      "acknowledged": false,
+      "done": false,
+      "reads": 0,
+      "startedAt": null,
+      "at": 1790995197111
+    },
+    {
+      "session": "3ffad680-dc24-456a-911d-e04d6770739e",
+      "adapterHash": "44028943a93652c92f5c63b684e66c15147a6690ab44385d3f4ebeb05d3b10dd",
+      "phase": "READ_COMPLETE",
+      "acknowledged": false,
+      "done": false,
+      "reads": 0,
+      "startedAt": null,
+      "at": 1790995206113,
+      "committedRows": []
+    }
+  ],
+  "capturedAtET": "10/2/2026, 10:41:25 PM",
+  "scope": "Actual Chrome held result transaction: observed add request success without transaction completion/ack, closed tab, fresh tab reads zero committed rows. No duplicate money/reward, process crash or arbitrary timing guarantee inferred."
+}

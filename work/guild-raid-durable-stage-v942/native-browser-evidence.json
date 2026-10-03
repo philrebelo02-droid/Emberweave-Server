@@ -1,0 +1,20 @@
+{
+  "atET":"2026-10-02 21:55:32 -04:00",
+  "status":"NARROW_NATIVE_BROWSER_PROOF_NOT_REVIEW_READY_NOT_SHIPPED",
+  "candidateSHA256":"bc71d3b276c22745f7dacfad167ef77510c6f95afeb1c22ec69b8cf927da299d",
+  "harness":"browser-harness.cjs extracts candidate helpers, queue, recover and real delayed result timer; synthetic fixture game shell/API, not full game or durable server",
+  "nativePlatform":{"browser":"Chrome","origin":"http://127.0.0.1:61099","secureContext":true,"webLocks":true,"randomUUID":"function","storage":"native localStorage shared between tabs"},
+  "observations":[
+    "Tab A held native exclusive ew_raid_pending_v1_native-fixture lock. Tab B staged exact completed result synchronously then canceled timer.",
+    "Stage key ew_raid_pending_v1_native-fixture_result_ca035071-a338-43c9-9ec2-5ae672b0f43a, createdAt1790991955512, persisted with exact packet and null parent.",
+    "Actual recovery click while A held lock rendered RESULT UNCONFIRMED with Retry same result; request count0 unique receipts0. Stage preserved.",
+    "Closed B, then closed lock-holder A without release button. Opened fresh C: held locks empty; same immutable durable stage and exact saved packet remained.",
+    "Double-clicked actual Recover saved result control in C. Actual delayed handler sent one resolve request with exact packet; synthetic API unique receipt1.",
+    "Final DOM DAMAGE DEALT/10damage/1guildcoin; held[], rows[], savednull, adopted gold100. Screenshot native-recovery.jpg.",
+    "Closed all three owned test tabs; helper shutdown endpoint returned stopped and PTY exited0. No user tabs/livegame/Brain touched."
+  ],
+  "syntheticAPI":{"requests":1,"uniqueReceipts":1,"log":[{"route":"/api/guild/raid/resolve","packet":{"requestId":"native-result-1","attemptId":"native-attempt","inputLog":[{"t":1}],"dmg":10}}]},
+  "delayedNetworkProof":{"origin":"http://127.0.0.1:58538","harnessSHA256":"38bdcce061e4760932b556ae89b07fa70b062ddf7568e80bcbac5b5813c426ce","stageKey":"ew_raid_pending_v1_native-fixture_result_d03c808c-73bf-44c6-a36f-470de27bc37f","createdAt":1790992441081,"observations":["D actual recovered resolve blocked waiting on synthetic server reply; server requests1/pending1/uniqueReceipts1","Native locks query in both D and fresh E shows exclusive account lock held by client0A71BBB8F996CA86EFA5DD8705A6CA66 while network pending","E double recovery click renders RESULT UNCONFIRMED/Another tab is handling this raid/Retry same result; immutable+canonical rows preserved; server remains requests1/pending1","After fixture releases response D renders DAMAGE DEALT, held[], rows[], savednull, adoptedgold100; requests1/uniqueReceipts1/pending0","Screenshots native-network-lock.jpg and native-network-confirmed.jpg; D/E closed; ownhelper shutdown stopped/PTYexit0"],"fullGameOrProductionProof":false},
+  "limits":["Not full Guild UI, production persistence, lost committed reply or restart server proof; those separately tested in prior actualAPI privateHTTP VM integration","Different transcripts/reversed replies/storage permissions/native key-bound compatibility not newly proved here","No new packaging/guard/copy credit; unchanged28VM/privateHTTP suites not rerun","Physical phone/full canonical bot/Brain/PG/fsync remain unverified"],
+  "next":"Native different-transcript/reversed-reply and storage-bound compatibility targeted proof; then small exact4output composition, runner, independent copy, rollback/refusal/inverse guards and critical certificate."
+}

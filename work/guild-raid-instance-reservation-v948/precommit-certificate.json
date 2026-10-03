@@ -1,0 +1,13 @@
+{
+  "verifiedAtET":"2026-10-03 06:02:21.576",
+  "clientSHA256":"28ec2c6d66f33b9d730d3b1d224992e1a1205070affaf23f71be19637ff45283",
+  "moduleSHA256":"cafb44f504d9a5937ca1a2d647ad23e598ee0ee833a9ba1dee8ce93613041c7d",
+  "pageSHA256":"c49dd2b3ed870ba0d0fc5b898dc4c8d397b893608485275b6f49dae7e01b1d38",
+  "helperSHA256":"718e9bf19b07f7673e50d0b21c9b17fd16f5636adca1e7a11e02356edf26b2f2",
+  "rawSHA256":"1b5c238424a5cc05d59a0550dfbc76e4a4ff25fa2f1554466daf7dd3a1407ea8",
+  "screenshotSHA256":"e02d3861a53796f2d4a3ec6ed7a42b59e7a1a663082c6f02c97a746a6bb84f6d",
+  "result":"PASS one new interruption control",
+  "sequence":"Actual embedded directory.insertBounded; native add request success observed while completion false; synthetic native read queue holds transaction; own Chrome tab1124719392 closed; new own tab1124719394 opens same origin/database, sees zero rows; normal same-identity retry commits exactly one row. No explicit abort invoked. Both own tabs closed.",
+  "limitations":"No renderer/process crash, full Guild UI/authenticated HTTP/combat flow, quota, phone, canonical bots, real legacy-writer quiescence, G/DB backup restore, integrated installer or agreed balance. No new game code or policy; no approval/deployment.",
+  "storage":"Synthetic private codex-private-precommit-0601 database only, retained; no player data deleted. Separate page/helper, earlier completed seven native checks not rerun."
+}

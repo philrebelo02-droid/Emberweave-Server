@@ -1,0 +1,5 @@
+{
+ "baseSHA256":"7a1a61f8437bd1ce1d1e8f14e7189f83b15284b9e47fa068df3725ab3d1a9cac",
+ "observed":"Both stronger cleanup controls fail naturally on base: interleaved new entry enters remove window (1!==0); busy lock still clears saved identity (true!==false). Both pass on0f7ee8d2. Controlled storage interleaving, not native browser evidence.",
+ "harnessNote":"Initial22composition used first cleanup control without the competing removal injection; stronger two-case control was then run on old and new candidates. No second unchanged full22/HTTP run performed."
+}

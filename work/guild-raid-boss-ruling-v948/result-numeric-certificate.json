@@ -1,0 +1,65 @@
+{
+  "atET": "2026-10-03 08:20:53",
+  "parentSHA256": "ac471280aa2db00e21ce78764e09b2e92242dc72f5f972b61b290cbb37324577",
+  "fixedSHA256": "20787649b6707783cfe9c8719f20e53e6f84bbc70162d40440e2020dcf190f5a",
+  "renderSHA256": "f87c935654be15fd4677d9212f6a4c7c6a2532930015de6d193e092c92fec19d",
+  "helperSHA256": "248b333543bd518d1acfd628c94cb3c5f480123d9a982e7f4a24ae3b8c85370d",
+  "parsedInlineScripts": 3,
+  "rows": [
+    {
+      "value": 0,
+      "parentTitle": "NO DAMAGE",
+      "parentReward": "<div style=\"font-size:11px;letter-spacing:1px;color:#8b98a9;margin-bottom:4px\">Synthetic Boss · TIER 36</div><div style=\"font-size:15px;font-weight:800;color:#ffbf69;margin-bottom:4px\">0 damage</div><div style=\"margin-top:2px\">🏅 1 guild coins <span style=\"color:#8b98a9;font-size:10.5px\">· spend them in the Guild Shop</span></div><div style=\"font-size:10.5px;color:#6f7d90;margin-top:6px\">Boss at 0 / 0 HP · 2 assaults left today</div>",
+      "fixedTitle": "NO DAMAGE",
+      "fixedReward": "<div style=\"font-size:11px;letter-spacing:1px;color:#8b98a9;margin-bottom:4px\">Synthetic Boss · TIER 36</div><div style=\"font-size:15px;font-weight:800;color:#ffbf69;margin-bottom:4px\">0 damage</div><div style=\"margin-top:2px\">🏅 1 guild coins <span style=\"color:#8b98a9;font-size:10.5px\">· spend them in the Guild Shop</span></div><div style=\"font-size:10.5px;color:#6f7d90;margin-top:6px\">Boss at 0 / 0 HP · 2 assaults left today</div>"
+    },
+    {
+      "value": 12345,
+      "parentTitle": "DAMAGE DEALT",
+      "parentReward": "<div style=\"font-size:11px;letter-spacing:1px;color:#8b98a9;margin-bottom:4px\">Synthetic Boss · TIER 36</div><div style=\"font-size:15px;font-weight:800;color:#ffbf69;margin-bottom:4px\">12,345 damage</div><div style=\"margin-top:2px\">🏅 1 guild coins <span style=\"color:#8b98a9;font-size:10.5px\">· spend them in the Guild Shop</span></div><div style=\"font-size:10.5px;color:#6f7d90;margin-top:6px\">Boss at 12,345 / 12,345 HP · 2 assaults left today</div>",
+      "fixedTitle": "DAMAGE DEALT",
+      "fixedReward": "<div style=\"font-size:11px;letter-spacing:1px;color:#8b98a9;margin-bottom:4px\">Synthetic Boss · TIER 36</div><div style=\"font-size:15px;font-weight:800;color:#ffbf69;margin-bottom:4px\">12,345 damage</div><div style=\"margin-top:2px\">🏅 1 guild coins <span style=\"color:#8b98a9;font-size:10.5px\">· spend them in the Guild Shop</span></div><div style=\"font-size:10.5px;color:#6f7d90;margin-top:6px\">Boss at 12,345 / 12,345 HP · 2 assaults left today</div>"
+    },
+    {
+      "value": 2147483647,
+      "parentTitle": "DAMAGE DEALT",
+      "parentReward": "<div style=\"font-size:11px;letter-spacing:1px;color:#8b98a9;margin-bottom:4px\">Synthetic Boss · TIER 36</div><div style=\"font-size:15px;font-weight:800;color:#ffbf69;margin-bottom:4px\">2,147,483,647 damage</div><div style=\"margin-top:2px\">🏅 1 guild coins <span style=\"color:#8b98a9;font-size:10.5px\">· spend them in the Guild Shop</span></div><div style=\"font-size:10.5px;color:#6f7d90;margin-top:6px\">Boss at 2,147,483,647 / 2,147,483,647 HP · 2 assaults left today</div>",
+      "fixedTitle": "DAMAGE DEALT",
+      "fixedReward": "<div style=\"font-size:11px;letter-spacing:1px;color:#8b98a9;margin-bottom:4px\">Synthetic Boss · TIER 36</div><div style=\"font-size:15px;font-weight:800;color:#ffbf69;margin-bottom:4px\">2,147,483,647 damage</div><div style=\"margin-top:2px\">🏅 1 guild coins <span style=\"color:#8b98a9;font-size:10.5px\">· spend them in the Guild Shop</span></div><div style=\"font-size:10.5px;color:#6f7d90;margin-top:6px\">Boss at 2,147,483,647 / 2,147,483,647 HP · 2 assaults left today</div>"
+    },
+    {
+      "value": 2147483648,
+      "parentTitle": "NO DAMAGE",
+      "parentReward": "<div style=\"font-size:11px;letter-spacing:1px;color:#8b98a9;margin-bottom:4px\">Synthetic Boss · TIER 36</div><div style=\"font-size:15px;font-weight:800;color:#ffbf69;margin-bottom:4px\">-2,147,483,648 damage</div><div style=\"margin-top:2px\">🏅 1 guild coins <span style=\"color:#8b98a9;font-size:10.5px\">· spend them in the Guild Shop</span></div><div style=\"font-size:10.5px;color:#6f7d90;margin-top:6px\">Boss at -2,147,483,648 / -2,147,483,648 HP · 2 assaults left today</div>",
+      "fixedTitle": "DAMAGE DEALT",
+      "fixedReward": "<div style=\"font-size:11px;letter-spacing:1px;color:#8b98a9;margin-bottom:4px\">Synthetic Boss · TIER 36</div><div style=\"font-size:15px;font-weight:800;color:#ffbf69;margin-bottom:4px\">2,147,483,648 damage</div><div style=\"margin-top:2px\">🏅 1 guild coins <span style=\"color:#8b98a9;font-size:10.5px\">· spend them in the Guild Shop</span></div><div style=\"font-size:10.5px;color:#6f7d90;margin-top:6px\">Boss at 2,147,483,648 / 2,147,483,648 HP · 2 assaults left today</div>"
+    },
+    {
+      "value": 2261564243,
+      "parentTitle": "NO DAMAGE",
+      "parentReward": "<div style=\"font-size:11px;letter-spacing:1px;color:#8b98a9;margin-bottom:4px\">Synthetic Boss · TIER 36</div><div style=\"font-size:15px;font-weight:800;color:#ffbf69;margin-bottom:4px\">-2,033,403,053 damage</div><div style=\"margin-top:2px\">🏅 1 guild coins <span style=\"color:#8b98a9;font-size:10.5px\">· spend them in the Guild Shop</span></div><div style=\"font-size:10.5px;color:#6f7d90;margin-top:6px\">Boss at -2,033,403,053 / -2,033,403,053 HP · 2 assaults left today</div>",
+      "fixedTitle": "DAMAGE DEALT",
+      "fixedReward": "<div style=\"font-size:11px;letter-spacing:1px;color:#8b98a9;margin-bottom:4px\">Synthetic Boss · TIER 36</div><div style=\"font-size:15px;font-weight:800;color:#ffbf69;margin-bottom:4px\">2,261,564,243 damage</div><div style=\"margin-top:2px\">🏅 1 guild coins <span style=\"color:#8b98a9;font-size:10.5px\">· spend them in the Guild Shop</span></div><div style=\"font-size:10.5px;color:#6f7d90;margin-top:6px\">Boss at 2,261,564,243 / 2,261,564,243 HP · 2 assaults left today</div>"
+    },
+    {
+      "value": 4294967296,
+      "parentTitle": "NO DAMAGE",
+      "parentReward": "<div style=\"font-size:11px;letter-spacing:1px;color:#8b98a9;margin-bottom:4px\">Synthetic Boss · TIER 36</div><div style=\"font-size:15px;font-weight:800;color:#ffbf69;margin-bottom:4px\">0 damage</div><div style=\"margin-top:2px\">🏅 1 guild coins <span style=\"color:#8b98a9;font-size:10.5px\">· spend them in the Guild Shop</span></div><div style=\"font-size:10.5px;color:#6f7d90;margin-top:6px\">Boss at 0 / 0 HP · 2 assaults left today</div>",
+      "fixedTitle": "DAMAGE DEALT",
+      "fixedReward": "<div style=\"font-size:11px;letter-spacing:1px;color:#8b98a9;margin-bottom:4px\">Synthetic Boss · TIER 36</div><div style=\"font-size:15px;font-weight:800;color:#ffbf69;margin-bottom:4px\">4,294,967,296 damage</div><div style=\"margin-top:2px\">🏅 1 guild coins <span style=\"color:#8b98a9;font-size:10.5px\">· spend them in the Guild Shop</span></div><div style=\"font-size:10.5px;color:#6f7d90;margin-top:6px\">Boss at 4,294,967,296 / 4,294,967,296 HP · 2 assaults left today</div>"
+    },
+    {
+      "value": 9007199254740991,
+      "parentTitle": "NO DAMAGE",
+      "parentReward": "<div style=\"font-size:11px;letter-spacing:1px;color:#8b98a9;margin-bottom:4px\">Synthetic Boss · TIER 36</div><div style=\"font-size:15px;font-weight:800;color:#ffbf69;margin-bottom:4px\">-1 damage</div><div style=\"margin-top:2px\">🏅 1 guild coins <span style=\"color:#8b98a9;font-size:10.5px\">· spend them in the Guild Shop</span></div><div style=\"font-size:10.5px;color:#6f7d90;margin-top:6px\">Boss at -1 / -1 HP · 2 assaults left today</div>",
+      "fixedTitle": "DAMAGE DEALT",
+      "fixedReward": "<div style=\"font-size:11px;letter-spacing:1px;color:#8b98a9;margin-bottom:4px\">Synthetic Boss · TIER 36</div><div style=\"font-size:15px;font-weight:800;color:#ffbf69;margin-bottom:4px\">9,007,199,254,740,991 damage</div><div style=\"margin-top:2px\">🏅 1 guild coins <span style=\"color:#8b98a9;font-size:10.5px\">· spend them in the Guild Shop</span></div><div style=\"font-size:10.5px;color:#6f7d90;margin-top:6px\">Boss at 9,007,199,254,740,991 / 9,007,199,254,740,991 HP · 2 assaults left today</div>"
+    }
+  ],
+  "checks": [
+    "Seven confirmed damage/pool boundaries preserve numbers and positive-damage verdict",
+    "Stale result returns before ledger/render",
+    "Refused result remains not counted"
+  ],
+  "qualification": "Exact extracted raidRenderConfirmed with synthetic DOM and stubbed adoption/navigation only. Parent natural highdamage NO DAMAGE/negative HP display reproduced. Three guarded numeric display conversions; meter/bootstrap fixes retained. NOT browser/actualfight/rewardadoption/serverresult/fullQ6/balance/deploy approval."
+}

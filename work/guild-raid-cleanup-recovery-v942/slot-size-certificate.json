@@ -1,0 +1,17 @@
+{
+  "atET": "2026-10-03 01:18:02",
+  "status": "TWO_NEW_SLOT_ENVELOPE_MODEL_PASS_TWO_PRESERVED_ORIGINAL_FAIL_NOT_NATIVE",
+  "originalHash": "b08cc87917e853ae8dce6fb9dfc892ff80a3ae9cc6cd311e178b226c26547be2",
+  "fixedHash": "56ffbf95e1f5929216dd5e8d905ad4b1ef49706ae4a9e87eb072118ab327f16c",
+  "original": {
+    "status": 1,
+    "stdout": "✖ identity envelope exceeding recover bound rejects before any slot write (3.0268ms)\n✖ stage reserves terminal marker size for interrupted retirement recovery (1.7995ms)\nℹ tests 2\nℹ suites 0\nℹ pass 0\nℹ fail 2\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 75.4208\n\n✖ failing tests:\n\ntest at work\\guild-raid-cleanup-recovery-v942\\slot-size-edge.test.cjs:3:1\n✖ identity envelope exceeding recover bound rejects before any slot write (3.0268ms)\n  AssertionError [ERR_ASSERTION]: Missing expected exception.\n      at TestContext.<anonymous> (C:\\Users\\Home\\Documents\\Codex\\2026-09-26\\continue-my-emberweave-work-from-the\\work\\guild-raid-cleanup-recovery-v942\\slot-size-edge.test.cjs:10:4)\n      at async Test.run (node:internal/test_runner/test:1389:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: undefined,\n    expected: /Slot size/,\n    operator: 'throws',\n    diff: 'simple'\n  }\n\ntest at work\\guild-raid-cleanup-recovery-v942\\slot-size-edge.test.cjs:13:1\n✖ stage reserves terminal marker size for interrupted retirement recovery (1.7995ms)\n  AssertionError [ERR_ASSERTION]: Missing expected exception.\n      at TestContext.<anonymous> (C:\\Users\\Home\\Documents\\Codex\\2026-09-26\\continue-my-emberweave-work-from-the\\work\\guild-raid-cleanup-recovery-v942\\slot-size-edge.test.cjs:21:4)\n      at async Test.run (node:internal/test_runner/test:1389:7)\n      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: undefined,\n    expected: /Slot size/,\n    operator: 'throws',\n    diff: 'simple'\n  }\n",
+    "stderr": ""
+  },
+  "fixed": {
+    "status": 0,
+    "stdout": "✔ identity envelope exceeding recover bound rejects before any slot write (2.9242ms)\n✔ stage reserves terminal marker size for interrupted retirement recovery (2.0649ms)\nℹ tests 2\nℹ suites 0\nℹ pass 2\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 71.537\n",
+    "stderr": ""
+  },
+  "scope": "Stage now reserves complete identity envelope plus terminal confirmation marker inside recover bound. Zero slot write on oversize, pending entry retained. No eviction/retention or legacy-quiescence implementation; no deployment. Prior native HTML hash proof remains historical, not credit for new generated hash."
+}

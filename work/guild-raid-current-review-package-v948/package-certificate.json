@@ -1,0 +1,32 @@
+{
+  "atET": "2026-10-03 06:16:54",
+  "manifestSHA256": "f41f1acc641d7039c4cb308ee4c3629fe2edae51df62c0bf8104cd2d299ab8ec",
+  "result": {
+    "fileCount": 8,
+    "totalBytes": 4205585,
+    "inlineScriptsParsed": 3,
+    "serverParsed": true,
+    "installable": false,
+    "deployApproved": false,
+    "fullGameVerified": false
+  },
+  "controls": [
+    {
+      "name": "wrong-current-source",
+      "result": "EXPECTED_REFUSAL"
+    },
+    {
+      "name": "approval-contamination",
+      "result": "EXPECTED_REFUSAL"
+    },
+    {
+      "name": "fullgame-overclaim",
+      "result": "EXPECTED_REFUSAL"
+    },
+    {
+      "name": "installer-overclaim",
+      "result": "EXPECTED_REFUSAL"
+    }
+  ],
+  "scope": "Currentpackage bytes/parse plus refusal guards only. No gameplay suite repeated or new gameplay/native pass count. Not integratedinstaller/reviewready/balance/dualapproval/deployed."
+}

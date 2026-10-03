@@ -1,0 +1,30 @@
+{
+  "clientSHA256": "28ec2c6d66f33b9d730d3b1d224992e1a1205070affaf23f71be19637ff45283",
+  "moduleSHA256": "cafb44f504d9a5937ca1a2d647ad23e598ee0ee833a9ba1dee8ce93613041c7d",
+  "pageSHA256": "c49dd2b3ed870ba0d0fc5b898dc4c8d397b893608485275b6f49dae7e01b1d38",
+  "events": [
+    {
+      "kind": "request-success-held",
+      "at": "2026-10-03T10:02:03.627Z",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+      "detail": {
+        "success": true,
+        "complete": false,
+        "explicitAbort": false
+      }
+    },
+    {
+      "kind": "verified-after-close",
+      "at": "2026-10-03T10:02:21.576Z",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+      "detail": {
+        "heldObserved": true,
+        "prematureComplete": false,
+        "rowsAfterClose": 0,
+        "scope": "Actual tab closure while synthetic read queue keeps native transaction active; not renderer crash, full Guild flow, quota or real quiescence.",
+        "retryRows": 1,
+        "status": "PASS"
+      }
+    }
+  ]
+}

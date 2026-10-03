@@ -1,0 +1,11 @@
+{
+  "at": "2026-10-03T03:59:25.381Z",
+  "exit": 1,
+  "pass": 3,
+  "fail": 2,
+  "hashes": {
+    "composition-facade.cjs": "38d0e687a1a058e46f31478886dd8b74e8b09a28af768494bf9bef4b5f0f4435",
+    "hybrid-adapter.cjs": "48ec8b50c642e0b78a2510e1fd9962bca8f7b51b73b0ea3abaf75a8ee4025d16"
+  },
+  "scope": "Private cleanup dependency model only; confirmation validator injected true, no auth/native credit"
+}

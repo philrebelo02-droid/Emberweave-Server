@@ -1,0 +1,18 @@
+{
+  "atET": "2026-10-03 01:14:42",
+  "status": "NATIVE_GUILD_BLOCK_PRIVATE_HTTP_RECOVERY_VERIFIED_NOT_RELEASE_READY",
+  "htmlSHA256": "5636f71697dc6b75c59279b779fdaf76a837b4b2c878cf5232f551edc044f0e2",
+  "serverSHA256": "be7ff4dbc4a7e11b3b8dcd63b3e7baa012dd23ecfe1de25019e533f659195893",
+  "rawSHA256": "7210934a1673957af53f8521d972095d52dfb5adfcfb4bfe2bed55a75078847e",
+  "helperSHA256": "7d6fb8653bce6afde53449e6d12f24b0ef419ad73a3c473396b025091dd0b38f",
+  "screenshotSHA256": "bccfee0a2c0fbe9efa74ec6a67b95d01f1cab47302e00d91b0df9a04c6e5640d",
+  "proof": "Lost committed entry reply held without fight; native reload recovery reused exact entry request. Saved result before delay; lost committed resolve reply held; owned API restart/client reload recovered exact same packet. One server entry and one raid transaction, one reward render, zero pending directory rows, retained confirmed localStorage slot. Native IndexedDB/localStorage/WebLocks; exact generated Guild block.",
+  "rulerCorrection": "Initial res.destroy transport test caused Chrome transparent same-packet retry, one entry only; separately preserved auto-retry evidence. Main proof uses completed unreadable JSON response after actual server commit, preventing transparent retry.",
+  "cleanup": "Own helper stopped, original guarded snapshot restored, own browser tab closed. Native test-origin data preserved.",
+  "exclusions": [
+    "Synthetic account and minimal DOM wrappers, no real combat/full game page",
+    "Test-only isolated-origin quiescence proof, NOT production legacy compatibility",
+    "No physical phone, canonical bots, current-live rebase, whole balance or dual approval",
+    "Release held: mixed-client legacy quiescence/compatibility, no-attempt policy, quota/retention, independent package, archives/blueprints/rebase"
+  ]
+}

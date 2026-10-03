@@ -1,0 +1,25 @@
+'use strict';
+const fs=require('node:fs'),path=require('node:path'),cp=require('node:child_process'),vm=require('node:vm'),crypto=require('node:crypto'),a=require('node:assert/strict');
+if(fs.existsSync('C:/Users/Home/AppData/Local/Emberweave/shutdown-requested.json'))throw Error('Shutdown');
+const rev='bbbc3a662a4f106153abafafec691cc6d70149a0',repo='C:/Users/Home/Downloads/ew-audit',hash=x=>crypto.createHash('sha256').update(x).digest('hex');
+const source=cp.execFileSync('git',['-C',repo,'show',rev+':emberweave-heroes.html'],{encoding:'utf8',maxBuffer:12000000}),root=path.join(__dirname,'../guild-raid-cleanup-recovery-v942'),read=p=>fs.readFileSync(path.resolve(root,p),'utf8');
+const inputs={hybrid:'hybrid-adapter.cjs',directory:'../guild-raid-discovery-design-v942/native-directory.cjs',facade:'composition-facade.cjs',bootstrap:'bootstrap.cjs',presentation:'presentation.cjs',transport:'../guild-raid-response-binding-v942/transport.cjs',entry:'../guild-raid-response-binding-v942/validator.cjs',fresh:'fresh-entry-validator.cjs',settlement:'../guild-raid-settlement-binding-v942/validator.cjs'},hashes={},parts=[];
+for(const [name,file]of Object.entries(inputs)){const raw=read(file);a(!raw.includes('</script>'));hashes[name]=hash(raw);parts.push('M.'+name+'=(()=>{const module={exports:{}},require=n=>{if(n!==\'./hybrid-adapter.cjs\')throw Error(\'Unexpected dependency\');return M.hybrid};\n'+raw+'\nreturn module.exports})();');}
+const unique=needle=>{const i=source.indexOf(needle);a(i>=0,needle);a.equal(source.indexOf(needle,i+1),-1,needle);return i};
+const begin=unique('async function raidLaunch(){'),end=unique('/* The damage this fight has done to the raid boss:');a(end>begin);
+const rb=unique("if(CUR.mode==='graid' && CUR.attemptId){"),re=source.indexOf("if(CUR.mode==='well'){",rb);a(re>rb);
+const oldResult=source.slice(rb,re),renderStart=oldResult.indexOf('if(r&&r.ledger) adoptLedger(r.ledger);',oldResult.indexOf('if(resultStale(ep))')+40),renderEnd=oldResult.lastIndexOf('},800); return; }');a(renderStart>0&&renderEnd>renderStart,JSON.stringify({renderStart,renderEnd,tail:oldResult.slice(-100)}));
+const render='function raidRenderConfirmed(r,RB,ep){\nconst _dmg=0;\nif(resultStale(ep))return;\n'+oldResult.slice(renderStart,renderEnd)+'\n}\n';
+const bundle='const EW_RAID_V3_MODULES=(()=>{const M={};\n'+parts.join('\n')+'\nreturn M})();\n'+read('html-hooks.js')+'\n'+render;
+const result="if(CUR.mode==='graid' && CUR.attemptId){const att=CUR.attemptId,RB=CUR.raid||{};CUR.attemptId=null;const packet={attemptId:att,requestId:uid8(),inputLog:(INPUT_LOG||[]).slice(0,400),dmg:raidDamageDone()};raidSettlementQueue(packet,RB);return;}\n    ";
+const panel=unique('  const r=d.raid, pct=Math.round(r.hp/r.max*100);');
+const panelEnd=panel+'  const r=d.raid, pct=Math.round(r.hp/r.max*100);'.length;
+const panelText=source.slice(panel,panelEnd)+"\n  // Explicit recovery stays reachable even when storage/quiescence refuses discovery.\n  const recoveryButton=document.createElement('button');recoveryButton.className='btn';recoveryButton.textContent='Recover saved raid entry or result';recoveryButton.onclick=()=>raidRecoverSaved();\n";
+// Attach after existing panel rendering, using a Guild-only unique marker.
+const attach=unique("  /* v668 (Phil: \"please use its boss monster card for the picture\")");
+const edits=[{name:'raid-result',b:rb,e:re,text:result},{name:'raid-launch-modules',b:begin,e:end,text:bundle},{name:'raid-tab-recovery-button',b:panel,e:panelEnd,text:panelText},{name:'raid-tab-button-attach',b:attach,e:attach,text:"  el.prepend(recoveryButton);\n"}].sort((x,y)=>x.b-y.b);
+let out='',pos=0;for(const edit of edits){a(edit.b>=pos);out+=source.slice(pos,edit.b)+edit.text;pos=edit.e;}out+=source.slice(pos);
+for(const script of out.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi))if(script[1].trim())new vm.Script(script[1]);
+a(!out.includes('raidJournalRead('));for(const term of ['fxShaderPin','fxWarmKeys','fxFreeAll','svrBoot'])a.equal(out.split(term).length,source.split(term).length,term+' occurrences preserved');
+fs.writeFileSync(path.join(__dirname,'client-base-v948.html'),source);fs.writeFileSync(path.join(__dirname,'private-client-v948.html'),out);
+fs.writeFileSync(path.join(__dirname,'build-certificate.json'),JSON.stringify({atET:new Date().toLocaleString('sv-SE',{timeZone:'America/New_York'}),status:'NARROW_V948_CLIENT_BUILD_PARSE_ONLY_SERVER_REBASE_OPEN',sourceCommit:rev,sourceSHA256:hash(source),outputSHA256:hash(out),inputs:hashes,edits:edits.map(x=>({name:x.name,start:x.b,end:x.e,originalSHA256:hash(source.slice(x.b,x.e)),replacementSHA256:hash(x.text)})),outsideEditsPreserved:true,notVerified:'Actual Raidtab/native secondraid, server narrow rebase, legacy/refusal/quota/currentuserchanges integration/package/balance/dual approval remain OPEN. No deployment.'},null,2));console.log('Narrow current-v948 client build parses; only four declared Guild spans changed; render has no removed legacy symbol. Server rebase OPEN.');

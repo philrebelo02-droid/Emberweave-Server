@@ -1,0 +1,9 @@
+{
+  "atET": "2026-10-03 05:15:18",
+  "parentClientSHA256": "c4f330ca4ae0df11f56caa2fab3db6d6483adcaddb0a970c02953ae8516ff115",
+  "clientSHA256": "28ec2c6d66f33b9d730d3b1d224992e1a1205070affaf23f71be19637ff45283",
+  "inlineScriptsParsed": 3,
+  "spans": 1,
+  "status": "PRIVATE_SLOT_PREFLIGHT_GUARD_NOT_NATIVE_ACTIVATED_APPROVED_OR_SHIPPED",
+  "limits": "Current real quiescence provider absent. Preflight relies caller account Web Lock and captured current session. No marker eviction/migration or gameplay/balance change; native, source-pinned integration/full regression and docs remain OPEN."
+}

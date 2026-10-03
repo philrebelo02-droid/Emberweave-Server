@@ -1,0 +1,8 @@
+{
+  "atET": "2026-10-03 02:55:19",
+  "serverParentSHA256": "c44be6449a11d557522d1d6c5035c879214f762a7f5bb289ae0a313450caa75d",
+  "serverSHA256": "ba1de8145a4fa71c94fb6193835faad63bf7ef10627afe3cf3b1db9a51232c47",
+  "clientSHA256": "a7f98abc7978dfc691c377e9566bb0c059642f2b7cfed604a141c7de932ec062",
+  "status": "PRIVATE_ONE_GUARD_KNOWN_EXPIRED_IDENTITY_REFUSAL_NOT_RELEASE",
+  "edits": "Known current/retained exact request identity that did not qualify for live resume refuses before fresh debit, even without recoverOnly. No fresh-new-ID rules, daily caps, prices or rewards changed. Not durable pruned/settled unknown fence or terminal cleanup."
+}
