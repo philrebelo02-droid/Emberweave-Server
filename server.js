@@ -1319,6 +1319,16 @@ function snapshotHeroFromServer(u, key, save, sOpts){
 const DUNGEON_MAX_FLOOR=100;
 const VAULT_UNLOCK_LEVEL=10;
 const VAULT_HERO_XP_PER_FLOOR=30;
+/* Phil 3 Oct 2026: "If the player is below 15% of the recommended power and they passes, they should be flagged for Review by ember, their exact
+   report is sent to her" / "A player within 15% of the power may be able to do it ... When you start getting to 20% you should be more suspicious" /
+   "Either there is a hero that needs a nerf, they are an exceptional player, or they are cheating. Regardless needs review". A WIN with the five
+   fighters' card power (RULE 26) below 80% of the floor's recommended power files a review case; the reward still pays (fight rule).
+   The authored Vault recommendedPower is on the OLD campaign scale - measured 3 Oct (Open Projects/AUDIT 02OCT2026 - Vault Well Hut Trials/
+   VAULT POWER SCALE MEASUREMENT 03OCT2026): card/old = 3.14 median and real squads start winning at 0.75-1.26x of rec x 3.0908 - so it is put
+   on the card scale with the same factor the campaign uses (CAMP_POWER_SCALE). */
+const VAULT_POWER_SCALE=3.0908, VAULT_UNDERPOWER_RATIO=0.80;
+function vaultRecommendedCardPower(floor){ try{ return Math.round(((vaultFloorRecord(floor)||{}).recommendedPower||0)*VAULT_POWER_SCALE); }catch(e){ return 0; } }
+function vaultHeroPowerRow(u,k){ const led=ensureLedger(u), h=(led.hero&&led.hero[k])||{}; return { key:k, power:Math.round(cardPower(u,k,true)||0), xp:h.xp|0, stars:h.stars|0, pips:h.pips|0 }; }
 const VAULT_SWEEP_FREE=2, VAULT_SWEEP_PAID_COST=[200,400,600];   // v372 (Phil): 3rd, 4th and 5th sweep of the day cost 200 / 400 / 600 diamonds   // v370 (Phil): "heroes should get 30 exp per floor, sweeps also" — every hero on the line, per floor, never the player   // v364 (Phil): the Vault opens at player level 10; floor 1 is tuned to be hard for a level-10 line
 const DUNGEON_QUALITY_BANDS=[
   {min:1,max:10,q:'Grey'},{min:11,max:20,q:'Green'},{min:21,max:30,q:'Blue'},{min:31,max:40,q:'Blue +2'},
@@ -4964,7 +4974,7 @@ async function api(req,res,url){
       const snaps=ids.map(k=>snapshotHeroFromServer(me,k,save));
       if(snaps.some(s=>!s)) return send(res,400,{error:'Unknown hero in the team.'});
       const floor=prog.currentFloor;
-      const attempt={ id:uid(), floor, heroIds:ids, teamSnapshot:snaps, enemyWaves:buildDungeonWaves(floor), startedAt:Date.now() };
+      const attempt={ id:uid(), floor, heroIds:ids, teamSnapshot:snaps, power:{ fighters:ids.slice(0,5).map(k=>vaultHeroPowerRow(me,k)), backups:ids.slice(5).map(k=>vaultHeroPowerRow(me,k)) }, enemyWaves:buildDungeonWaves(floor), startedAt:Date.now() };
       prog.lastTeamHeroIds=ids; prog.activeAttempt=attempt; prog.version++; writeDB();
       return send(res,200,{ ok:true, attemptId:attempt.id, floor, bossRule:bossRuleForFloor(floor),
         waves:attempt.enemyWaves });   // fixed monster lineup for this floor — the fight happens in the client
@@ -5001,6 +5011,12 @@ async function api(req,res,url){
             'battle timing');
         const reward=makeFirstClearDungeonReward(a.floor);   // rolls with server RNG; persisted below + in the idempotency record
         grantDungeonReward(me, reward);
+        { const rec=vaultRecommendedCardPower(a.floor), pw=a.power, squad=pw&&Array.isArray(pw.fighters)?pw.fighters.reduce((t,h)=>t+(h.power|0),0):null;
+          if(rec>0&&squad!=null&&squad<VAULT_UNDERPOWER_RATIO*rec){ const pct=Math.round(100*squad/rec);
+            const report={ mode:'vault', floor:a.floor, recommendedPower:rec, squadPower:squad, percentOfRecommended:pct, threshold:Math.round(VAULT_UNDERPOWER_RATIO*100),
+              fighters:pw.fighters, backups:pw.backups||[], battleMs:vaultBattleMs, attemptId:a.id, startedAt:a.startedAt, reward:{dust:reward.dust|0, fragments:(reward.fragments||[]).length, gearFragments:(reward.gearFragments||[]).length} };
+            feedbackCheatSignal(me,'vault-underpower:'+a.id,'Vault floor '+a.floor+' won at '+pct+'% of the recommended power ('+squad+' of '+rec+'). Hero needing a nerf, exceptional play, or cheating - needs review.','Vault power review',0,{report});
+            devReport(me,'vault-underpower',0,'floor '+a.floor+' at '+pct+'% of recommended ('+squad+'/'+rec+')'); } }
         { const led=ensureLedger(me); reward.heroXp=VAULT_HERO_XP_PER_FLOOR;   // v370: 30 hero XP per floor to everyone who fought (fighters + backups)
           for(const k of a.heroIds){ const h=led.hero[k]||(led.hero[k]={xp:0,stars:SIM.HERO_BASE[k]?SIM.HERO_BASE[k].stars:1,pips:0}); h.xp=Math.min(99000000,h.xp+reward.heroXp); }
           ledTx(me,'vault:clear:'+a.floor,{heroXp:reward.heroXp}); }
