@@ -147,9 +147,10 @@ function portalsOf(R) { if (R.done || R.pos.col !== COLS - 1) return null; retur
 async function handle(p, method, ctx) {
   if (p.indexOf('/api/well/') !== 0) return null;
   if (!TABLE) return { status: 503, body: { ok: false, error: 'The Starless Well is unavailable.' } };
+  const wellBefore = JSON.stringify(ctx.led.well2 === undefined ? null : ctx.led.well2);   // 3 Oct audit (Well F11): a read saves only when it changed the run
   const W = well(ctx.led), R = W.run, lvl = ctx.playerLevel(), dev = ctx.isDev(ctx.me);
   const ok = () => ({ status: 200, body: view(ctx, W) }), no = (e, s) => ({ status: s || 400, body: { ok: false, error: e } });
-  if (p === '/api/well/state' && method === 'GET') { ctx.writeDB(); return ok(); }
+  if (p === '/api/well/state' && method === 'GET') { if (JSON.stringify(ctx.led.well2 === undefined ? null : ctx.led.well2) !== wellBefore) ctx.writeDB(); return ok(); }
   if (method !== 'POST') return no('well', 404);
   if (!dev && lvl < OPEN.normal) return no('The Starless Well opens at account level ' + OPEN.normal + ' (you are ' + lvl + ').');
   const b = await ctx.body(); const reqId = String(b.requestId || '').slice(0, 48); if (!reqId) return no('requestId required');
