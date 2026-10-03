@@ -1,9 +1,10 @@
 """Read-only source decode: measurements, not performance approval or a cut."""
-import hashlib, json, subprocess
+import hashlib, json, subprocess, sys
 from pathlib import Path
 import numpy as np
 base=Path('C:/Users/Home/OneDrive/Desktop/Emberweave Archive/Game Art/Heroes/Rhukk/clips/HAILUO MEN 03OCT2026')
 names=['Rhukk - RESTART walk v4 ChatGPT prompt (Hailuo card 562896470202691593).mp4','Rhukk - idle - PHIL APPROVED 03OCT2026 (Hailuo card 562893140348960772).mp4']
+if len(sys.argv)>1:names[0]=sys.argv[1]
 rows=[]
 for name in names:
  p=base/name
@@ -20,6 +21,6 @@ for name in names:
   areas.append(int(solid.sum()));masks.append(solid)
  first,last=masks[0],masks[-1];cs=np.array(corners)
  rows.append(dict(file=str(p),sha256=hashlib.sha256(p.read_bytes()).hexdigest(),metadata=meta,decodedFrames=len(frames),nonKey3pxBorderFrames=bad,cornerRGBMin=cs.min(0).tolist(),cornerRGBMax=cs.max(0).tolist(),silhouetteAreaMin=min(areas),silhouetteAreaMax=max(areas),endIoU=float((first&last).sum()/(first|last).sum()),scope='Border/key/identity/endpoint measurements only. No scale defect inferred from moving limbs; idle is an approved technical reference, not a walk performance control. No full-motion or game timing/anchor approval.'))
-out=Path(__file__).with_suffix('.evidence.json')
+out=Path(sys.argv[2]) if len(sys.argv)>2 else Path(__file__).with_suffix('.evidence.json')
 out.write_text(json.dumps(rows,indent=2),encoding='utf-8')
 print(json.dumps(rows,indent=2))
