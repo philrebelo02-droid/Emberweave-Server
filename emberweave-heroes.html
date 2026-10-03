@@ -18594,14 +18594,14 @@ Object.assign(BATTLE_ANIM, {
     idle:{u:'/assets/anim/librarian_inkhorror/librarian_inkhorror_walk.webp?v=1',n:12,fw:300,fh:204,cols:6,rows:2,figH:193,feet:196,cx:154,fps:10,flip:true,top:3}   /* v359: same fix */
   },
   pyroclast:{
-    idle:{u:'/assets/anim/pyroclast/pyroclast_idle.webp?v=3',n:48,fw:320,fh:455,cols:6,rows:8,figH:424,feet:448.0,cx:148.5,fps:24,flip:true,top:25,pingpong:true},
-    walk:{u:'/assets/anim/pyroclast/pyroclast_walk.webp?v=3',n:48,fw:330,fh:459,cols:6,rows:8,figH:431,feet:452.0,cx:171.5,fps:24,flip:true,top:22,ax:[0,0,0,0,0.1,0.2,0.3,0.5,0.8,1.1,1.3,1.5,1.7,1.8,1.8,1.8,1.9,1.9,1.9,1.9,1.9,1.9,1.9,1.8,1.5,1.1,0.6,0,-0.6,-1,-1.4,-1.8,-2.5,-3.3,-4,-4.6,-5.1,-5.6,-6,-6.4,-6.7,-6.9,-7,-7.1,-7.2,-7.3,-7.7,-7.7]},
-    attack:{u:'/assets/anim/pyroclast/pyroclast_attack.webp?v=3',n:48,fw:422,fh:485,cols:6,rows:8,figH:429,feet:478.0,cx:160.5,fps:24,flip:true,top:50,ax:[0.0,-0.2,-0.5,-0.7,-1.0,-1.2,-1.2,-1.1,-1.0,-0.8,-0.5,-0.2,0.2,0.7,1.1,1.3,1.8,2.2,2.2,2.8,2.9,2.9,3.9,4.8,6.6,10.0,14.0,17.6,17.0,13.8,10.9,9.8,9.7,9.9,10.0,10.5,11.0,10.6,11.1,10.1,9.6,8.6,7.3,5.9,4.3,3.3,2.6,1.8]},
-    hit:{u:'/assets/anim/pyroclast/pyroclast_hit.webp?v=3',n:48,fw:310,fh:500,cols:6,rows:8,figH:367,feet:493.0,cx:154.5,fps:24,flip:true,top:127,ax:[0.0,-1.2,-2.7,-2.3,-2.3,-2.3,-2.3,-2.3,22.0,0.2,0.6,0.8,0.9,2.7,2.9,2.9,3.0,2.9,2.0,-6.3,-0.4,-2.9,-2.3,-1.1,0.3,2.2,6.7,11.3,11.4,11.4,11.3,11.6,2.4,2.4,3.5,2.8,3.5,3.5,3.5,3.5,3.5,1.6,1.6,2.0,2.9,1.1,0.2,0.1]},
-    green:{u:'/assets/anim/pyroclast/pyroclast_green.webp?v=3',n:48,fw:434,fh:500,cols:6,rows:8,figH:368,feet:486.0,cx:280.0,fps:24,flip:true,top:119,ax:[0.0,-0.0,-0.1,0.0,0.1,0.3,0.5,0.8,1.0,1.2,1.5,1.7,1.9,2.0,2.1,2.2,2.2,2.2,2.2,2.3,2.3,2.2,-1.4,-5.9,-13.1,-16.4,-19.0,-19.0,-19.1,-19.1,-14.8,-16.2,-16.2,-16.9,-17.3,-17.1,-16.0,-18.1,-13.4,-13.4,-3.1,-1.0,-0.3,-0.9,-1.1,-1.0,-1.0,-0.5]},
-    blue:{u:'/assets/anim/pyroclast/pyroclast_blue.webp?v=3',n:48,fw:420,fh:496,cols:6,rows:8,figH:429,feet:488.0,cx:199.5,fps:24,flip:true,top:60},
-    ult:{u:'/assets/anim/pyroclast/pyroclast_ult.webp?v=3',n:48,fw:381,fh:500,cols:6,rows:8,figH:370,feet:493.0,cx:179.0,fps:24,flip:true,top:124},
-    passive:{u:'/assets/anim/pyroclast/pyroclast_passive.webp?v=3',n:48,fw:322,fh:500,cols:6,rows:8,figH:359,feet:494.0,cx:152.0,fps:24,flip:true,top:136}
+    idle:{u:'/assets/anim/pyroclast/pyroclast_idle.webp?v=4',n:48,fw:429,fh:580,cols:6,rows:8,figH:443,feet:519,cx:206,fps:24,flip:true,top:76},   /* v948 (Phil 2 Oct: "pyroclast is set, slice her" / "make sure shes scaled and anchored"): Hailuo women set - 8 states cut native with cs10 (PAD 60, 48@24, trim 0/0, lossless), key 249,1,245, figH 443 on every state so she draws the same size in every action; feet/cx from the cut (boot line within 2 px); ax omitted - boots planted, net drift <= 4.5 px; walk = 48 + cells 1,0 (Phil 9 Sep stitch rule) */
+    walk:{u:'/assets/anim/pyroclast/pyroclast_walk.webp?v=4',n:50,fw:407,fh:569,cols:6,rows:9,figH:443,feet:505,cx:198,fps:24,flip:true,top:62},
+    attack:{u:'/assets/anim/pyroclast/pyroclast_attack.webp?v=4',n:48,fw:546,fh:566,cols:6,rows:8,figH:443,feet:505,cx:296,fps:24,flip:true,top:62},
+    hit:{u:'/assets/anim/pyroclast/pyroclast_hit.webp?v=4',n:48,fw:466,fh:584,cols:6,rows:8,figH:443,feet:523,cx:208,fps:24,flip:true,top:80},
+    green:{u:'/assets/anim/pyroclast/pyroclast_green.webp?v=4',n:48,fw:414,fh:726,cols:6,rows:8,figH:443,feet:666,cx:198,fps:24,flip:true,top:223},
+    blue:{u:'/assets/anim/pyroclast/pyroclast_blue.webp?v=4',n:48,fw:476,fh:592,cols:6,rows:8,figH:444,feet:517,cx:222,fps:24,flip:true,top:73},
+    ult:{u:'/assets/anim/pyroclast/pyroclast_ult.webp?v=4',n:48,fw:458,fh:687,cols:6,rows:8,figH:443,feet:627,cx:206,fps:24,flip:true,top:184},
+    passive:{u:'/assets/anim/pyroclast/pyroclast_passive.webp?v=4',n:48,fw:427,fh:577,cols:6,rows:8,figH:443,feet:517,cx:218,fps:24,flip:true,top:74}
   },
   stormwarden:{
     idle:{u:'/assets/anim/stormwarden/stormwarden_idle.webp?v=3',n:48,fw:292,fh:400,cols:6,rows:8,figH:365,feet:394.0,cx:142.0,fps:24,flip:true,top:30,pingpong:true},
@@ -25526,7 +25526,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1790979479708';
+const BUILD_ID = '1790999446503';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
