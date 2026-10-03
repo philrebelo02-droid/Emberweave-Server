@@ -1,0 +1,62 @@
+{
+  "atET": "2026-10-03 09:45:02",
+  "helperSHA256": "9a2bb06e61e83006b5eb23778ee14e8853df8aa5b36ec2789e5e84dfae46964b",
+  "sourceSHA256": "2fa1a2365607e86d2cb820f67db5a5d9fcada91e41845693c9f0132f3bf9e9d1",
+  "rows": [
+    {
+      "label": "null row",
+      "inputLog": [
+        null
+      ],
+      "status": 200,
+      "accepted": true,
+      "incident": {
+        "v": 1,
+        "kind": "raid-replay-error",
+        "playerTruth": true,
+        "accountId": "fixture-user",
+        "guildId": "control-guild",
+        "attemptId": "b7491c4d42a81964",
+        "bossKey": "wintercrag",
+        "tier": 1,
+        "playerDamage": 12345,
+        "replayDamage": null,
+        "engine": "1790961518061",
+        "seed": 2485560811
+      },
+      "flags": 0
+    },
+    {
+      "label": "native six-field auto tuple",
+      "inputLog": [
+        [
+          0,
+          "auto",
+          -1,
+          1,
+          null,
+          null
+        ]
+      ],
+      "status": 200,
+      "accepted": true,
+      "incident": {
+        "v": 1,
+        "kind": "raid-damage-mismatch",
+        "playerTruth": true,
+        "accountId": "fixture-user",
+        "guildId": "control-guild",
+        "attemptId": "39c8a16e9d90a6d9",
+        "bossKey": "wintercrag",
+        "tier": 1,
+        "playerDamage": 12345,
+        "replayDamage": 6,
+        "engine": "1790961518061",
+        "seed": 2285674921
+      },
+      "flags": 1
+    }
+  ],
+  "status": "OPEN nested transcript validation: malformed null row reaches replay, becomes engine error, and settlement accepts player12345 with zero mismatch flags. Native six-field auto row is compatibility observation. No source fix or new policy chosen.",
+  "limits": "Synthetic private HTTP and real fixture replay, not witnessed fight. Player-truth/engine-error exclusion not silently changed. Strict tuple/time/legacy compatibility requires explicit qualification; no fullQ6/balance/deployment."
+}

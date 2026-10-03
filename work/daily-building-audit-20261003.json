@@ -1,0 +1,31 @@
+{
+  "dateET":"2026-10-03",
+  "updatedAtET":"2026-10-03 09:22",
+  "qualification":"Coverage initialization from saved checkpoints, not a new full skim. Reported Claude work is not independent verification. No zero-bug or complete-balance guarantee.",
+  "balanceCriteria":"Document intended rules, reward/cost and contribution policy; test representative progression and extremes, numeric boundaries, repeat/restart/abuse paths and cross-feature interactions. Agree exact candidate evidence jointly before deployment. Unresolved intended rules stay open.",
+  "coverage":{
+    "Market":"NOT_YET_COVERED_TODAY",
+    "Shady Market":"NOT_YET_COVERED_TODAY; atomic preparation DESIGN ONLY",
+    "Wishing Pool":"NOT_YET_COVERED_TODAY",
+    "Forge":"NOT_YET_COVERED_TODAY",
+    "Temple":"PUSH_PRESERVATION_VERIFIED; daily mechanics/regression review pending",
+    "Academy":"NOT_YET_COVERED_TODAY",
+    "Arena":"NOT_YET_COVERED_TODAY",
+    "Campaign":"NOT_YET_COVERED_TODAY",
+    "Vault":"CLAUDE_OWNER; independent evidence review pending",
+    "Starless Well":"CLAUDE_OWNER; independent evidence review pending",
+    "Guild Hall":"SCOPED_PRIVATE_TESTS_SAVED; full fight/integration/balance and Q11/Q10 open",
+    "Watch Tower":"NOT_YET_COVERED_TODAY; remake rules not supplied",
+    "Witches Hut":"CLAUDE_OWNER; intended brew-policy discrepancy open",
+    "Island Trials":"CLAUDE_OWNER; independent evidence review pending",
+    "City Wall":"NOT_YET_COVERED_TODAY",
+    "Bulletin Board":"NOT_YET_COVERED_TODAY",
+    "World Tree":"DISABLED; no enable authority",
+    "Other buildings in canonical index":"INVENTORY_RECONCILIATION_PENDING; named list not exhaustive",
+    "Resources/terrain/teleport/march":"NOT_YET_COVERED_TODAY",
+    "Fractional HP launch/bounded bot/portrait":"OPEN_FOLLOWUPS; no new completion claim",
+    "Rewards/authentication/persistence/idempotency":"Guild scoped synthetic tests only; cross-feature coverage pending",
+    "Physical phone/canonical bots":"UNVERIFIED; no Brain runs authorized"
+  },
+  "evidence":"Newest checkpoint and certificates in work/guild-raid-boss-ruling-v948; preserved branch0f92fe8f; daily ledger distinguishes actual coverage from inventory."
+}
