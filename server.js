@@ -1161,6 +1161,16 @@ function acadIncome(A,until){
   const e=ACADEMY_ECON.earned(lv,A.incAt,until); if(!(e.units>0)) return false;
   for(const r of ACADEMY_ECON.RESOURCES) A.res[r]=(A.res[r]|0)+e.units;
   A.incAt+=e.usedMs; return true; }
+/* 3 Oct 2026 release review (ChatGPT): a READ that pays Academy income (or settles the Hut) commits like a purchase - the work is done on a
+   copy, saved with durableUserCommit, and only then adopted and answered; a refused save answers 503 and the live account is untouched. */
+function durableReadCommit(u,tag,work){
+  const draft=JSON.parse(JSON.stringify(u)), view=work(draft);
+  if(JSON.stringify(draft)===JSON.stringify(u)) return {ok:true,view};   // nothing changed: nothing to save
+  const out=durableUserCommit(u,draft,DB.idem,tag);
+  if(!out||!out.ok) return {ok:false,storageFailed:true,error:'That could not be saved. Please try again.'};
+  Object.assign(u,draft); DB.users[u.id]=u;
+  return {ok:true,view};
+}
 function acadCollect(A){ let changed=false; const now=Date.now();
   if(!(A.incAt>0)){ A.incAt=now; changed=true; }   // income starts the first time the Academy is touched - never back-paid
   const ad=A.learn&&A.learn.academy; if(ad&&now>=ad) changed=acadIncome(A,ad)||changed;   // the old level earns up to the moment it finished
@@ -3071,6 +3081,7 @@ const DURABLE_USER_POLICIES=Object.freeze({
   'world-location':{related:false,fields:null},'world-move':{related:false,fields:null},
   'world-mine':{related:false,fields:null},'world-city-recall':{related:false,fields:null},
   'world-war':{related:true,fields:null},
+  'academy-read':{related:false,fields:null},'witch-read':{related:false,fields:null},   // 3 Oct release review: reads that pay Academy income
   'world-city-settlement':{related:true,fields:['watch','feedback','reports','meta']}
 });
 function durableCommit(user,key,fn,opts={}){
@@ -5295,9 +5306,8 @@ async function api(req,res,url){
   if(p==='/api/witch/state' && req.method==='GET'){
     if(!me) return send(res,401,{error:'auth'});
     if(rateLimited(req,'witchstate',60,60000)) return send(res,429,{error:'Slow down — too many requests.'});   /* 3 Oct audit (Hut #12): each read recomputes every hero's power; the panel reads once per open */
-    const acadBefore=JSON.stringify(ensureAcad(me)), view=witchView(me,Date.now());
-    if(JSON.stringify(ensureAcad(me))!==acadBefore) writeDB();   // the Hut view collects Academy income: save it (3 Oct release review)
-    return send(res,200,view);
+    const r=durableReadCommit(me,'witch-read',d=>witchView(d,Date.now()));   // the Hut view collects Academy income: committed before answering (3 Oct release review)
+    return r.ok?send(res,200,r.view):send(res,503,{ok:false,storageFailed:true,error:r.error});
   }
   if(['/api/witch/heal','/api/witch/heal-all','/api/witch/buy-brew','/api/witch/upgrade'].includes(p) && req.method==='POST'){
     if(!me) return send(res,401,{error:'auth'});
@@ -6627,9 +6637,11 @@ async function api(req,res,url){
   if(p==='/api/academy' || p==='/api/academy/research' || p==='/api/academy/collect' || p==='/api/world/mine' || p==='/api/pvp/attack'){
     if(!me) return send(res,401,{error:'auth'});
     const led=p==='/api/pvp/attack'?null:ensureLedger(me); const A=p==='/api/pvp/attack'?null:ensureAcad(me);
-    const acadChanged=A?acadCollect(A):false;   // finished research and hourly income apply on every touch
-    if(p==='/api/academy'){ if(acadChanged) writeDB();   /* 3 Oct release review (ChatGPT): a read that paid income saves it, like the Well read (F11) */
-      return send(res,200,{ lv:A.lv, learn:A.learn, res:A.res, max:TECH_MAX_SRV, academyMax:ACADEMY_ECON.MAX_LEVEL, incomePerHour:ACADEMY_ECON.ratePerHour(A.lv.academy|0) }); }
+    if(p==='/api/academy'){   // a read that pays income commits it durably before answering (3 Oct release review)
+      const r=durableReadCommit(me,'academy-read',d=>{ const DA=ensureAcad(d); acadCollect(DA);
+        return { lv:DA.lv, learn:DA.learn, res:DA.res, max:TECH_MAX_SRV, academyMax:ACADEMY_ECON.MAX_LEVEL, incomePerHour:ACADEMY_ECON.ratePerHour(DA.lv.academy|0) }; });
+      return r.ok?send(res,200,r.view):send(res,503,{ok:false,storageFailed:true,error:r.error}); }
+    if(A)acadCollect(A);   // finished research and hourly income apply on every touch (the POST routes save through idem)
     if(req.method!=='POST') return send(res,404,{error:'academy'});
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
     if(p==='/api/academy/research'){ const out=idem(me.id+':acad:'+reqId,()=>{
