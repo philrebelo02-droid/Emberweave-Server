@@ -49,5 +49,13 @@ const claim=(att,rid)=>call('/api/emberdraft/result',{requestId:rid,attemptId:at
     const cD=await claim(D,'claimD'); ok(cD.data.ok===false,'a non-latest unclaimed match older than 24 h is no longer offered');
     const cE=await claim(E,'claimE'); ok(cE.data.ok===true,'the match that was latest before F (25 h old) is kept as before'); }
   else ok(false,'D/E starts available ('+D+','+E+')');
+
+  // legacy one-slot form (2117b00f kept one unclaimed match in E.prevAtt): it must still be found after the upgrade
+  await editDB(u=>{ u.led.edraft.used=0; });
+  const P=(await call('/api/emberdraft/start',{requestId:'edP'})).data.attemptId, Q=(await call('/api/emberdraft/start',{requestId:'edQ'})).data.attemptId;
+  ok(P&&Q,'two more starts for the legacy-form check');
+  await editDB(u=>{ const E=u.led.edraft; const i=(E.open||[]).findIndex(x=>x.id===P); if(i>=0){ E.prevAtt=E.open[i]; E.open.splice(i,1); } });
+  const rP=await call('/api/emberdraft/round',{attemptId:P,cps:[{r:1,hp:100,alive:8}]}); ok(rP.status===200&&rP.data.ok,'a match in the legacy prevAtt slot still accepts rounds after a restart ('+rP.status+')');
+  const cP=await claim(P,'claimP'); ok(cP.data.ok===true,'and can still be claimed once');
   console.log('test_ed_prev_attempt.js: '+pass+' checks passed (server '+srvFile+' sha256 '+sha.slice(0,16)+', pairs '+pairsFile+')');
 } catch(e){ console.error('FAIL',e&&e.message||e); process.exitCode=1; } finally { fail(false); await stop(); } })();

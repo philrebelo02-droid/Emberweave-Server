@@ -12496,7 +12496,7 @@ function endBattle(won){
          answer, which was not a replay of this fight at all but a re-simulation with a skill band
          standing in for manual play — and when that estimate disagreed, the screen said one thing
          and the result screen said the other. Campaign has worked this way since v270. */
-      if(att){ const _va=ACC.id, _vb={attemptId:att, won:!!won, requestId:uid8()}; vaultPendingSave(_vb); r=await api('/api/dungeon/resolve-battle','POST',_vb); if(ACC.id!==_va) r={error:'offline'}; else vaultPendingSettle(_va,r,_vb.requestId); if(resultStale(ep)) return; }   // v328: stale — CUR/VAULT now belong to a newer fight
+      if(att){ const _va=ACC.id, _vt=ACC.token, _vb={attemptId:att, won:!!won, requestId:uid8()}; vaultPendingSave(_vb); r=await api('/api/dungeon/resolve-battle','POST',_vb); if(ACC.id!==_va) r={error:'offline'}; else { vaultPendingSettle(_va,r,_vb.requestId); if(ACC.token!==_vt&&r&&typeof r==='object') r=Object.assign({},r,{ledger:undefined}); } if(resultStale(ep)) return; }   // v328: stale — CUR/VAULT now belong to a newer fight
       CUR.attemptId=null; VAULT.st=null; VAULT.result=null;
       setResultVerdict(won, null);   // AUDIT #20: ...and the star row / squad panel must follow it too
       document.getElementById('resultTitle').textContent=won?'🏛️ FLOOR '+CUR.floor+' CLEARED':'THE VAULT HOLDS';
@@ -12599,7 +12599,7 @@ function endBattle(won){
   if(CUR.mode==='well'){ const att=CUR.attemptId, Wl=CUR.well||{}; CUR.attemptId=null;   /* v825 Starless Well */
     const _log=(INPUT_LOG||[]).slice(0,400), _dg=(window._p2lastDigest||null), _wn=(window._p2lastWon===true), _st=(window._p2lastStars|0);
     resultLater(async(ep)=>{ let r=null;
-      if(att&&ACC.token){ const _wa=ACC.id, _wb={attemptId:att, requestId:uid8(), inputLog:_log, digest:_dg, won:_wn, stars:_st}; wellPendingSave(_wb); try{ r=await api('/api/well/resolve','POST',_wb); }catch(e){ r=null; } if(ACC.id!==_wa) r={error:'offline'}; else wellPendingSettle(_wa,r,_wb.requestId); }
+      if(att&&ACC.token){ const _wa=ACC.id, _wt=ACC.token, _wb={attemptId:att, requestId:uid8(), inputLog:_log, digest:_dg, won:_wn, stars:_st}; wellPendingSave(_wb); try{ r=await api('/api/well/resolve','POST',_wb); }catch(e){ r=null; } if(ACC.id!==_wa) r={error:'offline'}; else { wellPendingSettle(_wa,r,_wb.requestId); if(ACC.token!==_wt&&r&&typeof r==='object') r=Object.assign({},r,{ledger:undefined}); } }
       if(resultStale(ep)){ if(r&&r.ledger) adoptLedger(r.ledger); return; }
       if(r&&r.ledger) adoptLedger(r.ledger); if(r&&r.ok) WELL.state=r;
       const sWon=!!(r&&r.ok&&r.won), _unv=!!(!r||!r.ok), rw=(r&&r.reward)||null;
@@ -14143,11 +14143,11 @@ function vaultPendingSave(body){ const acct=ACC&&ACC.id; if(!acct) return false;
 function vaultPendingSettle(acct,r,reqId){ if(!acct||!pendingDefinite(r)) return;   /* clears only THIS request - a newer saved result stays */
   const m=PENDING_MEM['vault:'+acct]; if(m&&m.requestId===reqId) PENDING_MEM['vault:'+acct]=null;
   try{ const k=vaultPendingKey(acct), cur=JSON.parse(localStorage.getItem(k)||'null'); if(cur&&cur.requestId===reqId) localStorage.removeItem(k); }catch(e){} }
-async function vaultResendPending(){ const acct=ACC&&ACC.id; if(!ACC.token||!acct) return; let job=null; try{ job=JSON.parse(localStorage.getItem(vaultPendingKey(acct))||'null'); }catch(e){}
+async function vaultResendPending(){ const acct=ACC&&ACC.id, tok=ACC&&ACC.token; if(!tok||!acct) return; let job=null; try{ job=JSON.parse(localStorage.getItem(vaultPendingKey(acct))||'null'); }catch(e){}
   if(!job){ const m=PENDING_MEM['vault:'+acct]; if(m&&m.acct===acct) job=m; }
   if(!job||job.acct!==acct||!job.attemptId||!job.requestId) return; const body=Object.assign({},job); delete body.acct;
   const r=await api('/api/dungeon/resolve-battle','POST',body); if(!ACC||ACC.id!==acct) return;   /* a reply for an account that is no longer signed in touches nothing */
-  vaultPendingSettle(acct,r,body.requestId); if(r&&r.ledger) adoptLedger(r.ledger); }
+  vaultPendingSettle(acct,r,body.requestId); if(r&&r.ledger&&ACC.token===tok) adoptLedger(r.ledger); }   /* a new sign-in of the same account does not take an older reply's ledger */
 function vaultPendingHeld(){ const acct=ACC&&ACC.id; if(!acct) return false; if(PENDING_MEM['vault:'+acct]) return true;   /* an unsent result blocks a new fight: the server keeps one open attempt */
   try{ return !!localStorage.getItem(vaultPendingKey(acct)); }catch(e){ return false; } }
 async function vaultStatus(){ await vaultResendPending(); const r=await api('/api/dungeon/status');
@@ -23339,11 +23339,11 @@ function wellPendingSave(body){ const acct=ACC&&ACC.id; if(!acct) return false; 
 function wellPendingSettle(acct,r,reqId){ if(!acct||!pendingDefinite(r)) return;   /* clears only THIS request - a newer saved result stays */
   const m=PENDING_MEM['well:'+acct]; if(m&&m.requestId===reqId) PENDING_MEM['well:'+acct]=null;
   try{ const k=wellPendingKey(acct), cur=JSON.parse(localStorage.getItem(k)||'null'); if(cur&&cur.requestId===reqId) localStorage.removeItem(k); }catch(e){} }
-async function wellResendPending(){ const acct=ACC&&ACC.id; if(!ACC.token||!acct) return; let job=null; try{ job=JSON.parse(localStorage.getItem(wellPendingKey(acct))||'null'); }catch(e){}
+async function wellResendPending(){ const acct=ACC&&ACC.id, tok=ACC&&ACC.token; if(!tok||!acct) return; let job=null; try{ job=JSON.parse(localStorage.getItem(wellPendingKey(acct))||'null'); }catch(e){}
   if(!job){ const m=PENDING_MEM['well:'+acct]; if(m&&m.acct===acct) job=m; }
   if(!job||job.acct!==acct||!job.attemptId||!job.requestId) return; const body=Object.assign({},job); delete body.acct;
   const r=await api('/api/well/resolve','POST',body); if(!ACC||ACC.id!==acct) return;   /* a reply for an account that is no longer signed in touches nothing */
-  wellPendingSettle(acct,r,body.requestId); if(r&&r.ledger) adoptLedger(r.ledger); }
+  wellPendingSettle(acct,r,body.requestId); if(r&&r.ledger&&ACC.token===tok) adoptLedger(r.ledger); }   /* a new sign-in of the same account does not take an older reply's ledger */
 function wellPendingHeld(){ const acct=ACC&&ACC.id; if(!acct) return false; if(PENDING_MEM['well:'+acct]) return true;   /* an unsent result blocks a new fight: the server keeps one open attempt */
   try{ return !!localStorage.getItem(wellPendingKey(acct)); }catch(e){ return false; } }
 async function wellRefresh(){ if(!ACC.token) return null; await wellResendPending(); const r=await api('/api/well/state','GET'); if(r&&r.ok){ WELL.state=r; if(r.ledger) adoptLedger(r.ledger); } return (r&&r.ok)?r:null; }
@@ -26389,8 +26389,8 @@ function openEmberdraft(){
   else attEl.textContent='Practice match — sign in to earn stamina';
   buy.onclick=()=>gameConfirm(`Buy <b>${buy.dataset.pack||3} more Emberdraft attempts</b> for <b style="color:#c9b6ff">💎${buy.dataset.cost||''}</b>?`, ()=>{ buy.disabled=true;   /* v646: one tap spent diamonds */
     /* 3 Oct audit: one requestId per purchase until a definite answer - a lost reply (offline) or a refused save (storageFailed) re-sends the SAME id, even after the overlay is reopened */
-    if(ED_BUY_RID.acct!==ACC.id){ ED_BUY_RID.id=null; ED_BUY_RID.acct=ACC.id; } const rid=ED_BUY_RID.id||(ED_BUY_RID.id=uid8()), _ea=ACC.id;
-    api('/api/emberdraft/buy','POST',{requestId:rid}).then(d=>{ buy.disabled=false; if(ACC.id!==_ea) return; if(pendingDefinite(d)) ED_BUY_RID.id=null;
+    if(ED_BUY_RID.acct!==ACC.id){ ED_BUY_RID.id=null; ED_BUY_RID.acct=ACC.id; } const rid=ED_BUY_RID.id||(ED_BUY_RID.id=uid8()), _ea=ACC.id, _et=ACC.token;
+    api('/api/emberdraft/buy','POST',{requestId:rid}).then(d=>{ buy.disabled=false; if(ACC.id!==_ea) return; if(pendingDefinite(d)) ED_BUY_RID.id=null; if(ACC.token!==_et) return;
     try{ if(d&&d.ledger) adoptLedger(d.ledger); updateHubChrome(); }catch(e){} show(d&&d.edraft, d&&d.ok?'':edNiceErr(d&&d.error,'Could not buy attempts.')); }); });
   solo.onclick=()=>{ if(!signed){ ov.remove(); edNewGame(null); return; }
     solo.disabled=true; ov.dataset.busy='1'; ov._startReq=ov._startReq||uid8();   /* v646: one request id until the server answers - a lost reply can't spend a second attempt */
