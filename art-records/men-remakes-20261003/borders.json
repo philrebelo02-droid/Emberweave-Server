@@ -1,0 +1,32 @@
+[
+  {
+    "state": "idle",
+    "sha256": "633166f77b2a0e88685ac32c2d48648a94d7c2cf9909409286292a49ac244c20",
+    "cells": 48,
+    "failed3pxBorders": []
+  },
+  {
+    "state": "walk",
+    "sha256": "6619da2bb6698ce2467a226b831c044b856dc271eb92cc29e980f1bee0fa1741",
+    "cells": 48,
+    "failed3pxBorders": []
+  },
+  {
+    "state": "attack",
+    "sha256": "0fdda30bfe39891308025ad8f0874b0f2be057729e862bbf527e08ec2dff41c4",
+    "cells": 48,
+    "failed3pxBorders": []
+  },
+  {
+    "state": "hit",
+    "sha256": "3ae6d19fb458c40c7e20245927bb866c29998bd2302982ed2ca961388e578f44",
+    "cells": 48,
+    "failed3pxBorders": []
+  },
+  {
+    "state": "ult",
+    "sha256": "65b70cfe0c7d921a399b5233d7564848a9714a6ba896adddd4f2fab7666a1292",
+    "cells": 48,
+    "failed3pxBorders": []
+  }
+]
