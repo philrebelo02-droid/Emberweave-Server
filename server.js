@@ -7398,26 +7398,65 @@ async function api(req,res,url){
        is the one that was exploited ~560x, so it must not survive as a second way in. Old clients are
        force-updated by the version poll; this answer tells anyone still holding one what happened. */
     if(p==='/api/guild/raid/assault'){ return send(res,400,{error:'The guild raid is a real battle now — reload the game to fight the boss.'}); }
-    if(p==='/api/guild/raid/start' && req.method==='POST'){ if(!g) return send(res,400,{error:'You are not in a guild.'});
+    if(p==='/api/guild/raid/start' && req.method==='POST'){ if(!g||me.guildId!==g.id||!Array.isArray(g.members)||!g.members.includes(me.id)) return send(res,403,{ok:false,error:'Current guild membership required.'});
       if(rateLimited(req,'graidstart',20,60000)) return send(res,429,{error:'Slow down.'});
+      // Recovery is explicit and never falls through to a new spent attempt.
+      if(b.recoverOnly!==undefined&&typeof b.recoverOnly!=='boolean')return send(res,400,{ok:false,error:'Boolean raid recovery mode required.'});
       /* the guild block already read the body once for every POST (see 'const b=await body(req)'
          above) - reading it a second time here never resolves and the request hangs forever. */
-      const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
-      const r=ensureRaid(g); r.att=r.att||{};
-      const open=r.att[me.id];
+      if(typeof b.requestId!=='string'||!b.requestId||b.requestId.length>48||!Array.isArray(b.heroIds)||!b.heroIds.length||b.heroIds.length>10||b.heroIds.some(k=>typeof k!=='string'||!k||k.length>128)||new Set(b.heroIds).size!==b.heroIds.length||Object.keys(b).some(k=>!['requestId','heroIds','recoverOnly'].includes(k)))return send(res,400,{ok:false,error:'Exact raid entry packet required.'});
+      const reqId=b.requestId;
+      const actor=structuredClone(me), guilds=structuredClone(DB.guilds), guild=guilds[g.id];
+      const r=ensureRaid(guild);
+      if(r.att!==undefined && (!r.att || typeof r.att!=='object' || Array.isArray(r.att)))
+        return send(res,409,{ok:false,bossBusy:true,error:'Saved raid attempts require recovery. No new attempt was spent.'});
+      r.att=r.att||{};
+      // Private opt-in namespace. Old periods can never become fresh paid intents.
+      const v3Entry=/^r3:/i.test(reqId);let spentBook=null,spentEntry=null;
+      if(v3Entry){
+        const match=/^r3:(\d{4}-\d{2}-\d{2}):[-a-z0-9]{1,24}$/i.exec(reqId);
+        if(!match)return send(res,409,{ok:false,entryPeriodHeld:true,error:'That saved raid request has an invalid day. No new attempt was spent.'});
+        const oldBook=actor.raidV3Spent;
+        if(oldBook!==undefined&&(!oldBook||oldBook.v!==1||typeof oldBook.period!=='string'||!Array.isArray(oldBook.entries)||oldBook.entries.length>3||oldBook.entries.some(x=>!x||typeof x.guildId!=='string'||typeof x.requestId!=='string'||!Array.isArray(x.heroIds))))return send(res,409,{ok:false,error:'Saved raid requests need recovery.'});
+        spentBook=oldBook&&oldBook.period===match[1]?oldBook:{v:1,period:r.day,entries:[]};
+        spentEntry=spentBook.entries.find(x=>x.requestId.toLowerCase()===reqId.toLowerCase());
+        if(spentEntry&&(spentEntry.guildId!==g.id||JSON.stringify(spentEntry.heroIds)!==JSON.stringify(b.heroIds)))return send(res,409,{ok:false,entryUsed:true,error:'That saved raid request belongs to a different squad or guild.'});
+      }
+      const currentOpen=r.att[me.id];
+      const history=actor.raidEntryHistory;
+      if(history!==undefined&&(!Array.isArray(history)||history.length>8))return send(res,409,{ok:false,error:'Raid history requires recovery.'});
+      const open=(currentOpen&&currentOpen.reqId===reqId?currentOpen:null)||
+        (history||[]).find(x=>x.guildId===g.id&&x.attempt&&x.attempt.reqId===reqId)?.attempt;
       /* a retried start with the same requestId hands back the same open fight (nothing is charged twice) */
       if(open && open.reqId===reqId && Date.now()-(open.startedAt||0)<=RAID_SESSION_MS)
         return send(res,200,{ ok:true, resumed:true, attemptId:open.id, seed:open.seed, snaps:open.snaps,
-          boss:{key:open.bossKey, name:raidBossFor(open.tier).name, tier:open.tier, hp:open.bossHp, lvl:open.bossLvl, def:bossHide(open.tier), dmgMul:bossDmgMul(open.tier)}, engine:open.engine, raid:raidView(g) });
-      if(((r.used[me.id])||0)>=RAID_ATT) return send(res,200,{ none:true, raid:raidView(g) });
+          entryBinding:{v:1,accountId:me.id,guildId:g.id,requestId:open.reqId,heroIds:structuredClone(open.heroIds)},
+          boss:{key:open.bossKey, name:raidBossFor(open.tier).name, tier:open.tier, hp:open.bossHp, lvl:open.bossLvl, def:bossHide(open.tier), dmgMul:bossDmgMul(open.tier)}, engine:open.engine, raid:raidView(guild) });
+      if(v3Entry&&reqId!==reqId.toLowerCase())return send(res,409,{ok:false,entryCanonicalHeld:true,error:'That saved raid request needs exact recovery. No new attempt was spent.'});
+      if(v3Entry&&reqId.slice(3,13)!==r.day){
+        const entryPeriod=reqId.slice(3,13),validDate=Number.isFinite(Date.parse(entryPeriod+'T00:00:00Z'))&&new Date(entryPeriod+'T00:00:00Z').toISOString().slice(0,10)===entryPeriod;
+        // Existing live exact resume ran first. Closed period proves no fresh
+        // entry is possible, NOT that an old payment/result never happened.
+        const entryClosure=validDate&&entryPeriod<r.day?{v:1,kind:'period-closed',spent:'unknown',accountId:me.id,guildId:g.id,requestId:reqId,heroIds:structuredClone(b.heroIds),serverPeriod:r.day,packetHash:crypto.createHash('sha256').update(JSON.stringify({requestId:reqId,heroIds:b.heroIds})).digest('hex')}:undefined;
+        return send(res,409,{ok:false,entryPeriodHeld:true,...(entryClosure?{entryClosure}:{}),error:'That saved raid request is from a different day. No new attempt was spent.'});
+      }
+      if(spentEntry&&!open)return send(res,409,{ok:false,entryUsed:true,error:'That saved raid request was already spent. No new attempt was spent.'});
+      if(open)return send(res,409,{ok:false,entryExpired:true,error:'This saved raid entry expired. No new attempt was spent. Use a new intent only after recovery is resolved.'});
+      if(b.recoverOnly===true)return send(res,409,{ok:false,recoveryUnknown:true,error:'Matching active raid entry unavailable. No new attempt was spent.'});
+      // PRIVATE START-ONLY reservation. Never infer release from age or missing clients.
+      // Legacy outstanding attempts and malformed reservations require explicit recovery.
+      if(r.bossReservation!==undefined || Object.keys(r.att).length)
+        return send(res,409,{ok:false,bossBusy:true,error:'The raid boss is reserved. No new attempt was spent.'});
+      if(((r.used[me.id])||0)>=RAID_ATT) return send(res,200,{ none:true, raid:raidView(guild) });
       // 30 Sep 2026 hardening: the same 3-a-day also counts on the PLAYER, so hopping guilds buys no extra fights.
-      if(me.raidDay && me.raidDay.d===r.day && (me.raidDay.n|0)>=RAID_ATT) return send(res,200,{ none:true, raid:raidView(g) });
+      if(actor.raidDay && actor.raidDay.d===r.day && (actor.raidDay.n|0)>=RAID_ATT) return send(res,200,{ none:true, raid:raidView(guild) });
       if(r.hp<=0) return send(res,400,{error:'This boss is already down — the next tier is spawning.'});
+      if(v3Entry&&spentBook.entries.length>=3)return send(res,409,{ok:false,error:'Saved raid requests are full for today.'});
       const ids=Array.isArray(b.heroIds)?[...new Set(b.heroIds.map(String))].slice(0,10):[];
       if(!ids.length) return send(res,400,{error:'Pick your squad.'});
-      const led=ensureLedger(me);
+      const led=ensureLedger(actor);
       for(const k of ids){ if(!SIM.HERO_BASE[k]||!led.unlocked[k]) return send(res,400,{error:'You have not unlocked '+k+'.'}); }
-      const specs=ids.map(k=>campaignHeroSpec(me,k)); if(specs.some(x=>!x)) return send(res,400,{error:'Unknown hero.'});
+      const specs=ids.map(k=>campaignHeroSpec(actor,k)); if(specs.some(x=>!x)) return send(res,400,{error:'Unknown hero.'});
       const host=simHost(); let fightSnaps=null;
       if(host){ try{ fightSnaps=host.snapFromSpecs(specs); }catch(e){ console.error('sim-host snapFromSpecs failed (raid):',e.message); } }
       const seed=(crypto.randomBytes(4).readUInt32BE(0))>>>0;
@@ -7426,55 +7465,96 @@ async function api(req,res,url){
          chew through in 90 seconds; on the last run of a tier someone lands a real killing blow. His
          level rises with the tier so his damage keeps pace with the guilds fighting him. */
       const bossLvl=raidBossLvl(r.level);
+      // Keep a replaced paid snapshot independently; fresh-entry behavior and caps stay unchanged.
+      const entryNow=Date.now();
+      const retained=(history||[]).slice(); // Preserve paid history; age is not a deletion policy.
+      if(currentOpen&&Number.isSafeInteger(currentOpen.startedAt)&&entryNow>=currentOpen.startedAt&&entryNow-currentOpen.startedAt<=RAID_SESSION_MS&&!retained.some(x=>x.guildId===g.id&&x.attempt?.id===currentOpen.id))retained.push({guildId:g.id,attempt:structuredClone(currentOpen)});
+      if(retained.length>8)return send(res,503,{ok:false,error:'Raid history capacity held. No new attempt was spent.'});
+      actor.raidEntryHistory=retained;
       r.used[me.id]=((r.used[me.id])||0)+1;   /* the attempt is spent on entry — quitting does not refund it */
-      me.raidDay={ d:r.day, n:((me.raidDay&&me.raidDay.d===r.day)?(me.raidDay.n|0):0)+1 };
+      actor.raidDay={ d:r.day, n:((actor.raidDay&&actor.raidDay.d===r.day)?(actor.raidDay.n|0):0)+1 };
       r.att[me.id]={ id:uid(), heroIds:ids, snaps:fightSnaps, seed, engine:(host&&host.buildVersion)||null,
         startedAt:Date.now(), reqId, tier:r.level, bossKey:bb.key, bossHp:r.hp, bossLvl };
-      writeDB();
+      r.bossReservation={v:1,accountId:me.id,guildId:g.id,attemptId:r.att[me.id].id,requestId:reqId,tier:r.level,bossKey:bb.key,startedAt:r.att[me.id].startedAt};
+      if(v3Entry){spentBook.entries.push({guildId:g.id,requestId:reqId,heroIds:structuredClone(ids)});actor.raidV3Spent=spentBook;}
+      const committed=durableUserCommit(me,actor,{...(DB.idem||{})},'guild-raid-recovery',[],{guilds});
+      if(!committed.ok)return send(res,503,{error:committed.error||'Raid save failed. Retry the same request.'});
       return send(res,200,{ ok:true, attemptId:r.att[me.id].id, seed, snaps:fightSnaps, engine:r.att[me.id].engine,
-        boss:{key:bb.key, name:bb.name, tier:r.level, hp:r.hp, lvl:bossLvl, def:bossHide(r.level), dmgMul:bossDmgMul(r.level)}, raid:raidView(g) }); }
-    if(p==='/api/guild/raid/resolve' && req.method==='POST'){ if(!g) return send(res,400,{error:'You are not in a guild.'});
+        entryBinding:{v:1,accountId:me.id,guildId:g.id,requestId:reqId,heroIds:structuredClone(ids)},
+        boss:{key:bb.key, name:bb.name, tier:r.level, hp:r.hp, lvl:bossLvl, def:bossHide(r.level), dmgMul:bossDmgMul(r.level)}, raid:raidView(guild) }); }
+    if(p==='/api/guild/raid/resolve' && req.method==='POST'){ if(!g||me.guildId!==g.id||!Array.isArray(g.members)||!g.members.includes(me.id)) return send(res,403,{ok:false,error:'Current guild membership required.'});
+      if(Object.keys(b).some(k=>!['requestId','attemptId','inputLog','dmg'].includes(k))||typeof b.requestId!=='string'||!b.requestId||b.requestId.length>48||typeof b.attemptId!=='string'||!b.attemptId||b.attemptId.length>128||!Array.isArray(b.inputLog)||b.inputLog.length>400||typeof b.dmg!=='number'||!Number.isFinite(b.dmg)||b.dmg<0)return send(res,400,{ok:false,error:'Exact raid result packet required.'});
+      const packetJSON=JSON.stringify({requestId:b.requestId,attemptId:b.attemptId,inputLog:b.inputLog,dmg:b.dmg});
+      if(packetJSON.length>160000)return send(res,400,{ok:false,error:'Raid result packet too large.'});
+      const packetHash=crypto.createHash('sha256').update(packetJSON).digest('hex');
       const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
-      const out=idem(me.id+':graidres:'+reqId,()=>{
-        const r=ensureRaid(g); r.att=r.att||{};
-        const a=r.att[me.id];
-        if(!a || a.id!==String(b.attemptId||'')) return {ok:false, error:'No matching raid battle.', raid:raidView(g)};
-        r.att[me.id]=null; delete r.att[me.id];
-        if(Date.now()-(a.startedAt||0) > RAID_SESSION_MS) { writeDB(); return {ok:false, expired:true, error:'That raid fight expired.', raid:raidView(g)}; }
-        /* THE DAMAGE IS THE REPLAY'S, NEVER THE CLIENT'S. The player's transcript is replayed against
-           the frozen squad, seed and boss with the game's own battle code (sim-host). */
-        const host=simHost(); let dmg=null, incident=null;
+      const key=me.id+':graidres:'+reqId,attemptId=String(b.attemptId||''),prior=DB.idem?.[key];
+      if(prior){
+        if(prior.guildId!==g.id||prior.attemptId!==attemptId||prior.packetHash!==packetHash)return send(res,409,{ok:false,error:'Raid receipt does not match this guild, attempt and exact packet.'});
+        if(Date.now()<prior.t)return send(res,409,{ok:false,error:'Request clock precedes receipt.'});
+        return send(res,200,{...structuredClone(prior.resp),raid:raidView(structuredClone(g)),...(prior.resp?.ok?{ledger:ledgerView(structuredClone(me))}:{})});
+      }
+      const actor=structuredClone(me),guilds=structuredClone(DB.guilds),guild=guilds[g.id],staged={...DB,users:{...DB.users,[me.id]:actor},guilds};
+      if(_worldSettlementPlanning)throw Error('Nested raid planning');
+      let out;_worldSettlementPlanning={db:staged,diagnostics:[]};
+      try{out=(()=>{
+        const r=ensureRaid(guild); r.att=r.att||{};
+        const currentAttempt=r.att[me.id];
+        const a=(currentAttempt&&currentAttempt.id===attemptId?currentAttempt:null)||
+          (Array.isArray(actor.raidEntryHistory)?actor.raidEntryHistory:[]).find(x=>x.guildId===g.id&&x.attempt?.id===attemptId)?.attempt;
+        if(!a) return {ok:false, error:'No matching raid battle.', raid:raidView(guild)};
+        // PRIVATE partial: hold legacy, foreign, mismatched or rolled-over ownership, never infer migration/release.
+        const reservation=r.bossReservation;
+        if(!reservation || reservation.v!==1 || reservation.accountId!==me.id || reservation.guildId!==g.id || reservation.attemptId!==a.id || reservation.requestId!==a.reqId || reservation.tier!==a.tier || reservation.bossKey!==a.bossKey || r.level!==a.tier || raidBossFor(r.level).key!==a.bossKey)
+          return {ok:false, bossBindingHeld:true, error:'Saved raid boss ownership requires recovery.', raid:raidView(guild)};
+        // PRIVATE preserve unknown flag history and paid attempt; no migration or silent erasure.
+        if(actor.raidMismatchFlags!==undefined && !Array.isArray(actor.raidMismatchFlags))
+          return {ok:false,flagHistoryHeld:true,error:'Saved battle review history requires recovery.',raid:raidView(guild)};
+        if(currentAttempt?.id===a.id)delete r.att[me.id];
+        if(Array.isArray(actor.raidEntryHistory))actor.raidEntryHistory=actor.raidEntryHistory.filter(x=>!(x.guildId===g.id&&x.attempt?.id===a.id));
+        // A late transport does not invalidate the fight the player already saw.
+        delete r.bossReservation; // Q6: a settled fight releases its exclusive boss atomically.
+        // PRIVATE player-damage experiment: replay observes; it never substitutes or power-caps the player's report.
+        // This response/receipt records diagnostics ONLY. The prescribed 1/3/4 flag escalation is NOT integrated.
+        const host=simHost(); let dmg=b.dmg, replayDamage=null, replayIssue=null;
         const bossSpec={key:a.bossKey, lvl:a.bossLvl, hp:a.bossHp, boss:true, def:bossHide(a.tier||1), dmgMul:bossDmgMul(a.tier||1)};
         if(host && a.snaps && typeof host.raid==='function'){
-          try{ const rr=host.raid(a.snaps, bossSpec, a.seed>>>0, Array.isArray(b.inputLog)?b.inputLog.slice(0,400):[]); dmg=Math.max(0, rr.dmg|0); }
-          catch(e){ incident='raid-replay-error: '+e.message; }
-        } else incident='raid-replay-unavailable';
-        if(dmg==null){
-          /* No replay host: fall back to the claim, capped hard by the ledger's own power so a forged
-             number cannot move the boss. Every fallback is logged for review. */
-          const claim=Math.max(0, Math.round(Number(b.dmg)||0));
-          const cap=Math.max(1, Math.min(50000000, (ledgerTeamPower(me)||1)*12));
-          dmg=Math.min(claim, cap);
-          try{ g.log=g.log||[]; }catch(e){}
+          try{const rr=host.raid(a.snaps,bossSpec,a.seed>>>0,b.inputLog.slice(0,400));
+            if(typeof rr?.dmg==='number' && Number.isFinite(rr.dmg) && rr.dmg>=0)replayDamage=rr.dmg; else replayIssue='raid-replay-invalid';}
+          catch(e){replayIssue='raid-replay-error';}
+        }else replayIssue='raid-replay-unavailable';
+        const incident=(replayIssue || replayDamage!==b.dmg)?{v:1,kind:replayIssue||'raid-damage-mismatch',playerTruth:true,accountId:me.id,guildId:g.id,attemptId:a.id,bossKey:a.bossKey,tier:a.tier,playerDamage:b.dmg,replayDamage,engine:a.engine||null,seed:a.seed>>>0}:null;
+        // PRIVATE first-flag bookkeeping ONLY: valid numeric disagreement, never engine failure.
+        // Appended to the staged actor and committed atomically with the exact settlement receipt.
+        // Case3/review4 consumer contract and full history/quota handling remain OPEN; DO NOT INSTALL.
+        if(incident?.kind==='raid-damage-mismatch'){
+          actor.raidMismatchFlags=Array.isArray(actor.raidMismatchFlags)?actor.raidMismatchFlags:[];
+          actor.raidMismatchFlags.push({...incident,t:Date.now(),requestId:reqId,packetHash,
+            stage:'guild-raid:'+a.bossKey+':tier:'+a.tier});
         }
         dmg=Math.min(dmg, r.hp);
         r.hp=Math.max(0, r.hp-dmg); r.contrib[me.id]=(r.contrib[me.id]||0)+dmg;
         let killed=false, reward=null;
         if(r.hp<=0){ killed=true; const lv=r.level;
-          g.exp=(g.exp||0)+250; while((g.level||1)<GMAXLVL && g.exp>=gExpNeed(g.level||1)){ g.exp-=gExpNeed(g.level||1); g.level=(g.level||1)+1; g.log=g.log||[]; g.log.push({sys:1,tx:'The guild reached Level '+g.level+'!',t:Date.now()}); }
-          if((g.level||1)>=GMAXLVL) g.exp=0;
+          guild.exp=(guild.exp||0)+250; while((guild.level||1)<GMAXLVL && guild.exp>=gExpNeed(guild.level||1)){ guild.exp-=gExpNeed(guild.level||1); guild.level=(guild.level||1)+1; guild.log=guild.log||[]; guild.log.push({sys:1,tx:'The guild reached Level '+guild.level+'!',t:Date.now()}); }
+          if((guild.level||1)>=GMAXLVL) guild.exp=0;
           r.level=lv+1; r.max=bossMax(r.level); r.hp=r.max; r.kills=(r.kills||0)+1; r.contrib={};
-          g.log=g.log||[]; g.log.push({sys:1,tx:me.name+' landed the killing blow on '+raidBossFor(lv).name+' (Tier '+lv+')!',t:Date.now()}); if(g.log.length>100)g.log=g.log.slice(-100);
+          guild.log=guild.log||[]; guild.log.push({sys:1,tx:me.name+' landed the killing blow on '+raidBossFor(lv).name+' (Tier '+lv+')!',t:Date.now()}); if(guild.log.length>100)guild.log=guild.log.slice(-100);
           reward={ guildCoins:300*lv, gold:800*lv, gems:15+lv*3, tier:lv }; }
         else { reward={ guildCoins:Math.round(dmg/50) }; }
-        { const led=ensureLedger(me);
-          if(reward.gold) creditGold(me,led,reward.gold,'guild-raid');
-          if(reward.gems) creditGems(me,led,reward.gems,'guild-raid');
+        { const led=ensureLedger(actor);
+          if(reward.gold) creditGold(actor,led,reward.gold,'guild-raid');
+          if(reward.gems) creditGems(actor,led,reward.gems,'guild-raid');
           if(reward.guildCoins) led.guildCoins=Math.min(ECON_CAP.guildCoins,(led.guildCoins|0)+(reward.guildCoins|0));
-          ledTx(me,'guild-raid',reward); }
-        writeDB();
-        return { ok:true, dmg, killed, reward, incident, raid:raidView(g), ledger:ledgerView(me) };
-      });
+          ledTx(actor,'guild-raid',reward); }
+        return { ok:true, dmg, killed, reward, incident, raid:raidView(guild), ledger:ledgerView(actor) };
+      })();}finally{_worldSettlementPlanning=null;}
+      // Unknown attempt is a read-only refusal, not a saved receipt or migration.
+      if(!out?.ok)return send(res,200,out);
+      out.settlementBinding={v:1,accountId:me.id,guildId:g.id,requestId:reqId,attemptId,packetHash};
+      const receipts={...(DB.idem||{}),[key]:{t:Date.now(),guildId:g.id,attemptId,packetHash,resp:structuredClone(out)}};
+      const committed=durableUserCommit(me,actor,receipts,'guild-raid-recovery',[],{guilds});
+      if(!committed.ok)return send(res,503,{ok:false,error:committed.error||'Raid save failed. Retry the same request.'});
       return send(res,200,out); }
     if(p==='/api/guild/raid/assault-old'){ return send(res,400,{error:'The old raid assault is retired - fight the raid boss (Guild -> Raid).'}); }   /* v825: retired (it rolled damage from power with no fight, and a kill threw on the removed BOSS_NAMES) */
     if(false){ if(!g) return send(res,400,{error:'You are not in a guild.'});
