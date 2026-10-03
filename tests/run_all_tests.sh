@@ -93,6 +93,8 @@ note "test_well_audit.js (3 Oct audit: Starless Well held-fight double pay + for
 node tests/test_well_audit.js || FAILED=1
 note "test_witch_client_rid.js (3 Oct audit: Witches Hut keeps one requestId until a definite answer)"
 node tests/test_witch_client_rid.js || FAILED=1
+note "test_ed_buy_rid.js (3 Oct audit: Emberdraft buy keeps one requestId until a definite answer)"
+node tests/test_ed_buy_rid.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi
