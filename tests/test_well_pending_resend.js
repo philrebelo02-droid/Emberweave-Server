@@ -28,11 +28,11 @@ const gold=async()=>{ const l=(await call('/api/ledger')).data; return (l.ledger
   const body={attemptId:ws.data.attemptId,requestId:'wp-res-1',inputLog:[],digest:JSON.stringify({won:true,t:1,u:heroes.map(k=>[k,'ally',1,999999,100])}),won:true,stars:3};
   // the client's functions, with a localStorage and an api() that can "lose" one reply after the server committed it
   const store={}; let loseNext=false;
-  const ctx={ ACC:{token:'t',profile:{id}}, WELL:{}, adoptLedger(){}, JSON, console,
+  const ctx={ ACC:{token:'t',id}, WELL:{}, adoptLedger(){}, JSON, console,
     localStorage:{getItem:k=>k in store?store[k]:null,setItem:(k,v)=>{store[k]=String(v);},removeItem:k=>{delete store[k];}},
     api:async(p,m,b)=>{ const r=await call(p,b,m); if(loseNext){ loseNext=false; return {error:'offline'}; } return r.data; } };
   vm.createContext(ctx);
-  const src=['function wellPendingKey(','function wellPendingSave(','function wellPendingSettle(','async function wellResendPending(','async function wellRefresh(']
+  const src=['function pendingDefinite(','function wellPendingKey(','function wellPendingSave(','function wellPendingSettle(','async function wellResendPending(','async function wellRefresh(']
     .map(sig=>{ const i=html.indexOf(sig); if(i<0) return ''; let j=html.indexOf('\nfunction ',i+1), k=html.indexOf('\nasync function ',i+1); const e=[j,k].filter(x=>x>0); return html.slice(i,Math.min(...e)); }).join('\n');
   vm.runInContext(src+'\nthis.h={save:typeof wellPendingSave==="function"?wellPendingSave:null,settle:typeof wellPendingSettle==="function"?wellPendingSettle:null,refresh:wellRefresh};',ctx);
   const g0=await gold();
