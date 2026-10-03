@@ -3150,13 +3150,14 @@ const BATTLE_ANIM = {
     passive:{u:'/assets/anim/grosk/grosk_passive.webp?v=7',n:20,fw:300,fh:251,cols:6,rows:4,figH:185,feet:248,cx:152,fps:10,flip:false, pingpong:true,top:2}
   },
   fritz:{
-    idle:{u:'/assets/anim/fritz/fritz_idle.webp?v=21',n:24,fw:361,fh:472,cols:6,rows:4,figH:400,feet:443,cx:182,fps:8,flip:false,top:43,ax:[0,-28,-14,77,57,21,-14,55,11,4,-5,-35,87,78,63,27,-5,71,44,10,4,-15,-39,-15]},
-    walk:{u:'/assets/anim/fritz/fritz_walk.webp?v=22',n:22,fw:629,fh:576,cols:6,rows:4,figH:400,feet:465,cx:389,fps:8,flip:false,top:65,ax:[0,34,39.7,24.9,38.4,22.8,66.6,23,56.7,50.4,40.6,23.6,51.9,90.7,81.2,69.4,59.8,53.2,41.1,49.7,39.7,0.8]},
-    attack:{u:'/assets/anim/fritz/fritz_attack.webp?v=22',n:30,fw:774,fh:666,cols:6,rows:5,figH:400,feet:533,cx:276,fps:20,flip:false,top:133,hold:1.5,ax:[0,-49,-79,-103,-52,102,86,40,-18,-45,-60,-93,-118,-128,125,99,41,29,-26,-92,-114,25,51,-63,-102,-205,-233,-242,-240,-232]},
-    hit:{u:'/assets/anim/fritz/fritz_hit.webp?v=21',n:30,fw:516,fh:466,cols:6,rows:5,figH:400,feet:451,cx:304,fps:14,flip:false,top:51,ax:[0,-44,-81,130,137,142,144,118,37,147,143,137,133,86,133,155,165,163,159,159,163,165,164,162,123,52,49,51,50,50]},
-    ult:{u:'/assets/anim/fritz/fritz_ult.webp?v=21',n:27,fw:974,fh:891,cols:6,rows:5,figH:400,feet:790,cx:475,fps:9,flip:false,top:390,apex:16,ax:[0,-1,-2,-2,-2,-3,-3,-3,-3,-2,-2,-2,-251,-2,-2,-2,-2,-3,-2,-2,-2,-2,-2,-2,-2,-2,-2]},
-    chain:{u:'/assets/anim/fritz/fritz_chain.webp?v=10',n:27,fw:716,fh:469,cols:6,rows:5,figH:400,feet:464,cx:219,fps:14,flip:false,top:64,ax:[0,-20,-45,-61,-97,114,118,118,111,118,118,118,118,118,118,118,118,118,118,118,118,118,114,118,118,118,118]},
-    surge:{u:'/assets/anim/fritz/fritz_surge.webp?v=10',n:27,fw:663,fh:771,cols:6,rows:5,figH:400,feet:661,cx:165,fps:14,flip:false,top:261,ax:[0,-52,-153,-153,-153,-153,-153,-53,386,-153,-153,-154,-153,-133,383,-153,-152,-152,-154,389,-153,-153,-154,-153,1,-152,-152]}
+    idle:{u:'/assets/anim/fritz/fritz_idle.webp?v=30',n:48,fw:386,fh:493,cols:6,rows:8,figH:371,feet:433,cx:215,fps:24,flip:false,top:62},   /* v949 (Phil 3 Oct: "Slice and wire"): Fritz RESTART - all 8 states are the clips Phil passed one by one on 3 Oct (Hailuo 2.0, Start/End plate), cut native with cs10 (PAD 60, lossless, key ~247,3,242), magenta unmix despill (pink 0.000%); figH 371 on every state so he draws the same size in every action, feet/cx from the cut, ax omitted (feet planted); walk = 48 + cells 1,0 (Phil 9 Sep stitch rule); ult = 72 cells at 24 fps = 3 s = the storm, apex 36 = mid-channel so the engine's hold is ~0 s; new passive = the Static Veil clip, played as a resting flourish alternating with idle (v522 rule) - the dodge itself fires no clip */
+    walk:{u:'/assets/anim/fritz/fritz_walk.webp?v=30',n:50,fw:383,fh:503,cols:6,rows:9,figH:371,feet:438,cx:184,fps:24,flip:false,top:67},
+    attack:{u:'/assets/anim/fritz/fritz_attack.webp?v=30',n:48,fw:550,fh:490,cols:6,rows:8,figH:371,feet:430,cx:233,fps:24,flip:false,top:59},
+    hit:{u:'/assets/anim/fritz/fritz_hit.webp?v=30',n:48,fw:448,fh:491,cols:6,rows:8,figH:371,feet:431,cx:225,fps:24,flip:false,top:60},
+    surge:{u:'/assets/anim/fritz/fritz_surge.webp?v=30',n:48,fw:515,fh:588,cols:6,rows:8,figH:371,feet:526,cx:217,fps:24,flip:false,top:155},
+    chain:{u:'/assets/anim/fritz/fritz_chain.webp?v=30',n:48,fw:602,fh:491,cols:6,rows:8,figH:371,feet:431,cx:245,fps:24,flip:false,top:60},
+    ult:{u:'/assets/anim/fritz/fritz_ult.webp?v=30',n:72,fw:474,fh:579,cols:6,rows:12,figH:371,feet:519,cx:205,fps:24,flip:false,top:148,apex:36},
+    passive:{u:'/assets/anim/fritz/fritz_passive.webp?v=30',n:48,fw:626,fh:520,cols:6,rows:8,figH:371,feet:459,cx:245,fps:24,flip:false,top:88}
   },
   aureth:{
     idle:{u:'/assets/anim/aureth/aureth_idle.webp?v=21',n:48,fw:348,fh:418,cols:6,rows:8,figH:400,feet:411,cx:174,fps:24,flip:false,top:11,pingpong:true,ax:[0,0,0,0,0,0,0,0,0,10,10,9,10,10,10,10,14,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,10,10,10,0,0,0,0]},
@@ -25526,7 +25527,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1790999446503';
+const BUILD_ID = '1791051910373';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
