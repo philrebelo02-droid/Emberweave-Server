@@ -89,6 +89,8 @@ note "test_tower_server.js (3 Oct audit P0: the Tower of Trials is server-owned;
 node tests/test_tower_server.js || FAILED=1
 note "test_durable_buildings.js (3 Oct audit: Vault/Hut/Emberdraft/trial/Well answer 503 on a failed save, nothing moves)"
 node tests/test_durable_buildings.js || FAILED=1
+note "test_well_audit.js (3 Oct audit: Starless Well held-fight double pay + forged sweep path)"
+node tests/test_well_audit.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi

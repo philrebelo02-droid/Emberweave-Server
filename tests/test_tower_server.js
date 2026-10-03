@@ -100,9 +100,11 @@ const post=(r,d)=>call(r,'POST',d);
   await delay(400); await stop();
   let db=JSON.parse(fs.readFileSync(dbFile,'utf8')); const u=db.users[id];
   u.led.px=99000000; const keys=Object.keys(require('../server/sim.js').HERO_BASE).slice(0,5);
-  for(const k of keys) u.led.unlocked[k]=true; u.team=keys.map(k=>({key:k})); u.led.tower={floor:0,trib:'',mig:0,srv:0};
-  // an old client-side 'earn:tower' landed TODAY (tower day) -> today's tribute counts as taken after migration
+  // a WEAK chosen team (one hero) over a five-hero bench: the migration cap must use the bench (ChatGPT review)
+  for(const k of keys) u.led.unlocked[k]=true; u.team=[{key:keys[0]}]; u.led.tower={floor:0,trib:'',mig:0,srv:0};
+  // control: an old 'earn:tower' tx today WITHOUT the exact tribute receipt must NOT fence the tribute (it may be a floor climb)
   u.led.txs=(u.led.txs||[]).concat([{id:'old1',t:Date.now(),src:'earn:tower',d:{gold:432}}]);
+  const epoch=u.led.migratedAt||0;
   fs.writeFileSync(dbFile,JSON.stringify(db));
   // migration under a failing disk: 503 and nothing kept (natural failing control for commit-before-ack)
   fs.chmodSync(dbFile,0o444); let migFail;
@@ -113,10 +115,15 @@ const post=(r,d)=>call(r,'POST',d);
   // migration: a forged huge local floor is capped by power and pays nothing
   const gold0=(await call('/api/ledger')).data; const g0=(gold0.ledger||gold0).gold;
   const st=await post('/api/tower/state',{legacyFloor:4999});
-  ok(st.data.trib===st.data.today,'an old tower earn today fences today\'s tribute');
-  const capF=sctx.towerMaxForPower(st.data.power);
-  ok(st.data.floor===capF&&capF<4999,'forged legacy floor capped at the power floor ('+capF+')');
+  ok(st.data.trib!==st.data.today,'an earn:tower tx alone does not fence the tribute (no exact receipt)');
+  const capF=st.data.floor, teamCap=sctx.towerMaxForPower(st.data.power);
+  ok(capF<4999&&capF>teamCap,'forged legacy floor capped by the five-hero BENCH ('+capF+'), not the weaker one-hero team ('+teamCap+')');
   ok(st.data.nextReq===cctx.towerReq(capF+1),'next requirement = client towerReq');
+  // exact old tribute receipt fences today's tribute
+  await delay(400); await stop(); { const d=JSON.parse(fs.readFileSync(dbFile,'utf8')); d.users[id].led.tower={floor:capF,trib:'',mig:1,srv:0};
+    d.idem=d.idem||{}; d.idem[id+':earn:'+epoch+':tower:tribute:'+st.data.today]={t:Date.now(),resp:{ok:true}}; d.users[id].team=keys.map(k=>({key:k})); fs.writeFileSync(dbFile,JSON.stringify(d)); } await start();
+  const stF=await post('/api/tower/state',{legacyFloor:capF}); ok(stF.data.trib===st.data.today,'the old client\'s exact tribute receipt fences today');
+  const teamCap5=sctx.towerMaxForPower(stF.data.power);   /* the five-hero team climbs this far; the bench (incl. starter heroes) may be stronger */
   const after=(await call('/api/ledger')).data; ok((after.ledger||after).gold===g0,'migration paid nothing');
   // cross-device: a lower report never lowers it
   ok((await post('/api/tower/state',{legacyFloor:0})).data.floor===capF,'lower device report does not lower the floor');
@@ -124,13 +131,17 @@ const post=(r,d)=>call(r,'POST',d);
   const wall=await post('/api/tower/ascend',{requestId:'w1'});
   ok(wall.data.wall===true&&wall.data.req===cctx.towerReq(capF+1),'wall refusal carries the client requirement');
   // drop the floor so ascends are affordable, then climb with exact authored pay
-  await delay(400); await stop(); db=JSON.parse(fs.readFileSync(dbFile,'utf8')); db.users[id].led.tower={floor:0,trib:'',mig:1,srv:0}; fs.writeFileSync(dbFile,JSON.stringify(db)); await start();
-  const climb=Math.min(capF,12); let gPrev=null;
+  // the old client already received floor 1's gold (its exact receipt): the first server climb must not pay it again
+  await delay(400); await stop(); db=JSON.parse(fs.readFileSync(dbFile,'utf8')); db.users[id].led.tower={floor:0,trib:'',mig:1,srv:0}; db.users[id].team=keys.map(k=>({key:k}));
+  db.idem=db.idem||{}; db.idem[id+':earn:'+epoch+':tower:floor:1:gold']={t:Date.now(),resp:{ok:true}}; fs.writeFileSync(dbFile,JSON.stringify(db)); await start();
+  const gS=(await call('/api/ledger')).data; const gStart=(gS.ledger||gS).gold;
+  const climb=Math.min(teamCap5,12); let gPrev=null;
   for(let f=1;f<=climb;f++){ const r=await post('/api/tower/ascend',{requestId:'tower:floor:'+f});
     ok(r.data.ok===true&&r.data.floor===f,'ascend to floor '+f);
-    assert.deepStrictEqual({gold:r.data.gold,gems:r.data.gems},goldenFloor(f),'floor '+f+' pay = v948'); pass++;
+    const want=f===1?{gold:0,gems:goldenFloor(1).gems}:goldenFloor(f);
+    assert.strictEqual(JSON.stringify({gold:r.data.gold,gems:r.data.gems}),JSON.stringify(want),'floor '+f+' pay'); pass++;
     if(f===1){ const again=await post('/api/tower/ascend',{requestId:'tower:floor:1'}); ok(again.data.floor===1&&again.data.ok===true,'replayed requestId returns the same reply');
-      const lg=(await call('/api/ledger')).data; gPrev=(lg.ledger||lg).gold; ok(gPrev===g0+goldenFloor(1).gold,'replay paid once'); } }
+      const lg=(await call('/api/ledger')).data; gPrev=(lg.ledger||lg).gold; ok(gPrev===gStart,'floor 1 gold already received (exact receipt) is not paid again'); } }
   // after a server climb, a device report cannot raise the floor
   ok((await post('/api/tower/state',{legacyFloor:4999})).data.floor===climb,'device report ignored after a server climb');
   // tribute: once per day, retry pays once

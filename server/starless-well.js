@@ -163,6 +163,9 @@ async function handle(p, method, ctx) {
       const col = b.col | 0, row = b.row | 0, sq = grid[col] && grid[col][row];
       if (!sq || !reach(R, col, row)) return no('You can only step to a square next to you in the next column.');
       if (sq.type === 'fight' || sq.type === 'boss') return no('That square is guarded - fight it.');
+      /* 3 Oct audit F2: a fight held open while stepping on the chest/tent/spring beside it paid BOTH squares of the column.
+         Stepping away abandons the held fight (nothing was spent), so its result can never pay afterwards. */
+      R.att = null;
       R.started = true; R.pos = { col, row };
       let got = null;
       if (sq.type === 'chest') { const pr = { gold: Math.round((400 + R.level * 60) * (sq.big ? 2 : 1)), gems: sq.big ? 10 : 0, potions: sq.big ? 2 : 1 }; got = payPrize(ctx, W, pr, R.cycle + ':' + R.map + ':' + col + ':' + row); }
@@ -178,6 +181,7 @@ async function handle(p, method, ctx) {
       if (P.indexOf(to) < 0) return no('That portal is not open.');
       if (to === 'hard' && !dev && lvl < OPEN.hard) return no('The Hard path opens at account level ' + OPEN.hard + '.');
       if (R.map === 1) R.path = to;
+      R.att = null;   /* 3 Oct audit F2: a held fight does not travel through a portal */
       R.map++; R.pos = { col: 0, row: 1 };
       ctx.ledTx(ctx.me, 'well2:portal:' + R.path + ':' + R.map, {}); ctx.writeDB();
       return { status: 200, body: Object.assign(view(ctx, W), { got: { path: R.path, map: R.map } }) };
@@ -193,7 +197,9 @@ async function handle(p, method, ctx) {
       ctx.ledTx(ctx.me, 'well2:resurrect', { gems: -cost }); ctx.writeDB(); return ok();
     }
     if (p === '/api/well/sweep') {
-      const path = String(b.path || ''); if (!W.cleared[path]) return no('Clear the ' + path + ' path once before sweeping it.');
+      const path = String(b.path || '');   /* 3 Oct audit F3: 'constructor' read as cleared and ended the run */
+      if (path !== 'normal' && path !== 'hard') return no('Unknown path.');
+      if (!Object.prototype.hasOwnProperty.call(W.cleared, path) || !W.cleared[path]) return no('Clear the ' + path + ' path once before sweeping it.');
       if (R.started) return no('This run has already started - finish it instead.');
       if (path === 'hard' && !dev && lvl < OPEN.hard) return no('The Hard path opens at account level ' + OPEN.hard + '.');
       const xp = endXP(ctx, path); if (xp > 0) ctx.ledAddPlayerXP(ctx.led, xp, ctx.me);
@@ -254,6 +260,7 @@ async function handle(p, method, ctx) {
       for (const k of a.heroIds) { const e = endU.find(x => x[0] === k && x[1] === 'ally'); if (!e) continue;
         R.heroes[k] = { hpFrac: e[2] ? Math.max(0.01, Math.min(1, e[3] / (maxOf[k] || 1))) : 0, energy: e[4] | 0, dead: !e[2] }; }
       let reward = null, sq = grid[a.col] && grid[a.col][a.row];
+      if (witnessed.won && sq && a.col !== R.pos.col + 1) { ctx.writeDB(); return no('That battle no longer matches your position - nothing was paid.'); }   /* 3 Oct audit F2, defence in depth */
       if (witnessed.won && sq) {
         R.pos = { col: a.col, row: a.row };
         reward = payPrize(ctx, W, prizeFor(ctx, W, sq, a.col), R.cycle + ':' + R.map + ':' + a.col + ':' + a.row);

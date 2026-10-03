@@ -168,7 +168,7 @@ function saveDB(snapshot,suffix='.tmp'){
   if(typeof suffix!=='string'||!/^\.[a-z0-9.-]+\.tmp$/.test(suffix)&&suffix!=='.tmp')throw Error('Invalid DB temporary suffix');
   const tmp=DB_FILE+suffix;fs.writeFileSync(tmp,JSON.stringify(snapshot));fs.renameSync(tmp,DB_FILE);
 }
-function writeDB(){ if(_worldSettlementPlanning)return; if(PG_BOOT_PENDING){ _bootDirty=true; return; }   // v327: see bootFinish()
+function writeDB(){ if(_worldSettlementPlanning||_durableIdemActive)return; if(PG_BOOT_PENDING){ _bootDirty=true; return; }   // v327: see bootFinish()
   if(saveTimer)return; saveTimer=setTimeout(()=>{ saveTimer=null;
   try{ saveDB(DB); }   // atomic: write temp, then rename
   catch(e){ console.error('⚠ DB write failed:', e.message); }
@@ -1356,8 +1356,9 @@ function vaultSweepNextCost(sw){ if(sw.freeUsesRemaining>0) return 0; const paid
    writeDB() coalesces on a 200 ms timer, so a crash in that window used to lose the idempotency
    record along with the reward — and the client's retry would then be paid a second time. Every
    idem() result is now flushed to disk BEFORE the response is written. */
+var _durableIdemActive=false;   /* 3 Oct audit: set while a durable idem() action runs - its own final save is the only write */
 function writeDBNow(){
-  if(_worldSettlementPlanning)return;
+  if(_worldSettlementPlanning||_durableIdemActive)return;
   if(PG_BOOT_PENDING){ _bootDirty=true; return; }   // v327: boot restore window — see bootFinish()
   try{ if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; }
     saveDB(DB);
@@ -1374,18 +1375,29 @@ function idem(key, fn, opts){ DB.idem=DB.idem||{}; const now=Date.now();
   if(DB.idem[key] && !(opts&&opts.retryFailed&&DB.idem[key].resp&&DB.idem[key].resp.ok===false)) return DB.idem[key].resp;
   let du=opts&&opts.durableUser;
   if(!du){ const i=key.indexOf(':'), j=i>0?key.indexOf(':',i+1):-1; if(j>i&&DURABLE_IDEM_KINDS.has(key.slice(i+1,j))&&DB.users[key.slice(0,i)]) du=DB.users[key.slice(0,i)]; }
+  if(du&&_worldSettlementPlanning) du=null;   /* inside a world planning window the outer durable commit owns the write */
   if(du&&PG_BOOT_PENDING) return {ok:false,storageFailed:true,error:'Storage restore pending. Retry the same request.'};
-  const snap=du?JSON.parse(JSON.stringify(du)):null;
-  /* the Vault keeps its climb outside the account (DB.dungeonProgress[id]) - it rolls back with the account */
-  const dpHad=!!(du&&DB.dungeonProgress&&DB.dungeonProgress[du.id]), dpSnap=dpHad?JSON.parse(JSON.stringify(DB.dungeonProgress[du.id])):null;
-  const resp=fn(); DB.idem[key]={t:now,resp};
+  if(!du){ const resp=fn(); DB.idem[key]={t:now,resp};
+    if(opts&&opts.retryFailed&&resp&&resp.ok===false){ delete DB.idem[key]; return resp; }
+    writeDBNow();                       // the receipt lands with the reward, or neither does
+    return resp; }
+  /* DURABLE: snapshot what the action may change - the account, the Vault climb kept outside it (DB.dungeonProgress[id])
+     and the two shared review stores (DB.feedback via feedbackCheatSignal, DB.reports via devReport). Review flags belong
+     to the result they judge (ChatGPT review 3 Oct): if the result is not saved its flag is not kept, and the retry that
+     does save files it exactly once. Phil's review-first rule is unchanged (a flag never cuts a reward). Inner saves are
+     deferred so the ONE final save writes reward and receipt together; a throw inside the action restores everything. */
+  const snap=JSON.parse(JSON.stringify(du));
+  const dpHad=!!(DB.dungeonProgress&&DB.dungeonProgress[du.id]), dpSnap=dpHad?JSON.parse(JSON.stringify(DB.dungeonProgress[du.id])):null;
+  const fbSnap=Array.isArray(DB.feedback)?DB.feedback.slice():null, rpSnap=Array.isArray(DB.reports)?DB.reports.slice():null;
+  const rollback=()=>{ _adoptUser(du.id,snap); if(DB.dungeonProgress){ if(dpHad) DB.dungeonProgress[du.id]=dpSnap; else delete DB.dungeonProgress[du.id]; }
+    if(fbSnap) DB.feedback=fbSnap; else delete DB.feedback; if(rpSnap) DB.reports=rpSnap; else delete DB.reports; };
+  let resp; _durableIdemActive=true; try{ resp=fn(); } catch(e){ rollback(); throw e; } finally { _durableIdemActive=false; }
+  DB.idem[key]={t:now,resp};
   if(opts&&opts.retryFailed&&resp&&resp.ok===false){ delete DB.idem[key]; return resp; }
-  if(du&&!_worldSettlementPlanning){ try{ if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; } saveDB(DB); }
-    catch(e){ console.error('Durable idem save failed - account rolled back:', e.message); _adoptUser(du.id,snap); delete DB.idem[key];
-      if(DB.dungeonProgress){ if(dpHad) DB.dungeonProgress[du.id]=dpSnap; else delete DB.dungeonProgress[du.id]; }
-      return {ok:false,storageFailed:true,error:'Save failed. Retry the same request.'}; }
-    try{ pgSave(); }catch(e){} return resp; }
-  writeDBNow();                       // the receipt lands with the reward, or neither does
+  try{ if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; } saveDB(DB); }
+  catch(e){ console.error('Durable idem save failed - account rolled back:', e.message); rollback(); delete DB.idem[key];
+    return {ok:false,storageFailed:true,error:'Save failed. Retry the same request.'}; }
+  try{ pgSave(); }catch(e){}
   return resp; }
 
 /* Monster roster mirror (client MONSTER_TYPES essentials). Vault fights are REAL client
@@ -3435,6 +3447,12 @@ function towerTribPay(floor){ let gold=Math.round(500*floor)+250*(1+Math.floor(f
 function towerDayKey(){ return nyDayKey(Date.now()-9*3600000); }
 function towerLed(led){ if(!led.tower||typeof led.tower!=='object'||Array.isArray(led.tower)) led.tower={floor:0,trib:'',mig:0,srv:0}; return led.tower; }
 function towerMaxForPower(pow){ let f=0; while(f<5000&&towerReqS(f+1)<=pow) f++; return f; }
+/* ChatGPT review 3 Oct: EXACT receipts only. Until v949 the client paid itself through /api/tx/earn with requestIds
+   'tower:floor:<n>:gold', 'tower:floor:<n>:gems' and 'tower:tribute:<day>' (receipt key <id>:earn:<epoch>:<requestId>,
+   kept 24 h). A receipt that exists and succeeded is a payment that happened; nothing else is inferred. */
+function towerOldReceipt(u,rid){ const ep=(u.led&&u.led.migratedAt)||0, r=DB.idem&&DB.idem[u.id+':earn:'+ep+':'+rid]; return !!(r&&r.resp&&r.resp.ok===true); }
+/* the strongest five cards the player owns - a weaker team picked today must not shrink a floor already reached */
+function towerBenchPower(u){ const led=u.led||{}; const ps=Object.keys(led.unlocked||{}).filter(k=>led.unlocked[k]).map(k=>cardPower(u,k)).sort((a,b)=>b-a); let p=0; for(const x of ps.slice(0,5)) p+=x; return Math.max(Math.round(p),ledgerTeamPower(u)); }
 /* Getting Started rewards are AUTHORED HERE and granted once per step by the server — the client
    used to add them to its own wallet. */
 const TUTORIAL_REWARDS=Object.freeze({
@@ -5458,8 +5476,8 @@ async function api(req,res,url){
          taken; so does today's tribute if any old client-side 'earn:tower' landed today (a device that forgot to say so
          cannot be paid twice). The migration commits to disk BEFORE it is acknowledged (503 on a failed save). */
       if(!T.srv){ const legacy=(typeof b.legacyFloor==='number'&&Number.isFinite(b.legacyFloor))?Math.max(0,Math.min(5000,Math.floor(b.legacyFloor))):0;
-        const f=Math.min(legacy,towerMaxForPower(ledgerTeamPower(me))), day=towerDayKey();
-        const earnedToday=(led.txs||[]).some(x=>x&&x.src==='earn:tower'&&typeof x.t==='number'&&nyDayKey(x.t-9*3600000)===day);
+        const f=Math.min(legacy,towerMaxForPower(towerBenchPower(me))), day=towerDayKey();
+        const earnedToday=towerOldReceipt(me,'tower:tribute:'+day);   /* the old client's exact tribute receipt for today */
         const wantTrib=(b.legacyTrib===day||earnedToday)&&T.trib!==day;
         if(!T.mig||f>T.floor||wantTrib){
           const out=durableCommit(me,me.id+':tower:mig:'+uid(),(me)=>{ const T2=towerLed(ensureLedger(me)); if(f>T2.floor) T2.floor=f; if(wantTrib) T2.trib=day; T2.mig=1; return view(T2); });
@@ -5471,7 +5489,10 @@ async function api(req,res,url){
         if(ledPlayerLevel(led)<40) return {ok:false,error:'The Tower of Trials opens at level 40.'};
         const next=T.floor+1, need=towerReqS(next), pow=ledgerTeamPower(me);
         if(pow<need) return {ok:false,wall:true,req:need,power:pow,error:'Squad too weak for Floor '+next+'.'};
-        const pay=towerFloorPay(next), g0=led.gold; led.gold=Math.min(ECON_CAP.gold,led.gold+pay.gold); resourceGain(me,'gold',led.gold-g0,'tower');
+        const pay=towerFloorPay(next);
+        /* a floor whose gold/gems the old client already received (its exact receipt) is climbed without paying that part again */
+        if(towerOldReceipt(me,'tower:floor:'+next+':gold')) pay.gold=0; if(towerOldReceipt(me,'tower:floor:'+next+':gems')) pay.gems=0;
+        const g0=led.gold; led.gold=Math.min(ECON_CAP.gold,led.gold+pay.gold); if(pay.gold) resourceGain(me,'gold',led.gold-g0,'tower');
         if(pay.gems){ const e0=led.gems; led.gems=Math.min(ECON_CAP.gems,led.gems+pay.gems); resourceGain(me,'gems',led.gems-e0,'tower'); }
         T.floor=next; T.srv=1; ledTx(me,'tower:floor:'+next,{gold:pay.gold,gems:pay.gems});
         return {ok:true,floor:next,gold:pay.gold,gems:pay.gems,elite:next%5===0,nextReq:towerReqS(next+1),ledger:ledgerView(me)}; });
