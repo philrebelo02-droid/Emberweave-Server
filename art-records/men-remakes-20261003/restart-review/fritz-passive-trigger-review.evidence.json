@@ -1,0 +1,17 @@
+{
+  "scope": "Executed actual extracted Static Veil branch with forced successful dodge and stubbed rendering callback; not full battle/priority proof.",
+  "clientSHA256": "272bdc2db73e4f2e7ccb976651beb8f4ba6fd50b45648e1b2052dfa54f5a7bde",
+  "source": "  if(tgt.pass&&tgt.pass.stormdodge && ((tgt._stormT||0)>0||(tgt._castT||0)>0) && brnd()<0.30){ floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'DODGE',t:.55,color:'#f2d84a',vy:1.3,sz:14}); return; }   // Static Veil (Fritz): 30% dodge while casting or channeling",
+  "actual": {
+    "dodged": true,
+    "floatTextCount": 1,
+    "passiveFired": 0,
+    "eligibleIdleFiller": true
+  },
+  "control": {
+    "dodged": true,
+    "floatTextCount": 1,
+    "passiveFired": 1,
+    "eligibleIdleFiller": false
+  }
+}
