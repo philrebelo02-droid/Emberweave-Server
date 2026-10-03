@@ -29,11 +29,11 @@ const fn=sig=>{ const i=html.indexOf(sig); if(i<0) return ''; const e=[html.inde
   const vs=await call('/api/dungeon/start-battle',{heroIds:heroes,requestId:'vp-start'}); ok(vs.status===200&&vs.data.attemptId,'vault floor started');
   const body={attemptId:vs.data.attemptId,won:true,requestId:'vp-res-1'};
   const store={}; let loseNext=false;
-  const ctx={ ACC:{token:'t',profile:{id}}, VAULT:{}, adoptLedger(){}, JSON, console,
+  const ctx={ ACC:{token:'t',id}, VAULT:{}, adoptLedger(){}, JSON, console,
     localStorage:{getItem:k=>k in store?store[k]:null,setItem:(k,v)=>{store[k]=String(v);},removeItem:k=>{delete store[k];}},
     api:async(p,m,b)=>{ const r=await call(p,b,m); if(loseNext){ loseNext=false; return {error:'offline'}; } return r.data; } };
   vm.createContext(ctx);
-  const src=['function vaultPendingKey(','function vaultPendingSave(','function vaultPendingSettle(','async function vaultResendPending(','async function vaultStatus('].map(fn).join('\n');
+  const src=['function pendingDefinite(','function vaultPendingKey(','function vaultPendingSave(','function vaultPendingSettle(','async function vaultResendPending(','async function vaultStatus('].map(fn).join('\n');
   vm.runInContext(src+'\nthis.h={save:typeof vaultPendingSave==="function"?vaultPendingSave:null,settle:typeof vaultPendingSettle==="function"?vaultPendingSettle:null,status:vaultStatus};',ctx);
   const st0=(await call('/api/dungeon/status')).data, dust0=st0.dust;
   if(ctx.h.save) ctx.h.save(body); loseNext=true; const lost=await ctx.api('/api/dungeon/resolve-battle','POST',body); if(ctx.h.settle) ctx.h.settle(lost);

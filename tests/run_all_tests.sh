@@ -99,6 +99,8 @@ note "test_well_pending_resend.js (3 Oct audit: a lost Well result is re-sent wi
 node tests/test_well_pending_resend.js || FAILED=1
 note "test_vault_pending_resend.js (3 Oct audit: a lost Vault floor result is re-sent with the same requestId before any new floor)"
 node tests/test_vault_pending_resend.js || FAILED=1
+note "test_pending_ownership.js (3 Oct: saved results keyed by the real ACC.id, account-fenced, kept on uncertain replies)"
+node tests/test_pending_ownership.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi

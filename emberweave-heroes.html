@@ -12524,7 +12524,7 @@ function endBattle(won){
          answer, which was not a replay of this fight at all but a re-simulation with a skill band
          standing in for manual play — and when that estimate disagreed, the screen said one thing
          and the result screen said the other. Campaign has worked this way since v270. */
-      if(att){ const _vb={attemptId:att, won:!!won, requestId:uid8()}; vaultPendingSave(_vb); r=await api('/api/dungeon/resolve-battle','POST',_vb); vaultPendingSettle(r); if(resultStale(ep)) return; }   // v328: stale — CUR/VAULT now belong to a newer fight
+      if(att){ const _va=ACC.id, _vb={attemptId:att, won:!!won, requestId:uid8()}; vaultPendingSave(_vb); r=await api('/api/dungeon/resolve-battle','POST',_vb); if(ACC.id!==_va) r={error:'offline'}; else vaultPendingSettle(_va,r); if(resultStale(ep)) return; }   // v328: stale — CUR/VAULT now belong to a newer fight
       CUR.attemptId=null; VAULT.st=null; VAULT.result=null;
       setResultVerdict(won, null);   // AUDIT #20: ...and the star row / squad panel must follow it too
       document.getElementById('resultTitle').textContent=won?'🏛️ FLOOR '+CUR.floor+' CLEARED':'THE VAULT HOLDS';
@@ -12627,7 +12627,7 @@ function endBattle(won){
   if(CUR.mode==='well'){ const att=CUR.attemptId, Wl=CUR.well||{}; CUR.attemptId=null;   /* v825 Starless Well */
     const _log=(INPUT_LOG||[]).slice(0,400), _dg=(window._p2lastDigest||null), _wn=(window._p2lastWon===true), _st=(window._p2lastStars|0);
     resultLater(async(ep)=>{ let r=null;
-      if(att&&ACC.token){ const _wb={attemptId:att, requestId:uid8(), inputLog:_log, digest:_dg, won:_wn, stars:_st}; wellPendingSave(_wb); try{ r=await api('/api/well/resolve','POST',_wb); }catch(e){ r=null; } wellPendingSettle(r); }
+      if(att&&ACC.token){ const _wa=ACC.id, _wb={attemptId:att, requestId:uid8(), inputLog:_log, digest:_dg, won:_wn, stars:_st}; wellPendingSave(_wb); try{ r=await api('/api/well/resolve','POST',_wb); }catch(e){ r=null; } if(ACC.id!==_wa) r={error:'offline'}; else wellPendingSettle(_wa,r); }
       if(resultStale(ep)){ if(r&&r.ledger) adoptLedger(r.ledger); return; }
       if(r&&r.ledger) adoptLedger(r.ledger); if(r&&r.ok) WELL.state=r;
       const sWon=!!(r&&r.ok&&r.won), _unv=!!(!r||!r.ok), rw=(r&&r.reward)||null;
@@ -14174,11 +14174,16 @@ setInterval(()=>{
 let VAULT={ st:null, busy:false, pick:null, result:null, salv:null };
 /* 3 Oct audit (Vault F5): a floor result is saved before it is sent; a lost reply (offline) or a refused save (storageFailed) keeps it,
    and the next Vault status read re-sends it with the SAME requestId (the server replays the stored answer) before anything can start a new floor. */
-function vaultPendingKey(){ return 'ew_vaultPending_'+((ACC.profile&&ACC.profile.id)||''); }
-function vaultPendingSave(body){ try{ localStorage.setItem(vaultPendingKey(),JSON.stringify(body)); }catch(e){} }
-function vaultPendingSettle(r){ if(r&&(r.error==='offline'||r.storageFailed)) return; try{ localStorage.removeItem(vaultPendingKey()); }catch(e){} }
-async function vaultResendPending(){ if(!ACC.token) return; let job=null; try{ job=JSON.parse(localStorage.getItem(vaultPendingKey())||'null'); }catch(e){}
-  if(!job||!job.attemptId||!job.requestId) return; const r=await api('/api/dungeon/resolve-battle','POST',job); vaultPendingSettle(r); if(r&&r.ledger) adoptLedger(r.ledger); }
+/* a server answer that settles a saved request: anything but a lost reply (offline), a refused save (storageFailed), a signed-out
+   token (auth) or a reply that is not the server's (null / not an object). Those keep the saved request for an exact re-send. */
+function pendingDefinite(r){ return !!(r&&typeof r==='object'&&r.error!=='offline'&&r.error!=='auth'&&!r.storageFailed&&(r.ok===true||r.ok===false||typeof r.error==='string')); }
+function vaultPendingKey(acct){ return 'ew_vaultPending_'+acct; }
+function vaultPendingSave(body){ const acct=ACC&&ACC.id; if(!acct) return false; try{ const k=vaultPendingKey(acct), v=JSON.stringify(Object.assign({acct},body)); localStorage.setItem(k,v); return localStorage.getItem(k)===v; }catch(e){ return false; } }
+function vaultPendingSettle(acct,r){ if(!acct||!pendingDefinite(r)) return; try{ localStorage.removeItem(vaultPendingKey(acct)); }catch(e){} }
+async function vaultResendPending(){ const acct=ACC&&ACC.id; if(!ACC.token||!acct) return; let job=null; try{ job=JSON.parse(localStorage.getItem(vaultPendingKey(acct))||'null'); }catch(e){}
+  if(!job||job.acct!==acct||!job.attemptId||!job.requestId) return; const body=Object.assign({},job); delete body.acct;
+  const r=await api('/api/dungeon/resolve-battle','POST',body); if(!ACC||ACC.id!==acct) return;   /* a reply for an account that is no longer signed in touches nothing */
+  vaultPendingSettle(acct,r); if(r&&r.ledger) adoptLedger(r.ledger); }
 async function vaultStatus(){ await vaultResendPending(); const r=await api('/api/dungeon/status'); VAULT.st=(r&&r.enabled)?r:{enabled:false}; return VAULT.st; }
 function vaultBossLabel(rule){ if(!rule) return ''; const nm=rule.id.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
   return `<div style="background:#241a2e;border:1px solid #7a5fb0;border-radius:10px;padding:8px 10px;margin:8px 0;font-size:11px">
@@ -23365,11 +23370,13 @@ function wellHeroTag(k){ if(!(CUR&&CUR.mode==='well'&&WELL.state)) return null;
   return { dead, html:`<br><span style="color:${dead?'#ff8b8b':pct<50?'#f0c060':'#8fe39a'};font-size:9px">${dead?'Fallen':'HP '+pct+'%'}${loan?' · Loan':''}</span>` }; }
 /* 3 Oct audit (Well F4): a fight result is saved before it is sent; a lost reply (offline) or a refused save (storageFailed) keeps it,
    and the next Well load re-sends it with the SAME requestId (the server replays the stored answer) before reading the state. */
-function wellPendingKey(){ return 'ew_wellPending_'+((ACC.profile&&ACC.profile.id)||''); }
-function wellPendingSave(body){ try{ localStorage.setItem(wellPendingKey(),JSON.stringify(body)); }catch(e){} }
-function wellPendingSettle(r){ if(r&&(r.error==='offline'||r.storageFailed)) return; try{ localStorage.removeItem(wellPendingKey()); }catch(e){} }
-async function wellResendPending(){ let job=null; try{ job=JSON.parse(localStorage.getItem(wellPendingKey())||'null'); }catch(e){}
-  if(!job||!job.attemptId||!job.requestId) return; const r=await api('/api/well/resolve','POST',job); wellPendingSettle(r); if(r&&r.ledger) adoptLedger(r.ledger); }
+function wellPendingKey(acct){ return 'ew_wellPending_'+acct; }
+function wellPendingSave(body){ const acct=ACC&&ACC.id; if(!acct) return false; try{ const k=wellPendingKey(acct), v=JSON.stringify(Object.assign({acct},body)); localStorage.setItem(k,v); return localStorage.getItem(k)===v; }catch(e){ return false; } }
+function wellPendingSettle(acct,r){ if(!acct||!pendingDefinite(r)) return; try{ localStorage.removeItem(wellPendingKey(acct)); }catch(e){} }
+async function wellResendPending(){ const acct=ACC&&ACC.id; if(!ACC.token||!acct) return; let job=null; try{ job=JSON.parse(localStorage.getItem(wellPendingKey(acct))||'null'); }catch(e){}
+  if(!job||job.acct!==acct||!job.attemptId||!job.requestId) return; const body=Object.assign({},job); delete body.acct;
+  const r=await api('/api/well/resolve','POST',body); if(!ACC||ACC.id!==acct) return;   /* a reply for an account that is no longer signed in touches nothing */
+  wellPendingSettle(acct,r); if(r&&r.ledger) adoptLedger(r.ledger); }
 async function wellRefresh(){ if(!ACC.token) return null; await wellResendPending(); const r=await api('/api/well/state','GET'); if(r&&r.ok){ WELL.state=r; if(r.ledger) adoptLedger(r.ledger); } return (r&&r.ok)?r:null; }
 function wellBackToMap(){ show('home'); setTimeout(()=>{ try{ openWell(); }catch(e){} },0); }
 async function openWell(){
@@ -26265,7 +26272,7 @@ function edLoadCatalog(){ if(ED.cat && Object.keys(ED.cat).length) return Promis
 /* ------------------------------------------------------------------------------------------ the lobby (Island entry) */
 const ED_TITLE_ART='/assets/img/battlefields/emberdraft/title.webp';   // v610 Hailuo key art for the title screen (2400x1029)
 const ED_TITLE_PED={ x:0.497, y:0.636, h:0.40, ar:2400/1029 };   // where the painted pedestal's top is (image fractions) and how tall the avatar stands on it
-const ED_BUY_RID={id:null};
+const ED_BUY_RID={id:null,acct:null};
 function openEmberdraft(){
   /* the Gauntlet is retired from the Island: a run left open there is banked, never lost */
   try{ if(typeof gauntRestore==='function'){ gauntRestore(); if(typeof _gaunt!=='undefined'&&_gaunt&&_gaunt.alive){ gauntBank(); _gaunt.alive=false; gauntSave(); } } }catch(e){}
@@ -26417,8 +26424,8 @@ function openEmberdraft(){
   else attEl.textContent='Practice match — sign in to earn stamina';
   buy.onclick=()=>gameConfirm(`Buy <b>${buy.dataset.pack||3} more Emberdraft attempts</b> for <b style="color:#c9b6ff">💎${buy.dataset.cost||''}</b>?`, ()=>{ buy.disabled=true;   /* v646: one tap spent diamonds */
     /* 3 Oct audit: one requestId per purchase until a definite answer - a lost reply (offline) or a refused save (storageFailed) re-sends the SAME id, even after the overlay is reopened */
-    const rid=ED_BUY_RID.id||(ED_BUY_RID.id=uid8());
-    api('/api/emberdraft/buy','POST',{requestId:rid}).then(d=>{ buy.disabled=false; if(!(d&&(d.error==='offline'||d.storageFailed))) ED_BUY_RID.id=null;
+    if(ED_BUY_RID.acct!==ACC.id){ ED_BUY_RID.id=null; ED_BUY_RID.acct=ACC.id; } const rid=ED_BUY_RID.id||(ED_BUY_RID.id=uid8()), _ea=ACC.id;
+    api('/api/emberdraft/buy','POST',{requestId:rid}).then(d=>{ buy.disabled=false; if(ACC.id!==_ea) return; if(pendingDefinite(d)) ED_BUY_RID.id=null;
     try{ if(d&&d.ledger) adoptLedger(d.ledger); updateHubChrome(); }catch(e){} show(d&&d.edraft, d&&d.ok?'':edNiceErr(d&&d.error,'Could not buy attempts.')); }); });
   solo.onclick=()=>{ if(!signed){ ov.remove(); edNewGame(null); return; }
     solo.disabled=true; ov.dataset.busy='1'; ov._startReq=ov._startReq||uid8();   /* v646: one request id until the server answers - a lost reply can't spend a second attempt */
