@@ -14153,7 +14153,9 @@ function vaultPendingHeld(){ const acct=ACC&&ACC.id; if(!acct) return false; if(
 async function vaultStatus(){ await vaultResendPending(); const r=await api('/api/dungeon/status');
   /* 3 Oct audit (Vault F6): a reply that is not the server's status (offline / 429 / auth / null) no longer reads as "Vault disabled" - that
      rendered the legacy Challenge Dungeon. Server answers are handled exactly as before. */
-  VAULT.st=(r&&typeof r==='object'&&typeof r.enabled==='boolean')?(r.enabled?r:{enabled:false}):{enabled:false,unreachable:true}; return VAULT.st; }
+  /* Phil 3 Oct (question 9, "make the game consistent no bugs man, plug that"): the server's locked answer (under level 10) is kept, so the
+     v364 'Vault is sealed' screen shows - it used to be flattened to 'disabled' and opened the legacy Challenge Dungeon instead. */
+  VAULT.st=(r&&typeof r==='object'&&typeof r.enabled==='boolean')?((r.enabled||r.locked)?r:{enabled:false}):{enabled:false,unreachable:true}; return VAULT.st; }
 function vaultBossLabel(rule){ if(!rule) return ''; const nm=rule.id.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
   return `<div style="background:#241a2e;border:1px solid #7a5fb0;border-radius:10px;padding:8px 10px;margin:8px 0;font-size:11px">
     <b style="color:#c9a2ff">${rule.gatekeeper?'⛩ GATEKEEPER — ':''}👑 ${nm}${rule.ascended?' (Ascended)':''}</b><br><span style="color:#8b98a9">${escapeHTML(rule.warn||'')}</span></div>`; }
