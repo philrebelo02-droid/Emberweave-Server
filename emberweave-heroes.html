@@ -12627,7 +12627,7 @@ function endBattle(won){
   if(CUR.mode==='well'){ const att=CUR.attemptId, Wl=CUR.well||{}; CUR.attemptId=null;   /* v825 Starless Well */
     const _log=(INPUT_LOG||[]).slice(0,400), _dg=(window._p2lastDigest||null), _wn=(window._p2lastWon===true), _st=(window._p2lastStars|0);
     resultLater(async(ep)=>{ let r=null;
-      if(att&&ACC.token){ try{ r=await api('/api/well/resolve','POST',{attemptId:att, requestId:uid8(), inputLog:_log, digest:_dg, won:_wn, stars:_st}); }catch(e){ r=null; } }
+      if(att&&ACC.token){ const _wb={attemptId:att, requestId:uid8(), inputLog:_log, digest:_dg, won:_wn, stars:_st}; wellPendingSave(_wb); try{ r=await api('/api/well/resolve','POST',_wb); }catch(e){ r=null; } wellPendingSettle(r); }
       if(resultStale(ep)){ if(r&&r.ledger) adoptLedger(r.ledger); return; }
       if(r&&r.ledger) adoptLedger(r.ledger); if(r&&r.ok) WELL.state=r;
       const sWon=!!(r&&r.ok&&r.won), _unv=!!(!r||!r.ok), rw=(r&&r.reward)||null;
@@ -23355,7 +23355,14 @@ function wellHeroTag(k){ if(!(CUR&&CUR.mode==='well'&&WELL.state)) return null;
   const h=(WELL.state.heroes||{})[k], loan=wellLoan(k)&&!G.unlocked[k]; if(!h&&!loan) return null;
   const dead=!!(h&&h.dead), pct=h?Math.round(h.hpFrac*100):100;
   return { dead, html:`<br><span style="color:${dead?'#ff8b8b':pct<50?'#f0c060':'#8fe39a'};font-size:9px">${dead?'Fallen':'HP '+pct+'%'}${loan?' · Loan':''}</span>` }; }
-async function wellRefresh(){ if(!ACC.token) return null; const r=await api('/api/well/state','GET'); if(r&&r.ok){ WELL.state=r; if(r.ledger) adoptLedger(r.ledger); } return (r&&r.ok)?r:null; }
+/* 3 Oct audit (Well F4): a fight result is saved before it is sent; a lost reply (offline) or a refused save (storageFailed) keeps it,
+   and the next Well load re-sends it with the SAME requestId (the server replays the stored answer) before reading the state. */
+function wellPendingKey(){ return 'ew_wellPending_'+((ACC.profile&&ACC.profile.id)||''); }
+function wellPendingSave(body){ try{ localStorage.setItem(wellPendingKey(),JSON.stringify(body)); }catch(e){} }
+function wellPendingSettle(r){ if(r&&(r.error==='offline'||r.storageFailed)) return; try{ localStorage.removeItem(wellPendingKey()); }catch(e){} }
+async function wellResendPending(){ let job=null; try{ job=JSON.parse(localStorage.getItem(wellPendingKey())||'null'); }catch(e){}
+  if(!job||!job.attemptId||!job.requestId) return; const r=await api('/api/well/resolve','POST',job); wellPendingSettle(r); if(r&&r.ledger) adoptLedger(r.ledger); }
+async function wellRefresh(){ if(!ACC.token) return null; await wellResendPending(); const r=await api('/api/well/state','GET'); if(r&&r.ok){ WELL.state=r; if(r.ledger) adoptLedger(r.ledger); } return (r&&r.ok)?r:null; }
 function wellBackToMap(){ show('home'); setTimeout(()=>{ try{ openWell(); }catch(e){} },0); }
 async function openWell(){
   let ov=document.getElementById('wlMap'); if(ov) ov.remove();

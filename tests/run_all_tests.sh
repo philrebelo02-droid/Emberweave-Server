@@ -95,6 +95,8 @@ note "test_witch_client_rid.js (3 Oct audit: Witches Hut keeps one requestId unt
 node tests/test_witch_client_rid.js || FAILED=1
 note "test_ed_buy_rid.js (3 Oct audit: Emberdraft buy keeps one requestId until a definite answer)"
 node tests/test_ed_buy_rid.js || FAILED=1
+note "test_well_pending_resend.js (3 Oct audit: a lost Well result is re-sent with the same requestId on the next Well load)"
+node tests/test_well_pending_resend.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi
