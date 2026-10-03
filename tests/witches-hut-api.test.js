@@ -285,7 +285,9 @@ async function run() {
     const L=require('../server/world-location.js');
     const expectedDistance=Math.max(1,Math.round(Math.hypot(
       secondNode.gx-L.cellIndex(castle.x),secondNode.gy-L.cellIndex(castle.y))));
-    assert.equal(timed.travel,expectedDistance*60000,'real travel uses the server-assigned castle square');
+    // v881 (Phil 1 Oct): the part of a march inside the Void takes twice as long, so a random castle can cross it
+    const expectedTravel=require('../server/world-void-timing.js').plan(castle,secondNode,expectedDistance*60000).travelMs;
+    assert.equal(timed.travel,expectedTravel,'real travel uses the server-assigned castle square');
     const premature=await request('POST','/api/world/mine/resolve',{
       marchId:timed.marchId,requestId:'mine-too-early'
     },admin.token);
