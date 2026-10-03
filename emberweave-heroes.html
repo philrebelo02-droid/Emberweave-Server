@@ -5273,7 +5273,7 @@ const DEFAULT_G = {
 };
 const JOINABLE_GUILDS=[];   // no pre-made guilds exist yet — players create their own
 // world-map resources
-const RES=[['iron','⛓️','Iron','#c9d1d9'],['crystal','💎','Crystal','#7fe3ff'],['silver','🔗','Silver','#e6e6f0'],['coal','🪨','Coal','#8b98a9']];
+const RES=[['iron','⛓️','Emberite','#c9d1d9'],['crystal','💎','Voidglass','#7fe3ff'],['silver','🔗','Starsilver','#e6e6f0'],['coal','🪨','Cinderwood','#8b98a9']];
 function resMeta(k){ return RES.find(r=>r[0]===k); }
 const NODE_GATHER_MS=8*60*1000; // a node refills 8 min after you gather it
 // AUDIT_MODE(): lets locked buildings/stages be opened for a look — DEVS with GOD MODE ON only
@@ -5329,7 +5329,7 @@ function nextLearn(){ let best=null; for(const k in G.techLearn){ const d=G.tech
 // is any research currently running?
 function learnBusy(){ for(const k in G.techLearn){ if(G.techLearn[k]>Date.now()) return k; } return null; }
 // resource cost to research a track at its current level (needs world-map resources)
-function learnResCost(track,lvl){ const base={atk:{iron:6,coal:4},hp:{silver:6,crystal:3},def:{iron:5,silver:4},armor:{iron:7,coal:3},mr:{crystal:6,silver:3},crit:{crystal:5,coal:4},critres:{silver:5,coal:5}}[track]||{iron:5}; const c={}; for(const k in base) c[k]=base[k]+lvl*2; return c; }
+function learnResCost(track,lvl){ const base={atk:{silver:5,coal:5},ap:{crystal:5,iron:5},hp:{iron:5,silver:5},def:{crystal:5,coal:5},armor:{iron:5,coal:5},mr:{crystal:5,silver:5},crit:{crystal:5,coal:5},critres:{iron:5,silver:5}}[track]||{iron:5}; const c={}; for(const k in base) c[k]=base[k]+lvl*2; return c; }
 function canAffordRes(c){ for(const k in c){ if((G.res[k]||0)<c[k]) return false; } return true; }
 function payRes(c){ for(const k in c){ G.res[k]=(G.res[k]||0)-c[k]; } }
 function resCostStr(c){ return Object.entries(c).map(([k,v])=>resMeta(k)[1]+v).join(' '); }
