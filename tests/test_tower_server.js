@@ -89,6 +89,11 @@ const post=(r,d)=>call(r,'POST',d);
     ok(r.data.ok!==true&&/No earn rule/.test(r.data.error||''),'forged '+what+'/'+reason+' earn refused'); }
   ok((await post('/api/tower/ascend',{requestId:'a0'})).data.error==='Open the Tower of Trials first.','ascend refused before state');
   ok((await post('/api/tower/ascend',{})).status===400,'ascend without requestId refused');
+  // ChatGPT review: request ids are exact strings of 1-48 characters - no coercion, no truncation
+  ok((await post('/api/tower/ascend',{requestId:12345})).status===400,'numeric requestId refused');
+  ok((await post('/api/tower/ascend',{requestId:{a:1}})).status===400,'object requestId refused');
+  ok((await post('/api/tower/tribute',{requestId:'x'.repeat(49)})).status===400,'49-character requestId refused (no truncation collision)');
+  ok((await post('/api/tower/tribute',{requestId:''})).status===400,'empty requestId refused');
   // low level: the gate
   await post('/api/tower/state',{legacyFloor:0});
   ok(/level 40/.test((await post('/api/tower/ascend',{requestId:'lv'})).data.error||''),'level-40 gate');
@@ -96,10 +101,19 @@ const post=(r,d)=>call(r,'POST',d);
   let db=JSON.parse(fs.readFileSync(dbFile,'utf8')); const u=db.users[id];
   u.led.px=99000000; const keys=Object.keys(require('../server/sim.js').HERO_BASE).slice(0,5);
   for(const k of keys) u.led.unlocked[k]=true; u.team=keys.map(k=>({key:k})); u.led.tower={floor:0,trib:'',mig:0,srv:0};
-  fs.writeFileSync(dbFile,JSON.stringify(db)); await start();
+  // an old client-side 'earn:tower' landed TODAY (tower day) -> today's tribute counts as taken after migration
+  u.led.txs=(u.led.txs||[]).concat([{id:'old1',t:Date.now(),src:'earn:tower',d:{gold:432}}]);
+  fs.writeFileSync(dbFile,JSON.stringify(db));
+  // migration under a failing disk: 503 and nothing kept (natural failing control for commit-before-ack)
+  fs.chmodSync(dbFile,0o444); let migFail;
+  try{ await start(); migFail=await post('/api/tower/state',{legacyFloor:3}); } finally { fs.chmodSync(dbFile,0o666); }
+  ok(migFail.status===503&&migFail.data.storageFailed===true,'migration under a failed save answers 503');
+  await delay(300); await stop(); { const d=JSON.parse(fs.readFileSync(dbFile,'utf8')); ok(!(d.users[id].led.tower&&d.users[id].led.tower.mig),'failed migration left nothing on disk'); }
+  await start();
   // migration: a forged huge local floor is capped by power and pays nothing
   const gold0=(await call('/api/ledger')).data; const g0=(gold0.ledger||gold0).gold;
   const st=await post('/api/tower/state',{legacyFloor:4999});
+  ok(st.data.trib===st.data.today,'an old tower earn today fences today\'s tribute');
   const capF=sctx.towerMaxForPower(st.data.power);
   ok(st.data.floor===capF&&capF<4999,'forged legacy floor capped at the power floor ('+capF+')');
   ok(st.data.nextReq===cctx.towerReq(capF+1),'next requirement = client towerReq');
