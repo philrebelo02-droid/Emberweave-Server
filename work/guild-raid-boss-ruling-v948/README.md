@@ -2,7 +2,7 @@
 
 Phil requested pushing all saved bug-fix and balance work on 3 October 2026 so it is not forgotten. This branch is preservation/review only. It does not replace the root game files, deploy anything, or establish that the game is balanced or bug-free.
 
-Current cumulative private server: `private-server-flag-history-hold.js`, SHA256 `ac915324eb523723f2106a49252686285fa5a466578c941932c55bfac0c93c7b`.
+Latest cumulative private server: `private-server-resolve-fields.js`, SHA256 `2fa1a2365607e86d2cb820f67db5a5d9fcada91e41845693c9f0132f3bf9e9d1`. One new guard rejects unknown top-level settlement packet fields, matching the existing client allowlist. Parent `private-server-flag-history-hold.js`, SHA256 `ac915324eb523723f2106a49252686285fa5a466578c941932c55bfac0c93c7b`, naturally accepted an extra field and settled; new candidate refuses400, preserves exact paid attempt/disk across restart and accepts valid exact retry once (09:39:29). New candidate broader regression qualification remains OPEN. No live mechanics change or deployment.
 Current cumulative private client: `private-client-result-numeric.html`, SHA256 `20787649b6707783cfe9c8719f20e53e6f84bbc70162d40440e2020dcf190f5a`.
 
 Preserved fixes include numeric damage/HP overflow handling, start exclusivity, exact settlement ownership, player-reported damage with advisory replay diagnostics, atomic first mismatch-flag persistence, and malformed-history preservation. Certificates distinguish extracted/stubbed functions, synthetic actual HTTP, injected faults, and design-only work. No actual witnessed combat or complete case3/review4 delivery is claimed.

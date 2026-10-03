@@ -1,0 +1,35 @@
+{
+  "atET": "2026-10-03 09:39:29",
+  "helperSHA256": "4adca006e2581a238ceaa5c337e133d1edb9cfb17714afdf74935e5b63120cbe",
+  "parentSHA256": "ac915324eb523723f2106a49252686285fa5a466578c941932c55bfac0c93c7b",
+  "sourceSHA256": "2fa1a2365607e86d2cb820f67db5a5d9fcada91e41845693c9f0132f3bf9e9d1",
+  "guardedChanges": 1,
+  "rows": [
+    {
+      "label": "Natural parent: ignored extra result field still spends settlement",
+      "sourceSHA256": "ac915324eb523723f2106a49252686285fa5a466578c941932c55bfac0c93c7b",
+      "replyStatus": 200,
+      "accepted": true,
+      "rejectedWithoutMutation": false,
+      "validExactRetryAfterRestart": false
+    },
+    {
+      "label": "Extra field400 exact disk and paid attempt retained",
+      "sourceSHA256": "2fa1a2365607e86d2cb820f67db5a5d9fcada91e41845693c9f0132f3bf9e9d1",
+      "replyStatus": 400,
+      "accepted": false,
+      "rejectedWithoutMutation": true,
+      "validExactRetryAfterRestart": true
+    },
+    {
+      "label": "Top-level credential field400 exact disk and paid attempt retained",
+      "sourceSHA256": "2fa1a2365607e86d2cb820f67db5a5d9fcada91e41845693c9f0132f3bf9e9d1",
+      "replyStatus": 400,
+      "accepted": false,
+      "rejectedWithoutMutation": true,
+      "validExactRetryAfterRestart": true
+    }
+  ],
+  "status": "PRIVATE strict top-level settlement field parity with existing client. Natural parent failing control plus corrected refusal/restart/exact valid retry. NOT witnessed combat/fullQ6/balance/deployment.",
+  "limits": "Nested inputLog validation/credential screening, release/expiry, review consumer and balance remain separate open gates."
+}
