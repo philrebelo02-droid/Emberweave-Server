@@ -9469,7 +9469,7 @@ function abilArt(u,o,tgt,aimCtr,type){ window._fxCaster=u; if(o&&o.noArt) return
     const life = o.gdur||1.6;
     for(const t of who.slice(0,15)){ if(!t||!t.alive||!t._sprRef) continue;
       try{ window._fxTgtH=t.sprH; window._fxTgtU=t; window._fxAboveBar=true; window._fxAtH=null;
-           spawnGroundFx(o.gfx, t.x, t.y, 1.2*METER, life); }catch(e){}
+           const _bo=spawnGroundFx(o.gfx, t.x, t.y, 1.2*METER, life); if(_bo&&_bo.m&&t._sprRef){ const _p=new TH.Vector3(); t._sprRef.getWorldPosition(_p); _bo.followAbove=t; _bo.aboveOff=_bo.m.position.clone().sub(_p); } }catch(e){}   /* v953: a field-wide badge rides its unit too, so it joins the v952 stack */
       finally{ window._fxTgtH=null; window._fxTgtU=null; window._fxAboveBar=false; } }
     return;
   }
@@ -25534,7 +25534,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791053957502';
+const BUILD_ID = '1791054903179';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
