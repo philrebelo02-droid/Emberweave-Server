@@ -6200,8 +6200,8 @@ async function api(req,res,url){
     if(req.method!=='POST' && !(req.method==='GET' && p==='/api/emberdraft/state')) return send(res,404,{error:'emberdraft'});   /* 3 Oct audit (Trials #9): state is readable by GET */
     const led=ensureLedger(me); const b=await body(req);
     const ED_FREE=3, ED_PACK=3, ED_PACK_COST=[100,150], ED_STAM=[0,36,30,24,18,12,6,0,0];
-    const dk=nyDayKey(); led.edraft=(led.edraft&&led.edraft.day===dk)?led.edraft:{day:dk,used:0,bought:0,att:(led.edraft&&led.edraft.att)||null,open:(led.edraft&&Array.isArray(led.edraft.open))?led.edraft.open:[]};   /* 3 Oct audit: unclaimed matches survive the day reset */
-    const E=led.edraft; E.used=E.used|0; E.bought=E.bought|0; if(!Array.isArray(E.open)) E.open=[];
+    const dk=nyDayKey(); led.edraft=(led.edraft&&led.edraft.day===dk)?led.edraft:{day:dk,used:0,bought:0,att:(led.edraft&&led.edraft.att)||null,open:(led.edraft&&Array.isArray(led.edraft.open))?led.edraft.open:[],prevAtt:(led.edraft&&led.edraft.prevAtt)||undefined};   /* 3 Oct audit: unclaimed matches survive the day reset */
+    const E=led.edraft; E.used=E.used|0; E.bought=E.bought|0; if(!Array.isArray(E.open)) E.open=[];   if(E.prevAtt){ if(!E.prevAtt.claimed&&!E.open.some(x=>x&&x.id===E.prevAtt.id)&&!(E.att&&E.att.id===E.prevAtt.id)) E.open.push(E.prevAtt); delete E.prevAtt; }   /* 3 Oct: an unclaimed match kept by the older one-slot form (2117b00f) moves into E.open */
     /* v610 (Phil: "during God mode in dev panel I have unlimited tries on the mode"): God Mode is a session switch in the
        dev panel, so the client says god:true - and it only counts for a dev account. Such a start spends no attempt. */
     const god = b.god===true && isDev(me);

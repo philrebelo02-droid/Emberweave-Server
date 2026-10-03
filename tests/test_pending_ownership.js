@@ -66,6 +66,13 @@ function site(kind,route,refresh){
       ok(typeof vm.runInContext('typeof '+H,c)==='string'&&vm.runInContext('typeof '+H,c)==='function',kind+': a held check exists');
       c.p={attemptId:'a1',requestId:'rA'}; vm.runInContext(S()+'(p)',c); ok(vm.runInContext(H+'()',c)===true,kind+': held while unsent');
       vm.runInContext(ST+'("A",{ok:true},"rA")',c); ok(vm.runInContext(H+'()',c)===false,kind+': released by a definite answer'); }
+
+    // 11 a new sign-in of the SAME account (token changed) while a reply is in flight: the request still settles, the old ledger is not adopted
+    { const {c,slots,adopted}=site(kind,route); c.p={attemptId:'a1',requestId:'rT'}; vm.runInContext(S()+'(p)',c);
+      c.api=async()=>{ c.ACC={token:'A-token-2',id:'A'}; return {ok:true,ledger:{rev:1}}; };
+      await vm.runInContext(R+'()',c);
+      ok(slots.size===0,kind+': the answered request settles after a same-account re-sign-in');
+      ok(adopted.length===0,kind+': the ledger of an older reply is not adopted after a re-sign-in'); }
     // 4 local save fails -> still sends (end path) - checked on the source: the save result is not a gate on the send
     { const {c}=site(kind,route); c.localStorage.setItem=()=>{ throw Error('quota'); }; c.p={attemptId:'a1',requestId:'rA'};
       ok(vm.runInContext(S()+'(p)',c)===false,kind+': a failed local save reports false');
