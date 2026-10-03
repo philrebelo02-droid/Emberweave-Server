@@ -10671,7 +10671,7 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
       for(let i=0;i<n && foes.length;i++){ const k=Math.floor(brnd()*foes.length); const e=foes.splice(k,1)[0];
         groundHazards.push({arrival:true,delay:0.3+i*0.12,run:function(){ if(!e.alive)return; dealDamage(u,e,_sb,'#f2e07a','magic'); burstAt(e.x,e.y,0xf2d84a,10); ringBurst(e.x,e.y,0xfff0a0,6); try{ if(typeof spawnGroundFx==='function'&&e.sprH){ _fxAllow=true; window._fxTgtH=e.sprH; window._fxTgtU=e._sprRef?e:null; spawnGroundFx('fritz_green',e.x,e.y,3*METER,STORM_STRIKE_LIFE); } }catch(_){} finally{ _fxAllow=false; window._fxTgtH=null; window._fxTgtU=null; } }});   /* v958: each bolt brings its own cloud+strike on the foe it hits, as it lands */ }
       floatTexts.push({x:u.x,y:u.y-12,txt:'STORM SURGE',t:.9,color:'#f2e07a',vy:1,sz:12}); if(u.team==='ally')screenFlash=Math.max(screenFlash,.18); break; }
-    case 'chainlight':{ let cur=(tgt&&tgt.alive)?tgt:nearestEnemy(u); if(!cur)break; const hit=new Set(); let dmg=apB*(o.mul||1.1)*rm; const jumps=o.jumps||4, dec=o.decay||0.8; let prev=u;
+    case 'chainlight':{ let cur=(tgt&&tgt.alive)?tgt:nearestEnemy(u); if(!cur)break; floatTexts.push({x:u.x,y:u.y-12,txt:'CHAIN LIGHTNING',t:.9,color:'#bfe6ff',vy:1,sz:12});   /* v960 (Phil: "Fritz never casts his blue at all" - it did cast, but unlike Storm Surge it showed no name, so it was invisible in a fight) */ const hit=new Set(); let dmg=apB*(o.mul||1.1)*rm; const jumps=o.jumps||4, dec=o.decay||0.8; let prev=u;
       for(let j=0;j<jumps && cur;j++){ hit.add(cur); dealDamage(u,cur,dmg,'#bfe6ff'); burstAt(cur.x,cur.y,0x9fd0ff,8); if(prev){ if(!spawnBoltFx(prev,cur,'#cfe8ff')) spawnShot(prev,cur,'#bfe6ff'); } prev=cur;   /* v958: a glowing bolt per jump */ dmg*=dec;
         let nxt=null,nd=1e9; enemiesOf(u).forEach(e=>{ if(!hit.has(e)){ const d=dist(cur,e); if(d<nd&&d<4*METER){nd=d;nxt=e;} } }); cur=nxt; }
       break; }
@@ -25570,7 +25570,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791057790946';
+const BUILD_ID = '1791058180904';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
