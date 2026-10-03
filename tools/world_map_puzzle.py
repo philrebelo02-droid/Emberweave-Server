@@ -15,7 +15,8 @@ def bounds(size: int, index: int) -> tuple[int, int]:
     return round(index * size / 3), round((index + 1) * size / 3)
 
 
-def make_piece(parent: Path, row: int, col: int, candidate: Path | None, output: Path) -> None:
+def make_piece(parent: Path, row: int, col: int, candidate: Path | None, output: Path,
+               edge_guard: int = 24, blend_width: int = 120) -> None:
     with Image.open(parent) as src:
         src = src.convert("RGB")
         if src.width != src.height:
@@ -31,8 +32,9 @@ def make_piece(parent: Path, row: int, col: int, candidate: Path | None, output:
             rendered = rendered.convert("RGB")
             if rendered.size != base.size:
                 raise ValueError("The candidate must be the same pixel size as the parent")
-            # Keep a 24-pixel exact guard and blend the next 120 pixels. The
-            # generated detail can never replace a pixel at the piece boundary.
+            # Keep the exact approved boundary, then blend into generated detail.
+            # New full-focus candidates can use a much narrower transition than
+            # the historical 24+120-pixel soft band.
             w, h = base.size
             mask = Image.new("L", (w, h), 0)
             p = mask.load()
@@ -40,7 +42,7 @@ def make_piece(parent: Path, row: int, col: int, candidate: Path | None, output:
                 dy = min(y, h - 1 - y)
                 for x in range(w):
                     d = min(x, w - 1 - x, dy)
-                    t = max(0.0, min(1.0, (d - 24) / 120))
+                    t = max(0.0, min(1.0, (d - edge_guard) / blend_width))
                     p[x, y] = round(255 * t * t * (3 - 2 * t))
             piece = Image.composite(rendered, base, mask)
 
@@ -61,5 +63,10 @@ if __name__ == "__main__":
     ap.add_argument("--col", type=int, required=True, choices=range(3))
     ap.add_argument("--candidate", type=Path)
     ap.add_argument("--output", type=Path, required=True)
+    ap.add_argument("--edge-guard", type=int, default=24)
+    ap.add_argument("--blend-width", type=int, default=120)
     args = ap.parse_args()
-    make_piece(args.parent, args.row, args.col, args.candidate, args.output)
+    if args.edge_guard < 0 or args.blend_width < 1:
+        ap.error("edge guard must be nonnegative and blend width must be positive")
+    make_piece(args.parent, args.row, args.col, args.candidate, args.output,
+               args.edge_guard, args.blend_width)
