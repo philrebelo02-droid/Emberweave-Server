@@ -5337,7 +5337,7 @@ function acadRatePerHour(lvl){ return ACAD_RATE[Math.max(0,Math.min(ACADEMY_MAX,
 function learnResCost(track,lvl){ if(track==='academy'){ const n=ACAD_COST[(lvl|0)]||0; return {iron:n,crystal:n,silver:n,coal:n}; } const base={atk:{silver:5,coal:5},ap:{crystal:5,iron:5},hp:{iron:5,silver:5},def:{crystal:5,coal:5},armor:{iron:5,coal:5},mr:{crystal:5,silver:5},crit:{crystal:5,coal:5},critres:{iron:5,silver:5}}[track]||{iron:5}; const c={}; for(const k in base) c[k]=base[k]+lvl*2; return c; }
 function canAffordRes(c){ for(const k in c){ if((G.res[k]||0)<c[k]) return false; } return true; }
 function payRes(c){ for(const k in c){ G.res[k]=(G.res[k]||0)-c[k]; } }
-function resCostStr(c){ return Object.entries(c).map(([k,v])=>resMeta(k)[1]+v).join(' '); }
+function resCostStr(c){ return Object.entries(c).map(([k,v])=>resMeta(k)[1]+(+v).toLocaleString()).join(' '); }
 let G = JSON.parse(JSON.stringify(DEFAULT_G));
 function saveGLocalOnly(){ try{ localStorage.setItem('emberweave_save_v08', JSON.stringify(G)); }catch(e){} }
 function saveG(){ G.mtime=Date.now(); saveGLocalOnly(); if(ACC.token) cloudSync(); }
@@ -19418,7 +19418,7 @@ function renderTech(){
   const acadLocked=!isAcad && lvl>=(G.tech.academy||0) && lvl<TECH_MAX;   // can't research a tech above your Academy level
   const flat=!!TECH_FLAT[k];
   let per, now, perStr, nowStr;
-  if(isAcad){ per=2; now=Math.round(academySpeedup()*100); perStr='−2%'; nowStr='−'+now+'%'; }   // Academy speeds research
+  if(isAcad){ per=lvl<30?2:0; now=Math.round(academySpeedup()*100); perStr='−'+per+'%'; nowStr='−'+now+'%'; }   // the speed-up stops at −60% (Lv 30)   // Academy speeds research
   else { per=techGainAt(k,lvl); now=techTotal(k,lvl); const unit=flat?'':'%'; perStr='+'+(flat?per.toFixed(1):per.toFixed(2))+unit; nowStr='+'+(flat?Math.round(now):now.toFixed(1))+unit; }
   let btn;
   if(maxed){ btn=`<button class="btn secondary" disabled>MAX · Lv ${tmax}</button>`; }
@@ -19441,7 +19441,7 @@ function renderTech(){
       if(r&&r.completesAt){ G.techLearn[k]=r.completesAt; if(r.res) G.res=Object.assign({},G.res,r.res); if(r.ledger&&r.ledger.gold!=null) G.gold=r.ledger.gold; saveGLocalOnly(); updateHubChrome(); renderTech(); }
       return; }
     if(G.gold>=cost&&canAffordRes(rc)){ if(!(await txSpend('gold',cost,'tech')))return; payRes(rc); G.techLearn[k]=Date.now()+learnDur(lvl); saveG(); updateHubChrome(); renderTech(); } };
-  p.insertAdjacentHTML('beforeend','<div style="font-size:11px;color:#6f7d90;margin-top:10px;text-align:center">No tech can exceed your <b>Academy</b> level — raise the Academy to unlock higher tiers. Upgrading it also speeds up all research. Research needs gold + resources (mine them from the <b>World Map</b> via the City Wall).</div>');
+  /* 3 Oct 2026: the explanatory footer is gone (Phil's no-hint rule: a panel shows data and controls) */
 }
 /* ===================== ONLINE: accounts, arena, world ===================== */
 let ACC={token:null,name:null,rank:null,coins:0,id:null,created:0};
@@ -21102,7 +21102,7 @@ function mineYield(res,level){ return Math.round((40+level*55) * (1 + (level-1)*
    HAS built into their heroes now counts toward passing a gate that never counted any of it. */
 const POWER_SCALE=1.4276;
 function mineReqPower(level){ return Math.round(300*Math.pow(1.75,level-1)*POWER_SCALE); }   // L1 428 … L5 ~3926
-function mineReqLevel(level){ return [1,8,16,26,36,44,52,58][level-1]||1; }                    // hero-level gate per tier (1-8)
+function mineReqLevel(level){ return [1,8,16,26,36,44,52,58,66,74][level-1]||1; }              // hero-level gate per tier (1-10; Phil 3 Oct: region 1-6, wild 7-10)
 function mineGatherMs(level){ return (20+level*18)*60000; }                                   // L1 38min … L5 110min gathering
 // each mine is guarded by 5 monsters (deterministic per node) — you must beat them to mine it
 function mineGarrison(m){ const rows=['tank','fighter','fighter','mid','back'], lvl=mineReqLevel(m.level), rank=Math.min(3,Math.floor((m.level-1)/2));
@@ -21130,15 +21130,15 @@ function worldMines(){ const ep=mineEpoch(); if(_mineCache&&_mineCacheEpoch===ep
     occupied.add(square);
     const fx=(gx-ZONE_EDGES[z.col])/(ZONE_EDGES[z.col+1]-ZONE_EDGES[z.col]);
     const fy=(gy-ZONE_EDGES[z.row])/(ZONE_EDGES[z.row+1]-ZONE_EDGES[z.row]);
-    let level;
+    let level; const ten=ep>=62184;   // server/world-mines.js TERRAIN_CUTOVER_EPOCH: older fields keep their legacy levels
     if(z.type==='region'){
       const edge=Math.min(fx,1-fx,fy,1-fy);              // distance to the nearest region edge
-      if(edge<0.16) level=4;                              // level 4 near the Region's edge
-      else { const r=rnd(); level=r<0.45?1:r<0.78?2:3; } // else level 1-3 inside the Region
+      if(edge<0.16) level=ten?6:4;                        // level 6 near the Region's edge (Phil 3 Oct; 4 in fields before the terrain cutover)
+      else { const r=rnd(); level=ten?(r<0.30?1:r<0.55?2:r<0.75?3:r<0.90?4:5):(r<0.45?1:r<0.78?2:3); } // else level 1-5 inside the Region
     } else {   // wild zone
       const regEdge=(z.row===0||z.row===2)?Math.min(fx,1-fx):Math.min(fy,1-fy);   // edges shared with the Regions
-      if(regEdge<0.20) level=5;                           // level 5 near the Wild's edge bordering the Regions
-      else { const r=rnd(); level=r<0.4?6:r<0.75?7:8; }  // level 6-8 deep in the Wild
+      if(regEdge<0.20) level=ten?7:5;                     // level 7 near the Wild's edge bordering the Regions (Phil 3 Oct)
+      else { const r=rnd(); level=ten?(r<0.4?8:r<0.75?9:10):(r<0.4?6:r<0.75?7:8); } // level 8-10 deep in the Wild
     }
     const res=resKeys[Math.floor(rnd()*resKeys.length)];
     out.push({ id:'mn'+ep+'_'+out.length, res, level, gx, gy, x, y, region:zk });
