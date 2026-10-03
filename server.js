@@ -21,6 +21,7 @@ const HERO_PATHS=require('./hero-paths.js');
 const HERO_PERSONAL_GLYPH_PATHS=require('./server/hero-personal-glyph-paths.json');
 const HERO_ASCENSION_BONUSES=require('./server/hero-ascension-bonuses.json');
 const WITCH=require('./server/witches-hut.js');
+const ACADEMY_ECON=require('./server/academy-economy.js');   // Phil 3 Oct 2026: Academy level costs, hourly income, Hut upgrade cost
 const WORLD_MINES=require('./server/world-mines.js');
 const WORLD_MARCH_STATE=require('./server/world-march-state.js');
 const WORLD_MARCH_ROUTE=require('./server/world-march-route.js');
@@ -1138,7 +1139,8 @@ function techGainSrv(k,lvl){ return (TECH_BASE_SRV[k]!=null?TECH_BASE_SRV[k]:0.1
 function techTotalSrv(A,k){ const lvl=(A&&A.lv&&A.lv[k])|0; let v=0; for(let i=0;i<lvl;i++) v+=techGainSrv(k,i); return v; }
 function learnDurSrv(lvl,acadLvl){ return Math.round((120+lvl*lvl*45)*1000*(1-Math.min(0.6,(acadLvl|0)*0.02))); }
 const RES_NAMES={iron:'Emberite',crystal:'Voidglass',silver:'Starsilver',coal:'Cinderwood'};   // Phil 3 Oct 2026 "Set a is good": player-facing names; keys unchanged
-function learnResCostSrv(track,lvl){ const base={atk:{silver:5,coal:5},ap:{crystal:5,iron:5},hp:{iron:5,silver:5},def:{crystal:5,coal:5},armor:{iron:5,coal:5},mr:{crystal:5,silver:5},crit:{crystal:5,coal:5},critres:{iron:5,silver:5}}[track]||{iron:5}; const c={}; for(const k in base) c[k]=base[k]+lvl*2; return c; }
+function learnResCostSrv(track,lvl){ if(track==='academy'){ const n=ACADEMY_ECON.levelCost((lvl|0)+1), c={}; for(const r of ACADEMY_ECON.RESOURCES) c[r]=n; return c; }   /* Phil 3 Oct: the Academy level costs all four, equal */
+  const base={atk:{silver:5,coal:5},ap:{crystal:5,iron:5},hp:{iron:5,silver:5},def:{crystal:5,coal:5},armor:{iron:5,coal:5},mr:{crystal:5,silver:5},crit:{crystal:5,coal:5},critres:{iron:5,silver:5}}[track]||{iron:5}; const c={}; for(const k in base) c[k]=base[k]+lvl*2; return c; }
 const ACADEMY_CUTOFF=1787841600000;   // v249 deploy: earlier accounts seed once from their save; new accounts start at zero
 function ensureAcad(u){ const led=ensureLedger(u);
   if(led.acad) return led.acad;
@@ -1147,8 +1149,23 @@ function ensureAcad(u){ const led=ensureLedger(u);
     const t=sv.tech||{}; for(const k of ACAD_TRACKS){ const v=t[k]|0; if(v>0) A.lv[k]=Math.min(TECH_MAX_SRV,v); }
     const r=sv.res||{}; for(const k of ['iron','crystal','silver','coal']){ if((r[k]|0)>0) A.res[k]=Math.min(99999,r[k]|0); } }
   led.acad=A; led.rev++; return A; }
+function acadTrackMax(track){ return track==='academy'?ACADEMY_ECON.MAX_LEVEL:TECH_MAX_SRV; }   /* Phil 3 Oct: Academy to 120; stat tracks stay at 60 */
+/* Phil 3 Oct 2026: the Academy level pays all four resources per hour, free (its next upgrade's cost over 24 + 2(N-1) h, never less
+   than the level below). Whole units only; incAt keeps the remainder, so nothing is paid twice or lost. Level 0 earns nothing and
+   does not bank time. */
+function acadIncome(A,until){
+  if(!(A.incAt>0)){ A.incAt=until; return true; }
+  if(A.incAt>=until) return false;
+  const lv=A.lv.academy|0;
+  if(!(ACADEMY_ECON.ratePerHour(lv)>0)){ const moved=A.incAt!==until; A.incAt=until; return moved; }
+  const e=ACADEMY_ECON.earned(lv,A.incAt,until); if(!(e.units>0)) return false;
+  for(const r of ACADEMY_ECON.RESOURCES) A.res[r]=(A.res[r]|0)+e.units;
+  A.incAt+=e.usedMs; return true; }
 function acadCollect(A){ let changed=false; const now=Date.now();
-  for(const k in A.learn){ const done=A.learn[k]; if(done&&now>=done){ A.lv[k]=Math.min(TECH_MAX_SRV,(A.lv[k]|0)+1); delete A.learn[k]; changed=true; } }
+  if(!(A.incAt>0)){ A.incAt=now; changed=true; }   // income starts the first time the Academy is touched - never back-paid
+  const ad=A.learn&&A.learn.academy; if(ad&&now>=ad) changed=acadIncome(A,ad)||changed;   // the old level earns up to the moment it finished
+  for(const k in A.learn){ const done=A.learn[k]; if(done&&now>=done){ A.lv[k]=Math.min(acadTrackMax(k),(A.lv[k]|0)+1); delete A.learn[k]; changed=true; } }
+  changed=acadIncome(A,now)||changed;
   return changed; }
 function acadCombat(u){ const led=u&&u.led; if(!led||!led.acad) return null; const A=led.acad;
   return { atkFlat:Math.round(techTotalSrv(A,'atk')), hpFlat:Math.round(techTotalSrv(A,'hp')),
@@ -2073,11 +2090,19 @@ function witchState(u,now){
   WITCH.shopRefresh(u.witch,nyDayKey(now));
   return {state:u.witch,capacity:cap,playerLevel:level};
 }
+const WITCH_MAX_LEVEL=100;   // witchBenchmarkCapacity stops growing at 100
+function witchUpgradeOffer(w,A){
+  const level=(w.state.level|0)+1;
+  if(level>WITCH_MAX_LEVEL) return {maxed:true};
+  const each=ACADEMY_ECON.hutUpgradeCost(level), cost={}; for(const r of ACADEMY_ECON.RESOURCES) cost[r]=each;
+  return {level,cost,brewFraction:0.75,needPlayerLevel:level>w.playerLevel?level:0,
+    affordable:ACADEMY_ECON.RESOURCES.every(r=>(A.res[r]|0)>=each)};
+}
 function witchView(u,now){
   const w=witchState(u,now);
   if(!w) return {ok:true,locked:true,unlockLevel:WITCH.UNLOCK_LEVEL,
     playerLevel:ledPlayerLevel(ensureLedger(u))};
-  const led=ensureLedger(u);
+  const led=ensureLedger(u), A=ensureAcad(u); acadCollect(A);   // the Hut spends the Academy's resources
   const heroes=Object.keys(led.unlocked||{}).filter(k=>led.unlocked[k]&&SIM.HERO_BASE[k])
     .map(key=>{ const power=heroCardPower(u,key), hp=WITCH.health(w.state,key);
       return {key,power,hp,healCost:Math.ceil(power*0.1*(WITCH.HP_FULL-hp)/WITCH.HP_FULL),
@@ -2086,7 +2111,8 @@ function witchView(u,now){
   return {ok:true,locked:false,level:w.state.level,playerLevel:w.playerLevel,
     brew:w.state.brew,capacity:w.capacity,refillMs:WITCH.TICK_MS*WITCH.FULL_TICKS,
     heroes,offer:WITCH.shopOffer(w.state),shopUses:w.state.shopUses,
-    surgeUntil:w.state.surgeUntil,ledger:ledgerView(u)};
+    surgeUntil:w.state.surgeUntil,ledger:ledgerView(u),
+    upgrade:witchUpgradeOffer(w,A),res:Object.assign({},A.res)};
 }
 /* the line's own heroes are already resolved units - price them the same way. The skill bonus and
    the glyph tier ride on the OWNER, so a line is priced through heroCardPower where the owner is
@@ -5271,7 +5297,7 @@ async function api(req,res,url){
     if(rateLimited(req,'witchstate',60,60000)) return send(res,429,{error:'Slow down — too many requests.'});   /* 3 Oct audit (Hut #12): each read recomputes every hero's power; the panel reads once per open */
     return send(res,200,witchView(me,Date.now()));
   }
-  if(['/api/witch/heal','/api/witch/heal-all','/api/witch/buy-brew'].includes(p) && req.method==='POST'){
+  if(['/api/witch/heal','/api/witch/heal-all','/api/witch/buy-brew','/api/witch/upgrade'].includes(p) && req.method==='POST'){
     if(!me) return send(res,401,{error:'auth'});
     const b=await body(req), rid=String(b.requestId||'').slice(0,48);
     if(!rid) return send(res,400,{error:'requestId required'});
@@ -5295,6 +5321,17 @@ async function api(req,res,url){
         const results=WITCH.healAll(w.state,heroes,w.capacity,now).filter(h=>h.spent>0);
         if(!results.length) return {ok:false,error:'No damaged heroes at your city could be healed.'};
         return {ok:true,results,witch:witchView(me,now)};
+      }
+      if(p==='/api/witch/upgrade'){   /* Phil 3 Oct 2026: Academy resources at half the Academy upgrade, plus 75% of the current brew */
+        const A=ensureAcad(me); acadCollect(A);
+        const up=witchUpgradeOffer(w,A);
+        if(up.maxed) return {ok:false,error:'The Witches Hut is at its highest level.'};
+        if(up.needPlayerLevel) return {ok:false,error:'Reach player level '+up.needPlayerLevel+' first.'};
+        if(b.level!=null && (b.level|0)!==up.level) return {ok:false,error:'The Hut level changed. Open the Hut again.'};   // a stale panel never buys a second level
+        for(const r of ACADEMY_ECON.RESOURCES){ if((A.res[r]|0)<up.cost[r]) return {ok:false,error:'Not enough '+(RES_NAMES[r]||r)+'.'}; }
+        for(const r of ACADEMY_ECON.RESOURCES) A.res[r]-=up.cost[r];
+        const brewSpent=w.state.brew*0.75; w.state.brew=Math.max(0,w.state.brew-brewSpent); w.state.level=up.level;
+        return {ok:true,result:{level:up.level,cost:up.cost,brewSpent},witch:witchView(me,now)};
       }
       const offer=WITCH.shopOffer(w.state);
       if(!offer || b.tier!==offer.tier) return {ok:false,error:'That brew offer is not available.'};
@@ -6589,13 +6626,13 @@ async function api(req,res,url){
     if(!me) return send(res,401,{error:'auth'});
     const led=p==='/api/pvp/attack'?null:ensureLedger(me); const A=p==='/api/pvp/attack'?null:ensureAcad(me);
     if(A)acadCollect(A);   // finished research applies on every touch
-    if(p==='/api/academy') return send(res,200,{ lv:A.lv, learn:A.learn, res:A.res, max:TECH_MAX_SRV });
+    if(p==='/api/academy') return send(res,200,{ lv:A.lv, learn:A.learn, res:A.res, max:TECH_MAX_SRV, academyMax:ACADEMY_ECON.MAX_LEVEL, incomePerHour:ACADEMY_ECON.ratePerHour(A.lv.academy|0) });
     if(req.method!=='POST') return send(res,404,{error:'academy'});
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
     if(p==='/api/academy/research'){ const out=idem(me.id+':acad:'+reqId,()=>{
         const track=String(b.track||''); if(!(track in A.lv)) return {ok:false,error:'Unknown research track.'};
         const lvl=A.lv[track]|0;
-        if(lvl>=TECH_MAX_SRV) return {ok:false,error:'Fully researched.'};
+        if(lvl>=acadTrackMax(track)) return {ok:false,error:'Fully researched.'};
         if(track!=='academy' && lvl>=(A.lv.academy|0)) return {ok:false,error:'The Academy must be upgraded first.'};
         for(const k in A.learn){ if(A.learn[k]>Date.now()) return {ok:false,error:'Research already in progress.'}; }
         const goldCost=60+lvl*70, rc=learnResCostSrv(track,lvl);
