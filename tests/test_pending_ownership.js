@@ -9,7 +9,7 @@
 const fs=require('fs'),path=require('path'),vm=require('vm'),assert=require('assert'),crypto=require('crypto');
 const html=fs.readFileSync(process.env.PEND_HTML||path.join(__dirname,'..','emberweave-heroes.html'),'utf8');
 const sha=crypto.createHash('sha256').update(html).digest('hex'); let pass=0; const ok=(c,m)=>{ assert(c,m); pass++; };
-const fn=sig=>{ const i=html.indexOf(sig); if(i<0) return ''; const e=[html.indexOf('\nfunction ',i+1),html.indexOf('\nasync function ',i+1)].filter(x=>x>0); return html.slice(i,Math.min(...e)); };
+const fn=sig=>{ const i=html.indexOf(sig); if(i<0) return ''; if(sig.startsWith('const ')) return html.slice(i,html.indexOf('\n',i)); const e=[html.indexOf('\nfunction ',i+1),html.indexOf('\nasync function ',i+1)].filter(x=>x>0); return html.slice(i,Math.min(...e)); };
 function site(kind,route,refresh){
   const src=['function pendingDefinite(','function '+kind+'PendingKey(','function '+kind+'PendingSave(','function '+kind+'PendingSettle(','async function '+kind+'ResendPending('].map(fn).join('\n');
   const slots=new Map(), adopted=[]; const c=vm.createContext({ACC:{token:'A-token',id:'A'},JSON,Object,console,
@@ -24,11 +24,11 @@ function site(kind,route,refresh){
     { const {c,slots}=site(kind,route); c.p={attemptId:'a1',requestId:'rA'}; vm.runInContext(S()+'(p)',c); c.ACC={token:'B-token',id:'B'}; c.p={attemptId:'b1',requestId:'rB'}; vm.runInContext(S()+'(p)',c);
       ok(slots.size===2,kind+': two accounts keep two saved results ('+[...slots.keys()].join(',')+')'); }
     // 2 uncertain replies keep the job (settle is called with the CAPTURED account)
-    for(const r of [null,'x',{error:'offline'},{ok:false,storageFailed:true},{error:'auth'}]){
+    for(const r of [null,'x',{error:'offline'},{ok:false,storageFailed:true},{error:'auth'},{error:'Slow down — too many requests.'}]){
       const {c,slots}=site(kind,route); c.p={attemptId:'a1',requestId:'rA'}; vm.runInContext(S()+'(p)',c); c.r=r;
-      try{ vm.runInContext(ST+'("A",r)',c); }catch(e){}
+      try{ vm.runInContext(ST+'("A",r,"rA")',c); }catch(e){}
       ok(slots.size===1,kind+': uncertain reply '+JSON.stringify(r)+' keeps the saved result'); }
-    { const {c,slots}=site(kind,route); c.p={attemptId:'a1',requestId:'rA'}; vm.runInContext(S()+'(p)',c); vm.runInContext(ST+'("A",{ok:true})',c);
+    { const {c,slots}=site(kind,route); c.p={attemptId:'a1',requestId:'rA'}; vm.runInContext(S()+'(p)',c); vm.runInContext(ST+'("A",{ok:true},"rA")',c);
       ok(slots.size===0,kind+': a definite answer clears it'); }
     // 3 late reply after an account switch
     { const {c,slots,adopted}=site(kind,route); c.p={attemptId:'a1',requestId:'rA'}; vm.runInContext(S()+'(p)',c);
@@ -37,6 +37,18 @@ function site(kind,route,refresh){
       await vm.runInContext(R+'()',c);
       ok([...slots.keys()].some(k=>k.endsWith('_B')),kind+': a late A reply does not delete B\'s saved result');
       ok(adopted.length===0,kind+': a late A reply is not adopted into B'); }
+
+    // 6 a late reply for an OLDER request must not clear a NEWER saved result of the same account
+    { const {c,slots}=site(kind,route); c.p={attemptId:'a1',requestId:'r1'}; vm.runInContext(S()+'(p)',c);
+      c.api=async()=>{ c.p2={attemptId:'a2',requestId:'r2'}; vm.runInContext(S()+'(p2)',c); return {ok:true}; };
+      await vm.runInContext(R+'()',c);
+      const left=[...slots.values()].map(v=>JSON.parse(v).requestId);
+      ok(left.length===1&&left[0]==='r2',kind+': a late reply for r1 leaves the newer r2 saved ('+left.join(',')+')'); }
+    // 7 device cannot store -> the exact packet is kept in memory and re-sent this session
+    { const {c}=site(kind,route); c.localStorage.setItem=()=>{ throw Error('quota'); }; const sentIds=[];
+      c.api=async(p,m,b)=>{ sentIds.push(b&&b.requestId); return {ok:true}; }; c.p={attemptId:'a1',requestId:'rQ'}; vm.runInContext(S()+'(p)',c);
+      await vm.runInContext(R+'()',c); ok(sentIds[0]==='rQ',kind+': an unstorable result is still re-sent this session ('+sentIds.join(',')+')');
+      await vm.runInContext(R+'()',c); ok(sentIds.length===1,kind+': and only until a definite answer'); }
     // 4 local save fails -> still sends (end path) - checked on the source: the save result is not a gate on the send
     { const {c}=site(kind,route); c.localStorage.setItem=()=>{ throw Error('quota'); }; c.p={attemptId:'a1',requestId:'rA'};
       ok(vm.runInContext(S()+'(p)',c)===false,kind+': a failed local save reports false');
