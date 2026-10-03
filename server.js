@@ -6249,8 +6249,11 @@ async function api(req,res,url){
         else if(rounds<prev.r) flags.push('claimed round '+rounds+' but round '+prev.r+' was already reported');
         if(place>prev.alive) flags.push('claimed place '+place+' but only '+prev.alive+' players (you included) were left at round '+prev.r); }
       return { flags:flags.slice(0,20), floor }; };
-    if(p==='/api/emberdraft/round'){ const att=E.att;
-      if(!att||att.id!==String(b.attemptId||'')) return send(res,400,{ok:false,error:'No Emberdraft match in progress.'});
+    /* 3 Oct audit (Island of Trials #7): a start on another device must not strand this match's claim - the previous UNCLAIMED
+       attempt is kept (one only) and can still report rounds and be claimed once, under the same rules. */
+    const edAttFor=id=>{ id=String(id||''); return (E.att&&E.att.id===id)?E.att:((E.prevAtt&&E.prevAtt.id===id)?E.prevAtt:null); };
+    if(p==='/api/emberdraft/round'){ const att=edAttFor(b.attemptId);
+      if(!att) return send(res,400,{ok:false,error:'No Emberdraft match in progress.'});
       if(!att.claimed){ edCpIngest(att,b.cps,false); writeDB(); }
       const have=Object.keys(att.cp||{}).map(Number).reduce((a,x)=>Math.max(a,x),0);
       return send(res,200,{ok:true,have}); }
@@ -6266,11 +6269,12 @@ async function api(req,res,url){
         if(!god && ledPlayerLevel(led)<25) return {ok:false, error:'Emberdraft opens at level 25.', edraft:view()};   // v654 (Phil: "yes"): the client's Island gate, checked here too (same XP table as the client's playerLevel)
         if(!god && view().left<=0) return {ok:false, error:'No Emberdraft attempts left today.', edraft:view()};
         if(!god) E.used++;
+        E.prevAtt=(E.att&&!E.att.claimed)?E.att:null;
         E.att={ id:'ed'+Date.now().toString(36)+Math.floor(Math.random()*1e6).toString(36), startedAt:Date.now(), claimed:false, god:!!god };   // v654: remember a God-mode start
         writeDB(); return { ok:true, attemptId:E.att.id, edraft:view() }; });
       return send(res,out.storageFailed?503:(out.ok?200:400),out); }
     const out=idem(me.id+':edresult:'+reqId,()=>{
-      const att=E.att; if(!att||att.id!==String(b.attemptId||'')) return {ok:false,error:'No Emberdraft match in progress.'};
+      const att=edAttFor(b.attemptId); if(!att) return {ok:false,error:'No Emberdraft match in progress.'};
       if(att.claimed) return {ok:false,error:'This match was already claimed.'};
       const claimed=b.place|0, rounds=b.rounds|0;
       if(claimed<1||claimed>8) return {ok:false,error:'Bad placement.'};
