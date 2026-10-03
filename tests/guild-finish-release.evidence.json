@@ -1,0 +1,30 @@
+{
+  "atET": "2026-10-03 10:11:49",
+  "sourceSHA256": "80657d9ed466416028a10d2f012ae337a0417b08e83ea948f9fa76da2887eb05",
+  "helperSHA256": "cf0c4912c7ff4d2e1e7cfe9cd7bf3a0f04e892711cd6c4f110222dbd9ba33f70",
+  "rows": [
+    {
+      "mode": "release",
+      "status": 200,
+      "ok": true,
+      "reservationRemaining": true,
+      "late": false
+    },
+    {
+      "mode": "late",
+      "status": 200,
+      "ok": false,
+      "expired": true,
+      "reservationRemaining": true,
+      "late": true
+    },
+    {
+      "mode": "candidate",
+      "status": 200,
+      "ok": true,
+      "reservationRemaining": false,
+      "late": true
+    }
+  ],
+  "limits": "Synthetic private current-main HTTP only. Natural one-line controls demonstrate finish lock and age rejection; candidate verifies late accepted settlement, failed-save reservation retention, exact/restart replay and next paid entry. Stale/expiry/quit/client retry/full combat/balance/deployment still OPEN."
+}

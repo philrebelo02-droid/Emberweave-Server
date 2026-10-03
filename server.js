@@ -3006,6 +3006,7 @@ const DURABLE_USER_POLICIES=Object.freeze({
   'world-location':{related:false,fields:null},'world-move':{related:false,fields:null},
   'world-mine':{related:false,fields:null},'world-city-recall':{related:false,fields:null},
   'world-war':{related:true,fields:null},
+  'guild-raid-recovery':{related:false,fields:['guilds']},
   'world-city-settlement':{related:true,fields:['watch','feedback','reports','meta']}
 });
 function durableCommit(user,key,fn,opts={}){
