@@ -111,6 +111,8 @@ note "test_vault_status_client.js (3 Oct audit: an unreachable Vault no longer r
 node tests/test_vault_status_client.js || FAILED=1
 note "test_witch_state_rate.js (3 Oct audit: Witches Hut state reads limited to 60 a minute)"
 node tests/test_witch_state_rate.js || FAILED=1
+note "test_vault_underpower_review.js (Phil 3 Oct: a Vault win below 80% of recommended power files a review case for Ember)"
+node tests/test_vault_underpower_review.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi
