@@ -5251,6 +5251,7 @@ async function api(req,res,url){
 
   if(p==='/api/witch/state' && req.method==='GET'){
     if(!me) return send(res,401,{error:'auth'});
+    if(rateLimited(req,'witchstate',60,60000)) return send(res,429,{error:'Slow down — too many requests.'});   /* 3 Oct audit (Hut #12): each read recomputes every hero's power; the panel reads once per open */
     return send(res,200,witchView(me,Date.now()));
   }
   if(['/api/witch/heal','/api/witch/heal-all','/api/witch/buy-brew'].includes(p) && req.method==='POST'){
