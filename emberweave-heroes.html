@@ -26191,6 +26191,7 @@ function edLoadCatalog(){ if(ED.cat && Object.keys(ED.cat).length) return Promis
 /* ------------------------------------------------------------------------------------------ the lobby (Island entry) */
 const ED_TITLE_ART='/assets/img/battlefields/emberdraft/title.webp';   // v610 Hailuo key art for the title screen (2400x1029)
 const ED_TITLE_PED={ x:0.497, y:0.636, h:0.40, ar:2400/1029 };   // where the painted pedestal's top is (image fractions) and how tall the avatar stands on it
+const ED_BUY_RID={id:null};
 function openEmberdraft(){
   /* the Gauntlet is retired from the Island: a run left open there is banked, never lost */
   try{ if(typeof gauntRestore==='function'){ gauntRestore(); if(typeof _gaunt!=='undefined'&&_gaunt&&_gaunt.alive){ gauntBank(); _gaunt.alive=false; gauntSave(); } } }catch(e){}
@@ -26341,7 +26342,9 @@ function openEmberdraft(){
   if(signed){ solo.disabled=true; _claimP.then(()=>api('/api/emberdraft/state','POST',{god})).then(d=>{ solo.disabled=false; show(d&&d.edraft, d&&d.ok?'':edNiceErr(d&&d.error,'Could not reach the server.')); }); }
   else attEl.textContent='Practice match — sign in to earn stamina';
   buy.onclick=()=>gameConfirm(`Buy <b>${buy.dataset.pack||3} more Emberdraft attempts</b> for <b style="color:#c9b6ff">💎${buy.dataset.cost||''}</b>?`, ()=>{ buy.disabled=true;   /* v646: one tap spent diamonds */
-    api('/api/emberdraft/buy','POST',{requestId:uid8()}).then(d=>{ buy.disabled=false;
+    /* 3 Oct audit: one requestId per purchase until a definite answer - a lost reply (offline) or a refused save (storageFailed) re-sends the SAME id, even after the overlay is reopened */
+    const rid=ED_BUY_RID.id||(ED_BUY_RID.id=uid8());
+    api('/api/emberdraft/buy','POST',{requestId:rid}).then(d=>{ buy.disabled=false; if(!(d&&(d.error==='offline'||d.storageFailed))) ED_BUY_RID.id=null;
     try{ if(d&&d.ledger) adoptLedger(d.ledger); updateHubChrome(); }catch(e){} show(d&&d.edraft, d&&d.ok?'':edNiceErr(d&&d.error,'Could not buy attempts.')); }); });
   solo.onclick=()=>{ if(!signed){ ov.remove(); edNewGame(null); return; }
     solo.disabled=true; ov.dataset.busy='1'; ov._startReq=ov._startReq||uid8();   /* v646: one request id until the server answers - a lost reply can't spend a second attempt */
