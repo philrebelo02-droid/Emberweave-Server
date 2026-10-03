@@ -36,7 +36,10 @@
     else if(fxDef(gfx)&&fxDef(gfx).cone) mode='cone';
     else if(o.deliver==='shot'||aim==='target'||(pfx&&!o.radius)) mode='single';
     const cast=(()=>{ try{ return castTimeFor({key,t:HERO_TYPES[key]},['ult','green','blue','passive'][idx]); }catch(_){ return idx===0?0.8:0.5; } })();
-    return {mode,gfx,pfx,cast,shot:(o.deliver==='shot'||!!pfx)&&mode==='single'}; }
+    /* v961 (Phil 3 Oct: "fix skill previews"): a spell can say how its preview reads - previewBolt (Fritz's Chain Lightning: the
+       chain bolt jumping foe to foe, not the rune plate it no longer shows in battle) and previewAt:'self' (Thunder Shower is a
+       self-centred storm: drawn over the hero, as the fight now draws it). */
+    return {mode,gfx:(o.previewBolt?null:gfx),pfx,cast,shot:(o.deliver==='shot'||!!pfx)&&mode==='single',bolt:!!o.previewBolt,at:o.previewAt||null}; }
   function frameRect(c,i){ const cols=c.cols||c.n, f=Math.max(0,Math.min(c.n-1,i|0)); return [(f%cols)*c.fw,Math.floor(f/cols)*c.fh,c.fw,c.fh]; }
   // draw a battle-anim frame standing at (x, feet) with the figure scaled to height h, facing right or left
   function drawUnit(g,c,i,x,feet,h,faceRight,tint){ const im=img(c&&c.u); if(!im) return;
@@ -85,11 +88,18 @@
       const base=H*0.94, hero=buff?{x:W*0.5,f:base,h:H*0.52}:{x:W*0.3,f:H*0.92,h:H*0.66};
       const spot=buff?{x:hero.x,f:base-hero.h*1.02}:{x:W*0.7,f:H*0.8};   // a buff sits just above the head
       const aboveSize=H*0.3;
-      const drawSpell=()=>{
+      const drawBolt=(k)=>{ const B=(typeof BOLT_SHEET!=='undefined')?BOLT_SHEET:null, im=B&&img(B.u); if(!im) return;
+        const pts=[[hero.x+W*0.07,hero.f-hero.h*0.62],[W*0.56,H*0.5],[W*0.72,H*0.72],[W*0.9,H*0.46]];
+        g.save(); g.globalCompositeOperation='lighter'; g.globalAlpha=Math.min(1,k*6)*Math.min(1,(1-k)*4);
+        for(let i=0;i<pts.length-1;i++){ const a=pts[i], b=pts[i+1], L=Math.hypot(b[0]-a[0],b[1]-a[1]), r=frameRect(B,Math.floor(k*B.n*0.999+i*3)%B.n), th=Math.max(H*0.09,L*B.fh/B.fw*1.6);
+          g.save(); g.translate(a[0],a[1]); g.rotate(Math.atan2(b[1]-a[1],b[0]-a[0])); g.drawImage(im,r[0],r[1],r[2],r[3],0,-th/2,L,th); g.restore(); }
+        g.restore(); };
+      const drawSpell=()=>{ if(sp.bolt){ if(tt>=fxStart&&tt<fxStart+0.6) drawBolt((tt-fxStart)/0.6); return; }
         if(travel&&tt>=rel&&tt<fxStart){ const k=(tt-rel)/travel, x0=hero.x+W*0.06, y0=hero.f-hero.h*0.55, x1=spot.x, y1=spot.f-hero.h*0.45;
           drawFx(g,pf,Math.floor(k*pf.n*0.999),x0+(x1-x0)*k,y0+(y1-y0)*k,H*0.45,false,Math.atan2(y1-y0,x1-x0)); }
         if(fx&&tt>=fxStart&&tt<fxStart+fxDur){ const fr=Math.floor((tt-fxStart)/fxDur*fx.n);
           if(buff){ const s=aboveSize, im=img(fx.u); if(im){ const r=frameRect(fx,fr), sc=s/Math.max(r[2],r[3]); g.drawImage(im,r[0],r[1],r[2],r[3],spot.x-r[2]*sc/2,spot.f-r[3]*sc,r[2]*sc,r[3]*sc); } }
+          else if(sp.at==='self') drawFx(g,fx,fr,hero.x,hero.f,H*0.98,false,0);   /* v961: a self-centred spell plays over the hero */
           else drawFx(g,fx,fr,spot.x,(fx.upright||fx.disc)?spot.f:spot.f-hero.h*0.42,fx.upright?H*0.86:(fx.disc?W*0.42:H*0.7),false,0); }   // a plain plate sits at chest height
         else if(!fx&&tt>=fxStart&&tt<fxStart+0.9){ const k=(tt-fxStart)/0.9, r=H*(0.1+0.2*k), cy=buff?spot.f-aboveSize*0.5:spot.f-hero.h*0.4, gr=g.createRadialGradient(spot.x,cy,0,spot.x,cy,r);
           const col=buff?'140,255,180':'255,215,140'; gr.addColorStop(0,'rgba('+col+','+(0.6*(1-k))+')'); gr.addColorStop(1,'rgba('+col+',0)'); g.fillStyle=gr; g.beginPath(); g.arc(spot.x,cy,r,0,6.283); g.fill(); } };
