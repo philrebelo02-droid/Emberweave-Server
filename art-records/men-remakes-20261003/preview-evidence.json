@@ -1,0 +1,108 @@
+[
+  {
+    "state": "idle",
+    "sha256": "fad58e412ad4efd24dfde2f58f8a804f4c4017b1e34dc18fc19904dcb9e90b28",
+    "frames": 48,
+    "size": [
+      207,
+      300
+    ],
+    "durationsMs": [
+      42
+    ],
+    "totalMs": 2016
+  },
+  {
+    "state": "walk",
+    "sha256": "1c2c86f482a299002449171c2dff89792787c965dc8de6d21bbab96d0a6618ad",
+    "frames": 48,
+    "size": [
+      232,
+      300
+    ],
+    "durationsMs": [
+      42
+    ],
+    "totalMs": 2016
+  },
+  {
+    "state": "attack",
+    "sha256": "b227424a3a76f55d6387d0140db1fe29ba21308b1cf2f4aeeb8faac95155c999",
+    "frames": 48,
+    "size": [
+      207,
+      300
+    ],
+    "durationsMs": [
+      42
+    ],
+    "totalMs": 2016
+  },
+  {
+    "state": "hit",
+    "sha256": "d629132507d750be1f18ecf9b5b7075eb956eba980fa636067262e72fd0350e7",
+    "frames": 48,
+    "size": [
+      224,
+      300
+    ],
+    "durationsMs": [
+      42
+    ],
+    "totalMs": 2016
+  },
+  {
+    "state": "green",
+    "sha256": "d0163d51d20da58810598447e1d73baba69949671f853494c743ea786eb86cb7",
+    "frames": 47,
+    "size": [
+      235,
+      300
+    ],
+    "durationsMs": [
+      42,
+      84
+    ],
+    "totalMs": 2016
+  },
+  {
+    "state": "blue",
+    "sha256": "16a385c2a19ab6d70c057f2e3af8e8f9267bef5338e05c2ce56d0977b21fb68c",
+    "frames": 47,
+    "size": [
+      207,
+      300
+    ],
+    "durationsMs": [
+      42,
+      84
+    ],
+    "totalMs": 2016
+  },
+  {
+    "state": "ult",
+    "sha256": "5154c4cca6406292691ffd05793e7554f35cfae421aecd5ff418ffc664ee839e",
+    "frames": 84,
+    "size": [
+      206,
+      300
+    ],
+    "durationsMs": [
+      83
+    ],
+    "totalMs": 6972
+  },
+  {
+    "state": "passive",
+    "sha256": "93f7fab700ee29fa86b66f81d8496f115838c4506362cb769d8fe4197b3406a1",
+    "frames": 48,
+    "size": [
+      259,
+      300
+    ],
+    "durationsMs": [
+      42
+    ],
+    "totalMs": 2016
+  }
+]

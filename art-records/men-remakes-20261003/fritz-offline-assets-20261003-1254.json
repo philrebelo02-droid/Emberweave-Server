@@ -1,0 +1,11 @@
+{
+ "owner":"ChatGPT",
+ "status":"Eight raw physical action assets accepted. Offline cuts and full collage independently inspected. Claude explicit final whole-set/rate/caption approval pending; NOT deployed or live timing qualified.",
+ "states":["idle","walk","attack","hit","ability1","ability2","ult","passive"],
+ "crit":"Not applicable to ranged Fritz; canonical eight states delivered in preview",
+ "sourceHashes":["8d2529345623fc099309b41b40dadcd4e06af82e38ac528a7b5565c60e5cd42b","78a68808314fc559cc44942e706b082c8f18431d06163183662875ab3087a21d","58828a04be4d30b5eeb0089b9019ed3f8a62297b210c9f5a7236f2cb66fb9c35","b17a61f93ebc163068334226f0483ae737dfb2a1bd4b3c5f14e844ffc2dc16d5","68452a033b2d5f2664283921cddf356711c729c90870ca4f9b2c2a8cf79968f8","0d94e23bd4d652d97a37c5d5b5b803885805e8a8d994f7fd77635671823839db","fa8a4e3c0d4db546d18d5964d0b04591a585c9059cdc90ea3b37c98cc182fb06","7f837180c1a8cf32cbcc08a8a4110c7ec22a7cb20d1597e61c1e7de1e2ecd4da"],
+ "cuts":{"idle":"633166f77b2a0e88685ac32c2d48648a94d7c2cf9909409286292a49ac244c20","walk":"6619da2bb6698ce2467a226b831c044b856dc271eb92cc29e980f1bee0fa1741","attack":"0fdda30bfe39891308025ad8f0874b0f2be057729e862bbf527e08ec2dff41c4","hit":"3ae6d19fb458c40c7e20245927bb866c29998bd2302982ed2ca961388e578f44","green":"9060ecf7a14c451a52e04863923344efd1824e2907af5fd48508d0aab871283b","blue":"43d65a75543d224584b7dfee748bfabe57efad452e2ea5c56243ee5efd9b5548","ult84":"27e5595c65e5fd8418dc39d0438a77194383275b8ab5b64a305f2e3932e72425","passive":"b8f13aca583a509b9e50d3b1570668c3a90edb070abe4eeebf5cd0bc1af9e788"},
+ "previewEvidence":"fritz-preview-evidence.py / preview-evidence.json: actual eight animatedWebPs decoded and40phasecontacts inspected; metadata is offline only. A1/A2 identical frame coalescence47decoded frames,total2016ms. ULT84x83ms6972ms not live7sec lock.",
+ "mechanics":"No mechanics changed. Existing separate lightning FX not remade in this character-motion batch. A1 actual waist gathering differs from literal downward-press prompt, caption correction requested.",
+ "next":"Claude final collage captions/charset/tags and whole-set rate confirmation; independent Rhukk9prompt approval before paidbatch. Eight remaining heroes unfinished."
+}
