@@ -295,8 +295,11 @@ async function run() {
     const otherCities=await request('GET','/api/world/cities',null,admin.token);
     for(const c of otherCities.cities||[]) occupied.add(L.cellKey(c.x,c.y));
     const terrainKeys=new Set(castle.terrainBlockedCells);
-    assert.equal(terrainKeys.size,995,'world state gives the picker the approved terrain outline');
-    for(const [i,key] of ['85,98','90,95','130,110','115,110'].entries()){
+    /* 3 Oct audit: the outline is 705 cells since v902 (74f5e2b0); the count was hard-coded at 995 and failed the whole file,
+       so its later must-fail checks never ran. Read it from the approved outline itself. */
+    assert.equal(terrainKeys.size,require('../server/world-terrain-blocked.json').count,'world state gives the picker the approved terrain outline');
+    const _tc=require('../server/world-terrain-blocked.json').cells;   /* 3 Oct audit: four real outline cells (the old four stopped being terrain in v902) */
+    for(const [i,key] of [_tc[0],_tc[Math.floor(_tc.length/3)],_tc[Math.floor(2*_tc.length/3)],_tc[_tc.length-1]].entries()){
       assert.ok(terrainKeys.has(key));
       const [cx,cy]=key.split(',').map(Number);
       const denied=await request('POST','/api/world/relocate',{
