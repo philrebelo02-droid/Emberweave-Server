@@ -14177,19 +14177,21 @@ let VAULT={ st:null, busy:false, pick:null, result:null, salv:null };
 /* a server answer that settles a saved request: anything but a lost reply (offline), a refused save (storageFailed), a signed-out
    token (auth) or a reply that is not the server's (null / not an object). Those keep the saved request for an exact re-send. */
 function pendingDefinite(r){ return !!(r&&typeof r==='object'&&!r.storageFailed&&(r.ok===true||r.ok===false)); }   /* only the route's own ok:true/ok:false - a generic body (429 'Slow down', auth, offline) has no ok and settles nothing */
-const PENDING_MEM={};   /* when the device cannot store a result, the exact packet is kept here for a retry this session */
+const PENDING_MEM={};   /* when the device cannot store a result, the exact packet is kept here per building+account for a retry this session */
 function vaultPendingKey(acct){ return 'ew_vaultPending_'+acct; }
 function vaultPendingSave(body){ const acct=ACC&&ACC.id; if(!acct) return false; const job=Object.assign({acct},body); let stored=false;
   try{ const k=vaultPendingKey(acct), v=JSON.stringify(job); localStorage.setItem(k,v); stored=localStorage.getItem(k)===v; }catch(e){}
-  PENDING_MEM['vault']=stored?null:job; return stored; }
+  PENDING_MEM['vault:'+acct]=stored?null:job; return stored; }
 function vaultPendingSettle(acct,r,reqId){ if(!acct||!pendingDefinite(r)) return;   /* clears only THIS request - a newer saved result stays */
-  const m=PENDING_MEM['vault']; if(m&&m.acct===acct&&m.requestId===reqId) PENDING_MEM['vault']=null;
+  const m=PENDING_MEM['vault:'+acct]; if(m&&m.requestId===reqId) PENDING_MEM['vault:'+acct]=null;
   try{ const k=vaultPendingKey(acct), cur=JSON.parse(localStorage.getItem(k)||'null'); if(cur&&cur.requestId===reqId) localStorage.removeItem(k); }catch(e){} }
 async function vaultResendPending(){ const acct=ACC&&ACC.id; if(!ACC.token||!acct) return; let job=null; try{ job=JSON.parse(localStorage.getItem(vaultPendingKey(acct))||'null'); }catch(e){}
-  if(!job){ const m=PENDING_MEM['vault']; if(m&&m.acct===acct) job=m; }
+  if(!job){ const m=PENDING_MEM['vault:'+acct]; if(m&&m.acct===acct) job=m; }
   if(!job||job.acct!==acct||!job.attemptId||!job.requestId) return; const body=Object.assign({},job); delete body.acct;
   const r=await api('/api/dungeon/resolve-battle','POST',body); if(!ACC||ACC.id!==acct) return;   /* a reply for an account that is no longer signed in touches nothing */
   vaultPendingSettle(acct,r,body.requestId); if(r&&r.ledger) adoptLedger(r.ledger); }
+function vaultPendingHeld(){ const acct=ACC&&ACC.id; if(!acct) return false; if(PENDING_MEM['vault:'+acct]) return true;   /* an unsent result blocks a new fight: the server keeps one open attempt */
+  try{ return !!localStorage.getItem(vaultPendingKey(acct)); }catch(e){ return false; } }
 async function vaultStatus(){ await vaultResendPending(); const r=await api('/api/dungeon/status'); VAULT.st=(r&&r.enabled)?r:{enabled:false}; return VAULT.st; }
 function vaultBossLabel(rule){ if(!rule) return ''; const nm=rule.id.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
   return `<div style="background:#241a2e;border:1px solid #7a5fb0;border-radius:10px;padding:8px 10px;margin:8px 0;font-size:11px">
@@ -14260,6 +14262,7 @@ async function vaultDevJump(toBoss){   // v362 (Phil): God Mode only — set the
   VAULT.devWave2=!!toBoss; await vaultLaunch(); VAULT.devWave2=false; }
 async function vaultLaunch(){ if(VAULT.busy) return; VAULT.busy=true;
   await vaultResendPending();   /* a saved floor result goes first - a new start would abandon its attempt */
+  if(vaultPendingHeld()){ VAULT.busy=false; bannerMsg('Your last Vault result is still being sent - try again in a moment.'); show('dungeon'); return; }
   const sq=squadFor('vault').slice(0,TEAM_SIZE*2);
   const st=await api('/api/dungeon/start-battle','POST',{heroIds:sq, requestId:uid8()});
   VAULT.busy=false;
@@ -23379,15 +23382,17 @@ function wellHeroTag(k){ if(!(CUR&&CUR.mode==='well'&&WELL.state)) return null;
 function wellPendingKey(acct){ return 'ew_wellPending_'+acct; }
 function wellPendingSave(body){ const acct=ACC&&ACC.id; if(!acct) return false; const job=Object.assign({acct},body); let stored=false;
   try{ const k=wellPendingKey(acct), v=JSON.stringify(job); localStorage.setItem(k,v); stored=localStorage.getItem(k)===v; }catch(e){}
-  PENDING_MEM['well']=stored?null:job; return stored; }
+  PENDING_MEM['well:'+acct]=stored?null:job; return stored; }
 function wellPendingSettle(acct,r,reqId){ if(!acct||!pendingDefinite(r)) return;   /* clears only THIS request - a newer saved result stays */
-  const m=PENDING_MEM['well']; if(m&&m.acct===acct&&m.requestId===reqId) PENDING_MEM['well']=null;
+  const m=PENDING_MEM['well:'+acct]; if(m&&m.requestId===reqId) PENDING_MEM['well:'+acct]=null;
   try{ const k=wellPendingKey(acct), cur=JSON.parse(localStorage.getItem(k)||'null'); if(cur&&cur.requestId===reqId) localStorage.removeItem(k); }catch(e){} }
 async function wellResendPending(){ const acct=ACC&&ACC.id; if(!ACC.token||!acct) return; let job=null; try{ job=JSON.parse(localStorage.getItem(wellPendingKey(acct))||'null'); }catch(e){}
-  if(!job){ const m=PENDING_MEM['well']; if(m&&m.acct===acct) job=m; }
+  if(!job){ const m=PENDING_MEM['well:'+acct]; if(m&&m.acct===acct) job=m; }
   if(!job||job.acct!==acct||!job.attemptId||!job.requestId) return; const body=Object.assign({},job); delete body.acct;
   const r=await api('/api/well/resolve','POST',body); if(!ACC||ACC.id!==acct) return;   /* a reply for an account that is no longer signed in touches nothing */
   wellPendingSettle(acct,r,body.requestId); if(r&&r.ledger) adoptLedger(r.ledger); }
+function wellPendingHeld(){ const acct=ACC&&ACC.id; if(!acct) return false; if(PENDING_MEM['well:'+acct]) return true;   /* an unsent result blocks a new fight: the server keeps one open attempt */
+  try{ return !!localStorage.getItem(wellPendingKey(acct)); }catch(e){ return false; } }
 async function wellRefresh(){ if(!ACC.token) return null; await wellResendPending(); const r=await api('/api/well/state','GET'); if(r&&r.ok){ WELL.state=r; if(r.ledger) adoptLedger(r.ledger); } return (r&&r.ok)?r:null; }
 function wellBackToMap(){ show('home'); setTimeout(()=>{ try{ openWell(); }catch(e){} },0); }
 async function openWell(){
@@ -23474,6 +23479,7 @@ async function wellLaunch(ctx){ const Wl=CUR.well||{};
   if(online() && !updLoopBlocked()){ const _fresh=await new Promise(res=>{ let d=false; const tm=setTimeout(()=>{ if(!d){d=true;res(true);} },2000);
       fetch('version.json?ts='+Date.now(),{cache:'no-store'}).then(x=>x.ok?x.json():null).then(j=>{ clearTimeout(tm); if(d)return; d=true; res(!(j&&j.build&&String(j.build)!==BUILD_ID)); }).catch(()=>{ clearTimeout(tm); if(!d){d=true;res(true);} }); });
     if(!_fresh){ bannerMsg('The game just updated — restarting…'); applyUpdate(); return; } }
+  await wellResendPending(); if(wellPendingHeld()){ bannerMsg('Your last Well result is still being sent - try again in a moment.'); return; }   /* a new start would replace the open attempt */
   const r=await api('/api/well/start','POST',{col:Wl.col, row:Wl.row, heroIds:(G.team||[]).filter(Boolean).slice(0,5), requestId:uid8()});
   if(!r||!r.ok||!Array.isArray(r.waves)||!r.waves.length){ bannerMsg((r&&r.error)||'Could not reach the realm — check your connection.'); return; }
   if(state!=='menu' || ctx!==_startCtx()) return;

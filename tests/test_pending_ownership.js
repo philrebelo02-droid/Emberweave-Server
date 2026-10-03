@@ -11,7 +11,7 @@ const html=fs.readFileSync(process.env.PEND_HTML||path.join(__dirname,'..','embe
 const sha=crypto.createHash('sha256').update(html).digest('hex'); let pass=0; const ok=(c,m)=>{ assert(c,m); pass++; };
 const fn=sig=>{ const i=html.indexOf(sig); if(i<0) return ''; if(sig.startsWith('const ')) return html.slice(i,html.indexOf('\n',i)); const e=[html.indexOf('\nfunction ',i+1),html.indexOf('\nasync function ',i+1)].filter(x=>x>0); return html.slice(i,Math.min(...e)); };
 function site(kind,route,refresh){
-  const src=['function pendingDefinite(','function '+kind+'PendingKey(','function '+kind+'PendingSave(','function '+kind+'PendingSettle(','async function '+kind+'ResendPending('].map(fn).join('\n');
+  const src=['function pendingDefinite(','function '+kind+'PendingKey(','function '+kind+'PendingSave(','function '+kind+'PendingSettle(','async function '+kind+'ResendPending(','function '+kind+'PendingHeld('].map(fn).join('\n');
   const slots=new Map(), adopted=[]; const c=vm.createContext({ACC:{token:'A-token',id:'A'},JSON,Object,console,
     localStorage:{getItem:k=>slots.has(k)?slots.get(k):null,setItem:(k,v)=>slots.set(k,String(v)),removeItem:k=>slots.delete(k)},
     adoptLedger:l=>adopted.push({acct:c.ACC.id,l}), api:async()=>({error:'offline'})});
@@ -49,12 +49,34 @@ function site(kind,route,refresh){
       c.api=async(p,m,b)=>{ sentIds.push(b&&b.requestId); return {ok:true}; }; c.p={attemptId:'a1',requestId:'rQ'}; vm.runInContext(S()+'(p)',c);
       await vm.runInContext(R+'()',c); ok(sentIds[0]==='rQ',kind+': an unstorable result is still re-sent this session ('+sentIds.join(',')+')');
       await vm.runInContext(R+'()',c); ok(sentIds.length===1,kind+': and only until a definite answer'); }
+
+    // 8 per-account memory fallback: A cannot store rA, B cannot store rB, back to A -> rA is re-sent; B's later good save does not clear A
+    { const {c}=site(kind,route); const sentIds=[]; c.localStorage.setItem=()=>{ throw Error('quota'); };
+      c.p={attemptId:'a1',requestId:'rA'}; vm.runInContext(S()+'(p)',c);
+      c.ACC={token:'B-token',id:'B'}; c.p={attemptId:'b1',requestId:'rB'}; vm.runInContext(S()+'(p)',c);
+      c.ACC={token:'A-token',id:'A'}; c.api=async(p,m,b)=>{ sentIds.push(b&&b.requestId); return {error:'offline'}; };
+      await vm.runInContext(R+'()',c); ok(sentIds[0]==='rA',kind+': A\'s unstorable result survives B\'s ('+sentIds.join(',')+')'); }
+    { const {c,slots}=site(kind,route); const real=c.localStorage.setItem; c.localStorage.setItem=()=>{ throw Error('quota'); };
+      c.p={attemptId:'a1',requestId:'rA'}; vm.runInContext(S()+'(p)',c); c.localStorage.setItem=real;
+      c.ACC={token:'B-token',id:'B'}; c.p={attemptId:'b1',requestId:'rB'}; vm.runInContext(S()+'(p)',c);
+      c.ACC={token:'A-token',id:'A'}; const sentIds=[]; c.api=async(p,m,b)=>{ sentIds.push(b&&b.requestId); return {error:'offline'}; };
+      await vm.runInContext(R+'()',c); ok(sentIds[0]==='rA',kind+': B\'s good save does not clear A\'s memory copy ('+sentIds.join(',')+')'); }
+    // 9 an unsent result blocks a new fight until a definite answer
+    { const {c}=site(kind,route); const H=kind+'PendingHeld';
+      ok(typeof vm.runInContext('typeof '+H,c)==='string'&&vm.runInContext('typeof '+H,c)==='function',kind+': a held check exists');
+      c.p={attemptId:'a1',requestId:'rA'}; vm.runInContext(S()+'(p)',c); ok(vm.runInContext(H+'()',c)===true,kind+': held while unsent');
+      vm.runInContext(ST+'("A",{ok:true},"rA")',c); ok(vm.runInContext(H+'()',c)===false,kind+': released by a definite answer'); }
     // 4 local save fails -> still sends (end path) - checked on the source: the save result is not a gate on the send
     { const {c}=site(kind,route); c.localStorage.setItem=()=>{ throw Error('quota'); }; c.p={attemptId:'a1',requestId:'rA'};
       ok(vm.runInContext(S()+'(p)',c)===false,kind+': a failed local save reports false');
       const end=kind==='well'?html.slice(html.indexOf('if(att&&ACC.token){ const _wa'),html.indexOf('\n',html.indexOf('if(att&&ACC.token){ const _wa'))):html.slice(html.indexOf('if(att){ const _va'),html.indexOf('\n',html.indexOf('if(att){ const _va')));
       ok(end.length>0&&/PendingSave\(_[wv]b\); (try\{ )?r=await api\(/.test(end),kind+': the end path sends regardless of the save result'); }
   }
+
+  // 10 both fight starts re-send and refuse while a result is unsent, BEFORE the start request
+  for(const [f,route,kind] of [['async function wellLaunch(','/api/well/start','well'],['async function vaultLaunch(','/api/dungeon/start-battle','vault']]){
+    const body=fn(f), iR=body.indexOf(kind+'ResendPending('), iH=body.indexOf(kind+'PendingHeld('), iS=body.indexOf(route);
+    ok(iR>0&&iH>iR&&iS>iH,kind+': the fight start re-sends, then refuses while held, before '+route); }
   // 5 Emberdraft buy
   { const b=html.indexOf('  buy.onclick=()=>gameConfirm('), e=html.indexOf('\n  solo.onclick=',b); assert(b>0&&e>b,'buy handler found');
     const holder=(html.match(/const ED_BUY_RID=\{[^}]*\};/)||[''])[0]; const sent=[]; let n=0, reply=null;
