@@ -1137,7 +1137,8 @@ const ACAD_TRACKS=['academy','atk','hp','ap','def','armor','mr','crit','critres'
 function techGainSrv(k,lvl){ return (TECH_BASE_SRV[k]!=null?TECH_BASE_SRV[k]:0.1)*Math.pow(TECH_GROWTH_SRV,lvl||0); }
 function techTotalSrv(A,k){ const lvl=(A&&A.lv&&A.lv[k])|0; let v=0; for(let i=0;i<lvl;i++) v+=techGainSrv(k,i); return v; }
 function learnDurSrv(lvl,acadLvl){ return Math.round((120+lvl*lvl*45)*1000*(1-Math.min(0.6,(acadLvl|0)*0.02))); }
-function learnResCostSrv(track,lvl){ const base={atk:{iron:6,coal:4},hp:{silver:6,crystal:3},def:{iron:5,silver:4},armor:{iron:7,coal:3},mr:{crystal:6,silver:3},crit:{crystal:5,coal:4},critres:{silver:5,coal:5}}[track]||{iron:5}; const c={}; for(const k in base) c[k]=base[k]+lvl*2; return c; }
+const RES_NAMES={iron:'Emberite',crystal:'Voidglass',silver:'Starsilver',coal:'Cinderwood'};   // Phil 3 Oct 2026 "Set a is good": player-facing names; keys unchanged
+function learnResCostSrv(track,lvl){ const base={atk:{silver:5,coal:5},ap:{crystal:5,iron:5},hp:{iron:5,silver:5},def:{crystal:5,coal:5},armor:{iron:5,coal:5},mr:{crystal:5,silver:5},crit:{crystal:5,coal:5},critres:{iron:5,silver:5}}[track]||{iron:5}; const c={}; for(const k in base) c[k]=base[k]+lvl*2; return c; }
 const ACADEMY_CUTOFF=1787841600000;   // v249 deploy: earlier accounts seed once from their save; new accounts start at zero
 function ensureAcad(u){ const led=ensureLedger(u);
   if(led.acad) return led.acad;
@@ -6599,7 +6600,7 @@ async function api(req,res,url){
         for(const k in A.learn){ if(A.learn[k]>Date.now()) return {ok:false,error:'Research already in progress.'}; }
         const goldCost=60+lvl*70, rc=learnResCostSrv(track,lvl);
         if((led.gold|0)<goldCost) return {ok:false,error:'Not enough gold.'};
-        for(const k in rc){ if((A.res[k]|0)<rc[k]) return {ok:false,error:'Not enough '+k+'.'}; }
+        for(const k in rc){ if((A.res[k]|0)<rc[k]) return {ok:false,error:'Not enough '+(RES_NAMES[k]||k)+'.'}; }
         led.gold-=goldCost; for(const k in rc) A.res[k]-=rc[k];
         A.learn[track]=Date.now()+learnDurSrv(lvl,A.lv.academy|0);
         ledTx(me,'academy:'+track,{gold:-goldCost});

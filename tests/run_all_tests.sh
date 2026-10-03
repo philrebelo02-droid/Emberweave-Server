@@ -113,6 +113,8 @@ note "test_witch_state_rate.js (3 Oct audit: Witches Hut state reads limited to 
 node tests/test_witch_state_rate.js || FAILED=1
 note "test_vault_underpower_review.js (Phil 3 Oct: a Vault win below 80% of recommended power files a review case for Ember)"
 node tests/test_vault_underpower_review.js || FAILED=1
+note "test_resource_names_costs.js (Phil 3 Oct: Emberite/Voidglass/Starsilver/Cinderwood; every skill costs 2 equal materials)"
+node tests/test_resource_names_costs.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi
