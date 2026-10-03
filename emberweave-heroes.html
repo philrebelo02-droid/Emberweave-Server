@@ -11351,7 +11351,7 @@ function spawnGroundFx(key,cx,cy,radius,life){ try{ _fxCheck('plate',arguments[0
 const BADGE_RETIRE=0.45, BADGE_SCROLL=0.6, BADGE_SHRINK=0.45; let _badgeSeq=0;
 function updateGroundFx(dt){ const _bTop=new Map(); for(const q of _groundFx){ if(q.followAbove&&q.aboveOff&&q.life>0){ if(q._seq==null) q._seq=++_badgeSeq; if(q._seq>(_bTop.get(q.followAbove)||0)) _bTop.set(q.followAbove,q._seq); } }
   for(let i=_groundFx.length-1;i>=0;i--){ const o=_groundFx[i]; o.t+=dt; o.life-=dt;
-  if(o.followAbove&&o.aboveOff){ const a=o.followAbove; if(a._sprRef){ const p=new TH.Vector3(); a._sprRef.getWorldPosition(p); o.m.position.copy(p).add(o.aboveOff); } if(!a.alive) o.life=Math.min(o.life,0.18); } if(o.followAbove&&o.aboveOff&&o._seq<(_bTop.get(o.followAbove)||0)){ if(o._ret==null){ o._ret=0; o._s0=o.m.scale.clone(); } o._ret+=dt; const _q=Math.min(1,o._ret/BADGE_RETIRE), _k=1-(1-BADGE_SHRINK)*_q; o.m.position.y-=o._s0.y*BADGE_SCROLL*_q; o.m.scale.set(o._s0.x*_k,o._s0.y*_k,o._s0.z); o._retFade=1-_q; o.m.renderOrder=0; if(_q>=1) o.life=Math.min(o.life,0); } else if(o.followAbove&&o.aboveOff) o.m.renderOrder=2;   /* v552: a buff badge rides above its unit's bar */
+  if(o.followAbove&&o.aboveOff){ const a=o.followAbove; if(a._sprRef){ const p=new TH.Vector3(); a._sprRef.getWorldPosition(p); o.m.position.copy(p).add(o.aboveOff); } if(!a.alive) o.life=Math.min(o.life,0.18); } if(o.followAbove&&o.aboveOff&&(o._ret!=null||o._seq<(_bTop.get(o.followAbove)||0))){ if(o._ret==null){ o._ret=0; o._s0=o.m.scale.clone(); } o._ret+=dt; const _q=Math.min(1,o._ret/BADGE_RETIRE), _k=1-(1-BADGE_SHRINK)*_q; o.m.position.y-=o._s0.y*BADGE_SCROLL*_q; o.m.scale.set(o._s0.x*_k,o._s0.y*_k,o._s0.z); o._retFade=1-_q; o.m.renderOrder=0; if(_q>=1) o.life=Math.min(o.life,0); } else if(o.followAbove&&o.aboveOff) o.m.renderOrder=2;   /* v552: a buff badge rides above its unit's bar; retirement stays latched after a newer badge expires */
   if(o.follow){ const f=o.follow, fx=(f.rx==null?f.x:f.rx), fy=(f.ry==null?f.y:f.ry); if(o.front) o.m.position.set(wx(fx),o.upY!=null?o.upY:0.2,wz(fy)); else o.m.position.x=wx(fx), o.m.position.z=wz(fy)+(o.zoff||0); }
   { let fr=Math.floor((o.t/o.d.dur)*o.d.n);
     /* v489 (Phil): Grasping Vow's fist is driven by HOW FAR THE VICTIM HAS COME, not by a clock — "get to f14 faster, and
@@ -25534,7 +25534,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791053957502';
+const BUILD_ID = '1791054630700';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
