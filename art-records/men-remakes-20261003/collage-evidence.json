@@ -1,0 +1,21 @@
+{
+  "file": "C:\\Users\\Home\\OneDrive\\Desktop\\Emberweave Archive\\Open Projects\\3 - Heroes, Art and Lore\\MEN - HAILUO RUNS 03OCT2026\\preview Fritz\\Fritz - eight-action collage - ChatGPT.webp",
+  "sha256": "9f932ee87ffaa017124c1aee40abf632a32dac978d9c64d47868f8ed802ff329",
+  "frames": 168,
+  "size": [
+    960,
+    1080
+  ],
+  "totalMs": 7056,
+  "states": [
+    "Idle",
+    "Walk",
+    "Attack",
+    "Hit",
+    "Storm Surge",
+    "Chain Lightning",
+    "Thunder Shower",
+    "Static Veil"
+  ],
+  "note": "Actual animation export mosaic. Display quantization42ms, not a gameplay timing claim."
+}
