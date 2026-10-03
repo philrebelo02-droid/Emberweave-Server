@@ -103,6 +103,8 @@ note "test_pending_ownership.js (3 Oct: saved results keyed by the real ACC.id, 
 node tests/test_pending_ownership.js || FAILED=1
 note "test_ed_prev_attempt.js (3 Oct audit: a match started on another device does not strand the first match claim)"
 node tests/test_ed_prev_attempt.js || FAILED=1
+note "test_audit_small_fixes.js (3 Oct audit: Vault paid sweep floor check first; Emberdraft buy level 25; Emberdraft state by GET)"
+node tests/test_audit_small_fixes.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi

@@ -5017,9 +5017,9 @@ async function api(req,res,url){
         resetDungeonSweepIfNewDay(prog.sweep);
         const sweepCost=vaultSweepNextCost(prog.sweep);
         if(sweepCost===null) return { ok:false, error:'No Sweeps left today (2 free + 3 paid).', nextResetAt:dungeonNextReset() };
+        if(prog.highestClearedFloor<1) return { ok:false, error:'Clear a floor first.' };   /* 3 Oct audit (Vault F8): checked before any diamond is taken */
         if(sweepCost>0){ const led=ensureLedger(me); if(led.gems<sweepCost) return { ok:false, error:'Not enough diamonds — this Sweep costs '+sweepCost+'.' }; led.gems-=sweepCost; ledTx(me,'vault:sweep:paid',{gems:-sweepCost}); }
         if(prog.activeAttempt) prog.activeAttempt=null;   // v371 (Phil: "sweep button isn't working"): an unresolved attempt (closed the app mid-fight / God-Mode floor jump) is abandoned = a loss, same rule as start-battle — it must not block sweeping
-        if(prog.highestClearedFloor<1) return { ok:false, error:'Clear a floor first.' };
         const rnd=Math.random;   // AUDIT C7: rolled per sweep transaction, persisted via the idempotency record
         const rewards=[]; let dust=0; const frags={}; const gfrags={};
         for(let f=1;f<=prog.highestClearedFloor;f++){ const r=makeStandardDungeonFloorReward(f,rnd);
@@ -6196,7 +6196,7 @@ async function api(req,res,url){
      Multiplayer (not built yet) will add Phil's 50-diamond entry, 200 / 150 / refund prizes and its own 3 a day. */
   if(p==='/api/emberdraft/state'||p==='/api/emberdraft/start'||p==='/api/emberdraft/buy'||p==='/api/emberdraft/result'||p==='/api/emberdraft/round'){
     if(!me) return send(res,401,{error:'auth'});
-    if(req.method!=='POST') return send(res,404,{error:'emberdraft'});
+    if(req.method!=='POST' && !(req.method==='GET' && p==='/api/emberdraft/state')) return send(res,404,{error:'emberdraft'});   /* 3 Oct audit (Trials #9): state is readable by GET */
     const led=ensureLedger(me); const b=await body(req);
     const ED_FREE=3, ED_PACK=3, ED_PACK_COST=[100,150], ED_STAM=[0,36,30,24,18,12,6,0,0];
     const dk=nyDayKey(); led.edraft=(led.edraft&&led.edraft.day===dk)?led.edraft:{day:dk,used:0,bought:0,att:(led.edraft&&led.edraft.att)||null,open:(led.edraft&&Array.isArray(led.edraft.open))?led.edraft.open:[]};   /* 3 Oct audit: unclaimed matches survive the day reset */
@@ -6262,6 +6262,7 @@ async function api(req,res,url){
       return send(res,200,{ok:true,have}); }
     const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
     if(p==='/api/emberdraft/buy'){ const out=idem(me.id+':edbuy:'+reqId,()=>{
+        if(ledPlayerLevel(led)<25) return {ok:false, error:'Emberdraft opens at level 25.', edraft:view()};   /* 3 Oct audit (Trials #8): same gate as /start */
         if(E.bought>=ED_PACK_COST.length) return {ok:false,error:'No more Emberdraft attempts can be bought today.',edraft:view()};
         const cost=ED_PACK_COST[E.bought];
         if((led.gems|0)<cost) return {ok:false,error:'Not enough diamonds — '+ED_PACK+' more attempts cost '+cost+'.',edraft:view()};
