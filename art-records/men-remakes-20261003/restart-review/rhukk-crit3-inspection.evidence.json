@@ -1,0 +1,56 @@
+[
+  {
+    "file": "C:\\Users\\Home\\OneDrive\\Desktop\\Emberweave Archive\\Game Art\\Heroes\\Rhukk\\clips\\HAILUO MEN 03OCT2026\\Rhukk - RESTART crit v3 ChatGPT prompt (Hailuo card 562927592882151428).mp4",
+    "sha256": "0adfb82ac0b6b7f23c449519d26223c192360b8cad78fe6a5737947309cb7847",
+    "metadata": {
+      "width": 768,
+      "height": 768,
+      "r_frame_rate": "24/1",
+      "duration": "5.916667",
+      "nb_frames": "142"
+    },
+    "decodedFrames": 142,
+    "nonKey3pxBorderFrames": [],
+    "cornerRGBMin": [
+      3,
+      242,
+      0
+    ],
+    "cornerRGBMax": [
+      9,
+      245,
+      9
+    ],
+    "silhouetteAreaMin": 40989,
+    "silhouetteAreaMax": 47990,
+    "endIoU": 0.9870542104935582,
+    "scope": "Border/key/identity/endpoint measurements only. No scale defect inferred from moving limbs; idle is an approved technical reference, not a walk performance control. No full-motion or game timing/anchor approval."
+  },
+  {
+    "file": "C:\\Users\\Home\\OneDrive\\Desktop\\Emberweave Archive\\Game Art\\Heroes\\Rhukk\\clips\\HAILUO MEN 03OCT2026\\Rhukk - idle - PHIL APPROVED 03OCT2026 (Hailuo card 562893140348960772).mp4",
+    "sha256": "282b037af29b426ef7c2556a6561285d2240179943a27d162628cb56d3c024f6",
+    "metadata": {
+      "width": 768,
+      "height": 768,
+      "r_frame_rate": "24/1",
+      "duration": "5.916667",
+      "nb_frames": "142"
+    },
+    "decodedFrames": 142,
+    "nonKey3pxBorderFrames": [],
+    "cornerRGBMin": [
+      4,
+      240,
+      3
+    ],
+    "cornerRGBMax": [
+      11,
+      246,
+      11
+    ],
+    "silhouetteAreaMin": 45616,
+    "silhouetteAreaMax": 50689,
+    "endIoU": 0.9875758331255714,
+    "scope": "Border/key/identity/endpoint measurements only. No scale defect inferred from moving limbs; idle is an approved technical reference, not a walk performance control. No full-motion or game timing/anchor approval."
+  }
+]
