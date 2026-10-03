@@ -4548,7 +4548,7 @@ const KITS={
   aureth:{green:{deliver:'form',name:'Sunburst',type:'sunburst',mul:1.4,radius:2.8*METER,heal:0.28,cd:8,gfx:'aureth_green',gdur:4.92},blue:{name:'Duality',type:'duality',cd:6,gfx:'aureth_blue',gfxR:3*METER,gdur:3.54},purple:{name:'Twin Fonts',pass:'twinfonts'}},
   bloatus:{green:{name:'Toxic Breath',type:'toxbreath',mul:0.9,dps:0.5,dur:4,radius:2.6*METER,cd:7,gfx:'bloatus_green',gdur:1.04},blue:{deliver:'form',name:'Swampcall',type:'swamproot',mul:0.7,root:2,radius:2.4*METER,cd:10,gfx:'bloatus_blue',gdur:2.88},purple:{name:'Contagion',pass:'contagion',desc:'when a foe dies still carrying his plague, the plague bursts onto every enemy nearby — and can spread again from them'}},
   vireo:{green:{name:'Crescendo',type:'crescendo',heal:0.16,hot:0.05,dur:5,cd:7,gfx:'vireo_green',gdur:5.88,desc:"Vireo's song swells to heal every ally and keep mending them for 5 seconds; each Crescendo in a row rings louder and heals more."},blue:{name:'Harmony',type:'harmonyshield',mul:2.4,radius:10*METER,dur:12,cd:9,gfx:'vireo_blue',gdur:11.76,desc:"A dome of harmony settles over the most wounded ally, shielding every ally inside it for 12 seconds."}   /* v560 Phil: 'make the radius 10 m ... increase the shields size to match'. The painted dome follows on its own: upMetric spans exactly 2R, so 10 m radius draws a 20 m dome with no art change. (v558 was 7 m / 14 m.) */,purple:{name:'Perfect Pitch',pass:'perfectpitch'}},
-  fritz:{green:{name:'Storm Surge',type:'stormsurge',mul:0.85,n:5,cd:8,gfx:'fritz_green',gfxR:3*METER,gdur:5.88},blue:{name:'Chain Lightning',type:'chainlight',mul:1.1,jumps:4,decay:0.8,cd:7,gfx:'fritz_blue',gfxR:3*METER,gdur:5.88},purple:{name:'Static Veil',pass:'stormdodge'}},
+  fritz:{green:{name:'Storm Surge',type:'stormsurge',mul:0.85,n:5,cd:8,gfx:'fritz_green',noArt:true,gfxR:3*METER,gdur:1.1},blue:{name:'Chain Lightning',type:'chainlight',mul:1.1,jumps:4,decay:0.8,cd:7,gfx:'fritz_blue',noArt:true,gfxR:3*METER,gdur:5.88},purple:{name:'Static Veil',pass:'stormdodge'}},
   umbris:{green:{deliver:'form',name:'Shadeburst',type:'shadeburst',at:'cluster',dps:0.3,dur:6,radius:7*METER,cd:7,gfx:'umbris_green',noArt:true,gdur:5.88},blue:{name:'Creeping Rot',type:'creeprot',mul:0.5,dps:0.6,dur:5,color:'#8a5cff',foot:true,handglow:true,cd:6,gfx:'umbris_blue',gfxR:3*METER,gdur:5.38},purple:{name:'Lingering Dark',pass:'contagion',desc:'when a foe dies still rotting from his shadow, the rot spreads to every enemy nearby — and can spread again from them'}},
    vael:{green:{name:'Warcry',type:'warcry',mul:1.4,dur:6,cd:8,fear:1.2,gfx:'vael_green',gfxR:3*METER,gdur:2.25},blue:{name:'Bloodthirst',type:'lifestealbuff',pct:0.4,dur:6,cd:7,gfx:'vael_blue',gfxR:3*METER,gdur:4.92},purple:{name:'Second Wind',pass:'selfregen'}},
    oakmir:{green:{name:'Mending Bloom',type:'hot',hps:0.06,dur:6,cd:6,gfx:'oakmir_green',gfxR:3*METER,gdur:5.83},blue:{name:'Rally Roots',type:'heal',mul:0.22,cd:9,gfx:'oakmir_blue',gfxR:3*METER,gdur:5.29},purple:{name:'Twin Fonts',pass:'twinfonts'}},
@@ -10668,10 +10668,10 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
     case 'stormsurge':{ let foes=enemiesOf(u); if(!foes.length)break; const n=Math.min(o.n||5, foes.length);
       const _sb=apB*(o.mul||0.85)*rm;   /* v893 - each bolt hits when it lands, one after another */
       for(let i=0;i<n && foes.length;i++){ const k=Math.floor(brnd()*foes.length); const e=foes.splice(k,1)[0];
-        groundHazards.push({arrival:true,delay:0.3+i*0.12,run:function(){ if(!e.alive)return; dealDamage(u,e,_sb,'#f2e07a','magic'); burstAt(e.x,e.y,0xf2d84a,10); ringBurst(e.x,e.y,0xfff0a0,6); }}); }
+        groundHazards.push({arrival:true,delay:0.3+i*0.12,run:function(){ if(!e.alive)return; dealDamage(u,e,_sb,'#f2e07a','magic'); burstAt(e.x,e.y,0xf2d84a,10); ringBurst(e.x,e.y,0xfff0a0,6); try{ if(typeof spawnGroundFx==='function'&&e.sprH){ _fxAllow=true; window._fxTgtH=e.sprH; window._fxTgtU=e._sprRef?e:null; spawnGroundFx('fritz_green',e.x,e.y,3*METER,STORM_STRIKE_LIFE); } }catch(_){} finally{ _fxAllow=false; window._fxTgtH=null; window._fxTgtU=null; } }});   /* v958: each bolt brings its own cloud+strike on the foe it hits, as it lands */ }
       floatTexts.push({x:u.x,y:u.y-12,txt:'STORM SURGE',t:.9,color:'#f2e07a',vy:1,sz:12}); if(u.team==='ally')screenFlash=Math.max(screenFlash,.18); break; }
     case 'chainlight':{ let cur=(tgt&&tgt.alive)?tgt:nearestEnemy(u); if(!cur)break; const hit=new Set(); let dmg=apB*(o.mul||1.1)*rm; const jumps=o.jumps||4, dec=o.decay||0.8; let prev=u;
-      for(let j=0;j<jumps && cur;j++){ hit.add(cur); dealDamage(u,cur,dmg,'#bfe6ff'); burstAt(cur.x,cur.y,0x9fd0ff,8); if(prev)spawnShot(prev,cur,'#bfe6ff'); prev=cur; dmg*=dec;
+      for(let j=0;j<jumps && cur;j++){ hit.add(cur); dealDamage(u,cur,dmg,'#bfe6ff'); burstAt(cur.x,cur.y,0x9fd0ff,8); if(prev){ if(!spawnBoltFx(prev,cur,'#cfe8ff')) spawnShot(prev,cur,'#bfe6ff'); } prev=cur;   /* v958: a glowing bolt per jump */ dmg*=dec;
         let nxt=null,nd=1e9; enemiesOf(u).forEach(e=>{ if(!hit.has(e)){ const d=dist(cur,e); if(d<nd&&d<4*METER){nd=d;nxt=e;} } }); cur=nxt; }
       break; }
     case 'thundershower':{ const ctr=u;   /* v491 (Phil: Fritz's ult was not to standard): it is a SELF-CENTRED channel - "a storm around the caster ... enemies within 8 m" - but it aimed at the enemy, so the cloud spawned 20 units away from him */ u._stormT=o.dur||3; u._stormAcc=0; u._stormFxAcc=0; u._stormMul=(o.mul||0.6); u._stormX=ctr.x; u._stormY=ctr.y; u._castT=Math.max(u._castT||0,o.dur||3); if(u._castSlot!=='ult')floatTexts.push({x:u.x,y:u.y-14,txt:'THUNDER SHOWER',t:1.2,color:'#f2e07a',vy:1,sz:14}); ringBurst(ctr.x,ctr.y,0xf2d84a,24); if(typeof spawnFxPlate==='function')spawnFxPlate('fritz_showerfx',ctr.x,ctr.y); if(u.team==='ally')screenFlash=Math.max(screenFlash,.25); break; }
@@ -11539,7 +11539,23 @@ function updateProjFx(dt){ if(!_texRequalDone) requalifyTextures(); for(let i=_p
 // King Bloatus Toxic Breath — a stretched gas BEAM. The gas apex (tail) is pinned to his mouth; the whole plume
 // rotates toward the target and scales so its LEAD tip reaches the target. Extends over `extend`s to full length,
 // then rubberbands back into his mouth over `retract`s. Anchored at the apex so it never detaches from his lips.
-const _beamFx=[]; const BEAM_K=1.0;
+const _beamFx=[]; const BEAM_K=1.0; const STORM_STRIKE_LIFE=1.1;   /* v958: Storm Surge's per-foe cloud+strike, seconds */
+/* v958 (Phil 3 Oct: Fritz's green and blue must make sense). A lightning BOLT drawn between two units: Fritz's chain bolt (a
+   horizontal jagged bolt, 12 frames) stretched from chest to chest, turned to the screen angle, glowing (additive, pale blue),
+   flickering through its frames for BOLT_LIFE s. Chain Lightning draws one per jump. Visual only. */
+const _boltFx=[]; const BOLT_LIFE=0.4, BOLT_SHEET={u:'/assets/anim/fritz/fritz_chainbolt.webp?v=1',n:12,fw:1280,fh:400,cols:3,rows:4};   /* Phil: "use the chain lightning in the spell fx folder" - Spell FX/clips/Fritz - ability2 fx - Chain Lightning.mp4, rows 280-880 (no watermark), 12 frames, glow kept (alpha from brightness over the green) */
+function spawnBoltFx(a,b,color){ if(!TH||!scene||!a||!b) return null; try{ if(!FX2_DEF.__fritzbolt) FX2_DEF.__fritzbolt=Object.assign({dur:BOLT_LIFE},BOLT_SHEET); const tex=fx2Tex('__fritzbolt'); if(!tex) return null;
+  const spr=new TH.Sprite(new TH.SpriteMaterial({map:tex,transparent:true,depthWrite:false,depthTest:false,blending:TH.AdditiveBlending,color:new TH.Color(color||'#cfe8ff')}));
+  fx2Hook(spr); fx2SetFrame(spr,FX2_DEF.__fritzbolt,0); spr.renderOrder=995; scene.add(spr); const o={spr,a,b,t:0}; _boltFx.push(o); placeBoltFx(o); return o; }catch(e){ return null; } }
+function placeBoltFx(o){ const ha=(o.a.sprH||2)*0.62, hb=(o.b.sprH||2)*0.55; const A=new TH.Vector3(wx(o.a.x),ha,wz(o.a.y)), B=new TH.Vector3(wx(o.b.x),hb,wz(o.b.y));
+  const M=A.clone().add(B).multiplyScalar(0.5); o.spr.position.copy(M);
+  const pa=A.clone().project(camera), pb=B.clone().project(camera), pm=M.clone().project(camera);
+  const right=new TH.Vector3(1,0,0).applyQuaternion(camera.quaternion); const pr=M.clone().add(right).project(camera);
+  const ppu=Math.max(1e-6,Math.hypot((pr.x-pm.x)*CW/2,(pr.y-pm.y)*CH/2)); const sd=Math.hypot((pb.x-pa.x)*CW/2,(pb.y-pa.y)*CH/2);
+  const W=sd/ppu; o.spr.scale.set(W, Math.max(W*(BOLT_SHEET.fh/BOLT_SHEET.fw)*1.8, (o.a.sprH||2)*0.55), 1); o.spr.material.rotation=Math.atan2((pb.y-pa.y)*CH,(pb.x-pa.x)*CW); }
+function updateBoltFx(dt){ for(let i=_boltFx.length-1;i>=0;i--){ const o=_boltFx[i]; o.t+=dt;
+  if(o.t>=BOLT_LIFE){ scene.remove(o.spr); o.spr.material.dispose(); _boltFx.splice(i,1); continue; }
+  placeBoltFx(o); fx2SetFrame(o.spr,FX2_DEF.__fritzbolt,Math.floor(o.t/BOLT_LIFE*12)); o.spr.material.opacity=Math.min(1,o.t/0.05)*Math.min(1,(BOLT_LIFE-o.t)/0.15); } }
 function spawnBeamFx(key,u,tx,ty,extend,retract){ const d=FX2_DEF[key]; if(!TH||!scene||!d)return null; const base=fx2Tex(key); if(!base)return null;
   const tex=base;
   const spr=new TH.Sprite(new TH.SpriteMaterial({map:tex,transparent:true,depthWrite:false,depthTest:false}));
@@ -11967,7 +11983,8 @@ function think(u,dt){
            ball goes, it flies, it lands, the number appears. */
         if(u.range>60){
           fuseStrike(u,t,_atkClipA,()=>{ const el=CASTER_BALL[u.key];
-            if(el&&typeof spawnProjFx==='function') { const co=castOrigin(u,t.x,t.y); spawnProjFx(el.fx,co.x,co.y,t.x,t.y,el.scale||1.5,(el.dur||.22)*HERO_FX_MUL,null,co.h); }
+            if(el&&el.bolt&&typeof spawnBoltFx==='function'&&spawnBoltFx(u,t,'#cfe8ff')){}   /* v958 */
+            else if(el&&typeof spawnProjFx==='function') { const co=castOrigin(u,t.x,t.y); spawnProjFx(el.fx,co.x,co.y,t.x,t.y,el.scale||1.5,(el.dur||.22)*HERO_FX_MUL,null,co.h); }
             else spawnShot(u,t,u.t.color); }); }
       } } };
   /* Phil, 14 Sep 2026 — ASSASSINS NEVER OVERTAKE A LIVING TANK. Every non-Tank has at least
@@ -12709,7 +12726,7 @@ function battleFrameTail(dt){
   updateFxPlates(dt);   // Vulmar placed effect plates
   updateChains(dt);   // Umbris Creeping Rot shadow-chain projectiles
   updateVoidZones(dt);   // Umbris Umbral Cataclysm void zones
-  updateGroundFx(dt); updateProjFx(dt); updateBees(dt); updateBeamFx(dt); updatePendingDots(dt); updateStatusFx(dt);   // batch FX: ground zones, projectiles, gas beams, delayed plague DoTs, DoT feet-FX
+  updateGroundFx(dt); updateProjFx(dt); updateBees(dt); updateBeamFx(dt); try{ updateBoltFx(dt); }catch(e){} updatePendingDots(dt); updateStatusFx(dt);   // batch FX: ground zones, projectiles, gas beams, delayed plague DoTs, DoT feet-FX
 }
 function updateBattle(dt){
   /* 29 Aug — SLINGSHOT/JITTER ON WAVE CHANGE. The px/py snapshot below used to sit AFTER this early
@@ -18767,7 +18784,7 @@ const CASTER_BALL={   // v340 (Phil): Beekeeper/Oakmir/Lumi nature, Annotator+Te
   sylthaine:{fx:'frostball',scale:1.6}, maren:{fx:'frostball',scale:1.6},
   oakmir:{fx:'natureball',scale:1.5}, lumi:{fx:'natureball',scale:1.4}, beekeeper:{fx:'natureball',scale:1.4},
   verdantshade:{fx:'arrow',scale:0.9,dur:0.16},
-  fritz:{fx:'fritz_zap',scale:2.2,dur:0.13},
+  fritz:{fx:'fritz_zap',scale:2.2,dur:0.13,bolt:true},   /* v958 (Phil: "also use this for auto attack on a single target"): the chain bolt from Fritz to his target */
   'boar shaman':{fx:'fireball',scale:1.2}   // v547 (Phil): the shaman's auto aims the burning hand, nothing leaves it on the clip - the engine's fireball is the projectile
 };
 const HERO_ULT_ART={corsair:{evadeEva:0.5,evadeDur:3}, verdantshade:{backline:true}, kharos:{gfx:'kharos_ult',gdur:2.0}, lastfurnace:{gfx:'lastfurnace_ult',gdur:2.4}, voidweaver:{gfx:'voidweaver_ult',gdur:2.4}, rivet:{gfx:'rivet_ult',gdur:2.4}, tessit:{deliver:'land'}, vesper:{deliver:'form'}, lysara:{deliver:'form',gfx:'lysara_ult',gdur:2.4}, nerisse:{deliver:'form',form:0.4}, pyroclast:{gfx:'pyroclast_ult',gdur:6.04,deliver:'land',fall:0.55}, orryn:{gfx:'orryn_ult',gdur:6.04,deliver:'form',form:0.5}, cathedral:{deliver:'form',gfx:'cathedral_ult',gdur:5.88}, vaelora:{gfx:'vaelora_ult',gdur:5.88}, librarian:{gfx:'librarian_ult',gdur:2.2}, astra:{deliver:'form',gfx:'astra_ult',gdur:5.83}, aureth:{deliver:'form',gfx:'aureth_ult',gdur:5.88}, carn:{deliver:'form',gfx:'carn_ult',gdur:2.6,gfxAt:'front'}, cardwraith:{gfx:'cardwraith_ult',gdur:5.88}, deepcleft:{deliver:'form',gfx:'deepcleft_ult',gdur:2.42}, fritz:{gfx:'fritz_ult',gdur:3.0}, dandra:{gfx:'dandra_ult',gdur:2.6}, grimsby:{gfx:'grimsby_ult',gdur:5.88}, beekeeper:{gfx:'beekeeper_ult',gdur:4.88}, bloatus:{deliver:'form',gfx:'bloatus_ult',gdur:3.79}, maren:{deliver:'form',gfx:'maren_ult',gdur:1.17}, greatbrow:{gfx:'greatbrow_ult',gdur:2.29,artR:2.9*METER,fieldWide:'allies',allyShield:0.12,knockAside:2*METER}, grosk:{gfx:'grosk_ult',gdur:5.88}, hollow:{gfx:'hollow_ult',gdur:5.88}, konwu:{gfx:'konwu_ult',gdur:5.88}, lumi:{deliver:'form',gfx:'lumi_ult',gdur:1.04}, magistrant:{gfx:'magistrant_ult',gdur:1.67}, meridian:{gfx:'meridian_ult',gdur:2.75}, nox:{deliver:'form',gfx:'nox_ult',gdur:5.17,fieldWide:'enemies'}, oakmir:{deliver:'form',gfx:'oakmir_ult',gdur:5.67}, pellucid:{gfx:'pellucid_ult',gdur:6.04}, rhukk:{gfx:'rhukk_ult',gdur:2.08}, stormwarden:{deliver:'land',gfx:'stormwarden_ult',gdur:2.71}, sylthaine:{gfx:'sylthaine_ult',gdur:4.0}, gruel:{gfx:'gruel_ult',gdur:5.88}, tick:{gfx:'tick_ult',gdur:5.71}, umbris:{gfx:'umbris_ult',gdur:5.0}, vael:{gfx:'vael_ult',gdur:5.88}, velvetplum:{deliver:'form',gfx:'velvetplum_ult',gdur:5.62,fieldWide:'both'}, vex:{gfx:'vex_ult',gdur:4.75,gfxR:10*METER}, veyr:{gfx:'veyr_ult',gdur:5.12}, korvux:{deliver:'land',gfx:'korvux_ult',gdur:5.88}, vireo:{gfx:'vireo_ult',gdur:2.0}, waxenduchess:{deliver:'form',gfx:'waxenduchess_ult',gdur:5.5}, ironcoil:{gfx:'ironcoil_ult',gdur:5.88,pathHit:0.5}, kilnmask:{deliver:'form',gfx:'kilnmask_ult',gdur:5.5}, cacklefang:{gfx:'cacklefang_ult',gdur:5.88,ricochet:true}, calypsa:{gfx:'calypsa_ult',gdur:5.88,deliver:'form',form:0.4}, chainwheel:{gfx:'chainwheel_ult',gdur:5.88,pathHit:0.5}, dawnbringer:{deliver:'form',gfx:'dawnbringer_ult',gdur:5.88,stun:1.2}, hurne:{gfx:'hurne_ult',gdur:5.88}
@@ -25546,7 +25563,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791056838424';
+const BUILD_ID = '1791057441463';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
