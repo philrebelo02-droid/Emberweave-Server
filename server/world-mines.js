@@ -33,14 +33,17 @@ function field(epoch){
     const fx=(gx-EDGES[col])/(EDGES[col+1]-EDGES[col]);
     const fy=(gy-EDGES[row])/(EDGES[row+1]-EDGES[row]);
     let level;
+    /* Phil 3 Oct 2026: "Resources outside in region should be level 1-6 the level 6 near the end of the region 7-10 in wild". Same rnd() draws as
+       before, so every node keeps its place and id; only the level changes. Fields before the terrain cutover keep their legacy levels. */
+    const ten=epoch>=TERRAIN_CUTOVER_EPOCH;
     if(z.type==='region'){
       const edge=Math.min(fx,1-fx,fy,1-fy);
-      if(edge<0.16) level=4;
-      else { const r=rnd(); level=r<0.45?1:r<0.78?2:3; }
+      if(edge<0.16) level=ten?6:4;
+      else { const r=rnd(); level=ten?(r<0.30?1:r<0.55?2:r<0.75?3:r<0.90?4:5):(r<0.45?1:r<0.78?2:3); }
     } else {
       const regEdge=(z.row===0||z.row===2)?Math.min(fx,1-fx):Math.min(fy,1-fy);
-      if(regEdge<0.20) level=5;
-      else { const r=rnd(); level=r<0.4?6:r<0.75?7:8; }
+      if(regEdge<0.20) level=ten?7:5;
+      else { const r=rnd(); level=ten?(r<0.4?8:r<0.75?9:10):(r<0.4?6:r<0.75?7:8); }
     }
     const res=RESOURCES[Math.floor(rnd()*RESOURCES.length)];
     out.push({id:'mn'+epoch+'_'+out.length,res,level,gx,gy,x,y,region:z.key});

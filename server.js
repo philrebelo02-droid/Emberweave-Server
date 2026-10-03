@@ -5367,7 +5367,7 @@ async function api(req,res,url){
         if([...me.worldMineMarches,...worldCityMarches(me)]
           .some(m=>m.homeAt>now&&m.heroIds?.some(k=>ids.includes(k)))||ids.some(k=>WORLD_TREE_CONTROL.busy(DB.worldTreeControl,me.id,k,now)))
           return {ok:false,error:'A selected hero is already marching.'};
-        const needLevel=[1,8,16,26,36,44,52,58][node.level-1];
+        const needLevel=[1,8,16,26,36,44,52,58,66,74][node.level-1]||1;   // levels 9-10: Phil 3 Oct (wild 7-10)
         if(!ids.some(k=>ledHeroLevel(led,k)>=needLevel))
           return {ok:false,error:'One hero must be level '+needLevel+' for this mine.'};
         const power=ids.reduce((sum,k)=>sum+heroCardPower(me,k),0);

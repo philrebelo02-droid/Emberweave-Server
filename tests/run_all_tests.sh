@@ -117,6 +117,8 @@ note "test_resource_names_costs.js (Phil 3 Oct: Emberite/Voidglass/Starsilver/Ci
 node tests/test_resource_names_costs.js || FAILED=1
 note "test_academy_economy.js (Phil 3 Oct: Academy to 120, all-four costs, hourly income; Witches Hut upgrade = half Academy + 75% brew)"
 node tests/test_academy_economy.js || FAILED=1
+note "test_mine_levels_ten.js (Phil 3 Oct: region mines 1-6, level 6 at the edge; wild 7-10; nodes keep place/id)"
+node tests/test_mine_levels_ten.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi
