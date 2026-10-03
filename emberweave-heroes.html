@@ -5857,6 +5857,7 @@ function battleFxReset(){ try{ if(typeof _bees!=='undefined'){ _bees.forEach(b=>
     if(typeof _groundFx!=='undefined') _groundFx.length=0;
     if(typeof _projFx!=='undefined') _projFx.length=0;
     if(typeof _beamFx!=='undefined') _beamFx.length=0;
+    if(typeof _boltFx!=='undefined'){ _boltFx.forEach(o=>{ try{ scene.remove(o.spr); o.spr.material.dispose(); }catch(_){} }); _boltFx.length=0; }   /* v959 */
     if(typeof _fxPlates!=='undefined') _fxPlates.length=0; }catch(e){} }
 function seedBattle(sd){ let seed=(sd!=null)?(sd>>>0):(((Date.now()>>>0)^((Math.random()*4294967296)>>>0))>>>0); try{ if(CUR&&typeof CUR==='object') CUR.seed=seed; }catch(e){} _brng=mulberry32(seed); _bacc=0; battleInputsReset(); battleFxReset(); return seed; };   // slightly slower overall battle tempo
 // per-class attack swing interval (seconds) — lower = faster swings
@@ -11616,6 +11617,7 @@ function updateStatusFx(dt){ if(!TH||!scene)return; units.forEach(u=>{
 function clearFx2(){ _groundFx.forEach(o=>{scene.remove(o.m);o.m.material.dispose();}); _groundFx.length=0;
   _projFx.forEach(p=>{scene.remove(p.spr);p.spr.material.dispose();}); _projFx.length=0;
   _beamFx.forEach(o=>{scene.remove(o.spr);o.spr.material.dispose();}); _beamFx.length=0; _pendingDots.length=0;
+  if(typeof _boltFx!=='undefined'){ _boltFx.forEach(o=>{scene.remove(o.spr);o.spr.material.dispose();}); _boltFx.length=0; }   /* v959 */
   killAllStatusFx(); }
 // a big glowing orb that flies from -> to, leaves a trail, and runs onDone (impact) when it lands
 function spawnOrb(from,to,color,size,onDone){ if(!TH||!scene)return; const mesh=new TH.Mesh(SPH,new TH.MeshStandardMaterial({color,emissive:color,emissiveIntensity:1.15,transparent:true,opacity:.95})); mesh.scale.setScalar((size||3.4)*gsplitFxMul()); mesh.position.set(wx(from.x),1.4,wz(from.y)); scene.add(mesh); shots.push({mesh,sx:from.x,sy:from.y,tx:to.x,ty:to.y,t:0,dur:.42*HERO_FX_MUL,onDone,trail:color}); }
@@ -25463,7 +25465,12 @@ function loop(now){let dt=(now-last)/1000;last=now;
       { const _t0=perfMark(); for(let i=0;i<n&&!ended;i++){ if(GSPLIT.active) gsplitStep(SIM_STEP); else updateBattle(SIM_STEP); } if(PERF.on)PERF.sim+=performance.now()-_t0; }
       if(OL.active&&OL.host){ OL.tick+=dt; if(OL.tick>0.05){OL.tick=0; relay({k:'state',u:units.map(serializeUnit)}); } } }
   }
-  else if(state==='battle'&&ended){shots.forEach(s=>s.t+=dt);particles.forEach(p=>{p.t+=dt;});}
+  else if(state==='battle'&&ended){shots.forEach(s=>s.t+=dt);particles.forEach(p=>{p.t+=dt;});
+    /* v959 (Phil 3 Oct: "the spells FX are staying after a fights over, leaving a stale version of it"): once a fight ended only
+       shots and particles kept ticking, so every spell plate, badge, beam and bolt froze on screen. The visual-only updaters now run
+       on until their effects expire; a projectile still in flight is removed (its onHit could touch a unit - never after the end). */
+    try{ updateFxPlates(dt); updateGroundFx(dt); updateBeamFx(dt); updateBoltFx(dt); updateStatusFx(dt);
+      if(_projFx.length){ _projFx.forEach(q=>{ try{ scene.remove(q.spr); q.spr.material.dispose(); }catch(_){} }); _projFx.length=0; } }catch(e){} }
   // v268: the sim ticks at SIM_HZ; the picture is drawn every frame, interpolated between the last
   // two ticks. `_bacc` is exactly how far we are into the next tick.
   { const alpha=Math.max(0,Math.min(1,_bacc));
@@ -25563,7 +25570,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791057441463';
+const BUILD_ID = '1791057790946';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
