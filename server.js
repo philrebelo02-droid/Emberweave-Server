@@ -7676,7 +7676,7 @@ async function api(req,res,url){
       while((g.level||1)<GMAXLVL && g.exp>=gExpNeed(g.level||1)){ g.exp-=gExpNeed(g.level||1); g.level=(g.level||1)+1;
         g.log=g.log||[]; g.log.push({sys:1,tx:'The guild reached Level '+g.level+'!',t:Date.now()}); }
       if((g.level||1)>=GMAXLVL) g.exp=0;
-      writeDB(); return send(res,200,{ guild:guildView(g) }); }
+      writeDB(); return send(res,200,{ guild:guildView(g), ledger:ledgerView(me) }); }   /* v979: the spent gold comes back with the reply */
 
     /* v666: the instant-damage assault is CLOSED. A raid attempt is a real fight now, and this route
        is the one that was exploited ~560x, so it must not survive as a second way in. Old clients are

@@ -75,6 +75,12 @@ async function editDB(fn){ await delay(400); await stop(); const db=disk(); fn(d
   ok(rr2.data.raid&&rr2.data.raid.hp===hp0,'the boss takes no damage from the refused fight');
   await delay(400); await stop(); const att=disk().guilds.graid.raid.att||{}; await start();
   ok(att[id]&&att[id].id===rs2.data.attemptId,'the refused fight\'s attempt is kept');
+  // v979 (Guild audit #3): the contribute screen shows the server's one offer, and the reply brings the spent gold back
+  const srcS=fs.readFileSync(path.join(root,srvFile),'utf8'), srcC=fs.readFileSync(path.join(root,'emberweave-heroes.html'),'utf8');
+  const gcm=srcC.match(/const GUILD_CONTRIB=\{gold:(\d+), exp:(\d+)\}/), sg=srcS.match(/const GUILD_CONTRIB_GOLD=(\d+)/), se=srcS.match(/GUILD_CONTRIB_EXP=(\d+)/);
+  ok(gcm&&sg&&se&&+gcm[1]===+sg[1]&&+gcm[2]===+se[1],'the page offers what the server charges and grants ('+(gcm?gcm[1]+'/'+gcm[2]:'no GUILD_CONTRIB')+' vs '+(sg&&sg[1])+'/'+(se&&se[1])+')');
+  const k0=await led(); const kc=await call('/api/guild/contribute',{});
+  ok(kc.data.guild&&kc.data.ledger&&kc.data.ledger.gold===k0.gold-200,'a contribution reply carries the ledger with 200 gold gone ('+(kc.data.error||(kc.data.ledger?k0.gold+' -> '+kc.data.ledger.gold:'no ledger'))+')');
   if(missed.length){ missed.forEach(m=>console.error('FAIL',m)); process.exitCode=1; }
   console.log('test_arena_guild_harden.js: '+pass+' checks passed, '+missed.length+' failed (server '+srvFile+')');
 } catch(e){ console.error('FAIL',e&&e.message||e); process.exitCode=1; } finally { await stop(); } })();

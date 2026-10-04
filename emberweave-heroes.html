@@ -21510,6 +21510,14 @@ function addGuildExp(n){ if(!G.guild)return Promise.resolve(false);
 function rollContribs(){ const rs=RES.map(r=>r[0]); const o=[];
   for(let i=0;i<2;i++){ const res=rs[Math.floor(Math.random()*rs.length)]; o.push({kind:'res',res,cost:5,exp:10}); }
   o.push({kind:'dia',cost:10,exp:20}); G.guildContribs=o; }
+/* v979 (3 Oct Guild audit #3): a REAL guild's contribution is the server's one offer - GUILD_CONTRIB gold for GUILD_CONTRIB exp
+   (server /api/guild/contribute). The resource/diamond offers below are the offline guild's; they never reach the server. */
+const GUILD_CONTRIB={gold:200, exp:100};
+function doContributeGold(){ if(guildMaxed()||doContribute._busy) return false; if((G.gold|0)<GUILD_CONTRIB.gold) return false;
+  doContribute._busy=true;
+  addGuildExp(GUILD_CONTRIB.exp).then(function(ok){ doContribute._busy=false; if(ok) ledgerSync(); try{ if(state==='guild')renderGuild(); }catch(e){} },
+    function(){ doContribute._busy=false; try{ if(state==='guild')renderGuild(); }catch(e){} });
+  return true; }
 function doContribute(i){ const o=(G.guildContribs||[])[i]; if(!o||guildMaxed())return false;
   if(o.kind==='res'){ if((G.res[o.res]||0)<o.cost)return false; }
   else { if((G.gems||0)<o.cost)return false; }
@@ -22036,9 +22044,14 @@ function renderGuildContribute(el){
   const need=guildExpNeeded(), have=guildExp(), pct=guildMaxed()?100:Math.min(100,Math.round(have/need*100));
   el.innerHTML=`<div class="panel"><div style="display:flex;justify-content:space-between;font-size:12px"><b>Guild Level ${guildLevel()}</b><span style="color:#8b98a9">${guildMaxed()?'MAX LEVEL':have+' / '+need+' exp'}</span></div>
       <div style="height:8px;background:#1a2030;border-radius:5px;overflow:hidden;margin-top:6px"><div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#5ee89b,#4aa3ff)"></div></div></div>
-    <div style="font-size:11px;color:#8b98a9;margin:8px 0 6px">Contribute resources you gathered on the world map for guild exp. The list refreshes after each contribution.</div>
-    <div id="gContribList"></div>`;
+    <div id="gContribList" style="margin-top:8px"></div>`;
   const list=el.querySelector('#gContribList');
+  if(G.guild&&G.guild.type==='real'){ const gold=G.gold|0, afford=gold>=GUILD_CONTRIB.gold && !guildMaxed();
+    list.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;background:#0f1420;border-radius:8px;padding:8px 10px;margin-bottom:6px">
+      <div><b>🪙 Gold</b> <span style="font-size:10px;color:#8b98a9">(you have ${gold})</span><div style="font-size:11px;color:#5ee89b">+${GUILD_CONTRIB.exp} guild exp</div></div>
+      <button class="btn sm" id="gContribGold" ${afford?'':'disabled'}>Give ${GUILD_CONTRIB.gold} 🪙</button></div>`;
+    const btn=list.querySelector('#gContribGold'); btn.onclick=()=>{ if(btn.disabled)return; if(doContributeGold()) btn.disabled=true; };
+    return; }
   list.innerHTML=(G.guildContribs||[]).map((o,i)=>{ const rm=o.kind==='dia'?['💎','Diamonds',G.gems||0]:(()=>{const r=RES.find(x=>x[0]===o.res);return [resIconHtml(o.res,15),r[2],G.res[o.res]||0];})();
     const afford=rm[2]>=o.cost && !guildMaxed();
     return `<div style="display:flex;justify-content:space-between;align-items:center;background:#0f1420;border-radius:8px;padding:8px 10px;margin-bottom:6px">
@@ -25742,7 +25755,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791088080028';
+const BUILD_ID = '1791088608552';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
