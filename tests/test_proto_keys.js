@@ -40,6 +40,14 @@ async function editDB(fn){ await delay(400); await stop(); const db=disk(); fn(d
   ok(gc.status===200&&gc.data.guild,'a name that merely contains "constructor" still works ('+gc.status+' '+(gc.data.error||'')+')');
   const good=await call('/api/hero/xp-potion',{heroKey:'vael',tier:'minor',requestId:'p-xp-good'});
   ok(good.status===200&&good.data.ok===true,'an ordinary xp potion still works ('+good.status+' '+(good.data.error||'')+')');
+  /* v1006 (re-audit N1): the guard used to stop at 20,000 values / 12 levels and call the rest clean */
+  const padded=await call('/api/arena/result',{pad:new Array(20005).fill(0),oppId:'__proto__',won:true,requestId:'p-pad'});
+  ok(padded.status===400&&/Invalid request/.test(padded.data.error||''),'a padded body hiding "__proto__" past 20,000 values is refused ('+padded.status+' '+JSON.stringify(padded.data).slice(0,60)+')');
+  let deep={k:'__proto__'}; for(let i=0;i<14;i++) deep={d:deep};
+  const dp=await call('/api/watch/report',{attacks:[],defends:[],scouts:[],x:deep});
+  ok(dp.status===400,'a "__proto__" nested 15 levels deep is refused ('+dp.status+')');
+  const legit=await call('/api/watch/report',{attacks:Array.from({length:20},(_,i)=>({name:'Castle '+i,eta:i,ret:false})),defends:[],scouts:[]});
+  ok(legit.status===200,'an ordinary 20-row report still passes ('+legit.status+')');
   const dl=await call('/api/daily',{});
   ok(dl.status===410,'/api/daily is retired (410; got '+dl.status+' '+JSON.stringify(dl.data).slice(0,80)+')');
   if(missed.length){ missed.forEach(m=>console.error('FAIL',m)); process.exitCode=1; }

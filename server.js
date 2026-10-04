@@ -210,10 +210,10 @@ function send(res, code, obj){ const b=JSON.stringify(obj); res.writeHead(code,c
 const BODY_MAX = +(process.env.BODY_MAX || 65536);        // 64 KB default for ordinary API calls
 const BODY_MAX_SAVE = +(process.env.BODY_MAX_SAVE || 4*1024*1024);  // 4 MB for the whole-roster cloud save
 /* v986 (4 Oct City Wall audit #1, P0): a request value or key equal to an Object.prototype name ('__proto__', 'constructor',
-   'toString', ...) reaches plain-object lookups like led.unlocked[k] / led.hero[k] as truthy and can write onto
+   'toString', ...) reaches plain-object lookups like ownsHeroK(led,k) / led.hero[k] as truthy and can write onto
    Object.prototype for the whole process. Fix the class: such a request is refused before any route runs. */
 const PROTO_NAMES=new Set(Object.getOwnPropertyNames(Object.prototype));
-function hasProtoName(v,depth){ let n=0; const walk=(x,d)=>{ if(++n>20000||d>12) return false;
+function hasProtoName(v,depth){ let n=0; const walk=(x,d)=>{ if(++n>50000||d>32) return true;   /* v1006 (re-audit Account N1, P0): past the walk limits the request is REFUSED - it used to pass as clean, so 20,000 padding values hid a '__proto__' */
     if(typeof x==='string') return PROTO_NAMES.has(x);
     if(Array.isArray(x)){ for(const y of x) if(walk(y,d+1)) return true; return false; }
     if(x&&typeof x==='object'){ for(const k of Object.keys(x)){ if(PROTO_NAMES.has(k)||walk(x[k],d+1)) return true; } }
@@ -658,7 +658,7 @@ function cardPower(u, key, fresh){
 }
 function ledgerTeamPower(u){
   const led=ensureLedger(u);
-  const keys=Array.isArray(u.team)?u.team.map(h=>h&&h.key).filter(k=>k&&led.unlocked[k]).slice(0,5):[];
+  const keys=Array.isArray(u.team)?u.team.map(h=>h&&h.key).filter(k=>k&&ownsHeroK(led,k)).slice(0,5):[];
   const use=keys.length?keys:Object.keys(led.unlocked).slice(0,5);
   /* v808 - the card, the same number the player is looking at */
   let p=0;
@@ -1244,7 +1244,7 @@ function arenaAttView(led){ const a=arenaAtt(led);
 const QUEST_DEFS_SRV={
   q_arena:  { reward:{gold:50},  cond:(u,led)=>((u.qc&&u.qc.arena)|0)>=1 },
   q_name:   { reward:{gems:20},  cond:()=>true },                                  // attested (cosmetic condition), reward fixed + once
-  q_collect:{ reward:{randFrags:5}, cond:(u,led)=>Object.keys(led.unlocked||{}).filter(k=>led.unlocked[k]).length>=5 },
+  q_collect:{ reward:{randFrags:5}, cond:(u,led)=>Object.keys(led.unlocked||{}).filter(k=>ownsHeroK(led,k)).length>=5 },
   q_vex:    { reward:{hero:'vex'}, cond:(u,led)=>(led.camp.cleared|0)>=6 },
   q_wish:   { reward:{gems:20},  cond:(u,led)=>((u.qc&&u.qc.wish)|0)>=3 }
 };
@@ -1260,6 +1260,9 @@ const DUNGEON_MATS_PER_DAY=10;   // v328: winning dungeon resolves that roll equ
    request could add a property to every object in the server process. The gear and glyph routes had
    no whitelist at all; the ledger routes had one, but `SIM.HERO_BASE['__proto__']` is itself truthy,
    so `if(!SIM.HERO_BASE[k])` did not stop it either. hasOwnProperty is the check that does. */
+/* v1006 (re-audit Account N1, class fix): every READ of a ledger's unlocked map goes through this - a valid hero id, an own property,
+   and true. A plain lookup is truthy for '__proto__' / 'constructor' (Object.prototype) and let a hero list reach led.hero[k] = Object.prototype. */
+function ownsHeroK(L,k){ return !!(L&&L.unlocked&&validHero(k)&&Object.prototype.hasOwnProperty.call(L.unlocked,k)&&L.unlocked[k]); }
 function validHero(k){ return typeof k==='string' && Object.prototype.hasOwnProperty.call(SIM.HERO_BASE, k); }
 /* 3 Oct Market audit #2: heroes never sold in the Market (client HERO_TYPES source:'purchase' / 'arena'). tests/test_market_harden.js keeps this set equal to the client's. */
 const HERO_NOT_SOLD=new Set(['konwu','grosk','vulmar','aureth','hurne','hollow']);
@@ -1680,8 +1683,8 @@ function provFragAvg(qi){ if(_provFragAvg[qi]) return _provFragAvg[qi];
     for(const key in c.need) cost+=c.need[key]; const f=provFragsFor(c); for(const key in f) share+=f[key]; }
   return (_provFragAvg[qi]={ share:n?Math.round(share/n):0, cost:n?Math.round(cost/n):0 }); }
 function provDrillTarget(led,g,qi,team){
-  const fighters=[...new Set((team||[]).map(String))].filter(k=>led.unlocked[k]&&SIM.HERO_BASE[k]);
-  const everyone=Object.keys(led.unlocked).filter(k=>led.unlocked[k]&&SIM.HERO_BASE[k]).sort();
+  const fighters=[...new Set((team||[]).map(String))].filter(k=>ownsHeroK(led,k)&&SIM.HERO_BASE[k]);
+  const everyone=Object.keys(led.unlocked).filter(k=>ownsHeroK(led,k)&&SIM.HERO_BASE[k]).sort();
   const order=fighters.concat(everyone.filter(k=>fighters.indexOf(k)<0));
   const pick=(k,sl)=>{ let d=null; try{ d=glyphPreChoice(k,sl,qi); }catch(e){ d=null; } if(!d) return null;
     const c=g2BuildCost({subGlyphs:{}},d); return c?{ hero:k, slot:sl, def:d, cost:c }:null; };
@@ -2163,7 +2166,7 @@ function witchView(u,now){
   if(!w) return {ok:true,locked:true,unlockLevel:WITCH.UNLOCK_LEVEL,
     playerLevel:ledPlayerLevel(ensureLedger(u))};
   const led=ensureLedger(u), A=ensureAcad(u); acadCollect(A);   // the Hut spends the Academy's resources
-  const heroes=Object.keys(led.unlocked||{}).filter(k=>led.unlocked[k]&&SIM.HERO_BASE[k])
+  const heroes=Object.keys(led.unlocked||{}).filter(k=>ownsHeroK(led,k)&&SIM.HERO_BASE[k])
     .map(key=>{ const power=heroCardPower(u,key), hp=WITCH.health(w.state,key);
       return {key,power,hp,healCost:Math.ceil(power*0.1*(WITCH.HP_FULL-hp)/WITCH.HP_FULL),
         returnAt:worldHeroReturnAt(u,key,now)}; })
@@ -2198,7 +2201,7 @@ function buildRegisteredLines(u){
       if(!Array.isArray(line)) continue;
       const heroes=[];
       for(const k of line){
-        if(!SIM.HERO_BASE[k] || !rled.unlocked[k] || seen.has(k)) continue;
+        if(!SIM.HERO_BASE[k] || !ownsHeroK(rled,k) || seen.has(k)) continue;
         const h=snapshotHeroFromServer(u,k,save); if(!h) continue;
         seen.add(k); heroes.push(h);
       }
@@ -2208,7 +2211,7 @@ function buildRegisteredLines(u){
   }
 
   /* no choice made (or none of it survives): the automatic deal, strongest first, five at a time */
-  const all=Object.keys(SIM.HERO_BASE).filter(k=>rled.unlocked[k]).map(k=>snapshotHeroFromServer(u,k,save)).filter(Boolean);
+  const all=Object.keys(SIM.HERO_BASE).filter(k=>ownsHeroK(rled,k)).map(k=>snapshotHeroFromServer(u,k,save)).filter(Boolean);
   all.sort((a,b)=>heroCardPower(u,b&&b.key)-heroCardPower(u,a&&a.key));   /* v806 - by the card */
   const out=[];
   for(let i=0; i+5<=all.length && out.length<WAR_LINES_MAX; i+=5) out.push(mk(all.slice(i,i+5), out.length));
@@ -2226,7 +2229,7 @@ function warLinesView(u, editable, why){
   const lines=buildRegisteredLines(u);
   const onALine=new Set();
   for(const L of lines) for(const h of L.heroes) onALine.add(h.key);
-  const bench=Object.keys(SIM.HERO_BASE).filter(k=>rled.unlocked[k]&&!onALine.has(k))
+  const bench=Object.keys(SIM.HERO_BASE).filter(k=>ownsHeroK(rled,k)&&!onALine.has(k))
     .map(k=>snapshotHeroFromServer(u,k,save)).filter(Boolean)
     .sort((a,b)=>heroCardPower(u,b&&b.key)-heroCardPower(u,a&&a.key)).map(card);   /* v806 */
   return { ok:true, cap:WAR_LINES_MAX, chosen:!!(Array.isArray(u.warLines)&&u.warLines.length),
@@ -3374,7 +3377,7 @@ function worldTreeHooks(now,sites,snapshots=null){
     squad:(owner,ids)=>{
       const u=JSON.parse(JSON.stringify(DB.users[owner])),led=ensureLedger(u),w=witchState(u,now),host=simHost();
       if(snapshots&&u.witch)snapshots.set(owner,u.witch);
-      if(!w||!host||ids.some(k=>!SIM.HERO_BASE[k]||!led.unlocked[k]))return null;
+      if(!w||!host||ids.some(k=>!SIM.HERO_BASE[k]||!ownsHeroK(led,k)))return null;
       const specs=ids.map(k=>campaignHeroSpec(u,k));if(specs.some(s=>!s))return null;
       return host.snapFromSpecs(specs).map(s=>{const hp=Math.min(s.maxHp,WITCH.combatHp(w.state,s.key,s.maxHp));return {...s,hp,worldEntryHpCap:hp,energy:0};});
     },
@@ -3554,7 +3557,7 @@ function towerMaxForPower(pow){ let f=0; while(f<5000&&towerReqS(f+1)<=pow) f++;
    kept 24 h). A receipt that exists and succeeded is a payment that happened; nothing else is inferred. */
 function towerOldReceipt(u,rid){ const ep=(u.led&&u.led.migratedAt)||0, r=DB.idem&&DB.idem[u.id+':earn:'+ep+':'+rid]; return !!(r&&r.resp&&r.resp.ok===true); }
 /* the strongest five cards the player owns - a weaker team picked today must not shrink a floor already reached */
-function towerBenchPower(u){ const led=u.led||{}; const ps=Object.keys(led.unlocked||{}).filter(k=>led.unlocked[k]).map(k=>cardPower(u,k)).sort((a,b)=>b-a); let p=0; for(const x of ps.slice(0,5)) p+=x; return Math.max(Math.round(p),ledgerTeamPower(u)); }
+function towerBenchPower(u){ const led=u.led||{}; const ps=Object.keys(led.unlocked||{}).filter(k=>ownsHeroK(led,k)).map(k=>cardPower(u,k)).sort((a,b)=>b-a); let p=0; for(const x of ps.slice(0,5)) p+=x; return Math.max(Math.round(p),ledgerTeamPower(u)); }
 /* Getting Started rewards are AUTHORED HERE and granted once per step by the server — the client
    used to add them to its own wallet. */
 const TUTORIAL_REWARDS=Object.freeze({
@@ -3584,7 +3587,7 @@ function poolState(u){ const led=ensureLedger(u);
   if(!led.pool) led.pool={ goldUsedDay:'', goldFree:0, goldLast:0, gemFreeDay:'', gemFirstDone:false, pity:0, history:[] };
   return led.pool; }
 function poolPick(a){ return a[Math.floor(Math.random()*a.length)]; }
-function poolPickUnowned(led,a){ const un=(a||[]).filter(function(k){ return !(led.unlocked&&led.unlocked[k]); });
+function poolPickUnowned(led,a){ const un=(a||[]).filter(function(k){ return !(led.unlocked&&ownsHeroK(led,k)); });
   return un.length?un[Math.floor(Math.random()*un.length)]:null; }
 function poolGrantHero(u,hk){ const led=u.led; const st=POOL_START_STARS[hk]||1;
   if(led.unlocked[hk]){ const f=POOL_DUPE_FRAG[st]||7; creditFrags(u,led,hk,f,'wish:duplicate',{uncapped:true});
@@ -4901,7 +4904,7 @@ async function api(req,res,url){
       const linePower=l=>Math.round(l.reduce((s,h)=>s+h.maxHp/8+(h.atk||0),0));
       // Phil's own lines: his roster sorted by power, chunked into linesPer lines of five
       const save=parseSaveOf(me), rled=ensureLedger(me);
-      const mine=Object.keys(SIM.HERO_BASE).filter(k=>rled.unlocked[k]).map(k=>snapshotHeroFromServer(me,k,save)).filter(Boolean).sort((a,c)=>(c.maxHp/8+c.atk)-(a.maxHp/8+a.atk));
+      const mine=Object.keys(SIM.HERO_BASE).filter(k=>ownsHeroK(rled,k)).map(k=>snapshotHeroFromServer(me,k,save)).filter(Boolean).sort((a,c)=>(c.maxHp/8+c.atk)-(a.maxHp/8+a.atk));
       const myLines=[]; for(let i=0;i<linesPer;i++){ const chunk=mine.slice(i*5,i*5+5); if(chunk.length===5) myLines.push(chunk); }
       const mkSide=(name,isMine)=>{ const side={ guildId:name, name, players:[], citadels:WAR_LANES.map((l,i)=>({lane:i,key:l.key,name:l.name,destroyed:false,defenders:[]})) };
         for(let pi=0;pi<players;pi++){ const you=isMine&&pi===0; const pname=you?me.name:(isMine?'Ally bot '+pi:'Enemy bot '+(pi+1));
@@ -5067,7 +5070,7 @@ async function api(req,res,url){
       const ids=Array.isArray(b.heroIds)?b.heroIds.map(String):[];
       if(ids.length<5||ids.length>10||new Set(ids).size!==ids.length) return send(res,400,{error:'Pick 5 fighters (plus up to 5 backups), no duplicates.'});
       const vled=ensureLedger(me);   // AUDIT v229 (P0): ownership is enforced — locked heroes never enter the Vault
-      for(const k of ids){ if(!SIM.HERO_BASE[k]||!vled.unlocked[k]) return send(res,400,{error:'You have not unlocked '+k+'.'}); }
+      for(const k of ids){ if(!SIM.HERO_BASE[k]||!ownsHeroK(vled,k)) return send(res,400,{error:'You have not unlocked '+k+'.'}); }
       const save=parseSaveOf(me);
       const snaps=ids.map(k=>snapshotHeroFromServer(me,k,save));
       if(snaps.some(s=>!s)) return send(res,400,{error:'Unknown hero in the team.'});
@@ -5448,7 +5451,7 @@ async function api(req,res,url){
         if(!me.mineClaims||me.mineClaims.epoch!==epoch) me.mineClaims={epoch,ids:[]};
         if(me.mineClaims.ids.includes(node.id)) return {ok:false,error:'That mine was already claimed this cycle.'};
         const ids=Array.isArray(b.heroIds)?[...new Set(b.heroIds.map(String))].slice(0,5):[];
-        if(!ids.length||ids.some(k=>!SIM.HERO_BASE[k]||!led.unlocked[k]))
+        if(!ids.length||ids.some(k=>!SIM.HERO_BASE[k]||!ownsHeroK(led,k)))
           return {ok:false,error:'Pick up to five heroes you own.'};
         if([...me.worldMineMarches,...worldCityMarches(me)]
           .some(m=>m.homeAt>now&&m.heroIds?.some(k=>ids.includes(k)))||ids.some(k=>WORLD_TREE_CONTROL.busy(DB.worldTreeControl,me.id,k,now)))
@@ -5826,7 +5829,7 @@ async function api(req,res,url){
       const gold=rw.repeatGold*times, px=rw.playerXpRepeat*times, hxp=rw.heroXpRepeat*times;
       creditGold(me,led,gold,'campaign:sweep');
       ledAddPlayerXP(led,px,me);
-      const team=(Array.isArray(b.heroIds)?[...new Set(b.heroIds.map(String))].slice(0,5):[]).filter(k=>led.unlocked[k]);   /* 3 Oct Arena audit #3: duplicates multiplied hero XP */
+      const team=(Array.isArray(b.heroIds)?[...new Set(b.heroIds.map(String))].slice(0,5):[]).filter(k=>ownsHeroK(led,k));   /* 3 Oct Arena audit #3: duplicates multiplied hero XP */
       for(const k of team){ const h=led.hero[k]||(led.hero[k]={xp:0,stars:(SIM.HERO_BASE[k]||{}).stars||1,pips:0}); h.xp=Math.min(99000000,h.xp+hxp); }
       const xpPotions=xpPotionGrant(led,mode,node,times,srvSeed('campxp-sweep',me.id,mode,node,reqId));
       ledTx(me,mode+':sweep:'+st.id+':x'+times,{gold,px,heroXp:hxp,stamina:-cost,xpPotions});
@@ -5885,7 +5888,7 @@ async function api(req,res,url){
        board.ascended), skipping the fragment cost and the hero-level gate. Dev-only. */
     let glyphsMaxed=0;
     if(b.maxGlyphs&&Array.isArray(b.heroKeys)){ const gg=(glyphMigrate(tgt),glyphFlowMigrate(tgt),ensureGlyphs(tgt));
-      for(const k of b.heroKeys.map(String)){ if(!SIM.HERO_BASE[k]) continue; led.unlocked[k]=led.unlocked[k]||true;
+      for(const k of b.heroKeys.map(String)){ if(!SIM.HERO_BASE[k]) continue; led.unlocked[k]=ownsHeroK(led,k)||true;
         const board=glyphBoard(gg,k); if(board.ascensionIndex>=GLYPH_MAX_ASC) continue;
         for(const sid of board.slots){ const inst=sid&&gg.finished[sid]; if(inst){ inst.status='consumed'; inst.consumedAt=Date.now(); } }
         while(board.ascensionIndex<GLYPH_MAX_ASC){ const qi=board.ascensionIndex;
@@ -6069,7 +6072,7 @@ async function api(req,res,url){
         resourceGain(me,'stamina',led.stam.v-before,reason); }
       else if(what==='px') ledAddPlayerXP(led,amt,me);
       else if(what==='heroXp'){ const keys=(Array.isArray(b.heroKeys)?[...new Set(b.heroKeys.map(String))].slice(0,10):[]);   /* v559: the daily counter moved once per request but the loop paid once per ELEMENT, so ten copies of one key multiplied the award tenfold. */
-        for(const k of keys){ if(!led.unlocked[k]) continue; const h=led.hero[k]||(led.hero[k]={xp:0,stars:(SIM.HERO_BASE[k]||{}).stars||1,pips:0}); h.xp=Math.min(99000000,h.xp+amt); } }
+        for(const k of keys){ if(!ownsHeroK(led,k)) continue; const h=led.hero[k]||(led.hero[k]={xp:0,stars:(SIM.HERO_BASE[k]||{}).stars||1,pips:0}); h.xp=Math.min(99000000,h.xp+amt); } }
       else if(what==='frag'){ const k=String(b.heroKey||''),before=led.frags[k]|0;
         led.frags[k]=Math.min(9999,before+amt); resourceGain(me,'frags',led.frags[k]-before,reason); }
       const tx=ledTx(me,'earn:'+reason,{[what]:amt});
@@ -6086,8 +6089,8 @@ async function api(req,res,url){
     let yourPower=0, squad=[];
     try{
       const led=ensureLedger(me);
-      const picked=rosterKeys(me.team).filter(k=>led.unlocked[k]).slice(0,5);
-      squad=picked.length?picked:Object.keys(led.unlocked).filter(k=>led.unlocked[k]).slice(0,5);
+      const picked=rosterKeys(me.team).filter(k=>ownsHeroK(led,k)).slice(0,5);
+      squad=picked.length?picked:Object.keys(led.unlocked).filter(k=>ownsHeroK(led,k)).slice(0,5);
       const snaps=squad.map(k=>snapshotHeroFromServer(me,k)).filter(Boolean);
       /* v809 (Phil: "it should all be the power, same power") - the CARD, like everywhere else.
          This was a sixth formula - maxHp/8 + max(atkP,atkM)*3 + heal*2 - which weighted attack flat,
@@ -6124,7 +6127,7 @@ async function api(req,res,url){
     const out=await BONUS.handle(p, req.method, { me, led, query:url.searchParams,
       body:()=>body(req), glyphGrantNamedList, srvSeed, ledTx, ledgerView, writeDB, feedbackCheatSignal,
       GLYPHS, CAMP_ENC:CAMP_ENC?Object.values(CAMP_ENC.byNode):[], uid,
-      playerLevel:()=>ledPlayerLevel(led), isUnlocked:k=>!!led.unlocked[k] });
+      playerLevel:()=>ledPlayerLevel(led), isUnlocked:k=>!!ownsHeroK(led,k) });
     if(out) return send(res, out.status, out.body); }
   /* v825 THE STARLESS WELL (blueprint 22) owns only /api/well/*: a 3-day run of 3 maps, HP/energy carried from the server's replay */
   if(WELL2 && p.indexOf('/api/well/')===0){ if(!me)return send(res,401,{error:'auth'});
@@ -6153,7 +6156,7 @@ async function api(req,res,url){
       if(gate && pl<gate) return send(res,400,{error:'Chapter boss — reach player level '+gate+' first (you are '+pl+').', bossLevelGate:gate, playerLevel:pl}); }
     const ids=Array.isArray(b.heroIds)?[...new Set(b.heroIds.map(String))].slice(0,5):[];   /* v559: no dedupe meant five copies of one hero were a legal lineup AND collected the per-entry XP award five times (City PvP, /api/pvp/attack). The Vault already rejects duplicates; every squad route now agrees. */
     if(!ids.length||new Set(ids).size!==ids.length) return send(res,400,{error:'Pick your squad (no duplicates).'});
-    for(const k of ids){ if(!led.unlocked[k]) return send(res,400,{error:'You have not unlocked '+k+'.'}); }
+    for(const k of ids){ if(!ownsHeroK(led,k)) return send(res,400,{error:'You have not unlocked '+k+'.'}); }
     ledStamRegen(led); const cost=(mode==='elite'||campIsBoss(node))?STAM_COST_BOSS:STAM_COST_NORMAL;
     /* v273 (audit response §4.5) — RECONNECT RESUMES, IT DOES NOT RE-CHARGE.
        Closing the app mid-battle used to abandon the frozen session and take the stamina again on the
@@ -6374,7 +6377,7 @@ async function api(req,res,url){
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
     const out=idem(me.id+':starstep:'+reqId,()=>{
       const led=ensureLedger(me); const k=String(b.heroKey||''); if(!validHero(k)) return {ok:false,error:'Unknown hero.'}; const base=SIM.HERO_BASE[k];
-      if(!led.unlocked[k]) return {ok:false,error:'Hero not unlocked.'};
+      if(!ownsHeroK(led,k)) return {ok:false,error:'Hero not unlocked.'};
       const h=led.hero[k]||(led.hero[k]={xp:0,stars:base.stars,pips:0});
       const STAR_COST={1:{pip:3,confirm:5},2:{pip:6,confirm:20},3:{pip:14,confirm:30},4:{pip:20,confirm:50}};
       if(h.stars>=5) return {ok:false,error:'Already 5★ — use Refine.'};
@@ -6406,7 +6409,7 @@ async function api(req,res,url){
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
     const out=idem(me.id+':summon:'+reqId,()=>{
       const led=ensureLedger(me); const k=String(b.heroKey||''); if(!validHero(k)) return {ok:false,error:'Unknown hero.'}; const base=SIM.HERO_BASE[k];
-      if(led.unlocked[k]) return {ok:false,error:'Already summoned.'};
+      if(ownsHeroK(led,k)) return {ok:false,error:'Already summoned.'};
       const ss=POOL_START_STARS[k]||base.stars||1;
       const SUMMON_COST_T={1:10,2:30,3:80};
       const need=SUMMON_COST_T[ss]||10;
@@ -6574,7 +6577,7 @@ async function api(req,res,url){
       if(provPlaysLeft(me,pr)<=0) return send(res,400,{error:'No plays left today — come back tomorrow.'});
       const ids=Array.isArray(b.heroIds)?[...new Set(b.heroIds.map(String))].slice(0,5):[];
       if(!ids.length) return send(res,400,{error:'Pick your squad (no duplicates).'});
-      for(const k of ids){ if(!SIM.HERO_BASE[k]||!led.unlocked[k]) return send(res,400,{error:'You have not unlocked '+k+'.'}); }
+      for(const k of ids){ if(!SIM.HERO_BASE[k]||!ownsHeroK(led,k)) return send(res,400,{error:'You have not unlocked '+k+'.'}); }
       const specs=ids.map(k=>campaignHeroSpec(me,k)); if(specs.some(x=>!x)) return send(res,400,{error:'Unknown hero.'});
       const host=simHost(); let fightSnaps=null;
       if(host){ try{ fightSnaps=host.snapFromSpecs(specs); }catch(e){ console.error('sim-host snapFromSpecs failed (province):',e.message); } }
@@ -6650,7 +6653,7 @@ async function api(req,res,url){
         if(sws<1) return {ok:false, error:'Your account level does not open a cleared stage yet.'};
         if(provPlaysLeft(me,pr)<=0) return {ok:false, error:'No plays left today — come back tomorrow.'};
         pr.used=(pr.used|0)+1;
-        const team=(pr.lastTeam||[]).filter(k=>led.unlocked[k]);
+        const team=(pr.lastTeam||[]).filter(k=>ownsHeroK(led,k));
         const reward=provGrant(me,led,t,sws,team,'sweep:'+reqId);
         writeDB();
         return { ok:true, type:t, stage:sws, cleared:pr.stage|0, reward, playsLeft:provPlaysLeft(me,pr), prov:provLedgerView(me,led), ledger:ledgerView(me) };
@@ -6685,7 +6688,7 @@ async function api(req,res,url){
         const dk=nyDayKey(); led.eliteDay=led.eliteDay&&led.eliteDay.k===dk?led.eliteDay:{k:dk};
         if((led.eliteDay[node]|0)>=3) return {ok:false,error:'Elite rewards are limited to 3 per day.'};
         const ids=Array.isArray(b.heroIds)?[...new Set(b.heroIds.map(String))].slice(0,5):[];   /* v559: no dedupe meant five copies of one hero were a legal lineup AND collected the per-entry XP award five times (City PvP, /api/pvp/attack). The Vault already rejects duplicates; every squad route now agrees. */
-        for(const k of ids){ if(!led.unlocked[k]) return {ok:false,error:'not unlocked: '+k}; }
+        for(const k of ids){ if(!ownsHeroK(led,k)) return {ok:false,error:'not unlocked: '+k}; }
         const st=campStageOf(node); if(!st) return {ok:false,error:'Stage data missing.'};
         const snaps=ids.map(k=>snapshotHeroFromServer(me,k)).filter(Boolean);
         if(!snaps.length) return {ok:false,error:'Pick your squad.'};
@@ -6707,7 +6710,7 @@ async function api(req,res,url){
         led.trial=led.trial||{}; const T=led.trial[kind]=led.trial[kind]||{best:0};
         if(floor>T.best+1) return {ok:false,error:'Clear the previous floor first.'};
         const ids=Array.isArray(b.heroIds)?[...new Set(b.heroIds.map(String))].slice(0,5):[];   /* v559: no dedupe meant five copies of one hero were a legal lineup AND collected the per-entry XP award five times (City PvP, /api/pvp/attack). The Vault already rejects duplicates; every squad route now agrees. */
-        for(const k of ids){ if(!led.unlocked[k]) return {ok:false,error:'not unlocked: '+k}; }
+        for(const k of ids){ if(!ownsHeroK(led,k)) return {ok:false,error:'not unlocked: '+k}; }
         const snaps=ids.map(k=>snapshotHeroFromServer(me,k)).filter(Boolean);
         if(!snaps.length) return {ok:false,error:'Pick your squad.'};
         const rec=vaultFloorRecord(Math.min(100,floor));
@@ -6754,7 +6757,7 @@ async function api(req,res,url){
         if(rw.gold){ creditGold(me,led,rw.gold,'quest:'+id); got.gold=rw.gold; }
         if(rw.gems){ creditGems(me,led,rw.gems,'quest:'+id); got.gems=rw.gems; }
         if(rw.hero){ led.unlocked[rw.hero]=true; led.hero[rw.hero]=led.hero[rw.hero]||{xp:0,stars:(SIM.HERO_BASE[rw.hero]||{}).stars||1,pips:0}; got.hero=rw.hero; }
-        if(rw.randFrags){ const pool=Object.keys(SIM.HERO_BASE).filter(k=>!led.unlocked[k]); const n=rw.randFrags;
+        if(rw.randFrags){ const pool=Object.keys(SIM.HERO_BASE).filter(k=>!ownsHeroK(led,k)); const n=rw.randFrags;
           for(let i=0;i<n;i++){ const hk=pool.length?pool[SIM.seedFrom('qf:'+me.id+':'+i)%pool.length]:'vex'; creditFrags(me,led,hk,1,'quest:'+id); } got.frags=n; }
         ledTx(me,'quest:'+id,got);
         writeDB(); return {ok:true, id, got, ledger:ledgerView(me)};
@@ -6889,18 +6892,18 @@ async function api(req,res,url){
         if(me.pvpDay.n>=20) return {ok:false,error:'No city attacks left today.'};
         const ids=march.heroIds;
         if(!ids.length) return {ok:false,error:'Pick your squad.'};
-        for(const k of ids){ if(!led.unlocked[k]) return {ok:false,error:'You have not unlocked '+k+'.'}; }
+        for(const k of ids){ if(!ownsHeroK(led,k)) return {ok:false,error:'You have not unlocked '+k+'.'}; }
         const mySnaps=ids.map(k=>snapshotHeroFromServer(me,k)).filter(Boolean);
         const defRoster=(Array.isArray(d.wall)&&d.wall.length?d.wall:(Array.isArray(d.team)?d.team:[])).filter(Boolean).slice(0,5);
         if(!mySnaps.length) return {ok:false,error:'Bad squad.'};
         const battleAt=Date.now(), myWitch=witchState(me,battleAt), defWitch=d.isNpc?null:witchState(d,battleAt);
         const defLedger=d.isNpc?null:ensureLedger(d), defKeys=d.isNpc?[]:rosterKeys(defRoster);
-        const defenderCanFight=k=>!!defLedger.unlocked[k]&&(!defWitch||WITCH.health(defWitch.state,k)>0);
+        const defenderCanFight=k=>!!ownsHeroK(defLedger,k)&&(!defWitch||WITCH.health(defWitch.state,k)>0);
         const defOwned=defKeys.filter(defenderCanFight);
         // Old accounts can have a nonempty monster placeholder wall without owning any
         // of those heroes. Defend with their starters. An owned wall whose heroes are all
         // at 0% HP must remain undefended under Phil's fallen-hero rule.
-        if(!d.isNpc && !defOwned.length && !defKeys.some(k=>defLedger.unlocked[k]))
+        if(!d.isNpc && !defOwned.length && !defKeys.some(k=>ownsHeroK(defLedger,k)))
           defOwned.push(...STARTER_HEROES.filter(defenderCanFight));
         const defSnaps=(d.isNpc?defRoster.map(function(e){ return snapshotNpcHero(e); }):defOwned
           .map(function(k){ return snapshotHeroFromServer(d,k); })).filter(Boolean);
@@ -7075,7 +7078,7 @@ async function api(req,res,url){
         return {ok:false,error:'War preparation has not ended, or this war has expired.',readyAt:war?.readyAt||null};
       const ids=Array.isArray(b.heroIds)?[...new Set(b.heroIds.map(String))].slice(0,5):[];
       const led=ensureLedger(me),w=witchState(me,now);
-      if(!ids.length||ids.some(k=>!SIM.HERO_BASE[k]||!led.unlocked[k]))
+      if(!ids.length||ids.some(k=>!SIM.HERO_BASE[k]||!ownsHeroK(led,k)))
         return {ok:false,error:'Pick up to five heroes you own.'};
       const mines=worldMineMarches(me,now);
       const marches=worldCityMarches(me,now);
@@ -7310,14 +7313,14 @@ async function api(req,res,url){
     let won=false, simRes=null;
     if(opp){ // AUDIT v229 (P0): only OWNED heroes fight — a client-synced team can never smuggle a locked hero in
       const myLed=ensureLedger(me);
-      let myKeys=rosterKeys(me.team).filter(k=>myLed.unlocked[k]).slice(0,5);
-      if(!myKeys.length) myKeys=Object.keys(myLed.unlocked||{}).filter(k=>myLed.unlocked[k]&&SIM.HERO_BASE[k]).slice(0,5);   // v327: a player who never pressed save still fields a squad (ledgerTeamPower:312 does the same)
+      let myKeys=rosterKeys(me.team).filter(k=>ownsHeroK(myLed,k)).slice(0,5);
+      if(!myKeys.length) myKeys=Object.keys(myLed.unlocked||{}).filter(k=>ownsHeroK(myLed,k)&&SIM.HERO_BASE[k]).slice(0,5);   // v327: a player who never pressed save still fields a squad (ledgerTeamPower:312 does the same)
       const mySnaps=myKeys.map(k=>snapshotHeroFromServer(me,k)).filter(Boolean);
       const opLed=opp.isNpc?null:ensureLedger(opp);
       let opSnaps;
       if(opp.isNpc){ opSnaps=(Array.isArray(opp.team)?opp.team:[]).filter(Boolean).slice(0,5).map(function(e){ return snapshotNpcHero(e); }).filter(Boolean); }
-      else { opSnaps=rosterKeys(opp.team).filter(k=>opLed&&opLed.unlocked[k]).slice(0,5).map(k=>snapshotHeroFromServer(opp,k)).filter(Boolean);
-        if(!opSnaps.length&&opLed) opSnaps=Object.keys(opLed.unlocked||{}).filter(k=>opLed.unlocked[k]&&SIM.HERO_BASE[k]).slice(0,5).map(k=>snapshotHeroFromServer(opp,k)).filter(Boolean); }
+      else { opSnaps=rosterKeys(opp.team).filter(k=>opLed&&ownsHeroK(opLed,k)).slice(0,5).map(k=>snapshotHeroFromServer(opp,k)).filter(Boolean);
+        if(!opSnaps.length&&opLed) opSnaps=Object.keys(opLed.unlocked||{}).filter(k=>ownsHeroK(opLed,k)&&SIM.HERO_BASE[k]).slice(0,5).map(k=>snapshotHeroFromServer(opp,k)).filter(Boolean); }
       if(mySnaps.length&&opSnaps.length){ const r0=SIM.resolveLineBattle(SIM.makeLine(mySnaps),SIM.makeLine(opSnaps),seed); won=r0.won;
         simRes={rounds:r0.rounds, log:(r0.log||[]).slice(0,200)}; }   // v255 (§7): the arena returns its combat-core event log for the result recap
     }
@@ -7794,7 +7797,7 @@ async function api(req,res,url){
       const ids=Array.isArray(b.heroIds)?[...new Set(b.heroIds.map(String))].slice(0,10):[];
       if(!ids.length) return send(res,400,{error:'Pick your squad.'});
       const led=ensureLedger(me);
-      for(const k of ids){ if(!SIM.HERO_BASE[k]||!led.unlocked[k]) return send(res,400,{error:'You have not unlocked '+k+'.'}); }
+      for(const k of ids){ if(!SIM.HERO_BASE[k]||!ownsHeroK(led,k)) return send(res,400,{error:'You have not unlocked '+k+'.'}); }
       const specs=ids.map(k=>campaignHeroSpec(me,k)); if(specs.some(x=>!x)) return send(res,400,{error:'Unknown hero.'});
       const host=simHost(); let fightSnaps=null;
       if(host){ try{ fightSnaps=host.snapFromSpecs(specs); }catch(e){ console.error('sim-host snapFromSpecs failed (raid):',e.message); } }
