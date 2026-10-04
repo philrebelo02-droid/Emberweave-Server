@@ -125,7 +125,7 @@ function starMultFor(stars,pips){ const lv=Math.max(1,Math.min(MAX_STARS,stars|0
    more of their specific stat"). Star multiplier still multiplies the level-adjusted base. */
 const ROLE_GROWTH={
   Tank    :{hp:34,dmg:0.6,apow:0.3,armor:12,mr:8},
-  Bruiser :{hp:34,dmg:2.4,apow:0.4,armor:8, mr:6},
+  Bruiser :{hp:34,dmg:1.75,apow:0.4,armor:8, mr:6},
   Assassin:{hp:25,dmg:3.0,apow:0.3,armor:5, mr:4},
   Marksman:{hp:23,dmg:2.2,apow:0.4,armor:4, mr:4},
   Support :{hp:23,dmg:0.5,apow:1.0,armor:4, mr:4},
