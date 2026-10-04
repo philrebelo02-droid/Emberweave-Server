@@ -28,7 +28,7 @@ check('worldMoveDurable');
 // first castle placement: a failed save publishes nothing and throws WORLD_STORAGE_FAILURE; a good save keeps the SAME account object in the DB
 { const me={id:'me',lvl:30},DB={users:{me,other:{id:'other',worldLocation:{x:1,y:1}}},idem:{}},b=box(DB);
   Object.assign(b,{ledPlayerLevel:()=>30,ensureLedger:u=>u,WITCH:{UNLOCK_LEVEL:10},WORLD_LOCATION:{valid:l=>!!l,cellKey:(x,y)=>x+','+y,place:()=>({x:50,y:60})},
-    WORLD_TERRAIN_BLOCKED:new Set(),WORLD_MINES:{field:()=>[],epochAt:()=>0},crypto:{randomInt:()=>0}});
+    WORLD_TERRAIN_BLOCKED:new Set(),WORLD_MINES:{field:()=>[],epochAt:()=>0},crypto:{randomInt:()=>0},_durableIdemActive:false});
   vm.runInContext(fnSource('worldLocation'),b);
   b.fs.renameSync=()=>{throw Error('injected');};
   assert.throws(()=>b.worldLocation(me),e=>e.code==='WORLD_STORAGE_FAILURE');
@@ -38,6 +38,16 @@ check('worldMoveDurable');
   assert.equal(DB.users.me,me,'the DB keeps the request account object, not a copy');
   assert.deepEqual(JSON.parse(JSON.stringify(me.worldLocation)),{x:50,y:60});
   console.log('PASS worldLocation: failed save publishes nothing; saved placement keeps the same account object in the DB'); }
+// v1017 (release review #8): inside an atomic section (durable idem, arena result) the placement is NOT committed on its own - the
+// section's final save persists it (it used to save the whole DB mid-route, a reward before its receipt)
+{ const me={id:'me2'},DB={users:{me2:me},idem:{}},b=box(DB);
+  Object.assign(b,{ledPlayerLevel:()=>30,ensureLedger:u=>u,WITCH:{UNLOCK_LEVEL:10},WORLD_LOCATION:{valid:l=>!!l,cellKey:(x,y)=>x+','+y,place:()=>({x:7,y:8})},
+    WORLD_TERRAIN_BLOCKED:new Set(),WORLD_MINES:{field:()=>[],epochAt:()=>0},crypto:{randomInt:()=>0},_durableIdemActive:true});
+  vm.runInContext(fnSource('worldLocation'),b);
+  b.fs.renameSync=()=>{throw Error('a commit was attempted inside the atomic section');};
+  assert.deepEqual(JSON.parse(JSON.stringify(b.worldLocation(me))),{x:7,y:8});
+  assert.deepEqual(JSON.parse(JSON.stringify(me.worldLocation)),{x:7,y:8},'placed on the live account for the outer save');
+  console.log('PASS worldLocation inside an atomic section: no commit of its own'); }
 // CR2035 (v925): a city march launch goes through the staged transaction too, and a failed save answers 503
 { const at=source.indexOf("if(p==='/api/world/city/start' && req.method==='POST'){"),end=source.indexOf("if((p==='/api/world/relocate'",at);
   const sec=source.slice(at,end); assert.ok(at>0&&end>at,'city start route found');

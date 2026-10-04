@@ -3295,7 +3295,7 @@ function worldLocation(u){
   const next=WORLD_LOCATION.place(taken,crypto.randomInt,
     [...WORLD_TERRAIN_BLOCKED,...mines.map(n=>n.gx+','+n.gy)]);
   // A staged move or mine account is committed by its outer transaction, never here.
-  if(DB.users[u.id]!==u){u.worldLocation=next;return next;}
+  if(DB.users[u.id]!==u||_durableIdemActive){u.worldLocation=next;return next;}   /* v1017 (release review #8): inside an atomic section (durable idem, arena result) the section's own final save persists it - committing here saved the whole DB mid-route, a reward before its receipt */
   const draft=JSON.parse(JSON.stringify(u));draft.worldLocation=next;
   const out=durableUserCommit(u,draft,DB.idem,'world-location');
   if(!out.ok){const error=Error(out.error);error.code='WORLD_STORAGE_FAILURE';throw error;}
@@ -7371,6 +7371,9 @@ async function api(req,res,url){
     const akey=me.id+':arena:'+areqId;
     DB.idem=DB.idem||{}; if(DB.idem[akey]) return send(res,200,DB.idem[akey].resp);
     const _aSnapMe=JSON.parse(JSON.stringify(me)), _aRp=Array.isArray(DB.reports)?DB.reports.slice():null, _aFb=Array.isArray(DB.feedback)?DB.feedback.slice():null;   /* v981: taken before anything below can touch the account */
+    /* v1017 (release review #8): no write reaches the disk mid-route - ledTx used to flush the gold/milestone reward before the
+       receipt existed, so a crash between them paid a retry twice. The final save below is the only write; the section is synchronous. */
+    _durableIdemActive=true; try{
     // v582: finite attempts — checked AFTER the replay short-circuit so a re-sent receipt never
     // trips the gate, and BEFORE the sim so an exhausted player costs the server nothing.
     { const aled=ensureLedger(me), aa=arenaAtt(aled);
@@ -7435,7 +7438,7 @@ async function api(req,res,url){
       if(_aRp) DB.reports=_aRp; else delete DB.reports; if(_aFb) DB.feedback=_aFb; else delete DB.feedback;
       return send(res,503,{ok:false,storageFailed:true,error:'Save failed. Retry the same request.'}); }
     try{ pgSave(); }catch(e){}
-    return send(res,200,aresp); }
+    return send(res,200,aresp); } finally { _durableIdemActive=false; } }
 
   if(p==='/api/arena/reports'){ if(!me)return send(res,401,{error:'auth'});   // the defender fetches watchable reports of arena attacks made against them
     return send(res,200,{ defenses: Array.isArray(me.arenaDefenses)?me.arenaDefenses:[] }); }
