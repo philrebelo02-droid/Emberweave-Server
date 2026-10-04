@@ -108,6 +108,8 @@ nothing else in this file.**
 
 # THE STANDARD THIS FILE IS MEASURED AGAINST
 
+**Rhukk H3 one-test22:11 result, UNQUALIFIED:** Phil authorized ONE42credit H3/768p6s test with untouchedcanonicalStartEnd. ATTACK16 reused explicit upperthreefingerhand grounding from11/12 plus finalreturn sentence941chars. Source92d55b899e380eb18ec5bed82b5cce1ff097bda9a915eb207df152a8a83aa921,158frames6.583333s. Wholeclip4fps and strikeframes12–71 show one slash and recovery, but upperarm elongates vertically and brief orange effecttrail is drawn. Modelaxis is not provenfix; oneactioncount does not qualify identity/effectcleanliness. No fullmotionPASS/Philapproval/handoff. Original remains untouched; no separateposevariantsused. FurtherH3 requires authority after one-test spend9679->9637.
+
 **Phil, 12 Sep 2026 — this is the acceptance test for the whole document:**
 > *"The prompt Bible is able optimization of my ideas. One day I will ask you, remake xxxx walk and
 > you need to do it perfectly in one try without instruction because the prompt Bible has the perfect
@@ -2560,6 +2562,12 @@ Settings: GPT Image 2 · 1:1 · High · 1K · 1 image · 30 credits each. At mos
 ---
 
 # MEN — THE METHOD THAT PASSED (3 Oct 2026, Fritz 8/8 passed by Phil one clip at a time)
+
+**LATEST Phil rejection: "you morphed rhukk".** Separatepose-axis input variants and ATTACK14/15 are FAILED identity evidence, never PASS/salvage/handoff. Critgroundpose3 transformed original crescent into a long saberhorn and reduced visiblearm anatomy; rejected UNFIRED. Originalcanonicalplate restored SAME file Start/End, bothpreviews verified, obsoleteprompt cleared. Pose edits did not preserve the approved character; reject this drawing-axis outcome rather than treating actioncount or recovery as success. No nativecutcreated. Phil's original design unchanged is mandatory.
+
+**ATTACK14 new-pose sampled rejection / ATTACK15 pending:** sourceSHA2561f5a4c3a27a91f7f46f52385a6fbf92500c551b3eff0393735cbc9635a605a1b shows one attack/recovery but body turns side-on/holds leaned posture. Input-pose axis not yet confirmed; ATTACK15 removes chest lean/twist and keeps head/red-eye openingangle while knee dip supplies force. Samepairedinput1/2.0/768p6s/OFF,25credits9704->9679. Separate crit pose images1/2 failed terminalhorntipdown despite bowedhead, no videofire; third image edit names inverted-crescent geometry rather than merely bowinghead. UNTESTED, no modelinternalcause or fullmotionPASS claim.
+
+**3 Oct21:2x separate-input axis AUTHORIZED, UNTESTED:** Phil "just make it happen, but the end frame needs to end on start" permits the requested separate wind-up animation input, canonical original untouched. ATTACK14 uses raised claw cocked above shell and away from face horn; exact854char single slash/recovery prompt, same variant Start and End,Hailuo2.0/768p6s/wandOFF,25credits9729->9704. Generate separate ground-facing crit opening pose while rendering. This changes visual input, not another blind wording retry. Matching slots do not prove returned final frame or full-motion quality; inspect before approval/handoff. Supersedes prior pending-pose-permission note below.
 
 **CRIT7 own sampled selfreject:** source1791076400034377303-0_1791076399.mp4 bowsgroundward then head/horn distort, sidebody/uprightheldpose mostclip. Head-led wording did notqualify originalidentity/facing or naturalpuncture/recovery. ATTACK7 source1791073579545947746-0_1791073579.mp4 checkedfornativeonecycle salvage but cycles turnbody; no stationarycyclequalified/no sliceperformed. Next proposal separateinputwinduppose (originalcanonicaluntouched) requires directPhil permission because currentlane prohibitsplateedits. This is a newaxis decision, not whole-task STOP or repeatedresume requirement. No confirmedrepair.
 
