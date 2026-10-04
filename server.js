@@ -1148,6 +1148,7 @@ const TECH_MAX_SRV=60;
 const TECH_BASE_SRV={atk:0.7, hp:10, ap:0.5, def:0.13, armor:0.13, mr:0.13, crit:0.13, critres:0.2};
 const TECH_GROWTH_SRV=1.04;
 const ACAD_TRACKS=['academy','atk','hp','ap','def','armor','mr','crit','critres'];
+const ACADEMY_UNLOCK_LEVEL=20;   /* v988: = client ACADEMY_UNLOCK_LEVEL (test_durable_wall checks they match) */
 function techGainSrv(k,lvl){ return (TECH_BASE_SRV[k]!=null?TECH_BASE_SRV[k]:0.1)*Math.pow(TECH_GROWTH_SRV,lvl||0); }
 function techTotalSrv(A,k){ const lvl=(A&&A.lv&&A.lv[k])|0; let v=0; for(let i=0;i<lvl;i++) v+=techGainSrv(k,i); return v; }
 function learnDurSrv(lvl,acadLvl){ return Math.round((120+lvl*lvl*45)*1000*(1-Math.min(0.6,(acadLvl|0)*0.02))); }
@@ -1434,7 +1435,7 @@ function writeDBNow(){
    player could be shown a reward that a crash then took back (Well/Vault reproduced). opts.durableUser = the caller's
    account: it is snapshotted before fn runs; if the save throws, the account and the receipt are put back exactly and the
    caller gets {ok:false,storageFailed:true} (routes answer 503) - the same contract as durableCommit(). Opt-in per route. */
-const DURABLE_IDEM_KINDS=new Set(['dresolve','dsweep','salv','witch','edbuy','edstart','edresult','trial','well2','spend','earn','csweep','cresolve','provres','provsweep','abuy']);   /* 3 Oct Market audit #4: tx/spend + tx/earn no longer ack a failed save; v975 (Arena+Campaign audit #7): campaign sweep/resolve, province resolve/sweep, arena attempt buy */
+const DURABLE_IDEM_KINDS=new Set(['dresolve','dsweep','salv','witch','edbuy','edstart','edresult','trial','well2','spend','earn','csweep','cresolve','provres','provsweep','abuy','temple','acad','xp-potion','skillup','starstep','refine','summon','quest']);   /* v988 (4 Oct Temple+Academy #2 #3, City Wall #4) */   /* 3 Oct Market audit #4: tx/spend + tx/earn no longer ack a failed save; v975 (Arena+Campaign audit #7): campaign sweep/resolve, province resolve/sweep, arena attempt buy */
 function idem(key, fn, opts){ DB.idem=DB.idem||{}; const now=Date.now();
   for(const k of Object.keys(DB.idem)){ if(now-DB.idem[k].t>86400000) delete DB.idem[k]; }
   if(DB.idem[key] && !(opts&&opts.retryFailed&&DB.idem[key].resp&&DB.idem[key].resp.ok===false)) return DB.idem[key].resp;
@@ -5755,7 +5756,7 @@ async function api(req,res,url){
       ledTx(me,'hero:xp-potion:'+tier,{hero:key,heroXp:amount,xpPotion:-1});
       writeDB(); return {ok:true,tier,heroKey:key,heroXp:amount,levelBefore:before,levelAfter:ledHeroLevel(led,key),ledger:ledgerView(me)};
     });
-    return send(res,out.ok===false?400:200,out); }
+    return send(res,out.storageFailed?503:(out.ok===false?400:200),out); }
   if(p==='/api/campaign/sweep' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
     const out=idem(me.id+':csweep:'+reqId,()=>{
@@ -5879,7 +5880,7 @@ async function api(req,res,url){
       writeDB();
       return {ok:true, level:arr[idx], cost, ledger:ledgerView(me)};
     });
-    return send(res, out&&out.ok?200:400, out); }
+    return send(res, out&&out.storageFailed?503:(out&&out.ok?200:400), out); }
   /* 30 Aug — EQUIPMENT CRAFTING SPENT NOTHING. A Grey craft decremented G.eqMats in the BROWSER only,
      but eqMats is ledger-owned: adoptLedger (boot + the 45s ledgerSync) handed the materials straight
      back while the crafted piece stayed in the local inventory, so anyone could mint unlimited Tier-0
@@ -5968,7 +5969,7 @@ async function api(req,res,url){
       const tx=ledTx(me,'temple:save',{hero:key,unlocked});
       return {ok:true,unlocked,tx,ledger:ledgerView(me)};
     });
-    return send(res,out&&out.ok?200:400,out); }
+    return send(res,out&&out.storageFailed?503:(out&&out.ok?200:400),out); }
   if(p==='/api/tx/spend' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
     const out=idem(me.id+':spend:'+reqId,()=>{
@@ -6331,7 +6332,7 @@ async function api(req,res,url){
       ledTx(me,'hero:starstep:'+k,{frags:-cost});
       writeDB(); return {ok:true, hero:h, frags:led.frags[k]|0, ledger:ledgerView(me)};
     });
-    return send(res, out.ok===false?400:200, out); }
+    return send(res, out.storageFailed?503:(out.ok===false?400:200), out); }
   if(p==='/api/hero/refine' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
     const out=idem(me.id+':refine:'+reqId,()=>{
@@ -6347,7 +6348,7 @@ async function api(req,res,url){
       ledTx(me,'hero:refine:'+k+(success?':up':':miss'),{frags:-tier.cost});
       writeDB(); return {ok:true, success, level:h.ref|0, frags:led.frags[k]|0, ledger:ledgerView(me)};
     });
-    return send(res, out.ok===false?400:200, out); }
+    return send(res, out.storageFailed?503:(out.ok===false?400:200), out); }
   if(p==='/api/hero/summon' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
     const out=idem(me.id+':summon:'+reqId,()=>{
@@ -6362,7 +6363,7 @@ async function api(req,res,url){
       ledTx(me,'hero:summon:'+k,{frags:-need});
       writeDB(); return {ok:true, ledger:ledgerView(me)};
     });
-    return send(res, out.ok===false?400:200, out); }
+    return send(res, out.storageFailed?503:(out.ok===false?400:200), out); }
   /* =================== v604 EMBERDRAFT (Island of Trials) ===================
      Phil, 18 Sep 2026: "I want the rewards to be stamina. Every place they place again Ai gives them 6 stamina per rank
      they get above 6" — 6th 6 · 5th 12 · 4th 18 · 3rd 24 · 2nd 30 · 1st 36 (7th/8th nothing).
@@ -6704,7 +6705,7 @@ async function api(req,res,url){
           for(let i=0;i<n;i++){ const hk=pool.length?pool[SIM.seedFrom('qf:'+me.id+':'+i)%pool.length]:'vex'; creditFrags(me,led,hk,1,'quest:'+id); } got.frags=n; }
         ledTx(me,'quest:'+id,got);
         writeDB(); return {ok:true, id, got, ledger:ledgerView(me)};
-      }); return send(res, out.ok===false?400:200, out); }
+      }); return send(res, out.storageFailed?503:(out.ok===false?400:200), out); }
     if(p==='/api/quest/chain-claim'){ const out=idem(me.id+':qchain:'+reqId,()=>{
         led.quests=led.quests||{claimed:{},chainStep:0};
         const steps=questChainStepsSrv(); const st=steps[led.quests.chainStep|0];
@@ -6760,6 +6761,7 @@ async function api(req,res,url){
     if(req.method!=='POST') return send(res,404,{error:'academy'});
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
     if(p==='/api/academy/research'){ const out=idem(me.id+':acad:'+reqId,()=>{
+        if(ledPlayerLevel(led)<ACADEMY_UNLOCK_LEVEL) return {ok:false,error:'The Academy opens at player level '+ACADEMY_UNLOCK_LEVEL+'.'};   /* v988 (Temple+Academy audit #4): the client's lock, now on the server */
         const track=String(b.track||''); if(!ACAD_TRACKS.includes(track)||!(track in A.lv)) return {ok:false,error:'Unknown research track.'};   /* v986 (Temple+Academy audit #5) */
         const lvl=A.lv[track]|0;
         if(lvl>=acadTrackMax(track)) return {ok:false,error:'Fully researched.'};
@@ -6772,7 +6774,7 @@ async function api(req,res,url){
         A.learn[track]=Date.now()+learnDurSrv(lvl,A.lv.academy|0);
         ledTx(me,'academy:'+track,{gold:-goldCost});
         writeDB(); return {ok:true, track, completesAt:A.learn[track], lv:A.lv, res:A.res, ledger:{gold:led.gold}};
-      }); return send(res, out.ok===false?400:200, out); }
+      }); return send(res, out.storageFailed?503:(out.ok===false?400:200), out); }
     if(p==='/api/academy/collect'){ const changed=acadCollect(A,true); writeDB();
       return send(res,200,{ ok:true, changed, lv:A.lv, learn:A.learn }); }
     if(p==='/api/world/mine'){ const out=idem(me.id+':mine:'+reqId,()=>{

@@ -48,6 +48,16 @@ const R=['iron','crystal','silver','coal'], each=(o,n)=>R.every(r=>(o[r]|0)===n)
   const a2=await call('/api/academy'); ok(JSON.stringify(a2.data.res)===JSON.stringify(a1.data.res),'a second read straight after pays nothing more');
   await editDB(db=>{ const A=db.users[id].led.acad; delete A.incAt; A.res={iron:0,crystal:0,silver:0,coal:0}; });
   const a3=await call('/api/academy'); ok(each(a3.data.res,0),'first touch with no saved clock starts the clock - no back-pay ('+JSON.stringify(a3.data.res)+')');
+  // v988: moved from test_transform.sh (its account is level 1 and now meets the server's level-20 gate)
+  await editDB(db=>{ const A=db.users[id].led.acad; A.lv.academy=0; A.learn={}; A.incAt=Date.now(); A.res={iron:0,crystal:0,silver:0,coal:0}; db.users[id].led.gold=1e6; });
+  const rz=await call('/api/academy/research',{track:'academy',requestId:'ae-rz'}); ok(rz.data.ok===false&&/Not enough Emberite/.test(rz.data.error||''),'research without mined Emberite is refused ('+(rz.data.error||'')+')');
+  const rz2=await call('/api/academy/research',{track:'academy',requestId:'ae-rz2'}); ok(rz2.data.ok===false&&/Not enough Emberite/.test(rz2.data.error||''),'a new request cannot bypass the resource cost');
+  const rza=await call('/api/academy/research',{track:'atk',requestId:'ae-rza'}); ok(rza.data.ok===false&&/Academy must be upgraded/.test(rza.data.error||''),'tech above the Academy level is locked');
+  await editDB(db=>{ db.users[id].led.px=1000; db.users[id].led.acad.res={iron:1e6,crystal:1e6,silver:1e6,coal:1e6}; });
+  const rlow=await call('/api/academy/research',{track:'academy',requestId:'ae-rlow'}); ok(rlow.data.ok===false&&/opens at player level 20/.test(rlow.data.error||''),'below player level 20 research is refused even with resources (v988; got '+(rlow.data.error||'ok')+')');
+  { const cs=fs.readFileSync(path.join(root,'emberweave-heroes.html'),'utf8').match(/const ACADEMY_UNLOCK_LEVEL=(\d+)/), ss=srvSrc.match(/const ACADEMY_UNLOCK_LEVEL=(\d+)/);
+    ok(cs&&ss&&cs[1]===ss[1],'the server gate equals the client lock ('+(cs&&cs[1])+' / '+(ss&&ss[1])+')'); }
+  await editDB(db=>{ db.users[id].led.px=20000; });
   // research past 60, refused at 120
   await editDB(db=>{ const A=db.users[id].led.acad; A.lv.academy=60; A.incAt=Date.now(); A.res={iron:1e7,crystal:1e7,silver:1e7,coal:1e7}; db.users[id].led.gold=1e7; });
   const r60=await call('/api/academy/research',{track:'academy',requestId:'ae-r60'});

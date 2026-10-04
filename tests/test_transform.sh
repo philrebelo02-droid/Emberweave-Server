@@ -146,11 +146,11 @@ ck "MINE: refused claims leave iron at zero" '"iron":0' "$AC1"
 # A fresh account has not completed a verified mine march, so it cannot pay
 # the Academy track's authored iron cost. (3 Oct 2026: players see iron as Emberite - Phil "Set a is good".)
 RS=$(curl -s -X POST $B/api/academy/research -H "$H" -H 'content-type: application/json' -d '{"track":"academy","requestId":"rs1"}')
-ck "ACADEMY: research without mined iron is refused" 'Not enough Emberite' "$RS"
+ck "ACADEMY: a level-1 account is refused (v988 server gate; the cost/lock checks moved to test_academy_economy.js)" 'opens at player level 20' "$RS"
 RS2=$(curl -s -X POST $B/api/academy/research -H "$H" -H 'content-type: application/json' -d '{"track":"academy","requestId":"rs2"}')
-ck "ACADEMY: a new request cannot bypass the resource cost" 'Not enough Emberite' "$RS2"
+ck "ACADEMY: a new request cannot bypass the level gate" 'opens at player level 20' "$RS2"
 RSA=$(curl -s -X POST $B/api/academy/research -H "$H" -H 'content-type: application/json' -d '{"track":"atk","requestId":"rs3"}')
-ck "ACADEMY: tech above the Academy level is locked" 'Academy must be upgraded' "$RSA"
+ck "ACADEMY: any track is refused below level 20" 'opens at player level 20' "$RSA"
 # A city battle can only resolve a registered, arrived war march. Combat and
 # replay are covered by witches-hut-api.test.js after that march is created.
 PT=$(curl -s -X POST $B/api/register -H 'content-type: application/json' -d '{"name":"tfdef","pass":"password1"}')
