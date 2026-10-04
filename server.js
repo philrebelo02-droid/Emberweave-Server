@@ -194,6 +194,7 @@ const PBKDF2_ITERS=210000;
 function makeCred(pass){ const salt=crypto.randomBytes(16).toString('hex'); return { salt, iters:PBKDF2_ITERS, hash:hashPass(pass,salt,PBKDF2_ITERS) }; }
 function checkPass(u,pass){ try{ const a=Buffer.from(u.hash||'','hex'), b=Buffer.from(hashPass(pass||'',u.salt,u.iters),'hex');
   return a.length===b.length && crypto.timingSafeEqual(a,b); }catch(e){ return false; } }   // RE-AUDIT: constant-time compare
+const SAVE_MAX_CHARS=1024*1024;   /* v999 (Account audit #8): a cloud save above 1 MB is refused (a request could store 4 MB of any shape) */
 const MIN_PASS_LEN=8;   // AUDIT: 1-char passwords were accepted. New/changed passwords only — existing logins unaffected.
 // RE-AUDIT (26 Aug): API CORS is no longer '*'. The game is served from the SAME origin, which
 // needs no CORS at all; cross-origin callers must be listed in CORS_ORIGINS (comma-separated).
@@ -277,7 +278,7 @@ function linkedUser(gid, name, pass){
   DB.byGid=DB.byGid||{};
   let u=DB.byGid[gid] && DB.users[DB.byGid[gid]];
   if(!u){ const lid=DB.byName[String(name).toLowerCase()]; const lu=lid&&DB.users[lid];
-    if(lu && !lu.guest && !lu.gid && !lu.isNpc) u=lu; }   // a local account made before linking, same name: adopt it
+    if(lu && !lu.guest && !lu.gid && !lu.isNpc && lu.hash && checkPass(lu,pass)) u=lu; }   // a local account made before linking, same name: adopt it - v999 (Account audit #2, P0): ONLY with that account's own password (it used to adopt on the name alone and overwrite the hash)
   if(!u){ const id=uid();
     u={ id, name, rank:nextJoinRank(), coins:0, team:defaultTeam(), wall:defaultTeam(), roster:{}, lastDaily:0,
         cityX:Math.round(Math.random()*1000), cityY:Math.round(Math.random()*1000), created:Date.now() };
@@ -4186,7 +4187,7 @@ async function api(req,res,url){
   if(p==='/api/report' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     if(rateLimited(req,'report',12,60000)) return send(res,429,{error:'Too many reports — wait a minute.'});
     const b=await body(req); const text=(b.text||'').toString().slice(0,2000); if(!text.trim()) return send(res,400,{error:'Report is empty'});
-    const kind=b.kind==='suggestion'?'suggestion':b.kind==='balance'?'balance':'bug';
+    const kind=b.kind==='suggestion'?'suggestion':(b.kind==='balance'&&isDev(me))?'balance':'bug';   /* v999 (Account audit #3): only the balance bot (dev) files into the integrity report list - players flooded it */
     const dk=nyDayKey(), feedbackDay=me.feedbackDay&&me.feedbackDay.k===dk?me.feedbackDay:{k:dk,n:0};
     if(kind!=='balance'&&feedbackDay.n>=20) return send(res,429,{error:'Daily report limit reached.'});
     const item={id:kind==='balance'?uid():'FB-'+uid(),userId:me.id,name:me.name,kind,text,
@@ -5509,6 +5510,8 @@ async function api(req,res,url){
        reward formula. Store the keys only, capped, and let the ledger supply every stat. */
     if(Array.isArray(b.team)) me.team=sanitizeRoster(b.team);
     if(Array.isArray(b.wall)) me.wall=sanitizeRoster(b.wall);
+    if(b.roster!=null && (typeof b.roster!=='object'||Array.isArray(b.roster))) return send(res,400,{error:'Bad save.'});   /* v999 (Account audit #8) */
+    if(b.roster && typeof b.roster.__save==='string' && b.roster.__save.length>SAVE_MAX_CHARS) return send(res,413,{error:'Save too large.'});
     if(b.roster) me.roster=sanitizeSave(me, b.roster);   // clamp impossible values + flag implausible jumps
     // World position is server-owned. Ignore the legacy browser world blob; it must not
     // change mine travel or another player's visible castle position.
@@ -6946,7 +6949,10 @@ async function api(req,res,url){
         writeDB(); return receipt;
       }); return send(res, out.storageFailed?503:out.ok===false?400:200, out); }
   }
-  if(p==='/api/pvp/attack-report' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
+  /* v999 (World audit #6): RETIRED - any player could write a fake report (made-up result, 8 KB blob) into any player's mail and push
+     real reports out; the only caller was the signed-out fallback. Verified fights write their own mail. */
+  if(p==='/api/pvp/attack-report' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'}); return send(res,410,{ok:false,error:'Retired.'}); }
+  if(false){
     if(rateLimited(req,'pvprep',20,60000)) return send(res,429,{error:'Slow down.'});
     const b=await body(req); const d=DB.users[String(b.defId||'')];
     if(!d||d.isNpc||d.id===me.id) return send(res,200,{ok:false});
@@ -7048,6 +7054,11 @@ async function api(req,res,url){
         return {ok:false,error:'Pick up to five heroes you own.'};
       const mines=worldMineMarches(me,now);
       const marches=worldCityMarches(me,now);
+      /* v999 (World audit #5): the 20-a-day city attack cap is checked at the START too - it was only checked on arrival, so the 21st
+         march travelled, was refused and sat unresolved. Today's settled attacks + today's open marches on real players. */
+      if(d){ const dk=nyDayKey(), done=(me.pvpDay&&me.pvpDay.k===dk)?(me.pvpDay.n|0):0;
+        const open=marches.filter(m=>!m.resolved&&DB.users[m.defId]&&nyDayKey(m.depart)===dk).length;
+        if(done+open>=20) return {ok:false,error:'No city attacks left today.'}; }
       if([...mines,...marches].some(m=>m.homeAt>now&&m.heroIds?.some(k=>ids.includes(k)))||ids.some(k=>WORLD_TREE_CONTROL.busy(DB.worldTreeControl,me.id,k,now)))
         return {ok:false,error:'A selected hero is already marching.'};
       const host=simHost(); if(!host) return {ok:false,error:'City battle engine unavailable.'};
@@ -8014,7 +8025,7 @@ try{
   //      updated to send {token} on connect. The size/rate caps and name-from-token apply always. ----
   const WS_AUTH_REQUIRED = String(process.env.WS_AUTH_REQUIRED||'true')==='true';   // ON by default since 26 Aug — the client now sends its token on every WS frame; set env false only as an emergency rollback
   const WS_MSG_MAX = +(process.env.WS_MSG_MAX || 16384);   // per-frame byte cap (replay chips already capped at 8000)
-  function wsAccount(m){ const id=lookupToken(m&&m.token); return id?DB.users[id]:null; }
+  function wsAccount(m){ const id=lookupToken(m&&m.token); const u=id?DB.users[id]:null; return (u&&!isBanned(u))?u:null; }   /* v999 (Account audit #4): a banned account has no socket identity (chat, whispers, rooms) */
   function wsRateOk(ws, isAct){ if(isAct===2) return true; const now=Date.now(); ws._hits=(ws._hits||[]).filter(t=>now-t<10000); ws._hits.push(now); return ws._hits.length<=(isAct?160:40); }   // act frames: 16/s (> ACT_PER_SEC=8 + speed/stall); abandon is never dropped
   function wsNeedAuth(ws){ if(WS_AUTH_REQUIRED && !ws._uid){ wsend(ws,{t:'autherr',reason:'Sign in required.'}); return true; } return false; }
   // ---- live chat: world/region broadcast + name-addressed whispers ----
@@ -8035,7 +8046,7 @@ try{
     if(_n>WS_PER_IP){ try{ ws.close(1013,'too many connections'); }catch(e){} return; }
     _wsPerIp.set(_ip,_n); ws._alive=true; ws.on('pong',()=>{ ws._alive=true; });
     ws.on('close',()=>{ const k=(_wsPerIp.get(_ip)||1)-1; if(k>0) _wsPerIp.set(_ip,k); else _wsPerIp.delete(_ip); });
-    ws.on('message', raw=>{ try{ if(raw && raw.length>WS_MSG_MAX) return; let m; try{ m=JSON.parse(raw.toString()); }catch(e){ return; }
+    ws.on('message', raw=>{ try{ if(raw && raw.length>WS_MSG_MAX) return; let m; try{ m=JSON.parse(raw.toString()); }catch(e){ return; } if(hasProtoName(m)) return;   /* v999 (World audit #18): the request guard covers socket frames too */
       // 30 Sep 2026 hardening: the frame `null` threw at m.t below and, uncaught inside a ws handler, killed the whole server.
       if(!m || typeof m!=='object' || Array.isArray(m)) return;
       const _isAct=(m && m.t==='act') ? (String(m.kind||'')==='abandon' ? 2 : 1) : 0;

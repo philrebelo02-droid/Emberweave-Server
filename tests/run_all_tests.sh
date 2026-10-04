@@ -63,6 +63,8 @@ note "test_wall_routes.js (4 Oct City Wall audit #14: xp potion, refine, summon,
 node tests/test_wall_routes.js || FAILED=1
 note "test_wallet_quest_claim.js (a signed-in quest is paid once by the server, never by a local earn)"
 node tests/test_wallet_quest_claim.js || FAILED=1
+note "test_account_world.js (4 Oct Account + World audits: balance reports, save shape/size, attack-report retired)"
+node tests/test_account_world.js || FAILED=1
 note "test_player_truth.js (v270: the campaign result is the player's own transcript, replayed)"
 node tests/test_player_truth.js || FAILED=1
 note "test_campaign_player_truth.js (28 Sep fight rule: the witnessed win is paid on a replay mismatch, once; a malformed verdict is refused)"

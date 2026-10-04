@@ -20435,7 +20435,7 @@ function randSpotInRegion(rk){ const z=ZONES[rk]; const ox=zoneCellStart(z.col),
     return {x,y}; }
   const c=zoneCenter(rk); return {x:snapToGrid(c.x), y:snapToGrid(c.y)}; }
 async function performWildTele(){ const rk=myRegion();
-  const r=await api('/api/world/relocate','POST',{kind:'wild',requestId:uid8()});
+  const r=await apiOnce('worldmove','/api/world/relocate',{kind:'wild'}); if(r&&r.busy) return;   /* v999 (World audit #8): a double tap used the free jump AND a scroll */
   if(!r||!r.ok){ bannerMsg((r&&r.error)||'Wild teleport could not be verified.'); return; }
   adoptWorldLocation(r); if(r.ledger)adoptLedger(r.ledger); saveG();
   closeTelePopout(); bannerMsg('🌀 Wild Teleport! Relocated within '+ZONES[rk].name); renderWorldMap(true); }
@@ -20443,7 +20443,7 @@ function doWildTeleport(){ const free=wildTeleFreeReady();
   if(!free && (G.wildScrolls||0)<=0){
     if((G.gems||0)<WILD_SCROLL_COST){ bannerMsg('Wild relocation on cooldown — buy a Wild Scroll (💎'+WILD_SCROLL_COST+') to jump now.'); return; }
     gameConfirm('Buy a <b>Wild Teleport Scroll</b> for <b>💎'+WILD_SCROLL_COST+'</b> and jump now?',async()=>{
-      const r=await api('/api/world/buy-scrolls','POST',{offer:'wild1',requestId:uid8()});
+      const r=await apiOnce('worldscroll','/api/world/buy-scrolls',{offer:'wild1'}); if(r&&r.busy) return;   /* v999: one purchase per tap */
       if(!r||!r.ok){ bannerMsg((r&&r.error)||'Scroll purchase failed.'); return; }
       adoptWorldLocation(r); if(r.ledger)adoptLedger(r.ledger); saveG(); performWildTele(); });
     return;
@@ -20974,9 +20974,11 @@ let _pvpPollN=0;
 function pollPvpReports(){ if(!ACC.token||!online())return;
   api('/api/pvp/reports').then(d=>{ if(!d||!Array.isArray(d.reports)||!d.reports.length)return;
     d.reports.forEach(r=>{ const when=r.t?new Date(r.t).toLocaleTimeString():'';
+      if(r.kind==='war-declared'){ const fmt=x=>x?new Date(x).toLocaleTimeString():'?';   /* v999 (World audit #2): a declaration is not an attack */
+        addMail('war',{from:r.from,subj:'⚔ '+r.from+' declared war on you',body:'War ready '+fmt(r.readyAt)+' · ends '+fmt(r.expireAt)}); return; }
       if(r.unverified) addMail('war',{from:r.from,subj:'⚠ Unverified attack report — '+r.from,
         body:r.from+' submitted an old battle report'+(when?' at '+when:'')+'. The server did not verify a fight, outcome, injuries, or loot.'});
-      else if(r.won) addMail('war',{from:r.from,subj:'⚠ '+r.from+' raided your castle',body:r.from+' attacked your castle'+(when?' at '+when:'')+' and broke through your wall. Strengthen your defense lines or raise a shield.',battle:r.battle||undefined});
+      else if(r.won) addMail('war',{from:r.from,subj:'⚠ '+r.from+' raided your castle',body:r.from+' attacked your castle'+(when?' at '+when:'')+' and broke through your wall.',battle:r.battle||undefined});
       else addMail('war',{from:r.from,subj:'🛡 Wall held vs '+r.from,body:r.from+' attacked your castle'+(when?' at '+when:'')+' — your wall drove them off.',battle:r.battle||undefined}); });
     updateMailBadges(); bannerMsg('⚔ '+d.reports.length+' attack report'+(d.reports.length===1?'':'s')+' — check War mail.');
     // RE-AUDIT: acknowledge only AFTER the mail is stored locally — a dropped response no longer loses reports
@@ -24543,7 +24545,7 @@ function devShowReports(b){ const out=b.querySelector('#devAdmin'); if(!out)retu
     if(!rs.length) html+='<span style="color:#8b98a9">No reports yet.</span>';
     else html+=rs.map(r=>`<div style="border-top:1px solid #1c2434;padding:6px 2px;${r.resolved?'opacity:.5':''}">
       <div style="display:flex;justify-content:space-between;gap:6px"><b style="font-size:11px">${r.kind==='balance'?'🤖':'🐞'} ${escapeHTML(r.name)}</b><span style="color:#6f7d90;font-size:10px">${ago(r.t)} ago</span></div>
-      <div style="font-size:11px;color:#cdd6e4;white-space:pre-wrap;margin:2px 0">${escapeHTML(r.text)}</div>
+      <div style="font-size:11px;color:#cdd6e4;white-space:pre-wrap;margin:2px 0">${escapeHTML(String(r.text||r.detail||''))}</div>
       ${r.meta?`<div style="font-size:9px;color:#6f7d90">${escapeHTML(r.meta)}</div>`:''}
       <div style="display:flex;gap:6px;margin-top:3px"><button class="btn xs secondary" data-rr="${r.id}">${r.resolved?'Reopen':'Resolve'}</button><button class="btn xs secondary" data-rd="${r.id}" style="color:#ff8b8b">Delete</button></div></div>`).join('');
     out.innerHTML=html;
@@ -25763,7 +25765,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791100839737';
+const BUILD_ID = '1791101606134';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
