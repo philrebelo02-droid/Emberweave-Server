@@ -119,7 +119,7 @@
       "subFragCost": null,
       "stats": {
         "atk": 6.7,
-        "hp": 94,
+        "hp": 47,
         "armor": 6.7
       }
     },
@@ -297,7 +297,7 @@
       "subFragCost": 3,
       "stats": {
         "apow": 10.7,
-        "hp": 150,
+        "hp": 75,
         "mr": 10.7
       }
     },
@@ -455,7 +455,7 @@
       "sub": "Ashstride Boots Greave Frame",
       "subFragCost": 4,
       "stats": {
-        "hp": 234,
+        "hp": 117,
         "haste": 16.7,
         "ctrlRes": 16.7
       }
@@ -615,7 +615,7 @@
       "sub": "Warhide Hauberk Armor Frame",
       "subFragCost": 5,
       "stats": {
-        "hp": 336,
+        "hp": 168,
         "armor": 24.0,
         "lifesteal": 24.0
       }
@@ -635,7 +635,7 @@
       "sub": "Infernal Plate Armor Frame",
       "subFragCost": 5,
       "stats": {
-        "hp": 336,
+        "hp": 168,
         "apow": 24.0,
         "armor": 24.0
       }
@@ -993,7 +993,7 @@
       "subFragCost": 7,
       "stats": {
         "apow": 46.7,
-        "hp": 654,
+        "hp": 327,
         "energy": 46.7
       }
     },
@@ -1372,7 +1372,7 @@
       "subFragCost": 9,
       "stats": {
         "atk": 83.3,
-        "hp": 1166,
+        "hp": 583,
         "crit": 83.3
       }
     },
@@ -1587,7 +1587,7 @@
       "sub": "Furnace Heart Relic Core",
       "subFragCost": 10,
       "stats": {
-        "hp": 1540,
+        "hp": 770,
         "apow": 110.0,
         "lifesteal": 110.0
       }
