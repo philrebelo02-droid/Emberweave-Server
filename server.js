@@ -5528,7 +5528,8 @@ async function api(req,res,url){
     if(b.roster) me.roster=sanitizeSave(me, b.roster);   // clamp impossible values + flag implausible jumps
     // World position is server-owned. Ignore the legacy browser world blob; it must not
     // change mine travel or another player's visible castle position.
-    writeDB(); return send(res,200,{ok:true}); }
+    if(writeDBNow()===false) return send(res,503,{ok:false,storageFailed:true,error:'Save failed - try again.'});   /* v1003 (Account audit #18): the cloud save is on disk before it is acknowledged */
+    return send(res,200,{ok:true}); }
 
   // ---- PVP ATTACK REPORTS: when a player raids a REAL castle, the defender gets mail. ----
 
@@ -7588,7 +7589,7 @@ async function api(req,res,url){
       { const want=bossMax(gg.raid.level||1);
         if((gg.raid.max|0)!==want){ const frac=Math.max(0,Math.min(1,(gg.raid.hp||0)/Math.max(1,gg.raid.max||1)));
           gg.raid.max=want; gg.raid.hp=Math.max(1,Math.round(want*frac)); } }
-      const dk=new Date().toISOString().slice(0,10); if(gg.raid.day!==dk){ gg.raid.day=dk; gg.raid.used={}; } return gg.raid; }
+      const dk=nyDayKey(); if(gg.raid.day!==dk){ gg.raid.day=dk; gg.raid.used={}; } return gg.raid; }   /* v1003 (Guild audit #15): the game's NY day, not UTC */
     function raidView(gg){ const r=ensureRaid(gg); const gd=Object.values(r.contrib).reduce((a,b)=>a+b,0);
       /* v671: the Boss Contribution board ranks everyone who has hit this boss, biggest first, with
          the share of the damage done to him so far. Ten rows is enough for a guild board on a phone. */
@@ -7744,7 +7745,7 @@ async function api(req,res,url){
       const crid=String(b.requestId||'').slice(0,48)||('srv-'+uid());
       const out=durableCommit(me,me.id+':gcontrib:'+crid,(du,staged)=>{
         const gg=Object.values(staged.guilds||{}).find(x=>x&&x.id===g.id); if(!gg) return {ok:false,error:'You are not in a guild.'};
-        const _dk=new Date().toISOString().slice(0,10);
+        const _dk=nyDayKey();   /* v1003 (Guild audit #15) */
         if(!du.guildContrib || du.guildContrib.day!==_dk) du.guildContrib={day:_dk,n:0};
         if(du.guildContrib.n>=GUILD_CONTRIB_DAILY) return { ok:false, capped:true, guild:guildView(gg) };
         if((gg.level||1)>=GMAXLVL) return {ok:false,error:'Your guild is at max level.'};

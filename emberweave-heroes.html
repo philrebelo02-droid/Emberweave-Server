@@ -12535,7 +12535,7 @@ function endBattle(won){
         ? `Took <b>${CUR.oppName}</b>'s spot · 🪙 +${reward}${gemsWon>0?` · <span style="color:#c9b6ff">💎 +${gemsWon}</span>`:''}`
         : `Beat <b>${CUR.oppName}</b> · 🪙 +${reward}`)+_mv+_rc;
       document.getElementById('resultReward').innerHTML=won?winMsg:(`Lost to <b>${CUR.oppName}</b>.`+_mv+_rc);
-      document.getElementById('resultHint').textContent=won?'💎 Climbing past a new best rank pays diamonds — higher ranks are worth more.':'No rank lost — level heroes, raise glyphs, gear up and challenge again.'; gameSpeed=1; show('result'); },800); return; }
+      document.getElementById('resultHint').textContent=''; gameSpeed=1; show('result'); },800); return; }
   if(CUR.mode==='vault'){ const att=CUR.attemptId;
     resultLater(async(ep)=>{ let r=null;
       /* v410 — PLAYER TRUTH (Phil: "what i see on my screen should be the result, not whatever crap
@@ -12563,7 +12563,7 @@ function endBattle(won){
       else if(won){ msg=(r&&r.error)?('<span style="color:#ff8b8b">'+escapeHTML(r.error)+'</span>'):'Victory recorded.'; }
       else { msg='Your squad fell. The floor is unchanged — same monsters every attempt, so learn the lineup and try again.'; }
       document.getElementById('resultReward').innerHTML=msg;
-      document.getElementById('resultHint').textContent=won?'The next floor is harder — spend Dust at the Forge to temper your gear.':'Backups step in when a fighter falls — bring 10 heroes.';
+      document.getElementById('resultHint').textContent='';
       gameSpeed=1; show('result'); },800); return; }
   /* 30 Aug — A SINGLE REJECTED DUNGEON CLEAR BROKE THE DUNGEON FOREVER.
      G.dungeonBest was incremented from the CLIENT's own verdict before the server had answered.
@@ -12623,7 +12623,7 @@ function endBattle(won){
       const recap=(V&&V.recap)?`<div style="font-size:11px;color:#cdd8ea;margin-top:6px">${escapeHTML(V.recap)}</div>`:'';
       const atks=(V&&V.attacksLeft!=null)?`<div style="font-size:10.5px;color:#6f7d90;margin-top:4px">${V.attacksLeft} city attacks left today</div>`:'';
       document.getElementById('resultReward').innerHTML=badge+`<div style="margin-bottom:4px"><b>${escapeHTML(CUR.oppName||'Rival city')}</b></div>`+(sWon?loot:`<div>${escapeHTML(CUR.oppName||'They')} held their wall.</div>`)+recap+atks;
-      document.getElementById('resultHint').textContent='City fights are resolved on the server from both sides\' real heroes, gear and glyphs.'; show('result'); },900); return; }
+      document.getElementById('resultHint').textContent=''; show('result'); },900); return; }
   if(CUR.mode==='graid' && CUR.attemptId){ const att=CUR.attemptId, RB=CUR.raid||{}; CUR.attemptId=null;   /* v666: guild raid boss */
     const _log=(INPUT_LOG||[]).slice(0,400), _dmg=raidDamageDone(), _killed=!units.some(u=>u.team==='enemy'&&u._raidBoss&&u.alive);
     resultLater(async(ep)=>{ let r=null;
@@ -12645,7 +12645,7 @@ function endBattle(won){
              :`<div style="margin-top:2px">🏅 ${((r.reward&&r.reward.guildCoins)|0)} guild coins <span style="color:#8b98a9;font-size:10.5px">· spend them in the Guild Shop</span></div>`)
           +(r.raid?`<div style="font-size:10.5px;color:#6f7d90;margin-top:6px">Boss at ${(r.raid.hp|0).toLocaleString()} / ${(r.raid.max|0).toLocaleString()} HP · ${(r.raid.attemptsLeft|0)} assaults left today</div>`:'')
         : `<div style="color:#ffd45e;font-weight:700;margin-bottom:4px">This run was not counted.</div><span style="color:#ff8b8b">${escapeHTML(String((r&&r.error)||'Could not reach the realm.'))}</span>`;
-      document.getElementById('resultHint').textContent='Your whole guild chips the same boss down — every run counts, and the killing blow pays the most.';
+      document.getElementById('resultHint').textContent='';
       updateHubChrome(); gameSpeed=1; show('result'); },800); return; }
   if(CUR.mode==='well'){ const att=CUR.attemptId, Wl=CUR.well||{}; CUR.attemptId=null;   /* v825 Starless Well */
     const _log=(INPUT_LOG||[]).slice(0,400), _dg=(window._p2lastDigest||null), _wn=(window._p2lastWon===true), _st=(window._p2lastStars|0);
@@ -12680,7 +12680,7 @@ function endBattle(won){
           +(r.replayIncident?'<div style="font-size:10.5px;color:#6f7d90;margin-top:6px">(Your result stands — the server logged a replay difference for review.)</div>':'')
         : (_unv?`<div style="color:#ffd45e;font-weight:700;margin-bottom:4px">This fight was not counted — nothing was spent.</div><span style="color:#ff8b8b">${escapeHTML(String((r&&r.error)||'Could not reach the realm.'))}</span>`
           :`Your squad fell to ${escapeHTML(nm)} Stage ${P.stage|0}. A loss costs nothing — your plays are untouched.`);
-      document.getElementById('resultHint').textContent=sWon?((P.t==='rune')?'Fragments go to your Bag — build the glyph from the hero\'s glyph board.':'Sweep your best cleared stage for the same reward.'):'Same boss and waves every attempt — level up, forge glyphs, then try again.';
+      document.getElementById('resultHint').textContent='';
       updateHubChrome(); gameSpeed=1; show('result'); },800); return; }
   if(CUR.mode==='campaign'&&CUR.attemptId){ const att=CUR.attemptId; CUR.attemptId=null;
     const _log=(INPUT_LOG||[]).slice(0,400), _dg=(window._p2lastDigest||null);   // snapshot the transcript NOW: anything that runs during the 800ms delay must not be able to blank it
@@ -12732,18 +12732,18 @@ function endBattle(won){
           +`<div style="margin-top:6px">${'★'.repeat(r.stars||1)}${r.reward&&r.reward.first?' · <b style="color:#ffd45e">First clear!</b>':''}</div>`
         : (_unv?('<div style="color:#ffd45e;font-weight:700;margin-bottom:4px">You '+(/"won":true/.test(window._p2lastDigest||'')?'won':'fought')+' this one — but the server could not verify it, so nothing was recorded and your stamina is back.</div><span style="color:#ff8b8b">'+escapeHTML(r.error||'')+'</span>'+(r&&r.reason?'<div style="font-size:10.5px;color:#6f7d90;margin-top:4px">('+escapeHTML(r.reason)+(CUR.engine&&CUR.engine!==BUILD_ID?' · the game updated during this fight':'')+')</div>':''))
           : ((r&&r.error)?('<span style="color:#ff8b8b">'+escapeHTML(r.error)+'</span>'):'The realm judged your squad too weak this time — level up and try again.'));
-      document.getElementById('resultHint').textContent=sWon?'Rewards are banked to your account instantly — they follow you to any device.':(_unv?'Play the stage again — it will count.':'Same monsters every attempt — learn the stage.');
+      document.getElementById('resultHint').textContent='';
       updateHubChrome(); gameSpeed=1; show('result');
     },800); return; }
   resultLater(()=>{
   if(won){ const msg=grantRewards();
     document.getElementById('resultTitle').textContent=CUR.mode==='pvp'?'RAID WON':'VICTORY'; document.getElementById('resultTitle').className='result-big win';
     document.getElementById('resultReward').innerHTML=msg;
-    document.getElementById('resultHint').textContent='Socket the glyphs you earned into your heroes (Heroes tab), then push further.';
+    document.getElementById('resultHint').textContent='';
   } else {
     document.getElementById('resultTitle').textContent='DEFEAT'; document.getElementById('resultTitle').className='result-big lose';
     document.getElementById('resultReward').innerHTML='Your squad fell.';
-    document.getElementById('resultHint').textContent='Level heroes, upgrade glyphs, or research in Technology, then try again. Time ultimates and keep a Tank in front + Support in back.';
+    document.getElementById('resultHint').textContent='';
   }
   updateHubChrome(); show('result');
 },800); }
@@ -25781,7 +25781,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791103053753';
+const BUILD_ID = '1791103737184';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
