@@ -40,6 +40,10 @@ const COMPS={
   'Dive (B As As Mg S)':     ['Bruiser','Assassin','Assassin','Mage','Support'],
   'No support (T B Mk Mg Mg)':['TankA','Bruiser','Marksman','Mage','Mage'],
   '4 Tanks + Support':       ['TankA','TankA','TankA','TankA','Support'],
+  // Phil 4 Oct: does each role make a difference? Swap it out of a balanced team for a second melee tank.
+  'Mk->T (T T B Mg S)':      ['TankA','TankA','Bruiser','Mage','Support'],
+  'S->T (T T B Mk Mg)':       ['TankA','TankA','Bruiser','Marksman','Mage'],
+  'Assassin (T B As Mg S)':   ['TankA','Bruiser','Assassin','Mage','Support'],
 };
 let child,port,base;
 async function start(admin,dbFile){ child=spawn(process.execPath,['server.js'],{cwd:root,env:{...process.env,DATABASE_URL:'',PORT:String(port),DB_FILE:dbFile,ADMIN_IDS:admin||''},stdio:'ignore',windowsHide:true});
@@ -60,9 +64,9 @@ function rng(seed){ let a=seed>>>0; return ()=>{ a=(a+0x6D2B79F5)>>>0; let t=a; 
       // --gear=1 (Phil 4 Oct balance layer 2): every hero wears its canonical loadout (hero-paths.js equipment: 9 items, one per
       // slot) at max temper; the Orange item's active is the equipped active. Resonance follows from the total temper.
       if(opt('gear')){ const CAT=JSON.parse(fs.readFileSync(path.join(root,'server','gear-catalog.json'),'utf8')), byId={}; for(const it of CAT.items) byId[it.id]=it;
-        const PATHS=require(path.join(root,'hero-paths.js')), TMAX=CAT.meta.temper.max;
+        const PATHS=require(path.join(root,'hero-paths.js')), TMAX=opt('temper')?+opt('temper'):CAT.meta.temper.max;   /* --temper=N: every item at temper N (Phil 4 Oct: 'temper 1 and maxed') */
         const g=usr.gear||(usr.gear={revision:1,fragments:{},subs:{},items:{},equipped:{},active:{},seq:1});
-        for(const k of keys){ const ids=(PATHS[H[k].equipmentPath]||{}).equipment||[]; g.equipped[k]={};
+        for(const k of keys){ const ids=(opt('gearskip')&&opt('gearskip').split('+').includes(H[k].class==='Tank'?(H[k].damageProfile==='Magic'?'TankM':'TankA'):H[k].class))?[]:((PATHS[H[k].equipmentPath]||{}).equipment||[]); g.equipped[k]={};   /* --gearskip=Class[+Class]: that class fights ungeared (diagnostic) */
           for(const id of ids){ const def=byId[id]; if(!def) continue; const nid='q'+(g.seq++);
             g.items[nid]={d:id,temper:TMAX,prog:0,dustSpent:0,bound:true,createdAt:Date.now()}; g.equipped[k][def.slot]=nid;
             if(def.quality==='Orange'&&def.active&&!opt('noactive')) g.active[k]=nid; } }
@@ -78,11 +82,12 @@ function rng(seed){ let a=seed>>>0; return ()=>{ a=(a+0x6D2B79F5)>>>0; let t=a; 
     for(const k of keys){ const r=await call('/api/admin/snapshot?spec=1&hero='+k,null,tok); if(r.spec){ const s=host.snapFromSpecs([r.spec]); if(s&&s[0]) SNAP[k]=s[0]; } }
     await stop();
     if(opt('stats')){   // --stats=1: each class's battle stats (the snapshot the fight uses), averaged, then exit
-      const F=['maxHp','dmg','apow','atkInterval','range','glyphCrit','critDmg','armorRating','mrRating','glyphDR','armorPen','magicPen','dmgBonusMul2','hasteEnergyMul','energyReg'];
+      const F=['glyphRegen','blockStat','maxHp','dmg','apow','atkInterval','range','glyphCrit','critDmg','armorRating','mrRating','glyphDR','armorPen','magicPen','dmgBonusMul2','hasteEnergyMul','energyReg'];
       const by={}; for(const k in SNAP){ const p=H[k], c=p.class==='Tank'?(p.damageProfile==='Magic'?'TankM':'TankA'):p.class; (by[c]=by[c]||[]).push(SNAP[k]); }
       const have=F.filter(f=>Object.values(SNAP).some(s=>typeof s[f]==='number'));
       console.log('class      n  '+have.map(f=>f.padStart(9)).join(''));
       for(const c of Object.keys(by).sort()){ const L=by[c]; console.log(c.padEnd(9)+String(L.length).padStart(3)+'  '+have.map(f=>{ const v=L.reduce((a,s)=>a+(+s[f]||0),0)/L.length; return (Math.abs(v)<10?v.toFixed(3):Math.round(v)+'').padStart(9); }).join('')); }
+      if(by[opt('stats')]) for(const k in SNAP){ const p=H[k], c=p.class==='Tank'?(p.damageProfile==='Magic'?'TankM':'TankA'):p.class; if(c!==opt('stats')) continue; const s=SNAP[k]; console.log('  '+k.padEnd(9)+p.equipmentPath.padEnd(22)+have.map(f=>{ const v=+s[f]||0; return (Math.abs(v)<10?v.toFixed(3):Math.round(v)+'').padStart(9); }).join('')); }   /* --stats=<Class>: per hero too */
       if(opt('stats')==='keys') console.log(Object.keys(Object.values(SNAP)[0]).join(' '));
       return; }
     // --scale=Mage.apow=0.5,Mage.hasteEnergyMul=0.9 - DIAGNOSTIC ONLY: scales a class's snapshot field for this run, to measure
@@ -95,7 +100,7 @@ function rng(seed){ let a=seed>>>0; return ()=>{ a=(a+0x6D2B79F5)>>>0; let t=a; 
     const names=(opt('comps')?opt('comps').split(','):Object.keys(COMPS)).filter(n=>COMPS[n]);
     const team=(comp,R)=>{ const used=new Set(), out=[]; for(const slot of COMPS[comp]){ const pool=pools[slot].filter(k=>!used.has(k)); const k=pool[Math.floor(R()*pool.length)]; used.add(k); out.push(JSON.parse(JSON.stringify(SNAP[k]))); } return out; };
     const res={}, SIDE={n:0,ally:0,enemy:0}; let fights=0; const t0=Date.now();
-    for(let i=0;i<names.length;i++) for(let j=i+1;j<names.length;j++){ const a=names[i], b=names[j]; let wa=0, wb=0, draw=0;
+    for(let i=0;i<(opt('only1')?1:names.length);i++) for(let j=i+1;j<names.length;j++){   /* --only1=1: the first team against each of the others only */ const a=names[i], b=names[j]; let wa=0, wb=0, draw=0;
       for(let n=0;n<N;n++){ const R=rng(1000*i+37*j+n), ta=team(a,R), tb=team(b,R), seed=(9001+n*7919+i*131+j*17)>>>0;
         const aFirst=n%2===0, r=aFirst?host.auto(ta,tb,seed):host.auto(tb,ta,seed); fights++;
         const dg=r.digest?JSON.parse(r.digest):null, allyAlive=dg?dg.u.filter(u=>u[1]==='ally'&&u[2]).length:0, foeAlive=dg?dg.u.filter(u=>u[1]==='enemy'&&u[2]).length:0;
@@ -103,6 +108,7 @@ function rng(seed){ let a=seed>>>0; return ()=>{ a=(a+0x6D2B79F5)>>>0; let t=a; 
         SIDE.n++; if(r.won) SIDE.ally++; else if(foeAlive>0&&allyAlive===0) SIDE.enemy++;
         if(r.won){ aFirst?wa++:wb++; } else if(foeAlive>0&&allyAlive===0){ aFirst?wb++:wa++; } else draw++; }
       res[a+' | '+b]={a,b,wa,wb,draw}; }
+    if(opt('only1')){ for(const r of Object.values(res)) console.log('VS|'+r.b+'|'+r.wa+'|'+r.wb+'|'+r.draw); return; }
     // per-composition overall win rate (draws = timeouts count as neither)
     const tot={}; for(const n of names) tot[n]={w:0,l:0,d:0};
     for(const r of Object.values(res)){ tot[r.a].w+=r.wa; tot[r.a].l+=r.wb; tot[r.a].d+=r.draw; tot[r.b].w+=r.wb; tot[r.b].l+=r.wa; tot[r.b].d+=r.draw; }
