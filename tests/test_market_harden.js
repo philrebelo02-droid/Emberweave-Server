@@ -48,5 +48,16 @@ async function editDB(fn){ await delay(300); await stop(); const db=JSON.parse(f
   await editDB(u=>{ u.led.stam={v:100,t:Date.now()}; });
   const f2=await call('/api/shop/buy',{what:'food',requestId:'food-low'});
   ok(f2.data.ok===true,'CONTROL: a meal below full stamina sells ('+(f2.data.error||'ok')+')');
+  // #1/#5 (v969): the War Chest is one server purchase; the legacy 'convert' earn is gone
+  await editDB(u=>{ u.led.gems=10000; u.led.gold=0; });
+  const w1=await call('/api/shop/buy',{what:'warchest',requestId:'wc-1'}), l1=await led();
+  ok(w1.data.ok===true&&l1.gold===80000&&l1.gems===10000-250,'War Chest: -250 diamonds, +80,000 gold in one purchase ('+(w1.data.error||'gold '+l1.gold+' gems '+l1.gems)+')');
+  const w1b=await call('/api/shop/buy',{what:'warchest',requestId:'wc-1'}), l1b=await led();
+  ok(l1b.gold===80000&&l1b.gems===10000-250,'the same requestId does not buy twice');
+  const cv=await call('/api/tx/earn',{what:'gold',amount:80000,reason:'convert',requestId:'cv-1'});
+  ok(cv.data.ok===false&&/No earn rule/.test(cv.data.error||''),'tx/earn gold/convert is refused ('+(cv.data.error||'')+')');
+  await editDB(u=>{ u.led.shop=Object.assign(u.led.shop||{},{warchest:25}); u.led.gems=10000; });
+  const w26=await call('/api/shop/buy',{what:'warchest',requestId:'wc-26'});
+  ok(w26.data.ok===false&&/No more War Chests/.test(w26.data.error||''),'the 26th War Chest of the day is refused ('+(w26.data.error||'')+')');
   console.log('test_market_harden.js: '+pass+' checks passed (server '+srvFile+')');
 } catch(e){ console.error('FAIL',e&&e.message||e); process.exitCode=1; } finally { await stop(); } })();

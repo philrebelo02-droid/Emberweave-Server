@@ -3,13 +3,13 @@
 # Grant a reward, SIGKILL the server mid-flight, restart from the same DB file, retry the SAME
 # requestId: the retry must return the stored receipt and must not pay a second time.
 set -u
-cd "$(dirname "$0")"
+cd "$(dirname "$0")/.."   # 3 Oct 2026: was cd tests/, where ./server.js does not exist - the server never booted and the crash test never ran
 PORT=${CRASH_PORT:-8886}
 DBDIR=$(mktemp -d); DB="$DBDIR/db.json"
 FLAGS="VAULT_MIN_BATTLE_MS=0 REG_PER_MIN=500 REG_ACCOUNTS_PER_IP=500"
 PASS=0; FAIL=0
 ck(){ if [ "$2" = "1" ]; then PASS=$((PASS+1)); echo "  ✓ $1"; else FAIL=$((FAIL+1)); echo "  ✗ $1${3:+ — $3}"; fi; }
-boot(){ env $FLAGS DB_FILE="$DB" PORT=$PORT node ./server.js > "$DBDIR/s.log" 2>&1 & SRV=$!; sleep 2.2; }
+boot(){ env $FLAGS DB_FILE="$DB" PORT=$PORT node ./server.js > "$DBDIR/s.log" 2>&1 & SRV=$!; for i in $(seq 1 100); do curl -s -o /dev/null localhost:$PORT/health && break; sleep 0.2; done; }
 kill9(){ kill -9 $SRV 2>/dev/null; wait $SRV 2>/dev/null; sleep 0.4; }
 trap 'kill -9 $SRV 2>/dev/null' EXIT
 

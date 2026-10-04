@@ -3475,11 +3475,11 @@ const EARN_RULES={
   stamina:{ signin:{max:120,day:240}, guildshop:{max:200,day:1000}, arenashop:{max:200,day:2000}, stars:{max:1500,day:6000}, pack:{max:120,day:120} },   /* 30 Sep hardening: a real daily stamina pack pays 120 once a day */
   gems:{ signin:{max:200,day:2000},   /* 3 Oct audit (P0): tower + gauntlet removed - the client chose the amount; the Tower now pays through /api/tower/*, the Gauntlet is retired (no caller) */
          stars:{max:2000,day:12000}, guildshop:{max:500,day:5000}, city:{max:300,day:3000},
-         quest:{max:500,day:4000}, convert:{max:1000,day:6000},
+         quest:{max:500,day:4000},   /* 3 Oct Market audit #1: convert removed - the War Chest is a server purchase (/api/shop/buy warchest) */
          pack:{max:150,day:150}, arenashop:{max:40,day:800} },   /* 30 Sep hardening: pack was 20,000/60,000 a day (a real pack pays 150 once a day); wish + misc removed - the client never sends them */
   gold:{ guildshop:{max:50000,day:300000}, signin:{max:20000,day:200000},   /* 3 Oct audit (P0): tower + gauntlet removed (see gems) */
          stars:{max:200000,day:2000000}, city:{max:100000,day:1000000},
-         quest:{max:100000,day:1000000}, convert:{max:200000,day:2000000},   /* 30 Sep hardening: gold wish + misc removed (never sent by the client) */
+         quest:{max:100000,day:1000000},   /* 3 Oct: convert removed (see gems) */   /* 30 Sep hardening: gold wish + misc removed (never sent by the client) */
          march:{max:1200,day:20000}, arenashop:{max:5000,day:100000} },
   /* v663: heroXp/province retired — the Training Province pays through /api/province/* (Drill now forges glyphs) */
   guildCoins:{ march:{max:40,day:400} } };
@@ -5600,6 +5600,15 @@ async function api(req,res,url){
         writeDB(); return {ok:true, gold:amt, cost:c, ledger:ledgerView(me)}; }
       /* v274: equipment materials became ledger-owned, so the diamond bundle that used to be granted
          in the browser is granted here — one price, one write, one receipt. */
+      /* 3 Oct Market audit #1/#5: the Shady War Chest was a diamond spend followed by a client-chosen gold earn on the legacy
+         'convert' rule - two requests, so the diamonds could go and the gold never land, and the earn rule paid anyone. One
+         server purchase now; price, gold and the old effective limit (the 2,000,000/day convert cap = 25 chests) unchanged. */
+      if(what==='warchest'){ const c=250, g=80000; sh.warchest=sh.warchest|0;
+        if(sh.warchest>=25) return {ok:false,error:'No more War Chests today.'};
+        if(led.gems<c) return {ok:false,error:'Not enough diamonds.'};
+        led.gems-=c; sh.warchest++; creditGold(me,led,g,'shop:warchest');
+        ledTx(me,'shop:warchest',{gems:-c,gold:g});
+        writeDB(); return {ok:true, gold:g, cost:c, ledger:ledgerView(me)}; }
       if(what==='pieces'){ const c=450; if(led.gems<c) return {ok:false,error:'Not enough diamonds.'};
         led.gems-=c; led.eqMats=led.eqMats||{};
         const got={}; for(const k of EQ_MAT_KEYS){ led.eqMats[k]=Math.min(999999,(led.eqMats[k]|0)+100); got[k]=100; }

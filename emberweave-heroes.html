@@ -17583,7 +17583,7 @@ function rollMarket(){ const o=[]; const L=playerLevel();
 function ensureMarket(){ if(!G.market||!G.market.offers||!G.market.offers.length||(Date.now()-(G.market.ts||0))>=MARKET_REFRESH_MS){ rollMarket(); saveG(); } }
 // ===== SHADY MARKET — a shady dealer's premium stock, diamonds only =====
 const SHADY_SHOP=[
-  {id:'gold',   name:'War Chest — 80,000 Gold',  icon:'🪙',  cost:250,  give:()=>{ G.gold=(G.gold||0)+80000; }, desc:'+80,000 gold'},
+  {id:'gold',   name:'War Chest — 80,000 Gold',  icon:'🪙',  cost:250,  server:'warchest', desc:'+80,000 gold'},   /* 3 Oct: one server purchase (was spend + a client gold earn) */
   {id:'shield', name:'Protection Shields ×3',    icon:'🛡',  cost:550,  give:()=>{ G.shieldItems=(G.shieldItems||0)+3; }, desc:'3× 12-hour attack immunity'},
   {id:'tele',   name:'Teleport Scrolls ×5',      icon:'✨',  cost:500,  give:()=>{ G.teleScrolls=(G.teleScrolls||0)+5; }, desc:'5× targeted teleports'},
   {id:'arena',  name:'Arena Coins ×3,000',       icon:'🎟️', cost:600,  give:()=>{ G.arenaCoins=(G.arenaCoins||0)+3000; }, desc:'+3,000 arena coins'},
@@ -25702,7 +25702,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791081197675';
+const BUILD_ID = '1791081881799';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
