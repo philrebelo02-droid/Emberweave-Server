@@ -21508,19 +21508,19 @@ function doContribute(i){ const o=(G.guildContribs||[])[i]; if(!o||guildMaxed())
 // guild shop catalogue (first guildShopSlots() are unlocked by guild level)
 const GUILD_SHOP=[
   {name:'Protection Shield',desc:'12h attack immunity',cost:800,give:()=>{G.shieldItems=(G.shieldItems||0)+1;}},
-  {name:'Gold Cache',desc:'+5,000 gold',cost:300,give:()=>{G.gold=(G.gold||0)+5000; txEarn('gold',5000,'guildshop');}},
-  {name:'Diamond Pouch',desc:'+50 diamonds',cost:600,give:()=>{G.gems=(G.gems||0)+50; txEarn('gems',50,'guildshop');}},
-  {name:'Stamina Refill',desc:'Refill stamina to full',cost:200,give:()=>{const _need=Math.max(0,maxStamina()-(G.stamina||0)); G.stamina=Math.max(G.stamina,maxStamina());G.staminaTS=Date.now(); if(_need>0)txEarn('stamina',_need,'guildshop');}},
+  {name:'Gold Cache',desc:'+5,000 gold',cost:300,server:'gshop:1',give:()=>{}},   /* 3 Oct: gold/diamond/stamina items are server purchases (/api/shop/buy gshop:N) */
+  {name:'Diamond Pouch',desc:'+50 diamonds',cost:600,server:'gshop:2',give:()=>{}},
+  {name:'Stamina Refill',desc:'Refill stamina to full',cost:200,server:'gshop:3',give:()=>{}},
   {name:'Arena Coins ×2000',desc:'+2,000 arena coins',cost:500,give:()=>{G.arenaCoins=(G.arenaCoins||0)+2000;}},
   /* v274: materials are ledger-owned, so this purchase is a SERVER purchase (/api/shop/buy 'pieces').
      Granting them locally would have shown the player goods their next sync erased. */
   {name:'Equipment Pieces',desc:'+100 of each equip piece',cost:450,server:'pieces_guild',give:()=>{}},
-  {name:'Great Gold Cache',desc:'+15,000 gold',cost:700,give:()=>{G.gold=(G.gold||0)+15000; txEarn('gold',15000,'guildshop');}},
+  {name:'Great Gold Cache',desc:'+15,000 gold',cost:700,server:'gshop:6',give:()=>{}},
   {name:'Resource Crate',desc:'+100 of each map resource',cost:350,give:()=>{RES.forEach(([k])=>G.res[k]=(G.res[k]||0)+100);}},
-  {name:'Diamond Chest',desc:'+150 diamonds',cost:1500,give:()=>{G.gems=(G.gems||0)+150; txEarn('gems',150,'guildshop');}},
+  {name:'Diamond Chest',desc:'+150 diamonds',cost:1500,server:'gshop:8',give:()=>{}},
   {name:'Shield Pack ×3',desc:'+3 protection shields',cost:2000,give:()=>{G.shieldItems=(G.shieldItems||0)+3;}},
   {name:'Arena Coins ×6000',desc:'+6,000 arena coins',cost:1200,give:()=>{G.arenaCoins=(G.arenaCoins||0)+6000;}},
-  {name:'Treasure Vault',desc:'+50,000 gold',cost:2500,give:()=>{G.gold=(G.gold||0)+50000; txEarn('gold',50000,'guildshop');}},
+  {name:'Treasure Vault',desc:'+50,000 gold',cost:2500,server:'gshop:11',give:()=>{}},
 ];
 function renderGuildShopInto(el){
   if(!G.guild){ el.innerHTML='<div class="panel" style="font-size:12px;color:#8b98a9">Join a guild to unlock the Guild Shop.</div>'; return; }
@@ -25724,7 +25724,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791083730201';
+const BUILD_ID = '1791084330416';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

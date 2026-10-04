@@ -37,8 +37,10 @@ async function editDB(fn){ await delay(300); await stop(); const db=JSON.parse(f
   ok((await led()).gems===g0,'no diamond taken by the refused Hollow buy');
   const r2=await call('/api/market/frag',{heroKey:sold,qty:1,pay:'gems',requestId:'mk-sold'});
   ok(r2.data.ok===true,'CONTROL: a sold hero ('+sold+') still buys ('+(r2.data.error||'ok')+')');
-  const r3=await call('/api/tx/earn',{what:'frag',amount:5,reason:'signin',heroKey:'hollow',requestId:'ea-hollow'});   // 'stars' left the earn table in v970
-  ok(r3.data.ok===false&&/not sold/.test(r3.data.error||''),'tx/earn refuses Hollow fragments ('+(r3.data.error||'')+')');
+  const r3=await call('/api/tx/earn',{what:'frag',amount:5,reason:'arena',heroKey:'hollow',requestId:'ea-hollow'});   // 'arena' is the only fragment reason left (v972: Grosk only)
+  ok(r3.data.ok===false&&/only Grosk/.test(r3.data.error||''),'tx/earn arena refuses Hollow fragments ('+(r3.data.error||'')+')');
+  const r3g=await call('/api/tx/earn',{what:'frag',amount:5,reason:'arena',heroKey:'grosk',requestId:'ea-grosk'});
+  ok(r3g.data.ok===true,'CONTROL: tx/earn arena still pays Grosk fragments ('+(r3g.data.error||'ok')+')');
   // #8
   await editDB(u=>{ u.led.stam={v:999,t:Date.now()}; });
   const g1=(await led()).gems;

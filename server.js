@@ -1228,6 +1228,8 @@ const DUNGEON_MATS_PER_DAY=10;   // v328: winning dungeon resolves that roll equ
 function validHero(k){ return typeof k==='string' && Object.prototype.hasOwnProperty.call(SIM.HERO_BASE, k); }
 /* 3 Oct Market audit #2: heroes never sold in the Market (client HERO_TYPES source:'purchase' / 'arena'). tests/test_market_harden.js keeps this set equal to the client's. */
 const HERO_NOT_SOLD=new Set(['konwu','grosk','vulmar','aureth','hurne','hollow']);
+/* the Guild Shop's ledger-currency items, by the client GUILD_SHOP slot index (tests/test_guild_shop.js keeps them equal) */
+const GUILD_SHOP_SRV={1:{cost:300,gold:5000},2:{cost:600,gems:50},3:{cost:200,refill:true},6:{cost:700,gold:15000},8:{cost:1500,gems:150},11:{cost:2500,gold:50000}};
 function heroNotSold(k){ return HERO_NOT_SOLD.has(k); }
 /* 3 Oct: the daily sign-in calendar, server side. SIGNIN_HERO_POOL = the client's HERO_KEYS order without mythical or purchase/arena heroes
    (tests/test_signin.js keeps it equal to the client); the monthly hero is pool[(year*12+month0) % length], as monthlyHeroKey() does. */
@@ -3482,12 +3484,12 @@ function ledgerView(u){ const led=ensureLedger(u); ledStamRegen(led); if(ledPlay
    runaway loop, not a design limit. */
 const EARN_RULES={
   frag:{ arena:{max:10,day:60} },   /* 3 Oct Market audit #1: 'signin' removed - the daily sign-in pays through /api/signin/claim */   /* 3 Oct Market audit #1: 'stars' removed from every currency - the star track pays through /api/stars/claim */
-  stamina:{ guildshop:{max:200,day:1000}, arenashop:{max:200,day:2000}, pack:{max:120,day:120} },   /* 30 Sep hardening: a real daily stamina pack pays 120 once a day */
+  stamina:{ arenashop:{max:200,day:2000}, pack:{max:120,day:120} },   /* 30 Sep hardening: a real daily stamina pack pays 120 once a day */
   gems:{   /* 3 Oct audit (P0): tower + gauntlet removed - the client chose the amount; the Tower now pays through /api/tower/*, the Gauntlet is retired (no caller) */
-         guildshop:{max:500,day:5000}, city:{max:300,day:3000},
+         city:{max:300,day:3000},
          quest:{max:500,day:4000},   /* 3 Oct Market audit #1: convert removed - the War Chest is a server purchase (/api/shop/buy warchest) */
          pack:{max:150,day:150}, arenashop:{max:40,day:800} },   /* 30 Sep hardening: pack was 20,000/60,000 a day (a real pack pays 150 once a day); wish + misc removed - the client never sends them */
-  gold:{ guildshop:{max:50000,day:300000},   /* 3 Oct audit (P0): tower + gauntlet removed (see gems) */
+  gold:{   /* 3 Oct Market audit #1: guildshop removed (gold/gems/stamina) - the Guild Shop is a server purchase (/api/shop/buy gshop:N) */   /* 3 Oct audit (P0): tower + gauntlet removed (see gems) */
          city:{max:100000,day:1000000},
          quest:{max:100000,day:1000000},   /* 3 Oct: convert removed (see gems) */   /* 30 Sep hardening: gold wish + misc removed (never sent by the client) */
          march:{max:1200,day:20000}, arenashop:{max:5000,day:100000} },
@@ -5660,6 +5662,22 @@ async function api(req,res,url){
       /* 3 Oct Market audit #1/#5: the Shady War Chest was a diamond spend followed by a client-chosen gold earn on the legacy
          'convert' rule - two requests, so the diamonds could go and the gold never land, and the earn rule paid anyone. One
          server purchase now; price, gold and the old effective limit (the 2,000,000/day convert cap = 25 chests) unchanged. */
+      /* 3 Oct Market audit #1: THE GUILD SHOP'S currency items are server purchases. The client used to spend the guild coins and then post
+         the gold / diamonds / stamina to /api/tx/earn ('guildshop' - 5,000 diamonds and 300,000 gold a day for anyone). Same catalogue
+         slots, prices and rewards as the client's GUILD_SHOP; the slot must be unlocked by the player's guild (4 + 2 per level above 1). */
+      if(/^gshop:\d{1,2}$/.test(what)){ const idx=+what.slice(6), it=GUILD_SHOP_SRV[idx];
+        if(!it) return {ok:false,error:'Unknown item.'};
+        const gg=me.guildId&&(DB.guilds||{})[me.guildId];
+        if(!gg||!(gg.members||[]).includes(me.id)) return {ok:false,error:'Join a guild to use the Guild Shop.'};
+        if(idx>=4+((gg.level||1)-1)*2) return {ok:false,error:'Your guild has not unlocked that item yet.'};
+        if((led.guildCoins|0)<it.cost) return {ok:false,error:'Not enough guild coins.'};
+        const got={};
+        if(it.refill){ ledStamRegen(led); const need=Math.max(0,ledStamMax(led)-led.stam.v); if(need<=0) return {ok:false,error:'Stamina is already full.'};
+          led.guildCoins=(led.guildCoins|0)-it.cost; creditStamina(me,led,need,'gshop:'+idx); got.stamina=need; }
+        else { led.guildCoins=(led.guildCoins|0)-it.cost;
+          if(it.gold){ creditGold(me,led,it.gold,'gshop:'+idx); got.gold=it.gold; } else { creditGems(me,led,it.gems,'gshop:'+idx); got.gems=it.gems; } }
+        ledTx(me,'gshop:'+idx,Object.assign({guildCoins:-it.cost},got));
+        writeDB(); return {ok:true, got, cost:it.cost, ledger:ledgerView(me)}; }
       if(what==='warchest'){ const c=250, g=80000; sh.warchest=sh.warchest|0;
         if(sh.warchest>=25) return {ok:false,error:'No more War Chests today.'};
         if(led.gems<c) return {ok:false,error:'Not enough diamonds.'};
@@ -5971,6 +5989,7 @@ async function api(req,res,url){
       if(used+amt>rules.day) return {ok:false,error:'Daily '+reason+' cap reached.'};
       if(what==='frag' && !validHero(String(b.heroKey||''))) return {ok:false,error:'Unknown hero.'};
       if(what==='frag' && reason!=='arena' && heroNotSold(String(b.heroKey||''))) return {ok:false,error:'That hero\'s fragments are not sold or earned here.'};   /* 3 Oct Market audit #2 */
+      if(what==='frag' && reason==='arena' && String(b.heroKey||'')!=='grosk') return {ok:false,error:'The arena shop sells only Grosk fragments.'};   /* 3 Oct 23:2x: the arena frag rule was the last open fragment door - any hero, incl. purchase heroes */
       led.earnDay=earnDay; earnDay[what+':'+reason]=used+amt;
       if(what==='gold'){ const before=led.gold; led.gold=Math.min(ECON_CAP.gold,led.gold+amt);
         resourceGain(me,'gold',led.gold-before,reason); }
