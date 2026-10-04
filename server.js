@@ -279,7 +279,12 @@ function linkedUser(gid, name, pass){
   let u=DB.byGid[gid] && DB.users[DB.byGid[gid]];
   if(!u){ const lid=DB.byName[String(name).toLowerCase()]; const lu=lid&&DB.users[lid];
     if(lu && !lu.guest && !lu.gid && !lu.isNpc && lu.hash && checkPass(lu,pass)) u=lu; }   // a local account made before linking, same name: adopt it - v999 (Account audit #2, P0): ONLY with that account's own password (it used to adopt on the name alone and overwrite the hash)
-  if(!u){ const id=uid();
+  if(!u){ const lid=DB.byName[String(name).toLowerCase()]; const lu=lid&&DB.users[lid];
+    /* v1007 (re-audit N8 / review #5): a local account of this name that did not adopt (other password, or a handoff) used to be
+       orphaned when byName was repointed. Keep it under name~old so its progress stays on disk, and say so in the log. */
+    if(lu && !lu.gid && !lu.isNpc){ let nn=String(lu.name)+'~old', i=2; while(DB.byName[nn.toLowerCase()]) nn=String(lu.name)+'~old'+(i++);
+      DB.byName[nn.toLowerCase()]=lu.id; lu.name=nn; console.log('[link] local account kept as '+nn+' - a game-wide account took its name'); }
+    const id=uid();
     u={ id, name, rank:nextJoinRank(), coins:0, team:defaultTeam(), wall:defaultTeam(), roster:{}, lastDaily:0,
         cityX:Math.round(Math.random()*1000), cityY:Math.round(Math.random()*1000), created:Date.now() };
     DB.users[id]=u; }
@@ -381,7 +386,8 @@ function clientIP(req){ // AUDIT: the FIRST x-forwarded-for entry is client-supp
   // limiter). The LAST entry is the one appended by the trusted platform proxy (Railway) — use that.
   const xff=(req.headers['x-forwarded-for']||'').split(',').map(s=>s.trim()).filter(Boolean);
   return xff[xff.length-1] || (req.socket&&req.socket.remoteAddress) || 'unknown'; }
-function rateLimited(req, key, max, windowMs){ const k=key+'|'+clientIP(req), now=Date.now();
+const _hitWin={};   /* v1007 (re-audit Account N2): each key keeps its own window - the 10-minute sweeper used to wipe 24 h windows */
+function rateLimited(req, key, max, windowMs){ const k=key+'|'+clientIP(req), now=Date.now(); if(!(_hitWin[k]>=windowMs)) _hitWin[k]=windowMs;
   const arr=(_hits[k]||[]).filter(t=>now-t<windowMs); arr.push(now); _hits[k]=arr; return arr.length>max; }
 // AUDIT (26 Aug, high): session tokens are no longer stored in plaintext. DB.tokens is keyed by
 // sha256(rawToken) with {id, iat, exp} metadata; the raw value exists only in the client. Tokens
@@ -462,6 +468,11 @@ const SERVER_OWNED_SAVE_FIELDS=Object.freeze(['gold','gems','playerXP','heroXP',
      no combat power — the blob is display/inventory storage only, and eqInv is MAP_CAP-clamped below. */
   'gear','gearFrag','temper','equipped','active']);
 function clampNum(v,cap){ if(typeof v!=='number'||!isFinite(v)) return v; if(v<0) return 0; if(v>cap) return cap; return v; }
+/* v1007 (Account re-audit N6): the stored save is ONE string, nothing else. Only roster.__save was size-checked, so other
+   roster keys or an object __save stored up to 4 MB of any shape. The client's per-hero {level,rank} entries are read by
+   nothing on the server and are dropped. null = no roster sent; false = refuse (400); 'big' = refuse (413). */
+function saveShape(r){ if(r==null) return null; if(typeof r!=='object'||Array.isArray(r)||typeof r.__save!=='string') return false;
+  if(r.__save.length>SAVE_MAX_CHARS) return 'big'; return { __save:r.__save }; }
 function sanitizeSave(u, roster){
   if(!roster || typeof roster.__save!=='string') return roster;
   let g; try{ g=JSON.parse(roster.__save); }catch(e){ return roster; }   // unparseable → store as-is, nothing to validate
@@ -548,9 +559,9 @@ function mailCode(to, name, subject, text, label, code, html){
   const addr=process.env.SMTP_FROM || process.env.SMTP_USER || 'no-reply@emberweave.game';
   const from='"Emberweave Heroes" <'+addr+'>';   // friendly display name reads as legitimate, not a bare script
   const m=getMailer();
-  if(!m){ console.log('✉  [DEV] '+label+' for '+name+' <'+to+'>: '+code); return; }
+  if(!m){ console.log('✉  [DEV] '+label+' for '+name+' <'+maskEmail(to)+'> (no mailer - code NOT logged)'); return; }   /* v1007 (re-audit Account N5): codes never reach the log */
   const msg={ from, to, replyTo:addr, subject, text }; if(html) msg.html=html;
-  m.sendMail(msg).then(()=>console.log('✉  '+label+' emailed to '+to)).catch(e=>console.log('✉  send failed ('+e.message+') — '+label+' for '+name+' is '+code)); }
+  m.sendMail(msg).then(()=>console.log('✉  '+label+' emailed to '+maskEmail(to))).catch(e=>console.log('✉  send failed ('+e.message+') — '+label+' for '+name+' (code not logged)')); }
 function sendResetEmail(to, name, code){
   mailCode(to, name, 'Your Emberweave Heroes password reset code',
     `Hi ${name},\n\nYour one-time password reset code is: ${code}\n\nEnter it in the game to set a new password. This code expires in 15 minutes and can only be used once.\n\nIf you didn't request this, you can safely ignore this email — your password will stay the same.\n\n— Emberweave Heroes`,
@@ -3982,9 +3993,9 @@ async function api(req,res,url){
           roster:{}, lastDaily:0,
           cityX:Math.round(Math.random()*1000), cityY:Math.round(Math.random()*1000), created:Date.now() };
       DB.users[id]=u; DB.byName[name.toLowerCase()]=id; if(deviceId) DB.guestByDevice[deviceId]=id;
-      if(b.roster && typeof b.roster==='object') u.roster=sanitizeSave(u, b.roster);   // RE-AUDIT: guest seed goes through the clamps too
-    } else if(b.roster && typeof b.roster==='object' && Object.keys(b.roster).length && (!u.roster || !u.roster.__save)){
-      u.roster=sanitizeSave(u, b.roster);   // first-time adoption of an existing local save — clamped like every other save write (RE-AUDIT)
+      { const sv=saveShape(b.roster); if(sv&&sv!=='big') u.roster=sanitizeSave(u, sv); }   // RE-AUDIT: guest seed goes through the clamps too
+    } else if(saveShape(b.roster) && saveShape(b.roster)!=='big' && (!u.roster || !u.roster.__save)){   /* v1007: same one-string shape */
+      u.roster=sanitizeSave(u, saveShape(b.roster));   // first-time adoption of an existing local save — clamped like every other save write (RE-AUDIT)
     }
     dropTokens(u.id); const tok=issueToken(u.id); writeDB();
     return send(res,200,{ token:tok, profile:profileFor(u) }); }
@@ -4040,7 +4051,7 @@ async function api(req,res,url){
     if(rateLimited(req,'login',15,60000)) return send(res,429,{error:'Too many attempts — wait a minute and try again.'});
     // v946: on Servers 2-3 the password is checked by the account server (Server 1); this server keeps its own player.
     if(ACCOUNT_AUTHORITY){
-      const name=String(b.name||'').trim(), r=await authorityCall('/api/internal/account/verify',{ name, pass:b.pass });
+      const name=String(b.name||'').trim(), r=await authorityCall('/api/internal/account/verify',{ name, pass:b.pass, ip:clientIP(req) });   /* v1007 (re-audit Account N3): the player's IP, so the lockout is per player, not per satellite */
       if(r && r.status===200 && r.body && r.body.gid){ const u=linkedUser(r.body.gid, r.body.name, b.pass); delete u.loginFails;
         dropTokens(u.id); const tok=issueToken(u.id); writeDB(); return send(res,200,{ token:tok, profile:profileFor(u) }); }
       if(r) return send(res, r.status===429?429:401, {error:(r.body&&r.body.error)||'Wrong name or password'});
@@ -5534,9 +5545,10 @@ async function api(req,res,url){
        reward formula. Store the keys only, capped, and let the ledger supply every stat. */
     if(Array.isArray(b.team)) me.team=sanitizeRoster(b.team);
     if(Array.isArray(b.wall)) me.wall=sanitizeRoster(b.wall);
-    if(b.roster!=null && (typeof b.roster!=='object'||Array.isArray(b.roster))) return send(res,400,{error:'Bad save.'});   /* v999 (Account audit #8) */
-    if(b.roster && typeof b.roster.__save==='string' && b.roster.__save.length>SAVE_MAX_CHARS) return send(res,413,{error:'Save too large.'});
-    if(b.roster) me.roster=sanitizeSave(me, b.roster);   // clamp impossible values + flag implausible jumps
+    const sv=saveShape(b.roster);   /* v999 (Account audit #8) + v1007 (re-audit N6): one string, at most 1 MB */
+    if(sv===false) return send(res,400,{error:'Bad save.'});
+    if(sv==='big') return send(res,413,{error:'Save too large.'});
+    if(sv) me.roster=sanitizeSave(me, sv);   // clamp impossible values + flag implausible jumps
     // World position is server-owned. Ignore the legacy browser world blob; it must not
     // change mine travel or another player's visible castle position.
     if(writeDBNow()===false) return send(res,503,{ok:false,storageFailed:true,error:'Save failed - try again.'});   /* v1003 (Account audit #18): the cloud save is on disk before it is acknowledged */
@@ -8179,4 +8191,4 @@ if(PG){ PG_BOOT_PENDING=true;   // nothing writes to disk or PG, and the port st
 // prune the in-memory rate-limiter map so old per-IP hit arrays don't accumulate forever (audit: high)
 // Disabled capture settlement cannot touch live data until the enable CR.
 setInterval(()=>{if(!WORLD_TREE_CONTROL_ENABLED||!DB.worldTreeControl)return;try{worldTreeRun(null,'tick',{});}catch(e){console.error('World Tree tick:',e.message);}},1000).unref();
-setInterval(()=>{ const now=Date.now(); for(const k of Object.keys(_hits)){ const arr=_hits[k].filter(t=>now-t<600000); if(arr.length) _hits[k]=arr; else delete _hits[k]; } }, 10*60000);
+setInterval(()=>{ const now=Date.now(); for(const k of Object.keys(_hits)){ const w=_hitWin[k]||600000; const arr=_hits[k].filter(t=>now-t<w); if(arr.length) _hits[k]=arr; else { delete _hits[k]; delete _hitWin[k]; } } }, 10*60000);   /* v1007: per-key window */
