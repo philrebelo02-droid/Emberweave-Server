@@ -47,7 +47,7 @@ while [ "$GD" -ge 200 ]; do
   GD=$((GD-200))
 done
 BROKE=$(curl -s -X POST $B/api/guild/contribute -H "$H1" -H 'content-type: application/json' -d '{}')
-case "$BROKE" in *"costs 200 gold"*|*capped*) ck "broke/capped contribution refused (no free guild XP)" ok ok;; *) ck "broke/capped contribution refused (no free guild XP)" refused "$BROKE";; esac
+case "$BROKE" in *"costs 200 gold"*|*capped*|*"max level"*) ck "broke/capped contribution refused (no free guild XP)" ok ok;; *) ck "broke/capped contribution refused (no free guild XP)" refused "$BROKE";; esac
 
 # compute warp offset to NEXT Saturday 01:00 ET
 OFF=$(python3 - << 'PY'

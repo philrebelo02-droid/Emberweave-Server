@@ -5763,7 +5763,7 @@ async function api(req,res,url){
       const gold=rw.repeatGold*times, px=rw.playerXpRepeat*times, hxp=rw.heroXpRepeat*times;
       creditGold(me,led,gold,'campaign:sweep');
       ledAddPlayerXP(led,px,me);
-      const team=(Array.isArray(b.heroIds)?b.heroIds.map(String).slice(0,5):[]).filter(k=>led.unlocked[k]);
+      const team=(Array.isArray(b.heroIds)?[...new Set(b.heroIds.map(String))].slice(0,5):[]).filter(k=>led.unlocked[k]);   /* 3 Oct Arena audit #3: duplicates multiplied hero XP */
       for(const k of team){ const h=led.hero[k]||(led.hero[k]={xp:0,stars:(SIM.HERO_BASE[k]||{}).stars||1,pips:0}); h.xp=Math.min(99000000,h.xp+hxp); }
       const xpPotions=xpPotionGrant(led,mode,node,times,srvSeed('campxp-sweep',me.id,mode,node,reqId));
       ledTx(me,mode+':sweep:'+st.id+':x'+times,{gold,px,heroXp:hxp,stamina:-cost,xpPotions});
@@ -6605,7 +6605,10 @@ async function api(req,res,url){
       return send(res,200,state); }
     if(req.method!=='POST') return send(res,404,{error:'loop'});
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
-    if(p==='/api/elite/resolve'){ const out=idem(me.id+':elite:'+reqId,()=>{
+    /* 3 Oct Arena audit #2 (P0): /api/elite/resolve is RETIRED - no client screen reached it (Elite stages are campaign start/resolve on
+       the Elite portal) but it still paid 2-4 hero fragments + 70 hero XP a win with no stamina, no attempt and a server-decided fight. */
+    if(p==='/api/elite/resolve'){ return send(res,410,{ok:false,error:'Elite stages are played from the Campaign map.'}); }
+    if(false){ const out=idem(me.id+':elite:'+reqId,()=>{
         const node=b.node|0; if(!isHeroRewardStageSrv(node)) return {ok:false,error:'Not a hero-reward stage.'};
         if(node>led.camp.cleared) return {ok:false,error:'Clear the stage first.'};
         const dk=nyDayKey(); led.eliteDay=led.eliteDay&&led.eliteDay.k===dk?led.eliteDay:{k:dk};
@@ -6712,6 +6715,7 @@ async function api(req,res,url){
         writeDB(); return {ok:true, heroKey:hk, qty, paid:{[pay]:price}, ledger:ledgerView(me)};
       }); return send(res, out.storageFailed?503:out.ok===false?400:200, out); }
     if(p==='/api/arena/daily-claim'){ const out=durableCommit(me,me.id+':adaily:'+reqId,(me)=>{ const led=ensureLedger(me);
+        if(ledPlayerLevel(led)<10) return {ok:false,error:'The Arena opens at level 10.'};   /* 3 Oct Arena audit #9: new accounts farmed the daily claim */
         const dk=nyDayKey(); me.arenaDaily=me.arenaDaily||{};
         if(me.arenaDaily.k===dk) return {ok:false,error:'Already claimed today.'};
         me.arenaDaily={k:dk};
@@ -7214,8 +7218,12 @@ async function api(req,res,url){
     // v582: finite attempts — checked AFTER the replay short-circuit so a re-sent receipt never
     // trips the gate, and BEFORE the sim so an exhausted player costs the server nothing.
     { const aled=ensureLedger(me), aa=arenaAtt(aled);
-      if(aa.used>=ARENA_FREE_ATTEMPTS+aa.bought) return send(res,400,{ok:false,error:'No arena attempts left today.',arena:arenaAttView(aled)}); }
+      if(aa.used>=ARENA_FREE_ATTEMPTS+aa.bought) return send(res,400,{ok:false,error:'No arena attempts left today.',arena:arenaAttView(aled)});
+      if(ledPlayerLevel(aled)<10) return send(res,400,{ok:false,error:'The Arena opens at level 10.'}); }   /* 3 Oct Arena audit #9 */
     const opp=DB.users[b.oppId];
+    /* 3 Oct Arena audit #6 (part): never yourself. A rank-above rule would lock the rank-1 player out; the full fix is a
+       server-stored opponents list (open). */
+    if(!opp||opp.id===me.id) return send(res,400,{ok:false,error:'Unknown opponent.'});
     // SECURITY (audit crit #3): rank + coins used to trust the client-declared b.won. They are now
     // decided SERVER-SIDE from each side's serverTeamPower — the same interim authority the Guild War
     // already uses. This is a power comparison, NOT the real battle sim; the faithful fix is the shared
@@ -7651,6 +7659,7 @@ async function api(req,res,url){
       if(me.guildContrib.n>=GUILD_CONTRIB_DAILY) return send(res,200,{ capped:true, guild:guildView(g) });
       // v241 (full-game audit): a contribution SPENDS a server resource — 200 ledger gold per click.
       // No free XP from nothing; the daily cap stays as the outer bound.
+      if((g.level||1)>=GMAXLVL) return send(res,400,{error:'Your guild is at max level.'});   /* 3 Oct Guild audit #4: it took 200 gold for nothing */
       const GUILD_CONTRIB_GOLD=200;
       { const led=ensureLedger(me);
         if((led.gold|0)<GUILD_CONTRIB_GOLD) return send(res,400,{error:'Contributing costs '+GUILD_CONTRIB_GOLD+' gold.'});
@@ -7715,16 +7724,16 @@ async function api(req,res,url){
         const host=simHost(); let dmg=null, incident=null;
         const bossSpec={key:a.bossKey, lvl:a.bossLvl, hp:a.bossHp, boss:true, def:bossHide(a.tier||1), dmgMul:bossDmgMul(a.tier||1)};
         if(host && a.snaps && typeof host.raid==='function'){
-          try{ const rr=host.raid(a.snaps, bossSpec, a.seed>>>0, Array.isArray(b.inputLog)?b.inputLog.slice(0,400):[]); dmg=Math.max(0, rr.dmg|0); }
+          try{ const rr=host.raid(a.snaps, bossSpec, a.seed>>>0, sanitizeInputLog(b.inputLog).slice(0,400)); dmg=Math.max(0, rr.dmg|0); }   /* 3 Oct Guild audit #1: sanitised like the campaign's - a [null,null] log used to throw into the claim fallback */
           catch(e){ incident='raid-replay-error: '+e.message; }
         } else incident='raid-replay-unavailable';
         if(dmg==null){
-          /* No replay host: fall back to the claim, capped hard by the ledger's own power so a forged
-             number cannot move the boss. Every fallback is logged for review. */
-          const claim=Math.max(0, Math.round(Number(b.dmg)||0));
-          const cap=Math.max(1, Math.min(50000000, (ledgerTeamPower(me)||1)*12));
-          dmg=Math.min(claim, cap);
-          try{ g.log=g.log||[]; }catch(e){}
+          /* 3 Oct 2026 Guild audit #1 (P0): there is NO claim fallback any more. A replay that cannot run (no host, no frozen squad,
+             or a log that breaks it) used to book the CLIENT's damage number (capped at 12x team power); a forged [null,null] log
+             forced that path on purpose. Now the attempt is put back, nothing moves, and the incident is filed for review. */
+          r.att[me.id]=a;
+          try{ devReport(me,'raid-replay-failed',0,{incident,tier:a.tier,claim:Math.round(Number(b.dmg)||0)}); }catch(e){}
+          return {ok:false, unverified:true, error:'This raid fight could not be checked. Your attempt is kept - fight again.', raid:raidView(g)};
         }
         dmg=Math.min(dmg, r.hp);
         r.hp=Math.max(0, r.hp-dmg); r.contrib[me.id]=(r.contrib[me.id]||0)+dmg;

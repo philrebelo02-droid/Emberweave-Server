@@ -131,6 +131,8 @@ note "test_signin.js (3 Oct Market audit #1: the daily sign-in is server-owned; 
 node tests/test_signin.js || FAILED=1
 note "test_guild_shop.js (3 Oct Market audit #1: guild shop currency items are server purchases; tx/earn guildshop removed)"
 node tests/test_guild_shop.js || FAILED=1
+note "test_arena_guild_harden.js (3 Oct Arena+Guild audits: elite route retired, sweep dedupe, raid replay-or-nothing, contribute at max, arena level 10)"
+node tests/test_arena_guild_harden.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi

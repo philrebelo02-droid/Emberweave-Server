@@ -126,7 +126,7 @@ ck "star step consumes fragments by the pip table" '' "$SS"
 AR=$(curl -s -X POST $B/api/arena/result -H "$H" -H 'content-type: application/json' -d '{"oppId":"nobody","won":true}')
 ck "arena without requestId rejected (A5)" 'requestId required' "$AR"
 AR1=$(curl -s -X POST $B/api/arena/result -H "$H" -H 'content-type: application/json' -d '{"oppId":"nobody","won":true,"requestId":"ar1"}')
-ck "arena responds authoritative (client won ignored)" '"authoritative":true' "$AR1"
+ck "arena refuses a level-1 account (v974: the Arena opens at level 10; the authoritative path is in test_arena_guild_harden.js)" 'opens at level 10' "$AR1"
 AR2=$(curl -s -X POST $B/api/arena/result -H "$H" -H 'content-type: application/json' -d '{"oppId":"nobody","won":true,"requestId":"ar1"}')
 [ "$AR1" == "$AR2" ] && { PASS=$((PASS+1)); echo "  ✓ arena replay returns the identical memoized verdict"; } || { FAIL=$((FAIL+1)); echo "  ✗ arena replay differed"; }
 
