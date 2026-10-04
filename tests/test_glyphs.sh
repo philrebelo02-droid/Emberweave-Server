@@ -88,13 +88,9 @@ N5=$(curl -s -X POST $B/api/glyphs/build-in-slot -H "$H" -H 'content-type: appli
 ck "NEG: stale revision rejected" 'STALE' "$N5"
 # wrong family: find a Grey def whose family is NOT accepted by slot 1's options
 S1=$(curl -s "$B/api/glyphs/slot-options?heroKey=vael&slot=1" -H "$H")
-printf '%s' "$CAT" > /tmp/_gl_cat.json
-WF=$(python3 - <<'PY'
-import json
-cat=json.load(open('/tmp/_gl_cat.json'))
-print(next(x['id'] for x in cat['defs'] if x['qi']==0 and x['family']=='Starfire'))
-PY
-)
+# v1010: the catalog goes to python on stdin - a /tmp file written by bash is a different folder for a Windows python (C:	mp),
+# so this lookup came back empty there and the check failed on "Unknown blueprint" instead of testing the family rule
+WF=$(printf '%s' "$CAT" | python3 -c "import sys,json;cat=json.load(sys.stdin);print(next(x['id'] for x in cat['defs'] if x['qi']==0 and x['family']=='Starfire'))")
 N6=$(curl -s -X POST $B/api/glyphs/build-in-slot -H "$H" -H 'content-type: application/json' -d '{"heroKey":"vael","slot":1,"blueprintId":"'"$WF"'","expectedRevision":'"$RV"',"requestId":"n6"}')
 ck "NEG: wrong family for the slot rejected" 'does not fit' "$N6"
 # insufficient materials: dev drains one needed fragment family, then the build must fail atomically
@@ -121,17 +117,17 @@ SO2=$(curl -s "$B/api/glyphs/slot-options?heroKey=vael&slot=0" -H "$H")
 ck "board now builds the NEXT ladder step (Green)" '"quality":"Green"' "$SO2"
 
 # ===== v257 (Phil): A GLYPH TIER HAS A MINIMUM HERO LEVEL =====
-# The board is on Green (step 2) and vael is still level 1 — Green needs level 5.
+# The board is on Green (step 2) and vael is still level 1 — Green needs level 5 (GLYPH_MIN_LEVEL[1]; v1010: the checks said 7 and failed unseen behind the runner's tail -3).
 # NOTE: reuse $TD — a second /api/login ROTATES dev1's token and invalidates it.
 BTL=$(curl -s "$B/api/glyphs/build-tree?heroKey=vael&slot=0" -H "$H")
-ck "LEVEL GATE: the tree reports the tier's required hero level" '"levelRequired":7' "$BTL"
+ck "LEVEL GATE: the tree reports the tier's required hero level" '"levelRequired":5' "$BTL"
 ck "LEVEL GATE: an under-levelled hero is levelOk=false" '"levelOk":false' "$BTL"
 ck "LEVEL GATE: an under-levelled hero cannot Quick Build" '"canBuild":false' "$BTL"
 RVL=$(curl -s $B/api/glyphs/state -H "$H"|jv "['revision']")
 BGL=$(curl -s -X POST $B/api/glyphs/build-in-slot -H "$H" -H 'content-type: application/json' -d '{"heroKey":"vael","slot":0,"blueprintId":"R02-01","expectedRevision":'"$RVL"',"requestId":"lvgate1"}')
-ck "LEVEL GATE: build-in-slot is refused below the tier's level" 'need hero level 7' "$BGL"
+ck "LEVEL GATE: build-in-slot is refused below the tier's level" 'need hero level 5' "$BGL"
 BAL=$(curl -s -X POST $B/api/glyphs/build-all -H "$H" -H 'content-type: application/json' -d '{"heroKey":"vael","expectedRevision":'"$RVL"',"requestId":"lvgate2"}')
-ck "LEVEL GATE: build-all is refused below the tier's level" 'need hero level 7' "$BAL"
+ck "LEVEL GATE: build-all is refused below the tier's level" 'need hero level 5' "$BAL"
 # level vael past the gate — the rest of the suite proceeds exactly as before
 curl -s -X POST $B/api/admin/led-grant -H "x-token: $TD" -H 'content-type: application/json' -d '{"userId":"'"$GID"'","px":900000,"heroKeys":["vael"],"heroXp":900000}' >/dev/null
 BTL2=$(curl -s "$B/api/glyphs/build-tree?heroKey=vael&slot=0" -H "$H")

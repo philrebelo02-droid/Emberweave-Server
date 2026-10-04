@@ -11,6 +11,10 @@ jv(){ python3 -c "import sys,json;d=json.load(sys.stdin);print(d$1)" 2>/dev/null
 
 R=$(curl -s -X POST $B/api/register -H 'content-type: application/json' -d '{"name":"tf1","pass":"password1","roster":{"__save":"{\"gold\":5000,\"gems\":250,\"playerXP\":40000,\"heroXP\":{\"vael\":30000,\"sylthaine\":30000,\"vireo\":30000},\"campaignCleared\":4}"}}')
 T=$(echo "$R"|jv "['token']"); H="x-token: $T"
+# v1010: the level-gate checks below need a genuinely level-1 account. tf1's forged first save seeds its ledger (Phil's 30 Aug
+# ruling; whether it should is open question M13), so tf1 is level 52 and those checks could never fire - they failed unseen
+# behind the runner's tail -3. tfl registers with no save.
+RL=$(curl -s -X POST $B/api/register -H 'content-type: application/json' -d '{"name":"tfl1","pass":"password1"}'); HL="x-token: $(echo "$RL"|jv "['token']")"
 LG=$(curl -s $B/api/ledger -H "$H")
 # v229 P0: an account created AFTER the transformation cutoff gets the fixed STARTER ledger —
 # the forged roster in the register payload above must be completely ignored.
@@ -59,11 +63,11 @@ UIDB=$(curl -s $B/api/profile -H "$H"|jv "['profile']['id']")
 # clear the way to 1-10 without granting player XP, so only the boss gate can stop us
 curl -s -X POST $B/api/admin/led-grant -H "x-token: $TDB" -H 'content-type: application/json' -d '{"userId":"'"$UIDB"'","campCleared":9,"stamina":600}' >/dev/null
 SG=$(curl -s "$B/api/campaign/stage?node=10" -H "$H")
-ck "the stage payload publishes the chapter-boss level gate" '"bossLevelGate":10' "$SG"
+ck "v825 (Phil 25 Sep: no level lock on any level): the chapter boss publishes no level gate" '"bossLevelGate":0' "$SG"
 SGN=$(curl -s "$B/api/campaign/stage?node=9" -H "$H")
 ck "a normal stage publishes no level gate" '"bossLevelGate":0' "$SGN"
 BG=$(curl -s -X POST $B/api/campaign/start -H "$H" -H 'content-type: application/json' -d '{"node":10,"heroIds":["vael","sylthaine","vireo"],"requestId":"bg1"}')
-ck "an under-levelled account is refused the chapter boss" 'reach player level 10' "$BG"
+ck "v825: the chapter boss is not refused for player level" 'reach player level' "$BG" invert
 curl -s -X POST $B/api/admin/led-grant -H "x-token: $TDB" -H 'content-type: application/json' -d '{"userId":"'"$UIDB"'","px":40000,"stamina":600}' >/dev/null
 BG2=$(curl -s -X POST $B/api/campaign/start -H "$H" -H 'content-type: application/json' -d '{"node":10,"heroIds":["vael","sylthaine","vireo"],"requestId":"bg2"}')
 ck "the boss opens once the account reaches the gate" '"attemptId"' "$BG2"
@@ -127,9 +131,9 @@ ck "star step consumes fragments by the pip table" '' "$SS"
 # ARENA is sim-resolved (no client won) and, since v228, an idempotent battle claim
 AR=$(curl -s -X POST $B/api/arena/result -H "$H" -H 'content-type: application/json' -d '{"oppId":"nobody","won":true}')
 ck "arena without requestId rejected (A5)" 'requestId required' "$AR"
-AR1=$(curl -s -X POST $B/api/arena/result -H "$H" -H 'content-type: application/json' -d '{"oppId":"nobody","won":true,"requestId":"ar1"}')
+AR1=$(curl -s -X POST $B/api/arena/result -H "$HL" -H 'content-type: application/json' -d '{"oppId":"'"$UIDB"'","won":true,"requestId":"ar1"}')
 ck "arena refuses a level-1 account (v974: the Arena opens at level 10; the authoritative path is in test_arena_guild_harden.js)" 'opens at level 10' "$AR1"
-AR2=$(curl -s -X POST $B/api/arena/result -H "$H" -H 'content-type: application/json' -d '{"oppId":"nobody","won":true,"requestId":"ar1"}')
+AR2=$(curl -s -X POST $B/api/arena/result -H "$HL" -H 'content-type: application/json' -d '{"oppId":"'"$UIDB"'","won":true,"requestId":"ar1"}')
 [ "$AR1" == "$AR2" ] && { PASS=$((PASS+1)); echo "  ✓ arena replay returns the identical memoized verdict"; } || { FAIL=$((FAIL+1)); echo "  ✗ arena replay differed"; }
 
 # VAULT authoritative: resolve carries no trusted won (covered fully in test_dungeon.sh)
@@ -147,11 +151,11 @@ AC1=$(curl -s $B/api/academy -H "$H")
 ck "MINE: refused claims leave iron at zero" '"iron":0' "$AC1"
 # A fresh account has not completed a verified mine march, so it cannot pay
 # the Academy track's authored iron cost. (3 Oct 2026: players see iron as Emberite - Phil "Set a is good".)
-RS=$(curl -s -X POST $B/api/academy/research -H "$H" -H 'content-type: application/json' -d '{"track":"academy","requestId":"rs1"}')
+RS=$(curl -s -X POST $B/api/academy/research -H "$HL" -H 'content-type: application/json' -d '{"track":"academy","requestId":"rs1"}')
 ck "ACADEMY: a level-1 account is refused (v988 server gate; the cost/lock checks moved to test_academy_economy.js)" 'opens at player level 20' "$RS"
-RS2=$(curl -s -X POST $B/api/academy/research -H "$H" -H 'content-type: application/json' -d '{"track":"academy","requestId":"rs2"}')
+RS2=$(curl -s -X POST $B/api/academy/research -H "$HL" -H 'content-type: application/json' -d '{"track":"academy","requestId":"rs2"}')
 ck "ACADEMY: a new request cannot bypass the level gate" 'opens at player level 20' "$RS2"
-RSA=$(curl -s -X POST $B/api/academy/research -H "$H" -H 'content-type: application/json' -d '{"track":"atk","requestId":"rs3"}')
+RSA=$(curl -s -X POST $B/api/academy/research -H "$HL" -H 'content-type: application/json' -d '{"track":"atk","requestId":"rs3"}')
 ck "ACADEMY: any track is refused below level 20" 'opens at player level 20' "$RSA"
 # A city battle can only resolve a registered, arrived war march. Combat and
 # replay are covered by witches-hut-api.test.js after that march is created.

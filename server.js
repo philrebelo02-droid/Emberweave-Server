@@ -4434,7 +4434,7 @@ async function api(req,res,url){
     if(p==='/api/gear/extract'){
       const iid=String(b.itemId||''); const it=g.items[iid]; const def=it&&GEARCAT.byId[it.d];
       if(!it||!def) return bad('Unknown item.');
-      if(gearItemEquippedBy(g,iid)) return bad('Unequip it first.');
+      if(gearItemEquippedBy(g,iid)) return bad('Equipped gear is bound to its hero and cannot be extracted.');   /* v1010: it said "Unequip it first." - unequipping has been impossible since v994 */
       const refund=Math.floor((it.dustSpent||0)*GEARCAT.meta.temper.extractRefund);
       delete g.items[iid]; me.dust=(me.dust||0)+refund;
       return ok({ extracted:iid, name:def.name, refund });

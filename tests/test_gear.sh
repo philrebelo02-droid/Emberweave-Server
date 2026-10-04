@@ -71,12 +71,19 @@ ck "resonance total=1 rank=0" '"rank": 0' "$(echo "$ST2"|python3 -c 'import sys,
 SA=$(curl -s -X POST $B/api/gear/select-active -H "$H" -H 'content-type: application/json' -d "{\"expectedRevision\":$RV,\"heroKey\":\"vael\",\"itemId\":\"$I3\"}")
 ck "select gear active" '"active":"Shield Bash"' "$SA"; RV=$(echo "$SA"|jv "['revision']")
 
-# extraction: unequip then extract → refund 80% of 62 = 49
+# extraction. v994 retired unequip (equipped gear is bound to its hero for good - Phil v375), so the old 'unequip then extract'
+# steps failed unseen behind the runner's tail -3 (v1010). An equipped item cannot be extracted; the refund maths runs on the
+# unequipped Green item instead: temper it, extract it, 80% of the dust spent comes back.
 UN=$(curl -s -X POST $B/api/gear/unequip -H "$H" -H 'content-type: application/json' -d "{\"expectedRevision\":$RV,\"heroKey\":\"vael\",\"slot\":\"Weapon\"}")
-RV=$(echo "$UN"|jv "['revision']")
-EX=$(curl -s -X POST $B/api/gear/extract -H "$H" -H 'content-type: application/json' -d "{\"expectedRevision\":$RV,\"itemId\":\"$I3\"}")
-ck "extract refunds 80% (49 of 62)" '"refund":49' "$EX"; RV=$(echo "$EX"|jv "['revision']")
-EX2=$(curl -s -X POST $B/api/gear/extract -H "$H" -H 'content-type: application/json' -d "{\"expectedRevision\":$RV,\"itemId\":\"$I3\"}")
+ck "unequip is refused (equipped gear is bound)" 'bound to its hero' "$UN"
+EXQ=$(curl -s -X POST $B/api/gear/extract -H "$H" -H 'content-type: application/json' -d "{\"expectedRevision\":$RV,\"itemId\":\"$I3\"}")
+ck "an equipped item cannot be extracted" 'cannot be extracted' "$EXQ"
+TPG=$(curl -s -X POST $B/api/gear/temper -H "$H" -H 'content-type: application/json' -d "{\"expectedRevision\":$RV,\"itemId\":\"$IG\",\"uses\":12}")
+ck "temper the unequipped Green 12 uses" '"uses":12' "$TPG"
+RV=$(echo "$TPG"|jv "['revision']"); DSG=$(echo "$TPG"|jv "['dustSpent']"); WANT=$(( DSG*8/10 ))
+EX=$(curl -s -X POST $B/api/gear/extract -H "$H" -H 'content-type: application/json' -d "{\"expectedRevision\":$RV,\"itemId\":\"$IG\"}")
+ck "extract refunds 80% ($WANT of $DSG)" "\"refund\":$WANT" "$EX"; RV=$(echo "$EX"|jv "['revision']")
+EX2=$(curl -s -X POST $B/api/gear/extract -H "$H" -H 'content-type: application/json' -d "{\"expectedRevision\":$RV,\"itemId\":\"$IG\"}")
 ck "double extract rejected" 'Unknown item' "$EX2"
 
 # stale revision

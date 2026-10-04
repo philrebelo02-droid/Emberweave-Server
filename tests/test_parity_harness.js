@@ -55,7 +55,7 @@ const PORT=process.env.PORT||8871;
       mr:heroStat('vael',ht0.mr||0,'mr')+techTotal('mr')+(tot2.mr||0)*3,
       armorPen:(tot2.armorPen||0), magicPen:(tot2.magicPen||0),
       crit:Math.min(0.6,(tot2.crit||0)*0.005), critRes:Math.min(0.75,(tot2.critRes||0)*0.005),
-      energyReg:(tot2.energy||0)*0.01, regen:(tot2.regen||0)*0.001 };
+      energyReg:(tot2.energy||0)*0.01, regen:Math.min(0.06,(tot2.regen||0)*0.0001) };   /* v1010: v364 (Phil) made HP Regen 0.01%/pt capped at 6%/s in the client and server; this copy still used 0.1%/pt */
     const snap2=(await api('/api/admin/snapshot?hero=vael')).snapshot;
     // CLIENT-side displayed HP/ATK exactly as makeUnit computes them (v232: NO rank multipliers)
     const mm=heroMuls('vael'); const ht=HERO_TYPES['vael']; const lvl=heroLevel('vael');
@@ -88,7 +88,7 @@ const PORT=process.env.PORT||8871;
   ck('server MAGIC PEN == client glyph points', (r.snap2.magicPen||0)===(r.exp2.magicPen||0));
   ck('server crit (board+gear) == client conversion', near(r.snap2.crit,r.exp2.crit));
   ck('server energyReg (board+gear) == client conversion', near(r.snap2.energyReg,r.exp2.energyReg));
-  ck('server regen (board+gear) == client conversion', near(r.snap2.regen,r.exp2.regen,0.002));
+  ck('server regen (board+gear) == client conversion ('+(r.snap2.regen)+' vs '+(r.exp2.regen)+')', near(r.snap2.regen,r.exp2.regen,0.002));
   await b.close();
   console.log('PASS: '+pass+'  FAIL: '+fail); process.exit(fail?1:0);
 })().catch(e=>{ console.log('FAIL: '+e.message); process.exit(1); });
