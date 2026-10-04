@@ -21973,7 +21973,7 @@ async function renderGuildWar(el){
   list.querySelectorAll('[data-gw]').forEach(btn=>btn.onclick=()=>guildWarAttackServer(btn.dataset.gw, btn, el));
 }
 async function guildWarAttackServer(targetId, btn, el){
-  const msg=el.querySelector('#gwMsg'); if(btn) btn.disabled=true; if(msg){ msg.style.color='#8b98a9'; msg.textContent='Marching&#8230;'; }
+  const msg=el.querySelector('#gwMsg'); if(btn) btn.disabled=true; if(msg){ msg.style.color='#8b98a9'; msg.textContent='Marching…'; }
   const r=await api('/api/guild/war/attack','POST',{targetId});
   if(!r||r.error){ if(msg){ msg.style.color='#ff8b8b'; msg.textContent=(r&&r.error)||'Failed — try again.'; } if(btn)btn.disabled=false; return; }
   if(r.already){ if(msg){ msg.style.color='#ff8b8b'; msg.textContent='You already defeated that champion this week.'; } setTimeout(()=>renderGuild(),500); return; }
@@ -22084,13 +22084,13 @@ function renderGuildLobby(b){
       <div id="gJoinList"><div style="text-align:center;color:#8b98a9;font-size:12px;padding:8px">Loading guilds&#8230;</div></div>
     </div>`;
   const msg=b.querySelector('#gcMsg');
-  b.querySelector('#gcCreate').onclick=async()=>{ const v=b.querySelector('#gcName').value.trim(); if(v.length<2){ msg.style.color='#ffd45e'; msg.textContent='Guild name needs at least 2 characters.'; return; } msg.style.color='#8b98a9'; msg.textContent='Creating&#8230;'; const d=await api('/api/guild/create','POST',{name:v}); if(d&&d.error){ msg.style.color='#ff8b8b'; msg.textContent=d.error; return; } if(d&&d.guild){ GS.guild=d.guild; syncLocalGuild(); guildTab='chat'; renderGuild(); } };
+  b.querySelector('#gcCreate').onclick=async()=>{ const v=b.querySelector('#gcName').value.trim(); if(v.length<2){ msg.style.color='#ffd45e'; msg.textContent='Guild name needs at least 2 characters.'; return; } msg.style.color='#8b98a9'; msg.textContent='Creating…'; const d=await api('/api/guild/create','POST',{name:v}); if(d&&d.error){ msg.style.color='#ff8b8b'; msg.textContent=d.error; return; } if(d&&d.guild){ GS.guild=d.guild; syncLocalGuild(); guildTab='chat'; renderGuild(); } };
   const doBrowse=async(q)=>{ const list=b.querySelector('#gJoinList'); if(!list)return; const d=await api('/api/guild/browse'+(q?('?q='+encodeURIComponent(q)):''),'GET'); if(!d||d.error){ list.innerHTML='<div style="text-align:center;color:#ff8b8b;font-size:12px;padding:8px">Offline &#8212; try again.</div>'; return; }
     if(!d.guilds.length){ list.innerHTML=`<div style="text-align:center;color:#8b98a9;font-size:12px;padding:10px">${q?'No guilds match that search.':'No guilds exist yet &#8212; <b style="color:#e6edf3">create one</b> above.'}</div>`; return; }
     list.innerHTML=d.guilds.map(g=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 4px;border-bottom:1px solid #222b40;gap:8px">
         <div style="min-width:0"><b>&lt;${escapeHTML(g.name)}&gt;</b> <span style="font-size:10px;color:#ffd45e">Lv ${g.level}</span><div style="font-size:10px;color:#8b98a9">${g.count}/${g.cap} members &#183; leader ${escapeHTML(g.leaderName)}</div></div>
         <button class="btn sm ${g.requested?'secondary':''}" data-req="${g.id}" ${(g.count>=g.cap&&!g.requested)?'disabled':''}>${g.requested?'Requested &#10003;':(g.count>=g.cap?'Full':'Request')}</button></div>`).join('');
-    list.querySelectorAll('[data-req]').forEach(btn=>btn.onclick=async()=>{ btn.disabled=true; btn.textContent='&#8230;'; const r=await api('/api/guild/request','POST',{guildId:btn.dataset.req}); if(r&&r.error){ bannerMsg('&#9888; '+r.error); doBrowse(b.querySelector('#gSearch').value.trim()); return; } btn.textContent='Requested &#10003;'; btn.classList.add('secondary'); }); };
+    list.querySelectorAll('[data-req]').forEach(btn=>btn.onclick=async()=>{ btn.disabled=true; btn.textContent='…'; const r=await api('/api/guild/request','POST',{guildId:btn.dataset.req}); if(r&&r.error){ bannerMsg('&#9888; '+r.error); doBrowse(b.querySelector('#gSearch').value.trim()); return; } btn.textContent='Requested ✓'; btn.classList.add('secondary'); }); };
   b.querySelector('#gSearchBtn').onclick=()=>doBrowse(b.querySelector('#gSearch').value.trim());
   b.querySelector('#gSearch').onkeydown=(e)=>{ if(e.key==='Enter')doBrowse(b.querySelector('#gSearch').value.trim()); };
   doBrowse('');
@@ -25755,7 +25755,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791089690536';
+const BUILD_ID = '1791090640793';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

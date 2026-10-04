@@ -139,6 +139,8 @@ note "test_raid_durable.js (3 Oct Guild audit #2: the raid result saves the rewa
 node tests/test_raid_durable.js || FAILED=1
 note "test_skyfall_ghost.js (3 Oct Guild audit #6: a deleted guild leaves Skyfall registration; the lock drops ghosts)"
 node tests/test_skyfall_ghost.js || FAILED=1
+note "test_guild_p2.js (3 Oct Guild audit #11 #12 #13: guild name rules, no literal entities, no banners in browse)"
+node tests/test_guild_p2.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi

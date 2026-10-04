@@ -7582,7 +7582,8 @@ async function api(req,res,url){
     if(p==='/api/guild/browse'){ const q=(url.searchParams.get('q')||'').toLowerCase().trim();
       const list=Object.values(DB.guilds)
         .filter(g=> !q || (g.name||'').toLowerCase().includes(q))
-        .map(g=>({id:g.id,name:g.name,banner:g.banner||null,level:g.level||1,count:(g.members||[]).length,cap:gCap(g),
+        .map(g=>({id:g.id,name:g.name,level:g.level||1,   /* v982 (Guild audit #13): no banner - neither list draws it, and 40 of them were ~1.7 MB */
+                 count:(g.members||[]).length,cap:gCap(g),
                   leaderName:nameOf(g.leader),requested:(g.reqs||[]).some(r=>r.id===me.id)}))
         .sort((a,b)=> b.count-a.count).slice(0,40);
       return send(res,200,{ guilds:list, mine: me.guildId||null }); }
@@ -7599,6 +7600,7 @@ async function api(req,res,url){
       if(myGuild()) return send(res,400,{error:'You are already in a guild.'});
       let name=capWords((b.name||'').replace(/[<>]/g,'').replace(/\s+/g,' ').trim()).slice(0,24);
       if(name.length<2) return send(res,400,{error:'Guild name must be at least 2 characters.'});
+      { const bad=badNewName(name); if(bad) return send(res,400,{error:bad}); }   /* v982 (3 Oct Guild audit #11): the same name rules as a player name (hidden characters, stacked accents, reserved names) */
       if(Object.values(DB.guilds).some(g=>(g.name||'').toLowerCase()===name.toLowerCase())) return send(res,409,{error:'That guild name is already taken'});
       const id=uid(); const g={ id, name, leader:me.id, members:[me.id], reqs:[], level:1, exp:0, motd:'Welcome to '+name+'!', log:[], createdAt:Date.now() };
       DB.guilds[id]=g; me.guildId=id; writeDB();
