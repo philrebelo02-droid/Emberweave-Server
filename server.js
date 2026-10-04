@@ -213,10 +213,13 @@ const BODY_MAX_SAVE = +(process.env.BODY_MAX_SAVE || 4*1024*1024);  // 4 MB for 
    'toString', ...) reaches plain-object lookups like ownsHeroK(led,k) / led.hero[k] as truthy and can write onto
    Object.prototype for the whole process. Fix the class: such a request is refused before any route runs. */
 const PROTO_NAMES=new Set(Object.getOwnPropertyNames(Object.prototype));
-function hasProtoName(v,depth){ let n=0; const walk=(x,d)=>{ if(++n>50000||d>32) return true;   /* v1006 (re-audit Account N1, P0): past the walk limits the request is REFUSED - it used to pass as clean, so 20,000 padding values hid a '__proto__' */
-    if(typeof x==='string') return PROTO_NAMES.has(x);
+/* v1007 (release review #4): free text is never a lookup key - a password, chat line or search equal to 'constructor' / 'toString'
+   used to be refused (the player could not sign in). A string value directly under one of these keys is not checked; keys still are. */
+const FREE_TEXT_KEYS=new Set(['pass','newPass','text','tx','motd','msg','q']);
+function hasProtoName(v,depth){ let n=0; const walk=(x,d,key)=>{ if(++n>50000||d>32) return true;   /* v1006 (re-audit Account N1, P0): past the walk limits the request is REFUSED - it used to pass as clean, so 20,000 padding values hid a '__proto__' */
+    if(typeof x==='string') return !FREE_TEXT_KEYS.has(key) && PROTO_NAMES.has(x);
     if(Array.isArray(x)){ for(const y of x) if(walk(y,d+1)) return true; return false; }
-    if(x&&typeof x==='object'){ for(const k of Object.keys(x)){ if(PROTO_NAMES.has(k)||walk(x[k],d+1)) return true; } }
+    if(x&&typeof x==='object'){ for(const k of Object.keys(x)){ if(PROTO_NAMES.has(k)||walk(x[k],d+1,k)) return true; } }
     return false; };
   return walk(v,depth|0); }
 function body(req, max){ max = max || BODY_MAX; return new Promise((resolve,reject)=>{
@@ -7988,7 +7991,7 @@ const server=http.createServer((req,res)=>{
   _corsReqOrigin=String(req.headers.origin||'');
   const url=new URL(req.url,'http://x');
   const p=url.pathname;
-  if(p.startsWith('/api/')){ for(const [qk,qv] of url.searchParams){ if(PROTO_NAMES.has(qk)||PROTO_NAMES.has(qv)) return send(res,400,{ok:false,error:'Invalid request.'}); } }   /* v986: the same rule for query values */
+  if(p.startsWith('/api/')){ for(const [qk,qv] of url.searchParams){ if(PROTO_NAMES.has(qk)||(!FREE_TEXT_KEYS.has(qk)&&PROTO_NAMES.has(qv))) return send(res,400,{ok:false,error:'Invalid request.'}); } }   /* v986: the same rule for query values */
   if(p.startsWith('/api/')) return api(req,res,url).catch(err=>{
     if(res.headersSent) return;
     if(err && err.code==='WORLD_STORAGE_FAILURE')return send(res,503,{ok:false,storageFailed:true,error:err.message});

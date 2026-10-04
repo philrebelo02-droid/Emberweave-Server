@@ -48,6 +48,19 @@ async function editDB(fn){ await delay(400); await stop(); const db=disk(); fn(d
   ok(dp.status===400,'a "__proto__" nested 15 levels deep is refused ('+dp.status+')');
   const legit=await call('/api/watch/report',{attacks:Array.from({length:20},(_,i)=>({name:'Castle '+i,eta:i,ret:false})),defends:[],scouts:[]});
   ok(legit.status===200,'an ordinary 20-row report still passes ('+legit.status+')');
+  /* v1007 (release review #4): free text equal to a prototype name is not a lookup key - a player whose password is one still signs in */
+  const nm='Proto'+String(Date.now()).slice(-6);
+  const reg=await call('/api/register',{name:nm,pass:'hasOwnProperty'});
+  ok(reg.status===200&&reg.data.token,'an account whose password is "hasOwnProperty" can register ('+reg.status+' '+(reg.data.error||'')+')');
+  const lg=await call('/api/login',{name:nm,pass:'hasOwnProperty'});
+  ok(lg.status===200&&lg.data.token,'and sign in ('+lg.status+' '+(lg.data.error||'')+')');
+  if(lg.data.token) token=lg.data.token;   // registering with a guest token upgrades that guest; sign-in issues the live token
+  const rp=await call('/api/report',{text:'constructor'});
+  ok(rp.status===200,'a report whose text is "constructor" is not refused as invalid ('+rp.status+')');
+  const tk=await call('/api/report',{text:{['__proto__']:1}});
+  ok(tk.status===400,'a prototype-named KEY under a free-text field is still refused ('+tk.status+')');
+  const hk=await call('/api/hero/xp-potion',{heroKey:'hasOwnProperty',tier:'minor',requestId:'p-xp-h'});
+  ok(hk.status===400,'a lookup field (heroKey) equal to a prototype name is still refused ('+hk.status+')');
   const dl=await call('/api/daily',{});
   ok(dl.status===410,'/api/daily is retired (410; got '+dl.status+' '+JSON.stringify(dl.data).slice(0,80)+')');
   if(missed.length){ missed.forEach(m=>console.error('FAIL',m)); process.exitCode=1; }
