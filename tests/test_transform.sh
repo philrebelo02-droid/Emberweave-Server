@@ -87,7 +87,9 @@ ck "RETIRED (v267): the generic 'misc' allowance is gone — a client can no lon
 E2b=$(curl -s -X POST $B/api/tx/earn -H "$H" -H 'content-type: application/json' -d '{"what":"gems","amount":10,"reason":"daily","requestId":"e2d"}')
 ck "RETIRED: arena rank diamonds are no longer client-claimed" 'No earn rule' "$E2b"
 E2c=$(curl -s -X POST $B/api/tx/earn -H "$H" -H 'content-type: application/json' -d '{"what":"frag","amount":2,"reason":"arena","heroKey":"vex","requestId":"e2a"}')
-ck "the arena fragment shop rule is the ONLY earn reason left" '"tx"' "$E2c"
+ck "v972: the arena fragment shop sells only Grosk - a vex fragment is refused" 'only Grosk' "$E2c"
+E2g=$(curl -s -X POST $B/api/tx/earn -H "$H" -H 'content-type: application/json' -d '{"what":"frag","amount":2,"reason":"arena","heroKey":"grosk","requestId":"e2g"}')
+ck "the arena fragment shop rule (Grosk) is the ONLY earn reason left" '"tx"' "$E2g"
 
 # ===== v267 (80/20 §9): Getting Started rewards are SERVER-granted, once per step =====
 TUT1=$(curl -s -X POST $B/api/tutorial/claim -H "$H" -H 'content-type: application/json' -d '{"step":"win11"}')
