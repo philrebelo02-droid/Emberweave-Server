@@ -143,6 +143,10 @@ ch.7). **Their lessons moved with them, into `04.1 - PROMPT BIBLE LESSONS LEARNE
 
 # 1 · GROK IMAGINE — **THE SOURCE OF ALL ART**
 
+**Latest 3 Oct20:58 direct Phil:** "please continue to figure out what works" after rejected2.3 test/model-choice question. Continue scoped Rhukk attack/crit replacement experiments in current Hailuo lane; do not reinstate the exhausted-one-test/pending-question pause. Current test ATTACK10 uses2.3/768p6s/canonicalStart/noEndsupported/25credits/wandOFF; no sourceplate/provider/duration changes. Review each result before refiring, preserve failures. This supersedes earlier one-test-only wording below for this ongoing scoped task.
+
+**Scoped 3 Oct20:37 direct Phil model-test exception:** after 2.0 repeatedslash/frontturn failure and explicit disclosure that2.3 removesEndFrame, Phil said "yes" to ONE Rhukk attack test inHailuo2.3 at768p6s/25credits, samecanonicalStartimage, exactATTACK8 prompt, wandOFF. No2.3crit or further2.3fires authorized by this one-test approval. Model AND endconstraint change together; no single-variable cause claim. Other art settings/ownership restrictions preserved.
+
 **CURRENT scoped ownership override, Phil 3 Oct 19:4x-19:5x:** "Claude is off art" / "You drive hailou now" / "Not my computer"; ChatGPT operates Hailuo in the separate in-app browser. Phil then authorized Claude to slice and wire the exact clips AFTER Phil approves them, while ChatGPT continues generation. No unapproved clip is a downstream handoff. Rhukk attack is ONE single claw slash; crit is ONE horn thrust beginning ground-facing then driving upward in a puncturing motion. These direct instructions supersede the older horizontal-crit/Claude-generation lane, not model/duration/plate settings. Verify wand by SVG path count (1 OFF, 4 ON), never gray icon colour or a click alone. ATTACK6 was mistakenly submitted wandON and disclosed; CRIT5 wandOFF verified before submission. Neither is approved by submission alone.
 
 **Phil, 16 Sep 2026: *"I decided hailou is out."* · *"The new source of all art is grok imagine."***
