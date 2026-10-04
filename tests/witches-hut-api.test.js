@@ -135,6 +135,26 @@ async function run() {
       defId:foe.profile.id,marchId:cityMarch.marchId,requestId:'witch-raid-1'
     },admin.token);
     assert.deepEqual(retry,attack,'retry cannot inflict damage twice');
+    /* v1016 (re-audit Guild #6): a march that arrives after the day's 20 attacks are used is SETTLED (no fight, no loot) - a refusal
+       was never committed, so the march stayed open and counted against every later day's start cap */
+    { const nyDay=new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+      await new Promise(r=>setTimeout(r,300)); await stop();
+      const d0=JSON.parse(fs.readFileSync(db,'utf8')); const au=d0.users[admin.profile.id];
+      au.pvpDay={k:nyDay,n:19,gold:0,coins:0}; for(const m of [...(au.worldCityMarches||[]),...(au.worldMineMarches||[])]) m.homeAt=0;   /* every earlier army is home */ delete d0.worldTreeControl; if(au.witch&&au.witch.heroes) for(const k of Object.keys(au.witch.heroes)) au.witch.heroes[k].hp=10000;
+      fs.writeFileSync(db,JSON.stringify(d0)); await start(admin.profile.id,'20','5000');
+      const capMarch=await request('POST','/api/world/city/start',{defId:foe.profile.id,heroIds:['vael','sylthaine','vireo'],requestId:'witch-city-cap'},admin.token);
+      assert.equal(capMarch.ok,true,'the 20th march may start: '+JSON.stringify(capMarch).slice(0,160));
+      await new Promise(r=>setTimeout(r,300)); await stop();
+      const d1=JSON.parse(fs.readFileSync(db,'utf8')); d1.users[admin.profile.id].pvpDay.n=20; fs.writeFileSync(db,JSON.stringify(d1));
+      await start(admin.profile.id,'20','20'); await new Promise(r=>setTimeout(r,5200));
+      const capped=await request('POST','/api/pvp/attack',{defId:foe.profile.id,marchId:capMarch.marchId,requestId:'witch-raid-cap'},admin.token);
+      assert.equal(capped.ok,true,'a capped arrival is settled, not refused: '+JSON.stringify(capped).slice(0,160));
+      assert.equal(capped.capped,true); assert.equal((capped.loot||{}).gold|0,0,'no loot');
+      await new Promise(r=>setTimeout(r,300));
+      const d2=JSON.parse(fs.readFileSync(db,'utf8')); const cm=((d2.users[admin.profile.id].worldCityMarches)||[]).find(m=>m.id===capMarch.marchId);
+      assert.ok(!cm||cm.resolved,'the capped march is closed on disk: '+JSON.stringify(cm||{}).slice(0,120));
+      await stop(); const d3=JSON.parse(fs.readFileSync(db,'utf8')); for(const m of (d3.users[admin.profile.id].worldCityMarches||[])) m.homeAt=0;   /* that army is home before the rest of the suite */
+      fs.writeFileSync(db,JSON.stringify(d3)); await start(admin.profile.id,'20','20'); }
     const botRaider=await request('POST','/api/register',{name:'witchBotRaider',pass:'password1'});
     assert.ok(botRaider.token);
     const botGrant=await request('POST','/api/admin/led-grant',{

@@ -20961,6 +20961,7 @@ function resolveMarch(m){
         marchReport('⚠ City attack not resolved',reason); updateMailBadges(); saveG(); return;
       }
       m.resolved=true;
+      if(r.capped){ addMail('war',{from:m.tName,subj:'⚔ Army home - '+m.tName,body:r.note||'No city attacks left today - your army came home.'}); updateMailBadges(); saveG(); return; }   /* v1016 (Guild #6): settled with no fight */
       const replay=r.replay?{v:2,seed:r.replay.seed,mineSnap:r.replay.snaps,
         foe:r.replay.foe,won:!!r.won,oppName:m.tName}:null;
       const loot=r.loot||{}, gold=loot.gold|0, coins=loot.guildCoins|0;
@@ -25804,7 +25805,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791121257609';
+const BUILD_ID = '1791121598642';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

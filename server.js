@@ -6953,7 +6953,10 @@ async function api(req,res,url){
         const d=DB.users[march.defId];
         if(!d||d.id===me.id) return {ok:false,error:'No such city.'};
         const dk=nyDayKey(); me.pvpDay=me.pvpDay&&me.pvpDay.k===dk?me.pvpDay:{k:dk,n:0,gold:0,coins:0};
-        if(me.pvpDay.n>=20) return {ok:false,error:'No city attacks left today.'};
+        /* v1016 (re-audit Guild #6): a march that arrives after today's 20 attacks are used is SETTLED with no fight and no loot - a refusal
+           (ok:false) is never committed, so it stayed open forever and counted against every later day's cap */
+        if(me.pvpDay.n>=20){ const receipt={ok:true,won:false,capped:true,rounds:0,loot:{gold:0},note:'No city attacks left today - your army came home.'};
+          march.resolved=true; march.resolvedAt=Date.now(); march.receipt=receipt; writeDB(); return receipt; }
         const ids=march.heroIds;
         if(!ids.length) return {ok:false,error:'Pick your squad.'};
         for(const k of ids){ if(!ownsHeroK(led,k)) return {ok:false,error:'You have not unlocked '+heroDisplayName(k)+'.'}; }
@@ -7149,7 +7152,7 @@ async function api(req,res,url){
       /* v999 (World audit #5): the 20-a-day city attack cap is checked at the START too - it was only checked on arrival, so the 21st
          march travelled, was refused and sat unresolved. Today's settled attacks + today's open marches on real players. */
       if(d){ const dk=nyDayKey(), done=(me.pvpDay&&me.pvpDay.k===dk)?(me.pvpDay.n|0):0;
-        const open=marches.filter(m=>!m.resolved&&DB.users[m.defId]&&nyDayKey(m.depart)===dk).length;
+        const open=marches.filter(m=>!m.resolved&&DB.users[m.defId]).length;   /* v1016 (Guild #6): every open march on a real player counts, whatever day it left - one from yesterday arrives today */
         if(done+open>=20) return {ok:false,error:'No city attacks left today.'}; }
       if([...mines,...marches].some(m=>m.homeAt>now&&m.heroIds?.some(k=>ids.includes(k)))||ids.some(k=>WORLD_TREE_CONTROL.busy(DB.worldTreeControl,me.id,k,now)))
         return {ok:false,error:'A selected hero is already marching.'};
