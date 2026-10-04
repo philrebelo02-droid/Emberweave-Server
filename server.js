@@ -2636,10 +2636,15 @@ function devReport(u, kind, amount, detail){
   return r;
 }
 
+const FEEDBACK_KEEP=5000;   /* v1010 (re-audit Account N9): the inbox was unbounded (only received items older than 30 days were pruned) */
 function feedbackAppend(item){
   const DB=worldPlanningDB();
   DB.feedback=Array.isArray(DB.feedback)?DB.feedback:[];
   DB.feedback.push(item);
+  if(DB.feedback.length>FEEDBACK_KEEP){   // over the cap: the oldest RECEIVED items go first, then the oldest of the rest
+    let over=DB.feedback.length-FEEDBACK_KEEP; const drop=new Set();
+    for(const f of DB.feedback){ if(over<=0) break; if(f&&f.received){ drop.add(f); over--; } }
+    DB.feedback=DB.feedback.filter(f=>!drop.has(f)); if(DB.feedback.length>FEEDBACK_KEEP) DB.feedback=DB.feedback.slice(-FEEDBACK_KEEP); }
 }
 function feedbackSweep(){
   if(!Array.isArray(DB.feedback)) return;
@@ -4219,7 +4224,7 @@ async function api(req,res,url){
     writeDB(); return send(res,200,{ok:true, name:u.name, gems:ng, live:!!(u.led&&u.led.migratedAt)}); }
   // admin: download the whole DB as a backup
     if(p==='/api/admin/backup'){
-    const bt = req.headers['x-backup-token'] || url.searchParams.get('token') || '';
+    const bt = req.headers['x-backup-token'] || '';   /* v1010 (re-audit Account N11): header only - a token in the URL lands in proxy and access logs (no caller used ?token=: checked the repo, the archive and the three servers' cron/systemd) */
     if(!backupTokenValid(bt) && (!me||!isDev(me))) return send(res,403,{error:'forbidden'});
     backupDB(); return send(res,200, DB); }
   // Player feedback has its own durable inbox; balance-bot reports stay in the admin report list.

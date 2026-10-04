@@ -14356,8 +14356,9 @@ function vaultSweepPopup(r){
   document.body.appendChild(ov); const close=()=>ov.remove(); ov.querySelector('#_swOk').onclick=close; ov.addEventListener('click',e=>{ if(e.target===ov) close(); });
 }
 async function vaultSalvage(key,qty){ const q=Math.max(1,qty|0);
-  const r=await api('/api/fragments/salvage','POST',{stacks:[{key,quantity:q}],requestId:uid8()});
-  if(!r||r.error){ bannerMsg((r&&r.error)||'Salvage failed.'); } else { bannerMsg('♻ +'+r.dustGained+' Forge Dust'); if(typeof glyphV2Sync==='function') await glyphV2Sync(); }
+  const r=await apiOnce('salv','/api/fragments/salvage',{stacks:[{key,quantity:q}]});   /* v1010 (re-audit Pool+Forge #7): one at a time, one requestId */
+  if(r&&r.busy) return;
+  if(!r||r.error){ bannerMsg((r&&r.error==='offline')?'Connection lost.':((r&&r.error)||'Salvage failed.')); } else { bannerMsg('♻ +'+r.dustGained+' Forge Dust'); if(typeof glyphV2Sync==='function') await glyphV2Sync(); }
   VAULT.salv=null; renderDungeon();
 }
 function vaultSalvageHTML(){
@@ -14365,7 +14366,6 @@ function vaultSalvageHTML(){
   const RATE={'Grey':2,'Green':5,'Green +1':8,'Blue':12,'Blue +1':18,'Blue +2':25,'Purple':50,'Purple +1':65,'Purple +2':80,'Purple +3':100,'Gold':150,'Gold +1':200,'Gold +2':260,'Gold +3':330,'Gold +4':400,'Orange':800};
   const rate=k=>{ const q=Object.keys(RATE).filter(q=>k.startsWith(q+' ')).sort((a,b)=>b.length-a.length)[0]; return RATE[q]||0; };   // 30 Aug: longest match, or 'Blue +2' resolved to 'Blue' and quoted half the dust
   return `<div class="panel" style="margin-top:8px"><div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:12px">♻ Fragment Salvage</b><button class="btn xs secondary" onclick="VAULT.salv=null;renderDungeon()">✕</button></div>
-    <div style="font-size:10px;color:#6f7d90;margin:4px 0">Manual only — nothing is ever auto-destroyed. The exact Dust is shown before you confirm.</div>
     ${frags.length?frags.map(([k,n])=>`<div style="display:flex;align-items:center;gap:6px;font-size:11px;padding:4px 0;border-bottom:1px solid #1a2233">
       <span style="flex:1">${k} <span style="color:#8fe3ff">×${n}</span></span>
       <button class="btn xs secondary" onclick="vaultSalvage('${k}',1)">1 → ✨${rate(k)}</button>
@@ -14907,10 +14907,12 @@ function adoptLedger(st){ if(!st||typeof st!=='object') return;
   } }catch(e){}
 }
 async function ledgerSync(){ if(!ACC.token) return null; try{ const d=await api('/api/ledger'); if(d&&!d.error){ adoptLedger(d); return d; } }catch(e){} return null; }
-async function txSpend(what,amount,reason){ if(!ACC.token){ bannerMsg('Connect to spend — this game is fully synced online.'); return false; }
-  const r=await api('/api/tx/spend','POST',{what,amount:Math.floor(amount),reason,requestId:uid8()});
+async function txSpend(what,amount,reason,rk){ if(!ACC.token){ bannerMsg('Connect to spend — this game is fully synced online.'); return false; }
+  /* v1010 (re-audit Market #7): an offer key keeps ONE requestId until the server answers, so a retap after a lost reply is the
+     same purchase (answered by its receipt), not a second charge */
+  const r=await api('/api/tx/spend','POST',{what,amount:Math.floor(amount),reason,requestId:rk?shopRid(rk):uid8()}); if(rk) shopRidDone(rk,r);
   if(r&&r.ok){ adoptLedger(r.ledger); return true; }
-  bannerMsg((r&&r.error)||'Purchase failed.'); await ledgerSync(); return false; }
+  bannerMsg((r&&r.error==='offline')?'Connection lost.':((r&&r.error)||'Purchase failed.')); await ledgerSync(); return false; }
 /* v267 (80/20 §9): the generic earn endpoint now accepts ONLY the arena fragment rule server-side.
    Nothing else in the client may call this; every other loop has its own verified route. */
 /* 30 Aug (Phil) — THIS FUNCTION USED TO DELETE THE REWARD IT WAS ASKED TO RECORD.
@@ -17611,7 +17613,7 @@ function renderShadyMarket(){ const b=document.getElementById('shadyBody'); if(!
       const rk='shady:'+it.server, r=await api('/api/shop/buy','POST',{what:it.server, requestId:shopRid(rk)}); shopRidDone(rk,r);
       if(!r||!r.ok){ bannerMsg((r&&r.error)||'The dealer had nothing to sell.'); return; }
       adoptLedger(r.ledger); updateHubChrome(); bannerMsg('🕯️ Bought '+it.name); renderShadyMarket(); return; }
-    if(!(await txSpend('gems',it.cost,'shop'))) return;
+    if(!(await txSpend('gems',it.cost,'shop','shadytx:'+it.id))) return;
     ledCapture('convert',()=>it.give()); saveG(); updateHubChrome(); bannerMsg('🕯️ Bought '+it.name); renderShadyMarket(); }));
 }
 // ===== SERVER RANKINGS — your standings + live arena & guild leaderboards =====
@@ -17740,7 +17742,8 @@ function renderMarket(){
       if(!r||r.error){ bannerMsg((r&&r.error)||'Purchase failed.'); return; }
       msg=giveHeroFrag(r.heroKey||o.hero,(r.qty|0)||o.qty)||''; adoptLedger(r.ledger);
     } else {
-      if(o.cost.gold){ if(G.gold<o.cost.gold)return; if(!(await txSpend('gold',o.cost.gold,'market')))return; } else { if(G.gems<o.cost.gems)return; if(!(await txSpend('gems',o.cost.gems,'market')))return; }
+      const mk='mtx:'+G.market.ts+':'+btn.dataset.i;   /* v1010: one requestId per offer until answered */
+      if(o.cost.gold){ if(G.gold<o.cost.gold)return; if(!(await txSpend('gold',o.cost.gold,'market',mk)))return; } else { if(G.gems<o.cost.gems)return; if(!(await txSpend('gems',o.cost.gems,'market',mk)))return; }
       if(o.kind==='frag'){ msg=giveHeroFrag(o.hero,o.qty)||''; }
       else if(o.kind==='shield') G.shieldItems=(G.shieldItems||0)+1;
     }
@@ -19465,8 +19468,9 @@ function renderTech(){
     <div style="text-align:center">${btn}</div>`;
   p.appendChild(card);
   const lb=card.querySelector('#techLearnBtn'); if(lb) lb.onclick=async()=>{ if(learnBusy()||lvl>=tmax||acadLocked)return;
-    if(ACC.token){ const r=await api('/api/academy/research','POST',{track:k,requestId:uid8()});   // v249: SERVER debits gold + resources and owns the timer
-      if(r&&r.error){ bannerMsg(r.error); return; }
+    if(ACC.token){ const r=await apiOnce('acad','/api/academy/research',{track:k});   // v249: SERVER debits gold + resources and owns the timer. v1010 (re-audit Academy #8 / T+A #10): one request at a time, one requestId re-sent on a lost reply
+      if(r&&r.busy) return;
+      if(!r||r.error||r.storageFailed){ bannerMsg((!r||r.error==='offline')?'Connection lost.':(r.error||'Save failed - try again.')); try{ await academySync(); }catch(e){} renderTech(); return; }
       if(r&&r.completesAt){ G.techLearn[k]=r.completesAt; if(r.res) G.res=Object.assign({},G.res,r.res); if(r.ledger&&r.ledger.gold!=null) G.gold=r.ledger.gold; saveGLocalOnly(); updateHubChrome(); renderTech(); }
       return; }
     if(G.gold>=cost&&canAffordRes(rc)){ if(!(await txSpend('gold',cost,'tech')))return; payRes(rc); G.techLearn[k]=Date.now()+learnDur(lvl); saveG(); updateHubChrome(); renderTech(); } };
@@ -25789,7 +25793,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791119318975';
+const BUILD_ID = '1791120020529';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -27563,13 +27567,13 @@ function edClaim(){ const you=edYou(); if(!ED.attemptId){ ED.reward={stamina:0, 
   try{ localStorage.setItem('ew_edClaim', JSON.stringify(job)); }catch(e){}
   ED.reward={pending:true};
   edSendClaim(job, 3, d=>{
-    ED.reward = d&&d.ok ? {stamina:d.stamina|0, note:d.note||''} : {stamina:0, note:(d&&d.error==='offline') ? 'No connection — your reward is saved and will be claimed the next time you open Emberdraft.' : edNiceErr(d&&d.error,'Reward could not be claimed.')};
+    ED.reward = d&&d.ok ? {stamina:d.stamina|0, note:d.note||''} : {stamina:0, note:(d&&(d.error==='offline'||d.storageFailed)) ? 'No connection — your reward is saved and will be claimed the next time you open Emberdraft.' : edNiceErr(d&&d.error,'Reward could not be claimed.')};
     try{ if(d&&d.ledger) adoptLedger(d.ledger); }catch(e){} try{ updateHubChrome(); }catch(e){}
     if(ED.active && ED.phase==='over' && ED.match===m) edRender(); }); }
 function edSendClaim(job, retries, done){
   const again=()=>{ if(retries>0) setTimeout(()=>edSendClaim(job,retries-1,done), 2500); else done&&done({error:'offline'}); };
   api('/api/emberdraft/result','POST',job).then(d=>{
-    const final = d && (d.ok || (d.error && d.error!=='offline' && d.error!=='auth'));   // paid, or refused for good
+    const final = d && !d.storageFailed && (d.ok || (d.error && d.error!=='offline' && d.error!=='auth'));   // paid, or refused for good. v1010 (re-audit Arena N4): a refused SAVE is not final - the server rolled back and the match is still open, so the claim is kept and re-sent
     if(final){ try{ const cur=JSON.parse(localStorage.getItem('ew_edClaim')||'null'); if(cur && cur.attemptId===job.attemptId) localStorage.removeItem('ew_edClaim'); }catch(e){}
       try{ const q=JSON.parse(localStorage.getItem('ew_edRounds')||'null'); if(q && q.attemptId===job.attemptId) localStorage.removeItem('ew_edRounds'); }catch(e){} return done&&done(d); }
     if(retries>0) return again(); done&&done(d); }).catch(again); }
