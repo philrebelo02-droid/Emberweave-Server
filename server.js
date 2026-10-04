@@ -330,22 +330,30 @@ function acctCreate(rawName, pass){
   const u={ id, name, hash:c.hash, salt:c.salt, iters:c.iters, rank:nextJoinRank(), coins:0, team:defaultTeam(), wall:defaultTeam(),
     roster:{}, lastDaily:0, cityX:Math.round(Math.random()*1000), cityY:Math.round(Math.random()*1000), created:Date.now() };
   DB.users[id]=u; DB.byName[name.toLowerCase()]=id; return {u}; }
-function acctResetRequest(name){
+/* v1017 (re-audit Account N7): the account-wide day caps (codes, wrong guesses) are a brute-force CEILING, but anyone could burn a
+   player's whole allowance and lock them out of recovery for a day. Each requesting network now has its own share per account
+   (2 codes, 5 wrong guesses a day) under a higher ceiling (8 codes, 20 wrong guesses: 20 guesses at a 6-digit code is ~1 in 50,000). */
+const RESET_CODES_MAX=8, RESET_BAD_MAX=20, RESET_CODES_PER_IP=2, RESET_BAD_PER_IP=5;
+function resetIpKey(ip){ return crypto.createHash('sha256').update(String(ip||'')).digest('hex').slice(0,16); }
+function acctResetRequest(name, ip){
   const id=DB.byName[String(name||'').trim().toLowerCase()]; const u=id&&DB.users[id];
-  // 30 Sep 2026 hardening: at most 5 codes and 10 wrong guesses per account per 24 h, whatever the IP.
+  // 30 Sep 2026 hardening: day caps per account, whatever the IP. v1017: plus a share per requesting network.
   const rl=u&&u.resetLog&&Date.now()-u.resetLog.t<86400000?u.resetLog:{t:Date.now(),codes:0,bad:0};
-  if(u && !u.isNpc && u.email && rl.codes<5 && rl.bad<10){ const code=gen6(), salt=crypto.randomBytes(8).toString('hex');
-    rl.codes++; u.resetLog=rl;
+  rl.ip=rl.ip||{}; const ik=resetIpKey(ip), ir=rl.ip[ik]||(rl.ip[ik]={codes:0,bad:0});
+  if(u && !u.isNpc && u.email && rl.codes<RESET_CODES_MAX && rl.bad<RESET_BAD_MAX && ir.codes<RESET_CODES_PER_IP && ir.bad<RESET_BAD_PER_IP){ const code=gen6(), salt=crypto.randomBytes(8).toString('hex');
+    rl.codes++; ir.codes++; u.resetLog=rl;
     u.reset={ hash:hashPass(code,salt), salt, exp:Date.now()+15*60000, tries:0 }; writeDB();
     sendResetEmail(u.email, u.name, code); } }
-function acctResetVerify(name, rawCode, newPass){
+function acctResetVerify(name, rawCode, newPass, ip){
   const id=DB.byName[String(name||'').trim().toLowerCase()]; const u=id&&DB.users[id];
   if(!u||u.isNpc||!u.reset) return {status:400,error:'No active reset — request a new code.'};
   if(Date.now()>u.reset.exp){ delete u.reset; writeDB(); return {status:400,error:'That code expired — request a new one.'}; }
-  if((u.reset.tries||0)>=5){ delete u.reset; writeDB(); return {status:400,error:'Too many wrong codes — request a new one.'}; }
   const code=(rawCode||'').toString().replace(/\D/g,'');
-  if(u.resetLog && Date.now()-u.resetLog.t<86400000 && u.resetLog.bad>=10){ delete u.reset; writeDB(); return {status:400,error:'Too many wrong codes today — try again tomorrow.'}; }
-  if(hashPass(code,u.reset.salt)!==u.reset.hash){ u.reset.tries=(u.reset.tries||0)+1; if(u.resetLog) u.resetLog.bad=(u.resetLog.bad||0)+1; writeDB(); return {status:400,error:'Incorrect code — check your email and try again.'}; }
+  const _rl=(u.resetLog && Date.now()-u.resetLog.t<86400000)?u.resetLog:null, _ik=resetIpKey(ip), _ir=_rl&&_rl.ip&&_rl.ip[_ik];
+  if(_rl && _rl.bad>=RESET_BAD_MAX){ delete u.reset; writeDB(); return {status:400,error:'Too many wrong codes today — try again tomorrow.'}; }
+  if(_ir && _ir.bad>=RESET_BAD_PER_IP) return {status:400,error:'Too many wrong codes from this network today — try again tomorrow.'};   /* v1017: this network's share is used; the code stays valid for the owner */
+  if((u.reset.tries||0)>=5){ delete u.reset; writeDB(); return {status:400,error:'Too many wrong codes — request a new one.'}; }
+  if(hashPass(code,u.reset.salt)!==u.reset.hash){ u.reset.tries=(u.reset.tries||0)+1; if(u.resetLog){ u.resetLog.bad=(u.resetLog.bad||0)+1; u.resetLog.ip=u.resetLog.ip||{}; const r2=u.resetLog.ip[_ik]||(u.resetLog.ip[_ik]={codes:0,bad:0}); r2.bad++; } writeDB(); return {status:400,error:'Incorrect code — check your email and try again.'}; }
   const np=(newPass||'').toString(); if(np.length<8) return {status:400,error:'New password must be at least 8 characters.'};
   const c=makeCred(np); u.salt=c.salt; u.hash=c.hash; u.iters=c.iters; u.mustReset=false; delete u.reset;
   dropTokens(id); writeDB(); return {u}; }
@@ -4033,8 +4041,8 @@ async function api(req,res,url){
     if(p==='/api/internal/account/register'){ const r=acctCreate(b.name, b.pass); if(r.error) return send(res,r.status,{error:r.error});
       if(writeDBNow()===false) return send(res,503,{ok:false,storageFailed:true,error:'Save failed - try again.'});   /* v1013 (re-audit Account N13): the account is on disk before it is acknowledged */
       return send(res,200,{ ok:true, gid:r.u.id, name:r.u.name }); }
-    if(p==='/api/internal/account/reset-request'){ acctResetRequest(b.name); return send(res,200,{ ok:true }); }
-    if(p==='/api/internal/account/reset-verify'){ const r=acctResetVerify(b.name, b.code, b.newPass);
+    if(p==='/api/internal/account/reset-request'){ acctResetRequest(b.name, String(b.ip||clientIP(req))); return send(res,200,{ ok:true }); }
+    if(p==='/api/internal/account/reset-verify'){ const r=acctResetVerify(b.name, b.code, b.newPass, String(b.ip||clientIP(req)));
       if(r.u && writeDBNow()===false) return send(res,503,{ok:false,storageFailed:true,error:'Save failed - try again.'});   /* v1013 (N13): the new password is on disk before it is acknowledged */
       return r.u ? send(res,200,{ ok:true, gid:r.u.id, name:r.u.name }) : send(res,r.status,{error:r.error}); }
     if(p==='/api/internal/account/handoff-issue'){ const u=DB.users[String(b.gid||'')];
@@ -4098,20 +4106,20 @@ async function api(req,res,url){
   if(p==='/api/reset-request' && req.method==='POST'){ const b=await body(req);
     if(rateLimited(req,'resetreq',5,10*60000)) return send(res,429,{error:'Too many requests — wait a few minutes and try again.'});
     // v946: the account (and its email) lives on the account server; Servers 2-3 pass the request on
-    if(ACCOUNT_AUTHORITY) await authorityCall('/api/internal/account/reset-request',{ name:b.name });
-    else acctResetRequest(b.name);
+    if(ACCOUNT_AUTHORITY) await authorityCall('/api/internal/account/reset-request',{ name:b.name, ip:clientIP(req) });   /* v1017: the player's network */
+    else acctResetRequest(b.name, clientIP(req));
     return send(res,200,{ ok:true }); }   // RE-AUDIT: identical response whether or not the account/email exists — no enumeration
 
   // email password reset — step 2: verify the code and set a new password. Signs the user in on success.
   if(p==='/api/reset-verify' && req.method==='POST'){ const b=await body(req);
     if(rateLimited(req,'resetver',12,10*60000)) return send(res,429,{error:'Too many attempts — wait a few minutes.'});
     if(ACCOUNT_AUTHORITY){   // v946: the account server checks the code and sets the password; this server signs its own player in
-      const r=await authorityCall('/api/internal/account/reset-verify',{ name:b.name, code:b.code, newPass:b.newPass });
+      const r=await authorityCall('/api/internal/account/reset-verify',{ name:b.name, code:b.code, newPass:b.newPass, ip:clientIP(req) });
       if(!r) return send(res,503,{error:'Accounts are unreachable right now - try again in a minute.'});
       if(r.status!==200 || !r.body || !r.body.gid) return send(res,r.status||400,{error:(r.body&&r.body.error)||'Reset failed.'});
       const lu=linkedUser(r.body.gid, r.body.name, b.newPass); dropTokens(lu.id); const tok=issueToken(lu.id); writeDB();
       return send(res,200,{ ok:true, token:tok, profile:profileFor(lu) }); }
-    const r=acctResetVerify(b.name, b.code, b.newPass);
+    const r=acctResetVerify(b.name, b.code, b.newPass, clientIP(req));
     if(!r.u) return send(res,r.status,{error:r.error});
     const tok=issueToken(r.u.id); writeDB();   // invalidate other sessions (done in acctResetVerify), sign this one in
     return send(res,200,{ ok:true, token:tok, profile:profileFor(r.u) }); }
@@ -5809,7 +5817,8 @@ async function api(req,res,url){
         led.gems-=c; sh.warchest++; creditGold(me,led,g,'shop:warchest');
         ledTx(me,'shop:warchest',{gems:-c,gold:g});
         writeDB(); return {ok:true, gold:g, cost:c, ledger:ledgerView(me)}; }
-      if(what==='pieces'){ const c=450; if(led.gems<c) return {ok:false,error:'Not enough diamonds.'};
+      if(what==='pieces') return {ok:false,retired:true,error:'Equipment pieces are no longer sold.'};   /* v1017 (re-audit Market #11): no screen sells them since the Forge v2; the API still took 450 diamonds for retired materials. (The Guild Shop copy is Phil's M12.) */
+      if(false){ const c=450; if(led.gems<c) return {ok:false,error:'Not enough diamonds.'};
         led.gems-=c; led.eqMats=led.eqMats||{};
         const got={}; for(const k of EQ_MAT_KEYS){ led.eqMats[k]=Math.min(999999,(led.eqMats[k]|0)+100); got[k]=100; }
         ledTx(me,'shop:pieces',{gems:-c, mats:got});

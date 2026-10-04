@@ -27,6 +27,10 @@ const nyDay=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York',yea
   await editDB((db,u)=>{ u.led.camp.runs={k:'2000-01-01',n3:3}; });
   const s3b=await call('/api/campaign/stage?node=3');
   ok(s3b.data.runsLeft===3,'yesterday\'s count does not carry into today (got '+s3b.data.runsLeft+')');
+  /* v1017 (re-audit Market #11): the retired equipment 'pieces' are no longer sold for diamonds through the API */
+  await editDB((db,u)=>{ u.led.gems=1000; });
+  const pc=await call('/api/shop/buy',{what:'pieces',requestId:'v1017-pieces'}); const lg=(await call('/api/ledger')).data; const gems=(lg.ledger||lg).gems;
+  ok(pc.data.ok===false&&gems===1000,'buying retired pieces is refused and costs nothing ('+(pc.data.error||'')+', gems '+gems+')');
   if(missed.length){ missed.forEach(m=>console.error('FAIL',m)); process.exitCode=1; }
   console.log('test_v1015.js: '+pass+' checks passed, '+missed.length+' failed (server '+srvFile+')');
 } catch(e){ console.error('FAIL',e&&e.message||e); process.exitCode=1; } finally { await stop(); } })();

@@ -89,6 +89,8 @@ note "test_banner_offline.js (4 Oct re-audit Guild #8: the raw word offline neve
 node tests/test_banner_offline.js || FAILED=1
 note "test_v1015.js (4 Oct re-audit Arena N7: rewarded runs left come from the server)"
 node tests/test_v1015.js || FAILED=1
+note "test_reset_recovery.js (4 Oct re-audit Account N7: a stranger cannot use up an account's password-recovery codes or guesses)"
+node tests/test_reset_recovery.js || FAILED=1
 note "test_player_truth.js (v270: the campaign result is the player's own transcript, replayed)"
 node tests/test_player_truth.js || FAILED=1
 note "test_campaign_player_truth.js (28 Sep fight rule: the witnessed win is paid on a replay mismatch, once; a malformed verdict is refused)"
