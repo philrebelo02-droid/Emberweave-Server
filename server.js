@@ -445,7 +445,7 @@ function migrateDeviceKeys(){ let n=0;
    now uses Ironwall in those slots (as its first three tiers always did). A board's banked stats are exactly the sum of its path's
    pre-chosen glyphs (building a slot follows the pre-choice), so each affected board is recomputed from the corrected path - once
    per account (glyphs.tankPath1019). */
-const TANK_PATH_FIX_1019=['chainwheel','greatbrow','grosk','ironcoil','pellucid','rhukk','gruel','vael'];
+const TANK_PATH_FIX_1019=['brannus','askel','grosk','tharl','pellucid','rhukk','gruel','vael'];
 function glyphAscendedFromPlan(key,upto){ const asc={};
   for(let qi=0;qi<Math.min(GLYPH_MAX_ASC,upto|0);qi++) for(const def of glyphPersonalPlan(key,qi)) for(const s of def.stats){
     const cur=asc[s.stat]||{val:0,pct:s.pct}; cur.val=+(cur.val+s.val).toFixed(2); cur.pct=s.pct; asc[s.stat]=cur; }
@@ -463,6 +463,26 @@ function migrateGlyphPaths1022(){ let n=0;
     for(const k of Object.keys(g.boards)){ const b=g.boards[k]; if(b&&(b.ascensionIndex|0)>0&&SIM.HERO_BASE[k]){ b.ascended=glyphAscendedFromPlan(k,b.ascensionIndex); n++; } }
     g.paths1022=1; }
   if(n){ console.log('🔮 recomputed '+n+' glyph board(s) from the v1022 paths and values'); writeDB(); } }
+/* v1023 (Phil 4 Oct: every hero gets a real name - "then fix all keys everywhere" / "EVERYWHERE"): 20 hero keys follow the new names.
+   Player data stores hero keys as object keys (unlocked, hero, skill, frags, glyph boards, gear equipped/active, temple heroes) and
+   as values (teams, defenses, march squads, the uploaded save string). Walk the whole DB once and rename both. Marker DB.heroKeys1023. */
+const HERO_KEY_RENAME_1023=Object.freeze({librarian:'aldren',cathedral:'ambrel',lastfurnace:'tolley',beekeeper:'mellan',corsair:'rafe',
+  waxenduchess:'ceraline',magistrant:'quorrel',chainwheel:'brannus',cardwraith:'sorrel',threadseer:'linnet',stormwarden:'iver',
+  verdantshade:'sloe',voidweaver:'absalie',dawnbringer:'joss',kilnmask:'hobb',velvetplum:'mirelle',ironcoil:'tharl',greatbrow:'askel',
+  cacklefang:'yenna',silkcoil:'seyla'});
+function heroKeysRename(v,M,cnt,depth){ if(v==null||depth>60) return v;
+  if(typeof v==='string'){ if(Object.prototype.hasOwnProperty.call(M,v)){ cnt.n++; return M[v]; }
+    if(v.length>2&&(v[0]==='{'||v[0]==='[')){ let o; try{ o=JSON.parse(v); }catch(_e){ return v; } const b=cnt.n; const r=heroKeysRename(o,M,cnt,depth+1); return cnt.n>b?JSON.stringify(r):v; }
+    return v; }
+  if(Array.isArray(v)){ for(let i=0;i<v.length;i++) v[i]=heroKeysRename(v[i],M,cnt,depth+1); return v; }
+  if(typeof v==='object'){ for(const k of Object.keys(v)){ const nv=heroKeysRename(v[k],M,cnt,depth+1);
+      if(Object.prototype.hasOwnProperty.call(M,k)){ cnt.n++; const nk=M[k]; v[nk]=nv; delete v[k];   /* the old key's data is the player's real data: it wins over any default entry already made under the new key */ } else v[k]=nv; }
+    return v; }
+  return v; }
+function migrateHeroKeys1023(){ if(DB.heroKeys1023) return; const cnt={n:0};
+  for(const top of Object.keys(DB)){ if(top==='tokens'||top==='byName') continue; DB[top]=heroKeysRename(DB[top],HERO_KEY_RENAME_1023,cnt,0); }
+  DB.heroKeys1023=1;
+  console.log('🏷  hero keys renamed to the new names: '+cnt.n+' reference(s) in saved data (v1023)'); writeDB(); }
 function migrateTokenHashes(){ let n=0;
   for(const k of Object.keys(DB.tokens)){ const v=DB.tokens[k];
     if(typeof v==='string'){ DB.tokens[tokHash(k)]={id:v, iat:Date.now(), exp:Date.now()+TOKEN_TTL_MS}; delete DB.tokens[k]; n++; } }
@@ -1329,7 +1349,7 @@ const GUILD_SHOP_SRV={1:{cost:300,gold:5000},2:{cost:600,gems:50},3:{cost:200,re
 function heroNotSold(k){ return HERO_NOT_SOLD.has(k); }
 /* 3 Oct: the daily sign-in calendar, server side. SIGNIN_HERO_POOL = the client's HERO_KEYS order without mythical or purchase/arena heroes
    (tests/test_signin.js keeps it equal to the client); the monthly hero is pool[(year*12+month0) % length], as monthlyHeroKey() does. */
-const SIGNIN_HERO_POOL=['tick','sylthaine','bloatus','vireo','fritz','umbris','vael','oakmir','rhukk','meridian','gruel','astra','magistrant','korvux','maren','lumi','veyr','velvetplum','pellucid','orryn','kilnmask','ironcoil','greatbrow','deepcleft','chainwheel','cardwraith','cacklefang','kharos','zahri','vaelora','silkcoil','nox','nerisse','lysara','calypsa','threadseer','rivet','carn','vesper','tessit','vex','grimsby','dandra','pyroclast','stormwarden','verdantshade','voidweaver','dawnbringer','cathedral','lastfurnace','beekeeper','librarian','corsair','waxenduchess'];
+const SIGNIN_HERO_POOL=['tick','sylthaine','bloatus','vireo','fritz','umbris','vael','oakmir','rhukk','meridian','gruel','astra','quorrel','korvux','maren','lumi','veyr','mirelle','pellucid','orryn','hobb','tharl','askel','deepcleft','brannus','sorrel','yenna','kharos','zahri','vaelora','seyla','nox','nerisse','lysara','calypsa','linnet','rivet','carn','vesper','tessit','vex','grimsby','dandra','pyroclast','iver','sloe','absalie','joss','ambrel','tolley','mellan','aldren','rafe','ceraline'];
 const SIGNIN_DAILY=[{gold:300},{stamina:60},{gems:20},{gold:400},{gold:600},{gems:30}];
 function signinCalendarDay(now){ const t=now-9*3600000, g={}; for(const pt of _etFmt.formatToParts(new Date(t))) g[pt.type]=pt.value;
   const y=+g.year, m0=+g.month-1, day=+g.day, dow=new Date(Date.UTC(y,m0,day)).getUTCDay(), dim=new Date(Date.UTC(y,m0+1,0)).getUTCDate();
@@ -3641,10 +3661,10 @@ const TUTORIAL_GROUPS=Object.freeze([
    spec exactly; the pity rule (a full hero guaranteed within 40 diamond wishes) is server-added per
    the audit's pity requirement and shown to players. Legacy material prizes are returned for the
    client's local (non-competitive) material bag. */
-const POOL_P2=["fritz","rhukk","gruel","astra","magistrant","korvux","maren","lumi","vesper","tessit"];
+const POOL_P2=["fritz","rhukk","gruel","astra","quorrel","korvux","maren","lumi","vesper","tessit"];
 const POOL_P3=["bloatus","umbris","oakmir","meridian","rivet","grimsby"];
 const POOL_GOLD_HEROES=["tick","dandra","carn"];
-const POOL_START_STARS={konwu:3,grosk:3,vulmar:3,tick:1,sylthaine:1,aureth:3,bloatus:3,vireo:1,fritz:2,umbris:3,vael:1,oakmir:3,rhukk:2,hurne:3,meridian:3,gruel:2,astra:2,magistrant:2,korvux:2,maren:2,lumi:2,hollow:3,rivet:3,carn:1,vesper:2,tessit:2,vex:1,grimsby:3,dandra:1};
+const POOL_START_STARS={konwu:3,grosk:3,vulmar:3,tick:1,sylthaine:1,aureth:3,bloatus:3,vireo:1,fritz:2,umbris:3,vael:1,oakmir:3,rhukk:2,hurne:3,meridian:3,gruel:2,astra:2,quorrel:2,korvux:2,maren:2,lumi:2,hollow:3,rivet:3,carn:1,vesper:2,tessit:2,vex:1,grimsby:3,dandra:1};
 const POOL_DUPE_FRAG={1:7,2:14,3:30};
 const WISH_GOLD_COST=1000, WISH_GEM_COST=300, WISH10_MULT=9;
 const WISH_GOLD_FREE_MAX=3, WISH_GOLD_FREE_MS=3600000, WISH_FIRST_GEM_CLEAR_NODE=5;
@@ -8275,7 +8295,7 @@ const BOOT_FILE_M=(function(){ try{ return fs.statSync(DB_FILE).mtimeMs; }catch(
    world. Everything that persists is now suppressed until the restore decision lands, the mtime is
    sampled once up front, and seed()/backupDB()/listen happen exactly once, afterwards. */
 function bootFinish(){ if(_booted) return; _booted=true; PG_BOOT_PENDING=false;
-  seed(); migrateAdminRoles(); migrateTokenHashes(); migrateDeviceKeys(); migrateTankGlyphPath();   /* v1019 */ migrateGlyphPaths1022();   /* v1022 */   // stamp role:admin from ADMIN_IDS; hash any plaintext tokens (v241: the Vault, like the Campaign, refuses to boot without its authored table)
+  seed(); migrateAdminRoles(); migrateTokenHashes(); migrateDeviceKeys(); migrateHeroKeys1023();   /* v1023: first, so every later migration sees the new keys */ migrateTankGlyphPath();   /* v1019 */ migrateGlyphPaths1022();   /* v1022 */   // stamp role:admin from ADMIN_IDS; hash any plaintext tokens (v241: the Vault, like the Campaign, refuses to boot without its authored table)
   migrateLegacyFeedback();
   migrateBlockedWorldCastles();
   migrateHeroIdsAll();   /* v926: rewrite old hero ids to in-game-name keys in every stored ledger/profile (once, stamped led.idv=2) */

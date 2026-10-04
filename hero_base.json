@@ -1,5 +1,5 @@
 {
-  "cacklefang": {
+  "yenna": {
     "hp": 245,
     "dmg": 36,
     "apow": 0,
@@ -40,7 +40,7 @@
     "armor": 22,
     "mr": 22
   },
-  "cardwraith": {
+  "sorrel": {
     "hp": 230,
     "dmg": 40,
     "apow": 0,
@@ -60,7 +60,7 @@
     "armor": 25,
     "mr": 20
   },
-  "chainwheel": {
+  "brannus": {
     "hp": 560,
     "dmg": 26,
     "apow": 0,
@@ -100,7 +100,7 @@
     "armor": 40,
     "mr": 30
   },
-  "greatbrow": {
+  "askel": {
     "hp": 620,
     "dmg": 24,
     "apow": 0,
@@ -120,7 +120,7 @@
     "armor": 60,
     "mr": 40
   },
-  "ironcoil": {
+  "tharl": {
     "hp": 600,
     "dmg": 26,
     "apow": 0,
@@ -160,7 +160,7 @@
     "armor": 25,
     "mr": 20
   },
-  "kilnmask": {
+  "hobb": {
     "hp": 370,
     "dmg": 40,
     "apow": 0,
@@ -280,7 +280,7 @@
     "armor": 60,
     "mr": 40
   },
-  "silkcoil": {
+  "seyla": {
     "hp": 255,
     "dmg": 39,
     "apow": 0,
@@ -300,7 +300,7 @@
     "armor": 25,
     "mr": 20
   },
-  "threadseer": {
+  "linnet": {
     "hp": 220,
     "dmg": 14,
     "apow": 31,
@@ -340,7 +340,7 @@
     "armor": 15,
     "mr": 40
   },
-  "velvetplum": {
+  "mirelle": {
     "hp": 250,
     "dmg": 16,
     "apow": 32,
@@ -740,7 +740,7 @@
     "armor": 15,
     "mr": 40
   },
-  "magistrant": {
+  "quorrel": {
     "hp": 450,
     "dmg": 28,
     "apow": 0,
@@ -1000,7 +1000,7 @@
     "armor": 15,
     "mr": 40
   },
-  "stormwarden": {
+  "iver": {
     "hp": 440,
     "dmg": 30,
     "apow": 0,
@@ -1020,7 +1020,7 @@
     "armor": 40,
     "mr": 30
   },
-  "verdantshade": {
+  "sloe": {
     "hp": 210,
     "dmg": 32,
     "apow": 0,
@@ -1040,7 +1040,7 @@
     "armor": 22,
     "mr": 22
   },
-  "voidweaver": {
+  "absalie": {
     "hp": 175,
     "dmg": 18,
     "apow": 36,
@@ -1060,7 +1060,7 @@
     "armor": 15,
     "mr": 40
   },
-  "dawnbringer": {
+  "joss": {
     "hp": 580,
     "dmg": 24,
     "apow": 20,
@@ -1080,7 +1080,7 @@
     "armor": 60,
     "mr": 40
   },
-  "cathedral": {
+  "ambrel": {
     "hp": 620,
     "dmg": 20,
     "apow": 26,
@@ -1100,7 +1100,7 @@
     "armor": 60,
     "mr": 40
   },
-  "lastfurnace": {
+  "tolley": {
     "hp": 470,
     "dmg": 34,
     "apow": 0,
@@ -1120,7 +1120,7 @@
     "armor": 40,
     "mr": 30
   },
-  "beekeeper": {
+  "mellan": {
     "hp": 230,
     "dmg": 14,
     "apow": 32,
@@ -1140,7 +1140,7 @@
     "armor": 22,
     "mr": 38
   },
-  "librarian": {
+  "aldren": {
     "hp": 200,
     "dmg": 16,
     "apow": 34,
@@ -1160,7 +1160,7 @@
     "armor": 15,
     "mr": 40
   },
-  "corsair": {
+  "rafe": {
     "hp": 220,
     "dmg": 33,
     "apow": 0,
@@ -1180,7 +1180,7 @@
     "armor": 22,
     "mr": 22
   },
-  "waxenduchess": {
+  "ceraline": {
     "hp": 190,
     "dmg": 17,
     "apow": 35,

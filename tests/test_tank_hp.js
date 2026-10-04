@@ -18,7 +18,7 @@ const hp=async(k,tok)=>{ const s=await call('/api/admin/snapshot?hero='+k,null,t
   port=await freePort(); base='http://127.0.0.1:'+port; await start('');
   const d=await call('/api/register',{name:'tankhp',pass:'password1'}); const id=d.profile.id; await delay(400); await stop(); await start(id);
   let tok=(await call('/api/login',{name:'tankhp',pass:'password1'})).token;
-  const keys=['grosk','vael','bloatus','cathedral','astra','grimsby','cacklefang','lumi'];
+  const keys=['grosk','vael','bloatus','ambrel','astra','grimsby','yenna','lumi'];
   await call('/api/admin/led-grant',{heroKeys:keys,unlock:keys,stars:5,maxGlyphs:true,px:99000000,heroXp:99000000},tok);
   // the live situation: a melee tank's Orange board banked under the old (Bastion) path, migration marker absent
   await delay(500); await stop(); const db=JSON.parse(fs.readFileSync(dbFile,'utf8')); const g=db.users[id].glyphs;
@@ -28,8 +28,8 @@ const hp=async(k,tok)=>{ const s=await call('/api/admin/snapshot?hero='+k,null,t
   ok(after<20000,'a board banked under the old Bastion path is recomputed at boot (HP banked '+after+')');
   const H={}; for(const k of keys) H[k]=await hp(k,tok);
   ok(H.grosk>=21000&&H.grosk<=23000&&H.vael>=21000&&H.vael<=23000,'melee tanks are about 22k at max (grosk '+H.grosk+', vael '+H.vael+')');
-  ok(H.bloatus>=17000&&H.bloatus<=19000&&H.cathedral>=17000&&H.cathedral<=19000,'magic tanks are about 18k at max (bloatus '+H.bloatus+', cathedral '+H.cathedral+')');
-  ok(H.astra<10000&&H.grimsby<12500&&H.cacklefang<10500&&H.lumi<10500,'other classes are unchanged ('+JSON.stringify({astra:H.astra,grimsby:H.grimsby,cacklefang:H.cacklefang,lumi:H.lumi})+')');
+  ok(H.bloatus>=17000&&H.bloatus<=19000&&H.ambrel>=17000&&H.ambrel<=19000,'magic tanks are about 18k at max (bloatus '+H.bloatus+', ambrel '+H.ambrel+')');
+  ok(H.astra<10000&&H.grimsby<12500&&H.yenna<10500&&H.lumi<10500,'other classes are unchanged ('+JSON.stringify({astra:H.astra,grimsby:H.grimsby,yenna:H.yenna,lumi:H.lumi})+')');
   if(missed.length){ missed.forEach(m=>console.error('FAIL',m)); process.exitCode=1; }
   console.log('test_tank_hp.js: '+pass+' checks passed, '+missed.length+' failed (server '+srvFile+')');
 } catch(e){ console.error('FAIL',e&&e.message||e); process.exitCode=1; } finally { await stop(); } })();

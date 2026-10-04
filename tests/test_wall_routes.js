@@ -23,7 +23,7 @@ const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
   // --- xp potion
   const p0=await call('/api/hero/xp-potion',{heroKey:'vael',tier:'minor',requestId:'xp-0'});
   ok(p0.data.ok===false,'xp potion: refused without the hero or a potion ('+(p0.data.error||'')+')');
-  await editDB((db,u)=>{ u.led.px=3000; u.led.unlocked.vael=true; u.led.hero.vael={xp:0,stars:5,pips:0,ref:0}; u.led.xpPotions={minor:2}; u.led.gold=1000000; u.led.frags={vael:500,cacklefang:200}; delete u.led.unlocked.cacklefang; });
+  await editDB((db,u)=>{ u.led.px=3000; u.led.unlocked.vael=true; u.led.hero.vael={xp:0,stars:5,pips:0,ref:0}; u.led.xpPotions={minor:2}; u.led.gold=1000000; u.led.frags={vael:500,yenna:200}; delete u.led.unlocked.yenna; });
   const p1=await call('/api/hero/xp-potion',{heroKey:'vael',tier:'minor',requestId:'xp-1'}), p1b=await call('/api/hero/xp-potion',{heroKey:'vael',tier:'minor',requestId:'xp-1'});
   const l1=await led();
   ok(p1.data.ok===true&&p1.data.heroXp>0,'xp potion: grants hero XP ('+(p1.data.error||p1.data.heroXp)+')');
@@ -35,14 +35,14 @@ const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
   const l2=await led();
   ok(r1.data.ok===true&&typeof r1.data.success==='boolean','refine: rolls on the server ('+(r1.data.error||r1.data.success)+')');
   ok(same(r1.data,r1b.data)&&(l2.frags.vael|0)===450,'refine: the same requestId pays 50 fragments once ('+l2.frags.vael+')');
-  const r2=await call('/api/hero/refine',{heroKey:'cacklefang',requestId:'rf-2'});
+  const r2=await call('/api/hero/refine',{heroKey:'yenna',requestId:'rf-2'});
   ok(r2.data.ok===false,'refine: refused on a hero that is not 5★ / not owned ('+(r2.data.error||'')+')');
-  // --- summon (cacklefang not owned, 200 fragments)
-  const s1=await call('/api/hero/summon',{heroKey:'cacklefang',requestId:'sm-1'}), s1b=await call('/api/hero/summon',{heroKey:'cacklefang',requestId:'sm-1'});
+  // --- summon (yenna not owned, 200 fragments)
+  const s1=await call('/api/hero/summon',{heroKey:'yenna',requestId:'sm-1'}), s1b=await call('/api/hero/summon',{heroKey:'yenna',requestId:'sm-1'});
   const l3=await led();
-  ok(s1.data.ok===true&&l3.unlocked.cacklefang,'summon: unlocks the hero ('+(s1.data.error||'ok')+')');
-  ok(same(s1.data,s1b.data)&&(l3.frags.cacklefang|0)<200,'summon: the same requestId summons once');
-  const s2=await call('/api/hero/summon',{heroKey:'cacklefang',requestId:'sm-2'});
+  ok(s1.data.ok===true&&l3.unlocked.yenna,'summon: unlocks the hero ('+(s1.data.error||'ok')+')');
+  ok(same(s1.data,s1b.data)&&(l3.frags.yenna|0)<200,'summon: the same requestId summons once');
+  const s2=await call('/api/hero/summon',{heroKey:'yenna',requestId:'sm-2'});
   ok(s2.data.ok===false&&/Already summoned/.test(s2.data.error||''),'summon: a second summon is refused');
   // --- skill upgrade
   const k0=await led();

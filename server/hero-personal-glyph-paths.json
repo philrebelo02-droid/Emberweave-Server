@@ -400,8 +400,8 @@
         ]
       ]
     },
-    "beekeeper": {
-      "name": "The Beekeeper King",
+    "mellan": {
+      "name": "Mellan",
       "tiers": [
         [
           "Stoneheart",
@@ -534,7 +534,7 @@
       ]
     },
     "bloatus": {
-      "name": "King Bloatus",
+      "name": "Bloatus",
       "tiers": [
         [
           "Stoneheart",
@@ -666,8 +666,8 @@
         ]
       ]
     },
-    "cacklefang": {
-      "name": "Cacklefang",
+    "yenna": {
+      "name": "Yenna Cacklefang",
       "tiers": [
         [
           "Stoneheart",
@@ -932,8 +932,8 @@
         ]
       ]
     },
-    "cardwraith": {
-      "name": "Cardwraith",
+    "sorrel": {
+      "name": "Sorrel",
       "tiers": [
         [
           "Stoneheart",
@@ -1198,8 +1198,8 @@
         ]
       ]
     },
-    "cathedral": {
-      "name": "The Walking Cathedral",
+    "ambrel": {
+      "name": "Ambrel",
       "tiers": [
         [
           "Stoneheart",
@@ -1331,8 +1331,8 @@
         ]
       ]
     },
-    "chainwheel": {
-      "name": "Chainwheel Gladiator",
+    "brannus": {
+      "name": "Brannus",
       "tiers": [
         [
           "Stoneheart",
@@ -1464,8 +1464,8 @@
         ]
       ]
     },
-    "corsair": {
-      "name": "The Corsair Duelist",
+    "rafe": {
+      "name": "Rafe Marrow",
       "tiers": [
         [
           "Stoneheart",
@@ -1597,8 +1597,8 @@
         ]
       ]
     },
-    "dawnbringer": {
-      "name": "Dawnbringer",
+    "joss": {
+      "name": "Joss Gatley",
       "tiers": [
         [
           "Stoneheart",
@@ -1864,7 +1864,7 @@
       ]
     },
     "maren": {
-      "name": "Old Maren",
+      "name": "Maren",
       "tiers": [
         [
           "Stoneheart",
@@ -2129,8 +2129,8 @@
         ]
       ]
     },
-    "greatbrow": {
-      "name": "Greatbrow",
+    "askel": {
+      "name": "Askel Greatbrow",
       "tiers": [
         [
           "Stoneheart",
@@ -2529,7 +2529,7 @@
       ]
     },
     "hurne": {
-      "name": "Hurne the Chained",
+      "name": "Hurne",
       "tiers": [
         [
           "Stoneheart",
@@ -2661,8 +2661,8 @@
         ]
       ]
     },
-    "ironcoil": {
-      "name": "Ironcoil",
+    "tharl": {
+      "name": "Tharl Ironcoil",
       "tiers": [
         [
           "Stoneheart",
@@ -2927,8 +2927,8 @@
         ]
       ]
     },
-    "kilnmask": {
-      "name": "Kilnmask Potter",
+    "hobb": {
+      "name": "Hobb Kilnmask",
       "tiers": [
         [
           "Stoneheart",
@@ -3193,8 +3193,8 @@
         ]
       ]
     },
-    "lastfurnace": {
-      "name": "The Last Furnace",
+    "tolley": {
+      "name": "Tolley",
       "tiers": [
         [
           "Stoneheart",
@@ -3326,8 +3326,8 @@
         ]
       ]
     },
-    "librarian": {
-      "name": "The Librarian of Monsters",
+    "aldren": {
+      "name": "Aldren",
       "tiers": [
         [
           "Stoneheart",
@@ -3725,8 +3725,8 @@
         ]
       ]
     },
-    "magistrant": {
-      "name": "The Magistrant",
+    "quorrel": {
+      "name": "Quorrel",
       "tiers": [
         [
           "Stoneheart",
@@ -4524,7 +4524,7 @@
       ]
     },
     "orryn": {
-      "name": "Orryn of the Spiral Deep",
+      "name": "Orryn",
       "tiers": [
         [
           "Stoneheart",
@@ -4657,7 +4657,7 @@
       ]
     },
     "pellucid": {
-      "name": "Pellucid Rook",
+      "name": "Pellucid",
       "tiers": [
         [
           "Stoneheart",
@@ -5188,8 +5188,8 @@
         ]
       ]
     },
-    "silkcoil": {
-      "name": "Silkcoil",
+    "seyla": {
+      "name": "Seyla Silkcoil",
       "tiers": [
         [
           "Stoneheart",
@@ -5454,8 +5454,8 @@
         ]
       ]
     },
-    "stormwarden": {
-      "name": "Stormwarden",
+    "iver": {
+      "name": "Iver",
       "tiers": [
         [
           "Stoneheart",
@@ -5853,8 +5853,8 @@
         ]
       ]
     },
-    "threadseer": {
-      "name": "Threadseer",
+    "linnet": {
+      "name": "Linnet",
       "tiers": [
         [
           "Stoneheart",
@@ -6518,8 +6518,8 @@
         ]
       ]
     },
-    "velvetplum": {
-      "name": "Velvetplum",
+    "mirelle": {
+      "name": "Mirelle Velvetplum",
       "tiers": [
         [
           "Stoneheart",
@@ -6651,8 +6651,8 @@
         ]
       ]
     },
-    "verdantshade": {
-      "name": "Verdant Shade",
+    "sloe": {
+      "name": "Sloe",
       "tiers": [
         [
           "Stoneheart",
@@ -6785,7 +6785,7 @@
       ]
     },
     "vesper": {
-      "name": "Vesper \"The Annotator\"",
+      "name": "Vesper",
       "tiers": [
         [
           "Stoneheart",
@@ -7051,7 +7051,7 @@
       ]
     },
     "veyr": {
-      "name": "Veyr Manta-Born",
+      "name": "Veyr",
       "tiers": [
         [
           "Stoneheart",
@@ -7449,8 +7449,8 @@
         ]
       ]
     },
-    "voidweaver": {
-      "name": "Void Weaver",
+    "absalie": {
+      "name": "Absalie",
       "tiers": [
         [
           "Stoneheart",
@@ -7715,8 +7715,8 @@
         ]
       ]
     },
-    "waxenduchess": {
-      "name": "Waxen Duchess",
+    "ceraline": {
+      "name": "Ceraline",
       "tiers": [
         [
           "Stoneheart",

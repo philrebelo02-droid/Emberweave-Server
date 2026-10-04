@@ -60,26 +60,26 @@ const KITS={
      the closest honest shape for what the pack's ult does; anything the client's A1/A2 do is not
      modelled here and never was. Without these they all fell through to DEFAULT_KIT. */
   pyroclast:   {kind:'magic', shape:'aoe',    coef:1.45, n:3},                 // Crownfire
-  stormwarden: {kind:'phys',  shape:'aoe',    coef:1.35, n:3, stun:1},         // Skybreak
-  verdantshade:{kind:'phys',  shape:'aoe',    coef:1.35, n:3},                 // Emerald Volley
-  voidweaver:  {kind:'magic', shape:'aoe',    coef:1.40, n:3, stun:1},         // Event Horizon
-  dawnbringer: {kind:'magic', shape:'aoe',    coef:1.20, n:3, stun:1},         // Daybreak Judgment
-  cathedral:   {kind:'magic', shape:'aoe',    coef:1.15, n:3, stun:1},         // Divine Mass
-  lastfurnace: {kind:'phys',  shape:'aoe',    coef:1.40, n:3},                 // Living Forge
-  beekeeper:   {kind:'heal',  who:'allies',   coef:1.25},                      // Hive Mind
-  librarian:   {kind:'magic', shape:'aoe',    coef:1.10, n:3},                 // Final Volume (the summon is not modelled)
-  corsair:     {kind:'phys',  shape:'aoe',    coef:1.35, n:3},                 // Dead Man's Fortune
-  ironcoil:    {kind:'phys',  shape:'cleave', coef:2.20, n:2},                 // Avalanche Coil
-  silkcoil:    {kind:'phys',  shape:'aoe',    coef:1.40, n:3},                 // Serpent's Last Dance
-  greatbrow:   {kind:'phys',  shape:'cleave', coef:2.10, n:2},                 // March of the Greatbrow
-  velvetplum:  {kind:'shieldTeam', pct:0.16},                                  // Imperial Plumage
-  cacklefang:  {kind:'phys',  shape:'aoe',    coef:1.40, n:3},                 // Crescent Stampede
+  iver: {kind:'phys',  shape:'aoe',    coef:1.35, n:3, stun:1},         // Skybreak
+  sloe:{kind:'phys',  shape:'aoe',    coef:1.35, n:3},                 // Emerald Volley
+  absalie:  {kind:'magic', shape:'aoe',    coef:1.40, n:3, stun:1},         // Event Horizon
+  joss: {kind:'magic', shape:'aoe',    coef:1.20, n:3, stun:1},         // Daybreak Judgment
+  ambrel:   {kind:'magic', shape:'aoe',    coef:1.15, n:3, stun:1},         // Divine Mass
+  tolley: {kind:'phys',  shape:'aoe',    coef:1.40, n:3},                 // Living Forge
+  mellan:   {kind:'heal',  who:'allies',   coef:1.25},                      // Hive Mind
+  aldren:   {kind:'magic', shape:'aoe',    coef:1.10, n:3},                 // Final Volume (the summon is not modelled)
+  rafe:     {kind:'phys',  shape:'aoe',    coef:1.35, n:3},                 // Dead Man's Fortune
+  tharl:    {kind:'phys',  shape:'cleave', coef:2.20, n:2},                 // Avalanche Coil
+  seyla:    {kind:'phys',  shape:'aoe',    coef:1.40, n:3},                 // Serpent's Last Dance
+  askel:   {kind:'phys',  shape:'cleave', coef:2.10, n:2},                 // March of the Greatbrow
+  mirelle:  {kind:'shieldTeam', pct:0.16},                                  // Imperial Plumage
+  yenna:  {kind:'phys',  shape:'aoe',    coef:1.40, n:3},                 // Crescent Stampede
   deepcleft:   {kind:'phys',  shape:'aoe',    coef:1.45, n:3, stun:1},         // Quarry Collapse
-  cardwraith:  {kind:'phys',  shape:'nuke',   coef:2.50},                      // Grand Reveal (all cards into one)
-  waxenduchess:{kind:'magic', shape:'aoe',    coef:1.35, n:3, stun:1},         // Court of the Final Candle
-  chainwheel:  {kind:'phys',  shape:'cleave', coef:2.30, n:2},                 // Lionwheel Rampage
-  threadseer:  {kind:'heal',  who:'allies',   coef:1.35},                      // Rewrite the Pattern
-  kilnmask:    {kind:'phys',  shape:'aoe',    coef:1.40, n:3, stun:1},         // Grand Kiln Shape
+  sorrel:  {kind:'phys',  shape:'nuke',   coef:2.50},                      // Grand Reveal (all cards into one)
+  ceraline:{kind:'magic', shape:'aoe',    coef:1.35, n:3, stun:1},         // Court of the Final Candle
+  brannus:  {kind:'phys',  shape:'cleave', coef:2.30, n:2},                 // Lionwheel Rampage
+  linnet:  {kind:'heal',  who:'allies',   coef:1.35},                      // Rewrite the Pattern
+  hobb:    {kind:'phys',  shape:'aoe',    coef:1.40, n:3, stun:1},         // Grand Kiln Shape
   veyr:        {kind:'phys',  shape:'aoe',    coef:1.45, n:3, stun:1},         // Event Horizon
   kharos:      {kind:'phys',  shape:'lowest', coef:3.00},                      // Orchid Execution
   orryn:       {kind:'magic', shape:'aoe',    coef:1.45, n:3},                 // Ocean Without Shore
@@ -107,7 +107,7 @@ const KITS={
   meridian:  {kind:'phys',  shape:'lowest', coef:2.8},
   gruel:    {kind:'shieldTeam', pct:0.20},
   astra:     {kind:'magic', shape:'aoe',   coef:1.3, n:3, stun:1},
-  magistrant:{kind:'phys',  shape:'nuke',  coef:2.5},
+  quorrel:{kind:'phys',  shape:'nuke',  coef:2.5},
   korvux:     {kind:'phys',  shape:'cleave', coef:2.4, n:2},
   maren:    {kind:'magic', shape:'aoe',   coef:1.5, n:3},
   lumi:      {kind:'heal',  who:'allies',  coef:1.15},

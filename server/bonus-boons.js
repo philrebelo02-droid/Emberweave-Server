@@ -47,10 +47,10 @@ const B = (fam,id,name,v,scale,text,needs,req)=>({fam,id,name,v,scale:!!scale,te
    The three hero lists below are DERIVED FROM THE CLIENT'S OWN KIT TABLE, not typed from memory —
    `tests/test_boon_fit.js` re-derives them from `emberweave-heroes.html` every run and fails if they
    drift, which is the only way a hard-coded roster stays true. In-game names, per MASTER RULE 8:
-     summoners — Hurne the Chained, Zahri Sunhorn, The Librarian of Monsters
+     summoners — Hurne, Zahri Sunhorn, Aldren (Librarian of Monsters)
      healers   — Oakmir, Threadseer, Nerisse Bellglass, Dandra                                      */
-const SUMMONER_KEYS = ['hurne','zahri','librarian'];
-const HEALER_KEYS   = ['oakmir','threadseer','nerisse','dandra'];
+const SUMMONER_KEYS = ['hurne','zahri','aldren'];
+const HEALER_KEYS   = ['oakmir','linnet','nerisse','dandra'];
 
 /* What a road looks like, from the heroes on it. `hero(key)` hands back whatever the caller knows
    about a hero — role, row, apow — and anything missing simply fails its test rather than throwing. */

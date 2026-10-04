@@ -99,6 +99,8 @@ note "test_tank_hp.js (Phil 4 Oct: magic tanks ~18k, melee tanks ~22k at max fro
 NODE_PATH=${NODE_PATH:-} node tests/test_tank_hp.js || FAILED=1
 note "test_auto_ult.js (Phil 4 Oct: a full-auto fight casts the player side's ultimates too - bot-city marches never did)"
 node tests/test_auto_ult.js || FAILED=1
+note "test_hero_keys_1023.js (Phil 4 Oct: real names - 20 hero keys renamed; saved data renamed once at boot)"
+NODE_PATH=${NODE_PATH:-} node tests/test_hero_keys_1023.js || FAILED=1
 note "test_glyph_paths_1022.js (Phil 4 Oct balance layer 1: boards banked under the old glyph paths are recomputed once at boot)"
 NODE_PATH=${NODE_PATH:-} node tests/test_glyph_paths_1022.js || FAILED=1
 note "test_player_truth.js (v270: the campaign result is the player's own transcript, replayed)"

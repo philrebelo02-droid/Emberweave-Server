@@ -38,7 +38,7 @@
     "formationDepth": 1.35,
     "minimumReachMeters": 3.5
   },
-  "beekeeper": {
+  "mellan": {
     "class": "Support",
     "combatRow": "Back",
     "damageProfile": "Healer",
@@ -58,7 +58,7 @@
     "formationDepth": 0,
     "minimumReachMeters": 1.0
   },
-  "cacklefang": {
+  "yenna": {
     "class": "Marksman",
     "combatRow": "Back",
     "damageProfile": "Attack",
@@ -78,7 +78,7 @@
     "formationDepth": 2,
     "minimumReachMeters": 3.5
   },
-  "cardwraith": {
+  "sorrel": {
     "class": "Assassin",
     "combatRow": "Mid",
     "damageProfile": "Attack",
@@ -98,7 +98,7 @@
     "formationDepth": 2,
     "minimumReachMeters": 3.5
   },
-  "cathedral": {
+  "ambrel": {
     "class": "Tank",
     "combatRow": "Front",
     "damageProfile": "Magic",
@@ -108,7 +108,7 @@
     "formationDepth": 0,
     "minimumReachMeters": 1.0
   },
-  "chainwheel": {
+  "brannus": {
     "class": "Tank",
     "combatRow": "Front",
     "damageProfile": "Attack",
@@ -118,7 +118,7 @@
     "formationDepth": 0,
     "minimumReachMeters": 1.0
   },
-  "corsair": {
+  "rafe": {
     "class": "Marksman",
     "combatRow": "Mid",
     "damageProfile": "Attack",
@@ -128,7 +128,7 @@
     "formationDepth": 2,
     "minimumReachMeters": 3.5
   },
-  "dawnbringer": {
+  "joss": {
     "class": "Tank",
     "combatRow": "Front",
     "damageProfile": "Magic",
@@ -168,7 +168,7 @@
     "formationDepth": 2,
     "minimumReachMeters": 3.5
   },
-  "greatbrow": {
+  "askel": {
     "class": "Tank",
     "combatRow": "Front",
     "damageProfile": "Attack",
@@ -208,7 +208,7 @@
     "formationDepth": 1.35,
     "minimumReachMeters": 3.5
   },
-  "ironcoil": {
+  "tharl": {
     "class": "Tank",
     "combatRow": "Front",
     "damageProfile": "Attack",
@@ -228,7 +228,7 @@
     "formationDepth": 2,
     "minimumReachMeters": 3.5
   },
-  "kilnmask": {
+  "hobb": {
     "class": "Bruiser",
     "combatRow": "Front",
     "damageProfile": "Attack",
@@ -248,7 +248,7 @@
     "formationDepth": 2,
     "minimumReachMeters": 3.5
   },
-  "lastfurnace": {
+  "tolley": {
     "class": "Bruiser",
     "combatRow": "Mid",
     "damageProfile": "Attack",
@@ -258,7 +258,7 @@
     "formationDepth": 2,
     "minimumReachMeters": 3.5
   },
-  "librarian": {
+  "aldren": {
     "class": "Mage",
     "combatRow": "Mid",
     "damageProfile": "Magic",
@@ -288,7 +288,7 @@
     "formationDepth": 2,
     "minimumReachMeters": 3.5
   },
-  "magistrant": {
+  "quorrel": {
     "class": "Bruiser",
     "combatRow": "Front",
     "damageProfile": "Attack",
@@ -398,7 +398,7 @@
     "formationDepth": 2,
     "minimumReachMeters": 3.5
   },
-  "silkcoil": {
+  "seyla": {
     "class": "Assassin",
     "combatRow": "Mid",
     "damageProfile": "Attack",
@@ -418,7 +418,7 @@
     "formationDepth": 2,
     "minimumReachMeters": 3.5
   },
-  "stormwarden": {
+  "iver": {
     "class": "Bruiser",
     "combatRow": "Front",
     "damageProfile": "Attack",
@@ -448,7 +448,7 @@
     "formationDepth": 0,
     "minimumReachMeters": 1.0
   },
-  "threadseer": {
+  "linnet": {
     "class": "Support",
     "combatRow": "Mid",
     "damageProfile": "Healer",
@@ -498,7 +498,7 @@
     "formationDepth": 2,
     "minimumReachMeters": 3.5
   },
-  "velvetplum": {
+  "mirelle": {
     "class": "Support",
     "combatRow": "Mid",
     "damageProfile": "Healer",
@@ -508,7 +508,7 @@
     "formationDepth": 2,
     "minimumReachMeters": 3.5
   },
-  "verdantshade": {
+  "sloe": {
     "class": "Marksman",
     "combatRow": "Back",
     "damageProfile": "Attack",
@@ -568,7 +568,7 @@
     "formationDepth": 2,
     "minimumReachMeters": 3.5
   },
-  "voidweaver": {
+  "absalie": {
     "class": "Mage",
     "combatRow": "Back",
     "damageProfile": "Magic",
@@ -588,7 +588,7 @@
     "formationDepth": 3.4,
     "minimumReachMeters": 3.5
   },
-  "waxenduchess": {
+  "ceraline": {
     "class": "Mage",
     "combatRow": "Mid",
     "damageProfile": "Magic",

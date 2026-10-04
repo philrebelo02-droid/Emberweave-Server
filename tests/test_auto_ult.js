@@ -8,7 +8,7 @@ const html=process.env.AUD_HTML||path.join(__dirname,'..','emberweave-heroes.htm
 const host=require('../server/sim-host.js').load(html);
 let pass=0; const missed=[];
 const ok=(c,m)=>{ if(process.env.AUD_HTML&&!c){ missed.push(m); return; } assert(c,m); pass++; };
-const keys=['grosk','astra','lumi','grimsby','cacklefang'];
+const keys=['grosk','astra','lumi','grimsby','yenna'];
 const team=host.snapSquad(keys);
 ok(Array.isArray(team)&&team.length===5,'five snapshots built');
 const mirror=()=>JSON.parse(JSON.stringify(team));

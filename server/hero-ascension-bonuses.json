@@ -231,8 +231,8 @@
         }
       ]
     },
-    "cacklefang": {
-      "name": "Cacklefang",
+    "yenna": {
+      "name": "Yenna Cacklefang",
       "kitAbilities": [
         "Crescent Stampede",
         "Rending Return",
@@ -461,8 +461,8 @@
         }
       ]
     },
-    "cardwraith": {
-      "name": "Cardwraith",
+    "sorrel": {
+      "name": "Sorrel",
       "kitAbilities": [
         "Grand Reveal",
         "Marked Deal",
@@ -691,8 +691,8 @@
         }
       ]
     },
-    "chainwheel": {
-      "name": "Chainwheel Gladiator",
+    "brannus": {
+      "name": "Brannus",
       "kitAbilities": [
         "Lionwheel Rampage",
         "Rim Breaker",
@@ -921,8 +921,8 @@
         }
       ]
     },
-    "dawnbringer": {
-      "name": "Dawnbringer",
+    "joss": {
+      "name": "Joss Gatley",
       "kitAbilities": [
         "Daybreak Judgment",
         "Radiant Hammer",
@@ -1266,8 +1266,8 @@
         }
       ]
     },
-    "greatbrow": {
-      "name": "Greatbrow",
+    "askel": {
+      "name": "Askel Greatbrow",
       "kitAbilities": [
         "March of the Greatbrow",
         "Standard Crash",
@@ -1842,7 +1842,7 @@
       ]
     },
     "hurne": {
-      "name": "Hurne the Chained",
+      "name": "Hurne",
       "kitAbilities": [
         "Feed Them",
         "Unchain the Dead",
@@ -1956,8 +1956,8 @@
         }
       ]
     },
-    "ironcoil": {
-      "name": "Ironcoil",
+    "tharl": {
+      "name": "Tharl Ironcoil",
       "kitAbilities": [
         "Avalanche Coil",
         "Scale Ram",
@@ -2186,8 +2186,8 @@
         }
       ]
     },
-    "kilnmask": {
-      "name": "Kilnmask Potter",
+    "hobb": {
+      "name": "Hobb Kilnmask",
       "kitAbilities": [
         "Grand Kiln Shape",
         "Glazebreaker",
@@ -2302,7 +2302,7 @@
       ]
     },
     "bloatus": {
-      "name": "King Bloatus",
+      "name": "Bloatus",
       "kitAbilities": [
         "Plague Sovereign",
         "Toxic Breath",
@@ -3337,7 +3337,7 @@
       ]
     },
     "maren": {
-      "name": "Old Maren",
+      "name": "Maren",
       "kitAbilities": [
         "Maelstrom",
         "Tide Pool",
@@ -3452,7 +3452,7 @@
       ]
     },
     "orryn": {
-      "name": "Orryn of the Spiral Deep",
+      "name": "Orryn",
       "kitAbilities": [
         "Ocean Without Shore",
         "Pressure Sphere",
@@ -3567,7 +3567,7 @@
       ]
     },
     "pellucid": {
-      "name": "Pellucid Rook",
+      "name": "Pellucid",
       "kitAbilities": [
         "Worldbreaker Fists",
         "Meteor Knuckle",
@@ -4026,8 +4026,8 @@
         }
       ]
     },
-    "silkcoil": {
-      "name": "Silkcoil",
+    "seyla": {
+      "name": "Seyla Silkcoil",
       "kitAbilities": [
         "Serpent's Last Dance",
         "Ribbon Fang",
@@ -4141,8 +4141,8 @@
         }
       ]
     },
-    "stormwarden": {
-      "name": "Stormwarden",
+    "iver": {
+      "name": "Iver",
       "kitAbilities": [
         "Skybreak",
         "Volt Pike",
@@ -4487,7 +4487,7 @@
       ]
     },
     "vesper": {
-      "name": "Vesper \"The Annotator\"",
+      "name": "Vesper",
       "kitAbilities": [
         "Puncture",
         "Errata",
@@ -4601,8 +4601,8 @@
         }
       ]
     },
-    "beekeeper": {
-      "name": "The Beekeeper King",
+    "mellan": {
+      "name": "Mellan",
       "kitAbilities": [
         "Hive Mind",
         "Hornet Cloud",
@@ -4716,8 +4716,8 @@
         }
       ]
     },
-    "corsair": {
-      "name": "The Corsair Duelist",
+    "rafe": {
+      "name": "Rafe Marrow",
       "kitAbilities": [
         "Dead Man's Fortune",
         "Pistol Barrage",
@@ -4831,8 +4831,8 @@
         }
       ]
     },
-    "lastfurnace": {
-      "name": "The Last Furnace",
+    "tolley": {
+      "name": "Tolley",
       "kitAbilities": [
         "Living Forge",
         "Forge Strike",
@@ -4946,8 +4946,8 @@
         }
       ]
     },
-    "librarian": {
-      "name": "The Librarian of Monsters",
+    "aldren": {
+      "name": "Aldren",
       "kitAbilities": [
         "Final Volume",
         "Ink Spirit",
@@ -5061,8 +5061,8 @@
         }
       ]
     },
-    "magistrant": {
-      "name": "The Magistrant",
+    "quorrel": {
+      "name": "Quorrel",
       "kitAbilities": [
         "Contempt Storm",
         "Gag Order",
@@ -5176,8 +5176,8 @@
         }
       ]
     },
-    "cathedral": {
-      "name": "The Walking Cathedral",
+    "ambrel": {
+      "name": "Ambrel",
       "kitAbilities": [
         "Divine Mass",
         "Cathedral Gates",
@@ -5291,8 +5291,8 @@
         }
       ]
     },
-    "threadseer": {
-      "name": "Threadseer",
+    "linnet": {
+      "name": "Linnet",
       "kitAbilities": [
         "Rewrite the Pattern",
         "Mending Stitch",
@@ -5866,8 +5866,8 @@
         }
       ]
     },
-    "velvetplum": {
-      "name": "Velvetplum",
+    "mirelle": {
+      "name": "Mirelle Velvetplum",
       "kitAbilities": [
         "Imperial Plumage",
         "Scent of Courage",
@@ -5981,8 +5981,8 @@
         }
       ]
     },
-    "verdantshade": {
-      "name": "Verdant Shade",
+    "sloe": {
+      "name": "Sloe",
       "kitAbilities": [
         "Emerald Volley",
         "Thornshot",
@@ -6212,7 +6212,7 @@
       ]
     },
     "veyr": {
-      "name": "Veyr Manta-Born",
+      "name": "Veyr",
       "kitAbilities": [
         "Event Horizon",
         "Gravity Crescent",
@@ -6441,8 +6441,8 @@
         }
       ]
     },
-    "voidweaver": {
-      "name": "Void Weaver",
+    "absalie": {
+      "name": "Absalie",
       "kitAbilities": [
         "Event Horizon",
         "Abyssal Needle",
@@ -6671,8 +6671,8 @@
         }
       ]
     },
-    "waxenduchess": {
-      "name": "Waxen Duchess",
+    "ceraline": {
+      "name": "Ceraline",
       "kitAbilities": [
         "Court of the Final Candle",
         "Sealing Wax",
