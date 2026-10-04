@@ -12474,14 +12474,14 @@ function endBattle(won){
       document.getElementById('resultReward').innerHTML='Re-enactment of your battle vs <b>'+escapeHTML(CUR.oppName||'the enemy')+'</b>.';
       document.getElementById('resultHint').textContent='A replay of the recorded fight — no rewards are given.'; gameSpeed=1; show('result'); },800); return; }
   if(CUR.mode==='online'){ if(OL.host) relay({k:'end',won:!won}); resultLater(()=>onlineResult(won),800); return; }
-  if(CUR.mode==='arena'){ if(won)grantTeamXP(70); let _arepDef=null;
+  if(CUR.mode==='arena'){ if(won)grantTeamXP(70); let _arepDef=null, _arepMine=null;
     // record a watchable arena-attack report. The live arena fight is variable-timestep (non-deterministic), so we
     // seed-SEARCH for a fixed-step seed whose deterministic sim ends in the SAME result → the replay is exact AND matches
     // the real outcome. (Arena is 100% auto, no player input, so the seed fully determines the fight.)
     try{ if(!G.arenaReports||typeof G.arenaReports!=='object')G.arenaReports={attacks:[],defenses:[]}; if(!Array.isArray(G.arenaReports.attacks))G.arenaReports.attacks=[];
       const snap=CUR.arenaSnap||[], foe=CUR.arenaFoe||[];
       if(snap.length&&foe.length){ let sd=(CUR.seed>>>0)||newFightSeed(); for(let t=0;t<5;t++){ if(simFightResult(snap,foe,sd)===!!won)break; sd=newFightSeed(); }
-        G.arenaReports.attacks.unshift({v:2,seed:sd,mineSnap:snap,foe,won:!!won,oppName:CUR.oppName,t:Date.now()});
+        _arepMine={v:2,seed:sd,mineSnap:snap,foe,won:!!won,oppName:CUR.oppName,t:Date.now()}; G.arenaReports.attacks.unshift(_arepMine);
         if(G.arenaReports.attacks.length>10)G.arenaReports.attacks.length=10;
         _arepDef={seed:sd,mineSnap:snap,foe,atkName:(ACC.name||'A challenger')};   // sent to server so the DEFENDER gets a watchable report of this attack
       } }catch(e){}
@@ -12489,8 +12489,20 @@ function endBattle(won){
     saveG(); updateHubChrome();
     resultLater(async(ep)=>{ let newRank=oldRank;
       let d=null;
-      if(ACC.token && CUR.oppId){ d=await api('/api/arena/result','POST',{oppId:CUR.oppId,won,def:_arepDef,requestId:uid8()});
-        if(resultStale(ep)){ if(d) ledgerSync(); return; }   // v328: a new fight started during the round-trip — the server already paid; do not paint over the live battle
+      if(ACC.token && CUR.oppId){
+        /* v977 (3 Oct Arena audit #8): ONE requestId per fight; a lost reply is re-sent with the SAME id (the route keeps a receipt) */
+        const _rid=uid8();
+        for(let _try=0;_try<3;_try++){ d=await api('/api/arena/result','POST',{oppId:CUR.oppId,won,def:_arepDef,requestId:_rid});
+          if(!(d&&d.error==='offline')||_try===2) break; await new Promise(z=>setTimeout(z,1500*(_try+1))); }
+        if(resultStale(ep)){ if(d) ledgerSync(); return; }
+        /* v977 (3 Oct Arena audit #5, #8): a signed-in fight the server refused (no attempts left, level, opponent) or never
+           confirmed is NOT COUNTED - no win shown, no rank moved, no attack report kept. */
+        if(!(d&&typeof d.won==='boolean')){
+          try{ const A=G.arenaReports&&G.arenaReports.attacks, i=A?A.indexOf(_arepMine):-1; if(i>=0) A.splice(i,1); }catch(e){}
+          setResultVerdict(false, null); saveG(); ledgerSync&&ledgerSync(); updateHubChrome();
+          document.getElementById('resultTitle').textContent='NOT COUNTED'; document.getElementById('resultTitle').className='result-big lose';
+          document.getElementById('resultReward').textContent=(d&&d.error&&d.error!=='offline')?d.error:'Connection lost.';
+          document.getElementById('resultHint').textContent=''; gameSpeed=1; show('result'); return; }   // v328: a new fight started during the round-trip — the server already paid; do not paint over the live battle
         if(d&&typeof d.rank==='number') newRank=d.rank;
         if(d&&d.sim) CUR.arenaSim=d.sim;   // v255 (§7): keep the server's event log for the result recap
         if(d&&typeof d.won==='boolean') won=d.won; }   // the SERVER decides the arena outcome
@@ -12500,7 +12512,7 @@ function endBattle(won){
       setResultVerdict(won, null);   // AUDIT #20: the squad panel follows the SERVER's arena verdict
       if(d&&d.goldReward) reward=d.goldReward;
       if(d) ledgerSync();
-      if(!d && won && CUR.oppRank && CUR.oppRank<oldRank){ newRank=CUR.oppRank; }   // offline fallback
+      if(!d && !ACC.token && won && CUR.oppRank && CUR.oppRank<oldRank){ newRank=CUR.oppRank; }   // signed-out local ladder only (v977: never for an account)
       let swapped=false, gemsWon=0;
       if(won && newRank<oldRank){ swapped=true; G.arenaRank=newRank;
         // v267 (80/20 §9): rank-milestone diamonds are PAID BY THE SERVER (/api/arena/result) — the
@@ -25730,7 +25742,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791087356361';
+const BUILD_ID = '1791087460498';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
