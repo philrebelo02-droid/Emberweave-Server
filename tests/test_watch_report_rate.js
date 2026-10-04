@@ -1,5 +1,5 @@
 // 3 Oct 2026 Guild audit #7 (v976): /api/watch/report was a synchronous full-database save on every Watch Tower tab tap and
-// march start, with no limit. An UNCHANGED report now answers {unchanged:true} without touching the disk; a changed report is
+// march start, with no limit. An UNCHANGED report now answers {ok:true} (the same body as a save) without touching the disk; a changed report is
 // still saved before it is acknowledged, at most 12 a minute per player (then 429).
 // Asserts (non-zero exit). Control: AUD_SERVER=<pre-fix server copied into the repo root> must FAIL.
 const assert=require('assert'),fs=require('fs'),os=require('os'),path=require('path'),net=require('net'),{spawn}=require('child_process');
@@ -23,7 +23,7 @@ const mtime=()=>fs.statSync(dbFile).mtimeMs;
   ok(r1.status===200&&r1.data.ok===true,'a new report is saved ('+r1.status+')');
   await delay(300); const m1=mtime(), b1=fs.readFileSync(dbFile,'utf8');
   const r2=await call('/api/watch/report',rep); await delay(50);
-  ok(r2.status===200&&r2.data.unchanged===true,'the same report again answers unchanged ('+JSON.stringify(r2.data)+')');
+  ok(r2.status===200&&JSON.stringify(r2.data)===JSON.stringify(r1.data),'the same report again answers exactly like the first ('+JSON.stringify(r2.data)+')');
   ok(mtime()===m1&&fs.readFileSync(dbFile,'utf8')===b1,'an unchanged report does not write the database');
   let first429=0;
   for(let i=0;i<14;i++){ const r=await call('/api/watch/report',{attacks:[{name:'Row'+i,eta:i,ret:false}],defends:[],scouts:[]}); if(r.status===429&&!first429) first429=i+1; }

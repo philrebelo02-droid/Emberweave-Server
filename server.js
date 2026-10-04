@@ -7332,10 +7332,10 @@ async function api(req,res,url){
       }
       if(PG_BOOT_PENDING)return send(res,503,{ok:false,storageFailed:true,error:'Watch storage restore pending.'});
       /* v976 (3 Oct Guild audit #7): the client sends this on every Watch Tower tab tap and march start, and each one was a
-         synchronous full-database save. An UNCHANGED report only refreshes its time in memory (the next routine save keeps it);
+         synchronous full-database save. An UNCHANGED report only refreshes its time in memory (the next routine save keeps it) and answers {ok:true} like a save;
          a changed one is limited to 12 a minute per player. */
       { const cur=DB.watch&&DB.watch[me.id], same=k=>JSON.stringify(watchEntries(b[k]))===JSON.stringify((cur&&cur[k])||[]);
-        if(cur&&cur.name===me.name&&(cur.guildId||null)===(me.guildId||null)&&same('attacks')&&same('defends')&&same('scouts')){ cur.t=Date.now(); return send(res,200,{ok:true,unchanged:true}); }
+        if(cur&&cur.name===me.name&&(cur.guildId||null)===(me.guildId||null)&&same('attacks')&&same('defends')&&same('scouts')){ cur.t=Date.now(); return send(res,200,{ok:true}); }   /* the same body as a saved report: a retry answers like the first */
         if(rateLimited(req,'wreport:'+me.id,12,60000)) return send(res,429,{ok:false,error:'Slow down.'}); }
       const stagedWatch={...DB.watch,[me.id]:{
         id:me.id, name:me.name, guildId:me.guildId||null,
