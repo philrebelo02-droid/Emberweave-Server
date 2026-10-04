@@ -90,7 +90,7 @@
     "strength": "Feeder",
     "name": "Bud Glyph",
     "statFocus": "Healing / Regen",
-    "passiveStats": "Healing Power +13; HP Regen +29",
+    "passiveStats": "Healing Power +52; HP Regen +29",
     "recipeText": "2 × Grey Lifebloom Fragments",
     "subGlyph": "No",
     "material": "Rough Pollen"
@@ -186,7 +186,7 @@
     "strength": "Core",
     "name": "Mendleaf Core",
     "statFocus": "Healing / Regen",
-    "passiveStats": "Healing Power +17; HP Regen +39",
+    "passiveStats": "Healing Power +68; HP Regen +39",
     "recipeText": "5 × Green Lifebloom Fragments + Bud Glyph",
     "subGlyph": "No",
     "material": "Coarse Pollen"
@@ -306,7 +306,7 @@
     "strength": "Core",
     "name": "Greenmend Core",
     "statFocus": "Healing / Regen",
-    "passiveStats": "Healing Power +19; HP Regen +44",
+    "passiveStats": "Healing Power +76; HP Regen +44",
     "recipeText": "6 × Green +1 Lifebloom Fragments + Bud Glyph + Nickblade Core",
     "subGlyph": "No",
     "material": "Clean Pollen"
@@ -426,7 +426,7 @@
     "strength": "Feeder",
     "name": "Blossomheal Glyph",
     "statFocus": "Healing / Regen",
-    "passiveStats": "Healing Power +18; HP Regen +43",
+    "passiveStats": "Healing Power +72; HP Regen +43",
     "recipeText": "4 × Blue Lifebloom Fragments + Mendleaf Core + Hide Glyph",
     "subGlyph": "Yes",
     "material": "Keen Pollen"
@@ -570,7 +570,7 @@
     "strength": "Core",
     "name": "Wellheal Core",
     "statFocus": "Healing / Regen",
-    "passiveStats": "Healing Power +25; HP Regen +57",
+    "passiveStats": "Healing Power +100; HP Regen +57",
     "recipeText": "7 × Blue +1 Lifebloom Fragments + Blue +1 Lifebloom Sub-Glyph + Ironflesh Glyph",
     "subGlyph": "Yes",
     "material": "Fine Pollen"
@@ -714,7 +714,7 @@
     "strength": "Core",
     "name": "Everflower Core",
     "statFocus": "Healing / Regen",
-    "passiveStats": "Healing Power +27; HP Regen +64",
+    "passiveStats": "Healing Power +108; HP Regen +64",
     "recipeText": "12 × Blue +2 Lifebloom Fragments + Blue +2 Lifebloom Sub-Glyph + Shieldbone Glyph",
     "subGlyph": "Yes",
     "material": "Pure Pollen"
@@ -858,7 +858,7 @@
     "strength": "Core",
     "name": "Radiant Petal Core",
     "statFocus": "Healing / Regen",
-    "passiveStats": "Healing Power +31; HP Regen +73",
+    "passiveStats": "Healing Power +124; HP Regen +73",
     "recipeText": "26 × Purple Lifebloom Fragments + Superior Purple Lifebloom Sub-Glyph + Adamantguard Glyph + Unshaken Glyph + Blurstrike Core",
     "subGlyph": "Yes",
     "material": "Deep Pollen"
@@ -918,7 +918,7 @@
     "strength": "Crown",
     "name": "Maelstrom Crown",
     "statFocus": "Energy Regen / Healing",
-    "passiveStats": "Energy Regen +18; Healing Power +25",
+    "passiveStats": "Energy Regen +18; Healing Power +100",
     "recipeText": "45 × Purple Tidecall Fragments + Rare Purple Tidecall Sub-Glyph + Shadowrun Core + Ruinsplit Core + Maulclaw Glyph",
     "subGlyph": "Yes",
     "material": "Deep Pearl"
@@ -1026,7 +1026,7 @@
     "strength": "Core",
     "name": "Lifesurge Core",
     "statFocus": "Healing / Regen",
-    "passiveStats": "Healing Power +35; HP Regen +82",
+    "passiveStats": "Healing Power +140; HP Regen +82",
     "recipeText": "36 × Purple +1 Lifebloom Fragments + Superior Purple +1 Lifebloom Sub-Glyph + Unbreakable Glyph + Runeshield Glyph + Dodgestep Core",
     "subGlyph": "Yes",
     "material": "Rich Pollen"
@@ -1086,7 +1086,7 @@
     "strength": "Crown",
     "name": "Wavemender Crown",
     "statFocus": "Energy Regen / Healing",
-    "passiveStats": "Energy Regen +20; Healing Power +27",
+    "passiveStats": "Energy Regen +20; Healing Power +108",
     "recipeText": "60 × Purple +1 Tidecall Fragments + Rare Purple +1 Tidecall Sub-Glyph + Gloomtread Core + Skyrend Core + Gorefang Glyph",
     "subGlyph": "Yes",
     "material": "Rich Pearl"
@@ -1194,7 +1194,7 @@
     "strength": "Core",
     "name": "Flowering Age Core",
     "statFocus": "Healing / Regen",
-    "passiveStats": "Healing Power +39; HP Regen +92",
+    "passiveStats": "Healing Power +156; HP Regen +92",
     "recipeText": "51 × Purple +2 Lifebloom Fragments + Superior Purple +2 Lifebloom Sub-Glyph + Soulbound Glyph + Carnage Glyph + Umbral Trail Core",
     "subGlyph": "Yes",
     "material": "Royal Pollen"
@@ -1254,7 +1254,7 @@
     "strength": "Crown",
     "name": "Ocean Voice Crown",
     "statFocus": "Energy Regen / Healing",
-    "passiveStats": "Energy Regen +23; Healing Power +31",
+    "passiveStats": "Energy Regen +23; Healing Power +124",
     "recipeText": "85 × Purple +2 Tidecall Fragments + Rare Purple +2 Tidecall Sub-Glyph + Blurwalk Core + Unerring Core + Savagery Glyph",
     "subGlyph": "Yes",
     "material": "Royal Pearl"
@@ -1362,7 +1362,7 @@
     "strength": "Core",
     "name": "Bloomcrown Core",
     "statFocus": "Healing / Regen",
-    "passiveStats": "Healing Power +45; HP Regen +104",
+    "passiveStats": "Healing Power +180; HP Regen +104",
     "recipeText": "71 × Purple +3 Lifebloom Fragments + Superior Purple +3 Lifebloom Sub-Glyph + Hexproof Glyph + Bloodcrown Glyph + Shadowrun Core",
     "subGlyph": "Yes",
     "material": "Sovereign Pollen"
@@ -1422,7 +1422,7 @@
     "strength": "Crown",
     "name": "Drowning Song Crown",
     "statFocus": "Energy Regen / Healing",
-    "passiveStats": "Energy Regen +26; Healing Power +35",
+    "passiveStats": "Energy Regen +26; Healing Power +140",
     "recipeText": "115 × Purple +3 Tidecall Fragments + Rare Purple +3 Tidecall Sub-Glyph + Bloomcrown Core + Duskcrown Core + Adamantguard Glyph",
     "subGlyph": "Yes",
     "material": "Sovereign Pearl"
@@ -1530,7 +1530,7 @@
     "strength": "Core",
     "name": "Harvest Core",
     "statFocus": "Healing / Regen",
-    "passiveStats": "Healing Power +50; HP Regen +118",
+    "passiveStats": "Healing Power +200; HP Regen +118",
     "recipeText": "88 × Gold Lifebloom Fragments + Superior Gold Lifebloom Sub-Glyph + Bulwarking Glyph + Spellbane Glyph + Shadowrun Core",
     "subGlyph": "Yes",
     "material": "Sunforged Pollen"
@@ -1590,7 +1590,7 @@
     "strength": "Crown",
     "name": "Deluge Crown",
     "statFocus": "Energy Regen / Healing",
-    "passiveStats": "Energy Regen +29; Healing Power +39",
+    "passiveStats": "Energy Regen +29; Healing Power +156",
     "recipeText": "132 × Gold Tidecall Fragments + Rare Gold Tidecall Sub-Glyph + Aimcrown Core + Harvest Core + Behemoth Glyph + Adamantguard Glyph",
     "subGlyph": "Yes",
     "material": "Sunforged Pearl"
@@ -1722,7 +1722,7 @@
     "strength": "Core",
     "name": "Flora Core",
     "statFocus": "Healing / Regen",
-    "passiveStats": "Healing Power +57; HP Regen +132",
+    "passiveStats": "Healing Power +228; HP Regen +132",
     "recipeText": "96 × Gold +1 Lifebloom Fragments + Superior Gold +1 Lifebloom Sub-Glyph + Gleipnir Glyph + Chimera Glyph + Gloomtread Core",
     "subGlyph": "Yes",
     "material": "Crowned Pollen"
@@ -1782,7 +1782,7 @@
     "strength": "Crown",
     "name": "Nereid Crown",
     "statFocus": "Energy Regen / Healing",
-    "passiveStats": "Energy Regen +33; Healing Power +44",
+    "passiveStats": "Energy Regen +33; Healing Power +176",
     "recipeText": "160 × Gold +1 Tidecall Fragments + Rare Gold +1 Tidecall Sub-Glyph + Zephyr Core + Orion Core + Gleipnir Glyph + Unbreakable Glyph",
     "subGlyph": "Yes",
     "material": "Crowned Pearl"
@@ -1914,7 +1914,7 @@
     "strength": "Core",
     "name": "Persephone Core",
     "statFocus": "Healing / Regen",
-    "passiveStats": "Healing Power +64; HP Regen +149",
+    "passiveStats": "Healing Power +256; HP Regen +149",
     "recipeText": "131 × Gold +2 Lifebloom Fragments + Superior Gold +2 Lifebloom Sub-Glyph + Mimir Glyph + Cerberus Glyph + Phantomwalk Core",
     "subGlyph": "Yes",
     "material": "Imperial Pollen"
@@ -1974,7 +1974,7 @@
     "strength": "Crown",
     "name": "Triton Crown",
     "statFocus": "Energy Regen / Healing",
-    "passiveStats": "Energy Regen +37; Healing Power +50",
+    "passiveStats": "Energy Regen +37; Healing Power +200",
     "recipeText": "215 × Gold +2 Tidecall Fragments + Rare Gold +2 Tidecall Sub-Glyph + Boreas Core + Ullr Core + Mimir Glyph + Fortressborn Glyph",
     "subGlyph": "Yes",
     "material": "Imperial Pearl"
@@ -2106,7 +2106,7 @@
     "strength": "Core",
     "name": "Eir Core",
     "statFocus": "Healing / Regen",
-    "passiveStats": "Healing Power +72; HP Regen +168",
+    "passiveStats": "Healing Power +288; HP Regen +168",
     "recipeText": "171 × Gold +3 Lifebloom Fragments + Superior Gold +3 Lifebloom Sub-Glyph + Geryon Glyph + Jotun Glyph + Duskcrown Core",
     "subGlyph": "Yes",
     "material": "Deathless Pollen"
@@ -2166,7 +2166,7 @@
     "strength": "Crown",
     "name": "Charybdis Crown",
     "statFocus": "Energy Regen / Healing",
-    "passiveStats": "Energy Regen +42; Healing Power +56",
+    "passiveStats": "Energy Regen +42; Healing Power +224",
     "recipeText": "285 × Gold +3 Tidecall Fragments + Rare Gold +3 Tidecall Sub-Glyph + Excalibur Core + Charon Core + Jotun Glyph + Ironclad Glyph",
     "subGlyph": "Yes",
     "material": "Deathless Pearl"
@@ -2298,7 +2298,7 @@
     "strength": "Core",
     "name": "Ceres Core",
     "statFocus": "Healing / Regen",
-    "passiveStats": "Healing Power +81; HP Regen +190",
+    "passiveStats": "Healing Power +324; HP Regen +190",
     "recipeText": "221 × Gold +4 Lifebloom Fragments + Superior Gold +4 Lifebloom Sub-Glyph + Skoll Glyph + Antaeus Glyph + Midnight Core",
     "subGlyph": "Yes",
     "material": "Astral Pollen"
@@ -2358,7 +2358,7 @@
     "strength": "Crown",
     "name": "Aegir Crown",
     "statFocus": "Energy Regen / Healing",
-    "passiveStats": "Energy Regen +48; Healing Power +64",
+    "passiveStats": "Energy Regen +48; Healing Power +256",
     "recipeText": "365 × Gold +4 Tidecall Fragments + Rare Gold +4 Tidecall Sub-Glyph + Helios Rising Core + Mercury Core + Antaeus Glyph + Undimmed Crown",
     "subGlyph": "Yes",
     "material": "Astral Pearl"
@@ -2490,7 +2490,7 @@
     "strength": "Core",
     "name": "Demeter Core",
     "statFocus": "Healing / Regen",
-    "passiveStats": "Healing Power +92; HP Regen +214",
+    "passiveStats": "Healing Power +368; HP Regen +214",
     "recipeText": "269 × Orange Lifebloom Fragments + Superior Worldfire Lifebloom Sub-Glyph + Heimdall Glyph + Fenrir Glyph + Erebos Veil Core",
     "subGlyph": "Yes",
     "material": "Worldfire Pollen"
@@ -2550,7 +2550,7 @@
     "strength": "Crown",
     "name": "Poseidon Crown",
     "statFocus": "Energy Regen / Healing",
-    "passiveStats": "Energy Regen +54; Healing Power +71",
+    "passiveStats": "Energy Regen +54; Healing Power +284",
     "recipeText": "442 × Orange Tidecall Fragments + Mythic Worldfire Tidecall Sub-Glyph + Hades Core + Atlas Core + Heimdall Glyph + Antaeus Glyph",
     "subGlyph": "Yes",
     "material": "Worldfire Pearl"

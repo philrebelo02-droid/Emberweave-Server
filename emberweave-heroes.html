@@ -2559,7 +2559,7 @@ if(Object.keys(HERO_PROFILES).length!==Object.keys(HERO_TYPES).length) throw new
    (makeUnit: base × lvlScale × starMult), so a Lv100 5★ tank sits ~1000 rating ≈ 46% reduction
    before a single glyph. Mirrored in server/sim.js HERO_BASE (same table, same defaulting). */
 const ROLE_BASE_DEF={ Tank:{armor:60,mr:40}, Bruiser:{armor:40,mr:30}, Assassin:{armor:25,mr:20},
-  Marksman:{armor:22,mr:22}, Mage:{armor:15,mr:40}, Support:{armor:22,mr:38} };
+  Marksman:{armor:22,mr:22}, Mage:{armor:15,mr:22}, Support:{armor:22,mr:22} };   /* v1022 (Phil 4 Oct: squishies "certainly shouldnt be tanky"): Mage mr 40 -> 22, Support 38 -> 22 (40 is the Tank base) */
 for(const k in HERO_TYPES){ const t=HERO_TYPES[k], d=ROLE_BASE_DEF[t.role]||ROLE_BASE_DEF.Bruiser; if(t.armor==null) t.armor=d.armor; if(t.mr==null) t.mr=d.mr; }
 /* ---- v401 (Phil, 4 Sep): PER-CLASS LEVEL GROWTH ----------------------------------------------
    Every class gains EVERY stat per level; the weighting is what makes the class. A mage still
@@ -2570,14 +2570,17 @@ for(const k in HERO_TYPES){ const t=HERO_TYPES[k], d=ROLE_BASE_DEF[t.role]||ROLE
    NOTE: this also closes a real desync — the server was growing hero HP/ATK at 0.18/level while
    the client used 0.05, so a server-resolved hero was ~3.2x the one on screen at level 100. */
 const ROLE_GROWTH={
-  Tank    :{hp:34,dmg:0.9,apow:0.3,armor:12,mr:8},
-  Bruiser :{hp:22,dmg:1.6,apow:0.4,armor:8, mr:6},
-  Assassin:{hp:15,dmg:2.2,apow:0.3,armor:5, mr:4},
-  Marksman:{hp:13,dmg:2.0,apow:0.4,armor:4, mr:4},
-  Support :{hp:13,dmg:0.5,apow:1.6,armor:4, mr:7},
-  Mage    :{hp:11,dmg:0.6,apow:2.0,armor:3, mr:8} };
+  Tank    :{hp:34,dmg:0.6,apow:0.3,armor:12,mr:8},
+  Bruiser :{hp:34,dmg:2.4,apow:0.4,armor:8, mr:6},
+  Assassin:{hp:25,dmg:3.0,apow:0.3,armor:5, mr:4},
+  Marksman:{hp:23,dmg:2.2,apow:0.4,armor:4, mr:4},
+  Support :{hp:23,dmg:0.5,apow:1.0,armor:4, mr:4},
+  Mage    :{hp:23,dmg:0.6,apow:0.5,armor:1, mr:4} };   /* v1020 (Phil 4 Oct: mages too strong) apow 2.0 -> 0.5; Phil 4 Oct "they certainly shouldnt be tanky": Mage mr 8 -> 4, Support 7 -> 4 (the Marksman/Assassin rate; 8 is the Tank rate) */
 /* v1019 (Phil 4 Oct: "magic tanks should have about 18k hp, melee tanks about 22k" - glyphs and base stats, at max): a Tank's HP growth per level depends on its damage profile. MUST stay identical in emberweave-heroes.html and server/sim.js. */
 const TANK_HP_GROWTH={Attack:70, Magic:54};
+/* v1020 (Phil 4 Oct: 'marksmen, assassins should have higher crit'): a class's BASE crit chance - glyph crit points (20 = 1%) and
+   ascension stack on top; the 60% overall cap still applies. MUST stay identical in emberweave-heroes.html and server/combat-core.js. */
+const CLASS_BASE_CRIT={Marksman:0.10, Assassin:0.10, Bruiser:0.03, Mage:0.02, Tank:0, Support:0};
 // additive growth for a hero type at a level (null for monsters / unknown roles -> caller keeps lvlScale)
 function roleGrow(t,lvl){ const g=t&&ROLE_GROWTH[t.role]; if(!g) return null; const n=Math.max(0,(lvl|0)-1);
   const gh=(t.role==='Tank'&&TANK_HP_GROWTH[t.damageProfile]!=null)?TANK_HP_GROWTH[t.damageProfile]:g.hp;
@@ -4689,8 +4692,8 @@ function promoteCost(rank){ const mat=['green','blue','purple'][rank]; return {[
 const SKILL_MAX=100, SKILL_UP_BASE=[300,220,260,400];  /* 12 Sep 2026 (Phil): the skill cap IS the level cap (MAX_LEVEL, declared later in the file - do NOT reference it here, it is a `const` in the temporal dead zone and the page would throw on load). A skill can also never exceed its hero's CURRENT level - see skillUpgrade. */  /* 12 Sep 2026 (Phil): the skill cap IS the level cap, and a skill can never exceed its hero's CURRENT level. */   // gold base per skill index (ult / green / blue / passive)
 function skillLvArr(key){ if(!G.skillLevel)G.skillLevel={}; if(!G.skillLevel[key])G.skillLevel[key]=[1,1,1,1]; return G.skillLevel[key]; }
 function skillLevel(key,idx){ return skillLvArr(key)[idx]||1; }
-const SKILL_STEP=0.0135; /* 12 Sep 2026 (Phil: "vastly reduce the percent scale of leveling abilities to compensate"). Was +15%/level over 10 levels = x2.350 at cap. Now +1.35%/level over 100 = x2.337: the per-level step is 11x smaller, the endgame CEILING is unchanged. */
-function skillMul(lv){ return 1+((lv||1)-1)*SKILL_STEP; }               // +15% effect per level
+const SKILL_STEP=0.0120; /* 12 Sep 2026 (Phil: "vastly reduce the percent scale of leveling abilities to compensate"). Was +15%/level over 10 levels = x2.350 at cap. Now +1.35%/level over 100 = x2.337: the per-level step is 11x smaller, the endgame CEILING is unchanged. v1022 (Phil 4 Oct: "I think the scaling for skills is too high"): +1.20%/level = x2.188 at level 100. */
+function skillMul(lv){ return 1+((lv||1)-1)*SKILL_STEP; }               // +SKILL_STEP effect per level
 function skillUnlocked(key,idx){ return idx===0 || heroQuality(key)>=idx; }   // green needs Green quality, blue Blue, passive Purple
 function skillUpCost(idx,lv){ return Math.round((SKILL_UP_BASE[idx]||300)*Math.pow(SKILL_COST_R,(lv||1)-1)); }
 const SKILL_COST_R=1.04; /* 12 Sep 2026 — the old 1.55 was sized for NINE upgrades; across ninety-nine it
@@ -5208,8 +5211,8 @@ function heroPower(key){ const t=HERO_TYPES[key]; if(!t) return 0;
   // average mitigation: armor and MR each cover half the damage a hero takes, plus flat reduction
   const mitig= Math.min(0.85, (defToDR(armor,lv)+defToDR(mr,lv))/2 + (m.dr||0));
   const ehp  = hp/Math.max(0.15,1-mitig);
-  const crit = Math.min(0.6,m.crit||0), critDmg=0.6+((tt.critDmg||0)*0.005);
-  const sw   = 1/Math.max(0.05, swingInterval(t)/(1+((tt.atkSpd||0)*0.004)));
+  const crit = Math.min(0.6,(m.crit||0)+(CLASS_BASE_CRIT[t.role]||0)), critDmg=0.6+((tt.critDmg||0)*0.0005);   /* v1020: 20 points = 1% */
+  const sw   = 1/Math.max(0.05, swingInterval(t)/(1+((tt.atkSpd||0)*0.0005)));   /* v1020 (Phil 4 Oct: '20 attack speed about 1%') */
   /* AP is weighted 1.5x a point of Attack and energy regen adds a little on top: a spell carries a
      kit coefficient and usually lands on more than one target, so counting Ability Power as if it
      were a single-target auto-attack read every Mage and Support ~40% below the rest of the roster.
@@ -5218,7 +5221,7 @@ function heroPower(key){ const t=HERO_TYPES[key]; if(!t) return 0;
      Cathedral / King Bloatus read ~55% above the other tanks and Aureth ~50% above the other fighters for a few spell coefficients.
      Casters (Mage / Support) keep the 1.5 weight — their kits run on AP; everyone else's AP counts at 0.5. */
   const apW  = (t.role==='Mage'||t.role==='Support') ? 1.5 : 0.5;
-  const dps  = Math.max(1,(atkP+apW*atkM)*sw*(1+crit*critDmg)*(1+((tt.dmgBonus||0)*0.004))*(1+0.25*(m.energyReg||0)));
+  const dps  = Math.max(1,(atkP+apW*atkM)*sw*(1+crit*critDmg)*(1+((tt.dmgBonus||0)*0.0005))*(1+0.25*(m.energyReg||0)));
   return Math.round(POWER_K*Math.sqrt(ehp*dps) + skillPowerBonus(key)); }
 
 /* ------------------------------ progression -------------------------------- */
@@ -5544,12 +5547,12 @@ function mulsFromTotals(gf, ex){
   let dr=(ex.techDef||0)/100 + (ex.baseDr||0);
   let crit=(ex.techCrit||0)/100, critRes=(ex.techCritRes||0)/100, regen=0, energyReg=0;
   const em=ex.equip||{}; atk+=(em.atk||0); hp+=(em.hp||0); dr+=(em.dr||0); crit+=(em.crit||0); regen+=(em.regen||0); energyReg+=(em.energy||0);
-  dr+=Math.min(0.30,(gf.dmgRed||0)*0.004); crit+=(gf.crit||0)*0.005; critRes+=(gf.critRes||0)*0.005;
+  dr+=Math.min(0.30,(gf.dmgRed||0)*0.0005); crit+=(gf.crit||0)*0.0005; critRes+=(gf.critRes||0)*0.0005; /* v1020 (Phil 4 Oct: 'make 20 crit about 1%'): a crit point is 0.05% crit chance (was 0.5%); the 60-point glyph cap (30%) is gone - only the 60% overall cap remains */
   /* v364: HP Regen is a RATING — 0.01% of max HP per second per point, capped at 6%/s. It was 0.1%/pt
      with no cap, so an Orange tank's 1,823 banked points healed 182% of its HP every second
      (Phil's Gruel card: "HP Regen 123,849/s"). Mirrored in server/combat-core.js. */
-  regen+=Math.min(0.06,(gf.regen||0)*0.0001); energyReg+=(gf.energy||0)*0.01;
-  const ctrlRes=Math.min(0.6,(gf.ctrlRes||0)*0.005), startEnergy=Math.min(60,Math.round((gf.startEnergy||0)*0.35)), healPow=(gf.healPow||0)*0.004;
+  regen+=Math.min(0.06,(gf.regen||0)*0.0005); energyReg+=(gf.energy||0)*0.01;   /* v1020: HP regen 20 points = 1% max HP/s (energy regen is energy, not a %) */
+  const ctrlRes=Math.min(0.6,(gf.ctrlRes||0)*0.0005), startEnergy=Math.min(60,Math.round((gf.startEnergy||0)*0.35)), healPow=(gf.healPow||0)*0.0005;   /* v1020: 20 points = 1% */
   return {atk,hp,dr:Math.min(dr,0.6),regen,crit:Math.min(crit,0.6),critRes:Math.min(critRes,0.75),energyReg,ctrlRes,startEnergy,healPow};
 }
 function heroMuls(key){
@@ -8961,7 +8964,7 @@ function makeUnit(key,team,x,y,levelOverride,extra){
     abilityOverride:(t.monster?null:(boss?'cleave':null)),
     greenAb:(rank>=1&&kit.green)?kit.green:null, blueAb:(rank>=2&&kit.blue)?kit.blue:null,
     greenCd:(rank>=1&&kit.green)?kit.green.cd*0.5:0, blueCd:(rank>=2&&kit.blue)?kit.blue.cd*0.6:0, pass:null,
-    glyphDR:mul.dr||0, glyphRegen:mul.regen||0, glyphCrit:mul.crit||0, critRes:mul.critRes||0, energyReg:mul.energyReg||0,
+    glyphDR:mul.dr||0, glyphRegen:mul.regen||0, glyphCrit:Math.min(0.6,(mul.crit||0)+((HERO_TYPES[key]&&!t.monster&&CLASS_BASE_CRIT[t.role])||0)), critRes:mul.critRes||0, energyReg:mul.energyReg||0,
     skillLv: S?((S.skillLv||[1,1,1,1]).slice()):(owned?skillLvArr(key).slice():[1,1,1,1]), passMul:1, _castSM:1, apMul: S?(S.apMul||1):(owned?abilityPowerMul():(t.ap||1)),
     apow: Math.round(BL.apow*sm*(S?(S.apMul||1):(owned?abilityPowerMul():1)))+(S?(S.fApow||0):(owned?heroFlatApow(key):0)), healPowMul:1+(owned?(mul.healPow||0):0), hybrid:!!t.hybrid, _frozenT:0, _chillStacks:0, _chillT:0, _blizzT:0, _stormT:0, _darkStance:false,
     gearSkill:(S&&S.gearSkill)?Object.assign({used:false},JSON.parse(JSON.stringify(S.gearSkill))):null,
@@ -8975,18 +8978,18 @@ function makeUnit(key,team,x,y,levelOverride,extra){
     u.armorRating=BL.armor*sm + (S?(S.techArmor||0):(owned?techTotal('armor'):0)) + ((tt.armor||0)*3);
     u.mrRating   =BL.mr*sm + (S?(S.techMr||0):(owned?techTotal('mr'):0)) + ((tt.mr||0)*3);
     u.armorPen=(tt.armorPen||0); u.magicPen=(tt.magicPen||0);
-    u.critDmg=0.6+((tt.critDmg||0)*0.005);
-    u.lifestealStat=Math.min(0.5,(tt.lifesteal||0)*0.004);
-    u.evaStat=Math.min(0.30,(tt.eva||0)*0.003); u.accStat=(tt.acc||0);
-    u.blockStat=Math.min(0.30,(tt.block||0)*0.003);
-    u.dmgBonusMul2=1+((tt.dmgBonus||0)*0.004);
-    u.shieldStrMul=1+((tt.shieldStr||0)*0.005);
-    u.ctrlHitF=(tt.ctrlHit||0)*0.004;
-    u.hasteEnergyMul=1+((tt.haste||0)*0.004);
+    u.critDmg=0.6+((tt.critDmg||0)*0.0005); /* v1020 (Phil 4 Oct: 'all of them 20 = 1%') */
+    u.lifestealStat=Math.min(0.5,(tt.lifesteal||0)*0.0005);
+    u.evaStat=Math.min(0.30,(tt.eva||0)*0.0005); u.accStat=(tt.acc||0);
+    u.blockStat=Math.min(0.30,(tt.block||0)*0.0005);
+    u.dmgBonusMul2=1+((tt.dmgBonus||0)*0.0005);
+    u.shieldStrMul=1+((tt.shieldStr||0)*0.0005);
+    u.ctrlHitF=(tt.ctrlHit||0)*0.0005;
+    u.hasteEnergyMul=1+((tt.haste||0)*0.0005);
     /* Forge mobility ratings: 100 points = 10%, capped at 30%. */
     u.speed*=1+Math.min(0.30,(tt.moveSpd||0)*0.001);
     u.range*=1+Math.min(0.30,(tt.range||0)*0.001);
-    u.atkInterval/= (1+((tt.atkSpd||0)*0.004));
+    u.atkInterval/= (1+((tt.atkSpd||0)*0.0005));   /* v1020 (Phil 4 Oct): 20 attack speed = 1% (was 0.4% a point) */
     u.defRating=u.armorRating+u.mrRating; u.penRating=(tt.armorPen||0)+(tt.magicPen||0); }   // legacy aliases
   if(!u.melee && u.combatDist > u.range) u.range = u.combatDist + 18;   // ranged units must be able to attack from their full row hold (13 m / 25 m) — widen range up to that distance (melee keeps its short range)
   // (melee body-touch hold + swing reach are handled in think() via bodyR(), which uses the true sprite width)
@@ -9310,7 +9313,7 @@ function dealDamage(src,tgt,amt,color,kind,silent){ kind=kind||((src&&src.t&&(['
      effect running, the condition and the RNG draws are exactly what they were (deterministic fights and the server sim agree). */
   const _gSure=!!src&&kind!=='true'&&(((src._gearSureUntil||0)>battleTime)||((src._gearSureN||0)>0)); if(_gSure&&!((src._gearSureUntil||0)>battleTime)) src._gearSureN--;
   const _gEva=(tgt&&(tgt._gearEvaUntil||0)>battleTime)?(tgt._gearEva||0):0;
-  if(kind!=='true'&&!_gSure&&((tgt.evaStat||0)+_gEva)>0&&brnd()<Math.max(0,(tgt.evaStat||0)+_gEva-((src&&src.accStat||0)*0.003))){
+  if(kind!=='true'&&!_gSure&&((tgt.evaStat||0)+_gEva)>0&&brnd()<Math.max(0,(tgt.evaStat||0)+_gEva-((src&&src.accStat||0)*0.0005))){
     floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'MISS',t:.55,color:'#9aa7b8',vy:1.2,sz:12}); return; }   // Evasion vs Accuracy
   /* v527 - DEFENCE SHRED. Several pack kits ("reduces enemy armor", "lowers magic resistance")
      had no engine behind them. A shred is a timed percentage off the target's rating, applied
@@ -10843,6 +10846,7 @@ function orbNextHop(h){ let nx=null,nd=1e9; for(const a of h.left){ if(!a.alive)
   if(!nx){ h.done=true; return; } h.left.splice(h.left.indexOf(nx),1); h.tgt=nx; h.hopT=0; h.hopDur=Math.max(0.18,Math.min(0.6,nd/(14*METER)));
   try{ if(h.gfx&&typeof FX2_DEF!=='undefined'&&FX2_DEF[h.gfx]&&typeof spawnProjFx==='function'&&TH&&scene){ window._projTgtU=nx; window._fxCaster=h.owner;
     spawnProjFx(h.gfx,h.x,h.y,nx.x,nx.y,h.pscale,h.hopDur,function(){},1.6*(typeof gsplitFxMul==='function'?gsplitFxMul():1)); } }catch(_){} }
+
 function healFrom(src,tgt,a){ return healUnit(tgt,a*((src&&src.healPowMul)||1)); }
 function worldHealCap(u){ return u._worldEntryHpCap==null?u.maxHp:Math.min(u.maxHp,u._worldEntryHpCap); }
 function healUnit(u,a){ if(u.mortalT>0)a*=0.5; a=Math.min(worldHealCap(u)-u.hp,a); if(a<=0)return; u.hp+=a;
@@ -22372,7 +22376,7 @@ function glyphV2Mul(key){ const out={atk:0,apow:0,armorPen:0,magicPen:0,hp:0,arm
     const local=stat==='regenRating'?'regen':stat;
     if(local in out)out[local]+=val;
   }
-  out.crit=Math.min(60,out.crit); return out; }
+  return out; }   /* v1020: no 60-point crit cap here (see mulsFromTotals) */
 async function g2post(path,payload){ if(RUNE2.busy) return null; RUNE2.busy=true;
   payload=Object.assign({expectedRevision:(RUNE2.st&&RUNE2.st.revision)||1},payload||{});
   let r=await api(path,'POST',payload);
@@ -22538,7 +22542,7 @@ function g2TreeView(viewPath,pfx){ const bd=RUNE2.build, D=bd.data;
     ${!(view.children||[]).length?'<div style="font-size:11px;color:#6f7d90;text-align:center;padding:6px">No components — built directly.</div>':''}</div>`; }
 if(!window._g2rsz){ window._g2rsz=1; window.addEventListener('resize',()=>{ try{ if(RUNE2.build&&!RUNE2.build.loading) g2DrawTree(); }catch(e){} }); }
 function g2info(slot){ const bd=g2board(detailHero); const so=bd.slots[slot]; if(!so) return;
-  bannerMsg('🔒 <b style="color:'+g2col(so.quality)+'">'+so.name+'</b> — '+(so.stats||[]).map(x=>x.stat+' +'+x.val+(x.pct?'%':'')).join(' · ')); }
+  bannerMsg('🔒 <b style="color:'+g2col(so.quality)+'">'+so.name+'</b> — '+(so.stats||[]).map(x=>x.stat+' +'+x.val+('')).join(' · ')); }
 async function g2buildDo(bpId){ if(RUNE2.busy) return; RUNE2.busy=true;
   const r=await api('/api/glyphs/build-in-slot','POST',{ heroKey:detailHero, slot:RUNE2.build&&RUNE2.build.slot,
     blueprintId:bpId, expectedRevision:(RUNE2.st&&RUNE2.st.revision)||1, requestId:uid8() });
@@ -22620,7 +22624,7 @@ function glyphV2Tab(key){
   const _lvNeed=(b.levelRequired!=null)?b.levelRequired:((window.GLYPH_MIN_LEVEL&&window.GLYPH_MIN_LEVEL[idx])||1);
   const _lvOk=((typeof heroLevel==='function')?heroLevel(key):1)>=_lvNeed;
   const cells=cat.slots.map((slotName,i)=>{ const so=b.slots[i];
-    if(so){ return `<div style="background:none;border:none;padding:2px;cursor:pointer;text-align:center" ondblclick="g2info(${i})" title="${so.name} — ${(so.stats||[]).map(x=>x.stat+' +'+x.val+(x.pct?'%':'')).join(' · ')} 🔒">
+    if(so){ return `<div style="background:none;border:none;padding:2px;cursor:pointer;text-align:center" ondblclick="g2info(${i})" title="${so.name} — ${(so.stats||[]).map(x=>x.stat+' +'+x.val+('')).join(' · ')} 🔒">
         <div style="height:130px;display:flex;align-items:center;justify-content:center">${g2art('finished',so.quality,g2slotOfFam(so.family),126)}</div></div>`; }
     const can=_lvOk && g2CanBuild(key,i);   // 27 Aug (Phil): GREEN ＋ only when the materials are there; GREY when they're not (v257: and when the hero is high enough level)
     const pc=can===true?'#5ee89b':'#8b98a9';
@@ -22637,14 +22641,14 @@ function glyphV2Tab(key){
   const lvLine=lvOk?'' :`<div style="text-align:center;font-size:11px;color:#ffb37a;margin-top:6px">🔒 ${q} glyphs need <b>hero level ${lvNeed}</b> — ${(HERO_TYPES[key]||{}).name||key} is level ${lvHave}. Level them up first.</div>`;
   const canAll=!full&&lvOk&&g2CanSlotAll(key)===true;   // v246 (Phil): "Quick Slot" slots ALL glyphs at once — lit only when affordable
   const bonus=b.nextAscensionBonus;
-  const bonusText=bonus?` · Bonus +${bonus.amount}${bonus.pct?'%':''} ${bonus.stat}`:'';
+  const bonusText=bonus?` · Bonus +${bonus.amount}${''} ${bonus.stat}`:'';
   const board=`<div class="hd-armorgrid" style="grid-template-columns:repeat(3,1fr);gap:6px">${cells}</div>${lvLine}
     ${full?'':`<button class="btn" style="width:100%;margin-top:8px;${canAll?'background:linear-gradient(#ffd45e,#c9962e);color:#20160a':'opacity:.45'}" ${canAll?'':'disabled'} onclick="g2buildAll()">⚡ Quick Slot — build all six</button>`}
     <button class="btn" style="width:100%;margin-top:8px;${full?'background:linear-gradient(#c9a2ff,#8a5fd0);color:#fff':'opacity:.45'}" ${full?'onclick="g2ascend()"':'disabled'}>⬆ ASCEND to ${cat.ladder[idx+1]||'MAX'}${bonusText} — consumes all six</button>`;
   // (27 Aug, Phil: the Fragments strip lives in the Bag — not on the hero card)
   const fragHtml='';
   const asc=Object.entries(b.ascended||{});
-  const ascLine=asc.length?`<div style="font-size:10px;color:#8b98a9;margin-top:8px"><b style="color:#c9a2ff">Ascended bonuses:</b> ${asc.map(([k,v])=>k+' +'+v.val+(v.pct?'%':'')).join(' · ')}</div>`:'';
+  const ascLine=asc.length?`<div style="font-size:10px;color:#8b98a9;margin-top:8px"><b style="color:#c9a2ff">Ascended bonuses:</b> ${asc.map(([k,v])=>k+' +'+v.val+('')).join(' · ')}</div>`:'';
   return `<div class="panel">${head}
     ${board}${fragHtml}${ascLine}</div>`;
 }
@@ -22714,7 +22718,7 @@ function renderHeroDetail(){
       ['❤ Health',S_HP],['♻ HP Regen',regenStr],
       ['🛡 Armor',armorFlat+_pct(armorFlat)],['🔮 Magic Resistance',mrFlat+_pct(mrFlat)],
       ['⚔ Attack Damage',S_ATK],['✨ Ability Power',S_APOW],
-      ['✦ Crit Chance',Math.round((mul.crit||0)*100)+'%'],['✚ Crit Resistance',Math.round((mul.critRes||0)*100)+'%'],
+      ['✦ Crit Chance',Math.round(Math.min(0.6,(mul.crit||0)+(CLASS_BASE_CRIT[t.role]||0))*100)+'%'],['✚ Crit Resistance',Math.round((mul.critRes||0)*100)+'%'],
       ['⚡ Attack Speed',S_APS+' /s'],['🔋 Energy Regen',enrStr],
       ['🎯 Type',t.range>=60?'Ranged':'Melee'],['🧭 Combat row',t.combatRow],['⚔ Class',t.role],['✦ Damage',t.damageProfile],['↗ Scaling',t.primaryScaling]];
     tab=`<div class="panel"><div style="display:grid;grid-template-columns:1fr 1fr;gap:7px 14px;font-size:12px">${rows.map(([n,v])=>`<div style="display:flex;justify-content:space-between;border-bottom:1px solid #1c2434;padding-bottom:4px"><span style="color:#8b98a9">${n}</span><b>${v}</b></div>`).join('')}</div>
@@ -25847,7 +25851,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791134897551';
+const BUILD_ID = '1791141097843';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

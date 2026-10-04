@@ -30,7 +30,7 @@ const PORT=process.env.PORT||8871;
     const exp={ armor:heroStat('vael',ht0.armor||0,'armor')+techTotal('armor')+(tot.armor||0)*3,
       mr:heroStat('vael',ht0.mr||0,'mr')+techTotal('mr')+(tot.mr||0)*3,
       armorPen:(tot.armorPen||0), magicPen:(tot.magicPen||0),
-      crit:Math.min(0.6,(tot.crit||0)*0.005), critRes:Math.min(0.75,(tot.critRes||0)*0.005),
+      crit:Math.min(0.6,(tot.crit||0)*0.0005), critRes:Math.min(0.75,(tot.critRes||0)*0.0005),
       energyReg:(tot.energy||0)*0.01, regen:(tot.regen||0)*0.001 };
     const snap=(await api('/api/admin/snapshot?hero=vael')).snapshot;
     const gs=gearActiveFor('vael');
@@ -54,8 +54,8 @@ const PORT=process.env.PORT||8871;
     const exp2={ armor:heroStat('vael',ht0.armor||0,'armor')+techTotal('armor')+(tot2.armor||0)*3,
       mr:heroStat('vael',ht0.mr||0,'mr')+techTotal('mr')+(tot2.mr||0)*3,
       armorPen:(tot2.armorPen||0), magicPen:(tot2.magicPen||0),
-      crit:Math.min(0.6,(tot2.crit||0)*0.005), critRes:Math.min(0.75,(tot2.critRes||0)*0.005),
-      energyReg:(tot2.energy||0)*0.01, regen:Math.min(0.06,(tot2.regen||0)*0.0001) };   /* v1010: v364 (Phil) made HP Regen 0.01%/pt capped at 6%/s in the client and server; this copy still used 0.1%/pt */
+      crit:Math.min(0.6,(tot2.crit||0)*0.0005), critRes:Math.min(0.75,(tot2.critRes||0)*0.0005),
+      energyReg:(tot2.energy||0)*0.01, regen:Math.min(0.06,(tot2.regen||0)*0.0005) };   /* v1022 (Phil 4 Oct: "all of them 20 = 1%"): the client converts crit, crit resist and HP regen at 0.0005 per point */   /* v1010: v364 (Phil) made HP Regen 0.01%/pt capped at 6%/s in the client and server; this copy still used 0.1%/pt */
     const snap2=(await api('/api/admin/snapshot?hero=vael')).snapshot;
     // CLIENT-side displayed HP/ATK exactly as makeUnit computes them (v232: NO rank multipliers)
     const mm=heroMuls('vael'); const ht=HERO_TYPES['vael']; const lvl=heroLevel('vael');

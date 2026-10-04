@@ -92,7 +92,7 @@ if(Object.keys(HERO_PROFILES).length!==Object.keys(HERO_BASE).length) throw new 
 /* v364: base Armor / Magic Resist by role — the SAME table and defaulting as the client's ROLE_BASE_DEF
    (emberweave-heroes.html, right after HERO_TYPES). Authored values (Fritz 60/90) are kept. */
 const ROLE_BASE_DEF={ Tank:{armor:60,mr:40}, Bruiser:{armor:40,mr:30}, Assassin:{armor:25,mr:20},
-  Marksman:{armor:22,mr:22}, Mage:{armor:15,mr:40}, Support:{armor:22,mr:38} };
+  Marksman:{armor:22,mr:22}, Mage:{armor:15,mr:22}, Support:{armor:22,mr:22} };   /* v1022 (Phil 4 Oct: squishies "certainly shouldnt be tanky"): Mage mr 40 -> 22, Support 38 -> 22 (40 is the Tank base) */
 for(const k in HERO_BASE){ const t=HERO_BASE[k], d=ROLE_BASE_DEF[t.role]||ROLE_BASE_DEF.Bruiser; if(t.armor==null) t.armor=d.armor; if(t.mr==null) t.mr=d.mr; }
 const STAR_MULT=[1,1.15,1.35,1.6,1.9], STAR_PIPS=5, MAX_STARS=5;
 const ROLE_FRONT_ORDER={Tank:0,Bruiser:1,Assassin:2,Marksman:3,Mage:4,Support:5,Control:5};
@@ -124,12 +124,12 @@ function starMultFor(stars,pips){ const lv=Math.max(1,Math.min(MAX_STARS,stars|0
    in its own (Phil: "the classes arent just one stat. they gain all stats. but each class gains
    more of their specific stat"). Star multiplier still multiplies the level-adjusted base. */
 const ROLE_GROWTH={
-  Tank    :{hp:34,dmg:0.9,apow:0.3,armor:12,mr:8},
-  Bruiser :{hp:22,dmg:1.6,apow:0.4,armor:8, mr:6},
-  Assassin:{hp:15,dmg:2.2,apow:0.3,armor:5, mr:4},
-  Marksman:{hp:13,dmg:2.0,apow:0.4,armor:4, mr:4},
-  Support :{hp:13,dmg:0.5,apow:1.6,armor:4, mr:7},
-  Mage    :{hp:11,dmg:0.6,apow:2.0,armor:3, mr:8} };
+  Tank    :{hp:34,dmg:0.6,apow:0.3,armor:12,mr:8},
+  Bruiser :{hp:34,dmg:2.4,apow:0.4,armor:8, mr:6},
+  Assassin:{hp:25,dmg:3.0,apow:0.3,armor:5, mr:4},
+  Marksman:{hp:23,dmg:2.2,apow:0.4,armor:4, mr:4},
+  Support :{hp:23,dmg:0.5,apow:1.0,armor:4, mr:4},
+  Mage    :{hp:23,dmg:0.6,apow:0.5,armor:1, mr:4} };   /* v1020 (Phil 4 Oct: mages too strong) apow 2.0 -> 0.5; Phil 4 Oct "they certainly shouldnt be tanky": Mage mr 8 -> 4, Support 7 -> 4 (the Marksman/Assassin rate; 8 is the Tank rate) */
 /* v1019 (Phil 4 Oct: "magic tanks should have about 18k hp, melee tanks about 22k" - glyphs and base stats, at max): a Tank's HP growth per level depends on its damage profile. MUST stay identical in emberweave-heroes.html and server/sim.js. */
 const TANK_HP_GROWTH={Attack:70, Magic:54};
 /* Returns a COPY of the hero base with every stat advanced to `lvl`. Heroes whose role is missing

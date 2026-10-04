@@ -455,6 +455,14 @@ function migrateTankGlyphPath(){ let n=0;
     for(const k of TANK_PATH_FIX_1019){ const b=g.boards[k]; if(b&&(b.ascensionIndex|0)>0){ b.ascended=glyphAscendedFromPlan(k,b.ascensionIndex); n++; } }
     g.tankPath1019=1; }
   if(n){ console.log('🛡 recomputed '+n+' melee-tank glyph board(s) from the corrected path (v1019)'); writeDB(); } }
+/* v1022 balance layer 1 (Phil 4 Oct: base stats + glyphs + skills): the personal glyph paths changed for mages, marksmen,
+   assassins, bruisers and tanks, and glyph values changed (Healing Power x4). A board's banked stats (ascended) were summed
+   from the OLD path - every board is recomputed once from the current path and values. Marker glyphs.paths1022. */
+function migrateGlyphPaths1022(){ let n=0;
+  for(const u of Object.values(DB.users||{})){ const g=u&&u.glyphs; if(!g||!g.boards||g.paths1022) continue;
+    for(const k of Object.keys(g.boards)){ const b=g.boards[k]; if(b&&(b.ascensionIndex|0)>0&&SIM.HERO_BASE[k]){ b.ascended=glyphAscendedFromPlan(k,b.ascensionIndex); n++; } }
+    g.paths1022=1; }
+  if(n){ console.log('🔮 recomputed '+n+' glyph board(s) from the v1022 paths and values'); writeDB(); } }
 function migrateTokenHashes(){ let n=0;
   for(const k of Object.keys(DB.tokens)){ const v=DB.tokens[k];
     if(typeof v==='string'){ DB.tokens[tokHash(k)]={id:v, iat:Date.now(), exp:Date.now()+TOKEN_TTL_MS}; delete DB.tokens[k]; n++; } }
@@ -1011,7 +1019,7 @@ function glyphTreeLeaf(g, key, qty){ return { kind:'fragment', key, fragmentId:g
 const GLYPH_TREE_MAX_DEPTH=6, GLYPH_TREE_MAX_NODES=900;
 function glyphTreeStub(def, inherited){ return { kind:'finishedGlyph', blueprintId:def.id, name:def.name,
   quality:def.quality, family:def.family, strength:def.strength,
-  stats:def.stats.map(s=>s.stat+' +'+s.val+(s.pct?'%':'')), children:[], truncated:true, inherited:!!inherited }; }
+  stats:def.stats.map(s=>s.stat+' +'+s.val+('')), children:[], truncated:true, inherited:!!inherited }; }
 function glyphTreeChildren(g, def, ctx, inherited){ const kids=[];
   for(const ing of def.ing){
     if(ing.kind==='frag'){ ctx.nodes++; kids.push(Object.assign(glyphTreeLeaf(g, ing.key, ing.qty),{inherited:!!inherited})); }
@@ -1026,7 +1034,7 @@ function glyphTreeChildren(g, def, ctx, inherited){ const kids=[];
 function glyphTreeFinished(g, def, ctx, inherited){ ctx=ctx||{depth:0,nodes:0}; ctx.nodes++;
   const node={ kind:'finishedGlyph', blueprintId:def.id, name:def.name,
     quality:def.quality, family:def.family, strength:def.strength,
-    stats:def.stats.map(s=>s.stat+' +'+s.val+(s.pct?'%':'')), children:[], inherited:!!inherited };
+    stats:def.stats.map(s=>s.stat+' +'+s.val+('')), children:[], inherited:!!inherited };
   ctx.depth++; node.children=glyphTreeChildren(g, def, ctx, inherited); ctx.depth--;
   return node; }
 /* v242: can EVERY empty slot on this board be built at once (combined cumulative cost)? */
@@ -1366,7 +1374,7 @@ function glyphFlatStats(u,key){
   for(const st in (b.ascended||{})){ if(!b.ascended[st].pct) add(st,b.ascended[st].val); addRate(st,b.ascended[st].val); }
   for(const iid of (b.slots||[])){ if(!iid) continue; const inst=g.finished[iid]; const d=inst&&GLYPHS.byId[inst.definitionId];
     if(d) for(const sst of d.stats){ if(!sst.pct) add(sst.stat,sst.val); addRate(sst.stat,sst.val); } }
-  out.crit=Math.min(60,out.crit);
+  /* v1020: no 60-point crit cap - a crit point is 0.05% (combat-core CONV.critPerPt), only the 60% overall cap remains */
   for(const k in out) out[k]=Math.round(out[k]);
   return out;
 }
@@ -2116,7 +2124,7 @@ function warLinesValidate(u, raw){
    of that member's lines: 35 owned is exactly 7 lines, 34 is 6 lines with 4 spare. The rule is a
    property of how a line is built, not a check run afterwards, so nothing can route around it. */
 /* v785 (Phil: "skill level should raise power") - a hero's skill factor: the mean of the four
-   slots on the game's own curve (SKILL_STEP 0.0135, x2.337 at level 100). All four slots scale
+   slots on the game's own curve (SKILL_STEP 0.0120, x2.188 at level 100 (was 0.0135 / x2.337 until v1022)). All four slots scale
    their effects from v785, so all four are strength. Every slot at 1 returns exactly 1, so nobody
    who has bought no skills sees their power move. */
 function heroSkillFactor(h){
@@ -4200,7 +4208,9 @@ async function api(req,res,url){
   if(p==='/api/admin/snapshot'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
     // parity-harness support: the server-resolved combat snapshot for one of MY heroes, so a client
     // harness can compare its own resolved unit stats field-by-field against the server's.
-    const hk=String(url.searchParams.get('hero')||''); const snap=snapshotHeroFromServer(me,hk);
+    const hk=String(url.searchParams.get('hero')||'');
+    if(url.searchParams.get('spec')==='1'){ const sp=validHero(hk)?campaignHeroSpec(me,hk):null; return sp?send(res,200,{spec:sp}):send(res,400,{error:'unknown hero'}); }   /* v1020: the balance harness (tools/balance-arena.js) fights the real engine with the real battle spec */
+    const snap=snapshotHeroFromServer(me,hk);
     if(!snap) return send(res,400,{error:'unknown hero'});
     return send(res,200,{snapshot:snap}); }
   if(p==='/api/admin/online'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
@@ -8265,7 +8275,7 @@ const BOOT_FILE_M=(function(){ try{ return fs.statSync(DB_FILE).mtimeMs; }catch(
    world. Everything that persists is now suppressed until the restore decision lands, the mtime is
    sampled once up front, and seed()/backupDB()/listen happen exactly once, afterwards. */
 function bootFinish(){ if(_booted) return; _booted=true; PG_BOOT_PENDING=false;
-  seed(); migrateAdminRoles(); migrateTokenHashes(); migrateDeviceKeys(); migrateTankGlyphPath();   /* v1019 */   // stamp role:admin from ADMIN_IDS; hash any plaintext tokens (v241: the Vault, like the Campaign, refuses to boot without its authored table)
+  seed(); migrateAdminRoles(); migrateTokenHashes(); migrateDeviceKeys(); migrateTankGlyphPath();   /* v1019 */ migrateGlyphPaths1022();   /* v1022 */   // stamp role:admin from ADMIN_IDS; hash any plaintext tokens (v241: the Vault, like the Campaign, refuses to boot without its authored table)
   migrateLegacyFeedback();
   migrateBlockedWorldCastles();
   migrateHeroIdsAll();   /* v926: rewrite old hero ids to in-game-name keys in every stored ledger/profile (once, stamped led.idv=2) */

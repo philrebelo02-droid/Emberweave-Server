@@ -11,7 +11,9 @@ const ref15=sim.heroCombatStats('vael',{level:100,stars:5,pips:0,ref:15});
 const expected=2.90/1.90;
 for(const k of ['maxHp','atkP','armor','mr']){
   const got=ref15[k]/ref0[k];
-  const tolerance=(k==='armor'||k==='mr')?1e-9:0.002;
+  // atkP/maxHp are rounded integers: the honest tolerance is ONE rounding unit at the base value (v1022: Vael's base Attack is 170,
+  // so 170 x 2.90/1.90 = 259.47 rounds to 259 - a 0.0029 ratio miss that a fixed 0.002 called a wrong multiplier)
+  const tolerance=(k==='armor'||k==='mr')?1e-9:Math.max(0.002,0.5/ref0[k]+1e-9);
   ck('refinement scales '+k+' with the same multiplier',Math.abs(got-expected)<tolerance,'got '+got+' expected '+expected);
 }
 const temple=require('../server/temple-of-ash.js'),effects=require('../server/temple-effects.js');

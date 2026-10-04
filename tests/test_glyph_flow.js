@@ -44,8 +44,10 @@ ck('marksman (meridian): mastery forges Crit', /Crit/.test(stats(pre('meridian',
 ck('tank (grosk): bulwark forges Armor', /Armor|Block/.test(stats(pre('grosk',1))));
 ck('UNIVERSAL: every archetype gets an HP vitality glyph',
    ['vael','sylthaine','grosk','meridian','vireo'].every(h=>/HP|Health/.test(stats(pre(h,0)))));
-ck('caster identity holds at higher tiers too (sylthaine Purple onslaught = magical)',
-   /Ability Power|Magic Pen|Control/.test(stats(pre('sylthaine',2,6))));
+// v1022 balance layer 1 (Phil 4 Oct "Balance looks good"): a mage's onslaught slot is Sunder (damage bonus) from Blue - the cut that brought
+// mage Ability Power to 1,039. The caster rule is that a caster never forges a marksman's stat: no Physical Attack in that slot.
+ck('caster identity holds at higher tiers too (sylthaine Purple onslaught never forges Physical Attack)',
+   !/Physical Attack/.test(stats(pre('sylthaine',2,6))) && /Ability Power|Magic Pen|Control/.test(stats(pre('sylthaine',2,0))));
 const v5=S.vaultGlyphFragsFor(5), v5b=S.vaultGlyphFragsFor(5);
 ck('vault floor 5 fragments are named and fixed', Array.isArray(v5)&&v5.length===2&&JSON.stringify(v5)===JSON.stringify(v5b)&&v5.every(k=>/^Grey /.test(k)));
 const r1=S.makeStandardDungeonFloorReward(5), r2=S.makeStandardDungeonFloorReward(5);

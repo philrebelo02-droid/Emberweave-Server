@@ -33,21 +33,21 @@ function defToDR(r,lvl){ return r>0 ? r/(r+defK(lvl==null?1:lvl)) : 0; }
 /* ---- rating→fraction conversions (points from glyphs/gear are RATINGS; these are the only
         places they become percentages, shared by every battle authority) ---- */
 const CONV={
-  critPerPt:0.005, critCap:0.6,            // Crit Chance
-  critDmgPerPt:0.005,                      // Crit Damage: adds to the 0.6 crit BONUS
-  critResPerPt:0.005, critResCap:0.75,     // shrinks the crit bonus
+  critPerPt:0.0005, critCap:0.6,           // Crit Chance - v1020 (Phil 4 Oct): 20 crit = 1%
+  critDmgPerPt:0.0005,                     // Crit Damage: adds to the 0.6 crit BONUS - v1020 (Phil 4 Oct): every rating stat is 20 points = 1%
+  critResPerPt:0.0005, critResCap:0.75,     // shrinks the crit bonus
   defPtMul:3,                              // glyph Armor/MR points → defense rating
-  evaPerPt:0.003, evaCap:0.30,             // Evasion (chance to dodge), countered by Accuracy pts
-  blockPerPt:0.003, blockCap:0.30,         // Block halves a PHYSICAL hit
-  lifestealPerPt:0.004, lifestealCap:0.5,
-  dmgBonusPerPt:0.004,
-  dmgRedPerPt:0.004, dmgRedCap:0.30,
-  atkSpdPerPt:0.004,                       // Attack Speed points speed the swing timer
-  hastePerPt:0.004,                        // Haste speeds energy gain
+  evaPerPt:0.0005, evaCap:0.30,             // Evasion (chance to dodge), countered by Accuracy pts
+  blockPerPt:0.0005, blockCap:0.30,         // Block halves a PHYSICAL hit
+  lifestealPerPt:0.0005, lifestealCap:0.5,
+  dmgBonusPerPt:0.0005,
+  dmgRedPerPt:0.0005, dmgRedCap:0.30,
+  atkSpdPerPt:0.0005,                      // Attack Speed points speed the swing timer - v1020 (Phil 4 Oct): 20 = 1%
+  hastePerPt:0.0005,                        // Haste speeds energy gain
   mobilityPerPt:0.001, mobilityCap:0.30,    // Forge Move Speed / Range: 100 pts = 10%
-  shieldStrPerPt:0.005,
-  ctrlHitPerPt:0.004,                      // Control Hit: raises stun chance
-  ctrlResPerPt:0.005, ctrlResCap:0.6,      // Tenacity/Control Resist: shrinks stun duration/chance
+  shieldStrPerPt:0.0005,
+  ctrlHitPerPt:0.0005,                      // Control Hit: raises stun chance
+  ctrlResPerPt:0.0005, ctrlResCap:0.6,      // Tenacity/Control Resist: shrinks stun duration/chance
   energyPer100:1                            // 100 Energy Regen rating = +1 energy/second
 };
 
@@ -127,6 +127,8 @@ const DEFAULT_KIT={kind:'phys',shape:'nuke',coef:2.2};
    critDmg,critRes, energy,startEnergy, regen, lifesteal,atkSpd,haste, eva,acc,block, dmgBonus,
    dmgRed, shieldStr, ctrlHit,ctrlRes, healPow} (all raw points unless noted); defScale scales the
    BASE armor/mr like the client (1+0.05·(lvl−1))·starMult. ---- */
+/* v1020 (Phil 4 Oct): class base crit chance - identical to emberweave-heroes.html CLASS_BASE_CRIT */
+const CLASS_BASE_CRIT={Marksman:0.10, Assassin:0.10, Bruiser:0.03, Mage:0.02, Tank:0, Support:0};
 function buildUnit(key, base, mul, defScale, r, extra){
   r=r||{}; extra=extra||{};
   const armor=(base.armor||0)*defScale + (r.armor||0)*CONV.defPtMul + (extra.armorRating||0);
@@ -145,12 +147,12 @@ function buildUnit(key, base, mul, defScale, r, extra){
     rangeMul:1+Math.min(CONV.mobilityCap,(r.range||0)*CONV.mobilityPerPt),
     armor, mr,
     armorPen:Math.max(0,r.armorPen|0), magicPen:Math.max(0,r.magicPen|0),
-    crit:Math.min(CONV.critCap,(r.crit||0)*CONV.critPerPt + (extra.critFrac||0)),
+    crit:Math.min(CONV.critCap,(r.crit||0)*CONV.critPerPt + (extra.critFrac||0) + (CLASS_BASE_CRIT[base.role]||0)),
     critDmg:0.6+(r.critDmg||0)*CONV.critDmgPerPt,
     critRes:Math.min(CONV.critResCap,(r.critRes||0)*CONV.critResPerPt+(extra.critResFrac||0)),
     energyReg:(r.energy||0)*CONV.energyPer100/100 + (extra.energyRegFlat||0),
     startEnergy:Math.max(0,Math.min(60,Math.round((r.startEnergy||0)*0.35))),
-    regen:Math.min(0.06,(r.regen||0)*0.0001),   // v364: 0.01% max-HP/s per point, cap 6%/s (was 0.1%/pt uncapped — mirrors the client mulsFromTotals)
+    regen:Math.min(0.06,(r.regen||0)*0.0005),   /* v1020: 20 points = 1% max HP/s */   // v364: 0.01% max-HP/s per point, cap 6%/s (was 0.1%/pt uncapped — mirrors the client mulsFromTotals)
     lifesteal:Math.min(CONV.lifestealCap,(r.lifesteal||0)*CONV.lifestealPerPt),
     eva:Math.min(CONV.evaCap,(r.eva||0)*CONV.evaPerPt), acc:(r.acc||0),
     block:Math.min(CONV.blockCap,(r.block||0)*CONV.blockPerPt),
@@ -160,7 +162,7 @@ function buildUnit(key, base, mul, defScale, r, extra){
     shieldStr:1+(r.shieldStr||0)*CONV.shieldStrPerPt,
     ctrlHit:(r.ctrlHit||0)*CONV.ctrlHitPerPt,
     ctrlRes:Math.min(CONV.ctrlResCap,(r.ctrlRes||0)*CONV.ctrlResPerPt),
-    healPow:(r.healPow||0)*0.004,
+    healPow:(r.healPow||0)*0.0005,   /* v1020: 20 points = 1% */
     kit:KITS[key]||extra.kit||DEFAULT_KIT,
     /* v762 - the four skill levels, and the multiplier the ultimate fires at. */
     skillLv:(Array.isArray(extra.skillLv)&&extra.skillLv.length===4)?extra.skillLv.slice():[1,1,1,1],
@@ -240,12 +242,12 @@ function grantShield(log, round, side, src, tgt, amt){
 /* v762 (Phil: "skill level directly increases the scale of skills") - SKILL LEVELS SCALE THE KIT.
    They reached this file for the first time in v762: `skillLv` appeared nowhere in it, so every
    war fight was resolved as though every skill sat at level 1 and a player's upgrades did nothing.
-   The curve is the client's, to the digit - SKILL_STEP 0.0135, x2.337 at level 100 - and it lives
+   The curve is the client's, to the digit - SKILL_STEP 0.0120, x2.188 at level 100 (was 0.0135 / x2.337 until v1022) - and it lives
    here because this file owns the formulas both sides share.
    Slot 0 is the ultimate, which is the only ability this resolver has; 1/2/3 are the client's
    green, blue and passive and have nothing to scale here. They ride along on the unit so a future
    resolver can use them, and they change nothing today. */
-const SKILL_STEP=0.0135;
+const SKILL_STEP=0.0120;
 /* v787 - control loses one percentage point of its chance for every level the SKILL is below the
    TARGET. Phil's figures: a level 70 skill on a level 70 hero always lands; a level 1 skill on a
    level 100 hero lands 1 time in 100. */
