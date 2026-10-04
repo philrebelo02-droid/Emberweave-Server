@@ -3239,15 +3239,15 @@ const BATTLE_ANIM = {
   hit:{u:'/assets/anim/oakmir/oakmir_hit.webp?v=4',n:20,fw:300,fh:280,cols:6,rows:4,figH:263,feet:278,cx:125,fps:16,flip:false,top:5}
   },
   rhukk:{
-  idle:{u:'/assets/anim/rhukk/rhukk_idle.webp?v=10',n:48,fw:510,fh:427,cols:6,rows:8,figH:294,feet:367,cx:285,fps:24,flip:true,top:73}   /* v1021 (Phil 4 Oct: "slice and wire", nine approved Hailuo states, official watermark-free exports): cut native with cs10 (PAD 60, 48@24, trim 0/0, lossless, ALPHA_SOFT), keys measured off each clip (8,242,9 idle / 7,244,7 walk / 0,241,0 the seven H3), figH 294-297 on every state so he draws one size in every action; ax only on the ult (the dash carries the travel the clip draws); walk = 48 + cells 1,0 (Phil 9 Sep stitch rule) */,
-  walk:{u:'/assets/anim/rhukk/rhukk_walk.webp?v=10',n:50,fw:548,fh:449,cols:6,rows:9,figH:294,feet:387,cx:301,fps:24,flip:true,top:93},
-  attack:{u:'/assets/anim/rhukk/rhukk_attack.webp?v=10',n:48,fw:528,fh:534,cols:6,rows:8,figH:296,feet:474,cx:227,fps:24,flip:true,top:178},
-  crit:{u:'/assets/anim/rhukk/rhukk_crit.webp?v=1',n:48,fw:538,fh:545,cols:6,rows:8,figH:294,feet:484,cx:261,fps:24,flip:true,top:190},
-  hit:{u:'/assets/anim/rhukk/rhukk_hit.webp?v=10',n:48,fw:554,fh:502,cols:6,rows:8,figH:296,feet:440,cx:321,fps:24,flip:true,top:144},
-  ult:{u:'/assets/anim/rhukk/rhukk_ult.webp?v=10',n:48,fw:573,fh:435,cols:6,rows:8,figH:296,feet:360,cx:231,fps:24,flip:true,top:64,rush:{launch:12,fly:13,land:14},ax:[0,0,2,3,12,20,44,59,53,54,45,31,57,160,160,156,156,156,156,156,156,156,135,118,61,20,21,21,21,21,20,20,21,20,20,20,20,20,20,20,19,-7,-4,4,1,1,1,2]}   /* v1021 Impale Rush: wind-up 0-11, horn-led launch 12, flight 13 (held for the whole dash), impact 14-21, recovery 22-47 */,
-  green:{u:'/assets/anim/rhukk/rhukk_green.webp?v=10',n:48,fw:436,fh:418,cols:6,rows:8,figH:296,feet:357,cx:212,fps:24,flip:true,top:61},
-  blue:{u:'/assets/anim/rhukk/rhukk_blue.webp?v=10',n:48,fw:574,fh:510,cols:6,rows:8,figH:297,feet:448,cx:302,fps:24,flip:true,top:151},
-  passive:{u:'/assets/anim/rhukk/rhukk_passive.webp?v=1',n:48,fw:484,fh:474,cols:6,rows:8,figH:296,feet:382,cx:248,fps:24,flip:true,top:86}
+  idle:{u:'/assets/anim/rhukk/rhukk_idle.webp?v=10',n:48,fw:510,fh:427,cols:6,rows:8,figH:294,feet:367,cx:285,fps:24,flip:false,top:73}   /* v1021 (Phil 4 Oct: "slice and wire", nine approved Hailuo states, official watermark-free exports): cut native with cs10 (PAD 60, 48@24, trim 0/0, lossless, ALPHA_SOFT), keys measured off each clip (8,242,9 idle / 7,244,7 walk / 0,241,0 the seven H3), figH 294-297 on every state so he draws one size in every action; flip:false - these clips face RIGHT (the old 12-frame sheets faced left); ax only on the ult (the dash carries the travel the clip draws); walk = 48 + cells 1,0 (Phil 9 Sep stitch rule) */,
+  walk:{u:'/assets/anim/rhukk/rhukk_walk.webp?v=10',n:50,fw:548,fh:449,cols:6,rows:9,figH:294,feet:387,cx:301,fps:24,flip:false,top:93},
+  attack:{u:'/assets/anim/rhukk/rhukk_attack.webp?v=10',n:48,fw:528,fh:534,cols:6,rows:8,figH:296,feet:474,cx:227,fps:24,flip:false,top:178},
+  crit:{u:'/assets/anim/rhukk/rhukk_crit.webp?v=1',n:48,fw:538,fh:545,cols:6,rows:8,figH:294,feet:484,cx:261,fps:24,flip:false,top:190},
+  hit:{u:'/assets/anim/rhukk/rhukk_hit.webp?v=10',n:48,fw:554,fh:502,cols:6,rows:8,figH:296,feet:440,cx:321,fps:24,flip:false,top:144},
+  ult:{u:'/assets/anim/rhukk/rhukk_ult.webp?v=10',n:48,fw:573,fh:435,cols:6,rows:8,figH:296,feet:360,cx:231,fps:24,flip:false,top:64,rush:{launch:12,fly:13,land:14},ax:[0,0,2,3,12,20,44,59,53,54,45,31,57,160,160,156,156,156,156,156,156,156,135,118,61,20,21,21,21,21,20,20,21,20,20,20,20,20,20,20,19,-7,-4,4,1,1,1,2]}   /* v1021 Impale Rush: wind-up 0-11, horn-led launch 12, flight 13 (held for the whole dash), impact 14-21, recovery 22-47 */,
+  green:{u:'/assets/anim/rhukk/rhukk_green.webp?v=10',n:48,fw:436,fh:418,cols:6,rows:8,figH:296,feet:357,cx:212,fps:24,flip:false,top:61},
+  blue:{u:'/assets/anim/rhukk/rhukk_blue.webp?v=10',n:48,fw:574,fh:510,cols:6,rows:8,figH:297,feet:448,cx:302,fps:24,flip:false,top:151},
+  passive:{u:'/assets/anim/rhukk/rhukk_passive.webp?v=1',n:48,fw:484,fh:474,cols:6,rows:8,figH:296,feet:382,cx:248,fps:24,flip:false,top:86}
   },
   carn:{
     idle:{u:'/assets/anim/carn/carn_idle.webp?v=21',n:48,fw:351,fh:456,cols:6,rows:8,figH:400,feet:435,cx:139,fps:24,flip:true,top:35,pingpong:true,ax:[0,14,8,-11,-47,-49,2,-44,-61,-75,-101,-100,-81,-66,-49,-43,-29,-16,-11,2,11,1,-12,-7,8,21,41,40,-35,1,-20,-60,-79,-91,-108,-90,-74,-66,-52,-37,-30,-19,-9,-3,9,-3,-12,-15]},
@@ -13298,9 +13298,9 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
              flight frame holds while the dash carries him to the target, and the impact + recovery play from the landing. The
              cast time is the launch frame (ABILITY_CAST), so the dash starts as he lunges; nothing here moves game logic. */
           const R=A.rush, f=(A.fps||24);
-          if(u._dash) fr=R.fly;
+          if(u._dash){ fr=R.fly; u._rushFace=u._faceDir||u._rushFace; }   // the facing he launched in (held through impact - see below)
           else if(u._rushLandAt!=null && u._rushLandAt>=u._abilStartAt) fr=Math.min(A.n-1, R.land+Math.floor((battleTime-u._rushLandAt)*f));
-          else fr=Math.min(R.launch, Math.floor((battleTime-u._abilStartAt)*f)); }
+          else { fr=Math.min(R.launch, Math.floor((battleTime-u._abilStartAt)*f)); u._rushFace=null; } }
         else if(_osFrac!==null){ const _per=ppPer(A), _p=Math.floor(_osFrac*_per*((u._dblSwing&&st===_atkSt)?2:1))%_per;   // one-shot: the whole clip, fitted to its hold (v534: twice through for a mirage double swing)
           fr=ppFrame(A,_p); }   // v544: a rubberbanded one-shot runs out AND back inside its hold (the boar shaman's cast/attack) - before this the return leg was never drawn
         else if(A.pingpong && A.n>1){ const per=ppPer(A); let p=Math.floor(u._animAcc)%per; fr=ppFrame(A,p); }
@@ -13313,6 +13313,8 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
         if(waveXfer && st==='walk' && Math.abs(pdx)>0.08){ desired=pdx>0?1:-1; u._faceDir=desired; }
         else if(foe){ const dxx=foe.x-u.x; if(Math.abs(dxx)>2) u._faceDir=dxx>=0?1:-1; desired=u._faceDir||(u.team==='ally'?1:-1); }
         else desired=u._faceDir||(u.team==='ally'?1:-1);
+        /* v1021: Impale Rush lands ON its target, where the foe's side is a coin toss - he keeps the facing he charged in until the clip ends */
+        if(st==='ult' && A.rush && u._rushFace && u._rushLandAt!=null && u._rushLandAt>=(u._abilStartAt||0)){ desired=u._rushFace; u._faceDir=desired; }
         // FLIP VIA TEXTURE UV — THREE r128 Sprites ignore a negative scale.x (verified), so mirroring the
         // sheet frame's UVs is the only reliable way to face the sprite. Source art faces LEFT when A.flip is
         // set (sourceRight = !A.flip); mirror the frame whenever the wanted on-screen facing differs from that.
@@ -25845,7 +25847,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791134450492';
+const BUILD_ID = '1791134897551';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
