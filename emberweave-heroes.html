@@ -12624,13 +12624,16 @@ function endBattle(won){
   if(CUR.mode==='graid' && CUR.attemptId){ const att=CUR.attemptId, RB=CUR.raid||{}; CUR.attemptId=null;   /* v666: guild raid boss */
     const _log=(INPUT_LOG||[]).slice(0,400), _dmg=raidDamageDone(), _killed=!units.some(u=>u.team==='enemy'&&u._raidBoss&&u.alive);
     resultLater(async(ep)=>{ let r=null;
-      try{ r=await api('/api/guild/raid/resolve','POST',{attemptId:att, requestId:uid8(), inputLog:_log, dmg:_dmg}); }catch(e){ r=null; }
+      /* v984 (3 Oct Guild audit #9): ONE requestId, re-sent on a lost reply or a refused save - a fight the server booked answers with its saved receipt */
+      const _rid=uid8();
+      for(let _try=0;_try<3;_try++){ try{ r=await api('/api/guild/raid/resolve','POST',{attemptId:att, requestId:_rid, inputLog:_log, dmg:_dmg}); }catch(e){ r=null; }
+        if(!(r&&(r.error==='offline'||r.storageFailed))||_try===2) break; await new Promise(z=>setTimeout(z,1500*(_try+1))); }
       if(resultStale(ep)){ if(r&&r.ledger) adoptLedger(r.ledger); return; }
       if(r&&r.ledger) adoptLedger(r.ledger);
       const ok=!!(r&&r.ok), dealt=ok?(r.dmg|0):_dmg, fell=!!(r&&r.killed);
-      setResultVerdict(fell||dealt>0, null);
-      document.getElementById('resultTitle').textContent=fell?'BOSS FELLED':(dealt>0?'DAMAGE DEALT':'NO DAMAGE');
-      document.getElementById('resultTitle').className='result-big '+((fell||dealt>0)?'win':'lose');
+      setResultVerdict(ok&&(fell||dealt>0), null);
+      document.getElementById('resultTitle').textContent=!ok?'NOT COUNTED':(fell?'BOSS FELLED':(dealt>0?'DAMAGE DEALT':'NO DAMAGE'));   // v984: an uncounted run never claims damage
+      document.getElementById('resultTitle').className='result-big '+((ok&&(fell||dealt>0))?'win':'lose');
       document.getElementById('resultReward').innerHTML = ok
         ? `<div style="font-size:11px;letter-spacing:1px;color:#8b98a9;margin-bottom:4px">${escapeHTML(RB.name||'RAID BOSS')} · TIER ${RB.tier|0}</div>`
           +`<div style="font-size:15px;font-weight:800;color:#ffbf69;margin-bottom:4px">${dealt.toLocaleString()} damage</div>`
@@ -25760,7 +25763,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791091225004';
+const BUILD_ID = '1791091290695';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
