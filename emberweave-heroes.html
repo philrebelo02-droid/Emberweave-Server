@@ -18178,9 +18178,12 @@ function sweepStage(i,times,mode){
   G.lastStage=i; G.lastPortal=mode;   // the roadmap comes back to the stage you actually played
   // AUDIT C1/C2: sweeps are SERVER-authorized — stamina, gold, player XP and hero XP move on the
   // ledger; the client only applies legacy material drops and shows the totals.
-  (async()=>{
+  if(sweepStage._busy) return; sweepStage._busy=true;   // v983 (3 Oct Arena+Campaign audit #10): a double tap swept twice
+  (async()=>{ try{
     syncActiveSquad();   // 28 Aug: Sweep never went through the BATTLE button, so it still swept with the PREVIOUS line-up
-    const r=await api('/api/campaign/sweep','POST',{mode, node:i, times, heroIds:(G.team||[]).filter(Boolean).slice(0,5), requestId:uid8()});
+    const _rid=uid8(), _ids=(G.team||[]).filter(Boolean).slice(0,5); let r=null;
+    for(let _try=0;_try<3;_try++){ r=await api('/api/campaign/sweep','POST',{mode, node:i, times, heroIds:_ids, requestId:_rid});
+      if(!(r&&(r.error==='offline'||r.storageFailed))||_try===2) break; await new Promise(z=>setTimeout(z,1500*(_try+1))); }
     if(!r||!r.ok){ document.getElementById('smMsg').textContent=(r&&r.error)||'Sweep failed — check your connection.'; await ledgerSync(); return; }
     adoptLedger(r.ledger);
     let frags=0, um='';
@@ -18216,7 +18219,7 @@ function sweepStage(i,times,mode){
     document.getElementById('smMsg').textContent='';
     if(typeof glyphV2Sync==='function') glyphV2Sync();
     saveG(); updateHubChrome(); if(typeof renderCampaign==='function'&&state==='campaign')renderCampaign();
-  })();
+  } finally { sweepStage._busy=false; } })();
 }
 
 /* ===== GLOSSARY (bestiary + hero codex) ===== */
@@ -20019,11 +20022,12 @@ function renderArena(){ const b=document.getElementById('arenaBody');
        server refused or the request never arrived. One dropped request cost the player that day's
        diamonds, gold and coins with nothing to show for it. The day is now only marked claimed once
        the server has actually paid. */
-    const _finish=()=>{ G.arenaCoins=(G.arenaCoins||0)+dr.coins; G.arenaDailyDay=arenaDayKey(); G.lastArenaDaily=Date.now();
+    /* v983 (3 Oct Arena audit #11): signed in, the message and coins are the SERVER's reward, not the local table */
+    const _finish=(rw)=>{ rw=rw||dr; G.arenaCoins=(G.arenaCoins||0)+(rw.coins|0); G.arenaDailyDay=arenaDayKey(); G.lastArenaDaily=Date.now();
       saveG(); updateHubChrome(); renderArena();
-      const dm=document.getElementById('dailyMsg'); if(dm) dm.textContent=`Claimed! 💎 +${dr.gems} · 🪙 +${dr.gold.toLocaleString()} · 🎟️ +${dr.coins}`; };
+      const dm=document.getElementById('dailyMsg'); if(dm) dm.textContent=`Claimed! 💎 +${rw.gems|0} · 🪙 +${(rw.gold|0).toLocaleString()} · 🎟️ +${rw.coins|0}`; };
     if(ACC.token){ api('/api/arena/daily-claim','POST',{requestId:uid8()}).then(r=>{
-        if(r&&r.ok){ adoptLedger(r.ledger); _finish(); }
+        if(r&&r.ok){ adoptLedger(r.ledger); _finish(r.reward); }
         else { bannerMsg((r&&r.error)||'The daily could not be claimed — try again in a moment.'); ledgerSync(); } })
       .catch(()=>{ bannerMsg('Connection lost — the daily is still yours to claim.'); }); }
     else _finish();
@@ -23601,7 +23605,8 @@ async function wellLaunch(ctx){ const Wl=CUR.well||{};
 /* SWEEP: the server pays the best cleared stage's reward for one play — no battle */
 async function provSweep(t){
   if(!ACC.token){ return {error:'Connect to sweep — Training Province rewards are paid by the server.'}; }
-  const r=await api('/api/province/sweep','POST',{type:t, requestId:uid8()});
+  const _rid=uid8(); let r=null;   // v983: one requestId, re-sent on a lost reply / refused save (provsweep is durable since v975)
+  for(let _try=0;_try<3;_try++){ r=await api('/api/province/sweep','POST',{type:t, requestId:_rid}); if(!(r&&(r.error==='offline'||r.storageFailed))||_try===2) break; await new Promise(z=>setTimeout(z,1500*(_try+1))); }
   if(r&&r.ledger) adoptLedger(r.ledger); if(r&&r.prov) provAdopt(r.prov);
   if(r&&r.ok&&r.reward&&r.reward.fragments&&r.reward.fragments.length){ try{ glyphV2Sync(); }catch(e){} }   /* v664 */
   try{ updateHubChrome(); }catch(e){}
@@ -25755,7 +25760,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791090640793';
+const BUILD_ID = '1791091225004';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
