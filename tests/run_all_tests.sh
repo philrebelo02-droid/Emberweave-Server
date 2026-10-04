@@ -135,6 +135,8 @@ note "test_arena_guild_harden.js (3 Oct Arena+Guild audits: elite route retired,
 node tests/test_arena_guild_harden.js || FAILED=1
 note "test_watch_report_rate.js (3 Oct Guild audit #7: an unchanged watch report does not save; 12 changed a minute)"
 node tests/test_watch_report_rate.js || FAILED=1
+note "test_raid_durable.js (3 Oct Guild audit #2: the raid result saves the reward and the guild together, 503 on a failed save)"
+node tests/test_raid_durable.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi

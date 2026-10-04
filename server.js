@@ -7719,47 +7719,53 @@ async function api(req,res,url){
         boss:{key:bb.key, name:bb.name, tier:r.level, hp:r.hp, lvl:bossLvl, def:bossHide(r.level), dmgMul:bossDmgMul(r.level)}, raid:raidView(g) }); }
     if(p==='/api/guild/raid/resolve' && req.method==='POST'){ if(!g) return send(res,400,{error:'You are not in a guild.'});
       const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
-      const out=idem(me.id+':graidres:'+reqId,()=>{
-        const r=ensureRaid(g); r.att=r.att||{};
-        const a=r.att[me.id];
-        if(!a || a.id!==String(b.attemptId||'')) return {ok:false, error:'No matching raid battle.', raid:raidView(g)};
-        r.att[me.id]=null; delete r.att[me.id];
-        if(Date.now()-(a.startedAt||0) > RAID_SESSION_MS) { writeDB(); return {ok:false, expired:true, error:'That raid fight expired.', raid:raidView(g)}; }
-        /* THE DAMAGE IS THE REPLAY'S, NEVER THE CLIENT'S. The player's transcript is replayed against
-           the frozen squad, seed and boss with the game's own battle code (sim-host). */
-        const host=simHost(); let dmg=null, incident=null;
-        const bossSpec={key:a.bossKey, lvl:a.bossLvl, hp:a.bossHp, boss:true, def:bossHide(a.tier||1), dmgMul:bossDmgMul(a.tier||1)};
-        if(host && a.snaps && typeof host.raid==='function'){
-          try{ const rr=host.raid(a.snaps, bossSpec, a.seed>>>0, sanitizeInputLog(b.inputLog).slice(0,400)); dmg=Math.max(0, rr.dmg|0); }   /* 3 Oct Guild audit #1: sanitised like the campaign's - a [null,null] log used to throw into the claim fallback */
-          catch(e){ incident='raid-replay-error: '+e.message; }
-        } else incident='raid-replay-unavailable';
-        if(dmg==null){
-          /* 3 Oct 2026 Guild audit #1 (P0): there is NO claim fallback any more. A replay that cannot run (no host, no frozen squad,
-             or a log that breaks it) used to book the CLIENT's damage number (capped at 12x team power); a forged [null,null] log
-             forced that path on purpose. Now the attempt is put back, nothing moves, and the incident is filed for review. */
-          r.att[me.id]=a;
-          try{ devReport(me,'raid-replay-failed',0,{incident,tier:a.tier,claim:Math.round(Number(b.dmg)||0)}); }catch(e){}
-          return {ok:false, unverified:true, error:'This raid fight could not be checked. Your attempt is kept - fight again.', raid:raidView(g)};
-        }
-        dmg=Math.min(dmg, r.hp);
-        r.hp=Math.max(0, r.hp-dmg); r.contrib[me.id]=(r.contrib[me.id]||0)+dmg;
+      /* v978 (3 Oct Guild audit #2): the raid result is ONE durable commit of the player's reward AND the guild's shared state
+         (boss HP, contribution, guild exp/level/log, the spent attempt). A failed save answers 503 with nothing moved and the
+         attempt still open; the same requestId then books it once. The checks and the replay change nothing, so they run first. */
+      const rkey=me.id+':graidres:'+reqId, prior=DB.idem&&DB.idem[rkey];
+      if(prior&&prior.resp&&prior.resp.ok===true&&Date.now()-prior.t<=86400000) return send(res,200,prior.resp);
+      const r0=ensureRaid(g); r0.att=r0.att||{};
+      const a=r0.att[me.id];
+      if(!a || a.id!==String(b.attemptId||'')) return send(res,200,{ok:false, error:'No matching raid battle.', raid:raidView(g)});
+      if(Date.now()-(a.startedAt||0) > RAID_SESSION_MS){ delete r0.att[me.id]; writeDB(); return send(res,200,{ok:false, expired:true, error:'That raid fight expired.', raid:raidView(g)}); }
+      /* THE DAMAGE IS THE REPLAY'S, NEVER THE CLIENT'S. The player's transcript is replayed against
+         the frozen squad, seed and boss with the game's own battle code (sim-host). */
+      const host=simHost(); let dmg0=null, incident=null;
+      const bossSpec={key:a.bossKey, lvl:a.bossLvl, hp:a.bossHp, boss:true, def:bossHide(a.tier||1), dmgMul:bossDmgMul(a.tier||1)};
+      if(host && a.snaps && typeof host.raid==='function'){
+        try{ const rr=host.raid(a.snaps, bossSpec, a.seed>>>0, sanitizeInputLog(b.inputLog).slice(0,400)); dmg0=Math.max(0, rr.dmg|0); }   /* 3 Oct Guild audit #1: sanitised like the campaign's - a [null,null] log used to throw into the claim fallback */
+        catch(e){ incident='raid-replay-error: '+e.message; }
+      } else incident='raid-replay-unavailable';
+      if(dmg0==null){
+        /* 3 Oct 2026 Guild audit #1 (P0): there is NO claim fallback any more. A replay that cannot run (no host, no frozen squad,
+           or a log that breaks it) used to book the CLIENT's damage number (capped at 12x team power); a forged [null,null] log
+           forced that path on purpose. Now nothing moves, the attempt stays open, and the incident is filed for review. */
+        try{ devReport(me,'raid-replay-failed',0,{incident,tier:a.tier,claim:Math.round(Number(b.dmg)||0)}); }catch(e){}
+        return send(res,200,{ok:false, unverified:true, error:'This raid fight could not be checked. Your attempt is kept - fight again.', raid:raidView(g)});
+      }
+      const out=durableCommit(me,rkey,(du,staged)=>{
+        const gg=Object.values(staged.guilds||{}).find(x=>x&&x.id===g.id); if(!gg) return {ok:false, error:'You are not in a guild.'};
+        const r=ensureRaid(gg); r.att=r.att||{};
+        const sa=r.att[du.id]; if(!sa || sa.id!==a.id) return {ok:false, error:'No matching raid battle.', raid:raidView(gg)};
+        delete r.att[du.id];
+        const dmg=Math.min(dmg0, r.hp);
+        r.hp=Math.max(0, r.hp-dmg); r.contrib[du.id]=(r.contrib[du.id]||0)+dmg;
         let killed=false, reward=null;
         if(r.hp<=0){ killed=true; const lv=r.level;
-          g.exp=(g.exp||0)+250; while((g.level||1)<GMAXLVL && g.exp>=gExpNeed(g.level||1)){ g.exp-=gExpNeed(g.level||1); g.level=(g.level||1)+1; g.log=g.log||[]; g.log.push({sys:1,tx:'The guild reached Level '+g.level+'!',t:Date.now()}); }
-          if((g.level||1)>=GMAXLVL) g.exp=0;
+          gg.exp=(gg.exp||0)+250; while((gg.level||1)<GMAXLVL && gg.exp>=gExpNeed(gg.level||1)){ gg.exp-=gExpNeed(gg.level||1); gg.level=(gg.level||1)+1; gg.log=gg.log||[]; gg.log.push({sys:1,tx:'The guild reached Level '+gg.level+'!',t:Date.now()}); }
+          if((gg.level||1)>=GMAXLVL) gg.exp=0;
           r.level=lv+1; r.max=bossMax(r.level); r.hp=r.max; r.kills=(r.kills||0)+1; r.contrib={};
-          g.log=g.log||[]; g.log.push({sys:1,tx:me.name+' landed the killing blow on '+raidBossFor(lv).name+' (Tier '+lv+')!',t:Date.now()}); if(g.log.length>100)g.log=g.log.slice(-100);
+          gg.log=gg.log||[]; gg.log.push({sys:1,tx:du.name+' landed the killing blow on '+raidBossFor(lv).name+' (Tier '+lv+')!',t:Date.now()}); if(gg.log.length>100)gg.log=gg.log.slice(-100);
           reward={ guildCoins:300*lv, gold:800*lv, gems:15+lv*3, tier:lv }; }
         else { reward={ guildCoins:Math.round(dmg/50) }; }
-        { const led=ensureLedger(me);
-          if(reward.gold) creditGold(me,led,reward.gold,'guild-raid');
-          if(reward.gems) creditGems(me,led,reward.gems,'guild-raid');
+        { const led=ensureLedger(du);
+          if(reward.gold) creditGold(du,led,reward.gold,'guild-raid');
+          if(reward.gems) creditGems(du,led,reward.gems,'guild-raid');
           if(reward.guildCoins) led.guildCoins=Math.min(ECON_CAP.guildCoins,(led.guildCoins|0)+(reward.guildCoins|0));
-          ledTx(me,'guild-raid',reward); }
-        writeDB();
-        return { ok:true, dmg, killed, reward, incident, raid:raidView(g), ledger:ledgerView(me) };
-      });
-      return send(res,200,out); }
+          ledTx(du,'guild-raid',reward); }
+        return { ok:true, dmg, killed, reward, incident, raid:raidView(gg), ledger:ledgerView(du) };
+      },{fields:['guilds','reports','feedback']});
+      return send(res,out&&out.storageFailed?503:200,out); }
     if(p==='/api/guild/raid/assault-old'){ return send(res,400,{error:'The old raid assault is retired - fight the raid boss (Guild -> Raid).'}); }   /* v825: retired (it rolled damage from power with no fight, and a kill threw on the removed BOSS_NAMES) */
     if(false){ if(!g) return send(res,400,{error:'You are not in a guild.'});
       if(rateLimited(req,'graid',30,60000)) return send(res,429,{error:'Slow down.'});
