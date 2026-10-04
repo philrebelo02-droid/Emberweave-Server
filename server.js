@@ -1281,7 +1281,7 @@ function validHero(k){ return typeof k==='string' && Object.prototype.hasOwnProp
 /* 3 Oct Market audit #2: heroes never sold in the Market (client HERO_TYPES source:'purchase' / 'arena'). tests/test_market_harden.js keeps this set equal to the client's. */
 const HERO_NOT_SOLD=new Set(['konwu','grosk','vulmar','aureth','hurne','hollow']);
 /* the Guild Shop's ledger-currency items, by the client GUILD_SHOP slot index (tests/test_guild_shop.js keeps them equal) */
-const GUILD_SHOP_SRV={1:{cost:300,gold:5000},2:{cost:600,gems:50},3:{cost:200,refill:true},6:{cost:700,gold:15000},8:{cost:1500,gems:150},11:{cost:2500,gold:50000}};
+const GUILD_SHOP_SRV={1:{cost:300,gold:5000},2:{cost:600,gems:50},3:{cost:200,refill:true},6:{cost:700,gold:15000},7:{cost:350,res:100},8:{cost:1500,gems:150},11:{cost:2500,gold:50000}};   /* 7: v1008 (re-audit Guild #1) - the Resource Crate's +100 of each map resource lands in the Academy store (it was granted in the browser and the next Academy sync erased it) */
 function heroNotSold(k){ return HERO_NOT_SOLD.has(k); }
 /* 3 Oct: the daily sign-in calendar, server side. SIGNIN_HERO_POOL = the client's HERO_KEYS order without mythical or purchase/arena heroes
    (tests/test_signin.js keeps it equal to the client); the monthly hero is pool[(year*12+month0) % length], as monthlyHeroKey() does. */
@@ -5753,6 +5753,8 @@ async function api(req,res,url){
         const got={};
         if(it.refill){ ledStamRegen(led); const need=Math.max(0,ledStamMax(led)-led.stam.v); if(need<=0) return {ok:false,error:'Stamina is already full.'};
           led.guildCoins=(led.guildCoins|0)-it.cost; creditStamina(me,led,need,'gshop:'+idx); got.stamina=need; }
+        else if(it.res){ const A=ensureAcad(me); led.guildCoins=(led.guildCoins|0)-it.cost; got.res={};
+          for(const r of ACADEMY_ECON.RESOURCES){ A.res[r]=(A.res[r]|0)+it.res; got.res[r]=it.res; } }
         else { led.guildCoins=(led.guildCoins|0)-it.cost;
           if(it.gold){ creditGold(me,led,it.gold,'gshop:'+idx); got.gold=it.gold; } else { creditGems(me,led,it.gems,'gshop:'+idx); got.gems=it.gems; } }
         ledTx(me,'gshop:'+idx,Object.assign({guildCoins:-it.cost},got));

@@ -12,6 +12,7 @@ async function start(){ child=spawn(process.execPath,[srvFile],{cwd:root,env:{..
 async function stop(){ if(!child)return; child.kill(); for(let i=0;i<60&&child.exitCode===null;i++)await delay(50); child=null; }
 async function call(route,data){ const r=await fetch(base+route,{method:data?'POST':'GET',headers:{'Content-Type':'application/json','x-token':token},body:data?JSON.stringify(data):undefined});
   let j={}; try{ j=await r.json(); }catch(_){} return {status:r.status,data:j}; }
+const disk=()=>JSON.parse(fs.readFileSync(dbFile,'utf8'));
 const led=async()=>{ const l=(await call('/api/ledger')).data; return l.ledger||l; };
 async function editDB(fn){ await delay(300); await stop(); const db=JSON.parse(fs.readFileSync(dbFile,'utf8')); fn(db,db.users[id]); fs.writeFileSync(dbFile,JSON.stringify(db)); await start(); }
 (async()=>{ try{
@@ -21,8 +22,8 @@ async function editDB(fn){ await delay(300); await stop(); const db=JSON.parse(f
     const block=html.slice(html.indexOf('const GUILD_SHOP=['),html.indexOf('];',html.indexOf('const GUILD_SHOP=[')));
     const items=[...block.matchAll(/\{name:'([^']*)',desc:'([^']*)',cost:(\d+)(?:,server:'([^']*)')?/g)].map(x=>({name:x[1],desc:x[2],cost:+x[3],server:x[4]||''}));
     const gs=items.map((it,i)=>({i,...it})).filter(it=>/^gshop:/.test(it.server));
-    ok(gs.length===6&&gs.every(it=>it.server==='gshop:'+it.i&&S[it.i]&&S[it.i].cost===it.cost),'every client gshop item sits at its own slot with the server price ('+gs.map(g=>g.i+':'+g.cost).join(',')+')');
-    ok(gs.every(it=>{ const r=S[it.i]; const n=+(it.desc.match(/[\d,]+/)||['0'])[0].replace(/,/g,''); return r.refill?/Refill stamina/.test(it.desc):(r.gold?r.gold===n&&/gold/.test(it.desc):r.gems===n&&/diamond/.test(it.desc)); }),'server rewards equal the client descriptions'); }
+    ok(gs.length===7&&gs.every(it=>it.server==='gshop:'+it.i&&S[it.i]&&S[it.i].cost===it.cost),'every client gshop item sits at its own slot with the server price ('+gs.map(g=>g.i+':'+g.cost).join(',')+')');
+    ok(gs.every(it=>{ const r=S[it.i]; const n=+(it.desc.match(/[\d,]+/)||['0'])[0].replace(/,/g,''); return r.refill?/Refill stamina/.test(it.desc):r.res?(r.res===n&&/map resource/.test(it.desc)):(r.gold?r.gold===n&&/gold/.test(it.desc):r.gems===n&&/diamond/.test(it.desc)); }),'server rewards equal the client descriptions'); }
   port=await freePort(); base='http://127.0.0.1:'+port; await start();
   const g=await call('/api/guest',{deviceId:'gshop-'+Date.now()}); token=g.data.token; id=g.data.profile.id; await call('/api/ledger');
   // not in a guild
@@ -45,6 +46,11 @@ async function editDB(fn){ await delay(300); await stop(); const db=JSON.parse(f
   await editDB((db,u)=>{ db.guilds.gtest.level=3; });
   const c0=await led(); const b6b=await call('/api/shop/buy',{what:'gshop:6',requestId:'gs-6-lv3'}); const c1=await led();
   ok(b6b.data.ok===true&&c1.gold===c0.gold+15000&&c1.guildCoins===c0.guildCoins-700,'slot 6 at guild level 3: -700 coins, +15,000 gold ('+(b6b.data.error||'ok')+')');
+  /* v1008 (re-audit Guild #1): the Resource Crate is a server purchase - +100 of each map resource in the Academy store, once per requestId */
+  const r0=await led(); const res0=Object.assign({},((disk().users[id].led||{}).acad||{}).res||{});
+  const b7=await call('/api/shop/buy',{what:'gshop:7',requestId:'gs-7'}); await call('/api/shop/buy',{what:'gshop:7',requestId:'gs-7'}); const r1=await led(); await delay(300);
+  const res1=((disk().users[id].led||{}).acad||{}).res||{};
+  ok(b7.data.ok===true&&r1.guildCoins===r0.guildCoins-350&&['iron','crystal','silver','coal'].every(k=>(res1[k]|0)===(res0[k]|0)+100),'Resource Crate: -350 coins once, +100 of each map resource on the server ('+(b7.data.error||JSON.stringify(res1))+')');
   const ea=await call('/api/tx/earn',{what:'gold',amount:50000,reason:'guildshop',requestId:'ea-gs'});
   ok(ea.data.ok===false&&/No earn rule/.test(ea.data.error||''),'tx/earn gold/guildshop is refused ('+(ea.data.error||'')+')');
   console.log('test_guild_shop.js: '+pass+' checks passed (server '+srvFile+')');

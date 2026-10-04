@@ -21563,7 +21563,7 @@ const GUILD_SHOP=[
      Granting them locally would have shown the player goods their next sync erased. */
   {name:'Equipment Pieces',desc:'+100 of each equip piece',cost:450,server:'pieces_guild',give:()=>{}},
   {name:'Great Gold Cache',desc:'+15,000 gold',cost:700,server:'gshop:6',give:()=>{}},
-  {name:'Resource Crate',desc:'+100 of each map resource',cost:350,give:()=>{RES.forEach(([k])=>G.res[k]=(G.res[k]||0)+100);}},
+  {name:'Resource Crate',desc:'+100 of each map resource',cost:350,server:'gshop:7',give:()=>{ academySync(); }},   /* v1008: a server purchase - the Academy store holds map resources */
   {name:'Diamond Chest',desc:'+150 diamonds',cost:1500,server:'gshop:8',give:()=>{}},
   {name:'Shield Pack ×3',desc:'+3 protection shields',cost:2000,give:()=>{G.shieldItems=(G.shieldItems||0)+3;}},
   {name:'Arena Coins ×6000',desc:'+6,000 arena coins',cost:1200,give:()=>{G.arenaCoins=(G.arenaCoins||0)+6000;}},
