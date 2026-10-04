@@ -2245,7 +2245,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
   <div class="screen hub" id="market">
     <button class="btn secondary sm backbtn" data-nav="home">◀ Base</button>
     <div class="titlebar"><h1>MARKET</h1></div>
-    <div class="sub">Spend gold & gems on glyph shards and boosts</div>
+    <div class="sub">Hero fragments · shields</div>
     <div class="panel" id="marketBody" style="max-width:520px"></div>
   </div>
 
@@ -17593,20 +17593,19 @@ function renderShadyMarket(){ const b=document.getElementById('shadyBody'); if(!
     +SHADY_SHOP.map((it,i)=>{ const can=(G.gems||0)>=it.cost;
       return `<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 4px;border-bottom:1px solid #222b40;gap:8px">
         <div style="display:flex;gap:8px;align-items:center;min-width:0"><span style="font-size:22px">${it.icon}</span><div style="min-width:0"><b>${it.name}</b><div style="font-size:10px;color:#8b98a9">${it.desc}</div></div></div>
-        <button class="btn sm" data-si="${i}" ${can?'':'disabled'}>💎 ${it.cost}</button></div>`; }).join('')
-    +`<div style="font-size:11px;color:#6f7d90;margin-top:8px">A shady dealer's premium stock — everything here costs diamonds.</div>`;
-  b.querySelectorAll('button[data-si]').forEach(btn=>btn.onclick=async()=>{ const it=SHADY_SHOP[+btn.dataset.si]; if((G.gems||0)<it.cost)return;
+        <button class="btn sm" data-si="${i}" ${can?'':'disabled'}>💎 ${it.cost}</button></div>`; }).join('');
+  b.querySelectorAll('button[data-si]').forEach(btn=>btn.onclick=()=>shopOnce(async()=>{ const it=SHADY_SHOP[+btn.dataset.si]; if((G.gems||0)<it.cost)return;
     if(it.id==='tele'){
-      const r=await api('/api/world/buy-scrolls','POST',{offer:'targeted5',requestId:uid8()});
+      const r=await api('/api/world/buy-scrolls','POST',{offer:'targeted5',requestId:shopRid('tele')}); shopRidDone('tele',r);
       if(!r||!r.ok){ bannerMsg((r&&r.error)||'Teleport scroll purchase failed.'); return; }
       adoptWorldLocation(r); if(r.ledger)adoptLedger(r.ledger); saveG();
       bannerMsg('🕯️ Bought '+it.name); renderShadyMarket(); return; }
     if(it.server){   // v274: a server-owned bundle — the server takes the diamonds and grants the goods
-      const r=await api('/api/shop/buy','POST',{what:it.server, requestId:uid8()});
+      const rk='shady:'+it.server, r=await api('/api/shop/buy','POST',{what:it.server, requestId:shopRid(rk)}); shopRidDone(rk,r);
       if(!r||!r.ok){ bannerMsg((r&&r.error)||'The dealer had nothing to sell.'); return; }
       adoptLedger(r.ledger); updateHubChrome(); bannerMsg('🕯️ Bought '+it.name); renderShadyMarket(); return; }
     if(!(await txSpend('gems',it.cost,'shop'))) return;
-    ledCapture('convert',()=>it.give()); saveG(); updateHubChrome(); bannerMsg('🕯️ Bought '+it.name); renderShadyMarket(); });
+    ledCapture('convert',()=>it.give()); saveG(); updateHubChrome(); bannerMsg('🕯️ Bought '+it.name); renderShadyMarket(); }));
 }
 // ===== SERVER RANKINGS — your standings + live arena & guild leaderboards =====
 async function renderRankings(){ const b=document.getElementById('rankingsBody'); if(!b)return;
@@ -17707,6 +17706,12 @@ async function renderWatchTower(){
   const refresh=b.querySelector('[data-watch-refresh]');if(refresh)refresh.onclick=()=>renderWatchTower();
 }
 
+/* 3 Oct Market audit #7: a double tap (or a retry after a lost reply) bought twice - every tap minted a new requestId and the
+   button stayed live during the request. One shop action at a time, and an offer keeps its requestId until a definite answer. */
+let SHOP_BUSY=false; const SHOP_RID={};
+function shopRid(k){ return SHOP_RID[k]||(SHOP_RID[k]=uid8()); }
+function shopRidDone(k,r){ if(!(r&&(r.error==='offline'||r.storageFailed))) delete SHOP_RID[k]; }
+async function shopOnce(fn){ if(SHOP_BUSY) return; SHOP_BUSY=true; try{ await fn(); } finally{ SHOP_BUSY=false; } }
 function renderMarket(){
   const b=document.getElementById('marketBody'); ensureMarket();
   const left=MARKET_REFRESH_MS-(Date.now()-G.market.ts);
@@ -17718,11 +17723,13 @@ function renderMarket(){
       return `<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 4px;border-bottom:1px solid #222b40;gap:8px">
         <div style="display:flex;gap:8px;align-items:center;min-width:0">${ic}<div style="min-width:0"><b>${nm}</b>${sub?`<div style="font-size:10px;color:#8b98a9">${sub}</div>`:''}</div></div>
         <button class="btn sm" data-i="${i}" ${o.bought||!afford?'disabled':''}>${o.bought?'Sold':c}</button></div>`;
-    }).join('')+`<div style="font-size:11px;color:#6f7d90;margin-top:8px">Restocks every hour. Fragments summon a locked hero — <b>10</b>/<b>30</b>/<b>80</b> by starting rarity (1★/2★/3★). Peace Shields protect your castle on the world map.</div>`;
-  b.querySelectorAll('button[data-i]').forEach(btn=>btn.onclick=async()=>{ const o=G.market.offers[+btn.dataset.i]; if(o.bought)return;
+    }).join('');
+  b.querySelectorAll('button[data-i]').forEach(btn=>btn.onclick=()=>shopOnce(async()=>{ const o=G.market.offers[+btn.dataset.i]; if(o.bought)return;
     let msg='';
     if(o.kind==='frag'&&ACC.token){   // v250: ONE atomic server purchase — server debits AND grants at ITS prices
-      const r=await api('/api/market/frag','POST',{heroKey:o.hero,qty:o.qty,pay:o.cost.gems?'gems':'gold',requestId:uid8()});
+      const rk='mfrag:'+G.market.ts+':'+btn.dataset.i;
+      const r=await api('/api/market/frag','POST',{heroKey:o.hero,qty:o.qty,pay:o.cost.gems?'gems':'gold',requestId:shopRid(rk)});
+      shopRidDone(rk,r);
       if(!r||r.error){ bannerMsg((r&&r.error)||'Purchase failed.'); return; }
       msg=giveHeroFrag(r.heroKey||o.hero,(r.qty|0)||o.qty)||''; adoptLedger(r.ledger);
     } else {
@@ -17731,7 +17738,7 @@ function renderMarket(){
       else if(o.kind==='shield') G.shieldItems=(G.shieldItems||0)+1;
     }
     o.bought=true; saveG(); updateHubChrome(); if(msg)bannerMsg(msg); renderMarket();
-  });
+  }));
 }
 let campViewCh=0;   // which chapter the roadmap is showing (0 = auto = the chapter you're on)
 /* v266 — Exact Glyph Fragment Farm Map v1: three fixed portals, each with its own progress and its
@@ -25245,14 +25252,16 @@ function foodDayReset(){ if(shopSrv()) return; const d=arenaDayKey(); if(G.foodD
 function goldDayReset(){ if(shopSrv()) return; const d=arenaDayKey(); if(G.goldDay!==d){ G.goldDay=d; G.goldBuys=0; } }
 function foodNextCost(){ const s=shopSrv(); if(s){ G.foodBuys=s.food|0; return (s.foodCost==null)?null:(s.foodCost|0); } foodDayReset(); return (G.foodBuys||0)<FOOD_COSTS.length ? FOOD_COSTS[G.foodBuys||0] : null; }
 function goldNextCost(){ const s=shopSrv(); if(s){ G.goldBuys=s.gold|0; return (s.goldCost==null)?null:(s.goldCost|0); } goldDayReset(); return (G.goldBuys||0)<GOLD_COSTS.length ? GOLD_COSTS[G.goldBuys||0] : null; }
-async function buyFood(){ const c=foodNextCost(); if(c==null){ bannerMsg('No more meals today — resets at midnight ET.'); return; }
+async function buyFood(){ return shopOnce(buyFoodNow); }
+async function buyFoodNow(){ const c=foodNextCost(); if(c==null){ bannerMsg('No more meals today — resets at midnight ET.'); return; }
   if((G.gems||0)<c){ bannerMsg('Not enough 💎 diamonds.'); return; }
-  const r=await api('/api/shop/buy','POST',{what:'food',requestId:uid8()});
+  const r=await api('/api/shop/buy','POST',{what:'food',requestId:shopRid('food')}); shopRidDone('food',r);
   if(!r||!r.ok){ bannerMsg((r&&r.error)||'Purchase failed.'); await ledgerSync(); renderHudShop('food'); return; }
   adoptLedger(r.ledger); if(!(r.ledger&&r.ledger.shop)) G.foodBuys=(G.foodBuys||0)+1; saveG(); updateHubChrome(); renderHudShop('food'); bannerMsg('🍔 +'+FOOD_STAMINA+' stamina!'); }
-async function buyGold(){ const c=goldNextCost(); if(c==null){ bannerMsg('No more gold today — resets at midnight ET.'); return; }
+async function buyGold(){ return shopOnce(buyGoldNow); }
+async function buyGoldNow(){ const c=goldNextCost(); if(c==null){ bannerMsg('No more gold today — resets at midnight ET.'); return; }
   if((G.gems||0)<c){ bannerMsg('Not enough 💎 diamonds.'); return; }
-  const r=await api('/api/shop/buy','POST',{what:'gold',requestId:uid8()});
+  const r=await api('/api/shop/buy','POST',{what:'gold',requestId:shopRid('gold')}); shopRidDone('gold',r);
   if(!r||!r.ok){ bannerMsg((r&&r.error)||'Purchase failed.'); await ledgerSync(); renderHudShop('gold'); return; }
   adoptLedger(r.ledger); if(!(r.ledger&&r.ledger.shop)) G.goldBuys=(G.goldBuys||0)+1; saveG(); updateHubChrome(); renderHudShop('gold'); bannerMsg('🪙 +'+r.gold+' gold!'); }
 function buyGemOffer(i){
@@ -25291,7 +25300,7 @@ function renderHudShop(kind){ const m=document.getElementById('hudShop'); m.data
 function renderFoodShop(){ foodDayReset(); const c=foodNextCost(), gems=G.gems||0, n=G.foodBuys||0, out=(c==null);
   document.getElementById('hudShopTitle').innerHTML='🍔 Food · Restore Stamina';
   document.getElementById('hudShopBody').innerHTML=`
-    <div class="shopnote">Each meal instantly restores <b style="color:#bff0a8">+${FOOD_STAMINA} stamina</b>. The price rises with each meal and resets daily at midnight ET.</div>
+    <div class="shopnote"><b style="color:#bff0a8">+${FOOD_STAMINA} stamina</b> per meal</div>
     <div class="buyrow"><div><div class="bl">🍔 Meal · +${FOOD_STAMINA} Stamina</div><div class="bs">Bought today: ${n}${out?' · sold out until midnight ET':''}</div></div>
       <div class="bcost">${out?'<span class="bs">Back at midnight ET</span>':`<button class="btn sm ${gems>=c?'':'secondary'}" id="foodBuyBtn">💎 ${c}</button>`}</div></div>
     <div class="costtrack">${FOOD_COSTS.map((x,i)=>`<span class="${i<n?'used':i===n?'next':''}">💎${x}</span>`).join(' ')}</div>
@@ -25300,7 +25309,7 @@ function renderFoodShop(){ foodDayReset(); const c=foodNextCost(), gems=G.gems||
 function renderGoldShop(){ goldDayReset(); const c=goldNextCost(), gems=G.gems||0, n=G.goldBuys||0, out=(c==null), amt=goldPerBuy();
   document.getElementById('hudShopTitle').innerHTML='🪙 Buy Gold';
   document.getElementById('hudShopBody').innerHTML=`
-    <div class="shopnote">Trade diamonds for <b style="color:#ffe08a">${amt.toLocaleString()} gold</b> per purchase. Price rises with each buy and resets daily at midnight ET. <i>(Scales with your level.)</i></div>
+    <div class="shopnote"><b style="color:#ffe08a">+${amt.toLocaleString()} gold</b> per purchase</div>
     <div class="buyrow"><div><div class="bl">🪙 +${amt.toLocaleString()} Gold</div><div class="bs">Bought today: ${n}${out?' · sold out until midnight ET':''}</div></div>
       <div class="bcost">${out?'<span class="bs">Back at midnight ET</span>':`<button class="btn sm ${gems>=c?'':'secondary'}" id="goldBuyBtn">💎 ${c}</button>`}</div></div>
     <div class="costtrack">${GOLD_COSTS.map((x,i)=>`<span class="${i<n?'used':i===n?'next':''}">💎${x}</span>`).join(' ')}</div>
@@ -25686,7 +25695,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791079674839';
+const BUILD_ID = '1791080614286';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

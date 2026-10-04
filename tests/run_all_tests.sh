@@ -121,6 +121,8 @@ note "test_academy_read_durable.js (3 Oct release review: a read that pays Acade
 node tests/test_academy_read_durable.js || FAILED=1
 note "test_mine_levels_ten.js (Phil 3 Oct: region mines 1-6, level 6 at the edge; wild 7-10; nodes keep place/id)"
 node tests/test_mine_levels_ten.js || FAILED=1
+note "test_market_harden.js (3 Oct Market audit: never-sold hero fragments refused; meal at full stamina refused; spend/earn durable)"
+node tests/test_market_harden.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi

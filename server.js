@@ -1226,6 +1226,9 @@ const DUNGEON_MATS_PER_DAY=10;   // v328: winning dungeon resolves that roll equ
    no whitelist at all; the ledger routes had one, but `SIM.HERO_BASE['__proto__']` is itself truthy,
    so `if(!SIM.HERO_BASE[k])` did not stop it either. hasOwnProperty is the check that does. */
 function validHero(k){ return typeof k==='string' && Object.prototype.hasOwnProperty.call(SIM.HERO_BASE, k); }
+/* 3 Oct Market audit #2: heroes never sold in the Market (client HERO_TYPES source:'purchase' / 'arena'). tests/test_market_harden.js keeps this set equal to the client's. */
+const HERO_NOT_SOLD=new Set(['konwu','grosk','vulmar','aureth','hurne','hollow']);
+function heroNotSold(k){ return HERO_NOT_SOLD.has(k); }
 function parseSaveOf(u){ try{ return (u.roster&&typeof u.roster.__save==='string')?JSON.parse(u.roster.__save):{}; }catch(e){ return {}; } }
 // glyph v2 flat stat bridge for the sim (same mapping the client uses)
 function glyphFlatStats(u,key){
@@ -1407,7 +1410,7 @@ function writeDBNow(){
    player could be shown a reward that a crash then took back (Well/Vault reproduced). opts.durableUser = the caller's
    account: it is snapshotted before fn runs; if the save throws, the account and the receipt are put back exactly and the
    caller gets {ok:false,storageFailed:true} (routes answer 503) - the same contract as durableCommit(). Opt-in per route. */
-const DURABLE_IDEM_KINDS=new Set(['dresolve','dsweep','salv','witch','edbuy','edstart','edresult','trial','well2']);
+const DURABLE_IDEM_KINDS=new Set(['dresolve','dsweep','salv','witch','edbuy','edstart','edresult','trial','well2','spend','earn']);   /* 3 Oct Market audit #4: tx/spend + tx/earn no longer ack a failed save */
 function idem(key, fn, opts){ DB.idem=DB.idem||{}; const now=Date.now();
   for(const k of Object.keys(DB.idem)){ if(now-DB.idem[k].t>86400000) delete DB.idem[k]; }
   if(DB.idem[key] && !(opts&&opts.retryFailed&&DB.idem[key].resp&&DB.idem[key].resp.ok===false)) return DB.idem[key].resp;
@@ -5580,6 +5583,7 @@ async function api(req,res,url){
       const led=ensureLedger(me), sh=shopState(me); const what=String(b.what||'');
       if(what==='food'){ if(sh.food>=SHOP_FOOD_COSTS.length) return {ok:false,error:'No more meals today.'};
         const c=SHOP_FOOD_COSTS[sh.food]; if(led.gems<c) return {ok:false,error:'Not enough diamonds.'};
+        ledStamRegen(led); if(led.stam.v>=999) return {ok:false,error:'Stamina is full.'};   /* 3 Oct Market audit #8: a meal at full stamina took the diamonds and gave nothing */
         led.gems-=c; sh.food++; creditStamina(me,led,SHOP_FOOD_STAMINA,'shop:food');
         ledTx(me,'shop:food',{gems:-c,stamina:SHOP_FOOD_STAMINA});
         writeDB(); return {ok:true, stamina:led.stam.v, cost:c, ledger:ledgerView(me)}; }
@@ -5878,7 +5882,7 @@ async function api(req,res,url){
       const tx=ledTx(me,'spend:'+String(b.reason||'unspecified').slice(0,40),{[what]:-amt});
       writeDB(); return {ok:true, tx, ledger:ledgerView(me)};
     });
-    return send(res, out.ok===false?400:200, out); }
+    return send(res, out.storageFailed?503:(out.ok===false?400:200), out); }
   if(p==='/api/tx/earn' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     // capped earn table for LEGACY client-resolved loops only. Every grant is logged with a source tx.
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
@@ -5895,6 +5899,7 @@ async function api(req,res,url){
       const used=(earnDay[what+':'+reason]|0);
       if(used+amt>rules.day) return {ok:false,error:'Daily '+reason+' cap reached.'};
       if(what==='frag' && !validHero(String(b.heroKey||''))) return {ok:false,error:'Unknown hero.'};
+      if(what==='frag' && reason!=='arena' && heroNotSold(String(b.heroKey||''))) return {ok:false,error:'That hero\'s fragments are not sold or earned here.'};   /* 3 Oct Market audit #2 */
       led.earnDay=earnDay; earnDay[what+':'+reason]=used+amt;
       if(what==='gold'){ const before=led.gold; led.gold=Math.min(ECON_CAP.gold,led.gold+amt);
         resourceGain(me,'gold',led.gold-before,reason); }
@@ -5911,7 +5916,7 @@ async function api(req,res,url){
       const tx=ledTx(me,'earn:'+reason,{[what]:amt});
       writeDB(); return {ok:true, tx, ledger:ledgerView(me)};
     },{retryFailed:true});
-    return send(res, out.ok===false?400:200, out); }
+    return send(res, out.storageFailed?503:(out.ok===false?400:200), out); }
   if(p==='/api/campaign/stage'){ if(!me)return send(res,401,{error:'auth'});
     const mode=portalModeOf(url.searchParams.get('mode'));
     const node=parseInt(url.searchParams.get('node')||'0',10); const st=portalStageOf(mode,node);
@@ -6606,13 +6611,14 @@ async function api(req,res,url){
       }); return send(res, out.ok===false?400:200, out); }
     if(p==='/api/market/frag'){ const out=durableCommit(me,me.id+':mfrag:'+reqId,(me)=>{ const led=ensureLedger(me);
         const hk=String(b.heroKey||''); if(!validHero(hk)) return {ok:false,error:'Unknown hero.'};
+        if(heroNotSold(hk)) return {ok:false,error:'That hero\'s fragments are not sold in the Market.'};   /* 3 Oct Market audit #2 */
         const qty=Math.max(1,Math.min(4,b.qty|0));
         const pay=b.pay==='gems'?'gems':'gold';
         const price=pay==='gems'? 30*qty : 550*qty;                       // SERVER prices — the client displays these
         const dk=nyDayKey(); led.marketDay=led.marketDay&&led.marketDay.k===dk?led.marketDay:{k:dk,frags:0};
         if(led.marketDay.frags+qty>12) return {ok:false,error:'Daily market fragment limit reached.'};
         if(pay==='gold'){ if(led.gold<price) return {ok:false,error:'Not enough gold.'}; led.gold-=price; }
-        else { if(led.gems<price) return {ok:false,error:'Not enough gems.'}; led.gems-=price; }
+        else { if(led.gems<price) return {ok:false,error:'Not enough diamonds.'}; led.gems-=price; }
         led.marketDay.frags+=qty; creditFrags(me,led,hk,qty,'market-frag');
         ledTx(me,'market-frag:'+hk,{[pay]:-price,frag:qty});
         writeDB(); return {ok:true, heroKey:hk, qty, paid:{[pay]:price}, ledger:ledgerView(me)};
