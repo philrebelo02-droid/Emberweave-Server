@@ -14590,7 +14590,7 @@ async function gearBuildDo(gearId,equipHero){ if(FORGE.busy) return; FORGE.busy=
   if(!r||r.error){ bannerMsg((r&&r.error)||'The Forge is cold.'); await forgeSync(); renderHeroDetail(); return; }
   bannerMsg('⚒️ Built '+r.name+'!'); await forgeSync();
   if(equipHero&&r.crafted){ FORGE.busy=true; const e=await api('/api/gear/equip','POST',{expectedRevision:FORGE.st.revision,heroKey:equipHero,itemId:r.crafted}); FORGE.busy=false;
-    if(e&&!e.error) bannerMsg('🛡 '+r.name+' equipped'); await forgeSync(); }
+    if(e&&!e.error) bannerMsg('🛡 '+r.name+' equipped'); else bannerMsg((e&&e.error==='offline')?'Connection lost.':((e&&e.error)||'Could not equip.')); await forgeSync(); }   /* v994 (audit #9): a failed equip says so */
   renderHeroDetail();
 }
 /* v371 (Phil): "make it similar to the glyph tree — end item at the top, blue lines from the sub-items to
@@ -14745,7 +14745,7 @@ function forgeCraftPick(gearId){
   const draw=()=>{
     sh.body.innerHTML=`<div style="font-weight:800;margin-bottom:6px">⚒ Forge ${escapeHTML(d.name)}</div>
       <div style="font-size:11px;color:#ff8b8b;margin-bottom:6px">These 2 items are <b>destroyed forever</b>. Forge Dust spent tempering them is <b>NOT refunded</b>.</div>
-      <div style="font-size:11px;color:#8b98a9;margin-bottom:6px">Pick exactly 2 ${escapeHTML(prevQ||'')} items to consume — the least-tempered are pre-selected.</div>
+      <div style="font-size:11px;color:#8b98a9;margin-bottom:6px">2 × ${escapeHTML(prevQ||'')}</div>
       ${feed.map(([id,it])=>{ const dd=forgeDef(it.d), on=sel.indexOf(id)>=0;
         return `<div data-fcp="${id}" style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px;margin:3px 0;border-radius:8px;cursor:pointer;border:1px solid ${on?'#5ee89b':'#1c2434'};background:${on?'rgba(94,232,155,.08)':'transparent'}">
           <span style="font-size:11px;font-weight:700;color:${FORGE_QCOLOR[dd.quality]||'#e6edf3'}">${on?'☑':'☐'} ${escapeHTML(dd.name)}</span>
@@ -14814,7 +14814,7 @@ function forgeItemsTabHTML(){
       <div style="display:flex;gap:4px;flex-wrap:wrap;font-size:9px">
         ${maxed?'<span style="color:#ffd45e">★ MAX TEMPER</span>':`
         <button class="btn xs secondary" onclick="forgePost('/temper',{itemId:'${id}',uses:1},r=>'🔥 +'+(r.levelsGained?'1 Temper!':'progress')+' (−'+r.dustSpent+' Dust)')">🔥 ×1 (✨${cost})</button>
-        <button class="btn xs secondary" onclick="forgePost('/temper',{itemId:'${id}',uses:10},r=>'🔥 Tempered ×'+(10)+' (−'+r.dustSpent+' Dust)')">🔥 ×10</button>`}
+        <button class="btn xs secondary" onclick="forgePost('/temper',{itemId:'${id}',uses:10},r=>'🔥 Tempered ×'+(r.uses||10)+' (−'+r.dustSpent+' Dust)')">🔥 ×10</button>`}
         ${eq?`<button class="btn xs secondary" onclick="forgePost('/select-active',{heroKey:'${eq.hero}',itemId:'${id}'},r=>'✨ Active: '+r.active)">Set Active</button>`
             :`<select id="fEq_${id}" class="btn xs secondary" style="font-size:9px;max-width:96px">${heroOpts}</select>
               <button class="btn xs" onclick="forgePost('/equip',{itemId:'${id}',heroKey:document.getElementById('fEq_${id}').value},r=>'🛡 Equipped — '+r.slot)">Equip</button>
@@ -14843,12 +14843,10 @@ function renderForge(){
       <div style="display:flex;justify-content:space-between;align-items:center">
         <b style="font-size:13px">⚒️ The Forge</b>
         <span class="pill" style="border:1px solid #c9922a;color:#ffd45e">✨ ${st.dust||0} Forge Dust</span></div>
-      <div style="font-size:10px;color:#8b98a9;margin-top:3px">🔮 Forge Resonance <b style="color:#c9a2ff">Rank ${res.rank}</b> (+${res.rank}% all gear stats) · total Temper ${res.total}${res.next!=null?' · next rank at '+res.next:''}</div>
-      <div style="font-size:9px;color:#6f7d90;margin-top:3px">Gear fragments drop in The Vault. Tempering never fails — each bar filled is a guaranteed Temper level (max 30).</div></div>
+      <div style="font-size:10px;color:#8b98a9;margin-top:3px">🔮 Forge Resonance <b style="color:#c9a2ff">Rank ${res.rank}</b> (+${res.rank}% all gear stats) · total Temper ${res.total}${res.next!=null?' · next rank at '+res.next:''}</div></div>
     <div style="display:flex;gap:4px;margin:8px 0">
       ${[['items','🔥 Temper'],['heroes','🛡 Heroes']].map(([t,l])=>`<button class="btn xs ${FORGE.tab===t?'':'secondary'}" style="flex:1" onclick="forgeTab('${t}')">${l}</button>`).join('')}</div>
-    <div class="panel">${FORGE.tab==='heroes'?forgeHeroesTabHTML():forgeItemsTabHTML()}</div>
-    <div style="font-size:9px;color:#5a6472;text-align:center;margin-top:6px">Server-authoritative — costs, results and refunds are computed on the server.</div>`;
+    <div class="panel">${FORGE.tab==='heroes'?forgeHeroesTabHTML():forgeItemsTabHTML()}</div>`;   /* v994 (Pool+Forge audit #12): hint prose removed */
 }
 /* -------- SKYFALL (Guild Wars v2) client -------- */
 
@@ -22982,9 +22980,11 @@ async function wishGem10(){ const r=await serverWish('gem',10); if(!r) return; G
 async function wishShowOdds(){ const st=await api('/api/pool/state'); if(!st||st.error){ bannerMsg('Sign in to see the pool rules.'); return; }
   const o=st.odds||{}, pct=v=>(v*100).toFixed(v<0.01?1:0)+'%';
   bannerMsg('📊 <b>Diamond Pool odds</b> — KonWu '+pct(o.konwu||0)+' · full 3★ '+pct(o.full3||0)+' · full 2★ '+pct(o.full2||0)+' · 3★ frags '+pct(o.frag3||0)+' · 2★ frags '+pct(o.frag2||0)+'<br>🪙 <b>Gold Pool</b> — full hero '+pct(o.goldHero||0)+' · fragments '+pct(o.goldFrag||0)+'<br>🎯 <b>Pity:</b> a full hero is GUARANTEED within '+((st.pity&&st.pity.at)||90)+' diamond wishes — you are at '+((st.pity&&st.pity.count)||0)+'.'); }
-async function wishShowHistory(){ const h=await api('/api/pool/history'); if(!h||h.error||!(h.history||[]).length){ bannerMsg('No recorded wishes yet — every roll is stored on the server.'); return; }
+function wishResultLabel(code){ const p=String(code||'').split(':'), t=p[0], k=p[1], nm=k?escapeHTML((HERO_TYPES[k]||{}).name||k):'';
+  if(t==='hero') return nm+' (new hero)'; if(t==='frags') return nm+' fragments'; if(t==='glyphFrag') return 'Glyph fragments'; return escapeHTML(t+(nm?' '+nm:'')); }
+async function wishShowHistory(){ const h=await api('/api/pool/history'); if(!h||h.error||!(h.history||[]).length){ bannerMsg('No recorded wishes yet.'); return; }
   const rows=h.history.slice(0,12).map(e=>{ const d=new Date(e.t); const hh=('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);
-    return hh+' · '+(e.pool==='gold'?'🪙':'🔮')+'×'+e.n+' → '+(e.results||[]).join(', '); }).join('<br>');
+    return hh+' · '+(e.pool==='gold'?'🪙':'🔮')+'×'+e.n+' → '+(e.results||[]).map(wishResultLabel).join(', '); }).join('<br>');   // v994 (audit #11): names, not codes
   bannerMsg('📜 <b>Your last wishes (server-recorded)</b><br>'+rows); }
 function renderWishing(){ applySceneBg('wishing',WISHPOOL_BG); const b=document.getElementById('wishingBody'); if(!b)return;
   // first paint of a visit asks the server what is actually free, then repaints with the truth
@@ -23011,7 +23011,7 @@ function renderWishing(){ applySceneBg('wishing',WISHPOOL_BG); const b=document.
       <div class="wp-sub">Free: ${goldLeft}/${WISH_GOLD_FREE_MAX} today · 1 per hour</div>
       <div class="wp-sub" style="opacity:.75">5% full hero · 15% fragments</div>
       <button class="btn ${canGold?'':'secondary'}" id="wpGold" ${canGold?'':'disabled'}>${goldFree?'Wish · Free':'Wish · 🪙'+WISH_GOLD_COST}</button>
-      <button class="btn secondary ${(G.gold||0)>=wishGold10Cost()?'':'secondary'}" id="wpGold10" ${(G.gold||0)>=wishGold10Cost()?'':'disabled'} style="width:100%;margin-top:6px">10 Wishes · 🪙${wishGold10Cost()} <span style="font-size:10px;color:#7ee0a0">−10%</span></button>
+      <button class="btn ${(G.gold||0)>=wishGold10Cost()?'':'secondary'}" id="wpGold10" ${(G.gold||0)>=wishGold10Cost()?'':'disabled'} style="width:100%;margin-top:6px">10 Wishes · 🪙${wishGold10Cost()} <span style="font-size:10px;color:#7ee0a0">−10%</span></button>
     </div>
     <div class="wishpool gem">
       <div class="wp-orb">🔮</div>
@@ -25785,7 +25785,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791097187126';
+const BUILD_ID = '1791098007717';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

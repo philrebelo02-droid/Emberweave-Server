@@ -4357,14 +4357,14 @@ async function api(req,res,url){
       if(!validHero(hero)) return bad('Unknown hero.');
       if(!hero||!it||!def) return bad('Unknown item.');
       const where=gearItemEquippedBy(g,iid);
-      if(where) return bad('Already equipped on '+where.hero+'.');
+      if(where) return bad('Already equipped on '+(((SIM.HERO_BASE[where.hero]||{}).name)||where.hero)+'.');   /* v994 (audit #11): the hero's name, not its id */
       g.equipped[hero]=g.equipped[hero]||{};
       g.equipped[hero][def.slot]=iid;   // replaces the slot's occupant (which stays bound, unequipped)
       it.bound=true;                    // bound-item rule: once equipped, never a crafting ingredient
       return ok({ hero, slot:def.slot, itemId:iid });
     }
     if(p==='/api/gear/unequip'){
-      return bad('Equipped gear is bound to its hero for good — build a higher piece to replace it.');   // v375 (Phil): "once you equip an item it should be bound"
+      return bad('Equipped gear is bound to its hero for good.');   /* v994 (audit #7): the old advice was impossible - each quality is its own slot */   // v375 (Phil): "once you equip an item it should be bound"
       const hero=String(b.heroKey||'').slice(0,24); if(!validHero(hero)) return bad('Unknown hero.'); const slot=String(b.slot||'');
       if(!g.equipped[hero]||!g.equipped[hero][slot]) return bad('Nothing equipped there.');
       const iid=g.equipped[hero][slot]; delete g.equipped[hero][slot];
@@ -4385,7 +4385,7 @@ async function api(req,res,url){
         if(it.prog>=gearTemperBar(it.temper||0)){ it.temper=(it.temper||0)+1; it.prog=0; levels++; }
       }
       if(!gained) return bad((it.temper>=T.max)?'Already at Temper 30.':'Not enough Forge Dust (next use: ✨'+gearTemperCost(def,it.temper||0)+').');
-      return ok({ itemId:iid, temper:it.temper, prog:it.prog, bar:gearTemperBar(it.temper), dustSpent:spent, levelsGained:levels,
+      return ok({ itemId:iid, temper:it.temper, prog:it.prog, bar:gearTemperBar(it.temper), dustSpent:spent, levelsGained:levels, uses:gained,   /* v994 (audit #10): how many were actually used */
         nextCost: it.temper<T.max?gearTemperCost(def,it.temper):null });
     }
     if(p==='/api/gear/extract'){
@@ -5529,6 +5529,7 @@ async function api(req,res,url){
     const pool=poolState(me);
     return send(res,200,{ history:(pool.history||[]).slice(-60).reverse(), pity:{at:WISH_GEM_PITY,count:pool.pity} }); }
   if(p==='/api/pool/wish' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
+    if(rateLimited(req,'poolwish:'+me.id,60,60000)) return send(res,429,{error:'Slow down.'});   /* v994 (audit #18) */
     /* 28 Aug: the wish quest counter used to be incremented HERE — before the pool was validated,
        before the cost was checked, and OUTSIDE the idempotency wrapper. So a refused wish ("Not
        enough gold", "Unknown pool", the Diamond Pool cooldown) still counted toward "wish N times",
@@ -5900,7 +5901,10 @@ async function api(req,res,url){
      back while the crafted piece stayed in the local inventory, so anyone could mint unlimited Tier-0
      pieces and combine them upward into top-tier gear. The material spend is a server transaction now.
      Higher tiers consume already-crafted pieces, so bounding Tier-0 bounds the whole tree. */
-  if(p==='/api/eq/craft' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
+  /* v994 (3 Oct Pool+Forge audit #5): the legacy equipment craft is RETIRED - no screen calls it, it made a save-only item with no
+     combat effect, and its receipt was not durable. Gear is built in the Forge (/api/gear/*). */
+  if(p==='/api/eq/craft' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'}); return send(res,410,{ok:false,error:'Legacy equipment is retired - build gear in the Forge.'}); }
+  if(false){
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
     const out=idem(me.id+':eqcraft:'+reqId,()=>{
       const led=ensureLedger(me);

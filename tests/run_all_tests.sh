@@ -141,6 +141,8 @@ note "test_glyph_durable.js (4 Oct City Wall audit #4: a glyph build is saved be
 node tests/test_glyph_durable.js || FAILED=1
 note "test_guild_durable.js (4 Oct Guild audit #5: contribute and raid start are durable commits with the guild)"
 node tests/test_guild_durable.js || FAILED=1
+note "test_pool_forge_p2.js (3 Oct Pool+Forge audit #5 #18: legacy eq/craft retired; pool wishes rate-limited)"
+node tests/test_pool_forge_p2.js || FAILED=1
 note "test_watch_report_rate.js (3 Oct Guild audit #7: an unchanged watch report does not save; 12 changed a minute)"
 node tests/test_watch_report_rate.js || FAILED=1
 note "test_raid_durable.js (3 Oct Guild audit #2: the raid result saves the reward and the guild together, 503 on a failed save)"
