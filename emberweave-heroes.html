@@ -14574,15 +14574,20 @@ function gearPlanBillHTML(plan){ const parts=Object.entries(plan.bill).map(([k,n
   if(plan.used.items.length) parts.push(`<b>${plan.used.items.length} fresh item${plan.used.items.length>1?'s':''}</b> in stock`);
   const crafts=plan.steps.filter(s=>s.kind==='craft').length, subs=plan.steps.filter(s=>s.kind==='sub').length;
   return (parts.length?parts.join(', '):'nothing')+`<br><span style="color:#6f7d90">${crafts} craft${crafts!==1?'s':''}${subs?' + '+subs+' sub-component'+(subs!==1?'s':''):''}, built bottom-up in one go.</span>`; }
-async function gearPlanRun(plan,equipHero){ if(FORGE.busy) return; FORGE.busy=true; let last=null, n=0;
+async function gearPlanRun(plan,equipHero){ if(FORGE.busy) return; FORGE.busy=true; let last=null, n=0, err='';
   try{ for(const s of plan.steps){
       const r=(s.kind==='sub')?await api('/api/gear/craft-sub','POST',{expectedRevision:FORGE.st.revision,gearId:s.gearId})
                              :await api('/api/gear/craft','POST',{expectedRevision:FORGE.st.revision,gearId:s.gearId});
-      if(!r||r.error){ bannerMsg((r&&r.error)||'The Forge is cold.'); break; }
+      if(!r||r.error){ err=(r&&r.error==='offline')?'Connection lost.':((r&&r.error)||'The Forge is cold.'); break; }
       last=r; n++; FORGE.busy=false; await forgeSync(); FORGE.busy=true; }
   } finally { FORGE.busy=false; }
-  if(last&&last.crafted){ bannerMsg('⚒️ Built '+last.name+' ('+n+' step'+(n!==1?'s':'')+')');
-    if(equipHero){ FORGE.busy=true; const e=await api('/api/gear/equip','POST',{expectedRevision:FORGE.st.revision,heroKey:equipHero,itemId:last.crafted}); FORGE.busy=false; if(e&&!e.error) bannerMsg('🛡 '+last.name+' equipped'); } }
+  /* v1008 (re-audit Forge #1 #9): a plan that stopped partway equips nothing - it used to equip and bind the last INTERMEDIATE
+     piece - and says where it stopped; a failed equip says so */
+  const done=n===plan.steps.length;
+  if(!done) bannerMsg((n?'Stopped at step '+n+' of '+plan.steps.length+': ':'')+err);
+  else if(last&&last.crafted){ bannerMsg('⚒️ Built '+last.name+' ('+n+' step'+(n!==1?'s':'')+')');
+    if(equipHero){ FORGE.busy=true; const e=await api('/api/gear/equip','POST',{expectedRevision:FORGE.st.revision,heroKey:equipHero,itemId:last.crafted}); FORGE.busy=false;
+      if(e&&!e.error) bannerMsg('🛡 '+last.name+' equipped'); else bannerMsg((e&&e.error==='offline')?'Connection lost.':((e&&e.error)||'Could not equip.')); } }
   await forgeSync(); renderHeroDetail(); }
 function gearConfirmQuick(gearId,equipHero,role){ const d=forgeDef(gearId); if(!d) return; const plan=gearPlan(FORGE.st,d,role); if(!plan.ok){ bannerMsg('Missing: '+(plan.missing?plan.missing.need+' × '+plan.missing.frag+' (have '+plan.missing.have+')':'materials')); return; }
   gameConfirm(`Quick Build <b style="color:${FORGE_QCOLOR[d.quality]||'#e6edf3'}">${escapeHTML(d.name)}</b>${equipHero?' and equip it':''}?<br><span style="font-size:12px;color:#8b98a9">This spends ${gearPlanBillHTML(plan)}</span>`, ()=>{ gearPlanRun(plan,equipHero); if(equipHero) GEAR_BUILD=null; else gearBuildBack(); }, {side:'right'}); }

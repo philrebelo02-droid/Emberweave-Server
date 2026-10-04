@@ -73,6 +73,8 @@ note "test_device_keys.js (4 Oct Account audit #11: device ids stored as hashes;
 node tests/test_device_keys.js || FAILED=1
 note "test_account_v1007.js (4 Oct Account re-audit N2/N6: the guest daily cap survives the sweeper; the save is one string)"
 node tests/test_account_v1007.js || FAILED=1
+note "test_gear_plan_run.js (4 Oct Forge re-audit #1: a Quick Build that stops partway equips nothing)"
+node tests/test_gear_plan_run.js || FAILED=1
 note "test_player_truth.js (v270: the campaign result is the player's own transcript, replayed)"
 node tests/test_player_truth.js || FAILED=1
 note "test_campaign_player_truth.js (28 Sep fight rule: the witnessed win is paid on a replay mismatch, once; a malformed verdict is refused)"
