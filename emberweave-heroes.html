@@ -12676,7 +12676,7 @@ function endBattle(won){
       for(let _try=0;_try<3;_try++){
         r=await api('/api/campaign/resolve','POST',{attemptId:att, requestId:_rid,
           inputLog:_log, digest:_dg, won:_wn, stars:_st});   // v412: the fight the player watched IS the result
-        if(!(r&&(r.error==='offline'||r.storageFailed))) break;
+        if(!(r&&(r.error==='offline'||r.storageFailed))||_try===2) break;
         await new Promise(z=>setTimeout(z,1500*(_try+1))); }
       if(resultStale(ep)){ if(r&&r.ledger) adoptLedger(r.ledger); return; }   // v328: CUR.node now belongs to a NEWER fight — never bank stars/cleared on it or paint its screen
       const sWon=!!(r&&r.ok&&r.won);   // v412: the server now records and echoes back the PLAYER's own result
