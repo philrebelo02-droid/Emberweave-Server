@@ -7417,7 +7417,7 @@ async function api(req,res,url){
       for(const w of fresh){
         if(w.id===me.id) continue;
         for(const s of watchEntries(w.scouts)){
-          if((s.name||'').toLowerCase()===myName){ scoutedBy.push({ by:w.name, eta:s.eta||null, t:w.t }); }
+          if((s.name||'').toLowerCase()===myName){ scoutedBy.push({ by:((DB.users[w.id]&&DB.users[w.id].name)||w.name), eta:s.eta||null, t:w.t });   /* v995 (Guild audit #20): the scout's current name */ }
         }
       }
       return send(res,200,{ mates, scoutedBy, guilded });

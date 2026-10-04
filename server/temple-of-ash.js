@@ -5,9 +5,9 @@
  * (21 Sep 2026).md — SETTLED sections only. The reference prayer mode structure,
  * Emberweave wording, ash-curve RNG from design §9b.
  *
- * STATUS: candidate code for review. NOT wired into the game. Claude owns
- * wiring, server-side persistence (this state must live behind server
- * authority — save data is his lane), tuning simulation and shipping.
+ * STATUS: LIVE since v839 (27-28 Sep 2026) - wired into the game; the server owns
+ * the state (/api/temple/pray, save, discard). (v995: the old 'candidate, NOT
+ * wired' header was stale - Temple+Academy audit #16.)
  *
  * Every [TUNE] value lives in TEMPLE_CONFIG below. Nothing else in the file
  * hard-codes a tunable number. OPEN: Phil items are marked // OPEN: Phil.
@@ -80,7 +80,7 @@
       { id: "inferno", name: "Inferno", price: 400, keeperPoints: 40 },
     ],
     GEM_TIER_DAILY_SOFT_CAP: 0,       // OPEN [TUNE]: 0 = none (design §9b sub-point b)
-    FREE_RITUAL_KEEPER_POINTS: 1,     // free daily grants the base point (reference-game table)
+    FREE_RITUAL_KEEPER_POINTS: 1,     // UNUSED since Phil 27 Sep 09:3x: the free prayer gives the best open tier's points (v995 note, audit #16)
     BONUS_PRAYER_CHANCE: 0.10,        // Phil 27 Sep 10:4x: "every prayer should give a 10% chance to give 1 free prayer" / "1 free prayer is always the highest one you can do"
 
     /* --- ember boons (design §4) --- */

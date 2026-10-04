@@ -2401,7 +2401,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 </script>
 <script src="/hero-profiles.js?v=r936"></script>
 <script src="/hero-paths.js?v=r936"></script>
-<script src="/server/temple-of-ash.js?v=r936"></script>
+<script src="/server/temple-of-ash.js?v=r995"></script>
 <script src="/server/temple-effects.js?v=r936"></script>
 <script src="/assets/ui/world-mine-sync.js?v=mi1"></script>
 <script src="/assets/ui/world-march-sync.js?v=wm1"></script>
@@ -19476,7 +19476,7 @@ function renderTech(){
   card.innerHTML=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
       <div style="font-size:26px">${ic}</div>
       <div><div style="font-weight:800;font-size:16px">${name} · Lv ${lvl}${maxed?' <span style="color:#ffd45e">MAX</span>':'/'+tmax}</div>
-      <div style="font-size:12px;color:#8b98a9">${isAcad?`${maxed?'':`Next level: <b style="color:#5ee89b">${perStr}</b> ${desc} · `}now <b style="color:#5ee89b">${nowStr}</b> ${desc} (all research is faster)`:`${maxed?'':`Next level: <b style="color:#5ee89b">${perStr}</b> ${desc} · `}now <b style="color:#5ee89b">${nowStr}</b> ${desc}`}</div></div></div>
+      <div style="font-size:12px;color:#8b98a9">${isAcad?`${maxed?'':`Next level: <b style="color:#5ee89b">${perStr}</b> ${desc} · `}now <b style="color:#5ee89b">${nowStr}</b> ${desc}`:`${maxed?'':`Next level: <b style="color:#5ee89b">${perStr}</b> ${desc} · `}now <b style="color:#5ee89b">${nowStr}</b> ${desc}`}</div></div></div>
     ${isAcad?`<div style="font-size:12px;color:#8b98a9;margin-bottom:4px">Income <b style="color:#5ee89b">+${Math.floor(acadRatePerHour(lvl)).toLocaleString()}</b> each / h${maxed?'':` · Lv ${lvl+1} <b style="color:#5ee89b">+${Math.floor(acadRatePerHour(lvl+1)).toLocaleString()}</b> each / h`}</div>`:''}
     <div style="font-size:11px;color:#8b98a9;margin-bottom:10px">${maxed?'Fully upgraded.':`Learn time: ${fmtDur(learnDur(lvl))}${learning&&remain>0?` · <span style="color:#8fe3ff">in progress…</span>`:''}`}</div>
     <div style="text-align:center">${btn}</div>`;
@@ -25785,7 +25785,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791098007717';
+const BUILD_ID = '1791098684888';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

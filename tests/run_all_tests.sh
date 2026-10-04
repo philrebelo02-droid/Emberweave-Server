@@ -52,7 +52,13 @@ if [ "$BROWSER_OK" = "1" ]; then
   node tests/test_determinism.js || FAILED=1
   note "test_live_campaign.js (v270: the fight the player played IS the fight the server recorded)"
   node tests/test_live_campaign.js || FAILED=1
+  note "test_temple_ui.js (the Temple panel boots in a real browser; card power parity) - v995, Temple audit #12"
+  node tests/test_temple_ui.js || FAILED=1
+  note "test_temple_replay.js (a campaign replay with server-owned Temple progress) - v995, Temple audit #12"
+  node tests/test_temple_replay.js || FAILED=1
 fi
+note "test_temple_of_ash.js (every Phil ruling in server/temple-of-ash.js) - v995, Temple audit #12"
+node tests/test_temple_of_ash.js || FAILED=1
 note "test_player_truth.js (v270: the campaign result is the player's own transcript, replayed)"
 node tests/test_player_truth.js || FAILED=1
 note "test_campaign_player_truth.js (28 Sep fight rule: the witnessed win is paid on a replay mismatch, once; a malformed verdict is refused)"
