@@ -8907,6 +8907,7 @@ function simFightResult(allySnaps, foeTeam, seed, manualReplay){
   const svAuto=autoUlt;
   window._p2guard=true;
   ended=false; state='battle'; CUR={mode:'replay',seed,manualReplay:!!manualReplay}; battleTime=0; gameSpeed=1; window._p2win=null;
+  autoUlt=true;   /* v1020: a full-auto fight casts BOTH sides' ultimates - it inherited the player's last AUTO toggle (false on the server), so the player's side never cast */
   if(manualReplay) autoUlt=false;   // the log fires the ultimates, not the AI
   try{groundHazards.length=0;shots.length=0;particles.length=0;floatTexts.length=0;}catch(e){} waveXfer=null; chapterWaves=1; waveIdx=0;
   const _keepReplay=REPLAY_IN;
@@ -25841,7 +25842,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791124373929';
+const BUILD_ID = '1791131860668';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
