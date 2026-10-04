@@ -57,7 +57,7 @@ async function run(){
     assert.equal(status.enabled,true);
     const t=status.tournament, now=Date.now();
     let opening=t.registrationOpensAt;
-    if(now>=t.registrationLocksAt)opening+=7*86400000;
+    if(now>=t.registrationLocksAt)opening=t.nextRegistrationOpensAt||opening+14*86400000;   // v1009: the war runs on a 14-day cycle (this added 7 days and warped into a finished week)
     const target=Math.max(now,opening+60000);
     const warp=async at=>req('POST','/api/guild-war/debug-warp',{offsetMs:at-Date.now()},dev.token);
     assert.equal((await warp(target)).state,'registration');
@@ -102,9 +102,13 @@ async function run(){
     assert.equal(entryHp(bLine,'sylthaine'),0,'a 0%-HP hero cannot regain full health at Skyfall lock');
     const beforeA=await req('GET','/api/witch/state',null,a.token);
     const beforeB=await req('GET','/api/witch/state',null,b.token);
-    const assault=await req('POST','/api/guild-war/assault',{fromLane:0},a.token);
+    const assault=await req('POST','/api/guild-war/assault',{fromLane:0,requestId:'war-a1'},a.token);
     assert.equal(assault.ok,true,JSON.stringify(assault));
     assert.ok(assault.result?.aState&&assault.result?.bState,'a real fight occurred');
+    /* v1009 (re-audit Guild #3): a lost reply and a retap with the same requestId answer the receipt - no second march, no new wounds */
+    const again=await req('POST','/api/guild-war/assault',{fromLane:0,requestId:'war-a1'},a.token);
+    assert.equal(again.replayed,true,'the same requestId answers its receipt: '+JSON.stringify(again).slice(0,160));
+    assert.equal(again.won,assault.won);
     const afterA=await req('GET','/api/witch/state',null,a.token);
     const afterB=await req('GET','/api/witch/state',null,b.token);
     assert.equal(beforeA.heroes.find(h=>h.key==='vael').hp,2500);

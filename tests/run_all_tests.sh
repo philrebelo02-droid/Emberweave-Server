@@ -40,7 +40,7 @@ note "phase 2: restart with ADMIN_IDS and run the endpoint suites"
 env $FLAGS ADMIN_IDS=$DID DB_FILE="$DB" PORT=$PORT node "$SRV" > "$DBDIR/srv2.log" 2>&1 & SRV_PID=$!
 sleep 1.5
 for T in test_transform.sh test_glyphs.sh test_dungeon.sh test_gear.sh test_war.sh; do
-  note "$T"; bash "tests/$T" | tee "$DBDIR/$T.out" | tail -3
+  note "$T"; bash "tests/$T" | tee "$DBDIR/$T.out" | grep -E "✗|PASS:"   # v1009: every failing check is printed (tail -3 hid 25 test_war failures for weeks)
   grep -q "FAIL: 0" "$DBDIR/$T.out" || FAILED=1
 done
 note "test_ws_revoke.js"

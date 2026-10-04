@@ -334,6 +334,10 @@ async function run() {
       if(firstTarget) break;
     }
     assert.ok(firstTarget,'an open floor square next to the crystal footprint exists');
+    /* v1009 (re-audit World #4): a targeted teleport onto your own square is refused and charges nothing (the next move still uses the free one) */
+    const own=await request('POST','/api/world/relocate',{kind:'targeted',x:castle.x,y:castle.y,requestId:'world-own-square'},admin.token);
+    assert.equal(own.ok,false,'teleport onto your own square is refused: '+JSON.stringify(own).slice(0,120));
+    assert.match(String(own.error||''),/already on that square/);
     const move=await request('POST','/api/world/relocate',{
       kind:'targeted',...firstTarget,requestId:'world-free-teleport'
     },admin.token);

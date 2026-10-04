@@ -25,6 +25,9 @@ curl -s -X POST $B/api/save -H "$H1" -H 'content-type: application/json' -d @wsa
 ID1=$(echo "$U1"|jv "['profile']['id']")
 WSIX='["vael","vex","umbris","bloatus","oakmir","fritz"]'
 curl -s -X POST $B/api/admin/led-grant -H "$HD" -H 'content-type: application/json' -d '{"userId":"'"$ID1"'","unlock":'"$WSIX"',"heroKeys":'"$WSIX"',"heroXp":150000,"px":900000,"stars":5}' >/dev/null
+# v1009: Skyfall registers members with heroes; wu2 had no five-hero line ("No eligible members."), so Beta never entered and no bracket formed.
+ID2=$(echo "$U2"|jv "['profile']['id']")
+curl -s -X POST $B/api/admin/led-grant -H "$HD" -H 'content-type: application/json' -d '{"userId":"'"$ID2"'","unlock":["sylthaine","vireo","gruel","vael","vex"],"heroKeys":["sylthaine","vireo","gruel","vael","vex"],"heroXp":2000,"px":900000}' >/dev/null
 curl -s -X POST $B/api/guild/create -H "$H1" -H 'content-type: application/json' -d '{"name":"Alpha"}' >/dev/null
 curl -s -X POST $B/api/guild/create -H "$H2" -H 'content-type: application/json' -d '{"name":"Beta"}' >/dev/null
 
@@ -33,10 +36,10 @@ G0=$(curl -s $B/api/ledger -H "$H1" | jv "['gold']")
 CB=$(curl -s -X POST $B/api/guild/contribute -H "$H1" -H 'content-type: application/json' -d '{}')
 G1=$(curl -s $B/api/ledger -H "$H1" | jv "['gold']")
 ck "contribution debited 200 ledger gold ($G0 -> $G1)" "$((G0-200))" "$G1"
+# v825 retired the rolled raid assault (the raid is a real battle; its reward is tested in test_raid_durable.js). v1009: this
+# block still expected the retired route to pay, so it failed unseen behind the runner's tail -3.
 RA=$(curl -s -X POST $B/api/guild/raid/assault -H "$H1" -H 'content-type: application/json' -d '{}')
-ck "raid assault returns a reward" '"reward"' "$RA"
-GC=$(curl -s $B/api/ledger -H "$H1" | jv "['guildCoins']")
-[ -n "$GC" ] && [ "$GC" -gt 0 ] && ck "raid guild coins CREDITED to the ledger ($GC)" ok ok || ck "raid guild coins CREDITED to the ledger" "credited" "got: $GC"
+ck "the retired rolled raid assault pays nothing" 'real battle now' "$RA"
 # drain the wallet and confirm a broke account is refused (no free XP from nothing)
 python3 - "$G1" > /dev/null <<'PY'
 PY
@@ -49,19 +52,9 @@ done
 BROKE=$(curl -s -X POST $B/api/guild/contribute -H "$H1" -H 'content-type: application/json' -d '{}')
 case "$BROKE" in *"costs 200 gold"*|*capped*|*"max level"*) ck "broke/capped contribution refused (no free guild XP)" ok ok;; *) ck "broke/capped contribution refused (no free guild XP)" refused "$BROKE";; esac
 
-# compute warp offset to NEXT Saturday 01:00 ET
-OFF=$(python3 - << 'PY'
-import time, datetime
-ET=4*3600
-now=time.time()
-et=datetime.datetime.utcfromtimestamp(now-ET)
-days_ahead=(5-et.weekday())%7  # weekday(): Mon=0..Sat=5
-if days_ahead==0 and et.hour>=1: days_ahead=7
-target=datetime.datetime(et.year,et.month,et.day)+datetime.timedelta(days=days_ahead,hours=1)
-target_real=target.timestamp()+ET-time.timezone if False else (target-datetime.datetime(1970,1,1)).total_seconds()+ET
-print(int((target_real-now)*1000))
-PY
-)
+# v1009: the war runs on a 14-day cycle (registration Sat 02:00 ET, every other week). The old 'next Saturday 01:00' landed in a
+# finished week, so 25 checks below failed unseen. Warp to one minute after the server's own next registration opening.
+OFF=$(curl -s $B/api/guild-war/status -H "$H1" | python3 -c "import sys,json,time;t=json.load(sys.stdin)['tournament'];o=t['registrationOpensAt'] if time.time()*1000<t['registrationLocksAt'] else t['nextRegistrationOpensAt'];print(int(max(o+60000,time.time()*1000)-time.time()*1000))")
 W=$(curl -s -X POST $B/api/guild-war/debug-warp -H "$HD" -H 'content-type: application/json' -d "{\"offsetMs\":$OFF}")
 ck "warp to Saturday: registration" '"state":"registration"' "$W"
 
@@ -83,7 +76,7 @@ ck "match created in planning" '"state":"planning"' "$S1"
 ck "Alpha is seed 1" '"seed":1' "$S1"
 ck "opponent HIDDEN before Tuesday reveal" '"preReveal":true' "$S1"
 ASEARLY=$(curl -s -X POST $B/api/guild-war/assign -H "$H1" -H 'content-type: application/json' -d "{\"memberId\":\"$(echo "$U1"|jv "['profile']['id']")\",\"lane\":0}")
-ck "assign before reveal rejected" 'Planning opens' "$ASEARLY"
+ck "assign before reveal rejected" 'Placement for this round opens' "$ASEARLY"
 
 # warp to Tuesday 01:00 ET: opponent revealed, planning open, officer roster present
 OFF2B=$((OFF+3*86400000+3600000))
@@ -95,22 +88,28 @@ ck "officer placement roster present" '"roster"' "$S1B"
 # planning: leader assigns own line to lane 0; non-leader forbidden; assault before live rejected
 AS=$(curl -s -X POST $B/api/guild-war/assign -H "$H1" -H 'content-type: application/json' -d "{\"memberId\":\"$(echo "$U1"|jv "['profile']['id']")\",\"lane\":0}")
 ck "leader assigns to Iron Gate" '"ok":true' "$AS"
+# v1009: since v778 a line not placed before the lock is MISSED (no auto-placement) - Beta places its own line, as a player does
+BP=$(curl -s -X POST $B/api/guild-war/place -H "$H2" -H 'content-type: application/json' -d '{"lane":0}')
+ck "Beta places its line at Iron Gate" '"ok":true' "$BP"
 EARLY=$(curl -s -X POST $B/api/guild-war/assault -H "$H1" -H 'content-type: application/json' -d '{"fromLane":0}')
 ck "assault during planning rejected" 'No live match' "$EARLY"
 
 # warp to Tuesday 18:30 ET → locked+live
-OFF3=$((OFF+3*86400000+3600000*18+1800000))
+OFF3=$((OFF+3*86400000+3600000*17+1800000))   # Tue 19:31 ET (live 18:00-20:00)
 W3=$(curl -s -X POST $B/api/guild-war/debug-warp -H "$HD" -H 'content-type: application/json' -d "{\"offsetMs\":$OFF3}")
 M=$(curl -s $B/api/guild-war/match -H "$H1")
 ck "match is live after 6PM lock" '"state":"live"' "$M"
 ck "lock timestamp recorded (fresh 6PM snapshot ran)" '"lockedAt":17' "$M"
-ck "Beta auto-placed unassigned line" '"wu2"' "$M"
+ck "Beta's placed line holds Iron Gate after the lock" 'wu2' "$M"
 ASLOCK=$(curl -s -X POST $B/api/guild-war/assign -H "$H1" -H 'content-type: application/json' -d "{\"memberId\":\"$(echo "$U1"|jv "['profile']['id']")\",\"lane\":2}")
-ck "placement rejected AFTER lock" 'No match in planning' "$ASLOCK"
+ck "placement rejected AFTER lock" 'lines locked' "$ASLOCK"
 
 # Alpha assaults lane 0 (Beta's only defender) — strong save should win
-A1=$(curl -s -X POST $B/api/guild-war/assault -H "$H1" -H 'content-type: application/json' -d '{"fromLane":0}')
+A1=$(curl -s -X POST $B/api/guild-war/assault -H "$H1" -H 'content-type: application/json' -d '{"fromLane":0,"requestId":"wa-1"}')
 ck "assault resolves server-side" '"won":' "$A1"
+# v1009 (re-audit Guild #3): the same requestId answers its receipt - a lost reply and a retap no longer march twice
+A1R=$(curl -s -X POST $B/api/guild-war/assault -H "$H1" -H 'content-type: application/json' -d '{"fromLane":0,"requestId":"wa-1"}')
+ck "a repeated assault requestId answers its receipt" '"replayed":true' "$A1R"
 WON=$(echo "$A1"|jv "['won']")
 if [ "$WON" = "True" ]; then
   ck "lane 0 citadel fell (last defender beaten)" '"citadelFell":true' "$A1"
@@ -129,7 +128,7 @@ MV=$(curl -s $B/api/guild-war/match -H "$H1")
 ck "match view has event log" 'ASSAULT' "$MV"
 
 # tournament completes (single round of 2 → champion) after round end
-OFF4=$((OFF+3*86400000+3600000*21))
+OFF4=$((OFF+3*86400000+3600000*20))   # Tue 22:01 ET
 W4=$(curl -s -X POST $B/api/guild-war/debug-warp -H "$HD" -H 'content-type: application/json' -d "{\"offsetMs\":$OFF4}")
 ck "tournament finished with champion" '"state":"finished"' "$W4"
 ST=$(curl -s $B/api/guild-war/status -H "$H1")
@@ -137,8 +136,11 @@ CH=$(echo "$ST"|jv "['tournament']['championGuildId']")
 [ -n "$CH" ] && [ "$CH" != "None" ] && { PASS=$((PASS+1)); echo "  ✓ champion recorded"; } || { FAIL=$((FAIL+1)); echo "  ✗ no champion"; }
 
 # rewards: claim once, not twice; loser gets participant tier
-C1=$(curl -s -X POST $B/api/guild-war/claim-reward -H "$H1" -H 'content-type: application/json' -d '{}')
+C1=$(curl -s -X POST $B/api/guild-war/claim-reward -H "$H1" -H 'content-type: application/json' -d '{"requestId":"wc-1"}')
 ck "winner claims reward" '"ok":true' "$C1"
+# v1009 (re-audit Guild #7): a retried claim with the same requestId gets its receipt, not an error
+C1R=$(curl -s -X POST $B/api/guild-war/claim-reward -H "$H1" -H 'content-type: application/json' -d '{"requestId":"wc-1"}')
+[ "$C1R" = "$C1" ] && [[ "$C1" == *'"ok":true'* ]] && { PASS=$((PASS+1)); echo "  ✓ a repeated claim requestId answers the same body"; } || { FAIL=$((FAIL+1)); echo "  ✗ a repeated claim requestId answers the same body — got ${C1R:0:200}"; }
 C1B=$(curl -s -X POST $B/api/guild-war/claim-reward -H "$H1" -H 'content-type: application/json' -d '{}')
 ck "double claim rejected" 'Already claimed' "$C1B"
 C2=$(curl -s -X POST $B/api/guild-war/claim-reward -H "$H2" -H 'content-type: application/json' -d '{}')

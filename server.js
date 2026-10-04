@@ -4707,6 +4707,11 @@ async function api(req,res,url){
     }
     if(p==='/api/guild-war/assault'){
       const m=myGid?warMatchOfGuild(t,myGid):null;
+      /* v1009 (re-audit Guild #3): one march per requestId. A lost reply and a retap used to send a SECOND march; the same id now
+         answers its receipt. The save is synchronous; a failed one answers 503 and the retry gets the receipt. */
+      const arid=String(b.requestId||'').slice(0,48), ark=arid?me.id+':'+arid:null;
+      if(m&&ark&&m.receipts&&m.receipts[ark]) return send(res,200,Object.assign({},m.receipts[ark],{replayed:true, match:warMatchView(t,m,myGid,me.id)}));
+      const keepMarch=o=>{ if(ark){ m.receipts=m.receipts||{}; m.receipts[ark]=o; } m.version++; return writeDBNow()===false?send(res,503,{ok:false,storageFailed:true,error:'Save failed - try again.'}):null; };
       if(!m||m.state!=='live') return send(res,400,{error:'No live match.'});
       const now=warNow(); if(!(now>=m.startsAt&&now<m.endsAt)) return send(res,400,{error:'Outside the battle window.'});
       const lane=parseInt(b.fromLane,10); if(!(lane>=0&&lane<5)) return send(res,400,{error:'Bad lane.'});
@@ -4754,7 +4759,7 @@ async function api(req,res,url){
         if(spent){ spent.alive=false; m.assaults[me.id]=(m.assaults[me.id]||0)+1; attacker.fights=(attacker.fights|0)+1;
           let fell=false; if(!foe.defenders.some(warStanding)){ foe.destroyed=true; fell=true; m.eventLog.push({t:warNow(),e:'CITADEL_FELL',lane,by:me.id}); }
           m.eventLog.push({t:warNow(),e:'OVERRUN',lane,a:me.id,d:spent.memberId});
-          m.version++; writeDB();
+          if(keepMarch({ ok:true, won:true, overrun:true, citadelFell:fell, finished:false })) return;
           return send(res,200,{ ok:true, won:true, overrun:true, citadelFell:fell, finished:false, match:warMatchView(t,m,myGid,me.id) }); } }
       m.assaults[me.id]=(m.assaults[me.id]||0)+1;   // every attack spends an order, win or lose
       attacker.fights=(attacker.fights|0)+1;
@@ -4762,7 +4767,7 @@ async function api(req,res,url){
         foe.destroyed=true; m.eventLog.push({t:warNow(),e:'CITADEL_CAPTURED',lane,by:me.id});
         /* v676: the war does NOT end the moment a third tower falls - "to include if 3 towers already
            go down". Every lane keeps fighting to the bell, and the towers are counted there. */
-        m.version++; writeDB();
+        if(keepMarch({ ok:true, won:true, captured:true, citadelFell:true, finished:false })) return;
         return send(res,200,{ ok:true, won:true, captured:true, citadelFell:true, finished:false, match:warMatchView(t,m,myGid,me.id) }); }
       const seed=SIM.seedFrom(m.id+':'+me.id+':'+lane+':'+m.version);
       // World-map wounds carried between assaults cap in-battle healing at entry HP.
@@ -4794,16 +4799,21 @@ async function api(req,res,url){
         m.eventLog.push({t:warNow(),e:'CITADEL_FELL',lane,by:null}); }
       m.eventLog.push({t:warNow(),e:'ASSAULT',lane,a:me.id,d:defender.memberId,won:r.won});
       const finished=false;                      /* v676: only the bell finishes a war */
-      m.version++; writeDB();
+      if(keepMarch({ ok:true, won:r.won, citadelFell, finished })) return;
       return send(res,200,{ ok:true, won:r.won, citadelFell, finished,
         replay:{ seed, lane, attacker:attacker.lineSnapshot, defender:defender.lineSnapshot, log:r.log.slice(0,200) },
         result:{ aState:r.aState, bState:r.bState, rounds:r.rounds }, injuries:warInjuries,
         match:warMatchView(t,m,myGid,me.id) });
     }
     if(p==='/api/guild-war/claim-reward'){
+      /* v1009 (re-audit Guild #7): a lost reply used to answer the retry "Nothing to claim" though the coins were paid; the same
+         requestId now answers its receipt, and the claim is on disk before it is acknowledged */
+      const crid=String(b.requestId||'').slice(0,48);
+      if(crid&&me.lastWarClaim&&me.lastWarClaim.rid===crid) return send(res,200,me.lastWarClaim.resp);
       if(t.state==='finished') warEscrowRewards(t);   // idempotent; also settles a bracket that finished before this build
       const pend=(me.pendingWarRewards||[]).filter(x=>x&&(x.amt|0)>0);
-      if(!pend.length) return send(res,400,{error:t.state==='finished'?'You did not take part in this tournament.':'Nothing to claim.'});
+      const claimedHere=!!(t.rewards&&Object.keys(t.rewards).some(k=>k.endsWith(':'+me.id)));   /* v1009: a second claim said "You did not take part" to a player who had */
+      if(!pend.length) return send(res,400,{error:claimedHere?'Already claimed.':t.state==='finished'?'You did not take part in this tournament.':'Nothing to claim.'});
       const total=pend.reduce((s,x)=>s+(x.amt|0),0), last=pend[pend.length-1];
       me.coins=(me.coins||0)+total; me.pendingWarRewards=[];
       /* v799 - the player was paid on the line above, from their own pendingWarRewards. This is
@@ -4812,8 +4822,9 @@ async function api(req,res,url){
          from a previous week simply has nothing to write to, and the player is paid either way. */
       const tt=(last.tid===t.id)?t:null;
       if(tt&&tt.id===last.tid){ tt.rewards=tt.rewards||{}; tt.rewards[(last.gid||'-')+':'+me.id]={t:warNow(),amt:total,tid:last.tid}; if(tt===t) t.version++; }
-      writeDB();
-      return send(res,200,{ok:true, coins:me.coins, amount:total, tier:last.tier});
+      const cresp={ok:true, coins:me.coins, amount:total, tier:last.tier}; if(crid) me.lastWarClaim={rid:crid,resp:cresp};
+      if(writeDBNow()===false) return send(res,503,{ok:false,storageFailed:true,error:'Save failed - try again.'});
+      return send(res,200,cresp);
     }
     /* v374 (Phil): GOD MODE WAR SIMULATOR — "simulate guild wars with a bot guild, and bot allies on my
        side: 20 vs 20 players with 3 lines of 5 heroes each." A sandbox match, never a real tournament:
@@ -7158,6 +7169,7 @@ async function api(req,res,url){
         const x=WORLD_LOCATION.center(WORLD_LOCATION.cellIndex(b.x));
         const y=WORLD_LOCATION.center(WORLD_LOCATION.cellIndex(b.y));
         if(worldSquareTaken(me,x,y,now)) return {ok:false,error:'That square is occupied.'};
+        if(WORLD_LOCATION.cellKey(x,y)===WORLD_LOCATION.cellKey(loc.x,loc.y)) return {ok:false,error:'Your castle is already on that square.'};   /* v1009 (re-audit World #4): it was accepted and charged */
         const day=worldTravelDay(now);
         if(t.teleDay!==day){t.teleDay=day;t.teleUsed=0;}
         if(t.teleUsed<1) t.teleUsed++;
@@ -7165,7 +7177,7 @@ async function api(req,res,url){
         else return {ok:false,error:'No free teleport or scroll remains.'};
         me.worldLocation={region:loc.region,x,y};
       }else if(kind==='wild'){
-        const blocked=worldBlockedKeys(me,now);
+        const blocked=worldBlockedKeys(me,now); blocked.add(WORLD_LOCATION.cellKey(loc.x,loc.y));   /* v1009: a wild teleport always moves you */
         const next=WORLD_LOCATION.openInRegion(loc.region,blocked);
         if(!next) return {ok:false,error:'No free square remains in your region.'};
         if(now-t.wildLast>=6*3600000) t.wildLast=now;
