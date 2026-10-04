@@ -4324,7 +4324,9 @@ async function api(req,res,url){
     const b=await body(req);
     // Exact packet identity retains revision-only clients' successful reply.
     // A different packet at the stale revision remains a409, not a second grant.
-    const key=me.id+':gear:'+p+':'+crypto.createHash('sha256').update(JSON.stringify(b)).digest('hex');
+    /* v1004 (Pool+Forge audit #8): the ledger epoch is in the key - after Reset all progress (revision back to 1) the same first craft
+       body replayed the OLD receipt for 24 h. A packet in flight across this change is still guarded by expectedRevision (409). */
+    const key=me.id+':gear:'+(ensureLedger(me).migratedAt||0)+':'+p+':'+crypto.createHash('sha256').update(JSON.stringify(b)).digest('hex');
     let status=200;
     const out=durableCommit(me,key,(me)=>{
     const g=ensureGear(me);
