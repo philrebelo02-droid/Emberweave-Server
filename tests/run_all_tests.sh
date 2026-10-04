@@ -139,6 +139,8 @@ note "test_proto_keys.js (4 Oct City Wall audit #1/#3: prototype-named request v
 node tests/test_proto_keys.js || FAILED=1
 note "test_glyph_durable.js (4 Oct City Wall audit #4: a glyph build is saved before it is acknowledged; 503 on a failed save)"
 node tests/test_glyph_durable.js || FAILED=1
+note "test_guild_durable.js (4 Oct Guild audit #5: contribute and raid start are durable commits with the guild)"
+node tests/test_guild_durable.js || FAILED=1
 note "test_watch_report_rate.js (3 Oct Guild audit #7: an unchanged watch report does not save; 12 changed a minute)"
 node tests/test_watch_report_rate.js || FAILED=1
 note "test_raid_durable.js (3 Oct Guild audit #2: the raid result saves the reward and the guild together, 503 on a failed save)"

@@ -7710,23 +7710,28 @@ async function api(req,res,url){
       // NOTE: GUILD_CONTRIB_EXP / GUILD_CONTRIB_DAILY are a balance placeholder — tune in the economy
       // pass (real fix = deduct an owned server-side resource, Phase 2). -PR review
       const GUILD_CONTRIB_EXP=100, GUILD_CONTRIB_DAILY=20;
-      const _dk=new Date().toISOString().slice(0,10);
-      if(!me.guildContrib || me.guildContrib.day!==_dk) me.guildContrib={day:_dk,n:0};
-      if(me.guildContrib.n>=GUILD_CONTRIB_DAILY) return send(res,200,{ capped:true, guild:guildView(g) });
-      // v241 (full-game audit): a contribution SPENDS a server resource — 200 ledger gold per click.
-      // No free XP from nothing; the daily cap stays as the outer bound.
-      if((g.level||1)>=GMAXLVL) return send(res,400,{error:'Your guild is at max level.'});   /* 3 Oct Guild audit #4: it took 200 gold for nothing */
-      const GUILD_CONTRIB_GOLD=200;
-      { const led=ensureLedger(me);
-        if((led.gold|0)<GUILD_CONTRIB_GOLD) return send(res,400,{error:'Contributing costs '+GUILD_CONTRIB_GOLD+' gold.'});
-        led.gold-=GUILD_CONTRIB_GOLD; ledTx(me,'guild-contribute',{gold:-GUILD_CONTRIB_GOLD}); }
-      me.guildContrib.n++;
-      const amt=GUILD_CONTRIB_EXP;
-      g.exp=(g.exp||0)+amt;
-      while((g.level||1)<GMAXLVL && g.exp>=gExpNeed(g.level||1)){ g.exp-=gExpNeed(g.level||1); g.level=(g.level||1)+1;
-        g.log=g.log||[]; g.log.push({sys:1,tx:'The guild reached Level '+g.level+'!',t:Date.now()}); }
-      if((g.level||1)>=GMAXLVL) g.exp=0;
-      writeDB(); return send(res,200,{ guild:guildView(g), ledger:ledgerView(me) }); }   /* v979: the spent gold comes back with the reply */
+      const GUILD_CONTRIB_GOLD=200;   /* test_arena_guild_harden matches this line against the client's GUILD_CONTRIB */
+      /* v992 (4 Oct Guild audit #5): ONE durable commit of the player's gold + daily count and the guild's exp / level / log - a
+         failed save answers 503 with nothing moved. v241: a contribution SPENDS 200 ledger gold; v979 the reply carries the ledger;
+         3 Oct #4: refused at max level before any spend. The request id is optional for old clients (then no retry dedupe). */
+      const crid=String(b.requestId||'').slice(0,48)||('srv-'+uid());
+      const out=durableCommit(me,me.id+':gcontrib:'+crid,(du,staged)=>{
+        const gg=Object.values(staged.guilds||{}).find(x=>x&&x.id===g.id); if(!gg) return {ok:false,error:'You are not in a guild.'};
+        const _dk=new Date().toISOString().slice(0,10);
+        if(!du.guildContrib || du.guildContrib.day!==_dk) du.guildContrib={day:_dk,n:0};
+        if(du.guildContrib.n>=GUILD_CONTRIB_DAILY) return { ok:false, capped:true, guild:guildView(gg) };
+        if((gg.level||1)>=GMAXLVL) return {ok:false,error:'Your guild is at max level.'};
+        const led=ensureLedger(du);
+        if((led.gold|0)<GUILD_CONTRIB_GOLD) return {ok:false,error:'Contributing costs '+GUILD_CONTRIB_GOLD+' gold.'};
+        led.gold-=GUILD_CONTRIB_GOLD; ledTx(du,'guild-contribute',{gold:-GUILD_CONTRIB_GOLD});
+        du.guildContrib.n++;
+        gg.exp=(gg.exp||0)+GUILD_CONTRIB_EXP;
+        while((gg.level||1)<GMAXLVL && gg.exp>=gExpNeed(gg.level||1)){ gg.exp-=gExpNeed(gg.level||1); gg.level=(gg.level||1)+1;
+          gg.log=gg.log||[]; gg.log.push({sys:1,tx:'The guild reached Level '+gg.level+'!',t:Date.now()}); }
+        if((gg.level||1)>=GMAXLVL) gg.exp=0;
+        return { ok:true, guild:guildView(gg), ledger:ledgerView(du) };
+      },{fields:['guilds']});
+      return send(res, out&&out.storageFailed?503:((out&&(out.ok||out.capped))?200:400), out); }
 
     /* v666: the instant-damage assault is CLOSED. A raid attempt is a real fight now, and this route
        is the one that was exploited ~560x, so it must not survive as a second way in. Old clients are
@@ -7760,13 +7765,22 @@ async function api(req,res,url){
          chew through in 90 seconds; on the last run of a tier someone lands a real killing blow. His
          level rises with the tier so his damage keeps pace with the guilds fighting him. */
       const bossLvl=raidBossLvl(r.level);
-      r.used[me.id]=((r.used[me.id])||0)+1;   /* the attempt is spent on entry — quitting does not refund it */
-      me.raidDay={ d:r.day, n:((me.raidDay&&me.raidDay.d===r.day)?(me.raidDay.n|0):0)+1 };
-      r.att[me.id]={ id:uid(), heroIds:ids, snaps:fightSnaps, seed, engine:(host&&host.buildVersion)||null,
-        startedAt:Date.now(), reqId, tier:r.level, bossKey:bb.key, bossHp:r.hp, bossLvl };
-      writeDB();
-      return send(res,200,{ ok:true, attemptId:r.att[me.id].id, seed, snaps:fightSnaps, engine:r.att[me.id].engine,
-        boss:{key:bb.key, name:bb.name, tier:r.level, hp:r.hp, lvl:bossLvl, def:bossHide(r.level), dmgMul:bossDmgMul(r.level)}, raid:raidView(g) }); }
+      /* v992 (4 Oct Guild audit #5): the spent attempt (guild count + the player's daily count) and the open fight are ONE durable
+         commit; a failed save answers 503 and no attempt is spent. The checks above read live state; they are repeated on the draft. */
+      const out=durableCommit(me,me.id+':graidstart:'+reqId,(du,staged)=>{
+        const gg=Object.values(staged.guilds||{}).find(x=>x&&x.id===g.id); if(!gg) return {ok:false,error:'You are not in a guild.'};
+        const rr=ensureRaid(gg); rr.att=rr.att||{};
+        if(((rr.used[du.id])||0)>=RAID_ATT || (du.raidDay && du.raidDay.d===rr.day && (du.raidDay.n|0)>=RAID_ATT)) return { ok:false, none:true, raid:raidView(gg) };
+        if(rr.hp<=0) return {ok:false,error:'This boss is already down — the next tier is spawning.'};
+        rr.used[du.id]=((rr.used[du.id])||0)+1;   /* the attempt is spent on entry — quitting does not refund it */
+        du.raidDay={ d:rr.day, n:((du.raidDay&&du.raidDay.d===rr.day)?(du.raidDay.n|0):0)+1 };
+        rr.att[du.id]={ id:uid(), heroIds:ids, snaps:fightSnaps, seed, engine:(host&&host.buildVersion)||null,
+          startedAt:Date.now(), reqId, tier:rr.level, bossKey:bb.key, bossHp:rr.hp, bossLvl };
+        return { ok:true, attemptId:rr.att[du.id].id, seed, snaps:fightSnaps, engine:rr.att[du.id].engine,
+          boss:{key:bb.key, name:bb.name, tier:rr.level, hp:rr.hp, lvl:bossLvl, def:bossHide(rr.level), dmgMul:bossDmgMul(rr.level)}, raid:raidView(gg) };
+      },{fields:['guilds']});
+      if(out&&out.none) return send(res,200,{ none:true, raid:out.raid });
+      return send(res, out&&out.storageFailed?503:((out&&out.ok)?200:400), out); }
     if(p==='/api/guild/raid/resolve' && req.method==='POST'){ if(!g) return send(res,400,{error:'You are not in a guild.'});
       const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
       /* v978 (3 Oct Guild audit #2): the raid result is ONE durable commit of the player's reward AND the guild's shared state

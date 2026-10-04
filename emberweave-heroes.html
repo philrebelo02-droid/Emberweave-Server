@@ -21523,7 +21523,7 @@ function guildExpNeeded(lvl){ lvl=lvl||guildLevel(); return 1000*lvl; }        /
 function guildShopSlots(){ return 4+(guildLevel()-1)*2; }
 function guildMaxed(){ return guildLevel()>=GUILD_MAX_LEVEL; }
 function addGuildExp(n){ if(!G.guild)return Promise.resolve(false);
-  if(G.guild.type==='real'){ const before=(GS.guild&&GS.guild.level)||G.guild.level||1; return api('/api/guild/contribute','POST',{exp:n}).then(function(d){ if(d&&d.error){ bannerMsg(d.error); return false; } if(d&&d.capped){ bannerMsg('Daily contributions done — come back tomorrow.'); return false; } if(d&&d.guild){ GS.guild=d.guild; syncLocalGuild(); if(GS.guild.level>before) bannerMsg('&#127881; Guild reached level '+GS.guild.level+'!'); if(state==='guild')renderGuild(); return true; } return false; }).catch(function(){ return false; }); }   // v241: contributions cost 200 server gold — surface the refusal instead of silently eating it
+  if(G.guild.type==='real'){ const before=(GS.guild&&GS.guild.level)||G.guild.level||1; return api('/api/guild/contribute','POST',{exp:n,requestId:uid8()}).then(function(d){ if(d&&d.error){ bannerMsg(d.error); return false; } if(d&&d.capped){ bannerMsg('Daily contributions done — come back tomorrow.'); return false; } if(d&&d.guild){ GS.guild=d.guild; syncLocalGuild(); if(GS.guild.level>before) bannerMsg('&#127881; Guild reached level '+GS.guild.level+'!'); if(state==='guild')renderGuild(); return true; } return false; }).catch(function(){ return false; }); }   // v241: contributions cost 200 server gold — surface the refusal instead of silently eating it
   if(guildMaxed())return Promise.resolve(false); G.guild.exp=(G.guild.exp||0)+n;
   while(!guildMaxed() && G.guild.exp>=guildExpNeeded(G.guild.level)){ G.guild.exp-=guildExpNeeded(G.guild.level); G.guild.level=(G.guild.level||1)+1; bannerMsg('&#127881; Guild reached level '+G.guild.level+'!'); }
   if(guildMaxed())G.guild.exp=0; saveG(); return Promise.resolve(true); }
@@ -25777,7 +25777,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791095779652';
+const BUILD_ID = '1791096493306';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
