@@ -69,6 +69,8 @@ note "test_world_account_p2.js (4 Oct World + Account P2s: legacy routes retired
 node tests/test_world_account_p2.js || FAILED=1
 note "test_gear_epoch.js (3 Oct Pool+Forge audit #8: after a reset the same gear packet crafts again)"
 node tests/test_gear_epoch.js || FAILED=1
+note "test_device_keys.js (4 Oct Account audit #11: device ids stored as hashes; raw keys migrated at boot; guests still resume)"
+node tests/test_device_keys.js || FAILED=1
 note "test_player_truth.js (v270: the campaign result is the player's own transcript, replayed)"
 node tests/test_player_truth.js || FAILED=1
 note "test_campaign_player_truth.js (28 Sep fight rule: the witnessed win is paid on a replay mismatch, once; a malformed verdict is refused)"

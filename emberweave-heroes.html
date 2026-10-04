@@ -19529,7 +19529,7 @@ function ensureGuest(cb){
 }
 function online(){ return location.protocol!=='file:'; }
 // stable-ish per-device id used to cap account creation (3 per device)
-function deviceId(){ try{ let d=localStorage.getItem('ew_device'); if(!d){ d='d'+Date.now().toString(36)+Math.random().toString(36).slice(2,10); localStorage.setItem('ew_device',d); } return d; }catch(e){ return ''; } }
+function deviceId(){ try{ let d=localStorage.getItem('ew_device'); if(!d){ d='d'+Date.now().toString(36)+(function(){ try{ const a=new Uint8Array(16); crypto.getRandomValues(a); return Array.from(a,x=>x.toString(16).padStart(2,'0')).join(''); }catch(e){ return Math.random().toString(36).slice(2,10)+Math.random().toString(36).slice(2,10); } })();   /* v1005 (Account audit #11): 128 random bits for NEW device ids (existing ids are kept) */ localStorage.setItem('ew_device',d); } return d; }catch(e){ return ''; } }
 async function api(path,method,bodyObj){ try{ const h={'Content-Type':'application/json'}; if(ACC.token)h['x-token']=ACC.token;
   const r=await fetch(path,{method:method||'GET',headers:h,body:bodyObj?JSON.stringify(bodyObj):undefined}); const j=await r.json();
   // single-session: if our token was invalidated (signed in elsewhere / reset / deleted), drop the local session gracefully
@@ -25781,7 +25781,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791103737184';
+const BUILD_ID = '1791106627219';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

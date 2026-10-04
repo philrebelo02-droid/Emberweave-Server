@@ -408,6 +408,15 @@ function lookupToken(raw){ if(!raw) return null;
   return e.id; }
 function tokOwner(v){ return typeof v==='string'?v:(v&&v.id); }
 function dropTokens(id){ for(const t of Object.keys(DB.tokens)){ if(tokOwner(DB.tokens[t])===id) delete DB.tokens[t]; } }   // single-session / force re-login
+/* v1005 (Account audit #11): a guest's deviceId works like a password (it resumes that guest), so it is stored only as a hash, the
+   way session tokens are (30 Sep). devKey('') is ''. migrateDeviceKeys() converts raw keys left from before. */
+function devKey(id){ return id?('h:'+crypto.createHash('sha256').update(String(id)).digest('hex').slice(0,32)):''; }
+function migrateDeviceKeys(){ let n=0;
+  for(const mapName of ['devices','guestByDevice']){ const M=DB[mapName]; if(!M||typeof M!=='object') continue;
+    for(const k of Object.keys(M)){ if(k.startsWith('h:')) continue; const nk=devKey(k);
+      if(mapName==='devices') M[nk]=Math.max(M[nk]|0, M[k]|0); else if(M[nk]==null) M[nk]=M[k];
+      delete M[k]; n++; } }
+  if(n){ console.log('🔐 hashed '+n+' stored device id(s)'); writeDB(); } }
 function migrateTokenHashes(){ let n=0;
   for(const k of Object.keys(DB.tokens)){ const v=DB.tokens[k];
     if(typeof v==='string'){ DB.tokens[tokHash(k)]={id:v, iat:Date.now(), exp:Date.now()+TOKEN_TTL_MS}; delete DB.tokens[k]; n++; } }
@@ -3889,7 +3898,7 @@ async function api(req,res,url){
     if(String(b.pass).length<8) return send(res,400,{error:'Password must be at least 8 characters.'});
     // v328 — caps run BEFORE the guest-upgrade branch. The live client always registers as a signed-in guest,
     // so the device/network caps below were dead code and guest→upgrade→logout→new guest looped forever.
-    const deviceId=(b.deviceId||'').slice(0,64), ip=clientIP(req); DB.devices=DB.devices||{}; DB.ipAccounts=DB.ipAccounts||{};
+    const deviceId=devKey((b.deviceId||'').slice(0,64)), ip=clientIP(req); DB.devices=DB.devices||{}; DB.ipAccounts=DB.ipAccounts||{};   /* v1005: hashed */
     if(deviceId && (DB.devices[deviceId]||0)>=3) return send(res,429,{error:'This device has reached the 3-account limit.'});
     /* v274 — THE NETWORK CAP IS A WINDOW, NOT A LIFE SENTENCE.
        It used to be a counter that only ever went up, so a household, an office, a school or anyone
@@ -3961,7 +3970,7 @@ async function api(req,res,url){
   if(p==='/api/logout' && req.method==='POST'){ const raw=String(req.headers['x-token']||''); if(raw&&DB.tokens&&DB.tokens[tokHash(raw)]){ delete DB.tokens[tokHash(raw)]; writeDBNow(); } return send(res,200,{ok:true}); }
   if(p==='/api/guest' && req.method==='POST'){ const b=await body(req);
     if(rateLimited(req,'guest',20,60000)) return send(res,429,{error:'Slow down.'});
-    const deviceId=(b.deviceId||'').slice(0,64);
+    const deviceId=devKey((b.deviceId||'').slice(0,64));   /* v1005 (Account audit #11): stored and looked up as a hash */
     DB.guestByDevice = DB.guestByDevice || {};
     let u = deviceId && DB.guestByDevice[deviceId] && DB.users[DB.guestByDevice[deviceId]];
     if(u && !u.guest){ u=null; if(deviceId) delete DB.guestByDevice[deviceId]; }   // was upgraded to a real account → make a fresh guest
@@ -8147,7 +8156,7 @@ const BOOT_FILE_M=(function(){ try{ return fs.statSync(DB_FILE).mtimeMs; }catch(
    world. Everything that persists is now suppressed until the restore decision lands, the mtime is
    sampled once up front, and seed()/backupDB()/listen happen exactly once, afterwards. */
 function bootFinish(){ if(_booted) return; _booted=true; PG_BOOT_PENDING=false;
-  seed(); migrateAdminRoles(); migrateTokenHashes();   // stamp role:admin from ADMIN_IDS; hash any plaintext tokens (v241: the Vault, like the Campaign, refuses to boot without its authored table)
+  seed(); migrateAdminRoles(); migrateTokenHashes(); migrateDeviceKeys();   // stamp role:admin from ADMIN_IDS; hash any plaintext tokens (v241: the Vault, like the Campaign, refuses to boot without its authored table)
   migrateLegacyFeedback();
   migrateBlockedWorldCastles();
   migrateHeroIdsAll();   /* v926: rewrite old hero ids to in-game-name keys in every stored ledger/profile (once, stamped led.idv=2) */
