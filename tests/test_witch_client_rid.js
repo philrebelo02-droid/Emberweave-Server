@@ -15,6 +15,7 @@ function el(){ const e={isConnected:true,innerHTML:'',className:'',disabled:fals
   querySelector(sel){ if(sel==='[data-witch-buy]'){ const b=this._buy||(this._buy=el()); b.dataset.witchBuy='first'; return b; } return null; } }; return e; }
 const ctx={ ACC:{token:'t'}, document:{createElement:()=>el(), getElementById:()=>({textContent:''})}, bindNav(){}, bannerMsg(){}, adoptLedger(){},
   uid8:()=>'id'+(++n), HERO_TYPES:{}, heroIcon:()=>'', fmtDur:()=>'', WALL_UNLOCK_LEVEL:20, Math, JSON, Object, console,
+  setInterval:()=>0, clearInterval:()=>{},   /* v965's live panel ticker (Hut #8) needs these; without them the test stopped running (caught 3 Oct 23:0x) */
   api:async(p,m,b)=>{ if(p==='/api/witch/state') return {ok:true,brew:10,capacity:100,heroes:[],offer:{tier:'first',gems:200},injured:[]}; sent.push(b.requestId); return script.shift(); } };
 vm.createContext(ctx); vm.runInContext(src+'\nthis.renderCauldron=renderCauldron;',ctx);
 (async()=>{ let pass=0; const ok=(c,m)=>{assert(c,m);pass++;};
