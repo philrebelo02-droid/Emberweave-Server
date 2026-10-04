@@ -20700,13 +20700,20 @@ function myTeamPower(keys){ let p=0; for(const k of (keys||[])){ if(k) p+=myHero
 function marchPower(heroes){ return myTeamPower(heroes); }
 function marchVerb(ct){ return ct==='attack'?'⚔ Attacking':ct==='group'?'⚔ Group attacking':ct==='defend'?'🛡 Defending':'🔭 Scouting'; }
 let cityMarchStartPending=false;
+/* v1001 (World audit #3): a march start keeps ONE requestId for the same target + squad for 2 minutes and re-sends it on a lost reply
+   or a refused save - a retap after a lost reply used to be refused ("hero already marching") and the client never learned the march. */
+const _marchStartRid={};
+async function marchStartPost(path,key,body){ const now=Date.now(); let pr=_marchStartRid[key]; if(!pr||now-pr.t>120000) pr=_marchStartRid[key]={rid:uid8(),t:now};
+  let r=null; for(let t=0;t<3;t++){ try{ r=await api(path,'POST',Object.assign({},body,{requestId:pr.rid})); }catch(_e){ r=null; }
+    if(r&&r.error!=='offline'&&!r.storageFailed) break; if(t<2) await new Promise(z=>setTimeout(z,1500*(t+1))); }
+  if(r&&r.error!=='offline'&&!r.storageFailed) delete _marchStartRid[key];
+  return r; }
 async function startMarch(ctype,c,heroes){
   let out=marchOutMs(ctype,c.x,c.y), t=Date.now(), serverMarch=null;
   if((ctype==='attack'||ctype==='group') && (c.real||c.bot) && ACC.token){
     if(cityMarchStartPending)return;
     cityMarchStartPending=true;
-    try{serverMarch=await api('/api/world/city/start','POST',{
-      defId:c.id,heroIds:(heroes||[]).slice(0,5),requestId:uid8()});}catch(_e){serverMarch=null;}
+    try{ const hs=(heroes||[]).slice(0,5); serverMarch=await marchStartPost('/api/world/city/start','city:'+c.id+':'+hs.join(','),{defId:c.id,heroIds:hs}); }catch(_e){serverMarch=null;}
     finally{cityMarchStartPending=false;}
     if(!serverMarch||!serverMarch.ok){
       bannerMsg((serverMarch&&serverMarch.error)||'The city march could not be registered. Try again.'); return;
@@ -20848,12 +20855,15 @@ function resolveMarch(m){
       if(!m.serverMineId){ marchReport('⛏ Old mine trip','This trip predates verified mine battles and cannot pay a haul. Send a fresh squad.'); return; }
       if(m.resolving && Date.now()-(m.resolvingAt||0)<30000) return false;
       m.resolving=true; m.resolvingAt=Date.now();
-      api('/api/world/mine/resolve','POST',{marchId:m.serverMineId,requestId:uid8()}).then(r=>{
+      m.mineResolveRid=m.mineResolveRid||uid8();   /* v1001 (World audit #3): ONE requestId per haul - a retry answers with the receipt */
+      api('/api/world/mine/resolve','POST',{marchId:m.serverMineId,requestId:m.mineResolveRid}).then(r=>{
         m.resolving=false; m.resolvingAt=0;
         if(!r||!r.ok){
           if(r&&r.arriveAt){ m.arrive=Math.max(Date.now()+1000,r.arriveAt); saveG(); return; }
           const reason=(r&&r.error)||'Mine result could not be verified.';
-          if(!r || reason==='Mine battle engine unavailable.' || reason==='Mine battle result was incomplete.'){
+          /* v1001 (World audit #3): a lost reply (offline) or a refused save (storageFailed) is NOT a lost haul - the server march is still
+             open, so retry with the same id instead of closing the trip for good */
+          if(!r || r.error==='offline' || r.storageFailed || reason==='Mine battle engine unavailable.' || reason==='Mine battle result was incomplete.'){
             m.arrive=Date.now()+30000;
             bannerMsg(reason+' Retrying shortly.'); saveG(); return;
           }
@@ -20923,6 +20933,7 @@ function resolveMarch(m){
           m.pvpRequestId=null; // a premature idempotent receipt remains a refusal; the later attempt needs a new ID
           saveG(); return;
         }
+        if(!r || r.error==='offline' || r.storageFailed){ m.arrive=Date.now()+30000; bannerMsg('City attack result not confirmed. Retrying shortly.'); saveG(); return; }   /* v1001 (World audit #3): retry with the same requestId */
         m.resolved=true;
         const reason=(r&&r.error)||'The city attack was refused by the server.';
         addMail('war',{from:m.tName,subj:'⚠ City attack not resolved',body:reason+' No outcome or loot was awarded.'});
@@ -21257,7 +21268,7 @@ function openMineSelect(m){ const reqP=mineReqPower(m.level), reqL=mineReqLevel(
 // send a squad to mine: a march with a travel-out → gather → travel-home timeline
 async function startMine(m, heroes){ let travel=marchOutMs('mine',m.x,m.y), gather=mineGatherMs(m.level), t=Date.now(), serverMarch=null;
   if(ACC.token){
-    try{ serverMarch=await api('/api/world/mine/start','POST',{mineId:m.id,heroIds:(heroes||[]).slice(0,5),requestId:uid8()}); }
+    try{ const hs=(heroes||[]).slice(0,5); serverMarch=await marchStartPost('/api/world/mine/start','mine:'+m.id+':'+hs.join(','),{mineId:m.id,heroIds:hs}); }   // v1001: same id on a retry
     catch(_e){ serverMarch=null; }
     if(!serverMarch||!serverMarch.ok){ bannerMsg((serverMarch&&serverMarch.error)||'The mine march could not be registered. Try again.'); return; }
     t=serverMarch.depart; travel=serverMarch.travel; gather=serverMarch.gather;
@@ -25767,7 +25778,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791102287933';
+const BUILD_ID = '1791102390051';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
