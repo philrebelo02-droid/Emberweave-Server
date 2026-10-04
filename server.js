@@ -5225,13 +5225,21 @@ async function api(req,res,url){
       return send(res,410,{error:'GLYPH_FLOW_REPLACED'});
     if(p==='/api/glyphs/unsocket') return send(res,410,{error:'GLYPH_LOCKED'});
     const b=await body(req); glyphMigrate(me); glyphFlowMigrate(me); const g=ensureGlyphs(me);
+    /* v990 (4 Oct City Wall audit #4): a glyph build / build-all / ascend is saved BEFORE it is acknowledged. The account is
+       snapshotted here; gsend saves synchronously and, if the save fails, restores the account and answers 503 - the player is
+       never told a glyph is "locked into the board" when it is not on disk. Receipt replays above/below change nothing. */
+    const _gSnap=JSON.parse(JSON.stringify(me));
+    const gsend=(obj)=>{ try{ if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; } saveDB(DB); }
+      catch(e){ console.error('Glyph save failed - account rolled back:', e.message); _adoptUser(me.id,_gSnap);
+        return send(res,503,{ok:false,storageFailed:true,error:'Save failed. Retry the same request.'}); }
+      try{ pgSave(); }catch(e){} return send(res,200,obj); };
     if(p==='/api/glyphs/build-in-slot'){ const rid0=String(b.requestId||'').slice(0,48);
       if(rid0 && g.applied && g.applied[rid0]) return send(res,200,g.applied[rid0]); }   // idempotent retry beats the STALE check
     if(p==='/api/glyphs/build-all'){ const rid0=String(b.requestId||'').slice(0,48);
       if(rid0 && g.applied && g.applied[rid0]) return send(res,200,g.applied[rid0]); }   // v242: same idempotency rule
     const er=parseInt(b.expectedRevision,10);
     if(er!==g.revision) return send(res,409,{error:'STALE', revision:g.revision});
-    const ok=(extra)=>{ glyphPruneConsumed(g); g.revision++; writeDB(); return send(res,200,Object.assign({ok:true, revision:g.revision},extra||{})); };
+    const ok=(extra)=>{ glyphPruneConsumed(g); g.revision++; return gsend(Object.assign({ok:true, revision:g.revision},extra||{})); };   /* v990 */
     const bad=(msg)=>send(res,400,{error:msg, revision:g.revision});
 
     if(p==='/api/glyphs/build-in-slot'){
@@ -5267,7 +5275,7 @@ async function api(req,res,url){
         board:glyphBoardsView(g)[hero] };
       g.applied=g.applied||{}; g.applied[rid]=receipt;
       const rids=Object.keys(g.applied); if(rids.length>60) for(const old of rids.slice(0,rids.length-60)) delete g.applied[old];
-      writeDB(); return send(res,200,receipt);
+      return gsend(receipt);   /* v990 */
     }
     if(p==='/api/glyphs/build-all'){
       // v242 (Phil): "Quick Allocate All" INSTANTLY BUILDS every empty slot's pre-chosen glyph —
@@ -5298,7 +5306,7 @@ async function api(req,res,url){
       const receipt={ ok:true, revision:g.revision, hero, built, board:glyphBoardsView(g)[hero] };
       g.applied=g.applied||{}; g.applied[rid]=receipt;
       const rids=Object.keys(g.applied); if(rids.length>60) for(const old of rids.slice(0,rids.length-60)) delete g.applied[old];
-      writeDB(); return send(res,200,receipt);
+      return gsend(receipt);   /* v990 */
     }
     if(p==='/api/glyphs/ascend'){
       const hero=String(b.heroKey||'').slice(0,24); if(!validHero(hero)) return bad('Unknown hero.'); const board=g.boards[hero];
