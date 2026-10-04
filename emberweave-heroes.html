@@ -13873,6 +13873,7 @@ function closePopout(){ const bd=document.getElementById('popoutBackdrop'); if(b
   document.querySelectorAll('.popoutClose').forEach(x=>x.remove());
   if(_popout){ const el=document.getElementById(_popout); if(el) el.classList.remove('active','popout'); _popout=null; } }
 function show(name){
+  try{ if(typeof netGateUpdate==='function'&&NETGATE.bootAt) setTimeout(netGateUpdate,0); }catch(e){}   /* v1018: a signed-out player may only use the sign-in screen */
   if(name==='home'&&G.tutStarted&&!G.tutDone&&ACC.token) name='tutorial';
   const _leavingResult=(typeof state!=='undefined'&&state==='result'&&name!=='result');
   if(_popout) closePopout();   // any full navigation closes an open pop-out
@@ -19545,6 +19546,35 @@ function ensureGuest(cb){
   }).catch(()=>{ if(cb)cb(); });
 }
 function online(){ return location.protocol!=='file:'; }
+/* v1018 (Phil 4 Oct: "players should not be able to play offline, server needs to be connected to play"). THE NET GATE: a
+   full-screen block whenever the game has no server session or cannot reach the server. /health is checked every 15 s (every
+   4 s while down); two failures in a row (~8 s) show the gate, so a blip never interrupts. With no session the game keeps
+   provisioning one (ensureGuest); a player who signed out may only use the sign-in screen. The check is /api/health: the service
+   worker never caches /api/ (a cached /health said the server was up while it was down). */
+const NETGATE={down:0, bootAt:0, busy:false, timer:null};
+function netGateEl(){ let el=document.getElementById('netGate'); if(!el){ el=document.createElement('div'); el.id='netGate';
+    el.style.cssText='position:fixed;inset:0;z-index:2147483000;background:rgba(6,9,16,.95);display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;text-align:center;color:#e6edf3;font-weight:800;font-size:16px';
+    document.body.appendChild(el); } return el; }
+function netGateUpdate(){ if(window._p2guard||!online()) return; const el=netGateEl(); let msg='', act='';
+  if(NETGATE.down>=2){ msg='Connection lost — reconnecting…'; act='retry'; }
+  else if(!(ACC&&ACC.token)){
+    if(ACC&&ACC.signedOut){ if(typeof state==='undefined'||state!=='account'){ msg='Sign in to play.'; act='signin'; } }
+    else if(NETGATE.bootAt&&Date.now()-NETGATE.bootAt>3000&&!window._svrHandoff){ msg='Connecting to the realm…'; act='retry'; } }
+  if(!msg){ el.style.display='none'; return; }
+  const btn=act==='signin'?'<button class="btn" id="netGateBtn">Sign in</button>':'<button class="btn secondary" id="netGateBtn">Retry</button>';
+  if(el.dataset.msg!==msg){ el.dataset.msg=msg; el.innerHTML='<div>'+msg+'</div>'+btn;
+    el.querySelector('#netGateBtn').onclick=()=>{ if(act==='signin'){ el.style.display='none'; try{ show('account'); }catch(e){} } else netGateCheck(); }; }
+  el.style.display='flex'; }
+async function netGateCheck(){ if(window._p2guard||!online()||NETGATE.busy) return; NETGATE.busy=true; let ok=false;
+  try{ const c=new AbortController(), t=setTimeout(()=>c.abort(),6000); const r=await fetch('/api/health',{cache:'no-store',signal:c.signal});   /* /api/ bypasses the service worker, which answers /health from cache */ clearTimeout(t); ok=!!(r&&r.ok); }catch(e){ ok=false; }
+  NETGATE.busy=false; NETGATE.down=ok?0:NETGATE.down+1;
+  if(ok&&!(ACC&&ACC.token)&&!(ACC&&ACC.signedOut)&&!window._svrHandoff) ensureGuest(()=>netGateUpdate());
+  netGateUpdate(); }
+function netGateLoop(){ clearTimeout(NETGATE.timer); NETGATE.timer=setTimeout(async()=>{ await netGateCheck(); netGateLoop(); }, NETGATE.down?4000:15000); }
+function netGateStart(){ if(window._p2guard||!online()||NETGATE.bootAt) return; NETGATE.bootAt=Date.now();
+  window.addEventListener('offline',()=>{ NETGATE.down=Math.max(NETGATE.down,2); netGateUpdate(); netGateLoop(); });
+  window.addEventListener('online',()=>{ netGateCheck(); });
+  setTimeout(netGateUpdate,3200); netGateLoop(); }
 // stable-ish per-device id used to cap account creation (3 per device)
 function deviceId(){ try{ let d=localStorage.getItem('ew_device'); if(!d){ d='d'+Date.now().toString(36)+(function(){ try{ const a=new Uint8Array(16); crypto.getRandomValues(a); return Array.from(a,x=>x.toString(16).padStart(2,'0')).join(''); }catch(e){ return Math.random().toString(36).slice(2,10)+Math.random().toString(36).slice(2,10); } })();   /* v1005 (Account audit #11): 128 random bits for NEW device ids (existing ids are kept) */ localStorage.setItem('ew_device',d); } return d; }catch(e){ return ''; } }
 async function api(path,method,bodyObj){ try{ const h={'Content-Type':'application/json'}; if(ACC.token)h['x-token']=ACC.token;
@@ -25808,7 +25838,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791121931929';
+const BUILD_ID = '1791123131981';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -26084,6 +26114,7 @@ else { document.body.classList.add('gated'); loadG(); applyBetaUnlocks(); loadAc
   updateHubChrome(); show('home');
   if('serviceWorker' in navigator && online()){ try{ navigator.serviceWorker.register('/sw.js'); }catch(e){} }
   startSessionHeartbeat();
+  try{ netGateStart(); }catch(e){}   /* v1018: no play without the server */
   checkForUpdate();   // on load: if the server has a newer build, download & refresh automatically
   // auto-login: resume the last account you signed into. Only sign out if the token is genuinely invalid —
   // a network hiccup must NOT log you out (that would drop your character on a bad connection).

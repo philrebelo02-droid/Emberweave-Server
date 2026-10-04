@@ -2814,7 +2814,10 @@ function ensureLedger(u){
      silent rollback. So every account is now seeded from its own save, clamped by ECON_CAP exactly
      as sanitizeSave clamps it, and a large seed files a report. */
   const legacy=((u.created||0)===0) || ((u.created||0)<LEDGER_MIGRATE_CUTOFF);
-  const sv=parseSaveOf(u)||{};
+  /* v1018 (Phil 4 Oct, M13: "players should not be able to play offline, server needs to be connected to play"): a NEW account
+     starts from the starter ledger - its uploaded save is never progress (a forged first save made a level-52 account with every
+     hero). Only accounts that existed before the v227 cutoff still seed once from their real pre-ledger save. */
+  const sv=legacy?(parseSaveOf(u)||{}):{};
   /* "Has this player actually played?" cannot be answered by asking whether the save HAS a gold
      field — a brand-new client's DEFAULT_G already carries gold:200, gems:0, so that test seeded
      every new account with 200/0 instead of the 1,000/300 starter. Take the LARGER of the save and
@@ -3880,6 +3883,7 @@ function mutationLimited(req){
 }
 async function api(req,res,url){
   const p=url.pathname;
+  if(p==='/api/health') return send(res,200,{ok:true});   /* v1018: the client's net gate checks this - an /api/ path is never answered from the service worker cache (/health is) */
   if(req.method==='POST' && !/^\/api\/(register|login|guest|reset)/.test(p) && mutationLimited(req))
     return send(res,429,{error:'Slow down — too many requests.'});
   if(req.method==='OPTIONS'){ const h={}; if(_corsReqOrigin&&CORS_ORIGINS.has(_corsReqOrigin)){ h['Access-Control-Allow-Origin']=_corsReqOrigin; h['Vary']='Origin'; h['Access-Control-Allow-Headers']='content-type,x-token'; h['Access-Control-Allow-Methods']='GET,POST,OPTIONS'; } res.writeHead(204,h); res.end(); return; }

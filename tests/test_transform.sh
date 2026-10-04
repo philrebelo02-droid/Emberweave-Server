@@ -28,6 +28,11 @@ LG2=$(curl -s $B/api/ledger -H "$H")
 ck "TAMPER: save upload cannot raise ledger gold" '"gold":1000' "$LG2"
 ck "TAMPER: save upload cannot raise campaign" '"cleared":0' "$LG2"
 
+# v1018: tf1 now starts from the starter ledger (M13 - its forged save is ignored), so it is levelled through the admin route,
+# exactly as far as the forged save used to take it (40,000 player XP), for the ownership checks below (the Vault opens at level 10).
+TDV=$(curl -s -X POST $B/api/login -H 'content-type: application/json' -d '{"name":"dev1","pass":"password1"}'|jv "['token']")
+UID1=$(curl -s $B/api/profile -H "$H"|jv "['profile']['id']")
+curl -s -X POST $B/api/admin/led-grant -H "x-token: $TDV" -H 'content-type: application/json' -d '{"userId":"'"$UID1"'","px":40000}' >/dev/null
 # v229 P0: ownership — a locked (never summoned) hero is rejected everywhere
 CL=$(curl -s -X POST $B/api/campaign/start -H "$H" -H 'content-type: application/json' -d '{"node":1,"heroIds":["vael","sylthaine","fritz"],"requestId":"cl1"}')
 ck "P0: locked hero rejected from campaign" 'not unlocked' "$CL"
