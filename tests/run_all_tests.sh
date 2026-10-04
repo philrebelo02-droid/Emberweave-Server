@@ -85,6 +85,8 @@ note "test_v1013.js (4 Oct re-audit Account N12 N16: replay chip shape; world ch
 node tests/test_v1013.js || FAILED=1
 note "test_feedback_api.js (player reports, dev-only feed, durable acknowledgment; wired v1013 - re-audit Arena N16)"
 node tests/test_feedback_api.js || FAILED=1
+note "test_banner_offline.js (4 Oct re-audit Guild #8: the raw word offline never reaches a player)"
+node tests/test_banner_offline.js || FAILED=1
 note "test_player_truth.js (v270: the campaign result is the player's own transcript, replayed)"
 node tests/test_player_truth.js || FAILED=1
 note "test_campaign_player_truth.js (28 Sep fight rule: the witnessed win is paid on a replay mismatch, once; a malformed verdict is refused)"
