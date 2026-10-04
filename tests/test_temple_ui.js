@@ -67,7 +67,8 @@ const freePort=()=>new Promise((resolve,reject)=>{const s=net.createServer();s.o
     const grid=await page.locator('.templeHeroGrid').evaluate(el=>({
       columns:getComputedStyle(el).gridTemplateColumns.split(' ').length,
       rows:new Set([...el.children].map(x=>Math.round(x.getBoundingClientRect().top))).size}));
-    assert.deepStrictEqual(grid,{columns:10,rows:Math.ceil(owned.length/10)},'owned heroes wrap after ten per row');
+    /* v998 (Temple audit #11): ten across was below a usable tap size on a phone, so <=480 px wraps after six. This page is 390 px. */
+    assert.deepStrictEqual(grid,{columns:6,rows:Math.ceil(owned.length/6)},'owned heroes wrap after six per row on a phone');
     for(const role of classes){
       await page.locator(`[data-temple-class="${role}"]`).click();
       const shown=await page.locator('.templeHeroTile').evaluateAll(els=>els.map(x=>x.dataset.templeHero));
@@ -128,7 +129,7 @@ const freePort=()=>new Promise((resolve,reject)=>{const s=net.createServer();s.o
     })));
     for(const [name,box] of Object.entries(narrow))assert(box.scrollWidth<=box.width,name+' fits a 320px phone '+JSON.stringify(box));
     assert.deepStrictEqual([narrow.templeClassTabs.columns,narrow.templeClassTabs.rows],[4,2],'seven tabs remain legible in two rows on a narrow phone');
-    assert.strictEqual(narrow.templeHeroGrid.columns,10,'ten heroes remain in one row on a narrow phone');
+    assert.strictEqual(narrow.templeHeroGrid.columns,6,'six heroes per row on a narrow phone (v998 tap size)');
     assert.strictEqual(narrow.templeTierGrid.columns,2,'prayer choices remain two across on a narrow phone');
     if(process.env.TEMPLE_SCREENSHOT_PATH){
       await page.locator('.templeClassTabs').screenshot({path:process.env.TEMPLE_SCREENSHOT_PATH.replace(/\.png$/,'-narrow-tabs.png')});

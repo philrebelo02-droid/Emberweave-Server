@@ -207,6 +207,8 @@ note "test_wall_guards.js (4 Oct City Wall audit #6: a skill the hero's quality 
 node tests/test_wall_guards.js || FAILED=1
 note "test_temple_acad_p2.js (4 Oct Temple+Academy audit #6 #7 #13 #14)"
 node tests/test_temple_acad_p2.js || FAILED=1
+note "test_atkspd_clip_1024.js (v1024: every attack-speed source speeds the attack/crit clip and the blow lands on its contact frame; Bloodthirst)"
+node tests/test_atkspd_clip_1024.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi

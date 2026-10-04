@@ -4559,7 +4559,7 @@ const KITS={
   vireo:{green:{name:'Crescendo',type:'crescendo',heal:0.16,hot:0.05,dur:5,cd:7,gfx:'vireo_green',gdur:5.88,desc:"Vireo's song swells to heal every ally and keep mending them for 5 seconds; each Crescendo in a row rings louder and heals more."},blue:{name:'Harmony',type:'harmonyshield',mul:2.4,radius:10*METER,dur:12,cd:9,gfx:'vireo_blue',gdur:11.76,desc:"A dome of harmony settles over the most wounded ally, shielding every ally inside it for 12 seconds."}   /* v560 Phil: 'make the radius 10 m ... increase the shields size to match'. The painted dome follows on its own: upMetric spans exactly 2R, so 10 m radius draws a 20 m dome with no art change. (v558 was 7 m / 14 m.) */,purple:{name:'Perfect Pitch',pass:'perfectpitch'}},
   fritz:{green:{name:'Storm Surge',type:'stormsurge',mul:0.85,n:5,cd:8,gfx:'fritz_green',noArt:true,gfxR:3*METER,gdur:1.1},blue:{name:'Chain Lightning',type:'chainlight',mul:1.1,jumps:4,jumpRange:15*METER,previewBolt:true,decay:0.8,cd:7,gfx:'fritz_blue',noArt:true,gfxR:3*METER,gdur:5.88},purple:{name:'Static Veil',pass:'stormdodge'}},
   umbris:{green:{deliver:'form',name:'Shadeburst',type:'shadeburst',at:'cluster',dps:0.3,dur:6,radius:7*METER,cd:7,gfx:'umbris_green',noArt:true,gdur:5.88},blue:{name:'Creeping Rot',type:'creeprot',mul:0.5,dps:0.6,dur:5,color:'#8a5cff',foot:true,handglow:true,cd:6,gfx:'umbris_blue',gfxR:3*METER,gdur:5.38},purple:{name:'Lingering Dark',pass:'contagion',desc:'when a foe dies still rotting from his shadow, the rot spreads to every enemy nearby — and can spread again from them'}},
-   vael:{green:{name:'Warcry',type:'warcry',mul:1.4,dur:6,cd:8,fear:1.2,gfx:'vael_green',gfxR:3*METER,gdur:2.25},blue:{name:'Bloodthirst',type:'lifestealbuff',pct:0.4,dur:6,cd:7,gfx:'vael_blue',gfxR:3*METER,gdur:4.92},purple:{name:'Second Wind',pass:'selfregen'}},
+   vael:{green:{name:'Warcry',type:'warcry',mul:1.1,mulPerLv:0.002,dur:6,cd:8,fear:1.2,desc:"Vael roars: +10% damage (+0.2% per skill level, +0.4% at level 100) for 6 seconds, and nearby enemies flee in fear.",gfx:'vael_green',gfxR:3*METER,gdur:2.25},blue:{name:'Bloodthirst',type:'lifestealbuff',pct:0.1,atkSpd:1.2,atkSpdPerLv:0.002,crit:0.05,critPerLv:0.001,dur:6,cd:7,desc:"Vael feeds on the fight for 6 seconds: +20% attack speed (+0.2% per skill level, +0.4% at level 100), +5% crit chance (+0.1% per skill level, +0.2% at level 100) and he heals for 10% of the damage he deals.",gfx:'vael_blue',gfxR:3*METER,gdur:4.92},purple:{name:'Blood Rage',pass:'bloodrage',desc:"The more damage Vael takes, the harder he hits: +1% damage for every 4% of his max health he has lost this fight, up to +25%."}},
    oakmir:{green:{name:'Mending Bloom',type:'hot',hps:0.06,dur:6,cd:6,gfx:'oakmir_green',gfxR:3*METER,gdur:5.83},blue:{name:'Rally Roots',type:'heal',mul:0.22,cd:9,gfx:'oakmir_blue',gfxR:3*METER,gdur:5.29},purple:{name:'Twin Fonts',pass:'twinfonts'}},
    rhukk:{green:{name:'Carapace',type:'defensive',mul:0.5,dur:5,cd:8,gfx:'rhukk_green',gfxR:3*METER,gdur:2.0,desc:"Rhukk locks his shell plates tight, taking half damage for 5 seconds."},blue:{name:'Dig In',type:'taunt',cd:10,gfx:'rhukk_blue',gfxR:3*METER,gdur:5.88,desc:"Rhukk plants his horn and roars: every enemy is forced to attack him for 3 seconds while his hide takes less damage."},purple:{name:'Thick Chitin',pass:'warden'}},
   hurne:{green:{name:'Unchain the Dead',type:'summonwarriors',n:3,dur:15,radius:1.7*METER,cd:12},blue:{name:'Call the Bone-Chanter',type:'summonshaman',dur:18,radius:1.5*METER,cd:14},purple:{name:'Packmaster',pass:'packstats'}},
@@ -4698,6 +4698,8 @@ const SKILL_MAX=100, SKILL_UP_BASE=[300,220,260,400];  /* 12 Sep 2026 (Phil): th
 function skillLvArr(key){ if(!G.skillLevel)G.skillLevel={}; if(!G.skillLevel[key])G.skillLevel[key]=[1,1,1,1]; return G.skillLevel[key]; }
 function skillLevel(key,idx){ return skillLvArr(key)[idx]||1; }
 const SKILL_STEP=0.0120; /* 12 Sep 2026 (Phil: "vastly reduce the percent scale of leveling abilities to compensate"). Was +15%/level over 10 levels = x2.350 at cap. Now +1.35%/level over 100 = x2.337: the per-level step is 11x smaller, the endgame CEILING is unchanged. v1022 (Phil 4 Oct: "I think the scaling for skills is too high"): +1.20%/level = x2.188 at level 100. */
+/* v1024 (Phil): a per-level skill bonus adds one step per level above 1, and the 100th level adds two. */
+function vaelSteps(lv){ lv=(lv|0)||1; return Math.max(0,lv-1)+(lv>=100?1:0); }
 function skillMul(lv){ return 1+((lv||1)-1)*SKILL_STEP; }               // +SKILL_STEP effect per level
 function skillUnlocked(key,idx){ return idx===0 || heroQuality(key)>=idx; }   // green needs Green quality, blue Blue, passive Purple
 function skillUpCost(idx,lv){ return Math.round((SKILL_UP_BASE[idx]||300)*Math.pow(SKILL_COST_R,(lv||1)-1)); }
@@ -4947,6 +4949,9 @@ function skillEffectStr(key,idx,atk,hp){ const t=HERO_TYPES[key],kit=KITS[key],l
     case 'chapterrewrite': return '✨ '+Math.round(apw*(ab.mul||1.0)*sm)+' + strips buffs · −'+Math.round((ab.pct||0.3)*100)+'% stats';
     case 'grapple': return '⚔ '+Math.round(atk*(ab.mul||1.2)*sm)+' + pull + '+ccSecFor(ab,'stun')+'s stun';
     case 'burrowguard': return '🕳 untargetable '+(ab.dur||1.4)+'s → ⚔ '+Math.round(atk*(ab.mul||1.7)*sm);
+    case 'warcry': { const _lw=Math.max(0,Math.round(((sm||1)-1)/SKILL_STEP)); return '⚔ +'+(((ab.mul||1.4)-1+(ab.mulPerLv||0)*vaelSteps(_lw+1))*100).toFixed(1).replace(/\.0$/,'')+'% dmg · '+(ab.dur||6)+'s'; }   /* v1024: a buff, not a hit */
+    case 'lifestealbuff': { const _lv=Math.max(0,Math.round(((sm||1)-1)/SKILL_STEP));   /* v1024: Bloodthirst's numbers at this skill level */
+      return (ab.atkSpd?'⚡ +'+((ab.atkSpd-1+(ab.atkSpdPerLv||0)*vaelSteps(_lv+1))*100).toFixed(1).replace(/\.0$/,'')+'% atk spd · ':'')+(ab.crit?'✦ +'+((ab.crit+(ab.critPerLv||0)*vaelSteps(_lv+1))*100).toFixed(1).replace(/\.0$/,'')+'% crit · ':'')+'♥ '+Math.round((ab.pct||0.25)*100)+'% lifesteal'; }
     default: return '⚔ '+Math.round(atk*(ab.mul||1)*sm)+(ab.stun?' + stun':'');
   }
 }
@@ -5227,7 +5232,8 @@ function heroPower(key){ const t=HERO_TYPES[key]; if(!t) return 0;
      Casters (Mage / Support) keep the 1.5 weight — their kits run on AP; everyone else's AP counts at 0.5. */
   const apW  = (t.role==='Mage'||t.role==='Support') ? 1.5 : 0.5;
   const dps  = Math.max(1,(atkP+apW*atkM)*sw*(1+crit*critDmg)*(1+((tt.dmgBonus||0)*0.0005))*(1+0.25*(m.energyReg||0)));
-  return Math.round(POWER_K*Math.sqrt(ehp*dps) + skillPowerBonus(key)); }
+  const _pw=POWER_K*Math.sqrt(ehp*dps) + skillPowerBonus(key);
+  return _powerNoGlyph ? _pw : Math.round(_pw); }   // v1024: the inner (pre-Temple) call stays unrounded - the card rounds ONCE, after the Temple multiplier, as the server does (rounding twice put Yenna's card 446 against the server's 445)
 
 /* ------------------------------ progression -------------------------------- */
 const DEFAULT_G = {
@@ -5860,8 +5866,8 @@ function firePassiveClip(o,hold,target,options){
    the release frame for a caster, the moment of contact for a swing — and defaults to halfway,
    which is where a wind-up-and-follow-through clip meets its target. A unit with no clip at all
    fires immediately, exactly as before, so nothing without art changes. */
-function fuseStrike(u,tgt,clip,go,extra){
-  const dur=clipDur(clip)*(clip&&clip.relFrac!=null?clip.relFrac:0.5)*BATTLE_PACE+(extra||0);
+function fuseStrike(u,tgt,clip,go,extra,rate){
+  const dur=clipDur(clip)*(clip&&clip.relFrac!=null?clip.relFrac:0.5)*BATTLE_PACE/(rate||1)+(extra||0);   // v1024: `rate` = the swing's attack-speed factor
   if(!(dur>0.02)){ go(); return; }
   (u._fuse||(u._fuse=[])).push({t:dur,tgt,go});
 }
@@ -8973,7 +8979,7 @@ function makeUnit(key,team,x,y,levelOverride,extra){
   const u={key,team,t,x,y,level:lvl,boss:!!boss,rank,
     maxHp:uHp,hp:uHp,
     dmg:uDmg,range:t.range*(boss?1.4:1),speed:t.speed*(boss?0.8:1),
-    atkCd:0,atkInterval:swingInterval(t)/(1+(S?(S.glyphHaste||0):(owned?glyphHaste(key):0))),energy:Math.min(95,35+((owned&&mul.startEnergy)||0)),ctrlRes:(owned&&mul.ctrlRes)||0,target:null,alive:true,r:18*br,
+    atkCd:0,_atkI0:swingInterval(t),atkInterval:swingInterval(t)/(1+(S?(S.glyphHaste||0):(owned?glyphHaste(key):0))),energy:Math.min(95,35+((owned&&mul.startEnergy)||0)),ctrlRes:(owned&&mul.ctrlRes)||0,target:null,alive:true,r:18*br,
     flash:0,stunned:0,fearT:0,slow:0,portraitEl:null,laneX:x,homeX:x,homeY:y,melee:(t.range<60),reach:Math.max(t.reach||0,((t.minimumReachMeters||0)*METER)),   /* v534 (Phil): a LONG melee - Zahri's lance reaches ~3.5 m; still melee (no projectile, body-touch collision) */
     // desired fighting distance by row: melee closes to touching (~1-2 m, cross-team collision stops overlap), mid-row holds 13 m, back row holds 25 m.
     // Melee hold is clamped just inside its attack range so it can actually swing; ranged holds the FULL row distance (range is widened below to reach it).
@@ -9265,6 +9271,7 @@ let _preCrit=null;   // v532: set on the fuse of a swing whose crit was rolled a
 function dealDamage(src,tgt,amt,color,kind,silent){ kind=kind||((src&&src.t&&(['Magic','Healer'].includes(src.t.damageProfile)))?'magic':'phys');   // default follows canonical hero damage; explicit kind still wins
   // Packmaster: he is stronger and harder to put down for every summon still alive.
   if(src&&src._packN) amt*=1+0.05*src._packN*(src.passMul||1);
+  if(src&&src.pass&&src.pass.bloodrage&&(src._brTaken||0)>0) amt*=1+Math.min(0.25,0.25*src._brTaken/Math.max(1,src.maxHp||1));   /* v1024 Blood Rage (Vael): +1% per 4% max HP taken this fight, cap +25% */
   if(src&&(src._devourT||0)>0&&src._devourBonus) amt+=src._devourBonus;   // Feed Them: the pack's strength, carried
   if(tgt&&tgt._packN) amt/=1+0.05*tgt._packN*(tgt.passMul||1);
   // Weigh the Debt (Gruel): a marked enemy's damage is partly redirected into him, and he heals off it.
@@ -9343,11 +9350,12 @@ function dealDamage(src,tgt,amt,color,kind,silent){ kind=kind||((src&&src.t&&(['
     if((tgt.blockStat||0)>0&&brnd()<tgt.blockStat){ amt*=0.5; floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'BLOCK',t:.5,color:'#8fb7ff',vy:1.1,sz:11}); } }
   const _gearHitCrit=src&&src._gearNextCrit==='hit'; if(_gearHitCrit)src._gearNextCrit=null;
   if(src&&(src._gearNextStun||0)>0&&tgt&&tgt.alive&&tgt.team!==src.team&&kind!=='true'){ tgt.stunned=Math.max(tgt.stunned||0,ccDur(src._gearNextStun)); src._gearNextStun=0; floatTexts.push({x:tgt.x,y:tgt.y-12,txt:'STUN',t:.6,color:'#ffd45e',vy:1.2,sz:12}); }   /* v646: Brawler's Blow */
-  const cc=(src.pass&&src.pass.crit?0.2:0)+(src.glyphCrit||0);   // Crit passive + Crit / Crit tech
+  const cc=(src.pass&&src.pass.crit?0.2:0)+(src.glyphCrit||0)+((src._critBuffT||0)>0?(src._critBuffPct||0):0);   // Crit passive + Crit / Crit tech
   let _crit=false;
   if(_preCrit!=null ? _preCrit : (_gearHitCrit||(src&&src._gearSpellCrit)||(cc&&brnd()<cc))){ /* v532: a crit-clip hero pre-rolled this swing at the wind-up */ const bonus=(src.critDmg||0.6); let mult=1+bonus; if(tgt.critRes) mult=1+bonus*(1-tgt.critRes); amt*=mult; tgt._critHit=true; _crit=true; }   // v247: Crit Damage stat widens the bonus
   tgt._lastHitKind=kind;   // v253: damage() colours the number by damage type
-  const _hpBefore=tgt.hp; damage(tgt,amt,color,!!silent,_crit); const _hpLost=Math.max(0,_hpBefore-tgt.hp);   // lifesteal heals off HP ACTUALLY removed (0 through a full shield absorb), not the pre-mitigation amount
+  const _hpBefore=tgt.hp; damage(tgt,amt,color,!!silent,_crit); const _hpLost=Math.max(0,_hpBefore-tgt.hp);
+  if(tgt.pass&&tgt.pass.bloodrage&&src&&src.team!==tgt.team&&_hpLost>0) tgt._brTaken=(tgt._brTaken||0)+_hpLost;   /* v1024 Blood Rage: what an enemy took off him this fight */   // lifesteal heals off HP ACTUALLY removed (0 through a full shield absorb), not the pre-mitigation amount
   /* v527 Thunder Guard (Stormwarden): the brace answers whatever struck it. */
   if((tgt._thornT||0)>0&&src&&src.alive&&src.team!==tgt.team&&!tgt._ctring){ tgt._ctring=1;
     try{ dealDamage(tgt,src,tgt.dmg*(tgt._thornMul||0.55),'#8fd0ff'); }catch(e){}
@@ -10152,7 +10160,10 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
     case 'shield':{const tg=o.self?u:lowestAlly(u); if(tg){tg.shield=Math.max(tg.shield,tg.maxHp*(o.mul||.4)*sm);tg.shieldT=o.dur||6;burstAt(tg.x,tg.y,0x8fd0ff,10);} break;}
     case 'dmgbuff':{alliesOf(u).forEach(a=>{a.dmgBuffMul=o.mul||1.25;a.dmgBuffT=o.dur||6;floatTexts.push({x:a.x,y:a.y-10,txt:'Raise Attack',t:1.1,color:'#8fff9b',vy:1.0,sz:13});});burstAt(u.x,u.y,0xffd45e,10);break;}
     case 'haste':{const tg2=o.self?[u]:alliesOf(u); tg2.forEach(a=>{a.hasteMul=Math.max(a.hasteMul||1,o.mul||1.3);a.hasteT=Math.max(a.hasteT||0,o.dur||5);a._ocMul=o.mul||1.3;a._ocT=o.dur||5;floatTexts.push({x:a.x,y:a.y-10,txt:o.self?'Frenzy':'Haste',t:1.0,color:'#ffe08a',vy:1.0,sz:13});});burstAt(u.x,u.y,0xffe08a,10);break;}
-    case 'lifestealbuff':{u._lifestealT=o.dur||5;u._lifestealPct=o.pct||0.25;floatTexts.push({x:u.x,y:u.y-10,txt:'Vigor',t:1.1,color:'#8fff9b',vy:1.0,sz:13});burstAt(u.x,u.y,0x5ee89b,10);break;}
+    case 'lifestealbuff':{u._lifestealT=o.dur||5;u._lifestealPct=o.pct||0.25;
+      if(o.atkSpd){ const _as=o.atkSpd+(o.atkSpdPerLv||0)*vaelSteps(u._castLv); u.hasteMul=Math.max(u.hasteMul||1,_as); u.hasteT=Math.max(u.hasteT||0,o.dur||5); u._ocMul=_as; u._ocT=o.dur||5; }   /* v1024 (Phil): Bloodthirst +20% attack speed, +0.2% per skill level above 1 - the Overclock buff */
+      if(o.crit){ u._critBuffPct=o.crit+(o.critPerLv||0)*vaelSteps(u._castLv); u._critBuffT=o.dur||5; }   /* v1024 (Phil): +5% crit, +0.1% per skill level above 1 */
+      floatTexts.push({x:u.x,y:u.y-10,txt:'Vigor',t:1.1,color:'#8fff9b',vy:1.0,sz:13});burstAt(u.x,u.y,0x5ee89b,10);break;}
     case 'devour':{if(tgt){const d=dB*(o.mul||1.6)*rm; dealDamage(u,tgt,d,'#9acd32'); healFrom(u,u,d*(o.heal||0.6)); burstAt(tgt.x,tgt.y,0x9acd32,12);} break;}
     /* v548 (Phil): Bone Chant = "a circle with green embers rising slowly for 4 seconds, healing those in the area per
        second and damaging enemy", "10 meter green circle on the floor hitting the most congested group of allies". A ground
@@ -10226,7 +10237,7 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
       foes.forEach(e=>{ const rx=e.x-u.x, ry=e.y-u.y, proj=rx*ux+ry*uy; if(proj<-12||proj>len+24)return;
         if(Math.abs(rx*uy-ry*ux)<=W) (o.frost?dealFrostDamage:dealDamage)(u,e,dB*(o.mul||1.6)*rm,o.frost?'#bfefff':'#cbb58f',o.frost?'magic':undefined); });
       abilShot(u,o,tg2,0xcbb58f); burstAt(tg2.x,tg2.y,0xcbb58f,14); break; }
-    case 'warcry':{ u.dmgBuffMul=o.mul||1.4; u.dmgBuffT=o.dur||6;   // self attack buff + a brief fear (short stun) on nearby heroes
+    case 'warcry':{ u.dmgBuffMul=(o.mul||1.4)+(o.mulPerLv||0)*vaelSteps(u._castLv); u.dmgBuffT=o.dur||6;   /* v1024 (Phil): Vael +10% +0.2% per skill level */   // self attack buff + a brief fear (short stun) on nearby heroes
       floatTexts.push({x:u.x,y:u.y-10,txt:'ROAR!',t:1.1,color:'#ffb46a',vy:1.0,sz:15});
       const R=o.radius||2.6*METER; enemiesOf(u).forEach(e=>{ if(dist(u,e)<R && (o.fear||o.stun) && !e.stunImmune){ ccApply(u,e,'fearT',o.fear||2); e._fearFrom=u; floatTexts.push({x:e.x,y:e.y-10,txt:'FEAR!',t:1.0,color:'#b06bff',vy:1.0,sz:13}); } });
       ringBurst(u.x,u.y,0xffb46a,16); burstAt(u.x,u.y,0xffd45e,12); break; }
@@ -10522,7 +10533,7 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
       tgt._shredPct=Math.max(tgt._shredPct||0,o.shred||0.25); tgt._shredT=Math.max(tgt._shredT||0,o.dur||6);
       tgt._mrShredPct=Math.max(tgt._mrShredPct||0,o.shred||0.25); tgt._mrShredT=Math.max(tgt._mrShredT||0,o.dur||6);
       // the reversal: whatever was helping it stops helping it
-      tgt.dmgBuffT=0; tgt.hasteT=0; tgt.hasteMul=1; tgt.drT=0; tgt.drMul=1;
+      tgt.dmgBuffT=0; tgt.hasteT=0; tgt.hasteMul=1; tgt.drT=0; tgt.drMul=1; tgt._critBuffT=0; tgt._ocT=0;   /* v1024: Bloodthirst's crit buff and the Overclock marker reverse with the haste they came with */
       if(tgt.hots&&tgt.hots.length)tgt.hots.length=0;
       if(tgt.shield>0){ dealDamage(u,tgt,tgt.shield*(o.shieldBurn||1),'#c8b9e8','true'); tgt.shield=0; }
       floatTexts.push({x:tgt.x,y:tgt.y-10,txt:'REWRITTEN',t:1.1,color:'#c8b9e8',vy:1,sz:12});
@@ -11916,20 +11927,21 @@ function think(u,dt){
   const dn = dist(u,ne);
   const doAtk=()=>{ const ai=u.atkInterval/(u.hasteT>0?u.hasteMul:1)/((typeof edAtkRamp==='function')?edAtkRamp():1); u.atkCd-=dt;   // v636: the Emberdraft attack-speed ramp. v663: guarded - edAtkRamp lives in the Emberdraft <script>, which server/sim-host.js does not load, so every server replay threw "edAtkRamp is not defined"
     if(u.atkCd<=0 && !_ultRoot && (u._castT||0)<=0 && d<=(u.melee?((u.reach>0)?Math.max(u.reach,bodyR(u)+bodyR(t)+12):bodyR(u)+bodyR(t)+12):u.range)){ u.atkCd=ai; u.attackAnim=.18; u._recentAtk=0.3;
+      u._atkSpdMul=Math.max(0.25,Math.min(4,(u._atkI0||u.atkInterval)/Math.max(0.05,ai)));   /* v1024 (Phil): every attack-speed source speeds this swing's clip and its blow */
       if(u.pass&&u.pass.desertmom){ const _pm=(u.passMul||1); u._dmAS=Math.min(0.5*_pm,(u._dmAS||0)+0.04*_pm); u._dmPen=Math.min(120*_pm,(u._dmPen||0)+6*_pm); }   // v545 Desert Momentum: +4% attack speed, +6 penetration per auto (caps 50% / 120)
       /* v532 CRIT CLIP (Phil: "when a hero crit attacks they will do this instead of attack"; "melees from this point on
          will have 9 animations"). A hero with a `crit` clip rolls THIS swing's crit at the wind-up, so the heavier clip
          plays from the first frame; dealDamage takes the pre-rolled result on the fuse instead of rolling again. Heroes
          without a crit clip roll exactly where they always did, so their fights replay byte-identical. */
       let _swCrit=null;
-      if(u.anim&&u.anim.crit){ const _forced=u._gearNextCrit==='hit'; if(_forced)u._gearNextCrit=null; const _cc=(u.pass&&u.pass.crit?0.2:0)+(u.glyphCrit||0); _swCrit=!!(_forced||(_cc&&brnd()<_cc)); u._atkClip=_swCrit?'crit':null; }
+      if(u.anim&&u.anim.crit){ const _forced=u._gearNextCrit==='hit'; if(_forced)u._gearNextCrit=null; const _cc=(u.pass&&u.pass.crit?0.2:0)+(u.glyphCrit||0)+((u._critBuffT||0)>0?(u._critBuffPct||0):0); _swCrit=!!(_forced||(_cc&&brnd()<_cc)); u._atkClip=_swCrit?'crit':null; }
       /* v534 - the MIRAGE's crit is a DOUBLE SWING: the attack clip plays twice at double speed inside the same swing
          window and lands twice for normal damage (Phil: "double attack when it crits instead of doing more damage"). */
       let _dbl=false;
       if(u._mirage){ const _cc=(u.glyphCrit||0); _dbl=!!(_cc&&brnd()<_cc); _swCrit=false; u._dblSwing=_dbl; }
       // how long this swing's clip wants to run. PURELY VISUAL — see the _animLockT note in think().
       const _atkClipA=u.anim&&u.anim[(u._atkClip&&u.anim[u._atkClip])?u._atkClip:'attack'];
-      { u._animLockT=Math.min(ai*0.95, _atkClipA?(_atkClipA.hold||clipDur(_atkClipA)):0.42); u._lockPri=1; }
+      { u._animLockT=Math.min(ai*0.95, _atkClipA?((_atkClipA.hold||clipDur(_atkClipA))/u._atkSpdMul):0.42); u._lockPri=1; }
       const buff=(u.dmgBuffT>0?u.dmgBuffMul:1)*rageMul;
       const dmg = u.hybrid ? (u.dmg*0.6*buff + (u.apow||0)*0.6*(u.apMul||1)) : u.dmg*buff;   // hybrid (Aureth): 60% attack-damage physical + 60% ability-power magic per hit
       u.energy=Math.min(100,u.energy+11*(((u._nrgSlowT||0)>0)?(1-(u._nrgSlowPct||0.4)):1));   // v527: energy gain can be slowed
@@ -11997,10 +12009,10 @@ function think(u,dt){
            projectile's own flight time is added on top of the release. */
         { const _el=(u.range>60)?CASTER_BALL[u.key]:null;
           const _fly=(u.range>60)?(((_el&&_el.dur)||0.22)*HERO_FX_MUL):0;
-          fuseStrike(u,t,_atkClipA,()=>{ _preCrit=_swCrit; try{ dealDamage(u,t,dmg,u.hybrid?'#ffe6b0':'#fff'); } finally{ _preCrit=null; } },_fly);
+          fuseStrike(u,t,_atkClipA,()=>{ _preCrit=_swCrit; try{ dealDamage(u,t,dmg,u.hybrid?'#ffe6b0':'#fff'); } finally{ _preCrit=null; } },_fly,u._atkSpdMul);
           if(_dbl){ // v534 mirage double swing: the second blow lands half a swing later, same damage, no crit multiplier
             floatTexts.push({x:u.x,y:u.y-16,txt:'DOUBLE',t:.8,color:'#ffd08a',vy:1,sz:11});
-            fuseStrike(u,t,_atkClipA,()=>{ _preCrit=false; try{ if(t.alive) dealDamage(u,t,dmg,'#ffe6b0'); } finally{ _preCrit=null; } },_fly+(u._animLockT||clipDur(_atkClipA)||0.8)/2); } }
+            fuseStrike(u,t,_atkClipA,()=>{ _preCrit=false; try{ if(t.alive) dealDamage(u,t,dmg,'#ffe6b0'); } finally{ _preCrit=null; } },_fly+(u._animLockT||clipDur(_atkClipA)||0.8)/2,u._atkSpdMul); } }
         /* v341 (Phil): Void Weaver's passive was a borrowed Astra burn (cyan) and her passive clip never played.
            Dark Convergence: every auto leaves a DARK burn in curse colour (10% attack + 5% ability power, 2 s, ticking
            twice a second); every 3rd auto the void visibly converges — she plays the gathering clip and regains 5 energy. */
@@ -12017,7 +12029,7 @@ function think(u,dt){
           fuseStrike(u,t,_atkClipA,()=>{ const el=CASTER_BALL[u.key];
             if(el&&el.bolt&&typeof spawnBoltFx==='function'&&spawnBoltFx(u,t,'#cfe8ff')){}   /* v958 */
             else if(el&&typeof spawnProjFx==='function') { const co=castOrigin(u,t.x,t.y); spawnProjFx(el.fx,co.x,co.y,t.x,t.y,el.scale||1.5,(el.dur||.22)*HERO_FX_MUL,null,co.h); }
-            else spawnShot(u,t,u.t.color); }); }
+            else spawnShot(u,t,u.t.color); },0,u._atkSpdMul); }
       } } };
   /* Phil, 14 Sep 2026 — ASSASSINS NEVER OVERTAKE A LIVING TANK. Every non-Tank has at least
      3.5 m reach while Tanks establish the 1 m baseline, so assassins can fight from 2.5 m behind.
@@ -13020,7 +13032,7 @@ function updateBattle(dt){
     if(!u.alive)return;
     for(let i=u.hots.length-1;i>=0;i--){ const h=u.hots[i]; h.acc+=dt; if(h.acc>=h.interval){ h.acc-=h.interval; healUnit(u,h.hps); h.remaining--; if(h.remaining<=0)u.hots.splice(i,1); } }
     if(u.shieldT>0){u.shieldT-=dt; if(u.shieldT<=0)u.shield=0;}
-    if(u.hasteT>0)u.hasteT-=dt; if(u.dmgBuffT>0)u.dmgBuffT-=dt; if(u.drT>0)u.drT-=dt; if(u.mortalT>0)u.mortalT-=dt; if(u.forcedTargetT>0)u.forcedTargetT-=dt; if(u._lifestealT>0)u._lifestealT-=dt; if(u._gearVampT>0)u._gearVampT-=dt; if(u._gearArmorCutT>0)u._gearArmorCutT-=dt; if(u._gearImmovableT>0)u._gearImmovableT-=dt; if(u._frozenT>0)u._frozenT-=dt; if(u._chillT>0){u._chillT-=dt;if(u._chillT<=0){u._chillT=0;u._chillStacks=0;}} if(u._ocT>0)u._ocT-=dt;
+    if(u.hasteT>0)u.hasteT-=dt; if(u.dmgBuffT>0)u.dmgBuffT-=dt; if(u.drT>0)u.drT-=dt; if(u.mortalT>0)u.mortalT-=dt; if(u.forcedTargetT>0)u.forcedTargetT-=dt; if(u._lifestealT>0)u._lifestealT-=dt; if(u._critBuffT>0)u._critBuffT-=dt; if(u._gearVampT>0)u._gearVampT-=dt; if(u._gearArmorCutT>0)u._gearArmorCutT-=dt; if(u._gearImmovableT>0)u._gearImmovableT-=dt; if(u._frozenT>0)u._frozenT-=dt; if(u._chillT>0){u._chillT-=dt;if(u._chillT<=0){u._chillT=0;u._chillStacks=0;}} if(u._ocT>0)u._ocT-=dt;
     if(u._gearDelayedHeals&&u._gearDelayedHeals.length){ for(let i=u._gearDelayedHeals.length-1;i>=0;i--){ const h=u._gearDelayedHeals[i]; h.t-=dt; if(h.t<=0){ healUnit(u,h.amt); u._gearDelayedHeals.splice(i,1); } } }
     if(u.silencedT>0)u.silencedT-=dt;   // Grosk silence
     if(u.stunned>0||(u.fearT||0)>0){ if(u.slow>0)u.slow-=dt; if(u._castT>0)u._castT-=dt; }   // tick slow/cast while CC'd
@@ -13133,8 +13145,9 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
            costs nothing mechanically — the hold is render-only (see _animLockT) — so lengthening it
            changes only what is seen, never when damage lands. */
         const _atkA=u.anim[(u._atkClip&&u.anim[u._atkClip])?u._atkClip:'attack'];
-        const _ai=u.atkInterval/((u.hasteT>0?u.hasteMul:1)||1);
-        const _ah=Math.min(_ai*0.95, _atkA?((_atkA.hold||clipDur(_atkA))/((u.hasteT>0?u.hasteMul:1)||1)):0.42);   // v545: attack speed speeds the swing clip (and the crit clip - same path) itself, not only the cap
+        const _asm=u._atkSpdMul||1;   // v1024: the swing's attack-speed factor (set in doAtk) - every source, not only timed haste
+        const _ai=(u._atkI0||u.atkInterval)/_asm;
+        const _ah=Math.min(_ai*0.95, _atkA?((_atkA.hold||clipDur(_atkA))/_asm):0.42);   // v545: attack speed speeds the swing clip (and the crit clip - same path) itself, not only the cap
         if(u.attackAnim>0)u._atkHold=_ah; else if(u._atkHold>0)u._atkHold-=dt;
         /* 29 Aug — the crit flinch was a flat 0.28s regardless of how long the hit clip was. Every
            hit sheet on the roster runs 0.6-1.5s, so all anyone ever saw was its first few frames —
@@ -13283,14 +13296,14 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
            that was fine. Now that the attack hold is the clip's own length, most one-shots play at
            natural speed and this only catches the genuinely over-long ones. */
         const _osH=Math.max(u._abilHold||0,u._atkHold||0,u._hitHold||0);
-        const _osDur=clipDur(A);
+        const _osDur=clipDur(A)/((st===_atkSt)?(u._atkSpdMul||1):1);   // v1024: a sped swing is judged at its sped length
         const _osFit=(u._osMax||0)>0 && _osDur>(u._osMax||0) && _osDur<=(u._osMax||0)*1.6;
         const _osFrac=(_osH>0 && _osFit && st!=='walk' && st!=='idle' && !rising && A.n>1)
           ? Math.max(0,Math.min(0.999,1-(_osH/u._osMax))) : null;
         if(st==='walk'){ if(waveXfer) u._animAcc=(u._animAcc||0)+dt*Math.max(A.fps||10,12)*WALK_ANIM_MUL;   // wave run-in/out: play the run clip at a REGULAR time-based cadence (decoupled from the fast movement, so legs don't blur)
           else u._animAcc=(u._animAcc||0)+Math.max(moved*(A.stride||WALK_STRIDE), dt*(A.fps||8))*WALK_ANIM_MUL; }   // in combat: distance-locked cadence, but with a time-based FLOOR so short/slow moves still cycle the legs (never idle-slide), e.g. Vulmar's slower glide)
         else if(st==='idle' && u._idleFrozen){ /* v521: no room for a whole idle - hold, never half of one */ }
-        else u._animAcc=(u._animAcc||0)+dt*(A.fps||10)*((u._dblSwing&&st===_atkSt)?2:1)*((st==='idle'&&CUR&&CUR.mode==='emberdraft')?ED_IDLE_FPS_MUL:1);   // v534: mirage double swing at 2x. v645: Emberdraft idles slower (Phil: "slow down the FPS on their idle")
+        else u._animAcc=(u._animAcc||0)+dt*(A.fps||10)*((u._dblSwing&&st===_atkSt)?2:1)*((st===_atkSt)?(u._atkSpdMul||1):1)*((st==='idle'&&CUR&&CUR.mode==='emberdraft')?ED_IDLE_FPS_MUL:1);   // v534: mirage double swing at 2x. v645: Emberdraft idles slower (Phil: "slow down the FPS on their idle")
         // pingpong clips play forward THEN reverse (0..n-1..1) so the loop never hard-snaps back to frame 0
         let fr;
         if(rising && st==='rise'){ // one-shot, driven by the remaining rise timer so it lands on the last frame
@@ -25038,8 +25051,8 @@ function hpFmt(v){ v=Math.max(0,Math.ceil(v)); return v>=10000?Math.round(v/1000
 function abilityTipHTML(u){ const t=u.t, ab=u.abilityOverride||t.ability, kit=KITS[u.key]||{};
   const eff=(typeof skillEffectStr==='function')?skillEffectStr(u.key,0,Math.round(u.dmg),Math.round(u.maxHp)):'';
   let h=`<b>⚡ ${t.abilityName}</b> <span style="color:#8b98a9">· Ultimate${eff?' · '+eff:''}</span><br>${HERO_ULT_DESC[u.key]||ULT_DESC[ab]||''}`;
-  if(kit.green) h+=`<div class="atSub">🟢 <b style="color:#5ee89b">${kit.green.name}</b> — ${KIT_DESC[kit.green.type]||''}</div>`;
-  if(kit.blue)  h+=`<div class="atSub">🔵 <b style="color:#6ea8ff">${kit.blue.name}</b> — ${KIT_DESC[kit.blue.type]||''}</div>`;
+  if(kit.green) h+=`<div class="atSub">🟢 <b style="color:#5ee89b">${kit.green.name}</b> — ${kit.green.desc||KIT_DESC[kit.green.type]||''}</div>`;
+  if(kit.blue)  h+=`<div class="atSub">🔵 <b style="color:#6ea8ff">${kit.blue.name}</b> — ${kit.blue.desc||KIT_DESC[kit.blue.type]||''}</div>`;
   if(kit.purple)h+=`<div class="atSub">🟣 <b style="color:#c9b6ff">${kit.purple.name}</b> — ${PASS_DESC[kit.purple.pass]||''}</div>`;
   return h; }
 function showAbilityTip(u){ /* DISABLED in combat — ability descriptions live in the Skill tab only (Phil's call). Never render the in-battle popup; keep it hidden no matter which handler calls this. */ const tip=document.getElementById('abilityTip'); if(tip) tip.style.display='none'; }
