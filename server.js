@@ -4219,6 +4219,14 @@ async function api(req,res,url){
     const b=await body(req); const tid=b.id||DB.byName[(b.name||'').trim().toLowerCase()]; const u=tid&&DB.users[tid];
     if(!u||u.isNpc) return send(res,404,{error:'account not found'});
     if(isDev(u)) return send(res,400,{error:'cannot delete a dev account'});
+    /* v1012 (re-audit Guild #5): the account leaves its guild first - it stayed a ghost member, and a deleted LEADER froze the
+       guild (nobody could transfer, kick or disband). Leadership passes to the longest-standing member; an emptied guild is
+       disbanded as /api/guild/leave does; pending join requests from the account are withdrawn. */
+    { const gg=u.guildId&&(DB.guilds||{})[u.guildId];
+      if(gg){ warPoolForget(gg.id); gg.members=(gg.members||[]).filter(x=>x!==tid);
+        if(!gg.members.length){ delete DB.guilds[gg.id]; warDropDeletedGuild(gg.id); }
+        else { gg.log=gg.log||[]; if(gg.leader===tid){ gg.leader=gg.members[0]; gg.log.push({sys:1,tx:nameOfUser(gg.leader)+' is now the guild leader.',t:Date.now()}); } } }
+      for(const og of Object.values(DB.guilds||{})) if(og&&Array.isArray(og.reqs)) og.reqs=og.reqs.filter(r=>r&&r.id!==tid); }
     delete DB.byName[(u.name||'').toLowerCase()]; delete DB.users[tid]; dropTokens(tid);
     writeDB(); return send(res,200,{ok:true, name:u.name}); }
   // admin: grant / take 2000 diamonds (edits the player's cloud save; forces them to reload it)

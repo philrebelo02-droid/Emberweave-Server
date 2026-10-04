@@ -79,6 +79,8 @@ note "test_v1010.js (4 Oct re-audit: backup token header-only, feedback inbox ca
 node tests/test_v1010.js || FAILED=1
 note "test_v1011.js (4 Oct re-audit: heavy reads throttled per account; Tower refusals 400; Province reads write only on change)"
 node tests/test_v1011.js || FAILED=1
+note "test_admin_delete_guild.js (4 Oct re-audit Guild #5: a deleted account leaves its guild; leadership passes on; an emptied guild disbands)"
+node tests/test_admin_delete_guild.js || FAILED=1
 note "test_player_truth.js (v270: the campaign result is the player's own transcript, replayed)"
 node tests/test_player_truth.js || FAILED=1
 note "test_campaign_player_truth.js (28 Sep fight rule: the witnessed win is paid on a replay mismatch, once; a malformed verdict is refused)"
