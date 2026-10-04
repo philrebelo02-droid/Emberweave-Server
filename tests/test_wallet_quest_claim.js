@@ -10,6 +10,8 @@ const calls = { claim: 0, capture: 0, adopt: 0, messages: [] };
 const ctx = {
   G: { questClaimed: {} }, ACC: { token: 'test' }, uid8: () => 'req-1',
   api: async () => ({ ok: true, ledger: { gems: 20 } }),
+  apiOnce: async () => ({ ok: true, ledger: { gems: 20 } }),   // v989: claimQuest goes through apiOnce (one in flight, one requestId)
+  ledgerSync: () => {},
   ledCapture: () => { calls.capture++; throw new Error('signed-in claim must not run ledCapture'); },
   adoptLedger: () => { calls.adopt++; },
   saveG: () => {}, updateHubChrome: () => {}, updateMailBadges: () => {},
@@ -17,11 +19,11 @@ const ctx = {
 };
 vm.runInNewContext(html.slice(start, end), ctx);
 ctx.claimQuest({ id: 'q_name', ready: true, title: 'Make a Name', reward: '💎 20 diamonds', claim: () => { calls.claim++; } });
-setImmediate(() => {
+setTimeout(() => {
   assert.strictEqual(calls.claim, 0, 'client reward closure did not mint a second payment');
   assert.strictEqual(calls.capture, 0, 'no generic earn was submitted');
   assert.strictEqual(calls.adopt, 1, 'server ledger was adopted once');
   assert.strictEqual(ctx.G.questClaimed.q_name, true);
   assert(calls.messages[0].includes('💎 20 diamonds'));
   console.log('wallet quest claim: pass');
-});
+}, 20);
