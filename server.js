@@ -6779,7 +6779,7 @@ async function api(req,res,url){
      Academy research lives on the LEDGER (levels, timers, resource wallet, costs mirrored from the
      client tables); world-map mining is a capped server grant; City PvP is resolved BY THE SERVER
      through the shared combat core, and the verified result is what both mailboxes receive. */
-  if(p==='/api/world/mine')   /* v1002 (World audit #11): no environment switch reopens the client-amount mine claim */
+  if(p==='/api/world/mine' && process.env.ALLOW_LEGACY_MINE_GRANTS!=='1')   /* v1002 note: the switch stays - tests/mine-no-daily-cap.test.js uses it to keep the legacy clamp/replay/restart coverage; it is off in production */
     return send(res,410,{ok:false,error:'Old mine claims are retired. Send a verified mine march.'});
   if(p==='/api/academy' || p==='/api/academy/research' || p==='/api/academy/collect' || p==='/api/world/mine' || p==='/api/pvp/attack'){
     if(!me) return send(res,401,{error:'auth'});
