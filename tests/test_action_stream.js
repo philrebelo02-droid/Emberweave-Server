@@ -100,7 +100,7 @@ const ackFor=(acks,seq)=>acks.filter(a=>a.seq===seq).pop();   // the LATEST rece
   const truth=host.campaign(st.snaps, enc[0].waves, st.seed>>>0, accepted);
   const out=await req('/api/campaign/resolve',{attemptId:st.attemptId,requestId:rid(),
     inputLog:[[1,'ult',0,3,null,null],[2,'ult',1,3,null,null],[3,'ult',2,3,null,null]],   // a DIFFERENT log
-    digest:truth.digest},T);
+    digest:truth.digest, won:!!truth.won, stars:truth.won?(truth.stars|0):0},T);   /* 28 Sep fight rule: the watched verdict travels with the digest */
   ck('the resolve says it used the streamed receipts', out.transcript==='streamed-receipts', JSON.stringify(out).slice(0,160));
   ck('a submitted transcript that differs from the receipts is ignored, and the receipted fight verifies',
      out.ok===true && out.verified===true && out.digestMatch===true, JSON.stringify(out).slice(0,160));
@@ -121,7 +121,7 @@ const ackFor=(acks,seq)=>acks.filter(a=>a.seq===seq).pop();   // the LATEST rece
   ck('a client that loses the channel can abandon the partial stream', S2.acks.some(a=>a.abandoned===true));
   const local=[[45,'ult',0,3,null,null]];
   const t2=host.campaign(st2.snaps, enc[0].waves, st2.seed>>>0, local);
-  const o2=await req('/api/campaign/resolve',{attemptId:st2.attemptId,requestId:rid(),inputLog:local,digest:t2.digest},T);
+  const o2=await req('/api/campaign/resolve',{attemptId:st2.attemptId,requestId:rid(),inputLog:local,digest:t2.digest,won:!!t2.won,stars:t2.won?(t2.stars|0):0},T);
   ck('the fallback still verifies the player\'s own fight', o2.ok===true && o2.verified===true);
   ck('and the receipt says the stream was lost, not that it was clean',
      o2.transcript==='submitted-log-after-stream-loss', String(o2.transcript));
