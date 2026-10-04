@@ -1277,6 +1277,13 @@ const DUNGEON_MATS_PER_DAY=10;   // v328: winning dungeon resolves that roll equ
 /* v1006 (re-audit Account N1, class fix): every READ of a ledger's unlocked map goes through this - a valid hero id, an own property,
    and true. A plain lookup is truthy for '__proto__' / 'constructor' (Object.prototype) and let a hero list reach led.hero[k] = Object.prototype. */
 function ownsHeroK(L,k){ return !!(L&&L.unlocked&&validHero(k)&&Object.prototype.hasOwnProperty.call(L.unlocked,k)&&L.unlocked[k]); }
+/* v1012 (re-audit Arena N12 / Pool+Forge #11): refusals name the hero, not its internal key. SIM.HERO_BASE has no names; the
+   client's HERO_TYPES literal is the one authored source, read once from the page this server serves (like localBuildId). */
+let _heroNames;
+function heroDisplayName(k){ if(_heroNames===undefined){ _heroNames=Object.create(null); try{ const html=fs.readFileSync(GAME_FILE,'utf8');
+    const a=html.indexOf('const HERO_TYPES = {'), b=a>=0?html.indexOf('for(const k in HERO_TYPES)',a):-1; const seg=a>=0&&b>a?html.slice(a,b):'';   /* the base table AND the Object.assign roster block after it */
+    const re=/^\s*([a-z0-9_]+)\s*:\s*\{\s*name\s*:\s*(?:'([^']+)'|"([^"]+)")/gm; let m; while((m=re.exec(seg))) if(!_heroNames[m[1]]) _heroNames[m[1]]=m[2]||m[3]; }catch(e){} }
+  return _heroNames[String(k)]||String(k); }
 function validHero(k){ return typeof k==='string' && Object.prototype.hasOwnProperty.call(SIM.HERO_BASE, k); }
 /* 3 Oct Market audit #2: heroes never sold in the Market (client HERO_TYPES source:'purchase' / 'arena'). tests/test_market_harden.js keeps this set equal to the client's. */
 const HERO_NOT_SOLD=new Set(['konwu','grosk','vulmar','aureth','hurne','hollow']);
@@ -2066,7 +2073,7 @@ function warLinesValidate(u, raw){
     for(const k of line){
       const key=String(k||'');
       if(!SIM.HERO_BASE[key]) return {error:'That is not a hero.'};
-      if(!rled.unlocked[key]) return {error:'You do not own '+((SIM.HERO_BASE[key]||{}).name||key)+'.'};
+      if(!ownsHeroK(rled,key)) return {error:'You do not own '+heroDisplayName(key)+'.'};
       if(seen.has(key)) return {error:((SIM.HERO_BASE[key]||{}).name||key)+' is on two lines \u2014 a hero can only stand on one.'};
       seen.add(key); keys.push(key);
     }
@@ -3609,7 +3616,7 @@ function poolPick(a){ return a[Math.floor(Math.random()*a.length)]; }
 function poolPickUnowned(led,a){ const un=(a||[]).filter(function(k){ return !(led.unlocked&&ownsHeroK(led,k)); });
   return un.length?un[Math.floor(Math.random()*un.length)]:null; }
 function poolGrantHero(u,hk){ const led=u.led; const st=POOL_START_STARS[hk]||1;
-  if(led.unlocked[hk]){ const f=POOL_DUPE_FRAG[st]||7; creditFrags(u,led,hk,f,'wish:duplicate',{uncapped:true});
+  if(ownsHeroK(led,hk)){ const f=POOL_DUPE_FRAG[st]||7; creditFrags(u,led,hk,f,'wish:duplicate',{uncapped:true});
     return {type:'dupe', hero:hk, frags:f}; }
   led.unlocked[hk]=true; if(!led.hero[hk]) led.hero[hk]={xp:0,stars:(SIM.HERO_BASE[hk]||{}).stars||st,pips:0};
   return {type:'hero', hero:hk, stars:st}; }
@@ -4405,7 +4412,7 @@ async function api(req,res,url){
       if(!validHero(hero)) return bad('Unknown hero.');
       if(!hero||!it||!def) return bad('Unknown item.');
       const where=gearItemEquippedBy(g,iid);
-      if(where) return bad('Already equipped on '+(((SIM.HERO_BASE[where.hero]||{}).name)||where.hero)+'.');   /* v994 (audit #11): the hero's name, not its id */
+      if(where) return bad('Already equipped on '+heroDisplayName(where.hero)+'.');   /* v994 (audit #11): the hero's name, not its id */
       g.equipped[hero]=g.equipped[hero]||{};
       g.equipped[hero][def.slot]=iid;   // replaces the slot's occupant (which stays bound, unequipped)
       it.bound=true;                    // bound-item rule: once equipped, never a crafting ingredient
@@ -5100,7 +5107,7 @@ async function api(req,res,url){
       const ids=Array.isArray(b.heroIds)?b.heroIds.map(String):[];
       if(ids.length<5||ids.length>10||new Set(ids).size!==ids.length) return send(res,400,{error:'Pick 5 fighters (plus up to 5 backups), no duplicates.'});
       const vled=ensureLedger(me);   // AUDIT v229 (P0): ownership is enforced — locked heroes never enter the Vault
-      for(const k of ids){ if(!SIM.HERO_BASE[k]||!ownsHeroK(vled,k)) return send(res,400,{error:'You have not unlocked '+k+'.'}); }
+      for(const k of ids){ if(!SIM.HERO_BASE[k]||!ownsHeroK(vled,k)) return send(res,400,{error:'You have not unlocked '+heroDisplayName(k)+'.'}); }
       const save=parseSaveOf(me);
       const snaps=ids.map(k=>snapshotHeroFromServer(me,k,save));
       if(snaps.some(s=>!s)) return send(res,400,{error:'Unknown hero in the team.'});
@@ -5235,7 +5242,7 @@ async function api(req,res,url){
       glyphMigrate(me); glyphFlowMigrate(me); const g=ensureGlyphs(me);
       const hero=String(url.searchParams.get('heroKey')||'').slice(0,24); const slot=parseInt(url.searchParams.get('slot'),10);
       if(!validHero(hero)) return send(res,400,{error:'Unknown hero.'});   /* v986 (City Wall audit #16) */
-      if(!ensureLedger(me).unlocked[hero]) return send(res,400,{error:'You have not unlocked '+hero+'.'});
+      if(!ownsHeroK(ensureLedger(me),hero)) return send(res,400,{error:'You have not unlocked '+heroDisplayName(hero)+'.'});
       if(!(slot>=0&&slot<6)) return send(res,400,{error:'Bad slot.'});
       const board=glyphBoard(g,hero);
       if(board.ascensionIndex>=GLYPH_MAX_ASC) return send(res,400,{error:'Fully ascended.'});
@@ -5255,7 +5262,7 @@ async function api(req,res,url){
       glyphMigrate(me); glyphFlowMigrate(me); const g=ensureGlyphs(me);
       const hero=String(url.searchParams.get('heroKey')||'').slice(0,24); const slot=parseInt(url.searchParams.get('slot'),10);
       if(!validHero(hero)) return send(res,400,{error:'Unknown hero.'});   /* v986 (City Wall audit #16) */
-      if(!ensureLedger(me).unlocked[hero]) return send(res,400,{error:'You have not unlocked '+hero+'.'});
+      if(!ownsHeroK(ensureLedger(me),hero)) return send(res,400,{error:'You have not unlocked '+heroDisplayName(hero)+'.'});
       if(!(slot>=0&&slot<6)) return send(res,400,{error:'Bad slot.'});
       const board=glyphBoard(g,hero);
       if(board.slots[slot]){ // locked slot: read-only ancestry, no actions ever
@@ -5309,7 +5316,7 @@ async function api(req,res,url){
       const rid=String(b.requestId||'').slice(0,48); if(!rid) return bad('requestId required');
       const hero=String(b.heroKey||'').slice(0,24); if(!validHero(hero)) return bad('Unknown hero.'); const slot=parseInt(b.slot,10);
       if(!SIM.HERO_BASE[hero]) return bad('Unknown hero.');
-      if(!ensureLedger(me).unlocked[hero]) return bad('You have not unlocked '+hero+'.');
+      if(!ownsHeroK(ensureLedger(me),hero)) return bad('You have not unlocked '+heroDisplayName(hero)+'.');
       if(!(slot>=0&&slot<6)) return bad('Bad slot.');
       const def=GLYPHS.byId[String(b.blueprintId||'')]; if(!def) return bad('Unknown blueprint.');
       const board=glyphBoard(g,hero);
@@ -5317,7 +5324,7 @@ async function api(req,res,url){
       if(board.slots[slot]) return bad('That slot is already locked.');
       if(def.qi!==board.ascensionIndex) return bad('This board builds '+GLYPH_LADDER[board.ascensionIndex]+' glyphs.');
       { const need=glyphLevelGate(board.ascensionIndex), have=ledHeroLevel(ensureLedger(me),hero);
-        if(have<need) return bad(GLYPH_LADDER[board.ascensionIndex]+' glyphs need hero level '+need+' — '+hero+' is level '+have+'.'); }
+        if(have<need) return bad(GLYPH_LADDER[board.ascensionIndex]+' glyphs need hero level '+need+' — '+heroDisplayName(hero)+' is level '+have+'.'); }
       const heroRole=(SIM.HERO_BASE[hero]||{}).role;
       if(!glyphAllowed(slot,def,heroRole)) return bad('A '+def.family+' glyph does not fit the '+GLYPH_SLOTS[slot]+' slot.');
       // v232 (Phil): the slot builds exactly its ONE pre-chosen glyph — nothing else.
@@ -5346,11 +5353,11 @@ async function api(req,res,url){
       if(g.applied && g.applied[rid]) return send(res,200,g.applied[rid]);
       const hero=String(b.heroKey||'').slice(0,24); if(!validHero(hero)) return bad('Unknown hero.');
       if(!SIM.HERO_BASE[hero]) return bad('Unknown hero.');
-      if(!ensureLedger(me).unlocked[hero]) return bad('You have not unlocked '+hero+'.');
+      if(!ownsHeroK(ensureLedger(me),hero)) return bad('You have not unlocked '+heroDisplayName(hero)+'.');
       const board=glyphBoard(g,hero);
       if(board.ascensionIndex>=GLYPH_MAX_ASC) return bad('This hero is fully ascended.');
       { const need=glyphLevelGate(board.ascensionIndex), have=ledHeroLevel(ensureLedger(me),hero);
-        if(have<need) return bad(GLYPH_LADDER[board.ascensionIndex]+' glyphs need hero level '+need+' — '+hero+' is level '+have+'.'); }
+        if(have<need) return bad(GLYPH_LADDER[board.ascensionIndex]+' glyphs need hero level '+need+' — '+heroDisplayName(hero)+' is level '+have+'.'); }
       const plan=glyphBuildAllPlan(g,hero,board);
       if(!plan.slots.length) return bad('Every slot is already built.');
       if(!plan.canAll) return bad('Not enough materials for all '+plan.slots.length+' remaining slots.');
@@ -5426,7 +5433,7 @@ async function api(req,res,url){
       const led=ensureLedger(me);
       if(p==='/api/witch/heal'){
         const key=String(b.hero||'');
-        if(!SIM.HERO_BASE[key] || !led.unlocked[key]) return {ok:false,error:'You do not own that hero.'};
+        if(!SIM.HERO_BASE[key] || !ownsHeroK(led,key)) return {ok:false,error:'You do not own that hero.'};
         if(worldHeroReturnAt(me,key,now)>now)
           return {ok:false,error:'That hero is still marching. Heal them when they return to your city.'};
         const result=WITCH.heal(w.state,key,heroCardPower(me,key),w.capacity,now);
@@ -5952,7 +5959,7 @@ async function api(req,res,url){
       const key=String(b.key||''); const idx=b.idx|0;
       if(!validHero(key)) return {ok:false,error:'Unknown hero.'};   /* v986 */
       if(idx<0||idx>3) return {ok:false,error:'Unknown skill.'};
-      if(!led.unlocked[key]) return {ok:false,error:'You have not unlocked that hero.'};
+      if(!ownsHeroK(led,key)) return {ok:false,error:'You have not unlocked that hero.'};
       /* v989 (4 Oct City Wall audit #6): the green / blue / passive skill opens at Green / Blue / Purple quality - the hero's glyph
          ascension, on the client's own 16-step table (G2_TIER16). A direct POST used to level a locked skill. */
       if(idx>0 && glyphsEnabledFor(me)){ glyphMigrate(me); glyphFlowMigrate(me); const bd=(ensureGlyphs(me).boards||{})[key];
@@ -6008,7 +6015,7 @@ async function api(req,res,url){
       if(!TEMPLE.templeUnlocked(state.playerLevel))return {ok:false,error:'The Temple opens at player level 50.'};
       if(p==='/api/temple/pray'){
         const key=String(b.heroKey||''),tier=String(b.tier||'');
-        if(!SIM.HERO_BASE[key]||!led.unlocked[key])return {ok:false,error:'Choose an owned hero.'};
+        if(!SIM.HERO_BASE[key]||!ownsHeroK(led,key))return {ok:false,error:'Choose an owned hero.'};
         glyphMigrate(me);glyphFlowMigrate(me);
         const board=(ensureGlyphs(me).boards||{})[key];
         if(!TEMPLE.heroCanKindle(board))return {ok:false,error:'This hero needs Purple ascension.'};
@@ -6168,7 +6175,7 @@ async function api(req,res,url){
   /* v825 THE STARLESS WELL (blueprint 22) owns only /api/well/*: a 3-day run of 3 maps, HP/energy carried from the server's replay */
   if(WELL2 && p.indexOf('/api/well/')===0){ if(!me)return send(res,401,{error:'auth'}); if(rateLimited(req,'well:'+me.id,120,60000)) return send(res,429,{error:'Slow down.'});   /* v1011 (re-audit Arena N10): state reads and start->resolve replays were unthrottled */
     const led=ensureLedger(me);
-    const out=await WELL2.handle(p, req.method, { me, led, body:()=>body(req), srvSeed, ledTx, ledgerView, writeDB, uid, idem, crypto,
+    const out=await WELL2.handle(p, req.method, { me, led, heroDisplayName, body:()=>body(req), srvSeed, ledTx, ledgerView, writeDB, uid, idem, crypto,
       simHost, campaignHeroSpec, sanitizeInputLog, sha256hex, ledAddPlayerXP, creditGold, creditGems,
       feedbackCheatSignal, D_TROOP_INC, SIM, isDev,
       playerLevel:()=>ledPlayerLevel(led), loanPool:()=>Object.keys(SIM.HERO_BASE).sort() });
@@ -6192,7 +6199,7 @@ async function api(req,res,url){
       if(gate && pl<gate) return send(res,400,{error:'Chapter boss — reach player level '+gate+' first (you are '+pl+').', bossLevelGate:gate, playerLevel:pl}); }
     const ids=Array.isArray(b.heroIds)?[...new Set(b.heroIds.map(String))].slice(0,5):[];   /* v559: no dedupe meant five copies of one hero were a legal lineup AND collected the per-entry XP award five times (City PvP, /api/pvp/attack). The Vault already rejects duplicates; every squad route now agrees. */
     if(!ids.length||new Set(ids).size!==ids.length) return send(res,400,{error:'Pick your squad (no duplicates).'});
-    for(const k of ids){ if(!ownsHeroK(led,k)) return send(res,400,{error:'You have not unlocked '+k+'.'}); }
+    for(const k of ids){ if(!ownsHeroK(led,k)) return send(res,400,{error:'You have not unlocked '+heroDisplayName(k)+'.'}); }
     ledStamRegen(led); const cost=(mode==='elite'||campIsBoss(node))?STAM_COST_BOSS:STAM_COST_NORMAL;
     /* v273 (audit response §4.5) — RECONNECT RESUMES, IT DOES NOT RE-CHARGE.
        Closing the app mid-battle used to abandon the frozen session and take the stamina again on the
@@ -6613,7 +6620,7 @@ async function api(req,res,url){
       if(provPlaysLeft(me,pr)<=0) return send(res,400,{error:'No plays left today — come back tomorrow.'});
       const ids=Array.isArray(b.heroIds)?[...new Set(b.heroIds.map(String))].slice(0,5):[];
       if(!ids.length) return send(res,400,{error:'Pick your squad (no duplicates).'});
-      for(const k of ids){ if(!SIM.HERO_BASE[k]||!ownsHeroK(led,k)) return send(res,400,{error:'You have not unlocked '+k+'.'}); }
+      for(const k of ids){ if(!SIM.HERO_BASE[k]||!ownsHeroK(led,k)) return send(res,400,{error:'You have not unlocked '+heroDisplayName(k)+'.'}); }
       const specs=ids.map(k=>campaignHeroSpec(me,k)); if(specs.some(x=>!x)) return send(res,400,{error:'Unknown hero.'});
       const host=simHost(); let fightSnaps=null;
       if(host){ try{ fightSnaps=host.snapFromSpecs(specs); }catch(e){ console.error('sim-host snapFromSpecs failed (province):',e.message); } }
@@ -6928,7 +6935,7 @@ async function api(req,res,url){
         if(me.pvpDay.n>=20) return {ok:false,error:'No city attacks left today.'};
         const ids=march.heroIds;
         if(!ids.length) return {ok:false,error:'Pick your squad.'};
-        for(const k of ids){ if(!ownsHeroK(led,k)) return {ok:false,error:'You have not unlocked '+k+'.'}; }
+        for(const k of ids){ if(!ownsHeroK(led,k)) return {ok:false,error:'You have not unlocked '+heroDisplayName(k)+'.'}; }
         const mySnaps=ids.map(k=>snapshotHeroFromServer(me,k)).filter(Boolean);
         const defRoster=(Array.isArray(d.wall)&&d.wall.length?d.wall:(Array.isArray(d.team)?d.team:[])).filter(Boolean).slice(0,5);
         if(!mySnaps.length) return {ok:false,error:'Bad squad.'};
@@ -7837,7 +7844,7 @@ async function api(req,res,url){
       const ids=Array.isArray(b.heroIds)?[...new Set(b.heroIds.map(String))].slice(0,10):[];
       if(!ids.length) return send(res,400,{error:'Pick your squad.'});
       const led=ensureLedger(me);
-      for(const k of ids){ if(!SIM.HERO_BASE[k]||!ownsHeroK(led,k)) return send(res,400,{error:'You have not unlocked '+k+'.'}); }
+      for(const k of ids){ if(!SIM.HERO_BASE[k]||!ownsHeroK(led,k)) return send(res,400,{error:'You have not unlocked '+heroDisplayName(k)+'.'}); }
       const specs=ids.map(k=>campaignHeroSpec(me,k)); if(specs.some(x=>!x)) return send(res,400,{error:'Unknown hero.'});
       const host=simHost(); let fightSnaps=null;
       if(host){ try{ fightSnaps=host.snapFromSpecs(specs); }catch(e){ console.error('sim-host snapFromSpecs failed (raid):',e.message); } }

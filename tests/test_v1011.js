@@ -1,6 +1,6 @@
 // 4 Oct 2026 second-pass fixes (v1011). Heavy reads are throttled per account (Arena N10, Market #15, Guild #12); a Tower refusal
 // answers 400, not 200 (N13); reading Province state no longer saves the database every time (N14).
-// (The sign-in / Tower / star-track receipt epoch, N9, is asserted in test_gear_epoch.js.)
+// (The sign-in / Tower / star-track receipt epoch, N9, is asserted in test_gear_epoch.js.) v1012: refusals name the hero (N12).
 // Asserts (non-zero exit). Control: AUD_SERVER=<pre-fix server copied into the repo root> must FAIL.
 const assert=require('assert'),fs=require('fs'),os=require('os'),path=require('path'),net=require('net'),{spawn}=require('child_process');
 const root=path.join(__dirname,'..'), srvFile=process.env.AUD_SERVER||'server.js', dir=fs.mkdtempSync(path.join(os.tmpdir(),'ew-v1011-'));
@@ -29,6 +29,9 @@ async function burst(route,n){ const st=[]; for(let i=0;i<n;i++) st.push((await 
   await call('/api/province/state'); await delay(800);
   const before=fs.readFileSync(dbFile,'utf8'); await call('/api/province/state'); await delay(800);
   ok(fs.readFileSync(dbFile,'utf8')===before,'a second Province state read writes nothing');
+  /* v1012 (re-audit Arena N12 / Pool+Forge #11): a refusal names the hero, not its internal key */
+  const cs=await call('/api/campaign/start',{node:1,heroIds:['korvux'],requestId:'v1012-cs'});
+  ok(/You have not unlocked Korvux\./.test(cs.data.error||''),'a refusal names the hero ('+(cs.data.error||cs.status)+')');
   if(missed.length){ missed.forEach(m=>console.error('FAIL',m)); process.exitCode=1; }
   console.log('test_v1011.js: '+pass+' checks passed, '+missed.length+' failed (server '+srvFile+')');
 } catch(e){ console.error('FAIL',e&&e.message||e); process.exitCode=1; } finally { await stop(); } })();

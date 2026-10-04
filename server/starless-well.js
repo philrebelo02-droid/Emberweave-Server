@@ -192,7 +192,7 @@ async function handle(p, method, ctx) {
       R.buffs.push(String(b.id)); R.offer = null; ctx.writeDB(); return ok();
     }
     if (p === '/api/well/resurrect') {
-      const k = String(b.hero || ''), h = R.heroes[k]; if (!h || !h.dead) return no('That hero is not fallen.');
+      const k = String(b.hero || ''), h = Object.prototype.hasOwnProperty.call(R.heroes, k) ? R.heroes[k] : null; if (!h || !h.dead) return no('That hero is not fallen.');
       const cost = R.resUsed ? RES_COST : 0; if ((ctx.led.gems | 0) < cost) return no('Not enough diamonds (' + cost + ').');
       if (cost) ctx.led.gems -= cost; R.resUsed++; h.dead = false; h.hpFrac = 1; h.energy = 0;
       ctx.ledTx(ctx.me, 'well2:resurrect', { gems: -cost }); ctx.writeDB(); return ok();
@@ -213,9 +213,11 @@ async function handle(p, method, ctx) {
       if (!sq || !reach(R, col, row) || (sq.type !== 'fight' && sq.type !== 'boss')) return no('Pick a guarded square next to you.');
       const ids = Array.isArray(b.heroIds) ? [...new Set(b.heroIds.map(String))].slice(0, 5) : [];
       if (!ids.length) return no('Pick your squad (no duplicates).');
-      for (const k of ids) { if (!ctx.SIM.HERO_BASE[k] || !(ctx.led.unlocked[k] || R.loans.indexOf(k) >= 0)) return no('You do not have ' + k + ' in this run.');
-        if (R.heroes[k] && R.heroes[k].dead) return no(k + ' has fallen - resurrect them first.'); }
-      const specs = ids.map(k => ctx.led.unlocked[k] ? ctx.campaignHeroSpec(ctx.me, k) : loanSpec(ctx, k));
+      /* v1012 (re-audit): own-property checks (HERO_BASE / unlocked / heroes are plain objects - a prototype name read as truthy) and hero names, not keys */
+      const own = (o, k) => !!o && Object.prototype.hasOwnProperty.call(o, k), owns = k => own(ctx.led.unlocked, k) && !!ctx.led.unlocked[k], nm = k => (ctx.heroDisplayName ? ctx.heroDisplayName(k) : k);
+      for (const k of ids) { if (!own(ctx.SIM.HERO_BASE, k) || !(owns(k) || R.loans.indexOf(k) >= 0)) return no('You do not have ' + nm(k) + ' in this run.');
+        if (own(R.heroes, k) && R.heroes[k].dead) return no(nm(k) + ' has fallen - resurrect them first.'); }
+      const specs = ids.map(k => owns(k) ? ctx.campaignHeroSpec(ctx.me, k) : loanSpec(ctx, k));
       if (specs.some(x => !x)) return no('Unknown hero.');
       const host = ctx.simHost(); let snaps = null;
       if (host) { try { snaps = applyRun(ctx, R, host.snapFromSpecs(specs)); } catch (e) { console.error('sim-host snapFromSpecs failed (well2):', e.message); } }
