@@ -19491,6 +19491,8 @@ function loadAcc(){ try{const s=localStorage.getItem('ew_acc');if(s)ACC=JSON.par
    heartbeat quietly provisions a guest. Nothing is signed in until the player chooses. */
 function signOutFully(){
   try{ flushCloud(); }catch(e){}
+  /* v1000 (Account audit #10): revoke the token on the server - after the flush above has had time to use it */
+  try{ const _tok=ACC.token; if(_tok) setTimeout(()=>{ try{ fetch('/api/logout',{method:'POST',headers:{'x-token':_tok},keepalive:true}).catch(()=>{}); }catch(e){} },1500); }catch(e){}
   ACC={token:null,name:null,rank:null,coins:0,id:null,email:'',signedOut:true}; try{ DEV.on=false; DEV.god=false; }catch(e){} saveAcc();
   try{ clearServerCaches(); }catch(e){}
   G=JSON.parse(JSON.stringify(DEFAULT_G)); saveGLocalOnly();
@@ -25765,7 +25767,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791101606134';
+const BUILD_ID = '1791102287933';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

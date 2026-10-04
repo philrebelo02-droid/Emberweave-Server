@@ -290,14 +290,19 @@ function linkedUser(gid, name, pass){
   return u; }
 // v946: the account checks, shared by this server's own endpoints and the account-server endpoints (bodies moved unchanged
 // from /api/login, /api/register, /api/reset-request and /api/reset-verify). Callers write the DB.
-function acctVerify(name, pass){
+function acctVerify(name, pass, ip){
   const id=DB.byName[String(name||'').trim().toLowerCase()];
-  const u=id&&DB.users[id]; if(!u) return {status:401,error:'Wrong name or password'};
-  // 30 Sep 2026 hardening: 10 wrong passwords in an hour lock THIS account for 15 min, from any IP.
-  const lf=u.loginFails&&Date.now()-u.loginFails.t<3600000?u.loginFails:{n:0,t:Date.now()};
-  if(lf.until&&Date.now()<lf.until) return {status:429,error:'Too many wrong passwords for this account — try again in 15 minutes.'};
+  const u=id&&DB.users[id]; if(!u){ hashPass(String(pass||''),'00000000000000000000000000000000',PBKDF2_ITERS); return {status:401,error:'Wrong name or password'}; }   /* v1000 (Account audit #19): the same work for an unknown name */
+  /* v1000 (Account audit #5): 10 wrong passwords in an hour lock THIS account for 15 min from THAT IP only (was: from every IP - anyone
+     could keep any account locked, names are public). A much higher account-wide cap (200/h) still locks for 5 min against a spread attack. IPs are stored hashed. */
+  const now=Date.now(), ipk=crypto.createHash('sha256').update(String(ip||'unknown')).digest('hex').slice(0,16);
+  const lf=(u.loginFails&&u.loginFails.v===2&&now-u.loginFails.t<3600000)?u.loginFails:{v:2,n:0,t:now,ip:{}};
+  const li=(lf.ip[ipk]&&now-lf.ip[ipk].t<3600000)?lf.ip[ipk]:{n:0,t:now};
+  if((li.until&&now<li.until)||(lf.until&&now<lf.until)) return {status:429,error:'Too many wrong passwords — try again in 15 minutes.'};
   // SECURITY (audit crit #1): no mustReset shortcut before the password check - recovery is the verified email flow only.
-  if(!checkPass(u,pass)){ lf.n++; if(lf.n>=10) lf.until=Date.now()+15*60000; u.loginFails=lf; return {status:401,error:'Wrong name or password'}; }
+  if(!checkPass(u,pass)){ li.n++; if(li.n>=10) li.until=now+15*60000; lf.ip[ipk]=li; lf.n++; if(lf.n>=200) lf.until=now+5*60000;
+    const ks=Object.keys(lf.ip); if(ks.length>50) for(const k of ks.slice(0,ks.length-50)) delete lf.ip[k];
+    u.loginFails=lf; return {status:401,error:'Wrong name or password'}; }
   delete u.loginFails;
   if(!u.iters){ const c=makeCred(pass||''); u.hash=c.hash; u.salt=c.salt; u.iters=c.iters; }   // transparent 60k→210k upgrade
   return {u}; }
@@ -385,7 +390,9 @@ function tokHash(t){ return crypto.createHash('sha256').update(String(t)).digest
 /* v273: a session that a player is holding must survive a crash — a token created seconds before a
    restart used to disappear with the debounced write, logging them out and, for a new account,
    losing the account itself. Issuing a token is rare; make it durable. */
-function issueToken(id){ const raw=uid()+uid(); DB.tokens[tokHash(raw)]={id, iat:Date.now(), exp:Date.now()+TOKEN_TTL_MS}; writeDBNow(); return raw; }
+function issueToken(id){ const raw=uid()+uid(); DB.tokens[tokHash(raw)]={id, iat:Date.now(), exp:Date.now()+TOKEN_TTL_MS};
+  if(writeDBNow()===false){ delete DB.tokens[tokHash(raw)]; const e=new Error('Save failed - try again.'); e.code='WORLD_STORAGE_FAILURE'; throw e; }   /* v1000 (Account audit #9): no token for a sign-in the disk did not keep */
+  return raw; }
 function lookupToken(raw){ if(!raw) return null;
   /* 30 Sep 2026 hardening: `||DB.tokens[raw]` let the stored HASH itself sign in - and every backup (GitHub push,
      /api/admin/backup, backups/db-*.json) holds those hashes, admins included. Only a pre-migration plaintext
@@ -547,7 +554,7 @@ const HERO_KEYS=['konwu','grosk','vulmar','tick','sylthaine','aureth','bloatus',
 function defaultTeam(){ return [ {key:'vael',level:1,rank:0},{key:'sylthaine',level:1,rank:0},{key:'vireo',level:1,rank:0} ]; }
 
 /* --------------------------- NPC / world seeding -------------------------- */
-const NPC_NAMES=['Ironhold','Stormgate','Ashvale','Highcliff','Duskmere','Ravenspire','Frostholm','Emberton','Wolfden','Goldreach','Thornwick','Mistfall','Grimwater','Sunspear','Blackmoor','Oakenshield','Redkeep','Silverbrook','Winterfell','Stonehaven','Bramblewood','Nightvale','Dawnkeep','Shadowfen','Windmere','Coldharbor','Firebrand','Greymarch','Hollowreach','Larkspur','Direhold','Kingsmoor','Valebright','Ashenford','Cragmaw','Elmsworth','Ferncove','Gale’s Rest','Hearthglen','Ivywatch'];
+const NPC_NAMES=['Ironhold','Stormgate','Ashvale','Highcliff','Duskmere','Ravenspire','Frostholm','Emberton','Wolfden','Goldreach','Thornwick','Mistfall','Grimwater','Sunreach','Blackmoor','Oakhollow','Redcairn','Silverbrook','Wintermere','Stonehaven','Bramblewood','Nightvale','Dawnkeep','Shadowfen','Windmere','Coldbarrow','Firebrand','Greymarch','Hollowreach','Larkspur','Direhold','Kingsmoor','Valebright','Ashenford','Cragmaw','Elmsworth','Ferncove','Gale’s Rest','Hearthmoor','Ivywatch'];   /* v1000 (Account audit #17): six names from other works replaced - in-game names only */
 function randTeam(power){ const pool=HERO_KEYS.slice(), t=[], n=Math.min(5,pool.length);
   for(let i=0;i<n;i++){ const idx=Math.floor(Math.random()*pool.length); const key=pool.splice(idx,1)[0];   // splice => never repeats a hero
     t.push({ key, level:1+Math.floor(power*0.6+Math.random()*power*0.4), rank:Math.min(3,Math.floor(power/6)) }); }
@@ -1425,13 +1432,14 @@ function vaultSweepNextCost(sw){ if(sw.freeUsesRemaining>0) return 0; const paid
    record along with the reward — and the client's retry would then be paid a second time. Every
    idem() result is now flushed to disk BEFORE the response is written. */
 var _durableIdemActive=false;   /* 3 Oct audit: set while a durable idem() action runs - its own final save is the only write */
-function writeDBNow(){
-  if(_worldSettlementPlanning||_durableIdemActive)return;
-  if(PG_BOOT_PENDING){ _bootDirty=true; return; }   // v327: boot restore window — see bootFinish()
+function writeDBNow(){   /* v1000 (Account audit #9): returns false when the disk write failed (callers that must not ack can check it) */
+  if(_worldSettlementPlanning||_durableIdemActive)return true;
+  if(PG_BOOT_PENDING){ _bootDirty=true; return true; }   // v327: boot restore window — see bootFinish()
   try{ if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; }
     saveDB(DB);
-  }catch(e){ console.error('⚠ DB durable write failed:', e.message); }
+  }catch(e){ console.error('⚠ DB durable write failed:', e.message); return false; }
   try{ pgSave(); }catch(e){}
+  return true;
 }
 /* 3 Oct 2026 audit (P1, every building): writeDBNow() catches a failed disk write and the reply still says ok, so a
    player could be shown a reward that a crash then took back (Well/Vault reproduced). opts.durableUser = the caller's
@@ -3946,6 +3954,8 @@ async function api(req,res,url){
   // relaunching resumes the same guest (never resets progress). The client seeds it with the current
   // local save so an existing offline player isn't wiped to level 1. Guests upgrade in place via
   // /api/register (keeps progress) or are replaced by signing into a real account.
+  /* v1000 (Account audit #10): sign-out revokes the token on the server (it stayed valid for 90 days with sliding renewal) */
+  if(p==='/api/logout' && req.method==='POST'){ const raw=String(req.headers['x-token']||''); if(raw&&DB.tokens&&DB.tokens[tokHash(raw)]){ delete DB.tokens[tokHash(raw)]; writeDBNow(); } return send(res,200,{ok:true}); }
   if(p==='/api/guest' && req.method==='POST'){ const b=await body(req);
     if(rateLimited(req,'guest',20,60000)) return send(res,429,{error:'Slow down.'});
     const deviceId=(b.deviceId||'').slice(0,64);
@@ -3971,7 +3981,7 @@ async function api(req,res,url){
   if(p.startsWith('/api/internal/account/') && req.method==='POST'){
     if(!linkSecretOk(req)) return send(res,404,{error:'not found'});
     const b=await body(req);
-    if(p==='/api/internal/account/verify'){ const r=acctVerify(b.name, b.pass); writeDB();
+    if(p==='/api/internal/account/verify'){ const r=acctVerify(b.name, b.pass, 'srv:'+String(b.ip||clientIP(req))); writeDB();
       return r.u ? send(res,200,{ ok:true, gid:r.u.id, name:r.u.name }) : send(res,r.status,{error:r.error}); }
     if(p==='/api/internal/account/register'){ const r=acctCreate(b.name, b.pass); if(r.error) return send(res,r.status,{error:r.error});
       writeDB(); return send(res,200,{ ok:true, gid:r.u.id, name:r.u.name }); }
@@ -4026,7 +4036,7 @@ async function api(req,res,url){
       const lid=DB.byName[name.toLowerCase()], lu=lid&&DB.users[lid];
       if(!(lu && lu.gid && lu.hash)) return send(res,503,{error:'Accounts are unreachable right now - try again in a minute.'});
     }
-    const r=acctVerify(b.name, b.pass);
+    const r=acctVerify(b.name, b.pass, clientIP(req));
     if(!r.u){ writeDB(); return send(res,r.status,{error:r.error}); }
     const u=r.u, id=u.id;
     dropTokens(id);   // single session: signing in here kicks any other device
