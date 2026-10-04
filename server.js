@@ -222,6 +222,12 @@ function hasProtoName(v,depth){ let n=0; const walk=(x,d,key)=>{ if(++n>50000||d
     if(x&&typeof x==='object'){ for(const k of Object.keys(x)){ if(PROTO_NAMES.has(k)||walk(x[k],d+1,k)) return true; } }
     return false; };
   return walk(v,depth|0); }
+/* v1013 (re-audit Account N12): a shared replay chip (world or guild chat) is an object with a string name and small arrays of
+   {key:string} units - any other shape broke every viewer's chat (only oppName was checked). Returns the chip or null. */
+function chatChipOk(bt){ if(!bt||typeof bt!=='object'||Array.isArray(bt)) return null; if(bt.oppName!=null&&typeof bt.oppName!=='string') return null;
+  for(const f of ['mine','mineSnap','foe']){ const a=bt[f]; if(a==null) continue; if(!Array.isArray(a)||a.length>20) return null;
+    for(const u of a){ if(!u||typeof u!=='object'||typeof u.key!=='string'||u.key.length>32) return null; } }
+  if(typeof bt.oppName==='string') bt.oppName=bt.oppName.slice(0,16); return bt; }
 function body(req, max){ max = max || BODY_MAX; return new Promise((resolve,reject)=>{
   let d='', len=0, done=false;
   req.on('data',c=>{ if(done) return; len+=c.length; if(len>max){ done=true; try{req.pause();}catch(_){} const e=new Error('body too large'); e.code='BODY_TOO_LARGE'; reject(e); return; } d+=c; });
@@ -4025,9 +4031,11 @@ async function api(req,res,url){
     if(p==='/api/internal/account/verify'){ const r=acctVerify(b.name, b.pass, 'srv:'+String(b.ip||clientIP(req))); writeDB();
       return r.u ? send(res,200,{ ok:true, gid:r.u.id, name:r.u.name }) : send(res,r.status,{error:r.error}); }
     if(p==='/api/internal/account/register'){ const r=acctCreate(b.name, b.pass); if(r.error) return send(res,r.status,{error:r.error});
-      writeDB(); return send(res,200,{ ok:true, gid:r.u.id, name:r.u.name }); }
+      if(writeDBNow()===false) return send(res,503,{ok:false,storageFailed:true,error:'Save failed - try again.'});   /* v1013 (re-audit Account N13): the account is on disk before it is acknowledged */
+      return send(res,200,{ ok:true, gid:r.u.id, name:r.u.name }); }
     if(p==='/api/internal/account/reset-request'){ acctResetRequest(b.name); return send(res,200,{ ok:true }); }
     if(p==='/api/internal/account/reset-verify'){ const r=acctResetVerify(b.name, b.code, b.newPass);
+      if(r.u && writeDBNow()===false) return send(res,503,{ok:false,storageFailed:true,error:'Save failed - try again.'});   /* v1013 (N13): the new password is on disk before it is acknowledged */
       return r.u ? send(res,200,{ ok:true, gid:r.u.id, name:r.u.name }) : send(res,r.status,{error:r.error}); }
     if(p==='/api/internal/account/handoff-issue'){ const u=DB.users[String(b.gid||'')];
       if(!u || u.isNpc || u.guest) return send(res,404,{error:'No such account.'});
@@ -4037,6 +4045,7 @@ async function api(req,res,url){
     if(p==='/api/internal/account/email-request' || p==='/api/internal/account/email-verify'){
       const u=DB.users[String(b.gid||'')]; if(!u || u.isNpc || u.guest) return send(res,404,{error:'No such account.'});
       const r = p.endsWith('request') ? acctEmailRequest(u, b.email) : acctEmailVerify(u, b.code);
+      if(r.status===200 && writeDBNow()===false) return send(res,503,{ok:false,storageFailed:true,error:'Save failed - try again.'});   /* v1013 (N13) */
       return send(res,r.status,r.body); }
     return send(res,404,{error:'not found'}); }
 
@@ -4046,6 +4055,7 @@ async function api(req,res,url){
      arrive on redeems it with the account server and signs its own player of that account in. */
   if(p==='/api/handoff' && req.method==='POST'){ const hm=authUser(req);
     if(!hm || hm.guest || hm.isNpc) return send(res,400,{error:'Only a signed-in account can switch servers signed in.'});
+    if(isBanned(hm)) return send(res,403,{error:'This account is suspended.'});   /* v1013 (re-audit Account N16): /api/handoff ran before the ban gate */
     if(rateLimited(req,'handoff',20,60000)) return send(res,429,{error:'Slow down.'});
     if(ACCOUNT_AUTHORITY){ if(!hm.gid) return send(res,400,{error:'This player is not linked to an account.'});
       const r=await authorityCall('/api/internal/account/handoff-issue',{ gid:hm.gid });
@@ -7793,7 +7803,7 @@ async function api(req,res,url){
       const tx=(b.tx||'').toString().replace(/[<>]/g,'').slice(0,200).trim(); if(!tx) return send(res,200,{ok:true});
       g.log=g.log||[]; const gm={id:me.id,name:me.name,tx,t:Date.now()};
       try{ if(b.battle && typeof b.battle==='object'){ const s=JSON.stringify(b.battle); if(s.length<=8000) gm.battle=JSON.parse(s); } }catch(e){}   // optional shared-replay chip
-      if(gm.battle && gm.battle.oppName!=null && typeof gm.battle.oppName!=='string') delete gm.battle; if(gm.battle && typeof gm.battle.oppName==='string') gm.battle.oppName=gm.battle.oppName.slice(0,16);   /* v1002 (Account audit #23) */
+      if(gm.battle){ const c=chatChipOk(gm.battle); if(c) gm.battle=c; else delete gm.battle; }   /* v1002 oppName; v1013 (N12) the whole chip shape */
       g.log.push(gm); if(g.log.length>100)g.log=g.log.slice(-100);
       writeDB(); return send(res,200,{ ok:true, log:g.log.slice(-60) }); }
 
@@ -8120,7 +8130,9 @@ try{
   const clip = (s,n)=> String(s==null?'':s).slice(0,n);
   function chatStore(){ if(!DB.chat)DB.chat={world:[],region:[]}; if(!Array.isArray(DB.chat.world))DB.chat.world=[]; if(!Array.isArray(DB.chat.region))DB.chat.region=[]; return DB.chat; }
   function pruneChat(ch){ const now=Date.now(), st=chatStore(); let a=st[ch].filter(m=>!m.t||(now-m.t)<CHAT_AGE_MS); if(a.length>CHAT_KEEP)a=a.slice(a.length-CHAT_KEEP); st[ch]=a; return a; }
-  const chatBroadcast = (o,except)=>{ const j=JSON.stringify(o); WSS.clients.forEach(c=>{ try{ if(c!==except && c.readyState===1) c.send(j); }catch(e){} }); };
+  /* v1013 (re-audit Account N12): only sockets that joined chat and (with WS_AUTH_REQUIRED) are signed in receive it - every open
+     socket did, including unauthenticated ones and a banned account's (it has no socket identity since v999). */
+  const chatBroadcast = (o,except)=>{ const j=JSON.stringify(o); WSS.clients.forEach(c=>{ try{ if(c!==except && c.readyState===1 && c._chatName && (!WS_AUTH_REQUIRED || c._uid)) c.send(j); }catch(e){} }); };
   /* 30 Sep 2026 hardening: no cap on sockets meant one machine could open thousands, and half-open ones were never
      dropped. At most 20 per IP (a household on one router still fits); a 30 s ping drops sockets that stop answering. */
   const _wsPerIp=new Map(), WS_PER_IP=20;   // 20 not 12: a home shares one IP (Phil's house runs the game + Ember's tester)
@@ -8179,7 +8191,7 @@ try{
         { const key=ws._uid||('ip:'+(ws._ipKey||'')); const now=Date.now(); const h=(_chatHits[key]||[]).filter(t=>now-t<10000);
           if(h.length>=6){ _chatHits[key]=h; wsend(ws,{t:'chaterr',reason:'You are sending messages too fast.'}); return; } h.push(now); _chatHits[key]=h; } const msg={who:ws._acctName||ws._chatName||'Player',txt,t:Date.now()};
         let bt=null; try{ if(m.battle && typeof m.battle==='object'){ const s=JSON.stringify(m.battle); if(s.length<=8000) bt=JSON.parse(s); } }catch(e){}   // optional shared-replay chip (size-capped)
-        if(bt && bt.oppName!=null && typeof bt.oppName!=='string') bt=null; if(bt && typeof bt.oppName==='string') bt.oppName=bt.oppName.slice(0,16);   /* v1002 (Account audit #23): a non-string name broke every viewer */
+        bt=chatChipOk(bt);   /* v1002 (Account audit #23) oppName; v1013 (N12) the whole chip shape */
         if(bt) msg.battle=bt;
         chatStore()[ch].push(msg); pruneChat(ch); writeDB();
         chatBroadcast({t:'chatmsg',channel:ch,who:msg.who,txt:msg.txt,battle:bt||undefined}, ws); }   // broadcast to everyone EXCEPT the sender (sender shows it instantly locally)

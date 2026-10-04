@@ -81,6 +81,10 @@ note "test_v1011.js (4 Oct re-audit: heavy reads throttled per account; Tower re
 node tests/test_v1011.js || FAILED=1
 note "test_admin_delete_guild.js (4 Oct re-audit Guild #5: a deleted account leaves its guild; leadership passes on; an emptied guild disbands)"
 node tests/test_admin_delete_guild.js || FAILED=1
+note "test_v1013.js (4 Oct re-audit Account N12 N16: replay chip shape; world chat only to signed-in chat sockets; no switch code while suspended)"
+node tests/test_v1013.js || FAILED=1
+note "test_feedback_api.js (player reports, dev-only feed, durable acknowledgment; wired v1013 - re-audit Arena N16)"
+node tests/test_feedback_api.js || FAILED=1
 note "test_player_truth.js (v270: the campaign result is the player's own transcript, replayed)"
 node tests/test_player_truth.js || FAILED=1
 note "test_campaign_player_truth.js (28 Sep fight rule: the witnessed win is paid on a replay mismatch, once; a malformed verdict is refused)"

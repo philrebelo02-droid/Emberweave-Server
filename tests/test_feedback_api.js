@@ -35,13 +35,15 @@ async function call(route,method='GET',data){
   assert.strictEqual(bug.status,200);assert.strictEqual(suggestion.status,200);assert.strictEqual(balance.status,200);
   await delay(400);await stop();
   const db=JSON.parse(fs.readFileSync(dbFile,'utf8'));
-  assert.strictEqual(db.feedback.length,2,'bug and suggestion stay in feedback inbox');
+  /* v1013: since v999 (Account audit #3) only a dev account files 'balance' into the integrity list; a player's 'balance' note is an
+     ordinary report. This test predated that and was never in the runner (re-audit Arena N16), so it failed unseen. */
+  assert.strictEqual(db.feedback.length,3,'bug, suggestion and a player balance note (filed as a bug) stay in the feedback inbox');
   assert(bug.data.id.startsWith('FB-')&&suggestion.data.id.startsWith('FB-'),'player feedback gets FB identifiers');
   assert(db.feedback.some(x=>x.kind==='bug'&&x.id===bug.data.id));
   assert(db.feedback.some(x=>x.kind==='suggestion'&&x.id===suggestion.data.id));
-  assert(db.reports.some(x=>x.kind==='balance'&&x.id===balance.data.id));
+  assert(db.feedback.some(x=>x.kind==='bug'&&x.id===balance.data.id)&&!(db.reports||[]).some(x=>x.kind==='balance'),'a player balance note is an ordinary report, not an integrity report');
   db.feedback.push({id:'old-acked',t:Date.now()-32*86400000,kind:'bug',text:'Already filed',received:true,receivedAt:Date.now()-31*86400000});
-  db.reports.push({id:'legacy-bug',name:guest.data.profile.name,kind:'skarrn',text:'Older bug report',t:Math.min(db.feedback[0].t,db.feedback[1].t)-1000,resolved:false});
+  (db.reports=db.reports||[]).push({id:'legacy-bug',name:guest.data.profile.name,kind:'skarrn',text:'Older bug report',t:Math.min(db.feedback[0].t,db.feedback[1].t)-1000,resolved:false});
   db.users[guest.data.profile.id].role='admin';
   db.users[guest.data.profile.id].feedbackDay.n=20;
   db.users[guest.data.profile.id].led.px=99000000;
@@ -52,7 +54,7 @@ async function call(route,method='GET',data){
   await start();
   const feed=await call('/api/ember/feedback');
   assert.strictEqual(feed.status,200,'admin/dev account may read feed');
-  assert.deepStrictEqual(feed.data.items.map(x=>x.id),['legacy-bug',bug.data.id,suggestion.data.id],'unreceived reports oldest first; balance excluded');
+  assert.deepStrictEqual(feed.data.items.map(x=>x.id),['legacy-bug',bug.data.id,suggestion.data.id,balance.data.id],'unreceived reports oldest first');
   assert.strictEqual((await call('/api/report','POST',{text:'Report beyond daily limit'})).status,429,'20-per-day player limit');
   const grant=await call('/api/admin/led-grant','POST',{gold:5000001});
   assert.strictEqual(grant.status,200,'dev grant accepted');
@@ -83,7 +85,7 @@ async function call(route,method='GET',data){
   const ack=await call('/api/ember/feedback/ack','POST',{ids:[bug.data.id]});
   assert.strictEqual(ack.status,200);assert.strictEqual(ack.data.acknowledged,1);
   const again=await call('/api/ember/feedback');
-  assert.deepStrictEqual(again.data.items.map(x=>x.id),['legacy-bug',suggestion.data.id,cheat.id,draftCase.id,teamCase.id],'acked item no longer delivered');
+  assert.deepStrictEqual(again.data.items.map(x=>x.id),['legacy-bug',suggestion.data.id,balance.data.id,cheat.id,draftCase.id,teamCase.id],'acked item no longer delivered');
   const vaultStart=await call('/api/dungeon/start-battle','POST',{
     requestId:'feedback-vault-start',heroIds:vaultHeroes});
   assert.strictEqual(vaultStart.status,200,'test team starts a Vault attempt');
