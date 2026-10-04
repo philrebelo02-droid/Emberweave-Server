@@ -2576,9 +2576,12 @@ const ROLE_GROWTH={
   Marksman:{hp:13,dmg:2.0,apow:0.4,armor:4, mr:4},
   Support :{hp:13,dmg:0.5,apow:1.6,armor:4, mr:7},
   Mage    :{hp:11,dmg:0.6,apow:2.0,armor:3, mr:8} };
+/* v1019 (Phil 4 Oct: "magic tanks should have about 18k hp, melee tanks about 22k" - glyphs and base stats, at max): a Tank's HP growth per level depends on its damage profile. MUST stay identical in emberweave-heroes.html and server/sim.js. */
+const TANK_HP_GROWTH={Attack:70, Magic:54};
 // additive growth for a hero type at a level (null for monsters / unknown roles -> caller keeps lvlScale)
 function roleGrow(t,lvl){ const g=t&&ROLE_GROWTH[t.role]; if(!g) return null; const n=Math.max(0,(lvl|0)-1);
-  return {hp:g.hp*n, dmg:g.dmg*n, apow:g.apow*n, armor:g.armor*n, mr:g.mr*n}; }
+  const gh=(t.role==='Tank'&&TANK_HP_GROWTH[t.damageProfile]!=null)?TANK_HP_GROWTH[t.damageProfile]:g.hp;
+  return {hp:gh*n, dmg:g.dmg*n, apow:g.apow*n, armor:g.armor*n, mr:g.mr*n}; }
 /* Base stat line at a level: heroes = base + per-class growth; anything else = the old curve. */
 function baseAtLevel(t,lvl){ const g=roleGrow(t,lvl);
   if(!g){ const s=1+0.05*((lvl|0)-1); return {hp:t.hp*s, dmg:t.dmg*s, apow:(t.apow||0)*s, armor:(t.armor||0)*s, mr:(t.mr||0)*s}; }
@@ -25838,7 +25841,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791123131981';
+const BUILD_ID = '1791124373929';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

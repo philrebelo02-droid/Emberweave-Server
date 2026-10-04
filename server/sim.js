@@ -130,6 +130,8 @@ const ROLE_GROWTH={
   Marksman:{hp:13,dmg:2.0,apow:0.4,armor:4, mr:4},
   Support :{hp:13,dmg:0.5,apow:1.6,armor:4, mr:7},
   Mage    :{hp:11,dmg:0.6,apow:2.0,armor:3, mr:8} };
+/* v1019 (Phil 4 Oct: "magic tanks should have about 18k hp, melee tanks about 22k" - glyphs and base stats, at max): a Tank's HP growth per level depends on its damage profile. MUST stay identical in emberweave-heroes.html and server/sim.js. */
+const TANK_HP_GROWTH={Attack:70, Magic:54};
 /* Returns a COPY of the hero base with every stat advanced to `lvl`. Heroes whose role is missing
    from the table fall back to the old 0.05/level multiplier so nothing can resolve to null. */
 function baseAtLevel(b,lvl){
@@ -137,7 +139,8 @@ function baseAtLevel(b,lvl){
   const o=Object.assign({},b);
   if(!g){ const s=1+0.05*n;
     o.hp=(b.hp||0)*s; o.dmg=(b.dmg||0)*s; o.apow=(b.apow||0)*s; o.armor=(b.armor||0)*s; o.mr=(b.mr||0)*s; return o; }
-  o.hp=(b.hp||0)+g.hp*n; o.dmg=(b.dmg||0)+g.dmg*n; o.apow=(b.apow||0)+g.apow*n;
+  const gh=(b.role==='Tank'&&TANK_HP_GROWTH[b.damageProfile]!=null)?TANK_HP_GROWTH[b.damageProfile]:g.hp;
+  o.hp=(b.hp||0)+gh*n; o.dmg=(b.dmg||0)+g.dmg*n; o.apow=(b.apow||0)+g.apow*n;
   o.armor=(b.armor||0)+g.armor*n; o.mr=(b.mr||0)+g.mr*n; return o;
 }
 

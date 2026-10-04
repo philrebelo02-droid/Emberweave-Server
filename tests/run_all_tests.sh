@@ -95,6 +95,8 @@ note "test_arena_atomic.js (4 Oct release review #8: an arena win never reaches 
 node tests/test_arena_atomic.js || FAILED=1
 note "test_net_gate.js (Phil 4 Oct: no play without the server - net gate; new accounts start from the starter ledger, M13)"
 node tests/test_net_gate.js || FAILED=1
+note "test_tank_hp.js (Phil 4 Oct: magic tanks ~18k, melee tanks ~22k at max from glyphs + base stats; old Bastion boards recomputed)"
+NODE_PATH=${NODE_PATH:-} node tests/test_tank_hp.js || FAILED=1
 note "test_player_truth.js (v270: the campaign result is the player's own transcript, replayed)"
 node tests/test_player_truth.js || FAILED=1
 note "test_campaign_player_truth.js (28 Sep fight rule: the witnessed win is paid on a replay mismatch, once; a malformed verdict is refused)"

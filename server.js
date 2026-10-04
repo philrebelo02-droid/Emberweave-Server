@@ -440,6 +440,21 @@ function migrateDeviceKeys(){ let n=0;
       if(mapName==='devices') M[nk]=Math.max(M[nk]|0, M[k]|0); else if(M[nk]==null) M[nk]=M[k];
       delete M[k]; n++; } }
   if(n){ console.log('🔐 hashed '+n+' stored device id(s)'); writeDB(); } }
+/* v1019 (Phil 4 Oct: tanks had 120k HP at Orange). The 8 melee tanks' personal glyph path put a Bastion (Core/Crown: HP +1,799..+7,924
+   and damage reduction) in two slots on every tier from Blue to Orange - 25 of them banked into board.ascended = +120,156 HP. The path
+   now uses Ironwall in those slots (as its first three tiers always did). A board's banked stats are exactly the sum of its path's
+   pre-chosen glyphs (building a slot follows the pre-choice), so each affected board is recomputed from the corrected path - once
+   per account (glyphs.tankPath1019). */
+const TANK_PATH_FIX_1019=['chainwheel','greatbrow','grosk','ironcoil','pellucid','rhukk','gruel','vael'];
+function glyphAscendedFromPlan(key,upto){ const asc={};
+  for(let qi=0;qi<Math.min(GLYPH_MAX_ASC,upto|0);qi++) for(const def of glyphPersonalPlan(key,qi)) for(const s of def.stats){
+    const cur=asc[s.stat]||{val:0,pct:s.pct}; cur.val=+(cur.val+s.val).toFixed(2); cur.pct=s.pct; asc[s.stat]=cur; }
+  return asc; }
+function migrateTankGlyphPath(){ let n=0;
+  for(const u of Object.values(DB.users||{})){ const g=u&&u.glyphs; if(!g||!g.boards||g.tankPath1019) continue;
+    for(const k of TANK_PATH_FIX_1019){ const b=g.boards[k]; if(b&&(b.ascensionIndex|0)>0){ b.ascended=glyphAscendedFromPlan(k,b.ascensionIndex); n++; } }
+    g.tankPath1019=1; }
+  if(n){ console.log('🛡 recomputed '+n+' melee-tank glyph board(s) from the corrected path (v1019)'); writeDB(); } }
 function migrateTokenHashes(){ let n=0;
   for(const k of Object.keys(DB.tokens)){ const v=DB.tokens[k];
     if(typeof v==='string'){ DB.tokens[tokHash(k)]={id:v, iat:Date.now(), exp:Date.now()+TOKEN_TTL_MS}; delete DB.tokens[k]; n++; } }
@@ -8250,7 +8265,7 @@ const BOOT_FILE_M=(function(){ try{ return fs.statSync(DB_FILE).mtimeMs; }catch(
    world. Everything that persists is now suppressed until the restore decision lands, the mtime is
    sampled once up front, and seed()/backupDB()/listen happen exactly once, afterwards. */
 function bootFinish(){ if(_booted) return; _booted=true; PG_BOOT_PENDING=false;
-  seed(); migrateAdminRoles(); migrateTokenHashes(); migrateDeviceKeys();   // stamp role:admin from ADMIN_IDS; hash any plaintext tokens (v241: the Vault, like the Campaign, refuses to boot without its authored table)
+  seed(); migrateAdminRoles(); migrateTokenHashes(); migrateDeviceKeys(); migrateTankGlyphPath();   /* v1019 */   // stamp role:admin from ADMIN_IDS; hash any plaintext tokens (v241: the Vault, like the Campaign, refuses to boot without its authored table)
   migrateLegacyFeedback();
   migrateBlockedWorldCastles();
   migrateHeroIdsAll();   /* v926: rewrite old hero ids to in-game-name keys in every stored ledger/profile (once, stamped led.idv=2) */
