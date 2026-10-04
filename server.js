@@ -3787,7 +3787,7 @@ let GEARCAT=null;
 (function(){ try{
   const raw=JSON.parse(fs.readFileSync(path.join(__dirname,'server','gear-catalog.json'),'utf8'));
   if(!raw.items||raw.items.length!==84) throw new Error('expected 84 gear defs, got '+(raw.items&&raw.items.length));
-  raw.byId={}; raw.byName={}; raw.byQuality={};
+  raw.byId=Object.create(null); raw.byName=Object.create(null); raw.byQuality=Object.create(null);   /* v1017 (re-audit Market #14): request ids index these - no prototype to answer for '__proto__' / 'constructor' */
   // AUDIT C4: ITEM-SPECIFIC actives — each gear id carries its own {activeId,type,params}. Temper
   // touches passives only; these definitions never scale with Temper or rarity.
   let acts={}; try{ for(const a of JSON.parse(fs.readFileSync(path.join(__dirname,'server','gear-actives.json'),'utf8'))) acts[a.id]=a; }
@@ -3804,6 +3804,8 @@ function gearResonanceRank(g){ let total=0;
   for(const hero in g.equipped){ for(const slot in g.equipped[hero]){ const it=g.items[g.equipped[hero][slot]]; if(it) total+=it.temper||0; } }
   const th=GEARCAT.meta.resonance.thresholds; let r=0; for(let i=0;i<th.length;i++){ if(total>=th[i]) r=i+1; }
   return { rank:r, total, next: r<th.length?th[r]:null }; }
+/* v1017 (re-audit Market #14): a player's gear items are a plain object indexed by a request's itemId - own items only */
+function gearItemOf(g,iid){ return (g&&g.items&&Object.prototype.hasOwnProperty.call(g.items,iid))?g.items[iid]:null; }
 function gearItemEquippedBy(g,itemId){ for(const hero in g.equipped){ for(const slot in g.equipped[hero]){ if(g.equipped[hero][slot]===itemId) return {hero,slot}; } } return null; }
 // stat contribution of a hero's equipped gear, reduced to sim-friendly flats + a power scalar
 function gearHeroFlats(u,heroKey){
@@ -4433,8 +4435,8 @@ async function api(req,res,url){
     }
     if(p==='/api/gear/equip'){
       const hero=String(b.heroKey||'').slice(0,24); if(!validHero(hero)) return bad('Unknown hero.'); const iid=String(b.itemId||'');
-      if(!(ensureLedger(me).unlocked||{})[hero]) return bad('Choose a hero you own.');   /* 3 Oct Forge audit #2: gear parked on unowned heroes pushed Resonance past its cap */
-      const it=g.items[iid]; const def=it&&GEARCAT.byId[it.d];
+      if(!ownsHeroK(ensureLedger(me),hero)) return bad('Choose a hero you own.');   /* 3 Oct Forge audit #2: gear parked on unowned heroes pushed Resonance past its cap */
+      const it=gearItemOf(g,iid); const def=it&&GEARCAT.byId[it.d];
       if(!validHero(hero)) return bad('Unknown hero.');
       if(!hero||!it||!def) return bad('Unknown item.');
       const where=gearItemEquippedBy(g,iid);
@@ -4453,7 +4455,7 @@ async function api(req,res,url){
       return ok({ hero, slot });
     }
     if(p==='/api/gear/temper'){
-      const iid=String(b.itemId||''); const it=g.items[iid]; const def=it&&GEARCAT.byId[it.d];
+      const iid=String(b.itemId||''); const it=gearItemOf(g,iid); const def=it&&GEARCAT.byId[it.d];
       if(!it||!def) return bad('Unknown item.');
       let uses=Math.max(1,Math.min(60,parseInt(b.uses,10)||1));
       const T=GEARCAT.meta.temper; let spent=0, gained=0, levels=0;
@@ -4470,7 +4472,7 @@ async function api(req,res,url){
         nextCost: it.temper<T.max?gearTemperCost(def,it.temper):null });
     }
     if(p==='/api/gear/extract'){
-      const iid=String(b.itemId||''); const it=g.items[iid]; const def=it&&GEARCAT.byId[it.d];
+      const iid=String(b.itemId||''); const it=gearItemOf(g,iid); const def=it&&GEARCAT.byId[it.d];
       if(!it||!def) return bad('Unknown item.');
       if(gearItemEquippedBy(g,iid)) return bad('Equipped gear is bound to its hero and cannot be extracted.');   /* v1010: it said "Unequip it first." - unequipping has been impossible since v994 */
       const refund=Math.floor((it.dustSpent||0)*GEARCAT.meta.temper.extractRefund);
@@ -4479,7 +4481,7 @@ async function api(req,res,url){
     }
     if(p==='/api/gear/select-active'){
       const hero=String(b.heroKey||'').slice(0,24); if(!validHero(hero)) return bad('Unknown hero.'); const iid=String(b.itemId||'');
-      if(!(ensureLedger(me).unlocked||{})[hero]) return bad('Choose a hero you own.');   /* 3 Oct Forge audit #2 */
+      if(!ownsHeroK(ensureLedger(me),hero)) return bad('Choose a hero you own.');   /* 3 Oct Forge audit #2 */
       const eq=g.equipped[hero]||{};
       if(!Object.values(eq).includes(iid)) return bad('That item is not equipped on this hero.');
       g.active[hero]=iid;
