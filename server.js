@@ -3465,7 +3465,7 @@ function templeBonusesFor(u,key){
 function templeClientState(led){
   const state=JSON.parse(JSON.stringify(templeState(led)));
   if(state._pending){ const p=state._pending;
-    state._pending={heroId:p.heroId,tier:p.tier,completion:p.completion,chance:p.chance,
+    state._pending={heroId:p.heroId,tier:p.tier,completion:p.completion,chance:p.chance,rolls:p.rolls||null,   /* v991 (audit #7): the rolls the pray reply already showed - after a reload the player still sees what they save */
       levelUps:p.levelUps||0,bonusPrayer:!!p.bonusPrayer}; }
   return state;
 }
@@ -6768,11 +6768,12 @@ async function api(req,res,url){
     if(!me) return send(res,401,{error:'auth'});
     const led=p==='/api/pvp/attack'?null:ensureLedger(me); const A=p==='/api/pvp/attack'?null:ensureAcad(me);
     if(p==='/api/academy'){   // a read that pays income commits it durably before answering (3 Oct release review)
+      if(rateLimited(req,'acadread',60,60000)) return send(res,429,{error:'Slow down.'});   /* v991 (Temple+Academy audit #6): each read can be a full save */
       const r=durableReadCommit(me,'academy-read',d=>{ const DA=ensureAcad(d); acadCollect(DA);
         return { lv:DA.lv, learn:DA.learn, res:DA.res, max:TECH_MAX_SRV, academyMax:ACADEMY_ECON.MAX_LEVEL, incomePerHour:ACADEMY_ECON.ratePerHour(DA.lv.academy|0) }; });
       return r.ok?send(res,200,r.view):send(res,503,{ok:false,storageFailed:true,error:r.error}); }
+    if(req.method!=='POST') return send(res,404,{error:'academy'});   /* v991 (audit #14): checked BEFORE the income pass, which changed the account on a 404 */
     if(A)acadCollect(A);   // finished research and hourly income apply on every touch (the POST routes save through idem)
-    if(req.method!=='POST') return send(res,404,{error:'academy'});
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
     if(p==='/api/academy/research'){ const out=idem(me.id+':acad:'+reqId,()=>{
         if(ledPlayerLevel(led)<ACADEMY_UNLOCK_LEVEL) return {ok:false,error:'The Academy opens at player level '+ACADEMY_UNLOCK_LEVEL+'.'};   /* v988 (Temple+Academy audit #4): the client's lock, now on the server */
@@ -6789,8 +6790,9 @@ async function api(req,res,url){
         ledTx(me,'academy:'+track,{gold:-goldCost});
         writeDB(); return {ok:true, track, completesAt:A.learn[track], lv:A.lv, res:A.res, ledger:{gold:led.gold}};
       }); return send(res, out.storageFailed?503:(out.ok===false?400:200), out); }
-    if(p==='/api/academy/collect'){ const changed=acadCollect(A,true); writeDB();
-      return send(res,200,{ ok:true, changed, lv:A.lv, learn:A.learn }); }
+    if(p==='/api/academy/collect'){   /* v991 (audit #13): saved before it answers, like the GET */
+      const r=durableReadCommit(me,'academy-read',d=>{ const DA=ensureAcad(d); const changed=acadCollect(DA,true); return { ok:true, changed, lv:DA.lv, learn:DA.learn }; });
+      return r.ok?send(res,200,r.view):send(res,503,{ok:false,storageFailed:true,error:r.error}); }
     if(p==='/api/world/mine'){ const out=idem(me.id+':mine:'+reqId,()=>{
         const rk=String(b.res||''); if(!['iron','crystal','silver','coal'].includes(rk)) return {ok:false,error:'Unknown resource.'};
         const amt=Math.max(1,Math.min(15,Math.floor(+b.amount||0)));

@@ -17543,7 +17543,7 @@ function renderTemple(){
     ${key?`<div style="font-size:12px;margin:8px 0 3px">${escapeHTML((HERO_TYPES[key]||{}).name||key)} · Lv ${heroLevel(key)}</div>`:''}
     ${key&&!eligible?`<div style="font-size:12px;color:#ff9a9a">Purple ascension required</div>`:''}
     ${key?`<div style="font-size:12px">${escapeHTML(role||'hero')} · ${Math.round(T.heroCompletion(h,level)*100)}%</div>${barHtml}<div aria-label="Earned hero orbs">${orbHtml}</div>`:''}
-    ${pending?`<div style="color:#ffd45e;margin:9px 0">Prayer pending${templeLastRolls?' · '+Object.values(templeLastRolls).map(x=>(x.delta>=0?'+':'')+x.delta).join(' / '):' · save or discard'}</div>
+    ${pending?`<div style="color:#ffd45e;margin:9px 0">Prayer pending${(templeLastRolls||pending.rolls)?' · '+Object.values(templeLastRolls||pending.rolls).map(x=>(x.delta>=0?'+':'')+x.delta).join(' / '):''}</div>
        <button class="btn" id="templeSave">Save</button> <button class="btn" id="templeDiscard">Discard</button>`:
       `<div class="templeTierGrid" aria-label="Prayer choices">${tiersHtml}</div>
        ${bonusAvailable?`<button type="button" class="templeTierTile templeBonusChoice" data-temple-tier="bonus" aria-pressed="${templeSelectedTier==='bonus'}" ${choicesBlocked?'disabled':''}><img src="/assets/img/temple/card-orb-lit-v2.webp?v=2" alt=""><span><b>Bonus prayer</b><small>Free</small></span></button>`:''}
@@ -17553,8 +17553,10 @@ function renderTemple(){
   b.querySelectorAll('[data-temple-hero]').forEach(hero=>hero.onclick=()=>{templeSelectedHero=hero.dataset.templeHero;renderTemple();});
   b.querySelectorAll('[data-temple-tier]').forEach(tier=>tier.onclick=()=>{templeSelectedTier=tier.dataset.templeTier;
     b.querySelectorAll('[data-temple-tier]').forEach(x=>x.setAttribute('aria-pressed',String(x===tier)));});
-  const act=async(path,payload)=>{const r=await api(path,'POST',Object.assign({requestId:uid8()},payload));
-    if(!(r&&r.ok)){b.querySelector('#templeMsg').textContent=(r&&r.error)||'Prayer failed.';return;}
+  /* v991 (Temple audit #9): one temple action at a time, one requestId re-sent on a lost reply; a refusal re-syncs the ledger so a
+     prayer the server already holds shows its Save / Discard */
+  const act=async(path,payload)=>{const r=await apiOnce('temple',path,payload); if(r&&r.busy) return;
+    if(!(r&&r.ok)){const m=b.querySelector('#templeMsg'); if(m) m.textContent=(r&&r.error==='offline')?'Connection lost.':((r&&r.error)||'Prayer failed.'); try{ await ledgerSync(); renderTemple(); const m2=document.querySelector('#templeMsg'); if(m2&&r&&r.error) m2.textContent=(r.error==='offline')?'Connection lost.':r.error; }catch(e){} return;}
     if(path.endsWith('/pray'))templeLastRolls=r.rolls;else templeLastRolls=null;
     adoptLedger(r.ledger);updateHubChrome();renderTemple();};
   const pray=b.querySelector('#templePray');if(pray)pray.onclick=()=>act('/api/temple/pray',{heroKey:key,tier:templeSelectedTier});
@@ -19423,7 +19425,8 @@ function renderTech(){
   applySceneBg('tech',ACADEMY_BG);
   // v327: if the boot sync never landed (offline at 2.8s, or signed in mid-session), repair the display on open.
   // Only re-render on SUCCESS: academySync swallows its errors, so re-rendering unconditionally would loop forever on a failed fetch.
-  if(ACC.token && !ACAD_SYNCED && !_acadSyncing){ _acadSyncing=true; try{ academySync().then(function(){ _acadSyncing=false; try{ if(ACAD_SYNCED && state==='tech') renderTech(); }catch(e){} }, function(){ _acadSyncing=false; }); }catch(e){ _acadSyncing=false; } }
+  /* v991 (Academy audit #10): re-sync on EVERY open, not only the first - income earned since boot was invisible */
+  if(ACC.token && !_acadSyncing && !(renderTech._lastSync && Date.now()-renderTech._lastSync<15000)){ _acadSyncing=true; renderTech._lastSync=Date.now(); const _was=JSON.stringify(G.res||{}); try{ academySync().then(function(){ _acadSyncing=false; try{ if(ACAD_SYNCED && state==='tech' && JSON.stringify(G.res||{})!==_was) renderTech(); }catch(e){} }, function(){ _acadSyncing=false; }); }catch(e){ _acadSyncing=false; } }
   collectLearns();
   const tracks=TECH_TRACKS;
   const p=document.getElementById('techPanel'); p.innerHTML='';
@@ -25774,7 +25777,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791095215309';
+const BUILD_ID = '1791095779652';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
