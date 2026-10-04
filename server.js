@@ -6171,6 +6171,9 @@ async function api(req,res,url){
       bossLevelGate:campBossLevelGate(node), playerLevel:ledPlayerLevel(_led),
       locked:portalLocked(_led,mode)||portalChapterLocked(_led,mode,node), cleared:_pr.cleared|0,
       stars:(_pr.stars[node]|0), sweepUnlocked:(_pr.stars[node]|0)>=3,
+      /* v1015 (re-audit Arena N7): the server's own count of today's rewarded runs on a guardian/boss stage (the NY day it pays on);
+         the card showed a browser counter on a 09:00 day */
+      runsLeft:(mode==='elite'||isEliteStageSrv(node)||campIsBoss(node))?Math.max(0,3-((_pr.runs&&_pr.runs.k===nyDayKey())?(_pr.runs['n'+node]|0):0)):null,
       farm:(st.rewards.glyphFragments[0]||null) }); }
   /* v266: the whole farm map in one call — every portal's stage list with its ONE named fragment,
      plus the reverse index the Glyph tree deep-links from. */

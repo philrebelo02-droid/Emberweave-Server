@@ -12730,7 +12730,7 @@ function endBattle(won){
           +((r.reward&&r.reward.eliteFrag&&r.reward.eliteFrag.qty)?`<div style="margin-top:6px;color:#c9a0ff">🧩 +${r.reward.eliteFrag.qty|0} ${escapeHTML((HERO_TYPES[r.reward.eliteFrag.heroKey]||{}).name||r.reward.eliteFrag.heroKey)} fragment${(r.reward.eliteFrag.qty|0)===1?'':'s'}</div>`:'')
           +((r.reward&&r.reward.dailyCapped)?'<div style="margin-top:6px;color:#ff9a9a">Daily limit reached for this stage (3 rewarded runs/day) — no rewards this run.</div>':'')
           +`<div style="margin-top:6px">${'★'.repeat(r.stars||1)}${r.reward&&r.reward.first?' · <b style="color:#ffd45e">First clear!</b>':''}</div>`
-        : (_unv?('<div style="color:#ffd45e;font-weight:700;margin-bottom:4px">You '+(/"won":true/.test(window._p2lastDigest||'')?'won':'fought')+' this one — but the server could not verify it, so nothing was recorded and your stamina is back.</div><span style="color:#ff8b8b">'+escapeHTML(r.error||'')+'</span>'+(r&&r.reason?'<div style="font-size:10.5px;color:#6f7d90;margin-top:4px">('+escapeHTML(r.reason)+(CUR.engine&&CUR.engine!==BUILD_ID?' · the game updated during this fight':'')+')</div>':''))
+        : (_unv?('<div style="color:#ffd45e;font-weight:700;margin-bottom:4px">You '+(/"won":true/.test(window._p2lastDigest||'')?'won':'fought')+' this one — '+((r&&(r.error==='offline'||r.storageFailed))?(r.storageFailed?'but the server could not save it, so it was not counted.':'but the connection was lost before the server answered, so it is not counted here.'):'but the server could not verify it, so nothing was recorded and your stamina is back.')+'</div><span style="color:#ff8b8b">'+escapeHTML((r&&r.error&&r.error!=='offline')?r.error:'')+'</span>'+(r&&r.reason?'<div style="font-size:10.5px;color:#6f7d90;margin-top:4px">('+escapeHTML(r.reason)+(CUR.engine&&CUR.engine!==BUILD_ID?' · the game updated during this fight':'')+')</div>':''))
           : ((r&&r.error)?('<span style="color:#ff8b8b">'+escapeHTML(r.error)+'</span>'):'Your squad fell.'));
       document.getElementById('resultHint').textContent='';
       updateHubChrome(); gameSpeed=1; show('result');
@@ -18093,6 +18093,7 @@ function openStageModal(i,mode){
   if(ACC.token){ api('/api/campaign/stage?mode='+mode+'&node='+i).then(r=>{ if(r&&r.stage){ STAGE_CACHE[mode+':'+i]=r.stage;
     STAGE_POWER[i]=r.yourPower|0; if(r.ladderMinLevel) window.GLYPH_MIN_LEVEL=r.ladderMinLevel;
     STAGE_GATE[i]={gate:r.bossLevelGate|0, lvl:r.playerLevel|0};
+    if(r.runsLeft!=null){ try{ const sd=stageDaily(); sd.n[mode+':'+i]=Math.max(0,ELITE_BOSS_DAILY-(r.runsLeft|0)); }catch(e){} }   /* v1015 (re-audit Arena N7): the server's count of today's rewarded runs wins */
     if(r.stars!=null){ G.portals=G.portals||{}; if(mode!=='normal'){ const c=G.portals[mode]||(G.portals[mode]={cleared:0,stars:{}}); c.stars=c.stars||{}; c.stars[i]=r.stars|0; c.cleared=Math.max(c.cleared|0,r.cleared|0); } }
     const el=document.getElementById('smFragTarget');
     if(window.SM_KEY===_smKey&&document.getElementById('stageModal').classList.contains('active')){ const de=document.getElementById('smDetails'); if(de)de.innerHTML=stageDetailHTML(r.stage,i); const dr=document.getElementById('smFragTarget'); if(dr)dr.innerHTML=stageDropsHTML(r.stage,i,mode); }
@@ -20041,10 +20042,11 @@ function renderArena(){ const b=document.getElementById('arenaBody');
     const _finish=(rw)=>{ rw=rw||dr; G.arenaCoins=(G.arenaCoins||0)+(rw.coins|0); G.arenaDailyDay=arenaDayKey(); G.lastArenaDaily=Date.now();
       saveG(); updateHubChrome(); renderArena();
       const dm=document.getElementById('dailyMsg'); if(dm) dm.textContent=`Claimed! 💎 +${rw.gems|0} · 🪙 +${(rw.gold|0).toLocaleString()} · 🎟️ +${rw.coins|0}`; };
-    if(ACC.token){ api('/api/arena/daily-claim','POST',{requestId:uid8()}).then(r=>{
+    /* v1015 (re-audit Arena N6): one requestId, re-sent on a lost reply (the server answers a paid claim with its receipt) - a new id
+       per tap, and a lost reply told the player the paid daily was "still yours to claim" */
+    if(ACC.token){ apiOnce('arenadaily','/api/arena/daily-claim',{}).then(r=>{ if(r&&r.busy) return;
         if(r&&r.ok){ adoptLedger(r.ledger); _finish(r.reward); }
-        else { bannerMsg((r&&r.error)||'The daily could not be claimed — try again in a moment.'); ledgerSync(); } })
-      .catch(()=>{ bannerMsg('Connection lost — the daily is still yours to claim.'); }); }
+        else { bannerMsg((r&&r.error)||'The daily could not be claimed — try again in a moment.'); ledgerSync(); } }); }
     else _finish();
   };
   const el=b.querySelector('#arenaOpps');
@@ -25802,7 +25804,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791121029800';
+const BUILD_ID = '1791121257609';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
