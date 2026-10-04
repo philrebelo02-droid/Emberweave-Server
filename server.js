@@ -5579,7 +5579,7 @@ async function api(req,res,url){
   // ---- PVP ATTACK REPORTS: when a player raids a REAL castle, the defender gets mail. ----
 
   /* ---------------- LEDGER + CAMPAIGN routes (audit C1/C2) ---------------- */
-  if(p==='/api/pool/state'){ if(!me)return send(res,401,{error:'auth'});
+  if(p==='/api/pool/state'){ if(!me)return send(res,401,{error:'auth'}); if(rateLimited(req,'poolstate:'+me.id,120,60000)) return send(res,429,{error:'Slow down.'});   /* v1011 (re-audit Arena N10 / Market #15 / Guild #12): per-account throttle on a heavy read */
     const led=ensureLedger(me), pool=poolState(me); const now=Date.now(), dk=nyDayKey();
     if(pool.goldUsedDay!==dk){ pool.goldUsedDay=dk; pool.goldFree=0; }
     const goldFreeReady=pool.goldFree<WISH_GOLD_FREE_MAX && (now-pool.goldLast)>=WISH_GOLD_FREE_MS;
@@ -5666,7 +5666,8 @@ async function api(req,res,url){
           return send(res,out.storageFailed?503:200,out); } }
       return send(res,200,view(T)); }
     const reqId=towerRid(b.requestId); if(!reqId) return send(res,400,{error:'requestId must be a string of 1-48 characters'});
-    if(p==='/api/tower/ascend'){ const out=durableCommit(me,me.id+':tower:ascend:'+reqId,(me)=>{ const led=ensureLedger(me), T=towerLed(led);
+    if(p==='/api/tower/ascend'){ const out=durableCommit(me,me.id+':tower:'+(ensureLedger(me).migratedAt||0)+':ascend:'+reqId,   /* v1011 (re-audit Arena N9): the ledger epoch in the key - after Reset all progress an old receipt replayed */
+      (me)=>{ const led=ensureLedger(me), T=towerLed(led);
         if(!T.mig) return {ok:false,error:'Open the Tower of Trials first.'};
         if(ledPlayerLevel(led)<40) return {ok:false,error:'The Tower of Trials opens at level 40.'};
         const next=T.floor+1, need=towerReqS(next), pow=ledgerTeamPower(me);
@@ -5678,8 +5679,8 @@ async function api(req,res,url){
         if(pay.gems){ const e0=led.gems; led.gems=Math.min(ECON_CAP.gems,led.gems+pay.gems); resourceGain(me,'gems',led.gems-e0,'tower'); }
         T.floor=next; T.srv=1; ledTx(me,'tower:floor:'+next,{gold:pay.gold,gems:pay.gems});
         return {ok:true,floor:next,gold:pay.gold,gems:pay.gems,elite:next%5===0,nextReq:towerReqS(next+1),ledger:ledgerView(me)}; });
-      return send(res,out.storageFailed?503:200,out); }
-    if(p==='/api/tower/tribute'){ const out=durableCommit(me,me.id+':tower:trib:'+reqId,(me)=>{ const led=ensureLedger(me), T=towerLed(led);
+      return send(res,out.storageFailed?503:(out.ok===false?400:200),out); }   /* v1011 (re-audit Arena N13): a refusal answers 400 */
+    if(p==='/api/tower/tribute'){ const out=durableCommit(me,me.id+':tower:'+(ensureLedger(me).migratedAt||0)+':trib:'+reqId,(me)=>{ const led=ensureLedger(me), T=towerLed(led);
         if(!T.mig) return {ok:false,error:'Open the Tower of Trials first.'};
         if(ledPlayerLevel(led)<40) return {ok:false,error:'The Tower of Trials opens at level 40.'};
         if(T.floor<1) return {ok:false,error:'Reach Floor 1 to unlock the tribute.'};
@@ -5687,7 +5688,7 @@ async function api(req,res,url){
         const gold=towerTribPay(T.floor), g0=led.gold; led.gold=Math.min(ECON_CAP.gold,led.gold+gold); resourceGain(me,'gold',led.gold-g0,'tower');
         T.trib=day; ledTx(me,'tower:tribute:'+day,{gold});
         return {ok:true,gold,trib:day,ledger:ledgerView(me)}; });
-      return send(res,out.storageFailed?503:200,out); }
+      return send(res,out.storageFailed?503:(out.ok===false?400:200),out); }
     return send(res,404,{error:'not found'}); }
   /* 3 Oct 2026 Market audit #1 (P0): THE CAMPAIGN STAR TRACK IS SERVER-OWNED. Every 15 campaign stars pay one milestone; the client used
      to post the amount to /api/tx/earn ('stars', up to 12,000 diamonds a day for anyone). The server now counts the stars it recorded
@@ -5701,7 +5702,8 @@ async function api(req,res,url){
      monthly hero, other days cycle 300 gold / 60 stamina / 20 diamonds / 400 gold / 600 gold / 30 diamonds by day of month. */
   if(p==='/api/signin/claim' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
-    const out=durableCommit(me,me.id+':signin:'+reqId,(me)=>{ const led=ensureLedger(me);
+    const out=durableCommit(me,me.id+':signin:'+(ensureLedger(me).migratedAt||0)+':'+reqId,   /* v1011: epoch in the key (N9) */
+      (me)=>{ const led=ensureLedger(me);
       const c=signinCalendarDay(Date.now()), mk=c.y+'-'+(c.m0+1);
       if(!led.signin){ const sv=parseSaveOf(me); led.signin={month:mk,claimed:(sv.signinMonth===mk&&Array.isArray(sv.signinClaimed))?sv.signinClaimed.map(x=>x|0).filter(x=>x>=1&&x<=31).slice(0,31):[]}; }
       if(led.signin.month!==mk) led.signin={month:mk,claimed:[]};
@@ -5718,7 +5720,8 @@ async function api(req,res,url){
     return send(res,out.storageFailed?503:(out.ok===false?400:200),out); }
   if(p==='/api/stars/claim' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
-    const out=durableCommit(me,me.id+':stars:'+reqId,(me)=>{ const led=ensureLedger(me);
+    const out=durableCommit(me,me.id+':stars:'+(ensureLedger(me).migratedAt||0)+':'+reqId,   /* v1011: epoch in the key (N9) */
+      (me)=>{ const led=ensureLedger(me);
       if(led.starClaimed==null){ const sv=parseSaveOf(me); led.starClaimed=Math.max(0,Math.min(1000,sv.starMilestonesClaimed|0)); }
       const total=Object.values((led.camp&&led.camp.stars)||{}).reduce((s,v)=>s+((v|0)>=1&&(v|0)<=3?(v|0):0),0);
       const idx=led.starClaimed|0;
@@ -6112,7 +6115,7 @@ async function api(req,res,url){
       writeDB(); return {ok:true, tx, ledger:ledgerView(me)};
     },{retryFailed:true});
     return send(res, out.storageFailed?503:(out.ok===false?400:200), out); }
-  if(p==='/api/campaign/stage'){ if(!me)return send(res,401,{error:'auth'});
+  if(p==='/api/campaign/stage'){ if(!me)return send(res,401,{error:'auth'}); if(rateLimited(req,'campstage:'+me.id,120,60000)) return send(res,429,{error:'Slow down.'});   /* v1011 (re-audit Arena N10 / Market #15 / Guild #12): per-account throttle on a heavy read */
     const mode=portalModeOf(url.searchParams.get('mode'));
     const node=parseInt(url.searchParams.get('node')||'0',10); const st=portalStageOf(mode,node);
     if(!st) return send(res,400,{error:'Unknown stage.'});
@@ -6163,7 +6166,7 @@ async function api(req,res,url){
       playerLevel:()=>ledPlayerLevel(led), isUnlocked:k=>!!ownsHeroK(led,k) });
     if(out) return send(res, out.status, out.body); }
   /* v825 THE STARLESS WELL (blueprint 22) owns only /api/well/*: a 3-day run of 3 maps, HP/energy carried from the server's replay */
-  if(WELL2 && p.indexOf('/api/well/')===0){ if(!me)return send(res,401,{error:'auth'});
+  if(WELL2 && p.indexOf('/api/well/')===0){ if(!me)return send(res,401,{error:'auth'}); if(rateLimited(req,'well:'+me.id,120,60000)) return send(res,429,{error:'Slow down.'});   /* v1011 (re-audit Arena N10): state reads and start->resolve replays were unthrottled */
     const led=ensureLedger(me);
     const out=await WELL2.handle(p, req.method, { me, led, body:()=>body(req), srvSeed, ledTx, ledgerView, writeDB, uid, idem, crypto,
       simHost, campaignHeroSpec, sanitizeInputLog, sha256hex, ledAddPlayerXP, creditGold, creditGems,
@@ -6590,7 +6593,7 @@ async function api(req,res,url){
     if(!PROV_ENC) return send(res,503,{error:'The Training Province is unavailable.'});
     if(rateLimited(req,'province',60,60000)) return send(res,429,{error:'Slow down.'});
     const led=ensureLedger(me);
-    if(p==='/api/province/state'){ const v=provStateView(me,led); writeDB(); return send(res,200,v); }
+    if(p==='/api/province/state'){ const before=JSON.stringify(led.prov===undefined?null:led.prov); const v=provStateView(me,led); if(JSON.stringify(led.prov===undefined?null:led.prov)!==before) writeDB(); return send(res,200,v); }   /* v1011 (re-audit Arena N14): write only when the read changed something (a day roll) */
     if(req.method!=='POST') return send(res,404,{error:'province'});
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
     const dev=isDev(me);
@@ -7291,7 +7294,7 @@ async function api(req,res,url){
   if(p==='/api/arena/opponent'){ if(!me)return send(res,401,{error:'auth'}); const o=pickOpponent(me);
     return send(res,200,{ opponent:{ id:o.id, name:o.name, rank:o.rank, team:hydrateRoster(o,o.team), isNpc:!!o.isNpc }, arena:arenaAttView(ensureLedger(me)) }); }
 
-  if(p==='/api/arena/opponents'){ if(!me)return send(res,401,{error:'auth'});
+  if(p==='/api/arena/opponents'){ if(!me)return send(res,401,{error:'auth'}); if(rateLimited(req,'arenaopp:'+me.id,60,60000)) return send(res,429,{error:'Slow down.'});   /* v1011 (re-audit Arena N10 / Market #15 / Guild #12): per-account throttle on a heavy read */
     // SPREAD opponents across %-better rank bands (mirrors client arenaTargetRanks) so you can see JUMP targets,
     // not just the 5 consecutive ranks directly above you. The spread widens as you climb.
     const pool=Object.values(DB.users).filter(u=>u.id!==me.id && u.rank<me.rank).sort((a,b)=>a.rank-b.rank);
@@ -7395,7 +7398,7 @@ async function api(req,res,url){
   if(p==='/api/arena/reports'){ if(!me)return send(res,401,{error:'auth'});   // the defender fetches watchable reports of arena attacks made against them
     return send(res,200,{ defenses: Array.isArray(me.arenaDefenses)?me.arenaDefenses:[] }); }
 
-  if(p==='/api/arena/ladder'){ if(!me)return send(res,401,{error:'auth'});
+  if(p==='/api/arena/ladder'){ if(!me)return send(res,401,{error:'auth'}); if(rateLimited(req,'arenaladder:'+me.id,60,60000)) return send(res,429,{error:'Slow down.'});   /* v1011 (re-audit Arena N10 / Market #15 / Guild #12): per-account throttle on a heavy read */
     const all=allUsersByRank(); const total=all.length; const youIndex=all.findIndex(u=>u.id===me.id);
     const q=(url.searchParams.get('q')||'').toLowerCase().trim();
     let offset=parseInt(url.searchParams.get('offset')||'0',10); if(!(offset>=0))offset=0;
@@ -7715,6 +7718,7 @@ async function api(req,res,url){
       DB.guilds[id]=g; me.guildId=id; writeDB();
       return send(res,200,{ guild:guildView(g) }); }
 
+    if((p==='/api/guild/request'||p==='/api/guild/cancelRequest')&&rateLimited(req,'greq:'+me.id,20,60000)) return send(res,429,{error:'Slow down.'});   /* v1011 (re-audit Arena N10 / Market #15 / Guild #12): per-account throttle on a heavy read */
     if(p==='/api/guild/request'){
       if(myGuild()) return send(res,400,{error:'Leave your current guild first.'});
       const g=findGuild(b.guildId); if(!g) return send(res,404,{error:'Guild not found.'});

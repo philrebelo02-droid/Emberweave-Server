@@ -1,6 +1,6 @@
 // 3 Oct 2026 Pool+Forge audit #8 (v1004): after "Reset all progress" the gear revision is back to 1, so the SAME first craft body
 // used to replay the old receipt for 24 h (nothing crafted). The ledger epoch is now part of the gear receipt key: the same packet
-// after a reset crafts again.
+// after a reset crafts again. v1011: the daily sign-in (and Tower / star track) receipts carry the epoch too.
 // Asserts (non-zero exit). Control: AUD_SERVER=<pre-fix server copied into the repo root> must FAIL.
 const assert=require('assert'),fs=require('fs'),os=require('os'),path=require('path'),net=require('net'),{spawn}=require('child_process');
 const root=path.join(__dirname,'..'), srvFile=process.env.AUD_SERVER||'server.js', dir=fs.mkdtempSync(path.join(os.tmpdir(),'ew-gepoch-'));
@@ -26,12 +26,18 @@ const seed=u=>{ u.dust=1000; u.gear={revision:1,fragments:Object.fromEntries(cat
   const c1=await call('/api/gear/craft-sub',pkt);
   const s1=(await call('/api/gear/state')).data;
   ok(c1.status===200&&((s1.subs||{})[green.sub]|0)===1,'the first sub-craft works ('+c1.status+' '+JSON.stringify(c1.data).slice(0,80)+')');
+  /* v1011 (re-audit Arena N9): the same for the daily sign-in receipt (and Tower / star track, same key shape) */
+  const si1=await call('/api/signin/claim',{requestId:'si-epoch'});
+  ok(si1.status===200&&si1.data.ok===true,'sign-in claimed before the reset ('+si1.status+' '+(si1.data.error||'')+')');
   const rs=await call('/api/account/reset-progress',{});
   ok(rs.status===200,'reset all progress ('+rs.status+')');
   await editDB((db,u)=>seed(u));
   const c2=await call('/api/gear/craft-sub',pkt);
   const s2=(await call('/api/gear/state')).data;
   ok(c2.status===200&&((s2.subs||{})[green.sub]|0)===1,'after the reset the same packet crafts again, not an old receipt ('+((s2.subs||{})[green.sub]|0)+' sub(s))');
+  const si2=await call('/api/signin/claim',{requestId:'si-epoch'}); await delay(300);
+  const sg=((disk().users[id].led||{}).signin||{}).claimed||[];
+  ok(si2.data.ok===true&&sg.length===1,'after the reset the same sign-in requestId claims on the NEW ledger, not an old receipt ('+JSON.stringify(sg)+')');
   if(missed.length){ missed.forEach(m=>console.error('FAIL',m)); process.exitCode=1; }
   console.log('test_gear_epoch.js: '+pass+' checks passed, '+missed.length+' failed (server '+srvFile+')');
 } catch(e){ console.error('FAIL',e&&e.message||e); process.exitCode=1; } finally { await stop(); } })();
