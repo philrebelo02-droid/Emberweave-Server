@@ -694,6 +694,7 @@ const GLYPHS_V2_ENABLED = String(process.env.GLYPHS_V2_ENABLED||'true')==='true'
 // CANONICAL 16-step ladder (Correction Spec v1): the ONLY quality model. Frozen; every label,
 // lock, gate and recipe tier derives from an index into this. Grey +1 / Blue +3 do not exist.
 const GLYPH_LADDER=Object.freeze(['Grey','Green','Green +1','Blue','Blue +1','Blue +2','Purple','Purple +1','Purple +2','Purple +3','Gold','Gold +1','Gold +2','Gold +3','Gold +4','Orange']);
+const SKILL_QUALITY_TIER16=[0,1,1,2,2,2,3,3,3,3,3,3,3,3,3,3];   /* v989: = client G2_TIER16 (test_wall_guards checks they match) */
 const GLYPH_MAX_ASC = GLYPH_LADDER.length; // ascensionIndex 16 = fully ascended
 /* v258 — Launch Progression Blueprint v1 §"Exact Glyph ascension path and level gates".
    A GLYPH TIER HAS A MINIMUM HERO LEVEL; a level-15 hero can never wear Gold. Player Level unlocks
@@ -5869,6 +5870,11 @@ async function api(req,res,url){
       if(!validHero(key)) return {ok:false,error:'Unknown hero.'};   /* v986 */
       if(idx<0||idx>3) return {ok:false,error:'Unknown skill.'};
       if(!led.unlocked[key]) return {ok:false,error:'You have not unlocked that hero.'};
+      /* v989 (4 Oct City Wall audit #6): the green / blue / passive skill opens at Green / Blue / Purple quality - the hero's glyph
+         ascension, on the client's own 16-step table (G2_TIER16). A direct POST used to level a locked skill. */
+      if(idx>0 && glyphsEnabledFor(me)){ glyphMigrate(me); glyphFlowMigrate(me); const bd=(ensureGlyphs(me).boards||{})[key];
+        const q=SKILL_QUALITY_TIER16[Math.max(0,Math.min(15,(bd&&bd.ascensionIndex)|0))];
+        if(q<idx) return {ok:false,error:['','Green','Blue','Purple'][idx]+' quality unlocks this skill.'}; }
       const arr=ledSkillArr(led,key); const lv=Math.max(1,arr[idx]|0);
       if(lv>=SKILL_MAX_SRV) return {ok:false,error:'That skill is already at max.'};
       const hl=ledHeroLevel(led,key);

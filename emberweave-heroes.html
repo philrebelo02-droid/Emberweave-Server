@@ -4703,8 +4703,9 @@ const SKILL_COST_R=1.04; /* 12 Sep 2026 — the old 1.55 was sized for NINE upgr
    stomped within a minute and the gold was gone. The server owns the upgrade now. */
 async function skillUpgrade(key,idx){ const lv=skillLevel(key,idx); if(lv>=SKILL_MAX||!skillUnlocked(key,idx))return false;
   if(lv>=heroLevel(key)) return false;   /* a skill may never outrank its hero's current level */ const c=skillUpCost(idx,lv); if((G.gold||0)<c)return false;
-  if(ACC.token){ const r=await api('/api/skill/upgrade','POST',{key,idx,requestId:uid8()});
-    if(!r||r.error||!r.ok){ if(r&&r.error) bannerMsg(r.error); return false; }
+  if(ACC.token){ const r=await apiOnce('skill','/api/skill/upgrade',{key,idx});
+    if(r&&r.busy) return false;
+    if(!r||r.error||!r.ok){ if(r&&r.error) bannerMsg(r.error==='offline'?'Connection lost.':r.error); ledgerSync(); return false; }
     adoptLedger(r.ledger); return true; }
   if(!(await txSpend('gold',c,'skillup'))) return false;
   skillLvArr(key)[idx]=lv+1; return true; }
@@ -19556,6 +19557,16 @@ async function api(path,method,bodyObj){ try{ const h={'Content-Type':'applicati
   // single-session: if our token was invalidated (signed in elsewhere / reset / deleted), drop the local session gracefully
   if(j&&j.error==='auth'&&ACC.token){ handleSignedOutElsewhere(); }
   return j; }catch(e){ return {error:'offline'}; } }
+/* v989 (4 Oct City Wall audit #7 #8): one spend at a time per lane. A second tap while one is in flight returns {busy:true} and
+   sends nothing; the ONE requestId is re-sent (3 tries) on a lost reply or a refused save, so a booked action answers with
+   its receipt and is never applied twice. */
+const _apiOnceBusy={};
+async function apiOnce(lane,path,bodyObj){ if(_apiOnceBusy[lane]) return {busy:true};
+  _apiOnceBusy[lane]=true; const rid=uid8(); let r=null;
+  try{ for(let t=0;t<3;t++){ r=await api(path,'POST',Object.assign({},bodyObj,{requestId:rid}));
+      if(!(r&&(r.error==='offline'||r.storageFailed))||t===2) break; await new Promise(z=>setTimeout(z,1500*(t+1))); } }
+  finally{ _apiOnceBusy[lane]=false; }
+  return r; }
 let _kickedNotified=false;
 function handleSignedOutElsewhere(){ if(_kickedNotified)return; _kickedNotified=true;
   try{ ACC={token:null,name:null,rank:null,coins:0,id:null}; DEV.on=false; DEV.god=false; saveAcc(); clearServerCaches(); }catch(e){}
@@ -22257,11 +22268,11 @@ function openStarsPanel(key){ const t=HERO_TYPES[key]; if(!t) return;
       <div id="spMsg" style="font-size:12px;text-align:center;min-height:18px;margin-top:8px">${pendingMsg?`<span style="color:${msgCol||'#8b98a9'}">${pendingMsg}</span>`:''}</div></div>`;
     ov.querySelector('#spX').onclick=()=>ov.remove();
     const sp=ov.querySelector('#spStar'); if(sp) sp.onclick=async()=>{ if(!canStarStep(key))return;
-      const r=await api('/api/hero/star-step','POST',{heroKey:key,requestId:uid8()});
+      const r=await apiOnce('herospend','/api/hero/star-step',{heroKey:key}); if(r&&r.busy) return;
       if(r&&r.ok){ adoptLedger(r.ledger); render(); if(state==='heroDetail'||_popout==='heroDetail') renderHeroDetail(); }
       else { bannerMsg((r&&r.error)||'Star up failed.'); await ledgerSync(); render(); } };
     const rf=ov.querySelector('#spRefine'); if(rf) rf.onclick=async()=>{ if(!canRefine(key)) return;
-      const r=await api('/api/hero/refine','POST',{heroKey:key,requestId:uid8()});   // the roll happens on the SERVER
+      const r=await apiOnce('herospend','/api/hero/refine',{heroKey:key}); if(r&&r.busy) return;   // the roll happens on the SERVER
       if(!r||!r.ok){ render((r&&r.error)||'Refine failed.','#ff8b8b'); await ledgerSync(); return; }
       adoptLedger(r.ledger);
       render(r.success?'✨ Refine success! +1 progress':'💥 Refine failed — fragments lost.', r.success?'#5ee89b':'#ff8b8b');
@@ -22745,7 +22756,7 @@ function renderHeroDetail(){
 }
 async function useHeroXpPotion(key,tier){
   if(!ACC.token)return;
-  const r=await api('/api/hero/xp-potion','POST',{heroKey:key,tier,requestId:uid8()});
+  const r=await apiOnce('xppotion','/api/hero/xp-potion',{heroKey:key,tier}); if(r&&r.busy) return;
   if(!(r&&r.ok)){bannerMsg((r&&r.error)||'Potion could not be used.');await ledgerSync();return;}
   adoptLedger(r.ledger);renderHeroDetail();updateHubChrome();
   bannerMsg('📖 '+((HERO_TYPES[key]||{}).name||key)+' gained '+r.heroXp+' XP'+(r.levelAfter>r.levelBefore?' and reached level '+r.levelAfter:'')+'!');
@@ -23068,9 +23079,9 @@ function questStateSync(force){
   return _questStatePending;
 }
 function claimQuest(q){ if(G.questClaimed[q.id]||!q.ready) return;
-  if(ACC.token){ api('/api/quest/claim','POST',{id:q.id,requestId:uid8()}).then(sr=>{   // v250: the SERVER validates + pays quests
+  if(ACC.token){ apiOnce('quest:'+q.id,'/api/quest/claim',{id:q.id}).then(sr=>{ if(sr&&sr.busy) return;   // v250: the SERVER validates + pays quests
       if(sr&&sr.ok){ const r=q.reward||''; G.questClaimed[q.id]=true; adoptLedger(sr.ledger); saveG(); updateHubChrome(); updateMailBadges(); bannerMsg('✅ '+q.title+' complete!\n'+r); renderQuests(); tutReturnAfterAction(); }
-      else if(sr&&sr.error){ bannerMsg(sr.error); } }).catch(()=>{}); return; }
+      else if(sr&&sr.error){ bannerMsg(sr.error==='offline'?'Connection lost.':sr.error); ledgerSync(); } }).catch(()=>{}); return; }
   const r=ledCapture('quest',()=>q.claim()); G.questClaimed[q.id]=true; saveG(); updateHubChrome(); updateMailBadges(); bannerMsg('✅ '+q.title+' complete!\n'+r); renderQuests(); }
 /* 30 Aug — THE STAGE-QUEST CHAIN BURNED THE STEP AND PAID NOTHING.
    /api/quest/chain-claim exists, is idempotent, validates the stage requirement and grants both the
@@ -25763,7 +25774,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791093961818';
+const BUILD_ID = '1791094504951';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
