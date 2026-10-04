@@ -12642,7 +12642,7 @@ function endBattle(won){
           +`<div style="font-size:15px;font-weight:800;color:#ffbf69;margin-bottom:4px">${dealt.toLocaleString()} damage</div>`
           +(fell?`<div style="color:#ffd45e;font-weight:700">💥 Killing blow — Tier ${(r.reward&&r.reward.tier)|0} down!</div>`
                  +`<div style="margin-top:3px">🪙 ${(((r.reward&&r.reward.gold)|0)).toLocaleString()} · 💎 ${((r.reward&&r.reward.gems)|0)} · 🏅 ${((r.reward&&r.reward.guildCoins)|0)}</div>`
-             :`<div style="margin-top:2px">🏅 ${((r.reward&&r.reward.guildCoins)|0)} guild coins <span style="color:#8b98a9;font-size:10.5px">· spend them in the Guild Shop</span></div>`)
+             :`<div style="margin-top:2px">🏅 ${((r.reward&&r.reward.guildCoins)|0)} guild coins</div>`)
           +(r.raid?`<div style="font-size:10.5px;color:#6f7d90;margin-top:6px">Boss at ${(r.raid.hp|0).toLocaleString()} / ${(r.raid.max|0).toLocaleString()} HP · ${(r.raid.attemptsLeft|0)} assaults left today</div>`:'')
         : `<div style="color:#ffd45e;font-weight:700;margin-bottom:4px">This run was not counted.</div><span style="color:#ff8b8b">${escapeHTML(String((r&&r.error)||'Could not reach the realm.'))}</span>`;
       document.getElementById('resultHint').textContent='';
@@ -14258,11 +14258,13 @@ function vaultSelectHeroes(){ CUR={mode:'vault'}; teamCtx='campaign'; menuReturn
    and takes ITS damage figure. The boss is one authored wave of one unit. */
 function raidSelectHeroes(){ CUR={mode:'graid'}; teamCtx='campaign'; menuReturn='guild'; show('menu'); }
 async function raidLaunch(){
-  const sq=squadFor('graid').slice(0,TEAM_SIZE*2);
+  let sq=squadFor('graid').slice(0,TEAM_SIZE*2);
   if(!sq.length) return;
   if(!ACC.token){ bannerMsg('Sign in to raid with your guild.'); return; }
-  const st=await api('/api/guild/raid/start','POST',{heroIds:sq, requestId:uid8()});
-  if(!st||st.error){ bannerMsg((st&&st.error)||'Could not reach the realm.'); return; }
+  const st=await apiOnce('graidstart','/api/guild/raid/start',{heroIds:sq});   /* v1008: one requestId, re-sent on a lost reply */
+  if(st&&st.busy) return;
+  if(!st||st.error){ bannerMsg(st&&st.error==='offline'?'Connection lost.':((st&&st.error)||'Could not reach the realm.')); return; }
+  if(st.resumed&&Array.isArray(st.heroIds)&&st.heroIds.length) sq=st.heroIds.slice(0,TEAM_SIZE*2);   /* an open fight comes back with ITS squad */
   if(st.none){ bannerMsg('No assaults left today — back tomorrow.'); return; }
   const B=st.boss||{};
   const _sn=Array.isArray(st.snaps)?st.snaps:null;
@@ -25781,7 +25783,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791106627219';
+const BUILD_ID = '1791118574807';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

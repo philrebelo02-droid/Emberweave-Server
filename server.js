@@ -7801,9 +7801,11 @@ async function api(req,res,url){
       const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
       const r=ensureRaid(g); r.att=r.att||{};
       const open=r.att[me.id];
-      /* a retried start with the same requestId hands back the same open fight (nothing is charged twice) */
-      if(open && open.reqId===reqId && Date.now()-(open.startedAt||0)<=RAID_SESSION_MS)
-        return send(res,200,{ ok:true, resumed:true, attemptId:open.id, seed:open.seed, snaps:open.snaps,
+      /* a retried start hands back the same open fight (nothing is charged twice). v1008 (re-audit Guild #2 / release review #3):
+         ANY open, unexpired attempt is handed back whatever the requestId - a new id used to spend a second attempt and overwrite
+         the open fight, so "your attempt is kept" after an unverified result was not true. The squad is the open fight's. */
+      if(open && Date.now()-(open.startedAt||0)<=RAID_SESSION_MS)
+        return send(res,200,{ ok:true, resumed:true, attemptId:open.id, seed:open.seed, snaps:open.snaps, heroIds:open.heroIds,
           boss:{key:open.bossKey, name:raidBossFor(open.tier).name, tier:open.tier, hp:open.bossHp, lvl:open.bossLvl, def:bossHide(open.tier), dmgMul:bossDmgMul(open.tier)}, engine:open.engine, raid:raidView(g) });
       if(((r.used[me.id])||0)>=RAID_ATT) return send(res,200,{ none:true, raid:raidView(g) });
       // 30 Sep 2026 hardening: the same 3-a-day also counts on the PLAYER, so hopping guilds buys no extra fights.

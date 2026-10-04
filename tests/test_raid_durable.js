@@ -26,6 +26,10 @@ async function editDB(fn){ await delay(400); await stop(); const db=disk(); fn(d
     db.guilds=db.guilds||{}; db.guilds.gdur={id:'gdur',name:'Durable Guild',members:[id],level:1,exp:0}; u.guildId='gdur'; });
   const rs=await call('/api/guild/raid/start',{heroIds:['vael'],requestId:'rd-start'});
   ok(rs.data.ok===true&&rs.data.attemptId,'raid fight starts ('+(rs.data.error||'ok')+')');
+  /* v1008 (re-audit Guild #2): a start with a NEW requestId while a fight is open hands that fight back - no second attempt */
+  const rs2=await call('/api/guild/raid/start',{heroIds:['vael'],requestId:'rd-start-2'});
+  ok(rs2.data.resumed===true&&rs2.data.attemptId===rs.data.attemptId&&JSON.stringify(rs2.data.heroIds)==='["vael"]','a new requestId gets the open fight back with its squad ('+JSON.stringify(rs2.data).slice(0,90)+')');
+  await delay(400); ok(((disk().users[id].raidDay||{}).n|0)===1,'only one attempt is spent ('+JSON.stringify(disk().users[id].raidDay)+')');
   await delay(400);
   const before={raid:(await call('/api/guild/raid')).data.raid, coins:(await led()).guildCoins|0};
   const bytes0=fs.readFileSync(dbFile,'utf8');
