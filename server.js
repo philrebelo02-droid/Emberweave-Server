@@ -1421,7 +1421,7 @@ function writeDBNow(){
    player could be shown a reward that a crash then took back (Well/Vault reproduced). opts.durableUser = the caller's
    account: it is snapshotted before fn runs; if the save throws, the account and the receipt are put back exactly and the
    caller gets {ok:false,storageFailed:true} (routes answer 503) - the same contract as durableCommit(). Opt-in per route. */
-const DURABLE_IDEM_KINDS=new Set(['dresolve','dsweep','salv','witch','edbuy','edstart','edresult','trial','well2','spend','earn']);   /* 3 Oct Market audit #4: tx/spend + tx/earn no longer ack a failed save */
+const DURABLE_IDEM_KINDS=new Set(['dresolve','dsweep','salv','witch','edbuy','edstart','edresult','trial','well2','spend','earn','csweep','cresolve','provres','provsweep','abuy']);   /* 3 Oct Market audit #4: tx/spend + tx/earn no longer ack a failed save; v975 (Arena+Campaign audit #7): campaign sweep/resolve, province resolve/sweep, arena attempt buy */
 function idem(key, fn, opts){ DB.idem=DB.idem||{}; const now=Date.now();
   for(const k of Object.keys(DB.idem)){ if(now-DB.idem[k].t>86400000) delete DB.idem[k]; }
   if(DB.idem[key] && !(opts&&opts.retryFailed&&DB.idem[key].resp&&DB.idem[key].resp.ok===false)) return DB.idem[key].resp;
@@ -5775,7 +5775,7 @@ async function api(req,res,url){
         creditFrags(me,led,hk,times,'campaign:sweep'); eliteFrag={heroKey:hk, qty:times}; }
       writeDB(); return {ok:true, mode, times, gold, px, heroXp:hxp, xpPotions, glyphFragments, eliteFrag, ledger:ledgerView(me)};
     });
-    return send(res, out.ok===false?400:200, out); }
+    return send(res, out.storageFailed?503:(out.ok===false?400:200), out); }
   if(p==='/api/admin/led-grant' && req.method==='POST'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
     const b=await body(req);
     const tgt=(b.userId&&DB.users[String(b.userId)])||me;   // v229: admin may grant to a named account (test fixtures, support)
@@ -6297,7 +6297,7 @@ async function api(req,res,url){
         actions:inputLog.length, chain:(a.stream&&a.stream.chain)?a.stream.chain.slice(0,16):null,
         replaySeed:a.seed>>>0, ledger:ledgerView(me) };
     });
-    return send(res, out.ok===false?400:200, out); }
+    return send(res, out.storageFailed?503:(out.ok===false?400:200), out); }
   /* ---- hero progression endpoints: EXACT mirrors of the game's published rules ---- */
   if(p==='/api/hero/star-step' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
@@ -6570,7 +6570,7 @@ async function api(req,res,url){
           playsLeft:provPlaysLeft(me,pr), verified:true, playerTruth:true, digestMatch, replayIncident:!digestMatch,
           serverWon:rep?!!rep.won:null, transcript:'submitted-log', actions:inputLog.length, engine:a.engine||null,
           prov:view(), ledger:ledgerView(me) };
-      }); return send(res, out.ok===false?400:200, out); }
+      }); return send(res, out.storageFailed?503:(out.ok===false?400:200), out); }
     if(p==='/api/province/sweep'){ const out=idem(me.id+':provsweep:'+reqId,()=>{
         const t=String(b.type||''); if(PROV_TYPES.indexOf(t)<0) return {ok:false, error:'Unknown province.'};
         const P=provLedState(me,led), pr=P[t];
@@ -6583,7 +6583,7 @@ async function api(req,res,url){
         const reward=provGrant(me,led,t,sws,team,'sweep:'+reqId);
         writeDB();
         return { ok:true, type:t, stage:sws, cleared:pr.stage|0, reward, playsLeft:provPlaysLeft(me,pr), prov:provLedgerView(me,led), ledger:ledgerView(me) };
-      }); return send(res, out.ok===false?400:200, out); }
+      }); return send(res, out.storageFailed?503:(out.ok===false?400:200), out); }
     return send(res,404,{error:'province'});
   }
   /* =================== v250 (audit P1): PER-LOOP SERVER AUTHORITIES ===================
@@ -7177,7 +7177,7 @@ async function api(req,res,url){
       if((led.gems|0)<ARENA_EXTRA_COST_GEMS) return {ok:false,error:'Not enough diamonds — an extra arena attempt costs '+ARENA_EXTRA_COST_GEMS+'.',arena:arenaAttView(led)};
       led.gems-=ARENA_EXTRA_COST_GEMS; a.bought++; ledTx(me,'arena:buy-attempt',{gems:-ARENA_EXTRA_COST_GEMS});
       return {ok:true, gems:led.gems, arena:arenaAttView(led), ledger:ledgerView(me)}; });
-    return send(res,out.ok?200:400,out); }
+    return send(res,out.storageFailed?503:(out.ok?200:400),out); }
   if(p==='/api/arena/opponent'){ if(!me)return send(res,401,{error:'auth'}); const o=pickOpponent(me);
     return send(res,200,{ opponent:{ id:o.id, name:o.name, rank:o.rank, team:hydrateRoster(o,o.team), isNpc:!!o.isNpc }, arena:arenaAttView(ensureLedger(me)) }); }
 

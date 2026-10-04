@@ -12670,8 +12670,14 @@ function endBattle(won){
     resultLater(async(ep)=>{
       /* v270: submit WHAT THE PLAYER DID — the tick-stamped transcript of every ultimate and gear
          skill. The server replays it against the frozen session; `digest` is diagnostics only. */
-      const r=await api('/api/campaign/resolve','POST',{attemptId:att, requestId:uid8(),
-        inputLog:_log, digest:_dg, won:_wn, stars:_st});   // v412: the fight the player watched IS the result
+      /* v975 (3 Oct Arena+Campaign audit #8): ONE requestId per fight. A lost reply (offline) or a refused save (storageFailed)
+         is re-sent with the SAME id, so a fight the server already booked comes back as its receipt, never twice. */
+      const _rid=uid8(); let r=null;
+      for(let _try=0;_try<3;_try++){
+        r=await api('/api/campaign/resolve','POST',{attemptId:att, requestId:_rid,
+          inputLog:_log, digest:_dg, won:_wn, stars:_st});   // v412: the fight the player watched IS the result
+        if(!(r&&(r.error==='offline'||r.storageFailed))) break;
+        await new Promise(z=>setTimeout(z,1500*(_try+1))); }
       if(resultStale(ep)){ if(r&&r.ledger) adoptLedger(r.ledger); return; }   // v328: CUR.node now belongs to a NEWER fight — never bank stars/cleared on it or paint its screen
       const sWon=!!(r&&r.ok&&r.won);   // v412: the server now records and echoes back the PLAYER's own result
       setResultVerdict(sWon, (r&&r.stars)||null);
@@ -12694,7 +12700,7 @@ function endBattle(won){
       /* v334 (Phil: "I just won a stage 1-1 and it said defeat and I lost") — an UNVERIFIED fight is
          not a defeat. The server recorded nothing and returned the stamina, so the screen must say
          that, not DEFEAT. Same for an attempt the server no longer knows (expired / restarted). */
-      const _unv=!!(r && !r.ok && (r.unverified || r.expired || /verified|expired|stamina/i.test(r.error||'')));
+      const _unv=!!(r && !r.ok && (r.unverified || r.expired || r.storageFailed || r.error==='offline' || /verified|expired|stamina/i.test(r.error||'')));   // v975: a fight that was never saved is not a defeat
       document.getElementById('resultTitle').textContent=sWon?'VICTORY':(_unv?'NOT COUNTED':'DEFEAT');
       document.getElementById('resultTitle').className='result-big '+(sWon?'win':'lose');
       // v253 (visual audit #1): the GUARANTEED stage reward is the headline — exact item, icon and
@@ -25724,7 +25730,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791085888229';
+const BUILD_ID = '1791086597151';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
