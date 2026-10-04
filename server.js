@@ -3574,9 +3574,9 @@ const EARN_RULES={
          pack:{max:150,day:150}, arenashop:{max:40,day:800} },   /* 30 Sep hardening: pack was 20,000/60,000 a day (a real pack pays 150 once a day); wish + misc removed - the client never sends them */
   gold:{   /* 3 Oct Market audit #1: guildshop removed (gold/gems/stamina) - the Guild Shop is a server purchase (/api/shop/buy gshop:N) */   /* 3 Oct audit (P0): tower + gauntlet removed (see gems) */
          /* 3 Oct 23:3x: city + quest removed (see gems) */   /* 3 Oct: convert removed (see gems) */   /* 30 Sep hardening: gold wish + misc removed (never sent by the client) */
-         march:{max:1200,day:20000}, arenashop:{max:5000,day:100000} },
+         arenashop:{max:5000,day:100000} },   /* v1017 (re-audit Market #12): dead 'march' entry removed - /api/tx/earn already refuses reason 'march' (every signed-in city march is a server march) */
   /* v663: heroXp/province retired — the Training Province pays through /api/province/* (Drill now forges glyphs) */
-  guildCoins:{ march:{max:40,day:400} } };
+  guildCoins:{} };   /* v1017: dead 'march' entry removed (see gold) */
 /* 3 Oct 2026 audit (P0, Phil: "finish the audit and fixes tonight"): THE TOWER OF TRIALS IS SERVER-OWNED.
    The client used to work out its own floor and tribute gold/diamonds and post them to /api/tx/earn with
    reason 'tower'; the server only checked a per-request max and a daily cap, so any account could take

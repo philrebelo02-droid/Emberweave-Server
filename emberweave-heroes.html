@@ -12665,7 +12665,10 @@ function endBattle(won){
   if(CUR.mode==='province'){ const att=CUR.attemptId, P=CUR.prov||{}; CUR.attemptId=null;   /* v663: Training Province */
     const _log=(INPUT_LOG||[]).slice(0,400), _dg=(window._p2lastDigest||null), _wn=(window._p2lastWon===true), _st=(window._p2lastStars|0);
     resultLater(async(ep)=>{ let r=null;
-      if(att&&ACC.token){ try{ r=await api('/api/province/resolve','POST',{attemptId:att, requestId:uid8(), inputLog:_log, digest:_dg, won:_wn, stars:_st}); }catch(e){ r=null; } }
+      /* v1017 (re-audit Arena N3): ONE requestId per fight, re-sent on a lost reply or a refused save - a paid win whose reply was lost
+         showed NOT COUNTED (the campaign does this since v975) */
+      if(att&&ACC.token){ const _rid=uid8(); for(let _try=0;_try<3;_try++){ try{ r=await api('/api/province/resolve','POST',{attemptId:att, requestId:_rid, inputLog:_log, digest:_dg, won:_wn, stars:_st}); }catch(e){ r=null; }
+          if(!(r&&(r.error==='offline'||r.storageFailed))||_try===2) break; await new Promise(z=>setTimeout(z,1500*(_try+1))); } }
       if(resultStale(ep)){ if(r&&r.ledger) adoptLedger(r.ledger); return; }
       if(r&&r.ledger) adoptLedger(r.ledger); if(r&&r.prov) provAdopt(r.prov);
       const sWon=!!(r&&r.ok&&r.won), _unv=!!(!r||!r.ok), nm=(PROV_META[P.t]||PROV_META.gold).nm;
@@ -12678,7 +12681,7 @@ function endBattle(won){
           +(r.reward?provReceiptHTML(P.t,r.reward,false):'')
           +(r.dailyCapped?'<div style="margin-top:6px;color:#ff9a9a">Stage cleared — today\'s two plays were already used, so it pays nothing today.</div>':'')
           +(r.replayIncident?'<div style="font-size:10.5px;color:#6f7d90;margin-top:6px">(Your result stands — the server logged a replay difference for review.)</div>':'')
-        : (_unv?`<div style="color:#ffd45e;font-weight:700;margin-bottom:4px">This fight was not counted — nothing was spent.</div><span style="color:#ff8b8b">${escapeHTML(String((r&&r.error)||'Could not reach the realm.'))}</span>`
+        : (_unv?`<div style="color:#ffd45e;font-weight:700;margin-bottom:4px">${(!r||r.error==='offline')?'Connection lost before the server answered - this result is not confirmed.':'This fight was not counted — nothing was spent.'}</div><span style="color:#ff8b8b">${escapeHTML(String((r&&r.error&&r.error!=='offline')?r.error:''))}</span>`
           :`Your squad fell to ${escapeHTML(nm)} Stage ${P.stage|0}. A loss costs nothing — your plays are untouched.`);
       document.getElementById('resultHint').textContent='';
       updateHubChrome(); gameSpeed=1; show('result'); },800); return; }
@@ -25805,7 +25808,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791121598642';
+const BUILD_ID = '1791121931929';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
