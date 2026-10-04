@@ -8,3 +8,5 @@ assets/img/world-map/worldtree-worldtree-v2.png
 gsave.json
 save1.json
 wsave.json
+tests/fixture-*/
+_to_delete/
