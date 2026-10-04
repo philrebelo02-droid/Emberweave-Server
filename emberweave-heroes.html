@@ -19596,7 +19596,12 @@ function pushSave(){ if(!ACC.token||!_cloudReady)return; const r=rosterPayload()
   const world={ region:myRegion(), x:cp.x, y:cp.y, level:playerLevel(),
                 /* v805 - your own heroes: the card */
                 power:myTeamPower((G.wall&&G.wall.length?G.wall:G.team).filter(Boolean)) };
-  return api('/api/save','POST',{team:teamPayload(G.team),wall:teamPayload(G.wall),roster:r,world}); }
+  /* v1014 (release review #6): a save the server refuses as too large (over 1 MB) used to fail silently on every push, forever -
+     the player is told once per session; a later accepted save clears it */
+  return api('/api/save','POST',{team:teamPayload(G.team),wall:teamPayload(G.wall),roster:r,world}).then(d=>{
+    if(d&&d.error==='Save too large.'){ if(!pushSave._big){ pushSave._big=1; bannerMsg('⚠ Cloud save refused - this save is over 1 MB, so progress on this device is not backed up.'); } }
+    else if(d&&d.ok) pushSave._big=0;
+    return d; }); }
 function cloudSync(){ if(!ACC.token||_cloudTimer)return; _cloudTimer=setTimeout(()=>{ _cloudTimer=null; pushSave(); },1500); }
 function flushCloud(){ if(_cloudTimer){ clearTimeout(_cloudTimer); _cloudTimer=null; } if(ACC.token) pushSave(); }
 // permanence: when the tab is backgrounded or closed (phone app-switch included), flush the pending
