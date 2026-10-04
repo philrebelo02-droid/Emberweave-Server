@@ -123,6 +123,8 @@ note "test_mine_levels_ten.js (Phil 3 Oct: region mines 1-6, level 6 at the edge
 node tests/test_mine_levels_ten.js || FAILED=1
 note "test_market_harden.js (3 Oct Market audit: never-sold hero fragments refused; meal at full stamina refused; spend/earn durable)"
 node tests/test_market_harden.js || FAILED=1
+note "test_pool_forge_harden.js (3 Oct Pool/Forge audit: gear only on owned heroes; free diamond wish countdown = New York midnight)"
+node tests/test_pool_forge_harden.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi

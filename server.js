@@ -4323,6 +4323,7 @@ async function api(req,res,url){
     }
     if(p==='/api/gear/equip'){
       const hero=String(b.heroKey||'').slice(0,24); if(!validHero(hero)) return bad('Unknown hero.'); const iid=String(b.itemId||'');
+      if(!(ensureLedger(me).unlocked||{})[hero]) return bad('Choose a hero you own.');   /* 3 Oct Forge audit #2: gear parked on unowned heroes pushed Resonance past its cap */
       const it=g.items[iid]; const def=it&&GEARCAT.byId[it.d];
       if(!validHero(hero)) return bad('Unknown hero.');
       if(!hero||!it||!def) return bad('Unknown item.');
@@ -4368,6 +4369,7 @@ async function api(req,res,url){
     }
     if(p==='/api/gear/select-active'){
       const hero=String(b.heroKey||'').slice(0,24); if(!validHero(hero)) return bad('Unknown hero.'); const iid=String(b.itemId||'');
+      if(!(ensureLedger(me).unlocked||{})[hero]) return bad('Choose a hero you own.');   /* 3 Oct Forge audit #2 */
       const eq=g.equipped[hero]||{};
       if(!Object.values(eq).includes(iid)) return bad('That item is not equipped on this hero.');
       g.active[hero]=iid;
@@ -5477,11 +5479,14 @@ async function api(req,res,url){
     const goldFreeReady=pool.goldFree<WISH_GOLD_FREE_MAX && (now-pool.goldLast)>=WISH_GOLD_FREE_MS;
     const gemUnlocked=pool.gemFirstDone || ((led.camp&&led.camp.cleared)|0)>=WISH_FIRST_GEM_CLEAR_NODE;
     const gemFreeReady=pool.gemFreeDay!==dk && gemUnlocked;
+    /* 3 Oct Pool audit #3: the free diamond wish resets at New York midnight (nyDayKey); the client used the 09:00 arena reset for
+       its countdown and label, so a wish tapped at "0" was charged. The server now says how long until the next New York day. */
+    const nyOff=etOffsetMs(now), nyWall=now-nyOff, gemFreeNextMs=Math.max(0,(Math.floor(nyWall/86400000)+1)*86400000+nyOff-now);
     writeDB();
     return send(res,200,{ odds:{konwu:0.001,full3:0.01,full2:0.08,frag2:0.15,frag3:0.10,goldHero:0.05,goldFrag:0.15},
       pity:{at:WISH_GEM_PITY,count:pool.pity}, costs:{gold:WISH_GOLD_COST,gem:WISH_GEM_COST,mult10:WISH10_MULT},
       goldFree:{ready:goldFreeReady,usedToday:pool.goldFree,max:WISH_GOLD_FREE_MAX,nextMs:Math.max(0,WISH_GOLD_FREE_MS-(now-pool.goldLast))},
-      gemFree:{ready:gemFreeReady,unlocked:gemUnlocked,clearsNeeded:Math.max(0,WISH_FIRST_GEM_CLEAR_NODE-((led.camp&&led.camp.cleared)|0))}, firstDone:pool.gemFirstDone, ledger:ledgerView(me) }); }
+      gemFree:{ready:gemFreeReady,unlocked:gemUnlocked,clearsNeeded:Math.max(0,WISH_FIRST_GEM_CLEAR_NODE-((led.camp&&led.camp.cleared)|0)),nextMs:gemFreeReady?0:gemFreeNextMs}, firstDone:pool.gemFirstDone, ledger:ledgerView(me) }); }
   if(p==='/api/pool/history'){ if(!me)return send(res,401,{error:'auth'});
     // v251 (audit): the AUDITABLE roll history — every wish this account made, server-recorded
     const pool=poolState(me);
