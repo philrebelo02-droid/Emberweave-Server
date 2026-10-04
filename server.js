@@ -2246,6 +2246,10 @@ function warNewMatch(t, roundIndex, aEnt, bEnt){
   t.matches[m.id]=m; return m;
 }
 function warEntrant(t,gid){ return t.entrants.find(e=>e.guildId===gid); }
+/* v980 (3 Oct Guild audit #6): a guild that is deleted (disband, or its last member leaves) leaves an OPEN registration with it */
+function warDropDeletedGuild(gid){ const t=DB.tournaments&&DB.tournaments.current;
+  if(!t||t.state!=='registration'||!Array.isArray(t.entrants)) return; const i=t.entrants.findIndex(e=>e.guildId===gid);
+  if(i>=0){ t.entrants.splice(i,1); t.version=(t.version|0)+1; } }
 function warLockMatch(t,m){ // 6 PM: snapshot every line into its citadel; unassigned members auto-spread
   // AUDIT (26 Aug, CR-4): snapshots are rebuilt FRESH at lock time from server-owned data — glyph/gear/
   // level changes made during planning count. The registration-time entrant is only the fallback if the
@@ -2364,7 +2368,7 @@ function warAdvance(t){ // lazy state machine, called on every /api/guild-war re
     // {guildId, registeredAt}; here every registered guild's power pool is recomputed from CURRENT
     // server data (current members, current ledger-backed lines), then the top 16 are seeded.
     t.entrants=t.entrants.map(e=>{ const g=(DB.guilds||{})[e.guildId];
-      return g?Object.assign(warQualifyGuild(g),{registeredAt:e.registeredAt||0}):e; }).filter(e=>e&&e.lines);
+      return g?Object.assign(warQualifyGuild(g),{registeredAt:e.registeredAt||0}):null; }).filter(e=>e&&e.lines);   /* v980 (3 Oct Guild audit #6): a guild that no longer exists is dropped, never kept with its old lines */
     t.entrants.sort((a,b)=>b.powerPool-a.powerPool);
     t.entrants=t.entrants.slice(0,16);
     t.entrants.forEach((e,i)=>e.seed=i+1);
@@ -7634,13 +7638,13 @@ async function api(req,res,url){
       g.log=g.log||[]; g.log.push({sys:1,tx:'The guild banner was changed.',t:Date.now()});
       writeDB(); return send(res,200,{ guild:guildView(g) }); }
     if(p==='/api/guild/disband'){ for(const mid of (g.members||[])){ const mu=DB.users[mid]; if(mu&&mu.guildId===g.id) delete mu.guildId; }
-      delete DB.guilds[g.id]; writeDB(); return send(res,200,{ ok:true, disbanded:true }); }
+      delete DB.guilds[g.id]; warDropDeletedGuild(g.id); writeDB(); return send(res,200,{ ok:true, disbanded:true }); }
 
     if(p==='/api/guild/leave'){ if(!g) return send(res,400,{error:'You are not in a guild.'});
       warPoolForget(g.id);
       if(g.leader===me.id && (g.members||[]).length>1) return send(res,400,{error:'Transfer leadership to another member before you leave.'});
       g.members=(g.members||[]).filter(x=>x!==me.id); delete me.guildId;
-      if((g.members||[]).length===0){ delete DB.guilds[g.id]; writeDB(); return send(res,200,{ ok:true, disbanded:true }); }
+      if((g.members||[]).length===0){ delete DB.guilds[g.id]; warDropDeletedGuild(g.id); writeDB(); return send(res,200,{ ok:true, disbanded:true }); }
       g.log=g.log||[]; g.log.push({sys:1,tx:me.name+' left the guild.',t:Date.now()});
       writeDB(); return send(res,200,{ ok:true }); }
 
