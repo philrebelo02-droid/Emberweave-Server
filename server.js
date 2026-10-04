@@ -351,6 +351,9 @@ function acctEmailRequest(me, rawEmail){   // v946: moved unchanged from /api/em
   const email=normalizeEmail(rawEmail);
   if(!email) return {status:400,body:{error:'Enter a valid email address.'}};
   if(me.email && email===me.email) return {status:400,body:{error:'That is already your recovery email.'}};
+  /* v1002 (Account audit #12): a guest cannot send codes, and an account sends at most 3 a day - it could mail any address ~860 times a day */
+  if(me.guest) return {status:403,body:{error:'Create an account first.'}};
+  { const dk=nyDayKey(); if(!me.emailSends||me.emailSends.k!==dk) me.emailSends={k:dk,n:0}; if(me.emailSends.n>=3) return {status:429,body:{error:'Too many codes today - try again tomorrow.'}}; me.emailSends.n++; }
   const toCurrent=!!me.email, target=toCurrent?me.email:email;
   const code=gen6(), salt=crypto.randomBytes(8).toString('hex');
   me.emailChange={ newEmail:email, hash:hashPass(code,salt), salt, exp:Date.now()+15*60000, tries:0, toCurrent };
@@ -6776,7 +6779,7 @@ async function api(req,res,url){
      Academy research lives on the LEDGER (levels, timers, resource wallet, costs mirrored from the
      client tables); world-map mining is a capped server grant; City PvP is resolved BY THE SERVER
      through the shared combat core, and the verified result is what both mailboxes receive. */
-  if(p==='/api/world/mine' && process.env.ALLOW_LEGACY_MINE_GRANTS!=='1')
+  if(p==='/api/world/mine')   /* v1002 (World audit #11): no environment switch reopens the client-amount mine claim */
     return send(res,410,{ok:false,error:'Old mine claims are retired. Send a verified mine march.'});
   if(p==='/api/academy' || p==='/api/academy/research' || p==='/api/academy/collect' || p==='/api/world/mine' || p==='/api/pvp/attack'){
     if(!me) return send(res,401,{error:'auth'});
@@ -7203,6 +7206,7 @@ async function api(req,res,url){
     }catch(error){console.error('World Tree calendar:',error.message);return send(res,503,{error:'World Tree timer unavailable'});}
   }
   if(p==='/api/world/cities'){ if(!me)return send(res,401,{error:'auth'});
+    if(rateLimited(req,'wcities:'+me.id,30,60000)) return send(res,429,{error:'Slow down.'});   /* v1002 (World audit #10): each call builds up to 500 rosters */
     const placed=Object.values(DB.users).filter(u=>u.id!==me.id && WORLD_LOCATION.valid(u.worldLocation));
     const cities=placed
       .slice(0,500)
@@ -7363,13 +7367,13 @@ async function api(req,res,url){
     let gearFrags=null; if(gearEnabledFor(me)){ const q=['Grey','Green','Blue'][Math.floor(Math.random()*3)]; gearFrags=gearGrantFragments(me,q,3); }   // daily: 3 gear fragments
     writeDB(); return send(res,200,{granted:amt, coins:me.coins, glyphFrags, gearFrags}); }
 
-  if(p==='/api/world'){ if(!me)return send(res,401,{error:'auth'});
+  /* v1002 (World audit #15): /api/world (top 24) and /api/raid (returned ANY player's wall by id) are retired - no client calls them */
+  if(p==='/api/world'||(p==='/api/raid'&&req.method==='POST')){ if(!me)return send(res,401,{error:'auth'}); return send(res,410,{ok:false,error:'Retired.'}); }
+  if(false){
     const cities=Object.values(DB.users).filter(u=>u.id!==me.id).sort((a,b)=>a.rank-b.rank).slice(0,24)
       .map(u=>({id:u.id,name:u.name,rank:u.rank,isNpc:!!u.isNpc}));
     return send(res,200,{ cities, me:{name:me.name,rank:me.rank} }); }
 
-  if(p==='/api/raid' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'}); const b=await body(req); const c=DB.users[b.id];
-    if(!c) return send(res,404,{error:'no city'}); return send(res,200,{ defense:c.wall||c.team, name:c.name, rank:c.rank }); }
 
 
   /* ------------------------------- WATCH TOWER ------------------------------
@@ -7721,6 +7725,7 @@ async function api(req,res,url){
       const tx=(b.tx||'').toString().replace(/[<>]/g,'').slice(0,200).trim(); if(!tx) return send(res,200,{ok:true});
       g.log=g.log||[]; const gm={id:me.id,name:me.name,tx,t:Date.now()};
       try{ if(b.battle && typeof b.battle==='object'){ const s=JSON.stringify(b.battle); if(s.length<=8000) gm.battle=JSON.parse(s); } }catch(e){}   // optional shared-replay chip
+      if(gm.battle && gm.battle.oppName!=null && typeof gm.battle.oppName!=='string') delete gm.battle; if(gm.battle && typeof gm.battle.oppName==='string') gm.battle.oppName=gm.battle.oppName.slice(0,16);   /* v1002 (Account audit #23) */
       g.log.push(gm); if(g.log.length>100)g.log=g.log.slice(-100);
       writeDB(); return send(res,200,{ ok:true, log:g.log.slice(-60) }); }
 
@@ -8104,10 +8109,13 @@ try{
         { const key=ws._uid||('ip:'+(ws._ipKey||'')); const now=Date.now(); const h=(_chatHits[key]||[]).filter(t=>now-t<10000);
           if(h.length>=6){ _chatHits[key]=h; wsend(ws,{t:'chaterr',reason:'You are sending messages too fast.'}); return; } h.push(now); _chatHits[key]=h; } const msg={who:ws._acctName||ws._chatName||'Player',txt,t:Date.now()};
         let bt=null; try{ if(m.battle && typeof m.battle==='object'){ const s=JSON.stringify(m.battle); if(s.length<=8000) bt=JSON.parse(s); } }catch(e){}   // optional shared-replay chip (size-capped)
+        if(bt && bt.oppName!=null && typeof bt.oppName!=='string') bt=null; if(bt && typeof bt.oppName==='string') bt.oppName=bt.oppName.slice(0,16);   /* v1002 (Account audit #23): a non-string name broke every viewer */
         if(bt) msg.battle=bt;
         chatStore()[ch].push(msg); pruneChat(ch); writeDB();
         chatBroadcast({t:'chatmsg',channel:ch,who:msg.who,txt:msg.txt,battle:bt||undefined}, ws); }   // broadcast to everyone EXCEPT the sender (sender shows it instantly locally)
       else if(m.t==='whisper'){ if(wsNeedAuth(ws)) return; const to=clip(m.to,16), txt=clip(m.text,200); if(!to||!txt)return;
+        { const key='w:'+(ws._uid||('ip:'+(ws._ipKey||''))); const now=Date.now(); const h=(_chatHits[key]||[]).filter(t=>now-t<10000);   /* v1002 (Account audit #16): whispers share the chat pace */
+          if(h.length>=6){ _chatHits[key]=h; wsend(ws,{t:'chaterr',reason:'You are sending messages too fast.'}); return; } h.push(now); _chatHits[key]=h; }
         const fromName=ws._acctName||ws._chatName||'Player';
         WSS.clients.forEach(c=>{ if(c!==ws && c._chatName===to && c.readyState===1){ try{ c.send(JSON.stringify({t:'whispermsg',from:fromName,txt})); }catch(e){} } }); }
     }catch(e){ console.error('⚠ ws frame refused (handler error): '+(e&&e.message)); } });

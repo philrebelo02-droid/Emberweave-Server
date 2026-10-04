@@ -19625,7 +19625,8 @@ function renderAccount(){ const b=document.getElementById('accountBody');
   const go=(path)=>{ const name=b.querySelector('#acName').value.trim(),pass=b.querySelector('#acPass').value; if(name.length<2||!pass){b.querySelector('#acMsg').textContent='Enter a name (2+) and password.';return;}
     if(!tosOK()){ requireTos(()=>go(path), ()=>{ const m=b.querySelector('#acMsg'); if(m){ m.style.color='#ff8b8b'; m.textContent='You must accept the Terms to sign in.'; } }); return; }
     const isReg=path.indexOf('register')>=0;
-    api(path,'POST',{name,pass,roster:rosterPayload(),deviceId:deviceId()}).then(d=>{
+    if(window._authBusy) return; window._authBusy=true;   /* v1002 (Account audit #13): a double tap signed in twice and dropped the first token */
+    api(path,'POST',{name,pass,roster:rosterPayload(),deviceId:deviceId()}).then(d=>{ window._authBusy=false;
       if(d.reset){ renderSetNewPass(name); return; }             // admin armed a password recovery for this account
       if(d.error){b.querySelector('#acMsg').textContent=d.error;return;}
       finishAuth(d,isReg); }); };
@@ -24176,7 +24177,8 @@ function renderSettings(){
     if(t.length<3){ m.style.color='#ff8b8b'; m.textContent='Please add a little detail.'; return; }
     m.style.color='#8b98a9'; m.textContent='Sending…';
     const meta='v'+(typeof BUILD_ID!=='undefined'?BUILD_ID:'')+' · Lv'+playerLevel()+' · '+state;
-    api('/api/report','POST',{text:t, meta}).then(d=>{ if(d&&d.ok){ m.style.color='#5ee89b'; m.textContent='✔ Thanks! Report sent.'; b.querySelector('#rpText').value=''; } else { m.style.color='#ff8b8b'; m.textContent=(d&&d.error)||'Failed to send.'; } }); };
+    if(window._reportBusy) return; window._reportBusy=true;   /* v1002 (Account audit #13): a double tap filed the report twice */
+    api('/api/report','POST',{text:t, meta}).then(d=>{ window._reportBusy=false; if(d&&d.ok){ m.style.color='#5ee89b'; m.textContent='✔ Thanks! Report sent.'; b.querySelector('#rpText').value=''; } else { m.style.color='#ff8b8b'; m.textContent=(d&&d.error)||'Failed to send.'; } }); };
   // ---- account wiring ----
   const tabIn=b.querySelector('#acTabIn'), tabNew=b.querySelector('#acTabNew');
   if(tabIn) tabIn.onclick=()=>{ acctMode='signin'; renderSettings(); };
@@ -24216,7 +24218,8 @@ function renderSettings(){
       if(!tosOK()){ requireTos(go, ()=>{ msg.style.color='#ff8b8b'; msg.textContent='You must accept the Terms to sign in.'; }); return; }
       msg.style.color='#8b98a9'; msg.textContent=acctMode==='create'?'Creating account…':'Signing in…';
       const isCreate=acctMode==='create';
-      api(isCreate?'/api/register':'/api/login','POST',{name,pass,roster:rosterPayload(),deviceId:deviceId()}).then(d=>{
+      if(window._authBusy) return; window._authBusy=true;   /* v1002 (Account audit #13) */
+      api(isCreate?'/api/register':'/api/login','POST',{name,pass,roster:rosterPayload(),deviceId:deviceId()}).then(d=>{ window._authBusy=false;
         if(d&&d.reset){ _resetName=name; acctMode='reset'; renderSettings(); return; }   // admin armed a password recovery
         if(!d||d.error){ msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error)||'Could not reach the server — try again.'; return; }
         if(!d.token||!d.profile){ msg.style.color='#ff8b8b'; msg.textContent='Unexpected server response.'; return; }
@@ -25778,7 +25781,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791102390051';
+const BUILD_ID = '1791103053753';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
