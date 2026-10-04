@@ -23480,7 +23480,7 @@ function wellDraw(S){ const ov=document.getElementById('wlMap'); if(!ov) return;
     const gone=c<=S.pos.col&&!here, xy=wellPt(c,r);
     sq+=`<button class="wlSq wl_${s.type}${here?' wlHere':''}${reach?' wlReach':''}${gone?' wlGone':''}" data-c="${c}" data-r="${r}" style="left:${xy[0].toFixed(2)}%;top:${xy[1].toFixed(2)}%"${reach?'':' disabled'}>`
       +wellIcon(s)
-      +`${s.prize&&!gone&&!here?`<span class="wlPz"><img class="wlCur" src="/assets/img/ui/hud-gold.webp?v=1" alt="">${(s.prize.gold|0).toLocaleString()}${s.prize.gems?'<img class="wlCur" src="/assets/img/ui/hud-gem.webp?v=1" alt="">'+s.prize.gems:''}</span>`:''}</button>`; }
+      +`${s.prize&&!gone&&!here?`<span class="wlPz"><img class="wlCur" src="/assets/img/ui/hud-gold.webp?v=1" alt="">${(s.prize.gold|0).toLocaleString()}${s.prize.gems?'<img class="wlCur" src="/assets/img/ui/hud-gem.webp?v=1" alt="">'+s.prize.gems:''}${s.prize.potions?' 📖'+(s.prize.potions|0):''}</span>`:''}</button>`; }
   const hs=Object.keys(S.heroes||{});
   const strip=hs.map(k=>{ const h=S.heroes[k], pct=Math.round((h.hpFrac||0)*100);
     return `<div class="wlHero${h.dead?' wlDead':''}">${heroIcon(k,38)}<div class="wlHp"><i style="width:${h.dead?0:pct}%"></i></div>`
@@ -25686,7 +25686,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791079467190';
+const BUILD_ID = '1791079674839';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
