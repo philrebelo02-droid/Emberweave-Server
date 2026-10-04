@@ -1229,6 +1229,15 @@ function validHero(k){ return typeof k==='string' && Object.prototype.hasOwnProp
 /* 3 Oct Market audit #2: heroes never sold in the Market (client HERO_TYPES source:'purchase' / 'arena'). tests/test_market_harden.js keeps this set equal to the client's. */
 const HERO_NOT_SOLD=new Set(['konwu','grosk','vulmar','aureth','hurne','hollow']);
 function heroNotSold(k){ return HERO_NOT_SOLD.has(k); }
+/* 3 Oct: the daily sign-in calendar, server side. SIGNIN_HERO_POOL = the client's HERO_KEYS order without mythical or purchase/arena heroes
+   (tests/test_signin.js keeps it equal to the client); the monthly hero is pool[(year*12+month0) % length], as monthlyHeroKey() does. */
+const SIGNIN_HERO_POOL=['tick','sylthaine','bloatus','vireo','fritz','umbris','vael','oakmir','rhukk','meridian','gruel','astra','magistrant','korvux','maren','lumi','veyr','velvetplum','pellucid','orryn','kilnmask','ironcoil','greatbrow','deepcleft','chainwheel','cardwraith','cacklefang','kharos','zahri','vaelora','silkcoil','nox','nerisse','lysara','calypsa','threadseer','rivet','carn','vesper','tessit','vex','grimsby','dandra','pyroclast','stormwarden','verdantshade','voidweaver','dawnbringer','cathedral','lastfurnace','beekeeper','librarian','corsair','waxenduchess'];
+const SIGNIN_DAILY=[{gold:300},{stamina:60},{gems:20},{gold:400},{gold:600},{gems:30}];
+function signinCalendarDay(now){ const t=now-9*3600000, g={}; for(const pt of _etFmt.formatToParts(new Date(t))) g[pt.type]=pt.value;
+  const y=+g.year, m0=+g.month-1, day=+g.day, dow=new Date(Date.UTC(y,m0,day)).getUTCDay(), dim=new Date(Date.UTC(y,m0+1,0)).getUTCDate();
+  return {y,m0,day,dow,dim}; }
+function signinReward(c){ if(c.dow===6){ const hero=SIGNIN_HERO_POOL[(c.y*12+c.m0)%SIGNIN_HERO_POOL.length]; return {frag:(c.day+7>c.dim)?15:5, hero}; }
+  return SIGNIN_DAILY[(c.day-1)%SIGNIN_DAILY.length]; }
 function parseSaveOf(u){ try{ return (u.roster&&typeof u.roster.__save==='string')?JSON.parse(u.roster.__save):{}; }catch(e){ return {}; } }
 // glyph v2 flat stat bridge for the sim (same mapping the client uses)
 function glyphFlatStats(u,key){
@@ -3444,6 +3453,7 @@ function ledgerView(u){ const led=ensureLedger(u); ledStamRegen(led); if(ledPlay
     hero:led.hero, unlocked:led.unlocked, frags:led.frags, xpPotions:led.xpPotions||{}, xpPotionUsed:led.xpPotionUsed||{}, tutVexXpBase:led.tutVexXpBase|0, eqMats:led.eqMats||{},   // v273: materials are ledger-owned
     skill:led.skill||{}, temple:templeClientState(led),
     camp:{cleared:led.camp.cleared, stars:led.camp.stars}, starClaimed:(led.starClaimed==null?null:led.starClaimed|0),
+    signin:(led.signin?{month:led.signin.month,claimed:(led.signin.claimed||[]).slice()}:null),
     prov:(function(){ try{ return provLedgerView(u,led); }catch(e){ return null; } })(),   /* v663: Training Province stage + plays */
     portals:(function(){ const o={}; for(const m of PORTAL_MODES){ const pr=portalProg(led,m);
       o[m]={ cleared:pr.cleared|0, stars:pr.stars||{}, locked:portalLocked(led,m) }; } return o; })(),
@@ -3471,13 +3481,13 @@ function ledgerView(u){ const led=ensureLedger(u); ledStamRegen(led); if(ledPlay
    reported to the dev panel (see gemGain) for a human to judge. `day` is a high backstop against a
    runaway loop, not a design limit. */
 const EARN_RULES={
-  frag:{ arena:{max:10,day:60}, signin:{max:20,day:40} },   /* 3 Oct Market audit #1: 'stars' removed from every currency - the star track pays through /api/stars/claim */
-  stamina:{ signin:{max:120,day:240}, guildshop:{max:200,day:1000}, arenashop:{max:200,day:2000}, pack:{max:120,day:120} },   /* 30 Sep hardening: a real daily stamina pack pays 120 once a day */
-  gems:{ signin:{max:200,day:2000},   /* 3 Oct audit (P0): tower + gauntlet removed - the client chose the amount; the Tower now pays through /api/tower/*, the Gauntlet is retired (no caller) */
+  frag:{ arena:{max:10,day:60} },   /* 3 Oct Market audit #1: 'signin' removed - the daily sign-in pays through /api/signin/claim */   /* 3 Oct Market audit #1: 'stars' removed from every currency - the star track pays through /api/stars/claim */
+  stamina:{ guildshop:{max:200,day:1000}, arenashop:{max:200,day:2000}, pack:{max:120,day:120} },   /* 30 Sep hardening: a real daily stamina pack pays 120 once a day */
+  gems:{   /* 3 Oct audit (P0): tower + gauntlet removed - the client chose the amount; the Tower now pays through /api/tower/*, the Gauntlet is retired (no caller) */
          guildshop:{max:500,day:5000}, city:{max:300,day:3000},
          quest:{max:500,day:4000},   /* 3 Oct Market audit #1: convert removed - the War Chest is a server purchase (/api/shop/buy warchest) */
          pack:{max:150,day:150}, arenashop:{max:40,day:800} },   /* 30 Sep hardening: pack was 20,000/60,000 a day (a real pack pays 150 once a day); wish + misc removed - the client never sends them */
-  gold:{ guildshop:{max:50000,day:300000}, signin:{max:20000,day:200000},   /* 3 Oct audit (P0): tower + gauntlet removed (see gems) */
+  gold:{ guildshop:{max:50000,day:300000},   /* 3 Oct audit (P0): tower + gauntlet removed (see gems) */
          city:{max:100000,day:1000000},
          quest:{max:100000,day:1000000},   /* 3 Oct: convert removed (see gems) */   /* 30 Sep hardening: gold wish + misc removed (never sent by the client) */
          march:{max:1200,day:20000}, arenashop:{max:5000,day:100000} },
@@ -5587,6 +5597,28 @@ async function api(req,res,url){
      (led.camp.stars), keeps the claimed count (led.starClaimed - seeded once from the save's starMilestonesClaimed so nothing is paid twice)
      and pays the same ladder: tier = floor(idx/4)+1; cycle gold 2000*tier, stamina 60*tier, diamonds 100*tier, 5*tier hero fragments
      (random locked heroes, never the purchase/arena ones). */
+  /* 3 Oct 2026 Market audit #1 (P0): THE DAILY SIGN-IN IS SERVER-OWNED. The calendar used to live on the device (signinNow/G.signinClaimed)
+     and the client posted the reward to /api/tx/earn ('signin', up to 2,000 diamonds a day for anyone). Same calendar here, from the
+     server clock: the day is New York time shifted by 9 h (the 09:00 reset), the month's claimed days live on the ledger (led.signin,
+     seeded once from the save), the reward is the same ladder - Saturdays pay 5 (15 on the month's last Saturday) fragments of the
+     monthly hero, other days cycle 300 gold / 60 stamina / 20 diamonds / 400 gold / 600 gold / 30 diamonds by day of month. */
+  if(p==='/api/signin/claim' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
+    const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
+    const out=durableCommit(me,me.id+':signin:'+reqId,(me)=>{ const led=ensureLedger(me);
+      const c=signinCalendarDay(Date.now()), mk=c.y+'-'+(c.m0+1);
+      if(!led.signin){ const sv=parseSaveOf(me); led.signin={month:mk,claimed:(sv.signinMonth===mk&&Array.isArray(sv.signinClaimed))?sv.signinClaimed.map(x=>x|0).filter(x=>x>=1&&x<=31).slice(0,31):[]}; }
+      if(led.signin.month!==mk) led.signin={month:mk,claimed:[]};
+      if(led.signin.claimed.includes(c.day)) return {ok:false,error:'Already signed in today — back at 09:00.',ledger:ledgerView(me)};
+      const rw=signinReward(c), got={};
+      if(rw.frag){ creditFrags(me,led,rw.hero,rw.frag,'signin:'+mk+':'+c.day); got.frags={[rw.hero]:rw.frag}; }
+      else if(rw.gold){ creditGold(me,led,rw.gold,'signin:'+mk+':'+c.day); got.gold=rw.gold; }
+      else if(rw.stamina){ creditStamina(me,led,rw.stamina,'signin:'+mk+':'+c.day); got.stamina=rw.stamina; }
+      else if(rw.gems){ creditGems(me,led,rw.gems,'signin:'+mk+':'+c.day); got.gems=rw.gems; }
+      led.signin.claimed.push(c.day);
+      ledTx(me,'signin:'+mk+':'+c.day,got);
+      writeDB(); return {ok:true, day:c.day, month:mk, got, ledger:ledgerView(me)};
+    });
+    return send(res,out.storageFailed?503:(out.ok===false?400:200),out); }
   if(p==='/api/stars/claim' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
     const out=durableCommit(me,me.id+':stars:'+reqId,(me)=>{ const led=ensureLedger(me);
