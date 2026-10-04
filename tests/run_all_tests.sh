@@ -133,6 +133,8 @@ note "test_guild_shop.js (3 Oct Market audit #1: guild shop currency items are s
 node tests/test_guild_shop.js || FAILED=1
 note "test_arena_guild_harden.js (3 Oct Arena+Guild audits: elite route retired, sweep dedupe, raid replay-or-nothing, contribute at max, arena level 10)"
 node tests/test_arena_guild_harden.js || FAILED=1
+note "test_proto_keys.js (4 Oct City Wall audit #1/#3: prototype-named request values refused before any route; /api/daily retired)"
+node tests/test_proto_keys.js || FAILED=1
 note "test_watch_report_rate.js (3 Oct Guild audit #7: an unchanged watch report does not save; 12 changed a minute)"
 node tests/test_watch_report_rate.js || FAILED=1
 note "test_raid_durable.js (3 Oct Guild audit #2: the raid result saves the reward and the guild together, 503 on a failed save)"

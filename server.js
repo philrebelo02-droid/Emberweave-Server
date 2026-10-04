@@ -126,7 +126,7 @@ function readDB(){ try{ DB = JSON.parse(fs.readFileSync(DB_FILE,'utf8')); }catch
    DB.idem receipts are LEFT AS WRITTEN on purpose: they expire within 24 h, a stored receipt belongs to the
    request that wrote it (a stale client's retry must replay the exact old-key response it committed), and
    rewriting them would rewrite payment proofs. */
-const HERO_ID_RENAME={tallow:'gruel',vharn:'korvux',fathom:'maren',sprocket:'rivet',sablewick:'tessit',arrears:'grimsby',meryln:'dandra'};
+const HERO_ID_RENAME=Object.assign(Object.create(null),{tallow:'gruel',vharn:'korvux',fathom:'maren',sprocket:'rivet',sablewick:'tessit',arrears:'grimsby',meryln:'dandra'});   /* v986: no prototype - HERO_ID_RENAME['__proto__'] was Object.prototype */
 function _renameIdKeysDeep(o){
   if(!o||typeof o!=='object')return false;
   let ch=false;
@@ -208,10 +208,23 @@ function send(res, code, obj){ const b=JSON.stringify(obj); res.writeHead(code,c
 // api() dispatcher turns into a 413. Default cap is small; /api/save passes a larger one for cloud saves.
 const BODY_MAX = +(process.env.BODY_MAX || 65536);        // 64 KB default for ordinary API calls
 const BODY_MAX_SAVE = +(process.env.BODY_MAX_SAVE || 4*1024*1024);  // 4 MB for the whole-roster cloud save
+/* v986 (4 Oct City Wall audit #1, P0): a request value or key equal to an Object.prototype name ('__proto__', 'constructor',
+   'toString', ...) reaches plain-object lookups like led.unlocked[k] / led.hero[k] as truthy and can write onto
+   Object.prototype for the whole process. Fix the class: such a request is refused before any route runs. */
+const PROTO_NAMES=new Set(Object.getOwnPropertyNames(Object.prototype));
+function hasProtoName(v,depth){ let n=0; const walk=(x,d)=>{ if(++n>20000||d>12) return false;
+    if(typeof x==='string') return PROTO_NAMES.has(x);
+    if(Array.isArray(x)){ for(const y of x) if(walk(y,d+1)) return true; return false; }
+    if(x&&typeof x==='object'){ for(const k of Object.keys(x)){ if(PROTO_NAMES.has(k)||walk(x[k],d+1)) return true; } }
+    return false; };
+  return walk(v,depth|0); }
 function body(req, max){ max = max || BODY_MAX; return new Promise((resolve,reject)=>{
   let d='', len=0, done=false;
   req.on('data',c=>{ if(done) return; len+=c.length; if(len>max){ done=true; try{req.pause();}catch(_){} const e=new Error('body too large'); e.code='BODY_TOO_LARGE'; reject(e); return; } d+=c; });
-  req.on('end',()=>{ if(done) return; done=true; try{ const p=JSON.parse(d||'{}'); _renameIdKeysDeep(p); resolve(p); }catch(e){resolve({});} });
+  req.on('end',()=>{ if(done) return; done=true; let p; try{ p=JSON.parse(d||'{}'); }catch(e){ resolve({}); return; }
+    if(hasProtoName(p)){ const e=new Error('bad request value'); e.code='BAD_PROTO_NAME'; reject(e); return; }   /* v986: checked BEFORE the id rename, whose map lookup turned '__proto__' into Object.prototype */
+    try{ _renameIdKeysDeep(p); }catch(e){ resolve({}); return; }
+    resolve(p); });
   req.on('error',()=>{ if(!done){ done=true; resolve({}); } });
 }); }
 function authUser(req){ const id=lookupToken(req.headers['x-token']); return id?DB.users[id]:null; }
@@ -5160,7 +5173,7 @@ async function api(req,res,url){
     if(p==='/api/glyphs/slot-options'){ // GET: server-derived legal blueprints for one empty slot
       glyphMigrate(me); glyphFlowMigrate(me); const g=ensureGlyphs(me);
       const hero=String(url.searchParams.get('heroKey')||'').slice(0,24); const slot=parseInt(url.searchParams.get('slot'),10);
-      if(!SIM.HERO_BASE[hero]) return send(res,400,{error:'Unknown hero.'});
+      if(!validHero(hero)) return send(res,400,{error:'Unknown hero.'});   /* v986 (City Wall audit #16) */
       if(!ensureLedger(me).unlocked[hero]) return send(res,400,{error:'You have not unlocked '+hero+'.'});
       if(!(slot>=0&&slot<6)) return send(res,400,{error:'Bad slot.'});
       const board=glyphBoard(g,hero);
@@ -5180,7 +5193,7 @@ async function api(req,res,url){
     if(p==='/api/glyphs/build-tree'){ // GET: the slot's one glyph as a full canonical ancestry tree
       glyphMigrate(me); glyphFlowMigrate(me); const g=ensureGlyphs(me);
       const hero=String(url.searchParams.get('heroKey')||'').slice(0,24); const slot=parseInt(url.searchParams.get('slot'),10);
-      if(!SIM.HERO_BASE[hero]) return send(res,400,{error:'Unknown hero.'});
+      if(!validHero(hero)) return send(res,400,{error:'Unknown hero.'});   /* v986 (City Wall audit #16) */
       if(!ensureLedger(me).unlocked[hero]) return send(res,400,{error:'You have not unlocked '+hero+'.'});
       if(!(slot>=0&&slot<6)) return send(res,400,{error:'Bad slot.'});
       const board=glyphBoard(g,hero);
@@ -5728,7 +5741,7 @@ async function api(req,res,url){
     const out=idem(me.id+':xp-potion:'+reqId,()=>{
       const led=ensureLedger(me), tier=String(b.tier||''), key=String(b.heroKey||'');
       if(!XP_POTION_BASE[tier])return {ok:false,error:'Unknown potion.'};
-      if(!led.unlocked[key]||!SIM.HERO_BASE[key])return {ok:false,error:'Own the hero first.'};
+      if(!validHero(key)||!Object.prototype.hasOwnProperty.call(led.unlocked,key)||!led.unlocked[key])return {ok:false,error:'Own the hero first.'};   /* v986 */
       led.xpPotions=led.xpPotions||{};
       if((led.xpPotions[tier]|0)<1)return {ok:false,error:'No '+tier+' potions left.'};
       const hero=led.hero[key], before=ledHeroLevel(led,key);
@@ -5852,7 +5865,7 @@ async function api(req,res,url){
     const out=idem(me.id+':skillup:'+reqId,()=>{
       const led=ensureLedger(me);
       const key=String(b.key||''); const idx=b.idx|0;
-      if(!SIM.HERO_BASE[key]) return {ok:false,error:'Unknown hero.'};
+      if(!validHero(key)) return {ok:false,error:'Unknown hero.'};   /* v986 */
       if(idx<0||idx>3) return {ok:false,error:'Unknown skill.'};
       if(!led.unlocked[key]) return {ok:false,error:'You have not unlocked that hero.'};
       const arr=ledSkillArr(led,key); const lv=Math.max(1,arr[idx]|0);
@@ -6747,7 +6760,7 @@ async function api(req,res,url){
     if(req.method!=='POST') return send(res,404,{error:'academy'});
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
     if(p==='/api/academy/research'){ const out=idem(me.id+':acad:'+reqId,()=>{
-        const track=String(b.track||''); if(!(track in A.lv)) return {ok:false,error:'Unknown research track.'};
+        const track=String(b.track||''); if(!ACAD_TRACKS.includes(track)||!(track in A.lv)) return {ok:false,error:'Unknown research track.'};   /* v986 (Temple+Academy audit #5) */
         const lvl=A.lv[track]|0;
         if(lvl>=acadTrackMax(track)) return {ok:false,error:'Fully researched.'};
         if(track!=='academy' && lvl>=(A.lv.academy|0)) return {ok:false,error:'The Academy must be upgraded first.'};
@@ -7300,7 +7313,10 @@ async function api(req,res,url){
     const entries=all.slice(offset,offset+limit).map((u,i)=>({ pos:offset+i+1, rank:u.rank, name:u.name, isNpc:!!u.isNpc, power:serverTeamPower(u.team, u), you:u.id===me.id }));
     return send(res,200,{ entries, total, youIndex, youRank:me.rank, offset, limit }); }
 
-  if(p==='/api/daily' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'}); const now=Date.now();
+  /* v986 (4 Oct City Wall audit #3, P0): /api/daily is RETIRED - no client calls it, and it paid 60-1,000 arena coins, 12 glyph
+     fragments and 3 gear fragments every 20 hours to any account (no requestId, rolling clock, delayed save). */
+  if(p==='/api/daily' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'}); return send(res,410,{ok:false,error:'This daily reward is retired.'}); }
+  if(false){ const now=Date.now();
     if(now-(me.lastDaily||0) < 20*60*60*1000) return send(res,200,{granted:0, coins:me.coins, next:(me.lastDaily+20*60*60*1000)});
     const amt=dailyAmount(me.rank); me.coins+=amt; me.lastDaily=now;
     let glyphFrags=null; if(glyphsEnabledFor(me)&&me.glyphs&&me.glyphs.migratedAt){ glyphFrags=glyphGrantNamedList(me, dailyGlyphFragsFor(nyDayKey())); }   // Correction Spec v1: named, NY-day-deterministic rotation up to Blue
@@ -7886,10 +7902,12 @@ const server=http.createServer((req,res)=>{
   _corsReqOrigin=String(req.headers.origin||'');
   const url=new URL(req.url,'http://x');
   const p=url.pathname;
+  if(p.startsWith('/api/')){ for(const [qk,qv] of url.searchParams){ if(PROTO_NAMES.has(qk)||PROTO_NAMES.has(qv)) return send(res,400,{ok:false,error:'Invalid request.'}); } }   /* v986: the same rule for query values */
   if(p.startsWith('/api/')) return api(req,res,url).catch(err=>{
     if(res.headersSent) return;
     if(err && err.code==='WORLD_STORAGE_FAILURE')return send(res,503,{ok:false,storageFailed:true,error:err.message});
     if(err && err.code==='BODY_TOO_LARGE'){ send(res,413,{error:'Request too large.'}); try{req.destroy();}catch(_){} return; }
+    if(err && err.code==='BAD_PROTO_NAME') return send(res,400,{ok:false,error:'Invalid request.'});   /* v986 */
     console.error('⚠ api error:', err && err.message); return send(res,500,{error:'server error'}); });
   if(p==='/health'){ res.writeHead(200);res.end('ok');return; }
   if(p==='/sw.js') return serveFile(res,'sw.js','application/javascript');
