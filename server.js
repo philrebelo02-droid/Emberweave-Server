@@ -6357,7 +6357,7 @@ async function api(req,res,url){
       const tier=lvl>=10?{cost:100,chance:0.10}:lvl>=5?{cost:70,chance:0.20}:{cost:50,chance:0.30};
       if((led.frags[k]|0)<tier.cost) return {ok:false,error:'Need '+tier.cost+' fragments.'};
       led.frags[k]-=tier.cost;
-      const success=Math.random()<tier.chance;   // SERVER roll — persisted with the idempotency record
+      const success=srvRoll('refine',me.id,reqId)<tier.chance;   // SERVER roll (v993: HMAC-seeded per request so it can be re-derived for an audit; same odds) — persisted with the idempotency record
       if(success) h.ref=lvl+1;
       ledTx(me,'hero:refine:'+k+(success?':up':':miss'),{frags:-tier.cost});
       writeDB(); return {ok:true, success, level:h.ref|0, frags:led.frags[k]|0, ledger:ledgerView(me)};
@@ -6720,18 +6720,8 @@ async function api(req,res,url){
         ledTx(me,'quest:'+id,got);
         writeDB(); return {ok:true, id, got, ledger:ledgerView(me)};
       }); return send(res, out.storageFailed?503:(out.ok===false?400:200), out); }
-    if(p==='/api/quest/chain-claim'){ const out=idem(me.id+':qchain:'+reqId,()=>{
-        led.quests=led.quests||{claimed:{},chainStep:0};
-        const steps=questChainStepsSrv(); const st=steps[led.quests.chainStep|0];
-        if(!st) return {ok:false,error:'Chain complete.'};
-        if((led.camp.cleared|0)<st.node) return {ok:false,error:'Clear stage '+st.node+' first.'};
-        led.quests.chainStep=(led.quests.chainStep|0)+1;
-        const got={};
-        if(st.frags){ creditFrags(me,led,'vex',st.frags,'quest-chain:'+st.node); got.vexFrags=st.frags; }
-        if(st.gems){ creditGems(me,led,st.gems,'quest-chain:'+st.node); got.gems=st.gems; }
-        ledTx(me,'quest-chain:'+st.node,got);
-        writeDB(); return {ok:true, step:led.quests.chainStep, got, ledger:ledgerView(me)};
-      }); return send(res, out.ok===false?400:200, out); }
+    /* v993 (City Wall audit #18): the second /api/quest/chain-claim branch that stood here could never run - the route returns
+       from questChainDurable() above. Removed. */
     if(p==='/api/market/frag'){ const out=durableCommit(me,me.id+':mfrag:'+reqId,(me)=>{ const led=ensureLedger(me);
         const hk=String(b.heroKey||''); if(!validHero(hk)) return {ok:false,error:'Unknown hero.'};
         if(heroNotSold(hk)) return {ok:false,error:'That hero\'s fragments are not sold in the Market.'};   /* 3 Oct Market audit #2 */

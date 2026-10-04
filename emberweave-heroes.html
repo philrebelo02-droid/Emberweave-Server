@@ -19833,11 +19833,15 @@ function openRankings(){
   const listEl=ov.querySelector('#rkList'), totalEl=ov.querySelector('#rkTotal');
   if(!ACC.token){ const lb=arenaLeaderboard(); totalEl.textContent='· offline (top 100)'; listEl.innerHTML=lb.map(_rkRow).join(''); return; }
   let loaded=[], total=0, nextOffset=0, loading=false, done=false, mode='page';
+  /* v993 (City Wall audit #13): a loading row before the first page, and an error row with Retry when a request fails (it stayed blank) */
+  listEl.innerHTML='<div style="text-align:center;padding:14px;color:#8b98a9;font-size:12px">Loading…</div>';
+  const rkFail=(retry)=>{ listEl.innerHTML=(loaded.length?loaded.map(_rkRow).join(''):'')+'<div style="text-align:center;padding:12px;color:#ff9a9a;font-size:12px">Could not load the rankings. <button class="btn sm" id="rkRetry">Retry</button></div>';
+    const rb=listEl.querySelector('#rkRetry'); if(rb) rb.onclick=()=>{ listEl.innerHTML='<div style="text-align:center;padding:14px;color:#8b98a9;font-size:12px">Loading…</div>'; retry(); }; };
   const render=()=>{ listEl.innerHTML = loaded.length? loaded.map(_rkRow).join('') + ((mode==='page'&&!done)?'<div style="text-align:center;padding:10px;color:#8b98a9;font-size:11px">Loading more…</div>':'') : '<div style="text-align:center;padding:20px;color:#8b98a9">No players found.</div>'; };
-  async function loadMore(){ if(loading||done||mode!=='page')return; loading=true; const d=await api('/api/arena/ladder?offset='+nextOffset+'&limit=100'); loading=false; if(!d||d.error||!d.entries)return; total=d.total; totalEl.textContent='· '+total.toLocaleString()+' players'; loaded=loaded.concat(d.entries); nextOffset+=d.entries.length; if(d.entries.length===0||nextOffset>=total)done=true; render(); }
+  async function loadMore(){ if(loading||done||mode!=='page')return; loading=true; const d=await api('/api/arena/ladder?offset='+nextOffset+'&limit=100'); loading=false; if(!d||d.error||!d.entries){ rkFail(()=>loadMore()); return; } total=d.total; totalEl.textContent='· '+total.toLocaleString()+' players'; loaded=loaded.concat(d.entries); nextOffset+=d.entries.length; if(d.entries.length===0||nextOffset>=total)done=true; render(); }
   listEl.onscroll=()=>{ if(listEl.scrollTop+listEl.clientHeight>=listEl.scrollHeight-60) loadMore(); };
-  async function jumpToMe(){ const probe=await api('/api/arena/ladder?offset=0&limit=1'); if(!probe||probe.error)return; const yi=probe.youIndex; if(yi<0)return; const off=Math.max(0,yi-12); mode='page'; done=false; loaded=[]; nextOffset=off; await loadMore(); const meRow=[...listEl.children].find(c=>/YOU/.test(c.textContent)); if(meRow) meRow.scrollIntoView({block:'center'}); }
-  async function doSearch(q){ q=(q||'').trim(); if(!q){ mode='page'; loaded=[]; nextOffset=0; done=false; render(); loadMore(); return; } const d=await api('/api/arena/ladder?q='+encodeURIComponent(q)); if(!d||d.error)return; mode='search'; done=true; total=d.total; loaded=d.entries||[]; totalEl.textContent='· '+(loaded.length)+' match'+(loaded.length===1?'':'es'); render(); }
+  async function jumpToMe(){ const probe=await api('/api/arena/ladder?offset=0&limit=1'); if(!probe||probe.error){ rkFail(jumpToMe); return; } const yi=probe.youIndex; if(yi<0)return; const off=Math.max(0,yi-12); mode='page'; done=false; loaded=[]; nextOffset=off; await loadMore(); const meRow=[...listEl.children].find(c=>/YOU/.test(c.textContent)); if(meRow) meRow.scrollIntoView({block:'center'}); }
+  async function doSearch(q){ q=(q||'').trim(); if(!q){ mode='page'; loaded=[]; nextOffset=0; done=false; render(); loadMore(); return; } const d=await api('/api/arena/ladder?q='+encodeURIComponent(q)); if(!d||d.error){ rkFail(()=>doSearch(q)); return; } mode='search'; done=true; total=d.total; loaded=d.entries||[]; totalEl.textContent='· '+(loaded.length)+' match'+(loaded.length===1?'':'es'); render(); }
   ov.querySelector('#rkGo').onclick=()=>doSearch(ov.querySelector('#rkSearch').value);
   ov.querySelector('#rkSearch').onkeydown=(e)=>{ if(e.key==='Enter')doSearch(e.target.value); };
   ov.querySelector('#rkMe').onclick=jumpToMe;
@@ -22247,8 +22251,7 @@ function openStarsPanel(key){ const t=HERO_TYPES[key]; if(!t) return;
       ? `<div style="background:#0f1420;border-radius:10px;padding:11px;margin-bottom:10px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><b style="font-size:12px">Star Up</b><span style="font-size:11px;color:#8b98a9">Star ${st}/${MAX_STARS} · ${pips}/${STAR_PIPS}${conf?' — ready':''}</span></div>
           <div style="font-size:11px;color:#8b98a9;margin-bottom:8px">${fIcon} Fragments: <b style="color:#c9a2ff">${frags}</b> · next ${conf?'<b style="color:#ffd45e">confirm</b>':'pip'} costs <b>${ncost}</b></div>
-          <button class="btn" id="spStar" style="width:100%${conf&&canStar?';background:#ffcf40;color:#1a1206':''}" ${canStar?'':'disabled'}>${conf?'★ Confirm Star Up ('+ncost+' frag)':'Fill pip ('+ncost+' frag)'}</button>
-          <div style="font-size:10px;color:#6f7d90;margin-top:6px">Fill 5 pips, then confirm to raise the star. Earn fragments from Elite stages, market &amp; quests.</div></div>`
+          <button class="btn" id="spStar" style="width:100%${conf&&canStar?';background:#ffcf40;color:#1a1206':''}" ${canStar?'':'disabled'}>${conf?'★ Confirm Star Up ('+ncost+' frag)':'Fill pip ('+ncost+' frag)'}</button></div>`   /* v993 (City Wall audit #12): instruction prose removed - the pips and the button say it */
       : `<div style="background:#0f1420;border-radius:10px;padding:10px;margin-bottom:10px;text-align:center"><span style="color:#ffd45e;font-weight:800">★ 5 STARS — MAX ★</span></div>`;
     let refineBlock='';
     if(st<MAX_STARS){ refineBlock=`<div style="font-size:11px;color:#6f7d90;text-align:center;padding:8px">Reach ★ 5 stars to unlock Refine.</div>`; }
@@ -22261,7 +22264,7 @@ function openStarsPanel(key){ const t=HERO_TYPES[key]; if(!t) return;
         <div style="font-size:11px;color:#cdd6e4;line-height:1.6;margin-bottom:10px">
           Cost per attempt: <b style="color:#c9a2ff">${fIcon} ${T.cost} ${escapeHTML(t.name)} fragments</b><br>
           Success: <b style="color:#5ee89b">${sucPct}%</b> · <b style="color:#ff8b8b">${failPct}% fail</b><br>
-          <span style="color:#8b98a9">You have ${fIcon} <b>${frags}</b> fragments. They're spent even on a failure.</span></div>
+          <span style="color:#8b98a9">You have ${fIcon} <b>${frags}</b> fragments.</span></div>
         <button class="btn" id="spRefine" style="width:100%;${afford?'background:'+T.col+';color:#1a1206':''}" ${afford?'':'disabled'}>⚒ Refine (${T.cost} frags)</button></div>`; }
     ov.innerHTML=`<div style="background:#141b2b;border:1px solid #3a4a6e;border-radius:16px 0 0 16px;padding:18px 16px;width:min(380px,94vw);height:100vh;max-height:100vh;overflow:auto;box-shadow:-18px 0 55px rgba(0,0,0,.6)">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-weight:800;font-size:15px">⭐ ${escapeHTML(t.name)} · Stars</div><button class="btn sm secondary" id="spX">✕</button></div>
@@ -22712,7 +22715,7 @@ function renderHeroDetail(){
            <div style="font-size:10px;color:#8b98a9;margin-top:7px">Unlocks ${escapeHTML(t.name)} at ${heroStartStars(key)}★ · spends ${smNeed} fragments</div>`
         : `<div style="font-size:14px;font-weight:800;color:${myth?'#ffcf40':'#c9a2ff'};margin-bottom:8px">🧩 ${smFrags} / ${smNeed} fragments</div>
            <div style="height:11px;background:#1a2030;border-radius:6px;overflow:hidden"><div style="height:100%;width:${smPct}%;background:linear-gradient(90deg,#8a7bff,#c9a2ff);transition:width .3s"></div></div>
-           <div style="font-size:10px;color:#6f7d90;margin-top:7px">Collect ${smNeed} ${escapeHTML(t.name)} fragments to summon at ${heroStartStars(key)}★.${myth?' Mythical — also a rare 1% Diamond wish.':''}</div>`}
+           <div style="font-size:10px;color:#6f7d90;margin-top:7px">🧩 ${smNeed} → ${heroStartStars(key)}★${myth?' · 1% Diamond wish':''}</div>`}
     </div>` : '';
   body.innerHTML=`${summonBar}<div class="hd-wrap">${left}${right}</div>`;
   { const sm=body.querySelector('#hdSummon'); if(sm) sm.onclick=async()=>{ sm.disabled=true;
@@ -22777,8 +22780,7 @@ function renderBag(){
   // legacy glyph collection stripped 26 Aug — Glyph v2 fragments/glyphs live on each hero's Glyphs tab (server account)
   const st=(typeof RUNE2!=='undefined')&&RUNE2.st;
   const frags=st?Object.entries(st.fragments||{}).filter(([k,n])=>n>0).sort():[];
-  b.innerHTML=`<div style="font-weight:700;margin-bottom:6px">📖 Hero XP Potions</div><div class="panel" style="margin-bottom:12px;font-size:11px">${XP_POTION_LABELS.map(([id,name,xp])=>`<div style="display:flex;justify-content:space-between;padding:4px 0"><span>${name} · ${xp.toLocaleString()} hero XP</span><b>×${(G.xpPotions||{})[id]|0}</b></div>`).join('')}<div style="color:#8b98a9;margin-top:6px">Choose an owned hero, then use a potion on their Stats card.</div></div><div style="font-weight:700;margin-bottom:6px">🔮 Glyph Fragments</div>
-    <div style="font-size:11px;color:#8b98a9;margin-bottom:10px">Glyphs are built directly into a hero's board and locked forever — <b>Heroes → hero → Glyphs tab</b>. Named fragments drop from campaign stages, The Vault, the Daily and Arena wins.</div>
+  b.innerHTML=`<div style="font-weight:700;margin-bottom:6px">📖 Hero XP Potions</div><div class="panel" style="margin-bottom:12px;font-size:11px">${XP_POTION_LABELS.map(([id,name,xp])=>`<div style="display:flex;justify-content:space-between;padding:4px 0"><span>${name} · ${xp.toLocaleString()} hero XP</span><b>×${(G.xpPotions||{})[id]|0}</b></div>`).join('')}</div><div style="font-weight:700;margin-bottom:6px">🔮 Glyph Fragments</div>
     ${st?`<div class="panel" style="margin-bottom:10px">
       ${frags.length?`<div style="display:flex;flex-wrap:wrap;gap:4px">${frags.map(([k,n])=>`<span class="pill" style="font-size:9px">${k} ×${n}</span>`).join('')}</div>`:'<div style="font-size:10px;color:#6f7d90">No glyph fragments yet.</div>'}
     </div>`:'<div class="panel" style="font-size:11px;color:#6f7d90;margin-bottom:10px">Sign in to see your glyph fragments.</div>'}
@@ -23028,7 +23030,7 @@ function renderWishing(){ applySceneBg('wishing',WISHPOOL_BG); const b=document.
   const m10=b.querySelector('#wpGem10'); if(m10)m10.onclick=wishGem10; }
 /* ============================ QUESTS ============================ */
 // Starter quest chain over the campaign:
-//   clear 1-1 → 3 Grohm frags, 1-2 → 3 Grohm frags, 1-3 → 4 Grohm frags,
+//   clear 1-1 → 2 Vex frags, 1-2 → 2, 1-3 → 3, 1-4 → 3 (v993: comment matched to the code),
 //   then every 3 stages cleared (1-6, 1-9, ...) → 20 diamonds.
 function questChainDef(){ const steps=[{node:1,frags:2},{node:2,frags:2},{node:3,frags:3},{node:4,frags:3}];   // Phil 26 Aug: Vex frags 2/2/3/3 on 1-1..1-4
   for(let n=6;n<=CAMPAIGN_PLAYABLE;n+=3) steps.push({node:n,gems:20});
@@ -23040,7 +23042,12 @@ function questChainDone(){ return (G.questChainStep||0)>=questChainDef().length;
 function questChainReady(){ const steps=questChainDef(); const step=G.questChainStep||0; if(step>=steps.length) return false; return (G.campaignCleared||0)>=steps[step].node; }
 // one-off quests: progress computed live from game state
 function ownedHeroCount(){ return HERO_KEYS.filter(k=>G.unlocked[k]).length; }
-function questDefs(){
+/* v993 (4 Oct City Wall audit #9): signed in, a quest is ready when the SERVER says so (/api/quest/state `ready`) - the local
+   counters (questArena, wishClicks, nameChanged) start at zero on a new device and the server refused what they offered. */
+function questDefs(){ const list=questDefsLocal(); const R=(ACC.token&&G.questReadySrv&&typeof G.questReadySrv==='object')?G.questReadySrv:null;
+  if(R) for(const q of list){ if(Object.prototype.hasOwnProperty.call(R,q.id)){ q.ready=!!R[q.id]; if(q.ready) q.prog=q.goal; } }
+  return list; }
+function questDefsLocal(){
   return [
     { id:'q_arena', title:'First Blood', desc:'Attack an opponent in the Arena.',
       prog:Math.min(1,G.questArena||0), goal:1, reward:'🪙 50 gold', ready:(G.questArena||0)>=1,
@@ -23073,6 +23080,7 @@ function questStateSync(force){
       const claimed={}; Object.keys(sr.claimed||{}).forEach(function(id){ claimed[id]=true; });
       G.questClaimed=claimed;
       G.questChainStep=Math.max(0,sr.chainStep|0);
+      G.questReadySrv=(sr.ready&&typeof sr.ready==='object')?sr.ready:null;   // v993: the server's view of each quest's condition
       _questStateReady=true; _questStateAt=Date.now(); saveGLocalOnly();
       updateMailBadges();
       return sr;
@@ -23150,7 +23158,7 @@ function renderQuests(){ const b=document.getElementById('questBody'); if(!b)ret
   const questHtml=cards.map(c=>{ let h=''; if(c.ready!==prevReady){h+=`<div style="font-size:12px;font-weight:800;color:${c.ready?'#ffd45e':'#aab7c9'};margin:14px 0 7px">${c.ready?'🎁 Rewards ready':'📍 Quests in progress'}</div>`;prevReady=c.ready;prevGroup=null;}
     if(c.group!==prevGroup){h+=`<div style="font-size:12px;font-weight:900;color:#e5d4a5;margin:7px 0">${c.group}</div>`;prevGroup=c.group;}
     return h+c.html;}).join('');
-  b.innerHTML = questHtml || '<div style="text-align:center;color:#6f7d90;padding:30px 12px">🎉 All quests complete! New quests will appear here as you play.</div>';
+  b.innerHTML = questHtml || '<div style="text-align:center;color:#6f7d90;padding:30px 12px">All quests complete.</div>';
   const cc=b.querySelector('#qcClaim'); if(cc)cc.onclick=claimChain;
   b.querySelectorAll('button[data-q]').forEach(btn=>btn.onclick=()=>{ const q=questDefs().find(x=>x.id===btn.dataset.q); if(q)claimQuest(q); });
   b.querySelectorAll('button[data-pack]').forEach(btn=>btn.onclick=()=>claimDailyPack(btn.dataset.pack));
@@ -25777,7 +25785,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791096493306';
+const BUILD_ID = '1791097187126';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
