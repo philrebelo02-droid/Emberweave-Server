@@ -42,7 +42,9 @@ async function editDB(fn){ await delay(400); await stop(); const db=disk(); fn(d
   // Arena at level 14
   const self=await call('/api/arena/result',{oppId:id,won:true,requestId:'ar-self'});
   ok(self.data.ok===false&&/Unknown opponent/.test(self.data.error||''),'fighting yourself is refused ('+(self.data.error||JSON.stringify(self.data).slice(0,80))+')');
-  const ar2=await call('/api/arena/result',{oppId,won:true,requestId:'ar-l14'});
+  const ar2=await call('/api/arena/result',{oppId,won:true,requestId:'ar-l14',def:{seed:7,mineSnap:[{key:'vael'}],foe:[{key:'vael'}],atkName:'Impostor'}});
+  { const rep=await call('/api/arena/reports',null,g2.data.token); const d0=(rep.data.defenses||[])[0]||{};   /* v996 (Arena audit #12) */
+    ok(d0.atkName&&d0.atkName!=='Impostor'&&d0.atkName===g.data.profile.name,"the defender's report names the real attacker ("+d0.atkName+' / '+g.data.profile.name+')'); }
   ok(ar2.data.authoritative===true,'a level-14 arena fight against another player is resolved ('+JSON.stringify(ar2.data).slice(0,80)+')');
   const dc2=await call('/api/arena/daily-claim',{requestId:'dc-l14'});
   ok(dc2.data.ok===true,'arena daily claim pays at level 14 ('+(dc2.data.error||'ok')+')');

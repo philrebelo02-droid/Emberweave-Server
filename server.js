@@ -5235,6 +5235,8 @@ async function api(req,res,url){
       try{ pgSave(); }catch(e){} return send(res,200,obj); };
     if(p==='/api/glyphs/build-in-slot'){ const rid0=String(b.requestId||'').slice(0,48);
       if(rid0 && g.applied && g.applied[rid0]) return send(res,200,g.applied[rid0]); }   // idempotent retry beats the STALE check
+    if(p==='/api/glyphs/ascend'){ const rid0=String(b.requestId||'').slice(0,48);   /* v996 (City Wall audit #15): a lost reply's retry gets the original result, not STALE */
+      if(rid0 && g.applied && g.applied[rid0]) return send(res,200,g.applied[rid0]); }
     if(p==='/api/glyphs/build-all'){ const rid0=String(b.requestId||'').slice(0,48);
       if(rid0 && g.applied && g.applied[rid0]) return send(res,200,g.applied[rid0]); }   // v242: same idempotency rule
     const er=parseInt(b.expectedRevision,10);
@@ -5328,8 +5330,12 @@ async function api(req,res,url){
       const earnedBonus=HERO_ASCENSION_BONUSES.heroes[hero].steps[board.ascensionIndex];
       const fed=board.slots.slice(); board.slots=[null,null,null,null,null,null]; board.ascensionIndex++;
       glyphAudit(g,'ascend',{hero, to:board.ascensionIndex, fed});
-      return ok({ hero, ascensionIndex:board.ascensionIndex, ascended:board.ascended,
-        ascensionBonus:earnedBonus, personalStats:personalAscensionFlatStats(me,hero) });
+      glyphPruneConsumed(g); g.revision++;
+      const receipt={ ok:true, revision:g.revision, hero, ascensionIndex:board.ascensionIndex, ascended:board.ascended,
+        ascensionBonus:earnedBonus, personalStats:personalAscensionFlatStats(me,hero) };
+      const arid=String(b.requestId||'').slice(0,48);   /* v996: optional receipt, kept like build-in-slot's */
+      if(arid){ g.applied=g.applied||{}; g.applied[arid]=receipt; const rids=Object.keys(g.applied); if(rids.length>60) for(const old of rids.slice(0,rids.length-60)) delete g.applied[old]; }
+      return gsend(receipt);
     }
     if(p==='/api/glyphs/grant'){ // dev-only test faucet (optionally targets a named account)
       if(!isDev(me)) return send(res,403,{error:'forbidden'});
@@ -7290,7 +7296,7 @@ async function api(req,res,url){
       if(goldReward>0){ led.earnDay['gold:arena']=aused+goldReward; creditGold(me,led,goldReward,'arena:win'); ledTx(me,'arena:win',{gold:goldReward}); } }
     if(opp && b.def && Array.isArray(b.def.mineSnap) && Array.isArray(b.def.foe) && b.def.mineSnap.length && b.def.foe.length){   // record a watchable DEFENSE report on the opponent (they were attacked). mineSnap=attacker squad, foe=defender squad, won=attacker won (server result).
       opp.arenaDefenses = Array.isArray(opp.arenaDefenses)?opp.arenaDefenses:[];
-      opp.arenaDefenses.unshift({ v:2, seed:(b.def.seed>>>0), mineSnap:b.def.mineSnap.slice(0,6), foe:b.def.foe.slice(0,6), won:won, atkName:String(b.def.atkName||me.name||'A challenger').slice(0,24), t:Date.now() });
+      opp.arenaDefenses.unshift({ v:2, seed:(b.def.seed>>>0), mineSnap:b.def.mineSnap.slice(0,6), foe:b.def.foe.slice(0,6), won:won, atkName:String(me.name||'A challenger').slice(0,24)   /* v996 (Arena audit #12): the attacker's real name - the request could name anyone */, t:Date.now() });
       if(opp.arenaDefenses.length>10) opp.arenaDefenses.length=10; }
     me.qc=me.qc||{}; me.qc.arena=(me.qc.arena|0)+1;   // v250: server-tracked quest counter
     /* v267 (80/20 §9): rank-milestone diamonds are paid HERE, from the server's own rank record —

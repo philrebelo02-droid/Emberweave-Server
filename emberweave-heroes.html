@@ -22321,13 +22321,16 @@ function glyphV2Mul(key){ const out={atk:0,apow:0,armorPen:0,magicPen:0,hp:0,arm
   out.crit=Math.min(60,out.crit); return out; }
 async function g2post(path,payload){ if(RUNE2.busy) return null; RUNE2.busy=true;
   payload=Object.assign({expectedRevision:(RUNE2.st&&RUNE2.st.revision)||1},payload||{});
-  const r=await api(path,'POST',payload); RUNE2.busy=false;
+  let r=await api(path,'POST',payload);
+  /* v996: with a requestId the SAME payload is re-sent on a lost reply / refused save (the server keeps a receipt per id) */
+  if(payload.requestId) for(let t=1;t<3&&r&&(r.error==='offline'||r.storageFailed);t++){ await new Promise(z=>setTimeout(z,1500*t)); r=await api(path,'POST',payload); }
+  RUNE2.busy=false;
   if(r&&r.error==='STALE'){ await glyphV2Sync(); renderHeroDetail(); bannerMsg('Refreshed — try again.'); return null; }
   if(r&&r.error){ bannerMsg(r.error); await glyphV2Sync(); renderHeroDetail(); return null; }
   await glyphV2Sync(); renderHeroDetail(); return r; }
 /* Correction Spec v1: a Glyph is BUILT directly into a chosen slot and locked forever.
    There is no craft tab, no finished-glyph inventory, no socket/unsocket. */
-function g2ascend(){ g2post('/api/glyphs/ascend',{heroKey:detailHero}); }
+function g2ascend(){ g2post('/api/glyphs/ascend',{heroKey:detailHero,requestId:uid8()}); }   // v996 (City Wall audit #15)
 async function g2buildOpen(slot){ if(RUNE2.busy) return;
   RUNE2.build={slot, loading:true, data:null, stack:[], alloc:{}}; renderHeroDetail();
   const r=await api('/api/glyphs/build-tree?heroKey='+encodeURIComponent(detailHero)+'&slot='+slot);
@@ -25785,7 +25788,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791098684888';
+const BUILD_ID = '1791099384828';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
