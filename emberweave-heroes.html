@@ -21173,25 +21173,34 @@ function openMineInfo(m){ closeCityMenu(); const inner=document.getElementById('
     <button class="cm-b" data-a="mine">⛏ Send miners</button>`;
   inner.appendChild(pop); cityMenuEl=pop; pop.addEventListener('click',e=>e.stopPropagation());
   pop.querySelector('[data-a="mine"]').onclick=()=>{ closeCityMenu(); openMineSelect(m); }; }
-// squad picker for a mine (enforces power + level requirement; excludes heroes already marching)
+/* 3 Oct audit (Witches Hut #6): the server refuses a 0%-HP hero for any world march, so the squad pickers read each wounded
+   hero's HP from the Hut and never offer or pre-pick a fallen one. hp is 0-10000 (the Hut's scale); unlisted heroes are full. */
+async function worldHeroHp(){ const hp={}; if(!ACC.token) return hp;
+  try{ const w=await api('/api/witch/state'); if(w&&Array.isArray(w.heroes)) w.heroes.forEach(h=>{ hp[h.key]=h.hp; }); }catch(_e){}
+  return hp; }
+function pickerHpLine(hp,k){ const v=hp[k]; if(v==null) return ''; return v<=0?'HP 0%':' · HP '+Math.floor(v/100)+'%'; }
+// squad picker for a mine (enforces power + level requirement; excludes heroes already marching or at 0% HP)
 function openMineSelect(m){ const reqP=mineReqPower(m.level), reqL=mineReqLevel(m.level);
-  const busy=committedHeroes(), heroes=HERO_KEYS.filter(k=>G.unlocked[k]);
+  const busy=committedHeroes(), heroes=HERO_KEYS.filter(k=>G.unlocked[k]); let hp={};
+  const fallen=k=>hp[k]!=null&&hp[k]<=0, blocked=k=>busy.has(k)||fallen(k);
   const sel=new Set(); G.team.forEach(k=>{ if(G.unlocked[k]&&!busy.has(k)&&sel.size<5) sel.add(k); });
   const ov=document.createElement('div'); ov.style.cssText='position:fixed;inset:0;background:rgba(4,6,10,.75);z-index:12000;display:flex;align-items:center;justify-content:center';
   function render(){ const pow=marchPower([...sel])||0, okP=pow>=reqP, okL=[...sel].some(k=>heroLevel(k)>=reqL), ok=sel.size&&okP&&okL;
     ov.innerHTML=`<div style="background:#141b2b;border:1px solid #2a3550;border-radius:14px;padding:14px;width:94%;max-width:470px;max-height:86vh;overflow:auto">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div style="font-weight:800">⛏ Mine · ${escapeHTML(mineLabel(m))}</div><button class="btn sm secondary" id="mcX">✕</button></div>
       <div style="font-size:11px;color:#8b98a9;margin-bottom:10px">Send up to 5 heroes to mine <b style="color:${mnResColor(m.res)}">${resIconHtml(m.res,15)} ${mineYieldShown(m.res,m.level)} ${escapeHTML(mnResName(m.res))}</b>. They can't defend or march again until they return. Requires squad power <b>${reqP}</b> and a hero of <b>Lv ${reqL}+</b>.</div>
-      <div class="row" style="gap:8px;justify-content:center">${heroes.map(k=>{ const b=busy.has(k), on=sel.has(k);
+      <div class="row" style="gap:8px;justify-content:center">${heroes.map(k=>{ const b=blocked(k), on=sel.has(k);
         return `<div data-k="${k}" class="mc-hero" style="width:78px;text-align:center;cursor:${b?'not-allowed':'pointer'};opacity:${b?.45:1};border:2px solid ${on?'#5ee89b':'#2a3550'};border-radius:10px;padding:5px;background:${on?'#12351f':'#0f1420'}">
-          ${heroIcon(k,50)}<div style="font-size:10px;margin-top:3px">${HERO_TYPES[k].name}</div><div style="font-size:9px;color:${b?'#ff8b8b':(heroLevel(k)>=reqL?'#5ee89b':'#8b98a9')}">${b?'⛓ marching':'Lv '+heroLevel(k)}</div></div>`; }).join('')}</div>
+          ${heroIcon(k,50)}<div style="font-size:10px;margin-top:3px">${HERO_TYPES[k].name}</div><div style="font-size:9px;color:${b?'#ff8b8b':(heroLevel(k)>=reqL?'#5ee89b':'#8b98a9')}">${busy.has(k)?'⛓ marching':fallen(k)?pickerHpLine(hp,k):'Lv '+heroLevel(k)+pickerHpLine(hp,k)}</div></div>`; }).join('')}</div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
         <div style="font-size:11px;color:#8b98a9">${sel.size}/5 · ⚔ <b style="color:${okP?'#5ee89b':'#ff8b8b'}">${pow}</b>/${reqP} · ${okL?'<span style="color:#5ee89b">Lv ✓</span>':'<span style="color:#ff8b8b">need Lv '+reqL+'</span>'}</div>
         <button class="btn" id="mcGo" ${ok?'':'disabled'}>⛏ Send ▶</button></div></div>`;
     ov.querySelector('#mcX').onclick=()=>ov.remove();
-    ov.querySelectorAll('.mc-hero').forEach(el=>el.onclick=()=>{ const k=el.dataset.k; if(busy.has(k))return; if(sel.has(k))sel.delete(k); else if(sel.size<5)sel.add(k); render(); });
+    ov.querySelectorAll('.mc-hero').forEach(el=>el.onclick=()=>{ const k=el.dataset.k; if(blocked(k))return; if(sel.has(k))sel.delete(k); else if(sel.size<5)sel.add(k); render(); });
     ov.querySelector('#mcGo').onclick=()=>{ if(!ok)return; startMine(m,[...sel]); ov.remove(); }; }
-  render(); document.body.appendChild(ov); }
+  render(); document.body.appendChild(ov);
+  worldHeroHp().then(h=>{ hp=h; if(!ov.isConnected) return; [...sel].forEach(k=>{ if(fallen(k)) sel.delete(k); });
+    G.team.forEach(k=>{ if(G.unlocked[k]&&!blocked(k)&&sel.size<5) sel.add(k); }); render(); }); }
 // send a squad to mine: a march with a travel-out → gather → travel-home timeline
 async function startMine(m, heroes){ let travel=marchOutMs('mine',m.x,m.y), gather=mineGatherMs(m.level), t=Date.now(), serverMarch=null;
   if(ACC.token){
@@ -21341,24 +21350,27 @@ function cityAction(a,c){ closeCityMenu();
 }
 // hero-selection window for a march
 function openMarchSelect(ctype,c){
-  const busy=committedHeroes(), heroes=HERO_KEYS.filter(k=>G.unlocked[k]);
+  const busy=committedHeroes(), heroes=HERO_KEYS.filter(k=>G.unlocked[k]); let hp={};
+  const fallen=k=>hp[k]!=null&&hp[k]<=0, blocked=k=>busy.has(k)||fallen(k);
   const sel=new Set(); G.team.forEach(k=>{ if(G.unlocked[k]&&!busy.has(k)&&sel.size<5) sel.add(k); });
   const ov=document.createElement('div'); ov.style.cssText='position:fixed;inset:0;background:rgba(4,6,10,.75);z-index:12000;display:flex;align-items:center;justify-content:center';
   const verb=ctype==='defend'?'Defend':ctype==='group'?'Group Attack':'Attack';
   function render(){ ov.innerHTML=`<div style="background:#141b2b;border:1px solid #2a3550;border-radius:14px;padding:14px;width:94%;max-width:470px;max-height:86vh;overflow:auto">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div style="font-weight:800">${verb} · ${escapeHTML(c.name)}</div><button class="btn sm secondary" id="mcX">✕</button></div>
       <div style="font-size:11px;color:#8b98a9;margin-bottom:10px">Choose up to 5 heroes to march. Distance <b>${gridDist(c.x,c.y)}</b> squares · march time <b style="color:#ffd45e">${fmtDur(marchOutMs(ctype,c.x,c.y))}</b> each way. Heroes on a march can't join another until they return.</div>
-      <div class="row" style="gap:8px;justify-content:center">${heroes.map(k=>{ const b=busy.has(k), on=sel.has(k);
+      <div class="row" style="gap:8px;justify-content:center">${heroes.map(k=>{ const b=blocked(k), on=sel.has(k);
         return `<div data-k="${k}" class="mc-hero" style="width:78px;text-align:center;cursor:${b?'not-allowed':'pointer'};opacity:${b?.45:1};border:2px solid ${on?'#5ee89b':'#2a3550'};border-radius:10px;padding:5px;background:${on?'#12351f':'#0f1420'}">
-          ${heroIcon(k,50)}<div style="font-size:10px;margin-top:3px">${HERO_TYPES[k].name}</div><div style="font-size:9px;color:${b?'#ff8b8b':'#8b98a9'}">${b?'⛓ marching':'Lv '+heroLevel(k)}</div></div>`; }).join('')}</div>
+          ${heroIcon(k,50)}<div style="font-size:10px;margin-top:3px">${HERO_TYPES[k].name}</div><div style="font-size:9px;color:${b?'#ff8b8b':'#8b98a9'}">${busy.has(k)?'⛓ marching':fallen(k)?pickerHpLine(hp,k):'Lv '+heroLevel(k)+pickerHpLine(hp,k)}</div></div>`; }).join('')}</div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
         <div style="font-size:11px;color:#8b98a9">${sel.size}/5 · ⚔ ${marchPower([...sel])||0}</div>
         <button class="btn" id="mcGo" ${sel.size?'':'disabled'}>${verb} ▶</button></div></div>`;
     ov.querySelector('#mcX').onclick=()=>ov.remove();
-    ov.querySelectorAll('.mc-hero').forEach(el=>el.onclick=()=>{ const k=el.dataset.k; if(busy.has(k))return; if(sel.has(k))sel.delete(k); else if(sel.size<5)sel.add(k); render(); });
+    ov.querySelectorAll('.mc-hero').forEach(el=>el.onclick=()=>{ const k=el.dataset.k; if(blocked(k))return; if(sel.has(k))sel.delete(k); else if(sel.size<5)sel.add(k); render(); });
     ov.querySelector('#mcGo').onclick=()=>{ if(!sel.size)return; startMarch(ctype,c,[...sel]); ov.remove(); };
   }
   render(); document.body.appendChild(ov);
+  worldHeroHp().then(h=>{ hp=h; if(!ov.isConnected) return; [...sel].forEach(k=>{ if(fallen(k)) sel.delete(k); });
+    G.team.forEach(k=>{ if(G.unlocked[k]&&!blocked(k)&&sel.size<5) sel.add(k); }); render(); });
 }
 // simple text-input modal (used by Whisper)
 function gamePrompt(title,ph,cb){
@@ -25661,7 +25673,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791078640699';
+const BUILD_ID = '1791079179760';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
