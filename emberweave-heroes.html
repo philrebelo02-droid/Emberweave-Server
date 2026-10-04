@@ -990,6 +990,8 @@ h1{background:linear-gradient(180deg,#fff4d6 0%,#f3d58a 42%,#c98f2e 100%);-webki
 .templeClassTab:disabled{cursor:default;opacity:.55;}
 @media(max-width:360px){.templeClassTabs{grid-template-columns:repeat(4,minmax(0,1fr));gap:3px;}.templeClassTab{font-size:10px;min-height:30px;}}
 .templeHeroGrid{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:3px;margin:0 0 7px;}
+@media(max-width:480px){.templeHeroGrid{grid-template-columns:repeat(6,minmax(0,1fr));}.templeClassTabs{grid-template-columns:repeat(4,minmax(0,1fr));}}   /* v998 (Temple audit #11): ~30px tiles were below a usable tap size */
+@media(max-width:480px){#forgeBody .btn.xs{font-size:11px;min-height:32px;}}   /* v998 (Forge audit #13): forge buttons usable on a phone */
 .templeHeroTile{min-width:0;aspect-ratio:1;padding:0;overflow:hidden;border:1px solid #70502a;border-radius:5px;background:#211913;cursor:pointer;}
 .templeHeroTile img{width:100%;height:100%;object-fit:cover;display:block;}
 .templeHeroTile[aria-pressed="true"]{border:2px solid #ffce63;box-shadow:0 0 7px #ffb84b;}
@@ -14761,35 +14763,7 @@ function forgeCraftPick(gearId){
   };
   draw();
 }
-function forgeCraftTabHTML(){
-  const st=FORGE.st, cat=FORGE.cat, quals=cat.meta.qualities;
-  const q=quals[FORGE.q], defs=cat.items.filter(i=>i.quality===q);
-  const tabs=quals.map((qq,i)=>`<button class="btn xs ${i===FORGE.q?'':'secondary'}" style="font-size:9px;padding:3px 6px;${i===FORGE.q?'border:1px solid '+(FORGE_QCOLOR[qq]||'#888'):''}" onclick="forgeQ(${i})">${qq}</button>`).join('');
-  const prevQ=FORGE.q>0?quals[FORGE.q-1]:null;
-  const freshPrev=prevQ?Object.entries(st.items).filter(([id,it])=>{ const d=forgeDef(it.d); return d&&d.quality===prevQ&&!it.bound&&!forgeEquippedBy(id); }).length:0;
-  const rows=defs.map(d=>{
-    const have=st.fragments[d.frag]||0, subs=d.sub?(st.subs[d.sub]||0):0;
-    const canGrey=d.qi===0&&have>=cat.meta.greyFragCost;
-    const canSub=d.sub&&have>=d.subFragCost;
-    const canItem=d.qi>0&&subs>=1&&freshPrev>=2;
-    return `<div style="border-bottom:1px solid #1a2233;padding:6px 0">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:6px">
-        <span style="display:flex;align-items:center;gap:6px;min-width:0">${gearImg(d,34)}<b style="font-size:11px;color:${FORGE_QCOLOR[d.quality]||'#e6edf3'}">${d.name}</b></span>
-        <span style="font-size:9px;color:#8b98a9">${d.slotFull||d.slot}</span></div>
-      <div style="font-size:9px;color:#6f7d90;margin:2px 0">${escapeHTML(d.passive||'')}${d.active?' · <span style="color:#8fe3ff">Active: '+escapeHTML(d.active)+'</span>':''}</div>
-      ${fragSourceLine(d.frag)}
-      <div style="display:flex;gap:4px;align-items:center;font-size:9px;flex-wrap:wrap">
-        <span style="color:#8b98a9">${gearFragImg(d.frag,18)} ${d.frag}: <b style="color:${have?'#5ee89b':'#6f7d90'}">${have}</b></span>
-        ${d.qi===0
-          ?`<button class="btn xs ${canGrey?'':'secondary'}" ${canGrey?`onclick="forgePost('/craft',{gearId:'${d.id}'},r=>'⚒️ Forged '+r.name+'!')"`:'disabled'}>⚒ Craft (${cat.meta.greyFragCost} frags)</button>`
-          :`${d.sub?`<span style="color:#8b98a9">· ${gearSubImg(d.sub,18)} ${d.sub}: <b style="color:${subs?'#5ee89b':'#6f7d90'}">${subs}</b></span>
-             <button class="btn xs ${canSub?'':'secondary'}" ${canSub?`onclick="forgePost('/craft-sub',{gearId:'${d.id}'},r=>'🔩 '+r.sub+' made!')"`:'disabled'}>🔩 Sub (${d.subFragCost} frags)</button>`:''}
-             <button class="btn xs ${canItem?'':'secondary'}" ${canItem?`onclick="forgeCraftPick('${d.id}')"`:'disabled'}>⚒ Craft (sub + 2 ${prevQ})</button>`}
-      </div></div>`; }).join('');
-  return `<div style="display:flex;gap:3px;flex-wrap:wrap;margin-bottom:6px">${tabs}</div>
-    ${FORGE.q>0?`<div style="font-size:9px;color:#6f7d90;margin-bottom:4px">Recipe: 1 sub-component + 2 fresh unbound ${prevQ} items (you have <b style="color:${freshPrev>=2?'#5ee89b':'#ff8b8b'}">${freshPrev}</b>). Equipped gear is <b>bound forever</b> and can never be an ingredient.</div>`:''}
-    ${rows||'<div style="color:#6f7d90;font-size:11px;padding:10px 0">Nothing here yet.</div>'}`;
-}
+/* v998 (Pool+Forge audit #19): forgeCraftTabHTML removed - nothing called it. */
 function forgeEquippedBy(itemId){ const eq=FORGE.st.equipped||{};
   for(const h in eq){ for(const s in eq[h]){ if(eq[h][s]===itemId) return {hero:h,slot:s}; } } return null; }
 function forgeItemsTabHTML(){
@@ -14907,6 +14881,7 @@ function adoptLedger(st){ if(!st||typeof st!=='object') return;
   if(st.eqMats){ const _m={}; for(const _k in (G.eqMats||{})) _m[_k]=0; for(const _k in st.eqMats) _m[_k]=st.eqMats[_k]|0; G.eqMats=_m; }
   if(st.skill){ G.skillLevel=G.skillLevel||{}; for(const k in st.skill) G.skillLevel[k]=(st.skill[k]||[1,1,1,1]).slice(); }
   if(st.temple) G.temple=st.temple;
+  if(st.marketToday) G.marketToday=st.marketToday;   // v998: the Market's daily fragment count
   // day-boundary: HUD shop counters are server-owned (ET-midnight day). Mirror them when the server reports them;
   // an old server without `shop` leaves the local fallback untouched.
   if(st.shop&&typeof st.shop==='object'){ G.foodBuys=st.shop.food|0; G.goldBuys=st.shop.gold|0; }
@@ -17739,7 +17714,7 @@ async function shopOnce(fn){ if(SHOP_BUSY) return; SHOP_BUSY=true; try{ await fn
 function renderMarket(){
   const b=document.getElementById('marketBody'); ensureMarket();
   const left=MARKET_REFRESH_MS-(Date.now()-G.market.ts);
-  b.innerHTML=`<div style="display:flex;justify-content:space-between;font-size:12px;color:#8b98a9;margin-bottom:8px"><span>🪙 ${G.gold}  ·  💎 ${G.gems}</span><span>⟳ restock ${fmtDur(left)}</span></div>`+
+  b.innerHTML=`<div style="display:flex;justify-content:space-between;font-size:12px;color:#8b98a9;margin-bottom:8px"><span>🪙 ${G.gold}  ·  💎 ${G.gems}${(ACC.token&&G.marketToday)?`  ·  🧩 ${G.marketToday.used|0}/${G.marketToday.max|0} today`:''}</span><span>⟳ restock ${fmtDur(left)}</span></div>`+
     G.market.offers.map((o,i)=>{ const c=o.cost.gold?('🪙 '+o.cost.gold):('💎 '+o.cost.gems), afford=o.cost.gold?G.gold>=o.cost.gold:G.gems>=o.cost.gems;
       const frag=o.kind==='frag', ic=frag?heroIcon(o.hero,34):`<span style="font-size:22px">${o.icon}</span>`;
       const nm=frag?(o.qty+'× '+HERO_TYPES[o.hero].name+' fragments'):o.name;
@@ -22982,7 +22957,7 @@ async function wishGem10(){ const r=await serverWish('gem',10); if(!r) return; G
 /* v251 (audit): the pool publishes its odds/pity, and every roll is server-recorded and reviewable */
 async function wishShowOdds(){ const st=await api('/api/pool/state'); if(!st||st.error){ bannerMsg('Sign in to see the pool rules.'); return; }
   const o=st.odds||{}, pct=v=>(v*100).toFixed(v<0.01?1:0)+'%';
-  bannerMsg('📊 <b>Diamond Pool odds</b> — KonWu '+pct(o.konwu||0)+' · full 3★ '+pct(o.full3||0)+' · full 2★ '+pct(o.full2||0)+' · 3★ frags '+pct(o.frag3||0)+' · 2★ frags '+pct(o.frag2||0)+'<br>🪙 <b>Gold Pool</b> — full hero '+pct(o.goldHero||0)+' · fragments '+pct(o.goldFrag||0)+'<br>🎯 <b>Pity:</b> a full hero is GUARANTEED within '+((st.pity&&st.pity.at)||90)+' diamond wishes — you are at '+((st.pity&&st.pity.count)||0)+'.'); }
+  bannerMsg('📊 <b>Diamond Pool odds</b> — KonWu '+pct(o.konwu||0)+' · full 3★ '+pct(o.full3||0)+' · full 2★ '+pct(o.full2||0)+' · 3★ frags '+pct(o.frag3||0)+' · 2★ frags '+pct(o.frag2||0)+'<br>🪙 <b>Gold Pool</b> — full hero '+pct(o.goldHero||0)+' · fragments '+pct(o.goldFrag||0)+'<br>🎯 <b>Pity:</b> a full hero is GUARANTEED within '+((st.pity&&st.pity.at)||40)+' diamond wishes — you are at '+((st.pity&&st.pity.count)||0)+'.'); }
 function wishResultLabel(code){ const p=String(code||'').split(':'), t=p[0], k=p[1], nm=k?escapeHTML((HERO_TYPES[k]||{}).name||k):'';
   if(t==='hero') return nm+' (new hero)'; if(t==='frags') return nm+' fragments'; if(t==='glyphFrag') return 'Glyph fragments'; return escapeHTML(t+(nm?' '+nm:'')); }
 async function wishShowHistory(){ const h=await api('/api/pool/history'); if(!h||h.error||!(h.history||[]).length){ bannerMsg('No recorded wishes yet.'); return; }
@@ -25788,7 +25763,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791099384828';
+const BUILD_ID = '1791100839737';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
