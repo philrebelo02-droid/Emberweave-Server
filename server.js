@@ -7219,6 +7219,7 @@ async function api(req,res,url){
     const areqId=String(b.requestId||'').slice(0,48); if(!areqId) return send(res,400,{error:'requestId required'});
     const akey=me.id+':arena:'+areqId;
     DB.idem=DB.idem||{}; if(DB.idem[akey]) return send(res,200,DB.idem[akey].resp);
+    const _aSnapMe=JSON.parse(JSON.stringify(me)), _aRp=Array.isArray(DB.reports)?DB.reports.slice():null, _aFb=Array.isArray(DB.feedback)?DB.feedback.slice():null;   /* v981: taken before anything below can touch the account */
     // v582: finite attempts — checked AFTER the replay short-circuit so a re-sent receipt never
     // trips the gate, and BEFORE the sim so an exhausted player costs the server nothing.
     { const aled=ensureLedger(me), aa=arenaAtt(aled);
@@ -7228,6 +7229,7 @@ async function api(req,res,url){
     /* 3 Oct Arena audit #6 (part): never yourself. A rank-above rule would lock the rank-1 player out; the full fix is a
        server-stored opponents list (open). */
     if(!opp||opp.id===me.id) return send(res,400,{ok:false,error:'Unknown opponent.'});
+    const _aSnapOpp=JSON.parse(JSON.stringify(opp)), _aOppId=opp.id;   /* v981: the opponent, before anything below touches it */
     // SECURITY (audit crit #3): rank + coins used to trust the client-declared b.won. They are now
     // decided SERVER-SIDE from each side's serverTeamPower — the same interim authority the Guild War
     // already uses. This is a power comparison, NOT the real battle sim; the faithful fix is the shared
@@ -7251,6 +7253,8 @@ async function api(req,res,url){
         simRes={rounds:r0.rounds, log:(r0.log||[]).slice(0,200)}; }   // v255 (§7): the arena returns its combat-core event log for the result recap
     }
     if(!opp) return send(res,400,{ok:false,error:'Unknown opponent.'});   /* v559: a missing opponent left won=false and fell through to the +5 consolation coins, so an unbounded string of invalid oppIds minted coins at the route limit without ever fighting. No opponent, no attempt, no payout. */
+    /* v981 (3 Oct Arena audit #7): the result is saved before it is acknowledged. Both accounts (the rank swap writes the
+       opponent, and may delete a bot) and the review stores are snapshotted; a failed save restores them and answers 503. */
     const r=applyResult(me,opp,won); const reward=won?(20+Math.floor((5000-me.rank)/50)):5; me.coins+=reward;
     arenaAtt(ensureLedger(me)).used++;   // v582: the attempt is spent here — the fight resolved, win or lose
     let goldReward=0; if(won){ const led=ensureLedger(me);
@@ -7273,7 +7277,13 @@ async function api(req,res,url){
         if(milestoneGems>0){ creditGems(me,led,milestoneGems,'arena:rank-milestone'); ledTx(me,'arena:rank-milestone',{gems:milestoneGems}); } } }
     let glyphFrags=null; if(won && glyphsEnabledFor(me) && me.glyphs && me.glyphs.migratedAt){ glyphFrags=glyphGrantNamedList(me, arenaGlyphFragsFor(me.rank)); }   // Correction Spec v1: named, rank-deterministic — no random family roll
     const aresp={ rank:me.rank, delta:r.delta, reward, coins:me.coins, glyphFrags, won, seed, sim:simRes, goldReward, milestoneGems, bestRank:me.bestRank, authoritative:true, ledger:ledgerView(me), arena:arenaAttView(ensureLedger(me)) };
-    DB.idem[akey]={t:Date.now(),resp:aresp}; writeDB();
+    DB.idem[akey]={t:Date.now(),resp:aresp};
+    try{ if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; } saveDB(DB); }
+    catch(e){ console.error('Arena result save failed - both accounts rolled back:', e.message);
+      _adoptUser(me.id,_aSnapMe); _adoptUser(_aOppId,_aSnapOpp); delete DB.idem[akey];
+      if(_aRp) DB.reports=_aRp; else delete DB.reports; if(_aFb) DB.feedback=_aFb; else delete DB.feedback;
+      return send(res,503,{ok:false,storageFailed:true,error:'Save failed. Retry the same request.'}); }
+    try{ pgSave(); }catch(e){}
     return send(res,200,aresp); }
 
   if(p==='/api/arena/reports'){ if(!me)return send(res,401,{error:'auth'});   // the defender fetches watchable reports of arena attacks made against them

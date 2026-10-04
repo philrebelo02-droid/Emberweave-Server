@@ -12493,7 +12493,7 @@ function endBattle(won){
         /* v977 (3 Oct Arena audit #8): ONE requestId per fight; a lost reply is re-sent with the SAME id (the route keeps a receipt) */
         const _rid=uid8();
         for(let _try=0;_try<3;_try++){ d=await api('/api/arena/result','POST',{oppId:CUR.oppId,won,def:_arepDef,requestId:_rid});
-          if(!(d&&d.error==='offline')||_try===2) break; await new Promise(z=>setTimeout(z,1500*(_try+1))); }
+          if(!(d&&(d.error==='offline'||d.storageFailed))||_try===2) break; await new Promise(z=>setTimeout(z,1500*(_try+1))); }   // v981: a refused save is re-sent too
         if(resultStale(ep)){ if(d) ledgerSync(); return; }
         /* v977 (3 Oct Arena audit #5, #8): a signed-in fight the server refused (no attempts left, level, opponent) or never
            confirmed is NOT COUNTED - no win shown, no rank moved, no attack report kept. */
@@ -25755,7 +25755,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791089144093';
+const BUILD_ID = '1791089690536';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
