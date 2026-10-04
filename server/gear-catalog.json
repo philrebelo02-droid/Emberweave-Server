@@ -160,7 +160,7 @@
       "stats": {
         "atk": 6.7,
         "acc": 6.7,
-        "crit": 6.7
+        "crit": 36.9
       }
     },
     {
@@ -179,7 +179,7 @@
       "subFragCost": null,
       "stats": {
         "atk": 6.7,
-        "crit": 6.7,
+        "crit": 36.9,
         "range": 6.7
       }
     },
@@ -336,7 +336,7 @@
       "sub": "Eaglecrest Hood Frame",
       "subFragCost": 3,
       "stats": {
-        "crit": 10.7,
+        "crit": 58.8,
         "acc": 10.7,
         "range": 10.7
       }
@@ -476,8 +476,8 @@
       "subFragCost": 4,
       "stats": {
         "moveSpd": 16.7,
-        "eva": 16.7,
-        "atkSpd": 16.7
+        "eva": 58.4,
+        "atkSpd": 75.1
       }
     },
     {
@@ -656,8 +656,8 @@
       "subFragCost": 5,
       "stats": {
         "atk": 24.0,
-        "eva": 24.0,
-        "crit": 24.0
+        "eva": 84.0,
+        "crit": 132.0
       }
     },
     {
@@ -854,8 +854,8 @@
       "sub": "Silkstring Gloves Glove Assembly",
       "subFragCost": 6,
       "stats": {
-        "atkSpd": 33.3,
-        "crit": 33.3,
+        "atkSpd": 149.8,
+        "crit": 183.1,
         "armorPen": 33.3
       }
     },
@@ -1014,7 +1014,7 @@
       "stats": {
         "atk": 46.7,
         "acc": 46.7,
-        "crit": 46.7
+        "crit": 256.9
       }
     },
     {
@@ -1212,7 +1212,7 @@
       "sub": "Aiming Band Ring Setting",
       "subFragCost": 8,
       "stats": {
-        "crit": 63.3,
+        "crit": 348.1,
         "acc": 63.3,
         "atk": 63.3
       }
@@ -1232,7 +1232,7 @@
       "sub": "Sniper’s Loop Ring Setting",
       "subFragCost": 8,
       "stats": {
-        "crit": 63.3,
+        "crit": 348.1,
         "armorPen": 63.3,
         "atk": 63.3
       }
@@ -1410,9 +1410,9 @@
       "sub": "Windshot Pendant Pendant Setting",
       "subFragCost": 9,
       "stats": {
-        "atkSpd": 83.3,
-        "crit": 83.3,
-        "eva": 83.3
+        "atkSpd": 374.8,
+        "crit": 458.1,
+        "eva": 291.6
       }
     },
     {
@@ -1431,7 +1431,7 @@
       "subFragCost": 9,
       "stats": {
         "range": 83.3,
-        "crit": 83.3,
+        "crit": 458.1,
         "acc": 83.3
       }
     },
@@ -1628,7 +1628,7 @@
       "subFragCost": 10,
       "stats": {
         "atk": 110.0,
-        "crit": 110.0,
+        "crit": 605.0,
         "armorPen": 110.0
       }
     },
