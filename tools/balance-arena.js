@@ -55,7 +55,24 @@ function rng(seed){ let a=seed>>>0; return ()=>{ a=(a+0x6D2B79F5)>>>0; let t=a; 
     await call('/api/admin/led-grant',{heroKeys:keys,unlock:keys,stars:5,maxGlyphs:true,px:99000000,heroXp:99000000},tok);
     // Phil 4 Oct: "also max their skills" - every hero's four skills at the server's maximum (SKILL_MAX_SRV), written into this test DB
     await delay(500); await stop(); { const db=JSON.parse(fs.readFileSync(dbFile,'utf8')), led=db.users[d.profile.id].led; led.skill=led.skill||{};
-      for(const k of keys) led.skill[k]=[SKILL_MAX,SKILL_MAX,SKILL_MAX,SKILL_MAX]; fs.writeFileSync(dbFile,JSON.stringify(db)); }
+      for(const k of keys) led.skill[k]=[SKILL_MAX,SKILL_MAX,SKILL_MAX,SKILL_MAX];
+      const usr=db.users[d.profile.id];
+      // --gear=1 (Phil 4 Oct balance layer 2): every hero wears its canonical loadout (hero-paths.js equipment: 9 items, one per
+      // slot) at max temper; the Orange item's active is the equipped active. Resonance follows from the total temper.
+      if(opt('gear')){ const CAT=JSON.parse(fs.readFileSync(path.join(root,'server','gear-catalog.json'),'utf8')), byId={}; for(const it of CAT.items) byId[it.id]=it;
+        const PATHS=require(path.join(root,'hero-paths.js')), TMAX=CAT.meta.temper.max;
+        const g=usr.gear||(usr.gear={revision:1,fragments:{},subs:{},items:{},equipped:{},active:{},seq:1});
+        for(const k of keys){ const ids=(PATHS[H[k].equipmentPath]||{}).equipment||[]; g.equipped[k]={};
+          for(const id of ids){ const def=byId[id]; if(!def) continue; const nid='q'+(g.seq++);
+            g.items[nid]={d:id,temper:TMAX,prog:0,dustSpent:0,bound:true,createdAt:Date.now()}; g.equipped[k][def.slot]=nid;
+            if(def.quality==='Orange'&&def.active&&!opt('noactive')) g.active[k]=nid; } }
+        console.log('[layer] gear: canonical loadouts, temper '+TMAX); }
+      // --temple=1 (layer 3, prayer): every hero's four Temple bars full and all five boons unlocked.
+      if(opt('temple')){ const T=require(path.join(root,'server','temple-of-ash.js')), M=T.effectMax(T.CONFIG.BAR_FULL_AT_TEMPLE);
+        led.temple=led.temple||T.newState(); led.temple.heroes=led.temple.heroes||{};
+        for(const k of keys) led.temple.heroes[k]={cinders:{bar1:M,bar2:M,bar3:M,bar4:M},boonsUnlocked:[true,true,true,true,true],meditationTicks:0};
+        console.log('[layer] temple: bars '+M+' x4, five boons'); }
+      fs.writeFileSync(dbFile,JSON.stringify(db)); }
     await start(d.profile.id,dbFile); tok=(await call('/api/login',{name:'arenadev',pass:'password1'})).token;
     const SNAP={};
     for(const k of keys){ const r=await call('/api/admin/snapshot?spec=1&hero='+k,null,tok); if(r.spec){ const s=host.snapFromSpecs([r.spec]); if(s&&s[0]) SNAP[k]=s[0]; } }
