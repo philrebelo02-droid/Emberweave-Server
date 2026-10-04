@@ -3486,12 +3486,10 @@ const EARN_RULES={
   frag:{ arena:{max:10,day:60} },   /* 3 Oct Market audit #1: 'signin' removed - the daily sign-in pays through /api/signin/claim */   /* 3 Oct Market audit #1: 'stars' removed from every currency - the star track pays through /api/stars/claim */
   stamina:{ arenashop:{max:200,day:2000}, pack:{max:120,day:120} },   /* 30 Sep hardening: a real daily stamina pack pays 120 once a day */
   gems:{   /* 3 Oct audit (P0): tower + gauntlet removed - the client chose the amount; the Tower now pays through /api/tower/*, the Gauntlet is retired (no caller) */
-         city:{max:300,day:3000},
-         quest:{max:500,day:4000},   /* 3 Oct Market audit #1: convert removed - the War Chest is a server purchase (/api/shop/buy warchest) */
+         /* 3 Oct 23:3x: city + quest removed - no live caller (the old client guild boss that paid 'city' is dead code; signed-in quests pay through /api/quest/claim) */   /* 3 Oct Market audit #1: convert removed - the War Chest is a server purchase (/api/shop/buy warchest) */
          pack:{max:150,day:150}, arenashop:{max:40,day:800} },   /* 30 Sep hardening: pack was 20,000/60,000 a day (a real pack pays 150 once a day); wish + misc removed - the client never sends them */
   gold:{   /* 3 Oct Market audit #1: guildshop removed (gold/gems/stamina) - the Guild Shop is a server purchase (/api/shop/buy gshop:N) */   /* 3 Oct audit (P0): tower + gauntlet removed (see gems) */
-         city:{max:100000,day:1000000},
-         quest:{max:100000,day:1000000},   /* 3 Oct: convert removed (see gems) */   /* 30 Sep hardening: gold wish + misc removed (never sent by the client) */
+         /* 3 Oct 23:3x: city + quest removed (see gems) */   /* 3 Oct: convert removed (see gems) */   /* 30 Sep hardening: gold wish + misc removed (never sent by the client) */
          march:{max:1200,day:20000}, arenashop:{max:5000,day:100000} },
   /* v663: heroXp/province retired — the Training Province pays through /api/province/* (Drill now forges glyphs) */
   guildCoins:{ march:{max:40,day:400} } };

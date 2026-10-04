@@ -61,5 +61,9 @@ async function editDB(fn){ await delay(300); await stop(); const db=JSON.parse(f
   await editDB(u=>{ u.led.shop=Object.assign(u.led.shop||{},{warchest:25}); u.led.gems=10000; });
   const w26=await call('/api/shop/buy',{what:'warchest',requestId:'wc-26'});
   ok(w26.data.ok===false&&/No more War Chests/.test(w26.data.error||''),'the 26th War Chest of the day is refused ('+(w26.data.error||'')+')');
+  // v973: the dead 'city' and 'quest' earn reasons are gone
+  for(const [w,r] of [['gems','city'],['gold','city'],['gems','quest'],['gold','quest']]){
+    const e=await call('/api/tx/earn',{what:w,amount:100,reason:r,requestId:'ea-'+w+'-'+r});
+    ok(e.data.ok===false&&/No earn rule/.test(e.data.error||''),'tx/earn '+w+'/'+r+' is refused ('+(e.data.error||'paid')+')'); }
   console.log('test_market_harden.js: '+pass+' checks passed (server '+srvFile+')');
 } catch(e){ console.error('FAIL',e&&e.message||e); process.exitCode=1; } finally { await stop(); } })();
