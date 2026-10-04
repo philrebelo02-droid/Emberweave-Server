@@ -125,6 +125,8 @@ note "test_market_harden.js (3 Oct Market audit: never-sold hero fragments refus
 node tests/test_market_harden.js || FAILED=1
 note "test_pool_forge_harden.js (3 Oct Pool/Forge audit: gear only on owned heroes; free diamond wish countdown = New York midnight)"
 node tests/test_pool_forge_harden.js || FAILED=1
+note "test_star_track.js (3 Oct Market audit #1: the campaign star track is server-owned; tx/earn stars removed)"
+node tests/test_star_track.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi

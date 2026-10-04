@@ -3443,7 +3443,7 @@ function ledgerView(u){ const led=ensureLedger(u); ledStamRegen(led); if(ledPlay
   return { rev:led.rev, born:+led.migratedAt||0, gold:led.gold, gems:led.gems, guildCoins:led.guildCoins|0, px:led.px, playerLevel:ledPlayerLevel(led),
     hero:led.hero, unlocked:led.unlocked, frags:led.frags, xpPotions:led.xpPotions||{}, xpPotionUsed:led.xpPotionUsed||{}, tutVexXpBase:led.tutVexXpBase|0, eqMats:led.eqMats||{},   // v273: materials are ledger-owned
     skill:led.skill||{}, temple:templeClientState(led),
-    camp:{cleared:led.camp.cleared, stars:led.camp.stars},
+    camp:{cleared:led.camp.cleared, stars:led.camp.stars}, starClaimed:(led.starClaimed==null?null:led.starClaimed|0),
     prov:(function(){ try{ return provLedgerView(u,led); }catch(e){ return null; } })(),   /* v663: Training Province stage + plays */
     portals:(function(){ const o={}; for(const m of PORTAL_MODES){ const pr=portalProg(led,m);
       o[m]={ cleared:pr.cleared|0, stars:pr.stars||{}, locked:portalLocked(led,m) }; } return o; })(),
@@ -3471,14 +3471,14 @@ function ledgerView(u){ const led=ensureLedger(u); ledStamRegen(led); if(ledPlay
    reported to the dev panel (see gemGain) for a human to judge. `day` is a high backstop against a
    runaway loop, not a design limit. */
 const EARN_RULES={
-  frag:{ arena:{max:10,day:60}, signin:{max:20,day:40}, stars:{max:200,day:600} },
-  stamina:{ signin:{max:120,day:240}, guildshop:{max:200,day:1000}, arenashop:{max:200,day:2000}, stars:{max:1500,day:6000}, pack:{max:120,day:120} },   /* 30 Sep hardening: a real daily stamina pack pays 120 once a day */
+  frag:{ arena:{max:10,day:60}, signin:{max:20,day:40} },   /* 3 Oct Market audit #1: 'stars' removed from every currency - the star track pays through /api/stars/claim */
+  stamina:{ signin:{max:120,day:240}, guildshop:{max:200,day:1000}, arenashop:{max:200,day:2000}, pack:{max:120,day:120} },   /* 30 Sep hardening: a real daily stamina pack pays 120 once a day */
   gems:{ signin:{max:200,day:2000},   /* 3 Oct audit (P0): tower + gauntlet removed - the client chose the amount; the Tower now pays through /api/tower/*, the Gauntlet is retired (no caller) */
-         stars:{max:2000,day:12000}, guildshop:{max:500,day:5000}, city:{max:300,day:3000},
+         guildshop:{max:500,day:5000}, city:{max:300,day:3000},
          quest:{max:500,day:4000},   /* 3 Oct Market audit #1: convert removed - the War Chest is a server purchase (/api/shop/buy warchest) */
          pack:{max:150,day:150}, arenashop:{max:40,day:800} },   /* 30 Sep hardening: pack was 20,000/60,000 a day (a real pack pays 150 once a day); wish + misc removed - the client never sends them */
   gold:{ guildshop:{max:50000,day:300000}, signin:{max:20000,day:200000},   /* 3 Oct audit (P0): tower + gauntlet removed (see gems) */
-         stars:{max:200000,day:2000000}, city:{max:100000,day:1000000},
+         city:{max:100000,day:1000000},
          quest:{max:100000,day:1000000},   /* 3 Oct: convert removed (see gems) */   /* 30 Sep hardening: gold wish + misc removed (never sent by the client) */
          march:{max:1200,day:20000}, arenashop:{max:5000,day:100000} },
   /* v663: heroXp/province retired — the Training Province pays through /api/province/* (Drill now forges glyphs) */
@@ -5582,6 +5582,31 @@ async function api(req,res,url){
         return {ok:true,gold,trib:day,ledger:ledgerView(me)}; });
       return send(res,out.storageFailed?503:200,out); }
     return send(res,404,{error:'not found'}); }
+  /* 3 Oct 2026 Market audit #1 (P0): THE CAMPAIGN STAR TRACK IS SERVER-OWNED. Every 15 campaign stars pay one milestone; the client used
+     to post the amount to /api/tx/earn ('stars', up to 12,000 diamonds a day for anyone). The server now counts the stars it recorded
+     (led.camp.stars), keeps the claimed count (led.starClaimed - seeded once from the save's starMilestonesClaimed so nothing is paid twice)
+     and pays the same ladder: tier = floor(idx/4)+1; cycle gold 2000*tier, stamina 60*tier, diamonds 100*tier, 5*tier hero fragments
+     (random locked heroes, never the purchase/arena ones). */
+  if(p==='/api/stars/claim' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
+    const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
+    const out=durableCommit(me,me.id+':stars:'+reqId,(me)=>{ const led=ensureLedger(me);
+      if(led.starClaimed==null){ const sv=parseSaveOf(me); led.starClaimed=Math.max(0,Math.min(1000,sv.starMilestonesClaimed|0)); }
+      const total=Object.values((led.camp&&led.camp.stars)||{}).reduce((s,v)=>s+((v|0)>=1&&(v|0)<=3?(v|0):0),0);
+      const idx=led.starClaimed|0;
+      if(total<(idx+1)*15) return {ok:false,error:'The next star reward needs '+((idx+1)*15)+' campaign stars.',claimed:idx,ledger:ledgerView(me)};
+      const tier=Math.floor(idx/4)+1, cyc=idx%4, got={};
+      if(cyc===0){ creditGold(me,led,2000*tier,'stars:'+idx); got.gold=2000*tier; }
+      else if(cyc===1){ creditStamina(me,led,60*tier,'stars:'+idx); got.stamina=60*tier; }
+      else if(cyc===2){ creditGems(me,led,100*tier,'stars:'+idx); got.gems=100*tier; }
+      else { const all=Object.keys(SIM.HERO_BASE).filter(k=>!HERO_NOT_SOLD.has(k)), locked=all.filter(k=>!(led.unlocked||{})[k]), pool=locked.length?locked:all;
+        const cnt={}; for(let i=0;i<5*tier;i++){ const hk=pool[crypto.randomInt(pool.length)]; cnt[hk]=(cnt[hk]|0)+1; }
+        for(const hk in cnt) creditFrags(me,led,hk,cnt[hk],'stars:'+idx);
+        got.frags=cnt; }
+      led.starClaimed=idx+1;
+      ledTx(me,'stars:'+idx,got);
+      writeDB(); return {ok:true, idx, got, claimed:led.starClaimed, ledger:ledgerView(me)};
+    });
+    return send(res,out.storageFailed?503:(out.ok===false?400:200),out); }
   if(p==='/api/shop/buy' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
     const out=durableCommit(me,me.id+':shop:'+reqId,(me)=>{

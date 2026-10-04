@@ -14870,6 +14870,7 @@ function adoptLedger(st){ if(!st||typeof st!=='object') return;
        stage the server refuses to sweep. The server's count is the count: assign it. Nodes the
        server does not know about (offline progress not yet synced) are left alone. */
     for(const n in (st.camp.stars||{})) G.stageStars[n]=st.camp.stars[n]|0; }
+  if(st.starClaimed!=null) G.starMilestonesClaimed=st.starClaimed|0;   /* 3 Oct: the star track's claimed count is server-owned (/api/stars/claim) */
   if(st.portals){ G.portals=G.portals||{};   // v266: Elite + Veteran Portal progress, server-owned
     for(const m in st.portals){ const src=st.portals[m], cur=G.portals[m]||(G.portals[m]={cleared:0,stars:{}});
       cur.cleared=Math.max(cur.cleared|0, src.cleared|0); cur.locked=src.locked||null;
@@ -17779,6 +17780,17 @@ function claimStarMilestone(){ if(!starTrackClaimable()||_starClaimBusy) return;
   /* The milestone is consumed ONLY after the server books the reward. It used to be marked claimed
      the instant the button was tapped, so any refused or failed grant burned it forever. */
   _starClaimBusy=true;
+  if(ACC.token){   /* 3 Oct Market audit #1: signed in, the SERVER counts the stars and pays the milestone (/api/stars/claim); the
+                      requestId is the milestone itself, so a retry after a lost reply can never pay twice */
+    api('/api/stars/claim','POST',{requestId:'stars:'+idx}).then(function(res){ _starClaimBusy=false;
+      if(res&&res.ledger) adoptLedger(res.ledger);
+      if(!res||!res.ok){ bannerMsg((res&&res.error)||'That reward could not be granted just now.'); renderStarTrack(); return; }
+      if(res.claimed!=null) G.starMilestonesClaimed=res.claimed|0;
+      const g=res.got||{}, fr=g.frags?Object.keys(g.frags).reduce(function(s,k){ return s+(g.frags[k]|0); },0):0;
+      const what=g.gold?('🪙 '+g.gold.toLocaleString()+' gold'):g.stamina?('⧗ '+g.stamina+' stamina'):g.gems?('💎 '+g.gems+' diamonds'):('🧩 '+fr+' hero fragments');
+      saveG(); updateHubChrome(); bannerMsg('⭐ '+((res.idx+1)*15)+'-star reward!\n'+what); renderStarTrack(); })
+     .catch(function(){ _starClaimBusy=false; renderStarTrack(); });
+    return; }
   let p; try{ p=Promise.resolve(r.give()); }catch(e){ p=Promise.resolve(false); }
   p.then(function(ok){ _starClaimBusy=false;
     if(ok===false){ bannerMsg('⭐ That reward could not be granted just now — the milestone is still waiting for you. Try again in a moment.'); renderStarTrack(); return; }
@@ -25702,7 +25714,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791081881799';
+const BUILD_ID = '1791082549813';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
