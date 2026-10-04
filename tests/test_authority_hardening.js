@@ -33,7 +33,7 @@ const rid=()=>Math.random().toString(36).slice(2)+Date.now().toString(36);
   const a=await req('/api/guild/raid/assault',{requestId:rid()},T);
   const dmg=(a&&a.dmg)||(a&&a.raid&&a.raid.lastDmg)||null;
   const raidHp=(a&&a.raid&&a.raid.hp);
-  ck('a raid assault resolves', !!a && !a.error, JSON.stringify(a).slice(0,120));
+  ck('the old raid assault route is retired - the raid is a real fight (v825)', !!a && /real battle/.test(a.error||''), JSON.stringify(a).slice(0,120));
   ck('raid damage is not inflated by the forged line-up (a level-1 account cannot one-shot the boss)',
      !(raidHp===0), 'boss hp after one hit: '+raidHp);
 

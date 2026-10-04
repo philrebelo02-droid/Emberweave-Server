@@ -29,7 +29,8 @@ const rid=()=>Math.random().toString(36).slice(2)+Date.now().toString(36);
   const enc=JSON.parse(require('fs').readFileSync(__dirname+'/../server/campaign-encounters.json','utf8'));
   const honestResolve=async(st, node, log)=>{
     const r=host.campaign(st.snaps, enc[node-1].waves, st.seed>>>0, log||[]);
-    return req('/api/campaign/resolve',{attemptId:st.attemptId,requestId:rid(),inputLog:log||[],digest:r.digest},TOK);
+    /* 28 Sep fight rule (v975 test refresh): the client also states the verdict it watched - won + stars - as the game does */
+    return req('/api/campaign/resolve',{attemptId:st.attemptId,requestId:rid(),inputLog:log||[],digest:r.digest,won:!!r.won,stars:r.won?(r.stars|0):0},TOK);
   };
 
   // --- a frozen session ---
@@ -95,10 +96,13 @@ const rid=()=>Math.random().toString(36).slice(2)+Date.now().toString(36);
     teamSnapshot:[{key:'vael',maxHp:9e9,dmg:9e9}], seed:1},TOK);
   const s3b=await req('/api/campaign/start',{mode:'normal',node:1,heroIds:['vael','sylthaine','vireo'],requestId:rid()},TOK);
   const clean=await honestResolve(s3b, 1, []);
-  ck('a client-declared win/stars does not change the result — the replay decides',
-     forged.ok===true && forged.won===clean.won && forged.stars===clean.stars,
-     'claimed {won:true,stars:3} → got '+JSON.stringify({won:forged.won,stars:forged.stars})+
-     ' vs the same fight with no claims '+JSON.stringify({won:clean.won,stars:clean.stars}));
+  /* 28 Sep 2026 fight rule (Phil): the result is the one the player WATCHED - the end state the client reached - not a
+     server replay. The guard is consistency: a declared win that contradicts that end state is NOT COUNTED (stamina back). */
+  ck(truth3.won ? "a declared win that matches the fight's end state is counted"
+               : "a declared win that contradicts the fight's end state is not counted (28 Sep rule)",
+     truth3.won ? (forged.ok===true && forged.won===true) : (forged.ok===false && forged.unverified===true && clean.won===false),
+     'end state won='+truth3.won+'; claimed {won:true,stars:3} -> '+JSON.stringify({ok:forged.ok,unverified:forged.unverified,won:forged.won})+
+     ' (the same fight stated honestly: '+JSON.stringify({won:clean.won,stars:clean.stars})+')');
   ck('a client-declared reward grants nothing', !(forged.reward&&forged.reward.gold>=999999));
 
   // --- rewards are idempotent (spec §8.6) ---

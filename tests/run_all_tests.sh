@@ -55,6 +55,8 @@ if [ "$BROWSER_OK" = "1" ]; then
 fi
 note "test_player_truth.js (v270: the campaign result is the player's own transcript, replayed)"
 node tests/test_player_truth.js || FAILED=1
+note "test_campaign_player_truth.js (28 Sep fight rule: the witnessed win is paid on a replay mismatch, once; a malformed verdict is refused)"
+PORT=$PORT node tests/test_campaign_player_truth.js || FAILED=1
 note "test_authority_hardening.js (v272: a forged line-up cannot buy power)"
 node tests/test_authority_hardening.js || FAILED=1
 note "test_audit_response.js (v273: unverified-on-mismatch, resume, server-owned grants, blob stripped)"

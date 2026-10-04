@@ -73,7 +73,7 @@ const SQUAD=['vael','sylthaine','vireo'];
     if(!st.ok) return {start:st};
     const log=[[30,'auto',-1,1,null,null]];
     const r=honest(st.snaps, node, st.seed, log);
-    const out=await req('/api/campaign/resolve',{attemptId:st.attemptId,requestId:rid(),inputLog:log,digest:r.digest},T);
+    const out=await req('/api/campaign/resolve',{attemptId:st.attemptId,requestId:rid(),inputLog:log,digest:r.digest,won:!!r.won,stars:r.won?(r.stars|0):0},T);   /* 28 Sep fight rule: the watched verdict travels with the digest */
     return {start:st, local:r, out};
   };
   const w1=await play(1);
