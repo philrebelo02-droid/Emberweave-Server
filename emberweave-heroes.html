@@ -11952,6 +11952,7 @@ function think(u,dt){
       // how long this swing's clip wants to run. PURELY VISUAL — see the _animLockT note in think().
       const _atkClipA=u.anim&&u.anim[(u._atkClip&&u.anim[u._atkClip])?u._atkClip:'attack'];
       { u._animLockT=Math.min(ai*0.95, _atkClipA?((_atkClipA.hold||clipDur(_atkClipA))/u._atkSpdMul):0.42); u._lockPri=1; }
+      { const _fz=_atkClipA?clipDur(_atkClipA)*(_atkClipA.relFrac!=null?_atkClipA.relFrac:0.5)*BATTLE_PACE/(u._atkSpdMul||1):0; u._recentAtk=Math.max(u._recentAtk||0,_fz+0.05); }   /* v1031 (Phil 4 Oct: Vael "hits people without attacking"): no skill may start until this swing's blow has landed - a skill clip used to replace the swing at 0.3 s and the blow landed under it at 0.4 s */
       const buff=(u.dmgBuffT>0?u.dmgBuffMul:1)*rageMul;
       const dmg = u.hybrid ? (u.dmg*0.6*buff + (u.apow||0)*0.6*(u.apMul||1)) : u.dmg*buff;   // hybrid (Aureth): 60% attack-damage physical + 60% ability-power magic per hit
       u.energy=Math.min(100,u.energy+11*(((u._nrgSlowT||0)>0)?(1-(u._nrgSlowPct||0.4)):1));   // v527: energy gain can be slowed
@@ -13158,6 +13159,7 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
         const _asm=u._atkSpdMul||1;   // v1024: the swing's attack-speed factor (set in doAtk) - every source, not only timed haste
         const _ai=(u._atkI0||u.atkInterval)/_asm;
         const _ah=Math.min(_ai*0.95, _atkA?((_atkA.hold||clipDur(_atkA))/_asm):0.42);   // v545: attack speed speeds the swing clip (and the crit clip - same path) itself, not only the cap
+        if(u.attackAnim>0 && (u._abilHold||0)>0 && (u._abilPri|0)===4 && (u._abilAnim==='green'||u._abilAnim==='blue') && !((u._castT||0)>0)){ u._abilHold=0; u._abilAnim=null; u._abilPri=0; if((u._lockPri|0)===4){ u._lockPri=1; u._animLockT=0; } }   /* v1031 (Phil: Vael "hits people without attacking"): a new swing ends the follow-through of a skill whose effect has fired - the swing played hidden under the 2 s skill clip and its blow landed with no swing on screen. Never an ult. Render-only. */
         if(u.attackAnim>0)u._atkHold=_ah; else if(u._atkHold>0)u._atkHold-=dt;
         /* 29 Aug — the crit flinch was a flat 0.28s regardless of how long the hit clip was. Every
            hit sheet on the roster runs 0.6-1.5s, so all anyone ever saw was its first few frames —
@@ -25898,7 +25900,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791167731535';
+const BUILD_ID = '1791168797823';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
