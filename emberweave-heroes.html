@@ -5569,7 +5569,7 @@ function mulsFromTotals(gf, ex){
   /* v364: HP Regen is a RATING — 0.01% of max HP per second per point, capped at 6%/s. It was 0.1%/pt
      with no cap, so an Orange tank's 1,823 banked points healed 182% of its HP every second
      (Phil's Gruel card: "HP Regen 123,849/s"). Mirrored in server/combat-core.js. */
-  regen+=Math.min(0.012,(gf.regen||0)*0.0001); energyReg+=(gf.energy||0)*0.01;   /* v1025 (Phil 4 Oct): HP regen 100 points = 1% max HP/s, cap 1.2%/s (was 6%) - the one rating off the 20 = 1% rule; at 20 = 1% a geared tank regenerated the 6%/s cap (energy regen is energy, not a %) */
+  regen+=Math.min(0.012,(gf.regen||0)*0.0001); energyReg+=(gf.energy||0)*0.01;   /* v1026 (Phil 4 Oct): HP regen 100 points = 1% max HP/s, cap 1.2%/s (was 6%) - the one rating off the 20 = 1% rule; at 20 = 1% a geared tank regenerated the 6%/s cap (energy regen is energy, not a %) */
   const ctrlRes=Math.min(0.6,(gf.ctrlRes||0)*0.0005), startEnergy=Math.min(60,Math.round((gf.startEnergy||0)*0.35)), healPow=(gf.healPow||0)*0.0005;   /* v1020: 20 points = 1% */
   return {atk,hp,dr:Math.min(dr,0.6),regen,crit:Math.min(crit,0.6),critRes:Math.min(critRes,0.75),energyReg,ctrlRes,startEnergy,healPow};
 }
