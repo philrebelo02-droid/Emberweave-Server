@@ -8166,6 +8166,15 @@ const server=http.createServer((req,res)=>{
   }
   // marketing site at the bare root; the game lives at /play and on deep links (/?room=..., etc.)
   if(p==='/' && !url.search) return serveFile(res,'emberweave-site.html','text/html; charset=utf-8',null,req);
+  /* v1034 (Phil 5 Oct: "it reloads twice instead of once"): a server switch made on s2-s4 passes through the front door so its
+     memory (localStorage ew_server, front-door origin) changes - it used to load the whole 1.1 MB game page to do that. This page is
+     the whole job: store N and forward. Server 1 = the front door, Server N = sN.emberweaveheroes.com (the SVR_LIST pattern); the
+     #handoff fragment rides along untouched (browsers never send it to a server). Only *.emberweaveheroes.com targets exist. */
+  if(p==='/switch'){ res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store'});
+    return res.end('<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Emberweave Heroes</title>'+
+      '<body style="background:#06090f"><script>(function(){var n=parseInt(new URLSearchParams(location.search).get("server")||"",10);'+
+      'if(!(n>=1&&n<=9))n=1;try{localStorage.setItem("ew_server",String(n));}catch(e){}'+
+      'location.replace("https://"+(n===1?"emberweaveheroes.com":"s"+n+".emberweaveheroes.com")+"/play"+(location.hash||""));})();</script>'); }
   // everything else (/play, /?room deep links, other paths) -> the game (local file if bundled, else GAME_URL).
   fs.readFile(GAME_FILE,(e,buf)=>{ if(!e){ return sendBody(req,res,buf,'text/html; charset=utf-8','no-cache, must-revalidate','game'); }
     remoteAsset('/').then(r=>{ if(!r){res.writeHead(502);res.end('Game source unavailable. Set GAME_URL to your game link.');return;}

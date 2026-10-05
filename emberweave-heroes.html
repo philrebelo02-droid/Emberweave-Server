@@ -19612,13 +19612,14 @@ function netGateEl(){ let el=document.getElementById('netGate'); if(!el){ el=doc
     document.body.appendChild(el); } return el; }
 function netGateUpdate(){ if(window._p2guard||!online()) return; const el=netGateEl(); let msg='', act='';
   if(NETGATE.down>=2){ msg='Connection lost — reconnecting…'; act='retry'; }
+  else if(window._svrSigningIn){ msg='Signing you in…'; act='wait'; }   // v1034: a server switch is signing in - no Play until it lands
   else if(!(ACC&&ACC.token)){
     if(ACC&&ACC.signedOut){ if(typeof state==='undefined'||state!=='account'){ msg='Sign in to play.'; act='signin'; } }
     else if(NETGATE.bootAt&&Date.now()-NETGATE.bootAt>3000&&!window._svrHandoff){ msg='Connecting to the realm…'; act='retry'; } }
   if(!msg){ el.style.display='none'; return; }
-  const btn=act==='signin'?'<button class="btn" id="netGateBtn">Sign in</button>':'<button class="btn secondary" id="netGateBtn">Retry</button>';
+  const btn=act==='wait'?'':act==='signin'?'<button class="btn" id="netGateBtn">Sign in</button>':'<button class="btn secondary" id="netGateBtn">Retry</button>';
   if(el.dataset.msg!==msg){ el.dataset.msg=msg; el.innerHTML='<div>'+msg+'</div>'+btn;
-    el.querySelector('#netGateBtn').onclick=()=>{ if(act==='signin'){ el.style.display='none'; try{ show('account'); }catch(e){} } else netGateCheck(); }; }
+    if(act!=='wait') el.querySelector('#netGateBtn').onclick=()=>{ if(act==='signin'){ el.style.display='none'; try{ show('account'); }catch(e){} } else netGateCheck(); }; }
   el.style.display='flex'; }
 async function netGateCheck(){ if(window._p2guard||!online()||NETGATE.busy) return; NETGATE.busy=true; let ok=false;
   try{ const c=new AbortController(), t=setTimeout(()=>c.abort(),6000); const r=await fetch('/api/health',{cache:'no-store',signal:c.signal});   /* /api/ bypasses the service worker, which answers /health from cache */ clearTimeout(t); ok=!!(r&&r.ok); }catch(e){ ok=false; }
@@ -24906,14 +24907,24 @@ function svrHandoffCode(){
 async function svrGo(id){
   const code=await svrHandoffCode(), h=code?('#handoff='+code):'';
   if(svrFront()){ svrRecentSet(id); if(id===1){ svrClose(); return; } location.href=svrUrl(id)+h; return; }
-  location.href='https://'+SVR_FRONT+'/play?server='+id+h; }
+  location.href='https://'+SVR_FRONT+'/switch?server='+id+h; }   // v1034: a ~1 KB page on the front door records the choice and forwards
+/* v1034 (Phil 5 Oct: "it reloads twice instead of once"): the code is redeemed and the page signs in where it stands - it used to
+   location.replace() and boot the whole game a second time. While it runs the net gate reads "Signing you in…", so Play cannot be
+   tapped on the half-booted page; a failed code falls back to the normal start (guest provisioning) with the server's message. */
 function svrRedeem(code){
+  window._svrSigningIn=true; try{ netGateUpdate(); }catch(e){}
+  let msg='';
   fetch('/api/handoff-redeem',{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({code}) })
     .then(r=>r.json()).then(d=>{ if(d && d.token && d.profile){
       ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,email:d.profile.email||'',
            created:(d.profile.created||0),admin:!!d.profile.admin,guest:false};
-      try{ clearServerCaches(); }catch(e){} saveAcc(); } })
-    .catch(()=>{}).then(()=>{ location.replace(location.pathname); });   // boot again, now signed in (or as before if the code failed)
+      try{ clearServerCaches(); }catch(e){} saveAcc(); } else msg=(d&&d.error)||''; })
+    .catch(()=>{}).then(()=>{
+      window._svrHandoff=false; window._svrSigningIn=false;
+      if(ACC && ACC.token){ try{ DEV.on=isDevAcct(); }catch(e){} const pb=window.bootSignedIn ? window.bootSignedIn() : null;
+        _ledgerBoot=Promise.resolve(pb).catch(()=>null).then(()=>ledgerSync()); try{ updateHubChrome(); }catch(e){} }
+      else { if(msg){ try{ bannerMsg(msg); }catch(e){} } try{ ensureGuest(()=>netGateUpdate()); }catch(e){} }
+      try{ netGateUpdate(); }catch(e){} });
 }
 function svrClose(){ const p=document.getElementById('svrPanel'); if(p) p.remove(); }
 function svrOpen(){
@@ -25897,7 +25908,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791241738585';
+const BUILD_ID = '1791243272792';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -26178,12 +26189,14 @@ else { document.body.classList.add('gated'); loadG(); applyBetaUnlocks(); loadAc
   // auto-login: resume the last account you signed into. Only sign out if the token is genuinely invalid —
   // a network hiccup must NOT log you out (that would drop your character on a bad connection).
   if(!ACC.token && online() && !window._svrHandoff){ ensureGuest(); }   // no session → provision a persistent level-1 guest account (v947: not while a server-switch sign-in is being redeemed - the page reloads signed in)
-  if(ACC.token && online() && !window._svrHandoff){ _profileBoot=api('/api/profile').then(d=>{ if(d&&d.profile){ACC.rank=d.profile.rank;ACC.coins=d.profile.coins;ACC.name=d.profile.name;ACC.email=d.profile.email||'';ACC.guest=!!d.profile.guest;ACC.admin=!!d.profile.admin;saveAcc(); DEV.on=isDevAcct();
+  /* v1034: the signed-in boot is a function so a server-switch sign-in (svrRedeem) runs it in place instead of reloading. */
+  window.bootSignedIn=function(){ _profileBoot=api('/api/profile').then(d=>{ if(d&&d.profile){ACC.rank=d.profile.rank;ACC.coins=d.profile.coins;ACC.name=d.profile.name;ACC.email=d.profile.email||'';ACC.guest=!!d.profile.guest;ACC.admin=!!d.profile.admin;saveAcc(); DEV.on=isDevAcct();
       const adopted=(_cloudReady=true,applyCloudSave(d.profile,true)); _cloudReady=true;   // CLOUD IS THE TRUTH (Phil 26 Aug): adopt the cloud save FIRST, only then may this session push
       if(adopted){ updateHubChrome(); if(state==='home') renderHome(); } else { pushSave(); }
       try{ questStateSync(true).then(function(){ updateMailBadges(); if(state==='quest') renderQuests(); }); }catch(e){} }   // server-owned quest claims must be adopted before badges or claim buttons are trusted
     else if(d&&d.error==='auth'){ ACC={token:null,name:null,rank:null,coins:0,id:null};saveAcc(); ensureGuest(); }   // token no longer valid → drop to a fresh level-1 guest
-    /* else: offline / transient error → stay signed in with local progress */ }).catch(()=>{}); }
+    /* else: offline / transient error → stay signed in with local progress */ }).catch(()=>{}); return _profileBoot; };
+  if(ACC.token && online() && !window._svrHandoff) window.bootSignedIn();
   setInterval(()=>{ if(!(_splashEntered && online() && !_updating && !_updateNoticeShown))return;
     if(_pendingUpdate){ if(!updateUnsafe()) doUpdateReload(); return; }   // a real update was deferred during a fight → apply it silently now the fight is over
     checkForUpdate(); }, 10000);   // poll version.json every 10s (served no-store, so it's always fresh); false updates are impossible now that BUILD_ID is stamped == version.json on deploy
