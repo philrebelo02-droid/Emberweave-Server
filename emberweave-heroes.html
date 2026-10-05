@@ -13158,7 +13158,7 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
            This used to be gated on !(u._atkHold>0), so a crit landing mid-swing was simply dropped
            and the flinch never played. It now cuts the swing, but NEVER a skill or an ult: those
            hold _lockPri 4 and 6, and Phil's rule is that only an ult (or CC) may cut a skill. */
-        if(u._critHit && (u._lockPri|0)<4){ const _h=u.anim&&u.anim.hit;
+        if(u._critHit && (u._lockPri|0)<4 && u.anim && u.anim.hit){ const _h=u.anim.hit;   /* v1028: a hero with NO hit clip (Vael, Phil: no hit animation) is never cut mid-swing by a crit - it used to snap to idle for 0.28 s */
           u._hitHold=_h?Math.min(0.6,_h.n/(_h.fps||16)):0.28;
           u._atkHold=0; u._animLockT=Math.max(u._animLockT||0,u._hitHold); u._lockPri=2; }
         else if(u._hitHold>0)u._hitHold-=dt; u._critHit=false;
@@ -13339,6 +13339,10 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
           else { fr=Math.min(R.launch, Math.floor((battleTime-u._abilStartAt)*f)); u._rushFace=null; } }
         else if(_osFrac!==null){ const _per=ppPer(A), _p=Math.floor(_osFrac*_per*((u._dblSwing&&st===_atkSt)?2:1))%_per;   // one-shot: the whole clip, fitted to its hold (v534: twice through for a mirage double swing)
           fr=ppFrame(A,_p); }   // v544: a rubberbanded one-shot runs out AND back inside its hold (the boar shaman's cast/attack) - before this the return leg was never drawn
+        else if(_osH>0 && st!=='walk' && st!=='idle' && !A.pingpong && !(u._dblSwing&&st===_atkSt) && A.n>1){   /* v1028 (Phil 4 Oct: Vael's swing "instantly recoils the hit back, instead of naturally doing the full swing"):
+             a one-shot (attack, crit, skill) whose hold outlasts its clip HOLDS THE LAST FRAME. The hold counts battle time (0.82 of real) while the clip plays in real time,
+             so a 48-frame swing ran on to frames 48-54 and wrapped to 0-6 - the sword snapped back to his shoulder at the end of every swing. Render-only. */
+          fr=Math.min(A.n-1,Math.floor(u._animAcc)); }
         else if(A.pingpong && A.n>1){ const per=ppPer(A); let p=Math.floor(u._animAcc)%per; fr=ppFrame(A,p); }
         else fr=Math.floor(u._animAcc)%A.n;
         if(A.reverse) fr=A.n-1-fr;   // v349 (Phil: Corsair/Dawnbringer 'walk backwards'): the Hailuo clip is a backpedal — play it reversed
@@ -25885,7 +25889,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791163865086';
+const BUILD_ID = '1791165152417';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
