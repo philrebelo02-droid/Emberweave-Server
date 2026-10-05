@@ -264,12 +264,12 @@ function isDev(u){ return !!(u && !u.isNpc && (u.role==='admin' || ADMIN_IDS.has
 
 /* v946 (Phil, 2 Oct 2026: "the same account should be Game wide "user" "pass". the only thing that should start over is their
    player progress if they go on another server" / "so phil or dev1 should be able to sign on any server").
-   Server 1 is the ACCOUNT SERVER: the one home of every name, password and email. Servers 2-3 (ACCOUNT_AUTHORITY set) check a
+   Server 1 is the ACCOUNT SERVER: the one home of every name, password and email. Servers 2-4 (ACCOUNT_AUTHORITY set) check a
    login / register / password reset with it over the LAN, and keep their OWN player (progress) per account, linked by gid = the
    account's id on Server 1. A satellite keeps a local copy of the password hash after each good login, so a returning player can
    still sign in while Server 1 is down; a first sign-in needs Server 1. The account endpoints answer only with the shared
    ACCOUNT_LINK_SECRET and never through Cloudflare (a request carrying cf-connecting-ip is refused). */
-const ACCOUNT_AUTHORITY=(process.env.ACCOUNT_AUTHORITY||'').replace(/\/+$/,'');   // Servers 2-3: http://192.168.1.220:8080
+const ACCOUNT_AUTHORITY=(process.env.ACCOUNT_AUTHORITY||'').replace(/\/+$/,'');   // Servers 2-4: http://192.168.1.220:8080
 const ACCOUNT_LINK_SECRET=process.env.ACCOUNT_LINK_SECRET||'';
 function linkSecretOk(req){
   if(!ACCOUNT_LINK_SECRET || ACCOUNT_AUTHORITY || req.headers['cf-connecting-ip']) return false;
@@ -4002,7 +4002,7 @@ async function api(req,res,url){
       const times=Array.isArray(rec)?rec.filter(t=>now-t<WINDOW):[];
       if(times.length>=REG_ACCOUNTS_PER_IP) return send(res,429,{error:'Too many new accounts from this network today — try again tomorrow.'});
       DB.ipAccounts[ip]=times; }
-    // v946: on Servers 2-3 the account is made on the account server (one name, one password, game-wide); this server's player
+    // v946: on Servers 2-4 the account is made on the account server (one name, one password, game-wide); this server's player
     // links to it - a signed-in guest keeps its progress here, as before.
     if(ACCOUNT_AUTHORITY){
       const r=await authorityCall('/api/internal/account/register',{ name, pass:b.pass });
@@ -4134,7 +4134,7 @@ async function api(req,res,url){
 
   if(p==='/api/login' && req.method==='POST'){ const b=await body(req);
     if(rateLimited(req,'login',15,60000)) return send(res,429,{error:'Too many attempts — wait a minute and try again.'});
-    // v946: on Servers 2-3 the password is checked by the account server (Server 1); this server keeps its own player.
+    // v946: on Servers 2-4 the password is checked by the account server (Server 1); this server keeps its own player.
     if(ACCOUNT_AUTHORITY){
       const name=String(b.name||'').trim(), r=await authorityCall('/api/internal/account/verify',{ name, pass:b.pass, ip:clientIP(req) });   /* v1007 (re-audit Account N3): the player's IP, so the lockout is per player, not per satellite */
       if(r && r.status===200 && r.body && r.body.gid){ const u=linkedUser(r.body.gid, r.body.name, b.pass); delete u.loginFails;
@@ -4154,7 +4154,7 @@ async function api(req,res,url){
   // Always responds ok (never reveals whether an account or its email exists); only sends if a valid email is on file.
   if(p==='/api/reset-request' && req.method==='POST'){ const b=await body(req);
     if(rateLimited(req,'resetreq',5,10*60000)) return send(res,429,{error:'Too many requests — wait a few minutes and try again.'});
-    // v946: the account (and its email) lives on the account server; Servers 2-3 pass the request on
+    // v946: the account (and its email) lives on the account server; Servers 2-4 pass the request on
     if(ACCOUNT_AUTHORITY) await authorityCall('/api/internal/account/reset-request',{ name:b.name, ip:clientIP(req) });   /* v1017: the player's network */
     else acctResetRequest(b.name, clientIP(req));
     return send(res,200,{ ok:true }); }   // RE-AUDIT: identical response whether or not the account/email exists — no enumeration

@@ -24877,12 +24877,15 @@ function netURL(){ if(location.protocol==='file:')return null; return (location.
    their recent server, if the Server is down then it Pulls up the server list, it says which servers are Up (green color) and what
    server is down (red color)" / "after settings in menu panel, put a server button").
    Each server is its own world on its own tower. Server 1 is ALSO the front door (emberweaveheroes.com / www), so every existing
-   login stays where it is; s1/s2/s3.emberweaveheroes.com are each server's own address. The front door remembers the last server
+   login stays where it is; s1-s4.emberweaveheroes.com are each server's own address. The front door remembers the last server
    (localStorage ew_server, front-door origin only) and sends the player there when it answers; a server that does not answer opens
-   the list. A switch made on s2/s3 goes through the front door (?server=N) so the front door's memory is the one that changes.
-   Off on every other host (local rigs, file:, the headless replay host). */
+   the list. A switch made on s2-s4 goes through the front door (?server=N) so the front door's memory is the one that changes.
+   Off on every other host (local rigs, file:, the headless replay host).
+   v1033 (Phil, 5 Oct 2026: "i need the ingame to match"): Server 4 (s4, CT 204 on ew-node3) joins the list; rows, pings,
+   the Current tag, the recent server and ?server=N all read SVR_LIST, so the entry is the whole change. */
 const SVR_LIST=[{id:1,name:'Server 1',host:'s1.emberweaveheroes.com'},{id:2,name:'Server 2',host:'s2.emberweaveheroes.com'},
-                {id:3,name:'Server 3',host:'s3.emberweaveheroes.com'}];
+                {id:3,name:'Server 3',host:'s3.emberweaveheroes.com'},
+                {id:4,name:'Server 4',host:'s4.emberweaveheroes.com'}];
 const SVR_FRONT='emberweaveheroes.com';
 function svrOn(){ try{ return typeof location!=='undefined' && location.protocol==='https:' && /(^|\.)emberweaveheroes\.com$/i.test(location.hostname); }catch(e){ return false; } }
 function svrFront(){ return /^(www\.)?emberweaveheroes\.com$/i.test(location.hostname); }
@@ -25894,7 +25897,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791170549799';
+const BUILD_ID = '1791241738585';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
