@@ -3231,8 +3231,8 @@ const BATTLE_ANIM = {
   vael:{
   idle:{u:'/assets/anim/vael/vael_idle.webp?v=30',n:48,fw:361,fh:450,cols:6,rows:8,figH:326,feet:390,cx:197,fps:24,flip:false,top:64}   /* v1025 (Phil 4 Oct "great wire it and deploy"): seven approved Hailuo takes from the official watermark-free exports - idle3, walk1, attack1, crit1, ult2 Last Stand, green1 Warcry, blue1 Bloodthirst. Their backdrops change colour per frame (and split within a frame on attack1), so each frame was laid onto one flat key off its own border before the cut (figure pixels copied, 3 px edge despill); cs10 48@24, trim 0/0, figH 325 on every state. No hit and no passive animation (Phil: "make sure he has no hit or passive animation from old clips"). walk = 48 + cells 1,0 */,
   walk:{u:'/assets/anim/vael/vael_walk.webp?v=30',n:50,fw:403,fh:456,cols:6,rows:9,figH:326,feet:390,cx:214,fps:24,flip:false,top:64},
-  attack:{u:'/assets/anim/vael/vael_attack.webp?v=30',n:48,fw:692,fh:572,cols:6,rows:8,figH:326,feet:506,cx:292,fps:24,flip:false,top:180},
-  crit:{u:'/assets/anim/vael/vael_crit.webp?v=1',n:48,fw:672,fh:650,cols:6,rows:8,figH:326,feet:514,cx:292,fps:24,flip:false,top:188},
+  attack:{u:'/assets/anim/vael/vael_attack.webp?v=30',n:48,fw:692,fh:572,cols:6,rows:8,figH:326,feet:506,cx:292,fps:24,flip:false,top:180,relFrac:0.21},   /* v1027 (Phil 4 Oct: "the damage needs to happen the moment the sword meets the target"): the blow lands on the contact frame - attack 13/48, crit 12/48 on screen; measured in a real battle the clip starts ~3-4 frames after the swing, so relFrac 0.21 / 0.20 (default 0.5 landed at frame ~27, as he pulls back) */
+  crit:{u:'/assets/anim/vael/vael_crit.webp?v=1',n:48,fw:672,fh:650,cols:6,rows:8,figH:326,feet:514,cx:292,fps:24,flip:false,top:188,relFrac:0.20},
   ult:{u:'/assets/anim/vael/vael_ult.webp?v=30',n:48,fw:394,fh:671,cols:6,rows:8,figH:325,feet:608,cx:215,fps:24,flip:false,top:283},
   green:{u:'/assets/anim/vael/vael_green.webp?v=30',n:48,fw:504,fh:549,cols:6,rows:8,figH:326,feet:489,cx:319,fps:24,flip:false,top:163},
   blue:{u:'/assets/anim/vael/vael_blue.webp?v=30',n:48,fw:381,fh:446,cols:6,rows:8,figH:326,feet:386,cx:194,fps:24,flip:false,top:60}
@@ -4553,7 +4553,7 @@ const KITS={
   vireo:{green:{name:'Crescendo',type:'crescendo',heal:0.16,hot:0.05,dur:5,cd:7,gfx:'vireo_green',gdur:5.88,desc:"Vireo's song swells to heal every ally and keep mending them for 5 seconds; each Crescendo in a row rings louder and heals more."},blue:{name:'Harmony',type:'harmonyshield',mul:2.4,radius:10*METER,dur:12,cd:9,gfx:'vireo_blue',gdur:11.76,desc:"A dome of harmony settles over the most wounded ally, shielding every ally inside it for 12 seconds."}   /* v560 Phil: 'make the radius 10 m ... increase the shields size to match'. The painted dome follows on its own: upMetric spans exactly 2R, so 10 m radius draws a 20 m dome with no art change. (v558 was 7 m / 14 m.) */,purple:{name:'Perfect Pitch',pass:'perfectpitch'}},
   fritz:{green:{name:'Storm Surge',type:'stormsurge',mul:0.85,n:5,cd:8,gfx:'fritz_green',noArt:true,gfxR:3*METER,gdur:1.1},blue:{name:'Chain Lightning',type:'chainlight',mul:1.1,jumps:4,jumpRange:15*METER,previewBolt:true,decay:0.8,cd:7,gfx:'fritz_blue',noArt:true,gfxR:3*METER,gdur:5.88},purple:{name:'Static Veil',pass:'stormdodge'}},
   umbris:{green:{deliver:'form',name:'Shadeburst',type:'shadeburst',at:'cluster',dps:0.3,dur:6,radius:7*METER,cd:7,gfx:'umbris_green',noArt:true,gdur:5.88},blue:{name:'Creeping Rot',type:'creeprot',mul:0.5,dps:0.6,dur:5,color:'#8a5cff',foot:true,handglow:true,cd:6,gfx:'umbris_blue',gfxR:3*METER,gdur:5.38},purple:{name:'Lingering Dark',pass:'contagion',desc:'when a foe dies still rotting from his shadow, the rot spreads to every enemy nearby — and can spread again from them'}},
-   vael:{green:{name:'Warcry',type:'warcry',mul:1.1,mulPerLv:0.002,dur:6,cd:8,fear:1.2,desc:"Vael roars: +10% damage (+0.2% per skill level, +0.4% at level 100) for 6 seconds, and nearby enemies flee in fear.",gfx:'vael_green',gfxR:3*METER,gdur:2.25},blue:{name:'Bloodthirst',type:'lifestealbuff',pct:0.1,atkSpd:1.2,atkSpdPerLv:0.002,crit:0.05,critPerLv:0.001,dur:6,cd:7,desc:"Vael feeds on the fight for 6 seconds: +20% attack speed (+0.2% per skill level, +0.4% at level 100), +5% crit chance (+0.1% per skill level, +0.2% at level 100) and he heals for 10% of the damage he deals.",gfx:'vael_blue',gfxR:3*METER,gdur:4.92},purple:{name:'Blood Rage',pass:'bloodrage',desc:"The more damage Vael takes, the harder he hits: +1% damage for every 4% of his max health he has lost this fight, up to +25%."}},
+   vael:{green:{name:'Warcry',type:'warcry',mul:1.1,mulPerLv:0.002,dur:6,cd:8,fear:2/0.7,radius:5*METER,   /* v1027 (Phil 4 Oct: "the range should be 5 meters and last 2 seconds running away"): 2 s after ccDur's 30% cut */ desc:"Vael roars: +10% damage (+0.2% per skill level, +0.4% at level 100) for 6 seconds, and every enemy within 5 m runs from him in terror for 2 seconds.",gfx:'vael_green',gfxR:3*METER,gdur:2.25},blue:{name:'Bloodthirst',type:'lifestealbuff',pct:0.1,atkSpd:1.2,atkSpdPerLv:0.002,crit:0.05,critPerLv:0.001,dur:6,cd:7,desc:"Vael feeds on the fight for 6 seconds: +20% attack speed (+0.2% per skill level, +0.4% at level 100), +5% crit chance (+0.1% per skill level, +0.2% at level 100) and he heals for 10% of the damage he deals.",gfx:'vael_blue',gfxR:3*METER,gdur:4.92},purple:{name:'Blood Rage',pass:'bloodrage',desc:"The more damage Vael takes, the harder he hits: +1% damage for every 4% of his max health he has lost this fight, up to +25%."}},
    oakmir:{green:{name:'Mending Bloom',type:'hot',hps:0.06,dur:6,cd:6,gfx:'oakmir_green',gfxR:3*METER,gdur:5.83},blue:{name:'Rally Roots',type:'heal',mul:0.22,cd:9,gfx:'oakmir_blue',gfxR:3*METER,gdur:5.29},purple:{name:'Twin Fonts',pass:'twinfonts'}},
    rhukk:{green:{name:'Carapace',type:'defensive',mul:0.5,dur:5,cd:8,gfx:'rhukk_green',gfxR:3*METER,gdur:2.0,desc:"Rhukk locks his shell plates tight, taking half damage for 5 seconds."},blue:{name:'Dig In',type:'taunt',cd:10,gfx:'rhukk_blue',gfxR:3*METER,gdur:5.88,desc:"Rhukk plants his horn and roars: every enemy is forced to attack him for 3 seconds while his hide takes less damage."},purple:{name:'Thick Chitin',pass:'warden'}},
   hurne:{green:{name:'Unchain the Dead',type:'summonwarriors',n:3,dur:15,radius:1.7*METER,cd:12},blue:{name:'Call the Bone-Chanter',type:'summonshaman',dur:18,radius:1.5*METER,cd:14},purple:{name:'Packmaster',pass:'packstats'}},
@@ -11812,7 +11812,14 @@ function think(u,dt){
     const _qh=u._qPass; u._qPass=0;
     u._abilPri=4; u._abilAnim='passive'; u._abilHold=_qh; u._lockPri=4; u._animLockT=_qh; }
   if(u.stunned>0){u.stunned-=dt*(1+2*(u.ctrlRes||0));return;}   // Control Resist shortens stuns (AUDIT C6)
-  if((u.fearT||0)>0){ u.fearT-=dt*(1+2*(u.ctrlRes||0)); u.target=null; return; }   // feared: locked out of attacking/casting while the fear emote shows, but HOLDS GROUND (never flees/kites away)
+  if((u.fearT||0)>0){ u.fearT-=dt*(1+2*(u.ctrlRes||0)); u.target=null;
+    /* v1027 (Phil 4 Oct: "the monsters should fear in terror as in run away for the time"): a feared unit RUNS from whoever feared it
+       (the nearest enemy when that unit is gone) at its own move speed for the whole fear, then comes back to fight. It still cannot attack or cast. */
+    if(!u.immovable){ const _ff=(u._fearFrom&&u._fearFrom.alive)?u._fearFrom:nearestEnemy(u);
+      if(_ff){ let _dx=u.x-_ff.x, _dy=u.y-_ff.y, _d=Math.hypot(_dx,_dy); if(_d<1){ _dx=(u.team==='ally')?-1:1; _dy=0; _d=1; }
+        const _mv=u.speed*(u.slow>0?(u.slowMul||SLOW_MUL_BASE):1)*MOVE_MUL*dt;
+        u.x=Math.max(60,Math.min(940,u.x+_dx/_d*_mv)); u.y=Math.max(80,Math.min(1340,u.y+_dy/_d*_mv)); u._walkT=0.25; if(Math.abs(_dx)>0.5) u._faceDir=_dx>0?1:-1; } }
+    return; }   // (was: feared units held ground)
   /* v527 - timers for the rewired pack kits. All render/combat state, all decayed in ONE place
      so nothing can leak between fights. _untouched counts UP: it is how long since anything hit
      this unit, which is what "standing untouched" passives are actually asking about. */
@@ -13339,7 +13346,8 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
         // face the target — never turn our back when shoved into or Vulmar-dragged backward — with a small deadzone so a
         // foe hovering near our own x can't flip-flop the sprite.
         let desired;
-        if(waveXfer && st==='walk' && Math.abs(pdx)>0.08){ desired=pdx>0?1:-1; u._faceDir=desired; }
+        if((u.fearT||0)>0 && st==='walk' && Math.abs(pdx)>0.08){ desired=pdx>0?1:-1; u._faceDir=desired; }   // v1027: a feared unit runs AWAY - it faces where it is running, not the foe
+        else if(waveXfer && st==='walk' && Math.abs(pdx)>0.08){ desired=pdx>0?1:-1; u._faceDir=desired; }
         else if(foe){ const dxx=foe.x-u.x; if(Math.abs(dxx)>2) u._faceDir=dxx>=0?1:-1; desired=u._faceDir||(u.team==='ally'?1:-1); }
         else desired=u._faceDir||(u.team==='ally'?1:-1);
         /* v1021: Impale Rush lands ON its target, where the foe's side is a coin toss - he keeps the facing he charged in until the clip ends */
@@ -25877,7 +25885,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791163400099';
+const BUILD_ID = '1791163865086';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
