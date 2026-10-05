@@ -4549,11 +4549,11 @@ const KITS={
   tick:{green:{name:'Overclock',type:'haste',mul:1.35,dur:5,self:true,desc:"Tick winds his own mainspring: HIS attack speed only, for a few seconds.",cd:8,gfx:'tick_green',gfxR:3*METER,gdur:5.88},blue:{name:'Mainspring',type:'punchflurry',hits:5,mul:0.28,tauntChance:0,cd:7,gfx:'tick_blue',gfxR:3*METER,gdur:5.21},purple:{name:'Momentum Gears',pass:'momentum'}},
   sylthaine:{green:{name:'Frozen Orb',type:'frozenorb',mul:1.1,range:28*METER,width:34,cd:8,gfx:'sylthaine_green',noArt:true,pfx:'sylthaine_green',pscale:2.6,pdur:0.9,gdur:3.92},blue:{deliver:'form',name:'Glacial Prison',type:'freeze',mul:1.2,stun:2,cd:9,gfx:'sylthaine_blue',gfxR:3*METER,gdur:5.54},purple:{name:'Cold Snap',pass:'coldsnap'}},
   aureth:{green:{deliver:'form',name:'Sunburst',type:'sunburst',mul:1.4,radius:2.8*METER,heal:0.28,cd:8,gfx:'aureth_green',gdur:4.92},blue:{name:'Duality',type:'duality',cd:6,gfx:'aureth_blue',gfxR:3*METER,gdur:3.54},purple:{name:'Twin Fonts',pass:'twinfonts'}},
-  bloatus:{green:{name:'Toxic Breath',type:'toxbreath',mul:0.9,dps:0.5,dur:4,radius:2.6*METER,cd:7,gfx:'bloatus_green',gdur:1.04},blue:{deliver:'form',name:'Swampcall',type:'swamproot',mul:0.7,root:2,radius:2.4*METER,cd:10,gfx:'bloatus_blue',gdur:2.88},purple:{name:'Contagion',pass:'contagion',desc:'when a foe dies still carrying his plague, the plague bursts onto every enemy nearby — and can spread again from them'}},
+  bloatus:{green:{name:'Toxic Breath',type:'toxbreath',mul:0.9,dps:0.5,dur:4,radius:2.6*METER,cd:7,gfx:'bloatus_green',gdur:1.04},blue:{deliver:'form',name:'Swampcall',type:'swamproot',mul:0.7,root:2,farthest:2,silence:2/0.7,ccFixed:['silence'],radius:2.4*METER,cd:10,gfx:'bloatus_blue',gdur:2.88,desc:"The swamp swallows the two farthest enemies: each is rooted and silenced for 2 seconds."},purple:{name:'Contagion',pass:'contagion',desc:'when a foe dies still carrying his poison, the poison bursts onto every enemy nearby — and can spread again from them'}},
   vireo:{green:{name:'Crescendo',type:'crescendo',heal:0.16,hot:0.05,dur:5,cd:7,gfx:'vireo_green',gdur:5.88,desc:"Vireo's song swells to heal every ally and keep mending them for 5 seconds; each Crescendo in a row rings louder and heals more."},blue:{name:'Harmony',type:'harmonyshield',mul:2.4,radius:10*METER,dur:12,cd:9,gfx:'vireo_blue',gdur:11.76,desc:"A dome of harmony settles over the most wounded ally, shielding every ally inside it for 12 seconds."}   /* v560 Phil: 'make the radius 10 m ... increase the shields size to match'. The painted dome follows on its own: upMetric spans exactly 2R, so 10 m radius draws a 20 m dome with no art change. (v558 was 7 m / 14 m.) */,purple:{name:'Perfect Pitch',pass:'perfectpitch'}},
   fritz:{green:{name:'Storm Surge',type:'stormsurge',mul:0.85,n:5,cd:8,gfx:'fritz_green',noArt:true,gfxR:3*METER,gdur:1.1},blue:{name:'Chain Lightning',type:'chainlight',mul:1.1,jumps:4,jumpRange:15*METER,previewBolt:true,decay:0.8,cd:7,gfx:'fritz_blue',noArt:true,gfxR:3*METER,gdur:5.88},purple:{name:'Static Veil',pass:'stormdodge'}},
   umbris:{green:{deliver:'form',name:'Shadeburst',type:'shadeburst',at:'cluster',dps:0.3,dur:6,radius:7*METER,cd:7,gfx:'umbris_green',noArt:true,gdur:5.88},blue:{name:'Creeping Rot',type:'creeprot',mul:0.5,dps:0.6,dur:5,color:'#8a5cff',foot:true,handglow:true,cd:6,gfx:'umbris_blue',gfxR:3*METER,gdur:5.38},purple:{name:'Lingering Dark',pass:'contagion',desc:'when a foe dies still rotting from his shadow, the rot spreads to every enemy nearby — and can spread again from them'}},
-   vael:{green:{name:'Warcry',type:'warcry',mul:1.1,mulPerLv:0.002,dur:6,cd:8,fear:2/0.7,radius:5*METER,   /* v1027 (Phil 4 Oct: "the range should be 5 meters and last 2 seconds running away"): 2 s after ccDur's 30% cut */ desc:"Vael roars: +10% damage (+0.2% per skill level, +0.4% at level 100) for 6 seconds, and every enemy within 5 m runs from him in terror for 2 seconds.",gfx:'vael_green',gfxR:3*METER,gdur:2.25},blue:{name:'Bloodthirst',type:'lifestealbuff',pct:0.1,atkSpd:1.2,atkSpdPerLv:0.002,crit:0.05,critPerLv:0.001,dur:6,cd:7,desc:"Vael feeds on the fight for 6 seconds: +20% attack speed (+0.2% per skill level, +0.4% at level 100), +5% crit chance (+0.1% per skill level, +0.2% at level 100) and he heals for 10% of the damage he deals.",gfx:'vael_blue',gfxR:3*METER,gdur:4.92},purple:{name:'Blood Rage',pass:'bloodrage',desc:"The more damage Vael takes, the harder he hits: +1% damage for every 4% of his max health he has lost this fight, up to +25%."}},
+   vael:{green:{name:'Warcry',type:'warcry',mul:1.1,mulPerLv:0.002,dur:6,cd:8,fear:2/0.7,ccFixed:['fear'],radius:5*METER,   /* v1027 (Phil 4 Oct: "the range should be 5 meters and last 2 seconds running away"): 2 s after ccDur's 30% cut */ desc:"Vael roars: +10% damage (+0.2% per skill level, +0.4% at level 100) for 6 seconds, and every enemy within 5 m runs from him in terror for 2 seconds.",gfx:'vael_green',gfxR:3*METER,gdur:2.25},blue:{name:'Bloodthirst',type:'lifestealbuff',pct:0.1,atkSpd:1.2,atkSpdPerLv:0.002,crit:0.05,critPerLv:0.001,dur:6,cd:7,desc:"Vael feeds on the fight for 6 seconds: +20% attack speed (+0.2% per skill level, +0.4% at level 100), +5% crit chance (+0.1% per skill level, +0.2% at level 100) and he heals for 10% of the damage he deals.",gfx:'vael_blue',gfxR:3*METER,gdur:4.92},purple:{name:'Blood Rage',pass:'bloodrage',desc:"The more damage Vael takes, the harder he hits: +1% damage for every 4% of his max health he has lost this fight, up to +25%."}},
    oakmir:{green:{name:'Mending Bloom',type:'hot',hps:0.06,dur:6,cd:6,gfx:'oakmir_green',gfxR:3*METER,gdur:5.83},blue:{name:'Rally Roots',type:'heal',mul:0.22,cd:9,gfx:'oakmir_blue',gfxR:3*METER,gdur:5.29},purple:{name:'Twin Fonts',pass:'twinfonts'}},
    rhukk:{green:{name:'Carapace',type:'defensive',mul:0.5,dur:5,cd:8,gfx:'rhukk_green',gfxR:3*METER,gdur:2.0,desc:"Rhukk locks his shell plates tight, taking half damage for 5 seconds."},blue:{name:'Dig In',type:'taunt',cd:10,gfx:'rhukk_blue',gfxR:3*METER,gdur:5.88,desc:"Rhukk plants his horn and roars: every enemy is forced to attack him for 3 seconds while his hide takes less damage."},purple:{name:'Thick Chitin',pass:'warden'}},
   hurne:{green:{name:'Unchain the Dead',type:'summonwarriors',n:3,dur:15,radius:1.7*METER,cd:12},blue:{name:'Call the Bone-Chanter',type:'summonshaman',dur:18,radius:1.5*METER,cd:14},purple:{name:'Packmaster',pass:'packstats'}},
@@ -4713,7 +4713,7 @@ async function skillUpgrade(key,idx){ const lv=skillLevel(key,idx); if(lv>=SKILL
     adoptLedger(r.ledger); return true; }
   if(!(await txSpend('gold',c,'skillup'))) return false;
   skillLvArr(key)[idx]=lv+1; return true; }
-const ULT_DEF={worldweight:{mul:2.0,radius:8*METER,lift:2.0,slamStun:1.0},finalcandle:{mul:2.0,slow:3,stun:1.5,radius:7*METER,harden:1.6,shatter:1.5},worldbreaker:{mul:0.45,stun:0.4,radius:6*METER,slams:3,gap:0.7,wave:12*METER},serpentdance:{mul:0.6,spins:4,dur:2.4,radius:3*METER,exec:0.10},hivemind:{n:30,dmgMul:0.14,healMul:0.5,healPct:0.02,hold:0.7},defensive:{mul:0.45,dur:5},nova:{mul:1.8,radius:4*METER,slow:true},vanishpoint:{mul:2.0,exec:0.20,chain:3,falloff:0.8,gone:0.9,hop:0.35,range:15*METER},aoeStun:{mul:1.4,stun:2,radius:120},deepchoir:{dur:5,radius:8*METER,silence:5,tick:1.0,choirHeal:0.30},cleave:{mul:2.6,bleed:true,radius:6.5*METER},execute:{mul:2.2},burst:{mul:3},multiShot:{mul:1.8,n:5},fireball:{mul:2.2,radius:100},heal:{mul:0.95},rally:{},monkSlam:{mul:1.0,stun:2,radius:15*METER},hipposlam:{hpMul:0.40,radius:3*METER,stun:0.6,allyDr:0.30,allyDrDur:5},gravcrush:{mul:2.0,radius:8*METER,stun:1.0,gravity:true},eventhorizon:{mul:1.9,radius:7*METER,pull:1.2,silence:1.5,gravity:true},flywheel:{mul:1.6,radius:3*METER},blizzard:{dur:4,radius:8*METER,tick:0.5,freeze:0.10,channel:true},eclipse:{mul:2.2,radius:6*METER,shield:0.4},plaguesov:{mul:1.6,radius:3.4*METER,dps:0.6,dur:5},umbralcata:{mul:1.6,radius:6.8*METER,dps:0.6,dur:5},symphony:{healMul:0.30,dmgMul:0.30}   /* v567 (Phil): Grand Symphony has NO RANGE - it hits every ally and every enemy on the field. The downside is the size: 30% of ability power as heal and as damage. radius removed entirely. */,thundershower:{dur:3,radius:8*METER,tick:0.5,mul:0.6,channel:true},laststand:{mul:0.25,dur:5,pct:1.0,heal:0.15},firstspring:{mul:0.5,dur:5,radius:20*METER},charge:{mul:1.8,radius:5*METER,stun:1.0},stampede:{mul:1.8,radius:20*METER,width:1.6*METER,push:2.0*METER,stun:1.0,speed:18*METER,noArt:true},devourpack:{mul:1.2,healPct:1.0,shieldPct:0.6,dmgPct:0.9,dur:8,radius:3*METER},finalsurvey:{mul:1.4,mortalDur:3,bleedPct:0.10,bleedDur:3,steal:0.35,regen:0.03,buffDur:3,range:30*METER},taunt:{dur:4,dr:0.5,radius:6*METER},volley:{mul:1.4,n:6},ashfall:{dps:0.8,dur:5,radius:6*METER,mul:1.4},swamproot:{mul:1.6,root:2.5,radius:7*METER},sunburst:{mul:1.8,radius:6*METER,heal:0.35},aoedot:{mul:1.2,dps:0.7,dur:5,radius:99999},riftpuncture:{freeze:1,silence:1},triplecleave:{mul:0.8,radius:10*METER,hits:3},
+const ULT_DEF={worldweight:{mul:2.0,radius:8*METER,lift:2.0,slamStun:1.0},finalcandle:{mul:2.0,slow:3,stun:1.5,radius:7*METER,harden:1.6,shatter:1.5},worldbreaker:{mul:0.45,stun:0.4,radius:6*METER,slams:3,gap:0.7,wave:12*METER},serpentdance:{mul:0.6,spins:4,dur:2.4,radius:3*METER,exec:0.10},hivemind:{n:30,dmgMul:0.14,healMul:0.5,healPct:0.02,hold:0.7},defensive:{mul:0.45,dur:5},nova:{mul:1.8,radius:4*METER,slow:true},vanishpoint:{mul:2.0,exec:0.20,chain:3,falloff:0.8,gone:0.9,hop:0.35,range:15*METER},aoeStun:{mul:1.4,stun:2,radius:120},deepchoir:{dur:5,radius:8*METER,silence:5,tick:1.0,choirHeal:0.30},cleave:{mul:2.6,bleed:true,radius:6.5*METER},execute:{mul:2.2},burst:{mul:3},multiShot:{mul:1.8,n:5},fireball:{mul:2.2,radius:100},heal:{mul:0.95},rally:{},monkSlam:{mul:1.0,stun:2,radius:15*METER},hipposlam:{hpMul:0.40,radius:3*METER,stun:0.6,allyDr:0.30,allyDrDur:5},gravcrush:{mul:2.0,radius:8*METER,stun:1.0,gravity:true},eventhorizon:{mul:1.9,radius:7*METER,pull:1.2,silence:1.5,gravity:true},flywheel:{mul:1.6,radius:3*METER},blizzard:{dur:4,radius:8*METER,tick:0.5,freeze:0.10,channel:true},eclipse:{mul:2.2,radius:6*METER,shield:0.4},plaguesov:{mul:1.6,radius:5*METER,dps:0.6,dur:5},umbralcata:{mul:1.6,radius:6.8*METER,dps:0.6,dur:5},symphony:{healMul:0.30,dmgMul:0.30}   /* v567 (Phil): Grand Symphony has NO RANGE - it hits every ally and every enemy on the field. The downside is the size: 30% of ability power as heal and as damage. radius removed entirely. */,thundershower:{dur:3,radius:8*METER,tick:0.5,mul:0.6,channel:true},laststand:{mul:0.25,dur:5,pct:1.0,heal:0.15},firstspring:{mul:0.5,dur:5,radius:20*METER},charge:{mul:1.8,radius:5*METER,stun:1.0},stampede:{mul:1.8,radius:20*METER,width:1.6*METER,push:2.0*METER,stun:1.0,speed:18*METER,noArt:true},devourpack:{mul:1.2,healPct:1.0,shieldPct:0.6,dmgPct:0.9,dur:8,radius:3*METER},finalsurvey:{mul:1.4,mortalDur:3,bleedPct:0.10,bleedDur:3,steal:0.35,regen:0.03,buffDur:3,range:30*METER},taunt:{dur:4,dr:0.5,radius:6*METER},volley:{mul:1.4,n:6},ashfall:{dps:0.8,dur:5,radius:6*METER,mul:1.4},swamproot:{mul:1.6,root:2.5,radius:7*METER},sunburst:{mul:1.8,radius:6*METER,heal:0.35},aoedot:{mul:1.2,dps:0.7,dur:5,radius:99999},riftpuncture:{freeze:1,silence:1},triplecleave:{mul:0.8,radius:10*METER,hits:3},
   plumage:{heal:0.8,shield:0.10,shred:0.30,atkDn:0.20,dur:6},
   quietwings:{sleep:2.2,buff:1.3,haste:1.2,dur:8},
   openeverydoor:{lock:1.6,steal:35,mul:0.9,share:0.25},
@@ -4792,7 +4792,7 @@ function ccMetaSegs(o){
     const name=LABEL[k]||k; if(seen[name]) continue; seen[name]=1;
     /* v794 - and if the ability both lasts and ticks, it RE-APPLIES: say so, generically, so any
        future hazard gets the same sentence without anyone writing it. */
-    const sec=+(CC_SECONDS[k][aoe?'aoe':'single']*((typeof CC_NERF==='number')?CC_NERF:1)).toFixed(2);   /* v818 */
+    const sec=+(((Array.isArray(o.ccFixed)&&o.ccFixed.indexOf(k)>=0)?o[k]:CC_SECONDS[k][aoe?'aoe':'single'])*((typeof CC_NERF==='number')?CC_NERF:1)).toFixed(2);   /* v818; v1030 ccFixed */
     const rep=(typeof o.dur==='number' && o.dur>0 && typeof o.tick==='number' && o.tick>0)
       ? (', every '+o.tick+'s for '+o.dur+'s') : '';
     out.push(name+' '+sec+'s'+(aoe?' (area'+rep+')':(rep?' ('+rep.slice(2)+')':'')));
@@ -4831,7 +4831,7 @@ function ccSecFor(o,k){
   if(!o) return 0;
   if(typeof CC_SECONDS==='undefined' || !CC_SECONDS[k]) return o[k]||0;
   const aoe=!!(o.radius || o.angle || ((o.n|0)>1));
-  const _s=CC_SECONDS[k][aoe?'aoe':'single'];
+  const _s=(Array.isArray(o.ccFixed)&&o.ccFixed.indexOf(k)>=0)?o[k]:CC_SECONDS[k][aoe?'aoe':'single'];   /* v1030 ccFixed */
   return (typeof CC_NERF==='number') ? +(_s*CC_NERF).toFixed(2) : _s;   /* v818: the card shows the cut length */
 }
 function skillEffectStr(key,idx,atk,hp){ const t=HERO_TYPES[key],kit=KITS[key],lv=skillLevel(key,idx),sm=skillMul(lv);
@@ -4882,7 +4882,7 @@ function skillEffectStr(key,idx,atk,hp){ const t=HERO_TYPES[key],kit=KITS[key],l
     stormdodge:'🌀 30% dodge while casting', selfregen:'✚ steady regeneration in combat',
     unstepped:'🛡 cannot be pulled, knocked or displaced', unstoppable:'🛡 cannot be slowed, stunned or displaced',
     immolate:'🔥 burning aura', debtaura:'☠ nearby DoTs last 20% longer',
-    twinfonts:'⚔/✚ Dark drains, Light regenerates', contagion:'☠ the mark spreads on death',
+    twinfonts:'⚔/✚ Dark drains, Light regenerates', contagion:'☠ his poison spreads on death',
     perfectpitch:'🛡 her heals also shield', stardust:'🔥 every attack leaves a burn',
     darkconv:'🌑 every attack curses; every third converges', arsenal:'🎯 a different projectile every attack'}; return P[ab.pass]||'passive'; }
   switch(ab.type){
@@ -4901,7 +4901,7 @@ function skillEffectStr(key,idx,atk,hp){ const t=HERO_TYPES[key],kit=KITS[key],l
     case 'sunburst': return '☀ '+Math.round(apw*(ab.mul||1.4)*sm)+' + heal';
     case 'duality': return '⚔/🛡 stance swap';
     case 'toxbreath': return '☠ '+Math.round(apw*(ab.mul||0.9)*sm)+' + DoT '+Math.round(apw*(ab.dps||0.5)*sm)+'/s';
-    case 'swamproot': return '🌿 '+Math.round(apw*(ab.mul||0.7)*sm)+' + '+ccSecFor(ab,'root')+'s root';
+    case 'swamproot': return '🌿 '+Math.round(apw*(ab.mul||0.7)*sm)+(ab.farthest?' ×'+ab.farthest:'')+' + '+ccSecFor(ab,'root')+'s root'+(ab.silence?' + '+Math.round(ab.silence*CC_NERF)+'s silence':'');   /* v1030: Bloatus - two farthest, silence */
     case 'crescendo': return '✚ '+Math.round(apw*2*sm)+' heal';
     case 'chantzone': return '✚ '+Math.round(apw*(ab.hps||0.6)*sm)+'/s allies · ⚔ '+Math.round(apw*(ab.dps||0.35)*sm)+'/s foes';
     case 'honeyglob': return '🍯 '+Math.round(apw*2*sm)+' + '+Math.round((ab.heal||0.14)*100)+'% HP heal';
@@ -9257,6 +9257,7 @@ function damage(u,a,c,noEnergy,crit){
     if(u._contagion && u.dots && u.dots.some(d=>d.color===u._plagueColor)){   // only the carrier's own plague/curse spreads — a stray bleed or burn does not // Contagion (King Bloatus): a poisoned foe's death splashes its poison onto nearby enemies, which can chain again
       units.forEach(e=>{ if(e.alive&&e!==u&&e.team===u.team&&Math.hypot(e.x-u.x,e.y-u.y)<2.6*METER){ plagueDot(e,u._plagueDps||6,4,1,u._plagueColor||'#8fbf3f'); e._contagion=true; e._plagueDps=u._plagueDps||6; e._plagueColor=u._plagueColor; e._plagueHex=u._plagueHex; if(u._darkAuraT!=null)e._darkAuraT=4; } });
       ringBurst(u.x,u.y,u._plagueHex||0x8fbf3f,12);
+      if((u._plagueColor||'#8fbf3f')==='#8fbf3f') floatTexts.push({x:u.x,y:u.y-12,txt:'POISON SPREADS',t:1.0,color:'#a6e05a',vy:1,sz:12});   /* v1030 (Phil): it is his poison that spreads */
     }
   }
 }
@@ -9689,6 +9690,7 @@ function skillScaleOpts(o, sm, lv){
   { const aoe=!!(o.radius || o.angle || ((o.n|0)>1));
     for(const k in CC_SECONDS){
       const v=o[k]; if(typeof v!=='number' || !v) continue;
+      if(Array.isArray(o.ccFixed) && o.ccFixed.indexOf(k)>=0) continue;   /* v1030: a length Phil set for this skill (Warcry fear, Swampcall silence) is kept */
       out=out||Object.assign({},o); out[k]=CC_SECONDS[k][aoe?'aoe':'single'];
     } }
   for(const k in SKILL_SCALE_FRAC){
@@ -10660,9 +10662,15 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
       groundHazards.push({arrival:true,delay:o.harden||1.6,run:function(){ _caught.forEach(e=>{ if(!e.alive)return; ccApply(u,e,'stunned',o.stun||1.5); e.brighten=Math.max(e.brighten||0,0.6); floatTexts.push({x:e.x,y:e.y-10,txt:'STATUE',t:1.0,color:'#f0e6c8',vy:1,sz:12}); }); }});
       groundHazards.push({arrival:true,delay:(o.harden||1.6)+(o.shatter||1.5),run:function(){ _caught.forEach(e=>{ if(!e.alive)return; dealDamage(u,e,_sh,'#fff0c0','magic'); burstAt(e.x,e.y,0xfff0c0,14); ringBurst(e.x,e.y,0xe8d8b0,10); }); }});
       break; }
-    case 'swamproot':{ const ctr=aimCtr||((tgt&&tgt.alive)?tgt:nearestEnemy(u))||u; const R=o.radius||2.4*METER;
-      enemiesOf(u).forEach(e=>{ if(dist(ctr,e)<R){ dealDamage(u,e,apB*(o.mul||0.7)*rm,'#7fbf5a','magic'); ccApply(u,e,'stunned',o.root||2); floatTexts.push({x:e.x,y:e.y-8,txt:'ROOTED',t:.8,color:'#8fbf3f',vy:1,sz:12}); } });
-      ringBurst(ctr.x,ctr.y,0x6f9f3f,18); burstAt(ctr.x,ctr.y,0x8fbf3f,14); break; }
+    case 'swamproot':{ const R=o.radius||2.4*METER;
+      /* v1030 (Phil 4 Oct: Swampcall "hits two of the furthest targets and the root also silences for 2 seconds"): with `farthest` the swamp opens
+         under each of the N farthest enemies (picked at launch - the art is drawn there); an enemy caught by both is hit once. Sloe/Maren unchanged. */
+      let _ctrs=(o.farthest>0)?((o._farTgts||enemiesOf(u).filter(e=>e.alive).sort((a,b)=>dist(u,b)-dist(u,a)).slice(0,o.farthest)).map(f=>({x:f.x,y:f.y}))):[aimCtr||((tgt&&tgt.alive)?tgt:nearestEnemy(u))||u];
+      if(!_ctrs.length) _ctrs=[u]; const _hit=[];
+      _ctrs.forEach(ctr=>{ enemiesOf(u).forEach(e=>{ if(_hit.indexOf(e)<0 && dist(ctr,e)<R){ _hit.push(e); dealDamage(u,e,apB*(o.mul||0.7)*rm,'#7fbf5a','magic'); ccApply(u,e,'stunned',o.root||2);
+        if(o.silence) ccApply(u,e,'silencedT',o.silence); floatTexts.push({x:e.x,y:e.y-8,txt:o.silence?'ROOTED + SILENCED':'ROOTED',t:.9,color:'#8fbf3f',vy:1,sz:12}); } });
+        ringBurst(ctr.x,ctr.y,0x6f9f3f,18); burstAt(ctr.x,ctr.y,0x8fbf3f,14); });
+      break; }
     case 'plaguesov':{ const R=o.radius||3.4*METER, pd=apB*(o.dps||0.6), con=!!(u.pass&&u.pass.contagion);
       enemiesOf(u).forEach(e=>{ if(dist(u,e)<R){ dealDamage(u,e,apB*(o.mul||1.6)*rm,'#a6e05a','magic'); plagueDot(e,pd,o.dur||5,1,'#8fbf3f'); e._plagueDps=pd; e._contagion=con; e._plagueColor='#8fbf3f'; } });   // 30 Aug: same — see toxbreath above
       ringBurst(u.x,u.y,0x8fbf3f,28); burstAt(u.x,u.y,0x6f9f3f,24); if(u._castSlot!=='ult')floatTexts.push({x:u.x,y:u.y-14,txt:'PLAGUE SOVEREIGN',t:1.2,color:'#a6e05a',vy:1,sz:14}); if(u.team==='ally')screenFlash=Math.max(screenFlash,.3); break; }
@@ -10848,7 +10856,8 @@ function deliverLaunch(u,type,o){ try{
   const mode=o.deliver; if(mode!=='shot'&&mode!=='land'&&mode!=='form') return false;   /* v888: line/travel are the spell's own */
   let aim=(u._aimWX!=null)?{x:u._aimWX,y:u._aimWY}:null;
   if(!aim&&o.at==='cluster'){ const c=densestEnemyCluster(u,o.radius||3*METER); if(c) aim={x:c.x,y:c.y}; }
-  const tU=deliverPick(u,type)||((u.target&&u.target.alive)?u.target:nearestEnemy(u));   /* v935: the shot flies to the enemy the spell will affect */
+  const _far=(o.farthest>0)?enemiesOf(u).filter(e=>e.alive).sort((a,b)=>dist(u,b)-dist(u,a)).slice(0,o.farthest):null;   /* v1030: Swampcall - the N farthest enemies */
+  const tU=(_far&&_far.length)?_far[0]:(deliverPick(u,type)||((u.target&&u.target.alive)?u.target:nearestEnemy(u)));   /* v935: the shot flies to the enemy the spell will affect */
   if(mode==='shot'&&!tU) return false;
   const P=aim||(tU?{x:tU.x,y:tU.y}:{x:u.x,y:u.y});
   const delay=(mode==='shot')?Math.max(0.12,Math.min(0.8,dist(u,tU)/(o.speed||16*METER))):(mode==='land')?(o.fall||0.55):(o.form||0.35);
@@ -10857,12 +10866,12 @@ function deliverLaunch(u,type,o){ try{
   try{ if(TH&&scene){ window._fxCaster=u;
     if(mode==='shot'){ const k=o.pfx||o.gfx; if(k&&FX2_DEF[k]){ const co=castOrigin(u,tU.x,tU.y); window._projTgtU=tU; spawnProjFx(k,co.x,co.y,tU.x,tU.y,o.pscale||2.6,delay,function(){},co.h); } }
     else if(mode==='land'){ const k=o.gfx; if(k&&FX2_DEF[k]) spawnProjFx(k,P.x,P.y,P.x,P.y,o.pscale||3.0,delay,function(){},9); }
-    else if(mode==='form'){ _fxAllow=true; try{ abilArt(u,o,tU,aim,type); }finally{ _fxAllow=false; } } } }catch(_e){}
+    else if(mode==='form'){ _fxAllow=true; try{ if(_far&&_far.length>1) _far.forEach(f=>abilArt(u,o,f,null,type)); else abilArt(u,o,tU,aim,type); }finally{ _fxAllow=false; } } } }catch(_e){}
   groundHazards.push({arrival:true,delay,run:function(){
     let T=tU;
     if(mode==='shot'&&T&&!T.alive){ let b=null,bd=1.5*METER; enemiesOf(u).forEach(e=>{ if(!e.alive)return; const d=Math.hypot(e.x-T.x,e.y-T.y); if(d<bd){bd=d;b=e;} }); T=b; if(!T) return; }
     const s1=u._castSM, l1=u._castLv, sl1=u._castSlot; u._castSM=sm0; u._castLv=lv0; u._castSlot=slot0; u._clipStarted=true;
-    try{ doEffect(u,type,Object.assign({},o,{_arrived:true,_tgtU:T,_aim:aim?aim:(mode==='land'?P:null),pfx:(mode==='shot'?null:o.pfx),noArt:(mode==='form')||!!o.noArt})); }
+    try{ doEffect(u,type,Object.assign({},o,{_arrived:true,_tgtU:T,_farTgts:_far,_aim:aim?aim:(mode==='land'?P:null),pfx:(mode==='shot'?null:o.pfx),noArt:(mode==='form')||!!o.noArt})); }
     finally{ u._castSM=s1; u._castLv=l1; u._castSlot=sl1; u._clipStarted=false; } }});
   return true; }catch(_e){ return false; } }
 function orbNextHop(h){ let nx=null,nd=1e9; for(const a of h.left){ if(!a.alive)continue; const dd=Math.hypot(a.x-h.x,a.y-h.y); if(dd<nd){nd=dd;nx=a;} }
@@ -25889,7 +25898,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791166517378';
+const BUILD_ID = '1791167731535';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
