@@ -3231,8 +3231,8 @@ const BATTLE_ANIM = {
   vael:{
   idle:{u:'/assets/anim/vael/vael_idle.webp?v=30',n:48,fw:361,fh:450,cols:6,rows:8,figH:326,feet:390,cx:197,fps:24,flip:false,top:64}   /* v1025 (Phil 4 Oct "great wire it and deploy"): seven approved Hailuo takes from the official watermark-free exports - idle3, walk1, attack1, crit1, ult2 Last Stand, green1 Warcry, blue1 Bloodthirst. Their backdrops change colour per frame (and split within a frame on attack1), so each frame was laid onto one flat key off its own border before the cut (figure pixels copied, 3 px edge despill); cs10 48@24, trim 0/0, figH 325 on every state. No hit and no passive animation (Phil: "make sure he has no hit or passive animation from old clips"). walk = 48 + cells 1,0 */,
   walk:{u:'/assets/anim/vael/vael_walk.webp?v=30',n:50,fw:403,fh:456,cols:6,rows:9,figH:326,feet:390,cx:214,fps:24,flip:false,top:64},
-  attack:{u:'/assets/anim/vael/vael_attack.webp?v=30',n:48,fw:692,fh:572,cols:6,rows:8,figH:326,feet:506,cx:292,fps:24,flip:false,top:180,relFrac:0.21},   /* v1027 (Phil 4 Oct: "the damage needs to happen the moment the sword meets the target"): the blow lands on the contact frame - attack 13/48, crit 12/48 on screen; measured in a real battle the clip starts ~3-4 frames after the swing, so relFrac 0.21 / 0.20 (default 0.5 landed at frame ~27, as he pulls back) */
-  crit:{u:'/assets/anim/vael/vael_crit.webp?v=1',n:48,fw:672,fh:650,cols:6,rows:8,figH:326,feet:514,cx:292,fps:24,flip:false,top:188,relFrac:0.20},
+  attack:{u:'/assets/anim/vael/vael_attack.webp?v=30',n:48,fw:692,fh:572,cols:6,rows:8,figH:326,feet:506,cx:292,fps:24,flip:false,top:180,relFrac:0.235},   /* v1027 (Phil 4 Oct: "the damage needs to happen the moment the sword meets the target"): the blow lands on the contact frame - attack 13/48, crit 12/48 on screen; measured in a real battle the clip starts ~3-4 frames after the swing, so relFrac 0.21 / 0.20 (default 0.5 landed at frame ~27, as he pulls back). v1029 (Phil: "the damage is dealt before tip of the sword ever hits the target"): measured off the sheets, the tip reaches farthest on attack frame 14 (338 px past his centre; frame 12 is only 130) and crit frame 12 - relFrac 0.235 / 0.21 land there (measured: attack 14, crit 12) */
+  crit:{u:'/assets/anim/vael/vael_crit.webp?v=1',n:48,fw:672,fh:650,cols:6,rows:8,figH:326,feet:514,cx:292,fps:24,flip:false,top:188,relFrac:0.21},
   ult:{u:'/assets/anim/vael/vael_ult.webp?v=30',n:48,fw:394,fh:671,cols:6,rows:8,figH:325,feet:608,cx:215,fps:24,flip:false,top:283},
   green:{u:'/assets/anim/vael/vael_green.webp?v=30',n:48,fw:504,fh:549,cols:6,rows:8,figH:326,feet:489,cx:319,fps:24,flip:false,top:163},
   blue:{u:'/assets/anim/vael/vael_blue.webp?v=30',n:48,fw:381,fh:446,cols:6,rows:8,figH:326,feet:386,cx:194,fps:24,flip:false,top:60}
@@ -13249,7 +13249,7 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
         let st = _ultActive ? u._abilAnim
                : (abilActive && (u._abilPri|0)>=4 ? u._abilAnim
                : ((u._hitHold>0) ? 'hit'
-               : (walking ? 'walk'
+               : ((walking && !(u._atkHold>0)) ? 'walk'   /* v1029: a swing already under way beats the walk - he is in reach, not closing distance; the blow used to land while his walk played */
                : (abilActive ? u._abilAnim
                : (((u._idleHold||0)>0) ? (u._idleClip||'idle')
                : ((u._atkHold>0) ? _atkSt : 'idle'))))));   // v339: _atkClip = per-swing clip override (Corsair: pistol clip at range, sword up close)
@@ -25889,7 +25889,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791165152417';
+const BUILD_ID = '1791166517378';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
