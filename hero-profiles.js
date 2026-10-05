@@ -83,7 +83,7 @@
     "combatRow": "Mid",
     "damageProfile": "Attack",
     "primaryScaling": "Attack Damage",
-    "glyphPath": "assassin_mid",
+    "glyphPath": "assassin_other",
     "equipmentPath": "assassin_other",
     "formationDepth": 2,
     "minimumReachMeters": 3.5
@@ -223,7 +223,7 @@
     "combatRow": "Mid",
     "damageProfile": "Attack",
     "primaryScaling": "Attack Damage",
-    "glyphPath": "assassin_mid",
+    "glyphPath": "assassin_other",
     "equipmentPath": "assassin_other",
     "formationDepth": 2,
     "minimumReachMeters": 3.5
@@ -333,7 +333,7 @@
     "combatRow": "Mid",
     "damageProfile": "Attack",
     "primaryScaling": "Attack Damage",
-    "glyphPath": "assassin_mid",
+    "glyphPath": "assassin_other",
     "equipmentPath": "assassin_other",
     "formationDepth": 2,
     "minimumReachMeters": 3.5
@@ -403,7 +403,7 @@
     "combatRow": "Mid",
     "damageProfile": "Attack",
     "primaryScaling": "Attack Damage",
-    "glyphPath": "assassin_mid",
+    "glyphPath": "assassin_other",
     "equipmentPath": "assassin_other",
     "formationDepth": 2,
     "minimumReachMeters": 3.5
