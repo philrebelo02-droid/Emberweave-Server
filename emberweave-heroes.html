@@ -3178,13 +3178,13 @@ const BATTLE_ANIM = {
     passive:{u:'/assets/anim/aureth/aureth_passive.webp?v=21',n:48,fw:429,fh:484,cols:6,rows:8,figH:400,feet:477,cx:185,fps:24,flip:false,top:77,ax:[0,0,0,0,0,0,0,0,0,0,-13,-13,-13,-13,0,-13,-13,-13,-13,-13,-13,-13,-13,-13,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}
   },
   bloatus:{
-    idle:{u:'/assets/anim/bloatus/bloatus_idle.webp?v=21',n:24,fw:323,fh:433,cols:6,rows:4,figH:400,feet:429,cx:163,fps:8,flip:false,top:29},
-    walk:{u:'/assets/anim/bloatus/bloatus_walk.webp?v=21',n:22,fw:515,fh:469,cols:6,rows:4,figH:400,feet:458,cx:161,fps:8,flip:false,top:58,ax:[0,2.6,-19.1,-43.9,-40.7,-31.1,-21.9,-21.6,-25.7,-6.9,13,1.1,-18.7,-40,-54.3,-69.6,-85.1,-100.7,-91.4,-101.6,-108,-110.9]},
-    attack:{u:'/assets/anim/bloatus/bloatus_attack.webp?v=21',n:47,fw:657,fh:491,cols:6,rows:8,figH:400,feet:472,cx:303,fps:28,flip:false,top:72,hold:1.7,ax:[0,0,-1,0,0,0,0,0,-1,-1,-3,-4,0,2,-6,25,31,38,38,37,37,36,36,36,38,36,36,38,38,38,36,36,36,36,36,36,36,36,36,36,36,36,36,35,35,35,35]},
-    hit:{u:'/assets/anim/bloatus/bloatus_hit.webp?v=21',n:20,fw:686,fh:628,cols:6,rows:4,figH:400,feet:568,cx:331,fps:14,flip:false,top:168,ax:[0,1,2,1,-242,-263,5,0,-49,39,40,42,43,44,45,46,49,45,51,50]},
-    ult:{u:'/assets/anim/bloatus/bloatus_ult.webp?v=27',n:21,fw:531,fh:606,cols:6,rows:4,figH:400,feet:596,cx:201,fps:8.4,flip:false,top:196,pingpong:true,hold:1.1,ax:[0,1,-2,-3,-3,-5,-5,-6,-5,-6,-6,-77,-96,-33,-31,-30,-45,-51,-64,-83,-92]},
-    toxbreath:{u:'/assets/anim/bloatus/bloatus_breath.webp?v=5',n:8,fw:304,fh:231,cols:6,rows:2,figH:191,feet:228,cx:86,fps:10,flip:false,hold:1.0,top:8},
-    swamp:{u:'/assets/anim/bloatus/bloatus_swamp.webp?v=5',n:24,fw:312,fh:389,cols:6,rows:4,figH:343,feet:383,cx:166,fps:14,flip:false,hold:1.0,top:6}
+    idle:{u:'/assets/anim/bloatus/bloatus_idle.webp?v=30',n:48,fw:402,fh:518,cols:6,rows:8,figH:396,feet:458,cx:194,fps:24,flip:false,top:62}   /* v1032 (Phil 4 Oct: "Deploy it and other things you fixed"): seven approved Hailuo takes from the official watermark-free exports - idle3, walk2, attack5, hit2, green2 Toxic Breath, blue2 Swampcall, ult2 Plague Sovereign. Backdrop laid onto one flat key per frame (figure pixels copied, 3 px edge despill); cs10 48@24, figH 395 on every state; walk 48 + cells 1,0. No crit, no passive animation (Phil). The blow lands when the trident reaches farthest (attack frame 12) */,
+    walk:{u:'/assets/anim/bloatus/bloatus_walk.webp?v=30',n:50,fw:406,fh:558,cols:6,rows:9,figH:394,feet:484,cx:198,fps:24,flip:false,top:90},
+    attack:{u:'/assets/anim/bloatus/bloatus_attack.webp?v=30',n:48,fw:682,fh:556,cols:6,rows:8,figH:396,feet:494,cx:266,fps:24,flip:false,top:98,relFrac:0.20},
+    hit:{u:'/assets/anim/bloatus/bloatus_hit.webp?v=30',n:48,fw:458,fh:516,cols:6,rows:8,figH:394,feet:454,cx:250,fps:24,flip:false,top:60},
+    green:{u:'/assets/anim/bloatus/bloatus_green.webp?v=30',n:48,fw:404,fh:566,cols:6,rows:8,figH:395,feet:505,cx:194,fps:24,flip:false,top:110},
+    blue:{u:'/assets/anim/bloatus/bloatus_blue.webp?v=30',n:48,fw:464,fh:521,cols:6,rows:8,figH:394,feet:459,cx:217,fps:24,flip:false,top:65},
+    ult:{u:'/assets/anim/bloatus/bloatus_ult.webp?v=30',n:48,fw:509,fh:527,cols:6,rows:8,figH:395,feet:466,cx:233,fps:24,flip:false,top:71}
   },
   umbris:{
   idle:{u:'/assets/anim/umbris/umbris_idle.webp?v=f2',n:72,fw:210,fh:210,cols:6,rows:12,figH:191,feet:204,cx:102,fps:30,flip:true,top:6},
@@ -3475,12 +3475,6 @@ HERO_SKILL_CLIPS.aureth = {
   0:{u:'/assets/anim/aureth/aureth_sk_ult.webp?v=5',  n:12,fw:226,fh:180,dur:1.8},
   2:{u:'/assets/anim/aureth/aureth_sk_blue.webp?v=5', n:12,fw:203,fh:180,dur:1.8},
   3:{u:'/assets/anim/aureth/aureth_sk_idle.webp?v=5', n:12,fw:145,fh:180,dur:2.4},
-};
-HERO_SKILL_CLIPS.bloatus = {
-  0:{u:'/assets/anim/bloatus/bloatus_sk_ult.webp?v=5',  n:12,fw:160,fh:180,dur:1.8},
-  1:{u:'/assets/anim/bloatus/bloatus_sk_green.webp?v=5',n:8, fw:240,fh:180,dur:1.8},
-  2:{u:'/assets/anim/bloatus/bloatus_sk_blue.webp?v=5', n:12,fw:143,fh:180,dur:1.8},
-  3:{u:'/assets/anim/bloatus/bloatus_sk_idle.webp?v=5', n:12,fw:132,fh:180,dur:2.4},
 };
 HERO_SKILL_CLIPS.vireo = {
   0:{u:'/assets/anim/vireo/vireo_sk_ult.webp?v=8',  n:12,fw:265,fh:180,dur:1.8},
@@ -11072,7 +11066,7 @@ const FX2_DEF={
   carn_ult:{u:'/assets/anim/fx/carn_ult.webp?v=33',n:48,fw:319,fh:512,cols:6,rows:8,dur:2.6,upright:true,upSize:1.7,upExtent:0.984,upAnchor:[0.18,0.08],upFlip:true,ro:2},
   sorrel_ult:{u:'/assets/anim/fx/sorrel_ult.webp?v=33',n:48,fw:526,fh:512,cols:6,rows:8,dur:5.88,upright:true,upSize:2.0,upExtent:0.983,upAnchor:[0.5,0.0],ro:1},
   deepcleft_ult:{u:'/assets/anim/fx/deepcleft_ult.webp?v=32',n:48,fw:406,fh:386,cols:6,rows:8,dur:2.42,upright:true,upSize:2.0,upExtent:0.97,upAnchor:[0.5,0.0],ro:1},
-  fritz_ult:{u:'/assets/anim/fx/fritz_ult.webp?v=34',n:30,fw:320,fh:320,cols:6,rows:5,dur:3.0,upright:true,upSize:4.0,upExtent:0.95,upAnchor:[0.5,0.2]},
+  fritz_ult:{u:'/assets/anim/fx/fritz_ult.webp?v=34',n:30,fw:320,fh:320,cols:6,rows:5,dur:3.0,upright:true,upSize:4.0,upExtent:0.95,upAnchor:[0.5,0.2],solid:2},
   dandra_ult:{u:'/assets/anim/fx/dandra_ult.webp?v=33',n:48,fw:542,fh:512,cols:6,rows:8,dur:2.6,disc:{cy:0.317,dh:0.247,dw:0.506},upright:true,upAbove:true,upAboveM:0.1,upAnchor:[0.5,0.48],upSize:1.7,upExtent:0.981},
   aldren_ult:{u:'/assets/anim/fx/aldren_ult.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.89,dh:0.045,dw:0.91}},
   vael_blue:{u:'/assets/anim/fx/vael_blue.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:4.92,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
@@ -11365,7 +11359,7 @@ function spawnGroundFx(key,cx,cy,radius,life){ try{ _fxCheck('plate',arguments[0
         const gap=(tu&&typeof restHeadOff==='function')?restHeadOff(tu):th;
         sp.position.add(new TH.Vector3(0,1,0).applyQuaternion(camera.quaternion).multiplyScalar(gap+th*(d.upAboveM||0.0))); }
       sp.renderOrder=ro; scene.add(sp); return sp; };
-    const sp=mk(tex,d.upAbove?(d.ro!=null?d.ro:-2):Math.min(d.ro!=null?d.ro:-2,-1)); fx2Hook(sp);   /* v829 (Phil 25 Sep: "make sure spells populate behind heroes"): every upright ability plate draws BEHIND the unit sprites (0); only a badge over a health bar (upAbove) keeps its own layer */   /* v470 layers (Phil): other units 0 > front fingers -0.5 > grabbed unit -1 > back hand -2 */ fx2SetFrame(sp,d,0); const o={m:sp,d,tex,t:0,life,front:true,upY:y}; _groundFx.push(o);
+    const sp=mk(tex,d.upAbove?(d.ro!=null?d.ro:-2):Math.min(d.ro!=null?d.ro:-2,-1)); fx2Hook(sp);   if((d.solid|0)>1){ for(let _i=1;_i<(d.solid|0);_i++){ const _tw=new TH.Sprite(sp.material); _tw.center.copy(sp.center); _tw.renderOrder=sp.renderOrder; sp.add(_tw); } }   /* v1032 (Phil 4 Oct: Fritz's ult "not solid enough"): `solid:N` stacks N copies of the plate (same material: same frame and fade) - a 50% pixel reads 75% at 2. Render-only; the art is untouched. */   /* v829 (Phil 25 Sep: "make sure spells populate behind heroes"): every upright ability plate draws BEHIND the unit sprites (0); only a badge over a health bar (upAbove) keeps its own layer */   /* v470 layers (Phil): other units 0 > front fingers -0.5 > grabbed unit -1 > back hand -2 */ fx2SetFrame(sp,d,0); const o={m:sp,d,tex,t:0,life,front:true,upY:y}; _groundFx.push(o);
     if(d.front&&FX2_DEF[d.front]){ try{ const fd=FX2_DEF[d.front], ft=fx2Tex(d.front); if(ft){ const sp2=mk(ft,-0.5); const fd2=Object.assign({},fd,{n:d.n,dur:d.dur,hold:d.hold}); fx2Hook(sp2); fx2SetFrame(sp2,fd2,0); const fo={m:sp2,d:fd2,tex:ft,t:0,life,front:true,upY:y};   /* v469 (Phil: 'both animations need to synchronize'): front layer runs on the back layer's n/dur */ _groundFx.push(fo); o.frontFx=fo; } }catch(e){} }
     return o; }   // v449: NO FX_SIZE here — the disc must be exactly the hit circle (Phil: "still way off" at 2x)
   const m=new TH.Mesh(_FX2_PLANE||new TH.PlaneGeometry(1,1), new TH.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false,depthTest:false,side:TH.DoubleSide,opacity:0}));
@@ -11943,7 +11937,7 @@ function think(u,dt){
          will have 9 animations"). A hero with a `crit` clip rolls THIS swing's crit at the wind-up, so the heavier clip
          plays from the first frame; dealDamage takes the pre-rolled result on the fuse instead of rolling again. Heroes
          without a crit clip roll exactly where they always did, so their fights replay byte-identical. */
-      let _swCrit=null;
+      let _swCrit=null; if(u.t && u.t.role==='Tank' && u.t.damageProfile==='Magic') _swCrit=false;   /* v1032 (Phil 4 Oct: "he is a magic tank so he cannot melee crit" / "his spells can crit though"): a magic tank's basic attack never crits; its spells roll as before */
       if(u.anim&&u.anim.crit){ const _forced=u._gearNextCrit==='hit'; if(_forced)u._gearNextCrit=null; const _cc=(u.pass&&u.pass.crit?0.2:0)+(u.glyphCrit||0)+((u._critBuffT||0)>0?(u._critBuffPct||0):0); _swCrit=!!(_forced||(_cc&&brnd()<_cc)); u._atkClip=_swCrit?'crit':null; }
       /* v534 - the MIRAGE's crit is a DOUBLE SWING: the attack clip plays twice at double speed inside the same swing
          window and lands twice for normal damage (Phil: "double attack when it crits instead of doing more damage"). */
@@ -25900,7 +25894,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791168797823';
+const BUILD_ID = '1791170549799';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
