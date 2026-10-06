@@ -78,6 +78,16 @@ async function fightAll(pool, times = 2) {
     const rd = await fightAll(D, 1);
     ok(same(rd) && D.stats.helper.sent === 0 && hd.why === 'busy', 'busy helper machine: not used (' + hd.why + '), identical results');
 
+    // F: "high war time" = main-thread lag: under lag EVERY battle goes to the helper even with local workers free; no lag, none do
+    const S = POOL.create(GAME, { size: 2, helpers: [{ url: H.url, key: KEY }], fp: FP, stressLagMs: 0.000001 });
+    const Q = POOL.create(GAME, { size: 2, helpers: [{ url: H.url, key: KEY }], fp: FP, stressLagMs: 1e9 });
+    await waitReady(S); await waitReady(Q); await waitHelperState(S, true); await waitHelperState(Q, true); await sleep(1500);
+    const rs = [], rq = [];
+    for (const [i, b] of BATTLES.entries()) { rs.push([i, JSON.stringify(await S.run('auto', [b.snaps, b.foe, b.seed]))]); rq.push([i, JSON.stringify(await Q.run('auto', [b.snaps, b.foe, b.seed]))]); }
+    ok(same(rs) && S.stats.helper.done === BATTLES.length && S.stats.runs === 0, 'main thread lagging: all ' + S.stats.helper.done + ' battles one at a time went to the helper (local ' + S.stats.runs + '), identical');
+    ok(same(rq) && Q.stats.helper.sent === 0 && Q.stats.runs === BATTLES.length, 'no lag and free local workers: the helper is not used (local ' + Q.stats.runs + ')');
+    S.close(); Q.close();
+
     // E: the helper dies mid-war -> battles keep being fought locally
     H.child.kill(); await sleep(500);
     const before = A.stats.runs, re = await fightAll(A, 1);

@@ -21,6 +21,13 @@ function create(gameFile, opts = {}) {
   const stressQueue = opts.stressQueue || size, helperTimeoutMs = opts.helperTimeoutMs || 4000, checkEvery = opts.checkEvery || 25;
   if (helpers.length) stats.helper = { sent: 0, done: 0, fellBack: 0, checked: 0, mismatches: 0, helpers: helpers.map(h => ({ url: h.url })) };
   const checks = [];
+  // main-thread lag, sampled every second: stressed while the mean lag of the last second is above stressLagMs (default 25 ms),
+  // and for stressHoldMs (10 s) after, so a war rush does not flap between helper and local
+  const stressLagMs = opts.stressLagMs || 25, stressHoldMs = opts.stressHoldMs || 10000; let stressUntil = 0, eld = null;
+  if (helpers.length) { try { eld = require('perf_hooks').monitorEventLoopDelay({ resolution: 10 }); eld.enable();
+    const t = setInterval(() => { const lag = eld.mean / 1e6; if (lag > stressLagMs) stressUntil = Date.now() + stressHoldMs; stats.helper.lagMs = +lag.toFixed(1); eld.reset(); }, 1000);
+    if (t.unref) t.unref(); } catch (e) { eld = null; } }
+  const stressed = () => Date.now() < stressUntil;
   let seq = 0, closed = false;
   function spawn(i) {
     const w = new Worker(path.join(__dirname, 'sim-worker.js'), { workerData: { gameFile } });
@@ -82,7 +89,10 @@ function create(gameFile, opts = {}) {
   if (helpers.length) { const t = setInterval(spotCheck, 1000); if (t.unref) t.unref(); }
   function run(method, args) {
     const h = helpers.find(x => x.ok && !x.disabled);
-    if (h && (waiting.length >= stressQueue || !stats.ready))
+    // STRESS ("high war time") = the main thread is running late (event-loop lag), or every local worker is fighting, or a queue
+    // formed. Then EVERY battle goes to the helper: that frees this machine's cores for the main thread, which cannot move (measured
+    // 6 Oct: on an i5-650 the battle workers and the main thread compete for the same 2 physical cores).
+    if (h && (stressed() || waiting.length >= stressQueue || !stats.ready || !workers.some(s => s.ready && !s.busy)))
       return remote(h, method, args).catch(() => { stats.helper.fellBack++; return local(method, args); });
     return local(method, args);
   }
