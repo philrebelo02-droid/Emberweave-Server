@@ -302,6 +302,40 @@ function linkedUser(gid, name, pass){
   if(pass){ const c=makeCred(pass); u.hash=c.hash; u.salt=c.salt; u.iters=c.iters; }   // local copy for sign-in while Server 1 is down
   delete u.guest;
   return u; }
+/* v1035 (Phil, 5 Oct 2026: "ban should be account wide" / "and so should password reset"). The ACCOUNT SERVER (Server 1) holds the
+   one ban and the time of the last password change of every account; Servers 2-4 follow it for their linked players:
+   - on sign-in, server switch and password reset the account server's answer carries st = {until, reason, passAt};
+   - once a minute each satellite asks for the state of its linked players that hold a session or a ban (/api/internal/account/status);
+   - a ban that appears signs the player out (like a ban on Server 1 does) and the ban gate applies; a lifted ban lifts here too;
+   - a newer passAt signs the player out on this server and drops the local password copy, so the old password stops working even
+     while Server 1 is down (the next good sign-in through Server 1 stores the new one).
+   A ban made on Server 2-4 (/api/dev/ban) is made on the account at Server 1. Guests (no account) keep per-server bans. */
+function acctState(u){ return { until:((u.bannedUntil||0)>Date.now()?u.bannedUntil:0), reason:(u.banReason||''), passAt:(u.passAt||0) }; }
+function applyAcctState(lu, st){
+  if(!lu || !lu.gid || !st) return false; let changed=false; const now=Date.now();
+  const until=(+st.until>now)?+st.until:0, was=isBanned(lu);
+  if(until!==((lu.bannedUntil||0)>now?lu.bannedUntil:0)){ lu.bannedUntil=until; lu.banReason=until?String(st.reason||'').slice(0,200):''; changed=true;
+    if(!was && until){ dropTokens(lu.id); console.log('[account] '+(lu.name||lu.id)+' is suspended on the account server - signed out here'); } }
+  const pa=+st.passAt||0;
+  if(lu.passSeenAt===undefined){ lu.passSeenAt=pa; changed=true; }   // first sight of a player linked before v1035: record, do not sign out
+  else if(pa>lu.passSeenAt){ dropTokens(lu.id); delete lu.hash; delete lu.salt; delete lu.iters; lu.passSeenAt=pa; changed=true;
+    console.log('[account] '+(lu.name||lu.id)+' changed password on the account server - signed out here, local copy dropped'); }
+  return changed; }
+const ACCOUNT_STATUS_MS=Math.max(1000, +(process.env.ACCOUNT_STATUS_MS||60000));
+let _acctSyncBusy=false;
+async function acctStatusSync(){
+  if(!ACCOUNT_AUTHORITY || !ACCOUNT_LINK_SECRET || _acctSyncBusy || typeof DB==='undefined' || !DB || !DB.users) return;
+  _acctSyncBusy=true;
+  try{ const live=new Set(); for(const v of Object.values(DB.tokens||{})){ const o=tokOwner(v); if(o) live.add(o); }
+    const gids=[]; for(const u of Object.values(DB.users)){ if(u && u.gid && !u.isNpc && (live.has(u.id) || isBanned(u))) gids.push(u.gid); }
+    let changed=false;
+    for(let i=0;i<gids.length;i+=500){ const r=await authorityCall('/api/internal/account/status',{ gids:gids.slice(i,i+500) });
+      if(!r || r.status!==200 || !r.body || !r.body.states) break;   // account server unreachable: keep what we know
+      for(const [g,st] of Object.entries(r.body.states)){ const lu=DB.byGid && DB.users[DB.byGid[g]]; if(lu && applyAcctState(lu, st)) changed=true; } }
+    if(changed) writeDB();
+  }catch(e){ console.log('[account] status sync failed: '+e.message); }
+  _acctSyncBusy=false; }
+if(ACCOUNT_AUTHORITY) setInterval(acctStatusSync, ACCOUNT_STATUS_MS);
 // v946: the account checks, shared by this server's own endpoints and the account-server endpoints (bodies moved unchanged
 // from /api/login, /api/register, /api/reset-request and /api/reset-verify). Callers write the DB.
 function acctVerify(name, pass, ip){
@@ -356,6 +390,7 @@ function acctResetVerify(name, rawCode, newPass, ip){
   if(hashPass(code,u.reset.salt)!==u.reset.hash){ u.reset.tries=(u.reset.tries||0)+1; if(u.resetLog){ u.resetLog.bad=(u.resetLog.bad||0)+1; u.resetLog.ip=u.resetLog.ip||{}; const r2=u.resetLog.ip[_ik]||(u.resetLog.ip[_ik]={codes:0,bad:0}); r2.bad++; } writeDB(); return {status:400,error:'Incorrect code — check your email and try again.'}; }
   const np=(newPass||'').toString(); if(np.length<8) return {status:400,error:'New password must be at least 8 characters.'};
   const c=makeCred(np); u.salt=c.salt; u.hash=c.hash; u.iters=c.iters; u.mustReset=false; delete u.reset;
+  u.passAt=Date.now();   // v1035: Servers 2-4 sign the account out and drop their local password copy when this moves
   dropTokens(id); writeDB(); return {u}; }
 // v947: one-time server-switch codes, held by the account server in memory only (a restart simply expires them).
 const HANDOFF=new Map();   // sha256(code) -> {gid, exp}
@@ -4086,24 +4121,40 @@ async function api(req,res,url){
     if(!linkSecretOk(req)) return send(res,404,{error:'not found'});
     const b=await body(req);
     if(p==='/api/internal/account/verify'){ const r=acctVerify(b.name, b.pass, 'srv:'+String(b.ip||clientIP(req))); writeDB();
-      return r.u ? send(res,200,{ ok:true, gid:r.u.id, name:r.u.name }) : send(res,r.status,{error:r.error}); }
+      return r.u ? send(res,200,{ ok:true, gid:r.u.id, name:r.u.name, st:acctState(r.u) }) : send(res,r.status,{error:r.error}); }
     if(p==='/api/internal/account/register'){ const r=acctCreate(b.name, b.pass); if(r.error) return send(res,r.status,{error:r.error});
       if(writeDBNow()===false) return send(res,503,{ok:false,storageFailed:true,error:'Save failed - try again.'});   /* v1013 (re-audit Account N13): the account is on disk before it is acknowledged */
       return send(res,200,{ ok:true, gid:r.u.id, name:r.u.name }); }
     if(p==='/api/internal/account/reset-request'){ acctResetRequest(b.name, String(b.ip||clientIP(req))); return send(res,200,{ ok:true }); }
     if(p==='/api/internal/account/reset-verify'){ const r=acctResetVerify(b.name, b.code, b.newPass, String(b.ip||clientIP(req)));
       if(r.u && writeDBNow()===false) return send(res,503,{ok:false,storageFailed:true,error:'Save failed - try again.'});   /* v1013 (N13): the new password is on disk before it is acknowledged */
-      return r.u ? send(res,200,{ ok:true, gid:r.u.id, name:r.u.name }) : send(res,r.status,{error:r.error}); }
+      return r.u ? send(res,200,{ ok:true, gid:r.u.id, name:r.u.name, st:acctState(r.u) }) : send(res,r.status,{error:r.error}); }
     if(p==='/api/internal/account/handoff-issue'){ const u=DB.users[String(b.gid||'')];
       if(!u || u.isNpc || u.guest) return send(res,404,{error:'No such account.'});
+      if(isBanned(u)) return send(res,403,{error:'This account is suspended.'});   // v1035: a banned account cannot switch servers
       return send(res,200,{ code:handoffIssue(u.id) }); }
     if(p==='/api/internal/account/handoff-redeem'){ const g=handoffRedeem(b.code); const u=g&&DB.users[g];
-      return u ? send(res,200,{ ok:true, gid:u.id, name:u.name }) : send(res,400,{error:'expired'}); }
+      return u ? send(res,200,{ ok:true, gid:u.id, name:u.name, st:acctState(u) }) : send(res,400,{error:'expired'}); }
     if(p==='/api/internal/account/email-request' || p==='/api/internal/account/email-verify'){
       const u=DB.users[String(b.gid||'')]; if(!u || u.isNpc || u.guest) return send(res,404,{error:'No such account.'});
       const r = p.endsWith('request') ? acctEmailRequest(u, b.email) : acctEmailVerify(u, b.code);
       if(r.status===200 && writeDBNow()===false) return send(res,503,{ok:false,storageFailed:true,error:'Save failed - try again.'});   /* v1013 (N13) */
       return send(res,r.status,r.body); }
+    // v1035: the satellites' once-a-minute check - ban and password-change time of the accounts they hold sessions for
+    if(p==='/api/internal/account/status'){ const gids=Array.isArray(b.gids)?b.gids.slice(0,500):[]; const states={};
+      for(const g of gids){ const u=DB.users[String(g)]; if(u && !u.isNpc && !u.guest) states[String(g)]=acctState(u); }
+      return send(res,200,{ states }); }
+    // v1035: a ban made on Server 2-4 is made on the account here
+    if(p==='/api/internal/account/ban'){ const u=DB.users[String(b.gid||'')];
+      if(!u || u.isNpc || u.guest) return send(res,404,{error:'No such account.'});
+      if(isDev(u)) return send(res,400,{error:'That account is an admin.'});
+      if(b.lift){ u.bannedUntil=0; u.banReason=''; writeDB(); console.log('[account] ban lifted on '+(u.name||u.id)+' from '+String(b.by||'a server'));
+        return send(res,200,{ ok:true, st:acctState(u) }); }
+      const days=parseInt(b.days,10); if(BAN_DAYS_ALLOWED.indexOf(days)<0) return send(res,400,{error:'Ban length must be 1, 7 or 30 days.'});
+      u.bannedUntil=Date.now()+days*86400000; u.banReason=String(b.reason||'').slice(0,200);
+      u.banLog=Array.isArray(u.banLog)?u.banLog:[]; u.banLog.push({t:Date.now(),days,by:String(b.by||'a server').slice(0,60),reason:u.banReason});
+      dropTokens(u.id); writeDB(); console.log('⛔ '+String(b.by||'a server')+' banned '+(u.name||u.id)+' for '+days+' day(s) (account-wide)');
+      return send(res,200,{ ok:true, st:acctState(u) }); }
     return send(res,404,{error:'not found'}); }
 
   /* v947 (Phil, 2 Oct 2026: "it logs me as guest when i switch" / "the account needs to be consistent when switching servers").
@@ -4122,13 +4173,14 @@ async function api(req,res,url){
   if(p==='/api/handoff-redeem' && req.method==='POST'){ const b=await body(req);
     if(rateLimited(req,'handoffr',20,60000)) return send(res,429,{error:'Slow down.'});
     const code=String(b.code||'');
-    let gid=null, name=null;
+    let gid=null, name=null, st=null;
     if(ACCOUNT_AUTHORITY){ const r=await authorityCall('/api/internal/account/handoff-redeem',{ code });
       if(!r) return send(res,503,{error:'Accounts are unreachable right now - try again in a minute.'});
-      if(r.status===200 && r.body && r.body.gid){ gid=r.body.gid; name=r.body.name; } }
+      if(r.status===200 && r.body && r.body.gid){ gid=r.body.gid; name=r.body.name; st=r.body.st||null; } }
     else { const g=handoffRedeem(code); const au=g&&DB.users[g]; if(au){ gid=au.id; name=au.name; } }
     if(!gid) return send(res,400,{error:'That switch link expired - sign in on this server.'});
     const u = ACCOUNT_AUTHORITY ? linkedUser(gid, name, null) : DB.users[gid];
+    if(ACCOUNT_AUTHORITY) applyAcctState(u, st);   // v1035: ban / password change follow the account
     dropTokens(u.id); const tok=issueToken(u.id); writeDB();
     return send(res,200,{ token:tok, profile:profileFor(u) }); }
 
@@ -4138,6 +4190,7 @@ async function api(req,res,url){
     if(ACCOUNT_AUTHORITY){
       const name=String(b.name||'').trim(), r=await authorityCall('/api/internal/account/verify',{ name, pass:b.pass, ip:clientIP(req) });   /* v1007 (re-audit Account N3): the player's IP, so the lockout is per player, not per satellite */
       if(r && r.status===200 && r.body && r.body.gid){ const u=linkedUser(r.body.gid, r.body.name, b.pass); delete u.loginFails;
+        if(r.body.st){ u.passSeenAt=+r.body.st.passAt||0; applyAcctState(u, r.body.st); }   // v1035: the password was just checked - current
         dropTokens(u.id); const tok=issueToken(u.id); writeDB(); return send(res,200,{ token:tok, profile:profileFor(u) }); }
       if(r) return send(res, r.status===429?429:401, {error:(r.body&&r.body.error)||'Wrong name or password'});
       // the account server did not answer: a player who has signed in here before can still get in with the local copy
@@ -4166,7 +4219,7 @@ async function api(req,res,url){
       const r=await authorityCall('/api/internal/account/reset-verify',{ name:b.name, code:b.code, newPass:b.newPass, ip:clientIP(req) });
       if(!r) return send(res,503,{error:'Accounts are unreachable right now - try again in a minute.'});
       if(r.status!==200 || !r.body || !r.body.gid) return send(res,r.status||400,{error:(r.body&&r.body.error)||'Reset failed.'});
-      const lu=linkedUser(r.body.gid, r.body.name, b.newPass); dropTokens(lu.id); const tok=issueToken(lu.id); writeDB();
+      const lu=linkedUser(r.body.gid, r.body.name, b.newPass); if(r.body.st){ lu.passSeenAt=+r.body.st.passAt||0; applyAcctState(lu, r.body.st); } dropTokens(lu.id); const tok=issueToken(lu.id); writeDB();
       return send(res,200,{ ok:true, token:tok, profile:profileFor(lu) }); }
     const r=acctResetVerify(b.name, b.code, b.newPass, clientIP(req));
     if(!r.u) return send(res,r.status,{error:r.error});
@@ -4204,6 +4257,13 @@ async function api(req,res,url){
     const b=await body(req); const u=DB.users[String(b.id||'')];
     if(!u) return send(res,404,{error:'no such account'});
     if(isDev(u)) return send(res,400,{error:'That account is an admin.'});
+    if(ACCOUNT_AUTHORITY && u.gid){   // v1035: account-wide - the ban (or the lift) is made on the account at Server 1
+      const r=await authorityCall('/api/internal/account/ban',{ gid:u.gid, days:b.days, reason:b.reason, lift:!!b.lift, by:(me.name||me.id)+' on '+(process.env.SERVER_NAME||'a server') });
+      if(!r) return send(res,503,{error:'Accounts are unreachable right now - try again in a minute.'});
+      if(r.status!==200 || !r.body || !r.body.st) return send(res,r.status||400,{error:(r.body&&r.body.error)||'Ban failed.'});
+      applyAcctState(u, r.body.st); if(isBanned(u)) dropTokens(u.id);
+      if(!b.lift && b.reportId){ const rp=(DB.reports||[]).find(x=>x.id===b.reportId); if(rp){ rp.resolved=true; rp.action='ban:'+parseInt(b.days,10)+'d'; } }
+      writeDB(); return send(res,200,{ ok:true, banned:banInfo(u), name:u.name, accountWide:true }); }
     const days=parseInt(b.days,10);
     if(b.lift){ u.bannedUntil=0; u.banReason=''; writeDB();
       return send(res,200,{ok:true, banned:null, name:u.name}); }

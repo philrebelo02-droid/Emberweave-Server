@@ -209,6 +209,8 @@ note "test_temple_acad_p2.js (4 Oct Temple+Academy audit #6 #7 #13 #14)"
 node tests/test_temple_acad_p2.js || FAILED=1
 note "test_atkspd_clip_1024.js (v1024: every attack-speed source speeds the attack/crit clip and the blow lands on its contact frame; Bloodthirst)"
 node tests/test_atkspd_clip_1024.js || FAILED=1
+note "test_account_wide_1035.js (v1035: a ban and a password reset on the account server follow the account to Servers 2-4; two real servers)"
+node tests/test_account_wide_1035.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi
