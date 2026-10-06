@@ -56,8 +56,8 @@ async function fightAll(pool, times = 2) {
     const ra = await fightAll(A);
     ok(same(ra), 'with the helper: all ' + ra.length + ' battles byte-identical to the ordinary engine');
     ok(A.stats.helper.done > 0 && A.stats.runs > 0, 'the backlog was shared - helper fought ' + A.stats.helper.done + ', local workers ' + A.stats.runs);
-    for (let i = 0; i < 60 && A.stats.helper.checked < 3; i++) await sleep(250);
-    ok(A.stats.helper.checked >= 3 && A.stats.helper.mismatches === 0, 'spot checks: ' + A.stats.helper.checked + ' helper results re-fought locally, 0 different');
+    for (let i = 0; i < 60 && A.stats.helper.checked < A.stats.helper.done; i++) await sleep(250);
+    ok(A.stats.helper.done >= 1 && A.stats.helper.checked === A.stats.helper.done && A.stats.helper.mismatches === 0, 'spot checks (every one here): all ' + A.stats.helper.checked + ' helper results re-fought locally, 0 different');
 
     // B: wrong key -> every helper attempt refused, all fought locally
     const B = POOL.create(GAME, { size: 1, helpers: [{ url: H.url, key: 'wrong-key-' + 'y'.repeat(20) }], fp: FP, stressQueue: 1 });

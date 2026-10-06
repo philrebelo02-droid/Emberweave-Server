@@ -5,27 +5,48 @@
 
    - Same engine or nothing: it fights only for a server whose engine fingerprint (server/sim-host.js fingerprint()) equals its
      own checkout's - the PC's C:/Emberweave/game-live is reset to the deployed commit on every deploy. A mismatch answers 409.
-   - Lowest priority: the process (and its worker threads) run at the OS's lowest priority, so anything else on the machine
-     (Ember, games, the desktop) always comes first.
-   - Not busy: when the rest of the machine uses more than `busyCpu` of the CPU, or its own queue is full, it answers 503 and the
-     server fights the battle itself. The server never waits on the helper beyond a short timeout.
+   - Not busy: when the rest of the machine uses more than its busy limit, or it is already fighting its limit of battles, it
+     answers 503 and the server fights the battle itself. The server never waits on the helper beyond a short timeout.
    - Shared key: every battle request carries x-helper-key; anything else answers 401.
    - When its checkout changes (a deploy), it exits; the launcher starts it again on the new engine.
+
+   v1040 TWO MODES (Phil 6 Oct 2026: "if there is major war going on, like world tree day, my computer gives a little more than low
+   priority help"):
+     normal - the OS's lowest priority (Windows: Idle), `workers` battles at once (4), helps while the rest of the PC is under
+              `busyCpu` (0.5);
+     major  - one step up (Windows: Below Normal - everything at normal priority, Ember included, still comes first),
+              `majorWorkers` battles at once (8), helps while the rest of the PC is under `majorBusyCpu` (0.8).
+   A server asks for major (?war=major on its health check, war:"major" on a battle) during World Tree day or after a minute of
+   unbroken strain; the helper stays major until `majorHoldMs` (90 s) after the last such ask, then drops back.
    Config: JSON file SIM_HELPER_CONFIG (default %LOCALAPPDATA%/Emberweave/sim-helper.json): {key, port=8890, host="0.0.0.0",
-   workers, busyCpu=0.6}. Start: node server/sim-helper.js */
+   workers=4, busyCpu=0.5, majorWorkers=8, majorBusyCpu=0.8, majorHoldMs=90000}. Start: node server/sim-helper.js */
 const http = require('http'), os = require('os'), path = require('path'), fs = require('fs'), crypto = require('crypto');
 const ROOT = path.join(__dirname, '..'), GAME = path.join(ROOT, 'emberweave-heroes.html');
 const CFG_FILE = process.env.SIM_HELPER_CONFIG || path.join(process.env.LOCALAPPDATA || os.homedir(), 'Emberweave', 'sim-helper.json');
 const cfg = JSON.parse(fs.readFileSync(CFG_FILE, 'utf8'));
 if (typeof cfg.key !== 'string' || cfg.key.length < 24) { console.error('sim-helper: config needs a key of 24+ characters'); process.exit(2); }
-const PORT = +cfg.port || 8890, HOST = cfg.host || '0.0.0.0', BUSY = +cfg.busyCpu || 0.6;
-const WORKERS = Math.max(1, Math.min(+cfg.workers || Math.floor(os.cpus().length / 2), 12));
-const KEY = Buffer.from(cfg.key);
+const PORT = +cfg.port || 8890, HOST = cfg.host || '0.0.0.0', KEY = Buffer.from(cfg.key);
+const cpus = os.cpus().length;
+const MODES = {
+  normal: { workers: Math.max(1, Math.min(+cfg.workers || 4, cpus)), busy: +cfg.busyCpu || 0.5, priority: os.constants.priority.PRIORITY_LOW },
+  major: { workers: Math.max(1, Math.min(+cfg.majorWorkers || 8, cpus)), busy: +cfg.majorBusyCpu || 0.8, priority: os.constants.priority.PRIORITY_BELOW_NORMAL },
+};
+const HOLD_MS = +cfg.majorHoldMs || 90000;
+let mode = 'normal', majorUntil = 0;
+function setMode(m) {
+  if (m === mode) return; mode = m;
+  try { os.setPriority(0, MODES[m].priority); } catch (e) { console.error('sim-helper: could not set priority: ' + e.message); }
+  console.log('sim-helper: ' + m + ' mode (' + MODES[m].workers + ' battles at once, priority ' + os.getPriority(0) + ')');
+}
+function askMajor() { majorUntil = Date.now() + HOLD_MS; setMode('major'); }
+setInterval(() => { if (mode === 'major' && Date.now() > majorUntil) setMode('normal'); }, 1000).unref();
+try { os.setPriority(0, MODES.normal.priority); } catch (e) { console.error('sim-helper: could not lower priority: ' + e.message); }
 
-try { os.setPriority(0, os.constants.priority.PRIORITY_LOW); } catch (e) { console.error('sim-helper: could not lower priority: ' + e.message); }
 const FP = require('./sim-host.js').fingerprint(GAME);
-const pool = require('./sim-pool.js').create(GAME, { size: WORKERS, queueMax: WORKERS * 4, timeoutMs: 15000 });
-const stats = { started: Date.now(), battles: 0, refusedBusy: 0, refusedBuild: 0, refusedKey: 0, errors: 0 };
+const POOL_SIZE = Math.max(MODES.normal.workers, MODES.major.workers);
+const pool = require('./sim-pool.js').create(GAME, { size: POOL_SIZE, maxSize: POOL_SIZE, queueMax: POOL_SIZE * 2, timeoutMs: 15000 });
+const stats = { started: Date.now(), battles: 0, majorBattles: 0, refusedBusy: 0, refusedBuild: 0, refusedKey: 0, errors: 0 };
+let inFlight = 0;
 
 // "busy" = the REST of the machine: total CPU in use minus this process's own share
 let others = 0, lastCpu = null, lastOwn = process.cpuUsage();
@@ -37,7 +58,7 @@ function sampleCpu() {
   lastCpu = { total, idle }; lastOwn = own;
 }
 sampleCpu(); setInterval(sampleCpu, 2000).unref();
-const busy = () => others > BUSY || pool.queued >= WORKERS * 2;
+const busy = () => others > MODES[mode].busy || inFlight >= MODES[mode].workers;
 
 // a deploy changed the checkout -> exit; the launcher restarts on the new engine
 setInterval(() => { try { if (require('./sim-host.js').fingerprint(GAME) !== FP) { console.log('sim-helper: engine changed on disk - restarting'); process.exit(0); } } catch (e) {} }, 60000).unref();
@@ -47,9 +68,13 @@ function reply(res, code, obj) { const b = JSON.stringify(obj); res.writeHead(co
 const METHODS = new Set(['auto', 'campaign', 'raid', 'replay']);
 
 const server = http.createServer((req, res) => {
-  if (req.method === 'GET' && req.url === '/health')
-    return reply(res, 200, { ok: true, fp: FP, busy: busy(), others: +others.toFixed(2), ready: pool.stats.ready, size: WORKERS, queued: pool.queued, ...stats });
-  if (req.method !== 'POST' || req.url !== '/battle') return reply(res, 404, { error: 'not found' });
+  const [route, query] = String(req.url || '').split('?');
+  if (req.method === 'GET' && route === '/health') {
+    if (/(^|&)war=major(&|$)/.test(query || '')) askMajor();
+    return reply(res, 200, { ok: true, fp: FP, mode, priority: os.getPriority(0), limit: MODES[mode].workers, busy: busy(), others: +others.toFixed(2),
+      ready: pool.stats.ready, size: POOL_SIZE, inFlight, ...stats });
+  }
+  if (req.method !== 'POST' || route !== '/battle') return reply(res, 404, { error: 'not found' });
   if (!keyOk(req)) { stats.refusedKey++; req.resume(); return reply(res, 401, { error: 'key' }); }
   let body = '', size = 0;
   req.on('data', d => { size += d.length; if (size > 4 * 1024 * 1024) { req.destroy(); return; } body += d; });
@@ -57,9 +82,12 @@ const server = http.createServer((req, res) => {
     let msg; try { msg = JSON.parse(body); } catch (e) { return reply(res, 400, { error: 'json' }); }
     if (msg.fp !== FP) { stats.refusedBuild++; return reply(res, 409, { error: 'different build', fp: FP }); }
     if (!METHODS.has(msg.method) || !Array.isArray(msg.args)) return reply(res, 400, { error: 'method' });
+    if (msg.war === 'major') askMajor();
     if (busy()) { stats.refusedBusy++; return reply(res, 503, { busy: true }); }
-    pool.run(msg.method, msg.args).then(result => { stats.battles++; reply(res, 200, { result }); },
-      e => { stats.errors++; reply(res, 503, { busy: true, error: e.message }); });
+    inFlight++; const wasMajor = mode === 'major';
+    pool.run(msg.method, msg.args).then(result => { stats.battles++; if (wasMajor) stats.majorBattles++; reply(res, 200, { result }); },
+      e => { stats.errors++; reply(res, 503, { busy: true, error: e.message }); }).finally(() => { inFlight--; });
   });
 });
-server.listen(PORT, HOST, () => console.log('sim-helper: ' + WORKERS + ' battle workers at lowest priority on ' + HOST + ':' + PORT + ', engine ' + FP.slice(0, 12)));
+server.listen(PORT, HOST, () => console.log('sim-helper: ' + POOL_SIZE + ' battle workers (normal ' + MODES.normal.workers + ' at once, lowest priority; major '
+  + MODES.major.workers + ', below normal) on ' + HOST + ':' + PORT + ', engine ' + FP.slice(0, 12)));

@@ -3012,6 +3012,9 @@ let _SIMHOST=null, _SIMHOST_ERR=null;
      ask for on a worker first; the route then finds them in the memo. */
 const _SIM_MEMO=new Map(), SIM_NEEDED={simNeeded:true}, SIM_STATS={memoHits:0,mainThread:0,prefetched:0,prefetchFailed:0,collected:0};
 let _SIM_COLLECT=null, _SIM_POOL;
+/* v1040 (Phil 6 Oct 2026: "if there is major war going on, like world tree day, my computer gives a little more than low priority
+   help"): during the World Tree event (the calendar's 24 h 'event' phase) battle helpers are asked for major-war mode. */
+function simWarLevel(){ try{ const c=WORLD_TREE_CALENDAR.snapshot(DB); return c.configured&&c.phase==='event'?'major':null; }catch(e){ return null; } }
 function simPool(){
   if(_SIM_POOL!==undefined) return _SIM_POOL;
   const n=process.env.SIM_WORKERS===undefined?undefined:+process.env.SIM_WORKERS;
@@ -3020,7 +3023,7 @@ function simPool(){
      battles only while this server's own workers are backed up ("high war time"); none set = exactly as before. */
   const helpers=(process.env.SIM_HELPERS||'').split(',').map(u=>u.trim()).filter(Boolean).map(url=>({url,key:process.env.SIM_HELPER_KEY||''}));
   let fp=null; if(helpers.length) try{ fp=require('./server/sim-host.js').fingerprint(GAME_FILE); }catch(e){ console.error('⚠ battle helpers off - engine fingerprint failed:', e.message); }
-  try{ _SIM_POOL=require('./server/sim-pool.js').create(GAME_FILE,{size:n,helpers:fp?helpers:[],fp}); console.log('⚔️  battle workers starting: '+_SIM_POOL.stats.size+(fp?' + '+helpers.length+' helper(s)':'')); }
+  try{ _SIM_POOL=require('./server/sim-pool.js').create(GAME_FILE,{size:n,helpers:fp?helpers:[],fp,warLevel:simWarLevel}); console.log('⚔️  battle workers starting: '+_SIM_POOL.stats.size+(fp?' + '+helpers.length+' helper(s)':'')); }
   catch(e){ console.error('⚠ battle workers unavailable - battles stay on the main thread:', e.message); _SIM_POOL=null; }
   return _SIM_POOL; }
 function _simKey(m,args){ return m+'|'+JSON.stringify(args); }

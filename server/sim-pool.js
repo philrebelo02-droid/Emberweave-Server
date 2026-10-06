@@ -13,7 +13,7 @@ const { Worker } = require('worker_threads');
 const os = require('os'), path = require('path');
 
 function create(gameFile, opts = {}) {
-  const size = Math.max(1, Math.min(opts.size || (os.cpus().length - 1) || 1, 4));
+  const size = Math.max(1, Math.min(opts.size || (os.cpus().length - 1) || 1, opts.maxSize || 4));   // v1040: a helper machine may run more
   const timeoutMs = opts.timeoutMs || 15000, queueMax = opts.queueMax || 400;
   const workers = [], waiting = [], pending = new Map();
   const stats = { size, ready: 0, runs: 0, errors: 0, timeouts: 0, rejectedFull: 0, buildVersion: null };
@@ -28,6 +28,13 @@ function create(gameFile, opts = {}) {
     const t = setInterval(() => { const lag = eld.mean / 1e6; if (lag > stressLagMs) stressUntil = Date.now() + stressHoldMs; stats.helper.lagMs = +lag.toFixed(1); eld.reset(); }, 1000);
     if (t.unref) t.unref(); } catch (e) { eld = null; } }
   const stressed = () => Date.now() < stressUntil;
+  /* v1040 MAJOR WAR (Phil 6 Oct 2026: "if there is major war going on, like world tree day, my computer gives a little more than low
+     priority help"): opts.warLevel() names a scheduled one (the server passes World Tree day); a strain that has lasted
+     majorAfterMs (60 s) without a break counts too. Every helper poll and battle carries war=major; the helper steps up. */
+  const majorAfterMs = opts.majorAfterMs || 60000; let strainSince = 0;
+  if (helpers.length) { const t = setInterval(() => { strainSince = stressed() ? (strainSince || Date.now()) : 0; }, 1000); if (t.unref) t.unref(); }
+  const major = () => { let w = null; try { w = typeof opts.warLevel === 'function' ? opts.warLevel() : null; } catch (e) {}
+    return w === 'major' || (strainSince > 0 && Date.now() - strainSince >= majorAfterMs); };
   let seq = 0, closed = false;
   function spawn(i) {
     const w = new Worker(path.join(__dirname, 'sim-worker.js'), { workerData: { gameFile } });
@@ -65,7 +72,8 @@ function create(gameFile, opts = {}) {
   // helpers: health every 5 s; "ok" = same engine, not busy, ready
   async function poll(h) {
     if (h.disabled || closed) return;
-    try { const r = await fetch(h.url + '/health', { signal: AbortSignal.timeout(1500) }); const j = await r.json();
+    try { const m = major(); if (stats.helper) stats.helper.major = m;
+      const r = await fetch(h.url + '/health' + (m ? '?war=major' : ''), { signal: AbortSignal.timeout(1500) }); const j = await r.json();
       h.ok = j.fp === opts.fp && !j.busy && j.ready > 0; h.why = j.fp !== opts.fp ? 'other build' : j.busy ? 'busy' : j.ready > 0 ? '' : 'loading'; }
     catch (e) { h.ok = false; h.why = 'unreachable'; }
     const v = stats.helper.helpers.find(x => x.url === h.url); if (v) { v.ok = h.ok; v.why = h.disabled ? 'disabled' : h.why; }
@@ -74,7 +82,7 @@ function create(gameFile, opts = {}) {
   async function remote(h, method, args) {
     stats.helper.sent++;
     const r = await fetch(h.url + '/battle', { method: 'POST', headers: { 'content-type': 'application/json', 'x-helper-key': h.key },
-      body: JSON.stringify({ fp: opts.fp, method, args }), signal: AbortSignal.timeout(helperTimeoutMs) });
+      body: JSON.stringify({ fp: opts.fp, method, args, war: major() ? 'major' : undefined }), signal: AbortSignal.timeout(helperTimeoutMs) });
     if (r.status !== 200) { h.ok = false; h.why = r.status === 409 ? 'other build' : r.status === 401 ? 'key refused' : 'busy'; throw new Error('helper ' + r.status); }
     const j = await r.json(); stats.helper.done++;
     if (stats.helper.done % checkEvery === 0 && checks.length < 50) checks.push({ h, method, args, want: JSON.stringify(j.result) });
