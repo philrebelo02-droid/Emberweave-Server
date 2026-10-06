@@ -174,7 +174,7 @@ function worldPlanningDB(){return _worldSettlementPlanning?.db||DB;}
 function saveDB(snapshot,suffix='.tmp'){
   // The sole local whole-snapshot writer. Callers own boot checks/error policy/PG.
   if(typeof suffix!=='string'||!/^\.[a-z0-9.-]+\.tmp$/.test(suffix)&&suffix!=='.tmp')throw Error('Invalid DB temporary suffix');   // '.group.tmp' (v1036) matches
-  if(_store.split){ _store.write(snapshot,null); _pendingFull=false; return; }   // v1037: every shard + the manifest, one atomic swap
+  if(typeof _store!=='undefined'&&_store.split){ _store.write(snapshot,null); _pendingFull=false; return; }   /* typeof: the span tests run saveDB alone */   // v1037: every shard + the manifest, one atomic swap
   const tmp=DB_FILE+suffix;fs.writeFileSync(tmp,JSON.stringify(snapshot));fs.renameSync(tmp,DB_FILE);
   _pendingFull=false;
 }
@@ -1635,8 +1635,8 @@ function writeDBNow(){   /* v1000 (Account audit #9): returns false when the dis
    caller gets {ok:false,storageFailed:true} (routes answer 503) - the same contract as durableCommit(). Opt-in per route. */
 const DURABLE_IDEM_KINDS=new Set(['dresolve','dsweep','salv','witch','edbuy','edstart','edresult','trial','well2','spend','earn','csweep','cresolve','provres','provsweep','abuy','temple','acad','xp-potion','skillup','starstep','refine','summon','quest']);   /* v988 (4 Oct Temple+Academy #2 #3, City Wall #4) */   /* 3 Oct Market audit #4: tx/spend + tx/earn no longer ack a failed save; v975 (Arena+Campaign audit #7): campaign sweep/resolve, province resolve/sweep, arena attempt buy */
 function idem(key, fn, opts){ DB.idem=DB.idem||{}; const now=Date.now();
-  for(const k of Object.keys(DB.idem)){ if(now-DB.idem[k].t>86400000) delete DB.idem[k]; }
-  if(DB.idem[key] && !(opts&&opts.retryFailed&&DB.idem[key].resp&&DB.idem[key].resp.ok===false)) return DB.idem[key].resp;
+  if(!(now-(idem.prunedAt||0)<60000)){ idem.prunedAt=now; for(const k of Object.keys(DB.idem)){ if(now-DB.idem[k].t>86400000) delete DB.idem[k]; } }   // v1037: once a minute, not per call
+  if(DB.idem[key] && now-DB.idem[key].t<=86400000 && !(opts&&opts.retryFailed&&DB.idem[key].resp&&DB.idem[key].resp.ok===false)) return DB.idem[key].resp;
   let du=opts&&opts.durableUser;
   if(!du){ const i=key.indexOf(':'), j=i>0?key.indexOf(':',i+1):-1; if(j>i&&DURABLE_IDEM_KINDS.has(key.slice(i+1,j))&&DB.users[key.slice(0,i)]) du=DB.users[key.slice(0,i)]; }
   if(du&&_worldSettlementPlanning) du=null;   /* inside a world planning window the outer durable commit owns the write */
@@ -3383,20 +3383,31 @@ const DURABLE_USER_POLICIES=Object.freeze({
 });
 function durableCommit(user,key,fn,opts={}){
   function finish(draft,receipts,extra,related,diagnostics,legacyTag){
+    /* v1037: `receipts` is either the whole receipt table (old callers) or an OVERLAY - an object whose prototype is the live
+       table and whose own keys are the new receipts. An overlay is applied key by key (O(1)); expired receipts are pruned in
+       place at most once a minute (every lookup checks the 24 h limit itself). */
+    const proto=receipts&&Object.getPrototypeOf(receipts), overlay=!!proto&&Object.getPrototypeOf(proto)!==null;   // any realm's Object.prototype has no prototype; the live table does
+    const now=Date.now();
+    if(DB.idem&&!(now-(durableCommit.prunedAt||0)<60000)){ durableCommit.prunedAt=now; for(const k of Object.keys(DB.idem)) if(now-DB.idem[k].t>86400000) delete DB.idem[k]; }
     if((typeof _reqCtx!=='undefined'&&_reqCtx.getStore())){   // v1036: adopt now, group save, undo exactly what was there if that save fails
       const prevUsers=[user.id,...related.map(o=>o.id)].map(id=>[id,DB.users[id]?JSON.parse(JSON.stringify(DB.users[id])):undefined]);
       const prevExtra=Object.keys(extra).map(k=>[k,Object.prototype.hasOwnProperty.call(DB,k),DB[k]]), prevIdem=DB.idem;
-      const ids=[user.id,...related.map(o=>o.id)], prevI=DB.idem||{};
-      for(const k in receipts) if(prevI[k]!==receipts[k]){ const c=k.indexOf(':'); if(c>0) ids.push(k.slice(0,c)); }   // v1037
-      _adoptUser(user.id,draft);for(const other of related)_adoptUser(other.id,other);Object.assign(DB,extra);DB.idem=receipts;
+      const ids=[user.id,...related.map(o=>o.id)], prevI=DB.idem||{}, prevKeys=[];
+      if(overlay){ if(!DB.idem) DB.idem={};
+        for(const k of Object.keys(receipts)){ prevKeys.push([k,Object.prototype.hasOwnProperty.call(DB.idem,k),DB.idem[k]]); const c=k.indexOf(':'); if(c>0) ids.push(k.slice(0,c)); } }
+      else for(const k in receipts) if(prevI[k]!==receipts[k]){ const c=k.indexOf(':'); if(c>0) ids.push(k.slice(0,c)); }   // v1037
+      _adoptUser(user.id,draft);for(const other of related)_adoptUser(other.id,other);Object.assign(DB,extra);
+      if(overlay) Object.assign(DB.idem,receipts); else DB.idem=receipts;
       _holdReply(_joinBatch(()=>{
         for(const [id,u] of prevUsers){ if(u===undefined) delete DB.users[id]; else _adoptUser(id,u); }
         for(const [k,had,v] of prevExtra){ if(had) DB[k]=v; else delete DB[k]; }
-        DB.idem=prevIdem; console.error(legacyTag?legacyTag+' durable write failed - undone':'Durable commit save failed - undone'); }, ids),
+        if(overlay){ for(const [k,had,v] of prevKeys.reverse()){ if(had) DB.idem[k]=v; else delete DB.idem[k]; } } else DB.idem=prevIdem;
+        console.error(legacyTag?legacyTag+' durable write failed - undone':'Durable commit save failed - undone'); }, ids),
         legacyTag?'World save failed. Retry the same request.':'Save failed. Retry the same request.');
       for(const message of diagnostics)console.log(message);
       return {ok:true}; }
     const users={...DB.users,[user.id]:draft};for(const other of related)users[other.id]=other;
+    if(overlay) receipts=Object.assign({},DB.idem||{},receipts);   // outside a request (timers, tests): the whole table, as before
     try{saveDB({...DB,...extra,users,idem:receipts},'.durable-commit.tmp');}
     catch(error){console.error(legacyTag?legacyTag+' durable write failed:':'Durable commit save:',error.message);return {ok:false,storageFailed:true,error:legacyTag?'World save failed. Retry the same request.':'Save failed. Retry the same request.'};}
     _adoptUser(user.id,draft);for(const other of related)_adoptUser(other.id,other);Object.assign(DB,extra);DB.idem=receipts;
@@ -3434,8 +3445,7 @@ function durableCommit(user,key,fn,opts={}){
   try{reply=fn(draft,staged);if(reply&&typeof reply.then==='function')throw Error('Durable planner must be synchronous');}
   finally{_worldSettlementPlanning=null;}
   if(reply?.ok!==true)return reply;
-  const receipts={...(DB.idem||{}),[key]:{t:now,resp:reply}};
-  for(const k of Object.keys(receipts))if(now-receipts[k].t>86400000)delete receipts[k];
+  const receipts=Object.assign(Object.create(DB.idem||{}),{[key]:{t:now,resp:reply}});   // v1037: a receipt overlay - finish() writes the one key
   for(const field of fields)extra[field]=staged[field];
   const committed=finish(draft,receipts,extra,[],diagnostics,null);
   return committed.ok?reply:committed;
@@ -3446,8 +3456,12 @@ function worldSettlementDurable(user,key,defId,fn){
   if(PG_BOOT_PENDING)return {ok:false,storageFailed:true,error:'World storage restore pending.'};
   if(_worldSettlementPlanning)throw Error('Nested world settlement planning');
   const actor=JSON.parse(JSON.stringify(user)),related=[];
-  const staged={...DB,users:{...DB.users,[user.id]:actor},watch:JSON.parse(JSON.stringify(DB.watch||{})),
-    feedback:JSON.parse(JSON.stringify(DB.feedback||[])),reports:JSON.parse(JSON.stringify(DB.reports||[])),meta:JSON.parse(JSON.stringify(DB.meta||{}))};
+  const staged={...DB,users:{...DB.users,[user.id]:actor}}, lazy={};
+  /* v1037: the four shared stores are copied the first time the battle reads or writes them (was: deep-copied on every attack,
+     ~20 ms on Server 2 under the war load). One that is never touched is not part of the commit - it is unchanged. */
+  for(const f of ['watch','feedback','reports','meta']) Object.defineProperty(staged,f,{enumerable:true,configurable:true,
+    get(){ if(!Object.prototype.hasOwnProperty.call(lazy,f)) lazy[f]=JSON.parse(JSON.stringify(DB[f]||(f==='feedback'||f==='reports'?[]:{}))); return lazy[f]; },
+    set(v){ lazy[f]=v; }});
   if(DB.users[defId]&&defId!==user.id){const defender=JSON.parse(JSON.stringify(DB.users[defId]));staged.users[defId]=defender;related.push(defender);}
   // A fallback roll secret must be durable BEFORE a roll, even when the settlement save later fails.
   if(!process.env.SERVER_SECRET&&!DB.meta?.rollSecret){
@@ -3464,9 +3478,8 @@ function worldSettlementDurable(user,key,defId,fn){
   try{reply=fn(actor,staged);if(reply&&typeof reply.then==='function')throw Error('Settlement planner must be synchronous');}
   finally{_worldSettlementPlanning=null;}
   if(!reply?.ok)return reply;
-  const receipts={...(DB.idem||{}),[key]:{t:now,resp:reply}};
-  for(const k of Object.keys(receipts))if(now-receipts[k].t>86400000)delete receipts[k];
-  const extra={watch:staged.watch,feedback:staged.feedback,reports:staged.reports,meta:staged.meta};
+  const receipts=Object.assign(Object.create(DB.idem||{}),{[key]:{t:now,resp:reply}});   // v1037: a receipt overlay - finish() writes the one key
+  const extra={...lazy};   // v1037: only the stores the battle touched
   const out=durableUserCommit(user,actor,receipts,'world-city-settlement',related,extra);
   if(out.ok)for(const message of diagnostics)console.log(message);
   return out.ok?reply:out;
@@ -3490,8 +3503,7 @@ function questChainDurable(user,rid){
     if(st.gems){creditGems(draft,led,st.gems,'quest-chain:'+st.node);got.gems=st.gems;}
     ledTx(draft,'quest-chain:'+st.node,got);reply={ok:true,step:led.quests.chainStep,got,ledger:ledgerView(draft)};
   }finally{_worldSettlementPlanning=null;}
-  const receipts={...(DB.idem||{}),[key]:{t:now,resp:reply}};
-  for(const k of Object.keys(receipts))if(now-receipts[k].t>86400000)delete receipts[k];
+  const receipts=Object.assign(Object.create(DB.idem||{}),{[key]:{t:now,resp:reply}});   // v1037: a receipt overlay - finish() writes the one key
   const saved=durableCommit(user,null,null,{prepared:{draft,receipts,tag:'quest-chain',extra:{feedback:staged.feedback,reports:staged.reports}}});
   if(saved.ok)for(const message of diagnostics)console.log(message);
   return saved.ok?reply:saved;
@@ -3522,8 +3534,7 @@ function worldMoveDurable(user,key,fn){
   if(PG_BOOT_PENDING)return {ok:false,storageFailed:true,error:'World move storage restore pending.'};
   const draft=JSON.parse(JSON.stringify(user)),reply=fn(draft);
   if(!reply?.ok)return reply;
-  const receipts={...(DB.idem||{}),[key]:{t:now,resp:reply}};
-  for(const k of Object.keys(receipts))if(now-receipts[k].t>86400000)delete receipts[k];
+  const receipts=Object.assign(Object.create(DB.idem||{}),{[key]:{t:now,resp:reply}});   // v1037: a receipt overlay - finish() writes the one key
   const committed=durableCommit(user,null,null,{prepared:{draft,receipts,tag:'world-move'}});
   if(!committed.ok)return committed;
   return reply;
@@ -3589,8 +3600,7 @@ function worldMineDurable(user,key,fn){
   const draft=JSON.parse(JSON.stringify(user));
   const reply=fn(draft);
   if(!reply?.ok)return reply;
-  const receipts={...(DB.idem||{}),[key]:{t:now,resp:reply}};
-  for(const k of Object.keys(receipts))if(now-receipts[k].t>86400000)delete receipts[k];
+  const receipts=Object.assign(Object.create(DB.idem||{}),{[key]:{t:now,resp:reply}});   // v1037: a receipt overlay - finish() writes the one key
   const committed=durableUserCommit(user,draft,receipts,'world-mine');
   if(!committed.ok)return committed;
   return reply;
@@ -7374,8 +7384,7 @@ async function api(req,res,url){
       return {ok:true,defId:targetId,...war};
     })(actor);
     if(!reply?.ok)return send(res,400,reply);
-    const receipts={...(DB.idem||{}),[key]:{t:at,resp:reply}};
-    for(const k of Object.keys(receipts))if(at-receipts[k].t>86400000)delete receipts[k];
+    const receipts=Object.assign(Object.create(DB.idem||{}),{[key]:{t:at,resp:reply}});   // v1037: a receipt overlay - finish() writes the one key
     const out=durableUserCommit(me,actor,receipts,'world-war',related);
     return send(res,out.ok?200:503,out.ok?reply:out);
   }
@@ -7394,8 +7403,7 @@ async function api(req,res,url){
     if(!planned.ok)return send(res,400,planned);
     const reply={ok:true,recalled:true,marchId:march.id,heroIds:march.heroIds.slice(),depart:planned.depart,arriveAt:planned.arriveAt,homeAt:planned.homeAt,route:planned.route};
     Object.assign(march,{depart:planned.depart,arriveAt:planned.arriveAt,homeAt:planned.homeAt,route:planned.route,recall:planned.recall,resolved:true,resolvedAt:now,receipt:reply});
-    const receipts={...(DB.idem||{}),[key]:{t:now,resp:reply}};
-    for(const k of Object.keys(receipts))if(now-receipts[k].t>86400000)delete receipts[k];
+    const receipts=Object.assign(Object.create(DB.idem||{}),{[key]:{t:now,resp:reply}});   // v1037: a receipt overlay - finish() writes the one key
     const out=durableUserCommit(me,draft,receipts,'world-city-recall');
     return send(res,out.ok?200:503,out.ok?reply:out);
   }
