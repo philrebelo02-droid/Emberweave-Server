@@ -3,7 +3,7 @@
    WHOLE world once per batch of actions (25-38 MB copies: stringify + write of everything for a change to two players).
 
    Split store (DB_STORE=split): the world file becomes a small MANIFEST - the shared world (everything but players and receipts),
-   plus the name of each of 128 player shard files in <DB_FILE>.d/. A shard holds its players and their request receipts (a
+   plus the name of each of 512 player shard files in <DB_FILE>.d/. A shard holds its players and their request receipts (a
    receipt "<userId>:..." lives with that user). A save writes ONLY the shards it was told changed, each to a NEW file name, then
    swaps the manifest with one atomic rename. A crash at any point leaves the previous manifest, which names only complete files:
    a save is all or nothing, exactly as the one-file save was. Superseded shard files are removed after the swap.
@@ -11,7 +11,7 @@
    Without DB_STORE=split the server reads and writes the one-file world exactly as before. Either mode reads either format, so
    switching back is one restart (the next save writes the other format). */
 const fs = require('fs'), path = require('path');
-const SHARDS = 128, FORMAT = 'split-v1';
+const SHARDS = 512, FORMAT = 'split-v1';   // 512: a war batch touching ~40 players rewrites ~8% of the world, not a third
 
 function shardOf(id) {   // FNV-1a over the id - stable across restarts and Node versions
   let h = 0x811c9dc5; const s = String(id);
@@ -48,14 +48,15 @@ function create(file, opts) {
     const raw = JSON.parse(fs.readFileSync(file, 'utf8'));
     if (!raw || raw.__store !== FORMAT) { st.names = null; return raw; }   // the one-file world: the next split save writes every shard
     const db = raw.core || {}, idem = Object.assign({}, db.idem || {}); db.users = {};
-    for (let s = 0; s < SHARDS; s++) {
+    const count = raw.count || 128;   // a manifest written with another shard count loads whole; the next save re-shards it
+    for (let s = 0; s < count; s++) {
       const name = raw.shards && raw.shards[s];
       if (!name) { const e = Error('world store: shard ' + s + ' is not in the manifest'); e.code = 'SHARD_MISSING'; throw e; }
       let p; try { p = JSON.parse(fs.readFileSync(path.join(dir, name), 'utf8')); }
       catch (err) { const e = Error('world store: shard file ' + name + ' unreadable (' + err.message + ')'); e.code = 'SHARD_MISSING'; throw e; }
       Object.assign(db.users, p.users || {}); Object.assign(idem, p.idem || {});
     }
-    db.idem = idem; st.gen = raw.gen | 0; st.names = Object.assign({}, raw.shards);
+    db.idem = idem; st.gen = raw.gen | 0; st.names = count === SHARDS ? Object.assign({}, raw.shards) : null;
     st.stats.lastFullAt = Date.now();   // what is on disk is the whole world: the sweep clock starts here
     return db;
   }
@@ -84,7 +85,7 @@ function create(file, opts) {
         if (strs) strs.set(s, str);
       }
       const tmp = file + '.store.tmp';
-      fs.writeFileSync(tmp, JSON.stringify({ __store: FORMAT, gen, shards: names, core }));
+      fs.writeFileSync(tmp, JSON.stringify({ __store: FORMAT, gen, count: SHARDS, shards: names, core }));
       fs.renameSync(tmp, file);
     } catch (e) {
       for (const f of fresh) { try { fs.unlinkSync(path.join(dir, f)); } catch (e2) {} }

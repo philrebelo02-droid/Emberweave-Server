@@ -109,7 +109,7 @@ function pgSave(){ if(PG_BOOT_PENDING) return;   // v327: never UPSERT the pre-r
   PG.query('INSERT INTO emberweave_state (id,mtime,blob) VALUES ($1,$2,$3) ON CONFLICT (id) DO UPDATE SET mtime=$2, blob=$3',['world',mt,blob])
     .catch(e=>console.error('⚠ PG write failed:', e.message))
     .finally(()=>{ _pgWriting=false; if(_pgDirty){ _pgDirty=false; pgSave(); } }); }
-/* v1037 PER-PLAYER STORAGE (server/world-store.js). DB_STORE=split: the world file is a manifest + 128 player shard files and a
+/* v1037 PER-PLAYER STORAGE (server/world-store.js). DB_STORE=split: the world file is a manifest + 512 player shard files and a
    save writes only the shards whose players changed; without it the one-file world is read and written exactly as before. */
 const _store=require('./server/world-store.js').create(DB_FILE,{split:process.env.DB_STORE==='split',verify:process.env.DB_STORE_VERIFY==='1'});
 const STORE_SWEEP_MS=Math.max(1000,+process.env.DB_STORE_SWEEP_MS||30000);   // partial saves: a full save at least this often
@@ -3390,7 +3390,8 @@ function durableCommit(user,key,fn,opts={}){
     const now=Date.now();
     if(DB.idem&&!(now-(durableCommit.prunedAt||0)<60000)){ durableCommit.prunedAt=now; for(const k of Object.keys(DB.idem)) if(now-DB.idem[k].t>86400000) delete DB.idem[k]; }
     if((typeof _reqCtx!=='undefined'&&_reqCtx.getStore())){   // v1036: adopt now, group save, undo exactly what was there if that save fails
-      const prevUsers=[user.id,...related.map(o=>o.id)].map(id=>[id,DB.users[id]?JSON.parse(JSON.stringify(DB.users[id])):undefined]);
+      // v1037: _adoptUser only swaps top-level fields (old nested objects are never written), so a shallow copy undoes it exactly
+      const prevUsers=[user.id,...related.map(o=>o.id)].map(id=>[id,DB.users[id]?Object.assign({},DB.users[id]):undefined]);
       const prevExtra=Object.keys(extra).map(k=>[k,Object.prototype.hasOwnProperty.call(DB,k),DB[k]]), prevIdem=DB.idem;
       const ids=[user.id,...related.map(o=>o.id)], prevI=DB.idem||{}, prevKeys=[];
       if(overlay){ if(!DB.idem) DB.idem={};

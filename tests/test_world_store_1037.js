@@ -64,6 +64,15 @@ function unit() {
   ok(code === 'SHARD_MISSING', 'a missing shard file refuses to load (never a world with players missing)');
   fs.renameSync(victim + '.away', victim);
 
+  // a world written with another shard count (here 1) loads whole, and the next save - even a partial one - re-shards it
+  const other = path.join(temp, 'other.json'); fs.mkdirSync(other + '.d');
+  const w0 = WS.readWorld(file), coreOnly = Object.assign({}, w0); delete coreOnly.users; coreOnly.idem = {};
+  fs.writeFileSync(path.join(other + '.d', '0-1.json'), JSON.stringify({ users: w0.users, idem: w0.idem }));
+  fs.writeFileSync(other, JSON.stringify({ __store: WS.FORMAT, gen: 1, count: 1, shards: { 0: '0-1.json' }, core: coreOnly }));
+  const st3 = WS.create(other, { split: true }), w3 = st3.load(); w3.users.u9.gold = 99; st3.write(w3, new Set(['u9']));
+  const m3 = JSON.parse(fs.readFileSync(other, 'utf8')), w4 = WS.readWorld(other);
+  ok(m3.count === WS.SHARDS && Object.keys(m3.shards).length === WS.SHARDS && Object.keys(w4.users).length === 400 && w4.users.u9.gold === 99 && Object.keys(w4.idem).length === Object.keys(w0.idem).length,
+    'a world with another shard count loads whole and its next save re-shards it (' + WS.SHARDS + ' shards, all 400 players)');
   const one = path.join(temp, 'one.json'); fs.writeFileSync(one, JSON.stringify(clone(db)));
   WS.writeWorld(one, Object.assign(clone(db), { seeded: 'tool' }));
   WS.writeWorld(file, Object.assign(WS.readWorld(file), { seeded: 'tool' }));
