@@ -2410,7 +2410,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 <script src="/assets/ui/world-march-sync.js?v=wm1"></script>
 <script src="/assets/ui/world-march-visual.js?v=wv2"></script>
 <script src="/assets/ui/skill-preview-stage.js?v=sp7"></script>
-<script src="/assets/ui/world-tree-cycle.js?v=wt3"></script>
+<script src="/assets/ui/world-tree-cycle.js?v=wt4"></script>
 <script src="/assets/ui/world-tree-art.js?v=wt3"></script>
 <script src="/assets/ui/world-oasis-markers.js?v=om-painted-01oct-v1"></script>
 <script src="/assets/ui/world-tree-countdown.js?v=wt4"></script>
@@ -20868,7 +20868,7 @@ function ensureMail(){ if(!G.mail||typeof G.mail!=='object')G.mail={}; MAIL_KIND
   // one-time migration from the old {inbox,reports} layout → new tabs
   if(Array.isArray(G.mail.reports)){ G.mail.reports.forEach(mm=>{ const s=(mm&&mm.subj)||''; if(s.indexOf('⛏')>=0)G.mail.mines.push(mm); else if(s.indexOf('🔭')>=0)G.mail.scouts.push(mm); else G.mail.war.push(mm); }); delete G.mail.reports; }
   { const keep=[],moved=[]; G.mail.inbox.forEach(mm=>{ (mm&&mm.battle)?moved.push(mm):keep.push(mm); }); if(moved.length){ G.mail.war.push(...moved); G.mail.inbox=keep; } }   // old raid battle-mails left inbox → war
-  MAIL_KINDS.forEach(k=>{ if(G.mail[k].length>40)G.mail[k].length=40; });
+  MAIL_KINDS.forEach(k=>{ const cap=(typeof MAIL_CAP==='object'&&MAIL_CAP[k])||40; if(G.mail[k].length>cap)G.mail[k].length=cap; });
   return G.mail; }
 function pruneWars(){ ensureMail(); const now=Date.now(); G.wars=G.wars.filter(w=>(w.expireAt||w.until||0)>now); return G.wars; }
 function warReady(w){ return Date.now() >= (w.readyAt||0); }          // prep timer elapsed → combat allowed
@@ -20881,7 +20881,9 @@ function liveIncomingWars(){ return incomingWars().filter(warReady); } // enemie
 function atWarWith(name,incoming){ return pruneWars().some(w=>w.name===name && !!w.incoming===!!incoming && warReady(w)); }
 function warPending(name,incoming){ return pruneWars().some(w=>w.name===name && !!w.incoming===!!incoming && !warReady(w)); }
 function warPrepRemaining(name,incoming){ const w=pruneWars().find(x=>x.name===name && !!x.incoming===!!incoming && !warReady(x)); return w?warPrepLeft(w):0; }
-function addMail(kind,m){ ensureMail(); m.t=m.t||Date.now(); m.read=false; G.mail[kind].unshift(m); if(G.mail[kind].length>40)G.mail[kind].length=40; }
+const MAIL_CAP={war:50};   /* v1042 (Phil 6 Oct 2026): the war inbox keeps 50 - the 51st pushes the oldest out; other tabs keep 40 */
+function addMail(kind,m){ ensureMail(); m.t=m.t||Date.now(); m.read=false; G.mail[kind].unshift(m); const cap=MAIL_CAP[kind]||40; if(G.mail[kind].length>cap)G.mail[kind].length=cap; }
+function hasWarMail(marchId){ ensureMail(); return !!marchId && G.mail.war.some(x=>x&&x.marchId===marchId); }   // v1042: one report per march
 function mailUnread(kind){ ensureMail(); const list=kind?(G.mail[kind]||[]):MAIL_KINDS.reduce((a,k)=>a.concat(G.mail[k]||[]),[]); return list.filter(x=>!x.read).length; }
 function pushWar(c,incoming,timing){ ensureMail(); const now=Date.now(), readyAt=timing?.readyAt||now+WAR_PREP_MS, expireAt=timing?.expireAt||now+WAR_TOTAL_MS;   // 30-min prep, 72h total
   G.wars=G.wars.filter(w=>!(!!w.incoming===!!incoming && w.name===c.name));   // one war per foe per direction
@@ -21057,7 +21059,7 @@ function resolveMarch(m){
       const body=r.won?'Your army broke '+m.tName+'’s wall and brought home 🪙 '+gold+
         (coins>0?' and 🎖 '+coins+' guild coins':'')+'. Injuries remain until healed at the Witches Hut.'
         :m.tName+'’s defenders held. Your surviving heroes retreat with their injuries.';
-      addMail('war',{from:m.tName,subj:(r.won?'⚔ Victory — ':'⚔ Defeat — ')+m.tName,body,battle:replay});
+      if(!hasWarMail(m.serverCityId)) addMail('war',{from:m.tName,subj:(r.won?'⚔ Victory — ':'⚔ Defeat — ')+m.tName,body,battle:replay,marchId:m.serverCityId});
       marchReport((r.won?'⚔ Victory at ':'⚔ Defeat at ')+m.tName,body);
       updateMailBadges(); ledgerSync&&ledgerSync(); saveG();
     }).catch(()=>{ m.resolving=false; m.resolvingAt=0; m.arrive=Date.now()+5000; saveG(); });
@@ -21098,6 +21100,12 @@ let _pvpPollN=0;
 function pollPvpReports(){ if(!ACC.token||!online())return;
   api('/api/pvp/reports').then(d=>{ if(!d||!Array.isArray(d.reports)||!d.reports.length)return;
     d.reports.forEach(r=>{ const when=r.t?new Date(r.t).toLocaleTimeString():'';
+      if(r.kind==='attack-report'){   /* v1042: the server's copy of YOUR attack - kept in war mail even if the reply was lost */
+        if(hasWarMail(r.marchId)) return;
+        const loot=r.loot||{}, gold=loot.gold|0, coins=loot.guildCoins|0, tn=r.to||'?';
+        const body=r.won?'Your army broke '+tn+'’s wall and brought home 🪙 '+gold+(coins>0?' and 🎖 '+coins+' guild coins':'')+'. Injuries remain until healed at the Witches Hut.'
+          :tn+'’s defenders held. Your surviving heroes retreat with their injuries.';
+        addMail('war',{from:tn,subj:(r.won?'⚔ Victory — ':'⚔ Defeat — ')+tn,body,battle:r.battle||undefined,marchId:r.marchId,t:r.t}); return; }
       if(r.kind==='war-declared'){ const fmt=x=>x?new Date(x).toLocaleTimeString():'?';   /* v999 (World audit #2): a declaration is not an attack */
         addMail('war',{from:r.from,subj:'⚔ '+r.from+' declared war on you',body:'War ready '+fmt(r.readyAt)+' · ends '+fmt(r.expireAt)}); return; }
       if(r.unverified) addMail('war',{from:r.from,subj:'⚠ Unverified attack report — '+r.from,
@@ -25908,7 +25916,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791300634239';
+const BUILD_ID = '1791303894933';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

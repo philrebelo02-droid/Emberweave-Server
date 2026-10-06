@@ -5,6 +5,9 @@
   function wall(ms){const p={};for(const v of clock.formatToParts(ms))if(v.type!=='literal')p[v.type]=Number(v.value);return Date.UTC(p.year,p.month-1,p.day,p.hour,p.minute,p.second)+ms%1000;}
   function fromWall(serial){let utc=serial;for(let i=0;i<4;i++)utc+=serial-wall(utc);return utc;}
   function boundary(first,n){return fromWall(wall(first)+n*CYCLE);}
+  // v1042 (Phil 6 Oct 2026: "world tree is Saturday 0800- sunday 0800"): the event ends at the same New York wall time a day later - on the
+  // night the clocks change (31 Oct -> 1 Nov) that is 25 h, never 07:00 Sunday
+  function eventEnd(start){return fromWall(wall(start)+EVENT);}
   function phase(firstEventAt,now){
     if(!Number.isSafeInteger(firstEventAt)||firstEventAt<DECAY||!Number.isSafeInteger(now)||now<0) throw new Error('Invalid World Tree schedule');
     const initialDecay=firstEventAt-DECAY;
@@ -13,9 +16,9 @@
     while(n>0&&boundary(firstEventAt,n)>now)n--;
     while(boundary(firstEventAt,n+1)<=now)n++;
     const start=boundary(firstEventAt,n),next=boundary(firstEventAt,n+1);
-    const live=now>=start&&now<start+EVENT;
-    const decayStart=now<firstEventAt?initialDecay:start+EVENT, eventStart=now<firstEventAt?firstEventAt:start, end=live?start+EVENT:(now<firstEventAt?firstEventAt:next);
-    const progress=live?(now-start)/EVENT:(now-decayStart)/(end-decayStart);
+    const evEnd=eventEnd(start), live=now>=start&&now<evEnd;
+    const decayStart=now<firstEventAt?initialDecay:evEnd, eventStart=now<firstEventAt?firstEventAt:start, end=live?evEnd:(now<firstEventAt?firstEventAt:next);
+    const progress=live?(now-start)/(evEnd-start):(now-decayStart)/(end-decayStart);
     // Phil 30 Sep: "the frames should make the time" - life moves at a steady rate (was an ease-in/out curve that
     // showed frame 4 with 2 d 9 h left instead of frame 6)
     const life=live?progress:1-progress;
@@ -30,7 +33,7 @@
     const pad=n=>String(n).padStart(2,'0');
     return (days?days+'d ':'')+pad(h)+':'+pad(m)+':'+pad(s);
   }
-  const api={phase,format,boundary,DAY,EVENT,DECAY,CYCLE};
+  const api={phase,format,boundary,eventEnd,DAY,EVENT,DECAY,CYCLE};
   if(typeof module==='object'&&module.exports) module.exports=api;
   else root.EmberweaveWorldTreeCycle=api;
 })(typeof globalThis==='object'?globalThis:this);

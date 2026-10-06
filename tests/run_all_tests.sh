@@ -225,6 +225,8 @@ note "test_major_war_1040.js (v1040: battle helper major-war mode - below-normal
 node tests/test_major_war_1040.js || FAILED=1
 note "test_cluster_help_1041.js (v1041: the cluster helps itself - tier 1 cluster before tier 2 PC, dedicated serve lists, shared half-machine share, a strained home server refuses help, phase file live, loopback-only strain endpoint)"
 node tests/test_cluster_help_1041.js || FAILED=1
+note "test_war_reports_1042.js (v1042: receipts 1 h; both players get the city attack report with the fight in war mail; war tab keeps 50; one report per march)"
+node tests/test_war_reports_1042.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi

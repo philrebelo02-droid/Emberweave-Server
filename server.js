@@ -1634,9 +1634,12 @@ function writeDBNow(){   /* v1000 (Account audit #9): returns false when the dis
    account: it is snapshotted before fn runs; if the save throws, the account and the receipt are put back exactly and the
    caller gets {ok:false,storageFailed:true} (routes answer 503) - the same contract as durableCommit(). Opt-in per route. */
 const DURABLE_IDEM_KINDS=new Set(['dresolve','dsweep','salv','witch','edbuy','edstart','edresult','trial','well2','spend','earn','csweep','cresolve','provres','provsweep','abuy','temple','acad','xp-potion','skillup','starstep','refine','summon','quest']);   /* v988 (4 Oct Temple+Academy #2 #3, City Wall #4) */   /* 3 Oct Market audit #4: tx/spend + tx/earn no longer ack a failed save; v975 (Arena+Campaign audit #7): campaign sweep/resolve, province resolve/sweep, arena attempt buy */
+/* v1042 RECEIPTS LAST ONE HOUR (Phil 6 Oct 2026: "Make it one hour, with a copy of the report living in the players war inbox up to 50
+   mails total"): every request receipt (idem, durable planners, world routes) is kept 3600000 ms (was 24 h). A city attack's full
+   report now lives in both players' war mail instead; the settled march (kept 2 days) blocks a late retry from paying twice. */
 function idem(key, fn, opts){ DB.idem=DB.idem||{}; const now=Date.now();
-  if(!(now-(idem.prunedAt||0)<60000)){ idem.prunedAt=now; for(const k of Object.keys(DB.idem)){ if(now-DB.idem[k].t>86400000) delete DB.idem[k]; } }   // v1037: once a minute, not per call
-  if(DB.idem[key] && now-DB.idem[key].t<=86400000 && !(opts&&opts.retryFailed&&DB.idem[key].resp&&DB.idem[key].resp.ok===false)) return DB.idem[key].resp;
+  if(!(now-(idem.prunedAt||0)<60000)){ idem.prunedAt=now; for(const k of Object.keys(DB.idem)){ if(now-DB.idem[k].t>3600000) delete DB.idem[k]; } }   // v1037: once a minute, not per call
+  if(DB.idem[key] && now-DB.idem[key].t<=3600000 && !(opts&&opts.retryFailed&&DB.idem[key].resp&&DB.idem[key].resp.ok===false)) return DB.idem[key].resp;
   let du=opts&&opts.durableUser;
   if(!du){ const i=key.indexOf(':'), j=i>0?key.indexOf(':',i+1):-1; if(j>i&&DURABLE_IDEM_KINDS.has(key.slice(i+1,j))&&DB.users[key.slice(0,i)]) du=DB.users[key.slice(0,i)]; }
   if(du&&_worldSettlementPlanning) du=null;   /* inside a world planning window the outer durable commit owns the write */
@@ -3402,7 +3405,7 @@ function durableCommit(user,key,fn,opts={}){
        place at most once a minute (every lookup checks the 24 h limit itself). */
     const proto=receipts&&Object.getPrototypeOf(receipts), overlay=!!proto&&Object.getPrototypeOf(proto)!==null;   // any realm's Object.prototype has no prototype; the live table does
     const now=Date.now();
-    if(DB.idem&&!(now-(durableCommit.prunedAt||0)<60000)){ durableCommit.prunedAt=now; for(const k of Object.keys(DB.idem)) if(now-DB.idem[k].t>86400000) delete DB.idem[k]; }
+    if(DB.idem&&!(now-(durableCommit.prunedAt||0)<60000)){ durableCommit.prunedAt=now; for(const k of Object.keys(DB.idem)) if(now-DB.idem[k].t>3600000) delete DB.idem[k]; }
     if((typeof _reqCtx!=='undefined'&&_reqCtx.getStore())){   // v1036: adopt now, group save, undo exactly what was there if that save fails
       // v1037: _adoptUser only swaps top-level fields (old nested objects are never written), so a shallow copy undoes it exactly
       const prevUsers=[user.id,...related.map(o=>o.id)].map(id=>[id,DB.users[id]?Object.assign({},DB.users[id]):undefined]);
@@ -3451,7 +3454,7 @@ function durableCommit(user,key,fn,opts={}){
   if(!Array.isArray(fields)||new Set(fields).size!==fields.length||fields.some(k=>!allowed.includes(k)))throw Error('Invalid durable staged fields');
   const now=Date.now(),prior=DB.idem?.[key];
   if(prior&&now<prior.t)return {ok:false,error:'Request clock precedes its saved receipt.'};
-  if(prior&&now-prior.t<=86400000&&prior.resp?.ok===true)return prior.resp;
+  if(prior&&now-prior.t<=3600000&&prior.resp?.ok===true)return prior.resp;
   if(PG_BOOT_PENDING)return {ok:false,storageFailed:true,error:'Storage restore pending.'};
   if(_worldSettlementPlanning)throw Error('Nested durable planning');
   const draft=JSON.parse(JSON.stringify(user)),staged={...DB,users:{...DB.users,[user.id]:draft}},extra={};
@@ -3467,7 +3470,7 @@ function durableCommit(user,key,fn,opts={}){
 }
 function worldSettlementDurable(user,key,defId,fn){
   const now=Date.now(),prior=DB.idem?.[key];
-  if(prior&&now-prior.t<=86400000&&prior.resp?.ok===true)return prior.resp;
+  if(prior&&now-prior.t<=3600000&&prior.resp?.ok===true)return prior.resp;
   if(PG_BOOT_PENDING)return {ok:false,storageFailed:true,error:'World storage restore pending.'};
   if(_worldSettlementPlanning)throw Error('Nested world settlement planning');
   const actor=JSON.parse(JSON.stringify(user)),related=[];
@@ -3502,7 +3505,7 @@ function worldSettlementDurable(user,key,defId,fn){
 function questChainDurable(user,rid){
   const now=Date.now(),key=user.id+':qchain:'+rid,prior=DB.idem?.[key];
   if(prior&&now<prior.t)return {ok:false,error:'Quest request clock precedes its saved receipt.'};
-  if(prior&&now-prior.t<=86400000&&prior.resp?.ok===true)return prior.resp;
+  if(prior&&now-prior.t<=3600000&&prior.resp?.ok===true)return prior.resp;
   if(PG_BOOT_PENDING)return {ok:false,storageFailed:true,error:'Quest storage restore pending.'};
   if(_worldSettlementPlanning)throw Error('Nested quest planning');
   const draft=JSON.parse(JSON.stringify(user)),staged={...DB,users:{...DB.users,[user.id]:draft},feedback:JSON.parse(JSON.stringify(DB.feedback||[])),reports:JSON.parse(JSON.stringify(DB.reports||[]))},diagnostics=[];
@@ -3545,7 +3548,7 @@ function worldLocation(u){
 }
 function worldMoveDurable(user,key,fn){
   const now=Date.now(), prior=DB.idem?.[key];
-  if(prior&&now-prior.t<=86400000&&prior.resp?.ok===true)return prior.resp;
+  if(prior&&now-prior.t<=3600000&&prior.resp?.ok===true)return prior.resp;
   if(PG_BOOT_PENDING)return {ok:false,storageFailed:true,error:'World move storage restore pending.'};
   const draft=JSON.parse(JSON.stringify(user)),reply=fn(draft);
   if(!reply?.ok)return reply;
@@ -3608,11 +3611,11 @@ function worldCityMarches(u,now=Date.now()){
     u.worldCityMarches=u.worldCityMarches.filter(m=>!m.resolved||Math.max(+m.resolvedAt||0,+m.homeAt||0)>=keepAfter);
   return u.worldCityMarches;
 }
-// Resolve receipts outlive the 24-hour idempotency cache so a late retry cannot
+// Resolve receipts outlive the 1-hour idempotency cache (v1042; was 24 h) so a late retry cannot
 // pay again. Keep every unfinished trip; discard only old, settled mine history.
 function worldMineDurable(user,key,fn){
   const now=Date.now(), prior=DB.idem?.[key];
-  if(prior&&now-prior.t<=86400000&&prior.resp?.ok===true)return prior.resp;
+  if(prior&&now-prior.t<=3600000&&prior.resp?.ok===true)return prior.resp;
   if(PG_BOOT_PENDING)return {ok:false,storageFailed:true,error:'Mine storage restore pending.'};
   const draft=JSON.parse(JSON.stringify(user));
   const reply=fn(draft);
@@ -3685,7 +3688,7 @@ function worldTreePublicScore(now){const view=WORLD_TREE_SCORE.view(DB.worldTree
 function worldTreeRun(actor,action,payload,now=Date.now(),receiptKey=null){
   if(!WORLD_TREE_CONTROL_ENABLED)return {ok:false,error:'World Tree event disabled'};
   const injured=new Map();
-  if(receiptKey&&DB.idem?.[receiptKey]&&now-DB.idem[receiptKey].t<86400000)return DB.idem[receiptKey].resp;
+  if(receiptKey&&DB.idem?.[receiptKey]&&now-DB.idem[receiptKey].t<3600000)return DB.idem[receiptKey].resp;
   const sites=worldTreeWindow(now),prior={version:1,control:DB.worldTreeControl||null,score:DB.worldTreeScore||null,finals:DB.worldTreeFinals||{},guilds:DB.worldTreeGuilds||{}};
   const result=WORLD_TREE_LIFECYCLE.run(prior,{enabled:WORLD_TREE_CONTROL_ENABLED,window:sites.eventWindow,now,
     actorId:actor?.id,guildId:actor?.guildId,action,payload},worldTreeHooks(now,sites,injured),DB.guilds);
@@ -7329,12 +7332,19 @@ async function api(req,res,url){
           loot.guildCoins=c;
           for(const k of ids){ const h=led.hero[k]||(led.hero[k]={xp:0,stars:(SIM.HERO_BASE[k]||{}).stars||1,pips:0}); h.xp=Math.min(99000000,h.xp+50); } }
         d.pvpMail=d.pvpMail||[];
-        d.pvpMail.push({id:uid(), from:me.name, won, t:Date.now(), verified:true, rounds});
+        /* v1042: both players' war mail gets the report WITH the fight (the replay the server fought: attacker's squad vs the
+           defender's wall, same seed) - the receipt that used to hold it lasts an hour now. Delivered by /api/pvp/reports + ack. */
+        const mailBattle=replay?{v:2,seed:replay.seed,mineSnap:replay.snaps,foe:replay.foe,won:!!won,oppName:me.name,attacker:me.name,defender:d.name}:undefined;
+        d.pvpMail.push({id:uid(), from:me.name, won, t:Date.now(), verified:true, rounds, marchId:march.id, battle:mailBattle});
         if(d.pvpMail.length>20) d.pvpMail=d.pvpMail.slice(-20);
+        me.pvpMail=me.pvpMail||[];
+        me.pvpMail.push({id:uid(), kind:'attack-report', to:d.name, won, t:Date.now(), marchId:march.id, loot,
+          battle:mailBattle?Object.assign({},mailBattle,{oppName:d.name}):undefined});
+        if(me.pvpMail.length>20) me.pvpMail=me.pvpMail.slice(-20);
         DB.watch=DB.watch||{}; const w=DB.watch[me.id]||{id:me.id,name:me.name,guildId:me.guildId||null,attacks:[],defends:[],scouts:[]};
         w.attacks=(w.attacks||[]).slice(-19); w.attacks.push({t:Date.now(),target:d.name,won,verified:true}); w.t=Date.now(); w.guildId=me.guildId||null; DB.watch[me.id]=w;
         const receipt={ok:true, won, rounds, loot, log, injuries, replay, attacksLeft:20-me.pvpDay.n};
-        march.resolved=true; march.resolvedAt=Date.now(); march.receipt=receipt;
+        march.resolved=true; march.resolvedAt=Date.now(); march.receipt=Object.assign({},receipt,{replay:null,replayInMail:!!replay});   // v1042: the fight lives in war mail
         // A synchronous currency write must include the settled march and retry receipt.
         if(paidGold) ledTx(me,'city-pvp',{gold:paidGold});
         if(paidCoins) ledTx(me,'city-pvp',{guildCoins:paidCoins});
@@ -7379,7 +7389,7 @@ async function api(req,res,url){
     const b=await body(req),rid=String(b.requestId||'').slice(0,48);
     if(!rid) return send(res,400,{ok:false,error:'requestId required'});
     const key=me.id+':worldwar:'+rid,at=Date.now(),prior=DB.idem?.[key];
-    if(prior&&at-prior.t<=86400000&&prior.resp?.ok===true)return send(res,200,prior.resp);
+    if(prior&&at-prior.t<=3600000&&prior.resp?.ok===true)return send(res,200,prior.resp);
     if(PG_BOOT_PENDING)return send(res,503,{ok:false,storageFailed:true,error:'World storage restore pending.'});
     const actor=JSON.parse(JSON.stringify(me)),related=[];
     const reply=((me)=>{
@@ -7412,7 +7422,7 @@ async function api(req,res,url){
     const b=await body(req),rid=String(b.requestId||'').slice(0,48);
     if(!rid||typeof b.marchId!=='string'||!b.marchId)return send(res,400,{ok:false,error:'March and requestId required'});
     const key=me.id+':worldcity:recall:'+rid,now=Date.now(),prior=DB.idem?.[key];
-    if(prior&&now-prior.t<=86400000&&prior.resp?.ok===true)return send(res,200,prior.resp);
+    if(prior&&now-prior.t<=3600000&&prior.resp?.ok===true)return send(res,200,prior.resp);
     if(PG_BOOT_PENDING)return send(res,503,{ok:false,storageFailed:true,error:'World storage restore pending.'});
     const draft=JSON.parse(JSON.stringify(me)),march=worldCityMarches(draft,now).find(m=>m.id===b.marchId);
     if(!march)return send(res,400,{ok:false,error:'No owned city march.'});
@@ -8205,7 +8215,7 @@ async function api(req,res,url){
          (boss HP, contribution, guild exp/level/log, the spent attempt). A failed save answers 503 with nothing moved and the
          attempt still open; the same requestId then books it once. The checks and the replay change nothing, so they run first. */
       const rkey=me.id+':graidres:'+reqId, prior=DB.idem&&DB.idem[rkey];
-      if(prior&&prior.resp&&prior.resp.ok===true&&Date.now()-prior.t<=86400000) return send(res,200,prior.resp);
+      if(prior&&prior.resp&&prior.resp.ok===true&&Date.now()-prior.t<=3600000) return send(res,200,prior.resp);
       const r0=ensureRaid(g); r0.att=r0.att||{};
       const a=r0.att[me.id];
       if(!a || a.id!==String(b.attemptId||'')) return send(res,200,{ok:false, error:'No matching raid battle.', raid:raidView(g)});
