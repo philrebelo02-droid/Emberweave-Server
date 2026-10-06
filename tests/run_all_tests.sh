@@ -223,6 +223,8 @@ note "test_sim_helper_1039.js (v1039: battle helpers - a backed-up pool shares b
 node tests/test_sim_helper_1039.js || FAILED=1
 note "test_major_war_1040.js (v1040: battle helper major-war mode - below-normal priority and more battles at once on World Tree day or unbroken strain; real server on/off World Tree day)"
 node tests/test_major_war_1040.js || FAILED=1
+note "test_cluster_help_1041.js (v1041: the cluster helps itself - tier 1 cluster before tier 2 PC, dedicated serve lists, shared half-machine share, a strained home server refuses help, phase file live, loopback-only strain endpoint)"
+node tests/test_cluster_help_1041.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi

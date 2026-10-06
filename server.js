@@ -3014,6 +3014,7 @@ const _SIM_MEMO=new Map(), SIM_NEEDED={simNeeded:true}, SIM_STATS={memoHits:0,ma
 let _SIM_COLLECT=null, _SIM_POOL;
 /* v1040 (Phil 6 Oct 2026: "if there is major war going on, like world tree day, my computer gives a little more than low priority
    help"): during the World Tree event (the calendar's 24 h 'event' phase) battle helpers are asked for major-war mode. */
+const SERVER_ID=String(process.env.SERVER_ID||((String(process.env.SERVER_NAME||'').match(/(\d+)\s*$/)||[])[1])||'');   // v1041: "1".."4"
 function simWarLevel(){ try{ const c=WORLD_TREE_CALENDAR.snapshot(DB); return c.configured&&c.phase==='event'?'major':null; }catch(e){ return null; } }
 function simPool(){
   if(_SIM_POOL!==undefined) return _SIM_POOL;
@@ -3021,9 +3022,15 @@ function simPool(){
   if(n===0){ _SIM_POOL=null; return null; }
   /* v1039: SIM_HELPERS (comma-separated URLs of server/sim-helper.js, e.g. Phil's PC) + SIM_HELPER_KEY - battle helpers that take
      battles only while this server's own workers are backed up ("high war time"); none set = exactly as before. */
-  const helpers=(process.env.SIM_HELPERS||'').split(',').map(u=>u.trim()).filter(Boolean).map(url=>({url,key:process.env.SIM_HELPER_KEY||''}));
-  let fp=null; if(helpers.length) try{ fp=require('./server/sim-host.js').fingerprint(GAME_FILE); }catch(e){ console.error('⚠ battle helpers off - engine fingerprint failed:', e.message); }
-  try{ _SIM_POOL=require('./server/sim-pool.js').create(GAME_FILE,{size:n,helpers:fp?helpers:[],fp,warLevel:simWarLevel}); console.log('⚔️  battle workers starting: '+_SIM_POOL.stats.size+(fp?' + '+helpers.length+' helper(s)':'')); }
+  /* v1041 (Phil 6 Oct 2026: "First the server will reach for main and node1-3. If the strained server still needs help my cpu will
+     kick in."): an entry may carry its tier - "url|2" (tier 1 = the cluster, 2 = Phil's PC); SIM_HELPERS_FILE (JSON [{url,tier}]) is
+     re-read every 5 s, so the release-phase switch needs no restart; SERVER_ID names this server to dedicated helpers. */
+  const helpers=(process.env.SIM_HELPERS||'').split(',').map(u=>u.trim()).filter(Boolean).map(e=>{ const [url,tier]=e.split('|'); return {url,tier:+tier||1,key:process.env.SIM_HELPER_KEY||''}; });
+  const helpersFile=process.env.SIM_HELPERS_FILE||null;
+  let fp=null; if(helpers.length||helpersFile) try{ fp=require('./server/sim-host.js').fingerprint(GAME_FILE); }catch(e){ console.error('⚠ battle helpers off - engine fingerprint failed:', e.message); }
+  try{ _SIM_POOL=require('./server/sim-pool.js').create(GAME_FILE,{size:n,helpers:fp?helpers:[],helpersFile:fp?helpersFile:null,key:process.env.SIM_HELPER_KEY||'',
+      self:SERVER_ID,fp,warLevel:simWarLevel,trackStrain:true});
+    console.log('⚔️  battle workers starting: '+_SIM_POOL.stats.size+(fp?' + helpers ('+helpers.length+(helpersFile?' + file '+helpersFile:'')+')':'')); }
   catch(e){ console.error('⚠ battle workers unavailable - battles stay on the main thread:', e.message); _SIM_POOL=null; }
   return _SIM_POOL; }
 function _simKey(m,args){ return m+'|'+JSON.stringify(args); }
@@ -8353,6 +8360,12 @@ const server=http.createServer((req,res)=>{
     if(err && err.code==='BAD_PROTO_NAME') return send(res,400,{ok:false,error:'Invalid request.'});   /* v986 */
     console.error('⚠ api error:', err && err.message); return send(res,500,{error:'server error'}); });
   if(p==='/health'){ res.writeHead(200);res.end('ok');return; }
+  /* v1041: this server's own battle helper (same machine) asks whether the server is strained - "A strained server will never offer
+     help to another strained server" (Phil 6 Oct 2026). Loopback only. */
+  if(p==='/internal/strain'){ const ra=String(req.socket.remoteAddress||'');
+    if(!(ra==='127.0.0.1'||ra==='::1'||ra==='::ffff:127.0.0.1')) return send(res,404,{error:'not found'});
+    if(req.headers['cf-ray']||req.headers['cf-connecting-ip']||req.headers['x-forwarded-for']) return send(res,404,{error:'not found'});   // the Cloudflare tunnel also arrives on loopback
+    const pool=_SIM_POOL||null; return send(res,200,{strained:!!(pool&&pool.strained()),lagMs:pool?+pool.lagMs().toFixed(1):null}); }
   if(p==='/sw.js') return serveFile(res,'sw.js','application/javascript');
   if(p==='/hero-profiles.js') return serveFile(res,'hero-profiles.js','application/javascript',null,req);
   if(p==='/hero-paths.js') return serveFile(res,'hero-paths.js','application/javascript',null,req);

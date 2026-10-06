@@ -19,7 +19,17 @@
    A server asks for major (?war=major on its health check, war:"major" on a battle) during World Tree day or after a minute of
    unbroken strain; the helper stays major until `majorHoldMs` (90 s) after the last such ask, then drops back.
    Config: JSON file SIM_HELPER_CONFIG (default %LOCALAPPDATA%/Emberweave/sim-helper.json): {key, port=8890, host="0.0.0.0",
-   workers=4, busyCpu=0.5, majorWorkers=8, majorBusyCpu=0.8, majorHoldMs=90000}. Start: node server/sim-helper.js */
+   workers=4, busyCpu=0.5, majorWorkers=8, majorBusyCpu=0.8, majorHoldMs=90000}. Start: node server/sim-helper.js
+
+   v1041 THE CLUSTER HELPS ITSELF (Phil 6 Oct 2026: "When ever a server is using less than 30% of its cpu it allots up to 50% of its
+   cpu to helping other server" / "node 1-3 will actually allot 100% of their cpu to help main" / "A strained server will never offer
+   help to another strained server"). Extra config, for a helper running beside a game server (its CT):
+     share      - fraction of the machine's CPUs it may use (0.5 shared, 1 dedicated); sets workers when workers is not given;
+     serve      - "any" or a list of server ids ("1", "2", ...) it fights for; a request from another server answers 503;
+     strainUrl  - its own game server's /internal/strain; while that server is strained it offers no help (503);
+     nice       - OS priority (Linux nice: 0 dedicated, 10 shared so its own game server always wins);
+     role       - a label shown on /health ("shared", "dedicated").
+   A shared helper is busy when the rest of the machine (its own game server) uses more than busyCpu (0.3). */
 const http = require('http'), os = require('os'), path = require('path'), fs = require('fs'), crypto = require('crypto');
 const ROOT = path.join(__dirname, '..'), GAME = path.join(ROOT, 'emberweave-heroes.html');
 const CFG_FILE = process.env.SIM_HELPER_CONFIG || path.join(process.env.LOCALAPPDATA || os.homedir(), 'Emberweave', 'sim-helper.json');
@@ -27,10 +37,19 @@ const cfg = JSON.parse(fs.readFileSync(CFG_FILE, 'utf8'));
 if (typeof cfg.key !== 'string' || cfg.key.length < 24) { console.error('sim-helper: config needs a key of 24+ characters'); process.exit(2); }
 const PORT = +cfg.port || 8890, HOST = cfg.host || '0.0.0.0', KEY = Buffer.from(cfg.key);
 const cpus = os.cpus().length;
+const shareWorkers = cfg.share ? Math.max(1, Math.round(cpus * Math.min(1, +cfg.share))) : 0;
+const basePriority = cfg.nice !== undefined ? +cfg.nice : os.constants.priority.PRIORITY_LOW;
 const MODES = {
-  normal: { workers: Math.max(1, Math.min(+cfg.workers || 4, cpus)), busy: +cfg.busyCpu || 0.5, priority: os.constants.priority.PRIORITY_LOW },
-  major: { workers: Math.max(1, Math.min(+cfg.majorWorkers || 8, cpus)), busy: +cfg.majorBusyCpu || 0.8, priority: os.constants.priority.PRIORITY_BELOW_NORMAL },
+  normal: { workers: Math.max(1, Math.min(+cfg.workers || shareWorkers || 4, cpus)), busy: +cfg.busyCpu || 0.5, priority: basePriority },
+  major: { workers: Math.max(1, Math.min(+cfg.majorWorkers || +cfg.workers || shareWorkers || 8, cpus)), busy: +cfg.majorBusyCpu || +cfg.busyCpu || 0.8,
+    priority: cfg.nice !== undefined ? +cfg.nice : os.constants.priority.PRIORITY_BELOW_NORMAL },
 };
+const SERVE = Array.isArray(cfg.serve) ? cfg.serve.map(String) : 'any', ROLE = cfg.role || (cfg.share ? (cfg.share >= 1 ? 'dedicated' : 'shared') : 'pc');
+const serves = from => SERVE === 'any' || (from !== undefined && from !== null && SERVE.includes(String(from)));
+// v1041: a helper beside a game server asks that server whether it is strained; a strained server never offers help
+let homeStrained = false;
+if (cfg.strainUrl) setInterval(async () => { try { const j = await (await fetch(cfg.strainUrl, { signal: AbortSignal.timeout(1500) })).json(); homeStrained = !!j.strained; }
+  catch (e) { homeStrained = false; } }, 2000).unref();
 const HOLD_MS = +cfg.majorHoldMs || 90000;
 let mode = 'normal', majorUntil = 0;
 function setMode(m) {
@@ -40,7 +59,7 @@ function setMode(m) {
 }
 function askMajor() { majorUntil = Date.now() + HOLD_MS; setMode('major'); }
 setInterval(() => { if (mode === 'major' && Date.now() > majorUntil) setMode('normal'); }, 1000).unref();
-try { os.setPriority(0, MODES.normal.priority); } catch (e) { console.error('sim-helper: could not lower priority: ' + e.message); }
+try { os.setPriority(0, MODES.normal.priority); } catch (e) { console.error('sim-helper: could not set priority: ' + e.message); }
 
 const FP = require('./sim-host.js').fingerprint(GAME);
 const POOL_SIZE = Math.max(MODES.normal.workers, MODES.major.workers);
@@ -58,7 +77,7 @@ function sampleCpu() {
   lastCpu = { total, idle }; lastOwn = own;
 }
 sampleCpu(); setInterval(sampleCpu, 2000).unref();
-const busy = () => others > MODES[mode].busy || inFlight >= MODES[mode].workers;
+const busy = () => homeStrained || others > MODES[mode].busy || inFlight >= MODES[mode].workers;
 
 // a deploy changed the checkout -> exit; the launcher restarts on the new engine
 setInterval(() => { try { if (require('./sim-host.js').fingerprint(GAME) !== FP) { console.log('sim-helper: engine changed on disk - restarting'); process.exit(0); } } catch (e) {} }, 60000).unref();
@@ -70,9 +89,9 @@ const METHODS = new Set(['auto', 'campaign', 'raid', 'replay']);
 const server = http.createServer((req, res) => {
   const [route, query] = String(req.url || '').split('?');
   if (req.method === 'GET' && route === '/health') {
-    if (/(^|&)war=major(&|$)/.test(query || '')) askMajor();
-    return reply(res, 200, { ok: true, fp: FP, mode, priority: os.getPriority(0), limit: MODES[mode].workers, busy: busy(), others: +others.toFixed(2),
-      ready: pool.stats.ready, size: POOL_SIZE, inFlight, ...stats });
+    if (/(^|&)war=major(&|$)/.test(query || '') && ROLE === 'pc') askMajor();   // major mode is the PC's (v1040); cluster roles are fixed
+    return reply(res, 200, { ok: true, fp: FP, role: ROLE, serves: SERVE, mode, priority: os.getPriority(0), limit: MODES[mode].workers, busy: busy(),
+      homeStrained, others: +others.toFixed(2), ready: pool.stats.ready, size: POOL_SIZE, inFlight, ...stats });
   }
   if (req.method !== 'POST' || route !== '/battle') return reply(res, 404, { error: 'not found' });
   if (!keyOk(req)) { stats.refusedKey++; req.resume(); return reply(res, 401, { error: 'key' }); }
@@ -82,12 +101,14 @@ const server = http.createServer((req, res) => {
     let msg; try { msg = JSON.parse(body); } catch (e) { return reply(res, 400, { error: 'json' }); }
     if (msg.fp !== FP) { stats.refusedBuild++; return reply(res, 409, { error: 'different build', fp: FP }); }
     if (!METHODS.has(msg.method) || !Array.isArray(msg.args)) return reply(res, 400, { error: 'method' });
-    if (msg.war === 'major') askMajor();
+    if (!serves(msg.from)) { stats.refusedOther = (stats.refusedOther || 0) + 1; return reply(res, 503, { busy: true, serves: SERVE }); }
+    if (msg.war === 'major' && ROLE === 'pc') askMajor();
     if (busy()) { stats.refusedBusy++; return reply(res, 503, { busy: true }); }
     inFlight++; const wasMajor = mode === 'major';
     pool.run(msg.method, msg.args).then(result => { stats.battles++; if (wasMajor) stats.majorBattles++; reply(res, 200, { result }); },
       e => { stats.errors++; reply(res, 503, { busy: true, error: e.message }); }).finally(() => { inFlight--; });
   });
 });
-server.listen(PORT, HOST, () => console.log('sim-helper: ' + POOL_SIZE + ' battle workers (normal ' + MODES.normal.workers + ' at once, lowest priority; major '
-  + MODES.major.workers + ', below normal) on ' + HOST + ':' + PORT + ', engine ' + FP.slice(0, 12)));
+server.listen(PORT, HOST, () => console.log('sim-helper (' + ROLE + ', serves ' + (SERVE === 'any' ? 'any server' : 'server ' + SERVE.join('+')) + '): ' + POOL_SIZE
+  + ' battle workers (normal ' + MODES.normal.workers + ' at once, priority ' + MODES.normal.priority + '; major ' + MODES.major.workers + ') on ' + HOST + ':' + PORT
+  + ', engine ' + FP.slice(0, 12)));
