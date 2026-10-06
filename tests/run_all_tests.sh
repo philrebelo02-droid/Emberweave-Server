@@ -233,6 +233,8 @@ note "test_konwu_1044.js (v1044: KonWu Phantom Step dropkick - 8 m knockback, st
 node tests/test_konwu_1044.js || FAILED=1
 note "test_grok_fx_1044.js (v1044: Grok's fifteen spell plates - sheet sizes, display time = sheet length, Perfect Pitch / Deep Reserves hooks)"
 node tests/test_grok_fx_1044.js || FAILED=1
+note "test_toxic_breath_1045.js (v1045: Bloatus Toxic Breath - plume from the mouth on the exhale, cast 0.9 s, no swing during the breath)"
+node tests/test_toxic_breath_1045.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi

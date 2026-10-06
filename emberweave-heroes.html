@@ -3178,7 +3178,7 @@ const BATTLE_ANIM = {
     walk:{u:'/assets/anim/bloatus/bloatus_walk.webp?v=30',n:50,fw:406,fh:558,cols:6,rows:9,figH:394,feet:484,cx:198,fps:24,flip:false,top:90},
     attack:{u:'/assets/anim/bloatus/bloatus_attack.webp?v=30',n:48,fw:682,fh:556,cols:6,rows:8,figH:396,feet:494,cx:266,fps:24,flip:false,top:98,relFrac:0.20},
     hit:{u:'/assets/anim/bloatus/bloatus_hit.webp?v=30',n:48,fw:458,fh:516,cols:6,rows:8,figH:394,feet:454,cx:250,fps:24,flip:false,top:60},
-    green:{u:'/assets/anim/bloatus/bloatus_green.webp?v=30',n:48,fw:404,fh:566,cols:6,rows:8,figH:395,feet:505,cx:194,fps:24,flip:false,top:110},
+    green:{u:'/assets/anim/bloatus/bloatus_green.webp?v=30',n:48,fw:404,fh:566,cols:6,rows:8,figH:395,feet:505,cx:194,fps:24,flip:false,top:110,faceFar:15},
     blue:{u:'/assets/anim/bloatus/bloatus_blue.webp?v=30',n:48,fw:464,fh:521,cols:6,rows:8,figH:394,feet:459,cx:217,fps:24,flip:false,top:65},
     ult:{u:'/assets/anim/bloatus/bloatus_ult.webp?v=30',n:48,fw:509,fh:527,cols:6,rows:8,figH:395,feet:466,cx:233,fps:24,flip:false,top:71}
   },
@@ -4539,7 +4539,7 @@ const KITS={
   tick:{green:{name:'Overclock',type:'haste',mul:1.35,dur:5,self:true,desc:"Tick winds his own mainspring: HIS attack speed only, for a few seconds.",cd:8,gfx:'tick_green',gfxR:3*METER,gdur:5.88},blue:{name:'Mainspring',type:'punchflurry',hits:5,mul:0.28,tauntChance:0,cd:7,gfx:'tick_blue',gfxR:3*METER,gdur:5.21},purple:{name:'Momentum Gears',pass:'momentum'}},
   sylthaine:{green:{name:'Frozen Orb',type:'frozenorb',mul:1.1,range:28*METER,width:34,cd:8,gfx:'sylthaine_green',noArt:true,pfx:'sylthaine_green',pscale:2.6,pdur:0.9,gdur:3.92},blue:{deliver:'form',name:'Glacial Prison',type:'freeze',mul:1.2,stun:2,cd:9,gfx:'sylthaine_blue',gfxR:3*METER,gdur:5.54},purple:{name:'Cold Snap',pass:'coldsnap'}},
   aureth:{green:{deliver:'form',name:'Sunburst',type:'sunburst',mul:1.4,radius:2.8*METER,heal:0.28,cd:8,gfx:'aureth_green',gdur:4.92},blue:{name:'Duality',type:'duality',cd:6,gfx:'aureth_blue',gfxR:3*METER,gdur:3.54},purple:{name:'Twin Fonts',pass:'twinfonts'}},
-  bloatus:{green:{name:'Toxic Breath',type:'toxbreath',mul:0.9,dps:0.5,dur:4,radius:2.6*METER,cd:7,gfx:'bloatus_green',gdur:1.04},blue:{deliver:'form',name:'Swampcall',type:'swamproot',mul:0.7,root:2,farthest:2,silence:2/0.7,ccFixed:['silence'],radius:2.4*METER,cd:10,gfx:'bloatus_blue',gdur:2.88,desc:"The swamp swallows the two farthest enemies: each is rooted and silenced for 2 seconds."},purple:{name:'Contagion',pass:'contagion',desc:'when a foe dies still carrying his poison, the poison bursts onto every enemy nearby — and can spread again from them'}},
+  bloatus:{green:{name:'Toxic Breath',type:'toxbreath',mul:0.9,dps:0.5,dur:4,radius:2.6*METER,cd:7,gfx:'bloatus_green',gdur:1.04,noArt:true},blue:{deliver:'form',name:'Swampcall',type:'swamproot',mul:0.7,root:2,farthest:2,silence:2/0.7,ccFixed:['silence'],radius:2.4*METER,cd:10,gfx:'bloatus_blue',gdur:2.88,desc:"The swamp swallows the two farthest enemies: each is rooted and silenced for 2 seconds."},purple:{name:'Contagion',pass:'contagion',desc:'when a foe dies still carrying his poison, the poison bursts onto every enemy nearby — and can spread again from them'}},
   vireo:{green:{name:'Crescendo',type:'crescendo',heal:0.16,hot:0.05,dur:5,cd:7,gfx:'vireo_green',gdur:5.88,desc:"Vireo's song swells to heal every ally and keep mending them for 5 seconds; each Crescendo in a row rings louder and heals more."},blue:{name:'Harmony',type:'harmonyshield',mul:2.4,radius:10*METER,dur:12,cd:9,gfx:'vireo_blue',gdur:11.76,desc:"A dome of harmony settles over the most wounded ally, shielding every ally inside it for 12 seconds."}   /* v560 Phil: 'make the radius 10 m ... increase the shields size to match'. The painted dome follows on its own: upMetric spans exactly 2R, so 10 m radius draws a 20 m dome with no art change. (v558 was 7 m / 14 m.) */,purple:{name:'Perfect Pitch',pass:'perfectpitch'}},
   fritz:{green:{name:'Storm Surge',type:'stormsurge',mul:0.85,n:5,cd:8,gfx:'fritz_green',noArt:true,gfxR:3*METER,gdur:1.1},blue:{name:'Chain Lightning',type:'chainlight',mul:1.1,jumps:4,jumpRange:15*METER,previewBolt:true,decay:0.8,cd:7,gfx:'fritz_blue',noArt:true,gfxR:3*METER,gdur:5.88},purple:{name:'Static Veil',pass:'stormdodge'}},
   umbris:{green:{deliver:'form',name:'Shadeburst',type:'shadeburst',at:'cluster',dps:0.3,dur:6,radius:7*METER,cd:7,gfx:'umbris_green',noArt:true,gdur:5.88},blue:{name:'Creeping Rot',type:'creeprot',mul:0.5,dps:0.6,dur:5,color:'#8a5cff',foot:true,handglow:true,cd:6,gfx:'umbris_blue',gfxR:3*METER,gdur:5.38},purple:{name:'Lingering Dark',pass:'contagion',desc:'when a foe dies still rotting from his shadow, the rot spreads to every enemy nearby — and can spread again from them'}},
@@ -4710,7 +4710,7 @@ const ULT_DEF={worldweight:{mul:2.0,radius:8*METER,lift:2.0,slamStun:1.0},finalc
   rewind:{back:5,revive:0.4}
 };
 // per-hero ability CAST times (s); a hero can't auto-attack while casting; effect visual ~2x cast.
-const ABILITY_CAST={ vael:{ult:0.3}, rhukk:{ult:0.5}, konwu:{ult:1,green:0.3,blue:1}, grosk:{ult:0.5,green:1,blue:0.6}, vulmar:{ult:1.5,green:1.5,blue:2}, tick:{ult:1,green:0.4,blue:0.6}, sylthaine:{ult:0.6,green:1,blue:0.8}, aureth:{ult:1.2,green:1,blue:0.5}, bloatus:{ult:1.2,green:0.6,blue:0.8}, vireo:{ult:1,green:0.6,blue:0.5}, fritz:{ult:0.8,green:0.5,blue:0.4} };
+const ABILITY_CAST={ vael:{ult:0.3}, rhukk:{ult:0.5}, konwu:{ult:1,green:0.3,blue:1}, grosk:{ult:0.5,green:1,blue:0.6}, vulmar:{ult:1.5,green:1.5,blue:2}, tick:{ult:1,green:0.4,blue:0.6}, sylthaine:{ult:0.6,green:1,blue:0.8}, aureth:{ult:1.2,green:1,blue:0.5}, bloatus:{ult:1.2,green:0.9,blue:0.8}, vireo:{ult:1,green:0.6,blue:0.5}, fritz:{ult:0.8,green:0.5,blue:0.4} };
 function castTimeFor(u,slot){ const m=ABILITY_CAST[u.key]||((u.t&&u.t.monster)?ABILITY_CAST_MON[u.key]:null); return (m&&m[slot])||(slot==='ult'?0.8:0.5); }
 // a hover explanation of what each skill does
 /* v481 (audit): per-HERO ultimate text — the shared type text named the wrong hero or weapon (Nerisse's ult read "Oakmir calls the first bloom…", Carn's read "three cuts with both daggers"). */
@@ -10658,7 +10658,8 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
       // aim at the FURTHEST enemy within 15m (that is Bloatus's target); everyone along the line gets hit.
       let aim=null,best=-1; enemiesOf(u).forEach(e=>{ const dd=dist(u,e); if(dd<=reach&&dd>best){best=dd;aim=e;} });
       const tx=aimCtr?aimCtr.x:(aim?aim.x:(tgt?tgt.x:u.x+(u.team==='ally'?reach:-reach))), ty=aimCtr?aimCtr.y:(aim?aim.y:(tgt?tgt.y:u.y));
-      spawnBeamFx('toxbeam',u,tx,ty,1.5,0.5);                   // gas beam: mouth -> target, extend 1.5s then retract 0.5s
+      u._castT=Math.max(u._castT||0,0.75);   /* v1045: he is breathing out (exhale frames 27-44) - no swing until the gas is out, so the v1031 swing rule does not cut the breath and no blow lands unseen */
+      spawnBeamFx('toxcone',u,tx,ty,0.45,0.3);                  /* v1045 (Phil 6 Oct: "please check bloatus toxic breath spell FX"): the green gas plume (was the thin dark toxbeam streak) shoots mouth -> target over his exhale (frames 27-39 = 0.45 s), then thins out 0.3 s */
       const dd=Math.max(1,Math.hypot(tx-u.x,ty-u.y)), ux=(tx-u.x)/dd, uy=(ty-u.y)/dd, half=1.4*METER;
       enemiesOf(u).forEach(e=>{ let pr=(e.x-u.x)*ux+(e.y-u.y)*uy; if(pr<0)pr=0; if(pr>dd)pr=dd; const cx=u.x+ux*pr, cy=u.y+uy*pr;
         if(Math.hypot(e.x-cx,e.y-cy)<=half){ dealDamage(u,e,apB*(o.mul||0.9)*rm,'#a6e05a','magic'); plagueDot(e,pd,o.dur||4,1,'#8fbf3f'); e._plagueDps=pd; e._contagion=con; e._plagueColor='#8fbf3f'; } });   // 30 Aug: without the colour the spread test never matched and Contagion never fired
@@ -11002,7 +11003,7 @@ const MUZZLE={ rafe:{fwd:0.55,h:0.56}, rivet:{fwd:0.55,h:0.52}, sloe:{fwd:0.5,h:
    anchor column (cx) toward the facing side, fy = how high above the feet line. Corsair's Pistol Barrage clip: tip at (42,62.5) of a
    397x400 cell, cx 242, feet 395, figH 391 -> fx (242-42)/391, fy (395-62.5)/391. Sprites are billboards, so the tip is offset along
    screen-x on the facing side, at the unit's own depth. */
-const APEX={ rafe:{fx:0.5115,fy:0.850} };
+const APEX={ rafe:{fx:0.5115,fy:0.850}, bloatus:{fx:0.11,fy:0.94} };   /* v1045 (Phil 6 Oct: "please check bloatus toxic breath spell FX"): Bloatus's mouth on his v1032 Toxic Breath exhale */
 function castOrigin(u,tx,ty){ const sh=u.sprH||3; const ap=APEX[u.key]; if(ap){ const dir=(tx>=u.x)?1:-1; return {x:u.x+dir*ap.fx*sh/SC, y:u.y, h:0.05+sh*ap.fy}; }
   const m=MUZZLE[u.key]||{fwd:0.38,h:0.52}; const sw=sh*(u.sprA||0.7); const d=Math.max(1,Math.hypot(tx-u.x,ty-u.y)); const f=(sw*m.fwd)/SC;   // sprite width is in world units; the field is world/SC
   return {x:u.x+(tx-u.x)/d*f, y:u.y+(ty-u.y)/d*f, h:0.05+sh*m.h}; }
@@ -11229,6 +11230,7 @@ const FX2_DEF={
   pyregrunt: {u:'/assets/anim/fx/pyregrunt.webp?v=3', n:18, fw:200, fh:200, cols:6, rows:3, dur:2.4},
   bonechantfx:{u:'/assets/anim/fx/bonechantfx.webp?v=1', n:48, fw:320, fh:320, cols:6, rows:8, dur:6.0, disc:{cy:0.506,dh:0.284,dw:0.704}},   // v548 (Phil): Bone Chant - a snake of green ember-fire draws the circle clockwise from 12 o'clock (cells 0-11, 1.5 s), then the ring burns with a faint green inside; Hailuo 2.0 from a spark seed, keyed off magenta (tools/fx_slice_snake_ring.py)
   toxbeam:   {u:'/assets/anim/fx/bloatus_toxbreath_fx.webp?v=3', n:16, fw:360, fh:174, cols:4, rows:4, dur:1.4, apex:[31,87], lead:[337,87]},
+  toxcone:   {u:'/assets/anim/fx/bloatus_green.webp?v=20', n:30, fw:320, fh:320, cols:6, rows:5, dur:1.04, apex:[18,161], lead:[300,161], f0:20, thick:2.8*METER, bodyH:0.6},   /* v1045 (Phil 6 Oct: "please check bloatus toxic breath spell FX"): Toxic Breath's gas plume as the breath itself - frames 20-29 loop (apex stays at x~18), body capped to the 2.8 m line it hits */
   /* v313 — drawn for monster abilities that no existing plate could honestly stand in for.
      Projectile plates are side-on with the effect pointing SCREEN-RIGHT, because spawnProjFx bakes
      front = +x and rotates the sprite to the travel direction. */
@@ -11624,15 +11626,17 @@ function updateBeamFx(dt){ for(let i=_beamFx.length-1;i>=0;i--){ const o=_beamFx
   if(!u||!u.alive||o.t>=total){ scene.remove(o.spr); o.spr.material.dispose(); _beamFx.splice(i,1); continue; }
   let grow; if(o.t<=o.extend){ grow=Math.pow(o.t/o.extend,0.85); } else { grow=1-(o.t-o.extend)/o.retract; } grow=Math.max(0.04,grow);
   const dd=Math.max(1,Math.hypot(o.tx-u.x,o.ty-u.y)), dirx=(o.tx-u.x)/dd, diry=(o.ty-u.y)/dd;
-  const mx=u.x+dirx*14, my=u.y+diry*14;                        // mouth = a touch forward of the caster
+  let mx=u.x+dirx*14, my=u.y+diry*14, MY=1.55;                 // mouth = a touch forward of the caster, at 1.55
+  if(APEX[u.key]&&u.sprH!=null){ const co=castOrigin(u,o.tx,o.ty); mx=co.x; my=co.y; MY=co.h; }   /* v1045: a hero with a measured mouth (APEX) breathes from it */
   const Px=mx+(o.tx-mx)*grow, Py=my+(o.ty-my)*grow;            // current lead point along mouth->target
-  const MY=1.55;                                               // mouth height
   let rot=0; try{ const a=new TH.Vector3(wx(mx),MY,wz(my)).project(camera), b=new TH.Vector3(wx(Px),MY,wz(Py)).project(camera); rot=Math.atan2(b.y-a.y,b.x-a.x); }catch(e){}
   const apexLead=(d.lead[0]-d.apex[0])/d.fw;                   // frame fraction the apex->lead spans
   const wlen=Math.hypot(wx(Px)-wx(mx), wz(Py)-wz(my));         // world length mouth->lead
   const scaleW=Math.max(0.2, BEAM_K*wlen/Math.max(0.001,apexLead));
-  o.spr.material.rotation=rot; o.spr.position.set(wx(mx),MY,wz(my)); o.spr.scale.set(scaleW, scaleW*(d.fh/d.fw)*(1+(FX_SIZE-1)*0.5), 1);   // v367: beams keep their reach (mouth→target), get fatter
-  fx2SetFrame(o.tex,d,Math.floor(o.t*11)%d.n); } }
+  let scaleH=scaleW*(d.fh/d.fw)*(1+(FX_SIZE-1)*0.5); if(d.thick){ scaleH=Math.min(scaleH, Math.abs(wx(d.thick)-wx(0))/(d.bodyH||1)); }   /* v1045: a plume as tall as it is long would be 9 m thick on a 15 m breath - its body is the band it hits */
+  o.spr.material.rotation=rot; o.spr.position.set(wx(mx),MY,wz(my)); o.spr.scale.set(scaleW, scaleH, 1);   // v367: beams keep their reach (mouth→target), get fatter
+  if(d.f0!=null){ o.spr.material.opacity=(o.t<=o.extend)?1:Math.max(0,1-(o.t-o.extend)/o.retract); }   /* v1045: the plume thins out instead of shrinking back into his mouth */
+  fx2SetFrame(o.spr,d,(d.f0!=null)?(d.f0+Math.floor(o.t*11)%(d.n-d.f0)):(Math.floor(o.t*11)%d.n)); } }   /* v1045: the SPRITE - fx2Hook reads its own _uv; setting the texture's offset was ignored, so every beam sat on frame 0 */
 // Plague/curse telegraph: a tiny void zone blooms under a struck unit; 0.5s later it fades and the DoT begins ticking.
 const _pendingDots=[];
 function plagueDot(t,dps,dur,interval,color){ if(!t)return;
@@ -13386,6 +13390,7 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
         let desired;
         if((u.fearT||0)>0 && st==='walk' && Math.abs(pdx)>0.08){ desired=pdx>0?1:-1; u._faceDir=desired; }   // v1027: a feared unit runs AWAY - it faces where it is running, not the foe
         else if(waveXfer && st==='walk' && Math.abs(pdx)>0.08){ desired=pdx>0?1:-1; u._faceDir=desired; }
+        else if(A.faceFar && st===u._abilAnim){ let far=null,bd=-1; enemiesOf(u).forEach(e=>{ const dd=dist(u,e); if(e.alive&&dd<=A.faceFar*METER&&dd>bd){bd=dd;far=e;} }); const fz=far||foe; if(fz){ const dxx=fz.x-u.x; if(Math.abs(dxx)>2) u._faceDir=dxx>=0?1:-1; } desired=u._faceDir||(u.team==='ally'?1:-1); }   /* v1045: Toxic Breath aims at the FURTHEST enemy in 15 m - he faces it through the whole clip (render only) */
         else if(foe){ const dxx=foe.x-u.x; if(Math.abs(dxx)>2) u._faceDir=dxx>=0?1:-1; desired=u._faceDir||(u.team==='ally'?1:-1); }
         else desired=u._faceDir||(u.team==='ally'?1:-1);
         /* v1021: Impale Rush lands ON its target, where the foe's side is a coin toss - he keeps the facing he charged in until the clip ends */
@@ -25945,7 +25950,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791321189935';
+const BUILD_ID = '1791323590030';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
