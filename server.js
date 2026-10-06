@@ -7344,7 +7344,7 @@ async function api(req,res,url){
         DB.watch=DB.watch||{}; const w=DB.watch[me.id]||{id:me.id,name:me.name,guildId:me.guildId||null,attacks:[],defends:[],scouts:[]};
         w.attacks=(w.attacks||[]).slice(-19); w.attacks.push({t:Date.now(),target:d.name,won,verified:true}); w.t=Date.now(); w.guildId=me.guildId||null; DB.watch[me.id]=w;
         const receipt={ok:true, won, rounds, loot, log, injuries, replay, attacksLeft:20-me.pvpDay.n};
-        march.resolved=true; march.resolvedAt=Date.now(); march.receipt=Object.assign({},receipt,{replay:null,replayInMail:!!replay});   // v1042: the fight lives in war mail
+        march.resolved=true; march.resolvedAt=Date.now(); march.receipt=receipt;   // the settled march replays this exact reply to a late retry (2 days) - tests/witches-hut-api pins it
         // A synchronous currency write must include the settled march and retry receipt.
         if(paidGold) ledTx(me,'city-pvp',{gold:paidGold});
         if(paidCoins) ledTx(me,'city-pvp',{guildCoins:paidCoins});

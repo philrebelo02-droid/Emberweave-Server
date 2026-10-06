@@ -62,8 +62,8 @@ async function server() {
     ok(((await S.req('GET', '/api/pvp/reports', null, atk.token, atk.ip)).body.reports || []).length === 0, 'acknowledged reports leave the server (the copy now lives in the war tab)');
     await S.kill();
     const world = WS.readWorld(S.db), march = (world.users[atk.id].worldCityMarches || []).find(x => x.id === m.body.marchId);
-    ok(march && march.resolved && march.receipt && march.receipt.replay === null && march.receipt.replayInMail === true && march.receipt.won === a.body.won,
-      'the settled march keeps the outcome for 2 days without a second copy of the fight');
+    ok(march && march.resolved && march.receipt && march.receipt.won === a.body.won && JSON.stringify(march.receipt.replay) === JSON.stringify(a.body.replay),
+      'the settled march keeps the exact reply (fight included) for 2 days, for a late retry');
     ok(!!world.idem[atk.id + ':pvpatk:wm-attack'], 'the attack receipt is on disk (for the next hour)');
 
     // 2) receipts last one hour - idem() with a controlled clock
