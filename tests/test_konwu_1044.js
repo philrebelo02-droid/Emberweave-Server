@@ -15,16 +15,17 @@ const ck = (name, ok, detail) => { if (ok) { pass++; console.log('  ok  ' + name
 const fight = (foes) => run(`(()=>{ units=[]; ended=false; paused=false; battleTime=0;
   const k=makeUnit('konwu','ally',300,700,20,{owned:false}); const fs=${JSON.stringify(foes)}.map(f=>makeUnit(f[0],'enemy',f[1],f[2],20,{owned:false}));
   units=[k,...fs]; units.forEach(u=>{u.maxHp=u.hp=1e7;}); fs.forEach(f=>{f.atkInterval=99; f.speed=0;}); k.blueAb=KITS.konwu.blue; k.greenAb=null; k.blueCd=0; k.energy=0;
-  const R={moveAt:null,kickAt:null,mark:null}; let prevKick=0, prevHp=null, chaseSteps=[], lockedOnMark=true;
-  for(let i=0;i<Math.round(8/SIM_STEP);i++){ const px=k.x, py=k.y, chasing=(k._chaseT||0)>0;
+  const R={moveAt:null,kickAt:null,mark:null}; let prevKick=0, prevHp=null, chaseSteps=[], lockedOnMark=true, holdSlide=0, holdSteps=0;
+  for(let i=0;i<Math.round(8/SIM_STEP);i++){ const px=k.x, py=k.y, chasing=(k._chaseT||0)>0 && !((k._kickHoldT||0)>0);   /* v1046: the 0.25 s kick hold is not running */
     if(R.mark) prevHp=R.mark.hp;
     updateBattle(SIM_STEP); k.energy=0;
     if(R.moveAt==null && k._kickTg){ R.moveAt=battleTime; R.mark=k._kickTg; R.markKey=k._kickTg.key; R.d0=null; }
     if(R.moveAt!=null && R.kickAt==null && R.mark && R.mark.hp<prevHp){ R.kickAt=battleTime; R.dmg=prevHp-R.mark.hp; R.stun=R.mark.stunned; R.chaseMul=k._chaseMul; R.chaseT=k._chaseT; }
     if(R.kickAt!=null && R.mark && R.markPos==null){ R.markPos=[R.mark.x,R.mark.y]; }
+    if(px!=null && (k._kickHoldT||0)>0){ holdSteps++; holdSlide=Math.max(holdSlide,Math.hypot(k.x-px,k.y-py)); }
     if(chasing && (k._chaseT||0)>0){ chaseSteps.push(Math.hypot(k.x-px,k.y-py)); if(k.target!==R.mark) lockedOnMark=false; }
   }
-  const cs=chaseSteps.slice().sort((a,b)=>a-b); R.chaseStep=cs.length?cs[cs.length>>1]:0;   /* the median step: a body-separation shove can add to one */ R.walkStep=k.speed*MOVE_MUL*SIM_STEP; R.lockedOnMark=lockedOnMark; R.chaseN=chaseSteps.length;
+  const cs=chaseSteps.slice().sort((a,b)=>a-b); R.chaseStep=cs.length?cs[cs.length>>1]:0;   /* the median step: a body-separation shove can add to one */ R.walkStep=k.speed*MOVE_MUL*SIM_STEP; R.lockedOnMark=lockedOnMark; R.chaseN=chaseSteps.length; R.holdSlide=holdSlide; R.holdSteps=holdSteps;
   R.METER=METER; R.STEP=SIM_STEP; R.mark=null; return R; })()`);
 
 try {
@@ -34,6 +35,7 @@ try {
   ck('the dropkick lands 0.667 s after the move (the blue sheet\'s contact frame 64)', R.kickAt != null && Math.abs((R.kickAt - R.moveAt) - 0.667) <= R.STEP + 1e-9, 'gap ' + (R.kickAt - R.moveAt));
   ck('the dropkick deals damage', R.dmg > 0);
   ck('the mark is stunned by the kick', R.stun > 0, 'stun ' + R.stun);
+  ck('v1046: he holds the kick in place (no sliding in the kick pose), then runs', R.holdSteps >= 8 && R.holdSlide === 0, 'steps ' + R.holdSteps + ' slide ' + R.holdSlide);
   ck('KonWu runs it down at 1.5x his speed', R.chaseMul === 1.5 && R.chaseN > 0 && Math.abs(R.chaseStep / R.walkStep - 1.5) < 0.02, 'step ratio ' + (R.chaseStep / R.walkStep));
 }
 // 2) the knockback: 8 m straight away from him (measured directly on konwuKickExec, away from the field edges)

@@ -9451,8 +9451,8 @@ function konwuBlinkExec(u){ const o=u._blinkO||{}; if(!u.alive){u._blinkO=null;r
    the mark flies o.knock straight away from KonWu (unless it cannot be displaced), is stunned o.stun s (the usual control roll), and
    KonWu runs after it at o.chase x his speed until he reaches it (or 3 s pass). */
 function konwuKickExec(u){ const tg=u._kickTg, o=u._kickO||{}; u._kickTg=null; u._kickO=null;
+  u._kickHoldT=0.25;   /* v1046 (Phil: "kunwo has an anchoring issue whils using his blue"): he holds the kick in place 0.25 s, THEN the clip ends and the run starts - he used to slide ~40 px along the ground in the kick pose */
   if(!u.alive||!tg||!tg.alive||dist(u,tg)>(u._kickD0||0)+1*METER) return;   // the mark died, or got more than 1 m further away than where he arrived (bodies shoving apart on arrival is fine)
-  if((u._abilHold||0)>0.3) u._abilHold=0.3;   // the blue clip holds the kick a beat, then lets go so he can run (no swing flag - it would swap in the attack clip)
   dealDamage(u,tg,u._kickDmg||0,'#c9b6ff');
   floatTexts.push({x:u.x,y:u.y-8,txt:'+20%',t:.8,color:'#c9b6ff',vy:1});
   if(!tg.alive) return;
@@ -11889,6 +11889,7 @@ function think(u,dt){
     if(u._vpT<=0){ u._vpT=0; hollowStrike(u); } return; }   // off the field between hops
   if(u._blinkT>0){ u._blinkT-=dt; if(u._blinkT<=0) konwuBlinkExec(u); return; }   // Phantom Step channel: rooted 1s, then blink
   if(u._kickT>0){ if(!u._kickD0Set&&u._kickTg){ u._kickD0=dist(u,u._kickTg); u._kickD0Set=true; } u._kickT-=dt; if(u._kickT<=0){ u._kickT=0; konwuKickExec(u); } return; }   // v1044: rooted behind the mark until the dropkick lands
+  if((u._kickHoldT||0)>0){ u._kickHoldT-=dt; if(u._kickHoldT<=0){ u._kickHoldT=0; if(u._abilAnim==='blue') u._abilHold=0; } return; }   // v1046: rooted in the kick, then the blue clip lets go (battle time - any game speed)
   if((u._chaseT||0)>0){ u._chaseT-=dt; if(!u._chaseTg||!u._chaseTg.alive||dist(u,u._chaseTg)<=u.range+(u._chaseTg.r||0)) u._chaseT=0; }   // v1044: the run after the knocked-back mark
   if(u._dash){ const _D=u._dash; _D.t+=dt; const _k=Math.min(1,_D.t/_D.dur);   /* v892 a dash in progress: travel, then the landing */
     u.x=_D.x0+(_D.x1-_D.x0)*_k; u.y=_D.y0+(_D.y1-_D.y0)*_k; u._ax=u.x; u._ay=u.y;
@@ -12344,7 +12345,7 @@ function monsterOffscreenStart(hx,hy){ return {x:hx + XFER_DIR.x*XFER_OFFSCREEN,
 function purgeDead(){ for(let i=units.length-1;i>=0;i--){ const u=units[i]; if(!u.alive && u.team==='enemy'){ if(u.mesh){scene.remove(u.mesh);disposeObj(u.mesh);} units.splice(i,1); } } }   // clear dead-monster corpses so they don't linger through the run-off/run-on
 // stop any in-flight ability clip + cast pose AND dispose transient battle FX, so an ability cast right as the wave/stage ends doesn't keep animating through the clear/run-off. (Phil: "some animations stay through stage clear if cast when the round ends.")
 function purgeTransientFx(){
-  units.forEach(u=>{ u._fuse=null; u._abilHold=0; u._ultRootT=0; u._abilAnim=null; u.castAnim=0; u._airT=0; u._blinkT=0; u._blinkO=null; u._kickT=0; u._kickTg=null; u._chaseT=0; u._chaseTg=null; u.attackAnim=0; u._boltT=0; u._boltTgt=null; u._voidT=0; u._voidLandT=0; u._voidCast=null; u._horizon=null;
+  units.forEach(u=>{ u._fuse=null; u._abilHold=0; u._ultRootT=0; u._abilAnim=null; u.castAnim=0; u._airT=0; u._blinkT=0; u._blinkO=null; u._kickT=0; u._kickTg=null; u._kickHoldT=0; u._chaseT=0; u._chaseTg=null; u.attackAnim=0; u._boltT=0; u._boltTgt=null; u._voidT=0; u._voidLandT=0; u._voidCast=null; u._horizon=null;
     // clear lingering damage-over-time as well. On a STAGE win the heroes idle for 2s before the victory
     // screen, and updateStatusFx keeps re-spawning the burning/poison plate under their feet from a DoT that
     // outlived the last enemy. (Phil: "fire debuff under feet stays between waves if the stage ends before
@@ -25950,7 +25951,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791323590030';
+const BUILD_ID = '1791329379131';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
