@@ -182,4 +182,19 @@ function load(htmlPath){
     }
   };
 }
-module.exports={ load, extractGameScript, makeStub };
+/* v1039 BATTLE HELPERS (Phil 6 Oct 2026: "When the server is stressing - high war time - my computer comes to support it if its not busy").
+   One hash of everything load() runs - the game script, the local script files it loads, and this loader - so a battle helper on
+   another machine proves it fights with the identical engine before it is trusted with a battle. Line endings are normalised: a
+   Windows checkout (CRLF) runs the same code as the servers (LF). */
+function fingerprint(htmlPath){
+  const h=require('crypto').createHash('sha256'), path=require('path'), norm=t=>String(t).replace(/\r\n/g,'\n');
+  const html=fs.readFileSync(htmlPath,'utf8'), baseDir=path.dirname(htmlPath);
+  h.update(norm(extractGameScript(html)));
+  for(const raw of [...html.matchAll(/<script\s+src=["']\/([^"']+)["'][^>]*><\/script>/g)].map(m=>m[1])){
+    const src=raw.split('?')[0]; if(src.startsWith('assets/')) continue;
+    const dep=path.join(baseDir,src); if(fs.existsSync(dep)) h.update('\0'+src+'\0'+norm(fs.readFileSync(dep,'utf8')));
+  }
+  h.update('\0loader\0'+norm(fs.readFileSync(__filename,'utf8')));
+  return h.digest('hex');
+}
+module.exports={ load, extractGameScript, makeStub, fingerprint };
