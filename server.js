@@ -109,7 +109,14 @@ function pgSave(){ if(PG_BOOT_PENDING) return;   // v327: never UPSERT the pre-r
   PG.query('INSERT INTO emberweave_state (id,mtime,blob) VALUES ($1,$2,$3) ON CONFLICT (id) DO UPDATE SET mtime=$2, blob=$3',['world',mt,blob])
     .catch(e=>console.error('⚠ PG write failed:', e.message))
     .finally(()=>{ _pgWriting=false; if(_pgDirty){ _pgDirty=false; pgSave(); } }); }
-function readDB(){ try{ DB = JSON.parse(fs.readFileSync(DB_FILE,'utf8')); }catch(e){ DB={users:{},byName:{},tokens:{},seeded:false}; } }
+/* v1037 PER-PLAYER STORAGE (server/world-store.js). DB_STORE=split: the world file is a manifest + 128 player shard files and a
+   save writes only the shards whose players changed; without it the one-file world is read and written exactly as before. */
+const _store=require('./server/world-store.js').create(DB_FILE,{split:process.env.DB_STORE==='split',verify:process.env.DB_STORE_VERIFY==='1'});
+const STORE_SWEEP_MS=Math.max(1000,+process.env.DB_STORE_SWEEP_MS||30000);   // partial saves: a full save at least this often
+function readDB(){ try{ DB=_store.load(); }catch(e){
+    if(e&&e.code==='SHARD_MISSING'){ console.error('⛔ '+e.message+' - refusing to start rather than run a world with players missing.'); process.exit(1); }
+    DB={users:{},byName:{},tokens:{},seeded:false}; }
+  if(_store.split){ const n=_store.sweepOrphans(); if(n) console.log('📁 world store: removed '+n+' uncommitted shard file(s)'); } }
 /* HERO-ID RENAME (v926, Phil 01OCT2026; v929 audit extension): old concept keys -> in-game-name keys.
    tallow->gruel, vharn->korvux, fathom->maren, sprocket->rivet, sablewick->tessit,
    arrears->grimsby, meryln->dandra. Mirror of the client's HERO_ID_RENAME in emberweave-heroes.html.
@@ -167,11 +174,15 @@ function worldPlanningDB(){return _worldSettlementPlanning?.db||DB;}
 function saveDB(snapshot,suffix='.tmp'){
   // The sole local whole-snapshot writer. Callers own boot checks/error policy/PG.
   if(typeof suffix!=='string'||!/^\.[a-z0-9.-]+\.tmp$/.test(suffix)&&suffix!=='.tmp')throw Error('Invalid DB temporary suffix');   // '.group.tmp' (v1036) matches
+  if(_store.split){ _store.write(snapshot,null); _pendingFull=false; return; }   // v1037: every shard + the manifest, one atomic swap
   const tmp=DB_FILE+suffix;fs.writeFileSync(tmp,JSON.stringify(snapshot));fs.renameSync(tmp,DB_FILE);
+  _pendingFull=false;
 }
+var _pendingFull=false;   /* v1037: a generic writeDB() is waiting (or was absorbed into a group save) - its change names no players */
 function writeDB(){ if(_worldSettlementPlanning||_durableIdemActive)return; if(PG_BOOT_PENDING){ _bootDirty=true; return; }   // v327: see bootFinish()
+  _pendingFull=true;
   if(saveTimer)return; saveTimer=setTimeout(()=>{ saveTimer=null;
-  if(_batchOpen){ _batchOpen.actions++; return; }   // v1036: a group save is already queued - it writes this change too
+  if(_batchOpen){ _batchOpen.actions++; _batchOpen.all=true; return; }   // v1036: a group save is already queued - it writes this change too
   try{ saveDB(DB); }   // atomic: write temp, then rename
   catch(e){ console.error('⚠ DB write failed:', e.message); }
   pgSave(); },200); }
@@ -188,9 +199,10 @@ const { AsyncLocalStorage } = require('async_hooks');
 const _reqCtx = new AsyncLocalStorage();
 let _batchOpen = null, _batchScheduled = false, _lastSaveEnd = 0, _lastSaveMs = 0;   // the save gap (below)
 const GROUP_SAVE_STATS = { batches:0, actions:0, failed:0, lastMs:0, maxMs:0 };
-function _joinBatch(undo){
-  if(!_batchOpen){ let resolve; const promise=new Promise(r=>{ resolve=r; }); _batchOpen={ promise, resolve, undos:[], actions:0 }; }
+function _joinBatch(undo, ids){   // v1037: ids = the players this action changed (its receipts' owners too); none given = save everything
+  if(!_batchOpen){ let resolve; const promise=new Promise(r=>{ resolve=r; }); _batchOpen={ promise, resolve, undos:[], actions:0, all:false, ids:new Set() }; }
   if(undo) _batchOpen.undos.push(undo);
+  if(Array.isArray(ids)){ for(const id of ids) if(typeof id==='string'&&id) _batchOpen.ids.add(id); } else _batchOpen.all=true;
   _batchOpen.actions++;
   // SAVE GAP: after a save that took X ms the next one waits until X ms have passed, collecting every change meanwhile - under
   // load saving holds at most about half the thread (the war load test saved back to back otherwise); idle, nothing waits.
@@ -202,15 +214,16 @@ function _runBatch(){
   _batchScheduled=false;
   const b=_batchOpen; if(!b) return; _batchOpen=null;
   if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; }   // this save covers any debounced change too
-  const t0=Date.now();
-  try{ saveDB(DB,'.group.tmp'); }
+  const t0=Date.now(), all=b.all||_pendingFull||!_store.split;   // v1037: a partial save only when every change named its players
+  try{ if(all) saveDB(DB,'.group.tmp'); else _store.write(DB,b.ids); }
   catch(e){
     for(const u of b.undos.slice().reverse()){ try{ u(); }catch(e2){ console.error('⚠ group save undo failed:', e2.message); } }
     GROUP_SAVE_STATS.failed++; console.error('⚠ group save failed - '+b.actions+' change(s), '+b.undos.length+' undone:', e.message);
     return b.resolve(false); }
   const ms=Date.now()-t0; _lastSaveMs=ms; _lastSaveEnd=Date.now(); GROUP_SAVE_STATS.batches++; GROUP_SAVE_STATS.actions+=b.actions; GROUP_SAVE_STATS.lastMs=ms;
   if(ms>GROUP_SAVE_STATS.maxMs) GROUP_SAVE_STATS.maxMs=ms;
-  b.resolve(true); try{ pgSave(); }catch(e){} }
+  b.resolve(true); try{ pgSave(); }catch(e){}
+  if(!all && Date.now()-_store.stats.lastFullAt>STORE_SWEEP_MS) writeDB(); }   // v1037: changes no action declared (presence) reach disk too
 function writeDBSync(){ try{ if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; } saveDB(DB); return true; }catch(e){ console.error('⚠ DB write failed:', e.message); return false; } }   // v1036: exit paths
 process.on('SIGTERM',()=>{ if(!PG_BOOT_PENDING && _booted) writeDBSync(); process.exit(0); });   // v1036: a restart keeps the last debounced changes
 
@@ -1646,7 +1659,7 @@ function idem(key, fn, opts){ DB.idem=DB.idem||{}; const now=Date.now();
   DB.idem[key]={t:now,resp};
   if(opts&&opts.retryFailed&&resp&&resp.ok===false){ delete DB.idem[key]; return resp; }
   if((typeof _reqCtx!=='undefined'&&_reqCtx.getStore())){ if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; }   // v1036: group save; undo on failure
-    _holdReply(_joinBatch(()=>{ console.error('Durable idem save failed - account rolled back'); rollback(); if(DB.idem) delete DB.idem[key]; }), 'Save failed. Retry the same request.');
+    _holdReply(_joinBatch(()=>{ console.error('Durable idem save failed - account rolled back'); rollback(); if(DB.idem) delete DB.idem[key]; }, [du.id, key.slice(0,Math.max(0,key.indexOf(':')))]), 'Save failed. Retry the same request.');
     return resp; }
   try{ if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; } saveDB(DB); }
   catch(e){ console.error('Durable idem save failed - account rolled back:', e.message); rollback(); delete DB.idem[key];
@@ -3373,11 +3386,13 @@ function durableCommit(user,key,fn,opts={}){
     if((typeof _reqCtx!=='undefined'&&_reqCtx.getStore())){   // v1036: adopt now, group save, undo exactly what was there if that save fails
       const prevUsers=[user.id,...related.map(o=>o.id)].map(id=>[id,DB.users[id]?JSON.parse(JSON.stringify(DB.users[id])):undefined]);
       const prevExtra=Object.keys(extra).map(k=>[k,Object.prototype.hasOwnProperty.call(DB,k),DB[k]]), prevIdem=DB.idem;
+      const ids=[user.id,...related.map(o=>o.id)], prevI=DB.idem||{};
+      for(const k in receipts) if(prevI[k]!==receipts[k]){ const c=k.indexOf(':'); if(c>0) ids.push(k.slice(0,c)); }   // v1037
       _adoptUser(user.id,draft);for(const other of related)_adoptUser(other.id,other);Object.assign(DB,extra);DB.idem=receipts;
       _holdReply(_joinBatch(()=>{
         for(const [id,u] of prevUsers){ if(u===undefined) delete DB.users[id]; else _adoptUser(id,u); }
         for(const [k,had,v] of prevExtra){ if(had) DB[k]=v; else delete DB[k]; }
-        DB.idem=prevIdem; console.error(legacyTag?legacyTag+' durable write failed - undone':'Durable commit save failed - undone'); }),
+        DB.idem=prevIdem; console.error(legacyTag?legacyTag+' durable write failed - undone':'Durable commit save failed - undone'); }, ids),
         legacyTag?'World save failed. Retry the same request.':'Save failed. Retry the same request.');
       for(const message of diagnostics)console.log(message);
       return {ok:true}; }
@@ -3669,7 +3684,8 @@ function worldTreeRun(actor,action,payload,now=Date.now(),receiptKey=null){
     Object.assign(DB,fields);if(receiptKey)DB.idem=receipts;
     for(const [id,witch]of injured)DB.users[id].witch=witch;
     _holdReply(_joinBatch(()=>{ for(const [k,had,v] of prevF){ if(had) DB[k]=v; else delete DB[k]; } DB.idem=prevIdem;
-      for(const [id,w] of prevW){ if(DB.users[id]) DB.users[id].witch=w; } console.error('World Tree save failed - undone'); }),
+      for(const [id,w] of prevW){ if(DB.users[id]) DB.users[id].witch=w; } console.error('World Tree save failed - undone'); },
+      [...injured.keys(), receiptKey?receiptKey.slice(0,Math.max(0,receiptKey.indexOf(':'))):'']),
       'World save failed. Retry the same request.');
     return reply; }
   saveDB({...DB,...fields,users,idem:receipts},'.world-tree.tmp');
@@ -4374,7 +4390,7 @@ async function api(req,res,url){
       banned: DB.users[r.userId] ? banInfo(DB.users[r.userId]) : null })) }); }
 
   if(p==='/api/dev/save-stats'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});   // v1036: group-save counters
-    return send(res,200,Object.assign({},GROUP_SAVE_STATS,{battles:Object.assign({},SIM_STATS,{pool:_SIM_POOL?_SIM_POOL.stats:null,memo:_SIM_MEMO.size})},{dbBytes:(()=>{ try{ return fs.statSync(DB_FILE).size; }catch(e){ return 0; } })()})); }
+    return send(res,200,Object.assign({},GROUP_SAVE_STATS,{store:Object.assign({split:_store.split},_store.stats)},{battles:Object.assign({},SIM_STATS,{pool:_SIM_POOL?_SIM_POOL.stats:null,memo:_SIM_MEMO.size})},{dbBytes:(()=>{ try{ return fs.statSync(DB_FILE).size; }catch(e){ return 0; } })()})); }
   if(p==='/api/dev/gem-audit'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
     const id=String(url.searchParams.get('id')||''); const u=DB.users[id];
     if(!u) return send(res,404,{error:'no such account'});
@@ -5561,7 +5577,7 @@ async function api(req,res,url){
        never told a glyph is "locked into the board" when it is not on disk. Receipt replays above/below change nothing. */
     const _gSnap=JSON.parse(JSON.stringify(me));
     const gsend=(obj)=>{ if((typeof _reqCtx!=='undefined'&&_reqCtx.getStore())){ if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; }   // v1036: group save, undo on failure
-        _holdReply(_joinBatch(()=>{ console.error('Glyph save failed - account rolled back'); _adoptUser(me.id,_gSnap); }), 'Save failed. Retry the same request.');
+        _holdReply(_joinBatch(()=>{ console.error('Glyph save failed - account rolled back'); _adoptUser(me.id,_gSnap); }, [me.id]), 'Save failed. Retry the same request.');
         return send(res,200,obj); }
       try{ if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; } saveDB(DB); }
       catch(e){ console.error('Glyph save failed - account rolled back:', e.message); _adoptUser(me.id,_gSnap);
@@ -7677,7 +7693,7 @@ async function api(req,res,url){
     if((typeof _reqCtx!=='undefined'&&_reqCtx.getStore())){ if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; }   // v1036: group save; a failed save rolls both accounts back
       _holdReply(_joinBatch(()=>{ console.error('Arena result save failed - both accounts rolled back');
         _adoptUser(me.id,_aSnapMe); _adoptUser(_aOppId,_aSnapOpp); if(DB.idem) delete DB.idem[akey];
-        if(_aRp) DB.reports=_aRp; else delete DB.reports; if(_aFb) DB.feedback=_aFb; else delete DB.feedback; }), 'Save failed. Retry the same request.'); }
+        if(_aRp) DB.reports=_aRp; else delete DB.reports; if(_aFb) DB.feedback=_aFb; else delete DB.feedback; }, [me.id, _aOppId, akey.slice(0,Math.max(0,akey.indexOf(':')))]), 'Save failed. Retry the same request.'); }
     else try{ if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; } saveDB(DB); }
     catch(e){ console.error('Arena result save failed - both accounts rolled back:', e.message);
       _adoptUser(me.id,_aSnapMe); _adoptUser(_aOppId,_aSnapOpp); delete DB.idem[akey];
@@ -7763,7 +7779,7 @@ async function api(req,res,url){
       }};
       // Persist the complete snapshot before publishing this report or acknowledging.
       if((typeof _reqCtx!=='undefined'&&_reqCtx.getStore())){ const prevWatch=DB.watch; DB.watch=stagedWatch;   // v1036: group save; a failed save restores the watch list
-        _holdReply(_joinBatch(()=>{ DB.watch=prevWatch; console.error('Watch report save failed - undone'); }), 'Watch save failed. Retry the same report.');
+        _holdReply(_joinBatch(()=>{ DB.watch=prevWatch; console.error('Watch report save failed - undone'); }, []), 'Watch save failed. Retry the same report.');
         return send(res,200,{ok:true}); }
       try{
         saveDB({...DB,watch:stagedWatch},'.watch-report.tmp');

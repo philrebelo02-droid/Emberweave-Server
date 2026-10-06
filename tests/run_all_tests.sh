@@ -215,6 +215,8 @@ note "test_group_save_1036.js (v1036: 60 durable actions at once share a few who
 node tests/test_group_save_1036.js || FAILED=1
 note "test_battle_workers_1036.js (v1036: city battles run on a worker thread and replay to the same winner on the ordinary engine; SIM_WORKERS=0 control)"
 node tests/test_battle_workers_1036.js || FAILED=1
+note "test_world_store_1037.js (v1037: per-player storage - partial saves, all-or-nothing commits, hard-kill survival, split <-> one-file conversion; one-file control)"
+node tests/test_world_store_1037.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi
