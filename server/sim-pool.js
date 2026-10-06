@@ -42,8 +42,10 @@ function create(gameFile, opts = {}) {
   // main-thread lag, sampled every second: stressed while the mean lag of the last second is above stressLagMs (default 25 ms),
   // and for stressHoldMs (10 s) after, so a war rush does not flap between helper and local
   const stressLagMs = opts.stressLagMs || 25, stressHoldMs = opts.stressHoldMs || 10000; let stressUntil = 0, eld = null, lastLag = 0;
+  const lagWindow = [];   // v1043: the last 5 one-second lag readings
   if (helperMode || opts.trackStrain) { try { eld = require('perf_hooks').monitorEventLoopDelay({ resolution: 10 }); eld.enable();
-    const t = setInterval(() => { lastLag = eld.mean / 1e6; if (lastLag > stressLagMs) stressUntil = Date.now() + stressHoldMs; if (stats.helper) stats.helper.lagMs = +lastLag.toFixed(1); eld.reset(); }, 1000);
+    const t = setInterval(() => { lastLag = eld.mean / 1e6; if (lastLag > stressLagMs) stressUntil = Date.now() + stressHoldMs; if (stats.helper) stats.helper.lagMs = +lastLag.toFixed(1);
+      lagWindow.push(lastLag); if (lagWindow.length > 5) lagWindow.shift(); eld.reset(); }, 1000);
     if (t.unref) t.unref(); } catch (e) { eld = null; } }
   const stressed = () => Date.now() < stressUntil;
   /* v1040 MAJOR WAR (Phil 6 Oct 2026: "if there is major war going on, like world tree day, my computer gives a little more than low
@@ -146,6 +148,11 @@ function create(gameFile, opts = {}) {
     return new Promise((resolve, reject) => { waiting.push({ id: ++seq, method, args, resolve, reject }); pump(); });
   }
   function close() { closed = true; for (const s of workers) { try { s.w.terminate(); } catch (e) {} } }
-  return { run, close, stats, strained: () => stressed() || waiting.length >= stressQueue, lagMs: () => lastLag, get queued() { return waiting.length; } };
+  /* v1043: STRAINED (what this server's own helper is told - "a strained server never offers help") = running late in at least 3 of the
+     last 5 seconds, or battles queuing here. One slow second (a full save) is not strain: it used to lock a quiet server's helper out for
+     10 s (measured 6 Oct: 20 of 75 samples on a server whose own CPU use had a median of 7%). stressed() - when THIS server hands its
+     battles to helpers - stays as sensitive as before. */
+  const sustained = () => lagWindow.filter(x => x > stressLagMs).length >= 3;
+  return { run, close, stats, strained: () => sustained() || waiting.length >= stressQueue, lagMs: () => lastLag, get queued() { return waiting.length; } };
 }
 module.exports = { create };

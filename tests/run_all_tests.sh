@@ -227,6 +227,8 @@ note "test_cluster_help_1041.js (v1041: the cluster helps itself - tier 1 cluste
 node tests/test_cluster_help_1041.js || FAILED=1
 note "test_war_reports_1042.js (v1042: receipts 1 h; both players get the city attack report with the fight in war mail; war tab keeps 50; one report per march)"
 node tests/test_war_reports_1042.js || FAILED=1
+note "test_share_rule_1043.js (v1043: one slow second is not strain - 3 of 5 seconds is; helpers count battles per server)"
+node tests/test_share_rule_1043.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi

@@ -29,7 +29,8 @@
      strainUrl  - its own game server's /internal/strain; while that server is strained it offers no help (503);
      nice       - OS priority (Linux nice: 0 dedicated, 10 shared so its own game server always wins);
      role       - a label shown on /health ("shared", "dedicated").
-   A shared helper is busy when the rest of the machine (its own game server) uses more than busyCpu (0.3). */
+   A shared helper is busy when the rest of the machine (its own game server) uses more than busyCpu (0.5 since v1043 - Phil: "So then
+   push it to 50%" / "Instead of 30"; was 0.3) or that server is strained (v1043: late in 3 of the last 5 seconds, or queuing). */
 const http = require('http'), os = require('os'), path = require('path'), fs = require('fs'), crypto = require('crypto');
 const ROOT = path.join(__dirname, '..'), GAME = path.join(ROOT, 'emberweave-heroes.html');
 const CFG_FILE = process.env.SIM_HELPER_CONFIG || path.join(process.env.LOCALAPPDATA || os.homedir(), 'Emberweave', 'sim-helper.json');
@@ -64,7 +65,7 @@ try { os.setPriority(0, MODES.normal.priority); } catch (e) { console.error('sim
 const FP = require('./sim-host.js').fingerprint(GAME);
 const POOL_SIZE = Math.max(MODES.normal.workers, MODES.major.workers);
 const pool = require('./sim-pool.js').create(GAME, { size: POOL_SIZE, maxSize: POOL_SIZE, queueMax: POOL_SIZE * 2, timeoutMs: 15000 });
-const stats = { started: Date.now(), battles: 0, majorBattles: 0, refusedBusy: 0, refusedBuild: 0, refusedKey: 0, errors: 0 };
+const stats = { started: Date.now(), battles: 0, majorBattles: 0, byServer: {}, refusedBusy: 0, refusedBuild: 0, refusedKey: 0, errors: 0 };
 let inFlight = 0;
 
 // "busy" = the REST of the machine: total CPU in use minus this process's own share
@@ -105,7 +106,8 @@ const server = http.createServer((req, res) => {
     if (msg.war === 'major' && ROLE === 'pc') askMajor();
     if (busy()) { stats.refusedBusy++; return reply(res, 503, { busy: true }); }
     inFlight++; const wasMajor = mode === 'major';
-    pool.run(msg.method, msg.args).then(result => { stats.battles++; if (wasMajor) stats.majorBattles++; reply(res, 200, { result }); },
+    const who = msg.from ? 'server ' + String(msg.from).slice(0, 8) : 'unnamed';   // v1043: battles fought per server (Phil: "My computer helped server 3 howmuch?")
+    pool.run(msg.method, msg.args).then(result => { stats.battles++; if (wasMajor) stats.majorBattles++; stats.byServer[who] = (stats.byServer[who] || 0) + 1; reply(res, 200, { result }); },
       e => { stats.errors++; reply(res, 503, { busy: true, error: e.message }); }).finally(() => { inFlight--; });
   });
 });
