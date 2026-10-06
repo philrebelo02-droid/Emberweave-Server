@@ -3583,13 +3583,15 @@ function worldWarState(u){
   if(!u.worldWars||typeof u.worldWars!=='object'||Array.isArray(u.worldWars)) u.worldWars={};
   return u.worldWars;
 }
+const MARCH_KEEP_MS=2*86400000;   // v1038: how long a settled march is held (authenticates late retries), then let go
 function worldCityMarches(u,now=Date.now()){
   if(!Array.isArray(u.worldCityMarches)) u.worldCityMarches=[];
-  if(u.worldCityMarches.length>100){
-    const keepAfter=now-2*86400000;
-    u.worldCityMarches=u.worldCityMarches.filter(m=>!m.resolved
-      ||Math.max(+m.resolvedAt||0,+m.homeAt||0)>=keepAfter);
-  }
+  /* v1038 (Phil 6 Oct: finished marches are "held onto for a bit to authenticate the battle was legit then let go"): a settled
+     march is kept 2 days - past the 24 h receipt, so a late retry still meets it and cannot be paid twice - then dropped. Was
+     only trimmed above 100 marches, so nearly every player kept every march forever. Unfinished marches are always kept. */
+  const keepAfter=now-MARCH_KEEP_MS;
+  if(u.worldCityMarches.some(m=>m.resolved&&Math.max(+m.resolvedAt||0,+m.homeAt||0)<keepAfter))
+    u.worldCityMarches=u.worldCityMarches.filter(m=>!m.resolved||Math.max(+m.resolvedAt||0,+m.homeAt||0)>=keepAfter);
   return u.worldCityMarches;
 }
 // Resolve receipts outlive the 24-hour idempotency cache so a late retry cannot
@@ -3606,13 +3608,14 @@ function worldMineDurable(user,key,fn){
   if(!committed.ok)return committed;
   return reply;
 }
-function worldMineMarches(u,now){
+function worldMineMarches(u,now=Date.now()){
   if(!Array.isArray(u.worldMineMarches)) u.worldMineMarches=[];
-  if(u.worldMineMarches.length>100){
-    const keepAfter=now-2*86400000;
-    u.worldMineMarches=u.worldMineMarches.filter(m=>!m.resolved
-      ||Math.max(+m.resolvedAt||0,+m.homeAt||0)>=keepAfter);
-  }
+  /* v1038 (Phil 6 Oct: finished marches are "held onto for a bit to authenticate the battle was legit then let go"): a settled
+     march is kept 2 days - past the 24 h receipt, so a late retry still meets it and cannot be paid twice - then dropped. Was
+     only trimmed above 100 marches, so nearly every player kept every march forever. Unfinished marches are always kept. */
+  const keepAfter=now-MARCH_KEEP_MS;
+  if(u.worldMineMarches.some(m=>m.resolved&&Math.max(+m.resolvedAt||0,+m.homeAt||0)<keepAfter))
+    u.worldMineMarches=u.worldMineMarches.filter(m=>!m.resolved||Math.max(+m.resolvedAt||0,+m.homeAt||0)>=keepAfter);
   return u.worldMineMarches;
 }
 function worldHeroReturnAt(u,key,now=Date.now()){

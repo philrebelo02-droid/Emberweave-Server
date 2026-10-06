@@ -217,6 +217,8 @@ note "test_battle_workers_1036.js (v1036: city battles run on a worker thread an
 node tests/test_battle_workers_1036.js || FAILED=1
 note "test_world_store_1037.js (v1037: per-player storage - partial saves, all-or-nothing commits, hard-kill survival, split <-> one-file conversion; one-file control)"
 node tests/test_world_store_1037.js || FAILED=1
+note "test_march_retention_1038.js (v1038: settled city/mine marches are held 2 days, then let go - for every player; unfinished kept; v1037 control)"
+node tests/test_march_retention_1038.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi
