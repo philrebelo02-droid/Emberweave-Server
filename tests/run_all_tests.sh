@@ -229,6 +229,10 @@ note "test_war_reports_1042.js (v1042: receipts 1 h; both players get the city a
 node tests/test_war_reports_1042.js || FAILED=1
 note "test_share_rule_1043.js (v1043: one slow second is not strain - 3 of 5 seconds is; helpers count battles per server)"
 node tests/test_share_rule_1043.js || FAILED=1
+note "test_konwu_1044.js (v1044: KonWu Phantom Step dropkick - 8 m knockback, stun, 1.5x chase; 5 m Cleaving Arc; the eight new sheets)"
+node tests/test_konwu_1044.js || FAILED=1
+note "test_grok_fx_1044.js (v1044: Grok's fifteen spell plates - sheet sizes, display time = sheet length, Perfect Pitch / Deep Reserves hooks)"
+node tests/test_grok_fx_1044.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi
