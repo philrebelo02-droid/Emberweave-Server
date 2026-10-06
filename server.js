@@ -166,14 +166,53 @@ var _worldSettlementPlanning=null;
 function worldPlanningDB(){return _worldSettlementPlanning?.db||DB;}
 function saveDB(snapshot,suffix='.tmp'){
   // The sole local whole-snapshot writer. Callers own boot checks/error policy/PG.
-  if(typeof suffix!=='string'||!/^\.[a-z0-9.-]+\.tmp$/.test(suffix)&&suffix!=='.tmp')throw Error('Invalid DB temporary suffix');
+  if(typeof suffix!=='string'||!/^\.[a-z0-9.-]+\.tmp$/.test(suffix)&&suffix!=='.tmp')throw Error('Invalid DB temporary suffix');   // '.group.tmp' (v1036) matches
   const tmp=DB_FILE+suffix;fs.writeFileSync(tmp,JSON.stringify(snapshot));fs.renameSync(tmp,DB_FILE);
 }
 function writeDB(){ if(_worldSettlementPlanning||_durableIdemActive)return; if(PG_BOOT_PENDING){ _bootDirty=true; return; }   // v327: see bootFinish()
   if(saveTimer)return; saveTimer=setTimeout(()=>{ saveTimer=null;
+  if(_batchOpen){ _batchOpen.actions++; return; }   // v1036: a group save is already queued - it writes this change too
   try{ saveDB(DB); }   // atomic: write temp, then rename
   catch(e){ console.error('⚠ DB write failed:', e.message); }
   pgSave(); },200); }
+/* v1036 GROUP SAVES (Phil 5 Oct 2026, after the war load test - "do it all"). 90% of the server's CPU went to saving the WHOLE
+   world JSON once per durable action (a war declaration took 140-200 ms on an idle 11 MB copy; each server topped out near 6-7
+   saves a second). Same promise to the player - nothing is acknowledged before it is on disk - delivered in batches:
+   - inside an API request a durable action changes the live world at once (the next action builds on it), remembers how to
+     undo itself, and its reply is HELD (send() waits on the request's batch - AsyncLocalStorage per API request);
+   - one save (setImmediate after the batch opens) writes every change made since the last one, synchronously, temp + rename;
+   - a failed save undoes the batch's actions, newest first, and each held reply becomes the same "Save failed" 503 the
+     synchronous code gave. The write is synchronous, so no request can build on a batch before it is on disk.
+   Outside a request (timers, boot) and in the unit tests that run spans of this file, the original synchronous code runs. */
+const { AsyncLocalStorage } = require('async_hooks');
+const _reqCtx = new AsyncLocalStorage();
+let _batchOpen = null, _batchScheduled = false, _lastSaveEnd = 0, _lastSaveMs = 0;   // the save gap (below)
+const GROUP_SAVE_STATS = { batches:0, actions:0, failed:0, lastMs:0, maxMs:0 };
+function _joinBatch(undo){
+  if(!_batchOpen){ let resolve; const promise=new Promise(r=>{ resolve=r; }); _batchOpen={ promise, resolve, undos:[], actions:0 }; }
+  if(undo) _batchOpen.undos.push(undo);
+  _batchOpen.actions++;
+  // SAVE GAP: after a save that took X ms the next one waits until X ms have passed, collecting every change meanwhile - under
+  // load saving holds at most about half the thread (the war load test saved back to back otherwise); idle, nothing waits.
+  if(!_batchScheduled){ _batchScheduled=true; const gap=Math.max(0,_lastSaveEnd+_lastSaveMs-Date.now()); if(gap>0) setTimeout(_runBatch,gap); else setImmediate(_runBatch); }
+  return _batchOpen; }
+function _holdReply(batch, failMsg){ const c=_reqCtx.getStore(); if(!c) return;
+  (c.waits=c.waits||new Set()).add(batch.promise); if(failMsg && !c.failMsg) c.failMsg=failMsg; }
+function _runBatch(){
+  _batchScheduled=false;
+  const b=_batchOpen; if(!b) return; _batchOpen=null;
+  if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; }   // this save covers any debounced change too
+  const t0=Date.now();
+  try{ saveDB(DB,'.group.tmp'); }
+  catch(e){
+    for(const u of b.undos.slice().reverse()){ try{ u(); }catch(e2){ console.error('⚠ group save undo failed:', e2.message); } }
+    GROUP_SAVE_STATS.failed++; console.error('⚠ group save failed - '+b.actions+' change(s), '+b.undos.length+' undone:', e.message);
+    return b.resolve(false); }
+  const ms=Date.now()-t0; _lastSaveMs=ms; _lastSaveEnd=Date.now(); GROUP_SAVE_STATS.batches++; GROUP_SAVE_STATS.actions+=b.actions; GROUP_SAVE_STATS.lastMs=ms;
+  if(ms>GROUP_SAVE_STATS.maxMs) GROUP_SAVE_STATS.maxMs=ms;
+  b.resolve(true); try{ pgSave(); }catch(e){} }
+function writeDBSync(){ try{ if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; } saveDB(DB); return true; }catch(e){ console.error('⚠ DB write failed:', e.message); return false; } }   // v1036: exit paths
+process.on('SIGTERM',()=>{ if(!PG_BOOT_PENDING && _booted) writeDBSync(); process.exit(0); });   // v1036: a restart keeps the last debounced changes
 
 /* ------------------------------- helpers ---------------------------------- */
 function uid(){ return crypto.randomBytes(8).toString('hex'); }
@@ -203,7 +242,13 @@ let _corsReqOrigin='';   // set per-request in the server handler
 function corsHeaders(){ const h={'Content-Type':'application/json'};
   if(_corsReqOrigin && CORS_ORIGINS.has(_corsReqOrigin)){ h['Access-Control-Allow-Origin']=_corsReqOrigin; h['Vary']='Origin'; h['Access-Control-Allow-Headers']='content-type,x-token'; }
   return h; }
-function send(res, code, obj){ const b=JSON.stringify(obj); res.writeHead(code,corsHeaders()); res.end(b); }
+function _sendNow(res, code, obj){ const b=JSON.stringify(obj); res.writeHead(code,corsHeaders()); res.end(b); }
+function send(res, code, obj){   // v1036: a reply whose request joined a group save waits for that save (503 if it failed)
+  const c=(typeof _reqCtx!=='undefined')?_reqCtx.getStore():null;
+  if(c && c.waits && c.waits.size){ const ws=[...c.waits]; c.waits.clear();
+    Promise.all(ws).then(r=>{ if(r.every(Boolean)) _sendNow(res,code,obj);
+      else _sendNow(res,503,{ok:false,storageFailed:true,error:c.failMsg||'Save failed. Retry the same request.'}); }); return; }
+  _sendNow(res,code,obj); }
 // Request bodies are byte-capped (audit: body() used to accumulate d+=c with no limit → trivial memory DoS).
 // On overflow we stop reading, destroy the socket, and reject with a BODY_TOO_LARGE error that the
 // api() dispatcher turns into a 413. Default cap is small; /api/save passes a larger one for cloud saves.
@@ -1563,6 +1608,8 @@ var _durableIdemActive=false;   /* 3 Oct audit: set while a durable idem() actio
 function writeDBNow(){   /* v1000 (Account audit #9): returns false when the disk write failed (callers that must not ack can check it) */
   if(_worldSettlementPlanning||_durableIdemActive)return true;
   if(PG_BOOT_PENDING){ _bootDirty=true; return true; }   // v327: boot restore window — see bootFinish()
+  if((typeof _reqCtx!=='undefined'&&_reqCtx.getStore())){ if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; }   // v1036: inside a request the reply waits for the group save
+    _holdReply(_joinBatch(null), 'Save failed - try again.'); return true; }
   try{ if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; }
     saveDB(DB);
   }catch(e){ console.error('⚠ DB durable write failed:', e.message); return false; }
@@ -1598,6 +1645,9 @@ function idem(key, fn, opts){ DB.idem=DB.idem||{}; const now=Date.now();
   let resp; _durableIdemActive=true; try{ resp=fn(); } catch(e){ rollback(); throw e; } finally { _durableIdemActive=false; }
   DB.idem[key]={t:now,resp};
   if(opts&&opts.retryFailed&&resp&&resp.ok===false){ delete DB.idem[key]; return resp; }
+  if((typeof _reqCtx!=='undefined'&&_reqCtx.getStore())){ if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; }   // v1036: group save; undo on failure
+    _holdReply(_joinBatch(()=>{ console.error('Durable idem save failed - account rolled back'); rollback(); if(DB.idem) delete DB.idem[key]; }), 'Save failed. Retry the same request.');
+    return resp; }
   try{ if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; } saveDB(DB); }
   catch(e){ console.error('Durable idem save failed - account rolled back:', e.message); rollback(); delete DB.idem[key];
     return {ok:false,storageFailed:true,error:'Save failed. Retry the same request.'}; }
@@ -2937,9 +2987,65 @@ function ensureLedger(u){
 /* The server runs THE CLIENT'S OWN battle code (server/sim-host.js loads it into a VM with a stubbed
    browser). One engine, one result: the fight the player played is the fight the server replays. */
 let _SIMHOST=null, _SIMHOST_ERR=null;
+/* v1036 BATTLES ON THE SECOND CORE (Phil 5 Oct 2026: "use both cores?" / "do it all"). The battle engine is deterministic and
+   never touches its inputs (checked: same squads + seed -> same winner and digest), so a battle run on a worker thread
+   (server/sim-pool.js, one worker per spare core, SIM_WORKERS to override, 0 = off) is the battle the main thread would run.
+   - The engine's auto/campaign/raid/replay first look in a one-shot memo keyed by the exact inputs; a miss fights on the
+     main thread exactly as before - the pool can make a battle cheaper, never different.
+   - simRun(fn): routes whose battle sits in a synchronous planner (city attack, mine attack) run the planner; a battle the memo
+     lacks stops it (SIM_NEEDED, thrown before anything is committed - planners only touch staged copies), the battle runs on a
+     worker, and the planner runs again and finds it. Only routes whose battle call is not inside a try/catch use this.
+   - simPrefetch(list): campaign and province resolves (their replay sits inside a try/catch) run the replays the request can
+     ask for on a worker first; the route then finds them in the memo. */
+const _SIM_MEMO=new Map(), SIM_NEEDED={simNeeded:true}, SIM_STATS={memoHits:0,mainThread:0,prefetched:0,prefetchFailed:0,collected:0};
+let _SIM_COLLECT=null, _SIM_POOL;
+function simPool(){
+  if(_SIM_POOL!==undefined) return _SIM_POOL;
+  const n=process.env.SIM_WORKERS===undefined?undefined:+process.env.SIM_WORKERS;
+  if(n===0){ _SIM_POOL=null; return null; }
+  try{ _SIM_POOL=require('./server/sim-pool.js').create(GAME_FILE,{size:n}); console.log('⚔️  battle workers starting: '+_SIM_POOL.stats.size); }
+  catch(e){ console.error('⚠ battle workers unavailable - battles stay on the main thread:', e.message); _SIM_POOL=null; }
+  return _SIM_POOL; }
+function _simKey(m,args){ return m+'|'+JSON.stringify(args); }
+function _simWrap(host){
+  for(const m of ['auto','campaign','raid','replay']){ const orig=host[m]; if(typeof orig!=='function') continue;
+    host[m]=function(...args){ const k=_simKey(m,args), hit=_SIM_MEMO.get(k);
+      if(hit){ _SIM_MEMO.delete(k); SIM_STATS.memoHits++; return hit.r; }
+      if(_SIM_COLLECT){ _SIM_COLLECT.push({m,args,k}); SIM_STATS.collected++; throw SIM_NEEDED; }
+      SIM_STATS.mainThread++; return orig.apply(host,args); }; }
+  return host; }
+async function simPrefetch(list){
+  const pool=simPool(); if(!pool || !pool.stats.ready || !list || !list.length) return;
+  const now=Date.now(); if(_SIM_MEMO.size>300) for(const [k,v] of _SIM_MEMO) if(now-v.t>60000) _SIM_MEMO.delete(k);
+  await Promise.all(list.map(({m,args,k})=>{ const key=k||_simKey(m,args); if(_SIM_MEMO.has(key)) return null;
+    return pool.run(m,args).then(r=>{ _SIM_MEMO.set(key,{r,t:Date.now()}); SIM_STATS.prefetched++; },()=>{ SIM_STATS.prefetchFailed++; }); })); }
+async function simRun(fn){
+  const pool=simPool(); if(!pool || !pool.stats.ready) return fn();
+  for(let i=0;i<3;i++){ const need=[]; let out, needed=false; _SIM_COLLECT=need;
+    try{ out=fn(); }catch(e){ if(e!==SIM_NEEDED) throw e; needed=true; } finally{ _SIM_COLLECT=null; }
+    if(!needed) return out;
+    await simPrefetch(need); }
+  return fn(); }   // last resort: on the main thread, as before
+function _campaignSimCandidates(me,b){ try{   // read-only: helpers run on a clone (portalProg fills in missing records)
+    const u=JSON.parse(JSON.stringify(me)), led=u.led; if(!led) return [];
+    const aid=String(b.attemptId||''); let mode=null, a=null;
+    for(const m of PORTAL_MODES){ const pr=portalProg(led,m); if(pr && pr.att && pr.att.id===aid){ mode=m; a=pr.att; break; } }
+    if(!a || !Array.isArray(a.snaps) || !a.snaps.length) return [];
+    const st=portalStageOf(mode,a.node); if(!st) return [];
+    const logs=[sanitizeInputLog(b.inputLog)];
+    if(a.stream && Array.isArray(a.stream.acts) && a.stream.acts.length) logs.unshift(a.stream.acts.slice(0, INPUT_LOG_MAX));
+    return logs.map(l=>({m:'campaign',args:[a.snaps,st.waves,a.seed>>>0,l]}));
+  }catch(e){ return []; } }
+function _provinceSimCandidates(me,b){ try{
+    const u=JSON.parse(JSON.stringify(me)), led=ensureLedger(u), P=provLedState(u,led), aid=String(b.attemptId||'');
+    for(const k of PROV_TYPES){ const a=P[k]&&P[k].att; if(a && a.id===aid){ const st=PROV_ENC[k]&&PROV_ENC[k][a.stage-1];
+      if(!st || !Array.isArray(a.snaps) || !a.snaps.length) return [];
+      return [{m:'campaign',args:[a.snaps,st.waves,a.seed>>>0,sanitizeInputLog(b.inputLog)]}]; } }
+    return [];
+  }catch(e){ return []; } }
 function simHost(){
   if(_SIMHOST||_SIMHOST_ERR) return _SIMHOST;
-  try{ const t0=Date.now(); _SIMHOST=require('./server/sim-host.js').load(GAME_FILE);
+  try{ const t0=Date.now(); _SIMHOST=_simWrap(require('./server/sim-host.js').load(GAME_FILE));
     console.log('⚔️  sim-host ready — the client battle engine is loaded server-side ('+(Date.now()-t0)+'ms)');
   }catch(e){ _SIMHOST_ERR=e; console.error('🚨 sim-host FAILED to load — campaign results cannot be verified:', e.message); }
   return _SIMHOST;
@@ -3264,6 +3370,17 @@ const DURABLE_USER_POLICIES=Object.freeze({
 });
 function durableCommit(user,key,fn,opts={}){
   function finish(draft,receipts,extra,related,diagnostics,legacyTag){
+    if((typeof _reqCtx!=='undefined'&&_reqCtx.getStore())){   // v1036: adopt now, group save, undo exactly what was there if that save fails
+      const prevUsers=[user.id,...related.map(o=>o.id)].map(id=>[id,DB.users[id]?JSON.parse(JSON.stringify(DB.users[id])):undefined]);
+      const prevExtra=Object.keys(extra).map(k=>[k,Object.prototype.hasOwnProperty.call(DB,k),DB[k]]), prevIdem=DB.idem;
+      _adoptUser(user.id,draft);for(const other of related)_adoptUser(other.id,other);Object.assign(DB,extra);DB.idem=receipts;
+      _holdReply(_joinBatch(()=>{
+        for(const [id,u] of prevUsers){ if(u===undefined) delete DB.users[id]; else _adoptUser(id,u); }
+        for(const [k,had,v] of prevExtra){ if(had) DB[k]=v; else delete DB[k]; }
+        DB.idem=prevIdem; console.error(legacyTag?legacyTag+' durable write failed - undone':'Durable commit save failed - undone'); }),
+        legacyTag?'World save failed. Retry the same request.':'Save failed. Retry the same request.');
+      for(const message of diagnostics)console.log(message);
+      return {ok:true}; }
     const users={...DB.users,[user.id]:draft};for(const other of related)users[other.id]=other;
     try{saveDB({...DB,...extra,users,idem:receipts},'.durable-commit.tmp');}
     catch(error){console.error(legacyTag?legacyTag+' durable write failed:':'Durable commit save:',error.message);return {ok:false,storageFailed:true,error:legacyTag?'World save failed. Retry the same request.':'Save failed. Retry the same request.'};}
@@ -3546,6 +3663,15 @@ function worldTreeRun(actor,action,payload,now=Date.now(),receiptKey=null){
   const receipts=receiptKey?{...(DB.idem||{}),[receiptKey]:{t:now,resp:reply}}:DB.idem;
   if(PG_BOOT_PENDING)throw Error('World Tree storage restore pending');
   // This lane must not use writeDBNow: it swallows disk failures. Persist before memory/ack.
+  if((typeof _reqCtx!=='undefined'&&_reqCtx.getStore())){   // v1036: inside a request - adopt, group save, undo on failure
+    const prevF=Object.keys(fields).map(k=>[k,Object.prototype.hasOwnProperty.call(DB,k),DB[k]]),prevIdem=DB.idem,
+      prevW=[...injured.keys()].map(id=>[id,DB.users[id]&&DB.users[id].witch]);
+    Object.assign(DB,fields);if(receiptKey)DB.idem=receipts;
+    for(const [id,witch]of injured)DB.users[id].witch=witch;
+    _holdReply(_joinBatch(()=>{ for(const [k,had,v] of prevF){ if(had) DB[k]=v; else delete DB[k]; } DB.idem=prevIdem;
+      for(const [id,w] of prevW){ if(DB.users[id]) DB.users[id].witch=w; } console.error('World Tree save failed - undone'); }),
+      'World save failed. Retry the same request.');
+    return reply; }
   saveDB({...DB,...fields,users,idem:receipts},'.world-tree.tmp');
   Object.assign(DB,fields);if(receiptKey)DB.idem=receipts;
   for(const [id,witch]of injured)DB.users[id].witch=witch;
@@ -4247,6 +4373,8 @@ async function api(req,res,url){
     return send(res,200,{ reports: show.slice(-200).reverse().map(r=>Object.assign({},r,{
       banned: DB.users[r.userId] ? banInfo(DB.users[r.userId]) : null })) }); }
 
+  if(p==='/api/dev/save-stats'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});   // v1036: group-save counters
+    return send(res,200,Object.assign({},GROUP_SAVE_STATS,{battles:Object.assign({},SIM_STATS,{pool:_SIM_POOL?_SIM_POOL.stats:null,memo:_SIM_MEMO.size})},{dbBytes:(()=>{ try{ return fs.statSync(DB_FILE).size; }catch(e){ return 0; } })()})); }
   if(p==='/api/dev/gem-audit'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
     const id=String(url.searchParams.get('id')||''); const u=DB.users[id];
     if(!u) return send(res,404,{error:'no such account'});
@@ -5432,7 +5560,10 @@ async function api(req,res,url){
        snapshotted here; gsend saves synchronously and, if the save fails, restores the account and answers 503 - the player is
        never told a glyph is "locked into the board" when it is not on disk. Receipt replays above/below change nothing. */
     const _gSnap=JSON.parse(JSON.stringify(me));
-    const gsend=(obj)=>{ try{ if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; } saveDB(DB); }
+    const gsend=(obj)=>{ if((typeof _reqCtx!=='undefined'&&_reqCtx.getStore())){ if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; }   // v1036: group save, undo on failure
+        _holdReply(_joinBatch(()=>{ console.error('Glyph save failed - account rolled back'); _adoptUser(me.id,_gSnap); }), 'Save failed. Retry the same request.');
+        return send(res,200,obj); }
+      try{ if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; } saveDB(DB); }
       catch(e){ console.error('Glyph save failed - account rolled back:', e.message); _adoptUser(me.id,_gSnap);
         return send(res,503,{ok:false,storageFailed:true,error:'Save failed. Retry the same request.'}); }
       try{ pgSave(); }catch(e){} return send(res,200,obj); };
@@ -5612,7 +5743,7 @@ async function api(req,res,url){
     if(!me) return send(res,401,{error:'auth'});
     const b=await body(req), rid=String(b.requestId||'').slice(0,48);
     if(!rid) return send(res,400,{error:'requestId required'});
-    const out=worldMineDurable(me,me.id+':worldmine:'+p+':'+rid,(me)=>{
+    const out=await simRun(()=>worldMineDurable(me,me.id+':worldmine:'+p+':'+rid,(me)=>{   // v1036: battle on a worker
       const now=Date.now(), w=witchState(me,now), led=ensureLedger(me);
       if(!w) return {ok:false,error:'The World Map opens at level '+WITCH.UNLOCK_LEVEL+'.'};
       worldMineMarches(me,now);
@@ -5701,7 +5832,7 @@ async function api(req,res,url){
         witch:witchView(me,now)};
       delete march.snaps;
       return march.receipt;
-    });
+    }));
     return send(res,out.storageFailed?503:out.ok?200:400,out);
   }
 
@@ -6400,6 +6531,7 @@ async function api(req,res,url){
       engine:prog.att.engine, stamina:{v:led.stam.v,max:ledStamMax(led)} }); }
   if(p==='/api/campaign/resolve' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
+    await simPrefetch(_campaignSimCandidates(me,b));   // v1036: the replay runs on a battle worker first; the route uses its result
     const out=idem(me.id+':cresolve:'+reqId,()=>{
       const led=ensureLedger(me);
       const aid=String(b.attemptId||'');
@@ -6770,6 +6902,7 @@ async function api(req,res,url){
       writeDB();
       return send(res,200,{ ok:true, attemptId:pr.att.id, type:t, stage, seed, snaps:fightSnaps, waves:st.waves, boss:st.boss,
         levelGate:st.levelGate, engine:pr.att.engine, reward:provReward(t,stage) }); }
+    if(p==='/api/province/resolve') await simPrefetch(_provinceSimCandidates(me,b));   // v1036: replay on a battle worker first
     if(p==='/api/province/resolve'){ const out=idem(me.id+':provres:'+reqId,()=>{
         const aid=String(b.attemptId||''), P=provLedState(me,led); let t=null, pr=null, a=null;
         for(const k of PROV_TYPES){ if(P[k].att && P[k].att.id===aid){ t=k; pr=P[k]; a=pr.att; break; } }
@@ -7018,7 +7151,7 @@ async function api(req,res,url){
         A.mineDay[rk]=used+grant; A.res[rk]=(A.res[rk]|0)+grant;
         writeDB(); return {ok:true, res:A.res, granted:grant, capLeft:null};
       }); return send(res, out.ok===false?400:200, out); }
-    if(p==='/api/pvp/attack'){ const out=worldSettlementDurable(me,me.id+':pvpatk:'+reqId,String(b.defId||''),(me,DB)=>{
+    if(p==='/api/pvp/attack'){ const out=await simRun(()=>worldSettlementDurable(me,me.id+':pvpatk:'+reqId,String(b.defId||''),(me,DB)=>{   // v1036: battle on a worker
         const led=ensureLedger(me);acadCollect(ensureAcad(me));
         const march=worldCityMarches(me).find(m=>m.id===String(b.marchId||''));
         if(!march||march.defId!==String(b.defId||'')) return {ok:false,error:'No registered city march.'};
@@ -7162,7 +7295,7 @@ async function api(req,res,url){
         if(paidGold) ledTx(me,'city-pvp',{gold:paidGold});
         if(paidCoins) ledTx(me,'city-pvp',{guildCoins:paidCoins});
         writeDB(); return receipt;
-      }); return send(res, out.storageFailed?503:out.ok===false?400:200, out); }
+      })); return send(res, out.storageFailed?503:out.ok===false?400:200, out); }
   }
   /* v999 (World audit #6): RETIRED - any player could write a fake report (made-up result, 8 KB blob) into any player's mail and push
      real reports out; the only caller was the signed-out fallback. Verified fights write their own mail. */
@@ -7541,7 +7674,11 @@ async function api(req,res,url){
     let glyphFrags=null; if(won && glyphsEnabledFor(me) && me.glyphs && me.glyphs.migratedAt){ glyphFrags=glyphGrantNamedList(me, arenaGlyphFragsFor(me.rank)); }   // Correction Spec v1: named, rank-deterministic — no random family roll
     const aresp={ rank:me.rank, delta:r.delta, reward, coins:me.coins, glyphFrags, won, seed, sim:simRes, goldReward, milestoneGems, bestRank:me.bestRank, authoritative:true, ledger:ledgerView(me), arena:arenaAttView(ensureLedger(me)) };
     DB.idem[akey]={t:Date.now(),resp:aresp};
-    try{ if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; } saveDB(DB); }
+    if((typeof _reqCtx!=='undefined'&&_reqCtx.getStore())){ if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; }   // v1036: group save; a failed save rolls both accounts back
+      _holdReply(_joinBatch(()=>{ console.error('Arena result save failed - both accounts rolled back');
+        _adoptUser(me.id,_aSnapMe); _adoptUser(_aOppId,_aSnapOpp); if(DB.idem) delete DB.idem[akey];
+        if(_aRp) DB.reports=_aRp; else delete DB.reports; if(_aFb) DB.feedback=_aFb; else delete DB.feedback; }), 'Save failed. Retry the same request.'); }
+    else try{ if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; } saveDB(DB); }
     catch(e){ console.error('Arena result save failed - both accounts rolled back:', e.message);
       _adoptUser(me.id,_aSnapMe); _adoptUser(_aOppId,_aSnapOpp); delete DB.idem[akey];
       if(_aRp) DB.reports=_aRp; else delete DB.reports; if(_aFb) DB.feedback=_aFb; else delete DB.feedback;
@@ -7625,6 +7762,9 @@ async function api(req,res,url){
         t:Date.now()
       }};
       // Persist the complete snapshot before publishing this report or acknowledging.
+      if((typeof _reqCtx!=='undefined'&&_reqCtx.getStore())){ const prevWatch=DB.watch; DB.watch=stagedWatch;   // v1036: group save; a failed save restores the watch list
+        _holdReply(_joinBatch(()=>{ DB.watch=prevWatch; console.error('Watch report save failed - undone'); }), 'Watch save failed. Retry the same report.');
+        return send(res,200,{ok:true}); }
       try{
         saveDB({...DB,watch:stagedWatch},'.watch-report.tmp');
       }catch(error){
@@ -8171,7 +8311,7 @@ const server=http.createServer((req,res)=>{
   const url=new URL(req.url,'http://x');
   const p=url.pathname;
   if(p.startsWith('/api/')){ for(const [qk,qv] of url.searchParams){ if(PROTO_NAMES.has(qk)||(!FREE_TEXT_KEYS.has(qk)&&PROTO_NAMES.has(qv))) return send(res,400,{ok:false,error:'Invalid request.'}); } }   /* v986: the same rule for query values */
-  if(p.startsWith('/api/')) return api(req,res,url).catch(err=>{
+  if(p.startsWith('/api/')) return _reqCtx.run({}, ()=>api(req,res,url)).catch(err=>{
     if(res.headersSent) return;
     if(err && err.code==='WORLD_STORAGE_FAILURE')return send(res,503,{ok:false,storageFailed:true,error:err.message});
     if(err && err.code==='BODY_TOO_LARGE'){ send(res,413,{error:'Request too large.'}); try{req.destroy();}catch(_){} return; }
@@ -8353,7 +8493,7 @@ try{
 let _fatalN=0, _fatalT=0;
 function _backstop(kind, e){ const now=Date.now(); if(now-_fatalT>60000){ _fatalT=now; _fatalN=0; } _fatalN++;
   console.error('⚠ '+kind+' (#'+_fatalN+' this minute): '+(e&&e.stack||e));
-  if(_fatalN>=20){ console.error('⚠ 20 errors in a minute - exiting for a clean restart'); try{ writeDBNow(); }catch(_){} process.exit(1); } }
+  if(_fatalN>=20){ console.error('⚠ 20 errors in a minute - exiting for a clean restart'); try{ writeDBSync(); }catch(_){} process.exit(1); } }
 process.on('uncaughtException', e=>_backstop('uncaughtException', e));
 process.on('unhandledRejection', e=>_backstop('unhandledRejection', e));
 campCompile(); portalCompile(); vaultCompile(); provCompile(); readDB(); pgInit();   /* v663: provCompile — Training Province */
@@ -8374,7 +8514,8 @@ function bootFinish(){ if(_booted) return; _booted=true; PG_BOOT_PENDING=false;
   const realAccts=Object.values(DB.users).filter(u=>!u.isNpc).length;
   console.log('📁 DB file: '+DB_FILE+'  '+(DB_PERSISTENT?'(persistent ✅)':'(⚠ EPHEMERAL — accounts WILL be wiped on redeploy! Add a Railway Volume mounted at /data, or set DB_FILE to a volume path.)'));
   console.log('👤 Player accounts loaded: '+realAccts);
-  server.listen(PORT,()=>{ console.log('🔥 Emberweave cloud server on http://localhost:'+PORT); console.log('   Seeded '+Object.keys(DB.users).filter(id=>DB.users[id].isNpc).length+' NPC cities · live PvP '+(WSS?'ON':'off')+'. Open the URL to play / install the app.'); });
+  server.listen(PORT,()=>{ setImmediate(()=>{ try{ simPool(); }catch(e){} });   // v1036: battle workers load at boot, ready before the first fight
+    console.log('🔥 Emberweave cloud server on http://localhost:'+PORT); console.log('   Seeded '+Object.keys(DB.users).filter(id=>DB.users[id].isNpc).length+' NPC cities · live PvP '+(WSS?'ON':'off')+'. Open the URL to play / install the app.'); });
 }
 if(PG){ PG_BOOT_PENDING=true;   // nothing writes to disk or PG, and the port stays closed, until this resolves
   (async()=>{ try{ await pgSetup(); const got=await pgLoad();

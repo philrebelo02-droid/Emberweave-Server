@@ -211,6 +211,10 @@ note "test_atkspd_clip_1024.js (v1024: every attack-speed source speeds the atta
 node tests/test_atkspd_clip_1024.js || FAILED=1
 note "test_account_wide_1035.js (v1035: a ban and a password reset on the account server follow the account to Servers 2-4; two real servers)"
 node tests/test_account_wide_1035.js || FAILED=1
+note "test_group_save_1036.js (v1036: 60 durable actions at once share a few whole-world saves; a failed save answers 503, reaches no disk and is undone)"
+node tests/test_group_save_1036.js || FAILED=1
+note "test_battle_workers_1036.js (v1036: city battles run on a worker thread and replay to the same winner on the ordinary engine; SIM_WORKERS=0 control)"
+node tests/test_battle_workers_1036.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi
