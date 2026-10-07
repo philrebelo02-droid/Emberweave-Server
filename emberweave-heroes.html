@@ -9253,6 +9253,62 @@ function damage(u,a,c,noEnergy,crit){
 }
 /* outgoing damage — applies the attacker's passives (crit / lifesteal / ignite) */
 let _preCrit=null;   // v532: set on the fuse of a swing whose crit was rolled at the wind-up (crit clip)
+/* v1048 SOUND (Phil 6 Oct 2026: "can we eventually get ember to add audio?" -> "yes to Claude's plan. He builds the sound system once,
+   then Ember adds sounds one at a time with his review"). The game had no audio at all before this.
+   FILES (Grok's Classroom topic 20, lessons 1-4): assets/audio/<role>/<event>_<layer>.m4a?v=N, role = sfx | ui | ambience | music | voice;
+   AAC .m4a for phones; a replaced file gets a new ?v= (the asset cache survives deploys).
+   AUDIO_MAP: event key -> the layers it plays, [{f:'voice/veyr_ult.m4a?v=1', vol:1}]. One file = one job; layers stack here.
+   WHAT PLAYS (Phil 6 Oct: "I only want 3 different lines for ult per hero, they rotate it per fight, other than that it will be spell FX"):
+     voice  - 'hero.<key>.ult.1' / '.2' / '.3': the hero's ult line; each FIGHT uses the next line in turn (a hero who ults twice in
+              one fight says that fight's line again); the turn is kept on the device. No other voice lines.
+     spells - 'fx.<FX2 key>' when that plate or beam appears; 'fx.<FX2 key>.travel' when it flies as a projectile and
+              'fx.<FX2 key>.impact' when the projectile lands. A spell gets sound by adding its key to AUDIO_MAP - no code.
+   RULES: render-only - never touches battle state or the seeded RNG; a no-op on the server (no AudioContext) and in every headless
+   replay (window._p2guard); nothing plays until the player's first tap unlocks audio (phones); at most 8 sounds at once; a file that
+   is not decoded within 0.4 s of its moment is skipped (it plays next time), never late. Everything mapped is fetched on that first tap. */
+const AUDIO_MAP = {};
+const SND = { ctx:null, out:null, buf:{}, pend:{}, last:{}, live:0, cfg:{ on:true, vol:0.8 } };
+try{ const _c=JSON.parse(localStorage.getItem('ew_sound')||'null'); if(_c&&typeof _c==='object') Object.assign(SND.cfg,_c); }catch(e){}
+function sndCan(){ try{ return !!SND.cfg.on && !window._p2guard && !!(window.AudioContext||window.webkitAudioContext); }catch(e){ return false; } }
+function sndLoad(f){ if(!SND.ctx) return null; if(f in SND.buf) return null; if(SND.pend[f]) return SND.pend[f];
+  SND.pend[f]=fetch('/assets/audio/'+f).then(r=>{ if(!r.ok) throw new Error('http '+r.status); return r.arrayBuffer(); })
+    .then(a=>new Promise((res,rej)=>SND.ctx.decodeAudioData(a,res,rej)))
+    .then(b=>{ SND.buf[f]=b; delete SND.pend[f]; return b; }, ()=>{ SND.buf[f]=null; delete SND.pend[f]; return null; });
+  return SND.pend[f]; }
+function sndUnlock(){ try{
+    if(!SND.ctx){ const C=window.AudioContext||window.webkitAudioContext; if(!C) return; SND.ctx=new C(); SND.out=SND.ctx.createGain(); SND.out.gain.value=SND.cfg.vol; SND.out.connect(SND.ctx.destination);
+      for(const k in AUDIO_MAP) (AUDIO_MAP[k]||[]).forEach(l=>sndLoad(l.f)); }
+    if(SND.ctx.state==='suspended') SND.ctx.resume().catch(()=>{});
+  }catch(e){} }
+try{ if(typeof document!=='undefined'&&document.addEventListener) ['pointerdown','touchend','keydown'].forEach(ev=>document.addEventListener(ev,sndUnlock,{passive:true})); }catch(e){}
+function sndPlay(key,gapMs){ if(!sndCan()) return false; const L=AUDIO_MAP[key]; if(!L||!L.length||!SND.ctx||SND.ctx.state!=='running') return false;
+  const now=performance.now(); if(SND.last[key]!=null && now-SND.last[key]<(gapMs||80)) return false; if(SND.live>=8) return false; SND.last[key]=now;
+  L.forEach(l=>{ const go=b=>{ if(!b||!SND.ctx||performance.now()-now>400) return; try{ const src=SND.ctx.createBufferSource(), g=SND.ctx.createGain();
+      src.buffer=b; g.gain.value=(l.vol!=null?l.vol:1); src.connect(g); g.connect(SND.out); SND.live++; src.onended=()=>{ SND.live=Math.max(0,SND.live-1); }; src.start(); }catch(e){} };
+    const b=SND.buf[l.f]; if(b) go(b); else if(b!==null){ const p=sndLoad(l.f); if(p) p.then(go); } });
+  return true; }
+function sndSet(c){ Object.assign(SND.cfg,c||{}); try{ localStorage.setItem('ew_sound',JSON.stringify(SND.cfg)); }catch(e){} if(SND.out) SND.out.gain.value=SND.cfg.vol; try{ if(_lore.a) _lore.a.volume=SND.cfg.vol; }catch(e){} }
+let _sndRot={}; try{ _sndRot=JSON.parse(localStorage.getItem('ew_sound_rot')||'{}')||{}; }catch(e){ _sndRot={}; }
+const _sndLine=(typeof WeakMap==='function')?new WeakMap():null;   // unit -> the line it says this fight (every fight builds new unit objects; the units array itself is rebuilt mid-fight)
+function sndUlt(u){ if(!u||!u.key||!sndCan()) return false;
+  const lines=[1,2,3].filter(i=>AUDIO_MAP['hero.'+u.key+'.ult.'+i]); if(!lines.length) return false;
+  let r=_sndLine?_sndLine.get(u):undefined; if(r==null){ r=(u.key in _sndRot)?(((_sndRot[u.key]|0)+1)%lines.length):0; _sndRot[u.key]=r; if(_sndLine) _sndLine.set(u,r); try{ localStorage.setItem('ew_sound_rot',JSON.stringify(_sndRot)); }catch(e){} }
+  return sndPlay('hero.'+u.key+'.ult.'+lines[r%lines.length],0); }
+/* v1048 LORE NARRATION (Phil 6 Oct 2026: "I want the Lores to be read off by the hero. this is a Big one, but there will be a play button
+   above the lore, it will read the entire thing" / "in the heroes voice"). LORE_AUDIO: hero key -> 'voice/lore/<key>_lore.m4a?v=N', the
+   whole lore read in that hero's own voice (the same voice as its ult lines). Streamed by an <audio> element - it starts as it downloads,
+   it is never preloaded and never decoded into memory. The button shows only when the hero has a file; pressing it is the player's own
+   choice, so it plays even with battle sound off; the volume setting applies. It stops when the player leaves the lore or the hero. */
+const LORE_AUDIO = {};
+const _lore = { a:null, key:null };
+function loreStop(){ try{ if(_lore.a){ _lore.a.pause(); _lore.a.removeAttribute('src'); _lore.a.load(); } }catch(e){} _lore.a=null; _lore.key=null; }
+function loreBtnSync(btn){ if(!btn) return; const on=!!(_lore.a&&!_lore.a.paused&&!_lore.a.ended); btn.textContent=on?'❚❚':'▶'; btn.setAttribute('aria-label',on?'Pause the story':'Play the story'); }
+function loreToggle(key,btn){ try{
+  if(_lore.a&&_lore.key===key&&!_lore.a.ended){ if(_lore.a.paused) _lore.a.play().catch(()=>{}); else _lore.a.pause(); return; }
+  loreStop(); const f=LORE_AUDIO[key]; if(!f) return;
+  const a=new Audio('/assets/audio/'+f); a.preload='none'; a.volume=Math.max(0,Math.min(1,SND.cfg.vol)); _lore.a=a; _lore.key=key;
+  a.onplay=a.onpause=a.onended=()=>loreBtnSync(btn); a.play().catch(()=>loreBtnSync(btn)); loreBtnSync(btn);
+}catch(e){} }
 function dealDamage(src,tgt,amt,color,kind,silent){ kind=kind||((src&&src.t&&(['Magic','Healer'].includes(src.t.damageProfile)))?'magic':'phys');   // default follows canonical hero damage; explicit kind still wins
   // Packmaster: he is stronger and harder to put down for every summon still alive.
   if(src&&src._packN) amt*=1+0.05*src._packN*(src.passMul||1);
@@ -9339,7 +9395,7 @@ function dealDamage(src,tgt,amt,color,kind,silent){ kind=kind||((src&&src.t&&(['
   let _crit=false;
   if(_preCrit!=null ? _preCrit : (_gearHitCrit||(src&&src._gearSpellCrit)||(cc&&brnd()<cc))){ /* v532: a crit-clip hero pre-rolled this swing at the wind-up */ const bonus=(src.critDmg||0.6); let mult=1+bonus; if(tgt.critRes) mult=1+bonus*(1-tgt.critRes); amt*=mult; tgt._critHit=true; _crit=true; }   // v247: Crit Damage stat widens the bonus
   tgt._lastHitKind=kind;   // v253: damage() colours the number by damage type
-  const _hpBefore=tgt.hp; damage(tgt,amt,color,!!silent,_crit); const _hpLost=Math.max(0,_hpBefore-tgt.hp);
+  const _hpBefore=tgt.hp; damage(tgt,amt,color,!!silent,_crit); const _hpLost=Math.max(0,_hpBefore-tgt.hp); 
   if(tgt.pass&&tgt.pass.bloodrage&&src&&src.team!==tgt.team&&_hpLost>0) tgt._brTaken=(tgt._brTaken||0)+_hpLost;   /* v1024 Blood Rage: what an enemy took off him this fight */   // lifesteal heals off HP ACTUALLY removed (0 through a full shield absorb), not the pre-mitigation amount
   /* v527 Thunder Guard (Stormwarden): the brace answers whatever struck it. */
   if((tgt._thornT||0)>0&&src&&src.alive&&src.team!==tgt.team&&!tgt._ctring){ tgt._ctring=1;
@@ -10936,7 +10992,7 @@ function castAbility(u){ const ab=u.abilityOverride||u.t.ability;
   u._castSM=skillMul((u.skillLv&&u.skillLv[0])||1); u._castLv=((u.skillLv&&u.skillLv[0])|0)||1;   /* v787 */ const _ct=castTimeFor(u,'ult'); u._castNow=_ct;
   /* v797 - the ult's clip starts with its cast clock; v796 - its effect releases at the end. Its
      energy is taken below, at the press, so an interrupt costs the ultimate. */
-  u._castSlot='ult'; startAbilityClip(u,ab); u._clipStarted=true; u._castSlot=null;
+  u._castSlot='ult'; startAbilityClip(u,ab); u._clipStarted=true; u._castSlot=null; sndUlt(u);   /* v1048 sound: this fight's ult line */
   u._pend={ t:_ct, sm:(u._castSM||1), lv:(u._castLv||1), ax:u._aimWX, ay:u._aimWY,
     fire:()=>{ u._castSlot='ult'; doEffect(u, ab, Object.assign({}, ULT_DEF[ab]||{}, (typeof HERO_ULT_ART!=='undefined'&&HERO_ULT_ART[u.key])||{})); } };   /* v332: hero-specific ult plate */
   u._castSM=1; u._castLv=0; u._castNow=_ct; u._castT=_ct;
@@ -11341,7 +11397,7 @@ function _holdsUnit(type,o){ return !!(_HOLD_TYPES[type] || (o&&o.gfx&&/prison|f
 function holdUnder(fx,t){ if(!fx||!fx.m||!(fx.life>0)||!t||!t.sprite||fx.grip===t) return;
   fx.holds=fx.holds||[]; if(fx.holds.indexOf(t)<0) fx.holds.push(t); t.sprite.renderOrder=fx.m.renderOrder-0.5; }
 let _ownFxCast=false,_fxAllow=false;   /* v451 FX-OWNERSHIP  a hero with their own gfx suppresses the shared type plate */
-function spawnGroundFx(key,cx,cy,radius,life){ try{ _fxCheck('plate',arguments[0],arguments[1],arguments[2],window._fxCaster); }catch(e){} if(_ownFxCast&&!_fxAllow)return null; let d=FX2_DEF[key]; if(!TH||!scene||!d)return null; const base=fx2Tex(key); if(!base)return null;
+function spawnGroundFx(key,cx,cy,radius,life){ try{ _fxCheck('plate',arguments[0],arguments[1],arguments[2],window._fxCaster); }catch(e){} if(_ownFxCast&&!_fxAllow)return null; let d=FX2_DEF[key]; if(!TH||!scene||!d)return null; const base=fx2Tex(key); if(!base)return null; sndPlay('fx.'+key);   /* v1048 spell sound */
   /* v498: a buff/heal marker is drawn as an upright badge whose BOTTOM sits just over the target's health bar,
      no matter how its sheet is declared -- a flat ground disc for a shield would still lie across the body. */
   if(window._fxAboveBar && !d.upAbove) d=Object.assign({},d,{upright:true,upAbove:true,upAboveM:0.06,upSize:(window._fxBadgeSize||0.8),upExtent:0.95,upAnchor:null,upPalm:null,cone:false,ro:1});   /* a sheet that already declares upAbove keeps its own tuning (Dandra's lotus, Aureth's eclipse) */
@@ -11576,6 +11632,7 @@ function _fxCheck(kind,key,x,y,caster){
   }catch(e){}
 }
 function spawnProjFx(key,fromx,fromy,tox,toy,scale,dur,onHit,fromH){ _fxCheck('projectile',key,tox,toy,window._fxCaster); const PH=(fromH!=null?fromH:1.2*gsplitFxMul()); const d=FX2_DEF[key]; if(!TH||!scene||!d){ if(onHit)onHit(); return; } const base=fx2Tex(key); if(!base){ if(onHit)onHit(); return; }
+  sndPlay('fx.'+key+'.travel'); { const _oh=onHit; onHit=function(){ sndPlay('fx.'+key+'.impact'); if(_oh) return _oh.apply(this,arguments); }; }   /* v1048 spell sound: launch + landing */
   const tex=base;
   const asp=d.fw/d.fh, spr=new TH.Sprite(new TH.SpriteMaterial({map:tex,transparent:true,depthWrite:false,depthTest:false}));
   fx2Hook(spr); fx2SetFrame(spr,d,0);
@@ -11615,7 +11672,7 @@ function placeBoltFx(o){ const ha=(o.a.sprH||2)*0.62, hb=(o.b.sprH||2)*0.55; con
 function updateBoltFx(dt){ for(let i=_boltFx.length-1;i>=0;i--){ const o=_boltFx[i]; o.t+=dt;
   if(o.t>=BOLT_LIFE){ scene.remove(o.spr); o.spr.material.dispose(); _boltFx.splice(i,1); continue; }
   placeBoltFx(o); fx2SetFrame(o.spr,FX2_DEF.__fritzbolt,Math.floor(o.t/BOLT_LIFE*12)); o.spr.material.opacity=Math.min(1,o.t/0.05)*Math.min(1,(BOLT_LIFE-o.t)/0.15); } }
-function spawnBeamFx(key,u,tx,ty,extend,retract){ const d=FX2_DEF[key]; if(!TH||!scene||!d)return null; const base=fx2Tex(key); if(!base)return null;
+function spawnBeamFx(key,u,tx,ty,extend,retract){ const d=FX2_DEF[key]; if(!TH||!scene||!d)return null; const base=fx2Tex(key); if(!base)return null; sndPlay('fx.'+key);   /* v1048 spell sound */
   const tex=base;
   const spr=new TH.Sprite(new TH.SpriteMaterial({map:tex,transparent:true,depthWrite:false,depthTest:false}));
   fx2Hook(spr); fx2SetFrame(spr,d,0);
@@ -13964,6 +14021,7 @@ function closePopout(){ const bd=document.getElementById('popoutBackdrop'); if(b
   document.querySelectorAll('.popoutClose').forEach(x=>x.remove());
   if(_popout){ const el=document.getElementById(_popout); if(el) el.classList.remove('active','popout'); _popout=null; } }
 function show(name){
+  try{ if(name!==state) loreStop(); }catch(e){}   /* v1048: leaving the screen stops the lore narration */
   try{ if(typeof netGateUpdate==='function'&&NETGATE.bootAt) setTimeout(netGateUpdate,0); }catch(e){}   /* v1018: a signed-out player may only use the sign-in screen */
   if(name==='home'&&G.tutStarted&&!G.tutDone&&ACC.token) name='tutorial';
   const _leavingResult=(typeof state!=='undefined'&&state==='result'&&name!=='result');
@@ -22745,6 +22803,7 @@ setTimeout(()=>{ glyphV2Sync(); }, 2500);                // early glyph sync so 
 
 function renderHeroDetail(){
   const key=detailHero,t=HERO_TYPES[key]; if(!key)return;
+  if(!(heroTab==='lore'&&_lore.key===key)) loreStop();   // v1048: the story stops when the player leaves this hero's lore
   const body=document.getElementById('heroDetailBody');
   const mul=heroMuls(key), q=heroQuality(key), kit=KITS[key];
   const lvl=heroLevel(key), capped=heroCapped(key);
@@ -22849,6 +22908,7 @@ function renderHeroDetail(){
     tab=`<div class="panel" style="line-height:1.62">
         <div class="loreBn">${rarityBannerHtml(key)}</div>   <!-- v656 (Phil: "remove this mythical word ... Instead make their name with the banner of their quality"): the name on its rarity banner -->
         ${L.title?`<div style="font-size:12px;font-style:italic;color:#c9a35e;text-align:center;margin-bottom:12px">“${escapeHTML(L.title)}”</div>`:''}
+        ${LORE_AUDIO[key]?`<div style="text-align:center;margin:-4px 0 12px"><button class="btn sm" id="loreBtn" aria-label="Play the story" style="min-width:56px;font-size:15px">▶</button></div>`:''}
         <div style="font-size:12.5px;color:#d3dced">${paras}</div>
         ${myth?`<div style="font-size:11px;color:#8b98a9;border-top:1px solid #2a3550;margin-top:10px;padding-top:8px">✦ Mythical heroes are obtained only through special offers.</div>`:''}
       </div>`;
@@ -22869,6 +22929,7 @@ function renderHeroDetail(){
       const summoned=await doSummon(key); if(summoned){ bannerMsg('✨ '+t.name+' summoned at '+heroStartStars(key)+'★!'); renderHeroDetail(); checkTutorial(); tutReturnAfterAction(); }
       else { renderHeroDetail(); } }; }
   body.querySelectorAll('.hd-tab').forEach(b=>b.onclick=()=>{ heroTab=b.dataset.tab; renderHeroDetail(); });
+  { const lb=body.querySelector('#loreBtn'); if(lb){ loreBtnSync(lb); lb.onclick=()=>loreToggle(key,lb); if(_lore.a&&_lore.key===key){ const a=_lore.a; a.onplay=a.onpause=a.onended=()=>loreBtnSync(lb); } } }   // v1048 lore narration
   // clicking an equipment slot on the left jumps to the Equipment tab focused on that slot
   body.querySelectorAll('.eq-pick').forEach(el=>el.onclick=()=>{ eqSlotSel=+el.dataset.eqp; renderHeroDetail(); });
   body.querySelectorAll('[data-craft]').forEach(el=>el.onclick=async()=>{ const ti=+el.dataset.craft; if(await eqCraft(eqGroup(key),eqSlotSel,ti)){ saveG(); updateHubChrome(); renderHeroDetail(); } });
@@ -24293,10 +24354,17 @@ function renderSettings(){
         <button class="btn xs secondary" id="alClear" style="flex:1;min-width:110px">Clear cache</button></div>
       <div id="alMsg" style="font-size:11px;color:#8b98a9;margin-top:6px;min-height:13px"></div>
     </div>` : '';
+  /* v1048: sound - on/off and volume, kept on this device. Shown once the game has a sound to play. */
+  const soundCard = Object.keys(AUDIO_MAP).length ? `<div class="panel">
+      <div style="font-weight:800;font-size:13px;margin-bottom:6px">🔊 Sound</div>
+      <label style="display:flex;align-items:center;gap:8px;font-size:12px;margin-bottom:6px"><input type="checkbox" id="sndOn" ${SND.cfg.on?'checked':''}> Sound on</label>
+      <label style="display:flex;align-items:center;gap:8px;font-size:12px">Volume <input type="range" id="sndVol" min="0" max="100" value="${Math.round(SND.cfg.vol*100)}" style="flex:1"></label>
+    </div>` : '';
   b.innerHTML=`<div style="display:flex;flex-direction:column;gap:10px">
     <div style="font-size:10px;color:#8b98a9;font-weight:700;letter-spacing:.08em">XANTHYR GAMES</div>
     <div style="font-size:13px;color:#c3ccd8">Emberweave Heroes — ${BUILD_VERSION}</div>
     ${account}
+    ${soundCard}
     ${assetCard}
     ${reportCard}
     ${saveTools}
@@ -24306,6 +24374,9 @@ function renderSettings(){
       <div style="margin-top:6px;color:#6f7d90">© 2026 Xanthyr Games · Emberweave Heroes™ · All rights reserved.</div>
     </div>
   </div>`;
+  { const so=b.querySelector('#sndOn'), sv=b.querySelector('#sndVol');   // v1048 sound settings
+    if(so) so.onchange=()=>{ sndSet({on:so.checked}); if(so.checked){ sndUnlock(); } };
+    if(sv) sv.oninput=()=>sndSet({vol:Math.max(0,Math.min(1,(+sv.value||0)/100))}); }
   {  // v564: Offline Art card (signed-in players) - same two actions as the dev panel's QA tab
     const alMsg=b.querySelector('#alMsg'), alBar=b.querySelector('#alBar'), alWrap=b.querySelector('#alBarWrap'), alDl=b.querySelector('#alDl');
     const rep=(m)=>{ if(alMsg) alMsg.textContent=m; if(alDl) alDl.textContent=_alRunning?'Stop download':'Update all features'; };
@@ -25952,7 +26023,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791330792916';
+const BUILD_ID = '1791332195630';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

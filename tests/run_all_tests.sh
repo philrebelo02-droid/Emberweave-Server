@@ -237,6 +237,8 @@ note "test_toxic_breath_1045.js (v1045: Bloatus Toxic Breath - plume from the mo
 node tests/test_toxic_breath_1045.js || FAILED=1
 note "test_walk_loops_1047.js (v1047: each walk plays a measured stride loop - no wrap to the start pose, no still frames, no 1,0 tail)"
 node tests/test_walk_loops_1047.js || FAILED=1
+note "test_sound_1048.js (v1048: the sound system - silent on the server and in replays, never touches a fight, empty until Phil approves a sound)"
+node tests/test_sound_1048.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi
