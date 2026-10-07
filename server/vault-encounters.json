@@ -12,58 +12,58 @@
      {
       "key": "vexmite",
       "lvl": 3,
-      "hpMul": 9.8997,
-      "dmgMul": 4.2636
+      "hpMul": 5.9398,
+      "dmgMul": 2.5582
      },
      {
       "key": "sootwing imp",
       "lvl": 3,
-      "hpMul": 9.8997,
-      "dmgMul": 4.2636
+      "hpMul": 5.9398,
+      "dmgMul": 2.5582
      },
      {
       "key": "skulk",
       "lvl": 3,
-      "hpMul": 9.8997,
-      "dmgMul": 4.2636
+      "hpMul": 5.9398,
+      "dmgMul": 2.5582
      },
      {
       "key": "cindertusk",
       "lvl": 3,
-      "hpMul": 9.8997,
-      "dmgMul": 4.2636
+      "hpMul": 5.9398,
+      "dmgMul": 2.5582
      }
     ],
     [
      {
       "key": "ooznik",
       "lvl": 3,
-      "hpMul": 11.5114,
-      "dmgMul": 4.9577
+      "hpMul": 6.9068,
+      "dmgMul": 2.9746
      },
      {
       "key": "grushak",
       "lvl": 3,
-      "hpMul": 11.5114,
-      "dmgMul": 4.9577
+      "hpMul": 6.9068,
+      "dmgMul": 2.9746
      },
      {
       "key": "skarrn",
       "lvl": 3,
-      "hpMul": 11.5114,
-      "dmgMul": 4.9577
+      "hpMul": 6.9068,
+      "dmgMul": 2.9746
      },
      {
       "key": "vexmite",
       "lvl": 3,
-      "hpMul": 11.5114,
-      "dmgMul": 4.9577
+      "hpMul": 6.9068,
+      "dmgMul": 2.9746
      },
      {
       "key": "skulk",
       "lvl": 3,
-      "hpMul": 11.5114,
-      "dmgMul": 4.9577
+      "hpMul": 6.9068,
+      "dmgMul": 2.9746
      }
     ]
    ],
@@ -83,7 +83,15 @@
     "target": 0.35,
     "bossX": 1,
     "model": "realboard-v364"
-   }
+   },
+   "wallFixes": [
+    {
+     "v": "v1053",
+     "date": "2026-10-07",
+     "scale": 0.6,
+     "why": "Ember's 7 sim bots lost floor 1 at levels 10-13 every time (the old bots first won it at 14-15), so no Grey gear before 14; tuned on realboard-v364, its HP sat above floor 2 (x9.9 vs x7.1). Phil: \"At level 10 I would enter dungeon and attempt to get my first grey equipment\" / \"they are level 10+ with no equipment\""
+    }
+   ]
   },
   {
    "floor": 2,
