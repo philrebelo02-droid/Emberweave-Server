@@ -3917,85 +3917,85 @@
         {
           "key": "luminant orb",
           "lvl": 18,
-          "hpMul": 7.6717,
-          "dmgMul": 6.7397
+          "hpMul": 6.5209,
+          "dmgMul": 5.7287
         },
         {
           "key": "crystalhorn grazer",
           "lvl": 18,
-          "hpMul": 7.6717,
-          "dmgMul": 6.7397
+          "hpMul": 6.5209,
+          "dmgMul": 5.7287
         },
         {
           "key": "granith",
           "lvl": 18,
-          "hpMul": 7.6717,
-          "dmgMul": 6.7397
+          "hpMul": 6.5209,
+          "dmgMul": 5.7287
         }
       ],
       [
         {
           "key": "crystalhorn grazer",
           "lvl": 18,
-          "hpMul": 7.6717,
-          "dmgMul": 6.7397
+          "hpMul": 6.5209,
+          "dmgMul": 5.7287
         },
         {
           "key": "granith",
           "lvl": 18,
-          "hpMul": 7.6717,
-          "dmgMul": 6.7397
+          "hpMul": 6.5209,
+          "dmgMul": 5.7287
         },
         {
           "key": "zephyr harrier",
           "lvl": 18,
-          "hpMul": 7.6717,
-          "dmgMul": 6.7397
+          "hpMul": 6.5209,
+          "dmgMul": 5.7287
         },
         {
           "key": "luminant orb",
           "lvl": 18,
-          "hpMul": 7.6717,
-          "dmgMul": 6.7397
+          "hpMul": 6.5209,
+          "dmgMul": 5.7287
         }
       ],
       [
         {
           "key": "zephyr harrier",
           "lvl": 18,
-          "hpMul": 7.6717,
-          "dmgMul": 6.7397
+          "hpMul": 6.5209,
+          "dmgMul": 5.7287
         },
         {
           "key": "granith",
           "lvl": 18,
-          "hpMul": 7.6717,
-          "dmgMul": 6.7397
+          "hpMul": 6.5209,
+          "dmgMul": 5.7287
         },
         {
           "key": "granith",
           "lvl": 18,
-          "hpMul": 7.6717,
-          "dmgMul": 6.7397
+          "hpMul": 6.5209,
+          "dmgMul": 5.7287
         },
         {
           "key": "luminant orb",
           "lvl": 18,
-          "hpMul": 7.6717,
-          "dmgMul": 6.7397
+          "hpMul": 6.5209,
+          "dmgMul": 5.7287
         },
         {
           "key": "wintercrag",
           "lvl": 18,
-          "hpMul": 7.6717,
-          "dmgMul": 6.7397,
+          "hpMul": 6.5209,
+          "dmgMul": 5.7287,
           "boss": true
         },
         {
           "key": "vireo",
           "lvl": 18,
-          "hpMul": 7.6717,
-          "dmgMul": 6.7397,
+          "hpMul": 6.5209,
+          "dmgMul": 5.7287,
           "isHero": true,
           "rewardHero": true,
           "rank": 3
@@ -4007,7 +4007,7 @@
     "recommendedQuality": "Blue",
     "qualityMinHeroLevel": 18,
     "bossLevelGate": 18,
-    "difficultyTune": 3.094,
+    "difficultyTune": 2.6299,
     "baselineHp": 4.1575,
     "baselineDmg": 2.9831,
     "portalMode": "normal",
@@ -4016,7 +4016,15 @@
     "chapterName": "Frostspire Reach",
     "comps": "v337",
     "rewardHero": "vireo",
-    "curveV820": true
+    "curveV820": true,
+    "wallFixes": [
+      {
+        "v": "v1052",
+        "date": "2026-10-07",
+        "scale": 0.85,
+        "why": "held all 7 sim bots 2.6-6.8 game days (49-97 tries) (Phil: \"everytime they hit a brick wall that takes them multiple days, fix that brick wall\")"
+      }
+    ]
   },
   {
     "id": "4-1",
@@ -5260,97 +5268,97 @@
         {
           "key": "mordath",
           "lvl": 24,
-          "hpMul": 8.3013,
-          "dmgMul": 6.4303
+          "hpMul": 7.0561,
+          "dmgMul": 5.4658
         },
         {
           "key": "reef prowler",
           "lvl": 24,
-          "hpMul": 8.3013,
-          "dmgMul": 6.4303
+          "hpMul": 7.0561,
+          "dmgMul": 5.4658
         },
         {
           "key": "saltglass siren",
           "lvl": 24,
-          "hpMul": 8.3013,
-          "dmgMul": 6.4303
+          "hpMul": 7.0561,
+          "dmgMul": 5.4658
         },
         {
           "key": "mordath",
           "lvl": 24,
-          "hpMul": 8.3013,
-          "dmgMul": 6.4303
+          "hpMul": 7.0561,
+          "dmgMul": 5.4658
         },
         {
           "key": "reef prowler",
           "lvl": 24,
-          "hpMul": 8.3013,
-          "dmgMul": 6.4303
+          "hpMul": 7.0561,
+          "dmgMul": 5.4658
         }
       ],
       [
         {
           "key": "mordath",
           "lvl": 24,
-          "hpMul": 8.3013,
-          "dmgMul": 6.4303
+          "hpMul": 7.0561,
+          "dmgMul": 5.4658
         },
         {
           "key": "saltglass siren",
           "lvl": 24,
-          "hpMul": 8.3013,
-          "dmgMul": 6.4303
+          "hpMul": 7.0561,
+          "dmgMul": 5.4658
         },
         {
           "key": "storm eel",
           "lvl": 24,
-          "hpMul": 8.3013,
-          "dmgMul": 6.4303
+          "hpMul": 7.0561,
+          "dmgMul": 5.4658
         },
         {
           "key": "reef prowler",
           "lvl": 24,
-          "hpMul": 8.3013,
-          "dmgMul": 6.4303
+          "hpMul": 7.0561,
+          "dmgMul": 5.4658
         }
       ],
       [
         {
           "key": "storm eel",
           "lvl": 24,
-          "hpMul": 8.3013,
-          "dmgMul": 6.4303
+          "hpMul": 7.0561,
+          "dmgMul": 5.4658
         },
         {
           "key": "mordath",
           "lvl": 24,
-          "hpMul": 8.3013,
-          "dmgMul": 6.4303
+          "hpMul": 7.0561,
+          "dmgMul": 5.4658
         },
         {
           "key": "saltglass siren",
           "lvl": 24,
-          "hpMul": 8.3013,
-          "dmgMul": 6.4303
+          "hpMul": 7.0561,
+          "dmgMul": 5.4658
         },
         {
           "key": "storm eel",
           "lvl": 24,
-          "hpMul": 8.3013,
-          "dmgMul": 6.4303
+          "hpMul": 7.0561,
+          "dmgMul": 5.4658
         },
         {
           "key": "nerissa",
           "lvl": 24,
-          "hpMul": 8.3013,
-          "dmgMul": 6.4303,
+          "hpMul": 7.0561,
+          "dmgMul": 5.4658,
           "boss": true
         },
         {
           "key": "bloatus",
           "lvl": 24,
-          "hpMul": 8.3013,
-          "dmgMul": 6.4303,
+          "hpMul": 7.0561,
+          "dmgMul": 5.4658,
           "isHero": true,
           "rewardHero": true,
           "rank": 3
@@ -5362,7 +5370,7 @@
     "recommendedQuality": "Blue +1",
     "qualityMinHeroLevel": 24,
     "bossLevelGate": 24,
-    "difficultyTune": 2.5957,
+    "difficultyTune": 2.2063,
     "baselineHp": 6.4564,
     "baselineDmg": 4.2079,
     "portalMode": "normal",
@@ -5371,7 +5379,15 @@
     "chapterName": "The Sunken Bastion",
     "comps": "v337",
     "rewardHero": "bloatus",
-    "curveV820": true
+    "curveV820": true,
+    "wallFixes": [
+      {
+        "v": "v1052",
+        "date": "2026-10-07",
+        "scale": 0.85,
+        "why": "held all 7 sim bots 2.5-12 game days; 3 still stuck (Phil: \"everytime they hit a brick wall that takes them multiple days, fix that brick wall\")"
+      }
+    ]
   },
   {
     "id": "5-1",
@@ -6560,78 +6576,78 @@
         {
           "key": "whisp",
           "lvl": 29,
-          "hpMul": 16.8716,
-          "dmgMul": 12.5824
+          "hpMul": 14.3409,
+          "dmgMul": 10.695
         },
         {
           "key": "graveclaw ghoul",
           "lvl": 29,
-          "hpMul": 16.8716,
-          "dmgMul": 12.5824
+          "hpMul": 14.3409,
+          "dmgMul": 10.695
         },
         {
           "key": "graveclaw ghoul",
           "lvl": 29,
-          "hpMul": 16.8716,
-          "dmgMul": 12.5824
+          "hpMul": 14.3409,
+          "dmgMul": 10.695
         },
         {
           "key": "graveclaw ghoul",
           "lvl": 29,
-          "hpMul": 16.8716,
-          "dmgMul": 12.5824
+          "hpMul": 14.3409,
+          "dmgMul": 10.695
         },
         {
           "key": "wispweaver shade",
           "lvl": 29,
-          "hpMul": 16.8716,
-          "dmgMul": 12.5824
+          "hpMul": 14.3409,
+          "dmgMul": 10.695
         }
       ],
       [
         {
           "key": "trapjaw",
           "lvl": 29,
-          "hpMul": 16.8716,
-          "dmgMul": 12.5824
+          "hpMul": 14.3409,
+          "dmgMul": 10.695
         },
         {
           "key": "whisp",
           "lvl": 29,
-          "hpMul": 16.8716,
-          "dmgMul": 12.5824
+          "hpMul": 14.3409,
+          "dmgMul": 10.695
         },
         {
           "key": "graveclaw ghoul",
           "lvl": 29,
-          "hpMul": 16.8716,
-          "dmgMul": 12.5824
+          "hpMul": 14.3409,
+          "dmgMul": 10.695
         },
         {
           "key": "graveclaw ghoul",
           "lvl": 29,
-          "hpMul": 16.8716,
-          "dmgMul": 12.5824
+          "hpMul": 14.3409,
+          "dmgMul": 10.695
         }
       ],
       [
         {
           "key": "graveclaw ghoul",
           "lvl": 29,
-          "hpMul": 16.8716,
-          "dmgMul": 12.5824
+          "hpMul": 14.3409,
+          "dmgMul": 10.695
         },
         {
           "key": "wispweaver shade",
           "lvl": 29,
-          "hpMul": 16.8716,
-          "dmgMul": 12.5824
+          "hpMul": 14.3409,
+          "dmgMul": 10.695
         },
         {
           "key": "tick",
           "lvl": 29,
-          "hpMul": 16.8716,
-          "dmgMul": 12.5824,
+          "hpMul": 14.3409,
+          "dmgMul": 10.695,
           "isHero": true,
           "rewardHero": true,
           "rank": 3
@@ -6643,7 +6659,7 @@
     "recommendedQuality": "Blue +1",
     "qualityMinHeroLevel": 24,
     "bossLevelGate": 0,
-    "difficultyTune": 4.746,
+    "difficultyTune": 4.0341,
     "baselineHp": 8.9332,
     "baselineDmg": 5.4743,
     "portalMode": "normal",
@@ -6652,7 +6668,15 @@
     "chapterName": "Duskwood Hollows",
     "comps": "v337",
     "rewardHero": "tick",
-    "curveV820": true
+    "curveV820": true,
+    "wallFixes": [
+      {
+        "v": "v1052",
+        "date": "2026-10-07",
+        "scale": 0.85,
+        "why": "held both free sim bots 8-12 game days, still stuck (Phil: \"everytime they hit a brick wall that takes them multiple days, fix that brick wall\")"
+      }
+    ]
   },
   {
     "id": "5-10",
