@@ -23348,13 +23348,13 @@ function renderQuests(){ const b=document.getElementById('questBody'); if(!b)ret
   // Every claimable item belongs at the top. Recurring packs remain after a daily claim,
   // but become ongoing items below every reward that is ready now.
   const cards=[];   // {ready, html}
-  (G.dailyPacks||[]).forEach((p,packOrder)=>{ const ready=(p.lastClaim!==today && p.daysLeft>0);
+  srvPlans().forEach((p,packOrder)=>{ const ready=!!p.ready;   /* v1050: the plans are server-owned (LED.st.plans) */
     const rew=(p.type==='gems')?('💎 '+p.amount+' diamonds'):('⧗ '+p.amount+' stamina');
     cards.push({ready,group:'Daily packs',groupOrder:3,order:packOrder,html:`<div class="qcard pack" style="border-color:#6b5a2e;background:linear-gradient(165deg,rgba(42,36,22,.55),rgba(16,22,36,.7))">
       <div class="qh"><div class="qt">🎁 ${escapeHTML(p.name)}</div><div class="qrew">${rew} / day</div></div>
       <div class="qd">Daily reward pack — <b style="color:#ffd45e">${p.daysLeft}</b> day${p.daysLeft===1?'':'s'} remaining.</div>
       <div class="qmeta"><span>${ready?'✨ Ready to claim':'✔ Claimed today · resets 09:00'}</span>
-        <button class="btn xs${ready?'':' secondary'}" data-pack="${p.id}" ${ready?'':'disabled'}>${ready?'Claim':'Claimed'}</button></div></div>`}); });
+        <button class="btn xs${ready?'':' secondary'}" data-pack="${p.type}" ${ready?'':'disabled'}>${ready?'Claim':'Claimed'}</button></div></div>`}); });
   // Chained quests show only their current step. Claimed one-offs have no follow-up and disappear.
   if(!questChainDone()){ const chSteps=questChainDef(); const step=G.questChainStep||0, chReady=questChainReady();
     const st=chSteps[step], node=st.node, chProg=Math.min(node,G.campaignCleared||0);
@@ -23382,7 +23382,7 @@ function renderQuests(){ const b=document.getElementById('questBody'); if(!b)ret
   b.innerHTML = questHtml || '<div style="text-align:center;color:#6f7d90;padding:30px 12px">All quests complete.</div>';
   const cc=b.querySelector('#qcClaim'); if(cc)cc.onclick=claimChain;
   b.querySelectorAll('button[data-q]').forEach(btn=>btn.onclick=()=>{ const q=questDefs().find(x=>x.id===btn.dataset.q); if(q)claimQuest(q); });
-  b.querySelectorAll('button[data-pack]').forEach(btn=>btn.onclick=()=>claimDailyPack(btn.dataset.pack));
+  b.querySelectorAll('button[data-pack]').forEach(btn=>btn.onclick=()=>claimPlans());
 }
 
 /* ============================ DAILY SIGN-IN ============================ */
@@ -25525,12 +25525,12 @@ const GOLD_COSTS=[20,20,40,40,60,60,100,100];         // diamonds per gold purch
 const FOOD_STAMINA=120;                               // stamina granted per meal
 function goldPerBuy(){ return 1000 + (playerLevel()-1)*100; }   // scales with player level (L1=1000 → +100/level); tunable
 const GEM_OFFERS=[
-  {price:'$4.99', img:'cluster', name:'Cluster Pack',   desc:'150 💎 a day for 14 days',      detail:'A steady stream of diamonds — <b>150 💎 delivered every day for 14 days</b> (2,100 💎 total). Rewards land at the daily 09:00 reset.', reward:{kind:'dailyGems', amount:150, days:14}},
-  {price:'$2.99', img:'burger',  name:'Burger Meal',    desc:'120 stamina a day for 30 days', detail:'Keep your armies marching — <b>120 stamina every day for 30 days</b> (3,600 total). Rewards land at the daily 09:00 reset.', reward:{kind:'dailyStamina', amount:120, days:30}},
-  {price:'$4.99', img:'d500',    name:'500 Diamonds',   desc:'One-time bundle',               detail:'A one-time chest of <b>500 💎 diamonds</b>, credited instantly.', reward:{kind:'gems', amount:500}},
-  {price:'$9.99', img:'d1200',   name:'1,200 Diamonds', desc:'One-time bundle',               detail:'A one-time chest of <b>1,200 💎 diamonds</b>, credited instantly.', reward:{kind:'gems', amount:1200}},
-  {price:'$19.99',img:'d2800',   name:'2,800 Diamonds', desc:'One-time bundle',               detail:'A one-time hoard of <b>2,800 💎 diamonds</b>, credited instantly.', reward:{kind:'gems', amount:2800}},
-  {price:'$50.00',img:'d6000',   name:'6,000 Diamonds', desc:'One-time bundle',               detail:'The grand vault — <b>6,000 💎 diamonds</b>, our best value, credited instantly.', reward:{kind:'gems', amount:6000}},
+  {id:'cluster', price:'$4.99', img:'cluster', name:'Cluster Pack',   desc:'150 💎 a day for 14 days',      detail:'A steady stream of diamonds — <b>150 💎 delivered every day for 14 days</b> (2,100 💎 total). Rewards land at the daily 09:00 reset.', reward:{kind:'dailyGems', amount:150, days:14}},
+  {id:'burger', price:'$2.99', img:'burger',  name:'Burger Meal',    desc:'120 stamina a day for 30 days', detail:'Keep your armies marching — <b>120 stamina every day for 30 days</b> (3,600 total). Rewards land at the daily 09:00 reset.', reward:{kind:'dailyStamina', amount:120, days:30}},
+  {id:'d500', price:'$4.99', img:'d500',    name:'500 Diamonds',   desc:'One-time bundle',               detail:'A one-time chest of <b>500 💎 diamonds</b>, credited instantly.', reward:{kind:'gems', amount:500}},
+  {id:'d1200', price:'$9.99', img:'d1200',   name:'1,200 Diamonds', desc:'One-time bundle',               detail:'A one-time chest of <b>1,200 💎 diamonds</b>, credited instantly.', reward:{kind:'gems', amount:1200}},
+  {id:'d2800', price:'$19.99',img:'d2800',   name:'2,800 Diamonds', desc:'One-time bundle',               detail:'A one-time hoard of <b>2,800 💎 diamonds</b>, credited instantly.', reward:{kind:'gems', amount:2800}},
+  {id:'d6000', price:'$50.00',img:'d6000',   name:'6,000 Diamonds', desc:'One-time bundle',               detail:'The grand vault — <b>6,000 💎 diamonds</b>, our best value, credited instantly.', reward:{kind:'gems', amount:6000}},
 ];
 // grant a pack's listed reward. Instant diamond packs credit immediately; daily packs (Cluster/Burger)
 // drop a claimable entry at the top of the Quest log that pays out once per day until its days run out.
@@ -25539,22 +25539,18 @@ const GEM_OFFERS=[
    claim one through /api/tx/earn would be a free-diamond button. Until that route exists this
    credits the mirror only for the DEV test popup (the only caller), and says so out loud rather
    than looking like a real purchase that then evaporates on the next ledger sync. */
-function grantGemOffer(i){ const o=GEM_OFFERS[i]; if(!o||!o.reward) return; const rw=o.reward;
-  if(rw.kind==='gems'){
-    if(ACC.token){ api('/api/shop/devpack','POST',{i, requestId:uid8()}).then(r=>{   /* v825: banked by the server, logged to the dev inbox */
-        if(r&&r.ok){ adoptLedger(r.ledger); saveG(); updateHubChrome(); bannerMsg('💎 +'+r.gems+' diamonds (dev test - banked, sent to the dev inbox for review)'); }
-        else bannerMsg((r&&r.error)||'Could not reach the realm.'); });
-      return; }
-    G.gems=(G.gems||0)+rw.amount; bannerMsg('💎 +'+rw.amount+' diamonds!'); }
-  else if(rw.kind==='dailyGems'||rw.kind==='dailyStamina'){
-    G.dailyPacks=G.dailyPacks||[]; consolidateDailyPacks();
-    const type=(rw.kind==='dailyGems'?'gems':'stamina'), key=type+'_'+rw.amount;
-    let p=G.dailyPacks.find(x=>x.key===key);
-    if(p){ p.daysLeft+=rw.days; bannerMsg('🎁 '+o.name+' — +'+rw.days+' days ('+p.daysLeft+' total)'); }   // buying again stacks the days
-    else { G.dailyPacks.push({ id:'dp'+Date.now()+'_'+Math.floor(Math.random()*1e4), key, type, amount:rw.amount, daysLeft:rw.days, lastClaim:null, name:o.name, icon:o.img });
-      bannerMsg('🎁 '+o.name+' added — claim it daily in Quests!'); }
-  }
-  saveG(); updateHubChrome(); if(typeof updateMailBadges==='function') updateMailBadges(); }
+/* v1050 (Phil 7 Oct: "make the diamonds shop server side" / "so that people receive diamonds when they purchase"): a purchase is
+   credited by the SERVER - diamonds at once, a plan as days on the ledger that the Quest log claims from the server. 'test' is the
+   payment the server accepts for dev accounts today; a store receipt replaces it when a payment provider is connected. */
+async function grantGemOffer(i){ const o=GEM_OFFERS[i]; if(!o||!o.id) return;
+  if(!ACC.token){ bannerMsg('Connect to the realm to buy.'); return; }
+  if(grantGemOffer._busy) return; grantGemOffer._busy=true;
+  const r=await api('/api/shop/purchase','POST',{offerId:o.id, provider:'test', requestId:uid8()}); grantGemOffer._busy=false;
+  if(!r||!r.ok){ bannerMsg((r&&r.error)||'Could not reach the realm.'); return; }
+  adoptLedger(r.ledger); saveG(); updateHubChrome();
+  bannerMsg(r.granted&&r.granted.gems ? ('💎 +'+r.granted.gems+' diamonds!') : ('🎁 '+o.name+' - +'+((r.granted&&r.granted.planDays)||0)+' days, claim it daily in Quests'));
+  if(typeof renderQuests==='function') try{ renderQuests(); }catch(e){}
+  if(typeof updateMailBadges==='function') updateMailBadges(); }
 // merge any duplicate daily packs of the same type into one stacked entry (one claim per day, days add up)
 function consolidateDailyPacks(){ if(!Array.isArray(G.dailyPacks))return; const map={};
   G.dailyPacks.forEach(p=>{ const k=p.key||((p.type||'gems')+'_'+p.amount); p.key=k;
@@ -25568,22 +25564,18 @@ function consolidateDailyPacks(){ if(!Array.isArray(G.dailyPacks))return; const 
    fields and survived. The day was burned and nothing was paid. The reward now goes through the
    capped earn rule (gems/pack, stamina/pack) and the day is consumed ONLY if the server booked it —
    an older server with no stamina/pack rule refuses and the pack keeps its day. */
-async function claimDailyPack(id){ const p=(G.dailyPacks||[]).find(x=>x.id===id); if(!p)return;
-  const today=arenaDayKey();
-  if(p.lastClaim===today){ bannerMsg('Already claimed today — back at 09:00.'); return; }
-  if(claimDailyPack._busy) return; claimDailyPack._busy=true;                       // the await below reopens a double-tap window the sync version could not have
-  const banked = ACC.token ? await txEarnP((p.type==='gems'?'gems':'stamina'), p.amount, 'pack') : true;
-  claimDailyPack._busy=false;
-  if(!banked){ bannerMsg('Claim failed — your pack still has this day. Try again in a moment.'); return; }
-  // consolidateDailyPacks() may have rebuilt the list during the await and merged this entry away;
-  // writing the claim to a detached object would leave the day claimable again (repeat payout)
-  const q=(G.dailyPacks||[]).find(x=>x.id===id) || (G.dailyPacks||[]).find(x=>x.key===p.key) || p;
-  if(!ACC.token){ if(q.type==='gems') G.gems=(G.gems||0)+q.amount; else G.stamina=(G.stamina||0)+q.amount; }
-  bannerMsg(q.type==='gems' ? ('💎 +'+q.amount+' from '+q.name) : ('⧗ +'+q.amount+' stamina from '+q.name));
-  q.lastClaim=today; q.daysLeft-=1;
-  if(q.daysLeft<=0) G.dailyPacks=G.dailyPacks.filter(x=>x.id!==q.id);
-  saveG(); updateHubChrome(); renderQuests(); if(typeof updateMailBadges==='function') updateMailBadges(); }
-function dailyPacksReady(){ consolidateDailyPacks(); const today=arenaDayKey(); return (G.dailyPacks||[]).some(p=>p.lastClaim!==today && p.daysLeft>0); }
+/* v1050: the plans as the server reports them - [{type, name, amount, daysLeft, ready}] (only plans with days left) */
+function srvPlans(){ const pl=(LED&&LED.st&&LED.st.plans)||{}; const out=[];
+  for(const type of ['gems','stamina']){ const p=pl[type]; if(p&&(p.daysLeft|0)>0) out.push({type, id:type, name:p.name, amount:p.amount, daysLeft:p.daysLeft|0, ready:!!p.ready}); }
+  return out; }
+async function claimPlans(){ if(!ACC.token){ bannerMsg('Connect to the realm to claim.'); return; }
+  if(claimPlans._busy) return; claimPlans._busy=true;
+  const r=await api('/api/shop/plan-claim','POST',{requestId:uid8()}); claimPlans._busy=false;
+  if(!r||!r.ok){ bannerMsg((r&&r.error)||'Claim failed - try again in a moment.'); return; }
+  adoptLedger(r.ledger); saveG(); updateHubChrome();
+  const pd=r.paid||{}; bannerMsg([pd.gems?('💎 +'+pd.gems+' diamonds'):'', pd.stamina?('⧗ +'+pd.stamina+' stamina'):''].filter(Boolean).join(' · '));
+  renderQuests(); if(typeof updateMailBadges==='function') updateMailBadges(); }
+function dailyPacksReady(){ return srvPlans().some(p=>p.ready); }
 // day-boundary: when the server reports shop counters (LED.st.shop) it owns the day (resets at midnight ET,
 // not the 09:00 arena day) — the local reset and local price table are only a fallback for an old server.
 function shopSrv(){ const s=(LED&&LED.st&&LED.st.shop); return (s&&typeof s==='object')?s:null; }
@@ -26034,7 +26026,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791334124074';
+const BUILD_ID = '1791386600846';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

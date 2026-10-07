@@ -239,6 +239,8 @@ note "test_walk_loops_1047.js (v1047: each walk plays a measured stride loop - n
 node tests/test_walk_loops_1047.js || FAILED=1
 note "test_sound_1048.js (v1048: the sound system - silent on the server and in replays, never touches a fight, empty until Phil approves a sound)"
 node tests/test_sound_1048.js || FAILED=1
+note "test_shop_1050.js (v1050: the diamond shop is server-side - purchases credited by the server, plans paid from purchased days, the old pack earn closed)"
+node tests/test_shop_1050.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi

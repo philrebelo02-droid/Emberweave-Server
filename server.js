@@ -3799,6 +3799,7 @@ function ledgerView(u){ const led=ensureLedger(u); ledStamRegen(led); if(ledPlay
       o[m]={ cleared:pr.cleared|0, stars:pr.stars||{}, locked:portalLocked(led,m) }; } return o; })(),
     stamina:{v:led.stam.v, max:ledStamMax(led), regenMs:STAM_REGEN_MS},
     dust:u.dust||0,
+    plans:(function(){ try{ return plansView(led); }catch(e){ return null; } })(),   /* v1050: the paid plans, server-owned */
     // day-boundary: HUD shop counters are server-owned (ET-midnight day via shopState); the client
     // used to keep its own 09:00-ET copy, so the quoted price drifted from the charged price.
     shop:(function(){ try{ const sh=shopState(u); return { food:sh.food|0, gold:sh.gold|0,
@@ -3822,10 +3823,10 @@ function ledgerView(u){ const led=ensureLedger(u); ledStamRegen(led); if(ledPlay
    runaway loop, not a design limit. */
 const EARN_RULES={
   frag:{ arena:{max:10,day:60} },   /* 3 Oct Market audit #1: 'signin' removed - the daily sign-in pays through /api/signin/claim */   /* 3 Oct Market audit #1: 'stars' removed from every currency - the star track pays through /api/stars/claim */
-  stamina:{ arenashop:{max:200,day:2000}, pack:{max:120,day:120} },   /* 30 Sep hardening: a real daily stamina pack pays 120 once a day */
+  stamina:{ arenashop:{max:200,day:2000} },   /* v1050: 'pack' removed - the plans are paid by /api/shop/plan-claim from purchased days only */   /* 30 Sep hardening: a real daily stamina pack pays 120 once a day */
   gems:{   /* 3 Oct audit (P0): tower + gauntlet removed - the client chose the amount; the Tower now pays through /api/tower/*, the Gauntlet is retired (no caller) */
          /* 3 Oct 23:3x: city + quest removed - no live caller (the old client guild boss that paid 'city' is dead code; signed-in quests pay through /api/quest/claim) */   /* 3 Oct Market audit #1: convert removed - the War Chest is a server purchase (/api/shop/buy warchest) */
-         pack:{max:150,day:150}, arenashop:{max:40,day:800} },   /* 30 Sep hardening: pack was 20,000/60,000 a day (a real pack pays 150 once a day); wish + misc removed - the client never sends them */
+         arenashop:{max:40,day:800} },   /* v1050: 'pack' (150 diamonds a day to anyone who asked) removed */   /* 30 Sep hardening: pack was 20,000/60,000 a day (a real pack pays 150 once a day); wish + misc removed - the client never sends them */
   gold:{   /* 3 Oct Market audit #1: guildshop removed (gold/gems/stamina) - the Guild Shop is a server purchase (/api/shop/buy gshop:N) */   /* 3 Oct audit (P0): tower + gauntlet removed (see gems) */
          /* 3 Oct 23:3x: city + quest removed (see gems) */   /* 3 Oct: convert removed (see gems) */   /* 30 Sep hardening: gold wish + misc removed (never sent by the client) */
          arenashop:{max:5000,day:100000} },   /* v1017 (re-audit Market #12): dead 'march' entry removed - /api/tx/earn already refuses reason 'march' (every signed-in city march is a server march) */
@@ -3923,6 +3924,33 @@ function poolRollGem(u, rigged){ const led=u.led, pool=poolState(u);
 const SHOP_FOOD_COSTS=[50,100,100,200,200,400,400], SHOP_GOLD_COSTS=[20,20,40,40,60,60,100,100], SHOP_FOOD_STAMINA=120;
 function shopState(u){ const led=ensureLedger(u); if(!led.shop) led.shop={day:'',food:0,gold:0};
   const dk=nyDayKey(); if(led.shop.day!==dk){ led.shop={day:dk,food:0,gold:0}; } return led.shop; }
+/* v1050 (Phil 7 Oct 2026: "Please make the diamonds shop server side" / "So that people receive diamonds when they purchase").
+   THE DIAMOND SHOP IS SERVER-OWNED. The offers live here; a purchase is credited by the SERVER the moment it is confirmed; the two
+   plans (Cluster Pack = diamonds a day, Burger Meal = stamina a day) are days on the LEDGER, paid by the server once per 09:00 ET day -
+   never from the phone's save. Real money needs a store receipt: verifyPurchase() is the ONE place a payment provider plugs in (none is
+   connected yet, so players still see "coming soon"); a 'test' payment is accepted only for a dev account or on a simulation server
+   (SHOP_TEST_PURCHASES=1). The old phone-side plan claim (/api/tx/earn reason 'pack') is closed: it paid anyone who asked. */
+const SHOP_OFFERS=[
+  {id:'cluster', price:'$4.99',  usd:4.99,  name:'Cluster Pack',   kind:'plan', plan:'gems',    amount:150,  days:14},
+  {id:'burger',  price:'$2.99',  usd:2.99,  name:'Burger Meal',    kind:'plan', plan:'stamina', amount:120,  days:30},
+  {id:'d500',    price:'$4.99',  usd:4.99,  name:'500 Diamonds',   kind:'gems', amount:500},
+  {id:'d1200',   price:'$9.99',  usd:9.99,  name:'1,200 Diamonds', kind:'gems', amount:1200},
+  {id:'d2800',   price:'$19.99', usd:19.99, name:'2,800 Diamonds', kind:'gems', amount:2800},
+  {id:'d6000',   price:'$50.00', usd:50,    name:'6,000 Diamonds', kind:'gems', amount:6000}];
+const SHOP_OFFER_BY_ID=Object.fromEntries(SHOP_OFFERS.map(o=>[o.id,o]));
+const SHOP_PLAN_KINDS=['gems','stamina'];
+function planDayKey(){ return nyDayKey(Date.now()-9*3600000); }   // plans pay at the 09:00 ET reset (the shop's own promise)
+function shopPlans(led){ if(!led.plans||typeof led.plans!=='object') led.plans={};
+  for(const k of SHOP_PLAN_KINDS){ const pl=led.plans[k]; if(!pl||typeof pl!=='object') led.plans[k]={daysLeft:0,lastClaim:''}; }
+  return led.plans; }
+function plansView(led){ const pls=shopPlans(led), dk=planDayKey(), o={};
+  for(const k of SHOP_PLAN_KINDS){ const pl=pls[k], off=SHOP_OFFERS.find(x=>x.kind==='plan'&&x.plan===k);
+    o[k]={ daysLeft:pl.daysLeft|0, amount:off.amount, name:off.name, offer:off.id, ready:(pl.daysLeft|0)>0 && pl.lastClaim!==dk }; }
+  return o; }
+function verifyPurchase(me,provider,receipt,offer){
+  if(provider==='test') return (isDev(me)||process.env.SHOP_TEST_PURCHASES==='1') ? {ok:true,ref:'test'} : {ok:false,error:'Diamond packs are coming soon.'};
+  return {ok:false,error:'Diamond packs are coming soon.'};   // a store (App Store / Google Play / web checkout) verifies its receipt HERE
+}
 /* ==================== CAMPAIGN (authored encounters, audit C2 — server-resolved) ==================== */
 const CAMPAIGN_NODES=160;   // v821 (Phil 25 Sep: "There should be 160 stages"): 16 chapters x 10 fixed stages
 /* Glyph Fragment Farm Map. Ordinary Normal stages each advertise four fixed possibilities and pay
@@ -5955,6 +5983,32 @@ async function api(req,res,url){
     });
     return send(res, out.storageFailed?503:out.ok===false?400:200, out); }
   /* v825 DEV PACK TEST - the server credits the pack (amount from ITS list, never the client's) and files it to the dev inbox. */
+  /* v1050: THE DIAMOND SHOP (see SHOP_OFFERS) - the offers, a purchase credited by the server, and the plans' daily claim */
+  if(p==='/api/shop/offers'){ if(!me)return send(res,401,{error:'auth'}); const led=ensureLedger(me);
+    return send(res,200,{ ok:true, offers:SHOP_OFFERS.map(o=>({id:o.id,price:o.price,name:o.name,kind:o.kind,plan:o.plan||null,amount:o.amount,days:o.days||null})),
+      plans:plansView(led) }); }
+  if(p==='/api/shop/purchase' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
+    const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
+    const offer=SHOP_OFFER_BY_ID[String(b.offerId||'')]; if(!offer) return send(res,400,{error:'Unknown offer.'});
+    const v=verifyPurchase(me,String(b.provider||''),b.receipt,offer); if(!v.ok) return send(res,403,{error:v.error});
+    const out=durableCommit(me,me.id+':purchase:'+reqId,(me)=>{ const led=ensureLedger(me); const granted={};
+      if(offer.kind==='gems') granted.gems=creditGems(me,led,offer.amount,'purchase:'+offer.id);
+      else { const pl=shopPlans(led)[offer.plan]; pl.daysLeft=(pl.daysLeft|0)+offer.days; granted.planDays=offer.days; }   // buying again adds the days
+      led.purchases=Array.isArray(led.purchases)?led.purchases:[];
+      led.purchases.push({t:Date.now(), id:offer.id, usd:offer.usd, ref:v.ref}); if(led.purchases.length>500) led.purchases=led.purchases.slice(-500);
+      ledTx(me,'shop:purchase:'+offer.id,Object.assign({usd:offer.usd},granted));
+      writeDB(); return { ok:true, offer:offer.id, granted, plans:plansView(led), ledger:ledgerView(me) }; });
+    return send(res,out.storageFailed?503:200,out); }
+  if(p==='/api/shop/plan-claim' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
+    const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
+    const out=durableCommit(me,me.id+':planclaim:'+reqId,(me)=>{ const led=ensureLedger(me), pls=shopPlans(led), dk=planDayKey(), paid={};
+      for(const k of SHOP_PLAN_KINDS){ const pl=pls[k]; if((pl.daysLeft|0)<=0||pl.lastClaim===dk) continue;
+        const off=SHOP_OFFERS.find(x=>x.kind==='plan'&&x.plan===k);
+        paid[k]=(k==='gems')?creditGems(me,led,off.amount,'plan:'+off.id):creditStamina(me,led,off.amount,'plan:'+off.id);
+        pl.daysLeft=(pl.daysLeft|0)-1; pl.lastClaim=dk; }
+      if(!Object.keys(paid).length) return {ok:false, error:'Nothing to claim today - back at 09:00.', plans:plansView(led)};
+      ledTx(me,'shop:plan-claim',paid); writeDB(); return { ok:true, paid, plans:plansView(led), ledger:ledgerView(me) }; });
+    return send(res,out.storageFailed?503:200,out); }
   if(p==='/api/shop/devpack' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     if(!isDev(me)) return send(res,403,{error:'Diamond packs are coming soon.'});
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
