@@ -9267,30 +9267,38 @@ let _preCrit=null;   // v532: set on the fuse of a swing whose crit was rolled a
    replay (window._p2guard); nothing plays until the player's first tap unlocks audio (phones); at most 8 sounds at once; a file that
    is not decoded within 0.4 s of its moment is skipped (it plays next time), never late. Everything mapped is fetched on that first tap. */
 const AUDIO_MAP = {};
-const SND = { ctx:null, out:null, buf:{}, pend:{}, last:{}, live:0, cfg:{ on:true, vol:0.8 } };
-try{ const _c=JSON.parse(localStorage.getItem('ew_sound')||'null'); if(_c&&typeof _c==='object') Object.assign(SND.cfg,_c); }catch(e){}
-function sndCan(){ try{ return !!SND.cfg.on && !window._p2guard && !!(window.AudioContext||window.webkitAudioContext); }catch(e){ return false; } }
+/* v1049 (Phil 6 Oct: "an audio section, where there is a scale to reduce volume or turn off - FX, Music, Voices"): three channels, each
+   with its own on/off and volume, kept on this device. hero.* keys = Voices, music.* = Music, everything else = FX; lore = Voices. */
+const SND_CH = ['fx','music','voice'];
+const SND = { ctx:null, out:null, bus:{}, buf:{}, pend:{}, last:{}, live:0, cfg:{ fx:{on:true,vol:0.8}, music:{on:true,vol:0.6}, voice:{on:true,vol:0.9} } };
+try{ const _c=JSON.parse(localStorage.getItem('ew_sound')||'null'); if(_c&&typeof _c==='object'){
+  if(!_c.fx&&('on' in _c||'vol' in _c)) SND_CH.forEach(ch=>{ if(_c.on===false) SND.cfg[ch].on=false; if(typeof _c.vol==='number') SND.cfg[ch].vol=_c.vol; });   /* v1048 single setting */
+  else SND_CH.forEach(ch=>{ if(_c[ch]&&typeof _c[ch]==='object') Object.assign(SND.cfg[ch],_c[ch]); }); } }catch(e){}
+function sndCh(key){ return /^hero\./.test(key)?'voice':(/^music\./.test(key)?'music':'fx'); }
+function sndGain(ch){ const c=SND.cfg[ch]; return c&&c.on?Math.max(0,Math.min(1,+c.vol||0)):0; }
+function sndCan(){ try{ return SND_CH.some(ch=>SND.cfg[ch].on) && !window._p2guard && !!(window.AudioContext||window.webkitAudioContext); }catch(e){ return false; } }
 function sndLoad(f){ if(!SND.ctx) return null; if(f in SND.buf) return null; if(SND.pend[f]) return SND.pend[f];
   SND.pend[f]=fetch('/assets/audio/'+f).then(r=>{ if(!r.ok) throw new Error('http '+r.status); return r.arrayBuffer(); })
     .then(a=>new Promise((res,rej)=>SND.ctx.decodeAudioData(a,res,rej)))
     .then(b=>{ SND.buf[f]=b; delete SND.pend[f]; return b; }, ()=>{ SND.buf[f]=null; delete SND.pend[f]; return null; });
   return SND.pend[f]; }
 function sndUnlock(){ try{
-    if(!SND.ctx){ const C=window.AudioContext||window.webkitAudioContext; if(!C) return; SND.ctx=new C(); SND.out=SND.ctx.createGain(); SND.out.gain.value=SND.cfg.vol; SND.out.connect(SND.ctx.destination);
+    if(!SND.ctx){ const C=window.AudioContext||window.webkitAudioContext; if(!C) return; SND.ctx=new C(); SND.out=SND.ctx.createGain(); SND.out.connect(SND.ctx.destination); SND_CH.forEach(ch=>{ const g=SND.ctx.createGain(); g.gain.value=sndGain(ch); g.connect(SND.out); SND.bus[ch]=g; });
       for(const k in AUDIO_MAP) (AUDIO_MAP[k]||[]).forEach(l=>sndLoad(l.f)); }
     if(SND.ctx.state==='suspended') SND.ctx.resume().catch(()=>{});
   }catch(e){} }
 try{ if(typeof document!=='undefined'&&document.addEventListener) ['pointerdown','touchend','keydown'].forEach(ev=>document.addEventListener(ev,sndUnlock,{passive:true})); }catch(e){}
-function sndPlay(key,gapMs){ if(!sndCan()) return false; const L=AUDIO_MAP[key]; if(!L||!L.length||!SND.ctx||SND.ctx.state!=='running') return false;
+function sndPlay(key,gapMs){ if(!sndCan()) return false; const ch=sndCh(key); if(!SND.cfg[ch].on) return false; const L=AUDIO_MAP[key]; if(!L||!L.length||!SND.ctx||SND.ctx.state!=='running') return false;
   const now=performance.now(); if(SND.last[key]!=null && now-SND.last[key]<(gapMs||80)) return false; if(SND.live>=8) return false; SND.last[key]=now;
   L.forEach(l=>{ const go=b=>{ if(!b||!SND.ctx||performance.now()-now>400) return; try{ const src=SND.ctx.createBufferSource(), g=SND.ctx.createGain();
-      src.buffer=b; g.gain.value=(l.vol!=null?l.vol:1); src.connect(g); g.connect(SND.out); SND.live++; src.onended=()=>{ SND.live=Math.max(0,SND.live-1); }; src.start(); }catch(e){} };
+      src.buffer=b; g.gain.value=(l.vol!=null?l.vol:1); src.connect(g); g.connect(SND.bus[ch]||SND.out); SND.live++; src.onended=()=>{ SND.live=Math.max(0,SND.live-1); }; src.start(); }catch(e){} };
     const b=SND.buf[l.f]; if(b) go(b); else if(b!==null){ const p=sndLoad(l.f); if(p) p.then(go); } });
   return true; }
-function sndSet(c){ Object.assign(SND.cfg,c||{}); try{ localStorage.setItem('ew_sound',JSON.stringify(SND.cfg)); }catch(e){} if(SND.out) SND.out.gain.value=SND.cfg.vol; try{ if(_lore.a) _lore.a.volume=SND.cfg.vol; }catch(e){} }
+function sndSet(ch,c){ if(!SND.cfg[ch]) return; Object.assign(SND.cfg[ch],c||{}); try{ localStorage.setItem('ew_sound',JSON.stringify(SND.cfg)); }catch(e){} if(SND.bus[ch]) SND.bus[ch].gain.value=sndGain(ch);
+  if(ch==='voice'){ try{ if(_lore.a){ if(!SND.cfg.voice.on) loreStop(); else _lore.a.volume=sndGain('voice'); } }catch(e){} } }
 let _sndRot={}; try{ _sndRot=JSON.parse(localStorage.getItem('ew_sound_rot')||'{}')||{}; }catch(e){ _sndRot={}; }
 const _sndLine=(typeof WeakMap==='function')?new WeakMap():null;   // unit -> the line it says this fight (every fight builds new unit objects; the units array itself is rebuilt mid-fight)
-function sndUlt(u){ if(!u||!u.key||!sndCan()) return false;
+function sndUlt(u){ if(!u||!u.key||!sndCan()||!SND.cfg.voice.on) return false;
   const lines=[1,2,3].filter(i=>AUDIO_MAP['hero.'+u.key+'.ult.'+i]); if(!lines.length) return false;
   let r=_sndLine?_sndLine.get(u):undefined; if(r==null){ r=(u.key in _sndRot)?(((_sndRot[u.key]|0)+1)%lines.length):0; _sndRot[u.key]=r; if(_sndLine) _sndLine.set(u,r); try{ localStorage.setItem('ew_sound_rot',JSON.stringify(_sndRot)); }catch(e){} }
   return sndPlay('hero.'+u.key+'.ult.'+lines[r%lines.length],0); }
@@ -9305,8 +9313,8 @@ function loreStop(){ try{ if(_lore.a){ _lore.a.pause(); _lore.a.removeAttribute(
 function loreBtnSync(btn){ if(!btn) return; const on=!!(_lore.a&&!_lore.a.paused&&!_lore.a.ended); btn.textContent=on?'❚❚':'▶'; btn.setAttribute('aria-label',on?'Pause the story':'Play the story'); }
 function loreToggle(key,btn){ try{
   if(_lore.a&&_lore.key===key&&!_lore.a.ended){ if(_lore.a.paused) _lore.a.play().catch(()=>{}); else _lore.a.pause(); return; }
-  loreStop(); const f=LORE_AUDIO[key]; if(!f) return;
-  const a=new Audio('/assets/audio/'+f); a.preload='none'; a.volume=Math.max(0,Math.min(1,SND.cfg.vol)); _lore.a=a; _lore.key=key;
+  loreStop(); const f=LORE_AUDIO[key]; if(!f||!SND.cfg.voice.on) return;
+  const a=new Audio('/assets/audio/'+f); a.preload='none'; a.volume=sndGain('voice'); _lore.a=a; _lore.key=key;
   a.onplay=a.onpause=a.onended=()=>loreBtnSync(btn); a.play().catch(()=>loreBtnSync(btn)); loreBtnSync(btn);
 }catch(e){} }
 function dealDamage(src,tgt,amt,color,kind,silent){ kind=kind||((src&&src.t&&(['Magic','Healer'].includes(src.t.damageProfile)))?'magic':'phys');   // default follows canonical hero damage; explicit kind still wins
@@ -22908,7 +22916,7 @@ function renderHeroDetail(){
     tab=`<div class="panel" style="line-height:1.62">
         <div class="loreBn">${rarityBannerHtml(key)}</div>   <!-- v656 (Phil: "remove this mythical word ... Instead make their name with the banner of their quality"): the name on its rarity banner -->
         ${L.title?`<div style="font-size:12px;font-style:italic;color:#c9a35e;text-align:center;margin-bottom:12px">“${escapeHTML(L.title)}”</div>`:''}
-        ${LORE_AUDIO[key]?`<div style="text-align:center;margin:-4px 0 12px"><button class="btn sm" id="loreBtn" aria-label="Play the story" style="min-width:56px;font-size:15px">▶</button></div>`:''}
+        ${(LORE_AUDIO[key]&&SND.cfg.voice.on)?`<div style="text-align:center;margin:-4px 0 12px"><button class="btn sm" id="loreBtn" aria-label="Play the story" style="min-width:56px;font-size:15px">▶</button></div>`:''}
         <div style="font-size:12.5px;color:#d3dced">${paras}</div>
         ${myth?`<div style="font-size:11px;color:#8b98a9;border-top:1px solid #2a3550;margin-top:10px;padding-top:8px">✦ Mythical heroes are obtained only through special offers.</div>`:''}
       </div>`;
@@ -24354,12 +24362,15 @@ function renderSettings(){
         <button class="btn xs secondary" id="alClear" style="flex:1;min-width:110px">Clear cache</button></div>
       <div id="alMsg" style="font-size:11px;color:#8b98a9;margin-top:6px;min-height:13px"></div>
     </div>` : '';
-  /* v1048: sound - on/off and volume, kept on this device. Shown once the game has a sound to play. */
-  const soundCard = Object.keys(AUDIO_MAP).length ? `<div class="panel">
-      <div style="font-weight:800;font-size:13px;margin-bottom:6px">🔊 Sound</div>
-      <label style="display:flex;align-items:center;gap:8px;font-size:12px;margin-bottom:6px"><input type="checkbox" id="sndOn" ${SND.cfg.on?'checked':''}> Sound on</label>
-      <label style="display:flex;align-items:center;gap:8px;font-size:12px">Volume <input type="range" id="sndVol" min="0" max="100" value="${Math.round(SND.cfg.vol*100)}" style="flex:1"></label>
-    </div>` : '';
+  /* v1049 (Phil 6 Oct): Audio - FX, Music and Voices, each with on/off and a volume scale, kept on this device. Always shown. */
+  const _sndRow=(ch,name)=>`<div style="display:flex;align-items:center;gap:8px;font-size:12px;margin-top:6px">
+        <label style="display:flex;align-items:center;gap:6px;min-width:84px"><input type="checkbox" id="snd_${ch}_on" ${SND.cfg[ch].on?'checked':''}> ${name}</label>
+        <input type="range" id="snd_${ch}_vol" min="0" max="100" value="${Math.round(SND.cfg[ch].vol*100)}" aria-label="${name} volume" style="flex:1;min-width:0" ${SND.cfg[ch].on?'':'disabled'}>
+        <span id="snd_${ch}_pct" style="width:34px;text-align:right;color:#8b98a9;font-variant-numeric:tabular-nums">${Math.round(SND.cfg[ch].vol*100)}%</span></div>`;
+  const soundCard = `<div class="panel">
+      <div style="font-weight:800;font-size:13px">🔊 Audio</div>
+      ${_sndRow('fx','FX')}${_sndRow('music','Music')}${_sndRow('voice','Voices')}
+    </div>`;
   b.innerHTML=`<div style="display:flex;flex-direction:column;gap:10px">
     <div style="font-size:10px;color:#8b98a9;font-weight:700;letter-spacing:.08em">XANTHYR GAMES</div>
     <div style="font-size:13px;color:#c3ccd8">Emberweave Heroes — ${BUILD_VERSION}</div>
@@ -24374,9 +24385,9 @@ function renderSettings(){
       <div style="margin-top:6px;color:#6f7d90">© 2026 Xanthyr Games · Emberweave Heroes™ · All rights reserved.</div>
     </div>
   </div>`;
-  { const so=b.querySelector('#sndOn'), sv=b.querySelector('#sndVol');   // v1048 sound settings
-    if(so) so.onchange=()=>{ sndSet({on:so.checked}); if(so.checked){ sndUnlock(); } };
-    if(sv) sv.oninput=()=>sndSet({vol:Math.max(0,Math.min(1,(+sv.value||0)/100))}); }
+  SND_CH.forEach(ch=>{ const so=b.querySelector('#snd_'+ch+'_on'), sv=b.querySelector('#snd_'+ch+'_vol'), sp=b.querySelector('#snd_'+ch+'_pct');   // v1049 audio settings
+    if(so) so.onchange=()=>{ sndSet(ch,{on:so.checked}); if(sv) sv.disabled=!so.checked; if(so.checked) sndUnlock(); };
+    if(sv) sv.oninput=()=>{ const v=Math.max(0,Math.min(1,(+sv.value||0)/100)); sndSet(ch,{vol:v}); if(sp) sp.textContent=Math.round(v*100)+'%'; }; });
   {  // v564: Offline Art card (signed-in players) - same two actions as the dev panel's QA tab
     const alMsg=b.querySelector('#alMsg'), alBar=b.querySelector('#alBar'), alWrap=b.querySelector('#alBarWrap'), alDl=b.querySelector('#alDl');
     const rep=(m)=>{ if(alMsg) alMsg.textContent=m; if(alDl) alDl.textContent=_alRunning?'Stop download':'Update all features'; };
@@ -26023,7 +26034,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791332195630';
+const BUILD_ID = '1791334124074';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
