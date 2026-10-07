@@ -322,12 +322,12 @@ function isDev(u){ return !!(u && !u.isNpc && (u.role==='admin' || ADMIN_IDS.has
 
 /* v946 (Phil, 2 Oct 2026: "the same account should be Game wide "user" "pass". the only thing that should start over is their
    player progress if they go on another server" / "so phil or dev1 should be able to sign on any server").
-   Server 1 is the ACCOUNT SERVER: the one home of every name, password and email. Servers 2-4 (ACCOUNT_AUTHORITY set) check a
+   Server 1 is the ACCOUNT SERVER: the one home of every name, password and email. Servers 2-5 (ACCOUNT_AUTHORITY set) check a
    login / register / password reset with it over the LAN, and keep their OWN player (progress) per account, linked by gid = the
    account's id on Server 1. A satellite keeps a local copy of the password hash after each good login, so a returning player can
    still sign in while Server 1 is down; a first sign-in needs Server 1. The account endpoints answer only with the shared
    ACCOUNT_LINK_SECRET and never through Cloudflare (a request carrying cf-connecting-ip is refused). */
-const ACCOUNT_AUTHORITY=(process.env.ACCOUNT_AUTHORITY||'').replace(/\/+$/,'');   // Servers 2-4: http://192.168.1.220:8080
+const ACCOUNT_AUTHORITY=(process.env.ACCOUNT_AUTHORITY||'').replace(/\/+$/,'');   // Servers 2-5: http://192.168.1.220:8080
 const ACCOUNT_LINK_SECRET=process.env.ACCOUNT_LINK_SECRET||'';
 function linkSecretOk(req){
   if(!ACCOUNT_LINK_SECRET || ACCOUNT_AUTHORITY || req.headers['cf-connecting-ip']) return false;
@@ -361,7 +361,7 @@ function linkedUser(gid, name, pass){
   delete u.guest;
   return u; }
 /* v1035 (Phil, 5 Oct 2026: "ban should be account wide" / "and so should password reset"). The ACCOUNT SERVER (Server 1) holds the
-   one ban and the time of the last password change of every account; Servers 2-4 follow it for their linked players:
+   one ban and the time of the last password change of every account; Servers 2-5 follow it for their linked players:
    - on sign-in, server switch and password reset the account server's answer carries st = {until, reason, passAt};
    - once a minute each satellite asks for the state of its linked players that hold a session or a ban (/api/internal/account/status);
    - a ban that appears signs the player out (like a ban on Server 1 does) and the ban gate applies; a lifted ban lifts here too;
@@ -448,7 +448,7 @@ function acctResetVerify(name, rawCode, newPass, ip){
   if(hashPass(code,u.reset.salt)!==u.reset.hash){ u.reset.tries=(u.reset.tries||0)+1; if(u.resetLog){ u.resetLog.bad=(u.resetLog.bad||0)+1; u.resetLog.ip=u.resetLog.ip||{}; const r2=u.resetLog.ip[_ik]||(u.resetLog.ip[_ik]={codes:0,bad:0}); r2.bad++; } writeDB(); return {status:400,error:'Incorrect code — check your email and try again.'}; }
   const np=(newPass||'').toString(); if(np.length<8) return {status:400,error:'New password must be at least 8 characters.'};
   const c=makeCred(np); u.salt=c.salt; u.hash=c.hash; u.iters=c.iters; u.mustReset=false; delete u.reset;
-  u.passAt=Date.now();   // v1035: Servers 2-4 sign the account out and drop their local password copy when this moves
+  u.passAt=Date.now();   // v1035: Servers 2-5 sign the account out and drop their local password copy when this moves
   dropTokens(id); writeDB(); return {u}; }
 // v947: one-time server-switch codes, held by the account server in memory only (a restart simply expires them).
 const HANDOFF=new Map();   // sha256(code) -> {gid, exp}
@@ -4238,7 +4238,7 @@ async function api(req,res,url){
       const times=Array.isArray(rec)?rec.filter(t=>now-t<WINDOW):[];
       if(times.length>=REG_ACCOUNTS_PER_IP) return send(res,429,{error:'Too many new accounts from this network today — try again tomorrow.'});
       DB.ipAccounts[ip]=times; }
-    // v946: on Servers 2-4 the account is made on the account server (one name, one password, game-wide); this server's player
+    // v946: on Servers 2-5 the account is made on the account server (one name, one password, game-wide); this server's player
     // links to it - a signed-in guest keeps its progress here, as before.
     if(ACCOUNT_AUTHORITY){
       const r=await authorityCall('/api/internal/account/register',{ name, pass:b.pass });
@@ -4387,7 +4387,7 @@ async function api(req,res,url){
 
   if(p==='/api/login' && req.method==='POST'){ const b=await body(req);
     if(rateLimited(req,'login',15,60000)) return send(res,429,{error:'Too many attempts — wait a minute and try again.'});
-    // v946: on Servers 2-4 the password is checked by the account server (Server 1); this server keeps its own player.
+    // v946: on Servers 2-5 the password is checked by the account server (Server 1); this server keeps its own player.
     if(ACCOUNT_AUTHORITY){
       const name=String(b.name||'').trim(), r=await authorityCall('/api/internal/account/verify',{ name, pass:b.pass, ip:clientIP(req) });   /* v1007 (re-audit Account N3): the player's IP, so the lockout is per player, not per satellite */
       if(r && r.status===200 && r.body && r.body.gid){ const u=linkedUser(r.body.gid, r.body.name, b.pass); delete u.loginFails;
@@ -4408,7 +4408,7 @@ async function api(req,res,url){
   // Always responds ok (never reveals whether an account or its email exists); only sends if a valid email is on file.
   if(p==='/api/reset-request' && req.method==='POST'){ const b=await body(req);
     if(rateLimited(req,'resetreq',5,10*60000)) return send(res,429,{error:'Too many requests — wait a few minutes and try again.'});
-    // v946: the account (and its email) lives on the account server; Servers 2-4 pass the request on
+    // v946: the account (and its email) lives on the account server; Servers 2-5 pass the request on
     if(ACCOUNT_AUTHORITY) await authorityCall('/api/internal/account/reset-request',{ name:b.name, ip:clientIP(req) });   /* v1017: the player's network */
     else acctResetRequest(b.name, clientIP(req));
     return send(res,200,{ ok:true }); }   // RE-AUDIT: identical response whether or not the account/email exists — no enumeration
@@ -8478,7 +8478,7 @@ const server=http.createServer((req,res)=>{
   }
   // marketing site at the bare root; the game lives at /play and on deep links (/?room=..., etc.)
   if(p==='/' && !url.search) return serveFile(res,'emberweave-site.html','text/html; charset=utf-8',null,req);
-  /* v1034 (Phil 5 Oct: "it reloads twice instead of once"): a server switch made on s2-s4 passes through the front door so its
+  /* v1034 (Phil 5 Oct: "it reloads twice instead of once"): a server switch made on s2-s5 passes through the front door so its
      memory (localStorage ew_server, front-door origin) changes - it used to load the whole 1.1 MB game page to do that. This page is
      the whole job: store N and forward. Server 1 = the front door, Server N = sN.emberweaveheroes.com (the SVR_LIST pattern); the
      #handoff fragment rides along untouched (browsers never send it to a server). Only *.emberweaveheroes.com targets exist. */
