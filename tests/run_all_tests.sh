@@ -235,6 +235,8 @@ note "test_grok_fx_1044.js (v1044: Grok's fifteen spell plates - sheet sizes, di
 node tests/test_grok_fx_1044.js || FAILED=1
 note "test_toxic_breath_1045.js (v1045: Bloatus Toxic Breath - plume from the mouth on the exhale, cast 0.9 s, no swing during the breath)"
 node tests/test_toxic_breath_1045.js || FAILED=1
+note "test_walk_loops_1047.js (v1047: each walk plays a measured stride loop - no wrap to the start pose, no still frames, no 1,0 tail)"
+node tests/test_walk_loops_1047.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi
