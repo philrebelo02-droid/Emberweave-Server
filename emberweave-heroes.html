@@ -5880,7 +5880,7 @@ function battleFxReset(){ try{ if(typeof _bees!=='undefined'){ _bees.forEach(b=>
     voidZones.length=0; chains.length=0; _pendingDots.length=0;
     if(typeof staffFx!=='undefined') staffFx.length=0;
     if(typeof _groundFx!=='undefined') _groundFx.length=0;
-    if(typeof _projFx!=='undefined') _projFx.length=0;
+    if(typeof _projFx!=='undefined') _projFx.length=0; if(typeof clearTipFx==='function') clearTipFx();   /* v1070 */
     if(typeof _beamFx!=='undefined') _beamFx.length=0;
     if(typeof _boltFx!=='undefined'){ _boltFx.forEach(o=>{ try{ scene.remove(o.spr); o.spr.material.dispose(); }catch(_){} }); _boltFx.length=0; }   /* v959 */
     if(typeof _fxPlates!=='undefined') _fxPlates.length=0; }catch(e){} }
@@ -9848,7 +9848,7 @@ function startAbilityClip(u,type){
        used to overwrite _abilAnim and the passive vanished mid-play. The skill still FIRES - this
        is render-only - its clip is simply skipped for the tail of the passive. The ult is exempt. */
     const _passHold=((u._abilPri|0)===2 && (u._abilHold||0)>0 && u._abilAnim==='passive' && u._castSlot!=='ult');
-    if(st && u.anim && u.anim[st] && !_passHold){ const A=u.anim[st]; u._abilAnim=st; u._abilPri=4; u._abilStartAt=battleTime;   /* v1021: render-only clip clock (rush) */   // a kit clip; castKit/castAbility re-tag it 4 (skill) or 6 (ult) once they know which slot fired
+    if(st && u.anim && u.anim[st] && !_passHold){ const A=u.anim[st]; u._abilAnim=st; u._abilPri=4; u._abilStartAt=battleTime; if(typeof TIPFX!=='undefined'&&TIPFX[u.key]&&TIPFX[u.key][st]) spawnTipFx(u,st);   /* v1021: render-only clip clock (rush) */   // a kit clip; castKit/castAbility re-tag it 4 (skill) or 6 (ult) once they know which slot fired
       const once=ppPer(A)/(A.fps||10);
       u._abilHold=u._abilFallback?Math.max(once, 0.55):once;
       if(u._abilFallback) u._castFlash=0.42;   // the visual tell that this was an ability, not a swing
@@ -11185,6 +11185,7 @@ const FX2_DEF={
   mirelle_blue:{u:'/assets/anim/fx/mirelle_blue.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:4.42,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   mirelle_green:{u:'/assets/anim/fx/mirelle_green.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.88,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   sloe_blue:{u:'/assets/anim/fx/sloe_blue.webp?v=3',n:48,fw:535,fh:512,cols:6,rows:8,dur:1.8,disc:{cy:0.5,dh:0.95,dw:0.95}},
+  zahrisolar:{u:'/assets/anim/fx/zahri_solar.webp?v=1',n:96,fw:341,fh:341,cols:12,rows:8,dur:4.0,tip:[0.1674,0.5000],heroPx:641.9},   /* v1070 Solar Impalement (Grok, Phil-picked 8 Oct: 16_spear_burst_take, clip frames 38-133, green key) - a light-spear on her lance, bursting when it lands */
   sloearrow:{u:'/assets/anim/fx/sloe_volleyarrow.webp?v=1',n:1,fw:512,fh:104,cols:1,rows:1,dur:1},   /* v1069 Emerald Volley arrow (Grok, Phil-approved 8 Oct: ONE still arrow per target, fired rapid-fire) - points screen-right */
   sloe_green:{u:'/assets/anim/fx/sloe_green.webp?v=2',n:48,fw:370,fh:408,cols:6,rows:8,dur:1.6,upright:true,upSize:1.25,upExtent:0.968,upAnchor:[0.5,0.0],ro:1},
   vex_blue:{u:'/assets/anim/fx/vex_blue.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.25,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
@@ -11664,6 +11665,33 @@ function spawnProjFx(key,fromx,fromy,tox,toy,scale,dur,onHit,fromH){ _fxCheck('p
    — and it got far worse the moment movement speed went up 10-35% per role in v575, which is why it
    started showing now. The bolt now re-reads its target's position every frame while that target is
    alive, so it always ends on the unit it was aimed at. */
+/* v1070 (Grok's Solar Impalement handoff, Phil-picked 8 Oct): a spell FX pinned to the TIP of a hero's weapon in every frame of her
+   own clip, rotated to the weapon and drawn behind her (renderOrder -1). Zahri's lance was MEASURED on zahri_green.webp per cell:
+   [tipX, tipY, angle] in sheet px, angle in degrees from the tip back along the shaft (y up; sheet faces left). The FX sheet's
+   frame k plays on her clip's frame k (both 24 fps), so the burst (clip frame 60 = FX frame 22) lands on her thrust peak (frame 22,
+   0.92 s). After her clip ends the FX finishes on its own clock where the lance last was. Display only - nothing here touches the fight. */
+const TIPFX={ zahri:{ green:{ fx:'zahrisolar', track:[[174,164,-28.0],[169,174,-25.5],[158,185,-23.5],[149,182,-23.0],[148,174,-24.5],[148,167,-25.5],[150,161,-26.5],[155,158,-27.5],[161,166,-27.0],[171,207,-22.5],[157,264,-12.5],[153,288,-8.0],[150,296,-6.5],[152,298,-5.0],[155,285,-6.0],[160,250,-12.5],[159,235,-16.0],[158,220,-19.0],[129,204,-17.5],[92,205,-8.5],[43,199,-5.0],[27,175,-3.0],[20,174,-2.5],[25,177,-1.5],[39,177,-2.0],[46,177,-2.5],[51,180,-2.0],[53,182,-2.0],[54,183,-2.0],[57,181,-2.0],[65,176,-2.5],[73,183,-2.0],[76,225,2.0],[85,235,1.0],[89,234,-1.5],[89,234,-2.0],[91,235,-1.5],[91,229,-1.5],[91,219,-2.5],[96,217,-2.5],[107,239,2.5],[118,268,5.0],[135,231,-6.0],[153,199,-16.5],[167,181,-21.5],[172,172,-25.0],[172,166,-26.5],[173,164,-27.5]] } } };
+const _tipFx=[];
+function spawnTipFx(u,st){ if(!TH||!scene) return; const T=TIPFX[u.key]&&TIPFX[u.key][st], d=T&&FX2_DEF[T.fx]; if(!d) return; const tex=fx2Tex(T.fx); if(!tex) return;
+  for(let i=_tipFx.length-1;i>=0;i--) if(_tipFx[i].u===u){ scene.remove(_tipFx[i].spr); _tipFx[i].spr.material.dispose(); _tipFx.splice(i,1); }   // a recast replaces the old one
+  const spr=new TH.Sprite(new TH.SpriteMaterial({map:tex,transparent:true,depthWrite:false,depthTest:false})); fx2Hook(spr); fx2SetFrame(spr,d,0);
+  spr.renderOrder=-1; spr.visible=false; scene.add(spr); _tipFx.push({u,st,T,d,spr,started:false,lastK:0,lastFr:0,kt:0}); }
+function updateTipFx(dt){ const P=(TH&&_tipFx.length)?new TH.Vector3():null;
+  for(let i=_tipFx.length-1;i>=0;i--){ const o=_tipFx[i], u=o.u, A=u.anim&&u.anim[o.st], d=o.d; let k, fr;
+    if(!u.alive||!A||!u._sprRef){ scene.remove(o.spr); o.spr.material.dispose(); _tipFx.splice(i,1); continue; }
+    const live=(u._animSt===o.st&&u._abilAnim===o.st);
+    if(live){ o.started=true; fr=Math.min(A.n-1,u._fxFr!=null?u._fxFr:Math.floor(u._animAcc||0)); k=fr; o.lastK=k; o.lastFr=fr; o.kt=0; }
+    else if(!o.started){ k=0; fr=0; }
+    else { o.kt+=dt; k=o.lastK+Math.floor(o.kt*24); fr=o.lastFr; }
+    if(k>=d.n){ scene.remove(o.spr); o.spr.material.dispose(); _tipFx.splice(i,1); continue; }
+    const mir=!!u._fxMirror; fx2SetFrame(o.spr,d,k); if(mir){ const v=o.spr._uv; v[2]+=v[0]; v[0]=-v[0]; }
+    const ref=u._sprRef; ref.getWorldPosition(P); o.spr.position.copy(P);
+    const wpp=ref.scale.y/A.fh, Wf=d.heroPx*wpp; o.spr.scale.set(Wf,Wf,1);
+    const tr=o.T.track[Math.min(fr,o.T.track.length-1)], cxp=(A.cx!=null?A.cx:A.fw*0.5)+((A.ax&&A.ax.length)?(A.ax[Math.min(fr,A.ax.length-1)]||0):0);
+    let dx=(tr[0]-cxp)*wpp; const dy=(A.feet-tr[1])*wpp; let th=tr[2]*Math.PI/180; if(mir){ dx=-dx; th=-th; }
+    const tu=mir?1-d.tip[0]:d.tip[0], tv=d.tip[1], c=Math.cos(th), s=Math.sin(th);
+    o.spr.center.set(tu-(dx*c+dy*s)/Wf, tv-(-dx*s+dy*c)/Wf); o.spr.material.rotation=th; o.spr.visible=true; } }
+function clearTipFx(){ _tipFx.forEach(o=>{ try{ scene.remove(o.spr); o.spr.material.dispose(); }catch(_){} }); _tipFx.length=0; }
 function updateProjFx(dt){ if(!_texRequalDone) requalifyTextures(); for(let i=_projFx.length-1;i>=0;i--){ const p=_projFx[i]; p.t+=dt; const k=Math.min(1,p.t/p.dur);
   if(p.tu&&p.tu.alive){ p.tx=p.tu.x; p.ty=p.tu.y; }
   fx2SetFrame(p.spr,p.d,Math.floor((p.t/p.d.dur)*p.d.n));
@@ -11749,7 +11777,7 @@ function updateStatusFx(dt){ if(!TH||!scene)return; units.forEach(u=>{
     spr.center.set(.5,.10); spr.scale.set(scl*asp,scl,1); spr.renderOrder=-4; scene.add(spr); u._statusFx={kind,spr,tex,d,t:0,u}; _statusFxAll.push(u._statusFx); }
   const s=u._statusFx; s.t+=dt; fx2SetFrame(s.spr,s.d,Math.floor((s.t/s.d.dur)*s.d.n)); s.spr.position.set(wx(u.rx==null?u.x:u.rx),0.35,wz(u.ry==null?u.y:u.ry)); }); }   // v268: interpolated
 function clearFx2(){ _groundFx.forEach(o=>{scene.remove(o.m);o.m.material.dispose();}); _groundFx.length=0;
-  _projFx.forEach(p=>{scene.remove(p.spr);p.spr.material.dispose();}); _projFx.length=0;
+  _projFx.forEach(p=>{scene.remove(p.spr);p.spr.material.dispose();}); _projFx.length=0; clearTipFx();
   _beamFx.forEach(o=>{scene.remove(o.spr);o.spr.material.dispose();}); _beamFx.length=0; _pendingDots.length=0;
   if(typeof _boltFx!=='undefined'){ _boltFx.forEach(o=>{scene.remove(o.spr);o.spr.material.dispose();}); _boltFx.length=0; }   /* v959 */
   killAllStatusFx(); }
@@ -12899,7 +12927,7 @@ function battleFrameTail(dt){
   updateFxPlates(dt);   // Vulmar placed effect plates
   updateChains(dt);   // Umbris Creeping Rot shadow-chain projectiles
   updateVoidZones(dt);   // Umbris Umbral Cataclysm void zones
-  updateGroundFx(dt); updateProjFx(dt); updateBees(dt); updateBeamFx(dt); try{ updateBoltFx(dt); }catch(e){} updatePendingDots(dt); updateStatusFx(dt);   // batch FX: ground zones, projectiles, gas beams, delayed plague DoTs, DoT feet-FX
+  updateGroundFx(dt); updateProjFx(dt); try{ updateTipFx(dt); }catch(e){} updateBees(dt); updateBeamFx(dt); try{ updateBoltFx(dt); }catch(e){} updatePendingDots(dt); updateStatusFx(dt);   // batch FX: ground zones, projectiles, gas beams, delayed plague DoTs, DoT feet-FX
 }
 function updateBattle(dt){
   /* 29 Aug — SLINGSHOT/JITTER ON WAVE CHANGE. The px/py snapshot below used to sit AFTER this early
@@ -13484,6 +13512,7 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
         // sheet frame's UVs is the only reliable way to face the sprite. Source art faces LEFT when A.flip is
         // set (sourceRight = !A.flip); mirror the frame whenever the wanted on-screen facing differs from that.
         const sourceRight=!A.flip, mirror=(desired>0)!==sourceRight;
+        u._fxFr=fr; u._fxMirror=mirror;   /* v1070: tip-tracked spell FX read the frame and facing actually drawn */
         if(A.tex){ const _c=A.cols||A.n,_r=A.rows||1,_col=fr%_c,_row=(_r>1)?Math.floor(fr/_c):0;
           // PER-UNIT texture (clone shares the sheet image): offset/repeat live on the Texture object, so a
           // single shared per-state texture would force EVERY same-key unit to the LAST-synced unit's frame +
@@ -25947,7 +25976,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
     /* v959 (Phil 3 Oct: "the spells FX are staying after a fights over, leaving a stale version of it"): once a fight ended only
        shots and particles kept ticking, so every spell plate, badge, beam and bolt froze on screen. The visual-only updaters now run
        on until their effects expire; a projectile still in flight is removed (its onHit could touch a unit - never after the end). */
-    try{ updateFxPlates(dt); updateGroundFx(dt); updateBeamFx(dt); updateBoltFx(dt); updateStatusFx(dt);
+    try{ updateFxPlates(dt); updateGroundFx(dt); updateBeamFx(dt); updateBoltFx(dt); updateStatusFx(dt); updateTipFx(dt);
       if(_projFx.length){ _projFx.forEach(q=>{ try{ scene.remove(q.spr); q.spr.material.dispose(); }catch(_){} }); _projFx.length=0; } }catch(e){} }
   // v268: the sim ticks at SIM_HZ; the picture is drawn every frame, interpolated between the last
   // two ticks. `_bacc` is exactly how far we are into the next tick.
@@ -26048,7 +26077,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791489940196';
+const BUILD_ID = '1791492635127';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
