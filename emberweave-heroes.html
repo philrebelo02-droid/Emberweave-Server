@@ -2947,15 +2947,22 @@ const BATTLE_ANIM = {
     ult:{u:'/assets/anim/askel/askel_ult.webp?v=21',n:48,fw:613,fh:633,cols:6,rows:8,figH:400,feet:549,cx:302,fps:24,flip:true,top:149,ax:[0,0,0,0,0,0,7,7,7,7,6,7,7,7,7,7,7,7,7,9,17,42,-244,-214,-218,-216,-214,-210,-208,-207,-207,-207,-207,-214,-222,-223,-222,-216,-224,-217,-210,-218,38,21,6,6,6,6]},
     passive:{u:'/assets/anim/askel/askel_passive.webp?v=21',n:48,fw:352,fh:413,cols:6,rows:8,figH:400,feet:406,cx:211,fps:24,flip:true,top:6}
   },
-  tharl:{
-    idle:{u:'/assets/anim/tharl/tharl_idle.webp?v=21',n:48,fw:432,fh:417,cols:6,rows:8,figH:400,feet:410,cx:199,fps:24,flip:true,top:10,pingpong:true},
-    walk:{u:'/assets/anim/tharl/tharl_walk.webp?v=22',n:38,fw:552,fh:422,cols:6,rows:7,figH:400,feet:410,cx:220,fps:24,flip:true,top:11},
-    attack:{u:'/assets/anim/tharl/tharl_attack.webp?v=21',n:48,fw:472,fh:409,cols:6,rows:8,figH:400,feet:405,cx:201,fps:24,flip:true,top:5},
-    hit:{u:'/assets/anim/tharl/tharl_hit.webp?v=21',n:48,fw:504,fh:460,cols:6,rows:8,figH:400,feet:453,cx:255,fps:24,flip:true,top:53},
-    green:{u:'/assets/anim/tharl/tharl_green.webp?v=21',n:48,fw:486,fh:408,cols:6,rows:8,figH:400,feet:404,cx:209,fps:24,flip:true,top:4},
-    blue:{u:'/assets/anim/tharl/tharl_blue.webp?v=21',n:48,fw:453,fh:408,cols:6,rows:8,figH:400,feet:404,cx:223,fps:24,flip:true,top:4},
-    ult:{u:'/assets/anim/tharl/tharl_ult.webp?v=21',n:48,fw:675,fh:647,cols:6,rows:8,figH:400,feet:580,cx:389,fps:24,flip:true,top:180,ax:[0,0,0,1,-4,-16,-23,-26,-27,-27,-27,-27,-27,-27,-27,-27,-27,-27,-27,-27,-27,-27,-26,-26,-27,-22,-17,-199,-158,-216,-221,-224,-224,-223,-221,-202,-139,-24,-24,-25,-25,-25,-25,-25,-25,-25,-25,-26]},
-    passive:{u:'/assets/anim/tharl/tharl_passive.webp?v=21',n:48,fw:472,fh:442,cols:6,rows:8,figH:400,feet:435,cx:222,fps:24,flip:true,top:35}
+  tharl:{   /* v1055 (Phil 7 Oct 2026: "iron passive pass" / "do the ironcoil wiring now"; ChatGPT handoff IRONCOIL-NINE-07OCT2026): nine
+     approved Hailuo takes, official watermark-free files, sha256-matched to the manifest - idle1 walk1 attack2 crit9 hit1 ult2 green3
+     blue5 passive1. cs10 native 48@24 (PAD 60, DESPILL_ALL, lossless), key (254,6,250) measured per clip, then a narrow magenta despill
+     (truly pink px 0.07-0.29% -> 0). flip:false like Rhukk/Vael. Walk stitched to 50 cells. idle/walk/attack were filmed larger (figH 374)
+     than the rest (225-226) and are scaled to figH 226 (a 3726x4590 walk sheet broke the 4096 texture limit - the rig drew nothing).
+     His art faces LEFT: flip:true (Rhukk's new art faced right, so his are false). Crit is new. PASSIVE = the approved 0.5 s cut:
+     24 frames at 48 fps = exactly half a second on screen; it plays when a hit completes Layered Hide (PLATED). */
+    idle:{u:'/assets/anim/tharl/tharl_idle.webp?v=23',n:48,fw:322,fh:302,cols:6,rows:8,figH:226,feet:266,cx:143,fps:24,flip:true,top:40},
+    walk:{u:'/assets/anim/tharl/tharl_walk.webp?v=23',n:50,fw:375,fh:308,cols:6,rows:9,figH:226,feet:266,cx:178,fps:24,flip:true,top:40},
+    attack:{u:'/assets/anim/tharl/tharl_attack.webp?v=23',n:48,fw:418,fh:328,cols:6,rows:8,figH:226,feet:282,cx:195,fps:24,flip:true,top:56},
+    crit:{u:'/assets/anim/tharl/tharl_crit.webp?v=23',n:48,fw:654,fh:346,cols:6,rows:8,figH:225,feet:285,cx:376,fps:24,flip:true,top:60},
+    hit:{u:'/assets/anim/tharl/tharl_hit.webp?v=23',n:48,fw:378,fh:346,cols:6,rows:8,figH:226,feet:286,cx:166,fps:24,flip:true,top:60},
+    ult:{u:'/assets/anim/tharl/tharl_ult.webp?v=23',n:48,fw:540,fh:472,cols:6,rows:8,figH:226,feet:402,cx:271,fps:24,flip:true,top:176,ax:[0,0,0,0,0,-1,-7,-18,-15,-15,-15,-13,-13,-30,-6,-1,5,4,0,-6,-13,-19,-27,-34,-38,-43,-43,-44,-43,-47,-53,-56,-57,-56,-60,-44,-25,-36,-34,-28,-19,-7,-1,1,0,0,0,0]},
+    green:{u:'/assets/anim/tharl/tharl_green.webp?v=23',n:48,fw:402,fh:346,cols:6,rows:8,figH:225,feet:285,cx:213,fps:24,flip:true,top:60},
+    blue:{u:'/assets/anim/tharl/tharl_blue.webp?v=23',n:48,fw:378,fh:382,cols:6,rows:8,figH:226,feet:322,cx:191,fps:24,flip:true,top:96},
+    passive:{u:'/assets/anim/tharl/tharl_passive.webp?v=23',n:24,fw:356,fh:346,cols:6,rows:4,figH:226,feet:286,cx:169,fps:48,flip:true,top:60}
   },
   hobb:{
     idle:{u:'/assets/anim/hobb/hobb_idle.webp?v=21',n:48,fw:350,fh:413,cols:6,rows:8,figH:400,feet:407,cx:193,fps:24,flip:true,top:7,pingpong:true},
@@ -13036,7 +13043,7 @@ function updateBattle(dt){
     // Layered Hide (Ironcoil): each direct hit hardens one scale layer; at full plate he shrugs off control.
     if(u.pass.layered){ if((u._layT||0)>0) u._layT-=dt;
       if((u._layStk||0)>=(u._layMax||5)){ u._layStk=0; u._layT=2.0*(u.passMul||1);
-        firePassiveFx(u);
+        firePassiveClip(u, u.anim&&u.anim.passive?u.anim.passive.n/(u.anim.passive.fps||24):0);   /* v1055 (ChatGPT handoff IRONCOIL-NINE, Phil "iron passive pass"): the hit that completes the plate plays the approved half-second passive clip (it fires the same FX plate too); render only, the mechanic is unchanged */
         ringBurst(u.x,u.y,0xb8863a,14); floatTexts.push({x:u.x,y:u.y-8,txt:'PLATED',t:1.0,color:'#b8863a',vy:1,sz:12}); }
       if((u._layT||0)>0){ u.stunned=0; u.fearT=0; u._airT=0; u.pullT=0; } }
     // Unshaken Herd (Greatbrow): when an ally is controlled he gains energy and briefly covers them.
@@ -26029,7 +26036,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791418482577';
+const BUILD_ID = '1791420614005';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
