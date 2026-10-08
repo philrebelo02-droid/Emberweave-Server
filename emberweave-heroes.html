@@ -11185,6 +11185,7 @@ const FX2_DEF={
   mirelle_blue:{u:'/assets/anim/fx/mirelle_blue.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:4.42,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   mirelle_green:{u:'/assets/anim/fx/mirelle_green.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.88,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   sloe_blue:{u:'/assets/anim/fx/sloe_blue.webp?v=3',n:48,fw:535,fh:512,cols:6,rows:8,dur:1.8,disc:{cy:0.5,dh:0.95,dw:0.95}},
+  oakroots:{u:'/assets/anim/fx/oakmir_deeproots.webp?v=1',n:96,fw:341,fh:420,cols:12,rows:8,dur:4.0,anchor:[0.4886,0.0116],cageH:1.28},   /* v1071 Deep Roots (Grok, Phil-accepted 8 Oct: 26_deep_roots_take, frames 0-95, magenta key) - roots rise around the rooted ally and draw back into the seed over the 4 s heal */
   zahrisolar:{u:'/assets/anim/fx/zahri_solar.webp?v=1',n:96,fw:341,fh:341,cols:12,rows:8,dur:4.0,tip:[0.1674,0.5000],heroPx:641.9},   /* v1070 Solar Impalement (Grok, Phil-picked 8 Oct: 16_spear_burst_take, clip frames 38-133, green key) - a light-spear on her lance, bursting when it lands */
   sloearrow:{u:'/assets/anim/fx/sloe_volleyarrow.webp?v=1',n:1,fw:512,fh:104,cols:1,rows:1,dur:1},   /* v1069 Emerald Volley arrow (Grok, Phil-approved 8 Oct: ONE still arrow per target, fired rapid-fire) - points screen-right */
   sloe_green:{u:'/assets/anim/fx/sloe_green.webp?v=2',n:48,fw:370,fh:408,cols:6,rows:8,dur:1.6,upright:true,upSize:1.25,upExtent:0.968,upAnchor:[0.5,0.0],ro:1},
@@ -11691,7 +11692,22 @@ function updateTipFx(dt){ const P=(TH&&_tipFx.length)?new TH.Vector3():null;
     let dx=(tr[0]-cxp)*wpp; const dy=(A.feet-tr[1])*wpp; let th=tr[2]*Math.PI/180; if(mir){ dx=-dx; th=-th; }
     const tu=mir?1-d.tip[0]:d.tip[0], tv=d.tip[1], c=Math.cos(th), s=Math.sin(th);
     o.spr.center.set(tu-(dx*c+dy*s)/Wf, tv-(-dx*s+dy*c)/Wf); o.spr.material.rotation=th; o.spr.visible=true; } }
-function clearTipFx(){ _tipFx.forEach(o=>{ try{ scene.remove(o.spr); o.spr.material.dispose(); }catch(_){} }); _tipFx.length=0; }
+function clearTipFx(){ _tipFx.forEach(o=>{ try{ scene.remove(o.spr); o.spr.material.dispose(); }catch(_){} }); _tipFx.length=0;
+  _unitFx.forEach(o=>{ try{ scene.remove(o.spr); o.spr.material.dispose(); }catch(_){} }); _unitFx.length=0; }
+/* v1071: an upright FX standing on a unit's feet for one play of its sheet (24 fps) - Deep Roots grows its cage around the rooted ally.
+   It follows the unit, draws in front of it (the cage is hollow, the hero shows through), and ends with the sheet or the unit. Display only. */
+const _unitFx=[];
+function spawnUnitFx(u,key){ if(!TH||!scene||!u) return; const d=FX2_DEF[key]; if(!d) return; const tex=fx2Tex(key); if(!tex) return;
+  for(let i=_unitFx.length-1;i>=0;i--) if(_unitFx[i].u===u&&_unitFx[i].key===key){ scene.remove(_unitFx[i].spr); _unitFx[i].spr.material.dispose(); _unitFx.splice(i,1); }
+  const spr=new TH.Sprite(new TH.SpriteMaterial({map:tex,transparent:true,depthWrite:false,depthTest:false})); fx2Hook(spr); fx2SetFrame(spr,d,0);
+  spr.renderOrder=1; spr.visible=false; scene.add(spr); _unitFx.push({u,key,d,spr,t:0}); }
+function updateUnitFx(dt){ const P=(TH&&_unitFx.length)?new TH.Vector3():null;
+  for(let i=_unitFx.length-1;i>=0;i--){ const o=_unitFx[i], u=o.u, d=o.d; o.t+=dt; const k=Math.floor(o.t*24);
+    if(k>=d.n||!u.alive||!u._sprRef){ scene.remove(o.spr); o.spr.material.dispose(); _unitFx.splice(i,1); continue; }
+    fx2SetFrame(o.spr,d,k); u._sprRef.getWorldPosition(P); o.spr.position.copy(P);
+    const H=(u.sprH||3)*(d.cageH||1.2)*(typeof gsplitFxMul==='function'?gsplitFxMul():1); o.spr.scale.set(H*d.fw/d.fh,H,1);
+    o.spr.center.set(d.anchor[0],d.anchor[1]); o.spr.visible=true; } }
+
 function updateProjFx(dt){ if(!_texRequalDone) requalifyTextures(); for(let i=_projFx.length-1;i>=0;i--){ const p=_projFx[i]; p.t+=dt; const k=Math.min(1,p.t/p.dur);
   if(p.tu&&p.tu.alive){ p.tx=p.tu.x; p.ty=p.tu.y; }
   fx2SetFrame(p.spr,p.d,Math.floor((p.t/p.d.dur)*p.d.n));
@@ -12927,7 +12943,7 @@ function battleFrameTail(dt){
   updateFxPlates(dt);   // Vulmar placed effect plates
   updateChains(dt);   // Umbris Creeping Rot shadow-chain projectiles
   updateVoidZones(dt);   // Umbris Umbral Cataclysm void zones
-  updateGroundFx(dt); updateProjFx(dt); try{ updateTipFx(dt); }catch(e){} updateBees(dt); updateBeamFx(dt); try{ updateBoltFx(dt); }catch(e){} updatePendingDots(dt); updateStatusFx(dt);   // batch FX: ground zones, projectiles, gas beams, delayed plague DoTs, DoT feet-FX
+  updateGroundFx(dt); updateProjFx(dt); try{ updateTipFx(dt); updateUnitFx(dt); }catch(e){} updateBees(dt); updateBeamFx(dt); try{ updateBoltFx(dt); }catch(e){} updatePendingDots(dt); updateStatusFx(dt);   // batch FX: ground zones, projectiles, gas beams, delayed plague DoTs, DoT feet-FX
 }
 function updateBattle(dt){
   /* 29 Aug — SLINGSHOT/JITTER ON WAVE CHANGE. The px/py snapshot below used to sit AFTER this early
@@ -13063,7 +13079,7 @@ function updateBattle(dt){
     if(u.pass.deeproots) units.forEach(o=>{ if(!o.alive||o.team!==u.team||o.summoned) return;
       if(!o._drUsed&&o.hp>0&&o.hp<o.maxHp*0.30){
         o._drUsed=true; o._drBy=u; o._drLeft=4; o._drRate=o.maxHp*0.25*(u.passMul||1)/4;
-        ringBurst(o.x,o.y,0x6FCF5A,10); floatTexts.push({x:o.x,y:o.y-14,txt:'DEEP ROOTS',t:1.1,color:'#9be38a',vy:1,sz:11}); }
+        ringBurst(o.x,o.y,0x6FCF5A,10); if(typeof spawnUnitFx==='function') spawnUnitFx(o,'oakroots'); floatTexts.push({x:o.x,y:o.y-14,txt:'DEEP ROOTS',t:1.1,color:'#9be38a',vy:1,sz:11}); }
       if(o._drBy===u&&o._drLeft>0){ const s=Math.min(dt,o._drLeft); o._drLeft-=s; o.hp=Math.min(worldHealCap(o),o.hp+o._drRate*s); } });
     /* ==================== v527 — PACK PASSIVES ======================================== */
     // Sacred Bells (The Walking Cathedral): the bells ring and the ranks around him harden.
@@ -25976,7 +25992,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
     /* v959 (Phil 3 Oct: "the spells FX are staying after a fights over, leaving a stale version of it"): once a fight ended only
        shots and particles kept ticking, so every spell plate, badge, beam and bolt froze on screen. The visual-only updaters now run
        on until their effects expire; a projectile still in flight is removed (its onHit could touch a unit - never after the end). */
-    try{ updateFxPlates(dt); updateGroundFx(dt); updateBeamFx(dt); updateBoltFx(dt); updateStatusFx(dt); updateTipFx(dt);
+    try{ updateFxPlates(dt); updateGroundFx(dt); updateBeamFx(dt); updateBoltFx(dt); updateStatusFx(dt); updateTipFx(dt); updateUnitFx(dt);
       if(_projFx.length){ _projFx.forEach(q=>{ try{ scene.remove(q.spr); q.spr.material.dispose(); }catch(_){} }); _projFx.length=0; } }catch(e){} }
   // v268: the sim ticks at SIM_HZ; the picture is drawn every frame, interpolated between the last
   // two ticks. `_bacc` is exactly how far we are into the next tick.
@@ -26077,7 +26093,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791492635127';
+const BUILD_ID = '1791502409449';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

@@ -20,7 +20,7 @@ ok(rows[22] && Math.abs(rows[22][2]) < 8, 'at the thrust peak (frame 22) the lan
 ok(/u\._fxFr=fr; u\._fxMirror=mirror;/.test(H), 'syncMesh records the frame and facing it draws');
 ok(/u\._abilStartAt=battleTime; if\(typeof TIPFX!=='undefined'&&TIPFX\[u\.key\]&&TIPFX\[u\.key\]\[st\]\) spawnTipFx\(u,st\);/.test(H), 'the FX starts with her green clip');
 ok(/spr\.renderOrder=-1;/.test(H.slice(H.indexOf('function spawnTipFx'), H.indexOf('function updateTipFx'))), 'drawn behind her (renderOrder -1)');
-ok(/updateProjFx\(dt\); try\{ updateTipFx\(dt\); \}catch\(e\)\{\}/.test(H) && /updateStatusFx\(dt\); updateTipFx\(dt\);/.test(H), 'ticked in battle and after the end');
+ok(/updateProjFx\(dt\); try\{ updateTipFx\(dt\);[^}]*\}catch\(e\)\{\}/.test(H) && /updateStatusFx\(dt\); updateTipFx\(dt\)/.test(H), 'ticked in battle and after the end');
 ok((H.match(/clearTipFx\(\)/g) || []).length >= 2, 'cleared with the other FX');
 // display only: the tracker never touches hp, damage or the sim clock
 const body = H.slice(H.indexOf('function spawnTipFx'), H.indexOf('function clearTipFx'));
