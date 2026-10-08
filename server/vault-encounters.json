@@ -2243,58 +2243,58 @@
      {
       "key": "blackquill",
       "lvl": 19,
-      "hpMul": 37.3529,
-      "dmgMul": 15.4451
+      "hpMul": 31.75,
+      "dmgMul": 13.1283
      },
      {
       "key": "frostjaw troll",
       "lvl": 19,
-      "hpMul": 37.3529,
-      "dmgMul": 15.4451
+      "hpMul": 31.75,
+      "dmgMul": 13.1283
      },
      {
       "key": "zephyr harrier",
       "lvl": 19,
-      "hpMul": 37.3529,
-      "dmgMul": 15.4451
+      "hpMul": 31.75,
+      "dmgMul": 13.1283
      },
      {
       "key": "granith",
       "lvl": 19,
-      "hpMul": 37.3529,
-      "dmgMul": 15.4451
+      "hpMul": 31.75,
+      "dmgMul": 13.1283
      }
     ],
     [
      {
       "key": "frostjaw troll",
       "lvl": 19,
-      "hpMul": 43.4314,
-      "dmgMul": 17.9594
+      "hpMul": 36.9167,
+      "dmgMul": 15.2655
      },
      {
       "key": "granith",
       "lvl": 19,
-      "hpMul": 43.4314,
-      "dmgMul": 17.9594
+      "hpMul": 36.9167,
+      "dmgMul": 15.2655
      },
      {
       "key": "rustclank",
       "lvl": 19,
-      "hpMul": 43.4314,
-      "dmgMul": 17.9594
+      "hpMul": 36.9167,
+      "dmgMul": 15.2655
      },
      {
       "key": "zephyr harrier",
       "lvl": 19,
-      "hpMul": 43.4314,
-      "dmgMul": 17.9594
+      "hpMul": 36.9167,
+      "dmgMul": 15.2655
      },
      {
       "key": "blackquill",
       "lvl": 19,
-      "hpMul": 43.4314,
-      "dmgMul": 17.9594
+      "hpMul": 36.9167,
+      "dmgMul": 15.2655
      }
     ]
    ],
@@ -2314,7 +2314,15 @@
     "target": 0.35,
     "bossX": 1,
     "model": "realboard-v364"
-   }
+   },
+   "wallFixes": [
+    {
+     "v": "v1057",
+     "date": "2026-10-07",
+     "scale": 0.85,
+     "why": "Ember's WALL WATCH, 7 Oct night: all 7 sim bots stopped at Vault 28-30 (levels 42-46, floors tuned for 36-38 at a 35% win target), so no Blue +2 ore (floor 31+) and every hero's gear stopped at Blue; floor 28's HP sat 22% above 27's and 29 carried a 1.56x damage cliff. One step easier, the campaign wall step (v1052 x0.85). Phil: \"everytime they hit a brick wall that takes them multiple days, fix that brick wall\""
+    }
+   ]
   },
   {
    "floor": 29,
@@ -2324,58 +2332,58 @@
      {
       "key": "blackquill",
       "lvl": 19,
-      "hpMul": 31.9164,
-      "dmgMul": 21.7454
+      "hpMul": 27.1289,
+      "dmgMul": 18.4836
      },
      {
       "key": "granith",
       "lvl": 19,
-      "hpMul": 31.9164,
-      "dmgMul": 21.7454
+      "hpMul": 27.1289,
+      "dmgMul": 18.4836
      },
      {
       "key": "rustclank",
       "lvl": 19,
-      "hpMul": 31.9164,
-      "dmgMul": 21.7454
+      "hpMul": 27.1289,
+      "dmgMul": 18.4836
      },
      {
       "key": "crystalhorn grazer",
       "lvl": 19,
-      "hpMul": 31.9164,
-      "dmgMul": 21.7454
+      "hpMul": 27.1289,
+      "dmgMul": 18.4836
      }
     ],
     [
      {
       "key": "crystalhorn grazer",
       "lvl": 19,
-      "hpMul": 37.1088,
-      "dmgMul": 25.29
+      "hpMul": 31.5425,
+      "dmgMul": 21.4965
      },
      {
       "key": "frostjaw troll",
       "lvl": 19,
-      "hpMul": 37.1088,
-      "dmgMul": 25.29
+      "hpMul": 31.5425,
+      "dmgMul": 21.4965
      },
      {
       "key": "luminant orb",
       "lvl": 19,
-      "hpMul": 37.1088,
-      "dmgMul": 25.29
+      "hpMul": 31.5425,
+      "dmgMul": 21.4965
      },
      {
       "key": "zephyr harrier",
       "lvl": 19,
-      "hpMul": 37.1088,
-      "dmgMul": 25.29
+      "hpMul": 31.5425,
+      "dmgMul": 21.4965
      },
      {
       "key": "granith",
       "lvl": 19,
-      "hpMul": 37.1088,
-      "dmgMul": 25.29
+      "hpMul": 31.5425,
+      "dmgMul": 21.4965
      }
     ]
    ],
@@ -2397,7 +2405,15 @@
     "model": "realboard-v364",
     "cliffHpScale": 1,
     "cliffDmgScale": 1.56
-   }
+   },
+   "wallFixes": [
+    {
+     "v": "v1057",
+     "date": "2026-10-07",
+     "scale": 0.85,
+     "why": "Ember's WALL WATCH, 7 Oct night: all 7 sim bots stopped at Vault 28-30 (levels 42-46, floors tuned for 36-38 at a 35% win target), so no Blue +2 ore (floor 31+) and every hero's gear stopped at Blue; floor 28's HP sat 22% above 27's and 29 carried a 1.56x damage cliff. One step easier, the campaign wall step (v1052 x0.85). Phil: \"everytime they hit a brick wall that takes them multiple days, fix that brick wall\""
+    }
+   ]
   },
   {
    "floor": 30,
@@ -2407,58 +2423,58 @@
      {
       "key": "frostjaw troll",
       "lvl": 20,
-      "hpMul": 3.0878,
-      "dmgMul": 3.306
+      "hpMul": 2.6246,
+      "dmgMul": 2.8101
      },
      {
       "key": "luminant orb",
       "lvl": 20,
-      "hpMul": 3.0878,
-      "dmgMul": 3.306
+      "hpMul": 2.6246,
+      "dmgMul": 2.8101
      },
      {
       "key": "blackquill",
       "lvl": 20,
-      "hpMul": 3.0878,
-      "dmgMul": 3.306
+      "hpMul": 2.6246,
+      "dmgMul": 2.8101
      },
      {
       "key": "rustclank",
       "lvl": 20,
-      "hpMul": 3.0878,
-      "dmgMul": 3.306
+      "hpMul": 2.6246,
+      "dmgMul": 2.8101
      }
     ],
     [
      {
       "key": "volthex",
       "lvl": 20,
-      "hpMul": 3.8597,
-      "dmgMul": 4.1333
+      "hpMul": 3.2807,
+      "dmgMul": 3.5133
      },
      {
       "key": "granith",
       "lvl": 20,
-      "hpMul": 3.8597,
-      "dmgMul": 4.1333
+      "hpMul": 3.2807,
+      "dmgMul": 3.5133
      },
      {
       "key": "rustclank",
       "lvl": 20,
-      "hpMul": 3.8597,
-      "dmgMul": 4.1333
+      "hpMul": 3.2807,
+      "dmgMul": 3.5133
      },
      {
       "key": "frostjaw troll",
       "lvl": 20,
-      "hpMul": 3.8597,
-      "dmgMul": 4.1333
+      "hpMul": 3.2807,
+      "dmgMul": 3.5133
      },
      {
       "key": "brukk",
       "lvl": 23,
-      "hpMul": 29.9673,
-      "dmgMul": 17.8228,
+      "hpMul": 25.4722,
+      "dmgMul": 15.1494,
       "boss": true
      }
     ]
@@ -2485,7 +2501,15 @@
     "target": 0.2,
     "bossX": 3,
     "model": "realboard-v364"
-   }
+   },
+   "wallFixes": [
+    {
+     "v": "v1057",
+     "date": "2026-10-07",
+     "scale": 0.85,
+     "why": "Ember's WALL WATCH, 7 Oct night: all 7 sim bots stopped at Vault 28-30 (levels 42-46, floors tuned for 36-38 at a 35% win target), so no Blue +2 ore (floor 31+) and every hero's gear stopped at Blue; floor 28's HP sat 22% above 27's and 29 carried a 1.56x damage cliff. One step easier, the campaign wall step (v1052 x0.85). Phil: \"everytime they hit a brick wall that takes them multiple days, fix that brick wall\""
+    }
+   ]
   },
   {
    "floor": 31,
