@@ -22395,7 +22395,7 @@ function renderHeroList(){
   wireRosterTaps(r);   // 30 Aug: same drift-cancels-click defect as the squad roster — these are .hero-card too
   // sort control (spans the full grid width)
   const sortBar=document.createElement('div');
-  sortBar.style.cssText='grid-column:1/-1;display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:8px 12px;margin:0 2px 2px;position:relative;z-index:5';
+  sortBar.style.cssText='grid-column:1/-1;display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:8px 12px;margin:0 2px 2px;position:relative;z-index:30';   /* v1066 (Phil 8 Oct: "the prayer on mirelle seems to be a layer above the sort pop out"): the bar was z 5, the same as the cards' Temple orbs (.tOrbs z 5), so later cards painted their orbs over the open menu */
   const ROLE_ORDER=['Tank','Bruiser','Assassin','Marksman','Mage','Support'], roles=[...new Set(HERO_KEYS.map(k=>(HERO_TYPES[k]||{}).role).filter(Boolean))].sort((a,b)=>(ROLE_ORDER.indexOf(a)+99*(ROLE_ORDER.indexOf(a)<0))-(ROLE_ORDER.indexOf(b)+99*(ROLE_ORDER.indexOf(b)<0))||a.localeCompare(b));
   sortBar.appendChild(ewDropdown('Class', [['all','All classes'], ...roles.map(x=>[x,x])], heroClassF, v=>{ heroClassF=v; renderHeroList(); }));
   sortBar.appendChild(ewDropdown('Rarity', [['all','All rarities'],['common','Common'],['uncommon','Uncommon'],['rare','Rare'],['mythical','Mythical']], heroRarF, v=>{ heroRarF=v; renderHeroList(); }));
@@ -26036,7 +26036,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791480195971';
+const BUILD_ID = '1791483029424';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
