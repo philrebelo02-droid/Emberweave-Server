@@ -3600,58 +3600,58 @@
      {
       "key": "riftling spider",
       "lvl": 28,
-      "hpMul": 54.1485,
-      "dmgMul": 22.2213
+      "hpMul": 46.0262,
+      "dmgMul": 18.8881
      },
      {
       "key": "skyroot dryad",
       "lvl": 28,
-      "hpMul": 54.1485,
-      "dmgMul": 22.2213
+      "hpMul": 46.0262,
+      "dmgMul": 18.8881
      },
      {
       "key": "graveclaw ghoul",
       "lvl": 28,
-      "hpMul": 54.1485,
-      "dmgMul": 22.2213
+      "hpMul": 46.0262,
+      "dmgMul": 18.8881
      },
      {
       "key": "whisp",
       "lvl": 28,
-      "hpMul": 54.1485,
-      "dmgMul": 22.2213
+      "hpMul": 46.0262,
+      "dmgMul": 18.8881
      }
     ],
     [
      {
       "key": "graveclaw ghoul",
       "lvl": 28,
-      "hpMul": 62.9641,
-      "dmgMul": 25.8355
+      "hpMul": 53.5195,
+      "dmgMul": 21.9602
      },
      {
       "key": "mourn moth",
       "lvl": 28,
-      "hpMul": 62.9641,
-      "dmgMul": 25.8355
+      "hpMul": 53.5195,
+      "dmgMul": 21.9602
      },
      {
       "key": "riftling spider",
       "lvl": 28,
-      "hpMul": 62.9641,
-      "dmgMul": 25.8355
+      "hpMul": 53.5195,
+      "dmgMul": 21.9602
      },
      {
       "key": "whisp",
       "lvl": 28,
-      "hpMul": 62.9641,
-      "dmgMul": 25.8355
+      "hpMul": 53.5195,
+      "dmgMul": 21.9602
      },
      {
       "key": "skyroot dryad",
       "lvl": 28,
-      "hpMul": 62.9641,
-      "dmgMul": 25.8355
+      "hpMul": 53.5195,
+      "dmgMul": 21.9602
      }
     ]
    ],
@@ -3671,7 +3671,15 @@
     "target": 0.35,
     "bossX": 1,
     "model": "realboard-v364"
-   }
+   },
+   "wallFixes": [
+    {
+     "v": "v1061",
+     "date": "2026-10-08",
+     "scale": 0.85,
+     "why": "Ember's Wall Watch (8 Oct 03:31 proposal, re-checked 04:4x): Vault 44 held 5 sim tabs, all 5 still stuck, up to 20.6 game days, 0 of 46, all five audits FULLY UPGRADED at levels 51-54 (floor tuned for 51). A cliff: hpMul 54.15 / dmgMul 22.22 against floor 43's 29.31 / 14.38 and 46's 43.07 / 19.14. One step easier, the wall step (v1052/v1057). Phil: \"everytime they hit a brick wall that takes them multiple days, fix that brick wall\""
+    }
+   ]
   },
   {
    "floor": 45,
