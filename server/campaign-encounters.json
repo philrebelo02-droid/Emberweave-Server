@@ -9120,78 +9120,78 @@
         {
           "key": "blackquill",
           "lvl": 41,
-          "hpMul": 33.7371,
-          "dmgMul": 20.0803
+          "hpMul": 28.6765,
+          "dmgMul": 17.0683
         },
         {
           "key": "granith",
           "lvl": 41,
-          "hpMul": 33.7371,
-          "dmgMul": 20.0803
+          "hpMul": 28.6765,
+          "dmgMul": 17.0683
         },
         {
           "key": "blackquill",
           "lvl": 41,
-          "hpMul": 33.7371,
-          "dmgMul": 20.0803
+          "hpMul": 28.6765,
+          "dmgMul": 17.0683
         }
       ],
       [
         {
           "key": "luminant orb",
           "lvl": 41,
-          "hpMul": 33.7371,
-          "dmgMul": 20.0803
+          "hpMul": 28.6765,
+          "dmgMul": 17.0683
         },
         {
           "key": "granith",
           "lvl": 41,
-          "hpMul": 33.7371,
-          "dmgMul": 20.0803
+          "hpMul": 28.6765,
+          "dmgMul": 17.0683
         },
         {
           "key": "zephyr harrier",
           "lvl": 41,
-          "hpMul": 33.7371,
-          "dmgMul": 20.0803
+          "hpMul": 28.6765,
+          "dmgMul": 17.0683
         },
         {
           "key": "granith",
           "lvl": 41,
-          "hpMul": 33.7371,
-          "dmgMul": 20.0803
+          "hpMul": 28.6765,
+          "dmgMul": 17.0683
         },
         {
           "key": "granith",
           "lvl": 41,
-          "hpMul": 33.7371,
-          "dmgMul": 20.0803
+          "hpMul": 28.6765,
+          "dmgMul": 17.0683
         }
       ],
       [
         {
           "key": "luminant orb",
           "lvl": 41,
-          "hpMul": 33.7371,
-          "dmgMul": 20.0803
+          "hpMul": 28.6765,
+          "dmgMul": 17.0683
         },
         {
           "key": "granith",
           "lvl": 41,
-          "hpMul": 33.7371,
-          "dmgMul": 20.0803
+          "hpMul": 28.6765,
+          "dmgMul": 17.0683
         },
         {
           "key": "granith",
           "lvl": 41,
-          "hpMul": 33.7371,
-          "dmgMul": 20.0803
+          "hpMul": 28.6765,
+          "dmgMul": 17.0683
         },
         {
           "key": "blackquill",
           "lvl": 41,
-          "hpMul": 33.7371,
-          "dmgMul": 20.0803
+          "hpMul": 28.6765,
+          "dmgMul": 17.0683
         }
       ]
     ],
@@ -9200,7 +9200,7 @@
     "recommendedQuality": "Purple",
     "qualityMinHeroLevel": 36,
     "bossLevelGate": 0,
-    "difficultyTune": 5.4346,
+    "difficultyTune": 4.6194,
     "baselineHp": 18.2673,
     "baselineDmg": 9.6842,
     "portalMode": "normal",
@@ -9214,7 +9214,15 @@
       "purple-tidecall",
       "purple-bloodroot"
     ],
-    "curveV820": true
+    "curveV820": true,
+    "wallFixes": [
+      {
+        "v": "v1060",
+        "date": "2026-10-08",
+        "scale": 0.85,
+        "why": "Ember's Wall Watch proposal (8 Oct 04:04): Big B and Whale A held ~4 game days at 7-7, 0 of 22, both FULLY UPGRADED (Blue +2, Temple, Academy). 7-7 was a cliff: hpMul 33.74 / dmgMul 20.08 against 7-5's 27.44 / 15.01 and 7-8's 26.00 / 16.94 (7-6 is a guardian with a hero, not comparable). One wall step (v1052). Phil: \"everytime they hit a brick wall that takes them multiple days, fix that brick wall\""
+      }
+    ]
   },
   {
     "id": "7-8",

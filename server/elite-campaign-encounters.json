@@ -7904,60 +7904,60 @@
     {
      "key": "blackquill",
      "lvl": 41,
-     "hpMul": 52.2725,
-     "dmgMul": 29.16
+     "hpMul": 44.4316,
+     "dmgMul": 24.786
     },
     {
      "key": "granith",
      "lvl": 41,
-     "hpMul": 52.2725,
-     "dmgMul": 29.16
+     "hpMul": 44.4316,
+     "dmgMul": 24.786
     },
     {
      "key": "blackquill",
      "lvl": 41,
-     "hpMul": 52.2725,
-     "dmgMul": 29.16
+     "hpMul": 44.4316,
+     "dmgMul": 24.786
     }
    ],
    [
     {
      "key": "luminant orb",
      "lvl": 41,
-     "hpMul": 52.2725,
-     "dmgMul": 29.16
+     "hpMul": 44.4316,
+     "dmgMul": 24.786
     },
     {
      "key": "granith",
      "lvl": 41,
-     "hpMul": 52.2725,
-     "dmgMul": 29.16
+     "hpMul": 44.4316,
+     "dmgMul": 24.786
     },
     {
      "key": "zephyr harrier",
      "lvl": 41,
-     "hpMul": 52.2725,
-     "dmgMul": 29.16
+     "hpMul": 44.4316,
+     "dmgMul": 24.786
     },
     {
      "key": "granith",
      "lvl": 41,
-     "hpMul": 52.2725,
-     "dmgMul": 29.16
+     "hpMul": 44.4316,
+     "dmgMul": 24.786
     },
     {
      "key": "granith",
      "lvl": 41,
-     "hpMul": 52.2725,
-     "dmgMul": 29.16
+     "hpMul": 44.4316,
+     "dmgMul": 24.786
     }
    ],
    [
     {
      "key": "umbris",
      "lvl": 41,
-     "hpMul": 52.2725,
-     "dmgMul": 29.16,
+     "hpMul": 44.4316,
+     "dmgMul": 24.786,
      "isHero": true,
      "rewardHero": true,
      "rank": 3
@@ -7965,20 +7965,20 @@
     {
      "key": "granith",
      "lvl": 41,
-     "hpMul": 52.2725,
-     "dmgMul": 29.16
+     "hpMul": 44.4316,
+     "dmgMul": 24.786
     },
     {
      "key": "granith",
      "lvl": 41,
-     "hpMul": 52.2725,
-     "dmgMul": 29.16
+     "hpMul": 44.4316,
+     "dmgMul": 24.786
     },
     {
      "key": "blackquill",
      "lvl": 41,
-     "hpMul": 52.2725,
-     "dmgMul": 29.16
+     "hpMul": 44.4316,
+     "dmgMul": 24.786
     }
    ]
   ],
@@ -7989,7 +7989,15 @@
    "scale": 1.245,
    "target": "1.5x the Normal stage (Phil: \"elite should be roughly 1.5x harder than normal\")"
   },
-  "eliteTune": 0.9956
+  "eliteTune": 0.9956,
+  "wallFixes": [
+   {
+    "v": "v1060",
+    "date": "2026-10-08",
+    "scale": 0.85,
+    "why": "follows Normal 7-7 (v1060 x0.85) so Elite 7-7 stays 1.5x its Normal stage (v1056 rule)"
+   }
+  ]
  },
  {
   "id": "7-8",
