@@ -4022,58 +4022,58 @@
      {
       "key": "trapjaw",
       "lvl": 31,
-      "hpMul": 39.7328,
-      "dmgMul": 25.264
+      "hpMul": 33.7729,
+      "dmgMul": 21.4744
      },
      {
       "key": "skyroot dryad",
       "lvl": 31,
-      "hpMul": 39.7328,
-      "dmgMul": 25.264
+      "hpMul": 33.7729,
+      "dmgMul": 21.4744
      },
      {
       "key": "wispweaver shade",
       "lvl": 31,
-      "hpMul": 39.7328,
-      "dmgMul": 25.264
+      "hpMul": 33.7729,
+      "dmgMul": 21.4744
      },
      {
       "key": "whisp",
       "lvl": 31,
-      "hpMul": 39.7328,
-      "dmgMul": 25.264
+      "hpMul": 33.7729,
+      "dmgMul": 21.4744
      }
     ],
     [
      {
       "key": "graveclaw ghoul",
       "lvl": 31,
-      "hpMul": 46.2069,
-      "dmgMul": 29.3772
+      "hpMul": 39.2759,
+      "dmgMul": 24.9706
      },
      {
       "key": "whisp",
       "lvl": 31,
-      "hpMul": 46.2069,
-      "dmgMul": 29.3772
+      "hpMul": 39.2759,
+      "dmgMul": 24.9706
      },
      {
       "key": "skyroot dryad",
       "lvl": 31,
-      "hpMul": 46.2069,
-      "dmgMul": 29.3772
+      "hpMul": 39.2759,
+      "dmgMul": 24.9706
      },
      {
       "key": "wispweaver shade",
       "lvl": 31,
-      "hpMul": 46.2069,
-      "dmgMul": 29.3772
+      "hpMul": 39.2759,
+      "dmgMul": 24.9706
      },
      {
       "key": "nightgloom",
       "lvl": 31,
-      "hpMul": 46.2069,
-      "dmgMul": 29.3772
+      "hpMul": 39.2759,
+      "dmgMul": 24.9706
      }
     ]
    ],
@@ -4095,7 +4095,15 @@
     "model": "realboard-v364",
     "cliffHpScale": 1,
     "cliffDmgScale": 1.376
-   }
+   },
+   "wallFixes": [
+    {
+     "v": "v1063",
+     "date": "2026-10-08",
+     "scale": 0.85,
+     "why": "Wall Watch 07:1x: Vault 49 - Medium A 0 of 14 over game days 62-76 and Whale A 0 of 3, both audits UPGRADED AS FAR AS IT CAN; Big B (level 58) won it on try 3. A cliff: last wave dmgMul 29.38 against floor 48's 19.87 (+48%) and hpMul 46.21 vs 41.99. One step easier, the wall step (v1052/v1057). Phil 8 Oct: 'reset all of them after you complete changes for balance'."
+    }
+   ]
   },
   {
    "floor": 50,
