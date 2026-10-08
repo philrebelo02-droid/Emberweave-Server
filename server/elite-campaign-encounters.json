@@ -6455,78 +6455,78 @@
     {
      "key": "basalt mauler",
      "lvl": 33,
-     "hpMul": 40.7555,
-     "dmgMul": 22.2881
+     "hpMul": 34.6422,
+     "dmgMul": 18.9449
     },
     {
      "key": "furnace gnawer",
      "lvl": 33,
-     "hpMul": 40.7555,
-     "dmgMul": 22.2881
+     "hpMul": 34.6422,
+     "dmgMul": 18.9449
     },
     {
      "key": "sootwing imp",
      "lvl": 33,
-     "hpMul": 40.7555,
-     "dmgMul": 22.2881
+     "hpMul": 34.6422,
+     "dmgMul": 18.9449
     }
    ],
    [
     {
      "key": "grundle",
      "lvl": 33,
-     "hpMul": 40.7555,
-     "dmgMul": 22.2881
+     "hpMul": 34.6422,
+     "dmgMul": 18.9449
     },
     {
      "key": "furnace gnawer",
      "lvl": 33,
-     "hpMul": 40.7555,
-     "dmgMul": 22.2881
+     "hpMul": 34.6422,
+     "dmgMul": 18.9449
     },
     {
      "key": "furnace gnawer",
      "lvl": 33,
-     "hpMul": 40.7555,
-     "dmgMul": 22.2881
+     "hpMul": 34.6422,
+     "dmgMul": 18.9449
     }
    ],
    [
     {
      "key": "furnace gnawer",
      "lvl": 33,
-     "hpMul": 40.7555,
-     "dmgMul": 22.2881
+     "hpMul": 34.6422,
+     "dmgMul": 18.9449
     },
     {
      "key": "sootwing imp",
      "lvl": 33,
-     "hpMul": 40.7555,
-     "dmgMul": 22.2881
+     "hpMul": 34.6422,
+     "dmgMul": 18.9449
     },
     {
      "key": "basalt mauler",
      "lvl": 33,
-     "hpMul": 40.7555,
-     "dmgMul": 22.2881
+     "hpMul": 34.6422,
+     "dmgMul": 18.9449
     },
     {
      "key": "sootwing imp",
      "lvl": 33,
-     "hpMul": 40.7555,
-     "dmgMul": 22.2881
+     "hpMul": 34.6422,
+     "dmgMul": 18.9449
     },
     {
      "key": "grundle",
      "lvl": 33,
-     "hpMul": 40.7555,
-     "dmgMul": 22.2881
+     "hpMul": 34.6422,
+     "dmgMul": 18.9449
     },
     {
      "key": "sootwing imp",
      "lvl": 33,
-     "hpMul": 40.7555,
-     "dmgMul": 22.2881
+     "hpMul": 34.6422,
+     "dmgMul": 18.9449
     }
    ]
   ],
@@ -6536,7 +6536,15 @@
    "scale": 0.9179,
    "target": "1.5x the Normal stage (Phil: \"elite should be roughly 1.5x harder than normal\")"
   },
-  "eliteTune": 1.4251
+  "eliteTune": 1.4251,
+  "wallFixes": [
+   {
+    "v": "v1069",
+    "date": "2026-10-08",
+    "scale": 0.85,
+    "why": "follows Normal 6-5 (v1069 x0.85) so Elite 6-5 stays 1.5x its Normal stage (v1056 rule, Phil: \"elite should be roughly 1.5x harder than normal\")"
+   }
+  ]
  },
  {
   "id": "6-6",

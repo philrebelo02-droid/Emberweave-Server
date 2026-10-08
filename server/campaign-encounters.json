@@ -7457,78 +7457,78 @@
         {
           "key": "basalt mauler",
           "lvl": 33,
-          "hpMul": 24.9262,
-          "dmgMul": 16.1965
+          "hpMul": 21.1873,
+          "dmgMul": 13.767
         },
         {
           "key": "furnace gnawer",
           "lvl": 33,
-          "hpMul": 24.9262,
-          "dmgMul": 16.1965
+          "hpMul": 21.1873,
+          "dmgMul": 13.767
         },
         {
           "key": "sootwing imp",
           "lvl": 33,
-          "hpMul": 24.9262,
-          "dmgMul": 16.1965
+          "hpMul": 21.1873,
+          "dmgMul": 13.767
         }
       ],
       [
         {
           "key": "grundle",
           "lvl": 33,
-          "hpMul": 24.9262,
-          "dmgMul": 16.1965
+          "hpMul": 21.1873,
+          "dmgMul": 13.767
         },
         {
           "key": "furnace gnawer",
           "lvl": 33,
-          "hpMul": 24.9262,
-          "dmgMul": 16.1965
+          "hpMul": 21.1873,
+          "dmgMul": 13.767
         },
         {
           "key": "furnace gnawer",
           "lvl": 33,
-          "hpMul": 24.9262,
-          "dmgMul": 16.1965
+          "hpMul": 21.1873,
+          "dmgMul": 13.767
         }
       ],
       [
         {
           "key": "furnace gnawer",
           "lvl": 33,
-          "hpMul": 24.9262,
-          "dmgMul": 16.1965
+          "hpMul": 21.1873,
+          "dmgMul": 13.767
         },
         {
           "key": "sootwing imp",
           "lvl": 33,
-          "hpMul": 24.9262,
-          "dmgMul": 16.1965
+          "hpMul": 21.1873,
+          "dmgMul": 13.767
         },
         {
           "key": "basalt mauler",
           "lvl": 33,
-          "hpMul": 24.9262,
-          "dmgMul": 16.1965
+          "hpMul": 21.1873,
+          "dmgMul": 13.767
         },
         {
           "key": "sootwing imp",
           "lvl": 33,
-          "hpMul": 24.9262,
-          "dmgMul": 16.1965
+          "hpMul": 21.1873,
+          "dmgMul": 13.767
         },
         {
           "key": "grundle",
           "lvl": 33,
-          "hpMul": 24.9262,
-          "dmgMul": 16.1965
+          "hpMul": 21.1873,
+          "dmgMul": 13.767
         },
         {
           "key": "sootwing imp",
           "lvl": 33,
-          "hpMul": 24.9262,
-          "dmgMul": 16.1965
+          "hpMul": 21.1873,
+          "dmgMul": 13.767
         }
       ]
     ],
@@ -7537,7 +7537,7 @@
     "recommendedQuality": "Blue +2",
     "qualityMinHeroLevel": 30,
     "bossLevelGate": 0,
-    "difficultyTune": 5.4254,
+    "difficultyTune": 4.6116,
     "baselineHp": 10.7716,
     "baselineDmg": 6.4088,
     "portalMode": "normal",
@@ -7551,7 +7551,15 @@
       "blue-plus-2-veilward",
       "blue-plus-2-ravager"
     ],
-    "curveV820": true
+    "curveV820": true,
+    "wallFixes": [
+      {
+        "v": "v1069",
+        "date": "2026-10-08",
+        "scale": 0.85,
+        "why": "8 Oct 15:4x sims (v1068 cleared 6-2 on every tab): 6-5 holds 5 of 7 tabs - F2P A 29 tries, Big B 27, Medium B 16 (FULLY UPGRADED, 3.6 game days, 0 won), F2P B 9, Medium A 6; only Big A has passed it (now at 6-9), Whale A is still at 6-3. A spike on both sides: last-wave hpMul 24.93 / dmgMul 16.20 / tune 5.43 against 6-4 18.37 / 13.47 / 4.45 and 6-6 14.27 / 11.14 / 3.25. First wall step. Ember's Wall Watch report (15:42, Medium B) proposed this exact fix. Phil: \"everytime they hit a brick wall that takes them multiple days, fix that brick wall\""
+      }
+    ]
   },
   {
     "id": "6-6",
