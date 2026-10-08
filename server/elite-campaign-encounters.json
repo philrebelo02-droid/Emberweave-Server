@@ -6061,78 +6061,78 @@
     {
      "key": "basalt mauler",
      "lvl": 31,
-     "hpMul": 44.6294,
-     "dmgMul": 24.1723
+     "hpMul": 37.935,
+     "dmgMul": 20.5465
     },
     {
      "key": "ashen",
      "lvl": 31,
-     "hpMul": 44.6294,
-     "dmgMul": 24.1723
+     "hpMul": 37.935,
+     "dmgMul": 20.5465
     },
     {
      "key": "sootwing imp",
      "lvl": 31,
-     "hpMul": 44.6294,
-     "dmgMul": 24.1723
+     "hpMul": 37.935,
+     "dmgMul": 20.5465
     },
     {
      "key": "ashen",
      "lvl": 31,
-     "hpMul": 44.6294,
-     "dmgMul": 24.1723
+     "hpMul": 37.935,
+     "dmgMul": 20.5465
     }
    ],
    [
     {
      "key": "ashen",
      "lvl": 31,
-     "hpMul": 44.6294,
-     "dmgMul": 24.1723
+     "hpMul": 37.935,
+     "dmgMul": 20.5465
     },
     {
      "key": "ashen",
      "lvl": 31,
-     "hpMul": 44.6294,
-     "dmgMul": 24.1723
+     "hpMul": 37.935,
+     "dmgMul": 20.5465
     },
     {
      "key": "grundle",
      "lvl": 31,
-     "hpMul": 44.6294,
-     "dmgMul": 24.1723
+     "hpMul": 37.935,
+     "dmgMul": 20.5465
     }
    ],
    [
     {
      "key": "basalt mauler",
      "lvl": 31,
-     "hpMul": 44.6294,
-     "dmgMul": 24.1723
+     "hpMul": 37.935,
+     "dmgMul": 20.5465
     },
     {
      "key": "sootwing imp",
      "lvl": 31,
-     "hpMul": 44.6294,
-     "dmgMul": 24.1723
+     "hpMul": 37.935,
+     "dmgMul": 20.5465
     },
     {
      "key": "sootwing imp",
      "lvl": 31,
-     "hpMul": 44.6294,
-     "dmgMul": 24.1723
+     "hpMul": 37.935,
+     "dmgMul": 20.5465
     },
     {
      "key": "ashen",
      "lvl": 31,
-     "hpMul": 44.6294,
-     "dmgMul": 24.1723
+     "hpMul": 37.935,
+     "dmgMul": 20.5465
     },
     {
      "key": "grundle",
      "lvl": 31,
-     "hpMul": 44.6294,
-     "dmgMul": 24.1723
+     "hpMul": 37.935,
+     "dmgMul": 20.5465
     }
    ]
   ],
@@ -6142,7 +6142,15 @@
    "scale": 0.9151,
    "target": "1.5x the Normal stage (Phil: \"elite should be roughly 1.5x harder than normal\")"
   },
-  "eliteTune": 1.4302
+  "eliteTune": 1.4302,
+  "wallFixes": [
+   {
+    "v": "v1058",
+    "date": "2026-10-08",
+    "scale": 0.85,
+    "why": "follows Normal 6-2 (v1058 x0.85) so Elite 6-2 stays 1.5x its Normal stage (v1056 rule, Phil: \"elite should be roughly 1.5x harder than normal\")"
+   }
+  ]
  },
  {
   "id": "6-3",

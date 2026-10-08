@@ -7006,78 +7006,78 @@
         {
           "key": "basalt mauler",
           "lvl": 31,
-          "hpMul": 27.2809,
-          "dmgMul": 17.5751
+          "hpMul": 23.1888,
+          "dmgMul": 14.9388
         },
         {
           "key": "ashen",
           "lvl": 31,
-          "hpMul": 27.2809,
-          "dmgMul": 17.5751
+          "hpMul": 23.1888,
+          "dmgMul": 14.9388
         },
         {
           "key": "sootwing imp",
           "lvl": 31,
-          "hpMul": 27.2809,
-          "dmgMul": 17.5751
+          "hpMul": 23.1888,
+          "dmgMul": 14.9388
         },
         {
           "key": "ashen",
           "lvl": 31,
-          "hpMul": 27.2809,
-          "dmgMul": 17.5751
+          "hpMul": 23.1888,
+          "dmgMul": 14.9388
         }
       ],
       [
         {
           "key": "ashen",
           "lvl": 31,
-          "hpMul": 27.2809,
-          "dmgMul": 17.5751
+          "hpMul": 23.1888,
+          "dmgMul": 14.9388
         },
         {
           "key": "ashen",
           "lvl": 31,
-          "hpMul": 27.2809,
-          "dmgMul": 17.5751
+          "hpMul": 23.1888,
+          "dmgMul": 14.9388
         },
         {
           "key": "grundle",
           "lvl": 31,
-          "hpMul": 27.2809,
-          "dmgMul": 17.5751
+          "hpMul": 23.1888,
+          "dmgMul": 14.9388
         }
       ],
       [
         {
           "key": "basalt mauler",
           "lvl": 31,
-          "hpMul": 27.2809,
-          "dmgMul": 17.5751
+          "hpMul": 23.1888,
+          "dmgMul": 14.9388
         },
         {
           "key": "sootwing imp",
           "lvl": 31,
-          "hpMul": 27.2809,
-          "dmgMul": 17.5751
+          "hpMul": 23.1888,
+          "dmgMul": 14.9388
         },
         {
           "key": "sootwing imp",
           "lvl": 31,
-          "hpMul": 27.2809,
-          "dmgMul": 17.5751
+          "hpMul": 23.1888,
+          "dmgMul": 14.9388
         },
         {
           "key": "ashen",
           "lvl": 31,
-          "hpMul": 27.2809,
-          "dmgMul": 17.5751
+          "hpMul": 23.1888,
+          "dmgMul": 14.9388
         },
         {
           "key": "grundle",
           "lvl": 31,
-          "hpMul": 27.2809,
-          "dmgMul": 17.5751
+          "hpMul": 23.1888,
+          "dmgMul": 14.9388
         }
       ]
     ],
@@ -7086,7 +7086,7 @@
     "recommendedQuality": "Blue +2",
     "qualityMinHeroLevel": 30,
     "bossLevelGate": 0,
-    "difficultyTune": 7.0214,
+    "difficultyTune": 5.9682,
     "baselineHp": 9.4391,
     "baselineDmg": 5.7804,
     "portalMode": "normal",
@@ -7100,7 +7100,15 @@
       "blue-plus-2-sunder",
       "blue-plus-2-voidbind"
     ],
-    "curveV820": true
+    "curveV820": true,
+    "wallFixes": [
+      {
+        "v": "v1058",
+        "date": "2026-10-08",
+        "scale": 0.85,
+        "why": "Ember's WALL WATCH (8 Oct 01:17) and her proposal: all 7 sim bots held 15+ game days at 6-2; Medium B kept losing it with full Blue +2 gear for 1.6 game days after v1057 (0 of 5). 6-2 was a cliff: enemy hpMul 27.28 / dmgMul 17.58 against 6-1's 20.14 / 13.73 and harder than 6-3 (21.73 / 12.26), 6-4 and 6-5. One step easier, the wall step (v1052). Phil: \"everytime they hit a brick wall that takes them multiple days, fix that brick wall\""
+      }
+    ]
   },
   {
     "id": "6-3",
