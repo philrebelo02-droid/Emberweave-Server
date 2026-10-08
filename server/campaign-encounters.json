@@ -8540,84 +8540,84 @@
         {
           "key": "granith",
           "lvl": 38,
-          "hpMul": 31.4086,
-          "dmgMul": 19.5532
+          "hpMul": 26.6973,
+          "dmgMul": 16.6202
         },
         {
           "key": "crystalhorn grazer",
           "lvl": 38,
-          "hpMul": 31.4086,
-          "dmgMul": 19.5532
+          "hpMul": 26.6973,
+          "dmgMul": 16.6202
         },
         {
           "key": "zephyr harrier",
           "lvl": 38,
-          "hpMul": 31.4086,
-          "dmgMul": 19.5532
+          "hpMul": 26.6973,
+          "dmgMul": 16.6202
         },
         {
           "key": "granith",
           "lvl": 38,
-          "hpMul": 31.4086,
-          "dmgMul": 19.5532
+          "hpMul": 26.6973,
+          "dmgMul": 16.6202
         }
       ],
       [
         {
           "key": "zephyr harrier",
           "lvl": 38,
-          "hpMul": 31.4086,
-          "dmgMul": 19.5532
+          "hpMul": 26.6973,
+          "dmgMul": 16.6202
         },
         {
           "key": "zephyr harrier",
           "lvl": 38,
-          "hpMul": 31.4086,
-          "dmgMul": 19.5532
+          "hpMul": 26.6973,
+          "dmgMul": 16.6202
         },
         {
           "key": "granith",
           "lvl": 38,
-          "hpMul": 31.4086,
-          "dmgMul": 19.5532
+          "hpMul": 26.6973,
+          "dmgMul": 16.6202
         },
         {
           "key": "ironjaw raider",
           "lvl": 38,
-          "hpMul": 31.4086,
-          "dmgMul": 19.5532
+          "hpMul": 26.6973,
+          "dmgMul": 16.6202
         }
       ],
       [
         {
           "key": "zephyr harrier",
           "lvl": 38,
-          "hpMul": 31.4086,
-          "dmgMul": 19.5532
+          "hpMul": 26.6973,
+          "dmgMul": 16.6202
         },
         {
           "key": "crystalhorn grazer",
           "lvl": 38,
-          "hpMul": 31.4086,
-          "dmgMul": 19.5532
+          "hpMul": 26.6973,
+          "dmgMul": 16.6202
         },
         {
           "key": "zephyr harrier",
           "lvl": 38,
-          "hpMul": 31.4086,
-          "dmgMul": 19.5532
+          "hpMul": 26.6973,
+          "dmgMul": 16.6202
         },
         {
           "key": "ironjaw raider",
           "lvl": 38,
-          "hpMul": 31.4086,
-          "dmgMul": 19.5532
+          "hpMul": 26.6973,
+          "dmgMul": 16.6202
         },
         {
           "key": "bloatus",
           "lvl": 38,
-          "hpMul": 31.4086,
-          "dmgMul": 19.5532,
+          "hpMul": 26.6973,
+          "dmgMul": 16.6202,
           "isHero": true,
           "rewardHero": true,
           "rank": 3
@@ -8629,7 +8629,7 @@
     "recommendedQuality": "Purple",
     "qualityMinHeroLevel": 36,
     "bossLevelGate": 0,
-    "difficultyTune": 5.7531,
+    "difficultyTune": 4.8901,
     "baselineHp": 16.5437,
     "baselineDmg": 8.8612,
     "portalMode": "normal",
@@ -8638,7 +8638,15 @@
     "chapterName": "Stormcrag Summit",
     "comps": "v337",
     "rewardHero": "bloatus",
-    "curveV820": true
+    "curveV820": true,
+    "wallFixes": [
+      {
+        "v": "v1059",
+        "date": "2026-10-08",
+        "scale": 0.85,
+        "why": "Ember's Wall Watch proposal (8 Oct 02:59): Big B held 13+ game days at 7-3, 0 of 31 (16 tries over ~10 game days after v1058) with every hero in Blue +2 gear at temper 15, FULLY UPGRADED. 7-3 was a cliff: hpMul 31.41 / dmgMul 19.55 against 7-2's 22.30 / 14.85 and 7-4's 19.93 / 14.22. One wall step (v1052). Phil: \"everytime they hit a brick wall that takes them multiple days, fix that brick wall\""
+      }
+    ]
   },
   {
     "id": "7-4",

@@ -7410,84 +7410,84 @@
     {
      "key": "granith",
      "lvl": 38,
-     "hpMul": 49.1371,
-     "dmgMul": 28.1216
+     "hpMul": 41.7665,
+     "dmgMul": 23.9034
     },
     {
      "key": "crystalhorn grazer",
      "lvl": 38,
-     "hpMul": 49.1371,
-     "dmgMul": 28.1216
+     "hpMul": 41.7665,
+     "dmgMul": 23.9034
     },
     {
      "key": "zephyr harrier",
      "lvl": 38,
-     "hpMul": 49.1371,
-     "dmgMul": 28.1216
+     "hpMul": 41.7665,
+     "dmgMul": 23.9034
     },
     {
      "key": "granith",
      "lvl": 38,
-     "hpMul": 49.1371,
-     "dmgMul": 28.1216
+     "hpMul": 41.7665,
+     "dmgMul": 23.9034
     }
    ],
    [
     {
      "key": "zephyr harrier",
      "lvl": 38,
-     "hpMul": 49.1371,
-     "dmgMul": 28.1216
+     "hpMul": 41.7665,
+     "dmgMul": 23.9034
     },
     {
      "key": "zephyr harrier",
      "lvl": 38,
-     "hpMul": 49.1371,
-     "dmgMul": 28.1216
+     "hpMul": 41.7665,
+     "dmgMul": 23.9034
     },
     {
      "key": "granith",
      "lvl": 38,
-     "hpMul": 49.1371,
-     "dmgMul": 28.1216
+     "hpMul": 41.7665,
+     "dmgMul": 23.9034
     },
     {
      "key": "ironjaw raider",
      "lvl": 38,
-     "hpMul": 49.1371,
-     "dmgMul": 28.1216
+     "hpMul": 41.7665,
+     "dmgMul": 23.9034
     }
    ],
    [
     {
      "key": "zephyr harrier",
      "lvl": 38,
-     "hpMul": 49.1371,
-     "dmgMul": 28.1216
+     "hpMul": 41.7665,
+     "dmgMul": 23.9034
     },
     {
      "key": "crystalhorn grazer",
      "lvl": 38,
-     "hpMul": 49.1371,
-     "dmgMul": 28.1216
+     "hpMul": 41.7665,
+     "dmgMul": 23.9034
     },
     {
      "key": "zephyr harrier",
      "lvl": 38,
-     "hpMul": 49.1371,
-     "dmgMul": 28.1216
+     "hpMul": 41.7665,
+     "dmgMul": 23.9034
     },
     {
      "key": "ironjaw raider",
      "lvl": 38,
-     "hpMul": 49.1371,
-     "dmgMul": 28.1216
+     "hpMul": 41.7665,
+     "dmgMul": 23.9034
     },
     {
      "key": "granith",
      "lvl": 38,
-     "hpMul": 49.1371,
-     "dmgMul": 28.1216
+     "hpMul": 41.7665,
+     "dmgMul": 23.9034
     }
    ]
   ],
@@ -7497,7 +7497,15 @@
    "scale": 1.1787,
    "target": "1.5x the Normal stage (Phil: \"elite should be roughly 1.5x harder than normal\")"
   },
-  "eliteTune": 1.0618
+  "eliteTune": 1.0618,
+  "wallFixes": [
+   {
+    "v": "v1059",
+    "date": "2026-10-08",
+    "scale": 0.85,
+    "why": "follows Normal 7-3 (v1059 x0.85) so Elite 7-3 stays 1.5x its Normal stage (v1056 rule)"
+   }
+  ]
  },
  {
   "id": "7-4",
