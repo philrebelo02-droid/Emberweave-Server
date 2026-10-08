@@ -6077,78 +6077,78 @@
     {
      "key": "basalt mauler",
      "lvl": 31,
-     "hpMul": 37.935,
-     "dmgMul": 20.5465
+     "hpMul": 32.2448,
+     "dmgMul": 17.4645
     },
     {
      "key": "ashen",
      "lvl": 31,
-     "hpMul": 37.935,
-     "dmgMul": 20.5465
+     "hpMul": 32.2448,
+     "dmgMul": 17.4645
     },
     {
      "key": "sootwing imp",
      "lvl": 31,
-     "hpMul": 37.935,
-     "dmgMul": 20.5465
+     "hpMul": 32.2448,
+     "dmgMul": 17.4645
     },
     {
      "key": "ashen",
      "lvl": 31,
-     "hpMul": 37.935,
-     "dmgMul": 20.5465
+     "hpMul": 32.2448,
+     "dmgMul": 17.4645
     }
    ],
    [
     {
      "key": "ashen",
      "lvl": 31,
-     "hpMul": 37.935,
-     "dmgMul": 20.5465
+     "hpMul": 32.2448,
+     "dmgMul": 17.4645
     },
     {
      "key": "ashen",
      "lvl": 31,
-     "hpMul": 37.935,
-     "dmgMul": 20.5465
+     "hpMul": 32.2448,
+     "dmgMul": 17.4645
     },
     {
      "key": "grundle",
      "lvl": 31,
-     "hpMul": 37.935,
-     "dmgMul": 20.5465
+     "hpMul": 32.2448,
+     "dmgMul": 17.4645
     }
    ],
    [
     {
      "key": "basalt mauler",
      "lvl": 31,
-     "hpMul": 37.935,
-     "dmgMul": 20.5465
+     "hpMul": 32.2448,
+     "dmgMul": 17.4645
     },
     {
      "key": "sootwing imp",
      "lvl": 31,
-     "hpMul": 37.935,
-     "dmgMul": 20.5465
+     "hpMul": 32.2448,
+     "dmgMul": 17.4645
     },
     {
      "key": "sootwing imp",
      "lvl": 31,
-     "hpMul": 37.935,
-     "dmgMul": 20.5465
+     "hpMul": 32.2448,
+     "dmgMul": 17.4645
     },
     {
      "key": "ashen",
      "lvl": 31,
-     "hpMul": 37.935,
-     "dmgMul": 20.5465
+     "hpMul": 32.2448,
+     "dmgMul": 17.4645
     },
     {
      "key": "grundle",
      "lvl": 31,
-     "hpMul": 37.935,
-     "dmgMul": 20.5465
+     "hpMul": 32.2448,
+     "dmgMul": 17.4645
     }
    ]
   ],
@@ -6165,6 +6165,12 @@
     "date": "2026-10-08",
     "scale": 0.85,
     "why": "follows Normal 6-2 (v1058 x0.85) so Elite 6-2 stays 1.5x its Normal stage (v1056 rule, Phil: \"elite should be roughly 1.5x harder than normal\")"
+   },
+   {
+    "v": "v1068",
+    "date": "2026-10-08",
+    "scale": 0.85,
+    "why": "follows Normal 6-2 (v1068 x0.85) so Elite 6-2 stays 1.5x its Normal stage (v1056 rule, Phil: \"elite should be roughly 1.5x harder than normal\")"
    }
   ]
  },
