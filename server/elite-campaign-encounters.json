@@ -2217,48 +2217,48 @@
     {
      "key": "mudsnap crab",
      "lvl": 13,
-     "hpMul": 3.8145,
-     "dmgMul": 3.9756
+     "hpMul": 4.3867,
+     "dmgMul": 4.5719
     },
     {
      "key": "gnashul",
      "lvl": 13,
-     "hpMul": 3.8145,
-     "dmgMul": 3.9756
+     "hpMul": 4.3867,
+     "dmgMul": 4.5719
     },
     {
      "key": "gnashul",
      "lvl": 13,
-     "hpMul": 3.8145,
-     "dmgMul": 3.9756
+     "hpMul": 4.3867,
+     "dmgMul": 4.5719
     }
    ],
    [
     {
      "key": "vineback boar",
      "lvl": 13,
-     "hpMul": 3.8145,
-     "dmgMul": 3.9756
+     "hpMul": 4.3867,
+     "dmgMul": 4.5719
     },
     {
      "key": "nightcap mimic",
      "lvl": 13,
-     "hpMul": 3.8145,
-     "dmgMul": 3.9756
+     "hpMul": 4.3867,
+     "dmgMul": 4.5719
     },
     {
      "key": "gnashul",
      "lvl": 13,
-     "hpMul": 3.8145,
-     "dmgMul": 3.9756
+     "hpMul": 4.3867,
+     "dmgMul": 4.5719
     }
    ],
    [
     {
      "key": "fritz",
      "lvl": 13,
-     "hpMul": 3.8145,
-     "dmgMul": 3.9756,
+     "hpMul": 4.3867,
+     "dmgMul": 4.5719,
      "isHero": true,
      "rewardHero": true,
      "rank": 3
@@ -2266,27 +2266,27 @@
     {
      "key": "mudsnap crab",
      "lvl": 13,
-     "hpMul": 3.8145,
-     "dmgMul": 3.9756
+     "hpMul": 4.3867,
+     "dmgMul": 4.5719
     },
     {
      "key": "nightcap mimic",
      "lvl": 13,
-     "hpMul": 3.8145,
-     "dmgMul": 3.9756
+     "hpMul": 4.3867,
+     "dmgMul": 4.5719
     },
     {
      "key": "miregor",
      "lvl": 13,
-     "hpMul": 3.8145,
-     "dmgMul": 3.9756,
+     "hpMul": 4.3867,
+     "dmgMul": 4.5719,
      "boss": true
     },
     {
      "key": "mudsnap crab",
      "lvl": 13,
-     "hpMul": 3.8145,
-     "dmgMul": 3.9756
+     "hpMul": 4.3867,
+     "dmgMul": 4.5719
     }
    ]
   ],
@@ -2297,7 +2297,15 @@
    "scale": 1.259,
    "target": "1.5x the Normal stage (Phil: \"elite should be roughly 1.5x harder than normal\")"
   },
-  "eliteTune": 0.9826
+  "eliteTune": 0.9826,
+  "wallFixes": [
+   {
+    "v": "v1062",
+    "date": "2026-10-08",
+    "scale": 1.15,
+    "why": "follows Normal 2-10 (v1062 x1.15) so Elite stays 1.5x its Normal stage (v1056 rule)"
+   }
+  ]
  },
  {
   "id": "3-1",
@@ -3400,54 +3408,54 @@
     {
      "key": "luminant orb",
      "lvl": 18,
-     "hpMul": 9.6237,
-     "dmgMul": 8.7338
+     "hpMul": 8.1801,
+     "dmgMul": 7.4237
     },
     {
      "key": "crystalhorn grazer",
      "lvl": 18,
-     "hpMul": 9.6237,
-     "dmgMul": 8.7338
+     "hpMul": 8.1801,
+     "dmgMul": 7.4237
     },
     {
      "key": "granith",
      "lvl": 18,
-     "hpMul": 9.6237,
-     "dmgMul": 8.7338
+     "hpMul": 8.1801,
+     "dmgMul": 7.4237
     }
    ],
    [
     {
      "key": "crystalhorn grazer",
      "lvl": 18,
-     "hpMul": 9.6237,
-     "dmgMul": 8.7338
+     "hpMul": 8.1801,
+     "dmgMul": 7.4237
     },
     {
      "key": "granith",
      "lvl": 18,
-     "hpMul": 9.6237,
-     "dmgMul": 8.7338
+     "hpMul": 8.1801,
+     "dmgMul": 7.4237
     },
     {
      "key": "zephyr harrier",
      "lvl": 18,
-     "hpMul": 9.6237,
-     "dmgMul": 8.7338
+     "hpMul": 8.1801,
+     "dmgMul": 7.4237
     },
     {
      "key": "luminant orb",
      "lvl": 18,
-     "hpMul": 9.6237,
-     "dmgMul": 8.7338
+     "hpMul": 8.1801,
+     "dmgMul": 7.4237
     }
    ],
    [
     {
      "key": "fritz",
      "lvl": 18,
-     "hpMul": 9.6237,
-     "dmgMul": 8.7338,
+     "hpMul": 8.1801,
+     "dmgMul": 7.4237,
      "isHero": true,
      "rewardHero": true,
      "rank": 3
@@ -3455,33 +3463,33 @@
     {
      "key": "granith",
      "lvl": 18,
-     "hpMul": 9.6237,
-     "dmgMul": 8.7338
+     "hpMul": 8.1801,
+     "dmgMul": 7.4237
     },
     {
      "key": "granith",
      "lvl": 18,
-     "hpMul": 9.6237,
-     "dmgMul": 8.7338
+     "hpMul": 8.1801,
+     "dmgMul": 7.4237
     },
     {
      "key": "luminant orb",
      "lvl": 18,
-     "hpMul": 9.6237,
-     "dmgMul": 8.7338
+     "hpMul": 8.1801,
+     "dmgMul": 7.4237
     },
     {
      "key": "wintercrag",
      "lvl": 18,
-     "hpMul": 9.6237,
-     "dmgMul": 8.7338,
+     "hpMul": 8.1801,
+     "dmgMul": 7.4237,
      "boss": true
     },
     {
      "key": "luminant orb",
      "lvl": 18,
-     "hpMul": 9.6237,
-     "dmgMul": 8.7338
+     "hpMul": 8.1801,
+     "dmgMul": 7.4237
     }
    ]
   ],
@@ -3492,7 +3500,15 @@
    "scale": 1.3942,
    "target": "1.5x the Normal stage (Phil: \"elite should be roughly 1.5x harder than normal\")"
   },
-  "eliteTune": 0.7198
+  "eliteTune": 0.7198,
+  "wallFixes": [
+   {
+    "v": "v1062",
+    "date": "2026-10-08",
+    "scale": 0.85,
+    "why": "follows Normal 3-10 (v1062 x0.85) so Elite stays 1.5x its Normal stage (v1056 rule)"
+   }
+  ]
  },
  {
   "id": "4-1",
@@ -7035,60 +7051,60 @@
     {
      "key": "furnace gnawer",
      "lvl": 36,
-     "hpMul": 22.9961,
-     "dmgMul": 12.0212
+     "hpMul": 26.4455,
+     "dmgMul": 13.8244
     },
     {
      "key": "furnace gnawer",
      "lvl": 36,
-     "hpMul": 22.9961,
-     "dmgMul": 12.0212
+     "hpMul": 26.4455,
+     "dmgMul": 13.8244
     },
     {
      "key": "crucible acolyte",
      "lvl": 36,
-     "hpMul": 22.9961,
-     "dmgMul": 12.0212
+     "hpMul": 26.4455,
+     "dmgMul": 13.8244
     },
     {
      "key": "sootwing imp",
      "lvl": 36,
-     "hpMul": 22.9961,
-     "dmgMul": 12.0212
+     "hpMul": 26.4455,
+     "dmgMul": 13.8244
     }
    ],
    [
     {
      "key": "furnace gnawer",
      "lvl": 36,
-     "hpMul": 22.9961,
-     "dmgMul": 12.0212
+     "hpMul": 26.4455,
+     "dmgMul": 13.8244
     },
     {
      "key": "basalt mauler",
      "lvl": 36,
-     "hpMul": 22.9961,
-     "dmgMul": 12.0212
+     "hpMul": 26.4455,
+     "dmgMul": 13.8244
     },
     {
      "key": "crucible acolyte",
      "lvl": 36,
-     "hpMul": 22.9961,
-     "dmgMul": 12.0212
+     "hpMul": 26.4455,
+     "dmgMul": 13.8244
     },
     {
      "key": "sootwing imp",
      "lvl": 36,
-     "hpMul": 22.9961,
-     "dmgMul": 12.0212
+     "hpMul": 26.4455,
+     "dmgMul": 13.8244
     }
    ],
    [
     {
      "key": "umbris",
      "lvl": 36,
-     "hpMul": 22.9961,
-     "dmgMul": 12.0212,
+     "hpMul": 26.4455,
+     "dmgMul": 13.8244,
      "isHero": true,
      "rewardHero": true,
      "rank": 3
@@ -7096,21 +7112,21 @@
     {
      "key": "crucible acolyte",
      "lvl": 36,
-     "hpMul": 22.9961,
-     "dmgMul": 12.0212
+     "hpMul": 26.4455,
+     "dmgMul": 13.8244
     },
     {
      "key": "vharok",
      "lvl": 36,
-     "hpMul": 22.9961,
-     "dmgMul": 12.0212,
+     "hpMul": 26.4455,
+     "dmgMul": 13.8244,
      "boss": true
     },
     {
      "key": "furnace gnawer",
      "lvl": 36,
-     "hpMul": 22.9961,
-     "dmgMul": 12.0212
+     "hpMul": 26.4455,
+     "dmgMul": 13.8244
     }
    ]
   ],
@@ -7121,7 +7137,15 @@
    "scale": 0.7258,
    "target": "1.5x the Normal stage (Phil: \"elite should be roughly 1.5x harder than normal\")"
   },
-  "eliteTune": 1.8785
+  "eliteTune": 1.8785,
+  "wallFixes": [
+   {
+    "v": "v1062",
+    "date": "2026-10-08",
+    "scale": 1.15,
+    "why": "follows Normal 6-10 (v1062 x1.15) so Elite stays 1.5x its Normal stage (v1056 rule)"
+   }
+  ]
  },
  {
   "id": "7-1",

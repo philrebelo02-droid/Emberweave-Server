@@ -2556,73 +2556,73 @@
         {
           "key": "mudsnap crab",
           "lvl": 13,
-          "hpMul": 2.4668,
-          "dmgMul": 2.7323
+          "hpMul": 2.8368,
+          "dmgMul": 3.1421
         },
         {
           "key": "gnashul",
           "lvl": 13,
-          "hpMul": 2.4668,
-          "dmgMul": 2.7323
+          "hpMul": 2.8368,
+          "dmgMul": 3.1421
         },
         {
           "key": "gnashul",
           "lvl": 13,
-          "hpMul": 2.4668,
-          "dmgMul": 2.7323
+          "hpMul": 2.8368,
+          "dmgMul": 3.1421
         }
       ],
       [
         {
           "key": "vineback boar",
           "lvl": 13,
-          "hpMul": 2.4668,
-          "dmgMul": 2.7323
+          "hpMul": 2.8368,
+          "dmgMul": 3.1421
         },
         {
           "key": "nightcap mimic",
           "lvl": 13,
-          "hpMul": 2.4668,
-          "dmgMul": 2.7323
+          "hpMul": 2.8368,
+          "dmgMul": 3.1421
         },
         {
           "key": "gnashul",
           "lvl": 13,
-          "hpMul": 2.4668,
-          "dmgMul": 2.7323
+          "hpMul": 2.8368,
+          "dmgMul": 3.1421
         }
       ],
       [
         {
           "key": "vineback boar",
           "lvl": 13,
-          "hpMul": 2.4668,
-          "dmgMul": 2.7323
+          "hpMul": 2.8368,
+          "dmgMul": 3.1421
         },
         {
           "key": "mudsnap crab",
           "lvl": 13,
-          "hpMul": 2.4668,
-          "dmgMul": 2.7323
+          "hpMul": 2.8368,
+          "dmgMul": 3.1421
         },
         {
           "key": "nightcap mimic",
           "lvl": 13,
-          "hpMul": 2.4668,
-          "dmgMul": 2.7323
+          "hpMul": 2.8368,
+          "dmgMul": 3.1421
         },
         {
           "key": "miregor",
           "lvl": 13,
-          "hpMul": 2.4668,
-          "dmgMul": 2.7323,
+          "hpMul": 2.8368,
+          "dmgMul": 3.1421,
           "boss": true
         },
         {
           "key": "umbris",
           "lvl": 13,
-          "hpMul": 2.4668,
-          "dmgMul": 2.7323,
+          "hpMul": 2.8368,
+          "dmgMul": 3.1421,
           "isHero": true,
           "rewardHero": true,
           "rank": 3
@@ -2634,7 +2634,7 @@
     "recommendedQuality": "Green +1",
     "qualityMinHeroLevel": 13,
     "bossLevelGate": 13,
-    "difficultyTune": 0.6935,
+    "difficultyTune": 0.7975,
     "baselineHp": 2.6771,
     "baselineDmg": 2.1148,
     "portalMode": "normal",
@@ -2643,7 +2643,15 @@
     "chapterName": "The Ashen Marsh",
     "comps": "v337",
     "rewardHero": "umbris",
-    "curveV820": true
+    "curveV820": true,
+    "wallFixes": [
+      {
+        "v": "v1062",
+        "date": "2026-10-08",
+        "scale": 1.15,
+        "why": "Phil 8 Oct: 'Buff 2-10' - bosses are deliberate gates (\"if they are first time clearing it with barely upgrading the boss is too easy\"); all 7 sim tabs beat 2-10 on the FIRST try. One step harder."
+      }
+    ]
   },
   {
     "id": "3-1",
@@ -3917,85 +3925,85 @@
         {
           "key": "luminant orb",
           "lvl": 18,
-          "hpMul": 6.5209,
-          "dmgMul": 5.7287
+          "hpMul": 5.5428,
+          "dmgMul": 4.8694
         },
         {
           "key": "crystalhorn grazer",
           "lvl": 18,
-          "hpMul": 6.5209,
-          "dmgMul": 5.7287
+          "hpMul": 5.5428,
+          "dmgMul": 4.8694
         },
         {
           "key": "granith",
           "lvl": 18,
-          "hpMul": 6.5209,
-          "dmgMul": 5.7287
+          "hpMul": 5.5428,
+          "dmgMul": 4.8694
         }
       ],
       [
         {
           "key": "crystalhorn grazer",
           "lvl": 18,
-          "hpMul": 6.5209,
-          "dmgMul": 5.7287
+          "hpMul": 5.5428,
+          "dmgMul": 4.8694
         },
         {
           "key": "granith",
           "lvl": 18,
-          "hpMul": 6.5209,
-          "dmgMul": 5.7287
+          "hpMul": 5.5428,
+          "dmgMul": 4.8694
         },
         {
           "key": "zephyr harrier",
           "lvl": 18,
-          "hpMul": 6.5209,
-          "dmgMul": 5.7287
+          "hpMul": 5.5428,
+          "dmgMul": 4.8694
         },
         {
           "key": "luminant orb",
           "lvl": 18,
-          "hpMul": 6.5209,
-          "dmgMul": 5.7287
+          "hpMul": 5.5428,
+          "dmgMul": 4.8694
         }
       ],
       [
         {
           "key": "zephyr harrier",
           "lvl": 18,
-          "hpMul": 6.5209,
-          "dmgMul": 5.7287
+          "hpMul": 5.5428,
+          "dmgMul": 4.8694
         },
         {
           "key": "granith",
           "lvl": 18,
-          "hpMul": 6.5209,
-          "dmgMul": 5.7287
+          "hpMul": 5.5428,
+          "dmgMul": 4.8694
         },
         {
           "key": "granith",
           "lvl": 18,
-          "hpMul": 6.5209,
-          "dmgMul": 5.7287
+          "hpMul": 5.5428,
+          "dmgMul": 4.8694
         },
         {
           "key": "luminant orb",
           "lvl": 18,
-          "hpMul": 6.5209,
-          "dmgMul": 5.7287
+          "hpMul": 5.5428,
+          "dmgMul": 4.8694
         },
         {
           "key": "wintercrag",
           "lvl": 18,
-          "hpMul": 6.5209,
-          "dmgMul": 5.7287,
+          "hpMul": 5.5428,
+          "dmgMul": 4.8694,
           "boss": true
         },
         {
           "key": "vireo",
           "lvl": 18,
-          "hpMul": 6.5209,
-          "dmgMul": 5.7287,
+          "hpMul": 5.5428,
+          "dmgMul": 4.8694,
           "isHero": true,
           "rewardHero": true,
           "rank": 3
@@ -4007,7 +4015,7 @@
     "recommendedQuality": "Blue",
     "qualityMinHeroLevel": 18,
     "bossLevelGate": 18,
-    "difficultyTune": 2.6299,
+    "difficultyTune": 2.2354,
     "baselineHp": 4.1575,
     "baselineDmg": 2.9831,
     "portalMode": "normal",
@@ -4023,6 +4031,12 @@
         "date": "2026-10-07",
         "scale": 0.85,
         "why": "held all 7 sim bots 2.6-6.8 game days (49-97 tries) (Phil: \"everytime they hit a brick wall that takes them multiple days, fix that brick wall\")"
+      },
+      {
+        "v": "v1062",
+        "date": "2026-10-08",
+        "scale": 0.85,
+        "why": "Phil 8 Oct: 'nerf 3-10' - even after v1052's x0.85 the sim tabs needed 25-70 tries to first beat it (the hardest early gate). One more step easier."
       }
     ]
   },
@@ -8110,79 +8124,79 @@
         {
           "key": "furnace gnawer",
           "lvl": 36,
-          "hpMul": 13.4937,
-          "dmgMul": 9.1052
+          "hpMul": 15.5178,
+          "dmgMul": 10.471
         },
         {
           "key": "furnace gnawer",
           "lvl": 36,
-          "hpMul": 13.4937,
-          "dmgMul": 9.1052
+          "hpMul": 15.5178,
+          "dmgMul": 10.471
         },
         {
           "key": "crucible acolyte",
           "lvl": 36,
-          "hpMul": 13.4937,
-          "dmgMul": 9.1052
+          "hpMul": 15.5178,
+          "dmgMul": 10.471
         },
         {
           "key": "sootwing imp",
           "lvl": 36,
-          "hpMul": 13.4937,
-          "dmgMul": 9.1052
+          "hpMul": 15.5178,
+          "dmgMul": 10.471
         }
       ],
       [
         {
           "key": "furnace gnawer",
           "lvl": 36,
-          "hpMul": 13.4937,
-          "dmgMul": 9.1052
+          "hpMul": 15.5178,
+          "dmgMul": 10.471
         },
         {
           "key": "basalt mauler",
           "lvl": 36,
-          "hpMul": 13.4937,
-          "dmgMul": 9.1052
+          "hpMul": 15.5178,
+          "dmgMul": 10.471
         },
         {
           "key": "crucible acolyte",
           "lvl": 36,
-          "hpMul": 13.4937,
-          "dmgMul": 9.1052
+          "hpMul": 15.5178,
+          "dmgMul": 10.471
         },
         {
           "key": "sootwing imp",
           "lvl": 36,
-          "hpMul": 13.4937,
-          "dmgMul": 9.1052
+          "hpMul": 15.5178,
+          "dmgMul": 10.471
         }
       ],
       [
         {
           "key": "basalt mauler",
           "lvl": 36,
-          "hpMul": 13.4937,
-          "dmgMul": 9.1052
+          "hpMul": 15.5178,
+          "dmgMul": 10.471
         },
         {
           "key": "crucible acolyte",
           "lvl": 36,
-          "hpMul": 13.4937,
-          "dmgMul": 9.1052
+          "hpMul": 15.5178,
+          "dmgMul": 10.471
         },
         {
           "key": "vharok",
           "lvl": 36,
-          "hpMul": 13.4937,
-          "dmgMul": 9.1052,
+          "hpMul": 15.5178,
+          "dmgMul": 10.471,
           "boss": true
         },
         {
           "key": "rhukk",
           "lvl": 36,
-          "hpMul": 13.4937,
-          "dmgMul": 9.1052,
+          "hpMul": 15.5178,
+          "dmgMul": 10.471,
           "isHero": true,
           "rewardHero": true,
           "rank": 3
@@ -8194,7 +8208,7 @@
     "recommendedQuality": "Purple",
     "qualityMinHeroLevel": 36,
     "bossLevelGate": 36,
-    "difficultyTune": 2.3426,
+    "difficultyTune": 2.694,
     "baselineHp": 15.5711,
     "baselineDmg": 8.3729,
     "portalMode": "normal",
@@ -8203,7 +8217,15 @@
     "chapterName": "The Molten Keep",
     "comps": "v337",
     "rewardHero": "rhukk",
-    "curveV820": true
+    "curveV820": true,
+    "wallFixes": [
+      {
+        "v": "v1062",
+        "date": "2026-10-08",
+        "scale": 1.15,
+        "why": "Phil 8 Oct: 'Buff 6-10' - 5 of 6 sim tabs beat 6-10 on the first try (bosses are deliberate gates). One step harder."
+      }
+    ]
   },
   {
     "id": "7-1",
