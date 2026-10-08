@@ -3921,7 +3921,7 @@ function poolRollGem(u, rigged){ const led=u.led, pool=poolState(u);
   if(r<0.80) return poolGlyphFrag(u,'Blue +1', 1+Math.floor(Math.random()*2));
   const gm=20+Math.floor(Math.random()*40); creditGems(u,led,gm,'wish:gem'); return {type:'gems', n:gm}; }
 /* ---- HUD shop (stamina meals + gold purchases, server-owned counts + prices) ---- */
-const SHOP_FOOD_COSTS=[50,100,100,200,200,400,400], SHOP_GOLD_COSTS=[20,20,40,40,60,60,100,100], SHOP_FOOD_STAMINA=120;
+const SHOP_FOOD_COSTS=[50,50,100,100,200,200,400,400,600,600],   /* v1064 Phil 8 Oct: "It should be 50, 50, 100, 100, 200, 200, 400" / "There is 2 400s, then 600, 600 is last" - ten meals a day */ SHOP_GOLD_COSTS=[20,20,40,40,60,60,100,100], SHOP_FOOD_STAMINA=120;
 function shopState(u){ const led=ensureLedger(u); if(!led.shop) led.shop={day:'',food:0,gold:0};
   const dk=nyDayKey(); if(led.shop.day!==dk){ led.shop={day:dk,food:0,gold:0}; } return led.shop; }
 /* v1050 (Phil 7 Oct 2026: "Please make the diamonds shop server side" / "So that people receive diamonds when they purchase").

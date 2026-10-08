@@ -25530,7 +25530,7 @@ document.getElementById('profileModal').addEventListener('click',(e)=>{ if(e.tar
 document.getElementById('stageModal').addEventListener('click',(e)=>{ if(e.target.id==='stageModal') closeStageModal(); });
 
 /* ---- resource shops: Food (stamina), Gold, Diamonds ---- */
-const FOOD_COSTS=[50,100,100,200,200,400,400];        // diamonds per meal that day (resets 09:00)
+const FOOD_COSTS=[50,50,100,100,200,200,400,400,600,600];        // diamonds per meal that day (resets 09:00) - v1064 Phil 8 Oct: ten meals, 600 is last
 const GOLD_COSTS=[20,20,40,40,60,60,100,100];         // diamonds per gold purchase that day
 const FOOD_STAMINA=120;                               // stamina granted per meal
 function goldPerBuy(){ return 1000 + (playerLevel()-1)*100; }   // scales with player level (L1=1000 → +100/level); tunable
@@ -26036,7 +26036,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791458112272';
+const BUILD_ID = '1791470803957';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
