@@ -243,6 +243,8 @@ note "test_shop_1050.js (v1050: the diamond shop is server-side - purchases cred
 node tests/test_shop_1050.js || FAILED=1
 note "test_servers_1051.js (v1051: the in-game server list holds Servers 1-5; /switch forwards server 5)"
 node tests/test_servers_1051.js || FAILED=1
+note "test_temper_type_1054.js (v1054: Temper belongs to the item type - every copy, on every hero, one Temper; Resonance counts a type once)"
+node tests/test_temper_type_1054.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi

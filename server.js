@@ -4082,8 +4082,20 @@ function gearEnabledFor(u){ return !!GEARCAT && (GEAR_V2_ENABLED || isDev(u)); }
 function ensureGear(u){ if(!u.gear) u.gear={ revision:1, fragments:{}, subs:{}, items:{}, equipped:{}, active:{}, seq:1 }; return u.gear; }
 function gearTemperBar(t){ return GEARCAT.meta.temper.startBar + t*GEARCAT.meta.temper.barGrowth; }
 function gearTemperCost(def,t){ return Math.round(GEARCAT.meta.temper.baseDust[def.quality]*Math.pow(1+GEARCAT.meta.temper.dustGrowth,t)); }
-function gearResonanceRank(g){ let total=0;
-  for(const hero in g.equipped){ for(const slot in g.equipped[hero]){ const it=g.items[g.equipped[hero][slot]]; if(it) total+=it.temper||0; } }
+/* v1054 (Phil 7 Oct 2026: "well temper should be item wide / not hero speciifc" - Vex and Carn wore the same Grey Skirmisher Axe at
+   Temper 5 and 4): Temper belongs to the ITEM TYPE (catalog id), account-wide. g.tt[defId] = {temper, prog, dustSpent} is the one
+   record; every copy of that item mirrors it (gearTTSet), so every reader of it.temper - stats, the Forge screen, the bot - sees the
+   type's Temper. A save from before v1054 has no record yet: the type's Temper is the HIGHEST any copy reached (gearTT), nothing is
+   lost. Forge Resonance counts each equipped item TYPE once. Temper dust stays with the type: extracting a copy refunds none of it. */
+function gearTT(g,d){ if(g.tt&&g.tt[d]) return g.tt[d];
+  let best=null; for(const id in (g.items||{})){ const it=g.items[id]; if(!it||it.d!==d) continue;
+    if(!best||(it.temper||0)>best.temper||((it.temper||0)===best.temper&&(it.prog||0)>best.prog)) best={temper:it.temper||0, prog:it.prog||0, dustSpent:0}; }
+  return best||{temper:0,prog:0,dustSpent:0}; }
+function gearTTSet(g,d,rec){ g.tt=g.tt||{}; g.tt[d]={temper:rec.temper|0, prog:rec.prog|0, dustSpent:rec.dustSpent|0};
+  for(const id in (g.items||{})){ const it=g.items[id]; if(it&&it.d===d){ it.temper=rec.temper|0; it.prog=rec.prog|0; it.dustSpent=0; } } }
+function gearItemsView(g){ const out={}; for(const id in (g.items||{})){ const it=g.items[id]; const t=gearTT(g,it.d); out[id]=Object.assign({},it,{temper:t.temper,prog:t.prog}); } return out; }
+function gearResonanceRank(g){ let total=0; const seen=new Set();
+  for(const hero in g.equipped){ for(const slot in g.equipped[hero]){ const it=g.items[g.equipped[hero][slot]]; if(it&&!seen.has(it.d)){ seen.add(it.d); total+=gearTT(g,it.d).temper||0; } } }
   const th=GEARCAT.meta.resonance.thresholds; let r=0; for(let i=0;i<th.length;i++){ if(total>=th[i]) r=i+1; }
   return { rank:r, total, next: r<th.length?th[r]:null }; }
 /* v1017 (re-audit Market #14): a player's gear items are a plain object indexed by a request's itemId - own items only */
@@ -4102,7 +4114,7 @@ function gearHeroFlats(u,heroKey){
   const eq=g.equipped[heroKey]; if(!eq) return out;
   const res=gearResonanceRank(g); const rmul=1+GEARCAT.meta.resonance.perRank*res.rank;
   for(const slot in eq){ const it=g.items[eq[slot]]; const def=it&&GEARCAT.byId[it.d]; if(!def) continue;
-    const tmul=(1+GEARCAT.meta.temper.passivePerTemper*(it.temper||0))*rmul;
+    const tmul=(1+GEARCAT.meta.temper.passivePerTemper*(gearTT(g,it.d).temper||0))*rmul;   /* v1054: the item type's Temper */
     for(const st in def.stats){ const v=def.stats[st]*tmul;
       if(st==='hp') out.hp+=v; else if(st==='atk') out.atk+=v; else if(st==='regen') out.regenRating+=v;   // client: gear regen is a REGEN RATE for every unit, not healer output
       else if(out[st]!=null) out[st]+=v;
@@ -4694,7 +4706,7 @@ async function api(req,res,url){
         note:'Gear fragments come only from the authored Aether Vault floors listed here. Sweeping a floor grants the same two fragments it lists.' });
     }
     if(p==='/api/gear/state'){ const g=ensureGear(me); return send(res,200,{ enabled:true, revision:g.revision, dust:me.dust||0,
-      fragments:g.fragments, subs:g.subs, items:g.items, equipped:g.equipped, active:g.active,
+      fragments:g.fragments, subs:g.subs, items:gearItemsView(g), equipped:g.equipped, active:g.active, temperByType:g.tt||{},   /* v1054: every copy shows its type's Temper */
       resonance:gearResonanceRank(g) }); }
     if(req.method!=='POST') return send(res,404,{error:'gear'});
     // Permission is rechecked BEFORE successful receipt replay after role revocation.
@@ -4742,7 +4754,8 @@ async function api(req,res,url){
         g.subs[def.sub]-=1; if(g.subs[def.sub]<=0) delete g.subs[def.sub];
         for(const iid of chosen) delete g.items[iid];   // consumed
       }
-      const nid='q'+(g.seq++); g.items[nid]={ d:def.id, temper:0, prog:0, dustSpent:0, bound:false, createdAt:Date.now() };
+      const t0=gearTT(g,def.id);   /* v1054: a new copy arrives at its type's Temper */
+      const nid='q'+(g.seq++); g.items[nid]={ d:def.id, temper:t0.temper|0, prog:t0.prog|0, dustSpent:0, bound:false, createdAt:Date.now() };
       return ok({ crafted:nid, gearId:def.id, name:def.name });
     }
     if(p==='/api/gear/equip'){
@@ -4771,17 +4784,19 @@ async function api(req,res,url){
       if(!it||!def) return bad('Unknown item.');
       let uses=Math.max(1,Math.min(60,parseInt(b.uses,10)||1));
       const T=GEARCAT.meta.temper; let spent=0, gained=0, levels=0;
+      const rec=Object.assign({},gearTT(g,def.id));   /* v1054: the item TYPE is tempered - every copy, on every hero */
       while(uses>0){
-        if((it.temper||0)>=T.max) break;
-        const cost=gearTemperCost(def, it.temper||0);
+        if((rec.temper||0)>=T.max) break;
+        const cost=gearTemperCost(def, rec.temper||0);
         if((me.dust||0)<cost) break;
-        me.dust-=cost; spent+=cost; it.dustSpent=(it.dustSpent||0)+cost;
-        it.prog=(it.prog||0)+1; gained++; uses--;
-        if(it.prog>=gearTemperBar(it.temper||0)){ it.temper=(it.temper||0)+1; it.prog=0; levels++; }
+        me.dust-=cost; spent+=cost; rec.dustSpent=(rec.dustSpent||0)+cost;
+        rec.prog=(rec.prog||0)+1; gained++; uses--;
+        if(rec.prog>=gearTemperBar(rec.temper||0)){ rec.temper=(rec.temper||0)+1; rec.prog=0; levels++; }
       }
-      if(!gained) return bad((it.temper>=T.max)?'Already at Temper 30.':'Not enough Forge Dust (next use: ✨'+gearTemperCost(def,it.temper||0)+').');
-      return ok({ itemId:iid, temper:it.temper, prog:it.prog, bar:gearTemperBar(it.temper), dustSpent:spent, levelsGained:levels, uses:gained,   /* v994 (audit #10): how many were actually used */
-        nextCost: it.temper<T.max?gearTemperCost(def,it.temper):null });
+      if(!gained) return bad((rec.temper>=T.max)?'Already at Temper 30.':'Not enough Forge Dust (next use: ✨'+gearTemperCost(def,rec.temper||0)+').');
+      gearTTSet(g,def.id,rec);
+      return ok({ itemId:iid, gearId:def.id, temper:rec.temper, prog:rec.prog, bar:gearTemperBar(rec.temper), dustSpent:spent, levelsGained:levels, uses:gained,   /* v994 (audit #10): how many were actually used */
+        nextCost: rec.temper<T.max?gearTemperCost(def,rec.temper):null });
     }
     if(p==='/api/gear/extract'){
       const iid=String(b.itemId||''); const it=gearItemOf(g,iid); const def=it&&GEARCAT.byId[it.d];
