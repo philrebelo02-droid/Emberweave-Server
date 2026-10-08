@@ -66,8 +66,9 @@ ck('a boss stage grants extra copies of its fixed named fragment',
    hero stage fields a rank-3 hero where Normal fought a monster, and some fights are cliffs (5% harder = a lost seed). The lab
    (C:/Emberweave/game-lab/realsim: elite_tune.js, elite_vs_normal.js) proves each stage is the hardest winnable version, and harder
    than Normal wherever the cliff allows. Here: same id and wave count, and every stage carries its measured eliteTune. */
-ck('Elite Portal is the matching Normal stage, re-tuned on the real board for the squad that opens it (v823)',
-  eliteStages.every((e,i)=>e.id===normalStages[i].id && e.waves.length===normalStages[i].waves.length && e.eliteTune>0));
+ck('Elite Portal is the matching Normal stage at 1.5x its strength (v1056, Phil: "elite should be roughly 1.5x harder than normal")',
+  eliteStages.every((e,i)=>{ const st=x=>x.waves.reduce((t,w)=>t+w.reduce((a,u)=>a+Math.sqrt(u.hpMul*u.dmgMul)*(1+0.05*u.lvl),0),0);
+    return e.id===normalStages[i].id && e.waves.length===normalStages[i].waves.length && e.eliteTune>0 && Math.abs(st(e)/st(normalStages[i])-1.5)<0.01; }));
 ck('most Elite stages keep monsters at least as strong as Normal (the rest are tuned cliffs)',
   eliteStages.filter((e,i)=>e.waves[0][0].hpMul>=normalStages[i].waves[0][0].hpMul).length>=120,
   String(eliteStages.filter((e,i)=>e.waves[0][0].hpMul>=normalStages[i].waves[0][0].hpMul).length));
