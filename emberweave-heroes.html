@@ -15058,7 +15058,7 @@ function adoptLedger(st){ if(!st||typeof st!=='object') return;
   if(st.skill){ G.skillLevel=G.skillLevel||{}; for(const k in st.skill) G.skillLevel[k]=(st.skill[k]||[1,1,1,1]).slice(); }
   if(st.temple) G.temple=st.temple;
   if(st.marketToday) G.marketToday=st.marketToday;   // v998: the Market's daily fragment count
-  // day-boundary: HUD shop counters are server-owned (ET-midnight day). Mirror them when the server reports them;
+  // day-boundary: HUD shop counters are server-owned (the 09:00 ET day, v1065). Mirror them when the server reports them;
   // an old server without `shop` leaves the local fallback untouched.
   if(st.shop&&typeof st.shop==='object'){ G.foodBuys=st.shop.food|0; G.goldBuys=st.shop.gold|0; }
   saveG(); if(typeof updateHubChrome==='function') try{updateHubChrome();}catch(e){}
@@ -23246,7 +23246,7 @@ function renderWishing(){ applySceneBg('wishing',WISHPOOL_BG); const b=document.
       <div class="wp-name">Diamond Pool</div>
       <div class="wp-cost">💎 ${WISH_GEM_COST} / wish</div>
       <div class="wp-free ${gemFree?'on':''}">${!gemUnlocked?'🔒 Clear Stage 1-5 to unlock':(gemFree?(gemRigged?'✨ Free first wish ready':'✨ Free wish ready'):('⏳ Free wish in '+fmtDur(gemNext||0)))}</div>
-      <div class="wp-sub">${gemRigged?'First wish: guaranteed 2★ hero':'1 free daily (midnight ET reset)'}</div>
+      <div class="wp-sub">${gemRigged?'First wish: guaranteed 2★ hero':'1 free daily (09:00 ET reset)'}</div>
       <div class="wp-sub" style="opacity:.75">8% 2★ · 1% 3★ · 25% fragments · 0.1% KonWu</div>
       <button class="btn ${canGem?'':'secondary'}" id="wpGem" ${canGem?'':'disabled'}>${gemFree?'Wish · Free':'Wish · 💎'+WISH_GEM_COST}</button>
       <button class="btn ${(poolReady&&gemUnlocked&&(G.gems||0)>=wishGem10Cost())?'':'secondary'}" id="wpGem10" ${(poolReady&&gemUnlocked&&(G.gems||0)>=wishGem10Cost())?'':'disabled'} style="width:100%;margin-top:6px">10 Wishes · 💎${wishGem10Cost()} <span style="font-size:10px;color:#7ee0a0">−10%</span></button>
@@ -25586,7 +25586,7 @@ async function claimPlans(){ if(!ACC.token){ bannerMsg('Connect to the realm to 
   const pd=r.paid||{}; bannerMsg([pd.gems?('💎 +'+pd.gems+' diamonds'):'', pd.stamina?('⧗ +'+pd.stamina+' stamina'):''].filter(Boolean).join(' · '));
   renderQuests(); if(typeof updateMailBadges==='function') updateMailBadges(); }
 function dailyPacksReady(){ return srvPlans().some(p=>p.ready); }
-// day-boundary: when the server reports shop counters (LED.st.shop) it owns the day (resets at midnight ET,
+// day-boundary: when the server reports shop counters (LED.st.shop) it owns the day (resets at 09:00 ET, v1065,
 // not the 09:00 arena day) — the local reset and local price table are only a fallback for an old server.
 function shopSrv(){ const s=(LED&&LED.st&&LED.st.shop); return (s&&typeof s==='object')?s:null; }
 function foodDayReset(){ if(shopSrv()) return; const d=arenaDayKey(); if(G.foodDay!==d){ G.foodDay=d; G.foodBuys=0; } }
@@ -25594,13 +25594,13 @@ function goldDayReset(){ if(shopSrv()) return; const d=arenaDayKey(); if(G.goldD
 function foodNextCost(){ const s=shopSrv(); if(s){ G.foodBuys=s.food|0; return (s.foodCost==null)?null:(s.foodCost|0); } foodDayReset(); return (G.foodBuys||0)<FOOD_COSTS.length ? FOOD_COSTS[G.foodBuys||0] : null; }
 function goldNextCost(){ const s=shopSrv(); if(s){ G.goldBuys=s.gold|0; return (s.goldCost==null)?null:(s.goldCost|0); } goldDayReset(); return (G.goldBuys||0)<GOLD_COSTS.length ? GOLD_COSTS[G.goldBuys||0] : null; }
 async function buyFood(){ return shopOnce(buyFoodNow); }
-async function buyFoodNow(){ const c=foodNextCost(); if(c==null){ bannerMsg('No more meals today — resets at midnight ET.'); return; }
+async function buyFoodNow(){ const c=foodNextCost(); if(c==null){ bannerMsg('No more meals today — resets at 09:00 ET.'); return; }
   if((G.gems||0)<c){ bannerMsg('Not enough 💎 diamonds.'); return; }
   const r=await api('/api/shop/buy','POST',{what:'food',requestId:shopRid('food')}); shopRidDone('food',r);
   if(!r||!r.ok){ bannerMsg((r&&r.error)||'Purchase failed.'); await ledgerSync(); renderHudShop('food'); return; }
   adoptLedger(r.ledger); if(!(r.ledger&&r.ledger.shop)) G.foodBuys=(G.foodBuys||0)+1; saveG(); updateHubChrome(); renderHudShop('food'); bannerMsg('🍔 +'+FOOD_STAMINA+' stamina!'); }
 async function buyGold(){ return shopOnce(buyGoldNow); }
-async function buyGoldNow(){ const c=goldNextCost(); if(c==null){ bannerMsg('No more gold today — resets at midnight ET.'); return; }
+async function buyGoldNow(){ const c=goldNextCost(); if(c==null){ bannerMsg('No more gold today — resets at 09:00 ET.'); return; }
   if((G.gems||0)<c){ bannerMsg('Not enough 💎 diamonds.'); return; }
   const r=await api('/api/shop/buy','POST',{what:'gold',requestId:shopRid('gold')}); shopRidDone('gold',r);
   if(!r||!r.ok){ bannerMsg((r&&r.error)||'Purchase failed.'); await ledgerSync(); renderHudShop('gold'); return; }
@@ -25642,8 +25642,8 @@ function renderFoodShop(){ foodDayReset(); const c=foodNextCost(), gems=G.gems||
   document.getElementById('hudShopTitle').innerHTML='🍔 Food · Restore Stamina';
   document.getElementById('hudShopBody').innerHTML=`
     <div class="shopnote"><b style="color:#bff0a8">+${FOOD_STAMINA} stamina</b> per meal</div>
-    <div class="buyrow"><div><div class="bl">🍔 Meal · +${FOOD_STAMINA} Stamina</div><div class="bs">Bought today: ${n}${out?' · sold out until midnight ET':''}</div></div>
-      <div class="bcost">${out?'<span class="bs">Back at midnight ET</span>':`<button class="btn sm ${gems>=c?'':'secondary'}" id="foodBuyBtn">💎 ${c}</button>`}</div></div>
+    <div class="buyrow"><div><div class="bl">🍔 Meal · +${FOOD_STAMINA} Stamina</div><div class="bs">Bought today: ${n}${out?' · sold out until 09:00 ET':''}</div></div>
+      <div class="bcost">${out?'<span class="bs">Back at 09:00 ET</span>':`<button class="btn sm ${gems>=c?'':'secondary'}" id="foodBuyBtn">💎 ${c}</button>`}</div></div>
     <div class="costtrack">${FOOD_COSTS.map((x,i)=>`<span class="${i<n?'used':i===n?'next':''}">💎${x}</span>`).join(' ')}</div>
     <div class="shopbal">Balance: 💎 ${gems}</div>`;
   const b=document.getElementById('foodBuyBtn'); if(b) b.onclick=buyFood; }
@@ -25651,8 +25651,8 @@ function renderGoldShop(){ goldDayReset(); const c=goldNextCost(), gems=G.gems||
   document.getElementById('hudShopTitle').innerHTML='🪙 Buy Gold';
   document.getElementById('hudShopBody').innerHTML=`
     <div class="shopnote"><b style="color:#ffe08a">+${amt.toLocaleString()} gold</b> per purchase</div>
-    <div class="buyrow"><div><div class="bl">🪙 +${amt.toLocaleString()} Gold</div><div class="bs">Bought today: ${n}${out?' · sold out until midnight ET':''}</div></div>
-      <div class="bcost">${out?'<span class="bs">Back at midnight ET</span>':`<button class="btn sm ${gems>=c?'':'secondary'}" id="goldBuyBtn">💎 ${c}</button>`}</div></div>
+    <div class="buyrow"><div><div class="bl">🪙 +${amt.toLocaleString()} Gold</div><div class="bs">Bought today: ${n}${out?' · sold out until 09:00 ET':''}</div></div>
+      <div class="bcost">${out?'<span class="bs">Back at 09:00 ET</span>':`<button class="btn sm ${gems>=c?'':'secondary'}" id="goldBuyBtn">💎 ${c}</button>`}</div></div>
     <div class="costtrack">${GOLD_COSTS.map((x,i)=>`<span class="${i<n?'used':i===n?'next':''}">💎${x}</span>`).join(' ')}</div>
     <div class="shopbal">Balance: 💎 ${gems}</div>`;
   const b=document.getElementById('goldBuyBtn'); if(b) b.onclick=buyGold; }
@@ -26036,7 +26036,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791470803957';
+const BUILD_ID = '1791480195971';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

@@ -2051,7 +2051,10 @@ const _etFmt=new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',hour12
    across ten weeks. */
 function etOffsetMs(t){ const g={}; for(const p of _etFmt.formatToParts(new Date(t))) g[p.type]=p.value;
   return Math.floor(t/1000)*1000-Date.UTC(+g.year,+g.month-1,+g.day,(+g.hour)%24,+g.minute,+g.second); }
-function nyDayKey(t){ const off=etOffsetMs(t||Date.now()); return new Date((t||Date.now())-off).toISOString().slice(0,10); }
+/* v1065 (Phil 8 Oct: "0900 always"): the game day runs 09:00 -> 09:00 New York time for EVERY daily reset - the server counted
+   midnight while the screens counted 09:00, so for 9 hours a night they disagreed. A key is the NY date of (t - 9 h). */
+const GAME_DAY_START_MS=9*3600000;
+function nyDayKey(t){ const tt=(t||Date.now())-9*3600000, off=etOffsetMs(tt); return new Date(tt-off).toISOString().slice(0,10); }   // 9 h = GAME_DAY_START_MS, inline and on one line so test extractions stand alone
 const WAR_LANES=[{key:'iron_gate',name:'Iron Gate'},{key:'storm_watch',name:'Storm Watch'},{key:'crown_spire',name:'Crown Spire'},{key:'verdant_sanctuary',name:'Verdant Sanctuary'},{key:'rift_tower',name:'Rift Tower'}];
 /* v678 (Phil): "each individual line has a 5 cap ... if 20 lines are in a tower, that means this
    tower is capable of killing 100 lines". The cap counts KILLS: a line holds the front while it keeps
@@ -3565,7 +3568,7 @@ function worldTravelState(u){
   t.wildLast=Math.max(0,+t.wildLast||0); t.lastTransfer=Math.max(0,+t.lastTransfer||0);
   return t;
 }
-function worldTravelDay(now){ return nyDayKey(now-9*3600000); }
+function worldTravelDay(now){ return nyDayKey(now); }   // v1065: nyDayKey is the 09:00 day itself
 function worldView(u,now){
   const loc=worldLocation(u); if(!loc) return {ok:true,locked:true,needLevel:WITCH.UNLOCK_LEVEL};
   const t=worldTravelState(u),day=worldTravelDay(now);
@@ -3800,7 +3803,7 @@ function ledgerView(u){ const led=ensureLedger(u); ledStamRegen(led); if(ledPlay
     stamina:{v:led.stam.v, max:ledStamMax(led), regenMs:STAM_REGEN_MS},
     dust:u.dust||0,
     plans:(function(){ try{ return plansView(led); }catch(e){ return null; } })(),   /* v1050: the paid plans, server-owned */
-    // day-boundary: HUD shop counters are server-owned (ET-midnight day via shopState); the client
+    // day-boundary: HUD shop counters are server-owned (the 09:00 ET day via shopState, v1065); the client
     // used to keep its own 09:00-ET copy, so the quoted price drifted from the charged price.
     shop:(function(){ try{ const sh=shopState(u); return { food:sh.food|0, gold:sh.gold|0,
       foodCost:((sh.food|0)<SHOP_FOOD_COSTS.length?SHOP_FOOD_COSTS[sh.food|0]:null),
@@ -3844,7 +3847,7 @@ function towerReqS(f){ let r=Math.round(560*Math.pow(1.185,f-1)*TOWER_POWER_SCAL
 function towerFloorPay(f){ let gold=Math.round(400*f*Math.pow(1.08,f)); if(gold>190000)gold=190000; if(f%2===0)gold+=200+f*25; if(gold>200000)gold=200000;
   return {gold, gems:(f%10===0)?Math.round(f*1.5):0}; }
 function towerTribPay(floor){ let gold=Math.round(500*floor)+250*(1+Math.floor(floor/4)); if(gold>200000)gold=200000; return gold; }
-function towerDayKey(){ return nyDayKey(Date.now()-9*3600000); }
+function towerDayKey(){ return nyDayKey(); }   // v1065: nyDayKey is the 09:00 day itself
 function towerLed(led){ if(!led.tower||typeof led.tower!=='object'||Array.isArray(led.tower)) led.tower={floor:0,trib:'',mig:0,srv:0}; return led.tower; }
 function towerMaxForPower(pow){ let f=0; while(f<5000&&towerReqS(f+1)<=pow) f++; return f; }
 /* ChatGPT review 3 Oct: EXACT receipts only. Until v949 the client paid itself through /api/tx/earn with requestIds
@@ -3939,7 +3942,7 @@ const SHOP_OFFERS=[
   {id:'d6000',   price:'$50.00', usd:50,    name:'6,000 Diamonds', kind:'gems', amount:6000}];
 const SHOP_OFFER_BY_ID=Object.fromEntries(SHOP_OFFERS.map(o=>[o.id,o]));
 const SHOP_PLAN_KINDS=['gems','stamina'];
-function planDayKey(){ return nyDayKey(Date.now()-9*3600000); }   // plans pay at the 09:00 ET reset (the shop's own promise)
+function planDayKey(){ return nyDayKey(); }   // v1065: nyDayKey is the 09:00 day itself   // plans pay at the 09:00 ET reset (the shop's own promise)
 function shopPlans(led){ if(!led.plans||typeof led.plans!=='object') led.plans={};
   for(const k of SHOP_PLAN_KINDS){ const pl=led.plans[k]; if(!pl||typeof pl!=='object') led.plans[k]={daysLeft:0,lastClaim:''}; }
   return led.plans; }
@@ -5950,9 +5953,9 @@ async function api(req,res,url){
     const goldFreeReady=pool.goldFree<WISH_GOLD_FREE_MAX && (now-pool.goldLast)>=WISH_GOLD_FREE_MS;
     const gemUnlocked=pool.gemFirstDone || ((led.camp&&led.camp.cleared)|0)>=WISH_FIRST_GEM_CLEAR_NODE;
     const gemFreeReady=pool.gemFreeDay!==dk && gemUnlocked;
-    /* 3 Oct Pool audit #3: the free diamond wish resets at New York midnight (nyDayKey); the client used the 09:00 arena reset for
+    /* 3 Oct Pool audit #3 (v1065: nyDayKey is now the 09:00 ET day, so both agree): the free diamond wish resets at New York midnight (nyDayKey); the client used the 09:00 arena reset for
        its countdown and label, so a wish tapped at "0" was charged. The server now says how long until the next New York day. */
-    const nyOff=etOffsetMs(now), nyWall=now-nyOff, gemFreeNextMs=Math.max(0,(Math.floor(nyWall/86400000)+1)*86400000+nyOff-now);
+    const _sh=now-GAME_DAY_START_MS, nyOff=etOffsetMs(_sh), nyWall=_sh-nyOff, gemFreeNextMs=Math.max(0,(Math.floor(nyWall/86400000)+1)*86400000+nyOff+GAME_DAY_START_MS-now);   // v1065: next 09:00 ET
     writeDB();
     return send(res,200,{ odds:{konwu:0.001,full3:0.01,full2:0.08,frag2:0.15,frag3:0.10,goldHero:0.05,goldFrag:0.15},
       pity:{at:WISH_GEM_PITY,count:pool.pity}, costs:{gold:WISH_GOLD_COST,gem:WISH_GEM_COST,mult10:WISH10_MULT},

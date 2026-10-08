@@ -1,6 +1,6 @@
 // 3 Oct 2026 Wishing Pool + Forge audit (v968), real server on a free port + temp DB:
 //  Forge #2 - gear cannot be equipped on (or made active for) a hero the player does not own; an owned hero still equips (control);
-//  Pool #3  - /api/pool/state says how long until the free diamond wish (New York midnight), never the 09:00 arena reset.
+//  Pool #3  - /api/pool/state says how long until the free diamond wish - since v1065 the one game day, 09:00 ET (Phil: "0900 always").
 // Asserts (non-zero exit). Control: AUD_SERVER=<pre-fix server copied into the repo root> must FAIL.
 const assert=require('assert'),fs=require('fs'),os=require('os'),path=require('path'),net=require('net'),{spawn}=require('child_process');
 const root=path.join(__dirname,'..'), srvFile=process.env.AUD_SERVER||'server.js', dir=fs.mkdtempSync(path.join(os.tmpdir(),'ew-pf-'));
@@ -32,7 +32,7 @@ async function editDB(fn){ await delay(300); await stop(); const db=JSON.parse(f
   ok(ps.gemFree&&typeof ps.gemFree.nextMs==='number','pool state carries gemFree.nextMs ('+JSON.stringify(ps.gemFree)+')');
   if(!ps.gemFree.ready){ ok(ps.gemFree.nextMs>0&&ps.gemFree.nextMs<=25*3600e3,'next free diamond wish within a day ('+ps.gemFree.nextMs+')'); }
   // the countdown must land on a New York day boundary: the NY date one second after it is a different day than now
-  const etDay=t=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York'}).format(new Date(t));
-  const nm=ps.gemFree.nextMs||0; if(nm>0){ ok(etDay(Date.now()+nm+2000)!==etDay(Date.now()),'nextMs ends at New York midnight'); ok(etDay(Date.now()+nm-5000)===etDay(Date.now()),'and not before it'); }
+  const etDay=t=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York'}).format(new Date(t-9*3600000));   // v1065: the game day starts 09:00 ET
+  const nm=ps.gemFree.nextMs||0; if(nm>0){ ok(etDay(Date.now()+nm+2000)!==etDay(Date.now()),'nextMs ends at the 09:00 ET reset'); ok(etDay(Date.now()+nm-5000)===etDay(Date.now()),'and not before it'); }
   console.log('test_pool_forge_harden.js: '+pass+' checks passed (server '+srvFile+')');
 } catch(e){ console.error('FAIL',e&&e.message||e); process.exitCode=1; } finally { await stop(); } })();
