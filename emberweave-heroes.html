@@ -15194,6 +15194,7 @@ function adoptLedger(st){ if(!st||typeof st!=='object') return;
      it correctly, the level just never showed it. That is why Phil read as level 1 with his real
      roster intact. It was never the dev cheat and never an anti-cheat. */
   G.gold=st.gold|0; G.gems=st.gems|0; G.playerXP=st.px|0; G.xp=G.playerXP;
+  if(st.arenaCoins!=null) G.arenaCoins=st.arenaCoins|0;   /* v1079 (scan #2): arena coins are the server's - the shop spends them there */
   if(st.xpPotions) G.xpPotions={minor:st.xpPotions.minor|0,greater:st.xpPotions.greater|0,major:st.xpPotions.major|0,superior:st.xpPotions.superior|0};
   if(st.xpPotionUsed) G.xpPotionUsed=Object.assign({},st.xpPotionUsed); G.tutVexXpBase=st.tutVexXpBase|0;
   // 28 Aug: the server credits guild coins on the ledger (guild raids) but adoptLedger never read
@@ -17934,7 +17935,7 @@ const SHADY_SHOP=[
   {id:'gold',   name:'War Chest — 80,000 Gold',  icon:'🪙',  cost:250,  server:'warchest', desc:'+80,000 gold'},   /* 3 Oct: one server purchase (was spend + a client gold earn) */
   {id:'shield', name:'Protection Shields ×3',    icon:'🛡',  cost:550,  give:()=>{ G.shieldItems=(G.shieldItems||0)+3; }, desc:'3× 12-hour attack immunity'},
   {id:'tele',   name:'Teleport Scrolls ×5',      icon:'✨',  cost:500,  give:()=>{ G.teleScrolls=(G.teleScrolls||0)+5; }, desc:'5× targeted teleports'},
-  {id:'arena',  name:'Arena Coins ×3,000',       icon:'🎟️', cost:600,  give:()=>{ G.arenaCoins=(G.arenaCoins||0)+3000; }, desc:'+3,000 arena coins'},
+  {id:'arena',  name:'Arena Coins ×3,000',       icon:'🎟️', cost:600,  server:'arenacoins', desc:'+3,000 arena coins'},   /* v1079: a server purchase - the server holds arena coins */
 ];
 function renderShadyMarket(){ const b=document.getElementById('shadyBody'); if(!b)return;
   b.innerHTML=`<div style="display:flex;justify-content:space-between;font-size:12px;color:#8b98a9;margin-bottom:8px"><span>💎 ${G.gems}</span><span style="color:#c9a2ff">Diamonds only</span></div>`
@@ -20478,10 +20479,11 @@ function renderArenaShop(){
       if(e&&!(e.amount>0)){ const m0=_msg(); if(m0)m0.textContent=e.empty||'Nothing to claim right now.'; return; }
       _abtn.disabled=true;
       try{
-        if(e&&ACC.token){ const ok=await txEarnP(e.what,e.amount,e.reason,e.extra);
-          if(!ok){ const m1=_msg(); if(m1)m1.textContent='The quartermaster could not deliver that right now — your coins were not spent.'; return; } }
-        else if(it.give) it.give();
-        G.arenaCoins-=it.cost; saveG(); updateHubChrome(); renderArenaShop();
+        if(ACC.token){ const r=await api('/api/arena/shop','POST',{item:it.id,requestId:uid8()});   /* v1079 (scan #2): the server spends ITS arena coins and grants the goods in one write */
+          if(!r||!r.ok){ const m1=_msg(); if(m1)m1.textContent=(r&&r.error)||'The quartermaster could not deliver that right now — your coins were not spent.'; if(r&&r.ledger)adoptLedger(r.ledger); return; }
+          if(r.ledger) adoptLedger(r.ledger); }
+        else { if(it.give) it.give(); G.arenaCoins-=it.cost; }
+        saveG(); updateHubChrome(); renderArenaShop();
         const m2=_msg(); if(m2)m2.textContent='Purchased '+it.name+'!';
       }catch(_e){ const m3=_msg(); if(m3)m3.textContent='Purchase failed — your coins were not spent.'; }
       finally{ try{ _abtn.disabled=false; }catch(_e2){} }
@@ -21948,7 +21950,7 @@ const GUILD_SHOP=[
   {name:'Gold Cache',desc:'+5,000 gold',cost:300,server:'gshop:1',give:()=>{}},   /* 3 Oct: gold/diamond/stamina items are server purchases (/api/shop/buy gshop:N) */
   {name:'Diamond Pouch',desc:'+50 diamonds',cost:600,server:'gshop:2',give:()=>{}},
   {name:'Stamina Refill',desc:'Refill stamina to full',cost:200,server:'gshop:3',give:()=>{}},
-  {name:'Arena Coins ×2000',desc:'+2,000 arena coins',cost:500,give:()=>{G.arenaCoins=(G.arenaCoins||0)+2000;}},
+  {name:'Arena Coins ×2000',desc:'+2,000 arena coins',cost:500,server:'gshop:4',give:()=>{}},   /* v1079: a server purchase */
   /* v274: materials are ledger-owned, so this purchase is a SERVER purchase (/api/shop/buy 'pieces').
      Granting them locally would have shown the player goods their next sync erased. */
   {name:'Equipment Pieces',desc:'+100 of each equip piece',cost:450,server:'pieces_guild',give:()=>{}},
@@ -21956,7 +21958,7 @@ const GUILD_SHOP=[
   {name:'Resource Crate',desc:'+100 of each map resource',cost:350,server:'gshop:7',give:()=>{ academySync(); }},   /* v1008: a server purchase - the Academy store holds map resources */
   {name:'Diamond Chest',desc:'+150 diamonds',cost:1500,server:'gshop:8',give:()=>{}},
   {name:'Shield Pack ×3',desc:'+3 protection shields',cost:2000,give:()=>{G.shieldItems=(G.shieldItems||0)+3;}},
-  {name:'Arena Coins ×6000',desc:'+6,000 arena coins',cost:1200,give:()=>{G.arenaCoins=(G.arenaCoins||0)+6000;}},
+  {name:'Arena Coins ×6000',desc:'+6,000 arena coins',cost:1200,server:'gshop:10',give:()=>{}},   /* v1079: a server purchase */
   {name:'Treasure Vault',desc:'+50,000 gold',cost:2500,server:'gshop:11',give:()=>{}},
 ];
 function renderGuildShopInto(el){
@@ -26206,7 +26208,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791521701631';
+const BUILD_ID = '1791523108903';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

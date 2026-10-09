@@ -1438,7 +1438,9 @@ function validHero(k){ return typeof k==='string' && Object.prototype.hasOwnProp
 /* 3 Oct Market audit #2: heroes never sold in the Market (client HERO_TYPES source:'purchase' / 'arena'). tests/test_market_harden.js keeps this set equal to the client's. */
 const HERO_NOT_SOLD=new Set(['konwu','grosk','vulmar','aureth','hurne','hollow']);
 /* the Guild Shop's ledger-currency items, by the client GUILD_SHOP slot index (tests/test_guild_shop.js keeps them equal) */
-const GUILD_SHOP_SRV={1:{cost:300,gold:5000},2:{cost:600,gems:50},3:{cost:200,refill:true},6:{cost:700,gold:15000},7:{cost:350,res:100},8:{cost:1500,gems:150},11:{cost:2500,gold:50000}};   /* 7: v1008 (re-audit Guild #1) - the Resource Crate's +100 of each map resource lands in the Academy store (it was granted in the browser and the next Academy sync erased it) */
+/* v1079: the arena shop catalogue (= the client's ARENA_SHOP: id, price in arena coins); day = the old /api/tx/earn daily cap / amount. */
+const ARENA_SHOP_SRV={groskfrag:{cost:500,frag:'grosk',n:5,day:12}, gold1:{cost:120,gold:5000,day:20}, gems1:{cost:300,gems:40,day:20}, stam:{cost:200,refill:200,day:10}};
+const GUILD_SHOP_SRV={1:{cost:300,gold:5000},2:{cost:600,gems:50},3:{cost:200,refill:true},4:{cost:500,arenaCoins:2000},6:{cost:700,gold:15000},7:{cost:350,res:100},8:{cost:1500,gems:150},10:{cost:1200,arenaCoins:6000},11:{cost:2500,gold:50000}};   /* v1079: 4 and 10 (arena coins) were client grants - now the server credits its own arena coins */   /* 7: v1008 (re-audit Guild #1) - the Resource Crate's +100 of each map resource lands in the Academy store (it was granted in the browser and the next Academy sync erased it) */
 function heroNotSold(k){ return HERO_NOT_SOLD.has(k); }
 /* 3 Oct: the daily sign-in calendar, server side. SIGNIN_HERO_POOL = the client's HERO_KEYS order without mythical or purchase/arena heroes
    (tests/test_signin.js keeps it equal to the client); the monthly hero is pool[(year*12+month0) % length], as monthlyHeroKey() does. */
@@ -3791,7 +3793,7 @@ function templeClientState(led){
   return state;
 }
 function ledgerView(u){ const led=ensureLedger(u); ledStamRegen(led); if(ledPlayerLevel(led)>=WITCH.UNLOCK_LEVEL) worldLocation(u);
-  return { rev:led.rev, born:+led.migratedAt||0, gold:led.gold, gems:led.gems, guildCoins:led.guildCoins|0, px:led.px, playerLevel:ledPlayerLevel(led),
+  return { rev:led.rev, born:+led.migratedAt||0, gold:led.gold, gems:led.gems, guildCoins:led.guildCoins|0, arenaCoins:Math.max(0,u.coins|0), px:led.px, playerLevel:ledPlayerLevel(led),   /* v1079: arena coins are the server's (scan #2) */
     hero:led.hero, unlocked:led.unlocked, frags:led.frags, xpPotions:led.xpPotions||{}, xpPotionUsed:led.xpPotionUsed||{}, tutVexXpBase:led.tutVexXpBase|0, eqMats:led.eqMats||{},   // v273: materials are ledger-owned
     skill:led.skill||{}, temple:templeClientState(led),
     marketToday:{used:((led.marketDay&&led.marketDay.k===nyDayKey())?(led.marketDay.frags|0):0), max:12},   /* v998 (Market audit #12): the daily fragment cap, shown on the Market */
@@ -3825,14 +3827,14 @@ function ledgerView(u){ const led=ensureLedger(u); ledStamRegen(led); if(ledPlay
    reported to the dev panel (see gemGain) for a human to judge. `day` is a high backstop against a
    runaway loop, not a design limit. */
 const EARN_RULES={
-  frag:{ arena:{max:10,day:60} },   /* 3 Oct Market audit #1: 'signin' removed - the daily sign-in pays through /api/signin/claim */   /* 3 Oct Market audit #1: 'stars' removed from every currency - the star track pays through /api/stars/claim */
-  stamina:{ arenashop:{max:200,day:2000} },   /* v1050: 'pack' removed - the plans are paid by /api/shop/plan-claim from purchased days only */   /* 30 Sep hardening: a real daily stamina pack pays 120 once a day */
+  frag:{},   /* v1079 (scan 9 Oct #2): 'arena' removed - the arena shop is a server purchase (/api/arena/shop) */   /* 3 Oct Market audit #1: 'signin' removed - the daily sign-in pays through /api/signin/claim */   /* 3 Oct Market audit #1: 'stars' removed from every currency - the star track pays through /api/stars/claim */
+  stamina:{},   /* v1079: 'arenashop' removed (see frag) */   /* v1050: 'pack' removed - the plans are paid by /api/shop/plan-claim from purchased days only */   /* 30 Sep hardening: a real daily stamina pack pays 120 once a day */
   gems:{   /* 3 Oct audit (P0): tower + gauntlet removed - the client chose the amount; the Tower now pays through /api/tower/*, the Gauntlet is retired (no caller) */
          /* 3 Oct 23:3x: city + quest removed - no live caller (the old client guild boss that paid 'city' is dead code; signed-in quests pay through /api/quest/claim) */   /* 3 Oct Market audit #1: convert removed - the War Chest is a server purchase (/api/shop/buy warchest) */
-         arenashop:{max:40,day:800} },   /* v1050: 'pack' (150 diamonds a day to anyone who asked) removed */   /* 30 Sep hardening: pack was 20,000/60,000 a day (a real pack pays 150 once a day); wish + misc removed - the client never sends them */
+         },   /* v1079: 'arenashop' removed (see frag) */   /* v1050: 'pack' (150 diamonds a day to anyone who asked) removed */   /* 30 Sep hardening: pack was 20,000/60,000 a day (a real pack pays 150 once a day); wish + misc removed - the client never sends them */
   gold:{   /* 3 Oct Market audit #1: guildshop removed (gold/gems/stamina) - the Guild Shop is a server purchase (/api/shop/buy gshop:N) */   /* 3 Oct audit (P0): tower + gauntlet removed (see gems) */
          /* 3 Oct 23:3x: city + quest removed (see gems) */   /* 3 Oct: convert removed (see gems) */   /* 30 Sep hardening: gold wish + misc removed (never sent by the client) */
-         arenashop:{max:5000,day:100000} },   /* v1017 (re-audit Market #12): dead 'march' entry removed - /api/tx/earn already refuses reason 'march' (every signed-in city march is a server march) */
+         },   /* v1079: 'arenashop' removed (see frag) */   /* v1017 (re-audit Market #12): dead 'march' entry removed - /api/tx/earn already refuses reason 'march' (every signed-in city march is a server march) */
   /* v663: heroXp/province retired — the Training Province pays through /api/province/* (Drill now forges glyphs) */
   guildCoins:{} };   /* v1017: dead 'march' entry removed (see gold) */
 /* 3 Oct 2026 audit (P0, Phil: "finish the audit and fixes tonight"): THE TOWER OF TRIALS IS SERVER-OWNED.
@@ -6148,6 +6150,28 @@ async function api(req,res,url){
       writeDB(); return {ok:true, idx, got, claimed:led.starClaimed, ledger:ledgerView(me)};
     });
     return send(res,out.storageFailed?503:(out.ok===false?400:200),out); }
+  /* v1079 (exploit scan 9 Oct #2): THE ARENA SHOP IS A SERVER PURCHASE. It used to post the goods to /api/tx/earn ('arenashop' / 'arena')
+     and spend arena coins that lived only in the client save - so anyone could take 800 diamonds, 100,000 gold, stamina and 60 Grosk
+     fragments a day for nothing. Same catalogue and prices as the client's ARENA_SHOP; the old daily caps are kept as item limits. */
+  if(p==='/api/arena/shop' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
+    const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
+    const out=durableCommit(me,me.id+':ashop:'+reqId,(me)=>{
+      const led=ensureLedger(me), id=String(b.item||''), it=Object.prototype.hasOwnProperty.call(ARENA_SHOP_SRV,id)?ARENA_SHOP_SRV[id]:null;
+      if(!it) return {ok:false,error:'Unknown item.'};
+      if((me.coins|0)<it.cost) return {ok:false,error:'Not enough arena coins.'};
+      const dk=nyDayKey(); if(!me.arenaShopDay||me.arenaShopDay.k!==dk) me.arenaShopDay={k:dk};
+      const used=me.arenaShopDay[id]|0; if(used>=it.day) return {ok:false,error:'That item is sold out for today.'};
+      const got={};
+      if(it.refill){ ledStamRegen(led); const need=Math.max(0,ledStamMax(led)-led.stam.v); if(need<=0) return {ok:false,error:'Your stamina is already full.'};
+        creditStamina(me,led,Math.min(it.refill,need),'arenashop'); got.stamina=Math.min(it.refill,need); }
+      else if(it.gold){ creditGold(me,led,it.gold,'arenashop'); got.gold=it.gold; }
+      else if(it.gems){ creditGems(me,led,it.gems,'arenashop'); got.gems=it.gems; }
+      else if(it.frag){ const k=it.frag, before=led.frags[k]|0; led.frags[k]=Math.min(9999,before+it.n); resourceGain(me,'frags',led.frags[k]-before,'arenashop'); got.frags={[k]:it.n}; }
+      me.coins=(me.coins|0)-it.cost; me.arenaShopDay[id]=used+1;
+      ledTx(me,'arenashop:'+id,Object.assign({arenaCoins:-it.cost},got));
+      writeDB(); return {ok:true, got, cost:it.cost, arenaCoins:me.coins|0, ledger:ledgerView(me)};
+    });
+    return send(res,out.storageFailed?503:(out.ok===false?400:200),out); }
   if(p==='/api/shop/buy' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
     const out=durableCommit(me,me.id+':shop:'+reqId,(me)=>{
@@ -6183,10 +6207,16 @@ async function api(req,res,url){
           led.guildCoins=(led.guildCoins|0)-it.cost; creditStamina(me,led,need,'gshop:'+idx); got.stamina=need; }
         else if(it.res){ const A=ensureAcad(me); led.guildCoins=(led.guildCoins|0)-it.cost; got.res={};
           for(const r of ACADEMY_ECON.RESOURCES){ A.res[r]=(A.res[r]|0)+it.res; got.res[r]=it.res; } }
+        else if(it.arenaCoins){ led.guildCoins=(led.guildCoins|0)-it.cost; me.coins=Math.min(ECON_CAP.arenaCoins,(me.coins|0)+it.arenaCoins); got.arenaCoins=it.arenaCoins; }   /* v1079 */
         else { led.guildCoins=(led.guildCoins|0)-it.cost;
           if(it.gold){ creditGold(me,led,it.gold,'gshop:'+idx); got.gold=it.gold; } else { creditGems(me,led,it.gems,'gshop:'+idx); got.gems=it.gems; } }
         ledTx(me,'gshop:'+idx,Object.assign({guildCoins:-it.cost},got));
         writeDB(); return {ok:true, got, cost:it.cost, ledger:ledgerView(me)}; }
+      if(what==='arenacoins'){ const c=600, n=3000;   /* v1079 (scan #2): the Shady Market's Arena Coins x3,000 - was a diamond spend + a client-only grant */
+        if(led.gems<c) return {ok:false,error:'Not enough diamonds.'};
+        led.gems-=c; me.coins=Math.min(ECON_CAP.arenaCoins,(me.coins|0)+n);
+        ledTx(me,'shop:arenacoins',{gems:-c,arenaCoins:n});
+        writeDB(); return {ok:true, arenaCoins:me.coins|0, cost:c, ledger:ledgerView(me)}; }
       if(what==='warchest'){ const c=250, g=80000; sh.warchest=sh.warchest|0;
         if(sh.warchest>=25) return {ok:false,error:'No more War Chests today.'};
         if(led.gems<c) return {ok:false,error:'Not enough diamonds.'};
