@@ -35,7 +35,7 @@ const freePort=()=>new Promise((resolve,reject)=>{const s=net.createServer();s.o
     for(const key of rosterKeys)u.led.unlocked[key]=true;
     for(const [i,key] of keys.entries()){
       u.led.unlocked[key]=true;
-      u.led.temple.heroes[key]={cinders:{bar1:40+i,bar2:30+i,bar3:20+i,bar4:10+i},boonsUnlocked:[true,true,false,false,false]};
+      u.led.temple.heroes[key]={steps:{health:40+i,attack:30+i,armorMr:20+i,pen:10+i},boonsUnlocked:[true,true,false,false,false]};   /* v1094: Temple v2 steps (flat stats + blessings) - the card power parity below covers them */
     }
     fs.writeFileSync(dbFile,JSON.stringify(db));start();
     for(let i=0;i<100;i++){try{if((await fetch(base+'/health')).ok)break;}catch(_){}await delay(100);}
@@ -48,7 +48,7 @@ const freePort=()=>new Promise((resolve,reject)=>{const s=net.createServer();s.o
     await page.waitForTimeout(700);
     if(await page.locator('#tutSkip').isVisible())await page.locator('#tutSkip').click();
     await page.evaluate(()=>renderTemple());
-    assert(await page.locator('#templeBody').getByText('Temple of Ash').count());
+    assert(await page.locator('#tp2Stage .tp2Plate').count(),'the Temple of Ash stage renders (v1094 screen)');
     const parity=await page.evaluate(async({token,keys})=>{
       ACC.token=token;ACC.id='temple-test';
       adoptLedger(await api('/api/ledger'));
@@ -60,81 +60,35 @@ const freePort=()=>new Promise((resolve,reject)=>{const s=net.createServer();s.o
     assert(parity.lines&&parity.lines.ok,'server guild-war power view');
     const server=Object.fromEntries([...(parity.lines.bench||[]),...(parity.lines.lines||[]).flatMap(l=>l.heroes||[])].map(h=>[h.key,h.power]));
     for(const key of keys)assert.strictEqual(parity.mine[key],server[key],key+' client/server Temple card power');
+    /* v1094 (Phil 9 Oct: copy the reference screen): no class tabs, a hero grid sorted by %, then one hero's prayer screen */
+    await page.evaluate(()=>{G.playerXP=Number.MAX_SAFE_INTEGER;RUNE2.enabled=false;G.glyphRank=G.glyphRank||{};HERO_KEYS.filter(k=>G.unlocked[k]).forEach(k=>G.glyphRank[k]=TempleOfAsh.CONFIG.MIN_ASCENSION_INDEX);templeView='grid';renderTemple();});
+    assert.strictEqual(await page.locator('.templeClassTab').count(),0,'no class tabs and no All button');
     const owned=await page.evaluate(()=>HERO_KEYS.filter(k=>G.unlocked[k]));
-    assert.deepStrictEqual(await page.locator('.templeClassTab').allTextContents(),['All',...classes],'seven class tabs');
-    assert(owned.length>10,'fixture has enough owned heroes to wrap');
-    assert.strictEqual(await page.locator('.templeHeroTile').count(),owned.length,'all owned heroes are shown');
-    const grid=await page.locator('.templeHeroGrid').evaluate(el=>({
-      columns:getComputedStyle(el).gridTemplateColumns.split(' ').length,
-      rows:new Set([...el.children].map(x=>Math.round(x.getBoundingClientRect().top))).size}));
-    /* v998 (Temple audit #11): ten across was below a usable tap size on a phone, so <=480 px wraps after six. This page is 390 px. */
-    assert.deepStrictEqual(grid,{columns:6,rows:Math.ceil(owned.length/6)},'owned heroes wrap after six per row on a phone');
-    for(const role of classes){
-      await page.locator(`[data-temple-class="${role}"]`).click();
-      const shown=await page.locator('.templeHeroTile').evaluateAll(els=>els.map(x=>x.dataset.templeHero));
-      assert.deepStrictEqual(shown,owned.filter(k=>bases[k].role===role),role+' filter shows only its heroes');
-      assert.strictEqual(await page.evaluate(()=>templeSelectedHero),shown[0],role+' picks its first hero');
-    }
-    await page.locator('[data-temple-class="All"]').click();
-    await page.locator('.templeHeroTile').nth(1).click();
-    assert.strictEqual(await page.evaluate(()=>templeSelectedHero),owned[1],'tapping a portrait selects that hero');
-    assert.strictEqual(await page.locator('.templeTierTile:not(.templeBonusChoice)').count(),6,'three rows of two prayer choices');
-    const tierGrid=await page.locator('.templeTierGrid').evaluate(el=>({
-      columns:getComputedStyle(el).gridTemplateColumns.split(' ').length,
-      rows:new Set([...el.children].map(x=>Math.round(x.getBoundingClientRect().top))).size,
-      art:[...el.querySelectorAll('img')].every(x=>x.complete&&x.naturalWidth>0)}));
-    assert.deepStrictEqual(tierGrid,{columns:2,rows:3,art:true},'six illustrated choices form three rows of two');
+    assert.strictEqual(await page.locator('.tp2Tile').count(),owned.length,'every Purple hero is on the grid');
+    const pcts=await page.locator('.tp2Tile b').allTextContents();
+    assert.deepStrictEqual(pcts.map(x=>parseInt(x)),pcts.map(x=>parseInt(x)).slice().sort((a,b)=>b-a),'the grid is sorted by completion %');
+    const first=await page.locator('.tp2Tile').first().getAttribute('data-tp2-hero');
+    await page.locator('.tp2Tile').first().click();
+    assert.strictEqual(await page.evaluate(()=>[templeView,templeSelectedHero].join()),'pray,'+first,'tapping a hero opens its prayer screen');
+    assert.strictEqual(await page.locator('.tp2Bar').count(),4,'four bars');
+    assert(await page.locator('.tp2Bust').count(),'the hero stands in the Temple window');
+    assert.strictEqual(await page.locator('.tp2Bless').count(),5,'Blessings 1-4 plus the 5th dot');
+    assert(await page.locator('.tp2KeeperPlate').getByText('Flame Keeper').count(),'the Flame Keeper plate');
+    assert.strictEqual(await page.locator('.tp2Opt[data-tp2-tier="gold"]').count(),1,'the Gold ritual is in the tier checklist');
     await page.evaluate(()=>{G.temple.keeperPoints=0;renderTemple();});
-    const locked=page.locator('[data-temple-tier="kindled"]');
-    assert(await locked.isDisabled(),'locked prayer cannot be chosen');
-    assert.strictEqual(await locked.evaluate(el=>getComputedStyle(el).filter),'grayscale(1)','locked prayer art is greyed out');
-    await page.evaluate(()=>{G.playerXP=0;renderTemple();});
-    assert(await page.locator('[data-temple-tier="gold"]').isDisabled(),'Gold is greyed out before the player unlocks the Temple');
-    await page.evaluate(()=>{G.playerXP=Number.MAX_SAFE_INTEGER;RUNE2.enabled=false;G.glyphRank={};renderTemple();});
-    assert(await page.locator('[data-temple-tier="gold"]').isDisabled(),'Gold is greyed out before the hero reaches Purple ascension');
-    await page.evaluate(()=>{G.glyphRank[templeSelectedHero]=TempleOfAsh.CONFIG.MIN_ASCENSION_INDEX;G.gold=TempleOfAsh.nextGoldCost(G.temple);renderTemple();});
-    assert(await page.locator('[data-temple-tier="gold"]').isEnabled(),'Gold is selectable once the player and hero qualify');
-    await page.evaluate(()=>{TempleOfAsh.freeRitualAvailable(G.temple);G.temple._freeClaimedDay=G.temple.freeRitualDay;renderTemple();});
-    assert(await page.locator('[data-temple-tier="free"]').isDisabled(),'used daily free prayer is greyed out');
-    await page.evaluate(()=>{G.gold=0;renderTemple();});
-    assert(await page.locator('[data-temple-tier="gold"]').isDisabled(),'unaffordable Gold prayer is greyed out');
-    assert(await page.locator('#templePray').isDisabled(),'no affordable prayer cannot be submitted');
-    await page.evaluate(()=>{G.gold=TempleOfAsh.nextGoldCost(G.temple);G.temple.keeperPoints=100000;G.gems=0;renderTemple();});
-    assert(await page.locator('[data-temple-tier="gold"]').isEnabled(),'Gold reopens when the wallet can pay');
-    assert(await page.locator('[data-temple-tier="kindled"]').isDisabled(),'unaffordable diamond prayer is greyed out');
-    await page.evaluate(()=>{G.gems=TempleOfAsh.CONFIG.PRAYER_TIERS.find(x=>x.id==='kindled').gems;renderTemple();});
-    assert(await page.locator('[data-temple-tier="kindled"]').isEnabled(),'diamond prayer reopens when the wallet can pay');
+    assert(await page.locator('[data-tp2-tier="kindled"]').isDisabled(),'a locked tier cannot be chosen');
+    await page.evaluate(()=>{G.temple.keeperPoints=100000;G.gold=0;G.gems=0;renderTemple();});
+    assert(await page.locator('[data-tp2-tier="gold"]').isDisabled(),'unaffordable Gold ritual is greyed out');
+    await page.evaluate(()=>{G.gold=TempleOfAsh.nextGoldCost(G.temple);renderTemple();});
+    assert(await page.locator('[data-tp2-tier="gold"]').isEnabled(),'Gold reopens when the wallet can pay');
     await page.evaluate(()=>{G.temple.bonusPrayers=1;renderTemple();});
-    assert.strictEqual(await page.locator('.templeTierGrid .templeTierTile').count(),6,'banked bonus does not displace a regular choice');
-    await page.locator('.templeBonusChoice').click();
-    assert.strictEqual(await page.evaluate(()=>templeSelectedTier),'bonus','bonus prayer remains selectable separately');
-    await page.evaluate(()=>{G.temple.bonusPrayers=0;renderTemple();});
-    assert.strictEqual(await page.evaluate(()=>templeSelectedTier),'gold','spent bonus falls back to Gold');
-    if(process.env.TEMPLE_SCREENSHOT_PATH)await page.locator('#templeBody').screenshot({path:process.env.TEMPLE_SCREENSHOT_PATH});
-    await page.locator('#templePray').scrollIntoViewIfNeeded({timeout:3000});
-    assert(await page.locator('#templePray').isVisible(),'phone can reach Pray button');
-    if(process.env.TEMPLE_SCREENSHOT_PATH){
-      await page.screenshot({path:process.env.TEMPLE_SCREENSHOT_PATH.replace(/\.png$/,'-prayer.png')});
-      await page.setViewportSize({width:844,height:390});
-      await page.locator('.templeClassTabs').scrollIntoViewIfNeeded({timeout:3000});
-      await page.screenshot({path:process.env.TEMPLE_SCREENSHOT_PATH.replace(/\.png$/,'-landscape-top.png')});
-      await page.locator('.templeTierGrid').scrollIntoViewIfNeeded({timeout:3000});
-      await page.screenshot({path:process.env.TEMPLE_SCREENSHOT_PATH.replace(/\.png$/,'-landscape-tiers.png')});
+    assert.strictEqual(await page.locator('[data-tp2-tier="bonus"]').count(),1,'a banked bonus prayer is offered');
+    for(const vp of [{width:844,height:390},{width:390,height:844},{width:320,height:700}]){
+      await page.setViewportSize(vp); await page.evaluate(()=>renderTemple()); await page.waitForTimeout(100);
+      const box=await page.evaluate(()=>{const s=document.getElementById('tp2Stage').getBoundingClientRect();return {w:s.width,h:s.height,r:s.right,b:s.bottom,vw:innerWidth,vh:innerHeight};});
+      assert(Math.abs(box.w/box.h-16/9)<0.02&&box.r<=box.vw+1&&box.b<=box.vh+1,'the 16:9 stage fits '+JSON.stringify(vp)+' '+JSON.stringify(box));
     }
-    await page.setViewportSize({width:320,height:700});
-    const narrow=await page.evaluate(()=>Object.fromEntries(['templeClassTabs','templeHeroGrid','templeTierGrid'].map(name=>{
-      const el=document.querySelector('.'+name);
-      return [name,{width:el.clientWidth,scrollWidth:el.scrollWidth,columns:getComputedStyle(el).gridTemplateColumns.split(' ').length,
-        rows:new Set([...el.children].map(x=>Math.round(x.getBoundingClientRect().top))).size}];
-    })));
-    for(const [name,box] of Object.entries(narrow))assert(box.scrollWidth<=box.width,name+' fits a 320px phone '+JSON.stringify(box));
-    assert.deepStrictEqual([narrow.templeClassTabs.columns,narrow.templeClassTabs.rows],[4,2],'seven tabs remain legible in two rows on a narrow phone');
-    assert.strictEqual(narrow.templeHeroGrid.columns,6,'six heroes per row on a narrow phone (v998 tap size)');
-    assert.strictEqual(narrow.templeTierGrid.columns,2,'prayer choices remain two across on a narrow phone');
-    if(process.env.TEMPLE_SCREENSHOT_PATH){
-      await page.locator('.templeClassTabs').screenshot({path:process.env.TEMPLE_SCREENSHOT_PATH.replace(/\.png$/,'-narrow-tabs.png')});
-      await page.screenshot({path:process.env.TEMPLE_SCREENSHOT_PATH.replace(/\.png$/,'-narrow-full.png')});
-    }
+    if(process.env.TEMPLE_SCREENSHOT_PATH)await page.screenshot({path:process.env.TEMPLE_SCREENSHOT_PATH});
     assert.deepStrictEqual(errors,[],'browser errors');
     console.log('temple UI and three-hero card power parity: pass');
   }finally{

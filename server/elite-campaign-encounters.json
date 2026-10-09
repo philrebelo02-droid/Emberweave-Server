@@ -10514,90 +10514,90 @@
     {
      "key": "nightgloom",
      "lvl": 56,
-     "hpMul": 94.2928,
-     "dmgMul": 42.8292
+     "hpMul": 80.1489,
+     "dmgMul": 36.4048
     },
     {
      "key": "nightgloom",
      "lvl": 56,
-     "hpMul": 94.2928,
-     "dmgMul": 42.8292
+     "hpMul": 80.1489,
+     "dmgMul": 36.4048
     },
     {
      "key": "lost soul",
      "lvl": 56,
-     "hpMul": 94.2928,
-     "dmgMul": 42.8292
+     "hpMul": 80.1489,
+     "dmgMul": 36.4048
     },
     {
      "key": "nightgloom",
      "lvl": 56,
-     "hpMul": 94.2928,
-     "dmgMul": 42.8292
+     "hpMul": 80.1489,
+     "dmgMul": 36.4048
     },
     {
      "key": "mourn moth",
      "lvl": 56,
-     "hpMul": 94.2928,
-     "dmgMul": 42.8292
+     "hpMul": 80.1489,
+     "dmgMul": 36.4048
     }
    ],
    [
     {
      "key": "nightcap mimic",
      "lvl": 56,
-     "hpMul": 94.2928,
-     "dmgMul": 42.8292
+     "hpMul": 80.1489,
+     "dmgMul": 36.4048
     },
     {
      "key": "lost soul",
      "lvl": 56,
-     "hpMul": 94.2928,
-     "dmgMul": 42.8292
+     "hpMul": 80.1489,
+     "dmgMul": 36.4048
     },
     {
      "key": "nightgloom",
      "lvl": 56,
-     "hpMul": 94.2928,
-     "dmgMul": 42.8292
+     "hpMul": 80.1489,
+     "dmgMul": 36.4048
     },
     {
      "key": "nightgloom",
      "lvl": 56,
-     "hpMul": 94.2928,
-     "dmgMul": 42.8292
+     "hpMul": 80.1489,
+     "dmgMul": 36.4048
     },
     {
      "key": "nightgloom",
      "lvl": 56,
-     "hpMul": 94.2928,
-     "dmgMul": 42.8292
+     "hpMul": 80.1489,
+     "dmgMul": 36.4048
     }
    ],
    [
     {
      "key": "mourn moth",
      "lvl": 56,
-     "hpMul": 94.2928,
-     "dmgMul": 42.8292
+     "hpMul": 80.1489,
+     "dmgMul": 36.4048
     },
     {
      "key": "nightgloom",
      "lvl": 56,
-     "hpMul": 94.2928,
-     "dmgMul": 42.8292
+     "hpMul": 80.1489,
+     "dmgMul": 36.4048
     },
     {
      "key": "nightcap mimic",
      "lvl": 56,
-     "hpMul": 94.2928,
-     "dmgMul": 42.8292
+     "hpMul": 80.1489,
+     "dmgMul": 36.4048
     },
     {
      "key": "nightgloom",
      "lvl": 56,
-     "hpMul": 94.2928,
-     "dmgMul": 42.8292
+     "hpMul": 80.1489,
+     "dmgMul": 36.4048
     }
    ]
   ],
@@ -10607,7 +10607,15 @@
    "scale": 1.5592,
    "target": "1.5x the Normal stage (Phil: \"elite should be roughly 1.5x harder than normal\")"
   },
-  "eliteTune": 0.764
+  "eliteTune": 0.764,
+  "wallFixes": [
+   {
+    "v": "v1094",
+    "date": "2026-10-09",
+    "scale": 0.85,
+    "why": "follows Normal 9-8 (v1094 x0.85) so Elite 9-8 stays 1.5x its Normal stage (v1056 rule, Phil: \"elite should be roughly 1.5x harder than normal\")"
+   }
+  ]
  },
  {
   "id": "9-9",

@@ -992,6 +992,87 @@ h1{background:linear-gradient(180deg,#fff4d6 0%,#f3d58a 42%,#c98f2e 100%);-webki
 @media(max-width:360px){.templeClassTabs{grid-template-columns:repeat(4,minmax(0,1fr));gap:3px;}.templeClassTab{font-size:10px;min-height:30px;}}
 .templeHeroGrid{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:3px;margin:0 0 7px;}
 @media(max-width:480px){.templeHeroGrid{grid-template-columns:repeat(6,minmax(0,1fr));}.templeClassTabs{grid-template-columns:repeat(4,minmax(0,1fr));}}   /* v998 (Temple audit #11): ~30px tiles were below a usable tap size */
+/* v1094 Temple of Ash v2 screen (tp2*) - a 16:9 stage, everything placed in % of ChatGPT's 2560x1440 plate; --u = 1 plate px */
+#templeBody.tp2Host{position:absolute;inset:0;max-width:none;background:none;border:0;box-shadow:none;border-radius:0;padding:0;margin:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
+#temple .backbtn{z-index:30}
+.tp2Stage{position:relative;margin:0 auto;--u:0.4px;font-family:Georgia,'Times New Roman',serif;color:#f1e3c4;user-select:none;overflow:hidden}
+.tp2Stage>*{position:absolute;box-sizing:border-box}
+.tp2Plate{inset:0;width:100%;height:100%;pointer-events:none}
+.tp2Win,.tp2Bust{object-fit:cover;pointer-events:none}
+.tp2Bust{z-index:1}
+.tp2HeroName{z-index:2;display:flex;align-items:center;justify-content:center;text-align:center;font-size:calc(var(--u)*30);background:linear-gradient(transparent,rgba(10,6,4,.85) 40%);text-shadow:0 0 calc(var(--u)*6) #000}
+.tp2Head{font-size:calc(var(--u)*46);font-weight:700;color:#efd9a8;text-shadow:0 calc(var(--u)*3) calc(var(--u)*6) #000}
+.tp2Hint{font-size:calc(var(--u)*42);text-align:center;color:#efd9a8;text-shadow:0 calc(var(--u)*3) calc(var(--u)*6) #000}
+.tp2Icon{object-fit:contain;pointer-events:none}
+.tp2BarName{display:flex;justify-content:space-between;align-items:flex-end;font-size:calc(var(--u)*30);color:#efd9a8;text-shadow:0 calc(var(--u)*2) calc(var(--u)*4) #000}
+.tp2BarName span{font-size:calc(var(--u)*24);color:#c9b48b}
+.tp2Bar{border-radius:calc(var(--u)*12);overflow:hidden}
+.tp2Bar .tp2Fill{position:absolute;left:0;top:0;bottom:0;background:url(/assets/img/temple/v2/bar-fill-v1.webp) left center/auto 100% repeat-x;box-shadow:0 0 calc(var(--u)*10) rgba(255,120,30,.6)}
+.tp2Bar .tp2Delta{position:absolute;top:0;bottom:0;min-width:calc(var(--u)*6)}
+.tp2Bar .tp2Delta.up{background:rgba(70,230,100,.75);box-shadow:0 0 calc(var(--u)*10) rgba(70,230,100,.8)}
+.tp2Bar .tp2Delta.down{background:rgba(240,60,60,.8);box-shadow:0 0 calc(var(--u)*10) rgba(240,60,60,.8)}
+.tp2Bar .tp2Delta em{position:absolute;left:100%;top:50%;transform:translate(calc(var(--u)*8),-50%);font-style:normal;font-weight:700;font-size:calc(var(--u)*24);white-space:nowrap;text-shadow:0 0 calc(var(--u)*4) #000}
+.tp2Bar .tp2Delta.up em{color:#7dff95}.tp2Bar .tp2Delta.down em{color:#ff7d7d;left:auto;right:100%;transform:translate(calc(var(--u)*-8),-50%)}
+.tp2Bar b{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;font-size:calc(var(--u)*32);color:#fff8ea;text-shadow:0 0 calc(var(--u)*5) #000,0 0 calc(var(--u)*5) #000}
+.tp2Bar s{position:absolute;right:calc(var(--u)*14);top:50%;transform:translateY(-50%);text-decoration:none;font-weight:700;font-size:calc(var(--u)*32);text-shadow:0 0 calc(var(--u)*5) #000}
+.tp2Bar s.up,.tp2Power.up,.tp2Auto .up,.tp2Fx b.up{color:#6dff8a}.tp2Bar s.down,.tp2Power.down,.tp2Auto .down,.tp2Fx b.down{color:#ff6b6b}
+.tp2Power{display:flex;align-items:center;justify-content:center;font-size:calc(var(--u)*58);font-weight:700;text-shadow:0 calc(var(--u)*3) calc(var(--u)*8) #000}
+.tp2Bless{display:flex;align-items:center;gap:calc(var(--u)*16);padding:0 calc(var(--u)*14)}
+.tp2Bless img{width:calc(var(--u)*70);height:calc(var(--u)*70);object-fit:contain;flex:none}
+.tp2Bless b{display:block;font-size:calc(var(--u)*32);color:#c8c2b6}
+.tp2Bless span{display:block;font-size:calc(var(--u)*24);color:#a9a194}
+.tp2Bless.on b{color:#7dff95}.tp2Bless.on span{color:#efd9a8}
+.tp2Bless.lock{opacity:.75}
+.tp2Fifth{border-top:calc(var(--u)*2) solid rgba(201,163,92,.35)}
+.tp2Keeper{object-fit:contain;object-position:left bottom;pointer-events:none;z-index:1}
+.tp2KeeperPlate{z-index:2;display:flex;align-items:center;justify-content:center;font-size:calc(var(--u)*32);background:rgba(18,10,26,.92);border:calc(var(--u)*2) solid #8a6a3a;border-radius:calc(var(--u)*8)}
+.tp2Exp{z-index:2;background:#120a1a;border:calc(var(--u)*2) solid #8a6a3a;border-radius:calc(var(--u)*8);overflow:hidden}
+.tp2Exp i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#6a2bb0,#c45cff)}
+.tp2Exp span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:calc(var(--u)*22);text-shadow:0 0 calc(var(--u)*4) #000}
+.tp2Msg{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font-size:calc(var(--u)*40);color:#efd9a8}
+.tp2Msg small{font-size:calc(var(--u)*30);color:#d6c6a4;margin-top:calc(var(--u)*10)}
+.tp2Note{font-size:calc(var(--u)*24);color:#ff9a9a;text-align:center}
+.tp2Btn{border:0;background:url(/assets/img/temple/v2/button-navy-v1.webp) center/100% 100% no-repeat;color:#fbf2df;font-family:inherit;font-weight:700;font-size:calc(var(--u)*38);text-shadow:0 calc(var(--u)*2) calc(var(--u)*4) #000;cursor:pointer;padding:0}
+.tp2Btn.red{background-image:url(/assets/img/temple/v2/button-red-v1.webp)}
+.tp2Btn.gold{background-image:url(/assets/img/temple/v2/button-gold-v1.webp);color:#3a2208;text-shadow:0 calc(var(--u)*1) 0 rgba(255,240,200,.6)}
+.tp2Btn:disabled{filter:grayscale(.8) brightness(.6);cursor:default}
+.tp2Opts{display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:calc(var(--u)*70);gap:calc(var(--u)*6) calc(var(--u)*12);overflow-y:auto;overflow-x:hidden;align-content:start;scrollbar-width:thin}
+.tp2Opt{position:relative;display:flex;align-items:center;gap:calc(var(--u)*10);background:rgba(8,14,28,.55);border:calc(var(--u)*2) solid rgba(160,120,60,.45);border-radius:calc(var(--u)*10);color:#efd9a8;font-family:inherit;padding:0 calc(var(--u)*10);cursor:pointer;text-align:left}
+.tp2Opt img{width:calc(var(--u)*56);height:calc(var(--u)*56);flex:none}
+.tp2Opt b{flex:1;font-size:calc(var(--u)*26);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tp2Opt span{font-size:calc(var(--u)*22);color:#d8c7a2;white-space:nowrap;display:flex;align-items:center;gap:calc(var(--u)*4)}
+.tp2Opt span img{width:calc(var(--u)*28);height:calc(var(--u)*28)}
+.tp2Opt span small{color:#7dff95}
+.tp2Check{width:calc(var(--u)*34);height:calc(var(--u)*34);flex:none;border:calc(var(--u)*3) solid #b48b4a;border-radius:calc(var(--u)*6);background:#0b0f1c}
+.tp2Opt[aria-pressed="true"]{border-color:#ffcf6b;box-shadow:0 0 calc(var(--u)*12) rgba(255,190,80,.55)}
+.tp2Opt[aria-pressed="true"] .tp2Check{background:#ffb347 radial-gradient(circle,#fff3c4 0 30%,#ff9a1f 60%)}
+.tp2Opt:disabled{opacity:.42;cursor:default}
+.tp2Grid{display:grid;grid-template-columns:repeat(6,1fr);grid-auto-rows:max-content;gap:calc(var(--u)*22);overflow-y:auto;padding:calc(var(--u)*6)}
+.tp2Tile{position:static;background:none;border:0;padding:0;color:#efd9a8;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:calc(var(--u)*6)}
+.tp2TileImg{position:relative;display:block;width:100%;aspect-ratio:1;border:calc(var(--u)*4) solid #c99b4f;border-radius:calc(var(--u)*12);overflow:hidden;box-shadow:0 0 calc(var(--u)*10) rgba(0,0,0,.7)}
+.tp2TileImg>img{width:100%;height:100%;object-fit:cover}
+.tp2TileImg em{position:absolute;left:calc(var(--u)*6);top:calc(var(--u)*4);font-style:normal;font-size:calc(var(--u)*24);background:rgba(0,0,0,.6);padding:0 calc(var(--u)*6);border-radius:calc(var(--u)*6)}
+.tp2Dots{position:absolute;left:calc(var(--u)*2);top:calc(var(--u)*40);display:flex;flex-direction:column;gap:calc(var(--u)*2)}
+.tp2Dots img{width:calc(var(--u)*30);height:calc(var(--u)*30)}
+.tp2Tile b{font-size:calc(var(--u)*34)}
+.tp2Empty{grid-column:1/-1;text-align:center;font-size:calc(var(--u)*36);padding-top:calc(var(--u)*80)}
+.tp2Side{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.tp2Side b{font-size:calc(var(--u)*56);color:#ffcf6b}.tp2Side span{font-size:calc(var(--u)*26);color:#d6c6a4;margin-bottom:calc(var(--u)*10)}
+.tp2Toast{z-index:20;display:flex;align-items:center;justify-content:center;font-size:calc(var(--u)*30);color:#ffd45e;background:rgba(10,6,4,.85);border-radius:calc(var(--u)*10);opacity:0;transition:opacity .25s;pointer-events:none}
+.tp2Toast.on{opacity:1}
+.tp2Auto{z-index:15;background:rgba(10,14,26,.96);border:calc(var(--u)*4) solid #c99b4f;border-radius:calc(var(--u)*18);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(var(--u)*18);text-align:center;box-shadow:0 0 calc(var(--u)*40) rgba(0,0,0,.8)}
+.tp2Auto h3{margin:0;font-size:calc(var(--u)*50);color:#efd9a8}.tp2Auto p{margin:0;font-size:calc(var(--u)*34)}
+.tp2Auto .tp2Btn{position:static;width:calc(var(--u)*300);height:calc(var(--u)*90)}
+.tp2AutoRow{display:flex;align-items:center;gap:calc(var(--u)*24);font-size:calc(var(--u)*36)}
+.tp2AutoRow button{width:calc(var(--u)*80);height:calc(var(--u)*80);font-size:calc(var(--u)*40);background:#1a2238;color:#efd9a8;border:calc(var(--u)*3) solid #c99b4f;border-radius:calc(var(--u)*12);cursor:pointer}
+.tp2AutoRow span{min-width:calc(var(--u)*320);display:flex;align-items:center;justify-content:center;gap:calc(var(--u)*10)}
+.tp2AutoRow span img{width:calc(var(--u)*60);height:calc(var(--u)*60)}
+.tp2AutoBtns{display:flex;gap:calc(var(--u)*30)}
+.tp2Fx{z-index:12;pointer-events:none;display:flex;align-items:center;justify-content:center}
+.tp2Fx img{position:absolute;width:70%;animation:tp2flare .8s ease-out forwards}
+.tp2Fx b{position:relative;font-size:calc(var(--u)*90);text-shadow:0 0 calc(var(--u)*14) #000;animation:tp2rise 1.6s ease-out forwards}
+@keyframes tp2flare{0%{transform:scale(.3);opacity:0}30%{opacity:1}100%{transform:scale(1.3);opacity:0}}
+@keyframes tp2rise{0%{transform:translateY(calc(var(--u)*40));opacity:0}20%{opacity:1}80%{opacity:1}100%{transform:translateY(calc(var(--u)*-160));opacity:0}}
 @media(max-width:480px){#forgeBody .btn.xs{font-size:11px;min-height:32px;}}   /* v998 (Forge audit #13): forge buttons usable on a phone */
 .templeHeroTile{min-width:0;aspect-ratio:1;padding:0;overflow:hidden;border:1px solid #70502a;border-radius:5px;background:#211913;cursor:pointer;}
 .templeHeroTile img{width:100%;height:100%;object-fit:cover;display:block;}
@@ -2435,9 +2516,9 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 </script>
 <script src="/hero-profiles.js?v=r1025"></script>
 <script src="/hero-paths.js?v=r1025"></script>
-<script src="/server/temple-of-ash.js?v=r1092"></script>
+<script src="/server/temple-of-ash.js?v=r1094"></script>
 <script src="/server/patron-benefits.js?v=r1093"></script>
-<script src="/server/temple-effects.js?v=r936"></script>
+<script src="/server/temple-effects.js?v=r1094"></script>
 <script src="/assets/ui/world-mine-sync.js?v=mi1"></script>
 <script src="/assets/ui/world-march-sync.js?v=wm1"></script>
 <script src="/assets/ui/world-march-visual.js?v=wv2"></script>
@@ -5231,16 +5312,17 @@ const POWER_K=5.2;   // v414: glyph rebalance (Stoneheart x2.2 / Bastion x0.42) 
 function heroPower(key){ const t=HERO_TYPES[key]; if(!t) return 0;
   if(!_powerNoGlyph){ _powerNoGlyph=true; try{ return Math.round((heroPower(key)+glyphPowerFor(key))*TempleEffects.powerMultiplier(templeBonusesClient(key))); } finally{ _powerNoGlyph=false; } }   // v480: base power (no glyph stats) + the flat glyph tier curve
   const m=heroMuls(key), tt=(typeof sockStatTotal==='function'?sockStatTotal(key):{})||{}, lv=heroLevel(key);
+  const TBF=TempleEffects.clientFlats(templeBonusesClient(key));   /* v1094 (Temple v2): the bars are flat stats - same whole numbers the server folds into its ratings */
   /* v807 - ROUND WHERE THE FIGHT ROUNDS. `buildUnit` rounds HP and attack to whole points before
      anything reads them, so those are the numbers the hero actually fights with; pricing the raw
      fractions put the card half a percent off the same hero priced anywhere else. Same order too -
      the ability flats go in BEFORE the academy's ability multiplier, exactly as the core does it. */
-  const hp   = Math.round(heroStat(key,t.hp,'hp')*m.hp) + heroFlatHp(key) + (typeof techTotal==='function'?techTotal('hp'):0);
-  const atkP = Math.round(heroStat(key,t.dmg,'dmg')*m.atk) + heroFlatAtk(key) + (typeof techTotal==='function'?techTotal('atk'):0);
-  const atkM = (t.apow||0)>0 ? Math.round((Math.round(heroStat(key,t.apow,'apow'))+heroFlatApow(key))
+  const hp   = Math.round(heroStat(key,t.hp,'hp')*m.hp) + heroFlatHp(key) + (typeof techTotal==='function'?techTotal('hp'):0) + TBF.hpFlat;
+  const atkP = Math.round(heroStat(key,t.dmg,'dmg')*m.atk) + heroFlatAtk(key) + (typeof techTotal==='function'?techTotal('atk'):0) + TBF.adFlat;
+  const atkM = (t.apow||0)>0 ? Math.round((Math.round(heroStat(key,t.apow,'apow'))+heroFlatApow(key)+TBF.apFlat)
                  *(typeof abilityPowerMul==='function'?abilityPowerMul():1)) : 0;
-  const armor= heroStat(key,t.armor||0,'armor') + (typeof techTotal==='function'?techTotal('armor'):0) + (tt.armor||0)*3;
-  const mr   = heroStat(key,t.mr||0,'mr')       + (typeof techTotal==='function'?techTotal('mr'):0)    + (tt.mr||0)*3;
+  const armor= heroStat(key,t.armor||0,'armor') + (typeof techTotal==='function'?techTotal('armor'):0) + (tt.armor||0)*3 + TBF.armorFlat;
+  const mr   = heroStat(key,t.mr||0,'mr')       + (typeof techTotal==='function'?techTotal('mr'):0)    + (tt.mr||0)*3 + TBF.mrFlat;
   // average mitigation: armor and MR each cover half the damage a hero takes, plus flat reduction
   const mitig= Math.min(0.85, (defToDR(armor,lv)+defToDR(mr,lv))/2 + (m.dr||0));
   const ehp  = hp/Math.max(0.15,1-mitig);
@@ -5319,9 +5401,13 @@ const NODE_GATHER_MS=8*60*1000; // a node refills 8 min after you gather it
 function AUDIT_MODE(){ try{ return typeof isDevAcct==='function' && isDevAcct() && !!DEV.god; }catch(e){ return false; } }
 function templeBonusesClient(key){
   const h=G.temple&&G.temple.heroes&&G.temple.heroes[key];
-  const role=HERO_TYPES[key]&&HERO_TYPES[key].role;
-  return h&&role?TempleOfAsh.heroBonuses(h,role):{};
+  const t=HERO_TYPES[key];
+  return h&&t&&t.role?TempleOfAsh.heroBonuses(h,t.role,t.damageProfile):{};   /* v1094 (Temple v2): flat bars by damage type + class blessings */
 }
+/* v1094 (Temple v2) helpers for the Temple screen: one hero's bars/values/cap/%/blessings, and the tiers with live (discounted) costs */
+function templeHeroStats(key){ return TempleOfAsh.heroTempleStats(Object.assign({},G.temple||TempleOfAsh.newState(),{playerLevel:playerLevel()}),key,
+  {role:(HERO_TYPES[key]||{}).role,damageProfile:(HERO_TYPES[key]||{}).damageProfile,heroLevel:heroLevel(key)}); }
+function templePrayerTiers(){ return TempleOfAsh.prayerTiers(Object.assign({},G.temple||TempleOfAsh.newState(),{playerLevel:playerLevel()})); }
 // ---- progression tables (max level 60) ----
 const MAX_LEVEL=100;   // v258 (Launch Blueprint v1): the launch cap. Orange sits at level 100.
 // Troop XP: the table values are per-level INCREMENTS that accumulate — the XP to go from
@@ -8987,7 +9073,10 @@ function makeUnit(key,team,x,y,levelOverride,extra){
             :(owned?heroMuls(key):{atk:1,hp:1,dr:0,regen:0,crit:0,critRes:0,energyReg:0});
   const rank = S ? (S.rank!=null?(S.rank|0):qualityFromGlyphRank(S.glyphRank||0)) : (owned ? heroQuality(key) : (boss?3 : (extra&&extra.rank!=null?extra.rank:0))); // "rank" = quality tier (glyph colour)
   const kit=KITS[key]||{};   // monsters have no kit
-  const fAtk = S?(S.fAtk||0) : (owned?(heroFlatAtk(key)+techTotal('atk')):0), fHp = S?(S.fHp||0) : (owned?(heroFlatHp(key)+techTotal('hp')):0);   // flat glyph + star + Academy tech Attack/Health
+  /* v1094 (Temple v2): the four Temple bars are FLAT stats added here beside the glyph flats - from the server-frozen spec when
+     there is one - the same whole numbers the server folds into its ratings (TempleEffects.coreRatings), so client and replay match */
+  const TBF=TempleEffects.clientFlats(owned?(S?S.templeBonuses:templeBonusesClient(key)):null);
+  const fAtk = (S?(S.fAtk||0) : (owned?(heroFlatAtk(key)+techTotal('atk')):0)) + TBF.adFlat, fHp = (S?(S.fHp||0) : (owned?(heroFlatHp(key)+techTotal('hp')):0)) + TBF.hpFlat;   // flat glyph + star + Academy tech Attack/Health
   const sm=S?(S.sm!=null?S.sm:starMultFrom(S.stars||1,S.pips||0,S.ref||0)) : (owned?starMult(key):1);   // stars multiply an OWNED hero's base HP/ATK (enemies keep base stats)
   /* v403 — THE GROWTH CURVE NOW REACHES COMBAT. v401 put ROLE_GROWTH behind heroStat(), which the
      hero card and the power number read, but makeUnit built the actual fighting unit from
@@ -9013,7 +9102,7 @@ function makeUnit(key,team,x,y,levelOverride,extra){
     greenCd:(rank>=1&&kit.green)?kit.green.cd*0.5:0, blueCd:(rank>=2&&kit.blue)?kit.blue.cd*0.6:0, pass:null,
     glyphDR:mul.dr||0, glyphRegen:mul.regen||0, glyphCrit:Math.min(0.6,(mul.crit||0)+((HERO_TYPES[key]&&!t.monster&&CLASS_BASE_CRIT[t.role])||0)), critRes:mul.critRes||0, energyReg:mul.energyReg||0,
     skillLv: S?((S.skillLv||[1,1,1,1]).slice()):(owned?skillLvArr(key).slice():[1,1,1,1]), passMul:1, _castSM:1, apMul: S?(S.apMul||1):(owned?abilityPowerMul():(t.ap||1)),
-    apow: Math.round(BL.apow*sm*(S?(S.apMul||1):(owned?abilityPowerMul():1)))+(S?(S.fApow||0):(owned?heroFlatApow(key):0)), healPowMul:1+(owned?(mul.healPow||0):0), hybrid:!!t.hybrid, _frozenT:0, _chillStacks:0, _chillT:0, _blizzT:0, _stormT:0, _darkStance:false,
+    apow: Math.round(BL.apow*sm*(S?(S.apMul||1):(owned?abilityPowerMul():1)))+(S?(S.fApow||0):(owned?heroFlatApow(key):0))+TBF.apFlat, healPowMul:1+(owned?(mul.healPow||0):0), hybrid:!!t.hybrid, _frozenT:0, _chillStacks:0, _chillT:0, _blizzT:0, _stormT:0, _darkStance:false,
     gearSkill:(S&&S.gearSkill)?Object.assign({used:false},JSON.parse(JSON.stringify(S.gearSkill))):null,
     dots:[], hots:[], shield:0, shieldT:0, hasteT:0, hasteMul:1, dmgBuffT:0, dmgBuffMul:1, drT:0, drMul:1, mortalT:0, forcedTarget:null, forcedTargetT:0};
   // v247 (COMBAT CORE, client side): TYPED defense — Armor mitigates PHYSICAL hits, MR mitigates
@@ -9022,9 +9111,9 @@ function makeUnit(key,team,x,y,levelOverride,extra){
   // bonus, attack speed, haste (energy), shield strength. Same conversions as the server core.
   { const tt=S?(S.tt||{}):(owned?sockStatTotal(key):{});
     u.lvl=lvl;   // v401: mitigation constant scales with level, so the unit must carry it
-    u.armorRating=BL.armor*sm + (S?(S.techArmor||0):(owned?techTotal('armor'):0)) + ((tt.armor||0)*3);
-    u.mrRating   =BL.mr*sm + (S?(S.techMr||0):(owned?techTotal('mr'):0)) + ((tt.mr||0)*3);
-    u.armorPen=(tt.armorPen||0); u.magicPen=(tt.magicPen||0);
+    u.armorRating=BL.armor*sm + (S?(S.techArmor||0):(owned?techTotal('armor'):0)) + ((tt.armor||0)*3) + TBF.armorFlat;
+    u.mrRating   =BL.mr*sm + (S?(S.techMr||0):(owned?techTotal('mr'):0)) + ((tt.mr||0)*3) + TBF.mrFlat;
+    u.armorPen=(tt.armorPen||0)+TBF.armorPenFlat; u.magicPen=(tt.magicPen||0)+TBF.magicPenFlat;
     u.critDmg=0.6+((tt.critDmg||0)*0.0005); /* v1020 (Phil 4 Oct: 'all of them 20 = 1%') */
     u.lifestealStat=Math.min(0.5,(tt.lifesteal||0)*0.0005);
     u.evaStat=Math.min(0.30,(tt.eva||0)*0.0005); u.accStat=(tt.acc||0);
@@ -9037,7 +9126,7 @@ function makeUnit(key,team,x,y,levelOverride,extra){
     u.speed*=1+Math.min(0.30,(tt.moveSpd||0)*0.001);
     u.range*=1+Math.min(0.30,(tt.range||0)*0.001);
     u.atkInterval/= (1+((tt.atkSpd||0)*0.0005));   /* v1020 (Phil 4 Oct): 20 attack speed = 1% (was 0.4% a point) */
-    u.defRating=u.armorRating+u.mrRating; u.penRating=(tt.armorPen||0)+(tt.magicPen||0); }   // legacy aliases
+    u.defRating=u.armorRating+u.mrRating; u.penRating=u.armorPen+u.magicPen; }   // legacy aliases
   if(!u.melee && u.combatDist > u.range) u.range = u.combatDist + 18;   // ranged units must be able to attack from their full row hold (13 m / 25 m) — widen range up to that distance (melee keeps its short range)
   // (melee body-touch hold + swing reach are handled in think() via bodyR(), which uses the true sprite width)
   // ---- Hollow: he does not march in. He waits in the shadow above the field and comes down
@@ -17864,69 +17953,130 @@ function renderDungeon(){
   b.querySelector('#dgStart').onclick=startDg;
 }
 let templeSelectedHero='',templeSelectedTier='gold',templeClassFilter='All',templeLastRolls=null;
+/* v1094 TEMPLE OF ASH v2 SCREEN (Phil 9 Oct: copy the reference prayer screen, "even ui", our names and pictures).
+   One 16:9 stage on ChatGPT's plate (2560 x 1440 coordinates, placed in %); two views: the hero grid and the prayer screen.
+   Left window = the selected hero's bust (assets/img/temple/v2/heroes, framed by hand); bars show the pending change on the bar
+   itself (green gain / red loss) with the % of the cap; Power +/-N; Blessings 1-4 + the 5th dot on the right; Flame Keeper below. */
+let templeView='grid',templeAuto=null,templeFx=null;
+const TP2='/assets/img/temple/v2/';
+const TP2_BARS=[['health','Health','stat-health'],['attack','Attack','stat-attack'],['armorMr','Armor & Magic resist','stat-armor'],['pen','Penetration','stat-penetration']];
+const TP2_TIER_ART={free:'prayer-daily-free',gold:'prayer-gold-ritual',kindled:'prayer-kindled',stoked:'prayer-stoked',blazing:'prayer-blazing',inferno:'prayer-inferno',bonus:'prayer-daily-free'};
+function tp2Box(x,y,w,h){ return `left:${(x/25.6).toFixed(3)}%;top:${(y/14.4).toFixed(3)}%;width:${(w/25.6).toFixed(3)}%;height:${(h/14.4).toFixed(3)}%`; }
+function tp2Num(v){ v=Math.round((+v||0)*10)/10; return (Math.abs(v)>=1000?Math.round(v).toLocaleString():String(v)); }
+function tp2Fit(){ const st=document.getElementById('tp2Stage'); if(!st) return; const host=st.parentElement;
+  const W=host.clientWidth||window.innerWidth, H=host.clientHeight||window.innerHeight;
+  const w=Math.min(W, H*16/9); st.style.width=w+'px'; st.style.height=(w*9/16)+'px'; st.style.setProperty('--u',(w/2560)+'px'); }
+window.addEventListener('resize',()=>{ if(document.getElementById('tp2Stage')) tp2Fit(); });
+function tp2BarLabel(bar,profile){ if(bar==='attack') return profile==='magic'?'Ability power':profile==='hybrid'?'Attack damage & Ability power':'Attack damage';
+  if(bar==='pen') return profile==='magic'?'Magic penetration':profile==='hybrid'?'Armor & Magic penetration':'Armor penetration';
+  return (TP2_BARS.find(b=>b[0]===bar)||[])[1]||bar; }
 function renderTemple(){
   const b=document.getElementById('templeBody'),T=TempleOfAsh,st=G.temple||T.newState();
+  const scr=document.getElementById('temple'); if(scr){ scr.querySelectorAll('.titlebar,.hdrbox').forEach(x=>x.style.display='none'); }
+  b.style.maxWidth='none'; b.classList.add('tp2Host');
   const unlocked=playerLevel()>=T.CONFIG.UNLOCK_PLAYER_LEVEL;
+  const kp=T.keeperProgress(st.keeperPoints||0,playerLevel()), level=kp.level;
   const owned=HERO_KEYS.filter(k=>G.unlocked[k]);
-  const classes=['All','Tank','Bruiser','Assassin','Marksman','Mage','Support'];
-  if(!classes.includes(templeClassFilter))templeClassFilter='All';
-  const visible=owned.filter(k=>templeClassFilter==='All'||(HERO_TYPES[k]||{}).role===templeClassFilter);
   const pending=st._pending;
-  if(!pending&&!visible.includes(templeSelectedHero))templeSelectedHero=visible[0]||'';
-  const key=pending?pending.heroId:templeSelectedHero;
-  const h=(st.heroes&&st.heroes[key])||{cinders:{},boonsUnlocked:[false,false,false,false,false]};
-  const role=HERO_TYPES[key]&&HERO_TYPES[key].role,level=T.keeperLevel(st.keeperPoints,playerLevel());
-  const bars=T.CONFIG.CLASS_BARS[role]||[],max=T.effectMax(level);
-  const freeAvailable=T.freeRitualAvailable(st),bonusAvailable=(st.bonusPrayers|0)>0;
-  const goldCost=T.nextGoldCost(st);
-  const tiers=[{id:'free',name:'Daily free prayer',cost:freeAvailable?'Free':'Used today',locked:!freeAvailable},
-    ...T.CONFIG.PRAYER_TIERS.map(x=>({id:x.id,name:x.name,cost:x.id==='gold'?`🪙 ${goldCost.toLocaleString()}`:`💎 ${x.gems}`,
-      keeperLocked:level<x.unlockKeeper,
-      locked:level<x.unlockKeeper||(x.id==='gold'?(G.gold||0)<goldCost:(G.gems||0)<x.gems),need:x.unlockKeeper}))];
-  const heldP=st.heldPrayers||{}, heldTiers=['kindled','stoked','blazing','inferno'].filter(k=>(heldP[k]|0)>0);   /* v1092: prayers held from the Mythical Pool */
-  if(!tiers.some(x=>x.id===templeSelectedTier&&!x.locked)&&!(templeSelectedTier==='bonus'&&bonusAvailable)&&!(String(templeSelectedTier).startsWith('held:')&&heldTiers.includes(String(templeSelectedTier).slice(5))))
-    templeSelectedTier=(tiers.find(x=>x.id==='gold'&&!x.locked)||tiers.find(x=>!x.locked)||{}).id||'';
-  const eligible=key&&glyphRank(key)>=T.CONFIG.MIN_ASCENSION_INDEX;
-  const choicesBlocked=!unlocked||!eligible;
-  const barHtml=bars.map((label,i)=>{const open=level>=T.CONFIG.BAR_UNLOCK_TEMPLE[i],v=(h.cinders||{})['bar'+(i+1)]||0;
-    return `<div style="margin:8px 0;text-align:left"><div style="font-size:12px">${open?label:'🔒 '+label} <span style="float:right">${open?v+' / '+max:'Temple '+T.CONFIG.BAR_UNLOCK_TEMPLE[i]}</span></div><div style="height:9px;border:1px solid #704d27;border-radius:8px;background:#201813"><div style="height:100%;width:${open?Math.min(100,100*v/max):0}%;background:#ef8a32;border-radius:8px"></div></div></div>`;}).join('');
-  const orbHtml=[0,1,4,2,3].map((i)=>`<img alt="Orb ${i+1} ${h.boonsUnlocked&&h.boonsUnlocked[i]?'earned':'unearned'}" src="/assets/img/temple/card-orb-${h.boonsUnlocked&&h.boonsUnlocked[i]?'lit':'unlit'}-v2.webp?v=2" style="width:${i===4?38:25}px;height:${i===4?38:25}px;object-fit:cover;margin:0 2px">`).join('');
-  const tierArt={free:'/assets/img/temple/card-orb-lit-v2.webp?v=2',gold:'/assets/img/temple/tier-gold-v1.png',
-    kindled:'/assets/img/temple/tier-kindled-v1.png',stoked:'/assets/img/temple/tier-stoked-v1.png',
-    blazing:'/assets/img/temple/tier-blazing-v1.png',inferno:'/assets/img/temple/tier-inferno-v1.png'};
-  const tabsHtml=classes.map(c=>`<button type="button" class="templeClassTab" role="tab" data-temple-class="${c}" aria-selected="${templeClassFilter===c}" ${pending?'disabled':''}>${c}</button>`).join('');
-  const rosterHtml=visible.map(k=>{const name=(HERO_TYPES[k]||{}).name||k,portrait=HERO_PORTRAITS[k];
-    return `<button type="button" class="templeHeroTile" data-temple-hero="${k}" aria-label="${escapeHTML(name)} · Level ${heroLevel(k)}" aria-pressed="${k===key}" ${pending?'disabled':''}>${portrait?`<img src="${portrait}" alt="">`:heroIcon(k,28,{orbs:false})}</button>`;}).join('');
-  const tiersHtml=tiers.map(x=>`<button type="button" class="templeTierTile" data-temple-tier="${x.id}" aria-pressed="${templeSelectedTier===x.id}" ${x.locked||choicesBlocked?'disabled':''}><img src="${tierArt[x.id]}" alt=""><span><b>${escapeHTML(x.name)}</b><small>${x.keeperLocked?'Temple '+x.need:x.cost}</small></span></button>`).join('');
-  b.innerHTML=`<div class="panel" style="text-align:center"><div style="font-size:25px">🔥 Temple of Ash</div>
-    <div style="font-size:12px;color:#ad9b87">Flamekeeper ${level} · ${st.keeperPoints||0} points · ${st.bonusPrayers||0} bonus prayers</div>
-    ${unlocked?'':`<div style="color:#ff9a9a">Opens at player level ${T.CONFIG.UNLOCK_PLAYER_LEVEL}.</div>`}
-    <div class="templeClassTabs" role="tablist" aria-label="Hero class">${tabsHtml}</div>
-    <div class="templeHeroGrid" aria-label="Select a hero">${rosterHtml}</div>
-    ${visible.length?'':`<div style="font-size:12px;color:#ad9b87">No owned heroes</div>`}
-    ${key?`<div style="font-size:12px;margin:8px 0 3px">${escapeHTML((HERO_TYPES[key]||{}).name||key)} · Lv ${heroLevel(key)}</div>`:''}
-    ${key&&!eligible?`<div style="font-size:12px;color:#ff9a9a">Purple ascension required</div>`:''}
-    ${key?`<div style="font-size:12px">${escapeHTML(role||'hero')} · ${Math.round(T.heroCompletion(h,level)*100)}%</div>${barHtml}<div aria-label="Earned hero orbs">${orbHtml}</div>`:''}
-    ${pending?`<div style="color:#ffd45e;margin:9px 0">Prayer pending${(templeLastRolls||pending.rolls)?' · '+Object.values(templeLastRolls||pending.rolls).map(x=>(x.delta>=0?'+':'')+x.delta).join(' / '):''}</div>
-       <button class="btn" id="templeSave">Save</button> <button class="btn" id="templeDiscard">Discard</button>`:
-      `<div class="templeTierGrid" aria-label="Prayer choices">${tiersHtml}</div>
-       ${bonusAvailable?`<button type="button" class="templeTierTile templeBonusChoice" data-temple-tier="bonus" aria-pressed="${templeSelectedTier==='bonus'}" ${choicesBlocked?'disabled':''}><img src="/assets/img/temple/card-orb-lit-v2.webp?v=2" alt=""><span><b>Bonus prayer</b><small>Free</small></span></button>`:''}
-       ${heldTiers.map(k=>{ const tn=(T.CONFIG.PRAYER_TIERS.find(x=>x.id===k)||{}).name||k; return `<button type="button" class="templeTierTile templeBonusChoice" data-temple-tier="held:${k}" aria-pressed="${templeSelectedTier==='held:'+k}" ${choicesBlocked?'disabled':''}><img src="${tierArt[k]||'/assets/img/temple/card-orb-lit-v2.webp?v=2'}" alt=""><span><b>${escapeHTML(tn)} ×${heldP[k]|0}</b><small>Held</small></span></button>`; }).join('')}
-       <button class="btn" id="templePray" ${!unlocked||!eligible||!templeSelectedTier?'disabled':''}>Pray</button>`}
-    <div id="templeMsg" style="font-size:12px;color:#ffd45e;margin-top:8px;min-height:16px"></div></div>`;
-  b.querySelectorAll('[data-temple-class]').forEach(tab=>tab.onclick=()=>{templeClassFilter=tab.dataset.templeClass;templeSelectedHero='';renderTemple();});
-  b.querySelectorAll('[data-temple-hero]').forEach(hero=>hero.onclick=()=>{templeSelectedHero=hero.dataset.templeHero;renderTemple();});
-  b.querySelectorAll('[data-temple-tier]').forEach(tier=>tier.onclick=()=>{templeSelectedTier=tier.dataset.templeTier;
-    b.querySelectorAll('[data-temple-tier]').forEach(x=>x.setAttribute('aria-pressed',String(x===tier)));});
-  /* v991 (Temple audit #9): one temple action at a time, one requestId re-sent on a lost reply; a refusal re-syncs the ledger so a
-     prayer the server already holds shows its Save / Discard */
-  const act=async(path,payload)=>{const r=await apiOnce('temple',path,payload); if(r&&r.busy) return;
-    if(!(r&&r.ok)){const m=b.querySelector('#templeMsg'); if(m) m.textContent=(r&&r.error==='offline')?'Connection lost.':((r&&r.error)||'Prayer failed.'); try{ await ledgerSync(); renderTemple(); const m2=document.querySelector('#templeMsg'); if(m2&&r&&r.error) m2.textContent=(r.error==='offline')?'Connection lost.':r.error; }catch(e){} return;}
-    if(path.endsWith('/pray'))templeLastRolls=r.rolls;else templeLastRolls=null;
-    adoptLedger(r.ledger);updateHubChrome();renderTemple();};
-  const pray=b.querySelector('#templePray');if(pray)pray.onclick=()=>{ const s=String(templeSelectedTier||''); act('/api/temple/pray',s.startsWith('held:')?{heroKey:key,tier:s.slice(5),held:true}:{heroKey:key,tier:s}); };
-  const save=b.querySelector('#templeSave');if(save)save.onclick=()=>act('/api/temple/save',{});
-  const discard=b.querySelector('#templeDiscard');if(discard)discard.onclick=()=>act('/api/temple/discard',{});
+  const elig=k=>glyphRank(k)>=T.CONFIG.MIN_ASCENSION_INDEX;
+  if(pending){ templeView='pray'; templeSelectedHero=pending.heroId; }
+  if(templeView==='pray'&&!owned.includes(templeSelectedHero)) templeView='grid';
+  const key=templeSelectedHero, hs=key?templeHeroStats(key):null;
+  const keeperHtml=`<img class="tp2Keeper" src="${TP2}flame-keeper-v1.webp" alt="" style="${tp2Box(612,880,500,450)}">
+    <div class="tp2KeeperPlate" style="${tp2Box(640,1262,450,46)}">Lv.${level} Flame Keeper</div>
+    <div class="tp2Exp" style="${tp2Box(640,1310,450,30)}"><i style="width:${kp.max?100:Math.min(100,100*kp.into/Math.max(1,kp.need))}%"></i><span>${kp.max?'MAX':(kp.into|0)+' / '+kp.need}</span></div>`;
+  let inner='';
+  if(templeView==='grid'){
+    const list=owned.filter(elig).map(k=>({k,s:templeHeroStats(k)})).sort((a,b)=>b.s.pct-a.s.pct||heroLevel(b.k)-heroLevel(a.k));
+    const tiles=list.map(({k,s})=>{ const dots=(s.blessings||[]).filter(x=>x.earned).length+(s.fifth&&s.fifth.earned?1:0);
+      return `<button type="button" class="tp2Tile" data-tp2-hero="${k}" aria-label="${escapeHTML((HERO_TYPES[k]||{}).name||k)} ${s.pct}%">
+        <span class="tp2TileImg"><img src="${HERO_PORTRAITS[k]||''}" alt="" loading="lazy"><em>Lv${heroLevel(k)}</em>
+        <span class="tp2Dots">${'<img src="/assets/img/temple/card-orb-lit-v2.webp?v=2" alt="">'.repeat(dots)}</span></span><b>${s.pct}%</b></button>`; }).join('');
+    inner=`<div class="tp2Hint" style="${tp2Box(620,300,1690,60)}">${unlocked?'Purple heroes and above can pray.':'The Temple opens at player level '+T.CONFIG.UNLOCK_PLAYER_LEVEL+'.'}</div>
+      <div class="tp2Grid" style="${tp2Box(620,362,1690,590)}">${tiles||'<div class="tp2Empty">No Purple heroes yet.</div>'}</div>
+      <img src="${TP2}hero-window-v1.webp" alt="" style="${tp2Box(285,312,267,648)}" class="tp2Win">
+      <div class="tp2Side" style="${tp2Box(290,1015,265,300)}"><b>${st.keeperPoints||0}</b><span>Temple points</span>${(st.bonusPrayers|0)?`<b>${st.bonusPrayers|0}</b><span>bonus prayers</span>`:''}</div>
+      ${keeperHtml}
+      <div class="tp2Msg" style="${tp2Box(1130,1040,1170,300)}">${T.freeRitualAvailable(st)?'1 free prayer available today.':'Choose a hero to pray.'}</div>`;
+  } else {
+    const prof=hs.profile, rolls=(templeLastRolls||(pending&&pending.rolls))||null, cap=hs.cap;
+    const bars=TP2_BARS.map(([bar,,icon],i)=>{ const y=[442,568,694,821][i], r=rolls&&rolls[bar];
+      const from=r?r.fromSteps:hs.steps[bar], to=r?r.toSteps:from, val=r?r.fromValue:hs.values[bar], d=r?r.deltaValue:0;
+      const pf=Math.min(100,100*Math.min(from,to)/cap), pd=Math.abs(100*(to-from)/cap), up=to>=from;
+      const pct=r?((to-from)>=0?'+':'')+(Math.round(1000*(to-from)/cap)/10)+'%':'';
+      return `<img class="tp2Icon" src="${TP2}${icon}-v1.webp" alt="" style="${tp2Box(612,y-46,92,92)}">
+        <div class="tp2BarName" style="${tp2Box(735,y-78,800,40)}">${tp2BarLabel(bar,prof)}<span>${from} / ${cap}</span></div>
+        <div class="tp2Bar" style="${tp2Box(733,y-21,800,42)}"><i class="tp2Fill" style="width:${pf}%"></i>${r&&to!==from?`<i class="tp2Delta ${up?'up':'down'}" style="left:${pf}%;width:${pd}%"><em>${pct}</em></i>`:''}
+          <b>${tp2Num(val)}</b>${r?`<s class="${d>0?'up':d<0?'down':''}">${d>0?'+':''}${tp2Num(d)}</s>`:''}</div>`; }).join('');
+    const power=rolls?(pending&&pending.power!=null?pending.power:Object.values(rolls).reduce((a,x)=>a+10*(x.deltaSteps||0),0)):null;
+    const bl=(hs.blessings||[]).map((x,i)=>{ const y=[368,494,622,749][i], val=v=>tp2Num(v*hs.stepValues[x.bar]);
+      const icon=x.earned?'<img src="/assets/img/temple/card-orb-lit-v2.webp?v=2" alt="earned">':x.locked?`<img src="${TP2}lock-v1.webp" alt="locked">`:'<img src="/assets/img/temple/card-orb-unlit-v2.webp?v=2" alt="open">';
+      const sub=x.locked?`Needs Temple ${x.keeperGate}`:!x.heroMet?`Needs hero Lv ${x.heroGate}`:`(${tp2BarLabel(x.bar,prof)} ${val(Math.min(x.have,x.need))}/${val(x.need)}${x.earned?' Unlock':' to unlock'})`;
+      return `<div class="tp2Bless ${x.earned?'on':x.locked?'lock':''}" style="${tp2Box(1640,y+8,640,104)}">${icon}<div><b>${escapeHTML(x.label)}</b><span>${sub}</span></div></div>`; }).join('');
+    const f=hs.fifth||{}, fifth=`<div class="tp2Bless tp2Fifth ${f.earned?'on':f.locked?'lock':''}" style="${tp2Box(1640,876,640,92)}">${f.earned?'<img src="/assets/img/temple/card-orb-lit-v2.webp?v=2" alt="">':f.locked?`<img src="${TP2}lock-v1.webp" alt="">`:'<img src="/assets/img/temple/card-orb-unlit-v2.webp?v=2" alt="">'}<div><b>5th dot: all bonuses +${Math.round((f.bonus||0.1)*100)}%</b><span>${f.earned?'Earned':f.locked?'Needs Temple '+f.templeLevel:'Needs hero Lv '+f.heroLevel}</span></div></div>`;
+    const tiers=templePrayerTiers(), free=T.freeRitualAvailable(st), bonus=(st.bonusPrayers|0)>0, heldP=st.heldPrayers||{};
+    const opts=[{id:'free',name:'Daily free prayer',cost:free?'Free':'Used today',locked:!free}]
+      .concat(bonus?[{id:'bonus',name:'Bonus prayer ×'+(st.bonusPrayers|0),cost:'Free',locked:false}]:[])
+      .concat(tiers.map(t=>({id:t.id,name:t.name,locked:t.locked||(t.id==='gold'?(G.gold||0)<t.gold:(G.gems||0)<t.gems),need:t.locked?t.unlockKeeper:0,
+        cost:t.locked?'Temple '+t.unlockKeeper:t.id==='gold'?`<img src="/assets/img/ui/hud-gold.webp" alt="">${t.gold.toLocaleString()}`:`<img src="/assets/img/ui/hud-gem.webp" alt="">${t.gems}${t.discount?` <small>-${Math.round(t.discount*100)}%</small>`:''}`})))
+      .concat(['kindled','stoked','blazing','inferno'].filter(k=>(heldP[k]|0)>0).map(k=>({id:'held:'+k,art:k,name:((tiers.find(t=>t.id===k)||{}).name||k)+' held ×'+(heldP[k]|0),cost:'Held',locked:false})));
+    if(!opts.some(o=>o.id===templeSelectedTier&&!o.locked)) templeSelectedTier=(opts.find(o=>o.id==='free'&&!o.locked)||opts.find(o=>o.id==='gold'&&!o.locked)||opts.find(o=>!o.locked)||{}).id||'';
+    const blocked=!unlocked||!elig(key);
+    const choice=opts.map(o=>`<button type="button" class="tp2Opt" data-tp2-tier="${o.id}" aria-pressed="${templeSelectedTier===o.id}" ${o.locked||blocked?'disabled':''}>
+        <i class="tp2Check"></i><img src="${TP2}${TP2_TIER_ART[o.art||o.id]||'prayer-daily-free'}-v1.webp" alt=""><b>${escapeHTML(o.name)}</b><span>${o.cost}</span></button>`).join('');
+    inner=`<img src="${TP2}hero-window-v1.webp" alt="" style="${tp2Box(285,312,267,648)}" class="tp2Win">
+      <img src="${TP2}heroes/${key}-v1.webp" alt="${escapeHTML((HERO_TYPES[key]||{}).name||key)}" style="${tp2Box(285,312,267,648)}" class="tp2Bust" onerror="this.style.display='none'">
+      <div class="tp2HeroName" style="${tp2Box(285,890,267,60)}">${escapeHTML((HERO_TYPES[key]||{}).name||key)} · Lv${heroLevel(key)} · ${hs.pct}%</div>
+      <button type="button" class="tp2Btn navy" id="tp2Switch" style="${tp2Box(300,1030,240,82)}" ${pending?'disabled':''}>Switch</button>
+      ${level>=(T.CONFIG.AUTO_PRAY_TEMPLE||12)?`<button type="button" class="tp2Btn navy" id="tp2Auto" style="${tp2Box(300,1140,240,82)}" ${pending||blocked?'disabled':''}>Auto pray</button>`:''}
+      <div class="tp2Head" style="${tp2Box(735,300,600,56)}">Attributes</div>${bars}
+      <div class="tp2Head" style="${tp2Box(1640,300,640,56)};text-align:center">Blessings</div>${bl}${fifth}
+      ${power!=null?`<div class="tp2Power ${power>0?'up':power<0?'down':''}" style="${tp2Box(733,872,800,90)}">Power ${power>0?'+':''}${power}</div>`:''}
+      ${keeperHtml}
+      ${pending?`<button type="button" class="tp2Btn navy" id="templeDiscard" style="${tp2Box(1130,1220,360,96)}">Cancel</button>
+          <button type="button" class="tp2Btn red" id="templeSave" style="${tp2Box(1920,1220,360,96)}">Save</button>
+          <div class="tp2Msg" style="${tp2Box(1130,1040,1170,160)}">Save or cancel?<small>(Gold or diamonds are not refunded for cancelling.)</small></div>`
+        :`<div class="tp2Opts" style="${tp2Box(1125,1028,890,310)}">${choice}</div>
+          <button type="button" class="tp2Btn gold" id="templePray" style="${tp2Box(2030,1150,270,100)}" ${blocked||!templeSelectedTier?'disabled':''}>Pray</button>
+          ${key&&!elig(key)?`<div class="tp2Note" style="${tp2Box(2010,1060,300,80)}">Purple ascension required</div>`:''}`}`;
+  }
+  b.innerHTML=`<div class="tp2Stage" id="tp2Stage"><img class="tp2Plate" src="${TP2}plate-v1.webp" alt="">${inner}
+    <div id="templeMsg" class="tp2Toast" style="${tp2Box(900,190,760,60)}"></div>${templeAuto?tp2AutoHtml():''}${templeFx?`<div class="tp2Fx" style="${tp2Box(733,380,800,520)}"><img src="${TP2}flare-v1.webp" alt=""><b class="${templeFx>0?'up':'down'}">Power ${templeFx>0?'+':''}${templeFx}</b></div>`:''}</div>`;
+  tp2Fit();
+  b.querySelectorAll('[data-tp2-hero]').forEach(t=>t.onclick=()=>{ templeSelectedHero=t.dataset.tp2Hero; templeView='pray'; templeLastRolls=null; renderTemple(); });
+  b.querySelectorAll('[data-tp2-tier]').forEach(t=>t.onclick=()=>{ templeSelectedTier=t.dataset.tp2Tier; b.querySelectorAll('[data-tp2-tier]').forEach(x=>x.setAttribute('aria-pressed',String(x===t))); });
+  const sw=b.querySelector('#tp2Switch'); if(sw) sw.onclick=()=>{ templeView='grid'; templeLastRolls=null; renderTemple(); };
+  const au=b.querySelector('#tp2Auto'); if(au) au.onclick=()=>{ const t=templePrayerTiers().filter(x=>!x.locked); templeAuto={tiers:t.map(x=>x.id),i:0,n:5,result:null}; renderTemple(); };
+  const msg=t=>{ const m=document.getElementById('templeMsg'); if(m){ m.textContent=t; m.classList.add('on'); setTimeout(()=>m.classList.remove('on'),2600);} };
+  const act=async(path,payload)=>{ const r=await apiOnce('temple',path,payload); if(r&&r.busy) return null;
+    if(!(r&&r.ok)){ const e=(r&&r.error==='offline')?'Connection lost.':((r&&r.error)||'Prayer failed.'); try{ await ledgerSync(); }catch(_){} renderTemple(); msg(e); return null; }
+    return r; };
+  const pray=b.querySelector('#templePray'); if(pray) pray.onclick=async()=>{ const s=String(templeSelectedTier||''); const r=await act('/api/temple/pray',s.startsWith('held:')?{heroKey:key,tier:s.slice(5),held:true}:{heroKey:key,tier:s});
+    if(!r) return; templeLastRolls=r.rolls; if(G.temple&&G.temple._pending==null&&r.ledger){} adoptLedger(r.ledger); if(G.temple&&G.temple._pending) G.temple._pending.power=r.power; updateHubChrome(); renderTemple(); };
+  const save=b.querySelector('#templeSave'); if(save) save.onclick=async()=>{ const pw=(G.temple&&G.temple._pending&&G.temple._pending.power)||Object.values(templeLastRolls||{}).reduce((a,x)=>a+10*(x.deltaSteps||0),0);
+    const r=await act('/api/temple/save',{}); if(!r) return; templeLastRolls=null; adoptLedger(r.ledger); updateHubChrome(); templeFx=pw||0; renderTemple(); setTimeout(()=>{ templeFx=null; if(document.getElementById('tp2Stage')) renderTemple(); },1900); };
+  const dis=b.querySelector('#templeDiscard'); if(dis) dis.onclick=async()=>{ const r=await act('/api/temple/discard',{}); if(!r) return; templeLastRolls=null; adoptLedger(r.ledger); updateHubChrome(); renderTemple(); };
+  tp2AutoWire(b,act,key);
+}
+function tp2AutoHtml(){ const a=templeAuto, tiers=templePrayerTiers(), id=a.tiers[a.i]||'gold', t=tiers.find(x=>x.id===id)||{};
+  if(a.result){ const r=a.result; return `<div class="tp2Auto" style="${tp2Box(860,330,840,620)}"><h3>Auto pray</h3>
+    <p>${r.ran} prayers · ${r.saved} saved · ${r.cancelled} cancelled</p><p class="${r.power>0?'up':r.power<0?'down':''}">Power ${r.power>0?'+':''}${r.power}</p>
+    <p><small>${r.cost&&r.cost.gold?r.cost.gold.toLocaleString()+' gold ':''}${r.cost&&r.cost.gems?r.cost.gems+' diamonds':''}${r.stopped?' · stopped: '+escapeHTML(String(r.stopped)):''}</small></p>
+    <button type="button" class="tp2Btn gold" id="tp2AutoOk">OK</button></div>`; }
+  return `<div class="tp2Auto" style="${tp2Box(860,330,840,620)}"><h3>Auto pray</h3><p>Auto save if power goes up!</p>
+    <div class="tp2AutoRow"><button type="button" id="tp2AutoPrev">◀</button><span><img src="${TP2}${TP2_TIER_ART[id]}-v1.webp" alt="">${escapeHTML(t.name||id)}</span><button type="button" id="tp2AutoNext">▶</button></div>
+    <div class="tp2AutoRow"><button type="button" id="tp2AutoMinus">−</button><span>${a.n}</span><button type="button" id="tp2AutoPlus">+</button></div>
+    <div class="tp2AutoBtns"><button type="button" class="tp2Btn navy" id="tp2AutoCancel">Cancel</button><button type="button" class="tp2Btn gold" id="tp2AutoGo">Pray ×${a.n}</button></div></div>`; }
+function tp2AutoWire(b,act,key){ if(!templeAuto) return; const a=templeAuto, q=s=>b.querySelector(s), re=()=>renderTemple();
+  const max=TempleOfAsh.CONFIG.AUTO_PRAY_MAX||10;
+  if(q('#tp2AutoOk')) q('#tp2AutoOk').onclick=()=>{ templeAuto=null; re(); };
+  if(q('#tp2AutoCancel')) q('#tp2AutoCancel').onclick=()=>{ templeAuto=null; re(); };
+  if(q('#tp2AutoPrev')) q('#tp2AutoPrev').onclick=()=>{ a.i=(a.i+a.tiers.length-1)%a.tiers.length; re(); };
+  if(q('#tp2AutoNext')) q('#tp2AutoNext').onclick=()=>{ a.i=(a.i+1)%a.tiers.length; re(); };
+  if(q('#tp2AutoMinus')) q('#tp2AutoMinus').onclick=()=>{ a.n=Math.max(1,a.n-1); re(); };
+  if(q('#tp2AutoPlus')) q('#tp2AutoPlus').onclick=()=>{ a.n=Math.min(max,a.n+1); re(); };
+  if(q('#tp2AutoGo')) q('#tp2AutoGo').onclick=async()=>{ const r=await act('/api/temple/auto',{heroKey:key,tier:a.tiers[a.i],count:a.n}); if(!r){ templeAuto=null; return; }
+    adoptLedger(r.ledger); updateHubChrome(); a.result=r; re(); };
 }
 function startDungeon(){
   syncActiveSquad();   // per-mode squad
@@ -26347,7 +26497,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791563366402';
+const BUILD_ID = '1791571803250';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

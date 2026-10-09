@@ -34,20 +34,25 @@ function req(method,p,b,tok){return new Promise((resolve,reject)=>{const data=b?
   const pending=await req('GET','/api/admin/snapshot?hero=vael',null,tok);
   ck('pending rolls do not alter the frozen combat snapshot before Save',
     pending.snapshot.maxHp===before.snapshot.maxHp&&pending.snapshot.atkP===before.snapshot.atkP);
-  const saved=await req('POST','/api/temple/save',{requestId:'save-prayer-once'},tok);
-  ck('Save commits cinders and clears the pending session',
-    saved.ok&&saved.ledger.temple._pending===null&&
-    Object.values(saved.ledger.temple.heroes.vael.cinders).some(x=>x>0));
+  let saved=await req('POST','/api/temple/save',{requestId:'save-prayer-once'},tok);
+  ck('Save commits steps and clears the pending session',
+    saved.ok&&saved.ledger.temple._pending===null&&!!saved.ledger.temple.heroes.vael.steps);
+  /* v1094 (Temple v2): a Gold ritual from 0 can roll nothing up; pray + save until some bar holds a step (bounded) */
+  for(let i=0;i<6&&!Object.values(saved.ledger.temple.heroes.vael.steps).some(x=>x>0);i++){
+    await req('POST','/api/temple/pray',{requestId:'prayer-more-'+i,heroKey:'vael',tier:'gold'},tok);
+    saved=await req('POST','/api/temple/save',{requestId:'save-more-'+i},tok); }
+  ck('a saved prayer leaves real steps on the hero',Object.values(saved.ledger.temple.heroes.vael.steps).some(x=>x>0),JSON.stringify(saved.ledger.temple.heroes.vael.steps));
   const after=await req('GET','/api/admin/snapshot?hero=vael',null,tok);
-  const role=require('../server/sim.js').HERO_BASE.vael.role;
-  const bonuses=TEMPLE.heroBonuses(saved.ledger.temple.heroes.vael,role);
+  const vb=require('../server/sim.js').HERO_BASE.vael;
+  const bonuses=TEMPLE.heroBonuses(saved.ledger.temple.heroes.vael,vb.role,vb.damageProfile);
   const near=(a,b)=>Math.abs(a-b)<1e-6;
-  ck('saved prayer creates at least one typed class bonus',Object.values(bonuses).some(x=>x>0),JSON.stringify({role,bonuses}));
-  ck('saved Temple effects reach authoritative HP, Attack, Armor and Magic Resist snapshots exactly',
-    near(after.snapshot.maxHp,before.snapshot.maxHp*(1+(bonuses['max health']||0)))&&
-    near(after.snapshot.atkP,before.snapshot.atkP*(1+(bonuses['attack damage']||0)))&&
-    near(after.snapshot.armor,before.snapshot.armor*(1+(bonuses.armor||0)))&&
-    near(after.snapshot.mr,before.snapshot.mr*(1+(bonuses['magic resist']||0))),
+  ck('saved prayer creates at least one flat Temple stat',Object.values(bonuses).some(x=>x>0),JSON.stringify({role:vb.role,bonuses}));
+  ck('saved Temple steps reach authoritative HP, Attack, Armor and Magic Resist snapshots exactly (flat)',
+    near(after.snapshot.maxHp,before.snapshot.maxHp+(bonuses.hpFlat||0))&&
+    near(after.snapshot.atkP,before.snapshot.atkP+(bonuses.adFlat||0))&&
+    near(after.snapshot.armor,before.snapshot.armor+(bonuses.armorFlat||0))&&
+    near(after.snapshot.mr,before.snapshot.mr+(bonuses.mrFlat||0))&&
+    near(after.snapshot.armorPen,before.snapshot.armorPen+(bonuses.armorPenFlat||0)),
     JSON.stringify({bonuses,before:{hp:before.snapshot.maxHp,atkP:before.snapshot.atkP,armor:before.snapshot.armor},
       after:{hp:after.snapshot.maxHp,atkP:after.snapshot.atkP,armor:after.snapshot.armor}}));
   console.log('\nPASS: '+pass+'  FAIL: '+fail); await stop(); process.exit(fail?1:0);

@@ -12109,90 +12109,90 @@
         {
           "key": "nightgloom",
           "lvl": 56,
-          "hpMul": 63.3229,
-          "dmgMul": 28.3449
+          "hpMul": 53.8245,
+          "dmgMul": 24.0932
         },
         {
           "key": "nightgloom",
           "lvl": 56,
-          "hpMul": 63.3229,
-          "dmgMul": 28.3449
+          "hpMul": 53.8245,
+          "dmgMul": 24.0932
         },
         {
           "key": "lost soul",
           "lvl": 56,
-          "hpMul": 63.3229,
-          "dmgMul": 28.3449
+          "hpMul": 53.8245,
+          "dmgMul": 24.0932
         },
         {
           "key": "nightgloom",
           "lvl": 56,
-          "hpMul": 63.3229,
-          "dmgMul": 28.3449
+          "hpMul": 53.8245,
+          "dmgMul": 24.0932
         },
         {
           "key": "mourn moth",
           "lvl": 56,
-          "hpMul": 63.3229,
-          "dmgMul": 28.3449
+          "hpMul": 53.8245,
+          "dmgMul": 24.0932
         }
       ],
       [
         {
           "key": "nightcap mimic",
           "lvl": 56,
-          "hpMul": 63.3229,
-          "dmgMul": 28.3449
+          "hpMul": 53.8245,
+          "dmgMul": 24.0932
         },
         {
           "key": "lost soul",
           "lvl": 56,
-          "hpMul": 63.3229,
-          "dmgMul": 28.3449
+          "hpMul": 53.8245,
+          "dmgMul": 24.0932
         },
         {
           "key": "nightgloom",
           "lvl": 56,
-          "hpMul": 63.3229,
-          "dmgMul": 28.3449
+          "hpMul": 53.8245,
+          "dmgMul": 24.0932
         },
         {
           "key": "nightgloom",
           "lvl": 56,
-          "hpMul": 63.3229,
-          "dmgMul": 28.3449
+          "hpMul": 53.8245,
+          "dmgMul": 24.0932
         },
         {
           "key": "nightgloom",
           "lvl": 56,
-          "hpMul": 63.3229,
-          "dmgMul": 28.3449
+          "hpMul": 53.8245,
+          "dmgMul": 24.0932
         }
       ],
       [
         {
           "key": "mourn moth",
           "lvl": 56,
-          "hpMul": 63.3229,
-          "dmgMul": 28.3449
+          "hpMul": 53.8245,
+          "dmgMul": 24.0932
         },
         {
           "key": "nightgloom",
           "lvl": 56,
-          "hpMul": 63.3229,
-          "dmgMul": 28.3449
+          "hpMul": 53.8245,
+          "dmgMul": 24.0932
         },
         {
           "key": "nightcap mimic",
           "lvl": 56,
-          "hpMul": 63.3229,
-          "dmgMul": 28.3449
+          "hpMul": 53.8245,
+          "dmgMul": 24.0932
         },
         {
           "key": "nightgloom",
           "lvl": 56,
-          "hpMul": 63.3229,
-          "dmgMul": 28.3449
+          "hpMul": 53.8245,
+          "dmgMul": 24.0932
         }
       ]
     ],
@@ -12201,7 +12201,7 @@
     "recommendedQuality": "Purple +2",
     "qualityMinHeroLevel": 50,
     "bossLevelGate": 0,
-    "difficultyTune": 5.0359,
+    "difficultyTune": 4.2805,
     "baselineHp": 46.0381,
     "baselineDmg": 19.9439,
     "portalMode": "normal",
@@ -12215,7 +12215,15 @@
       "purple-plus-2-bastion",
       "purple-plus-2-tidecall"
     ],
-    "curveV820": true
+    "curveV820": true,
+    "wallFixes": [
+      {
+        "v": "v1094",
+        "date": "2026-10-09",
+        "scale": 0.85,
+        "why": "9 Oct sims: Whale A held at 9-8 for 12.9 game days, 34 tries, 0 won, fully upgraded (Wall Watch). Blueprint 01 strength 9-8 = 593 against 9-7 = 327 and 9-9 = 384 - harder than both neighbours; most tabs held there have not won it. One step x0.85 (Phil 8 Oct rules)."
+      }
+    ]
   },
   {
     "id": "9-9",

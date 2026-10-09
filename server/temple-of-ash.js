@@ -1,186 +1,148 @@
 /* =============================================================================
- * THE TEMPLE OF ASH — client module (candidate, 27 Sep 2026)
+ * THE TEMPLE OF ASH v2 — one module for both sides (server require()s it, the browser gets window.TempleOfAsh)
  * -----------------------------------------------------------------------------
- * Source of truth: Open Projects/The Temple of Ash/TEMPLE OF ASH - design
- * (21 Sep 2026).md — SETTLED sections only. The reference prayer mode structure,
- * Emberweave wording, ash-curve RNG from design §9b.
+ * Source of truth: Open Projects/The Temple of Ash/TEMPLE OF ASH v2 - the reference copied (09OCT2026).md
+ * (Phil 9 Oct 2026: "copy their prayer system verbatim but use our names"). Replaces the v839-v1093 abstract-points model
+ * (class bars as % effects, +-1 point per bar).
  *
- * STATUS: LIVE since v839 (27-28 Sep 2026) - wired into the game; the server owns
- * the state (/api/temple/pray, save, discard). (v995: the old 'candidate, NOT
- * wired' header was stale - Temple+Academy audit #16.)
+ *   - Four fixed bars per hero: Health, Attack (Attack damage / Ability power by damage type), Armor & MR, Penetration.
+ *   - A bar holds whole STEPS; a step is a real flat stat (STEP by profile). Values ride the same ratings path as glyph flats.
+ *   - Cap in steps by Temple level (CAP_STEPS). Completion = sum steps / (4 x cap).
+ *   - One prayer rolls ALL FOUR bars from the tier's measured table; past a tier's REACH a would-be gain can turn into a drop.
+ *   - Pay on pray; Save applies, Cancel (discard) never refunds. Power = 10 x net applied steps.
+ *   - Blessings (dots): 4 slots (Temple 1/5/13/19 + hero level 50/60/70/80 + a bar threshold), 5th dot = hero 100 + Temple 25.
  *
- * Every [TUNE] value lives in TEMPLE_CONFIG below. Nothing else in the file
- * hard-codes a tunable number. OPEN: Phil items are marked // OPEN: Phil.
+ * Every tunable lives in TEMPLE_CONFIG. The server owns the state (/api/temple/pray|save|discard|auto).
  * ========================================================================== */
 (function (global) {
   "use strict";
 
-  /* ===========================================================================
-   * TEMPLE_CONFIG — the one place every tunable lives.
-   * ========================================================================= */
   const TEMPLE_CONFIG = {
     /* --- building --- */
     UNLOCK_PLAYER_LEVEL: 50,
-    PLAYER_LEVEL_OFFSET: -10,         // Phil 27 Sep 10:2x: every reference-game troop-level gate minus 10 (our temple opens at 50, the reference at 60)          // SETTLED: player level 50 (was 40 in live Prayer of Power)
-    // Phil 27 Sep 09:4x (new guidance, replaces "purple 2"): "level 50 player unlocks the temple. but all purple + heroes can
-    // use it". Purple = glyph ascension index 6 (GLYPH_LADDER: ... Blue +2 = 5, Purple = 6 ... Orange = 15, blueprint 19).
-    MIN_ASCENSION_INDEX: 6,           // any Purple, Purple +1..+3, Gold .. Orange hero can pray; no hero-level gate
+    PLAYER_LEVEL_OFFSET: -10,         // Phil 27 Sep: every reference troop-level gate minus 10 (our temple opens at 50)
+    MIN_ASCENSION_INDEX: 6,           // Phil 27 Sep: "all purple + heroes can use it" (glyph ascension index 6 = Purple)
 
-    /* --- attributes --- */
-    /* Phil 27 Sep 12:3x: "4 attribute bars, but the 5th dot increases all bonuses 10%". Every hero prays 4 bars; what each bar IS
-       comes from the hero's class (CLASS_BARS - the class's 4 strongest effects from design §10; the other 2 are the boon
-       bonuses). Bars 3 and 4 open at temple 3 and 4 (BAR_UNLOCK_TEMPLE); a locked bar never rolls and is not in completion. */
-    ATTRIBUTES: ["bar1", "bar2", "bar3", "bar4"],
-    BAR_UNLOCK_TEMPLE: [1, 1, 3, 4],
-    CLASS_BARS: {
-      Support:  ["heal/shield strength", "energy regen", "cooldown reduction", "max health"],
-      Tank:     ["max health", "armor", "magic resist", "damage reduction"],
-      Bruiser:  ["attack damage", "max health", "lifesteal", "armor"],
-      Assassin: ["attack damage", "crit chance", "crit damage", "armor penetration"],
-      Marksman: ["attack damage", "attack speed", "crit chance", "crit damage"],
-      Mage:     ["ability power", "magic penetration", "cooldown reduction", "energy regen"],
+    /* --- v2: the four bars (spec §1) --- */
+    BARS: ["health", "attack", "armorMr", "pen"],
+    BAR_NAMES: { health: "Health", attack: "Attack", armorMr: "Armor & Magic resist", pen: "Penetration" },
+    LEGACY_BAR_OF: { bar1: "health", bar2: "attack", bar3: "armorMr", bar4: "pen" },   // migration: old bar i -> new bar i (spec §8)
+    /* A step's real stat value (spec §2 "Ours", PROPOSED - Phil sets). magic = Magic/Healer heroes, physical = Attack heroes;
+       a Hybrid hero uses the physical steps and its Attack bar adds to BOTH Attack damage and Ability power. */
+    STEP: {
+      magic:    { health: 25, attack: 3.2, armorMr: 4.8, pen: 7.2 },
+      physical: { health: 35, attack: 2.4, armorMr: 7.2, pen: 4.8 },
     },
-    CLASS_BOON_EFFECTS: {       // the 2 class effects that are not bars - the boon slots' bonuses [TUNE which slot gets which]
-      Support: ["magic resist", "control resistance"], Tank: ["control resistance", "energy from damage taken"],
-      Bruiser: ["attack speed", "cooldown reduction"], Assassin: ["dodge", "energy regen"],
-      Marksman: ["armor penetration", "lifesteal"],     Mage: ["max health", "magic resist"],
-    },
-    FIFTH_ORB_BONUS: 0.10,
-    /* What a FULL bar gives (points = effectMax(50) = 475), as a fraction of that stat unless noted. Claude 27 Sep 13:1x, [TUNE]:
-       a late star-up is worth ~+19% of a hero's stats (STAR_MULT 1.60 -> 1.90), so a full Temple (4 bars full at temple 50) is
-       sized at about +20% of the hero's power. Phil can change any number here; nothing else moves. */
-    BAR_FULL_AT_TEMPLE: 50,
-    EFFECT_FULL: {
-      "attack damage": 0.20, "ability power": 0.20, "max health": 0.20, "armor": 0.20, "magic resist": 0.20,
-      "heal/shield strength": 0.20, "attack speed": 0.15, "crit chance": 0.10 /* +10 points */, "crit damage": 0.30,
-      "armor penetration": 0.20, "magic penetration": 0.20, "lifesteal": 0.08 /* +8 points */, "cooldown reduction": 0.10,
-      "energy regen": 0.20, "damage reduction": 0.08 /* +8 points */, "dodge": 0.06 /* +6 points */,
-      "control resistance": 0.20, "energy from damage taken": 0.20,
-    },
-    BOON_VALUE: 0.25,        // each unlocked boon (orbs 1-4) grants 25% of EFFECT_FULL of its class boon effect (slots alternate the 2)      // Phil 12:3x: the 5th orb raises ALL of that hero's temple bonuses by 10%
+    /* Cap in steps by Temple level (spec §3): 40 / 110 / 140 / 200 MEASURED, 75 and 170 interpolated. [from temple level, cap] */
+    CAP_STEPS: [[1, 40], [5, 75], [9, 110], [13, 140], [16, 170], [19, 200]],
+    POWER_PER_STEP: 10,               // MEASURED: "Power +N" = 10 x net steps, exact in all 103 measured prayers
 
-    /* --- the ash curve (design §9b, PROPOSAL picks) --- */
-    CINDER_START_P_UP: 0.55,          // fresh attribute: sessions usually net positive
-    CINDER_FLOOR_P_UP: 0.45,          // near-cap attribute: you save only great rolls
-    CINDER_DECAY_PP: 10,              // percentage points of p lost from start to floor
-    FLARE_CHANCE: 0.05,               // drama roll: ±3 cinders instead of ±1
-    FLARE_SHIFT: 3,
-    BASE_CAP: 100,                    // cinder cap per attribute (base)
-    CAP_RAISE_PER_MILESTONE: 25,      // Flamekeeper cap raises 5/9/13/16/19 (design §3)
-    CINDER_TO_STAT_BONUS: 0.002,      // OPEN [TUNE]: 1 cinder = +0.2% to that attribute
-    ANTI_TILT_VALVE: false,           // parked OFF at launch (design §9b); see antiTiltCheck()
-
-    /* --- cost ladder (design §2, copied from the reference) --- */
-    GOLD_LADDER: [1000, 2000, 4000, 6000, 8000, 10000, 20000, 40000, 60000, 80000, 100000],   // Phil 9 Oct: "it should cap at 100,000" (was ... 200k, 400k, 600k, 800k); the 11th use and every one after cost 100,000
-    DIAMOND_TIERS: [                  // gem tiers buy ROLLS, never ODDS (integrity rule)
-      { id: "kindled", name: "Kindled", price: 50,  keeperPoints: 1  },
-      { id: "stoked",  name: "Stoked",  price: 100, keeperPoints: 5  },
-      { id: "blazing", name: "Blazing", price: 200, keeperPoints: 20 }, // §9a primary pick
-      { id: "inferno", name: "Inferno", price: 400, keeperPoints: 40 },
-    ],
-    GEM_TIER_DAILY_SOFT_CAP: 0,       // OPEN [TUNE]: 0 = none (design §9b sub-point b)
-    FREE_RITUAL_KEEPER_POINTS: 1,     // UNUSED since Phil 27 Sep 09:3x: the free prayer gives the best open tier's points (v995 note, audit #16)
-    BONUS_PRAYER_CHANCE: 0.10,        // Phil 27 Sep 10:4x: "every prayer should give a 10% chance to give 1 free prayer" / "1 free prayer is always the highest one you can do"
-
-    /* --- ember boons (design §4) --- */
-    FIFTH_ORB: { templeLevel: 25, heroLevel: 100 },   // Phil 27 Sep 10:5x "the orbs open by hero levels": the 100 is the HERO's level
-    /* Phil 27 Sep 11:0x: "the limits should be reduced to make sense for the dots". Player level needed for a temple level =
-       the PREVIOUS dot's hero level, so a player can already build the temple for the next orb while the hero levels toward it:
-       orb 3's slot (temple 13) opens at player 60 (orb 2's level), orb 4's (19) at 70, orb 5's (25) at 80. Every gate is at or
-       below the old reference-minus-10 table. Replaces the per-row playerLevel in keeperLevel (the reference-game column stays as reference). */
-    TEMPLE_PLAYER_GATES: [[1, 50], [13, 60], [19, 70], [25, 80], [41, 90]],   // [from temple level, player level]
-    HERO_ORB_LEVELS: [50, 60, 70, 80],       // Phil 27 Sep 10:5x "the orbs open by hero levels" + "1st orb is available at 50, second orb available at 60, third available at 70, 4th at 80, 5th at 100"   // Phil 27 Sep 10:3x: "the 5th one is achievable at 100" / "temple level 25" - OURS, not the reference ("this is another thing that will seperate us from [the reference]")
-    BOON_KEEPER_GATES: [1, 5, 13, 19],       // the reference (Phil screenshots 27 Sep): bonus slots open at temple level 1 / 5 / 13 / 19
-    BOON_ATTRIBUTE_THRESHOLD_BASE: 40,       // OPEN [TUNE]: cinder threshold per boon slot
-    BOON_ATTRIBUTE_THRESHOLD_STEP: 25,       // successive boons demand higher thresholds
-
-    /* --- PRAYERS, PHIL'S MODEL (27 Sep 2026 08:3x) --------------------------------------------------------------
-     * Phil: "Gold prayers can 1 point, premium(50 diamonds) 5 points, expert (100 diamonds) 10 points, master (200
-     * diamonds) 20 points, guru (400 diamonds) 40 points. I want it like this." / "As you start leveling the prior prayer
-     * stops helping and your fail rate% starts increasing to reduce your stats." / "Every temple level you get increases
-     * your maximum stats to gain, this lowers your percent of completion per hero everytime the temple levels up. So by
-     * the time your temple level is 11 or 12 your gold prayers are failing at around 50% completion with like a 1% pass
-     * rate and 99% fail." / "It will not be stat stick increases. The effects will matter."
-     * HOW: every prayer type works up to its own absolute CEILING of points on an effect; its pass rate falls as the
-     * effect nears that ceiling (a fail takes points AWAY); the effect's MAXIMUM grows with temple level, so the same
-     * ceiling is a lower completion % at a higher temple. Gold's ceiling = the temple-1 maximum, which the temple-12
-     * maximum doubles -> gold dies at ~50% completion by temple 11-12. Inferno's ceiling = the final maximum.
-     * Tier unlock levels are the reference's (Kindled 2, Stoked 7, Blazing 14, Inferno 17 - the FLAMEKEEPER_TRACK unlocks). [TUNE]
-     * ------------------------------------------------------------------------------------------------------------ */
+    /* --- prayer tiers (OUR names; costs, exp and unlocks unchanged) --- */
     PRAYER_TIERS: [
-      /* OUR names (Phil 27 Sep 11:5x: "these names arent the same, we have our own names in our prayers") - the reference's gold / 50 / 100 /
-         200 / 400-diamond prayers are ours as the Gold ritual / Kindled / Stoked / Blazing / Inferno (design §2). */
-      { id: "gold",    name: "Gold ritual", gems: 0,   keeperPoints: 1,  ceiling: 100, unlockKeeper: 1  },
-      { id: "kindled", name: "Kindled", gems: 50,  keeperPoints: 5,  ceiling: 160, unlockKeeper: 2  },
-      { id: "stoked",  name: "Stoked",  gems: 100, keeperPoints: 10, ceiling: 230, unlockKeeper: 7  },
-      { id: "blazing",  name: "Blazing",  gems: 200, keeperPoints: 20, ceiling: 310, unlockKeeper: 14 },
-      { id: "inferno",    name: "Inferno",    gems: 400, keeperPoints: 40, ceiling: 400, unlockKeeper: 17 },
+      { id: "gold",    name: "Gold ritual", gems: 0,   keeperPoints: 1,  unlockKeeper: 1  },
+      { id: "kindled", name: "Kindled",     gems: 50,  keeperPoints: 5,  unlockKeeper: 2  },
+      { id: "stoked",  name: "Stoked",      gems: 100, keeperPoints: 10, unlockKeeper: 7  },
+      { id: "blazing", name: "Blazing",     gems: 200, keeperPoints: 20, unlockKeeper: 14 },
+      { id: "inferno", name: "Inferno",     gems: 400, keeperPoints: 40, unlockKeeper: 17 },
     ],
-    /* HOW A PRAYER SUCCEEDS (Phil 27 Sep 11:2x-11:4x - supersedes the tier ceilings of 08:3x):
-       "heroes at zero percent completion will always have 100% success rate with gold prayer or higher, as the completion % raises
-       the prayer percentages of success drops. as temple level raises, this % of success also reduces, meaning to pass a certain
-       threshold you need to use the higher prayer" / "each hero has its own prayer completion".
-       (11:4x shape below; the REACH form was replaced by the doubling rule the same hour) completion = heroCompletion() (this hero, 0-1).
-       REACH = the completion where a tier stops working = REACH_AT5[tier] x REACH_DROP[tier]^(temple-5): it shrinks every temple
-       level, and a dearer tier reaches further - so past a tier's reach you need the next prayer up.
-       Fitted to Phil's examples (shape, not exact - "this was an example"): gold at temple 5 ~ 44/30/15/5% at 40/60/80/90%, and
-       gold at ~50% completion ~1% by temple 12 (08:4x). [TUNE] until the reference's rates are read from the videos. */
-    /* Phil 11:4x "the next prayer should pretty much double the success rate of the one before": GOLD sets the curve, each
-       tier up doubles it (x2 kindled, x4 stoked, x8 blazing, x16 inferno), capped at 100%, floored at PASS_FLOOR.
-       gold = exp(-A x completion) x (1 - completion)^GOLD_END; A = GOLD_A5 + A_PER_LEVEL x (temple - 5) grows every temple
-       level. Fit (shape only): gold at temple 5 = 44/28/15/10% at 40/60/80/90% complete; gold at 50% ~1% by temple 12. [TUNE] */
-    /* Anchors for gold at 50% completion: ~35% at temple 5 (the example), ~1% at temple 12 (08:4x), ~0.1% at temple 30
-       (11:5x "by temple level 30, gold prayer should essentially be .1 % success rate for a hero at 50% completion").
-       GOLD_A = the steepness at each temple level through those anchors (straight lines between; 1 and 50 are ours). */
-    GOLD_A: [[1, 0.30], [5, 1.54], [12, 8.66], [30, 13.26], [50, 16.0]], GOLD_END: 0.4,
-    TIER_MULT: { gold: 1, kindled: 2, stoked: 4, blazing: 8, inferno: 16 },
-    PASS_MAX: 0.60,        // unused since the 11:2x curve (kept for the sim header line)
-    PASS_FLOOR: 0.0005,    // 11:5x: gold must be able to reach 0.1% (was 1%)      // Phil: "like a 1% pass rate and 99% fail" at/over the ceiling
+    /* MEASURED roll tables: per-bar step frequencies counted frame by frame from 103 prayers in 10 gameplay videos
+       (Open Projects/The Temple of Ash/reference/measured 09OCT2026/prayers.csv). {stepDelta: times seen}. The big measured
+       drops (-4 ... -15) are NOT in these tables: they are what REACH pressure produces near the cap (below). */
+    ROLL_TABLES: {
+      gold:    { "-3": 1, "-2": 3, "-1": 12, "0": 13, "1": 28, "2": 9, "3": 15 },
+      kindled: { "0": 16, "1": 51, "2": 3, "3": 4, "4": 4 },
+      stoked:  { "-1": 1, "0": 31, "1": 55, "2": 7, "3": 2, "4": 3, "5": 4 },
+      blazing: { "-1": 7, "0": 16, "1": 20, "2": 2, "3": 1, "4": 2, "5": 3, "6": 3 },
+      inferno: { "-1": 2, "0": 18, "1": 18, "2": 4, "3": 3, "4": 4, "5": 1, "6": 2, "7": 3 },
+    },
+    /* "As a hero's bars rise, it gets harder to keep rising" (spec §4). Above REACH x cap a roll that would be positive turns into
+       a drop with probability rising linearly from 0 at the reach to PRESSURE_MAX at the cap. PROPOSED. */
+    REACH: { gold: 0.50, kindled: 0.65, stoked: 0.80, blazing: 0.90, inferno: 1.00 },
+    PRESSURE_MAX: 0.6,
+    PRESSURE_DROP: { "1": 3, "2": 2, "3": 1 },                       // a pressure drop: -1..-3, small more likely
+    PRESSURE_DROP_BLAZING: (function () { const t = {}; for (let k = 1; k <= 15; k++) t[k] = Math.round(1000 / k); return t; })(),   // -1..-15 weighted 1/k (the measured -5 ... -15 near the cap)
 
-    // the effect MAXIMUM by temple (Flamekeeper) level: 100 at temple 1, 199 at temple 12, 400 at temple 40 [TUNE]
-    MAX_BASE: 100, MAX_PER_LEVEL_TO_12: 9, MAX_PER_LEVEL_AFTER_12: 7.25,
+    /* --- cost ladder --- */
+    GOLD_LADDER: [1000, 2000, 4000, 6000, 8000, 10000, 20000, 40000, 60000, 80000, 100000],   // Phil 9 Oct: "it should cap at 100,000"
+    DIAMOND_TIERS: [                  // gem tiers buy ROLLS, never ODDS (integrity rule); keeper points come from PRAYER_TIERS on the prayer
+      { id: "kindled", name: "Kindled", price: 50 },
+      { id: "stoked",  name: "Stoked",  price: 100 },
+      { id: "blazing", name: "Blazing", price: 200 },
+      { id: "inferno", name: "Inferno", price: 400 },
+    ],
+    GEM_TIER_DAILY_SOFT_CAP: 0,       // 0 = none
+    FREE_RITUAL_KEEPER_POINTS: 1,     // claimFreeRitual() only (the free daily PRAYER earns the best open tier's points)
+
+    /* --- reference perks (spec §6, SOURCED) --- */
+    DISCOUNT: { gold: [6, 0.10], kindled: [10, 0.10], stoked: [12, 0.10], blazing: [18, 0.10], inferno: [20, 0.10] },   // [temple level, off]
+    BONUS_PRAYER_CHANCE: 0.10,        // Phil 27 Sep: every prayer has a 10% chance to bank 1 free prayer
+    BONUS_PRAYER_CHANCE_AT: [[8, 0.12], [11, 0.14], [15, 0.16]],     // the reference's free-prayer boosts at 8 / 11 / 15
+    AUTO_PRAY_TEMPLE: 12,             // "Auto pray": auto save if power goes up (the reference's level-12 unlock)
+    AUTO_PRAY_MAX: 10,
+
+    /* --- blessings (the dots, spec §5) --- */
+    FIFTH_ORB: { templeLevel: 25, heroLevel: 100 },   // OURS: the 5th dot (hero level 100 + Temple 25)
+    FIFTH_ORB_BONUS: 0.10,                           // the 5th dot raises ALL of that hero's Temple bonuses by 10%
+    TEMPLE_PLAYER_GATES: [[1, 50], [13, 60], [19, 70], [25, 80], [41, 90]],   // [from temple level, player level]
+    HERO_ORB_LEVELS: [50, 60, 70, 80],               // our hero-level gates on dots 1-4 (5th: 100)
+    BOON_KEEPER_GATES: [1, 5, 13, 19],               // the reference: blessing slots open at Temple 1 / 5 / 13 / 19
+    BLESSING_NEEDS: [                                 // MEASURED thresholds, in steps of one named bar
+      { bar: "health", need: 20 }, { bar: "attack", need: 50 }, { bar: "armorMr", need: 130 }, { bar: "pen", need: 190 },
+    ],
+    /* Rewards: a class template (PROPOSED - Phil sets; per-hero later). Keys: health / attack / armorMr / pen are flat stats
+       (attack = Ability power for magic heroes, Attack damage for physical, both for hybrid; armorMr adds to armor AND magic
+       resist; pen to armor AND magic penetration). Other keys are the existing battle effect names, as fractions. */
+    BLESSINGS: {
+      Tank:     [{ health: 700 },             { health: 500 },  { armorMr: 300 },                  { health: 2800 }],
+      Bruiser:  [{ health: 700 },             { attack: 150 },  { armorMr: 200 },                  { attack: 300 }],
+      Assassin: [{ "crit chance": 0.05 },     { attack: 150 },  { dodge: 0.04 },                   { pen: 200 }],
+      Marksman: [{ "crit chance": 0.05 },     { attack: 150 },  { dodge: 0.04 },                   { attack: 300 }],
+      Mage:     [{ "crit chance": 0.05 },     { attack: 150 },  { armorMr: 200 },                  { pen: 200 }],
+      Support:  [{ lifesteal: 0.05 },         { health: 500 },  { "heal/shield strength": 0.10 },  { health: 2800 }],
+    },
+
+    /* --- legacy (v839-v1093), kept ONLY for the migration and the old Temple screen until its rebuild lands --- */
+    ATTRIBUTES: ["bar1", "bar2", "bar3", "bar4"],
+    BAR_UNLOCK_TEMPLE: [1, 1, 1, 1],                 // v2: all four bars roll from Temple 1
+    CLASS_BARS: {                                    // display labels the old screen reads; NOT a battle path any more
+      Support: ["Health", "Attack", "Armor & Magic resist", "Penetration"], Tank: ["Health", "Attack", "Armor & Magic resist", "Penetration"],
+      Bruiser: ["Health", "Attack", "Armor & Magic resist", "Penetration"], Assassin: ["Health", "Attack", "Armor & Magic resist", "Penetration"],
+      Marksman: ["Health", "Attack", "Armor & Magic resist", "Penetration"], Mage: ["Health", "Attack", "Armor & Magic resist", "Penetration"],
+    },
+    LEGACY_MAX: { base: 100, perLevelTo12: 9, perLevelAfter12: 7.25 },   // the old bar maximum by temple level (migration denominator)
 
     /* --- flame tokens (design §5) --- */
-    TOKEN_TIERS: [                           // event-gated supply only; no shop (SETTLED)
+    TOKEN_TIERS: [
       { id: "spark",   name: "Spark",        keeperPoints: 1,  tierUnlock: "kindled" },
       { id: "glow",    name: "Glow Flame",   keeperPoints: 5,  tierUnlock: "stoked"  },
       { id: "bright",  name: "Bright Flame", keeperPoints: 10, tierUnlock: "blazing" },
       { id: "pyre",    name: "Pyre Flame",   keeperPoints: 20, tierUnlock: "blazing" },
       { id: "phoenix", name: "Phoenix Flame",keeperPoints: 40, tierUnlock: "inferno" },
     ],
-    // OPEN: Phil — token tier names are working names; event roadmap decides
-    // which events award which tier. Unplunderable is a SERVER rule.
   };
 
-  /* ===========================================================================
-   * FLAMEKEEPER_TRACK — full 40-level table, transcribed 27 Sep 2026 from
-   * The reference handbook site (prayer page) (the handbook is newer than the wiki;
-   * the wiki/handbook lv4-5 conflict resolves to handbook 25/50, per design §3).
-   * `exp` = cumulative keeper points to REACH the level. `unlock` names the
-   * level's granted feature. Auras 20-23 are from the wiki (handbook blanks).
-   * `playerLevel` is the handbook Troop Level gate (60..95) — our player level.
-   * ========================================================================= */
+  /* FLAMEKEEPER_TRACK — the Temple (Flame Keeper) levels. `exp` = points to climb INTO that level from the one below. */
   const FLAMEKEEPER_TRACK = [
     { lv: 1,  exp: 0,     playerLevel: 60, unlock: null },
     { lv: 2,  exp: 5,     playerLevel: 60, unlock: "kindled_unlock" },
     { lv: 3,  exp: 15,    playerLevel: 60, unlock: null },
     { lv: 4,  exp: 25,    playerLevel: 60, unlock: null },
     { lv: 5,  exp: 50,    playerLevel: 65, unlock: "attribute_cap_raise_1" },
-    { lv: 6,  exp: 100,   playerLevel: 65, unlock: null },
+    { lv: 6,  exp: 100,   playerLevel: 65, unlock: "gold_discount" },
     { lv: 7,  exp: 200,   playerLevel: 65, unlock: "stoked_unlock" },
     { lv: 8,  exp: 400,   playerLevel: 65, unlock: "free_ritual_boost_1" },
     { lv: 9,  exp: 600,   playerLevel: 70, unlock: "attribute_cap_raise_2" },
-    { lv: 10, exp: 800,   playerLevel: 70, unlock: null },
+    { lv: 10, exp: 800,   playerLevel: 70, unlock: "kindled_discount" },
     { lv: 11, exp: 1000,  playerLevel: 70, unlock: "free_ritual_boost_2" },
-    { lv: 12, exp: 1200,  playerLevel: 70, unlock: "ritual_mode" },
+    { lv: 12, exp: 1200,  playerLevel: 70, unlock: "ritual_mode" },          // auto pray + Stoked discount
     { lv: 13, exp: 1400,  playerLevel: 75, unlock: "attribute_cap_raise_3" },
     { lv: 14, exp: 1800,  playerLevel: 75, unlock: "blazing_unlock" },
     { lv: 15, exp: 2200,  playerLevel: 75, unlock: "free_ritual_boost_3" },
     { lv: 16, exp: 2800,  playerLevel: 80, unlock: "attribute_cap_raise_4" },
     { lv: 17, exp: 3200,  playerLevel: 80, unlock: "inferno_unlock" },
-    { lv: 18, exp: 3900,  playerLevel: 80, unlock: null },
+    { lv: 18, exp: 3900,  playerLevel: 80, unlock: "blazing_discount" },
     { lv: 19, exp: 4600,  playerLevel: 85, unlock: "attribute_cap_raise_5" },
-    { lv: 20, exp: 6500,  playerLevel: 85, unlock: "aura_1" },
+    { lv: 20, exp: 6500,  playerLevel: 85, unlock: "aura_1" },               // + Inferno discount
     { lv: 21, exp: 9000,  playerLevel: 85, unlock: "aura_2" },
     { lv: 22, exp: 10000, playerLevel: 90, unlock: "aura_3" },
     { lv: 23, exp: 10000, playerLevel: 90, unlock: "aura_4" },
@@ -194,15 +156,14 @@
     { lv: 31, exp: 11000, playerLevel: 95, unlock: null },
     { lv: 32, exp: 12000, playerLevel: 95, unlock: null },
     { lv: 33, exp: 12000, playerLevel: 95, unlock: null },
-    { lv:  34, exp: 12000, playerLevel: 95, unlock: null },
+    { lv: 34, exp: 12000, playerLevel: 95, unlock: null },
     { lv: 35, exp: 12000, playerLevel: 95, unlock: null },
     { lv: 36, exp: 12000, playerLevel: 95, unlock: null },
     { lv: 37, exp: 13000, playerLevel: 95, unlock: null },
     { lv: 38, exp: 13000, playerLevel: 95, unlock: null },
     { lv: 39, exp: 13000, playerLevel: 95, unlock: null },
     { lv: 40, exp: 13000, playerLevel: 95, unlock: null },
-    /* Phil 27 Sep 10:5x: "the temple levels should be higher, since we added a 5th dot" - OURS, past the reference's 40. Cost keeps the reference's
-       +1000 every few levels; playerLevel is stored reference-equivalent (the -10 offset makes 41-45 = player 95, 46-50 = player 100). */
+    /* OURS past the reference's 40 (Phil 27 Sep: "the temple levels should be higher, since we added a 5th dot") */
     { lv: 41, exp: 14000, playerLevel: 105, unlock: null },
     { lv: 42, exp: 14000, playerLevel: 105, unlock: null },
     { lv: 43, exp: 14000, playerLevel: 105, unlock: null },
@@ -216,58 +177,18 @@
   ];
   const CAP_RAISE_LEVELS = [5, 9, 13, 16, 19];
 
-  /* ===========================================================================
-   * STATE SCHEMA — what one player's temple record looks like.
-   * Persistence is SERVER-side (Claude's lane, server authority + replay).
-   * This module is pure logic over a plain object so the server can own
-   * storage without touching the rules.
-   *
-   *   {
-   *     keeperPoints: 0,             // lifetime, feeds FLAMEKEEPER_TRACK
-   *     freeRitualDay: "2026-09-27", // last free daily claim (server date)
-   *     goldLadderStep: 0,           // position in GOLD_LADDER today (resets daily)
-   *     gemTierCounts: { kindled: 0, stoked: 0, blazing: 0, inferno: 0 }, // today
-   *     discardsInRow: 0,
-   *     heroes: {
-   *       "<heroId>": {
-   *         cinders: { power: 12, attack: 3, ... },   // per-attribute, 0..cap
-   *         boonsUnlocked: [true, false, false, false],
-   *         meditationTicks: 0
-   *       }
-   *     }
-   *   }
-   * ========================================================================= */
+  /* STATE (server-owned, plain object):
+     { keeperPoints, playerLevel, freeRitualDay, _freeClaimedDay, goldLadderStep, gemTierCounts, discardsInRow, bonusPrayers, levelSeen,
+       heldPrayers, _pending, heroes: { <key>: { steps:{health,attack,armorMr,pen}, boonsUnlocked:[5 x bool], cinders?(legacy) } } } */
 
-  /* --- tiny RNG seam: the server/Claude can inject a seeded RNG for tests -- */
+  /* --- RNG seam: the server injects its seeded roll (srvRoll) --- */
   let rng = Math.random;
   function setRng(fn) { rng = fn; }
-
   function roll() { return rng(); }
 
-  /* --- quality gate ------------------------------------------------------- */
-  function heroCanKindle(hero) {             // hero.ascensionIndex = the board's GLYPH_LADDER index (blueprint 19)
-    return !!hero && (hero.ascensionIndex | 0) >= TEMPLE_CONFIG.MIN_ASCENSION_INDEX;
-  }
-
-  function templeUnlocked(playerLevel) {
-    return playerLevel >= TEMPLE_CONFIG.UNLOCK_PLAYER_LEVEL;
-  }
-
-  /* --- cinder cap grows with keeper milestones ---------------------------- */
-  function cinderCap(keeperLevel) {
-    let raises = CAP_RAISE_LEVELS.filter(function (lv) { return keeperLevel >= lv; }).length;
-    return TEMPLE_CONFIG.BASE_CAP + raises * TEMPLE_CONFIG.CAP_RAISE_PER_MILESTONE;
-  }
-
-  /* Phil 27 Sep 10:1x: "follow their levels where it is achievable based off their 1 dot prayer 2 dot 3 dot 4 dot". The reference's keeper
-     table gates each level by troop (player) level: keeper 5 needs 65, 9 needs 70, 13 needs 75, 16 needs 80, 19 needs 85, 22 needs
-     90, 31 needs 95 - so 2-orb (keeper 5) opens at player 65, 3-orb (13) at 75, 4-orb (19) at 85. Points keep banking past the cap
-     and count the moment the player levels. Rows 1-4 (the reference 60) open with our building at 50 (Phil's unlock ruling).
-     playerLevel omitted = no cap (old callers, tests). */
-  /* 27 Sep 10:5x FIX: a row's exp is the points to climb INTO that level from the one below, NOT a running total. The reference's screen
-     proves it: "Lv.19 [keeper] 2747/6500" (KOE-zkwQrM0 @5:08) - 6500 is lv 20's exp, and the bar restarts each level
-     (walkthrough: 0/5 at lv1, 0/15 at lv2, 0/25 at lv3). The old running-total read put temple 40 at 13,000 points;
-     the real sum is 256,795 (about 6,400 Inferno rituals). */
+  /* --- gates --- */
+  function heroCanKindle(hero) { return !!hero && (hero.ascensionIndex | 0) >= TEMPLE_CONFIG.MIN_ASCENSION_INDEX; }
+  function templeUnlocked(playerLevel) { return playerLevel >= TEMPLE_CONFIG.UNLOCK_PLAYER_LEVEL; }
   function templePlayerGate(templeLevel) {
     let g = 0;
     TEMPLE_CONFIG.TEMPLE_PLAYER_GATES.forEach(function (x) { if (templeLevel >= x[0]) g = x[1]; });
@@ -277,157 +198,167 @@
     let lv = 1, need = 0;
     for (let i = 0; i < FLAMEKEEPER_TRACK.length; i++) {
       const row = FLAMEKEEPER_TRACK[i];
-      const gate = templePlayerGate(row.lv);            // Phil 11:0x: gates follow the dots (TEMPLE_PLAYER_GATES)
-      if (playerLevel != null && playerLevel < gate) break;
+      if (playerLevel != null && playerLevel < templePlayerGate(row.lv)) break;
       need += row.exp;
       if (points >= need) lv = row.lv; else break;
     }
     return lv;
   }
-  /* The Flamekeeper bar under the keeper (the reference "2747/6500"): points into the current level / the next level's exp. */
   function keeperProgress(points, playerLevel) {
     const lv = keeperLevel(points, playerLevel);
     let spent = 0; for (let i = 0; i < lv; i++) spent += FLAMEKEEPER_TRACK[i].exp;
     const next = FLAMEKEEPER_TRACK[lv];
     return { level: lv, into: points - spent, need: next ? next.exp : 0, max: !next };
   }
+  function stateLevel(state) { return keeperLevel((state && state.keeperPoints) || 0, state ? state.playerLevel : null); }
 
-  /* --- the ash curve ------------------------------------------------------ */
-  function pUp(cinders, cap) {
-    const start = TEMPLE_CONFIG.CINDER_START_P_UP;
-    const floor = TEMPLE_CONFIG.CINDER_FLOOR_P_UP;
-    const decay = (start - floor) * Math.min(1, cinders / cap);
-    return start - decay;
+  /* --- v2 bars --- */
+  function capSteps(templeLevel) {
+    const L = Math.max(1, templeLevel | 0 || 1); let c = TEMPLE_CONFIG.CAP_STEPS[0][1];
+    TEMPLE_CONFIG.CAP_STEPS.forEach(function (x) { if (L >= x[0]) c = x[1]; });
+    return c;
   }
-
-  function rollAttribute(cinders, cap) {
-    const isFlare = roll() < TEMPLE_CONFIG.FLARE_CHANCE;
-    const shift = isFlare ? TEMPLE_CONFIG.FLARE_SHIFT : 1;
-    return roll() < pUp(cinders, cap) ? +shift : -shift;
+  /* A hero's damage type -> step profile. Accepts the hero's damageProfile ('Attack' | 'Magic' | 'Healer' | 'Hybrid'), a hero base
+     object, or a profile id. Missing data falls back by class (Mage/Support = magic). */
+  function profileOf(x, role) {
+    if (typeof x === "string" && !/^(magic|physical|hybrid|Magic|Healer|Hybrid|Attack)$/.test(x)) {   // a hero key (browser: HERO_TYPES)
+      try { if (typeof HERO_TYPES !== "undefined" && HERO_TYPES[x]) x = HERO_TYPES[x]; } catch (e) {}
+    }
+    if (x && typeof x === "object") { role = role || x.role; x = x.damageProfile; }
+    if (x === "magic" || x === "physical" || x === "hybrid") return x;
+    if (x === "Magic" || x === "Healer") return "magic";
+    if (x === "Hybrid") return "hybrid";
+    if (x === "Attack") return "physical";
+    return (role === "Mage" || role === "Support") ? "magic" : "physical";
   }
-
-  /* --- Phil's model (27 Sep): max by temple level, pass rate by prayer ceiling, one prayer rolls every effect --- */
-  function effectMax(templeLevel) {
-    const C = TEMPLE_CONFIG, L = Math.max(1, templeLevel);
-    return Math.round(C.MAX_BASE + C.MAX_PER_LEVEL_TO_12 * (Math.min(L, 12) - 1) + C.MAX_PER_LEVEL_AFTER_12 * Math.max(0, L - 12));
+  function stepTable(profile) { return TEMPLE_CONFIG.STEP[profile === "magic" ? "magic" : "physical"]; }
+  function stepValue(profile, bar) { return (stepTable(profileOf(profile))[bar]) || 0; }
+  function barValue(profile, bar, steps) { return Math.round((steps || 0) * stepValue(profile, bar) * 10) / 10; }
+  function emptySteps() { return { health: 0, attack: 0, armorMr: 0, pen: 0 }; }
+  function heroSteps(heroState) {
+    const s = (heroState && heroState.steps) || {}, out = emptySteps();
+    TEMPLE_CONFIG.BARS.forEach(function (b) { out[b] = Math.max(0, s[b] | 0); });
+    return out;
   }
-  /* A hero's prayer completion at a temple level: all its bars against the maximum (0-1). Each hero has its own. */
-  function barsOpen(templeLevel) {                    // the bars that roll at this temple level
-    const L = Math.max(1, templeLevel || 1);
-    return TEMPLE_CONFIG.ATTRIBUTES.filter(function (a, i) { return L >= TEMPLE_CONFIG.BAR_UNLOCK_TEMPLE[i]; });
-  }
+  function newHero() { return { steps: emptySteps(), boonsUnlocked: [false, false, false, false, false] }; }
   function heroCompletion(heroState, templeLevel) {
-    const A = barsOpen(templeLevel), max = effectMax(Math.max(1, templeLevel || 1));
-    let sum = 0; A.forEach(function (a) { sum += Math.min(max, (heroState && heroState.cinders && heroState.cinders[a]) || 0); });
-    return sum / (max * A.length);
+    const cap = capSteps(templeLevel), s = heroSteps(heroState);
+    let sum = 0; TEMPLE_CONFIG.BARS.forEach(function (b) { sum += Math.min(cap, s[b]); });
+    return sum / (4 * cap);
   }
-  /* What a hero's temple is worth, as a multiplier on its bar and boon bonuses: x1.10 once the 5th orb is lit (Phil 12:3x). */
-  function templeBonusMult(heroState) {
-    return (heroState && heroState.boonsUnlocked && heroState.boonsUnlocked[4]) ? 1 + TEMPLE_CONFIG.FIFTH_ORB_BONUS : 1;
+  function barsOpen() { return TEMPLE_CONFIG.BARS.slice(); }
+
+  /* --- legacy maximum (the old model's bar max by temple level) - the migration denominator only --- */
+  function effectMax(templeLevel) {
+    const M = TEMPLE_CONFIG.LEGACY_MAX, L = Math.max(1, templeLevel);
+    return Math.round(M.base + M.perLevelTo12 * (Math.min(L, 12) - 1) + M.perLevelAfter12 * Math.max(0, L - 12));
   }
-  function passRate(tierId, completion, templeLevel) {                          // completion = heroCompletion(), 0-1
-    const C = TEMPLE_CONFIG, L = Math.max(1, templeLevel || 1);
-    const c = Math.min(1, Math.max(0, completion));
-    const G = C.GOLD_A; let A = G[G.length - 1][1];                          // steeper every temple level
-    for (let i = 1; i < G.length; i++) if (L <= G[i][0]) { A = G[i - 1][1] + (G[i][1] - G[i - 1][1]) * (L - G[i - 1][0]) / (G[i][0] - G[i - 1][0]); break; }
-    const gold = Math.exp(-A * c) * Math.pow(1 - c, C.GOLD_END);               // 1.0 at 0% completion
-    return Math.max(C.PASS_FLOOR, Math.min(1, gold * (C.TIER_MULT[tierId] || 1)));
+  /* MIGRATION (spec §8): a hero with old cinders and no steps gets steps = round(old / oldMax(level) x cap(level)) per bar
+     (bar1 -> health, bar2 -> attack, bar3 -> armorMr, bar4 -> pen). Earned orbs stay earned. An old-format pending prayer
+     (rolls keyed bar1..) is dropped - it was paid on pray and a cancel never refunds. Returns the number of heroes migrated. */
+  function migrateState(state) {
+    if (!state || typeof state !== "object") return 0;
+    if (!state.heroes || typeof state.heroes !== "object") state.heroes = {};
+    const L = stateLevel(state), oldMax = effectMax(L), cap = capSteps(L);
+    let n = 0;
+    Object.keys(state.heroes).forEach(function (k) {
+      const h = state.heroes[k];
+      if (!h || typeof h !== "object") { state.heroes[k] = newHero(); return; }
+      if (!Array.isArray(h.boonsUnlocked)) h.boonsUnlocked = [false, false, false, false, false];
+      while (h.boonsUnlocked.length < 5) h.boonsUnlocked.push(false);
+      if (h.steps && typeof h.steps === "object") { h.steps = heroSteps(h); return; }
+      const steps = emptySteps(), old = h.cinders || {};
+      Object.keys(TEMPLE_CONFIG.LEGACY_BAR_OF).forEach(function (ob) {
+        const pts = Math.max(0, Number(old[ob]) || 0);
+        steps[TEMPLE_CONFIG.LEGACY_BAR_OF[ob]] = Math.max(0, Math.min(cap, Math.round(pts / oldMax * cap)));
+      });
+      h.steps = steps; h.migratedV2 = true; n++;
+    });
+    const p = state._pending;
+    if (p && p.rolls && !p.v2) state._pending = null;
+    return n;
   }
 
-
-  function tiersOpen(templeLevel) {
-    return TEMPLE_CONFIG.PRAYER_TIERS.filter(function (t) { return templeLevel >= t.unlockKeeper; });
+  /* --- one bar's roll --- */
+  function pickWeighted(table) {
+    const keys = Object.keys(table).sort(function (a, b) { return Number(a) - Number(b); }); let total = 0;   // lowest roll first (JS lists integer keys before "-1")
+    keys.forEach(function (k) { total += table[k]; });
+    let r = roll() * total;
+    for (let i = 0; i < keys.length; i++) { r -= table[keys[i]]; if (r < 0) return Number(keys[i]); }
+    return Number(keys[keys.length - 1]);
   }
-  function pray(state, heroId, tierId) {              // rolls; nothing applies until saveSession / discardSession
+  function pressureChance(tierId, cur, cap) {
+    const reach = (TEMPLE_CONFIG.REACH[tierId] == null ? 1 : TEMPLE_CONFIG.REACH[tierId]) * cap;
+    if (cur <= reach || cap <= reach) return 0;
+    return TEMPLE_CONFIG.PRESSURE_MAX * Math.min(1, (cur - reach) / (cap - reach));
+  }
+  function rollBar(tierId, cur, cap) {
+    let d = pickWeighted(TEMPLE_CONFIG.ROLL_TABLES[tierId] || TEMPLE_CONFIG.ROLL_TABLES.gold);
+    const p = pressureChance(tierId, cur, cap);
+    if (d > 0 && p > 0 && roll() < p)
+      d = -pickWeighted(tierId === "blazing" ? TEMPLE_CONFIG.PRESSURE_DROP_BLAZING : TEMPLE_CONFIG.PRESSURE_DROP);
+    return d;
+  }
+
+  function tiersOpen(templeLevel) { return TEMPLE_CONFIG.PRAYER_TIERS.filter(function (t) { return templeLevel >= t.unlockKeeper; }); }
+  function bonusPrayerChance(templeLevel) {
+    let c = TEMPLE_CONFIG.BONUS_PRAYER_CHANCE;
+    TEMPLE_CONFIG.BONUS_PRAYER_CHANCE_AT.forEach(function (x) { if (templeLevel >= x[0]) c = x[1]; });
+    return c;
+  }
+  /* pray: rolls all four bars; nothing applies until saveSession / discardSession. opts.profile (hero damage type) fills the
+     stat values of each roll. */
+  function pray(state, heroId, tierId, opts) {
+    opts = opts || {};
+    if (!state.heroes) state.heroes = {};
+    if (!state.heroes[heroId]) state.heroes[heroId] = newHero();
+    migrateState(state);
     const heroState = state.heroes[heroId];
-    const L = keeperLevel(state.keeperPoints, state.playerLevel), max = effectMax(L);
+    const L = stateLevel(state), cap = capSteps(L), profile = profileOf(opts.profile);
     const tier = TEMPLE_CONFIG.PRAYER_TIERS.find(function (x) { return x.id === tierId; });
     if (!tier || L < tier.unlockKeeper) return { ok: false, reason: "tier_locked" };
-    const done = heroCompletion(heroState, L), p = passRate(tierId, done, L);   // this hero's completion -> one chance
-    const session = { heroId: heroId, tier: tierId, rolls: {}, net: 0, max: max, completion: done, chance: p };
-    barsOpen(L).forEach(function (attr) {
-      const cur = heroState.cinders[attr] || 0;
-      const shift = roll() < TEMPLE_CONFIG.FLARE_CHANCE ? TEMPLE_CONFIG.FLARE_SHIFT : 1;
-      const delta = roll() < p ? +shift : -shift;
-      const to = Math.max(0, Math.min(max, cur + delta));
-      session.rolls[attr] = { from: cur, delta: to - cur, to: to };
-      session.net += to - cur;
+    const cur = heroSteps(heroState);
+    const session = { v2: true, heroId: heroId, tier: tierId, profile: profile, rolls: {}, net: 0, power: 0, cap: cap,
+      completion: heroCompletion(heroState, L) };
+    TEMPLE_CONFIG.BARS.forEach(function (bar) {
+      const from = Math.min(cap, cur[bar]);
+      const to = Math.max(0, Math.min(cap, from + rollBar(tierId, from, cap)));
+      const r = { fromSteps: from, deltaSteps: to - from, toSteps: to,
+        fromValue: barValue(profile, bar, from), deltaValue: barValue(profile, bar, to) - barValue(profile, bar, from), toValue: barValue(profile, bar, to),
+        from: from, delta: to - from, to: to };                                         // from/delta/to: step aliases for older readers
+      r.deltaValue = Math.round(r.deltaValue * 10) / 10;
+      session.rolls[bar] = r; session.net += to - from;
     });
-    state.keeperPoints += tier.keeperPoints;          // points are earned by praying, pass or fail (the reference)
-    session.levelUps = grantLevelUps(state);          // Phil 27 Sep: "when you level you get 1 free"
-    if (roll() < TEMPLE_CONFIG.BONUS_PRAYER_CHANCE) {   // Phil 27 Sep: every prayer (free ones too) - 10% for 1 free prayer
-      state.bonusPrayers = (state.bonusPrayers | 0) + 1;
-      session.bonusPrayer = true;
-    }
+    session.power = TEMPLE_CONFIG.POWER_PER_STEP * session.net;
+    state.keeperPoints = (state.keeperPoints || 0) + tier.keeperPoints;                 // points are earned by praying, saved or not
+    session.levelUps = grantLevelUps(state);
+    if (roll() < bonusPrayerChance(L)) { state.bonusPrayers = (state.bonusPrayers | 0) + 1; session.bonusPrayer = true; }
     state._pending = session;
     return session;
   }
-
-  /* --- one kindling session: EVERY unlocked attribute rolls --------------- */
-  function startSession(state, heroId) {
-    const heroState = state.heroes[heroId];
-    const cap = cinderCap(keeperLevel(state.keeperPoints, state.playerLevel));
-    const session = { heroId: heroId, rolls: {}, net: 0 };
-    TEMPLE_CONFIG.ATTRIBUTES.forEach(function (attr) {
-      const cur = heroState.cinders[attr] || 0;
-      const delta = rollAttribute(cur, cap);
-      session.rolls[attr] = { from: cur, delta: delta, to: cur + delta };
-      session.net += delta;
-    });
-    state._pending = session;              // save OR discard — nothing applies yet
-    return session;
-  }
-
   function saveSession(state) {
     const s = state._pending;
     if (!s) return null;
-    const heroState = state.heroes[s.heroId];
-    // 27 Sep 13:0x (ChatGPT's read-through): the old ash-curve cinderCap (225 max) clipped every save and made the upper half of a
-    // bar unreachable. The bar's ceiling is effectMax(temple level) - the same clamp pray() rolls against.
-    const cap = effectMax(keeperLevel(state.keeperPoints, state.playerLevel));
-    Object.keys(s.rolls).forEach(function (attr) {
-      const to = s.rolls[attr].to;
-      heroState.cinders[attr] = Math.max(0, Math.min(to, cap));  // saved = permanent
-    });
+    if (!state.heroes[s.heroId]) state.heroes[s.heroId] = newHero();
+    const h = state.heroes[s.heroId], cap = capSteps(stateLevel(state)), steps = heroSteps(h);
+    TEMPLE_CONFIG.BARS.forEach(function (bar) { if (s.rolls && s.rolls[bar]) steps[bar] = Math.max(0, Math.min(cap, s.rolls[bar].toSteps | 0)); });
+    h.steps = steps;
     state.discardsInRow = 0;
     state._pending = null;
-    return heroState.cinders;
+    return h.steps;
   }
-
-  function discardSession(state) {
+  function discardSession(state) {                   // Cancel: nothing applies, nothing is refunded
     const s = state._pending;
     if (!s) return null;
-    state.discardsInRow += 1;
+    state.discardsInRow = (state.discardsInRow | 0) + 1;
     state._pending = null;
-    if (TEMPLE_CONFIG.ANTI_TILT_VALVE && state.discardsInRow >= 3) {
-      state._guaranteeNext = true;         // 4th session guaranteed net >= +2
-    }
     return s;
   }
 
-  function antiTiltCheck(state, session) {
-    if (!state._guaranteeNext) return session;
-    state._guaranteeNext = false;
-    if (session.net >= 2) return session;
-    // lift the weakest attribute to reach net +2 — frustration insurance only
-    let need = 2 - session.net;
-    TEMPLE_CONFIG.ATTRIBUTES.forEach(function (attr) {
-      if (need <= 0) return;
-      session.rolls[attr].delta += 1;
-      session.rolls[attr].to += 1;
-      session.net += 1;
-      need -= 1;
-    });
-    return session;
-  }
-
-  /* --- economy ------------------------------------------------------------ */
-  /* The day key for the free prayer and the gold ladder: the game's New York day (the server's nyDayKey), not UTC - they
-     differ every evening. The server injects its own key with setDayKey(fn); the default computes the NY date. */
-  let dayKey = function () { return new Date(Date.now() - 9 * 3600000).toLocaleDateString("en-CA", { timeZone: "America/New_York" }); };   /* v1086 (scan 7 #1): the GAME day (09:00 ET, = the server's nyDayKey) - the client kept this default and showed the free prayer as ready / the cheapest gold step every night 00:00-09:00 */
+  /* --- economy --- */
+  let dayKey = function () { return new Date(Date.now() - 9 * 3600000).toLocaleDateString("en-CA", { timeZone: "America/New_York" }); };   /* v1086: the GAME day (09:00 ET) */
   function setDayKey(fn) { dayKey = fn; }
   function todayStamp() { return dayKey(); }
-
   function dailyResetIfNeeded(state) {
     if (state.freeRitualDay !== todayStamp()) {
       state.freeRitualDay = todayStamp();
@@ -435,210 +366,222 @@
       state.gemTierCounts = { kindled: 0, stoked: 0, blazing: 0, inferno: 0 };
     }
   }
-
   function freeRitualAvailable(state) {
     dailyResetIfNeeded(state);
     return state.freeRitualDay !== null && state._freeClaimedDay !== todayStamp();
   }
-
-  /* Phil 27 Sep 09:3x: "free daily prayer is always the highest tier you have unlocked, not the cheapest". The day's free
-     prayer rolls with the best OPEN tier's ceiling and earns that tier's keeper points, at no cost. Returns the pray() session. */
-  function freeDailyPray(state, heroId) {
+  function discountFor(templeLevel, tierId) {
+    const d = TEMPLE_CONFIG.DISCOUNT[tierId];
+    return d && templeLevel >= d[0] ? d[1] : 0;
+  }
+  function nextGoldCost(state) {                      // the ladder price after the Gold ritual discount (Temple 6)
+    dailyResetIfNeeded(state);
+    const i = Math.min(state.goldLadderStep | 0, TEMPLE_CONFIG.GOLD_LADDER.length - 1);
+    return Math.round(TEMPLE_CONFIG.GOLD_LADDER[i] * (1 - discountFor(stateLevel(state), "gold")));
+  }
+  function tierGems(state, tierId) {                  // a diamond tier's price after its discount
+    const t = TEMPLE_CONFIG.PRAYER_TIERS.find(function (x) { return x.id === tierId; });
+    if (!t || !t.gems) return 0;
+    return Math.round(t.gems * (1 - discountFor(stateLevel(state), tierId)));
+  }
+  /* What the UI lists: every tier with its live (discounted) cost, discount and lock. */
+  function prayerTiers(state) {
+    const L = stateLevel(state);
+    return TEMPLE_CONFIG.PRAYER_TIERS.map(function (t) {
+      const off = discountFor(L, t.id);
+      return { id: t.id, name: t.name, keeperPoints: t.keeperPoints, unlockKeeper: t.unlockKeeper, locked: L < t.unlockKeeper,
+        discount: off, gems: t.gems ? tierGems(state, t.id) : 0, baseGems: t.gems,
+        gold: t.id === "gold" ? nextGoldCost(state) : 0, reach: TEMPLE_CONFIG.REACH[t.id] };
+    });
+  }
+  function freeDailyPray(state, heroId, opts) {
     if (!freeRitualAvailable(state)) return { ok: false, reason: "free_ritual_used" };
-    const open = tiersOpen(keeperLevel(state.keeperPoints, state.playerLevel));
-    const best = open[open.length - 1];
-    const s = pray(state, heroId, best.id);
+    const open = tiersOpen(stateLevel(state));
+    const s = pray(state, heroId, open[open.length - 1].id, opts);
     if (s && s.ok === false) return s;
     state._freeClaimedDay = todayStamp();
     s.free = true; s.cost = { gold: 0, gems: 0 };
     return s;
   }
-
-  /* Phil 27 Sep 10:5x (the reference: "Each time you level your [keeper], you got free 1 time"): "yes it does, when you level you get 1 free".
-     Every temple level gained banks 1 free prayer (same bank as the 10% bonus, prays as the best open tier). Called by pray();
-     the server also calls it when the PLAYER levels up, because banked points can lift a capped temple level with no prayer. */
-  function grantLevelUps(state) {
-    const now = keeperLevel(state.keeperPoints, state.playerLevel);
+  function grantLevelUps(state) {                     // every Temple level gained banks 1 free prayer
+    const now = stateLevel(state);
     if (state.levelSeen == null) state.levelSeen = 1;
     const gained = Math.max(0, now - state.levelSeen);
     if (gained) { state.bonusPrayers = (state.bonusPrayers | 0) + gained; state.levelSeen = now; }
     return gained;
   }
-
-  /* A banked bonus prayer (the 10% roll in pray()). Phil: "1 free prayer is always the highest one you can do" - it rolls as the
-     best OPEN tier at the moment it is used (like freeDailyPray), no cost, full keeper points; it can roll another bonus. */
-  function useBonusPrayer(state, heroId) {
+  function useBonusPrayer(state, heroId, opts) {
     if (!((state.bonusPrayers | 0) > 0)) return { ok: false, reason: "no_bonus_prayer" };
-    const open = tiersOpen(keeperLevel(state.keeperPoints, state.playerLevel));
-    state.bonusPrayers -= 1;                         // spent before the roll, so a roll that wins a new one adds it back
-    const s = pray(state, heroId, open[open.length - 1].id);
+    const open = tiersOpen(stateLevel(state));
+    state.bonusPrayers -= 1;
+    const s = pray(state, heroId, open[open.length - 1].id, opts);
     if (s && s.ok === false) { state.bonusPrayers += 1; return s; }
     s.free = true; s.fromBonus = true; s.cost = { gold: 0, gems: 0 };
     return s;
   }
-
   function claimFreeRitual(state) {
     if (!freeRitualAvailable(state)) return { ok: false, reason: "free_ritual_used" };
     state._freeClaimedDay = todayStamp();
     state.keeperPoints += TEMPLE_CONFIG.FREE_RITUAL_KEEPER_POINTS;
     return { ok: true, cost: { gold: 0, gems: 0 } };
   }
-
-  function nextGoldCost(state) {
-    dailyResetIfNeeded(state);
-    const i = Math.min(state.goldLadderStep, TEMPLE_CONFIG.GOLD_LADDER.length - 1);
-    return TEMPLE_CONFIG.GOLD_LADDER[i];
-  }
-
   function buyGoldRitual(state) {
     dailyResetIfNeeded(state);
     const cost = nextGoldCost(state);
-    state.goldLadderStep += 1;             // server verifies the gold before calling
+    state.goldLadderStep = (state.goldLadderStep | 0) + 1;
     return { ok: true, cost: { gold: cost, gems: 0 } };
   }
-
+  /* Counts a diamond tier's use today. v2: keeper points come from the PRAYER only (1/5/10/20/40 - spec §6); this used to add
+     the DIAMOND_TIERS points on top, so a Kindled prayer earned 6 and an Inferno 80. */
   function buyGemTier(state, tierId) {
     dailyResetIfNeeded(state);
     const tier = TEMPLE_CONFIG.DIAMOND_TIERS.find(function (t) { return t.id === tierId; });
     if (!tier) return { ok: false, reason: "no_such_tier" };
-    if (TEMPLE_CONFIG.GEM_TIER_DAILY_SOFT_CAP > 0 &&
-        state.gemTierCounts[tierId] >= TEMPLE_CONFIG.GEM_TIER_DAILY_SOFT_CAP) {
+    if (TEMPLE_CONFIG.GEM_TIER_DAILY_SOFT_CAP > 0 && state.gemTierCounts[tierId] >= TEMPLE_CONFIG.GEM_TIER_DAILY_SOFT_CAP)
       return { ok: false, reason: "daily_soft_cap" };
-    }
-    state.gemTierCounts[tierId] += 1;
-    state.keeperPoints += tier.keeperPoints;   // points from gems — rolls, never odds
-    return { ok: true, cost: { gold: 0, gems: tier.price }, keeperPoints: tier.keeperPoints };
+    state.gemTierCounts[tierId] = (state.gemTierCounts[tierId] | 0) + 1;
+    return { ok: true, cost: { gold: 0, gems: tierGems(state, tierId) } };
   }
 
-  /* --- ember boons ---------------------------------------------------------- */
+  /* --- blessings (dots) --- */
+  function blessingReward(role, i) { const t = TEMPLE_CONFIG.BLESSINGS[role]; return (t && t[i]) || {}; }
+  function blessingLabel(reward, profile) {
+    return Object.keys(reward).map(function (k) {
+      const v = reward[k];
+      if (k === "health") return "Health +" + v;
+      if (k === "attack") return (profile === "magic" ? "Ability power +" : profile === "hybrid" ? "Attack & Ability power +" : "Attack damage +") + v;
+      if (k === "armorMr") return "Armor & Magic resist +" + v;
+      if (k === "pen") return "Penetration +" + v;
+      return k.charAt(0).toUpperCase() + k.slice(1) + " +" + Math.round(v * 1000) / 10 + "%";
+    }).join(", ");
+  }
+  /* The four dot rows (+ the 5th) for one hero. info = { role, damageProfile, heroLevel }. */
+  function blessingsFor(state, heroState, info) {
+    info = info || {};
+    const L = stateLevel(state), steps = heroSteps(heroState), lit = (heroState && heroState.boonsUnlocked) || [];
+    const hl = info.heroLevel == null ? Infinity : info.heroLevel, profile = profileOf(info.damageProfile, info.role);
+    const rows = TEMPLE_CONFIG.BLESSING_NEEDS.map(function (n, i) {
+      const gate = TEMPLE_CONFIG.BOON_KEEPER_GATES[i], heroGate = TEMPLE_CONFIG.HERO_ORB_LEVELS[i], reward = blessingReward(info.role, i);
+      const keeperMet = L >= gate, heroMet = hl >= heroGate, thresholdMet = steps[n.bar] >= n.need;
+      return { slot: i + 1, bar: n.bar, need: n.need, have: steps[n.bar], reward: reward, label: blessingLabel(reward, profile),
+        gate: gate, keeperGate: gate, keeperMet: keeperMet, heroGate: heroGate, heroMet: heroMet, threshold: n.need, thresholdMet: thresholdMet,
+        earned: !!lit[i], unlocked: !!lit[i], locked: !keeperMet, canUnlock: keeperMet && heroMet && thresholdMet && !lit[i] };
+    });
+    return rows;
+  }
+  /* Lights every dot this hero now meets (dots stay lit once earned). Returns the newly lit slots (1-5). */
+  function earnBlessings(state, heroId, info) {
+    const h = state.heroes && state.heroes[heroId]; if (!h) return [];
+    if (!Array.isArray(h.boonsUnlocked)) h.boonsUnlocked = [false, false, false, false, false];
+    const out = [];
+    blessingsFor(state, h, info).forEach(function (r) { if (r.canUnlock) { h.boonsUnlocked[r.slot - 1] = true; out.push(r.slot); } });
+    if (!h.boonsUnlocked[4] && fifthOrbReachable(state, info && info.heroLevel)) { h.boonsUnlocked[4] = true; out.push(5); }
+    return out;
+  }
+  /* legacy signature (keeper points, hero state, hero level) - same rows without class rewards */
   function boonsFor(keeperPts, heroState, heroLevel) {
-    const klv = keeperLevel(keeperPts);
-    const hl = heroLevel == null ? Infinity : heroLevel;   // no hero level passed = old callers, hero gate not applied
-    const result = [];
-    TEMPLE_CONFIG.BOON_KEEPER_GATES.forEach(function (gate, i) {
-      const threshold = TEMPLE_CONFIG.BOON_ATTRIBUTE_THRESHOLD_BASE +
-                        i * TEMPLE_CONFIG.BOON_ATTRIBUTE_THRESHOLD_STEP;
-      const anyAttrAt = Object.keys(heroState.cinders).some(function (a) {
-        return heroState.cinders[a] >= threshold;
-      });
-      result.push({
-        slot: i + 1,
-        keeperGate: gate,
-        keeperMet: klv >= gate || (gate === 0),
-        heroGate: TEMPLE_CONFIG.HERO_ORB_LEVELS[i],
-        heroMet: hl >= TEMPLE_CONFIG.HERO_ORB_LEVELS[i],
-        threshold: threshold,
-        thresholdMet: anyAttrAt,
-        unlocked: Boolean(heroState.boonsUnlocked[i]),
-        canUnlock: (klv >= gate || gate === 0) && hl >= TEMPLE_CONFIG.HERO_ORB_LEVELS[i] && anyAttrAt && !heroState.boonsUnlocked[i],
-      });
-    });
-    return result;
+    return blessingsFor({ keeperPoints: keeperPts }, heroState, { heroLevel: heroLevel });
   }
-
-  /* Phil 27 Sep 09:5x (reference-game screenshots): each hero's 4 Bonus Rewards open by the TEMPLE level the player reaches -
-     slot 1 at 1, slot 2 at 5, slot 3 at 13, slot 4 at 19 ("Need Lv 13 [keeper]") - and a slot whose level is reached still needs
-     its bar filled to the threshold shown ("420/1400 Unlock", "88/400 Unlock"). Phil: "unlocks a fire orb" / "this indicates
-     the bonus they unlocked" - one FIRE ORB per unlocked bonus, shown on that bonus row and on the hero. */
-  function fireOrbs(heroState) {                    // 0-5: slots 1-4 are the reference's bonuses, slot 5 (index 4) is the centre orb
-    return (heroState.boonsUnlocked || []).slice(0, 5).filter(Boolean).length;
-  }
-  function fifthOrbReachable(state, heroLevel) {    // the big centre orb: the HERO at level 100 AND temple level 25 (Phil 27 Sep)
+  function fireOrbs(heroState) { return (heroState.boonsUnlocked || []).slice(0, 5).filter(Boolean).length; }
+  function fifthOrbReachable(state, heroLevel) {
     const f = TEMPLE_CONFIG.FIFTH_ORB;
-    return (heroLevel | 0) >= f.heroLevel && keeperLevel(state.keeperPoints, state.playerLevel) >= f.templeLevel;
+    return (heroLevel | 0) >= f.heroLevel && stateLevel(state) >= f.templeLevel;
+  }
+  function templeBonusMult(heroState) {
+    return (heroState && heroState.boonsUnlocked && heroState.boonsUnlocked[4]) ? 1 + TEMPLE_CONFIG.FIFTH_ORB_BONUS : 1;
   }
 
-  /* --- flame tokens --------------------------------------------------------- */
-  function useFlameToken(state, tokenId) {
-    const token = TEMPLE_CONFIG.TOKEN_TIERS.find(function (t) { return t.id === tokenId; });
-    if (!token) return { ok: false, reason: "no_such_token" };
-    // tier unlock respected: a token never kindles above its tier's line
-    const tierIdx = TEMPLE_CONFIG.DIAMOND_TIERS.findIndex(function (t) { return t.id === token.tierUnlock; });
-    const anyTierOwned = TEMPLE_CONFIG.DIAMOND_TIERS.some(function (t, i) {
-      return i >= tierIdx && (state.gemTierCounts[t.id] > 0 || i === 0);
-    });
-    if (!anyTierOwned) return { ok: false, reason: "tier_locked" };
-    state.keeperPoints += token.keeperPoints;   // grants points, bypasses gold ladder
-    return { ok: true, keeperPoints: token.keeperPoints, bypassesGoldLadder: true };
-  }
-
-  /* --- stat bonus derivation (display + server combat hook) ------------------ */
-  function attributeBonus(cinders) {
-    return cinders * TEMPLE_CONFIG.CINDER_TO_STAT_BONUS;   // e.g. 0.002 = +0.2%/cinder
-  }
-
-  /* THE numbers the one power function uses (RULE 26): {effect name: bonus} for one hero of class heroClass.
-     bar i -> CLASS_BARS[class][i], value = EFFECT_FULL x points / effectMax(BAR_FULL_AT_TEMPLE); each lit boon 1-4 adds
-     BOON_VALUE x EFFECT_FULL of CLASS_BOON_EFFECTS[class][i % 2]; everything x1.10 once the 5th orb is lit. */
-  function heroBonuses(heroState, heroClass) {
-    const C = TEMPLE_CONFIG, out = {}, full = effectMax(C.BAR_FULL_AT_TEMPLE);
-    const bars = C.CLASS_BARS[heroClass], boons = C.CLASS_BOON_EFFECTS[heroClass];
-    if (!bars || !heroState) return out;
-    const add = function (eff, v) { if (v) out[eff] = (out[eff] || 0) + v; };
-    C.ATTRIBUTES.forEach(function (a, i) {
-      const pts = Math.max(0, Math.min(full, (heroState.cinders && heroState.cinders[a]) || 0));
-      add(bars[i], (C.EFFECT_FULL[bars[i]] || 0) * pts / full);
-    });
+  /* THE numbers combat and the card read (RULE 26), for one hero: flat stats + blessing effects, x1.10 with the 5th dot.
+     { hpFlat, adFlat, apFlat, armorFlat, mrFlat, armorPenFlat, magicPenFlat (whole numbers), <effect name>: fraction }.
+     heroBonuses(heroState, role, damageProfile). The old % bar effects (CLASS_BARS / EFFECT_FULL) are gone. */
+  function heroBonuses(heroState, role, damageProfile) {
+    const out = {};
+    if (!heroState) return out;
+    const profile = profileOf(damageProfile, role), steps = heroSteps(heroState);
+    const f = { hp: 0, ad: 0, ap: 0, armor: 0, mr: 0, armorPen: 0, magicPen: 0 }, fx = {};
+    const addAttack = function (v) { if (profile === "magic") f.ap += v; else if (profile === "hybrid") { f.ad += v; f.ap += v; } else f.ad += v; };
+    f.hp += steps.health * stepValue(profile, "health");
+    addAttack(steps.attack * stepValue(profile, "attack"));
+    f.armor += steps.armorMr * stepValue(profile, "armorMr"); f.mr += steps.armorMr * stepValue(profile, "armorMr");
+    f.armorPen += steps.pen * stepValue(profile, "pen"); f.magicPen += steps.pen * stepValue(profile, "pen");
     (heroState.boonsUnlocked || []).slice(0, 4).forEach(function (lit, i) {
-      if (lit) add(boons[i % 2], C.BOON_VALUE * (C.EFFECT_FULL[boons[i % 2]] || 0));
+      if (!lit) return;
+      const r = blessingReward(role, i);
+      Object.keys(r).forEach(function (k) {
+        const v = r[k];
+        if (k === "health") f.hp += v; else if (k === "attack") addAttack(v);
+        else if (k === "armorMr") { f.armor += v; f.mr += v; } else if (k === "pen") { f.armorPen += v; f.magicPen += v; }
+        else fx[k] = (fx[k] || 0) + v;
+      });
     });
     const m = templeBonusMult(heroState);
-    Object.keys(out).forEach(function (k) { out[k] = Math.round(out[k] * m * 10000) / 10000; });
+    const put = function (k, v) { const n = Math.round(v * m); if (n) out[k] = n; };
+    put("hpFlat", f.hp); put("adFlat", f.ad); put("apFlat", f.ap); put("armorFlat", f.armor); put("mrFlat", f.mr);
+    put("armorPenFlat", f.armorPen); put("magicPenFlat", f.magicPen);
+    Object.keys(fx).forEach(function (k) { out[k] = Math.round(fx[k] * m * 10000) / 10000; });
     return out;
   }
 
-  /* --- hero meditation (Flamekeeper 30): offline kindling progress ---------- */
+  /* Everything one hero's Temple panel needs. heroTempleStats(state, key, info) with info = { role, damageProfile, heroLevel };
+     in the browser heroTempleStats(key) reads G.temple / HERO_TYPES / heroLevel() itself. */
+  function heroTempleStats(state, key, info) {
+    if (typeof state === "string" && key === undefined) {
+      key = state; state = null; info = {};
+      try { state = (typeof G !== "undefined" && G.temple) || null; } catch (e) {}
+      try { const t = (typeof HERO_TYPES !== "undefined" && HERO_TYPES[key]) || {}; info.role = t.role; info.damageProfile = t.damageProfile; } catch (e) {}
+      try { if (typeof heroLevel === "function") info.heroLevel = heroLevel(key); } catch (e) {}
+      try { if (state && typeof playerLevel === "function") state = Object.assign({}, state, { playerLevel: playerLevel() }); } catch (e) {}
+    }
+    state = state || newState(); info = info || {};
+    const L = stateLevel(state), cap = capSteps(L), h = (state.heroes && state.heroes[key]) || newHero(), steps = heroSteps(h);
+    const profile = profileOf(info.damageProfile, info.role), values = {};
+    TEMPLE_CONFIG.BARS.forEach(function (b) { values[b] = barValue(profile, b, Math.min(cap, steps[b])); });
+    const sum = TEMPLE_CONFIG.BARS.reduce(function (a, b) { return a + Math.min(cap, steps[b]); }, 0);
+    const f = TEMPLE_CONFIG.FIFTH_ORB;
+    return { key: key, templeLevel: L, profile: profile, steps: steps, values: values, cap: cap, capValues: TEMPLE_CONFIG.BARS.reduce(function (o, b) { o[b] = barValue(profile, b, cap); return o; }, {}),
+      stepValues: Object.assign({}, stepTable(profile)), pct: Math.round(100 * sum / (4 * cap)),
+      blessings: blessingsFor(state, h, info),
+      fifth: { earned: !!(h.boonsUnlocked && h.boonsUnlocked[4]), templeLevel: f.templeLevel, heroLevel: f.heroLevel,
+        locked: L < f.templeLevel, bonus: TEMPLE_CONFIG.FIFTH_ORB_BONUS },
+      bonuses: heroBonuses(h, info.role, info.damageProfile) };
+  }
+
+  /* --- flame tokens --- */
+  function useFlameToken(state, tokenId) {
+    const token = TEMPLE_CONFIG.TOKEN_TIERS.find(function (t) { return t.id === tokenId; });
+    if (!token) return { ok: false, reason: "no_such_token" };
+    const tierIdx = TEMPLE_CONFIG.DIAMOND_TIERS.findIndex(function (t) { return t.id === token.tierUnlock; });
+    const anyTierOwned = TEMPLE_CONFIG.DIAMOND_TIERS.some(function (t, i) { return i >= tierIdx && (state.gemTierCounts[t.id] > 0 || i === 0); });
+    if (!anyTierOwned) return { ok: false, reason: "tier_locked" };
+    state.keeperPoints += token.keeperPoints;
+    return { ok: true, keeperPoints: token.keeperPoints, bypassesGoldLadder: true };
+  }
   function meditationTick(state, heroId) {
-    if (keeperLevel(state.keeperPoints, state.playerLevel) < 30) return { ok: false, reason: "locked" };
+    if (stateLevel(state) < 30) return { ok: false, reason: "locked" };
     const hs = state.heroes[heroId];
     hs.meditationTicks = (hs.meditationTicks || 0) + 1;
     return { ok: true, ticks: hs.meditationTicks };
   }
+  function newState() {
+    return { keeperPoints: 0, freeRitualDay: null, goldLadderStep: 0,
+             gemTierCounts: { kindled: 0, stoked: 0, blazing: 0, inferno: 0 },
+             discardsInRow: 0, heroes: {}, bonusPrayers: 0, levelSeen: 1, _pending: null };
+  }
 
-  /* --- exports --------------------------------------------------------------- */
   global.TempleOfAsh = {
-    CONFIG: TEMPLE_CONFIG,
-    FLAMEKEEPER_TRACK: FLAMEKEEPER_TRACK,
-    CAP_RAISE_LEVELS: CAP_RAISE_LEVELS,
-    setRng: setRng,
-    templeUnlocked: templeUnlocked,
-    heroCanKindle: heroCanKindle,
-    cinderCap: cinderCap,
-    keeperLevel: keeperLevel,
-    pUp: pUp,
-    startSession: startSession,
-    saveSession: saveSession,
-    discardSession: discardSession,
-    antiTiltCheck: antiTiltCheck,
-    claimFreeRitual: claimFreeRitual,
-    freeRitualAvailable: freeRitualAvailable,
-    nextGoldCost: nextGoldCost,
-    buyGoldRitual: buyGoldRitual,
-    buyGemTier: buyGemTier,
-    boonsFor: boonsFor,
-    useFlameToken: useFlameToken,
-    heroBonuses: heroBonuses,
-    setDayKey: setDayKey,
-    meditationTick: meditationTick,
-    effectMax: effectMax,
-    passRate: passRate,
-    tiersOpen: tiersOpen,
-    pray: pray,
-    fireOrbs: fireOrbs,
-    fifthOrbReachable: fifthOrbReachable,
-    freeDailyPray: freeDailyPray,
-    keeperProgress: keeperProgress,
-    heroCompletion: heroCompletion,
-    barsOpen: barsOpen,
-    templeBonusMult: templeBonusMult,
-    grantLevelUps: grantLevelUps,
-    useBonusPrayer: useBonusPrayer,
-    newState: function () {
-      return { keeperPoints: 0, freeRitualDay: null, goldLadderStep: 0,
-               gemTierCounts: { kindled: 0, stoked: 0, blazing: 0, inferno: 0 },
-               discardsInRow: 0, heroes: {}, bonusPrayers: 0, levelSeen: 1, _pending: null };
-    },
+    CONFIG: TEMPLE_CONFIG, FLAMEKEEPER_TRACK: FLAMEKEEPER_TRACK, CAP_RAISE_LEVELS: CAP_RAISE_LEVELS,
+    setRng: setRng, setDayKey: setDayKey,
+    templeUnlocked: templeUnlocked, heroCanKindle: heroCanKindle, keeperLevel: keeperLevel, keeperProgress: keeperProgress,
+    capSteps: capSteps, profileOf: profileOf, stepValue: stepValue, barValue: barValue, heroSteps: heroSteps,
+    heroCompletion: heroCompletion, barsOpen: barsOpen, migrateState: migrateState, effectMax: effectMax,
+    pressureChance: pressureChance, rollBar: rollBar, tiersOpen: tiersOpen, bonusPrayerChance: bonusPrayerChance,
+    pray: pray, saveSession: saveSession, discardSession: discardSession,
+    freeRitualAvailable: freeRitualAvailable, freeDailyPray: freeDailyPray, useBonusPrayer: useBonusPrayer, grantLevelUps: grantLevelUps,
+    claimFreeRitual: claimFreeRitual, nextGoldCost: nextGoldCost, tierGems: tierGems, discountFor: discountFor, prayerTiers: prayerTiers,
+    buyGoldRitual: buyGoldRitual, buyGemTier: buyGemTier,
+    blessingsFor: blessingsFor, earnBlessings: earnBlessings, boonsFor: boonsFor, fireOrbs: fireOrbs, fifthOrbReachable: fifthOrbReachable,
+    templeBonusMult: templeBonusMult, heroBonuses: heroBonuses, heroTempleStats: heroTempleStats,
+    useFlameToken: useFlameToken, meditationTick: meditationTick, newHero: newHero, newState: newState,
   };
-  /* one file for both sides (WIRING SPEC): the browser gets window.TempleOfAsh, the server require()s it */
   if (typeof module !== "undefined" && module.exports) module.exports = global.TempleOfAsh;
 })(typeof window !== "undefined" ? window : globalThis);

@@ -30,7 +30,8 @@ async function run(){
     u.led.px=99000000;u.led.temple=T.newState();u.led.temple.playerLevel=100;u.led.temple.keeperPoints=100000;
     for(const [i,key] of ['vael','sylthaine','vireo'].entries()){
       u.led.unlocked[key]=true;
-      u.led.temple.heroes[key]={cinders:{bar1:60+i,bar2:50+i,bar3:40+i,bar4:30+i},boonsUnlocked:[true,true,true,false,false]};
+      u.led.temple.heroes[key]=i<2?{steps:{health:60+i,attack:50+i,armorMr:40+i,pen:30+i},boonsUnlocked:[true,true,true,false,false]}   /* v1094: Temple v2 steps */
+        :{cinders:{bar1:60+i,bar2:50+i,bar3:40+i,bar4:30+i},boonsUnlocked:[true,true,true,false,false]};   /* and one legacy hero the server migrates on load */
     }
     fs.writeFileSync(dbFile,JSON.stringify(db));await start();
     const test=spawn(process.execPath,['tests/test_live_campaign.js'],{

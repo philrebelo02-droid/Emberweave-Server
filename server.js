@@ -1586,12 +1586,17 @@ function snapshotHeroFromServer(u, key, save, sOpts){
   // v249: Academy research is SERVER-owned and reaches combat here (flats, ratings, fractions, AP multiplier)
   const AC=acadCombat(u);
   if(AC){ R.atkFlat+=AC.atkFlat; R.hpFlat+=AC.hpFlat; }
-  const unit=SIM.heroCombatStats(key,{level:lvl, stars, pips, ref:refLvl, ratings:R, gearSkillSlot, gearSkill,
-    /* v762 - THE SKILL LEVELS TRAVEL WITH THE HERO. They were on the client snapshot only, so a
-       war line fought as though every skill were level 1 however much the player had spent. */
-    extra:Object.assign({skillLv:ledSkillArr(u.led,key).slice()},
-      AC?{armorRating:AC.armorRating, mrRating:AC.mrRating, critFrac:AC.critFrac, critResFrac:AC.critResFrac, dmgRedFrac:AC.dmgRedFrac, apMul:AC.apMul}:{})});
-  return sOpts&&sOpts.noTempleEffects?unit:TEMPLE_EFFECTS.applyCore(unit,templeBonusesFor(u,key));
+  /* v1094 (Temple of Ash v2): the four Temple bars are FLAT stats - health, attack (AD or AP by damage type), armor & MR,
+     penetration - and go in here, beside the glyph flats, so the core builds them exactly as the client's makeUnit does.
+     noTempleEffects (the card) skips only the blessing EFFECTS; the card's multiplier prices those. */
+  const TB=templeBonusesFor(u,key);
+  /* v762 - THE SKILL LEVELS TRAVEL WITH THE HERO. They were on the client snapshot only, so a
+     war line fought as though every skill were level 1 however much the player had spent. */
+  const XT=Object.assign({skillLv:ledSkillArr(u.led,key).slice()},
+    AC?{armorRating:AC.armorRating, mrRating:AC.mrRating, critFrac:AC.critFrac, critResFrac:AC.critResFrac, dmgRedFrac:AC.dmgRedFrac, apMul:AC.apMul}:{});
+  TEMPLE_EFFECTS.coreRatings(R,XT,TB);
+  const unit=SIM.heroCombatStats(key,{level:lvl, stars, pips, ref:refLvl, ratings:R, gearSkillSlot, gearSkill, extra:XT});
+  return sOpts&&sOpts.noTempleEffects?unit:TEMPLE_EFFECTS.applyCore(unit,TB);
 }
 
 // ---- spec constants (server-only tuning) ----
@@ -3803,19 +3808,24 @@ function ledAddPlayerXP(led,amount,u,opts){
 function templeState(led){
   if(!led.temple) led.temple=TEMPLE.newState();
   led.temple.playerLevel=ledPlayerLevel(led);
+  TEMPLE.migrateState(led.temple);   /* v1094 (Temple v2 §8): old bar points -> steps by the same share of the old maximum, once per hero */
   return led.temple;
 }
+/* v1094: what the Temple module needs to know about a hero - its class (blessing template) and damage type (step profile) */
+function templeHeroInfo(led,key){ const b=SIM.HERO_BASE[key]||{};
+  return {role:b.role, damageProfile:b.damageProfile, heroLevel:led?ledHeroLevel(led,key):1}; }
 function templeBonusesFor(u,key){
   if(!u||!u.led||!SIM.HERO_BASE[key]) return {};
   const state=templeState(u.led), hero=state.heroes&&state.heroes[key];
-  const role=SIM.HERO_BASE[key].role;
-  return hero?TEMPLE.heroBonuses(hero,role):{};
+  const b=SIM.HERO_BASE[key];
+  return hero?TEMPLE.heroBonuses(hero,b.role,b.damageProfile):{};
 }
 function templeClientState(led){
   const state=JSON.parse(JSON.stringify(templeState(led)));
+  state.level=TEMPLE.keeperLevel(state.keeperPoints||0,state.playerLevel);   /* v1094: the Temple level the server prays at */
   if(state._pending){ const p=state._pending;
-    state._pending={heroId:p.heroId,tier:p.tier,completion:p.completion,chance:p.chance,rolls:p.rolls||null,   /* v991 (audit #7): the rolls the pray reply already showed - after a reload the player still sees what they save */
-      levelUps:p.levelUps||0,bonusPrayer:!!p.bonusPrayer}; }
+    state._pending={v2:!!p.v2,heroId:p.heroId,tier:p.tier,completion:p.completion,rolls:p.rolls||null,   /* v991 (audit #7): the rolls the pray reply already showed - after a reload the player still sees what they save */
+      net:p.net|0,power:p.power|0,cap:p.cap|0,levelUps:p.levelUps||0,bonusPrayer:!!p.bonusPrayer}; }
   return state;
 }
 /* ==================== EGP / EDP - THE PATRON LADDER (v1092, blueprint 25; Open Projects/EGP and EDP - Patron system) ====================
@@ -6681,7 +6691,7 @@ async function api(req,res,url){
     if(rateLimited(req,'ledgerGet:'+me.id,Math.round(120*RL_MUL),60000)) return send(res,429,{error:'Slow down.'});   /* v1083 (scan 5 #1) */
     const _sig=()=>JSON.stringify([me.led?me.led.stam:null, me.led?me.led.rev:null, me.worldLocation||null, !!me.led]);
     const _b=_sig(); const v=ledgerView(me); if(_sig()!==_b) writeDB(); return send(res,200,v); }   /* v1083: a read saves only what it changed (was a full-world save on every poll) */
-  if(p==='/api/temple/pray'||p==='/api/temple/save'||p==='/api/temple/discard'){
+  if(p==='/api/temple/pray'||p==='/api/temple/save'||p==='/api/temple/discard'||p==='/api/temple/auto'){
     if(!me)return send(res,401,{error:'auth'});
     if(req.method!=='POST')return send(res,404,{error:'temple'});
     const b=await body(req),reqId=String(b.requestId||'').slice(0,48);
@@ -6689,6 +6699,43 @@ async function api(req,res,url){
     const out=idem(me.id+':temple:1:'+p+':'+reqId,()=>{
       const led=ensureLedger(me),state=templeState(led);
       if(!TEMPLE.templeUnlocked(state.playerLevel))return {ok:false,error:'The Temple opens at player level 50.'};
+      if(p==='/api/temple/auto'){   /* v1094 (Temple v2 §6): AUTO PRAY at Temple 12 - up to 10 paid prayers of one tier on one hero; each one
+                                        whose power goes up is saved, the rest are cancelled (paid, never refunded) */
+        const key=String(b.heroKey||''),tier=String(b.tier||''),count=Math.floor(+b.count||0);
+        if(!SIM.HERO_BASE[key]||!ownsHeroK(led,key))return {ok:false,error:'Choose an owned hero.'};
+        if(!(count>=1&&count<=TEMPLE.CONFIG.AUTO_PRAY_MAX))return {ok:false,error:'Auto pray runs 1 to '+TEMPLE.CONFIG.AUTO_PRAY_MAX+' prayers.'};
+        glyphMigrate(me);glyphFlowMigrate(me);
+        if(!TEMPLE.heroCanKindle((ensureGlyphs(me).boards||{})[key]))return {ok:false,error:'This hero needs Purple ascension.'};
+        if(state._pending)return {ok:false,error:'Save or discard the pending prayer first.'};
+        const level=TEMPLE.keeperLevel(state.keeperPoints,state.playerLevel);
+        if(level<TEMPLE.CONFIG.AUTO_PRAY_TEMPLE)return {ok:false,error:'Auto pray opens at Temple level '+TEMPLE.CONFIG.AUTO_PRAY_TEMPLE+'.'};
+        const t=TEMPLE.CONFIG.PRAYER_TIERS.find(x=>x.id===tier);
+        if(!t)return {ok:false,error:'Choose a prayer tier.'};
+        if(level<t.unlockKeeper)return {ok:false,error:'That prayer tier is locked.'};
+        if(!state.heroes[key])state.heroes[key]=TEMPLE.newHero();
+        const info=templeHeroInfo(led,key),before=TEMPLE.heroSteps(state.heroes[key]),results=[];
+        let gold=0,gems=0,saved=0,cancelled=0,power=0,stopped=null;const unlocked=[];
+        for(let i=0;i<count;i++){
+          TEMPLE.freeRitualAvailable(state);   // day-bound counters first
+          const g=tier==='gold'?TEMPLE.nextGoldCost(state):0, d=tier==='gold'?0:TEMPLE.tierGems(state,tier);
+          const cap=TEMPLE.CONFIG.GEM_TIER_DAILY_SOFT_CAP;
+          if(tier!=='gold'&&cap>0&&(state.gemTierCounts[tier]|0)>=cap){stopped='That tier reached its daily limit.';break;}
+          if(led.gold<g||led.gems<d){stopped='Not enough currency.';break;}
+          led.gold-=g;led.gems-=d;gold+=g;gems+=d;
+          if(tier==='gold')TEMPLE.buyGoldRitual(state);else TEMPLE.buyGemTier(state,tier);
+          let rollIndex=0;TEMPLE.setRng(()=>srvRoll('temple-pray',me.id,reqId+':'+i,rollIndex++));
+          const s=TEMPLE.pray(state,key,tier,{profile:info.damageProfile});
+          if(!s||s.ok===false){stopped='The prayer failed.';break;}
+          if(s.power>0){TEMPLE.saveSession(state);saved++;power+=s.power;for(const x of TEMPLE.earnBlessings(state,key,info))unlocked.push(x);}
+          else{TEMPLE.discardSession(state);cancelled++;}
+          results.push({power:s.power,saved:s.power>0,rolls:s.rolls,bonusWon:!!s.bonusPrayer,levelUps:s.levelUps||0});
+        }
+        if(!results.length)return {ok:false,error:stopped||'Auto pray did not run.'};
+        const after=TEMPLE.heroSteps(state.heroes[key]);
+        const tx=ledTx(me,'temple:auto',{hero:key,tier,ran:results.length,saved,cancelled,power,gold:-gold,gems:-gems,keeperPoints:state.keeperPoints,unlocked});
+        return {ok:true,heroKey:key,tier,ran:results.length,saved,cancelled,power,cost:{gold,gems},before,after,unlocked,stopped,results,
+          templeLevel:TEMPLE.keeperLevel(state.keeperPoints,state.playerLevel),tx,ledger:ledgerView(me)};
+      }
       if(p==='/api/temple/pray'){
         const key=String(b.heroKey||''),tier=String(b.tier||'');
         if(!SIM.HERO_BASE[key]||!ownsHeroK(led,key))return {ok:false,error:'Choose an owned hero.'};
@@ -6713,19 +6760,21 @@ async function api(req,res,url){
           TEMPLE.freeRitualAvailable(state); // also advances day-bound tier counters before the spend
           const cap=TEMPLE.CONFIG.GEM_TIER_DAILY_SOFT_CAP;
           if(cap>0&&(state.gemTierCounts[tier]|0)>=cap)return {ok:false,error:'That tier reached its daily limit.'};
-          gems=t.gems;
+          gems=TEMPLE.tierGems(state,tier);   /* v1094: the reference's 10 % tier discounts at Temple 10/12/18/20 */
         }
         if(led.gold<gold||led.gems<gems)return {ok:false,error:'Not enough currency.'};
-        if(!state.heroes[key])state.heroes[key]={cinders:{bar1:0,bar2:0,bar3:0,bar4:0},boonsUnlocked:[false,false,false,false,false]};
+        if(!state.heroes[key])state.heroes[key]=TEMPLE.newHero();
         led.gold-=gold;led.gems-=gems;
         if(tier==='gold')TEMPLE.buyGoldRitual(state);
         else if(gems)TEMPLE.buyGemTier(state,tier);
         if(b.held===true&&tier!=='free'&&tier!=='bonus'&&tier!=='gold'){ state.heldPrayers[tier]-=1; }
         let rollIndex=0;TEMPLE.setRng(()=>srvRoll('temple-pray',me.id,reqId,rollIndex++));
-        const session=tier==='free'?TEMPLE.freeDailyPray(state,key):tier==='bonus'?TEMPLE.useBonusPrayer(state,key):TEMPLE.pray(state,key,tier);
+        const popt={profile:SIM.HERO_BASE[key].damageProfile};
+        const session=tier==='free'?TEMPLE.freeDailyPray(state,key,popt):tier==='bonus'?TEMPLE.useBonusPrayer(state,key,popt):TEMPLE.pray(state,key,tier,popt);
         const tx=ledTx(me,'temple:pray',{hero:key,tier,held:b.held===true,gold:-gold,gems:-gems,keeperPoints:state.keeperPoints});
-        return {ok:true,rolls:session.rolls,completion:session.completion,chance:session.chance,
-          bonusWon:!!session.bonusPrayer,levelUps:session.levelUps||0,tx,ledger:ledgerView(me)};
+        return {ok:true,rolls:session.rolls,net:session.net,power:session.power,cap:session.cap,completion:session.completion,
+          tier:session.tier,bonusWon:!!session.bonusPrayer,levelUps:session.levelUps||0,
+          templeLevel:TEMPLE.keeperLevel(state.keeperPoints,state.playerLevel),tx,ledger:ledgerView(me)};
       }
       const pending=state._pending;
       if(!pending)return {ok:false,error:'No prayer is pending.'};
@@ -6736,16 +6785,10 @@ async function api(req,res,url){
       }
       const key=pending.heroId;
       TEMPLE.saveSession(state);
-      const hero=state.heroes[key],heroLevel=ledHeroLevel(led,key),templeLevel=TEMPLE.keeperLevel(state.keeperPoints,state.playerLevel);
-      const unlocked=[];
-      for(const slot of TEMPLE.boonsFor(state.keeperPoints,hero,heroLevel)){
-        if(!hero.boonsUnlocked[slot.slot-1]&&slot.canUnlock&&templeLevel>=slot.keeperGate){hero.boonsUnlocked[slot.slot-1]=true;unlocked.push(slot.slot);}
-      }
-      if(!hero.boonsUnlocked[4]&&TEMPLE.fifthOrbReachable(state,heroLevel)){
-        hero.boonsUnlocked[4]=true;unlocked.push(5);
-      }
-      const tx=ledTx(me,'temple:save',{hero:key,unlocked});
-      return {ok:true,unlocked,tx,ledger:ledgerView(me)};
+      /* v1094: a blessing (dot) lights when its Temple level, the hero level and its bar's step threshold are all met; the 5th at hero 100 + Temple 25 */
+      const unlocked=TEMPLE.earnBlessings(state,key,templeHeroInfo(led,key));
+      const tx=ledTx(me,'temple:save',{hero:key,unlocked,power:pending.power|0});
+      return {ok:true,unlocked,power:pending.power|0,steps:TEMPLE.heroSteps(state.heroes[key]),tx,ledger:ledgerView(me)};
     });
     return send(res,out&&out.storageFailed?503:(out&&out.ok?200:400),out); }
   if(p==='/api/tx/spend' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});

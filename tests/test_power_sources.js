@@ -16,17 +16,18 @@ for(const k of ['maxHp','atkP','armor','mr']){
   const tolerance=(k==='armor'||k==='mr')?1e-9:Math.max(0.002,0.5/ref0[k]+1e-9);
   ck('refinement scales '+k+' with the same multiplier',Math.abs(got-expected)<tolerance,'got '+got+' expected '+expected);
 }
+/* v1094 (Temple of Ash v2): the bars are FLAT stats on the glyph-flat ratings path (was +20 % of HP / Attack for a full class bar) */
 const temple=require('../server/temple-of-ash.js'),effects=require('../server/temple-effects.js');
-const full=temple.effectMax(temple.CONFIG.BAR_FULL_AT_TEMPLE);
-const templeHero={cinders:{bar1:full,bar2:full,bar3:0,bar4:0},boonsUnlocked:[false,false,false,false,false]};
-const templeBonus=temple.heroBonuses(templeHero,'Bruiser');
+const templeHero={steps:{health:200,attack:200,armorMr:0,pen:0},boonsUnlocked:[false,false,false,false,false]};
+const templeBonus=temple.heroBonuses(templeHero,'Bruiser','Attack');
 const temple0=sim.heroCombatStats('tick',{level:100,stars:5,pips:0,ref:0});
-const templeUp=effects.applyCore({...temple0},templeBonus);
-ck('Temple full Bruiser health bar raises authoritative HP by 20%',templeUp.maxHp===temple0.maxHp*1.2,
+const tR={},tX={}; effects.coreRatings(tR,tX,templeBonus);
+const templeUp=effects.applyCore(sim.heroCombatStats('tick',{level:100,stars:5,pips:0,ref:0,ratings:tR,extra:tX}),templeBonus);
+ck('Temple full physical Health bar adds +7,000 authoritative HP',templeUp.maxHp===temple0.maxHp+7000,
   'got '+templeUp.maxHp+' from '+temple0.maxHp);
-ck('Temple full Bruiser attack bar raises authoritative Attack by 20%',templeUp.atkP===temple0.atkP*1.2,
+ck('Temple full physical Attack bar adds +480 authoritative Attack damage',templeUp.atkP===temple0.atkP+480,
   'got '+templeUp.atkP+' from '+temple0.atkP);
-ck('Temple typed Attack and HP bars do not multiply defenses',templeUp.armor===temple0.armor && templeUp.mr===temple0.mr);
+ck('Temple Health and Attack bars do not touch defenses',templeUp.armor===temple0.armor && templeUp.mr===temple0.mr);
 
 const host=require('../server/sim-host.js').load(path.join(ROOT,'emberweave-heroes.html'));
 const gearSkill={name:'Power-source probe',slot:'Weapon',defId:'E01',type:'energy',params:{n:20},desc:'probe'};
@@ -35,7 +36,7 @@ const snap=host.snapFromSpecs([spec])[0];
 ck('equipped Gear Active survives the server-frozen campaign snapshot',!!snap.gearSkill && snap.gearSkill.defId==='E01' && snap.gearSkill.type==='energy');
 ck('snapshot starts Gear Active unused',snap.gearSkill && snap.gearSkill.used===false);
 const kindled=host.snapFromSpecs([Object.assign({},spec,{templeBonuses:templeBonus})])[0];
-ck('Temple bonuses reach the frozen playable campaign snapshot',kindled.maxHp>snap.maxHp && kindled.dmg>snap.dmg);
+ck('Temple bonuses reach the frozen playable campaign snapshot as the same flats',Math.abs(kindled.maxHp-snap.maxHp-7000)<1e-6 && Math.abs(kindled.dmg-snap.dmg-480)<1e-6,'hp +'+(kindled.maxHp-snap.maxHp)+' dmg +'+(kindled.dmg-snap.dmg));
 function gearProbe(type,params,setup,read){
   return vm.runInContext(`(()=>{ units=[]; ended=false; paused=false;
     const u=makeUnit('vael','ally',100,100,20,{owned:false});

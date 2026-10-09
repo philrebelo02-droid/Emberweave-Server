@@ -72,10 +72,10 @@ function rng(seed){ let a=seed>>>0; return ()=>{ a=(a+0x6D2B79F5)>>>0; let t=a; 
             if(def.quality==='Orange'&&def.active&&!opt('noactive')) g.active[k]=nid; } }
         console.log('[layer] gear: canonical loadouts, temper '+TMAX); }
       // --temple=1 (layer 3, prayer): every hero's four Temple bars full and all five boons unlocked.
-      if(opt('temple')){ const T=require(path.join(root,'server','temple-of-ash.js')), M=T.effectMax(T.CONFIG.BAR_FULL_AT_TEMPLE);
+      if(opt('temple')){ const T=require(path.join(root,'server','temple-of-ash.js')), M=T.capSteps(50);   /* v1094: Temple v2 - full = the top cap in steps */
         led.temple=led.temple||T.newState(); led.temple.heroes=led.temple.heroes||{};
-        for(const k of keys) led.temple.heroes[k]={cinders:{bar1:M,bar2:M,bar3:M,bar4:M},boonsUnlocked:[true,true,true,true,true],meditationTicks:0};
-        console.log('[layer] temple: bars '+M+' x4, five boons'); }
+        for(const k of keys) led.temple.heroes[k]={steps:{health:M,attack:M,armorMr:M,pen:M},boonsUnlocked:[true,true,true,true,true],meditationTicks:0};
+        console.log('[layer] temple: bars '+M+' steps x4, five dots'); }
       fs.writeFileSync(dbFile,JSON.stringify(db)); }
     await start(d.profile.id,dbFile); tok=(await call('/api/login',{name:'arenadev',pass:'password1'})).token;
     const SNAP={};
