@@ -308,7 +308,10 @@ function hasProtoName(v,depth){ let n=0; const walk=(x,d,key)=>{ if(++n>50000||d
 function chatChipOk(bt){ if(!bt||typeof bt!=='object'||Array.isArray(bt)) return null; if(bt.oppName!=null&&typeof bt.oppName!=='string') return null;
   for(const f of ['mine','mineSnap','foe']){ const a=bt[f]; if(a==null) continue; if(!Array.isArray(a)||a.length>20) return null;
     for(const u of a){ if(!u||typeof u!=='object'||typeof u.key!=='string'||u.key.length>32) return null; } }
-  if(typeof bt.oppName==='string') bt.oppName=bt.oppName.slice(0,16); return bt; }
+  for(const f of ['mine','mineSnap','foe']) for(const u of (bt[f]||[])){ let s=''; try{ s=JSON.stringify(u); }catch(e){ return null; } if(s.length>2000) return null; }
+  /* v1088 (scan 9 #3): only the fields watchBattle reads are kept - a padded chip (8 KB each) was stored and served to every member on every poll */
+  const out={}; if(bt.v!=null) out.v=bt.v|0; if(bt.seed!=null) out.seed=(+bt.seed)>>>0; if(typeof bt.oppName==='string') out.oppName=bt.oppName.slice(0,16); if(bt.won!=null) out.won=!!bt.won;
+  for(const f of ['mine','mineSnap','foe']) if(Array.isArray(bt[f])) out[f]=bt[f]; return out; }
 function body(req, max){ max = max || BODY_MAX; return new Promise((resolve,reject)=>{
   let d='', len=0, done=false;
   req.on('data',c=>{ if(done) return; len+=c.length; if(len>max){ done=true; try{req.pause();}catch(_){} const e=new Error('body too large'); e.code='BODY_TOO_LARGE'; reject(e); return; } d+=c; });
@@ -7922,7 +7925,7 @@ async function api(req,res,url){
     if(!opp) return send(res,400,{ok:false,error:'Unknown opponent.'});   /* v559: a missing opponent left won=false and fell through to the +5 consolation coins, so an unbounded string of invalid oppIds minted coins at the route limit without ever fighting. No opponent, no attempt, no payout. */
     /* v981 (3 Oct Arena audit #7): the result is saved before it is acknowledged. Both accounts (the rank swap writes the
        opponent, and may delete a bot) and the review stores are snapshotted; a failed save restores them and answers 503. */
-    const r=applyResult(me,opp,won); const reward=won?(20+Math.floor((5000-me.rank)/50)):5; me.coins+=reward;
+    const r=applyResult(me,opp,won); const reward=won?Math.max(5,20+Math.floor((5000-me.rank)/50)):5; me.coins+=reward;   /* v1088 (scan 9 #2): below rank 5750 a win paid less than a loss, below 6000 it took coins */
     arenaAtt(ensureLedger(me)).used++;   // v582: the attempt is spent here — the fight resolved, win or lose
     let goldReward=0; if(won){ const led=ensureLedger(me);
       // per-NY-day cap on arena gold (EARN_RULES pattern): rank still moves after the cap, gold stops.
