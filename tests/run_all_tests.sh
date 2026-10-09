@@ -263,6 +263,8 @@ note "test_sealing_wax_1076.js (v1076: Sealing Wax eruption then the wax pool fo
 node tests/test_sealing_wax_1076.js || FAILED=1
 note "test_final_candle_1077.js (v1077: Court of the Final Candle - wax spreads to 7 m, each hero encased when the edge reaches it)"
 node tests/test_final_candle_1077.js || FAILED=1
+note "test_exploits_1078.js (v1078 exploit scan: arena opponent must be offered, defender report = real squads, bot-castle loot no longer throws)"
+node tests/test_exploits_1078.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi

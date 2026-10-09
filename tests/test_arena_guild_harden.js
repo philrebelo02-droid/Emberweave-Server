@@ -35,7 +35,7 @@ async function editDB(fn){ await delay(400); await stop(); const db=disk(); fn(d
   ok(el.status===410,'/api/elite/resolve answers 410 (got '+el.status+' '+JSON.stringify(el.data).slice(0,80)+')');
 
   // level 14, vael owned, stage 2 three-starred, a level-7 guild and a level-1 guild member
-  await editDB((db,u)=>{ u.led.px=1000; u.led.unlocked.vael=true; u.led.hero.vael=u.led.hero.vael||{xp:0,stars:1,pips:0}; u.led.gold=5000; u.led.stam={v:999,t:Date.now()};
+  await editDB((db,u)=>{ u.led.px=1000; u.led.unlocked.vael=true; u.led.hero.vael=u.led.hero.vael||{xp:0,stars:1,pips:0}; u.led.gold=5000; u.led.stam={v:999,t:Date.now()}; u._arenaOffer=[{id:oppId,t:Date.now()}];   /* v1078: an offered opponent */
     u.led.camp=u.led.camp||{}; u.led.camp.cleared=5; u.led.camp.stars=Object.assign({},u.led.camp.stars,{2:3}); u.team=['vael'];
     db.guilds=db.guilds||{}; db.guilds.gmax={id:'gmax',name:'Max Guild',members:[id],level:7,exp:0}; u.guildId='gmax'; });
 

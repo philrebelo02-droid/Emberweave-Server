@@ -4175,6 +4175,21 @@ function mutationLimited(req){
   const who=(req.headers['x-token']?tokHash(String(req.headers['x-token'])).slice(0,16):('ip:'+clientIP(req)));
   return rateLimited(req,'mut|'+who, MUT_PER_MIN, 60000);
 }
+/* v1078 (exploit scan 9 Oct): arena opponents are the ones the server offered. */
+function arenaOffered(me,ids){ const now=Date.now(); me._arenaOffer=(Array.isArray(me._arenaOffer)?me._arenaOffer:[]).filter(x=>x&&now-x.t<2*3600000);
+  for(const id of ids){ if(id) me._arenaOffer.push({id:String(id),t:now}); } if(me._arenaOffer.length>30) me._arenaOffer=me._arenaOffer.slice(-30); }
+function arenaWasOffered(me,id){ const now=Date.now(); return !!id&&Array.isArray(me._arenaOffer)&&me._arenaOffer.some(x=>x&&x.id===id&&now-x.t<2*3600000); }
+/* The defender's watchable report is written by the ATTACKER's client: accept it only when every hero in it belongs to the real squads
+   (the attacker's owned heroes, the defender's team) and it is small - before, any JSON up to the body limit landed on their account. */
+function arenaDefOk(me,opp,def){ try{ if(JSON.stringify(def).length>16000) return false;
+    const myLed=ensureLedger(me), mine=new Set(Object.keys(myLed.unlocked||{}).filter(k=>ownsHeroK(myLed,k)));
+    const foeKeys=new Set(rosterKeys(opp.team||[]).concat(opp.isNpc?(opp.team||[]).map(e=>e&&(e.key||e.k)).filter(Boolean):Object.keys((ensureLedger(opp).unlocked)||{})));
+    const keyOf=s=>s&&typeof s==='object'?String(s.key||s.k||''):'';
+    if(def.mineSnap.length>6||def.foe.length>6) return false;
+    if(!def.mineSnap.every(s=>mine.has(keyOf(s)))) return false;
+    if(!def.foe.every(s=>foeKeys.has(keyOf(s)))) return false;
+    return true; }catch(e){ return false; } }
+
 async function api(req,res,url){
   const p=url.pathname;
   if(p==='/api/health') return send(res,200,{ok:true});   /* v1018: the client's net gate checks this - an /api/ path is never answered from the service worker cache (/health is) */
@@ -7302,9 +7317,13 @@ async function api(req,res,url){
             const guild=me.guildId&&DB.guilds?.[me.guildId];
             const guildMul=guild?1+((guild.level||1)*0.04):1;
             const rolled=200+(srvSeed('worldbot-loot',me.id,march.id)%400);
-            const gold=Math.min(EARN_RULES.gold.march.max,Math.round(rolled*guildMul));
-            const goldLeft=Math.max(0,EARN_RULES.gold.march.day-(led.earnDay['gold:march']|0));
-            const coinLeft=Math.max(0,EARN_RULES.guildCoins.march.day-(led.earnDay['guildCoins:march']|0));
+            /* v1078 (scan 9 Oct #8): v1017 removed the dead 'march' EARN_RULES entries, but this loot still read them - every win on a bot
+               castle threw a TypeError, the march never resolved and the player never got the win. Same numbers as before v1017, held here
+               (not in EARN_RULES, so /api/tx/earn stays closed to 'march'). */
+            const WBL={gold:{max:1200,day:20000},guildCoins:{max:40,day:400}};
+            const gold=Math.min(WBL.gold.max,Math.round(rolled*guildMul));
+            const goldLeft=Math.max(0,WBL.gold.day-(led.earnDay['gold:march']|0));
+            const coinLeft=Math.max(0,WBL.guildCoins.day-(led.earnDay['guildCoins:march']|0));
             loot.gold=Math.max(0,Math.min(gold,goldLeft,ECON_CAP.gold-led.gold));
             loot.guildCoins=Math.max(0,Math.min(40,coinLeft,ECON_CAP.guildCoins-(led.guildCoins|0)));
             if(loot.gold||loot.guildCoins){
@@ -7699,7 +7718,7 @@ async function api(req,res,url){
       led.gems-=ARENA_EXTRA_COST_GEMS; a.bought++; ledTx(me,'arena:buy-attempt',{gems:-ARENA_EXTRA_COST_GEMS});
       return {ok:true, gems:led.gems, arena:arenaAttView(led), ledger:ledgerView(me)}; });
     return send(res,out.storageFailed?503:(out.ok?200:400),out); }
-  if(p==='/api/arena/opponent'){ if(!me)return send(res,401,{error:'auth'}); const o=pickOpponent(me);
+  if(p==='/api/arena/opponent'){ if(!me)return send(res,401,{error:'auth'}); const o=pickOpponent(me); arenaOffered(me,[o.id]);
     return send(res,200,{ opponent:{ id:o.id, name:o.name, rank:o.rank, team:hydrateRoster(o,o.team), isNpc:!!o.isNpc }, arena:arenaAttView(ensureLedger(me)) }); }
 
   if(p==='/api/arena/opponents'){ if(!me)return send(res,401,{error:'auth'}); if(rateLimited(req,'arenaopp:'+me.id,60,60000)) return send(res,429,{error:'Slow down.'});   /* v1011 (re-audit Arena N10 / Market #15 / Guild #12): per-account throttle on a heavy read */
@@ -7726,6 +7745,7 @@ async function api(req,res,url){
     const mBest=(me.bestRank!=null)?me.bestRank:5000, mFrac=(me._gemFrac||0);
     function prevGems(rk){ if(rk>=mBest) return 0; let d=0; for(let rr=rk; rr<mBest; rr++) d+= rr<=10?12:(rr<=50?8:(rr<=100?5:(rr<=500?2:1))); return Math.floor(mFrac+d); }
     const out=opps.slice(0,5).map(u=>({ id:u.id, name:u.name, rank:u.rank, isNpc:!!u.isNpc, team:hydrateRoster(u,u.team||[]), gems:prevGems(u.rank) }));
+    arenaOffered(me,out.map(o=>o.id));
     return send(res,200,{ rank:me.rank, opponents:out, arena:arenaAttView(ensureLedger(me)) }); }
 
   if(p==='/api/arena/result' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
@@ -7749,6 +7769,9 @@ async function api(req,res,url){
     /* 3 Oct Arena audit #6 (part): never yourself. A rank-above rule would lock the rank-1 player out; the full fix is a
        server-stored opponents list (open). */
     if(!opp||opp.id===me.id) return send(res,400,{ok:false,error:'Unknown opponent.'});
+    /* v1078 (scan 9 Oct #5): the opponent must be one the server OFFERED this player (the list or the single pick, last 2 h) - before,
+       any account id was accepted, so a player could pick the weakest account near rank 1 and take every milestone between. */
+    if(!arenaWasOffered(me,String(b.oppId||''))) return send(res,400,{ok:false,error:'Pick an opponent from your list - refresh the arena.'});
     const _aSnapOpp=JSON.parse(JSON.stringify(opp)), _aOppId=opp.id;   /* v981: the opponent, before anything below touches it */
     // SECURITY (audit crit #3): rank + coins used to trust the client-declared b.won. They are now
     // decided SERVER-SIDE from each side's serverTeamPower — the same interim authority the Guild War
@@ -7783,7 +7806,7 @@ async function api(req,res,url){
       const aused=(led.earnDay['gold:arena']|0), ACAP=8000;
       goldReward=Math.min(Math.max(0,200+Math.floor((5000-me.rank)/20)), Math.max(0,ACAP-aused));
       if(goldReward>0){ led.earnDay['gold:arena']=aused+goldReward; creditGold(me,led,goldReward,'arena:win'); ledTx(me,'arena:win',{gold:goldReward}); } }
-    if(opp && b.def && Array.isArray(b.def.mineSnap) && Array.isArray(b.def.foe) && b.def.mineSnap.length && b.def.foe.length){   // record a watchable DEFENSE report on the opponent (they were attacked). mineSnap=attacker squad, foe=defender squad, won=attacker won (server result).
+    if(opp && b.def && Array.isArray(b.def.mineSnap) && Array.isArray(b.def.foe) && b.def.mineSnap.length && b.def.foe.length && arenaDefOk(me,opp,b.def)){   /* v1078 (scan #6): only a report of the two real squads, size-capped */   // record a watchable DEFENSE report on the opponent (they were attacked). mineSnap=attacker squad, foe=defender squad, won=attacker won (server result).
       opp.arenaDefenses = Array.isArray(opp.arenaDefenses)?opp.arenaDefenses:[];
       opp.arenaDefenses.unshift({ v:2, seed:(b.def.seed>>>0), mineSnap:b.def.mineSnap.slice(0,6), foe:b.def.foe.slice(0,6), won:won, atkName:String(me.name||'A challenger').slice(0,24)   /* v996 (Arena audit #12): the attacker's real name - the request could name anyone */, t:Date.now() });
       if(opp.arenaDefenses.length>10) opp.arenaDefenses.length=10; }
