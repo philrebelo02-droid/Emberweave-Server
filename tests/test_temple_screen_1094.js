@@ -27,3 +27,8 @@ const keys=fs.readdirSync(path.join(root,'assets/img/hero-cards')).map(f=>f.slic
 ok(keys.length>=60&&keys.every(k=>fs.existsSync(path.join(A,'heroes',k+'-v2.webp'))),'every hero has a framed bust ('+keys.filter(k=>!fs.existsSync(path.join(A,'heroes',k+'-v2.webp'))).join(',')+')');
 if(missed.length){ missed.forEach(m=>console.error('FAIL',m)); process.exitCode=1; }
 console.log('test_temple_screen_1094.js: '+pass+' checks passed, '+missed.length+' failed');
+// v1097: a changed Temple module must reach the client - its script tag version moves with every release that edits it (v1096 shipped
+// per-hero blessings under the old r1094 tag and phones kept the class template).
+{ const m=page.match(/temple-of-ash\.js\?v=r(\d+)/); const f=fs.readFileSync(path.join(root,'server/temple-of-ash.js'),'utf8');
+  if(!(m&&+m[1]>=1097)) { console.error('FAIL the Temple module tag is not bumped past r1096'); process.exitCode=1; } else console.log('  ✓ the Temple module tag is r'+m[1]+' (v1097 cache fix)');
+  if(!/HERO_BLESSING/.test(f)) { console.error('FAIL temple-of-ash.js lacks per-hero blessings'); process.exitCode=1; } }
