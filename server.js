@@ -4696,11 +4696,12 @@ async function api(req,res,url){
       const COSTS=[0,50,100,200], n=me.renames|0, cost=n<COSTS.length?COSTS[n]:200, led=ensureLedger(me);
       if(cost>0&&(led.gems|0)<cost) return {ok:false,error:'You need '+cost+' diamonds for this rename.'};
       if(cost>0) led.gems-=cost;
-      const old=String(me.name||''); if(old&&DB.byName[old.toLowerCase()]===me.id) delete DB.byName[old.toLowerCase()];
-      me.name=name; DB.byName[name.toLowerCase()]=me.id; me.renames=n+1;
+      const old=String(me.name||''); me.name=name; me.renames=n+1;   /* the shared name index moves only after the save succeeds (below) - a failed save restores me, not DB.byName (scan 4 #1) */
       ledTx(me,'account:rename',{gems:-cost,from:old.slice(0,16),to:name});
-      writeDB(); return {ok:true, name, renames:me.renames, cost, nextCost:(me.renames<COSTS.length?COSTS[me.renames]:200), ledger:ledgerView(me)};
+      writeDB(); return {ok:true, name, from:old, renames:me.renames, cost, nextCost:(me.renames<COSTS.length?COSTS[me.renames]:200), ledger:ledgerView(me)};
     });
+    if(out&&out.ok&&!out.storageFailed&&out.name&&DB.users[me.id]&&DB.users[me.id].name===out.name){ const o=String(out.from||'').toLowerCase();
+      if(o&&DB.byName[o]===me.id) delete DB.byName[o]; DB.byName[String(out.name).toLowerCase()]=me.id; writeDB(); }
     return send(res,out.storageFailed?503:(out.ok===false?400:200),out); }
     if(p==='/api/account/reset-progress' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     delete me.glyphs; delete me.gear; me.dust=0;
@@ -6220,7 +6221,7 @@ async function api(req,res,url){
         creditStamina(me,led,Math.min(it.refill,need),'arenashop'); got.stamina=Math.min(it.refill,need); }
       else if(it.gold){ creditGold(me,led,it.gold,'arenashop'); got.gold=it.gold; }
       else if(it.gems){ creditGems(me,led,it.gems,'arenashop'); got.gems=it.gems; }
-      else if(it.frag){ const k=it.frag, before=led.frags[k]|0; led.frags[k]=Math.min(9999,before+it.n); resourceGain(me,'frags',led.frags[k]-before,'arenashop'); got.frags={[k]:it.n}; }
+      else if(it.frag){ const k=it.frag, before=led.frags[k]|0; if(before+it.n>9999) return {ok:false,error:'You cannot hold more of those fragments.'};   /* v1082 */ led.frags[k]=Math.min(9999,before+it.n); resourceGain(me,'frags',led.frags[k]-before,'arenashop'); got.frags={[k]:it.n}; }
       me.coins=(me.coins|0)-it.cost; me.arenaShopDay[id]=used+1;
       ledTx(me,'arenashop:'+id,Object.assign({arenaCoins:-it.cost},got));
       writeDB(); return {ok:true, got, cost:it.cost, arenaCoins:me.coins|0, ledger:ledgerView(me)};
@@ -6261,7 +6262,8 @@ async function api(req,res,url){
           led.guildCoins=(led.guildCoins|0)-it.cost; creditStamina(me,led,need,'gshop:'+idx); got.stamina=need; }
         else if(it.res){ const A=ensureAcad(me); led.guildCoins=(led.guildCoins|0)-it.cost; got.res={};
           for(const r of ACADEMY_ECON.RESOURCES){ A.res[r]=(A.res[r]|0)+it.res; got.res[r]=it.res; } }
-        else if(it.shields){ led.guildCoins=(led.guildCoins|0)-it.cost; me.shields=Math.min(99,(me.shields|0)+it.shields); got.shields=it.shields; }   /* v1081: guild-shop shields are the server's */
+        else if(it.shields){ if((me.shields|0)+it.shields>99) return {ok:false,error:'You can hold at most 99 shields.'};   /* v1082 */
+          led.guildCoins=(led.guildCoins|0)-it.cost; me.shields=Math.min(99,(me.shields|0)+it.shields); got.shields=it.shields; }   /* v1081: guild-shop shields are the server's */
         else if(it.arenaCoins){ led.guildCoins=(led.guildCoins|0)-it.cost; me.coins=Math.min(ECON_CAP.arenaCoins,(me.coins|0)+it.arenaCoins); got.arenaCoins=it.arenaCoins; }   /* v1079 */
         else { led.guildCoins=(led.guildCoins|0)-it.cost;
           if(it.gold){ creditGold(me,led,it.gold,'gshop:'+idx); got.gold=it.gold; } else { creditGems(me,led,it.gems,'gshop:'+idx); got.gems=it.gems; } }
@@ -6269,12 +6271,12 @@ async function api(req,res,url){
         writeDB(); return {ok:true, got, cost:it.cost, ledger:ledgerView(me)}; }
       /* v1081 (scan 2 #1): shields are server purchases - the Shady pack (550 diamonds -> 3) and the Market Peace Shield (the market's
          own price, 70 diamonds scaled by level like rollMarket's em(): round(70*(1+(L-1)*0.04)); one an hour, the market's restock). */
-      if(what==='shields3'){ const c=550; if(led.gems<c) return {ok:false,error:'Not enough diamonds.'};
+      if(what==='shields3'){ const c=550; if(led.gems<c) return {ok:false,error:'Not enough diamonds.'}; if((me.shields|0)+3>99) return {ok:false,error:'You can hold at most 99 shields.'};   /* v1082 (scan 3 F3) */
         led.gems-=c; me.shields=Math.min(99,(me.shields|0)+3); ledTx(me,'shop:shields3',{gems:-c,shields:3});
         writeDB(); return {ok:true, shields:me.shields, cost:c, ledger:ledgerView(me)}; }
       if(what==='shield_market'){ const L=ledPlayerLevel(led), c=Math.round(70*(1+(L-1)*0.04));
         if(Date.now()-(+me.marketShieldAt||0)<3600000) return {ok:false,error:'The market has no more shields this hour.'};
-        if(led.gems<c) return {ok:false,error:'Not enough diamonds.'};
+        if(led.gems<c) return {ok:false,error:'Not enough diamonds.'}; if((me.shields|0)+1>99) return {ok:false,error:'You can hold at most 99 shields.'};   /* v1082 */
         led.gems-=c; me.shields=Math.min(99,(me.shields|0)+1); me.marketShieldAt=Date.now(); ledTx(me,'shop:shield_market',{gems:-c,shields:1});
         writeDB(); return {ok:true, shields:me.shields, cost:c, ledger:ledgerView(me)}; }
       if(what==='arenacoins'){ const c=600, n=3000;   /* v1079 (scan #2): the Shady Market's Arena Coins x3,000 - was a diamond spend + a client-only grant */
