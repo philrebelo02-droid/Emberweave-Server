@@ -6682,16 +6682,16 @@ async function api(req,res,url){
       fragmentSources:FRAG_SOURCES }); }
   /* Bonus stages own only /api/bonus/*; ordinary Campaign routes remain untouched. */
   if(BONUS && p.indexOf('/api/bonus/')===0){ if(!me)return send(res,401,{error:'auth'});
-    const led=ensureLedger(me);
+    const _bb=req.method==='POST'?await body(req):{}; const led=ensureLedger(me);   /* v1089 (scan 10): the ledger is taken AFTER the last await - a commit by another request during the await replaces me.led, and writes to the old object were lost while grants to me.glyphs landed (bonus pot / first clear / province repeated) */
     const out=await BONUS.handle(p, req.method, { me, led, query:url.searchParams,
-      body:()=>body(req), glyphGrantNamedList, srvSeed, ledTx, ledgerView, writeDB, feedbackCheatSignal,
+      body:()=>Promise.resolve(_bb), glyphGrantNamedList, srvSeed, ledTx, ledgerView, writeDB, feedbackCheatSignal,
       GLYPHS, CAMP_ENC:CAMP_ENC?Object.values(CAMP_ENC.byNode):[], uid,
       playerLevel:()=>ledPlayerLevel(led), isUnlocked:k=>!!ownsHeroK(led,k) });
     if(out) return send(res, out.status, out.body); }
   /* v825 THE STARLESS WELL (blueprint 22) owns only /api/well/*: a 3-day run of 3 maps, HP/energy carried from the server's replay */
   if(WELL2 && p.indexOf('/api/well/')===0){ if(!me)return send(res,401,{error:'auth'}); if(rateLimited(req,'well:'+me.id,120,60000)) return send(res,429,{error:'Slow down.'}); if(p==='/api/well/start'&&rateLimited(req,'wellStart:'+me.id,Math.round(10*RL_MUL),60000)) return send(res,429,{error:'Slow down.'});   /* v1083 (scan 5 #11): a Well start's replay runs on the main thread - 10 a minute */   /* v1011 (re-audit Arena N10): state reads and start->resolve replays were unthrottled */
-    const led=ensureLedger(me);
-    const out=await WELL2.handle(p, req.method, { me, led, heroDisplayName, body:()=>body(req), srvSeed, ledTx, ledgerView, writeDB, uid, idem, crypto,
+    const _wb=req.method==='POST'?await body(req):{}; const led=ensureLedger(me);   /* v1089 (scan 10): the ledger is taken AFTER the last await - a commit by another request during the await replaces me.led, and writes to the old object were lost while grants to me.glyphs landed (bonus pot / first clear / province repeated) */
+    const out=await WELL2.handle(p, req.method, { me, led, heroDisplayName, body:()=>Promise.resolve(_wb), srvSeed, ledTx, ledgerView, writeDB, uid, idem, crypto,
       simHost, campaignHeroSpec, sanitizeInputLog, sha256hex, ledAddPlayerXP, creditGold, creditGems,
       feedbackCheatSignal, D_TROOP_INC, SIM, isDev,
       playerLevel:()=>ledPlayerLevel(led), loanPool:()=>Object.keys(SIM.HERO_BASE).sort() });
@@ -6993,7 +6993,7 @@ async function api(req,res,url){
   if(p==='/api/emberdraft/state'||p==='/api/emberdraft/start'||p==='/api/emberdraft/buy'||p==='/api/emberdraft/result'||p==='/api/emberdraft/round'){
     if(!me) return send(res,401,{error:'auth'});
     if(req.method!=='POST' && !(req.method==='GET' && p==='/api/emberdraft/state')) return send(res,404,{error:'emberdraft'});   /* 3 Oct audit (Trials #9): state is readable by GET */
-    const led=ensureLedger(me); const b=await body(req);
+    const b=await body(req); const led=ensureLedger(me);   /* v1089 (scan 10): the ledger is taken AFTER the last await - a commit by another request during the await replaces me.led, and writes to the old object were lost while grants to me.glyphs landed (bonus pot / first clear / province repeated) */
     const ED_FREE=3, ED_PACK=3, ED_PACK_COST=[100,150], ED_STAM=[0,36,30,24,18,12,6,0,0];
     const dk=nyDayKey(); led.edraft=(led.edraft&&led.edraft.day===dk)?led.edraft:{day:dk,used:0,bought:0,att:(led.edraft&&led.edraft.att)||null,open:(led.edraft&&Array.isArray(led.edraft.open))?led.edraft.open:[],prevAtt:(led.edraft&&led.edraft.prevAtt)||undefined};   /* 3 Oct audit: unclaimed matches survive the day reset */
     const E=led.edraft; E.used=E.used|0; E.bought=E.bought|0; if(!Array.isArray(E.open)) E.open=[];   if(E.prevAtt){ if(!E.prevAtt.claimed&&!E.open.some(x=>x&&x.id===E.prevAtt.id)&&!(E.att&&E.att.id===E.prevAtt.id)) E.open.push(E.prevAtt); delete E.prevAtt; }   /* 3 Oct: an unclaimed match kept by the older one-slot form (2117b00f) moves into E.open */
@@ -7118,10 +7118,10 @@ async function api(req,res,url){
     if(!me) return send(res,401,{error:'auth'});
     if(!PROV_ENC) return send(res,503,{error:'The Training Province is unavailable.'});
     if(rateLimited(req,'province',60,60000)) return send(res,429,{error:'Slow down.'});
-    const led=ensureLedger(me);
+    let led=ensureLedger(me);
     if(p==='/api/province/state'){ const before=JSON.stringify(led.prov===undefined?null:led.prov); const v=provStateView(me,led); if(JSON.stringify(led.prov===undefined?null:led.prov)!==before) writeDB(); return send(res,200,v); }   /* v1011 (re-audit Arena N14): write only when the read changed something (a day roll) */
     if(req.method!=='POST') return send(res,404,{error:'province'});
-    const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
+    const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'}); led=ensureLedger(me);   /* v1089 (scan 10): the ledger is taken AFTER the last await - a commit by another request during the await replaces me.led, and writes to the old object were lost while grants to me.glyphs landed (bonus pot / first clear / province repeated) */
     const dev=isDev(me);
     if(p==='/api/province/start'){
       const t=String(b.type||''); if(PROV_TYPES.indexOf(t)<0) return send(res,400,{error:'Unknown province.'});
@@ -7151,7 +7151,7 @@ async function api(req,res,url){
     if(p==='/api/province/resolve'){ const _ak='p:'+me.id+':'+String(b.attemptId||'');   /* v1083 (scan 5 #7); v1085: wait, not 409 */
       if(_simInflight.has(_ak)){ try{ await _simInflight.get(_ak); }catch(e){} }
       else { const _pr=simPrefetch(_provinceSimCandidates(me,b)); _simInflight.set(_ak,_pr); try{ await _pr; } finally{ _simInflight.delete(_ak); } } }   // v1036: replay on a battle worker first
-    if(p==='/api/province/resolve'){ const out=idem(me.id+':provres:'+reqId,()=>{
+    if(p==='/api/province/resolve'){ led=ensureLedger(me); const out=idem(me.id+':provres:'+reqId,()=>{   /* v1089: after the replay await */
         const aid=String(b.attemptId||''), P=provLedState(me,led); let t=null, pr=null, a=null;
         for(const k of PROV_TYPES){ if(P[k].att && P[k].att.id===aid){ t=k; pr=P[k]; a=pr.att; break; } }
         if(!a) return {ok:false, error:'No matching province battle.'};
@@ -7237,13 +7237,13 @@ async function api(req,res,url){
   }
   if(p==='/api/elite/resolve'||p==='/api/trial/resolve'||p==='/api/quest/state'||p==='/api/quest/claim'||p==='/api/quest/chain-claim'||p==='/api/market/frag'||p==='/api/arena/daily-claim'){
     if(!me) return send(res,401,{error:'auth'});
-    const led=ensureLedger(me);
+    let led=ensureLedger(me);
     if(p==='/api/quest/state'){ led.quests=led.quests||{claimed:{},chainStep:0};
       const state={ chainStep:led.quests.chainStep|0, claimed:led.quests.claimed,
         ready:Object.fromEntries(Object.entries(QUEST_DEFS_SRV).map(([id,q])=>[id,!!q.cond(me,led)])) };
       return send(res,200,state); }
     if(req.method!=='POST') return send(res,404,{error:'loop'});
-    const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
+    const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'}); led=ensureLedger(me);   /* v1089 (scan 10): the ledger is taken AFTER the last await - a commit by another request during the await replaces me.led, and writes to the old object were lost while grants to me.glyphs landed (bonus pot / first clear / province repeated) */
     /* 3 Oct Arena audit #2 (P0): /api/elite/resolve is RETIRED - no client screen reached it (Elite stages are campaign start/resolve on
        the Elite portal) but it still paid 2-4 hero fragments + 70 hero XP a win with no stamina, no attempt and a server-decided fight. */
     if(p==='/api/elite/resolve'){ return send(res,410,{ok:false,error:'Elite stages are played from the Campaign map.'}); }
@@ -7366,7 +7366,7 @@ async function api(req,res,url){
     return send(res,410,{ok:false,error:'Old mine claims are retired. Send a verified mine march.'});
   if(p==='/api/academy' || p==='/api/academy/research' || p==='/api/academy/collect' || p==='/api/world/mine' || p==='/api/pvp/attack'){
     if(!me) return send(res,401,{error:'auth'});
-    const led=p==='/api/pvp/attack'?null:ensureLedger(me); const A=p==='/api/pvp/attack'?null:ensureAcad(me);
+    let led=p==='/api/pvp/attack'?null:ensureLedger(me); let A=p==='/api/pvp/attack'?null:ensureAcad(me);
     if(p==='/api/academy'){   // a read that pays income commits it durably before answering (3 Oct release review)
       if(rateLimited(req,'acadread',60,60000)) return send(res,429,{error:'Slow down.'});   /* v991 (Temple+Academy audit #6): each read can be a full save */
       const r=durableReadCommit(me,'academy-read',d=>{ const DA=ensureAcad(d); acadCollect(DA);
@@ -7374,7 +7374,7 @@ async function api(req,res,url){
       return r.ok?send(res,200,r.view):send(res,503,{ok:false,storageFailed:true,error:r.error}); }
     if(req.method!=='POST') return send(res,404,{error:'academy'});   /* v991 (audit #14): checked BEFORE the income pass, which changed the account on a 404 */
     if(A)acadCollect(A);   // finished research and hourly income apply on every touch (the POST routes save through idem)
-    const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
+    const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'}); if(p!=='/api/pvp/attack'){ led=ensureLedger(me); A=ensureAcad(me); }   /* v1089 (scan 10): the ledger is taken AFTER the last await - a commit by another request during the await replaces me.led, and writes to the old object were lost while grants to me.glyphs landed (bonus pot / first clear / province repeated) */
     if(p==='/api/academy/research'){ const out=idem(me.id+':acad:'+reqId,()=>{
         if(ledPlayerLevel(led)<ACADEMY_UNLOCK_LEVEL) return {ok:false,error:'The Academy opens at player level '+ACADEMY_UNLOCK_LEVEL+'.'};   /* v988 (Temple+Academy audit #4): the client's lock, now on the server */
         const track=String(b.track||''); if(!ACAD_TRACKS.includes(track)||!(track in A.lv)) return {ok:false,error:'Unknown research track.'};   /* v986 (Temple+Academy audit #5) */

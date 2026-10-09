@@ -283,6 +283,8 @@ note "test_gates_1087.js (v1087 scan 8: Guild Hall level 13, Tower 40 / Vault 10
 node tests/test_gates_1087.js || FAILED=1
 note "test_scan9_1088.js (v1088 scan 9: an arena win never pays less than a loss; replay chips keep only replay fields, units capped at 2,000 bytes)"
 node tests/test_scan9_1088.js || FAILED=1
+note "test_await_ledger_1089.js (v1089 scan 10: handlers take the ledger after their last await - bonus pot, bonus first clear, province, Emberdraft, Well, quests, academy)"
+node tests/test_await_ledger_1089.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi
