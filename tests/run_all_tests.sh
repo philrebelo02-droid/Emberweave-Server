@@ -267,6 +267,8 @@ note "test_exploits_1078.js (v1078 exploit scan: arena opponent must be offered,
 node tests/test_exploits_1078.js || FAILED=1
 note "test_arena_coins_1079.js (v1079 exploit scan #2: arena coins are the server's - the arena shop and coin packs are server purchases, tx/earn arenashop closed)"
 node tests/test_arena_coins_1079.js || FAILED=1
+note "test_scan2_1080.js (v1080 scan round 2: look-alike names refused, rename through the server, no castle for bots, no loot from an undefended castle)"
+node tests/test_scan2_1080.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi

@@ -232,6 +232,17 @@ function uid(){ return crypto.randomBytes(8).toString('hex'); }
 /* 30 Sep 2026 hardening: a NEW name (account or guild) may not carry invisible or direction-flipping characters, stacks of
    combining marks, or a reserved name - 'Ph\u200Bil' or 'Emberweave' in chat read as the real thing. Existing names are untouched. */
 const RESERVED_NAMES=new Set(['phil','admin','administrator','emberweave','ember','dev','developer','mod','moderator','system','support','staff','xanthyr','claude','chatgpt','grok','kimi']);
+/* v1080 (scan 2 #5): look-alike names. The duplicate check compared lower-cased names only, so a full-width or Cyrillic copy of a
+   real player's name (e.g. 'Ｐｈｉｌ', 'Phіl') was a different name and could impersonate them in chat, arena, guild and war mail.
+   nameSkeleton folds width (NFKC), case, the common Cyrillic/Greek look-alike letters and punctuation; a new name whose skeleton
+   matches an existing player's is taken. */
+const NAME_CONFUSABLE={'а':'a','в':'b','е':'e','ё':'e','к':'k','м':'m','н':'h','о':'o','р':'p','с':'c','т':'t','у':'y','х':'x','і':'i','ї':'i','ј':'j','ѕ':'s','ԁ':'d','һ':'h','ӏ':'l','ԛ':'q','ԝ':'w',
+  'α':'a','β':'b','ε':'e','η':'n','ι':'i','κ':'k','ν':'v','ο':'o','ρ':'p','τ':'t','υ':'u','χ':'x','ζ':'z','μ':'u','ω':'w'};
+function nameSkeleton(n){ return String(n||'').normalize('NFKC').toLowerCase().normalize('NFKD').replace(/\p{M}/gu,'')
+  .replace(/./gu,c=>NAME_CONFUSABLE[c]||c).replace(/[^\p{L}\p{N}]/gu,''); }
+function nameTaken(name,exceptId){ const lid=DB.byName[String(name||'').toLowerCase()]; if(lid&&lid!==exceptId) return true;
+  const sk=nameSkeleton(name); if(!sk) return false;
+  for(const u of Object.values(DB.users||{})){ if(u&&u.id!==exceptId&&!u.isNpc&&u.name&&nameSkeleton(u.name)===sk) return true; } return false; }
 function badNewName(n){ const s=String(n||'');
   if(/[\u0000-\u001f\u007f-\u009f\u00ad\u034f\u061c\u115f\u1160\u17b4\u17b5\u180e\u200b-\u200f\u202a-\u202e\u2060-\u206f\u3164\ufe00-\ufe0f\ufeff]/.test(s)) return 'That name uses hidden characters — please use normal letters.';
   if(/\p{M}{2,}/u.test(s)) return 'That name has too many accent marks stacked together.';
@@ -417,7 +428,7 @@ function acctCreate(rawName, pass){
   { const why=badNewName(name); if(why) return {status:400,error:why}; }
   if(name.length<2||!pass) return {status:400,error:'Name (2+) and password required'};
   if(String(pass).length<8) return {status:400,error:'Password must be at least 8 characters.'};
-  if(DB.byName[name.toLowerCase()]) return {status:409,error:'That Profile name is already taken'};
+  if(nameTaken(name)) return {status:409,error:'That Profile name is already taken'};   /* v1080: look-alikes too */
   const id=uid(), c=makeCred(pass);
   const u={ id, name, hash:c.hash, salt:c.salt, iters:c.iters, rank:nextJoinRank(), coins:0, team:defaultTeam(), wall:defaultTeam(),
     roster:{}, lastDaily:0, cityX:Math.round(Math.random()*1000), cityY:Math.round(Math.random()*1000), created:Date.now() };
@@ -3535,6 +3546,7 @@ function durableUserCommit(user,draft,receipts,tag,related=[],extra=null){
   return durableCommit(user,null,null,{prepared:{draft,receipts,tag,related,extra}});
 }
 function worldLocation(u){
+  if(!u||u.isNpc) return null;   /* v1080 (scan 2 #4): an arena bot has no castle - asking used to give the bot a player ledger (ensureLedger) and drop its ladder power for good */
   if(ledPlayerLevel(ensureLedger(u))<WITCH.UNLOCK_LEVEL) return null;
   if(WORLD_LOCATION.valid(u.worldLocation)
     &&!WORLD_TERRAIN_BLOCKED.has(WORLD_LOCATION.cellKey(u.worldLocation.x,u.worldLocation.y))) return u.worldLocation;
@@ -4296,7 +4308,7 @@ async function api(req,res,url){
     // all progress — instead of spawning a new account. This is what "Create account" does for a guest.
     const gu=authUser(req);
     if(gu && gu.guest){
-      if(DB.byName[name.toLowerCase()] && DB.byName[name.toLowerCase()]!==gu.id) return send(res,409,{error:'That Profile name is already taken'});
+      if(nameTaken(name,gu.id)) return send(res,409,{error:'That Profile name is already taken'});   /* v1080: look-alikes too */
       const oldName=(gu.name||'').toLowerCase(), c=makeCred(b.pass);
       delete DB.byName[oldName]; gu.name=name; gu.hash=c.hash; gu.salt=c.salt; gu.iters=c.iters; delete gu.guest;
       if(b.roster) gu.roster=sanitizeSave(gu, b.roster);
@@ -4309,7 +4321,7 @@ async function api(req,res,url){
       dropTokens(gu.id); const tok=issueToken(gu.id); writeDB();
       return send(res,200,{ token:tok, profile:profileFor(gu) });
     }
-    if(DB.byName[name.toLowerCase()]) return send(res,409,{error:'That Profile name is already taken'});
+    if(nameTaken(name)) return send(res,409,{error:'That Profile name is already taken'});   /* v1080: look-alikes too */
     // (v328: device / network caps now run above, before the guest-upgrade branch)
     const id=uid(), c=makeCred(b.pass);
     const u={ id, name, hash:c.hash, salt:c.salt, iters:c.iters, rank:nextJoinRank(), coins:0, team:defaultTeam(), wall:defaultTeam(),
@@ -4573,7 +4585,7 @@ async function api(req,res,url){
       if(!r) return send(res,503,{error:'Accounts are unreachable right now - try again in a minute.'});
       if(r.status!==200 || !r.body || !r.body.gid) return send(res,r.status||400,{error:(r.body&&r.body.error)||'Could not create the account.'});
       const lu=linkedUser(r.body.gid, r.body.name, b.pass); lu.rank=5000; writeDB(); return send(res,200,{ok:true, name:lu.name}); }
-    if(DB.byName[name.toLowerCase()]) return send(res,409,{error:'That Profile name is already taken'});
+    if(nameTaken(name)) return send(res,409,{error:'That Profile name is already taken'});   /* v1080: look-alikes too */
     const id=uid(), c=makeCred(b.pass);
     DB.users[id]={ id, name, hash:c.hash, salt:c.salt, iters:c.iters, rank:5000, coins:0, team:defaultTeam(), wall:defaultTeam(),
       roster:{}, lastDaily:0, cityX:Math.round(Math.random()*1000), cityY:Math.round(Math.random()*1000), created:Date.now() };
@@ -4658,7 +4670,30 @@ async function api(req,res,url){
      so "Reset all progress" cleared the browser's copy and the server handed every bit of it straight
      back: 32 stars and a cleared Chapter 1 on a fresh save. A reset now resets what the server owns
      too, and returns the fresh ledger so the client adopts it instead of guessing. */
-  if(p==='/api/account/reset-progress' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
+  /* v1080 (scan 2 #3): A PAID RENAME REACHES THE SERVER. The client took the diamonds (/api/tx/spend 'rename') and changed only its own
+     G.playerName - chat, arena, guild and war mail use the account name, so nobody ever saw the new name. Same costs as the client's
+     RENAME_COSTS (first free, then 50/100/200 diamonds), same rules as a new account (badNewName, look-alikes). A game-wide account
+     renames on Server 1 (the account authority); the other servers take the name at their next sign-in. */
+  if(p==='/api/account/rename' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
+    const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
+    const out=durableCommit(me,me.id+':rename:'+reqId,(me)=>{
+      if(me.guest) return {ok:false,error:'Make an account first - guests keep their guest name.'};
+      if(ACCOUNT_AUTHORITY&&me.gid) return {ok:false,error:'Change your name on Server 1 - it carries to every server.'};
+      const name=String(b.name||'').replace(/[<>]/g,'').trim().slice(0,16);
+      { const why=badNewName(name); if(why) return {ok:false,error:why}; }
+      if(name.length<2) return {ok:false,error:'Name needs at least 2 characters.'};
+      if(name===me.name) return {ok:false,error:'That is already your name.'};
+      if(nameTaken(name,me.id)) return {ok:false,error:'That Profile name is already taken'};
+      const COSTS=[0,50,100,200], n=me.renames|0, cost=n<COSTS.length?COSTS[n]:200, led=ensureLedger(me);
+      if(cost>0&&(led.gems|0)<cost) return {ok:false,error:'You need '+cost+' diamonds for this rename.'};
+      if(cost>0) led.gems-=cost;
+      const old=String(me.name||''); if(old&&DB.byName[old.toLowerCase()]===me.id) delete DB.byName[old.toLowerCase()];
+      me.name=name; DB.byName[name.toLowerCase()]=me.id; me.renames=n+1;
+      ledTx(me,'account:rename',{gems:-cost,from:old.slice(0,16),to:name});
+      writeDB(); return {ok:true, name, renames:me.renames, cost, nextCost:(me.renames<COSTS.length?COSTS[me.renames]:200), ledger:ledgerView(me)};
+    });
+    return send(res,out.storageFailed?503:(out.ok===false?400:200),out); }
+    if(p==='/api/account/reset-progress' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     delete me.glyphs; delete me.gear; me.dust=0;
     if(DB.dungeonProgress) delete DB.dungeonProgress[me.id];
     // rebuild the ledger at its starter state — the same shape a brand-new account is given
@@ -7446,7 +7481,11 @@ async function api(req,res,url){
         }
         me.pvpDay.n++;
         let loot=null,paidGold=0,paidCoins=0;
-        if(won){ const g=Math.min(400, Math.max(0,8000-me.pvpDay.gold),Math.max(0,ECON_CAP.gold-led.gold));
+        /* v1080 (scan 2 #2): a castle with NO standing defender (its wall fell in an earlier attack) is taken without a fight - and pays
+           nothing. Before, it paid full loot + hero XP every time, so after one real win a whole guild could farm the fallen castle risk-free
+           (20 attacks a day each). The win and the war mail are unchanged. */
+        if(won&&!defSnaps.length) loot={gold:0,guildCoins:0,undefended:true};
+        if(won&&defSnaps.length){ const g=Math.min(400, Math.max(0,8000-me.pvpDay.gold),Math.max(0,ECON_CAP.gold-led.gold));
           if(g>0){ creditGold(me,led,g,'city-pvp'); me.pvpDay.gold+=g; paidGold=g; loot={gold:g}; } else loot={gold:0};
           const c=Math.min(40, Math.max(0,400-(me.pvpDay.coins|0)),Math.max(0,ECON_CAP.guildCoins-(led.guildCoins|0)));
           if(c>0){ led.guildCoins=(led.guildCoins|0)+c; me.pvpDay.coins=(me.pvpDay.coins|0)+c; paidCoins=c; }
@@ -8184,7 +8223,7 @@ async function api(req,res,url){
       let name=capWords((b.name||'').replace(/[<>]/g,'').replace(/\s+/g,' ').trim()).slice(0,24);
       if(name.length<2) return send(res,400,{error:'Guild name must be at least 2 characters.'});
       { const bad=badNewName(name); if(bad) return send(res,400,{error:bad}); }   /* v982 (3 Oct Guild audit #11): the same name rules as a player name (hidden characters, stacked accents, reserved names) */
-      if(Object.values(DB.guilds).some(g=>(g.name||'').toLowerCase()===name.toLowerCase())) return send(res,409,{error:'That guild name is already taken'});
+      if(Object.values(DB.guilds).some(g=>(g.name||'').toLowerCase()===name.toLowerCase()||nameSkeleton(g.name)===nameSkeleton(name))) return send(res,409,{error:'That guild name is already taken'});   /* v1080: look-alikes too */
       const id=uid(); const g={ id, name, leader:me.id, members:[me.id], reqs:[], level:1, exp:0, motd:'Welcome to '+name+'!', log:[], createdAt:Date.now() };
       DB.guilds[id]=g; me.guildId=id; writeDB();
       return send(res,200,{ guild:guildView(g) }); }
