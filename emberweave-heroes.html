@@ -10302,6 +10302,7 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
       u._stampLen=len; u._stampT=len/(o.speed||9*METER); u._stampDur=u._stampT; u._stampW=W; u._stampDmg=dB*(o.mul||1.8)*rm;
       u._stampPush=o.push||2.0*METER; u._stampStun=o.stun||1.0; u._stampHit=new Set(); u._stampFoes=foes.slice();
       u._abilHold=Math.max(u._abilHold||0,u._stampT+0.3);   // the ult clip rides the whole run
+      if(typeof spawnStampTrail==='function') spawnStampTrail(u);   /* v1072: display only */
       ringBurst(u.x,u.y,0xffcf40,14); burstAt(u.x,u.y,0xff8844,12);
       floatTexts.push({x:u.x,y:u.y-16,txt:'STAMPEDE',t:1.0,color:'#ffcf40',vy:1,sz:12}); break; }
     case 'piercethrow':{ const foes=enemiesOf(u); if(!foes.length)break;   // Granith: hurls a pickaxe at the FARTHEST hero, hitting everyone in the line's path
@@ -11185,6 +11186,8 @@ const FX2_DEF={
   mirelle_blue:{u:'/assets/anim/fx/mirelle_blue.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:4.42,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   mirelle_green:{u:'/assets/anim/fx/mirelle_green.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.88,upright:true,upSize:1.3,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   sloe_blue:{u:'/assets/anim/fx/sloe_blue.webp?v=3',n:48,fw:535,fh:512,cols:6,rows:8,dur:1.8,disc:{cy:0.5,dh:0.95,dw:0.95}},
+  stampbody:{u:'/assets/anim/fx/zahri_stamp_body.webp?v=1',n:1,fw:680,fh:122,cols:1,rows:1,dur:1},   /* v1072 Noonday Stampede (Grok, Phil-approved 8 Oct, spell 17): the streak - stretched from her start point to her */
+  stamphead:{u:'/assets/anim/fx/zahri_stamp_head.webp?v=1',n:1,fw:148,fh:122,cols:1,rows:1,dur:1},     /* v1072: the blazing head - pinned on Zahri, never scaled by the distance */
   oakroots:{u:'/assets/anim/fx/oakmir_deeproots.webp?v=1',n:96,fw:341,fh:420,cols:12,rows:8,dur:4.0,anchor:[0.4886,0.0116],cageH:1.28},   /* v1071 Deep Roots (Grok, Phil-accepted 8 Oct: 26_deep_roots_take, frames 0-95, magenta key) - roots rise around the rooted ally and draw back into the seed over the 4 s heal */
   zahrisolar:{u:'/assets/anim/fx/zahri_solar.webp?v=1',n:96,fw:341,fh:341,cols:12,rows:8,dur:4.0,tip:[0.1674,0.5000],heroPx:641.9},   /* v1070 Solar Impalement (Grok, Phil-picked 8 Oct: 16_spear_burst_take, clip frames 38-133, green key) - a light-spear on her lance, bursting when it lands */
   sloearrow:{u:'/assets/anim/fx/sloe_volleyarrow.webp?v=1',n:1,fw:512,fh:104,cols:1,rows:1,dur:1},   /* v1069 Emerald Volley arrow (Grok, Phil-approved 8 Oct: ONE still arrow per target, fired rapid-fire) - points screen-right */
@@ -11693,7 +11696,8 @@ function updateTipFx(dt){ const P=(TH&&_tipFx.length)?new TH.Vector3():null;
     const tu=mir?1-d.tip[0]:d.tip[0], tv=d.tip[1], c=Math.cos(th), s=Math.sin(th);
     o.spr.center.set(tu-(dx*c+dy*s)/Wf, tv-(-dx*s+dy*c)/Wf); o.spr.material.rotation=th; o.spr.visible=true; } }
 function clearTipFx(){ _tipFx.forEach(o=>{ try{ scene.remove(o.spr); o.spr.material.dispose(); }catch(_){} }); _tipFx.length=0;
-  _unitFx.forEach(o=>{ try{ scene.remove(o.spr); o.spr.material.dispose(); }catch(_){} }); _unitFx.length=0; }
+  _unitFx.forEach(o=>{ try{ scene.remove(o.spr); o.spr.material.dispose(); }catch(_){} }); _unitFx.length=0;
+  _stampFx.forEach(o=>{ try{ o.sprs.forEach(s=>{ scene.remove(s); s.material.dispose(); }); }catch(_){} }); _stampFx.length=0; }
 /* v1071: an upright FX standing on a unit's feet for one play of its sheet (24 fps) - Deep Roots grows its cage around the rooted ally.
    It follows the unit, draws in front of it (the cage is hollow, the hero shows through), and ends with the sheet or the unit. Display only. */
 const _unitFx=[];
@@ -11701,7 +11705,35 @@ function spawnUnitFx(u,key){ if(!TH||!scene||!u) return; const d=FX2_DEF[key]; i
   for(let i=_unitFx.length-1;i>=0;i--) if(_unitFx[i].u===u&&_unitFx[i].key===key){ scene.remove(_unitFx[i].spr); _unitFx[i].spr.material.dispose(); _unitFx.splice(i,1); }
   const spr=new TH.Sprite(new TH.SpriteMaterial({map:tex,transparent:true,depthWrite:false,depthTest:false})); fx2Hook(spr); fx2SetFrame(spr,d,0);
   spr.renderOrder=1; spr.visible=false; scene.add(spr); _unitFx.push({u,key,d,spr,t:0}); }
-function updateUnitFx(dt){ const P=(TH&&_unitFx.length)?new TH.Vector3():null;
+/* v1072 (Grok's Noonday Stampede, Phil-approved 8 Oct): a thrust flame that runs WITH Zahri. The head is pinned on her and points
+   along the charge; the streak is stretched from where she started to where she is now (Grok: "stretch or tile the middle ... keep
+   the head at her and the tail at the start. Do not scale the whole sprite"), straight on screen and never past her. When the run
+   ends the head cuts off and the streak burns away from the start toward her over 2 s, thinning and going orange. Display only. */
+const _stampFx=[];
+function spawnStampTrail(u){ if(!TH||!scene||!u) return; const tb=fx2Tex('stampbody'), th=fx2Tex('stamphead'); if(!tb||!th) return;
+  for(let i=_stampFx.length-1;i>=0;i--) if(_stampFx[i].u===u){ _stampFx[i].sprs.forEach(s=>{ scene.remove(s); s.material.dispose(); }); _stampFx.splice(i,1); }
+  const mk=(tex,key,ro)=>{ const s=new TH.Sprite(new TH.SpriteMaterial({map:tex,transparent:true,depthWrite:false,depthTest:false})); fx2Hook(s); fx2SetFrame(s,FX2_DEF[key],0); s.renderOrder=ro; s.visible=false; scene.add(s); return s; };
+  const body=mk(tb,'stampbody',-2), head=mk(th,'stamphead',-1);   // behind her: she runs in front of her own flame
+  _stampFx.push({u,body,head,sprs:[body,head],x0:u._stampX0,y0:u._stampY0,burn:-1,hx:u.x,hy:u.y}); }
+function updateStampFx(dt){ if(!_stampFx.length||!TH) return; const W=renderer.domElement.width, Hh=renderer.domElement.height;
+  const right=new TH.Vector3().setFromMatrixColumn(camera.matrixWorld,0);
+  for(let i=_stampFx.length-1;i>=0;i--){ const o=_stampFx[i], u=o.u; const sh=u.sprH||3, h=0.05+sh*0.50, thick=sh*0.30;
+    const running=(u._stampT||0)>0&&u.alive;
+    if(running){ o.hx=(u.rx==null?u.x:u.rx); o.hy=(u.ry==null?u.y:u.ry); } else if(o.burn<0) o.burn=0;
+    if(o.burn>=0) o.burn+=dt;
+    const f=o.burn<0?0:Math.min(1,o.burn/2.0);                         // 0..1 through the 2 s burn-out
+    if(f>=1){ o.sprs.forEach(s=>{ scene.remove(s); s.material.dispose(); }); _stampFx.splice(i,1); continue; }
+    const tx=o.x0+(o.hx-o.x0)*f, ty=o.y0+(o.hy-o.y0)*f;                 // the tail burns from the start toward her
+    const A=new TH.Vector3(wx(tx),h,wz(ty)), B=new TH.Vector3(wx(o.hx),h,wz(o.hy));
+    const a=A.clone().project(camera), bb=B.clone().project(camera);
+    const pdx=(bb.x-a.x)*W/2, pdy=(bb.y-a.y)*Hh/2, Lpx=Math.hypot(pdx,pdy), rot=Math.atan2(pdy,pdx);
+    const M=A.clone().add(B).multiplyScalar(0.5), m1=M.clone().project(camera), m2=M.clone().add(right).project(camera);
+    const wpp=1/Math.max(1e-6,Math.hypot((m2.x-m1.x)*W/2,(m2.y-m1.y)*Hh/2));   // world units per screen pixel at the trail's depth
+    const body=o.body, head=o.head;
+    body.visible=Lpx>2; body.position.copy(M); body.material.rotation=rot; body.scale.set(Lpx*wpp, thick*(1-0.6*f), 1);
+    body.material.opacity=1-f; body.material.color.setRGB(1, 1-0.35*f, 1-0.6*f);   // thinning, more orange, then gone
+    head.visible=running; if(running){ head.position.copy(B); head.material.rotation=rot; head.scale.set(thick*148/122, thick, 1); head.center.set(0.62,0.5); } } }
+function updateUnitFx(dt){ try{ updateStampFx(dt); }catch(e){} const P=(TH&&_unitFx.length)?new TH.Vector3():null;
   for(let i=_unitFx.length-1;i>=0;i--){ const o=_unitFx[i], u=o.u, d=o.d; o.t+=dt; const k=Math.floor(o.t*24);
     if(k>=d.n||!u.alive||!u._sprRef){ scene.remove(o.spr); o.spr.material.dispose(); _unitFx.splice(i,1); continue; }
     fx2SetFrame(o.spr,d,k); u._sprRef.getWorldPosition(P); o.spr.position.copy(P);
@@ -26093,7 +26125,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791502409449';
+const BUILD_ID = '1791510270114';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
