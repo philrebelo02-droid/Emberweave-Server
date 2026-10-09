@@ -508,7 +508,7 @@
   .cbonus.upper{width:10%;height:22%;transform:translate(-50%,-90%)}
   .cbonus.lower{transform:translate(-50%,-50%)}
   .cbonus span{top:100%;opacity:1;pointer-events:none;font-size:9px;letter-spacing:.4px;text-shadow:0 1px 3px #000}
-  .cbonus.locked{cursor:not-allowed;filter:grayscale(.7) brightness(.75)}.cbonus.locked::before{content:'🔒';animation:none;filter:none}
+  .cbonus.locked{cursor:not-allowed;filter:grayscale(.7) brightness(.75)}.cbonus.locked::before{content:'';background:url(/assets/img/ui/hud-lock.webp?v=1) center/contain no-repeat;animation:none;filter:none}
   @media(max-width:760px), (orientation:landscape){
     #campaign.active{position:absolute!important;inset:0!important;display:block!important;padding:0!important}#campaign>.backbtn{top:4px!important;left:4px!important;padding:5px 8px!important;min-height:30px;font-size:11px;z-index:9!important}
     #portalTabs{position:absolute!important;top:3px;left:64px;right:3px;height:32px;padding:0!important;gap:3px!important;z-index:9!important;background:linear-gradient(90deg,transparent,#0b1220cc 16%,#0b1220cc 84%,transparent)}#portalTabs .btn{padding:4px 6px!important;min-height:30px!important;font-size:9px!important}
@@ -616,7 +616,7 @@
   .portrait .pEmoji{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:56px;pointer-events:none;}
   .portrait .pInfo{position:absolute;top:2px;left:2px;width:19px;height:19px;line-height:18px;text-align:center;font-size:12px;font-weight:900;color:#cdd8ea;background:rgba(0,0,0,.6);border:1px solid #3a4a6e;border-radius:50%;z-index:3;pointer-events:auto;cursor:pointer;}
   .pslot.ready .portrait{box-shadow:0 0 16px 3px rgba(255,212,94,.95);animation:pulse 1s infinite;}
-  .pslot.ready::after{content:'⚡';position:absolute;top:11%;right:7%;font-size:20px;z-index:4;text-shadow:0 0 5px #000;pointer-events:none;}
+  .pslot.ready::after{content:'';width:20px;height:20px;background:url(/assets/img/icons/status/energy-v1.webp) center/contain no-repeat;position:absolute;top:11%;right:7%;font-size:20px;z-index:4;text-shadow:0 0 5px #000;pointer-events:none;}
   .pslot.dead{opacity:.4;filter:grayscale(1);}
   /* MOBILE: the framed hero HUD tiles are half-size on phones (desktop keeps full size) */
   @media (max-width:1024px), (max-height:600px){
@@ -2256,7 +2256,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
   <!-- CAMPAIGN ROADMAP -->
   <div class="screen hub" id="campaign" style="padding:0">
     <button class="btn secondary sm backbtn" data-nav="home" style="display:inline-flex;position:absolute;top:8px;left:8px;z-index:6">◀ Base</button>
-    <button class="btn secondary sm" id="campGlossBtn" style="display:inline-flex;position:absolute;top:8px;right:8px;z-index:10">📖 Glossary</button>
+    <button class="btn secondary sm" id="campGlossBtn" style="display:inline-flex;position:absolute;top:8px;right:8px;z-index:10"><img class="stIc" src="/assets/img/icons/ui/lore-book-v1.webp" alt=""> Glossary</button>
     <div id="portalTabs" style="display:flex;gap:5px;justify-content:center;padding:6px 8px 0;z-index:6;position:relative"></div>
     <div id="cmapHdr" style="display:flex;align-items:center;justify-content:center;gap:14px;width:100%;padding:9px 86px 7px 86px;box-sizing:border-box;z-index:5;position:relative"></div>
     <div id="cmapScroll"><div id="cmap"></div></div>
@@ -2267,9 +2267,9 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
     <button class="btn secondary sm backbtn" id="menuBack">◀</button>
     <div class="titlebar"><h1 id="menuTitle">SELECT SQUAD</h1></div>
     <div class="sub" id="menuSub" style="display:none"></div>
-    <button class="btn secondary sm" id="glossaryBtn" style="position:absolute;top:12px;right:12px;z-index:3">📖 Glossary</button>
+    <button class="btn secondary sm" id="glossaryBtn" style="position:absolute;top:12px;right:12px;z-index:3"><img class="stIc" src="/assets/img/icons/ui/lore-book-v1.webp" alt=""> Glossary</button>
     <div id="startRow" style="width:100%;max-width:560px;margin:0 auto 10px;display:flex;gap:8px;align-items:stretch">
-      <button class="btn" id="startBtn" style="flex:0 0 78%;max-width:78%">BATTLE ▶</button>
+      <button class="btn" id="startBtn" style="flex:0 0 78%;max-width:78%">BATTLE <img class="stIc" src="/assets/img/icons/ui/play-v1.webp" alt=""></button>
       <button class="btn secondary" id="resetCompBtn" style="flex:1 1 auto;padding:12px 6px;font-size:12px;white-space:nowrap" title="Clear the selected heroes">↺ RESET</button>
     </div>
     <div class="panel"><div class="row" id="roster"></div></div>
@@ -2281,10 +2281,10 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
     <div class="titlebar"><h1>GLOSSARY</h1></div>
     <div class="sub" id="glSub">The heroes and creatures of Emberweave</div>
     <div class="glTabs">
-      <button class="glTab on" data-gtab="heroes">🦸 Heroes</button>
+      <button class="glTab on" data-gtab="heroes"><img class="stIc" src="/assets/img/icons/ui/hero-v1.webp" alt=""> Heroes</button>
       <button class="glTab" data-gtab="monsters">👹 Monsters</button>
-      <button class="glTab" data-gtab="summons">✨ Summons</button>
-      <button class="glTab" data-gtab="bosses">💀 Bosses</button>
+      <button class="glTab" data-gtab="summons"><img class="stIc" src="/assets/img/icons/ui/sparkle-new-v1.webp" alt=""> Summons</button>
+      <button class="glTab" data-gtab="bosses"><img class="stIc" src="/assets/img/icons/status/death-v1.webp" alt=""> Bosses</button>
     </div>
     <div class="panel"><div id="glGrid" class="glGrid"></div></div>
     <div id="glModal"><div class="glCardBig" id="glCardBig"></div></div>
@@ -2301,7 +2301,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
   <!-- CITY WALL / PvP -->
   <div class="screen hub" id="wall">
     <button class="btn secondary sm backbtn" data-nav="home">◀ Base</button>
-    <button class="btn secondary sm" data-nav="world" style="position:absolute;top:12px;right:12px;z-index:22">World ▶</button>
+    <button class="btn secondary sm" data-nav="world" style="position:absolute;top:12px;right:12px;z-index:22">World <img class="stIc" src="/assets/img/icons/ui/play-v1.webp" alt=""></button>
     <div class="titlebar"><h1>CITY WALL</h1></div>
     <div class="sub" id="wallSub">Set your defenders and raid rival strongholds</div>
     <div id="wallBody"></div>
@@ -2487,7 +2487,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
     <div id="resultSquad"></div>
     <div class="reward" id="resultReward"></div>
     <div class="hint" id="resultHint"></div>
-    <button class="btn wide" id="resultBtn" style="margin-top:20px">CONTINUE ▶</button>
+    <button class="btn wide" id="resultBtn" style="margin-top:20px">CONTINUE <img class="stIc" src="/assets/img/icons/ui/play-v1.webp" alt=""></button>
   </div>
 
   <!-- medieval hub dropdown (top-right) -->
@@ -2505,18 +2505,18 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
     <div class="bbGem"></div>
   </div>
   <div id="battleCtrls">
-    <button id="speedBtn" class="ctrlBtn">▶ x1</button>
+    <button id="speedBtn" class="ctrlBtn"><img class="stIc" src="/assets/img/icons/ui/play-v1.webp" alt=""> x1</button>
     <button id="autoBtn" class="ctrlBtn">AUTO: OFF</button>
     <button id="skipBtn" class="ctrlBtn">⏭ Skip</button>
     <button id="leaveBtn" class="ctrlBtn">↩ Leave</button>
   </div>
   <div id="enemyBar"></div>
-  <div id="ultCancel">✕ Cancel</div>
+  <div id="ultCancel"><img class="stIc" src="/assets/img/icons/ui/close-v1.webp" alt=""> Cancel</div>
   <div id="banner"></div>
   <button id="pauseBtn">⏸</button>
   <div id="pauseModal"><div class="pm">
     <div style="font-size:20px;font-weight:900;margin-bottom:14px">Paused</div>
-    <button class="btn wide" id="resumeBtn">▶ Resume</button>
+    <button class="btn wide" id="resumeBtn"><img class="stIc" src="/assets/img/icons/ui/play-v1.webp" alt=""> Resume</button>
     <button class="btn wide secondary" id="restartBtn" style="margin-top:10px">↻ Restart Stage</button>
     <button class="btn wide secondary" id="exitBtn" style="margin-top:10px">Quit</button>
   </div></div>
@@ -2730,7 +2730,7 @@ function defK(lvl){ return DEF_K_BASE + DEF_K_PER_LV*Math.max(0,(lvl|0)-1); }
 const HERO_KEYS = Object.keys(HERO_TYPES);
 // MYTHICAL heroes — a rarity above the standard roster, obtained only through special purchases.
 function isMythic(key){ return !!(HERO_TYPES[key] && HERO_TYPES[key].myth); }
-function starStr(n){return '⭐'.repeat(n);}
+function starStr(n){return uiIcon('star-filled').repeat(n);}
 const HERO_PORTRAITS = {"bloatus":"/assets/img/hero-portraits/hero-bloatus.jpg","vireo":"/assets/img/hero-portraits/hero-vireo.jpg","fritz":"/assets/img/hero-portraits/hero-fritz.jpg","tick":"/assets/img/hero-portraits/hero-tick.jpg","sylthaine":"/assets/img/hero-portraits/hero-sylthaine.jpg","aureth":"/assets/img/hero-portraits/hero-aureth.jpg?v=4","vulmar":"/assets/img/hero-portraits/hero-vulmar-2.jpg","konwu":"/assets/img/hero-portraits/hero-konwu.jpg","grosk":"/assets/img/hero-portraits/hero-grosk-2.jpg"}; // hero portrait art (cards / UI)
 HERO_PORTRAITS.vulmar='/assets/img/hero-portraits/hero-vulmar-2.jpg'; HERO_PORTRAITS.grosk='/assets/img/hero-portraits/hero-grosk-2.jpg';
 HERO_PORTRAITS.umbris='/assets/img/hero-portraits/hero-umbris.png?v=p2'; HERO_PORTRAITS.vael='/assets/img/hero-portraits/hero-vael.png?v=p2'; HERO_PORTRAITS.oakmir='/assets/img/hero-portraits/hero-oakmir.png?v=p2'; HERO_PORTRAITS.rhukk='/assets/img/hero-portraits/hero-rhukk.png?v=p2';
@@ -4531,7 +4531,7 @@ function rarityBannerHtml(key,o){ o=o||{}; const r=heroRarity(key), t=HERO_TYPES
   const nm=o.name||t.name||(_mt&&_mt.name?String(_mt.name).split(',')[0]:'')||key;
   return `<div class="rbn rbn-${r}${o.word?' w':''}${nm.length>11?' long':''}" style="background-image:url('${img}')">${o.word?'':`<span>${escapeHTML(nm)}</span>`}</div>`; }
 function heroIcon(key,px,opts){ px=px||48; opts=opts||{}; const p=HERO_PORTRAITS[key], t=HERO_TYPES[key]||{};
-  if(!p) return `<span style="font-size:${Math.round(px*0.72)}px">${t.emoji||'❔'}</span>`;
+  if(!p) return `<span style="font-size:${Math.round(px*0.72)}px">${t.emoji||uiIcon('question')}</span>`;
   const own=!!(typeof G!=='undefined'&&G.unlocked&&G.unlocked[key]);   /* v612: every hero icon wears its ascension border, with its stars on the border's bottom edge once it's big enough to read */
   return `<span class="ascw" style="width:${px}px;height:${px}px;border-radius:9px;box-shadow:0 2px 7px rgba(0,0,0,.45)"><img src="${p}" style="width:100%;height:100%;object-fit:cover;display:block">${ascFrameHtml(key,{stars:own&&px>=44,orbs:opts.orbs===true||px>=80})}</span>`; }
 // symmetric head-shot crop of a portrait (auto-detects the figure and frames head+shoulders centered)
@@ -5187,7 +5187,7 @@ function heroFlatAtk(key){ return (sockStatTotal(key).atk||0); }   // stars are 
 function heroFlatHp(key){ return (sockStatTotal(key).hp||0); }
 function heroFlatApow(key){ return (sockStatTotal(key).apow||0); }   // v241: Ability Power glyphs raise the ABILITY line only
 function heroPenRating(key){ return (sockStatTotal(key).pen||0); }   // v241: Magic/Armor Penetration rating (counters defense rating)
-function starRow(cur,max){ let s=''; for(let i=1;i<=max;i++) s+=`<span style="font-size:15px;filter:${i<=cur?'none':'grayscale(1) brightness(.5)'}">⭐</span>`; return s; }
+function starRow(cur,max){ let s=''; for(let i=1;i<=max;i++) s+=`<span style="font-size:15px;filter:${i<=cur?'none':'grayscale(1) brightness(.5)'}">${uiIcon('star-filled')}</span>`; return s; }
 // SVG star filled left→right by `frac` (0..1) — used to show a star filling like a gauge
 let _starUid=0;
 function starSVG(frac,size,col){ size=size||40; const fill=col||'#ffc23a', stroke=col||'#ffd45e'; const id='s'+(_starUid++); const path="M50 5 L61 38 L96 38 L68 59 L79 93 L50 72 L21 93 L32 59 L4 38 L39 38 Z";
@@ -5910,7 +5910,7 @@ function actGiveUp(){
   for(const inp of pend){ inp.t=simTick; _inputQ.push(inp);
     if(INPUT_LOG.length<400) INPUT_LOG.push([inp.t, inp.k, (inp.uid==null?-1:inp.uid), (inp.tid==null?-1:inp.tid),
       (inp.wx==null?null:+inp.wx.toFixed(2)), (inp.wy==null?null:+inp.wy.toFixed(2))]); }
-  bannerMsg('⚠ Connection slow — this battle is being recorded locally.');
+  bannerMsg(uiIcon('warning')+' Connection slow — this battle is being recorded locally.');
 }
 const ACT_INPUT_DELAY_CLIENT=9;   // must match the server's ACT_INPUT_DELAY
 function queueInput(inp){
@@ -7636,7 +7636,7 @@ function gsplitPresetRow(E){
       const n=p ? p.picked.filter(k=>G.unlocked[k]).length : 0;
       return '<button type="button" class="gsplitPreset'+(saving?' saving':'')+'" data-p="'+i+'"'+(!p&&!saving?' disabled':'')+'>'
         +(saving?'Save to '+(i+1):'Preset '+(i+1))+'<small>'+(p?n+' heroes':'empty')+'</small></button>'; }).join('')
-    +(place?'<button type="button" class="gsplitPresetSave'+(saving?' on':'')+'" id="gsplitPresetSave">'+(saving?'✕ Cancel':'💾 Save')+'</button>':'')
+    +(place?'<button type="button" class="gsplitPresetSave'+(saving?' on':'')+'" id="gsplitPresetSave">'+(saving?uiIcon('close')+' Cancel':uiIcon('save')+' Save')+'</button>':'')
     +'<div class="gsplitPresetNote">'+gsplitEsc(E._presetNote||'')+'</div></div>';
 }
 function gsplitPresetWire(el, E){
@@ -7691,7 +7691,7 @@ function gsplitPickerRender(){
   gsplitPickerCss();
   const head = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
       <div style="font-weight:800;font-size:15px">BONUS ${E.id}${info.tier?' — '+info.tier:''}</div>
-      <button type="button" id="gsplitClose" class="btn xs secondary">✕</button></div>`;
+      <button type="button" id="gsplitClose" class="btn xs secondary">${uiIcon('close')}</button></div>`;
 
   /* ---------------- SCREEN 1 · PICK (Phil, 17 Sep: "lock the ability to select a 16th hero") ---------------- */
   if(E.mode==='pick'){
@@ -7700,7 +7700,7 @@ function gsplitPickerRender(){
         width:64px;padding:6px 2px;margin:3px;border-radius:8px;border:2px solid ${on?'#c9a35e':'#333'};
         background:${on?'rgba(201,163,94,.18)':'rgba(255,255,255,.04)'};color:#e6edf3;font-size:10px;cursor:pointer;touch-action:manipulation">
         <img src="${artOf(k)}" alt="${gsplitEsc(nameOf(k))}" style="width:54px;height:62px;object-fit:cover;border-radius:5px" onerror="this.style.visibility='hidden'"><span style="max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${gsplitEsc(nameOf(k))}</span>
-        <span style="color:#c9a35e;font-weight:800">${on?'✓':'⚔ '+powOf(k)}</span></button>`; }).join('');
+        <span style="color:#c9a35e;font-weight:800">${on?uiIcon('check'):statusIcon('attack')+' '+powOf(k)}</span></button>`; }).join('');
     /* v585: the count and NEXT ride in a bar pinned to the bottom of the card - on a landscape phone they
        used to sit below every hero, a long scroll away. BEST picks the strongest heroes in one tap. */
     el.innerHTML = head + `
@@ -7709,7 +7709,7 @@ function gsplitPickerRender(){
       <div style="display:flex;flex-wrap:wrap;gap:2px;margin-bottom:10px">${chips || '<div style="color:#8b98a9;font-size:12px">No heroes unlocked yet.</div>'}</div>
       <div class="gsplitBar"><div class="gsplitCount">Selected <b>${E.picked.length}</b> / ${CAP}<div id="gsplitErr" style="color:#ff6b6b;font-size:11px"></div></div>
         <button type="button" id="gsplitAuto" class="btn secondary">BEST ${Math.min(CAP,owned.length)}</button>
-        <button type="button" id="gsplitNext" class="btn" ${E.picked.length?'':'disabled'}>NEXT ▶</button></div>`;
+        <button type="button" id="gsplitNext" class="btn" ${E.picked.length?'':'disabled'}>NEXT ${uiIcon('play')}</button></div>`;
     gsplitPresetWire(el, E);
     el.querySelector('#gsplitAuto').onclick = ()=>{ E.picked = owned.slice(0,CAP);
       Object.keys(E.laneOf).forEach(k=>{ if(E.picked.indexOf(k)<0) delete E.laneOf[k]; }); gsplitPickerRender(); };
@@ -8236,7 +8236,7 @@ function gsplitShowResult(won, data){
   const stageId = GSPLIT.stage;
   const stars = (data && typeof data.stars === 'number') ? data.stars : 0;
   const note = (data && data.starNote) ? data.starNote : (won ? '' : 'Two roads must come home - a second fallen road ends the run.');
-  const starStr = stars ? ' '+'★'.repeat(stars)+'☆'.repeat(3-stars) : '';
+  const starStr = stars ? ' '+uiIcon('star-filled').repeat(stars)+uiIcon('star-empty').repeat(3-stars) : '';
   gsplitWindowHide();
   gsplitEnd();
   gsplitHudExit();
@@ -8555,7 +8555,7 @@ gsplitShowResult=function(won,data){
   if(won){
     const stars=document.createElement('div');
     const n=Math.max(0,Math.min(3,Number(data.stars)||0));
-    stars.textContent='★'.repeat(n)+'☆'.repeat(3-n);
+    stars.innerHTML=uiIcon('star-filled').repeat(n)+uiIcon('star-empty').repeat(3-n);
     stars.style.cssText='color:#ffc967;font-size:28px;letter-spacing:4px';
     card.appendChild(stars);
   }
@@ -8593,7 +8593,7 @@ function initThree(){
          and resumable (v273) — the stamina and the stage come straight back. */
   { const _cv=renderer.domElement; let _lost=false;
     _cv.addEventListener('webglcontextlost',(e)=>{ e.preventDefault(); _lost=true;
-      try{ bannerMsg((window.ED&&ED.active) ? "⚠ Graphics restarting — this Emberdraft match can't be resumed." : '⚠ Graphics restarting — your battle is saved.'); }catch(_){}   /* v646: the Emberdraft match lives in memory only */
+      try{ bannerMsg((window.ED&&ED.active) ? uiIcon('warning')+" Graphics restarting — this Emberdraft match can't be resumed." : uiIcon('warning')+' Graphics restarting — your battle is saved.'); }catch(_){}   /* v646: the Emberdraft match lives in memory only */
       try{ console.warn('[gl] context lost'); }catch(_){}
       setTimeout(()=>{ if(_lost){ try{ location.reload(); }catch(_){} } }, 4000); },false);   // never came back → reload
     _cv.addEventListener('webglcontextrestored',()=>{ _lost=false;
@@ -9465,7 +9465,7 @@ function sndUlt(u){ if(!u||!u.key||!sndCan()||!SND.cfg.voice.on) return false;
 const LORE_AUDIO = {};
 const _lore = { a:null, key:null };
 function loreStop(){ try{ if(_lore.a){ _lore.a.pause(); _lore.a.removeAttribute('src'); _lore.a.load(); } }catch(e){} _lore.a=null; _lore.key=null; }
-function loreBtnSync(btn){ if(!btn) return; const on=!!(_lore.a&&!_lore.a.paused&&!_lore.a.ended); btn.textContent=on?'❚❚':'▶'; btn.setAttribute('aria-label',on?'Pause the story':'Play the story'); }
+function loreBtnSync(btn){ if(!btn) return; const on=!!(_lore.a&&!_lore.a.paused&&!_lore.a.ended); btn.innerHTML=on?uiIcon('pause'):uiIcon('play'); btn.setAttribute('aria-label',on?'Pause the story':'Play the story'); }
 function loreToggle(key,btn){ try{
   if(_lore.a&&_lore.key===key&&!_lore.a.ended){ if(_lore.a.paused) _lore.a.play().catch(()=>{}); else _lore.a.pause(); return; }
   loreStop(); const f=LORE_AUDIO[key]; if(!f||!SND.cfg.voice.on) return;
@@ -12633,7 +12633,7 @@ function vaultOpenSubPicker(dead){
   const ov=document.createElement('div'); ov.id='vaultSubModal';
   ov.style.cssText='position:absolute;inset:0;z-index:60;background:rgba(5,8,14,.74);display:flex;align-items:center;justify-content:center';
   ov.innerHTML=`<div class="panel" style="max-width:430px;width:88%;text-align:center;border-color:#7a5fb0">
-    <div style="font-weight:900;font-size:14px;color:#ff8b8b">💀 ${(HERO_TYPES[dead.key]||{}).name||dead.key} has fallen!</div>
+    <div style="font-weight:900;font-size:14px;color:#ff8b8b">${statusIcon('death')} ${(HERO_TYPES[dead.key]||{}).name||dead.key} has fallen!</div>
     <div style="font-size:11px;color:#c9a2ff;margin:6px 0">Choose a backup to step in (${CUR.backups.length} left):</div>
     <div id="vsubRow" style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap"></div>
     <button class="btn secondary xs" style="margin-top:10px" id="vsubSkip">Fight on without a replacement</button></div>`;
@@ -12699,9 +12699,9 @@ function bossCueFor(u){
 function bossIntro(){ const b=units.find(u=>u.team==='enemy'&&u.alive&&u.boss)||units.find(u=>u.team==='enemy'&&u.alive);
   const nm=(b&&b.t&&b.t.name)?b.t.name:'The Guardian';
   const cue=bossCueFor(b)||'A stage guardian — bring your ultimates ready';
-  const el=document.getElementById('banner'); if(!el){ bannerMsg('⚠ BOSS'); return; }
-  el.innerHTML='<div style="font-size:12px;letter-spacing:2px;color:#ffb37a">⚠ BOSS INCOMING</div>'
-    +'<div style="font-size:26px;font-weight:900;color:#ffd45e;line-height:1.15;margin:2px 0">👑 '+escapeHTML(nm)+'</div>'
+  const el=document.getElementById('banner'); if(!el){ bannerMsg(uiIcon('warning')+' BOSS'); return; }
+  el.innerHTML='<div style="font-size:12px;letter-spacing:2px;color:#ffb37a">'+uiIcon('warning')+' BOSS INCOMING</div>'
+    +'<div style="font-size:26px;font-weight:900;color:#ffd45e;line-height:1.15;margin:2px 0">'+uiIcon('crown')+' '+escapeHTML(nm)+'</div>'
     +'<div style="font-size:12px;color:#cdd8ea;max-width:82vw;margin:0 auto">'+escapeHTML(cue)+'</div>';
   el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
   setTimeout(()=>el.classList.remove('show'),1600); }
@@ -12863,13 +12863,13 @@ function grantRewards(){
     let eliteStr='';
     if(isHeroRewardStage(node)){
       const hk=eliteHeroFor(node), fh=HERO_TYPES[hk], amt=firstClear?(ELITE_FRAG_MIN+Math.floor(Math.random()*(ELITE_FRAG_MAX-ELITE_FRAG_MIN+1))):1;   // first clear: full 3-4 roll; every farm run after: +1
-      const um=giveHeroFrag(hk,amt); const _pi=HERO_PORTRAITS[hk]?`<img src="${HERO_PORTRAITS[hk]}" style="width:16px;height:16px;border-radius:4px;object-fit:cover;vertical-align:middle;display:inline-block">`:(fh.emoji||''); eliteStr=`<br><span style="color:#c9a0ff">⭐ +${amt} ${_pi} ${fh.name} fragment${amt===1?'':'s'}</span>`; if(um)unlockMsg=um; }
-    const lvlStr = lvlGain>0 ? `<br><span style="color:#5ee89b;font-weight:800">⬆️ Level up! +${30*lvlGain} stamina</span>` : '';
-    msg=`<span class="coins">🪙 +${gold}</span> · +${xp} XP · heroes +${hxp} XP${glyphStr}${eliteStr}${lvlStr}<br>${unlockMsg||(firstClear?'Stage cleared for the first time!':'Stage farmed.')}`;
+      const um=giveHeroFrag(hk,amt); const _pi=HERO_PORTRAITS[hk]?`<img src="${HERO_PORTRAITS[hk]}" style="width:16px;height:16px;border-radius:4px;object-fit:cover;vertical-align:middle;display:inline-block">`:(fh.emoji||''); eliteStr=`<br><span style="color:#c9a0ff">${uiIcon('star-filled')} +${amt} ${_pi} ${fh.name} fragment${amt===1?'':'s'}</span>`; if(um)unlockMsg=um; }
+    const lvlStr = lvlGain>0 ? `<br><span style="color:#5ee89b;font-weight:800">${uiIcon('level-up')} Level up! +${30*lvlGain} stamina</span>` : '';
+    msg=`<span class="coins">${hudIcon('gold')} +${gold}</span> · +${xp} XP · heroes +${hxp} XP${glyphStr}${eliteStr}${lvlStr}<br>${unlockMsg||(firstClear?'Stage cleared for the first time!':'Stage farmed.')}`;
   } else {
     G.trophies+=12; grantTeamXP(60);
     if(ACC.token) api('/api/trial/resolve','POST',{kind:'tower',floor:(function(){ try{ return Math.max(1,towerState().floor|0); }catch(e){ return 1; } })(),heroIds:(G.team||[]).filter(Boolean),requestId:uid8()}).then(r=>{ if(r&&r.ok&&r.reward){ adoptLedger(r.ledger); } }).catch(()=>{});   // v250: the SERVER resolves + rewards the trial
-    msg=`🏆 +12 trophies · <span class="coins">🪙 +80</span>`;
+    msg=`${uiIcon('trophy')} +12 trophies · <span class="coins">${hudIcon('gold')} +80</span>`;
   }
   saveG(); return msg;
 }
@@ -12974,8 +12974,8 @@ function endBattle(won){
       const _mv=(oldRank&&G.arenaRank&&oldRank!==G.arenaRank)?`<div style="font-size:11px;color:#8fe3ff;margin-top:3px">Rank ${oldRank} → <b style="color:#ffd45e">${G.arenaRank}</b> (${oldRank-G.arenaRank>0?'+':''}${oldRank-G.arenaRank})</div>`:`<div style="font-size:11px;color:#8b98a9;margin-top:3px">Rank unchanged — #${G.arenaRank}</div>`;
       const _rc=_recap?`<div style="font-size:11px;color:#cdd8ea;margin-top:5px">${escapeHTML(_recap)}</div>`:'';
       const winMsg = (swapped
-        ? `Took <b>${escapeHTML(String(CUR.oppName||''))}</b>'s spot · 🪙 +${reward}${gemsWon>0?` · <span style="color:#c9b6ff">💎 +${gemsWon}</span>`:''}`
-        : `Beat <b>${escapeHTML(String(CUR.oppName||''))}</b> · 🪙 +${reward}`)+_mv+_rc;
+        ? `Took <b>${escapeHTML(String(CUR.oppName||''))}</b>'s spot · ${hudIcon('gold')} +${reward}${gemsWon>0?` · <span style="color:#c9b6ff">${hudIcon('gem')} +${gemsWon}</span>`:''}`
+        : `Beat <b>${escapeHTML(String(CUR.oppName||''))}</b> · ${hudIcon('gold')} +${reward}`)+_mv+_rc;
       document.getElementById('resultReward').innerHTML=won?winMsg:(`Lost to <b>${escapeHTML(String(CUR.oppName||''))}</b>.`+_mv+_rc);
       document.getElementById('resultHint').textContent=''; gameSpeed=1; show('result'); },800); return; }
   if(CUR.mode==='vault'){ const att=CUR.attemptId;
@@ -13000,7 +13000,7 @@ function endBattle(won){
         const ecount={}; (r.reward.gearFragments||[]).forEach(k=>{ ecount[k]=(ecount[k]||0)+1; });
         const eList=Object.keys(ecount).map(k=>k+' ×'+ecount[k]);
         msg=rewardPanel(gList,{dust:r.reward.dust},'Aether Vault — floor '+CUR.floor,eList)
-          +(r.reward.heroXp?'<div style="margin-top:6px;font-size:12px;color:#5ee89b">⭐ +'+r.reward.heroXp+' hero XP to every hero on the line</div>':'')
+          +(r.reward.heroXp?'<div style="margin-top:6px;font-size:12px;color:#5ee89b">'+uiIcon('star-filled')+' +'+r.reward.heroXp+' hero XP to every hero on the line</div>':'')
           +(r.reward.firstClearDoubled?'<div style="margin-top:8px"><div style="font-size:11px;letter-spacing:1px;color:#8b98a9">FIRST-CLEAR BONUS</div><b style="color:#ffd45e">Boss floor — package and Dust paid twice, once only.</b></div>':''); }
       else if(won){ msg=(r&&r.error)?('<span style="color:#ff8b8b">'+escapeHTML(r.error)+'</span>'):'Victory recorded.'; }
       else { msg='Your squad fell.';   /* v1014 (re-audit Arena N11): no hint prose */ }
@@ -13032,7 +13032,7 @@ function endBattle(won){
       /* v250: px/heroXp for this loop come from /api/trial/resolve */
       saveG();updateHubChrome();}   // dungeon now grants player XP (scales with level) + hero XP
     resultLater(()=>{ document.getElementById('resultTitle').textContent=won?'DUNGEON CLEARED':'DEFEAT'; document.getElementById('resultTitle').className='result-big '+(won?'win':'lose');
-      document.getElementById('resultReward').innerHTML=won?`<span class="coins">🪙 +${gold}</span> · <span style="color:#9fe6ff">+${dxp} XP</span> · +${hxp} hero XP · <span style="color:#8fe3ff">${dropLog} equipment pieces</span>${lvlUp?` · <b style="color:#ffd45e">Level up! → ${playerLevel()}</b>`:''}`:'Your squad fell in the dungeon.'; document.getElementById('resultHint').textContent=won?'Craft & equip gear on Heroes → hero → Equipment tab.':''; gameSpeed=1; show('result'); },800); return; }
+      document.getElementById('resultReward').innerHTML=won?`<span class="coins">${hudIcon('gold')} +${gold}</span> · <span style="color:#9fe6ff">+${dxp} XP</span> · +${hxp} hero XP · <span style="color:#8fe3ff">${dropLog} equipment pieces</span>${lvlUp?` · <b style="color:#ffd45e">Level up! → ${playerLevel()}</b>`:''}`:'Your squad fell in the dungeon.'; document.getElementById('resultHint').textContent=won?'Craft & equip gear on Heroes → hero → Equipment tab.':''; gameSpeed=1; show('result'); },800); return; }
   if(CUR.mode==='elite'){ const key=CUR.eliteKey; let frags=won?(2+Math.floor(Math.random()*3)):0; let eliteUnlock=''; let _srv=null; if(won){
       if(ACC.token){ api('/api/elite/resolve','POST',{node:(CUR.node|0),heroIds:(G.team||[]).filter(Boolean),requestId:uid8()}).then(r=>{
           if(r&&r.ok&&r.won){ const um=giveHeroFrag(r.heroKey,r.frags); if(um)bannerMsg(um); adoptLedger(r.ledger); updateHubChrome();
@@ -13059,8 +13059,8 @@ function endBattle(won){
       const V=CUR.pvpVerified||null, sWon=V?!!V.won:won;
       setResultVerdict(sWon, null);   // AUDIT #20: star row / squad panel follow the verified city result
       document.getElementById('resultTitle').textContent=sWon?'CITY SKIRMISH WON':'DEFENCE HELD'; document.getElementById('resultTitle').className='result-big '+(sWon?'win':'lose');
-      const badge=V?'<div style="font-size:10.5px;color:#5ee89b;letter-spacing:1px;margin-bottom:4px">✔ SERVER-VERIFIED RESULT</div>':'';
-      const loot=(V&&V.loot&&V.loot.gold)?`<div><span class="coins">🪙 +${V.loot.gold}</span> <span style="font-size:10.5px;color:#8b98a9">(capped at 400 per attack · 8,000/day)</span></div>`
+      const badge=V?'<div style="font-size:10.5px;color:#5ee89b;letter-spacing:1px;margin-bottom:4px">'+uiIcon('check')+' SERVER-VERIFIED RESULT</div>':'';
+      const loot=(V&&V.loot&&V.loot.gold)?`<div><span class="coins">${hudIcon('gold')} +${V.loot.gold}</span> <span style="font-size:10.5px;color:#8b98a9">(capped at 400 per attack · 8,000/day)</span></div>`
         :(V?`<div style="color:#8b98a9">Daily loot cap reached — rank and reports still count.</div>`:'');
       const recap=(V&&V.recap)?`<div style="font-size:11px;color:#cdd8ea;margin-top:6px">${escapeHTML(V.recap)}</div>`:'';
       const atks=(V&&V.attacksLeft!=null)?`<div style="font-size:10.5px;color:#6f7d90;margin-top:4px">${V.attacksLeft} city attacks left today</div>`:'';
@@ -13082,9 +13082,9 @@ function endBattle(won){
       document.getElementById('resultReward').innerHTML = ok
         ? `<div style="font-size:11px;letter-spacing:1px;color:#8b98a9;margin-bottom:4px">${escapeHTML(RB.name||'RAID BOSS')} · TIER ${RB.tier|0}</div>`
           +`<div style="font-size:15px;font-weight:800;color:#ffbf69;margin-bottom:4px">${dealt.toLocaleString()} damage</div>`
-          +(fell?`<div style="color:#ffd45e;font-weight:700">💥 Killing blow — Tier ${(r.reward&&r.reward.tier)|0} down!</div>`
-                 +`<div style="margin-top:3px">🪙 ${(((r.reward&&r.reward.gold)|0)).toLocaleString()} · 💎 ${((r.reward&&r.reward.gems)|0)} · 🏅 ${((r.reward&&r.reward.guildCoins)|0)}</div>`
-             :`<div style="margin-top:2px">🏅 ${((r.reward&&r.reward.guildCoins)|0)} guild coins</div>`)
+          +(fell?`<div style="color:#ffd45e;font-weight:700">${statusIcon('crit-burst')} Killing blow — Tier ${(r.reward&&r.reward.tier)|0} down!</div>`
+                 +`<div style="margin-top:3px">${hudIcon('gold')} ${(((r.reward&&r.reward.gold)|0)).toLocaleString()} · ${hudIcon('gem')} ${((r.reward&&r.reward.gems)|0)} · ${uiIcon('medal')} ${((r.reward&&r.reward.guildCoins)|0)}</div>`
+             :`<div style="margin-top:2px">${uiIcon('medal')} ${((r.reward&&r.reward.guildCoins)|0)} guild coins</div>`)
           +(r.raid?`<div style="font-size:10.5px;color:#6f7d90;margin-top:6px">Boss at ${(r.raid.hp|0).toLocaleString()} / ${(r.raid.max|0).toLocaleString()} HP · ${(r.raid.attemptsLeft|0)} assaults left today</div>`:'')
         : `<div style="color:#ffd45e;font-weight:700;margin-bottom:4px">This run was not counted.</div><span style="color:#ff8b8b">${escapeHTML(String((r&&r.error)||'Could not reach the realm.'))}</span>`;
       document.getElementById('resultHint').textContent='';
@@ -13100,7 +13100,7 @@ function endBattle(won){
       document.getElementById('resultTitle').textContent=sWon?(r.done?'THE WELL IS CLEARED':(Wl.type==='boss'?'BOSS DEFEATED':'VICTORY')):(_unv?'NOT COUNTED':'DEFEAT');
       document.getElementById('resultTitle').className='result-big '+(sWon?'win':'lose');
       document.getElementById('resultReward').innerHTML= sWon&&rw
-        ? `<div style="font-size:14px;font-weight:800;color:#ffd98a">+${(rw.gold|0).toLocaleString()} gold${rw.gems?` · +${rw.gems} 💎`:''}${rw.potions?` · +${rw.potions} Superior XP Potion${rw.potions>1?'s':''}`:''}</div>${rw.endXP?`<div style="font-size:15px;color:#9fe0ff;font-weight:800">+${(rw.endXP|0).toLocaleString()} XP</div>`:''}`
+        ? `<div style="font-size:14px;font-weight:800;color:#ffd98a">+${(rw.gold|0).toLocaleString()} gold${rw.gems?` · +${rw.gems} ${hudIcon('gem')}`:''}${rw.potions?` · +${rw.potions} Superior XP Potion${rw.potions>1?'s':''}`:''}</div>${rw.endXP?`<div style="font-size:15px;color:#9fe0ff;font-weight:800">+${(rw.endXP|0).toLocaleString()} XP</div>`:''}`
         : (_unv?`<span style="color:#ff8b8b">${escapeHTML(String((r&&r.error)||'Could not reach the realm.'))}</span>`:'');
       document.getElementById('resultHint').textContent='';
       updateHubChrome(); gameSpeed=1; show('result'); },800); return; }
@@ -13171,10 +13171,10 @@ function endBattle(won){
       document.getElementById('resultReward').innerHTML= sWon
         ? rewardPanel((r.reward&&r.reward.glyphFragments)||[], {gold:(r.reward&&r.reward.gold)||0, px:(r.reward&&r.reward.playerXp)||0, heroXp:(r.reward&&r.reward.heroXp)||0},
             'Portal '+stageCode(CUR.node))
-          +(Object.entries((r.reward&&r.reward.xpPotions)||{}).filter(([,n])=>n>0).map(([tier,n])=>`<div style="margin-top:6px;color:#c9a0ff">📖 +${n} ${escapeHTML(tier[0].toUpperCase()+tier.slice(1))} Hero XP Potion${n===1?'':'s'}</div>`).join(''))
+          +(Object.entries((r.reward&&r.reward.xpPotions)||{}).filter(([,n])=>n>0).map(([tier,n])=>`<div style="margin-top:6px;color:#c9a0ff">${uiIcon('lore-book')} +${n} ${escapeHTML(tier[0].toUpperCase()+tier.slice(1))} Hero XP Potion${n===1?'':'s'}</div>`).join(''))
           +((r.reward&&r.reward.eliteFrag&&r.reward.eliteFrag.qty)?`<div style="margin-top:6px;color:#c9a0ff">🧩 +${r.reward.eliteFrag.qty|0} ${escapeHTML((HERO_TYPES[r.reward.eliteFrag.heroKey]||{}).name||r.reward.eliteFrag.heroKey)} fragment${(r.reward.eliteFrag.qty|0)===1?'':'s'}</div>`:'')
           +((r.reward&&r.reward.dailyCapped)?'<div style="margin-top:6px;color:#ff9a9a">Daily limit reached for this stage (3 rewarded runs/day) — no rewards this run.</div>':'')
-          +`<div style="margin-top:6px">${'★'.repeat(r.stars||1)}${r.reward&&r.reward.first?' · <b style="color:#ffd45e">First clear!</b>':''}</div>`
+          +`<div style="margin-top:6px">${uiIcon('star-filled').repeat(r.stars||1)}${r.reward&&r.reward.first?' · <b style="color:#ffd45e">First clear!</b>':''}</div>`
         : (_unv?('<div style="color:#ffd45e;font-weight:700;margin-bottom:4px">You '+(/"won":true/.test(window._p2lastDigest||'')?'won':'fought')+' this one — '+((r&&(r.error==='offline'||r.storageFailed))?(r.storageFailed?'but the server could not save it, so it was not counted.':'but the connection was lost before the server answered, so it is not counted here.'):'but the server could not verify it, so nothing was recorded and your stamina is back.')+'</div><span style="color:#ff8b8b">'+escapeHTML((r&&r.error&&r.error!=='offline')?r.error:'')+'</span>'+(r&&r.reason?'<div style="font-size:10.5px;color:#6f7d90;margin-top:4px">('+escapeHTML(r.reason)+(CUR.engine&&CUR.engine!==BUILD_ID?' · the game updated during this fight':'')+')</div>':''))
           : ((r&&r.error)?('<span style="color:#ff8b8b">'+escapeHTML(r.error)+'</span>'):'Your squad fell.'));
       document.getElementById('resultHint').textContent='';
@@ -18385,7 +18385,7 @@ function renderStarTrack(){
   const t=totalCampaignStars(), claimed=G.starMilestonesClaimed||0, next=(claimed+1)*15, ready=t>=next;
   const r=starMilestoneReward(claimed), pct=Math.max(0,Math.min(100,Math.round((t-claimed*15)/15*100)));
   el.innerHTML=`<div style="display:flex;align-items:center;gap:10px;background:linear-gradient(165deg,rgba(42,36,18,.6),rgba(14,19,32,.75));border:1px solid #4a3e22;border-radius:11px;padding:8px 11px;margin-bottom:8px">
-    <div style="font-size:20px">⭐</div>
+    <div style="font-size:20px">${uiIcon('star-filled')}</div>
     <div style="flex:1;min-width:0">
       <div style="display:flex;justify-content:space-between;font-size:11px"><b style="color:#ffd45e">${t} total stars</b><span style="color:#8b98a9">next at <b>${next}</b>: ${r.desc}</span></div>
       <div style="height:6px;background:#0d1320;border-radius:4px;margin-top:4px;overflow:hidden"><i style="display:block;height:100%;width:${ready?100:pct}%;background:linear-gradient(90deg,#c9a35e,#ffd45e)"></i></div>
@@ -18400,9 +18400,9 @@ function renderStarTrack(){
 function renderPortalTabs(){
   const bar=document.getElementById('portalTabs'); if(!bar) return;
   bar.innerHTML=['normal','elite','veteran'].map(m=>{ const meta=PORTAL_META[m], lock=portalLockMsg(m), on=(PORTAL===m);
-    return `<button class="btn xs ${on?'':'secondary'}" data-portal="${m}" style="flex:1;max-width:150px;font-size:11px;padding:5px 6px;${lock?'opacity:.5':''}">${lock?'🔒':meta.icon} ${meta.label}</button>`; }).join('');
+    return `<button class="btn xs ${on?'':'secondary'}" data-portal="${m}" style="flex:1;max-width:150px;font-size:11px;padding:5px 6px;${lock?'opacity:.5':''}">${lock?hudIcon('lock'):meta.icon} ${meta.label}</button>`; }).join('');
   bar.querySelectorAll('[data-portal]').forEach(btn=>btn.onclick=()=>{ const m=btn.dataset.portal, lock=portalLockMsg(m);
-    if(lock){ bannerMsg('🔒 '+lock); return; } setPortal(m); });
+    if(lock){ bannerMsg(hudIcon('lock')+' '+lock); return; } setPortal(m); });
 }
 let _campaignIdleRAF=0;
 function startCampaignIdleNodes(){
@@ -18423,7 +18423,7 @@ function renderRoadmap(){
   const MODE=PORTAL, TOTAL_CH=portalChapters(MODE), MAX_CH=TOTAL_CH, PLAYABLE=portalStages(MODE);
   const lockMsg=portalLockMsg(MODE);
   if(lockMsg){ map.style.height='auto'; map.innerHTML=`<div class="panel" style="text-align:center;padding:26px;margin:16px">
-      <div style="font-size:40px">🔒</div><div style="font-weight:800;margin:8px 0">${PORTAL_META[MODE].label} Portal</div>
+      <div style="font-size:40px">${hudIcon('lock')}</div><div style="font-weight:800;margin:8px 0">${PORTAL_META[MODE].label} Portal</div>
       <div style="font-size:12px;color:#8b98a9">${escapeHTML(lockMsg)}</div></div>`;
     const h0=document.getElementById('cmapHdr'); if(h0) h0.innerHTML=''; return; }
   // default the viewed chapter to the one containing your current stage (clamped to what's unlocked)
@@ -18435,13 +18435,13 @@ function renderRoadmap(){
   // chapter header + nav
   const hdr=document.getElementById('cmapHdr');
   if(hdr){ hdr.innerHTML=`<button class="btn xs secondary" id="chPrev" ${ch<=1?'disabled':''}>◀</button>
-    <div style="text-align:center;line-height:1.2"><div style="font-weight:800;font-size:14px">${MODE==='normal'?'':PORTAL_META[MODE].icon+' '} Chapter ${ch}${locked?' 🔒':''}</div><div style="font-size:11px;color:#c9a35e">${MODE==='veteran'?'Veteran Portal — Orange':(CHAPTER_NAMES[ch-1]||'')}</div></div>
-    <button class="btn xs secondary" id="chNext" ${ch>=TOTAL_CH?'disabled':''}>▶</button>`;
+    <div style="text-align:center;line-height:1.2"><div style="font-weight:800;font-size:14px">${MODE==='normal'?'':PORTAL_META[MODE].icon+' '} Chapter ${ch}${locked?' '+hudIcon('lock'):''}</div><div style="font-size:11px;color:#c9a35e">${MODE==='veteran'?'Veteran Portal — Orange':(CHAPTER_NAMES[ch-1]||'')}</div></div>
+    <button class="btn xs secondary" id="chNext" ${ch>=TOTAL_CH?'disabled':''}>${uiIcon('play')}</button>`;
     const pv=hdr.querySelector('#chPrev'), nx=hdr.querySelector('#chNext');
     if(pv) pv.onclick=()=>{ campViewCh=ch-1; renderRoadmap(); };
     if(nx) nx.onclick=()=>{ campViewCh=ch+1; renderRoadmap(); }; }
   if(locked){ map.style.height='auto'; map.innerHTML=`<div style="text-align:center;color:#8b98a9;padding:60px 20px">
-      <div style="font-size:44px">🔒</div><div style="font-weight:800;font-size:16px;margin-top:8px;color:#e6edf3">Chapter ${ch} — ${CHAPTER_NAMES[ch-1]||''}</div>
+      <div style="font-size:44px">${hudIcon('lock')}</div><div style="font-weight:800;font-size:16px;margin-top:8px;color:#e6edf3">Chapter ${ch} — ${CHAPTER_NAMES[ch-1]||''}</div>
       <div style="font-size:12px;margin-top:6px">${escapeHTML(chapterLock||('Not open yet — Chapter '+MAX_CH+' is this portal\'s summit.'))}</div></div>`; return; }
   const N=STAGES_PER_CH;
   const _mapUrl=(typeof CH_MAPS!=='undefined'&&CH_MAPS[ch])?CH_MAPS[ch]:'';
@@ -18464,7 +18464,7 @@ function renderRoadmap(){
       b.style.left=_wideX(site[0])+'%'; b.style.top=site[1]+'%';
       b.setAttribute('aria-label',bonusLocked?`BONUS ${code} locked — clear Normal ${code} first`:`BONUS ${code}`);
       b.title=bonusLocked?`Clear Normal ${code} to unlock Bonus ${code}`:`BONUS ${code}`;
-      b.innerHTML=`<span>BONUS ${code}${bonusLocked?' 🔒':''}</span>`;
+      b.innerHTML=`<span>BONUS ${code}${bonusLocked?' '+hudIcon('lock'):''}</span>`;
       const open=()=>{ if(typeof openBonusModal!=='function'){
           bannerMsg(`◆ Bonus ${code} is not available yet.`); return; }
         try{ openBonusModal(ch,slot); }
@@ -18480,11 +18480,11 @@ function renderRoadmap(){
       el.style.left=_wideX(nd[0])+'%'; el.style.top=nd[1]+'%';
       el.dataset.code=stageCode(g);
       const _sst=cleared?portalStars(MODE,g):null;
-      const _sstH=_sst==null?'':`<div class="cstars">${[0,1,2].map(x=>`<span class="${x<_sst?'on':'off'}">★</span>`).join('')}</div>`;
+      const _sstH=_sst==null?'':`<div class="cstars">${[0,1,2].map(x=>`<span class="${x<_sst?'on':'off'}">${uiIcon('star-filled')}</span>`).join('')}</div>`;
       const _hk=boss?((MODE==='veteran'&&CHAPTER_VETERAN_BOSS_KEYS[ch])||CHAPTER_MAP_BOSS_KEYS[ch]):((MODE==='normal'&&elite)?eliteHeroFor(g):null);
       const _anim=_hk&&BATTLE_ANIM[_hk], _idle=_anim&&(boss?(_anim.walk||_anim.idle):_anim.idle);
       const _ih=boss?56:36, _iw=_idle?Math.max(boss?28:18,Math.min(boss?74:34,_ih*_idle.fw/_idle.fh)):28;
-      const face=_idle?`<canvas class="cIdle" width="${_idle.fw}" height="${_idle.fh}" data-u="${_idle.u}" data-fw="${_idle.fw}" data-fh="${_idle.fh}" data-n="${_idle.n}" data-cols="${_idle.cols||6}" data-rows="${_idle.rows||Math.ceil(_idle.n/(_idle.cols||6))}" data-fps="${boss?Math.max(3,Math.min(5,(_idle.fps||10)*.45)):Math.min(12,_idle.fps||8)}" data-ping="${boss?0:(_idle.pingpong?1:0)}" style="--idlew:${_iw}px;--idleh:${_ih}px"></canvas>`:`<span class="clock">${clickable?(boss?'👑':(cleared?'✓':s)):'🔒'}</span>`;
+      const face=_idle?`<canvas class="cIdle" width="${_idle.fw}" height="${_idle.fh}" data-u="${_idle.u}" data-fw="${_idle.fw}" data-fh="${_idle.fh}" data-n="${_idle.n}" data-cols="${_idle.cols||6}" data-rows="${_idle.rows||Math.ceil(_idle.n/(_idle.cols||6))}" data-fps="${boss?Math.max(3,Math.min(5,(_idle.fps||10)*.45)):Math.min(12,_idle.fps||8)}" data-ping="${boss?0:(_idle.pingpong?1:0)}" style="--idlew:${_iw}px;--idleh:${_ih}px"></canvas>`:`<span class="clock">${clickable?(boss?uiIcon('crown'):(cleared?uiIcon('check'):s)):hudIcon('lock')}</span>`;
       el.innerHTML=`${face}<div class="clbl">${boss?'BOSS':(elite?'HERO FRAGMENTS':'STAGE')}<span class="cstagecode">${stageCode(g)}</span>${_sstH}</div>`;
       if(clickable){ try{ wireTap(el, (function(_g){ return function(){ openStageModal(_g,MODE); }; })(g)); }catch(e){ el.onclick=(function(_g){ return function(){ openStageModal(_g,MODE); }; })(g); } } else { el.style.cursor='default'; }
       if(g===G.lastStage && MODE===(G.lastPortal||'normal')) el.classList.add('justplayed');
@@ -18512,10 +18512,10 @@ function renderRoadmap(){
     el.dataset.stagePlate=String(g); el.dataset.tutStage=String(g); el.setAttribute('aria-label',`${stageCode(g)} ${cleared?'cleared':current?'available':'locked'}`);
     el.style.left=p.x+'%'; el.style.top=p.y+'px';
     el.dataset.code=stageCode(g);
-    const face=cleared?'✓':(boss?'👑':(elite?'★':p.s));
+    const face=cleared?uiIcon('check'):(boss?uiIcon('crown'):(elite?uiIcon('star-filled'):p.s));
     const _sst=cleared?portalStars(MODE,g):null;
-    const _sstH=_sst==null?'':`<div class="cstars">${[0,1,2].map(x=>`<span class="${x<_sst?'on':'off'}">★</span>`).join('')}</div>`;
-    el.innerHTML=`${clickable?'':'🔒'}${clickable?face:''}<div class="clbl">${stageCode(g)}${boss?' 👑':(elite?' ★':'')}${_sstH}</div>`;
+    const _sstH=_sst==null?'':`<div class="cstars">${[0,1,2].map(x=>`<span class="${x<_sst?'on':'off'}">${uiIcon('star-filled')}</span>`).join('')}</div>`;
+    el.innerHTML=`${clickable?'':hudIcon('lock')}${clickable?face:''}<div class="clbl">${stageCode(g)}${boss?' '+uiIcon('crown'):(elite?' '+uiIcon('star-filled'):'')}${_sstH}</div>`;
     if(clickable){ try{ wireTap(el, (function(_g){ return function(){ openStageModal(_g,MODE); }; })(g)); }catch(e){ el.onclick=(function(_g){ return function(){ openStageModal(_g,MODE); }; })(g); } } else { el.style.cursor='default'; }
     if(g===G.lastStage && MODE===(G.lastPortal||'normal')) el.classList.add('justplayed');
     map.appendChild(el);
@@ -18584,7 +18584,7 @@ function stageDropsHTML(stg,node,mode){
     ?chip(art(f.key),escapeHTML((f.displayName||f.key).replace(/ Fragment$/,'')),'possible','#8fe3ff')
     :fchip(f,false)));
   if(node!=null && ((mode==='elite'&&stg&&stg.rewardHero)||(mode==='normal'&&isHeroRewardStage(node)))){ const hk=(stg&&stg.rewardHero)||(mode==='normal'&&eliteHeroFor(node)), h=hk&&HERO_TYPES[hk];
-    if(h) chips.push(chip('<span style="font-size:13px;line-height:1">'+(h.emoji||'🎖')+'</span>', escapeHTML(h.name), '×'+ELITE_FRAG_MIN+'–'+ELITE_FRAG_MAX, '#c9a0ff')); }
+    if(h) chips.push(chip('<span style="font-size:13px;line-height:1">'+(h.emoji||uiIcon('medal'))+'</span>', escapeHTML(h.name), '×'+ELITE_FRAG_MIN+'–'+ELITE_FRAG_MAX, '#c9a0ff')); }
   b.forEach(f=>chips.push(fchip(f,true)));
   const _eb=(node!=null)&&(mode==='elite'||isEliteStage(node)||isBossStage(node));
   const foot=(node==null)?'':`<span style="color:#6f7d90;font-size:10.5px;white-space:nowrap">⧗ ${stageStamCost(node,mode)}${_eb?' · runs <span style="color:'+(stageRunsLeft(node,mode)>0?'#8fe3ff':'#ff9a9a')+'">'+stageRunsLeft(node,mode)+'/'+ELITE_BOSS_DAILY+'</span>':''}</span>`;
@@ -18610,21 +18610,21 @@ function stageDetailHTML(stg,node){
     const counts={}; w.forEach(m=>{ counts[m.key]=(counts[m.key]||0)+1; });
     const boss=w.some(m=>m.boss);
     const list=Object.keys(counts).map(k=>{ const art=portraitOf(k), n=nameOf(k);
-      return `<div class="smEnemy" title="${escapeHTML(n)}">${art?`<img src="${art}" alt="">`:`<span>${boss?'👑':'⚔️'}</span>`}<b>${escapeHTML(n)}</b>${counts[k]>1?`<em>×${counts[k]}</em>`:''}</div>`; }).join('');
-    return `<div class="smWave"><div class="smWaveLabel">${boss?'👑':'⚔️'} Wave ${wi+1}</div><div class="smEnemies">${list}</div></div>`;
+      return `<div class="smEnemy" title="${escapeHTML(n)}">${art?`<img src="${art}" alt="">`:`<span>${boss?uiIcon('crown'):statusIcon('attack')}</span>`}<b>${escapeHTML(n)}</b>${counts[k]>1?`<em>×${counts[k]}</em>`:''}</div>`; }).join('');
+    return `<div class="smWave"><div class="smWaveLabel">${boss?uiIcon('crown'):statusIcon('attack')} Wave ${wi+1}</div><div class="smEnemies">${list}</div></div>`;
   }).join('');
   // Blueprint v1: a chapter boss is a HARD player-level graduation gate; Stage 5/10 show a hint.
   const gate=0, myLv=(typeof playerLevel==='function')?playerLevel():1;   /* v825 (Phil): no level lock on any stage or boss */
   const gateLine=gate?`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:2px">
       <span style="font-size:11px;color:#8b98a9">Chapter boss — required level</span>
-      <span style="font-size:11px;font-weight:800;color:${myLv>=gate?'#5ee89b':'#ff9a9a'}">Lv ${gate}${myLv>=gate?' ✓':' — you are '+myLv}</span></div>`:'';
+      <span style="font-size:11px;font-weight:800;color:${myLv>=gate?'#5ee89b':'#ff9a9a'}">Lv ${gate}${myLv>=gate?' '+uiIcon('check'):' — you are '+myLv}</span></div>`:'';
   const bossKey=(function(){ for(const w of waves){ const m=w.find(x=>x.boss); if(m) return m.key; } return null; })();
   const cue=(stg.checkpoint==='boss'&&(typeof CHAPTER_BOSS_CUE!=='undefined'))
     ? (CHAPTER_BOSS_CUE[Math.ceil(node/10)-1]||null)
     : (bossKey&&(typeof BOSS_CUES!=='undefined')?BOSS_CUES[bossKey]:null);
   const guardian=isEliteStage(node);
   const cueLine=(stg.checkpoint==='boss'||guardian)
-    ?`<div style="font-size:10.5px;color:#ffb37a;margin-top:4px">${stg.checkpoint==='boss'?'👑':'⭐'} ${escapeHTML(cue||(guardian?'A Guardian stage — win hero fragments, with 3 rewarded runs each day.':'A chapter boss — make a major power upgrade before challenging it.'))}</div>`:'';
+    ?`<div style="font-size:10.5px;color:#ffb37a;margin-top:4px">${stg.checkpoint==='boss'?uiIcon('crown'):uiIcon('star-filled')} ${escapeHTML(cue||(guardian?'A Guardian stage — win hero fragments, with 3 rewarded runs each day.':'A chapter boss — make a major power upgrade before challenging it.'))}</div>`:'';
   const _gf=((stg.rewards&&stg.rewards.glyphFragments)||[]);
   const _random=!!(stg.rewards&&(stg.rewards.fragmentRolls|0)===2&&_gf.length===4);
   const _line=f=>`${(typeof g2artKey==='function')?g2artKey('fragment',f.key,14):'◆'} <b style="color:#8fe3ff">${escapeHTML(f.displayName)} ×${f.quantity}</b>`;
@@ -18648,13 +18648,13 @@ function stageDetailHTML(stg,node){
     ${fragBonus?`<div class="smFragSummary" style="margin-top:4px;font-size:11px"><span style="color:#8b98a9">Bonus:</span><br>${fragBonus}</div>`:''}
     <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:5px">
       <span style="font-size:11px;color:#8b98a9">Stamina · sweep</span>
-      <span style="font-size:11px;color:#c3ccd8">⧗ ${stageStamCost(node)} · ${((G.stageStars&&G.stageStars[node])|0)>=3?((isEliteStage(node)||isBossStage(node))?'sweepable, '+stageRunsLeft(node)+' rewarded runs left today':'sweepable'):'sweep unlocks at ★★★'}</span></div>
-    <div style="margin-top:6px;font-size:10.5px;color:#8b98a9">★★★ = clear with your whole squad alive · ★★ = at least half survive · ★ = win</div>
+      <span style="font-size:11px;color:#c3ccd8">⧗ ${stageStamCost(node)} · ${((G.stageStars&&G.stageStars[node])|0)>=3?((isEliteStage(node)||isBossStage(node))?'sweepable, '+stageRunsLeft(node)+' rewarded runs left today':'sweepable'):'sweep unlocks at '+uiIcon('star-filled').repeat(3)}</span></div>
+    <div style="margin-top:6px;font-size:10.5px;color:#8b98a9">${uiIcon('star-filled')}${uiIcon('star-filled')}${uiIcon('star-filled')} = clear with your whole squad alive · ${uiIcon('star-filled')}${uiIcon('star-filled')} = at least half survive · ${uiIcon('star-filled')} = win</div>
   </div>${(typeof preBattleLineHTML==='function')?preBattleLineHTML('campaign'):''}`;
 }
 function openStageModal(i,mode){
   mode=mode||PORTAL||'normal';
-  { const lock=portalChapterLockMsg(mode,chapterOf(i)); if(lock){ bannerMsg('🔒 '+lock); return; } }
+  { const lock=portalChapterLockMsg(mode,chapterOf(i)); if(lock){ bannerMsg(hudIcon('lock')+' '+lock); return; } }
   if(i>portalCleared(mode)+1) return;   // locked
   const _smKey=mode+':'+i; window.SM_KEY=_smKey;   // v328: stamp the stage this modal instance is for — must clear the previous stage first
   // v232 (audit): the stage's AUTHORED named fragment target is visible BEFORE farming
@@ -18682,19 +18682,19 @@ function openStageModal(i,mode){
   // 27 Aug (Phil): sweeping is EARNED — a stage only becomes sweepable once you three-star it.
   const _stars=portalStars(mode,i), _threeStar=_stars>=3;
   const _title=boss?'Boss Stage '+stageCode(i):(elite?'Guardian Stage '+stageCode(i):'Stage '+stageCode(i));
-  const _starsHTML=[0,1,2].map(x=>`<span style="color:${x<_stars?'#ffd45e':'#465064'}">★</span>`).join('');
+  const _starsHTML=[0,1,2].map(x=>`<span style="color:${x<_stars?'#ffd45e':'#465064'}">${uiIcon('star-filled')}</span>`).join('');
   body.innerHTML=`<div class="smStageCard"><div class="smStageScroll">
     <div class="smStageHead"><div><div class="smStageSub">${PORTAL_META[mode].icon} ${PORTAL_META[mode].label.toUpperCase()} · CHAPTER ${chapterOf(i)}</div><div class="smStageTitle">${_title}</div></div><div class="smStars">${_starsHTML}</div></div>
     <div class="smMeta"><div><span>Stamina</span><b>⧗ ${stageStamCost(i,mode)}</b></div><div><span>${_eb?'Chances':'Status'}</span><b>${_eb?_left+'/'+ELITE_BOSS_DAILY:(cleared?'Cleared':'New')}</b></div><div><span>Reward XP</span><b>${campaignPlayerXP(i,!cleared,mode)}</b></div></div>
     <div id="smDetails">${stageDetailHTML(_stg,i)}</div>
     <div id="smFragTarget" style="margin-top:8px">${stageDropsHTML(_stg,i,mode)}</div>
-    <div style="font-size:11px;color:#c9a0ff;margin-top:6px;text-align:center">📖 One ${xpPotionStageText(i,mode)} Hero XP Potion per rewarded run</div>
+    <div style="font-size:11px;color:#c9a0ff;margin-top:6px;text-align:center">${uiIcon('lore-book')} One ${xpPotionStageText(i,mode)} Hero XP Potion per rewarded run</div>
     ${canPay?'':'<div style="font-size:11px;color:#ff9a9a;margin-top:8px;text-align:center">Not enough stamina.</div>'}
-    <div class="smActions"><button class="btn smBattle" id="smBattle" ${(canPay&&(_farmable||!cleared)&&_gateOK)?'':'disabled'}>${_gateOK?'⚔️ Fight '+(cleared?'Again':'Now'):'🔒 Reach level '+_gate}</button>
-      ${cleared?`<button class="btn secondary" id="smSweep" ${(canPay&&_farmable&&_threeStar)?'':'disabled'}>${_threeStar?'💨 Sweep':'🔒 Needs ★★★'}</button>`:'<button class="btn secondary" disabled>💨 Sweep</button>'}
-      ${cleared&&!_eb?`<button class="btn secondary" id="smSweep10" ${(canPay&&_threeStar)?'':'disabled'}>${_threeStar?'💨 Sweep ×10':'🔒 ×10'}</button>`:'<button class="btn secondary" disabled>💨 Sweep ×10</button>'}
+    <div class="smActions"><button class="btn smBattle" id="smBattle" ${(canPay&&(_farmable||!cleared)&&_gateOK)?'':'disabled'}>${_gateOK?statusIcon('attack')+' Fight '+(cleared?'Again':'Now'):hudIcon('lock')+' Reach level '+_gate}</button>
+      ${cleared?`<button class="btn secondary" id="smSweep" ${(canPay&&_farmable&&_threeStar)?'':'disabled'}>${_threeStar?statusIcon('dash')+' Sweep':hudIcon('lock')+' Needs '+uiIcon('star-filled')+uiIcon('star-filled')+uiIcon('star-filled')}</button>`:'<button class="btn secondary" disabled>'+statusIcon('dash')+' Sweep</button>'}
+      ${cleared&&!_eb?`<button class="btn secondary" id="smSweep10" ${(canPay&&_threeStar)?'':'disabled'}>${_threeStar?statusIcon('dash')+' Sweep ×10':hudIcon('lock')+' ×10'}</button>`:'<button class="btn secondary" disabled>'+statusIcon('dash')+' Sweep ×10</button>'}
       ${(()=>{ const P=patNow(); if(!_eb||_left>0||!P||!P.rows||!(P.rows.eliteResets>0)) return ''; const u=(P.used&&P.used.eliteResets)|0, mx=P.rows.eliteResets, c=(P.costs&&P.costs.eliteReset)||50;   /* v1093: EGP Elite stage reset */
-        return `<button class="btn secondary" id="smReset" ${u>=mx||(G.gems||0)<c?'disabled':''}>↺ Reset runs · 💎${c} (${u}/${mx})</button>`; })()}
+        return `<button class="btn secondary" id="smReset" ${u>=mx||(G.gems||0)<c?'disabled':''}>↺ Reset runs · ${hudIcon('gem')}${c} (${u}/${mx})</button>`; })()}
       <button class="btn sm secondary smCancel" id="smClose">Back to Map</button></div>
     <div id="smMsg" style="font-size:12px;color:#ffd45e;margin-top:6px;min-height:14px;text-align:center"></div>
   </div></div>`;
@@ -18723,8 +18723,8 @@ function rewardPanel(glyphFrags, bonus, sourceLine, gearFrags){
   const head=(gf||gr)?`<div style="font-size:11px;letter-spacing:1px;color:#8b98a9;margin-bottom:2px">GUARANTEED REWARD</div>${gf}${gr}${sourceLine?`<div style="font-size:10.5px;color:#6f7d90;margin-top:2px">Source: ${escapeHTML(sourceLine)}</div>`:''}`:'';
   const b=bonus||{};
   const bits=[];
-  if(b.gold) bits.push(`<span class="coins">🪙 +${b.gold}</span>`);
-  if(b.dust) bits.push(`<span style="color:#ffb37a">🔥 +${b.dust} Forge Dust</span>`);
+  if(b.gold) bits.push(`<span class="coins">${hudIcon('gold')} +${b.gold}</span>`);
+  if(b.dust) bits.push(`<span style="color:#ffb37a">${statusIcon('burn')} +${b.dust} Forge Dust</span>`);
   if(b.px) bits.push(`+${b.px} XP`);
   if(b.heroXp) bits.push(`heroes +${b.heroXp} XP`);
   const bon=bits.length?`<div style="margin-top:${head?'8px':'0'}"><div style="font-size:11px;letter-spacing:1px;color:#8b98a9;margin-bottom:2px">BONUS</div>${bits.join(' · ')}</div>`:'';
@@ -18775,13 +18775,13 @@ function sweepStage(i,times,mode){
     const eliteLine=(r.eliteFrag&&r.eliteFrag.qty)
       ? line('<span style="font-size:13px;line-height:1">'+((HERO_TYPES[r.eliteFrag.heroKey]||{}).emoji||'🧩')+'</span>',
              escapeHTML((HERO_TYPES[r.eliteFrag.heroKey]||{}).name||r.eliteFrag.heroKey)+' Fragment', '×'+r.eliteFrag.qty, '#c9a0ff') : '';
-    const potionLine=Object.entries(r.xpPotions||{}).filter(([,n])=>n>0).map(([tier,n])=>line('📖',escapeHTML(tier[0].toUpperCase()+tier.slice(1))+' XP Potion','×'+n,'#c9a0ff')).join('');
+    const potionLine=Object.entries(r.xpPotions||{}).filter(([,n])=>n>0).map(([tier,n])=>line(uiIcon('lore-book'),escapeHTML(tier[0].toUpperCase()+tier.slice(1))+' XP Potion','×'+n,'#c9a0ff')).join('');
     const spoils=[ r.gold?`<span style="color:#ffd45e">+${r.gold.toLocaleString()}g</span>`:'',
       r.px?`<span style="color:#5ee89b">+${r.px.toLocaleString()} XP</span>`:'' ].filter(Boolean)
       .map(x=>`<span style="font-size:10.5px">${x}</span>`).join('');
     const tgt=document.getElementById('smFragTarget');
     if(tgt) tgt.innerHTML=`<div style="border-top:1px solid #2b7a55;padding-top:6px;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:4px 10px">
-      <span style="font-size:9px;letter-spacing:1px;color:#5ee89b;font-weight:800">✅ SWEPT ×${r.times} — EARNED</span>
+      <span style="font-size:9px;letter-spacing:1px;color:#5ee89b;font-weight:800">${uiIcon('check')} SWEPT ×${r.times} — EARNED</span>
       ${items||'<span style="font-size:10.5px;color:#6f7d90">no fragments</span>'}${eliteLine}${potionLine}${spoils}
       ${um?`<span style="color:#ffd45e;font-size:10.5px">${um}</span>`:''}</div>`;
     document.getElementById('smMsg').textContent='';
@@ -18805,7 +18805,7 @@ function glHero(id){ return (typeof HERO_TYPES!=='undefined'&&HERO_TYPES[id])?id
 function heroKitHtml(key){ const kit=KITS[key], t=HERO_TYPES[key]; if(!kit||!t)return '';
   const row=(icon,name,idx)=>'<div class="glAb">'+icon+' <b>'+name+'</b> — '+
     (function(){ try{ return skillDesc(key,idx).replace(/\s+—\s+[0-9].*$/,''); }catch(e){ return ''; } })()+'</div>';
-  return row('⭐',t.abilityName||'Ultimate',0)+row('🟢',kit.green?kit.green.name:'',1)+
+  return row(uiIcon('star-filled'),t.abilityName||'Ultimate',0)+row('🟢',kit.green?kit.green.name:'',1)+
          row('🔵',kit.blue?kit.blue.name:'',2)+row('🟣',kit.purple?kit.purple.name:'',3); }
 
 // Finished hero-card art (Phil, 2026-08-21). These supersede the concept cutouts for both the
@@ -19703,8 +19703,8 @@ Object.assign(GLOSSARY_INFO, {
 function abilW(ab){ if(!ab)return ''; if(ab.knockback)return 'Knocks nearest hero back 15 m, then drags the farthest other hero to the boss'; const M={tendrilpull:'Drags a hero in close',stun:'Strike that stuns',cleavecone:'Cleaves a wide arc in front',aoeStun:'Slams an area, stunning all caught',cleave:'Wide hit to nearby foes',nova:'Bursts damage to everyone nearby',taunt:'Forces foes to attack it + cuts damage taken',dot:'Poison/bleed/burn over time',aoedot:'A burning ground zone',mortal:'Wound that cuts the target’s healing',selfheal:'Heals itself',defensive:'Braces — takes far less damage briefly',haste:'Speeds up its own attacks',lifestealbuff:'Heals itself on every hit for a while',blink:'Teleports in, kicks the target 8 m away and stuns it',punchflurry:'A flurry of rapid hits',multiShot:'Strikes several foes at once',strike:'Heavy ranged strike',piercethrow:'Skewers everyone in a line to the farthest hero',charge:'Dashes to the farthest hero and slams',warcry:'Roars — buffs itself, fears nearby heroes',ashfall:'Drops a burning/icy patch on the ground',fireball:'Hurls a fireball that bursts on impact',volley:'Rapid shots at the nearest foes'}; return M[ab.type]||ab.name; }
 function monKitHtml(id){ const k=MONSTER_KITS[id]; if(!k)return ''; let h=''; if(k.green)h+='<div class="glAb"><b>'+k.green.name+'</b> — '+abilW(k.green)+'</div>'; if(k.blue)h+='<div class="glAb"><b>'+k.blue.name+'</b> — '+abilW(k.blue)+'</div>'; if(k.pass)h+='<div class="glAb glPass"><b>Passive · '+String(k.pass).replace(/(^|_)([a-z])/g,function(m,a,b){return b.toUpperCase();})+'</b></div>'; return h; }
 function statAtLevel(id,cat,lvl){ const t=(typeof MONSTER_TYPES!=='undefined'&&MONSTER_TYPES[id])||HERO_TYPES[id]; if(!t)return null; const boss=(cat==='bosses'); const b=baseAtLevel(t,lvl); return { hp:Math.round(b.hp*(boss?2.4:1)), dmg:Math.round(b.dmg*(boss?1.8:1)) }; }
-function glStatsHtml(id,cat){ const t=(typeof MONSTER_TYPES!=='undefined'&&MONSTER_TYPES[id])||HERO_TYPES[id]; if(!t)return ''; const s1=statAtLevel(id,cat,1); const row=(t.range<60)?'Front line':'Back line'; return '<div class="glSec"><b>📊 Stats</b><div class="glStats"><div class="gsRow"><span>❤️ HP</span><b>'+s1.hp+'</b></div><div class="gsRow"><span>⚔️ Damage</span><b>'+s1.dmg+'</b></div><div class="gsRow"><span>⏱️ Atk speed</span><b>'+t.swing+'s</b></div><div class="gsRow"><span>🎯 Range</span><b>'+(t.range<60?'Melee':t.range)+'</b></div><div class="gsRow"><span>🧭 Position</span><b>'+(t.role||'—')+' · '+row+'</b></div></div><div class="gsNote">Shown at Lv 1 · grows +5% per level</div><button class="gsBtn" onclick="openStatChart(\''+cat+'\',\''+id.replace(/\x27/g,"")+'\')">📈 View stats by level (1–60)</button></div>'; }
-function openStatChart(cat,id){ const t=(typeof MONSTER_TYPES!=='undefined'&&MONSTER_TYPES[id])||HERO_TYPES[id]; if(!t)return; const gi=GLOSSARY_INFO[id]; let rows=''; for(let L=1;L<=60;L++){ const s=statAtLevel(id,cat,L); rows+='<tr'+(L%10===0?' class="mile"':'')+'><td>'+L+'</td><td>'+s.hp+'</td><td>'+s.dmg+'</td></tr>'; } let m=document.getElementById('statChartModal'); if(!m){ m=document.createElement('div'); m.id='statChartModal'; document.body.appendChild(m); m.addEventListener('click',function(e){ if(e.target.id==='statChartModal') m.classList.remove('open'); }); } m.innerHTML='<div class="scBox"><button class="glClose" onclick="document.getElementById(\'statChartModal\').classList.remove(\'open\')">✕</button><h3>'+((gi&&gi.name)||t.name)+' — stats by level</h3><div class="scSub">'+(cat==='bosses'?'boss scaling · ×2.4 HP / ×1.8 DMG, +5%/level':'grows +5% per level')+'</div><div class="scScroll"><table class="scTbl"><thead><tr><th>Lv</th><th>❤️ HP</th><th>⚔️ DMG</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>'; m.classList.add('open'); }
+function glStatsHtml(id,cat){ const t=(typeof MONSTER_TYPES!=='undefined'&&MONSTER_TYPES[id])||HERO_TYPES[id]; if(!t)return ''; const s1=statAtLevel(id,cat,1); const row=(t.range<60)?'Front line':'Back line'; return '<div class="glSec"><b>'+uiIcon('chart')+' Stats</b><div class="glStats"><div class="gsRow"><span>'+statIcon('hp')+' HP</span><b>'+s1.hp+'</b></div><div class="gsRow"><span>'+statusIcon('attack')+' Damage</span><b>'+s1.dmg+'</b></div><div class="gsRow"><span>⏱️ Atk speed</span><b>'+t.swing+'s</b></div><div class="gsRow"><span>'+statusIcon('mark')+' Range</span><b>'+(t.range<60?'Melee':t.range)+'</b></div><div class="gsRow"><span>🧭 Position</span><b>'+(t.role||'—')+' · '+row+'</b></div></div><div class="gsNote">Shown at Lv 1 · grows +5% per level</div><button class="gsBtn" onclick="openStatChart(\''+cat+'\',\''+id.replace(/\x27/g,"")+'\')">'+uiIcon('chart')+' View stats by level (1–60)</button></div>'; }
+function openStatChart(cat,id){ const t=(typeof MONSTER_TYPES!=='undefined'&&MONSTER_TYPES[id])||HERO_TYPES[id]; if(!t)return; const gi=GLOSSARY_INFO[id]; let rows=''; for(let L=1;L<=60;L++){ const s=statAtLevel(id,cat,L); rows+='<tr'+(L%10===0?' class="mile"':'')+'><td>'+L+'</td><td>'+s.hp+'</td><td>'+s.dmg+'</td></tr>'; } let m=document.getElementById('statChartModal'); if(!m){ m=document.createElement('div'); m.id='statChartModal'; document.body.appendChild(m); m.addEventListener('click',function(e){ if(e.target.id==='statChartModal') m.classList.remove('open'); }); } m.innerHTML='<div class="scBox"><button class="glClose" onclick="document.getElementById(\'statChartModal\').classList.remove(\'open\')">'+uiIcon('close')+'</button><h3>'+((gi&&gi.name)||t.name)+' — stats by level</h3><div class="scSub">'+(cat==='bosses'?'boss scaling · ×2.4 HP / ×1.8 DMG, +5%/level':'grows +5% per level')+'</div><div class="scScroll"><table class="scTbl"><thead><tr><th>Lv</th><th>'+statIcon('hp')+' HP</th><th>'+statusIcon('attack')+' DMG</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>'; m.classList.add('open'); }
 
 /* v658 (Phil: "Dont forget monster art as background in glossary" / "Ink monsters too small for this" / "Need to make them larger" /
    "Same treatment as heroes. Thigh to top of head, center head"): monster, boss and summon cards are painted on a canvas like the hero
@@ -19781,11 +19781,11 @@ function openGlossaryCard(cat,id){ glFill();
     lore=_raw? String(_raw).replace(/\n{2,}/g,'<br><br>').replace(/\n/g,' ')
              : '<span class="glPend">Lore is written from the abilities you choose.</span>'; }
   const stats=isMon? glStatsHtml(id,cat) : '';
-  let rl=hk?(HERO_TYPES[hk].role+' · '+(HERO_TYPES[hk].stars||1)+'★')
+  let rl=hk?(HERO_TYPES[hk].role+' · '+(HERO_TYPES[hk].stars||1)+uiIcon('star-filled'))
     :((typeof MONSTER_TYPES!=='undefined'&&MONSTER_TYPES[id]&&MONSTER_TYPES[id].role)||e.role||'');
   if(cat==='summons'){ const by=glSummoner(id); if(by) rl+=(rl?' · ':'')+'summoned by '+by; }
   const box=document.getElementById('glCardBig');
-  box.innerHTML='<button class="glClose" aria-label="Close">✕</button><div class="glBigArt">'+(art?'<img src="'+art+'">':'')+'</div><h2>'+nm+'</h2><div class="glRole">'+kind+(rl?(' · '+rl):'')+'</div>'+stats+'<div class="glSec"><b>⚔️ Abilities</b>'+abil+'</div><div class="glSec"><b>📜 Lore</b><br>'+lore+'</div>';
+  box.innerHTML='<button class="glClose" aria-label="Close">'+uiIcon('close')+'</button><div class="glBigArt">'+(art?'<img src="'+art+'">':'')+'</div><h2>'+nm+'</h2><div class="glRole">'+kind+(rl?(' · '+rl):'')+'</div>'+stats+'<div class="glSec"><b>'+statusIcon('attack')+' Abilities</b>'+abil+'</div><div class="glSec"><b>'+uiIcon('quest-scroll')+' Lore</b><br>'+lore+'</div>';
   box.querySelector('.glClose').addEventListener('click',closeGlossaryCard);
   if(!hk && art){ const ba=box.querySelector('.glBigArt'); if(ba){ ba.innerHTML='<canvas class="glCv big" width="560" height="360"></canvas>'; glPaintCard(ba.firstChild, glArtUrl(art), true, cat); } }   /* v658: the whole creature on the forest */
   document.getElementById('glModal').classList.add('open');
@@ -19922,8 +19922,8 @@ function renderRoster(){
     const card=document.createElement('div'); card.className='hero-card'+(inTeam?' selected':'')+(!unlocked?' locked':'');
     if(blocked && !inTeam){ card.style.opacity='.45'; }
     const tag = away?`<br><span style="color:#ff8b8b;font-size:9px">⛓ marching — not defending</span>`
-      : (elsewhere!=null?`<br><span style="color:#c9a35e;font-size:9px">🛡 on Line ${elsewhere}</span>`:(_wf?_wf.html:''));
-    card.innerHTML=`${unlocked?`<span class="lvl">Lv ${heroLevel(key)}</span>`:''}<div style="display:flex;gap:10px;align-items:center">${heroIcon(key,52,{orbs:true})}<div><div class="name">${t.name}</div><div class="role">${t.role} · ${t.combatRow} · ${t.damageProfile} · <span style="font-size:9px">${starStr(t.stars)}</span></div></div></div><div class="stats" style="margin-top:6px"><span class="pill">❤ ${Math.round(heroStat(key,t.hp)*heroMuls(key).hp+heroFlatHp(key)+techTotal('hp'))}</span><span class="pill">⚔️ ${Math.round(heroStat(key,t.dmg)*heroMuls(key).atk+heroFlatAtk(key)+techTotal('atk'))}</span>${unlocked?`<span class="pill" style="background:#2a2410;border-color:#8a6420;color:#ffd45e;font-weight:800">⚔ ${myHeroPower(key).toLocaleString()}</span>`:''}<br>${unlocked?'⚡ '+t.abilityName:'🔒 '+heroFrag(key)+'/'+summonCost(key)+' frags'}${tag}</div>`;
+      : (elsewhere!=null?`<br><span style="color:#c9a35e;font-size:9px">${statusIcon('shield')} on Line ${elsewhere}</span>`:(_wf?_wf.html:''));
+    card.innerHTML=`${unlocked?`<span class="lvl">Lv ${heroLevel(key)}</span>`:''}<div style="display:flex;gap:10px;align-items:center">${heroIcon(key,52,{orbs:true})}<div><div class="name">${t.name}</div><div class="role">${t.role} · ${t.combatRow} · ${t.damageProfile} · <span style="font-size:9px">${starStr(t.stars)}</span></div></div></div><div class="stats" style="margin-top:6px"><span class="pill">${statIcon('hp')} ${Math.round(heroStat(key,t.hp)*heroMuls(key).hp+heroFlatHp(key)+techTotal('hp'))}</span><span class="pill">${statusIcon('attack')} ${Math.round(heroStat(key,t.dmg)*heroMuls(key).atk+heroFlatAtk(key)+techTotal('atk'))}</span>${unlocked?`<span class="pill" style="background:#2a2410;border-color:#8a6420;color:#ffd45e;font-weight:800">${statusIcon('attack')} ${myHeroPower(key).toLocaleString()}</span>`:''}<br>${unlocked?statusIcon('energy')+' '+t.abilityName:hudIcon('lock')+' '+heroFrag(key)+'/'+summonCost(key)+' frags'}${tag}</div>`;
     // you can always REMOVE a hero from this line; you can only ADD if not marching and not on another line
     /* 28 Aug (Phil: "I cannot click any heroes", twice, on a build where a real click works).
        Two separate things were wrong with picking a hero:
@@ -19946,7 +19946,7 @@ function renderRoster(){
       try{ saveG(); }catch(e){}
       try{ if(isWall&&ACC.token)pushSave(); }catch(e){}
     };
-    if(isVault && inTeam){ const pos=teamArr.indexOf(key); const chip=document.createElement('span'); chip.style.cssText='position:absolute;top:4px;right:4px;font-size:8px;font-weight:900;padding:2px 5px;border-radius:6px;background:'+(pos<TEAM_SIZE?'#1d3a2a;color:#5ee89b;border:1px solid #2b7a55':'#2a2338;color:#c9a2ff;border:1px solid #7a5fb0'); chip.textContent=pos<TEAM_SIZE?'⚔ FIGHT':'🛡 BACKUP'; card.style.position='relative'; card.appendChild(chip); }
+    if(isVault && inTeam){ const pos=teamArr.indexOf(key); const chip=document.createElement('span'); chip.style.cssText='position:absolute;top:4px;right:4px;font-size:8px;font-weight:900;padding:2px 5px;border-radius:6px;background:'+(pos<TEAM_SIZE?'#1d3a2a;color:#5ee89b;border:1px solid #2b7a55':'#2a2338;color:#c9a2ff;border:1px solid #7a5fb0'); chip.innerHTML=pos<TEAM_SIZE?statusIcon('attack')+' FIGHT':statusIcon('shield')+' BACKUP'; card.style.position='relative'; card.appendChild(chip); }
     r.appendChild(card);
   });
   function syncStart(){
@@ -19956,7 +19956,7 @@ function renderRoster(){
     const isCampaign=!setDef&&CUR.mode==='campaign', lowStam=isCampaign&&G.stamina<stageStamCost(CUR.node,CUR.portal);
     const ok=full&&!lowStam;
     const sb=document.getElementById('startBtn'); if(!sb)return; sb.disabled=!ok;
-    sb.textContent=!full?(isVault?`PICK ${TEAM_SIZE} FIGHTERS (${teamArr.length}/${TEAM_SIZE})`:`PICK AT LEAST 1 HERO`):(lowStam?`NEED ${stageStamCost(CUR.node,CUR.portal)} STAMINA (${G.stamina}/${maxStamina()})`:(isCampaign?`BATTLE ▶  ⧗${stageStamCost(CUR.node,CUR.portal)}`:'BATTLE ▶'));
+    sb.innerHTML=!full?(isVault?`PICK ${TEAM_SIZE} FIGHTERS (${teamArr.length}/${TEAM_SIZE})`:`PICK AT LEAST 1 HERO`):(lowStam?`NEED ${stageStamCost(CUR.node,CUR.portal)} STAMINA (${G.stamina}/${maxStamina()})`:(isCampaign?`BATTLE ${uiIcon('play')}  ⧗${stageStamCost(CUR.node,CUR.portal)}`:'BATTLE '+uiIcon('play')));
   }
   syncStart();
   /* 30 Aug (Phil) — RESET COMP. Clears the picked heroes instantly so a fresh squad can be chosen,
@@ -25572,7 +25572,7 @@ function onPeerLeft(msg){ if(OL.active&&state==='battle'){ended=true;document.ge
 function setOnlineStatus(t){const el=document.getElementById('onlineStatus');if(el)el.innerHTML=t;}
 function renderOnline(){
   const body=document.getElementById('onlineBody'),url=netURL();
-  if(!url){ body.innerHTML='<div class="panel">🌐 Online PvP needs the game opened <b>through the host server</b> (not the local file). Run <code>node server.js</code> and open the address it prints. See the README.</div>'; return; }
+  if(!url){ body.innerHTML='<div class="panel">'+uiIcon('world-online')+' Online PvP needs the game opened <b>through the host server</b> (not the local file). Run <code>node server.js</code> and open the address it prints. See the README.</div>'; return; }
   body.innerHTML=`
     <div class="panel"><div style="font-weight:700;margin-bottom:6px">Host a live match</div>
       <div style="font-size:12px;color:#8b98a9;margin-bottom:8px">Create a room and share the link. Your device runs the battle.</div>
@@ -25608,7 +25608,7 @@ function _hostStartMatchNow(){
   OL.guestRoster.forEach((e,i)=>{const _t=HERO_TYPES[e.key]||HERO_TYPES.grosk;const melee=_t.range<60,s=slots[i];const u=makeUnit(e.key,'enemy',s.x,melee?s.frontY:s.backY,e.level,{rank:e.rank});units.push(u);buildFigure(u);});
   // v327: ids now come from makeUnit (u.id=u.uid). The index sweep that used to be here renumbered the
   // starting roster into 0..n and then collided with the uids of anything summoned later.
-  buildPortraitBar('ally');refreshCtrlBtns();updateCounts();show('battle');document.getElementById('waveTag').textContent='🌐 LIVE PvP';
+  buildPortraitBar('ally');refreshCtrlBtns();updateCounts();show('battle');document.getElementById('waveTag').innerHTML=uiIcon('world-online')+' LIVE PvP';
   relay({k:'start'});
 }
 function guestStartMatch(){ _guestStartMatchNow();
@@ -25617,7 +25617,7 @@ function guestStartMatch(){ _guestStartMatchNow();
 function _guestStartMatchNow(){
   OL.active=true;OL.host=false;OL.byId={};CUR={mode:'online',host:false,node:0};
   clearBattle();units=[];selected=null;aiming=null;ended=false; cancelResult();show('battle');
-  document.getElementById('portraitBar').dataset.mode='';document.getElementById('waveTag').textContent='🌐 LIVE PvP';
+  document.getElementById('portraitBar').dataset.mode='';document.getElementById('waveTag').innerHTML=uiIcon('world-online')+' LIVE PvP';
   document.getElementById('ultHint').textContent='You are RED (top). Tap a glowing hero, then a blue enemy to strike.';
 }
 function serializeUnit(u){return {id:u.id,key:u.key,team:u.team,x:Math.round(u.x),y:Math.round(u.y),hp:Math.round(u.hp),mh:Math.round(u.maxHp),e:Math.round(u.energy),al:u.alive?1:0,bo:u.boss?1:0,aa:+u.attackAnim.toFixed(2),ca:+u.castAnim.toFixed(2),fl:u.flash>0?1:0};}
@@ -25632,7 +25632,7 @@ function applyState(list){
   buildGuestPortraits();updateCounts();
 }
 function hostApplyUlt(id,tid,wx,wy){const u=units.find(x=>x.id===id),t=units.find(x=>x.id===tid);if(u&&u.alive&&u.energy>=100){if(t)u.target=t; if(wx!=null){u._aimWX=wx;u._aimWY=wy;} castAbility(u);}}
-function onlineResult(won){ended=true;document.getElementById('resultTitle').textContent=won?'VICTORY':'DEFEAT';document.getElementById('resultTitle').className='result-big '+(won?'win':'lose');document.getElementById('resultReward').innerHTML=won?'You won the live match! 🏆 +15 trophies':'Defeated in the arena.';document.getElementById('resultHint').textContent='';if(won){G.trophies+=15;saveG();}OL.active=false;show('result');}
+function onlineResult(won){ended=true;document.getElementById('resultTitle').textContent=won?'VICTORY':'DEFEAT';document.getElementById('resultTitle').className='result-big '+(won?'win':'lose');document.getElementById('resultReward').innerHTML=won?'You won the live match! '+uiIcon('trophy')+' +15 trophies':'Defeated in the arena.';document.getElementById('resultHint').textContent='';if(won){G.trophies+=15;saveG();}OL.active=false;show('result');}
 function buildGuestPortraits(){const bar=document.getElementById('portraitBar');const mine=units.filter(u=>u.team==='enemy');
   if(bar.dataset.mode!=='guest'||bar.childElementCount!==mine.length){bar.innerHTML='';bar.dataset.mode='guest';
     mine.forEach(u=>{const slot=document.createElement('div');slot.className='pslot';slot.style.backgroundImage=`url(${MR_UI.frame})`;
@@ -25669,10 +25669,10 @@ function showSkillDesc(key,idx,anchorEl){ hideSkillDesc();
   const pop=document.createElement('div'); pop.id='skDescPop';
   pop.style.cssText='position:fixed;z-index:100000;max-width:min(340px,86vw);background:#0e1420;border:1px solid #2c3852;border-radius:11px;padding:12px 14px;box-shadow:0 8px 30px #000b;font-size:12.5px;line-height:1.52;color:#d6deea';
   const head=document.createElement('div'); head.style.cssText=`font-weight:800;color:${cols[idx]};margin-bottom:5px`;
-  head.innerHTML=`⚡ ${escapeHTML(names[idx]||'')} <span style="font-size:10px;color:#8b98a9">· ${tiers[idx]}</span>`;
+  head.innerHTML=`${statusIcon('energy')} ${escapeHTML(names[idx]||'')} <span style="font-size:10px;color:#8b98a9">· ${tiers[idx]}</span>`;
   const bodyd=document.createElement('div'); bodyd.textContent=skillDesc(key,idx);
   pop.appendChild(head); pop.appendChild(bodyd);
-  if(!on){ const u=document.createElement('div'); u.style.cssText='margin-top:6px;font-size:11px;color:#c99'; u.textContent='🔒 Unlocks at higher quality.'; pop.appendChild(u); }
+  if(!on){ const u=document.createElement('div'); u.style.cssText='margin-top:6px;font-size:11px;color:#c99'; u.innerHTML=hudIcon('lock')+' Unlocks at higher quality.'; pop.appendChild(u); }
   document.body.appendChild(pop);
   try{ const ab=anchorEl.getBoundingClientRect(), pw=pop.offsetWidth, ph=pop.offsetHeight;
     let left=Math.min(window.innerWidth-pw-8, Math.max(8, ab.left));
@@ -25685,7 +25685,7 @@ function buildPortraitBar(side){side=side||'ally';const bar=document.getElementB
     const slot=document.createElement('div'); slot.className='pslot'; slot.style.backgroundImage=`url(${MR_UI.frame})`;
     const pv=HERO_PORTRAITS[u.key];
     const el=document.createElement('div');el.className='portrait';
-    el.innerHTML=(pv?`<img class="pPortrait" draggable="false" src="${pv}">`:`<div class="pEmoji">${(HERO_TYPES[u.key]||{}).emoji||'👤'}</div>`);   // no in-combat "?" info button — ability descriptions live in the Skill tab
+    el.innerHTML=(pv?`<img class="pPortrait" draggable="false" src="${pv}">`:`<div class="pEmoji">${(HERO_TYPES[u.key]||{}).emoji||uiIcon('profile')}</div>`);   // no in-combat "?" info button — ability descriptions live in the Skill tab
     const hp=document.createElement('div'); hp.className='pHp'; hp.innerHTML='<div class="pHpFill"></div>';
     const en=document.createElement('div'); en.className='pEnergyBar'; en.innerHTML='<div class="pEnFill"></div>';
     attachUltPress(el,u,false);   // press-hold-drag-release aiming; quick tap fires at nearest
@@ -25749,10 +25749,10 @@ function _updateWaveTag(){const isBoss=(waveIdx===chapterWaves-1);const el=docum
       mine=roster.length?(roster.every(e=>e&&e.key&&G.unlocked&&G.unlocked[e.key])
         ? myTeamPower(roster.map(e=>e.key)) : estimateTeamPower(roster)):0; }catch(e){ mine=0; }
     try{ if(!theirs&&typeof CUR.opp!=='undefined'&&Array.isArray(CUR.opp)) theirs=teamPower(CUR.opp.map(e=>({key:e.key,level:e.level||1,rank:e.rank||0}))); }catch(e){}
-    const modeNm=CUR.mode==='arena'?'⚔️ Arena Duel':'🏰 City Skirmish';
+    const modeNm=CUR.mode==='arena'?statusIcon('attack')+' Arena Duel':'🏰 City Skirmish';
     el.innerHTML=`${modeNm} · <b style="color:#8fe3ff">${(mine||0).toLocaleString()}</b> vs <b style="color:#ff9a8b">${theirs?theirs.toLocaleString():'?'}</b>${CUR.oppName?(' · '+escapeHTML(String(CUR.oppName||''))):''} · 1/1`;
     return; }
-  el.innerHTML=`${CUR&&CUR.mode==='well'?('Starless Well · Map '+((CUR.well&&CUR.well.map)|0)):CUR&&CUR.mode==='province'?(((PROV_META[CUR.prov&&CUR.prov.t]||PROV_META.gold).nm)+' '+((CUR.prov&&CUR.prov.stage)|0)):CUR&&CUR.mode==='vault'?('🏛️ Floor '+CUR.floor):stageCode(CUR.node)} · ${isBoss?'👑 BOSS':'Wave '+(waveIdx+1)+'/'+chapterWaves}`;}   // v362: Vault shows its floor, not a NaN stage code
+  el.innerHTML=`${CUR&&CUR.mode==='well'?('Starless Well · Map '+((CUR.well&&CUR.well.map)|0)):CUR&&CUR.mode==='province'?(((PROV_META[CUR.prov&&CUR.prov.t]||PROV_META.gold).nm)+' '+((CUR.prov&&CUR.prov.stage)|0)):CUR&&CUR.mode==='vault'?('🏛️ Floor '+CUR.floor):stageCode(CUR.node)} · ${isBoss?uiIcon('crown')+' BOSS':'Wave '+(waveIdx+1)+'/'+chapterWaves}`;}   // v362: Vault shows its floor, not a NaN stage code
 // Top banner: Time countdown + Progress (current wave / total waves)
 function updateBattleBanner(){ const bb=document.getElementById('battleBanner'); if(!bb)return;
   const on=(state==='battle'); bb.classList.toggle('active',on); if(!on)return;
@@ -25761,13 +25761,13 @@ function updateBattleBanner(){ const bb=document.getElementById('battleBanner');
      The clock now counts the limit the fight actually uses. */
   const lim=(CUR&&CUR.mode==='emberdraft'&&typeof ED_FIGHT_LIMIT==='number')?ED_FIGHT_LIMIT:BATTLE_TIME_LIMIT;
   const rem=Math.max(0,lim-battleTime), m=Math.floor(rem/60), s=Math.floor(rem%60);
-  const t=document.getElementById('bbTime'); if(t){ const ramp=(typeof edAtkRamp==='function')?edAtkRamp():1; /* v663: guarded, see doAtk */ t.textContent=m+':'+(s<10?'0'+s:s)+(ramp>1.001?' ⚡+'+Math.round((ramp-1)*100)+'%':''); t.classList.toggle('low',rem<=10); }
+  const t=document.getElementById('bbTime'); if(t){ const ramp=(typeof edAtkRamp==='function')?edAtkRamp():1; /* v663: guarded, see doAtk */ t.textContent=m+':'+(s<10?'0'+s:s)+(ramp>1.001?' atk spd +'+Math.round((ramp-1)*100)+'%':''); t.classList.toggle('low',rem<=10); }
   const total=Math.max(1,chapterWaves||1), cur=Math.min(total,(waveIdx||0)+1);
   const pr=document.getElementById('bbProg'); if(pr) pr.textContent=cur+'/'+total; }
 // Victory screen extras: 3 gold stars + the surviving squad as hero cards (level + star badges)
 function renderResultExtras(){ const stars=document.getElementById('resultStars'), squad=document.getElementById('resultSquad'); if(!stars||!squad)return;
   if(!resultWon){ stars.classList.remove('show'); squad.classList.remove('show'); stars.innerHTML=''; squad.innerHTML=''; return; }
-  stars.innerHTML=[0,1,2].map(i=>`<span class="rStar${i<resultStars?'':' dim'}">★</span>`).join(''); stars.classList.add('show');
+  stars.innerHTML=[0,1,2].map(i=>`<span class="rStar${i<resultStars?'':' dim'}">${uiIcon('star-filled')}</span>`).join(''); stars.classList.add('show');
   squad.innerHTML=(resultSquadKeys||[]).filter(Boolean).map(key=>{ const t=HERO_TYPES[key]; if(!t)return '';
     const pv=HERO_PORTRAITS[key], inner=pv?`<img src="${pv}">`:`<div class="rEmoji">${t.emoji}</div>`;
     return `<div class="rCard">${inner}<div class="rLv">Lv ${heroLevel(key)}</div><div class="rStars">${'★'.repeat(Math.max(1,heroStars(key)))}</div></div>`; }).join('');
@@ -25780,7 +25780,7 @@ function isAutoBattle(){ const m=CUR&&CUR.mode;
   // ultimates the player deliberately held back, or the replay is a different fight.
   if(CUR&&CUR.manualReplay) return false;
   return m==='arena'||m==='raid'||m==='elite'||m==='replay'||m==='emberdraft'; }   // v604: Emberdraft fights are fully automatic (and never pick up the player's own Forge actives)
-function refreshCtrlBtns(){const sb=document.getElementById('speedBtn'),ab=document.getElementById('autoBtn'),kb=document.getElementById('skipBtn');sb.textContent='▶ x'+gameSpeed;sb.className='ctrlBtn'+(gameSpeed>1?' on':'');
+function refreshCtrlBtns(){const sb=document.getElementById('speedBtn'),ab=document.getElementById('autoBtn'),kb=document.getElementById('skipBtn');sb.innerHTML=uiIcon('play')+' x'+gameSpeed;sb.className='ctrlBtn'+(gameSpeed>1?' on':'');
   const forced=isAutoBattle();   // deterministic, recorded fights are 100% auto — AUTO stays locked ON
   if(forced)autoUlt=true;
   /* v760 (Phil: "Remove the skip button from the battles, But add a leave button, I dont want
@@ -25795,7 +25795,7 @@ function refreshCtrlBtns(){const sb=document.getElementById('speedBtn'),ab=docum
   if(kb) kb.style.display=(forced && !_isReplay && !(CUR&&CUR.mode==='emberdraft') && !(typeof GSPLIT!=='undefined' && GSPLIT.active))?'':'none';   /* v645 (Phil: Skip "should only be for deterministic fights like world map and arena"): never in Emberdraft */   // v585: never in a bonus run (it steps the campaign sim over all three roads). Skip is presentation-only for predetermined fights; manual Campaign/Vault outcomes must be played
   if(forced) autoPendingTarget=null;
   const switching=!forced && autoPendingTarget!==null;
-  ab.textContent=switching?('AUTO: SWITCHING '+(autoPendingTarget?'ON':'OFF')+'…'):('AUTO: '+(autoUlt?'ON':'OFF')+(forced?' 🔒':''));
+  ab.innerHTML=switching?('AUTO: SWITCHING '+(autoPendingTarget?'ON':'OFF')+'…'):('AUTO: '+(autoUlt?'ON':'OFF')+(forced?' '+hudIcon('lock'):''));
   ab.className='ctrlBtn'+(autoUlt?' on':'')+(switching?' pending':'')+(forced?' locked':'');
   ab.disabled=switching; ab.title=switching?'AUTO will change when the recorded input reaches the battle clock.':'';
   ab.style.opacity=forced?'.7':'';}
@@ -25882,7 +25882,7 @@ function setAimDefault(u){
   const b=nearestToScreen(project(u.x,u.y,1).x,project(u.x,u.y,1).y-30,aimTargetTeam());
   u._autoAim=null;
   if(b){const p=project(b.x,b.y,1);aimTX=p.x;aimTY=p.y;} else {const ap=project(u.x,u.y,1);aimTX=ap.x;aimTY=ap.y-140;} }
-function enterAim(u){ if(isAutoBattle())return; aiming=u; setAimDefault(u); document.getElementById('ultHint').textContent='🎯 Drag to aim '+u.t.abilityName+' · release to fire · drag to ✕ Cancel to abort'; }
+function enterAim(u){ if(isAutoBattle())return; aiming=u; setAimDefault(u); document.getElementById('ultHint').innerHTML=statusIcon('mark')+' Drag to aim '+escapeHTML(u.t.abilityName)+' · release to fire · drag to '+uiIcon('close')+' Cancel to abort'; }
 function ultCancelEl(){ return document.getElementById('ultCancel'); }
 function overCancel(cx,cy){ const c=ultCancelEl(); if(!c||!c.classList.contains('active'))return false; const r=c.getBoundingClientRect(); return cx>=r.left&&cx<=r.right&&cy>=r.top&&cy<=r.bottom; }
 function cancelAim(){ aiming=null; const c=ultCancelEl(); if(c)c.classList.remove('hot'); document.getElementById('ultHint').textContent=AIM_HINT; }
@@ -25976,12 +25976,12 @@ const GOLD_COSTS=[20,20,40,40,60,60,100,100];         // diamonds per gold purch
 const FOOD_STAMINA=120;                               // stamina granted per meal
 function goldPerBuy(){ return 1000 + (playerLevel()-1)*100; }   // scales with player level (L1=1000 → +100/level); tunable
 const GEM_OFFERS=[
-  {id:'cluster', price:'$4.99', img:'cluster', name:'Cluster Pack',   desc:'150 💎 a day for 14 days',      detail:'A steady stream of diamonds — <b>150 💎 delivered every day for 14 days</b> (2,100 💎 total). Rewards land at the daily 09:00 reset.', reward:{kind:'dailyGems', amount:150, days:14}},
+  {id:'cluster', price:'$4.99', img:'cluster', name:'Cluster Pack',   desc:'150 diamonds a day for 14 days',      detail:'A steady stream of diamonds — <b>150 '+hudIcon('gem')+' delivered every day for 14 days</b> (2,100 '+hudIcon('gem')+' total). Rewards land at the daily 09:00 reset.', reward:{kind:'dailyGems', amount:150, days:14}},
   {id:'burger', price:'$2.99', img:'burger',  name:'Burger Meal',    desc:'120 stamina a day for 30 days', detail:'Keep your armies marching — <b>120 stamina every day for 30 days</b> (3,600 total). Rewards land at the daily 09:00 reset.', reward:{kind:'dailyStamina', amount:120, days:30}},
-  {id:'d500', price:'$4.99', img:'d500',    name:'500 Diamonds',   desc:'One-time bundle',               detail:'A one-time chest of <b>500 💎 diamonds</b>, credited instantly.', reward:{kind:'gems', amount:500}},
-  {id:'d1200', price:'$9.99', img:'d1200',   name:'1,200 Diamonds', desc:'One-time bundle',               detail:'A one-time chest of <b>1,200 💎 diamonds</b>, credited instantly.', reward:{kind:'gems', amount:1200}},
-  {id:'d2800', price:'$19.99',img:'d2800',   name:'2,800 Diamonds', desc:'One-time bundle',               detail:'A one-time hoard of <b>2,800 💎 diamonds</b>, credited instantly.', reward:{kind:'gems', amount:2800}},
-  {id:'d6000', price:'$50.00',img:'d6000',   name:'6,000 Diamonds', desc:'One-time bundle',               detail:'The grand vault — <b>6,000 💎 diamonds</b>, our best value, credited instantly.', reward:{kind:'gems', amount:6000}},
+  {id:'d500', price:'$4.99', img:'d500',    name:'500 Diamonds',   desc:'One-time bundle',               detail:'A one-time chest of <b>500 '+hudIcon('gem')+' diamonds</b>, credited instantly.', reward:{kind:'gems', amount:500}},
+  {id:'d1200', price:'$9.99', img:'d1200',   name:'1,200 Diamonds', desc:'One-time bundle',               detail:'A one-time chest of <b>1,200 '+hudIcon('gem')+' diamonds</b>, credited instantly.', reward:{kind:'gems', amount:1200}},
+  {id:'d2800', price:'$19.99',img:'d2800',   name:'2,800 Diamonds', desc:'One-time bundle',               detail:'A one-time hoard of <b>2,800 '+hudIcon('gem')+' diamonds</b>, credited instantly.', reward:{kind:'gems', amount:2800}},
+  {id:'d6000', price:'$50.00',img:'d6000',   name:'6,000 Diamonds', desc:'One-time bundle',               detail:'The grand vault — <b>6,000 '+hudIcon('gem')+' diamonds</b>, our best value, credited instantly.', reward:{kind:'gems', amount:6000}},
 ];
 // grant a pack's listed reward. Instant diamond packs credit immediately; daily packs (Cluster/Burger)
 // drop a claimable entry at the top of the Quest log that pays out once per day until its days run out.
@@ -25999,7 +25999,7 @@ async function grantGemOffer(i){ const o=GEM_OFFERS[i]; if(!o||!o.id) return;
   const r=await api('/api/shop/purchase','POST',{offerId:o.id, provider:'test', requestId:uid8()}); grantGemOffer._busy=false;
   if(!r||!r.ok){ bannerMsg((r&&r.error)||'Could not reach the realm.'); return; }
   adoptLedger(r.ledger); saveG(); updateHubChrome();
-  bannerMsg(r.granted&&r.granted.gems ? ('💎 +'+r.granted.gems+' diamonds!') : ('🎁 '+o.name+' - +'+((r.granted&&r.granted.planDays)||0)+' days, claim it daily in Quests'));
+  bannerMsg(r.granted&&r.granted.gems ? (hudIcon('gem')+' +'+r.granted.gems+' diamonds!') : (uiIcon('gift')+' '+o.name+' - +'+((r.granted&&r.granted.planDays)||0)+' days, claim it daily in Quests'));
   if(typeof renderQuests==='function') try{ renderQuests(); }catch(e){}
   if(typeof updateMailBadges==='function') updateMailBadges(); }
 // merge any duplicate daily packs of the same type into one stacked entry (one claim per day, days add up)
@@ -26024,7 +26024,7 @@ async function claimPlans(){ if(!ACC.token){ bannerMsg('Connect to the realm to 
   const r=await api('/api/shop/plan-claim','POST',{requestId:uid8()}); claimPlans._busy=false;
   if(!r||!r.ok){ bannerMsg((r&&r.error)||'Claim failed - try again in a moment.'); return; }
   adoptLedger(r.ledger); saveG(); updateHubChrome();
-  const pd=r.paid||{}; bannerMsg([pd.gems?('💎 +'+pd.gems+' diamonds'):'', pd.stamina?('⧗ +'+pd.stamina+' stamina'):''].filter(Boolean).join(' · '));
+  const pd=r.paid||{}; bannerMsg([pd.gems?(hudIcon('gem')+' +'+pd.gems+' diamonds'):'', pd.stamina?('⧗ +'+pd.stamina+' stamina'):''].filter(Boolean).join(' · '));
   renderQuests(); if(typeof updateMailBadges==='function') updateMailBadges(); }
 function dailyPacksReady(){ return srvPlans().some(p=>p.ready); }
 // day-boundary: when the server reports shop counters (LED.st.shop) it owns the day (resets at 09:00 ET, v1065,
