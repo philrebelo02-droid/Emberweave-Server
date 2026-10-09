@@ -10,11 +10,14 @@
   const mul=(n,v)=>n==null?n:n*(1+v);
   const FLAT_KEYS=['hpFlat','adFlat','apFlat','armorFlat','mrFlat','armorPenFlat','magicPenFlat'];
   const PEN_POWER_PER_POINT=0.0001;   // card power: +1% per 100 average penetration (pen is not in the card's EHP x DPS formula)
+  /* v1096: two blessing kinds are not fractions - weigh them into the card multiplier as fraction-equivalents (PROPOSED):
+     1 energy/s ~ 0.05, energy from damage taken 0.4 ~ 0.1. Every other effect counts its fraction as before. */
+  const POWER_WEIGHT={'energy regen':0.05,'energy from damage taken':0.25};
   function flats(b){ const o={}; for(const k of FLAT_KEYS) o[k]=Math.round(get(b,k)); return o; }
   /* the card multiplier: blessing effect fractions (as before) + penetration. Flat HP / Attack / Armor go INTO the card's unit. */
   function powerMultiplier(b){
     let total=0;
-    for(const k of Object.keys(b||{})){ if(FLAT_KEYS.indexOf(k)<0) total+=Math.max(0,Number(b[k])||0); }
+    for(const k of Object.keys(b||{})){ if(FLAT_KEYS.indexOf(k)<0) total+=Math.max(0,Number(b[k])||0)*(POWER_WEIGHT[k]==null?1:POWER_WEIGHT[k]); }
     const pen=(get(b,'armorPenFlat')+get(b,'magicPenFlat'))/2;
     return 1+Math.min(0.5,total/4+pen*PEN_POWER_PER_POINT);
   }

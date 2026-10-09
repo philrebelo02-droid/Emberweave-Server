@@ -995,6 +995,7 @@ h1{background:linear-gradient(180deg,#fff4d6 0%,#f3d58a 42%,#c98f2e 100%);-webki
 /* v1094 Temple of Ash v2 screen (tp2*) - a 16:9 stage, everything placed in % of ChatGPT's 2560x1440 plate; --u = 1 plate px */
 #templeBody.tp2Host{position:absolute;inset:0;max-width:none;background:none;border:0;box-shadow:none;border-radius:0;padding:0;margin:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
 #temple .backbtn{z-index:30}
+.kitDot{display:inline-block;width:.7em;height:.7em;border-radius:50%;margin-right:.35em;vertical-align:.05em}
 .stIc{width:1.25em;height:1.25em;object-fit:contain;vertical-align:-0.28em;margin-right:0.25em}
 .tw-ic .stIc{width:70%;height:70%;margin:0;vertical-align:middle}
 .tp2Stage{position:relative;margin:0 auto;--u:0.4px;font-family:Georgia,'Times New Roman',serif;color:#f1e3c4;user-select:none;overflow:hidden}
@@ -1014,7 +1015,7 @@ h1{background:linear-gradient(180deg,#fff4d6 0%,#f3d58a 42%,#c98f2e 100%);-webki
 .tp2Bar .tp2Delta.up{background:rgba(70,230,100,.75);box-shadow:0 0 calc(var(--u)*10) rgba(70,230,100,.8)}
 .tp2Bar .tp2Delta.down{background:rgba(240,60,60,.8);box-shadow:0 0 calc(var(--u)*10) rgba(240,60,60,.8)}
 .tp2Bar .tp2Delta em{position:absolute;left:100%;top:50%;transform:translate(calc(var(--u)*8),-50%);font-style:normal;font-weight:700;font-size:calc(var(--u)*24);white-space:nowrap;text-shadow:0 0 calc(var(--u)*4) #000}
-.tp2Bar .tp2Delta.up em{color:#7dff95}.tp2Bar .tp2Delta.down em{color:#ff7d7d;left:auto;right:100%;transform:translate(calc(var(--u)*-8),-50%)}
+.tp2Bar .tp2Delta.lft em{left:auto;right:100%;transform:translate(calc(var(--u)*-8),-50%)}.tp2Bar .tp2Delta.up em{color:#7dff95}.tp2Bar .tp2Delta.down em{color:#ff7d7d;left:auto;right:100%;transform:translate(calc(var(--u)*-8),-50%)}
 .tp2Bar b{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;font-size:calc(var(--u)*32);color:#fff8ea;text-shadow:0 0 calc(var(--u)*5) #000,0 0 calc(var(--u)*5) #000}
 .tp2Bar s{position:absolute;right:calc(var(--u)*14);top:50%;transform:translateY(-50%);text-decoration:none;font-weight:700;font-size:calc(var(--u)*32);text-shadow:0 0 calc(var(--u)*5) #000}
 .tp2Bar s.up,.tp2Power.up,.tp2Auto .up,.tp2Fx b.up{color:#6dff8a}.tp2Bar s.down,.tp2Power.down,.tp2Auto .down,.tp2Fx b.down{color:#ff6b6b}
@@ -1038,11 +1039,11 @@ h1{background:linear-gradient(180deg,#fff4d6 0%,#f3d58a 42%,#c98f2e 100%);-webki
 .tp2Btn.red{background-image:url(/assets/img/temple/v2/button-red-v1.webp)}
 .tp2Btn.gold{background-image:url(/assets/img/temple/v2/button-gold-v1.webp);color:#3a2208;text-shadow:0 calc(var(--u)*1) 0 rgba(255,240,200,.6)}
 .tp2Btn:disabled{filter:grayscale(.8) brightness(.6);cursor:default}
-.tp2Opts{display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:calc(var(--u)*70);gap:calc(var(--u)*6) calc(var(--u)*12);overflow-y:auto;overflow-x:hidden;align-content:start;scrollbar-width:thin}
-.tp2Opt{position:relative;display:flex;align-items:center;gap:calc(var(--u)*10);background:rgba(8,14,28,.55);border:calc(var(--u)*2) solid rgba(160,120,60,.45);border-radius:calc(var(--u)*10);color:#efd9a8;font-family:inherit;padding:0 calc(var(--u)*10);cursor:pointer;text-align:left}
+.tp2Opts{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-auto-rows:calc(var(--u)*70);gap:calc(var(--u)*6) calc(var(--u)*12);overflow-y:auto;overflow-x:hidden;align-content:start;scrollbar-width:thin}
+.tp2Opt{position:relative;min-width:0;overflow:hidden;display:flex;align-items:center;gap:calc(var(--u)*10);background:rgba(8,14,28,.55);border:calc(var(--u)*2) solid rgba(160,120,60,.45);border-radius:calc(var(--u)*10);color:#efd9a8;font-family:inherit;padding:0 calc(var(--u)*10);cursor:pointer;text-align:left}
 .tp2Opt img{width:calc(var(--u)*56);height:calc(var(--u)*56);flex:none}
 .tp2Opt b{flex:1;font-size:calc(var(--u)*26);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tp2Opt span{font-size:calc(var(--u)*22);color:#d8c7a2;white-space:nowrap;display:flex;align-items:center;gap:calc(var(--u)*4)}
+.tp2Opt span{flex:none;font-size:calc(var(--u)*22);color:#d8c7a2;white-space:nowrap;display:flex;align-items:center;gap:calc(var(--u)*4)}
 .tp2Opt span img{width:calc(var(--u)*28);height:calc(var(--u)*28)}
 .tp2Opt span small{color:#7dff95}
 .tp2Check{width:calc(var(--u)*34);height:calc(var(--u)*34);flex:none;border:calc(var(--u)*3) solid #b48b4a;border-radius:calc(var(--u)*6);background:#0b0f1c}
@@ -1052,7 +1053,7 @@ h1{background:linear-gradient(180deg,#fff4d6 0%,#f3d58a 42%,#c98f2e 100%);-webki
 .tp2Grid{display:grid;grid-template-columns:repeat(6,1fr);grid-auto-rows:max-content;gap:calc(var(--u)*22);overflow-y:auto;padding:calc(var(--u)*6)}
 .tp2Tile{position:static;background:none;border:0;padding:0;color:#efd9a8;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:calc(var(--u)*6)}
 .tp2TileImg{position:relative;display:block;width:100%;aspect-ratio:1;border:calc(var(--u)*4) solid #c99b4f;border-radius:calc(var(--u)*12);overflow:hidden;box-shadow:0 0 calc(var(--u)*10) rgba(0,0,0,.7)}
-.tp2TileImg>img{width:100%;height:100%;object-fit:cover}
+.tp2TileImg>*{width:100%!important;height:100%!important}
 .tp2TileImg em{position:absolute;left:calc(var(--u)*6);top:calc(var(--u)*4);font-style:normal;font-size:calc(var(--u)*24);background:rgba(0,0,0,.6);padding:0 calc(var(--u)*6);border-radius:calc(var(--u)*6)}
 .tp2Dots{position:absolute;left:calc(var(--u)*2);top:calc(var(--u)*40);display:flex;flex-direction:column;gap:calc(var(--u)*2)}
 .tp2Dots img{width:calc(var(--u)*30);height:calc(var(--u)*30)}
@@ -1070,6 +1071,7 @@ h1{background:linear-gradient(180deg,#fff4d6 0%,#f3d58a 42%,#c98f2e 100%);-webki
 .tp2AutoRow span{min-width:calc(var(--u)*320);display:flex;align-items:center;justify-content:center;gap:calc(var(--u)*10)}
 .tp2AutoRow span img{width:calc(var(--u)*60);height:calc(var(--u)*60)}
 .tp2AutoBtns{display:flex;gap:calc(var(--u)*30)}
+.tp2BarLbl{display:flex;align-items:baseline;gap:calc(var(--u)*14)}.tp2Val{color:#fff8ea;font-size:calc(var(--u)*32)}
 .tp2PowIc{width:calc(var(--u)*70);height:calc(var(--u)*70);margin-right:calc(var(--u)*12)}
 .tp2BtnIc{width:calc(var(--u)*46);height:calc(var(--u)*46);vertical-align:middle;margin-right:calc(var(--u)*8)}
 #tp2Switch,#tp2Auto{white-space:nowrap;font-size:calc(var(--u)*32)}
@@ -1078,7 +1080,7 @@ h1{background:linear-gradient(180deg,#fff4d6 0%,#f3d58a 42%,#c98f2e 100%);-webki
 .tp2KeeperPlate{background:url(/assets/img/temple/v2/ctl-keeper-plate-v1.webp) center/100% 100% no-repeat!important;border:0!important}
 .tp2Exp{background:url(/assets/img/temple/v2/ctl-exp-frame-v1.webp) center/100% 100% no-repeat!important;border:0!important}
 .tp2Exp i{background:url(/assets/img/temple/v2/ctl-exp-fill-v1.webp) left center/auto 100% repeat-x!important;margin:calc(var(--u)*6) 0}
-.tp2TileImg{border:0!important}.tp2TileImg .tp2TileFrame{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;pointer-events:none}
+
 .tp2Tile b{background:url(/assets/img/temple/v2/ctl-percent-plate-v1.webp) center/100% 100% no-repeat;padding:0 calc(var(--u)*30);min-width:70%;text-align:center}
 .tp2Auto{background:url(/assets/img/temple/v2/ctl-auto-panel-v1.webp) center/100% 100% no-repeat!important;border:0!important}
 .tp2AutoRow button{background:none!important;border:0!important;padding:0}.tp2AutoRow button img{width:100%;height:100%;object-fit:contain}
@@ -4942,7 +4944,7 @@ function abilityMeta(key,idx){ const t=HERO_TYPES[key],kit=KITS[key]; if(!t||!ki
 }
 // tooltip: a full one-sentence description of what the ability does, then the standard meta line.
 function skillDesc(key,idx){ const t=HERO_TYPES[key],kit=KITS[key];
-  if(idx===3){ const ab=kit.purple; return (ab.desc||PASS_DESC[ab.pass]||'Always-on passive.')+' (Passive)'; }
+  if(idx===3){ const ab=kit.purple; return stripIcons(ab.desc||PASS_DESC[ab.pass]||'Always-on passive.')+' (Passive)'; }
   const _kab=idx===0?null:(idx===1?kit.green:kit.blue);
   const desc = idx===0 ? (HERO_ULT_DESC[key]||ULT_DESC[t.ability]||'Ultimate ability.') : ((_kab&&_kab.desc)?_kab.desc:((_kab&&_kab.at==='cluster'?'Cast on the most crowded enemy group, any distance — ':'')+(KIT_DESC[_kab.type]||'Active ability.').replace(/^Bursts around the caster — |^Damages all nearby enemies/, m=>_kab.at==='cluster'?(m.startsWith('Bursts')?'':'damages every enemy in the area'):m)));
   return desc + abilityMeta(key,idx);
@@ -4958,119 +4960,123 @@ function ccSecFor(o,k){
   const _s=(Array.isArray(o.ccFixed)&&o.ccFixed.indexOf(k)>=0)?o[k]:CC_SECONDS[k][aoe?'aoe':'single'];   /* v1030 ccFixed */
   return (typeof CC_NERF==='number') ? +(_s*CC_NERF).toFixed(2) : _s;   /* v818: the card shows the cut length */
 }
+/* v1096 (Phil 9 Oct: 'no more emojis' / 'add the new icons'): skill text carries {i:s:<status>} / {i:t:<stat>} tokens; iconize() draws the
+   approved icon art where the text is HTML, stripIcons() drops them where it is plain text (title tooltips, textContent). */
+function iconize(str){ return String(str==null?'':str).replace(/\{i:([st]):([a-zA-Z-]+)\}/g,(m,k,n)=>`<img class="stIc" src="/assets/img/icons/${k==='s'?'status':'stat'}/${n}-v1.webp" alt="">`); }
+function stripIcons(str){ return String(str==null?'':str).replace(/\{i:[st]:[a-zA-Z-]+\}\s?/g,''); }
 function skillEffectStr(key,idx,atk,hp){ const t=HERO_TYPES[key],kit=KITS[key],lv=skillLevel(key,idx),sm=skillMul(lv);
   let apw=Math.round((t.apow||0)*(t.dmg?atk/t.dmg:1));   // approximate effective Ability Power for display
   if(!apw) apw=atk;   // v527: a physical hero scales its abilities off Attack (see heroScaleMode) - printing 0 was a display bug
   if(idx===0){ const d=ULT_DEF[t.ability]||{};
-    if(t.ability==='flywheel') return '⚔ '+Math.round(atk*(d.mul||1.6)*sm)+' AoE';
-    if(t.ability==='blizzard') return '❄ '+Math.round(apw*0.5*sm)+'/tick · '+(d.dur||4)+'s';
-    if(t.ability==='eclipse') return '⚔ '+Math.round(apw*(d.mul||2.2)*sm)+' AoE + team shield';
-    if(t.ability==='plaguesov') return '☠ '+Math.round(apw*(d.mul||1.6)*sm)+' + poison';
-    if(t.ability==='symphony') return '✚ '+Math.round(apw*(d.healMul||0.30)*sm)+' all allies + ⚔ '+Math.round(apw*(d.dmgMul||0.30)*sm)+' all enemies';
-    if(t.ability==='thundershower') return '⚡ '+Math.round(apw*(d.mul||0.6)*sm)+'/tick · '+(d.dur||3)+'s';
-    if(t.ability==='plumage') return '✚ cleanse + '+Math.round(apw*(d.heal||0.8)*sm)+' · −'+Math.round((d.shred||0.3)*100)+'% enemy defence';
+    if(t.ability==='flywheel') return '{i:s:attack} '+Math.round(atk*(d.mul||1.6)*sm)+' AoE';
+    if(t.ability==='blizzard') return '{i:s:slow} '+Math.round(apw*0.5*sm)+'/tick · '+(d.dur||4)+'s';
+    if(t.ability==='eclipse') return '{i:s:attack} '+Math.round(apw*(d.mul||2.2)*sm)+' AoE + team shield';
+    if(t.ability==='plaguesov') return '{i:s:poison} '+Math.round(apw*(d.mul||1.6)*sm)+' + poison';
+    if(t.ability==='symphony') return '{i:s:heal} '+Math.round(apw*(d.healMul||0.30)*sm)+' all allies + {i:s:attack} '+Math.round(apw*(d.dmgMul||0.30)*sm)+' all enemies';
+    if(t.ability==='thundershower') return '{i:s:energy} '+Math.round(apw*(d.mul||0.6)*sm)+'/tick · '+(d.dur||3)+'s';
+    if(t.ability==='plumage') return '{i:s:heal} cleanse + '+Math.round(apw*(d.heal||0.8)*sm)+' · −'+Math.round((d.shred||0.3)*100)+'% enemy defence';
     /* v793b (Phil: "hers is specific because she heals allies per enemy ability silenced") -
        NERISSE'S ULTIMATE HAD NO ENTRY HERE and fell through to the default, so a no-damage support
        ult printed a damage number on its card. The `case 'deepchoir'` further down is in the switch
        on a KIT type (green/blue) and has never run - deepchoir is an ultimate. Silence length comes
        from ccSecFor, which keeps a channelled control at its channel. */
     if(t.ability==='deepchoir') return '\uD83D\uDD07 '+ccSecFor(d,'silence')+'s silence in 8m, re-sung every '+(d.tick||1)+'s for '+(d.dur||5)+'s \u00b7 \u271a each silenced enemy heals the ally nearest it for '+Math.round(apw*0.30*sm)+' per second \u00b7 no damage';
-    if(t.ability==='quietwings') return '💤 '+ccSecFor(d,'sleep')+'s sleep all · ⚔ team +'+Math.round(((d.buff||1.3)-1)*100)+'%';
-    if(t.ability==='openeverydoor') return '🔒 '+(d.lock||1.6)+'s lock all · ⚡ steal '+(d.steal||35);
+    if(t.ability==='quietwings') return '{i:s:sleep} '+ccSecFor(d,'sleep')+'s sleep all · {i:s:attack} team +'+Math.round(((d.buff||1.3)-1)*100)+'%';
+    if(t.ability==='openeverydoor') return ''+(d.lock||1.6)+'s lock all · {i:s:energy} steal '+(d.steal||35);
     if(t.ability==='rewind') return '↺ team health from '+(d.back||5)+'s ago + revive';
-    if(t.ability==='hivemind') return '🐝 '+(d.n||30)+' bees · ✚ '+Math.round(hp*(d.healPct||0.02)*sm*10)+' team heal';
-    if(t.ability==='summonshaman') return '📖 summons an Elder Ink Horror · '+(d.dur||22)+'s';
-    if(t.ability==='heal') return '✚ '+Math.round(hp*(d.mul||.95)*sm)+' team heal'; if(t.ability==='rally') return '⚡ +40 energy · ✚ '+Math.round(hp*0.3*sm); if(t.ability==='burst') return '⚔ '+Math.round(atk*3*sm); if(d.hpMul) return '⚔ '+Math.round(hp*d.hpMul*sm)+(d.radius?' AoE slam':' slam'); return d.mul?('⚔ '+Math.round(atk*d.mul*sm)+(d.radius?' AoE':'')):'⚔ strike'; }
+    if(t.ability==='hivemind') return ''+(d.n||30)+' bees · {i:s:heal} '+Math.round(hp*(d.healPct||0.02)*sm*10)+' team heal';
+    if(t.ability==='summonshaman') return 'summons an Elder Ink Horror · '+(d.dur||22)+'s';
+    if(t.ability==='heal') return '{i:s:heal} '+Math.round(hp*(d.mul||.95)*sm)+' team heal'; if(t.ability==='rally') return '{i:s:energy} +40 energy · {i:s:heal} '+Math.round(hp*0.3*sm); if(t.ability==='burst') return '{i:s:attack} '+Math.round(atk*3*sm); if(d.hpMul) return '{i:s:attack} '+Math.round(hp*d.hpMul*sm)+(d.radius?' AoE slam':' slam'); return d.mul?('{i:s:attack} '+Math.round(atk*d.mul*sm)+(d.radius?' AoE':'')):'{i:s:attack} strike'; }
   const ab=idx===1?kit.green:idx===2?kit.blue:kit.purple;
-  if(idx===3){ const P={bulwark:'🛡 −'+Math.round(18*sm)+'% dmg taken',fury:'⚡ +'+Math.round(25*sm)+'% atk speed',crit:'✦ +'+Math.round(20*sm)+'% crit',power:'⚔ +'+Math.round(15*sm)+'% dmg',regen:'✚ '+ (+(0.02*sm*100).toFixed(1))+'%/s heal',beeward:'🐝 every ally: +0.4%/s heal',battery:'⚡ faster energy',lifesteal:'✚ '+Math.round(20*sm)+'% lifesteal',ignite:'🔥 burn',warden:'🛡 +'+Math.round(4*sm)+'% armour & MR /3s (cap 20%)',juggernaut:'✚ '+(+(4*sm).toFixed(1))+'%/s self-heal',mirewall:'🛡 −'+Math.round(Math.min(35,20*sm))+'% on lowest ally',
-    desertmom:'⚡ up to +'+Math.round(50*sm)+'% atk speed & +'+Math.round(120*sm)+' penetration',
-    gruel:'🕯 3 casts → encased '+(+(1.6*sm).toFixed(1))+'s', risingheat:'✨ up to +'+Math.round(45*sm)+'% spell power', staticcharge:'⚡ 5 stacks → chain',
-    patience:'✦ +'+Math.round(5*sm)+'% crit per stack (×6)', convergence:'⚡ energy back on AoE',
-    unbroken:'🛡 '+Math.round(30*sm)+'% shield once per battle', sacredbells:'🛡 allies −'+Math.round(10*sm)+'% dmg /4s',
-    livingpages:'✨ next attack +'+Math.round(60*sm)+'%', instinct:'⚔ every 4th shot is true damage',
-    layered:'🛡 5 layers → 2s control immunity', unshaken:'⚡ energy + cover a held ally',
-    splendor:'🛡 +'+Math.round(4*sm)+'% shield on every buff', goldthread:'✚ '+Math.round(40*sm)+'% of her healing passed on',
-    camouflage:'✦ untouched: +'+Math.round(18*sm)+'% dodge, +'+Math.round(25*sm)+'% dmg',
-    silentalt:'✦ untouched: +'+Math.round(50*sm)+'% crit damage', abyssres:'✨ every 3rd cast +45%',
-    pelagic:'👁 reveals the next enemy cast · 🛡 −'+Math.round(8*sm)+'% damage taken', unmovable:'🛡 immovable + molten armour',
-    skeletonkey:'🔑 5 keys → Master-Unlock', venomrhythm:'☠ every 3rd attack: −heal, −energy', killerinstinct:'☠ every attack: −heal 3s',
-    packopp:'⚔ +'+Math.round(28*sm)+'% vs isolated/held/low', digger:'⚡ atk speed per hit taken',
-    loadedhand:'🃏 every 4th attack draws a suit', pridemomentum:'⚔ +'+Math.round(22*sm)+'% after a block',
-    weightless:'⚡ dodge → atk speed + crit', prismscales:'💧 dodge → water blade',
-    slumber:'👁 attacks lower enemy accuracy',
-    hush:'🤫 every 5s one enemy is silenced for 0.7s', momentum:'⚡ atk speed ramps up to +'+Math.round(50*sm)+'%',
-    notthere:'👻 every 4s the next blow misses', packstats:'⚔ +5% per living summon',
-    tidereserve:'✚ 1% HP and 1% energy per second', scriptorium:'⚡ the whole team charges faster',
-    unwind:'✚ every 5s one ally is cleansed', wrath:'⚔ +12% every 5s, compounding',
-    coldsnap:'❄ Chill adds +5% frost ability damage taken per stack (max +25%); expires after 10s', deepfreeze:'❄ every 5s one enemy is frozen',
-    stormdodge:'🌀 30% dodge while casting', selfregen:'✚ steady regeneration in combat',
-    unstepped:'🛡 cannot be pulled, knocked or displaced', unstoppable:'🛡 cannot be slowed, stunned or displaced',
-    immolate:'🔥 burning aura', debtaura:'☠ nearby DoTs last 20% longer',
-    twinfonts:'⚔/✚ Dark drains, Light regenerates', deeproots:'🌿 an ally below 30% is rooted and healed 25% over 4 s', contagion:'☠ his poison spreads on death',
-    perfectpitch:'🛡 her heals also shield', stardust:'🔥 every attack leaves a burn',
-    darkconv:'🌑 every attack curses; every third converges', arsenal:'🎯 a different projectile every attack'}; return P[ab.pass]||'passive'; }
+  if(idx===3){ const P={bulwark:'{i:s:shield} −'+Math.round(18*sm)+'% dmg taken',fury:'{i:s:energy} +'+Math.round(25*sm)+'% atk speed',crit:'{i:s:crit-burst} +'+Math.round(20*sm)+'% crit',power:'{i:s:attack} +'+Math.round(15*sm)+'% dmg',regen:'{i:s:heal} '+ (+(0.02*sm*100).toFixed(1))+'%/s heal',beeward:'every ally: +0.4%/s heal',battery:'{i:s:energy} faster energy',lifesteal:'{i:s:heal} '+Math.round(20*sm)+'% lifesteal',ignite:'{i:s:burn} burn',warden:'{i:s:shield} +'+Math.round(4*sm)+'% armour & MR /3s (cap 20%)',juggernaut:'{i:s:heal} '+(+(4*sm).toFixed(1))+'%/s self-heal',mirewall:'{i:s:shield} −'+Math.round(Math.min(35,20*sm))+'% on lowest ally',
+    desertmom:'{i:s:energy} up to +'+Math.round(50*sm)+'% atk speed & +'+Math.round(120*sm)+' penetration',
+    gruel:'3 casts → encased '+(+(1.6*sm).toFixed(1))+'s', risingheat:'{i:t:apow} up to +'+Math.round(45*sm)+'% spell power', staticcharge:'{i:s:energy} 5 stacks → chain',
+    patience:'{i:s:crit-burst} +'+Math.round(5*sm)+'% crit per stack (×6)', convergence:'{i:s:energy} energy back on AoE',
+    unbroken:'{i:s:shield} '+Math.round(30*sm)+'% shield once per battle', sacredbells:'{i:s:shield} allies −'+Math.round(10*sm)+'% dmg /4s',
+    livingpages:'{i:t:apow} next attack +'+Math.round(60*sm)+'%', instinct:'{i:s:attack} every 4th shot is true damage',
+    layered:'{i:s:shield} 5 layers → 2s control immunity', unshaken:'{i:s:energy} energy + cover a held ally',
+    splendor:'{i:s:shield} +'+Math.round(4*sm)+'% shield on every buff', goldthread:'{i:s:heal} '+Math.round(40*sm)+'% of her healing passed on',
+    camouflage:'{i:s:crit-burst} untouched: +'+Math.round(18*sm)+'% dodge, +'+Math.round(25*sm)+'% dmg',
+    silentalt:'{i:s:crit-burst} untouched: +'+Math.round(50*sm)+'% crit damage', abyssres:'{i:t:apow} every 3rd cast +45%',
+    pelagic:'{i:s:reveal} reveals the next enemy cast · {i:s:shield} −'+Math.round(8*sm)+'% damage taken', unmovable:'{i:s:shield} immovable + molten armour',
+    skeletonkey:'5 keys → Master-Unlock', venomrhythm:'{i:s:poison} every 3rd attack: −heal, −energy', killerinstinct:'{i:s:poison} every attack: −heal 3s',
+    packopp:'{i:s:attack} +'+Math.round(28*sm)+'% vs isolated/held/low', digger:'{i:s:energy} atk speed per hit taken',
+    loadedhand:'🃏 every 4th attack draws a suit', pridemomentum:'{i:s:attack} +'+Math.round(22*sm)+'% after a block',
+    weightless:'{i:s:energy} dodge → atk speed + crit', prismscales:'{i:s:cleanse} dodge → water blade',
+    slumber:'{i:s:reveal} attacks lower enemy accuracy',
+    hush:'{i:s:silence} every 5s one enemy is silenced for 0.7s', momentum:'{i:s:energy} atk speed ramps up to +'+Math.round(50*sm)+'%',
+    notthere:'{i:s:untargetable} every 4s the next blow misses', packstats:'{i:s:attack} +5% per living summon',
+    tidereserve:'{i:s:heal} 1% HP and 1% energy per second', scriptorium:'{i:s:energy} the whole team charges faster',
+    unwind:'{i:s:heal} every 5s one ally is cleansed', wrath:'{i:s:attack} +12% every 5s, compounding',
+    coldsnap:'{i:s:slow} Chill adds +5% frost ability damage taken per stack (max +25%); expires after 10s', deepfreeze:'{i:s:slow} every 5s one enemy is frozen',
+    stormdodge:'30% dodge while casting', selfregen:'{i:s:heal} steady regeneration in combat',
+    unstepped:'{i:s:shield} cannot be pulled, knocked or displaced', unstoppable:'{i:s:shield} cannot be slowed, stunned or displaced',
+    immolate:'{i:s:burn} burning aura', debtaura:'{i:s:poison} nearby DoTs last 20% longer',
+    twinfonts:'{i:s:attack}/{i:s:heal} Dark drains, Light regenerates', deeproots:'{i:s:root} an ally below 30% is rooted and healed 25% over 4 s', contagion:'{i:s:poison} his poison spreads on death',
+    perfectpitch:'{i:s:shield} her heals also shield', stardust:'{i:s:burn} every attack leaves a burn',
+    darkconv:'every attack curses; every third converges', arsenal:'{i:s:mark} a different projectile every attack'}; return P[ab.pass]||'passive'; }
   switch(ab.type){
-    case 'hot': return '✚ '+Math.round(hp*(ab.hps||.05)*sm)+'/s heal';
-    case 'shield': return '🛡 '+Math.round(hp*(ab.mul||.4)*sm)+' shield';
-    case 'defensive': return '🛡 −'+Math.round((1-(ab.mul||0.5))*100)+'% damage taken · '+(ab.dur||4)+'s';
-    case 'mendburst': return '✚ '+Math.round(apw*(ab.mul||0.45)*sm)+' + '+Math.round(hp*(ab.hot||0.06)*sm)+'/s';
-    case 'volley': return '⚔ '+Math.round(atk*(ab.mul||0.9)*sm)+' ×'+(ab.n||3)+(ab.single?' into one target':'');
-    case 'dmgbuff': return '⚔ +'+Math.round(((ab.mul||1.25)-1)*100)+'% team dmg';
-    case 'haste': return '⚡ +'+Math.round(((ab.mul||1.3)-1)*100)+'% atk speed';
-    case 'taunt': return '🛡 −'+Math.round(40*sm)+'% dmg taken';
-    case 'creeprot': case 'dot': case 'aoedot': return '⚔ '+(ab.mul?Math.round(atk*ab.mul*sm)+' + ':'')+'DoT '+Math.round(atk*(ab.dps||.5)*sm)+'/s';
-    case 'punchflurry': return '⚔ '+Math.round(atk*(ab.mul||0.28)*sm)+' ×'+(ab.hits||5);
-    case 'frozenorb': return '❄ '+Math.round(apw*(ab.mul||1.1)*sm)+' to every foe in a 28 m line + chill';
-    case 'freeze': return '❄ '+Math.round(apw*(ab.mul||1.2)*sm)+' + '+ccSecFor(ab,'stun')+'s stun';
-    case 'sunburst': return '☀ '+Math.round(apw*(ab.mul||1.4)*sm)+' + heal';
-    case 'duality': return '⚔/🛡 stance swap';
-    case 'toxbreath': return '☠ '+Math.round(apw*(ab.mul||0.9)*sm)+' + DoT '+Math.round(apw*(ab.dps||0.5)*sm)+'/s';
-    case 'swamproot': return '🌿 '+Math.round(apw*(ab.mul||0.7)*sm)+(ab.farthest?' ×'+ab.farthest:'')+' + '+ccSecFor(ab,'root')+'s root'+(ab.silence?' + '+Math.round(ab.silence*CC_NERF)+'s silence':'');   /* v1030: Bloatus - two farthest, silence */
-    case 'crescendo': return '✚ '+Math.round(apw*2*sm)+' heal';
-    case 'chantzone': return '✚ '+Math.round(apw*(ab.hps||0.6)*sm)+'/s allies · ⚔ '+Math.round(apw*(ab.dps||0.35)*sm)+'/s foes';
-    case 'honeyglob': return '🍯 '+Math.round(apw*2*sm)+' + '+Math.round((ab.heal||0.14)*100)+'% HP heal';
-    case 'harmonyshield': return '🛡 '+Math.round(apw*(ab.mul||2.4)*sm)+' shield';
-    case 'stormsurge': return '⚡ '+Math.round(apw*(ab.mul||0.85)*sm)+' ×'+(ab.n||5);
-    case 'chainlight': return '⚡ '+Math.round(apw*(ab.mul||1.1)*sm)+' chain';
+    case 'hot': return '{i:s:heal} '+Math.round(hp*(ab.hps||.05)*sm)+'/s heal';
+    case 'shield': return '{i:s:shield} '+Math.round(hp*(ab.mul||.4)*sm)+' shield';
+    case 'defensive': return '{i:s:shield} −'+Math.round((1-(ab.mul||0.5))*100)+'% damage taken · '+(ab.dur||4)+'s';
+    case 'mendburst': return '{i:s:heal} '+Math.round(apw*(ab.mul||0.45)*sm)+' + '+Math.round(hp*(ab.hot||0.06)*sm)+'/s';
+    case 'volley': return '{i:s:attack} '+Math.round(atk*(ab.mul||0.9)*sm)+' ×'+(ab.n||3)+(ab.single?' into one target':'');
+    case 'dmgbuff': return '{i:s:attack} +'+Math.round(((ab.mul||1.25)-1)*100)+'% team dmg';
+    case 'haste': return '{i:s:energy} +'+Math.round(((ab.mul||1.3)-1)*100)+'% atk speed';
+    case 'taunt': return '{i:s:shield} −'+Math.round(40*sm)+'% dmg taken';
+    case 'creeprot': case 'dot': case 'aoedot': return '{i:s:attack} '+(ab.mul?Math.round(atk*ab.mul*sm)+' + ':'')+'DoT '+Math.round(atk*(ab.dps||.5)*sm)+'/s';
+    case 'punchflurry': return '{i:s:attack} '+Math.round(atk*(ab.mul||0.28)*sm)+' ×'+(ab.hits||5);
+    case 'frozenorb': return '{i:s:slow} '+Math.round(apw*(ab.mul||1.1)*sm)+' to every foe in a 28 m line + chill';
+    case 'freeze': return '{i:s:slow} '+Math.round(apw*(ab.mul||1.2)*sm)+' + '+ccSecFor(ab,'stun')+'s stun';
+    case 'sunburst': return ''+Math.round(apw*(ab.mul||1.4)*sm)+' + heal';
+    case 'duality': return '{i:s:attack}/{i:s:shield} stance swap';
+    case 'toxbreath': return '{i:s:poison} '+Math.round(apw*(ab.mul||0.9)*sm)+' + DoT '+Math.round(apw*(ab.dps||0.5)*sm)+'/s';
+    case 'swamproot': return '{i:s:root} '+Math.round(apw*(ab.mul||0.7)*sm)+(ab.farthest?' ×'+ab.farthest:'')+' + '+ccSecFor(ab,'root')+'s root'+(ab.silence?' + '+Math.round(ab.silence*CC_NERF)+'s silence':'');   /* v1030: Bloatus - two farthest, silence */
+    case 'crescendo': return '{i:s:heal} '+Math.round(apw*2*sm)+' heal';
+    case 'chantzone': return '{i:s:heal} '+Math.round(apw*(ab.hps||0.6)*sm)+'/s allies · {i:s:attack} '+Math.round(apw*(ab.dps||0.35)*sm)+'/s foes';
+    case 'honeyglob': return ''+Math.round(apw*2*sm)+' + '+Math.round((ab.heal||0.14)*100)+'% HP heal';
+    case 'harmonyshield': return '{i:s:shield} '+Math.round(apw*(ab.mul||2.4)*sm)+' shield';
+    case 'stormsurge': return '{i:s:energy} '+Math.round(apw*(ab.mul||0.85)*sm)+' ×'+(ab.n||5);
+    case 'chainlight': return '{i:s:energy} '+Math.round(apw*(ab.mul||1.1)*sm)+' chain';
     /* v527 — the design-pack behaviours */
-    case 'shred': return '⚔ '+Math.round(atk*(ab.mul||1.4)*sm)+' + −'+Math.round((ab.shred||0.3)*100)+'% armour';
-    case 'mrshred': return '✨ '+Math.round(apw*(ab.mul||1.4)*sm)+' + −'+Math.round((ab.shred||0.3)*100)+'% resist';
-    case 'knockstun': return '⚔ '+Math.round(atk*(ab.mul||1.4)*sm)+' + '+ccSecFor(ab,'stun')+'s stun + knockback';
+    case 'shred': return '{i:s:attack} '+Math.round(atk*(ab.mul||1.4)*sm)+' + −'+Math.round((ab.shred||0.3)*100)+'% armour';
+    case 'mrshred': return '{i:t:apow} '+Math.round(apw*(ab.mul||1.4)*sm)+' + −'+Math.round((ab.shred||0.3)*100)+'% resist';
+    case 'knockstun': return '{i:s:attack} '+Math.round(atk*(ab.mul||1.4)*sm)+' + '+ccSecFor(ab,'stun')+'s stun + knockback';
     /* v792 - Nerisse's "Choir of the Deep Sky". This said 5s, typed by hand, while v790 made an
        area silence 1.5s - the game was quoting a number the fight had stopped using. */
     /* v793b - DEAD: this switch is on a green/blue KIT type and deepchoir is an ultimate, so this
        has never run. The live one is the t.ability check in the ult chain above. Left in place
        because it is harmless and a future kit could use the type. */
     case 'deepchoir': return ccSecFor(d,'silence')+'s silence in 8m · each affected enemy heals its nearest ally for 30% of that enemy’s Ability Power each second · no damage';
-    case 'aoeStun': return '⚔ '+Math.round(atk*(ab.mul||1.2)*sm)+' AoE + '+ccSecFor(ab,'stun')+'s stun'+(ab.silence?' + '+ccSecFor(ab,'silence')+'s silence':'');
-    case 'evadecounter': return '🌀 evade + ⚔ '+Math.round(atk*(ab.mul||1.8)*sm)+' counter';
-    case 'interruptslam': return '⚔ '+Math.round(atk*(ab.mul||1.2)*sm)+' AoE + interrupt';
-    case 'banner': return '🛡 team +'+Math.round((1-(ab.dr||0.82))*100)+'% DR · ⚡ +'+Math.round(((ab.haste||1.2)-1)*100)+'% atk speed';
-    case 'atkcrush': return '⚔ '+Math.round(atk*(ab.mul||1.5)*sm)+' + −'+Math.round((ab.pct||0.35)*100)+'% enemy attack';
-    case 'energysteal': return '⚡ steal '+(ab.steal||30)+' energy + ⚔ '+Math.round(atk*(ab.mul||1.2)*sm);
-    case 'energygift': return '⚡ ally +'+(ab.give||25)+' energy (+'+(ab.perKey||6)+'/key)';
-    case 'silencestrike': return '✨ '+Math.round(apw*(ab.mul||1.3)*sm)+' + '+ccSecFor(ab,'silence')+'s silence';
-    case 'orbheal': return '✚ '+Math.round(apw*(ab.mul||0.35)*sm)+' to every ally';
-    case 'sleepbouquet': return '💤 '+ccSecFor(ab,'sleep')+'s sleep on the fullest ult';
-    case 'healbuff': return '✚ '+Math.round(apw*(ab.mul||0.9)*sm)+' + ⚔ +'+Math.round(((ab.atk||1.25)-1)*100)+'% attack';
-    case 'linkheal': return '✚ '+Math.round(apw*(ab.mul||0.5)*sm)+' ×2 + shared healing';
-    case 'lastbreath': return '🛡 '+Math.round(apw*(ab.mul||1.8)*sm)+' shield · cannot fall below 1';
-    case 'boomerang': return '⚔ '+Math.round(atk*(ab.mul||0.9)*sm)+' out · '+Math.round(atk*(ab.mul||0.9)*(ab.backMul||1.5)*sm)+' back';
-    case 'markreveal': return '✦ mark: +'+Math.round(((ab.mul||1.25)-1)*100)+'% damage taken';
-    case 'summonmirage': return '✨ a mirage of herself · 30% stats · until it dies';
-    case 'mirage': return '🛡 '+Math.round(hp*(ab.pct||0.18)*sm)+' shield + '+Math.round((ab.eva||0.15)*100)+'% dodge';
-    case 'sealwax': return '✨ '+Math.round(apw*(ab.mul||1.0)*sm)+' + slow '+(ab.harden||2)+'s, then '+ccSecFor(ab,'stun')+'s seal';
-    case 'gravknot': return '🌀 pull + slow'+(ab.mul?' · ✨ '+Math.round(apw*ab.mul*sm):'');
-    case 'thornguard': return '🛡 '+Math.round(hp*(ab.pct||0.16)*sm)+' shield + '+Math.round((ab.thorn||0.55)*100)+'% retaliation';
-    case 'incense': return '⚔ −'+Math.round((ab.pct||0.25)*100)+'% enemy attack · ✚ cleanse';
-    case 'chainquench': return '⚔ '+Math.round(atk*(ab.mul||0.8)*sm)+' + pull + burn '+Math.round(atk*(ab.dps||0.35)*sm)+'/s';
-    case 'chapterrewrite': return '✨ '+Math.round(apw*(ab.mul||1.0)*sm)+' + strips buffs · −'+Math.round((ab.pct||0.3)*100)+'% stats';
-    case 'grapple': return '⚔ '+Math.round(atk*(ab.mul||1.2)*sm)+' + pull + '+ccSecFor(ab,'stun')+'s stun';
-    case 'burrowguard': return '🕳 untargetable '+(ab.dur||1.4)+'s → ⚔ '+Math.round(atk*(ab.mul||1.7)*sm);
-    case 'warcry': { const _lw=Math.max(0,Math.round(((sm||1)-1)/SKILL_STEP)); return '⚔ +'+(((ab.mul||1.4)-1+(ab.mulPerLv||0)*vaelSteps(_lw+1))*100).toFixed(1).replace(/\.0$/,'')+'% dmg · '+(ab.dur||6)+'s'; }   /* v1024: a buff, not a hit */
+    case 'aoeStun': return '{i:s:attack} '+Math.round(atk*(ab.mul||1.2)*sm)+' AoE + '+ccSecFor(ab,'stun')+'s stun'+(ab.silence?' + '+ccSecFor(ab,'silence')+'s silence':'');
+    case 'evadecounter': return 'evade + {i:s:attack} '+Math.round(atk*(ab.mul||1.8)*sm)+' counter';
+    case 'interruptslam': return '{i:s:attack} '+Math.round(atk*(ab.mul||1.2)*sm)+' AoE + interrupt';
+    case 'banner': return '{i:s:shield} team +'+Math.round((1-(ab.dr||0.82))*100)+'% DR · {i:s:energy} +'+Math.round(((ab.haste||1.2)-1)*100)+'% atk speed';
+    case 'atkcrush': return '{i:s:attack} '+Math.round(atk*(ab.mul||1.5)*sm)+' + −'+Math.round((ab.pct||0.35)*100)+'% enemy attack';
+    case 'energysteal': return '{i:s:energy} steal '+(ab.steal||30)+' energy + {i:s:attack} '+Math.round(atk*(ab.mul||1.2)*sm);
+    case 'energygift': return '{i:s:energy} ally +'+(ab.give||25)+' energy (+'+(ab.perKey||6)+'/key)';
+    case 'silencestrike': return '{i:t:apow} '+Math.round(apw*(ab.mul||1.3)*sm)+' + '+ccSecFor(ab,'silence')+'s silence';
+    case 'orbheal': return '{i:s:heal} '+Math.round(apw*(ab.mul||0.35)*sm)+' to every ally';
+    case 'sleepbouquet': return '{i:s:sleep} '+ccSecFor(ab,'sleep')+'s sleep on the fullest ult';
+    case 'healbuff': return '{i:s:heal} '+Math.round(apw*(ab.mul||0.9)*sm)+' + {i:s:attack} +'+Math.round(((ab.atk||1.25)-1)*100)+'% attack';
+    case 'linkheal': return '{i:s:heal} '+Math.round(apw*(ab.mul||0.5)*sm)+' ×2 + shared healing';
+    case 'lastbreath': return '{i:s:shield} '+Math.round(apw*(ab.mul||1.8)*sm)+' shield · cannot fall below 1';
+    case 'boomerang': return '{i:s:attack} '+Math.round(atk*(ab.mul||0.9)*sm)+' out · '+Math.round(atk*(ab.mul||0.9)*(ab.backMul||1.5)*sm)+' back';
+    case 'markreveal': return '{i:s:crit-burst} mark: +'+Math.round(((ab.mul||1.25)-1)*100)+'% damage taken';
+    case 'summonmirage': return '{i:t:apow} a mirage of herself · 30% stats · until it dies';
+    case 'mirage': return '{i:s:shield} '+Math.round(hp*(ab.pct||0.18)*sm)+' shield + '+Math.round((ab.eva||0.15)*100)+'% dodge';
+    case 'sealwax': return '{i:t:apow} '+Math.round(apw*(ab.mul||1.0)*sm)+' + slow '+(ab.harden||2)+'s, then '+ccSecFor(ab,'stun')+'s seal';
+    case 'gravknot': return 'pull + slow'+(ab.mul?' · {i:t:apow} '+Math.round(apw*ab.mul*sm):'');
+    case 'thornguard': return '{i:s:shield} '+Math.round(hp*(ab.pct||0.16)*sm)+' shield + '+Math.round((ab.thorn||0.55)*100)+'% retaliation';
+    case 'incense': return '{i:s:attack} −'+Math.round((ab.pct||0.25)*100)+'% enemy attack · {i:s:heal} cleanse';
+    case 'chainquench': return '{i:s:attack} '+Math.round(atk*(ab.mul||0.8)*sm)+' + pull + burn '+Math.round(atk*(ab.dps||0.35)*sm)+'/s';
+    case 'chapterrewrite': return '{i:t:apow} '+Math.round(apw*(ab.mul||1.0)*sm)+' + strips buffs · −'+Math.round((ab.pct||0.3)*100)+'% stats';
+    case 'grapple': return '{i:s:attack} '+Math.round(atk*(ab.mul||1.2)*sm)+' + pull + '+ccSecFor(ab,'stun')+'s stun';
+    case 'burrowguard': return '🕳 untargetable '+(ab.dur||1.4)+'s → {i:s:attack} '+Math.round(atk*(ab.mul||1.7)*sm);
+    case 'warcry': { const _lw=Math.max(0,Math.round(((sm||1)-1)/SKILL_STEP)); return '{i:s:attack} +'+(((ab.mul||1.4)-1+(ab.mulPerLv||0)*vaelSteps(_lw+1))*100).toFixed(1).replace(/\.0$/,'')+'% dmg · '+(ab.dur||6)+'s'; }   /* v1024: a buff, not a hit */
     case 'lifestealbuff': { const _lv=Math.max(0,Math.round(((sm||1)-1)/SKILL_STEP));   /* v1024: Bloodthirst's numbers at this skill level */
-      return (ab.atkSpd?'⚡ +'+((ab.atkSpd-1+(ab.atkSpdPerLv||0)*vaelSteps(_lv+1))*100).toFixed(1).replace(/\.0$/,'')+'% atk spd · ':'')+(ab.crit?'✦ +'+((ab.crit+(ab.critPerLv||0)*vaelSteps(_lv+1))*100).toFixed(1).replace(/\.0$/,'')+'% crit · ':'')+'♥ '+Math.round((ab.pct||0.25)*100)+'% lifesteal'; }
-    default: return '⚔ '+Math.round(atk*(ab.mul||1)*sm)+(ab.stun?' + stun':'');
+      return (ab.atkSpd?'{i:s:energy} +'+((ab.atkSpd-1+(ab.atkSpdPerLv||0)*vaelSteps(_lv+1))*100).toFixed(1).replace(/\.0$/,'')+'% atk spd · ':'')+(ab.crit?'{i:s:crit-burst} +'+((ab.crit+(ab.critPerLv||0)*vaelSteps(_lv+1))*100).toFixed(1).replace(/\.0$/,'')+'% crit · ':'')+'♥ '+Math.round((ab.pct||0.25)*100)+'% lifesteal'; }
+    default: return '{i:s:attack} '+Math.round(atk*(ab.mul||1)*sm)+(ab.stun?' + stun':'');
   }
 }
 
@@ -9758,7 +9764,7 @@ function abilArt(u,o,tgt,aimCtr,type){ window._fxCaster=u; if(o&&o.noArt) return
   /* v476: a plate that marks a PROJECTILE'S impact (the ability has pfx) waits for the projectile to land */
   if(o.pfx&&!_mz&&c!==u&&!(FX2_DEF[o.gfx]&&FX2_DEF[o.gfx].cone)){ const cc=c, oo=Object.assign({},o,{pfx:null}); setTimeout(()=>{ try{ if(cc.alive||cc===tgt){ _fxAllow=true; abilArt(u,oo,cc,cc,type); } }finally{ _fxAllow=false; } }, Math.round((o.pdur||0.30)*1000)); return; }   /* v477: pdur defaults to the projectile's own 0.30 s */
   try{ window._fxTgtH=(c&&c.sprH)||(_mz?u.sprH:null); window._fxTgtU=(c&&c._sprRef)?c:null; window._fxAboveBar=!!((_ABOVE_BAR[type]||_DEBUFF_BADGE[type])&&c&&c._sprRef); window._fxBadgeSize=o.badgeSize||null; window._fxAtH=_mz?_mz.h:null; window._fxDir=_mz?_mz.dir:1; const _life=(type==='tendrilpull')?((o.dur||3)+0.35):(o.gdur||1.6);   /* v489 (Phil: the grasp "never lasts until the target reaches vulmar"): wire_fx only writes gdur onto ULT entries, so the hand fell back to the 1.6s default and died 1.4s into a 3s drag. The fist's life is the drag's life. */
-    window._fxPreScaled=!!o._areaScaled; let _o=null; try{ _o=spawnGroundFx(o.gfx, c.x, c.y, R, _life); }finally{ window._fxPreScaled=false; } if(_o&&_o.m&&(_ABOVE_BAR[type]||_DEBUFF_BADGE[type])&&c&&c._sprRef){ const _p=new TH.Vector3(); c._sprRef.getWorldPosition(_p); _o.followAbove=c; _o.aboveOff=_o.m.position.clone().sub(_p); }   /* v595: an over-head badge rides with its unit */ window._fxTgtH=null; window._fxTgtU=null; window._fxAboveBar=false; window._fxBadgeSize=null;   /* v1073 (Phil 8 Oct, Oakmir ult 'too large so its very saturated pixels'): this single-target badge path never passed the skill's badgeSize, so every badge here was the 0.8 default */ window._fxAtH=null; window._fxDir=1; window._fxCone=null;
+    window._fxPreScaled=!!o._areaScaled; let _o=null; try{ if(!o.noArea) _o=spawnGroundFx(o.gfx, c.x, c.y, R, _life); }finally{ window._fxPreScaled=false; } if(_o&&_o.m&&(_ABOVE_BAR[type]||_DEBUFF_BADGE[type])&&c&&c._sprRef){ const _p=new TH.Vector3(); c._sprRef.getWorldPosition(_p); _o.followAbove=c; _o.aboveOff=_o.m.position.clone().sub(_p); }   /* v595: an over-head badge rides with its unit */ window._fxTgtH=null; window._fxTgtU=null; window._fxAboveBar=false; window._fxBadgeSize=null;   /* v1073 (Phil 8 Oct, Oakmir ult 'too large so its very saturated pixels'): this single-target badge path never passed the skill's badgeSize, so every badge here was the 0.8 default */ window._fxAtH=null; window._fxDir=1; window._fxCone=null;
     /* v463 (Phil: "the hand should not fully close or disappear until the pulled character reaches the pull destination"):
        a plate cast on a unit that is about to be dragged FOLLOWS that unit, so the hand (and its front finger layer) closes
        around him wherever he ends up. */
@@ -14904,13 +14910,14 @@ let FORGE={ cat:null, st:null, busy:false, tab:'items', q:0, eqPick:null };   //
 /* ---- AUDIT C4: ITEM-SPECIFIC Gear Skills. Each item's {activeType, activeParams} comes from the
    server catalog (the same authored definitions the server simulator uses) — a Grey taunt and a Blue
    burst are genuinely different choices, and Temper never changes an active. One use per combat. */
-const GEAR_TYPE_ICON={dmg:'⚔️',stun:'💫',silence:'🤐',slow:'🕸️',shield:'🛡️',heal:'❤️',energy:'⚡',buff:'🔥',mark:'🎯',taunt:'🗣️',cleanse:'✨',untarget:'🌫️',ward:'🕯️',next:'☄️',move:'💨'};
+const GEAR_TYPE_ICON={dmg:'attack',stun:'stun',silence:'silence',slow:'slow',shield:'shield',heal:'heal',energy:'energy',buff:'buff-up',mark:'mark',taunt:'taunt',cleanse:'cleanse',untarget:'untargetable',ward:'ward',next:'next-cast',move:'dash'};   /* v1096: status icon art (was emojis) */
+const gearTypeIcon=t=>`<img class="stIc" src="/assets/img/icons/status/${GEAR_TYPE_ICON[t]||'attack'}-v1.webp" alt="">`;
 function gearActiveFor(key){ try{
   const st=(typeof FORGE!=='undefined')&&FORGE.st; if(!st||!st.enabled)return null;
   const id=(st.active||{})[key]; const it=id&&st.items&&st.items[id]; const d=it&&forgeDef(it.d); if(!d||!d.active)return null;
   const eq=(st.equipped||{})[key]||{}; if(!Object.values(eq).includes(id)) return null;   // must still be equipped
   return { name:d.active, slot:d.slot, itemId:id, defId:d.id, type:d.activeType||null, params:d.activeParams||null,
-    icon:GEAR_TYPE_ICON[d.activeType]||'🗡', desc:d.effect||'' };
+    icon:gearTypeIcon(d.activeType), desc:d.effect||'' };
 }catch(e){ return null; } }
 function _gsNearFoe(u){ let b=null,bd=1e9; units.forEach(o=>{ if(o.alive&&o.team!==u.team){ const d=Math.hypot(o.x-u.x,o.y-u.y); if(d<bd){bd=d;b=o;} } }); return b; }
 function _gsFarFoe(u){ let b=null,bd=-1; units.forEach(o=>{ if(o.alive&&o.team!==u.team){ const d=Math.hypot(o.x-u.x,o.y-u.y); if(d>bd){bd=d;b=o;} } }); return b; }
@@ -18010,11 +18017,11 @@ function renderTemple(){
     const list=owned.filter(elig).map(k=>({k,s:templeHeroStats(k)})).sort((a,b)=>b.s.pct-a.s.pct||heroLevel(b.k)-heroLevel(a.k));
     const tiles=list.map(({k,s})=>{ const dots=(s.blessings||[]).filter(x=>x.earned).length+(s.fifth&&s.fifth.earned?1:0);
       return `<button type="button" class="tp2Tile" data-tp2-hero="${k}" aria-label="${escapeHTML((HERO_TYPES[k]||{}).name||k)} ${s.pct}%">
-        <span class="tp2TileImg"><img src="${HERO_PORTRAITS[k]||''}" alt="" loading="lazy"><img class="tp2TileFrame" src="${TP2}ctl-hero-frame-v1.webp" alt=""><em>Lv${heroLevel(k)}</em>
+        <span class="tp2TileImg">${heroIcon(k,96)}<em>Lv${heroLevel(k)}</em>
         <span class="tp2Dots">${'<img src="/assets/img/temple/card-orb-lit-v2.webp?v=2" alt="">'.repeat(dots)}</span></span><b>${s.pct}%</b></button>`; }).join('');
     inner=`<div class="tp2Hint" style="${tp2Box(620,300,1690,60)}">${unlocked?'Purple heroes and above can pray.':'The Temple opens at player level '+T.CONFIG.UNLOCK_PLAYER_LEVEL+'.'}</div>
       <div class="tp2Grid" style="${tp2Box(620,362,1690,590)}">${tiles||'<div class="tp2Empty">No Purple heroes yet.</div>'}</div>
-      <img src="${TP2}hero-window-v1.webp" alt="" style="${tp2Box(285,312,267,648)}" class="tp2Win">
+      <img src="${TP2}hero-window-v1.webp" alt="" style="${tp2Box(272,280,296,608)}" class="tp2Win">
       <div class="tp2Side" style="${tp2Box(290,1015,265,300)}"><b>${st.keeperPoints||0}</b><span>Temple points</span>${(st.bonusPrayers|0)?`<b>${st.bonusPrayers|0}</b><span>bonus prayers</span>`:''}</div>
       ${keeperHtml}
       <div class="tp2Msg" style="${tp2Box(1130,1040,1170,300)}">${T.freeRitualAvailable(st)?'1 free prayer available today.':'Choose a hero to pray.'}</div>`;
@@ -18025,15 +18032,15 @@ function renderTemple(){
       const pf=Math.min(100,100*Math.min(from,to)/cap), pd=Math.abs(100*(to-from)/cap), up=to>=from;
       const pct=r?((to-from)>=0?'+':'')+(Math.round(1000*(to-from)/cap)/10)+'%':'';
       return `<img class="tp2Icon" src="/assets/img/icons/stat/${tp2StatKey(bar,icon,prof)}-v1.webp" alt="" style="${tp2Box(612,y-46,92,92)}">
-        <div class="tp2BarName" style="${tp2Box(735,y-78,800,40)}">${tp2BarLabel(bar,prof)}<span>${from} / ${cap}</span></div>
-        <div class="tp2Bar" style="${tp2Box(733,y-21,800,42)}"><i class="tp2Fill" style="width:${pf}%"></i>${r&&to!==from?`<i class="tp2Delta ${up?'up':'down'}" style="left:${pf}%;width:${pd}%"><em>${pct}</em></i>`:''}
-          <b>${tp2Num(val)}</b>${r?`<s class="${d>0?'up':d<0?'down':''}">${d>0?'+':''}${tp2Num(d)}</s>`:''}</div>`; }).join('');
+        <div class="tp2BarName" style="${tp2Box(735,y-78,800,40)}"><span class="tp2BarLbl">${tp2BarLabel(bar,prof)} <b class="tp2Val">${tp2Num(val)}</b></span><span>${from} / ${cap}</span></div>
+        <div class="tp2Bar" style="${tp2Box(733,y-21,800,42)}"><i class="tp2Fill" style="width:${pf}%"></i>${r&&to!==from?`<i class="tp2Delta ${up?'up':'down'}${pf+pd>62?' lft':''}" style="left:${pf}%;width:${pd}%"><em>${pct}</em></i>`:''}
+          ${r?`<s class="${d>0?'up':d<0?'down':''}">${d>0?'+':''}${tp2Num(d)}</s>`:''}</div>`; }).join('');
     const power=rolls?(pending&&pending.power!=null?pending.power:Object.values(rolls).reduce((a,x)=>a+10*(x.deltaSteps||0),0)):null;
     const bl=(hs.blessings||[]).map((x,i)=>{ const y=[368,494,622,749][i], val=v=>tp2Num(v*hs.stepValues[x.bar]);
       const icon=x.earned?'<img src="/assets/img/temple/card-orb-lit-v2.webp?v=2" alt="earned">':x.locked?`<img src="${TP2}lock-v1.webp" alt="locked">`:'<img src="/assets/img/temple/card-orb-unlit-v2.webp?v=2" alt="open">';
       const sub=x.locked?`Needs Temple ${x.keeperGate}`:!x.heroMet?`Needs hero Lv ${x.heroGate}`:`(${tp2BarLabel(x.bar,prof)} ${val(Math.min(x.have,x.need))}/${val(x.need)}${x.earned?' Unlock':' to unlock'})`;
       return `<div class="tp2Bless ${x.earned?'on':x.locked?'lock':''}" style="${tp2Box(1640,y+8,640,104)}">${icon}<div><b>${escapeHTML(x.label)}</b><span>${sub}</span></div></div>`; }).join('');
-    const f=hs.fifth||{}, fifth=`<div class="tp2Bless tp2Fifth ${f.earned?'on':f.locked?'lock':''}" style="${tp2Box(1640,876,640,92)}">${f.earned?'<img src="/assets/img/temple/card-orb-lit-v2.webp?v=2" alt="">':f.locked?`<img src="${TP2}lock-v1.webp" alt="">`:'<img src="/assets/img/temple/card-orb-unlit-v2.webp?v=2" alt="">'}<div><b>5th dot: all bonuses +${Math.round((f.bonus||0.1)*100)}%</b><span>${f.earned?'Earned':f.locked?'Needs Temple '+f.templeLevel:'Needs hero Lv '+f.heroLevel}</span></div></div>`;
+    const f=hs.fifth||{}, fifth=`<div class="tp2Bless tp2Fifth ${f.earned?'on':f.locked?'lock':''}" style="${tp2Box(1640,876,640,92)}">${f.earned?'<img src="/assets/img/temple/card-orb-lit-v2.webp?v=2" alt="">':f.locked?`<img src="${TP2}lock-v1.webp" alt="">`:'<img src="/assets/img/temple/card-orb-unlit-v2.webp?v=2" alt="">'}<div><b>5th dot: blessings +${Math.round((f.bonus||0.15)*100)}%</b><span>${f.earned?'Earned':f.locked?'Needs Temple '+f.templeLevel:'Needs hero Lv '+f.heroLevel}</span></div></div>`;
     const tiers=templePrayerTiers(), free=T.freeRitualAvailable(st), bonus=(st.bonusPrayers|0)>0, heldP=st.heldPrayers||{};
     const opts=[{id:'free',name:'Daily free prayer',cost:free?'Free':'Used today',locked:!free}]
       .concat(bonus?[{id:'bonus',name:'Bonus prayer ×'+(st.bonusPrayers|0),cost:'Free',locked:false}]:[])
@@ -18044,9 +18051,9 @@ function renderTemple(){
     const blocked=!unlocked||!elig(key);
     const choice=opts.map(o=>`<button type="button" class="tp2Opt" data-tp2-tier="${o.id}" aria-pressed="${templeSelectedTier===o.id}" ${o.locked||blocked?'disabled':''}>
         <i class="tp2Check"></i><img src="${TP2}${TP2_TIER_ART[o.art||o.id]||'prayer-daily-free'}-v1.webp" alt=""><b>${escapeHTML(o.name)}</b><span>${o.cost}</span></button>`).join('');
-    inner=`<img src="${TP2}hero-window-v1.webp" alt="" style="${tp2Box(285,312,267,648)}" class="tp2Win">
-      <img src="${TP2}heroes/${key}-v2.webp" alt="${escapeHTML((HERO_TYPES[key]||{}).name||key)}" style="${tp2Box(285,312,267,648)}" class="tp2Bust" onerror="this.style.display='none'">
-      <div class="tp2HeroName" style="${tp2Box(285,890,267,60)}">${escapeHTML((HERO_TYPES[key]||{}).name||key)} · Lv${heroLevel(key)} · ${hs.pct}%</div>
+    inner=`<img src="${TP2}hero-window-v1.webp" alt="" style="${tp2Box(272,280,296,608)}" class="tp2Win">
+      <img src="${TP2}heroes/${key}-v2.webp" alt="${escapeHTML((HERO_TYPES[key]||{}).name||key)}" style="${tp2Box(272,280,296,608)}" class="tp2Bust" onerror="this.style.display='none'">
+      <div class="tp2HeroName" style="${tp2Box(272,828,296,60)}">${escapeHTML((HERO_TYPES[key]||{}).name||key)} · Lv${heroLevel(key)} · ${hs.pct}%</div>
       <button type="button" class="tp2Btn navy" id="tp2Switch" style="${tp2Box(300,1030,240,82)}" ${pending?'disabled':''}><img class="tp2BtnIc" src="${TP2}ctl-switch-v1.webp" alt="">Switch</button>
       ${level>=(T.CONFIG.AUTO_PRAY_TEMPLE||12)?`<button type="button" class="tp2Btn navy" id="tp2Auto" style="${tp2Box(300,1140,240,82)}" ${pending||blocked?'disabled':''}><img class="tp2BtnIc" src="${TP2}ctl-auto-pray-v1.webp" alt="">Auto pray</button>`:''}
       <div class="tp2Head" style="${tp2Box(735,300,600,56)}">Attributes</div>${bars}
@@ -18085,7 +18092,7 @@ function tp2AutoHtml(){ const a=templeAuto, tiers=templePrayerTiers(), id=a.tier
     <button type="button" class="tp2Btn gold" id="tp2AutoOk">OK</button></div>`; }
   return `<div class="tp2Auto" style="${tp2Box(860,330,840,620)}"><h3>Auto pray</h3><p>Auto save if power goes up!</p>
     <div class="tp2AutoRow"><button type="button" id="tp2AutoPrev" aria-label="Previous tier"><img src="${TP2}ctl-arrow-left-v1.webp" alt=""></button><span><img src="${TP2}${TP2_TIER_ART[id]}-v1.webp" alt="">${escapeHTML(t.name||id)}</span><button type="button" id="tp2AutoNext" aria-label="Next tier"><img src="${TP2}ctl-arrow-right-v1.webp" alt=""></button></div>
-    <div class="tp2AutoRow"><button type="button" id="tp2AutoMinus" aria-label="Fewer"><img src="${TP2}ctl-minus-v1.webp" alt=""></button><span>${a.n}</span><button type="button" id="tp2AutoPlus">+</button></div>
+    <div class="tp2AutoRow"><button type="button" id="tp2AutoMinus" aria-label="Fewer"><img src="${TP2}ctl-minus-v1.webp" alt=""></button><span>${a.n}</span><button type="button" id="tp2AutoPlus" aria-label="More"><img src="${TP2}ctl-plus-v1.webp" alt=""></button></div>
     <div class="tp2AutoBtns"><button type="button" class="tp2Btn navy" id="tp2AutoCancel">Cancel</button><button type="button" class="tp2Btn gold" id="tp2AutoGo">Pray ×${a.n}</button></div></div>`; }
 function tp2AutoWire(b,act,key){ if(!templeAuto) return; const a=templeAuto, q=s=>b.querySelector(s), re=()=>renderTemple();
   const max=TempleOfAsh.CONFIG.AUTO_PRAY_MAX||10;
@@ -19435,7 +19442,7 @@ const CASTER_BALL={   // v340 (Phil): Beekeeper/Oakmir/Lumi nature, Annotator+Te
   fritz:{fx:'fritz_zap',scale:2.2,dur:0.13,bolt:true},   /* v958 (Phil: "also use this for auto attack on a single target"): the chain bolt from Fritz to his target */
   'boar shaman':{fx:'fireball',scale:1.2}   // v547 (Phil): the shaman's auto aims the burning hand, nothing leaves it on the clip - the engine's fireball is the projectile
 };
-const HERO_ULT_ART={rafe:{evadeEva:0.5,evadeDur:3,pfx:'rafetracer',pscale:0.9,pdur:0.30,spark:'rafespark'}, sloe:{backline:true,pfx:'sloearrow',pscale:0.9,pdur:0.30,stagger:0.12}, kharos:{gfx:'kharos_ult',gdur:2.0}, tolley:{gfx:'tolley_ult',gdur:2.4}, absalie:{gfx:'absalie_ult',gdur:2.4}, rivet:{gfx:'rivet_ult',gdur:2.4}, tessit:{deliver:'land'}, vesper:{deliver:'form'}, lysara:{deliver:'form',gfx:'lysara_ult',gdur:2.4}, nerisse:{deliver:'form',form:0.4}, pyroclast:{gfx:'pyroclast_ult',gdur:6.04,deliver:'land',fall:0.55}, orryn:{gfx:'orryn_ult',gdur:6.04,deliver:'form',form:0.5}, ambrel:{deliver:'form',gfx:'ambrel_ult',gdur:5.88}, vaelora:{gfx:'vaelora_ult',gdur:5.88}, aldren:{gfx:'aldren_ult',gdur:2.2}, astra:{deliver:'form',gfx:'astra_ult',gdur:5.83}, aureth:{deliver:'form',gfx:'aureth_ult',gdur:5.88}, carn:{deliver:'form',gfx:'carn_ult',gdur:2.6,gfxAt:'front'}, sorrel:{gfx:'sorrel_ult',gdur:5.88}, deepcleft:{deliver:'form',gfx:'deepcleft_ult',gdur:2.42}, fritz:{gfx:'fritz_ult',gdur:3.0,previewAt:'self'}, dandra:{gfx:'dandra_ult',gdur:2.6}, grimsby:{gfx:'grimsby_ult',gdur:5.88}, mellan:{gfx:'mellan_ult',gdur:4.88}, bloatus:{deliver:'form',gfx:'bloatus_ult',gdur:3.79}, maren:{deliver:'form',gfx:'maren_ult',gdur:2.8}, askel:{gfx:'askel_ult',gdur:2.29,artR:2.9*METER,fieldWide:'allies',allyShield:0.12,knockAside:2*METER}, grosk:{gfx:'grosk_ult',gdur:5.88}, hollow:{gfx:'hollow_ult',gdur:5.88}, konwu:{gfx:'konwu_ult',gdur:5.88}, lumi:{deliver:'form',gfx:'lumi_ult',gdur:1.04}, quorrel:{gfx:'quorrel_ult',gdur:1.67}, meridian:{gfx:'meridian_ult',gdur:2.75}, nox:{deliver:'form',gfx:'nox_ult',gdur:5.17,fieldWide:'enemies'}, oakmir:{deliver:'form',gfx:'oakmir_ult',gdur:5.67,badgeSize:0.45}, pellucid:{gfx:'pellucid_ult',gdur:6.04}, rhukk:{gfx:'rhukk_ult',gdur:2.08}, iver:{deliver:'land',gfx:'iver_ult',gdur:2.71}, sylthaine:{gfx:'sylthaine_ult',gdur:4.0}, gruel:{gfx:'gruel_ult',gdur:5.88}, tick:{gfx:'tick_ult',gdur:5.71}, umbris:{gfx:'umbris_ult',gdur:5.0}, vael:{gfx:'vael_ult',gdur:5.88}, mirelle:{deliver:'form',gfx:'mirelle_ult',gdur:5.62,fieldWide:'both'}, vex:{gfx:'vex_ult',gdur:4.75,gfxR:10*METER}, veyr:{gfx:'veyr_ult',gdur:5.12}, korvux:{deliver:'land',gfx:'korvux_ult',gdur:5.88}, vireo:{gfx:'vireo_ult',gdur:2.0}, ceraline:{deliver:'form',noArt:true}, tharl:{gfx:'tharl_ult',gdur:5.88,pathHit:0.5}, hobb:{deliver:'form',gfx:'hobb_ult',gdur:5.5}, yenna:{gfx:'yenna_ult',gdur:5.88,ricochet:true}, calypsa:{gfx:'calypsa_ult',gdur:5.88,deliver:'form',form:0.4}, brannus:{gfx:'brannus_ult',gdur:5.88,pathHit:0.5}, joss:{deliver:'form',gfx:'joss_ult',gdur:5.88,stun:1.2}, hurne:{gfx:'hurne_ult',gdur:5.88}
+const HERO_ULT_ART={rafe:{evadeEva:0.5,evadeDur:3,pfx:'rafetracer',pscale:0.9,pdur:0.30,spark:'rafespark'}, sloe:{backline:true,pfx:'sloearrow',pscale:0.9,pdur:0.30,stagger:0.12}, kharos:{gfx:'kharos_ult',gdur:2.0}, tolley:{gfx:'tolley_ult',gdur:2.4}, absalie:{gfx:'absalie_ult',gdur:2.4}, rivet:{gfx:'rivet_ult',gdur:2.4}, tessit:{deliver:'land'}, vesper:{deliver:'form'}, lysara:{deliver:'form',gfx:'lysara_ult',gdur:2.4}, nerisse:{deliver:'form',form:0.4}, pyroclast:{gfx:'pyroclast_ult',gdur:6.04,deliver:'land',fall:0.55}, orryn:{gfx:'orryn_ult',gdur:6.04,deliver:'form',form:0.5}, ambrel:{deliver:'form',gfx:'ambrel_ult',gdur:5.88}, vaelora:{gfx:'vaelora_ult',gdur:5.88}, aldren:{gfx:'aldren_ult',gdur:2.2}, astra:{deliver:'form',gfx:'astra_ult',gdur:5.83}, aureth:{deliver:'form',gfx:'aureth_ult',gdur:5.88}, carn:{deliver:'form',gfx:'carn_ult',gdur:2.6,gfxAt:'front'}, sorrel:{gfx:'sorrel_ult',gdur:5.88}, deepcleft:{deliver:'form',gfx:'deepcleft_ult',gdur:2.42}, fritz:{gfx:'fritz_ult',gdur:3.0,previewAt:'self'}, dandra:{gfx:'dandra_ult',gdur:2.6}, grimsby:{gfx:'grimsby_ult',gdur:5.88}, mellan:{gfx:'mellan_ult',gdur:4.88}, bloatus:{deliver:'form',gfx:'bloatus_ult',gdur:3.79}, maren:{deliver:'form',gfx:'maren_ult',gdur:2.8}, askel:{gfx:'askel_ult',gdur:2.29,artR:2.9*METER,fieldWide:'allies',allyShield:0.12,knockAside:2*METER}, grosk:{gfx:'grosk_ult',gdur:5.88}, hollow:{gfx:'hollow_ult',gdur:5.88}, konwu:{gfx:'konwu_ult',gdur:5.88}, lumi:{deliver:'form',gfx:'lumi_ult',gdur:1.04}, quorrel:{gfx:'quorrel_ult',gdur:1.67}, meridian:{gfx:'meridian_ult',gdur:2.75}, nox:{deliver:'form',gfx:'nox_ult',gdur:5.17,fieldWide:'enemies'}, oakmir:{deliver:'form',gfx:'oakmir_ult',gdur:5.67,badgeSize:0.45,noArea:true}, pellucid:{gfx:'pellucid_ult',gdur:6.04}, rhukk:{gfx:'rhukk_ult',gdur:2.08}, iver:{deliver:'land',gfx:'iver_ult',gdur:2.71}, sylthaine:{gfx:'sylthaine_ult',gdur:4.0}, gruel:{gfx:'gruel_ult',gdur:5.88}, tick:{gfx:'tick_ult',gdur:5.71}, umbris:{gfx:'umbris_ult',gdur:5.0}, vael:{gfx:'vael_ult',gdur:5.88}, mirelle:{deliver:'form',gfx:'mirelle_ult',gdur:5.62,fieldWide:'both'}, vex:{gfx:'vex_ult',gdur:4.75,gfxR:10*METER}, veyr:{gfx:'veyr_ult',gdur:5.12}, korvux:{deliver:'land',gfx:'korvux_ult',gdur:5.88}, vireo:{gfx:'vireo_ult',gdur:2.0}, ceraline:{deliver:'form',noArt:true}, tharl:{gfx:'tharl_ult',gdur:5.88,pathHit:0.5}, hobb:{deliver:'form',gfx:'hobb_ult',gdur:5.5}, yenna:{gfx:'yenna_ult',gdur:5.88,ricochet:true}, calypsa:{gfx:'calypsa_ult',gdur:5.88,deliver:'form',form:0.4}, brannus:{gfx:'brannus_ult',gdur:5.88,pathHit:0.5}, joss:{deliver:'form',gfx:'joss_ult',gdur:5.88,stun:1.2}, hurne:{gfx:'hurne_ult',gdur:5.88}
 };
 Object.assign(ULT_DEF, {summonshaman:{key:'ink horror',dur:22,radius:1.6*METER}});
 Object.assign(ULT_SCALE, {summonshaman:'\u2014'});
@@ -23302,7 +23309,7 @@ function renderHeroDetail(){
         <span style="width:10px;height:10px;border-radius:50%;background:${s.col};flex:none"></span>
         <div style="flex:1;min-width:0">
           <div style="font-size:13px"><b>${s.name}</b> <span style="font-size:10px;color:${s.col}">${s.tier}</span>${on?'':' 🔒'}${hasClip?' <span style="font-size:9px;color:#6ea8ff">▶ clip</span>':''}</div>
-          <div style="font-size:11px;color:#c3ccd8;font-weight:600">${on?skillEffectStr(key,s.idx,S_ATK,S_HP):'Locked'}</div>
+          <div style="font-size:11px;color:#c3ccd8;font-weight:600">${on?iconize(skillEffectStr(key,s.idx,S_ATK,S_HP)):'Locked'}</div>
         </div>
         ${on?`<div style="display:flex;align-items:center;gap:7px;flex:none">
           <span style="font-size:10px;color:#ffd45e;border:1px solid #4a4020;border-radius:5px;padding:1px 6px;background:#241f10">Lv ${lv}</span>
@@ -25638,10 +25645,10 @@ function buildGuestPortraits(){const bar=document.getElementById('portraitBar');
 function hpFmt(v){ v=Math.max(0,Math.ceil(v)); return v>=10000?Math.round(v/1000)+'k':(v>=1000?(v/1000).toFixed(1)+'k':''+v); }
 function abilityTipHTML(u){ const t=u.t, ab=u.abilityOverride||t.ability, kit=KITS[u.key]||{};
   const eff=(typeof skillEffectStr==='function')?skillEffectStr(u.key,0,Math.round(u.dmg),Math.round(u.maxHp)):'';
-  let h=`<b>⚡ ${t.abilityName}</b> <span style="color:#8b98a9">· Ultimate${eff?' · '+eff:''}</span><br>${HERO_ULT_DESC[u.key]||ULT_DESC[ab]||''}`;
-  if(kit.green) h+=`<div class="atSub">🟢 <b style="color:#5ee89b">${kit.green.name}</b> — ${kit.green.desc||KIT_DESC[kit.green.type]||''}</div>`;
-  if(kit.blue)  h+=`<div class="atSub">🔵 <b style="color:#6ea8ff">${kit.blue.name}</b> — ${kit.blue.desc||KIT_DESC[kit.blue.type]||''}</div>`;
-  if(kit.purple)h+=`<div class="atSub">🟣 <b style="color:#c9b6ff">${kit.purple.name}</b> — ${PASS_DESC[kit.purple.pass]||''}</div>`;
+  let h=`<b>${iconize('{i:s:energy}')}${t.abilityName}</b> <span style="color:#8b98a9">· Ultimate${eff?' · '+iconize(eff):''}</span><br>${HERO_ULT_DESC[u.key]||ULT_DESC[ab]||''}`;
+  if(kit.green) h+=`<div class="atSub"><i class="kitDot" style="background:#5ee89b"></i><b style="color:#5ee89b">${kit.green.name}</b> — ${kit.green.desc||KIT_DESC[kit.green.type]||''}</div>`;
+  if(kit.blue)  h+=`<div class="atSub"><i class="kitDot" style="background:#6ea8ff"></i><b style="color:#6ea8ff">${kit.blue.name}</b> — ${kit.blue.desc||KIT_DESC[kit.blue.type]||''}</div>`;
+  if(kit.purple)h+=`<div class="atSub"><i class="kitDot" style="background:#c9b6ff"></i><b style="color:#c9b6ff">${kit.purple.name}</b> — ${iconize(PASS_DESC[kit.purple.pass]||'')}</div>`;
   return h; }
 function showAbilityTip(u){ /* DISABLED in combat — ability descriptions live in the Skill tab only (Phil's call). Never render the in-battle popup; keep it hidden no matter which handler calls this. */ const tip=document.getElementById('abilityTip'); if(tip) tip.style.display='none'; }
 function hideAbilityTip(){ const tip=document.getElementById('abilityTip'); if(tip) tip.style.display='none'; }
@@ -25683,8 +25690,8 @@ function buildPortraitBar(side){side=side||'ally';const bar=document.getElementB
       const gb=document.createElement('div');
       /* v478 (Phil: "the equipment active button should be the item that you have activated in the heroes panel, not a placeholder"):
          the button IS the item — its own art in a gold ring; the type emoji is only the fallback when the art is missing. */
-      const _gid=u.gearSkill.defId, _gicon=u.gearSkill.icon||GEAR_TYPE_ICON[u.gearSkill.type]||'⚔';
-      gb.innerHTML=_gid?`<img src="/assets/img/gear/items/${_gid}.webp${GEAR_ART_V}" alt="" draggable="false" style="width:100%;height:100%;border-radius:50%;object-fit:cover;pointer-events:none" onerror="this.replaceWith(document.createTextNode('${_gicon}'))">`:_gicon;
+      const _gid=u.gearSkill.defId, _gicon=u.gearSkill.icon||gearTypeIcon(u.gearSkill.type);
+      gb.innerHTML=_gid?`<img src="/assets/img/gear/items/${_gid}.webp${GEAR_ART_V}" alt="" draggable="false" style="width:100%;height:100%;border-radius:50%;object-fit:cover;pointer-events:none" onerror="this.outerHTML=this.dataset.fb" data-fb="${String(_gicon).replace(/"/g,'&quot;')}">`:_gicon;
       gb.title=u.gearSkill.name+' — '+u.gearSkill.desc; gb.className='gearActiveBtn';
       gb.style.cssText='pointer-events:auto;position:absolute;top:-9px;right:-7px;width:28px;height:28px;line-height:28px;text-align:center;font-size:13px;background:#1a2434;border:2px solid #ffd45e;border-radius:50%;z-index:5;cursor:pointer;box-shadow:0 0 6px rgba(255,212,94,.6),0 1px 4px rgba(0,0,0,.6);overflow:hidden;'   /* v480 ROOT CAUSE of "equipment actives don't work": #hud and #portraitBar are pointer-events:none (taps fall through to the field) and only .portrait turns them back on - this button inherited none and could never be tapped */+(u.gearSkill.used?'opacity:.25;pointer-events:none;filter:grayscale(1);':'');
       const fire=(e)=>{ e.stopPropagation(); e.preventDefault(); queueInput({k:'gear', uid:u.uid}); };   // v269: tick-aligned
@@ -26517,7 +26524,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791576979738';
+const BUILD_ID = '1791580217300';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

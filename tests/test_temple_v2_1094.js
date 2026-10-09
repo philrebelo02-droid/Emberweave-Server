@@ -40,7 +40,7 @@ const setHero=(key,st,lit)=>editDB(u=>{ u.led.temple.heroes[key]={steps:st,boons
     const mag=T.heroBonuses({steps:steps(0,100,0,0),boonsUnlocked:[]},'Mage','Magic');
     ok(mag.apFlat===320&&!mag.adFlat,'a magic hero\'s Attack bar is Ability power');
     const five=T.heroBonuses({steps:steps(200,0,0,0),boonsUnlocked:[false,false,false,false,true]},'Bruiser','Attack');
-    ok(five.hpFlat===7700,'the 5th dot raises every Temple bonus 10 %'); }
+    ok(five.hpFlat===7000,'the 5th dot never touches the bars: a 200-step health bar stays +7,000 (Phil 9 Oct: 15% of BONUS stats only)'); }
   { const st=T.newState(); st.playerLevel=100; st.keeperPoints=levelPoints(19); st.heroes.h={steps:steps(200,200,200,200),boonsUnlocked:[]};
     let a=11; T.setRng(()=>{ a=(a*16807)%2147483647; return a/2147483647; });
     let drops=0,n=0; for(let i=0;i<400;i++){ const s=T.pray(st,'h','gold',{profile:'Attack'}); for(const b of BARS){ n++; if(s.rolls[b].deltaSteps<0) drops++; } T.discardSession(st); }
@@ -95,7 +95,7 @@ const setHero=(key,st,lit)=>editDB(u=>{ u.led.temple.heroes[key]={steps:st,boons
   ok(sv.data.unlocked.includes(1)&&sv.data.unlocked.includes(2)&&lit[0]&&lit[1],'blessings 1 and 2 light at Health 20 / Attack 50 steps ('+JSON.stringify(sv.data.unlocked)+')');
   ok(!lit[2]&&!lit[3]&&!lit[4],'control: blessing 3 stays dark below Temple 13 and its 130 Armor & MR steps');
   { const b=T.heroBonuses(sv.data.ledger.temple.heroes[PHYS],'Tank','Attack'), s=sv.data.ledger.temple.heroes[PHYS].steps;
-    ok(b.hpFlat===s.health*35+700+500,'a Tank\'s earned dots add Health +700 and +500 as flat health ('+b.hpFlat+')'); }
+    ok(b.hpFlat===s.health*35+320&&b['crit chance']===0.03,'v1096: Vael\'s OWN earned dots add Health +320 (flat) and Crit chance +3% ('+b.hpFlat+', '+b['crit chance']+')'); }
 
   /* auto pray: closed below Temple 12, open at 12; saves only prayers whose power goes up */
   await setHero(PHYS,steps(10,10,10,10));

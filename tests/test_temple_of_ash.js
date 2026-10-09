@@ -85,7 +85,7 @@ ck('Inferno has no pressure (reach = the cap)', T.pressureChance('inferno', 200,
   ck('5th orb: hero 100 yes, 99 no', T.fifthOrbReachable(st, 100) === true && T.fifthOrbReachable(st, 99) === false);
   st.keeperPoints = 0; ck('control: 5th orb needs temple 25', T.fifthOrbReachable(st, 100) === false); }
 
-// bonuses: flat stats by damage type; blessings add their class reward; the 5th dot x1.10
+// bonuses: flat stats by damage type; blessings add their reward (class fallback for an unknown key); the 5th dot x1.15 on blessings only
 { const b = T.heroBonuses(hero(100, 100, 100, 100), 'Marksman', 'Attack');
   ck('physical: 100 steps = +3,500 health, +240 Attack damage, +720 armor & MR, +480 both pens',
     b.hpFlat === 3500 && b.adFlat === 240 && !b.apFlat && b.armorFlat === 720 && b.mrFlat === 720 && b.armorPenFlat === 480 && b.magicPenFlat === 480);
@@ -97,7 +97,7 @@ ck('Inferno has no pressure (reach = the cap)', T.pressureChance('inferno', 200,
   const lit = T.heroBonuses(hero(0, 0, 0, 0, [true, true, false, false, false]), 'Marksman', 'Attack');
   ck('Marksman dots 1-2: crit chance +5% and Attack +150 (Phil\'s example)', lit['crit chance'] === 0.05 && lit.adFlat === 150);
   const five = T.heroBonuses(hero(0, 0, 0, 0, [true, true, false, false, true]), 'Marksman', 'Attack');
-  ck('5th dot raises everything 10%', five.adFlat === 165 && near(five['crit chance'], 0.055, 1e-9));
+  ck('5th dot raises the blessings 15%', five.adFlat === 173 && near(five['crit chance'], 0.0575, 1e-9));
   ck('control: no Temple state = no bonus', Object.keys(T.heroBonuses(null, 'Mage')).length === 0); }
 
 // migration: old points -> steps by the same share of the old maximum

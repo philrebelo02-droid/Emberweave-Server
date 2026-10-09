@@ -17,6 +17,71 @@
 (function (global) {
   "use strict";
 
+  /* v1096 (Phil 9 Oct 2026: "each hero gets their own spells in prayer ... all heroes should be sort of personalized like this";
+     "its not class specific its hero specific"): every hero's four blessings are picked from THAT hero's own kit.
+     A hero's slot k pays k x the unit of its kind (slot 1 = 1 unit ... slot 4 = 4 units), so every hero's full set is worth
+     the same 10 units; the kind each hero values most sits in slot 4 (Temple 19 + the 190-step bar).
+     BLESSING_UNIT values are PROPOSED - Phil tunes. code: [reward key, unit per tier] */
+  const BLESSING_UNIT = {
+    hp:    ["health", 320],                      // flat Health                       (slot 4 = +1,280)
+    atk:   ["attack", 11],                       // flat Attack damage / Ability power by damage type (hybrid: both) (slot 4 = +44)
+    arm:   ["armorMr", 220],                     // flat Armor AND Magic resist        (slot 4 = +880)
+    pen:   ["pen", 105],                         // flat Armor AND Magic penetration   (slot 4 = +420)
+    heal:  ["heal/shield strength", 0.025],      // Healing power (heals and shields)  (slot 4 = +10%)
+    en:    ["energy regen", 0.5],                // energy per second (an ultimate is 100 energy) (slot 4 = +2/s)
+    edt:   ["energy from damage taken", 0.1],    // losing 100% health gives 100 x this energy (slot 4 = 40)
+    cdr:   ["cooldown reduction", 0.02],         // faster energy for the ultimate     (slot 4 = 8%)
+    as:    ["attack speed", 0.025],              // (slot 4 = +10%)
+    cc:    ["crit chance", 0.015],               // (slot 4 = +6%)
+    cd:    ["crit damage", 0.05],                // (slot 4 = +20%)
+    ls:    ["lifesteal", 0.02],                  // (slot 4 = 8%)
+    dodge: ["dodge", 0.012],                     // (slot 4 = 4.8%)
+    dr:    ["damage reduction", 0.012],          // (slot 4 = 4.8%)
+    ctrl:  ["control resistance", 0.03],         // (slot 4 = 12%)
+  };
+  function heroBlessingSet(codes) {
+    return codes.map(function (c, i) {
+      const u = BLESSING_UNIT[c], r = {};
+      if (!u) throw new Error("Temple blessing: unknown kind " + c);
+      r[u[0]] = Math.round(u[1] * (i + 1) * 10000) / 10000;
+      return r;
+    });
+  }
+  /* One explicit row per hero (all 60), slot 1 -> slot 4. Why each pick: Open Projects/The Temple of Ash/HERO BLESSINGS v1096 (09OCT2026).md */
+  const HERO_BLESSING_KINDS = {
+    /* Support */
+    dandra:    ["dodge", "en", "heal", "cdr"], linnet:    ["as", "cdr", "hp", "heal"], lumi:      ["ctrl", "atk", "cdr", "en"],
+    lysara:    ["ctrl", "heal", "en", "atk"], mellan:    ["pen", "heal", "atk", "en"], mirelle:   ["dr", "as", "heal", "en"],
+    nerisse:   ["cdr", "dr", "atk", "heal"], oakmir:    ["heal", "hp", "en", "cdr"], tessit:    ["as", "en", "cdr", "ctrl"],
+    vireo:     ["en", "arm", "cdr", "heal"],
+    /* Tank */
+    ambrel:    ["hp", "ctrl", "cdr", "atk"], askel:     ["ctrl", "as", "en", "arm"], bloatus:   ["pen", "hp", "dr", "atk"],
+    brannus:   ["atk", "dr", "hp", "arm"], grosk:     ["arm", "ls", "dr", "hp"], gruel:     ["edt", "arm", "ctrl", "hp"],
+    joss:      ["ctrl", "arm", "hp", "dr"], pellucid:  ["hp", "atk", "edt", "arm"], rhukk:     ["atk", "edt", "arm", "dr"],
+    tharl:     ["en", "ctrl", "arm", "hp"], vael:      ["hp", "cc", "as", "ls"],
+    /* Bruiser */
+    aureth:    ["arm", "hp", "ls", "atk"], carn:      ["hp", "ls", "as", "atk"], deepcleft: ["hp", "pen", "arm", "as"],
+    grimsby:   ["cdr", "hp", "atk", "pen"], hobb:      ["cc", "arm", "atk", "dr"], hurne:     ["arm", "cdr", "hp", "dr"],
+    iver:      ["arm", "pen", "as", "en"], konwu:     ["dodge", "hp", "as", "cd"], korvux:    ["cdr", "arm", "pen", "atk"],
+    quorrel:   ["ctrl", "cc", "cdr", "as"], tick:      ["hp", "as", "ls", "cd"], tolley:    ["en", "atk", "hp", "cd"],
+    zahri:     ["atk", "cc", "as", "pen"],
+    /* Marksman */
+    calypsa:   ["as", "atk", "cc", "dodge"], meridian:  ["pen", "cc", "ls", "as"], rafe:      ["dodge", "as", "cc", "cd"],
+    rivet:     ["hp", "en", "pen", "atk"], sloe:      ["cc", "atk", "as", "cd"], yenna:     ["atk", "cc", "pen", "cd"],
+    /* Assassin */
+    hollow:    ["ls", "as", "pen", "cd"], kharos:    ["as", "cc", "dodge", "cd"], nox:       ["cd", "dodge", "en", "cdr"],
+    seyla:     ["pen", "as", "dodge", "cc"], sorrel:    ["cc", "pen", "as", "atk"], vex:       ["dodge", "pen", "cc", "cd"],
+    veyr:      ["atk", "as", "cc", "dodge"],
+    /* Mage */
+    absalie:   ["cdr", "atk", "en", "pen"], aldren:    ["as", "ctrl", "cdr", "atk"], astra:     ["en", "as", "pen", "atk"],
+    ceraline:  ["atk", "hp", "pen", "cdr"], fritz:     ["dodge", "en", "atk", "cdr"], maren:     ["hp", "dr", "en", "atk"],
+    orryn:     ["pen", "cdr", "as", "atk"], pyroclast: ["en", "hp", "atk", "pen"], sylthaine: ["hp", "cdr", "atk", "en"],
+    umbris:    ["hp", "en", "cdr", "pen"], vaelora:   ["hp", "dodge", "cc", "cd"], vesper:    ["dr", "ctrl", "en", "cdr"],
+    vulmar:    ["cdr", "pen", "dr", "atk"],
+  };
+  const HERO_BLESSINGS = {};
+  Object.keys(HERO_BLESSING_KINDS).forEach(function (k) { HERO_BLESSINGS[k] = heroBlessingSet(HERO_BLESSING_KINDS[k]); });
+
   const TEMPLE_CONFIG = {
     /* --- building --- */
     UNLOCK_PLAYER_LEVEL: 50,
@@ -82,14 +147,19 @@
 
     /* --- blessings (the dots, spec §5) --- */
     FIFTH_ORB: { templeLevel: 25, heroLevel: 100 },   // OURS: the 5th dot (hero level 100 + Temple 25)
-    FIFTH_ORB_BONUS: 0.10,                           // the 5th dot raises ALL of that hero's Temple bonuses by 10%
+    FIFTH_ORB_BONUS: 0.15,                           // Phil 9 Oct: "make 5th dot 15% not 10" and "it gives 15% of BONUS stats not the attribute stats": it raises the earned BLESSING rewards (slots 1-4) only, never the four bars' step values
     TEMPLE_PLAYER_GATES: [[1, 50], [13, 60], [19, 70], [25, 80], [41, 90]],   // [from temple level, player level]
     HERO_ORB_LEVELS: [50, 60, 70, 80],               // our hero-level gates on dots 1-4 (5th: 100)
     BOON_KEEPER_GATES: [1, 5, 13, 19],               // the reference: blessing slots open at Temple 1 / 5 / 13 / 19
     BLESSING_NEEDS: [                                 // MEASURED thresholds, in steps of one named bar
       { bar: "health", need: 20 }, { bar: "attack", need: 50 }, { bar: "armorMr", need: 130 }, { bar: "pen", need: 190 },
     ],
-    /* Rewards: a class template (PROPOSED - Phil sets; per-hero later). Keys: health / attack / armorMr / pen are flat stats
+    /* v1096: per-hero rewards (HERO_BLESSINGS, built above from HERO_BLESSING_KINDS x BLESSING_UNIT). blessingReward reads them by
+       hero key; BLESSINGS below is only the technical fallback for a key with no row. */
+    HERO_BLESSINGS: HERO_BLESSINGS,
+    HERO_BLESSING_KINDS: HERO_BLESSING_KINDS,
+    BLESSING_UNIT: BLESSING_UNIT,
+    /* Fallback rewards by class (v1094 template; used only for a hero key missing from HERO_BLESSINGS). Keys: health / attack / armorMr / pen are flat stats
        (attack = Ability power for magic heroes, Attack damage for physical, both for hybrid; armorMr adds to armor AND magic
        resist; pen to armor AND magic penetration). Other keys are the existing battle effect names, as fractions. */
     BLESSINGS: {
@@ -263,7 +333,8 @@
     let n = 0;
     Object.keys(state.heroes).forEach(function (k) {
       const h = state.heroes[k];
-      if (!h || typeof h !== "object") { state.heroes[k] = newHero(); return; }
+      if (!h || typeof h !== "object") { state.heroes[k] = newHero(); state.heroes[k].key = k; return; }
+      if (h.key !== k) h.key = k;                    // v1096: the hero's own key rides on its Temple state, so heroBonuses finds its blessings on every path
       if (!Array.isArray(h.boonsUnlocked)) h.boonsUnlocked = [false, false, false, false, false];
       while (h.boonsUnlocked.length < 5) h.boonsUnlocked.push(false);
       if (h.steps && typeof h.steps === "object") { h.steps = heroSteps(h); return; }
@@ -444,7 +515,37 @@
   }
 
   /* --- blessings (dots) --- */
-  function blessingReward(role, i) { const t = TEMPLE_CONFIG.BLESSINGS[role]; return (t && t[i]) || {}; }
+  /* v1096: the hero's own reward first (HERO_BLESSINGS[key]); the class template only when the key has no row. */
+  function blessingReward(role, i, key) {
+    const own = key && Object.prototype.hasOwnProperty.call(TEMPLE_CONFIG.HERO_BLESSINGS, key) ? TEMPLE_CONFIG.HERO_BLESSINGS[key] : null;
+    if (own) return own[i] || {};
+    const t = TEMPLE_CONFIG.BLESSINGS[role]; return (t && t[i]) || {};
+  }
+  /* Which hero a Temple state belongs to: an explicit key, else the key migrateState stamps on it, else (browser) the slot in
+     G.temple.heroes that holds this very object - so callers that pass (heroState, role, damageProfile) still get the hero's own set. */
+  function heroKeyOf(heroState, key) {
+    if (key) return key;
+    if (heroState && typeof heroState.key === "string" && heroState.key) return heroState.key;
+    try {
+      const hs = (typeof G !== "undefined" && G && G.temple && G.temple.heroes) || null;
+      if (hs && heroState) { for (const k in hs) if (hs[k] === heroState) return k; }
+    } catch (e) {}
+    return null;
+  }
+  const PCT = function (v) { return Math.round(v * 1000) / 10 + "%"; };
+  const BLESSING_TEXT = {                        // our names; "+" for a gain, cooldown reduction reads as a plain %
+    "heal/shield strength": function (v) { return "Healing power +" + PCT(v); },
+    "energy regen": function (v) { return "Energy regen +" + Math.round(v * 100) / 100; },
+    "energy from damage taken": function (v) { return "Energy from damage taken +" + PCT(v); },
+    "cooldown reduction": function (v) { return "Cooldown reduction " + PCT(v); },
+    "attack speed": function (v) { return "Attack speed +" + PCT(v); },
+    "crit chance": function (v) { return "Crit chance +" + PCT(v); },
+    "crit damage": function (v) { return "Crit damage +" + PCT(v); },
+    "lifesteal": function (v) { return "Lifesteal +" + PCT(v); },
+    "dodge": function (v) { return "Dodge +" + PCT(v); },
+    "damage reduction": function (v) { return "Damage reduction +" + PCT(v); },
+    "control resistance": function (v) { return "Control resistance +" + PCT(v); },
+  };
   function blessingLabel(reward, profile) {
     return Object.keys(reward).map(function (k) {
       const v = reward[k];
@@ -452,16 +553,17 @@
       if (k === "attack") return (profile === "magic" ? "Ability power +" : profile === "hybrid" ? "Attack & Ability power +" : "Attack damage +") + v;
       if (k === "armorMr") return "Armor & Magic resist +" + v;
       if (k === "pen") return "Penetration +" + v;
-      return k.charAt(0).toUpperCase() + k.slice(1) + " +" + Math.round(v * 1000) / 10 + "%";
+      if (BLESSING_TEXT[k]) return BLESSING_TEXT[k](v);
+      return k.charAt(0).toUpperCase() + k.slice(1) + " +" + PCT(v);
     }).join(", ");
   }
-  /* The four dot rows (+ the 5th) for one hero. info = { role, damageProfile, heroLevel }. */
+  /* The four dot rows (+ the 5th) for one hero. info = { role, damageProfile, heroLevel, key }. */
   function blessingsFor(state, heroState, info) {
     info = info || {};
     const L = stateLevel(state), steps = heroSteps(heroState), lit = (heroState && heroState.boonsUnlocked) || [];
     const hl = info.heroLevel == null ? Infinity : info.heroLevel, profile = profileOf(info.damageProfile, info.role);
     const rows = TEMPLE_CONFIG.BLESSING_NEEDS.map(function (n, i) {
-      const gate = TEMPLE_CONFIG.BOON_KEEPER_GATES[i], heroGate = TEMPLE_CONFIG.HERO_ORB_LEVELS[i], reward = blessingReward(info.role, i);
+      const gate = TEMPLE_CONFIG.BOON_KEEPER_GATES[i], heroGate = TEMPLE_CONFIG.HERO_ORB_LEVELS[i], reward = blessingReward(info.role, i, heroKeyOf(heroState, info.key));
       const keeperMet = L >= gate, heroMet = hl >= heroGate, thresholdMet = steps[n.bar] >= n.need;
       return { slot: i + 1, bar: n.bar, need: n.need, have: steps[n.bar], reward: reward, label: blessingLabel(reward, profile),
         gate: gate, keeperGate: gate, keeperMet: keeperMet, heroGate: heroGate, heroMet: heroMet, threshold: n.need, thresholdMet: thresholdMet,
@@ -474,7 +576,8 @@
     const h = state.heroes && state.heroes[heroId]; if (!h) return [];
     if (!Array.isArray(h.boonsUnlocked)) h.boonsUnlocked = [false, false, false, false, false];
     const out = [];
-    blessingsFor(state, h, info).forEach(function (r) { if (r.canUnlock) { h.boonsUnlocked[r.slot - 1] = true; out.push(r.slot); } });
+    if (!h.key) h.key = heroId;
+    blessingsFor(state, h, Object.assign({}, info, { key: heroId })).forEach(function (r) { if (r.canUnlock) { h.boonsUnlocked[r.slot - 1] = true; out.push(r.slot); } });
     if (!h.boonsUnlocked[4] && fifthOrbReachable(state, info && info.heroLevel)) { h.boonsUnlocked[4] = true; out.push(5); }
     return out;
   }
@@ -491,34 +594,36 @@
     return (heroState && heroState.boonsUnlocked && heroState.boonsUnlocked[4]) ? 1 + TEMPLE_CONFIG.FIFTH_ORB_BONUS : 1;
   }
 
-  /* THE numbers combat and the card read (RULE 26), for one hero: flat stats + blessing effects, x1.10 with the 5th dot.
+  /* THE numbers combat and the card read (RULE 26), for one hero: bar flats (steps) + the hero's own blessing rewards.
      { hpFlat, adFlat, apFlat, armorFlat, mrFlat, armorPenFlat, magicPenFlat (whole numbers), <effect name>: fraction }.
-     heroBonuses(heroState, role, damageProfile). The old % bar effects (CLASS_BARS / EFFECT_FULL) are gone. */
-  function heroBonuses(heroState, role, damageProfile) {
+     heroBonuses(heroState, role, damageProfile, key) - key picks HERO_BLESSINGS[key]; without it heroKeyOf finds it.
+     v1096 (Phil 9 Oct): the 5th dot (x1.15) multiplies the BLESSING rewards only, flat and %, never the bars' step values. */
+  function heroBonuses(heroState, role, damageProfile, key) {
     const out = {};
     if (!heroState) return out;
-    const profile = profileOf(damageProfile, role), steps = heroSteps(heroState);
-    const f = { hp: 0, ad: 0, ap: 0, armor: 0, mr: 0, armorPen: 0, magicPen: 0 }, fx = {};
-    const addAttack = function (v) { if (profile === "magic") f.ap += v; else if (profile === "hybrid") { f.ad += v; f.ap += v; } else f.ad += v; };
+    const profile = profileOf(damageProfile, role), steps = heroSteps(heroState), hk = heroKeyOf(heroState, key);
+    const blank = function () { return { hp: 0, ad: 0, ap: 0, armor: 0, mr: 0, armorPen: 0, magicPen: 0 }; };
+    const f = blank(), bf = blank(), fx = {};                                       // f = the bars, bf = blessing flats
+    const addAttack = function (o, v) { if (profile === "magic") o.ap += v; else if (profile === "hybrid") { o.ad += v; o.ap += v; } else o.ad += v; };
     f.hp += steps.health * stepValue(profile, "health");
-    addAttack(steps.attack * stepValue(profile, "attack"));
+    addAttack(f, steps.attack * stepValue(profile, "attack"));
     f.armor += steps.armorMr * stepValue(profile, "armorMr"); f.mr += steps.armorMr * stepValue(profile, "armorMr");
     f.armorPen += steps.pen * stepValue(profile, "pen"); f.magicPen += steps.pen * stepValue(profile, "pen");
     (heroState.boonsUnlocked || []).slice(0, 4).forEach(function (lit, i) {
       if (!lit) return;
-      const r = blessingReward(role, i);
+      const r = blessingReward(role, i, hk);
       Object.keys(r).forEach(function (k) {
         const v = r[k];
-        if (k === "health") f.hp += v; else if (k === "attack") addAttack(v);
-        else if (k === "armorMr") { f.armor += v; f.mr += v; } else if (k === "pen") { f.armorPen += v; f.magicPen += v; }
+        if (k === "health") bf.hp += v; else if (k === "attack") addAttack(bf, v);
+        else if (k === "armorMr") { bf.armor += v; bf.mr += v; } else if (k === "pen") { bf.armorPen += v; bf.magicPen += v; }
         else fx[k] = (fx[k] || 0) + v;
       });
     });
-    const m = templeBonusMult(heroState);
-    const put = function (k, v) { const n = Math.round(v * m); if (n) out[k] = n; };
-    put("hpFlat", f.hp); put("adFlat", f.ad); put("apFlat", f.ap); put("armorFlat", f.armor); put("mrFlat", f.mr);
-    put("armorPenFlat", f.armorPen); put("magicPenFlat", f.magicPen);
-    Object.keys(fx).forEach(function (k) { out[k] = Math.round(fx[k] * m * 10000) / 10000; });
+    const mk = Math.round(templeBonusMult(heroState) * 1000);                       // x1000 integer: 150 x 1.15 = 172.5 exactly
+    const put = function (k, a, b) { const n = Math.round(a + b * mk / 1000); if (n) out[k] = n; };
+    put("hpFlat", f.hp, bf.hp); put("adFlat", f.ad, bf.ad); put("apFlat", f.ap, bf.ap); put("armorFlat", f.armor, bf.armor); put("mrFlat", f.mr, bf.mr);
+    put("armorPenFlat", f.armorPen, bf.armorPen); put("magicPenFlat", f.magicPen, bf.magicPen);
+    Object.keys(fx).forEach(function (k) { out[k] = Math.round(fx[k] * mk / 1000 * 10000) / 10000; });
     return out;
   }
 
@@ -532,7 +637,7 @@
       try { if (typeof heroLevel === "function") info.heroLevel = heroLevel(key); } catch (e) {}
       try { if (state && typeof playerLevel === "function") state = Object.assign({}, state, { playerLevel: playerLevel() }); } catch (e) {}
     }
-    state = state || newState(); info = info || {};
+    state = state || newState(); info = Object.assign({}, info || {}, { key: key });
     const L = stateLevel(state), cap = capSteps(L), h = (state.heroes && state.heroes[key]) || newHero(), steps = heroSteps(h);
     const profile = profileOf(info.damageProfile, info.role), values = {};
     TEMPLE_CONFIG.BARS.forEach(function (b) { values[b] = barValue(profile, b, Math.min(cap, steps[b])); });
@@ -542,8 +647,8 @@
       stepValues: Object.assign({}, stepTable(profile)), pct: Math.round(100 * sum / (4 * cap)),
       blessings: blessingsFor(state, h, info),
       fifth: { earned: !!(h.boonsUnlocked && h.boonsUnlocked[4]), templeLevel: f.templeLevel, heroLevel: f.heroLevel,
-        locked: L < f.templeLevel, bonus: TEMPLE_CONFIG.FIFTH_ORB_BONUS },
-      bonuses: heroBonuses(h, info.role, info.damageProfile) };
+        locked: L < f.templeLevel, bonus: TEMPLE_CONFIG.FIFTH_ORB_BONUS, label: "5th dot: blessings +" + Math.round(TEMPLE_CONFIG.FIFTH_ORB_BONUS * 100) + "%" },
+      bonuses: heroBonuses(h, info.role, info.damageProfile, key) };
   }
 
   /* --- flame tokens --- */
@@ -581,6 +686,7 @@
     buyGoldRitual: buyGoldRitual, buyGemTier: buyGemTier,
     blessingsFor: blessingsFor, earnBlessings: earnBlessings, boonsFor: boonsFor, fireOrbs: fireOrbs, fifthOrbReachable: fifthOrbReachable,
     templeBonusMult: templeBonusMult, heroBonuses: heroBonuses, heroTempleStats: heroTempleStats,
+    blessingReward: blessingReward, blessingLabel: blessingLabel, heroKeyOf: heroKeyOf,
     useFlameToken: useFlameToken, meditationTick: meditationTick, newHero: newHero, newState: newState,
   };
   if (typeof module !== "undefined" && module.exports) module.exports = global.TempleOfAsh;

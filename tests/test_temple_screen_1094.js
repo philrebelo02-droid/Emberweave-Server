@@ -14,7 +14,7 @@ ok(/heroes\/\$\{key\}-v2\.webp/.test(fn)&&/hero-window-v1\.webp/.test(fn),'the s
 ok(/tp2Delta \$\{up\?'up':'down'\}/.test(fn)&&/\.tp2Bar \.tp2Delta\.up\{background:rgba\(70,230,100/.test(page)&&/\.tp2Bar \.tp2Delta\.down\{background:rgba\(240,60,60/.test(page),'the pending change is shaded on the bar: green gain, red loss');
 ok(/Math\.round\(1000\*\(to-from\)\/cap\)\/10\)\+'%'/.test(fn),'the bar carries the change as a % of the cap');
 ok(/class="tp2Power \$\{power>0\?'up':power<0\?'down':''\}"/.test(fn)&&/\.tp2Bar s\.up,\.tp2Power\.up/.test(page),'Power +N green / -N red');
-ok(/Blessings/.test(fn)&&/5th dot: all bonuses/.test(fn)&&/Needs Temple \$\{x\.keeperGate\}/.test(fn),'Blessings 1-4 with their Temple gates, plus the 5th dot');
+ok(/Blessings/.test(fn)&&/5th dot: blessings \+/.test(fn)&&/Needs Temple \$\{x\.keeperGate\}/.test(fn),'Blessings 1-4 with their Temple gates, plus the 5th dot');
 ok(/Lv\.\$\{level\} Flame Keeper/.test(fn)&&/tp2Exp/.test(fn),'the Flame Keeper with level and exp bar');
 ok(/Save or cancel\?/.test(fn)&&/not refunded for cancelling/.test(fn)&&/id="templeSave"/.test(fn)&&/id="templeDiscard"/.test(fn),'Save / Cancel with the no-refund line');
 ok(/\/api\/temple\/auto/.test(page)&&/Auto save if power goes up!/.test(page),'Auto pray dialog calls /api/temple/auto');
