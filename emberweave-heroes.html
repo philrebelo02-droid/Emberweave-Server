@@ -18241,7 +18241,7 @@ async function renderWatchTower(){
     if(trusted){
       const rows=[];
       recorded.mates.forEach(w=>(Array.isArray(w.marches)?w.marches:[]).forEach(m=>{
-        if(m.kind!=='city'&&m.kind!=='mine')return;
+        if((m.kind!=='city'&&m.kind!=='mine')||m.defend)return;   // v1097: stationed defenders are not attacks
         const target=m.kind==='mine'?`Lv ${m.level??'?'} ${m.resource||'resource'} mine`:`City ${m.defId||'target'}`;
         const status=m.resolveReady?'Outcome awaiting resolution':m.phase==='returning'?'Returning · home in '+fmtDur(m.homeInMs):'Arrival in '+fmtDur(m.arriveInMs);
         rows.push(line(w.name||'Player',target,status,!!w.you));
@@ -21345,6 +21345,14 @@ async function startMarch(ctype,c,heroes){
     }
     t=serverMarch.depart; out=serverMarch.travel;
   }
+  if(ctype==='defend' && c.real && ACC.token){   /* v1097 (sweep 9 Oct #12): the defenders stand on the ally's wall on the server */
+    if(cityMarchStartPending)return;
+    cityMarchStartPending=true;
+    try{ const hs=(heroes||[]).slice(0,5); serverMarch=await marchStartPost('/api/world/city/defend','defend:'+c.id+':'+hs.join(','),{defId:c.id,heroIds:hs}); }catch(_e){serverMarch=null;}
+    finally{cityMarchStartPending=false;}
+    if(!serverMarch||!serverMarch.ok){ bannerMsg((serverMarch&&serverMarch.error)||'The defence march could not be registered. Try again.'); return; }
+    t=serverMarch.depart; out=serverMarch.travel;
+  }
   if(ctype==='attack'||ctype==='group'||ctype==='scout') breakBeginnerShield();   // scouting/attacking a player ends beginner peace
   if((ctype==='attack'||ctype==='group') && itemShieldActive()){ G.shieldUntil=0; bannerMsg('🛡 Protection shield broke — you launched an attack.'); }
   activeMarches().push({ id:'m'+t+'_'+Math.floor(rand01(t)*999), dir:'out', ctype, tName:c.name, tId:c.id, real:!!c.real, fx:c.x, fy:c.y,
@@ -21534,6 +21542,19 @@ function resolveMarch(m){
     else { addMail('mines',{from:'⛏ '+rlabel+' Mine',subj:'⛏ Guardians held — '+rlabel,body:'The mine\'s 5 guardians drove your squad off — no '+rlabel+' gathered. Bring a stronger squad.',battle:rpt});
       marchReport('⛏ Mining failed','The mine\'s guardians drove your miners off — no resources gathered.'); }
     updateMailBadges(); return; }
+  if(m.ctype==='scout' && ACC.token && m.tId && (m.real||String(m.tId).startsWith('bot_'))){   /* v1097 (sweep 9 Oct #12): the server's scout report */
+    if(m.resolving && Date.now()-(m.resolvingAt||0)<30000) return false;
+    m.scoutRid=m.scoutRid||uid8(); m.resolving=true; m.resolvingAt=Date.now();
+    api('/api/world/scout','POST',{defId:m.tId,requestId:m.scoutRid}).then(r=>{ m.resolving=false; m.resolvingAt=0;
+      if(!r||r.error==='offline'||r.storageFailed||r.retry){ m.arrive=Date.now()+30000; saveG(); return; }
+      m.resolved=true;
+      if(!r.ok){ const why=r.error||'Your scouts could not reach the castle.'; addMail('scouts',{from:'Scouts',subj:'Scout report failed - '+m.tName,body:why}); marchReport('Scout report failed - '+m.tName,why); updateMailBadges(); saveG(); return; }
+      const team=(r.team||[]).map(h=>((HERO_TYPES[h.key]&&HERO_TYPES[h.key].name)||h.key)+' Lv '+(h.level|0)+', '+(h.stars|0)+' stars'+((h.hp|0)<100?' ('+(h.hp|0)+'% HP)':'')).join(', ');
+      const body='Rank #'+(r.rank||'?')+' \u00b7 defence power '+(r.power|0).toLocaleString()+'. Defenders: '+(team||'none standing')+'.'
+        +(r.allyDefenders?' '+r.allyDefenders+' guild ally squad'+(r.allyDefenders===1?'':'s')+' stationed there.':'')+((r.shieldedUntil|0)>Date.now()?' A protection shield is up.':'');
+      addMail('scouts',{from:'Scouts',subj:'Scout report \u2014 '+m.tName,body}); marchReport('Scout report \u2014 '+m.tName,body+' Your scouts are returning home.'); updateMailBadges(); saveG();
+    }).catch(()=>{ m.resolving=false; m.resolvingAt=0; m.arrive=Date.now()+5000; saveG(); });
+    return false; }
   if(m.ctype==='scout'){ const body='Rank #'+m.tRank+' · defence power ~'+(m.tPower||'?')+'. Their walls look '+(( m.tPower||300)>420?'heavily guarded':'lightly held')+'.';
     addMail('scouts',{from:'Scouts',subj:'🔭 Scout report — '+m.tName,body}); marchReport('🔭 Scout report — '+m.tName,body+' Your scouts are returning home.'); updateMailBadges(); return; }
   if(m.ctype==='defend'){ addMail('war',{from:m.tName,subj:'🛡 Defending '+m.tName,body:'Your heroes are stationed at '+m.tName+', defending a guild member. They stay until you Retreat them from Info.'}); marchReport('🛡 Defending '+m.tName,'Your heroes are stationed at '+m.tName+'. They stay until you Retreat them from Info.'); updateMailBadges(); return; }
@@ -21567,7 +21588,8 @@ function resolveMarch(m){
         marchReport('⚠ City attack not resolved',reason); updateMailBadges(); saveG(); return;
       }
       m.resolved=true;
-      if(r.capped){ addMail('war',{from:m.tName,subj:'⚔ Army home - '+m.tName,body:r.note||'No city attacks left today - your army came home.'}); updateMailBadges(); saveG(); return; }   /* v1016 (Guild #6): settled with no fight */
+      if(r.capped){ addMail('war',{from:m.tName,subj:'⚔ Army home - '+m.tName,body:r.note||'No city attacks left today - your army came home.'}); updateMailBadges(); saveG(); return; }
+      if(r.shielded){ if(!hasWarMail(m.serverCityId)) addMail('war',{from:m.tName,subj:'Army home - '+m.tName,body:r.note||(m.tName+' raised a protection shield before your army arrived. It came home with nothing.'),marchId:m.serverCityId}); marchReport('Shield at '+m.tName,r.note||'Your army came home with nothing.'); updateMailBadges(); saveG(); return; }   /* v1097 (sweep #11) */   /* v1016 (Guild #6): settled with no fight */
       const replay=r.replay?{v:2,seed:r.replay.seed,mineSnap:r.replay.snaps,
         foe:r.replay.foe,won:!!r.won,oppName:m.tName}:null;
       const loot=r.loot||{}, gold=loot.gold|0, coins=loot.guildCoins|0;
@@ -21617,12 +21639,15 @@ function pollPvpReports(){ if(!ACC.token||!online())return;
     d.reports.forEach(r=>{ const when=r.t?new Date(r.t).toLocaleTimeString():'';
       if(r.kind==='attack-report'){   /* v1042: the server's copy of YOUR attack - kept in war mail even if the reply was lost */
         if(hasWarMail(r.marchId)) return;
+        if(r.shielded){ addMail('war',{from:r.to||'?',subj:'Army home - '+(r.to||'?'),body:(r.to||'?')+' raised a protection shield before your army arrived. It came home with nothing.',marchId:r.marchId,t:r.t}); return; }   /* v1097 (sweep #11) */
         const loot=r.loot||{}, gold=loot.gold|0, coins=loot.guildCoins|0, tn=r.to||'?';
         const body=r.won?'Your army broke '+tn+'’s wall and brought home 🪙 '+gold+(coins>0?' and 🎖 '+coins+' guild coins':'')+'. Injuries remain until healed at the Witches Hut.'
           :tn+'’s defenders held. Your surviving heroes retreat with their injuries.';
         addMail('war',{from:tn,subj:(r.won?'⚔ Victory — ':'⚔ Defeat — ')+tn,body,battle:r.battle||undefined,marchId:r.marchId,t:r.t}); return; }
       if(r.kind==='war-declared'){ const fmt=x=>x?new Date(x).toLocaleTimeString():'?';   /* v999 (World audit #2): a declaration is not an attack */
         addMail('war',{from:r.from,subj:'⚔ '+r.from+' declared war on you',body:'War ready '+fmt(r.readyAt)+' · ends '+fmt(r.expireAt)}); return; }
+      if(r.kind==='shield-blocked'){ addMail('war',{from:r.from,subj:'Shield held vs '+r.from,body:r.from+'\u2019s army reached your castle'+(when?' at '+when:'')+' but your protection shield turned it away. Nothing was lost.'}); return; }   /* v1097 (sweep #11) */
+      if(r.kind==='defend-report'){ addMail('war',{from:r.from,subj:'Your defenders fought at '+(r.to||'?'),body:r.from+' attacked '+(r.to||'?')+(when?' at '+when:'')+'. Your stationed heroes '+(r.won?'could not hold the wall':'helped hold the wall')+'. Wounds remain until healed at the Witches Hut.'}); return; }   /* v1097 (sweep #12) */
       if(r.unverified) addMail('war',{from:r.from,subj:'⚠ Unverified attack report — '+r.from,
         body:r.from+' submitted an old battle report'+(when?' at '+when:'')+'. The server did not verify a fight, outcome, injuries, or loot.'});
       else if(r.won) addMail('war',{from:r.from,subj:'⚠ '+r.from+' raided your castle',body:r.from+' attacked your castle'+(when?' at '+when:'')+' and broke through your wall.',battle:r.battle||undefined});
