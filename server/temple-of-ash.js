@@ -5,7 +5,8 @@
  * (Phil 9 Oct 2026: "copy their prayer system verbatim but use our names"). Replaces the v839-v1093 abstract-points model
  * (class bars as % effects, +-1 point per bar).
  *
- *   - Four fixed bars per hero: Health, Attack (Attack damage / Ability power by damage type), Armor & MR, Penetration.
+ *   - Four bars per hero, picked from THAT hero's kit (v1098 HERO_BARS; Phil 9 Oct: "all bars should be heroes specific").
+ *     A bar kind is a flat stat (health, Attack damage, Ability power, armor / MR, penetration) or a % / rate effect.
  *   - A bar holds whole STEPS; a step is a real flat stat (STEP by profile). Values ride the same ratings path as glyph flats.
  *   - Cap in steps by Temple level (CAP_STEPS). Completion = sum steps / (4 x cap).
  *   - One prayer rolls ALL FOUR bars from the tier's measured table; past a tier's REACH a would-be gain can turn into a drop.
@@ -82,15 +83,88 @@
   const HERO_BLESSINGS = {};
   Object.keys(HERO_BLESSING_KINDS).forEach(function (k) { HERO_BLESSINGS[k] = heroBlessingSet(HERO_BLESSING_KINDS[k]); });
 
+  /* v1098 (Phil 9 Oct 2026, on Oakmir's screen: "how does magic penetration ... help oakmir" and "all bars should be heroes specific"):
+     the four PRAYER BARS are picked per hero from that hero's own kit, in the spirit of its blessings. Bar 1 is the hero's survival
+     stat (Health for most); bars 2-4 are what the hero actually scales with.
+     A kind is a FLAT stat (rides the glyph-flat path: flat = which flat outputs it feeds) or a % / rate EFFECT (rides
+     TempleEffects.applyCore / applyClient under the existing effect name). step = the stat value of one step; a {physical, magic}
+     step follows the hero's damage type. Flats keep the v1094 step values; every other value is PROPOSED for Phil - a full
+     200-step bar is the number in the comment. Power stays 10 x net STEPS whatever the kind. */
+  const BAR_KINDS = {
+    health:          { name: "Health",               icon: "hp",       flat: ["hp"],                  step: { physical: 35, magic: 25 } },   // 7,000 / 5,000
+    attack:          { name: "Attack damage",        icon: "atk",      flat: ["ad"],                  step: 2.4 },                           // 480
+    abilityPower:    { name: "Ability power",        icon: "apow",     flat: ["ap"],                  step: 3.2 },                           // 640
+    armorMr:         { name: "Armor & Magic resist", icon: "armor",    flat: ["armor", "mr"],         step: { physical: 7.2, magic: 4.8 } }, // 1,440 / 960 each
+    armor:           { name: "Armor",                icon: "armor",    flat: ["armor"],               step: 10.8 },                          // 2,160 PROPOSED
+    magicResist:     { name: "Magic resist",         icon: "mr",       flat: ["mr"],                  step: 10.8 },                          // 2,160 PROPOSED
+    pen:             { name: "Penetration",          icon: "armorPen", iconMagic: "magicPen", flat: ["armorPen", "magicPen"], step: { physical: 4.8, magic: 7.2 } },   // 960 / 1,440 each
+    armorPen:        { name: "Armor penetration",    icon: "armorPen", flat: ["armorPen"],            step: 7.2 },                           // 1,440 PROPOSED
+    magicPen:        { name: "Magic penetration",    icon: "magicPen", flat: ["magicPen"],            step: 7.2 },                           // 1,440 PROPOSED
+    healPow:         { name: "Healing power",        icon: "healPow",  effect: "heal/shield strength", step: 0.001,   pct: true },      // 20%  PROPOSED
+    energyRegen:     { name: "Energy regen",         icon: "energy",   effect: "energy regen",         step: 0.01 },                    // 2 / s PROPOSED
+    cooldown:        { name: "Cooldown reduction",   icon: "cooldown", effect: "cooldown reduction",   step: 0.0005,  pct: true },      // 10%  PROPOSED (energy haste)
+    attackSpeed:     { name: "Attack speed",         icon: "atkSpd",   effect: "attack speed",         step: 0.00075, pct: true },      // 15%  PROPOSED
+    critChance:      { name: "Crit chance",          icon: "crit",     effect: "crit chance",          step: 0.0003,  pct: true },      // 6%   PROPOSED
+    critDamage:      { name: "Crit damage",          icon: "critDmg",  effect: "crit damage",          step: 0.0015,  pct: true },      // 30%  PROPOSED
+    lifesteal:       { name: "Lifesteal",            icon: "lifesteal",effect: "lifesteal",            step: 0.0004,  pct: true },      // 8%   PROPOSED
+    dodge:           { name: "Dodge",                icon: "eva",      effect: "dodge",                step: 0.0003,  pct: true },      // 6%   PROPOSED
+    damageReduction: { name: "Damage reduction",     icon: "dmgRed",   effect: "damage reduction",     step: 0.0003,  pct: true },      // 6%   PROPOSED
+    ctrlRes:         { name: "Control resistance",   icon: "ctrlRes",  effect: "control resistance",   step: 0.00075, pct: true },      // 15%  PROPOSED
+  };
+  /* One explicit row per hero (all 60), bar 1 -> bar 4. Why each pick: Open Projects/The Temple of Ash/HERO BARS v1098 (09OCT2026).md */
+  const HERO_BARS = {
+    /* Support */
+    dandra:    ["health", "dodge", "healPow", "energyRegen"],          linnet:    ["health", "attackSpeed", "cooldown", "healPow"],
+    lumi:      ["health", "abilityPower", "ctrlRes", "energyRegen"],   lysara:    ["health", "abilityPower", "healPow", "ctrlRes"],
+    mellan:    ["health", "abilityPower", "healPow", "magicPen"],      mirelle:   ["health", "attackSpeed", "healPow", "damageReduction"],
+    nerisse:   ["health", "cooldown", "damageReduction", "healPow"],   oakmir:    ["health", "healPow", "abilityPower", "energyRegen"],
+    tessit:    ["health", "attackSpeed", "cooldown", "ctrlRes"],       vireo:     ["health", "armorMr", "cooldown", "healPow"],
+    /* Tank */
+    ambrel:    ["health", "abilityPower", "ctrlRes", "cooldown"],      askel:     ["health", "armorMr", "ctrlRes", "attackSpeed"],
+    bloatus:   ["health", "abilityPower", "magicPen", "damageReduction"], brannus: ["health", "attack", "damageReduction", "armorMr"],
+    grosk:     ["health", "armor", "lifesteal", "damageReduction"],    gruel:     ["health", "armorMr", "ctrlRes", "damageReduction"],
+    joss:      ["health", "magicResist", "damageReduction", "ctrlRes"], pellucid: ["health", "attack", "armor", "magicResist"],
+    rhukk:     ["health", "attack", "armor", "damageReduction"],       tharl:     ["health", "armor", "ctrlRes", "energyRegen"],
+    vael:      ["health", "critChance", "attackSpeed", "lifesteal"],
+    /* Bruiser */
+    aureth:    ["health", "attack", "abilityPower", "lifesteal"],      carn:      ["health", "attack", "lifesteal", "attackSpeed"],
+    deepcleft: ["health", "armor", "armorPen", "attackSpeed"],         grimsby:   ["health", "attack", "armorPen", "cooldown"],
+    hobb:      ["health", "attack", "critChance", "damageReduction"],  hurne:     ["health", "armorMr", "cooldown", "damageReduction"],
+    iver:      ["health", "attackSpeed", "armorPen", "energyRegen"],   konwu:     ["health", "dodge", "attackSpeed", "critDamage"],
+    korvux:    ["health", "armorMr", "attack", "cooldown"],            quorrel:   ["health", "ctrlRes", "critChance", "attackSpeed"],
+    tick:      ["health", "attackSpeed", "lifesteal", "critDamage"],   tolley:    ["health", "attack", "energyRegen", "critDamage"],
+    zahri:     ["health", "attack", "attackSpeed", "armorPen"],
+    /* Marksman */
+    calypsa:   ["health", "attack", "abilityPower", "dodge"],          meridian:  ["health", "armorPen", "lifesteal", "attackSpeed"],
+    rafe:      ["dodge", "attackSpeed", "critChance", "critDamage"],   rivet:     ["health", "attack", "armorPen", "energyRegen"],
+    sloe:      ["health", "attack", "critChance", "critDamage"],       yenna:     ["health", "attack", "armorPen", "critDamage"],
+    /* Assassin */
+    hollow:    ["lifesteal", "attackSpeed", "armorPen", "critDamage"], kharos:    ["dodge", "attack", "critChance", "critDamage"],
+    nox:       ["dodge", "critDamage", "energyRegen", "cooldown"],     seyla:     ["health", "armorPen", "attackSpeed", "critChance"],
+    sorrel:    ["health", "attack", "critChance", "armorPen"],         vex:       ["dodge", "armorPen", "critChance", "critDamage"],
+    veyr:      ["dodge", "abilityPower", "attackSpeed", "critChance"],
+    /* Mage */
+    absalie:   ["health", "abilityPower", "energyRegen", "magicPen"],  aldren:    ["health", "abilityPower", "attackSpeed", "ctrlRes"],
+    astra:     ["health", "abilityPower", "attackSpeed", "magicPen"],  ceraline:  ["health", "abilityPower", "magicPen", "cooldown"],
+    fritz:     ["health", "dodge", "abilityPower", "energyRegen"],     maren:     ["health", "damageReduction", "abilityPower", "energyRegen"],
+    orryn:     ["health", "abilityPower", "cooldown", "attackSpeed"],  pyroclast: ["health", "armorMr", "abilityPower", "magicPen"],
+    sylthaine: ["health", "abilityPower", "cooldown", "energyRegen"],  umbris:    ["health", "energyRegen", "cooldown", "magicPen"],
+    vaelora:   ["health", "dodge", "critChance", "critDamage"],        vesper:    ["health", "damageReduction", "ctrlRes", "cooldown"],
+    vulmar:    ["health", "cooldown", "damageReduction", "abilityPower"],
+  };
+
   const TEMPLE_CONFIG = {
     /* --- building --- */
     UNLOCK_PLAYER_LEVEL: 50,
     PLAYER_LEVEL_OFFSET: -10,         // Phil 27 Sep: every reference troop-level gate minus 10 (our temple opens at 50)
     MIN_ASCENSION_INDEX: 6,           // Phil 27 Sep: "all purple + heroes can use it" (glyph ascension index 6 = Purple)
 
-    /* --- v2: the four bars (spec §1) --- */
+    /* --- v2: the four bars (spec §1). v1098: BARS is the LEGACY layout (v1094-v1096 storage, and the technical fallback for a
+       key with no HERO_BARS row); every hero's own four come from HERO_BARS. --- */
     BARS: ["health", "attack", "armorMr", "pen"],
     BAR_NAMES: { health: "Health", attack: "Attack", armorMr: "Armor & Magic resist", pen: "Penetration" },
+    HERO_BARS: HERO_BARS,
+    BAR_KINDS: BAR_KINDS,
     LEGACY_BAR_OF: { bar1: "health", bar2: "attack", bar3: "armorMr", bar4: "pen" },   // migration: old bar i -> new bar i (spec §8)
     /* A step's real stat value (spec §2 "Ours", PROPOSED - Phil sets). magic = Magic/Healer heroes, physical = Attack heroes;
        a Hybrid hero uses the physical steps and its Attack bar adds to BOTH Attack damage and Ability power. */
@@ -151,8 +225,8 @@
     TEMPLE_PLAYER_GATES: [[1, 50], [13, 60], [19, 70], [25, 80], [41, 90]],   // [from temple level, player level]
     HERO_ORB_LEVELS: [50, 60, 70, 80],               // our hero-level gates on dots 1-4 (5th: 100)
     BOON_KEEPER_GATES: [1, 5, 13, 19],               // the reference: blessing slots open at Temple 1 / 5 / 13 / 19
-    BLESSING_NEEDS: [                                 // MEASURED thresholds, in steps of one named bar
-      { bar: "health", need: 20 }, { bar: "attack", need: 50 }, { bar: "armorMr", need: 130 }, { bar: "pen", need: 190 },
+    BLESSING_NEEDS: [                                 // MEASURED thresholds, in steps of one bar SLOT (v1098: bar 1..4 of the hero's own four)
+      { slot: 0, need: 20 }, { slot: 1, need: 50 }, { slot: 2, need: 130 }, { slot: 3, need: 190 },
     ],
     /* v1096: per-hero rewards (HERO_BLESSINGS, built above from HERO_BLESSING_KINDS x BLESSING_UNIT). blessingReward reads them by
        hero key; BLESSINGS below is only the technical fallback for a key with no row. */
@@ -249,7 +323,9 @@
 
   /* STATE (server-owned, plain object):
      { keeperPoints, playerLevel, freeRitualDay, _freeClaimedDay, goldLadderStep, gemTierCounts, discardsInRow, bonusPrayers, levelSeen,
-       heldPrayers, _pending, heroes: { <key>: { steps:{health,attack,armorMr,pen}, boonsUnlocked:[5 x bool], cinders?(legacy) } } } */
+       heldPrayers, _pending, heroes: { <key>: { key, bars:[4 kinds], steps:{<kind>: n}, boonsUnlocked:[5 x bool], cinders?(legacy) } } }
+     v1098: steps are keyed by the hero's own bar kinds and `bars` stores the layout; a state without `bars` is the v1094-v1096
+     layout (health / attack / armorMr / pen) and reads positionally onto the hero's four (alignSteps). */
 
   /* --- RNG seam: the server injects its seeded roll (srvRoll) --- */
   let rng = Math.random;
@@ -302,21 +378,71 @@
     return (role === "Mage" || role === "Support") ? "magic" : "physical";
   }
   function stepTable(profile) { return TEMPLE_CONFIG.STEP[profile === "magic" ? "magic" : "physical"]; }
-  function stepValue(profile, bar) { return (stepTable(profileOf(profile))[bar]) || 0; }
-  function barValue(profile, bar, steps) { return Math.round((steps || 0) * stepValue(profile, bar) * 10) / 10; }
-  function emptySteps() { return { health: 0, attack: 0, armorMr: 0, pen: 0 }; }
-  function heroSteps(heroState) {
-    const s = (heroState && heroState.steps) || {}, out = emptySteps();
-    TEMPLE_CONFIG.BARS.forEach(function (b) { out[b] = Math.max(0, s[b] | 0); });
+  /* v1098: one step of a bar KIND for a profile ({physical, magic} steps follow the damage type; hybrid uses physical). */
+  function kindStep(kind, profile) {
+    const k = BAR_KINDS[kind]; if (!k) return 0;
+    return typeof k.step === "number" ? k.step : (k.step[profileOf(profile) === "magic" ? "magic" : "physical"] || 0);
+  }
+  function stepValue(profile, bar) { return kindStep(bar, profile); }
+  function isPctKind(kind) { const k = BAR_KINDS[kind]; return !!(k && k.effect); }
+  function barValue(profile, bar, steps) {
+    const v = (steps || 0) * stepValue(profile, bar);
+    return isPctKind(bar) ? Math.round(v * 1e6) / 1e6 : Math.round(v * 10) / 10;
+  }
+  /* What a bar of this kind feeds: flat outputs (hp/ad/ap/armor/mr/armorPen/magicPen) or one battle effect name. */
+  function kindTargets(kind) {
+    const k = BAR_KINDS[kind]; if (!k) return { flat: [] };
+    return k.effect ? { effect: k.effect } : { flat: k.flat.slice() };
+  }
+  function validLayout(bars) {
+    return Array.isArray(bars) && bars.length === 4 && bars.every(function (b) { return Object.prototype.hasOwnProperty.call(BAR_KINDS, b); })
+      && new Set(bars).size === 4;
+  }
+  /* The hero's own four bars (HERO_BARS); the legacy layout only for a key with no row (its Attack bar is Ability power for a
+     magic profile, as the v1094 Attack bar was). */
+  function heroBars(key, profile) {
+    if (key && Object.prototype.hasOwnProperty.call(HERO_BARS, key)) return HERO_BARS[key].slice();
+    const out = TEMPLE_CONFIG.BARS.slice();
+    if (profile != null && profileOf(profile) === "magic") out[1] = "abilityPower";
     return out;
   }
-  function newHero() { return { steps: emptySteps(), boonsUnlocked: [false, false, false, false, false] }; }
-  function heroCompletion(heroState, templeLevel) {
-    const cap = capSteps(templeLevel), s = heroSteps(heroState);
-    let sum = 0; TEMPLE_CONFIG.BARS.forEach(function (b) { sum += Math.min(cap, s[b]); });
+  function emptySteps(bars) { const o = {}; (bars || TEMPLE_CONFIG.BARS).forEach(function (b) { o[b] = 0; }); return o; }
+  /* The stored layout of a hero state: its own `bars`, else the v1094-v1096 legacy keys (health / attack / armorMr / pen). */
+  function storedLayout(heroState) { return heroState && validLayout(heroState.bars) ? heroState.bars : TEMPLE_CONFIG.BARS; }
+  /* Steps aligned onto a layout POSITIONALLY (stored bar i -> layout bar i, step counts kept) - the same rule migrateState writes,
+     so a state read before or after its migration gives the same numbers. */
+  function alignSteps(heroState, layout) {
+    const s = (heroState && heroState.steps) || {}, src = storedLayout(heroState), out = {};
+    layout.forEach(function (b, i) { out[b] = Math.max(0, s[src[i]] | 0); });
+    return out;
+  }
+  function heroLayout(heroState, key, profile) { return heroBars(heroKeyOf(heroState, key), profile); }
+  /* heroSteps(heroState [, key, profile]) -> { <kind>: steps } on the hero's own four bars. */
+  function heroSteps(heroState, key, profile) { return alignSteps(heroState, heroLayout(heroState, key, profile)); }
+  function newHero(key, profile) {
+    const h = { steps: emptySteps(), boonsUnlocked: [false, false, false, false, false] };
+    if (key) { h.key = key; h.bars = heroBars(key, profile); h.steps = emptySteps(h.bars); }
+    return h;
+  }
+  function heroCompletion(heroState, templeLevel, key) {
+    const cap = capSteps(templeLevel), s = heroSteps(heroState, key);
+    let sum = 0; Object.keys(s).forEach(function (b) { sum += Math.min(cap, s[b]); });
     return sum / (4 * cap);
   }
-  function barsOpen() { return TEMPLE_CONFIG.BARS.slice(); }
+  function barsOpen(templeLevel, key, profile) { return key ? heroBars(key, profile) : TEMPLE_CONFIG.BARS.slice(); }
+  /* Display helpers: a bar's name, icon key and value text (numbers for flats, % for rates, energy per second as a plain number). */
+  function barName(kind) { return (BAR_KINDS[kind] && BAR_KINDS[kind].name) || kind; }
+  function barIcon(kind, profile) {
+    const k = BAR_KINDS[kind]; if (!k) return "hp";
+    return profile != null && profileOf(profile) === "magic" && k.iconMagic ? k.iconMagic : k.icon;
+  }
+  function barText(kind, value, signed) {
+    const k = BAR_KINDS[kind], v = +value || 0, sg = signed && v > 0 ? "+" : "";
+    if (k && k.pct) return sg + Math.round(v * 10000) / 100 + "%";
+    if (k && k.effect) return sg + Math.round(v * 100) / 100;
+    const r = Math.round(v * 10) / 10;
+    return sg + (Math.abs(r) >= 1000 ? Math.round(r).toLocaleString("en-US") : String(r));
+  }
 
   /* --- legacy maximum (the old model's bar max by temple level) - the migration denominator only --- */
   function effectMax(templeLevel) {
@@ -337,17 +463,45 @@
       if (h.key !== k) h.key = k;                    // v1096: the hero's own key rides on its Temple state, so heroBonuses finds its blessings on every path
       if (!Array.isArray(h.boonsUnlocked)) h.boonsUnlocked = [false, false, false, false, false];
       while (h.boonsUnlocked.length < 5) h.boonsUnlocked.push(false);
-      if (h.steps && typeof h.steps === "object") { h.steps = heroSteps(h); return; }
-      const steps = emptySteps(), old = h.cinders || {};
-      Object.keys(TEMPLE_CONFIG.LEGACY_BAR_OF).forEach(function (ob) {
-        const pts = Math.max(0, Number(old[ob]) || 0);
-        steps[TEMPLE_CONFIG.LEGACY_BAR_OF[ob]] = Math.max(0, Math.min(cap, Math.round(pts / oldMax * cap)));
-      });
-      h.steps = steps; h.migratedV2 = true; n++;
+      if (!h.steps || typeof h.steps !== "object") {
+        const steps = emptySteps(), old = h.cinders || {};
+        Object.keys(TEMPLE_CONFIG.LEGACY_BAR_OF).forEach(function (ob) {
+          const pts = Math.max(0, Number(old[ob]) || 0);
+          steps[TEMPLE_CONFIG.LEGACY_BAR_OF[ob]] = Math.max(0, Math.min(cap, Math.round(pts / oldMax * cap)));
+        });
+        h.steps = steps; delete h.bars; h.migratedV2 = true; n++;
+      }
+      /* v1098: the hero's own four bars. Old bar i -> new bar i (step counts kept, earned dots kept); the layout is stored with the
+         steps, so a second run finds it in place and changes nothing. */
+      const layout = heroBars(k);
+      const same = validLayout(h.bars) && h.bars.join() === layout.join();
+      h.steps = alignSteps(h, layout);
+      if (!same) { if (!validLayout(h.bars)) h.barsFromV1096 = true; h.bars = layout; }
     });
     const p = state._pending;
     if (p && p.rolls && !p.v2) state._pending = null;
+    else if (p && p.v2 && p.rolls && p.heroId) migratePending(p);
     return n;
+  }
+  /* A pending v1096 prayer (rolls keyed health / attack / armorMr / pen) gets the same positional move, so Save applies it to the
+     hero's own bars; it was paid on pray, so it is kept rather than dropped. */
+  function migratePending(p) {
+    const layout = heroBars(p.heroId, p.profile), src = validLayout(p.bars) ? p.bars : TEMPLE_CONFIG.BARS;
+    if (src.join() === layout.join()) { p.bars = layout; return; }
+    const rolls = {};
+    layout.forEach(function (b, i) {
+      const r = p.rolls[src[i]]; if (!r) return;
+      const from = r.fromSteps != null ? r.fromSteps | 0 : r.from | 0, to = r.toSteps != null ? r.toSteps | 0 : r.to | 0;
+      rolls[b] = rollRecord(p.profile, b, from, to);
+    });
+    p.rolls = rolls; p.bars = layout;
+  }
+  function rollRecord(profile, bar, from, to) {
+    const r = { fromSteps: from, deltaSteps: to - from, toSteps: to,
+      fromValue: barValue(profile, bar, from), toValue: barValue(profile, bar, to),
+      from: from, delta: to - from, to: to };                                           // from/delta/to: step aliases for older readers
+    r.deltaValue = isPctKind(bar) ? Math.round((r.toValue - r.fromValue) * 1e6) / 1e6 : Math.round((r.toValue - r.fromValue) * 10) / 10;
+    return r;
   }
 
   /* --- one bar's roll --- */
@@ -382,23 +536,19 @@
   function pray(state, heroId, tierId, opts) {
     opts = opts || {};
     if (!state.heroes) state.heroes = {};
-    if (!state.heroes[heroId]) state.heroes[heroId] = newHero();
+    if (!state.heroes[heroId]) state.heroes[heroId] = newHero(heroId, opts.profile);
     migrateState(state);
     const heroState = state.heroes[heroId];
     const L = stateLevel(state), cap = capSteps(L), profile = profileOf(opts.profile);
     const tier = TEMPLE_CONFIG.PRAYER_TIERS.find(function (x) { return x.id === tierId; });
     if (!tier || L < tier.unlockKeeper) return { ok: false, reason: "tier_locked" };
-    const cur = heroSteps(heroState);
-    const session = { v2: true, heroId: heroId, tier: tierId, profile: profile, rolls: {}, net: 0, power: 0, cap: cap,
-      completion: heroCompletion(heroState, L) };
-    TEMPLE_CONFIG.BARS.forEach(function (bar) {
+    const bars = heroBars(heroId, opts.profile), cur = alignSteps(heroState, bars);   // v1098: the hero's own four bars, in its order
+    const session = { v2: true, heroId: heroId, tier: tierId, profile: profile, bars: bars, rolls: {}, net: 0, power: 0, cap: cap,
+      completion: heroCompletion(heroState, L, heroId) };
+    bars.forEach(function (bar) {
       const from = Math.min(cap, cur[bar]);
       const to = Math.max(0, Math.min(cap, from + rollBar(tierId, from, cap)));
-      const r = { fromSteps: from, deltaSteps: to - from, toSteps: to,
-        fromValue: barValue(profile, bar, from), deltaValue: barValue(profile, bar, to) - barValue(profile, bar, from), toValue: barValue(profile, bar, to),
-        from: from, delta: to - from, to: to };                                         // from/delta/to: step aliases for older readers
-      r.deltaValue = Math.round(r.deltaValue * 10) / 10;
-      session.rolls[bar] = r; session.net += to - from;
+      session.rolls[bar] = rollRecord(profile, bar, from, to); session.net += to - from;
     });
     session.power = TEMPLE_CONFIG.POWER_PER_STEP * session.net;
     state.keeperPoints = (state.keeperPoints || 0) + tier.keeperPoints;                 // points are earned by praying, saved or not
@@ -410,10 +560,12 @@
   function saveSession(state) {
     const s = state._pending;
     if (!s) return null;
-    if (!state.heroes[s.heroId]) state.heroes[s.heroId] = newHero();
-    const h = state.heroes[s.heroId], cap = capSteps(stateLevel(state)), steps = heroSteps(h);
-    TEMPLE_CONFIG.BARS.forEach(function (bar) { if (s.rolls && s.rolls[bar]) steps[bar] = Math.max(0, Math.min(cap, s.rolls[bar].toSteps | 0)); });
-    h.steps = steps;
+    if (!state.heroes[s.heroId]) state.heroes[s.heroId] = newHero(s.heroId, s.profile);
+    if (s.v2 && !validLayout(s.bars)) migratePending(s);                              // a v1096 pending prayer saved before any migrate ran
+    const h = state.heroes[s.heroId], cap = capSteps(stateLevel(state)), bars = validLayout(s.bars) ? s.bars : heroBars(s.heroId, s.profile);
+    const steps = alignSteps(h, bars);
+    bars.forEach(function (bar) { if (s.rolls && s.rolls[bar]) steps[bar] = Math.max(0, Math.min(cap, s.rolls[bar].toSteps | 0)); });
+    h.steps = steps; h.bars = bars.slice(); if (!h.key) h.key = s.heroId;
     state.discardsInRow = 0;
     state._pending = null;
     return h.steps;
@@ -560,12 +712,15 @@
   /* The four dot rows (+ the 5th) for one hero. info = { role, damageProfile, heroLevel, key }. */
   function blessingsFor(state, heroState, info) {
     info = info || {};
-    const L = stateLevel(state), steps = heroSteps(heroState), lit = (heroState && heroState.boonsUnlocked) || [];
-    const hl = info.heroLevel == null ? Infinity : info.heroLevel, profile = profileOf(info.damageProfile, info.role);
+    const hk = heroKeyOf(heroState, info.key), profile = profileOf(info.damageProfile, info.role);
+    const bars = heroBars(hk, profile), steps = alignSteps(heroState, bars);
+    const L = stateLevel(state), lit = (heroState && heroState.boonsUnlocked) || [];
+    const hl = info.heroLevel == null ? Infinity : info.heroLevel;
     const rows = TEMPLE_CONFIG.BLESSING_NEEDS.map(function (n, i) {
-      const gate = TEMPLE_CONFIG.BOON_KEEPER_GATES[i], heroGate = TEMPLE_CONFIG.HERO_ORB_LEVELS[i], reward = blessingReward(info.role, i, heroKeyOf(heroState, info.key));
-      const keeperMet = L >= gate, heroMet = hl >= heroGate, thresholdMet = steps[n.bar] >= n.need;
-      return { slot: i + 1, bar: n.bar, need: n.need, have: steps[n.bar], reward: reward, label: blessingLabel(reward, profile),
+      const gate = TEMPLE_CONFIG.BOON_KEEPER_GATES[i], heroGate = TEMPLE_CONFIG.HERO_ORB_LEVELS[i], reward = blessingReward(info.role, i, hk);
+      const bar = bars[n.slot], have = steps[bar];                                     // v1098: the threshold is on bar SLOT n.slot of the hero's own four
+      const keeperMet = L >= gate, heroMet = hl >= heroGate, thresholdMet = have >= n.need;
+      return { slot: i + 1, barSlot: n.slot + 1, bar: bar, barName: barName(bar), need: n.need, have: have, reward: reward, label: blessingLabel(reward, profile),
         gate: gate, keeperGate: gate, keeperMet: keeperMet, heroGate: heroGate, heroMet: heroMet, threshold: n.need, thresholdMet: thresholdMet,
         earned: !!lit[i], unlocked: !!lit[i], locked: !keeperMet, canUnlock: keeperMet && heroMet && thresholdMet && !lit[i] };
     });
@@ -601,14 +756,18 @@
   function heroBonuses(heroState, role, damageProfile, key) {
     const out = {};
     if (!heroState) return out;
-    const profile = profileOf(damageProfile, role), steps = heroSteps(heroState), hk = heroKeyOf(heroState, key);
+    const profile = profileOf(damageProfile, role), hk = heroKeyOf(heroState, key);
+    const bars = heroBars(hk, profile), steps = alignSteps(heroState, bars);
     const blank = function () { return { hp: 0, ad: 0, ap: 0, armor: 0, mr: 0, armorPen: 0, magicPen: 0 }; };
-    const f = blank(), bf = blank(), fx = {};                                       // f = the bars, bf = blessing flats
+    const f = blank(), bf = blank(), fx = {}, barFx = {};                           // f / barFx = the bars, bf / fx = the blessings
     const addAttack = function (o, v) { if (profile === "magic") o.ap += v; else if (profile === "hybrid") { o.ad += v; o.ap += v; } else o.ad += v; };
-    f.hp += steps.health * stepValue(profile, "health");
-    addAttack(f, steps.attack * stepValue(profile, "attack"));
-    f.armor += steps.armorMr * stepValue(profile, "armorMr"); f.mr += steps.armorMr * stepValue(profile, "armorMr");
-    f.armorPen += steps.pen * stepValue(profile, "pen"); f.magicPen += steps.pen * stepValue(profile, "pen");
+    /* v1098: each of the hero's own four bars feeds its flat outputs (glyph-flat path) or its battle effect (applyCore/applyClient) */
+    bars.forEach(function (bar) {
+      const v = steps[bar] * stepValue(profile, bar), t = kindTargets(bar);
+      if (!v) return;
+      if (t.effect) barFx[t.effect] = (barFx[t.effect] || 0) + v;
+      else t.flat.forEach(function (o) { f[o] += v; });
+    });
     (heroState.boonsUnlocked || []).slice(0, 4).forEach(function (lit, i) {
       if (!lit) return;
       const r = blessingReward(role, i, hk);
@@ -623,7 +782,11 @@
     const put = function (k, a, b) { const n = Math.round(a + b * mk / 1000); if (n) out[k] = n; };
     put("hpFlat", f.hp, bf.hp); put("adFlat", f.ad, bf.ad); put("apFlat", f.ap, bf.ap); put("armorFlat", f.armor, bf.armor); put("mrFlat", f.mr, bf.mr);
     put("armorPenFlat", f.armorPen, bf.armorPen); put("magicPenFlat", f.magicPen, bf.magicPen);
-    Object.keys(fx).forEach(function (k) { out[k] = Math.round(fx[k] * mk / 1000 * 10000) / 10000; });
+    Object.keys(barFx).concat(Object.keys(fx)).forEach(function (k) {
+      if (Object.prototype.hasOwnProperty.call(out, k)) return;
+      const n = Math.round(((barFx[k] || 0) + (fx[k] || 0) * mk / 1000) * 1e6) / 1e6;   // the 5th dot multiplies the blessing part only
+      if (n) out[k] = n;
+    });
     return out;
   }
 
@@ -638,13 +801,18 @@
       try { if (state && typeof playerLevel === "function") state = Object.assign({}, state, { playerLevel: playerLevel() }); } catch (e) {}
     }
     state = state || newState(); info = Object.assign({}, info || {}, { key: key });
-    const L = stateLevel(state), cap = capSteps(L), h = (state.heroes && state.heroes[key]) || newHero(), steps = heroSteps(h);
-    const profile = profileOf(info.damageProfile, info.role), values = {};
-    TEMPLE_CONFIG.BARS.forEach(function (b) { values[b] = barValue(profile, b, Math.min(cap, steps[b])); });
-    const sum = TEMPLE_CONFIG.BARS.reduce(function (a, b) { return a + Math.min(cap, steps[b]); }, 0);
+    const L = stateLevel(state), cap = capSteps(L), h = (state.heroes && state.heroes[key]) || newHero();
+    const profile = profileOf(info.damageProfile, info.role), barKinds = heroBars(key, profile), steps = alignSteps(h, barKinds), values = {}, stepValues = {};
+    barKinds.forEach(function (b) { values[b] = barValue(profile, b, Math.min(cap, steps[b])); stepValues[b] = stepValue(profile, b); });
+    const sum = barKinds.reduce(function (a, b) { return a + Math.min(cap, steps[b]); }, 0);
     const f = TEMPLE_CONFIG.FIFTH_ORB;
-    return { key: key, templeLevel: L, profile: profile, steps: steps, values: values, cap: cap, capValues: TEMPLE_CONFIG.BARS.reduce(function (o, b) { o[b] = barValue(profile, b, cap); return o; }, {}),
-      stepValues: Object.assign({}, stepTable(profile)), pct: Math.round(100 * sum / (4 * cap)),
+    /* v1098: bars = the hero's own four, in order, each with its name, icon key, steps, value and the value as text */
+    const bars = barKinds.map(function (b, i) {
+      return { slot: i + 1, kind: b, name: barName(b), icon: barIcon(b, profile), pct: isPctKind(b) && !!BAR_KINDS[b].pct, steps: Math.min(cap, steps[b]),
+        value: values[b], text: barText(b, values[b]), capValue: barValue(profile, b, cap), capText: barText(b, barValue(profile, b, cap)), step: stepValues[b] };
+    });
+    return { key: key, templeLevel: L, profile: profile, bars: bars, barKinds: barKinds, steps: steps, values: values, cap: cap, capValues: barKinds.reduce(function (o, b) { o[b] = barValue(profile, b, cap); return o; }, {}),
+      stepValues: stepValues, pct: Math.round(100 * sum / (4 * cap)),
       blessings: blessingsFor(state, h, info),
       fifth: { earned: !!(h.boonsUnlocked && h.boonsUnlocked[4]), templeLevel: f.templeLevel, heroLevel: f.heroLevel,
         locked: L < f.templeLevel, bonus: TEMPLE_CONFIG.FIFTH_ORB_BONUS, label: "5th dot: blessings +" + Math.round(TEMPLE_CONFIG.FIFTH_ORB_BONUS * 100) + "%" },
@@ -678,6 +846,7 @@
     setRng: setRng, setDayKey: setDayKey,
     templeUnlocked: templeUnlocked, heroCanKindle: heroCanKindle, keeperLevel: keeperLevel, keeperProgress: keeperProgress,
     capSteps: capSteps, profileOf: profileOf, stepValue: stepValue, barValue: barValue, heroSteps: heroSteps,
+    heroBars: heroBars, alignSteps: alignSteps, kindStep: kindStep, kindTargets: kindTargets, barName: barName, barIcon: barIcon, barText: barText,
     heroCompletion: heroCompletion, barsOpen: barsOpen, migrateState: migrateState, effectMax: effectMax,
     pressureChance: pressureChance, rollBar: rollBar, tiersOpen: tiersOpen, bonusPrayerChance: bonusPrayerChance,
     pray: pray, saveSession: saveSession, discardSession: discardSession,

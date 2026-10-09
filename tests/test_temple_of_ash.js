@@ -92,8 +92,8 @@ ck('Inferno has no pressure (reach = the cap)', T.pressureChance('inferno', 200,
   const m = T.heroBonuses(hero(100, 100, 100, 100), 'Mage', 'Magic');
   ck('magic: 100 steps = +2,500 health, +320 Ability power, +480 armor & MR, +720 both pens',
     m.hpFlat === 2500 && m.apFlat === 320 && !m.adFlat && m.armorFlat === 480 && m.armorPenFlat === 720);
-  const hy = T.heroBonuses(hero(0, 100, 0, 0), 'Bruiser', 'Hybrid');
-  ck('hybrid: the Attack bar adds to both Attack damage and Ability power', hy.adFlat === 240 && hy.apFlat === 240);
+  const hy = T.heroBonuses(hero(0, 100, 100, 0), 'Bruiser', 'Hybrid', 'aureth');
+  ck('v1098 hybrid: Aureth has his own Attack damage bar AND Ability power bar (100 steps: +240 / +320)', hy.adFlat === 240 && hy.apFlat === 320);
   const lit = T.heroBonuses(hero(0, 0, 0, 0, [true, true, false, false, false]), 'Marksman', 'Attack');
   ck('Marksman dots 1-2: crit chance +5% and Attack +150 (Phil\'s example)', lit['crit chance'] === 0.05 && lit.adFlat === 150);
   const five = T.heroBonuses(hero(0, 0, 0, 0, [true, true, false, false, true]), 'Marksman', 'Attack');

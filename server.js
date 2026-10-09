@@ -3930,7 +3930,8 @@ function ledAddPlayerXP(led,amount,u,opts){
 function templeState(led){
   if(!led.temple) led.temple=TEMPLE.newState();
   led.temple.playerLevel=ledPlayerLevel(led);
-  TEMPLE.migrateState(led.temple);   /* v1094 (Temple v2 §8): old bar points -> steps by the same share of the old maximum, once per hero */
+  TEMPLE.migrateState(led.temple);   /* v1094 (Temple v2 §8): old bar points -> steps by the same share of the old maximum, once per hero.
+                                        v1098: then each hero's v1096 bars move onto its own four (old bar i -> new bar i, steps and dots kept), once */
   return led.temple;
 }
 /* v1094: what the Temple module needs to know about a hero - its class (blessing template) and damage type (step profile) */
@@ -3940,7 +3941,7 @@ function templeBonusesFor(u,key){
   if(!u||!u.led||!SIM.HERO_BASE[key]) return {};
   const state=templeState(u.led), hero=state.heroes&&state.heroes[key];
   const b=SIM.HERO_BASE[key];
-  return hero?TEMPLE.heroBonuses(hero,b.role,b.damageProfile):{};
+  return hero?TEMPLE.heroBonuses(hero,b.role,b.damageProfile,key):{};   /* v1098: the key picks the hero's own four bars and blessings */
 }
 function templeClientState(led){
   const state=JSON.parse(JSON.stringify(templeState(led)));
@@ -6930,8 +6931,8 @@ async function api(req,res,url){
         const t=TEMPLE.CONFIG.PRAYER_TIERS.find(x=>x.id===tier);
         if(!t)return {ok:false,error:'Choose a prayer tier.'};
         if(level<t.unlockKeeper)return {ok:false,error:'That prayer tier is locked.'};
-        if(!state.heroes[key])state.heroes[key]=TEMPLE.newHero();
-        const info=templeHeroInfo(led,key),before=TEMPLE.heroSteps(state.heroes[key]),results=[];
+        if(!state.heroes[key])state.heroes[key]=TEMPLE.newHero(key,SIM.HERO_BASE[key].damageProfile);
+        const info=templeHeroInfo(led,key),before=TEMPLE.heroSteps(state.heroes[key],key),results=[];
         let gold=0,gems=0,saved=0,cancelled=0,power=0,stopped=null;const unlocked=[];
         for(let i=0;i<count;i++){
           TEMPLE.freeRitualAvailable(state);   // day-bound counters first
@@ -6951,7 +6952,7 @@ async function api(req,res,url){
           results.push({power:s.power,saved:s.power>0,rolls:s.rolls,bonusWon:!!s.bonusPrayer,levelUps:s.levelUps||0});
         }
         if(!results.length)return {ok:false,error:stopped||'Auto pray did not run.'};
-        const after=TEMPLE.heroSteps(state.heroes[key]);
+        const after=TEMPLE.heroSteps(state.heroes[key],key);
         const tx=ledTx(me,'temple:auto',{hero:key,tier,ran:results.length,saved,cancelled,power,gold:-gold,gems:-gems,keeperPoints:state.keeperPoints,unlocked});
         return {ok:true,heroKey:key,tier,ran:results.length,saved,cancelled,power,cost:{gold,gems},before,after,unlocked,stopped,results,
           templeLevel:TEMPLE.keeperLevel(state.keeperPoints,state.playerLevel),tx,ledger:ledgerView(me)};
@@ -6985,7 +6986,7 @@ async function api(req,res,url){
         }
         if(led.gold<gold||led.gems<gems)return {ok:false,error:'Not enough currency.'};
         const templeSnap=JSON.stringify(state);   /* v1097 (sweep 9 Oct P0 #2): a failed prayer puts back everything it took */
-        if(!state.heroes[key])state.heroes[key]=TEMPLE.newHero();
+        if(!state.heroes[key])state.heroes[key]=TEMPLE.newHero(key,SIM.HERO_BASE[key].damageProfile);   /* v1098: born on its own four bars */
         led.gold-=gold;led.gems-=gems;
         if(tier==='gold')TEMPLE.buyGoldRitual(state);
         else if(gems)TEMPLE.buyGemTier(state,tier);
@@ -7013,7 +7014,7 @@ async function api(req,res,url){
       /* v1094: a blessing (dot) lights when its Temple level, the hero level and its bar's step threshold are all met; the 5th at hero 100 + Temple 25 */
       const unlocked=TEMPLE.earnBlessings(state,key,templeHeroInfo(led,key));
       const tx=ledTx(me,'temple:save',{hero:key,unlocked,power:pending.power|0});
-      return {ok:true,unlocked,power:pending.power|0,steps:TEMPLE.heroSteps(state.heroes[key]),tx,ledger:ledgerView(me)};
+      return {ok:true,unlocked,power:pending.power|0,steps:TEMPLE.heroSteps(state.heroes[key],key),bars:TEMPLE.heroBars(key),tx,ledger:ledgerView(me)};
     });
     return send(res,out&&out.storageFailed?503:(out&&out.ok?200:400),out); }
   if(p==='/api/tx/spend' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});

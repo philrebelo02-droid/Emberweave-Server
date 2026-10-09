@@ -2,8 +2,10 @@
    v2 (9 Oct 2026, TEMPLE OF ASH v2): the four bars are FLAT stats that ride the same ratings path as glyph flats -
      server: coreRatings(R, extra, b) before SIM.heroCombatStats (hpFlat / atkFlat / apowFlat / armor & MR rating / pens)
      client: makeUnit adds clientFlats(b) where it adds the glyph flats (fHp / fAtk / apow / armorRating / mrRating / pens)
-   so a client battle and the server replay build the same numbers. applyCore / applyClient now carry ONLY the blessing
-   effects (crit chance, lifesteal, dodge, heal/shield strength, ...). The old % bar path (max health x1.2 ...) is gone. */
+   so a client battle and the server replay build the same numbers. applyCore / applyClient carry the % / rate effects
+   (crit chance, lifesteal, dodge, heal/shield strength, ...). The old % bar path (max health x1.2 ...) is gone.
+   v1098 (hero-specific bars): a bar of a % / rate kind (Healing power, Attack speed, Crit damage, Energy regen ...) arrives here
+   under the same effect name as a blessing of that kind - heroBonuses sums bar + blessing - so it takes the same two paths. */
 (function(global){
   'use strict';
   const get=(b,k)=>Math.max(0,Number(b&&b[k])||0);
