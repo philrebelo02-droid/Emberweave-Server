@@ -53,7 +53,7 @@ ok(JSON.stringify(HB.oakmir) === JSON.stringify(['health', 'healPow', 'abilityPo
 { const st = T.newState(); st.playerLevel = 100; let i = 0; const R = [0.0, 0.999, 0.99]; T.setRng(() => (i < 3 ? R[i++] : ((i++ % 2) ? 0.99 : 0.0)));   // gain, 30 steps, no breakout   // v1098 two rolls: a gain of 30, dealt to the open bars
   const s = T.pray(st, 'oakmir', 'gold', { profile: 'Healer' });
   ok(Object.keys(s.rolls).join() === HB.oakmir.join() && s.bars.join() === HB.oakmir.join(), 'Oakmir prayer rolls Health / Healing power / Ability power / Energy regen');
-  ok(s.power === 10 * s.net && s.net === 30, 'Power = 10 x net steps, not the values ('+s.net+' steps = '+s.power+')');
+  ok(s.power === 10 * s.net && s.net === 3, 'Power = 10 x net steps, not the values ('+s.net+' steps = '+s.power+')');
   ok(s.rolls.abilityPower.deltaSteps === 0 && s.rolls.energyRegen.deltaSteps === 0, 'at Temple 1 bars 3 and 4 (Temple 7 / 11) cannot move');
   ok(near(s.rolls.healPow.toValue, s.rolls.healPow.toSteps * 0.001, 1e-9) && s.rolls.health.toValue === s.rolls.health.toSteps * 25, 'each roll carries its own kind value (Healing power 0.1% a step, Health 25 a step)');
   T.saveSession(st);
@@ -151,7 +151,7 @@ function sweep(steps, lit) {
 
 /* ---- the page loads this build's modules (phones kept the v1094-tagged module after v1096) ---- */
 { const page = fs.readFileSync(path.join(ROOT, 'emberweave-heroes.html'), 'utf8');
-  ok(/<script src="\/server\/temple-of-ash\.js\?v=r1098"><\/script>/.test(page) && /<script src="\/server\/temple-effects\.js\?v=r1098"><\/script>/.test(page), 'the page asks for temple-of-ash.js and temple-effects.js at ?v=r1098');
+  ok(/<script src="\/server\/temple-of-ash\.js\?v=r1099"><\/script>/.test(page) && /<script src="\/server\/temple-effects\.js\?v=r1098"><\/script>/.test(page), 'the page asks for temple-of-ash.js at ?v=r1099 (v1099 roll change) and temple-effects.js at ?v=r1098');
   const fn = page.slice(page.indexOf('function renderTemple(){'), page.indexOf('function startDungeon(){'));
   ok(/hs\.bars\.map\(/.test(fn) && /\$\{B\.icon\}-v1\.webp/.test(fn) && /escapeHTML\(B\.name\)/.test(fn) && /T\.barText\(bar,val\)/.test(fn) && !/TP2_BARS|tp2BarLabel/.test(fn),
     'renderTemple draws the hero\'s own bars: name, icon, value as number or %');

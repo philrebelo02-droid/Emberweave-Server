@@ -2186,7 +2186,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
   .wishpools{flex-wrap:nowrap} .wishpool{flex:1 1 0;min-width:0;padding:12px 9px} .wishpool .btn{font-size:12.5px;padding-left:4px;padding-right:4px}   /* v1092: three pools in one row */
   .wishpool.myth{border-color:#b98cff;background:linear-gradient(170deg,rgba(60,28,92,.92),rgba(22,12,38,.94))} .wishpool.myth .wp-name{color:#e6cfff} .wishpool.myth .wp-cost{color:#d9b8ff}   /* v1092 the Mythical Pool card (art to come from ChatGPT) */
   /* v1098 Wishing Pool stage (wps*): plate 2560x1440 (1440x2560 portrait), --u = 1 plate px; title, three pools and both wish buttons always fit */
-  #wishing.wpsOn>.titlebar,#wishing.wpsOn>.sub{display:none} #wishing.wpsOn>.backbtn{z-index:30}
+  #wishing.wpsOn>.titlebar,#wishing.wpsOn>.sub,#wishing.wpsOn .hdrbox>.sub{display:none} #wishing.wpsOn>.backbtn{z-index:30}
   #wishingBody.wpsHost{position:absolute;inset:0;max-width:none!important;display:flex;align-items:center;justify-content:center;overflow:hidden}
   .wpsStage{position:relative;--u:0.4px;display:flex;flex-direction:column;align-items:center;box-sizing:border-box;padding:calc(var(--u)*30) calc(var(--u)*60);overflow:hidden;color:#e6edf3;font-family:system-ui,sans-serif}
   .wpsTitle{flex:0 0 auto;height:calc(var(--u)*170);display:flex;align-items:center;justify-content:center;gap:calc(var(--u)*24);padding:0 calc(var(--u)*70);border:calc(var(--u)*4) solid #c9a35e;border-radius:calc(var(--u)*85);background:linear-gradient(180deg,rgba(40,30,12,.88),rgba(16,12,6,.9));color:#ffd45e;font-weight:900;font-size:calc(var(--u)*78);letter-spacing:calc(var(--u)*8);text-shadow:0 calc(var(--u)*4) calc(var(--u)*10) #000;box-sizing:border-box}
@@ -2554,7 +2554,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 </script>
 <script src="/hero-profiles.js?v=r1025"></script>
 <script src="/hero-paths.js?v=r1025"></script>
-<script src="/server/temple-of-ash.js?v=r1098"></script>
+<script src="/server/temple-of-ash.js?v=r1099"></script>
 <script src="/server/patron-benefits.js?v=r1093"></script>
 <script src="/server/temple-effects.js?v=r1098"></script>
 <script src="/assets/ui/world-mine-sync.js?v=mi1"></script>
@@ -18097,7 +18097,7 @@ function renderTemple(){
       const pf=Math.min(100,100*Math.min(from,to)/cap), pd=Math.abs(100*(to-from)/cap), up=to>=from;
       const pct=r?((to-from)>=0?'+':'')+(Math.round(1000*(to-from)/cap)/10)+'%':'';
       return `<img class="tp2Icon" src="/assets/img/icons/stat/${B.icon}-v1.webp" alt="" style="${tp2Box(612,y-46,92,92)}">
-        <div class="tp2BarName" style="${tp2Box(735,y-78,800,40)}"><span class="tp2BarLbl">${escapeHTML(B.name)} <b class="tp2Val">${T.barText(bar,val)}</b></span><span>${B.locked?'Opens at Temple '+B.unlock:from+' / '+cap}</span></div>
+        <div class="tp2BarName" style="${tp2Box(735,y-78,800,40)}"><span class="tp2BarLbl">${escapeHTML(B.name)} <b class="tp2Val">${T.barText(bar,val)}</b></span><span>${B.locked?'Opens at Temple '+B.unlock:'Max '+(B.capText||T.barText(bar,T.barValue(prof,bar,cap)))}</span></div>
         <div class="tp2Bar${B.locked?' tp2Locked':''}" style="${tp2Box(733,y-21,800,42)}">${B.locked?`<img class="tp2BarLock" src="/assets/img/ui/hud-lock.webp" alt="locked">`:''}<i class="tp2Fill" style="width:${pf}%"></i>${r&&to!==from?`<i class="tp2Delta ${up?'up':'down'}${pf+pd>62?' lft':''}" style="left:${pf}%;width:${pd}%"><em>${pct}</em></i>`:''}
           ${r?`<s class="${d>0?'up':d<0?'down':''}">${T.barText(bar,d,true)}</s>`:''}</div>`; }).join('');
     const power=rolls?(pending&&pending.power!=null?pending.power:Object.values(rolls).reduce((a,x)=>a+10*(x.deltaSteps||0),0)):null;
@@ -23780,7 +23780,7 @@ function renderWishing(){ applySceneBg('wishing',WISHPOOL_BG); const b=document.
   /* v1098 (Phil 9 Oct: the pool 'neither fit to screen properly'): one stage that always fits the screen, like the Temple's tp2Fit -
      16:9 (9:16 on a portrait screen), every size in --u so the title, the three pools and both wish buttons are always visible */
   const wpsScr=document.getElementById('wishing'); if(wpsScr) wpsScr.classList.add('wpsOn'); b.classList.add('wpsHost');
-  b.innerHTML=`<div class="wpsStage" id="wpsStage">
+  const _wpsHtml=`<div class="wpsStage" id="wpsStage">
   <div class="wpsTitle">WISHING POOL <button type="button" class="wpsHelp" onclick="wishShowInfo()" aria-label="Pool contents and odds">?</button></div>
   <div class="wpsCards">
     <div class="wpsCard gold">
@@ -23810,12 +23810,27 @@ function renderWishing(){ applySceneBg('wishing',WISHPOOL_BG); const b=document.
       <button class="btn ${(poolReady&&mythPoolOpen()&&(G.gems||0)>=WISH_MYTH_COST*WISH10_MULT)?'':'secondary'}" id="wpMyth10" ${(poolReady&&mythPoolOpen()&&(G.gems||0)>=WISH_MYTH_COST*WISH10_MULT)?'':'disabled'}>10 Wishes · ${hudIcon('gem')}${WISH_MYTH_COST*WISH10_MULT}</button>
     </div>
   </div></div>`;
+  /* v1099 (Phil 9 Oct: 'the buttons keep jumping' / 'keep bouncing in size'): the 1-second tick rebuilt the whole stage, so each second it
+     drew one frame at the default size and re-made the pool images before wpsFit ran. An existing stage is now morphed in place: only
+     the text and attributes that changed are touched; the stage, its size and its images stay put. */
+  const _old=b.querySelector('#wpsStage');
+  if(_old){ const t=document.createElement('div'); t.innerHTML=_wpsHtml; wpsMorph(_old,t.firstElementChild); } else b.innerHTML=_wpsHtml;
   wpsFit();
   const g=b.querySelector('#wpGold'); if(g)g.onclick=wishGoldDo;
   const m=b.querySelector('#wpGem'); if(m)m.onclick=wishGemDo;
   const g10=b.querySelector('#wpGold10'); if(g10)g10.onclick=wishGold10;
   const m10=b.querySelector('#wpGem10'); if(m10)m10.onclick=wishGem10;
   const y=b.querySelector('#wpMyth'); if(y)y.onclick=wishMythDo; const y10=b.querySelector('#wpMyth10'); if(y10)y10.onclick=wishMyth10; }
+function wpsMorph(a,n){   /* v1099: make node a match node n without replacing the parts that are already right */
+  if(a.nodeType!==n.nodeType||a.nodeName!==n.nodeName){ a.replaceWith(n.cloneNode(true)); return; }
+  if(a.nodeType===3||a.nodeType===8){ if(a.nodeValue!==n.nodeValue) a.nodeValue=n.nodeValue; return; }
+  if(a.nodeType!==1) return;
+  const keep=at=>a.id==='wpsStage'&&at==='style';   // the stage's size belongs to wpsFit
+  for(const at of [...n.attributes]) if(!keep(at.name)&&a.getAttribute(at.name)!==at.value) a.setAttribute(at.name,at.value);
+  for(const at of [...a.attributes]) if(!keep(at.name)&&!n.hasAttribute(at.name)) a.removeAttribute(at.name);
+  const ac=[...a.childNodes], nc=[...n.childNodes];
+  nc.forEach((c,i)=>{ if(i<ac.length) wpsMorph(ac[i],c); else a.appendChild(c.cloneNode(true)); });
+  for(let i=ac.length-1;i>=nc.length;i--) ac[i].remove(); }
 function wpsFit(){ const st=document.getElementById('wpsStage'); if(!st) return; const host=st.parentElement;   /* v1098: the Wishing Pool stage, sized like tp2Fit */
   const W=host.clientWidth||window.innerWidth, H=host.clientHeight||window.innerHeight, tall=H>W;   // portrait: a 9:16 stage with the pools stacked
   const pw=tall?1440:2560, ph=tall?2560:1440, w=Math.min(W, H*pw/ph);
@@ -26748,7 +26763,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791585956734';
+const BUILD_ID = '1791589933896';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

@@ -203,7 +203,8 @@
        is lower with higher tier prayers. And the amount you gain is higher with higher tier".  ROLL 1 = gain or loss for the whole prayer,
        from the success odds we already had (each tier's measured table: share of up vs down rolls) plus the near-cap pressure.  ROLL 2 =
        how many steps, uniform in the tier's GAIN or LOSS range; the steps are then dealt one at a time to random open bars (a gain only to
-       bars below the cap, a loss only to bars above 0). Gold 1-30 is Phil's; the other ranges PROPOSED - Phil tunes. */
+       bars below the cap, a loss only to bars above 0). Gold 1-30 is Phil's; the other ranges PROPOSED - Phil tunes.
+       v1099: the ranges are POWER (10 power = 1 step), not steps - read as steps a Gold prayer gave +260. */
     BREAKOUT: [{ chance: 0.01, mult: 3 }, { chance: 0.05, mult: 2 }],   // Phil 9 Oct: "5% chance for prayer to do a break out and gives the roll 2x stats, 1% for 3x" - gains only
     PRAYER_AMOUNT: {
       gold:    { gain: [1, 30],   loss: [1, 30] },
@@ -546,9 +547,12 @@
     const R = (TEMPLE_CONFIG.PRAYER_AMOUNT[tierId] || TEMPLE_CONFIG.PRAYER_AMOUNT.gold)[gain ? 'gain' : 'loss'];
     let amount = R[0] + Math.floor(roll() * (R[1] - R[0] + 1)), breakout = 1;
     if (gain) { const b = roll(); let acc = 0; for (const x of TEMPLE_CONFIG.BREAKOUT) { acc += x.chance; if (b < acc) { breakout = x.mult; break; } } amount *= breakout; }   // a breakout multiplies a GAIN (never a loss)
-    const out = { _gain: gain, _amount: amount, _breakout: breakout }, now = {};
+    /* v1099 (Phil 9 Oct: 'Gold prayer is raising 260, this is way too much' / '+390 for 50 diamonds is wrong also'): the rolled amount is POWER,
+       not steps - a whole measured reference prayer moved about +10..+60 power. 10 power = 1 step, so Gold 1-30 deals 1-3 steps, at least 1. */
+    const steps = Math.max(1, Math.round(amount / TEMPLE_CONFIG.POWER_PER_STEP));
+    const out = { _gain: gain, _amount: amount, _steps: steps, _breakout: breakout }, now = {};
     bars.forEach(function (b) { out[b] = 0; now[b] = Math.min(cap, cur[b] | 0); });   // bars = the OPEN bars only
-    for (let i = 0; i < amount; i++) {
+    for (let i = 0; i < steps; i++) {
       const open = bars.filter(function (b) { return gain ? now[b] < cap : now[b] > 0; });
       if (!open.length) break;
       const b = open[Math.floor(roll() * open.length)];
@@ -591,7 +595,7 @@
       const to = Math.max(0, Math.min(cap, from + (deltas[bar] | 0)));
       session.rolls[bar] = rollRecord(profile, bar, from, to); session.net += to - from;
     });
-    session.gain = deltas._gain; session.amount = deltas._amount; session.breakout = deltas._breakout;
+    session.gain = deltas._gain; session.amount = deltas._amount; session.steps = deltas._steps; session.breakout = deltas._breakout;
     session.power = TEMPLE_CONFIG.POWER_PER_STEP * session.net;
     state.keeperPoints = (state.keeperPoints || 0) + tier.keeperPoints;                 // points are earned by praying, saved or not
     session.levelUps = grantLevelUps(state);

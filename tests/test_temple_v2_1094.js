@@ -46,10 +46,10 @@ const setHero=(key,st,lit)=>editDB(u=>{ u.led.temple.heroes[key]={steps:st,boons
     ok(five.hpFlat===7000,'the 5th dot never touches the bars: a 200-step health bar stays +7,000 (Phil 9 Oct: 15% of BONUS stats only)'); }
   { const st=T.newState(); st.playerLevel=100; st.keeperPoints=levelPoints(19); st.heroes.h={steps:steps(200,200,200,200),boonsUnlocked:[]};
     let a=11; T.setRng(()=>{ a=(a*16807)%2147483647; return a/2147483647; });
-    let drops=0,n=0; for(let i=0;i<400;i++){ const s=T.pray(st,'h','gold',{profile:'Attack'}); for(const b of BARS){ n++; if(s.rolls[b].deltaSteps<0) drops++; } T.discardSession(st); }
-    ok(drops/n>0.5,'past a tier\'s reach the pressure turns gains into drops (Gold ritual at the cap: '+Math.round(100*drops/n)+' % of bars go down)');
+    let drops=0,n=0; for(let i=0;i<400;i++){ const s=T.pray(st,'h','gold',{profile:'Attack'}); n++; if(s.net<0) drops++; T.discardSession(st); }   // v1099: a prayer moves 1-3 steps, so count prayers, not bars
+    ok(drops/n>0.5,'past a tier\'s reach the pressure turns gains into drops (Gold ritual at the cap: '+Math.round(100*drops/n)+' % of prayers go down)');
     st.heroes.h.steps=steps(0,0,0,0); drops=0; n=0;
-    for(let i=0;i<400;i++){ const s=T.pray(st,'h','kindled',{profile:'Attack'}); for(const b of BARS){ n++; if(s.rolls[b].deltaSteps<0) drops++; } T.discardSession(st); }
+    for(let i=0;i<400;i++){ const s=T.pray(st,'h','kindled',{profile:'Attack'}); n++; if(s.net<0) drops++; T.discardSession(st); }   // v1099: a prayer moves 1-3 steps, so count prayers, not bars
     ok(drops===0,'control: a fresh hero on Kindled never goes down (the measured table has no negative roll)'); }
 
   /* ---- live server ---- */

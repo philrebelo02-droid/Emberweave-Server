@@ -30,8 +30,8 @@ ck('roll 1 keeps the existing Gold success odds (up share of the measured table)
 { const st = T.newState(); st.heroes = { h: hero(10, 10, 10, 10) }; st.playerLevel = 50; T.setRng(seq([0.0, 0.999, 0.3, 0.7]));   // gain, 30 steps
   const s = T.pray(st, 'h', 'gold', { profile: 'Attack' });
   ck('a Temple-1 prayer moves only bars 1-2 (3 and 4 locked)', s.rolls.armorMr.deltaSteps === 0 && s.rolls.pen.deltaSteps === 0);
-  ck('roll 2: a Gold gain of 30 steps lands entirely on the open bars', s.gain === true && s.amount === 30 && s.net === 30);
-  ck('power = 10 x net steps', s.power === 300);
+  ck('roll 2: a Gold gain of 30 power is 3 steps, all on the open bars (v1099: the roll is power, 10 power = 1 step)', s.gain === true && s.amount === 30 && s.steps === 3 && s.net === 3);
+  ck('power = 10 x net steps', s.power === 30);
   ck('values are steps x the physical step', s.rolls.health.toValue === s.rolls.health.toSteps * 35); T.discardSession(st); }
 { const st = T.newState(); st.heroes = { h: hero(0, 0, 0, 0) }; st.playerLevel = 50; T.setRng(seq([0.999, 0.999]));   // a loss of 30 on empty bars
   const s = T.pray(st, 'h', 'gold');
@@ -45,11 +45,16 @@ ck('roll 1 keeps the existing Gold success odds (up share of the measured table)
   const R = T.CONFIG.PRAYER_AMOUNT; const inR = (t) => amt[t].every(v => v > 0 ? [1, 2, 3].some(m => v % m === 0 && v / m >= R[t].gain[0] && v / m <= R[t].gain[1]) : -v >= R[t].loss[0] && -v <= R[t].loss[1]);   // gains may be a x2 / x3 breakout
   ck('every amount is inside the tier gain / loss range', inR('kindled') && inR('stoked'));
   ck('amounts are random, not fixed (many distinct values)', new Set(amt.kindled).size > 20); }
+// v1099 (Phil 9 Oct: Gold +260 / Kindled +390 'way too much'): a prayer moves about as much as a measured reference prayer
+{ const st = T.newState(); st.heroes = { h: hero(10, 10, 10, 10) }; st.playerLevel = 100; st.keeperPoints = pts(19); let a = 7; T.setRng(() => { a = (a * 16807) % 2147483647; return a / 2147483647; });
+  const mx = {}; for (const t of ['gold', 'kindled', 'inferno']) { mx[t] = 0; for (let i = 0; i < 400; i++) { const s = T.pray(st, 'h', t); mx[t] = Math.max(mx[t], Math.abs(s.power)); T.discardSession(st); } }
+  ck('Gold never moves more than 30 power without a breakout x3 (90); Kindled 150; Inferno 600', mx.gold <= 90 && mx.kindled <= 150 && mx.inferno <= 600 && mx.gold > 0);
+  ck('a normal Gold prayer is +10..+30 power, not +260 (control: the old step reading)', T.CONFIG.PRAYER_AMOUNT.gold.gain[1] / T.CONFIG.POWER_PER_STEP === 3); }
 ck('higher tiers gain more and lose less', ['gold', 'kindled', 'stoked', 'blazing', 'inferno'].every((t, i, a) => !i || (T.CONFIG.PRAYER_AMOUNT[t].gain[1] > T.CONFIG.PRAYER_AMOUNT[a[i - 1]].gain[1] && T.CONFIG.PRAYER_AMOUNT[t].loss[1] <= T.CONFIG.PRAYER_AMOUNT[a[i - 1]].loss[1])));
 // v1098 breakout (Phil): 5% x2, 1% x3, gains only
 ck('breakout chances are 1% x3 and 5% x2', JSON.stringify(T.CONFIG.BREAKOUT) === '[{"chance":0.01,"mult":3},{"chance":0.05,"mult":2}]');
 { const st = T.newState(); st.heroes = { h: hero(0, 0, 0, 0) }; st.playerLevel = 100; st.keeperPoints = pts(19); T.setRng(seq([0.0, 0.999, 0.005, 0.5]));
-  const s = T.pray(st, 'h', 'gold'); ck('a 1% roll is a x3 breakout: Gold 30 becomes 90', s.breakout === 3 && s.amount === 90 && s.net === 90); T.discardSession(st); }
+  const s = T.pray(st, 'h', 'gold'); ck('a 1% roll is a x3 breakout: Gold 30 becomes 90 power (9 steps)', s.breakout === 3 && s.amount === 90 && s.net === 9); T.discardSession(st); }
 { const st = T.newState(); st.heroes = { h: hero(0, 0, 0, 0) }; st.playerLevel = 100; st.keeperPoints = pts(19); T.setRng(seq([0.0, 0.999, 0.03, 0.5]));
   const s = T.pray(st, 'h', 'gold'); ck('a 5% roll is a x2 breakout: Gold 30 becomes 60', s.breakout === 2 && s.amount === 60); T.discardSession(st); }
 { const st = T.newState(); st.heroes = { h: hero(100, 100, 100, 100) }; st.playerLevel = 100; st.keeperPoints = pts(19); T.setRng(seq([0.999, 0.999, 0.0, 0.5]));
