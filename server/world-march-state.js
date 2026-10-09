@@ -10,9 +10,10 @@ function summarize(user,now=Date.now()){
       if(!m||typeof m.id!=='string'||!m.id||![m.depart,m.arriveAt,m.homeAt].every(Number.isFinite)
           ||m.depart>m.arriveAt||m.arriveAt>m.homeAt||m.depart>now)continue;
       if(m.resolved&&now>=m.homeAt)continue;
-      const resultPending=!m.resolved;
+      const defend=kind==='city'&&m.kind==='defend';   // v1097: a Defend march has no result - it is stationed until recalled
+      const resultPending=!m.resolved&&!defend;
       const phase=now<m.arriveAt?(kind==='mine'?'travelling-or-gathering':'outbound'):
-        resultPending?'awaiting-resolution':'returning';
+        defend&&!m.resolved?'stationed':resultPending?'awaiting-resolution':'returning';
       const item={id:m.id,kind,heroIds:Array.isArray(m.heroIds)?m.heroIds.filter(x=>typeof x==='string').slice(0,5):[],
         depart:m.depart,arriveAt:m.arriveAt,homeAt:m.homeAt,phase,resultPending,
         resolveReady:resultPending&&now>=m.arriveAt,homeReached:now>=m.homeAt,
@@ -22,6 +23,7 @@ function summarize(user,now=Date.now()){
         item.resource=typeof m.node.res==='string'?m.node.res:null;
         item.level=Number.isInteger(m.node.level)?m.node.level:null;}
       if(kind==='city')item.defId=typeof m.defId==='string'?m.defId:null;
+      if(defend)item.defend=true;
       marches.push(item);
     }
   }

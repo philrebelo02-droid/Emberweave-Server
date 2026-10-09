@@ -128,7 +128,9 @@ ck "food meal: gems debited, stamina granted" '"stamina"' "$SH"
 # HERO progression endpoints (exact published rules)
 G0=$(curl -s -X POST $B/api/tx/earn -H "$H" -H 'content-type: application/json' -d '{"what":"frag","amount":3,"reason":"elite","heroKey":"fritz","requestId":"fr1"}')
 ck "RETIRED: 'elite' fragment earn refused (use /api/elite/resolve)" 'No earn rule' "$G0"
-G1=$(curl -s -X POST $B/api/market/frag -H "$H" -H 'content-type: application/json' -d '{"heroKey":"fritz","qty":1,"pay":"gold","requestId":"fr1m"}')
+MO=$(curl -s $B/api/market/offers -H "$H")   # v1097 (sweep #19): the Market sells the server's offers of the hour
+MOH=$(printf '%s' "$MO" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{try{process.stdout.write(JSON.parse(s).offers[0].hero)}catch(e){process.stdout.write('fritz')}})")
+G1=$(curl -s -X POST $B/api/market/frag -H "$H" -H 'content-type: application/json' -d '{"offer":0,"heroKey":"'"$MOH"'","requestId":"fr1m"}')
 ck "market fragment purchase is one atomic SERVER transaction" '"paid"' "$G1"
 SS=$(curl -s -X POST $B/api/hero/star-step -H "$H" -H 'content-type: application/json' -d '{"heroKey":"vael","requestId":"ss1"}')
 ck "star step consumes fragments by the pip table" '' "$SS"

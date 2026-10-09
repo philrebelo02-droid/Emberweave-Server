@@ -301,6 +301,14 @@ note "test_temple_blessings_1096.js (v1096 personal Temple blessings: 60 heroes 
 node tests/test_temple_blessings_1096.js || FAILED=1
 note "test_temple_screen_1094.js (v1094 the Temple screen copies the reference: grid, hero bust, bars with green / red change and %, Power, Blessings + 5th dot, Flame Keeper, Save / Cancel, Auto pray)"
 node tests/test_temple_screen_1094.js || FAILED=1
+note "test_arena_sweep_1097.js (v1097 sweep 9 Oct: Arena daily claim pays its coins, attempts + buy button, Patron reset returns only free attempts)"
+node tests/test_arena_sweep_1097.js || FAILED=1
+note "test_world_sweep_1097.js (v1097 sweep 9 Oct: a shield stops a march on arrival; Scout and Defend reach the server)"
+node tests/test_world_sweep_1097.js || FAILED=1
+note "test_well_fallen_1097.js (v1097 sweep 9 Oct: a Well hero missing from the final summary has fallen)"
+node tests/test_well_fallen_1097.js || FAILED=1
+note "test_shop_sweep_1097.js (v1097 sweep 9 Oct: Market sells the server's hourly offers only; summon table; bonus claim; Wish Again Mythical)"
+node tests/test_shop_sweep_1097.js || FAILED=1
 note "test_emoji_ratchet.js (Phil 9 Oct: no more emojis - the count may only go down)"
 node tests/test_emoji_ratchet.js || FAILED=1
 note "test_sweep_temple_1097.js (v1097 sweep P0: a reused requestId never replays Temple rolls; a held prayer above the Temple level is refused before it is spent)"
