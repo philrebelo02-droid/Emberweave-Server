@@ -299,6 +299,8 @@ note "test_temple_v2_1094.js (v1094 Temple of Ash v2: four flat bars in steps, c
 node tests/test_temple_v2_1094.js || FAILED=1
 note "test_temple_blessings_1096.js (v1096 personal Temple blessings: 60 heroes x 4 own rewards, Oakmir = Phil's example, labels, class fallback, 5th dot +15% on blessings only, server applyCore = client applyClient)"
 node tests/test_temple_blessings_1096.js || FAILED=1
+note "test_temple_bars_1098.js (v1098 hero-specific Temple bars: 60 heroes x their own 4 bars, step per kind, Power = 10 x steps, thresholds on bar slots, v1096 -> own bars migration (positional, idempotent, dots kept), server = client battle unit for all 60 + a broken-client control, r1098 script tags)"
+node tests/test_temple_bars_1098.js || FAILED=1
 note "test_temple_screen_1094.js (v1094 the Temple screen copies the reference: grid, hero bust, bars with green / red change and %, Power, Blessings + 5th dot, Flame Keeper, Save / Cancel, Auto pray)"
 node tests/test_temple_screen_1094.js || FAILED=1
 note "test_emoji_ratchet.js (Phil 9 Oct: no more emojis - the count may only go down)"

@@ -2532,9 +2532,9 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 </script>
 <script src="/hero-profiles.js?v=r1025"></script>
 <script src="/hero-paths.js?v=r1025"></script>
-<script src="/server/temple-of-ash.js?v=r1094"></script>
+<script src="/server/temple-of-ash.js?v=r1098"></script>
 <script src="/server/patron-benefits.js?v=r1093"></script>
-<script src="/server/temple-effects.js?v=r1094"></script>
+<script src="/server/temple-effects.js?v=r1098"></script>
 <script src="/assets/ui/world-mine-sync.js?v=mi1"></script>
 <script src="/assets/ui/world-march-sync.js?v=wm1"></script>
 <script src="/assets/ui/world-march-visual.js?v=wv2"></script>
@@ -5422,7 +5422,7 @@ function AUDIT_MODE(){ try{ return typeof isDevAcct==='function' && isDevAcct() 
 function templeBonusesClient(key){
   const h=G.temple&&G.temple.heroes&&G.temple.heroes[key];
   const t=HERO_TYPES[key];
-  return h&&t&&t.role?TempleOfAsh.heroBonuses(h,t.role,t.damageProfile):{};   /* v1094 (Temple v2): flat bars by damage type + class blessings */
+  return h&&t&&t.role?TempleOfAsh.heroBonuses(h,t.role,t.damageProfile,key):{};   /* v1098: the hero's own four bars (flats + % effects) + its own blessings - the key picks both, as the server's templeBonusesFor does */
 }
 /* v1094 (Temple v2) helpers for the Temple screen: one hero's bars/values/cap/%/blessings, and the tiers with live (discounted) costs */
 function templeHeroStats(key){ return TempleOfAsh.heroTempleStats(Object.assign({},G.temple||TempleOfAsh.newState(),{playerLevel:playerLevel()}),key,
@@ -17985,8 +17985,7 @@ let templeSelectedHero='',templeSelectedTier='gold',templeClassFilter='All',temp
    itself (green gain / red loss) with the % of the cap; Power +/-N; Blessings 1-4 + the 5th dot on the right; Flame Keeper below. */
 let templeView='grid',templeAuto=null,templeFx=null;
 const TP2='/assets/img/temple/v2/';
-const TP2_BARS=[['health','Health','hp'],['attack','Attack','atk'],['armorMr','Armor & Magic resist','armor'],['pen','Penetration','armorPen']];
-const tp2StatKey=(bar,icon,prof)=>bar==='attack'&&prof==='magic'?'apow':bar==='pen'&&prof==='magic'?'magicPen':icon;
+/* v1098 (Phil 9 Oct: "all bars should be heroes specific"): the four bars, their names and icons come from templeHeroStats(key).bars (HERO_BARS) */
 const TP2_TIER_ART={free:'prayer-daily-free',gold:'prayer-gold-ritual',kindled:'prayer-kindled',stoked:'prayer-stoked',blazing:'prayer-blazing',inferno:'prayer-inferno',bonus:'prayer-daily-free'};
 function tp2Box(x,y,w,h){ return `left:${(x/25.6).toFixed(3)}%;top:${(y/14.4).toFixed(3)}%;width:${(w/25.6).toFixed(3)}%;height:${(h/14.4).toFixed(3)}%`; }
 function tp2Num(v){ v=Math.round((+v||0)*10)/10; return (Math.abs(v)>=1000?Math.round(v).toLocaleString():String(v)); }
@@ -17994,9 +17993,6 @@ function tp2Fit(){ const st=document.getElementById('tp2Stage'); if(!st) return;
   const W=host.clientWidth||window.innerWidth, H=host.clientHeight||window.innerHeight;
   const w=Math.min(W, H*16/9); st.style.width=w+'px'; st.style.height=(w*9/16)+'px'; st.style.setProperty('--u',(w/2560)+'px'); }
 window.addEventListener('resize',()=>{ if(document.getElementById('tp2Stage')) tp2Fit(); });
-function tp2BarLabel(bar,profile){ if(bar==='attack') return profile==='magic'?'Ability power':profile==='hybrid'?'Attack damage & Ability power':'Attack damage';
-  if(bar==='pen') return profile==='magic'?'Magic penetration':profile==='hybrid'?'Armor & Magic penetration':'Armor penetration';
-  return (TP2_BARS.find(b=>b[0]===bar)||[])[1]||bar; }
 function renderTemple(){
   const b=document.getElementById('templeBody'),T=TempleOfAsh,st=G.temple||T.newState();
   const scr=document.getElementById('temple'); if(scr){ scr.querySelectorAll('.titlebar,.hdrbox').forEach(x=>x.style.display='none'); }
@@ -18027,18 +18023,18 @@ function renderTemple(){
       <div class="tp2Msg" style="${tp2Box(1130,1040,1170,300)}">${T.freeRitualAvailable(st)?'1 free prayer available today.':'Choose a hero to pray.'}</div>`;
   } else {
     const prof=hs.profile, rolls=(templeLastRolls||(pending&&pending.rolls))||null, cap=hs.cap;
-    const bars=TP2_BARS.map(([bar,,icon],i)=>{ const y=[442,568,694,821][i], r=rolls&&rolls[bar];
-      const from=r?r.fromSteps:hs.steps[bar], to=r?r.toSteps:from, val=r?r.fromValue:hs.values[bar], d=r?r.deltaValue:0;
+    const bars=hs.bars.map((B,i)=>{ const bar=B.kind, y=[442,568,694,821][i], r=rolls&&rolls[bar];
+      const from=r?r.fromSteps:B.steps, to=r?r.toSteps:from, val=r?r.fromValue:B.value, d=r?r.deltaValue:0;
       const pf=Math.min(100,100*Math.min(from,to)/cap), pd=Math.abs(100*(to-from)/cap), up=to>=from;
       const pct=r?((to-from)>=0?'+':'')+(Math.round(1000*(to-from)/cap)/10)+'%':'';
-      return `<img class="tp2Icon" src="/assets/img/icons/stat/${tp2StatKey(bar,icon,prof)}-v1.webp" alt="" style="${tp2Box(612,y-46,92,92)}">
-        <div class="tp2BarName" style="${tp2Box(735,y-78,800,40)}"><span class="tp2BarLbl">${tp2BarLabel(bar,prof)} <b class="tp2Val">${tp2Num(val)}</b></span><span>${from} / ${cap}</span></div>
+      return `<img class="tp2Icon" src="/assets/img/icons/stat/${B.icon}-v1.webp" alt="" style="${tp2Box(612,y-46,92,92)}">
+        <div class="tp2BarName" style="${tp2Box(735,y-78,800,40)}"><span class="tp2BarLbl">${escapeHTML(B.name)} <b class="tp2Val">${T.barText(bar,val)}</b></span><span>${from} / ${cap}</span></div>
         <div class="tp2Bar" style="${tp2Box(733,y-21,800,42)}"><i class="tp2Fill" style="width:${pf}%"></i>${r&&to!==from?`<i class="tp2Delta ${up?'up':'down'}${pf+pd>62?' lft':''}" style="left:${pf}%;width:${pd}%"><em>${pct}</em></i>`:''}
-          ${r?`<s class="${d>0?'up':d<0?'down':''}">${d>0?'+':''}${tp2Num(d)}</s>`:''}</div>`; }).join('');
+          ${r?`<s class="${d>0?'up':d<0?'down':''}">${T.barText(bar,d,true)}</s>`:''}</div>`; }).join('');
     const power=rolls?(pending&&pending.power!=null?pending.power:Object.values(rolls).reduce((a,x)=>a+10*(x.deltaSteps||0),0)):null;
-    const bl=(hs.blessings||[]).map((x,i)=>{ const y=[368,494,622,749][i], val=v=>tp2Num(v*hs.stepValues[x.bar]);
+    const bl=(hs.blessings||[]).map((x,i)=>{ const y=[368,494,622,749][i], val=v=>T.barText(x.bar,v*hs.stepValues[x.bar]);
       const icon=x.earned?'<img src="/assets/img/temple/card-orb-lit-v2.webp?v=2" alt="earned">':x.locked?`<img src="${TP2}lock-v1.webp" alt="locked">`:'<img src="/assets/img/temple/card-orb-unlit-v2.webp?v=2" alt="open">';
-      const sub=x.locked?`Needs Temple ${x.keeperGate}`:!x.heroMet?`Needs hero Lv ${x.heroGate}`:`(${tp2BarLabel(x.bar,prof)} ${val(Math.min(x.have,x.need))}/${val(x.need)}${x.earned?' Unlock':' to unlock'})`;
+      const sub=x.locked?`Needs Temple ${x.keeperGate}`:!x.heroMet?`Needs hero Lv ${x.heroGate}`:`(${escapeHTML(x.barName||T.barName(x.bar))} ${val(Math.min(x.have,x.need))}/${val(x.need)}${x.earned?' Unlock':' to unlock'})`;
       return `<div class="tp2Bless ${x.earned?'on':x.locked?'lock':''}" style="${tp2Box(1640,y+8,640,104)}">${icon}<div><b>${escapeHTML(x.label)}</b><span>${sub}</span></div></div>`; }).join('');
     const f=hs.fifth||{}, fifth=`<div class="tp2Bless tp2Fifth ${f.earned?'on':f.locked?'lock':''}" style="${tp2Box(1640,876,640,92)}">${f.earned?'<img src="/assets/img/temple/card-orb-lit-v2.webp?v=2" alt="">':f.locked?`<img src="${TP2}lock-v1.webp" alt="">`:'<img src="/assets/img/temple/card-orb-unlit-v2.webp?v=2" alt="">'}<div><b>5th dot: blessings +${Math.round((f.bonus||0.15)*100)}%</b><span>${f.earned?'Earned':f.locked?'Needs Temple '+f.templeLevel:'Needs hero Lv '+f.heroLevel}</span></div></div>`;
     const tiers=templePrayerTiers(), free=T.freeRitualAvailable(st), bonus=(st.bonusPrayers|0)>0, heldP=st.heldPrayers||{};

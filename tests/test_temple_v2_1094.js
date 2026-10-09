@@ -24,6 +24,9 @@ const led=async()=>{ const l=(await call('/api/ledger')).data; return l.ledger||
 let rq=0; const R=()=>'t'+(rq++);
 const BARS=['health','attack','armorMr','pen'];
 const PHYS='vael', MAG='sylthaine';   // Tank / Attack and Mage / Magic; neither has a build-time attack passive
+/* v1098: every hero rolls ITS OWN four bars (HERO_BARS) - Vael: Health / Crit chance / Attack speed / Lifesteal */
+const VB=T.heroBars(PHYS), MB=T.heroBars(MAG);
+const stepOf=(key,b)=>T.stepValue(SIM.HERO_BASE[key].damageProfile,b);
 const levelPoints=lv=>{ let s=0; for(let i=0;i<lv;i++) s+=T.FLAMEKEEPER_TRACK[i].exp; return s; };
 const steps=(h,a,m,p)=>({health:h,attack:a,armorMr:m,pen:p});
 const setHero=(key,st,lit)=>editDB(u=>{ u.led.temple.heroes[key]={steps:st,boonsUnlocked:lit||[false,false,false,false,false]}; u.led.temple._pending=null; });
@@ -60,20 +63,20 @@ const setHero=(key,st,lit)=>editDB(u=>{ u.led.temple.heroes[key]={steps:st,boons
   const g0=L.gold;
   const p1=await call('/api/temple/pray',{heroKey:PHYS,tier:'gold',requestId:R()});
   const rolls=p1.data.rolls||{};
-  ok(p1.data.ok===true&&Object.keys(rolls).sort().join()===BARS.slice().sort().join(),'one prayer rolls all four bars: '+Object.keys(rolls).join(', '));
-  ok(BARS.every(b=>{ const x=rolls[b]; return x&&x.toSteps===x.fromSteps+x.deltaSteps&&Math.abs(x.toValue-x.toSteps*C.STEP.physical[b])<1e-6&&Math.abs(x.deltaValue-x.deltaSteps*C.STEP.physical[b])<1e-6; }),
-    'each bar answers from / delta / to in steps and in real stat values ('+BARS.map(b=>b+' '+(rolls[b]&&rolls[b].deltaSteps)).join(' ')+')');
-  const net1=BARS.reduce((a,b)=>a+rolls[b].deltaSteps,0);
+  ok(p1.data.ok===true&&Object.keys(rolls).join()===VB.join(),'one prayer rolls all four of Vael\'s own bars, in order: '+Object.keys(rolls).join(', '));
+  ok(VB.every(b=>{ const x=rolls[b]; return x&&x.toSteps===x.fromSteps+x.deltaSteps&&Math.abs(x.toValue-x.toSteps*stepOf(PHYS,b))<1e-6&&Math.abs(x.deltaValue-x.deltaSteps*stepOf(PHYS,b))<1e-6; }),
+    'each bar answers from / delta / to in steps and in real stat values ('+VB.map(b=>b+' '+(rolls[b]&&rolls[b].deltaSteps)).join(' ')+')');
+  const net1=VB.reduce((a,b)=>a+rolls[b].deltaSteps,0);
   ok(p1.data.power===10*net1,'power = 10 x net steps ('+p1.data.power+' for '+net1+')');
   ok(p1.data.ledger.gold===g0-C.GOLD_LADDER[0],'the Gold ritual is paid on pray ('+(g0-p1.data.ledger.gold)+')');
   const d1=await call('/api/temple/discard',{requestId:R()}); L=await led();
   ok(d1.data.ok===true&&L.gold===g0-C.GOLD_LADDER[0],'Cancel never refunds');
-  ok(BARS.every(b=>((L.temple.heroes[PHYS].steps||{})[b]|0)===0),'Cancel applies nothing');
+  ok(VB.every(b=>((L.temple.heroes[PHYS].steps||{})[b]|0)===0)&&L.temple.heroes[PHYS].bars.join()===VB.join(),'Cancel applies nothing (the hero is stored on its own four bars)');
   let saved=null;
   for(let i=0;i<6&&!saved;i++){ const p=await call('/api/temple/pray',{heroKey:PHYS,tier:'gold',requestId:R()});
     const s=await call('/api/temple/save',{requestId:R()});
-    if(BARS.some(b=>p.data.rolls[b].toSteps>0)) saved={p:p.data,s:s.data}; }
-  ok(saved&&BARS.every(b=>saved.s.ledger.temple.heroes[PHYS].steps[b]===saved.p.rolls[b].toSteps),'Save applies every bar\'s rolled steps');
+    if(VB.some(b=>p.data.rolls[b].toSteps>0)) saved={p:p.data,s:s.data}; }
+  ok(saved&&VB.every(b=>saved.s.ledger.temple.heroes[PHYS].steps[b]===saved.p.rolls[b].toSteps),'Save applies every bar\'s rolled steps');
   ok(saved&&saved.s.power===saved.p.power,'Save answers the prayer\'s power');
 
   /* cap by Temple level: at Temple 1 nothing passes 40 steps */
@@ -81,21 +84,22 @@ const setHero=(key,st,lit)=>editDB(u=>{ u.led.temple.heroes[key]={steps:st,boons
   await editDB(u=>{ u.led.temple.keeperPoints=0; u.led.temple.levelSeen=1; });
   let maxSeen=0;
   for(let i=0;i<8;i++){ const p=await call('/api/temple/pray',{heroKey:PHYS,tier:'gold',requestId:R()}); await call('/api/temple/save',{requestId:R()});
-    for(const b of BARS) maxSeen=Math.max(maxSeen,p.data.rolls[b].toSteps); if(i===0) ok(p.data.cap===40,'the prayer reports the Temple 1 cap (40)'); }
+    for(const b of VB) maxSeen=Math.max(maxSeen,p.data.rolls[b].toSteps); if(i===0) ok(p.data.cap===40,'the prayer reports the Temple 1 cap (40)'); }
   L=await led();
-  ok(maxSeen<=40&&BARS.every(b=>L.temple.heroes[PHYS].steps[b]<=40),'no bar passes the Temple 1 cap of 40 steps (highest '+maxSeen+')');
+  ok(maxSeen<=40&&VB.every(b=>L.temple.heroes[PHYS].steps[b]<=40),'no bar passes the Temple 1 cap of 40 steps (highest '+maxSeen+')');
 
-  /* blessings: Temple 5, hero level 60+: dot 1 (health >= 20) and dot 2 (attack >= 50) light; dot 3 needs Temple 13 */
+  /* blessings: Temple 5, hero level 60+: dot 1 (bar 1 >= 20) and dot 2 (bar 2 >= 50) light; dot 3 needs Temple 13. v1098: the v1096-keyed
+     fixture (health 25 / attack 60 / armorMr 70 / pen 10) moves positionally onto Vael's own bars (Health 25 / Crit chance 60 / ...) */
   await setHero(PHYS,steps(25,60,70,10));
   await editDB(u=>{ u.led.temple.keeperPoints=levelPoints(5); u.led.temple.levelSeen=5; });
   L=await led(); ok(L.temple.level===5,'the ledger reports Temple level 5');
   await call('/api/temple/pray',{heroKey:PHYS,tier:'gold',requestId:R()});
   const sv=await call('/api/temple/save',{requestId:R()});
   const lit=sv.data.ledger.temple.heroes[PHYS].boonsUnlocked;
-  ok(sv.data.unlocked.includes(1)&&sv.data.unlocked.includes(2)&&lit[0]&&lit[1],'blessings 1 and 2 light at Health 20 / Attack 50 steps ('+JSON.stringify(sv.data.unlocked)+')');
-  ok(!lit[2]&&!lit[3]&&!lit[4],'control: blessing 3 stays dark below Temple 13 and its 130 Armor & MR steps');
-  { const b=T.heroBonuses(sv.data.ledger.temple.heroes[PHYS],'Tank','Attack'), s=sv.data.ledger.temple.heroes[PHYS].steps;
-    ok(b.hpFlat===s.health*35+320&&b['crit chance']===0.03,'v1096: Vael\'s OWN earned dots add Health +320 (flat) and Crit chance +3% ('+b.hpFlat+', '+b['crit chance']+')'); }
+  ok(sv.data.unlocked.includes(1)&&sv.data.unlocked.includes(2)&&lit[0]&&lit[1],'blessings 1 and 2 light at bar 1 (Health) 20 / bar 2 (Crit chance) 50 steps ('+JSON.stringify(sv.data.unlocked)+')');
+  ok(!lit[2]&&!lit[3]&&!lit[4],'control: blessing 3 stays dark below Temple 13 and its 130 steps on bar 3 (Attack speed)');
+  { const b=T.heroBonuses(sv.data.ledger.temple.heroes[PHYS],'Tank','Attack',PHYS), s=sv.data.ledger.temple.heroes[PHYS].steps;
+    ok(b.hpFlat===s.health*35+320&&Math.abs(b['crit chance']-(s.critChance*0.0003+0.03))<1e-9,'v1096/v1098: Vael\'s OWN earned dots add Health +320 and Crit chance +3% on top of his Health and Crit chance bars ('+b.hpFlat+', '+b['crit chance']+')'); }
 
   /* auto pray: closed below Temple 12, open at 12; saves only prayers whose power goes up */
   await setHero(PHYS,steps(10,10,10,10));
@@ -111,9 +115,9 @@ const setHero=(key,st,lit)=>editDB(u=>{ u.led.temple.heroes[key]={steps:st,boons
   ok(A.ok===true&&A.ran===10&&A.saved+A.cancelled===10,'auto pray ran 10 ('+A.saved+' saved, '+A.cancelled+' cancelled)');
   ok(A.results.every(x=>x.saved===(x.power>0)),'every prayer with power > 0 was saved and every other one cancelled');
   ok(A.results.every(x=>Object.keys(x.rolls).length===4),'every auto prayer rolled all four bars');
-  ok(BARS.every(b=>A.results.some(x=>x.rolls[b].deltaSteps!==0)),'each bar moved at least once across the run');
+  ok(VB.every(b=>A.results.some(x=>x.rolls[b].deltaSteps!==0)),'each bar moved at least once across the run');
   const lastSaved=A.results.filter(x=>x.saved).pop();
-  ok(BARS.every(b=>A.after[b]===(lastSaved?lastSaved.rolls[b].toSteps:before[b])),'the hero ends on the last saved prayer\'s steps');
+  ok(VB.every(b=>A.after[b]===(lastSaved?lastSaved.rolls[b].toSteps:before[b])),'the hero ends on the last saved prayer\'s steps');
   ok(A.power===A.results.filter(x=>x.saved).reduce((a,x)=>a+x.power,0)&&A.power>0,'auto pray reports the saved power ('+A.power+')');
   let want=0; for(let i=0;i<10;i++) want+=Math.round(C.GOLD_LADDER[Math.min(ladder+i,C.GOLD_LADDER.length-1)]*0.9);
   L=await led();
@@ -134,8 +138,8 @@ const setHero=(key,st,lit)=>editDB(u=>{ u.led.temple.heroes[key]={steps:st,boons
   await editDB(u=>{ u.led.temple.keeperPoints=levelPoints(9); u.led.temple.levelSeen=9;
     u.led.temple.heroes[MAG]={cinders:{bar1:100,bar2:150,bar3:50,bar4:0},boonsUnlocked:[true,false,false,false,false]}; });
   L=await led(); const mh=L.temple.heroes[MAG], om=T.effectMax(9), cap9=T.capSteps(9);
-  ok(mh&&mh.steps&&mh.steps.health===Math.round(100/om*cap9)&&mh.steps.attack===Math.round(150/om*cap9)&&mh.steps.armorMr===Math.round(50/om*cap9)&&mh.steps.pen===0,
-    'old bar points become steps by the same share (old max '+om+', cap '+cap9+': '+JSON.stringify(mh&&mh.steps)+')');
+  ok(mh&&mh.steps&&mh.steps[MB[0]]===Math.round(100/om*cap9)&&mh.steps[MB[1]]===Math.round(150/om*cap9)&&mh.steps[MB[2]]===Math.round(50/om*cap9)&&mh.steps[MB[3]]===0&&mh.bars.join()===MB.join(),
+    'old bar points become steps by the same share, then land on Sylthaine\'s own bars in order (old max '+om+', cap '+cap9+': '+JSON.stringify(mh&&mh.steps)+')');
   ok(mh.boonsUnlocked[0]===true,'an earned old orb stays earned');
 
   /* CLIENT / SERVER PARITY: the same Temple steps, server combat unit vs the client battle unit from the server-frozen spec */
@@ -145,7 +149,7 @@ const setHero=(key,st,lit)=>editDB(u=>{ u.led.temple.heroes[key]={steps:st,boons
     const s0=(await call('/api/admin/snapshot?hero='+key)).data.snapshot, sp0=(await call('/api/admin/snapshot?hero='+key+'&spec=1')).data.spec;
     await setHero(key,steps(30,33,27,21));
     const s1=(await call('/api/admin/snapshot?hero='+key)).data.snapshot, sp1=(await call('/api/admin/snapshot?hero='+key+'&spec=1')).data.spec;
-    const b=T.heroBonuses({steps:steps(30,33,27,21)},SIM.HERO_BASE[key].role,SIM.HERO_BASE[key].damageProfile);
+    const b=T.heroBonuses({steps:steps(30,33,27,21)},SIM.HERO_BASE[key].role,SIM.HERO_BASE[key].damageProfile,key);
     ok(JSON.stringify(sp1.templeBonuses)===JSON.stringify(b),key+': the frozen battle spec carries the Temple bonuses '+JSON.stringify(b));
     const c0=host.snapFromSpecs([sp0])[0], c1=host.snapFromSpecs([sp1])[0];
     const srv={hp:s1.maxHp-s0.maxHp, ad:s1.atkP-s0.atkP, ap:s1.atkM-s0.atkM, armor:s1.armor-s0.armor, mr:s1.mr-s0.mr, aPen:s1.armorPen-s0.armorPen, mPen:s1.magicPen-s0.magicPen};
@@ -154,7 +158,7 @@ const setHero=(key,st,lit)=>editDB(u=>{ u.led.temple.heroes[key]={steps:st,boons
     const near=(x,y)=>Math.abs(x-y)<1e-6;
     ok(Object.keys(want).every(k=>near(srv[k],want[k])),key+': the server combat unit gains exactly the Temple flats '+JSON.stringify(srv));
     ok(Object.keys(want).every(k=>near(cli[k],want[k])),key+': the client battle unit gains exactly the same '+JSON.stringify(cli));
-    ok(want.hp>0&&want.armor>0&&want.aPen>0&&(want.ad>0||want.ap>0),key+': control - the fixture really carries Temple stats');
+    ok(want.hp>0&&Object.keys(b).length>=3,key+': control - the fixture really carries Temple stats ('+Object.keys(b).join()+')');
   }
 
   if(missed.length){ missed.forEach(m=>console.error('FAIL',m)); process.exitCode=1; }

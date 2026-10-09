@@ -83,8 +83,11 @@ ok(C.FIFTH_ORB_BONUS === 0.15, 'FIFTH_ORB_BONUS is 0.15 (Phil 9 Oct: "make 5th d
   const w5 = T.heroBonuses({ steps: st, boonsUnlocked: [false, false, false, false, true] }, 'Mage', 'Magic', 'astra');
   ok(JSON.stringify(no5) === JSON.stringify(w5) && no5.hpFlat > 0, 'control: steps and no blessings give the same totals with or without the 5th dot');
   const lit = T.heroBonuses({ steps: st, boonsUnlocked: ALL.slice() }, 'Mage', 'Magic', 'astra'), lit5 = T.heroBonuses({ steps: st, boonsUnlocked: FIVE.slice() }, 'Mage', 'Magic', 'astra');
-  ok(lit5.hpFlat === no5.hpFlat && lit5.apFlat === no5.apFlat + Math.round(44 * 1.15) && lit5.armorPenFlat === no5.armorPenFlat + Math.round(315 * 1.15)
-    && near(lit5['energy regen'], 0.575) && near(lit5['attack speed'], 0.0575) && near(lit['attack speed'], 0.05), 'Astra with the 5th dot: her blessings x1.15, her bars as they were'); }
+  /* v1098: Astra's own bars are Health / Ability power / Attack speed / Magic penetration, so her 140-step Attack speed bar is in
+     no5 too - the blessing part is the difference */
+  ok(lit5.hpFlat === no5.hpFlat && lit5.apFlat === no5.apFlat + Math.round(44 * 1.15) && (lit5.armorPenFlat || 0) === (no5.armorPenFlat || 0) + Math.round(315 * 1.15)
+    && near(lit5['energy regen'] - (no5['energy regen'] || 0), 0.575) && near(lit5['attack speed'] - no5['attack speed'], 0.0575) && near(lit['attack speed'] - no5['attack speed'], 0.05)
+    && near(no5['attack speed'], 140 * 0.00075), 'Astra with the 5th dot: her blessings x1.15, her bars (140-step Attack speed = +10.5%) as they were'); }
 
 /* ---- an earned blessing changes the battle unit: server applyCore vs client applyClient, identically ---- */
 const host = require('../server/sim-host.js').load(path.join(ROOT, 'emberweave-heroes.html'));
