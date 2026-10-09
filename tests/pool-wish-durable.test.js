@@ -1,6 +1,6 @@
 'use strict';
 const fs=require('node:fs'),path=require('node:path'),cp=require('node:child_process'),crypto=require('node:crypto'),net=require('node:net'),assert=require('node:assert/strict');
-const root=path.resolve(__dirname,'..'),dir=fs.mkdtempSync(path.join(require('node:os').tmpdir(),'emberweave-pool-durable-')),file=path.join(dir,'db.json'),start=Date.parse('2026-10-02T04:00:00-04:00');
+const root=path.resolve(__dirname,'..'),dir=fs.mkdtempSync(path.join(require('node:os').tmpdir(),'emberweave-pool-durable-')),file=path.join(dir,'db.json'),start=Date.parse('2026-10-02T10:00:00-04:00')/* v1081: the game day starts 09:00 ET (v1065) - at 04:00 the fixture's '2026-10-02' days were still yesterday and these rows failed */;
 const token='fixture-pool-token',foreignToken='fixture-foreign-token',hash=x=>crypto.createHash('sha256').update(x).digest('hex'),T=require(path.join(root,'server/temple-of-ash.js'));
 const u={id:'pool-user',name:'Pool Fixture',created:start-1000,rank:1,coins:0,team:['vael'],wall:['vael'],roster:{},qc:{wish:0},led:{v:1,migratedAt:start-1000,rev:1,gold:100000,gems:100000,px:1000,hero:{vael:{xp:0,stars:1,pips:0,ref:0}},unlocked:{vael:true},frags:{},camp:{cleared:20,stars:{},att:null},stam:{v:60,ts:start},temple:T.newState(),txs:[],pool:{goldUsedDay:'2026-10-02',goldFree:3,goldLast:start,gemFreeDay:'2026-10-02',gemFirstDone:true,pity:39,history:[]}}};
 const foreign=JSON.parse(JSON.stringify(u));foreign.id='foreign';foreign.name='Foreign';foreign.role='admin'; // own diagnostic observer only; actor stays non-admin

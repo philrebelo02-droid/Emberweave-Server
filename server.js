@@ -243,6 +243,15 @@ function nameSkeleton(n){ return String(n||'').normalize('NFKC').toLowerCase().n
 function nameTaken(name,exceptId){ const lid=DB.byName[String(name||'').toLowerCase()]; if(lid&&lid!==exceptId) return true;
   const sk=nameSkeleton(name); if(!sk) return false;
   for(const u of Object.values(DB.users||{})){ if(u&&u.id!==exceptId&&!u.isNpc&&u.name&&nameSkeleton(u.name)===sk) return true; } return false; }
+/* v1081 (scan 2 #1): PROTECTION SHIELDS ARE THE SERVER'S. Players paid diamonds / guild coins for shields that only the browser knew
+   about - no attack route ever checked one, so a 'protected' castle could still be attacked. Now: me.shields (owned), me.shieldUntil
+   (active until), the beginner peace (72 h from the account's creation while under level 30, until you attack) - and war declare /
+   city attack refuse a shielded castle. Attacking breaks your own shield and your beginner peace (the client's rule). */
+const SHIELD_MS=12*3600000, BEGINNER_SHIELD_MS=72*3600000;
+function beginnerShieldUntil(u){ if(!u||u.isNpc||u.beginnerBroken) return 0; let lv=0; try{ lv=ledPlayerLevel(ensureLedger(u)); }catch(e){} if(lv>=30) return 0;
+  const until=(+u.created||0)+BEGINNER_SHIELD_MS; return until>Date.now()?until:0; }
+function castleShieldedUntil(u){ if(!u||u.isNpc) return 0; const now=Date.now(); return Math.max((+u.shieldUntil||0)>now?+u.shieldUntil:0, beginnerShieldUntil(u)); }
+function breakOwnShield(u){ if(!u) return; u.shieldUntil=0; u.beginnerBroken=true; }
 function badNewName(n){ const s=String(n||'');
   if(/[\u0000-\u001f\u007f-\u009f\u00ad\u034f\u061c\u115f\u1160\u17b4\u17b5\u180e\u200b-\u200f\u202a-\u202e\u2060-\u206f\u3164\ufe00-\ufe0f\ufeff]/.test(s)) return 'That name uses hidden characters — please use normal letters.';
   if(/\p{M}{2,}/u.test(s)) return 'That name has too many accent marks stacked together.';
@@ -1451,7 +1460,7 @@ const HERO_NOT_SOLD=new Set(['konwu','grosk','vulmar','aureth','hurne','hollow']
 /* the Guild Shop's ledger-currency items, by the client GUILD_SHOP slot index (tests/test_guild_shop.js keeps them equal) */
 /* v1079: the arena shop catalogue (= the client's ARENA_SHOP: id, price in arena coins); day = the old /api/tx/earn daily cap / amount. */
 const ARENA_SHOP_SRV={groskfrag:{cost:500,frag:'grosk',n:5,day:12}, gold1:{cost:120,gold:5000,day:20}, gems1:{cost:300,gems:40,day:20}, stam:{cost:200,refill:200,day:10}};
-const GUILD_SHOP_SRV={1:{cost:300,gold:5000},2:{cost:600,gems:50},3:{cost:200,refill:true},4:{cost:500,arenaCoins:2000},6:{cost:700,gold:15000},7:{cost:350,res:100},8:{cost:1500,gems:150},10:{cost:1200,arenaCoins:6000},11:{cost:2500,gold:50000}};   /* v1079: 4 and 10 (arena coins) were client grants - now the server credits its own arena coins */   /* 7: v1008 (re-audit Guild #1) - the Resource Crate's +100 of each map resource lands in the Academy store (it was granted in the browser and the next Academy sync erased it) */
+const GUILD_SHOP_SRV={0:{cost:800,shields:1},9:{cost:2000,shields:3},1:{cost:300,gold:5000},2:{cost:600,gems:50},3:{cost:200,refill:true},4:{cost:500,arenaCoins:2000},6:{cost:700,gold:15000},7:{cost:350,res:100},8:{cost:1500,gems:150},10:{cost:1200,arenaCoins:6000},11:{cost:2500,gold:50000}};   /* v1079: 4 and 10 (arena coins) were client grants - now the server credits its own arena coins */   /* 7: v1008 (re-audit Guild #1) - the Resource Crate's +100 of each map resource lands in the Academy store (it was granted in the browser and the next Academy sync erased it) */
 function heroNotSold(k){ return HERO_NOT_SOLD.has(k); }
 /* 3 Oct: the daily sign-in calendar, server side. SIGNIN_HERO_POOL = the client's HERO_KEYS order without mythical or purchase/arena heroes
    (tests/test_signin.js keeps it equal to the client); the monthly hero is pool[(year*12+month0) % length], as monthlyHeroKey() does. */
@@ -3805,7 +3814,7 @@ function templeClientState(led){
   return state;
 }
 function ledgerView(u){ const led=ensureLedger(u); ledStamRegen(led); if(ledPlayerLevel(led)>=WITCH.UNLOCK_LEVEL) worldLocation(u);
-  return { rev:led.rev, born:+led.migratedAt||0, gold:led.gold, gems:led.gems, guildCoins:led.guildCoins|0, arenaCoins:Math.max(0,u.coins|0), px:led.px, playerLevel:ledPlayerLevel(led),   /* v1079: arena coins are the server's (scan #2) */
+  return { rev:led.rev, born:+led.migratedAt||0, gold:led.gold, gems:led.gems, guildCoins:led.guildCoins|0, arenaCoins:Math.max(0,u.coins|0), shields:Math.max(0,u.shields|0), shieldUntil:((+u.shieldUntil||0)>Date.now()?+u.shieldUntil:0), beginnerShieldUntil:beginnerShieldUntil(u), px:led.px, playerLevel:ledPlayerLevel(led),   /* v1079: arena coins are the server's (scan #2) */
     hero:led.hero, unlocked:led.unlocked, frags:led.frags, xpPotions:led.xpPotions||{}, xpPotionUsed:led.xpPotionUsed||{}, tutVexXpBase:led.tutVexXpBase|0, eqMats:led.eqMats||{},   // v273: materials are ledger-owned
     skill:led.skill||{}, temple:templeClientState(led),
     marketToday:{used:((led.marketDay&&led.marketDay.k===nyDayKey())?(led.marketDay.frags|0):0), max:12},   /* v998 (Market audit #12): the daily fragment cap, shown on the Market */
@@ -6185,6 +6194,16 @@ async function api(req,res,url){
       writeDB(); return {ok:true, idx, got, claimed:led.starClaimed, ledger:ledgerView(me)};
     });
     return send(res,out.storageFailed?503:(out.ok===false?400:200),out); }
+  /* v1081: activate one owned protection shield for 12 hours (the server refuses attacks on it). */
+  if(p==='/api/world/shield' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
+    const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
+    const out=durableCommit(me,me.id+':shield:'+reqId,(me)=>{
+      const now=Date.now(); if((+me.shieldUntil||0)>now) return {ok:false,error:'A shield is already active.'};
+      if((me.shields|0)<1) return {ok:false,error:'You have no protection shields.'};
+      me.shields=(me.shields|0)-1; me.shieldUntil=now+SHIELD_MS; ledTx(me,'shield:activate',{shields:-1});
+      writeDB(); return {ok:true, shields:me.shields, shieldUntil:me.shieldUntil, ledger:ledgerView(me)};
+    });
+    return send(res,out.storageFailed?503:(out.ok===false?400:200),out); }
   /* v1079 (exploit scan 9 Oct #2): THE ARENA SHOP IS A SERVER PURCHASE. It used to post the goods to /api/tx/earn ('arenashop' / 'arena')
      and spend arena coins that lived only in the client save - so anyone could take 800 diamonds, 100,000 gold, stamina and 60 Grosk
      fragments a day for nothing. Same catalogue and prices as the client's ARENA_SHOP; the old daily caps are kept as item limits. */
@@ -6242,11 +6261,22 @@ async function api(req,res,url){
           led.guildCoins=(led.guildCoins|0)-it.cost; creditStamina(me,led,need,'gshop:'+idx); got.stamina=need; }
         else if(it.res){ const A=ensureAcad(me); led.guildCoins=(led.guildCoins|0)-it.cost; got.res={};
           for(const r of ACADEMY_ECON.RESOURCES){ A.res[r]=(A.res[r]|0)+it.res; got.res[r]=it.res; } }
+        else if(it.shields){ led.guildCoins=(led.guildCoins|0)-it.cost; me.shields=Math.min(99,(me.shields|0)+it.shields); got.shields=it.shields; }   /* v1081: guild-shop shields are the server's */
         else if(it.arenaCoins){ led.guildCoins=(led.guildCoins|0)-it.cost; me.coins=Math.min(ECON_CAP.arenaCoins,(me.coins|0)+it.arenaCoins); got.arenaCoins=it.arenaCoins; }   /* v1079 */
         else { led.guildCoins=(led.guildCoins|0)-it.cost;
           if(it.gold){ creditGold(me,led,it.gold,'gshop:'+idx); got.gold=it.gold; } else { creditGems(me,led,it.gems,'gshop:'+idx); got.gems=it.gems; } }
         ledTx(me,'gshop:'+idx,Object.assign({guildCoins:-it.cost},got));
         writeDB(); return {ok:true, got, cost:it.cost, ledger:ledgerView(me)}; }
+      /* v1081 (scan 2 #1): shields are server purchases - the Shady pack (550 diamonds -> 3) and the Market Peace Shield (the market's
+         own price, 70 diamonds scaled by level like rollMarket's em(): round(70*(1+(L-1)*0.04)); one an hour, the market's restock). */
+      if(what==='shields3'){ const c=550; if(led.gems<c) return {ok:false,error:'Not enough diamonds.'};
+        led.gems-=c; me.shields=Math.min(99,(me.shields|0)+3); ledTx(me,'shop:shields3',{gems:-c,shields:3});
+        writeDB(); return {ok:true, shields:me.shields, cost:c, ledger:ledgerView(me)}; }
+      if(what==='shield_market'){ const L=ledPlayerLevel(led), c=Math.round(70*(1+(L-1)*0.04));
+        if(Date.now()-(+me.marketShieldAt||0)<3600000) return {ok:false,error:'The market has no more shields this hour.'};
+        if(led.gems<c) return {ok:false,error:'Not enough diamonds.'};
+        led.gems-=c; me.shields=Math.min(99,(me.shields|0)+1); me.marketShieldAt=Date.now(); ledTx(me,'shop:shield_market',{gems:-c,shields:1});
+        writeDB(); return {ok:true, shields:me.shields, cost:c, ledger:ledgerView(me)}; }
       if(what==='arenacoins'){ const c=600, n=3000;   /* v1079 (scan #2): the Shady Market's Arena Coins x3,000 - was a diamond spend + a client-only grant */
         if(led.gems<c) return {ok:false,error:'Not enough diamonds.'};
         led.gems-=c; me.coins=Math.min(ECON_CAP.arenaCoins,(me.coins|0)+n);
@@ -7558,6 +7588,7 @@ async function api(req,res,url){
       if(!loc) return {ok:false,error:'The World Map opens at level '+WITCH.UNLOCK_LEVEL+'.'};
       if((!d&&!bot)||(d&&(d.id===me.id||!worldLocation(d)))) return {ok:false,error:'No such world castle.'};
       if(d&&me.guildId&&d.guildId&&me.guildId===d.guildId) return {ok:false,error:'You cannot declare war on a guild ally.'};
+      if(d&&castleShieldedUntil(d)>now) return {ok:false,error:'That castle is under a protection shield.',shieldedUntil:castleShieldedUntil(d)};   /* v1081 */
       const targetId=d?d.id:bot.id,wars=worldWarState(me),prior=wars[targetId];
       if(prior&&prior.expireAt>now) return {ok:true,defId:targetId,...prior,existing:true};
       const fixtureMs=process.env.NODE_ENV==='test'?Math.max(0,+process.env.WORLD_WAR_TEST_MS||0):0;
@@ -7569,6 +7600,7 @@ async function api(req,res,url){
         if(d.pvpMail.length>20)d.pvpMail=d.pvpMail.slice(-20);
       }
       if(d)related.push(d);
+      breakOwnShield(me);   /* v1081: declaring war breaks your own protection shield and beginner peace */
       return {ok:true,defId:targetId,...war};
     })(actor);
     if(!reply?.ok)return send(res,400,reply);
@@ -7605,6 +7637,7 @@ async function api(req,res,url){
       if(!loc) return {ok:false,error:'The World Map opens at level '+WITCH.UNLOCK_LEVEL+'.'};
       if((!d&&!bot)||(d&&(d.id===me.id||!worldLocation(d)))) return {ok:false,error:'No such world castle.'};
       if(d&&me.guildId&&d.guildId&&me.guildId===d.guildId) return {ok:false,error:'You cannot attack a guild ally.'};
+      if(d&&castleShieldedUntil(d)>now) return {ok:false,error:'That castle is under a protection shield.',shieldedUntil:castleShieldedUntil(d)};   /* v1081 */
       const targetId=d?d.id:bot.id,war=worldWarState(me)[targetId];
       if(!war||war.expireAt<=now||war.readyAt>now)
         return {ok:false,error:'War preparation has not ended, or this war has expired.',readyAt:war?.readyAt||null};
@@ -7641,7 +7674,7 @@ async function api(req,res,url){
         homeAt:now+travel*2,resolved:false,
         route:WORLD_MARCH_ROUTE.capture(loc,d?d.worldLocation:bot,d?d.name:null,travel,0,timing?.pacing)};
       if(bot) march.botTeam=bot.team.map(h=>({key:h.key,level:h.level,rank:h.rank}));
-      marches.push(march);
+      marches.push(march); breakOwnShield(me);   /* v1081: attacking breaks your own shield */
       return {ok:true,marchId:march.id,defId:targetId,depart:now,arriveAt:march.arriveAt,
         homeAt:march.homeAt,travel,heroIds:ids};
     });

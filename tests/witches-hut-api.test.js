@@ -137,7 +137,7 @@ async function run() {
     assert.deepEqual(retry,attack,'retry cannot inflict damage twice');
     /* v1016 (re-audit Guild #6): a march that arrives after the day's 20 attacks are used is SETTLED (no fight, no loot) - a refusal
        was never committed, so the march stayed open and counted against every later day's start cap */
-    { const nyDay=new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+    { const nyDay=new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(Date.now()-9*3600000));   /* v1081: the GAME day (starts 09:00 ET since v1065) - the calendar date failed this test every night 00:00-09:00 ET */
       await new Promise(r=>setTimeout(r,300)); await stop();
       const d0=JSON.parse(fs.readFileSync(db,'utf8')); const au=d0.users[admin.profile.id];
       au.pvpDay={k:nyDay,n:19,gold:0,coins:0}; for(const m of [...(au.worldCityMarches||[]),...(au.worldMineMarches||[])]) m.homeAt=0;   /* every earlier army is home */ delete d0.worldTreeControl; if(au.witch&&au.witch.heroes) for(const k of Object.keys(au.witch.heroes)) au.witch.heroes[k].hp=10000;
@@ -494,7 +494,7 @@ async function run() {
       'city receipt names only gold actually credited at the wallet ceiling');
     assert.equal(undefFight.loot.guildCoins,cappedAfter.guildCoins-cappedBefore.guildCoins,
       'city receipt names only guild coins actually credited at the wallet ceiling');
-    assert.deepEqual(undefFight.loot,{gold:70,guildCoins:7});
+    assert.deepEqual(undefFight.loot,{gold:0,guildCoins:0,undefended:true});   /* v1080 (scan 2 #2): an undefended castle pays nothing (was {gold:70,guildCoins:7} at the wallet ceiling) */
     await stop();
     await start(admin.profile.id,'0','0','0');
     const cityRetryAfterRestart=await request('POST','/api/pvp/attack',{

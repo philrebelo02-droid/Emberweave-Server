@@ -15197,7 +15197,8 @@ function adoptLedger(st){ if(!st||typeof st!=='object') return;
      it correctly, the level just never showed it. That is why Phil read as level 1 with his real
      roster intact. It was never the dev cheat and never an anti-cheat. */
   G.gold=st.gold|0; G.gems=st.gems|0; G.playerXP=st.px|0; G.xp=G.playerXP;
-  if(st.arenaCoins!=null) G.arenaCoins=st.arenaCoins|0;   /* v1079 (scan #2): arena coins are the server's - the shop spends them there */
+  if(st.arenaCoins!=null) G.arenaCoins=st.arenaCoins|0;
+  if(st.shields!=null){ G.shieldItems=st.shields|0; G.shieldUntil=+st.shieldUntil||0; G.beginnerShieldUntil=+st.beginnerShieldUntil||0; if(!G.beginnerShieldUntil) G.beginnerBroken=true; }   /* v1081: shields are the server's */   /* v1079 (scan #2): arena coins are the server's - the shop spends them there */
   if(st.xpPotions) G.xpPotions={minor:st.xpPotions.minor|0,greater:st.xpPotions.greater|0,major:st.xpPotions.major|0,superior:st.xpPotions.superior|0};
   if(st.xpPotionUsed) G.xpPotionUsed=Object.assign({},st.xpPotionUsed); G.tutVexXpBase=st.tutVexXpBase|0;
   // 28 Aug: the server credits guild coins on the ledger (guild raids) but adoptLedger never read
@@ -17936,7 +17937,7 @@ function ensureMarket(){ if(!G.market||!G.market.offers||!G.market.offers.length
 // ===== SHADY MARKET — a shady dealer's premium stock, diamonds only =====
 const SHADY_SHOP=[
   {id:'gold',   name:'War Chest — 80,000 Gold',  icon:'🪙',  cost:250,  server:'warchest', desc:'+80,000 gold'},   /* 3 Oct: one server purchase (was spend + a client gold earn) */
-  {id:'shield', name:'Protection Shields ×3',    icon:'🛡',  cost:550,  give:()=>{ G.shieldItems=(G.shieldItems||0)+3; }, desc:'3× 12-hour attack immunity'},
+  {id:'shield', name:'Protection Shields ×3',    icon:'🛡',  cost:550,  server:'shields3', desc:'3× 12-hour attack immunity'},   /* v1081: a server purchase */
   {id:'tele',   name:'Teleport Scrolls ×5',      icon:'✨',  cost:500,  give:()=>{ G.teleScrolls=(G.teleScrolls||0)+5; }, desc:'5× targeted teleports'},
   {id:'arena',  name:'Arena Coins ×3,000',       icon:'🎟️', cost:600,  server:'arenacoins', desc:'+3,000 arena coins'},   /* v1079: a server purchase - the server holds arena coins */
 ];
@@ -18084,6 +18085,10 @@ function renderMarket(){
       shopRidDone(rk,r);
       if(!r||r.error){ bannerMsg((r&&r.error)||'Purchase failed.'); return; }
       msg=giveHeroFrag(r.heroKey||o.hero,(r.qty|0)||o.qty)||''; adoptLedger(r.ledger);
+    } else if(o.kind==='shield'&&ACC.token){   /* v1081: the Peace Shield is a server purchase at the server's price */
+      const rk='mshield:'+G.market.ts, r=await api('/api/shop/buy','POST',{what:'shield_market',requestId:shopRid(rk)}); shopRidDone(rk,r);
+      if(!r||!r.ok){ bannerMsg((r&&r.error)||'Purchase failed.'); return; }
+      adoptLedger(r.ledger); msg='🛡 +1 Peace Shield';
     } else {
       const mk='mtx:'+G.market.ts+':'+btn.dataset.i;   /* v1010: one requestId per offer until answered */
       if(o.cost.gold){ if(G.gold<o.cost.gold)return; if(!(await txSpend('gold',o.cost.gold,'market',mk)))return; } else { if(G.gems<o.cost.gems)return; if(!(await txSpend('gems',o.cost.gems,'market',mk)))return; }
@@ -21892,7 +21897,11 @@ function openShield(){ const s=modalShell(), active=shieldActive();
       :`<div style="display:flex;justify-content:space-between;align-items:center;background:#0f1420;border-radius:8px;padding:8px 10px;margin-bottom:8px"><span>Shields owned</span><b>${G.shieldItems||0}</b></div>
         <button class="btn" id="shUse" ${(G.shieldItems||0)>0?'':'disabled'} style="width:100%">Activate 12-hour Shield</button>
         <button class="btn secondary sm" id="shBuy" style="width:100%;margin-top:8px">Buy in Guild Shop →</button>`}`;
-  const u=s.body.querySelector('#shUse'); if(u)u.onclick=()=>{ if(useShieldItem()){ s.close(); bannerMsg('🛡 Shield active for 12 hours.'); if(document.getElementById('wzone'))renderWorldMap(true); } };
+  const u=s.body.querySelector('#shUse'); if(u&&ACC.token)u.onclick=async()=>{ u.disabled=true;   /* v1081: the server activates it (and refuses attacks on it) */
+    const r=await api('/api/world/shield','POST',{requestId:uid8()}); if(r&&r.ledger) adoptLedger(r.ledger);
+    if(!r||!r.ok){ bannerMsg((r&&r.error)||'The shield could not be raised.'); u.disabled=false; return; }
+    saveG(); updateHubChrome(); s.close(); bannerMsg('🛡 Shield active for 12 hours.'); if(document.getElementById('wzone'))renderWorldMap(true); };
+  else if(u)u.onclick=()=>{ if(useShieldItem()){ s.close(); bannerMsg('🛡 Shield active for 12 hours.'); if(document.getElementById('wzone'))renderWorldMap(true); } };
   const b=s.body.querySelector('#shBuy'); if(b)b.onclick=openGuildShop;
 }
 // Guild shop modal (world-map Shield button) — reuses the level-scaled catalogue
@@ -21949,7 +21958,7 @@ function doContribute(i){ const o=(G.guildContribs||[])[i]; if(!o||guildMaxed())
   return true; }
 // guild shop catalogue (first guildShopSlots() are unlocked by guild level)
 const GUILD_SHOP=[
-  {name:'Protection Shield',desc:'12h attack immunity',cost:800,give:()=>{G.shieldItems=(G.shieldItems||0)+1;}},
+  {name:'Protection Shield',desc:'12h attack immunity',cost:800,server:'gshop:0',give:()=>{}},   /* v1081: a server purchase */
   {name:'Gold Cache',desc:'+5,000 gold',cost:300,server:'gshop:1',give:()=>{}},   /* 3 Oct: gold/diamond/stamina items are server purchases (/api/shop/buy gshop:N) */
   {name:'Diamond Pouch',desc:'+50 diamonds',cost:600,server:'gshop:2',give:()=>{}},
   {name:'Stamina Refill',desc:'Refill stamina to full',cost:200,server:'gshop:3',give:()=>{}},
@@ -21960,7 +21969,7 @@ const GUILD_SHOP=[
   {name:'Great Gold Cache',desc:'+15,000 gold',cost:700,server:'gshop:6',give:()=>{}},
   {name:'Resource Crate',desc:'+100 of each map resource',cost:350,server:'gshop:7',give:()=>{ academySync(); }},   /* v1008: a server purchase - the Academy store holds map resources */
   {name:'Diamond Chest',desc:'+150 diamonds',cost:1500,server:'gshop:8',give:()=>{}},
-  {name:'Shield Pack ×3',desc:'+3 protection shields',cost:2000,give:()=>{G.shieldItems=(G.shieldItems||0)+3;}},
+  {name:'Shield Pack ×3',desc:'+3 protection shields',cost:2000,server:'gshop:9',give:()=>{}},   /* v1081: a server purchase */
   {name:'Arena Coins ×6000',desc:'+6,000 arena coins',cost:1200,server:'gshop:10',give:()=>{}},   /* v1079: a server purchase */
   {name:'Treasure Vault',desc:'+50,000 gold',cost:2500,server:'gshop:11',give:()=>{}},
 ];
@@ -26211,7 +26220,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791524546861';
+const BUILD_ID = '1791526118100';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
