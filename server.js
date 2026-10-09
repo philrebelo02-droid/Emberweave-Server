@@ -8582,7 +8582,7 @@ const server=http.createServer((req,res)=>{
   res.setHeader('Strict-Transport-Security','max-age=31536000; includeSubDomains');
   res.setHeader('Content-Security-Policy',"frame-ancestors 'none'");
   _corsReqOrigin=String(req.headers.origin||'');
-  const url=new URL(req.url,'http://x');
+  let url; try{ url=new URL(req.url,'http://x'); }catch(e){ res.statusCode=400; return res.end('Bad request'); }   /* v1091 (scan 12, P0): 'GET //' threw here before any routing - about 20 a minute made the crash backstop exit the process, no sign-in needed */
   const p=url.pathname;
   if(p.startsWith('/api/')){ for(const [qk,qv] of url.searchParams){ if(PROTO_NAMES.has(qk)||(!FREE_TEXT_KEYS.has(qk)&&PROTO_NAMES.has(qv))) return send(res,400,{ok:false,error:'Invalid request.'}); } }   /* v986: the same rule for query values */
   if(p.startsWith('/api/')) return _reqCtx.run({}, ()=>api(req,res,url)).catch(err=>{

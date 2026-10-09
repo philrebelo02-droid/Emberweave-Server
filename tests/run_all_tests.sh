@@ -287,6 +287,8 @@ note "test_await_ledger_1089.js (v1089 scan 10: handlers take the ledger after t
 node tests/test_await_ledger_1089.js || FAILED=1
 note "test_acct_sync_1090.js (v1090 scan 11: satellites re-check accounts holding a local password copy, so a reset on Server 1 retires the old password everywhere)"
 node tests/test_acct_sync_1090.js || FAILED=1
+note "test_bad_target_1091.js (v1091 scan 12 P0: an unparseable request target answers 400 instead of crashing the process)"
+node tests/test_bad_target_1091.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi
