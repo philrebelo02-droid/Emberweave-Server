@@ -307,6 +307,8 @@ note "test_sweep_trials_1097.js (v1097 sweep P0: the hidden Tower ladder on /api
 node tests/test_sweep_trials_1097.js || FAILED=1
 note "test_sweep_emberdraft_1097.js (v1097 sweep P0: Emberdraft pays the claimed place only when the round record shows it; otherwise the lowest tier and a review case)"
 node tests/test_sweep_emberdraft_1097.js || FAILED=1
+note "test_sweep_veteran_cap_1097.js (v1097 sweep P0: Veteran x-3/6/9 sweeps count toward and respect the 3-a-day run cap the fights use)"
+node tests/test_sweep_veteran_cap_1097.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi

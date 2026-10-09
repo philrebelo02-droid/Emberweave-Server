@@ -1411,6 +1411,9 @@ function acadCombat(u){ const led=u&&u.led; if(!led||!led.acad) return null; con
 const ELITE_SEQ_SRV=["tick","sylthaine","vireo","vael","fritz","rhukk","bloatus","umbris","oakmir"];
 function isEliteStageSrv(g){ const st=((g-1)%10)+1; return st===3||st===6||st===9; }
 function isHeroRewardStageSrv(g){ return isEliteStageSrv(g)||campIsBoss(g); }
+/* v1097 (sweep 9 Oct P0 #5): ONE answer to "does this stage have 3 rewarded runs a day" for the fight, the sweep and the stage card -
+   every Elite stage, and x-3/6/9/10 in Normal AND Veteran. The sweep asked only Normal, so Veteran x-3/6/9 sweeps were uncapped. */
+function campCapStageSrv(mode,node){ return mode==='elite'||isEliteStageSrv(node)||campIsBoss(node); }
 function eliteHeroForSrv(g){ if(!isHeroRewardStageSrv(g)) return null;
   const ch=Math.floor((g-1)/10)+1, st=((g-1)%10)+1;
   const idx=(ch-1)*4 + ({3:0,6:1,9:2,10:3})[st];
@@ -6542,7 +6545,7 @@ async function api(req,res,url){
       // 27 Aug (Phil): SWEEP IS EARNED — only a three-star clear unlocks instant sweeping.
       if((prog.stars[node]|0)<3) return {ok:false,error:'Three-star this stage first — sweep needs ★★★.', stars:(prog.stars[node]|0)};
       let times=Math.max(1,Math.min(10,b.times|0||1));
-      const elite=mode==='elite' || (mode==='normal' && isHeroRewardStageSrv(node)) || campIsBoss(node);   // every Elite stage and Normal 3/6/9/10: 3 rewarded runs/day, sweeps included
+      const elite=campCapStageSrv(mode,node);   // every Elite stage and Normal/Veteran 3/6/9/10: 3 rewarded runs/day, sweeps included (v1097: Veteran was missing)
       prog.runs=prog.runs||{}; const dk=nyDayKey();
       if(prog.runs.k!==dk) prog.runs={k:dk};
       if(elite){ const used=prog.runs['n'+node]|0; const left=Math.max(0,3-used);
@@ -6884,7 +6887,7 @@ async function api(req,res,url){
       stars:(_pr.stars[node]|0), sweepUnlocked:(_pr.stars[node]|0)>=3,
       /* v1015 (re-audit Arena N7): the server's own count of today's rewarded runs on a guardian/boss stage (the NY day it pays on);
          the card showed a browser counter on a 09:00 day */
-      runsLeft:(mode==='elite'||isEliteStageSrv(node)||campIsBoss(node))?Math.max(0,3-((_pr.runs&&_pr.runs.k===nyDayKey())?(_pr.runs['n'+node]|0):0)):null,
+      runsLeft:campCapStageSrv(mode,node)?Math.max(0,3-((_pr.runs&&_pr.runs.k===nyDayKey())?(_pr.runs['n'+node]|0):0)):null,
       farm:(st.rewards.glyphFragments[0]||null) }); }
   /* v266: the whole farm map in one call — every portal's stage list with its ONE named fragment,
      plus the reverse index the Glyph tree deep-links from. */
@@ -7091,7 +7094,7 @@ async function api(req,res,url){
            and boss stages (3/6/9/10), on the SAME prog.runs counter, so manual runs and sweeps share
            one budget. A first clear always pays and never spends the budget. A capped repeat win still
            records stars / cleared / the receipt, but pays nothing and says so (reward.dailyCapped). */
-        const capStage=mode==='elite'||isEliteStageSrv(a.node)||campIsBoss(a.node);   // every Elite stage; Normal 3/6/9/10
+        const capStage=campCapStageSrv(mode,a.node);   // every Elite stage; Normal 3/6/9/10
         let rewarded=true;
         if(capStage && !first){
           prog.runs=prog.runs||{}; const _rdk=nyDayKey(); if(prog.runs.k!==_rdk) prog.runs={k:_rdk};
