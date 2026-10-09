@@ -38,7 +38,7 @@ async function call(route,data){ const r=await fetch(base+route,{method:data?'PO
       const tail=src.slice(j,j+60); if(!/guildLogCap|\.log\.length>100/.test(tail)) uncapped++; }
     ok(uncapped===0,'#10 every guild log push is capped at 100 ('+uncapped+' uncapped)'); }
   ok(/rateLimited\(req,'wellStart:'\+me\.id,Math\.round\(10\*RL_MUL\),60000\)/.test(src),'#11 Well start 10 a minute');
-  ok(/const RL_MUL=Math\.max\(1,\+\(process\.env\.RL_MUL\|\|\(process\.env\.CLOCK_FILE\?1000:1\)\)\);/.test(src),'sim tab servers (CLOCK_FILE) are not throttled by the new limits');
+  ok(/const RL_MUL=Math\.max\(1,\(\+\(process\.env\.RL_MUL\|\|\(process\.env\.CLOCK_FILE\?1000:1\)\)\)\|\|1\);/.test(src),'sim tab servers (CLOCK_FILE) are not throttled by the new limits (v1085: a non-number RL_MUL falls back to 1)');
   if(missed.length){ missed.forEach(m=>console.error('FAIL',m)); process.exitCode=1; }
   console.log('test_abuse_1083.js: '+pass+' checks passed, '+missed.length+' failed (server '+srvFile+')');
 } catch(e){ console.error('FAIL',e&&e.message||e); process.exitCode=1; } finally { await stop(); } })();

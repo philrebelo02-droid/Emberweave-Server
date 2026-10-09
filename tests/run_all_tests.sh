@@ -275,6 +275,8 @@ note "test_caps_1082.js (v1082 scan 3: no full charge for a clipped grant; guest
 node tests/test_caps_1082.js || FAILED=1
 note "test_abuse_1083.js (v1083 scan 5 batch A: reads save only on change, per-account limits, chat history/saves throttled, 1.2 MB saves, guild log caps)"
 node tests/test_abuse_1083.js || FAILED=1
+note "test_abuse_1084.js (v1084 scan 5 batch B: one replay per attempt in flight, pvp attack limit, report day cap)"
+node tests/test_abuse_1084.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi

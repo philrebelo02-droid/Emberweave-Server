@@ -238,7 +238,7 @@ const RESERVED_NAMES=new Set(['phil','admin','administrator','emberweave','ember
    matches an existing player's is taken. */
 const NAME_CONFUSABLE={'а':'a','в':'b','е':'e','ё':'e','к':'k','м':'m','н':'h','о':'o','р':'p','с':'c','т':'t','у':'y','х':'x','і':'i','ї':'i','ј':'j','ѕ':'s','ԁ':'d','һ':'h','ӏ':'l','ԛ':'q','ԝ':'w',
   'α':'a','β':'b','ε':'e','η':'n','ι':'i','κ':'k','ν':'v','ο':'o','ρ':'p','τ':'t','υ':'u','χ':'x','ζ':'z','μ':'u','ω':'w'};
-function nameSkeleton(n){ return String(n||'').normalize('NFKC').toLowerCase().normalize('NFKD').replace(/\p{M}/gu,'')
+function nameSkeleton(n){ return String(n||'').normalize('NFKC').toLowerCase().replace(/[l1|]/g,'i').replace(/0/g,'o').normalize('NFKD').replace(/\p{M}/gu,'')   /* v1085 (scan 6 #5): after lower-casing, l / 1 / | fold to i and 0 to o - 'PhiI' (capital i), 'Phi1' and 'Phil' are one name; 'MARIGOLD' and 'Marigold' still match */
   .replace(/./gu,c=>NAME_CONFUSABLE[c]||c).replace(/[^\p{L}\p{N}]/gu,''); }
 function nameTaken(name,exceptId){ const lid=DB.byName[String(name||'').toLowerCase()]; if(lid&&lid!==exceptId) return true;
   const sk=nameSkeleton(name); if(!sk) return false;
@@ -286,7 +286,9 @@ function send(res, code, obj){   // v1036: a reply whose request joined a group 
 // On overflow we stop reading, destroy the socket, and reject with a BODY_TOO_LARGE error that the
 // api() dispatcher turns into a 413. Default cap is small; /api/save passes a larger one for cloud saves.
 const BODY_MAX = +(process.env.BODY_MAX || 65536);        // 64 KB default for ordinary API calls
-const RL_MUL=Math.max(1,+(process.env.RL_MUL||(process.env.CLOCK_FILE?1000:1)));   /* CLOCK_FILE = a sim tab's fast clock (simbot/fastclock.js) - never set on a game server */   /* v1083: the scan-5 per-account read/save limits scale by this - a sim tab's bot (its own server) sets it high */
+function guildLogCap(g){ if(g&&Array.isArray(g.log)&&g.log.length>100) g.log=g.log.slice(-100); }   /* v1083 (scan 5 #10); v1085: top level (scan 6 #1) */
+const _simInflight=new Map();   /* v1085 (scan 6 #3): attempt -> its running replay; a second resolve WAITS for it instead of a 409 */   /* v1083 (scan 5 #7): battle attempts whose replay is running */
+const RL_MUL=Math.max(1,(+(process.env.RL_MUL||(process.env.CLOCK_FILE?1000:1)))||1);   /* v1085 (scan 6 #8): NaN fell through Math.max and switched every scaled limit off */   /* CLOCK_FILE = a sim tab's fast clock (simbot/fastclock.js) - never set on a game server */   /* v1083: the scan-5 per-account read/save limits scale by this - a sim tab's bot (its own server) sets it high */
 const BODY_MAX_SAVE = +(process.env.BODY_MAX_SAVE || Math.round(1.2*1024*1024))   /* v1083 (scan 5 #5): was 4 MB - parsed and deep-walked before the 1 MB save-shape check */;  // 4 MB for the whole-roster cloud save
 /* v986 (4 Oct City Wall audit #1, P0): a request value or key equal to an Object.prototype name ('__proto__', 'constructor',
    'toString', ...) reaches plain-object lookups like ownsHeroK(led,k) / led.hero[k] as truthy and can write onto
@@ -3815,7 +3817,7 @@ function templeClientState(led){
   return state;
 }
 function ledgerView(u){ const led=ensureLedger(u); ledStamRegen(led); if(ledPlayerLevel(led)>=WITCH.UNLOCK_LEVEL) worldLocation(u);
-  return { rev:led.rev, born:+led.migratedAt||0, gold:led.gold, gems:led.gems, guildCoins:led.guildCoins|0, arenaCoins:Math.max(0,u.coins|0), shields:Math.max(0,u.shields|0), shieldUntil:((+u.shieldUntil||0)>Date.now()?+u.shieldUntil:0), beginnerShieldUntil:beginnerShieldUntil(u), px:led.px, playerLevel:ledPlayerLevel(led),   /* v1079: arena coins are the server's (scan #2) */
+  return { rev:led.rev, born:+led.migratedAt||0, gold:led.gold, gems:led.gems, guildCoins:led.guildCoins|0, arenaCoins:Math.max(0,u.coins|0), renames:u.renames|0, shields:Math.max(0,u.shields|0), shieldUntil:((+u.shieldUntil||0)>Date.now()?+u.shieldUntil:0), beginnerShieldUntil:beginnerShieldUntil(u), px:led.px, playerLevel:ledPlayerLevel(led),   /* v1079: arena coins are the server's (scan #2) */
     hero:led.hero, unlocked:led.unlocked, frags:led.frags, xpPotions:led.xpPotions||{}, xpPotionUsed:led.xpPotionUsed||{}, tutVexXpBase:led.tutVexXpBase|0, eqMats:led.eqMats||{},   // v273: materials are ledger-owned
     skill:led.skill||{}, temple:templeClientState(led),
     marketToday:{used:((led.marketDay&&led.marketDay.k===nyDayKey())?(led.marketDay.frags|0):0), max:12},   /* v998 (Market audit #12): the daily fragment cap, shown on the Market */
@@ -4631,6 +4633,7 @@ async function api(req,res,url){
   // Player feedback has its own durable inbox; balance-bot reports stay in the admin report list.
   if(p==='/api/report' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     if(rateLimited(req,'report',12,60000)) return send(res,429,{error:'Too many reports — wait a minute.'});
+    if(!isDev(me)&&rateLimited(req,'reportDay',100,86400000)) return send(res,429,{error:'Too many reports today.'});   /* v1085 (scan 6 #7): 100 - many players share one mobile IP */   /* v1083 (scan 5 #12): per IP - guests made 300 a day and pushed real bug reports out */
     const b=await body(req); const text=(b.text||'').toString().slice(0,2000); if(!text.trim()) return send(res,400,{error:'Report is empty'});
     const kind=b.kind==='suggestion'?'suggestion':(b.kind==='balance'&&isDev(me))?'balance':'bug';   /* v999 (Account audit #3): only the balance bot (dev) files into the integrity report list - players flooded it */
     const dk=nyDayKey(), feedbackDay=me.feedbackDay&&me.feedbackDay.k===dk?me.feedbackDay:{k:dk,n:0};
@@ -6204,6 +6207,7 @@ async function api(req,res,url){
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
     const out=durableCommit(me,me.id+':shield:'+reqId,(me)=>{
       const now=Date.now(); if((+me.shieldUntil||0)>now) return {ok:false,error:'A shield is already active.'};
+      if((me.worldCityMarches||[]).some(m=>m&&!m.resolved&&(+m.homeAt||0)>now)) return {ok:false,error:'Your army is still out - a shield cannot go up while you are attacking.'};   /* v1085 (scan 6 #6): attack, then shield against the retaliation */
       if((me.shields|0)<1) return {ok:false,error:'You have no protection shields.'};
       me.shields=(me.shields|0)-1; me.shieldUntil=now+SHIELD_MS; ledTx(me,'shield:activate',{shields:-1});
       writeDB(); return {ok:true, shields:me.shields, shieldUntil:me.shieldUntil, ledger:ledgerView(me)};
@@ -6768,7 +6772,9 @@ async function api(req,res,url){
       engine:prog.att.engine, stamina:{v:led.stam.v,max:ledStamMax(led)} }); }
   if(p==='/api/campaign/resolve' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
-    await simPrefetch(_campaignSimCandidates(me,b));   // v1036: the replay runs on a battle worker first; the route uses its result
+    { const _ak='c:'+me.id+':'+String(b.attemptId||'');   /* v1083 (scan 5 #7): K parallel resolves started K worker replays; v1085: the second one waits for the first (no 409 - the client read it as a loss) */
+      if(_simInflight.has(_ak)){ try{ await _simInflight.get(_ak); }catch(e){} }
+      else { const _pr=simPrefetch(_campaignSimCandidates(me,b)); _simInflight.set(_ak,_pr); try{ await _pr; } finally{ _simInflight.delete(_ak); } } }   // v1036: the replay runs on a battle worker first; the route uses its result
     const out=idem(me.id+':cresolve:'+reqId,()=>{
       const led=ensureLedger(me);
       const aid=String(b.attemptId||'');
@@ -7139,7 +7145,9 @@ async function api(req,res,url){
       writeDB();
       return send(res,200,{ ok:true, attemptId:pr.att.id, type:t, stage, seed, snaps:fightSnaps, waves:st.waves, boss:st.boss,
         levelGate:st.levelGate, engine:pr.att.engine, reward:provReward(t,stage) }); }
-    if(p==='/api/province/resolve') await simPrefetch(_provinceSimCandidates(me,b));   // v1036: replay on a battle worker first
+    if(p==='/api/province/resolve'){ const _ak='p:'+me.id+':'+String(b.attemptId||'');   /* v1083 (scan 5 #7); v1085: wait, not 409 */
+      if(_simInflight.has(_ak)){ try{ await _simInflight.get(_ak); }catch(e){} }
+      else { const _pr=simPrefetch(_provinceSimCandidates(me,b)); _simInflight.set(_ak,_pr); try{ await _pr; } finally{ _simInflight.delete(_ak); } } }   // v1036: replay on a battle worker first
     if(p==='/api/province/resolve'){ const out=idem(me.id+':provres:'+reqId,()=>{
         const aid=String(b.attemptId||''), P=provLedState(me,led); let t=null, pr=null, a=null;
         for(const k of PROV_TYPES){ if(P[k].att && P[k].att.id===aid){ t=k; pr=P[k]; a=pr.att; break; } }
@@ -7388,6 +7396,7 @@ async function api(req,res,url){
         A.mineDay[rk]=used+grant; A.res[rk]=(A.res[rk]|0)+grant;
         writeDB(); return {ok:true, res:A.res, granted:grant, capLeft:null};
       }); return send(res, out.ok===false?400:200, out); }
+    if(p==='/api/pvp/attack'&&rateLimited(req,'pvpatk:'+me.id,Math.round(20*RL_MUL),60000)) return send(res,429,{error:'Slow down.'});   /* v1083 (scan 5 #8): each call deep-copies accounts before the march is checked */
     if(p==='/api/pvp/attack'){ const out=await simRun(()=>worldSettlementDurable(me,me.id+':pvpatk:'+reqId,String(b.defId||''),(me,DB)=>{   // v1036: battle on a worker
         const led=ensureLedger(me);acadCollect(ensureAcad(me));
         const march=worldCityMarches(me).find(m=>m.id===String(b.marchId||''));
@@ -8266,7 +8275,7 @@ async function api(req,res,url){
       let name=capWords((b.name||'').replace(/[<>]/g,'').replace(/\s+/g,' ').trim()).slice(0,24);
       if(name.length<2) return send(res,400,{error:'Guild name must be at least 2 characters.'});
       { const bad=badNewName(name); if(bad) return send(res,400,{error:bad}); }   /* v982 (3 Oct Guild audit #11): the same name rules as a player name (hidden characters, stacked accents, reserved names) */
-      if(Object.values(DB.guilds).some(g=>(g.name||'').toLowerCase()===name.toLowerCase()||nameSkeleton(g.name)===nameSkeleton(name))) return send(res,409,{error:'That guild name is already taken'});   /* v1080: look-alikes too */
+      if(Object.values(DB.guilds).some(g=>(g.name||'').toLowerCase()===name.toLowerCase()||(nameSkeleton(name)&&nameSkeleton(g.name)===nameSkeleton(name)))) return send(res,409,{error:'That guild name is already taken'});   /* v1085: two symbol-only names both fold to '' */   /* v1080: look-alikes too */
       const id=uid(); const g={ id, name, leader:me.id, members:[me.id], reqs:[], level:1, exp:0, motd:'Welcome to '+name+'!', log:[], createdAt:Date.now() };
       DB.guilds[id]=g; me.guildId=id; writeDB();
       return send(res,200,{ guild:guildView(g) }); }
@@ -8669,7 +8678,6 @@ try{
   // ---- live chat: world/region broadcast + name-addressed whispers ----
   // history is stored in the DB (persists across restarts) and kept for ~3h or the last 100 messages per channel
   let _chatSaveT=null; function chatSaveSoon(){ if(_chatSaveT) return; _chatSaveT=setTimeout(()=>{ _chatSaveT=null; writeDB(); },30000); }   /* v1083: chat is persisted at most every 30 s */
-function guildLogCap(g){ if(g&&Array.isArray(g.log)&&g.log.length>100) g.log=g.log.slice(-100); }   /* v1083 (scan 5 #10) */
 const _chatJoinAcct={};   /* v1083: last chat-history send per account */
 const CHAT_KEEP=100, CHAT_AGE_MS=6*3600000;
   const _chatHits={}; setInterval(()=>{ const now=Date.now(); for(const k of Object.keys(_chatHits)){ if(!_chatHits[k].some(t=>now-t<10000)) delete _chatHits[k]; } }, 60000).unref();   // world/region chat messages disappear 6h after being typed
@@ -8732,7 +8740,10 @@ const CHAT_KEEP=100, CHAT_AGE_MS=6*3600000;
         const r=rooms[ws._room]; if(!r)return; r.t=Date.now(); wsend(ws._role==='host'?r.guest:r.host,{t:'peer',data:m.data}); }
       else if(m.t==='chatjoin'){ if(wsNeedAuth(ws)) return; ws._chatName=ws._acctName || clip(m.name,16)||'Player';
         /* v1083 (scan 5 #2): the history (up to ~1.6 MB with replay chips) at most once per 30 s per socket and 10 s per account */
-        { const now=Date.now(), ak=ws._uid||('ip:'+(ws._ipKey||'')); if((ws._chatJoinAt&&now-ws._chatJoinAt<30000)||(_chatJoinAcct[ak]&&now-_chatJoinAcct[ak]<10000)) return; ws._chatJoinAt=now; _chatJoinAcct[ak]=now; }
+        { const now=Date.now(), ak=ws._uid||('ip:'+(ws._ipKey||''));
+          if((ws._chatJoinAt&&now-ws._chatJoinAt<30000)||(_chatJoinAcct[ak]&&now-_chatJoinAcct[ak]<10000)){   /* v1085 (scan 6 #7): a reload / second tab still sees recent chat */
+            const lite=a=>a.slice(-20).map(m=>({who:m.who,txt:m.txt,t:m.t})); return wsend(ws,{t:'chathist',world:lite(pruneChat('world')),region:lite(pruneChat('region'))}); }
+          ws._chatJoinAt=now; _chatJoinAcct[ak]=now; if(Object.keys(_chatJoinAcct).length>2000){ for(const k in _chatJoinAcct) if(now-_chatJoinAcct[k]>60000) delete _chatJoinAcct[k]; } }
         wsend(ws,{t:'chathist',world:pruneChat('world'),region:pruneChat('region')}); }
       else if(m.t==='chat'){ if(wsNeedAuth(ws)) return; const ch=(m.channel==='region')?'region':'world'; const txt=clip(m.text,200); if(!txt)return;
         // 30 Sep 2026 hardening: at most 6 chat lines per 10 s per ACCOUNT across all its sockets (one socket could wipe the

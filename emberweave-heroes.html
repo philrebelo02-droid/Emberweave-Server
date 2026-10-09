@@ -15198,7 +15198,7 @@ function adoptLedger(st){ if(!st||typeof st!=='object') return;
      it correctly, the level just never showed it. That is why Phil read as level 1 with his real
      roster intact. It was never the dev cheat and never an anti-cheat. */
   G.gold=st.gold|0; G.gems=st.gems|0; G.playerXP=st.px|0; G.xp=G.playerXP;
-  if(st.arenaCoins!=null) G.arenaCoins=st.arenaCoins|0;
+  if(st.arenaCoins!=null) G.arenaCoins=st.arenaCoins|0; if(st.renames!=null&&typeof ACC!=='undefined'&&ACC.token) G.renames=st.renames|0;   /* v1085 (scan 6 #9): the rename cost shown is the server's */
   if(st.shields!=null){ G.shieldItems=st.shields|0; G.shieldUntil=+st.shieldUntil||0; G.beginnerShieldUntil=+st.beginnerShieldUntil||0; if(!G.beginnerShieldUntil) G.beginnerBroken=true; }   /* v1081: shields are the server's */   /* v1079 (scan #2): arena coins are the server's - the shop spends them there */
   if(st.xpPotions) G.xpPotions={minor:st.xpPotions.minor|0,greater:st.xpPotions.greater|0,major:st.xpPotions.major|0,superior:st.xpPotions.superior|0};
   if(st.xpPotionUsed) G.xpPotionUsed=Object.assign({},st.xpPotionUsed); G.tutVexXpBase=st.tutVexXpBase|0;
@@ -26222,7 +26222,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791529910771';
+const BUILD_ID = '1791532393838';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
