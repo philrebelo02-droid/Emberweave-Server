@@ -20,6 +20,7 @@ const sock=()=>new Promise((res,rej)=>{ const w=new WebSocket('ws://127.0.0.1:'+
 (async()=>{ try{
   port=await freePort(); base='http://127.0.0.1:'+port; await start();
   const A=(await call('/api/register',{name:'v13a',pass:'password1'})).data, Bn=(await call('/api/register',{name:'v13b',pass:'password1'})).data;
+  await call('/api/ledger',null,A.token); await delay(400); await stop(); { const db=disk(); db.users[A.profile.id].led.px=1000; fs.writeFileSync(dbFile,JSON.stringify(db)); } await start();   // v1087: the Guild Hall opens at level 13
   /* chip shape (guild chat) */
   const gc=await call('/api/guild/create',{name:'Chip Test'},A.token); ok(!!(gc.data.guild&&gc.data.guild.id),'guild created ('+(gc.data.error||'ok')+')');
   const good={oppName:'Rival',mineSnap:[{key:'vael'}],foe:[{key:'gruel'}],seed:1};

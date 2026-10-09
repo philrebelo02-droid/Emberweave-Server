@@ -38,9 +38,9 @@ async function editDB(fn){ await delay(300); await stop(); const db=JSON.parse(f
   const r2=await call('/api/market/frag',{heroKey:sold,qty:1,pay:'gems',requestId:'mk-sold'});
   ok(r2.data.ok===true,'CONTROL: a sold hero ('+sold+') still buys ('+(r2.data.error||'ok')+')');
   const r3=await call('/api/tx/earn',{what:'frag',amount:5,reason:'arena',heroKey:'hollow',requestId:'ea-hollow'});   // 'arena' is the only fragment reason left (v972: Grosk only)
-  ok(r3.data.ok===false&&/only Grosk/.test(r3.data.error||''),'tx/earn arena refuses Hollow fragments ('+(r3.data.error||'')+')');
+  ok(r3.data.ok===false,'tx/earn arena refuses Hollow fragments ('+(r3.data.error||'')+')');
   const r3g=await call('/api/tx/earn',{what:'frag',amount:5,reason:'arena',heroKey:'grosk',requestId:'ea-grosk'});
-  ok(r3g.data.ok===true,'CONTROL: tx/earn arena still pays Grosk fragments ('+(r3g.data.error||'ok')+')');
+  ok(r3g.data.ok===false&&/groskfrag:\{cost:500,frag:'grosk'/.test(fs.readFileSync(path.join(root,srvFile),'utf8')),'v1079: tx/earn pays no fragments at all - Grosk comes from the server arena shop ('+(r3g.data.error||'')+')');
   // #8
   await editDB(u=>{ u.led.stam={v:999,t:Date.now()}; });
   const g1=(await led()).gems;

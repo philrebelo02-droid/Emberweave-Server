@@ -22,7 +22,7 @@ async function editDB(fn){ await delay(400); await stop(); const db=disk(); fn(d
 (async()=>{ try{
   port=await freePort(); base='http://127.0.0.1:'+port; await start();
   const g=await call('/api/guest',{deviceId:'raiddur-'+Date.now()}); token=g.data.token; id=g.data.profile.id; await call('/api/ledger');
-  await editDB((db,u)=>{ u.led.unlocked.vael=true; u.led.hero.vael=u.led.hero.vael||{xp:0,stars:1,pips:0};
+  await editDB((db,u)=>{ u.led.px=1000; /* v1087: the Guild Hall opens at level 13 */ u.led.unlocked.vael=true; u.led.hero.vael=u.led.hero.vael||{xp:0,stars:1,pips:0};
     db.guilds=db.guilds||{}; db.guilds.gdur={id:'gdur',name:'Durable Guild',members:[id],level:1,exp:0}; u.guildId='gdur'; });
   const rs=await call('/api/guild/raid/start',{heroIds:['vael'],requestId:'rd-start'});
   ok(rs.data.ok===true&&rs.data.attemptId,'raid fight starts ('+(rs.data.error||'ok')+')');

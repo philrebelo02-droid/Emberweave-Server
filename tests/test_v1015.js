@@ -15,7 +15,7 @@ async function call(route,data){ const r=await fetch(base+route,{method:data?'PO
   let j={}; try{ j=await r.json(); }catch(_){} return {status:r.status,data:j}; }
 const disk=()=>JSON.parse(fs.readFileSync(dbFile,'utf8'));
 async function editDB(fn){ await delay(400); await stop(); const db=disk(); fn(db,db.users[id]); fs.writeFileSync(dbFile,JSON.stringify(db)); await start(); }
-const nyDay=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+const nyDay=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(Date.now()-9*3600000));   // the game day starts 09:00 ET (v1065)
 (async()=>{ try{
   port=await freePort(); base='http://127.0.0.1:'+port; await start();
   const g=await call('/api/guest',{deviceId:'v1015-'+Date.now()}); token=g.data.token; id=g.data.profile.id; await call('/api/ledger');

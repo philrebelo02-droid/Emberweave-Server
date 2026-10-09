@@ -19,6 +19,7 @@ const disk=()=>JSON.parse(fs.readFileSync(dbFile,'utf8'));
   const dev=(await call('/api/register',{name:'adelDev',pass:'password1'})).data; await delay(400); await stop(); await start(dev.profile.id);
   const devTok=(await call('/api/login',{name:'adelDev',pass:'password1'})).data.token;
   const L=(await call('/api/register',{name:'adelLead',pass:'password1'})).data, M=(await call('/api/register',{name:'adelMem',pass:'password1'})).data;
+  await call('/api/ledger',null,L.token); await call('/api/ledger',null,M.token); await delay(400); await stop(); { const db=disk(); for(const u of [L,M]) db.users[u.profile.id].led=Object.assign(db.users[u.profile.id].led||{},{px:1000}); fs.writeFileSync(dbFile,JSON.stringify(db)); } await start(dev.profile.id);   // v1087: the Guild Hall opens at level 13
   const gc=await call('/api/guild/create',{name:'Ghost Test'},L.token); const gid=gc.data.guild&&gc.data.guild.id;
   ok(!!gid,'guild created ('+(gc.data.error||'ok')+')');
   await call('/api/guild/request',{guildId:gid},M.token); const ap=await call('/api/guild/approve',{id:M.profile.id},L.token);

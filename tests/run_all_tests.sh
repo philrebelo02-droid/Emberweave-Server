@@ -279,6 +279,8 @@ note "test_abuse_1084.js (v1084 scan 5 batch B: one replay per attempt in flight
 node tests/test_abuse_1084.js || FAILED=1
 note "test_daykeys_1086.js (v1086 scan 7: the Temple module default day, the Vault rotation and reset time follow the 09:00 ET game day)"
 node tests/test_daykeys_1086.js || FAILED=1
+note "test_gates_1087.js (v1087 scan 8: Guild Hall level 13, Tower 40 / Vault 10 on trial resolve, Gauntlet retired, arena shop level 10, market shield per clock hour)"
+node tests/test_gates_1087.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi

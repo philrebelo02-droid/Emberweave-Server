@@ -22,8 +22,8 @@ async function editDB(fn){ await delay(300); await stop(); const db=JSON.parse(f
     const block=html.slice(html.indexOf('const GUILD_SHOP=['),html.indexOf('];',html.indexOf('const GUILD_SHOP=[')));
     const items=[...block.matchAll(/\{name:'([^']*)',desc:'([^']*)',cost:(\d+)(?:,server:'([^']*)')?/g)].map(x=>({name:x[1],desc:x[2],cost:+x[3],server:x[4]||''}));
     const gs=items.map((it,i)=>({i,...it})).filter(it=>/^gshop:/.test(it.server));
-    ok(gs.length===7&&gs.every(it=>it.server==='gshop:'+it.i&&S[it.i]&&S[it.i].cost===it.cost),'every client gshop item sits at its own slot with the server price ('+gs.map(g=>g.i+':'+g.cost).join(',')+')');
-    ok(gs.every(it=>{ const r=S[it.i]; const n=+(it.desc.match(/[\d,]+/)||['0'])[0].replace(/,/g,''); return r.refill?/Refill stamina/.test(it.desc):r.res?(r.res===n&&/map resource/.test(it.desc)):(r.gold?r.gold===n&&/gold/.test(it.desc):r.gems===n&&/diamond/.test(it.desc)); }),'server rewards equal the client descriptions'); }
+    ok(gs.length===Object.keys(S).length&&gs.every(it=>it.server==='gshop:'+it.i&&S[it.i]&&S[it.i].cost===it.cost),'every client gshop item sits at its own slot with the server price ('+gs.map(g=>g.i+':'+g.cost).join(',')+')');
+    ok(gs.every(it=>{ const r=S[it.i]; const n=+(it.desc.match(/[\d,]+/)||['0'])[0].replace(/,/g,''); if(r.shields) return r.shields===1?/attack immunity/.test(it.desc):(r.shields===n&&/shield/.test(it.desc)); if(r.arenaCoins) return r.arenaCoins===n&&/arena coins/.test(it.desc);   /* v1079/v1081 server slots */ return r.refill?/Refill stamina/.test(it.desc):r.res?(r.res===n&&/map resource/.test(it.desc)):(r.gold?r.gold===n&&/gold/.test(it.desc):r.gems===n&&/diamond/.test(it.desc)); }),'server rewards equal the client descriptions'); }
   port=await freePort(); base='http://127.0.0.1:'+port; await start();
   const g=await call('/api/guest',{deviceId:'gshop-'+Date.now()}); token=g.data.token; id=g.data.profile.id; await call('/api/ledger');
   // not in a guild

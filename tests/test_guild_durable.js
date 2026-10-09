@@ -21,7 +21,7 @@ async function editDB(fn){ await delay(400); await stop(); const db=disk(); fn(d
 (async()=>{ try{
   port=await freePort(); base='http://127.0.0.1:'+port; await start();
   const g=await call('/api/guest',{deviceId:'guilddur-'+Date.now()}); token=g.data.token; id=g.data.profile.id; await call('/api/ledger');
-  await editDB((db,u)=>{ u.led.gold=5000; u.led.unlocked.vael=true; u.led.hero.vael=u.led.hero.vael||{xp:0,stars:1,pips:0};
+  await editDB((db,u)=>{ u.led.px=1000; /* v1087: the Guild Hall opens at level 13 */ u.led.gold=5000; u.led.unlocked.vael=true; u.led.hero.vael=u.led.hero.vael||{xp:0,stars:1,pips:0};
     db.guilds=db.guilds||{}; db.guilds.gd={id:'gd',name:'Durable Guild',leader:id,members:[id],level:1,exp:0}; u.guildId='gd'; });
   // --- contribute
   const l0=await led(), gm0=(await call('/api/guild/mine')).data.guild;

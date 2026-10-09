@@ -4976,7 +4976,7 @@ async function api(req,res,url){
     const b=await body(req);
 
     if(p==='/api/guild-war/register'){
-      if(!myGuildObj) return send(res,400,{error:'You are not in a guild.'});
+      if(!myGuildObj) return send(res,400,{error:'You are not in a guild.'}); if(ledPlayerLevel(ensureLedger(me))<13) return send(res,400,{error:'The Guild Hall opens at level 13.'});   /* v1087 (scan 8 #1): the client's building lock was the only gate */
       if(!isLeaderOrOfficer) return send(res,403,{error:'Only the guild leader can register.'});
       if(t.state!=='registration') return send(res,400,{error:'Registration is closed for this week.'});
       if(warEntrant(t,myGid)) return send(res,400,{error:'Already registered.'});
@@ -6220,6 +6220,7 @@ async function api(req,res,url){
     const out=durableCommit(me,me.id+':ashop:'+reqId,(me)=>{
       const led=ensureLedger(me), id=String(b.item||''), it=Object.prototype.hasOwnProperty.call(ARENA_SHOP_SRV,id)?ARENA_SHOP_SRV[id]:null;
       if(!it) return {ok:false,error:'Unknown item.'};
+      if(ledPlayerLevel(led)<10) return {ok:false,error:'The Arena opens at level 10.'};   /* v1087 (scan 8 #4) */
       if((me.coins|0)<it.cost) return {ok:false,error:'Not enough arena coins.'};
       const dk=nyDayKey(); if(!me.arenaShopDay||me.arenaShopDay.k!==dk) me.arenaShopDay={k:dk};
       const used=me.arenaShopDay[id]|0; if(used>=it.day) return {ok:false,error:'That item is sold out for today.'};
@@ -6282,7 +6283,7 @@ async function api(req,res,url){
         led.gems-=c; me.shields=Math.min(99,(me.shields|0)+3); ledTx(me,'shop:shields3',{gems:-c,shields:3});
         writeDB(); return {ok:true, shields:me.shields, cost:c, ledger:ledgerView(me)}; }
       if(what==='shield_market'){ const L=ledPlayerLevel(led), c=Math.round(70*(1+(L-1)*0.04));
-        if(Date.now()-(+me.marketShieldAt||0)<3600000) return {ok:false,error:'The market has no more shields this hour.'};
+        if(Math.floor(Date.now()/3600000)===Math.floor((+me.marketShieldAt||0)/3600000)) return {ok:false,error:'The market has no more shields this hour.'};   /* v1087 (scan 8 #7): per clock hour - a rolling hour refused the next restock's shield */
         if(led.gems<c) return {ok:false,error:'Not enough diamonds.'}; if((me.shields|0)+1>99) return {ok:false,error:'You can hold at most 99 shields.'};   /* v1082 */
         led.gems-=c; me.shields=Math.min(99,(me.shields|0)+1); me.marketShieldAt=Date.now(); ledTx(me,'shop:shield_market',{gems:-c,shields:1});
         writeDB(); return {ok:true, shields:me.shields, cost:c, ledger:ledgerView(me)}; }
@@ -7266,7 +7267,10 @@ async function api(req,res,url){
         writeDB(); return {ok:true, won:true, heroKey:hk, frags, heroXp:70, ledger:ledgerView(me)};
       }); return send(res, out.ok===false?400:200, out); }
     if(p==='/api/trial/resolve'){ const out=idem(me.id+':trial:'+reqId,()=>{
-        const kind=String(b.kind||''); const K=TRIAL_KINDS[kind]; if(!K) return {ok:false,error:'Unknown trial.'};
+        const kind=String(b.kind||''); const K=Object.prototype.hasOwnProperty.call(TRIAL_KINDS,kind)?TRIAL_KINDS[kind]:null; if(!K) return {ok:false,error:'Unknown trial.'};
+        /* v1087 (scan 8 #2): this route had no unlock gate - the Tower (level 40) and Vault (10) ladders paid from level 1; the Gauntlet is retired */
+        { const _lv=ledPlayerLevel(led); if(kind==='gauntlet') return {ok:false,error:'The Gauntlet is retired.'};
+          if(kind==='tower'&&_lv<40) return {ok:false,error:'The Tower of Trials opens at level 40.'}; if(kind==='dungeon'&&_lv<10) return {ok:false,error:'The Vault opens at level 10.'}; }
         const floor=Math.max(1,Math.min(500,b.floor|0));
         led.trial=led.trial||{}; const T=led.trial[kind]=led.trial[kind]||{best:0};
         if(floor>T.best+1) return {ok:false,error:'Clear the previous floor first.'};
@@ -8268,7 +8272,7 @@ async function api(req,res,url){
     if(req.method!=='POST') return send(res,404,{error:'not found'});
     const b=await body(req);
 
-    if(p==='/api/guild/create'){
+    if(p==='/api/guild/create'){ if(ledPlayerLevel(ensureLedger(me))<13) return send(res,400,{error:'The Guild Hall opens at level 13.'});   /* v1087 (scan 8 #1): the client's building lock was the only gate */
       if(rateLimited(req,'gcreate',10,60000)) return send(res,429,{error:'Slow down and try again in a moment.'});
       if(myGuild()) return send(res,400,{error:'You are already in a guild.'});
       let name=capWords((b.name||'').replace(/[<>]/g,'').replace(/\s+/g,' ').trim()).slice(0,24);
@@ -8280,7 +8284,7 @@ async function api(req,res,url){
       return send(res,200,{ guild:guildView(g) }); }
 
     if((p==='/api/guild/request'||p==='/api/guild/cancelRequest')&&rateLimited(req,'greq:'+me.id,20,60000)) return send(res,429,{error:'Slow down.'});   /* v1011 (re-audit Arena N10 / Market #15 / Guild #12): per-account throttle on a heavy read */
-    if(p==='/api/guild/request'){
+    if(p==='/api/guild/request'){ if(ledPlayerLevel(ensureLedger(me))<13) return send(res,400,{error:'The Guild Hall opens at level 13.'});   /* v1087 (scan 8 #1): the client's building lock was the only gate */
       if(myGuild()) return send(res,400,{error:'Leave your current guild first.'});
       const g=findGuild(b.guildId); if(!g) return send(res,404,{error:'Guild not found.'});
       if((g.members||[]).length>=gCap(g)) return send(res,400,{error:'That guild is full.'});
@@ -8343,7 +8347,7 @@ async function api(req,res,url){
       g.log.push(gm); if(g.log.length>100)g.log=g.log.slice(-100);
       writeDB(); return send(res,200,{ ok:true, log:g.log.slice(-60) }); }
 
-    if(p==='/api/guild/contribute'){ if(!g) return send(res,400,{error:'You are not in a guild.'});
+    if(p==='/api/guild/contribute'){ if(!g) return send(res,400,{error:'You are not in a guild.'}); if(ledPlayerLevel(ensureLedger(me))<13) return send(res,400,{error:'The Guild Hall opens at level 13.'});   /* v1087 (scan 8 #1): the client's building lock was the only gate */
       if(rateLimited(req,'gcontrib',80,60000)) return send(res,429,{error:'Slow down.'});
       // SECURITY (audit crit #4): exp used to be an arbitrary client number (up to 100,000/call with
       // NO resource deducted, 80 calls/min → ~8,000,000 exp/min from nothing). The server now awards a
@@ -8378,7 +8382,7 @@ async function api(req,res,url){
        is the one that was exploited ~560x, so it must not survive as a second way in. Old clients are
        force-updated by the version poll; this answer tells anyone still holding one what happened. */
     if(p==='/api/guild/raid/assault'){ return send(res,400,{error:'The guild raid is a real battle now — reload the game to fight the boss.'}); }
-    if(p==='/api/guild/raid/start' && req.method==='POST'){ if(!g) return send(res,400,{error:'You are not in a guild.'});
+    if(p==='/api/guild/raid/start' && req.method==='POST'){ if(!g) return send(res,400,{error:'You are not in a guild.'}); if(ledPlayerLevel(ensureLedger(me))<13) return send(res,400,{error:'The Guild Hall opens at level 13.'});   /* v1087 (scan 8 #1): the client's building lock was the only gate */
       if(rateLimited(req,'graidstart',20,60000)) return send(res,429,{error:'Slow down.'});
       /* the guild block already read the body once for every POST (see 'const b=await body(req)'
          above) - reading it a second time here never resolves and the request hangs forever. */

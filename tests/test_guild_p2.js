@@ -19,6 +19,7 @@ async function call(route,data){ const r=await fetch(base+route,{method:data?'PO
   ok(lit.length===0,'no textContent assignment holds an HTML entity ('+lit.join(' | ')+')');
   port=await freePort(); base='http://127.0.0.1:'+port; await start();
   const g=await call('/api/guest',{deviceId:'gp2-'+Date.now()}); token=g.data.token; await call('/api/ledger');
+  await delay(400); await stop(); { const db=JSON.parse(fs.readFileSync(dbFile,'utf8')); db.users[g.data.profile.id].led.px=1000; fs.writeFileSync(dbFile,JSON.stringify(db)); } await start();   // v1087: the Guild Hall opens at level 13
   const zw=await call('/api/guild/create',{name:'Ash​Guard'});
   ok(zw.status===400&&/hidden characters/.test(zw.data.error||''),'a guild name with a zero-width space is refused ('+zw.status+' '+(zw.data.error||'')+')');
   const okc=await call('/api/guild/create',{name:'Ash Guard'});
