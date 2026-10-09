@@ -1,6 +1,7 @@
-// v1097 - sweep 9 Oct P0 #4 (Emberdraft): the server paid whatever place the client claimed. The match is played in the browser and
-// cannot be replayed, so the place is paid in full only when the server's record of the run (the round reports on the attempt) says the
-// same place for the claim's round and nothing contradicts it; otherwise the lowest paying tier (6 stamina) and a review case.
+// v1097 - sweep 9 Oct P0 #4 (Emberdraft): the server paid whatever place the client claimed with no review when the round record was
+// missing or disagreed. Phil 9 Oct: "rewards are never blocked, only sent to ember when flagged". The claim is always paid in full;
+// a claim the server's record of the run (the round reports on the attempt) does not show files a case in Ember's review queue with
+// the difference at stake (no record supports the lowest paying tier, 6th).
 // Asserts (non-zero exit). Control: AUD_SERVER=<pre-v1097 server copied into the repo root> must FAIL.
 const assert=require('assert'),fs=require('fs'),os=require('os'),path=require('path'),net=require('net'),{spawn}=require('child_process');
 const root=path.join(__dirname,'..'), srvFile=process.env.AUD_SERVER||'server.js', dir=fs.mkdtempSync(path.join(os.tmpdir(),'ew-ed1097-'));
@@ -41,22 +42,27 @@ function record(lastRound,pl){ const out=[]; let alive=8;
   await editDB(u=>{ u.led.px=99000000; });
   ok(((await led()).playerLevel|0)>=25,'fixture: Emberdraft is open (level '+(await led()).playerLevel+')');
   /* the exploit: a script claims 1st with no record of the run */
+  const cases=()=>(disk().feedback||[]).filter(f=>/^emberdraft:/.test(f.signal||''));
   const a=await match(null,1,16);
-  ok(a.ok===true&&a.stamina===6,'a 1st-place claim with no round record pays the lowest tier, 6 ('+a.stamina+')');
-  ok(a.capped===true&&/review/i.test(a.note||''),'the reply says it was paid at the lowest tier and sent for review');
+  ok(a.ok===true&&a.stamina===36,'a 1st-place claim with no round record is paid in full, 36 (never blocked) ('+a.stamina+')');
   await delay(400);
-  ok((disk().feedback||[]).some(f=>/^emberdraft:/.test(f.signal||'')&&f.amount===30),'the case goes to review with 30 stamina at stake');
+  ok(cases().length===1&&cases()[0].amount===30&&cases()[0].claimedPlace===1,'it files a case for Ember with 30 stamina at stake (36 claimed - 6 the record supports) ('+JSON.stringify(cases().map(f=>f.amount))+')');
   /* a forged claim: the record says you fell 5th at round 14, the claim says 1st */
-  const d=await match(record(14,5),1,14);
-  ok(d.ok===true&&d.stamina===6,'a 1st-place claim the round record contradicts (5th) pays 6 ('+d.stamina+')');
+  const d=await match(record(16,5),1,16);   // 16 rounds: long enough for 1st, so only the record contradicts it
+  await delay(400);
+  ok(d.ok===true&&d.stamina===36,'a 1st-place claim the round record contradicts (5th at round 16) is still paid in full ('+d.stamina+')');
+  ok(cases().length===2&&cases()[1].amount===24,'it files a second case with 24 at stake (36 - 12 for 5th) ('+JSON.stringify(cases().map(f=>f.amount))+')');
   /* a claim worse than the lowest tier is not raised */
   const e=await match(record(12,7),7,12);
   ok(e.ok===true&&e.stamina===0,'7th still pays nothing ('+e.stamina+')');
   /* controls: an honest record pays the place in full */
+  const n0=cases().length;
   const b=await match(record(18,0),1,18);
-  ok(b.ok===true&&b.stamina===36&&!b.capped,'control: 1st with a full round record pays 36 ('+b.stamina+' '+(b.note||'')+')');
+  ok(b.ok===true&&b.stamina===36,'control: 1st with a full round record pays 36 ('+b.stamina+' '+(b.note||'')+')');
   const c=await match(record(15,3).slice(0,10),3,15,record(15,3).slice(10));
   ok(c.ok===true&&c.stamina===24,'control: 3rd, the last reports riding along with the claim, pays 24 ('+c.stamina+' '+(c.note||'')+')');
+  await delay(400);
+  ok(cases().length===n0,'control: honest records file no case ('+(cases().length-n0)+' new)');
   if(missed.length){ missed.forEach(m=>console.error('FAIL',m)); process.exitCode=1; }
   console.log('test_sweep_emberdraft_1097.js: '+pass+' checks passed, '+missed.length+' failed (server '+srvFile+')');
 } catch(e){ console.error('FAIL',e&&e.message||e); process.exitCode=1; } finally { await stop(); } })();

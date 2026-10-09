@@ -305,7 +305,7 @@ note "test_sweep_temple_1097.js (v1097 sweep P0: a reused requestId never replay
 node tests/test_sweep_temple_1097.js || FAILED=1
 note "test_sweep_trials_1097.js (v1097 sweep P0: the hidden Tower ladder on /api/trial/resolve is retired; the dungeon kind stops at the last built floor)"
 node tests/test_sweep_trials_1097.js || FAILED=1
-note "test_sweep_emberdraft_1097.js (v1097 sweep P0: Emberdraft pays the claimed place only when the round record shows it; otherwise the lowest tier and a review case)"
+note "test_sweep_emberdraft_1097.js (v1097 sweep P0: Emberdraft always pays the claimed place; a claim the round record does not show files an Ember review case with the stake)"
 node tests/test_sweep_emberdraft_1097.js || FAILED=1
 note "test_sweep_veteran_cap_1097.js (v1097 sweep P0: Veteran x-3/6/9 sweeps count toward and respect the 3-a-day run cap the fights use)"
 node tests/test_sweep_veteran_cap_1097.js || FAILED=1
