@@ -9,7 +9,7 @@ const b=html.indexOf('\n  solo.onclick=',a); assert(b>a,'end of buy handler foun
 const _pd=html.indexOf('function pendingDefinite('), holder=((html.match(/const ED_BUY_RID=\{[^}]*\};/)||[''])[0])+(_pd>0?'\n'+html.slice(_pd,html.indexOf('\n',_pd)):'');
 const sent=[], script=[]; let n=0;
 const buy={dataset:{pack:3,cost:150},disabled:false};
-const ctx={ACC:{token:'t',id:'A'}, buy, sent, gameConfirm:(msg,cb)=>cb(), uid8:()=>'id'+(++n), adoptLedger(){}, updateHubChrome(){}, show(){}, edNiceErr:(e,d)=>e||d,
+const ctx={...require('./helpers/page-icons.js')(html), ACC:{token:'t',id:'A'}, buy, sent, gameConfirm:(msg,cb)=>cb(), uid8:()=>'id'+(++n), adoptLedger(){}, updateHubChrome(){}, show(){}, edNiceErr:(e,d)=>e||d,
   api:(p,m,body)=>{ sent.push(body.requestId); return Promise.resolve(script.shift()); } };
 vm.createContext(ctx); vm.runInContext(holder+'\n'+html.slice(a,b),ctx);
 (async()=>{ let pass=0; const ok=(c,m)=>{ assert(c,m); pass++; };

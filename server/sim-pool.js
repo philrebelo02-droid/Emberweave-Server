@@ -62,7 +62,7 @@ function create(gameFile, opts = {}) {
     w.on('message', m => {
       if (m && m.ready !== undefined && m.id === undefined) {
         slot.ready = !!m.ready; if (slot.ready) { stats.ready++; stats.buildVersion = m.buildVersion; pump(); }
-        else console.error('⚠ battle worker ' + i + ' failed to load: ' + m.error);
+        else console.error('battle worker ' + i + ' failed to load: ' + m.error);
         return;
       }
       const job = pending.get(m.id); if (!job) return;
@@ -70,7 +70,7 @@ function create(gameFile, opts = {}) {
       if (m.error) { stats.errors++; job.reject(new Error(m.error)); } else { stats.runs++; job.resolve(m.result); }
       pump();
     });
-    w.on('error', e => { console.error('⚠ battle worker ' + i + ' error: ' + e.message); });
+    w.on('error', e => { console.error('battle worker ' + i + ' error: ' + e.message); });
     w.on('exit', code => {
       if (slot.ready) stats.ready--;
       slot.ready = false;
@@ -127,7 +127,7 @@ function create(gameFile, opts = {}) {
     if (!checks.length || waiting.length || workers.some(s => s.busy)) return;
     const c = checks.shift();
     local(c.method, c.args).then(r => { stats.helper.checked++;
-      if (JSON.stringify(r) !== c.want) { stats.helper.mismatches++; c.h.disabled = true; c.h.ok = false; console.error('⚠ battle helper ' + c.h.url + ' gave a different result - not used again'); } }, () => {});
+      if (JSON.stringify(r) !== c.want) { stats.helper.mismatches++; c.h.disabled = true; c.h.ok = false; console.error('battle helper ' + c.h.url + ' gave a different result - not used again'); } }, () => {});
   }
   if (helperMode) { const t = setInterval(spotCheck, 1000); if (t.unref) t.unref(); }
   function run(method, args) {

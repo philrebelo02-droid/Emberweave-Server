@@ -7,7 +7,7 @@ const start = html.indexOf('function claimQuest(q)');
 const end = html.indexOf('/* 30 Aug', start);
 assert(start >= 0 && end > start, 'claimQuest source found');
 const calls = { claim: 0, capture: 0, adopt: 0, messages: [] };
-const ctx = {
+const ctx = { ...require('./helpers/page-icons.js')(html), 
   G: { questClaimed: {} }, ACC: { token: 'test' }, uid8: () => 'req-1',
   api: async () => ({ ok: true, ledger: { gems: 20 } }),
   apiOnce: async () => ({ ok: true, ledger: { gems: 20 } }),   // v989: claimQuest goes through apiOnce (one in flight, one requestId)
@@ -24,6 +24,6 @@ setTimeout(() => {
   assert.strictEqual(calls.capture, 0, 'no generic earn was submitted');
   assert.strictEqual(calls.adopt, 1, 'server ledger was adopted once');
   assert.strictEqual(ctx.G.questClaimed.q_name, true);
-  assert(calls.messages[0].includes('💎 20 diamonds'));
+  assert(calls.messages[0].includes('20 diamonds'));
   console.log('wallet quest claim: pass');
 }, 20);

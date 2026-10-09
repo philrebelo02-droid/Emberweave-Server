@@ -9,7 +9,7 @@ const end = html.indexOf('/* ============================ MAIL', start);
 assert(start >= 0 && end > start, 'tower source found');
 const calls = [];
 let goldFails = 1, gemFails = 1;
-const ctx = vm.createContext({
+const ctx = vm.createContext({ ...require('./helpers/page-icons.js')(html), 
   G: { gold: 50, gems: 10, tower: { floor: 9, trib: '' } }, ACC: { token: 'signed-in' },
   POWER_SCALE: 1, battlePow: () => 1e9, arenaDayKey: () => '2026-09-27',
   saveG: () => {}, updateHubChrome: () => {},

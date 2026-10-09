@@ -7,7 +7,7 @@ const start = html.indexOf('function starMilestoneReward(idx)');
 const end = html.indexOf('function starTrackClaimable()', start);
 assert(start >= 0 && end > start, 'star reward source found');
 const requests = [];
-const ctx = {
+const ctx = { ...require('./helpers/page-icons.js')(html), 
   G: { gold: 50, gems: 20, stamina: 10 }, ACC: { token: 'test' }, LED: { st: { born: 123 } },
   txEarnP: (what, amount, reason, extra) => { requests.push({ what, amount, reason, extra }); return Promise.resolve(true); },
   randLockedHero: () => 'vael', giveHeroFrag: () => { throw new Error('signed-in fragment mutation'); },
