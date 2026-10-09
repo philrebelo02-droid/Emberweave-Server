@@ -5118,7 +5118,7 @@ const G2_LADDER16=['Grey','Green','Green +1','Blue','Blue +1','Blue +2','Purple'
 const G2_TIER16=[0,1,1,2,2,2,3,3,3,3,3,3,3,3,3,3];   // ability/quality tier 0..3 by ascension index
 const G2_LCOL={'Grey':'#9aa6bb','Green':'#5ee89b','Green +1':'#5ee89b','Blue':'#4aa3ff','Blue +1':'#4aa3ff','Blue +2':'#4aa3ff','Purple':'#b98bff','Purple +1':'#b98bff','Purple +2':'#b98bff','Purple +3':'#b98bff','Gold':'#ffd45e','Gold +1':'#ffd45e','Gold +2':'#ffd45e','Gold +3':'#ffd45e','Gold +4':'#ffd45e','Orange':'#ff8a3c'};
 const GMAX_RANK=16;   // ascensionIndex 16 = fully ascended
-function gLadderName(i){ return i>=16?'Orange ★':G2_LADDER16[Math.max(0,Math.min(15,i|0))]; }
+function gLadderName(i){ return i>=16?'Orange '+uiIcon('star-filled'):G2_LADDER16[Math.max(0,Math.min(15,i|0))]; }
 function gLadderCol(i){ return G2_LCOL[G2_LADDER16[Math.max(0,Math.min(15,i|0))]]||'#9aa6bb'; }
 // Glyph rank = the SERVER board's ascensionIndex (0..16), cached offline in G.glyphRank.
 function glyphRank(key){ if(typeof RUNE2!=='undefined'&&RUNE2.enabled&&RUNE2.st){ const b=RUNE2.st.boards&&RUNE2.st.boards[key]; return Math.max(0,Math.min(GMAX_RANK,(b&&b.ascensionIndex)||0)); } return Math.max(0,Math.min(GMAX_RANK, (G.glyphRank&&G.glyphRank[key])||0)); }
@@ -22940,7 +22940,6 @@ function openStarsPanel(key){ const t=HERO_TYPES[key]; if(!t) return;
    endpoints; every mutation carries expectedRevision and a 409 STALE just refetches + rerenders. */
 let RUNE2={ enabled:null, cat:null, st:null, busy:false, pick:null, view:'board' };
 const G2_COL={'Grey':'#9aa2b1','Green':'#5ee89b','Green +1':'#4fd07f','Blue':'#5aa4ff','Blue +1':'#4f8fe8','Blue +2':'#3f7ad0','Purple':'#c9a2ff','Purple +1':'#b98fe8','Purple +2':'#a97cd8','Purple +3':'#9a6ac9','Gold':'#ffd45e','Gold +1':'#f2c84a','Gold +2':'#e8bc38','Gold +3':'#dcb028','Gold +4':'#d0a418','Orange':'#ff8a3c'};
-const G2_SLOT_ICON={vitality:'❤️',bulwark:'🛡️',onslaught:'⚔️',spirit:'✨',tempo:'💨',mastery:'🎯'};
 function g2col(q){ return G2_COL[q]||'#9aa2b1'; }
 async function glyphV2Sync(){ if(!ACC.token){ RUNE2.enabled=false; return; }
   const st=await api('/api/glyphs/state'); if(st&&st.error){ RUNE2.enabled=(RUNE2.enabled===true); return; }
@@ -23650,23 +23649,23 @@ async function wishGem10(){ const r=await serverWish('gem',10); if(!r) return; G
 async function wishShowInfo(){ const old=document.getElementById('wishInfo'); if(old) old.remove(); const st=(ACC&&ACC.token)?await api('/api/pool/state'):null;
   const o=(st&&st.odds)||{}, mo=(st&&st.mythOdds)||null, pct=v=>v==null?'?':(+(v*100).toFixed(2))+'%';
   const ov=document.createElement('div'); ov.id='wishInfo'; ov.className='wishInfoOv'; ov.onclick=e=>{ if(e.target===ov) ov.remove(); };
-  ov.innerHTML=`<div class="wishInfoCard"><div class="wishInfoHead"><b>Wishing Pool</b><button class="btn sm secondary" id="wishInfoX">✕</button></div>
-    <div class="wishInfoSec">⛲ Gold Pool · 🪙${WISH_GOLD_COST}</div><div>Tick, Dandra &amp; Carn · full hero ${pct(o.goldHero)} · fragments ${pct(o.goldFrag)} · 3 free wishes a day, 1 an hour</div>
-    <div class="wishInfoSec">🔮 Diamond Pool · 💎${WISH_GEM_COST}</div><div>The 2★ and 3★ ladders · full 3★ ${pct(o.full3)} · full 2★ ${pct(o.full2)} · 2★ fragments ${pct(o.frag2)} · 3★ fragments ${pct(o.frag3)} · 1 free wish a day · a hero within ${st&&st.pity?st.pity.at:40} wishes · first wish: a 2★ hero</div>
-    <div class="wishInfoSec">🌟 Mythical Pool · 💎${WISH_MYTH_COST} · EGP ${MYTH_UNLOCK_EGP}</div><div>${mo?'Mythical hero '+pct(mo.mythHero)+' · mythical fragments '+pct(mo.mythFrag)+' · glyph fragments '+pct(mo.glyphFrag)+' · full glyph '+pct(mo.glyphFull)+' · attack card '+pct(mo.attackCard)+' · shield '+pct(mo.shield)+' · teleport card '+pct(mo.teleport)+' · Kindled '+pct(mo.kindled)+' · Stoked '+pct(mo.stoked)+' · Blazing '+pct(mo.blazing)+' · Inferno '+pct(mo.inferno):'Only mythical heroes'}</div>
-    <div style="display:flex;gap:6px;margin-top:10px"><button class="btn sm secondary" id="wishInfoHist">📜 My roll history</button></div></div>`;
+  ov.innerHTML=`<div class="wishInfoCard"><div class="wishInfoHead"><b>Wishing Pool</b><button class="btn sm secondary" id="wishInfoX">${uiIcon('close')}</button></div>
+    <div class="wishInfoSec">⛲ Gold Pool · ${hudIcon('gold')}${WISH_GOLD_COST}</div><div>Tick, Dandra &amp; Carn · full hero ${pct(o.goldHero)} · fragments ${pct(o.goldFrag)} · 3 free wishes a day, 1 an hour</div>
+    <div class="wishInfoSec">🔮 Diamond Pool · ${hudIcon('gem')}${WISH_GEM_COST}</div><div>The 2${uiIcon('star-filled')} and 3${uiIcon('star-filled')} ladders · full 3${uiIcon('star-filled')} ${pct(o.full3)} · full 2${uiIcon('star-filled')} ${pct(o.full2)} · 2${uiIcon('star-filled')} fragments ${pct(o.frag2)} · 3${uiIcon('star-filled')} fragments ${pct(o.frag3)} · 1 free wish a day · a hero within ${st&&st.pity?st.pity.at:40} wishes · first wish: a 2${uiIcon('star-filled')} hero</div>
+    <div class="wishInfoSec">${uiIcon('mythical-star')} Mythical Pool · ${hudIcon('gem')}${WISH_MYTH_COST} · EGP ${MYTH_UNLOCK_EGP}</div><div>${mo?'Mythical hero '+pct(mo.mythHero)+' · mythical fragments '+pct(mo.mythFrag)+' · glyph fragments '+pct(mo.glyphFrag)+' · full glyph '+pct(mo.glyphFull)+' · attack card '+pct(mo.attackCard)+' · shield '+pct(mo.shield)+' · teleport card '+pct(mo.teleport)+' · Kindled '+pct(mo.kindled)+' · Stoked '+pct(mo.stoked)+' · Blazing '+pct(mo.blazing)+' · Inferno '+pct(mo.inferno):'Only mythical heroes'}</div>
+    <div style="display:flex;gap:6px;margin-top:10px"><button class="btn sm secondary" id="wishInfoHist">${uiIcon('quest-scroll')} My roll history</button></div></div>`;
   document.body.appendChild(ov); ov.querySelector('#wishInfoX').onclick=()=>ov.remove(); ov.querySelector('#wishInfoHist').onclick=()=>{ ov.remove(); wishShowHistory(); }; }
 /* v251 (audit): the pool publishes its odds/pity, and every roll is server-recorded and reviewable */
 async function wishShowOdds(){ const st=await api('/api/pool/state'); if(!st||st.error){ bannerMsg('Sign in to see the pool rules.'); return; }
   const o=st.odds||{}, pct=v=>(v*100).toFixed(v<0.01?1:0)+'%';
-  const mo=st.mythOdds||null; if(mo) setTimeout(()=>bannerMsg('🌟 <b>Mythical Pool</b> (EGP '+(st.mythUnlockEgp||11)+', 💎'+(st.mythCost||400)+') — mythical hero '+pct(mo.mythHero)+' · mythical frags '+pct(mo.mythFrag)+' · glyph frags '+pct(mo.glyphFrag)+' · full glyph '+pct(mo.glyphFull)+' · attack card '+pct(mo.attackCard)+' · shield '+pct(mo.shield)+' · teleport '+pct(mo.teleport)+' · Kindled '+pct(mo.kindled)+' · Stoked '+pct(mo.stoked)+' · Blazing '+pct(mo.blazing)+' · Inferno '+pct(mo.inferno)),4200);
-  bannerMsg('📊 <b>Diamond Pool odds</b> — full 3★ '+pct(o.full3||0)+' · full 2★ '+pct(o.full2||0)+' · 3★ frags '+pct(o.frag3||0)+' · 2★ frags '+pct(o.frag2||0)+'<br>🪙 <b>Gold Pool</b> — full hero '+pct(o.goldHero||0)+' · fragments '+pct(o.goldFrag||0)+'<br>🎯 <b>Pity:</b> a full hero is GUARANTEED within '+((st.pity&&st.pity.at)||40)+' diamond wishes — you are at '+((st.pity&&st.pity.count)||0)+'.'); }
+  const mo=st.mythOdds||null; if(mo) setTimeout(()=>bannerMsg(uiIcon('mythical-star')+' <b>Mythical Pool</b> (EGP '+(st.mythUnlockEgp||11)+', '+hudIcon('gem')+(st.mythCost||400)+') — mythical hero '+pct(mo.mythHero)+' · mythical frags '+pct(mo.mythFrag)+' · glyph frags '+pct(mo.glyphFrag)+' · full glyph '+pct(mo.glyphFull)+' · attack card '+pct(mo.attackCard)+' · shield '+pct(mo.shield)+' · teleport '+pct(mo.teleport)+' · Kindled '+pct(mo.kindled)+' · Stoked '+pct(mo.stoked)+' · Blazing '+pct(mo.blazing)+' · Inferno '+pct(mo.inferno)),4200);
+  bannerMsg(uiIcon('chart')+' <b>Diamond Pool odds</b> — full 3'+uiIcon('star-filled')+' '+pct(o.full3||0)+' · full 2'+uiIcon('star-filled')+' '+pct(o.full2||0)+' · 3'+uiIcon('star-filled')+' frags '+pct(o.frag3||0)+' · 2'+uiIcon('star-filled')+' frags '+pct(o.frag2||0)+'<br>'+hudIcon('gold')+' <b>Gold Pool</b> — full hero '+pct(o.goldHero||0)+' · fragments '+pct(o.goldFrag||0)+'<br>'+statusIcon('mark')+' <b>Pity:</b> a full hero is GUARANTEED within '+((st.pity&&st.pity.at)||40)+' diamond wishes — you are at '+((st.pity&&st.pity.count)||0)+'.'); }
 function wishResultLabel(code){ const p=String(code||'').split(':'), t=p[0], k=p[1], nm=k?escapeHTML((HERO_TYPES[k]||{}).name||k):'';
   if(t==='hero') return nm+' (new hero)'; if(t==='frags') return nm+' fragments'; if(t==='glyphFrag') return 'Glyph fragments'; return escapeHTML(t+(nm?' '+nm:'')); }
 async function wishShowHistory(){ const h=await api('/api/pool/history'); if(!h||h.error||!(h.history||[]).length){ bannerMsg('No recorded wishes yet.'); return; }
   const rows=h.history.slice(0,12).map(e=>{ const d=new Date(e.t); const hh=('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);
-    return hh+' · '+(e.pool==='gold'?'🪙':'🔮')+'×'+e.n+' → '+(e.results||[]).map(wishResultLabel).join(', '); }).join('<br>');   // v994 (audit #11): names, not codes
-  bannerMsg('📜 <b>Your last wishes (server-recorded)</b><br>'+rows); }
+    return hh+' · '+(e.pool==='gold'?hudIcon('gold'):'🔮')+'×'+e.n+' → '+(e.results||[]).map(wishResultLabel).join(', '); }).join('<br>');   // v994 (audit #11): names, not codes
+  bannerMsg(uiIcon('quest-scroll')+' <b>Your last wishes (server-recorded)</b><br>'+rows); }
 function renderWishing(){ applySceneBg('wishing',WISHPOOL_BG); const b=document.getElementById('wishingBody'); if(!b)return;
   // first paint of a visit asks the server what is actually free, then repaints with the truth
   /* Refetch when the cache is missing OR stale. The gold pool's free wish returns on a timer
@@ -25798,7 +25797,7 @@ function renderResultExtras(){ const stars=document.getElementById('resultStars'
   stars.innerHTML=[0,1,2].map(i=>`<span class="rStar${i<resultStars?'':' dim'}">${uiIcon('star-filled')}</span>`).join(''); stars.classList.add('show');
   squad.innerHTML=(resultSquadKeys||[]).filter(Boolean).map(key=>{ const t=HERO_TYPES[key]; if(!t)return '';
     const pv=HERO_PORTRAITS[key], inner=pv?`<img src="${pv}">`:`<div class="rEmoji">${t.emoji}</div>`;
-    return `<div class="rCard">${inner}<div class="rLv">Lv ${heroLevel(key)}</div><div class="rStars">${'★'.repeat(Math.max(1,heroStars(key)))}</div></div>`; }).join('');
+    return `<div class="rCard">${inner}<div class="rLv">Lv ${heroLevel(key)}</div><div class="rStars">${uiIcon('star-filled').repeat(Math.max(1,heroStars(key)))}</div></div>`; }).join('');
   squad.classList.add('show'); }
 // Fights that are resolved deterministically and recorded for playback — the arena, world-map
 // raids, elite challenges and any replay. The player never drives an ultimate in these: they
