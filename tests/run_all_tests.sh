@@ -303,6 +303,14 @@ note "test_temple_screen_1094.js (v1094 the Temple screen copies the reference: 
 node tests/test_temple_screen_1094.js || FAILED=1
 note "test_emoji_ratchet.js (Phil 9 Oct: no more emojis - the count may only go down)"
 node tests/test_emoji_ratchet.js || FAILED=1
+note "test_sweep_temple_1097.js (v1097 sweep P0: a reused requestId never replays Temple rolls; a held prayer above the Temple level is refused before it is spent)"
+node tests/test_sweep_temple_1097.js || FAILED=1
+note "test_sweep_trials_1097.js (v1097 sweep P0: the hidden Tower ladder on /api/trial/resolve is retired; the dungeon kind stops at the last built floor)"
+node tests/test_sweep_trials_1097.js || FAILED=1
+note "test_sweep_emberdraft_1097.js (v1097 sweep P0: Emberdraft always pays the claimed place; a claim the round record does not show files an Ember review case with the stake)"
+node tests/test_sweep_emberdraft_1097.js || FAILED=1
+note "test_sweep_veteran_cap_1097.js (v1097 sweep P0: Veteran x-3/6/9 sweeps count toward and respect the 3-a-day run cap the fights use)"
+node tests/test_sweep_veteran_cap_1097.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi

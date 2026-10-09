@@ -1411,6 +1411,9 @@ function acadCombat(u){ const led=u&&u.led; if(!led||!led.acad) return null; con
 const ELITE_SEQ_SRV=["tick","sylthaine","vireo","vael","fritz","rhukk","bloatus","umbris","oakmir"];
 function isEliteStageSrv(g){ const st=((g-1)%10)+1; return st===3||st===6||st===9; }
 function isHeroRewardStageSrv(g){ return isEliteStageSrv(g)||campIsBoss(g); }
+/* v1097 (sweep 9 Oct P0 #5): ONE answer to "does this stage have 3 rewarded runs a day" for the fight, the sweep and the stage card -
+   every Elite stage, and x-3/6/9/10 in Normal AND Veteran. The sweep asked only Normal, so Veteran x-3/6/9 sweeps were uncapped. */
+function campCapStageSrv(mode,node){ return mode==='elite'||isEliteStageSrv(node)||campIsBoss(node); }
 function eliteHeroForSrv(g){ if(!isHeroRewardStageSrv(g)) return null;
   const ch=Math.floor((g-1)/10)+1, st=((g-1)%10)+1;
   const idx=(ch-1)*4 + ({3:0,6:1,9:2,10:3})[st];
@@ -6542,7 +6545,7 @@ async function api(req,res,url){
       // 27 Aug (Phil): SWEEP IS EARNED — only a three-star clear unlocks instant sweeping.
       if((prog.stars[node]|0)<3) return {ok:false,error:'Three-star this stage first — sweep needs ★★★.', stars:(prog.stars[node]|0)};
       let times=Math.max(1,Math.min(10,b.times|0||1));
-      const elite=mode==='elite' || (mode==='normal' && isHeroRewardStageSrv(node)) || campIsBoss(node);   // every Elite stage and Normal 3/6/9/10: 3 rewarded runs/day, sweeps included
+      const elite=campCapStageSrv(mode,node);   // every Elite stage and Normal/Veteran 3/6/9/10: 3 rewarded runs/day, sweeps included (v1097: Veteran was missing)
       prog.runs=prog.runs||{}; const dk=nyDayKey();
       if(prog.runs.k!==dk) prog.runs={k:dk};
       if(elite){ const used=prog.runs['n'+node]|0; const left=Math.max(0,3-used);
@@ -6721,11 +6724,13 @@ async function api(req,res,url){
           const cap=TEMPLE.CONFIG.GEM_TIER_DAILY_SOFT_CAP;
           if(tier!=='gold'&&cap>0&&(state.gemTierCounts[tier]|0)>=cap){stopped='That tier reached its daily limit.';break;}
           if(led.gold<g||led.gems<d){stopped='Not enough currency.';break;}
+          const iterSnap=JSON.stringify(state);
           led.gold-=g;led.gems-=d;gold+=g;gems+=d;
           if(tier==='gold')TEMPLE.buyGoldRitual(state);else TEMPLE.buyGemTier(state,tier);
-          let rollIndex=0;TEMPLE.setRng(()=>srvRoll('temple-pray',me.id,reqId+':'+i,rollIndex++));
+          state.prayN=(state.prayN|0)+1;const prayN=state.prayN;   /* v1097 (sweep 9 Oct P0 #1): a server-owned prayer count in the seed - a reused requestId never replays rolls */
+          let rollIndex=0;TEMPLE.setRng(()=>srvRoll('temple-pray',me.id,prayN,reqId+':'+i,rollIndex++));
           const s=TEMPLE.pray(state,key,tier,{profile:info.damageProfile});
-          if(!s||s.ok===false){stopped='The prayer failed.';break;}
+          if(!s||s.ok===false){ for(const k of Object.keys(state))delete state[k]; Object.assign(state,JSON.parse(iterSnap)); led.gold+=g; led.gems+=d; gold-=g; gems-=d; stopped='The prayer failed.'; break; }   /* v1097: a failed prayer is refunded */
           if(s.power>0){TEMPLE.saveSession(state);saved++;power+=s.power;for(const x of TEMPLE.earnBlessings(state,key,info))unlocked.push(x);}
           else{TEMPLE.discardSession(state);cancelled++;}
           results.push({power:s.power,saved:s.power>0,rolls:s.rolls,bonusWon:!!s.bonusPrayer,levelUps:s.levelUps||0});
@@ -6753,7 +6758,8 @@ async function api(req,res,url){
         }else if(tier==='bonus'){
           if((state.bonusPrayers|0)<1)return {ok:false,error:'No bonus prayers remain.'};
         }else if(b.held===true){   /* v1092: a held prayer from the Mythical Pool - prays at its own tier, no diamonds, no daily tier count */
-          const hp=state.heldPrayers||{}; if(!TEMPLE.CONFIG.PRAYER_TIERS.find(x=>x.id===tier)||(hp[tier]|0)<1)return {ok:false,error:'You hold no '+tier+' prayer.'};
+          const hp=state.heldPrayers||{}, ht=TEMPLE.CONFIG.PRAYER_TIERS.find(x=>x.id===tier); if(!ht||(hp[tier]|0)<1)return {ok:false,error:'You hold no '+tier+' prayer.'};
+          if(level<ht.unlockKeeper)return {ok:false,error:'That prayer needs Temple '+ht.unlockKeeper+'.'};   /* v1097 (sweep 9 Oct P0 #2): refused before the held prayer is spent */
         }else{
           const t=TEMPLE.CONFIG.PRAYER_TIERS.find(x=>x.id===tier);
           if(!t||level<t.unlockKeeper)return {ok:false,error:'That prayer tier is locked.'};
@@ -6763,14 +6769,18 @@ async function api(req,res,url){
           gems=TEMPLE.tierGems(state,tier);   /* v1094: the reference's 10 % tier discounts at Temple 10/12/18/20 */
         }
         if(led.gold<gold||led.gems<gems)return {ok:false,error:'Not enough currency.'};
+        const templeSnap=JSON.stringify(state);   /* v1097 (sweep 9 Oct P0 #2): a failed prayer puts back everything it took */
         if(!state.heroes[key])state.heroes[key]=TEMPLE.newHero();
         led.gold-=gold;led.gems-=gems;
         if(tier==='gold')TEMPLE.buyGoldRitual(state);
         else if(gems)TEMPLE.buyGemTier(state,tier);
         if(b.held===true&&tier!=='free'&&tier!=='bonus'&&tier!=='gold'){ state.heldPrayers[tier]-=1; }
-        let rollIndex=0;TEMPLE.setRng(()=>srvRoll('temple-pray',me.id,reqId,rollIndex++));
+        state.prayN=(state.prayN|0)+1;const prayN=state.prayN;   /* v1097 (sweep 9 Oct P0 #1): a server-owned prayer count in the seed - a reused requestId never replays rolls */
+        let rollIndex=0;TEMPLE.setRng(()=>srvRoll('temple-pray',me.id,prayN,reqId,rollIndex++));
         const popt={profile:SIM.HERO_BASE[key].damageProfile};
         const session=tier==='free'?TEMPLE.freeDailyPray(state,key,popt):tier==='bonus'?TEMPLE.useBonusPrayer(state,key,popt):TEMPLE.pray(state,key,tier,popt);
+        if(!session||session.ok===false){ for(const k of Object.keys(state))delete state[k]; Object.assign(state,JSON.parse(templeSnap)); led.gold+=gold; led.gems+=gems;
+          return {ok:false,error:session&&session.reason==='tier_locked'?'That prayer tier is locked.':'The prayer failed. Nothing was spent.'}; }
         const tx=ledTx(me,'temple:pray',{hero:key,tier,held:b.held===true,gold:-gold,gems:-gems,keeperPoints:state.keeperPoints});
         return {ok:true,rolls:session.rolls,net:session.net,power:session.power,cap:session.cap,completion:session.completion,
           tier:session.tier,bonusWon:!!session.bonusPrayer,levelUps:session.levelUps||0,
@@ -6877,7 +6887,7 @@ async function api(req,res,url){
       stars:(_pr.stars[node]|0), sweepUnlocked:(_pr.stars[node]|0)>=3,
       /* v1015 (re-audit Arena N7): the server's own count of today's rewarded runs on a guardian/boss stage (the NY day it pays on);
          the card showed a browser counter on a 09:00 day */
-      runsLeft:(mode==='elite'||isEliteStageSrv(node)||campIsBoss(node))?Math.max(0,3-((_pr.runs&&_pr.runs.k===nyDayKey())?(_pr.runs['n'+node]|0):0)):null,
+      runsLeft:campCapStageSrv(mode,node)?Math.max(0,3-((_pr.runs&&_pr.runs.k===nyDayKey())?(_pr.runs['n'+node]|0):0)):null,
       farm:(st.rewards.glyphFragments[0]||null) }); }
   /* v266: the whole farm map in one call — every portal's stage list with its ONE named fragment,
      plus the reverse index the Glyph tree deep-links from. */
@@ -7084,7 +7094,7 @@ async function api(req,res,url){
            and boss stages (3/6/9/10), on the SAME prog.runs counter, so manual runs and sweeps share
            one budget. A first clear always pays and never spends the budget. A capped repeat win still
            records stars / cleared / the receipt, but pays nothing and says so (reward.dailyCapped). */
-        const capStage=mode==='elite'||isEliteStageSrv(a.node)||campIsBoss(a.node);   // every Elite stage; Normal 3/6/9/10
+        const capStage=campCapStageSrv(mode,a.node);   // every Elite stage; Normal 3/6/9/10
         let rewarded=true;
         if(capStage && !first){
           prog.runs=prog.runs||{}; const _rdk=nyDayKey(); if(prog.runs.k!==_rdk) prog.runs={k:_rdk};
@@ -7291,19 +7301,30 @@ async function api(req,res,url){
       if(claimed<1||claimed>8) return {ok:false,error:'Bad placement.'};
       att.claimed=true;
       if(att.god){ writeDB(); return {ok:true, stamina:0, note:'God Mode match - no reward.', ledger:ledgerView(me)}; }   // v654 (Phil: "God mode should give no reward")
-      /* Phil's review-first rule: a suspicious checkpoint or fast result files a case, but never
-         silently lowers or denies the player's claimed reward. Only Phil may authorize a penalty. */
-      edCpIngest(att,b.cps,true); const chk=edCheckClaim(att,claimed,rounds), place=claimed;
+      /* Phil's review-first rule (restated 9 Oct: "rewards are never blocked, only sent to ember when flagged and ember sends to you if
+         she thinks its suspicious"): a suspicious result files a case in Ember's review queue, but the claimed reward is always paid. */
+      edCpIngest(att,b.cps,true); const chk=edCheckClaim(att,claimed,rounds);
       const ORD=['','1st','2nd','3rd','4th','5th','6th','7th','8th'];
       const ED_MIN_ROUNDS=[0,16,16,15,14,13,12,0,0];
-      const tooFast=rounds<Math.max(6,ED_MIN_ROUNDS[place]||0) || Date.now()-att.startedAt < rounds*12000;
+      const tooFast=rounds<Math.max(6,ED_MIN_ROUNDS[claimed]||0) || Date.now()-att.startedAt < rounds*12000;
       const flags=chk.flags.slice(); if(tooFast) flags.push('match duration or round count below the existing reward floor');
+      /* v1097 (sweep 9 Oct P0 #4): the match is played in the browser and the server cannot replay it. The claim is checked against the
+         server's record of the run (the round reports kept on the attempt): the report for the claim's own round must say the same place
+         (your knockout place, or 1st with only you left standing). An honest client always sends it (it rides along with the claim). A
+         claim with no such report, or one the report contradicts, is FLAGGED with the difference at stake (claimed reward minus what the
+         record supports; no record supports the lowest paying tier) - paid in full, reviewed by Ember. */
+      const last=(att.cp||{})[rounds];
+      const recorded=!!last&&rounds>0&&((last.pl|0)===claimed||(claimed===1&&!(last.pl|0)&&(last.alive|0)===1));
+      if(!recorded) flags.push(last?'the round '+rounds+' report says '+((last.pl|0)?'place '+last.pl:(last.alive|0)+' players still in')+', not '+ORD[claimed]:'no round report for the claimed round '+rounds);
+      const ED_LOW_PLACE=ED_STAM.reduce((m,x,i)=>x>0?i:m,0);   // the lowest paying place (6th)
+      const supported=recorded?claimed:(last&&(last.pl|0)?Math.max(claimed,last.pl|0):Math.max(claimed,ED_LOW_PLACE));
+      const place=claimed, pay=ED_STAM[claimed]||0;   // always the claimed place
       if(flags.length){
-        const oldPlace=Math.max(claimed,chk.floor|0);
+        const oldPlace=Math.max(claimed,chk.floor|0,supported);
         const oldReward=tooFast?0:(ED_STAM[oldPlace]||0);
         const stake=Math.max(0,(ED_STAM[claimed]||0)-oldReward);
-        att.flag={reasons:flags,claimed,checkpointFloor:chk.floor|0,paid:place,rounds,t:Date.now()};
-        ledTx(me,'emberdraft:flag',{stamina:0,claimed,checkpointFloor:chk.floor|0,paid:place,
+        att.flag={reasons:flags,claimed,checkpointFloor:chk.floor|0,paid:place,paidStamina:pay,rounds,t:Date.now()};
+        ledTx(me,'emberdraft:flag',{stamina:0,claimed,checkpointFloor:chk.floor|0,paid:place,paidStamina:pay,
           why:flags.slice(0,4).join(' | ').slice(0,300)});
         const detail='Emberdraft attempt '+att.id+': claimed '+ORD[claimed]+', checkpoint floor '+(chk.floor|0)+
           ', round '+rounds+', flags: '+flags.join('; ');
@@ -7311,7 +7332,7 @@ async function api(req,res,url){
         feedbackCheatSignal(me,'emberdraft:'+att.id,detail,'Emberdraft placement review',stake,
           {claimedPlace:claimed,checkpointFloor:chk.floor|0,round:rounds,flags:flags.slice(0,8)});
       }
-      const stam=ED_STAM[place]||0;
+      const stam=pay;
       if(!stam) { writeDB(); return {ok:true, stamina:0, note:'No reward for 7th or 8th.', ledger:ledgerView(me)}; }
       const got=creditStamina(me,led,stam,'emberdraft:place');   // v646: report and record what was really added (the 999 cap)
       ledTx(me,'emberdraft:place'+place,{stamina:got});
@@ -7482,15 +7503,21 @@ async function api(req,res,url){
         const kind=String(b.kind||''); const K=Object.prototype.hasOwnProperty.call(TRIAL_KINDS,kind)?TRIAL_KINDS[kind]:null; if(!K) return {ok:false,error:'Unknown trial.'};
         /* v1087 (scan 8 #2): this route had no unlock gate - the Tower (level 40) and Vault (10) ladders paid from level 1; the Gauntlet is retired */
         { const _lv=ledPlayerLevel(led); if(kind==='gauntlet') return {ok:false,error:'The Gauntlet is retired.'};
-          if(kind==='tower'&&_lv<40) return {ok:false,error:'The Tower of Trials opens at level 40.'}; if(kind==='dungeon'&&_lv<10) return {ok:false,error:'The Vault opens at level 10.'}; }
-        const floor=Math.max(1,Math.min(500,b.floor|0));
+          if(kind==='tower'&&_lv<40) return {ok:false,error:'The Tower of Trials opens at level 40.'}; if(kind==='dungeon'&&_lv<10) return {ok:false,error:'The Vault opens at level 10.'};
+          /* v1097 (sweep 9 Oct P0 #3): kind 'tower' was a hidden second Tower ladder - first-clear gold for floors to 500 on floor-100 waves,
+             no power wall, beside the real Tower (/api/tower/ascend pays each floor once). It is retired; the Tower climbs only there. */
+          if(kind==='tower') return {ok:false,error:'The Tower of Trials climbs on its own ladder.'}; }
+        /* v1097 (sweep 9 Oct P0 #3): floors stop at the last built encounter (DUNGEON_MAX_FLOOR) - beyond it every floor was floor 100 again,
+           each paying its first clear; floors still go in order (best+1) and pay once */
+        if((+b.floor|0)>DUNGEON_MAX_FLOOR) return {ok:false,error:'The last floor is '+DUNGEON_MAX_FLOOR+'.'};
+        const floor=Math.max(1,Math.min(DUNGEON_MAX_FLOOR,b.floor|0));
         led.trial=led.trial||{}; const T=led.trial[kind]=led.trial[kind]||{best:0};
         if(floor>T.best+1) return {ok:false,error:'Clear the previous floor first.'};
         const ids=Array.isArray(b.heroIds)?[...new Set(b.heroIds.map(String))].slice(0,5):[];   /* v559: no dedupe meant five copies of one hero were a legal lineup AND collected the per-entry XP award five times (City PvP, /api/pvp/attack). The Vault already rejects duplicates; every squad route now agrees. */
         for(const k of ids){ if(!ownsHeroK(led,k)) return {ok:false,error:'not unlocked: '+k}; }
         const snaps=ids.map(k=>snapshotHeroFromServer(me,k)).filter(Boolean);
         if(!snaps.length) return {ok:false,error:'Pick your squad.'};
-        const rec=vaultFloorRecord(Math.min(100,floor));
+        const rec=vaultFloorRecord(floor);
         const waves=rec.waves.map(w=>w.map(m=>{ const u=vaultSpecToCombatUnit(m); u.maxHp=Math.round(u.maxHp*K.mul); u.atkP=Math.round(u.atkP*K.mul); u.atk=u.atkP; return u; }));
         const band=x=>Object.assign({},x,{maxHp:Math.round(x.maxHp*1.6),atk:Math.round(x.atk*1.6),heal:Math.round((x.heal||0)*1.6),atkP:Math.round((x.atkP||0)*1.6),atkM:Math.round((x.atkM||0)*1.6)});
         const r=SIM.qualificationEstimate(snaps.map(band), waves, srvSeed('trial', kind, me.id, floor, reqId));
