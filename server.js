@@ -1360,12 +1360,16 @@ function d_levelForXP(xp,cum){ let L=1; while(L<D_MAX_LEVEL && xp>=cum[L+1]) L++
 
 /* ---- v249 Academy on the ledger: mirrors of the client's research tables ---- */
 const TECH_MAX_SRV=60;
-const TECH_BASE_SRV={atk:0.7, hp:10, ap:0.5, def:0.13, armor:0.13, mr:0.13, crit:0.13, critres:0.2};
+/* v1099 (Phil 9 Oct 2026: "there should be no percentages in academy, please make academy have flat numbers"): every track is a flat
+   stat - Attack, Health, Ability power (apowFlat), Defense = Armor AND Magic resist, Armor, Magic resist, Crit rating, Crit resist
+   rating (20 = 1%). = the client's TECH_BASE. */
+const TECH_BASE_SRV={atk:0.7, hp:10, ap:0.78, def:7.2, armor:0.13, mr:0.13, crit:2.6, critres:4};   // PROPOSED - Phil tunes
 const TECH_GROWTH_SRV=1.04;
 const ACAD_TRACKS=['academy','atk','hp','ap','def','armor','mr','crit','critres'];
 const ACADEMY_UNLOCK_LEVEL=20;   /* v988: = client ACADEMY_UNLOCK_LEVEL (test_durable_wall checks they match) */
 function techGainSrv(k,lvl){ return (TECH_BASE_SRV[k]!=null?TECH_BASE_SRV[k]:0.1)*Math.pow(TECH_GROWTH_SRV,lvl||0); }
 function techTotalSrv(A,k){ const lvl=(A&&A.lv&&A.lv[k])|0; let v=0; for(let i=0;i<lvl;i++) v+=techGainSrv(k,i); return v; }
+function techFlatSrv(A,k){ return Math.round(techTotalSrv(A,k)); }   /* v1099: whole points, rounded per track like the client's techFlat */
 function learnDurSrv(lvl,acadLvl){ return Math.round((120+lvl*lvl*45)*1000*(1-Math.min(0.6,(acadLvl|0)*0.02))); }
 const RES_NAMES={iron:'Emberite',crystal:'Voidglass',silver:'Starsilver',coal:'Cinderwood'};   // Phil 3 Oct 2026 "Set a is good": player-facing names; keys unchanged
 function learnResCostSrv(track,lvl){ if(track==='academy'){ const n=ACADEMY_ECON.levelCost((lvl|0)+1), c={}; for(const r of ACADEMY_ECON.RESOURCES) c[r]=n; return c; }   /* Phil 3 Oct: the Academy level costs all four, equal */
@@ -1406,11 +1410,18 @@ function acadCollect(A){ let changed=false; const now=Date.now();
   for(const k in A.learn){ const done=A.learn[k]; if(done&&now>=done){ A.lv[k]=Math.min(acadTrackMax(k),(A.lv[k]|0)+1); delete A.learn[k]; changed=true; } }
   changed=acadIncome(A,now)||changed;
   return changed; }
-function acadCombat(u){ const led=u&&u.led; if(!led||!led.acad) return null; const A=led.acad;
-  return { atkFlat:Math.round(techTotalSrv(A,'atk')), hpFlat:Math.round(techTotalSrv(A,'hp')),
-    armorRating:techTotalSrv(A,'armor'), mrRating:techTotalSrv(A,'mr'),
-    critFrac:techTotalSrv(A,'crit')/100, critResFrac:techTotalSrv(A,'critres')/100,
-    dmgRedFrac:techTotalSrv(A,'def')/100, apMul:1+techTotalSrv(A,'ap')/100 }; }
+function acadCombat(u){ const led=u&&u.led; if(!led||!led.acad) return null; return acadCombatOf(led.acad); }
+/* v1099: Academy research in battle = flats and ratings only. Defense lands on Armor AND Magic resist. */
+function acadCombatOf(A){
+  return { atkFlat:techFlatSrv(A,'atk'), hpFlat:techFlatSrv(A,'hp'), apFlat:techFlatSrv(A,'ap'),
+    armorRating:techFlatSrv(A,'armor')+techFlatSrv(A,'def'), mrRating:techFlatSrv(A,'mr')+techFlatSrv(A,'def'),
+    critRating:techFlatSrv(A,'crit'), critResRating:techFlatSrv(A,'critres') }; }
+/* v1099: the one place the Academy joins a hero's core ratings (snapshot + sim bots): flats beside the glyph/gear flats, Armor / MR as
+   rating on top of the base, crit / crit resist as rating points (CONV 20 = 1%). AP flats never make an ability line (core rule). */
+function acadApply(R,XT,AC){ if(!AC) return;
+  R.atkFlat=(R.atkFlat||0)+AC.atkFlat; R.hpFlat=(R.hpFlat||0)+AC.hpFlat; R.apowFlat=(R.apowFlat||0)+AC.apFlat;
+  R.crit=(R.crit||0)+AC.critRating; R.critRes=(R.critRes||0)+AC.critResRating;
+  XT.armorRating=(XT.armorRating||0)+AC.armorRating; XT.mrRating=(XT.mrRating||0)+AC.mrRating; }
 /* ---- v250: per-loop server authorities (audit P1 — generic tx/earn retired) ---- */
 const ELITE_SEQ_SRV=["tick","sylthaine","vireo","vael","fritz","rhukk","bloatus","umbris","oakmir"];
 function isEliteStageSrv(g){ const st=((g-1)%10)+1; return st===3||st===6||st===9; }
@@ -1604,15 +1615,14 @@ function snapshotHeroFromServer(u, key, save, sOpts){
       gearSkill={ id:d.id, name:d.active, type:d.activeType||null, params:d.activeParams||null, slot:d.slot }; } } }
   // v249: Academy research is SERVER-owned and reaches combat here (flats, ratings, fractions, AP multiplier)
   const AC=acadCombat(u);
-  if(AC){ R.atkFlat+=AC.atkFlat; R.hpFlat+=AC.hpFlat; }
   /* v1094 (Temple of Ash v2): the four Temple bars are FLAT stats - health, attack (AD or AP by damage type), armor & MR,
      penetration - and go in here, beside the glyph flats, so the core builds them exactly as the client's makeUnit does.
      noTempleEffects (the card) skips only the blessing EFFECTS; the card's multiplier prices those. */
   const TB=templeBonusesFor(u,key);
   /* v762 - THE SKILL LEVELS TRAVEL WITH THE HERO. They were on the client snapshot only, so a
      war line fought as though every skill were level 1 however much the player had spent. */
-  const XT=Object.assign({skillLv:ledSkillArr(u.led,key).slice()},
-    AC?{armorRating:AC.armorRating, mrRating:AC.mrRating, critFrac:AC.critFrac, critResFrac:AC.critResFrac, dmgRedFrac:AC.dmgRedFrac, apMul:AC.apMul}:{});
+  const XT={skillLv:ledSkillArr(u.led,key).slice()};
+  acadApply(R,XT,AC);
   TEMPLE_EFFECTS.coreRatings(R,XT,TB);
   const unit=SIM.heroCombatStats(key,{level:lvl, stars, pips, ref:refLvl, ratings:R, gearSkillSlot, gearSkill, extra:XT});
   return sOpts&&sOpts.noTempleEffects?unit:TEMPLE_EFFECTS.applyCore(unit,TB);
@@ -3511,11 +3521,11 @@ function campaignHeroSpec(u,key){
     tt,
     /* Academy research and Temple effects are server-owned and reach the frozen fight spec.
        The legacy client equip bundle contributes nothing — a browser cannot grant power. */
-    ex:{ techDef:AC?AC.dmgRedFrac*100:0, techCrit:AC?AC.critFrac*100:0, techCritRes:AC?AC.critResFrac*100:0,
+    ex:{ techCrit:AC?AC.critRating:0, techCritRes:AC?AC.critResRating:0,   /* v1099: crit / crit resist RATINGS (mulsFromTotals x 0.0005) */
          equip:{} },
-    fAtk:tt.atk+(AC?AC.atkFlat:0), fHp:tt.hp+(AC?AC.hpFlat:0), fApow:tt.apow,
+    fAtk:tt.atk+(AC?AC.atkFlat:0), fHp:tt.hp+(AC?AC.hpFlat:0), fApow:tt.apow+((AC&&(((SIM.HERO_BASE[key]||{}).apow||0)>0||ledHeroLevel(led,key)>1))?AC.apFlat:0),   /* = the core: AP flats only where the hero has an ability line (base or level growth) */
     techArmor:AC?AC.armorRating:0, techMr:AC?AC.mrRating:0,
-    apMul:AC?AC.apMul:1,
+    apMul:1,
     skillLv:ledSkillArr(led,key).slice(), gearSkill, templeBonuses:templeBonusesFor(u,key)
   };
 }
@@ -5636,10 +5646,7 @@ async function api(req,res,url){
       const botAcadCombat=(()=>{
         if(!botAcad) return null;
         const A={lv:{academy:botAcad,atk:botAcad,hp:botAcad,ap:botAcad,def:botAcad,armor:botAcad,mr:botAcad,crit:botAcad,critres:botAcad}};
-        return { atkFlat:Math.round(techTotalSrv(A,'atk')), hpFlat:Math.round(techTotalSrv(A,'hp')),
-          armorRating:techTotalSrv(A,'armor'), mrRating:techTotalSrv(A,'mr'),
-          critFrac:techTotalSrv(A,'crit')/100, critResFrac:techTotalSrv(A,'critres')/100,
-          dmgRedFrac:techTotalSrv(A,'def')/100, apMul:1+techTotalSrv(A,'ap')/100 }; })();
+        return acadCombatOf(A); })();
       const seedBase=String(b.seed||('sim'+Date.now()));
       let rng=SIM.mulberry32(SIM.seedFrom(seedBase));
       const keys=Object.keys(SIM.HERO_BASE);
@@ -5668,11 +5675,9 @@ async function api(req,res,url){
           dmgBonus:(fl.dmgBonus|0)+(gb.dmgBonus|0), dmgRed:(fl.dmgRed|0)+(gb.dmgRed|0), shieldStr:(fl.shieldStr|0)+(gb.shieldStr|0),
           ctrlHit:(fl.ctrlHit|0)+(gb.ctrlHit|0), ctrlRes:(fl.ctrlRes|0)+(gb.ctrlRes|0), healPow:(fl.healPow|0)+(gb.healPow|0) };
         const AC=botAcadCombat;
-        if(AC){ R.atkFlat+=AC.atkFlat; R.hpFlat+=AC.hpFlat; }
         /* v762 - and the skill level, which now scales the ultimate in the resolver. */
-        const extra=Object.assign({ skillLv:[botSkill,botSkill,botSkill,botSkill] },
-          AC?{armorRating:AC.armorRating, mrRating:AC.mrRating, critFrac:AC.critFrac,
-              critResFrac:AC.critResFrac, dmgRedFrac:AC.dmgRedFrac, apMul:AC.apMul}:{});
+        const extra={ skillLv:[botSkill,botSkill,botSkill,botSkill] };
+        acadApply(R,extra,AC);   /* v1099: the same Academy flats a player's hero gets */
         return SIM.heroCombatStats(key,{level:botLevel, stars:botStars, pips:0, ref:0, ratings:R,
           gearSkillSlot:null, gearSkill:null, extra}); };
       /* v733 (Phil: "each line heroes are unique. They cannot be used multiple times like you did" /
@@ -8350,6 +8355,7 @@ async function api(req,res,url){
     const cities=placed
       .slice(0,500)
       .map(u=>({ id:u.id, name:u.name, rank:u.rank||null, level:ledPlayerLevel(ensureLedger(u)),
+                 academy:(u.led&&u.led.acad&&u.led.acad.lv)?(u.led.acad.lv.academy|0):undefined,   // v1099: the owner's Academy level picks their castle art
                  power:serverTeamPower((Array.isArray(u.wall)&&u.wall.length?u.wall:(u.team||[])), u)|0,   // v249: SERVER-computed power, never client-uploaded
                  region:u.worldLocation.region, x:u.worldLocation.x, y:u.worldLocation.y, guildId:u.guildId||null,
                  team:hydrateRoster(u,(Array.isArray(u.wall)&&u.wall.length?u.wall:(u.team||[]))) }));

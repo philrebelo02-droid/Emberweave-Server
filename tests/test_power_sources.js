@@ -78,7 +78,7 @@ const powerHead=html.slice(powerStart,html.indexOf('const armor=',powerStart));
 const hpLine=(powerHead.match(/const hp\s*=[^\n]+/)||[''])[0];
 const atkLine=(powerHead.match(/const atkP\s*=[^\n]+/)||[''])[0];
 const critLine=(html.match(/const crit\s*=\s*Math\.min[^\n]+/)||[''])[0];
-ck('displayed Hero Power includes Academy HP and Attack flats',/techTotal\('hp'\)/.test(hpLine)&&/techTotal\('atk'\)/.test(atkLine));
+ck('displayed Hero Power includes Academy HP and Attack flats',/techFlat\('hp'\)/.test(hpLine)&&/techFlat\('atk'\)/.test(atkLine));   /* v1099: Academy tracks are whole flat points (techFlat) */
 ck('displayed Hero Power counts socket and gear Crit once',!/tt\.crit\|\|/.test(critLine));
 const powerReturn=(html.match(/return Math\.round\(POWER_K\*Math\.sqrt\(ehp\*dps\)[^\n]+/)||[''])[0];
 ck('disabled legacy equipment does not add cosmetic Hero Power',!/equipTierSum/.test(powerReturn));

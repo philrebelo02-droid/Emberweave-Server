@@ -4472,7 +4472,13 @@ const CASTLE_IMGS = {"castle1":"/assets/img/world-map/castle-castle1.webp","cast
 const GHOST_CASTLE = "/assets/img/world-map/ghost-castle.webp";   // square-padded level-1 castle for the teleport placement ghost
 const CASTLE_TIERS = [1,15,30,45,60];       // kingdom-level thresholds for castles 1..5
 function castleTier(level){ let t=1; for(let i=0;i<CASTLE_TIERS.length;i++){ if(level>=CASTLE_TIERS[i]) t=i+1; } return t; }
-function playerCastleImg(){ return CASTLE_IMGS['castle'+castleTier(playerLevel())] || CASTLE_IMGS.castle1 || ''; }
+/* v1099 (Phil 9 Oct 2026: "my academy is level 0, means i should have the small castle. the academy center building should change with
+   my academy level. same thing with my world map castle"): the castle art follows the ACADEMY level (0-120), not the player level -
+   the Academy centre, your world-map castle and every real player's castle (the server sends each owner's academy level). */
+const ACADEMY_CASTLE_TIERS = [0,25,50,75,100];   // PROPOSED - Phil tunes: Academy level where castles 1..5 start
+function castleTierAcad(lv){ let t=1; for(let i=0;i<ACADEMY_CASTLE_TIERS.length;i++){ if((lv|0)>=ACADEMY_CASTLE_TIERS[i]) t=i+1; } return t; }
+function castleImgAcad(lv){ return CASTLE_IMGS['castle'+castleTierAcad(lv)] || CASTLE_IMGS.castle1 || ''; }
+function playerCastleImg(){ return castleImgAcad(academyLevel()); }
 /* v612 - ASCENSION BORDERS (Phil, 18 Sep: "Every hero card size needs a quality boarder made for every ascension color" / "To fit
    their card perfectly" / "Grey will just be a grey border. ... The first quality is just the color itself. +1, +2, +3 etc etc all
    look more advanced" / "The edges would look best slightly rounded" / "At +3 and +4 the cards should start having jewelery in
@@ -5343,12 +5349,11 @@ function heroPower(key){ const t=HERO_TYPES[key]; if(!t) return 0;
      anything reads them, so those are the numbers the hero actually fights with; pricing the raw
      fractions put the card half a percent off the same hero priced anywhere else. Same order too -
      the ability flats go in BEFORE the academy's ability multiplier, exactly as the core does it. */
-  const hp   = Math.round(heroStat(key,t.hp,'hp')*m.hp) + heroFlatHp(key) + (typeof techTotal==='function'?techTotal('hp'):0) + TBF.hpFlat;
-  const atkP = Math.round(heroStat(key,t.dmg,'dmg')*m.atk) + heroFlatAtk(key) + (typeof techTotal==='function'?techTotal('atk'):0) + TBF.adFlat;
-  const atkM = (t.apow||0)>0 ? Math.round((Math.round(heroStat(key,t.apow,'apow'))+heroFlatApow(key)+TBF.apFlat)
-                 *(typeof abilityPowerMul==='function'?abilityPowerMul():1)) : 0;
-  const armor= heroStat(key,t.armor||0,'armor') + (typeof techTotal==='function'?techTotal('armor'):0) + (tt.armor||0)*3 + TBF.armorFlat;
-  const mr   = heroStat(key,t.mr||0,'mr')       + (typeof techTotal==='function'?techTotal('mr'):0)    + (tt.mr||0)*3 + TBF.mrFlat;
+  const hp   = Math.round(heroStat(key,t.hp,'hp')*m.hp) + heroFlatHp(key) + (typeof techFlat==='function'?techFlat('hp'):0) + TBF.hpFlat;
+  const atkP = Math.round(heroStat(key,t.dmg,'dmg')*m.atk) + heroFlatAtk(key) + (typeof techFlat==='function'?techFlat('atk'):0) + TBF.adFlat;
+  const atkM = (t.apow||0)>0 ? Math.round(heroStat(key,t.apow,'apow'))+heroFlatApow(key)+TBF.apFlat+(typeof techFlat==='function'?techFlat('ap'):0) : 0;   /* v1099: Academy AP is a flat */
+  const armor= heroStat(key,t.armor||0,'armor') + (typeof techArmorFlat==='function'?techArmorFlat():0) + (tt.armor||0)*3 + TBF.armorFlat;
+  const mr   = heroStat(key,t.mr||0,'mr')       + (typeof techMrFlat==='function'?techMrFlat():0)    + (tt.mr||0)*3 + TBF.mrFlat;
   // average mitigation: armor and MR each cover half the damage a hero takes, plus flat reduction
   const mitig= Math.min(0.85, (defToDR(armor,lv)+defToDR(mr,lv))/2 + (m.dr||0));
   const ehp  = hp/Math.max(0.15,1-mitig);
@@ -5572,15 +5577,23 @@ function migrateG(){
     if((G.campaignCleared||0)===0 && playerLevel()<30) G.beginnerShieldUntil=Date.now()+72*3600000; }
   return migrateRename(); }
 // ---- Tech scaling: small FLAT per-track amounts that grow gently each level (see reference tables). ----
-//   Health/Attack Power add flat HP/ATK. Ability Power / Def / Armor / Magic Resist / Crit / Crit Resist add flat % points.
+//   v1099 (Phil 9 Oct 2026: "there should be no percentages in academy, please make academy have flat numbers"): EVERY track is a
+//   flat stat that joins the same flats / ratings glyphs and gear use - Attack damage, Health, Ability power (apow flat, spells only),
+//   Defense = Armor AND Magic resist, Armor, Magic resist, Crit rating and Crit resist rating (20 rating = 1%, the gear rule).
+//   Sized so a level-100 five-star hero at track 60 gets about the old percentage's effect (Ability power vs a median mage's 155 AP,
+//   Defense through defToDR at level 100 vs median Armor 988 / MR 794; crit and crit resist convert exactly). Mirrored in server.js.
 const TECH_MAX=60;                                        // every tech tops out at kingdom level 60
-const TECH_BASE={atk:0.7, hp:10, ap:0.5, def:0.13, armor:0.13, mr:0.13, crit:0.13, critres:0.2};
+const TECH_BASE={atk:0.7, hp:10, ap:0.78, def:7.2, armor:0.13, mr:0.13, crit:2.6, critres:4};   // PROPOSED - Phil tunes (v1099: ap was 0.5%, def 0.13%, crit 0.13%, critres 0.2% a level)
 const TECH_GROWTH=1.04;                                   // per-level gain rises ~4% each level (matches the reference curve)
-const TECH_FLAT={atk:1,hp:1};                             // these tracks are raw stat points (not %)
+const TECH_FLAT={atk:1,hp:1,ap:1,def:1,armor:1,mr:1,crit:1,critres:1};   // v1099: every track is raw stat points
 function techGainAt(k,lvl){ return (TECH_BASE[k]!=null?TECH_BASE[k]:0.1)*Math.pow(TECH_GROWTH, lvl||0); }   // gain for lvl → lvl+1
 function techTotal(k,lvl){ if(lvl==null) lvl=(G.tech&&G.tech[k])||0; let v=0; for(let i=0;i<lvl;i++) v+=techGainAt(k,i); return v; }
-// Ability Power tech: +techTotal('ap')% ability & ultimate damage (your heroes only)
-function abilityPowerMul(){ return 1 + techTotal('ap')/100; }
+// v1099: the whole points a track adds in battle (server techFlatSrv rounds the same way); Defense lands on Armor and on Magic resist
+function techFlat(k,lvl){ return Math.round(techTotal(k,lvl)); }
+function techArmorFlat(){ return techFlat('armor')+techFlat('def'); }
+function techMrFlat(){ return techFlat('mr')+techFlat('def'); }
+// v1099: Ability Power research is a FLAT apow (techFlat('ap')) on heroes with an ability line - no multiplier any more
+function abilityPowerMul(){ return 1; }
 // ---- name renames: 1st free, then 50 / 100 / 200 / 200… diamonds. Grant v1 resets everyone back to a free rename. ----
 const RENAME_GRANT_VERSION=1;
 const RENAME_COSTS=[0,50,100,200];   // index = renames already done → cost of the next one
@@ -5703,8 +5716,8 @@ async function doSummon(key){ if(!canSummon(key)||summonBusy) return false;
 function mulsFromTotals(gf, ex){
   gf=gf||{}; ex=ex||{};
   let atk=1, hp=1;
-  let dr=(ex.techDef||0)/100 + (ex.baseDr||0);
-  let crit=(ex.techCrit||0)/100, critRes=(ex.techCritRes||0)/100, regen=0, energyReg=0;
+  let dr=(ex.baseDr||0);   /* v1099: Academy Defense is flat Armor + Magic resist now (makeUnit armorRating / mrRating), not reduction */
+  let crit=(ex.techCrit||0)*0.0005, critRes=(ex.techCritRes||0)*0.0005, regen=0, energyReg=0;   /* v1099: Academy crit / crit resist are RATINGS (20 = 1%, as gear) */
   const em=ex.equip||{}; atk+=(em.atk||0); hp+=(em.hp||0); dr+=(em.dr||0); crit+=(em.crit||0); regen+=(em.regen||0); energyReg+=(em.energy||0);
   dr+=Math.min(0.30,(gf.dmgRed||0)*0.0005); crit+=(gf.crit||0)*0.0005; critRes+=(gf.critRes||0)*0.0005; /* v1020 (Phil 4 Oct: 'make 20 crit about 1%'): a crit point is 0.05% crit chance (was 0.5%); the 60-point glyph cap (30%) is gone - only the 60% overall cap remains */
   /* v364: HP Regen is a RATING — 0.01% of max HP per second per point, capped at 6%/s. It was 0.1%/pt
@@ -5716,7 +5729,7 @@ function mulsFromTotals(gf, ex){
 }
 function heroMuls(key){
   // glyphs + Forge gear (CR-3) and the AUDIT C6 distinct stats now live in mulsFromTotals — one formula.
-  return mulsFromTotals(sockStatTotal(key), { techDef:techTotal('def'), techCrit:techTotal('crit'), techCritRes:techTotal('critres'),
+  return mulsFromTotals(sockStatTotal(key), { techCrit:techFlat('crit'), techCritRes:techFlat('critres'),
     equip:equipMul(key), baseDr:(HERO_TYPES[key]||{}).dr||0 });
 }
 
@@ -9120,7 +9133,7 @@ function makeUnit(key,team,x,y,levelOverride,extra){
   /* v1094 (Temple v2): the four Temple bars are FLAT stats added here beside the glyph flats - from the server-frozen spec when
      there is one - the same whole numbers the server folds into its ratings (TempleEffects.coreRatings), so client and replay match */
   const TBF=TempleEffects.clientFlats(owned?(S?S.templeBonuses:templeBonusesClient(key)):null);
-  const fAtk = (S?(S.fAtk||0) : (owned?(heroFlatAtk(key)+techTotal('atk')):0)) + TBF.adFlat, fHp = (S?(S.fHp||0) : (owned?(heroFlatHp(key)+techTotal('hp')):0)) + TBF.hpFlat;   // flat glyph + star + Academy tech Attack/Health
+  const fAtk = (S?(S.fAtk||0) : (owned?(heroFlatAtk(key)+techFlat('atk')):0)) + TBF.adFlat, fHp = (S?(S.fHp||0) : (owned?(heroFlatHp(key)+techFlat('hp')):0)) + TBF.hpFlat;   // flat glyph + star + Academy tech Attack/Health
   const sm=S?(S.sm!=null?S.sm:starMultFrom(S.stars||1,S.pips||0,S.ref||0)) : (owned?starMult(key):1);   // stars multiply an OWNED hero's base HP/ATK (enemies keep base stats)
   /* v403 — THE GROWTH CURVE NOW REACHES COMBAT. v401 put ROLE_GROWTH behind heroStat(), which the
      hero card and the power number read, but makeUnit built the actual fighting unit from
@@ -9146,7 +9159,7 @@ function makeUnit(key,team,x,y,levelOverride,extra){
     greenCd:(rank>=1&&kit.green)?kit.green.cd*0.5:0, blueCd:(rank>=2&&kit.blue)?kit.blue.cd*0.6:0, pass:null,
     glyphDR:mul.dr||0, glyphRegen:mul.regen||0, glyphCrit:Math.min(0.6,(mul.crit||0)+((HERO_TYPES[key]&&!t.monster&&CLASS_BASE_CRIT[t.role])||0)), critRes:mul.critRes||0, energyReg:mul.energyReg||0,
     skillLv: S?((S.skillLv||[1,1,1,1]).slice()):(owned?skillLvArr(key).slice():[1,1,1,1]), passMul:1, _castSM:1, apMul: S?(S.apMul||1):(owned?abilityPowerMul():(t.ap||1)),
-    apow: Math.round(BL.apow*sm*(S?(S.apMul||1):(owned?abilityPowerMul():1)))+(S?(S.fApow||0):(owned?heroFlatApow(key):0))+TBF.apFlat, healPowMul:1+(owned?(mul.healPow||0):0), hybrid:!!t.hybrid, _frozenT:0, _chillStacks:0, _chillT:0, _blizzT:0, _stormT:0, _darkStance:false,
+    apow: Math.round(BL.apow*sm*(S?(S.apMul||1):(owned?abilityPowerMul():1)))+(S?(S.fApow||0):(owned?heroFlatApow(key)+((BL.apow||0)>0?techFlat('ap'):0):0))+TBF.apFlat, healPowMul:1+(owned?(mul.healPow||0):0), hybrid:!!t.hybrid, _frozenT:0, _chillStacks:0, _chillT:0, _blizzT:0, _stormT:0, _darkStance:false,
     gearSkill:(S&&S.gearSkill)?Object.assign({used:false},JSON.parse(JSON.stringify(S.gearSkill))):null,
     dots:[], hots:[], shield:0, shieldT:0, hasteT:0, hasteMul:1, dmgBuffT:0, dmgBuffMul:1, drT:0, drMul:1, mortalT:0, forcedTarget:null, forcedTargetT:0};
   // v247 (COMBAT CORE, client side): TYPED defense — Armor mitigates PHYSICAL hits, MR mitigates
@@ -9155,8 +9168,8 @@ function makeUnit(key,team,x,y,levelOverride,extra){
   // bonus, attack speed, haste (energy), shield strength. Same conversions as the server core.
   { const tt=S?(S.tt||{}):(owned?sockStatTotal(key):{});
     u.lvl=lvl;   // v401: mitigation constant scales with level, so the unit must carry it
-    u.armorRating=BL.armor*sm + (S?(S.techArmor||0):(owned?techTotal('armor'):0)) + ((tt.armor||0)*3) + TBF.armorFlat;
-    u.mrRating   =BL.mr*sm + (S?(S.techMr||0):(owned?techTotal('mr'):0)) + ((tt.mr||0)*3) + TBF.mrFlat;
+    u.armorRating=BL.armor*sm + (S?(S.techArmor||0):(owned?techArmorFlat():0)) + ((tt.armor||0)*3) + TBF.armorFlat;
+    u.mrRating   =BL.mr*sm + (S?(S.techMr||0):(owned?techMrFlat():0)) + ((tt.mr||0)*3) + TBF.mrFlat;
     u.armorPen=(tt.armorPen||0)+TBF.armorPenFlat; u.magicPen=(tt.magicPen||0)+TBF.magicPenFlat;
     u.critDmg=0.6+((tt.critDmg||0)*0.0005); /* v1020 (Phil 4 Oct: 'all of them 20 = 1%') */
     u.lifestealStat=Math.min(0.5,(tt.lifesteal||0)*0.0005);
@@ -19956,7 +19969,7 @@ function renderRoster(){
     if(blocked && !inTeam){ card.style.opacity='.45'; }
     const tag = away?`<br><span style="color:#ff8b8b;font-size:9px">⛓ marching — not defending</span>`
       : (elsewhere!=null?`<br><span style="color:#c9a35e;font-size:9px">🛡 on Line ${elsewhere}</span>`:(_wf?_wf.html:''));
-    card.innerHTML=`${unlocked?`<span class="lvl">Lv ${heroLevel(key)}</span>`:''}<div style="display:flex;gap:10px;align-items:center">${heroIcon(key,52,{orbs:true})}<div><div class="name">${t.name}</div><div class="role">${t.role} · ${t.combatRow} · ${t.damageProfile} · <span style="font-size:9px">${starStr(t.stars)}</span></div></div></div><div class="stats" style="margin-top:6px"><span class="pill">❤ ${Math.round(heroStat(key,t.hp)*heroMuls(key).hp+heroFlatHp(key)+techTotal('hp'))}</span><span class="pill">⚔️ ${Math.round(heroStat(key,t.dmg)*heroMuls(key).atk+heroFlatAtk(key)+techTotal('atk'))}</span>${unlocked?`<span class="pill" style="background:#2a2410;border-color:#8a6420;color:#ffd45e;font-weight:800">⚔ ${myHeroPower(key).toLocaleString()}</span>`:''}<br>${unlocked?'⚡ '+t.abilityName:'🔒 '+heroFrag(key)+'/'+summonCost(key)+' frags'}${tag}</div>`;
+    card.innerHTML=`${unlocked?`<span class="lvl">Lv ${heroLevel(key)}</span>`:''}<div style="display:flex;gap:10px;align-items:center">${heroIcon(key,52,{orbs:true})}<div><div class="name">${t.name}</div><div class="role">${t.role} · ${t.combatRow} · ${t.damageProfile} · <span style="font-size:9px">${starStr(t.stars)}</span></div></div></div><div class="stats" style="margin-top:6px"><span class="pill">❤ ${Math.round(heroStat(key,t.hp)*heroMuls(key).hp+heroFlatHp(key)+techFlat('hp'))}</span><span class="pill">⚔️ ${Math.round(heroStat(key,t.dmg)*heroMuls(key).atk+heroFlatAtk(key)+techFlat('atk'))}</span>${unlocked?`<span class="pill" style="background:#2a2410;border-color:#8a6420;color:#ffd45e;font-weight:800">⚔ ${myHeroPower(key).toLocaleString()}</span>`:''}<br>${unlocked?'⚡ '+t.abilityName:'🔒 '+heroFrag(key)+'/'+summonCost(key)+' frags'}${tag}</div>`;
     // you can always REMOVE a hero from this line; you can only ADD if not marching and not on another line
     /* 28 Aug (Phil: "I cannot click any heroes", twice, on a build where a real click works).
        Two separate things were wrong with picking a hero:
@@ -20006,14 +20019,14 @@ function renderRoster(){
       }; } }
 }
 const TECH_TRACKS=[
-  ['atk',statIcon('atk'),'Attack Power','ATK to all heroes',3],
-  ['hp',statIcon('hp'),'Health','HP to all heroes',3],
-  ['ap',statIcon('apow'),'Ability Power','ability & ultimate damage',4],
-  ['def',statIcon('dmgRed'),'Defense','damage reduction',1.5],
-  ['armor',statIcon('armor'),'Armor','damage reduction',1.5],
-  ['mr',statIcon('mr'),'Magic Resist','damage reduction',1.5],
-  ['crit',statIcon('crit'),'Crit','crit chance',1.5],
-  ['critres',statIcon('critRes'),'Crit Resist','enemy crit damage reduced',2],
+  ['atk',statIcon('atk'),'Attack Power','Attack damage',3],
+  ['hp',statIcon('hp'),'Health','Health',3],
+  ['ap',statIcon('apow'),'Ability Power','Ability power',4],
+  ['def',statIcon('dmgRed'),'Defense','Armor and Magic resist',1.5],
+  ['armor',statIcon('armor'),'Armor','Armor',1.5],
+  ['mr',statIcon('mr'),'Magic Resist','Magic resist',1.5],
+  ['crit',statIcon('crit'),'Crit','Crit rating',1.5],
+  ['critres',statIcon('critRes'),'Crit Resist','Crit resist rating',2],
 ];
 let techSel='atk';
 function renderTech(){
@@ -20030,8 +20043,8 @@ function renderTech(){
   p.insertAdjacentHTML('beforeend','<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;font-size:12px;margin-bottom:6px">'+RES.map(([k,ic,nm])=>`<span class="pill">${resIconHtml(k,15)} ${G.res[k]||0}</span>`).join('')+'</div>');
   // ---- kingdom layout: 4 tech nodes down the LEFT, 4 down the RIGHT, Academy castle in the middle ----
   const wheel=document.createElement('div'); wheel.className='techWheel';
-  const centerImg=playerCastleImg();   // the castle for your CURRENT kingdom level (tier 1..5)
-  const TW_CASTLE_H=[0,80,104,124,146,164], ctier=castleTier(playerLevel());   // center castle grows with kingdom level
+  const centerImg=playerCastleImg();   // v1099: the castle for your CURRENT Academy level (tier 1..5)
+  const TW_CASTLE_H=[0,80,104,124,146,164], ctier=castleTierAcad(academyLevel());   // center castle grows with the Academy level
   const acadLvl=G.tech.academy||0, acadLearning=(G.techLearn.academy||0)>Date.now();
   wheel.insertAdjacentHTML('beforeend',`<div class="tw-center${techSel==='academy'?' sel':''}" id="twAcademy">
       ${centerImg?`<img src="${centerImg}" style="height:${TW_CASTLE_H[ctier]||100}px;width:auto" draggable="false">`:'<div style="font-size:60px">🏛️</div>'}
@@ -20054,15 +20067,17 @@ function renderTech(){
   wheel.querySelector('#twAcademy').onclick=()=>{ techSel='academy'; renderTech(); };
   // ---- detail card for the selected tech / the Academy building ----
   const isAcad=techSel==='academy';
-  const sel=isAcad?['academy','🏛️','Academy','research speed']:(tracks.find(t=>t[0]===techSel)||tracks[0]);
+  const sel=isAcad?['academy','🏛️','Academy','for a Lv 30 research']:(tracks.find(t=>t[0]===techSel)||tracks[0]);
   const [k,ic,name,desc]=sel;
   const tmax=isAcad?ACADEMY_MAX:TECH_MAX, lvl=G.tech[k]||0, maxed=lvl>=tmax, cost=60+lvl*70, rc=learnResCost(k,lvl), learning=G.techLearn[k]||0, remain=learning-Date.now();
   const affordable=G.gold>=cost&&canAffordRes(rc), blocked=busy&&busy!==k;
   const acadLocked=!isAcad && lvl>=(G.tech.academy||0) && lvl<TECH_MAX;   // can't research a tech above your Academy level
-  const flat=!!TECH_FLAT[k];
   let per, now, perStr, nowStr;
-  if(isAcad){ per=lvl<30?2:0; now=Math.round(academySpeedup()*100); perStr='−'+per+'%'; nowStr='−'+now+'%'; }   // the speed-up stops at −60% (Lv 30)   // Academy speeds research
-  else { per=techGainAt(k,lvl); now=techTotal(k,lvl); const unit=flat?'':'%'; perStr='+'+(flat?per.toFixed(1):per.toFixed(2))+unit; nowStr='+'+(flat?Math.round(now):now.toFixed(1))+unit; }
+  /* v1099 (Phil 9 Oct: no percentages in the Academy): the building shows how long a level-30 research takes now and after the next
+     level; every track shows its flat total and the next level's flat gain (whole numbers, one decimal under 10) */
+  if(isAcad){ const ref=(120+30*30*45)*1000, cut=l=>Math.min(30,l)*0.02; now=Math.round(ref*(1-cut(lvl))); per=Math.round(ref*(1-cut(lvl+1)));
+    nowStr=fmtDur(now); perStr=fmtDur(per); }   // the speed-up stops at Lv 30
+  else { per=techGainAt(k,lvl); now=techFlat(k,lvl); perStr='+'+(per>=10?Math.round(per).toLocaleString():per.toFixed(1)); nowStr='+'+now.toLocaleString(); }
   let btn;
   if(maxed){ btn=`<button class="btn secondary" disabled>MAX · Lv ${tmax}</button>`; }
   else if(learning&&remain>0){ btn=`<button class="btn" disabled>⏳ ${fmtDur(remain)} · upgrading to Lv ${lvl+1}</button>`; }
@@ -20533,7 +20548,7 @@ function fetchRealCities(force){
         while(used.has(cellIndex(x)+','+cellIndex(y))&&guard++<64){ x=snapToGrid(x+GRID_CELL); if(x>99){x=snapToGrid(1); y=snapToGrid(y+GRID_CELL);} }
         used.add(cellIndex(x)+','+cellIndex(y));                                 // nudge off collisions deterministically
         const tm=(c.team&&c.team.length)?c.team.slice(0,5):seededTeam((String(c.id).length*77+(c.level||1)*13)%997);   // fallback if they never saved a wall
-        return { id:c.id, name:c.name, level:c.level||1, power:c.power||0, rank:c.rank||undefined,
+        return { id:c.id, name:c.name, level:c.level||1, power:c.power||0, rank:c.rank||undefined, academy:(typeof c.academy==='number'?c.academy:undefined),   // v1099: owner's Academy level -> castle art
                  team:tm, region:c.region, x, y, real:true,
                  ally: !!(_rcMyGuild && c.guildId && c.guildId===_rcMyGuild) };  // guildmate = green ally castle
       });
@@ -21209,14 +21224,15 @@ function renderWorldMap(keepView){
   // all rival castles (bots) across every region
   const cities=worldCities(); const npcCastle=CASTLE_IMGS.castle2||'';
   cities.forEach((c)=>{ const el=document.createElement('div'); el.className='wnode city'+(c.ally?' ally':''); el.style.left=c.x+'%'; el.style.top=c.y+'%';
-    const ic = npcCastle ? `<img class="castle-spr" src="${npcCastle}" style="height:44px" draggable="false">` : `<div class="ic">🏰</div>`;
+    const cImg = (c.real && typeof c.academy==='number') ? castleImgAcad(c.academy) : npcCastle;   // v1099: a real player's castle shows their own Academy tier
+    const ic = cImg ? `<img class="castle-spr" src="${cImg}" style="height:44px" draggable="false">` : `<div class="ic">🏰</div>`;
     el.innerHTML=`${ic}<div class="wlab"><div class="nl" style="color:${cityNameColor(c)};font-weight:800">${c.real?'<span style="color:#5ee89b">●</span> ':''}${escapeHTML(c.name)}${c.ally?' 🤝':''}</div><div class="nl" style="color:#ffd45e;font-size:9px">Lv ${c.level||1}</div></div>`;
     el.onclick=(e)=>{ e.stopPropagation(); if(_teleMode)return; openCityMenu(c); }; inner.appendChild(el); });
   drawMines(inner);   // scatter the resource mines across the regions
   // your castle at its world position (fits a grid cell; grows a little with kingdom level)
   const CASTLE_H=[0,46,52,58,64,70];
   const cp=myCastlePos(); const meEl=document.createElement('div'); meEl.className='wnode city me'; meEl.style.left=cp.x+'%'; meEl.style.top=cp.y+'%';
-  const myImg=playerCastleImg(), myH=CASTLE_H[castleTier(playerLevel())]||90;
+  const myImg=playerCastleImg(), myH=CASTLE_H[castleTierAcad(academyLevel())]||90;   // v1099: grows with the Academy level
   const meIc = myImg ? `<img class="castle-spr" src="${myImg}" style="height:${myH}px" draggable="false">` : `<div class="ic">🏰</div>`;
   meEl.innerHTML=`${meIc}<div class="wlab"><div class="nl">${escapeHTML(G.playerName||'You')} · YOU</div><div class="nl" style="color:#ffd45e;font-size:9px">Lv ${playerLevel()}</div></div>`;
   meEl.onclick=(e)=>{ e.stopPropagation(); if(_teleMode)return; closeCityMenu(); show('home'); }; inner.appendChild(meEl);   // tap your own castle → back to your city
@@ -23309,7 +23325,7 @@ function renderHeroDetail(){
   const lvl=heroLevel(key), capped=heroCapped(key);
   const xp=G.heroXP[key]||0, curBase=xpForLevel(lvl), nextBase=xpForLevel(lvl+1);
   const into=Math.max(0,xp-curBase), span=Math.max(1,nextBase-curBase), pct=Math.max(0,Math.min(100,Math.round(into/span*100)));
-  const S_HP=Math.round(heroStat(key,t.hp,'hp')*mul.hp)+heroFlatHp(key), S_ATK=Math.round(heroStat(key,t.dmg,'dmg')*mul.atk)+heroFlatAtk(key), S_APS=(1/swingInterval(t)).toFixed(2), S_APOW=Math.round(heroStat(key,t.apow||0,'apow')*abilityPowerMul())+heroFlatApow(key);
+  const S_HP=Math.round(heroStat(key,t.hp,'hp')*mul.hp)+heroFlatHp(key), S_ATK=Math.round(heroStat(key,t.dmg,'dmg')*mul.atk)+heroFlatAtk(key), S_APS=(1/swingInterval(t)).toFixed(2), S_APOW=Math.round(heroStat(key,t.apow||0,'apow'))+heroFlatApow(key)+((t.apow||0)>0?techFlat('ap'):0);
   const gr=glyphRank(key), gi={name:gLadderName(gr), col:gLadderCol(gr)}, stars=heroStars(key); eliteCheckReset();
   const grp=eqGroup(key);
   const owned=!!G.unlocked[key], myth=isMythic(key);
@@ -23356,8 +23372,8 @@ function renderHeroDetail(){
        points ×3 (makeUnit) — and what it is worth as damage reduction. It used to ignore glyphs and gear
        entirely, so an Orange hero read "Armor 0". */
     const _tt=sockStatTotal(key);
-    const armorFlat=Math.round(heroStat(key,t.armor||0,'armor')+techTotal('armor')+(_tt.armor||0)*3);
-    const mrFlat=Math.round(heroStat(key,t.mr||0,'mr')+techTotal('mr')+(_tt.mr||0)*3);
+    const armorFlat=Math.round(heroStat(key,t.armor||0,'armor')+techArmorFlat()+(_tt.armor||0)*3);
+    const mrFlat=Math.round(heroStat(key,t.mr||0,'mr')+techMrFlat()+(_tt.mr||0)*3);
     const _pct=v=>' <span style="color:#8b98a9;font-weight:500">('+Math.round(defToDR(v,(typeof key!=='undefined'&&key)?heroLevel(key):1)*100)+'%)</span>';
     const regenStr=(mul.regen||0)>0?Math.round(S_HP*mul.regen)+' /s':'—';   // flat HP/s (tanks show a real number)
     const enrStr=(mul.energyReg||0)>0?'+'+(mul.energyReg).toFixed(1)+' /s':'—';   // flat energy/s
