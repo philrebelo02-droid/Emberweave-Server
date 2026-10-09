@@ -67,14 +67,14 @@ async function call(route,method='GET',data){
   const draft=await call('/api/emberdraft/result','POST',{
     requestId:'feedback-draft-result',attemptId:draftStart.data.attemptId,place:1,rounds:1});
   assert.strictEqual(draft.status,200,'suspicious short match is not denied automatically');
-  assert.strictEqual(draft.data.stamina,36,'claimed first-place reward is paid without auto-penalty');
+  assert.strictEqual(draft.data.stamina,6,'v1097 (sweep P0 #4): a claim the round record does not show is paid at the lowest tier (6), not denied');
   const draftRetry=await call('/api/emberdraft/result','POST',{
     requestId:'feedback-draft-result',attemptId:draftStart.data.attemptId,place:1,rounds:1});
-  assert.strictEqual(draftRetry.data.stamina,36,'retry returns the same durable result');
+  assert.strictEqual(draftRetry.data.stamina,6,'retry returns the same durable result');
   const draftFeed=await call('/api/ember/feedback');
   const draftCase=draftFeed.data.items.find(x=>x.kind==='cheat'&&x.signal?.startsWith('emberdraft:'));
-  assert(draftCase&&draftCase.claimedPlace===1&&draftCase.round===1&&draftCase.amount===36,
-    'Ember receives the checkpoint evidence and reward at stake');
+  assert(draftCase&&draftCase.claimedPlace===1&&draftCase.round===1&&draftCase.amount===30,
+    'Ember receives the checkpoint evidence and the reward at stake (36 claimed - 6 paid)');
   assert.strictEqual(draftFeed.data.items.filter(x=>x.signal===draftCase.signal).length,1,
     'idempotent retry does not file a second cheating case');
   assert.strictEqual((await call('/api/admin/led-grant','POST',{heroXp:100,heroKeys:['vex']})).status,200);

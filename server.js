@@ -7298,19 +7298,29 @@ async function api(req,res,url){
       if(claimed<1||claimed>8) return {ok:false,error:'Bad placement.'};
       att.claimed=true;
       if(att.god){ writeDB(); return {ok:true, stamina:0, note:'God Mode match - no reward.', ledger:ledgerView(me)}; }   // v654 (Phil: "God mode should give no reward")
-      /* Phil's review-first rule: a suspicious checkpoint or fast result files a case, but never
-         silently lowers or denies the player's claimed reward. Only Phil may authorize a penalty. */
-      edCpIngest(att,b.cps,true); const chk=edCheckClaim(att,claimed,rounds), place=claimed;
+      /* Review-first: a suspicious checkpoint or fast result files a case for a human. Since v1097 (below) such a claim is paid at the
+         lowest tier, never above it, until the review settles it; it is never denied outright. */
+      edCpIngest(att,b.cps,true); const chk=edCheckClaim(att,claimed,rounds);
       const ORD=['','1st','2nd','3rd','4th','5th','6th','7th','8th'];
       const ED_MIN_ROUNDS=[0,16,16,15,14,13,12,0,0];
-      const tooFast=rounds<Math.max(6,ED_MIN_ROUNDS[place]||0) || Date.now()-att.startedAt < rounds*12000;
+      const tooFast=rounds<Math.max(6,ED_MIN_ROUNDS[claimed]||0) || Date.now()-att.startedAt < rounds*12000;
       const flags=chk.flags.slice(); if(tooFast) flags.push('match duration or round count below the existing reward floor');
+      /* v1097 (sweep 9 Oct P0 #4): the match is played in the browser and the server cannot replay it, so the place is paid only from
+         the server's own record of the run - the round reports kept on the attempt. The claim is paid in full when the report for the
+         claim's own round says the same place (your knockout place, or 1st with only you left standing) and nothing in the record
+         contradicts the claim or its pace. Otherwise (no record, a record that disagrees, a flag) it pays the lowest paying tier (6th)
+         and the case still goes to review with the difference at stake, so a human can make up an honest player's place.
+         An honest client always sends that last report: it rides along with the claim (edClaim -> cps). */
+      const last=(att.cp||{})[rounds];
+      const recorded=!!last&&rounds>0&&((last.pl|0)===claimed||(claimed===1&&!(last.pl|0)&&(last.alive|0)===1));
+      if(!recorded) flags.push(last?'the round '+rounds+' report says '+((last.pl|0)?'place '+last.pl:(last.alive|0)+' players still in')+', not '+ORD[claimed]:'no round report for the claimed round '+rounds);
+      const ED_LOW=ED_STAM.reduce((m,x)=>x>0&&x<m?x:m,Infinity);   // the lowest paying tier (6th: 6)
+      const place=claimed;
+      const pay=flags.length?Math.min(ED_STAM[claimed]||0,ED_LOW):(ED_STAM[claimed]||0);
       if(flags.length){
-        const oldPlace=Math.max(claimed,chk.floor|0);
-        const oldReward=tooFast?0:(ED_STAM[oldPlace]||0);
-        const stake=Math.max(0,(ED_STAM[claimed]||0)-oldReward);
-        att.flag={reasons:flags,claimed,checkpointFloor:chk.floor|0,paid:place,rounds,t:Date.now()};
-        ledTx(me,'emberdraft:flag',{stamina:0,claimed,checkpointFloor:chk.floor|0,paid:place,
+        const stake=Math.max(0,(ED_STAM[claimed]||0)-pay);
+        att.flag={reasons:flags,claimed,checkpointFloor:chk.floor|0,paid:place,paidStamina:pay,rounds,t:Date.now()};
+        ledTx(me,'emberdraft:flag',{stamina:0,claimed,checkpointFloor:chk.floor|0,paid:place,paidStamina:pay,
           why:flags.slice(0,4).join(' | ').slice(0,300)});
         const detail='Emberdraft attempt '+att.id+': claimed '+ORD[claimed]+', checkpoint floor '+(chk.floor|0)+
           ', round '+rounds+', flags: '+flags.join('; ');
@@ -7318,12 +7328,13 @@ async function api(req,res,url){
         feedbackCheatSignal(me,'emberdraft:'+att.id,detail,'Emberdraft placement review',stake,
           {claimedPlace:claimed,checkpointFloor:chk.floor|0,round:rounds,flags:flags.slice(0,8)});
       }
-      const stam=ED_STAM[place]||0;
+      const stam=pay;
       if(!stam) { writeDB(); return {ok:true, stamina:0, note:'No reward for 7th or 8th.', ledger:ledgerView(me)}; }
       const got=creditStamina(me,led,stam,'emberdraft:place');   // v646: report and record what was really added (the 999 cap)
       ledTx(me,'emberdraft:place'+place,{stamina:got});
       writeDB();
-      return { ok:true, stamina:got, note:got<stam ? 'Your stamina is full (999) - only '+got+' of '+stam+' fit.' : '', edraft:view(), ledger:ledgerView(me) }; });
+      const capNote=pay<(ED_STAM[claimed]||0)?'Paid at the lowest tier: the round reports do not show '+ORD[claimed]+'. Sent for review.':'';
+      return { ok:true, stamina:got, capped:!!capNote, note:got<stam ? 'Your stamina is full (999) - only '+got+' of '+stam+' fit.' : capNote, edraft:view(), ledger:ledgerView(me) }; });
     return send(res, out.storageFailed?503:(out.ok===false?400:200), out); }
   /* =================== v663: TRAINING PROVINCE (Gold / Drill) — real battles, server-paid ===================
      state  GET  → the stage table (gates, bosses, rewards) + today's plays
