@@ -285,6 +285,8 @@ note "test_scan9_1088.js (v1088 scan 9: an arena win never pays less than a loss
 node tests/test_scan9_1088.js || FAILED=1
 note "test_await_ledger_1089.js (v1089 scan 10: handlers take the ledger after their last await - bonus pot, bonus first clear, province, Emberdraft, Well, quests, academy)"
 node tests/test_await_ledger_1089.js || FAILED=1
+note "test_acct_sync_1090.js (v1090 scan 11: satellites re-check accounts holding a local password copy, so a reset on Server 1 retires the old password everywhere)"
+node tests/test_acct_sync_1090.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi

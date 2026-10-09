@@ -411,7 +411,7 @@ async function acctStatusSync(){
   if(!ACCOUNT_AUTHORITY || !ACCOUNT_LINK_SECRET || _acctSyncBusy || typeof DB==='undefined' || !DB || !DB.users) return;
   _acctSyncBusy=true;
   try{ const live=new Set(); for(const v of Object.values(DB.tokens||{})){ const o=tokOwner(v); if(o) live.add(o); }
-    const gids=[]; for(const u of Object.values(DB.users)){ if(u && u.gid && !u.isNpc && (live.has(u.id) || isBanned(u))) gids.push(u.gid); }
+    const gids=[]; for(const u of Object.values(DB.users)){ if(u && u.gid && !u.isNpc && (live.has(u.id) || isBanned(u) || u.hash)) gids.push(u.gid); }   /* v1090 (scan 11 #1): an account that keeps a local password copy here is checked too - without a session here it was never synced, so its OLD password still signed in through the outage fallback after a reset on Server 1 */
     let changed=false;
     for(let i=0;i<gids.length;i+=500){ const r=await authorityCall('/api/internal/account/status',{ gids:gids.slice(i,i+500) });
       if(!r || r.status!==200 || !r.body || !r.body.states) break;   // account server unreachable: keep what we know
