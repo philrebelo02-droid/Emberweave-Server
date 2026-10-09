@@ -204,6 +204,7 @@
        from the success odds we already had (each tier's measured table: share of up vs down rolls) plus the near-cap pressure.  ROLL 2 =
        how many steps, uniform in the tier's GAIN or LOSS range; the steps are then dealt one at a time to random open bars (a gain only to
        bars below the cap, a loss only to bars above 0). Gold 1-30 is Phil's; the other ranges PROPOSED - Phil tunes. */
+    BREAKOUT: [{ chance: 0.01, mult: 3 }, { chance: 0.05, mult: 2 }],   // Phil 9 Oct: "5% chance for prayer to do a break out and gives the roll 2x stats, 1% for 3x" - gains only
     PRAYER_AMOUNT: {
       gold:    { gain: [1, 30],   loss: [1, 30] },
       kindled: { gain: [5, 50],   loss: [1, 20] },
@@ -543,8 +544,9 @@
     const pUp = tierUpShare(tierId) * (1 - pressureChance(tierId, avg, cap));
     const gain = roll() < pUp;
     const R = (TEMPLE_CONFIG.PRAYER_AMOUNT[tierId] || TEMPLE_CONFIG.PRAYER_AMOUNT.gold)[gain ? 'gain' : 'loss'];
-    const amount = R[0] + Math.floor(roll() * (R[1] - R[0] + 1));
-    const out = { _gain: gain, _amount: amount }, now = {};
+    let amount = R[0] + Math.floor(roll() * (R[1] - R[0] + 1)), breakout = 1;
+    if (gain) { const b = roll(); let acc = 0; for (const x of TEMPLE_CONFIG.BREAKOUT) { acc += x.chance; if (b < acc) { breakout = x.mult; break; } } amount *= breakout; }   // a breakout multiplies a GAIN (never a loss)
+    const out = { _gain: gain, _amount: amount, _breakout: breakout }, now = {};
     bars.forEach(function (b) { out[b] = 0; now[b] = Math.min(cap, cur[b] | 0); });   // bars = the OPEN bars only
     for (let i = 0; i < amount; i++) {
       const open = bars.filter(function (b) { return gain ? now[b] < cap : now[b] > 0; });
@@ -589,7 +591,7 @@
       const to = Math.max(0, Math.min(cap, from + (deltas[bar] | 0)));
       session.rolls[bar] = rollRecord(profile, bar, from, to); session.net += to - from;
     });
-    session.gain = deltas._gain; session.amount = deltas._amount;
+    session.gain = deltas._gain; session.amount = deltas._amount; session.breakout = deltas._breakout;
     session.power = TEMPLE_CONFIG.POWER_PER_STEP * session.net;
     state.keeperPoints = (state.keeperPoints || 0) + tier.keeperPoints;                 // points are earned by praying, saved or not
     session.levelUps = grantLevelUps(state);

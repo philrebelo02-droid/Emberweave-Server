@@ -42,10 +42,18 @@ ck('roll 1 keeps the existing Gold success odds (up share of the measured table)
 { const st = T.newState(); st.heroes = { h: hero(10, 10, 10, 10) }; st.playerLevel = 100; st.keeperPoints = pts(14); const amt = { kindled: [], stoked: [] };
   let a = 5; T.setRng(() => { a = (a * 16807) % 2147483647; return a / 2147483647; });
   for (let i = 0; i < 300; i++) for (const t of ['kindled', 'stoked']) { const s = T.pray(st, 'h', t); amt[t].push(s.gain ? s.amount : -s.amount); T.discardSession(st); }
-  const R = T.CONFIG.PRAYER_AMOUNT; const inR = (t) => amt[t].every(v => v > 0 ? v >= R[t].gain[0] && v <= R[t].gain[1] : -v >= R[t].loss[0] && -v <= R[t].loss[1]);
+  const R = T.CONFIG.PRAYER_AMOUNT; const inR = (t) => amt[t].every(v => v > 0 ? [1, 2, 3].some(m => v % m === 0 && v / m >= R[t].gain[0] && v / m <= R[t].gain[1]) : -v >= R[t].loss[0] && -v <= R[t].loss[1]);   // gains may be a x2 / x3 breakout
   ck('every amount is inside the tier gain / loss range', inR('kindled') && inR('stoked'));
   ck('amounts are random, not fixed (many distinct values)', new Set(amt.kindled).size > 20); }
 ck('higher tiers gain more and lose less', ['gold', 'kindled', 'stoked', 'blazing', 'inferno'].every((t, i, a) => !i || (T.CONFIG.PRAYER_AMOUNT[t].gain[1] > T.CONFIG.PRAYER_AMOUNT[a[i - 1]].gain[1] && T.CONFIG.PRAYER_AMOUNT[t].loss[1] <= T.CONFIG.PRAYER_AMOUNT[a[i - 1]].loss[1])));
+// v1098 breakout (Phil): 5% x2, 1% x3, gains only
+ck('breakout chances are 1% x3 and 5% x2', JSON.stringify(T.CONFIG.BREAKOUT) === '[{"chance":0.01,"mult":3},{"chance":0.05,"mult":2}]');
+{ const st = T.newState(); st.heroes = { h: hero(0, 0, 0, 0) }; st.playerLevel = 100; st.keeperPoints = pts(19); T.setRng(seq([0.0, 0.999, 0.005, 0.5]));
+  const s = T.pray(st, 'h', 'gold'); ck('a 1% roll is a x3 breakout: Gold 30 becomes 90', s.breakout === 3 && s.amount === 90 && s.net === 90); T.discardSession(st); }
+{ const st = T.newState(); st.heroes = { h: hero(0, 0, 0, 0) }; st.playerLevel = 100; st.keeperPoints = pts(19); T.setRng(seq([0.0, 0.999, 0.03, 0.5]));
+  const s = T.pray(st, 'h', 'gold'); ck('a 5% roll is a x2 breakout: Gold 30 becomes 60', s.breakout === 2 && s.amount === 60); T.discardSession(st); }
+{ const st = T.newState(); st.heroes = { h: hero(100, 100, 100, 100) }; st.playerLevel = 100; st.keeperPoints = pts(19); T.setRng(seq([0.999, 0.999, 0.0, 0.5]));
+  const s = T.pray(st, 'h', 'gold'); ck('a loss is never multiplied (control)', s.gain === false && s.breakout === 1 && s.amount === 30); T.discardSession(st); }
 ck('Inferno gains 50-200 (Phil)', T.CONFIG.PRAYER_AMOUNT.inferno.gain.join() === '50,200');
 ck('reach pressure: none at the reach, 0.6 at the cap', T.pressureChance('gold', 20, 40) === 0 && near(T.pressureChance('gold', 40, 40), 0.6, 1e-9) && near(T.pressureChance('gold', 30, 40), 0.3, 1e-9));
 ck('Inferno has no pressure (reach = the cap)', T.pressureChance('inferno', 200, 200) === 0);

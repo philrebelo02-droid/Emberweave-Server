@@ -50,7 +50,7 @@ ok(JSON.stringify(HB.oakmir) === JSON.stringify(['health', 'healPow', 'abilityPo
   ok(missing.length === 0, 'every bar kind\'s icon is on disk (' + (missing.join() || 'none missing') + ')'); }
 
 /* ---- a prayer rolls the hero's own four; Power = 10 x net steps whatever the kinds ---- */
-{ const st = T.newState(); st.playerLevel = 100; let i = 0; const R = [0.0, 0.999]; T.setRng(() => (i < 2 ? R[i++] : ((i++ % 2) ? 0.99 : 0.0)));   // v1098 two rolls: a gain of 30, dealt to the open bars
+{ const st = T.newState(); st.playerLevel = 100; let i = 0; const R = [0.0, 0.999, 0.99]; T.setRng(() => (i < 3 ? R[i++] : ((i++ % 2) ? 0.99 : 0.0)));   // gain, 30 steps, no breakout   // v1098 two rolls: a gain of 30, dealt to the open bars
   const s = T.pray(st, 'oakmir', 'gold', { profile: 'Healer' });
   ok(Object.keys(s.rolls).join() === HB.oakmir.join() && s.bars.join() === HB.oakmir.join(), 'Oakmir prayer rolls Health / Healing power / Ability power / Energy regen');
   ok(s.power === 10 * s.net && s.net === 30, 'Power = 10 x net steps, not the values ('+s.net+' steps = '+s.power+')');

@@ -79,7 +79,7 @@ ck "the boss opens once the account reaches the gate" '"attemptId"' "$BG2"
 
 # ===== 27 Aug (Phil): SWEEPING IS EARNED — a stage is sweepable only at three stars =====
 SWP=$(curl -s -X POST $B/api/campaign/sweep -H "$H" -H 'content-type: application/json' -d '{"node":3,"times":1,"requestId":"sws1"}')
-ck "a cleared-but-not-three-starred stage refuses the sweep" 'needs ★★★' "$SWP"
+ck "a cleared-but-not-three-starred stage refuses the sweep" 'needs three stars' "$SWP"
 SP=$(curl -s "$B/api/campaign/stage?node=3" -H "$H")
 ck "the stage payload publishes the sweep lock" '"sweepUnlocked":false' "$SP"
 curl -s -X POST $B/api/admin/led-grant -H "x-token: $TDB" -H 'content-type: application/json' -d '{"userId":"'"$UIDB"'","campStars":{"3":3},"stamina":600}' >/dev/null
@@ -130,7 +130,11 @@ G0=$(curl -s -X POST $B/api/tx/earn -H "$H" -H 'content-type: application/json' 
 ck "RETIRED: 'elite' fragment earn refused (use /api/elite/resolve)" 'No earn rule' "$G0"
 MO=$(curl -s $B/api/market/offers -H "$H")   # v1097 (sweep #19): the Market sells the server's offers of the hour
 MOH=$(printf '%s' "$MO" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{try{process.stdout.write(JSON.parse(s).offers[0].hero)}catch(e){process.stdout.write('fritz')}})")
-G1=$(curl -s -X POST $B/api/market/frag -H "$H" -H 'content-type: application/json' -d '{"offer":0,"heroKey":"'"$MOH"'","requestId":"fr1m"}')
+# v1098: buy the cheapest offer this account can afford (prices grow with level; the hour's offers are random)
+LG=$(curl -s $B/api/ledger -H "$H")
+MOP=$(MO="$MO" LG="$LG" node -e "try{const o=JSON.parse(process.env.MO).offers,l=JSON.parse(process.env.LG),L=l.ledger||l;const ok=o.filter(x=>!x.bought&&(x.pay==='gems'?(L.gems|0):(L.gold|0))>=x.price);const c=(ok.length?ok:o).slice().sort((p,q)=>p.price-q.price)[0];process.stdout.write(c.i+' '+c.hero)}catch(e){process.stdout.write('0 fritz')}")
+MOI=${MOP%% *}; MOH=${MOP#* }
+G1=$(curl -s -X POST $B/api/market/frag -H "$H" -H 'content-type: application/json' -d '{"offer":'"$MOI"',"heroKey":"'"$MOH"'","requestId":"fr1m"}')
 ck "market fragment purchase is one atomic SERVER transaction" '"paid"' "$G1"
 SS=$(curl -s -X POST $B/api/hero/star-step -H "$H" -H 'content-type: application/json' -d '{"heroKey":"vael","requestId":"ss1"}')
 ck "star step consumes fragments by the pip table" '' "$SS"

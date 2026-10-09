@@ -90,10 +90,11 @@ const setHero=(key,st,lit)=>editDB(u=>{ u.led.temple.heroes[key]={steps:st,boons
 
   /* blessings: Temple 5, hero level 60+: dot 1 (bar 1 >= 20) and dot 2 (bar 2 >= 50) light; dot 3 needs Temple 13. v1098: the v1096-keyed
      fixture (health 25 / attack 60 / armorMr 70 / pen 10) moves positionally onto Vael's own bars (Health 25 / Crit chance 60 / ...) */
-  await setHero(PHYS,steps(25,60,70,10));
+  await setHero(PHYS,steps(45,75,70,10));
   await editDB(u=>{ u.led.temple.keeperPoints=levelPoints(5); u.led.temple.levelSeen=5; });
   L=await led(); ok(L.temple.level===5,'the ledger reports Temple level 5');
-  await call('/api/temple/pray',{heroKey:PHYS,tier:'gold',requestId:R()});
+  /* v1098 two rolls: a Gold loss can take up to 30 steps, so the threshold check uses Kindled (never rolls a loss) and a margin */
+  await call('/api/temple/pray',{heroKey:PHYS,tier:'kindled',requestId:R()});
   const sv=await call('/api/temple/save',{requestId:R()});
   const lit=sv.data.ledger.temple.heroes[PHYS].boonsUnlocked;
   ok(sv.data.unlocked.includes(1)&&sv.data.unlocked.includes(2)&&lit[0]&&lit[1],'blessings 1 and 2 light at bar 1 (Health) 20 / bar 2 (Crit chance) 50 steps ('+JSON.stringify(sv.data.unlocked)+')');

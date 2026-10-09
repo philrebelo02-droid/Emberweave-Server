@@ -1085,6 +1085,8 @@ h1{background:linear-gradient(180deg,#fff4d6 0%,#f3d58a 42%,#c98f2e 100%);-webki
 .tp2Tile b{background:url(/assets/img/temple/v2/ctl-percent-plate-v1.webp) center/100% 100% no-repeat;padding:0 calc(var(--u)*30);min-width:70%;text-align:center}
 .tp2Auto{background:url(/assets/img/temple/v2/ctl-auto-panel-v1.webp) center/100% 100% no-repeat!important;border:0!important}
 .tp2AutoRow button{background:none!important;border:0!important;padding:0}.tp2AutoRow button img{width:100%;height:100%;object-fit:contain}
+.tp2Break{display:flex;align-items:center;justify-content:center;font-size:calc(var(--u)*50);font-weight:800;color:#ffd45e;text-shadow:0 0 calc(var(--u)*14) #ff8a1f,0 calc(var(--u)*3) calc(var(--u)*6) #000;animation:tp2brk .9s ease-out}
+@keyframes tp2brk{0%{transform:scale(.4);opacity:0}40%{transform:scale(1.25);opacity:1}100%{transform:scale(1)}}
 .tp2Fx{z-index:12;pointer-events:none;display:flex;align-items:center;justify-content:center}
 .tp2Fx img{position:absolute;width:70%;animation:tp2flare .8s ease-out forwards}
 .tp2Fx b{position:relative;font-size:calc(var(--u)*90);text-shadow:0 0 calc(var(--u)*14) #000;animation:tp2rise 1.6s ease-out forwards}
@@ -18121,7 +18123,7 @@ function renderTemple(){
       ${level>=(T.CONFIG.AUTO_PRAY_TEMPLE||12)?`<button type="button" class="tp2Btn navy" id="tp2Auto" style="${tp2Box(300,1140,240,82)}" ${pending||blocked?'disabled':''}><img class="tp2BtnIc" src="${TP2}ctl-auto-pray-v1.webp" alt="">Auto pray</button>`:''}
       <div class="tp2Head" style="${tp2Box(735,300,600,56)}">Attributes</div>${bars}
       <div class="tp2Head" style="${tp2Box(1640,300,640,56)};text-align:center">Blessings</div>${bl}${fifth}
-      ${power!=null?`<div class="tp2Power ${power>0?'up':power<0?'down':''}" style="${tp2Box(733,872,800,90)}"><img class="tp2PowIc" src="${TP2}ctl-power-v1.webp" alt="">Power ${power>0?'+':''}${power}</div>`:''}
+      ${power!=null&&window._tp2Break?`<div class="tp2Break" style="${tp2Box(733,800,800,70)}">Breakout x${window._tp2Break}!</div>`:''}${power!=null?`<div class="tp2Power ${power>0?'up':power<0?'down':''}" style="${tp2Box(733,872,800,90)}"><img class="tp2PowIc" src="${TP2}ctl-power-v1.webp" alt="">Power ${power>0?'+':''}${power}</div>`:''}
       ${keeperHtml}
       ${pending?`<button type="button" class="tp2Btn navy" id="templeDiscard" style="${tp2Box(1130,1220,360,96)}">Cancel</button>
           <button type="button" class="tp2Btn red" id="templeSave" style="${tp2Box(1920,1220,360,96)}">Save</button>
@@ -18142,7 +18144,7 @@ function renderTemple(){
     if(!(r&&r.ok)){ const e=(r&&r.error==='offline')?'Connection lost.':((r&&r.error)||'Prayer failed.'); try{ await ledgerSync(); }catch(_){} renderTemple(); msg(e); return null; }
     return r; };
   const pray=b.querySelector('#templePray'); if(pray) pray.onclick=async()=>{ const s=String(templeSelectedTier||''); const r=await act('/api/temple/pray',s.startsWith('held:')?{heroKey:key,tier:s.slice(5),held:true}:{heroKey:key,tier:s});
-    if(!r) return; templeLastRolls=r.rolls; if(G.temple&&G.temple._pending==null&&r.ledger){} adoptLedger(r.ledger); if(G.temple&&G.temple._pending) G.temple._pending.power=r.power; updateHubChrome(); renderTemple(); };
+    if(!r) return; templeLastRolls=r.rolls; window._tp2Break=(r.breakout|0)>1?r.breakout:0; if(G.temple&&G.temple._pending==null&&r.ledger){} adoptLedger(r.ledger); if(G.temple&&G.temple._pending) G.temple._pending.power=r.power; updateHubChrome(); renderTemple(); };
   const save=b.querySelector('#templeSave'); if(save) save.onclick=async()=>{ const pw=(G.temple&&G.temple._pending&&G.temple._pending.power)||Object.values(templeLastRolls||{}).reduce((a,x)=>a+10*(x.deltaSteps||0),0);
     const r=await act('/api/temple/save',{}); if(!r) return; templeLastRolls=null; adoptLedger(r.ledger); updateHubChrome(); templeFx=pw||0; renderTemple(); setTimeout(()=>{ templeFx=null; if(document.getElementById('tp2Stage')) renderTemple(); },1900); };
   const dis=b.querySelector('#templeDiscard'); if(dis) dis.onclick=async()=>{ const r=await act('/api/temple/discard',{}); if(!r) return; templeLastRolls=null; adoptLedger(r.ledger); updateHubChrome(); renderTemple(); };
@@ -26746,7 +26748,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791581856782';
+const BUILD_ID = '1791585956734';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

@@ -7003,7 +7003,7 @@ async function api(req,res,url){
         if(!session||session.ok===false){ for(const k of Object.keys(state))delete state[k]; Object.assign(state,JSON.parse(templeSnap)); led.gold+=gold; led.gems+=gems;
           return {ok:false,error:session&&session.reason==='tier_locked'?'That prayer tier is locked.':'The prayer failed. Nothing was spent.'}; }
         const tx=ledTx(me,'temple:pray',{hero:key,tier,held:b.held===true,gold:-gold,gems:-gems,keeperPoints:state.keeperPoints});
-        return {ok:true,rolls:session.rolls,net:session.net,power:session.power,cap:session.cap,completion:session.completion,
+        return {ok:true,rolls:session.rolls,net:session.net,power:session.power,breakout:session.breakout||1,gain:!!session.gain,amount:session.amount|0,cap:session.cap,completion:session.completion,
           tier:session.tier,bonusWon:!!session.bonusPrayer,levelUps:session.levelUps||0,
           templeLevel:TEMPLE.keeperLevel(state.keeperPoints,state.playerLevel),tx,ledger:ledgerView(me)};
       }
