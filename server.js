@@ -1627,8 +1627,7 @@ const FRAG_SALVAGE_DUST={'Grey':2,'Green':5,'Green +1':8,'Blue':12,'Blue +1':18,
 
 // AUDIT C7: ONE game reset clock — America/New_York, same as Guild War (was UTC).
 function dungeonServerDayKey(){ return nyDayKey(); }
-function dungeonNextReset(){ const now=Date.now(), off=etOffsetMs(now); const d=new Date(now-off);
-  return Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate()+1)+etOffsetMs(now+86400000); }
+function dungeonNextReset(){ const [Y,M,D]=nyDayKey().split('-').map(Number), loc=Date.UTC(Y,M-1,D+1,9); return loc+etOffsetMs(loc); }   /* v1086 (scan 7 #3): the next 09:00 ET (the sweeps' reset) - it returned the next midnight ET */
 function getDungeonProgress(id){
   DB.dungeonProgress=DB.dungeonProgress||{};
   if(!DB.dungeonProgress[id]) DB.dungeonProgress[id]={ accountId:id, currentFloor:1, highestClearedFloor:0,
@@ -2003,7 +2002,7 @@ function vaultWinPlausible(a){
    across the band, and the walk advances by one full band-cycle per day, so over consecutive days every pair in the range comes
    out of the Vault (deterministic per floor per day: the pre-attempt Targets panel, the reward and the sweep all agree). */
 const VAULT_BAND_RANGE=[[1,10,['Grey']],[11,20,['Green','Green +1']],[21,30,['Blue','Blue +1']],[31,40,['Blue +1','Blue +2']],[41,50,['Purple','Purple +1']],[51,60,['Purple +2','Purple +3']],[61,70,['Gold','Gold +1','Gold +2']],[71,80,['Gold +3','Gold +4']],[81,100,['Orange']]];
-function vaultDayIndex(){ return Math.floor((Date.now()-(4*3600*1000))/86400000); }   // rolls at 04:00 UTC with the daily reset
+function vaultDayIndex(){ return Math.floor(Date.parse(nyDayKey()+'T00:00:00Z')/86400000); }   /* v1086 (scan 7 #2): the fragment rotation turns with the game day (09:00 ET) - it turned at 04:00 UTC, mid game day */   // rolls at 04:00 UTC with the daily reset
 function vaultGlyphFragsForFloor(floor, dayIdx){
   const band=VAULT_BAND_RANGE.find(b=>floor>=b[0]&&floor<=b[1])||VAULT_BAND_RANGE[0];
   const pairs=[]; for(const q of band[2]) for(const f of glyphTierFams(q)) pairs.push(q+' '+f);
@@ -8217,7 +8216,7 @@ async function api(req,res,url){
     // Server-authoritative: duel outcome computed here from each side's serverTeamPower (client can't fake a win).
     const WAR_ATT=5, WAR_WEEK_MS=7*24*3600000;
     const warWeek=()=>Math.floor(Date.now()/WAR_WEEK_MS);
-    const warDay=()=>new Date().toISOString().slice(0,10);
+    const warDay=()=>nyDayKey();   /* v1086 (scan 7 #4): retired code, but the game day if it is ever revived (was UTC midnight) */
     function guildStrength(gg){ let s=0; for(const id of (gg.members||[])){ const u=DB.users[id]; if(u) s+=serverTeamPower(u.team, u); } return s+((gg.level||1)-1)*400; }
     function npcWarChamps(strength,seed){ const avg=Math.max(200,Math.round(strength/3)); const n=5,champs=[];
       for(let i=0;i<n;i++){ const x=Math.sin(seed*7.13+i*3.71)*43758.5, f=x-Math.floor(x);

@@ -425,7 +425,7 @@
   /* --- economy ------------------------------------------------------------ */
   /* The day key for the free prayer and the gold ladder: the game's New York day (the server's nyDayKey), not UTC - they
      differ every evening. The server injects its own key with setDayKey(fn); the default computes the NY date. */
-  let dayKey = function () { return new Date().toLocaleDateString("en-CA", { timeZone: "America/New_York" }); };
+  let dayKey = function () { return new Date(Date.now() - 9 * 3600000).toLocaleDateString("en-CA", { timeZone: "America/New_York" }); };   /* v1086 (scan 7 #1): the GAME day (09:00 ET, = the server's nyDayKey) - the client kept this default and showed the free prayer as ready / the cheapest gold step every night 00:00-09:00 */
   function setDayKey(fn) { dayKey = fn; }
   function todayStamp() { return dayKey(); }
 
