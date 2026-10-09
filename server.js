@@ -1461,6 +1461,18 @@ function heroDisplayName(k){ if(_heroNames===undefined){ _heroNames=Object.creat
     const re=/^\s*([a-z0-9_]+)\s*:\s*\{\s*name\s*:\s*(?:'([^']+)'|"([^"]+)")/gm; let m; while((m=re.exec(seg))) if(!_heroNames[m[1]]) _heroNames[m[1]]=m[2]||m[3]; }catch(e){} }
   return _heroNames[String(k)]||String(k); }
 function validHero(k){ return typeof k==='string' && Object.prototype.hasOwnProperty.call(SIM.HERO_BASE, k); }
+/* v1097 (sweep 9 Oct #19): THE MARKET'S FRAGMENT OFFERS ARE THE SERVER'S. They were rolled on the device and the buy route sold any hero's
+   fragments. Each hour the server lists three offers per account (two for gold, one for diamonds - the same layout, quantities and prices the
+   Market always showed), seeded by account and hour and kept on the ledger; /api/market/frag sells only an unsold offer of this hour. */
+const MARKET_HOUR_MS=3600000;
+function marketOffersSrv(me,led,now){ const h=Math.floor(now/MARKET_HOUR_MS);
+  if(led.market&&led.market.h===h&&Array.isArray(led.market.offers)&&Array.isArray(led.market.bought)) return led.market;
+  const L=ledPlayerLevel(led), fq=n=>Math.min(4,n+Math.floor(L/20));   // stacks grow with level (+1 per 20), as the client rolled them
+  const sold=Object.keys(SIM.HERO_BASE).filter(k=>!heroNotSold(k)); let pool=sold.filter(k=>!ownsHeroK(led,k)); if(!pool.length) pool=sold;
+  let x=srvSeed('market',me.id,h)>>>0; const pick=()=>{ x=(Math.imul(x,1664525)+1013904223)>>>0; return pool[Math.floor(x/4294967296*pool.length)]; };
+  led.market={h,offers:[{i:0,hero:pick(),qty:fq(2),pay:'gold'},{i:1,hero:pick(),qty:fq(2),pay:'gold'},{i:2,hero:pick(),qty:fq(3),pay:'gems'}],bought:[]};
+  return led.market; }
+function marketOfferView(mk){ return mk.offers.map(o=>({i:o.i,hero:o.hero,qty:o.qty,pay:o.pay,price:o.pay==='gems'?30*o.qty:550*o.qty,bought:mk.bought.includes(o.i)})); }
 /* 3 Oct Market audit #2: heroes never sold in the Market (client HERO_TYPES source:'purchase' / 'arena'). tests/test_market_harden.js keeps this set equal to the client's. */
 const HERO_NOT_SOLD=new Set(['konwu','grosk','vulmar','aureth','hurne','hollow']);
 /* the Guild Shop's ledger-currency items, by the client GUILD_SHOP slot index (tests/test_guild_shop.js keeps them equal) */
@@ -4013,6 +4025,10 @@ function poolState(u){ const led=ensureLedger(u);
 function poolPick(a){ return a[Math.floor(Math.random()*a.length)]; }
 function poolPickUnowned(led,a){ const un=(a||[]).filter(function(k){ return !(led.unlocked&&ownsHeroK(led,k)); });
   return un.length?un[Math.floor(Math.random()*un.length)]:null; }
+/* v1097 (sweep 9 Oct #7): the summon cost and the stars a summoned hero arrives with, as /api/hero/summon charges and grants them. The client
+   read its own table (HERO_TYPES start) and showed 30 fragments / 2 stars for 12 heroes the server charges 80 for and grants at 3 stars. */
+const SUMMON_COST_T={1:10,2:30,3:80};
+function summonSpecSrv(k){ const base=SIM.HERO_BASE[k]||{}, ss=POOL_START_STARS[k]||base.stars||1; return {cost:SUMMON_COST_T[ss]||10, stars:base.stars||1}; }
 function poolGrantHero(u,hk){ const led=u.led; const st=POOL_START_STARS[hk]||1;
   if(ownsHeroK(led,hk)){ const f=POOL_DUPE_FRAG[st]||7; creditFrags(u,led,hk,f,'wish:duplicate',{uncapped:true});
     return {type:'dupe', hero:hk, frags:f}; }
@@ -6255,6 +6271,10 @@ async function api(req,res,url){
       ledTx(me,'patron:prestige',{edpBase:p.edpBase});
       return {ok:true, ledger:ledgerView(me)}; });
     return send(res,out.storageFailed?503:(out.ok===false?400:200),out); }
+  if(p==='/api/market/offers' && req.method==='GET'){ if(!me)return send(res,401,{error:'auth'});   /* v1097 (sweep 9 Oct #19) */
+    const led=ensureLedger(me), had=led.market&&led.market.h, mk=marketOffersSrv(me,led,Date.now()); if(mk.h!==had) writeDB();
+    return send(res,200,{ok:true,hour:mk.h,restockAt:(mk.h+1)*MARKET_HOUR_MS,offers:marketOfferView(mk),
+      today:{used:((led.marketDay&&led.marketDay.k===nyDayKey())?(led.marketDay.frags|0):0),max:12}}); }
   if(p==='/api/shop/offers'){ if(!me)return send(res,401,{error:'auth'}); const led=ensureLedger(me);
     return send(res,200,{ ok:true, offers:SHOP_OFFERS.map(o=>({id:o.id,price:o.price,name:o.name,kind:o.kind,plan:o.plan||null,amount:o.amount,days:o.days||null})),
       plans:plansView(led) }); }
@@ -7188,14 +7208,15 @@ async function api(req,res,url){
       writeDB(); return {ok:true, success, level:h.ref|0, frags:led.frags[k]|0, ledger:ledgerView(me)};
     });
     return send(res, out.storageFailed?503:(out.ok===false?400:200), out); }
+  if(p==='/api/hero/summon-table' && req.method==='GET'){   /* v1097 (sweep #7): the client's summon costs and stars come from here */
+    const table={}; for(const k of Object.keys(SIM.HERO_BASE)) table[k]=summonSpecSrv(k);
+    return send(res,200,{ok:true,table}); }
   if(p==='/api/hero/summon' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
     const out=idem(me.id+':summon:'+reqId,()=>{
       const led=ensureLedger(me); const k=String(b.heroKey||''); if(!validHero(k)) return {ok:false,error:'Unknown hero.'}; const base=SIM.HERO_BASE[k];
       if(ownsHeroK(led,k)) return {ok:false,error:'Already summoned.'};
-      const ss=POOL_START_STARS[k]||base.stars||1;
-      const SUMMON_COST_T={1:10,2:30,3:80};
-      const need=SUMMON_COST_T[ss]||10;
+      const need=summonSpecSrv(k).cost;   /* v1097 (sweep 9 Oct #7): one table - /api/hero/summon-table serves this same spec to the client */
       if((led.frags[k]|0)<need) return {ok:false,error:'Need '+need+' fragments to summon.'};
       led.frags[k]-=need; led.unlocked[k]=true;
       if(!led.hero[k]) led.hero[k]={xp:0,stars:base.stars,pips:0};
@@ -7556,16 +7577,19 @@ async function api(req,res,url){
     if(p==='/api/market/frag'){ const out=durableCommit(me,me.id+':mfrag:'+reqId,(me)=>{ const led=ensureLedger(me);
         const hk=String(b.heroKey||''); if(!validHero(hk)) return {ok:false,error:'Unknown hero.'};
         if(heroNotSold(hk)) return {ok:false,error:'That hero\'s fragments are not sold in the Market.'};   /* 3 Oct Market audit #2 */
-        const qty=Math.max(1,Math.min(4,b.qty|0));
-        const pay=b.pay==='gems'?'gems':'gold';
+        const mk=marketOffersSrv(me,led,Date.now());   /* v1097 (sweep #19): only an unsold offer the server listed this hour */
+        const o=(b.offer!=null&&b.offer!=='')?mk.offers.find(x=>x.i===(b.offer|0)&&x.hero===hk):mk.offers.find(x=>x.hero===hk&&!mk.bought.includes(x.i));
+        if(!o) return {ok:false,error:'That offer is not in the Market this hour. Reopen the Market.',offers:marketOfferView(mk)};
+        if(mk.bought.includes(o.i)) return {ok:false,error:'That offer is sold.',offers:marketOfferView(mk)};
+        const qty=o.qty, pay=o.pay;
         const price=pay==='gems'? 30*qty : 550*qty;                       // SERVER prices — the client displays these
         const dk=nyDayKey(); led.marketDay=led.marketDay&&led.marketDay.k===dk?led.marketDay:{k:dk,frags:0};
         if(led.marketDay.frags+qty>12) return {ok:false,error:'Daily market fragment limit reached.'};
         if(pay==='gold'){ if(led.gold<price) return {ok:false,error:'Not enough gold.'}; led.gold-=price; }
         else { if(led.gems<price) return {ok:false,error:'Not enough diamonds.'}; led.gems-=price; }
-        led.marketDay.frags+=qty; creditFrags(me,led,hk,qty,'market-frag');
+        led.marketDay.frags+=qty; mk.bought.push(o.i); creditFrags(me,led,hk,qty,'market-frag');
         ledTx(me,'market-frag:'+hk,{[pay]:-price,frag:qty});
-        writeDB(); return {ok:true, heroKey:hk, qty, paid:{[pay]:price}, ledger:ledgerView(me)};
+        writeDB(); return {ok:true, heroKey:hk, qty, offer:o.i, paid:{[pay]:price}, ledger:ledgerView(me)};
       }); return send(res, out.storageFailed?503:out.ok===false?400:200, out); }
     if(p==='/api/arena/daily-claim'){ const out=durableCommit(me,me.id+':adaily:'+reqId,(me)=>{ const led=ensureLedger(me);
         if(ledPlayerLevel(led)<10) return {ok:false,error:'The Arena opens at level 10.'};   /* 3 Oct Arena audit #9: new accounts farmed the daily claim */

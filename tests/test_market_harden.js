@@ -35,8 +35,11 @@ async function editDB(fn){ await delay(300); await stop(); const db=JSON.parse(f
   const r1=await call('/api/market/frag',{heroKey:'hollow',qty:1,pay:'gems',requestId:'mk-hollow'});
   ok(r1.data.ok===false&&/not sold/.test(r1.data.error||''),'Market refuses Hollow fragments ('+(r1.data.error||JSON.stringify(r1.data).slice(0,80))+')');
   ok((await led()).gems===g0,'no diamond taken by the refused Hollow buy');
-  const r2=await call('/api/market/frag',{heroKey:sold,qty:1,pay:'gems',requestId:'mk-sold'});
-  ok(r2.data.ok===true,'CONTROL: a sold hero ('+sold+') still buys ('+(r2.data.error||'ok')+')');
+  /* v1097 (sweep #19): the Market sells only the server's offers of the hour - the control buys today's diamond offer (a pre-v1097 server has no
+     offers route and still sells any hero) */
+  const mo=(await call('/api/market/offers')).data, offer=mo&&Array.isArray(mo.offers)?mo.offers.find(o=>o.pay==='gems'):null;
+  const r2=await call('/api/market/frag',offer?{offer:offer.i,heroKey:offer.hero,requestId:'mk-sold'}:{heroKey:sold,qty:1,pay:'gems',requestId:'mk-sold'});
+  ok(r2.data.ok===true,'CONTROL: a sold hero ('+(offer?offer.hero:sold)+') still buys ('+(r2.data.error||'ok')+')');
   const r3=await call('/api/tx/earn',{what:'frag',amount:5,reason:'arena',heroKey:'hollow',requestId:'ea-hollow'});   // 'arena' is the only fragment reason left (v972: Grosk only)
   ok(r3.data.ok===false,'tx/earn arena refuses Hollow fragments ('+(r3.data.error||'')+')');
   const r3g=await call('/api/tx/earn',{what:'frag',amount:5,reason:'arena',heroKey:'grosk',requestId:'ea-grosk'});

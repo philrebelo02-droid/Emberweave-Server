@@ -5125,7 +5125,13 @@ function applyBetaUnlocks(){ if(!BETA_ALL_HEROES || typeof G==='undefined' || !G
   HERO_KEYS.forEach(k=>{ G.unlocked[k]=true; const ss=heroStartStars(k);
     if((G.starLevel[k]||1) < ss){ G.starLevel[k]=ss; G.starPip[k]=0; } }); }   // glyph rank now comes ONLY from the server's v2 boards — beta no longer maxes it
 const SUMMON_COST={1:10,2:30,3:80};                                   // hero-fragments to summon (unlock) a hero, by its starting star
-function summonCost(key){ return SUMMON_COST[heroStartStars(key)]||10; }
+/* v1097 (sweep 9 Oct #7): the cost and the arriving stars come from the server's table (/api/hero/summon-table, the same spec
+   /api/hero/summon charges). The local table is only the fallback until it arrives. */
+let SUMMON_SRV=null, _summonSrvAt=0;
+function summonTableSync(){ if(SUMMON_SRV||Date.now()-_summonSrvAt<60000) return; _summonSrvAt=Date.now();
+  api('/api/hero/summon-table','GET').then(d=>{ if(d&&d.ok&&d.table&&typeof d.table==='object'){ SUMMON_SRV=d.table; if(state==='heroDetail') renderHeroDetail(); } }).catch(()=>{}); }
+function summonCost(key){ const s=SUMMON_SRV&&SUMMON_SRV[key]; if(s&&s.cost>0) return s.cost|0; summonTableSync(); return SUMMON_COST[heroStartStars(key)]||10; }
+function summonStars(key){ const s=SUMMON_SRV&&SUMMON_SRV[key]; return (s&&s.stars>0)?(s.stars|0):heroStartStars(key); }
 function heroStars(key){ const s=heroStartStars(key); return Math.max(s,Math.min(MAX_STARS,(G.starLevel&&G.starLevel[key])||s)); }
 function starPips(key){ return Math.max(0,Math.min(STAR_PIPS,(G.starPip&&G.starPip[key])||0)); }   // 0..5 pips; 5/5 = filled, awaiting the confirm payment
 // STAR-UP costs (in HERO FRAGMENTS, per CURRENT star level): fill 5 equal pips at `pip`, then pay `confirm` to finalise the next star.
@@ -7563,6 +7569,20 @@ const CH_BONUS_MAPS = {
 
 let GSPLIT_ENTRY = null;   // { ch, slot, id, stageInfo, squad:[keys], laneOf:{key:1|2|3} }
 
+/* v1097 (sweep 9 Oct #14): the hourly bonus-stage fragments. The result card promised "N fragments per hour now available" and nothing
+   ever called /api/bonus/claim - the state is read first so an empty claim is explained instead of refused. */
+let _bonusClaimBusy=false;
+async function bonusHourlyClaim(){ if(_bonusClaimBusy) return; if(!ACC.token){ bannerMsg('Sign in to claim bonus stage fragments.'); return; }
+  _bonusClaimBusy=true;
+  try{ const st=await api('/api/bonus/state','GET');
+    if(!st||!st.ok){ bannerMsg((st&&st.error&&st.error!=='offline')?st.error:'The bonus stages could not be reached. Try again in a moment.'); return; }
+    const c=st.claim||{}, ph=st.perHour|0;
+    if(!(c.hours>0)||!(c.total>0)){ bannerMsg(ph>0?'Nothing has accrued yet. '+ph+' fragment'+(ph===1?'':'s')+' arrive every hour.':'Clear a bonus stage to earn fragments every hour.'); return; }
+    const r=await apiOnce('bonusclaim','/api/bonus/claim',{}); if(r&&r.busy) return;
+    if(r&&r.ok){ if(r.ledger) adoptLedger(r.ledger); bannerMsg('Claimed '+(c.total|0)+' glyph fragment'+((c.total|0)===1?'':'s')+' ('+(r.hours|0)+' h of bonus stage rewards).'); if(typeof glyphV2Sync==='function') glyphV2Sync(); saveG(); }
+    else bannerMsg((r&&r.error&&r.error!=='offline')?r.error:'The claim could not be confirmed. Try again in a moment.');
+  } finally{ _bonusClaimBusy=false; } }
+
 function openBonusModal(ch, slot){
   const id = ch+'-'+slot;
   GSPLIT_ENTRY = { ch, slot, id, stageInfo:null, squad:[], laneOf:{} };
@@ -7678,7 +7698,8 @@ function gsplitPickerRender(){
   gsplitPickerCss();
   const head = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
       <div style="font-weight:800;font-size:15px">BONUS ${E.id}${info.tier?' — '+info.tier:''}</div>
-      <button type="button" id="gsplitClose" class="btn xs secondary">✕</button></div>`;
+      <span style="display:flex;gap:6px;align-items:center"><button type="button" class="btn xs secondary" onclick="bonusHourlyClaim()">Claim fragments</button>
+      <button type="button" id="gsplitClose" class="btn xs secondary">✕</button></span></div>`;
 
   /* ---------------- SCREEN 1 · PICK (Phil, 17 Sep: "lock the ability to select a 16th hero") ---------------- */
   if(E.mode==='pick'){
@@ -8561,6 +8582,9 @@ gsplitShowResult=function(won,data){
   close.type='button'; close.textContent='CONTINUE';
   close.style.cssText='width:100%;min-height:42px;margin-top:8px;border-radius:8px;border:1px solid #d8ac59;background:linear-gradient(#ffdf8f,#f19842);color:#281c12;font-weight:900';
   close.onclick=()=>overlay.remove();
+  if(won){ const cl=document.createElement('button'); cl.type='button'; cl.textContent='CLAIM HOURLY FRAGMENTS';   /* v1097 (sweep 9 Oct #14) */
+    cl.style.cssText='width:100%;min-height:40px;margin-top:8px;border-radius:8px;border:1px solid #6f8f6f;background:#1d2a20;color:#ccebd0;font-weight:800';
+    cl.onclick=()=>bonusHourlyClaim(); card.appendChild(cl); }
   card.appendChild(close); overlay.appendChild(card); document.body.appendChild(overlay);
   close.focus();
 };
@@ -15325,7 +15349,7 @@ function renderForge(){
    through the capped, logged /api/tx endpoints — a tampered client changes its own mirror only,
    never the ledger. */
 let LED={st:null};
-function adoptLedger(st){ if(!st||typeof st!=='object') return;
+function adoptLedger(st){ if(!st||typeof st!=='object') return; summonTableSync();
   /* 27 Sep 2026 (Phil: "the server takes back diamonds when i 'buy' diamonds from shop the server takes it back within seconds" /
      "players cant have their purchased diamonds dissapearing" / "no rollbacks should happen"). The server kept the purchase (tested:
      300 -> 1500 and still 1500 after saves); the CLIENT rolled it back - any response that left the server BEFORE the purchase
@@ -18142,7 +18166,22 @@ function rollMarket(){ const o=[]; const L=playerLevel();
   o.push({kind:'shield',icon:'🛡️',name:'Peace Shield',cost:{gems:em(70)}});
   G.market={ts:Date.now(),offers:o,lvl:L};
 }
-function ensureMarket(){ if(!G.market||!G.market.offers||!G.market.offers.length||(Date.now()-(G.market.ts||0))>=MARKET_REFRESH_MS){ rollMarket(); saveG(); } }
+/* v1097 (sweep 9 Oct #19): signed in, the fragment offers are the server's (/api/market/offers, one set per hour); the Peace Shield row stays local
+   (it is its own server purchase). Until this hour's offers arrive the fragment buttons wait. */
+let _marketFetch=null;
+function marketSync(){ if(!ACC.token||_marketFetch) return; _marketFetch=api('/api/market/offers','GET').then(d=>{ _marketFetch=null;
+    if(!d||!d.ok||!Array.isArray(d.offers)) return;
+    let rest=(G.market&&G.market.serverHour===d.hour&&Array.isArray(G.market.offers))?G.market.offers.filter(o=>o.kind!=='frag'):null;
+    if(!rest){ rollMarket(); rest=G.market.offers.filter(o=>o.kind!=='frag'); }
+    G.market={ts:d.hour*MARKET_REFRESH_MS, serverHour:d.hour, lvl:playerLevel(),
+      offers:d.offers.map(o=>({kind:'frag',srv:o.i,hero:o.hero,qty:o.qty,cost:o.pay==='gems'?{gems:o.price}:{gold:o.price},bought:!!o.bought})).concat(rest)};
+    if(d.today) G.marketToday=d.today; saveG(); if(state==='market') renderMarket(); }).catch(()=>{ _marketFetch=null; }); }
+function ensureMarket(){
+  if(ACC.token){ const h=Math.floor(Date.now()/MARKET_REFRESH_MS);
+    if(!G.market||!G.market.offers||!G.market.offers.length){ rollMarket(); G.market.pending=true; }
+    if(G.market.serverHour!==h){ G.market.pending=true; marketSync(); } else G.market.pending=false;
+    return; }
+  if(!G.market||!G.market.offers||!G.market.offers.length||(Date.now()-(G.market.ts||0))>=MARKET_REFRESH_MS){ rollMarket(); saveG(); } }
 // ===== SHADY MARKET — a shady dealer's premium stock, diamonds only =====
 const SHADY_SHOP=[
   {id:'gold',   name:'War Chest — 80,000 Gold',  icon:'🪙',  cost:250,  server:'warchest', desc:'+80,000 gold'},   /* 3 Oct: one server purchase (was spend + a client gold earn) */
@@ -18286,15 +18325,16 @@ function renderMarket(){
       const sub=o.kind==='shield'?'12h world-map attack immunity':(frag?(HERO_TYPES[o.hero].locked&&!G.unlocked[o.hero]?heroFrag(o.hero)+'/'+summonCost(o.hero)+' to unlock':'✓ owned'):'');
       return `<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 4px;border-bottom:1px solid #222b40;gap:8px">
         <div style="display:flex;gap:8px;align-items:center;min-width:0">${ic}<div style="min-width:0"><b>${nm}</b>${sub?`<div style="font-size:10px;color:#8b98a9">${sub}</div>`:''}</div></div>
-        <button class="btn sm" data-i="${i}" ${o.bought||!afford?'disabled':''}>${o.bought?'Sold':c}</button></div>`;
+        <button class="btn sm" data-i="${i}" ${o.bought||!afford||(o.kind==='frag'&&G.market.pending)?'disabled':''}>${o.bought?'Sold':c}</button></div>`;
     }).join('');
   b.querySelectorAll('button[data-i]').forEach(btn=>btn.onclick=()=>shopOnce(async()=>{ const o=G.market.offers[+btn.dataset.i]; if(o.bought)return;
     let msg='';
     if(o.kind==='frag'&&ACC.token){   // v250: ONE atomic server purchase — server debits AND grants at ITS prices
       const rk='mfrag:'+G.market.ts+':'+btn.dataset.i;
-      const r=await api('/api/market/frag','POST',{heroKey:o.hero,qty:o.qty,pay:o.cost.gems?'gems':'gold',requestId:shopRid(rk)});
+      if(G.market.pending||o.srv==null){ bannerMsg('The Market is restocking. Try again in a moment.'); marketSync(); return; }
+      const r=await api('/api/market/frag','POST',{offer:o.srv,heroKey:o.hero,qty:o.qty,pay:o.cost.gems?'gems':'gold',requestId:shopRid(rk)});
       shopRidDone(rk,r);
-      if(!r||r.error){ bannerMsg((r&&r.error)||'Purchase failed.'); return; }
+      if(!r||r.error){ bannerMsg((r&&r.error)||'Purchase failed.'); if(r&&r.offers){ G.market.serverHour=null; marketSync(); } return; }
       msg=giveHeroFrag(r.heroKey||o.hero,(r.qty|0)||o.qty)||''; adoptLedger(r.ledger);
     } else if(o.kind==='shield'&&ACC.token){   /* v1081: the Peace Shield is a server purchase at the server's price */
       const rk='mshield:'+G.market.ts, r=await api('/api/shop/buy','POST',{what:'shield_market',requestId:shopRid(rk)}); shopRidDone(rk,r);
@@ -23377,7 +23417,7 @@ function renderHeroDetail(){
     </div>` : '';
   body.innerHTML=`${summonBar}<div class="hd-wrap">${left}${right}</div>`;
   { const sm=body.querySelector('#hdSummon'); if(sm) sm.onclick=async()=>{ sm.disabled=true;
-      const summoned=await doSummon(key); if(summoned){ bannerMsg('✨ '+t.name+' summoned at '+heroStartStars(key)+'★!'); renderHeroDetail(); checkTutorial(); tutReturnAfterAction(); }
+      const summoned=await doSummon(key); if(summoned){ bannerMsg('✨ '+t.name+' summoned at '+summonStars(key)+'★!'); renderHeroDetail(); checkTutorial(); tutReturnAfterAction(); }
       else { renderHeroDetail(); } }; }
   body.querySelectorAll('.hd-tab').forEach(b=>b.onclick=()=>{ heroTab=b.dataset.tab; renderHeroDetail(); });
   { const lb=body.querySelector('#loreBtn'); if(lb){ loreBtnSync(lb); lb.onclick=()=>loreToggle(key,lb); if(_lore.a&&_lore.key===key){ const a=_lore.a; a.onplay=a.onpause=a.onended=()=>loreBtnSync(lb); } } }   // v1048 lore narration
@@ -23642,7 +23682,7 @@ function showWishResults10(list,pool){ const ov=document.createElement('div');
   _cards.forEach((c,i)=>{ setTimeout(()=>{ c.style.opacity='1'; c.style.transform='scale(1) translateY(0)'; }, 130+i*115); });
   const _close=()=>{ stopHeroIdleAnims(ov); ov.remove(); };
   ov.querySelector('#_w10Ok').onclick=_close;
-  { const a=ov.querySelector('#_w10Again'); if(a) a.onclick=()=>{ _close(); (pool==='gem'?wishGem10:wishGold10)(); }; }
+  { const a=ov.querySelector('#_w10Again'); if(a) a.onclick=()=>{ _close(); (pool==='myth'?wishMyth10:pool==='gem'?wishGem10:wishGold10)(); }; }   /* v1097 (sweep 9 Oct #8): a Mythical x10 is repeated as a Mythical x10 */
   ov.addEventListener('click',e=>{ if(e.target===ov)_close(); }); }
 async function wishGold10(){ const r=await serverWish('gold',10); if(!r) return;
   const out=r.results.map(serverWishToRes);

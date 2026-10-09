@@ -52,7 +52,7 @@ const setEgp=base=>editDB(u=>{ u.led.patron={v:1,base,prestiged:false,edpBase:0}
   const pick=picks.find(x=>x!=='targeted5'); if(pick){ const before=(await led()).gems; const r=await call('/api/shop/buy',{what:pick,requestId:R()}); const after=(await led()).gems;
     const full={warchest:250,shields3:550,arenacoins:600}[pick]; ok(r.data.ok===true&&before-after===Math.round(full*0.9),'a picked item costs 10 % less ('+pick+': '+(before-after)+' of '+full+')'); }
   // static: march cap + speed wired, chart served, chat tags
-  ok((src.match(/patronOpenMarches\(me,now\)>=patronRow\(/g)||[]).length===2,'both march starts check the armies-out cap');
+  ok((src.match(/patronOpenMarches\(me,now\)>=patronRow\(/g)||[]).length===3,'all three march starts (mine, city attack, v1097 city defend) check the armies-out cap');
   ok((src.match(/patronMarchMs\(/g)||[]).length>=3,'EDP march speed shortens the planned travel');
   const bf=await fetch(base+'/server/patron-benefits.js'); const bt=await bf.text();
   ok(bf.status===200&&/EGP|stamina/i.test(bt),'the chart is served to the client');
