@@ -2240,7 +2240,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
     <span id="pLevel" style="display:none"></span><span id="pGold" style="display:none"></span><span id="pGems" style="display:none"></span>
     <!-- profile modal -->
     <div id="profileModal"><div class="pm">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-weight:800;font-size:16px">👤 Profile</div><button class="btn sm secondary" id="profClose">✕</button></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-weight:800;font-size:16px"><img class="stIc" src="/assets/img/icons/ui/profile-v1.webp" alt=""> Profile</div><button class="btn sm secondary" id="profClose"><img class="stIc" src="/assets/img/icons/ui/close-v1.webp" alt=""></button></div>
       <div id="profileModalBody"></div>
     </div></div>
     <!-- resource shop modal (food / gold / diamonds) -->
@@ -14278,7 +14278,7 @@ function _intAuditHTML(){
   return `<div style="border:1px solid #3a4a6a;background:#0f1524;border-radius:10px;padding:11px">
     <div style="display:flex;justify-content:space-between;align-items:center"><div style="font-weight:900;font-size:14px;color:#ffd45e">${escapeHTML(a.name)}</div>
       <button class="btn sm secondary" data-intback="1">← Back</button></div>
-    <div style="font-size:11px;color:#8b98a9;margin-top:2px">Balance now <b style="color:#c9b6ff">💎 ${a.balance}</b> · gained <b style="color:#c9b6ff">${a.totalGained}</b> in the last ${a.days} days</div>${ban}
+    <div style="font-size:11px;color:#8b98a9;margin-top:2px">Balance now <b style="color:#c9b6ff">${hudIcon('gem')} ${a.balance}</b> · gained <b style="color:#c9b6ff">${a.totalGained}</b> in the last ${a.days} days</div>${ban}
     <div style="font-size:11px;font-weight:800;margin:9px 0 4px">Where they came from</div>
     ${rows.length?rows.map(([k,v])=>`<div style="display:flex;justify-content:space-between;font-size:11px;color:#cdd6e4;padding:2px 0;border-bottom:1px solid #1b2438"><span>${escapeHTML(k)}</span><b>+${v}</b></div>`).join(''):'<div style="font-size:11px;color:#8b98a9">No recorded gains in this window.</div>'}
     <div style="font-size:11px;font-weight:800;margin:10px 0 4px">Most recent</div>
@@ -14346,7 +14346,7 @@ function popoutScreen(name){ const el=document.getElementById(name); if(!el){ sh
   bd.style.display='block';
   popoutRender(name);
   el.scrollTop=0;
-  if(!el.querySelector('.popoutClose')){ const x=document.createElement('button'); x.className='popoutClose'; x.textContent='✕'; x.onclick=closePopout; el.appendChild(x); }
+  if(!el.querySelector('.popoutClose')){ const x=document.createElement('button'); x.className='popoutClose'; x.innerHTML=uiIcon('close'); x.onclick=closePopout; el.appendChild(x); }
   el.classList.add('active','popout');
   const hm=document.getElementById('hubMenu'); if(hm) hm.classList.remove('open');
 }
@@ -14531,7 +14531,7 @@ function renderHome(){
     const lab=document.createElement('div'); lab.className='townlbl'; lab.style.left=h.lx+'%'; lab.style.top=h.ly+'%';
     let inner='<span>'+h.label+'</span>';
     if(h.locked) inner+='<span class="lockwrap"><img class="lkIc" src="/assets/img/ui/hud-lock.webp?v=1" alt="Locked"><span class="locktip">Unlocks at Lv '+h.lockLv+'</span></span>';
-    if(h.academy){ const nl=nextLearn(); if(nl) inner+='<span class="lockwrap acatimer" data-academy-timer="1">⏳<span class="locktip">Research: '+fmtDur(nl-Date.now())+'</span></span>'; }
+    if(h.academy){ const nl=nextLearn(); if(nl) inner+='<span class="lockwrap acatimer" data-academy-timer="1">'+uiIcon('timer')+'<span class="locktip">Research: '+fmtDur(nl-Date.now())+'</span></span>'; }
     lab.innerHTML=inner;
     const wrapEl=lab.querySelector('.lockwrap');
     if(wrapEl && !wrapEl.classList.contains('acatimer')){
@@ -14551,7 +14551,7 @@ function renderHome(){
     isle.style.left=ix+'%'; isle.style.top=iy+'%';
     isle.innerHTML=`<div class="isleBob"><img class="isleStrip" src="${SKY_ISLAND}" draggable="false"></div>`;
     if(isleLocked){ isle.style.cursor='not-allowed'; isle.querySelector('.isleBob').style.filter='brightness(1.0) grayscale(.4) drop-shadow(0 8px 11px rgba(0,0,0,.5))'; }
-    isle.onclick=()=>{ if(isleLocked){ bannerMsg('🔒 Island of Trials unlocks at level 10.'); return; } show('skyisland'); };
+    isle.onclick=()=>{ if(isleLocked){ bannerMsg(hudIcon('lock')+' Island of Trials unlocks at level 10.'); return; } show('skyisland'); };
     box.appendChild(isle);
     // size it in explicit px so the sprite window shows exactly ONE frame (scales with the town via the parent transform)
     const sizeIsle=()=>{ const h=box.clientHeight||0; if(h){ const ih=h*0.30; isle.style.height=ih+'px'; isle.style.width=(ih*175/190)+'px'; } };
@@ -14586,14 +14586,14 @@ function openProfile(){ if(rewardLocked()){ queueBehindReward(openProfile); retu
   renderProfileModal(); document.getElementById('profileModal').classList.add('active'); }
 /* v267 (80/20 §9): every currency's SOURCES, SINKS and CAPS, and the daily reset in BOTH server
    time and the player's own local time — read live from /api/manifest, never hard-coded here. */
-const CURRENCY_META={ gold:['🪙','Gold'], gems:['💎','Diamonds'], stamina:['⧗','Stamina'],
-  dust:['✨','Forge Dust'], glyphFragments:['◆','Glyph Fragments'], gearFragments:['⚒','Gear Fragments'],
-  cityResources:['🌾','City Resources'], guildCoins:['🛡','Guild Coins'], heroFragments:['🧩','Hero Fragments'] };
+const CURRENCY_META={ gold:[hudIcon('gold'),'Gold'], gems:[hudIcon('gem'),'Diamonds'], stamina:['⧗','Stamina'],
+  dust:[uiIcon('sparkle-new'),'Forge Dust'], glyphFragments:['◆','Glyph Fragments'], gearFragments:['⚒','Gear Fragments'],
+  cityResources:['🌾','City Resources'], guildCoins:[uiIcon('medal'),'Guild Coins'], heroFragments:['🧩','Hero Fragments'] };
 async function openEconomy(){
   const sh=modalShell();
-  sh.body.innerHTML='<div style="font-weight:800;margin-bottom:6px">💰 Economy</div><div style="color:#8b98a9;font-size:12px">Loading the live currency manifest…</div>';
+  sh.body.innerHTML='<div style="font-weight:800;margin-bottom:6px">'+uiIcon('war-chest')+' Economy</div><div style="color:#8b98a9;font-size:12px">Loading the live currency manifest…</div>';
   let m=null; try{ m=await api('/api/manifest'); }catch(e){}
-  if(!m||!m.currencies){ sh.body.innerHTML='<div style="font-weight:800;margin-bottom:6px">💰 Economy</div><div style="color:#ff9a9a;font-size:12px">Could not reach the server manifest. Sign in and try again.</div>'; return; }
+  if(!m||!m.currencies){ sh.body.innerHTML='<div style="font-weight:800;margin-bottom:6px">'+uiIcon('war-chest')+' Economy</div><div style="color:#ff9a9a;font-size:12px">Could not reach the server manifest. Sign in and try again.</div>'; return; }
   // the reset in the player's OWN clock, alongside the server's
   let localLine='';
   try{ const d=new Date(m.nextResetUTC);
@@ -14611,7 +14611,7 @@ async function openEconomy(){
       <div style="font-size:10.5px;color:#5ee89b;margin-top:3px">Earn: <span style="color:#c3ccd8">${(c.sources||[]).map(escapeHTML).join(' · ')}</span></div>
       <div style="font-size:10.5px;color:#ff9a8b;margin-top:1px">Spend: <span style="color:#c3ccd8">${(c.sinks||[]).map(escapeHTML).join(' · ')}</span></div>
     </div>`; }).join('');
-  sh.body.innerHTML=`<div style="font-weight:800;margin-bottom:2px">💰 Economy</div>
+  sh.body.innerHTML=`<div style="font-weight:800;margin-bottom:2px">${uiIcon('war-chest')} Economy</div>
     <div style="font-size:11px;color:#8b98a9">Where every currency comes from, what it is for, and what is capped. Served live by the server.</div>
     <div style="background:#0f1726;border:1px solid #24314e;border-radius:10px;padding:8px 10px;margin-top:8px">
       <div style="font-size:10px;letter-spacing:1px;color:#8b98a9">DAILY RESET</div>
@@ -14640,15 +14640,15 @@ function renderProfileModal(){
     </div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px">
       <div style="font-weight:700;font-size:13px">Name</div>
-      <div style="font-size:11px;color:#c9b6ff">💎 ${rgems}</div>
+      <div style="font-size:11px;color:#c9b6ff">${hudIcon('gem')} ${rgems}</div>
     </div>
     <div style="display:flex;gap:6px;margin-top:4px">
       <input id="pfNameInput" maxlength="16" value="${escapeHTML(G.playerName||'')}" style="flex:1;padding:8px;border-radius:8px;border:1px solid #33405e;background:#0f1420;color:#e6edf3">
-      <button class="btn sm" id="pfSave" ${rafford?'':'disabled'}>${rfree?'Save · Free':'Rename · 💎'+rcost}</button>
+      <button class="btn sm" id="pfSave" ${rafford?'':'disabled'}>${rfree?'Save · Free':'Rename · '+hudIcon('gem')+rcost}</button>
     </div>
-    <div style="font-size:10px;color:#8b98a9;margin-top:4px">${rfree?'You have <b style="color:#ffd45e">1 free rename</b> available. After that: 2nd 💎50 · 3rd 💎100 · 4th+ 💎200.':`Next rename costs <b style="color:#c9b6ff">💎${rcost}</b>.${rafford?'':' <span style="color:#ff8b8b">Not enough diamonds.</span>'}`}</div>
+    <div style="font-size:10px;color:#8b98a9;margin-top:4px">${rfree?'You have <b style="color:#ffd45e">1 free rename</b> available. After that: 2nd '+hudIcon('gem')+'50 · 3rd '+hudIcon('gem')+'100 · 4th+ '+hudIcon('gem')+'200.':`Next rename costs <b style="color:#c9b6ff">${hudIcon('gem')}${rcost}</b>.${rafford?'':' <span style="color:#ff8b8b">Not enough diamonds.</span>'}`}</div>
     <div id="pfMsg" style="font-size:11px;color:#ffd45e;min-height:14px;margin-top:4px"></div>
-    <button class="btn xs secondary" style="width:100%;margin-top:10px;font-size:11px" onclick="openEconomy()">💰 Economy — sources, sinks &amp; daily resets</button>
+    <button class="btn xs secondary" style="width:100%;margin-top:10px;font-size:11px" onclick="openEconomy()">${uiIcon('war-chest')} Economy — sources, sinks &amp; daily resets</button>
     <div style="font-weight:700;font-size:13px;margin-top:10px">Portrait <span style="font-size:10px;color:#8b98a9">(choose an owned hero)</span></div>
     <div class="avpick" id="pfAvs">${HERO_KEYS.slice().sort((a,b)=>((G.unlocked[b]?1:0)-(G.unlocked[a]?1:0))||(heroPower(b)-heroPower(a))).map(k=>{ const own=G.unlocked[k]; return `<div class="av${k===curPortrait?' sel':''}${own?'':' locked'}" data-k="${k}" title="${HERO_TYPES[k].name}"><img class="avimg" data-k="${k}" style="width:100%;height:100%;object-fit:cover" src="${HERO_PORTRAITS[k]||''}"></div>`; }).join('')}</div>`;
   setHead(body.querySelector('#pfHead'), curPortrait);
@@ -14669,8 +14669,8 @@ function renderProfileModal(){
       } else { if(cost>0) G.gems=(G.gems||0)-cost; G.playerName=v; G.renames=(G.renames||0)+1; }
       G.nameChanged=true; saveG(); updateHubChrome(); chatUpdateName(); renderProfileModal(); };
     if(cost<=0){ doRename(); return; }                                   // first rename is free
-    if((G.gems||0)<cost){ msg.textContent='You need 💎'+cost+' diamonds for this rename.'; return; }
-    gameConfirm(`Rename to <b>${escapeHTML(v)}</b> for <b style="color:#c9b6ff">💎${cost}</b> diamonds?`, doRename);
+    if((G.gems||0)<cost){ msg.textContent='You need '+cost+' diamonds for this rename.'; return; }
+    gameConfirm(`Rename to <b>${escapeHTML(v)}</b> for <b style="color:#c9b6ff">${hudIcon('gem')}${cost}</b> diamonds?`, doRename);
   };
   if(nameBtn) wireTap(nameBtn, function(){ if(nameBtn.disabled) return; pfSaveTap(); });
   /* 30 Aug — the portrait tiles sit at the bottom of a scrolling modal (.pm is overflow:auto), so on a
@@ -14723,7 +14723,7 @@ async function vaultStatus(){ await vaultResendPending(); const r=await api('/ap
   VAULT.st=(r&&typeof r==='object'&&typeof r.enabled==='boolean')?((r.enabled||r.locked)?r:{enabled:false}):{enabled:false,unreachable:true}; return VAULT.st; }
 function vaultBossLabel(rule){ if(!rule) return ''; const nm=rule.id.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
   return `<div style="background:#241a2e;border:1px solid #7a5fb0;border-radius:10px;padding:8px 10px;margin:8px 0;font-size:11px">
-    <b style="color:#c9a2ff">${rule.gatekeeper?'⛩ GATEKEEPER — ':''}👑 ${nm}${rule.ascended?' (Ascended)':''}</b><br><span style="color:#8b98a9">${escapeHTML(rule.warn||'')}</span></div>`; }
+    <b style="color:#c9a2ff">${rule.gatekeeper?'⛩ GATEKEEPER — ':''}${uiIcon('crown')} ${nm}${rule.ascended?' (Ascended)':''}</b><br><span style="color:#8b98a9">${escapeHTML(rule.warn||'')}</span></div>`; }
 function vaultPickerHTML(){
   const sq=squadFor('vault'), fight=sq.slice(0,TEAM_SIZE), back=sq.slice(TEAM_SIZE,TEAM_SIZE*2);
   const chip=(k,col)=>`<div style="display:flex;flex-direction:column;align-items:center;gap:3px;width:58px">
@@ -14737,13 +14737,13 @@ function vaultPickerHTML(){
       <span style="font-size:11px;font-weight:800;color:${col};letter-spacing:.5px">${icon} ${txt}</span>
       <span style="flex:1;height:1px;background:linear-gradient(90deg,${col}44,transparent)"></span>
       <span style="font-size:10px;color:${col};font-weight:800">${cnt}/${TEAM_SIZE}</span></div>`;
-  return `${sec('⚔','FIGHTERS',fight.length,'#5ee89b')}
+  return `${sec(statusIcon('attack'),'FIGHTERS',fight.length,'#5ee89b')}
     <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-start;margin-bottom:12px">${row(fight,TEAM_SIZE,'#5ee89b')}</div>
-    ${sec('🛡','BACKUP · steps in when a fighter falls',back.length,'#c9a2ff')}
+    ${sec(statusIcon('shield'),'BACKUP · steps in when a fighter falls',back.length,'#c9a2ff')}
     <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-start">${row(back,TEAM_SIZE,'#c9a2ff')}</div>
     <div style="display:flex;gap:8px;margin-top:14px">
-      <button class="btn secondary" style="flex:1;padding:12px 0" onclick="vaultSelectHeroes()">🛡 Select Heroes</button>
-      <button class="btn" style="flex:1.3;padding:12px 0;font-weight:900;${fight.length===TEAM_SIZE?'':'opacity:.45'}" ${fight.length===TEAM_SIZE?'onclick="vaultLaunch()"':'disabled'}>⚔️ BATTLE — Floor ${VAULT.st.currentFloor}</button>
+      <button class="btn secondary" style="flex:1;padding:12px 0" onclick="vaultSelectHeroes()">${statusIcon('shield')} Select Heroes</button>
+      <button class="btn" style="flex:1.3;padding:12px 0;font-weight:900;${fight.length===TEAM_SIZE?'':'opacity:.45'}" ${fight.length===TEAM_SIZE?'onclick="vaultLaunch()"':'disabled'}>${statusIcon('attack')} BATTLE — Floor ${VAULT.st.currentFloor}</button>
     </div>`;
 }
 function vaultSelectHeroes(){ CUR={mode:'vault'}; teamCtx='campaign'; menuReturn='dungeon'; show('menu'); }
@@ -14806,7 +14806,7 @@ function vaultWaveHTML(w){
   const bar=(u)=>`<div style="display:flex;align-items:center;gap:6px;font-size:10px;margin:2px 0">
     <span style="width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${(HERO_TYPES[u.key]||{}).name||u.key}</span>
     <div style="flex:1;height:7px;background:#301c1c;border-radius:4px;overflow:hidden"><div style="height:100%;width:${Math.round(100*u.hp/u.maxHp)}%;background:${u.alive?'#5ee89b':'#663'}"></div></div>
-    <span style="color:${u.alive?'#5ee89b':'#e86a6a'}">${u.alive?Math.round(100*u.hp/u.maxHp)+'%':'✕'}</span></div>`;
+    <span style="color:${u.alive?'#5ee89b':'#e86a6a'}">${u.alive?Math.round(100*u.hp/u.maxHp)+'%':uiIcon('close')}</span></div>`;
   return `<div class="panel" style="margin-top:6px"><b style="font-size:11px">Wave ${w.wave} — ${w.won?'<span style="color:#5ee89b">cleared</span>':'<span style="color:#e86a6a">defeated</span>'}</b>
     <div style="display:flex;gap:10px;margin-top:4px"><div style="flex:1"><div style="font-size:9px;color:#5ee89b">YOUR SQUAD</div>${w.team.map(bar).join('')}</div>
     <div style="flex:1"><div style="font-size:9px;color:#ff8b8b">VAULT GUARD</div>${w.foes.map(bar).join('')}</div></div></div>`;
@@ -14814,16 +14814,16 @@ function vaultWaveHTML(w){
 function vaultResultHTML(r){
   const won=r.result&&r.result.won;
   let rew='';
-  if(won&&r.reward){ rew=`<div style="text-align:center;margin:6px 0;font-size:12px;color:#ffd45e">✨ +${r.reward.dust} Forge Dust${r.reward.fragments&&r.reward.fragments.length?'<br>🧩 '+r.reward.fragments.join(', '):''}${r.reward.heroXp?'<br><span style="color:#5ee89b">⭐ +'+r.reward.heroXp+' hero XP each</span>':''}${r.reward.firstClearDoubled?'<br><span style="color:#c9a2ff">First clear — package doubled!</span>':''}</div>`; }
+  if(won&&r.reward){ rew=`<div style="text-align:center;margin:6px 0;font-size:12px;color:#ffd45e">${uiIcon('sparkle-new')} +${r.reward.dust} Forge Dust${r.reward.fragments&&r.reward.fragments.length?'<br>🧩 '+r.reward.fragments.join(', '):''}${r.reward.heroXp?'<br><span style="color:#5ee89b">'+uiIcon('star-filled')+' +'+r.reward.heroXp+' hero XP each</span>':''}${r.reward.firstClearDoubled?'<br><span style="color:#c9a2ff">First clear — package doubled!</span>':''}</div>`; }
   return `<div class="panel" style="border-color:${won?'#2b7a55':'#7a2b2b'}">
-    <div style="text-align:center;font-weight:900;font-size:15px;color:${won?'#5ee89b':'#ff8b8b'}">${won?'🏆 FLOOR CLEARED':'💀 THE VAULT HOLDS'}</div>${rew}
+    <div style="text-align:center;font-weight:900;font-size:15px;color:${won?'#5ee89b':'#ff8b8b'}">${won?uiIcon('trophy')+' FLOOR CLEARED':statusIcon('death')+' THE VAULT HOLDS'}</div>${rew}
     ${(r.waveResults||[]).map(vaultWaveHTML).join('')}
-    <button class="btn" style="width:100%;margin-top:8px" onclick="VAULT.result=null;renderDungeon()">${won?'Continue ▶':'↻ Retry Floor'}</button></div>`;
+    <button class="btn" style="width:100%;margin-top:8px" onclick="VAULT.result=null;renderDungeon()">${won?'Continue '+uiIcon('play'):'↻ Retry Floor'}</button></div>`;
 }
 async function vaultSweep(){ if(VAULT.busy)return;
   const cost=(VAULT.st&&VAULT.st.sweep&&VAULT.st.sweep.nextCost)||0;   // v372 (Phil): the 3rd/4th/5th sweep cost 200/400/600 diamonds — confirm before paying
-  if(cost>0){ if((G.gems||0)<cost){ bannerMsg('Not enough diamonds — this Sweep costs 💎 '+cost+'.'); return; }
-    if(!VAULT._sweepConfirmed){ gameConfirm('Sweep all <b>'+VAULT.st.highestClearedFloor+'</b> cleared floors again for <b style="color:#8fe3ff">💎 '+cost+'</b>?<br><span style="font-size:12px;color:#8b98a9">You have 💎 '+(G.gems||0)+'. Your 2 free sweeps are used.</span>', ()=>{ VAULT._sweepConfirmed=true; vaultSweep(); }, {side:'right'}); return; } }
+  if(cost>0){ if((G.gems||0)<cost){ bannerMsg('Not enough diamonds — this Sweep costs '+hudIcon('gem')+' '+cost+'.'); return; }
+    if(!VAULT._sweepConfirmed){ gameConfirm('Sweep all <b>'+VAULT.st.highestClearedFloor+'</b> cleared floors again for <b style="color:#8fe3ff">'+hudIcon('gem')+' '+cost+'</b>?<br><span style="font-size:12px;color:#8b98a9">You have '+hudIcon('gem')+' '+(G.gems||0)+'. Your 2 free sweeps are used.</span>', ()=>{ VAULT._sweepConfirmed=true; vaultSweep(); }, {side:'right'}); return; } }
   VAULT._sweepConfirmed=false; VAULT.busy=true;
   const r=await api('/api/dungeon/sweep','POST',{requestId:uid8()}); VAULT.busy=false;
   if(r&&r.ok&&r.ledger){ try{ adoptLedger(r.ledger); }catch(e){} }
@@ -14833,16 +14833,16 @@ async function vaultSweep(){ if(VAULT.busy)return;
 }
 /* v372 (Phil): "when I sweep a pop-up should populate — a scrolling text of all the items you earn per level" */
 function vaultSweepPopup(r){
-  const rows=(r.perFloor||[]).map(f=>{ const bits=['<span style="color:#ffd45e">✨ '+f.dust+' Dust</span>'];
+  const rows=(r.perFloor||[]).map(f=>{ const bits=['<span style="color:#ffd45e">'+uiIcon('sparkle-new')+' '+f.dust+' Dust</span>'];
       (f.fragments||[]).forEach(k=>bits.push('<span style="color:#c9a2ff">🧩 '+escapeHTML(k)+'</span>'));
       (f.gearFragments||[]).forEach(k=>bits.push('<span style="color:#ff9d5e">⚒ '+escapeHTML(k)+'</span>'));
-      if(r.heroXpPerFloor) bits.push('<span style="color:#5ee89b">⭐ +'+r.heroXpPerFloor+' hero XP</span>');
+      if(r.heroXpPerFloor) bits.push('<span style="color:#5ee89b">'+uiIcon('star-filled')+' +'+r.heroXpPerFloor+' hero XP</span>');
       return `<div style="display:flex;gap:10px;align-items:flex-start;padding:5px 0;border-bottom:1px solid #1b2438;font-size:11px"><b style="flex:none;width:64px;color:#c9a2ff">Floor ${f.floor}</b><div style="flex:1;line-height:1.5">${bits.join(' · ')}</div></div>`; }).join('');
   const fr=Object.entries(r.fragments||{}), gf=Object.entries(r.gearFragments||{});
-  const totals=`<div style="font-size:12px;line-height:1.6;color:#e6edf3"><b style="color:#ffd45e">✨ +${r.totalDust} Forge Dust</b>${r.heroXp?`<br><b style="color:#5ee89b">⭐ +${r.heroXp} hero XP</b> <span style="color:#8b98a9">to ${(r.heroXpTeam||[]).map(k=>(HERO_TYPES[k]||{}).name||k).join(', ')}</span>`:''}${fr.length?'<br>🧩 '+fr.map(([k,n])=>n+'× '+escapeHTML(k)).join(', '):''}${gf.length?'<br>⚒ '+gf.map(([k,n])=>n+'× '+escapeHTML(k)).join(', '):''}</div>`;
+  const totals=`<div style="font-size:12px;line-height:1.6;color:#e6edf3"><b style="color:#ffd45e">${uiIcon('sparkle-new')} +${r.totalDust} Forge Dust</b>${r.heroXp?`<br><b style="color:#5ee89b">${uiIcon('star-filled')} +${r.heroXp} hero XP</b> <span style="color:#8b98a9">to ${(r.heroXpTeam||[]).map(k=>(HERO_TYPES[k]||{}).name||k).join(', ')}</span>`:''}${fr.length?'<br>🧩 '+fr.map(([k,n])=>n+'× '+escapeHTML(k)).join(', '):''}${gf.length?'<br>⚒ '+gf.map(([k,n])=>n+'× '+escapeHTML(k)).join(', '):''}</div>`;
   const ov=document.createElement('div'); ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.45);display:flex;align-items:center;justify-content:flex-end;z-index:20000;padding:16px;padding-right:max(16px,4vw)';   // v373 (Phil): pop-ups on the right
   ov.innerHTML=`<div style="background:#151b2b;border:1px solid #33405e;border-radius:16px;padding:16px;width:100%;max-width:420px;max-height:86vh;display:flex;flex-direction:column;box-shadow:0 10px 40px #000a">
-    <div style="font-weight:900;font-size:15px;color:#ffd45e;text-align:center">🧹 Swept ${r.floors} floors</div>
+    <div style="font-weight:900;font-size:15px;color:#ffd45e;text-align:center">${uiIcon('sweep')} Swept ${r.floors} floors</div>
     <div style="font-size:10px;color:#8b98a9;text-align:center;margin:2px 0 8px">Every cleared floor paid out again</div>
     <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;border:1px solid #1b2438;border-radius:10px;padding:4px 10px;background:#0f1420;min-height:120px">${rows||'<div style="color:#6f7d90;font-size:11px;padding:10px">Nothing to show.</div>'}</div>
     <div style="margin-top:10px;padding:8px 10px;background:#0f1420;border-radius:10px">${totals}</div>
@@ -14852,18 +14852,18 @@ function vaultSweepPopup(r){
 async function vaultSalvage(key,qty){ const q=Math.max(1,qty|0);
   const r=await apiOnce('salv','/api/fragments/salvage',{stacks:[{key,quantity:q}]});   /* v1010 (re-audit Pool+Forge #7): one at a time, one requestId */
   if(r&&r.busy) return;
-  if(!r||r.error){ bannerMsg((r&&r.error==='offline')?'Connection lost.':((r&&r.error)||'Salvage failed.')); } else { bannerMsg('♻ +'+r.dustGained+' Forge Dust'); if(typeof glyphV2Sync==='function') await glyphV2Sync(); }
+  if(!r||r.error){ bannerMsg((r&&r.error==='offline')?'Connection lost.':((r&&r.error)||'Salvage failed.')); } else { bannerMsg(uiIcon('recycle')+' +'+r.dustGained+' Forge Dust'); if(typeof glyphV2Sync==='function') await glyphV2Sync(); }
   VAULT.salv=null; renderDungeon();
 }
 function vaultSalvageHTML(){
   const st=(typeof RUNE2!=='undefined')&&RUNE2.st; const frags=st?Object.entries(st.fragments||{}).filter(([k,n])=>n>0).sort():[];
   const RATE={'Grey':2,'Green':5,'Green +1':8,'Blue':12,'Blue +1':18,'Blue +2':25,'Purple':50,'Purple +1':65,'Purple +2':80,'Purple +3':100,'Gold':150,'Gold +1':200,'Gold +2':260,'Gold +3':330,'Gold +4':400,'Orange':800};
   const rate=k=>{ const q=Object.keys(RATE).filter(q=>k.startsWith(q+' ')).sort((a,b)=>b.length-a.length)[0]; return RATE[q]||0; };   // 30 Aug: longest match, or 'Blue +2' resolved to 'Blue' and quoted half the dust
-  return `<div class="panel" style="margin-top:8px"><div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:12px">♻ Fragment Salvage</b><button class="btn xs secondary" onclick="VAULT.salv=null;renderDungeon()">✕</button></div>
+  return `<div class="panel" style="margin-top:8px"><div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:12px">${uiIcon('recycle')} Fragment Salvage</b><button class="btn xs secondary" onclick="VAULT.salv=null;renderDungeon()">${uiIcon('close')}</button></div>
     ${frags.length?frags.map(([k,n])=>`<div style="display:flex;align-items:center;gap:6px;font-size:11px;padding:4px 0;border-bottom:1px solid #1a2233">
       <span style="flex:1">${k} <span style="color:#8fe3ff">×${n}</span></span>
-      <button class="btn xs secondary" onclick="vaultSalvage('${k}',1)">1 → ✨${rate(k)}</button>
-      <button class="btn xs secondary" onclick="vaultSalvage('${k}',${n})">All → ✨${rate(k)*n}</button></div>`).join(''):'<div style="color:#6f7d90;font-size:11px;padding:8px 0">No fragments yet — clear boss floors.</div>'}</div>`;
+      <button class="btn xs secondary" onclick="vaultSalvage('${k}',1)">1 → ${uiIcon('sparkle-new')}${rate(k)}</button>
+      <button class="btn xs secondary" onclick="vaultSalvage('${k}',${n})">All → ${uiIcon('sparkle-new')}${rate(k)*n}</button></div>`).join(''):'<div style="color:#6f7d90;font-size:11px;padding:8px 0">No fragments yet — clear boss floors.</div>'}</div>`;
 }
 function vaultScreenHTML(){
   const s=VAULT.st;
@@ -14874,7 +14874,7 @@ function vaultScreenHTML(){
   if(s.vaultStatus==='complete') return headBar+`<div class="panel" style="text-align:center;padding:26px">
       <div style="font-size:44px">🏛️</div><div style="font-weight:900;font-size:16px;color:#ffd45e;margin:6px 0">AETHER VAULT — CONQUERED</div>
       <div style="font-size:12px;color:#8b98a9">All 100 floors cleared. The Vault Extension is coming soon.</div>
-      <button class="btn" style="margin-top:14px" onclick="vaultSweep()">🧹 Sweep (${s.sweep.freeUsesRemaining} free today)</button></div>`;
+      <button class="btn" style="margin-top:14px" onclick="vaultSweep()">${uiIcon('sweep')} Sweep (${s.sweep.freeUsesRemaining} free today)</button></div>`;
   const stat=(label,val)=>`<div style="flex:1;min-width:110px;background:#111a28;border:1px solid #22304a;border-radius:10px;padding:7px 10px;text-align:center">
       <div style="font-size:9px;color:#6f7d90;letter-spacing:.5px;text-transform:uppercase">${label}</div>
       <div style="font-size:13px;font-weight:800;margin-top:2px">${val}</div></div>`;
@@ -14882,7 +14882,7 @@ function vaultScreenHTML(){
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
       ${stat('Highest cleared',`<span style="color:#e6edf3">${s.highestClearedFloor}</span>`)}
       ${stat('Fragment band',`<span style="color:#c9a2ff">${s.band}</span>`)}
-      ${stat('Floor reward',`<span style="color:#ffd45e">✨${s.dust}</span>${s.isBoss?' <span style="color:#c9a2ff">+🧩×2</span>':''}`)}
+      ${stat('Floor reward',`<span style="color:#ffd45e">${uiIcon('sparkle-new')}${s.dust}</span>${s.isBoss?' <span style="color:#c9a2ff">+🧩×2</span>':''}`)}
     </div>
     ${(s.targets&&((s.targets.glyphFragments||[]).length||(s.targets.gearFragments||[]).length))?`
     <div style="background:#0f1726;border:1px solid #24314e;border-radius:10px;padding:8px 10px;margin-bottom:10px;text-align:left">
@@ -14893,17 +14893,17 @@ function vaultScreenHTML(){
     </div>`:''}
     ${s.isBoss?vaultBossLabel(s.bossRule):''}
     ${(typeof AUDIT_MODE==='function'&&AUDIT_MODE())?`<div class="panel" style="border:1px dashed #ff9f43;background:#1e160c;margin-bottom:10px">
-      <div style="font-size:10px;letter-spacing:1px;color:#ff9f43;margin-bottom:6px">⚔ GOD MODE · DEV — jump to any floor (cleared floors replay with no reward)</div>
+      <div style="font-size:10px;letter-spacing:1px;color:#ff9f43;margin-bottom:6px">${statusIcon('attack')} GOD MODE · DEV — jump to any floor (cleared floors replay with no reward)</div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
         <input id="vaultDevFloor" type="number" min="1" max="100" value="${Math.min(100,Math.max(1,VAULT.devFloor||s.currentFloor))}" placeholder="Floor 1-100" style="width:90px;padding:9px 10px;border-radius:9px;border:1px solid #ff9f4366;background:#0d1320;color:#fff;font-weight:800;text-align:center">
         <button class="btn secondary" style="flex:1;padding:10px 0" onclick="vaultDevJump(false)">⏩ Go to floor</button>
-        <button class="btn" style="flex:1.3;padding:10px 0;font-weight:900" onclick="vaultDevJump(true)">👑 Start at wave 2/2 (boss)</button>
+        <button class="btn" style="flex:1.3;padding:10px 0;font-weight:900" onclick="vaultDevJump(true)">${uiIcon('crown')} Start at wave 2/2 (boss)</button>
       </div></div>`:''}
     <div class="panel">${vaultPickerHTML()}</div>
     ${(typeof preBattleLineHTML==='function')?preBattleLineHTML('vault'):''}
     <div style="display:flex;gap:8px;margin-top:10px">
-      <button class="btn secondary" style="flex:1" ${s.highestClearedFloor>0&&s.sweep.nextCost!==null&&s.sweep.nextCost!==undefined?'onclick="vaultSweep()"':'disabled'}>${s.sweep.freeUsesRemaining>0?'🧹 Sweep ×'+s.sweep.freeUsesRemaining:(s.sweep.nextCost?'🧹 Sweep · 💎 '+s.sweep.nextCost+' ('+s.sweep.paidLeft+' left)':'🧹 No sweeps left today')}</button>
-      <button class="btn secondary" style="flex:1" onclick="VAULT.salv=1;renderDungeon()">♻ Salvage</button></div>
+      <button class="btn secondary" style="flex:1" ${s.highestClearedFloor>0&&s.sweep.nextCost!==null&&s.sweep.nextCost!==undefined?'onclick="vaultSweep()"':'disabled'}>${s.sweep.freeUsesRemaining>0?uiIcon('sweep')+' Sweep ×'+s.sweep.freeUsesRemaining:(s.sweep.nextCost?uiIcon('sweep')+' Sweep · '+hudIcon('gem')+' '+s.sweep.nextCost+' ('+s.sweep.paidLeft+' left)':uiIcon('sweep')+' No sweeps left today')}</button>
+      <button class="btn secondary" style="flex:1" onclick="VAULT.salv=1;renderDungeon()">${uiIcon('recycle')} Salvage</button></div>
     ${VAULT.salv?vaultSalvageHTML():''}
     <div style="font-size:10px;color:#6f7d90;text-align:center;margin-top:12px;line-height:1.5">Two waves per floor — HP &amp; Energy carry over. Every attempt faces the <b>same</b> monsters:<br>learn the floor, then beat it. Progress and rewards are saved to your account.</div>`;
 }
@@ -15004,7 +15004,7 @@ async function forgePost(path,payload,msg){ if(FORGE.busy)return; FORGE.busy=tru
   const r=await api('/api/gear'+path,'POST',Object.assign({expectedRevision:FORGE.st.revision},payload));
   FORGE.busy=false;
   if(!r||r.error){ bannerMsg((r&&r.error)||'The Forge is cold.'); }
-  else if(msg){ try{ bannerMsg(msg(r)); }catch(e){} }
+  else if(msg){ try{ bannerMsg(iconize(msg(r))); }catch(e){} }
   await forgeSync(); renderForge();
 }
 const FORGE_QCOLOR={'Grey':'#9aa4b2','Green':'#5ee89b','Blue':'#5eb9e8','Blue +2':'#5eb9e8','Purple':'#c9a2ff','Purple +3':'#c9a2ff','Gold +1':'#ffd45e','Gold +4':'#ffd45e','Orange':'#ff9d5e'};
@@ -15027,7 +15027,7 @@ function gearSlotSelect(sl){ gearSlotSel=sl; renderHeroDetail(); }
 async function gearHeroPost(path,payload,msg){ if(FORGE.busy)return; FORGE.busy=true;
   const r=await api('/api/gear'+path,'POST',Object.assign({expectedRevision:FORGE.st.revision},payload));
   FORGE.busy=false;
-  if(!r||r.error){ bannerMsg((r&&r.error)||'The Forge is cold.'); } else if(msg){ try{ bannerMsg(msg(r)); }catch(e){} }
+  if(!r||r.error){ bannerMsg((r&&r.error)||'The Forge is cold.'); } else if(msg){ try{ bannerMsg(iconize(msg(r))); }catch(e){} }
   await forgeSync(); renderHeroDetail();
 }
 /* v365 — the hero card's Equipment tab IS the Forge gear for this hero: the compendium's nine slots,
@@ -15087,7 +15087,7 @@ async function gearPlanRun(plan,equipHero){ if(FORGE.busy) return; FORGE.busy=tr
   if(!done) bannerMsg((n?'Stopped at step '+n+' of '+plan.steps.length+': ':'')+err);
   else if(last&&last.crafted){ bannerMsg('⚒️ Built '+last.name+' ('+n+' step'+(n!==1?'s':'')+')');
     if(equipHero){ FORGE.busy=true; const e=await api('/api/gear/equip','POST',{expectedRevision:FORGE.st.revision,heroKey:equipHero,itemId:last.crafted}); FORGE.busy=false;
-      if(e&&!e.error) bannerMsg('🛡 '+last.name+' equipped'); else bannerMsg((e&&e.error==='offline')?'Connection lost.':((e&&e.error)||'Could not equip.')); } }
+      if(e&&!e.error) bannerMsg(statusIcon('shield')+' '+last.name+' equipped'); else bannerMsg((e&&e.error==='offline')?'Connection lost.':((e&&e.error)||'Could not equip.')); } }
   await forgeSync(); renderHeroDetail(); }
 function gearConfirmQuick(gearId,equipHero,role){ const d=forgeDef(gearId); if(!d) return; const plan=gearPlan(FORGE.st,d,role); if(!plan.ok){ bannerMsg('Missing: '+(plan.missing?plan.missing.need+' × '+plan.missing.frag+' (have '+plan.missing.have+')':'materials')); return; }
   gameConfirm(`Quick Build <b style="color:${FORGE_QCOLOR[d.quality]||'#e6edf3'}">${escapeHTML(d.name)}</b>${equipHero?' and equip it':''}?<br><span style="font-size:12px;color:#8b98a9">This spends ${gearPlanBillHTML(plan)}</span>`, ()=>{ gearPlanRun(plan,equipHero); if(equipHero) GEAR_BUILD=null; else gearBuildBack(); }, {side:'right'}); }
@@ -15099,7 +15099,7 @@ async function gearBuildDo(gearId,equipHero){ if(FORGE.busy) return; FORGE.busy=
   if(!r||r.error){ bannerMsg((r&&r.error)||'The Forge is cold.'); await forgeSync(); renderHeroDetail(); return; }
   bannerMsg('⚒️ Built '+r.name+'!'); await forgeSync();
   if(equipHero&&r.crafted){ FORGE.busy=true; const e=await api('/api/gear/equip','POST',{expectedRevision:FORGE.st.revision,heroKey:equipHero,itemId:r.crafted}); FORGE.busy=false;
-    if(e&&!e.error) bannerMsg('🛡 '+r.name+' equipped'); else bannerMsg((e&&e.error==='offline')?'Connection lost.':((e&&e.error)||'Could not equip.')); await forgeSync(); }   /* v994 (audit #9): a failed equip says so */
+    if(e&&!e.error) bannerMsg(statusIcon('shield')+' '+r.name+' equipped'); else bannerMsg((e&&e.error==='offline')?'Connection lost.':((e&&e.error)||'Could not equip.')); await forgeSync(); }   /* v994 (audit #9): a failed equip says so */
   renderHeroDetail();
 }
 /* v371 (Phil): "make it similar to the glyph tree — end item at the top, blue lines from the sub-items to
@@ -15152,7 +15152,7 @@ function gearTreeView(key){
       return `<div id="${id('p'+i)}" data-g2p="${id('root')}" data-rdy="${owned?1:0}" style="text-align:center;position:relative;z-index:1;max-width:150px;cursor:pointer" onclick="gearBuildPush('${prevDef?prevDef.id:''}')">
         ${gearGhost(gearImg(prevDef,76),82,canP,owned,prevDef?`gearConfirmQuick('${prevDef.id}',null,'${role}')`:'')}
         <div style="font-size:11px;font-weight:800;color:${pcol};line-height:1.2">${prevDef?escapeHTML(prevDef.name):prevQ}</div>
-        <div style="margin-top:3px"><span style="display:inline-block;font-size:9.5px;color:${owned?'#5ee89b':'#8b98a9'};border:1px solid ${owned?'#5ee89b':'#33405e'};border-radius:10px;padding:1px 9px;background:#0b1424d9">${owned?'✓ fresh copy ready':'Tap to open'}</span></div></div>`; };
+        <div style="margin-top:3px"><span style="display:inline-block;font-size:9.5px;color:${owned?'#5ee89b':'#8b98a9'};border:1px solid ${owned?'#5ee89b':'#33405e'};border-radius:10px;padding:1px 9px;background:#0b1424d9">${owned?uiIcon('check')+' fresh copy ready':'Tap to open'}</span></div></div>`; };
     cols=`<div style="display:flex;flex-direction:column;align-items:center;gap:26px;flex:1;min-width:120px">${subNode}<div style="display:flex;gap:8px;justify-content:center">${fragLeaf(d.frag,fr,d.subFragCost,'sub')}</div></div>
       <div style="display:flex;flex-direction:column;align-items:center;flex:1;min-width:110px">${prevNode(0)}</div>
       <div style="display:flex;flex-direction:column;align-items:center;flex:1;min-width:110px">${prevNode(1)}</div>`;
@@ -15164,7 +15164,7 @@ function gearTreeView(key){
     <div id="${id('root')}" style="text-align:center;position:relative;z-index:1;margin-bottom:30px">
       <span style="position:relative;display:inline-block">${gearGhost(gearImg(d,104),112,can,!!fresh,`gearConfirmQuick('${d.id}',null,'${role}')`)}</span>
       <div style="font-size:15px;font-weight:800;color:${col};margin-top:2px">${escapeHTML(d.name)}</div>
-      <div style="font-size:10px;color:#c3ccd8;margin-top:2px">${stats} · <span style="color:#8fe3ff">✨ ${escapeHTML(d.active||'')}</span></div>
+      <div style="font-size:10px;color:#c3ccd8;margin-top:2px">${stats} · <span style="color:#8fe3ff">${uiIcon('sparkle-new')} ${escapeHTML(d.active||'')}</span></div>
       <div style="margin-top:5px">${badge}</div></div>
     <div style="display:flex;justify-content:center;align-items:flex-start;gap:6px;flex-wrap:wrap">${cols}</div></div>`;
 }
@@ -15176,11 +15176,11 @@ function heroGearBuildHTML(key){
       <div style="font-size:13px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">⚒️ <b>Equipment</b> <span style="color:#3a4a6e">›</span> <b style="color:#5ee89b">Build Tree</b>${isRoot?'':' <span style="color:#3a4a6e">›</span> <span style="color:#8b98a9">ingredient</span>'}</div>
       <span class="pill" style="color:${col};border:1px solid ${col};flex:none">${d.quality} · ${d.slot}</span></div>`;
   const action=isRoot
-    ?(fresh?`<button class="btn" style="flex:1;background:linear-gradient(#5ee89b,#2f9e63);color:#04140a" onclick="gearHeroPost('/equip',{itemId:'${fresh}',heroKey:'${hero}'},r=>'🛡 Equipped — '+r.slot);GEAR_BUILD=null;">🛡 Equip</button>`
-      :`<button class="btn" style="flex:1;${can?'background:linear-gradient(#5ee89b,#2f9e63);color:#04140a':'opacity:.45'}" ${can?'':'disabled'} onclick="gearConfirmQuick('${d.id}','${hero}','${role}')">⚡ Quick Build</button>`)
-    :`<button class="btn" style="flex:1;${can?'background:linear-gradient(#5ee89b,#2f9e63);color:#04140a':'opacity:.45'}" ${can?'':'disabled'} onclick="gearConfirmQuick('${d.id}',null,'${role}')">⚡ Quick Build</button>`;
+    ?(fresh?`<button class="btn" style="flex:1;background:linear-gradient(#5ee89b,#2f9e63);color:#04140a" onclick="gearHeroPost('/equip',{itemId:'${fresh}',heroKey:'${hero}'},r=>'{i:s:shield} Equipped — '+r.slot);GEAR_BUILD=null;">${statusIcon('shield')} Equip</button>`
+      :`<button class="btn" style="flex:1;${can?'background:linear-gradient(#5ee89b,#2f9e63);color:#04140a':'opacity:.45'}" ${can?'':'disabled'} onclick="gearConfirmQuick('${d.id}','${hero}','${role}')">${statusIcon('energy')} Quick Build</button>`)
+    :`<button class="btn" style="flex:1;${can?'background:linear-gradient(#5ee89b,#2f9e63);color:#04140a':'opacity:.45'}" ${can?'':'disabled'} onclick="gearConfirmQuick('${d.id}',null,'${role}')">${statusIcon('energy')} Quick Build</button>`;
   return `<div class="panel">${head}
-    <div style="display:flex;justify-content:space-between;gap:6px;margin-bottom:2px"><button class="btn xs secondary" onclick="gearBuildBack()">‹ Back</button><button class="btn xs secondary" onclick="gearBuildCancel()">✕</button></div>
+    <div style="display:flex;justify-content:space-between;gap:6px;margin-bottom:2px"><button class="btn xs secondary" onclick="gearBuildBack()">‹ Back</button><button class="btn xs secondary" onclick="gearBuildCancel()">${uiIcon('close')}</button></div>
     ${gearTreeView(key)}
     <div style="display:flex;gap:8px;margin-top:10px">${action}</div></div>`;
 }
@@ -15197,7 +15197,7 @@ function heroGearTabHTML(key){
     if(built){ const tm=built.temper||0;
       return `<div style="text-align:center;cursor:pointer" onclick="gearSlotSelect('${d.slot}')" title="${escapeHTML(d.name)} — ${escapeHTML(d.passive||'')}">
         <div style="position:relative;height:96px;display:flex;align-items:center;justify-content:center;border:1px solid ${col};border-radius:10px;background:#17142d;box-shadow:0 0 8px ${col}55">${gearImg(d,84)}
-          ${tm?`<span style="position:absolute;right:6px;bottom:2px;font-size:9px;color:#ffd45e;font-weight:800">T${tm}</span>`:''}${act===iid?`<span style="position:absolute;left:6px;top:2px;font-size:10px">✨</span>`:''}</div>
+          ${tm?`<span style="position:absolute;right:6px;bottom:2px;font-size:9px;color:#ffd45e;font-weight:800">T${tm}</span>`:''}${act===iid?`<span style="position:absolute;left:6px;top:2px;font-size:10px">${uiIcon('sparkle-new')}</span>`:''}</div>
         <div style="font-size:10px;color:${col};font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHTML(d.name)}</div></div>`; }
     const other=it?forgeDef(it.d):null;   // a different piece sits in this slot
     const can=gearCanCraft(st,d)||!!gearOwnedFresh(st,d.id)||gearPlan(st,d,role).ok; const pc=can?'#5ee89b':'#8b98a9';   // v479: green when the whole tree can be built from what you hold
@@ -15215,10 +15215,10 @@ function heroGearTabHTML(key){
     detail=`<div class="panel" style="margin-top:6px"><div style="display:flex;gap:10px;align-items:flex-start">${gearImg(d,56)}
       <div style="flex:1;min-width:0"><div style="display:flex;justify-content:space-between;gap:6px"><b style="color:${FORGE_QCOLOR[d.quality]||'#e6edf3'};font-size:12px">${escapeHTML(d.name)}</b><span style="font-size:10px;color:#8b98a9">${d.quality} · ${d.slotFull||d.slot}</span></div>
         <div style="font-size:11px;color:#cdd6e4;margin-top:2px">${statLine}${tmul?` <span style="color:#5ee89b">(+${tmul}% temper)</span>`:''}</div>
-        <div style="font-size:10px;color:#8fe3ff;margin-top:2px">✨ ${escapeHTML(d.active||'')} — <span style="color:#8b98a9">${escapeHTML(d.effect||'')}</span>${act===iid?' <b style="color:#5ee89b">· ACTIVE</b>':''}</div>
+        <div style="font-size:10px;color:#8fe3ff;margin-top:2px">${uiIcon('sparkle-new')} ${escapeHTML(d.active||'')} — <span style="color:#8b98a9">${escapeHTML(d.effect||'')}</span>${act===iid?' <b style="color:#5ee89b">· ACTIVE</b>':''}</div>
         <div style="display:flex;align-items:center;gap:6px;font-size:9px;margin-top:4px"><span style="color:#ffd45e">Temper ${it.temper||0}/${T.max}</span><div style="flex:1;height:6px;background:#1a2233;border-radius:3px;overflow:hidden"><div style="height:100%;width:${Math.round(100*(it.prog||0)/bar)}%;background:#ffd45e"></div></div><span style="color:#8b98a9">raise it in the Forge</span></div>
-        <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px">${act===iid?'':`<button class="btn xs secondary" onclick="gearHeroPost('/select-active',{heroKey:'${key}',itemId:'${iid}'},r=>'✨ Active: '+r.active)">Set Active</button>`}<span style="font-size:9px;color:#8b98a9;align-self:center">🔗 bound to ${escapeHTML((HERO_TYPES[key]||{}).name||key)} — build a higher piece to replace it</span></div></div></div></div>`; }
-  return `<div class="panel" style="padding:8px 10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px"><span style="font-size:11px;color:#8b98a9">${escapeHTML(role)} loadout · built <b style="color:#e6edf3">${nEq}/9</b></span><span style="font-size:11px;color:#8b98a9">Resonance <b style="color:#ffd45e">${res.rank||0}</b> · ✨ Dust <b style="color:#e6edf3">${st.dust||0}</b></span></div>
+        <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px">${act===iid?'':`<button class="btn xs secondary" onclick="gearHeroPost('/select-active',{heroKey:'${key}',itemId:'${iid}'},r=>'{i:u:sparkle-new} Active: '+r.active)">Set Active</button>`}<span style="font-size:9px;color:#8b98a9;align-self:center">${uiIcon('link')} bound to ${escapeHTML((HERO_TYPES[key]||{}).name||key)} — build a higher piece to replace it</span></div></div></div></div>`; }
+  return `<div class="panel" style="padding:8px 10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px"><span style="font-size:11px;color:#8b98a9">${escapeHTML(role)} loadout · built <b style="color:#e6edf3">${nEq}/9</b></span><span style="font-size:11px;color:#8b98a9">Resonance <b style="color:#ffd45e">${res.rank||0}</b> · ${uiIcon('sparkle-new')} Dust <b style="color:#e6edf3">${st.dust||0}</b></span></div>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:6px 0">${cells}</div>
     ${detail}
     `;   /* v767 - the how-to paragraph is gone (Phil: "these little notes all around are useless") */
@@ -15232,7 +15232,7 @@ function fragSourceLine(frag){
   if(!src||!src.floors||!src.floors.length) return '';
   const f=src.floors.slice().sort((a,b)=>a-b);
   const shown=f.slice(0,6).map(n=>'Floor '+n).join(' · ')+(f.length>6?' +'+(f.length-6)+' more':'');
-  return `<div style="font-size:9px;color:#8fe3ff;margin:2px 0;cursor:pointer" onclick="openFragSource('${frag.replace(/'/g,"\\'")}')">📍 Farm in The Vault — ${shown} <span style="color:#6f7d90">(tap for all)</span></div>`;
+  return `<div style="font-size:9px;color:#8fe3ff;margin:2px 0;cursor:pointer" onclick="openFragSource('${frag.replace(/'/g,"\\'")}')">${uiIcon('map-pin')} Farm in The Vault — ${shown} <span style="color:#6f7d90">(tap for all)</span></div>`;
 }
 function openFragSource(frag){
   const src=FORGE.src&&FORGE.src[frag]; if(!src) return;
@@ -15257,8 +15257,8 @@ function forgeCraftPick(gearId){
       <div style="font-size:11px;color:#8b98a9;margin-bottom:6px">2 × ${escapeHTML(prevQ||'')}</div>
       ${feed.map(([id,it])=>{ const dd=forgeDef(it.d), on=sel.indexOf(id)>=0;
         return `<div data-fcp="${id}" style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px;margin:3px 0;border-radius:8px;cursor:pointer;border:1px solid ${on?'#5ee89b':'#1c2434'};background:${on?'rgba(94,232,155,.08)':'transparent'}">
-          <span style="font-size:11px;font-weight:700;color:${FORGE_QCOLOR[dd.quality]||'#e6edf3'}">${on?'☑':'☐'} ${escapeHTML(dd.name)}</span>
-          <span style="font-size:10px;color:#8b98a9;white-space:nowrap">Temper ${it.temper||0} · ✨${it.dustSpent||0} spent</span></div>`; }).join('')}
+          <span style="font-size:11px;font-weight:700;color:${FORGE_QCOLOR[dd.quality]||'#e6edf3'}">${on?uiIcon('checkbox-checked'):uiIcon('checkbox-empty')} ${escapeHTML(dd.name)}</span>
+          <span style="font-size:10px;color:#8b98a9;white-space:nowrap">Temper ${it.temper||0} · ${uiIcon('sparkle-new')}${it.dustSpent||0} spent</span></div>`; }).join('')}
       <div style="display:flex;gap:8px;margin-top:10px;justify-content:flex-end">
         <button class="btn sm secondary" id="fcpX">Cancel</button>
         <button class="btn sm ${sel.length===2?'':'secondary'}" id="fcpGo">⚒ Destroy 2 &amp; Forge</button></div>`;
@@ -15286,20 +15286,20 @@ function forgeItemsTabHTML(){
     return `<div style="border:1px solid ${eq?'#2b7a55':'#1a2233'};border-radius:8px;padding:6px 8px;margin-bottom:6px">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:6px">
         <span style="display:flex;align-items:center;gap:6px;min-width:0">${gearImg(d,30)}<b style="font-size:11px;color:${FORGE_QCOLOR[d.quality]||'#e6edf3'}">${d.name}</b></span>
-        <span style="font-size:9px;color:${eq?'#5ee89b':'#8b98a9'}">${eq?'🛡 '+((HERO_TYPES[eq.hero]||{}).name||eq.hero)+' · '+eq.slot:(it.bound?'🔗 bound':'✨ fresh')}</span></div>
+        <span style="font-size:9px;color:${eq?'#5ee89b':'#8b98a9'}">${eq?statusIcon('shield')+' '+((HERO_TYPES[eq.hero]||{}).name||eq.hero)+' · '+eq.slot:(it.bound?uiIcon('link')+' bound':uiIcon('sparkle-new')+' fresh')}</span></div>
       <div style="display:flex;align-items:center;gap:6px;font-size:9px;margin:3px 0">
         <span style="color:#ffd45e">Temper ${it.temper||0}/${T.max}</span>
         <div style="flex:1;height:6px;background:#1a2233;border-radius:3px;overflow:hidden"><div style="height:100%;width:${Math.round(100*(it.prog||0)/bar)}%;background:#ffd45e"></div></div>
         <span style="color:#8b98a9">${it.prog||0}/${bar}</span>
         ${tmul?`<span style="color:#5ee89b">+${tmul}% stats</span>`:''}</div>
       <div style="display:flex;gap:4px;flex-wrap:wrap;font-size:9px">
-        ${maxed?'<span style="color:#ffd45e">★ MAX TEMPER</span>':`
-        <button class="btn xs secondary" onclick="forgePost('/temper',{itemId:'${id}',uses:1},r=>'🔥 +'+(r.levelsGained?'1 Temper!':'progress')+' (−'+r.dustSpent+' Dust)')">🔥 ×1 (✨${cost})</button>
-        <button class="btn xs secondary" onclick="forgePost('/temper',{itemId:'${id}',uses:10},r=>'🔥 Tempered ×'+(r.uses||10)+' (−'+r.dustSpent+' Dust)')">🔥 ×10</button>`}
-        ${eq?`<button class="btn xs secondary" onclick="forgePost('/select-active',{heroKey:'${eq.hero}',itemId:'${id}'},r=>'✨ Active: '+r.active)">Set Active</button>`
+        ${maxed?'<span style="color:#ffd45e">'+uiIcon('star-filled')+' MAX TEMPER</span>':`
+        <button class="btn xs secondary" onclick="forgePost('/temper',{itemId:'${id}',uses:1},r=>'{i:s:burn} +'+(r.levelsGained?'1 Temper!':'progress')+' (−'+r.dustSpent+' Dust)')">${statusIcon('burn')} ×1 (${uiIcon('sparkle-new')}${cost})</button>
+        <button class="btn xs secondary" onclick="forgePost('/temper',{itemId:'${id}',uses:10},r=>'{i:s:burn} Tempered ×'+(r.uses||10)+' (−'+r.dustSpent+' Dust)')">${statusIcon('burn')} ×10</button>`}
+        ${eq?`<button class="btn xs secondary" onclick="forgePost('/select-active',{heroKey:'${eq.hero}',itemId:'${id}'},r=>'{i:u:sparkle-new} Active: '+r.active)">Set Active</button>`
             :`<select id="fEq_${id}" class="btn xs secondary" style="font-size:9px;max-width:96px">${heroOpts}</select>
-              <button class="btn xs" onclick="forgePost('/equip',{itemId:'${id}',heroKey:document.getElementById('fEq_${id}').value},r=>'🛡 Equipped — '+r.slot)">Equip</button>
-              ${(it.dustSpent||0)>0?`<button class="btn xs secondary" onclick="forgePost('/extract',{itemId:'${id}'},r=>'♻ +'+r.refund+' Dust refunded')">♻ Extract ${Math.floor((it.dustSpent||0)*T.extractRefund)}</button>`:''}`}
+              <button class="btn xs" onclick="forgePost('/equip',{itemId:'${id}',heroKey:document.getElementById('fEq_${id}').value},r=>'{i:s:shield} Equipped — '+r.slot)">Equip</button>
+              ${(it.dustSpent||0)>0?`<button class="btn xs secondary" onclick="forgePost('/extract',{itemId:'${id}'},r=>'{i:u:recycle} +'+r.refund+' Dust refunded')">${uiIcon('recycle')} Extract ${Math.floor((it.dustSpent||0)*T.extractRefund)}</button>`:''}`}
       </div></div>`; }).join('');
 }
 function forgeHeroesTabHTML(){
@@ -15311,7 +15311,7 @@ function forgeHeroesTabHTML(){
       <b style="font-size:11px">${(HERO_TYPES[h]||{}).name||h}</b>
       ${Object.entries(slots).map(([sl,id])=>{ const it=FORGE.st.items[id], d=it&&forgeDef(it.d); if(!d)return '';
         return `<div style="display:flex;justify-content:space-between;font-size:9px;margin-top:3px;align-items:center">
-          <span style="display:flex;align-items:center;gap:5px">${gearImg(d,20)}${sl}: <b style="color:${FORGE_QCOLOR[d.quality]||'#e6edf3'}">${d.name}</b> <span style="color:#ffd45e">T${it.temper||0}</span>${act[h]===id?' <span style="color:#8fe3ff">✨ active</span>':''}</span></div>`; }).join('')}
+          <span style="display:flex;align-items:center;gap:5px">${gearImg(d,20)}${sl}: <b style="color:${FORGE_QCOLOR[d.quality]||'#e6edf3'}">${d.name}</b> <span style="color:#ffd45e">T${it.temper||0}</span>${act[h]===id?' <span style="color:#8fe3ff">'+uiIcon('sparkle-new')+' active</span>':''}</span></div>`; }).join('')}
     </div>`; }).join('');
 }
 function renderForge(){
@@ -15323,10 +15323,10 @@ function renderForge(){
   b.innerHTML=`<div class="panel">
       <div style="display:flex;justify-content:space-between;align-items:center">
         <b style="font-size:13px">⚒️ The Forge</b>
-        <span class="pill" style="border:1px solid #c9922a;color:#ffd45e">✨ ${st.dust||0} Forge Dust</span></div>
+        <span class="pill" style="border:1px solid #c9922a;color:#ffd45e">${uiIcon('sparkle-new')} ${st.dust||0} Forge Dust</span></div>
       <div style="font-size:10px;color:#8b98a9;margin-top:3px">🔮 Forge Resonance <b style="color:#c9a2ff">Rank ${res.rank}</b> (+${res.rank}% all gear stats) · total Temper ${res.total}${res.next!=null?' · next rank at '+res.next:''}</div></div>
     <div style="display:flex;gap:4px;margin:8px 0">
-      ${[['items','🔥 Temper'],['heroes','🛡 Heroes']].map(([t,l])=>`<button class="btn xs ${FORGE.tab===t?'':'secondary'}" style="flex:1" onclick="forgeTab('${t}')">${l}</button>`).join('')}</div>
+      ${[['items',statusIcon('burn')+' Temper'],['heroes',statusIcon('shield')+' Heroes']].map(([t,l])=>`<button class="btn xs ${FORGE.tab===t?'':'secondary'}" style="flex:1" onclick="forgeTab('${t}')">${l}</button>`).join('')}</div>
     <div class="panel">${FORGE.tab==='heroes'?forgeHeroesTabHTML():forgeItemsTabHTML()}</div>`;   /* v994 (Pool+Forge audit #12): hint prose removed */
 }
 /* -------- SKYFALL (Guild Wars v2) client -------- */
@@ -15480,22 +15480,22 @@ function skyBridgeHTML(m,i){
   const lanes=m.lanes||[], you=m.you&&m.you.citadels[i], foe=m.foe&&m.foe.citadels[i];
   const mineHere=you&&you.defenders.some(d=>d.memberId===ACC.id&&d.alive);
   const canMarch=m.state==='live'&&mineHere&&foe&&!foe.destroyed&&you&&!you.destroyed;
-  const chip=(d,mine)=>`<div style="font-size:9px;background:rgba(10,16,26,.82);border:1px solid ${d.alive?(mine?'#2b7a55':'#7a2b46'):'#333'};border-radius:6px;padding:2px 5px;margin-top:2px;color:${d.alive?'#e8eef6':'#666'}">${d.alive?'🛡':'💀'} ${escapeHTML(d.name||'')}${d.alive?' '+d.hpPct+'%':''}</div>`;
+  const chip=(d,mine)=>`<div style="font-size:9px;background:rgba(10,16,26,.82);border:1px solid ${d.alive?(mine?'#2b7a55':'#7a2b46'):'#333'};border-radius:6px;padding:2px 5px;margin-top:2px;color:${d.alive?'#e8eef6':'#666'}">${d.alive?statusIcon('shield'):statusIcon('death')} ${escapeHTML(d.name||'')}${d.alive?' '+d.hpPct+'%':''}</div>`;
   const cit=(c,mine)=>{ const dead=c&&c.destroyed;
     return `<div style="position:absolute;top:6%;${mine?'left:3%':'right:3%'};width:31%;text-align:${mine?'left':'right'}">
-      <div style="font-size:26px;display:inline-block;${dead?'transform:rotate('+(mine?'-14':'14')+'deg) translateY(9px);opacity:.55;filter:grayscale(.7)':''}">${dead?'💥':''}🏰</div>
+      <div style="font-size:26px;display:inline-block;${dead?'transform:rotate('+(mine?'-14':'14')+'deg) translateY(9px);opacity:.55;filter:grayscale(.7)':''}">${dead?statusIcon('crit-burst'):''}🏰</div>
       <div style="font-size:10px;font-weight:800;color:${dead?'#ff8b8b':(mine?'#5ee89b':'#ff8b8b')};text-shadow:0 1px 3px #000">${dead?'FALLEN — ':''}${mine?'YOUR':'ENEMY'} ${escapeHTML(lanes[i]?lanes[i].name:'')}</div>
       ${skyByPower(c?c.defenders:[]).map(d=>chip(d,mine)).join('')||'<div style="font-size:9px;color:#999;text-shadow:0 1px 2px #000">— undefended —</div>'}
     </div>`; };
   return `<div class="panel" style="padding:0;overflow:hidden">
     <div style="position:relative;width:100%;aspect-ratio:16/9;background:url('${SKY_BRIDGE_BG}') center/cover;border-radius:10px">
       ${cit(you,true)}${cit(foe,false)}
-      <div id="skyMarcher" style="position:absolute;left:12%;bottom:34%;font-size:22px;opacity:0;transition:left 1.15s ease-in,opacity .2s;text-shadow:0 2px 4px #000">⚔️🏃</div>
+      <div id="skyMarcher" style="position:absolute;left:12%;bottom:34%;font-size:22px;opacity:0;transition:left 1.15s ease-in,opacity .2s;text-shadow:0 2px 4px #000">${statusIcon('attack')}🏃</div>
       <div style="position:absolute;left:0;right:0;bottom:4%;text-align:center">
-        ${canMarch?`<button class="btn" style="padding:8px 22px" onclick="skyMarchAnim(${i})">⚔ MARCH THE BRIDGE</button>`
+        ${canMarch?`<button class="btn" style="padding:8px 22px" onclick="skyMarchAnim(${i})">${statusIcon('attack')} MARCH THE BRIDGE</button>`
           :`<div style="font-size:10px;color:#cfd8e6;text-shadow:0 1px 3px #000">${m.state!=='live'?'The bridge opens when the war goes LIVE.':(you&&you.destroyed?'Your citadel has fallen.':(foe&&foe.destroyed?'The enemy citadel has fallen!':(mineHere?'':'Your line is not deployed on this bridge.')))}</div>`}
       </div>
-      <button class="btn xs secondary" style="position:absolute;top:5px;left:50%;transform:translateX(-50%);font-size:9px" onclick="skyOpenLane(null)">✕ close bridge</button>
+      <button class="btn xs secondary" style="position:absolute;top:5px;left:50%;transform:translateX(-50%);font-size:9px" onclick="skyOpenLane(null)">${uiIcon('close')} close bridge</button>
     </div></div>`;
 }
 async function skyMarchAnim(i){ if(SKY.busy)return;
@@ -15505,7 +15505,7 @@ async function skyMarchAnim(i){ if(SKY.busy)return;
 }
 async function skyStatus(){ const r=await api('/api/guild-war/status'); SKY.st=(r&&r.enabled)?r:{enabled:false}; return SKY.st; }
 function skyWhen(ts){ if(!ts)return ''; const d=new Date(ts); return d.toLocaleString('en-US',{weekday:'short',hour:'numeric',minute:'2-digit',timeZone:'America/New_York'})+' ET'; }
-function skyLaneIcon(i){ return ['🛡️','⚡','👑','🌿','🔮'][i]||'🏰'; }
+function skyLaneIcon(i){ return [statusIcon('shield'),statusIcon('energy'),uiIcon('crown'),uiIcon('herbs'),'🔮'][i]||'🏰'; }
 /* v803 - the placement block off the status payload: the window, the tower this member holds and
    the lines it covers. Null in the sandbox, which has no schedule and is always open. */
 function skyPlacement(){
@@ -15521,7 +15521,7 @@ function skyYourLines(data){
   const pl=skyPlacement(); if(!pl||!Array.isArray(pl.lines)) return null;
   return pl.lines.map(l=>({ line:l.line|0, power:l.power|0, lane:(pl.lane==null)?null:(pl.lane|0) }));
 }
-async function skyRegister(){ const r=await api('/api/guild-war/register','POST',{}); if(r&&r.error)bannerMsg(r.error); else bannerMsg('⚔️ Registered! Power Pool: '+(r.powerPool||0)); await skyStatus(); renderGuild(); }
+async function skyRegister(){ const r=await api('/api/guild-war/register','POST',{}); if(r&&r.error)bannerMsg(r.error); else bannerMsg(statusIcon('attack')+' Registered! Power Pool: '+(r.powerPool||0)); await skyStatus(); renderGuild(); }
 /* v802 - MOVE THE WHOLE TOWER. Mirrors skyAssign: the route does the moving, the screen redraws
    from what comes back. */
 async function skyMoveLaneLive(from,to){
@@ -15550,13 +15550,13 @@ async function skyAssign(memberId,lane){ const r=await api('/api/guild-war/assig
 async function skyMarch(lane){ if(SKY.busy)return; SKY.busy=true;
   const r=await apiOnce('skymarch','/api/guild-war/assault',{fromLane:lane}); SKY.busy=false;   /* v1009: one requestId, re-sent on a lost reply */
   if(!r||r.error){ bannerMsg((r&&r.error==='offline')?'Connection lost.':((r&&r.error)||'March failed.')); }
-  else if(r.captured){ bannerMsg('🏳️ Citadel captured — no defenders!'); }
-  else bannerMsg(r.won?('🏆 Victory on the bridge!'+(r.citadelFell?'\n💥 The citadel falls!':'')) : '💀 Your line was driven back.');
-  if(r&&r.finished) bannerMsg('👑 YOUR GUILD WINS THE MATCH!');
+  else if(r.captured){ bannerMsg(uiIcon('surrender-flag')+' Citadel captured — no defenders!'); }
+  else bannerMsg(r.won?(uiIcon('trophy')+' Victory on the bridge!'+(r.citadelFell?'\n'+statusIcon('crit-burst')+' The citadel falls!':'')) : statusIcon('death')+' Your line was driven back.');
+  if(r&&r.finished) bannerMsg(uiIcon('crown')+' YOUR GUILD WINS THE MATCH!');
   await skyStatus(); renderGuild();
 }
 async function skyClaim(){ const r=await apiOnce('skyclaim','/api/guild-war/claim-reward',{}); if(r&&r.busy) return;   /* v1009: one claim at a time, one requestId */
-  bannerMsg(r&&r.ok?('🎁 +'+r.amount+' coins ('+r.tier+')'):(r&&r.error==='offline')?'Connection lost.':((r&&r.error)||'Claim failed.')); await skyStatus(); renderGuild(); }
+  bannerMsg(r&&r.ok?(uiIcon('gift')+' +'+r.amount+' coins ('+r.tier+')'):(r&&r.error==='offline')?'Connection lost.':((r&&r.error)||'Claim failed.')); await skyStatus(); renderGuild(); }
 /* v267 (80/20 §8): "an understandable post-war summary" — the server keeps a full event log per
    match; this turns it into a readable account of how the war was actually won. */
 function skyWarSummaryHTML(m){
@@ -15588,38 +15588,38 @@ function skyMatchHTML(m, canOfficer){
   const lanes=m.lanes||[];
   const laneRow=(i)=>{
     const you=m.you&&m.you.citadels[i], foe=m.foe&&m.foe.citadels[i];
-    const defHTML=(c,mine)=>c?skyByPower(c.defenders).map(d=>`<div style="font-size:9px;color:${d.alive?(mine?'#5ee89b':'#ff8b8b'):'#555'}">${d.alive?'🛡':'💀'} ${escapeHTML(d.name||'')} ${d.alive?d.hpPct+'%':''}${mine&&d.memberId===ACC.id&&m.state==='live'?' <span style="color:#ffd45e">('+d.assaultsLeft+' orders)</span>':''}</div>`).join('')||'<div style="font-size:9px;color:#555">— empty —</div>':'';
+    const defHTML=(c,mine)=>c?skyByPower(c.defenders).map(d=>`<div style="font-size:9px;color:${d.alive?(mine?'#5ee89b':'#ff8b8b'):'#555'}">${d.alive?statusIcon('shield'):statusIcon('death')} ${escapeHTML(d.name||'')} ${d.alive?d.hpPct+'%':''}${mine&&d.memberId===ACC.id&&m.state==='live'?' <span style="color:#ffd45e">('+d.assaultsLeft+' orders)</span>':''}</div>`).join('')||'<div style="font-size:9px;color:#555">— empty —</div>':'';
     const mineHere=you&&you.defenders.some(d=>d.memberId===ACC.id&&d.alive);
     return `<div style="display:flex;gap:6px;align-items:stretch;margin-bottom:6px">
-      <div style="flex:1;background:${you&&you.destroyed?'#1a0f0f':'#0f1a14'};border:1px solid ${you&&you.destroyed?'#5a2b2b':'#2b7a55'};border-radius:8px;padding:5px 7px;${you&&you.destroyed?'opacity:.55':''}">${you&&you.destroyed?'💥 ':''}${defHTML(you,true)}</div>
+      <div style="flex:1;background:${you&&you.destroyed?'#1a0f0f':'#0f1a14'};border:1px solid ${you&&you.destroyed?'#5a2b2b':'#2b7a55'};border-radius:8px;padding:5px 7px;${you&&you.destroyed?'opacity:.55':''}">${you&&you.destroyed?statusIcon('crit-burst')+' ':''}${defHTML(you,true)}</div>
       <div style="width:74px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;${SKY.lane===i?'background:rgba(255,212,94,.08);border-radius:8px':''}" onclick="skyOpenLane(${i})">
         <div style="font-size:13px">${skyLaneIcon(i)}</div><div style="font-size:8px;color:#8b98a9;text-align:center">${lanes[i]?lanes[i].name:''}</div>
         <div style="font-size:8px;color:#ffd45e">${SKY.lane===i?'▲ bridge':'▼ bridge'}</div></div>
-      <div style="flex:1;background:${foe&&foe.destroyed?'#1a0f0f':'#1a0f14'};border:1px solid ${foe&&foe.destroyed?'#5a2b2b':'#7a2b46'};border-radius:8px;padding:5px 7px;${foe&&foe.destroyed?'opacity:.55':''}">${foe&&foe.destroyed?'💥 ':''}${defHTML(foe,false)}</div></div>`; };
+      <div style="flex:1;background:${foe&&foe.destroyed?'#1a0f0f':'#1a0f14'};border:1px solid ${foe&&foe.destroyed?'#5a2b2b':'#7a2b46'};border-radius:8px;padding:5px 7px;${foe&&foe.destroyed?'opacity:.55':''}">${foe&&foe.destroyed?statusIcon('crit-burst')+' ':''}${defHTML(foe,false)}</div></div>`; };
   let planning='';
   if(m.state==='planning'&&m.preReveal){
-    planning=`<div style="text-align:center;padding:10px 6px;color:#8b98a9;font-size:11px">🕵️ Opponent revealed at <b style="color:#ffd45e">${skyWhen(m.revealAt)}</b> — planning opens then.</div>`;
+    planning=`<div style="text-align:center;padding:10px 6px;color:#8b98a9;font-size:11px">${uiIcon('spy')} Opponent revealed at <b style="color:#ffd45e">${skyWhen(m.revealAt)}</b> — planning opens then.</div>`;
   } else if(m.state==='planning'&&canOfficer){
     // AUDIT (26 Aug): officers place ANY registered member, not just themselves — the server sends
     // you.roster [{memberId,name,power,lane}] during planning; each row taps into a lane.
     const roster=(m.you&&m.you.roster)||[];
     planning=`<div style="font-size:10px;color:#8b98a9;margin:4px 0">Planning until <b>${skyWhen(m.planningEndsAt)}</b> — tap a citadel to place each member:</div>`+
       roster.map(r=>`<div style="display:flex;align-items:center;gap:5px;margin-bottom:4px;background:#0d1420;border:1px solid #223044;border-radius:8px;padding:4px 6px">
-        <div style="flex:1;min-width:0"><div style="font-size:10px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.memberId===ACC.id?'⭐ ':''}${escapeHTML(r.name||'')}</div>
-          <div style="font-size:8px;color:#6f7d90">⚡${r.power}${r.lane==null?' · <span style="color:#ff8b8b">unplaced</span>':''}</div></div>
+        <div style="flex:1;min-width:0"><div style="font-size:10px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.memberId===ACC.id?uiIcon('star-filled')+' ':''}${escapeHTML(r.name||'')}</div>
+          <div style="font-size:8px;color:#6f7d90">${statusIcon('energy')}${r.power}${r.lane==null?' · <span style="color:#ff8b8b">unplaced</span>':''}</div></div>
         ${(m.lanes||[]).map((l,i)=>`<button class="btn xs ${r.lane===i?'':'secondary'}" style="padding:3px 6px;${r.lane===i?'box-shadow:0 0 0 1px #ffd45e':''}" onclick="skyAssign('${r.memberId}',${i})">${skyLaneIcon(i)}</button>`).join('')}</div>`).join('');
   } else if(m.state==='planning'){
     planning=`<div style="font-size:10px;color:#8b98a9;margin:4px 0">Planning until <b>${skyWhen(m.planningEndsAt)}</b> — your leader/officers arrange the citadels.</div>`;
   }
   return `<div class="panel">
-    <div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:13px">☁️ ${m.round} — ${escapeHTML((m.you||{}).name||'')} vs ${m.preReveal?'❓ ???':escapeHTML((m.foe||{}).name||'')}</b>
-      <span class="pill" style="font-size:9px">${m.state==='planning'?'📋 Planning':m.state==='live'?'🔴 LIVE until '+skyWhen(m.endsAt):'🏁 '+(m.winnerGuildId===(SKY.st&&SKY.st.tournament&&null)?'':'Finished')}</span></div>
+    <div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:13px">${uiIcon('cloud-sync')} ${m.round} — ${escapeHTML((m.you||{}).name||'')} vs ${m.preReveal?uiIcon('question')+' ???':escapeHTML((m.foe||{}).name||'')}</b>
+      <span class="pill" style="font-size:9px">${m.state==='planning'?uiIcon('planning')+' Planning':m.state==='live'?uiIcon('live')+' LIVE until '+skyWhen(m.endsAt):uiIcon('finish-flag')+' '+(m.winnerGuildId===(SKY.st&&SKY.st.tournament&&null)?'':'Finished')}</span></div>
     ${m.state==='planning'?planning:''}
     ${m.state!=='planning'?`<div style="font-size:9px;color:#6f7d90;margin:3px 0">Destroy 3 enemy citadels to win. Lines march only across their own bridge.</div>`:''}
     ${(SKY.lane!=null&&m.foe&&!m.preReveal)?skyBridgeHTML(m,SKY.lane):''}
     <div style="display:flex;justify-content:space-between;font-size:9px;color:#8b98a9;margin:4px 0 2px"><span style="color:#5ee89b">YOUR CITADELS</span><span style="color:#ff8b8b">ENEMY CITADELS</span></div>
     ${lanes.map((l,i)=>laneRow(i)).join('')}
-    ${m.state==='finished'?`<div style="text-align:center;font-weight:800;color:${m.winnerGuildId===((SKY.st.match&&SKY.st.match.you)||{}).guildId?'#5ee89b':'#ff8b8b'};margin-top:4px">${m.winnerGuildId===((m.you)||{}).guildId?'🏆 VICTORY':'💀 DEFEAT'}</div>${skyWarSummaryHTML(m)}`:''}
+    ${m.state==='finished'?`<div style="text-align:center;font-weight:800;color:${m.winnerGuildId===((SKY.st.match&&SKY.st.match.you)||{}).guildId?'#5ee89b':'#ff8b8b'};margin-top:4px">${m.winnerGuildId===((m.you)||{}).guildId?uiIcon('trophy')+' VICTORY':statusIcon('death')+' DEFEAT'}</div>${skyWarSummaryHTML(m)}`:''}
   </div>`;
 }
 /* v374 (Phil): GOD MODE war simulator — a sandbox Skyfall match, 20 vs 20 players × 3 lines of five,
@@ -17975,13 +17975,13 @@ function renderDungeon(){
     // full splash art with an invisible clickable hotspot over the drawn "Choose squad" button
     b.innerHTML=`<div style="position:absolute;inset:0;overflow:hidden">
       <img src="${DUNGEON_BG}" alt="Dungeon" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;-webkit-user-drag:none" draggable="false">
-      <button id="dgStart" style="position:absolute;left:50%;bottom:5%;transform:translateX(-50%);padding:11px 26px;background:linear-gradient(140deg,#c9922a,#ffcf5e);color:#2a1c00;font-weight:900;font-size:clamp(13px,2.6vw,18px);border:2px solid #fff2c2;border-radius:12px;box-shadow:0 4px 14px rgba(0,0,0,.55);cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent">⚔️ Choose Your Squad</button>
+      <button id="dgStart" style="position:absolute;left:50%;bottom:5%;transform:translateX(-50%);padding:11px 26px;background:linear-gradient(140deg,#c9922a,#ffcf5e);color:#2a1c00;font-weight:900;font-size:clamp(13px,2.6vw,18px);border:2px solid #fff2c2;border-radius:12px;box-shadow:0 4px 14px rgba(0,0,0,.55);cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent">${statusIcon('attack')} Choose Your Squad</button>
     </div>`;
   } else {
     b.innerHTML=`<div class="panel" style="text-align:center"><div style="font-size:40px">🐉</div>
       <div style="font-weight:800;margin:6px 0">Challenge Dungeon</div>
       <div style="font-size:12px;color:#8b98a9;margin-bottom:10px">Fight a scaled enemy squad with your team. Win for gold + glyph shards.</div>
-      <button class="btn" id="dgStart">Choose squad ▶</button></div>`;
+      <button class="btn" id="dgStart">Choose squad ${uiIcon('play')}</button></div>`;
   }
   b.querySelector('#dgStart').onclick=startDg;
 }
@@ -20002,7 +20002,7 @@ function renderTech(){
   const acadLvl=G.tech.academy||0, acadLearning=(G.techLearn.academy||0)>Date.now();
   wheel.insertAdjacentHTML('beforeend',`<div class="tw-center${techSel==='academy'?' sel':''}" id="twAcademy">
       ${centerImg?`<img src="${centerImg}" style="height:${TW_CASTLE_H[ctier]||100}px;width:auto" draggable="false">`:'<div style="font-size:60px">🏛️</div>'}
-      <div class="tw-lbl">🏛️ ACADEMY · ${acadLearning?'⏳':('Lv '+acadLvl)}</div></div>`);
+      <div class="tw-lbl">🏛️ ACADEMY · ${acadLearning?uiIcon('timer'):('Lv '+acadLvl)}</div></div>`);
   const rows=[13,38,62,87];              // 4 vertical slots (% of height)
   const bulge=(r)=>7*Math.sin(Math.PI*(r/3));   // half-moon: 0 at top/bottom, bows outward in the middle
   tracks.forEach(([k,ic,name,desc],i)=>{
@@ -20013,7 +20013,7 @@ function renderTech(){
     const node=document.createElement('div');
     node.className='tw-node'+(techSel===k?' sel':'')+(learning?' learning':'')+(acadLocked?' capped':'')+((busy&&busy!==k)?' busyOther':'');
     node.style.left=x+'%'; node.style.top=y+'%';
-    node.innerHTML=`<div class="tw-ic">${ic}</div><div class="tw-lv">${learning?'⏳':(acadLocked?'🔒 '+lvl:'Lv '+lvl)}</div>`;
+    node.innerHTML=`<div class="tw-ic">${ic}</div><div class="tw-lv">${learning?uiIcon('timer'):(acadLocked?hudIcon('lock')+' '+lvl:'Lv '+lvl)}</div>`;
     node.onclick=()=>{ techSel=k; renderTech(); };
     wheel.appendChild(node);
   });
@@ -20032,10 +20032,10 @@ function renderTech(){
   else { per=techGainAt(k,lvl); now=techTotal(k,lvl); const unit=flat?'':'%'; perStr='+'+(flat?per.toFixed(1):per.toFixed(2))+unit; nowStr='+'+(flat?Math.round(now):now.toFixed(1))+unit; }
   let btn;
   if(maxed){ btn=`<button class="btn secondary" disabled>MAX · Lv ${tmax}</button>`; }
-  else if(learning&&remain>0){ btn=`<button class="btn" disabled>⏳ ${fmtDur(remain)} · upgrading to Lv ${lvl+1}</button>`; }
-  else if(acadLocked){ btn=`<button class="btn secondary" disabled>🔒 Raise Academy to Lv ${lvl+1} first</button>`; }
+  else if(learning&&remain>0){ btn=`<button class="btn" disabled>${uiIcon('timer')} ${fmtDur(remain)} · upgrading to Lv ${lvl+1}</button>`; }
+  else if(acadLocked){ btn=`<button class="btn secondary" disabled>${hudIcon('lock')} Raise Academy to Lv ${lvl+1} first</button>`; }
   else if(blocked){ btn=`<button class="btn secondary" disabled>Academy busy elsewhere</button>`; }
-  else { btn=`<button class="btn" id="techLearnBtn" ${affordable?'':'disabled'}>${isAcad?'Upgrade':'Learn'} Lv ${lvl+1} · 🪙 ${cost} ${resCostStr(rc)}</button>`; }
+  else { btn=`<button class="btn" id="techLearnBtn" ${affordable?'':'disabled'}>${isAcad?'Upgrade':'Learn'} Lv ${lvl+1} · ${hudIcon('gold')} ${cost} ${resCostStr(rc)}</button>`; }
   const card=document.createElement('div'); card.className='tw-detail';
   card.innerHTML=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
       <div style="font-size:26px">${ic}</div>
@@ -20178,7 +20178,7 @@ function showKickedNotice(){
   const ov=document.createElement('div'); ov.id='kickedNotice';
   ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.86);display:flex;align-items:center;justify-content:center;z-index:20000;padding:18px';
   ov.innerHTML=`<div style="background:linear-gradient(160deg,#2a1b1b,#160c10);border:1px solid #8f4a4a;border-radius:18px;padding:22px;width:100%;max-width:340px;text-align:center;box-shadow:0 12px 44px #000b">
-    <div style="font-size:40px">🔒</div>
+    <div style="font-size:40px">${hudIcon('lock')}</div>
     <div style="font-weight:800;font-size:17px;margin:6px 0;color:#ffb4b4">You've been logged out</div>
     <div style="font-size:13px;color:#e8d5d5;line-height:1.55;margin-bottom:14px">Someone just logged into your account on another device, so this device has been signed out.<br><br>If that wasn't you, change your password right away — and contact a developer if you think your account was taken.</div>
     <button class="btn" style="width:100%" id="kickedOk">OK</button></div>`;
@@ -20206,7 +20206,7 @@ function pushSave(){ if(!ACC.token||!_cloudReady)return; const r=rosterPayload()
   /* v1014 (release review #6): a save the server refuses as too large (over 1 MB) used to fail silently on every push, forever -
      the player is told once per session; a later accepted save clears it */
   return api('/api/save','POST',{team:teamPayload(G.team),wall:teamPayload(G.wall),roster:r,world}).then(d=>{
-    if(d&&d.error==='Save too large.'){ if(!pushSave._big){ pushSave._big=1; bannerMsg('⚠ Cloud save refused - this save is over 1 MB, so progress on this device is not backed up.'); } }
+    if(d&&d.error==='Save too large.'){ if(!pushSave._big){ pushSave._big=1; bannerMsg(uiIcon('warning')+' Cloud save refused - this save is over 1 MB, so progress on this device is not backed up.'); } }
     else if(d&&d.ok) pushSave._big=0;
     return d; }); }
 function cloudSync(){ if(!ACC.token||_cloudTimer)return; _cloudTimer=setTimeout(()=>{ _cloudTimer=null; pushSave(); },1500); }
@@ -22829,14 +22829,14 @@ function renderHeroList(){
   if(owned.length) hdr('YOUR HEROES ('+owned.length+')','#8b98a9');
   if(!owned.length && !ready.length && !locked.length) hdr('NO HEROES MATCH THESE FILTERS','#8b98a9');
   [...owned,...ready,...locked].forEach((key,ix)=>{ const t=HERO_TYPES[key],unlocked=own(key),myth=isMythic(key);
-    if(ready.length && ix===owned.length) hdr('✨ READY TO SUMMON ('+ready.length+')','#5ee89b');
+    if(ready.length && ix===owned.length) hdr('READY TO SUMMON ('+ready.length+')','#5ee89b');
     if(locked.length && ix===owned.length+ready.length) hdr('STILL COLLECTING ('+locked.length+')','#6f7d90');
     const summonReady=!unlocked&&canSummon(key);
     const card=document.createElement('div'); card.className='hero-card hc-tile'+(!unlocked?' locked':'')+(summonReady?' summon-ready':'')+(myth?' mythic':'');
     card.dataset.heroKey=key;
-    const lockedLine = canSummon(key) ? '<span style="color:#5ee89b;font-weight:800">✨ SUMMON</span>' : ('🧩 '+heroFrag(key)+'/'+summonCost(key));
+    const lockedLine = canSummon(key) ? '<span style="color:#5ee89b;font-weight:800">'+uiIcon('sparkle-new')+' SUMMON</span>' : ('🧩 '+heroFrag(key)+'/'+summonCost(key));
     // Total Power sits ABOVE the portrait (owned only); a matching spacer keeps locked-hero portraits aligned.
-    const powerLine = unlocked ? `<div style="font-size:9.5px;font-weight:800;color:#ffd45e;line-height:1.1">⚔ Total Power: ${heroPower(key).toLocaleString()}</div>` : '<div style="height:12px"></div>';
+    const powerLine = unlocked ? `<div style="font-size:9.5px;font-weight:800;color:#ffd45e;line-height:1.1">${statusIcon('attack')} Total Power: ${heroPower(key).toLocaleString()}</div>` : '<div style="height:12px"></div>';
     // mythicals show the purple MYTHICAL banner on the card (falls back to a text tag if the art isn't built in)
     const _mbStyle='width:96%;max-width:150px;height:auto;display:block;margin:-1px auto -3px';
     const mythBnr = (MYTHICAL_BANNER && isAssetRef(MYTHICAL_BANNER))
@@ -22860,7 +22860,7 @@ function renderHeroList(){
     card.innerHTML=`<div class="hc-imgwrap${RARITY_READY?' rb':''}">${portImg}${ascFrameHtml(key,{stars:true,banner:RARITY_READY})}${unlocked?`<span class="hc-lv">Lv ${heroLevel(key)}</span>`:''}</div>
         <div class="hc-info">
           ${RARITY_READY?'':`<div class="hc-name${myth?' hc-mythn':''}">${t.name}</div>`}
-          <div class="hc-sub">${unlocked?`⚔ ${heroPower(key).toLocaleString()}`:lockedLine}</div>
+          <div class="hc-sub">${unlocked?`${statusIcon('attack')} ${heroPower(key).toLocaleString()}`:lockedLine}</div>
         </div>`;
     card._pick=()=>{ detailHero=key; popoutScreen('heroDetail'); };
     r.appendChild(card);
@@ -22881,12 +22881,12 @@ function openStarsPanel(key){ const t=HERO_TYPES[key]; if(!t) return;
       ? `<div style="background:#0f1420;border-radius:10px;padding:11px;margin-bottom:10px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><b style="font-size:12px">Star Up</b><span style="font-size:11px;color:#8b98a9">Star ${st}/${MAX_STARS} · ${pips}/${STAR_PIPS}${conf?' — ready':''}</span></div>
           <div style="font-size:11px;color:#8b98a9;margin-bottom:8px">${fIcon} Fragments: <b style="color:#c9a2ff">${frags}</b> · next ${conf?'<b style="color:#ffd45e">confirm</b>':'pip'} costs <b>${ncost}</b></div>
-          <button class="btn" id="spStar" style="width:100%${conf&&canStar?';background:#ffcf40;color:#1a1206':''}" ${canStar?'':'disabled'}>${conf?'★ Confirm Star Up ('+ncost+' frag)':'Fill pip ('+ncost+' frag)'}</button></div>`   /* v993 (City Wall audit #12): instruction prose removed - the pips and the button say it */
-      : `<div style="background:#0f1420;border-radius:10px;padding:10px;margin-bottom:10px;text-align:center"><span style="color:#ffd45e;font-weight:800">★ 5 STARS — MAX ★</span></div>`;
+          <button class="btn" id="spStar" style="width:100%${conf&&canStar?';background:#ffcf40;color:#1a1206':''}" ${canStar?'':'disabled'}>${conf?uiIcon('star-filled')+' Confirm Star Up ('+ncost+' frag)':'Fill pip ('+ncost+' frag)'}</button></div>`   /* v993 (City Wall audit #12): instruction prose removed - the pips and the button say it */
+      : `<div style="background:#0f1420;border-radius:10px;padding:10px;margin-bottom:10px;text-align:center"><span style="color:#ffd45e;font-weight:800">${uiIcon('star-filled')} 5 STARS — MAX ${uiIcon('star-filled')}</span></div>`;
     let refineBlock='';
-    if(st<MAX_STARS){ refineBlock=`<div style="font-size:11px;color:#6f7d90;text-align:center;padding:8px">Reach ★ 5 stars to unlock Refine.</div>`; }
+    if(st<MAX_STARS){ refineBlock=`<div style="font-size:11px;color:#6f7d90;text-align:center;padding:8px">Reach ${uiIcon('star-filled')} 5 stars to unlock Refine.</div>`; }
     else if(rl>=REFINE_MAX){ refineBlock=`<div style="background:linear-gradient(160deg,#3a2f12,#241d0c);border:1px solid #ffcf40;border-radius:10px;padding:12px;text-align:center">
-        <div style="font-weight:800;color:#ffcf40">✨ Fully Refined — Gold</div><div style="font-size:11px;color:#cdd6e4;margin-top:4px">This hero's middle star is maxed.</div></div>`; }
+        <div style="font-weight:800;color:#ffcf40">${uiIcon('sparkle-new')} Fully Refined — Gold</div><div style="font-size:11px;color:#cdd6e4;margin-top:4px">This hero's middle star is maxed.</div></div>`; }
     else { const T=REFINE_TIERS[nextTier], failPct=Math.round((1-T.chance)*100), sucPct=Math.round(T.chance*100), afford=frags>=T.cost;
       refineBlock=`<div style="background:#0f1420;border:1px solid ${T.col}66;border-radius:10px;padding:12px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><b style="font-size:13px;color:${T.col}">${T.name} Refinement</b><span style="font-size:11px;color:#8b98a9">${si.step}/${si.of}</span></div>
@@ -22897,7 +22897,7 @@ function openStarsPanel(key){ const t=HERO_TYPES[key]; if(!t) return;
           <span style="color:#8b98a9">You have ${fIcon} <b>${frags}</b> fragments.</span></div>
         <button class="btn" id="spRefine" style="width:100%;${afford?'background:'+T.col+';color:#1a1206':''}" ${afford?'':'disabled'}>⚒ Refine (${T.cost} frags)</button></div>`; }
     ov.innerHTML=`<div style="background:#141b2b;border:1px solid #3a4a6e;border-radius:16px 0 0 16px;padding:18px 16px;width:min(380px,94vw);height:100vh;max-height:100vh;overflow:auto;box-shadow:-18px 0 55px rgba(0,0,0,.6)">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-weight:800;font-size:15px">⭐ ${escapeHTML(t.name)} · Stars</div><button class="btn sm secondary" id="spX">✕</button></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-weight:800;font-size:15px">${uiIcon('star-filled')} ${escapeHTML(t.name)} · Stars</div><button class="btn sm secondary" id="spX">${uiIcon('close')}</button></div>
       <div style="display:flex;gap:3px;justify-content:center;align-items:center;min-height:58px;margin-bottom:6px">${starFillRow(key,24)}</div>
       <div style="text-align:center;font-size:12px;color:#c9a2ff;margin-bottom:10px">🧩 <b>${frags}</b> ${escapeHTML(t.name)} fragments owned</div>
       ${starBlock}${refineBlock}
@@ -22911,7 +22911,7 @@ function openStarsPanel(key){ const t=HERO_TYPES[key]; if(!t) return;
       const r=await apiOnce('herospend','/api/hero/refine',{heroKey:key}); if(r&&r.busy) return;   // the roll happens on the SERVER
       if(!r||!r.ok){ render((r&&r.error)||'Refine failed.','#ff8b8b'); await ledgerSync(); return; }
       adoptLedger(r.ledger);
-      render(r.success?'✨ Refine success! +1 progress':'💥 Refine failed — fragments lost.', r.success?'#5ee89b':'#ff8b8b');
+      render(r.success?uiIcon('sparkle-new')+' Refine success! +1 progress':statusIcon('crit-burst')+' Refine failed — fragments lost.', r.success?'#5ee89b':'#ff8b8b');
       if(state==='heroDetail'||_popout==='heroDetail') renderHeroDetail(); };
   }
   render(); document.body.appendChild(ov);
@@ -23011,15 +23011,15 @@ function g2RenderOverlays(){ let host=document.getElementById('g2ovlHost');
       <div style="background:#0f1a2e;border:1px solid #24314e;border-radius:14px;max-width:440px;width:100%;max-height:86vh;overflow-y:auto;padding:12px 12px 14px;position:relative">
         <div style="display:flex;justify-content:space-between;margin-bottom:2px">
           <button class="btn xs secondary" onclick="g2TreeCloseTo(${i})">‹ Back</button>
-          <button class="btn xs secondary" onclick="g2buildCancel()">✕</button></div>
+          <button class="btn xs secondary" onclick="g2buildCancel()">${uiIcon('close')}</button></div>
         ${g2TreeView(pth,'o'+i)}</div></div>`).join('');
   setTimeout(g2DrawTree,40); setTimeout(g2DrawTree,380); }
 /* v266 (Farm Map v1): "Farm: Elite Portal 5-4" opens Elite Portal 5-4 — the exact stage, in the
    exact portal, one tap from the ancestry tree. */
 function g2SrcGo(stageId, mode){ const m=/^(\d+)-(\d+)$/.exec(String(stageId||'').replace('campaign-','')); if(!m) return;
   const node=(+m[1]-1)*10 + (+m[2]); mode=mode||'normal';
-  const lock=portalLockMsg(mode); if(lock){ bannerMsg('🔒 '+lock); return; }
-  const chLock=portalChapterLockMsg(mode,+m[1]); if(chLock){ bannerMsg('🔒 '+chLock); return; }
+  const lock=portalLockMsg(mode); if(lock){ bannerMsg(hudIcon('lock')+' '+lock); return; }
+  const chLock=portalChapterLockMsg(mode,+m[1]); if(chLock){ bannerMsg(hudIcon('lock')+' '+chLock); return; }
   RUNE2.build=null; g2RenderOverlays(); PORTAL=mode; campViewCh=0; show('campaign'); openStageModal(node, mode); }
 function g2NodeArtSrc(n){ if(n.kind==='fragment'){ const p=g2parseKey(n.key); return `/assets/img/glyphs-v2/${g2qdir(p.q)}/fragment-${g2slotOfFam(p.fam)}.png?v=4`; }
   if(n.kind==='subGlyph'){ const p=g2parseKey(n.key); return `/assets/img/glyphs-v2/${g2qdir(p.q)}/sub-${g2slotOfFam(p.fam)}.png?v=4`; }
@@ -23070,7 +23070,7 @@ function g2TreeView(viewPath,pfx){ const bd=RUNE2.build, D=bd.data;
     const _srcTag=x=>(typeof x==='string')?{mode:'normal',stageId:String(x).replace('campaign-',''),label:'Normal '+String(x).replace('campaign-','')}
       :{mode:x.mode||'normal', stageId:x.stageId, label:(PORTAL_META[x.mode||'normal']||{label:'Normal'}).label+' '+x.stageId};
     const _srcCol={normal:'#8fb7ff', elite:'#ffb37a', veteran:'#ffd45e'};
-    const srcs=!D.locked?(n.sources||[]).slice(0,2).map(_srcTag).map(x=>`<span class="pill" style="font-size:8px;cursor:pointer;border:1px solid #33405e;color:${_srcCol[x.mode]||'#8fb7ff'}" onclick="event.stopPropagation();g2SrcGo('${x.stageId}','${x.mode}')">⚔ ${escapeHTML(x.label)}</span>`).join(' '):'';
+    const srcs=!D.locked?(n.sources||[]).slice(0,2).map(_srcTag).map(x=>`<span class="pill" style="font-size:8px;cursor:pointer;border:1px solid #33405e;color:${_srcCol[x.mode]||'#8fb7ff'}" onclick="event.stopPropagation();g2SrcGo('${x.stageId}','${x.mode}')">${statusIcon('attack')} ${escapeHTML(x.label)}</span>`).join(' '):'';
     return `<div id="${id(pth)}" data-g2p="${id(parentPath)}" data-rdy="${rdy?1:0}" style="width:82px;flex:none;text-align:center;position:relative;z-index:1;cursor:${src0?'pointer':'default'}" ${src0?`onclick="g2SrcGo('${src0.stageId}','${src0.mode}')"`:''}>
       <div style="width:72px;height:72px;margin:0 auto;display:flex;align-items:center;justify-content:center;position:relative;filter:drop-shadow(0 0 10px ${col}44)">
         ${g2NodeArt(n,68)}</div>
@@ -23116,7 +23116,7 @@ function g2TreeView(viewPath,pfx){ const bd=RUNE2.build, D=bd.data;
     ${!(view.children||[]).length?'<div style="font-size:11px;color:#6f7d90;text-align:center;padding:6px">No components — built directly.</div>':''}</div>`; }
 if(!window._g2rsz){ window._g2rsz=1; window.addEventListener('resize',()=>{ try{ if(RUNE2.build&&!RUNE2.build.loading) g2DrawTree(); }catch(e){} }); }
 function g2info(slot){ const bd=g2board(detailHero); const so=bd.slots[slot]; if(!so) return;
-  bannerMsg('🔒 <b style="color:'+g2col(so.quality)+'">'+so.name+'</b> — '+(so.stats||[]).map(x=>x.stat+' +'+x.val+('')).join(' · ')); }
+  bannerMsg(hudIcon('lock')+' <b style="color:'+g2col(so.quality)+'">'+so.name+'</b> — '+(so.stats||[]).map(x=>x.stat+' +'+x.val+('')).join(' · ')); }
 async function g2buildDo(bpId){ if(RUNE2.busy) return; RUNE2.busy=true;
   const r=await api('/api/glyphs/build-in-slot','POST',{ heroKey:detailHero, slot:RUNE2.build&&RUNE2.build.slot,
     blueprintId:bpId, expectedRevision:(RUNE2.st&&RUNE2.st.revision)||1, requestId:uid8() });
@@ -23169,8 +23169,8 @@ function glyphV2Tab(key){
   const q=maxed?'Orange':cat.ladder[idx], qc=g2col(q);
   const head=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
       <b>Glyph Ascension</b>
-      <span class="pill" style="color:${qc};border:1px solid ${qc}">${maxed?'★ FULLY ASCENDED':q+' · step '+(idx+1)+'/'+cat.ladder.length}</span></div>`;
-  if(maxed) return `<div class="panel">${head}<div style="text-align:center;color:${qc};font-weight:800;padding:16px">★ This hero has completed every ascension.</div></div>`;
+      <span class="pill" style="color:${qc};border:1px solid ${qc}">${maxed?uiIcon('star-filled')+' FULLY ASCENDED':q+' · step '+(idx+1)+'/'+cat.ladder.length}</span></div>`;
+  if(maxed) return `<div class="panel">${head}<div style="text-align:center;color:${qc};font-weight:800;padding:16px">${uiIcon('star-filled')} This hero has completed every ascension.</div></div>`;
   // ---- GLYPH ANCESTRY pop-out (27 Aug, Phil's mock): a REAL tree — the finished glyph's art on
   //      top, glowing curved connectors, predecessor glyphs as tappable nodes, fragments as
   //      circular leaves with have/need pills. Allocation is a UI-only plan. ----
@@ -23182,15 +23182,15 @@ function glyphV2Tab(key){
     const D=bd.data;
     // v246 (Phil): the pop-out has ONE action — "Quick Build" instantly builds the glyph you
     // clicked (lit only when its materials are there). "Quick Slot" (all six) lives on the board.
-    const lvBlock=(D.levelOk===false)?`<div style="text-align:center;font-size:11px;color:#ffb37a;margin-top:8px">🔒 Needs <b>hero level ${D.levelRequired}</b> — this hero is level ${D.heroLevel}.</div>`:'';
+    const lvBlock=(D.levelOk===false)?`<div style="text-align:center;font-size:11px;color:#ffb37a;margin-top:8px">${hudIcon('lock')} Needs <b>hero level ${D.levelRequired}</b> — this hero is level ${D.heroLevel}.</div>`:'';
     const actions=!D.locked?`${lvBlock}<div style="display:flex;gap:8px;margin-top:10px">
-        <button class="btn" style="flex:1;${D.canBuild?'background:linear-gradient(#5ee89b,#2f9e63);color:#04140a':'opacity:.45'}" ${D.canBuild?'':'disabled'} onclick="g2buildDo('${D.blueprintId}')">⚡ Quick Build</button>
+        <button class="btn" style="flex:1;${D.canBuild?'background:linear-gradient(#5ee89b,#2f9e63);color:#04140a':'opacity:.45'}" ${D.canBuild?'':'disabled'} onclick="g2buildDo('${D.blueprintId}')">${statusIcon('energy')} Quick Build</button>
       </div>`:'';
     setTimeout(g2DrawTree,40); setTimeout(g2DrawTree,380);
     return `<div class="panel">${ancHead}
       <div style="display:flex;justify-content:space-between;gap:6px;margin-bottom:2px">
         <button class="btn xs secondary" onclick="g2buildCancel()">‹ Back</button>
-        <button class="btn xs secondary" onclick="g2buildCancel()">✕</button></div>
+        <button class="btn xs secondary" onclick="g2buildCancel()">${uiIcon('close')}</button></div>
       ${g2TreeView('r','m')}${actions}</div>`; }
   // ---- the six-slot board: filled cells are locked (visual only), empty cells open Build ----
   // 27 Aug (Phil): CLEAN board — no boxes, no outlines, no names. Just the rune art:
@@ -23198,7 +23198,7 @@ function glyphV2Tab(key){
   const _lvNeed=(b.levelRequired!=null)?b.levelRequired:((window.GLYPH_MIN_LEVEL&&window.GLYPH_MIN_LEVEL[idx])||1);
   const _lvOk=((typeof heroLevel==='function')?heroLevel(key):1)>=_lvNeed;
   const cells=cat.slots.map((slotName,i)=>{ const so=b.slots[i];
-    if(so){ return `<div style="background:none;border:none;padding:2px;cursor:pointer;text-align:center" ondblclick="g2info(${i})" title="${so.name} — ${(so.stats||[]).map(x=>x.stat+' +'+x.val+('')).join(' · ')} 🔒">
+    if(so){ return `<div style="background:none;border:none;padding:2px;cursor:pointer;text-align:center" ondblclick="g2info(${i})" title="${so.name} — ${(so.stats||[]).map(x=>x.stat+' +'+x.val+('')).join(' · ')} (locked)">
         <div style="height:130px;display:flex;align-items:center;justify-content:center">${g2art('finished',so.quality,g2slotOfFam(so.family),126)}</div></div>`; }
     const can=_lvOk && g2CanBuild(key,i);   // 27 Aug (Phil): GREEN ＋ only when the materials are there; GREY when they're not (v257: and when the hero is high enough level)
     const pc=can===true?'#5ee89b':'#8b98a9';
@@ -23212,13 +23212,13 @@ function glyphV2Tab(key){
     :((window.GLYPH_MIN_LEVEL&&window.GLYPH_MIN_LEVEL[idx])||1);
   const lvHave=(typeof heroLevel==='function')?heroLevel(key):1;
   const lvOk=lvHave>=lvNeed;
-  const lvLine=lvOk?'' :`<div style="text-align:center;font-size:11px;color:#ffb37a;margin-top:6px">🔒 ${q} glyphs need <b>hero level ${lvNeed}</b> — ${(HERO_TYPES[key]||{}).name||key} is level ${lvHave}. Level them up first.</div>`;
+  const lvLine=lvOk?'' :`<div style="text-align:center;font-size:11px;color:#ffb37a;margin-top:6px">${hudIcon('lock')} ${q} glyphs need <b>hero level ${lvNeed}</b> — ${(HERO_TYPES[key]||{}).name||key} is level ${lvHave}. Level them up first.</div>`;
   const canAll=!full&&lvOk&&g2CanSlotAll(key)===true;   // v246 (Phil): "Quick Slot" slots ALL glyphs at once — lit only when affordable
   const bonus=b.nextAscensionBonus;
   const bonusText=bonus?` · Bonus +${bonus.amount}${''} ${bonus.stat}`:'';
   const board=`<div class="hd-armorgrid" style="grid-template-columns:repeat(3,1fr);gap:6px">${cells}</div>${lvLine}
-    ${full?'':`<button class="btn" style="width:100%;margin-top:8px;${canAll?'background:linear-gradient(#ffd45e,#c9962e);color:#20160a':'opacity:.45'}" ${canAll?'':'disabled'} onclick="g2buildAll()">⚡ Quick Slot — build all six</button>`}
-    <button class="btn" style="width:100%;margin-top:8px;${full?'background:linear-gradient(#c9a2ff,#8a5fd0);color:#fff':'opacity:.45'}" ${full?'onclick="g2ascend()"':'disabled'}>⬆ ASCEND to ${cat.ladder[idx+1]||'MAX'}${bonusText} — consumes all six</button>`;
+    ${full?'':`<button class="btn" style="width:100%;margin-top:8px;${canAll?'background:linear-gradient(#ffd45e,#c9962e);color:#20160a':'opacity:.45'}" ${canAll?'':'disabled'} onclick="g2buildAll()">${statusIcon('energy')} Quick Slot — build all six</button>`}
+    <button class="btn" style="width:100%;margin-top:8px;${full?'background:linear-gradient(#c9a2ff,#8a5fd0);color:#fff':'opacity:.45'}" ${full?'onclick="g2ascend()"':'disabled'}>${uiIcon('level-up')} ASCEND to ${cat.ladder[idx+1]||'MAX'}${bonusText} — consumes all six</button>`;
   // (27 Aug, Phil: the Fragments strip lives in the Bag — not on the hero card)
   const fragHtml='';
   const asc=Object.entries(b.ascended||{});
@@ -23262,7 +23262,7 @@ function renderHeroDetail(){
   if(!owned){ starSubLine = ''; }   // not owned: summon bar (below) shows the fragment counter / SUMMON NOW button
   else { starSubLine = ''; }   // owned: no sub-line — tap the stars themselves to open the Stars panel (star-up / refine)
   const left=`<div class="hd-left">
-    <div class="hd-name">${t.name}${myth?'':`<span class="hd-starbadge">${stars}★</span>`}</div>
+    <div class="hd-name">${t.name}${myth?'':`<span class="hd-starbadge">${stars}${uiIcon('star-filled')}</span>`}</div>
     ${HERO_SUBNAME[key]?`<div class="hd-subname">${escapeHTML(HERO_SUBNAME[key])}</div>`:''}
     <div style="display:flex;justify-content:center"><div id="hdPortrait" style="width:92px;height:92px;border-radius:12px;border:2px solid ${myth?'#ffcf40':gi.col};box-shadow:0 2px 10px #0009${myth?',0 0 14px #ffcf4055':''}">${heroIcon(key,92)}</div></div>
     ${rarBanner}
@@ -23275,8 +23275,8 @@ function renderHeroDetail(){
   const armorPanel='';
   // ---- RIGHT: tabs ----
   const tabs = owned
-    ? [['stats','📊 Stats'],['skills','⚔️ Skills'],['glyphs','💠 Glyphs'],['equip','⚒️ Equipment'],['lore','📜 Lore']]
-    : [['stats','📊 Stats'],['skills','⚔️ Skills'],['lore','📜 Lore']];   // locked heroes: view-only (no upgrade tabs)
+    ? [['stats',uiIcon('chart')+' Stats'],['skills',statusIcon('attack')+' Skills'],['glyphs','💠 Glyphs'],['equip','⚒️ Equipment'],['lore',uiIcon('quest-scroll')+' Lore']]
+    : [['stats',uiIcon('chart')+' Stats'],['skills',statusIcon('attack')+' Skills'],['lore',uiIcon('quest-scroll')+' Lore']];   // locked heroes: view-only (no upgrade tabs)
   if(!tabs.some(([id])=>id===heroTab)) heroTab = owned?'stats':'lore';
   const tabBar=tabs.map(([id,label])=>`<button class="hd-tab${heroTab===id?' on':''}" data-tab="${id}">${label}</button>`).join('');
   let tab='';
@@ -23299,7 +23299,7 @@ function renderHeroDetail(){
       [statIcon('range')+'Type',t.range>=60?'Ranged':'Melee'],['Combat row',t.combatRow],['Class',t.role],['Damage',t.damageProfile],['Scaling',t.primaryScaling]];
     tab=`<div class="panel"><div style="display:grid;grid-template-columns:1fr 1fr;gap:7px 14px;font-size:12px">${rows.map(([n,v])=>`<div style="display:flex;justify-content:space-between;border-bottom:1px solid #1c2434;padding-bottom:4px"><span style="color:#8b98a9">${n}</span><b>${v}</b></div>`).join('')}</div>
       <div style="font-size:10px;color:#6f7d90;margin-top:8px">Totals include level, quality, glyphs, equipment, stars, tech &amp; prayer.</div></div>
-      ${owned?`<div class="panel" style="margin-top:8px"><div style="font-weight:800;margin-bottom:4px">📖 Level ${escapeHTML(t.name)} with XP Potions</div><div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px">${XP_POTION_LABELS.map(([id,name,amt])=>`<button class="btn secondary" data-xp-potion="${id}" ${((G.xpPotions||{})[id]|0)>0&&!capped&&ACC.token?'':'disabled'} style="font-size:11px;padding:6px">${name} +${amt.toLocaleString()} XP · ×${(G.xpPotions||{})[id]|0}</button>`).join('')}</div></div>`:''}`;
+      ${owned?`<div class="panel" style="margin-top:8px"><div style="font-weight:800;margin-bottom:4px">${uiIcon('lore-book')} Level ${escapeHTML(t.name)} with XP Potions</div><div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px">${XP_POTION_LABELS.map(([id,name,amt])=>`<button class="btn secondary" data-xp-potion="${id}" ${((G.xpPotions||{})[id]|0)>0&&!capped&&ACC.token?'':'disabled'} style="font-size:11px;padding:6px">${name} +${amt.toLocaleString()} XP · ×${(G.xpPotions||{})[id]|0}</button>`).join('')}</div></div>`:''}`;
   } else if(heroTab==='skills'){
     const skills=[
       {idx:0,name:t.abilityName,tier:'Grey',col:RANK_COLOR[0]},
@@ -23315,12 +23315,12 @@ function renderHeroDetail(){
       return `<div class="skrow${hasClip&&s.idx===skClipIdx?' sksel':''}" data-skill="${s.idx}" title="${tip}" style="display:flex;gap:9px;align-items:center;padding:9px 0;border-bottom:1px solid #1c2434;opacity:${on?1:.5};cursor:${hasClip?'pointer':'help'}">
         <span style="width:10px;height:10px;border-radius:50%;background:${s.col};flex:none"></span>
         <div style="flex:1;min-width:0">
-          <div style="font-size:13px"><b>${s.name}</b> <span style="font-size:10px;color:${s.col}">${s.tier}</span>${on?'':' 🔒'}${hasClip?' <span style="font-size:9px;color:#6ea8ff">▶ clip</span>':''}</div>
+          <div style="font-size:13px"><b>${s.name}</b> <span style="font-size:10px;color:${s.col}">${s.tier}</span>${on?'':' '+hudIcon('lock')}${hasClip?' <span style="font-size:9px;color:#6ea8ff">'+uiIcon('play')+' clip</span>':''}</div>
           <div style="font-size:11px;color:#c3ccd8;font-weight:600">${on?iconize(skillEffectStr(key,s.idx,S_ATK,S_HP)):'Locked'}</div>
         </div>
         ${on?`<div style="display:flex;align-items:center;gap:7px;flex:none">
           <span style="font-size:10px;color:#ffd45e;border:1px solid #4a4020;border-radius:5px;padding:1px 6px;background:#241f10">Lv ${lv}</span>
-          ${atMax?`<span style="font-size:10px;color:#ffd45e;font-weight:800">MAX</span>`:`<button class="btn xs" data-skillup="${s.idx}" ${can?'':'disabled'}>＋ 🪙${cost}</button>`}
+          ${atMax?`<span style="font-size:10px;color:#ffd45e;font-weight:800">MAX</span>`:`<button class="btn xs" data-skillup="${s.idx}" ${can?'':'disabled'}>＋ ${hudIcon('gold')}${cost}</button>`}
         </div>`:''}
       </div>`; }).join('');
     /* v905 (Phil): the preview is a small battle - hero + 2 allies vs 3 monsters on a real arena, the skill's own clip and spell art */
@@ -23337,25 +23337,25 @@ function renderHeroDetail(){
     tab=`<div class="panel" style="line-height:1.62">
         <div class="loreBn">${rarityBannerHtml(key)}</div>   <!-- v656 (Phil: "remove this mythical word ... Instead make their name with the banner of their quality"): the name on its rarity banner -->
         ${L.title?`<div style="font-size:12px;font-style:italic;color:#c9a35e;text-align:center;margin-bottom:12px">“${escapeHTML(L.title)}”</div>`:''}
-        ${(LORE_AUDIO[key]&&SND.cfg.voice.on)?`<div style="text-align:center;margin:-4px 0 12px"><button class="btn sm" id="loreBtn" aria-label="Play the story" style="min-width:56px;font-size:15px">▶</button></div>`:''}
+        ${(LORE_AUDIO[key]&&SND.cfg.voice.on)?`<div style="text-align:center;margin:-4px 0 12px"><button class="btn sm" id="loreBtn" aria-label="Play the story" style="min-width:56px;font-size:15px">${uiIcon('play')}</button></div>`:''}
         <div style="font-size:12.5px;color:#d3dced">${paras}</div>
         ${myth?`<div style="font-size:11px;color:#8b98a9;border-top:1px solid #2a3550;margin-top:10px;padding-top:8px">✦ Mythical heroes are obtained only through special offers.</div>`:''}
       </div>`;
   }
-  const right=`<div class="hd-right"><div class="hd-tabbar">${tabBar}</div><div class="hd-tabcontent">${tab}${armorPanel}</div><div class="hd-power">⚔ POWER <b>${heroPower(key)}</b></div></div>`;
+  const right=`<div class="hd-right"><div class="hd-tabbar">${tabBar}</div><div class="hd-tabcontent">${tab}${armorPanel}</div><div class="hd-power">${statusIcon('attack')} POWER <b>${heroPower(key)}</b></div></div>`;
   // SUMMON area for a locked hero: fragment progress until ready, then a large SUMMON NOW button.
   const smFrags=heroFrag(key), smNeed=summonCost(key), smReady=canSummon(key), smPct=Math.min(100,Math.round(smFrags/smNeed*100));
   const summonBar = (!owned && t.locked) ? `<div style="margin:0 0 10px;padding:12px 14px;border-radius:12px;background:linear-gradient(160deg,#221a2e,#141a26);border:1px solid ${smReady?'#5ee89b':(myth?'#ffcf40':'#33405e')};text-align:center">
       ${smReady
-        ? `<button class="btn" id="hdSummon" style="width:100%;font-size:17px;font-weight:900;letter-spacing:1.5px;padding:14px;background:linear-gradient(#5ee89b,#33b06b);color:#07220f;box-shadow:0 3px 12px #2fae6a55">✨ SUMMON NOW</button>
-           <div style="font-size:10px;color:#8b98a9;margin-top:7px">Unlocks ${escapeHTML(t.name)} at ${heroStartStars(key)}★ · spends ${smNeed} fragments</div>`
+        ? `<button class="btn" id="hdSummon" style="width:100%;font-size:17px;font-weight:900;letter-spacing:1.5px;padding:14px;background:linear-gradient(#5ee89b,#33b06b);color:#07220f;box-shadow:0 3px 12px #2fae6a55">${uiIcon('sparkle-new')} SUMMON NOW</button>
+           <div style="font-size:10px;color:#8b98a9;margin-top:7px">Unlocks ${escapeHTML(t.name)} at ${heroStartStars(key)}${uiIcon('star-filled')} · spends ${smNeed} fragments</div>`
         : `<div style="font-size:14px;font-weight:800;color:${myth?'#ffcf40':'#c9a2ff'};margin-bottom:8px">🧩 ${smFrags} / ${smNeed} fragments</div>
            <div style="height:11px;background:#1a2030;border-radius:6px;overflow:hidden"><div style="height:100%;width:${smPct}%;background:linear-gradient(90deg,#8a7bff,#c9a2ff);transition:width .3s"></div></div>
-           <div style="font-size:10px;color:#6f7d90;margin-top:7px">🧩 ${smNeed} → ${heroStartStars(key)}★${myth?' · 1% Diamond wish':''}</div>`}
+           <div style="font-size:10px;color:#6f7d90;margin-top:7px">🧩 ${smNeed} → ${heroStartStars(key)}${uiIcon('star-filled')}${myth?' · 1% Diamond wish':''}</div>`}
     </div>` : '';
   body.innerHTML=`${summonBar}<div class="hd-wrap">${left}${right}</div>`;
   { const sm=body.querySelector('#hdSummon'); if(sm) sm.onclick=async()=>{ sm.disabled=true;
-      const summoned=await doSummon(key); if(summoned){ bannerMsg('✨ '+t.name+' summoned at '+heroStartStars(key)+'★!'); renderHeroDetail(); checkTutorial(); tutReturnAfterAction(); }
+      const summoned=await doSummon(key); if(summoned){ bannerMsg(uiIcon('sparkle-new')+' '+t.name+' summoned at '+heroStartStars(key)+uiIcon('star-filled')+'!'); renderHeroDetail(); checkTutorial(); tutReturnAfterAction(); }
       else { renderHeroDetail(); } }; }
   body.querySelectorAll('.hd-tab').forEach(b=>b.onclick=()=>{ heroTab=b.dataset.tab; renderHeroDetail(); });
   { const lb=body.querySelector('#loreBtn'); if(lb){ loreBtnSync(lb); lb.onclick=()=>loreToggle(key,lb); if(_lore.a&&_lore.key===key){ const a=_lore.a; a.onplay=a.onpause=a.onended=()=>loreBtnSync(lb); } } }   // v1048 lore narration
@@ -23402,7 +23402,7 @@ async function useHeroXpPotion(key,tier){
   const r=await apiOnce('xppotion','/api/hero/xp-potion',{heroKey:key,tier}); if(r&&r.busy) return;
   if(!(r&&r.ok)){bannerMsg((r&&r.error)||'Potion could not be used.');await ledgerSync();return;}
   adoptLedger(r.ledger);renderHeroDetail();updateHubChrome();
-  bannerMsg('📖 '+((HERO_TYPES[key]||{}).name||key)+' gained '+r.heroXp+' XP'+(r.levelAfter>r.levelBefore?' and reached level '+r.levelAfter:'')+'!');
+  bannerMsg(uiIcon('lore-book')+' '+((HERO_TYPES[key]||{}).name||key)+' gained '+r.heroXp+' XP'+(r.levelAfter>r.levelBefore?' and reached level '+r.levelAfter:'')+'!');
   if(typeof tutReturnAfterAction==='function')tutReturnAfterAction();
 }
 function heroCycle(dir){
@@ -23417,7 +23417,7 @@ function renderBag(){
   // legacy glyph collection stripped 26 Aug — Glyph v2 fragments/glyphs live on each hero's Glyphs tab (server account)
   const st=(typeof RUNE2!=='undefined')&&RUNE2.st;
   const frags=st?Object.entries(st.fragments||{}).filter(([k,n])=>n>0).sort():[];
-  b.innerHTML=`<div style="font-weight:700;margin-bottom:6px">📖 Hero XP Potions</div><div class="panel" style="margin-bottom:12px;font-size:11px">${XP_POTION_LABELS.map(([id,name,xp])=>`<div style="display:flex;justify-content:space-between;padding:4px 0"><span>${name} · ${xp.toLocaleString()} hero XP</span><b>×${(G.xpPotions||{})[id]|0}</b></div>`).join('')}</div><div style="font-weight:700;margin-bottom:6px">🔮 Glyph Fragments</div>
+  b.innerHTML=`<div style="font-weight:700;margin-bottom:6px">${uiIcon('lore-book')} Hero XP Potions</div><div class="panel" style="margin-bottom:12px;font-size:11px">${XP_POTION_LABELS.map(([id,name,xp])=>`<div style="display:flex;justify-content:space-between;padding:4px 0"><span>${name} · ${xp.toLocaleString()} hero XP</span><b>×${(G.xpPotions||{})[id]|0}</b></div>`).join('')}</div><div style="font-weight:700;margin-bottom:6px">🔮 Glyph Fragments</div>
     ${st?`<div class="panel" style="margin-bottom:10px">
       ${frags.length?`<div style="display:flex;flex-wrap:wrap;gap:4px">${frags.map(([k,n])=>`<span class="pill" style="font-size:9px">${k} ×${n}</span>`).join('')}</div>`:'<div style="font-size:10px;color:#6f7d90">No glyph fragments yet.</div>'}
     </div>`:'<div class="panel" style="font-size:11px;color:#6f7d90;margin-bottom:10px">Sign in to see your glyph fragments.</div>'}
