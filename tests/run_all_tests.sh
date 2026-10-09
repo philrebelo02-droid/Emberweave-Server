@@ -257,6 +257,8 @@ note "test_oakmir_ult_badge_1073.js (v1073: Oakmir ult badge 0.45; the single-ta
 node tests/test_oakmir_ult_badge_1073.js || FAILED=1
 note "test_linnet_rewind_1074.js (v1074: Rewrite the Pattern swirl over every ally the rewind touches, the revived too)"
 node tests/test_linnet_rewind_1074.js || FAILED=1
+note "test_rafe_fortune_1075.js (v1075: Dead Man's Fortune tracer per shot, spark on the chest when it lands)"
+node tests/test_rafe_fortune_1075.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi
