@@ -303,6 +303,8 @@ note "test_temple_screen_1094.js (v1094 the Temple screen copies the reference: 
 node tests/test_temple_screen_1094.js || FAILED=1
 note "test_emoji_ratchet.js (Phil 9 Oct: no more emojis - the count may only go down)"
 node tests/test_emoji_ratchet.js || FAILED=1
+note "test_icons_1098.js (v1098: every icon the page asks for exists; Wishing Pool is the stage-fit layout; control: a missing icon is caught)"
+node tests/test_icons_1098.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi

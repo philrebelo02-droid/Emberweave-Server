@@ -12,7 +12,7 @@ const sha=crypto.createHash('sha256').update(html).digest('hex'); let pass=0; co
 const fn=sig=>{ const i=html.indexOf(sig); if(i<0) return ''; if(sig.startsWith('const ')) return html.slice(i,html.indexOf('\n',i)); const e=[html.indexOf('\nfunction ',i+1),html.indexOf('\nasync function ',i+1)].filter(x=>x>0); return html.slice(i,Math.min(...e)); };
 function site(kind,route,refresh){
   const src=['function pendingDefinite(','function '+kind+'PendingKey(','function '+kind+'PendingSave(','function '+kind+'PendingSettle(','async function '+kind+'ResendPending(','function '+kind+'PendingHeld('].map(fn).join('\n');
-  const slots=new Map(), adopted=[]; const c=vm.createContext({ACC:{token:'A-token',id:'A'},JSON,Object,console,
+  const slots=new Map(), adopted=[]; const c=vm.createContext({...require('./helpers/page-icons.js')(html), ACC:{token:'A-token',id:'A'},JSON,Object,console,
     localStorage:{getItem:k=>slots.has(k)?slots.get(k):null,setItem:(k,v)=>slots.set(k,String(v)),removeItem:k=>slots.delete(k)},
     adoptLedger:l=>adopted.push({acct:c.ACC.id,l}), api:async()=>({error:'offline'})});
   vm.runInContext(src,c); return {c,slots,adopted};
@@ -87,7 +87,7 @@ function site(kind,route,refresh){
   // 5 Emberdraft buy
   { const b=html.indexOf('  buy.onclick=()=>gameConfirm('), e=html.indexOf('\n  solo.onclick=',b); assert(b>0&&e>b,'buy handler found');
     const holder=(html.match(/const ED_BUY_RID=\{[^}]*\};/)||[''])[0]; const sent=[]; let n=0, reply=null;
-    const c=vm.createContext({ACC:{token:'A-token',id:'A'},buy:{dataset:{pack:3,cost:150}},gameConfirm:(m,cb)=>cb(),uid8:()=>'id'+(++n),
+    const c=vm.createContext({...require('./helpers/page-icons.js')(html), ACC:{token:'A-token',id:'A'},buy:{dataset:{pack:3,cost:150}},gameConfirm:(m,cb)=>cb(),uid8:()=>'id'+(++n),
       api:async(p,m,v)=>{ sent.push(v.requestId); return reply; },adoptLedger(){},updateHubChrome(){},show(){},edNiceErr:x=>x});
     vm.runInContext(fn('function pendingDefinite(')+'\n'+holder+'\n'+html.slice(b,e),c);
     const tap=async r=>{ reply=r; c.buy.onclick(); await new Promise(r=>setImmediate(r)); };

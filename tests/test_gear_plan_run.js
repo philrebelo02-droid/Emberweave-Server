@@ -6,7 +6,7 @@ const page=process.env.AUD_PAGE||path.join(__dirname,'..','emberweave-heroes.htm
 const a=src.indexOf('async function gearPlanRun'), b=src.indexOf('\nfunction gearConfirmQuick',a); assert(a>0&&b>a,'gearPlanRun found');
 let pass=0, missed=[]; const ok=(c,m)=>{ if(process.env.AUD_PAGE&&!c){ missed.push(m); return; } assert(c,m); pass++; };
 async function run(failAt){ const calls=[], msgs=[]; let i=0;
-  const ctx={FORGE:{busy:false,st:{revision:1}}, forgeSync:async()=>{}, renderHeroDetail:()=>{}, bannerMsg:m=>msgs.push(m),
+  const ctx={...require('./helpers/page-icons.js')(src), FORGE:{busy:false,st:{revision:1}}, forgeSync:async()=>{}, renderHeroDetail:()=>{}, bannerMsg:m=>msgs.push(m),
     api:async(p)=>{ calls.push(p); if(p.includes('equip')) return {ok:true}; i++; return i===failAt?{error:'Not enough materials.'}:{crafted:'it'+i,name:'Piece'+i}; }};
   vm.createContext(ctx); vm.runInContext(src.slice(a,b)+';this.g=gearPlanRun;',ctx);
   await ctx.g({steps:[{kind:'sub'},{},{}]},'vael'); return {equip:calls.filter(c=>c.includes('equip')).length, msgs:msgs.join(' | ')}; }
