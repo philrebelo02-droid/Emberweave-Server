@@ -10,7 +10,7 @@ const fn=page.slice(page.indexOf('function renderTemple(){'),page.indexOf('funct
 ok(/class="tp2Stage" id="tp2Stage"/.test(fn)&&/plate-v1\.webp/.test(fn),'the screen is one stage on the Temple plate');
 ok(/templeView==='grid'/.test(fn)&&/Purple heroes and above can pray\./.test(fn)&&/sort\(\(a,b\)=>b\.s\.pct-a\.s\.pct/.test(fn),'the hero grid: Purple heroes and above, sorted by %');
 ok(!/'All'/.test(fn)&&!/templeClassTabs/.test(fn),'no class tabs and no All button');
-ok(/heroes\/\$\{key\}-v1\.webp/.test(fn)&&/hero-window-v1\.webp/.test(fn),'the selected hero stands in the Temple window');
+ok(/heroes\/\$\{key\}-v2\.webp/.test(fn)&&/hero-window-v1\.webp/.test(fn),'the selected hero stands in the Temple window');
 ok(/tp2Delta \$\{up\?'up':'down'\}/.test(fn)&&/\.tp2Bar \.tp2Delta\.up\{background:rgba\(70,230,100/.test(page)&&/\.tp2Bar \.tp2Delta\.down\{background:rgba\(240,60,60/.test(page),'the pending change is shaded on the bar: green gain, red loss');
 ok(/Math\.round\(1000\*\(to-from\)\/cap\)\/10\)\+'%'/.test(fn),'the bar carries the change as a % of the cap');
 ok(/class="tp2Power \$\{power>0\?'up':power<0\?'down':''\}"/.test(fn)&&/\.tp2Bar s\.up,\.tp2Power\.up/.test(page),'Power +N green / -N red');
@@ -24,6 +24,6 @@ const need=['plate-v1.webp','hero-window-v1.webp','flame-keeper-v1.webp','bar-fi
   'stat-health-v1.webp','stat-attack-v1.webp','stat-armor-v1.webp','stat-penetration-v1.webp','prayer-daily-free-v1.webp','prayer-gold-ritual-v1.webp','prayer-kindled-v1.webp','prayer-stoked-v1.webp','prayer-blazing-v1.webp','prayer-inferno-v1.webp'];
 ok(need.every(f=>fs.existsSync(path.join(A,f))),'every Temple art file is on disk ('+need.filter(f=>!fs.existsSync(path.join(A,f))).join(',')+')');
 const keys=fs.readdirSync(path.join(root,'assets/img/hero-cards')).map(f=>f.slice(5,-5));
-ok(keys.length>=60&&keys.every(k=>fs.existsSync(path.join(A,'heroes',k+'-v1.webp'))),'every hero has a framed bust ('+keys.filter(k=>!fs.existsSync(path.join(A,'heroes',k+'-v1.webp'))).join(',')+')');
+ok(keys.length>=60&&keys.every(k=>fs.existsSync(path.join(A,'heroes',k+'-v2.webp'))),'every hero has a framed bust ('+keys.filter(k=>!fs.existsSync(path.join(A,'heroes',k+'-v2.webp'))).join(',')+')');
 if(missed.length){ missed.forEach(m=>console.error('FAIL',m)); process.exitCode=1; }
 console.log('test_temple_screen_1094.js: '+pass+' checks passed, '+missed.length+' failed');

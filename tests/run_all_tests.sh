@@ -299,6 +299,8 @@ note "test_temple_v2_1094.js (v1094 Temple of Ash v2: four flat bars in steps, c
 node tests/test_temple_v2_1094.js || FAILED=1
 note "test_temple_screen_1094.js (v1094 the Temple screen copies the reference: grid, hero bust, bars with green / red change and %, Power, Blessings + 5th dot, Flame Keeper, Save / Cancel, Auto pray)"
 node tests/test_temple_screen_1094.js || FAILED=1
+note "test_emoji_ratchet.js (Phil 9 Oct: no more emojis - the count may only go down)"
+node tests/test_emoji_ratchet.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi

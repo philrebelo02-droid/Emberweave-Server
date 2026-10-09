@@ -995,6 +995,8 @@ h1{background:linear-gradient(180deg,#fff4d6 0%,#f3d58a 42%,#c98f2e 100%);-webki
 /* v1094 Temple of Ash v2 screen (tp2*) - a 16:9 stage, everything placed in % of ChatGPT's 2560x1440 plate; --u = 1 plate px */
 #templeBody.tp2Host{position:absolute;inset:0;max-width:none;background:none;border:0;box-shadow:none;border-radius:0;padding:0;margin:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
 #temple .backbtn{z-index:30}
+.stIc{width:1.25em;height:1.25em;object-fit:contain;vertical-align:-0.28em;margin-right:0.25em}
+.tw-ic .stIc{width:70%;height:70%;margin:0;vertical-align:middle}
 .tp2Stage{position:relative;margin:0 auto;--u:0.4px;font-family:Georgia,'Times New Roman',serif;color:#f1e3c4;user-select:none;overflow:hidden}
 .tp2Stage>*{position:absolute;box-sizing:border-box}
 .tp2Plate{inset:0;width:100%;height:100%;pointer-events:none}
@@ -1068,6 +1070,18 @@ h1{background:linear-gradient(180deg,#fff4d6 0%,#f3d58a 42%,#c98f2e 100%);-webki
 .tp2AutoRow span{min-width:calc(var(--u)*320);display:flex;align-items:center;justify-content:center;gap:calc(var(--u)*10)}
 .tp2AutoRow span img{width:calc(var(--u)*60);height:calc(var(--u)*60)}
 .tp2AutoBtns{display:flex;gap:calc(var(--u)*30)}
+.tp2PowIc{width:calc(var(--u)*70);height:calc(var(--u)*70);margin-right:calc(var(--u)*12)}
+.tp2BtnIc{width:calc(var(--u)*46);height:calc(var(--u)*46);vertical-align:middle;margin-right:calc(var(--u)*8)}
+#tp2Switch,#tp2Auto{white-space:nowrap;font-size:calc(var(--u)*32)}
+.tp2Check{border:0!important;border-radius:0!important;background:url(/assets/img/temple/v2/ctl-checkbox-empty-v1.webp) center/contain no-repeat!important}
+.tp2Opt[aria-pressed="true"] .tp2Check{background:url(/assets/img/temple/v2/ctl-checkbox-ticked-v1.webp) center/contain no-repeat!important}
+.tp2KeeperPlate{background:url(/assets/img/temple/v2/ctl-keeper-plate-v1.webp) center/100% 100% no-repeat!important;border:0!important}
+.tp2Exp{background:url(/assets/img/temple/v2/ctl-exp-frame-v1.webp) center/100% 100% no-repeat!important;border:0!important}
+.tp2Exp i{background:url(/assets/img/temple/v2/ctl-exp-fill-v1.webp) left center/auto 100% repeat-x!important;margin:calc(var(--u)*6) 0}
+.tp2TileImg{border:0!important}.tp2TileImg .tp2TileFrame{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;pointer-events:none}
+.tp2Tile b{background:url(/assets/img/temple/v2/ctl-percent-plate-v1.webp) center/100% 100% no-repeat;padding:0 calc(var(--u)*30);min-width:70%;text-align:center}
+.tp2Auto{background:url(/assets/img/temple/v2/ctl-auto-panel-v1.webp) center/100% 100% no-repeat!important;border:0!important}
+.tp2AutoRow button{background:none!important;border:0!important;padding:0}.tp2AutoRow button img{width:100%;height:100%;object-fit:contain}
 .tp2Fx{z-index:12;pointer-events:none;display:flex;align-items:center;justify-content:center}
 .tp2Fx img{position:absolute;width:70%;animation:tp2flare .8s ease-out forwards}
 .tp2Fx b{position:relative;font-size:calc(var(--u)*90);text-shadow:0 0 calc(var(--u)*14) #000;animation:tp2rise 1.6s ease-out forwards}
@@ -14988,7 +15002,12 @@ function gearImg(d,px){ return d?`<img src="/assets/img/gear/items/${d.id}.webp$
 function gearFragImg(n,px){ return n?`<img src="/assets/img/gear/frags/${gearSlug(n)}.webp${GEAR_ART_V}" alt="" style="width:${px||22}px;height:${px||22}px;border-radius:4px;object-fit:cover;vertical-align:middle;background:#0e1420" loading="lazy">`:''; }
 function gearSubImg(n,px){ return n?`<img src="/assets/img/gear/subs/${gearSlug(n)}.webp${GEAR_ART_V}" alt="" style="width:${px||22}px;height:${px||22}px;border-radius:4px;object-fit:cover;vertical-align:middle;background:#0e1420" loading="lazy">`:''; }
 const GEAR_SLOT_ICON={Weapon:'⚔',Helm:'⛑',Boots:'👢',Armor:'🛡',Gloves:'🧤',Belt:'🎗',Ring:'💍',Amulet:'📿',Relic:'🔮'};
-const GEAR_STAT_LABEL={hp:'❤ Health',atk:'⚔ Attack',apow:'✨ Ability Power',armor:'🛡 Armor',mr:'🔮 Magic Resist',crit:'✦ Crit',critDmg:'✦ Crit Dmg',critRes:'✚ Crit Resist',energy:'⚡ Energy Regen',regen:'♻ HP Regen',ctrlRes:'🧱 Tenacity',ctrlHit:'🎯 Control Hit',startEnergy:'⚡ Start Energy',healPow:'✚ Healing',lifesteal:'🩸 Lifesteal',atkSpd:'⚡ Attack Speed',haste:'💨 Haste',eva:'👻 Evasion',acc:'🎯 Accuracy',block:'🛡 Block',dmgBonus:'⚔ Damage Bonus',dmgRed:'🛡 Damage Reduction',shieldStr:'🛡 Shield Strength',armorPen:'🗡 Armor Pen',magicPen:'🔮 Magic Pen',heal:'✚ Heal'};
+/* v1095 (Phil 9 Oct: "no more emojis" / the stat icons "will also be used everywhere"): ONE game-wide stat icon set (ChatGPT, approved) */
+const STAT_ICON_KEYS=new Set(['acc','apow','armor','armorPen','atk','atkSpd','block','cooldown','crit','critDmg','critRes','ctrlRes','dmgRed','energy','energySteal','energyTaken','eva','haste','healPow','hp','lifesteal','magicPen','moveSpd','mr','range','regen','shieldStr','skills']);
+const STAT_ICON_ALIAS={heal:'healPow',dmgBonus:'atk',startEnergy:'energy',ctrlHit:'acc',ap:'apow',def:'armor',critres:'critRes',health:'hp',attack:'atk',armorMr:'armor',pen:'armorPen'};
+function statIcon(k,cls){ k=STAT_ICON_ALIAS[k]||k; return STAT_ICON_KEYS.has(k)?`<img class="stIc${cls?' '+cls:''}" src="/assets/img/icons/stat/${k}-v1.webp" alt="">`:''; }
+function gearStatLabel(k){ return statIcon(k)+(GEAR_STAT_LABEL[k]||k); }
+const GEAR_STAT_LABEL={hp:'Health',atk:'Attack',apow:'Ability Power',armor:'Armor',mr:'Magic Resist',crit:'Crit',critDmg:'Crit Dmg',critRes:'Crit Resist',energy:'Energy Regen',regen:'HP Regen',ctrlRes:'Tenacity',ctrlHit:'Control Hit',startEnergy:'Start Energy',healPow:'Healing',lifesteal:'Lifesteal',atkSpd:'Attack Speed',haste:'Haste',eva:'Evasion',acc:'Accuracy',block:'Block',dmgBonus:'Damage Bonus',dmgRed:'Damage Reduction',shieldStr:'Shield Strength',armorPen:'Armor Pen',magicPen:'Magic Pen',heal:'Heal'};
 let gearSlotSel='Weapon';
 function gearSlotSelect(sl){ gearSlotSel=sl; renderHeroDetail(); }
 async function gearHeroPost(path,payload,msg){ if(FORGE.busy)return; FORGE.busy=true;
@@ -15124,7 +15143,7 @@ function gearTreeView(key){
       <div style="display:flex;flex-direction:column;align-items:center;flex:1;min-width:110px">${prevNode(0)}</div>
       <div style="display:flex;flex-direction:column;align-items:center;flex:1;min-width:110px">${prevNode(1)}</div>`;
   }
-  const stats=Object.entries(d.stats||{}).map(([k,v])=>`${GEAR_STAT_LABEL[k]||k} +${Math.round(v*10)/10}`).join(' · ');
+  const stats=Object.entries(d.stats||{}).map(([k,v])=>`${gearStatLabel(k)} +${Math.round(v*10)/10}`).join(' · ');
   setTimeout(g2DrawTree,40); setTimeout(g2DrawTree,380);
   return `<div class="g2treeBox" style="position:relative;padding:2px 0 6px">
     <svg class="g2svg" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0"></svg>
@@ -15178,7 +15197,7 @@ function heroGearTabHTML(key){
   let detail='';
   const sl=gearSlotSel, iid=eq[sl], it=iid&&st.items[iid], d=it&&forgeDef(it.d);
   if(d){ const bar=T.startBar+(it.temper||0)*T.barGrowth, tmul=Math.round(100*T.passivePerTemper*(it.temper||0));
-    const statLine=Object.entries(d.stats||{}).map(([k,v])=>`${GEAR_STAT_LABEL[k]||k} <b>+${Math.round(v*10)/10}</b>`).join(' · ');
+    const statLine=Object.entries(d.stats||{}).map(([k,v])=>`${gearStatLabel(k)} <b>+${Math.round(v*10)/10}</b>`).join(' · ');
     detail=`<div class="panel" style="margin-top:6px"><div style="display:flex;gap:10px;align-items:flex-start">${gearImg(d,56)}
       <div style="flex:1;min-width:0"><div style="display:flex;justify-content:space-between;gap:6px"><b style="color:${FORGE_QCOLOR[d.quality]||'#e6edf3'};font-size:12px">${escapeHTML(d.name)}</b><span style="font-size:10px;color:#8b98a9">${d.quality} · ${d.slotFull||d.slot}</span></div>
         <div style="font-size:11px;color:#cdd6e4;margin-top:2px">${statLine}${tmul?` <span style="color:#5ee89b">(+${tmul}% temper)</span>`:''}</div>
@@ -17959,7 +17978,8 @@ let templeSelectedHero='',templeSelectedTier='gold',templeClassFilter='All',temp
    itself (green gain / red loss) with the % of the cap; Power +/-N; Blessings 1-4 + the 5th dot on the right; Flame Keeper below. */
 let templeView='grid',templeAuto=null,templeFx=null;
 const TP2='/assets/img/temple/v2/';
-const TP2_BARS=[['health','Health','stat-health'],['attack','Attack','stat-attack'],['armorMr','Armor & Magic resist','stat-armor'],['pen','Penetration','stat-penetration']];
+const TP2_BARS=[['health','Health','hp'],['attack','Attack','atk'],['armorMr','Armor & Magic resist','armor'],['pen','Penetration','armorPen']];
+const tp2StatKey=(bar,icon,prof)=>bar==='attack'&&prof==='magic'?'apow':bar==='pen'&&prof==='magic'?'magicPen':icon;
 const TP2_TIER_ART={free:'prayer-daily-free',gold:'prayer-gold-ritual',kindled:'prayer-kindled',stoked:'prayer-stoked',blazing:'prayer-blazing',inferno:'prayer-inferno',bonus:'prayer-daily-free'};
 function tp2Box(x,y,w,h){ return `left:${(x/25.6).toFixed(3)}%;top:${(y/14.4).toFixed(3)}%;width:${(w/25.6).toFixed(3)}%;height:${(h/14.4).toFixed(3)}%`; }
 function tp2Num(v){ v=Math.round((+v||0)*10)/10; return (Math.abs(v)>=1000?Math.round(v).toLocaleString():String(v)); }
@@ -17990,7 +18010,7 @@ function renderTemple(){
     const list=owned.filter(elig).map(k=>({k,s:templeHeroStats(k)})).sort((a,b)=>b.s.pct-a.s.pct||heroLevel(b.k)-heroLevel(a.k));
     const tiles=list.map(({k,s})=>{ const dots=(s.blessings||[]).filter(x=>x.earned).length+(s.fifth&&s.fifth.earned?1:0);
       return `<button type="button" class="tp2Tile" data-tp2-hero="${k}" aria-label="${escapeHTML((HERO_TYPES[k]||{}).name||k)} ${s.pct}%">
-        <span class="tp2TileImg"><img src="${HERO_PORTRAITS[k]||''}" alt="" loading="lazy"><em>Lv${heroLevel(k)}</em>
+        <span class="tp2TileImg"><img src="${HERO_PORTRAITS[k]||''}" alt="" loading="lazy"><img class="tp2TileFrame" src="${TP2}ctl-hero-frame-v1.webp" alt=""><em>Lv${heroLevel(k)}</em>
         <span class="tp2Dots">${'<img src="/assets/img/temple/card-orb-lit-v2.webp?v=2" alt="">'.repeat(dots)}</span></span><b>${s.pct}%</b></button>`; }).join('');
     inner=`<div class="tp2Hint" style="${tp2Box(620,300,1690,60)}">${unlocked?'Purple heroes and above can pray.':'The Temple opens at player level '+T.CONFIG.UNLOCK_PLAYER_LEVEL+'.'}</div>
       <div class="tp2Grid" style="${tp2Box(620,362,1690,590)}">${tiles||'<div class="tp2Empty">No Purple heroes yet.</div>'}</div>
@@ -18004,7 +18024,7 @@ function renderTemple(){
       const from=r?r.fromSteps:hs.steps[bar], to=r?r.toSteps:from, val=r?r.fromValue:hs.values[bar], d=r?r.deltaValue:0;
       const pf=Math.min(100,100*Math.min(from,to)/cap), pd=Math.abs(100*(to-from)/cap), up=to>=from;
       const pct=r?((to-from)>=0?'+':'')+(Math.round(1000*(to-from)/cap)/10)+'%':'';
-      return `<img class="tp2Icon" src="${TP2}${icon}-v1.webp" alt="" style="${tp2Box(612,y-46,92,92)}">
+      return `<img class="tp2Icon" src="/assets/img/icons/stat/${tp2StatKey(bar,icon,prof)}-v1.webp" alt="" style="${tp2Box(612,y-46,92,92)}">
         <div class="tp2BarName" style="${tp2Box(735,y-78,800,40)}">${tp2BarLabel(bar,prof)}<span>${from} / ${cap}</span></div>
         <div class="tp2Bar" style="${tp2Box(733,y-21,800,42)}"><i class="tp2Fill" style="width:${pf}%"></i>${r&&to!==from?`<i class="tp2Delta ${up?'up':'down'}" style="left:${pf}%;width:${pd}%"><em>${pct}</em></i>`:''}
           <b>${tp2Num(val)}</b>${r?`<s class="${d>0?'up':d<0?'down':''}">${d>0?'+':''}${tp2Num(d)}</s>`:''}</div>`; }).join('');
@@ -18025,13 +18045,13 @@ function renderTemple(){
     const choice=opts.map(o=>`<button type="button" class="tp2Opt" data-tp2-tier="${o.id}" aria-pressed="${templeSelectedTier===o.id}" ${o.locked||blocked?'disabled':''}>
         <i class="tp2Check"></i><img src="${TP2}${TP2_TIER_ART[o.art||o.id]||'prayer-daily-free'}-v1.webp" alt=""><b>${escapeHTML(o.name)}</b><span>${o.cost}</span></button>`).join('');
     inner=`<img src="${TP2}hero-window-v1.webp" alt="" style="${tp2Box(285,312,267,648)}" class="tp2Win">
-      <img src="${TP2}heroes/${key}-v1.webp" alt="${escapeHTML((HERO_TYPES[key]||{}).name||key)}" style="${tp2Box(285,312,267,648)}" class="tp2Bust" onerror="this.style.display='none'">
+      <img src="${TP2}heroes/${key}-v2.webp" alt="${escapeHTML((HERO_TYPES[key]||{}).name||key)}" style="${tp2Box(285,312,267,648)}" class="tp2Bust" onerror="this.style.display='none'">
       <div class="tp2HeroName" style="${tp2Box(285,890,267,60)}">${escapeHTML((HERO_TYPES[key]||{}).name||key)} · Lv${heroLevel(key)} · ${hs.pct}%</div>
-      <button type="button" class="tp2Btn navy" id="tp2Switch" style="${tp2Box(300,1030,240,82)}" ${pending?'disabled':''}>Switch</button>
-      ${level>=(T.CONFIG.AUTO_PRAY_TEMPLE||12)?`<button type="button" class="tp2Btn navy" id="tp2Auto" style="${tp2Box(300,1140,240,82)}" ${pending||blocked?'disabled':''}>Auto pray</button>`:''}
+      <button type="button" class="tp2Btn navy" id="tp2Switch" style="${tp2Box(300,1030,240,82)}" ${pending?'disabled':''}><img class="tp2BtnIc" src="${TP2}ctl-switch-v1.webp" alt="">Switch</button>
+      ${level>=(T.CONFIG.AUTO_PRAY_TEMPLE||12)?`<button type="button" class="tp2Btn navy" id="tp2Auto" style="${tp2Box(300,1140,240,82)}" ${pending||blocked?'disabled':''}><img class="tp2BtnIc" src="${TP2}ctl-auto-pray-v1.webp" alt="">Auto pray</button>`:''}
       <div class="tp2Head" style="${tp2Box(735,300,600,56)}">Attributes</div>${bars}
       <div class="tp2Head" style="${tp2Box(1640,300,640,56)};text-align:center">Blessings</div>${bl}${fifth}
-      ${power!=null?`<div class="tp2Power ${power>0?'up':power<0?'down':''}" style="${tp2Box(733,872,800,90)}">Power ${power>0?'+':''}${power}</div>`:''}
+      ${power!=null?`<div class="tp2Power ${power>0?'up':power<0?'down':''}" style="${tp2Box(733,872,800,90)}"><img class="tp2PowIc" src="${TP2}ctl-power-v1.webp" alt="">Power ${power>0?'+':''}${power}</div>`:''}
       ${keeperHtml}
       ${pending?`<button type="button" class="tp2Btn navy" id="templeDiscard" style="${tp2Box(1130,1220,360,96)}">Cancel</button>
           <button type="button" class="tp2Btn red" id="templeSave" style="${tp2Box(1920,1220,360,96)}">Save</button>
@@ -18064,8 +18084,8 @@ function tp2AutoHtml(){ const a=templeAuto, tiers=templePrayerTiers(), id=a.tier
     <p><small>${r.cost&&r.cost.gold?r.cost.gold.toLocaleString()+' gold ':''}${r.cost&&r.cost.gems?r.cost.gems+' diamonds':''}${r.stopped?' · stopped: '+escapeHTML(String(r.stopped)):''}</small></p>
     <button type="button" class="tp2Btn gold" id="tp2AutoOk">OK</button></div>`; }
   return `<div class="tp2Auto" style="${tp2Box(860,330,840,620)}"><h3>Auto pray</h3><p>Auto save if power goes up!</p>
-    <div class="tp2AutoRow"><button type="button" id="tp2AutoPrev">◀</button><span><img src="${TP2}${TP2_TIER_ART[id]}-v1.webp" alt="">${escapeHTML(t.name||id)}</span><button type="button" id="tp2AutoNext">▶</button></div>
-    <div class="tp2AutoRow"><button type="button" id="tp2AutoMinus">−</button><span>${a.n}</span><button type="button" id="tp2AutoPlus">+</button></div>
+    <div class="tp2AutoRow"><button type="button" id="tp2AutoPrev" aria-label="Previous tier"><img src="${TP2}ctl-arrow-left-v1.webp" alt=""></button><span><img src="${TP2}${TP2_TIER_ART[id]}-v1.webp" alt="">${escapeHTML(t.name||id)}</span><button type="button" id="tp2AutoNext" aria-label="Next tier"><img src="${TP2}ctl-arrow-right-v1.webp" alt=""></button></div>
+    <div class="tp2AutoRow"><button type="button" id="tp2AutoMinus" aria-label="Fewer"><img src="${TP2}ctl-minus-v1.webp" alt=""></button><span>${a.n}</span><button type="button" id="tp2AutoPlus">+</button></div>
     <div class="tp2AutoBtns"><button type="button" class="tp2Btn navy" id="tp2AutoCancel">Cancel</button><button type="button" class="tp2Btn gold" id="tp2AutoGo">Pray ×${a.n}</button></div></div>`; }
 function tp2AutoWire(b,act,key){ if(!templeAuto) return; const a=templeAuto, q=s=>b.querySelector(s), re=()=>renderTemple();
   const max=TempleOfAsh.CONFIG.AUTO_PRAY_MAX||10;
@@ -19939,14 +19959,14 @@ function renderRoster(){
       }; } }
 }
 const TECH_TRACKS=[
-  ['atk','⚔','Attack Power','ATK to all heroes',3],
-  ['hp','❤','Health','HP to all heroes',3],
-  ['ap','✨','Ability Power','ability & ultimate damage',4],
-  ['def','🛡️','Defense','damage reduction',1.5],
-  ['armor','🛡','Armor','damage reduction',1.5],
-  ['mr','🔯','Magic Resist','damage reduction',1.5],
-  ['crit','✦','Crit','crit chance',1.5],
-  ['critres','✚','Crit Resist','enemy crit damage reduced',2],
+  ['atk',statIcon('atk'),'Attack Power','ATK to all heroes',3],
+  ['hp',statIcon('hp'),'Health','HP to all heroes',3],
+  ['ap',statIcon('apow'),'Ability Power','ability & ultimate damage',4],
+  ['def',statIcon('dmgRed'),'Defense','damage reduction',1.5],
+  ['armor',statIcon('armor'),'Armor','damage reduction',1.5],
+  ['mr',statIcon('mr'),'Magic Resist','damage reduction',1.5],
+  ['crit',statIcon('crit'),'Crit','crit chance',1.5],
+  ['critres',statIcon('critRes'),'Crit Resist','enemy crit damage reduced',2],
 ];
 let techSel='atk';
 function renderTech(){
@@ -23257,12 +23277,12 @@ function renderHeroDetail(){
     const regenStr=(mul.regen||0)>0?Math.round(S_HP*mul.regen)+' /s':'—';   // flat HP/s (tanks show a real number)
     const enrStr=(mul.energyReg||0)>0?'+'+(mul.energyReg).toFixed(1)+' /s':'—';   // flat energy/s
     const rows=[
-      ['❤ Health',S_HP],['♻ HP Regen',regenStr],
-      ['🛡 Armor',armorFlat+_pct(armorFlat)],['🔮 Magic Resistance',mrFlat+_pct(mrFlat)],
-      ['⚔ Attack Damage',S_ATK],['✨ Ability Power',S_APOW],
-      ['✦ Crit Chance',Math.round(Math.min(0.6,(mul.crit||0)+(CLASS_BASE_CRIT[t.role]||0))*100)+'%'],['✚ Crit Resistance',Math.round((mul.critRes||0)*100)+'%'],
-      ['⚡ Attack Speed',S_APS+' /s'],['🔋 Energy Regen',enrStr],
-      ['🎯 Type',t.range>=60?'Ranged':'Melee'],['🧭 Combat row',t.combatRow],['⚔ Class',t.role],['✦ Damage',t.damageProfile],['↗ Scaling',t.primaryScaling]];
+      [statIcon('hp')+'Health',S_HP],[statIcon('regen')+'HP Regen',regenStr],
+      [statIcon('armor')+'Armor',armorFlat+_pct(armorFlat)],[statIcon('mr')+'Magic Resistance',mrFlat+_pct(mrFlat)],
+      [statIcon('atk')+'Attack Damage',S_ATK],[statIcon('apow')+'Ability Power',S_APOW],
+      [statIcon('crit')+'Crit Chance',Math.round(Math.min(0.6,(mul.crit||0)+(CLASS_BASE_CRIT[t.role]||0))*100)+'%'],[statIcon('critRes')+'Crit Resistance',Math.round((mul.critRes||0)*100)+'%'],
+      [statIcon('atkSpd')+'Attack Speed',S_APS+' /s'],[statIcon('energy')+'Energy Regen',enrStr],
+      [statIcon('range')+'Type',t.range>=60?'Ranged':'Melee'],['Combat row',t.combatRow],['Class',t.role],['Damage',t.damageProfile],['Scaling',t.primaryScaling]];
     tab=`<div class="panel"><div style="display:grid;grid-template-columns:1fr 1fr;gap:7px 14px;font-size:12px">${rows.map(([n,v])=>`<div style="display:flex;justify-content:space-between;border-bottom:1px solid #1c2434;padding-bottom:4px"><span style="color:#8b98a9">${n}</span><b>${v}</b></div>`).join('')}</div>
       <div style="font-size:10px;color:#6f7d90;margin-top:8px">Totals include level, quality, glyphs, equipment, stars, tech &amp; prayer.</div></div>
       ${owned?`<div class="panel" style="margin-top:8px"><div style="font-weight:800;margin-bottom:4px">📖 Level ${escapeHTML(t.name)} with XP Potions</div><div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px">${XP_POTION_LABELS.map(([id,name,amt])=>`<button class="btn secondary" data-xp-potion="${id}" ${((G.xpPotions||{})[id]|0)>0&&!capped&&ACC.token?'':'disabled'} style="font-size:11px;padding:6px">${name} +${amt.toLocaleString()} XP · ×${(G.xpPotions||{})[id]|0}</button>`).join('')}</div></div>`:''}`;
@@ -26497,7 +26517,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791571803250';
+const BUILD_ID = '1791576979738';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
