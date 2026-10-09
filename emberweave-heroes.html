@@ -11354,6 +11354,8 @@ const FX2_DEF={
   quorrel_ult:{u:'/assets/anim/fx/quorrel_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:1.67,disc:{cy:0.503,dh:0.312,dw:0.844}},
   meridian_ult:{u:'/assets/anim/fx/meridian_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:2.75,upright:true,upSize:2.0,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   nox_ult:{u:'/assets/anim/fx/nox_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.17,upright:true,upSize:2.0,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
+  waxerupt:{u:'/assets/anim/fx/ceraline_wax_erupt.webp?v=1',n:69,fw:160,fh:203,cols:10,rows:7,dur:5.7,anchor:[0.5,0.136],peakFrac:0.85,peakH:0.5},   /* v1076 Sealing Wax cast (Grok spell 20, Phil-approved 8 Oct): the pool on the target's feet, the wax column erupts to half its height and settles (clip frames 1-137, 12 fps) */
+  waxpool:{u:'/assets/anim/fx/ceraline_wax_pool.webp?v=1',n:73,fw:160,fh:203,cols:10,rows:8,dur:6.04},   /* v1076: the same pool bubbling (same crop box, so the cast hands off into it) - loops while the wax coat lasts */
   rafetracer:{u:'/assets/anim/fx/rafe_tracer.webp?v=1',n:1,fw:512,fh:91,cols:1,rows:1,dur:1},   /* v1075 Dead Man's Fortune (Grok spell 19, Phil-approved 8 Oct): the hot ball + orange tracer, head right */
   rafespark:{u:'/assets/anim/fx/rafe_spark.webp?v=1',n:32,fw:160,fh:160,cols:8,rows:4,dur:1.33,upright:true,upSize:0.9,upExtent:0.95,upPalm:0.5,ro:1},   /* v1075: the spark star where each shot lands (clip frames 64-95, keyed, centred on the burst) */
   linnet_rewind:{u:'/assets/anim/fx/linnet_rewind.webp?v=1',n:73,fw:192,fh:192,cols:9,rows:9,dur:6.04,upright:true,upAbove:true,upAboveM:0.06,upSize:0.5,upExtent:0.95,ro:1},   /* v1074 Rewrite the Pattern (Grok spell 18, Phil-accepted 8 Oct): the gold thread winds into a spiral over each ally's head, keyed from 18_rewrite_pattern_swirl.mp4 (every 2nd frame, 12 fps) */
@@ -11839,11 +11841,30 @@ function updateStatusFx(dt){ if(!TH||!scene)return; units.forEach(u=>{
     fx2Hook(spr); fx2SetFrame(spr,d,0);
     spr.center.set(.5,.10); spr.scale.set(scl*asp,scl,1); spr.renderOrder=-4; scene.add(spr); u._statusFx={kind,spr,tex,d,t:0,u}; _statusFxAll.push(u._statusFx); }
   const s=u._statusFx; s.t+=dt; fx2SetFrame(s.spr,s.d,Math.floor((s.t/s.d.dur)*s.d.n)); s.spr.position.set(wx(u.rx==null?u.x:u.rx),0.35,wz(u.ry==null?u.y:u.ry)); }); }   // v268: interpolated
+/* v1076 Sealing Wax (Grok spell 20): while a unit carries Ceraline's wax coat (_waxCoatT > 0) a wax plate sits on its feet - the
+   eruption once (drawn in front: the wax goes up over the body), then the bubbling pool (behind, like the bleed/poison/burn marks)
+   until the coat ends or Mourning Bell shatters it. Display only: it reads _waxCoatT and never writes it. */
+const _waxFxAll=[];
+function _killWaxFx(u){ if(u&&u._waxFx){ try{ scene.remove(u._waxFx.spr); u._waxFx.spr.material.dispose(); }catch(_){}
+    const i=_waxFxAll.indexOf(u._waxFx); if(i>=0)_waxFxAll.splice(i,1); u._waxFx=null; } }
+function killAllWaxFx(){ _waxFxAll.forEach(s=>{ try{ scene.remove(s.spr); s.spr.material.dispose(); }catch(_){} if(s.u)s.u._waxFx=null; }); _waxFxAll.length=0; }
+function updateWaxFx(dt){ if(!TH||!scene||typeof units==='undefined')return; const de=FX2_DEF.waxerupt, dp=FX2_DEF.waxpool; if(!de||!dp)return; units.forEach(u=>{
+  if(!(u.alive&&(u._waxCoatT||0)>0)){ if(u._waxFx)_killWaxFx(u); return; }
+  if(!u._waxFx){ const te=fx2Tex('waxerupt'); if(!te)return;
+    const spr=new TH.Sprite(new TH.SpriteMaterial({map:te,transparent:true,depthWrite:false,depthTest:false,opacity:0.97}));
+    fx2Hook(spr); fx2SetFrame(spr,de,0); spr.center.set(de.anchor[0],de.anchor[1]);
+    const H=(u.sprH||3.9)*de.peakH/de.peakFrac; spr.scale.set(H*de.fw/de.fh,H,1); spr.renderOrder=1; scene.add(spr);
+    u._waxFx={spr,t:0,u,pool:false}; _waxFxAll.push(u._waxFx); }
+  const s=u._waxFx; s.t+=dt;
+  if(s.t<de.dur) fx2SetFrame(s.spr,de,Math.min(de.n-1,Math.floor(s.t/de.dur*de.n)));
+  else { if(!s.pool){ const tp=fx2Tex('waxpool'); if(tp){ s.pool=true; s.spr.material.map=tp; s.spr.material.needsUpdate=true; s.spr.renderOrder=-4; } }
+    if(s.pool) fx2SetFrame(s.spr,dp,Math.floor(((s.t-de.dur)/dp.dur)*dp.n)%dp.n); }
+  s.spr.position.set(wx(u.rx==null?u.x:u.rx),0.35,wz(u.ry==null?u.y:u.ry)); }); }   // 0.35: the same lift as the bleed/poison/burn marks, so the pool sits under the drawn feet
 function clearFx2(){ _groundFx.forEach(o=>{scene.remove(o.m);o.m.material.dispose();}); _groundFx.length=0;
   _projFx.forEach(p=>{scene.remove(p.spr);p.spr.material.dispose();}); _projFx.length=0; clearTipFx();
   _beamFx.forEach(o=>{scene.remove(o.spr);o.spr.material.dispose();}); _beamFx.length=0; _pendingDots.length=0;
   if(typeof _boltFx!=='undefined'){ _boltFx.forEach(o=>{scene.remove(o.spr);o.spr.material.dispose();}); _boltFx.length=0; }   /* v959 */
-  killAllStatusFx(); }
+  killAllStatusFx(); killAllWaxFx(); }
 // a big glowing orb that flies from -> to, leaves a trail, and runs onDone (impact) when it lands
 function spawnOrb(from,to,color,size,onDone){ if(!TH||!scene)return; const mesh=new TH.Mesh(SPH,new TH.MeshStandardMaterial({color,emissive:color,emissiveIntensity:1.15,transparent:true,opacity:.95})); mesh.scale.setScalar((size||3.4)*gsplitFxMul()); mesh.position.set(wx(from.x),1.4,wz(from.y)); scene.add(mesh); shots.push({mesh,sx:from.x,sy:from.y,tx:to.x,ty:to.y,t:0,dur:.42*HERO_FX_MUL,onDone,trail:color}); }
 // ===== KonWu ultimate: phantom Ruyi staffs that slam each affected enemy (real cropped art + ground splash) =====
@@ -12990,7 +13011,7 @@ function battleFrameTail(dt){
   updateFxPlates(dt);   // Vulmar placed effect plates
   updateChains(dt);   // Umbris Creeping Rot shadow-chain projectiles
   updateVoidZones(dt);   // Umbris Umbral Cataclysm void zones
-  updateGroundFx(dt); updateProjFx(dt); try{ updateTipFx(dt); updateUnitFx(dt); }catch(e){} updateBees(dt); updateBeamFx(dt); try{ updateBoltFx(dt); }catch(e){} updatePendingDots(dt); updateStatusFx(dt);   // batch FX: ground zones, projectiles, gas beams, delayed plague DoTs, DoT feet-FX
+  updateGroundFx(dt); updateProjFx(dt); try{ updateTipFx(dt); updateUnitFx(dt); }catch(e){} updateBees(dt); updateBeamFx(dt); try{ updateBoltFx(dt); }catch(e){} updatePendingDots(dt); updateStatusFx(dt); try{ updateWaxFx(dt); }catch(e){}   // batch FX: ground zones, projectiles, gas beams, delayed plague DoTs, DoT feet-FX
 }
 function updateBattle(dt){
   /* 29 Aug — SLINGSHOT/JITTER ON WAVE CHANGE. The px/py snapshot below used to sit AFTER this early
@@ -26040,7 +26061,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
     /* v959 (Phil 3 Oct: "the spells FX are staying after a fights over, leaving a stale version of it"): once a fight ended only
        shots and particles kept ticking, so every spell plate, badge, beam and bolt froze on screen. The visual-only updaters now run
        on until their effects expire; a projectile still in flight is removed (its onHit could touch a unit - never after the end). */
-    try{ updateFxPlates(dt); updateGroundFx(dt); updateBeamFx(dt); updateBoltFx(dt); updateStatusFx(dt); updateTipFx(dt); updateUnitFx(dt);
+    try{ updateFxPlates(dt); updateGroundFx(dt); updateBeamFx(dt); updateBoltFx(dt); updateStatusFx(dt); updateTipFx(dt); updateUnitFx(dt); try{ updateWaxFx(dt); }catch(e){}
       if(_projFx.length){ _projFx.forEach(q=>{ try{ scene.remove(q.spr); q.spr.material.dispose(); }catch(_){} }); _projFx.length=0; } }catch(e){} }
   // v268: the sim ticks at SIM_HZ; the picture is drawn every frame, interpolated between the last
   // two ticks. `_bacc` is exactly how far we are into the next tick.
@@ -26141,7 +26162,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791516284971';
+const BUILD_ID = '1791517773372';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

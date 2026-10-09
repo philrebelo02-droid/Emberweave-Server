@@ -259,6 +259,8 @@ note "test_linnet_rewind_1074.js (v1074: Rewrite the Pattern swirl over every al
 node tests/test_linnet_rewind_1074.js || FAILED=1
 note "test_rafe_fortune_1075.js (v1075: Dead Man's Fortune tracer per shot, spark on the chest when it lands)"
 node tests/test_rafe_fortune_1075.js || FAILED=1
+note "test_sealing_wax_1076.js (v1076: Sealing Wax eruption then the wax pool for the coat)"
+node tests/test_sealing_wax_1076.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi
