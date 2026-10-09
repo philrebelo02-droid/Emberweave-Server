@@ -18127,9 +18127,9 @@ function renderElite(){
     heroes.map(k=>{ const t=HERO_TYPES[k], left=eliteLeft(k), st=heroStars(k), frags=heroFrag(k), ncost=starNextCost(k), _en=eliteNodeForHero(k), _any=_en||eliteNodeForHero(k,CAMPAIGN_PLAYABLE), _locked=!!(ACC.token&&!_en), canGo=left>0&&G.stamina>=ELITE_STAM&&!_locked;
       return `<div class="panel"><div style="display:flex;align-items:center;gap:10px">
         <div style="width:46px;height:46px;border-radius:9px;overflow:hidden;border:1px solid #2a3550;flex:none">${heroIcon(k,46)}</div>
-        <div style="flex:1"><div style="font-weight:700">${t.name} <span style="color:#ffd45e;font-size:11px">${st}★</span></div>
+        <div style="flex:1"><div style="font-weight:700">${t.name} <span style="color:#ffd45e;font-size:11px">${st}${uiIcon('star-filled')}</span></div>
           <div style="font-size:10px;color:#8b98a9">🧩 Fragments ${frags}${st<MAX_STARS?' · next '+ncost:' · MAX'} · attempts left ${left}/${ELITE_DAILY}${_locked?' · locked — clear campaign stage '+(_any?stageCode(_any):'?'):''}</div></div>
-        <button class="btn sm" data-k="${k}" ${canGo?'':'disabled'}>⚔ ${ELITE_STAM}⧗</button></div></div>`;
+        <button class="btn sm" data-k="${k}" ${canGo?'':'disabled'}>${statusIcon('attack')} ${ELITE_STAM}⧗</button></div></div>`;
     }).join('');
   b.querySelectorAll('button[data-k]').forEach(btn=>btn.onclick=()=>startElite(btn.dataset.k));
 }
@@ -18152,37 +18152,37 @@ function rollMarket(){ const o=[]; const L=playerLevel();
   o.push({kind:'frag',hero:randLockedHero(),qty:fq(2),cost:{gold:550*fq(2)}});   // v250: SERVER prices (550g / 30💎 per fragment)
   o.push({kind:'frag',hero:randLockedHero(),qty:fq(2),cost:{gold:550*fq(2)}});
   o.push({kind:'frag',hero:randLockedHero(),qty:fq(3),cost:{gems:30*fq(3)}});
-  o.push({kind:'shield',icon:'🛡️',name:'Peace Shield',cost:{gems:em(70)}});
+  o.push({kind:'shield',icon:statusIcon('shield'),name:'Peace Shield',cost:{gems:em(70)}});
   G.market={ts:Date.now(),offers:o,lvl:L};
 }
 function ensureMarket(){ if(!G.market||!G.market.offers||!G.market.offers.length||(Date.now()-(G.market.ts||0))>=MARKET_REFRESH_MS){ rollMarket(); saveG(); } }
 // ===== SHADY MARKET — a shady dealer's premium stock, diamonds only =====
 const SHADY_SHOP=[
-  {id:'gold',   name:'War Chest — 80,000 Gold',  icon:'🪙',  cost:250,  server:'warchest', desc:'+80,000 gold'},   /* 3 Oct: one server purchase (was spend + a client gold earn) */
-  {id:'shield', name:'Protection Shields ×3',    icon:'🛡',  cost:550,  server:'shields3', desc:'3× 12-hour attack immunity'},   /* v1081: a server purchase */
-  {id:'tele',   name:'Teleport Scrolls ×5',      icon:'✨', img:'/assets/img/items/teleport-card-v1.webp?v=1',  cost:500,  give:()=>{ G.teleScrolls=(G.teleScrolls||0)+5; }, desc:'5× targeted teleports'},
-  {id:'arena',  name:'Arena Coins ×3,000',       icon:'🎟️', cost:600,  server:'arenacoins', desc:'+3,000 arena coins'},   /* v1079: a server purchase - the server holds arena coins */
+  {id:'gold',   name:'War Chest — 80,000 Gold',  icon:uiIcon('war-chest'),  cost:250,  server:'warchest', desc:'+80,000 gold'},   /* 3 Oct: one server purchase (was spend + a client gold earn) */
+  {id:'shield', name:'Protection Shields ×3',    icon:statusIcon('shield'),  cost:550,  server:'shields3', desc:'3× 12-hour attack immunity'},   /* v1081: a server purchase */
+  {id:'tele',   name:'Teleport Scrolls ×5',      icon:uiIcon('sparkle-new'), img:'/assets/img/items/teleport-card-v1.webp?v=1',  cost:500,  give:()=>{ G.teleScrolls=(G.teleScrolls||0)+5; }, desc:'5× targeted teleports'},
+  {id:'arena',  name:'Arena Coins ×3,000',       icon:uiIcon('ticket'), cost:600,  server:'arenacoins', desc:'+3,000 arena coins'},   /* v1079: a server purchase - the server holds arena coins */
 ];
 function shadyCost(it){ const P=(typeof patNow==='function')?patNow():null, key=it.server||(it.id==='tele'?'targeted5':''); const off=P&&P.rows?(P.rows.shadyOff|0):0;   /* v1093: EGP 9/12/15 discount on 2 items a day */
   return (off>0&&(P.shadyPicks||[]).includes(key))?Math.round(it.cost*(1-off/100)):it.cost; }
 function renderShadyMarket(){ const b=document.getElementById('shadyBody'); if(!b)return;
-  b.innerHTML=`<div style="display:flex;justify-content:space-between;font-size:12px;color:#8b98a9;margin-bottom:8px"><span>💎 ${G.gems}</span><span style="color:#c9a2ff">Diamonds only</span></div>`
+  b.innerHTML=`<div style="display:flex;justify-content:space-between;font-size:12px;color:#8b98a9;margin-bottom:8px"><span>${hudIcon('gem')} ${G.gems}</span><span style="color:#c9a2ff">Diamonds only</span></div>`
     +SHADY_SHOP.map((it,i)=>{ const cost=shadyCost(it), can=(G.gems||0)>=cost;
       return `<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 4px;border-bottom:1px solid #222b40;gap:8px">
         <div style="display:flex;gap:8px;align-items:center;min-width:0">${it.img?`<img src="${it.img}" alt="" style="width:30px;height:30px;object-fit:contain">`:`<span style="font-size:22px">${it.icon}</span>`}<div style="min-width:0"><b>${it.name}</b><div style="font-size:10px;color:#8b98a9">${it.desc}</div></div></div>
-        <button class="btn sm" data-si="${i}" ${can?'':'disabled'}>${cost<it.cost?`<s style="opacity:.6">${it.cost}</s> `:''}💎 ${cost}</button></div>`; }).join('');
+        <button class="btn sm" data-si="${i}" ${can?'':'disabled'}>${cost<it.cost?`<s style="opacity:.6">${it.cost}</s> `:''}${hudIcon('gem')} ${cost}</button></div>`; }).join('');
   b.querySelectorAll('button[data-si]').forEach(btn=>btn.onclick=()=>shopOnce(async()=>{ const it=SHADY_SHOP[+btn.dataset.si]; if((G.gems||0)<shadyCost(it))return;
     if(it.id==='tele'){
       const r=await api('/api/world/buy-scrolls','POST',{offer:'targeted5',requestId:shopRid('tele')}); shopRidDone('tele',r);
       if(!r||!r.ok){ bannerMsg((r&&r.error)||'Teleport scroll purchase failed.'); return; }
       adoptWorldLocation(r); if(r.ledger)adoptLedger(r.ledger); saveG();
-      bannerMsg('🕯️ Bought '+it.name); renderShadyMarket(); return; }
+      bannerMsg(uiIcon('candle')+' Bought '+it.name); renderShadyMarket(); return; }
     if(it.server){   // v274: a server-owned bundle — the server takes the diamonds and grants the goods
       const rk='shady:'+it.server, r=await api('/api/shop/buy','POST',{what:it.server, requestId:shopRid(rk)}); shopRidDone(rk,r);
       if(!r||!r.ok){ bannerMsg((r&&r.error)||'The dealer had nothing to sell.'); return; }
-      adoptLedger(r.ledger); updateHubChrome(); bannerMsg('🕯️ Bought '+it.name); renderShadyMarket(); return; }
+      adoptLedger(r.ledger); updateHubChrome(); bannerMsg(uiIcon('candle')+' Bought '+it.name); renderShadyMarket(); return; }
     if(!(await txSpend('gems',it.cost,'shop','shadytx:'+it.id))) return;
-    ledCapture('convert',()=>it.give()); saveG(); updateHubChrome(); bannerMsg('🕯️ Bought '+it.name); renderShadyMarket(); }));
+    ledCapture('convert',()=>it.give()); saveG(); updateHubChrome(); bannerMsg(uiIcon('candle')+' Bought '+it.name); renderShadyMarket(); }));
 }
 // ===== SERVER RANKINGS — your standings + live arena & guild leaderboards =====
 async function renderRankings(){ const b=document.getElementById('rankingsBody'); if(!b)return;
@@ -18190,20 +18190,20 @@ async function renderRankings(){ const b=document.getElementById('rankingsBody')
   if(ACC.token){ try{ if(typeof arenaSyncLadder==='function') await arenaSyncLadder(); }catch(e){} }
   let guilds=[]; if(ACC.token){ try{ const d=await api('/api/guild/browse'); if(d&&d.guilds) guilds=d.guilds; }catch(e){} }
   const lad=arenaLeaderboard()||[], myArena=G.arenaRank||5000;
-  let html=`<div class="panel"><div style="font-weight:800;margin-bottom:8px">⭐ Your Standings</div>
+  let html=`<div class="panel"><div style="font-weight:800;margin-bottom:8px">${uiIcon('star-filled')} Your Standings</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:12px;color:#8b98a9">
-      <div>🏆 Arena rank<br><b style="color:#ffd45e;font-size:16px">#${myArena}</b></div>
-      <div>🛡 Guild<br><b style="color:#5ee89b;font-size:14px">${G.guild?escapeHTML(G.guild.name)+' · Lv '+(G.guild.level||1):'—'}</b></div>
-      <div>🗺️ Campaign<br><b style="color:#8fe3ff;font-size:14px">${G.campaignCleared?('Stage '+stageCode(G.campaignCleared)):'—'}</b></div>
+      <div>${uiIcon('trophy')} Arena rank<br><b style="color:#ffd45e;font-size:16px">#${myArena}</b></div>
+      <div>${statusIcon('shield')} Guild<br><b style="color:#5ee89b;font-size:14px">${G.guild?escapeHTML(G.guild.name)+' · Lv '+(G.guild.level||1):'—'}</b></div>
+      <div>${uiIcon('map')} Campaign<br><b style="color:#8fe3ff;font-size:14px">${G.campaignCleared?('Stage '+stageCode(G.campaignCleared)):'—'}</b></div>
       <div>🐲 Dungeon<br><b style="color:#ff9a6b;font-size:14px">${G.dungeonBest?(G.dungeonBest+'× cleared'):'—'}</b></div>
     </div></div>`;
-  html+=`<div class="panel"><div style="font-weight:800;margin-bottom:6px">🏆 Arena — Top Players</div>`
+  html+=`<div class="panel"><div style="font-weight:800;margin-bottom:6px">${uiIcon('trophy')} Arena — Top Players</div>`
     +(lad.length?lad.slice(0,20).map(e=>`<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 6px;border-radius:6px;${e.me?'background:#1a2b1f':''}">
-      <span>${e.rank<=3?['🥇','🥈','🥉'][e.rank-1]:'#'+e.rank} ${escapeHTML(e.name)}${e.me?' (you)':''}</span><span style="color:#ffbf69">⚔ ${(e.power||0).toLocaleString()}</span></div>`).join('')
+      <span>${e.rank<=3?[uiIcon('rank-gold'),uiIcon('rank-silver'),uiIcon('rank-bronze')][e.rank-1]:'#'+e.rank} ${escapeHTML(e.name)}${e.me?' (you)':''}</span><span style="color:#ffbf69">${statusIcon('attack')} ${(e.power||0).toLocaleString()}</span></div>`).join('')
       :'<div style="color:#8b98a9;font-size:12px">No arena data.</div>')+`</div>`;
-  if(guilds.length){ html+=`<div class="panel"><div style="font-weight:800;margin-bottom:6px">🛡 Top Guilds</div>`
+  if(guilds.length){ html+=`<div class="panel"><div style="font-weight:800;margin-bottom:6px">${statusIcon('shield')} Top Guilds</div>`
     +guilds.slice(0,15).map((g,i)=>`<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 6px">
-      <span>${i<3?['🥇','🥈','🥉'][i]:'#'+(i+1)} &lt;${escapeHTML(g.name)}&gt; · Lv ${g.level||1}</span><span style="color:#8b98a9">${g.count||0}/${g.cap||30}</span></div>`).join('')+`</div>`;
+      <span>${i<3?[uiIcon('rank-gold'),uiIcon('rank-silver'),uiIcon('rank-bronze')][i]:'#'+(i+1)} &lt;${escapeHTML(g.name)}&gt; · Lv ${g.level||1}</span><span style="color:#8b98a9">${g.count||0}/${g.cap||30}</span></div>`).join('')+`</div>`;
   } else if(!ACC.token){ html+=`<div class="panel" style="color:#8b98a9;font-size:12px">Sign in to see live guild & arena rankings.</div>`; }
   b.innerHTML=html;
 }
@@ -18292,11 +18292,11 @@ async function shopOnce(fn){ if(SHOP_BUSY) return; SHOP_BUSY=true; try{ await fn
 function renderMarket(){
   const b=document.getElementById('marketBody'); ensureMarket();
   const left=MARKET_REFRESH_MS-(Date.now()-G.market.ts);
-  b.innerHTML=`<div style="display:flex;justify-content:space-between;font-size:12px;color:#8b98a9;margin-bottom:8px"><span>🪙 ${G.gold}  ·  💎 ${G.gems}${(ACC.token&&G.marketToday)?`  ·  🧩 ${G.marketToday.used|0}/${G.marketToday.max|0} today`:''}</span><span>⟳ restock ${fmtDur(left)}</span></div>`+
-    G.market.offers.map((o,i)=>{ const c=o.cost.gold?('🪙 '+o.cost.gold):('💎 '+o.cost.gems), afford=o.cost.gold?G.gold>=o.cost.gold:G.gems>=o.cost.gems;
+  b.innerHTML=`<div style="display:flex;justify-content:space-between;font-size:12px;color:#8b98a9;margin-bottom:8px"><span>${hudIcon('gold')} ${G.gold}  ·  ${hudIcon('gem')} ${G.gems}${(ACC.token&&G.marketToday)?`  ·  🧩 ${G.marketToday.used|0}/${G.marketToday.max|0} today`:''}</span><span>⟳ restock ${fmtDur(left)}</span></div>`+
+    G.market.offers.map((o,i)=>{ const c=o.cost.gold?(hudIcon('gold')+' '+o.cost.gold):(hudIcon('gem')+' '+o.cost.gems), afford=o.cost.gold?G.gold>=o.cost.gold:G.gems>=o.cost.gems;
       const frag=o.kind==='frag', ic=frag?heroIcon(o.hero,34):`<span style="font-size:22px">${o.icon}</span>`;
       const nm=frag?(o.qty+'× '+HERO_TYPES[o.hero].name+' fragments'):o.name;
-      const sub=o.kind==='shield'?'12h world-map attack immunity':(frag?(HERO_TYPES[o.hero].locked&&!G.unlocked[o.hero]?heroFrag(o.hero)+'/'+summonCost(o.hero)+' to unlock':'✓ owned'):'');
+      const sub=o.kind==='shield'?'12h world-map attack immunity':(frag?(HERO_TYPES[o.hero].locked&&!G.unlocked[o.hero]?heroFrag(o.hero)+'/'+summonCost(o.hero)+' to unlock':uiIcon('check')+' owned'):'');
       return `<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 4px;border-bottom:1px solid #222b40;gap:8px">
         <div style="display:flex;gap:8px;align-items:center;min-width:0">${ic}<div style="min-width:0"><b>${nm}</b>${sub?`<div style="font-size:10px;color:#8b98a9">${sub}</div>`:''}</div></div>
         <button class="btn sm" data-i="${i}" ${o.bought||!afford?'disabled':''}>${o.bought?'Sold':c}</button></div>`;
@@ -18312,7 +18312,7 @@ function renderMarket(){
     } else if(o.kind==='shield'&&ACC.token){   /* v1081: the Peace Shield is a server purchase at the server's price */
       const rk='mshield:'+G.market.ts, r=await api('/api/shop/buy','POST',{what:'shield_market',requestId:shopRid(rk)}); shopRidDone(rk,r);
       if(!r||!r.ok){ bannerMsg((r&&r.error)||'Purchase failed.'); return; }
-      adoptLedger(r.ledger); msg='🛡 +1 Peace Shield';
+      adoptLedger(r.ledger); msg=statusIcon('shield')+' +1 Peace Shield';
     } else {
       const mk='mtx:'+G.market.ts+':'+btn.dataset.i;   /* v1010: one requestId per offer until answered */
       if(o.cost.gold){ if(G.gold<o.cost.gold)return; if(!(await txSpend('gold',o.cost.gold,'market',mk)))return; } else { if(G.gems<o.cost.gems)return; if(!(await txSpend('gems',o.cost.gems,'market',mk)))return; }
@@ -18325,8 +18325,8 @@ function renderMarket(){
 let campViewCh=0;   // which chapter the roadmap is showing (0 = auto = the chapter you're on)
 /* v266 — Exact Glyph Fragment Farm Map v1: three fixed portals, each with its own progress and its
    own 100/100/18 fragment sources. PORTAL is which one the roadmap is showing. */
-const PORTAL_META={ normal:{label:'Normal', stages:160, icon:'🗺️'},
-  elite:{label:'Elite', stages:160, icon:'⚔️'}, veteran:{label:'Veteran', stages:18, icon:'🔶'} };
+const PORTAL_META={ normal:{label:'Normal', stages:160, icon:uiIcon('map')},
+  elite:{label:'Elite', stages:160, icon:statusIcon('attack')}, veteran:{label:'Veteran', stages:18, icon:'🔶'} };
 let PORTAL='normal';
 function portalStages(m){ return (PORTAL_META[m]||PORTAL_META.normal).stages; }
 function portalCleared(m){ return m==='normal' ? (G.campaignCleared|0) : ((G.portals&&G.portals[m]&&G.portals[m].cleared)|0); }
@@ -18342,9 +18342,9 @@ function totalCampaignStars(){ let t=0; const ss=G.stageStars||{}; for(const k i
 function starMilestoneReward(idx){   // idx 0 => 15 stars, 1 => 30, ...
   const tier=Math.floor(idx/4)+1, cyc=idx%4;
   const requestBase='stars:'+idx;   // stable even if the first response is lost before the ledger mirror arrives
-  if(cyc===0) return {desc:'🪙 '+(2000*tier).toLocaleString()+' gold', give:()=>{ if(!ACC.token) G.gold=(G.gold||0)+2000*tier; return txEarnP('gold',2000*tier,'stars',{requestId:requestBase+':gold'}); }};
+  if(cyc===0) return {desc:hudIcon('gold')+' '+(2000*tier).toLocaleString()+' gold', give:()=>{ if(!ACC.token) G.gold=(G.gold||0)+2000*tier; return txEarnP('gold',2000*tier,'stars',{requestId:requestBase+':gold'}); }};
   if(cyc===1) return {desc:'⧗ '+(60*tier)+' stamina', give:()=>{ if(!ACC.token) G.stamina=(G.stamina||0)+60*tier; return txEarnP('stamina',60*tier,'stars',{requestId:requestBase+':stamina'}); }};
-  if(cyc===2) return {desc:'💎 '+(100*tier)+' diamonds', give:()=>{ if(!ACC.token) G.gems=(G.gems||0)+100*tier; return txEarnP('gems',100*tier,'stars',{requestId:requestBase+':gems'}); }};
+  if(cyc===2) return {desc:hudIcon('gem')+' '+(100*tier)+' diamonds', give:()=>{ if(!ACC.token) G.gems=(G.gems||0)+100*tier; return txEarnP('gems',100*tier,'stars',{requestId:requestBase+':gems'}); }};
   return {desc:'🧩 '+(5*tier)+' random hero fragments', give:()=>{ const cnt={}; for(let i=0;i<5*tier;i++){ const hk=randLockedHero(); if(!hk) continue; cnt[hk]=(cnt[hk]||0)+1; }
       const keys=Object.keys(cnt); if(!keys.length) return Promise.resolve(true);
       /* one grant per distinct hero, SEQUENTIALLY: each response carries a whole ledger, and two in
@@ -18368,15 +18368,15 @@ function claimStarMilestone(){ if(!starTrackClaimable()||_starClaimBusy) return;
       if(!res||!res.ok){ bannerMsg((res&&res.error)||'That reward could not be granted just now.'); renderStarTrack(); return; }
       if(res.claimed!=null) G.starMilestonesClaimed=res.claimed|0;
       const g=res.got||{}, fr=g.frags?Object.keys(g.frags).reduce(function(s,k){ return s+(g.frags[k]|0); },0):0;
-      const what=g.gold?('🪙 '+g.gold.toLocaleString()+' gold'):g.stamina?('⧗ '+g.stamina+' stamina'):g.gems?('💎 '+g.gems+' diamonds'):('🧩 '+fr+' hero fragments');
-      saveG(); updateHubChrome(); bannerMsg('⭐ '+((res.idx+1)*15)+'-star reward!\n'+what); renderStarTrack(); })
+      const what=g.gold?(hudIcon('gold')+' '+g.gold.toLocaleString()+' gold'):g.stamina?('⧗ '+g.stamina+' stamina'):g.gems?(hudIcon('gem')+' '+g.gems+' diamonds'):('🧩 '+fr+' hero fragments');
+      saveG(); updateHubChrome(); bannerMsg(uiIcon('star-filled')+' '+((res.idx+1)*15)+'-star reward!\n'+what); renderStarTrack(); })
      .catch(function(){ _starClaimBusy=false; renderStarTrack(); });
     return; }
   let p; try{ p=Promise.resolve(r.give()); }catch(e){ p=Promise.resolve(false); }
   p.then(function(ok){ _starClaimBusy=false;
-    if(ok===false){ bannerMsg('⭐ That reward could not be granted just now — the milestone is still waiting for you. Try again in a moment.'); renderStarTrack(); return; }
+    if(ok===false){ bannerMsg(uiIcon('star-filled')+' That reward could not be granted just now — the milestone is still waiting for you. Try again in a moment.'); renderStarTrack(); return; }
     G.starMilestonesClaimed=idx+1; saveG(); updateHubChrome();
-    bannerMsg('⭐ '+((idx+1)*15)+'-star reward!\n'+r.desc); renderStarTrack(); })
+    bannerMsg(uiIcon('star-filled')+' '+((idx+1)*15)+'-star reward!\n'+r.desc); renderStarTrack(); })
    .catch(function(){ _starClaimBusy=false; renderStarTrack(); }); }
 function renderStarTrack(){
   const hdr=document.getElementById('cmapHdr'); if(!hdr) return;
@@ -20427,7 +20427,7 @@ function _rkRow(e){ const t=rankTier(e.rank), medal=t?t.medal:'#'+e.rank, col=t?
 function openRankings(){
   const ov=document.createElement('div'); ov.style.cssText='position:fixed;inset:0;background:rgba(4,6,10,.8);z-index:13000;display:flex;align-items:center;justify-content:center;padding:14px';
   ov.innerHTML=`<div style="background:#141b2b;border:1px solid #2a3550;border-radius:16px;padding:14px;width:100%;max-width:460px;height:88vh;display:flex;flex-direction:column">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-weight:800;font-size:16px">🏆 Arena Rankings <span id="rkTotal" style="font-size:11px;color:#8b98a9;font-weight:600"></span></div><button class="btn sm secondary" id="rkX">✕</button></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-weight:800;font-size:16px">${uiIcon('trophy')} Arena Rankings <span id="rkTotal" style="font-size:11px;color:#8b98a9;font-weight:600"></span></div><button class="btn sm secondary" id="rkX">${uiIcon('close')}</button></div>
     <div style="display:flex;gap:6px;margin-bottom:8px"><input id="rkSearch" placeholder="Search a player…" style="flex:1;padding:7px 9px;border-radius:8px;border:1px solid #33405e;background:#0f1420;color:#e6edf3;font-size:12px"><button class="btn sm" id="rkGo">Search</button><button class="btn sm secondary" id="rkMe">Me</button></div>
     <div id="rkList" style="overflow:auto;flex:1"></div></div>`;
   document.body.appendChild(ov); const close=()=>ov.remove(); ov.querySelector('#rkX').onclick=close; ov.addEventListener('click',e=>{ if(e.target===ov)close(); });
@@ -20647,7 +20647,7 @@ function renderArena(){ const b=document.getElementById('arenaBody');
     /* v983 (3 Oct Arena audit #11): signed in, the message and coins are the SERVER's reward, not the local table */
     const _finish=(rw)=>{ rw=rw||dr; G.arenaCoins=(G.arenaCoins||0)+(rw.coins|0); G.arenaDailyDay=arenaDayKey(); G.lastArenaDaily=Date.now();
       saveG(); updateHubChrome(); renderArena();
-      const dm=document.getElementById('dailyMsg'); if(dm) dm.textContent=`Claimed! 💎 +${rw.gems|0} · 🪙 +${(rw.gold|0).toLocaleString()} · 🎟️ +${rw.coins|0}`; };
+      const dm=document.getElementById('dailyMsg'); if(dm) dm.innerHTML=`Claimed! ${hudIcon('gem')} +${rw.gems|0} · ${hudIcon('gold')} +${(rw.gold|0).toLocaleString()} · ${uiIcon('ticket')} +${rw.coins|0}`; };
     /* v1015 (re-audit Arena N6): one requestId, re-sent on a lost reply (the server answers a paid claim with its receipt) - a new id
        per tap, and a lost reply told the player the paid daily was "still yours to claim" */
     if(ACC.token){ apiOnce('arenadaily','/api/arena/daily-claim',{}).then(r=>{ if(r&&r.busy) return;
@@ -20670,16 +20670,16 @@ function renderArenaReports(){ const b=document.getElementById('arenaBody'); if(
   if(!Array.isArray(G.arenaReports.attacks))G.arenaReports.attacks=[]; if(!Array.isArray(G.arenaReports.defenses))G.arenaReports.defenses=[];
   const sub=(G._arenaRepTab==='defenses')?'defenses':'attacks', list=G.arenaReports[sub];
   const rows = list.length ? list.map((r,i)=>`<div class="mailrow"><span class="mtime">${timeAgo(r.t)}</span>
-      <div class="mfrom">${sub==='attacks'?'⚔ vs ':'🛡 vs '}${escapeHTML(r.oppName||'Opponent')}</div>
+      <div class="mfrom">${sub==='attacks'?statusIcon('attack')+' vs ':statusIcon('shield')+' vs '}${escapeHTML(r.oppName||'Opponent')}</div>
       <div class="msub" style="color:${(sub==='attacks'?r.won:!r.won)?'#7ee0a6':'#ff9a9a'};font-weight:800">${sub==='attacks'?(r.won?'Victory':'Defeat'):(!r.won?'Defended':'Lost the rank')}</div>
-      ${(r.mineSnap&&r.mineSnap.length&&r.foe&&r.foe.length)?`<button class="btn sm" data-arep="${i}" style="margin-top:6px">▶ Watch</button> <button class="btn sm secondary" data-ashare="${i}" style="margin-top:6px">📤 Share</button>`:''}</div>`).join('')
+      ${(r.mineSnap&&r.mineSnap.length&&r.foe&&r.foe.length)?`<button class="btn sm" data-arep="${i}" style="margin-top:6px">${uiIcon('play')} Watch</button> <button class="btn sm secondary" data-ashare="${i}" style="margin-top:6px">${uiIcon('share')} Share</button>`:''}</div>`).join('')
     : `<div style="text-align:center;color:#6f7d90;padding:22px 10px">${sub==='attacks'?'No arena attacks yet — challenge an opponent to climb.':'No defenses recorded yet — they appear when other players challenge your arena defense.'}</div>`;
   b.innerHTML=`<div class="panel">
     <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px">
-      <button class="btn sm ${sub==='attacks'?'':'secondary'}" id="arSubAtk">⚔ Attacks</button>
-      <button class="btn sm ${sub==='defenses'?'':'secondary'}" id="arSubDef">🛡 Defenses</button>
+      <button class="btn sm ${sub==='attacks'?'':'secondary'}" id="arSubAtk">${statusIcon('attack')} Attacks</button>
+      <button class="btn sm ${sub==='defenses'?'':'secondary'}" id="arSubDef">${statusIcon('shield')} Defenses</button>
       <button class="btn sm secondary" id="arRepBack" style="margin-left:auto">← Back</button></div>
-    <div style="font-size:11px;color:#8b98a9;margin-bottom:8px">Your last 10 ${sub}. ▶ Watch replays the exact fight.</div>
+    <div style="font-size:11px;color:#8b98a9;margin-bottom:8px">Your last 10 ${sub}. ${uiIcon('play')} Watch replays the exact fight.</div>
     ${rows}</div>`;
   b.querySelector('#arSubAtk').onclick=()=>{ G._arenaRepTab='attacks'; renderArenaReports(); };
   b.querySelector('#arSubDef').onclick=()=>{ G._arenaRepTab='defenses'; renderArenaReports(); };
@@ -20688,21 +20688,21 @@ function renderArenaReports(){ const b=document.getElementById('arenaBody'); if(
   b.querySelectorAll('[data-ashare]').forEach(btn=>btn.onclick=()=>{ const r=list[+btn.dataset.ashare]; if(r)shareBattle(r); });
 }
 const ARENA_SHOP=[
-  {id:'groskfrag', name:'Grosk Fragments ×5', icon:'🦛', hero:'grosk', cost:500, earn:()=>({what:'frag',amount:5,reason:'arena',extra:{heroKey:'grosk'}}), give:()=>{giveHeroFrag('grosk',5);}, desc:'Arena-exclusive 3★ Tank — 80 to summon'},
-  {id:'gold1',  name:'Gold Cache',      icon:'🪙', cost:120, earn:()=>({what:'gold',amount:5000,reason:'arenashop'}), give:()=>{G.gold+=5000;},    desc:'+5,000 gold'},
-  {id:'gems1',  name:'Diamond Pouch',   icon:'💎', cost:300, earn:()=>({what:'gems',amount:40,reason:'arenashop'}), give:()=>{G.gems+=40;},      desc:'+40 diamonds'},
+  {id:'groskfrag', name:'Grosk Fragments ×5', icon:'🦛', hero:'grosk', cost:500, earn:()=>({what:'frag',amount:5,reason:'arena',extra:{heroKey:'grosk'}}), give:()=>{giveHeroFrag('grosk',5);}, desc:'Arena-exclusive 3'+uiIcon('star-filled')+' Tank — 80 to summon'},
+  {id:'gold1',  name:'Gold Cache',      icon:hudIcon('gold'), cost:120, earn:()=>({what:'gold',amount:5000,reason:'arenashop'}), give:()=>{G.gold+=5000;},    desc:'+5,000 gold'},
+  {id:'gems1',  name:'Diamond Pouch',   icon:hudIcon('gem'), cost:300, earn:()=>({what:'gems',amount:40,reason:'arenashop'}), give:()=>{G.gems+=40;},      desc:'+40 diamonds'},
   {id:'stam',   name:'Stamina Refill',   icon:'⧗', cost:200, earn:()=>({what:'stamina',amount:Math.max(0,maxStamina()-(G.stamina||0)),reason:'arenashop',empty:'Your stamina is already full.'}), give:()=>{G.stamina=Math.max(G.stamina,maxStamina()); G.staminaTS=Date.now();}, desc:'Refill stamina to max'},
 ];
 function renderArenaShop(){
   const b=document.getElementById('arenaShopBody');
-  b.innerHTML=`<div class="panel" style="text-align:center"><div style="font-weight:800;font-size:16px">🛒 Arena Shop</div>
-      <div style="font-size:12px;color:#8b98a9;margin-top:4px">Spend 🎟️ <b style="color:#ffd45e">${G.arenaCoins||0}</b> arena coins — earned from daily rank rewards and wins.</div></div>
+  b.innerHTML=`<div class="panel" style="text-align:center"><div style="font-weight:800;font-size:16px">${uiIcon('shop')} Arena Shop</div>
+      <div style="font-size:12px;color:#8b98a9;margin-top:4px">Spend ${uiIcon('ticket')} <b style="color:#ffd45e">${G.arenaCoins||0}</b> arena coins — earned from daily rank rewards and wins.</div></div>
     <div class="panel" id="arenaShopList"></div>
     <div id="arenaShopMsg" style="font-size:12px;color:#ffd45e;text-align:center;min-height:16px"></div>`;
   const list=b.querySelector('#arenaShopList');
   ARENA_SHOP.forEach(it=>{ const can=(G.arenaCoins||0)>=it.cost;
     const row=document.createElement('div'); row.style='display:flex;justify-content:space-between;align-items:center;padding:9px 4px;border-bottom:1px solid #222b40';
-    row.innerHTML=`<div style="display:flex;align-items:center;gap:6px">${it.hero?`<span style="display:inline-block;vertical-align:middle">${heroIcon(it.hero,26)}</span>`:`<span style="font-size:20px">${it.icon}</span>`} <div><b>${it.name}</b><div style="font-size:10px;color:#8b98a9">${it.desc}</div></div></div><button class="btn sm" ${can?'':'disabled'}>🎟️ ${it.cost}</button>`;
+    row.innerHTML=`<div style="display:flex;align-items:center;gap:6px">${it.hero?`<span style="display:inline-block;vertical-align:middle">${heroIcon(it.hero,26)}</span>`:`<span style="font-size:20px">${it.icon}</span>`} <div><b>${it.name}</b><div style="font-size:10px;color:#8b98a9">${it.desc}</div></div></div><button class="btn sm" ${can?'':'disabled'}>${uiIcon('ticket')} ${it.cost}</button>`;
     const _abtn=row.querySelector('button');
     /* 31 Aug — THE ARENA SHOP CHARGED COINS AND DELIVERED NOTHING. gold, diamonds, stamina and hero
        fragments are ALL ledger-owned: give() only wrote the local mirror, so the next ledgerSync
@@ -20745,7 +20745,7 @@ async function renderCauldron(body){
     const name=(HERO_TYPES[h.key]||{}).name||'Unknown hero';
     const away=h.returnAt>now;
     return `<div class="row" style="align-items:center;gap:8px;padding:7px 0;border-top:1px solid #253047">
-      ${heroIcon(h.key,38)}<div style="flex:1;min-width:0"><b>${name}</b><br><span style="font-size:11px;color:#aeb8c8">HP ${(h.hp/100).toFixed(1)}% · ⚔ ${h.power.toLocaleString()} · Brew ${h.healCost}${away?'<span class="whRet" data-at="'+h.returnAt+'"> · Returns in '+fmtDur(h.returnAt-now)+'</span>':''}</span></div>
+      ${heroIcon(h.key,38)}<div style="flex:1;min-width:0"><b>${name}</b><br><span style="font-size:11px;color:#aeb8c8">HP ${(h.hp/100).toFixed(1)}% · ${statusIcon('attack')} ${h.power.toLocaleString()} · Brew ${h.healCost}${away?'<span class="whRet" data-at="'+h.returnAt+'"> · Returns in '+fmtDur(h.returnAt-now)+'</span>':''}</span></div>
       <button class="btn xs" data-witch-heal="${h.key}" ${w.brew<=0||away?'disabled':''}>${away?'Marching':'Heal'}</button></div>`;
   }).join('');
   const offer=w.offer, up=w.upgrade;
@@ -20757,7 +20757,7 @@ async function renderCauldron(body){
     <div class="whBrewTxt" style="font-size:12px;color:#aeb8c8;margin:6px 0">Brew ${Math.floor(w.brew).toLocaleString()} / ${w.capacity.toLocaleString()}</div>
     <div style="height:10px;border-radius:6px;background:#26334a;overflow:hidden"><div class="whBrewBar" style="width:${pct}%;height:100%;background:#77d3b5"></div></div>
     <div class="row" style="margin:12px 0;gap:8px;flex-wrap:wrap"><button class="btn sm" data-witch-all ${canHeal&&w.brew>0?'':'disabled'}>Heal All · strongest first</button>
-    ${offer?`<button class="btn sm secondary" data-witch-buy="${offer.tier}" ${w.brew>=w.capacity?'disabled':''}>+20% brew · 💎 ${offer.gems}</button>`:''}${upBtn}</div>
+    ${offer?`<button class="btn sm secondary" data-witch-buy="${offer.tier}" ${w.brew>=w.capacity?'disabled':''}>+20% brew · ${hudIcon('gem')} ${offer.gems}</button>`:''}${upBtn}</div>
     <div style="font-size:12px;font-weight:700;margin-bottom:5px">Damaged heroes</div>${rows||'<div style="font-size:12px;color:#aeb8c8">All your heroes are healthy.</div>'}`;
   const act=async(btn,path,extra)=>{ if(btn.disabled)return; btn.disabled=true;
     const rk=path+'|'+JSON.stringify(extra||{}), rid=WITCH_RID[rk]||(WITCH_RID[rk]=uid8());
