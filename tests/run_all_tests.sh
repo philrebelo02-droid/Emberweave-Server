@@ -303,6 +303,8 @@ note "test_emoji_ratchet.js (Phil 9 Oct: no more emojis - the count may only go 
 node tests/test_emoji_ratchet.js || FAILED=1
 note "test_sweep_temple_1097.js (v1097 sweep P0: a reused requestId never replays Temple rolls; a held prayer above the Temple level is refused before it is spent)"
 node tests/test_sweep_temple_1097.js || FAILED=1
+note "test_sweep_trials_1097.js (v1097 sweep P0: the hidden Tower ladder on /api/trial/resolve is retired; the dungeon kind stops at the last built floor)"
+node tests/test_sweep_trials_1097.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi

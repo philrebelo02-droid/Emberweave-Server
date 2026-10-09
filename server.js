@@ -7489,15 +7489,21 @@ async function api(req,res,url){
         const kind=String(b.kind||''); const K=Object.prototype.hasOwnProperty.call(TRIAL_KINDS,kind)?TRIAL_KINDS[kind]:null; if(!K) return {ok:false,error:'Unknown trial.'};
         /* v1087 (scan 8 #2): this route had no unlock gate - the Tower (level 40) and Vault (10) ladders paid from level 1; the Gauntlet is retired */
         { const _lv=ledPlayerLevel(led); if(kind==='gauntlet') return {ok:false,error:'The Gauntlet is retired.'};
-          if(kind==='tower'&&_lv<40) return {ok:false,error:'The Tower of Trials opens at level 40.'}; if(kind==='dungeon'&&_lv<10) return {ok:false,error:'The Vault opens at level 10.'}; }
-        const floor=Math.max(1,Math.min(500,b.floor|0));
+          if(kind==='tower'&&_lv<40) return {ok:false,error:'The Tower of Trials opens at level 40.'}; if(kind==='dungeon'&&_lv<10) return {ok:false,error:'The Vault opens at level 10.'};
+          /* v1097 (sweep 9 Oct P0 #3): kind 'tower' was a hidden second Tower ladder - first-clear gold for floors to 500 on floor-100 waves,
+             no power wall, beside the real Tower (/api/tower/ascend pays each floor once). It is retired; the Tower climbs only there. */
+          if(kind==='tower') return {ok:false,error:'The Tower of Trials climbs on its own ladder.'}; }
+        /* v1097 (sweep 9 Oct P0 #3): floors stop at the last built encounter (DUNGEON_MAX_FLOOR) - beyond it every floor was floor 100 again,
+           each paying its first clear; floors still go in order (best+1) and pay once */
+        if((+b.floor|0)>DUNGEON_MAX_FLOOR) return {ok:false,error:'The last floor is '+DUNGEON_MAX_FLOOR+'.'};
+        const floor=Math.max(1,Math.min(DUNGEON_MAX_FLOOR,b.floor|0));
         led.trial=led.trial||{}; const T=led.trial[kind]=led.trial[kind]||{best:0};
         if(floor>T.best+1) return {ok:false,error:'Clear the previous floor first.'};
         const ids=Array.isArray(b.heroIds)?[...new Set(b.heroIds.map(String))].slice(0,5):[];   /* v559: no dedupe meant five copies of one hero were a legal lineup AND collected the per-entry XP award five times (City PvP, /api/pvp/attack). The Vault already rejects duplicates; every squad route now agrees. */
         for(const k of ids){ if(!ownsHeroK(led,k)) return {ok:false,error:'not unlocked: '+k}; }
         const snaps=ids.map(k=>snapshotHeroFromServer(me,k)).filter(Boolean);
         if(!snaps.length) return {ok:false,error:'Pick your squad.'};
-        const rec=vaultFloorRecord(Math.min(100,floor));
+        const rec=vaultFloorRecord(floor);
         const waves=rec.waves.map(w=>w.map(m=>{ const u=vaultSpecToCombatUnit(m); u.maxHp=Math.round(u.maxHp*K.mul); u.atkP=Math.round(u.atkP*K.mul); u.atk=u.atkP; return u; }));
         const band=x=>Object.assign({},x,{maxHp:Math.round(x.maxHp*1.6),atk:Math.round(x.atk*1.6),heal:Math.round((x.heal||0)*1.6),atkP:Math.round((x.atkP||0)*1.6),atkM:Math.round((x.atkM||0)*1.6)});
         const r=SIM.qualificationEstimate(snaps.map(band), waves, srvSeed('trial', kind, me.id, floor, reqId));
