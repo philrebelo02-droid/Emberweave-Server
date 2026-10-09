@@ -47,14 +47,14 @@ const signedIn = r => r.status === 200 && !r.body.error;
     let pr = await call(P2, '/api/profile', null, tB2);
     ok(!signedIn(pr), 'bob\'s Server 2 session ends within the sync (got ' + pr.status + ' ' + JSON.stringify(pr.body).slice(0, 60) + ')');
     b2 = await call(P2, '/api/login', { name: 'bob', pass: 'bobpass123' });
-    pr = await call(P2, '/api/profile', null, b2.body.token);
-    ok(pr.status === 403 && pr.body.banned === true, 'bob signing in again on Server 2 is suspended (403 banned)');
+    ok(b2.status === 403 && b2.body.banned === true && !b2.body.token, 'bob signing in again on Server 2 is refused (403 banned; v1097: a banned account does not sign in)');
     const iss = await new Promise(res => { const d = JSON.stringify({ gid: BOB });
       const rq = http.request({ host: '127.0.0.1', port: P1, path: '/api/internal/account/handoff-issue', method: 'POST', headers: { 'content-type': 'application/json', 'x-link-secret': SECRET, 'content-length': d.length } }, r => { r.resume(); r.on('end', () => res(r.statusCode)); });
       rq.on('error', () => res(0)); rq.write(d); rq.end(); });
     ok(iss === 403, 'Server 1 refuses a server-switch code for the banned account (got ' + iss + ')');
     await call(P1, '/api/dev/ban', { id: BOB, lift: true }, a1);
     await sleep(2600);
+    b2 = await call(P2, '/api/login', { name: 'bob', pass: 'bobpass123' });
     pr = await call(P2, '/api/profile', null, b2.body.token);
     ok(signedIn(pr), 'lifting the ban on Server 1 lifts it on Server 2 (got ' + pr.status + ')');
 
@@ -65,8 +65,7 @@ const signedIn = r => r.status === 200 && !r.body.error;
     ok(ban2.status === 200 && ban2.body.accountWide === true, 'admin bans carl on Server 2 (account-wide)');
     ok(!signedIn(await call(P2, '/api/profile', null, c2.body.token)), 'carl is signed out on Server 2');
     const c1 = await call(P1, '/api/login', { name: 'carl', pass: 'carlpass123' });
-    pr = await call(P1, '/api/profile', null, c1.body.token);
-    ok(pr.status === 403 && pr.body.banned === true, 'carl is suspended on Server 1 too');
+    ok(c1.status === 403 && c1.body.banned === true, 'carl is banned on Server 1 too (sign-in refused)');
 
     // --- a password change on Server 1 signs the account out on Server 2 and kills the old local copy
     const b3 = await call(P2, '/api/login', { name: 'bob', pass: 'bobpass123' }); const tB3 = b3.body.token;

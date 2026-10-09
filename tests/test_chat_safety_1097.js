@@ -1,9 +1,11 @@
 // v1097 (9 Oct 2026 full-game sweep #18, App Store user-content rule): chat safety over the real WebSocket and the guild routes.
-// - Word filter (server/chat-filter.js): world / region chat, whispers, guild chat and the guild message are masked with asterisks;
-//   a guild name on the list is refused. Innocent words that contain a listed one ('classic', 'Scunthorpe') pass.
+// - Phil 9 Oct "this game is 18+ for mature, cursing is ok": chat (world, region, guild, whispers, guild message) is never masked;
+//   server/chat-filter.js only refuses a slur or hate term in a player or guild name (a curse word in a name is fine).
 // - Block: a player's block list lives in the ledger; the blocked player's live lines, history and whispers stop reaching them
 //   (server side, per player); unblock restores it.
-// - Report: 'report message' files the line (looked up on the server by its id: text, sender id, channel) in the report inbox.
+// - Report (Phil 9 Oct): a reason is required. Racism / Sexual harassment go to Phil's moderation queue (DB.reports: the dev panel's
+//   report list and the Integrity desk, where Ban is) with the full text, sender id, channel, time and the 10 surrounding lines;
+//   Other goes to the feedback inbox.
 // Asserts (non-zero exit). Control: AUD_SERVER=<pre-fix server copied into the repo root> must FAIL.
 const assert=require('assert'),fs=require('fs'),os=require('os'),path=require('path'),net=require('net'),{spawn}=require('child_process');
 const WebSocket=require('ws');
@@ -32,16 +34,19 @@ const got=(s,f)=>s.inbox.filter(f);
   const A=await mk('a'), B=await mk('b'), C=await mk('c');
   await editDB(db=>{ for(const p of [A,B,C]) db.users[p.id].led.px=1000; });   // level 13: the Guild Hall
   const sa=await sock(A), sb=await sock(B), sc=await sock(C); await delay(400);
-  // ---- word filter, live ----
+  // ten lines of world chat before the one that gets reported (context for the moderation queue; 5 each, under the chat pace)
+  for(let i=0;i<5;i++){ sb.send({t:'chat',channel:'world',text:'filler b'+i}); sc.send({t:'chat',channel:'world',text:'filler c'+i}); }
+  await delay(600); sb.inbox.length=0; sc.inbox.length=0;
+  // ---- no masking (18+) ----
   sa.send({t:'chat',channel:'world',text:'what the fuck is this sh1t'}); await delay(500);
   let mC=got(sc,m=>m.t==='chatmsg'), mB=got(sb,m=>m.t==='chatmsg');
-  ok(mC.length===1&&mC[0].txt==='what the **** is this ****','world chat is masked for other players ('+JSON.stringify(mC[0]&&mC[0].txt)+')');
+  ok(mC.length===1&&mC[0].txt==='what the fuck is this sh1t','world chat goes out as typed - cursing is not masked ('+JSON.stringify(mC[0]&&mC[0].txt)+')');
   ok(mB.length===1,'B sees the line before blocking');
   const mid1=mC[0]&&mC[0].mid;
   ok(typeof mid1==='string'&&mid1.length>=8,'the line carries a server id for Report');
   sa.send({t:'chat',channel:'region',text:'a classic day in Scunthorpe'}); await delay(400);
   mC=got(sc,m=>m.t==='chatmsg'&&m.channel==='region');
-  ok(mC.length===1&&mC[0].txt==='a classic day in Scunthorpe','innocent words that contain a listed word pass untouched');
+  ok(mC.length===1&&mC[0].txt==='a classic day in Scunthorpe','region chat goes out as typed');
   // ---- block ----
   let r=await call('/api/chat/block',{name:A.name},B.token);
   ok(r.status===200&&r.data.ok&&(r.data.blocked||[]).some(x=>x.id===A.id),'B blocks A ('+(r.data.error||r.status)+')');
@@ -50,10 +55,10 @@ const got=(s,f)=>s.inbox.filter(f);
   sa.send({t:'chat',channel:'world',text:'second line'}); await delay(500);
   ok(got(sc,m=>m.t==='chatmsg'&&m.txt==='second line').length===1,'C still gets A\'s new line');
   ok(got(sb,m=>m.t==='chatmsg').length===0,'B does not get A\'s new line (blocked, server side)');
-  sa.send({t:'whisper',to:B.name,text:'psst'}); sa.send({t:'whisper',to:C.name,text:'you f4ggot'}); await delay(500);
+  sa.send({t:'whisper',to:B.name,text:'psst'}); sa.send({t:'whisper',to:C.name,text:'send me pics, sexy'}); await delay(500);
   ok(got(sb,m=>m.t==='whispermsg').length===0,'B does not get A\'s whisper');
   const wC=got(sc,m=>m.t==='whispermsg');
-  ok(wC.length===1&&wC[0].txt==='you ******'&&!!wC[0].mid,'C gets A\'s whisper, masked ('+JSON.stringify(wC[0]&&wC[0].txt)+')');
+  ok(wC.length===1&&wC[0].txt==='send me pics, sexy'&&!!wC[0].mid,'C gets A\'s whisper as typed ('+JSON.stringify(wC[0]&&wC[0].txt)+')');
   // history on a fresh socket: B's leaves A out, C's keeps A; nobody is sent sender ids
   const sb2=await sock(B), sc2=await sock(C); await delay(500);
   const hB=got(sb2,m=>m.t==='chathist')[0]||{}, hC=got(sc2,m=>m.t==='chathist')[0]||{};
@@ -61,33 +66,46 @@ const got=(s,f)=>s.inbox.filter(f);
   ok(Array.isArray(hB.world)&&!whoB.includes(A.name),'B\'s chat history leaves the blocked player out');
   ok(whoC.filter(w=>w===A.name).length===3,'C\'s chat history keeps all three of A\'s lines');
   ok(!JSON.stringify(hC).includes(A.id),'chat history never carries sender ids');
-  // ---- guild chat: masked, blocked member hidden ----
-  const gc=await call('/api/guild/create',{name:'Shit Lords'},A.token);
-  ok(gc.status===400,'a guild name on the word list is refused ('+(gc.data.error||gc.status)+')');
-  const g=(await call('/api/guild/create',{name:'Ash Wardens'},A.token)).data.guild; const gid=g&&g.id;
+  // ---- names: a slur is refused, a curse word is fine; guild chat as typed, blocked member hidden ----
+  const gc=await call('/api/guild/create',{name:'Kike Club'},A.token);
+  ok(gc.status===400,'a slur in a guild name is refused ('+(gc.data.error||gc.status)+')');
+  const gc2=await call('/api/guild/create',{name:'Shit Lords'},A.token); const g=gc2.data.guild; const gid=g&&g.id;
+  ok(gc2.status===200&&!!gid,'a curse word in a guild name is allowed ('+(gc2.data.error||gc2.status)+')');
   await call('/api/guild/request',{guildId:gid},B.token); await call('/api/guild/approve',{id:B.id},A.token);
   await call('/api/guild/request',{guildId:gid},C.token); await call('/api/guild/approve',{id:C.id},A.token);
   const gm=await call('/api/guild/chat',{tx:'piss off'},A.token);
-  ok(gm.status===200&&(gm.data.log||[]).some(e=>e.tx==='**** off'),'guild chat is masked');
+  ok(gm.status===200&&(gm.data.log||[]).some(e=>e.tx==='piss off'),'guild chat goes out as typed');
   const mo=await call('/api/guild/motd',{motd:'no bullshit allowed'},A.token);
-  ok(mo.status===200&&mo.data.guild&&mo.data.guild.motd==='no ******** allowed','the guild message is masked');
+  ok(mo.status===200&&mo.data.guild&&mo.data.guild.motd==='no bullshit allowed','the guild message goes out as typed');
   const gB=(await call('/api/guild/chat',{tx:'hello all'},B.token)).data.log||[], gC=(await call('/api/guild/chat',{tx:'hey'},C.token)).data.log||[];
   ok(!gB.some(e=>!e.sys&&e.id===A.id)&&gC.some(e=>!e.sys&&e.id===A.id),'B\'s guild chat hides A; C\'s shows A');
-  // ---- report ----
+  // ---- report: a reason is required; racism / harassment -> moderation queue, other -> feedback inbox ----
   r=await call('/api/chat/report',{mid:mid1},C.token);
-  ok(r.status===200&&r.data.ok===true,'C reports A\'s world line ('+(r.data.error||r.status)+')');
-  r=await call('/api/chat/report',{mid:mid1},C.token);
+  ok(r.status===400,'a report without a reason is refused');
+  r=await call('/api/chat/report',{mid:mid1,reason:'racism'},C.token);
+  ok(r.status===200&&r.data.ok===true&&r.data.queue==='moderation','C reports A\'s world line for racism - moderation queue ('+(r.data.error||r.status)+')');
+  r=await call('/api/chat/report',{mid:mid1,reason:'racism'},C.token);
   ok(r.status===200&&r.data.already===true,'reporting the same line twice files it once');
-  r=await call('/api/chat/report',{mid:wC[0]&&wC[0].mid},C.token);
-  ok(r.status===200&&r.data.ok===true,'C reports A\'s whisper');
-  r=await call('/api/chat/report',{mid:wC[0]&&wC[0].mid},B.token);
+  r=await call('/api/chat/report',{mid:wC[0]&&wC[0].mid,reason:'harassment'},C.token);
+  ok(r.status===200&&r.data.queue==='moderation','C reports A\'s whisper for sexual harassment - moderation queue');
+  r=await call('/api/chat/report',{mid:wC[0]&&wC[0].mid,reason:'harassment'},B.token);
   ok(r.status===404,'a whisper can be reported only by the two players in it');
-  r=await call('/api/chat/report',{mid:'nosuchline'},C.token);
+  r=await call('/api/chat/report',{mid:'nosuchline',reason:'other'},C.token);
   ok(r.status===404,'an unknown line is refused');
-  await delay(400);
-  const fb=(disk().feedback||[]).filter(f=>f.kind==='chat'&&f.userId===C.id);
-  const fw=fb.find(f=>f.chat&&f.chat.channel==='world'), fwh=fb.find(f=>f.chat&&f.chat.channel==='whisper');
-  ok(fb.length===2&&fw&&fw.chat.senderId===A.id&&fw.chat.text==='what the **** is this ****'&&fwh&&fwh.chat.senderId===A.id,'the reports are stored with the text, sender id and channel');
+  r=await call('/api/chat/report',{mid:mid1,reason:'other'},B.token);
+  ok(r.status===200&&r.data.queue==='feedback','an Other report goes to the feedback inbox');
+  await delay(400); const dbx=disk();
+  const mq=(dbx.reports||[]).filter(x=>x.kind==='moderation'&&x.reporterId===C.id);
+  const mw=mq.find(x=>x.chat&&x.chat.channel==='world'), mh=mq.find(x=>x.chat&&x.chat.channel==='whisper');
+  ok(mq.length===2&&mw&&mw.priority==='high'&&mw.reason==='racism'&&mw.userId===A.id&&mw.chat.senderId===A.id&&mw.chat.text==='what the fuck is this sh1t'&&mw.chat.t>0,
+    'the racism report is in the moderation queue: high priority, full original text, sender id, channel, time');
+  ok(Array.isArray(mw&&mw.context)&&mw.context.length===10&&mw.context.filter(c=>/^filler /.test(c.text)).length>=9&&!mw.context.some(c=>c.text===mw.chat.text),
+    'it carries the 10 surrounding chat lines ('+(mw&&mw.context?mw.context.length:0)+')');
+  const lst=(await call('/api/admin/reports',null,C.token)).status;
+  ok(lst===403,'the moderation queue is admin-only');
+  ok(mh&&mh.reason==='harassment'&&mh.chat.text==='send me pics, sexy'&&mh.chat.senderId===A.id,'the harassment report keeps the whisper text and sender');
+  const ad=(dbx.feedback||[]).filter(f=>f.kind==='chat'&&f.userId===B.id);
+  ok(ad.length===1&&ad[0].chat.senderId===A.id&&!(dbx.feedback||[]).some(f=>f.kind==='chat'&&f.userId===C.id),'Other is in the feedback inbox; racism / harassment are not');
   // ---- unblock ----
   r=await call('/api/chat/unblock',{id:A.id},B.token);
   ok(r.status===200&&!(r.data.blocked||[]).length,'B unblocks A');

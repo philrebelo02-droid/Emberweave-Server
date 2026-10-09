@@ -3,7 +3,7 @@
 // Delete: /api/account/delete needs the session, a requestId, the typed confirmation (DELETE or the account name) and the password;
 // it removes the email, password hash, name and recovery code, revokes every session, takes the city off the map and the player
 // out of the rankings and the guild, frees the name, and keeps the guild chat other players read as 'Deleted player'.
-// Guest upgrade: /api/register with the guest's token keeps the account id and the ledger; a name on the word list is refused.
+// Guest upgrade: /api/register with the guest's token keeps the account id and the ledger; a slur in the name is refused, a curse word is not.
 // Asserts (non-zero exit). Control: AUD_SERVER=<pre-fix server copied into the repo root> must FAIL.
 const assert=require('assert'),fs=require('fs'),os=require('os'),path=require('path'),net=require('net'),{spawn}=require('child_process');
 const root=path.join(__dirname,'..'), srvFile=process.env.AUD_SERVER||'server.js', dir=fs.mkdtempSync(path.join(os.tmpdir(),'ew-d1097-'));
@@ -82,15 +82,15 @@ async function editDB(fn){ await delay(400); await stop(); const db=disk(); fn(d
   await call('/api/ledger',null,GU.token);
   await editDB(db=>{ Object.assign(db.users[gid2].led,{gold:12345,gems:777,px:500}); });
   const before=(await call('/api/ledger',null,GU.token)).data; const L0=before.ledger||before;
-  r=await call('/api/register',{name:'FuckFace',pass:'password1',deviceId:dev},GU.token);
-  ok(r.status===400,'a name on the word list is refused ('+r.status+' '+(r.data.error||'')+')');
-  r=await call('/api/register',{name:'Sh1tLord',pass:'password1',deviceId:dev},GU.token);
-  ok(r.status===400,'a letter-number swap is refused too');
-  r=await call('/api/register',{name:'KeptHero',pass:'password1',deviceId:dev},GU.token);
-  ok(r.status===200&&r.data.profile&&r.data.profile.id===gid2&&r.data.profile.guest===false,'the guest becomes an account with the SAME id ('+(r.data.error||'')+')');
+  r=await call('/api/register',{name:'xFaggotx',pass:'password1',deviceId:dev},GU.token);
+  ok(r.status===400,'a slur in the name is refused ('+r.status+' '+(r.data.error||'')+')');
+  r=await call('/api/register',{name:'F4gg0t99',pass:'password1',deviceId:dev},GU.token);
+  ok(r.status===400,'a letter-number swap of a slur is refused too');
+  r=await call('/api/register',{name:'FuckingHero',pass:'password1',deviceId:dev},GU.token);   // Phil 9 Oct: 18+, cursing is ok - in names too
+  ok(r.status===200&&r.data.profile&&r.data.profile.id===gid2&&r.data.profile.guest===false,'a curse-word name is allowed; the guest becomes an account with the SAME id ('+(r.data.error||'')+')');
   const L1=((await call('/api/ledger',null,r.data.token)).data); const led1=L1.ledger||L1;
   ok(led1.gold===L0.gold&&led1.gems===L0.gems&&led1.px===L0.px&&L0.gold===12345,'the ledger is kept (gold '+led1.gold+', diamonds '+led1.gems+', xp '+led1.px+')');
-  const li=await call('/api/login',{name:'KeptHero',pass:'password1'});
+  const li=await call('/api/login',{name:'FuckingHero',pass:'password1'});
   ok(li.status===200&&li.data.profile.id===gid2,'the new name and password sign in to the same account');
   ok((await call('/api/profile',null,GU.token)).status===401,'the old guest session is replaced');
   if(missed.length){ missed.forEach(m=>console.error('FAIL',m)); process.exitCode=1; }

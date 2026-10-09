@@ -14246,14 +14246,15 @@ function renderIntegrity(){
   if(INTEG.open){ host.innerHTML=_intAuditHTML(); _wireIntegrity(host); return; }
   if(!INTEG.reports.length){ host.innerHTML='<div style="color:#5ee89b;font-size:11.5px;padding:10px 2px">No open reports. Nothing has tripped the 2,000-in-a-minute threshold.</div>'; _wireIntegrity(host); return; }
   host.innerHTML=INTEG.reports.map(r=>{
-    const ban=r.banned?`<span style="font-size:9.5px;color:#ff9a9a;border:1px solid #7a3a3a;border-radius:6px;padding:1px 5px">banned ${r.banned.daysLeft}d left</span>`:'';
+    const ban=r.banned?`<span style="font-size:9.5px;color:#ff9a9a;border:1px solid #7a3a3a;border-radius:6px;padding:1px 5px">${r.banned.permanent?'banned permanently':'banned '+r.banned.daysLeft+'d left'}</span>`:'';
+    const modTag=r.kind==='moderation'?`<span style="font-size:9.5px;font-weight:800;color:#fff;background:#b0402c;border-radius:6px;padding:1px 6px;margin-right:4px">${escapeHTML(r.reasonLabel||'Report')}</span>`:'';
     const res=r.resolved?`<span style="font-size:9.5px;color:#8b98a9">${escapeHTML(r.action||'resolved')}</span>`:'';
     return `<div style="border:1px solid #2a3550;background:#0f1524;border-radius:10px;padding:9px 10px;margin-bottom:7px">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
-        <div style="font-weight:800;font-size:12.5px;color:#ffd45e">${escapeHTML(r.name)}</div>
+        <div style="font-weight:800;font-size:12.5px;color:#ffd45e">${modTag}${escapeHTML(r.name)}</div>
         <div style="font-size:10px;color:#8b98a9">${_intAgo(r.t)} ${ban} ${res}</div></div>
       <div style="font-size:11px;color:#cdd6e4;margin-top:3px">${escapeHTML(r.detail)}</div>
-      <button class="btn sm" style="margin-top:7px;width:100%" data-intopen="${r.userId}" data-intrep="${r.id}">Audit this account</button>
+      <button class="btn sm" style="margin-top:7px;width:100%" data-intopen="${r.userId}" data-intrep="${r.id}">${r.kind==='moderation'?'Review':'Audit this account'}</button>
     </div>`; }).join('');
   _wireIntegrity(host);
 }
@@ -14261,23 +14262,28 @@ function _intAuditHTML(){
   const a=INTEG.audit;
   if(!a) return '<div style="color:#8b98a9;font-size:11px">Loading a week of diamonds…</div>';
   const rows=Object.entries(a.byReason||{}).sort((x,y)=>y[1]-x[1]);
-  const ban=a.banned?`<div style="color:#ff9a9a;font-size:11px;margin-top:4px">Currently suspended — ${a.banned.daysLeft} day(s) left.</div>`:'';
+  const ban=a.banned?`<div style="color:#ff9a9a;font-size:11px;margin-top:4px">${escapeHTML(banLabel(a.banned))}.</div>`:'';
+  /* v1097: a racism / sexual-harassment chat report shows the line, who sent it, where and when, and the 10 lines around it */
+  const rep=INTEG.open&&(INTEG.reports||[]).find(x=>x.id===INTEG.open.reportId), mod=rep&&rep.kind==='moderation'?rep:null;
+  const modHTML=mod?`<div style="border:1px solid #7a3a3a;background:#1a0f12;border-radius:8px;padding:8px;margin-top:8px">
+      <div style="font-size:11px;font-weight:800;color:#ff8b8b">${escapeHTML(mod.reasonLabel||'Report')} - reported by ${escapeHTML(mod.reporterName||'?')}</div>
+      <div style="font-size:10.5px;color:#8b98a9;margin:2px 0 6px">${escapeHTML((mod.chat&&mod.chat.channel)||'')} chat · ${mod.chat&&mod.chat.t?new Date(mod.chat.t).toLocaleString():''}</div>
+      ${(()=>{ const lines=(mod.context||[]).slice(), tgt={who:mod.chat&&mod.chat.sender,text:mod.chat&&mod.chat.text,t:mod.chat&&mod.chat.t,target:true};
+        lines.push(tgt); lines.sort((x,y)=>(x.t||0)-(y.t||0));
+        return lines.map(l=>`<div style="font-size:11px;padding:1px 0;${l.target?'color:#fff;background:#5a1a12;border-radius:4px;padding:2px 4px':'color:#9fb0c4'}"><b>${escapeHTML(l.who||'?')}:</b> ${escapeHTML(l.text||'')}</div>`).join(''); })()}
+    </div>`:'';
   return `<div style="border:1px solid #3a4a6a;background:#0f1524;border-radius:10px;padding:11px">
     <div style="display:flex;justify-content:space-between;align-items:center"><div style="font-weight:900;font-size:14px;color:#ffd45e">${escapeHTML(a.name)}</div>
-      <button class="btn sm secondary" data-intback="1">← Back</button></div>
+      <button class="btn sm secondary" data-intback="1">← Back</button></div>${modHTML}
     <div style="font-size:11px;color:#8b98a9;margin-top:2px">Balance now <b style="color:#c9b6ff">💎 ${a.balance}</b> · gained <b style="color:#c9b6ff">${a.totalGained}</b> in the last ${a.days} days</div>${ban}
     <div style="font-size:11px;font-weight:800;margin:9px 0 4px">Where they came from</div>
     ${rows.length?rows.map(([k,v])=>`<div style="display:flex;justify-content:space-between;font-size:11px;color:#cdd6e4;padding:2px 0;border-bottom:1px solid #1b2438"><span>${escapeHTML(k)}</span><b>+${v}</b></div>`).join(''):'<div style="font-size:11px;color:#8b98a9">No recorded gains in this window.</div>'}
     <div style="font-size:11px;font-weight:800;margin:10px 0 4px">Most recent</div>
     <div style="max-height:150px;overflow:auto">${(a.gains||[]).slice(-40).reverse().map(g=>`<div style="font-size:10.5px;color:#9fb0c4;padding:1px 0">${_intAgo(g.t)} · +${g.n} · ${escapeHTML(g.r)}</div>`).join('')||'<div style="font-size:10.5px;color:#8b98a9">—</div>'}</div>
     <div style="font-size:11px;color:#8b98a9;margin:11px 0 5px">Nothing here has been taken from them. If they are guilty, suspend the account:</div>
-    <div style="display:flex;gap:6px">
-      <button class="btn sm" style="flex:1;background:#c0563f" data-intban="1">Ban 1 day</button>
-      <button class="btn sm" style="flex:1;background:#b0402c" data-intban="7">Ban 7 days</button>
-      <button class="btn sm" style="flex:1;background:#8f2f1e" data-intban="30">Ban 30 days</button></div>
+    <div id="intBanBox"></div>
     <div style="display:flex;gap:6px;margin-top:6px">
-      <button class="btn sm secondary" style="flex:1" data-intclear="1">Clear report — not guilty</button>
-      ${a.banned?'<button class="btn sm secondary" style="flex:1" data-intlift="1">Lift ban</button>':''}</div>
+      <button class="btn sm secondary" style="flex:1" data-intclear="1">Clear report — not guilty</button></div>
     <div id="intMsg" style="font-size:11px;color:#5ee89b;margin-top:6px;min-height:14px"></div></div>`;
 }
 function _wireIntegrity(host){
@@ -14286,16 +14292,10 @@ function _wireIntegrity(host){
     const a=await api('/api/dev/gem-audit?days=7&id='+encodeURIComponent(INTEG.open.id)).catch(()=>null);
     INTEG.audit=(a&&!a.error)?a:null; renderIntegrity(); });
   const back=host.querySelector('[data-intback]'); if(back) back.onclick=()=>{ INTEG.open=null; INTEG.audit=null; renderIntegrity(); };
-  host.querySelectorAll('[data-intban]').forEach(el=>el.onclick=async()=>{
-    const days=parseInt(el.dataset.intban,10); const m=host.querySelector('#intMsg');
-    if(m){ m.style.color='#8b98a9'; m.textContent='Suspending…'; }
-    const r=await api('/api/dev/ban','POST',{id:INTEG.open.id,days,reportId:INTEG.open.reportId,reason:'diamond spike'}).catch(()=>null);
-    if(r&&r.ok){ if(m){ m.style.color='#5ee89b'; m.textContent=escapeHTML(r.name||'Account')+' suspended for '+days+' day(s). Nothing was removed from the account.'; }
-      INTEG.open=null; INTEG.audit=null; loadIntegrity(); }
-    else if(m){ m.style.color='#ff8b8b'; m.textContent=(r&&r.error)||'Could not apply the suspension.'; } });
-  const lift=host.querySelector('[data-intlift]'); if(lift) lift.onclick=async()=>{
-    const r=await api('/api/dev/ban','POST',{id:INTEG.open.id,lift:true}).catch(()=>null);
-    if(r&&r.ok){ INTEG.open=null; INTEG.audit=null; loadIntegrity(); } };
+  /* v1097 (Phil 9 Oct): the same Ban menu as the player view - 1 / 7 / 14 / 28 days or Permanent, Unban */
+  const bb=host.querySelector('#intBanBox'); if(bb&&INTEG.open&&INTEG.audit){ const rp=(INTEG.reports||[]).find(x=>x.id===INTEG.open.reportId);
+    adminBanMenu(bb,{id:INTEG.open.id,name:INTEG.audit.name,ban:INTEG.audit.banned||null},{reportId:INTEG.open.reportId,reason:rp&&rp.kind==='moderation'?(rp.reasonLabel||'chat report'):'diamond spike'},
+      ()=>{ setTimeout(()=>{ INTEG.open=null; INTEG.audit=null; loadIntegrity(); },900); }); }
   const clr=host.querySelector('[data-intclear]'); if(clr) clr.onclick=async()=>{
     await api('/api/dev/report-clear','POST',{id:INTEG.open.reportId}).catch(()=>null);
     INTEG.open=null; INTEG.audit=null; loadIntegrity(); };
@@ -25306,7 +25306,7 @@ function devShowReports(b){ const out=b.querySelector('#devAdmin'); if(!out)retu
     let html='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><b>🐞 Reports: '+rs.length+'</b><button class="btn xs secondary" id="rpClear">Clear resolved</button></div>';
     if(!rs.length) html+='<span style="color:#8b98a9">No reports yet.</span>';
     else html+=rs.map(r=>`<div style="border-top:1px solid #1c2434;padding:6px 2px;${r.resolved?'opacity:.5':''}">
-      <div style="display:flex;justify-content:space-between;gap:6px"><b style="font-size:11px">${r.kind==='balance'?'🤖':'🐞'} ${escapeHTML(r.name)}</b><span style="color:#6f7d90;font-size:10px">${ago(r.t)} ago</span></div>
+      <div style="display:flex;justify-content:space-between;gap:6px"><b style="font-size:11px">${r.kind==='moderation'?'<span style="color:#ff8b8b">['+escapeHTML(r.reasonLabel||'Report')+']</span>':(r.kind==='balance'?'🤖':'🐞')} ${escapeHTML(r.name)}</b><span style="color:#6f7d90;font-size:10px">${ago(r.t)} ago</span></div>
       <div style="font-size:11px;color:#cdd6e4;white-space:pre-wrap;margin:2px 0">${escapeHTML(String(r.text||r.detail||''))}</div>
       ${r.meta?`<div style="font-size:9px;color:#6f7d90">${escapeHTML(r.meta)}</div>`:''}
       <div style="display:flex;gap:6px;margin-top:3px"><button class="btn xs secondary" data-rr="${r.id}">${r.resolved?'Reopen':'Resolve'}</button><button class="btn xs secondary" data-rd="${r.id}" style="color:#ff8b8b">Delete</button></div></div>`).join('');
@@ -25437,6 +25437,32 @@ function devAdminList(kind,b){ const out=b&&b.querySelector('#devAdmin'); if(!ou
     out.innerHTML=html;
     out.querySelectorAll('.devrow').forEach(el=>el.onclick=()=>openPlayerAdmin(rows[+el.dataset.idx], kind, b));
   }); }
+/* v1097 (Phil 9 Oct): the admin's Ban menu - 1 / 7 / 14 / 28 days or Permanent, a reason, Unban when banned. host = an element
+   to draw into; p = {id, name, ban}; opts.reportId resolves a report; opts.allowDelete keeps the old admin delete behind the menu. */
+function banLabel(b){ if(!b) return ''; return b.permanent?'Banned permanently':'Banned until '+new Date(b.until).toLocaleString([],{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}); }
+function adminBanMenu(host, p, opts, onDone){ opts=opts||{}; if(!host||!p) return;
+  const rid={}; const req=k=>rid[k]||(rid[k]=uid8());
+  host.innerHTML=`<div style="background:#1a0f12;border:1px solid #ff6b6b66;border-radius:10px;padding:10px;margin-bottom:6px">
+    <div style="font-weight:800;font-size:12px;color:#ff8b8b;margin-bottom:6px">Ban ${escapeHTML(p.name||'')}</div>
+    ${p.ban?`<div style="font-size:11px;color:#ffb4b4;margin-bottom:6px">${escapeHTML(banLabel(p.ban))}${p.ban.reason?' - '+escapeHTML(p.ban.reason):''}</div><button class="btn sm" data-unban="1" style="width:100%;margin-bottom:6px;background:#2e7d46">Unban</button>`:''}
+    <input data-banreason="1" type="text" maxlength="200" placeholder="Reason" style="background:#0f1420;border:1px solid #2a3550;border-radius:8px;color:#e6edf3;padding:7px 9px;font-size:12px;width:100%;box-sizing:border-box;margin-bottom:6px" value="${escAttr(opts.reason||'')}">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+      <button class="btn sm" data-ban="1" style="background:#c0563f">1 day</button><button class="btn sm" data-ban="7" style="background:#b0402c">7 days</button>
+      <button class="btn sm" data-ban="14" style="background:#a0381f">14 days</button><button class="btn sm" data-ban="28" style="background:#8f2f1e">28 days</button></div>
+    <button class="btn sm" data-ban="permanent" style="width:100%;margin-top:6px;background:#5a1a12">Permanent</button>
+    ${opts.allowDelete?'<button class="btn xs secondary" data-bandel="1" style="width:100%;margin-top:10px;color:#ff8b8b;border-color:#5a2a2a">Delete permanently</button>':''}
+    <div data-banmsg="1" style="font-size:11px;color:#ffd45e;margin-top:6px;min-height:14px"></div></div>`;
+  const msg=host.querySelector('[data-banmsg]'), reason=()=>(host.querySelector('[data-banreason]').value||'').trim();
+  const done=(d,txt)=>{ if(d&&d.ok){ msg.style.color='#5ee89b'; msg.textContent=txt; p.ban=d.banned||null; if(onDone) onDone(d); } else { msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error==='offline')?'Connection lost - try again.':((d&&d.error)||'Failed'); } };
+  host.querySelectorAll('[data-ban]').forEach(bt=>bt.onclick=()=>{ const v=bt.dataset.ban, perm=v==='permanent';
+    msg.style.color='#8b98a9'; msg.textContent='Working...';
+    api('/api/admin/ban','POST',Object.assign({playerId:p.id,reason:reason(),requestId:req('ban'+v),reportId:opts.reportId||undefined},perm?{permanent:true}:{days:+v}))
+      .then(d=>done(d,(p.name||'Account')+(perm?' banned permanently.':' banned for '+v+' day'+(v==='1'?'':'s')+'.'))); });
+  const ub=host.querySelector('[data-unban]'); if(ub) ub.onclick=()=>{ msg.style.color='#8b98a9'; msg.textContent='Working...';
+    api('/api/admin/unban','POST',{playerId:p.id,requestId:req('unban')}).then(d=>done(d,(p.name||'Account')+' unbanned.')); };
+  const del=host.querySelector('[data-bandel]'); if(del) del.onclick=()=>{ gameConfirm('Permanently DELETE <b>'+escapeHTML(p.name||'')+'</b>?<br><span style="font-size:11px;color:#ff8b8b">This cannot be undone.</span>',()=>{
+    msg.style.color='#8b98a9'; msg.textContent='Deleting...'; api('/api/admin/delete','POST',{id:p.id,name:p.name}).then(d=>{ if(d&&d.ok){ if(opts.onDeleted) opts.onDeleted(); } else { msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error)||'Failed'; } }); }); };
+}
 // admin options for one player (dev only)
 function openPlayerAdmin(r, kind, panel){ if(!r)return;
   const ov=document.createElement('div');
@@ -25444,7 +25470,7 @@ function openPlayerAdmin(r, kind, panel){ if(!r)return;
   const dt=t=>{ if(!t)return '—'; const x=new Date(t); return x.toLocaleDateString()+' '+x.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); };
   ov.innerHTML=`<div style="background:#141b2b;border:1px solid #33405e;border-radius:16px;padding:18px;width:100%;max-width:340px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div style="font-weight:800;font-size:16px">🛠️ ${escapeHTML(r.name)}</div><button class="btn sm secondary" id="paX">✕</button></div>
-    <div style="font-size:11px;color:#8b98a9;line-height:1.6;margin-bottom:12px">Arena rank #${r.rank}<br>Created ${dt(r.created)}<br>Last seen ${dt(r.lastSeen)}${r.mustReset?'<br><b style="color:#ffb454">🔑 Password recovery is armed</b>':''}</div>
+    <div style="font-size:11px;color:#8b98a9;line-height:1.6;margin-bottom:12px">Arena rank #${r.rank}<br>Created ${dt(r.created)}<br>Last seen ${dt(r.lastSeen)}${r.mustReset?'<br><b style="color:#ffb454">🔑 Password recovery is armed</b>':''}${r.ban?'<br><b style="color:#ff8b8b">'+escapeHTML(banLabel(r.ban))+'</b>'+(r.ban.reason?' - '+escapeHTML(r.ban.reason):''):''}</div>
     <div id="paMsg" style="font-size:11px;color:#ffd45e;min-height:15px;margin-bottom:8px"></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
       <button class="btn sm" id="paGrant" style="background:#2e7d46">💎 +2000</button>
@@ -25453,8 +25479,8 @@ function openPlayerAdmin(r, kind, panel){ if(!r)return;
     ${r.mustReset
       ? `<button class="btn sm secondary" id="paUndo" style="width:100%;margin-bottom:6px">Cancel password recovery</button>`
       : `<button class="btn sm" id="paReset" style="width:100%;margin-bottom:6px">🔑 Recover password</button>`}
-    <button class="btn sm secondary" id="paDelete" style="width:100%;margin-bottom:6px;color:#ff8b8b;border-color:#5a2a2a">🗑 Delete account</button>
-    <div style="font-size:10px;color:#6f7d90;line-height:1.4">Diamond changes apply to their server balance and show up on their device within a minute. Delete &amp; recovery ask for confirmation.</div>
+    <button class="btn sm secondary" id="paBan" style="width:100%;margin-bottom:6px;color:#ff8b8b;border-color:#5a2a2a">${r.ban?'Banned - Unban / change':'Ban'}</button>
+    <div id="paBanBox"></div>
   </div>`;
   document.body.appendChild(ov); const close=()=>ov.remove();
   ov.addEventListener('click',e=>{ if(e.target===ov)close(); });
@@ -25465,9 +25491,10 @@ function openPlayerAdmin(r, kind, panel){ if(!r)return;
       else { msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error)||'Failed'; } }); };
   const gB=ov.querySelector('#paGrant'); if(gB) gB.onclick=()=>gemAct('/api/admin/grant','Granted 2000');   // no confirmation
   const tB=ov.querySelector('#paTake');  if(tB) tB.onclick=()=>gemAct('/api/admin/take','Took 2000');      // no confirmation
-  const dB=ov.querySelector('#paDelete'); if(dB) dB.onclick=()=>{ gameConfirm('Permanently DELETE <b>'+escapeHTML(r.name)+'</b>?<br><span style="font-size:11px;color:#ff8b8b">This cannot be undone.</span>',()=>{
-    msg.style.color='#8b98a9'; msg.textContent='Deleting…'; api('/api/admin/delete','POST',{id:r.id,name:r.name}).then(d=>{
-      if(d&&d.ok){ close(); devAdminList(kind,panel); } else { msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error)||'Failed'; } }); }); };
+  /* v1097 (Phil 9 Oct): Delete became Ban; the old admin delete stays only behind the Ban menu */
+  const bB=ov.querySelector('#paBan'); if(bB) bB.onclick=()=>{ bB.style.display='none';
+    adminBanMenu(ov.querySelector('#paBanBox'), {id:r.id,name:r.name,ban:r.ban||null}, {allowDelete:true, onDeleted:()=>{ close(); devAdminList(kind,panel); }},
+      d=>{ r.ban=d.banned||null; devAdminList(kind,panel); }); };
   const rs=ov.querySelector('#paReset'); if(rs) rs.onclick=()=>{ gameConfirm('Arm password recovery for <b>'+escapeHTML(r.name)+'</b>?<br><span style="font-size:11px;color:#8b98a9">They will set a new password on their next login.</span>',()=>{
     msg.textContent='Working…'; api('/api/admin/reset','POST',{id:r.id,name:r.name}).then(d=>{
       if(d&&d.ok){ msg.style.color='#5ee89b'; msg.textContent='✔ Recovery armed for '+d.name+'. Their next login will prompt a new password.'; devAdminList(kind,panel); setTimeout(close,1600); }
@@ -26730,7 +26757,17 @@ function chatLineMenu(el){ closeChatLineMenu(); const who=el.dataset.w, mid=el.d
   document.body.appendChild(pop);
   pop.addEventListener('click',e=>e.stopPropagation());
   pop.querySelectorAll('.cm-b').forEach(bt=>bt.onclick=()=>{ const a=bt.dataset.a; closeChatLineMenu();
-    if(a==='whisper') openWhisper(who); else if(a==='block') chatBlock(who,mid); else if(a==='report') chatReport(mid); });
+    if(a==='whisper') openWhisper(who); else if(a==='block') chatBlock(who,mid); else if(a==='report') chatReportMenu(el,who,mid); });
+  setTimeout(()=>document.addEventListener('click',closeChatLineMenu,{once:true}),0); }
+/* Phil 9 Oct: racism and sexual-harassment reports go to his moderation queue; Other goes to the feedback inbox */
+function chatReportMenu(el,who,mid){ closeChatLineMenu(); if(!mid) return;
+  const pop=document.createElement('div'); pop.className='citymenu'; pop.id='chmPop';
+  const r=el.getBoundingClientRect();
+  pop.style.cssText='position:fixed;transform:none;z-index:100001;left:'+Math.max(8,Math.min(window.innerWidth-170,r.left))+'px;top:'+Math.max(8,Math.min(window.innerHeight-160,r.bottom+4))+'px';
+  pop.innerHTML=`<div class="cm-t">Report ${escapeHTML(who)}</div><button class="cm-b" data-r="racism">Racism</button><button class="cm-b" data-r="harassment">Sexual harassment</button><button class="cm-b" data-r="other">Other</button>`;
+  document.body.appendChild(pop);
+  pop.addEventListener('click',e=>e.stopPropagation());
+  pop.querySelectorAll('.cm-b').forEach(bt=>bt.onclick=()=>{ const reason=bt.dataset.r; closeChatLineMenu(); chatReport(mid,reason); });
   setTimeout(()=>document.addEventListener('click',closeChatLineMenu,{once:true}),0); }
 function closeChatLineMenu(){ const p=document.getElementById('chmPop'); if(p) p.remove(); }
 function chatBlock(who,mid){ if(!(ACC&&ACC.token)){ bannerMsg('Sign in to block players.'); return; }
@@ -26740,8 +26777,8 @@ function chatBlock(who,mid){ if(!(ACC&&ACC.token)){ bannerMsg('Sign in to block 
     if(openWhispers.includes(who)) closeWhisper(who);
     if(typeof GS!=='undefined'&&GS.guild&&Array.isArray(GS.guild.log)) GS.guild.log=GS.guild.log.filter(x=>x.sys||x.name!==who);
     renderChat(); bannerMsg('Blocked '+escapeHTML(who)+'.'); }); }
-function chatReport(mid){ if(!(ACC&&ACC.token)||!mid) return;
-  api('/api/chat/report','POST',{mid}).then(d=>{ bannerMsg(d&&d.ok?'Report sent.':escapeHTML((d&&d.error)||'Could not send the report.')); }); }
+function chatReport(mid,reason){ if(!(ACC&&ACC.token)||!mid) return;
+  api('/api/chat/report','POST',{mid,reason:reason||'other'}).then(d=>{ bannerMsg(d&&d.ok?'Report sent.':escapeHTML((d&&d.error)||'Could not send the report.')); }); }
 // ---- Share a battle replay as a watchable chip in World / Region / Guild chat ----
 function shareBattle(meta){
   if(!meta || !(meta.mineSnap&&meta.mineSnap.length&&meta.foe&&meta.foe.length)){ bannerMsg('This battle can’t be shared'); return; }
