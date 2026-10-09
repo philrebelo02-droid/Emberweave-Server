@@ -286,7 +286,8 @@ function send(res, code, obj){   // v1036: a reply whose request joined a group 
 // On overflow we stop reading, destroy the socket, and reject with a BODY_TOO_LARGE error that the
 // api() dispatcher turns into a 413. Default cap is small; /api/save passes a larger one for cloud saves.
 const BODY_MAX = +(process.env.BODY_MAX || 65536);        // 64 KB default for ordinary API calls
-const BODY_MAX_SAVE = +(process.env.BODY_MAX_SAVE || 4*1024*1024);  // 4 MB for the whole-roster cloud save
+const RL_MUL=Math.max(1,+(process.env.RL_MUL||(process.env.CLOCK_FILE?1000:1)));   /* CLOCK_FILE = a sim tab's fast clock (simbot/fastclock.js) - never set on a game server */   /* v1083: the scan-5 per-account read/save limits scale by this - a sim tab's bot (its own server) sets it high */
+const BODY_MAX_SAVE = +(process.env.BODY_MAX_SAVE || Math.round(1.2*1024*1024))   /* v1083 (scan 5 #5): was 4 MB - parsed and deep-walked before the 1 MB save-shape check */;  // 4 MB for the whole-roster cloud save
 /* v986 (4 Oct City Wall audit #1, P0): a request value or key equal to an Object.prototype name ('__proto__', 'constructor',
    'toString', ...) reaches plain-object lookups like ownsHeroK(led,k) / led.hero[k] as truthy and can write onto
    Object.prototype for the whole process. Fix the class: such a request is refused before any route runs. */
@@ -518,7 +519,7 @@ function clientIP(req){ // AUDIT: the FIRST x-forwarded-for entry is client-supp
   return xff[xff.length-1] || (req.socket&&req.socket.remoteAddress) || 'unknown'; }
 const _hitWin={};   /* v1007 (re-audit Account N2): each key keeps its own window - the 10-minute sweeper used to wipe 24 h windows */
 function rateLimited(req, key, max, windowMs){ const k=key+'|'+clientIP(req), now=Date.now(); if(!(_hitWin[k]>=windowMs)) _hitWin[k]=windowMs;
-  const arr=(_hits[k]||[]).filter(t=>now-t<windowMs); arr.push(now); _hits[k]=arr; return arr.length>max; }
+  const arr=(_hits[k]||[]).filter(t=>now-t<windowMs); if(arr.length>max){ _hits[k]=arr; return true; } arr.push(now); _hits[k]=arr; return arr.length>max; }   /* v1083 (scan 5 #4): a refused hit is not stored - a flood used to grow the list (and the filter) without bound */
 // AUDIT (26 Aug, high): session tokens are no longer stored in plaintext. DB.tokens is keyed by
 // sha256(rawToken) with {id, iat, exp} metadata; the raw value exists only in the client. Tokens
 // expire after TOKEN_TTL_MS (default 90 days) with sliding renewal at half-life. Legacy plaintext
@@ -4610,7 +4611,7 @@ async function api(req,res,url){
     { const gg=u.guildId&&(DB.guilds||{})[u.guildId];
       if(gg){ warPoolForget(gg.id); gg.members=(gg.members||[]).filter(x=>x!==tid);
         if(!gg.members.length){ delete DB.guilds[gg.id]; warDropDeletedGuild(gg.id); }
-        else { gg.log=gg.log||[]; if(gg.leader===tid){ gg.leader=gg.members[0]; gg.log.push({sys:1,tx:nameOfUser(gg.leader)+' is now the guild leader.',t:Date.now()}); } } }
+        else { gg.log=gg.log||[]; if(gg.leader===tid){ gg.leader=gg.members[0]; gg.log.push({sys:1,tx:nameOfUser(gg.leader)+' is now the guild leader.',t:Date.now()}); guildLogCap(gg); } } }
       for(const og of Object.values(DB.guilds||{})) if(og&&Array.isArray(og.reqs)) og.reqs=og.reqs.filter(r=>r&&r.id!==tid); }
     delete DB.byName[(u.name||'').toLowerCase()]; delete DB.users[tid]; dropTokens(tid);
     writeDB(); return send(res,200,{ok:true, name:u.name}); }
@@ -5647,7 +5648,9 @@ async function api(req,res,url){
         subs:Object.values(GLYPHS.subs) }); }
     if(p==='/api/glyphs/state'){
       if(!glyphsEnabledFor(me)) return send(res,200,{enabled:false});
-      glyphMigrate(me); glyphFlowMigrate(me); const g=ensureGlyphs(me); writeDB();
+      if(rateLimited(req,'glyphState:'+me.id,Math.round(120*RL_MUL),60000)) return send(res,429,{error:'Slow down.'});   /* v1083 (scan 5 #1): the limiter below never covered this read */
+      const _gs=()=>{ const x=me.glyphs; return x?JSON.stringify([x.revision,x.migratedAt,x.flow2At]):'none'; }, _gb=_gs();
+      glyphMigrate(me); glyphFlowMigrate(me); const g=ensureGlyphs(me); if(_gs()!==_gb) writeDB();   /* v1083: saves only when a migration ran */
       // Correction Spec v1: materials + locked boards + permanent bonuses ONLY — no loose
       // finished-Glyph or Sub-Glyph inventory exists in the player model any more.
       return send(res,200,{ enabled:true, revision:g.revision, fragments:g.fragments,
@@ -5991,7 +5994,8 @@ async function api(req,res,url){
     return send(res,out.storageFailed?503:out.ok?200:400,out);
   }
 
-  if(p==='/api/save' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'}); const b=await body(req, BODY_MAX_SAVE);
+  if(p==='/api/save' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'}); if(rateLimited(req,'save:'+me.id,Math.round(60*RL_MUL),60000)) return send(res,429,{error:'Slow down.'});   /* v1083 (scan 5 #5): the client debounces to <=~40 a minute */
+    const b=await body(req, BODY_MAX_SAVE);
     /* v272 (full-game audit): `team`/`wall` are the player's chosen line-up — UI state, not power.
        They used to be stored verbatim, unbounded, and a forged `level`/`rank` inside them reached a
        reward formula. Store the keys only, capped, and let the ledger supply every stat. */
@@ -6504,7 +6508,9 @@ async function api(req,res,url){
     });
     return send(res, out&&out.ok?200:400, out); }
   if(p==='/api/ledger'){ if(!me)return send(res,401,{error:'auth'});
-    const v=ledgerView(me); writeDB(); return send(res,200,v); }
+    if(rateLimited(req,'ledgerGet:'+me.id,Math.round(120*RL_MUL),60000)) return send(res,429,{error:'Slow down.'});   /* v1083 (scan 5 #1) */
+    const _sig=()=>JSON.stringify([me.led?me.led.stam:null, me.led?me.led.rev:null, me.worldLocation||null, !!me.led]);
+    const _b=_sig(); const v=ledgerView(me); if(_sig()!==_b) writeDB(); return send(res,200,v); }   /* v1083: a read saves only what it changed (was a full-world save on every poll) */
   if(p==='/api/temple/pray'||p==='/api/temple/save'||p==='/api/temple/discard'){
     if(!me)return send(res,401,{error:'auth'});
     if(req.method!=='POST')return send(res,404,{error:'temple'});
@@ -6676,7 +6682,7 @@ async function api(req,res,url){
       playerLevel:()=>ledPlayerLevel(led), isUnlocked:k=>!!ownsHeroK(led,k) });
     if(out) return send(res, out.status, out.body); }
   /* v825 THE STARLESS WELL (blueprint 22) owns only /api/well/*: a 3-day run of 3 maps, HP/energy carried from the server's replay */
-  if(WELL2 && p.indexOf('/api/well/')===0){ if(!me)return send(res,401,{error:'auth'}); if(rateLimited(req,'well:'+me.id,120,60000)) return send(res,429,{error:'Slow down.'});   /* v1011 (re-audit Arena N10): state reads and start->resolve replays were unthrottled */
+  if(WELL2 && p.indexOf('/api/well/')===0){ if(!me)return send(res,401,{error:'auth'}); if(rateLimited(req,'well:'+me.id,120,60000)) return send(res,429,{error:'Slow down.'}); if(p==='/api/well/start'&&rateLimited(req,'wellStart:'+me.id,Math.round(10*RL_MUL),60000)) return send(res,429,{error:'Slow down.'});   /* v1083 (scan 5 #11): a Well start's replay runs on the main thread - 10 a minute */   /* v1011 (re-audit Arena N10): state reads and start->resolve replays were unthrottled */
     const led=ensureLedger(me);
     const out=await WELL2.handle(p, req.method, { me, led, heroDisplayName, body:()=>body(req), srvSeed, ledTx, ledgerView, writeDB, uid, idem, crypto,
       simHost, campaignHeroSpec, sanitizeInputLog, sha256hex, ledAddPlayerXP, creditGold, creditGems,
@@ -7557,8 +7563,10 @@ async function api(req,res,url){
   if(p==='/api/pvp/reports'){ if(!me)return send(res,401,{error:'auth'});
     // RE-AUDIT: reads are non-destructive — a dropped response no longer loses mail. Reports carry ids
     // and are cleared only by the explicit ack below (legacy id-less entries get ids on read).
+    if(rateLimited(req,'pvpReports:'+me.id,Math.round(60*RL_MUL),60000)) return send(res,429,{error:'Slow down.'});   /* v1083 (scan 5 #1) */
+    const _noId=(me.pvpMail||[]).some(r=>!r.id);
     me.pvpMail=(me.pvpMail||[]).map(r=>r.id?r:Object.assign({id:uid()},r));
-    writeDB(); return send(res,200,{reports:me.pvpMail}); }
+    if(_noId) writeDB(); return send(res,200,{reports:me.pvpMail}); }   /* v1083: saves only when an old report got its id */
   if(p==='/api/pvp/reports-ack' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     const b2=await body(req); const ids=new Set(Array.isArray(b2.ids)?b2.ids.map(String):[]);
     me.pvpMail=(me.pvpMail||[]).filter(r=>!ids.has(String(r.id)));
@@ -8235,7 +8243,7 @@ async function api(req,res,url){
         foe:{ name:iAmA?war.bName:war.aName, pts:foePts, npc:war.npc },
         champs, attemptsLeft:Math.max(0,WAR_ATT-usedToday), yourPower:serverTeamPower(me.team, me),
         winning: youPts>=foePts, log:(war.log||[]).slice(-30) }; }
-    if(p==='/api/guild/mine'){ const g=myGuild(); return send(res,200,{ guild: g?guildView(g):null }); }
+    if(p==='/api/guild/mine'){ if(me&&rateLimited(req,'guildMine:'+me.id,Math.round(30*RL_MUL),60000)) return send(res,429,{error:'Slow down.'});   /* v1083 (scan 5 #6) */ const g=myGuild(); return send(res,200,{ guild: g?guildView(g):null }); }
     if(p==='/api/guild/browse'){ const q=(url.searchParams.get('q')||'').toLowerCase().trim();
       const list=Object.values(DB.guilds)
         .filter(g=> !q || (g.name||'').toLowerCase().includes(q))
@@ -8293,10 +8301,10 @@ async function api(req,res,url){
       warPoolForget(g.id);
       if(!(g.members||[]).includes(b.id)) return send(res,400,{error:'Not a member.'});
       g.members=g.members.filter(x=>x!==b.id); const tu=DB.users[b.id]; if(tu&&tu.guildId===g.id) delete tu.guildId;
-      g.log=g.log||[]; g.log.push({sys:1,tx:nameOf(b.id)+' was removed from the guild.',t:Date.now()});
+      g.log=g.log||[]; g.log.push({sys:1,tx:nameOf(b.id)+' was removed from the guild.',t:Date.now()}); guildLogCap(g);
       writeDB(); return send(res,200,{ guild:guildView(g) }); }
     if(p==='/api/guild/transfer'){ if(!(g.members||[]).includes(b.id)) return send(res,400,{error:'Not a member.'});
-      g.leader=b.id; g.log=g.log||[]; g.log.push({sys:1,tx:nameOf(b.id)+' is now the guild leader.',t:Date.now()});
+      g.leader=b.id; g.log=g.log||[]; g.log.push({sys:1,tx:nameOf(b.id)+' is now the guild leader.',t:Date.now()}); guildLogCap(g);
       writeDB(); return send(res,200,{ guild:guildView(g) }); }
     if(p==='/api/guild/motd'){ g.motd=(b.motd||'').toString().replace(/[<>]/g,'').slice(0,160); writeDB(); return send(res,200,{ guild:guildView(g) }); }
     /* v769 (Phil: "so that we can set Guild banners") - the leader's choice, validated before it is
@@ -8305,7 +8313,7 @@ async function api(req,res,url){
       const v=bannerValidate(b.banner===null?null:(b.banner||{}));
       if(!v.ok) return send(res,400,{error:v.error});
       if(v.banner===null) delete g.banner; else g.banner=v.banner;
-      g.log=g.log||[]; g.log.push({sys:1,tx:'The guild banner was changed.',t:Date.now()});
+      g.log=g.log||[]; g.log.push({sys:1,tx:'The guild banner was changed.',t:Date.now()}); guildLogCap(g);
       writeDB(); return send(res,200,{ guild:guildView(g) }); }
     if(p==='/api/guild/disband'){ for(const mid of (g.members||[])){ const mu=DB.users[mid]; if(mu&&mu.guildId===g.id) delete mu.guildId; }
       delete DB.guilds[g.id]; warDropDeletedGuild(g.id); writeDB(); return send(res,200,{ ok:true, disbanded:true }); }
@@ -8315,7 +8323,7 @@ async function api(req,res,url){
       if(g.leader===me.id && (g.members||[]).length>1) return send(res,400,{error:'Transfer leadership to another member before you leave.'});
       g.members=(g.members||[]).filter(x=>x!==me.id); delete me.guildId;
       if((g.members||[]).length===0){ delete DB.guilds[g.id]; warDropDeletedGuild(g.id); writeDB(); return send(res,200,{ ok:true, disbanded:true }); }
-      g.log=g.log||[]; g.log.push({sys:1,tx:me.name+' left the guild.',t:Date.now()});
+      g.log=g.log||[]; g.log.push({sys:1,tx:me.name+' left the guild.',t:Date.now()}); guildLogCap(g);
       writeDB(); return send(res,200,{ ok:true }); }
 
     if(p==='/api/guild/chat'){ if(!g) return send(res,400,{error:'You are not in a guild.'});
@@ -8352,7 +8360,7 @@ async function api(req,res,url){
         du.guildContrib.n++;
         gg.exp=(gg.exp||0)+GUILD_CONTRIB_EXP;
         while((gg.level||1)<GMAXLVL && gg.exp>=gExpNeed(gg.level||1)){ gg.exp-=gExpNeed(gg.level||1); gg.level=(gg.level||1)+1;
-          gg.log=gg.log||[]; gg.log.push({sys:1,tx:'The guild reached Level '+gg.level+'!',t:Date.now()}); }
+          gg.log=gg.log||[]; gg.log.push({sys:1,tx:'The guild reached Level '+gg.level+'!',t:Date.now()}); guildLogCap(gg); }
         if((gg.level||1)>=GMAXLVL) gg.exp=0;
         return { ok:true, guild:guildView(gg), ledger:ledgerView(du) };
       },{fields:['guilds']});
@@ -8443,7 +8451,7 @@ async function api(req,res,url){
         r.hp=Math.max(0, r.hp-dmg); r.contrib[du.id]=(r.contrib[du.id]||0)+dmg;
         let killed=false, reward=null;
         if(r.hp<=0){ killed=true; const lv=r.level;
-          gg.exp=(gg.exp||0)+250; while((gg.level||1)<GMAXLVL && gg.exp>=gExpNeed(gg.level||1)){ gg.exp-=gExpNeed(gg.level||1); gg.level=(gg.level||1)+1; gg.log=gg.log||[]; gg.log.push({sys:1,tx:'The guild reached Level '+gg.level+'!',t:Date.now()}); }
+          gg.exp=(gg.exp||0)+250; while((gg.level||1)<GMAXLVL && gg.exp>=gExpNeed(gg.level||1)){ gg.exp-=gExpNeed(gg.level||1); gg.level=(gg.level||1)+1; gg.log=gg.log||[]; gg.log.push({sys:1,tx:'The guild reached Level '+gg.level+'!',t:Date.now()}); guildLogCap(gg); }
           if((gg.level||1)>=GMAXLVL) gg.exp=0;
           r.level=lv+1; r.max=bossMax(r.level); r.hp=r.max; r.kills=(r.kills||0)+1; r.contrib={};
           gg.log=gg.log||[]; gg.log.push({sys:1,tx:du.name+' landed the killing blow on '+raidBossFor(lv).name+' (Tier '+lv+')!',t:Date.now()}); if(gg.log.length>100)gg.log=gg.log.slice(-100);
@@ -8469,7 +8477,7 @@ async function api(req,res,url){
       r.hp=Math.max(0,r.hp-dmg); r.contrib[me.id]=(r.contrib[me.id]||0)+dmg; r.used[me.id]=((r.used[me.id])||0)+1; me.raidDay={ d:r.day, n:((me.raidDay&&me.raidDay.d===r.day)?(me.raidDay.n|0):0)+1 };
       let killed=false, reward=null;
       if(r.hp<=0){ killed=true; const lv=r.level;
-        g.exp=(g.exp||0)+250; while((g.level||1)<GMAXLVL && g.exp>=gExpNeed(g.level||1)){ g.exp-=gExpNeed(g.level||1); g.level=(g.level||1)+1; g.log=g.log||[]; g.log.push({sys:1,tx:'The guild reached Level '+g.level+'!',t:Date.now()}); }
+        g.exp=(g.exp||0)+250; while((g.level||1)<GMAXLVL && g.exp>=gExpNeed(g.level||1)){ g.exp-=gExpNeed(g.level||1); g.level=(g.level||1)+1; g.log=g.log||[]; g.log.push({sys:1,tx:'The guild reached Level '+g.level+'!',t:Date.now()}); guildLogCap(g); }
         if((g.level||1)>=GMAXLVL) g.exp=0;
         r.level=lv+1; r.max=bossMax(r.level); r.hp=r.max; r.kills=(r.kills||0)+1; r.contrib={};
         g.log=g.log||[]; g.log.push({sys:1,tx:me.name+' landed the killing blow on '+BOSS_NAMES[(lv-1)%BOSS_NAMES.length]+' (Tier '+lv+')!',t:Date.now()}); if(g.log.length>100)g.log=g.log.slice(-100);
@@ -8660,7 +8668,10 @@ try{
   function wsNeedAuth(ws){ if(WS_AUTH_REQUIRED && !ws._uid){ wsend(ws,{t:'autherr',reason:'Sign in required.'}); return true; } return false; }
   // ---- live chat: world/region broadcast + name-addressed whispers ----
   // history is stored in the DB (persists across restarts) and kept for ~3h or the last 100 messages per channel
-  const CHAT_KEEP=100, CHAT_AGE_MS=6*3600000;
+  let _chatSaveT=null; function chatSaveSoon(){ if(_chatSaveT) return; _chatSaveT=setTimeout(()=>{ _chatSaveT=null; writeDB(); },30000); }   /* v1083: chat is persisted at most every 30 s */
+function guildLogCap(g){ if(g&&Array.isArray(g.log)&&g.log.length>100) g.log=g.log.slice(-100); }   /* v1083 (scan 5 #10) */
+const _chatJoinAcct={};   /* v1083: last chat-history send per account */
+const CHAT_KEEP=100, CHAT_AGE_MS=6*3600000;
   const _chatHits={}; setInterval(()=>{ const now=Date.now(); for(const k of Object.keys(_chatHits)){ if(!_chatHits[k].some(t=>now-t<10000)) delete _chatHits[k]; } }, 60000).unref();   // world/region chat messages disappear 6h after being typed
   const clip = (s,n)=> String(s==null?'':s).slice(0,n);
   function chatStore(){ if(!DB.chat)DB.chat={world:[],region:[]}; if(!Array.isArray(DB.chat.world))DB.chat.world=[]; if(!Array.isArray(DB.chat.region))DB.chat.region=[]; return DB.chat; }
@@ -8719,7 +8730,10 @@ try{
         r.guest=ws; ws._room=c; ws._role='guest'; r.t=Date.now(); wsend(ws,{t:'joined',code:c}); wsend(r.host,{t:'peerjoined'}); }
       else if(m.t==='msg'){ if(wsNeedAuth(ws)) return;   // RE-AUDIT round 3: the room relay was the one branch that skipped auth — a revoked token could keep relaying
         const r=rooms[ws._room]; if(!r)return; r.t=Date.now(); wsend(ws._role==='host'?r.guest:r.host,{t:'peer',data:m.data}); }
-      else if(m.t==='chatjoin'){ if(wsNeedAuth(ws)) return; ws._chatName=ws._acctName || clip(m.name,16)||'Player'; wsend(ws,{t:'chathist',world:pruneChat('world'),region:pruneChat('region')}); }
+      else if(m.t==='chatjoin'){ if(wsNeedAuth(ws)) return; ws._chatName=ws._acctName || clip(m.name,16)||'Player';
+        /* v1083 (scan 5 #2): the history (up to ~1.6 MB with replay chips) at most once per 30 s per socket and 10 s per account */
+        { const now=Date.now(), ak=ws._uid||('ip:'+(ws._ipKey||'')); if((ws._chatJoinAt&&now-ws._chatJoinAt<30000)||(_chatJoinAcct[ak]&&now-_chatJoinAcct[ak]<10000)) return; ws._chatJoinAt=now; _chatJoinAcct[ak]=now; }
+        wsend(ws,{t:'chathist',world:pruneChat('world'),region:pruneChat('region')}); }
       else if(m.t==='chat'){ if(wsNeedAuth(ws)) return; const ch=(m.channel==='region')?'region':'world'; const txt=clip(m.text,200); if(!txt)return;
         // 30 Sep 2026 hardening: at most 6 chat lines per 10 s per ACCOUNT across all its sockets (one socket could wipe the
         // 100-line history in ~25 s, and N sockets multiplied that).
@@ -8728,7 +8742,7 @@ try{
         let bt=null; try{ if(m.battle && typeof m.battle==='object'){ const s=JSON.stringify(m.battle); if(s.length<=8000) bt=JSON.parse(s); } }catch(e){}   // optional shared-replay chip (size-capped)
         bt=chatChipOk(bt);   /* v1002 (Account audit #23) oppName; v1013 (N12) the whole chip shape */
         if(bt) msg.battle=bt;
-        chatStore()[ch].push(msg); pruneChat(ch); writeDB();
+        chatStore()[ch].push(msg); pruneChat(ch); chatSaveSoon();   /* v1083 (scan 5 #3): was writeDB() per line - 36 full-world saves a minute per chatter */
         chatBroadcast({t:'chatmsg',channel:ch,who:msg.who,txt:msg.txt,battle:bt||undefined}, ws); }   // broadcast to everyone EXCEPT the sender (sender shows it instantly locally)
       else if(m.t==='whisper'){ if(wsNeedAuth(ws)) return; const to=clip(m.to,16), txt=clip(m.text,200); if(!to||!txt)return;
         { const key='w:'+(ws._uid||('ip:'+(ws._ipKey||''))); const now=Date.now(); const h=(_chatHits[key]||[]).filter(t=>now-t<10000);   /* v1002 (Account audit #16): whispers share the chat pace */
