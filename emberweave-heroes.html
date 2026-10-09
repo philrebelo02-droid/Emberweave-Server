@@ -10516,13 +10516,20 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
 
     case 'rewind':{                                                 // "restores every ally to the health they had several seconds earlier"
       const back=o.back||5;
+      const _rw=[];   // v1074: every ally the rewind touches (the revived too) gets Grok's swirl over its head
       units.filter(a=>a.team===u.team&&!a._dropHidden&&!a._summon).forEach(a=>{ const h=a._hpHist&&a._hpHist.length?a._hpHist[0]:null; if(h==null)return;   /* v894 - the fallen too: the revive could never run */
+        _rw.push(a);
         if(a.alive){ if(h>a.hp){ healFrom(u,a,h-a.hp); burstAt(a.x,a.y,0xf0c86a,12); } }
         else if(o.revive){ a.alive=true; a.deathT=0; a.hp=Math.max(1,Math.min(worldHealCap(a),h*(o.revive||0.4)));
           a.stunned=0; a.fearT=0; a.silencedT=0; a.energy=0;
           ringBurst(a.x,a.y,0xf0c86a,20);
           floatTexts.push({x:a.x,y:a.y-18,txt:'REWOVEN',t:1.4,color:'#f0c86a',vy:1,sz:14}); } });
       if(u.team==='ally')screenFlash=Math.max(screenFlash,.25);
+      if(typeof spawnGroundFx==='function'&&typeof FX2_DEF!=='undefined'&&FX2_DEF.linnet_rewind) _rw.forEach(a=>{ if(!a.alive) return;   /* display only - the heal and revive above are already done */
+        try{ window._fxTgtH=a.sprH||null; window._fxTgtU=a._sprRef?a:null; window._fxAboveBar=!!a._sprRef; _fxAllow=true;
+          const fo=spawnGroundFx('linnet_rewind',a.x,a.y,1.2*METER,6.04);
+          if(fo&&fo.m&&a._sprRef){ const p=new TH.Vector3(); a._sprRef.getWorldPosition(p); fo.followAbove=a; fo.aboveOff=fo.m.position.clone().sub(p); }
+        }catch(e){} finally{ _fxAllow=false; window._fxTgtH=null; window._fxTgtU=null; window._fxAboveBar=false; } });
       floatTexts.push({x:u.x,y:u.y-18,txt:'REWRITE THE PATTERN',t:1.4,color:'#f0c86a',vy:1,sz:13}); break; }
 
     case 'plumage':{                                                 // ULT: "cleansing allies while charming enemies into lowering their defenses"
@@ -11342,6 +11349,7 @@ const FX2_DEF={
   quorrel_ult:{u:'/assets/anim/fx/quorrel_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:1.67,disc:{cy:0.503,dh:0.312,dw:0.844}},
   meridian_ult:{u:'/assets/anim/fx/meridian_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:2.75,upright:true,upSize:2.0,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   nox_ult:{u:'/assets/anim/fx/nox_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.17,upright:true,upSize:2.0,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
+  linnet_rewind:{u:'/assets/anim/fx/linnet_rewind.webp?v=1',n:73,fw:192,fh:192,cols:9,rows:9,dur:6.04,upright:true,upAbove:true,upAboveM:0.06,upSize:0.5,upExtent:0.95,ro:1},   /* v1074 Rewrite the Pattern (Grok spell 18, Phil-accepted 8 Oct): the gold thread winds into a spiral over each ally's head, keyed from 18_rewrite_pattern_swirl.mp4 (every 2nd frame, 12 fps) */
   oakmir_ult:{u:'/assets/anim/fx/oakmir_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.67,upright:true,upSize:2.0,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   pellucid_ult:{u:'/assets/anim/fx/pellucid_ult.webp?v=30',n:48,fw:320,fh:303,cols:6,rows:8,dur:6.04,disc:{cy:0.497,dh:0.901,dw:0.903}},   // v1044 Grok fx2 25 Worldbreaker Fists
   rhukk_ult:{u:'/assets/anim/fx/rhukk_ult.webp?v=30',n:48,fw:320,fh:195,cols:6,rows:8,dur:2.08,upright:true,upSize:2.0,upExtent:0.9,upAnchor:[0.5,0.0],upFlip:true,ro:1},   // v1044 Grok fx2 08 Impale Rush
@@ -26125,7 +26133,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791513441566';
+const BUILD_ID = '1791514834937';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

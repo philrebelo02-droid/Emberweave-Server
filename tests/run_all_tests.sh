@@ -255,6 +255,8 @@ note "test_zahri_stampede_trail_1072.js (v1072: Noonday Stampede flame trail)"
 node tests/test_zahri_stampede_trail_1072.js || FAILED=1
 note "test_oakmir_ult_badge_1073.js (v1073: Oakmir ult badge 0.45; the single-target badge path passes badgeSize)"
 node tests/test_oakmir_ult_badge_1073.js || FAILED=1
+note "test_linnet_rewind_1074.js (v1074: Rewrite the Pattern swirl over every ally the rewind touches, the revived too)"
+node tests/test_linnet_rewind_1074.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi
