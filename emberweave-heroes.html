@@ -14277,14 +14277,15 @@ function renderIntegrity(){
   if(INTEG.open){ host.innerHTML=_intAuditHTML(); _wireIntegrity(host); return; }
   if(!INTEG.reports.length){ host.innerHTML='<div style="color:#5ee89b;font-size:11.5px;padding:10px 2px">No open reports. Nothing has tripped the 2,000-in-a-minute threshold.</div>'; _wireIntegrity(host); return; }
   host.innerHTML=INTEG.reports.map(r=>{
-    const ban=r.banned?`<span style="font-size:9.5px;color:#ff9a9a;border:1px solid #7a3a3a;border-radius:6px;padding:1px 5px">banned ${r.banned.daysLeft}d left</span>`:'';
+    const ban=r.banned?`<span style="font-size:9.5px;color:#ff9a9a;border:1px solid #7a3a3a;border-radius:6px;padding:1px 5px">${r.banned.permanent?'banned permanently':'banned '+r.banned.daysLeft+'d left'}</span>`:'';
+    const modTag=r.kind==='moderation'?`<span style="font-size:9.5px;font-weight:800;color:#fff;background:#b0402c;border-radius:6px;padding:1px 6px;margin-right:4px">${escapeHTML(r.reasonLabel||'Report')}</span>`:'';
     const res=r.resolved?`<span style="font-size:9.5px;color:#8b98a9">${escapeHTML(r.action||'resolved')}</span>`:'';
     return `<div style="border:1px solid #2a3550;background:#0f1524;border-radius:10px;padding:9px 10px;margin-bottom:7px">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
-        <div style="font-weight:800;font-size:12.5px;color:#ffd45e">${escapeHTML(r.name)}</div>
+        <div style="font-weight:800;font-size:12.5px;color:#ffd45e">${modTag}${escapeHTML(r.name)}</div>
         <div style="font-size:10px;color:#8b98a9">${_intAgo(r.t)} ${ban} ${res}</div></div>
       <div style="font-size:11px;color:#cdd6e4;margin-top:3px">${escapeHTML(r.detail)}</div>
-      <button class="btn sm" style="margin-top:7px;width:100%" data-intopen="${r.userId}" data-intrep="${r.id}">Audit this account</button>
+      <button class="btn sm" style="margin-top:7px;width:100%" data-intopen="${r.userId}" data-intrep="${r.id}">${r.kind==='moderation'?'Review':'Audit this account'}</button>
     </div>`; }).join('');
   _wireIntegrity(host);
 }
@@ -14292,23 +14293,28 @@ function _intAuditHTML(){
   const a=INTEG.audit;
   if(!a) return '<div style="color:#8b98a9;font-size:11px">Loading a week of diamonds…</div>';
   const rows=Object.entries(a.byReason||{}).sort((x,y)=>y[1]-x[1]);
-  const ban=a.banned?`<div style="color:#ff9a9a;font-size:11px;margin-top:4px">Currently suspended — ${a.banned.daysLeft} day(s) left.</div>`:'';
+  const ban=a.banned?`<div style="color:#ff9a9a;font-size:11px;margin-top:4px">${escapeHTML(banLabel(a.banned))}.</div>`:'';
+  /* v1097: a racism / sexual-harassment chat report shows the line, who sent it, where and when, and the 10 lines around it */
+  const rep=INTEG.open&&(INTEG.reports||[]).find(x=>x.id===INTEG.open.reportId), mod=rep&&rep.kind==='moderation'?rep:null;
+  const modHTML=mod?`<div style="border:1px solid #7a3a3a;background:#1a0f12;border-radius:8px;padding:8px;margin-top:8px">
+      <div style="font-size:11px;font-weight:800;color:#ff8b8b">${escapeHTML(mod.reasonLabel||'Report')} - reported by ${escapeHTML(mod.reporterName||'?')}</div>
+      <div style="font-size:10.5px;color:#8b98a9;margin:2px 0 6px">${escapeHTML((mod.chat&&mod.chat.channel)||'')} chat · ${mod.chat&&mod.chat.t?new Date(mod.chat.t).toLocaleString():''}</div>
+      ${(()=>{ const lines=(mod.context||[]).slice(), tgt={who:mod.chat&&mod.chat.sender,text:mod.chat&&mod.chat.text,t:mod.chat&&mod.chat.t,target:true};
+        lines.push(tgt); lines.sort((x,y)=>(x.t||0)-(y.t||0));
+        return lines.map(l=>`<div style="font-size:11px;padding:1px 0;${l.target?'color:#fff;background:#5a1a12;border-radius:4px;padding:2px 4px':'color:#9fb0c4'}"><b>${escapeHTML(l.who||'?')}:</b> ${escapeHTML(l.text||'')}</div>`).join(''); })()}
+    </div>`:'';
   return `<div style="border:1px solid #3a4a6a;background:#0f1524;border-radius:10px;padding:11px">
     <div style="display:flex;justify-content:space-between;align-items:center"><div style="font-weight:900;font-size:14px;color:#ffd45e">${escapeHTML(a.name)}</div>
-      <button class="btn sm secondary" data-intback="1">← Back</button></div>
+      <button class="btn sm secondary" data-intback="1">← Back</button></div>${modHTML}
     <div style="font-size:11px;color:#8b98a9;margin-top:2px">Balance now <b style="color:#c9b6ff">💎 ${a.balance}</b> · gained <b style="color:#c9b6ff">${a.totalGained}</b> in the last ${a.days} days</div>${ban}
     <div style="font-size:11px;font-weight:800;margin:9px 0 4px">Where they came from</div>
     ${rows.length?rows.map(([k,v])=>`<div style="display:flex;justify-content:space-between;font-size:11px;color:#cdd6e4;padding:2px 0;border-bottom:1px solid #1b2438"><span>${escapeHTML(k)}</span><b>+${v}</b></div>`).join(''):'<div style="font-size:11px;color:#8b98a9">No recorded gains in this window.</div>'}
     <div style="font-size:11px;font-weight:800;margin:10px 0 4px">Most recent</div>
     <div style="max-height:150px;overflow:auto">${(a.gains||[]).slice(-40).reverse().map(g=>`<div style="font-size:10.5px;color:#9fb0c4;padding:1px 0">${_intAgo(g.t)} · +${g.n} · ${escapeHTML(g.r)}</div>`).join('')||'<div style="font-size:10.5px;color:#8b98a9">—</div>'}</div>
     <div style="font-size:11px;color:#8b98a9;margin:11px 0 5px">Nothing here has been taken from them. If they are guilty, suspend the account:</div>
-    <div style="display:flex;gap:6px">
-      <button class="btn sm" style="flex:1;background:#c0563f" data-intban="1">Ban 1 day</button>
-      <button class="btn sm" style="flex:1;background:#b0402c" data-intban="7">Ban 7 days</button>
-      <button class="btn sm" style="flex:1;background:#8f2f1e" data-intban="30">Ban 30 days</button></div>
+    <div id="intBanBox"></div>
     <div style="display:flex;gap:6px;margin-top:6px">
-      <button class="btn sm secondary" style="flex:1" data-intclear="1">Clear report — not guilty</button>
-      ${a.banned?'<button class="btn sm secondary" style="flex:1" data-intlift="1">Lift ban</button>':''}</div>
+      <button class="btn sm secondary" style="flex:1" data-intclear="1">Clear report — not guilty</button></div>
     <div id="intMsg" style="font-size:11px;color:#5ee89b;margin-top:6px;min-height:14px"></div></div>`;
 }
 function _wireIntegrity(host){
@@ -14317,16 +14323,10 @@ function _wireIntegrity(host){
     const a=await api('/api/dev/gem-audit?days=7&id='+encodeURIComponent(INTEG.open.id)).catch(()=>null);
     INTEG.audit=(a&&!a.error)?a:null; renderIntegrity(); });
   const back=host.querySelector('[data-intback]'); if(back) back.onclick=()=>{ INTEG.open=null; INTEG.audit=null; renderIntegrity(); };
-  host.querySelectorAll('[data-intban]').forEach(el=>el.onclick=async()=>{
-    const days=parseInt(el.dataset.intban,10); const m=host.querySelector('#intMsg');
-    if(m){ m.style.color='#8b98a9'; m.textContent='Suspending…'; }
-    const r=await api('/api/dev/ban','POST',{id:INTEG.open.id,days,reportId:INTEG.open.reportId,reason:'diamond spike'}).catch(()=>null);
-    if(r&&r.ok){ if(m){ m.style.color='#5ee89b'; m.textContent=escapeHTML(r.name||'Account')+' suspended for '+days+' day(s). Nothing was removed from the account.'; }
-      INTEG.open=null; INTEG.audit=null; loadIntegrity(); }
-    else if(m){ m.style.color='#ff8b8b'; m.textContent=(r&&r.error)||'Could not apply the suspension.'; } });
-  const lift=host.querySelector('[data-intlift]'); if(lift) lift.onclick=async()=>{
-    const r=await api('/api/dev/ban','POST',{id:INTEG.open.id,lift:true}).catch(()=>null);
-    if(r&&r.ok){ INTEG.open=null; INTEG.audit=null; loadIntegrity(); } };
+  /* v1097 (Phil 9 Oct): the same Ban menu as the player view - 1 / 7 / 14 / 28 days or Permanent, Unban */
+  const bb=host.querySelector('#intBanBox'); if(bb&&INTEG.open&&INTEG.audit){ const rp=(INTEG.reports||[]).find(x=>x.id===INTEG.open.reportId);
+    adminBanMenu(bb,{id:INTEG.open.id,name:INTEG.audit.name,ban:INTEG.audit.banned||null},{reportId:INTEG.open.reportId,reason:rp&&rp.kind==='moderation'?(rp.reasonLabel||'chat report'):'diamond spike'},
+      ()=>{ setTimeout(()=>{ INTEG.open=null; INTEG.audit=null; loadIntegrity(); },900); }); }
   const clr=host.querySelector('[data-intclear]'); if(clr) clr.onclick=async()=>{
     await api('/api/dev/report-clear','POST',{id:INTEG.open.reportId}).catch(()=>null);
     INTEG.open=null; INTEG.audit=null; loadIntegrity(); };
@@ -14343,6 +14343,9 @@ let pwStep='idle';       // 'idle' | 'sent' — email password-reset flow state 
 let _forgotName='', _forgotStep='name';   // signed-out "forgot password" recovery: 'name' → 'code'
 let emStep='idle', _emPending='', _emSentTo='', _emToCurrent=false;   // change-recovery-email flow: 'idle' → 'code'
 let _resetName='';       // account whose password is being reset (set when the server returns {reset:true})
+let delStep='idle', _blocksCache=null, _blocksLoading=false;   /* v1097: Delete account step ('idle' | 'confirm'); the block list as last read from the server */
+function _blocksHTML(){ if(_blocksCache===null) return 'Loading...'; if(!_blocksCache.length) return 'None';
+  return _blocksCache.map(x=>`<div style="display:flex;align-items:center;gap:6px;margin:3px 0"><span style="flex:1;color:#cdd6e4">${escapeHTML(x.name||'')}</span><button class="btn xs secondary" data-unblock="${escAttr(x.id)}">Unblock</button></div>`).join(''); }
 let devTab='cheats';     // developer panel tab: 'cheats' | 'accounts' | 'qa'
 // ---- POP-OUT screens: menu items (Heroes, Bag, Quests, …) open as a modal overlay over home, not a full-page swap ----
 let _popout=null;
@@ -20104,6 +20107,7 @@ function clearServerCaches(){
   try{ if(typeof POOLSRV!=='undefined'){ POOLSRV=null; } }catch(e){}
   try{ if(typeof INTEG!=='undefined'){ INTEG.reports=[]; INTEG.open=null; INTEG.audit=null; } }catch(e){}
   try{ if(typeof LED!=='undefined'){ LED.st=null; } }catch(e){}
+  try{ _blocksCache=null; delStep='idle'; }catch(e){}   /* v1097 */
   try{ _questStateReady=false; _questStateAt=0; _questStatePending=null; }catch(e){}
   try{ ACAD_SYNCED=false; _acadSyncing=false; }catch(e){}   // v327: academy levels are per-account too — force a refetch on any account transition
   try{ if(typeof ARENA!=='undefined'){ ARENA.oppsRank=null; } }catch(e){}
@@ -22062,7 +22066,7 @@ function openCityMenu(c){
   if(!canAct){
     // another kingdom — view only
     const pop0=document.createElement('div'); pop0.className='citymenu'; pop0.style.left=c.x+'%'; pop0.style.top=c.y+'%'; pop0.style.zoom=(1/worldZoom);
-    pop0.innerHTML=`<div class="cm-t">${escapeHTML(c.name)} · Lv ${c.level||1}</div><div style="font-size:10px;color:#8b98a9;padding:2px 4px 4px">🔒 ${ZONES[c.region]?ZONES[c.region].name:'Another region'} — you can't march here.<br>Transfer your region to operate here.</div><button class="cm-b" data-a="info">ℹ️ Info</button><button class="cm-b" data-a="whisper">💬 Whisper</button>`;
+    pop0.innerHTML=`<div class="cm-t">${escapeHTML(c.name)} · Lv ${c.level||1}</div><div style="font-size:10px;color:#8b98a9;padding:2px 4px 4px">🔒 ${ZONES[c.region]?ZONES[c.region].name:'Another region'} — you can't march here.<br>Transfer your region to operate here.</div><button class="cm-b" data-a="info">ℹ️ Info</button><button class="cm-b" data-a="whisper">💬 Whisper</button>${c.bot?'':'<button class="cm-b" data-a="block">Block</button>'}`;
     inner.appendChild(pop0); cityMenuEl=pop0; pop0.addEventListener('click',e=>e.stopPropagation());
     pop0.querySelectorAll('.cm-b').forEach(btn=>btn.onclick=()=>cityAction(btn.dataset.a,c)); return;
   }
@@ -22070,6 +22074,7 @@ function openCityMenu(c){
   if(enemy){ opts.push(['attack','⚔ Attack'],['group','⚔ Group Attack']); }
   if(c.ally){ opts.push(['defend','🛡 Defend']); }
   opts.push(['scout','🔭 Scout'],['whisper','💬 Whisper']);
+  if(!c.bot) opts.push(['block','Block']);   /* v1097 (sweep #18) */
   if(enemy) opts.push(['war','🔥 Declare War']);
   const pop=document.createElement('div'); pop.className='citymenu'; pop.style.left=c.x+'%'; pop.style.top=c.y+'%'; pop.style.zoom=(1/worldZoom);
   pop.innerHTML=`<div class="cm-t">${escapeHTML(c.name)} · Lv ${c.level||1}${c.ally?' · <span style="color:#5ee89b">Guild</span>':''}</div>`+opts.map(o=>`<button class="cm-b" data-a="${o[0]}">${o[1]}</button>`).join('');
@@ -22102,6 +22107,7 @@ function cityAction(a,c){ closeCityMenu();
     ensureChatWidget(); openWhisper(c.name);
     const w=document.getElementById('chatWidget'); if(w){ w.style.display='block'; w.classList.remove('min'); const tg=w.querySelector('#cwToggle'); if(tg)tg.textContent='▼'; }
     renderChat(); return; }
+  if(a==='block'){ if(!c.bot) chatBlock(c.name); return; }   /* v1097 */
   if(a==='war'){ if(atWarWith(c.name,false)){ bannerMsg('⚔ War with '+c.name+' is already live — attack now!'); return; }
     if(warPending(c.name,false)){ bannerMsg('🔥 War already declared — combat begins in ⏳ '+fmtDur(warPrepRemaining(c.name,false))); return; }
     declareWarByMe(c); return; }
@@ -24756,12 +24762,34 @@ function renderSettings(){
             <div style="display:flex;gap:6px"><button class="btn xs secondary" id="acRResend" style="flex:1">Resend code</button><button class="btn xs secondary" id="acRCancel" style="flex:1">Cancel</button></div>
           </div>
           <div id="acRMsg" style="font-size:11px;margin-top:6px;min-height:14px"></div></div>`;
+    /* v1097 (sweep #16): a signed-in guest makes an account here and KEEPS this progress (same account id, same ledger) -
+       before, the only way was Log out + Register, which made a new level-1 account. */
+    const guestUp = ACC.guest ? `<div style="background:#0f1420;border:1px solid #33405e;border-radius:10px;padding:10px;margin-bottom:8px">
+          <div style="font-weight:800;font-size:12px;margin-bottom:6px">Create account</div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <input id="acgName" type="text" placeholder="Username" maxlength="16" autocomplete="off" autocapitalize="off" spellcheck="false" style="${inp}">
+            <input id="acgPass" type="password" placeholder="Password (8+ characters)" autocomplete="new-password" style="${inp}">
+            <input id="acgPass2" type="password" placeholder="Confirm password" autocomplete="new-password" style="${inp}">
+            <button class="btn" id="acgGo">Create account</button></div>
+          <div id="acgMsg" style="font-size:11px;margin-top:6px;min-height:14px"></div></div>` : '';
+    /* v1097 (sweep #17, App Store): Delete account - the confirmation is typed on the page (no confirm() dialog) */
+    const delBlock = (delStep!=='confirm')
+      ? `<button class="btn sm secondary" id="acDel" style="width:100%;margin-top:8px;color:#ff8b8b;border-color:#ff6b6b66">Delete account</button>`
+      : `<div style="background:#1a0f12;border:1px solid #ff6b6b88;border-radius:10px;padding:10px;margin-top:8px">
+          <div style="font-weight:800;font-size:12px;color:#ff8b8b;margin-bottom:4px">Delete account</div>
+          <div style="font-size:11px;color:#c3ccd8;margin-bottom:8px">This permanently deletes <b>${escapeHTML(ACC.name||'')}</b>: progress, heroes, items, city, guild place and personal details. It cannot be undone.</div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <input id="acDelConf" type="text" placeholder="Type DELETE" autocomplete="off" autocapitalize="characters" spellcheck="false" style="${inp}">
+            ${ACC.guest?'':`<input id="acDelPass" type="password" placeholder="Password" autocomplete="current-password" style="${inp}">`}
+            <div style="display:flex;gap:6px"><button class="btn sm" id="acDelGo" style="flex:1;background:#ff6b6b">Delete permanently</button><button class="btn sm secondary" id="acDelCancel" style="flex:1">Cancel</button></div></div>
+          <div id="acDelMsg" style="font-size:11px;color:#ff8b8b;margin-top:6px;min-height:14px"></div></div>`;
+    const blockList = `<div style="margin-top:10px"><div style="font-weight:800;font-size:12px;margin-bottom:4px">Blocked players</div><div id="acBlocks" style="font-size:11px;color:#8b98a9">${_blocksHTML()}</div></div>`;
     account=`<div class="panel" style="border-color:#4aa3ff55">
       <div style="font-weight:800;font-size:13px;margin-bottom:4px">☁️ Cloud Account</div>
       <div style="font-size:13px">Signed in as <b>${escapeHTML(ACC.name||'')}</b></div>
       <div style="font-size:11px;color:#8b98a9;margin:4px 0 6px">Arena rank #${ACC.rank||'—'} · 🪙 ${ACC.coins||0} · your progress syncs to any device you sign in on.</div>
-      ${emailRow}${emailForm}${resetBlock}
-      <button class="btn sm secondary" id="acLogout">Log out</button></div>`;
+      ${ACC.guest?guestUp:(emailRow+emailForm+resetBlock)}
+      <button class="btn sm secondary" id="acLogout">Log out</button>${blockList}${delBlock}</div>`;
   } else if(acctMode==='reset'){
     account=`<div class="panel" style="border-color:#c9a24a66">
       <div style="font-weight:800;font-size:13px;margin-bottom:4px">🔑 Your password has been reset</div>
@@ -25011,8 +25039,52 @@ function renderSettings(){
     const backB=b.querySelector('#acResetBack'); if(backB) backB.onclick=()=>{ _resetName=''; acctMode='signin'; renderSettings(); };
   }
   const acLogout=b.querySelector('#acLogout'); if(acLogout) acLogout.onclick=()=>{
-    pwStep='idle'; emStep='idle'; _emPending='';
+    pwStep='idle'; emStep='idle'; _emPending=''; delStep='idle';
     signOutFully(); show('account'); };
+  /* v1097 (sweep #16): guest -> account in place (the server's guest-upgrade branch of /api/register keeps the id and ledger) */
+  const acgGo=b.querySelector('#acgGo'); if(acgGo){ const go=()=>{ const msg=b.querySelector('#acgMsg');
+      const name=(b.querySelector('#acgName').value||'').trim(), pass=b.querySelector('#acgPass').value||'', pass2=b.querySelector('#acgPass2').value||'';
+      if(name.length<2){ msg.style.color='#ff8b8b'; msg.textContent='Username needs at least 2 characters.'; return; }
+      if(pass.length<8){ msg.style.color='#ff8b8b'; msg.textContent='Password needs at least 8 characters.'; return; }
+      if(pass!==pass2){ msg.style.color='#ff8b8b'; msg.textContent='Passwords do not match.'; return; }
+      if(!tosOK()){ requireTos(go, ()=>{ msg.style.color='#ff8b8b'; msg.textContent='You must accept the Terms to create an account.'; }); return; }
+      if(window._authBusy) return; window._authBusy=true;
+      msg.style.color='#8b98a9'; msg.textContent='Creating account...';
+      const keepId=ACC.id;
+      api('/api/register','POST',{name,pass,roster:rosterPayload(),deviceId:deviceId()}).then(d=>{ window._authBusy=false;
+        if(!d||d.error||!d.token||!d.profile){ msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error==='offline')?'Connection lost - try again.':((d&&d.error)||'Could not create the account.'); return; }
+        ACC=Object.assign({},ACC,{token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,guest:!!d.profile.guest,email:d.profile.email||'',created:(d.profile.created||0),admin:!!d.profile.admin});
+        delete ACC.signedOut; saveAcc(); DEV.on=isDevAcct();
+        if(d.profile.id!==keepId){ clearServerCaches(); if(acctSwitchReload(keepId, d.profile.id, true)) return; }
+        _cloudReady=true; pushSave(); try{ chatUpdateName(); }catch(e){}
+        renderSettings(); updateHubChrome(); if(state==='home') renderHome(); bannerMsg('Account created. Your progress is kept.'); }); };
+    acgGo.onclick=go; ['#acgName','#acgPass','#acgPass2'].map(x=>b.querySelector(x)).filter(Boolean).forEach(el=>el.onkeydown=(e)=>{ if(e.key==='Enter') go(); }); }
+  /* v1097 (sweep #17): Delete account - typed DELETE (or the account name) + password; one requestId per attempt so a lost reply retries safely */
+  const acDel=b.querySelector('#acDel'); if(acDel) acDel.onclick=()=>{ delStep='confirm'; renderSettings(); };
+  const acDelCancel=b.querySelector('#acDelCancel'); if(acDelCancel) acDelCancel.onclick=()=>{ delStep='idle'; renderSettings(); };
+  const acDelGo=b.querySelector('#acDelGo'); if(acDelGo){ let rid=null; acDelGo.onclick=()=>{ const msg=b.querySelector('#acDelMsg');
+      const conf=(b.querySelector('#acDelConf').value||'').trim(), pe=b.querySelector('#acDelPass'), pass=pe?(pe.value||''):'';
+      if(!(conf==='DELETE'||(ACC.name&&conf.toLowerCase()===String(ACC.name).toLowerCase()))){ msg.style.color='#ff8b8b'; msg.textContent='Type DELETE to confirm.'; return; }
+      if(pe&&!pass){ msg.style.color='#ff8b8b'; msg.textContent='Enter your password.'; return; }
+      if(window._delBusy) return; window._delBusy=true; rid=rid||uid8();
+      msg.style.color='#8b98a9'; msg.textContent='Deleting...';
+      api('/api/account/delete','POST',{confirm:conf,pass,requestId:rid}).then(d=>{ window._delBusy=false;
+        if(!d||!d.ok){ msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error==='offline')?'Connection lost - try again.':((d&&d.error)||'Could not delete the account.'); return; }
+        delStep='idle'; _blocksCache=null;
+        ACC={token:null,name:null,rank:null,coins:0,id:null,email:'',signedOut:true}; saveAcc(); try{ DEV.on=false; DEV.god=false; }catch(e){}
+        try{ clearServerCaches(); }catch(e){}
+        G=JSON.parse(JSON.stringify(DEFAULT_G)); saveGLocalOnly();
+        try{ if(CHATNET.ws) CHATNET.ws.close(); }catch(e){}
+        try{ updateHubChrome(); }catch(e){} show('account'); bannerMsg('Your account has been deleted.'); }); }; }
+  /* v1097 (sweep #18): blocked players, read from the server; Unblock */
+  const acBlocks=b.querySelector('#acBlocks');
+  const wireBlocks=(el)=>{ el.querySelectorAll('[data-unblock]').forEach(bt=>bt.onclick=()=>{ bt.disabled=true;
+      api('/api/chat/unblock','POST',{id:bt.dataset.unblock}).then(d=>{ if(d&&d.ok){ _blocksCache=d.blocked||[]; } else { bt.disabled=false; bannerMsg(escapeHTML((d&&d.error)||'Could not unblock.')); return; }
+        const e2=document.getElementById('acBlocks'); if(e2){ e2.innerHTML=_blocksHTML(); wireBlocks(e2); } }); }); };
+  if(acBlocks){ wireBlocks(acBlocks);
+    if(_blocksCache===null&&!_blocksLoading){ _blocksLoading=true;
+      api('/api/chat/blocks').then(d=>{ _blocksLoading=false; _blocksCache=(d&&Array.isArray(d.blocked))?d.blocked:[];
+        const e2=document.getElementById('acBlocks'); if(e2){ e2.innerHTML=_blocksHTML(); wireBlocks(e2); } }); } }
   // ---- recovery email: add / change requires an emailed code (to the CURRENT email if one exists) ----
   const acEdit=b.querySelector('#acEditEmail'); if(acEdit) acEdit.onclick=(e)=>{ e.preventDefault(); const f=b.querySelector('#acEmailForm'); if(f){ f.style.display='block'; const i=b.querySelector('#acEmailIn'); if(i)i.focus(); } };
   const acEmCancel=b.querySelector('#acEmailCancel'); if(acEmCancel) acEmCancel.onclick=()=>{ emStep='idle'; _emPending=''; renderSettings(); };
@@ -25317,7 +25389,7 @@ function devShowReports(b){ const out=b.querySelector('#devAdmin'); if(!out)retu
     let html='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><b>🐞 Reports: '+rs.length+'</b><button class="btn xs secondary" id="rpClear">Clear resolved</button></div>';
     if(!rs.length) html+='<span style="color:#8b98a9">No reports yet.</span>';
     else html+=rs.map(r=>`<div style="border-top:1px solid #1c2434;padding:6px 2px;${r.resolved?'opacity:.5':''}">
-      <div style="display:flex;justify-content:space-between;gap:6px"><b style="font-size:11px">${r.kind==='balance'?'🤖':'🐞'} ${escapeHTML(r.name)}</b><span style="color:#6f7d90;font-size:10px">${ago(r.t)} ago</span></div>
+      <div style="display:flex;justify-content:space-between;gap:6px"><b style="font-size:11px">${r.kind==='moderation'?'<span style="color:#ff8b8b">['+escapeHTML(r.reasonLabel||'Report')+']</span>':(r.kind==='balance'?'🤖':'🐞')} ${escapeHTML(r.name)}</b><span style="color:#6f7d90;font-size:10px">${ago(r.t)} ago</span></div>
       <div style="font-size:11px;color:#cdd6e4;white-space:pre-wrap;margin:2px 0">${escapeHTML(String(r.text||r.detail||''))}</div>
       ${r.meta?`<div style="font-size:9px;color:#6f7d90">${escapeHTML(r.meta)}</div>`:''}
       <div style="display:flex;gap:6px;margin-top:3px"><button class="btn xs secondary" data-rr="${r.id}">${r.resolved?'Reopen':'Resolve'}</button><button class="btn xs secondary" data-rd="${r.id}" style="color:#ff8b8b">Delete</button></div></div>`).join('');
@@ -25448,6 +25520,32 @@ function devAdminList(kind,b){ const out=b&&b.querySelector('#devAdmin'); if(!ou
     out.innerHTML=html;
     out.querySelectorAll('.devrow').forEach(el=>el.onclick=()=>openPlayerAdmin(rows[+el.dataset.idx], kind, b));
   }); }
+/* v1097 (Phil 9 Oct): the admin's Ban menu - 1 / 7 / 14 / 28 days or Permanent, a reason, Unban when banned. host = an element
+   to draw into; p = {id, name, ban}; opts.reportId resolves a report; opts.allowDelete keeps the old admin delete behind the menu. */
+function banLabel(b){ if(!b) return ''; return b.permanent?'Banned permanently':'Banned until '+new Date(b.until).toLocaleString([],{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}); }
+function adminBanMenu(host, p, opts, onDone){ opts=opts||{}; if(!host||!p) return;
+  const rid={}; const req=k=>rid[k]||(rid[k]=uid8());
+  host.innerHTML=`<div style="background:#1a0f12;border:1px solid #ff6b6b66;border-radius:10px;padding:10px;margin-bottom:6px">
+    <div style="font-weight:800;font-size:12px;color:#ff8b8b;margin-bottom:6px">Ban ${escapeHTML(p.name||'')}</div>
+    ${p.ban?`<div style="font-size:11px;color:#ffb4b4;margin-bottom:6px">${escapeHTML(banLabel(p.ban))}${p.ban.reason?' - '+escapeHTML(p.ban.reason):''}</div><button class="btn sm" data-unban="1" style="width:100%;margin-bottom:6px;background:#2e7d46">Unban</button>`:''}
+    <input data-banreason="1" type="text" maxlength="200" placeholder="Reason" style="background:#0f1420;border:1px solid #2a3550;border-radius:8px;color:#e6edf3;padding:7px 9px;font-size:12px;width:100%;box-sizing:border-box;margin-bottom:6px" value="${escAttr(opts.reason||'')}">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+      <button class="btn sm" data-ban="1" style="background:#c0563f">1 day</button><button class="btn sm" data-ban="7" style="background:#b0402c">7 days</button>
+      <button class="btn sm" data-ban="14" style="background:#a0381f">14 days</button><button class="btn sm" data-ban="28" style="background:#8f2f1e">28 days</button></div>
+    <button class="btn sm" data-ban="permanent" style="width:100%;margin-top:6px;background:#5a1a12">Permanent</button>
+    ${opts.allowDelete?'<button class="btn xs secondary" data-bandel="1" style="width:100%;margin-top:10px;color:#ff8b8b;border-color:#5a2a2a">Delete permanently</button>':''}
+    <div data-banmsg="1" style="font-size:11px;color:#ffd45e;margin-top:6px;min-height:14px"></div></div>`;
+  const msg=host.querySelector('[data-banmsg]'), reason=()=>(host.querySelector('[data-banreason]').value||'').trim();
+  const done=(d,txt)=>{ if(d&&d.ok){ msg.style.color='#5ee89b'; msg.textContent=txt; p.ban=d.banned||null; if(onDone) onDone(d); } else { msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error==='offline')?'Connection lost - try again.':((d&&d.error)||'Failed'); } };
+  host.querySelectorAll('[data-ban]').forEach(bt=>bt.onclick=()=>{ const v=bt.dataset.ban, perm=v==='permanent';
+    msg.style.color='#8b98a9'; msg.textContent='Working...';
+    api('/api/admin/ban','POST',Object.assign({playerId:p.id,reason:reason(),requestId:req('ban'+v),reportId:opts.reportId||undefined},perm?{permanent:true}:{days:+v}))
+      .then(d=>done(d,(p.name||'Account')+(perm?' banned permanently.':' banned for '+v+' day'+(v==='1'?'':'s')+'.'))); });
+  const ub=host.querySelector('[data-unban]'); if(ub) ub.onclick=()=>{ msg.style.color='#8b98a9'; msg.textContent='Working...';
+    api('/api/admin/unban','POST',{playerId:p.id,requestId:req('unban')}).then(d=>done(d,(p.name||'Account')+' unbanned.')); };
+  const del=host.querySelector('[data-bandel]'); if(del) del.onclick=()=>{ gameConfirm('Permanently DELETE <b>'+escapeHTML(p.name||'')+'</b>?<br><span style="font-size:11px;color:#ff8b8b">This cannot be undone.</span>',()=>{
+    msg.style.color='#8b98a9'; msg.textContent='Deleting...'; api('/api/admin/delete','POST',{id:p.id,name:p.name}).then(d=>{ if(d&&d.ok){ if(opts.onDeleted) opts.onDeleted(); } else { msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error)||'Failed'; } }); }); };
+}
 // admin options for one player (dev only)
 function openPlayerAdmin(r, kind, panel){ if(!r)return;
   const ov=document.createElement('div');
@@ -25455,7 +25553,7 @@ function openPlayerAdmin(r, kind, panel){ if(!r)return;
   const dt=t=>{ if(!t)return '—'; const x=new Date(t); return x.toLocaleDateString()+' '+x.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); };
   ov.innerHTML=`<div style="background:#141b2b;border:1px solid #33405e;border-radius:16px;padding:18px;width:100%;max-width:340px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div style="font-weight:800;font-size:16px">🛠️ ${escapeHTML(r.name)}</div><button class="btn sm secondary" id="paX">✕</button></div>
-    <div style="font-size:11px;color:#8b98a9;line-height:1.6;margin-bottom:12px">Arena rank #${r.rank}<br>Created ${dt(r.created)}<br>Last seen ${dt(r.lastSeen)}${r.mustReset?'<br><b style="color:#ffb454">🔑 Password recovery is armed</b>':''}</div>
+    <div style="font-size:11px;color:#8b98a9;line-height:1.6;margin-bottom:12px">Arena rank #${r.rank}<br>Created ${dt(r.created)}<br>Last seen ${dt(r.lastSeen)}${r.mustReset?'<br><b style="color:#ffb454">🔑 Password recovery is armed</b>':''}${r.ban?'<br><b style="color:#ff8b8b">'+escapeHTML(banLabel(r.ban))+'</b>'+(r.ban.reason?' - '+escapeHTML(r.ban.reason):''):''}</div>
     <div id="paMsg" style="font-size:11px;color:#ffd45e;min-height:15px;margin-bottom:8px"></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
       <button class="btn sm" id="paGrant" style="background:#2e7d46">💎 +2000</button>
@@ -25464,8 +25562,8 @@ function openPlayerAdmin(r, kind, panel){ if(!r)return;
     ${r.mustReset
       ? `<button class="btn sm secondary" id="paUndo" style="width:100%;margin-bottom:6px">Cancel password recovery</button>`
       : `<button class="btn sm" id="paReset" style="width:100%;margin-bottom:6px">🔑 Recover password</button>`}
-    <button class="btn sm secondary" id="paDelete" style="width:100%;margin-bottom:6px;color:#ff8b8b;border-color:#5a2a2a">🗑 Delete account</button>
-    <div style="font-size:10px;color:#6f7d90;line-height:1.4">Diamond changes apply to their server balance and show up on their device within a minute. Delete &amp; recovery ask for confirmation.</div>
+    <button class="btn sm secondary" id="paBan" style="width:100%;margin-bottom:6px;color:#ff8b8b;border-color:#5a2a2a">${r.ban?'Banned - Unban / change':'Ban'}</button>
+    <div id="paBanBox"></div>
   </div>`;
   document.body.appendChild(ov); const close=()=>ov.remove();
   ov.addEventListener('click',e=>{ if(e.target===ov)close(); });
@@ -25476,9 +25574,10 @@ function openPlayerAdmin(r, kind, panel){ if(!r)return;
       else { msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error)||'Failed'; } }); };
   const gB=ov.querySelector('#paGrant'); if(gB) gB.onclick=()=>gemAct('/api/admin/grant','Granted 2000');   // no confirmation
   const tB=ov.querySelector('#paTake');  if(tB) tB.onclick=()=>gemAct('/api/admin/take','Took 2000');      // no confirmation
-  const dB=ov.querySelector('#paDelete'); if(dB) dB.onclick=()=>{ gameConfirm('Permanently DELETE <b>'+escapeHTML(r.name)+'</b>?<br><span style="font-size:11px;color:#ff8b8b">This cannot be undone.</span>',()=>{
-    msg.style.color='#8b98a9'; msg.textContent='Deleting…'; api('/api/admin/delete','POST',{id:r.id,name:r.name}).then(d=>{
-      if(d&&d.ok){ close(); devAdminList(kind,panel); } else { msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error)||'Failed'; } }); }); };
+  /* v1097 (Phil 9 Oct): Delete became Ban; the old admin delete stays only behind the Ban menu */
+  const bB=ov.querySelector('#paBan'); if(bB) bB.onclick=()=>{ bB.style.display='none';
+    adminBanMenu(ov.querySelector('#paBanBox'), {id:r.id,name:r.name,ban:r.ban||null}, {allowDelete:true, onDeleted:()=>{ close(); devAdminList(kind,panel); }},
+      d=>{ r.ban=d.banned||null; devAdminList(kind,panel); }); };
   const rs=ov.querySelector('#paReset'); if(rs) rs.onclick=()=>{ gameConfirm('Arm password recovery for <b>'+escapeHTML(r.name)+'</b>?<br><span style="font-size:11px;color:#8b98a9">They will set a new password on their next login.</span>',()=>{
     msg.textContent='Working…'; api('/api/admin/reset','POST',{id:r.id,name:r.name}).then(d=>{
       if(d&&d.ok){ msg.style.color='#5ee89b'; msg.textContent='✔ Recovery armed for '+d.name+'. Their next login will prompt a new password.'; devAdminList(kind,panel); setTimeout(close,1600); }
@@ -26703,16 +26802,16 @@ function renderChat(){ initChat(); const w=document.getElementById('chatWidget')
   const base=[['world','🌍 World'],['region','📍 Region'],['guild','🛡 Guild'],['whispers','✉ Whispers']];
   tabsEl.innerHTML=base.map(t=>`<div class="cw-tab${chatTab===t[0]?' on':''}" data-t="${t[0]}">${t[1]}</div>`).join('')
     + openWhispers.map(n=>`<div class="cw-tab${chatTab==='w:'+n?' on':''}" data-w="${escAttr(n)}">✉ ${escapeHTML(n)}<span class="x" data-close="${escAttr(n)}">✕</span></div>`).join('');
-  const nameSpan=(who,me)=>`<span class="nm" style="color:${me?'#7fffd0':'#8fd0ff'}" data-w="${escAttr(who)}">${escapeHTML(who)}</span>`;
+  const nameSpan=(who,me,mid)=>`<span class="nm" style="color:${me?'#7fffd0':'#8fd0ff'}" data-w="${escAttr(who)}"${mid?` data-mid="${escAttr(mid)}"`:''}${me?' data-me="1"':''}>${escapeHTML(who)}</span>`;   /* v1097: the line id rides along for Report */
   if(chatTab==='whispers'){ msgsEl.innerHTML = openWhispers.length
-      ? '<div style="font-size:11px;color:#8b98a9;margin-bottom:6px">Open whispers</div>'+openWhispers.map(n=>`<div class="cw-msg">${nameSpan(n)} <span style="font-size:10px;color:#6f7d90">tap to open</span></div>`).join('')+'<div style="font-size:10px;color:#6f7d90;margin-top:8px">Tap any player name in World / Region / Guild to whisper them.</div>'
+      ? '<div style="font-size:11px;color:#8b98a9;margin-bottom:6px">Open whispers</div>'+openWhispers.map(n=>`<div class="cw-msg">${nameSpan(n).replace('class="nm"','class="nm" data-open="1"')} <span style="font-size:10px;color:#6f7d90">tap to open</span></div>`).join('')+'<div style="font-size:10px;color:#6f7d90;margin-top:8px">Tap any player name in World / Region / Guild to whisper them.</div>'
       : '<div style="font-size:11px;color:#6f7d90;padding:6px">No whispers yet. Tap a player name in a channel to start one.</div>';
     wireChat(w); return; }
   let msgs=[];
   if(chatTab==='world')msgs=CHAT.world; else if(chatTab==='region')msgs=CHAT.region;
   else if(chatTab==='guild'){
     if(GS.guild){   // REAL server guild log (sys lines + member messages)
-      (GS.guild.log||[]).forEach(gm=>{ if(gm.sys)msgs.push({who:'📯',txt:gm.tx,sys:true}); else msgs.push({who:gm.name||'?',txt:gm.tx,me:(gm.name===chatName()),battle:gm.battle||null,pt:gm.pt||null}); });
+      (GS.guild.log||[]).forEach(gm=>{ if(gm.sys)msgs.push({who:'📯',txt:gm.tx,sys:true}); else msgs.push({who:gm.name||'?',txt:gm.tx,me:(gm.name===chatName()),battle:gm.battle||null,pt:gm.pt||null,mid:gm.mid||null}); });
     } else if(G.guild){ (G.guildLog||[]).forEach(tx=>{ if(tx&&typeof tx==='object')msgs.push({who:G.playerName||'You',txt:tx.txt,me:true,battle:tx.battle||null}); else msgs.push({who:G.playerName||'You',txt:tx,me:true}); });
     } else if(ACC.token&&typeof guildFetch==='function'&&!renderChat._gfetch){ renderChat._gfetch=true; guildFetch().then(()=>{ renderChat._gfetch=false; if(chatTab==='guild')renderChat(); }).catch(()=>{renderChat._gfetch=false;}); } }
   else if(chatTab.indexOf('w:')===0){ msgs=(G.whispers&&G.whispers[chatTab.slice(2)])||[]; }
@@ -26720,17 +26819,49 @@ function renderChat(){ initChat(); const w=document.getElementById('chatWidget')
   _chatBattles=[];
   msgsEl.innerHTML=msgs.length?msgs.map(m=>{ let btn=''; if(m.battle&&m.battle.mineSnap&&m.battle.mineSnap.length&&(m.battle.foe||[]).length){ const idx=_chatBattles.push(m.battle)-1; btn=` <button class="btn sm" data-cbat="${idx}" style="padding:2px 8px;margin-left:4px">▶ Watch</button>`; }
     if(m.sys) return `<div class="cw-msg" style="color:#8b98a9;font-style:italic">${escapeHTML(m.who)} ${escapeHTML(m.txt)}</div>`;
-    return `<div class="cw-msg${m.pt&&m.pt.bubble?' patBub-'+m.pt.bubble:''}">${patChip(m.pt)}${m.pt&&m.pt.edp?nameSpan(m.who,m.me).replace(/color:#[0-9a-f]{6}/,'color:#9fe1ff'):nameSpan(m.who,m.me)}: <span>${escapeHTML(m.txt)}</span>${btn}</div>`; }).join('')
+    return `<div class="cw-msg${m.pt&&m.pt.bubble?' patBub-'+m.pt.bubble:''}">${patChip(m.pt)}${m.pt&&m.pt.edp?nameSpan(m.who,m.me,m.mid).replace(/color:#[0-9a-f]{6}/,'color:#9fe1ff'):nameSpan(m.who,m.me,m.mid)}: <span>${escapeHTML(m.txt)}</span>${btn}</div>`; }).join('')
     :'<div style="font-size:11px;color:#6f7d90;padding:6px">No messages yet — say hi!</div>';
   msgsEl.scrollTop=msgsEl.scrollHeight; wireChat(w);
 }
 function wireChat(w){
   w.querySelectorAll('#cwTabs .cw-tab').forEach(t=>{ t.onclick=(e)=>{ const cl=e.target&&e.target.dataset&&e.target.dataset.close; if(cl){ e.stopPropagation(); closeWhisper(cl); return; }
     if(t.dataset.w!==undefined){ chatTab='w:'+t.dataset.w; } else { chatTab=t.dataset.t; } renderChat(); }; });
-  w.querySelectorAll('#cwMsgs .nm[data-w]').forEach(el=>el.onclick=()=>openWhisper(el.dataset.w));
+  w.querySelectorAll('#cwMsgs .nm[data-w]').forEach(el=>el.onclick=(e)=>{ if(el.dataset.open||el.dataset.me){ openWhisper(el.dataset.w); return; } e.stopPropagation(); chatLineMenu(el); });   /* v1097: Whisper / Block / Report */
   w.querySelectorAll('#cwMsgs [data-cbat]').forEach(bb=>bb.onclick=()=>{ const meta=_chatBattles[+bb.dataset.cbat]; if(meta){ _replayReturn=()=>{ show('home'); const cw=document.getElementById('chatWidget'); if(cw){ cw.classList.remove('min'); const tg=cw.querySelector('#cwToggle'); if(tg)tg.textContent='▼'; } renderChat(); }; watchBattle(meta); } });
   const s=w.querySelector('#cwSend'), i=w.querySelector('#cwInput'); if(s)s.onclick=chatSend; if(i)i.onkeydown=(e)=>{ if(e.key==='Enter')chatSend(); };
 }
+/* v1097 (sweep #18): tapping a player's name in chat opens Whisper / Block / Report. Block is kept on the server (the blocked
+   player's lines and whispers stop reaching you); Report sends the line (looked up on the server by its id) to the report inbox. */
+function chatLineMenu(el){ closeChatLineMenu(); const who=el.dataset.w, mid=el.dataset.mid||''; if(!who) return;
+  const pop=document.createElement('div'); pop.className='citymenu'; pop.id='chmPop';
+  const r=el.getBoundingClientRect();
+  pop.style.cssText='position:fixed;transform:none;z-index:100001;left:'+Math.max(8,Math.min(window.innerWidth-150,r.left))+'px;top:'+Math.max(8,Math.min(window.innerHeight-140,r.bottom+4))+'px';
+  pop.innerHTML=`<div class="cm-t">${escapeHTML(who)}</div><button class="cm-b" data-a="whisper">Whisper</button><button class="cm-b" data-a="block">Block</button>${mid?'<button class="cm-b" data-a="report">Report</button>':''}`;
+  document.body.appendChild(pop);
+  pop.addEventListener('click',e=>e.stopPropagation());
+  pop.querySelectorAll('.cm-b').forEach(bt=>bt.onclick=()=>{ const a=bt.dataset.a; closeChatLineMenu();
+    if(a==='whisper') openWhisper(who); else if(a==='block') chatBlock(who,mid); else if(a==='report') chatReportMenu(el,who,mid); });
+  setTimeout(()=>document.addEventListener('click',closeChatLineMenu,{once:true}),0); }
+/* Phil 9 Oct: racism and sexual-harassment reports go to his moderation queue; Other goes to the feedback inbox */
+function chatReportMenu(el,who,mid){ closeChatLineMenu(); if(!mid) return;
+  const pop=document.createElement('div'); pop.className='citymenu'; pop.id='chmPop';
+  const r=el.getBoundingClientRect();
+  pop.style.cssText='position:fixed;transform:none;z-index:100001;left:'+Math.max(8,Math.min(window.innerWidth-170,r.left))+'px;top:'+Math.max(8,Math.min(window.innerHeight-160,r.bottom+4))+'px';
+  pop.innerHTML=`<div class="cm-t">Report ${escapeHTML(who)}</div><button class="cm-b" data-r="racism">Racism</button><button class="cm-b" data-r="harassment">Sexual harassment</button><button class="cm-b" data-r="other">Other</button>`;
+  document.body.appendChild(pop);
+  pop.addEventListener('click',e=>e.stopPropagation());
+  pop.querySelectorAll('.cm-b').forEach(bt=>bt.onclick=()=>{ const reason=bt.dataset.r; closeChatLineMenu(); chatReport(mid,reason); });
+  setTimeout(()=>document.addEventListener('click',closeChatLineMenu,{once:true}),0); }
+function closeChatLineMenu(){ const p=document.getElementById('chmPop'); if(p) p.remove(); }
+function chatBlock(who,mid){ if(!(ACC&&ACC.token)){ bannerMsg('Sign in to block players.'); return; }
+  api('/api/chat/block','POST',{name:who,mid:mid||undefined}).then(d=>{ if(!d||!d.ok){ bannerMsg(escapeHTML((d&&d.error)||'Could not block.')); return; }
+    _blocksCache=Array.isArray(d.blocked)?d.blocked:null; initChat();
+    CHAT.world=CHAT.world.filter(m=>m.who!==who); CHAT.region=CHAT.region.filter(m=>m.who!==who);
+    if(openWhispers.includes(who)) closeWhisper(who);
+    if(typeof GS!=='undefined'&&GS.guild&&Array.isArray(GS.guild.log)) GS.guild.log=GS.guild.log.filter(x=>x.sys||x.name!==who);
+    renderChat(); bannerMsg('Blocked '+escapeHTML(who)+'.'); }); }
+function chatReport(mid,reason){ if(!(ACC&&ACC.token)||!mid) return;
+  api('/api/chat/report','POST',{mid,reason:reason||'other'}).then(d=>{ bannerMsg(d&&d.ok?'Report sent.':escapeHTML((d&&d.error)||'Could not send the report.')); }); }
 // ---- Share a battle replay as a watchable chip in World / Region / Guild chat ----
 function shareBattle(meta){
   if(!meta || !(meta.mineSnap&&meta.mineSnap.length&&meta.foe&&meta.foe.length)){ bannerMsg('This battle can’t be shared'); return; }
@@ -26783,9 +26914,9 @@ function onChatNet(m){
      they are how we find out that a legitimate player's actions are being refused, rather than
      discovering it from a player whose clear did not count. */
   if(m.t==='actack'){ onActAck(m); return; }
-  if(m.t==='chathist'){ if(Array.isArray(m.world))CHAT.world=m.world.map(x=>({who:x.who,txt:x.txt,me:x.who===CHATNET.name,battle:x.battle||null,pt:x.pt||null})); if(Array.isArray(m.region))CHAT.region=m.region.map(x=>({who:x.who,txt:x.txt,me:x.who===CHATNET.name,battle:x.battle||null,pt:x.pt||null})); if(chatTab==='world'||chatTab==='region')renderChat(); }
-  else if(m.t==='chatmsg'){ const ch=m.channel==='region'?'region':'world'; CHAT[ch].push({who:m.who,txt:m.txt,me:m.who===CHATNET.name,battle:m.battle||null,pt:m.pt||null}); if(CHAT[ch].length>120)CHAT[ch].shift(); if(chatTab===ch)renderChat(); }
-  else if(m.t==='whispermsg'){ const from=m.from; if(from===CHATNET.name)return; if(!G.whispers)G.whispers={}; if(!G.whispers[from])G.whispers[from]=[]; G.whispers[from].push({who:from,txt:m.txt}); if(!openWhispers.includes(from))openWhispers.push(from); saveG(); if(chatTab==='w:'+from||chatTab==='whispers')renderChat(); bannerMsg('✉ Whisper from '+escapeHTML(from)); }
+  if(m.t==='chathist'){ if(Array.isArray(m.world))CHAT.world=m.world.map(x=>({who:x.who,txt:x.txt,me:x.who===CHATNET.name,battle:x.battle||null,pt:x.pt||null,mid:x.mid||null})); if(Array.isArray(m.region))CHAT.region=m.region.map(x=>({who:x.who,txt:x.txt,me:x.who===CHATNET.name,battle:x.battle||null,pt:x.pt||null,mid:x.mid||null})); if(chatTab==='world'||chatTab==='region')renderChat(); }
+  else if(m.t==='chatmsg'){ const ch=m.channel==='region'?'region':'world'; CHAT[ch].push({who:m.who,txt:m.txt,me:m.who===CHATNET.name,battle:m.battle||null,pt:m.pt||null,mid:m.mid||null}); if(CHAT[ch].length>120)CHAT[ch].shift(); if(chatTab===ch)renderChat(); }
+  else if(m.t==='whispermsg'){ const from=m.from; if(from===CHATNET.name)return; if(!G.whispers)G.whispers={}; if(!G.whispers[from])G.whispers[from]=[]; G.whispers[from].push({who:from,txt:m.txt,mid:m.mid||null}); if(!openWhispers.includes(from))openWhispers.push(from); saveG(); if(chatTab==='w:'+from||chatTab==='whispers')renderChat(); bannerMsg('✉ Whisper from '+escapeHTML(from)); }
 }
 // ---- boot splash: online/offline status + invisible logo Play button ----
 // "Online" means the actual game SERVER is reachable — /health is answered only by the backend,

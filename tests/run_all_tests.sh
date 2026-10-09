@@ -295,6 +295,14 @@ note "test_mythic_pool_1092.js (v1092 Mythical Pool at EGP 11, 400 diamonds, Phi
 node tests/test_mythic_pool_1092.js || FAILED=1
 note "test_patron_1093.js (v1093 Phil's benefit chart as the standard: purchases from 1, Elite/Arena resets, double gold, Shady discount, armies out, chat tags)"
 node tests/test_patron_1093.js || FAILED=1
+note "test_account_delete_1097.js (v1097 sweep #16 #17: delete your own account - typed confirmation + password + requestId, personal data and sessions gone, records anonymised; a guest makes an account keeping its id and ledger)"
+node tests/test_account_delete_1097.js || FAILED=1
+note "test_account_delete_wide_1097.js (v1097 sweep #17: a delete on Server 2-5 deletes the game-wide account on Server 1; other satellites drop their player)"
+node tests/test_account_delete_wide_1097.js || FAILED=1
+note "test_chat_safety_1097.js (v1097 sweep #18 + Phil 9 Oct: chat unmasked (18+), slurs refused in names, server-side block, report reasons: racism / harassment to the moderation queue with context, other to feedback)"
+node tests/test_chat_safety_1097.js || FAILED=1
+note "test_admin_ban_1097.js (v1097 Phil 9 Oct: admin Delete became Ban - 1/7/14/28 days or permanent, unban, 403 with the date on sign-in and every route, sockets closed, expired ban lifts itself)"
+node tests/test_admin_ban_1097.js || FAILED=1
 note "test_temple_v2_1094.js (v1094 Temple of Ash v2: four flat bars in steps, cap by Temple level, all four roll, cancel never refunds, power = 10 x steps, blessings, auto pray, discounts, migration, client/server unit parity)"
 node tests/test_temple_v2_1094.js || FAILED=1
 note "test_temple_blessings_1096.js (v1096 personal Temple blessings: 60 heroes x 4 own rewards, Oakmir = Phil's example, labels, class fallback, 5th dot +15% on blessings only, server applyCore = client applyClient)"

@@ -21,6 +21,7 @@ const HERO_PATHS=require('./hero-paths.js');
 const HERO_PERSONAL_GLYPH_PATHS=require('./server/hero-personal-glyph-paths.json');
 const HERO_ASCENSION_BONUSES=require('./server/hero-ascension-bonuses.json');
 const WITCH=require('./server/witches-hut.js');
+const CHATF=require('./server/chat-filter.js');   /* v1097: slurs and hate terms in player / guild names (Phil 9 Oct: 18+, cursing is ok - chat is not masked) */
 const ACADEMY_ECON=require('./server/academy-economy.js');   // Phil 3 Oct 2026: Academy level costs, hourly income, Hut upgrade cost
 const WORLD_MINES=require('./server/world-mines.js');
 const WORLD_MARCH_STATE=require('./server/world-march-state.js');
@@ -231,7 +232,7 @@ process.on('SIGTERM',()=>{ if(!PG_BOOT_PENDING && _booted) writeDBSync(); proces
 function uid(){ return crypto.randomBytes(8).toString('hex'); }
 /* 30 Sep 2026 hardening: a NEW name (account or guild) may not carry invisible or direction-flipping characters, stacks of
    combining marks, or a reserved name - 'Ph\u200Bil' or 'Emberweave' in chat read as the real thing. Existing names are untouched. */
-const RESERVED_NAMES=new Set(['phil','admin','administrator','emberweave','ember','dev','developer','mod','moderator','system','support','staff','xanthyr','claude','chatgpt','grok','kimi']);
+const RESERVED_NAMES=new Set(['phil','admin','administrator','emberweave','ember','dev','developer','mod','moderator','system','support','staff','xanthyr','claude','chatgpt','grok','kimi','deletedplayer']);   /* v1097: 'Deleted player' marks a deleted account's records */
 /* v1080 (scan 2 #5): look-alike names. The duplicate check compared lower-cased names only, so a full-width or Cyrillic copy of a
    real player's name (e.g. 'Ｐｈｉｌ', 'Phіl') was a different name and could impersonate them in chat, arena, guild and war mail.
    nameSkeleton folds width (NFKC), case, the common Cyrillic/Greek look-alike letters and punctuation; a new name whose skeleton
@@ -257,6 +258,7 @@ function badNewName(n){ const s=String(n||'');
   if(/\p{M}{2,}/u.test(s)) return 'That name has too many accent marks stacked together.';
   const plain=s.normalize('NFKC').toLowerCase().replace(/[^\p{L}\p{N}]/gu,'');
   if(RESERVED_NAMES.has(plain) || /^guest[0-9a-f]{0,4}$/.test(plain)) return 'That name is reserved — please choose another.';
+  if(CHATF.nameHits(s)) return 'That name is not allowed - please choose another.';   /* v1097 (sweep #18): no slurs or hate terms in player and guild names */
   return ''; }
 function hashPass(pass, salt, iters){ return crypto.pbkdf2Sync(pass, salt, iters||60000, 32, 'sha256').toString('hex'); }
 // AUDIT (26 Aug, high): 60k PBKDF2 is below current guidance. NEW password hashes use 210k iterations
@@ -394,12 +396,14 @@ function linkedUser(gid, name, pass){
    - a newer passAt signs the player out on this server and drops the local password copy, so the old password stops working even
      while Server 1 is down (the next good sign-in through Server 1 stores the new one).
    A ban made on Server 2-4 (/api/dev/ban) is made on the account at Server 1. Guests (no account) keep per-server bans. */
-function acctState(u){ return { until:((u.bannedUntil||0)>Date.now()?u.bannedUntil:0), reason:(u.banReason||''), passAt:(u.passAt||0) }; }
+function acctState(u){ return { until:((u.bannedUntil||0)>Date.now()?u.bannedUntil:0), reason:(u.banReason||''), passAt:(u.passAt||0), by:(u.ban&&u.ban.by)||'' }; }
 function applyAcctState(lu, st){
   if(!lu || !lu.gid || !st) return false; let changed=false; const now=Date.now();
+  if(st.deleted){ deleteAccountData(lu); return true; }   /* v1097: the account was deleted on the account server - this server's player goes too */
   const until=(+st.until>now)?+st.until:0, was=isBanned(lu);
   if(until!==((lu.bannedUntil||0)>now?lu.bannedUntil:0)){ lu.bannedUntil=until; lu.banReason=until?String(st.reason||'').slice(0,200):''; changed=true;
-    if(!was && until){ dropTokens(lu.id); console.log('[account] '+(lu.name||lu.id)+' is suspended on the account server - signed out here'); } }
+    lu.ban=until?{until,permanent:until>=BAN_PERMA_UNTIL,by:String(st.by||'account server').slice(0,60),reason:lu.banReason,at:now}:null;   /* v1097 */
+    if(!was && until){ closeUserSockets(lu.id); console.log('[account] '+(lu.name||lu.id)+' is banned on the account server - banned here too'); } }
   const pa=+st.passAt||0;
   if(lu.passSeenAt===undefined){ lu.passSeenAt=pa; changed=true; }   // first sight of a player linked before v1035: record, do not sign out
   else if(pa>lu.passSeenAt){ dropTokens(lu.id); delete lu.hash; delete lu.salt; delete lu.iters; lu.passSeenAt=pa; changed=true;
@@ -2756,6 +2760,79 @@ function warSideView(m,gid,full,meId){ const s=m.sides[gid]; if(!s) return null;
       assaultsLeft: WAR_ASSAULTS_PER_LINE-((m.assaults||{})[d.memberId]||0) }; }), unplaced:(c===s.citadels[0])?(s.unplaced||[]).length:undefined })) };
 }
 function nameOfUser(id){ const u=DB.users[id]; return u?u.name:'—'; }
+/* v1097 ACCOUNT DELETION (App Store requirement; 9 Oct 2026 full-game sweep #17). One path for the player's own delete
+   (/api/account/delete), the dev panel's (/api/admin/delete) and the account server's (/api/internal/account/delete):
+   - the account object goes, and with it the email, password hash, name, recovery code, ledger and city (the world map and the
+     rankings are built from DB.users, so the castle and the rank go with it); every session is revoked and open sockets close;
+   - the name index, the server link (byGid), the device-guest link, the Vault climb and the account's own request receipts go;
+   - it leaves its guild first (v1012: leadership passes on, an emptied guild is disbanded, join requests are withdrawn);
+   - records OTHER players depend on stay, anonymised to 'Deleted player': guild chat and guild notices, war / Skyfall / watch
+     records, chat history, other players' battle logs, and the player's own bug reports (the device string is dropped);
+   - on Server 1 a tombstone (the bare account id and the time, nothing else) tells Servers 2-5 to delete their linked player at
+     their next status check (acctStatusSync). */
+const DELETED_NAME='Deleted player';
+function _anonWalk(o,tid,oldName,depth){ if(!o||typeof o!=='object'||depth>14) return;
+  if(Array.isArray(o)){ for(const v of o) if(v&&typeof v==='object') _anonWalk(v,tid,oldName,depth+1); return; }
+  let hasId=false; for(const k in o){ if(o[k]===tid){ hasId=true; break; } }
+  for(const k of Object.keys(o)){ const v=o[k];
+    if(hasId&&typeof v==='string'&&v===oldName&&/name|who|from|by|target|opp/i.test(k)&&!/guild/i.test(k)) o[k]=DELETED_NAME;
+    else if(v&&typeof v==='object') _anonWalk(v,tid,oldName,depth+1); } }
+function deleteAccountData(u){
+  if(!u||!u.id) return false; const tid=u.id, oldName=String(u.name||''), now=Date.now();
+  { const gg=u.guildId&&(DB.guilds||{})[u.guildId];   // v1012 (moved from /api/admin/delete)
+    if(gg){ warPoolForget(gg.id); gg.members=(gg.members||[]).filter(x=>x!==tid);
+      if(!gg.members.length){ delete DB.guilds[gg.id]; warDropDeletedGuild(gg.id); }
+      else { gg.log=gg.log||[]; if(gg.leader===tid){ gg.leader=gg.members[0]; gg.log.push({sys:1,tx:nameOfUser(gg.leader)+' is now the guild leader.',t:now}); guildLogCap(gg); } } }
+    for(const og of Object.values(DB.guilds||{})) if(og&&Array.isArray(og.reqs)) og.reqs=og.reqs.filter(r=>r&&r.id!==tid); }
+  const esc=oldName.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), nameRx=oldName?new RegExp('(^|[^\\p{L}\\p{N}])'+esc+'(?=$|[^\\p{L}\\p{N}])','gu'):null;
+  for(const g of Object.values(DB.guilds||{})){ if(!g) continue;
+    for(const e of (Array.isArray(g.log)?g.log:[])){ if(!e) continue;
+      if(e.id===tid){ e.name=DELETED_NAME; delete e.pt; }
+      if(e.sys&&nameRx&&typeof e.tx==='string') e.tx=e.tx.replace(nameRx,(m,a)=>a+DELETED_NAME); } }
+  if(DB.watch) delete DB.watch[tid];
+  for(const k of ['wars','tournaments','watch','worldTreeControl','worldTreeScore','worldTreeFinals']) if(DB[k]) _anonWalk(DB[k],tid,oldName,0);
+  for(const id of Object.keys(DB.users||{})){ const o=DB.users[id]; if(!o||id===tid) continue;
+    if(o.led&&Array.isArray(o.led.blocked)&&o.led.blocked.indexOf(tid)>=0) o.led.blocked=o.led.blocked.filter(x=>x!==tid);
+    if(!o.isNpc) _anonWalk(o,tid,oldName,0); }
+  if(DB.chat) for(const ch of ['world','region']) for(const m of (Array.isArray(DB.chat[ch])?DB.chat[ch]:[])){ if(m&&(m.sid===tid||(!m.sid&&m.who===oldName))){ m.who=DELETED_NAME; delete m.pt; delete m.sid; } }
+  for(const m of _chatRecent){ if(m.sid===tid){ m.who=DELETED_NAME; m.sid=null; } if(m.to===tid) m.to=null; }
+  for(const list of [DB.feedback,DB.reports]) for(const f of (Array.isArray(list)?list:[])){ if(!f) continue;
+    if(f.userId===tid){ f.name=DELETED_NAME; delete f.device; }
+    if(f.chat&&f.chat.senderId===tid){ f.chat.sender=DELETED_NAME; f.chat.senderId=null; }
+    if(f.reporterId===tid){ f.reporterName=DELETED_NAME; f.reporterId=null; }
+    for(const c of (Array.isArray(f.context)?f.context:[])) if(c&&c.senderId===tid){ c.who=DELETED_NAME; c.senderId=null; } }
+  if(DB.dungeonProgress) delete DB.dungeonProgress[tid];
+  if(DB.idem) for(const k of Object.keys(DB.idem)) if(k.startsWith(tid+':')) delete DB.idem[k];
+  if(oldName&&DB.byName[oldName.toLowerCase()]===tid) delete DB.byName[oldName.toLowerCase()];
+  if(u.gid&&DB.byGid&&DB.byGid[u.gid]===tid) delete DB.byGid[u.gid];
+  if(DB.guestByDevice) for(const dk of Object.keys(DB.guestByDevice)) if(DB.guestByDevice[dk]===tid) delete DB.guestByDevice[dk];
+  if(!u.guest&&!u.isNpc&&!ACCOUNT_AUTHORITY){ DB.deletedGids=DB.deletedGids||{}; DB.deletedGids[tid]=now;
+    const ks=Object.keys(DB.deletedGids); if(ks.length>50000) for(const k of ks.slice(0,ks.length-50000)) delete DB.deletedGids[k]; }
+  delete DB.users[tid]; dropTokens(tid);
+  try{ if(typeof WSS!=='undefined'&&WSS) WSS.clients.forEach(c=>{ if(c._uid===tid){ c._uid=null; c._acctName=null; c._chatName=null; try{ c.close(4001,'account deleted'); }catch(e){} } }); }catch(e){}
+  console.log('[account] deleted '+tid);
+  return true; }
+/* v1097 CHAT SAFETY (sweep #18): a player's block list is led.blocked (account ids, at most 200). The server leaves blocked players'
+   lines out of that player's chat history, live chat, whispers and guild chat. Whispers are not stored, so the last 500 are kept in
+   memory for 'report message'. */
+const _chatRecent=[];
+const CHAT_REPORT_REASONS={racism:'Racism',harassment:'Sexual harassment',other:'Other'};
+function chatBlocked(viewerId, senderId){ if(!viewerId||!senderId) return false; const v=DB.users[viewerId]; const bl=v&&v.led&&v.led.blocked;
+  return Array.isArray(bl)&&bl.indexOf(senderId)>=0; }
+/* chatFindMsg also returns up to 10 surrounding lines of the same conversation (5 before, the rest after), for the moderation queue */
+function _chatContext(list, i, map){ const lo=Math.max(0,i-5), hi=Math.min(list.length,lo+11); const from=Math.max(0,Math.min(lo,hi-11));
+  return list.slice(from,hi).filter((x,k)=>from+k!==i).slice(0,10).map(map); }
+function chatFindMsg(mid, me){ mid=String(mid||''); if(!mid) return null;
+  for(const ch of ['world','region']){ const list=(DB.chat&&Array.isArray(DB.chat[ch])?DB.chat[ch]:[]), i=list.findIndex(x=>x&&x.mid===mid);
+    if(i>=0){ const m=list[i]; return {channel:ch,senderId:m.sid||null,sender:m.who,text:m.txt,t:m.t,
+      context:_chatContext(list,i,x=>({who:x.who,senderId:x.sid||null,text:x.txt,t:x.t}))}; } }
+  const wi=_chatRecent.findIndex(x=>x.mid===mid&&me&&(x.to===me.id||x.sid===me.id));
+  if(wi>=0){ const w=_chatRecent[wi], pair=_chatRecent.filter(x=>(x.sid===w.sid&&x.to===w.to)||(x.sid===w.to&&x.to===w.sid)), pi=pair.indexOf(w);
+    return {channel:'whisper',senderId:w.sid||null,sender:w.who,text:w.txt,t:w.t,context:_chatContext(pair,pi,x=>({who:x.who,senderId:x.sid||null,text:x.txt,t:x.t}))}; }
+  const g=me&&me.guildId&&(DB.guilds||{})[me.guildId], gl=(g&&Array.isArray(g.log))?g.log:[], gi=gl.findIndex(x=>x&&!x.sys&&x.mid===mid);
+  if(gi>=0){ const e=gl[gi]; return {channel:'guild',senderId:e.id||null,sender:e.name,text:e.tx,t:e.t,
+    context:_chatContext(gl,gi,x=>({who:x.sys?'(guild notice)':x.name,senderId:x.id||null,text:x.tx,t:x.t}))}; }
+  return null; }
 function warMatchView(t,m,meGid,meId){
   const preReveal=m.state==='planning' && warNow()<(m.revealAt||0);   // AUDIT: opponent hidden until the round's planning opens (v728: Tue+ 02:00 ET)
   const v={ id:m.id, round:WAR_ROUND_NAMES[m.roundIndex], state:m.state,
@@ -2835,7 +2912,8 @@ const RESOURCE_ALARMS = Object.freeze({
   gems: {window:2000, day:20000}, gold: {window:5000000, day:50000000},
   frags: {window:300, day:1500}, stamina: {window:300, day:1500},
 });
-const BAN_DAYS_ALLOWED = [1, 7, 30];
+const BAN_DAYS_ALLOWED = [1, 7, 14, 28];   /* v1097 (Phil 9 Oct): 1, 7, 14, 28 days or permanent */
+const BAN_PERMA_UNTIL = 253402300799000;   // 31 Dec 9999: a permanent ban is a ban that never runs out
 
 function devReport(u, kind, amount, detail){
   const DB=worldPlanningDB();
@@ -2982,8 +3060,25 @@ function gemAudit(u, days){
 
 function banInfo(u){
   const until = u.bannedUntil || 0;
-  return until > Date.now() ? { until, daysLeft: Math.ceil((until - Date.now())/86400000), reason: u.banReason || '' } : null;
+  if(!(until > Date.now())) return null;   // an expired ban lifts itself
+  const permanent = until >= BAN_PERMA_UNTIL;
+  return { until, permanent, daysLeft: permanent ? null : Math.ceil((until - Date.now())/86400000), reason: u.banReason || '',
+           by: (u.ban && u.ban.by) || '', at: (u.ban && u.ban.at) || 0 };
 }
+function banDate(t){ try{ return new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(t))+' ET'; }catch(e){ return new Date(t).toISOString(); } }
+function banText(u){ const b=banInfo(u); return !b ? '' : b.permanent ? 'Account banned permanently.' : 'Account banned until '+banDate(b.until)+'.'; }
+function banResp(u){ const b=banInfo(u)||{}; return { error:banText(u), banned:true, until:b.until||0, permanent:!!b.permanent, reason:b.reason||'' }; }
+/* v1097 (Phil 9 Oct: "please change delete to ban ... 1,7,14,28 days or permanent"). One place sets and lifts a ban:
+   user.bannedUntil (what every gate reads) + user.ban {until, permanent, by, reason, at} + the ban log. The player's sessions are kept so
+   every call answers "Account banned until <date>" (403) instead of a silent sign-out; their open sockets are closed. */
+function closeUserSockets(id){ try{ if(typeof WSS!=='undefined'&&WSS) WSS.clients.forEach(c=>{ if(c._uid===id){ c._uid=null; c._acctName=null; c._chatName=null; try{ c.close(4003,'signed out'); }catch(e){} } }); }catch(e){} }
+function setBan(u, o){ const now=Date.now(), permanent=!!o.permanent, until=permanent?BAN_PERMA_UNTIL:now+(o.days|0)*86400000;
+  u.bannedUntil=until; u.banReason=String(o.reason||'').slice(0,200);
+  u.ban={until,permanent,by:String(o.by||'').slice(0,60),reason:u.banReason,at:now};
+  u.banLog=Array.isArray(u.banLog)?u.banLog:[]; u.banLog.push({t:now,days:permanent?'permanent':(o.days|0),by:u.ban.by,reason:u.banReason}); if(u.banLog.length>50) u.banLog=u.banLog.slice(-50);
+  closeUserSockets(u.id); }
+function liftBan(u, by){ u.bannedUntil=0; u.banReason=''; u.ban=null;
+  u.banLog=Array.isArray(u.banLog)?u.banLog:[]; u.banLog.push({t:Date.now(),lift:true,by:String(by||'').slice(0,60)}); if(u.banLog.length>50) u.banLog=u.banLog.slice(-50); }
 function isBanned(u){ return !!(u && (u.bannedUntil||0) > Date.now()); }
 
 function ensureLedger(u){
@@ -4505,6 +4600,7 @@ async function api(req,res,url){
     DB.guestByDevice = DB.guestByDevice || {};
     let u = deviceId && DB.guestByDevice[deviceId] && DB.users[DB.guestByDevice[deviceId]];
     if(u && !u.guest){ u=null; if(deviceId) delete DB.guestByDevice[deviceId]; }   // was upgraded to a real account → make a fresh guest
+    if(u && isBanned(u)) return send(res,403,banResp(u));   /* v1097: a banned guest is not resumed */
     if(!u){
       // 30 Sep 2026 hardening: 20/min per IP still allowed ~28,800 real accounts a day per IP (each a full DB write).
       if(rateLimited(req,'guestday',15,86400000)) return send(res,429,{error:'Too many new guest accounts from this network today.'});
@@ -4546,18 +4642,25 @@ async function api(req,res,url){
       return send(res,r.status,r.body); }
     // v1035: the satellites' once-a-minute check - ban and password-change time of the accounts they hold sessions for
     if(p==='/api/internal/account/status'){ const gids=Array.isArray(b.gids)?b.gids.slice(0,500):[]; const states={};
-      for(const g of gids){ const u=DB.users[String(g)]; if(u && !u.isNpc && !u.guest) states[String(g)]=acctState(u); }
+      for(const g of gids){ const u=DB.users[String(g)]; if(u && !u.isNpc && !u.guest) states[String(g)]=acctState(u); else if(!u && DB.deletedGids && DB.deletedGids[String(g)]) states[String(g)]={deleted:true}; }   /* v1097: tombstone */
       return send(res,200,{ states }); }
+    // v1097: a player deleting their account on Server 2-5 deletes the game-wide account here (the satellite checked the password)
+    if(p==='/api/internal/account/delete'){ const g=String(b.gid||''), u=DB.users[g];
+      if(!u) return send(res,200,{ ok:true, gone:true });
+      if(u.isNpc || u.guest) return send(res,404,{error:'No such account.'});
+      if(isDev(u)) return send(res,400,{error:'That account is an admin.'});
+      deleteAccountData(u);
+      if(writeDBNow()===false) return send(res,503,{ok:false,storageFailed:true,error:'Save failed - try again.'});
+      return send(res,200,{ ok:true }); }
     // v1035: a ban made on Server 2-4 is made on the account here
     if(p==='/api/internal/account/ban'){ const u=DB.users[String(b.gid||'')];
       if(!u || u.isNpc || u.guest) return send(res,404,{error:'No such account.'});
       if(isDev(u)) return send(res,400,{error:'That account is an admin.'});
-      if(b.lift){ u.bannedUntil=0; u.banReason=''; writeDB(); console.log('[account] ban lifted on '+(u.name||u.id)+' from '+String(b.by||'a server'));
+      if(b.lift){ liftBan(u, b.by||'a server'); writeDB(); console.log('[account] ban lifted on '+(u.name||u.id)+' from '+String(b.by||'a server'));
         return send(res,200,{ ok:true, st:acctState(u) }); }
-      const days=parseInt(b.days,10); if(BAN_DAYS_ALLOWED.indexOf(days)<0) return send(res,400,{error:'Ban length must be 1, 7 or 30 days.'});
-      u.bannedUntil=Date.now()+days*86400000; u.banReason=String(b.reason||'').slice(0,200);
-      u.banLog=Array.isArray(u.banLog)?u.banLog:[]; u.banLog.push({t:Date.now(),days,by:String(b.by||'a server').slice(0,60),reason:u.banReason});
-      dropTokens(u.id); writeDB(); console.log('⛔ '+String(b.by||'a server')+' banned '+(u.name||u.id)+' for '+days+' day(s) (account-wide)');
+      const days=parseInt(b.days,10); if(!b.permanent && BAN_DAYS_ALLOWED.indexOf(days)<0) return send(res,400,{error:'Ban length must be 1, 7, 14 or 28 days, or permanent.'});
+      setBan(u,{days,permanent:!!b.permanent,reason:b.reason,by:b.by||'a server'}); writeDB();
+      console.log('[account] '+String(b.by||'a server')+' banned '+(u.name||u.id)+(b.permanent?' permanently':' for '+days+' day(s)')+' (account-wide)');
       return send(res,200,{ ok:true, st:acctState(u) }); }
     return send(res,404,{error:'not found'}); }
 
@@ -4595,6 +4698,7 @@ async function api(req,res,url){
       const name=String(b.name||'').trim(), r=await authorityCall('/api/internal/account/verify',{ name, pass:b.pass, ip:clientIP(req) });   /* v1007 (re-audit Account N3): the player's IP, so the lockout is per player, not per satellite */
       if(r && r.status===200 && r.body && r.body.gid){ const u=linkedUser(r.body.gid, r.body.name, b.pass); delete u.loginFails;
         if(r.body.st){ u.passSeenAt=+r.body.st.passAt||0; applyAcctState(u, r.body.st); }   // v1035: the password was just checked - current
+        if(isBanned(u)){ writeDB(); return send(res,403,banResp(u)); }   /* v1097: a banned account does not sign in */
         dropTokens(u.id); const tok=issueToken(u.id); writeDB(); return send(res,200,{ token:tok, profile:profileFor(u) }); }
       if(r) return send(res, r.status===429?429:401, {error:(r.body&&r.body.error)||'Wrong name or password'});
       // the account server did not answer: a player who has signed in here before can still get in with the local copy
@@ -4604,6 +4708,7 @@ async function api(req,res,url){
     const r=acctVerify(b.name, b.pass, clientIP(req));
     if(!r.u){ writeDB(); return send(res,r.status,{error:r.error}); }
     const u=r.u, id=u.id;
+    if(isBanned(u)){ writeDB(); return send(res,403,banResp(u)); }   /* v1097: a banned account does not sign in */
     dropTokens(id);   // single session: signing in here kicks any other device
     const tok=issueToken(id); writeDB(); return send(res,200,{ token:tok, profile:profileFor(u) }); }
 
@@ -4623,10 +4728,13 @@ async function api(req,res,url){
       const r=await authorityCall('/api/internal/account/reset-verify',{ name:b.name, code:b.code, newPass:b.newPass, ip:clientIP(req) });
       if(!r) return send(res,503,{error:'Accounts are unreachable right now - try again in a minute.'});
       if(r.status!==200 || !r.body || !r.body.gid) return send(res,r.status||400,{error:(r.body&&r.body.error)||'Reset failed.'});
-      const lu=linkedUser(r.body.gid, r.body.name, b.newPass); if(r.body.st){ lu.passSeenAt=+r.body.st.passAt||0; applyAcctState(lu, r.body.st); } dropTokens(lu.id); const tok=issueToken(lu.id); writeDB();
+      const lu=linkedUser(r.body.gid, r.body.name, b.newPass); if(r.body.st){ lu.passSeenAt=+r.body.st.passAt||0; applyAcctState(lu, r.body.st); } dropTokens(lu.id);
+      if(isBanned(lu)){ writeDB(); return send(res,403,banResp(lu)); }   /* v1097 */
+      const tok=issueToken(lu.id); writeDB();
       return send(res,200,{ ok:true, token:tok, profile:profileFor(lu) }); }
     const r=acctResetVerify(b.name, b.code, b.newPass, clientIP(req));
     if(!r.u) return send(res,r.status,{error:r.error});
+    if(isBanned(r.u)){ writeDB(); return send(res,403,banResp(r.u)); }   /* v1097: the new password is set; a banned account still does not sign in */
     const tok=issueToken(r.u.id); writeDB();   // invalidate other sessions (done in acctResetVerify), sign this one in
     return send(res,200,{ ok:true, token:tok, profile:profileFor(r.u) }); }
 
@@ -4637,10 +4745,8 @@ async function api(req,res,url){
      Nothing is rolled back and nothing is deleted: the account simply cannot act until the ban
      expires, and it expires on its own. Reading who you are is still allowed so the client can show
      the player why they are locked out and until when. */
-  if(me && isBanned(me) && !/^\/api\/(me|logout|login|ledger)$/.test(p)){
-    const b=banInfo(me);
-    return send(res,403,{ error:'This account is suspended for '+b.daysLeft+' more day'+(b.daysLeft===1?'':'s')+'.',
-                          banned:true, until:b.until, reason:b.reason });
+  if(me && isBanned(me) && !/^\/api\/(logout|account\/delete)$/.test(p)){   /* v1097 (Phil 9 Oct): every authenticated route answers "Account banned until <date>" / "permanently"; a banned player can still delete their account */
+    return send(res,403,banResp(me));
   }
 
   /* ---- INTEGRITY DESK (dev only): reports in, a week of a player's diamonds to read, ban out.
@@ -4659,30 +4765,37 @@ async function api(req,res,url){
     const days=Math.max(1,Math.min(30,parseInt(url.searchParams.get('days')||'7',10)));
     return send(res,200, gemAudit(u,days)); }
 
-  if(p==='/api/dev/ban' && req.method==='POST'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
-    const b=await body(req); const u=DB.users[String(b.id||'')];
-    if(!u) return send(res,404,{error:'no such account'});
-    if(isDev(u)) return send(res,400,{error:'That account is an admin.'});
+  /* v1097 (Phil 9 Oct): the admin bans 1 / 7 / 14 / 28 days or permanently, and unbans. /api/admin/ban {playerId, days|permanent,
+     reason, requestId} and /api/admin/unban {playerId, requestId} are admin-only and keep a receipt per requestId; /api/dev/ban
+     (the Integrity desk's older call) runs the same code. On Servers 2-5 a linked player is banned on the account at Server 1 (v1035). */
+  async function adminBan(b, lift){
+    const u=DB.users[String(b.playerId||b.id||'')];
+    if(!u||u.isNpc) return {status:404,body:{error:'no such account'}};
+    if(isDev(u)) return {status:400,body:{error:'That account is an admin.'}};
+    const permanent=!lift&&(b.permanent===true||b.days==='permanent'), days=parseInt(b.days,10);
+    if(!lift&&!permanent&&BAN_DAYS_ALLOWED.indexOf(days)<0) return {status:400,body:{error:'Ban length must be 1, 7, 14 or 28 days, or permanent.'}};
+    const by=(me.name||me.id)+(ACCOUNT_AUTHORITY?' on '+(process.env.SERVER_NAME||'a server'):'');
+    const tag=lift?'unban':(permanent?'ban:permanent':'ban:'+days+'d');
     if(ACCOUNT_AUTHORITY && u.gid){   // v1035: account-wide - the ban (or the lift) is made on the account at Server 1
-      const r=await authorityCall('/api/internal/account/ban',{ gid:u.gid, days:b.days, reason:b.reason, lift:!!b.lift, by:(me.name||me.id)+' on '+(process.env.SERVER_NAME||'a server') });
-      if(!r) return send(res,503,{error:'Accounts are unreachable right now - try again in a minute.'});
-      if(r.status!==200 || !r.body || !r.body.st) return send(res,r.status||400,{error:(r.body&&r.body.error)||'Ban failed.'});
-      applyAcctState(u, r.body.st); if(isBanned(u)) dropTokens(u.id);
-      if(!b.lift && b.reportId){ const rp=(DB.reports||[]).find(x=>x.id===b.reportId); if(rp){ rp.resolved=true; rp.action='ban:'+parseInt(b.days,10)+'d'; } }
-      writeDB(); return send(res,200,{ ok:true, banned:banInfo(u), name:u.name, accountWide:true }); }
-    const days=parseInt(b.days,10);
-    if(b.lift){ u.bannedUntil=0; u.banReason=''; writeDB();
-      return send(res,200,{ok:true, banned:null, name:u.name}); }
-    if(BAN_DAYS_ALLOWED.indexOf(days)<0) return send(res,400,{error:'Ban length must be 1, 7 or 30 days.'});
-    u.bannedUntil=Date.now()+days*86400000;
-    u.banReason=String(b.reason||'').slice(0,200);
-    u.banLog=Array.isArray(u.banLog)?u.banLog:[];
-    u.banLog.push({t:Date.now(),days,by:me.name||me.id,reason:u.banReason});
-    dropTokens(u.id);                       // sign them out of every device immediately
-    if(b.reportId){ const r=(DB.reports||[]).find(x=>x.id===b.reportId); if(r){ r.resolved=true; r.action='ban:'+days+'d'; } }
-    writeDB();
-    console.log('⛔ '+(me.name||me.id)+' banned '+(u.name||u.id)+' for '+days+' day(s)');
-    return send(res,200,{ok:true, banned:banInfo(u), name:u.name}); }
+      const r=await authorityCall('/api/internal/account/ban',{ gid:u.gid, days, permanent, reason:b.reason, lift:!!lift, by });
+      if(!r) return {status:503,body:{error:'Accounts are unreachable right now - try again in a minute.'}};
+      if(r.status!==200 || !r.body || !r.body.st) return {status:r.status||400,body:{error:(r.body&&r.body.error)||'Ban failed.'}};
+      applyAcctState(u, r.body.st); if(isBanned(u)) closeUserSockets(u.id);
+    } else if(lift) liftBan(u, me.name||me.id);
+    else setBan(u,{days,permanent,reason:b.reason,by:me.name||me.id});
+    if(!lift && b.reportId){ const rp=(DB.reports||[]).find(x=>x.id===String(b.reportId)); if(rp){ rp.resolved=true; rp.action=tag; } }
+    console.log('[ban] '+(me.name||me.id)+' '+tag+' '+(u.name||u.id));
+    return {status:200,body:{ ok:true, banned:banInfo(u), name:u.name, accountWide:!!(ACCOUNT_AUTHORITY&&u.gid) }}; }
+  if((p==='/api/admin/ban'||p==='/api/admin/unban') && req.method==='POST'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
+    const b=await body(req); const rid=String(b.requestId||'').slice(0,48); if(!rid) return send(res,400,{error:'requestId required'});
+    DB.idem=DB.idem||{}; const key=me.id+':aban:'+rid, prev=DB.idem[key];
+    if(prev&&Date.now()-prev.t<=3600000) return send(res,prev.status||200,prev.resp);
+    const out=await adminBan(b, p==='/api/admin/unban');
+    if(out.status===200){ DB.idem[key]={t:Date.now(),resp:out.body,status:200}; if(writeDBNow()===false) return send(res,503,{ok:false,storageFailed:true,error:'Save failed - try again.'}); }
+    return send(res,out.status,out.body); }
+  if(p==='/api/dev/ban' && req.method==='POST'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
+    const b=await body(req); const out=await adminBan(b, !!b.lift);
+    if(out.status===200) writeDB(); return send(res,out.status,out.body); }
 
   if(p==='/api/dev/report-clear' && req.method==='POST'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
     const b=await body(req); const r=(DB.reports||[]).find(x=>x.id===String(b.id||''));
@@ -4702,11 +4815,11 @@ async function api(req,res,url){
   if(p==='/api/admin/online'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
     const cutoff=Date.now()-5*60000;
     const online=Object.values(DB.users).filter(u=>!u.isNpc && (u.lastSeen||0)>=cutoff)
-      .sort((a,b)=>(b.lastSeen||0)-(a.lastSeen||0)).map(u=>({id:u.id,name:u.name,rank:u.rank,lastSeen:u.lastSeen||0,created:u.created||0,mustReset:!!u.mustReset,email:u.email||'',flag:u.flag||null}));
+      .sort((a,b)=>(b.lastSeen||0)-(a.lastSeen||0)).map(u=>({id:u.id,name:u.name,rank:u.rank,lastSeen:u.lastSeen||0,created:u.created||0,mustReset:!!u.mustReset,email:u.email||'',flag:u.flag||null,ban:banInfo(u)}));
     return send(res,200,{online, count:online.length}); }
   if(p==='/api/admin/accounts'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
     const accounts=Object.values(DB.users).filter(u=>!u.isNpc)
-      .sort((a,b)=>(b.created||0)-(a.created||0)).map(u=>({id:u.id,name:u.name,rank:u.rank,created:u.created||0,lastSeen:u.lastSeen||0,mustReset:!!u.mustReset,email:u.email||'',flag:u.flag||null}));
+      .sort((a,b)=>(b.created||0)-(a.created||0)).map(u=>({id:u.id,name:u.name,rank:u.rank,created:u.created||0,lastSeen:u.lastSeen||0,mustReset:!!u.mustReset,email:u.email||'',flag:u.flag||null,ban:banInfo(u)}));
     return send(res,200,{accounts, count:accounts.length}); }
   // admin: arm-recovery is RETIRED (audit crit #1). It used to set u.mustReset, which let the next
   // login bypass the password check — an account-takeover primitive. Recovery is now the verified
@@ -4754,16 +4867,9 @@ async function api(req,res,url){
     const b=await body(req); const tid=b.id||DB.byName[(b.name||'').trim().toLowerCase()]; const u=tid&&DB.users[tid];
     if(!u||u.isNpc) return send(res,404,{error:'account not found'});
     if(isDev(u)) return send(res,400,{error:'cannot delete a dev account'});
-    /* v1012 (re-audit Guild #5): the account leaves its guild first - it stayed a ghost member, and a deleted LEADER froze the
-       guild (nobody could transfer, kick or disband). Leadership passes to the longest-standing member; an emptied guild is
-       disbanded as /api/guild/leave does; pending join requests from the account are withdrawn. */
-    { const gg=u.guildId&&(DB.guilds||{})[u.guildId];
-      if(gg){ warPoolForget(gg.id); gg.members=(gg.members||[]).filter(x=>x!==tid);
-        if(!gg.members.length){ delete DB.guilds[gg.id]; warDropDeletedGuild(gg.id); }
-        else { gg.log=gg.log||[]; if(gg.leader===tid){ gg.leader=gg.members[0]; gg.log.push({sys:1,tx:nameOfUser(gg.leader)+' is now the guild leader.',t:Date.now()}); guildLogCap(gg); } } }
-      for(const og of Object.values(DB.guilds||{})) if(og&&Array.isArray(og.reqs)) og.reqs=og.reqs.filter(r=>r&&r.id!==tid); }
-    delete DB.byName[(u.name||'').toLowerCase()]; delete DB.users[tid]; dropTokens(tid);
-    writeDB(); return send(res,200,{ok:true, name:u.name}); }
+    /* v1012 (re-audit Guild #5) guild exit and v1097 personal-data removal: one shared path, deleteAccountData() */
+    const _nm=u.name; deleteAccountData(u);
+    writeDB(); return send(res,200,{ok:true, name:_nm}); }
   // admin: grant / take 2000 diamonds (edits the player's cloud save; forces them to reload it)
   if((p==='/api/admin/grant'||p==='/api/admin/take') && req.method==='POST'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
     const b=await body(req); const tid=b.id||DB.byName[(b.name||'').trim().toLowerCase()]; const u=tid&&DB.users[tid];
@@ -4777,6 +4883,83 @@ async function api(req,res,url){
     const bt = req.headers['x-backup-token'] || '';   /* v1010 (re-audit Account N11): header only - a token in the URL lands in proxy and access logs (no caller used ?token=: checked the repo, the archive and the three servers' cron/systemd) */
     if(!backupTokenValid(bt) && (!me||!isDev(me))) return send(res,403,{error:'forbidden'});
     backupDB(); return send(res,200, DB); }
+  /* v1097 (sweep #17): the player deletes their own account. Typed confirmation (DELETE or the account name) plus the password
+     when the account has one (checked by Server 1 for a linked player). A requestId makes a retry after a lost reply answer
+     'deleted' instead of 401. On Servers 2-5 the game-wide account is deleted on Server 1 first. */
+  if(p==='/api/account/delete' && req.method==='POST'){ const b=await body(req);
+    const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
+    DB.idem=DB.idem||{}; const rk='acctdel:'+reqId, prev=DB.idem[rk];
+    if(prev&&Date.now()-prev.t<=3600000&&prev.resp&&prev.resp.ok) return send(res,200,prev.resp);
+    if(!me) return send(res,401,{error:'auth'});
+    if(rateLimited(req,'acctdel',10,60000)) return send(res,429,{error:'Too many attempts - wait a minute and try again.'});
+    if(me.isNpc) return send(res,404,{error:'account not found'});
+    if(isDev(me)) return send(res,400,{error:'A developer account cannot be deleted here.'});
+    const conf=String(b.confirm||'').trim();
+    if(!(conf==='DELETE'||(me.name&&conf.toLowerCase()===String(me.name).toLowerCase()))) return send(res,400,{error:'Type DELETE or your account name to confirm.',needConfirm:true});
+    const hasPass=!me.guest&&(!!me.hash||!!me.gid);
+    if(hasPass&&!String(b.pass||'')) return send(res,400,{error:'Enter your password.',needPass:true});
+    if(ACCOUNT_AUTHORITY&&me.gid){
+      const r=await authorityCall('/api/internal/account/verify',{ name:me.name, pass:b.pass, ip:clientIP(req) });
+      if(!r) return send(res,503,{error:'Accounts are unreachable right now - try again in a minute.'});
+      if(r.status!==200||!r.body||r.body.gid!==me.gid) return send(res,r.status===429?429:403,{error:r.status===429?((r.body&&r.body.error)||'Too many attempts.'):'Wrong password.',needPass:true});
+      const d=await authorityCall('/api/internal/account/delete',{ gid:me.gid });
+      if(!d||d.status!==200) return send(res,503,{error:(d&&d.body&&d.body.error)||'Accounts are unreachable right now - try again in a minute.'});
+    } else if(hasPass){
+      const r=acctVerify(me.name, b.pass, clientIP(req));
+      if(!r.u||r.u.id!==me.id){ writeDB(); return send(res,r.status===429?429:403,{error:r.status===429?r.error:'Wrong password.',needPass:true}); }
+    }
+    if(DB.users[me.id]) deleteAccountData(DB.users[me.id]);
+    const resp={ok:true,deleted:true}; DB.idem[rk]={t:Date.now(),resp};
+    if(writeDBNow()===false) return send(res,503,{ok:false,storageFailed:true,error:'Save failed - try again.'});
+    return send(res,200,resp); }
+  /* v1097 (sweep #18): block / unblock a player (by name, or by a chat line's id) and 'report message' */
+  if(p==='/api/chat/blocks' && req.method==='GET'){ if(!me) return send(res,401,{error:'auth'});
+    const bl=(me.led&&Array.isArray(me.led.blocked))?me.led.blocked:[];
+    return send(res,200,{ok:true,blocked:bl.filter(id=>DB.users[id]).map(id=>({id,name:DB.users[id].name}))}); }
+  if((p==='/api/chat/block'||p==='/api/chat/unblock') && req.method==='POST'){ if(!me) return send(res,401,{error:'auth'});
+    if(rateLimited(req,'chatblock',30,60000)) return send(res,429,{error:'Slow down.'});
+    const b=await body(req); let tid=null;
+    if(b.mid){ const f=chatFindMsg(b.mid,me); tid=f&&f.senderId; }
+    if(!tid&&b.id&&DB.users[String(b.id)]) tid=String(b.id);
+    if(!tid&&b.name) tid=DB.byName[String(b.name).trim().toLowerCase()]||null;
+    const led=ensureLedger(me); led.blocked=Array.isArray(led.blocked)?led.blocked:[];
+    if(p==='/api/chat/unblock'){ if(tid) led.blocked=led.blocked.filter(x=>x!==tid); }
+    else { const t=tid&&DB.users[tid];
+      if(!t||t.isNpc) return send(res,404,{error:'Player not found.'});
+      if(tid===me.id) return send(res,400,{error:'You cannot block yourself.'});
+      if(led.blocked.indexOf(tid)<0){ if(led.blocked.length>=200) return send(res,400,{error:'Your block list is full (200).'}); led.blocked.push(tid); } }
+    if(writeDBNow()===false) return send(res,503,{ok:false,storageFailed:true,error:'Save failed - try again.'});
+    return send(res,200,{ok:true,blocked:led.blocked.filter(id=>DB.users[id]).map(id=>({id,name:DB.users[id].name}))}); }
+  if(p==='/api/chat/report' && req.method==='POST'){ if(!me) return send(res,401,{error:'auth'});
+    if(rateLimited(req,'report',12,60000)) return send(res,429,{error:'Too many reports — wait a minute.'});   // the same limits as /api/report
+    if(!isDev(me)&&rateLimited(req,'reportDay',100,86400000)) return send(res,429,{error:'Too many reports today.'});
+    /* Phil 9 Oct: "when someone is reported for racism or sexual harassment it will be brought to me to see if they deserve a ban".
+       racism / harassment -> DB.reports (the dev panel's report list and the Integrity desk, where Ban is), high priority, with the
+       full text, sender id, channel, time and 10 surrounding lines; other -> the feedback inbox. */
+    const b=await body(req); const reason=String(b.reason||''); if(!CHAT_REPORT_REASONS[reason]) return send(res,400,{error:'Choose a reason: racism, sexual harassment or other.'});
+    const f=chatFindMsg(b.mid,me);
+    if(!f) return send(res,404,{error:'That message is no longer available.'});
+    const mid=String(b.mid).slice(0,40), mod=reason!=='other';
+    const dup=(mod?(Array.isArray(DB.reports)?DB.reports:[]).find(x=>x&&x.kind==='moderation'&&x.reporterId===me.id&&x.chat&&x.chat.mid===mid)
+      :(Array.isArray(DB.feedback)?DB.feedback:[]).find(x=>x&&x.kind==='chat'&&x.userId===me.id&&x.chat&&x.chat.mid===mid));
+    if(dup) return send(res,200,{ok:true,id:dup.id,already:true});
+    const chat={mid,channel:f.channel,senderId:f.senderId,sender:f.sender,text:f.text,t:f.t||0};
+    if(mod){
+      const item={id:uid(),t:Date.now(),kind:'moderation',priority:'high',reason,reasonLabel:CHAT_REPORT_REASONS[reason],
+        userId:f.senderId||null,name:f.sender||'?',reporterId:me.id,reporterName:me.name,
+        detail:(CHAT_REPORT_REASONS[reason]+' report ('+f.channel+'): '+(f.text||'')).slice(0,300),
+        text:(CHAT_REPORT_REASONS[reason]+' report by '+me.name+' ('+f.channel+') - '+(f.sender||'?')+': '+(f.text||'')).slice(0,2000),
+        chat,context:f.context||[],resolved:false,action:null};
+      DB.reports=Array.isArray(DB.reports)?DB.reports:[]; DB.reports.push(item); if(DB.reports.length>1000) DB.reports=DB.reports.slice(-1000);
+      if(writeDBNow()===false) return send(res,503,{ok:false,storageFailed:true,error:'Save failed - try again.'});
+      return send(res,200,{ok:true,id:item.id,queue:'moderation'}); }
+    const item={id:'FB-'+uid(),userId:me.id,name:me.name,kind:'chat',
+      text:('Chat report ('+f.channel+') - '+(f.sender||'?')+': '+(f.text||'')).slice(0,2000),
+      chat,meta:'other',t:Date.now(),received:false,
+      build:localBuildId(),level:ledPlayerLevel(ensureLedger(me)),screen:'chat',device:String(req.headers['user-agent']||'').slice(0,120)};
+    feedbackAppend(item);
+    if(writeDBNow()===false) return send(res,503,{ok:false,storageFailed:true,error:'Save failed - try again.'});
+    return send(res,200,{ok:true,id:item.id,queue:'feedback'}); }
   // Player feedback has its own durable inbox; balance-bot reports stay in the admin report list.
   if(p==='/api/report' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     if(rateLimited(req,'report',12,60000)) return send(res,429,{error:'Too many reports — wait a minute.'});
@@ -8496,7 +8679,7 @@ async function api(req,res,url){
         members:mem, count:mem.length, youLeader,
         requests: youLeader ? (g.reqs||[]).map(r=>({id:r.id,name:nameOf(r.id),rank:rankOf(r.id),t:r.t})) : [],
         pendingReqCount:(g.reqs||[]).length,
-        log:(g.log||[]).filter(e=>e.sys||!e.t||(Date.now()-e.t)<6*3600000).slice(-60) };   // guild CHAT messages disappear after 6h (system notices kept)
+        log:(g.log||[]).filter(e=>e.sys||!e.t||(Date.now()-e.t)<6*3600000).filter(e=>e.sys||!chatBlocked(me.id,e.id)).slice(-60) };   /* v1097: blocked players hidden */   // guild CHAT messages disappear after 6h (system notices kept)
     }
     // ---- reads ----
     // ---- shared Guild Raid boss helpers ----
@@ -8693,11 +8876,11 @@ async function api(req,res,url){
     if(p==='/api/guild/chat'){ if(!g) return send(res,400,{error:'You are not in a guild.'});
       if(rateLimited(req,'gchat',25,60000)) return send(res,429,{error:'Slow down.'});
       const tx=(b.tx||'').toString().replace(/[<>]/g,'').slice(0,200).trim(); if(!tx) return send(res,200,{ok:true});
-      g.log=g.log||[]; const gm={id:me.id,name:me.name,tx,t:Date.now()}; { const pt=patronChatTag(ensureLedger(me)); if(pt) gm.pt=pt; }   /* v1093 */
+      g.log=g.log||[]; const gm={id:me.id,name:me.name,tx,t:Date.now(),mid:uid()}; { const pt=patronChatTag(ensureLedger(me)); if(pt) gm.pt=pt; }   /* v1093 */
       try{ if(b.battle && typeof b.battle==='object'){ const s=JSON.stringify(b.battle); if(s.length<=8000) gm.battle=JSON.parse(s); } }catch(e){}   // optional shared-replay chip
       if(gm.battle){ const c=chatChipOk(gm.battle); if(c) gm.battle=c; else delete gm.battle; }   /* v1002 oppName; v1013 (N12) the whole chip shape */
       g.log.push(gm); if(g.log.length>100)g.log=g.log.slice(-100);
-      writeDB(); return send(res,200,{ ok:true, log:g.log.slice(-60) }); }
+      writeDB(); return send(res,200,{ ok:true, log:g.log.filter(e=>e&&(e.sys||!chatBlocked(me.id,e.id))).slice(-60) }); }   /* v1097: blocked players hidden */
 
     if(p==='/api/guild/contribute'){ if(!g) return send(res,400,{error:'You are not in a guild.'}); if(ledPlayerLevel(ensureLedger(me))<13) return send(res,400,{error:'The Guild Hall opens at level 13.'});   /* v1087 (scan 8 #1): the client's building lock was the only gate */
       if(rateLimited(req,'gcontrib',80,60000)) return send(res,429,{error:'Slow down.'});
@@ -9042,7 +9225,8 @@ const CHAT_KEEP=100, CHAT_AGE_MS=6*3600000;
   function pruneChat(ch){ const now=Date.now(), st=chatStore(); let a=st[ch].filter(m=>!m.t||(now-m.t)<CHAT_AGE_MS); if(a.length>CHAT_KEEP)a=a.slice(a.length-CHAT_KEEP); st[ch]=a; return a; }
   /* v1013 (re-audit Account N12): only sockets that joined chat and (with WS_AUTH_REQUIRED) are signed in receive it - every open
      socket did, including unauthenticated ones and a banned account's (it has no socket identity since v999). */
-  const chatBroadcast = (o,except)=>{ const j=JSON.stringify(o); WSS.clients.forEach(c=>{ try{ if(c!==except && c.readyState===1 && c._chatName && (!WS_AUTH_REQUIRED || c._uid)) c.send(j); }catch(e){} }); };
+  const chatBroadcast = (o,except,sid)=>{ const j=JSON.stringify(o); WSS.clients.forEach(c=>{ try{ if(c!==except && c.readyState===1 && c._chatName && (!WS_AUTH_REQUIRED || c._uid) && !chatBlocked(c._uid,sid)) c.send(j); }catch(e){} }); };   /* v1097: a player who blocked the sender does not get the line */
+  const chatHistFor = (ws,a)=>a.filter(m=>m&&!chatBlocked(ws._uid,m.sid)).map(m=>({who:m.who,txt:m.txt,t:m.t,pt:m.pt||undefined,battle:m.battle||undefined,mid:m.mid||undefined}));   /* v1097: the per-player history - blocked senders left out, sender ids never sent */
   /* 30 Sep 2026 hardening: no cap on sockets meant one machine could open thousands, and half-open ones were never
      dropped. At most 20 per IP (a household on one router still fits); a 30 s ping drops sockets that stop answering. */
   const _wsPerIp=new Map(), WS_PER_IP=20;   // 20 not 12: a home shares one IP (Phil's house runs the game + Ember's tester)
@@ -9098,24 +9282,26 @@ const CHAT_KEEP=100, CHAT_AGE_MS=6*3600000;
         /* v1083 (scan 5 #2): the history (up to ~1.6 MB with replay chips) at most once per 30 s per socket and 10 s per account */
         { const now=Date.now(), ak=ws._uid||('ip:'+(ws._ipKey||''));
           if((ws._chatJoinAt&&now-ws._chatJoinAt<30000)||(_chatJoinAcct[ak]&&now-_chatJoinAcct[ak]<10000)){   /* v1085 (scan 6 #7): a reload / second tab still sees recent chat */
-            const lite=a=>a.slice(-20).map(m=>({who:m.who,txt:m.txt,t:m.t,pt:m.pt||undefined})); return wsend(ws,{t:'chathist',world:lite(pruneChat('world')),region:lite(pruneChat('region'))}); }
+            const lite=a=>chatHistFor(ws,a).slice(-20).map(m=>({who:m.who,txt:m.txt,t:m.t,pt:m.pt,mid:m.mid})); return wsend(ws,{t:'chathist',world:lite(pruneChat('world')),region:lite(pruneChat('region'))}); }
           ws._chatJoinAt=now; _chatJoinAcct[ak]=now; if(Object.keys(_chatJoinAcct).length>2000){ for(const k in _chatJoinAcct) if(now-_chatJoinAcct[k]>60000) delete _chatJoinAcct[k]; } }
-        wsend(ws,{t:'chathist',world:pruneChat('world'),region:pruneChat('region')}); }
-      else if(m.t==='chat'){ if(wsNeedAuth(ws)) return; const ch=(m.channel==='region')?'region':'world'; const txt=clip(m.text,200); if(!txt)return;
+        wsend(ws,{t:'chathist',world:chatHistFor(ws,pruneChat('world')),region:chatHistFor(ws,pruneChat('region'))}); }
+      else if(m.t==='chat'){ if(wsNeedAuth(ws)) return; const ch=(m.channel==='region')?'region':'world'; const txt=clip(m.text,200); if(!txt.trim())return;   /* v1097: a blank line is dropped */
         // 30 Sep 2026 hardening: at most 6 chat lines per 10 s per ACCOUNT across all its sockets (one socket could wipe the
         // 100-line history in ~25 s, and N sockets multiplied that).
         { const key=ws._uid||('ip:'+(ws._ipKey||'')); const now=Date.now(); const h=(_chatHits[key]||[]).filter(t=>now-t<10000);
-          if(h.length>=6){ _chatHits[key]=h; wsend(ws,{t:'chaterr',reason:'You are sending messages too fast.'}); return; } h.push(now); _chatHits[key]=h; } const msg={who:ws._acctName||ws._chatName||'Player',txt,t:Date.now()}; { const su=ws._uid&&DB.users[ws._uid]; const pt=su&&su.led?patronChatTag(su.led):null; if(pt) msg.pt=pt; }   /* v1093: the sender's EGP/EDP */
+          if(h.length>=6){ _chatHits[key]=h; wsend(ws,{t:'chaterr',reason:'You are sending messages too fast.'}); return; } h.push(now); _chatHits[key]=h; } const msg={who:ws._acctName||ws._chatName||'Player',txt,t:Date.now(),mid:uid()}; if(ws._uid) msg.sid=ws._uid;   /* v1097: line id (report) + sender id (block), kept on the server */ { const su=ws._uid&&DB.users[ws._uid]; const pt=su&&su.led?patronChatTag(su.led):null; if(pt) msg.pt=pt; }   /* v1093: the sender's EGP/EDP */
         let bt=null; try{ if(m.battle && typeof m.battle==='object'){ const s=JSON.stringify(m.battle); if(s.length<=8000) bt=JSON.parse(s); } }catch(e){}   // optional shared-replay chip (size-capped)
         bt=chatChipOk(bt);   /* v1002 (Account audit #23) oppName; v1013 (N12) the whole chip shape */
         if(bt) msg.battle=bt;
         chatStore()[ch].push(msg); pruneChat(ch); chatSaveSoon();   /* v1083 (scan 5 #3): was writeDB() per line - 36 full-world saves a minute per chatter */
-        chatBroadcast({t:'chatmsg',channel:ch,who:msg.who,txt:msg.txt,battle:bt||undefined,pt:msg.pt||undefined}, ws); }   // broadcast to everyone EXCEPT the sender (sender shows it instantly locally)
-      else if(m.t==='whisper'){ if(wsNeedAuth(ws)) return; const to=clip(m.to,16), txt=clip(m.text,200); if(!to||!txt)return;
+        chatBroadcast({t:'chatmsg',channel:ch,who:msg.who,txt:msg.txt,battle:bt||undefined,pt:msg.pt||undefined,mid:msg.mid}, ws, msg.sid); }   // broadcast to everyone EXCEPT the sender (sender shows it instantly locally)
+      else if(m.t==='whisper'){ if(wsNeedAuth(ws)) return; const to=clip(m.to,16), txt=clip(m.text,200); if(!to||!txt.trim())return;
         { const key='w:'+(ws._uid||('ip:'+(ws._ipKey||''))); const now=Date.now(); const h=(_chatHits[key]||[]).filter(t=>now-t<10000);   /* v1002 (Account audit #16): whispers share the chat pace */
           if(h.length>=6){ _chatHits[key]=h; wsend(ws,{t:'chaterr',reason:'You are sending messages too fast.'}); return; } h.push(now); _chatHits[key]=h; }
         const fromName=ws._acctName||ws._chatName||'Player';
-        WSS.clients.forEach(c=>{ if(c!==ws && c._chatName===to && c.readyState===1){ try{ c.send(JSON.stringify({t:'whispermsg',from:fromName,txt})); }catch(e){} } }); }
+        const wmid=uid(), toU=DB.byName[to.toLowerCase()]||null;   /* v1097: kept in memory for 'report message'; a player who blocked the sender gets nothing */
+        _chatRecent.push({mid:wmid,sid:ws._uid||null,who:fromName,txt,to:toU,t:Date.now(),ch:'whisper'}); if(_chatRecent.length>500) _chatRecent.splice(0,_chatRecent.length-500);
+        WSS.clients.forEach(c=>{ if(c!==ws && c._chatName===to && c.readyState===1 && !chatBlocked(c._uid,ws._uid)){ try{ c.send(JSON.stringify({t:'whispermsg',from:fromName,txt,mid:wmid})); }catch(e){} } }); }
     }catch(e){ console.error('⚠ ws frame refused (handler error): '+(e&&e.message)); } });
     ws.on('close', ()=>{ const r=rooms[ws._room]; if(!r)return; wsend(ws._role==='host'?r.guest:r.host,{t:'peerleft'}); delete rooms[ws._room]; });
     ws.on('error', ()=>{});
