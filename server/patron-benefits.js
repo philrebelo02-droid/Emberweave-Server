@@ -21,7 +21,7 @@
   ],
   [
    "16 city attacks a day",
-   "Unlocks buying attacks: 1 buy a day (10 attacks for 400 💎)",
+   "Unlocks buying attacks: 1 buy a day (10 attacks for 400 diamonds)",
    "4 stamina & 4 gold purchases a day",
    "2 Elite stage resets a day",
    "Unlocks buying Arena resets: 1 purchase a day",
@@ -80,7 +80,7 @@
    "70% rebate on purchases"
   ],
   [
-   "Unlocks the Mythical Pool (400 💎 a wish — odds below)",
+   "Unlocks the Mythical Pool (400 diamonds a wish — odds below)",
    "12 stamina purchases a day (stamina cap)",
    "3 Vault resets a day",
    "Mines gather for 4 extra hours",

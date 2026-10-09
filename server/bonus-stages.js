@@ -298,7 +298,7 @@ const TUTORIAL_SCRIPT = Object.freeze({
      strongest, fresh from the wish) walks the middle, which is the road the firebreak step moves
      into, so the player watches their best hero do the thing being taught. */
   place: Object.freeze([
-    Object.freeze({ lane:2, rank:0, say:'Your new 5★ takes the Middle Road.' }),
+    Object.freeze({ lane:2, rank:0, say:'Your new 5-star takes the Middle Road.' }),
     Object.freeze({ lane:1, rank:1, say:'Your next strongest holds the Left Road.' }),
     Object.freeze({ lane:3, rank:2, say:'And this one holds the Right Road.' }),
     Object.freeze({ lane:1, rank:3, say:'Anyone else doubles up on the Left.' }),

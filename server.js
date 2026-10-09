@@ -93,8 +93,8 @@ let PG_BOOT_PENDING=false, _bootDirty=false, _booted=false;   // v327: nothing p
 function pgInit(){ if(!process.env.DATABASE_URL) return;
   try{ const {Pool}=require('pg');
     PG=new Pool({connectionString:process.env.DATABASE_URL, ssl:process.env.PGSSL==='false'?false:{rejectUnauthorized:false}, max:3});
-    console.log('🐘 PostgreSQL persistence ENABLED (DATABASE_URL set).');
-  }catch(e){ console.error('⚠ DATABASE_URL set but pg unavailable ('+e.message+') — falling back to the JSON file.'); PG=null; } }
+    console.log('PostgreSQL persistence ENABLED (DATABASE_URL set).');
+  }catch(e){ console.error('DATABASE_URL set but pg unavailable ('+e.message+') — falling back to the JSON file.'); PG=null; } }
 async function pgSetup(){ if(!PG) return;
   await PG.query('CREATE TABLE IF NOT EXISTS emberweave_state (id TEXT PRIMARY KEY, mtime BIGINT NOT NULL, blob TEXT NOT NULL)');
   PG_READY=true; }
@@ -107,16 +107,16 @@ function pgSave(){ if(PG_BOOT_PENDING) return;   // v327: never UPSERT the pre-r
   if(_pgWriting){ _pgDirty=true; return; }
   _pgWriting=true; const blob=JSON.stringify(DB), mt=Date.now();
   PG.query('INSERT INTO emberweave_state (id,mtime,blob) VALUES ($1,$2,$3) ON CONFLICT (id) DO UPDATE SET mtime=$2, blob=$3',['world',mt,blob])
-    .catch(e=>console.error('⚠ PG write failed:', e.message))
+    .catch(e=>console.error('PG write failed:', e.message))
     .finally(()=>{ _pgWriting=false; if(_pgDirty){ _pgDirty=false; pgSave(); } }); }
 /* v1037 PER-PLAYER STORAGE (server/world-store.js). DB_STORE=split: the world file is a manifest + 512 player shard files and a
    save writes only the shards whose players changed; without it the one-file world is read and written exactly as before. */
 const _store=require('./server/world-store.js').create(DB_FILE,{split:process.env.DB_STORE==='split',verify:process.env.DB_STORE_VERIFY==='1'});
 const STORE_SWEEP_MS=Math.max(1000,+process.env.DB_STORE_SWEEP_MS||30000);   // partial saves: a full save at least this often
 function readDB(){ try{ DB=_store.load(); }catch(e){
-    if(e&&e.code==='SHARD_MISSING'){ console.error('⛔ '+e.message+' - refusing to start rather than run a world with players missing.'); process.exit(1); }
+    if(e&&e.code==='SHARD_MISSING'){ console.error(''+e.message+' - refusing to start rather than run a world with players missing.'); process.exit(1); }
     DB={users:{},byName:{},tokens:{},seeded:false}; }
-  if(_store.split){ const n=_store.sweepOrphans(); if(n) console.log('📁 world store: removed '+n+' uncommitted shard file(s)'); } }
+  if(_store.split){ const n=_store.sweepOrphans(); if(n) console.log('world store: removed '+n+' uncommitted shard file(s)'); } }
 /* HERO-ID RENAME (v926, Phil 01OCT2026; v929 audit extension): old concept keys -> in-game-name keys.
    tallow->gruel, vharn->korvux, fathom->maren, sprocket->rivet, sablewick->tessit,
    arrears->grimsby, meryln->dandra. Mirror of the client's HERO_ID_RENAME in emberweave-heroes.html.
@@ -165,7 +165,7 @@ function migrateHeroIdsAll(){
   if(DB.dungeonProgress&&typeof DB.dungeonProgress==='object'){ if(_renameIdKeysDeep(DB.dungeonProgress))n++; }   // lastTeamHeroIds / activeAttempt
   if(DB.worldTreeControl&&DB.worldTreeControl.marches&&typeof DB.worldTreeControl.marches==='object') _renameIdKeysDeep(DB.worldTreeControl.marches);   // empty while WorldTreeOFF; cheap insurance
   DB.heroIdV=3; _bootDirty=true;
-  console.log('🔑 hero-id rename: migrated '+n+' account(s)/store(s) to in-game-name keys (idv=3)');
+  console.log('hero-id rename: migrated '+n+' account(s)/store(s) to in-game-name keys (idv=3)');
   return n; }
 function migrateHeroIdsBlob(g){ return _renameIdKeysDeep(g); }   // save-blob translate (idempotent, unstamped)
 let saveTimer=null;
@@ -184,7 +184,7 @@ function writeDB(){ if(_worldSettlementPlanning||_durableIdemActive)return; if(P
   if(saveTimer)return; saveTimer=setTimeout(()=>{ saveTimer=null;
   if(_batchOpen){ _batchOpen.actions++; _batchOpen.all=true; return; }   // v1036: a group save is already queued - it writes this change too
   try{ saveDB(DB); }   // atomic: write temp, then rename
-  catch(e){ console.error('⚠ DB write failed:', e.message); }
+  catch(e){ console.error('DB write failed:', e.message); }
   pgSave(); },200); }
 /* v1036 GROUP SAVES (Phil 5 Oct 2026, after the war load test - "do it all"). 90% of the server's CPU went to saving the WHOLE
    world JSON once per durable action (a war declaration took 140-200 ms on an idle 11 MB copy; each server topped out near 6-7
@@ -217,14 +217,14 @@ function _runBatch(){
   const t0=Date.now(), all=b.all||_pendingFull||!_store.split;   // v1037: a partial save only when every change named its players
   try{ if(all) saveDB(DB,'.group.tmp'); else _store.write(DB,b.ids); }
   catch(e){
-    for(const u of b.undos.slice().reverse()){ try{ u(); }catch(e2){ console.error('⚠ group save undo failed:', e2.message); } }
-    GROUP_SAVE_STATS.failed++; console.error('⚠ group save failed - '+b.actions+' change(s), '+b.undos.length+' undone:', e.message);
+    for(const u of b.undos.slice().reverse()){ try{ u(); }catch(e2){ console.error('group save undo failed:', e2.message); } }
+    GROUP_SAVE_STATS.failed++; console.error('group save failed - '+b.actions+' change(s), '+b.undos.length+' undone:', e.message);
     return b.resolve(false); }
   const ms=Date.now()-t0; _lastSaveMs=ms; _lastSaveEnd=Date.now(); GROUP_SAVE_STATS.batches++; GROUP_SAVE_STATS.actions+=b.actions; GROUP_SAVE_STATS.lastMs=ms;
   if(ms>GROUP_SAVE_STATS.maxMs) GROUP_SAVE_STATS.maxMs=ms;
   b.resolve(true); try{ pgSave(); }catch(e){}
   if(!all && Date.now()-_store.stats.lastFullAt>STORE_SWEEP_MS) writeDB(); }   // v1037: changes no action declared (presence) reach disk too
-function writeDBSync(){ try{ if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; } saveDB(DB); return true; }catch(e){ console.error('⚠ DB write failed:', e.message); return false; } }   // v1036: exit paths
+function writeDBSync(){ try{ if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; } saveDB(DB); return true; }catch(e){ console.error('DB write failed:', e.message); return false; } }   // v1036: exit paths
 process.on('SIGTERM',()=>{ if(!PG_BOOT_PENDING && _booted) writeDBSync(); process.exit(0); });   // v1036: a restart keeps the last debounced changes
 
 /* ------------------------------- helpers ---------------------------------- */
@@ -343,7 +343,7 @@ const GLYPH_RL_PER_MIN=Math.max(1,parseInt(process.env.GLYPH_RL_PER_MIN||'60',10
 function migrateAdminRoles(){ let n=0;
   for(const id of ADMIN_IDS){ const u=DB.users[id];
     if(u && !u.isNpc && u.role!=='admin'){ u.role='admin'; n++; } }
-  if(n){ console.log('🔐 stamped role:admin on '+n+' account(s) from ADMIN_IDS'); writeDB(); } }
+  if(n){ console.log('stamped role:admin on '+n+' account(s) from ADMIN_IDS'); writeDB(); } }
 function isDev(u){ return !!(u && !u.isNpc && (u.role==='admin' || ADMIN_IDS.has(u.id) || (u.gid && ADMIN_IDS.has(u.gid)))); }   // v946: gid = the game-wide account id
 
 /* v946 (Phil, 2 Oct 2026: "the same account should be Game wide "user" "pass". the only thing that should start over is their
@@ -558,7 +558,7 @@ function migrateDeviceKeys(){ let n=0;
     for(const k of Object.keys(M)){ if(k.startsWith('h:')) continue; const nk=devKey(k);
       if(mapName==='devices') M[nk]=Math.max(M[nk]|0, M[k]|0); else if(M[nk]==null) M[nk]=M[k];
       delete M[k]; n++; } }
-  if(n){ console.log('🔐 hashed '+n+' stored device id(s)'); writeDB(); } }
+  if(n){ console.log('hashed '+n+' stored device id(s)'); writeDB(); } }
 /* v1019 (Phil 4 Oct: tanks had 120k HP at Orange). The 8 melee tanks' personal glyph path put a Bastion (Core/Crown: HP +1,799..+7,924
    and damage reduction) in two slots on every tier from Blue to Orange - 25 of them banked into board.ascended = +120,156 HP. The path
    now uses Ironwall in those slots (as its first three tiers always did). A board's banked stats are exactly the sum of its path's
@@ -573,7 +573,7 @@ function migrateTankGlyphPath(){ let n=0;
   for(const u of Object.values(DB.users||{})){ const g=u&&u.glyphs; if(!g||!g.boards||g.tankPath1019) continue;
     for(const k of TANK_PATH_FIX_1019){ const b=g.boards[k]; if(b&&(b.ascensionIndex|0)>0){ b.ascended=glyphAscendedFromPlan(k,b.ascensionIndex); n++; } }
     g.tankPath1019=1; }
-  if(n){ console.log('🛡 recomputed '+n+' melee-tank glyph board(s) from the corrected path (v1019)'); writeDB(); } }
+  if(n){ console.log('recomputed '+n+' melee-tank glyph board(s) from the corrected path (v1019)'); writeDB(); } }
 /* v1022 balance layer 1 (Phil 4 Oct: base stats + glyphs + skills): the personal glyph paths changed for mages, marksmen,
    assassins, bruisers and tanks, and glyph values changed (Healing Power x4). A board's banked stats (ascended) were summed
    from the OLD path - every board is recomputed once from the current path and values. Marker glyphs.paths1022. */
@@ -581,7 +581,7 @@ function migrateGlyphPaths1022(){ let n=0;
   for(const u of Object.values(DB.users||{})){ const g=u&&u.glyphs; if(!g||!g.boards||g.paths1022) continue;
     for(const k of Object.keys(g.boards)){ const b=g.boards[k]; if(b&&(b.ascensionIndex|0)>0&&SIM.HERO_BASE[k]){ b.ascended=glyphAscendedFromPlan(k,b.ascensionIndex); n++; } }
     g.paths1022=1; }
-  if(n){ console.log('🔮 recomputed '+n+' glyph board(s) from the v1022 paths and values'); writeDB(); } }
+  if(n){ console.log('recomputed '+n+' glyph board(s) from the v1022 paths and values'); writeDB(); } }
 /* v1023 (Phil 4 Oct: every hero gets a real name - "then fix all keys everywhere" / "EVERYWHERE"): 20 hero keys follow the new names.
    Player data stores hero keys as object keys (unlocked, hero, skill, frags, glyph boards, gear equipped/active, temple heroes) and
    as values (teams, defenses, march squads, the uploaded save string). Walk the whole DB once and rename both. Marker DB.heroKeys1023. */
@@ -601,11 +601,11 @@ function heroKeysRename(v,M,cnt,depth){ if(v==null||depth>60) return v;
 function migrateHeroKeys1023(){ if(DB.heroKeys1023) return; const cnt={n:0};
   for(const top of Object.keys(DB)){ if(top==='tokens'||top==='byName') continue; DB[top]=heroKeysRename(DB[top],HERO_KEY_RENAME_1023,cnt,0); }
   DB.heroKeys1023=1;
-  console.log('🏷  hero keys renamed to the new names: '+cnt.n+' reference(s) in saved data (v1023)'); writeDB(); }
+  console.log('hero keys renamed to the new names: '+cnt.n+' reference(s) in saved data (v1023)'); writeDB(); }
 function migrateTokenHashes(){ let n=0;
   for(const k of Object.keys(DB.tokens)){ const v=DB.tokens[k];
     if(typeof v==='string'){ DB.tokens[tokHash(k)]={id:v, iat:Date.now(), exp:Date.now()+TOKEN_TTL_MS}; delete DB.tokens[k]; n++; } }
-  if(n){ console.log('🔐 hashed '+n+' plaintext session token(s) — raw values now live only on clients'); writeDB(); } }
+  if(n){ console.log('hashed '+n+' plaintext session token(s) — raw values now live only on clients'); writeDB(); } }
 function adjustGems(u, delta){ try{
   /* THE LEDGER IS THE BALANCE. Editing the save blob was a silent no-op for every migrated account:
      sanitizeSave deletes 'gems' (SERVER_OWNED_SAVE_FIELDS) out of the stored save on the player's next
@@ -664,7 +664,7 @@ function sanitizeSave(u, roster){
   if(clamped) reason='impossible value clamped';
   else if(prev.gems!=null && dGems>GEM_SPIKE) reason='diamond spike (+'+dGems+')';
   else if(prev.gold!=null && dGold>GOLD_SPIKE) reason='gold spike (+'+dGold+')';
-  if(reason){ u.flag={ reason, t:now, gems:g.gems||0, gold:g.gold||0 }; console.log('⚠ integrity flag — '+u.name+': '+reason);
+  if(reason){ u.flag={ reason, t:now, gems:g.gems||0, gold:g.gold||0 }; console.log('integrity flag — '+u.name+': '+reason);
     if(clamped) feedbackCheatSignal(u,'save-clamp','Client save contained a value beyond a permitted display/inventory cap.','save integrity'); }
   u.econ={ gems:g.gems||0, gold:g.gold||0, t:now };
   // GLYPH v2 (spec §9.3): once an account is migrated, legacy glyph fields in the uploaded save are
@@ -685,7 +685,7 @@ function sanitizeSave(u, roster){
 function backupDB(){ try{ const dir=path.join(path.dirname(DB_FILE),'backups'); fs.mkdirSync(dir,{recursive:true});
   const stamp=new Date().toISOString().replace(/[:.]/g,'-'); fs.writeFileSync(path.join(dir,'db-'+stamp+'.json'), JSON.stringify(DB));
   const files=fs.readdirSync(dir).filter(f=>f.startsWith('db-')).sort(); while(files.length>48){ try{ fs.unlinkSync(path.join(dir,files.shift())); }catch(e){} }
-}catch(e){ console.error('⚠ backup failed:', e.message); } }
+}catch(e){ console.error('backup failed:', e.message); } }
 
 // off-site backup: push the whole DB to a private GitHub repo.
 // Enabled only when GITHUB_BACKUP_TOKEN and GITHUB_BACKUP_REPO ("owner/repo") are both set.
@@ -703,9 +703,9 @@ async function pushBackupToGitHub(){
                 'User-Agent':'emberweave-backup', 'X-GitHub-Api-Version':'2022-11-28' },
       body:JSON.stringify({ message:'backup '+ts+' UTC', content:Buffer.from(body).toString('base64'), branch:'main' })
     });
-    if(res.ok){ console.log('☁ off-site backup pushed: '+relPath+' ('+body.length+' bytes)'); }
-    else { const t=await res.text().catch(()=>''); console.error('⚠ github backup failed '+res.status+': '+t.slice(0,200)); }
-  }catch(e){ console.error('⚠ github backup error:', e.message); }
+    if(res.ok){ console.log('off-site backup pushed: '+relPath+' ('+body.length+' bytes)'); }
+    else { const t=await res.text().catch(()=>''); console.error('github backup failed '+res.status+': '+t.slice(0,200)); }
+  }catch(e){ console.error('github backup error:', e.message); }
 }
 // --- email: password-reset codes over SMTP (any provider via env vars). Degrades gracefully: if SMTP
 //     isn't configured (or nodemailer isn't installed) the code is logged to the server console so the
@@ -715,19 +715,19 @@ function maskEmail(e){ e=(e||'').toString(); const i=e.indexOf('@'); if(i<1) ret
 function gen6(){ return String(crypto.randomInt(0,1000000)).padStart(6,'0'); }   // cryptographically-random 6-digit code
 let _mailer=null, _mailerTried=false;
 function getMailer(){ if(_mailerTried) return _mailer; _mailerTried=true;
-  if(!process.env.SMTP_HOST){ console.log('✉  SMTP not configured — password-reset codes will be logged to the console only. Set SMTP_HOST/SMTP_USER/SMTP_PASS to send real email.'); return null; }
+  if(!process.env.SMTP_HOST){ console.log('SMTP not configured — password-reset codes will be logged to the console only. Set SMTP_HOST/SMTP_USER/SMTP_PASS to send real email.'); return null; }
   try{ const nm=require('nodemailer');
     _mailer=nm.createTransport({ host:process.env.SMTP_HOST, port:+(process.env.SMTP_PORT||587),
       secure:String(process.env.SMTP_SECURE||'')==='true',
       auth: process.env.SMTP_USER ? {user:process.env.SMTP_USER, pass:process.env.SMTP_PASS} : undefined });
-    console.log('✉  SMTP mailer ready ('+process.env.SMTP_HOST+').');
-  }catch(e){ console.log('✉  nodemailer not installed — run `npm install`. Reset codes will be logged to the console only.'); _mailer=null; }
+    console.log('SMTP mailer ready ('+process.env.SMTP_HOST+').');
+  }catch(e){ console.log('nodemailer not installed — run `npm install`. Reset codes will be logged to the console only.'); _mailer=null; }
   return _mailer; }
 function escHtml(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 // a simple branded HTML version — a well-formed multipart email looks more legitimate to spam filters than bare text
 function codeHtml(name, intro, code, note){
   return `<div style="font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;max-width:460px;margin:0 auto;padding:8px;color:#1a1f2b">
-    <div style="font-size:20px;font-weight:800;color:#c8501e;margin-bottom:14px">🔥 Emberweave Heroes</div>
+    <div style="font-size:20px;font-weight:800;color:#c8501e;margin-bottom:14px">Emberweave Heroes</div>
     <p style="margin:0 0 10px">Hi ${escHtml(name)},</p>
     <p style="margin:0 0 14px">${intro}</p>
     <div style="font-size:30px;font-weight:800;letter-spacing:8px;background:#f4f5f8;border:1px solid #e3e6ee;border-radius:12px;padding:16px;text-align:center;margin:0 0 14px;color:#1a1f2b">${code}</div>
@@ -738,9 +738,9 @@ function mailCode(to, name, subject, text, label, code, html){
   const addr=process.env.SMTP_FROM || process.env.SMTP_USER || 'no-reply@emberweave.game';
   const from='"Emberweave Heroes" <'+addr+'>';   // friendly display name reads as legitimate, not a bare script
   const m=getMailer();
-  if(!m){ console.log('✉  [DEV] '+label+' for '+name+' <'+maskEmail(to)+'> (no mailer - code NOT logged)'); return; }   /* v1007 (re-audit Account N5): codes never reach the log */
+  if(!m){ console.log('[DEV] '+label+' for '+name+' <'+maskEmail(to)+'> (no mailer - code NOT logged)'); return; }   /* v1007 (re-audit Account N5): codes never reach the log */
   const msg={ from, to, replyTo:addr, subject, text }; if(html) msg.html=html;
-  m.sendMail(msg).then(()=>console.log('✉  '+label+' emailed to '+maskEmail(to))).catch(e=>console.log('✉  send failed ('+e.message+') — '+label+' for '+name+' (code not logged)')); }
+  m.sendMail(msg).then(()=>console.log(''+label+' emailed to '+maskEmail(to))).catch(e=>console.log('send failed ('+e.message+') — '+label+' for '+name+' (code not logged)')); }
 function sendResetEmail(to, name, code){
   mailCode(to, name, 'Your Emberweave Heroes password reset code',
     `Hi ${name},\n\nYour one-time password reset code is: ${code}\n\nEnter it in the game to set a new password. This code expires in 15 minutes and can only be used once.\n\nIf you didn't request this, you can safely ignore this email — your password will stay the same.\n\n— Emberweave Heroes`,
@@ -953,7 +953,7 @@ function glyphCompile(){
   let txt=null; try{ txt=fs.readFileSync(file,'utf8'); }catch(e){
     // AUDIT v229 (P0): the Glyph catalog is REQUIRED — a deployment without it must FAIL, not
     // silently ship with the feature off. ALLOW_DEGRADED=1 is for local experiments only.
-    console.error('✖ FATAL — server/glyph-source.json is missing ('+e.message+'). Deploy the catalog with the server.');
+    console.error('FATAL — server/glyph-source.json is missing ('+e.message+'). Deploy the catalog with the server.');
     if(process.env.ALLOW_DEGRADED!=='1') process.exit(1);
     GLYPHS=null; return; }
   const raw=JSON.parse(txt);   // present-but-corrupt STILL fails startup, by design (spec: unknown token = startup error)
@@ -1025,7 +1025,7 @@ function glyphCompile(){
     subName[d.quality+' '+d.family]  = base+' Core';
   }
   GLYPHS={ raw, byId, byName, subs, fragName, subName, version:1 };
-  console.log('🔮 Glyph catalog compiled: '+raw.length+' definitions, '+Object.keys(subs).length+' sub-glyph recipes. v2 '+(GLYPHS_V2_ENABLED?'ENABLED':'off (dev-only)'));
+  console.log('Glyph catalog compiled: '+raw.length+' definitions, '+Object.keys(subs).length+' sub-glyph recipes. v2 '+(GLYPHS_V2_ENABLED?'ENABLED':'off (dev-only)'));
 }
 glyphCompile();
 // One name for a fragment key, everywhere it is shown to a player. Falls back to the key itself so
@@ -1043,7 +1043,7 @@ function glyphSubName(key){
 }
 // A definition whose expanded lineage needs a fragment key no tier can drop is unforgeable —
 // glyphPreChoice silently filters it out and its drops become dead loot. Surface it at boot.
-try{ if(GLYPHS){ const dead=GLYPHS.raw.filter(d=>!glyphSupplyOK(d)); if(dead.length) console.error('✖ unfarmable glyph definitions: '+dead.map(d=>d.id+' '+d.name).join(', ')); } }catch(e){}
+try{ if(GLYPHS){ const dead=GLYPHS.raw.filter(d=>!glyphSupplyOK(d)); if(dead.length) console.error('unfarmable glyph definitions: '+dead.map(d=>d.id+' '+d.name).join(', ')); } }catch(e){}
 function glyphsEnabledFor(u){ return GLYPHS_V2_ENABLED || isDev(u); }
 function ensureGlyphs(u){ if(!u.glyphs) u.glyphs={ revision:1, fragments:{}, subGlyphs:{}, finished:{}, boards:{}, audit:[], seq:1 }; return u.glyphs; }
 function glyphAudit(g,op,extra){ g.audit.push(Object.assign({t:Date.now(),op},extra||{})); if(g.audit.length>100)g.audit=g.audit.slice(-100); }
@@ -1320,8 +1320,8 @@ function glyphHeroPower(u, heroKey){
    DUNGEON_V2_ENABLED=false to force it off. */
 const DUNGEON_V2_ENABLED = String(process.env.DUNGEON_V2_ENABLED||'true')!=='false';
 let WELL2=null; try{ WELL2=require('./server/starless-well.js'); }catch(e){ console.error('THE STARLESS WELL module failed to load - /api/well/* will 404:', e&&e.message); }
-let BONUS=null; try{ BONUS=require('./server/bonus-stages.js'); }catch(e){ console.error('⚠ BONUS STAGES module failed to load — the 60 bonus stages will 404:', e&&e.message); }
-let SIM=null; try{ SIM=require('./server/sim.js'); }catch(e){ console.error('⚠ DUNGEON DISABLED — server/sim.js missing ('+e.message+')'); }
+let BONUS=null; try{ BONUS=require('./server/bonus-stages.js'); }catch(e){ console.error('BONUS STAGES module failed to load — the 60 bonus stages will 404:', e&&e.message); }
+let SIM=null; try{ SIM=require('./server/sim.js'); }catch(e){ console.error('DUNGEON DISABLED — server/sim.js missing ('+e.message+')'); }
 function dungeonEnabledFor(u){ return !!SIM && !!GLYPHS && (DUNGEON_V2_ENABLED || isDev(u)); }
 
 // ---- client-exact level curves (mirrors emberweave-heroes.html tables) ----
@@ -1552,7 +1552,7 @@ function snapshotHeroFromServer(u, key, save, sOpts){
        practice (ensureLedger runs first, immediately above), but "unreachable" is not a security
        boundary — it is a line of code waiting for a refactor to reach it. A snapshot now comes from
        the ledger or it does not exist. */
-    console.error('🚨 snapshotHeroFromServer: no ledger for account '+((u&&u.id)||'?')+' — refusing to build a snapshot from a client save');
+    console.error('snapshotHeroFromServer: no ledger for account '+((u&&u.id)||'?')+' — refusing to build a snapshot from a client save');
     return null;
   }
   glyphPersonalMigrate(u);
@@ -1657,7 +1657,7 @@ function writeDBNow(){   /* v1000 (Account audit #9): returns false when the dis
     _holdReply(_joinBatch(null), 'Save failed - try again.'); return true; }
   try{ if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; }
     saveDB(DB);
-  }catch(e){ console.error('⚠ DB durable write failed:', e.message); return false; }
+  }catch(e){ console.error('DB durable write failed:', e.message); return false; }
   try{ pgSave(); }catch(e){}
   return true;
 }
@@ -1776,7 +1776,7 @@ function vaultCompile(){
     if(gearFrags.size) for(const k of r.gearFragments){ if(!gearFrags.has(k)) throw new Error('vault-encounters: floor '+f+' unknown gear fragment '+k); }
     if(f%5===0 && (!Array.isArray(r.glyphFragments)||!r.glyphFragments.length)) throw new Error('vault-encounters: boss floor '+f+' missing glyph fragments'); });
   VAULT_ENC=fl;
-  console.log('🏛  Vault encounters compiled: '+fl.length+' authored floors (fixed waves, authored boss rules, targeted gear fragments).');
+  console.log('Vault encounters compiled: '+fl.length+' authored floors (fixed waves, authored boss rules, targeted gear fragments).');
 }
 function vaultFloorRecord(floor){ if(!VAULT_ENC) throw new Error('vault-encounters not compiled'); return VAULT_ENC[Math.max(1,Math.min(DUNGEON_MAX_FLOOR,floor))-1]; }
 function buildDungeonWaves(floor){ return vaultFloorRecord(floor).waves; }
@@ -1807,7 +1807,7 @@ const PROV_FRAG_SHARE=0.2, PROV_FRAG_LOWER=5;
 let PROV_ENC=null;
 function provCompile(){
   let raw=null; try{ raw=require('./server/province-encounters.json'); }
-  catch(e){ console.error('✖ server/province-encounters.json missing — Training Province is OFF ('+e.message+')'); PROV_ENC=null; return; }
+  catch(e){ console.error('server/province-encounters.json missing — Training Province is OFF ('+e.message+')'); PROV_ENC=null; return; }
   const out={};
   for(const t of PROV_TYPES){ const T=raw&&raw.types&&raw.types[t];
     if(!T||!Array.isArray(T.stages)||T.stages.length!==PROV_STAGES) throw new Error('province-encounters: '+t+' needs exactly '+PROV_STAGES+' stages');
@@ -1826,7 +1826,7 @@ function provCompile(){
       if(t==='rune' && st.maxQuality && st.maxQuality!==GLYPH_LADDER[provTierForGate(st.levelGate)]) throw new Error('province-encounters: drill stage '+n+' tier does not follow the next-tier rule');   /* v664 */
       return { stage:n, levelGate:st.levelGate|0, boss:st.boss, waves:st.waves, gold:st.gold|0 }; }); }
   PROV_ENC=out;
-  console.log('🏯 Training Province compiled: Gold gates '+out.gold.map(x=>x.levelGate).join('/')+' · Drill gates '+out.rune.map(x=>x.levelGate).join('/'));
+  console.log('Training Province compiled: Gold gates '+out.gold.map(x=>x.levelGate).join('/')+' · Drill gates '+out.rune.map(x=>x.levelGate).join('/'));
 }
 /* v664 (Phil: "The glyphs should be raised on the next tier level. So when a player reaches gold+3 they unlock the gold +2
    sweep"): a Drill stage pays tier T and opens at the account level where tier T+1 unlocks — one tier below the highest
@@ -1957,7 +1957,7 @@ function vaultTeamScore(snaps){ let s=0;
 // lot — but not by anything). A win the boosted sim can't reproduce is rejected and logged. Tune with
 // VAULT_SKILL_BAND (default 1.75); set 0 to disable the gate entirely (emergency rollback).
 const VAULT_SKILL_BAND=parseFloat(process.env.VAULT_SKILL_BAND||'1.75');
-if(!(VAULT_SKILL_BAND>0)) console.warn('🚨 VAULT_SKILL_BAND<=0 — the Vault win sim gate is DISABLED. Never run production like this; wins are then accepted on the score gate alone.');
+if(!(VAULT_SKILL_BAND>0)) console.warn('VAULT_SKILL_BAND<=0 — the Vault win sim gate is DISABLED. Never run production like this; wins are then accepted on the score gate alone.');
 function vaultSpecToCombatUnit(m){
   if(m&&m.isHero&&SIM&&SIM.HERO_BASE[m.key]){
     const u=SIM.heroCombatStats(m.key,{level:m.lvl||1,stars:(SIM.HERO_BASE[m.key].stars||1)});
@@ -2000,7 +2000,7 @@ function vaultWinPlausible(a){
       five.forEach(h=>{h.maxHp=Math.round(h.maxHp*mul);}); }
     const waves=(a.enemyWaves||[]).map(w=>w.map(vaultSpecToCombatUnit));
     return SIM.resolveTwoWaveBattle(five, waves, SIM.seedFrom('vaultcheck:'+a.id)).result.won;
-  }catch(e){ console.error('⚠ vault win validator error:', e&&e.message); return true; }   // never brick the Vault on a validator bug
+  }catch(e){ console.error('vault win validator error:', e&&e.message); return true; }   // never brick the Vault on a validator bug
 }
 // (rollFragmentOfQuality deleted — Correction Spec v1: no random family roll exists in any live
 //  reward path; vault/campaign/arena/daily all use named deterministic tables.)
@@ -2830,7 +2830,7 @@ function devReport(u, kind, amount, detail){
               resolved: false, action: null };
   DB.reports.push(r);
   if(DB.reports.length > REPORTS_KEEP) DB.reports = DB.reports.slice(-REPORTS_KEEP);
-  const message='🚩 integrity report — ' + (u.name||u.id) + ': ' + r.detail;
+  const message='integrity report — ' + (u.name||u.id) + ': ' + r.detail;
   if(_worldSettlementPlanning)_worldSettlementPlanning.diagnostics.push(message);else console.log(message);
   writeDB();
   return r;
@@ -2942,7 +2942,7 @@ function migrateLegacyFeedback(){
     }
     return false;
   });
-  if(moved){writeDB();console.log('📨 Legacy player reports moved to feedback inbox: '+moved);}
+  if(moved){writeDB();console.log('Legacy player reports moved to feedback inbox: '+moved);}
 }
 
 /* A player's diamond history for the dev panel's weekly audit. */
@@ -3065,11 +3065,11 @@ function simPool(){
      re-read every 5 s, so the release-phase switch needs no restart; SERVER_ID names this server to dedicated helpers. */
   const helpers=(process.env.SIM_HELPERS||'').split(',').map(u=>u.trim()).filter(Boolean).map(e=>{ const [url,tier]=e.split('|'); return {url,tier:+tier||1,key:process.env.SIM_HELPER_KEY||''}; });
   const helpersFile=process.env.SIM_HELPERS_FILE||null;
-  let fp=null; if(helpers.length||helpersFile) try{ fp=require('./server/sim-host.js').fingerprint(GAME_FILE); }catch(e){ console.error('⚠ battle helpers off - engine fingerprint failed:', e.message); }
+  let fp=null; if(helpers.length||helpersFile) try{ fp=require('./server/sim-host.js').fingerprint(GAME_FILE); }catch(e){ console.error('battle helpers off - engine fingerprint failed:', e.message); }
   try{ _SIM_POOL=require('./server/sim-pool.js').create(GAME_FILE,{size:n,helpers:fp?helpers:[],helpersFile:fp?helpersFile:null,key:process.env.SIM_HELPER_KEY||'',
       self:SERVER_ID,fp,warLevel:simWarLevel,trackStrain:true});
-    console.log('⚔️  battle workers starting: '+_SIM_POOL.stats.size+(fp?' + helpers ('+helpers.length+(helpersFile?' + file '+helpersFile:'')+')':'')); }
-  catch(e){ console.error('⚠ battle workers unavailable - battles stay on the main thread:', e.message); _SIM_POOL=null; }
+    console.log('battle workers starting: '+_SIM_POOL.stats.size+(fp?' + helpers ('+helpers.length+(helpersFile?' + file '+helpersFile:'')+')':'')); }
+  catch(e){ console.error('battle workers unavailable - battles stay on the main thread:', e.message); _SIM_POOL=null; }
   return _SIM_POOL; }
 function _simKey(m,args){ return m+'|'+JSON.stringify(args); }
 function _simWrap(host){
@@ -3111,8 +3111,8 @@ function _provinceSimCandidates(me,b){ try{
 function simHost(){
   if(_SIMHOST||_SIMHOST_ERR) return _SIMHOST;
   try{ const t0=Date.now(); _SIMHOST=_simWrap(require('./server/sim-host.js').load(GAME_FILE));
-    console.log('⚔️  sim-host ready — the client battle engine is loaded server-side ('+(Date.now()-t0)+'ms)');
-  }catch(e){ _SIMHOST_ERR=e; console.error('🚨 sim-host FAILED to load — campaign results cannot be verified:', e.message); }
+    console.log('sim-host ready — the client battle engine is loaded server-side ('+(Date.now()-t0)+'ms)');
+  }catch(e){ _SIMHOST_ERR=e; console.error('sim-host FAILED to load — campaign results cannot be verified:', e.message); }
   return _SIMHOST;
 }
 /* v274 (hardening directive §4) — VALUABLE ROLLS COME FROM A SERVER SECRET.
@@ -3134,7 +3134,7 @@ function serverSecret(){
     writeDBNow();                                   // durable BEFORE any roll can use it
   }
   if(!_secretWarned){ _secretWarned=true;
-    console.warn('⚠️  SERVER_SECRET is not set — using the durably stored fallback secret. Set SERVER_SECRET in deployment secrets.'); }
+    console.warn('SERVER_SECRET is not set — using the durably stored fallback secret. Set SERVER_SECRET in deployment secrets.'); }
   return DB.meta.rollSecret;
 }
 function secretSource(){ return process.env.SERVER_SECRET?'deployment-env':'persisted-fallback'; }
@@ -3629,7 +3629,7 @@ function migrateBlockedWorldCastles(){
     u.worldLocation=next; moved++;
   }
   if(moved) writeDBNow();
-  console.log('🌍 Terrain-blocked castles moved at boot: '+moved);
+  console.log('Terrain-blocked castles moved at boot: '+moved);
 }
 const WORLD_WAR_PREP_MS=30*60000, WORLD_WAR_TOTAL_MS=72*3600000;
 function worldWarState(u){
@@ -4140,7 +4140,7 @@ function portalCompile(){
     }
     PORTALS[mode]={ byNode, list:raw };
   }
-  console.log('🗺  Portals compiled: Normal '+PORTAL_SIZE.normal+' · Elite '+PORTAL_SIZE.elite+' · Veteran '+PORTAL_SIZE.veteran
+  console.log('Portals compiled: Normal '+PORTAL_SIZE.normal+' · Elite '+PORTAL_SIZE.elite+' · Veteran '+PORTAL_SIZE.veteran
     +' — '+Object.keys(FRAG_SOURCES).length+' glyph fragment families; every type has an ordinary Normal source.');
 }
 /* the one visible source of a fragment, as the ancestry tree and inventory show it:
@@ -4189,8 +4189,8 @@ function campCompile(){
         const q=f.key.slice(0,f.key.lastIndexOf(' '));
         if(GLYPH_LADDER.indexOf(q)<0) throw new Error('stage '+e.node+' glyph target has illegal quality "'+q+'"');
         (CAMP_ENC.fragSources[f.key]=CAMP_ENC.fragSources[f.key]||[]).push(e.id||('campaign-'+e.node)); } }
-    console.log('🗺  Campaign encounters compiled: '+CAMPAIGN_NODES+' authored stages (fixed waves, no per-attempt RNG) + per-stage authored Glyph fragment targets.');
-  }catch(e){ CAMP_ENC=null; console.error('⚠ CAMPAIGN ENCOUNTERS DISABLED — '+e.message+' (client keeps its local mode)'); }
+    console.log('Campaign encounters compiled: '+CAMPAIGN_NODES+' authored stages (fixed waves, no per-attempt RNG) + per-stage authored Glyph fragment targets.');
+  }catch(e){ CAMP_ENC=null; console.error('CAMPAIGN ENCOUNTERS DISABLED — '+e.message+' (client keeps its local mode)'); }
 }
 const CAMPAIGN_SKILL_BAND=parseFloat(process.env.CAMPAIGN_SKILL_BAND||'1.5');   // deterministic manual-play allowance inside the authoritative resolve
 function campStageOf(node){ return CAMP_ENC&&CAMP_ENC.byNode[node|0]||null; }
@@ -4218,11 +4218,11 @@ let GEARCAT=null;
   // AUDIT C4: ITEM-SPECIFIC actives — each gear id carries its own {activeId,type,params}. Temper
   // touches passives only; these definitions never scale with Temper or rarity.
   let acts={}; try{ for(const a of JSON.parse(fs.readFileSync(path.join(__dirname,'server','gear-actives.json'),'utf8'))) acts[a.id]=a; }
-  catch(e){ console.error('⚠ gear-actives.json missing — item actives disabled: '+e.message); }
+  catch(e){ console.error('gear-actives.json missing — item actives disabled: '+e.message); }
   for(const d of raw.items){ raw.byId[d.id]=d; raw.byName[d.name]=d; (raw.byQuality[d.quality]=raw.byQuality[d.quality]||[]).push(d);
     if(acts[d.id]){ d.activeId=acts[d.id].activeId; d.activeType=acts[d.id].type; d.activeParams=acts[d.id].params; } }
-  GEARCAT=raw; console.log('⚒️  Gear catalog compiled: 84 items / 9 slots / 9 qualities / '+Object.keys(acts).length+' item actives. Forge '+(GEAR_V2_ENABLED?'ENABLED':'off (dev-only)'));
-}catch(e){ console.error('⚠ FORGE DISABLED — server/gear-catalog.json problem: '+e.message); } })();
+  GEARCAT=raw; console.log('Gear catalog compiled: 84 items / 9 slots / 9 qualities / '+Object.keys(acts).length+' item actives. Forge '+(GEAR_V2_ENABLED?'ENABLED':'off (dev-only)'));
+}catch(e){ console.error('FORGE DISABLED — server/gear-catalog.json problem: '+e.message); } })();
 function gearEnabledFor(u){ return !!GEARCAT && (GEAR_V2_ENABLED || isDev(u)); }
 function ensureGear(u){ if(!u.gear) u.gear={ revision:1, fragments:{}, subs:{}, items:{}, equipped:{}, active:{}, seq:1 }; return u.gear; }
 function gearTemperBar(t){ return GEARCAT.meta.temper.startBar + t*GEARCAT.meta.temper.barGrowth; }
@@ -4526,7 +4526,7 @@ async function api(req,res,url){
       const days=parseInt(b.days,10); if(BAN_DAYS_ALLOWED.indexOf(days)<0) return send(res,400,{error:'Ban length must be 1, 7 or 30 days.'});
       u.bannedUntil=Date.now()+days*86400000; u.banReason=String(b.reason||'').slice(0,200);
       u.banLog=Array.isArray(u.banLog)?u.banLog:[]; u.banLog.push({t:Date.now(),days,by:String(b.by||'a server').slice(0,60),reason:u.banReason});
-      dropTokens(u.id); writeDB(); console.log('⛔ '+String(b.by||'a server')+' banned '+(u.name||u.id)+' for '+days+' day(s) (account-wide)');
+      dropTokens(u.id); writeDB(); console.log(''+String(b.by||'a server')+' banned '+(u.name||u.id)+' for '+days+' day(s) (account-wide)');
       return send(res,200,{ ok:true, st:acctState(u) }); }
     return send(res,404,{error:'not found'}); }
 
@@ -4650,7 +4650,7 @@ async function api(req,res,url){
     dropTokens(u.id);                       // sign them out of every device immediately
     if(b.reportId){ const r=(DB.reports||[]).find(x=>x.id===b.reportId); if(r){ r.resolved=true; r.action='ban:'+days+'d'; } }
     writeDB();
-    console.log('⛔ '+(me.name||me.id)+' banned '+(u.name||u.id)+' for '+days+' day(s)');
+    console.log(''+(me.name||me.id)+' banned '+(u.name||u.id)+' for '+days+' day(s)');
     return send(res,200,{ok:true, banned:banInfo(u), name:u.name}); }
 
   if(p==='/api/dev/report-clear' && req.method==='POST'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
@@ -4978,7 +4978,7 @@ async function api(req,res,url){
         rec.prog=(rec.prog||0)+1; gained++; uses--;
         if(rec.prog>=gearTemperBar(rec.temper||0)){ rec.temper=(rec.temper||0)+1; rec.prog=0; levels++; }
       }
-      if(!gained) return bad((rec.temper>=T.max)?'Already at Temper 30.':'Not enough Forge Dust (next use: ✨'+gearTemperCost(def,rec.temper||0)+').');
+      if(!gained) return bad((rec.temper>=T.max)?'Already at Temper 30.':'Not enough Forge Dust (next use: '+gearTemperCost(def,rec.temper||0)+' dust).');
       gearTTSet(g,def.id,rec);
       return ok({ itemId:iid, gearId:def.id, temper:rec.temper, prog:rec.prog, bar:gearTemperBar(rec.temper), dustSpent:spent, levelsGained:levels, uses:gained,   /* v994 (audit #10): how many were actually used */
         nextCost: rec.temper<T.max?gearTemperCost(def,rec.temper):null });
@@ -6540,7 +6540,7 @@ async function api(req,res,url){
       const node=b.node|0; const st=portalStageOf(mode,node); if(!st) return {ok:false,error:'Unknown stage.'};
       if(node>prog.cleared) return {ok:false,error:'Clear the stage first.'};
       // 27 Aug (Phil): SWEEP IS EARNED — only a three-star clear unlocks instant sweeping.
-      if((prog.stars[node]|0)<3) return {ok:false,error:'Three-star this stage first — sweep needs ★★★.', stars:(prog.stars[node]|0)};
+      if((prog.stars[node]|0)<3) return {ok:false,error:'Three-star this stage first — sweep needs three stars.', stars:(prog.stars[node]|0)};
       let times=Math.max(1,Math.min(10,b.times|0||1));
       const elite=mode==='elite' || (mode==='normal' && isHeroRewardStageSrv(node)) || campIsBoss(node);   // every Elite stage and Normal 3/6/9/10: 3 rewarded runs/day, sweeps included
       prog.runs=prog.runs||{}; const dk=nyDayKey();
@@ -7151,7 +7151,7 @@ async function api(req,res,url){
       if(!ownsHeroK(led,k)) return {ok:false,error:'Hero not unlocked.'};
       const h=led.hero[k]||(led.hero[k]={xp:0,stars:base.stars,pips:0});
       const STAR_COST={1:{pip:3,confirm:5},2:{pip:6,confirm:20},3:{pip:14,confirm:30},4:{pip:20,confirm:50}};
-      if(h.stars>=5) return {ok:false,error:'Already 5★ — use Refine.'};
+      if(h.stars>=5) return {ok:false,error:'Already 5 stars — use Refine.'};
       const c=STAR_COST[h.stars]; const cost=(h.pips>=5)?c.confirm:c.pip;
       if((led.frags[k]|0)<cost) return {ok:false,error:'Need '+cost+' fragments.'};
       led.frags[k]-=cost;
@@ -7164,7 +7164,7 @@ async function api(req,res,url){
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
     const out=idem(me.id+':refine:'+reqId,()=>{
       const led=ensureLedger(me); const k=String(b.heroKey||''); if(!validHero(k)) return {ok:false,error:'Unknown hero.'}; const base=SIM.HERO_BASE[k];
-      const h=led.hero[k]; if(!h||h.stars<5) return {ok:false,error:'Refine opens at 5★.'};
+      const h=led.hero[k]; if(!h||h.stars<5) return {ok:false,error:'Refine opens at 5 stars.'};
       const lvl=Math.max(0,Math.min(15,h.ref|0));
       if(lvl>=15) return {ok:false,error:'Fully refined.'};
       const tier=lvl>=10?{cost:100,chance:0.10}:lvl>=5?{cost:70,chance:0.20}:{cost:50,chance:0.30};
@@ -8079,7 +8079,7 @@ async function api(req,res,url){
     opps.sort((a,b)=>a.rank-b.rank);   // best rank (biggest jump) first, like the client
     // v327: preview the rank-milestone diamonds THIS player would ACTUALLY be paid for each opponent —
     // same step table, same loop and same fractional settle as /api/arena/result — so the client's
-    // "💎 +N" row can never promise more than the server pays.
+    // "diamonds +N" row can never promise more than the server pays.
     const mBest=(me.bestRank!=null)?me.bestRank:5000, mFrac=(me._gemFrac||0);
     function prevGems(rk){ if(rk>=mBest) return 0; let d=0; for(let rr=rk; rr<mBest; rr++) d+= rr<=10?12:(rr<=50?8:(rr<=100?5:(rr<=500?2:1))); return Math.floor(mFrac+d); }
     const out=opps.slice(0,5).map(u=>({ id:u.id, name:u.name, rank:u.rank, isNpc:!!u.isNpc, team:hydrateRoster(u,u.team||[]), gems:prevGems(u.rank) }));
@@ -8801,7 +8801,7 @@ const server=http.createServer((req,res)=>{
     if(err && err.code==='WORLD_STORAGE_FAILURE')return send(res,503,{ok:false,storageFailed:true,error:err.message});
     if(err && err.code==='BODY_TOO_LARGE'){ send(res,413,{error:'Request too large.'}); try{req.destroy();}catch(_){} return; }
     if(err && err.code==='BAD_PROTO_NAME') return send(res,400,{ok:false,error:'Invalid request.'});   /* v986 */
-    console.error('⚠ api error:', err && err.message); return send(res,500,{error:'server error'}); });
+    console.error('api error:', err && err.message); return send(res,500,{error:'server error'}); });
   if(p==='/health'){ res.writeHead(200);res.end('ok');return; }
   /* v1041: this server's own battle helper (same machine) asks whether the server is strained - "A strained server will never offer
      help to another strained server" (Phil 6 Oct 2026). Loopback only. */
@@ -8978,7 +8978,7 @@ const CHAT_KEEP=100, CHAT_AGE_MS=6*3600000;
           if(h.length>=6){ _chatHits[key]=h; wsend(ws,{t:'chaterr',reason:'You are sending messages too fast.'}); return; } h.push(now); _chatHits[key]=h; }
         const fromName=ws._acctName||ws._chatName||'Player';
         WSS.clients.forEach(c=>{ if(c!==ws && c._chatName===to && c.readyState===1){ try{ c.send(JSON.stringify({t:'whispermsg',from:fromName,txt})); }catch(e){} } }); }
-    }catch(e){ console.error('⚠ ws frame refused (handler error): '+(e&&e.message)); } });
+    }catch(e){ console.error('ws frame refused (handler error): '+(e&&e.message)); } });
     ws.on('close', ()=>{ const r=rooms[ws._room]; if(!r)return; wsend(ws._role==='host'?r.guest:r.host,{t:'peerleft'}); delete rooms[ws._room]; });
     ws.on('error', ()=>{});
   });
@@ -8986,14 +8986,14 @@ const CHAT_KEEP=100, CHAT_AGE_MS=6*3600000;
   const _roomPrune=setInterval(()=>{ const now=Date.now();
     for(const c of Object.keys(rooms)){ if(now-(rooms[c].t||0) > 30*60000){ wsend(rooms[c].host,{t:'peerleft'}); wsend(rooms[c].guest,{t:'peerleft'}); delete rooms[c]; } } }, 5*60000);
   if(_roomPrune.unref) _roomPrune.unref();
-}catch(e){ console.log('⚠ live PvP (ws) unavailable — run `npm install` to enable it. Async online still works.'); }
+}catch(e){ console.log('live PvP (ws) unavailable — run `npm install` to enable it. Async online still works.'); }
 
 /* 30 Sep 2026 hardening: last line of defence. One bad frame used to be one crash (and systemd gives up after 5 in 10 s).
    A stray error is logged and the server keeps serving; 20 inside a minute means something is really broken -> exit for a clean restart. */
 let _fatalN=0, _fatalT=0;
 function _backstop(kind, e){ const now=Date.now(); if(now-_fatalT>60000){ _fatalT=now; _fatalN=0; } _fatalN++;
-  console.error('⚠ '+kind+' (#'+_fatalN+' this minute): '+(e&&e.stack||e));
-  if(_fatalN>=20){ console.error('⚠ 20 errors in a minute - exiting for a clean restart'); try{ writeDBSync(); }catch(_){} process.exit(1); } }
+  console.error(''+kind+' (#'+_fatalN+' this minute): '+(e&&e.stack||e));
+  if(_fatalN>=20){ console.error('20 errors in a minute - exiting for a clean restart'); try{ writeDBSync(); }catch(_){} process.exit(1); } }
 process.on('uncaughtException', e=>_backstop('uncaughtException', e));
 process.on('unhandledRejection', e=>_backstop('unhandledRejection', e));
 campCompile(); portalCompile(); vaultCompile(); provCompile(); readDB(); pgInit();   /* v663: provCompile — Training Province */
@@ -9012,18 +9012,18 @@ function bootFinish(){ if(_booted) return; _booted=true; PG_BOOT_PENDING=false;
   backupDB(); setInterval(backupDB, 60*60*1000);   // snapshot on boot, then hourly (keeps ~48)
     setTimeout(pushBackupToGitHub, 30000); setInterval(pushBackupToGitHub, 6*60*60*1000);   // off-site GitHub backup: ~30s after boot, then every 6h (no-op unless GITHUB_BACKUP_TOKEN + GITHUB_BACKUP_REPO are set)
   const realAccts=Object.values(DB.users).filter(u=>!u.isNpc).length;
-  console.log('📁 DB file: '+DB_FILE+'  '+(DB_PERSISTENT?'(persistent ✅)':'(⚠ EPHEMERAL — accounts WILL be wiped on redeploy! Add a Railway Volume mounted at /data, or set DB_FILE to a volume path.)'));
-  console.log('👤 Player accounts loaded: '+realAccts);
+  console.log('DB file: '+DB_FILE+'  '+(DB_PERSISTENT?'(persistent)':'(EPHEMERAL — accounts WILL be wiped on redeploy! Add a Railway Volume mounted at /data, or set DB_FILE to a volume path.)'));
+  console.log('Player accounts loaded: '+realAccts);
   server.listen(PORT,()=>{ setImmediate(()=>{ try{ simPool(); }catch(e){} });   // v1036: battle workers load at boot, ready before the first fight
-    console.log('🔥 Emberweave cloud server on http://localhost:'+PORT); console.log('   Seeded '+Object.keys(DB.users).filter(id=>DB.users[id].isNpc).length+' NPC cities · live PvP '+(WSS?'ON':'off')+'. Open the URL to play / install the app.'); });
+    console.log('Emberweave cloud server on http://localhost:'+PORT); console.log('   Seeded '+Object.keys(DB.users).filter(id=>DB.users[id].isNpc).length+' NPC cities · live PvP '+(WSS?'ON':'off')+'. Open the URL to play / install the app.'); });
 }
 if(PG){ PG_BOOT_PENDING=true;   // nothing writes to disk or PG, and the port stays closed, until this resolves
   (async()=>{ try{ await pgSetup(); const got=await pgLoad();
-    if(got && got.mtime>BOOT_FILE_M){ DB=got.db; console.log('🐘 World state loaded from PostgreSQL (newer than the file mirror).'); }
-    else { _bootDirty=true; console.log(got===null?'🐘 PostgreSQL seeded from the current world state.':'🐘 File mirror is newer than PostgreSQL — keeping the file and re-publishing it.'); }
-  }catch(e){ console.error('⚠ PG boot failed ('+e.message+') — continuing on the JSON file.'); }
+    if(got && got.mtime>BOOT_FILE_M){ DB=got.db; console.log('World state loaded from PostgreSQL (newer than the file mirror).'); }
+    else { _bootDirty=true; console.log(got===null?'PostgreSQL seeded from the current world state.':'File mirror is newer than PostgreSQL — keeping the file and re-publishing it.'); }
+  }catch(e){ console.error('PG boot failed ('+e.message+') — continuing on the JSON file.'); }
     bootFinish(); })();
-  setTimeout(function(){ if(!_booted) console.error('⚠ PG boot timed out after 15s — continuing on the JSON file.'); bootFinish(); }, 15000);
+  setTimeout(function(){ if(!_booted) console.error('PG boot timed out after 15s — continuing on the JSON file.'); bootFinish(); }, 15000);
 } else bootFinish();
 // prune the in-memory rate-limiter map so old per-IP hit arrays don't accumulate forever (audit: high)
 // Disabled capture settlement cannot touch live data until the enable CR.
