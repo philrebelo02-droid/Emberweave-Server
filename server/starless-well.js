@@ -260,7 +260,8 @@ async function handle(p, method, ctx) {
       /* HP and energy carry: from the server's replay when it saw the same result the player did, else from what the player watched */
       let endU = []; try { endU = JSON.parse(rep && !!rep.won === witnessed.won ? srv : clientEnd).u || []; } catch (e) {}
       const maxOf = Object.fromEntries((a.snaps || []).map(s => [s.key, s.maxHp || 1]));
-      for (const k of a.heroIds) { const e = endU.find(x => x[0] === k && x[1] === 'ally'); if (!e) continue;
+      for (const k of a.heroIds) { const e = endU.find(x => x[0] === k && x[1] === 'ally');
+        if (!e) { if (endU.length) R.heroes[k] = { hpFrac: 0, energy: 0, dead: true }; continue; }   /* v1097 (sweep 9 Oct #13): a hero who entered the fight and is missing from the final summary has fallen (the mine code already reads a missing hero as 0 HP) - skipping it left a death unrecorded */
         R.heroes[k] = { hpFrac: e[2] ? Math.max(0.01, Math.min(1, e[3] / (maxOf[k] || 1))) : 0, energy: e[4] | 0, dead: !e[2] }; }
       let reward = null, sq = grid[a.col] && grid[a.col][a.row];
       if (witnessed.won && sq && a.col !== R.pos.col + 1) { ctx.writeDB(); return no('That battle no longer matches your position - nothing was paid.'); }   /* 3 Oct audit F2, defence in depth */
