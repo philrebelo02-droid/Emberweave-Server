@@ -2264,7 +2264,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
     </div></div>
     <!-- resource shop modal (food / gold / diamonds) -->
     <div id="hudShop"><div class="pm">
-      <div class="pmhead"><div class="ttl" id="hudShopTitle"></div><button class="btn sm secondary" id="hudShopClose">✕</button></div>
+      <div class="pmhead"><div class="ttl" id="hudShopTitle"></div><button class="btn sm secondary" id="hudShopClose"><img class="stIc" src="/assets/img/icons/ui/close-v1.webp" alt=""></button></div>
       <div id="hudShopBody"></div>
     </div></div>
   </div>
@@ -20253,13 +20253,13 @@ function applyCloudSave(profile,forceLoad){ try{ const blob=profile&&profile.ros
   }catch(e){ return false; } }
 
 function renderAccount(){ const b=document.getElementById('accountBody');
-  if(!online()){ b.innerHTML='<div>🌐 Online accounts need the game opened through the host server (not the local file). See the README.</div>'; return; }
-  if(ACC.token && !ACC.guest){ b.innerHTML=`<div style="text-align:center"><div style="font-size:15px">Signed in as <b>${escapeHTML(ACC.name||'')}</b></div><div style="font-size:12px;color:#8b98a9;margin:6px 0">Arena rank #${ACC.rank||'—'} · 🪙 ${ACC.coins||0}</div><button class="btn sm secondary" id="logout">Log out</button></div>`;
+  if(!online()){ b.innerHTML='<div>'+uiIcon('world-online')+' Online accounts need the game opened through the host server (not the local file). See the README.</div>'; return; }
+  if(ACC.token && !ACC.guest){ b.innerHTML=`<div style="text-align:center"><div style="font-size:15px">Signed in as <b>${escapeHTML(ACC.name||'')}</b></div><div style="font-size:12px;color:#8b98a9;margin:6px 0">Arena rank #${ACC.rank||'—'} · ${hudIcon('gold')} ${ACC.coins||0}</div><button class="btn sm secondary" id="logout">Log out</button></div>`;
     b.querySelector('#logout').onclick=()=>{ signOutFully(); renderAccount(); }; return; }
-  b.innerHTML=`${(ACC&&ACC.guest)?`<div style="background:#132033;border:1px solid #24406b;border-radius:10px;padding:9px 11px;margin-bottom:10px;font-size:12px;color:#cdd8ea;line-height:1.5">🎮 <b>Playing as a guest</b> (${escapeHTML(ACC.name||'')}). Your progress is being saved. <b>Create an account</b> below to keep it safe across devices, or <b>Sign in</b> to your main account.</div>`:''}<input id="acName" placeholder="Name" maxlength="16" style="width:100%;padding:9px;margin-bottom:6px;border-radius:8px;border:1px solid #33405e;background:#0f1420;color:#e6edf3">
+  b.innerHTML=`${(ACC&&ACC.guest)?`<div style="background:#132033;border:1px solid #24406b;border-radius:10px;padding:9px 11px;margin-bottom:10px;font-size:12px;color:#cdd8ea;line-height:1.5">${uiIcon('guest')} <b>Playing as a guest</b> (${escapeHTML(ACC.name||'')}). Your progress is being saved. <b>Create an account</b> below to keep it safe across devices, or <b>Sign in</b> to your main account.</div>`:''}<input id="acName" placeholder="Name" maxlength="16" style="width:100%;padding:9px;margin-bottom:6px;border-radius:8px;border:1px solid #33405e;background:#0f1420;color:#e6edf3">
     <input id="acPass" type="password" placeholder="Password" style="width:100%;padding:9px;margin-bottom:8px;border-radius:8px;border:1px solid #33405e;background:#0f1420;color:#e6edf3">
     <div style="display:flex;gap:8px"><button class="btn" id="loginBtn" style="flex:1">Log in</button><button class="btn secondary" id="regBtn" style="flex:1">Register</button></div>
-    ${(ACC&&ACC.signedOut)?`<button class="btn xs secondary" id="guestBtn" style="width:100%;margin-top:8px">🎮 Play as a guest instead</button>`:''}
+    ${(ACC&&ACC.signedOut)?`<button class="btn xs secondary" id="guestBtn" style="width:100%;margin-top:8px">${uiIcon('guest')} Play as a guest instead</button>`:''}
     <div id="acMsg" style="font-size:12px;color:#ffd45e;margin-top:8px;text-align:center;min-height:16px"></div>`;
   { const gb=b.querySelector('#guestBtn'); if(gb) gb.onclick=()=>{ gb.disabled=true; playAsGuest(()=>{ renderAccount(); show('home'); }); }; }
   const finishAuth=(d,isReg)=>{ const _prevId=ACC&&ACC.id; clearServerCaches(); ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,guest:!!(d.profile&&d.profile.guest),created:(d.profile.created||0),admin:!!d.profile.admin};saveAcc(); DEV.on=isDevAcct();
@@ -20278,7 +20278,7 @@ function renderAccount(){ const b=document.getElementById('accountBody');
 }
 // shown when an account was flagged for password recovery — the owner sets a fresh password
 function renderSetNewPass(name){ const b=document.getElementById('accountBody'); if(!b)return;
-  b.innerHTML=`<div style="text-align:center;margin-bottom:10px"><div style="font-size:28px">🔑</div>
+  b.innerHTML=`<div style="text-align:center;margin-bottom:10px"><div style="font-size:28px">${uiIcon('key')}</div>
       <div style="font-weight:800;font-size:15px">Your password has been reset</div>
       <div style="font-size:12px;color:#8b98a9;margin-top:4px">Please type and confirm a new password for <b>${escapeHTML(name)}</b> to regain access.</div></div>
     <input id="npPass" type="password" placeholder="New password" style="width:100%;padding:9px;margin-bottom:6px;border-radius:8px;border:1px solid #33405e;background:#0f1420;color:#e6edf3">
@@ -20309,7 +20309,7 @@ function renderSetNewPass(name){ const b=document.getElementById('accountBody');
    register, and not when the account has no save yet (that path pushes this device's progress first). */
 function loginReload(){
   try{ document.body.innerHTML='<div style="position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#0b0f17;color:#e6edf3;font-family:system-ui,sans-serif;gap:10px;z-index:99999">'
-    +'<div style="font-size:30px">⚔</div><div style="font-weight:800">Signing in…</div>'
+    +'<div style="font-size:30px">'+statusIcon('attack')+'</div><div style="font-weight:800">Signing in…</div>'
     +'<div style="font-size:12px;color:#8b98a9">Loading your heroes</div></div>'; }catch(e){}
   setTimeout(()=>{ try{ location.reload(); }catch(e){} }, 450);
   return true;
@@ -20322,7 +20322,7 @@ function acctSwitchReload(prevId, newId, isCreate){
   setTimeout(()=>{ try{ location.reload(); }catch(e){} }, 450);
   return true;
 }
-function needLogin(body,what){ if(!online()){ body.innerHTML='<div class="panel">🌐 '+what+' needs the game opened through the host server. See the README.</div>'; return true; }
+function needLogin(body,what){ if(!online()){ body.innerHTML='<div class="panel">'+uiIcon('world-online')+' '+what+' needs the game opened through the host server. See the README.</div>'; return true; }
   if(!ACC.token){ body.innerHTML='<div class="panel" style="text-align:center">Sign in to enter '+what+'.<br><br><button class="btn" data-nav="account">Sign in / Register</button></div>'; bindNav(body); return true; } return false; }
 
 /* ---- local opponents / cities (no sign-in needed; NPCs fill the pool) ---- */
@@ -20437,7 +20437,7 @@ function arenaRules(){
     +'<p style="margin:0">\u{1F48E} on an opponent is the first-time diamond bounty for beating them.</p>'
     +'</div></div>';
   document.body.appendChild(ov); }
-function rankTier(rank){ return rank===1?{name:'Gold',medal:'🥇',col:'#ffd45e'}:rank===2?{name:'Silver',medal:'🥈',col:'#c8d2e0'}:rank===3?{name:'Bronze',medal:'🥉',col:'#e0a06a'}:null; }
+function rankTier(rank){ return rank===1?{name:'Gold',medal:uiIcon('rank-gold'),col:'#ffd45e'}:rank===2?{name:'Silver',medal:uiIcon('rank-silver'),col:'#c8d2e0'}:rank===3?{name:'Bronze',medal:uiIcon('rank-bronze'),col:'#e0a06a'}:null; }
 function _rkRow(e){ const t=rankTier(e.rank), medal=t?t.medal:'#'+e.rank, col=t?t.col:'#8b98a9';
   return `<div style="display:flex;align-items:center;gap:8px;padding:7px 6px;border-bottom:1px solid #1f2740;${e.me||e.you?'background:rgba(255,212,94,.12);border-radius:8px':''}">
     <div style="width:52px;text-align:center;font-weight:800;color:${col};font-size:12px">${medal}</div>
@@ -24652,8 +24652,8 @@ function showTerms(){
   ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.85);display:flex;align-items:center;justify-content:center;z-index:9600;padding:16px';
   ov.innerHTML=`<div style="background:linear-gradient(160deg,#161d2c,#0b1220);border:1px solid #38507c;border-radius:16px;width:100%;max-width:440px;max-height:86vh;display:flex;flex-direction:column;box-shadow:0 14px 48px #000c">
     <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px;border-bottom:1px solid #223052">
-      <div style="font-weight:800;font-size:15px">📜 Terms of Service &amp; Privacy</div>
-      <button id="tosClose" class="btn xs secondary" style="padding:4px 10px">✕</button></div>
+      <div style="font-weight:800;font-size:15px">${uiIcon('quest-scroll')} Terms of Service &amp; Privacy</div>
+      <button id="tosClose" class="btn xs secondary" style="padding:4px 10px">${uiIcon('close')}</button></div>
     <div style="overflow-y:auto;padding:6px 16px 16px">${tosBodyHTML()}</div></div>`;
   document.body.appendChild(ov);
   const close=()=>ov.remove();
@@ -24666,7 +24666,7 @@ function requireTos(onAccept,onDecline){
   const ov=document.createElement('div');
   ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.92);display:flex;align-items:center;justify-content:center;z-index:9700;padding:16px';
   ov.innerHTML=`<div style="background:linear-gradient(160deg,#161d2c,#0b1220);border:1px solid #38507c;border-radius:16px;width:100%;max-width:440px;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 14px 48px #000c">
-    <div style="padding:14px 16px 8px;border-bottom:1px solid #223052"><div style="font-weight:800;font-size:15px">📜 Terms of Service &amp; Privacy</div>
+    <div style="padding:14px 16px 8px;border-bottom:1px solid #223052"><div style="font-weight:800;font-size:15px">${uiIcon('quest-scroll')} Terms of Service &amp; Privacy</div>
       <div style="font-size:11px;color:#8b98a9;margin-top:3px">Please review and accept to continue signing in.</div></div>
     <div style="overflow-y:auto;padding:6px 16px 12px">${tosBodyHTML()}</div>
     <div style="display:flex;gap:8px;padding:10px 16px 14px;border-top:1px solid #223052">
@@ -24685,12 +24685,12 @@ function renderSettings(){
   // ---- ACCOUNT: sign in / create a cloud account (syncs progress across devices) ----
   let account;
   if(!online()){
-    account=`<div class="panel"><div style="font-weight:800;font-size:13px;margin-bottom:2px">☁️ Cloud Account</div><div style="font-size:12px;color:#8b98a9">Open the game through your online link to sign in.</div></div>`;
+    account=`<div class="panel"><div style="font-weight:800;font-size:13px;margin-bottom:2px">${uiIcon('cloud-sync')} Cloud Account</div><div style="font-size:12px;color:#8b98a9">Open the game through your online link to sign in.</div></div>`;
   } else if(ACC.token){
     const em=ACC.email||'';
     const emailRow = em
-      ? `<div style="font-size:11px;color:#8b98a9;margin-bottom:6px">📧 Recovery email: <b style="color:#cdd6e4">${escapeHTML(em)}</b> <a href="#" id="acEditEmail" style="color:#9ab0d6;margin-left:4px">change</a></div>`
-      : `<div style="font-size:11px;color:#c9a35e;margin-bottom:6px">📧 No recovery email linked — add one so you can reset your password if you forget it. <a href="#" id="acEditEmail" style="color:#9ab0d6">add email</a></div>`;
+      ? `<div style="font-size:11px;color:#8b98a9;margin-bottom:6px">${uiIcon('mail')} Recovery email: <b style="color:#cdd6e4">${escapeHTML(em)}</b> <a href="#" id="acEditEmail" style="color:#9ab0d6;margin-left:4px">change</a></div>`
+      : `<div style="font-size:11px;color:#c9a35e;margin-bottom:6px">${uiIcon('mail')} No recovery email linked — add one so you can reset your password if you forget it. <a href="#" id="acEditEmail" style="color:#9ab0d6">add email</a></div>`;
     const emailForm = (emStep!=='code')
       ? `<div id="acEmailForm" style="display:none;margin:4px 0 8px">
           <input id="acEmailIn" type="email" placeholder="you@example.com" autocomplete="email" style="${inp}" value="">
@@ -24698,15 +24698,15 @@ function renderSettings(){
           <div style="display:flex;gap:6px;margin-top:6px"><button class="btn xs" id="acEmailSend" style="flex:1">Send code</button><button class="btn xs secondary" id="acEmailCancel">Cancel</button></div>
           <div id="acEmailMsg" style="font-size:11px;margin-top:4px;min-height:13px"></div></div>`
       : `<div id="acEmailForm" style="display:block;margin:4px 0 8px;background:#0f1420;border:1px solid #33405e;border-radius:10px;padding:10px">
-          <div style="font-weight:800;font-size:12px;margin-bottom:4px">📧 Confirm email change</div>
+          <div style="font-weight:800;font-size:12px;margin-bottom:4px">${uiIcon('mail')} Confirm email change</div>
           <div style="font-size:11px;color:#8b98a9;margin-bottom:8px">Enter the 6-digit code sent to <b>${escapeHTML(_emSentTo)}</b>${_emToCurrent?' (your current recovery email)':''}. Changing to: <b>${escapeHTML(_emPending)}</b></div>
           <input id="acEmailCode" type="text" inputmode="numeric" maxlength="6" placeholder="6-digit code" autocomplete="one-time-code" style="${inp};letter-spacing:4px;text-align:center;font-size:16px">
           <div style="display:flex;gap:6px;margin-top:6px"><button class="btn xs" id="acEmailConfirm" style="flex:1">Confirm</button><button class="btn xs secondary" id="acEmailResend">Resend</button><button class="btn xs secondary" id="acEmailCancel">Cancel</button></div>
           <div id="acEmailMsg" style="font-size:11px;margin-top:4px;min-height:13px"></div></div>`;
     const resetBlock = (pwStep==='idle')
-      ? `<button class="btn sm secondary" id="acPwReset" style="width:100%;margin-bottom:6px" ${em?'':'disabled'}>🔑 Reset password by email${em?'':' (add an email first)'}</button>`
+      ? `<button class="btn sm secondary" id="acPwReset" style="width:100%;margin-bottom:6px" ${em?'':'disabled'}>${uiIcon('key')} Reset password by email${em?'':' (add an email first)'}</button>`
       : `<div style="background:#0f1420;border:1px solid #33405e;border-radius:10px;padding:10px;margin-bottom:8px">
-          <div style="font-weight:800;font-size:12px;margin-bottom:4px">🔑 Reset your password</div>
+          <div style="font-weight:800;font-size:12px;margin-bottom:4px">${uiIcon('key')} Reset your password</div>
           <div style="font-size:11px;color:#8b98a9;margin-bottom:8px">We sent a 6-digit code to <b>${escapeHTML(em)}</b>. Enter it below with your new password. The code expires in 15 minutes.</div>
           <div style="display:flex;flex-direction:column;gap:6px">
             <input id="acRCode" type="text" inputmode="numeric" maxlength="6" placeholder="6-digit code" autocomplete="one-time-code" style="${inp};letter-spacing:4px;text-align:center;font-size:16px">
@@ -24717,14 +24717,14 @@ function renderSettings(){
           </div>
           <div id="acRMsg" style="font-size:11px;margin-top:6px;min-height:14px"></div></div>`;
     account=`<div class="panel" style="border-color:#4aa3ff55">
-      <div style="font-weight:800;font-size:13px;margin-bottom:4px">☁️ Cloud Account</div>
+      <div style="font-weight:800;font-size:13px;margin-bottom:4px">${uiIcon('cloud-sync')} Cloud Account</div>
       <div style="font-size:13px">Signed in as <b>${escapeHTML(ACC.name||'')}</b></div>
-      <div style="font-size:11px;color:#8b98a9;margin:4px 0 6px">Arena rank #${ACC.rank||'—'} · 🪙 ${ACC.coins||0} · your progress syncs to any device you sign in on.</div>
+      <div style="font-size:11px;color:#8b98a9;margin:4px 0 6px">Arena rank #${ACC.rank||'—'} · ${hudIcon('gold')} ${ACC.coins||0} · your progress syncs to any device you sign in on.</div>
       ${emailRow}${emailForm}${resetBlock}
       <button class="btn sm secondary" id="acLogout">Log out</button></div>`;
   } else if(acctMode==='reset'){
     account=`<div class="panel" style="border-color:#c9a24a66">
-      <div style="font-weight:800;font-size:13px;margin-bottom:4px">🔑 Your password has been reset</div>
+      <div style="font-weight:800;font-size:13px;margin-bottom:4px">${uiIcon('key')} Your password has been reset</div>
       <div style="font-size:11px;color:#8b98a9;margin-bottom:8px">Please type and confirm a new password for <b>${escapeHTML(_resetName||'')}</b> to regain access.</div>
       <div style="display:flex;flex-direction:column;gap:6px">
         <input id="acNew" type="password" placeholder="New password" autocomplete="off" style="${inp}">
@@ -24736,7 +24736,7 @@ function renderSettings(){
   } else if(acctMode==='forgot'){
     account = (_forgotStep==='name')
       ? `<div class="panel" style="border-color:#c9a24a66">
-          <div style="font-weight:800;font-size:13px;margin-bottom:4px">🔑 Forgot password</div>
+          <div style="font-weight:800;font-size:13px;margin-bottom:4px">${uiIcon('key')} Forgot password</div>
           <div style="font-size:11px;color:#8b98a9;margin-bottom:8px">Enter your username. If it has a recovery email linked, we'll send a one-time 6-digit code to reset your password.</div>
           <div style="display:flex;flex-direction:column;gap:6px">
             <input id="fgName" type="text" placeholder="Username" maxlength="16" autocomplete="username" autocapitalize="off" spellcheck="false" style="${inp}">
@@ -24745,7 +24745,7 @@ function renderSettings(){
           </div>
           <div id="fgMsg" style="font-size:11px;margin-top:6px;min-height:14px"></div></div>`
       : `<div class="panel" style="border-color:#c9a24a66">
-          <div style="font-weight:800;font-size:13px;margin-bottom:4px">🔑 Enter your code</div>
+          <div style="font-weight:800;font-size:13px;margin-bottom:4px">${uiIcon('key')} Enter your code</div>
           <div style="font-size:11px;color:#8b98a9;margin-bottom:8px">If <b>${escapeHTML(_forgotName)}</b> has a linked email, a 6-digit code is on its way. Enter it with your new password. The code expires in 15 minutes.</div>
           <div style="display:flex;flex-direction:column;gap:6px">
             <input id="fgCode" type="text" inputmode="numeric" maxlength="6" placeholder="6-digit code" autocomplete="one-time-code" style="${inp};letter-spacing:4px;text-align:center;font-size:16px">
@@ -24758,7 +24758,7 @@ function renderSettings(){
   } else {
     const create = acctMode==='create';
     account=`<div class="panel">
-      <div style="font-weight:800;font-size:13px;margin-bottom:6px">☁️ Cloud Account</div>
+      <div style="font-weight:800;font-size:13px;margin-bottom:6px">${uiIcon('cloud-sync')} Cloud Account</div>
       <div style="display:flex;gap:6px;margin-bottom:8px">
         <button class="btn xs${create?' secondary':''}" id="acTabIn" style="flex:1">Sign In</button>
         <button class="btn xs${create?'':' secondary'}" id="acTabNew" style="flex:1">Create Account</button>
@@ -24819,7 +24819,7 @@ function renderSettings(){
     <button class="btn sm" id="resetBtn" style="background:#ff6b6b">Reset all progress</button>
     <div id="saveOut" style="font-size:10px;color:#55617a;word-break:break-all"></div>` : '';
   const reportCard = (online()&&ACC.token) ? `<div class="panel">
-    <div style="font-weight:800;font-size:13px;margin-bottom:4px">🐞 Report a bug / feedback</div>
+    <div style="font-weight:800;font-size:13px;margin-bottom:4px">${uiIcon('bug')} Report a bug / feedback</div>
     <div style="font-size:11px;color:#8b98a9;margin-bottom:6px">Spotted something broken or have an idea? Send it straight to the devs.</div>
     <textarea id="rpText" rows="3" placeholder="Describe the bug or suggestion…" style="${inp};resize:vertical"></textarea>
     <button class="btn sm" id="rpSend" style="width:100%;margin-top:6px">Send report</button>
@@ -24845,7 +24845,7 @@ function renderSettings(){
         <input type="range" id="snd_${ch}_vol" min="0" max="100" value="${Math.round(SND.cfg[ch].vol*100)}" aria-label="${name} volume" style="flex:1;min-width:0" ${SND.cfg[ch].on?'':'disabled'}>
         <span id="snd_${ch}_pct" style="width:34px;text-align:right;color:#8b98a9;font-variant-numeric:tabular-nums">${Math.round(SND.cfg[ch].vol*100)}%</span></div>`;
   const soundCard = `<div class="panel">
-      <div style="font-weight:800;font-size:13px">🔊 Audio</div>
+      <div style="font-weight:800;font-size:13px">${uiIcon('audio-on')} Audio</div>
       ${_sndRow('fx','FX')}${_sndRow('music','Music')}${_sndRow('voice','Voices')}
     </div>`;
   b.innerHTML=`<div style="display:flex;flex-direction:column;gap:10px">
@@ -24895,7 +24895,7 @@ function renderSettings(){
     m.style.color='#8b98a9'; m.textContent='Sending…';
     const meta='v'+(typeof BUILD_ID!=='undefined'?BUILD_ID:'')+' · Lv'+playerLevel()+' · '+state;
     if(window._reportBusy) return; window._reportBusy=true;   /* v1002 (Account audit #13): a double tap filed the report twice */
-    api('/api/report','POST',{text:t, meta}).then(d=>{ window._reportBusy=false; if(d&&d.ok){ m.style.color='#5ee89b'; m.textContent='✔ Thanks! Report sent.'; b.querySelector('#rpText').value=''; } else { m.style.color='#ff8b8b'; m.textContent=(d&&d.error)||'Failed to send.'; } }); };
+    api('/api/report','POST',{text:t, meta}).then(d=>{ window._reportBusy=false; if(d&&d.ok){ m.style.color='#5ee89b'; m.textContent='Thanks! Report sent.'; b.querySelector('#rpText').value=''; } else { m.style.color='#ff8b8b'; m.textContent=(d&&d.error)||'Failed to send.'; } }); };
   // ---- account wiring ----
   const tabIn=b.querySelector('#acTabIn'), tabNew=b.querySelector('#acTabNew');
   if(tabIn) tabIn.onclick=()=>{ acctMode='signin'; renderSettings(); };
@@ -24909,7 +24909,7 @@ function renderSettings(){
       api('/api/reset-request','POST',{name:nm}).then(()=>{ _forgotName=nm; _forgotStep='code'; renderSettings(); }); };
     fgSend.onclick=send; const i=b.querySelector('#fgName'); if(i) i.onkeydown=(e)=>{ if(e.key==='Enter') send(); }; }
   const fgResend=b.querySelector('#fgResend'); if(fgResend) fgResend.onclick=()=>{ const msg=b.querySelector('#fgMsg'); msg.style.color='#8b98a9'; msg.textContent='Sending a new code…';
-    api('/api/reset-request','POST',{name:_forgotName}).then(()=>{ msg.style.color='#5ee89b'; msg.textContent='✔ If an email is linked, a new code is on its way.'; }); };
+    api('/api/reset-request','POST',{name:_forgotName}).then(()=>{ msg.style.color='#5ee89b'; msg.textContent='If an email is linked, a new code is on its way.'; }); };
   const fgSubmit=b.querySelector('#fgSubmit'); if(fgSubmit){ const doSubmit=()=>{ const msg=b.querySelector('#fgMsg');
       const code=(b.querySelector('#fgCode').value||'').replace(/\D/g,''), np=(b.querySelector('#fgNew').value||''), cf=(b.querySelector('#fgNew2').value||'');
       if(code.length!==6){ msg.style.color='#ff8b8b'; msg.textContent='Enter the 6-digit code from your email.'; return; }
@@ -24923,7 +24923,7 @@ function renderSettings(){
         clearServerCaches();   // 31 Aug: this is an account SWITCH — or the reset player sees the previous account's Forge, Vault, glyphs and pool
         if(!(_cloudReady=true,applyCloudSave(d.profile,true))) pushSave(); else { loginReload(); return; }   /* v957 */
         _forgotName=''; _forgotStep='name'; acctMode='signin'; renderSettings(); updateHubChrome(); if(state==='home') renderHome();
-        bannerMsg('🔑 Password reset — you\'re signed in.'); }); };
+        bannerMsg(uiIcon('key')+' Password reset — you\'re signed in.'); }); };
     fgSubmit.onclick=doSubmit;
     ['#fgCode','#fgNew','#fgNew2'].map(s=>b.querySelector(s)).filter(Boolean).forEach(el=>el.onkeydown=(e)=>{ if(e.key==='Enter') doSubmit(); }); }
   const acGo=b.querySelector('#acGo');
@@ -24983,11 +24983,11 @@ function renderSettings(){
         else { msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error)||'Could not send code.'; } }); };
     acEmSend.onclick=send; const i=b.querySelector('#acEmailIn'); if(i) i.onkeydown=(e)=>{ if(e.key==='Enter') send(); }; }
   const acEmResend=b.querySelector('#acEmailResend'); if(acEmResend) acEmResend.onclick=()=>{ const msg=b.querySelector('#acEmailMsg'); msg.style.color='#8b98a9'; msg.textContent='Sending a new code…';
-    api('/api/email-request','POST',{email:_emPending}).then(d=>{ if(d&&d.ok){ _emSentTo=d.sentTo||_emSentTo; msg.style.color='#5ee89b'; msg.textContent='✔ A new code was sent.'; } else { msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error)||'Could not resend.'; } }); };
+    api('/api/email-request','POST',{email:_emPending}).then(d=>{ if(d&&d.ok){ _emSentTo=d.sentTo||_emSentTo; msg.style.color='#5ee89b'; msg.textContent='A new code was sent.'; } else { msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error)||'Could not resend.'; } }); };
   const acEmConfirm=b.querySelector('#acEmailConfirm'); if(acEmConfirm){ const confirm=()=>{ const msg=b.querySelector('#acEmailMsg'); const code=(b.querySelector('#acEmailCode').value||'').replace(/\D/g,'');
       if(code.length!==6){ msg.style.color='#ff8b8b'; msg.textContent='Enter the 6-digit code.'; return; }
       msg.style.color='#8b98a9'; msg.textContent='Confirming…';
-      api('/api/email-verify','POST',{code}).then(d=>{ if(d&&d.ok){ ACC.email=d.email; saveAcc(); emStep='idle'; _emPending=''; renderSettings(); bannerMsg('📧 Recovery email updated.'); }
+      api('/api/email-verify','POST',{code}).then(d=>{ if(d&&d.ok){ ACC.email=d.email; saveAcc(); emStep='idle'; _emPending=''; renderSettings(); bannerMsg(uiIcon('mail')+' Recovery email updated.'); }
         else { msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error)||'Could not confirm.'; } }); };
     acEmConfirm.onclick=confirm; const i=b.querySelector('#acEmailCode'); if(i) i.onkeydown=(e)=>{ if(e.key==='Enter') confirm(); }; }
   // ---- password reset by email: request a code, then verify code + new password ----
@@ -24995,7 +24995,7 @@ function renderSettings(){
     api('/api/reset-request','POST',{name:ACC.name}).then(()=>{ pwStep='sent'; renderSettings(); }); };
   const acRResend=b.querySelector('#acRResend'); if(acRResend) acRResend.onclick=()=>{ const msg=b.querySelector('#acRMsg');
     msg.style.color='#8b98a9'; msg.textContent='Sending a new code…';
-    api('/api/reset-request','POST',{name:ACC.name}).then(()=>{ msg.style.color='#5ee89b'; msg.textContent='✔ A new code is on its way.'; }); };
+    api('/api/reset-request','POST',{name:ACC.name}).then(()=>{ msg.style.color='#5ee89b'; msg.textContent='A new code is on its way.'; }); };
   const acRCancel=b.querySelector('#acRCancel'); if(acRCancel) acRCancel.onclick=()=>{ pwStep='idle'; renderSettings(); };
   const acRSubmit=b.querySelector('#acRSubmit'); if(acRSubmit){ const doSubmit=()=>{ const msg=b.querySelector('#acRMsg');
       const code=(b.querySelector('#acRCode').value||'').replace(/\D/g,''), np=(b.querySelector('#acRNew').value||''), cf=(b.querySelector('#acRNew2').value||'');
@@ -25006,7 +25006,7 @@ function renderSettings(){
       api('/api/reset-verify','POST',{name:ACC.name, code, newPass:np}).then(d=>{
         if(!d||d.error){ msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error)||'Could not change password.'; return; }
         if(d.token&&d.profile){ ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,email:d.profile.email||'',created:(d.profile.created||0),admin:!!d.profile.admin}; saveAcc(); }
-        pwStep='idle'; renderSettings(); bannerMsg('🔑 Password changed. Other devices have been signed out.'); }); };
+        pwStep='idle'; renderSettings(); bannerMsg(uiIcon('key')+' Password changed. Other devices have been signed out.'); }); };
     acRSubmit.onclick=doSubmit;
     ['#acRCode','#acRNew','#acRNew2'].map(s=>b.querySelector(s)).filter(Boolean).forEach(el=>el.onkeydown=(e)=>{ if(e.key==='Enter') doSubmit(); }); }
   // ---- dev tools wiring ----
@@ -25144,13 +25144,13 @@ function devAction(a,b){
   const done=(m)=>{ const d=b&&b.querySelector('#devDone'); if(d)d.textContent=m; };
   const grant=(payload,success)=>{ done('Applying on server…');
     api('/api/admin/led-grant','POST',payload).then(r=>{
-      if(!r||!r.ok||!r.ledger){ done('✖ Server refused — not applied'); return; }
+      if(!r||!r.ok||!r.ledger){ done('Server refused — not applied'); return; }
       adoptLedger(r.ledger);
       if(r.devState){ G.arenaCoins=r.devState.arenaCoins|0; ACC.coins=G.arenaCoins;
         G.arenaRank=r.devState.arenaRank|0; G.bestArenaRank=r.devState.bestArenaRank|0;
         G.shieldItems=r.devState.shieldItems|0; }
       saveG(); updateHubChrome(); done(success);
-    }).catch(()=>done('✖ Server unavailable — not applied')); return; };
+    }).catch(()=>done('Server unavailable — not applied')); return; };
   if(a==='dlart'){ runAssetDownload(done, null); return; }
   if(a==='clrart'){ runAssetClear(done); return; }
   if(a==='cachelog'){ let L=[]; try{ L=JSON.parse(localStorage.getItem('ew_cache_log')||'[]'); }catch(e){}
@@ -25175,12 +25175,12 @@ function devAction(a,b){
      the levels evaporated. Gold and diamonds already went through the ledger endpoint — progression
      never got migrated with them. It does now, so a dev cheat is real progress or an honest error. */
   else if(a==='stam'){ done('Refilling stamina…');
-    api('/api/admin/led-grant','POST',{stamina:999}).then(r=>{ if(r&&r.ok){ adoptLedger(r.ledger); done('Stamina refilled'); } else done('✖ server refused — not applied'); }); return; }
+    api('/api/admin/led-grant','POST',{stamina:999}).then(r=>{ if(r&&r.ok){ adoptLedger(r.ledger); done('Stamina refilled'); } else done('Server refused — not applied'); }); return; }
   else if(a==='stam30'){ done('Granting +30 stamina…');
-    api('/api/admin/led-grant','POST',{stamina:30}).then(r=>{ if(r&&r.ok){ adoptLedger(r.ledger); updateHubChrome(); done('+30 stamina'); } else done('✖ server refused — not applied'); }); return; }
+    api('/api/admin/led-grant','POST',{stamina:30}).then(r=>{ if(r&&r.ok){ adoptLedger(r.ledger); updateHubChrome(); done('+30 stamina'); } else done('Server refused — not applied'); }); return; }
   else if(a==='level'){ const nl=Math.min(MAX_LEVEL,playerLevel()+5); const need=Math.max(0,(TROOP_CUM[nl]||0)-(G.playerXP||0));
     done('Levelling…');
-    api('/api/admin/led-grant','POST',{px:need}).then(r=>{ if(r&&r.ok){ adoptLedger(r.ledger); updateHubChrome(); done('Now player level '+playerLevel()); } else done('✖ server refused — not applied'); }); return; }
+    api('/api/admin/led-grant','POST',{px:need}).then(r=>{ if(r&&r.ok){ adoptLedger(r.ledger); updateHubChrome(); done('Now player level '+playerLevel()); } else done('Server refused — not applied'); }); return; }
   else if(a==='squadlvl'){ const team=(G.team||[]).filter(Boolean); if(!team.length){ done('No squad selected'); return; }
     done('Levelling squad…');
     Promise.all(team.map(k=>{ const cur=levelFromXP((G.heroXP&&G.heroXP[k])||0), nl=Math.min(MAX_LEVEL,cur+5);
@@ -25191,7 +25191,7 @@ function devAction(a,b){
         done(rs.every(r=>r&&r.ok)?'Squad +5 levels':'Some squad levels were refused; reload to review server progress');
       }).catch(()=>done('Server unavailable; reload to review progress')); return; }
   else if(a==='heroes'){ done('Unlocking…');
-    api('/api/admin/led-grant','POST',{unlock:HERO_KEYS}).then(r=>{ if(r&&r.ok){ adoptLedger(r.ledger); done('All heroes unlocked'); } else done('✖ server refused — not applied'); }); return; }
+    api('/api/admin/led-grant','POST',{unlock:HERO_KEYS}).then(r=>{ if(r&&r.ok){ adoptLedger(r.ledger); done('All heroes unlocked'); } else done('Server refused — not applied'); }); return; }
   /* v401 (4 Sep) — dev panel keeps pace with the patch (Phil: "dev panel should always be updated
      to include all new patches"). The per-class ROLE_GROWTH curve is flat-per-level, so its shape
      is only visible at the ends: this jumps EVERY unlocked hero straight to MAX_LEVEL. */
@@ -25209,11 +25209,11 @@ function devAction(a,b){
       done(refused?'Server refused '+refused+' of '+keys.length+' hero levels; reload to review progress':'All '+keys.length+' heroes at level '+MAX_LEVEL);
     })().catch(()=>done('Server unavailable; reload to review progress')); return; }
   else if(a==='campstage'){ const n=Math.min(CAMPAIGN_NODES,(G.campaignCleared||0)+5); done('Advancing campaign…');
-    api('/api/admin/led-grant','POST',{campCleared:n}).then(r=>{ if(r&&r.ok){ adoptLedger(r.ledger); done('Campaign cleared through stage '+n); } else done('✖ server refused — not applied'); }); return; }
+    api('/api/admin/led-grant','POST',{campCleared:n}).then(r=>{ if(r&&r.ok){ adoptLedger(r.ledger); done('Campaign cleared through stage '+n); } else done('Server refused — not applied'); }); return; }
   else if(a==='konwu'){ done('Unlocking KonWu…');
     api('/api/admin/led-grant','POST',{unlock:['konwu'],heroKeys:['konwu'],stars:MAX_STARS}).then(r=>{
-      if(r&&r.ok&&r.ledger){ adoptLedger(r.ledger); done('KonWu unlocked at '+MAX_STARS+'★ — put him in your team, then battle'); }
-      else done('✖ server refused — not applied'); }).catch(()=>done('✖ server unavailable — not applied')); return; }
+      if(r&&r.ok&&r.ledger){ adoptLedger(r.ledger); done('KonWu unlocked at '+MAX_STARS+' stars — put him in your team, then battle'); }
+      else done('Server refused — not applied'); }).catch(()=>done('Server unavailable — not applied')); return; }
   else if(a==='orbs'){ DEV.orbPreview=((DEV.orbPreview|0)+1)%6; done('Temple orbs on every hero card: '+DEV.orbPreview+'/5 (preview only - nothing saved)'); return; }   /* Phil 27 Sep: view each orb count's art */
   else if(a==='maxteam'){ /* v339 (Phil): EVERY unlocked hero, stars AND glyphs (server walks each board to Orange). */
     const keys=HERO_KEYS.filter(k=>G.unlocked&&G.unlocked[k]); if(!keys.length){ done('No heroes unlocked'); return; }
@@ -25221,7 +25221,7 @@ function devAction(a,b){
     api('/api/admin/led-grant','POST',{heroKeys:keys,stars:MAX_STARS,maxGlyphs:true}).then(async r=>{ if(r&&r.ok){ adoptLedger(r.ledger);
         try{ if(typeof glyphV2Sync==='function') await glyphV2Sync(); }catch(e){}
         done('All '+keys.length+' heroes: stars maxed, glyph boards ascended to Orange ('+(r.glyphsMaxed|0)+' boards). Reopen a hero to see it.'); }
-      else done('✖ server refused — not applied'); }); return; }
+      else done('Server refused — not applied'); }); return; }
   else if(a==='arena'){ grant({arenaRank:1},'Arena rank set to #1'); return; }
   else if(a==='arenacoin'){ grant({arenaCoins:5000},'+5,000 arena coins'); return; }
   else if(a==='guildcoins'){ grant({guildCoins:5000},'+5,000 guild coins'); return; }
@@ -25235,7 +25235,7 @@ function devAction(a,b){
     api('/api/admin/backup').then(d=>{ if(!d||d.error){ if(out)out.innerHTML='<span style="color:#ff8b8b">'+((d&&d.error)||'Failed')+'</span>'; return; }
       try{ const blob=new Blob([JSON.stringify(d)],{type:'application/json'}); const url=URL.createObjectURL(blob);
         const a2=document.createElement('a'); a2.href=url; a2.download='emberweave-db-backup.json'; document.body.appendChild(a2); a2.click(); a2.remove(); URL.revokeObjectURL(url);
-        if(out)out.innerHTML='<span style="color:#5ee89b">✔ Backup downloaded.</span>'; }catch(e){ if(out)out.innerHTML='<span style="color:#ff8b8b">Download failed.</span>'; } }); return; }
+        if(out)out.innerHTML='<span style="color:#5ee89b">'+uiIcon('check')+' Backup downloaded.</span>'; }catch(e){ if(out)out.innerHTML='<span style="color:#ff8b8b">Download failed.</span>'; } }); return; }
   else if(a==='reports'){ devShowReports(b); return; }
   else if(a==='bots'){ runBalanceBots(b); return; }
   else if(a==='refresh'){ devShowReports(b); return; }   // manual refresh of the report/bot log
@@ -25247,7 +25247,7 @@ function openDevFragGranter(b){
   const AMT=100, ov=document.createElement('div');
   ov.style.cssText='position:fixed;inset:0;background:rgba(4,6,10,.85);z-index:14000;display:flex;align-items:stretch;justify-content:flex-end';
   ov.innerHTML=`<div style="background:#141b2b;border:1px solid #3a4a6e;border-radius:16px 0 0 16px;padding:16px;width:min(380px,94vw);height:100vh;max-height:100vh;display:flex;flex-direction:column;box-shadow:-18px 0 55px rgba(0,0,0,.6)">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b style="font-size:14px">🧩 Give ${AMT} fragments</b><button class="btn sm secondary" id="dfgX">✕</button></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b style="font-size:14px">🧩 Give ${AMT} fragments</b><button class="btn sm secondary" id="dfgX">${uiIcon('close')}</button></div>
     <input id="dfgSearch" placeholder="Type a hero name…" autocomplete="off" style="width:100%;padding:9px 11px;border-radius:9px;border:1px solid #33405e;background:#0f1420;color:#e6edf3;font-size:14px;margin-bottom:8px">
     <div id="dfgList" style="overflow:auto;flex:1;display:flex;flex-direction:column;gap:5px"></div>
     <div id="dfgMsg" style="font-size:12px;color:#5ee89b;min-height:16px;margin-top:6px;text-align:center"></div></div>`;
@@ -25259,25 +25259,25 @@ function openDevFragGranter(b){
     if(!keys.length){ listEl.innerHTML='<div style="color:#8b98a9;font-size:12px;text-align:center;padding:12px">No heroes match.</div>'; return; }
     listEl.innerHTML=keys.map(k=>{ const t=HERO_TYPES[k];
       return `<button class="btn sm secondary" data-fk="${k}" style="display:flex;align-items:center;gap:9px;justify-content:flex-start;text-align:left;padding:6px 9px">
-        <span style="width:30px;flex:none;display:flex;align-items:center;justify-content:center">${heroIcon(k,28)}</span><span style="flex:1"><b style="font-size:13px">${escapeHTML(t.name)}</b> <span style="color:#8b98a9;font-size:10px">${heroStartStars(k)}★ · ${G.unlocked[k]?'owned':'locked'}</span></span>
+        <span style="width:30px;flex:none;display:flex;align-items:center;justify-content:center">${heroIcon(k,28)}</span><span style="flex:1"><b style="font-size:13px">${escapeHTML(t.name)}</b> <span style="color:#8b98a9;font-size:10px">${heroStartStars(k)}${uiIcon('star-filled')} · ${G.unlocked[k]?'owned':'locked'}</span></span>
         <span style="color:#c9a2ff;font-size:11px">${heroFrag(k)}🧩</span></button>`; }).join('');
     listEl.querySelectorAll('[data-fk]').forEach(el=>el.onclick=async()=>{ const k=el.dataset.fk, t=HERO_TYPES[k];
       el.disabled=true; msgEl.textContent='Granting '+AMT+' '+t.name+' fragments…';
       try{ const r=await api('/api/admin/led-grant','POST',{heroFrags:{[k]:AMT}});
-        if(!r||!r.ok||!r.ledger){ msgEl.textContent='✖ Server refused — fragments not added'; el.disabled=false; return; }
+        if(!r||!r.ok||!r.ledger){ msgEl.textContent='Server refused — fragments not added'; el.disabled=false; return; }
         adoptLedger(r.ledger); saveG(); updateHubChrome();
         msgEl.textContent='+'+AMT+' '+t.name+' fragments (now '+heroFrag(k)+')'; renderList(searchEl.value);
-      }catch(e){ msgEl.textContent='✖ Server unavailable — fragments not added'; el.disabled=false; } }); }
+      }catch(e){ msgEl.textContent='Server unavailable — fragments not added'; el.disabled=false; } }); }
   searchEl.oninput=()=>renderList(searchEl.value); renderList(''); setTimeout(()=>searchEl.focus(),40);
 }
 // dev: view the bug/balance report inbox
 function devShowReports(b){ const out=b.querySelector('#devAdmin'); if(!out)return; out.innerHTML='<span style="color:#8b98a9">Loading reports…</span>';
   api('/api/admin/reports').then(d=>{ if(!d||d.error){ out.innerHTML='<span style="color:#ff8b8b">'+((d&&d.error)||'Failed')+'</span>'; return; }
     const rs=(d.reports||[]).filter(r=>r.meta!=='test-bots' && r.kind!=='balance'); const ago=t=>{ const s=Math.floor((Date.now()-t)/1000); if(s<60)return s+'s'; const m=Math.floor(s/60); if(m<60)return m+'m'; const h=Math.floor(m/60); if(h<24)return h+'h'; return Math.floor(h/24)+'d'; };
-    let html='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><b>🐞 Reports: '+rs.length+'</b><button class="btn xs secondary" id="rpClear">Clear resolved</button></div>';
+    let html='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><b>'+uiIcon('bug')+' Reports: '+rs.length+'</b><button class="btn xs secondary" id="rpClear">Clear resolved</button></div>';
     if(!rs.length) html+='<span style="color:#8b98a9">No reports yet.</span>';
     else html+=rs.map(r=>`<div style="border-top:1px solid #1c2434;padding:6px 2px;${r.resolved?'opacity:.5':''}">
-      <div style="display:flex;justify-content:space-between;gap:6px"><b style="font-size:11px">${r.kind==='balance'?'🤖':'🐞'} ${escapeHTML(r.name)}</b><span style="color:#6f7d90;font-size:10px">${ago(r.t)} ago</span></div>
+      <div style="display:flex;justify-content:space-between;gap:6px"><b style="font-size:11px">${r.kind==='balance'?uiIcon('npc'):uiIcon('bug')} ${escapeHTML(r.name)}</b><span style="color:#6f7d90;font-size:10px">${ago(r.t)} ago</span></div>
       <div style="font-size:11px;color:#cdd6e4;white-space:pre-wrap;margin:2px 0">${escapeHTML(String(r.text||r.detail||''))}</div>
       ${r.meta?`<div style="font-size:9px;color:#6f7d90">${escapeHTML(r.meta)}</div>`:''}
       <div style="display:flex;gap:6px;margin-top:3px"><button class="btn xs secondary" data-rr="${r.id}">${r.resolved?'Reopen':'Resolve'}</button><button class="btn xs secondary" data-rd="${r.id}" style="color:#ff8b8b">Delete</button></div></div>`).join('');
@@ -25288,7 +25288,7 @@ function devShowReports(b){ const out=b.querySelector('#devAdmin'); if(!out)retu
   }); }
 // dev: automated balance bots — a fast model using the game's own stat/level/difficulty formulas.
 // Reports required level per chapter, difficulty flags, reachable depth, and rough time-to-L40 / time-to-purple.
-function runBalanceBots(b){ const out=b.querySelector('#devAdmin'); if(out)out.innerHTML='<span style="color:#8b98a9">🤖 Simulating…</span>';
+function runBalanceBots(b){ const out=b.querySelector('#devAdmin'); if(out)out.innerHTML='<span style="color:#8b98a9">'+uiIcon('npc')+' Simulating…</span>';
   const TEAM=['konwu','grosk','vulmar'], SKILL=1.25, PLAY=CAMPAIGN_PLAYABLE;
   const upow=(key,lvl,rank,diff,bh,bd)=>{ const t=HERO_TYPES[key]; const b=baseAtLevel(t,lvl), q=1+rank*0.12; return b.hp*q*diff*bh + b.dmg*q*diff*bd*4; };
   const enemyPow=g=>{ const base=enemyLevelFor(g), diff=enemyDiff(g), eRank=Math.min(3,Math.floor(g/6)); let p=0;
@@ -25349,12 +25349,12 @@ function runBalanceBots(b){ const out=b.querySelector('#devAdmin'); if(out)out.i
       : `CAMPAIGN — battle length stays reasonable (${w1} waves early → ${w7} at the deepest). Fights don't drag. Looks good.`],
     ['Ivan',   `STAMINA — a player gets about ${battlesPerDay} free campaign fights a day from stamina refilling. Past that they wait or spend diamonds. That pacing fits the slow-burn design.`],
     ['Jade',   `MARKET — prices now scale with level: a fragment pack that's 1,000 gold at level 1 becomes about ${mktGoldL40.toLocaleString()} gold at level 40. Reasonable — just make sure gold income keeps up.`],
-    ['Kira',   `WISHING POOL — a gold wish costs ${wg} gold; a diamond wish costs ${wm} diamonds with about a ${heroPct}% shot at a 2★ hero. The 10-pull is ${gold10.toLocaleString()} gold for ten. Odds feel fair for a premium pull.`],
+    ['Kira',   `WISHING POOL — a gold wish costs ${wg} gold; a diamond wish costs ${wm} diamonds with about a ${heroPct}% shot at a 2-star hero. The 10-pull is ${gold10.toLocaleString()} gold for ten. Odds feel fair for a premium pull.`],
     ['Leo',    `SHOP/FOOD — the first food refill costs ${foodFirst} diamonds and climbs from there; diamond packs and daily packs all pay out correctly in testing. No pricing bugs found.`],
     ['Nora',   `ARENA — a win pays ${arenaWinLow} gold near the bottom and up to ${arenaWinTop} gold near the top, plus 5 arena coins. The daily rank reward around #1000 is ${aDaily.gold.toLocaleString()} gold, ${aDaily.gems} diamonds and ${aDaily.coins} coins, and climbing a top-10 rank pays about ${aTopGems} diamonds a step. Rewards scale with rank as intended. Looks good.`],
     ['Owen',   `DUNGEON — a clear pays a flat 200 gold, glyph shards (8/4/2), 90 team XP, and equipment mats that scale with level: ${dungMats} pieces now, ${dungMatsL40} at level 40. Steady gear income with no exploit found. Looks good.`],
     ['Pia',    `GUILD — contributing resources gives ${gRes} guild exp per ${gResCost}, and diamonds give ${gDia} exp per ${gDiaCost}. The hall runs Level 1→${gMaxLv} and its roster grows from ${gCapLo} to ${gCapHi} players. Contribution rates and caps line up. Looks good.`],
-    ['Mara',   smokeErrs.length ? `SMOKE TEST — ⚠ these screens threw an error when I opened them: ${smokeErrs.join(', ')}. Worth a look.` : `SMOKE TEST — I opened every screen (home, campaign, market, wishing, arena, guild, quests, sign-in, heroes, bag, mail, settings) and none of them crashed. All good.`],
+    ['Mara',   smokeErrs.length ? `SMOKE TEST — these screens threw an error when I opened them: ${smokeErrs.join(', ')}. Worth a look.` : `SMOKE TEST — I opened every screen (home, campaign, market, wishing, arena, guild, quests, sign-in, heroes, bag, mail, settings) and none of them crashed. All good.`],
     ['Gus',    `OVERALL — a maxed build (level 60, purple gear) clears every available stage; the chapter curve is smooth and monotonic (${req.slice(1).join(', then ')}). No out-of-order spikes.`],
   ];
   const texts=log.map(([n,m])=>n+' bot — '+m);
@@ -25362,7 +25362,7 @@ function runBalanceBots(b){ const out=b.querySelector('#devAdmin'); if(out)out.i
   devTab='qa'; show('settings'); const out2=document.getElementById('devAdmin');
   api('/api/admin/reports').then(d=>{ const existing=new Set(((d&&d.reports)||[]).filter(r=>r.kind==='balance').map(r=>r.text));
     const fresh=texts.filter(t=>!existing.has(t));
-    if(out2){ out2.innerHTML='<div style="font-weight:800;margin-bottom:4px">🤖 Test-bot log — '+fresh.length+' new / '+texts.length+' checked</div>'+
+    if(out2){ out2.innerHTML='<div style="font-weight:800;margin-bottom:4px">'+uiIcon('npc')+' Test-bot log — '+fresh.length+' new / '+texts.length+' checked</div>'+
       texts.map(t=>{ const isNew=fresh.includes(t); return `<div style="border-top:1px solid #1c2434;padding:5px 2px;font-size:11px;${isNew?'':'opacity:.5'}">${isNew?'<span style="color:#5ee89b">●</span> ':'<span style="color:#4a5570">·</span> '}<span style="color:#cdd6e4">${escapeHTML(t)}</span></div>`; }).join('')+
       '<div style="font-size:10px;color:#6f7d90;margin-top:6px">'+(fresh.length?fresh.length+' new finding(s) filed to the inbox.':'Nothing new since last run.')+' Covers campaign, stamina, market, wishing, shop, and a full-screen crash test.</div>'; }
     /* test-bot findings are NO LONGER filed to the inbox (Phil: they just clutter it) — log stays on-screen only */
@@ -25373,7 +25373,7 @@ function openDevCreateAccount(panel){ const ov=document.createElement('div');
   ov.style.cssText='position:fixed;inset:0;background:rgba(4,6,10,.8);z-index:14000;display:flex;align-items:center;justify-content:center;padding:16px';
   const inp='background:#0f1420;border:1px solid #2a3550;border-radius:8px;color:#e6edf3;padding:9px 10px;font-size:13px;width:100%';
   ov.innerHTML=`<div style="background:#141b2b;border:1px solid #33405e;border-radius:16px;padding:18px;width:100%;max-width:320px">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-weight:800;font-size:15px">➕ Create Account</div><button class="btn sm secondary" id="caX">✕</button></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-weight:800;font-size:15px">${uiIcon('plus')} Create Account</div><button class="btn sm secondary" id="caX">${uiIcon('close')}</button></div>
     <div style="display:flex;flex-direction:column;gap:6px">
       <input id="caName" placeholder="Username" maxlength="16" autocomplete="off" style="${inp}">
       <input id="caPass" type="password" placeholder="Password" autocomplete="off" style="${inp}">
@@ -25385,7 +25385,7 @@ function openDevCreateAccount(panel){ const ov=document.createElement('div');
   ov.querySelector('#caGo').onclick=()=>{ const name=(ov.querySelector('#caName').value||'').trim(), pass=(ov.querySelector('#caPass').value||''), m=ov.querySelector('#caMsg');
     if(name.length<2){ m.textContent='Name needs 2+ characters.'; return; } if(!pass){ m.textContent='Enter a password.'; return; }
     m.style.color='#8b98a9'; m.textContent='Creating…';
-    api('/api/admin/create','POST',{name,pass}).then(d=>{ if(d&&d.ok){ m.style.color='#5ee89b'; m.textContent='✔ Created '+d.name; devAdminList('accounts',panel); setTimeout(close,1200); } else { m.style.color='#ff8b8b'; m.textContent=(d&&d.error)||'Failed'; } }); };
+    api('/api/admin/create','POST',{name,pass}).then(d=>{ if(d&&d.ok){ m.style.color='#5ee89b'; m.textContent='Created '+d.name; devAdminList('accounts',panel); setTimeout(close,1200); } else { m.style.color='#ff8b8b'; m.textContent=(d&&d.error)||'Failed'; } }); };
 }
 // dev-only: pull the live server lists (players online / all created accounts)
 function devAdminList(kind,b){ const out=b&&b.querySelector('#devAdmin'); if(!out)return;
@@ -25395,12 +25395,12 @@ function devAdminList(kind,b){ const out=b&&b.querySelector('#devAdmin'); if(!ou
     const rows=(kind==='online'?d.online:d.accounts)||[];
     const ago=t=>{ if(!t)return '—'; const s=Math.floor((Date.now()-t)/1000); if(s<60)return s+'s ago'; const m=Math.floor(s/60); if(m<60)return m+'m ago'; const h=Math.floor(m/60); if(h<24)return h+'h ago'; return Math.floor(h/24)+'d ago'; };
     const dt=t=>{ if(!t)return '—'; const x=new Date(t); return x.toLocaleDateString()+' '+x.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); };
-    let html='<div style="font-weight:800;margin-bottom:4px">'+(kind==='online'?'👥 Online now: '+rows.length:'🗂 Total accounts: '+rows.length)+'</div>';
+    let html='<div style="font-weight:800;margin-bottom:4px">'+(kind==='online'?uiIcon('players')+' Online now: '+rows.length:uiIcon('folder')+' Total accounts: '+rows.length)+'</div>';
     if(!rows.length) html+='<span style="color:#8b98a9">None found.</span>';
     else { html+='<div style="font-size:10px;color:#6f7d90;margin-bottom:4px">Tap a player for admin options.</div>';
       html+=rows.map((r,idx)=>
       '<div class="devrow" data-idx="'+idx+'" style="display:flex;align-items:center;gap:8px;border-top:1px solid #1c2434;padding:6px 4px;cursor:pointer">'
-      +'<span style="font-weight:700;flex:1">'+escapeHTML(r.name)+(r.mustReset?' <span style="color:#ffb454;font-size:10px">🔑 reset pending</span>':'')+'</span>'
+      +'<span style="font-weight:700;flex:1">'+escapeHTML(r.name)+(r.mustReset?' <span style="color:#ffb454;font-size:10px">'+uiIcon('key')+' reset pending</span>':'')+'</span>'
       +'<span style="color:#ffd45e">#'+r.rank+'</span>'
       +'<span style="color:#8b98a9;text-align:right;white-space:nowrap;font-size:10px">'+(kind==='online'?ago(r.lastSeen):('made '+dt(r.created)))+'</span>'
       +'<span style="color:#4a5570">›</span></div>'
@@ -25414,17 +25414,17 @@ function openPlayerAdmin(r, kind, panel){ if(!r)return;
   ov.style.cssText='position:fixed;inset:0;background:rgba(4,6,10,.8);z-index:14000;display:flex;align-items:center;justify-content:center;padding:16px';
   const dt=t=>{ if(!t)return '—'; const x=new Date(t); return x.toLocaleDateString()+' '+x.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); };
   ov.innerHTML=`<div style="background:#141b2b;border:1px solid #33405e;border-radius:16px;padding:18px;width:100%;max-width:340px">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div style="font-weight:800;font-size:16px">🛠️ ${escapeHTML(r.name)}</div><button class="btn sm secondary" id="paX">✕</button></div>
-    <div style="font-size:11px;color:#8b98a9;line-height:1.6;margin-bottom:12px">Arena rank #${r.rank}<br>Created ${dt(r.created)}<br>Last seen ${dt(r.lastSeen)}${r.mustReset?'<br><b style="color:#ffb454">🔑 Password recovery is armed</b>':''}</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div style="font-weight:800;font-size:16px">🛠️ ${escapeHTML(r.name)}</div><button class="btn sm secondary" id="paX">${uiIcon('close')}</button></div>
+    <div style="font-size:11px;color:#8b98a9;line-height:1.6;margin-bottom:12px">Arena rank #${r.rank}<br>Created ${dt(r.created)}<br>Last seen ${dt(r.lastSeen)}${r.mustReset?'<br><b style="color:#ffb454">'+uiIcon('key')+' Password recovery is armed</b>':''}</div>
     <div id="paMsg" style="font-size:11px;color:#ffd45e;min-height:15px;margin-bottom:8px"></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
-      <button class="btn sm" id="paGrant" style="background:#2e7d46">💎 +2000</button>
-      <button class="btn sm secondary" id="paTake">💎 −2000</button>
+      <button class="btn sm" id="paGrant" style="background:#2e7d46">${hudIcon('gem')} +2000</button>
+      <button class="btn sm secondary" id="paTake">${hudIcon('gem')} −2000</button>
     </div>
     ${r.mustReset
       ? `<button class="btn sm secondary" id="paUndo" style="width:100%;margin-bottom:6px">Cancel password recovery</button>`
-      : `<button class="btn sm" id="paReset" style="width:100%;margin-bottom:6px">🔑 Recover password</button>`}
-    <button class="btn sm secondary" id="paDelete" style="width:100%;margin-bottom:6px;color:#ff8b8b;border-color:#5a2a2a">🗑 Delete account</button>
+      : `<button class="btn sm" id="paReset" style="width:100%;margin-bottom:6px">${uiIcon('key')} Recover password</button>`}
+    <button class="btn sm secondary" id="paDelete" style="width:100%;margin-bottom:6px;color:#ff8b8b;border-color:#5a2a2a">${uiIcon('delete')} Delete account</button>
     <div style="font-size:10px;color:#6f7d90;line-height:1.4">Diamond changes apply to their server balance and show up on their device within a minute. Delete &amp; recovery ask for confirmation.</div>
   </div>`;
   document.body.appendChild(ov); const close=()=>ov.remove();
@@ -25432,7 +25432,7 @@ function openPlayerAdmin(r, kind, panel){ if(!r)return;
   ov.querySelector('#paX').onclick=close;
   const msg=ov.querySelector('#paMsg');
   const gemAct=(path,label)=>{ msg.style.color='#8b98a9'; msg.textContent='Working…';
-    api(path,'POST',{id:r.id,name:r.name}).then(d=>{ if(d&&d.ok){ msg.style.color='#5ee89b'; msg.textContent='✔ '+label+' — '+d.name+' now has 💎'+d.gems+(d&&d.live?' — they will see it within a minute.':''); }
+    api(path,'POST',{id:r.id,name:r.name}).then(d=>{ if(d&&d.ok){ msg.style.color='#5ee89b'; msg.textContent=label+' — '+d.name+' now has '+d.gems+' diamonds'+(d&&d.live?' — they will see it within a minute.':''); }
       else { msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error)||'Failed'; } }); };
   const gB=ov.querySelector('#paGrant'); if(gB) gB.onclick=()=>gemAct('/api/admin/grant','Granted 2000');   // no confirmation
   const tB=ov.querySelector('#paTake');  if(tB) tB.onclick=()=>gemAct('/api/admin/take','Took 2000');      // no confirmation
@@ -25441,7 +25441,7 @@ function openPlayerAdmin(r, kind, panel){ if(!r)return;
       if(d&&d.ok){ close(); devAdminList(kind,panel); } else { msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error)||'Failed'; } }); }); };
   const rs=ov.querySelector('#paReset'); if(rs) rs.onclick=()=>{ gameConfirm('Arm password recovery for <b>'+escapeHTML(r.name)+'</b>?<br><span style="font-size:11px;color:#8b98a9">They will set a new password on their next login.</span>',()=>{
     msg.textContent='Working…'; api('/api/admin/reset','POST',{id:r.id,name:r.name}).then(d=>{
-      if(d&&d.ok){ msg.style.color='#5ee89b'; msg.textContent='✔ Recovery armed for '+d.name+'. Their next login will prompt a new password.'; devAdminList(kind,panel); setTimeout(close,1600); }
+      if(d&&d.ok){ msg.style.color='#5ee89b'; msg.textContent='Recovery armed for '+d.name+'. Their next login will prompt a new password.'; devAdminList(kind,panel); setTimeout(close,1600); }
       else if(d&&d.error==='offline'){ msg.style.color='#ff8b8b'; msg.textContent='Reset endpoint not found — deploy the latest server.js to Railway, then retry.'; }
       else { msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error)||'Failed'; } }); }); };
   const un=ov.querySelector('#paUndo'); if(un) un.onclick=()=>{ msg.textContent='Working…'; api('/api/admin/unreset','POST',{id:r.id,name:r.name}).then(d=>{ if(d&&d.ok){ close(); devAdminList(kind,panel); } else msg.textContent=(d&&d.error)||'Failed'; }); };
@@ -25536,7 +25536,7 @@ function svrClose(){ const p=document.getElementById('svrPanel'); if(p) p.remove
 function svrOpen(){
   svrClose(); const here=svrHere();
   const p=document.createElement('div'); p.id='svrPanel';
-  p.innerHTML='<div class="svrBox"><div class="svrHead"><span>Servers</span><button class="svrX" aria-label="Close">✕</button></div>'+
+  p.innerHTML='<div class="svrBox"><div class="svrHead"><span>Servers</span><button class="svrX" aria-label="Close">'+uiIcon('close')+'</button></div>'+
     SVR_LIST.map(s=>'<button class="svrRow" data-id="'+s.id+'" disabled><span class="svrDot"></span><span class="svrName">'+s.name+
       (s.id===here?' <span class="svrTag">Current</span>':'')+'</span><span class="svrState">…</span></button>').join('')+'</div>';
   document.body.appendChild(p);
@@ -26078,17 +26078,17 @@ function patNextLines(P){ const B=(typeof window!=='undefined'&&window.PATRON_BE
   if(P.egp<15) return {label:'EGP '+(P.egp+1),lines:B.egp[P.egp+1]||[]};
   return {label:'EDP 1',lines:B.edp[1]||[]}; }
 function renderPatron(){ const o=document.getElementById('patScreen'); if(!o) return; const P=patNow();
-  if(!P){ o.innerHTML='<div class="patCard"><div class="patHead"><b>Patron</b><button class="btn sm secondary" id="patX">✕</button></div><div>Sign in to see your patron level.</div></div>'; document.getElementById('patX').onclick=closePatron; return; }
+  if(!P){ o.innerHTML='<div class="patCard"><div class="patHead"><b>Patron</b><button class="btn sm secondary" id="patX">'+uiIcon('close')+'</button></div><div>Sign in to see your patron level.</div></div>'; document.getElementById('patX').onclick=closePatron; return; }
   const T=P.table, edp=!!P.prestiged, lvl=edp?P.edp:P.egp, ladder=edp?T.edp:T.egp, have=edp?P.edpBase:P.base, next=P.next;
   const prev=ladder[lvl]||0, pct=next==null?100:Math.max(0,Math.min(100,Math.round((have-prev)*100/Math.max(1,next-prev))));
   const A=P.attacks, R=P.rows||{}, U=P.used||{}, C=P.costs||{}, left=Math.max(0,A.cap-A.used);
   const row=(k,v)=>'<div class="patRow"><span>'+k+'</span><b>'+v+'</b></div>';
   const sp=n=>n===1?'':'s';
   let mine=row('City attacks today',left+' / '+A.cap)+
-    row('Attack buys a day',A.buysMax>0?((A.buys|0)+' / '+A.buysMax+' · 10 for 💎400'):'—')+
+    row('Attack buys a day',A.buysMax>0?((A.buys|0)+' / '+A.buysMax+' · 10 for '+hudIcon('gem')+'400'):'—')+
     row('Stamina purchases a day',R.meals)+row('Gold purchases a day',R.goldBuys+(R.doubleGold?' · 50% double':''))+
-    row('Elite stage resets a day',R.eliteResets>0?((U.eliteResets|0)+' / '+R.eliteResets+' · 💎'+C.eliteReset):'—')+
-    row('Arena resets a day',R.arenaResets>0?((U.arenaResets|0)+' / '+R.arenaResets+' · 💎'+C.arenaReset):'—')+
+    row('Elite stage resets a day',R.eliteResets>0?((U.eliteResets|0)+' / '+R.eliteResets+' · '+hudIcon('gem')+C.eliteReset):'—')+
+    row('Arena resets a day',R.arenaResets>0?((U.arenaResets|0)+' / '+R.arenaResets+' · '+hudIcon('gem')+C.arenaReset):'—')+
     row('Vault resets a day',R.vaultExtraSweeps>0?R.vaultExtraSweeps:'—')+
     row('Armies out at once',R.marches)+
     (R.marchSpeed?row('March speed','+'+R.marchSpeed+'%'):'')+
@@ -26097,9 +26097,9 @@ function renderPatron(){ const o=document.getElementById('patScreen'); if(!o) re
   const un=patUnlocked(P).map(s=>'<li>'+escapeHTML(s)+(PAT_SOON.test(s)?' <i class="patSoon">soon</i>':'')+'</li>').join('');
   const nx=patNextLines(P);
   o.innerHTML='<div class="patCard">'+
-    '<div class="patHead"><div><div class="patLv'+(edp?' edp':'')+'">'+(edp?'EDP ':'EGP ')+lvl+'</div><div style="font-size:11px;color:#8b98a9">'+(edp?'Ember Diamond Patron':'Ember Gold Patron')+'</div></div><button class="btn sm secondary" id="patX">✕</button></div>'+
-    (next==null?'':'<div class="patBar"><i style="width:'+pct+'%"></i></div><div class="patRow"><span>'+(edp?'EDP ':'EGP ')+(lvl+1)+'</span><b>'+have.toLocaleString()+' / '+next.toLocaleString()+' base 💎</b></div>')+
-    '<div class="patBtns">'+(A.buysMax>0?'<button class="btn" id="patBuyAtk"'+((A.buys|0)>=A.buysMax?' disabled':'')+'>+'+A.pack.n+' attacks · 💎'+A.pack.cost+'</button>':'')+((A.cards|0)>0?'<button class="btn" id="patCard">Use attack card ('+A.cards+')</button>':'')+(R.arenaResets>0?'<button class="btn" id="patArena"'+((U.arenaResets|0)>=R.arenaResets?' disabled':'')+'>Reset Arena · 💎'+C.arenaReset+'</button>':'')+(P.canPrestige?'<button class="btn" id="patPrestige">Prestige to EDP</button>':'')+'</div>'+
+    '<div class="patHead"><div><div class="patLv'+(edp?' edp':'')+'">'+(edp?'EDP ':'EGP ')+lvl+'</div><div style="font-size:11px;color:#8b98a9">'+(edp?'Ember Diamond Patron':'Ember Gold Patron')+'</div></div><button class="btn sm secondary" id="patX">'+uiIcon('close')+'</button></div>'+
+    (next==null?'':'<div class="patBar"><i style="width:'+pct+'%"></i></div><div class="patRow"><span>'+(edp?'EDP ':'EGP ')+(lvl+1)+'</span><b>'+have.toLocaleString()+' / '+next.toLocaleString()+' base '+hudIcon('gem')+'</b></div>')+
+    '<div class="patBtns">'+(A.buysMax>0?'<button class="btn" id="patBuyAtk"'+((A.buys|0)>=A.buysMax?' disabled':'')+'>+'+A.pack.n+' attacks · '+hudIcon('gem')+A.pack.cost+'</button>':'')+((A.cards|0)>0?'<button class="btn" id="patCard">Use attack card ('+A.cards+')</button>':'')+(R.arenaResets>0?'<button class="btn" id="patArena"'+((U.arenaResets|0)>=R.arenaResets?' disabled':'')+'>Reset Arena · '+hudIcon('gem')+C.arenaReset+'</button>':'')+(P.canPrestige?'<button class="btn" id="patPrestige">Prestige to EDP</button>':'')+'</div>'+
     '<div class="patSec">Your benefits</div>'+mine+(un?'<ul class="patList">'+un+'</ul>':'')+
     (nx?'<div class="patSec">'+nx.label+' adds</div><ul class="patList next">'+nx.lines.map(s=>'<li>'+escapeHTML(s)+'</li>').join('')+'</ul>':'<div class="patSec">Top level reached</div>')+
     '</div>';
@@ -26117,16 +26117,16 @@ function foodNextCost(){ const s=shopSrv(); if(s){ G.foodBuys=s.food|0; return (
 function goldNextCost(){ const s=shopSrv(); if(s){ G.goldBuys=s.gold|0; return (s.goldCost==null)?null:(s.goldCost|0); } goldDayReset(); return (G.goldBuys||0)<GOLD_COSTS.length ? GOLD_COSTS[G.goldBuys||0] : null; }
 async function buyFood(){ return shopOnce(buyFoodNow); }
 async function buyFoodNow(){ const c=foodNextCost(); if(c==null){ bannerMsg('No more meals today — resets at 09:00 ET.'); return; }
-  if((G.gems||0)<c){ bannerMsg('Not enough 💎 diamonds.'); return; }
+  if((G.gems||0)<c){ bannerMsg('Not enough '+hudIcon('gem')+' diamonds.'); return; }
   const r=await api('/api/shop/buy','POST',{what:'food',requestId:shopRid('food')}); shopRidDone('food',r);
   if(!r||!r.ok){ bannerMsg((r&&r.error)||'Purchase failed.'); await ledgerSync(); renderHudShop('food'); return; }
-  adoptLedger(r.ledger); if(!(r.ledger&&r.ledger.shop)) G.foodBuys=(G.foodBuys||0)+1; saveG(); updateHubChrome(); renderHudShop('food'); bannerMsg('🍔 +'+FOOD_STAMINA+' stamina!'); }
+  adoptLedger(r.ledger); if(!(r.ledger&&r.ledger.shop)) G.foodBuys=(G.foodBuys||0)+1; saveG(); updateHubChrome(); renderHudShop('food'); bannerMsg(hudIcon('food')+' +'+FOOD_STAMINA+' stamina!'); }
 async function buyGold(){ return shopOnce(buyGoldNow); }
 async function buyGoldNow(){ const c=goldNextCost(); if(c==null){ bannerMsg('No more gold today — resets at 09:00 ET.'); return; }
-  if((G.gems||0)<c){ bannerMsg('Not enough 💎 diamonds.'); return; }
+  if((G.gems||0)<c){ bannerMsg('Not enough '+hudIcon('gem')+' diamonds.'); return; }
   const r=await api('/api/shop/buy','POST',{what:'gold',requestId:shopRid('gold')}); shopRidDone('gold',r);
   if(!r||!r.ok){ bannerMsg((r&&r.error)||'Purchase failed.'); await ledgerSync(); renderHudShop('gold'); return; }
-  adoptLedger(r.ledger); if(!(r.ledger&&r.ledger.shop)) G.goldBuys=(G.goldBuys||0)+1; saveG(); updateHubChrome(); renderHudShop('gold'); bannerMsg('🪙 +'+r.gold+' gold!'); }
+  adoptLedger(r.ledger); if(!(r.ledger&&r.ledger.shop)) G.goldBuys=(G.goldBuys||0)+1; saveG(); updateHubChrome(); renderHudShop('gold'); bannerMsg(hudIcon('gold')+' +'+r.gold+' gold!'); }
 function buyGemOffer(i){
   // Devs get a test popup that actually grants the reward, so packs can be verified before purchases go live.
   if(isDevAcct()){
@@ -26161,29 +26161,29 @@ function closeHudShop(){ document.getElementById('hudShop').classList.remove('ac
 function renderHudShop(kind){ const m=document.getElementById('hudShop'); m.dataset.kind=kind; m.classList.toggle('framed', kind==='gem');
   if(kind==='food') renderFoodShop(); else if(kind==='gold') renderGoldShop(); else renderGemShop(); }
 function renderFoodShop(){ foodDayReset(); const c=foodNextCost(), gems=G.gems||0, n=G.foodBuys||0, out=(c==null);
-  document.getElementById('hudShopTitle').innerHTML='🍔 Food · Restore Stamina';
+  document.getElementById('hudShopTitle').innerHTML=hudIcon('food')+' Food · Restore Stamina';
   document.getElementById('hudShopBody').innerHTML=`
     <div class="shopnote"><b style="color:#bff0a8">+${FOOD_STAMINA} stamina</b> per meal</div>
-    <div class="buyrow"><div><div class="bl">🍔 Meal · +${FOOD_STAMINA} Stamina</div><div class="bs">Bought today: ${n}${out?' · sold out until 09:00 ET':''}</div></div>
-      <div class="bcost">${out?'<span class="bs">Back at 09:00 ET</span>':`<button class="btn sm ${gems>=c?'':'secondary'}" id="foodBuyBtn">💎 ${c}</button>`}</div></div>
-    <div class="costtrack">${Array.from({length:((shopSrv()&&shopSrv().foodMax)||FOOD_COSTS.length)},(_,i)=>FOOD_COSTS[Math.min(i,FOOD_COSTS.length-1)]).map((x,i)=>`<span class="${i<n?'used':i===n?'next':''}">💎${x}</span>`).join(' ')}</div>
-    <div class="shopbal">Balance: 💎 ${gems}</div>`;
+    <div class="buyrow"><div><div class="bl">${hudIcon('food')} Meal · +${FOOD_STAMINA} Stamina</div><div class="bs">Bought today: ${n}${out?' · sold out until 09:00 ET':''}</div></div>
+      <div class="bcost">${out?'<span class="bs">Back at 09:00 ET</span>':`<button class="btn sm ${gems>=c?'':'secondary'}" id="foodBuyBtn">${hudIcon('gem')} ${c}</button>`}</div></div>
+    <div class="costtrack">${Array.from({length:((shopSrv()&&shopSrv().foodMax)||FOOD_COSTS.length)},(_,i)=>FOOD_COSTS[Math.min(i,FOOD_COSTS.length-1)]).map((x,i)=>`<span class="${i<n?'used':i===n?'next':''}">${hudIcon('gem')}${x}</span>`).join(' ')}</div>
+    <div class="shopbal">Balance: ${hudIcon('gem')} ${gems}</div>`;
   const b=document.getElementById('foodBuyBtn'); if(b) b.onclick=buyFood; }
 function renderGoldShop(){ goldDayReset(); const c=goldNextCost(), gems=G.gems||0, n=G.goldBuys||0, out=(c==null), amt=goldPerBuy();
-  document.getElementById('hudShopTitle').innerHTML='🪙 Buy Gold';
+  document.getElementById('hudShopTitle').innerHTML=hudIcon('gold')+' Buy Gold';
   document.getElementById('hudShopBody').innerHTML=`
     <div class="shopnote"><b style="color:#ffe08a">+${amt.toLocaleString()} gold</b> per purchase</div>
-    <div class="buyrow"><div><div class="bl">🪙 +${amt.toLocaleString()} Gold</div><div class="bs">Bought today: ${n}${out?' · sold out until 09:00 ET':''}</div></div>
-      <div class="bcost">${out?'<span class="bs">Back at 09:00 ET</span>':`<button class="btn sm ${gems>=c?'':'secondary'}" id="goldBuyBtn">💎 ${c}</button>`}</div></div>
-    <div class="costtrack">${Array.from({length:((shopSrv()&&shopSrv().goldMax)||GOLD_COSTS.length)},(_,i)=>GOLD_COSTS[Math.min(i,GOLD_COSTS.length-1)]).map((x,i)=>`<span class="${i<n?'used':i===n?'next':''}">💎${x}</span>`).join(' ')}</div>
-    <div class="shopbal">Balance: 💎 ${gems}</div>`;
+    <div class="buyrow"><div><div class="bl">${hudIcon('gold')} +${amt.toLocaleString()} Gold</div><div class="bs">Bought today: ${n}${out?' · sold out until 09:00 ET':''}</div></div>
+      <div class="bcost">${out?'<span class="bs">Back at 09:00 ET</span>':`<button class="btn sm ${gems>=c?'':'secondary'}" id="goldBuyBtn">${hudIcon('gem')} ${c}</button>`}</div></div>
+    <div class="costtrack">${Array.from({length:((shopSrv()&&shopSrv().goldMax)||GOLD_COSTS.length)},(_,i)=>GOLD_COSTS[Math.min(i,GOLD_COSTS.length-1)]).map((x,i)=>`<span class="${i<n?'used':i===n?'next':''}">${hudIcon('gem')}${x}</span>`).join(' ')}</div>
+    <div class="shopbal">Balance: ${hudIcon('gem')} ${gems}</div>`;
   const b=document.getElementById('goldBuyBtn'); if(b) b.onclick=buyGold; }
 function renderGemShop(){ document.getElementById('hudShopTitle').innerHTML='';
   const body=document.getElementById('hudShopBody');
   body.innerHTML=`
     <div class="shopframe" style="background-image:url('${SHOP_FRAME}')">
       <div class="sf-title">Diamond Shop</div>
-      <button class="sf-close" id="sfClose" aria-label="Close">✕</button>
+      <button class="sf-close" id="sfClose" aria-label="Close">${uiIcon('close')}</button>
       <div class="sf-content">
         ${GEM_OFFERS.map((o,i)=>`<div class="sf-item" data-i="${i}">
           <img class="sf-ic" src="${SHOP_ICONS[o.img]||''}" alt="${o.name}" draggable="false">
@@ -26589,7 +26589,7 @@ function showUpdateCountdown(secs){ if(_updateNoticeShown)return; _updateNoticeS
   const ov=document.createElement('div'); ov.id='updateNotice'; ov.style.cssText='position:fixed;inset:0;z-index:15000;background:rgba(4,6,10,.86);display:flex;align-items:center;justify-content:center';
   let n=secs||3;
   const render=()=>{ ov.innerHTML=`<div style="background:#141b2b;border:1px solid #3a6df0;border-radius:16px;padding:22px 20px;width:88%;max-width:360px;text-align:center;box-shadow:0 10px 34px rgba(0,0,0,.6)">
-      <div style="font-size:38px">🔄</div>
+      <div style="font-size:38px">${uiIcon('refresh')}</div>
       <div style="font-weight:800;font-size:17px;margin:6px 0">Updates in progress</div>
       <div style="font-size:13px;color:#8b98a9;margin-bottom:14px">There is currently updates being done — please be patient with restarts. Restarting in <b style="color:#ffd45e">${n}s</b>.</div>
       <button class="btn" id="upNow" style="width:100%">Restart now</button>
@@ -26655,14 +26655,14 @@ function chatSend(){ const inp=document.getElementById('cwInput'); if(!inp)retur
     else return; }
   else if(chatTab.indexOf('w:')===0){ const n=chatTab.slice(2); if(!G.whispers)G.whispers={}; if(!G.whispers[n])G.whispers[n]=[]; G.whispers[n].push({who:me,txt:v,me:true}); saveG();
     if(live){ chatNetSend({t:'whisper',to:n,text:v}); }   // delivered to that player if they're online
-    else { G.whispers[n].push({who:'⚠ offline',txt:'Not delivered — reconnect to whisper.',sys:true}); saveG(); } }
+    else { G.whispers[n].push({who:'{i:u:warning} offline',txt:'Not delivered — reconnect to whisper.',sys:true}); saveG(); } }
   renderChat();
 }
 function renderChat(){ initChat(); const w=document.getElementById('chatWidget'); if(!w||w.classList.contains('min'))return;
   const tabsEl=w.querySelector('#cwTabs'), msgsEl=w.querySelector('#cwMsgs');
-  const base=[['world','🌍 World'],['region','📍 Region'],['guild','🛡 Guild'],['whispers','✉ Whispers']];
+  const base=[['world',uiIcon('world-online')+' World'],['region',uiIcon('map-pin')+' Region'],['guild',statusIcon('shield')+' Guild'],['whispers',uiIcon('mail')+' Whispers']];
   tabsEl.innerHTML=base.map(t=>`<div class="cw-tab${chatTab===t[0]?' on':''}" data-t="${t[0]}">${t[1]}</div>`).join('')
-    + openWhispers.map(n=>`<div class="cw-tab${chatTab==='w:'+n?' on':''}" data-w="${escAttr(n)}">✉ ${escapeHTML(n)}<span class="x" data-close="${escAttr(n)}">✕</span></div>`).join('');
+    + openWhispers.map(n=>`<div class="cw-tab${chatTab==='w:'+n?' on':''}" data-w="${escAttr(n)}">${uiIcon('mail')} ${escapeHTML(n)}<span class="x" data-close="${escAttr(n)}">${uiIcon('close')}</span></div>`).join('');
   const nameSpan=(who,me)=>`<span class="nm" style="color:${me?'#7fffd0':'#8fd0ff'}" data-w="${escAttr(who)}">${escapeHTML(who)}</span>`;
   if(chatTab==='whispers'){ msgsEl.innerHTML = openWhispers.length
       ? '<div style="font-size:11px;color:#8b98a9;margin-bottom:6px">Open whispers</div>'+openWhispers.map(n=>`<div class="cw-msg">${nameSpan(n)} <span style="font-size:10px;color:#6f7d90">tap to open</span></div>`).join('')+'<div style="font-size:10px;color:#6f7d90;margin-top:8px">Tap any player name in World / Region / Guild to whisper them.</div>'
@@ -26672,14 +26672,14 @@ function renderChat(){ initChat(); const w=document.getElementById('chatWidget')
   if(chatTab==='world')msgs=CHAT.world; else if(chatTab==='region')msgs=CHAT.region;
   else if(chatTab==='guild'){
     if(GS.guild){   // REAL server guild log (sys lines + member messages)
-      (GS.guild.log||[]).forEach(gm=>{ if(gm.sys)msgs.push({who:'📯',txt:gm.tx,sys:true}); else msgs.push({who:gm.name||'?',txt:gm.tx,me:(gm.name===chatName()),battle:gm.battle||null,pt:gm.pt||null}); });
+      (GS.guild.log||[]).forEach(gm=>{ if(gm.sys)msgs.push({who:'{i:u:horn}',txt:gm.tx,sys:true}); else msgs.push({who:gm.name||'?',txt:gm.tx,me:(gm.name===chatName()),battle:gm.battle||null,pt:gm.pt||null}); });
     } else if(G.guild){ (G.guildLog||[]).forEach(tx=>{ if(tx&&typeof tx==='object')msgs.push({who:G.playerName||'You',txt:tx.txt,me:true,battle:tx.battle||null}); else msgs.push({who:G.playerName||'You',txt:tx,me:true}); });
     } else if(ACC.token&&typeof guildFetch==='function'&&!renderChat._gfetch){ renderChat._gfetch=true; guildFetch().then(()=>{ renderChat._gfetch=false; if(chatTab==='guild')renderChat(); }).catch(()=>{renderChat._gfetch=false;}); } }
   else if(chatTab.indexOf('w:')===0){ msgs=(G.whispers&&G.whispers[chatTab.slice(2)])||[]; }
   if(chatTab==='guild'&&!GS.guild&&!G.guild){ msgsEl.innerHTML='<div style="font-size:11px;color:#6f7d90;padding:6px">Join a guild to use guild chat.</div>'; wireChat(w); return; }
   _chatBattles=[];
-  msgsEl.innerHTML=msgs.length?msgs.map(m=>{ let btn=''; if(m.battle&&m.battle.mineSnap&&m.battle.mineSnap.length&&(m.battle.foe||[]).length){ const idx=_chatBattles.push(m.battle)-1; btn=` <button class="btn sm" data-cbat="${idx}" style="padding:2px 8px;margin-left:4px">▶ Watch</button>`; }
-    if(m.sys) return `<div class="cw-msg" style="color:#8b98a9;font-style:italic">${escapeHTML(m.who)} ${escapeHTML(m.txt)}</div>`;
+  msgsEl.innerHTML=msgs.length?msgs.map(m=>{ let btn=''; if(m.battle&&m.battle.mineSnap&&m.battle.mineSnap.length&&(m.battle.foe||[]).length){ const idx=_chatBattles.push(m.battle)-1; btn=` <button class="btn sm" data-cbat="${idx}" style="padding:2px 8px;margin-left:4px">${uiIcon('play')} Watch</button>`; }
+    if(m.sys) return `<div class="cw-msg" style="color:#8b98a9;font-style:italic">${iconize(escapeHTML(m.who))} ${escapeHTML(m.txt)}</div>`;
     return `<div class="cw-msg${m.pt&&m.pt.bubble?' patBub-'+m.pt.bubble:''}">${patChip(m.pt)}${m.pt&&m.pt.edp?nameSpan(m.who,m.me).replace(/color:#[0-9a-f]{6}/,'color:#9fe1ff'):nameSpan(m.who,m.me)}: <span>${escapeHTML(m.txt)}</span>${btn}</div>`; }).join('')
     :'<div style="font-size:11px;color:#6f7d90;padding:6px">No messages yet — say hi!</div>';
   msgsEl.scrollTop=msgsEl.scrollHeight; wireChat(w);
@@ -26715,7 +26715,7 @@ function postReplayChip(channel, meta){
     if(!ACC.token){ bannerMsg('Sign in to share to guild'); return; }
     api('/api/guild/chat','POST',{tx:txt,battle:chip}).then(d=>{
       if(d&&d.log){ if(typeof GS!=='undefined'&&GS.guild)GS.guild.log=d.log; if(document.getElementById('guildWrap'))renderGuild(); bannerMsg('\u{1F4E4} Shared to guild chat'); }
-      else bannerMsg((d&&d.error)?('⚠ '+d.error):'Could not share to guild — join a guild first');
+      else bannerMsg((d&&d.error)?(uiIcon('warning')+' '+d.error):'Could not share to guild — join a guild first');
     }).catch(()=>bannerMsg('Could not share to guild'));
     return;
   }
@@ -26745,7 +26745,7 @@ function onChatNet(m){
   if(m.t==='actack'){ onActAck(m); return; }
   if(m.t==='chathist'){ if(Array.isArray(m.world))CHAT.world=m.world.map(x=>({who:x.who,txt:x.txt,me:x.who===CHATNET.name,battle:x.battle||null,pt:x.pt||null})); if(Array.isArray(m.region))CHAT.region=m.region.map(x=>({who:x.who,txt:x.txt,me:x.who===CHATNET.name,battle:x.battle||null,pt:x.pt||null})); if(chatTab==='world'||chatTab==='region')renderChat(); }
   else if(m.t==='chatmsg'){ const ch=m.channel==='region'?'region':'world'; CHAT[ch].push({who:m.who,txt:m.txt,me:m.who===CHATNET.name,battle:m.battle||null,pt:m.pt||null}); if(CHAT[ch].length>120)CHAT[ch].shift(); if(chatTab===ch)renderChat(); }
-  else if(m.t==='whispermsg'){ const from=m.from; if(from===CHATNET.name)return; if(!G.whispers)G.whispers={}; if(!G.whispers[from])G.whispers[from]=[]; G.whispers[from].push({who:from,txt:m.txt}); if(!openWhispers.includes(from))openWhispers.push(from); saveG(); if(chatTab==='w:'+from||chatTab==='whispers')renderChat(); bannerMsg('✉ Whisper from '+escapeHTML(from)); }
+  else if(m.t==='whispermsg'){ const from=m.from; if(from===CHATNET.name)return; if(!G.whispers)G.whispers={}; if(!G.whispers[from])G.whispers[from]=[]; G.whispers[from].push({who:from,txt:m.txt}); if(!openWhispers.includes(from))openWhispers.push(from); saveG(); if(chatTab==='w:'+from||chatTab==='whispers')renderChat(); bannerMsg(uiIcon('mail')+' Whisper from '+escapeHTML(from)); }
 }
 // ---- boot splash: online/offline status + invisible logo Play button ----
 // "Online" means the actual game SERVER is reachable — /health is answered only by the backend,
