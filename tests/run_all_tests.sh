@@ -261,6 +261,8 @@ note "test_rafe_fortune_1075.js (v1075: Dead Man's Fortune tracer per shot, spar
 node tests/test_rafe_fortune_1075.js || FAILED=1
 note "test_sealing_wax_1076.js (v1076: Sealing Wax eruption then the wax pool for the coat)"
 node tests/test_sealing_wax_1076.js || FAILED=1
+note "test_final_candle_1077.js (v1077: Court of the Final Candle - wax spreads to 7 m, each hero encased when the edge reaches it)"
+node tests/test_final_candle_1077.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi

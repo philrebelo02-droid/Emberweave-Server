@@ -18,7 +18,7 @@ ok(er && +er[9] === 0.5, 'the column peaks at half the hero height (peakH 0.5)')
 const fn = H.slice(H.indexOf('function updateWaxFx'), H.indexOf('function clearFx2'));
 ok(/if\(!\(u\.alive&&\(u\._waxCoatT\|\|0\)>0\)\)\{ if\(u\._waxFx\)_killWaxFx\(u\); return; \}/.test(fn), 'shown only while the coat lasts - removed at coat end, shatter or death');
 ok(/s\.spr\.material\.map=tp;[^\n]*s\.spr\.renderOrder=-4;/.test(fn), 'after the eruption the pool takes over, behind the unit like the other ground marks');
-ok(/killAllStatusFx\(\); killAllWaxFx\(\); \}/.test(H), 'cleared with the other FX');
+ok(/killAllStatusFx\(\); killAllWaxFx\(\);/.test(H), 'cleared with the other FX');   // v1077 appends the candle clear after it
 ok((H.match(/try\{ updateWaxFx\(dt\); \}catch\(e\)\{\}/g) || []).length === 2, 'ticked in battle and after the end');
 // CONTROL: display only - it reads the coat and never writes it; the sealwax mechanic is unchanged
 ok(!/_waxCoatT\s*[-+]?=[^=]|dealDamage|ccApply|\.hp\s*[-+]?=/.test(fn), 'CONTROL: the wax FX never writes the coat, damage or CC');

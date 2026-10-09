@@ -10754,8 +10754,15 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
       const _caught=enemiesOf(u).filter(e=>e.alive&&dist(_c,e)<_R);
       _caught.forEach(e=>{ ccApply(u,e,'slow',o.slow||3); floatTexts.push({x:e.x,y:e.y-8,txt:'WAX',t:.8,color:'#e8d8b0',vy:1,sz:11}); });
       ringBurst(_c.x,_c.y,0xe8d8b0,22);
-      groundHazards.push({arrival:true,delay:o.harden||1.6,run:function(){ _caught.forEach(e=>{ if(!e.alive)return; ccApply(u,e,'stunned',o.stun||1.5); e.brighten=Math.max(e.brighten||0,0.6); floatTexts.push({x:e.x,y:e.y-10,txt:'STATUE',t:1.0,color:'#f0e6c8',vy:1,sz:12}); }); }});
-      groundHazards.push({arrival:true,delay:(o.harden||1.6)+(o.shatter||1.5),run:function(){ _caught.forEach(e=>{ if(!e.alive)return; dealDamage(u,e,_sh,'#fff0c0','magic'); burstAt(e.x,e.y,0xfff0c0,14); ringBurst(e.x,e.y,0xe8d8b0,10); }); }});
+      /* v1077 (Phil via Grok, spell 21): the wax is poured at the aim point and SPREADS to the full radius; a hero is encased (stun) the
+         moment the spreading edge reaches the spot it stood on at the cast, and its effigy shatters (the damage) o.shatter s later. Before:
+         every caught hero turned to a statue at 1.6 s and shattered at 3.1 s together. Stun length and shatter gap are unchanged.
+         The edge timing is CANDLE_EDGE (measured from the approved pour clip) - plain numbers, so the server replay is identical. */
+      const _enc=[]; try{ if(typeof candleCastFx==='function') candleCastFx(_c.x,_c.y,_R); }catch(_e){}
+      _caught.forEach(e=>{ const at=candleEdgeT(dist(_c,e)/_R);
+        groundHazards.push({arrival:true,delay:at,run:function(){ if(!e.alive||dist(_c,e)>=_R)return; _enc.push(e); ccApply(u,e,'stunned',o.stun||1.5); e.brighten=Math.max(e.brighten||0,0.6); floatTexts.push({x:e.x,y:e.y-10,txt:'STATUE',t:1.0,color:'#f0e6c8',vy:1,sz:12});
+          try{ if(typeof candleEffigyFx==='function') candleEffigyFx(e,o.shatter||1.5); }catch(_e){} }});
+        groundHazards.push({arrival:true,delay:at+(o.shatter||1.5),run:function(){ if(!e.alive||_enc.indexOf(e)<0)return; dealDamage(u,e,_sh,'#fff0c0','magic'); burstAt(e.x,e.y,0xfff0c0,14); ringBurst(e.x,e.y,0xe8d8b0,10); }}); });
       break; }
     case 'swamproot':{ const R=o.radius||2.4*METER;
       /* v1030 (Phil 4 Oct: Swampcall "hits two of the furthest targets and the root also silences for 2 seconds"): with `farthest` the swamp opens
@@ -11354,6 +11361,10 @@ const FX2_DEF={
   quorrel_ult:{u:'/assets/anim/fx/quorrel_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:1.67,disc:{cy:0.503,dh:0.312,dw:0.844}},
   meridian_ult:{u:'/assets/anim/fx/meridian_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:2.75,upright:true,upSize:2.0,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   nox_ult:{u:'/assets/anim/fx/nox_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.17,upright:true,upSize:2.0,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
+  candlepot:{u:'/assets/anim/fx/ceraline_candle_pot.webp?v=1',n:58,fw:112,fh:280,cols:10,rows:6,dur:4.83,anchor:[0.504,0.0],hPerR:1.556},   /* v1077 Court of the Final Candle (Grok spell 21, Phil-approved 8 Oct): the pot tips and pours (clip frames 1-115, 12 fps; height = 1.556 x the 7 m radius, the clip's own scale) */
+  candlepool:{u:'/assets/anim/fx/ceraline_candle_pool.webp?v=1',n:1,fw:512,fh:512,cols:1,rows:1,dur:1},   /* v1077: the poured wax as a TRUE circle on the floor (the clip's oval unsquashed), grown with the wax edge */
+  candleburst:{u:'/assets/anim/fx/ceraline_candle_burst.webp?v=1',n:48,fw:240,fh:205,cols:8,rows:6,dur:4.0,anchor:[0.4755,0.2168],effFrac:0.5376,brk:1.0},   /* v1077: the effigy cracks, breaks at 1.0 s, chunks fade by ~3.8 s */
+  candleeffigy:{u:'/assets/anim/fx/ceraline_candle_effigy.webp?v=1',n:1,fw:82,fh:300,cols:1,rows:1,dur:1},   /* v1077: the hardened wax totem held over a stunned hero */
   waxerupt:{u:'/assets/anim/fx/ceraline_wax_erupt.webp?v=1',n:69,fw:160,fh:203,cols:10,rows:7,dur:5.7,anchor:[0.5,0.136],peakFrac:0.85,peakH:0.5},   /* v1076 Sealing Wax cast (Grok spell 20, Phil-approved 8 Oct): the pool on the target's feet, the wax column erupts to half its height and settles (clip frames 1-137, 12 fps) */
   waxpool:{u:'/assets/anim/fx/ceraline_wax_pool.webp?v=1',n:73,fw:160,fh:203,cols:10,rows:8,dur:6.04},   /* v1076: the same pool bubbling (same crop box, so the cast hands off into it) - loops while the wax coat lasts */
   rafetracer:{u:'/assets/anim/fx/rafe_tracer.webp?v=1',n:1,fw:512,fh:91,cols:1,rows:1,dur:1},   /* v1075 Dead Man's Fortune (Grok spell 19, Phil-approved 8 Oct): the hot ball + orange tracer, head right */
@@ -11841,6 +11852,39 @@ function updateStatusFx(dt){ if(!TH||!scene)return; units.forEach(u=>{
     fx2Hook(spr); fx2SetFrame(spr,d,0);
     spr.center.set(.5,.10); spr.scale.set(scl*asp,scl,1); spr.renderOrder=-4; scene.add(spr); u._statusFx={kind,spr,tex,d,t:0,u}; _statusFxAll.push(u._statusFx); }
   const s=u._statusFx; s.t+=dt; fx2SetFrame(s.spr,s.d,Math.floor((s.t/s.d.dur)*s.d.n)); s.spr.position.set(wx(u.rx==null?u.x:u.rx),0.35,wz(u.ry==null?u.y:u.ry)); }); }   // v268: interpolated
+/* v1077 Court of the Final Candle - the wax edge, measured from Grok's approved pour clip (pool width per frame / its final width):
+   it lands at 0.92 s, reaches half the radius at 2.0 s, 90% at ~3.9 s and the full radius at ~5.5 s. GAME LOGIC uses this table
+   (candleEdgeT: when the edge reaches a fraction of the radius), and the floor art grows on the same table, so they cannot drift. */
+const CANDLE_EDGE=[[0.92,0],[1.0,0.074],[1.25,0.223],[1.5,0.32],[1.75,0.409],[2.0,0.488],[2.25,0.561],[2.5,0.632],[2.75,0.697],[3.0,0.752],[3.25,0.803],[3.5,0.847],[3.75,0.883],[4.0,0.914],[4.25,0.94],[4.5,0.958],[4.75,0.973],[5.0,0.982],[5.25,0.991],[5.5,1.0]];
+function candleEdgeT(f){ f=Math.max(0,Math.min(1,f)); for(let i=1;i<CANDLE_EDGE.length;i++){ const a=CANDLE_EDGE[i-1],b=CANDLE_EDGE[i]; if(f<=b[1]) return a[0]+(b[0]-a[0])*((f-a[1])/Math.max(1e-6,b[1]-a[1])); } return CANDLE_EDGE[CANDLE_EDGE.length-1][0]; }
+function candleEdgeF(t){ if(t<=CANDLE_EDGE[0][0]) return 0; for(let i=1;i<CANDLE_EDGE.length;i++){ const a=CANDLE_EDGE[i-1],b=CANDLE_EDGE[i]; if(t<=b[0]) return a[1]+(b[1]-a[1])*((t-a[0])/(b[0]-a[0])); } return 1; }
+/* Display only (no TH on the server - these return at once there). */
+const _candleFx=[];
+function candleCastFx(cx,cy,R){ if(!TH||!scene) return; const dp=FX2_DEF.candlepot, tp=fx2Tex('candlepot'), tl=fx2Tex('candlepool'); if(!dp||!tp||!tl) return;
+  const R3=R*SC;
+  const pot=new TH.Sprite(new TH.SpriteMaterial({map:tp,transparent:true,depthWrite:false,depthTest:false,opacity:1})); fx2Hook(pot); fx2SetFrame(pot,dp,0);
+  const H=R3*dp.hPerR; pot.center.set(dp.anchor[0],dp.anchor[1]); pot.scale.set(H*dp.fw/dp.fh,H,1); pot.position.set(wx(cx),0.05,wz(cy)); pot.renderOrder=3; scene.add(pot);
+  const pool=new TH.Mesh(_FX2_PLANE||new TH.PlaneGeometry(1,1), new TH.MeshBasicMaterial({map:tl,transparent:true,depthWrite:false,depthTest:false,side:TH.DoubleSide,opacity:0.95}));
+  pool.rotation.x=-Math.PI/2; pool.position.set(wx(cx),0.12,wz(cy)); pool.scale.set(0.001,0.001,1); pool.renderOrder=-6; scene.add(pool);
+  _candleFx.push({kind:'cast',pot,pool,R3,t:0,life:7.0}); }
+function candleEffigyFx(e,hold){ if(!TH||!scene||!e) return; const te=fx2Tex('candleeffigy'), tb=fx2Tex('candleburst'), db=FX2_DEF.candleburst; if(!te||!tb||!db) return;
+  const h=(e.sprH||3.9);
+  const eff=new TH.Sprite(new TH.SpriteMaterial({map:te,transparent:true,depthWrite:false,depthTest:false,opacity:1})); eff.center.set(0.5,0.0); eff.scale.set(h*82/300,h,1); eff.renderOrder=2; scene.add(eff);
+  const bs=new TH.Sprite(new TH.SpriteMaterial({map:tb,transparent:true,depthWrite:false,depthTest:false,opacity:1})); fx2Hook(bs); fx2SetFrame(bs,db,0); bs.center.set(db.anchor[0],db.anchor[1]);
+  const BH=h/db.effFrac; bs.scale.set(BH*db.fw/db.fh,BH,1); bs.visible=false; bs.renderOrder=2; scene.add(bs);
+  _candleFx.push({kind:'eff',u:e,eff,bs,t:0,brkAt:hold,startB:Math.max(0,hold-db.brk)}); }
+function _candleKill(o){ ['pot','pool','eff','bs'].forEach(k=>{ if(o[k]){ try{ scene.remove(o[k]); o[k].material.dispose(); }catch(_){} } }); }
+function clearCandleFx(){ _candleFx.forEach(_candleKill); _candleFx.length=0; }
+function updateCandleFx(dt){ if(!_candleFx.length) return; const dp=FX2_DEF.candlepot, db=FX2_DEF.candleburst;
+  for(let i=_candleFx.length-1;i>=0;i--){ const o=_candleFx[i]; o.t+=dt;
+    if(o.kind==='cast'){ const f=candleEdgeF(o.t), d=2*o.R3*Math.max(0.001,f); o.pool.scale.set(d,d,1);
+      o.pool.material.opacity=0.95*Math.max(0,Math.min(1,(o.life-o.t)/0.8));
+      if(o.t<dp.dur) fx2SetFrame(o.pot,dp,Math.min(dp.n-1,Math.floor(o.t/dp.dur*dp.n))); else o.pot.visible=false;
+      if(o.t>=o.life){ _candleKill(o); _candleFx.splice(i,1); } continue; }
+    const u=o.u, px=wx(u.rx==null?u.x:u.rx), pz=wz(u.ry==null?u.y:u.ry);
+    if(o.t<o.startB){ if(!u.alive){ _candleKill(o); _candleFx.splice(i,1); continue; } o.eff.position.set(px,0.05,pz); continue; }
+    o.eff.visible=false; o.bs.visible=true; const tb=o.t-o.startB; if(tb>=db.dur){ _candleKill(o); _candleFx.splice(i,1); continue; }
+    if(o.bpos==null) o.bpos=[px,pz]; o.bs.position.set(o.bpos[0],0.05,o.bpos[1]); fx2SetFrame(o.bs,db,Math.min(db.n-1,Math.floor(tb/db.dur*db.n))); } }
 /* v1076 Sealing Wax (Grok spell 20): while a unit carries Ceraline's wax coat (_waxCoatT > 0) a wax plate sits on its feet - the
    eruption once (drawn in front: the wax goes up over the body), then the bubbling pool (behind, like the bleed/poison/burn marks)
    until the coat ends or Mourning Bell shatters it. Display only: it reads _waxCoatT and never writes it. */
@@ -11848,7 +11892,7 @@ const _waxFxAll=[];
 function _killWaxFx(u){ if(u&&u._waxFx){ try{ scene.remove(u._waxFx.spr); u._waxFx.spr.material.dispose(); }catch(_){}
     const i=_waxFxAll.indexOf(u._waxFx); if(i>=0)_waxFxAll.splice(i,1); u._waxFx=null; } }
 function killAllWaxFx(){ _waxFxAll.forEach(s=>{ try{ scene.remove(s.spr); s.spr.material.dispose(); }catch(_){} if(s.u)s.u._waxFx=null; }); _waxFxAll.length=0; }
-function updateWaxFx(dt){ if(!TH||!scene||typeof units==='undefined')return; const de=FX2_DEF.waxerupt, dp=FX2_DEF.waxpool; if(!de||!dp)return; units.forEach(u=>{
+function updateWaxFx(dt){ try{ updateCandleFx(dt); }catch(_e){} if(!TH||!scene||typeof units==='undefined')return;   /* v1077: the Final Candle art ticks here too */ const de=FX2_DEF.waxerupt, dp=FX2_DEF.waxpool; if(!de||!dp)return; units.forEach(u=>{
   if(!(u.alive&&(u._waxCoatT||0)>0)){ if(u._waxFx)_killWaxFx(u); return; }
   if(!u._waxFx){ const te=fx2Tex('waxerupt'); if(!te)return;
     const spr=new TH.Sprite(new TH.SpriteMaterial({map:te,transparent:true,depthWrite:false,depthTest:false,opacity:0.97}));
@@ -11864,7 +11908,7 @@ function clearFx2(){ _groundFx.forEach(o=>{scene.remove(o.m);o.m.material.dispos
   _projFx.forEach(p=>{scene.remove(p.spr);p.spr.material.dispose();}); _projFx.length=0; clearTipFx();
   _beamFx.forEach(o=>{scene.remove(o.spr);o.spr.material.dispose();}); _beamFx.length=0; _pendingDots.length=0;
   if(typeof _boltFx!=='undefined'){ _boltFx.forEach(o=>{scene.remove(o.spr);o.spr.material.dispose();}); _boltFx.length=0; }   /* v959 */
-  killAllStatusFx(); killAllWaxFx(); }
+  killAllStatusFx(); killAllWaxFx(); clearCandleFx(); }
 // a big glowing orb that flies from -> to, leaves a trail, and runs onDone (impact) when it lands
 function spawnOrb(from,to,color,size,onDone){ if(!TH||!scene)return; const mesh=new TH.Mesh(SPH,new TH.MeshStandardMaterial({color,emissive:color,emissiveIntensity:1.15,transparent:true,opacity:.95})); mesh.scale.setScalar((size||3.4)*gsplitFxMul()); mesh.position.set(wx(from.x),1.4,wz(from.y)); scene.add(mesh); shots.push({mesh,sx:from.x,sy:from.y,tx:to.x,ty:to.y,t:0,dur:.42*HERO_FX_MUL,onDone,trail:color}); }
 // ===== KonWu ultimate: phantom Ruyi staffs that slam each affected enemy (real cropped art + ground splash) =====
@@ -19167,7 +19211,7 @@ const CASTER_BALL={   // v340 (Phil): Beekeeper/Oakmir/Lumi nature, Annotator+Te
   fritz:{fx:'fritz_zap',scale:2.2,dur:0.13,bolt:true},   /* v958 (Phil: "also use this for auto attack on a single target"): the chain bolt from Fritz to his target */
   'boar shaman':{fx:'fireball',scale:1.2}   // v547 (Phil): the shaman's auto aims the burning hand, nothing leaves it on the clip - the engine's fireball is the projectile
 };
-const HERO_ULT_ART={rafe:{evadeEva:0.5,evadeDur:3,pfx:'rafetracer',pscale:0.9,pdur:0.30,spark:'rafespark'}, sloe:{backline:true,pfx:'sloearrow',pscale:0.9,pdur:0.30,stagger:0.12}, kharos:{gfx:'kharos_ult',gdur:2.0}, tolley:{gfx:'tolley_ult',gdur:2.4}, absalie:{gfx:'absalie_ult',gdur:2.4}, rivet:{gfx:'rivet_ult',gdur:2.4}, tessit:{deliver:'land'}, vesper:{deliver:'form'}, lysara:{deliver:'form',gfx:'lysara_ult',gdur:2.4}, nerisse:{deliver:'form',form:0.4}, pyroclast:{gfx:'pyroclast_ult',gdur:6.04,deliver:'land',fall:0.55}, orryn:{gfx:'orryn_ult',gdur:6.04,deliver:'form',form:0.5}, ambrel:{deliver:'form',gfx:'ambrel_ult',gdur:5.88}, vaelora:{gfx:'vaelora_ult',gdur:5.88}, aldren:{gfx:'aldren_ult',gdur:2.2}, astra:{deliver:'form',gfx:'astra_ult',gdur:5.83}, aureth:{deliver:'form',gfx:'aureth_ult',gdur:5.88}, carn:{deliver:'form',gfx:'carn_ult',gdur:2.6,gfxAt:'front'}, sorrel:{gfx:'sorrel_ult',gdur:5.88}, deepcleft:{deliver:'form',gfx:'deepcleft_ult',gdur:2.42}, fritz:{gfx:'fritz_ult',gdur:3.0,previewAt:'self'}, dandra:{gfx:'dandra_ult',gdur:2.6}, grimsby:{gfx:'grimsby_ult',gdur:5.88}, mellan:{gfx:'mellan_ult',gdur:4.88}, bloatus:{deliver:'form',gfx:'bloatus_ult',gdur:3.79}, maren:{deliver:'form',gfx:'maren_ult',gdur:2.8}, askel:{gfx:'askel_ult',gdur:2.29,artR:2.9*METER,fieldWide:'allies',allyShield:0.12,knockAside:2*METER}, grosk:{gfx:'grosk_ult',gdur:5.88}, hollow:{gfx:'hollow_ult',gdur:5.88}, konwu:{gfx:'konwu_ult',gdur:5.88}, lumi:{deliver:'form',gfx:'lumi_ult',gdur:1.04}, quorrel:{gfx:'quorrel_ult',gdur:1.67}, meridian:{gfx:'meridian_ult',gdur:2.75}, nox:{deliver:'form',gfx:'nox_ult',gdur:5.17,fieldWide:'enemies'}, oakmir:{deliver:'form',gfx:'oakmir_ult',gdur:5.67,badgeSize:0.45}, pellucid:{gfx:'pellucid_ult',gdur:6.04}, rhukk:{gfx:'rhukk_ult',gdur:2.08}, iver:{deliver:'land',gfx:'iver_ult',gdur:2.71}, sylthaine:{gfx:'sylthaine_ult',gdur:4.0}, gruel:{gfx:'gruel_ult',gdur:5.88}, tick:{gfx:'tick_ult',gdur:5.71}, umbris:{gfx:'umbris_ult',gdur:5.0}, vael:{gfx:'vael_ult',gdur:5.88}, mirelle:{deliver:'form',gfx:'mirelle_ult',gdur:5.62,fieldWide:'both'}, vex:{gfx:'vex_ult',gdur:4.75,gfxR:10*METER}, veyr:{gfx:'veyr_ult',gdur:5.12}, korvux:{deliver:'land',gfx:'korvux_ult',gdur:5.88}, vireo:{gfx:'vireo_ult',gdur:2.0}, ceraline:{deliver:'form',gfx:'ceraline_ult',gdur:5.5}, tharl:{gfx:'tharl_ult',gdur:5.88,pathHit:0.5}, hobb:{deliver:'form',gfx:'hobb_ult',gdur:5.5}, yenna:{gfx:'yenna_ult',gdur:5.88,ricochet:true}, calypsa:{gfx:'calypsa_ult',gdur:5.88,deliver:'form',form:0.4}, brannus:{gfx:'brannus_ult',gdur:5.88,pathHit:0.5}, joss:{deliver:'form',gfx:'joss_ult',gdur:5.88,stun:1.2}, hurne:{gfx:'hurne_ult',gdur:5.88}
+const HERO_ULT_ART={rafe:{evadeEva:0.5,evadeDur:3,pfx:'rafetracer',pscale:0.9,pdur:0.30,spark:'rafespark'}, sloe:{backline:true,pfx:'sloearrow',pscale:0.9,pdur:0.30,stagger:0.12}, kharos:{gfx:'kharos_ult',gdur:2.0}, tolley:{gfx:'tolley_ult',gdur:2.4}, absalie:{gfx:'absalie_ult',gdur:2.4}, rivet:{gfx:'rivet_ult',gdur:2.4}, tessit:{deliver:'land'}, vesper:{deliver:'form'}, lysara:{deliver:'form',gfx:'lysara_ult',gdur:2.4}, nerisse:{deliver:'form',form:0.4}, pyroclast:{gfx:'pyroclast_ult',gdur:6.04,deliver:'land',fall:0.55}, orryn:{gfx:'orryn_ult',gdur:6.04,deliver:'form',form:0.5}, ambrel:{deliver:'form',gfx:'ambrel_ult',gdur:5.88}, vaelora:{gfx:'vaelora_ult',gdur:5.88}, aldren:{gfx:'aldren_ult',gdur:2.2}, astra:{deliver:'form',gfx:'astra_ult',gdur:5.83}, aureth:{deliver:'form',gfx:'aureth_ult',gdur:5.88}, carn:{deliver:'form',gfx:'carn_ult',gdur:2.6,gfxAt:'front'}, sorrel:{gfx:'sorrel_ult',gdur:5.88}, deepcleft:{deliver:'form',gfx:'deepcleft_ult',gdur:2.42}, fritz:{gfx:'fritz_ult',gdur:3.0,previewAt:'self'}, dandra:{gfx:'dandra_ult',gdur:2.6}, grimsby:{gfx:'grimsby_ult',gdur:5.88}, mellan:{gfx:'mellan_ult',gdur:4.88}, bloatus:{deliver:'form',gfx:'bloatus_ult',gdur:3.79}, maren:{deliver:'form',gfx:'maren_ult',gdur:2.8}, askel:{gfx:'askel_ult',gdur:2.29,artR:2.9*METER,fieldWide:'allies',allyShield:0.12,knockAside:2*METER}, grosk:{gfx:'grosk_ult',gdur:5.88}, hollow:{gfx:'hollow_ult',gdur:5.88}, konwu:{gfx:'konwu_ult',gdur:5.88}, lumi:{deliver:'form',gfx:'lumi_ult',gdur:1.04}, quorrel:{gfx:'quorrel_ult',gdur:1.67}, meridian:{gfx:'meridian_ult',gdur:2.75}, nox:{deliver:'form',gfx:'nox_ult',gdur:5.17,fieldWide:'enemies'}, oakmir:{deliver:'form',gfx:'oakmir_ult',gdur:5.67,badgeSize:0.45}, pellucid:{gfx:'pellucid_ult',gdur:6.04}, rhukk:{gfx:'rhukk_ult',gdur:2.08}, iver:{deliver:'land',gfx:'iver_ult',gdur:2.71}, sylthaine:{gfx:'sylthaine_ult',gdur:4.0}, gruel:{gfx:'gruel_ult',gdur:5.88}, tick:{gfx:'tick_ult',gdur:5.71}, umbris:{gfx:'umbris_ult',gdur:5.0}, vael:{gfx:'vael_ult',gdur:5.88}, mirelle:{deliver:'form',gfx:'mirelle_ult',gdur:5.62,fieldWide:'both'}, vex:{gfx:'vex_ult',gdur:4.75,gfxR:10*METER}, veyr:{gfx:'veyr_ult',gdur:5.12}, korvux:{deliver:'land',gfx:'korvux_ult',gdur:5.88}, vireo:{gfx:'vireo_ult',gdur:2.0}, ceraline:{deliver:'form',noArt:true}, tharl:{gfx:'tharl_ult',gdur:5.88,pathHit:0.5}, hobb:{deliver:'form',gfx:'hobb_ult',gdur:5.5}, yenna:{gfx:'yenna_ult',gdur:5.88,ricochet:true}, calypsa:{gfx:'calypsa_ult',gdur:5.88,deliver:'form',form:0.4}, brannus:{gfx:'brannus_ult',gdur:5.88,pathHit:0.5}, joss:{deliver:'form',gfx:'joss_ult',gdur:5.88,stun:1.2}, hurne:{gfx:'hurne_ult',gdur:5.88}
 };
 Object.assign(ULT_DEF, {summonshaman:{key:'ink horror',dur:22,radius:1.6*METER}});
 Object.assign(ULT_SCALE, {summonshaman:'\u2014'});
@@ -26162,7 +26206,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791517773372';
+const BUILD_ID = '1791520016625';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
