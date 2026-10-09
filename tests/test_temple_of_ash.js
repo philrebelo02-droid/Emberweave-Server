@@ -21,33 +21,41 @@ ck('tiers at T17', T.tiersOpen(17).map(t => t.id).join() === 'gold,kindled,stoke
 { const p = T.keeperProgress(pts(19) + 2747, 85); ck('keeper bar 19 / 2747 / 6500', p.level === 19 && p.into === 2747 && p.need === 6500); }
 ck('player gates 50->12, 60->18, 70->24, 80->40, 90->50', [[50, 12], [60, 18], [70, 24], [80, 40], [90, 50]].every(([pl, t]) => T.keeperLevel(1e9, pl) === t));
 
-// four fixed bars, all roll from Temple 1; cap by Temple level
-ck('four bars open at Temple 1', T.barsOpen(1).join() === BARS.join());
+// v1098 (Phil 9 Oct): bars 3 and 4 open at Temple 7 and 11 and cannot move before; cap by Temple level
+ck('bars 3 / 4 open at Temple 7 / 11', T.CONFIG.BAR_UNLOCK_TEMPLE.join() === '1,1,7,11');
 ck('cap 40/75/110/140/170/200', [1, 5, 9, 13, 16, 19].map(T.capSteps).join() === '40,75,110,140,170,200');
-{ const st = T.newState(); st.heroes = { h: hero(0, 0, 0, 0) }; st.playerLevel = 50; T.setRng(seq([0.3]));
-  const s = T.pray(st, 'h', 'gold'); ck('a Temple-1 prayer rolls all four bars', Object.keys(s.rolls).join() === BARS.join()); T.discardSession(st); }
-
-// a roll comes from the tier's measured table; power = 10 x net applied steps
-{ const st = T.newState(); st.heroes = { h: hero(10, 10, 10, 10) }; st.playerLevel = 50; T.setRng(seq([0.999]));   // top of every table
+const up = T.CONFIG.ROLL_TABLES.gold, upShare = (() => { let u = 0, d = 0; for (const k in up) { if (+k > 0) u += up[k]; else if (+k < 0) d += up[k]; } return u / (u + d); })();
+ck('roll 1 keeps the existing Gold success odds (up share of the measured table)', near(upShare, 52 / 68, 1e-9));
+// v1098 two rolls (Phil): roll 1 = gain or loss for the whole prayer; roll 2 = how many steps (Gold 1-30), dealt to random open bars
+{ const st = T.newState(); st.heroes = { h: hero(10, 10, 10, 10) }; st.playerLevel = 50; T.setRng(seq([0.0, 0.999, 0.3, 0.7]));   // gain, 30 steps
   const s = T.pray(st, 'h', 'gold', { profile: 'Attack' });
-  ck('the Gold ritual top roll is +3 on every bar', BARS.every(b => s.rolls[b].deltaSteps === 3));
-  ck('power = 10 x net steps', s.power === 120 && s.net === 12);
-  ck('values are steps x the physical step', s.rolls.health.toValue === 13 * 35 && near(s.rolls.attack.deltaValue, 3 * 2.4, 1e-9)); T.discardSession(st); }
-{ const st = T.newState(); st.heroes = { h: hero(0, 0, 0, 0) }; st.playerLevel = 50; T.setRng(seq([0.0]));   // bottom of the Gold table
+  ck('a Temple-1 prayer moves only bars 1-2 (3 and 4 locked)', s.rolls.armorMr.deltaSteps === 0 && s.rolls.pen.deltaSteps === 0);
+  ck('roll 2: a Gold gain of 30 steps lands entirely on the open bars', s.gain === true && s.amount === 30 && s.net === 30);
+  ck('power = 10 x net steps', s.power === 300);
+  ck('values are steps x the physical step', s.rolls.health.toValue === s.rolls.health.toSteps * 35); T.discardSession(st); }
+{ const st = T.newState(); st.heroes = { h: hero(0, 0, 0, 0) }; st.playerLevel = 50; T.setRng(seq([0.999, 0.999]));   // a loss of 30 on empty bars
   const s = T.pray(st, 'h', 'gold');
-  ck('a bar never goes below 0, and power counts only applied steps', BARS.every(b => s.rolls[b].toSteps === 0) && s.power === 0); T.discardSession(st); }
-{ const st = T.newState(); st.heroes = { h: hero(39, 39, 39, 39) }; st.playerLevel = 50; T.setRng(seq([0.999, 0.999, 0.99]));
+  ck('a loss on empty bars takes nothing (never below 0, power counts only applied steps)', s.gain === false && BARS.every(b => s.rolls[b].toSteps === 0) && s.power === 0); T.discardSession(st); }
+{ const st = T.newState(); st.heroes = { h: hero(39, 39, 39, 39) }; st.playerLevel = 50; T.setRng(seq([0.0, 0.999, 0.5]));
   const s = T.pray(st, 'h', 'gold'); T.saveSession(st);
-  ck('a bar never passes the cap (40 at Temple 1)', BARS.every(b => st.heroes.h.steps[b] <= 40)); }
+  ck('a bar never passes the cap (40 at Temple 1); the extra points have nowhere to go', BARS.every(b => st.heroes.h.steps[b] <= 40) && s.net === 2); }
+{ const st = T.newState(); st.heroes = { h: hero(10, 10, 10, 10) }; st.playerLevel = 100; st.keeperPoints = pts(14); const amt = { kindled: [], stoked: [] };
+  let a = 5; T.setRng(() => { a = (a * 16807) % 2147483647; return a / 2147483647; });
+  for (let i = 0; i < 300; i++) for (const t of ['kindled', 'stoked']) { const s = T.pray(st, 'h', t); amt[t].push(s.gain ? s.amount : -s.amount); T.discardSession(st); }
+  const R = T.CONFIG.PRAYER_AMOUNT; const inR = (t) => amt[t].every(v => v > 0 ? v >= R[t].gain[0] && v <= R[t].gain[1] : -v >= R[t].loss[0] && -v <= R[t].loss[1]);
+  ck('every amount is inside the tier gain / loss range', inR('kindled') && inR('stoked'));
+  ck('amounts are random, not fixed (many distinct values)', new Set(amt.kindled).size > 20); }
+ck('higher tiers gain more and lose less', ['gold', 'kindled', 'stoked', 'blazing', 'inferno'].every((t, i, a) => !i || (T.CONFIG.PRAYER_AMOUNT[t].gain[1] > T.CONFIG.PRAYER_AMOUNT[a[i - 1]].gain[1] && T.CONFIG.PRAYER_AMOUNT[t].loss[1] <= T.CONFIG.PRAYER_AMOUNT[a[i - 1]].loss[1])));
+ck('Inferno gains 50-200 (Phil)', T.CONFIG.PRAYER_AMOUNT.inferno.gain.join() === '50,200');
 ck('reach pressure: none at the reach, 0.6 at the cap', T.pressureChance('gold', 20, 40) === 0 && near(T.pressureChance('gold', 40, 40), 0.6, 1e-9) && near(T.pressureChance('gold', 30, 40), 0.3, 1e-9));
 ck('Inferno has no pressure (reach = the cap)', T.pressureChance('inferno', 200, 200) === 0);
 
-// pay on pray: discard applies nothing, save applies
-{ const st = T.newState(); st.heroes = { h: hero(5, 5, 5, 5) }; st.playerLevel = 50; T.setRng(seq([0.999]));
+// pay on pray: discard applies nothing, save applies exactly what was rolled
+{ const st = T.newState(); st.heroes = { h: hero(5, 5, 5, 5) }; st.playerLevel = 50; T.setRng(seq([0.0, 0.5, 0.2, 0.8]));
   T.pray(st, 'h', 'gold'); T.discardSession(st);
   ck('discard applies nothing', BARS.every(b => st.heroes.h.steps[b] === 5));
-  T.pray(st, 'h', 'gold'); T.saveSession(st);
-  ck('save applies the rolled steps', BARS.every(b => st.heroes.h.steps[b] === 8)); }
+  const s = T.pray(st, 'h', 'gold'); T.saveSession(st);
+  ck('save applies the rolled steps', BARS.every(b => st.heroes.h.steps[b] === s.rolls[b].toSteps)); }
 
 // 10% bonus prayer (higher at 8/11/15); 1 free prayer per temple level; free prayers pray the best open tier
 { const st = T.newState(); st.heroes = { h: hero(0, 0, 0, 0) }; st.playerLevel = 50; st.keeperPoints = 0;

@@ -198,6 +198,19 @@
        a drop with probability rising linearly from 0 at the reach to PRESSURE_MAX at the cap. PROPOSED. */
     REACH: { gold: 0.50, kindled: 0.65, stoked: 0.80, blazing: 0.90, inferno: 1.00 },
     PRESSURE_MAX: 0.6,
+    /* v1098 PRAYER ROLLS (Phil 9 Oct): "1st roll for +/-, 2nd roll for the prayers numbers. Lets say gold is 1-30 ... if it lands on 30 it
+       randomly distributes 30 stats between the ones available" / "the amount you lose is higher with lower tier prayers, amount you lose
+       is lower with higher tier prayers. And the amount you gain is higher with higher tier".  ROLL 1 = gain or loss for the whole prayer,
+       from the success odds we already had (each tier's measured table: share of up vs down rolls) plus the near-cap pressure.  ROLL 2 =
+       how many steps, uniform in the tier's GAIN or LOSS range; the steps are then dealt one at a time to random open bars (a gain only to
+       bars below the cap, a loss only to bars above 0). Gold 1-30 is Phil's; the other ranges PROPOSED - Phil tunes. */
+    PRAYER_AMOUNT: {
+      gold:    { gain: [1, 30],   loss: [1, 30] },
+      kindled: { gain: [5, 50],   loss: [1, 20] },
+      stoked:  { gain: [15, 90],  loss: [1, 12] },
+      blazing: { gain: [25, 130], loss: [1, 8] },
+      inferno: { gain: [50, 200], loss: [1, 5] },   // Phil 9 Oct: "Or 50-200" for the top prayer
+    },
     PRESSURE_DROP: { "1": 3, "2": 2, "3": 1 },                       // a pressure drop: -1..-3, small more likely
     PRESSURE_DROP_BLAZING: (function () { const t = {}; for (let k = 1; k <= 15; k++) t[k] = Math.round(1000 / k); return t; })(),   // -1..-15 weighted 1/k (the measured -5 ... -15 near the cap)
 
@@ -247,7 +260,7 @@
 
     /* --- legacy (v839-v1093), kept ONLY for the migration and the old Temple screen until its rebuild lands --- */
     ATTRIBUTES: ["bar1", "bar2", "bar3", "bar4"],
-    BAR_UNLOCK_TEMPLE: [1, 1, 1, 1],                 // v2: all four bars roll from Temple 1
+    BAR_UNLOCK_TEMPLE: [1, 1, 7, 11],                // v1098 (Phil 9 Oct): "Bar 3 unlock at 7 and bar 4 at 11" / "you cannot even raise them"
     CLASS_BARS: {                                    // display labels the old screen reads; NOT a battle path any more
       Support: ["Health", "Attack", "Armor & Magic resist", "Penetration"], Tank: ["Health", "Attack", "Armor & Magic resist", "Penetration"],
       Bruiser: ["Health", "Attack", "Armor & Magic resist", "Penetration"], Assassin: ["Health", "Attack", "Armor & Magic resist", "Penetration"],
@@ -426,8 +439,9 @@
   }
   function heroCompletion(heroState, templeLevel, key) {
     const cap = capSteps(templeLevel), s = heroSteps(heroState, key);
-    let sum = 0; Object.keys(s).forEach(function (b) { sum += Math.min(cap, s[b]); });
-    return sum / (4 * cap);
+    const L = templeLevel | 0, order = key ? heroBars(key) : Object.keys(s);
+    let sum = 0, n = 0; order.forEach(function (b, i) { if (L >= (TEMPLE_CONFIG.BAR_UNLOCK_TEMPLE[i] || 1)) { sum += Math.min(cap, s[b] | 0); n++; } });
+    return n ? sum / (n * cap) : 0;
   }
   function barsOpen(templeLevel, key, profile) { return key ? heroBars(key, profile) : TEMPLE_CONFIG.BARS.slice(); }
   /* Display helpers: a bar's name, icon key and value text (numbers for flats, % for rates, energy per second as a plain number). */
@@ -517,6 +531,29 @@
     if (cur <= reach || cap <= reach) return 0;
     return TEMPLE_CONFIG.PRESSURE_MAX * Math.min(1, (cur - reach) / (cap - reach));
   }
+  /* v1098: ROLL 1 - gain or loss for the whole prayer (the tier's up/down odds, more losses near the cap); ROLL 2 - how many steps; then
+     each step goes to a random open bar. Returns { <bar>: delta, _gain, _amount }. */
+  function tierUpShare(tierId) {
+    const t = TEMPLE_CONFIG.ROLL_TABLES[tierId] || TEMPLE_CONFIG.ROLL_TABLES.gold; let up = 0, down = 0;
+    Object.keys(t).forEach(function (k) { const n = Number(k); if (n > 0) up += t[k]; else if (n < 0) down += t[k]; });
+    return up + down > 0 ? up / (up + down) : 1;
+  }
+  function prayerDeltas(tierId, bars, cur, cap) {
+    const avg = bars.reduce(function (a, b) { return a + Math.min(cap, cur[b] | 0); }, 0) / Math.max(1, bars.length);
+    const pUp = tierUpShare(tierId) * (1 - pressureChance(tierId, avg, cap));
+    const gain = roll() < pUp;
+    const R = (TEMPLE_CONFIG.PRAYER_AMOUNT[tierId] || TEMPLE_CONFIG.PRAYER_AMOUNT.gold)[gain ? 'gain' : 'loss'];
+    const amount = R[0] + Math.floor(roll() * (R[1] - R[0] + 1));
+    const out = { _gain: gain, _amount: amount }, now = {};
+    bars.forEach(function (b) { out[b] = 0; now[b] = Math.min(cap, cur[b] | 0); });   // bars = the OPEN bars only
+    for (let i = 0; i < amount; i++) {
+      const open = bars.filter(function (b) { return gain ? now[b] < cap : now[b] > 0; });
+      if (!open.length) break;
+      const b = open[Math.floor(roll() * open.length)];
+      out[b] += gain ? 1 : -1; now[b] += gain ? 1 : -1;
+    }
+    return out;
+  }
   function rollBar(tierId, cur, cap) {
     let d = pickWeighted(TEMPLE_CONFIG.ROLL_TABLES[tierId] || TEMPLE_CONFIG.ROLL_TABLES.gold);
     const p = pressureChance(tierId, cur, cap);
@@ -545,11 +582,14 @@
     const bars = heroBars(heroId, opts.profile), cur = alignSteps(heroState, bars);   // v1098: the hero's own four bars, in its order
     const session = { v2: true, heroId: heroId, tier: tierId, profile: profile, bars: bars, rolls: {}, net: 0, power: 0, cap: cap,
       completion: heroCompletion(heroState, L, heroId) };
+    const open = bars.filter(function (b, i) { return L >= (TEMPLE_CONFIG.BAR_UNLOCK_TEMPLE[i] || 1); });   // v1098: a locked bar cannot move
+    const deltas = prayerDeltas(tierId, open, cur, cap);                               // v1098: roll 1 (+/-) and roll 2 (how much), dealt across the bars
     bars.forEach(function (bar) {
       const from = Math.min(cap, cur[bar]);
-      const to = Math.max(0, Math.min(cap, from + rollBar(tierId, from, cap)));
+      const to = Math.max(0, Math.min(cap, from + (deltas[bar] | 0)));
       session.rolls[bar] = rollRecord(profile, bar, from, to); session.net += to - from;
     });
+    session.gain = deltas._gain; session.amount = deltas._amount;
     session.power = TEMPLE_CONFIG.POWER_PER_STEP * session.net;
     state.keeperPoints = (state.keeperPoints || 0) + tier.keeperPoints;                 // points are earned by praying, saved or not
     session.levelUps = grantLevelUps(state);
@@ -808,11 +848,12 @@
     const f = TEMPLE_CONFIG.FIFTH_ORB;
     /* v1098: bars = the hero's own four, in order, each with its name, icon key, steps, value and the value as text */
     const bars = barKinds.map(function (b, i) {
-      return { slot: i + 1, kind: b, name: barName(b), icon: barIcon(b, profile), pct: isPctKind(b) && !!BAR_KINDS[b].pct, steps: Math.min(cap, steps[b]),
+      const unlock = TEMPLE_CONFIG.BAR_UNLOCK_TEMPLE[i] || 1;
+      return { slot: i + 1, unlock: unlock, locked: L < unlock, kind: b, name: barName(b), icon: barIcon(b, profile), pct: isPctKind(b) && !!BAR_KINDS[b].pct, steps: Math.min(cap, steps[b]),
         value: values[b], text: barText(b, values[b]), capValue: barValue(profile, b, cap), capText: barText(b, barValue(profile, b, cap)), step: stepValues[b] };
     });
     return { key: key, templeLevel: L, profile: profile, bars: bars, barKinds: barKinds, steps: steps, values: values, cap: cap, capValues: barKinds.reduce(function (o, b) { o[b] = barValue(profile, b, cap); return o; }, {}),
-      stepValues: stepValues, pct: Math.round(100 * sum / (4 * cap)),
+      stepValues: stepValues, pct: Math.round(100 * heroCompletion(h, L, key)),
       blessings: blessingsFor(state, h, info),
       fifth: { earned: !!(h.boonsUnlocked && h.boonsUnlocked[4]), templeLevel: f.templeLevel, heroLevel: f.heroLevel,
         locked: L < f.templeLevel, bonus: TEMPLE_CONFIG.FIFTH_ORB_BONUS, label: "5th dot: blessings +" + Math.round(TEMPLE_CONFIG.FIFTH_ORB_BONUS * 100) + "%" },

@@ -50,13 +50,14 @@ ok(JSON.stringify(HB.oakmir) === JSON.stringify(['health', 'healPow', 'abilityPo
   ok(missing.length === 0, 'every bar kind\'s icon is on disk (' + (missing.join() || 'none missing') + ')'); }
 
 /* ---- a prayer rolls the hero's own four; Power = 10 x net steps whatever the kinds ---- */
-{ const st = T.newState(); st.playerLevel = 100; T.setRng(() => 0.999);
+{ const st = T.newState(); st.playerLevel = 100; let i = 0; const R = [0.0, 0.999]; T.setRng(() => (i < 2 ? R[i++] : ((i++ % 2) ? 0.99 : 0.0)));   // v1098 two rolls: a gain of 30, dealt to the open bars
   const s = T.pray(st, 'oakmir', 'gold', { profile: 'Healer' });
-  ok(Object.keys(s.rolls).join() === HB.oakmir.join() && s.bars.join() === HB.oakmir.join(), 'Oakmir\'s prayer rolls Health / Healing power / Ability power / Energy regen');
-  ok(s.net === 12 && s.power === 120, 'Power = 10 x net steps (+3 on each of four bars = 120), not the values');
-  ok(s.rolls.healPow.toValue === 0.003 && s.rolls.health.toValue === 75 && near(s.rolls.energyRegen.deltaValue, 0.03), 'each roll carries its own kind\'s value (Healing power 0.3%, Health 75, Energy regen +0.03)');
+  ok(Object.keys(s.rolls).join() === HB.oakmir.join() && s.bars.join() === HB.oakmir.join(), 'Oakmir prayer rolls Health / Healing power / Ability power / Energy regen');
+  ok(s.power === 10 * s.net && s.net === 30, 'Power = 10 x net steps, not the values ('+s.net+' steps = '+s.power+')');
+  ok(s.rolls.abilityPower.deltaSteps === 0 && s.rolls.energyRegen.deltaSteps === 0, 'at Temple 1 bars 3 and 4 (Temple 7 / 11) cannot move');
+  ok(near(s.rolls.healPow.toValue, s.rolls.healPow.toSteps * 0.001, 1e-9) && s.rolls.health.toValue === s.rolls.health.toSteps * 25, 'each roll carries its own kind value (Healing power 0.1% a step, Health 25 a step)');
   T.saveSession(st);
-  ok(JSON.stringify(st.heroes.oakmir.steps) === '{"health":3,"healPow":3,"abilityPower":3,"energyRegen":3}' && st.heroes.oakmir.bars.join() === HB.oakmir.join(), 'Save stores the steps by kind with the layout'); }
+  ok(st.heroes.oakmir.steps.health === s.rolls.health.toSteps && st.heroes.oakmir.steps.healPow === s.rolls.healPow.toSteps && st.heroes.oakmir.bars.join() === HB.oakmir.join(), 'Save stores the steps by kind with the layout'); }
 
 /* ---- blessing thresholds sit on bar slots 1-4 (20 / 50 / 130 / 190) ---- */
 ok(C.BLESSING_NEEDS.map(n => n.slot + ':' + n.need).join() === '0:20,1:50,2:130,3:190', 'BLESSING_NEEDS names bar slots 1-4 at 20 / 50 / 130 / 190 steps');

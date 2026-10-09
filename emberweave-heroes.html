@@ -1010,6 +1010,7 @@ h1{background:linear-gradient(180deg,#fff4d6 0%,#f3d58a 42%,#c98f2e 100%);-webki
 .tp2BarName{display:flex;justify-content:space-between;align-items:flex-end;font-size:calc(var(--u)*30);color:#efd9a8;text-shadow:0 calc(var(--u)*2) calc(var(--u)*4) #000}
 .tp2BarName span{font-size:calc(var(--u)*24);color:#c9b48b}
 .tp2Bar{border-radius:calc(var(--u)*12);overflow:hidden}
+.tp2Bar.tp2Locked{filter:grayscale(1) brightness(.55)}.tp2BarLock{position:absolute;left:50%;top:50%;height:80%;transform:translate(-50%,-50%);z-index:2}
 .tp2Bar .tp2Fill{position:absolute;left:0;top:0;bottom:0;background:url(/assets/img/temple/v2/bar-fill-v1.webp) left center/auto 100% repeat-x;box-shadow:0 0 calc(var(--u)*10) rgba(255,120,30,.6)}
 .tp2Bar .tp2Delta{position:absolute;top:0;bottom:0;min-width:calc(var(--u)*6)}
 .tp2Bar .tp2Delta.up{background:rgba(70,230,100,.75);box-shadow:0 0 calc(var(--u)*10) rgba(70,230,100,.8)}
@@ -18069,8 +18070,8 @@ function renderTemple(){
       const pf=Math.min(100,100*Math.min(from,to)/cap), pd=Math.abs(100*(to-from)/cap), up=to>=from;
       const pct=r?((to-from)>=0?'+':'')+(Math.round(1000*(to-from)/cap)/10)+'%':'';
       return `<img class="tp2Icon" src="/assets/img/icons/stat/${B.icon}-v1.webp" alt="" style="${tp2Box(612,y-46,92,92)}">
-        <div class="tp2BarName" style="${tp2Box(735,y-78,800,40)}"><span class="tp2BarLbl">${escapeHTML(B.name)} <b class="tp2Val">${T.barText(bar,val)}</b></span><span>${from} / ${cap}</span></div>
-        <div class="tp2Bar" style="${tp2Box(733,y-21,800,42)}"><i class="tp2Fill" style="width:${pf}%"></i>${r&&to!==from?`<i class="tp2Delta ${up?'up':'down'}${pf+pd>62?' lft':''}" style="left:${pf}%;width:${pd}%"><em>${pct}</em></i>`:''}
+        <div class="tp2BarName" style="${tp2Box(735,y-78,800,40)}"><span class="tp2BarLbl">${escapeHTML(B.name)} <b class="tp2Val">${T.barText(bar,val)}</b></span><span>${B.locked?'Opens at Temple '+B.unlock:from+' / '+cap}</span></div>
+        <div class="tp2Bar${B.locked?' tp2Locked':''}" style="${tp2Box(733,y-21,800,42)}">${B.locked?`<img class="tp2BarLock" src="/assets/img/ui/hud-lock.webp" alt="locked">`:''}<i class="tp2Fill" style="width:${pf}%"></i>${r&&to!==from?`<i class="tp2Delta ${up?'up':'down'}${pf+pd>62?' lft':''}" style="left:${pf}%;width:${pd}%"><em>${pct}</em></i>`:''}
           ${r?`<s class="${d>0?'up':d<0?'down':''}">${T.barText(bar,d,true)}</s>`:''}</div>`; }).join('');
     const power=rolls?(pending&&pending.power!=null?pending.power:Object.values(rolls).reduce((a,x)=>a+10*(x.deltaSteps||0),0)):null;
     const bl=(hs.blessings||[]).map((x,i)=>{ const y=[368,494,622,749][i], val=v=>T.barText(x.bar,v*hs.stepValues[x.bar]);

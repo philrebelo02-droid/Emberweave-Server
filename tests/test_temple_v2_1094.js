@@ -37,7 +37,7 @@ const setHero=(key,st,lit)=>editDB(u=>{ u.led.temple.heroes[key]={steps:st,boons
   ok(JSON.stringify(C.STEP.magic)===JSON.stringify({health:25,attack:3.2,armorMr:4.8,pen:7.2})&&JSON.stringify(C.STEP.physical)===JSON.stringify({health:35,attack:2.4,armorMr:7.2,pen:4.8}),'step sizes are the spec\'s "Ours" table (magic 25/3.2/4.8/7.2, physical 35/2.4/7.2/4.8)');
   ok([[1,40],[4,40],[5,75],[8,75],[9,110],[12,110],[13,140],[15,140],[16,170],[18,170],[19,200],[40,200]].every(([l,c])=>T.capSteps(l)===c),'the cap in steps by Temple level: 40 / 75 / 110 / 140 / 170 / 200 at 1 / 5 / 9 / 13 / 16 / 19');
   ok(T.profileOf('Magic')==='magic'&&T.profileOf('Healer')==='magic'&&T.profileOf('Attack')==='physical'&&T.profileOf('Hybrid')==='hybrid','damage type -> step profile (Magic/Healer magic, Attack physical, Hybrid both)');
-  ok(T.heroCompletion({steps:steps(40,20,0,20)},1)===0.5,'completion = sum of steps / (4 x cap)');
+  ok(T.heroCompletion({steps:steps(40,20,0,20)},1)===0.75&&T.heroCompletion({steps:steps(40,20,0,20)},19)===0.1,'completion = sum of the OPEN bar steps / (open bars x cap) (v1098: bars 3-4 open at Temple 7 / 11)');
   { const full=T.heroBonuses({steps:steps(200,200,200,200),boonsUnlocked:[]},'Bruiser','Attack');
     ok(full.hpFlat===7000&&full.adFlat===480&&full.armorFlat===1440&&full.mrFlat===1440&&full.armorPenFlat===960&&full.magicPenFlat===960&&!full.apFlat,'a full physical hero: +7,000 health / +480 Attack damage / +1,440 armor and MR / +960 both pens (spec §2)');
     const mag=T.heroBonuses({steps:steps(0,100,0,0),boonsUnlocked:[]},'Mage','Magic');
