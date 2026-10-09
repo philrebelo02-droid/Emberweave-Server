@@ -53,6 +53,7 @@ let pass=0,fail=0; const ck=(n,c,d)=>{ c?(pass++,console.log('  ✓ '+n)):(fail+
     const serverHp=(s.snaps||[]).map(x=>Math.round(x.maxHp));
     // play it: turn AUTO on a few ticks in (a recorded action), then run the fight to the end
     await step(40);
+    window.patEgp1=()=>true;   // v1093: auto ultimates open at EGP 1 (Phil's chart) - this test plays a patron
     document.getElementById('autoBtn').onclick();
     await new Promise(r=>setTimeout(r,600));    // let the receipt come back and schedule the action
     await step(14400);

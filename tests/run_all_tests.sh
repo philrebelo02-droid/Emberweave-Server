@@ -293,6 +293,8 @@ note "test_patron_1092.js (v1092 EGP/EDP: paid base diamonds, levels, rebate, da
 node tests/test_patron_1092.js || FAILED=1
 note "test_mythic_pool_1092.js (v1092 Mythical Pool at EGP 11, 400 diamonds, Phil's odds; KonWu out of the Diamond Pool; attack buys from EGP 3; attack card)"
 node tests/test_mythic_pool_1092.js || FAILED=1
+note "test_patron_1093.js (v1093 Phil's benefit chart as the standard: purchases from 1, Elite/Arena resets, double gold, Shady discount, armies out, chat tags)"
+node tests/test_patron_1093.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi

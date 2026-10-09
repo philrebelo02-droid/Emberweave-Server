@@ -2060,7 +2060,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 #patBadge{position:absolute;left:50%;transform:translateX(-50%);top:calc(127% + 1px);z-index:3;border:1px solid #c9a35e;border-radius:8px;padding:0 7px;font:800 10px/14px system-ui,sans-serif;letter-spacing:.04em;color:#ffe3a3;background:linear-gradient(#3a2a12,#20160a);cursor:pointer;white-space:nowrap}
 #patBadge.edp{border-color:#8fd8ff;color:#d6f3ff;background:linear-gradient(#123448,#0a1c28)}
 #patScreen{position:fixed;inset:0;z-index:9000;background:rgba(4,7,12,.82);display:flex;align-items:center;justify-content:center;padding:14px}
-#patScreen .patCard{width:100%;max-width:440px;max-height:92vh;overflow:auto;background:#121826;border:1px solid #c9a35e;border-radius:14px;padding:14px;color:#e8edf5;font:13px/1.4 system-ui,sans-serif}
+#patScreen .patCard{width:100%;max-width:640px;max-height:92vh;overflow:auto;background:#121826;border:1px solid #c9a35e;border-radius:14px;padding:14px;color:#e8edf5;font:13px/1.4 system-ui,sans-serif}
 #patScreen .patHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
 #patScreen .patLv{font-weight:900;font-size:24px;color:#ffd45e;letter-spacing:.04em}
 #patScreen .patLv.edp{color:#9fe1ff}
@@ -2069,13 +2069,20 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 #patScreen .patRow{display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-bottom:1px solid #1e2738}
 #patScreen .patRow b{color:#ffe08a;font-variant-numeric:tabular-nums}
 #patScreen .patBtns{display:flex;gap:8px;margin:10px 0}
-#patScreen .patBtns .btn{flex:1}
+#patScreen .patBtns{flex-wrap:wrap} #patScreen .patBtns .btn{flex:1 1 auto;font-size:13px;padding:7px 10px;white-space:nowrap;min-height:0}
+    .patChip{display:inline-block;margin-right:4px;padding:0 5px;border-radius:6px;border:1px solid #c9a35e;color:#ffe3a3;font:800 9.5px/14px system-ui,sans-serif;vertical-align:1px} .patChip.edp{border-color:#8fd8ff;color:#d6f3ff} .cw-msg.patBub-egp{background:linear-gradient(90deg,rgba(201,163,94,.22),rgba(201,163,94,.04));border-radius:8px;padding:2px 6px} .cw-msg.patBub-edp{background:linear-gradient(90deg,rgba(143,216,255,.24),rgba(143,216,255,.04));border:1px solid rgba(143,216,255,.45);border-radius:8px;padding:2px 6px}   /* v1093 chat patron tags (EGP 15 / EDP 15 bubbles) */
+#patScreen .patSec{margin:12px 0 2px;font:800 12px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#c9a35e} #patScreen .patList{margin:4px 0 0;padding-left:18px;display:grid;gap:3px;font-size:12.5px} #patScreen .patList.next li{color:#ffe3a3} #patScreen .patSoon{font-style:normal;font-size:10px;color:#8b98a9;border:1px solid #2a3550;border-radius:6px;padding:0 5px}   /* v1093 */
 #patScreen table{width:100%;border-collapse:collapse;font-size:11.5px;font-variant-numeric:tabular-nums}
 #patScreen th,#patScreen td{padding:4px 3px;text-align:right;border-bottom:1px solid #1b2333}
 #patScreen th:first-child,#patScreen td:first-child{text-align:left}
 #patScreen tr.cur td{background:#2a2110;color:#ffe08a}
 
-  .wishpool .wp-orb-img{display:block;width:84px;height:84px;margin:0 auto;object-fit:contain;font-size:0}   /* v1092: ChatGPT pool art (Phil approved 9 Oct) */
+  .wishpool img.wp-orb.wp-orb-img{display:block;width:84px;height:84px;margin:0 auto;object-fit:contain;font-size:0;animation:poolfloat 4.2s cubic-bezier(.45,0,.55,1) infinite;will-change:transform;backface-visibility:hidden}
+  .wishpool.gem img.wp-orb.wp-orb-img{animation-delay:-1.4s} .wishpool.myth img.wp-orb.wp-orb-img{animation-delay:-2.8s}
+  @keyframes poolfloat{0%,100%{transform:translate3d(0,0,0)}50%{transform:translate3d(0,-7px,0)}}
+  @media (prefers-reduced-motion:reduce){.wishpool img.wp-orb.wp-orb-img{animation:none}}   /* v1092: ChatGPT pool art (Phil approved 9 Oct) */
+  .wishHelp{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;margin-left:8px;border-radius:50%;border:1px solid #c9a35e;background:rgba(20,16,10,.7);color:#ffd45e;font:800 15px/1 system-ui,sans-serif;vertical-align:middle;cursor:pointer}
+  .wishInfoOv{position:fixed;inset:0;z-index:20000;background:rgba(6,9,14,.8);display:flex;align-items:center;justify-content:center;padding:14px} .wishInfoCard{width:100%;max-width:560px;max-height:90vh;overflow:auto;background:#121826;border:1px solid #c9a35e;border-radius:14px;padding:14px;color:#e6edf3;font:13px/1.45 system-ui,sans-serif} .wishInfoHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:16px} .wishInfoSec{margin-top:10px;font-weight:800;color:#ffd45e}   /* v1093 */
   .wishpools{flex-wrap:nowrap} .wishpool{flex:1 1 0;min-width:0;padding:12px 9px} .wishpool .btn{font-size:12.5px;padding-left:4px;padding-right:4px}   /* v1092: three pools in one row */
   .wishpool.myth{border-color:#b98cff;background:linear-gradient(170deg,rgba(60,28,92,.92),rgba(22,12,38,.94))} .wishpool.myth .wp-name{color:#e6cfff} .wishpool.myth .wp-cost{color:#d9b8ff}   /* v1092 the Mythical Pool card (art to come from ChatGPT) */
 </style>
@@ -2308,7 +2315,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
   <!-- WISHING POOL -->
   <div class="screen hub" id="wishing">
     <button class="btn secondary sm backbtn" data-nav="home">◀ Base</button>
-    <div class="titlebar"><h1>WISHING POOL</h1></div>
+    <div class="titlebar"><h1>WISHING POOL <button type="button" class="wishHelp" onclick="wishShowInfo()" aria-label="Pool contents and odds">?</button></h1></div>
     <div class="sub">Toss a coin and make a wish — glyphs, hero fragments &amp; more</div>
     <div id="wishingBody" style="width:100%;max-width:540px"></div>
   </div>
@@ -2429,6 +2436,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 <script src="/hero-profiles.js?v=r1025"></script>
 <script src="/hero-paths.js?v=r1025"></script>
 <script src="/server/temple-of-ash.js?v=r1092"></script>
+<script src="/server/patron-benefits.js?v=r1093"></script>
 <script src="/server/temple-effects.js?v=r936"></script>
 <script src="/assets/ui/world-mine-sync.js?v=mi1"></script>
 <script src="/assets/ui/world-march-sync.js?v=wm1"></script>
@@ -14331,7 +14339,8 @@ function updateHubChrome(){
   set('pLevel',playerLevel()); set('pGold',G.gold); set('pGems',G.gems);
   set('resLevel',playerLevel()); set('resName',G.playerName||'Commander');
   { const pb=document.getElementById('patBadge'), pt=(typeof LED!=='undefined'&&LED.st&&LED.st.patron)||null;   /* v1092 EGP / EDP */
-    if(pb){ if(pt){ pb.hidden=false; pb.textContent=pt.prestiged?('EDP '+pt.edp):('EGP '+pt.egp); pb.classList.toggle('edp',!!pt.prestiged); if(!pb._wired){ pb._wired=1; pb.onclick=ev=>{ ev.stopPropagation(); openPatron(); }; } } else pb.hidden=true; } }
+    if(pb){ if(pt){ pb.hidden=false; pb.textContent=pt.prestiged?('EDP '+pt.edp):('EGP '+pt.egp); pb.classList.toggle('edp',!!pt.prestiged); if(!pb._wired){ pb._wired=1;   /* v1093 (Phil: "i cannot click the EGP icon by itself, it makes me click the profile portrait"): the portrait listens to pointerdown/up (wireTap) - stop those here */
+      pb.addEventListener('pointerdown',ev=>ev.stopPropagation()); pb.addEventListener('pointerup',ev=>{ ev.stopPropagation(); openPatron(); }); pb.onclick=ev=>ev.stopPropagation(); } } else pb.hidden=true; } }
   set('resGold',G.gold); set('resGems',G.gems);
   const mx=maxStamina(), full=G.stamina>=mx; set('resStamina',G.stamina+'/'+mx);
   const st=document.getElementById('resStaminaTimer'); if(st) st.textContent=full?'':('⏳'+fmtDur(staminaToNext()));
@@ -17967,16 +17976,18 @@ function ensureMarket(){ if(!G.market||!G.market.offers||!G.market.offers.length
 const SHADY_SHOP=[
   {id:'gold',   name:'War Chest — 80,000 Gold',  icon:'🪙',  cost:250,  server:'warchest', desc:'+80,000 gold'},   /* 3 Oct: one server purchase (was spend + a client gold earn) */
   {id:'shield', name:'Protection Shields ×3',    icon:'🛡',  cost:550,  server:'shields3', desc:'3× 12-hour attack immunity'},   /* v1081: a server purchase */
-  {id:'tele',   name:'Teleport Scrolls ×5',      icon:'✨',  cost:500,  give:()=>{ G.teleScrolls=(G.teleScrolls||0)+5; }, desc:'5× targeted teleports'},
+  {id:'tele',   name:'Teleport Scrolls ×5',      icon:'✨', img:'/assets/img/items/teleport-card-v1.webp?v=1',  cost:500,  give:()=>{ G.teleScrolls=(G.teleScrolls||0)+5; }, desc:'5× targeted teleports'},
   {id:'arena',  name:'Arena Coins ×3,000',       icon:'🎟️', cost:600,  server:'arenacoins', desc:'+3,000 arena coins'},   /* v1079: a server purchase - the server holds arena coins */
 ];
+function shadyCost(it){ const P=(typeof patNow==='function')?patNow():null, key=it.server||(it.id==='tele'?'targeted5':''); const off=P&&P.rows?(P.rows.shadyOff|0):0;   /* v1093: EGP 9/12/15 discount on 2 items a day */
+  return (off>0&&(P.shadyPicks||[]).includes(key))?Math.round(it.cost*(1-off/100)):it.cost; }
 function renderShadyMarket(){ const b=document.getElementById('shadyBody'); if(!b)return;
   b.innerHTML=`<div style="display:flex;justify-content:space-between;font-size:12px;color:#8b98a9;margin-bottom:8px"><span>💎 ${G.gems}</span><span style="color:#c9a2ff">Diamonds only</span></div>`
-    +SHADY_SHOP.map((it,i)=>{ const can=(G.gems||0)>=it.cost;
+    +SHADY_SHOP.map((it,i)=>{ const cost=shadyCost(it), can=(G.gems||0)>=cost;
       return `<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 4px;border-bottom:1px solid #222b40;gap:8px">
-        <div style="display:flex;gap:8px;align-items:center;min-width:0"><span style="font-size:22px">${it.icon}</span><div style="min-width:0"><b>${it.name}</b><div style="font-size:10px;color:#8b98a9">${it.desc}</div></div></div>
-        <button class="btn sm" data-si="${i}" ${can?'':'disabled'}>💎 ${it.cost}</button></div>`; }).join('');
-  b.querySelectorAll('button[data-si]').forEach(btn=>btn.onclick=()=>shopOnce(async()=>{ const it=SHADY_SHOP[+btn.dataset.si]; if((G.gems||0)<it.cost)return;
+        <div style="display:flex;gap:8px;align-items:center;min-width:0">${it.img?`<img src="${it.img}" alt="" style="width:30px;height:30px;object-fit:contain">`:`<span style="font-size:22px">${it.icon}</span>`}<div style="min-width:0"><b>${it.name}</b><div style="font-size:10px;color:#8b98a9">${it.desc}</div></div></div>
+        <button class="btn sm" data-si="${i}" ${can?'':'disabled'}>${cost<it.cost?`<s style="opacity:.6">${it.cost}</s> `:''}💎 ${cost}</button></div>`; }).join('');
+  b.querySelectorAll('button[data-si]').forEach(btn=>btn.onclick=()=>shopOnce(async()=>{ const it=SHADY_SHOP[+btn.dataset.si]; if((G.gems||0)<shadyCost(it))return;
     if(it.id==='tele'){
       const r=await api('/api/world/buy-scrolls','POST',{offer:'targeted5',requestId:shopRid('tele')}); shopRidDone('tele',r);
       if(!r||!r.ok){ bannerMsg((r&&r.error)||'Teleport scroll purchase failed.'); return; }
@@ -18498,12 +18509,17 @@ function openStageModal(i,mode){
     <div class="smActions"><button class="btn smBattle" id="smBattle" ${(canPay&&(_farmable||!cleared)&&_gateOK)?'':'disabled'}>${_gateOK?'⚔️ Fight '+(cleared?'Again':'Now'):'🔒 Reach level '+_gate}</button>
       ${cleared?`<button class="btn secondary" id="smSweep" ${(canPay&&_farmable&&_threeStar)?'':'disabled'}>${_threeStar?'💨 Sweep':'🔒 Needs ★★★'}</button>`:'<button class="btn secondary" disabled>💨 Sweep</button>'}
       ${cleared&&!_eb?`<button class="btn secondary" id="smSweep10" ${(canPay&&_threeStar)?'':'disabled'}>${_threeStar?'💨 Sweep ×10':'🔒 ×10'}</button>`:'<button class="btn secondary" disabled>💨 Sweep ×10</button>'}
+      ${(()=>{ const P=patNow(); if(!_eb||_left>0||!P||!P.rows||!(P.rows.eliteResets>0)) return ''; const u=(P.used&&P.used.eliteResets)|0, mx=P.rows.eliteResets, c=(P.costs&&P.costs.eliteReset)||50;   /* v1093: EGP Elite stage reset */
+        return `<button class="btn secondary" id="smReset" ${u>=mx||(G.gems||0)<c?'disabled':''}>↺ Reset runs · 💎${c} (${u}/${mx})</button>`; })()}
       <button class="btn sm secondary smCancel" id="smClose">Back to Map</button></div>
     <div id="smMsg" style="font-size:12px;color:#ffd45e;margin-top:6px;min-height:14px;text-align:center"></div>
   </div></div>`;
   document.getElementById('stageModal').classList.add('active');
   body.querySelector('#smClose').onclick=closeStageModal;
   body.querySelector('#smBattle').onclick=()=>{ if(G.stamina<stageStamCost(i,mode))return; if(i<=portalCleared(mode) && stageRunsLeft(i,mode)<1 && !(typeof DEV!=='undefined'&&DEV.on)){ document.getElementById('smMsg').textContent='Daily limit reached for this stage (3 rewarded runs/day).'; return; }   /* dev accounts remain exempt for repeated balance testing */ G.lastStage=i; G.lastPortal=mode; saveG(); closeStageModal(); CUR.node=i; CUR.mode='campaign'; CUR.portal=mode; teamCtx='campaign'; menuReturn='campaign'; show('menu'); };
+  const rs=body.querySelector('#smReset'); if(rs) rs.onclick=async()=>{ rs.disabled=true; let r=null; try{ r=await api('/api/patron/elite-reset','POST',{mode,node:i,requestId:'er:'+Date.now()+':'+i}); }catch(e){}
+    if(r&&r.ok){ if(r.ledger) adoptLedger(r.ledger); try{ const sd=stageDaily(); delete sd.n[mode+':'+i]; }catch(e){} updateHubChrome(); bannerMsg('Stage runs reset'); try{ openStageModal(i,mode); }catch(e){ closeStageModal(); } }
+    else { document.getElementById('smMsg').textContent=(r&&r.error)||'Could not reach the server.'; rs.disabled=false; } };
   const sw=body.querySelector('#smSweep'); if(sw) sw.onclick=()=>sweepStage(i,1,mode);
   const sw10=body.querySelector('#smSweep10'); if(sw10) sw10.onclick=()=>sweepStage(i,10,mode);
 }
@@ -23354,8 +23370,8 @@ function serverWishToRes(r){
   if(!r) return {icon:'❔',name:'…'};
   /* v1092: heroes and their fragments show the hero card; glyph prizes show the glyph art; the Mythical Pool's cards */
   if(r.type==='glyphFull'){ const art=wishGlyphArt(r.q,r.fam,'finished',110); return {icon:'🔮', art, big:true, name:'A full '+(r.tier||'')+' glyph: '+(r.name||''), extra:'Every piece to build it'+(r.hero&&HERO_TYPES[r.hero]?' on '+HERO_TYPES[r.hero].name:'')+' is in your glyph materials'}; }
-  if(r.type==='attackCard') return {icon:'⚔️', name:'Attack card', extra:'+10 city attacks today when used'};
-  if(r.type==='teleport') return {icon:'🌀', name:'Teleport scroll', extra:'Added to your world map scrolls'};
+  if(r.type==='attackCard') return {icon:'⚔️', art:'<img src="/assets/img/items/attack-card-v1.webp?v=1" alt="" style="width:110px;height:110px;object-fit:contain;display:block;margin:0 auto">', big:true, name:'Attack card', extra:'+10 city attacks today when used'};
+  if(r.type==='teleport') return {icon:'🌀', art:'<img src="/assets/img/items/teleport-card-v1.webp?v=1" alt="" style="width:110px;height:110px;object-fit:contain;display:block;margin:0 auto">', name:'Teleport card', extra:'Added to your world map scrolls'};
   if(r.type==='shield') return {icon:'🛡️', name:'World map shield', extra:'Added to your shields'};
   if(r.type==='prayer'){ const nm={kindled:'Kindled',stoked:'Stoked',blazing:'Blazing',inferno:'Inferno'}[r.tier]||r.tier; return {icon:'🔥', big:r.tier==='inferno'||r.tier==='blazing', name:r.n+'× '+nm+' prayer', extra:'Held in the Temple'}; }
   if(r.type==='hero'){ const t=HERO_TYPES[r.hero]||{}; return {icon:t.emoji||'🦸', heroAnim:r.hero, hero:r.hero, big:true, name:'★'.repeat(r.stars||1)+' '+(t.name||r.hero)+'!', extra:'A new hero joins your roster!'}; }
@@ -23428,6 +23444,16 @@ async function wishGold10(){ const r=await serverWish('gold',10); if(!r) return;
 async function wishGem10(){ const r=await serverWish('gem',10); if(!r) return; G.wishGemFirstDone=true;
   const out=r.results.map(serverWishToRes);
   G.wishClicks=(G.wishClicks||0)+10; saveG(); updateHubChrome(); updateMailBadges(); showWishResults10(out,'gem'); renderWishing(); }
+/* v1093 (Phil: "the odds and stuff in descriptions should be in a little Question mark right of the Wishing pool title, not taking space") */
+async function wishShowInfo(){ const old=document.getElementById('wishInfo'); if(old) old.remove(); const st=(ACC&&ACC.token)?await api('/api/pool/state'):null;
+  const o=(st&&st.odds)||{}, mo=(st&&st.mythOdds)||null, pct=v=>v==null?'?':(+(v*100).toFixed(2))+'%';
+  const ov=document.createElement('div'); ov.id='wishInfo'; ov.className='wishInfoOv'; ov.onclick=e=>{ if(e.target===ov) ov.remove(); };
+  ov.innerHTML=`<div class="wishInfoCard"><div class="wishInfoHead"><b>Wishing Pool</b><button class="btn sm secondary" id="wishInfoX">✕</button></div>
+    <div class="wishInfoSec">⛲ Gold Pool · 🪙${WISH_GOLD_COST}</div><div>Tick, Dandra &amp; Carn · full hero ${pct(o.goldHero)} · fragments ${pct(o.goldFrag)} · 3 free wishes a day, 1 an hour</div>
+    <div class="wishInfoSec">🔮 Diamond Pool · 💎${WISH_GEM_COST}</div><div>The 2★ and 3★ ladders · full 3★ ${pct(o.full3)} · full 2★ ${pct(o.full2)} · 2★ fragments ${pct(o.frag2)} · 3★ fragments ${pct(o.frag3)} · 1 free wish a day · a hero within ${st&&st.pity?st.pity.at:40} wishes · first wish: a 2★ hero</div>
+    <div class="wishInfoSec">🌟 Mythical Pool · 💎${WISH_MYTH_COST} · EGP ${MYTH_UNLOCK_EGP}</div><div>${mo?'Mythical hero '+pct(mo.mythHero)+' · mythical fragments '+pct(mo.mythFrag)+' · glyph fragments '+pct(mo.glyphFrag)+' · full glyph '+pct(mo.glyphFull)+' · attack card '+pct(mo.attackCard)+' · shield '+pct(mo.shield)+' · teleport card '+pct(mo.teleport)+' · Kindled '+pct(mo.kindled)+' · Stoked '+pct(mo.stoked)+' · Blazing '+pct(mo.blazing)+' · Inferno '+pct(mo.inferno):'Only mythical heroes'}</div>
+    <div style="display:flex;gap:6px;margin-top:10px"><button class="btn sm secondary" id="wishInfoHist">📜 My roll history</button></div></div>`;
+  document.body.appendChild(ov); ov.querySelector('#wishInfoX').onclick=()=>ov.remove(); ov.querySelector('#wishInfoHist').onclick=()=>{ ov.remove(); wishShowHistory(); }; }
 /* v251 (audit): the pool publishes its odds/pity, and every roll is server-recorded and reviewable */
 async function wishShowOdds(){ const st=await api('/api/pool/state'); if(!st||st.error){ bannerMsg('Sign in to see the pool rules.'); return; }
   const o=st.odds||{}, pct=v=>(v*100).toFixed(v<0.01?1:0)+'%';
@@ -23454,10 +23480,6 @@ function renderWishing(){ applySceneBg('wishing',WISHPOOL_BG); const b=document.
   const canGold = poolReady && (goldFree || (G.gold||0)>=WISH_GOLD_COST);
   const canGem = poolReady && gemUnlocked && (gemFree || (G.gems||0)>=WISH_GEM_COST);
   b.innerHTML=`
-  <div style="text-align:center;color:#8b98a9;font-size:12px;margin:2px 4px 8px">The Gold Pool holds Tick, Dandra &amp; Carn. The Diamond Pool holds the 2★ and 3★ ladders. The Mythical Pool opens at <b>EGP 11</b>.</div>
-  <div style="display:flex;gap:6px;justify-content:center;margin-bottom:10px">
-    <button class="btn xs secondary" onclick="wishShowOdds()">📊 Published odds &amp; pity</button>
-    <button class="btn xs secondary" onclick="wishShowHistory()">📜 My roll history</button></div>
   <div class="wishpools">
     <div class="wishpool gold">
       <img class="wp-orb wp-orb-img" src="/assets/img/wishing/pool-gold-v1.webp?v=1" alt="">
@@ -23465,7 +23487,6 @@ function renderWishing(){ applySceneBg('wishing',WISHPOOL_BG); const b=document.
       <div class="wp-cost">🪙 ${WISH_GOLD_COST} / wish</div>
       <div class="wp-free ${goldFree?'on':''}">${goldFree?'✨ Free wish ready':(goldLeft>0?('⏳ Next free '+fmtDur(goldNext||0)):'Daily free wishes used')}</div>
       <div class="wp-sub">Free: ${goldLeft}/${WISH_GOLD_FREE_MAX} today · 1 per hour</div>
-      <div class="wp-sub" style="opacity:.75">5% full hero · 15% fragments</div>
       <button class="btn ${canGold?'':'secondary'}" id="wpGold" ${canGold?'':'disabled'}>${goldFree?'Wish · Free':'Wish · 🪙'+WISH_GOLD_COST}</button>
       <button class="btn ${(poolReady&&(G.gold||0)>=wishGold10Cost())?'':'secondary'}" id="wpGold10" ${(poolReady&&(G.gold||0)>=wishGold10Cost())?'':'disabled'} style="width:100%;margin-top:6px">10 Wishes · 🪙${wishGold10Cost()} <span style="font-size:10px;color:#7ee0a0">−10%</span></button>
     </div>
@@ -23475,7 +23496,6 @@ function renderWishing(){ applySceneBg('wishing',WISHPOOL_BG); const b=document.
       <div class="wp-cost">💎 ${WISH_GEM_COST} / wish</div>
       <div class="wp-free ${gemFree?'on':''}">${!gemUnlocked?'🔒 Clear Stage 1-5 to unlock':(gemFree?(gemRigged?'✨ Free first wish ready':'✨ Free wish ready'):('⏳ Free wish in '+fmtDur(gemNext||0)))}</div>
       <div class="wp-sub">${gemRigged?'First wish: guaranteed 2★ hero':'1 free daily (09:00 ET reset)'}</div>
-      <div class="wp-sub" style="opacity:.75">8% 2★ · 1% 3★ · 25% fragments</div>
       <button class="btn ${canGem?'':'secondary'}" id="wpGem" ${canGem?'':'disabled'}>${gemFree?'Wish · Free':'Wish · 💎'+WISH_GEM_COST}</button>
       <button class="btn ${(poolReady&&gemUnlocked&&(G.gems||0)>=wishGem10Cost())?'':'secondary'}" id="wpGem10" ${(poolReady&&gemUnlocked&&(G.gems||0)>=wishGem10Cost())?'':'disabled'} style="width:100%;margin-top:6px">10 Wishes · 💎${wishGem10Cost()} <span style="font-size:10px;color:#7ee0a0">−10%</span></button>
     </div>
@@ -23484,7 +23504,6 @@ function renderWishing(){ applySceneBg('wishing',WISHPOOL_BG); const b=document.
       <div class="wp-name">Mythical Pool</div>
       <div class="wp-cost">💎 ${WISH_MYTH_COST} / wish</div>
       <div class="wp-free">${mythPoolOpen()?'Mythical heroes only':'🔒 Opens at EGP '+MYTH_UNLOCK_EGP}</div>
-      <div class="wp-sub" style="opacity:.75">1% mythical · 36% mythical frags · glyphs · prayers · cards</div>
       <button class="btn ${(poolReady&&mythPoolOpen()&&(G.gems||0)>=WISH_MYTH_COST)?'':'secondary'}" id="wpMyth" ${(poolReady&&mythPoolOpen()&&(G.gems||0)>=WISH_MYTH_COST)?'':'disabled'}>Wish · 💎${WISH_MYTH_COST}</button>
       <button class="btn ${(poolReady&&mythPoolOpen()&&(G.gems||0)>=WISH_MYTH_COST*WISH10_MULT)?'':'secondary'}" id="wpMyth10" ${(poolReady&&mythPoolOpen()&&(G.gems||0)>=WISH_MYTH_COST*WISH10_MULT)?'':'disabled'} style="width:100%;margin-top:6px">10 Wishes · 💎${WISH_MYTH_COST*WISH10_MULT}</button>
     </div>
@@ -25827,32 +25846,52 @@ function dailyPacksReady(){ return srvPlans().some(p=>p.ready); }
 // day-boundary: when the server reports shop counters (LED.st.shop) it owns the day (resets at 09:00 ET, v1065,
 // not the 09:00 arena day) — the local reset and local price table are only a fallback for an old server.
 /* v1092 EGP / EDP screen (blueprint 25): the level, the way to the next one, today's attacks and every level's numbers */
+function patChip(pt){ return pt&&pt.l?`<span class="patChip${pt.edp?' edp':''}">${escapeHTML(pt.l)}</span>`:''; }   /* v1093: the sender's EGP/EDP in chat */
+function patMyTag(){ const P=patNow(); if(!P) return null; if(!P.prestiged&&P.egp<1) return null; return P.prestiged?{l:'EDP '+P.edp,edp:1,bubble:P.edp>=15?'edp':'egp'}:{l:'EGP '+P.egp,bubble:P.egp>=15?'egp':null}; }
 function patNow(){ return (typeof LED!=='undefined'&&LED.st&&LED.st.patron)||null; }
 function closePatron(){ const o=document.getElementById('patScreen'); if(o) o.remove(); }
 function openPatron(){ closePatron(); const o=document.createElement('div'); o.id='patScreen'; o.onclick=e=>{ if(e.target===o) closePatron(); }; document.body.appendChild(o); renderPatron(); }
-function patRowsAt(T,lv){ const r=(ref,floor)=>Math.max(floor,ref[Math.min(15,lv)]);
-  return { atk:T.attackBase+Math.floor(lv/3), meals:r([0,2,3,4,5,6,7,8,9,10,11,12,13,14,15,15],10), gold:r([0,2,3,4,6,8,10,12,14,16,18,20,22,24,26,30],8),
-    arena:r([0,0,0,1,2,3,4,5,6,7,7,7,7,7,7,7],5), vault:3+[0,0,0,0,0,0,1,2,2,2,2,3,3,4,4,5][Math.min(15,lv)], rebate:T.rebate[Math.min(15,lv)] }; }
+/* v1093 the Patron screen (Phil 9 Oct: "When they click it, it brings up a screen that shows all the benefits aswell as the benefits of the next
+   patron level"). YOUR BENEFITS = the server's numbers for this level + everything the chart unlocked up to it; NEXT = the chart's lines for the next level. */
+const PAT_SOON=/mines gather|recovers|war on a whole guild|heroes on a guild war line|instant reset/i;   // chart lines not built yet (v1093)
+function patUnlocked(P){ const B=(typeof window!=='undefined'&&window.PATRON_BENEFITS)||null; if(!B) return [];
+  const out=[], add=s=>{ if(/stamina|gold purchase|buying attacks|attack buys|buying arena|arena reset|rebate|city attacks/i.test(s)) return;   /* shown as numbers above */
+    if(/unlock|chat|badge|name colou?r|frame|mythical pool|double gold|battle speed|mines gather|recovers|war on|guild war line|keeps every|prestige/i.test(s)) out.push(s.replace(/ —? ?odds below\)/,')')); };
+  for(let i=0;i<=Math.min(15,P.egp);i++) (B.egp[i]||[]).forEach(add);
+  if(P.prestiged) for(let i=1;i<=P.edp;i++) (B.edp[i]||[]).forEach(add);
+  return out; }
+function patNextLines(P){ const B=(typeof window!=='undefined'&&window.PATRON_BENEFITS)||null; if(!B) return null;
+  if(P.prestiged) return P.edp<15?{label:'EDP '+(P.edp+1),lines:B.edp[P.edp+1]||[]}:null;
+  if(P.egp<15) return {label:'EGP '+(P.egp+1),lines:B.egp[P.egp+1]||[]};
+  return {label:'EDP 1',lines:B.edp[1]||[]}; }
 function renderPatron(){ const o=document.getElementById('patScreen'); if(!o) return; const P=patNow();
   if(!P){ o.innerHTML='<div class="patCard"><div class="patHead"><b>Patron</b><button class="btn sm secondary" id="patX">✕</button></div><div>Sign in to see your patron level.</div></div>'; document.getElementById('patX').onclick=closePatron; return; }
   const T=P.table, edp=!!P.prestiged, lvl=edp?P.edp:P.egp, ladder=edp?T.edp:T.egp, have=edp?P.edpBase:P.base, next=P.next;
   const prev=ladder[lvl]||0, pct=next==null?100:Math.max(0,Math.min(100,Math.round((have-prev)*100/Math.max(1,next-prev))));
-  const A=P.attacks, left=Math.max(0,A.cap-A.used), rows=P.rows||{};
-  const tr=[]; for(let i=1;i<=15;i++){ if(edp){ tr.push('<tr class="'+(i===lvl?'cur':'')+'"><td>EDP '+i+'</td><td>'+T.edp[i].toLocaleString()+'</td><td>'+(20+Math.floor(i/3))+'</td><td>'+(T.rebate[15]+T.edpRebateStep*i)+'%</td></tr>'); }
-    else { const R=patRowsAt(T,i); tr.push('<tr class="'+(i===lvl?'cur':'')+'"><td>EGP '+i+'</td><td>'+T.egp[i].toLocaleString()+'</td><td>'+R.atk+'</td><td>'+R.meals+'</td><td>'+R.gold+'</td><td>'+R.arena+'</td><td>'+R.vault+'</td><td>'+R.rebate+'%</td></tr>'); } }
-  const head=edp?'<tr><th>Level</th><th>Base 💎</th><th>Attacks</th><th>Rebate</th></tr>':'<tr><th>Level</th><th>Base 💎</th><th>Attacks</th><th>Meals</th><th>Gold</th><th>Arena</th><th>Vault</th><th>Rebate</th></tr>';
+  const A=P.attacks, R=P.rows||{}, U=P.used||{}, C=P.costs||{}, left=Math.max(0,A.cap-A.used);
+  const row=(k,v)=>'<div class="patRow"><span>'+k+'</span><b>'+v+'</b></div>';
+  const sp=n=>n===1?'':'s';
+  let mine=row('City attacks today',left+' / '+A.cap)+
+    row('Attack buys a day',A.buysMax>0?((A.buys|0)+' / '+A.buysMax+' · 10 for 💎400'):'—')+
+    row('Stamina purchases a day',R.meals)+row('Gold purchases a day',R.goldBuys+(R.doubleGold?' · 50% double':''))+
+    row('Elite stage resets a day',R.eliteResets>0?((U.eliteResets|0)+' / '+R.eliteResets+' · 💎'+C.eliteReset):'—')+
+    row('Arena resets a day',R.arenaResets>0?((U.arenaResets|0)+' / '+R.arenaResets+' · 💎'+C.arenaReset):'—')+
+    row('Vault resets a day',R.vaultExtraSweeps>0?R.vaultExtraSweeps:'—')+
+    row('Armies out at once',R.marches)+
+    (R.marchSpeed?row('March speed','+'+R.marchSpeed+'%'):'')+
+    (R.shadyOff?row('Shady Market discount',R.shadyOff+'% off 2 items today'):'')+
+    row('Rebate on purchases',P.rebatePct+'%');
+  const un=patUnlocked(P).map(s=>'<li>'+escapeHTML(s)+(PAT_SOON.test(s)?' <i class="patSoon">soon</i>':'')+'</li>').join('');
+  const nx=patNextLines(P);
   o.innerHTML='<div class="patCard">'+
     '<div class="patHead"><div><div class="patLv'+(edp?' edp':'')+'">'+(edp?'EDP ':'EGP ')+lvl+'</div><div style="font-size:11px;color:#8b98a9">'+(edp?'Ember Diamond Patron':'Ember Gold Patron')+'</div></div><button class="btn sm secondary" id="patX">✕</button></div>'+
-    (next==null?'<div class="patRow"><span>Top level</span><b>'+have.toLocaleString()+' base 💎</b></div>':
-      '<div class="patBar"><i style="width:'+pct+'%"></i></div><div class="patRow"><span>'+(edp?'EDP ':'EGP ')+(lvl+1)+'</span><b>'+have.toLocaleString()+' / '+next.toLocaleString()+' base 💎</b></div>')+
-    '<div class="patRow"><span>Base diamonds per $1</span><b>'+T.basePerUsd+'</b></div>'+
-    '<div class="patRow"><span>Rebate on purchases</span><b>'+P.rebatePct+'%</b></div>'+
-    '<div class="patRow"><span>City attacks today</span><b>'+left+' / '+A.cap+'</b></div>'+
-    '<div class="patRow"><span>Meals · Gold buys · Arena buys · Vault paid sweeps</span><b>'+rows.meals+' · '+rows.goldBuys+' · '+rows.arenaBuys+' · '+(3+(rows.vaultExtraSweeps|0))+'</b></div>'+
-    '<div class="patBtns">'+(A.buysMax>0?'<button class="btn" id="patBuyAtk"'+((A.buys|0)>=A.buysMax?' disabled':'')+'>+'+A.pack.n+' attacks · 💎 '+A.pack.cost+' ('+(A.buys|0)+'/'+A.buysMax+')</button>':'<button class="btn secondary" disabled>Attack buys open at EGP 3</button>')+((A.cards|0)>0?'<button class="btn" id="patCard">Use attack card ('+A.cards+')</button>':'')+(P.canPrestige?'<button class="btn" id="patPrestige">Prestige to EDP</button>':'')+'</div>'+
-    '<div style="overflow-x:auto"><table>'+head+tr.join('')+'</table></div></div>';
+    (next==null?'':'<div class="patBar"><i style="width:'+pct+'%"></i></div><div class="patRow"><span>'+(edp?'EDP ':'EGP ')+(lvl+1)+'</span><b>'+have.toLocaleString()+' / '+next.toLocaleString()+' base 💎</b></div>')+
+    '<div class="patBtns">'+(A.buysMax>0?'<button class="btn" id="patBuyAtk"'+((A.buys|0)>=A.buysMax?' disabled':'')+'>+'+A.pack.n+' attacks · 💎'+A.pack.cost+'</button>':'')+((A.cards|0)>0?'<button class="btn" id="patCard">Use attack card ('+A.cards+')</button>':'')+(R.arenaResets>0?'<button class="btn" id="patArena"'+((U.arenaResets|0)>=R.arenaResets?' disabled':'')+'>Reset Arena · 💎'+C.arenaReset+'</button>':'')+(P.canPrestige?'<button class="btn" id="patPrestige">Prestige to EDP</button>':'')+'</div>'+
+    '<div class="patSec">Your benefits</div>'+mine+(un?'<ul class="patList">'+un+'</ul>':'')+
+    (nx?'<div class="patSec">'+nx.label+' adds</div><ul class="patList next">'+nx.lines.map(s=>'<li>'+escapeHTML(s)+'</li>').join('')+'</ul>':'<div class="patSec">Top level reached</div>')+
+    '</div>';
   document.getElementById('patX').onclick=closePatron;
-  { const ba=document.getElementById('patBuyAtk'); if(ba) ba.onclick=()=>patAct('/api/patron/buy-attacks','+'+A.pack.n+' attacks'); const cd=document.getElementById('patCard'); if(cd) cd.onclick=()=>patAct('/api/patron/use-attack-card','+'+A.pack.n+' attacks'); }
+  { const ba=document.getElementById('patBuyAtk'); if(ba) ba.onclick=()=>patAct('/api/patron/buy-attacks','+'+A.pack.n+' attacks'); const cd=document.getElementById('patCard'); if(cd) cd.onclick=()=>patAct('/api/patron/use-attack-card','+'+A.pack.n+' attacks'); const ar=document.getElementById('patArena'); if(ar) ar.onclick=()=>patAct('/api/patron/arena-reset','Arena attempts reset'); }
   const pr=document.getElementById('patPrestige'); if(pr) pr.onclick=()=>patAct('/api/patron/prestige','Ember Diamond Patron');
 }
 async function patAct(route,okMsg){ let r=null; try{ r=await api(route,'POST',{requestId:'pat:'+Date.now()+':'+Math.random().toString(36).slice(2,8)}); }catch(e){ r=null; }
@@ -26111,7 +26150,8 @@ document.getElementById('resultBtn').onclick=()=>{ const m=CUR.mode;
   if(m==='campaign'&&window._tutReturnAfterResult){ window._tutReturnAfterResult=false; G.tutStarted=true; saveG(); show('tutorial'); return; }
   show(m==='arena'?'arena':m==='raid'?'wall':(m==='dungeon'||m==='vault')?'dungeon':m==='online'?'home':'campaign');
   try{ evictUnusedArt(G.team); }catch(e){} };   // game-speed/memory fix, 17 Sep 2026: leaving battle back to a menu/map
-document.getElementById('speedBtn').onclick=()=>{const S=[0.5,1,2];const i=S.indexOf(gameSpeed);gameSpeed=(i<0)?1:S[(i+1)%S.length];
+function patEgp1(){ const P=(typeof patNow==='function')?patNow():null; return !!(P&&(P.prestiged||P.egp>=1)); }   /* v1093: Phil's chart - 2x speed and auto ultimates open at EGP 1 */
+document.getElementById('speedBtn').onclick=()=>{const S=patEgp1()?[0.5,1,2]:[0.5,1];const i=S.indexOf(gameSpeed);gameSpeed=(i<0)?1:S[(i+1)%S.length];
   streamSpeed(gameSpeed);   // v275: the server's session clock has to know how fast the fight is running
   refreshCtrlBtns();};
 // ⏭ Skip: fast-forward presentation only when the fight is already deterministic (Arena, World raid, Elite, replay).
@@ -26132,6 +26172,7 @@ document.getElementById('leaveBtn').onclick=()=>{
   try{ show('skyfall'); }catch(e){ show('home'); }
 };
 document.getElementById('autoBtn').onclick=()=>{ if(isAutoBattle()||autoPendingTarget!==null)return; const next=!autoUlt;
+  if(next&&!patEgp1()){ bannerMsg('Auto ultimates unlock at EGP 1'); return; }
   /* The toggle is a battle input, so it changes AUTO only when applyInput reaches its recorded tick.
      Applying it here too made the browser use AUTO for the nine receipt-delay ticks before the
      server replay did, which produced honest digest mismatches. */
@@ -26306,7 +26347,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791559312257';
+const BUILD_ID = '1791563366402';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -26418,7 +26459,7 @@ function renderChat(){ initChat(); const w=document.getElementById('chatWidget')
   if(chatTab==='world')msgs=CHAT.world; else if(chatTab==='region')msgs=CHAT.region;
   else if(chatTab==='guild'){
     if(GS.guild){   // REAL server guild log (sys lines + member messages)
-      (GS.guild.log||[]).forEach(gm=>{ if(gm.sys)msgs.push({who:'📯',txt:gm.tx,sys:true}); else msgs.push({who:gm.name||'?',txt:gm.tx,me:(gm.name===chatName()),battle:gm.battle||null}); });
+      (GS.guild.log||[]).forEach(gm=>{ if(gm.sys)msgs.push({who:'📯',txt:gm.tx,sys:true}); else msgs.push({who:gm.name||'?',txt:gm.tx,me:(gm.name===chatName()),battle:gm.battle||null,pt:gm.pt||null}); });
     } else if(G.guild){ (G.guildLog||[]).forEach(tx=>{ if(tx&&typeof tx==='object')msgs.push({who:G.playerName||'You',txt:tx.txt,me:true,battle:tx.battle||null}); else msgs.push({who:G.playerName||'You',txt:tx,me:true}); });
     } else if(ACC.token&&typeof guildFetch==='function'&&!renderChat._gfetch){ renderChat._gfetch=true; guildFetch().then(()=>{ renderChat._gfetch=false; if(chatTab==='guild')renderChat(); }).catch(()=>{renderChat._gfetch=false;}); } }
   else if(chatTab.indexOf('w:')===0){ msgs=(G.whispers&&G.whispers[chatTab.slice(2)])||[]; }
@@ -26426,7 +26467,7 @@ function renderChat(){ initChat(); const w=document.getElementById('chatWidget')
   _chatBattles=[];
   msgsEl.innerHTML=msgs.length?msgs.map(m=>{ let btn=''; if(m.battle&&m.battle.mineSnap&&m.battle.mineSnap.length&&(m.battle.foe||[]).length){ const idx=_chatBattles.push(m.battle)-1; btn=` <button class="btn sm" data-cbat="${idx}" style="padding:2px 8px;margin-left:4px">▶ Watch</button>`; }
     if(m.sys) return `<div class="cw-msg" style="color:#8b98a9;font-style:italic">${escapeHTML(m.who)} ${escapeHTML(m.txt)}</div>`;
-    return `<div class="cw-msg">${nameSpan(m.who,m.me)}: <span>${escapeHTML(m.txt)}</span>${btn}</div>`; }).join('')
+    return `<div class="cw-msg${m.pt&&m.pt.bubble?' patBub-'+m.pt.bubble:''}">${patChip(m.pt)}${m.pt&&m.pt.edp?nameSpan(m.who,m.me).replace(/color:#[0-9a-f]{6}/,'color:#9fe1ff'):nameSpan(m.who,m.me)}: <span>${escapeHTML(m.txt)}</span>${btn}</div>`; }).join('')
     :'<div style="font-size:11px;color:#6f7d90;padding:6px">No messages yet — say hi!</div>';
   msgsEl.scrollTop=msgsEl.scrollHeight; wireChat(w);
 }
@@ -26465,7 +26506,7 @@ function postReplayChip(channel, meta){
     }).catch(()=>bannerMsg('Could not share to guild'));
     return;
   }
-  else { const ch=(channel==='region')?'region':'world'; initChat(); CHAT[ch].push({who:chatName(),txt,me:true,battle:chip}); if(CHAT[ch].length>120)CHAT[ch].shift(); if(CHATNET.connected)chatNetSend({t:'chat',channel:ch,text:txt,battle:chip}); chatTab=ch; bannerMsg('\u{1F4E4} Shared to '+(ch==='region'?'region':'world')+' chat'); }
+  else { const ch=(channel==='region')?'region':'world'; initChat(); CHAT[ch].push({who:chatName(),txt,me:true,battle:chip,pt:patMyTag()}); if(CHAT[ch].length>120)CHAT[ch].shift(); if(CHATNET.connected)chatNetSend({t:'chat',channel:ch,text:txt,battle:chip}); chatTab=ch; bannerMsg('\u{1F4E4} Shared to '+(ch==='region'?'region':'world')+' chat'); }
   const w=document.getElementById('chatWidget'); if(w){ w.classList.remove('min'); const tg=w.querySelector('#cwToggle'); if(tg)tg.textContent='▼'; }
   renderChat();
 }
@@ -26489,8 +26530,8 @@ function onChatNet(m){
      they are how we find out that a legitimate player's actions are being refused, rather than
      discovering it from a player whose clear did not count. */
   if(m.t==='actack'){ onActAck(m); return; }
-  if(m.t==='chathist'){ if(Array.isArray(m.world))CHAT.world=m.world.map(x=>({who:x.who,txt:x.txt,me:x.who===CHATNET.name,battle:x.battle||null})); if(Array.isArray(m.region))CHAT.region=m.region.map(x=>({who:x.who,txt:x.txt,me:x.who===CHATNET.name,battle:x.battle||null})); if(chatTab==='world'||chatTab==='region')renderChat(); }
-  else if(m.t==='chatmsg'){ const ch=m.channel==='region'?'region':'world'; CHAT[ch].push({who:m.who,txt:m.txt,me:m.who===CHATNET.name,battle:m.battle||null}); if(CHAT[ch].length>120)CHAT[ch].shift(); if(chatTab===ch)renderChat(); }
+  if(m.t==='chathist'){ if(Array.isArray(m.world))CHAT.world=m.world.map(x=>({who:x.who,txt:x.txt,me:x.who===CHATNET.name,battle:x.battle||null,pt:x.pt||null})); if(Array.isArray(m.region))CHAT.region=m.region.map(x=>({who:x.who,txt:x.txt,me:x.who===CHATNET.name,battle:x.battle||null,pt:x.pt||null})); if(chatTab==='world'||chatTab==='region')renderChat(); }
+  else if(m.t==='chatmsg'){ const ch=m.channel==='region'?'region':'world'; CHAT[ch].push({who:m.who,txt:m.txt,me:m.who===CHATNET.name,battle:m.battle||null,pt:m.pt||null}); if(CHAT[ch].length>120)CHAT[ch].shift(); if(chatTab===ch)renderChat(); }
   else if(m.t==='whispermsg'){ const from=m.from; if(from===CHATNET.name)return; if(!G.whispers)G.whispers={}; if(!G.whispers[from])G.whispers[from]=[]; G.whispers[from].push({who:from,txt:m.txt}); if(!openWhispers.includes(from))openWhispers.push(from); saveG(); if(chatTab==='w:'+from||chatTab==='whispers')renderChat(); bannerMsg('✉ Whisper from '+escapeHTML(from)); }
 }
 // ---- boot splash: online/offline status + invisible logo Play button ----

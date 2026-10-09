@@ -1430,7 +1430,7 @@ const ARENA_EXTRA_MAX_DAY   = 5;    // additional attempts purchasable per day â
 function arenaAtt(led){ const dk=nyDayKey(); if(!led.arenaAtt||led.arenaAtt.k!==dk) led.arenaAtt={k:dk,used:0,bought:0}; return led.arenaAtt; }
 function arenaAttView(led){ const a=arenaAtt(led);
   return { attemptsLeft:Math.max(0,ARENA_FREE_ATTEMPTS+a.bought-a.used), used:a.used, bought:a.bought,
-           freePerDay:ARENA_FREE_ATTEMPTS, extraCostGems:ARENA_EXTRA_COST_GEMS, extraMaxPerDay:patronRow(led,'arenaBuys') }; }   /* v1092: EGP row */
+           freePerDay:ARENA_FREE_ATTEMPTS, extraCostGems:ARENA_EXTRA_COST_GEMS, extraMaxPerDay:ARENA_EXTRA_MAX_DAY }; }   /* v1093: fixed again - the chart's Arena row is reset purchases */
 const QUEST_DEFS_SRV={
   q_arena:  { reward:{gold:50},  cond:(u,led)=>((u.qc&&u.qc.arena)|0)>=1 },
   q_name:   { reward:{gems:20},  cond:()=>true },                                  // attested (cosmetic condition), reward fixed + once
@@ -3854,19 +3854,45 @@ function patronCreditPurchase(me,led,usd,reason){ const p=patronState(led), base
   const after=patronLevels(led); return {base,rebatePct:pct,rebate:paid,egpBefore:before.egp,egp:after.egp,edp:after.edp,prestiged:after.prestiged}; }
 /* v1092 phase 3: EGP ROWS - systems that already exist, on the reference ladder, and never below what every player has today.
    index = EGP level (EDP uses EGP 15). meals: today 10 a day; gold buys: today 8; arena attempts to buy: today 5; Vault paid sweeps: today 3 (+extra). */
+/* v1093 (Phil 9 Oct: "Make what we have so far the standard, and we will adjust"): the EGP rows are Phil's benefit chart (server/patron-benefits.js
+   holds the chart's words). index = EGP level 0-15 (EDP keeps EGP 15's, plus its own EDP rows below). Stamina and gold purchases START at 1 a day
+   at EGP 0 and cap at 12 (Phil); arena RESET purchases and Elite stage resets open at EGP 3 / EGP 2; armies out at once start at 2. */
 const PATRON_ROWS=Object.freeze({
-  meals:      {floor:10, ref:[0,2,3,4,5,6,7,8,9,10,11,12,13,14,15,15]},
-  goldBuys:   {floor:8,  ref:[0,2,3,4,6,8,10,12,14,16,18,20,22,24,26,30]},
-  arenaBuys:  {floor:5,  ref:[0,0,0,1,2,3,4,5,6,7,7,7,7,7,7,7]},
-  vaultExtra: {floor:0,  ref:[0,0,0,0,0,0,1,2,2,2,2,3,3,4,4,5]} });
-function patronRow(led,key){ const r=PATRON_ROWS[key], L=patronLevels(led); return Math.max(r.floor, r.ref[Math.min(15,L.egp)]|0); }
+  meals:       [1,2,3,4,5,6,7,8,9,10,11,12,12,12,12,12],
+  goldBuys:    [1,2,3,4,6,8,10,12,12,12,12,12,12,12,12,12],
+  eliteResets: [0,0,1,2,3,4,5,6,7,8,8,8,8,8,8,8],
+  arenaResets: [0,0,0,1,2,3,4,5,6,7,7,7,7,7,7,7],
+  vaultExtra:  [0,0,0,0,0,0,1,2,2,2,2,3,3,4,4,5],
+  marches:     [2,2,2,2,2,3,3,3,4,4,4,4,4,4,5,5],
+  shadyOff:    [0,0,0,0,0,0,0,0,0,10,10,10,20,20,20,30] });
+const PATRON_EDP_ROWS=Object.freeze({   // index = EDP level 0-15
+  marchesAdd:  [0,0,0,0,0,1,1,1,1,1,2,2,2,2,2,3],
+  marchSpeed:  [0,0,0,0,5,8,8,12,12,16,20,20,20,20,25,25] });
+const PATRON_COSTS=Object.freeze({ eliteReset:50, arenaReset:50 });   // diamonds - Claude's default, not on Phil's chart [TUNE]
+const PATRON_DOUBLE_GOLD_EGP=6, PATRON_SHADY_ITEMS=['warchest','shields3','arenacoins','targeted5'];
+function patronRow(led,key){ const L=patronLevels(led), lv=Math.min(15,L.egp), r=PATRON_ROWS[key];
+  let v=r?(r[lv]|0):0; if(key==='marches'&&L.prestiged) v+=PATRON_EDP_ROWS.marchesAdd[Math.min(15,L.edp)]|0; return v; }
+/* the chat tag: 'EGP n' from EGP 1, 'EDP n' after the prestige; bubble at EGP 15 (gold) / EDP 15 (diamond) - Phil's chart */
+function patronChatTag(led){ const L=patronLevels(led); if(!L.prestiged&&L.egp<1) return null; return L.prestiged?{l:'EDP '+L.edp,edp:1,bubble:L.edp>=15?'edp':'egp'}:{l:'EGP '+L.egp,bubble:L.egp>=15?'egp':null}; }
+function patronMarchSpeed(led){ const L=patronLevels(led); return L.prestiged?(PATRON_EDP_ROWS.marchSpeed[Math.min(15,L.edp)]|0):0; }
+function patronMarchMs(led,ms){ return Math.round(ms*(1-patronMarchSpeed(led)/100)); }
+function patronShadyPicks(me){ const dk=nyDayKey(); let h=0; const s=String(me.id)+':'+dk; for(let i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))>>>0;
+  const a=PATRON_SHADY_ITEMS.slice(), i1=h%a.length, x=a.splice(i1,1)[0], y=a[(h>>>8)%a.length]; return [x,y]; }
+function patronShadyPrice(me,led,item,base){ const off=patronRow(led,'shadyOff'); return (off>0&&patronShadyPicks(me).includes(item))?Math.round(base*(1-off/100)):base; }
+function patronOpenMarches(u,now){ let n=0; for(const m of [...(u.worldMineMarches||[]),...worldCityMarches(u)]) if(m&&(+m.homeAt||0)>now) n++;
+  try{ for(const m of Object.values((DB.worldTreeControl&&DB.worldTreeControl.marches)||{})) if(m&&m.ownerId===u.id&&m.phase!=='home') n++; }catch(e){}
+  return n; }
+function patronDayCount(led,key){ const dk=nyDayKey(); if(!led.patronDay||led.patronDay.k!==dk) led.patronDay={k:dk}; return led.patronDay[key]|0; }
+function patronDayInc(led,key){ patronDayCount(led,key); led.patronDay[key]=(led.patronDay[key]|0)+1; }
 function patronView(me,led){ const p=patronState(led), L=patronLevels(led), dk=nyDayKey(), d=(me.pvpDay&&me.pvpDay.k===dk)?me.pvpDay:null;
   const ladder=L.prestiged?PATRON.edp:PATRON.egp, lvl=L.prestiged?L.edp:L.egp, have=L.prestiged?p.edpBase:p.base, next=lvl<15?ladder[lvl+1]:null;
   return { egp:L.egp, edp:L.edp, prestiged:L.prestiged, canPrestige:!L.prestiged&&L.egp>=15, base:p.base, edpBase:p.edpBase|0,
     next, toNext:next==null?0:Math.max(0,next-have), rebatePct:patronRebatePct(led),
     attacks:{ free:patronFreeAttacks(led), bought:(d&&d.extra)|0, used:(d&&d.n)|0, cap:attackCap(me), pack:PATRON.attackPack, buys:(d&&d.buys)|0, buysMax:patronAttackBuys(led), cards:((led.cards||{}).attack)|0 },
     mythPool:L.egp>=MYTH_UNLOCK_EGP,
-    rows:{ meals:patronRow(led,'meals'), goldBuys:patronRow(led,'goldBuys'), arenaBuys:patronRow(led,'arenaBuys'), vaultExtraSweeps:patronRow(led,'vaultExtra') },
+    rows:{ meals:patronRow(led,'meals'), goldBuys:patronRow(led,'goldBuys'), eliteResets:patronRow(led,'eliteResets'), arenaResets:patronRow(led,'arenaResets'), vaultExtraSweeps:patronRow(led,'vaultExtra'),
+      marches:patronRow(led,'marches'), marchSpeed:patronMarchSpeed(led), shadyOff:patronRow(led,'shadyOff'), doubleGold:L.egp>=PATRON_DOUBLE_GOLD_EGP, attackBuys:patronAttackBuys(led) },
+    used:{ eliteResets:patronDayCount(led,'eliteResets'), arenaResets:patronDayCount(led,'arenaResets') }, costs:PATRON_COSTS, shadyPicks:patronRow(led,'shadyOff')>0?patronShadyPicks(me):[],
     table:{ egp:PATRON.egp, edp:PATRON.edp, rebate:PATRON.rebate, edpRebateStep:PATRON.edpRebateStep, attackBase:PATRON.attackBase, basePerUsd:PATRON.basePerUsd } }; }
 function ledgerView(u){ const led=ensureLedger(u); ledStamRegen(led); if(ledPlayerLevel(led)>=WITCH.UNLOCK_LEVEL) worldLocation(u);
   return { rev:led.rev, born:+led.migratedAt||0, gold:led.gold, gems:led.gems, guildCoins:led.guildCoins|0, arenaCoins:Math.max(0,u.coins|0), renames:u.renames|0, patron:patronView(u,led), shields:Math.max(0,u.shields|0), shieldUntil:((+u.shieldUntil||0)>Date.now()?+u.shieldUntil:0), beginnerShieldUntil:beginnerShieldUntil(u), px:led.px, playerLevel:ledPlayerLevel(led),   /* v1079: arena coins are the server's (scan #2) */
@@ -6002,6 +6028,7 @@ async function api(req,res,url){
         if([...me.worldMineMarches,...worldCityMarches(me)]
           .some(m=>m.homeAt>now&&m.heroIds?.some(k=>ids.includes(k)))||ids.some(k=>WORLD_TREE_CONTROL.busy(DB.worldTreeControl,me.id,k,now)))
           return {ok:false,error:'A selected hero is already marching.'};
+        if(patronOpenMarches(me,now)>=patronRow(led,'marches')) return {ok:false,error:'All your armies are out ('+patronRow(led,'marches')+' at your patron level).'};   /* v1093 */
         const needLevel=[1,8,16,26,36,44,52,58,66,74][node.level-1]||1;   // levels 9-10: Phil 3 Oct (wild 7-10)
         if(!ids.some(k=>ledHeroLevel(led,k)>=needLevel))
           return {ok:false,error:'One hero must be level '+needLevel+' for this mine.'};
@@ -6026,7 +6053,7 @@ async function api(req,res,url){
         const cx=Math.round(wx/WORLD_MINES.GRID_CELL-0.5),cy=Math.round(wy/WORLD_MINES.GRID_CELL-0.5);
         const distance=Math.max(1,Math.round(Math.hypot(node.gx-cx,node.gy-cy)));
         const fixtureMs=process.env.NODE_ENV==='test'?Math.max(0,+process.env.WORLD_MINE_TEST_MS||0):0;
-        const timing=fixtureMs?null:WORLD_VOID_TIMING.plan(castle,node,distance*60000);
+        const timing=fixtureMs?null:WORLD_VOID_TIMING.plan(castle,node,patronMarchMs(led,distance*60000));   /* v1093: EDP march speed */
         const travel=fixtureMs||timing.travelMs, gather=fixtureMs||(20+node.level*18)*60000;
         const march={id:uid(),node,heroIds:ids,snaps,depart:now,arriveAt:now+travel+gather,
           homeAt:now+travel*2+gather,resolved:false,
@@ -6167,6 +6194,28 @@ async function api(req,res,url){
       led.gems-=pk.cost; d.extra=(d.extra|0)+pk.n; d.buys=(d.buys|0)+1;
       ledTx(me,'patron:buy-attacks',{gems:-pk.cost,attacks:pk.n});
       return {ok:true, bought:pk.n, ledger:ledgerView(me)}; });
+    return send(res,out.storageFailed?503:(out.ok===false?400:200),out); }
+  /* v1093 EGP resets (Phil's chart): an Elite stage's 3 daily runs back (EGP 2+), the Arena's 5 free attempts back (EGP 3+) */
+  if(p==='/api/patron/elite-reset' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
+    const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
+    const out=durableCommit(me,me.id+':elitereset:'+reqId,(me)=>{ const led=ensureLedger(me), max=patronRow(led,'eliteResets'), c=PATRON_COSTS.eliteReset;
+      if(max<=0) return {ok:false,error:'Elite stage resets open at EGP 2.'};
+      if(patronDayCount(led,'eliteResets')>=max) return {ok:false,error:'No more Elite stage resets today ('+max+' a day at your level).'};
+      const mode=portalModeOf(b.mode), node=Math.max(1,Math.min(CAMPAIGN_NODES,b.node|0)), prog=portalProg(led,mode);
+      if(!prog.runs||prog.runs.k!==nyDayKey()||!(prog.runs['n'+node]|0)) return {ok:false,error:'That stage has all its runs today.'};
+      if((led.gems|0)<c) return {ok:false,error:'You need '+c+' diamonds.'};
+      led.gems-=c; delete prog.runs['n'+node]; patronDayInc(led,'eliteResets');
+      ledTx(me,'patron:elite-reset',{gems:-c,mode,node}); return {ok:true, mode, node, ledger:ledgerView(me)}; });
+    return send(res,out.storageFailed?503:(out.ok===false?400:200),out); }
+  if(p==='/api/patron/arena-reset' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
+    const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
+    const out=durableCommit(me,me.id+':arenareset:'+reqId,(me)=>{ const led=ensureLedger(me), max=patronRow(led,'arenaResets'), c=PATRON_COSTS.arenaReset, a=arenaAtt(led);
+      if(max<=0) return {ok:false,error:'Arena resets open at EGP 3.'};
+      if(patronDayCount(led,'arenaResets')>=max) return {ok:false,error:'No more Arena resets today ('+max+' a day at your level).'};
+      if((a.used|0)<=0) return {ok:false,error:'Your free Arena attempts are all still there.'};
+      if((led.gems|0)<c) return {ok:false,error:'You need '+c+' diamonds.'};
+      led.gems-=c; a.used=0; patronDayInc(led,'arenaResets');
+      ledTx(me,'patron:arena-reset',{gems:-c}); return {ok:true, arena:arenaAttView(led), ledger:ledgerView(me)}; });
     return send(res,out.storageFailed?503:(out.ok===false?400:200),out); }
   if(p==='/api/patron/use-attack-card' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});   /* v1092: from the Mythical Pool */
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
@@ -6355,7 +6404,7 @@ async function api(req,res,url){
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
     const out=durableCommit(me,me.id+':shop:'+reqId,(me)=>{
       const led=ensureLedger(me), sh=shopState(me); const what=String(b.what||'');
-      if(what==='food'){ if(sh.food>=patronRow(led,'meals')) return {ok:false,error:'No more meals today.'};   /* v1092: EGP raises the daily number */
+      if(what==='food'){ if(sh.food>=patronRow(led,'meals')) return {ok:false,error:'No more meals today.'};   /* v1092/v1093: the EGP chart sets the daily number (1 at EGP 0) */
         const c=SHOP_FOOD_COSTS[Math.min(sh.food,SHOP_FOOD_COSTS.length-1)]; if(led.gems<c) return {ok:false,error:'Not enough diamonds.'};
         ledStamRegen(led); if(led.stam.v>=999) return {ok:false,error:'Stamina is full.'};   /* 3 Oct Market audit #8: a meal at full stamina took the diamonds and gave nothing */
         led.gems-=c; sh.food++; creditStamina(me,led,SHOP_FOOD_STAMINA,'shop:food');
@@ -6363,7 +6412,8 @@ async function api(req,res,url){
         writeDB(); return {ok:true, stamina:led.stam.v, cost:c, ledger:ledgerView(me)}; }
       if(what==='gold'){ if(sh.gold>=patronRow(led,'goldBuys')) return {ok:false,error:'No more gold today.'};   /* v1092 */
         const c=SHOP_GOLD_COSTS[Math.min(sh.gold,SHOP_GOLD_COSTS.length-1)]; if(led.gems<c) return {ok:false,error:'Not enough diamonds.'};
-        const amt=1000+(ledPlayerLevel(led)-1)*100;
+        let amt=1000+(ledPlayerLevel(led)-1)*100; let doubled=false;
+        if(patronLevels(led).egp>=PATRON_DOUBLE_GOLD_EGP && (srvSeed('goldbuy2x',me.id,nyDayKey(),String(sh.gold))%2)===0){ amt*=2; doubled=true; }   /* v1093: EGP 6 - 50 % chance of double gold */
         led.gems-=c; sh.gold++; creditGold(me,led,amt,'shop:gold');
         ledTx(me,'shop:gold',{gems:-c,gold:amt});
         writeDB(); return {ok:true, gold:amt, cost:c, ledger:ledgerView(me)}; }
@@ -6395,7 +6445,7 @@ async function api(req,res,url){
         writeDB(); return {ok:true, got, cost:it.cost, ledger:ledgerView(me)}; }
       /* v1081 (scan 2 #1): shields are server purchases - the Shady pack (550 diamonds -> 3) and the Market Peace Shield (the market's
          own price, 70 diamonds scaled by level like rollMarket's em(): round(70*(1+(L-1)*0.04)); one an hour, the market's restock). */
-      if(what==='shields3'){ const c=550; if(led.gems<c) return {ok:false,error:'Not enough diamonds.'}; if((me.shields|0)+3>99) return {ok:false,error:'You can hold at most 99 shields.'};   /* v1082 (scan 3 F3) */
+      if(what==='shields3'){ const c=patronShadyPrice(me,led,'shields3',550);   /* v1093: EGP Shady discount */ if(led.gems<c) return {ok:false,error:'Not enough diamonds.'}; if((me.shields|0)+3>99) return {ok:false,error:'You can hold at most 99 shields.'};   /* v1082 (scan 3 F3) */
         led.gems-=c; me.shields=Math.min(99,(me.shields|0)+3); ledTx(me,'shop:shields3',{gems:-c,shields:3});
         writeDB(); return {ok:true, shields:me.shields, cost:c, ledger:ledgerView(me)}; }
       if(what==='shield_market'){ const L=ledPlayerLevel(led), c=Math.round(70*(1+(L-1)*0.04));
@@ -6403,12 +6453,12 @@ async function api(req,res,url){
         if(led.gems<c) return {ok:false,error:'Not enough diamonds.'}; if((me.shields|0)+1>99) return {ok:false,error:'You can hold at most 99 shields.'};   /* v1082 */
         led.gems-=c; me.shields=Math.min(99,(me.shields|0)+1); me.marketShieldAt=Date.now(); ledTx(me,'shop:shield_market',{gems:-c,shields:1});
         writeDB(); return {ok:true, shields:me.shields, cost:c, ledger:ledgerView(me)}; }
-      if(what==='arenacoins'){ const c=600, n=3000;   /* v1079 (scan #2): the Shady Market's Arena Coins x3,000 - was a diamond spend + a client-only grant */
+      if(what==='arenacoins'){ const c=patronShadyPrice(me,led,'arenacoins',600), n=3000;   /* v1079 (scan #2): the Shady Market's Arena Coins x3,000 - was a diamond spend + a client-only grant */
         if(led.gems<c) return {ok:false,error:'Not enough diamonds.'};
         led.gems-=c; me.coins=Math.min(ECON_CAP.arenaCoins,(me.coins|0)+n);
         ledTx(me,'shop:arenacoins',{gems:-c,arenaCoins:n});
         writeDB(); return {ok:true, arenaCoins:me.coins|0, cost:c, ledger:ledgerView(me)}; }
-      if(what==='warchest'){ const c=250, g=80000; sh.warchest=sh.warchest|0;
+      if(what==='warchest'){ const c=patronShadyPrice(me,led,'warchest',250), g=80000; sh.warchest=sh.warchest|0;
         if(sh.warchest>=25) return {ok:false,error:'No more War Chests today.'};
         if(led.gems<c) return {ok:false,error:'Not enough diamonds.'};
         led.gems-=c; sh.warchest++; creditGold(me,led,g,'shop:warchest');
@@ -7795,6 +7845,7 @@ async function api(req,res,url){
         if(done+open>=attackCap(me)) return {ok:false,error:'No city attacks left today.'}; }   /* v1092: EGP sets the daily number */
       if([...mines,...marches].some(m=>m.homeAt>now&&m.heroIds?.some(k=>ids.includes(k)))||ids.some(k=>WORLD_TREE_CONTROL.busy(DB.worldTreeControl,me.id,k,now)))
         return {ok:false,error:'A selected hero is already marching.'};
+      if(patronOpenMarches(me,now)>=patronRow(ensureLedger(me),'marches')) return {ok:false,error:'All your armies are out ('+patronRow(ensureLedger(me),'marches')+' at your patron level).'};   /* v1093 */
       const host=simHost(); if(!host) return {ok:false,error:'City battle engine unavailable.'};
       const specs=ids.map(k=>campaignHeroSpec(me,k));
       if(specs.some(s=>!s)) return {ok:false,error:'City squad could not be resolved.'};
@@ -7809,7 +7860,7 @@ async function api(req,res,url){
       const toY=WORLD_LOCATION.cellIndex(d?d.worldLocation.y:bot.y);
       const distance=Math.max(1,Math.round(Math.hypot(toX-fromX,toY-fromY)));
       const fixtureMs=process.env.NODE_ENV==='test'?Math.max(0,+process.env.WORLD_CITY_TEST_MS||0):0;
-      const timing=fixtureMs?null:WORLD_VOID_TIMING.plan(loc,d?d.worldLocation:bot,distance*60000);
+      const timing=fixtureMs?null:WORLD_VOID_TIMING.plan(loc,d?d.worldLocation:bot,patronMarchMs(ensureLedger(me),distance*60000));   /* v1093: EDP march speed */
       const travel=fixtureMs||timing.travelMs;
       const march={id:uid(),defId:targetId,heroIds:ids,snaps,depart:now,arriveAt:now+travel,
         homeAt:now+travel*2,resolved:false,
@@ -7833,6 +7884,7 @@ async function api(req,res,url){
         const offers={targeted1:{gems:120,tele:1},targeted5:{gems:500,tele:5},wild1:{gems:60,wild:1}};
         const offer=offers[String(b.offer||'')];
         if(!offer) return {ok:false,error:'Unknown teleport scroll offer.'};
+        if(String(b.offer)==='targeted5') offer.gems=patronShadyPrice(me,led,'targeted5',500);   /* v1093: EGP Shady discount (offers is rebuilt per request) */
         if((led.gems|0)<offer.gems) return {ok:false,error:'Not enough diamonds.'};
         t.teleScrolls+=(offer.tele||0); t.wildScrolls+=(offer.wild||0);
         led.gems-=offer.gems; ledTx(me,'world:scrolls',{gems:-offer.gems});
@@ -7956,7 +8008,7 @@ async function api(req,res,url){
   if(p==='/api/arena/buy-attempt' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     const b=await body(req); const rid=String(b.requestId||'').slice(0,48); if(!rid) return send(res,400,{error:'requestId required'});
     const out=idem(me.id+':abuy:'+rid,()=>{ const led=ensureLedger(me), a=arenaAtt(led);
-      if(a.bought>=patronRow(led,'arenaBuys')) return {ok:false,error:'No more arena attempts can be bought today.',arena:arenaAttView(led)};
+      if(a.bought>=ARENA_EXTRA_MAX_DAY) return {ok:false,error:'No more arena attempts can be bought today.',arena:arenaAttView(led)};
       if((led.gems|0)<ARENA_EXTRA_COST_GEMS) return {ok:false,error:'Not enough diamonds â€” an extra arena attempt costs '+ARENA_EXTRA_COST_GEMS+'.',arena:arenaAttView(led)};
       led.gems-=ARENA_EXTRA_COST_GEMS; a.bought++; ledTx(me,'arena:buy-attempt',{gems:-ARENA_EXTRA_COST_GEMS});
       return {ok:true, gems:led.gems, arena:arenaAttView(led), ledger:ledgerView(me)}; });
@@ -8460,7 +8512,7 @@ async function api(req,res,url){
     if(p==='/api/guild/chat'){ if(!g) return send(res,400,{error:'You are not in a guild.'});
       if(rateLimited(req,'gchat',25,60000)) return send(res,429,{error:'Slow down.'});
       const tx=(b.tx||'').toString().replace(/[<>]/g,'').slice(0,200).trim(); if(!tx) return send(res,200,{ok:true});
-      g.log=g.log||[]; const gm={id:me.id,name:me.name,tx,t:Date.now()};
+      g.log=g.log||[]; const gm={id:me.id,name:me.name,tx,t:Date.now()}; { const pt=patronChatTag(ensureLedger(me)); if(pt) gm.pt=pt; }   /* v1093 */
       try{ if(b.battle && typeof b.battle==='object'){ const s=JSON.stringify(b.battle); if(s.length<=8000) gm.battle=JSON.parse(s); } }catch(e){}   // optional shared-replay chip
       if(gm.battle){ const c=chatChipOk(gm.battle); if(c) gm.battle=c; else delete gm.battle; }   /* v1002 oppName; v1013 (N12) the whole chip shape */
       g.log.push(gm); if(g.log.length>100)g.log=g.log.slice(-100);
@@ -8718,6 +8770,7 @@ const server=http.createServer((req,res)=>{
   if(p==='/hero-profiles.js') return serveFile(res,'hero-profiles.js','application/javascript',null,req);
   if(p==='/hero-paths.js') return serveFile(res,'hero-paths.js','application/javascript',null,req);
   if(p==='/server/temple-of-ash.js') return serveFile(res,'server/temple-of-ash.js','application/javascript',null,req);
+  if(p==='/server/patron-benefits.js') return serveFile(res,'server/patron-benefits.js','application/javascript',null,req);   /* v1093: Phil's benefit chart, shared with the client */
   if(p==='/server/temple-effects.js') return serveFile(res,'server/temple-effects.js','application/javascript',null,req);
   // v945 (2 Oct 2026, three servers): the server list on every server's page asks the OTHER servers "are you up?" through this
   // file; it holds only the public build number, so any origin may read it.
@@ -8864,19 +8917,19 @@ const CHAT_KEEP=100, CHAT_AGE_MS=6*3600000;
         /* v1083 (scan 5 #2): the history (up to ~1.6 MB with replay chips) at most once per 30 s per socket and 10 s per account */
         { const now=Date.now(), ak=ws._uid||('ip:'+(ws._ipKey||''));
           if((ws._chatJoinAt&&now-ws._chatJoinAt<30000)||(_chatJoinAcct[ak]&&now-_chatJoinAcct[ak]<10000)){   /* v1085 (scan 6 #7): a reload / second tab still sees recent chat */
-            const lite=a=>a.slice(-20).map(m=>({who:m.who,txt:m.txt,t:m.t})); return wsend(ws,{t:'chathist',world:lite(pruneChat('world')),region:lite(pruneChat('region'))}); }
+            const lite=a=>a.slice(-20).map(m=>({who:m.who,txt:m.txt,t:m.t,pt:m.pt||undefined})); return wsend(ws,{t:'chathist',world:lite(pruneChat('world')),region:lite(pruneChat('region'))}); }
           ws._chatJoinAt=now; _chatJoinAcct[ak]=now; if(Object.keys(_chatJoinAcct).length>2000){ for(const k in _chatJoinAcct) if(now-_chatJoinAcct[k]>60000) delete _chatJoinAcct[k]; } }
         wsend(ws,{t:'chathist',world:pruneChat('world'),region:pruneChat('region')}); }
       else if(m.t==='chat'){ if(wsNeedAuth(ws)) return; const ch=(m.channel==='region')?'region':'world'; const txt=clip(m.text,200); if(!txt)return;
         // 30 Sep 2026 hardening: at most 6 chat lines per 10 s per ACCOUNT across all its sockets (one socket could wipe the
         // 100-line history in ~25 s, and N sockets multiplied that).
         { const key=ws._uid||('ip:'+(ws._ipKey||'')); const now=Date.now(); const h=(_chatHits[key]||[]).filter(t=>now-t<10000);
-          if(h.length>=6){ _chatHits[key]=h; wsend(ws,{t:'chaterr',reason:'You are sending messages too fast.'}); return; } h.push(now); _chatHits[key]=h; } const msg={who:ws._acctName||ws._chatName||'Player',txt,t:Date.now()};
+          if(h.length>=6){ _chatHits[key]=h; wsend(ws,{t:'chaterr',reason:'You are sending messages too fast.'}); return; } h.push(now); _chatHits[key]=h; } const msg={who:ws._acctName||ws._chatName||'Player',txt,t:Date.now()}; { const su=ws._uid&&DB.users[ws._uid]; const pt=su&&su.led?patronChatTag(su.led):null; if(pt) msg.pt=pt; }   /* v1093: the sender's EGP/EDP */
         let bt=null; try{ if(m.battle && typeof m.battle==='object'){ const s=JSON.stringify(m.battle); if(s.length<=8000) bt=JSON.parse(s); } }catch(e){}   // optional shared-replay chip (size-capped)
         bt=chatChipOk(bt);   /* v1002 (Account audit #23) oppName; v1013 (N12) the whole chip shape */
         if(bt) msg.battle=bt;
         chatStore()[ch].push(msg); pruneChat(ch); chatSaveSoon();   /* v1083 (scan 5 #3): was writeDB() per line - 36 full-world saves a minute per chatter */
-        chatBroadcast({t:'chatmsg',channel:ch,who:msg.who,txt:msg.txt,battle:bt||undefined}, ws); }   // broadcast to everyone EXCEPT the sender (sender shows it instantly locally)
+        chatBroadcast({t:'chatmsg',channel:ch,who:msg.who,txt:msg.txt,battle:bt||undefined,pt:msg.pt||undefined}, ws); }   // broadcast to everyone EXCEPT the sender (sender shows it instantly locally)
       else if(m.t==='whisper'){ if(wsNeedAuth(ws)) return; const to=clip(m.to,16), txt=clip(m.text,200); if(!to||!txt)return;
         { const key='w:'+(ws._uid||('ip:'+(ws._ipKey||''))); const now=Date.now(); const h=(_chatHits[key]||[]).filter(t=>now-t<10000);   /* v1002 (Account audit #16): whispers share the chat pace */
           if(h.length>=6){ _chatHits[key]=h; wsend(ws,{t:'chaterr',reason:'You are sending messages too fast.'}); return; } h.push(now); _chatHits[key]=h; }

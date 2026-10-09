@@ -35,14 +35,14 @@ let n=0; const buy=offerId=>call('/api/shop/purchase',{offerId,provider:'test',r
   const ba=await call('/api/patron/buy-attacks',{requestId:'ba1'}); L=await led();
   ok(ba.data.ok===true&&L.patron.attacks.cap===26&&L.patron.attacks.bought===10,'10 attacks for 400 diamonds raise today\'s cap to 26 ('+L.patron.attacks.cap+')');
   // phase 3 rows: nobody below today's numbers; EGP 3 still at today's
-  ok(JSON.stringify(L.patron.rows)===JSON.stringify({meals:10,goldBuys:8,arenaBuys:5,vaultExtraSweeps:0}),'EGP 5 rows = the numbers everyone has today ('+JSON.stringify(L.patron.rows)+')');
-  ok(L.shop&&L.shop.foodMax===10&&L.shop.goldMax===8,'the shop view publishes the daily meal and gold limits');
+  ok(JSON.stringify(L.patron.rows)===JSON.stringify({meals:6,goldBuys:8,eliteResets:4,arenaResets:3,vaultExtraSweeps:0,marches:3,marchSpeed:0,shadyOff:0,doubleGold:false,attackBuys:2}),'EGP 5 rows = Phil\'s chart (v1093 standard) ('+JSON.stringify(L.patron.rows)+')');
+  ok(L.shop&&L.shop.foodMax===6&&L.shop.goldMax===8,'the shop view publishes the daily meal and gold limits (EGP 5: 6 / 8)');
   const pr0=await call('/api/patron/prestige',{requestId:'pr0'});
   ok(pr0.data.ok===false&&/EGP 15/.test(pr0.data.error||''),'prestige is refused below EGP 15');
   // EGP 15 by data, then prestige
   await editDB(u=>{ u.led.patron.base=30100; });
   L=await led(); ok(L.patron.egp===15&&L.patron.attacks.free===20&&L.patron.canPrestige===true,'EGP 15: 20 daily attacks, prestige offered');
-  ok(JSON.stringify(L.patron.rows)===JSON.stringify({meals:15,goldBuys:30,arenaBuys:7,vaultExtraSweeps:5}),'EGP 15 rows: 15 meals, 30 gold buys, 7 arena buys, +5 Vault sweeps ('+JSON.stringify(L.patron.rows)+')');
+  ok(JSON.stringify(L.patron.rows)===JSON.stringify({meals:12,goldBuys:12,eliteResets:8,arenaResets:7,vaultExtraSweeps:5,marches:5,marchSpeed:0,shadyOff:30,doubleGold:true,attackBuys:5}),'EGP 15 rows = Phil\'s chart: 12 / 12 purchases (cap), 8 Elite, 7 Arena resets, +5 Vault, 5 armies, 30 % Shady ('+JSON.stringify(L.patron.rows)+')');
   { await editDB(u=>{ u.led.gems=50000; u.led.shop={day:'',food:0,gold:0}; u.led.stamina={v:0,t:Date.now()}; });
     let okN=0, last=null; for(let i=0;i<12;i++){ const r=await call('/api/shop/buy',{what:'gold',requestId:'gb'+i}); last=r.data; if(r.data.ok) okN++; }
     ok(okN===12,'at EGP 15 a 9th-12th gold buy goes through (today everyone stops at 8): '+okN+' of 12 ('+(last&&last.error||'ok')+')'); }

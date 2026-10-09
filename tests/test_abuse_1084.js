@@ -21,7 +21,7 @@ const ctx={}; if(conf&&sk) vm.runInNewContext(conf[0]+'\n'+sk[0]+'\nthis.s=nameS
 ok(ctx.s&&ctx.s('PhiI')===ctx.s('Phil')&&ctx.s('Phi1')===ctx.s('Phil')&&ctx.s('B0b')===ctx.s('Bob')&&ctx.s('Tom')!==ctx.s('Tim'),'scan 6 #5 capital I, 1 and 0 fold to l / o; different names stay different');
 ok(/\|\|\(nameSkeleton\(name\)&&nameSkeleton\(g\.name\)===nameSkeleton\(name\)\)/.test(src),'scan 6 #5 two symbol-only guild names do not collide on an empty skeleton');
 ok(/if\(\(me\.worldCityMarches\|\|\[\]\)\.some\(m=>m&&!m\.resolved&&\(\+m\.homeAt\|\|0\)>now\)\) return \{ok:false,error:'Your army is still out/.test(src),'scan 6 #6 no fresh shield while your own army is out');
-ok(/const lite=a=>a\.slice\(-20\)\.map\(m=>\(\{who:m\.who,txt:m\.txt,t:m\.t\}\)\); return wsend\(ws,\{t:'chathist'/.test(src),'scan 6 #7 a throttled chat join still gets the last 20 lines (no chips)');
+ok(/const lite=a=>a\.slice\(-20\)\.map\(m=>\(\{who:m\.who,txt:m\.txt,t:m\.t(,pt:m\.pt\|\|undefined)?\}\)\); return wsend\(ws,\{t:'chathist'/.test(src),'scan 6 #7 a throttled chat join still gets the last 20 lines (no chips)');
 ok(/renames:u\.renames\|0, (patron:patronView\(u,led\), )?shields:/.test(src),'scan 6 #9 the ledger carries the server rename count');
 if(missed.length){ missed.forEach(m=>console.error('FAIL',m)); process.exitCode=1; }
 console.log('test_abuse_1084.js: '+pass+' checks passed, '+missed.length+' failed');
