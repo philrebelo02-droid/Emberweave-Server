@@ -1430,7 +1430,7 @@ const ARENA_EXTRA_MAX_DAY   = 5;    // additional attempts purchasable per day �
 function arenaAtt(led){ const dk=nyDayKey(); if(!led.arenaAtt||led.arenaAtt.k!==dk) led.arenaAtt={k:dk,used:0,bought:0}; return led.arenaAtt; }
 function arenaAttView(led){ const a=arenaAtt(led);
   return { attemptsLeft:Math.max(0,ARENA_FREE_ATTEMPTS+a.bought-a.used), used:a.used, bought:a.bought,
-           freePerDay:ARENA_FREE_ATTEMPTS, extraCostGems:ARENA_EXTRA_COST_GEMS, extraMaxPerDay:ARENA_EXTRA_MAX_DAY }; }
+           freePerDay:ARENA_FREE_ATTEMPTS, extraCostGems:ARENA_EXTRA_COST_GEMS, extraMaxPerDay:patronRow(led,'arenaBuys') }; }   /* v1092: EGP row */
 const QUEST_DEFS_SRV={
   q_arena:  { reward:{gold:50},  cond:(u,led)=>((u.qc&&u.qc.arena)|0)>=1 },
   q_name:   { reward:{gems:20},  cond:()=>true },                                  // attested (cosmetic condition), reward fixed + once
@@ -1638,7 +1638,7 @@ function getDungeonProgress(id){
     activeAttempt:null, lastTeamHeroIds:[], version:0 };
   return DB.dungeonProgress[id]; }
 function resetDungeonSweepIfNewDay(sw){ const k=dungeonServerDayKey(); if(sw.dateKey!==k){ sw.dateKey=k; sw.freeUsesRemaining=VAULT_SWEEP_FREE; sw.totalSweepsToday=0; } }
-function vaultSweepNextCost(sw){ if(sw.freeUsesRemaining>0) return 0; const paid=Math.max(0,(sw.totalSweepsToday|0)-VAULT_SWEEP_FREE); return paid<VAULT_SWEEP_PAID_COST.length?VAULT_SWEEP_PAID_COST[paid]:null; }   // 0 = free, null = none left today
+function vaultSweepNextCost(sw){ if(sw.freeUsesRemaining>0) return 0; const paid=Math.max(0,(sw.totalSweepsToday|0)-VAULT_SWEEP_FREE); return paid<VAULT_SWEEP_PAID_COST.length+(sw.extraPaid|0)?VAULT_SWEEP_PAID_COST[Math.min(paid,VAULT_SWEEP_PAID_COST.length-1)]:null; }   /* v1092: EGP adds paid sweeps at the last price */   // 0 = free, null = none left today
 // bounded idempotency ledger: retried requests return the committed result instead of paying twice
 /* v273 — A REWARD AND ITS RECEIPT ARE ONE DURABLE TRANSACTION.
    writeDB() coalesces on a 200 ms timer, so a crash in that window used to lose the idempotency
@@ -2045,7 +2045,7 @@ function dungeonView(p){ const floor=p.currentFloor, rule=floor<=DUNGEON_MAX_FLO
     // before spending an attempt — glyph fragments on boss floors, gear fragments every floor.
     targets:(function(){ const f=Math.min(floor,DUNGEON_MAX_FLOOR); const rec=VAULT_ENC?vaultFloorRecord(f):null;
       return rec?{ glyphFragments:vaultGlyphFragsForFloor(f), gearFragments:(rec.gearFragments||[]).slice() }:null; })(),
-    sweep:{ freeUsesRemaining:p.sweep.freeUsesRemaining, nextResetAt:dungeonNextReset(), nextCost:vaultSweepNextCost(p.sweep), paidLeft:Math.max(0,VAULT_SWEEP_PAID_COST.length-Math.max(0,(p.sweep.totalSweepsToday|0)-VAULT_SWEEP_FREE)), costs:VAULT_SWEEP_PAID_COST },
+    sweep:{ freeUsesRemaining:p.sweep.freeUsesRemaining, nextResetAt:dungeonNextReset(), nextCost:vaultSweepNextCost(p.sweep), paidLeft:Math.max(0,VAULT_SWEEP_PAID_COST.length+(p.sweep.extraPaid|0)-Math.max(0,(p.sweep.totalSweepsToday|0)-VAULT_SWEEP_FREE)), costs:VAULT_SWEEP_PAID_COST },
     lastTeamHeroIds:p.lastTeamHeroIds||[], activeAttemptId:p.activeAttempt?p.activeAttempt.id:null, version:p.version };
 }
 /* ====================== end Aether Vault module (routes in api()) ====================== */
@@ -3818,8 +3818,58 @@ function templeClientState(led){
       levelUps:p.levelUps||0,bonusPrayer:!!p.bonusPrayer}; }
   return state;
 }
+/* ==================== EGP / EDP - THE PATRON LADDER (v1092, blueprint 25; Open Projects/EGP and EDP - Patron system) ====================
+   Phil 2 Oct 2026: EGP (Ember Gold Patron) 1-15, earned ONLY by paid diamonds ("Vip only comes from paid diamonds"); each pack has a base part
+   worth 6 diamonds per US dollar ($5 -> 30, $50 -> 300, $100 -> 600). At EGP 15 the player PRESTIGES into EDP (Ember Diamond Patron) 1-15.
+   Daily attack chances: 15 at EGP 0, +1 at every third EGP level (20 at EGP 15). 10 attacks cost 400 diamonds.
+   DEFAULTS for Phil's open items (one table, change a number here): the EGP thresholds and the rebate are the reference ladder; the rebate is
+   paid on a purchase's BASE diamonds at the level held before it; EDP counts base diamonds bought after the prestige (the excess over EGP 15
+   carries), keeps everything of EGP 15, adds +1 attack per 3 EDP levels and +5 % rebate per EDP level - no combat stats. */
+const PATRON=Object.freeze({
+  basePerUsd:6,
+  egp:[0,1,6,36,100,200,400,600,1000,1400,2000,3000,4000,8000,16000,30000],   /* Phil 9 Oct: the reference game's DOLLAR ladder ($0.17 ... $4,950) at 6 base per $; "An average spender should be able to reach vip 10 or 11 by about a year" */
+  rebate:[0,5,7,10,15,20,30,40,50,60,70,80,90,100,110,120],
+  edp:[0,15000,30000,60000,90000,150000,210000,270000,330000,390000,450000,510000,570000,630000,690000,750000],   /* Phil 9 Oct: "this ladder is fine" - EDP unchanged */
+  edpRebateStep:5, attackBase:15, attackPack:{n:10,cost:400} });
+function patronBaseOfUsd(usd){ return Math.max(0,Math.round(+usd||0))*PATRON.basePerUsd; }
+function patronState(led){ let p=led.patron;
+  if(!p||typeof p!=='object'||p.v!==1){   // first sight: rebuild from the purchases already on the ledger (only test buys exist before v1092)
+    p={v:1,base:0,prestiged:false,edpBase:0};
+    for(const x of (Array.isArray(led.purchases)?led.purchases:[])) p.base+=patronBaseOfUsd(x&&x.usd);
+    led.patron=p; }
+  return p; }
+function patronLevels(led){ const p=patronState(led); let egp=0; for(let i=1;i<PATRON.egp.length;i++) if(p.base>=PATRON.egp[i]) egp=i;
+  let edp=0; if(p.prestiged){ egp=15; for(let i=1;i<PATRON.edp.length;i++) if(p.edpBase>=PATRON.edp[i]) edp=i; }
+  return {egp,edp,prestiged:!!p.prestiged}; }
+function patronRebatePct(led){ const L=patronLevels(led); return L.prestiged?PATRON.rebate[15]+PATRON.edpRebateStep*L.edp:PATRON.rebate[L.egp]; }
+const PATRON_ATTACK_BUYS=[0,0,0,1,1,2,2,2,2,3,3,3,3,4,4,5];   /* Phil 9 Oct: "put attack buying at egp 3 like magic rush"; EDP 15 = 10 */
+function patronAttackBuys(led){ const L=patronLevels(led); return PATRON_ATTACK_BUYS[Math.min(15,L.egp)]+(L.prestiged?Math.floor(L.edp/3):0); }
+function patronFreeAttacks(led){ const L=patronLevels(led); return PATRON.attackBase+Math.floor(L.egp/3)+(L.prestiged?Math.floor(L.edp/3):0); }
+function pvpDayOf(me){ const dk=nyDayKey(); if(!me.pvpDay||me.pvpDay.k!==dk) me.pvpDay={k:dk,n:0,gold:0,coins:0,extra:0}; return me.pvpDay; }
+function attackCap(me){ const dk=nyDayKey(), d=(me.pvpDay&&me.pvpDay.k===dk)?me.pvpDay:null; return patronFreeAttacks(ensureLedger(me))+((d&&d.extra)|0); }
+/* a paid purchase: its base diamonds raise EGP (or EDP after the prestige), and the rebate at the level held BEFORE it is paid in diamonds */
+function patronCreditPurchase(me,led,usd,reason){ const p=patronState(led), base=patronBaseOfUsd(usd), pct=patronRebatePct(led), before=patronLevels(led);
+  if(p.prestiged) p.edpBase+=base; else p.base+=base;
+  const rebate=Math.floor(base*pct/100); let paid=0; if(rebate>0) paid=creditGems(me,led,rebate,'patron-rebate:'+reason);
+  const after=patronLevels(led); return {base,rebatePct:pct,rebate:paid,egpBefore:before.egp,egp:after.egp,edp:after.edp,prestiged:after.prestiged}; }
+/* v1092 phase 3: EGP ROWS - systems that already exist, on the reference ladder, and never below what every player has today.
+   index = EGP level (EDP uses EGP 15). meals: today 10 a day; gold buys: today 8; arena attempts to buy: today 5; Vault paid sweeps: today 3 (+extra). */
+const PATRON_ROWS=Object.freeze({
+  meals:      {floor:10, ref:[0,2,3,4,5,6,7,8,9,10,11,12,13,14,15,15]},
+  goldBuys:   {floor:8,  ref:[0,2,3,4,6,8,10,12,14,16,18,20,22,24,26,30]},
+  arenaBuys:  {floor:5,  ref:[0,0,0,1,2,3,4,5,6,7,7,7,7,7,7,7]},
+  vaultExtra: {floor:0,  ref:[0,0,0,0,0,0,1,2,2,2,2,3,3,4,4,5]} });
+function patronRow(led,key){ const r=PATRON_ROWS[key], L=patronLevels(led); return Math.max(r.floor, r.ref[Math.min(15,L.egp)]|0); }
+function patronView(me,led){ const p=patronState(led), L=patronLevels(led), dk=nyDayKey(), d=(me.pvpDay&&me.pvpDay.k===dk)?me.pvpDay:null;
+  const ladder=L.prestiged?PATRON.edp:PATRON.egp, lvl=L.prestiged?L.edp:L.egp, have=L.prestiged?p.edpBase:p.base, next=lvl<15?ladder[lvl+1]:null;
+  return { egp:L.egp, edp:L.edp, prestiged:L.prestiged, canPrestige:!L.prestiged&&L.egp>=15, base:p.base, edpBase:p.edpBase|0,
+    next, toNext:next==null?0:Math.max(0,next-have), rebatePct:patronRebatePct(led),
+    attacks:{ free:patronFreeAttacks(led), bought:(d&&d.extra)|0, used:(d&&d.n)|0, cap:attackCap(me), pack:PATRON.attackPack, buys:(d&&d.buys)|0, buysMax:patronAttackBuys(led), cards:((led.cards||{}).attack)|0 },
+    mythPool:L.egp>=MYTH_UNLOCK_EGP,
+    rows:{ meals:patronRow(led,'meals'), goldBuys:patronRow(led,'goldBuys'), arenaBuys:patronRow(led,'arenaBuys'), vaultExtraSweeps:patronRow(led,'vaultExtra') },
+    table:{ egp:PATRON.egp, edp:PATRON.edp, rebate:PATRON.rebate, edpRebateStep:PATRON.edpRebateStep, attackBase:PATRON.attackBase, basePerUsd:PATRON.basePerUsd } }; }
 function ledgerView(u){ const led=ensureLedger(u); ledStamRegen(led); if(ledPlayerLevel(led)>=WITCH.UNLOCK_LEVEL) worldLocation(u);
-  return { rev:led.rev, born:+led.migratedAt||0, gold:led.gold, gems:led.gems, guildCoins:led.guildCoins|0, arenaCoins:Math.max(0,u.coins|0), renames:u.renames|0, shields:Math.max(0,u.shields|0), shieldUntil:((+u.shieldUntil||0)>Date.now()?+u.shieldUntil:0), beginnerShieldUntil:beginnerShieldUntil(u), px:led.px, playerLevel:ledPlayerLevel(led),   /* v1079: arena coins are the server's (scan #2) */
+  return { rev:led.rev, born:+led.migratedAt||0, gold:led.gold, gems:led.gems, guildCoins:led.guildCoins|0, arenaCoins:Math.max(0,u.coins|0), renames:u.renames|0, patron:patronView(u,led), shields:Math.max(0,u.shields|0), shieldUntil:((+u.shieldUntil||0)>Date.now()?+u.shieldUntil:0), beginnerShieldUntil:beginnerShieldUntil(u), px:led.px, playerLevel:ledPlayerLevel(led),   /* v1079: arena coins are the server's (scan #2) */
     hero:led.hero, unlocked:led.unlocked, frags:led.frags, xpPotions:led.xpPotions||{}, xpPotionUsed:led.xpPotionUsed||{}, tutVexXpBase:led.tutVexXpBase|0, eqMats:led.eqMats||{},   // v273: materials are ledger-owned
     skill:led.skill||{}, temple:templeClientState(led),
     marketToday:{used:((led.marketDay&&led.marketDay.k===nyDayKey())?(led.marketDay.frags|0):0), max:12},   /* v998 (Market audit #12): the daily fragment cap, shown on the Market */
@@ -3834,8 +3884,8 @@ function ledgerView(u){ const led=ensureLedger(u); ledStamRegen(led); if(ledPlay
     // day-boundary: HUD shop counters are server-owned (the 09:00 ET day via shopState, v1065); the client
     // used to keep its own 09:00-ET copy, so the quoted price drifted from the charged price.
     shop:(function(){ try{ const sh=shopState(u); return { food:sh.food|0, gold:sh.gold|0,
-      foodCost:((sh.food|0)<SHOP_FOOD_COSTS.length?SHOP_FOOD_COSTS[sh.food|0]:null),
-      goldCost:((sh.gold|0)<SHOP_GOLD_COSTS.length?SHOP_GOLD_COSTS[sh.gold|0]:null) }; }catch(e){ return null; } })() }; }
+      foodCost:((sh.food|0)<patronRow(led,'meals')?SHOP_FOOD_COSTS[Math.min(sh.food|0,SHOP_FOOD_COSTS.length-1)]:null), foodMax:patronRow(led,'meals'),
+      goldCost:((sh.gold|0)<patronRow(led,'goldBuys')?SHOP_GOLD_COSTS[Math.min(sh.gold|0,SHOP_GOLD_COSTS.length-1)]:null), goldMax:patronRow(led,'goldBuys') }; }catch(e){ return null; } })() }; }
 // capped earn table for legacy client-resolved loops (each reason: per-grant max + per-day cap)
 /* v250 (audit P1): GENERIC tx/earn IS RETIRED for normal gameplay. Every loop now has its own
    server-verified route (elite/trial/quest/market/arena-daily/city-pvp/guild). Only a tiny 'misc'
@@ -3922,8 +3972,37 @@ function poolGrantHero(u,hk){ const led=u.led; const st=POOL_START_STARS[hk]||1;
   return {type:'hero', hero:hk, stars:st}; }
 function poolGlyphFrag(u,q,n){ const fams=glyphTierFams(q); const key=q+' '+fams[Math.floor(Math.random()*fams.length)];
   const rec=glyphGrantNamedList(u,[{key,quantity:n}]);
-  return {type:'glyphFrag', key, displayName:glyphFragName(key), n};
+  return {type:'glyphFrag', key, displayName:glyphFragName(key), n, q, fam:key.slice(q.length+1)};   /* v1092: q + family so the result shows the glyph art */
 }
+/* v1092 THE MYTHICAL POOL (Phil 9 Oct; Open Projects/EGP and EDP - Patron system): opens at EGP 11, 400 diamonds a wish, no free wish, no pity.
+   Phil: "there should not be 3 star non mythicals in there" / "it should only be mythicals". Final odds: 1 % a mythical hero · 35 % 2-4 mythical fragments (Phil: +5 from full glyph) ·
+   34 % 2-4 fragments of the highest glyph tier the player has reached · 10 % a full glyph (every fragment one empty slot at that tier needs) ·
+   5 % an attack card (+10 attacks today when used) · 5 % a world map shield · 5 % a teleport scroll · Temple prayers held to use later:
+   4.5 % Kindled x3-6 · 3 % Stoked x2-5 · 1.2 % Blazing x1-3 · 0.3 % Inferno x1-2 (Phil 9 Oct ~10:5x; total 100 %). */
+const POOL_MYTHIC=['konwu','vulmar','aureth','hurne','hollow'], WISH_MYTH_COST=400, MYTH_UNLOCK_EGP=11;   /* Phil 9 Oct: "this should be all mythicals not just konwu" - every myth:true hero of the client */
+const MYTH_ODDS=Object.freeze({mythHero:0.01,mythFrag:0.36,glyphFrag:0.27,glyphFull:0.10,attackCard:0.05,shield:0.05,kindled:0.05,stoked:0.035,blazing:0.015,inferno:0.01,teleport:0.05});
+const MYTH_PRAYERS=Object.freeze({kindled:[3,6],stoked:[2,5],blazing:[1,3],inferno:[1,2]});   /* Phil 9 Oct: held Temple prayers of that tier */
+function poolTopGlyphTier(u){ const led=ensureLedger(u), g=ensureGlyphs(u); let qi=0;
+  for(const hk of Object.keys(g.boards||{})) if(ownsHeroK(led,hk)) qi=Math.max(qi,(g.boards[hk].ascensionIndex|0));
+  return Math.min(qi,GLYPH_LADDER.length-1); }
+function poolFullGlyph(u){ const led=ensureLedger(u), g=ensureGlyphs(u), qi=poolTopGlyphTier(u);
+  const heroes=Object.keys(led.unlocked||{}).filter(hk=>ownsHeroK(led,hk)&&SIM.HERO_BASE[hk]);
+  const spots=[]; for(const hk of heroes){ const bd=g.boards[hk]; const ai=bd?(bd.ascensionIndex|0):0; if(ai!==qi) continue;
+    for(let s=0;s<6;s++){ if(bd&&bd.slots&&bd.slots[s]) continue; const def=glyphPreChoice(hk,s,qi); if(def) spots.push({hk,s,def}); } }
+  if(!spots.length) return null;
+  const sp=spots[Math.floor(Math.random()*spots.length)], cost=g2BuildCost({subGlyphs:{}},sp.def); if(!cost) return null;
+  const list=Object.keys(cost.need).map(k=>({key:k,quantity:cost.need[k]})); glyphGrantNamedList(u,list);
+  return {type:'glyphFull', name:sp.def.name, hero:sp.hk, slot:sp.s, tier:GLYPH_LADDER[qi], q:GLYPH_LADDER[qi], fam:sp.def.family, pieces:list.reduce((a,x)=>a+x.quantity,0)}; }
+function poolRollMyth(u){ const led=u.led, O=MYTH_ODDS, h=Math.random(); let acc=0; const n=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+  if(h<(acc+=O.mythHero)) return poolGrantHero(u, poolPick(POOL_MYTHIC));
+  if(h<(acc+=O.mythFrag)){ const hk=poolPick(POOL_MYTHIC), k=n(2,4); creditFrags(u,led,hk,k,'wish:myth',{uncapped:true}); return {type:'frags',hero:hk,frags:k}; }
+  if(h<(acc+=O.glyphFrag)) return poolGlyphFrag(u, GLYPH_LADDER[poolTopGlyphTier(u)], n(2,4));
+  if(h<(acc+=O.glyphFull)){ const r=poolFullGlyph(u); return r||poolGlyphFrag(u, GLYPH_LADDER[poolTopGlyphTier(u)], n(2,4)); }   // no empty slot at that tier: fragments instead
+  if(h<(acc+=O.attackCard)){ led.cards=led.cards&&typeof led.cards==='object'?led.cards:{}; led.cards.attack=(led.cards.attack|0)+1; return {type:'attackCard'}; }
+  if(h<(acc+=O.shield)){ if((u.shields|0)<99){ u.shields=(u.shields|0)+1; return {type:'shield'}; } const hk=poolPick(POOL_MYTHIC), k=n(2,4); creditFrags(u,led,hk,k,'wish:myth',{uncapped:true}); return {type:'frags',hero:hk,frags:k}; }   /* a full shield stock (99) pays mythical fragments */
+  for(const tier of ['kindled','stoked','blazing','inferno']){ if(h<(acc+=O[tier])){ const st=templeState(led), [a,b]=MYTH_PRAYERS[tier], k=n(a,b);
+      st.heldPrayers=st.heldPrayers&&typeof st.heldPrayers==='object'?st.heldPrayers:{}; st.heldPrayers[tier]=(st.heldPrayers[tier]|0)+k; return {type:'prayer',tier,n:k}; } }
+  const tr=worldTravelState(u); tr.teleScrolls=(tr.teleScrolls|0)+1; return {type:'teleport'}; }
 function poolRollGold(u){ const led=u.led; const h=Math.random();
   if(h<0.05) return poolGrantHero(u, poolPick(POOL_GOLD_HEROES));
   if(h<0.20){ const hk=poolPick(POOL_GOLD_HEROES), n=2+Math.floor(Math.random()*2); creditFrags(u,led,hk,n,'wish:gold',{uncapped:true}); return {type:'frags',hero:hk,frags:n}; }
@@ -3938,9 +4017,8 @@ function poolRollGem(u, rigged){ const led=u.led, pool=poolState(u);
     const phk=(Math.random()<0.12?poolPickUnowned(led,POOL_P3):null)||poolPickUnowned(led,POOL_P2)||poolPickUnowned(led,POOL_P3);
     if(phk) return Object.assign(poolGrantHero(u,phk),{pity:true});
     return Object.assign(poolGrantHero(u, poolPick(POOL_P2)),{pity:true,exhausted:true}); }
-  const h=Math.random(); let acc=0.001;
+  const h=Math.random(); let acc=0;   /* v1092 (Phil 9 Oct): "kunwu needs to be removed from regular wishing pool" - he is in the Mythical Pool (EGP 11) */
   const hit=(fn)=>{ const r=fn(); if(r&&r.type==='hero') pool.pity=0; else pool.pity++; return r; };
-  if(h<acc) return hit(()=>poolGrantHero(u,'konwu'));
   acc+=0.01;  if(h<acc) return hit(()=>poolGrantHero(u, poolPick(POOL_P3)));
   acc+=0.08;  if(h<acc) return hit(()=>poolGrantHero(u, poolPick(POOL_P2)));
   pool.pity++;
@@ -5511,7 +5589,7 @@ async function api(req,res,url){
     { const _pl=ledPlayerLevel(ensureLedger(me)); if(!isDev(me)&&_pl<VAULT_UNLOCK_LEVEL) return send(res,200,{enabled:false, locked:true, unlockLevel:VAULT_UNLOCK_LEVEL, playerLevel:_pl}); }
     if(rateLimited(req,'dungeon',40,60000)) return send(res,429,{error:'Slow down.'});
     const prog=getDungeonProgress(me.id);
-    resetDungeonSweepIfNewDay(prog.sweep);
+    resetDungeonSweepIfNewDay(prog.sweep); prog.sweep.extraPaid=patronRow(ensureLedger(me),'vaultExtra');   /* v1092: EGP row */
     if(p==='/api/dungeon/status'){ return send(res,200,Object.assign({enabled:true},dungeonView(prog))); }
     if(req.method!=='POST') return send(res,404,{error:'dungeon'});
     const b=await body(req);
@@ -5596,7 +5674,7 @@ async function api(req,res,url){
       const out=idem(me.id+':dsweep:'+reqId,()=>{
         resetDungeonSweepIfNewDay(prog.sweep);
         const sweepCost=vaultSweepNextCost(prog.sweep);
-        if(sweepCost===null) return { ok:false, error:'No Sweeps left today (2 free + 3 paid).', nextResetAt:dungeonNextReset() };
+        if(sweepCost===null) return { ok:false, error:'No Sweeps left today ('+VAULT_SWEEP_FREE+' free + '+(VAULT_SWEEP_PAID_COST.length+(prog.sweep.extraPaid|0))+' paid).', nextResetAt:dungeonNextReset() };
         if(prog.highestClearedFloor<1) return { ok:false, error:'Clear a floor first.' };   /* 3 Oct audit (Vault F8): checked before any diamond is taken */
         if(sweepCost>0){ const led=ensureLedger(me); if(led.gems<sweepCost) return { ok:false, error:'Not enough diamonds — this Sweep costs '+sweepCost+'.' }; led.gems-=sweepCost; ledTx(me,'vault:sweep:paid',{gems:-sweepCost}); }
         if(prog.activeAttempt) prog.activeAttempt=null;   // v371 (Phil: "sweep button isn't working"): an unresolved attempt (closed the app mid-fight / God-Mode floor jump) is abandoned = a loss, same rule as start-battle — it must not block sweeping
@@ -6028,7 +6106,7 @@ async function api(req,res,url){
        its countdown and label, so a wish tapped at "0" was charged. The server now says how long until the next New York day. */
     const _sh=now-GAME_DAY_START_MS, nyOff=etOffsetMs(_sh), nyWall=_sh-nyOff, gemFreeNextMs=Math.max(0,(Math.floor(nyWall/86400000)+1)*86400000+nyOff+GAME_DAY_START_MS-now);   // v1065: next 09:00 ET
     writeDB();
-    return send(res,200,{ odds:{konwu:0.001,full3:0.01,full2:0.08,frag2:0.15,frag3:0.10,goldHero:0.05,goldFrag:0.15},
+    return send(res,200,{ mythOdds:MYTH_ODDS, mythCost:WISH_MYTH_COST, mythUnlockEgp:MYTH_UNLOCK_EGP, odds:{full3:0.01,full2:0.08,frag2:0.15,frag3:0.10,goldHero:0.05,goldFrag:0.15},
       pity:{at:WISH_GEM_PITY,count:pool.pity}, costs:{gold:WISH_GOLD_COST,gem:WISH_GEM_COST,mult10:WISH10_MULT},
       goldFree:{ready:goldFreeReady,usedToday:pool.goldFree,max:WISH_GOLD_FREE_MAX,nextMs:Math.max(0,WISH_GOLD_FREE_MS-(now-pool.goldLast))},
       gemFree:{ready:gemFreeReady,unlocked:gemUnlocked,clearsNeeded:Math.max(0,WISH_FIRST_GEM_CLEAR_NODE-((led.camp&&led.camp.cleared)|0)),nextMs:gemFreeReady?0:gemFreeNextMs}, firstDone:pool.gemFirstDone, ledger:ledgerView(me) }); }
@@ -6060,9 +6138,14 @@ async function api(req,res,url){
         cost=free?0:(n===10?WISH_GEM_COST*WISH10_MULT:WISH_GEM_COST);
         if(led.gems<cost) return {ok:false,error:'Not enough diamonds.'};
         led.gems-=cost; if(free) pool.gemFreeDay=dk; }
+      else if(which==='myth'){ cur='gems';   /* v1092 the Mythical Pool */
+        if(patronLevels(led).egp<MYTH_UNLOCK_EGP) return {ok:false,error:'The Mythical Pool opens at EGP '+MYTH_UNLOCK_EGP+'.'};
+        cost=n===10?WISH_MYTH_COST*WISH10_MULT:WISH_MYTH_COST;
+        if(led.gems<cost) return {ok:false,error:'Not enough diamonds.'};
+        led.gems-=cost; }
       else return {ok:false,error:'Unknown pool.'};
       const results=[];
-      for(let i=0;i<n;i++){ const r=which==='gold'?poolRollGold(me):poolRollGem(me, rigged&&i===0); results.push(r); }
+      for(let i=0;i<n;i++){ const r=which==='gold'?poolRollGold(me):which==='myth'?poolRollMyth(me):poolRollGem(me, rigged&&i===0); results.push(r); }
       if(which==='gem') pool.gemFirstDone=true;
       pool.history=pool.history||[]; pool.history.push({t:now,pool:which,n,cost,results:results.map(r=>r.type+(r.hero?':'+r.hero:''))});
       if(pool.history.length>60) pool.history=pool.history.slice(-60);
@@ -6073,6 +6156,34 @@ async function api(req,res,url){
     return send(res, out.storageFailed?503:out.ok===false?400:200, out); }
   /* v825 DEV PACK TEST - the server credits the pack (amount from ITS list, never the client's) and files it to the dev inbox. */
   /* v1050: THE DIAMOND SHOP (see SHOP_OFFERS) - the offers, a purchase credited by the server, and the plans' daily claim */
+  /* v1092 EGP / EDP routes (blueprint 25) */
+  if(p==='/api/patron/buy-attacks' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
+    const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
+    const out=durableCommit(me,me.id+':patronatk:'+reqId,(me)=>{ const led=ensureLedger(me), pk=PATRON.attackPack;
+      const d=pvpDayOf(me), maxBuys=patronAttackBuys(led);
+      if(maxBuys<=0) return {ok:false,error:'Buying attacks opens at EGP 3.'};
+      if((d.buys|0)>=maxBuys) return {ok:false,error:'No more attack buys today ('+maxBuys+' a day at your level).'};
+      if((led.gems|0)<pk.cost) return {ok:false,error:'You need '+pk.cost+' diamonds.'};
+      led.gems-=pk.cost; d.extra=(d.extra|0)+pk.n; d.buys=(d.buys|0)+1;
+      ledTx(me,'patron:buy-attacks',{gems:-pk.cost,attacks:pk.n});
+      return {ok:true, bought:pk.n, ledger:ledgerView(me)}; });
+    return send(res,out.storageFailed?503:(out.ok===false?400:200),out); }
+  if(p==='/api/patron/use-attack-card' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});   /* v1092: from the Mythical Pool */
+    const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
+    const out=durableCommit(me,me.id+':atkcard:'+reqId,(me)=>{ const led=ensureLedger(me), c=led.cards||{};
+      if((c.attack|0)<1) return {ok:false,error:'You have no attack card.'};
+      c.attack--; led.cards=c; const d=pvpDayOf(me); d.extra=(d.extra|0)+PATRON.attackPack.n;
+      ledTx(me,'patron:attack-card',{attacks:PATRON.attackPack.n}); return {ok:true, ledger:ledgerView(me)}; });
+    return send(res,out.storageFailed?503:(out.ok===false?400:200),out); }
+  if(p==='/api/patron/prestige' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
+    const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
+    const out=durableCommit(me,me.id+':patronprestige:'+reqId,(me)=>{ const led=ensureLedger(me), p=patronState(led), L=patronLevels(led);
+      if(L.prestiged) return {ok:false,error:'Already an Ember Diamond Patron.'};
+      if(L.egp<15) return {ok:false,error:'Reach EGP 15 first.'};
+      p.prestiged=true; p.edpBase=Math.max(0,p.base-PATRON.egp[15]);   // the excess over EGP 15 carries into EDP
+      ledTx(me,'patron:prestige',{edpBase:p.edpBase});
+      return {ok:true, ledger:ledgerView(me)}; });
+    return send(res,out.storageFailed?503:(out.ok===false?400:200),out); }
   if(p==='/api/shop/offers'){ if(!me)return send(res,401,{error:'auth'}); const led=ensureLedger(me);
     return send(res,200,{ ok:true, offers:SHOP_OFFERS.map(o=>({id:o.id,price:o.price,name:o.name,kind:o.kind,plan:o.plan||null,amount:o.amount,days:o.days||null})),
       plans:plansView(led) }); }
@@ -6084,7 +6195,9 @@ async function api(req,res,url){
       if(offer.kind==='gems') granted.gems=creditGems(me,led,offer.amount,'purchase:'+offer.id);
       else { const pl=shopPlans(led)[offer.plan]; pl.daysLeft=(pl.daysLeft|0)+offer.days; granted.planDays=offer.days; }   // buying again adds the days
       led.purchases=Array.isArray(led.purchases)?led.purchases:[];
+      patronState(led);   /* v1092: rebuild (if new) BEFORE this purchase is listed, so it is not counted twice */
       led.purchases.push({t:Date.now(), id:offer.id, usd:offer.usd, ref:v.ref}); if(led.purchases.length>500) led.purchases=led.purchases.slice(-500);
+      granted.patron=patronCreditPurchase(me,led,offer.usd,offer.id);   /* v1092: paid base diamonds raise EGP; the rebate is paid */
       ledTx(me,'shop:purchase:'+offer.id,Object.assign({usd:offer.usd},granted));
       writeDB(); return { ok:true, offer:offer.id, granted, plans:plansView(led), ledger:ledgerView(me) }; });
     return send(res,out.storageFailed?503:200,out); }
@@ -6242,14 +6355,14 @@ async function api(req,res,url){
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
     const out=durableCommit(me,me.id+':shop:'+reqId,(me)=>{
       const led=ensureLedger(me), sh=shopState(me); const what=String(b.what||'');
-      if(what==='food'){ if(sh.food>=SHOP_FOOD_COSTS.length) return {ok:false,error:'No more meals today.'};
-        const c=SHOP_FOOD_COSTS[sh.food]; if(led.gems<c) return {ok:false,error:'Not enough diamonds.'};
+      if(what==='food'){ if(sh.food>=patronRow(led,'meals')) return {ok:false,error:'No more meals today.'};   /* v1092: EGP raises the daily number */
+        const c=SHOP_FOOD_COSTS[Math.min(sh.food,SHOP_FOOD_COSTS.length-1)]; if(led.gems<c) return {ok:false,error:'Not enough diamonds.'};
         ledStamRegen(led); if(led.stam.v>=999) return {ok:false,error:'Stamina is full.'};   /* 3 Oct Market audit #8: a meal at full stamina took the diamonds and gave nothing */
         led.gems-=c; sh.food++; creditStamina(me,led,SHOP_FOOD_STAMINA,'shop:food');
         ledTx(me,'shop:food',{gems:-c,stamina:SHOP_FOOD_STAMINA});
         writeDB(); return {ok:true, stamina:led.stam.v, cost:c, ledger:ledgerView(me)}; }
-      if(what==='gold'){ if(sh.gold>=SHOP_GOLD_COSTS.length) return {ok:false,error:'No more gold today.'};
-        const c=SHOP_GOLD_COSTS[sh.gold]; if(led.gems<c) return {ok:false,error:'Not enough diamonds.'};
+      if(what==='gold'){ if(sh.gold>=patronRow(led,'goldBuys')) return {ok:false,error:'No more gold today.'};   /* v1092 */
+        const c=SHOP_GOLD_COSTS[Math.min(sh.gold,SHOP_GOLD_COSTS.length-1)]; if(led.gems<c) return {ok:false,error:'Not enough diamonds.'};
         const amt=1000+(ledPlayerLevel(led)-1)*100;
         led.gems-=c; sh.gold++; creditGold(me,led,amt,'shop:gold');
         ledTx(me,'shop:gold',{gems:-c,gold:amt});
@@ -6542,6 +6655,8 @@ async function api(req,res,url){
           if(!TEMPLE.freeRitualAvailable(state))return {ok:false,error:'The daily prayer is not available.'};
         }else if(tier==='bonus'){
           if((state.bonusPrayers|0)<1)return {ok:false,error:'No bonus prayers remain.'};
+        }else if(b.held===true){   /* v1092: a held prayer from the Mythical Pool - prays at its own tier, no diamonds, no daily tier count */
+          const hp=state.heldPrayers||{}; if(!TEMPLE.CONFIG.PRAYER_TIERS.find(x=>x.id===tier)||(hp[tier]|0)<1)return {ok:false,error:'You hold no '+tier+' prayer.'};
         }else{
           const t=TEMPLE.CONFIG.PRAYER_TIERS.find(x=>x.id===tier);
           if(!t||level<t.unlockKeeper)return {ok:false,error:'That prayer tier is locked.'};
@@ -6555,9 +6670,10 @@ async function api(req,res,url){
         led.gold-=gold;led.gems-=gems;
         if(tier==='gold')TEMPLE.buyGoldRitual(state);
         else if(gems)TEMPLE.buyGemTier(state,tier);
+        if(b.held===true&&tier!=='free'&&tier!=='bonus'&&tier!=='gold'){ state.heldPrayers[tier]-=1; }
         let rollIndex=0;TEMPLE.setRng(()=>srvRoll('temple-pray',me.id,reqId,rollIndex++));
         const session=tier==='free'?TEMPLE.freeDailyPray(state,key):tier==='bonus'?TEMPLE.useBonusPrayer(state,key):TEMPLE.pray(state,key,tier);
-        const tx=ledTx(me,'temple:pray',{hero:key,tier,gold:-gold,gems:-gems,keeperPoints:state.keeperPoints});
+        const tx=ledTx(me,'temple:pray',{hero:key,tier,held:b.held===true,gold:-gold,gems:-gems,keeperPoints:state.keeperPoints});
         return {ok:true,rolls:session.rolls,completion:session.completion,chance:session.chance,
           bonusWon:!!session.bonusPrayer,levelUps:session.levelUps||0,tx,ledger:ledgerView(me)};
       }
@@ -7461,10 +7577,10 @@ async function api(req,res,url){
         }
         const d=DB.users[march.defId];
         if(!d||d.id===me.id) return {ok:false,error:'No such city.'};
-        const dk=nyDayKey(); me.pvpDay=me.pvpDay&&me.pvpDay.k===dk?me.pvpDay:{k:dk,n:0,gold:0,coins:0};
+        pvpDayOf(me);   /* v1092: keeps today's bought attacks (extra) */
         /* v1016 (re-audit Guild #6): a march that arrives after today's 20 attacks are used is SETTLED with no fight and no loot - a refusal
            (ok:false) is never committed, so it stayed open forever and counted against every later day's cap */
-        if(me.pvpDay.n>=20){ const receipt={ok:true,won:false,capped:true,rounds:0,loot:{gold:0},note:'No city attacks left today - your army came home.'};
+        if(me.pvpDay.n>=attackCap(me)){ const receipt={ok:true,won:false,capped:true,rounds:0,loot:{gold:0},note:'No city attacks left today - your army came home.'};
           march.resolved=true; march.resolvedAt=Date.now(); march.receipt=receipt; writeDB(); return receipt; }
         const ids=march.heroIds;
         if(!ids.length) return {ok:false,error:'Pick your squad.'};
@@ -7556,7 +7672,7 @@ async function api(req,res,url){
         if(me.pvpMail.length>20) me.pvpMail=me.pvpMail.slice(-20);
         DB.watch=DB.watch||{}; const w=DB.watch[me.id]||{id:me.id,name:me.name,guildId:me.guildId||null,attacks:[],defends:[],scouts:[]};
         w.attacks=(w.attacks||[]).slice(-19); w.attacks.push({t:Date.now(),target:d.name,won,verified:true}); w.t=Date.now(); w.guildId=me.guildId||null; DB.watch[me.id]=w;
-        const receipt={ok:true, won, rounds, loot, log, injuries, replay, attacksLeft:20-me.pvpDay.n};
+        const receipt={ok:true, won, rounds, loot, log, injuries, replay, attacksLeft:Math.max(0,attackCap(me)-me.pvpDay.n)};
         march.resolved=true; march.resolvedAt=Date.now(); march.receipt=receipt;   // the settled march replays this exact reply to a late retry (2 days) - tests/witches-hut-api pins it
         // A synchronous currency write must include the settled march and retry receipt.
         if(paidGold) ledTx(me,'city-pvp',{gold:paidGold});
@@ -7676,7 +7792,7 @@ async function api(req,res,url){
          march travelled, was refused and sat unresolved. Today's settled attacks + today's open marches on real players. */
       if(d){ const dk=nyDayKey(), done=(me.pvpDay&&me.pvpDay.k===dk)?(me.pvpDay.n|0):0;
         const open=marches.filter(m=>!m.resolved&&DB.users[m.defId]).length;   /* v1016 (Guild #6): every open march on a real player counts, whatever day it left - one from yesterday arrives today */
-        if(done+open>=20) return {ok:false,error:'No city attacks left today.'}; }
+        if(done+open>=attackCap(me)) return {ok:false,error:'No city attacks left today.'}; }   /* v1092: EGP sets the daily number */
       if([...mines,...marches].some(m=>m.homeAt>now&&m.heroIds?.some(k=>ids.includes(k)))||ids.some(k=>WORLD_TREE_CONTROL.busy(DB.worldTreeControl,me.id,k,now)))
         return {ok:false,error:'A selected hero is already marching.'};
       const host=simHost(); if(!host) return {ok:false,error:'City battle engine unavailable.'};
@@ -7840,7 +7956,7 @@ async function api(req,res,url){
   if(p==='/api/arena/buy-attempt' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     const b=await body(req); const rid=String(b.requestId||'').slice(0,48); if(!rid) return send(res,400,{error:'requestId required'});
     const out=idem(me.id+':abuy:'+rid,()=>{ const led=ensureLedger(me), a=arenaAtt(led);
-      if(a.bought>=ARENA_EXTRA_MAX_DAY) return {ok:false,error:'No more arena attempts can be bought today.',arena:arenaAttView(led)};
+      if(a.bought>=patronRow(led,'arenaBuys')) return {ok:false,error:'No more arena attempts can be bought today.',arena:arenaAttView(led)};
       if((led.gems|0)<ARENA_EXTRA_COST_GEMS) return {ok:false,error:'Not enough diamonds — an extra arena attempt costs '+ARENA_EXTRA_COST_GEMS+'.',arena:arenaAttView(led)};
       led.gems-=ARENA_EXTRA_COST_GEMS; a.bought++; ledTx(me,'arena:buy-attempt',{gems:-ARENA_EXTRA_COST_GEMS});
       return {ok:true, gems:led.gems, arena:arenaAttView(led), ledger:ledgerView(me)}; });

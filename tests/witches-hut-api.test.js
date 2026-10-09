@@ -140,12 +140,12 @@ async function run() {
     { const nyDay=new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(Date.now()-9*3600000));   /* v1081: the GAME day (starts 09:00 ET since v1065) - the calendar date failed this test every night 00:00-09:00 ET */
       await new Promise(r=>setTimeout(r,300)); await stop();
       const d0=JSON.parse(fs.readFileSync(db,'utf8')); const au=d0.users[admin.profile.id];
-      au.pvpDay={k:nyDay,n:19,gold:0,coins:0}; for(const m of [...(au.worldCityMarches||[]),...(au.worldMineMarches||[])]) m.homeAt=0;   /* every earlier army is home */ delete d0.worldTreeControl; if(au.witch&&au.witch.heroes) for(const k of Object.keys(au.witch.heroes)) au.witch.heroes[k].hp=10000;
+      au.pvpDay={k:nyDay,n:14,gold:0,coins:0};   /* v1092: EGP 0 = 15 city attacks a day (Phil's ruling 1, blueprint 25) */ for(const m of [...(au.worldCityMarches||[]),...(au.worldMineMarches||[])]) m.homeAt=0;   /* every earlier army is home */ delete d0.worldTreeControl; if(au.witch&&au.witch.heroes) for(const k of Object.keys(au.witch.heroes)) au.witch.heroes[k].hp=10000;
       fs.writeFileSync(db,JSON.stringify(d0)); await start(admin.profile.id,'20','5000');
       const capMarch=await request('POST','/api/world/city/start',{defId:foe.profile.id,heroIds:['vael','sylthaine','vireo'],requestId:'witch-city-cap'},admin.token);
-      assert.equal(capMarch.ok,true,'the 20th march may start: '+JSON.stringify(capMarch).slice(0,160));
+      assert.equal(capMarch.ok,true,'the 15th march (the EGP 0 limit) may start: '+JSON.stringify(capMarch).slice(0,160));
       await new Promise(r=>setTimeout(r,300)); await stop();
-      const d1=JSON.parse(fs.readFileSync(db,'utf8')); d1.users[admin.profile.id].pvpDay.n=20; fs.writeFileSync(db,JSON.stringify(d1));
+      const d1=JSON.parse(fs.readFileSync(db,'utf8')); d1.users[admin.profile.id].pvpDay.n=15; fs.writeFileSync(db,JSON.stringify(d1));
       await start(admin.profile.id,'20','20'); await new Promise(r=>setTimeout(r,5200));
       const capped=await request('POST','/api/pvp/attack',{defId:foe.profile.id,marchId:capMarch.marchId,requestId:'witch-raid-cap'},admin.token);
       assert.equal(capped.ok,true,'a capped arrival is settled, not refused: '+JSON.stringify(capped).slice(0,160));

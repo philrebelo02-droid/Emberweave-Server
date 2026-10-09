@@ -289,6 +289,10 @@ note "test_acct_sync_1090.js (v1090 scan 11: satellites re-check accounts holdin
 node tests/test_acct_sync_1090.js || FAILED=1
 note "test_bad_target_1091.js (v1091 scan 12 P0: an unparseable request target answers 400 instead of crashing the process)"
 node tests/test_bad_target_1091.js || FAILED=1
+note "test_patron_1092.js (v1092 EGP/EDP: paid base diamonds, levels, rebate, daily attacks, buy attacks, prestige, EGP rows)"
+node tests/test_patron_1092.js || FAILED=1
+note "test_mythic_pool_1092.js (v1092 Mythical Pool at EGP 11, 400 diamonds, Phil's odds; KonWu out of the Diamond Pool; attack buys from EGP 3; attack card)"
+node tests/test_mythic_pool_1092.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi

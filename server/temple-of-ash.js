@@ -71,8 +71,7 @@
     ANTI_TILT_VALVE: false,           // parked OFF at launch (design §9b); see antiTiltCheck()
 
     /* --- cost ladder (design §2, copied from the reference) --- */
-    GOLD_LADDER: [1000, 2000, 4000, 6000, 8000, 10000, 20000, 40000, 60000,
-                  80000, 100000, 200000, 400000, 600000, 800000],
+    GOLD_LADDER: [1000, 2000, 4000, 6000, 8000, 10000, 20000, 40000, 60000, 80000, 100000],   // Phil 9 Oct: "it should cap at 100,000" (was ... 200k, 400k, 600k, 800k); the 11th use and every one after cost 100,000
     DIAMOND_TIERS: [                  // gem tiers buy ROLLS, never ODDS (integrity rule)
       { id: "kindled", name: "Kindled", price: 50,  keeperPoints: 1  },
       { id: "stoked",  name: "Stoked",  price: 100, keeperPoints: 5  },
