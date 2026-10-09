@@ -12926,6 +12926,7 @@ function endBattle(won){
         const _rid=uid8();
         for(let _try=0;_try<3;_try++){ d=await api('/api/arena/result','POST',{oppId:CUR.oppId,won,def:_arepDef,requestId:_rid});
           if(!(d&&(d.error==='offline'||d.storageFailed))||_try===2) break; await new Promise(z=>setTimeout(z,1500*(_try+1))); }   // v981: a refused save is re-sent too
+        if(d&&d.arena) ARENA.att=d.arena;   /* v1097 (sweep #10) */
         if(resultStale(ep)){ if(d) ledgerSync(); return; }
         /* v977 (3 Oct Arena audit #5, #8): a signed-in fight the server refused (no attempts left, level, opponent) or never
            confirmed is NOT COUNTED - no win shown, no rank moved, no attack report kept. */
@@ -20523,7 +20524,7 @@ async function arenaSync(){ if(!ACC.token||ARENA.fetching) return false; ARENA.f
   try{ const d=await api('/api/arena/opponents'); if(d&&!d.error){ ARENA.rank=d.rank; G.arenaRank=d.rank;
       if(G.bestArenaRank==null||d.rank<G.bestArenaRank)G.bestArenaRank=d.rank;
       ARENA.opps=(d.opponents||[]).filter(o=>o&&o.team&&o.team.length).map(o=>({ id:o.id, name:o.name, rank:o.rank, isNpc:!!o.isNpc, team:o.team.filter(e=>e&&HERO_TYPES[e.key]).map(e=>({key:e.key,level:e.level||1,rank:e.rank||0})), power:_arenaTeamPow(o.team), gems:(typeof o.gems==='number')?o.gems:null }));
-      ARENA.oppsRank=d.rank; G.arenaOpps={rank:d.rank,list:ARENA.opps}; saveG(); } }
+      ARENA.oppsRank=d.rank; G.arenaOpps={rank:d.rank,list:ARENA.opps}; if(d.arena) ARENA.att=d.arena; saveG(); } }
   catch(e){} finally{ ARENA.fetching=false; } return true; }
 async function arenaSyncLadder(){ if(!ACC.token||ARENA.fetchingLad) return false; ARENA.fetchingLad=true;
   try{ const d=await api('/api/arena/ladder?offset=0&limit=100'); if(d&&!d.error&&d.entries){ ARENA.ladderTotal=d.total; ARENA.ladder=d.entries.map(e=>({ rank:e.rank, name:e.name, me:!!e.you, isNpc:!!e.isNpc, power:e.power||0, region:'' })); } }
@@ -20534,6 +20535,7 @@ function renderArena(){ const b=document.getElementById('arenaBody');
   if(!G.arenaOpps||G.arenaOpps.rank!==G.arenaRank||!G.arenaOpps.list) genArenaOpps();
   const opps=G.arenaOpps.list;
   const daily=arenaDailyReward(G.arenaRank), dready=arenaDailyReady(), dleft=arenaDailyLeft();
+  const att=(ACC.token&&ARENA.att)?ARENA.att:null, noAtt=!!(att&&(att.attemptsLeft|0)<=0);   /* v1097 (sweep 9 Oct #10): the server's attempts, shown; a fight with none left is never started */
   const top3=arenaLeaderboard().slice(0,3);
   const pcol=(e,h)=>{ if(!e)return ''; const t=rankTier(e.rank);
     return `<div style="flex:1;text-align:center;min-width:0">
@@ -20563,7 +20565,7 @@ function renderArena(){ const b=document.getElementById('arenaBody');
           ${gems>0?`<div class="arOppNum"><span style="color:#c9b6ff">\u{1F48E}${gems}</span></div>`:''}
         </div>
       </div>
-      <button class="btn sm" data-opp="${i}">Challenge</button></div>`; };
+      <button class="btn sm" data-opp="${i}" ${noAtt?'disabled':''}>Challenge</button></div>`; };
   b.innerHTML=`<div class="arWrap">
     <div class="arTop">
       <div class="arMedal">
@@ -20597,6 +20599,8 @@ function renderArena(){ const b=document.getElementById('arenaBody');
         <div class="arDayNo">${arenaRefreshLeft()}/${ARENA_FREE_REFRESH}</div>
         <button class="arMini" id="arenaRefresh" style="margin-top:2px">Refresh</button>
         <button class="arMini" id="claimDaily" ${dready?'':'disabled'} style="margin-top:2px">\u{1F381} Claim</button>
+        ${att?`<div class="arDayLbl" style="margin-top:4px">Attempts left</div><div class="arDayNo" id="arenaAttLeft" style="color:${att.attemptsLeft>0?'#7ef0b0':'#ff9a9a'}">${att.attemptsLeft|0}</div>
+        <button class="arMini" id="arenaBuyAtt" ${(att.bought|0)>=(att.extraMaxPerDay|0)?'disabled':''} style="margin-top:2px">Buy +1 &middot; ${att.extraCostGems|0} diamonds</button>`:''}
         <div id="dailyMsg" style="font-size:9px;color:#ffd45e;min-height:10px"></div>
       </div>
       <div class="arOpps" id="arenaOpps"></div>
@@ -20631,23 +20635,30 @@ function renderArena(){ const b=document.getElementById('arenaBody');
        diamonds, gold and coins with nothing to show for it. The day is now only marked claimed once
        the server has actually paid. */
     /* v983 (3 Oct Arena audit #11): signed in, the message and coins are the SERVER's reward, not the local table */
-    const _finish=(rw)=>{ rw=rw||dr; G.arenaCoins=(G.arenaCoins||0)+(rw.coins|0); G.arenaDailyDay=arenaDayKey(); G.lastArenaDaily=Date.now();
+    const _finish=(rw,paid)=>{ rw=rw||dr; if(!paid) G.arenaCoins=(G.arenaCoins||0)+(rw.coins|0); G.arenaDailyDay=arenaDayKey(); G.lastArenaDaily=Date.now();   /* v1097 (sweep #9): signed in, the server paid the coins and adoptLedger carries them */
       saveG(); updateHubChrome(); renderArena();
       const dm=document.getElementById('dailyMsg'); if(dm) dm.textContent=`Claimed! 💎 +${rw.gems|0} · 🪙 +${(rw.gold|0).toLocaleString()} · 🎟️ +${rw.coins|0}`; };
     /* v1015 (re-audit Arena N6): one requestId, re-sent on a lost reply (the server answers a paid claim with its receipt) - a new id
        per tap, and a lost reply told the player the paid daily was "still yours to claim" */
     if(ACC.token){ apiOnce('arenadaily','/api/arena/daily-claim',{}).then(r=>{ if(r&&r.busy) return;
-        if(r&&r.ok){ adoptLedger(r.ledger); _finish(r.reward); }
+        if(r&&r.ok){ adoptLedger(r.ledger); _finish(r.reward,true); }
         else { bannerMsg((r&&r.error)||'The daily could not be claimed — try again in a moment.'); ledgerSync(); } }); }
     else _finish();
   };
+  { const ba=b.querySelector('#arenaBuyAtt'); if(ba) ba.onclick=()=>{ ba.disabled=true;
+      apiOnce('arenabuy','/api/arena/buy-attempt',{}).then(r=>{ if(r&&r.busy) return;
+        if(r&&r.arena) ARENA.att=r.arena;
+        if(r&&r.ok){ if(r.ledger) adoptLedger(r.ledger); saveG(); updateHubChrome(); bannerMsg('+1 arena attempt'); }
+        else bannerMsg((r&&r.error)||'The attempt could not be bought - try again in a moment.');
+        if(state==='arena') renderArena(); }); }; }
   const el=b.querySelector('#arenaOpps');
   if(!opps.length){ el.innerHTML=`<div style="flex:1;text-align:center;padding:14px 8px"><div style="color:#ffd45e;font-weight:700">\u{1F451} You're Rank #1 \u2014 no one left to challenge!</div></div>`; }
   else el.innerHTML=opps.map(oppCard).join('');
   el.querySelectorAll('[data-opp]').forEach(btn=>{ const o=opps[+btn.dataset.opp]; if(!o) return;
-    btn.onclick=()=>{ G.pendingArenaOpp=o; CUR={mode:'arena',local:true,oppName:o.name,oppRank:o.rank,oppId:o.id}; teamCtx='arenaAtk'; menuReturn='arena'; show('menu'); }; });
+    btn.onclick=()=>{ if(arenaNoAttempts()) return; G.pendingArenaOpp=o; CUR={mode:'arena',local:true,oppName:o.name,oppRank:o.rank,oppId:o.id}; teamCtx='arenaAtk'; menuReturn='arena'; show('menu'); }; });
 }
-function startArena(o){ G.questArena=(G.questArena||0)+1; saveG(); updateMailBadges(); CUR={mode:'arena',local:true,oppName:o.name,oppRank:o.rank,oppId:o.id,oppPower:o.power||0};
+function arenaNoAttempts(){ const a=ACC.token&&ARENA.att; if(a&&(a.attemptsLeft|0)<=0){ bannerMsg('No arena attempts left today. Buy one, or come back after the daily reset.'); return true; } return false; }
+function startArena(o){ if(arenaNoAttempts()){ show('arena'); return; } G.questArena=(G.questArena||0)+1; saveG(); updateMailBadges(); CUR={mode:'arena',local:true,oppName:o.name,oppRank:o.rank,oppId:o.id,oppPower:o.power||0};
   CUR.arenaSnap=snapAllySquad((G.team||[]).filter(Boolean)); CUR.arenaFoe=trimTeam(o.team||[]);   // capture both squads (resolved) for a watchable report
   startVersus(o.team,true); }
 /* Arena Reports — a sub-view INSIDE the Arena screen (Attacks = your last 10 challenges; Defenses = incoming, server-fed). */

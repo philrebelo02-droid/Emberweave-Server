@@ -6224,7 +6224,7 @@ async function api(req,res,url){
       if(patronDayCount(led,'arenaResets')>=max) return {ok:false,error:'No more Arena resets today ('+max+' a day at your level).'};
       if((a.used|0)<=0) return {ok:false,error:'Your free Arena attempts are all still there.'};
       if((led.gems|0)<c) return {ok:false,error:'You need '+c+' diamonds.'};
-      led.gems-=c; a.used=0; patronDayInc(led,'arenaResets');
+      led.gems-=c; a.used=Math.max(0,(a.used|0)-ARENA_FREE_ATTEMPTS); patronDayInc(led,'arenaResets');   /* v1097 (sweep 9 Oct #15): only the 5 free attempts come back - free ones are spent first, so a bought attempt already used stays used (a.used=0 also returned up to 5 bought ones) */
       ledTx(me,'patron:arena-reset',{gems:-c}); return {ok:true, arena:arenaAttView(led), ledger:ledgerView(me)}; });
     return send(res,out.storageFailed?503:(out.ok===false?400:200),out); }
   if(p==='/api/patron/use-attack-card' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});   /* v1092: from the Mythical Pool */
@@ -7563,6 +7563,7 @@ async function api(req,res,url){
         const rw=arenaDailyRewardSrv(Math.max(1,me.rank|0||15000));
         creditGold(me,led,rw.gold,'arena-daily');
         creditGems(me,led,rw.gems,'arena-daily');
+        me.coins=Math.min(ECON_CAP.arenaCoins,(me.coins|0)+(rw.coins|0));   /* v1097 (sweep 9 Oct #9): the arena coins the claim shows are paid here, from the server's band table - the client used to add them locally and the next ledger sync took them away */
         ledTx(me,'arena-daily',rw);
         writeDB(); return {ok:true, reward:rw, ledger:ledgerView(me)};
       }); return send(res, out.storageFailed?503:out.ok===false?400:200, out); }
