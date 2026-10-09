@@ -245,6 +245,16 @@ note "test_servers_1051.js (v1051: the in-game server list holds Servers 1-5; /s
 node tests/test_servers_1051.js || FAILED=1
 note "test_temper_type_1054.js (v1054: Temper belongs to the item type - every copy, on every hero, one Temper; Resonance counts a type once)"
 node tests/test_temper_type_1054.js || FAILED=1
+note "test_sloe_volley_1069.js (v1069: Sloe ult arrow volley, staggered per target)"
+node tests/test_sloe_volley_1069.js || FAILED=1
+note "test_zahri_solar_1070.js (v1070: Solar Impalement burst rides the lance tip)"
+node tests/test_zahri_solar_1070.js || FAILED=1
+note "test_oakmir_roots_fx_1071.js (v1071: Deep Roots cage grows on the rooted ally)"
+node tests/test_oakmir_roots_fx_1071.js || FAILED=1
+note "test_zahri_stampede_trail_1072.js (v1072: Noonday Stampede flame trail)"
+node tests/test_zahri_stampede_trail_1072.js || FAILED=1
+note "test_oakmir_ult_badge_1073.js (v1073: Oakmir ult badge 0.45; the single-target badge path passes badgeSize)"
+node tests/test_oakmir_ult_badge_1073.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi
