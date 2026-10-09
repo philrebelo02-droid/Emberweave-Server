@@ -12535,90 +12535,90 @@
         {
           "key": "ashen",
           "lvl": 58,
-          "hpMul": 52.4964,
-          "dmgMul": 24.7386
+          "hpMul": 44.6219,
+          "dmgMul": 21.0278
         },
         {
           "key": "basalt mauler",
           "lvl": 58,
-          "hpMul": 52.4964,
-          "dmgMul": 24.7386
+          "hpMul": 44.6219,
+          "dmgMul": 21.0278
         },
         {
           "key": "crucible acolyte",
           "lvl": 58,
-          "hpMul": 52.4964,
-          "dmgMul": 24.7386
+          "hpMul": 44.6219,
+          "dmgMul": 21.0278
         },
         {
           "key": "magma hound",
           "lvl": 58,
-          "hpMul": 52.4964,
-          "dmgMul": 24.7386
+          "hpMul": 44.6219,
+          "dmgMul": 21.0278
         }
       ],
       [
         {
           "key": "ashen",
           "lvl": 58,
-          "hpMul": 52.4964,
-          "dmgMul": 24.7386
+          "hpMul": 44.6219,
+          "dmgMul": 21.0278
         },
         {
           "key": "magma hound",
           "lvl": 58,
-          "hpMul": 52.4964,
-          "dmgMul": 24.7386
+          "hpMul": 44.6219,
+          "dmgMul": 21.0278
         },
         {
           "key": "ashen",
           "lvl": 58,
-          "hpMul": 52.4964,
-          "dmgMul": 24.7386
+          "hpMul": 44.6219,
+          "dmgMul": 21.0278
         },
         {
           "key": "basalt mauler",
           "lvl": 58,
-          "hpMul": 52.4964,
-          "dmgMul": 24.7386
+          "hpMul": 44.6219,
+          "dmgMul": 21.0278
         },
         {
           "key": "basalt mauler",
           "lvl": 58,
-          "hpMul": 52.4964,
-          "dmgMul": 24.7386
+          "hpMul": 44.6219,
+          "dmgMul": 21.0278
         }
       ],
       [
         {
           "key": "magma hound",
           "lvl": 58,
-          "hpMul": 52.4964,
-          "dmgMul": 24.7386
+          "hpMul": 44.6219,
+          "dmgMul": 21.0278
         },
         {
           "key": "ashen",
           "lvl": 58,
-          "hpMul": 52.4964,
-          "dmgMul": 24.7386
+          "hpMul": 44.6219,
+          "dmgMul": 21.0278
         },
         {
           "key": "crucible acolyte",
           "lvl": 58,
-          "hpMul": 52.4964,
-          "dmgMul": 24.7386
+          "hpMul": 44.6219,
+          "dmgMul": 21.0278
         },
         {
           "key": "magma hound",
           "lvl": 58,
-          "hpMul": 52.4964,
-          "dmgMul": 24.7386
+          "hpMul": 44.6219,
+          "dmgMul": 21.0278
         },
         {
           "key": "ashen",
           "lvl": 58,
-          "hpMul": 52.4964,
-          "dmgMul": 24.7386
+          "hpMul": 44.6219,
+          "dmgMul": 21.0278
         }
       ]
     ],
@@ -12627,7 +12627,7 @@
     "recommendedQuality": "Purple +3",
     "qualityMinHeroLevel": 57,
     "bossLevelGate": 0,
-    "difficultyTune": 5.3097,
+    "difficultyTune": 4.5132,
     "baselineHp": 52.5371,
     "baselineDmg": 22.1122,
     "portalMode": "normal",
@@ -12641,7 +12641,15 @@
       "purple-plus-3-sunder",
       "purple-plus-3-voidbind"
     ],
-    "curveV820": true
+    "curveV820": true,
+    "wallFixes": [
+      {
+        "v": "v1098",
+        "date": "2026-10-09",
+        "scale": 0.85,
+        "why": "9 Oct sims: 10-1 held Big B (17 tries), Medium A (11, not fully upgraded), Medium B (3, FULLY UPGRADED), 0 won; only Whale A passed. Blueprint 01 strength 10-1 = 505 against 9-10 = 170 and 10-2 = 346 - harder than both neighbours; not a boss. One step x0.85 (Phil 8 Oct rules)."
+      }
+    ]
   },
   {
     "id": "10-2",

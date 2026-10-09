@@ -10905,66 +10905,66 @@
     {
      "key": "ashen",
      "lvl": 58,
-     "hpMul": 81.1074,
-     "dmgMul": 36.0269
+     "hpMul": 68.9413,
+     "dmgMul": 30.6229
     },
     {
      "key": "basalt mauler",
      "lvl": 58,
-     "hpMul": 81.1074,
-     "dmgMul": 36.0269
+     "hpMul": 68.9413,
+     "dmgMul": 30.6229
     },
     {
      "key": "crucible acolyte",
      "lvl": 58,
-     "hpMul": 81.1074,
-     "dmgMul": 36.0269
+     "hpMul": 68.9413,
+     "dmgMul": 30.6229
     },
     {
      "key": "magma hound",
      "lvl": 58,
-     "hpMul": 81.1074,
-     "dmgMul": 36.0269
+     "hpMul": 68.9413,
+     "dmgMul": 30.6229
     }
    ],
    [
     {
      "key": "ashen",
      "lvl": 58,
-     "hpMul": 81.1074,
-     "dmgMul": 36.0269
+     "hpMul": 68.9413,
+     "dmgMul": 30.6229
     },
     {
      "key": "magma hound",
      "lvl": 58,
-     "hpMul": 81.1074,
-     "dmgMul": 36.0269
+     "hpMul": 68.9413,
+     "dmgMul": 30.6229
     },
     {
      "key": "ashen",
      "lvl": 58,
-     "hpMul": 81.1074,
-     "dmgMul": 36.0269
+     "hpMul": 68.9413,
+     "dmgMul": 30.6229
     },
     {
      "key": "basalt mauler",
      "lvl": 58,
-     "hpMul": 81.1074,
-     "dmgMul": 36.0269
+     "hpMul": 68.9413,
+     "dmgMul": 30.6229
     },
     {
      "key": "basalt mauler",
      "lvl": 58,
-     "hpMul": 81.1074,
-     "dmgMul": 36.0269
+     "hpMul": 68.9413,
+     "dmgMul": 30.6229
     }
    ],
    [
     {
      "key": "oakmir",
      "lvl": 58,
-     "hpMul": 81.1074,
-     "dmgMul": 36.0269,
+     "hpMul": 68.9413,
+     "dmgMul": 30.6229,
      "isHero": true,
      "rewardHero": true,
      "rank": 3
@@ -10972,26 +10972,26 @@
     {
      "key": "ashen",
      "lvl": 58,
-     "hpMul": 81.1074,
-     "dmgMul": 36.0269
+     "hpMul": 68.9413,
+     "dmgMul": 30.6229
     },
     {
      "key": "crucible acolyte",
      "lvl": 58,
-     "hpMul": 81.1074,
-     "dmgMul": 36.0269
+     "hpMul": 68.9413,
+     "dmgMul": 30.6229
     },
     {
      "key": "magma hound",
      "lvl": 58,
-     "hpMul": 81.1074,
-     "dmgMul": 36.0269
+     "hpMul": 68.9413,
+     "dmgMul": 30.6229
     },
     {
      "key": "ashen",
      "lvl": 58,
-     "hpMul": 81.1074,
-     "dmgMul": 36.0269
+     "hpMul": 68.9413,
+     "dmgMul": 30.6229
     }
    ]
   ],
@@ -11002,7 +11002,15 @@
    "scale": 1.2652,
    "target": "1.5x the Normal stage (Phil: \"elite should be roughly 1.5x harder than normal\")"
   },
-  "eliteTune": 0.9769
+  "eliteTune": 0.9769,
+  "wallFixes": [
+   {
+    "v": "v1098",
+    "date": "2026-10-09",
+    "scale": 0.85,
+    "why": "follows Normal 10-1 (v1098 x0.85) so Elite 10-1 stays 1.5x its Normal stage (v1056 rule, Phil: \"elite should be roughly 1.5x harder than normal\")"
+   }
+  ]
  },
  {
   "id": "10-2",
