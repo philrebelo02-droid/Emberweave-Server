@@ -34,8 +34,8 @@ async function call(route,data){ const r=await fetch(base+route,{method:data?'PO
   const H=(await call('/api/well/state')).data.heroes||{};
   ok(H[present[0]]&&H[present[0]].dead===false&&H[present[0]].hpFrac>0&&H[present[0]].hpFrac<1,'control: a hero in the summary keeps the HP it ended with ('+JSON.stringify(H[present[0]])+')');
   ok(H[missing]&&H[missing].dead===true&&H[missing].hpFrac===0,'the hero missing from the summary is marked fallen ('+JSON.stringify(H[missing])+')');
-  const g2=st.grid[2], row2=[0,1,2].find(x=>g2[x]&&Math.abs(x-row)<=1&&g2[x].type==='fight')??[0,1,2].find(x=>g2[x]&&Math.abs(x-row)<=1);
-  const s2=await call('/api/well/start',{requestId:rid(),col:2,row:row2,heroIds:heroes});
+  let s2=null;   // the next guarded square (the map decides which rows of column 2 hold a fight)
+  for(const row2 of [0,1,2]){ s2=await call('/api/well/start',{requestId:rid(),col:2,row:row2,heroIds:heroes}); if(!/guarded square/.test(s2.data.error||'')) break; }
   ok(s2.status!==200&&/fallen/.test(s2.data.error||''),'the fallen hero cannot walk into the next fight ('+(s2.data.error||s2.status)+')');
   if(missed.length){ missed.forEach(m=>console.error('FAIL',m)); process.exitCode=1; }
   console.log('test_well_fallen_1097.js: '+pass+' checks passed, '+missed.length+' failed (server '+srvFile+')');
