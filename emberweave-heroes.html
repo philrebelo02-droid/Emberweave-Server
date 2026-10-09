@@ -4962,8 +4962,15 @@ function ccSecFor(o,k){
 }
 /* v1096 (Phil 9 Oct: 'no more emojis' / 'add the new icons'): skill text carries {i:s:<status>} / {i:t:<stat>} tokens; iconize() draws the
    approved icon art where the text is HTML, stripIcons() drops them where it is plain text (title tooltips, textContent). */
-function iconize(str){ return String(str==null?'':str).replace(/\{i:([st]):([a-zA-Z-]+)\}/g,(m,k,n)=>`<img class="stIc" src="/assets/img/icons/${k==='s'?'status':'stat'}/${n}-v1.webp" alt="">`); }
-function stripIcons(str){ return String(str==null?'':str).replace(/\{i:[st]:[a-zA-Z-]+\}\s?/g,''); }
+/* v1098 (Phil 9 Oct: 'no more emojis in this game' / 'put all the new icons in'): {i:u:<ui>} = icons/ui, {i:h:<hud>} = the HUD art (gold, gem, food, lock).
+   uiIcon / hudIcon / statusIcon return the same <img> for code that builds HTML directly. */
+const ICON_SRC={s:n=>`/assets/img/icons/status/${n}-v1.webp`, t:n=>`/assets/img/icons/stat/${n}-v1.webp`, u:n=>`/assets/img/icons/ui/${n}-v1.webp`, h:n=>`/assets/img/ui/hud-${n}.webp?v=1`};
+function iconImg(k,n,cls){ return `<img class="stIc${cls?' '+cls:''}" src="${ICON_SRC[k](n)}" alt="">`; }
+function uiIcon(n,cls){ return iconImg('u',n,cls); }
+function hudIcon(n,cls){ return iconImg('h',n,cls); }
+function statusIcon(n,cls){ return iconImg('s',n,cls); }
+function iconize(str){ return String(str==null?'':str).replace(/\{i:([stuh]):([a-zA-Z0-9-]+)\}/g,(m,k,n)=>iconImg(k,n)); }
+function stripIcons(str){ return String(str==null?'':str).replace(/\{i:[stuh]:[a-zA-Z0-9-]+\}\s?/g,''); }
 function skillEffectStr(key,idx,atk,hp){ const t=HERO_TYPES[key],kit=KITS[key],lv=skillLevel(key,idx),sm=skillMul(lv);
   let apw=Math.round((t.apow||0)*(t.dmg?atk/t.dmg:1));   // approximate effective Ability Power for display
   if(!apw) apw=atk;   // v527: a physical hero scales its abilities off Attack (see heroScaleMode) - printing 0 was a display bug
