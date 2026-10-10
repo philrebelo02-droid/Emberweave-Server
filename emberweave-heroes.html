@@ -24660,7 +24660,7 @@ function wellDraw(S){ const ov=document.getElementById('wlMap'); if(!ov) return;
   ov.querySelector('.wlBackB').onclick=()=>ov.remove();
   ov.querySelectorAll('.wlSq.wlReach').forEach(b=>b.onclick=()=>wellTap(+b.dataset.c,+b.dataset.r));
   ov.querySelectorAll('.wlRes').forEach(b=>b.onclick=()=>wellPost('/api/well/resurrect',{hero:b.dataset.k}));
-  ov.querySelectorAll('.wlSweep').forEach(b=>b.onclick=()=>wellPost('/api/well/sweep',{path:b.dataset.p},r=>{ if(r.reward) bannerMsg('+'+(r.reward.xp|0).toLocaleString()+' XP'); }));
+  ov.querySelectorAll('.wlSweep').forEach(b=>b.onclick=()=>wellPost('/api/well/sweep',{path:b.dataset.p},r=>{ if(r.reward){ const w=r.reward; bannerMsg('+'+(w.xp|0).toLocaleString()+' XP'+(w.gold?' · '+hudIcon('gold')+' +'+(w.gold|0).toLocaleString():'')+(w.gems?' · '+hudIcon('gem')+' +'+(w.gems|0):'')+(w.potions?' · +'+(w.potions|0)+' XP potions':'')); } }));   // v1110: a sweep pays gold, diamonds and potions too
   ov.querySelectorAll('.wlPortal:not([disabled])').forEach(b=>b.onclick=()=>wellPost('/api/well/portal',{to:b.dataset.p}));
   ov.querySelectorAll('.wlCard').forEach(b=>b.onclick=()=>wellPost('/api/well/buff',{id:b.dataset.b})); }
 async function wellPost(path,body,after){ if(WELL.busy) return; WELL.busy=true;
@@ -27024,7 +27024,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791649863337';
+const BUILD_ID = '1791654559236';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

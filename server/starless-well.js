@@ -104,7 +104,17 @@ function prizeFor(ctx, W, sq, col) { const R = W.run, lvl = R.level || ctx.playe
   const hard = sq.mode === 'hard', boss = sq.type === 'boss';
   const gold = Math.round((600 + lvl * 90) * (hard ? 1.5 : 1) * (boss ? 2 : 1));
   const gems = boss ? (hard ? 30 : 15) : (col === 5 ? 5 : 0);
-  return { gold, gems, potions: boss ? 2 : (col >= 3 ? 1 : 0) }; }
+  return { gold, gems, potions: boss ? 2 : 1 }; }   // v1110 (Phil 10 Oct: "every battle you win its meant to reward gold and exp pots"): columns 1-2 paid none
+/* v1110: what a sweep pays = 80% of a STANDARD run on that path: every map's fights (columns 1, 3, 5) and its boss, at the path's
+   mode (map 1 is always the Normal standard map), plus one small chest per map; no bonus roll. End XP is paid separately, in full. */
+const SWEEP_SHARE = 0.80;   // Phil 10 Oct: "I think actually change it to 20% not 15%"
+function sweepPrize(ctx, W, path) { const t = { gold: 0, gems: 0, potions: 0 }, lvl = ctx.playerLevel();
+  const sub = Object.assign({}, W, { run: Object.assign({}, W.run, { level: lvl }) });
+  for (let map = 1; map <= 3; map++) {
+    for (const col of [1, 3, 5, COLS - 1]) { const boss = col === COLS - 1, p = poolFor(map, path, col);
+      const pr = prizeFor(ctx, sub, { type: boss ? 'boss' : 'fight', mode: p.mode }, col); t.gold += pr.gold; t.gems += pr.gems; t.potions += pr.potions; }
+    t.gold += 400 + lvl * 60; t.gems += 5; t.potions += 1; }
+  return { gold: Math.round(t.gold * SWEEP_SHARE), gems: Math.round(t.gems * SWEEP_SHARE), potions: Math.round(t.potions * SWEEP_SHARE) }; }
 function payPrize(ctx, W, pr, tag) { const led = ctx.led, out = Object.assign({}, pr);
   const bonus = W.cleared[W.run.path || 'normal'] && W.run.path ? ['gems', 'gold', 'potions'][Math.floor(rng(ctx.srvSeed('well2bonus', ctx.me.id, tag))() * 3)] : null;
   if (bonus && out[bonus] > 0) { const pct = 0.10 + rng(ctx.srvSeed('well2pct', ctx.me.id, tag))() * 0.05; out[bonus] = Math.round(out[bonus] * (1 + pct) + (bonus === 'potions' ? 0.5 : 0)); out.bonus = bonus; }
@@ -169,7 +179,8 @@ async function handle(p, method, ctx) {
       R.att = null;
       R.started = true; R.pos = { col, row };
       let got = null;
-      if (sq.type === 'chest') { const pr = { gold: Math.round((400 + R.level * 60) * (sq.big ? 2 : 1)), gems: sq.big ? 10 : 0, potions: sq.big ? 2 : 1 }; got = payPrize(ctx, W, pr, R.cycle + ':' + R.map + ':' + col + ':' + row); }
+      // v1110 (Phil 10 Oct: "there should also be chests that offer some diamonds"): a small chest 5 diamonds (was 0), a big one 15 (was 10)
+      if (sq.type === 'chest') { const pr = { gold: Math.round((400 + R.level * 60) * (sq.big ? 2 : 1)), gems: sq.big ? 15 : 5, potions: sq.big ? 2 : 1 }; got = payPrize(ctx, W, pr, R.cycle + ':' + R.map + ':' + col + ':' + row); }
       else if (sq.type === 'tent') { if (sq.hero && R.loans.indexOf(sq.hero) < 0 && !ctx.led.unlocked[sq.hero]) R.loans.push(sq.hero); got = { loan: sq.hero }; }
       else if (sq.type === 'spring') { for (const k of Object.keys(R.heroes)) { const h = R.heroes[k]; if (!h.dead) h.hpFrac = Math.min(1, h.hpFrac + 0.5); } got = { healed: 0.5 }; }
       ctx.ledTx(ctx.me, 'well2:move:' + sq.type, {}); ctx.writeDB();
@@ -204,8 +215,15 @@ async function handle(p, method, ctx) {
       if (R.started) return no('This run has already started - finish it instead.');
       if (path === 'hard' && !dev && lvl < OPEN.hard) return no('The Hard path opens at account level ' + OPEN.hard + '.');
       const xp = endXP(ctx, path); if (xp > 0) ctx.ledAddPlayerXP(ctx.led, xp, ctx.me);
-      R.done = true; R.path = path; ctx.ledTx(ctx.me, 'well2:sweep:' + path, { px: xp }); ctx.writeDB();
-      return { status: 200, body: Object.assign(view(ctx, W), { reward: { xp, swept: true } }) };
+      // v1110 (Phil 10 Oct: "sweeping gives about 15% less raw rewards than doing it flat out, like diamonds gold and exp pots. Exp is the
+      // same" / "Thats good for starless"): a sweep used to pay the end XP only. It now also pays 80% of a standard run's gold, diamonds
+      // and XP potions (sweepPrize) - the same end XP; a played run keeps every prize plus its +10-15% roll.
+      const sp = sweepPrize(ctx, W, path);
+      if (sp.gold) ctx.creditGold(ctx.me, ctx.led, sp.gold, 'well:sweep');
+      if (sp.gems) ctx.creditGems(ctx.me, ctx.led, sp.gems, 'well:sweep');
+      if (sp.potions) { ctx.led.xpPotions = ctx.led.xpPotions || {}; ctx.led.xpPotions.superior = Math.min(999999, (ctx.led.xpPotions.superior | 0) + sp.potions); }
+      R.done = true; R.path = path; ctx.ledTx(ctx.me, 'well2:sweep:' + path, { px: xp, gold: sp.gold, gems: sp.gems, xpPotions: sp.potions }); ctx.writeDB();
+      return { status: 200, body: Object.assign(view(ctx, W), { reward: { xp, gold: sp.gold, gems: sp.gems, potions: sp.potions, swept: true } }) };
     }
     if (p === '/api/well/start') {
       if (R.offer) return no('Pick your buff first.');
@@ -283,4 +301,4 @@ async function handle(p, method, ctx) {
   });
 }
 
-module.exports = { handle, genMap, poolFor, fightWaves, foesFor, rng, BUFFS, cycleOf, OPEN, PCT, RES_COST };
+module.exports = { handle, genMap, poolFor, sweepPrize, fightWaves, foesFor, rng, BUFFS, cycleOf, OPEN, PCT, RES_COST };
