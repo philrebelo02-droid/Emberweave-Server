@@ -193,8 +193,8 @@ try {
     ck(`${name}: L1 ${v1} (unchanged), L100 ${v100}`, near(v[1], v1, 1e-9) && near(v[100], v100, 1e-9), JSON.stringify(v));
     for (const lv of LVS) { const c = card(key, 3, lv); ck(`${key} passive card L${lv} shows ${txt(v[lv])}`, c.includes(txt(v[lv])), c); }
   }
-  ck('Mirewall: 20% at L1, cap 44.9% at L100 (the 20% x curve reaches 43.8%)', near(run('SKLV.mirewall(1)'), 0.20) && near(run('SKLV.mirewall(100)'), 0.4376, 1e-9) && near(run('SKLV.mirewall(64)'), 0.20 * SM(64), 1e-9));
-  ck('Mirewall CONTROL: the old 35% ceiling at L80 differs', !near(Math.min(0.35, 0.2 * SM(80)), run('SKLV.mirewall(80)'), 1e-3));
+  ck('Mirewall: 20% at L1 -> 35% at L100 on one line (Phil: 35% is the level-100 stat)', near(run('SKLV.mirewall(1)'), 0.20) && near(run('SKLV.mirewall(50)'), 0.20 + 0.15 * 49 / 99, 1e-9) && near(run('SKLV.mirewall(100)'), 0.35, 1e-9) && [...Array(99)].every((_, i) => run(`SKLV.mirewall(${i + 2})`) > run(`SKLV.mirewall(${i + 1})`)));
+  ck('Mirewall CONTROL: the old curve stalled at 35% from L64 (L80 = L100); the new line still grows there', near(Math.min(0.35, 0.2 * SM(80)), Math.min(0.35, 0.2 * SM(100))) && run('SKLV.mirewall(100)') > run('SKLV.mirewall(80)'));
   for (const lv of LVS) { const c = card('grosk', 3, lv), h = hover('grosk', 3, lv), w = run(`SKLV.mirewall(${lv})`); ck(`grosk Mirewall card+hover L${lv} show ${pct(w)}`, c.includes(pct(w)) && h.includes(pct(w)), c + ' || ' + h); }
   // Ironcoil - the owner's report: the card printed 2s at every level
   { const fightLay = lv => tick('tharl', 'layered', lv, '(u)=>{ u._layStk=5; }', '(u)=>u._layT');
