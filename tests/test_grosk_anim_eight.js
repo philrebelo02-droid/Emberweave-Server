@@ -68,7 +68,7 @@ try {
   ck('Hammer Fists numbers unchanged: 3 x 60% Attack, taunt 2 s, cd 6', kit.hits === 3 && kit.mul === 0.6 && kit.tauntChance === 1 && kit.tauntDur === 2 && kit.cd === 6);
   ck('Hammer Fists hitTimes = the measured full-extension cells 13/24/34 at 12 fps', JSON.stringify(kit.hitTimes) === '[1.083,2,2.833]');
   ck('Croc Drop numbers unchanged (40% own max HP, 3 m, stun 0.6, wall 30% for 5 s), leap = the 2 s clip airtime in fight seconds',
-    run('JSON.stringify(ULT_DEF.hipposlam)') === '{"hpMul":0.1,"hpMul100":0.2,"radius":' + run('3*METER') + ',"stun":0.6,"allyDr":0.3,"allyDrDur":5,"perLv":0.0015,"leap":1.345}');   // perLv: v1112 skill levels (team wall 30% -> 44.9% at level 100)
+    run('JSON.stringify(ULT_DEF.hipposlam)') === '{"hpMul":0.1,"hpMul100":0.2,"aimRange":' + run('6*METER') + ',"radius":' + run('3*METER') + ',"stun":0.6,"allyDr":0.3,"allyDrDur":5,"perLv":0.0015,"leap":1.345}');   // perLv: v1112 skill levels (team wall 30% -> 44.9% at level 100)
   ck('cast times (fight s): ult 0.56 (launch cell 10 = 0.833 s of clip), green 0.308 (pull cell 11 = 0.458 s of clip), blue 0.6', run('JSON.stringify(ABILITY_CAST.grosk)') === '{"ult":0.56,"green":0.308,"blue":0.6}');
   const others = run(`(()=>{ const out=[]; const scan=(src,K)=>Object.keys(K).forEach(k=>{ if(k==='grosk')return; ['green','blue'].forEach(sl=>{ const a=K[k]&&K[k][sl]; if(a&&a.type==='punchflurry') out.push([src+':'+k, !!a.hitTimes]); }); });
     scan('hero',KITS); if(typeof MON_KITS!=='undefined') scan('mon',MON_KITS); return out; })()`);
@@ -96,6 +96,21 @@ try {
   const ctl = JSON.parse(JSON.stringify(G)); ctl.crit.u = '/assets/anim/grosk/grosk_missing.webp?v=22'; ctl.walk.fw = 700;
   ck('control: the grid check catches a missing sheet and an oversized grid', gridProblems(ctl).length >= 2);
 } catch (e) { console.log('FAIL after ' + pass + ' checks: ' + (e.stack || e.message)); process.exitCode = 1; return; }
+// v1117 (Phil 10 Oct: "please make his ult aimable, and a circle the size of the impact, with a 6 meter range circle")
+{ const aimRun = (ax, ay) => JSON.parse(run(`(()=>{ units=[]; ended=false; paused=false; battleTime=0; groundHazards.length=0;
+    const u=makeUnit('grosk','ally',300,700,20,{owned:false}); const e=makeUnit('vael','enemy',300+20*METER,700,20,{owned:false});
+    units=[u,e]; units.forEach(x=>{ x.atkInterval=99; x.speed=0; x.greenAb=null; x.blueAb=null; }); e.maxHp=e.hp=1e9;
+    let land=null; const _d=dealDamage; dealDamage=function(a,b,amt){ return _d.apply(this,arguments); };
+    const ab=Object.assign({},ULT_DEF.hipposlam); u._castSM=1; u._castLv=1; u._castSlot='ult';
+    window._aimForTest={x:${ax},y:${ay}};
+    try{ doEffect(u,'hipposlam',ab,null,{x:${ax},y:${ay}}); } catch(err){ return JSON.stringify({err:String(err)}); }
+    const d=u._dash||{}; return JSON.stringify({tx:d.tx!=null?d.tx:(d.x2!=null?d.x2:null), ty:d.ty!=null?d.ty:(d.y2!=null?d.y2:null), ux:u.x, uy:u.y, keys:Object.keys(d)}); })()`));
+  ck('Croc Drop is radius-aimed (ULT_RADIUS) with a 6 m aim range', run("ultAimMode('hipposlam')") === 'radius' && run('ULT_DEF.hipposlam.aimRange') === run('6*METER'));
+  const H = require('fs').readFileSync(require('path').join(__dirname, '..', 'emberweave-heroes.html'), 'utf8');
+  ck('the release clamps an aimRange ult to its range (the circle cannot leave the ring)', H.includes('/* v1116: aimRange - the circle cannot leave the range ring */'));
+  ck('the aim view draws the range ring around the caster', H.includes('/* v1116: the range ring (Croc Drop 6 m) and the impact circle kept inside it */'));
+  ck('the effect lands on the aimed point, clamped to aimRange; no aim -> densest cluster within range', H.includes("let _tx=aimCtr?aimCtr.x:best.x, _ty=aimCtr?aimCtr.y:best.y;") && H.includes('const _inR=_AR?foes.filter(c=>dist(u,c)<=_AR):foes'));
+  ck('CONTROL: v1116 had no aimRange on Croc Drop', !/hipposlam:\{hpMul:0\.10,hpMul100:0\.20,radius/.test(H)); }
 console.log((fail ? 'FAIL ' : 'PASS ') + pass + ' checks' + (fail ? ', ' + fail + ' failed' : ''));
 if (fail) process.exitCode = 1;
 })();
