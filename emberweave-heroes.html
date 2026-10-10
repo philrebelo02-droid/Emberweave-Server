@@ -448,6 +448,41 @@
   .hero-card.locked{opacity:.45;} .hero-card:active{transform:scale(.98);}
   /* uniform 3-column grid (2 rows of 3 visible); a lone card never stretches to fill the row */
   #heroList,#roster{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;align-content:start;}
+  /* v1103 (Phil 9 Oct): "for all hero select screens, please make it 5 columns instead of 3 / above the heroes there will be an ALL, TANK,
+     BRUISER, ASSASIN, MAGE, SUPPORT, MARKSMAN button / above that will be 5 EMPTY hero card sized slots, when you click a hero it will fill the slot" */
+  .rsPanel{max-width:760px}
+  @media (max-height:560px){ .rsPanel{max-width:min(500px,100%)} }   /* phone landscape: five small cards, the grid stays in view */
+  #roster.rsGrid{grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+  .vsBox{background:#151b2b;border:1px solid #33405e;border-radius:16px;padding:14px;width:100%;max-width:440px;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 10px 40px #000a}
+  .vsHd{font-weight:900;font-size:15px;color:#ffd45e;text-align:center;margin-bottom:8px}
+  .vsTotals{display:flex;gap:8px;margin-bottom:8px} .vsTotals>div{flex:1;background:#0f1420;border:1px solid #1b2438;border-radius:10px;padding:6px 8px;text-align:center;min-width:0}
+  .vsTotals b{display:block;font-size:15px;color:#ffd45e} .vsTotals span{font-size:10px;color:#8b98a9} .vsTotals i{display:flex;justify-content:center;gap:2px;margin-top:3px}
+  .vsScroll{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .vsSec{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#8b98a9;margin:6px 0 4px;display:flex;justify-content:space-between}
+  .vsGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:5px}
+  .vsTile{position:relative;background:#0f1420;border:1px solid #1b2438;border-radius:8px;padding:4px 3px;text-align:center;min-width:0}
+  .vsTile img{width:40px;height:40px;object-fit:contain;display:block;margin:0 auto}
+  .vsTile b{position:absolute;top:2px;right:3px;font-size:10px;color:#fff;text-shadow:0 1px 2px #000}
+  .vsTile span{display:block;font-size:8.5px;line-height:1.15;margin-top:2px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  .vsEach{margin-top:8px;font-size:11px} .vsEach summary{cursor:pointer;color:#8b98a9;font-weight:700;padding:4px 0}
+  .vsFloor{display:flex;gap:8px;padding:4px 0;border-bottom:1px solid #1b2438;line-height:1.5} .vsFloor b{flex:none;width:56px;color:#c9a2ff}
+  .rsGrid5{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+  .rsSlots{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-bottom:8px}
+  .rsSlotLbl{grid-column:1/-1;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#8b98a9;margin:2px 0 -2px}
+  .rsSlot{min-width:0;border:2px dashed #3a4a6e;border-radius:10px;padding:4px 4px 6px;background:rgba(20,27,43,.6);text-align:center;cursor:pointer;position:relative}
+  .rsSlot.full{border-style:solid;border-color:#ffb347;background:#2a3350}
+  .rsSlot .rsEmpty{width:100%;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;color:#4a5a7e;font-size:22px;font-weight:300}
+  .rsImg{position:relative;width:100%;aspect-ratio:1/1}
+  .rsImg>.ascw{width:100%!important;height:100%!important}
+  .rsLv{position:absolute;left:3px;top:3px;z-index:6;font-size:9px;font-weight:800;line-height:1.3;background:rgba(10,12,20,.82);border-radius:6px;padding:0 4px;color:#fff}
+  .rsName{font-weight:800;font-size:11px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:3px}
+  .rsPow{font-size:10px;font-weight:800;color:#ffd45e;white-space:nowrap}
+  #roster .hero-card.rsCard{padding:4px 4px 6px;text-align:center;min-width:0}
+  .rsClass{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px}
+  .rsClassB{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px 2px;background:#1e2740;border:1px solid #33405e;border-radius:8px;color:#cdd6e4;font-family:inherit;font-weight:800;font-size:9px;line-height:1.1;letter-spacing:.02em;cursor:pointer;white-space:nowrap;overflow:hidden}
+  .rsClassB .stIc{margin:0;width:1.5em;height:1.5em}
+  .rsClassB.on{border-color:#ffb347;color:#ffd45e;background:#2a3350}
+  @media (max-width:420px){ .rsClassB span{display:none} }   /* narrow phone portrait: the class icons alone */
   .hero-card .emoji{font-size:26px;} .hero-card .name{font-weight:700;font-size:14px;margin-top:2px;}
   .hero-card .role{font-size:10px;color:#8b98a9;text-transform:uppercase;letter-spacing:.5px;}
   .hero-card .stats{font-size:11px;color:#aeb9c9;margin-top:6px;line-height:1.5;}
@@ -2299,7 +2334,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
       <button class="btn" id="startBtn" style="flex:0 0 78%;max-width:78%">BATTLE <img class="stIc" src="/assets/img/icons/ui/play-v1.webp" alt=""></button>
       <button class="btn secondary" id="resetCompBtn" style="flex:1 1 auto;padding:12px 6px;font-size:12px;white-space:nowrap" title="Clear the selected heroes">↺ RESET</button>
     </div>
-    <div class="panel"><div class="row" id="roster"></div></div>
+    <div class="panel rsPanel"><div id="rosterSlots" class="rsSlots"></div><div id="rosterClass" class="rsClass"></div><div class="row rsGrid" id="roster"></div></div>
   </div>
 
   <!-- GLOSSARY (bestiary + hero codex) -->
@@ -14923,20 +14958,28 @@ async function vaultSweep(){ if(VAULT.busy)return;
   await vaultStatus(); renderDungeon();
 }
 /* v372 (Phil): "when I sweep a pop-up should populate — a scrolling text of all the items you earn per level" */
+/* v1103 (Phil 9 Oct, a screenshot of a 49-floor sweep: "this is sloppy the sweep in the vault"): the pop-up was every floor's line plus one
+   comma-run of ~150 names. Now: the two totals, then each fragment once as an art tile with its count (glyph art / gear art), and the
+   floor-by-floor list folded under "Each floor". Same data, nothing dropped. */
 function vaultSweepPopup(r){
-  const rows=(r.perFloor||[]).map(f=>{ const bits=['<span style="color:#ffd45e">'+uiIcon('res-forge-dust')+' '+f.dust+' Dust</span>'];
-      (f.fragments||[]).forEach(k=>bits.push('<span style="color:#c9a2ff">'+glyphFragChip(k)+escapeHTML(k)+'</span>'));
-      (f.gearFragments||[]).forEach(k=>bits.push('<span style="color:#ff9d5e">'+uiIcon('mode-forge')+escapeHTML(k)+'</span>'));
-      if(r.heroXpPerFloor) bits.push('<span style="color:#5ee89b">'+uiIcon('star-filled')+' +'+r.heroXpPerFloor+' hero XP</span>');
-      return `<div style="display:flex;gap:10px;align-items:flex-start;padding:5px 0;border-bottom:1px solid #1b2438;font-size:11px"><b style="flex:none;width:64px;color:#c9a2ff">Floor ${f.floor}</b><div style="flex:1;line-height:1.5">${bits.join(' · ')}</div></div>`; }).join('');
+  const tile=(art,n,name,col)=>`<div class="vsTile" title="${escapeHTML(name)}">${art}<b>×${n}</b><span style="color:${col}">${escapeHTML(name)}</span></div>`;
+  const glyphArt=k=>{ try{ return `<img src="${g2NodeArtSrc({kind:'fragment',key:k})}" alt="">`; }catch(e){ return ''; } };
   const fr=Object.entries(r.fragments||{}), gf=Object.entries(r.gearFragments||{});
-  const totals=`<div style="font-size:12px;line-height:1.6;color:#e6edf3"><b style="color:#ffd45e">${uiIcon('res-forge-dust')} +${r.totalDust} Forge Dust</b>${r.heroXp?`<br><b style="color:#5ee89b">${uiIcon('star-filled')} +${r.heroXp} hero XP</b> <span style="color:#8b98a9">to ${(r.heroXpTeam||[]).map(k=>(HERO_TYPES[k]||{}).name||k).join(', ')}</span>`:''}${fr.length?'<br>'+fr.map(([k,n])=>glyphFragChip(k)+n+'× '+escapeHTML(k)).join(', '):''}${gf.length?'<br>'+uiIcon('mode-forge')+gf.map(([k,n])=>n+'× '+escapeHTML(k)).join(', '):''}</div>`;
-  const ov=document.createElement('div'); ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.45);display:flex;align-items:center;justify-content:flex-end;z-index:20000;padding:16px;padding-right:max(16px,4vw)';   // v373 (Phil): pop-ups on the right
-  ov.innerHTML=`<div style="background:#151b2b;border:1px solid #33405e;border-radius:16px;padding:16px;width:100%;max-width:420px;max-height:86vh;display:flex;flex-direction:column;box-shadow:0 10px 40px #000a">
-    <div style="font-weight:900;font-size:15px;color:#ffd45e;text-align:center">${uiIcon('sweep')} Swept ${r.floors} floors</div>
-    <div style="font-size:10px;color:#8b98a9;text-align:center;margin:2px 0 8px">Every cleared floor paid out again</div>
-    <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;border:1px solid #1b2438;border-radius:10px;padding:4px 10px;background:#0f1420;min-height:120px">${rows||'<div style="color:#6f7d90;font-size:11px;padding:10px">Nothing to show.</div>'}</div>
-    <div style="margin-top:10px;padding:8px 10px;background:#0f1420;border-radius:10px">${totals}</div>
+  const team=(r.heroXpTeam||[]).map(k=>fragCard(k,22)).join('');
+  const rows=(r.perFloor||[]).map(f=>{ const bits=[uiIcon('res-forge-dust')+' '+f.dust];
+      (f.fragments||[]).forEach(k=>bits.push(glyphFragChip(k)+escapeHTML(k)));
+      (f.gearFragments||[]).forEach(k=>bits.push(gearFragImg(k,14)+' '+escapeHTML(k)));
+      return `<div class="vsFloor"><b>Floor ${f.floor}</b><div>${bits.join(' · ')}</div></div>`; }).join('');
+  const ov=document.createElement('div'); ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.55);display:flex;align-items:center;justify-content:flex-end;z-index:20000;padding:16px;padding-right:max(16px,4vw)';   // v373 (Phil): pop-ups on the right
+  ov.innerHTML=`<div class="vsBox">
+    <div class="vsHd">${uiIcon('sweep')} Swept ${r.floors} floors</div>
+    <div class="vsTotals"><div><b>${uiIcon('res-forge-dust')} +${(r.totalDust|0).toLocaleString()}</b><span>Forge Dust</span></div>
+      ${r.heroXp?`<div><b>${uiIcon('star-filled')} +${(r.heroXp|0).toLocaleString()}</b><span>hero XP each</span><i>${team}</i></div>`:''}</div>
+    <div class="vsScroll">
+      ${fr.length?`<div class="vsSec">Glyph fragments <span>${fr.reduce((a,[,n])=>a+n,0)}</span></div><div class="vsGrid">${fr.map(([k,n])=>tile(glyphArt(k),n,k,'#c9a2ff')).join('')}</div>`:''}
+      ${gf.length?`<div class="vsSec">Gear fragments <span>${gf.reduce((a,[,n])=>a+n,0)}</span></div><div class="vsGrid">${gf.map(([k,n])=>tile(gearFragImg(k,40),n,k,'#ffb37a')).join('')}</div>`:''}
+      ${rows?`<details class="vsEach"><summary>Each floor</summary>${rows}</details>`:''}
+    </div>
     <button class="btn" style="margin-top:10px" id="_swOk">Collect</button></div>`;
   document.body.appendChild(ov); const close=()=>ov.remove(); ov.querySelector('#_swOk').onclick=close; ov.addEventListener('click',e=>{ if(e.target===ov) close(); });
 }
@@ -16798,7 +16841,9 @@ function skyTeamBodyHTML(){
     const i=SKYTEAM.pick, L=SKYTEAM.lines[i]||[];
     const slots=L.map((k,si)=>'<div class="skyPickSlot'+(si===(SKYTEAM.slot|0)?' on':'')+'" data-slot="'+si+'">'
       +heroIcon(k,48)+'</div>').join('');
-    const free=SKYTEAM.bench.map(k=>skyTeamCard(k,'skyBenchCard')).join('');
+    /* v1103 (Phil: every hero select gets the ALL / TANK / ... class row): the bench filters by class, the shared rosterClassF */
+    const free=SKYTEAM.bench.filter(k=>rosterClassF==='All'||(HERO_TYPES[k]||{}).role===rosterClassF).map(k=>skyTeamCard(k,'skyBenchCard')).join('');
+    const clsRow='<div class="rsClass" style="margin:6px 0">'+ROSTER_CLASSES.map(c=>'<button type="button" class="rsClassB'+(rosterClassF===c?' on':'')+'" data-sky-class="'+c+'">'+(c==='All'?'':uiIcon('class-'+c.toLowerCase()))+'<span>'+c.toUpperCase()+'</span></button>').join('')+'</div>';
     return '<div class="skyPick">'
       +'<div class="skyPickHd"><b>Adjust line '+(i+1)+'</b>'
         +'<span>power '+skyTeamPower(L).toLocaleString()+'</span>'
@@ -16806,7 +16851,7 @@ function skyTeamBodyHTML(){
         +'<div class="skyTroopBtns" style="flex-direction:row"><button data-act="back">Done</button></div></div>'
       +'<div class="skyPickRow"><div class="skyPickSlots">'+slots+'</div>'
         +skyTeamWhoHTML(L[Math.max(0,Math.min(4,SKYTEAM.slot|0))])+'</div>'
-      +'<div class="skyBench">'+(free||'<div class="skyBenchEmpty">Every hero you own is already on a line.</div>')+'</div>'
+      +clsRow+'<div class="skyBench">'+(free||'<div class="skyBenchEmpty">'+(rosterClassF==='All'?'Every hero you own is already on a line.':'No free '+rosterClassF+' heroes.')+'</div>')+'</div>'
       +'</div>';
   }
 
@@ -16873,6 +16918,7 @@ function skyTeamRender(){
 
   el.querySelectorAll('.skyPickSlot').forEach(n=>{ n.onclick=()=>{ SKYTEAM.slot=n.dataset.slot|0; skyTeamRender(); }; });
   el.querySelectorAll('.skyBench .skyBenchCard').forEach(n=>{ n.onclick=()=>skyTeamPut(n.dataset.k); });
+  el.querySelectorAll('[data-sky-class]').forEach(n=>{ n.onclick=()=>{ rosterClassF=n.dataset.skyClass; skyTeamRender(); }; });
   el.querySelectorAll('.skyTroop').forEach(n=>{ n.onclick=()=>{ SKYTEAM.sel=n.dataset.i|0; skyTeamRender(); }; });
 }
 
@@ -19990,6 +20036,8 @@ function wireRosterTaps(r){
   r.addEventListener('pointercancel',()=>{ down=null; }, {passive:true});
   r.addEventListener('click',(e)=>{ const c=e.target&&e.target.closest&&e.target.closest('.hero-card'); if(c) fire(c); });
 }
+let rosterClassF='All';   /* v1103: the hero-select class filter (ALL / one class) - kept across screens */
+const ROSTER_CLASSES=['All','Tank','Bruiser','Assassin','Mage','Support','Marksman'];
 function reRenderRoster(){
   // Record EVERY scrollable ancestor, not just the immediate parent — on a phone the scroller is
   // usually the screen, so restoring only #roster still snapped the list back to the top on each
@@ -20035,15 +20083,20 @@ function renderRoster(){
   // selecting heroes ... they should just be highlighted not auto sorted. the sort should be by power")
   const _pickable=HERO_KEYS.filter(k=>G.unlocked[k]||wellLoan(k));
   _pickable.sort((a,b)=>heroPower(b)-heroPower(a));
+  /* v1103: the class row filters the grid; the slots above always show the whole picked team */
+  { const cr=document.getElementById('rosterClass'); if(cr){ cr.innerHTML=ROSTER_CLASSES.map(c=>`<button type="button" class="rsClassB${rosterClassF===c?' on':''}" data-rs-class="${c}">${c==='All'?'':uiIcon('class-'+c.toLowerCase())}<span>${c.toUpperCase()}</span></button>`).join('');
+    cr.querySelectorAll('[data-rs-class]').forEach(b=>b.onclick=()=>{ rosterClassF=b.dataset.rsClass; reRenderRoster(); }); } }
+  const _shown=rosterClassF==='All'?_pickable:_pickable.filter(k=>(HERO_TYPES[k]||{}).role===rosterClassF);
   if(!_pickable.length){ r.innerHTML='<div style="grid-column:1/-1;text-align:center;color:#8b98a9;font-size:12px;padding:18px">No heroes yet — summon one at the Wishing Pool.</div>'; }
-  _pickable.forEach(key=>{
+  else if(!_shown.length){ r.innerHTML='<div style="grid-column:1/-1;text-align:center;color:#8b98a9;font-size:12px;padding:18px">No '+rosterClassF+' heroes yet.</div>'; }
+  _shown.forEach(key=>{
     const t=HERO_TYPES[key],unlocked=true,inTeam=teamArr.includes(key),away=marchers.has(key),elsewhere=otherLine[key];
     const _wf=wellHeroTag(key); const blocked = away || (elsewhere!=null) || !!(_wf&&_wf.dead);
-    const card=document.createElement('div'); card.className='hero-card'+(inTeam?' selected':'')+(!unlocked?' locked':'');
+    const card=document.createElement('div'); card.className='hero-card rsCard'+(inTeam?' selected':'')+(!unlocked?' locked':'');
     if(blocked && !inTeam){ card.style.opacity='.45'; }
     const tag = away?`<br><span style="color:#ff8b8b;font-size:9px">⛓ marching — not defending</span>`
       : (elsewhere!=null?`<br><span style="color:#c9a35e;font-size:9px">${statusIcon('shield')} on Line ${elsewhere}</span>`:(_wf?_wf.html:''));
-    card.innerHTML=`${unlocked?`<span class="lvl">Lv ${heroLevel(key)}</span>`:''}<div style="display:flex;gap:10px;align-items:center">${heroIcon(key,52,{orbs:true})}<div><div class="name">${t.name}</div><div class="role">${t.role} · ${t.combatRow} · ${t.damageProfile} · <span style="font-size:9px">${starStr(t.stars)}</span></div></div></div><div class="stats" style="margin-top:6px"><span class="pill">${statIcon('hp')} ${Math.round(heroStat(key,t.hp)*heroMuls(key).hp+heroFlatHp(key)+techFlat('hp'))}</span><span class="pill">${statusIcon('attack')} ${Math.round(heroStat(key,t.dmg)*heroMuls(key).atk+heroFlatAtk(key)+techFlat('atk'))}</span>${unlocked?`<span class="pill" style="background:#2a2410;border-color:#8a6420;color:#ffd45e;font-weight:800">${statusIcon('attack')} ${myHeroPower(key).toLocaleString()}</span>`:''}<br>${unlocked?statusIcon('energy')+' '+t.abilityName:hudIcon('lock')+' '+heroFrag(key)+'/'+summonCost(key)+' frags'}${tag}</div>`;
+    card.innerHTML=`<div class="rsImg">${heroIcon(key,80,{orbs:true})}<span class="rsLv">Lv ${heroLevel(key)}</span></div><div class="rsName">${t.name}</div><div class="rsPow">${statusIcon('attack')} ${myHeroPower(key).toLocaleString()}</div>${tag}`;   /* v1103: the 5-column card */
     // you can always REMOVE a hero from this line; you can only ADD if not marching and not on another line
     /* 28 Aug (Phil: "I cannot click any heroes", twice, on a build where a real click works).
        Two separate things were wrong with picking a hero:
@@ -20061,7 +20114,7 @@ function renderRoster(){
       else if(!blocked && arr.length<pickCap) arr.push(key);
       else return;                                                    // squad already full
       if(isVault){ try{ reRenderRoster(); }catch(e){} }
-      else { try{ card.classList.toggle('selected', arr.indexOf(key)>=0); }catch(e){} }
+      else { try{ card.classList.toggle('selected', arr.indexOf(key)>=0); }catch(e){} try{ drawSlots(); }catch(e){} }
       try{ syncStart(); }catch(e){}
       try{ saveG(); }catch(e){}
       try{ if(isWall&&ACC.token)pushSave(); }catch(e){}
@@ -20069,6 +20122,18 @@ function renderRoster(){
     if(isVault && inTeam){ const pos=teamArr.indexOf(key); const chip=document.createElement('span'); chip.style.cssText='position:absolute;top:4px;right:4px;font-size:8px;font-weight:900;padding:2px 5px;border-radius:6px;background:'+(pos<TEAM_SIZE?'#1d3a2a;color:#5ee89b;border:1px solid #2b7a55':'#2a2338;color:#c9a2ff;border:1px solid #7a5fb0'); chip.innerHTML=pos<TEAM_SIZE?statusIcon('attack')+' FIGHT':statusIcon('shield')+' BACKUP'; card.style.position='relative'; card.appendChild(chip); }
     r.appendChild(card);
   });
+  /* v1103: the picked team as hero-card sized slots (Vault / guild raid: 5 fighters + 5 backups); tapping a filled slot takes the hero out */
+  function drawSlots(){ const box=document.getElementById('rosterSlots'); if(!box) return;
+    const slot=(k,i)=>k?`<div class="rsSlot full" data-rs-slot="${i}"><div class="rsImg">${heroIcon(k,80,{orbs:true})}<span class="rsLv">Lv ${heroLevel(k)}</span></div><div class="rsName">${(HERO_TYPES[k]||{}).name||k}</div><div class="rsPow">${statusIcon('attack')} ${myHeroPower(k).toLocaleString()}</div></div>`
+      :`<div class="rsSlot"><div class="rsEmpty">+</div><div class="rsName" style="color:#4a5a7e">empty</div><div class="rsPow">&nbsp;</div></div>`;
+    let h=''; const two=pickCap>TEAM_SIZE;
+    if(two) h+='<div class="rsSlotLbl">Fighters</div>';
+    for(let i=0;i<TEAM_SIZE;i++) h+=slot(teamArr[i],i);
+    if(two){ h+='<div class="rsSlotLbl">Backup - steps in when a fighter falls</div>'; for(let i=TEAM_SIZE;i<pickCap;i++) h+=slot(teamArr[i],i); }
+    box.innerHTML=h;
+    box.querySelectorAll('[data-rs-slot]').forEach(el=>el.onclick=()=>{ const i=+el.dataset.rsSlot; if(teamArr[i]==null) return; teamArr.splice(i,1);
+      try{ reRenderRoster(); }catch(e){} try{ saveG(); }catch(e){} try{ if(isWallCtx(teamCtx)&&ACC.token)pushSave(); }catch(e){} }); }
+  drawSlots();
   function syncStart(){
     { const _rc=document.getElementById('resetCompBtn'); if(_rc) _rc.disabled=!teamArr.length; }   // 30 Aug: this was set once at render, so RESET stayed dead after the first pick
     const full=isVault?teamArr.length>=TEAM_SIZE:teamArr.length>=1;   // Vault needs 5 fighters; elsewhere partial teams allowed
@@ -22040,24 +22105,39 @@ async function worldHeroHp(){ const hp={}; if(!ACC.token) return hp;
   return hp; }
 function pickerHpLine(hp,k){ const v=hp[k]; if(v==null) return ''; return v<=0?'HP 0%':' · HP '+Math.floor(v/100)+'%'; }
 // squad picker for a mine (enforces power + level requirement; excludes heroes already marching or at 0% HP)
+/* v1103 (Phil 9 Oct: "for all hero select screens ... 5 columns ... ALL, TANK, BRUISER, ASSASIN, MAGE, SUPPORT, MARKSMAN ... 5 EMPTY hero card
+   sized slots"): the world-map squad pickers (mine, march) share the team screen's layout - slots, class row, 5 columns. sel = a Set (pick
+   order); blocked(k) / sub(k) are the picker's own rules. The caller wires [data-rsp-class], [data-rsp-slot] and .mc-hero. */
+function rsPickerHTML(heroes,sel,blocked,sub){ const picked=[...sel];
+  const card=(k,cls,attrs)=>`<div class="${cls}" ${attrs}><div class="rsImg">${heroIcon(k,80,{orbs:true})}<span class="rsLv">Lv ${heroLevel(k)}</span></div><div class="rsName">${HERO_TYPES[k].name}</div>`;
+  let h='<div class="rsSlots">';
+  for(let i=0;i<5;i++){ const k=picked[i]; h+=k?card(k,'rsSlot full','data-rsp-slot="'+k+'"')+`<div class="rsPow">${statusIcon('attack')} ${myHeroPower(k).toLocaleString()}</div></div>`
+    :'<div class="rsSlot"><div class="rsEmpty">+</div><div class="rsName" style="color:#4a5a7e">empty</div><div class="rsPow">&nbsp;</div></div>'; }
+  h+='</div><div class="rsClass">'+ROSTER_CLASSES.map(c=>`<button type="button" class="rsClassB${rosterClassF===c?' on':''}" data-rsp-class="${c}">${c==='All'?'':uiIcon('class-'+c.toLowerCase())}<span>${c.toUpperCase()}</span></button>`).join('')+'</div>';
+  const shown=rosterClassF==='All'?heroes:heroes.filter(k=>(HERO_TYPES[k]||{}).role===rosterClassF);
+  h+='<div class="rsGrid5">'+(shown.length?shown.map(k=>{ const b=blocked(k);
+    return card(k,'hero-card rsCard mc-hero'+(sel.has(k)?' selected':''),'data-k="'+k+'" style="cursor:'+(b?'not-allowed':'pointer')+';opacity:'+(b?.45:1)+'"')+`<div class="rsPow">${sub(k)}</div></div>`; }).join('')
+    :'<div style="grid-column:1/-1;text-align:center;color:#8b98a9;font-size:12px;padding:14px">No '+rosterClassF+' heroes.</div>')+'</div>';
+  return h; }
+function rsPickerWire(ov,sel,render){
+  ov.querySelectorAll('[data-rsp-class]').forEach(b=>b.onclick=()=>{ rosterClassF=b.dataset.rspClass; render(); });
+  ov.querySelectorAll('[data-rsp-slot]').forEach(b=>b.onclick=()=>{ sel.delete(b.dataset.rspSlot); render(); }); }
 function openMineSelect(m){ const reqP=mineReqPower(m.level), reqL=mineReqLevel(m.level);
   const busy=committedHeroes(), heroes=HERO_KEYS.filter(k=>G.unlocked[k]); let hp={};
   const fallen=k=>hp[k]!=null&&hp[k]<=0, blocked=k=>busy.has(k)||fallen(k);
   const sel=new Set(); G.team.forEach(k=>{ if(G.unlocked[k]&&!busy.has(k)&&sel.size<5) sel.add(k); });
   const ov=document.createElement('div'); ov.style.cssText='position:fixed;inset:0;background:rgba(4,6,10,.75);z-index:12000;display:flex;align-items:center;justify-content:center';
   function render(){ const pow=marchPower([...sel])||0, okP=pow>=reqP, okL=[...sel].some(k=>heroLevel(k)>=reqL), ok=sel.size&&okP&&okL;
-    ov.innerHTML=`<div style="background:#141b2b;border:1px solid #2a3550;border-radius:14px;padding:14px;width:94%;max-width:470px;max-height:86vh;overflow:auto">
+    ov.innerHTML=`<div style="background:#141b2b;border:1px solid #2a3550;border-radius:14px;padding:14px;width:94%;max-width:470px;max-height:86vh;overflow:auto;max-width:600px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div style="font-weight:800">${uiIcon('mode-mine')} Mine · ${escapeHTML(mineLabel(m))}</div><button class="btn sm secondary" id="mcX">${uiIcon('close')}</button></div>
       <div style="font-size:11px;color:#8b98a9;margin-bottom:10px">Send up to 5 heroes to mine <b style="color:${mnResColor(m.res)}">${resIconHtml(m.res,15)} ${mineYieldShown(m.res,m.level)} ${escapeHTML(mnResName(m.res))}</b>. They can't defend or march again until they return. Requires squad power <b>${reqP}</b> and a hero of <b>Lv ${reqL}+</b>.</div>
-      <div class="row" style="gap:8px;justify-content:center">${heroes.map(k=>{ const b=blocked(k), on=sel.has(k);
-        return `<div data-k="${k}" class="mc-hero" style="width:78px;text-align:center;cursor:${b?'not-allowed':'pointer'};opacity:${b?.45:1};border:2px solid ${on?'#5ee89b':'#2a3550'};border-radius:10px;padding:5px;background:${on?'#12351f':'#0f1420'}">
-          ${heroIcon(k,50)}<div style="font-size:10px;margin-top:3px">${HERO_TYPES[k].name}</div><div style="font-size:9px;color:${b?'#ff8b8b':(heroLevel(k)>=reqL?'#5ee89b':'#8b98a9')}">${busy.has(k)?'⛓ marching':fallen(k)?pickerHpLine(hp,k):'Lv '+heroLevel(k)+pickerHpLine(hp,k)}</div></div>`; }).join('')}</div>
+      ${rsPickerHTML(heroes,sel,blocked,k=>`<span style="color:${blocked(k)?'#ff8b8b':(heroLevel(k)>=reqL?'#5ee89b':'#8b98a9')};font-weight:700">${busy.has(k)?'marching':fallen(k)?pickerHpLine(hp,k):statusIcon('attack')+' '+myHeroPower(k).toLocaleString()+pickerHpLine(hp,k)}</span>`)}
       <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
         <div style="font-size:11px;color:#8b98a9">${sel.size}/5 · ${statusIcon('attack')} <b style="color:${okP?'#5ee89b':'#ff8b8b'}">${pow}</b>/${reqP} · ${okL?'<span style="color:#5ee89b">Lv '+uiIcon('check')+'</span>':'<span style="color:#ff8b8b">need Lv '+reqL+'</span>'}</div>
         <button class="btn" id="mcGo" ${ok?'':'disabled'}>${uiIcon('mode-mine')} Send ${uiIcon('play')}</button></div></div>`;
     ov.querySelector('#mcX').onclick=()=>ov.remove();
     ov.querySelectorAll('.mc-hero').forEach(el=>el.onclick=()=>{ const k=el.dataset.k; if(blocked(k))return; if(sel.has(k))sel.delete(k); else if(sel.size<5)sel.add(k); render(); });
-    ov.querySelector('#mcGo').onclick=()=>{ if(!ok)return; startMine(m,[...sel]); ov.remove(); }; }
+    ov.querySelector('#mcGo').onclick=()=>{ if(!ok)return; startMine(m,[...sel]); ov.remove(); }; rsPickerWire(ov,sel,render); }
   render(); document.body.appendChild(ov);
   worldHeroHp().then(h=>{ hp=h; if(!ov.isConnected) return; [...sel].forEach(k=>{ if(fallen(k)) sel.delete(k); });
     G.team.forEach(k=>{ if(G.unlocked[k]&&!blocked(k)&&sel.size<5) sel.add(k); }); render(); }); }
@@ -22217,18 +22297,16 @@ function openMarchSelect(ctype,c){
   const sel=new Set(); G.team.forEach(k=>{ if(G.unlocked[k]&&!busy.has(k)&&sel.size<5) sel.add(k); });
   const ov=document.createElement('div'); ov.style.cssText='position:fixed;inset:0;background:rgba(4,6,10,.75);z-index:12000;display:flex;align-items:center;justify-content:center';
   const verb=ctype==='defend'?'Defend':ctype==='group'?'Group Attack':'Attack';
-  function render(){ ov.innerHTML=`<div style="background:#141b2b;border:1px solid #2a3550;border-radius:14px;padding:14px;width:94%;max-width:470px;max-height:86vh;overflow:auto">
+  function render(){ ov.innerHTML=`<div style="background:#141b2b;border:1px solid #2a3550;border-radius:14px;padding:14px;width:94%;max-width:470px;max-height:86vh;overflow:auto;max-width:600px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div style="font-weight:800">${verb} · ${escapeHTML(c.name)}</div><button class="btn sm secondary" id="mcX">${uiIcon('close')}</button></div>
       <div style="font-size:11px;color:#8b98a9;margin-bottom:10px">Choose up to 5 heroes to march. Distance <b>${gridDist(c.x,c.y)}</b> squares · march time <b style="color:#ffd45e">${fmtDur(marchOutMs(ctype,c.x,c.y))}</b> each way. Heroes on a march can't join another until they return.</div>
-      <div class="row" style="gap:8px;justify-content:center">${heroes.map(k=>{ const b=blocked(k), on=sel.has(k);
-        return `<div data-k="${k}" class="mc-hero" style="width:78px;text-align:center;cursor:${b?'not-allowed':'pointer'};opacity:${b?.45:1};border:2px solid ${on?'#5ee89b':'#2a3550'};border-radius:10px;padding:5px;background:${on?'#12351f':'#0f1420'}">
-          ${heroIcon(k,50)}<div style="font-size:10px;margin-top:3px">${HERO_TYPES[k].name}</div><div style="font-size:9px;color:${b?'#ff8b8b':'#8b98a9'}">${busy.has(k)?'⛓ marching':fallen(k)?pickerHpLine(hp,k):'Lv '+heroLevel(k)+pickerHpLine(hp,k)}</div></div>`; }).join('')}</div>
+      ${rsPickerHTML(heroes,sel,blocked,k=>`<span style="color:${blocked(k)?'#ff8b8b':'#ffd45e'};font-weight:700">${busy.has(k)?'marching':fallen(k)?pickerHpLine(hp,k):statusIcon('attack')+' '+myHeroPower(k).toLocaleString()+pickerHpLine(hp,k)}</span>`)}
       <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
         <div style="font-size:11px;color:#8b98a9">${sel.size}/5 · ${statusIcon('attack')} ${marchPower([...sel])||0}</div>
         <button class="btn" id="mcGo" ${sel.size?'':'disabled'}>${verb} ${uiIcon('play')}</button></div></div>`;
     ov.querySelector('#mcX').onclick=()=>ov.remove();
     ov.querySelectorAll('.mc-hero').forEach(el=>el.onclick=()=>{ const k=el.dataset.k; if(blocked(k))return; if(sel.has(k))sel.delete(k); else if(sel.size<5)sel.add(k); render(); });
-    ov.querySelector('#mcGo').onclick=()=>{ if(!sel.size)return; startMarch(ctype,c,[...sel]); ov.remove(); };
+    ov.querySelector('#mcGo').onclick=()=>{ if(!sel.size)return; startMarch(ctype,c,[...sel]); ov.remove(); }; rsPickerWire(ov,sel,render);
   }
   render(); document.body.appendChild(ov);
   worldHeroHp().then(h=>{ hp=h; if(!ov.isConnected) return; [...sel].forEach(k=>{ if(fallen(k)) sel.delete(k); });
