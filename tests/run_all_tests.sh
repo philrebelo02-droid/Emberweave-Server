@@ -343,6 +343,8 @@ note "test_living_tallow_1102.js (v1102: Living Tallow encase 1 s + 0.015 s per 
 node tests/test_living_tallow_1102.js || FAILED=1
 note "test_gruel_anim_nine.js (v1103: Gruel's nine approved animations - sheets on disk, grids fit, timing, kit unchanged; control: a broken copy fails)"
 node tests/test_gruel_anim_nine.js || FAILED=1
+note "test_grosk_anim_eight.js (v1112: Grosk's eight approved animations - sheets, grids, Hammer Fists punches at full extension 1.083/2.0/2.833 s, Croc Drop slam on the landing 2.833 s; controls: the instant flurry and a broken grid fail)"
+node tests/test_grosk_anim_eight.js || FAILED=1
 note "test_auto_ult_healer_1103.js (v1103: healer ults that also hit enemies fire when full; heal-only ones still wait)"
 node tests/test_auto_ult_healer_1103.js || FAILED=1
 rm -f probe-db-*.json
