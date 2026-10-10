@@ -76,7 +76,7 @@ try {
   ck('the attack clip fits his swing hold (clip <= 0.95 x his attack interval), so it is never squeezed and drawn late', run("clipDur(BATTLE_ANIM.umbris.attack) <= 0.95*makeUnit('umbris','ally',0,0,20,{owned:false}).atkInterval") && G.attack.fps === 26);
   ck('walk plays its measured loop [1,47)', JSON.stringify(G.walk.loop) === '[1,47]');
   ck('cast times (fight s) = release cells x 0.6724: ult 0.728 (cell 26), green 0.476 (cell 17), blue 0.364 (cell 13)',
-    run('JSON.stringify(ABILITY_CAST.umbris)') === '{"ult":0.728,"green":0.476,"blue":0.364}');
+    run('JSON.stringify(ABILITY_CAST.umbris)') === '{"ult":0.364,"green":0.476,"blue":0.364}');   // v1116: ult clip at 48 fps (Phil: faster)
   const kit = run('JSON.stringify(KITS.umbris)'), M = run('METER');
   ck('Shadeburst / Creeping Rot / Lingering Dark numbers unchanged', kit === JSON.stringify({
     green: { deliver: 'form', name: 'Shadeburst', type: 'shadeburst', at: 'cluster', dps: 0.3, dur: 6, radius: 7 * M, cd: 7, gfx: 'umbris_green', noArt: true, gdur: 5.88 },
@@ -101,7 +101,7 @@ try {
   // (green moved only 0.5 -> 0.476 s, under one 0.027 s tick: no separate control - the cast-table check above fails on v1114)
 
   const U = act('ult');
-  const wantU = 26 / 24 * CLK + 0.22 * U.pace;
+  const wantU = 26 / 48 * CLK + 0.22 * U.pace;   // v1116: ult clip at 48 fps
   ck('Umbral Cataclysm: the slam is 1.6 x his AP (the later hits are the zone ticks and his bolts)', U.hits.length >= 1 && Math.abs(U.hits[0].amt / run('(()=>{const g=makeUnit("umbris","ally",0,0,20,{owned:false}); return g.apow;})()') - 1.6) < 0.05, JSON.stringify(U.hits[0]));
   ck('the orb leaves on ult cell 26 (1.083 s of clip = ' + (26 / 24 * CLK).toFixed(3) + ' fight s) and lands ' + (0.22 * U.pace).toFixed(3) + ' s later (' + wantU.toFixed(3) + ')',
     U.hits.length >= 1 && Math.abs(U.hits[0].t - wantU) <= 2 * U.step + 1e-3, JSON.stringify(U.hits[0]));
