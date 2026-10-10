@@ -997,6 +997,7 @@ h1{background:linear-gradient(180deg,#fff4d6 0%,#f3d58a 42%,#c98f2e 100%);-webki
 #temple .backbtn{z-index:30}
 .kitDot{display:inline-block;width:.7em;height:.7em;border-radius:50%;margin-right:.35em;vertical-align:.05em}
 .stIc{width:1.25em;height:1.25em;object-fit:contain;vertical-align:-0.28em;margin-right:0.25em}
+.fragCard{display:inline-block;vertical-align:-0.3em;margin-right:0.25em} .fragCard .ascw{border-radius:3px!important;box-shadow:none!important}
 .tw-ic .stIc{width:70%;height:70%;margin:0;vertical-align:middle}
 .tp2Stage{position:relative;margin:0 auto;--u:0.4px;font-family:Georgia,'Times New Roman',serif;color:#f1e3c4;user-select:none;overflow:hidden}
 .tp2Stage>*{position:absolute;box-sizing:border-box}
@@ -4995,6 +4996,11 @@ function ccSecFor(o,k){
 const ICON_SRC={s:n=>`/assets/img/icons/status/${n}-v1.webp`, t:n=>`/assets/img/icons/stat/${n}-v1.webp`, u:n=>`/assets/img/icons/ui/${n}-v1.webp`, h:n=>`/assets/img/ui/hud-${n}.webp?v=1`};
 function iconImg(k,n,cls){ return `<img class="stIc${cls?' '+cls:''}" src="${ICON_SRC[k](n)}" alt="">`; }
 function uiIcon(n,cls){ return iconImg('u',n,cls); }
+/* v1100 (Phil 9 Oct: 'the hero fragment should be their hero card'): a hero's fragments show that hero's own card, the way the reference
+   shows a hero's soulstones - never a generic fragment picture. Vault fragments are GLYPH fragments and show their glyph art. */
+function fragCard(key,px){ px=px||18; return `<span class="fragCard" style="width:${px}px;height:${px}px">${heroIcon(key,px)}</span>`; }
+function glyphFragChip(k){ try{ return `<img class="stIc" src="${g2NodeArtSrc({kind:'fragment',key:k})}" alt="">`; }catch(e){ return ''; } }
+const FT_IMG={}; function ftImg(n){ let im=FT_IMG[n]; if(!im){ im=new Image(); im.src=ICON_SRC.u(n); FT_IMG[n]=im; } return im; }   /* v1100: icon art drawn on the battle canvas */
 function hudIcon(n,cls){ return iconImg('h',n,cls); }
 function statusIcon(n,cls){ return iconImg('s',n,cls); }
 function iconize(str){ return String(str==null?'':str).replace(/\{i:([stuh]):([a-zA-Z0-9-]+)\}/g,(m,k,n)=>iconImg(k,n)); }
@@ -12431,10 +12437,10 @@ function think(u,dt){
         if(u.pass.loadedhand){ u._lhN=((u._lhN||0)+1)%4;
           if(u._lhN===0&&t){ const suit=Math.floor(brnd()*4)%4;
             firePassiveFx(u,t);
-            if(suit===0){ dealDamage(u,t,dmg*0.9*_pm,'#c0392b'); floatTexts.push({x:t.x,y:t.y-8,txt:'♥',t:.8,color:'#c0392b',vy:1.2,sz:14}); }
-            else if(suit===1){ t.stunned=Math.max(t.stunned||0,ccDur(0.5*(1-(t.ctrlRes||0)))); floatTexts.push({x:t.x,y:t.y-8,txt:'♠',t:.8,color:'#d8d8e8',vy:1.2,sz:14}); }
-            else if(suit===2){ t._shredPct=Math.max(t._shredPct||0,0.25*_pm); t._shredT=Math.max(t._shredT||0,4); floatTexts.push({x:t.x,y:t.y-8,txt:'♦',t:.8,color:'#e0a83a',vy:1.2,sz:14}); }
-            else { healUnit(u,dmg*0.5*_pm); floatTexts.push({x:t.x,y:t.y-8,txt:'♣',t:.8,color:'#8fe0a0',vy:1.2,sz:14}); } } }
+            if(suit===0){ dealDamage(u,t,dmg*0.9*_pm,'#c0392b'); floatTexts.push({x:t.x,y:t.y-8,txt:'♥',img:'fx-heart',t:.8,color:'#c0392b',vy:1.2,sz:14}); }
+            else if(suit===1){ t.stunned=Math.max(t.stunned||0,ccDur(0.5*(1-(t.ctrlRes||0)))); floatTexts.push({x:t.x,y:t.y-8,txt:'♠',img:'fx-spade',t:.8,color:'#d8d8e8',vy:1.2,sz:14}); }
+            else if(suit===2){ t._shredPct=Math.max(t._shredPct||0,0.25*_pm); t._shredT=Math.max(t._shredT||0,4); floatTexts.push({x:t.x,y:t.y-8,txt:'♦',img:'fx-diamond',t:.8,color:'#e0a83a',vy:1.2,sz:14}); }
+            else { healUnit(u,dmg*0.5*_pm); floatTexts.push({x:t.x,y:t.y-8,txt:'♣',img:'fx-club',t:.8,color:'#8fe0a0',vy:1.2,sz:14}); } } }
         // Powdered Slumber (Lysara): her attacks gradually blind what she hits.
         if(u.pass.slumber&&t){ t.evaStat=Math.max(0,(t.evaStat||0)); t._accDn=Math.min(0.35,(t._accDn||0)+0.05*_pm); t.accStat=Math.max(0,(t.accStat||0)-3*_pm); }
         // Hunter's Patience (Verdant Shade): stay on one target and the shots start finding gaps.
@@ -12635,7 +12641,7 @@ function _startBattleNow(){
     units.forEach(u=>{ if(u.team==='ally') u._vaultFighter=true; });   // only these (and chosen backups) can trigger the backup picker — never summons
     if(CUR.devWave2) waveIdx=chapterWaves-1;   // v362: God Mode dev jump — open straight on the final (boss) wave
     buildEnemyWave();
-    bannerMsg('🏛️ THE VAULT — FLOOR '+CUR.floor+'\nWAVE '+(waveIdx+1)+(CUR.devWave2?' (DEV)':'')); beginWaveEnter(); }
+    bannerMsg(uiIcon('mode-vault')+' THE VAULT — FLOOR '+CUR.floor+'\nWAVE '+(waveIdx+1)+(CUR.devWave2?' (DEV)':'')); beginWaveEnter(); }
   else if(CUR.mode==='graid'){ autoUlt=false; chapterWaves=1; waveIdx=0;   /* v666: the guild raid boss — one wave, one boss, 90 seconds */
     if(Array.isArray(CUR.serverSnaps)&&CUR.serverSnaps.length) spawnTeamFromSnaps(CUR.serverSnaps.slice(0,TEAM_SIZE)); else spawnTeam(G.team.slice(0,TEAM_SIZE),'ally');
     units.forEach(u=>{ if(u.team==='ally') u._vaultFighter=true; });   // only the five who walked in can call a backup — never summons
@@ -13049,7 +13055,7 @@ function endBattle(won){
       if(att){ const _va=ACC.id, _vt=ACC.token, _vb={attemptId:att, won:!!won, requestId:uid8()}; vaultPendingSave(_vb); r=await api('/api/dungeon/resolve-battle','POST',_vb); if(ACC.id!==_va) r={error:'offline'}; else { vaultPendingSettle(_va,r,_vb.requestId); if(ACC.token!==_vt&&r&&typeof r==='object') r=Object.assign({},r,{ledger:undefined}); } if(resultStale(ep)) return; }   // v328: stale — CUR/VAULT now belong to a newer fight
       CUR.attemptId=null; VAULT.st=null; VAULT.result=null;
       setResultVerdict(won, null);   // AUDIT #20: ...and the star row / squad panel must follow it too
-      document.getElementById('resultTitle').textContent=won?'🏛️ FLOOR '+CUR.floor+' CLEARED':'THE VAULT HOLDS';
+      document.getElementById('resultTitle').textContent=won?'FLOOR '+CUR.floor+' CLEARED':'THE VAULT HOLDS';
       document.getElementById('resultTitle').className='result-big '+(won?'win':'lose');
       let msg;
       // v253 (visual audit #2): ONE vocabulary — Glyph Fragments and Gear Fragments are labelled
@@ -13097,13 +13103,13 @@ function endBattle(won){
       if(ACC.token){ api('/api/elite/resolve','POST',{node:(CUR.node|0),heroIds:(G.team||[]).filter(Boolean),requestId:uid8()}).then(r=>{
           if(r&&r.ok&&r.won){ const um=giveHeroFrag(r.heroKey,r.frags); if(um)bannerMsg(um); adoptLedger(r.ledger); updateHubChrome();
             _srv={n:r.frags|0,hk:r.heroKey};
-            try{ const _el=document.getElementById('resultReward'), _ht=HERO_TYPES[r.heroKey]; if(_el) _el.innerHTML='<span style="color:#c9a2ff">🧩 +'+(r.frags|0)+' '+((_ht&&_ht.name)||r.heroKey)+' fragments</span>'; }catch(e){} }
+            try{ const _el=document.getElementById('resultReward'), _ht=HERO_TYPES[r.heroKey]; if(_el) _el.innerHTML='<span style="color:#c9a2ff">'+fragCard(r.heroKey)+' +'+(r.frags|0)+' '+((_ht&&_ht.name)||r.heroKey)+' fragments</span>'; }catch(e){} }
           else if(r&&r.ok&&!r.won){ bannerMsg('The Guard held — the server scored this run as a loss.'); }
           else if(r&&r.error) bannerMsg(r.error); }).catch(()=>{}); eliteUnlock=''; frags=0; }   // v250: the SERVER resolves elite and owns the fragment grant   // v250: the SERVER resolves elite and owns the fragment grant
       else { eliteUnlock=giveHeroFrag(key,frags); }
       grantTeamXP(70); saveG(); updateHubChrome(); }
     resultLater(()=>{ document.getElementById('resultTitle').textContent=won?'ELITE CLEARED':'DEFEAT'; document.getElementById('resultTitle').className='result-big '+(won?'win':'lose');
-      document.getElementById('resultReward').innerHTML=won?`<span style="color:#c9a2ff">🧩 ${_srv?('+'+(_srv.n|0)+' '+((HERO_TYPES[_srv.hk]||{}).name||_srv.hk)):(ACC.token?'tallying':('+'+frags+' '+HERO_TYPES[key].name))} fragments</span>${eliteUnlock?`<br><span style="color:#ffd45e">${eliteUnlock}</span>`:''}`:'Your squad fell. The attempt was still used.'; document.getElementById('resultHint').textContent='Fragments summon a hero, then raise its stars (Heroes → hero → Star Up).'; gameSpeed=1; show('result'); },800); return; }
+      document.getElementById('resultReward').innerHTML=won?`<span style="color:#c9a2ff">${fragCard(_srv?_srv.hk:key)} ${_srv?('+'+(_srv.n|0)+' '+((HERO_TYPES[_srv.hk]||{}).name||_srv.hk)):(ACC.token?'tallying':('+'+frags+' '+HERO_TYPES[key].name))} fragments</span>${eliteUnlock?`<br><span style="color:#ffd45e">${eliteUnlock}</span>`:''}`:'Your squad fell. The attempt was still used.'; document.getElementById('resultHint').textContent='Fragments summon a hero, then raise its stars (Heroes → hero → Star Up).'; gameSpeed=1; show('result'); },800); return; }
   if(CUR.mode==='raid'){ if(won){grantTeamXP(50);saveG();updateHubChrome();}   // v250: gold + heroXp come from the VERIFIED /api/pvp/attack route
     resultLater(async(ep)=>{
       // v253: a city fight is server-resolved from ANY entry point (map march or direct raid) —
@@ -13232,7 +13238,7 @@ function endBattle(won){
         ? rewardPanel((r.reward&&r.reward.glyphFragments)||[], {gold:(r.reward&&r.reward.gold)||0, px:(r.reward&&r.reward.playerXp)||0, heroXp:(r.reward&&r.reward.heroXp)||0},
             'Portal '+stageCode(CUR.node))
           +(Object.entries((r.reward&&r.reward.xpPotions)||{}).filter(([,n])=>n>0).map(([tier,n])=>`<div style="margin-top:6px;color:#c9a0ff">${uiIcon('lore-book')} +${n} ${escapeHTML(tier[0].toUpperCase()+tier.slice(1))} Hero XP Potion${n===1?'':'s'}</div>`).join(''))
-          +((r.reward&&r.reward.eliteFrag&&r.reward.eliteFrag.qty)?`<div style="margin-top:6px;color:#c9a0ff">🧩 +${r.reward.eliteFrag.qty|0} ${escapeHTML((HERO_TYPES[r.reward.eliteFrag.heroKey]||{}).name||r.reward.eliteFrag.heroKey)} fragment${(r.reward.eliteFrag.qty|0)===1?'':'s'}</div>`:'')
+          +((r.reward&&r.reward.eliteFrag&&r.reward.eliteFrag.qty)?`<div style="margin-top:6px;color:#c9a0ff">${fragCard(r.reward.eliteFrag.heroKey)} +${r.reward.eliteFrag.qty|0} ${escapeHTML((HERO_TYPES[r.reward.eliteFrag.heroKey]||{}).name||r.reward.eliteFrag.heroKey)} fragment${(r.reward.eliteFrag.qty|0)===1?'':'s'}</div>`:'')
           +((r.reward&&r.reward.dailyCapped)?'<div style="margin-top:6px;color:#ff9a9a">Daily limit reached for this stage (3 rewarded runs/day) — no rewards this run.</div>':'')
           +`<div style="margin-top:6px">${uiIcon('star-filled').repeat(r.stars||1)}${r.reward&&r.reward.first?' · <b style="color:#ffd45e">First clear!</b>':''}</div>`
         : (_unv?('<div style="color:#ffd45e;font-weight:700;margin-bottom:4px">You '+(/"won":true/.test(window._p2lastDigest||'')?'won':'fought')+' this one — '+((r&&(r.error==='offline'||r.storageFailed))?(r.storageFailed?'but the server could not save it, so it was not counted.':'but the connection was lost before the server answered, so it is not counted here.'):'but the server could not verify it, so nothing was recorded and your stamina is back.')+'</div><span style="color:#ff8b8b">'+escapeHTML((r&&r.error&&r.error!=='offline')?r.error:'')+'</span>'+(r&&r.reason?'<div style="font-size:10.5px;color:#6f7d90;margin-top:4px">('+escapeHTML(r.reason)+(CUR.engine&&CUR.engine!==BUILD_ID?' · the game updated during this fight':'')+')</div>':''))
@@ -14181,6 +14187,7 @@ function drawOverlay(){octx.clearRect(0,0,CW,CH); _edOvRect=null;
       const rx=p.x-w/2, ry=p.y-h/2;
       if(octx.roundRect){ octx.beginPath(); octx.roundRect(rx,ry,w,h,6*_ftK); octx.fill(); octx.stroke(); }
       else { octx.fillRect(rx,ry,w,h); octx.strokeRect(rx,ry,w,h); } }
+    if(f.img){ const im=ftImg(f.img); if(im.complete&&im.naturalWidth){ const d=sz*1.6; octx.drawImage(im,p.x-d/2,p.y-d/2,d,d); octx.globalAlpha=1; return; } }   // v1100: icon art (Sorrel's suits)
     octx.font='900 '+sz+'px sans-serif';
     octx.lineWidth=_ftBn?Math.max(0.6,sz*0.24):Math.max(3,sz*0.24); octx.strokeStyle='rgba(0,0,0,.9)'; octx.strokeText(f.txt,p.x,p.y);
     octx.fillStyle=col; octx.fillText(f.txt,p.x,p.y); });
@@ -14650,8 +14657,8 @@ function openProfile(){ if(rewardLocked()){ queueBehindReward(openProfile); retu
 /* v267 (80/20 §9): every currency's SOURCES, SINKS and CAPS, and the daily reset in BOTH server
    time and the player's own local time — read live from /api/manifest, never hard-coded here. */
 const CURRENCY_META={ gold:[hudIcon('gold'),'Gold'], gems:[hudIcon('gem'),'Diamonds'], stamina:['⧗','Stamina'],
-  dust:[uiIcon('sparkle-new'),'Forge Dust'], glyphFragments:['◆','Glyph Fragments'], gearFragments:['⚒','Gear Fragments'],
-  cityResources:['🌾','City Resources'], guildCoins:[uiIcon('medal'),'Guild Coins'], heroFragments:['🧩','Hero Fragments'] };
+  dust:[uiIcon('res-forge-dust'),'Forge Dust'], glyphFragments:['◆','Glyph Fragments'], gearFragments:[uiIcon('mode-forge'),'Gear Fragments'],
+  cityResources:['🌾','City Resources'], guildCoins:[uiIcon('medal'),'Guild Coins'], heroFragments:['','Hero Fragments'] };
 async function openEconomy(){
   const sh=modalShell();
   sh.body.innerHTML='<div style="font-weight:800;margin-bottom:6px">'+uiIcon('war-chest')+' Economy</div><div style="color:#8b98a9;font-size:12px">Loading the live currency manifest…</div>';
@@ -14877,7 +14884,7 @@ function vaultWaveHTML(w){
 function vaultResultHTML(r){
   const won=r.result&&r.result.won;
   let rew='';
-  if(won&&r.reward){ rew=`<div style="text-align:center;margin:6px 0;font-size:12px;color:#ffd45e">${uiIcon('sparkle-new')} +${r.reward.dust} Forge Dust${r.reward.fragments&&r.reward.fragments.length?'<br>🧩 '+r.reward.fragments.join(', '):''}${r.reward.heroXp?'<br><span style="color:#5ee89b">'+uiIcon('star-filled')+' +'+r.reward.heroXp+' hero XP each</span>':''}${r.reward.firstClearDoubled?'<br><span style="color:#c9a2ff">First clear — package doubled!</span>':''}</div>`; }
+  if(won&&r.reward){ rew=`<div style="text-align:center;margin:6px 0;font-size:12px;color:#ffd45e">${uiIcon('res-forge-dust')} +${r.reward.dust} Forge Dust${r.reward.fragments&&r.reward.fragments.length?'<br>'+r.reward.fragments.map(k=>glyphFragChip(k)+escapeHTML(k)).join(', '):''}${r.reward.heroXp?'<br><span style="color:#5ee89b">'+uiIcon('star-filled')+' +'+r.reward.heroXp+' hero XP each</span>':''}${r.reward.firstClearDoubled?'<br><span style="color:#c9a2ff">First clear — package doubled!</span>':''}</div>`; }
   return `<div class="panel" style="border-color:${won?'#2b7a55':'#7a2b2b'}">
     <div style="text-align:center;font-weight:900;font-size:15px;color:${won?'#5ee89b':'#ff8b8b'}">${won?uiIcon('trophy')+' FLOOR CLEARED':statusIcon('death')+' THE VAULT HOLDS'}</div>${rew}
     ${(r.waveResults||[]).map(vaultWaveHTML).join('')}
@@ -14896,13 +14903,13 @@ async function vaultSweep(){ if(VAULT.busy)return;
 }
 /* v372 (Phil): "when I sweep a pop-up should populate — a scrolling text of all the items you earn per level" */
 function vaultSweepPopup(r){
-  const rows=(r.perFloor||[]).map(f=>{ const bits=['<span style="color:#ffd45e">'+uiIcon('sparkle-new')+' '+f.dust+' Dust</span>'];
-      (f.fragments||[]).forEach(k=>bits.push('<span style="color:#c9a2ff">🧩 '+escapeHTML(k)+'</span>'));
-      (f.gearFragments||[]).forEach(k=>bits.push('<span style="color:#ff9d5e">⚒ '+escapeHTML(k)+'</span>'));
+  const rows=(r.perFloor||[]).map(f=>{ const bits=['<span style="color:#ffd45e">'+uiIcon('res-forge-dust')+' '+f.dust+' Dust</span>'];
+      (f.fragments||[]).forEach(k=>bits.push('<span style="color:#c9a2ff">'+glyphFragChip(k)+escapeHTML(k)+'</span>'));
+      (f.gearFragments||[]).forEach(k=>bits.push('<span style="color:#ff9d5e">'+uiIcon('mode-forge')+escapeHTML(k)+'</span>'));
       if(r.heroXpPerFloor) bits.push('<span style="color:#5ee89b">'+uiIcon('star-filled')+' +'+r.heroXpPerFloor+' hero XP</span>');
       return `<div style="display:flex;gap:10px;align-items:flex-start;padding:5px 0;border-bottom:1px solid #1b2438;font-size:11px"><b style="flex:none;width:64px;color:#c9a2ff">Floor ${f.floor}</b><div style="flex:1;line-height:1.5">${bits.join(' · ')}</div></div>`; }).join('');
   const fr=Object.entries(r.fragments||{}), gf=Object.entries(r.gearFragments||{});
-  const totals=`<div style="font-size:12px;line-height:1.6;color:#e6edf3"><b style="color:#ffd45e">${uiIcon('sparkle-new')} +${r.totalDust} Forge Dust</b>${r.heroXp?`<br><b style="color:#5ee89b">${uiIcon('star-filled')} +${r.heroXp} hero XP</b> <span style="color:#8b98a9">to ${(r.heroXpTeam||[]).map(k=>(HERO_TYPES[k]||{}).name||k).join(', ')}</span>`:''}${fr.length?'<br>🧩 '+fr.map(([k,n])=>n+'× '+escapeHTML(k)).join(', '):''}${gf.length?'<br>⚒ '+gf.map(([k,n])=>n+'× '+escapeHTML(k)).join(', '):''}</div>`;
+  const totals=`<div style="font-size:12px;line-height:1.6;color:#e6edf3"><b style="color:#ffd45e">${uiIcon('res-forge-dust')} +${r.totalDust} Forge Dust</b>${r.heroXp?`<br><b style="color:#5ee89b">${uiIcon('star-filled')} +${r.heroXp} hero XP</b> <span style="color:#8b98a9">to ${(r.heroXpTeam||[]).map(k=>(HERO_TYPES[k]||{}).name||k).join(', ')}</span>`:''}${fr.length?'<br>'+fr.map(([k,n])=>glyphFragChip(k)+n+'× '+escapeHTML(k)).join(', '):''}${gf.length?'<br>'+uiIcon('mode-forge')+gf.map(([k,n])=>n+'× '+escapeHTML(k)).join(', '):''}</div>`;
   const ov=document.createElement('div'); ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.45);display:flex;align-items:center;justify-content:flex-end;z-index:20000;padding:16px;padding-right:max(16px,4vw)';   // v373 (Phil): pop-ups on the right
   ov.innerHTML=`<div style="background:#151b2b;border:1px solid #33405e;border-radius:16px;padding:16px;width:100%;max-width:420px;max-height:86vh;display:flex;flex-direction:column;box-shadow:0 10px 40px #000a">
     <div style="font-weight:900;font-size:15px;color:#ffd45e;text-align:center">${uiIcon('sweep')} Swept ${r.floors} floors</div>
@@ -14932,10 +14939,10 @@ function vaultScreenHTML(){
   const s=VAULT.st;
   // header row leaves room for the floating ◀ Base button (top-left) and pins the floor pill right
   const headBar=`<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin:2px 0 12px;padding-left:92px;min-height:34px">
-      <div style="font-weight:900;font-size:clamp(15px,2.6vw,19px);letter-spacing:.5px;white-space:nowrap">🏛️ THE VAULT</div>
+      <div style="font-weight:900;font-size:clamp(15px,2.6vw,19px);letter-spacing:.5px;white-space:nowrap">${uiIcon('mode-vault')} THE VAULT</div>
       <span class="pill" style="border:1px solid #7a5fb0;color:#c9a2ff;font-weight:800;white-space:nowrap">Floor ${s.currentFloor} / 100</span></div>`;
   if(s.vaultStatus==='complete') return headBar+`<div class="panel" style="text-align:center;padding:26px">
-      <div style="font-size:44px">🏛️</div><div style="font-weight:900;font-size:16px;color:#ffd45e;margin:6px 0">AETHER VAULT — CONQUERED</div>
+      <div style="font-size:44px">${uiIcon('mode-vault')}</div><div style="font-weight:900;font-size:16px;color:#ffd45e;margin:6px 0">AETHER VAULT — CONQUERED</div>
       <div style="font-size:12px;color:#8b98a9">All 100 floors cleared. The Vault Extension is coming soon.</div>
       <button class="btn" style="margin-top:14px" onclick="vaultSweep()">${uiIcon('sweep')} Sweep (${s.sweep.freeUsesRemaining} free today)</button></div>`;
   const stat=(label,val)=>`<div style="flex:1;min-width:110px;background:#111a28;border:1px solid #22304a;border-radius:10px;padding:7px 10px;text-align:center">
@@ -14945,13 +14952,13 @@ function vaultScreenHTML(){
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
       ${stat('Highest cleared',`<span style="color:#e6edf3">${s.highestClearedFloor}</span>`)}
       ${stat('Fragment band',`<span style="color:#c9a2ff">${s.band}</span>`)}
-      ${stat('Floor reward',`<span style="color:#ffd45e">${uiIcon('sparkle-new')}${s.dust}</span>${s.isBoss?' <span style="color:#c9a2ff">+🧩×2</span>':''}`)}
+      ${stat('Floor reward',`<span style="color:#ffd45e">${uiIcon('res-forge-dust')}${s.dust}</span>${s.isBoss?' <span style="color:#c9a2ff">+2 glyph fragments</span>':''}`)}
     </div>
     ${(s.targets&&((s.targets.glyphFragments||[]).length||(s.targets.gearFragments||[]).length))?`
     <div style="background:#0f1726;border:1px solid #24314e;border-radius:10px;padding:8px 10px;margin-bottom:10px;text-align:left">
       <div style="font-size:10px;letter-spacing:1px;color:#8b98a9;margin-bottom:3px">THIS FLOOR DROPS</div>
       ${(s.targets.glyphFragments||[]).map(k=>`<div style="font-size:11.5px;color:#8fe3ff">${(typeof g2artKey==='function')?g2artKey('fragment',k,14):'◆'} <b>${escapeHTML(k)} Fragment</b> <span style="color:#8b98a9">· Glyph Fragment</span></div>`).join('')}
-      ${(s.targets.gearFragments||[]).map(k=>`<div style="font-size:11.5px;color:#ffb37a">⚒ <b>${escapeHTML(k)}</b> <span style="color:#8b98a9">· Gear Fragment</span></div>`).join('')}
+      ${(s.targets.gearFragments||[]).map(k=>`<div style="font-size:11.5px;color:#ffb37a">${uiIcon('mode-forge')} <b>${escapeHTML(k)}</b> <span style="color:#8b98a9">· Gear Fragment</span></div>`).join('')}
       ${s.isBoss?'<div style="font-size:10.5px;color:#c9a2ff;margin-top:3px">Boss floor — first clear pays the package twice.</div>':''}
     </div>`:''}
     ${s.isBoss?vaultBossLabel(s.bossRule):''}
@@ -15280,7 +15287,7 @@ function heroGearTabHTML(key){
         <div style="font-size:10px;color:#8fe3ff;margin-top:2px">${uiIcon('sparkle-new')} ${escapeHTML(d.active||'')} — <span style="color:#8b98a9">${escapeHTML(d.effect||'')}</span>${act===iid?' <b style="color:#5ee89b">· ACTIVE</b>':''}</div>
         <div style="display:flex;align-items:center;gap:6px;font-size:9px;margin-top:4px"><span style="color:#ffd45e">Temper ${it.temper||0}/${T.max}</span><div style="flex:1;height:6px;background:#1a2233;border-radius:3px;overflow:hidden"><div style="height:100%;width:${Math.round(100*(it.prog||0)/bar)}%;background:#ffd45e"></div></div><span style="color:#8b98a9">raise it in the Forge</span></div>
         <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px">${act===iid?'':`<button class="btn xs secondary" onclick="gearHeroPost('/select-active',{heroKey:'${key}',itemId:'${iid}'},r=>'{i:u:sparkle-new} Active: '+r.active)">Set Active</button>`}<span style="font-size:9px;color:#8b98a9;align-self:center">${uiIcon('link')} bound to ${escapeHTML((HERO_TYPES[key]||{}).name||key)} — build a higher piece to replace it</span></div></div></div></div>`; }
-  return `<div class="panel" style="padding:8px 10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px"><span style="font-size:11px;color:#8b98a9">${escapeHTML(role)} loadout · built <b style="color:#e6edf3">${nEq}/9</b></span><span style="font-size:11px;color:#8b98a9">Resonance <b style="color:#ffd45e">${res.rank||0}</b> · ${uiIcon('sparkle-new')} Dust <b style="color:#e6edf3">${st.dust||0}</b></span></div>
+  return `<div class="panel" style="padding:8px 10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px"><span style="font-size:11px;color:#8b98a9">${escapeHTML(role)} loadout · built <b style="color:#e6edf3">${nEq}/9</b></span><span style="font-size:11px;color:#8b98a9">Resonance <b style="color:#ffd45e">${res.rank||0}</b> · ${uiIcon('res-forge-dust')} Dust <b style="color:#e6edf3">${st.dust||0}</b></span></div>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:6px 0">${cells}</div>
     ${detail}
     `;   /* v767 - the how-to paragraph is gone (Phil: "these little notes all around are useless") */
@@ -15303,7 +15310,7 @@ function openFragSource(frag){
     <div style="font-size:11px;color:#6f7d90;margin-bottom:6px">Every clear <b>or sweep</b> of these Aether Vault floors grants this fragment. The floors are fixed and authored — the same floor always gives the same two gear fragments.</div>
     <div style="display:flex;flex-wrap:wrap;gap:4px">${f.map(n=>`<span class="pill" style="border:1px solid #2b3d5c;color:#8fe3ff;font-size:10px">Vault ${n}</span>`).join('')}</div>`;
   const sh=modalShell();
-  sh.body.innerHTML=`<div style="font-weight:800;margin-bottom:6px">🧩 ${escapeHTML(frag)}</div>`+body;
+  sh.body.innerHTML=`<div style="font-weight:800;margin-bottom:6px">${uiIcon('mode-forge')} ${escapeHTML(frag)}</div>`+body;
 }
 function forgeCraftPick(gearId){
   const d=forgeDef(gearId); if(!d||!(d.qi>0)) return;
@@ -15385,7 +15392,7 @@ function renderForge(){
   b.innerHTML=`<div class="panel">
       <div style="display:flex;justify-content:space-between;align-items:center">
         <b style="font-size:13px">⚒️ The Forge</b>
-        <span class="pill" style="border:1px solid #c9922a;color:#ffd45e">${uiIcon('sparkle-new')} ${st.dust||0} Forge Dust</span></div>
+        <span class="pill" style="border:1px solid #c9922a;color:#ffd45e">${uiIcon('res-forge-dust')} ${st.dust||0} Forge Dust</span></div>
       <div style="font-size:10px;color:#8b98a9;margin-top:3px">🔮 Forge Resonance <b style="color:#c9a2ff">Rank ${res.rank}</b> (+${res.rank}% all gear stats) · total Temper ${res.total}${res.next!=null?' · next rank at '+res.next:''}</div></div>
     <div style="display:flex;gap:4px;margin:8px 0">
       ${[['items',statusIcon('burn')+' Temper'],['heroes',statusIcon('shield')+' Heroes']].map(([t,l])=>`<button class="btn xs ${FORGE.tab===t?'':'secondary'}" style="flex:1" onclick="forgeTab('${t}')">${l}</button>`).join('')}</div>
@@ -18018,7 +18025,7 @@ function renderDungeon(){
   if(VAULT.st===null){ b.innerHTML='<div class="panel" style="text-align:center;color:#8b98a9;padding:20px">Entering the Vault…</div>';
     vaultStatus().then(()=>renderDungeon()); return; }
   if(VAULT.st.unreachable){ b.innerHTML=`<div style="position:absolute;inset:0;overflow-y:auto"><div style="max-width:620px;margin:0 auto;padding:12px 16px 28px">
-      <div class="panel" style="text-align:center;padding:26px"><div style="font-size:44px">🏛️</div><div style="font-weight:900;font-size:16px;color:#c9a2ff;margin:6px 0">COULD NOT REACH THE VAULT</div>
+      <div class="panel" style="text-align:center;padding:26px"><div style="font-size:44px">${uiIcon('mode-vault')}</div><div style="font-weight:900;font-size:16px;color:#c9a2ff;margin:6px 0">COULD NOT REACH THE VAULT</div>
       <button class="btn" id="vaultRetry">Retry</button></div></div></div>`;
     const rb=document.getElementById('vaultRetry'); if(rb) rb.onclick=()=>{ VAULT.st=null; renderDungeon(); }; return; }
   if(VAULT.st.locked){   // v364: the Vault opens at player level 10 (server-decided)
@@ -18186,7 +18193,7 @@ function renderElite(){
       return `<div class="panel"><div style="display:flex;align-items:center;gap:10px">
         <div style="width:46px;height:46px;border-radius:9px;overflow:hidden;border:1px solid #2a3550;flex:none">${heroIcon(k,46)}</div>
         <div style="flex:1"><div style="font-weight:700">${t.name} <span style="color:#ffd45e;font-size:11px">${st}${uiIcon('star-filled')}</span></div>
-          <div style="font-size:10px;color:#8b98a9">🧩 Fragments ${frags}${st<MAX_STARS?' · next '+ncost:' · MAX'} · attempts left ${left}/${ELITE_DAILY}${_locked?' · locked — clear campaign stage '+(_any?stageCode(_any):'?'):''}</div></div>
+          <div style="font-size:10px;color:#8b98a9">${fragCard(k,14)} Fragments ${frags}${st<MAX_STARS?' · next '+ncost:' · MAX'} · attempts left ${left}/${ELITE_DAILY}${_locked?' · locked — clear campaign stage '+(_any?stageCode(_any):'?'):''}</div></div>
         <button class="btn sm" data-k="${k}" ${canGo?'':'disabled'}>${statusIcon('attack')} ${ELITE_STAM}⧗</button></div></div>`;
     }).join('');
   b.querySelectorAll('button[data-k]').forEach(btn=>btn.onclick=()=>startElite(btn.dataset.k));
@@ -18365,7 +18372,7 @@ async function shopOnce(fn){ if(SHOP_BUSY) return; SHOP_BUSY=true; try{ await fn
 function renderMarket(){
   const b=document.getElementById('marketBody'); ensureMarket();
   const left=MARKET_REFRESH_MS-(Date.now()-G.market.ts);
-  b.innerHTML=`<div style="display:flex;justify-content:space-between;font-size:12px;color:#8b98a9;margin-bottom:8px"><span>${hudIcon('gold')} ${G.gold}  ·  ${hudIcon('gem')} ${G.gems}${(ACC.token&&G.marketToday)?`  ·  🧩 ${G.marketToday.used|0}/${G.marketToday.max|0} today`:''}</span><span>⟳ restock ${fmtDur(left)}</span></div>`+
+  b.innerHTML=`<div style="display:flex;justify-content:space-between;font-size:12px;color:#8b98a9;margin-bottom:8px"><span>${hudIcon('gold')} ${G.gold}  ·  ${hudIcon('gem')} ${G.gems}${(ACC.token&&G.marketToday)?`  ·  Fragments ${G.marketToday.used|0}/${G.marketToday.max|0} today`:''}</span><span>⟳ restock ${fmtDur(left)}</span></div>`+
     G.market.offers.map((o,i)=>{ const c=o.cost.gold?(hudIcon('gold')+' '+o.cost.gold):(hudIcon('gem')+' '+o.cost.gems), afford=o.cost.gold?G.gold>=o.cost.gold:G.gems>=o.cost.gems;
       const frag=o.kind==='frag', ic=frag?heroIcon(o.hero,34):`<span style="font-size:22px">${o.icon}</span>`;
       const nm=frag?(o.qty+'× '+HERO_TYPES[o.hero].name+' fragments'):o.name;
@@ -18400,7 +18407,7 @@ let campViewCh=0;   // which chapter the roadmap is showing (0 = auto = the chap
 /* v266 — Exact Glyph Fragment Farm Map v1: three fixed portals, each with its own progress and its
    own 100/100/18 fragment sources. PORTAL is which one the roadmap is showing. */
 const PORTAL_META={ normal:{label:'Normal', stages:160, icon:uiIcon('map')},
-  elite:{label:'Elite', stages:160, icon:statusIcon('attack')}, veteran:{label:'Veteran', stages:18, icon:'🔶'} };
+  elite:{label:'Elite', stages:160, icon:statusIcon('attack')}, veteran:{label:'Veteran', stages:18, icon:uiIcon('mode-portal-veteran')} };
 let PORTAL='normal';
 function portalStages(m){ return (PORTAL_META[m]||PORTAL_META.normal).stages; }
 function portalCleared(m){ return m==='normal' ? (G.campaignCleared|0) : ((G.portals&&G.portals[m]&&G.portals[m].cleared)|0); }
@@ -18419,7 +18426,7 @@ function starMilestoneReward(idx){   // idx 0 => 15 stars, 1 => 30, ...
   if(cyc===0) return {desc:hudIcon('gold')+' '+(2000*tier).toLocaleString()+' gold', give:()=>{ if(!ACC.token) G.gold=(G.gold||0)+2000*tier; return txEarnP('gold',2000*tier,'stars',{requestId:requestBase+':gold'}); }};
   if(cyc===1) return {desc:'⧗ '+(60*tier)+' stamina', give:()=>{ if(!ACC.token) G.stamina=(G.stamina||0)+60*tier; return txEarnP('stamina',60*tier,'stars',{requestId:requestBase+':stamina'}); }};
   if(cyc===2) return {desc:hudIcon('gem')+' '+(100*tier)+' diamonds', give:()=>{ if(!ACC.token) G.gems=(G.gems||0)+100*tier; return txEarnP('gems',100*tier,'stars',{requestId:requestBase+':gems'}); }};
-  return {desc:'🧩 '+(5*tier)+' random hero fragments', give:()=>{ const cnt={}; for(let i=0;i<5*tier;i++){ const hk=randLockedHero(); if(!hk) continue; cnt[hk]=(cnt[hk]||0)+1; }
+  return {desc:(5*tier)+' random hero fragments', give:()=>{ const cnt={}; for(let i=0;i<5*tier;i++){ const hk=randLockedHero(); if(!hk) continue; cnt[hk]=(cnt[hk]||0)+1; }
       const keys=Object.keys(cnt); if(!keys.length) return Promise.resolve(true);
       /* one grant per distinct hero, SEQUENTIALLY: each response carries a whole ledger, and two in
          flight at once can land out of order and adopt the older one. */
@@ -18442,7 +18449,7 @@ function claimStarMilestone(){ if(!starTrackClaimable()||_starClaimBusy) return;
       if(!res||!res.ok){ bannerMsg((res&&res.error)||'That reward could not be granted just now.'); renderStarTrack(); return; }
       if(res.claimed!=null) G.starMilestonesClaimed=res.claimed|0;
       const g=res.got||{}, fr=g.frags?Object.keys(g.frags).reduce(function(s,k){ return s+(g.frags[k]|0); },0):0;
-      const what=g.gold?(hudIcon('gold')+' '+g.gold.toLocaleString()+' gold'):g.stamina?('⧗ '+g.stamina+' stamina'):g.gems?(hudIcon('gem')+' '+g.gems+' diamonds'):('🧩 '+fr+' hero fragments');
+      const what=g.gold?(hudIcon('gold')+' '+g.gold.toLocaleString()+' gold'):g.stamina?('⧗ '+g.stamina+' stamina'):g.gems?(hudIcon('gem')+' '+g.gems+' diamonds'):(fr+' hero fragments');
       saveG(); updateHubChrome(); bannerMsg(uiIcon('star-filled')+' '+((res.idx+1)*15)+'-star reward!\n'+what); renderStarTrack(); })
      .catch(function(){ _starClaimBusy=false; renderStarTrack(); });
     return; }
@@ -18762,7 +18769,7 @@ function openStageModal(i,mode){
     <div class="smMeta"><div><span>Stamina</span><b>⧗ ${stageStamCost(i,mode)}</b></div><div><span>${_eb?'Chances':'Status'}</span><b>${_eb?_left+'/'+ELITE_BOSS_DAILY:(cleared?'Cleared':'New')}</b></div><div><span>Reward XP</span><b>${campaignPlayerXP(i,!cleared,mode)}</b></div></div>
     <div id="smDetails">${stageDetailHTML(_stg,i)}</div>
     <div id="smFragTarget" style="margin-top:8px">${stageDropsHTML(_stg,i,mode)}</div>
-    <div style="font-size:11px;color:#c9a0ff;margin-top:6px;text-align:center">${uiIcon('lore-book')} One ${xpPotionStageText(i,mode)} Hero XP Potion per rewarded run</div>
+    <div style="font-size:11px;color:#c9a0ff;margin-top:6px;text-align:center">${uiIcon('res-xp-potion')} One ${xpPotionStageText(i,mode)} Hero XP Potion per rewarded run</div>
     ${canPay?'':'<div style="font-size:11px;color:#ff9a9a;margin-top:8px;text-align:center">Not enough stamina.</div>'}
     <div class="smActions"><button class="btn smBattle" id="smBattle" ${(canPay&&(_farmable||!cleared)&&_gateOK)?'':'disabled'}>${_gateOK?statusIcon('attack')+' Fight '+(cleared?'Again':'Now'):hudIcon('lock')+' Reach level '+_gate}</button>
       ${cleared?`<button class="btn secondary" id="smSweep" ${(canPay&&_farmable&&_threeStar)?'':'disabled'}>${_threeStar?statusIcon('dash')+' Sweep':hudIcon('lock')+' Needs '+uiIcon('star-filled')+uiIcon('star-filled')+uiIcon('star-filled')}</button>`:'<button class="btn secondary" disabled>'+statusIcon('dash')+' Sweep</button>'}
@@ -18793,7 +18800,7 @@ function rewardPanel(glyphFrags, bonus, sourceLine, gearFrags){
       ${(typeof g2artKey==='function')?g2artKey('fragment',k,26):'◆'}
       <b style="color:#8fe3ff">${escapeHTML(f.displayName||f.key)}</b>
       <b style="color:#fff">×${f.quantity||1}</b></div>`; }).join('');
-  const gr=(gearFrags||[]).map(n=>`<div style="margin:3px 0"><b style="color:#ffb37a">⚒ ${escapeHTML(n)}</b> <span style="color:#8b98a9">· Gear Fragment</span></div>`).join('');
+  const gr=(gearFrags||[]).map(n=>`<div style="margin:3px 0"><b style="color:#ffb37a">${uiIcon('mode-forge')} ${escapeHTML(n)}</b> <span style="color:#8b98a9">· Gear Fragment</span></div>`).join('');
   const head=(gf||gr)?`<div style="font-size:11px;letter-spacing:1px;color:#8b98a9;margin-bottom:2px">GUARANTEED REWARD</div>${gf}${gr}${sourceLine?`<div style="font-size:10.5px;color:#6f7d90;margin-top:2px">Source: ${escapeHTML(sourceLine)}</div>`:''}`:'';
   const b=bonus||{};
   const bits=[];
@@ -18847,7 +18854,7 @@ function sweepStage(i,times,mode){
       <span style="color:#fff;font-size:10.5px;font-weight:800">${qty}</span></span>`;
     const items=(r.glyphFragments||[]).map(f=>line(art(f.key||f.displayName), escapeHTML((f.displayName||f.key||'').replace(/ Fragment$/,'')), '×'+f.quantity)).join('');
     const eliteLine=(r.eliteFrag&&r.eliteFrag.qty)
-      ? line('<span style="font-size:13px;line-height:1">'+((HERO_TYPES[r.eliteFrag.heroKey]||{}).emoji||'🧩')+'</span>',
+      ? line(fragCard(r.eliteFrag.heroKey,16),
              escapeHTML((HERO_TYPES[r.eliteFrag.heroKey]||{}).name||r.eliteFrag.heroKey)+' Fragment', '×'+r.eliteFrag.qty, '#c9a0ff') : '';
     const potionLine=Object.entries(r.xpPotions||{}).filter(([,n])=>n>0).map(([tier,n])=>line(uiIcon('lore-book'),escapeHTML(tier[0].toUpperCase()+tier.slice(1))+' XP Potion','×'+n,'#c9a0ff')).join('');
     const spoils=[ r.gold?`<span style="color:#ffd45e">+${r.gold.toLocaleString()}g</span>`:'',
@@ -21480,7 +21487,7 @@ const WAR_TOTAL_MS=72*3600000;   // a declared war lasts 72 hours total, then mu
 const MAIL_KINDS=['inbox','war','mines','scouts'];   // Inbox = guild+player only · War = attacks made/taken + defends · Mines = mine reports · Scouts = scout reports + declare-war
 function ensureMail(){ if(!G.mail||typeof G.mail!=='object')G.mail={}; MAIL_KINDS.forEach(k=>{ if(!Array.isArray(G.mail[k]))G.mail[k]=[]; }); if(!Array.isArray(G.wars))G.wars=[];
   // one-time migration from the old {inbox,reports} layout → new tabs
-  if(Array.isArray(G.mail.reports)){ G.mail.reports.forEach(mm=>{ const s=(mm&&mm.subj)||''; if(s.indexOf('⛏')>=0)G.mail.mines.push(mm); else if(s.indexOf('🔭')>=0)G.mail.scouts.push(mm); else G.mail.war.push(mm); }); delete G.mail.reports; }
+  if(Array.isArray(G.mail.reports)){ G.mail.reports.forEach(mm=>{ const s=(mm&&mm.subj)||''; if(s.indexOf('⛏')>=0||s.indexOf('{i:u:mode-mine}')>=0)G.mail.mines.push(mm); else if(s.indexOf('🔭')>=0)G.mail.scouts.push(mm); else G.mail.war.push(mm); }); delete G.mail.reports; }
   { const keep=[],moved=[]; G.mail.inbox.forEach(mm=>{ (mm&&mm.battle)?moved.push(mm):keep.push(mm); }); if(moved.length){ G.mail.war.push(...moved); G.mail.inbox=keep; } }   // old raid battle-mails left inbox → war
   MAIL_KINDS.forEach(k=>{ const cap=(typeof MAIL_CAP==='object'&&MAIL_CAP[k])||40; if(G.mail[k].length>cap)G.mail[k].length=cap; });
   return G.mail; }
@@ -21578,7 +21585,7 @@ function resolveMarch(m){
   }
   if(m.ctype==='mine'){   // mining = fight the mine's 5 monster guardians on full auto; win → haul the resources
     if(ACC.token){
-      if(!m.serverMineId){ marchReport('⛏ Old mine trip','This trip predates verified mine battles and cannot pay a haul. Send a fresh squad.'); return; }
+      if(!m.serverMineId){ marchReport('{i:u:mode-mine} Old mine trip','This trip predates verified mine battles and cannot pay a haul. Send a fresh squad.'); return; }
       if(m.resolving && Date.now()-(m.resolvingAt||0)<30000) return false;
       m.resolving=true; m.resolvingAt=Date.now();
       m.mineResolveRid=m.mineResolveRid||uid8();   /* v1001 (World audit #3): ONE requestId per haul - a retry answers with the receipt */
@@ -21594,7 +21601,7 @@ function resolveMarch(m){
             bannerMsg(reason+' Retrying shortly.'); saveG(); return;
           }
           m.resolved=true;
-          addMail('mines',{from:'⛏ Mine',subj:'{i:u:warning} Mine trip not resolved',
+          addMail('mines',{from:'{i:u:mode-mine} Mine',subj:'{i:u:warning} Mine trip not resolved',
             body:reason+' No outcome or resources were awarded.'});
           marchReport('{i:u:warning} Mine trip not resolved',reason);
           updateMailBadges(); saveG(); return;
@@ -21606,13 +21613,13 @@ function resolveMarch(m){
         const replay=r.replay?{v:2,seed:r.replay.seed,mineSnap:r.replay.snaps,
           foe:r.replay.foe,won:!!r.won,oppName:mineLabel({level:m.mineLevel,res:m.res})}:null;
         if(r.won){
-          addMail('mines',{from:'⛏ '+label+' Mine',subj:'⛏ Mine cleared — '+label,
+          addMail('mines',{from:'{i:u:mode-mine} '+label+' Mine',subj:'{i:u:mode-mine} Mine cleared — '+label,
             body:'Your squad defeated five guardians and brought home '+mnResIcon(m.res)+' '+got+' '+label+'.',battle:replay});
-          marchReport('⛏ Mining complete','The guardians fell. Your squad hauled '+mnResIcon(m.res)+' '+got+' '+label+'.');
+          marchReport('{i:u:mode-mine} Mining complete','The guardians fell. Your squad hauled '+mnResIcon(m.res)+' '+got+' '+label+'.');
         } else {
-          addMail('mines',{from:'⛏ '+label+' Mine',subj:'⛏ Guardians held — '+label,
+          addMail('mines',{from:'{i:u:mode-mine} '+label+' Mine',subj:'{i:u:mode-mine} Guardians held — '+label,
             body:'The mine guardians drove your squad off. No resources were granted; surviving injuries remain until healed at the Witches Hut.',battle:replay});
-          marchReport('⛏ Mining failed','The mine guardians held. Heal your wounded heroes at the Witches Hut.');
+          marchReport('{i:u:mode-mine} Mining failed','The mine guardians held. Heal your wounded heroes at the Witches Hut.');
         }
         updateMailBadges(); updateHubChrome(); saveG();
       }).catch(()=>{ m.resolving=false; m.resolvingAt=0; m.arrive=Date.now()+5000; saveG(); });
@@ -21623,15 +21630,15 @@ function resolveMarch(m){
     const rlabel=mnResName(m.res), rpt={ v:2, seed, mine:snapSquad(m.heroes), mineSnap:allySnap, foe:garrison, won:win, oppName:mineLabel({level:m.mineLevel,res:m.res}) };
     if(win){ const amt=m.yieldAmt||0; if(!G.res)G.res={};
       const mineFinish=function(got,extra){ updateHubChrome();
-        if(got>0){ addMail('mines',{from:'⛏ '+rlabel+' Mine',subj:'⛏ Mine cleared — '+rlabel,body:'Your squad defeated the mine\'s 5 guardians and hauled '+mnResIcon(m.res)+' '+got+' '+rlabel+' home.'+(extra||''),battle:rpt});
-          marchReport('⛏ Mining complete','Your miners cleared the guardians and struck '+mnResIcon(m.res)+' '+got+' '+rlabel+'.'+(extra||'')); }
-        else { addMail('mines',{from:'⛏ '+rlabel+' Mine',subj:'⛏ Mine cleared — no haul',body:'Your squad defeated the mine\'s 5 guardians, but no '+rlabel+' made it home.'+(extra||''),battle:rpt});
-          marchReport('⛏ Mining — no haul','Your miners cleared the guardians but hauled no '+rlabel+' home.'+(extra||'')); }
+        if(got>0){ addMail('mines',{from:'{i:u:mode-mine} '+rlabel+' Mine',subj:'{i:u:mode-mine} Mine cleared — '+rlabel,body:'Your squad defeated the mine\'s 5 guardians and hauled '+mnResIcon(m.res)+' '+got+' '+rlabel+' home.'+(extra||''),battle:rpt});
+          marchReport('{i:u:mode-mine} Mining complete','Your miners cleared the guardians and struck '+mnResIcon(m.res)+' '+got+' '+rlabel+'.'+(extra||'')); }
+        else { addMail('mines',{from:'{i:u:mode-mine} '+rlabel+' Mine',subj:'{i:u:mode-mine} Mine cleared — no haul',body:'Your squad defeated the mine\'s 5 guardians, but no '+rlabel+' made it home.'+(extra||''),battle:rpt});
+          marchReport('{i:u:mode-mine} Mining — no haul','Your miners cleared the guardians but hauled no '+rlabel+' home.'+(extra||'')); }
         updateMailBadges(); };
       G.res[m.res]=(G.res[m.res]||0)+amt; mineFinish(amt,'');   // offline practice only; signed-in hauls use the verified server battle above
     }
-    else { addMail('mines',{from:'⛏ '+rlabel+' Mine',subj:'⛏ Guardians held — '+rlabel,body:'The mine\'s 5 guardians drove your squad off — no '+rlabel+' gathered. Bring a stronger squad.',battle:rpt});
-      marchReport('⛏ Mining failed','The mine\'s guardians drove your miners off — no resources gathered.'); }
+    else { addMail('mines',{from:'{i:u:mode-mine} '+rlabel+' Mine',subj:'{i:u:mode-mine} Guardians held — '+rlabel,body:'The mine\'s 5 guardians drove your squad off — no '+rlabel+' gathered. Bring a stronger squad.',battle:rpt});
+      marchReport('{i:u:mode-mine} Mining failed','The mine\'s guardians drove your miners off — no resources gathered.'); }
     updateMailBadges(); return; }
   if(m.ctype==='scout' && ACC.token && m.tId && (m.real||String(m.tId).startsWith('bot_'))){   /* v1097 (sweep 9 Oct #12): the server's scout report */
     if(m.resolving && Date.now()-(m.resolvingAt||0)<30000) return false;
@@ -21876,7 +21883,7 @@ function drawMarches(){
     const wrap=document.createElement('div'); wrap.style.cssText='position:absolute;left:'+vx+'%;top:'+vy+'%;transform:translate(-50%,-50%);width:40px;height:40px';
     // art is now solid & sharp — a light faction ring for spotting + a soft ground shadow (no brightness lift / haze)
     const glow='contrast(1.03) saturate(1.05) drop-shadow(0 0 3px '+col+') drop-shadow(0 0 7px '+col+') drop-shadow(0 2px 3px rgba(0,0,0,.6))';
-    if(!mining){   // while mining, show only the ⛏ symbol on the node — no airship hovering the mine
+    if(!mining){   // while mining, show only the mine symbol on the node — no airship hovering the mine
       if(isAssetRef(AIRSHIP_SHEET)){
         const ship=document.createElement('div'); ship.className='marchShip';
         ship.style.transform=rot; ship.style.filter=glow;
@@ -21888,7 +21895,7 @@ function drawMarches(){
       }
       veh.appendChild(wrap);
     }
-    const t=document.createElement('div'); t.textContent=m.serverVisual?.phase==='awaiting-resolution'?'Pending result':mining?('⛏ '+fmtDur(etaMs)):(stationed?'stationed':fmtDur(etaMs));
+    const t=document.createElement('div'); t.textContent=m.serverVisual?.phase==='awaiting-resolution'?'Pending result':mining?('Mining '+fmtDur(etaMs)):(stationed?'stationed':fmtDur(etaMs));
     t.style.cssText='position:absolute;left:'+vx+'%;top:'+vy+'%;transform:translate(-50%,22px);font-size:9px;font-weight:800;color:'+col+';text-shadow:0 1px 2px #000;white-space:nowrap'; veh.appendChild(t);
   });
 }
@@ -21901,7 +21908,7 @@ const MINE_ICONS = { iron:'/assets/img/miscellaneous/mine-icons-iron.png?v=mapno
 const MINE_EPOCH_MS = 8*3600000;        // the field of mines relocates/refreshes every 8 hours
 const MINE_COUNT = 240;                  // mine nodes scattered across the WHOLE map per epoch (dense: ~1 per few tiles)
 function mnResName(k){ const r=RES.find(x=>x[0]===k); return r?r[2]:k; }
-function mnResIcon(k){ const r=RES.find(x=>x[0]===k); return r?r[1]:'⛏'; }
+function mnResIcon(k){ const r=RES.find(x=>x[0]===k); return r?r[1]:uiIcon('mode-mine'); }
 function mnResColor(k){ const r=RES.find(x=>x[0]===k); return r?r[3]:'#ffd45e'; }
 function mineEpoch(){ return Math.floor(Date.now()/MINE_EPOCH_MS); }
 function mineEpochEndsIn(){ return (mineEpoch()+1)*MINE_EPOCH_MS - Date.now(); }
@@ -21969,7 +21976,7 @@ function mineLabel(m){ return 'Lv '+m.level+' '+mnResName(m.res)+' Mine'; }
 function drawMines(inner){ if(!inner)return;
   worldMines().forEach(m=>{ if(!mineAvailable(m))return;
     const el=document.createElement('div'); el.className='wnode mine'; el.style.left=m.x+'%'; el.style.top=m.y+'%';
-    const img=MINE_IMGS[m.res]; const pic=img?`<img src="${img}" style="height:30px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.6))" draggable="false">`:`<div style="font-size:20px;filter:drop-shadow(0 1px 3px #000)">${mnResIcon(m.res)}⛏</div>`;
+    const img=MINE_IMGS[m.res]; const pic=img?`<img src="${img}" style="height:30px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.6))" draggable="false">`:`<div style="font-size:20px;filter:drop-shadow(0 1px 3px #000)">${mnResIcon(m.res)}${uiIcon('mode-mine')}</div>`;
     el.innerHTML=`${pic}<div class="wlab"><div class="nl" style="color:${mnResColor(m.res)};font-weight:800">${mnResName(m.res)}</div><div class="nl" style="color:#ffd45e;font-size:9px">Lv ${m.level} ${uiIcon('star-filled').repeat(m.level)}</div></div>`;
     el.onclick=(e)=>{ e.stopPropagation(); if(_teleMode)return; closeCityMenu(); openMineInfo(m); };
     inner.appendChild(el); }); }
@@ -21982,9 +21989,9 @@ function openMineInfo(m){ closeCityMenu(); const inner=document.getElementById('
       Yield <b style="color:#ffd45e">${resIconHtml(m.res,16)} ${y}</b>${mineSignedIn()?' <span style="color:#8b98a9">per haul</span>':''}<br>
       ${statusIcon('shield')} Guarded by <b style="color:#ff9a6b">5 monsters</b> — beat them to mine it<br>
       Needs squad ${statusIcon('attack')} <b style="color:#ff9a6b">${reqP}</b> · a hero Lv <b style="color:#ff9a6b">${reqL}+</b><br>
-      ⛏ Mine ${fmtDur(gm)} · ${uiIcon('rally-flag')} travel ${fmtDur(travel)} each way<br>
+      ${uiIcon('mode-mine')} Mine ${fmtDur(gm)} · ${uiIcon('rally-flag')} travel ${fmtDur(travel)} each way<br>
       <span style="color:#8b98a9">Total round trip ${fmtDur(travel*2+gm)}</span></div>
-    <button class="cm-b" data-a="mine">⛏ Send miners</button>`;
+    <button class="cm-b" data-a="mine">${uiIcon('mode-mine')} Send miners</button>`;
   inner.appendChild(pop); cityMenuEl=pop; pop.addEventListener('click',e=>e.stopPropagation());
   pop.querySelector('[data-a="mine"]').onclick=()=>{ closeCityMenu(); openMineSelect(m); }; }
 /* 3 Oct audit (Witches Hut #6): the server refuses a 0%-HP hero for any world march, so the squad pickers read each wounded
@@ -22001,14 +22008,14 @@ function openMineSelect(m){ const reqP=mineReqPower(m.level), reqL=mineReqLevel(
   const ov=document.createElement('div'); ov.style.cssText='position:fixed;inset:0;background:rgba(4,6,10,.75);z-index:12000;display:flex;align-items:center;justify-content:center';
   function render(){ const pow=marchPower([...sel])||0, okP=pow>=reqP, okL=[...sel].some(k=>heroLevel(k)>=reqL), ok=sel.size&&okP&&okL;
     ov.innerHTML=`<div style="background:#141b2b;border:1px solid #2a3550;border-radius:14px;padding:14px;width:94%;max-width:470px;max-height:86vh;overflow:auto">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div style="font-weight:800">⛏ Mine · ${escapeHTML(mineLabel(m))}</div><button class="btn sm secondary" id="mcX">${uiIcon('close')}</button></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div style="font-weight:800">${uiIcon('mode-mine')} Mine · ${escapeHTML(mineLabel(m))}</div><button class="btn sm secondary" id="mcX">${uiIcon('close')}</button></div>
       <div style="font-size:11px;color:#8b98a9;margin-bottom:10px">Send up to 5 heroes to mine <b style="color:${mnResColor(m.res)}">${resIconHtml(m.res,15)} ${mineYieldShown(m.res,m.level)} ${escapeHTML(mnResName(m.res))}</b>. They can't defend or march again until they return. Requires squad power <b>${reqP}</b> and a hero of <b>Lv ${reqL}+</b>.</div>
       <div class="row" style="gap:8px;justify-content:center">${heroes.map(k=>{ const b=blocked(k), on=sel.has(k);
         return `<div data-k="${k}" class="mc-hero" style="width:78px;text-align:center;cursor:${b?'not-allowed':'pointer'};opacity:${b?.45:1};border:2px solid ${on?'#5ee89b':'#2a3550'};border-radius:10px;padding:5px;background:${on?'#12351f':'#0f1420'}">
           ${heroIcon(k,50)}<div style="font-size:10px;margin-top:3px">${HERO_TYPES[k].name}</div><div style="font-size:9px;color:${b?'#ff8b8b':(heroLevel(k)>=reqL?'#5ee89b':'#8b98a9')}">${busy.has(k)?'⛓ marching':fallen(k)?pickerHpLine(hp,k):'Lv '+heroLevel(k)+pickerHpLine(hp,k)}</div></div>`; }).join('')}</div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
         <div style="font-size:11px;color:#8b98a9">${sel.size}/5 · ${statusIcon('attack')} <b style="color:${okP?'#5ee89b':'#ff8b8b'}">${pow}</b>/${reqP} · ${okL?'<span style="color:#5ee89b">Lv '+uiIcon('check')+'</span>':'<span style="color:#ff8b8b">need Lv '+reqL+'</span>'}</div>
-        <button class="btn" id="mcGo" ${ok?'':'disabled'}>⛏ Send ${uiIcon('play')}</button></div></div>`;
+        <button class="btn" id="mcGo" ${ok?'':'disabled'}>${uiIcon('mode-mine')} Send ${uiIcon('play')}</button></div></div>`;
     ov.querySelector('#mcX').onclick=()=>ov.remove();
     ov.querySelectorAll('.mc-hero').forEach(el=>el.onclick=()=>{ const k=el.dataset.k; if(blocked(k))return; if(sel.has(k))sel.delete(k); else if(sel.size<5)sel.add(k); render(); });
     ov.querySelector('#mcGo').onclick=()=>{ if(!ok)return; startMine(m,[...sel]); ov.remove(); }; }
@@ -22029,7 +22036,7 @@ async function startMine(m, heroes){ let travel=marchOutMs('mine',m.x,m.y), gath
     reachAt:t+travel, arrive:serverMarch?serverMarch.arriveAt:t+travel+gather,
     home:serverMarch?serverMarch.homeAt:t+travel+gather+travel, out:travel, resolved:false });
   mineClaimedSet().push(m.id);   // reserve this node so it can't be double-mined this epoch
-  saveG(); bannerMsg('⛏ Mining '+mineLabel(m)+'\nHome in '+fmtDur(travel*2+gather));
+  saveG(); bannerMsg(uiIcon('mode-mine')+' Mining '+mineLabel(m)+'\nHome in '+fmtDur(travel*2+gather));
   if(document.getElementById('wzone')) drawMarches(); renderWorldMap(true); }
 // Server field receipts never fall back to the device's next epoch while signed in.
 let _worldMineFieldCache=null,_worldMineFieldPoll=null,_worldMineFieldInner=null;
@@ -22362,7 +22369,7 @@ function embassyContribMul(){ return G.guild ? 1+guildLevel()*0.05 : 1; }   // +
 function embassyRaidMul(){ return G.guild ? 1+guildLevel()*0.04 : 1; }      // +4% raid gold per level
 function embassyStamBonus(){ return G.guild ? guildLevel()*2 : 0; }         // +2 max stamina per level
 const EMBASSY_PERKS=[
-  ['⛏','Miner’s Charter','world-mine yield', ()=>Math.round((embassyMineMul()-1)*100)],
+  [uiIcon('mode-mine'),'Miner’s Charter','world-mine yield', ()=>Math.round((embassyMineMul()-1)*100)],
   [uiIcon('gift'),'Envoy’s Favor','guild contribution exp', ()=>Math.round((embassyContribMul()-1)*100)],
   [statusIcon('attack'),'War Spoils','gold looted from raids', ()=>Math.round((embassyRaidMul()-1)*100)],
   ['⧗','Rallying Call','max stamina (flat)', ()=>embassyStamBonus(), true],
@@ -22617,7 +22624,7 @@ function renderGuild(){
      disc until their medallions are made (war, raid, embassy, level). */
   const GTAB_ART={ chat:'/assets/img/ui/mi-chat.webp?v=1', requests:'/assets/img/ui/mi-mail.webp?v=1',
     contribute:'/assets/img/ui/hud-gold.webp?v=1', shop:'/assets/img/ui/mi-bag.webp?v=1' };
-  const tabs=[['chat','&#128172;','Chat'],['contribute','&#127873;','Contribute'],['embassy','&#127963;','Embassy'],['war','&#9876;','Skyfall']   /* v782 - the tab's NAME, not its key: 'war' is what mail kinds and routing match on */,['raid','&#128050;','Raid'],['level','&#128200;','Level'],['shop','&#128737;','Shop']];
+  const tabs=[['chat','&#128172;','Chat'],['contribute','&#127873;','Contribute'],['embassy','&#127963;','Embassy'],['war',uiIcon('mode-skyfall'),'Skyfall']   /* v782 - the tab's NAME, not its key: 'war' is what mail kinds and routing match on */,['raid','&#128050;','Raid'],['level','&#128200;','Level'],['shop','&#128737;','Shop']];
   if(g.youLeader) tabs.splice(1,0,['requests','&#128233;','Requests']);
   if(!tabs.some(t=>t[0]===guildTab)) guildTab='chat';
   const reqBadge=(g.youLeader&&g.pendingReqCount)?` <span style="background:#e0483f;color:#fff;border-radius:9px;padding:0 5px;font-size:9px;font-weight:800">${g.pendingReqCount}</span>`:'';
@@ -22949,7 +22956,7 @@ function renderHeroList(){
     const summonReady=!unlocked&&canSummon(key);
     const card=document.createElement('div'); card.className='hero-card hc-tile'+(!unlocked?' locked':'')+(summonReady?' summon-ready':'')+(myth?' mythic':'');
     card.dataset.heroKey=key;
-    const lockedLine = canSummon(key) ? '<span style="color:#5ee89b;font-weight:800">'+uiIcon('sparkle-new')+' SUMMON</span>' : ('🧩 '+heroFrag(key)+'/'+summonCost(key));
+    const lockedLine = canSummon(key) ? '<span style="color:#5ee89b;font-weight:800">'+uiIcon('sparkle-new')+' SUMMON</span>' : (fragCard(key,14)+' '+heroFrag(key)+'/'+summonCost(key));
     // Total Power sits ABOVE the portrait (owned only); a matching spacer keeps locked-hero portraits aligned.
     const powerLine = unlocked ? `<div style="font-size:9.5px;font-weight:800;color:#ffd45e;line-height:1.1">${statusIcon('attack')} Total Power: ${heroPower(key).toLocaleString()}</div>` : '<div style="height:12px"></div>';
     // mythicals show the purple MYTHICAL banner on the card (falls back to a text tag if the art isn't built in)
@@ -22988,7 +22995,7 @@ function renderHeroList(){
 // ---- STARS PANEL: opened by tapping a hero's stars. Star-up (shards) + Refine (fragments) live here. ----
 function openStarsPanel(key){ const t=HERO_TYPES[key]; if(!t) return;
   const ov=document.createElement('div'); ov.style.cssText='position:fixed;inset:0;background:rgba(4,6,10,.82);z-index:13000;display:flex;align-items:stretch;justify-content:flex-end';
-  const fIcon = t.emoji || '🧩';
+  const fIcon = fragCard(key,16);
   function render(pendingMsg,msgCol){
     const st=heroStars(key), pips=starPips(key), ncost=starNextCost(key), canStar=canStarStep(key), conf=starIsConfirm(key);
     const rl=refineLevel(key), si=refineStepInfo(rl), nextTier=refineNextTier(rl), frags=heroFrag(key);
@@ -23014,7 +23021,7 @@ function openStarsPanel(key){ const t=HERO_TYPES[key]; if(!t) return;
     ov.innerHTML=`<div style="background:#141b2b;border:1px solid #3a4a6e;border-radius:16px 0 0 16px;padding:18px 16px;width:min(380px,94vw);height:100vh;max-height:100vh;overflow:auto;box-shadow:-18px 0 55px rgba(0,0,0,.6)">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-weight:800;font-size:15px">${uiIcon('star-filled')} ${escapeHTML(t.name)} · Stars</div><button class="btn sm secondary" id="spX">${uiIcon('close')}</button></div>
       <div style="display:flex;gap:3px;justify-content:center;align-items:center;min-height:58px;margin-bottom:6px">${starFillRow(key,24)}</div>
-      <div style="text-align:center;font-size:12px;color:#c9a2ff;margin-bottom:10px">🧩 <b>${frags}</b> ${escapeHTML(t.name)} fragments owned</div>
+      <div style="text-align:center;font-size:12px;color:#c9a2ff;margin-bottom:10px">${fragCard(key,18)} <b>${frags}</b> ${escapeHTML(t.name)} fragments owned</div>
       ${starBlock}${refineBlock}
       <div id="spMsg" style="font-size:12px;text-align:center;min-height:18px;margin-top:8px">${pendingMsg?`<span style="color:${msgCol||'#8b98a9'}">${pendingMsg}</span>`:''}</div></div>`;
     ov.querySelector('#spX').onclick=()=>ov.remove();
@@ -23413,7 +23420,7 @@ function renderHeroDetail(){
       [statIcon('range')+'Type',t.range>=60?'Ranged':'Melee'],['Combat row',t.combatRow],['Class',t.role],['Damage',t.damageProfile],['Scaling',t.primaryScaling]];
     tab=`<div class="panel"><div style="display:grid;grid-template-columns:1fr 1fr;gap:7px 14px;font-size:12px">${rows.map(([n,v])=>`<div style="display:flex;justify-content:space-between;border-bottom:1px solid #1c2434;padding-bottom:4px"><span style="color:#8b98a9">${n}</span><b>${v}</b></div>`).join('')}</div>
       <div style="font-size:10px;color:#6f7d90;margin-top:8px">Totals include level, quality, glyphs, equipment, stars, tech &amp; prayer.</div></div>
-      ${owned?`<div class="panel" style="margin-top:8px"><div style="font-weight:800;margin-bottom:4px">${uiIcon('lore-book')} Level ${escapeHTML(t.name)} with XP Potions</div><div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px">${XP_POTION_LABELS.map(([id,name,amt])=>`<button class="btn secondary" data-xp-potion="${id}" ${((G.xpPotions||{})[id]|0)>0&&!capped&&ACC.token?'':'disabled'} style="font-size:11px;padding:6px">${name} +${amt.toLocaleString()} XP · ×${(G.xpPotions||{})[id]|0}</button>`).join('')}</div></div>`:''}`;
+      ${owned?`<div class="panel" style="margin-top:8px"><div style="font-weight:800;margin-bottom:4px">${uiIcon('res-xp-potion')} Level ${escapeHTML(t.name)} with XP Potions</div><div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px">${XP_POTION_LABELS.map(([id,name,amt])=>`<button class="btn secondary" data-xp-potion="${id}" ${((G.xpPotions||{})[id]|0)>0&&!capped&&ACC.token?'':'disabled'} style="font-size:11px;padding:6px">${name} +${amt.toLocaleString()} XP · ×${(G.xpPotions||{})[id]|0}</button>`).join('')}</div></div>`:''}`;
   } else if(heroTab==='skills'){
     const skills=[
       {idx:0,name:t.abilityName,tier:'Grey',col:RANK_COLOR[0]},
@@ -23463,9 +23470,9 @@ function renderHeroDetail(){
       ${smReady
         ? `<button class="btn" id="hdSummon" style="width:100%;font-size:17px;font-weight:900;letter-spacing:1.5px;padding:14px;background:linear-gradient(#5ee89b,#33b06b);color:#07220f;box-shadow:0 3px 12px #2fae6a55">${uiIcon('sparkle-new')} SUMMON NOW</button>
            <div style="font-size:10px;color:#8b98a9;margin-top:7px">Unlocks ${escapeHTML(t.name)} at ${heroStartStars(key)}${uiIcon('star-filled')} · spends ${smNeed} fragments</div>`
-        : `<div style="font-size:14px;font-weight:800;color:${myth?'#ffcf40':'#c9a2ff'};margin-bottom:8px">🧩 ${smFrags} / ${smNeed} fragments</div>
+        : `<div style="font-size:14px;font-weight:800;color:${myth?'#ffcf40':'#c9a2ff'};margin-bottom:8px">${fragCard(key,20)} ${smFrags} / ${smNeed} fragments</div>
            <div style="height:11px;background:#1a2030;border-radius:6px;overflow:hidden"><div style="height:100%;width:${smPct}%;background:linear-gradient(90deg,#8a7bff,#c9a2ff);transition:width .3s"></div></div>
-           <div style="font-size:10px;color:#6f7d90;margin-top:7px">🧩 ${smNeed} → ${heroStartStars(key)}${uiIcon('star-filled')}${myth?' · 1% Diamond wish':''}</div>`}
+           <div style="font-size:10px;color:#6f7d90;margin-top:7px">${fragCard(key,14)} ${smNeed} → ${heroStartStars(key)}${uiIcon('star-filled')}${myth?' · 1% Diamond wish':''}</div>`}
     </div>` : '';
   body.innerHTML=`${summonBar}<div class="hd-wrap">${left}${right}</div>`;
   { const sm=body.querySelector('#hdSummon'); if(sm) sm.onclick=async()=>{ sm.disabled=true;
@@ -23531,7 +23538,7 @@ function renderBag(){
   // legacy glyph collection stripped 26 Aug — Glyph v2 fragments/glyphs live on each hero's Glyphs tab (server account)
   const st=(typeof RUNE2!=='undefined')&&RUNE2.st;
   const frags=st?Object.entries(st.fragments||{}).filter(([k,n])=>n>0).sort():[];
-  b.innerHTML=`<div style="font-weight:700;margin-bottom:6px">${uiIcon('lore-book')} Hero XP Potions</div><div class="panel" style="margin-bottom:12px;font-size:11px">${XP_POTION_LABELS.map(([id,name,xp])=>`<div style="display:flex;justify-content:space-between;padding:4px 0"><span>${name} · ${xp.toLocaleString()} hero XP</span><b>×${(G.xpPotions||{})[id]|0}</b></div>`).join('')}</div><div style="font-weight:700;margin-bottom:6px">🔮 Glyph Fragments</div>
+  b.innerHTML=`<div style="font-weight:700;margin-bottom:6px">${uiIcon('res-xp-potion')} Hero XP Potions</div><div class="panel" style="margin-bottom:12px;font-size:11px">${XP_POTION_LABELS.map(([id,name,xp])=>`<div style="display:flex;justify-content:space-between;padding:4px 0"><span>${name} · ${xp.toLocaleString()} hero XP</span><b>×${(G.xpPotions||{})[id]|0}</b></div>`).join('')}</div><div style="font-weight:700;margin-bottom:6px">🔮 Glyph Fragments</div>
     ${st?`<div class="panel" style="margin-bottom:10px">
       ${frags.length?`<div style="display:flex;flex-wrap:wrap;gap:4px">${frags.map(([k,n])=>`<span class="pill" style="font-size:9px">${k} ×${n}</span>`).join('')}</div>`:'<div style="font-size:10px;color:#6f7d90">No glyph fragments yet.</div>'}
     </div>`:'<div class="panel" style="font-size:11px;color:#6f7d90;margin-bottom:10px">Sign in to see your glyph fragments.</div>'}
@@ -23674,7 +23681,7 @@ function serverWishToRes(r){
   if(r.type==='prayer'){ const nm={kindled:'Kindled',stoked:'Stoked',blazing:'Blazing',inferno:'Inferno'}[r.tier]||r.tier; return {icon:'🔥', big:r.tier==='inferno'||r.tier==='blazing', name:r.n+'× '+nm+' prayer', extra:'Held in the Temple'}; }
   if(r.type==='hero'){ const t=HERO_TYPES[r.hero]||{}; return {icon:t.emoji||'🦸', heroAnim:r.hero, hero:r.hero, big:true, name:'★'.repeat(r.stars||1)+' '+(t.name||r.hero)+'!', extra:'A new hero joins your roster!'}; }
   if(r.type==='dupe'){ const t=HERO_TYPES[r.hero]||{}; return {icon:t.emoji||'🦸', hero:r.hero, name:(t.name||r.hero)+' (owned)', extra:'+'+r.frags+' fragments instead'}; }
-  if(r.type==='frags'){ const t=HERO_TYPES[r.hero]||{}; return {icon:'🧩', hero:r.hero, name:'+'+r.frags+' '+(t.name||r.hero)+' fragments'}; }
+  if(r.type==='frags'){ const t=HERO_TYPES[r.hero]||{}; return {icon:fragCard(r.hero,40), hero:r.hero, name:'+'+r.frags+' '+(t.name||r.hero)+' fragments'}; }
   if(r.type==='glyphFrag'){ return {icon:'🔮', art:wishGlyphArt(r.q,r.fam,'fragment',96), name:r.n+'× '+(r.displayName||r.key+' Fragment'), extra:'Banked to your glyph materials'}; }
   if(r.type==='gold') return {icon:'🪙', name:'+'+r.n+' gold'};
   if(r.type==='gems') return {icon:'💎', name:'+'+r.n+' diamonds'};
@@ -24055,16 +24062,16 @@ const TUTORIAL_STEPS=[
   {id:'win11', icon:'{i:s:attack}', title:'Choose your first squad', desc:'Open Campaign and Stage 1-1. Tap all three hero portraits; a highlighted portrait means that hero is selected. Start only after all three are highlighted, then clear the stage.', rewardLabel:'{i:h:gold} 500 bonus Gold', go:()=>show('campaign'), reward:{gold:500}, done:()=>(G.campaignCleared||0)>=1},
   {id:'quest11', icon:'{i:u:quest-scroll}', title:'Collect your first quest reward', desc:'Open Quests and claim the completed Stage 1-1 objective. The starter quest chain awards Vex fragments toward your fourth hero.', rewardLabel:'{i:u:star-filled} 2 Vex fragments', go:()=>show('quest'), reward:{}, done:()=>((G.questChainStep||0)>=1)},
   {id:'skill', icon:'{i:u:sparkle-new}', title:'Spend your first skill point', desc:'Open Heroes, choose a hero, and raise one skill before Stage 1-2. Skill levels make that hero’s specific job stronger.', rewardLabel:'{i:h:gold} 800 bonus Gold', go:()=>{menuReturn='home'; show('heroesPanel');}, reward:{gold:800}, done:anySkillRaised},
-  {id:'win12', icon:'{i:u:map}', title:'Test the upgrade', desc:'Return to Campaign and clear Stage 1-2 with the same highlighted squad.', rewardLabel:'{i:h:gold} 180 · {i:u:star-filled} 30 Hero XP each · {i:u:medal} 30 Commander XP · {i:u:lore-book} 1 Minor XP Potion · 💠 2 Rough Gravel glyph fragments for Vael', go:()=>show('campaign'), reward:{}, done:()=>(G.campaignCleared||0)>=2},
+  {id:'win12', icon:'{i:u:map}', title:'Test the upgrade', desc:'Return to Campaign and clear Stage 1-2 with the same highlighted squad.', rewardLabel:'{i:h:gold} 180 · {i:u:star-filled} 30 Hero XP each · {i:u:medal} 30 Commander XP · {i:u:res-xp-potion} 1 Minor XP Potion · 💠 2 Rough Gravel glyph fragments for Vael', go:()=>show('campaign'), reward:{}, done:()=>(G.campaignCleared||0)>=2},
   {id:'quest12', icon:'{i:u:quest-scroll}', title:'Claim the next Vex fragments', desc:'Open Quests and collect the Stage 1-2 reward. Claimable rewards are never added automatically.', rewardLabel:'{i:u:star-filled} 2 Vex fragments', go:()=>show('quest'), reward:{}, done:()=>((G.questChainStep||0)>=2)},
   {id:'rune',  icon:'💠', title:'Build Vael’s first glyph', desc:'Open Heroes → Vael → Glyphs. Tap his first empty slot and build Stone Glyph with the two Rough Gravel Fragments guaranteed on your first Stage 1-2 clear. Later glyphs use named Campaign stages that you can replay to farm.', rewardLabel:'{i:h:gem} 30 bonus Diamonds', go:()=>{menuReturn='home'; show('heroesPanel');}, reward:{gems:30}, done:anyGlyphSocketed},
-  {id:'win13', icon:'{i:s:shield}', title:'Clear the first Guardian stage', desc:'Return to Campaign and clear Stage 1-3. Guardian stages award hero fragments and can be replayed a limited number of times each day.', rewardLabel:'{i:h:gold} 210 · {i:u:star-filled} 30 Hero XP each · {i:u:medal} 30 Commander XP · {i:u:lore-book} 1 Minor XP Potion · 💠 1 glyph fragment · 🧩 2–4 Tick fragments', go:()=>show('campaign'), reward:{}, done:()=>(G.campaignCleared||0)>=3},
+  {id:'win13', icon:'{i:s:shield}', title:'Clear the first Guardian stage', desc:'Return to Campaign and clear Stage 1-3. Guardian stages award hero fragments and can be replayed a limited number of times each day.', rewardLabel:'{i:h:gold} 210 · {i:u:star-filled} 30 Hero XP each · {i:u:medal} 30 Commander XP · {i:u:res-xp-potion} 1 Minor XP Potion · 💠 1 glyph fragment · {i:u:hero} 2–4 Tick fragments', go:()=>show('campaign'), reward:{}, done:()=>(G.campaignCleared||0)>=3},
   {id:'quest13', icon:'{i:u:quest-scroll}', title:'Collect the Guardian quest reward', desc:'Open Quests and claim the Stage 1-3 objective for another Vex fragment bundle.', rewardLabel:'{i:u:star-filled} 3 Vex fragments', go:()=>show('quest'), reward:{}, done:()=>((G.questChainStep||0)>=3)},
   {id:'wish',  icon:'⛲', title:'Use the Wishing Pool', desc:'Open the Wishing Pool and use a free Gold wish. Its result is random: a hero, hero fragments, or a named glyph fragment.', rewardLabel:'⛲ 1 free Gold-wish result', go:()=>show('wishing'), reward:{}, done:()=>((G.wishClicks||0)>0)},
-  {id:'win14', icon:'{i:u:map}', title:'Finish recruiting your fourth hero', desc:'Clear Stage 1-4 to complete the last starter fragment quest.', rewardLabel:'{i:h:gold} 240 · {i:u:star-filled} 30 Hero XP each · {i:u:medal} 30 Commander XP · {i:u:lore-book} 1 Minor XP Potion · 💠 2 glyph fragments', go:()=>show('campaign'), reward:{}, done:()=>(G.campaignCleared||0)>=4},
-  {id:'quest14', icon:'{i:u:hero}', title:'Recruit your fourth hero', desc:'First claim the Stage 1-4 reward in Quests. Then open Heroes, choose Vex under Ready to Summon, and press Summon Now. The four starter quest rewards provide the 10 fragments she needs.', rewardLabel:'{i:u:hero} Vex summoned · {i:u:lore-book} claim 1 Minor XP Potion', go:()=>{ if((G.questChainStep||0)<4) show('quest'); else { menuReturn='home'; detailHero='vex'; heroTab='stats'; show('heroesPanel'); setTimeout(renderHeroDetail,0); } }, reward:{xpPotion:'minor'}, done:()=>!!(G.unlocked&&G.unlocked.vex)},
-  {id:'vexxp', icon:'{i:u:lore-book}', title:'Level Vex with a Minor XP Potion', desc:'Open Heroes → Vex → Stats. Tap Minor XP Potion once. It gives Vex 60 hero XP and cannot level her beyond Commander level. Claim this lesson after using the potion.', rewardLabel:'{i:u:check} Vex leveled with a claimed Minor potion', go:()=>{menuReturn='home';detailHero='vex';heroTab='stats';show('heroesPanel');setTimeout(renderHeroDetail,0);}, reward:{}, done:()=>((G.xpPotionUsed||{}).vexMinor|0)>(G.tutVexXpBase|0)},
-  {id:'win15', icon:'🔮', title:'Earn your first Diamond wish', desc:'Clear Stage 1-5 to unlock the guaranteed first Diamond wish.', rewardLabel:'{i:h:gold} 270 · {i:u:star-filled} 30 Hero XP each · {i:u:medal} 30 Commander XP · {i:u:lore-book} 1 Minor XP Potion · 💠 2 glyph fragments · 🔮 free Diamond wish', go:()=>show('campaign'), reward:{}, done:()=>(G.campaignCleared||0)>=5},
+  {id:'win14', icon:'{i:u:map}', title:'Finish recruiting your fourth hero', desc:'Clear Stage 1-4 to complete the last starter fragment quest.', rewardLabel:'{i:h:gold} 240 · {i:u:star-filled} 30 Hero XP each · {i:u:medal} 30 Commander XP · {i:u:res-xp-potion} 1 Minor XP Potion · 💠 2 glyph fragments', go:()=>show('campaign'), reward:{}, done:()=>(G.campaignCleared||0)>=4},
+  {id:'quest14', icon:'{i:u:hero}', title:'Recruit your fourth hero', desc:'First claim the Stage 1-4 reward in Quests. Then open Heroes, choose Vex under Ready to Summon, and press Summon Now. The four starter quest rewards provide the 10 fragments she needs.', rewardLabel:'{i:u:hero} Vex summoned · {i:u:res-xp-potion} claim 1 Minor XP Potion', go:()=>{ if((G.questChainStep||0)<4) show('quest'); else { menuReturn='home'; detailHero='vex'; heroTab='stats'; show('heroesPanel'); setTimeout(renderHeroDetail,0); } }, reward:{xpPotion:'minor'}, done:()=>!!(G.unlocked&&G.unlocked.vex)},
+  {id:'vexxp', icon:'{i:u:res-xp-potion}', title:'Level Vex with a Minor XP Potion', desc:'Open Heroes → Vex → Stats. Tap Minor XP Potion once. It gives Vex 60 hero XP and cannot level her beyond Commander level. Claim this lesson after using the potion.', rewardLabel:'{i:u:check} Vex leveled with a claimed Minor potion', go:()=>{menuReturn='home';detailHero='vex';heroTab='stats';show('heroesPanel');setTimeout(renderHeroDetail,0);}, reward:{}, done:()=>((G.xpPotionUsed||{}).vexMinor|0)>(G.tutVexXpBase|0)},
+  {id:'win15', icon:'🔮', title:'Earn your first Diamond wish', desc:'Clear Stage 1-5 to unlock the guaranteed first Diamond wish.', rewardLabel:'{i:h:gold} 270 · {i:u:star-filled} 30 Hero XP each · {i:u:medal} 30 Commander XP · {i:u:res-xp-potion} 1 Minor XP Potion · 💠 2 glyph fragments · 🔮 free Diamond wish', go:()=>show('campaign'), reward:{}, done:()=>(G.campaignCleared||0)>=5},
   {id:'gemwish', icon:'{i:h:gem}', title:'Claim your free Diamond wish', desc:'Open the Wishing Pool and claim the free Diamond wish you earned. Your first Diamond wish guarantees a 2{i:u:star-filled} hero and gives you your fifth hero.', rewardLabel:'{i:u:hero} guaranteed 2{i:u:star-filled} hero · {i:h:gem} 140 bonus Diamonds', go:()=>show('wishing'), reward:{gems:140}, done:()=>!!G.wishGemFirstDone},
 ];
 const TUTORIAL_GROUPS=[
@@ -24086,13 +24093,13 @@ function grantTutReward(r, stepId){
       const g=res.reward||{}; if(g.frag&&g.frag.qty) giveHeroFrag(g.frag.heroKey,g.frag.qty);
       saveG(); updateHubChrome();
       const q=(res.already||!res.reward)?r:res.reward; const p=[];
-      if(q.gold)p.push(hudIcon('gold')+' '+q.gold); if(q.gems)p.push(hudIcon('gem')+' '+q.gems); if(q.stam)p.push('⧗ '+q.stam); if(q.xpPotion)p.push(uiIcon('lore-book')+' '+q.xpPotion.qty+' '+q.xpPotion.tier+' XP Potion');
+      if(q.gold)p.push(hudIcon('gold')+' '+q.gold); if(q.gems)p.push(hudIcon('gem')+' '+q.gems); if(q.stam)p.push('⧗ '+q.stam); if(q.xpPotion)p.push(uiIcon('res-xp-potion')+' '+q.xpPotion.qty+' '+q.xpPotion.tier+' XP Potion');
       const fq=(q.frag&&q.frag.qty)||(typeof q.frag==='number'?q.frag:0); if(fq)p.push(uiIcon('star-filled')+' '+fq+' hero frags');
       return p.join(' · ');
     });
   }
   let s=[]; if(r.gold){G.gold=(G.gold||0)+r.gold; s.push(hudIcon('gold')+' '+r.gold);} if(r.gems){G.gems=(G.gems||0)+r.gems; s.push(hudIcon('gem')+' '+r.gems);} if(r.stam){G.stamina=(G.stamina||0)+r.stam; s.push('⧗ '+r.stam);}
-  if(r.frag){ const hk=randLockedHero(); giveHeroFrag(hk,r.frag); s.push(uiIcon('star-filled')+' '+r.frag+' '+HERO_TYPES[hk].name+' frags'); } if(r.xpPotion){G.xpPotions=G.xpPotions||{};G.xpPotions[r.xpPotion]=(G.xpPotions[r.xpPotion]|0)+1;s.push(uiIcon('lore-book')+' 1 '+r.xpPotion+' XP Potion');} return s.join(' · '); }
+  if(r.frag){ const hk=randLockedHero(); giveHeroFrag(hk,r.frag); s.push(uiIcon('star-filled')+' '+r.frag+' '+HERO_TYPES[hk].name+' frags'); } if(r.xpPotion){G.xpPotions=G.xpPotions||{};G.xpPotions[r.xpPotion]=(G.xpPotions[r.xpPotion]|0)+1;s.push(uiIcon('res-xp-potion')+' 1 '+r.xpPotion+' XP Potion');} return s.join(' · '); }
 function tutComplete(){ if(!G.tutRewarded) return false; return TUTORIAL_STEPS.every(s=>!!G.tutRewarded[s.id]); }
 function tutCurrent(){ if(!G.tutRewarded)G.tutRewarded={}; return TUTORIAL_STEPS.find(s=>!G.tutRewarded[s.id]); }
 function tutGroupCurrent(group){ const id=group.ids.find(k=>!G.tutRewarded?.[k]); return TUTORIAL_STEPS.find(s=>s.id===id)||null; }
@@ -24203,7 +24210,7 @@ function maybeOfferTutorial(){ if(G.tutDone||G.tutStarted||G.tutSkipped) return;
 const ISLE_FEATURES=[
   {id:'training', ic:'🌀', name:'Training Province', lvl:10, desc:'Daily training grounds — twelve boss fights each for gold and glyph fragments.', open:()=>openTrainingProvince()},
   {id:'emberdraft', ic:'♟', name:'Emberdraft',        lvl:25, desc:'Draft heroes, forge equipment, outlast seven rivals.', open:()=>openEmberdraft()},   // v604 (Phil, 18 Sep: the Gauntlet was a dead system - replaced; its code stays for banking an old run)
-  {id:'tower',    ic:'🗼', name:'Tower of Trials',   lvl:40, desc:'Climb the endless Ascendant Spire — how high can you go?', open:()=>openTower()},
+  {id:'tower',    ic:uiIcon('mode-tower-of-trials'), name:'Tower of Trials',   lvl:40, desc:'Climb the endless Ascendant Spire — how high can you go?', open:()=>openTower()},
 ];
 function renderSkyIsland(){ const b=document.getElementById('skyIslandBody'); if(!b)return; const lv=playerLevel();
   const ISLE_POS={training:[22,55],tower:[49,74],emberdraft:[78,55]};
@@ -24671,11 +24678,11 @@ function timeAgo(t){ const s=Math.floor((Date.now()-(t||Date.now()))/1000); if(s
 function renderMail(){ ensureMail(); pruneWars();
   const tabs=document.getElementById('mailTabs'), b=document.getElementById('mailBody'); if(!tabs||!b)return;
   const warN=incomingWars().length;
-  const TB=[['inbox',uiIcon('inbox')+' Inbox',mailUnread('inbox')],['war',statusIcon('attack')+' War',mailUnread('war')],['mines','⛏ Mines',mailUnread('mines')],['scouts',uiIcon('scout-telescope')+' Scouts',mailUnread('scouts')+warN]];
+  const TB=[['inbox',uiIcon('inbox')+' Inbox',mailUnread('inbox')],['war',statusIcon('attack')+' War',mailUnread('war')],['mines',uiIcon('mode-mine')+' Mines',mailUnread('mines')],['scouts',uiIcon('scout-telescope')+' Scouts',mailUnread('scouts')+warN]];
   tabs.innerHTML=TB.map(([k,l,n])=>`<div class="tab${mailTab===k?' on':''}" data-t="${k}">${l}${n?`<span class="cnt">${n}</span>`:''}</div>`).join('');
   tabs.querySelectorAll('.tab').forEach(el=>el.onclick=()=>{ mailTab=el.dataset.t; if(G.mail[mailTab]){ G.mail[mailTab].forEach(m=>m.read=true); saveG(); updateMailBadges(); } renderMail(); });
   const list=G.mail[mailTab]||[];
-  const emptyMsg={inbox:uiIcon('inbox-empty')+' No messages yet. Guild and player messages appear here.',war:statusIcon('attack')+' No war reports yet. Attacks you make, raids on your castle, and defends appear here.',mines:'⛏ No mine reports yet. Send a squad to mine a node on the World Map.',scouts:uiIcon('scout-telescope')+' No scout reports yet. Scout a rival stronghold from the World Map.'}[mailTab]||'No messages.';
+  const emptyMsg={inbox:uiIcon('inbox-empty')+' No messages yet. Guild and player messages appear here.',war:statusIcon('attack')+' No war reports yet. Attacks you make, raids on your castle, and defends appear here.',mines:uiIcon('mode-mine')+' No mine reports yet. Send a squad to mine a node on the World Map.',scouts:uiIcon('scout-telescope')+' No scout reports yet. Scout a rival stronghold from the World Map.'}[mailTab]||'No messages.';
   const hasWatch=(mm)=> mm.battle && ((mm.battle.mineSnap&&mm.battle.mineSnap.length)||(mm.battle.mine||[]).length) && (mm.battle.foe||[]).length;
   b.innerHTML = list.length ? list.map((m,i)=>`<div class="mailrow${m.read?'':' unread'}"><span class="mtime">${timeAgo(m.t)}</span>
     <div class="mfrom">${iconize(escapeHTML(m.from||'System'))}</div>
@@ -25423,7 +25430,7 @@ function openDevFragGranter(b){
   const AMT=100, ov=document.createElement('div');
   ov.style.cssText='position:fixed;inset:0;background:rgba(4,6,10,.85);z-index:14000;display:flex;align-items:stretch;justify-content:flex-end';
   ov.innerHTML=`<div style="background:#141b2b;border:1px solid #3a4a6e;border-radius:16px 0 0 16px;padding:16px;width:min(380px,94vw);height:100vh;max-height:100vh;display:flex;flex-direction:column;box-shadow:-18px 0 55px rgba(0,0,0,.6)">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b style="font-size:14px">🧩 Give ${AMT} fragments</b><button class="btn sm secondary" id="dfgX">${uiIcon('close')}</button></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b style="font-size:14px">Give ${AMT} fragments</b><button class="btn sm secondary" id="dfgX">${uiIcon('close')}</button></div>
     <input id="dfgSearch" placeholder="Type a hero name…" autocomplete="off" style="width:100%;padding:9px 11px;border-radius:9px;border:1px solid #33405e;background:#0f1420;color:#e6edf3;font-size:14px;margin-bottom:8px">
     <div id="dfgList" style="overflow:auto;flex:1;display:flex;flex-direction:column;gap:5px"></div>
     <div id="dfgMsg" style="font-size:12px;color:#5ee89b;min-height:16px;margin-top:6px;text-align:center"></div></div>`;
@@ -25436,7 +25443,7 @@ function openDevFragGranter(b){
     listEl.innerHTML=keys.map(k=>{ const t=HERO_TYPES[k];
       return `<button class="btn sm secondary" data-fk="${k}" style="display:flex;align-items:center;gap:9px;justify-content:flex-start;text-align:left;padding:6px 9px">
         <span style="width:30px;flex:none;display:flex;align-items:center;justify-content:center">${heroIcon(k,28)}</span><span style="flex:1"><b style="font-size:13px">${escapeHTML(t.name)}</b> <span style="color:#8b98a9;font-size:10px">${heroStartStars(k)}${uiIcon('star-filled')} · ${G.unlocked[k]?'owned':'locked'}</span></span>
-        <span style="color:#c9a2ff;font-size:11px">${heroFrag(k)}🧩</span></button>`; }).join('');
+        <span style="color:#c9a2ff;font-size:11px">${heroFrag(k)} fragments</span></button>`; }).join('');
     listEl.querySelectorAll('[data-fk]').forEach(el=>el.onclick=async()=>{ const k=el.dataset.fk, t=HERO_TYPES[k];
       el.disabled=true; msgEl.textContent='Granting '+AMT+' '+t.name+' fragments…';
       try{ const r=await api('/api/admin/led-grant','POST',{heroFrags:{[k]:AMT}});
@@ -25984,7 +25991,7 @@ function _updateWaveTag(){const isBoss=(waveIdx===chapterWaves-1);const el=docum
     const modeNm=CUR.mode==='arena'?statusIcon('attack')+' Arena Duel':'🏰 City Skirmish';
     el.innerHTML=`${modeNm} · <b style="color:#8fe3ff">${(mine||0).toLocaleString()}</b> vs <b style="color:#ff9a8b">${theirs?theirs.toLocaleString():'?'}</b>${CUR.oppName?(' · '+escapeHTML(String(CUR.oppName||''))):''} · 1/1`;
     return; }
-  el.innerHTML=`${CUR&&CUR.mode==='well'?('Starless Well · Map '+((CUR.well&&CUR.well.map)|0)):CUR&&CUR.mode==='province'?(((PROV_META[CUR.prov&&CUR.prov.t]||PROV_META.gold).nm)+' '+((CUR.prov&&CUR.prov.stage)|0)):CUR&&CUR.mode==='vault'?('🏛️ Floor '+CUR.floor):stageCode(CUR.node)} · ${isBoss?uiIcon('crown')+' BOSS':'Wave '+(waveIdx+1)+'/'+chapterWaves}`;}   // v362: Vault shows its floor, not a NaN stage code
+  el.innerHTML=`${CUR&&CUR.mode==='well'?('Starless Well · Map '+((CUR.well&&CUR.well.map)|0)):CUR&&CUR.mode==='province'?(((PROV_META[CUR.prov&&CUR.prov.t]||PROV_META.gold).nm)+' '+((CUR.prov&&CUR.prov.stage)|0)):CUR&&CUR.mode==='vault'?(uiIcon('mode-vault')+' Floor '+CUR.floor):stageCode(CUR.node)} · ${isBoss?uiIcon('crown')+' BOSS':'Wave '+(waveIdx+1)+'/'+chapterWaves}`;}   // v362: Vault shows its floor, not a NaN stage code
 // Top banner: Time countdown + Progress (current wave / total waves)
 function updateBattleBanner(){ const bb=document.getElementById('battleBanner'); if(!bb)return;
   const on=(state==='battle'); bb.classList.toggle('active',on); if(!on)return;
@@ -26763,7 +26770,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791589933896';
+const BUILD_ID = '1791592453661';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -27195,7 +27202,8 @@ function edItemMul(it){ return (it&&it.r) ? ED_RADIANT_MUL : ((it&&it.t) ? ED_TI
 function edCrestRole(it){ if(!it||!it.f) return null; if(it.a==='Relic'&&it.b!=='Relic') return ED_CREST[it.b]||null; if(it.b==='Relic'&&it.a!=='Relic') return ED_CREST[it.a]||null; return null; }
 function edIsSeed(it){ return !!(it&&it.f&&it.a==='Relic'&&it.b==='Relic'); }
 function edIsTool(it){ return !!(it && (it.rm || it.rf || it.anv)); }   /* v657 (Phil #7 "build something similar"): the Remover, the Reforger {rf} and the Anvils {anv:'c'|'f'} are used, never worn */
-function edToolIc(it){ return it.anv ? '⚒️' : (it.rf ? '🎲' : '🧲'); }
+function edToolIcName(it){ return it.anv ? 'mode-forge' : (it.rf ? 'ed-item-reforge' : 'ed-item-magnet'); }   /* v1100: the Anvil, Reforger and Magnet art */
+function edToolIc(it){ return `<img src="${ICON_SRC.u(edToolIcName(it))}" alt="" style="width:100%;height:100%;object-fit:contain;display:block">`; }
 function edItemCol(it){ if(!it) return '#cfd6df'; if(it.rm||it.rf) return '#c9a2ff'; if(it.anv) return it.anv==='f'?'#4aa3ff':'#5ee89b'; /* v657: an anvil glows in the tier it holds */ const t=edTierOf(it);   /* v650: the ladder's colours */
   if(t==='orange') return '#ff9d5e'; if(t==='gold') return '#ffd45e'; if(t==='purple') return '#b98bff'; if(edCrestRole(it)||edIsSeed(it)) return '#7fd8ff'; if(t==='blue') return '#4aa3ff'; return '#5ee89b'; }   /* v654: Emberweave's palette */
 function edHeroRoles(h){ const out=[edRole(h.key)]; for(const it of (h.items||[])){ const r=edCrestRole(it); if(r && !out.includes(r)) out.push(r); } return out; }
@@ -27232,12 +27240,12 @@ function edItemImg(it,px){ const col=edItemCol(it), g=Math.max(2,Math.round(px/7
 function edPairKey(a,b){ const i=ED_COMP.indexOf(a), j=ED_COMP.indexOf(b); return i<=j ? a+'+'+b : b+'+'+a; }
 /* role synergies (the role every hero already has) — counted by DISTINCT heroes on the board */
 const ED_SYN = {
- Tank:{ic:'🛡️', t:[2,4], d:['Tanks +20% health','Tanks +40% health, the team +10%']},
- Bruiser:{ic:'🩸', t:[2,4], d:['Bruisers 10% lifesteal, +10% damage','Bruisers 25% lifesteal, +25% damage, 10% stun on hit']},   /* v654 (Phil: "Those are meant to be bruisers not brute"): Warrior + Brute folded into Bruiser */
- Mage:{ic:'🔮', t:[2,4], d:['Mages +20% ability power','Mages +50% ability power']},
- Marksman:{ic:'🏹', t:[2,4], d:['Marksmen +20% attack speed','Marksmen +45% attack speed']},
- Assassin:{ic:'🗡️', t:[2,4], d:['Assassins +15% crit chance','Assassins +35% crit, leap to the back line']},
- Support:{ic:'✨', t:[2,4], d:['Team shield: 10% health','Team shield: 25% health']}};
+ Tank:{ic:uiIcon('class-tank'), t:[2,4], d:['Tanks +20% health','Tanks +40% health, the team +10%']},
+ Bruiser:{ic:uiIcon('class-bruiser'), t:[2,4], d:['Bruisers 10% lifesteal, +10% damage','Bruisers 25% lifesteal, +25% damage, 10% stun on hit']},   /* v654 (Phil: "Those are meant to be bruisers not brute"): Warrior + Brute folded into Bruiser */
+ Mage:{ic:uiIcon('class-mage'), t:[2,4], d:['Mages +20% ability power','Mages +50% ability power']},
+ Marksman:{ic:uiIcon('class-marksman'), t:[2,4], d:['Marksmen +20% attack speed','Marksmen +45% attack speed']},
+ Assassin:{ic:uiIcon('class-assassin'), t:[2,4], d:['Assassins +15% crit chance','Assassins +35% crit, leap to the back line']},
+ Support:{ic:uiIcon('class-support'), t:[2,4], d:['Team shield: 10% health','Team shield: 25% health']}};
 
 /* ------------------------------------------------------------------------------------------ heroes & pool */
 function edHeroKeys(){ return Object.keys(HERO_TYPES).filter(k=>{ const t=HERO_TYPES[k]; return t && !t.monster && t.stars>=1 && t.stars<=3 && KITS[k]; }); }
@@ -27996,7 +28004,7 @@ function edOrbsDraw(){ const now=performance.now();
     octx.shadowBlur=0; octx.lineWidth=2; octx.strokeStyle=col; octx.stroke();
     const im=o.d.it&&!edIsTool(o.d.it)?edOrbIcon(o.d.it):null;
     if(im) octx.drawImage(im,p.x-r*0.8,y-r*0.8,r*1.6,r*1.6);
-    else { octx.textAlign='center'; octx.textBaseline='middle'; octx.font=(r*1.2|0)+'px sans-serif'; octx.fillText(o.d.gold?'🪙':(o.d.it&&edIsTool(o.d.it)?edToolIc(o.d.it):'◆'),p.x,y+1); }
+    else { octx.textAlign='center'; octx.textBaseline='middle'; octx.font=(r*1.2|0)+'px sans-serif'; if(o.d.it&&edIsTool(o.d.it)&&!o.d.gold){ const im=ftImg(edToolIcName(o.d.it)), d=r*1.5; if(im.complete&&im.naturalWidth) octx.drawImage(im,p.x-d/2,y+1-d/2,d,d); } else octx.fillText(o.d.gold?'🪙':'◆',p.x,y+1); }
     octx.restore(); }
   const fx=ED.fx||[]; for(let i=fx.length-1;i>=0;i--){ const f=fx[i], k=(now-f.t)/1100; if(k>=1){ fx.splice(i,1); continue; }
     const p=project(f.x,f.y,0.6); octx.save(); octx.globalAlpha=1-k; octx.textAlign='center'; octx.font='800 13px sans-serif'; octx.lineWidth=3; octx.strokeStyle='rgba(0,0,0,.85)';

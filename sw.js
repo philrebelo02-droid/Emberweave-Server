@@ -13,7 +13,7 @@
    cache instantly and revalidated in the background, so a genuinely changed file is picked up on
    the next open instead of never — and a ?v= bumped URL is a new key anyway, so it is fetched
    immediately. */
-const BUILD='1791589933896';
+const BUILD='1791592453661';
 const SHELL_CACHE = 'ember-shell-' + BUILD;   // versioned: wiped on every deploy
 const ASSET_CACHE = 'ember-assets-v1';        // persistent: survives deploys
 const SHELL = ['/play', '/', '/manifest.webmanifest', '/icon-192.png?v=lumi1', '/icon-512.png?v=lumi1', '/icon-512-maskable.png?v=lumi1', '/apple-touch-icon.png?v=lumi1', '/hero-profiles.js?v=r936', '/hero-paths.js?v=r936'];

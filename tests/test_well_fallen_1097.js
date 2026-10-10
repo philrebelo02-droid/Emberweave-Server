@@ -35,7 +35,14 @@ async function call(route,data){ const r=await fetch(base+route,{method:data?'PO
   ok(H[present[0]]&&H[present[0]].dead===false&&H[present[0]].hpFrac>0&&H[present[0]].hpFrac<1,'control: a hero in the summary keeps the HP it ended with ('+JSON.stringify(H[present[0]])+')');
   ok(H[missing]&&H[missing].dead===true&&H[missing].hpFrac===0,'the hero missing from the summary is marked fallen ('+JSON.stringify(H[missing])+')');
   let s2=null;   // the next guarded square (the map decides which rows of column 2 hold a fight)
-  for(const row2 of [0,1,2]){ s2=await call('/api/well/start',{requestId:rid(),col:2,row:row2,heroIds:heroes}); if(!/guarded square/.test(s2.data.error||'')) break; }
+  /* v1100: walk the REAL map - the next column does not always hold a guarded square in reach (the test failed about 2 runs in 3).
+     Step over chest / other squares (a chest first: it cannot heal) until a guarded square is next to us, then try to fight it. */
+  for(let hop=0;hop<6&&!s2;hop++){ const V=(await call('/api/well/state')).data, pos=V.pos, nc=pos.col+1, col=(V.grid||[])[nc]||[];
+    const near=[0,1,2].filter(r=>col[r]&&Math.abs(r-pos.row)<=1), fight=near.find(r=>col[r].type==='fight'||col[r].type==='boss');
+    if(fight!=null){ s2=await call('/api/well/start',{requestId:rid(),col:nc,row:fight,heroIds:heroes}); break; }
+    const step=near.find(r=>col[r].type==='chest')??near.find(r=>col[r].type!=='spring')??near[0];   // a spring heals - last resort if(step==null) break;
+    await call('/api/well/move',{requestId:rid(),col:nc,row:step}); }
+  s2=s2||{status:0,data:{error:'no guarded square reachable'}};
   ok(s2.status!==200&&/fallen/.test(s2.data.error||''),'the fallen hero cannot walk into the next fight ('+(s2.data.error||s2.status)+')');
   if(missed.length){ missed.forEach(m=>console.error('FAIL',m)); process.exitCode=1; }
   console.log('test_well_fallen_1097.js: '+pass+' checks passed, '+missed.length+' failed (server '+srvFile+')');
