@@ -25969,7 +25969,7 @@ function svrHandoffCode(){
 async function svrGo(id){
   const code=await svrHandoffCode(), h=code?('#handoff='+code):'';
   // v1107: the front door never leaves its own address - it records the server and reloads itself (the head script then talks to it)
-  if(svrFront()){ if(id===svrHere()){ svrClose(); return; } svrRecentSet(id); location.href='https://'+location.hostname+'/play'+h; return; }
+  if(svrFront()){ if(id===svrHere()){ svrClose(); return; } svrRecentSet(id); location.href='https://'+location.hostname+'/play?server='+id+h; return; }   // v1108: ?server=N makes it a real page load - '/play#handoff' alone only changed the hash on /play, so nothing happened
   location.href='https://'+SVR_FRONT+'/switch?server='+id+h; }   // v1034: a ~1 KB page on the front door records the choice and forwards
 /* v1034 (Phil 5 Oct: "it reloads twice instead of once"): the code is redeemed and the page signs in where it stands - it used to
    location.replace() and boot the whole game a second time. While it runs the net gate reads "Signing you in…", so Play cannot be
@@ -27024,7 +27024,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791644959284';
+const BUILD_ID = '1791647755393';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
