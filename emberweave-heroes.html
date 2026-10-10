@@ -4780,7 +4780,8 @@ function screenToField(sx,sy,h){ h=(h==null?0.15:h); if(typeof TH==='undefined'|
 const METER=28.2;   // field-units per in-game metre (tripled from 9.4 so 13 m / 25 m rows read as real spacing; melee touching still governed by body-collision floor, not this)
 const KITS={
   konwu:{green:{deliver:'form',name:'Cleaving Arc',type:'cleavecone',mul:1.5,radius:5*METER,angle:45,cd:6,gfx:'konwu_green',gfxAt:'front',gdur:5.88},blue:{name:'Phantom Step',type:'blink',mul:2.0,range:15*METER,cd:10,knock:8*METER,stun:2,chase:1.5,kick:0.667,gfx:'konwu_blue',gfxR:3*METER,gdur:4.08},purple:{name:'Adamant Discipline',pass:'warden'}},
-  grosk:{green:{deliver:'form',name:'Gravemaw Pull',type:'pullsilence',radius:5*METER,dur:2,cd:10,gfx:'grosk_green',gdur:4.38},blue:{name:'Hammer Fists',type:'punchflurry',hits:4,mul:0.26,tauntChance:1,tauntDur:2,cd:6,gfx:'grosk_blue',gfxR:3*METER,gdur:3.92},purple:{name:'The Mirewall',pass:'mirewall'}},
+  // v1111 (Phil 10 Oct 2026: "grosk punch ability changing to 3 punches at 60% of attack damage"): Hammer Fists was 4 x 26%.
+  grosk:{green:{deliver:'form',name:'Gravemaw Pull',type:'pullsilence',radius:5*METER,dur:2,cd:10,gfx:'grosk_green',gdur:4.38},blue:{name:'Hammer Fists',type:'punchflurry',hits:3,mul:0.6,tauntChance:1,tauntDur:2,cd:6,gfx:'grosk_blue',gfxR:3*METER,gdur:3.92},purple:{name:'The Mirewall',pass:'mirewall'}},
   vulmar:{green:{name:'Gravity Sling',type:'gravsling',mul:1.0,splashMul:0.5,cd:7,gfx:'vulmar_green',gfxR:3*METER,gdur:3.75,desc:"Vulmar seizes the nearest enemy with gravity and hurls it into the next one, damaging and stunning both."},blue:{name:'Grasping Vow',type:'tendrilpull',target:'farthest',silence:true,dur:3,stop:2,cd:10,gfx:'vulmar_blue',gfxR:3*METER,gdur:1.21,desc:"Gravity tendrils seize the farthest enemy on the field, silence it, and drag it to Vulmar's side."},purple:{name:'Unstepped',pass:'unstepped'}},
   tick:{green:{name:'Overclock',type:'haste',mul:1.35,dur:5,self:true,desc:"Tick winds his own mainspring: HIS attack speed only, for a few seconds.",cd:8,gfx:'tick_green',gfxR:3*METER,gdur:5.88},blue:{name:'Mainspring',type:'punchflurry',hits:5,mul:0.28,tauntChance:0,cd:7,gfx:'tick_blue',gfxR:3*METER,gdur:5.21},purple:{name:'Momentum Gears',pass:'momentum'}},
   sylthaine:{green:{name:'Frozen Orb',type:'frozenorb',mul:1.1,range:28*METER,width:34,cd:8,gfx:'sylthaine_green',noArt:true,pfx:'sylthaine_green',pscale:2.6,pdur:0.9,gdur:3.92},blue:{deliver:'form',name:'Glacial Prison',type:'freeze',mul:1.2,stun:2,cd:9,gfx:'sylthaine_blue',gfxR:3*METER,gdur:5.54},purple:{name:'Cold Snap',pass:'coldsnap'}},
@@ -5053,8 +5054,14 @@ function abilityMeta(key,idx){ const t=HERO_TYPES[key],kit=KITS[key]; if(!t||!ki
   return seg.length?(' — '+seg.join(' · ')):'';
 }
 // tooltip: a full one-sentence description of what the ability does, then the standard meta line.
+/* v1111 (Phil 10 Oct: "this is weirdly worded" / "the description says 20% it doesnt change when i upgrade"): a passive whose numbers grow
+   with its level gets its description written FROM the level (same formula the fight uses), so the hover text and the card line agree. */
+const PASS_DESC_LV={
+  mirewall: lv=>{ const p=Math.round(Math.min(35,20*skillMul(lv))); return 'the ally closest to dying takes '+p+'% less damage. Grosk takes 35% of the damage they avoided (about '+Math.round(p*0.35)+'% of each hit) and heals back half of what he took'; },
+};
 function skillDesc(key,idx){ const t=HERO_TYPES[key],kit=KITS[key];
-  if(idx===3){ const ab=kit.purple; return stripIcons(ab.desc||PASS_DESC[ab.pass]||'Always-on passive.')+' (Passive)'; }
+  if(idx===3){ const ab=kit.purple; const _fl=PASS_DESC_LV[ab.pass]; let _lv=1; try{ _lv=(skillLvArr(key)[3])||1; }catch(e){}
+    return stripIcons(ab.desc||(_fl?_fl(_lv):PASS_DESC[ab.pass])||'Always-on passive.')+' (Passive)'; }
   const _kab=idx===0?null:(idx===1?kit.green:kit.blue);
   const desc = idx===0 ? (HERO_ULT_DESC[key]||ULT_DESC[t.ability]||'Ultimate ability.') : ((_kab&&_kab.desc)?_kab.desc:((_kab&&_kab.at==='cluster'?'Cast on the most crowded enemy group, any distance — ':'')+(KIT_DESC[_kab.type]||'Active ability.').replace(/^Bursts around the caster — |^Damages all nearby enemies/, m=>_kab.at==='cluster'?(m.startsWith('Bursts')?'':'damages every enemy in the area'):m)));
   return desc + abilityMeta(key,idx);
@@ -15179,7 +15186,7 @@ async function forgeSync(){
   const s=await api('/api/gear/state');
   /* v1101 (Phil 9 Oct, a screenshot of 'The Forge is being built'): one failed request (a blip, a busy server) cached 'Forge off' until the
      next account change. Only the server's own enabled:false means off; a failed load (or no catalog) is offline and offers a Retry. */
-  FORGE.st=(s&&s.enabled&&FORGE.cat)?s:(s&&s.enabled===false)?{enabled:false}:{enabled:false,offline:true}; return FORGE.st;
+  FORGE.st=(s&&s.enabled&&FORGE.cat)?s:(s&&s.enabled===false)?{enabled:false}:{enabled:false,offline:true}; FORGE.stAt=Date.now(); return FORGE.st;
 }
 function forgeDef(id){ return (FORGE.cat&&FORGE.cat.items.find(i=>i.id===id))||null; }
 async function forgePost(path,payload,msg){ if(FORGE.busy)return; FORGE.busy=true;
@@ -15497,6 +15504,12 @@ function forgeHeroesTabHTML(){
 }
 function renderForge(){
   const b=document.getElementById('forgeBody'); if(!b) return;
+  /* v1111 (Phil 10 Oct: "when equipment parts are earned, you have to reload the game before it recognizes you have it to make equipment"):
+     the Forge kept the gear state it loaded once (FORGE.st) until an account change, so fragments won in the Vault or campaign never
+     reached it. Now every time the Forge draws with a copy older than 2 s it shows that copy at once and fetches the server's state,
+     then draws again - a fresh copy (under 2 s old) is not fetched again, so it cannot loop. */
+  if(FORGE.st&&!FORGE.st.offline&&!FORGE._refresh&&Date.now()-(FORGE.stAt||0)>2000){ FORGE._refresh=true;
+    forgeSync().catch(()=>{}).then(()=>{ FORGE._refresh=false; try{ if(document.getElementById('forgeBody')) renderForge(); }catch(e){} }); }
   if(FORGE.st===null){ b.innerHTML='<div class="panel" style="text-align:center;color:#8b98a9;padding:20px">Stoking the Forge…</div>';
     forgeSync().then(()=>renderForge()); return; }
   if(FORGE.st.offline){ b.innerHTML='<div class="panel" style="text-align:center;padding:22px"><div style="font-size:40px">'+uiIcon('mode-forge')+'</div><div style="font-weight:800;margin:6px 0">Could not reach the Forge</div><button class="btn" id="forgeRetry">Retry</button></div>';
@@ -27024,7 +27037,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791654559236';
+const BUILD_ID = '1791657861592';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
