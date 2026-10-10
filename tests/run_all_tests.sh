@@ -349,6 +349,8 @@ note "test_gruel_anim_nine.js (v1103: Gruel's nine approved animations - sheets 
 node tests/test_gruel_anim_nine.js || FAILED=1
 note "test_grosk_anim_eight.js (v1112: Grosk's eight approved animations - sheets, grids, Hammer Fists punches at full extension 1.083/2.0/2.833 s, Croc Drop slam on the landing 2.833 s; controls: the instant flurry and a broken grid fail)"
 node tests/test_grosk_anim_eight.js || FAILED=1
+note "test_vex_ceraline_fx_1115.js (v1115: Grok spell FX 22-24 - Mourning Bell ring + wax shatter, Hookline reel (Vex pulled on the rope retract, clip 0.458-0.958 s) + slash, Bleed Them Dry wound; controls: v1114 teleport/instant strike fail, art touches no fight state)"
+node tests/test_vex_ceraline_fx_1115.js || FAILED=1
 note "test_auto_ult_healer_1103.js (v1103: healer ults that also hit enemies fire when full; heal-only ones still wait)"
 node tests/test_auto_ult_healer_1103.js || FAILED=1
 rm -f probe-db-*.json

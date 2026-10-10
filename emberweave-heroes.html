@@ -4827,7 +4827,7 @@ const KITS={
   pellucid:{green:{name:'Meteor Knuckle',type:'aoeStun',mul:1.25,stun:1.2,radius:2.6*METER,cd:8,desc:"Drives one colossal fist down, stunning nearby enemies.",gfx:'pellucid_green',gdur:6.04,deliver:'land',fall:0.45},blue:{name:'Infernal Clinch',type:'atkcrush',mul:1.5,pct:0.35,stun:0.6,dur:5,cd:10,desc:"Grabs the strongest enemy and crushes its Attack for several seconds.",gfx:'pellucid_blue',gfxR:3*METER,gdur:6.04},purple:{name:'Unmovable Mass',pass:'unmovable',desc:"Cannot be displaced; damage taken builds molten armor."}},
   mirelle:{green:{name:'Scent of Courage',type:'healbuff',mul:0.95,atk:1.28,dur:6,cd:7,desc:"Sprays the weakest ally with restorative perfume, healing them and increasing their Attack.",gfx:'mirelle_green',gdur:5.88},blue:{deliver:'shot',name:'Soporific Bouquet',type:'sleepbouquet',sleep:2.2,slow:3,cd:10,desc:"Releases a drifting fragrance that puts the highest-energy enemy to sleep.",gfx:'mirelle_blue',gfxR:3*METER,gdur:4.42},purple:{name:'Trail of Splendor',pass:'splendor',desc:"Whenever an ally receives a buff, they also gain a small stacking shield."}},
   veyr:{green:{name:'Gravity Crescent',type:'tendrilpull',nearest:true,mul:1.5,dur:1.2,stop:1.2,cd:7,desc:"Slashes the nearest enemy and pulls it one position forward.",gfx:'veyr_green',gdur:3.33},blue:{name:'Abyssal Mantle',type:'evadecounter',mul:2.0,dur:2.4,dr:0.55,perLv:0.001,cd:9,desc:"Folds his living mantle around himself, evading attacks before countering.",gfx:'veyr_blue',gfxR:3*METER,gdur:5.88},purple:{name:'Weightless Predator',pass:'weightless',desc:"Every dodge grants Attack Speed and critical chance."}},
-  vex:{green:{name:'Hookline',type:'hookline',mul:1.6,crit:1.5,cd:8,range:28*METER,evade:0.5,gfx:'vex_green',gfxR:3*METER,gdur:4.58,desc:"Vex fires her hook at the most fragile enemy in reach, back-row casters first, and swings in behind them for a crushing strike."},blue:{name:'Bleed Them Dry',type:'dot',mul:1.2,dps:0.30,dur:6,interval:1,color:'#c0392b',cd:9,gfx:'vex_blue',gfxR:3*METER,gdur:5.25,desc:"Vex opens a deep wound that bleeds the target every second for 6 seconds."},purple:{name:'Killer Instinct',pass:'killerinstinct'}},
+  vex:{green:{name:'Hookline',type:'hookline',mul:1.6,crit:1.5,cd:8,range:28*METER,evade:0.5,ownFx:'hook',gfx:'vex_green',gfxR:3*METER,gdur:4.58,desc:"Vex fires her hook at the most fragile enemy in reach, back-row casters first, and swings in behind them for a crushing strike."},blue:{name:'Bleed Them Dry',type:'dot',mul:1.2,dps:0.30,dur:6,interval:1,color:'#c0392b',cd:9,ownFx:'wound',gfx:'vex_blue',gfxR:3*METER,gdur:5.25,desc:"Vex opens a deep wound that bleeds the target every second for 6 seconds."},purple:{name:'Killer Instinct',pass:'killerinstinct'}},
   grimsby:{green:{name:'Overdue',type:'debtmark',mul:0.5,dps:0.35,maxStk:6,dur:6,cd:6,gfx:'grimsby_green',gfxR:3*METER,gdur:5.88},blue:{deliver:'form',name:'Ledger Slam',type:'pullsilence',radius:4*METER,dur:2,cd:10,gfx:'grimsby_blue',gdur:5.88},purple:{name:'Compound Interest',pass:'debtaura'}},
   dandra:{green:{name:'Seedlight',type:'mendburst',mul:0.45,hot:0.06,dur:6,cd:8,gfx:'dandra_green',gfxR:3*METER},blue:{deliver:'shot',name:'Drowsy Sting',type:'drowsy',mul:0.5,dps:0.25,slowPct:0.3,stung:6,sleep:1.6,cd:6,gfx:'dandra_blue',gfxR:3*METER},purple:{name:'The Swarm Moves On',pass:'contagion',desc:'when a stung foe dies, her bees move to the nearest enemies and sting them too'}},
 };
@@ -9131,6 +9131,7 @@ function buildFigure(u){
   spr.center.set(.5,0); spr.scale.set((u.team==='enemy'?-1:1)*h*u.sprA,h,1); spr.position.y=.05; g.add(spr); u.sprite=spr;
   if(HERO_SPRITES[u.key]){ const img=new Image(); img.onload=()=>{ u.sprA=img.width/img.height; if(u.sprite&&!u.anim) u.sprite.scale.set((u.team==='enemy'?-1:1)*u.sprH*u.sprA,u.sprH,1); }; img.src=HERO_SPRITES[u.key]; }
   if(heroHasAnim(u.key)){ const set=loadAnimSet(u.key, u._edIdle?['idle']:(u._edStates||undefined)); /* v606: an idle-only figure (Emberdraft bench/planning) loads just its idle sheet */ if(set&&set.idle&&set.idle.tex){ u.anim=set; u.sprA=set.idle.aspect; spr.material.map=set.idle.tex; spr.material.needsUpdate=true; } }
+  try{ (FX1115_WARM[u.key]||[]).forEach(k=>fx2Tex(k)); }catch(_e){}   /* v1115: load her spell sheets with her figure, so the first Hookline shows its throw */
   u.mesh=g; scene.add(g); syncMesh(u,0);
 }
 /* render one hero as a framed portrait bust -> data URL (used to pre-bake portraits) */
@@ -10018,6 +10019,9 @@ function _debuffSig(e){ return [(e.dots||[]).length,(typeof _pendingDots!=='unde
 const _ABOVE_BAR={healbuff:1,honeyglob:1,lastbreath:1,thornguard:1,dawnward:1,hot:1,mendburst:1,shield:1,heal:1,rally:1,haste:1,defensive:1,warcry:1,dmgbuff:1,crescendo:1,
   lifestealbuff:1,laststand:1,spdsteal:1,firstspring:1,regen:1,cleanse:1,bulwark:1,dawnguard:1};   /* v558: harmonyshield LEFT this list on purpose. Phil: 'this is used on the lowest health ally, any ally within 7 meters of the center of the dome is shielded also' -- that is ONE 14 m dome over one ally, not a dome per shielded ally, so it must not go through the v552 per-unit fan-out. */
 function abilArt(u,o,tgt,aimCtr,type){ window._fxCaster=u; if(o&&o.noArt) return;   /* v483: the ability draws its own per-target art (Shadeburst) */
+  /* v1115 ownFx: the ability draws Grok's clip itself instead of its old plate. 'bell' = Mourning Bell over the cast centre (this runs at the
+     form launch, 0.35 s before the damage); 'hook' and 'wound' are drawn by Vex's cases. */
+  if(o&&o.ownFx){ if(o.ownFx==='bell'){ try{ const c=aimCtr||((tgt&&tgt.alive)?tgt:u); bellCastFx(c.x,c.y); }catch(_e){} } return; }
   if(!o||!u||typeof spawnGroundFx!=='function') return;
   if(!o.gfx || !FX2_DEF[o.gfx]) return;
   /* v591 (Phil, 18 Sep: "Effects that effect the entire battlefield should only be a buff or debuff over the enemy or
@@ -10344,7 +10348,7 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
      `allyBadge` keeps the ability's own plate (Greatbrow's banner planted in front of him) AND puts a small copy
      (`badgeSize` x the unit's height) over every ally the effect actually changed. */
   const _allyBadge=!_buffArt&&!!(o&&o.allyBadge&&o.gfx&&FX2_DEF[o.gfx]);
-  const _debuffArt=!_buffArt&&!!(o&&o.gfx&&FX2_DEF[o.gfx]&&_DEBUFF_BADGE[type]); let _debuffSnap=null;   /* v595 */
+  const _debuffArt=!_buffArt&&!!(o&&o.gfx&&FX2_DEF[o.gfx]&&_DEBUFF_BADGE[type])&&!o.ownFx; let _debuffSnap=null;   /* v595; v1115: an ownFx ability draws its own art (no badge) */
   if(_debuffArt){ _debuffSnap=units.filter(a=>a.alive&&a.team!==u.team).map(a=>[a].concat(_debuffSig(a))); }
   if(_buffArt||_allyBadge){ _buffSnap=units.filter(a=>a.alive&&a.team===u.team).map(a=>[a,a.hp,a.shield||0,a.shieldT||0,a.hasteT||0,a.dmgBuffT||0,a.drT||0,a._wardT||0,(a.hots||[]).length,a._lifestealT||0,a.slow||0,a._cleanseT||0,a._bulwarkT||0,a._regenT||0]); }
   if(!_buffArt&&!_debuffArt){ _fxAllow=true; try{ abilArt(u,o,tgt,aimCtr,type); }finally{ _fxAllow=false; } }   // v313 — sprite plate for any ability that declares one (v594: an allyBadge ability draws its own plate too)
@@ -10371,6 +10375,7 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
       break;}
     case 'nova':{ if(o.detonate){ enemiesOf(u).forEach(m=>{ if(!m.alive||!((m._waxCoatT||0)>0)||m._waxCoatBy!==u)return;   /* v920 Mourning Bell shatters her Sealing Wax */
         const _bx=m.x,_by=m.y; enemiesOf(u).forEach(e=>{ if(e.alive&&Math.hypot(e.x-_bx,e.y-_by)<(o.detR||2.6*METER)) dealDamage(u,e,apB*o.detonate*rm,'#e8d8b0','magic'); });
+        try{ waxShatterFx(m); }catch(_e){}   /* v1115 Grok 22b: the wax splash where the coat was (display only) */
         m._waxCoatT=0; m._waxCoatBy=null; ringBurst(_bx,_by,0xe8d8b0,18); burstAt(_bx,_by,0xfff0c0,12); }); }
       const C=aimCtr||u; enemiesOf(u).forEach(e=>{if(dist(C,e)<(o.radius||85)){dealDamage(u,e,dB*(o.mul||1)*rm,o.slow?'#a0d0ff':'#ffb0a0'); if(o.slow)ccApply(u,e,'slow',2);
       /* v527 - a nova may REPEL, which is what Blazing Orbit's "damages and repels attackers" asks for. */
@@ -10473,6 +10478,7 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
     case 'execute':{if(!tgt)break;const bonus=1+(1-tgt.hp/tgt.maxHp)*2;dealDamage(u,tgt,dB*(o.mul||2.2)*rm*bonus,'#ff5b6b');burstAt(tgt.x,tgt.y,0xff5b6b,14);break;}
     case 'creeprot': case 'dot':{if(!tgt)break; if(o.mul)dealDamage(u,tgt,dB*o.mul,o.color||'#ffd9a8');
       const _pc=o.color||'#ff8844', _pd=_sD*(o.dps||.5)*sm; plagueDot(tgt,_pd,o.dur||4,o.interval||1,_pc);
+      if(o.ownFx==='wound'){ try{ vexWoundFx(tgt,o.dur||4,_pc); }catch(_e){} }   /* v1115 Grok 24: the wound opens and stays while it bleeds (display only) */
       // Contagion carriers tag their OWN plague/curse so it can spread on the victim's death.
       if(u.pass&&u.pass.contagion){ tgt._contagion=true; tgt._plagueDps=_pd; tgt._plagueColor=_pc; tgt._plagueHex=parseInt(_pc.slice(1),16)||0x8fbf3f; } if(o.foot){tgt._darkAuraT=o.dur||4;tgt._plagueColor=o.color||'#8a5cff';tgt._plagueHex=0x7a3fb0;} if(o.handglow){ const dd=Math.max(1,dist(u,tgt)); const hx=u.x+(tgt.x-u.x)/dd*20, hy=u.y+(tgt.y-u.y)/dd*20; u._darkAuraT=Math.max(u._darkAuraT||0,0.7); burstAt(hx,hy,0x7a3fb0,8); burstAt(tgt.x,tgt.y,0x7a3fb0,12); ringBurst(tgt.x,tgt.y,0x8a5cff,8); } else if(o.chain){spawnShadowChain(u,tgt);} else if(u.range>60)spawnShot(u,tgt,u.t.color); break;}
     case 'shadeburst':{ const R=o.radius||7*METER; const _c=aimCtr||densestEnemyCluster(u,R)||{x:u.x,y:u.y};   /* v571 Phil: Shadeburst erupts AMONG the enemy, not around Umbris - he stands at ally depth 3.4, so a caster-centred circle spent 20 m crossing the empty gap and could never reach the enemy back row */ enemiesOf(u).forEach(e=>{ if(Math.hypot(e.x-_c.x,e.y-_c.y)<R){ if(o.mul)dealDamage(u,e,dB*o.mul,'#c9a6ff'); const _sd=apB*(o.dps||0.3); plagueDot(e,_sd,o.dur||6,1,'#8a5cff'); e._darkAuraT=o.dur||6; e._plagueColor='#8a5cff'; e._plagueHex=0x7a3fb0;
@@ -10627,18 +10633,29 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
       const _mark=(_backMages.length?_backMages:_choices)
                    .sort((a,b)=>(a.maxHp||a.hp||0)-(b.maxHp||b.hp||0))[0] || null;
       if(!_mark) break;                                   // nothing in reach: the leap does not fire
-      burstAt(u.x,u.y,0x7a3fa0,14); spawnShot(u,_mark,'#c9a6ff');
+      burstAt(u.x,u.y,0x7a3fa0,14);
       // behind = on the far side of the mark from where she started, along that same line
       const _dx=_mark.x-u.x, _dy=_mark.y-u.y, _L=Math.hypot(_dx,_dy)||1;
       const _gap=0.9*METER;
-      u.x=Math.max(60,Math.min(FW-60,_mark.x+(_dx/_L)*_gap));
-      u.y=Math.max(80,Math.min(FD-60,_mark.y+(_dy/_L)*_gap));
-      u._ax=u.x; u._ay=u.y; u.attackAnim=.18;
-      u._faceDir=(_mark.x>=u.x)?1:-1;                     // she lands past them and turns back
-      dealDamage(u,_mark,dB*(o.mul||1.6)*(o.crit||1.5)*rm,'#c9a6ff');
-      u._noTarget=true; u._noTargetT=o.evade||0.5;   // evasive beat after the behind-target strike
-      burstAt(u.x,u.y,0x7a3fa0,18);
-      floatTexts.push({x:_mark.x,y:_mark.y-12,txt:'BEHIND YOU',t:1.0,color:'#c9a6ff',vy:1,sz:12}); break; }
+      const _lx=Math.max(60,Math.min(FW-60,_mark.x+(_dx/_L)*_gap)), _ly=Math.max(80,Math.min(FD-60,_mark.y+(_dy/_L)*_gap));
+      /* v1115 (Grok spell 23, Phil: "pulled to the target while the rope retracts"): the hook flies and bites (clip 0.333 s), then she is
+         reeled in ON the retract - clip 0.458 -> 0.958 s, riding the rope tail's measured position (HOOK_REEL) up to the hook - and swings
+         the last stretch past the mark as the hook lets go, landing behind it at clip 1.083 s. An air dash on the fight clock (clip s x
+         FX_RT: retract 0.308 -> 0.644, landing 0.728 fight s; deterministic, the server replay moves her on the same ticks). She is rooted
+         in the cast until she lands; the strike, the evade beat and BEHIND YOU land with her. Damage, crit, range, evade and cd unchanged
+         (the strike used to land at the cast with an instant teleport; the clip's line is the art now, so the old shot is gone). */
+      u._faceDir=(_mark.x>=u.x)?1:-1;                     // she faces the throw
+      try{ hookReelFx(u,_mark); }catch(_e){}
+      const _T=HOOK_LAND*FX_RT, _HD=dB*(o.mul||1.6)*(o.crit||1.5)*rm, _ev=o.evade||0.5;
+      u._castT=Math.max(u._castT||0,_T+0.05);
+      u._dash={x0:u.x,y0:u.y,x1:_lx,y1:_ly,t:0,dur:_T,air:true,ease:hookReelEase(Math.hypot(_dx,_dy),Math.hypot(_lx-u.x,_ly-u.y)||1),run:function(){
+        u._ax=u.x; u._ay=u.y; u.attackAnim=.18;
+        u._faceDir=(_mark.x>=u.x)?1:-1;                   // she lands past them and turns back
+        if(_mark.alive) dealDamage(u,_mark,_HD,'#c9a6ff');
+        u._noTarget=true; u._noTargetT=_ev;   // evasive beat after the behind-target strike
+        burstAt(u.x,u.y,0x7a3fa0,18); try{ hookSlashFx(_mark); }catch(_e){}
+        floatTexts.push({x:_mark.x,y:_mark.y-12,txt:'BEHIND YOU',t:1.0,color:'#c9a6ff',vy:1,sz:12}); }};
+      break; }
 
     // ---- Grimsby: a debt that GROWS, and detonates onto the room if it outlives its holder. ----
     case 'debtmark':{ if(!tgt)break; dealDamage(u,tgt,dB*(o.mul||0.5)*rm,'#8a7a3a');
@@ -11859,6 +11876,11 @@ const FX2_DEF={
   candleeffigy:{u:'/assets/anim/fx/ceraline_candle_effigy.webp?v=1',n:1,fw:82,fh:300,cols:1,rows:1,dur:1},   /* v1077: the hardened wax totem held over a stunned hero */
   waxerupt:{u:'/assets/anim/fx/ceraline_wax_erupt.webp?v=1',n:69,fw:160,fh:203,cols:10,rows:7,dur:5.7,anchor:[0.5,0.136],peakFrac:0.85,peakH:0.5},   /* v1076 Sealing Wax cast (Grok spell 20, Phil-approved 8 Oct): the pool on the target's feet, the wax column erupts to half its height and settles (clip frames 1-137, 12 fps) */
   waxpool:{u:'/assets/anim/fx/ceraline_wax_pool.webp?v=1',n:73,fw:160,fh:203,cols:10,rows:8,dur:6.04},   /* v1076: the same pool bubbling (same crop box, so the cast hands off into it) - loops while the wax coat lasts */
+  bellring:{u:'/assets/anim/fx/ceraline_bell_ring.webp?v=1',n:48,fw:452,fh:436,cols:6,rows:8,dur:2.0,rt:true,anchor:[0.4856,0.204],bellPx:241},   /* v1115 Mourning Bell (Grok spell 22, Phil-approved 10 Oct): clip frames 7-54 at 24 fps, REAL TIME (rt: dur x FX_RT fight s); the ring pulse (clip 20-28) is cells 13-21 = 0.364 fight s after the cast, on the 0.35 s form delivery. anchor = the bell's mouth */
+  waxshatter:{u:'/assets/anim/fx/ceraline_wax_shatter.webp?v=1',n:73,fw:512,fh:337,cols:8,rows:10,dur:6.04,rt:true,anchor:[0.541,0.093],puddleW:0.1247},   /* v1115: the wax coat shatters (clip frames 0-144 every 2nd, 12 fps); anchor = the frame-0 puddle centre, puddleW = its width / cell width (sized to the waxpool puddle it replaces) */
+  hookreel:{u:'/assets/anim/fx/vex_hook_reel.webp?v=1',n:28,fw:1180,fh:154,cols:3,rows:10,dur:1.1667,rt:true,u0:0.0102,u1:0.9525,vRope:0.516,hookPx:135},   /* v1115 Hookline (Grok spell 23, Phil-approved 10 Oct): all 28 clip frames, 24 fps real time; u0 = Vex's end of the rope (clip x 60), u1 = the bite (spark centre x 1172), vRope = the rope row from the bottom */
+  hookslash:{u:'/assets/anim/fx/vex_hook_slash.webp?v=1',n:20,fw:330,fh:334,cols:5,rows:4,dur:0.8333,rt:true},   /* v1115: the crimson + violet X on the mark when Vex lands behind it */
+  bleedopen:{u:'/assets/anim/fx/vex_bleed_open.webp?v=1',n:36,fw:148,fh:462,cols:6,rows:6,dur:1.5,rt:true,woundC:[0.566,0.49],woundPx:398},   /* v1115 Bleed Them Dry (Grok spell 24, Phil-approved 10 Oct): the drop rips the wound open (1.5 s), the LAST cell is held as the wound while the bleed lasts */
   rafetracer:{u:'/assets/anim/fx/rafe_tracer.webp?v=1',n:1,fw:512,fh:91,cols:1,rows:1,dur:1},   /* v1075 Dead Man's Fortune (Grok spell 19, Phil-approved 8 Oct): the hot ball + orange tracer, head right */
   rafespark:{u:'/assets/anim/fx/rafe_spark.webp?v=1',n:32,fw:160,fh:160,cols:8,rows:4,dur:1.33,upright:true,upSize:0.9,upExtent:0.95,upPalm:0.5,ro:1},   /* v1075: the spark star where each shot lands (clip frames 64-95, keyed, centred on the burst) */
   linnet_rewind:{u:'/assets/anim/fx/linnet_rewind.webp?v=1',n:73,fw:192,fh:192,cols:9,rows:9,dur:6.04,upright:true,upAbove:true,upAboveM:0.06,upSize:0.5,upExtent:0.95,ro:1},   /* v1074 Rewrite the Pattern (Grok spell 18, Phil-accepted 8 Oct): the gold thread winds into a spiral over each ally's head, keyed from 18_rewrite_pattern_swirl.mp4 (every 2nd frame, 12 fps) */
@@ -12366,7 +12388,7 @@ function candleEffigyFx(e,hold){ if(!TH||!scene||!e) return; const te=fx2Tex('ca
   const BH=h/db.effFrac; bs.scale.set(BH*db.fw/db.fh,BH,1); bs.visible=false; bs.renderOrder=2; scene.add(bs);
   _candleFx.push({kind:'eff',u:e,eff,bs,t:0,brkAt:hold,startB:Math.max(0,hold-db.brk)}); }
 function _candleKill(o){ ['pot','pool','eff','bs'].forEach(k=>{ if(o[k]){ try{ scene.remove(o[k]); o[k].material.dispose(); }catch(_){} } }); }
-function clearCandleFx(){ _candleFx.forEach(_candleKill); _candleFx.length=0; }
+function clearCandleFx(){ _candleFx.forEach(_candleKill); _candleFx.length=0; try{ clearFx1115(); }catch(_e){} }   /* v1115: Grok 22-24 art clears with it */
 function updateCandleFx(dt){ if(!_candleFx.length) return; const dp=FX2_DEF.candlepot, db=FX2_DEF.candleburst;
   for(let i=_candleFx.length-1;i>=0;i--){ const o=_candleFx[i]; o.t+=dt;
     if(o.kind==='cast'){ const f=candleEdgeF(o.t), d=2*o.R3*Math.max(0.001,f); o.pool.scale.set(d,d,1);
@@ -12384,7 +12406,7 @@ const _waxFxAll=[];
 function _killWaxFx(u){ if(u&&u._waxFx){ try{ scene.remove(u._waxFx.spr); u._waxFx.spr.material.dispose(); }catch(_){}
     const i=_waxFxAll.indexOf(u._waxFx); if(i>=0)_waxFxAll.splice(i,1); u._waxFx=null; } }
 function killAllWaxFx(){ _waxFxAll.forEach(s=>{ try{ scene.remove(s.spr); s.spr.material.dispose(); }catch(_){} if(s.u)s.u._waxFx=null; }); _waxFxAll.length=0; }
-function updateWaxFx(dt){ try{ updateCandleFx(dt); }catch(_e){} if(!TH||!scene||typeof units==='undefined')return;   /* v1077: the Final Candle art ticks here too */ const de=FX2_DEF.waxerupt, dp=FX2_DEF.waxpool; if(!de||!dp)return; units.forEach(u=>{
+function updateWaxFx(dt){ try{ updateCandleFx(dt); }catch(_e){} try{ updateFx1115(dt); }catch(_e){} if(!TH||!scene||typeof units==='undefined')return;   /* v1077: the Final Candle art ticks here too */ const de=FX2_DEF.waxerupt, dp=FX2_DEF.waxpool; if(!de||!dp)return; units.forEach(u=>{
   if(!(u.alive&&(u._waxCoatT||0)>0)){ if(u._waxFx)_killWaxFx(u); return; }
   if(!u._waxFx){ const te=fx2Tex('waxerupt'); if(!te)return;
     const spr=new TH.Sprite(new TH.SpriteMaterial({map:te,transparent:true,depthWrite:false,depthTest:false,opacity:0.97}));
@@ -12396,6 +12418,74 @@ function updateWaxFx(dt){ try{ updateCandleFx(dt); }catch(_e){} if(!TH||!scene||
   else { if(!s.pool){ const tp=fx2Tex('waxpool'); if(tp){ s.pool=true; s.spr.material.map=tp; s.spr.material.needsUpdate=true; s.spr.renderOrder=-4; } }
     if(s.pool) fx2SetFrame(s.spr,dp,Math.floor(((s.t-de.dur)/dp.dur)*dp.n)%dp.n); }
   s.spr.position.set(wx(u.rx==null?u.x:u.rx),0.35,wz(u.ry==null?u.y:u.ry)); }); }   // 0.35: the same lift as the bleed/poison/burn marks, so the pool sits under the drawn feet
+/* v1115 Grok spell FX 22-24 (Phil-approved 10 Oct; Grok handoff 17:46). These five clips play in REAL TIME (rt): FX plates tick on
+   the fight clock (battleFrameTail runs inside updateBattle on SIM_STEP), and the fight clock runs at SIM_STEP*SIM_HZ*BATTLE_PACE
+   = 0.6724 of real time, so a clip second is FX_RT fight seconds - the same conversion as Grosk's hitTimes (v1112).
+   Display only: these helpers read units and never touch damage, CC, hazards or the fight state. Hookline's pull timing lives in
+   HOOK_REEL (the case uses it); the art reads the same table, so the rope and Vex cannot drift. */
+const FX_RT=SIM_STEP*SIM_HZ*BATTLE_PACE;
+/* Hookline (measured on 23_hookline_throw_reel.mp4, 24 fps): the hook flies frames 0-7, BITES on frame 8 (0.333 s, the crimson spark,
+   frames 8-12), the rope starts retracting after frame 11 (0.458 s) and its tail reaches the hook on frame 23 (0.958 s); the hook
+   fades on 24-27. HOOK_REEL = [clip seconds, where the rope's tail is as a fraction of Vex -> bite (clip x 60 -> 1172)] - Vex rides the
+   tail, so she stops where it stops, at the hook's shank (0.793 of the way, clip x 942). The hook then lets go and fades (24-27): she
+   swings the last stretch past the mark to her landing behind it by HOOK_LAND (frame 26, the hook at a quarter). */
+const HOOK_BITE=0.3333, HOOK_LAND=1.0833;
+const HOOK_REEL=[[0.4583,0],[0.5,0.1691],[0.5417,0.3129],[0.5833,0.4317],[0.625,0.5306],[0.6667,0.6079],[0.7083,0.6691],[0.75,0.7158],[0.7917,0.7482],[0.8333,0.7698],[0.875,0.7842],[0.9167,0.7896],[0.9583,0.7932]];
+function hookReelF(c){ if(c<=HOOK_REEL[0][0]) return 0; for(let i=1;i<HOOK_REEL.length;i++){ const a=HOOK_REEL[i-1],b=HOOK_REEL[i]; if(c<=b[0]) return a[1]+(b[1]-a[1])*((c-a[0])/(b[0]-a[0])); } return HOOK_REEL[HOOK_REEL.length-1][1]; }
+/* the dash runs clip 0 -> HOOK_LAND; k = its share done. ab = her distance to the mark, dl = to her landing: on the rope she is at
+   tail x ab (along her line), after it the last stretch to the landing is even. */
+function hookReelEase(ab,dl){ const R=HOOK_REEL[HOOK_REEL.length-1], f1=R[1]*ab/dl; return function(k){ const c=k*HOOK_LAND;
+  return c<=R[0] ? hookReelF(c)*ab/dl : f1+(1-f1)*Math.min(1,(c-R[0])/(HOOK_LAND-R[0])); }; }
+const FX1115_WARM={vex:['hookreel','hookslash','bleedopen'],ceraline:['bellring','waxshatter']};   /* sheets loaded when the hero's figure is built (FX textures otherwise load on first use) */
+const _fx1115=[];
+function _fx15Spr(key,ro){ const d=FX2_DEF[key], t=fx2Tex(key); if(!d||!t) return null;
+  const s=new TH.Sprite(new TH.SpriteMaterial({map:t,transparent:true,depthWrite:false,depthTest:false,opacity:1})); fx2Hook(s); fx2SetFrame(s,d,0); s.renderOrder=ro; scene.add(s); return s; }
+function _fx15Pos(u){ return [wx(u.rx==null?u.x:u.rx), wz(u.ry==null?u.y:u.ry)]; }
+/* 22 Mourning Bell: the bronze bell hangs over the pack it hits and rings once (the pulse lands with the damage). */
+function bellCastFx(cx,cy){ if(!TH||!scene) return; const d=FX2_DEF.bellring, s=_fx15Spr('bellring',3); if(!s) return;
+  const BH=0.75*3.9, H=BH*d.fh/d.bellPx; s.center.set(d.anchor[0],d.anchor[1]); s.scale.set(H*d.fw/d.fh,H,1);
+  /* it hangs over their heads (mouth at 1.05 hero heights); over a pack at the far edge of the field it is lowered until its crown is
+     on screen below the top bar (ndc y 0.72), down to 0.25 hero heights at most */
+  let y=1.05*3.9; try{ const v=new TH.Vector3(); for(;y>0.25*3.9;y-=0.2){ v.set(wx(cx),y+BH*1.03,wz(cy)).project(camera); if(!(v.y>0.72)) break; } }catch(_e){}
+  s.position.set(wx(cx),y,wz(cy));
+  _fx1115.push({kind:'bell',s,d,t:0,life:d.dur*FX_RT,fade:0.25}); }
+/* 22b: a wax coat shatters (Mourning Bell detonates it) - the splash starts as the pool it replaces: same spot, same puddle width. */
+function waxShatterFx(m){ if(!TH||!scene||!m) return; const d=FX2_DEF.waxshatter, s=_fx15Spr('waxshatter',1); if(!s) return;
+  const pw=(m.sprH||3.9)*0.5/0.85*(160/203)*0.619, W=pw/d.puddleW;   /* the waxpool puddle on screen: sprite H = sprH x 0.5/0.85, puddle = 0.619 of its 160 px cell */
+  const p=_fx15Pos(m); s.center.set(d.anchor[0],d.anchor[1]); s.scale.set(W,W*d.fh/d.fw,1); s.position.set(p[0],0.35,p[1]);
+  _fx1115.push({kind:'shatter',s,d,t:0,life:d.dur*FX_RT,fade:0.4}); }
+/* 23 Hookline: the rope is laid from Vex's hand to the mark's chest (a quad in the plane through that line that faces the camera), the
+   hook's bite on the mark; its length stretches to the distance and the art's height follows (clamped), then it plays in place. */
+function hookReelFx(u,e){ if(!TH||!scene||!camera||!u||!e) return; const d=FX2_DEF.hookreel, t=fx2Tex('hookreel'); if(!d||!t) return;
+  const A=new TH.Vector3(wx(u.x),0.5*(u.sprH||3.9),wz(u.y)), B=new TH.Vector3(wx(e.x),0.5*(e.sprH||3.9),wz(e.y));
+  const X=B.clone().sub(A), L=X.length(); if(!(L>0.01)) return; X.multiplyScalar(1/L);
+  const N=camera.position.clone().sub(A.clone().add(B).multiplyScalar(0.5)); N.sub(X.clone().multiplyScalar(N.dot(X))); if(N.length()<1e-4) return; N.normalize();
+  const Y=new TH.Vector3().crossVectors(N,X);
+  const W=L/(d.u1-d.u0), sx=W/d.fw, b=0.45*(e.sprH||3.9)/d.hookPx, sy=Math.max(0.5*b,Math.min(b,sx)), Hq=sy*d.fh;
+  const m=new TH.Mesh(_FX2_PLANE||new TH.PlaneGeometry(1,1), new TH.MeshBasicMaterial({map:t,transparent:true,depthWrite:false,depthTest:false,side:TH.DoubleSide,opacity:1}));
+  fx2Hook(m); fx2SetFrame(m,d,0); m.quaternion.setFromRotationMatrix(new TH.Matrix4().makeBasis(X,Y,N)); m.scale.set(W,Hq,1);
+  m.position.copy(A).add(X.clone().multiplyScalar((0.5-d.u0)*W)).add(Y.clone().multiplyScalar((0.5-d.vRope)*Hq)); m.renderOrder=994; scene.add(m);
+  _fx1115.push({kind:'reel',s:m,d,t:0,life:d.dur*FX_RT,fade:0}); }
+function hookSlashFx(e){ if(!TH||!scene||!e) return; const d=FX2_DEF.hookslash, s=_fx15Spr('hookslash',995); if(!s) return;
+  const h=(e.sprH||3.9), p=_fx15Pos(e); s.center.set(0.5,0.5); s.scale.set(0.9*h*d.fw/d.fh,0.9*h,1); s.position.set(p[0],0.5*h,p[1]);
+  _fx1115.push({kind:'slash',s,d,t:0,life:d.dur*FX_RT,fade:0,u:e,h:0.5*h}); }
+/* 24 Bleed Them Dry: the wound opens on the target's body and its last cell stays while her bleed runs (o.dur, or until the bleed is
+   cleansed or the target dies); one wound per target - a recast opens a new one. */
+function vexWoundFx(e,life,col){ if(!TH||!scene||!e) return; const d=FX2_DEF.bleedopen;
+  for(let i=_fx1115.length-1;i>=0;i--){ const o=_fx1115[i]; if(o.kind==='wound'&&o.u===e){ _fx15Kill(o); _fx1115.splice(i,1); } }
+  const s=_fx15Spr('bleedopen',995); if(!s) return; const h=(e.sprH||3.9), H=0.45*h*d.fh/d.woundPx;
+  s.center.set(d.woundC[0],d.woundC[1]); s.scale.set(H*d.fw/d.fh,H,1); const p=_fx15Pos(e); s.position.set(p[0],0.55*h,p[1]);
+  _fx1115.push({kind:'wound',s,d,t:0,life:Math.max(life||6,d.dur*FX_RT),fade:0.3,u:e,h:0.55*h,col,hold:true}); }
+function _fx15Kill(o){ try{ scene.remove(o.s); o.s.material.dispose(); }catch(_){} }
+function clearFx1115(){ _fx1115.forEach(_fx15Kill); _fx1115.length=0; }
+function updateFx1115(dt){ if(!_fx1115.length) return;
+  for(let i=_fx1115.length-1;i>=0;i--){ const o=_fx1115[i]; o.t+=dt; const d=o.d, clip=d.dur*FX_RT;
+    if(o.u&&o.kind==='wound'&&(!o.u.alive||(o.t>clip&&!(o.u.dots||[]).some(q=>q&&q.color===o.col)))) o.life=Math.min(o.life,o.t+o.fade);   /* bleed over or cleansed: fade now */
+    if(o.t>=o.life){ _fx15Kill(o); _fx1115.splice(i,1); continue; }
+    const fr=Math.floor(o.t/clip*d.n); if(fr>=d.n&&!o.hold){ _fx15Kill(o); _fx1115.splice(i,1); continue; }
+    fx2SetFrame(o.s,d,Math.min(d.n-1,fr));
+    if(o.fade>0) o.s.material.opacity=Math.max(0,Math.min(1,(o.life-o.t)/o.fade));
+    if(o.u&&(o.kind==='wound'||o.kind==='slash')){ const p=_fx15Pos(o.u); o.s.position.set(p[0],o.h,p[1]); } } }
 function clearFx2(){ _groundFx.forEach(o=>{scene.remove(o.m);o.m.material.dispose();}); _groundFx.length=0;
   _projFx.forEach(p=>{scene.remove(p.spr);p.spr.material.dispose();}); _projFx.length=0; clearTipFx();
   _beamFx.forEach(o=>{scene.remove(o.spr);o.spr.material.dispose();}); _beamFx.length=0; _pendingDots.length=0;
@@ -12616,8 +12706,8 @@ function think(u,dt){
   if(u._kickT>0){ if(!u._kickD0Set&&u._kickTg){ u._kickD0=dist(u,u._kickTg); u._kickD0Set=true; } u._kickT-=dt; if(u._kickT<=0){ u._kickT=0; konwuKickExec(u); } return; }   // v1044: rooted behind the mark until the dropkick lands
   if((u._kickHoldT||0)>0){ u._kickHoldT-=dt; if(u._kickHoldT<=0){ u._kickHoldT=0; if(u._abilAnim==='blue') u._abilHold=0; } return; }   // v1046: rooted in the kick, then the blue clip lets go (battle time - any game speed)
   if((u._chaseT||0)>0){ u._chaseT-=dt; if(!u._chaseTg||!u._chaseTg.alive||dist(u,u._chaseTg)<=u.range+(u._chaseTg.r||0)) u._chaseT=0; }   // v1044: the run after the knocked-back mark
-  if(u._dash){ const _D=u._dash; _D.t+=dt; const _k=Math.min(1,_D.t/_D.dur);   /* v892 a dash in progress: travel, then the landing */
-    u.x=_D.x0+(_D.x1-_D.x0)*_k; u.y=_D.y0+(_D.y1-_D.y0)*_k; u._ax=u.x; u._ay=u.y;
+  if(u._dash){ const _D=u._dash; _D.t+=dt; const _k=Math.min(1,_D.t/_D.dur), _f=_D.ease?_D.ease(_k):_k;   /* v892 a dash in progress: travel, then the landing; v1115 ease = Hookline's rope curve */
+    u.x=_D.x0+(_D.x1-_D.x0)*_f; u.y=_D.y0+(_D.y1-_D.y0)*_f; u._ax=u.x; u._ay=u.y;
     if(_k>=1){ u._dash=null; try{ _D.run(); }catch(_e){} }
     return; }
   if((u._danceT||0)>0){ const _st=Math.min(dt,u._danceT); u._danceT-=dt;   /* v885 Serpent's Last Dance: rooted while the star circles */
@@ -19885,7 +19975,7 @@ Object.assign(KITS, {
   mellan:{green:{name:'Hornet Cloud',type:'hornetswarm',n:30,dps:0.42,dur:4,radius:2.8*METER,cd:7,desc:"Send enraged hornets forward to damage and poison enemies.",gfx:'mellan_green',gdur:5.88},blue:{name:'Royal Nectar',type:'honeyglob',heal:0.15,hot:0.045,dur:5,cd:8,desc:"Coat allies in enchanted honey, restoring health and increasing Attack Speed.",gfx:'mellan_blue',gdur:5.88},purple:{name:'Worker Swarm',pass:'beeward',desc:"A small swarm continuously heals nearby allies."}},
   aldren:{green:{name:'Ink Spirit',type:'summonwarriors',key:'ink spirit',n:1,perLv:0.005,dur:16,radius:1.6*METER,cd:11,desc:"Summon a Lesser Ink Spirit that hunts enemies and can only basic attack."},blue:{name:'Chapter Rewrite',type:'chapterrewrite',mul:1.1,pct:0.30,shred:0.25,dur:6,cd:9,desc:"Rewrite an enemy's story, reducing its stats and reversing beneficial effects.",gfxAt:'target',gdur:1.6,gfx:'aldren_blue',gfxR:3*METER},purple:{name:'Living Pages',pass:'livingpages',desc:"Each spell writes a Living Page that empowers his next basic attack."}},
   rafe:{green:{name:'Pistol Barrage',type:'volley',mul:0.85,n:4,cd:6,desc:"Fire a rapid volley from both pistols, striking multiple enemies.",pfx:'bullet',pscale:RAFE_BULLET_SCALE,pdur:0.14,gfxAt:'muzzle',gfx:'rafe_green',gfxR:3*METER},blue:{name:'Grappling Hook',type:'grapple',mul:1.25,stun:1.1,pull:5*METER,cd:9,desc:"Launch a hook that pulls an enemy inward and stuns it.",pfx:'rafe_blue_fx',pscale:2.4,gfx:'rafe_blue',gfxR:3*METER,deliver:'shot',speed:18*METER},purple:{name:"Pirate's Instinct",pass:'instinct',desc:"Every few shots, the next attack ignores part of the target's Defense."}},
-  ceraline:{green:{name:'Sealing Wax',type:'sealwax',mul:1.1,stun:1.1,harden:2.0,coat:6,cd:7,desc:"Pours molten wax over the enemy with the highest Attack: it damages and slows them while it hardens, then seals them in place, stunning them."},blue:{deliver:'form',name:'Mourning Bell',type:'nova',at:'cluster',mul:1.0,radius:8*METER,detonate:0.8,cd:9,desc:"Damages all enemies and shatters every coat of Sealing Wax for additional area damage.",gfx:'ceraline_blue',gdur:2.21},purple:{name:'Living Tallow',pass:'tallow',desc:"Enemy abilities apply wax. At three stacks, the enemy becomes encased and temporarily cannot attack or cast."}},
+  ceraline:{green:{name:'Sealing Wax',type:'sealwax',mul:1.1,stun:1.1,harden:2.0,coat:6,cd:7,desc:"Pours molten wax over the enemy with the highest Attack: it damages and slows them while it hardens, then seals them in place, stunning them."},blue:{deliver:'form',name:'Mourning Bell',type:'nova',at:'cluster',mul:1.0,radius:8*METER,detonate:0.8,cd:9,ownFx:'bell',desc:"Damages all enemies and shatters every coat of Sealing Wax for additional area damage.",gfx:'ceraline_blue',gdur:2.21},purple:{name:'Living Tallow',pass:'tallow',desc:"Enemy abilities apply wax. At three stacks, the enemy becomes encased and temporarily cannot attack or cast."}},
 });
 Object.assign(ABILITY_CAST, {pyroclast:{ult:1.0,green:0.5,blue:0.6}, iver:{ult:1.0,green:0.5,blue:0.6}, sloe:{ult:1.0,green:0.5,blue:0.6}, absalie:{ult:1.0,green:0.5,blue:0.6}, joss:{ult:1.0,green:0.5,blue:0.6}, ambrel:{ult:1.0,green:0.5,blue:0.6}, tolley:{ult:1.0,green:0.5,blue:0.6}, mellan:{ult:1.0,green:0.5,blue:0.6}, aldren:{ult:1.0,green:0.5,blue:0.6}, rafe:{ult:1.0,green:0.5,blue:0.6}, ceraline:{ult:1.0,green:0.5,blue:0.6}});
 Object.assign(FX2_DEF, {
