@@ -154,7 +154,7 @@ async function run() {
       const d2=JSON.parse(fs.readFileSync(db,'utf8')); const cm=((d2.users[admin.profile.id].worldCityMarches)||[]).find(m=>m.id===capMarch.marchId);
       assert.ok(!cm||cm.resolved,'the capped march is closed on disk: '+JSON.stringify(cm||{}).slice(0,120));
       await stop(); const d3=JSON.parse(fs.readFileSync(db,'utf8')); for(const m of (d3.users[admin.profile.id].worldCityMarches||[])) m.homeAt=0;   /* that army is home before the rest of the suite */
-      fs.writeFileSync(db,JSON.stringify(d3)); await start(admin.profile.id,'20','20'); }
+      fs.writeFileSync(db,JSON.stringify(d3)); await start(admin.profile.id,'20','1500'); }   /* 10 Oct 2026: a 1.5 s city march (home at 3 s) so the double-booking check below runs while the march is surely out - at 20 ms it landed and came home under suite load before the mine request arrived */
     const botRaider=await request('POST','/api/register',{name:'witchBotRaider',pass:'password1'});
     assert.ok(botRaider.token);
     const botGrant=await request('POST','/api/admin/led-grant',{
@@ -181,9 +181,10 @@ async function run() {
     const botHeroDoubleBooked=await request('POST','/api/world/mine/start',{
       mineId:map.nodes[0].id,heroIds:['vael','sylthaine','vireo'],requestId:'bot-hero-double-book'
     },botRaider.token);
+    assert.ok(Date.now()<botMarch.homeAt,'fixture: the double-booking check ran while the city march was still out');
     assert.equal(botHeroDoubleBooked.ok,false,'a city march keeps its heroes off a simultaneous mine trip');
     assert.match(botHeroDoubleBooked.error,/already marching/);
-    await new Promise(resolve=>setTimeout(resolve,35));
+    await new Promise(resolve=>setTimeout(resolve,Math.max(0,botMarch.arriveAt-Date.now())+35));   /* the march has landed */
     const forgedBotTarget=await request('POST','/api/pvp/attack',{
       defId:'bot_crystor_999',marchId:botMarch.marchId,requestId:'bot-forged-target'
     },botRaider.token);
