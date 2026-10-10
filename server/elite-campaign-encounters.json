@@ -12562,54 +12562,54 @@
     {
      "key": "crystalhorn grazer",
      "lvl": 68,
-     "hpMul": 101.9313,
-     "dmgMul": 46.8085
+     "hpMul": 86.6416,
+     "dmgMul": 39.7872
     },
     {
      "key": "frostjaw troll",
      "lvl": 68,
-     "hpMul": 101.9313,
-     "dmgMul": 46.8085
+     "hpMul": 86.6416,
+     "dmgMul": 39.7872
     },
     {
      "key": "luminant orb",
      "lvl": 68,
-     "hpMul": 101.9313,
-     "dmgMul": 46.8085
+     "hpMul": 86.6416,
+     "dmgMul": 39.7872
     }
    ],
    [
     {
      "key": "luminant orb",
      "lvl": 68,
-     "hpMul": 101.9313,
-     "dmgMul": 46.8085
+     "hpMul": 86.6416,
+     "dmgMul": 39.7872
     },
     {
      "key": "luminant orb",
      "lvl": 68,
-     "hpMul": 101.9313,
-     "dmgMul": 46.8085
+     "hpMul": 86.6416,
+     "dmgMul": 39.7872
     },
     {
      "key": "ironjaw raider",
      "lvl": 68,
-     "hpMul": 101.9313,
-     "dmgMul": 46.8085
+     "hpMul": 86.6416,
+     "dmgMul": 39.7872
     },
     {
      "key": "crystalhorn grazer",
      "lvl": 68,
-     "hpMul": 101.9313,
-     "dmgMul": 46.8085
+     "hpMul": 86.6416,
+     "dmgMul": 39.7872
     }
    ],
    [
     {
      "key": "umbris",
      "lvl": 68,
-     "hpMul": 101.9313,
-     "dmgMul": 46.8085,
+     "hpMul": 86.6416,
+     "dmgMul": 39.7872,
      "isHero": true,
      "rewardHero": true,
      "rank": 3
@@ -12617,20 +12617,20 @@
     {
      "key": "luminant orb",
      "lvl": 68,
-     "hpMul": 101.9313,
-     "dmgMul": 46.8085
+     "hpMul": 86.6416,
+     "dmgMul": 39.7872
     },
     {
      "key": "ironjaw raider",
      "lvl": 68,
-     "hpMul": 101.9313,
-     "dmgMul": 46.8085
+     "hpMul": 86.6416,
+     "dmgMul": 39.7872
     },
     {
      "key": "luminant orb",
      "lvl": 68,
-     "hpMul": 101.9313,
-     "dmgMul": 46.8085
+     "hpMul": 86.6416,
+     "dmgMul": 39.7872
     }
    ]
   ],
@@ -12641,7 +12641,15 @@
    "scale": 1.2403,
    "target": "1.5x the Normal stage (Phil: \"elite should be roughly 1.5x harder than normal\")"
   },
-  "eliteTune": 1
+  "eliteTune": 1,
+  "wallFixes": [
+   {
+    "v": "v1104",
+    "date": "2026-10-10",
+    "scale": 0.85,
+    "why": "follows Normal 11-4 (v1104 x0.85) so Elite 11-4 stays 1.5x its Normal stage (v1056 rule, Phil: \"elite should be roughly 1.5x harder than normal\")"
+   }
+  ]
  },
  {
   "id": "11-5",
@@ -12944,54 +12952,54 @@
     {
      "key": "zephyr harrier",
      "lvl": 70,
-     "hpMul": 134.541,
-     "dmgMul": 62.9702
+     "hpMul": 114.3598,
+     "dmgMul": 53.5247
     },
     {
      "key": "crystalhorn grazer",
      "lvl": 70,
-     "hpMul": 134.541,
-     "dmgMul": 62.9702
+     "hpMul": 114.3598,
+     "dmgMul": 53.5247
     },
     {
      "key": "bonepike guard",
      "lvl": 70,
-     "hpMul": 134.541,
-     "dmgMul": 62.9702
+     "hpMul": 114.3598,
+     "dmgMul": 53.5247
     },
     {
      "key": "granith",
      "lvl": 70,
-     "hpMul": 134.541,
-     "dmgMul": 62.9702
+     "hpMul": 114.3598,
+     "dmgMul": 53.5247
     }
    ],
    [
     {
      "key": "zephyr harrier",
      "lvl": 70,
-     "hpMul": 134.541,
-     "dmgMul": 62.9702
+     "hpMul": 114.3598,
+     "dmgMul": 53.5247
     },
     {
      "key": "crystalhorn grazer",
      "lvl": 70,
-     "hpMul": 134.541,
-     "dmgMul": 62.9702
+     "hpMul": 114.3598,
+     "dmgMul": 53.5247
     },
     {
      "key": "zephyr harrier",
      "lvl": 70,
-     "hpMul": 134.541,
-     "dmgMul": 62.9702
+     "hpMul": 114.3598,
+     "dmgMul": 53.5247
     }
    ],
    [
     {
      "key": "oakmir",
      "lvl": 70,
-     "hpMul": 134.541,
-     "dmgMul": 62.9702,
+     "hpMul": 114.3598,
+     "dmgMul": 53.5247,
      "isHero": true,
      "rewardHero": true,
      "rank": 3
@@ -12999,26 +13007,26 @@
     {
      "key": "bonepike guard",
      "lvl": 70,
-     "hpMul": 134.541,
-     "dmgMul": 62.9702
+     "hpMul": 114.3598,
+     "dmgMul": 53.5247
     },
     {
      "key": "zephyr harrier",
      "lvl": 70,
-     "hpMul": 134.541,
-     "dmgMul": 62.9702
+     "hpMul": 114.3598,
+     "dmgMul": 53.5247
     },
     {
      "key": "crystalhorn grazer",
      "lvl": 70,
-     "hpMul": 134.541,
-     "dmgMul": 62.9702
+     "hpMul": 114.3598,
+     "dmgMul": 53.5247
     },
     {
      "key": "zephyr harrier",
      "lvl": 70,
-     "hpMul": 134.541,
-     "dmgMul": 62.9702
+     "hpMul": 114.3598,
+     "dmgMul": 53.5247
     }
    ]
   ],
@@ -13029,7 +13037,15 @@
    "scale": 1.6012,
    "target": "1.5x the Normal stage (Phil: \"elite should be roughly 1.5x harder than normal\")"
   },
-  "eliteTune": 0.7405
+  "eliteTune": 0.7405,
+  "wallFixes": [
+   {
+    "v": "v1104",
+    "date": "2026-10-10",
+    "scale": 0.85,
+    "why": "follows Normal 11-7 (v1104 x0.85) so Elite 11-7 stays 1.5x its Normal stage (v1056 rule, Phil: \"elite should be roughly 1.5x harder than normal\")"
+   }
+  ]
  },
  {
   "id": "11-8",

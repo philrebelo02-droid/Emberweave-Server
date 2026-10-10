@@ -14429,72 +14429,72 @@
         {
           "key": "crystalhorn grazer",
           "lvl": 68,
-          "hpMul": 65.7437,
-          "dmgMul": 32.2549
+          "hpMul": 55.8821,
+          "dmgMul": 27.4167
         },
         {
           "key": "frostjaw troll",
           "lvl": 68,
-          "hpMul": 65.7437,
-          "dmgMul": 32.2549
+          "hpMul": 55.8821,
+          "dmgMul": 27.4167
         },
         {
           "key": "luminant orb",
           "lvl": 68,
-          "hpMul": 65.7437,
-          "dmgMul": 32.2549
+          "hpMul": 55.8821,
+          "dmgMul": 27.4167
         }
       ],
       [
         {
           "key": "luminant orb",
           "lvl": 68,
-          "hpMul": 65.7437,
-          "dmgMul": 32.2549
+          "hpMul": 55.8821,
+          "dmgMul": 27.4167
         },
         {
           "key": "luminant orb",
           "lvl": 68,
-          "hpMul": 65.7437,
-          "dmgMul": 32.2549
+          "hpMul": 55.8821,
+          "dmgMul": 27.4167
         },
         {
           "key": "ironjaw raider",
           "lvl": 68,
-          "hpMul": 65.7437,
-          "dmgMul": 32.2549
+          "hpMul": 55.8821,
+          "dmgMul": 27.4167
         },
         {
           "key": "crystalhorn grazer",
           "lvl": 68,
-          "hpMul": 65.7437,
-          "dmgMul": 32.2549
+          "hpMul": 55.8821,
+          "dmgMul": 27.4167
         }
       ],
       [
         {
           "key": "luminant orb",
           "lvl": 68,
-          "hpMul": 65.7437,
-          "dmgMul": 32.2549
+          "hpMul": 55.8821,
+          "dmgMul": 27.4167
         },
         {
           "key": "luminant orb",
           "lvl": 68,
-          "hpMul": 65.7437,
-          "dmgMul": 32.2549
+          "hpMul": 55.8821,
+          "dmgMul": 27.4167
         },
         {
           "key": "ironjaw raider",
           "lvl": 68,
-          "hpMul": 65.7437,
-          "dmgMul": 32.2549
+          "hpMul": 55.8821,
+          "dmgMul": 27.4167
         },
         {
           "key": "luminant orb",
           "lvl": 68,
-          "hpMul": 65.7437,
-          "dmgMul": 32.2549
+          "hpMul": 55.8821,
+          "dmgMul": 27.4167
         }
       ]
     ],
@@ -14503,7 +14503,7 @@
     "recommendedQuality": "Gold",
     "qualityMinHeroLevel": 65,
     "bossLevelGate": 0,
-    "difficultyTune": 6.0019,
+    "difficultyTune": 5.1016,
     "baselineHp": 93.1061,
     "baselineDmg": 34.5825,
     "portalMode": "normal",
@@ -14517,7 +14517,15 @@
       "gold-stoneheart",
       "gold-ironwall"
     ],
-    "curveV820": true
+    "curveV820": true,
+    "wallFixes": [
+      {
+        "v": "v1104",
+        "date": "2026-10-10",
+        "scale": 0.85,
+        "why": "10 Oct sims (Wall Watch): F2P B held at 11-4 for 10.6 game days, 19 tries, 0 won, FULLY UPGRADED. difficultyTune 11-4 = 6.0019 against 11-3 = 5.817 and 11-5 = 4.7852; not a boss. Phil 10 Oct: \"If its a wall ease it\"."
+      }
+    ]
   },
   {
     "id": "11-5",
@@ -14870,78 +14878,78 @@
         {
           "key": "zephyr harrier",
           "lvl": 70,
-          "hpMul": 90.7763,
-          "dmgMul": 41.4796
+          "hpMul": 77.1599,
+          "dmgMul": 35.2577
         },
         {
           "key": "crystalhorn grazer",
           "lvl": 70,
-          "hpMul": 90.7763,
-          "dmgMul": 41.4796
+          "hpMul": 77.1599,
+          "dmgMul": 35.2577
         },
         {
           "key": "bonepike guard",
           "lvl": 70,
-          "hpMul": 90.7763,
-          "dmgMul": 41.4796
+          "hpMul": 77.1599,
+          "dmgMul": 35.2577
         },
         {
           "key": "granith",
           "lvl": 70,
-          "hpMul": 90.7763,
-          "dmgMul": 41.4796
+          "hpMul": 77.1599,
+          "dmgMul": 35.2577
         }
       ],
       [
         {
           "key": "zephyr harrier",
           "lvl": 70,
-          "hpMul": 90.7763,
-          "dmgMul": 41.4796
+          "hpMul": 77.1599,
+          "dmgMul": 35.2577
         },
         {
           "key": "crystalhorn grazer",
           "lvl": 70,
-          "hpMul": 90.7763,
-          "dmgMul": 41.4796
+          "hpMul": 77.1599,
+          "dmgMul": 35.2577
         },
         {
           "key": "zephyr harrier",
           "lvl": 70,
-          "hpMul": 90.7763,
-          "dmgMul": 41.4796
+          "hpMul": 77.1599,
+          "dmgMul": 35.2577
         }
       ],
       [
         {
           "key": "crystalhorn grazer",
           "lvl": 70,
-          "hpMul": 90.7763,
-          "dmgMul": 41.4796
+          "hpMul": 77.1599,
+          "dmgMul": 35.2577
         },
         {
           "key": "bonepike guard",
           "lvl": 70,
-          "hpMul": 90.7763,
-          "dmgMul": 41.4796
+          "hpMul": 77.1599,
+          "dmgMul": 35.2577
         },
         {
           "key": "zephyr harrier",
           "lvl": 70,
-          "hpMul": 90.7763,
-          "dmgMul": 41.4796
+          "hpMul": 77.1599,
+          "dmgMul": 35.2577
         },
         {
           "key": "crystalhorn grazer",
           "lvl": 70,
-          "hpMul": 90.7763,
-          "dmgMul": 41.4796
+          "hpMul": 77.1599,
+          "dmgMul": 35.2577
         },
         {
           "key": "zephyr harrier",
           "lvl": 70,
-          "hpMul": 90.7763,
-          "dmgMul": 41.4796
+          "hpMul": 77.1599,
+          "dmgMul": 35.2577
         }
       ]
     ],
@@ -14950,7 +14958,7 @@
     "recommendedQuality": "Gold",
     "qualityMinHeroLevel": 65,
     "bossLevelGate": 0,
-    "difficultyTune": 7.4735,
+    "difficultyTune": 6.3525,
     "baselineHp": 106.2495,
     "baselineDmg": 38.3422,
     "portalMode": "normal",
@@ -14964,7 +14972,15 @@
       "gold-lifebloom",
       "gold-shadepath"
     ],
-    "curveV820": true
+    "curveV820": true,
+    "wallFixes": [
+      {
+        "v": "v1104",
+        "date": "2026-10-10",
+        "scale": 0.85,
+        "why": "10 Oct sims (Wall Watch): Medium B held at 11-7 for 32.3 game days, 31 tries, 0 won, FULLY UPGRADED; Big B 19 tries, 0 won, FULLY UPGRADED. difficultyTune 11-7 = 7.4735 against 11-6 = 3.0758 and 11-8 = 6.9147; not a boss. Phil 10 Oct: \"If its a wall ease it\"."
+      }
+    ]
   },
   {
     "id": "11-8",
