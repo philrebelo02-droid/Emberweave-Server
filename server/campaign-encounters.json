@@ -15031,90 +15031,90 @@
         {
           "key": "zephyr harrier",
           "lvl": 71,
-          "hpMul": 86.9477,
-          "dmgMul": 35.3885
+          "hpMul": 73.9055,
+          "dmgMul": 30.0802
         },
         {
           "key": "ironjaw raider",
           "lvl": 71,
-          "hpMul": 86.9477,
-          "dmgMul": 35.3885
+          "hpMul": 73.9055,
+          "dmgMul": 30.0802
         },
         {
           "key": "zephyr harrier",
           "lvl": 71,
-          "hpMul": 86.9477,
-          "dmgMul": 35.3885
+          "hpMul": 73.9055,
+          "dmgMul": 30.0802
         },
         {
           "key": "zephyr harrier",
           "lvl": 71,
-          "hpMul": 86.9477,
-          "dmgMul": 35.3885
+          "hpMul": 73.9055,
+          "dmgMul": 30.0802
         },
         {
           "key": "bonepike guard",
           "lvl": 71,
-          "hpMul": 86.9477,
-          "dmgMul": 35.3885
+          "hpMul": 73.9055,
+          "dmgMul": 30.0802
         }
       ],
       [
         {
           "key": "zephyr harrier",
           "lvl": 71,
-          "hpMul": 86.9477,
-          "dmgMul": 35.3885
+          "hpMul": 73.9055,
+          "dmgMul": 30.0802
         },
         {
           "key": "ironjaw raider",
           "lvl": 71,
-          "hpMul": 86.9477,
-          "dmgMul": 35.3885
+          "hpMul": 73.9055,
+          "dmgMul": 30.0802
         },
         {
           "key": "zephyr harrier",
           "lvl": 71,
-          "hpMul": 86.9477,
-          "dmgMul": 35.3885
+          "hpMul": 73.9055,
+          "dmgMul": 30.0802
         },
         {
           "key": "ironjaw raider",
           "lvl": 71,
-          "hpMul": 86.9477,
-          "dmgMul": 35.3885
+          "hpMul": 73.9055,
+          "dmgMul": 30.0802
         },
         {
           "key": "ironjaw raider",
           "lvl": 71,
-          "hpMul": 86.9477,
-          "dmgMul": 35.3885
+          "hpMul": 73.9055,
+          "dmgMul": 30.0802
         }
       ],
       [
         {
           "key": "frostjaw troll",
           "lvl": 71,
-          "hpMul": 86.9477,
-          "dmgMul": 35.3885
+          "hpMul": 73.9055,
+          "dmgMul": 30.0802
         },
         {
           "key": "ironjaw raider",
           "lvl": 71,
-          "hpMul": 86.9477,
-          "dmgMul": 35.3885
+          "hpMul": 73.9055,
+          "dmgMul": 30.0802
         },
         {
           "key": "bonepike guard",
           "lvl": 71,
-          "hpMul": 86.9477,
-          "dmgMul": 35.3885
+          "hpMul": 73.9055,
+          "dmgMul": 30.0802
         },
         {
           "key": "zephyr harrier",
           "lvl": 71,
-          "hpMul": 86.9477,
-          "dmgMul": 35.3885
+          "hpMul": 73.9055,
+          "dmgMul": 30.0802
         }
       ]
     ],
@@ -15123,7 +15123,7 @@
     "recommendedQuality": "Gold",
     "qualityMinHeroLevel": 65,
     "bossLevelGate": 0,
-    "difficultyTune": 6.9147,
+    "difficultyTune": 5.8775,
     "baselineHp": 111.0307,
     "baselineDmg": 39.6842,
     "portalMode": "normal",
@@ -15137,7 +15137,15 @@
       "gold-bastion",
       "gold-tidecall"
     ],
-    "curveV820": true
+    "curveV820": true,
+    "wallFixes": [
+      {
+        "v": "v1109",
+        "date": "2026-10-10",
+        "scale": 0.85,
+        "why": "10 Oct sims (Wall Watch 12:29): Whale A (Lv 83) held at 11-8 for 46.4 game days, 28 tries flagged (160 lifetime), 0 won, FULLY UPGRADED; 14 tries since v1106 monster stats, lineups rotated, 0 won. Phil: \"If its a wall ease it\"."
+      }
+    ]
   },
   {
     "id": "11-9",
@@ -16611,90 +16619,90 @@
         {
           "key": "clockwork lantern",
           "lvl": 78,
-          "hpMul": 74.0091,
-          "dmgMul": 32.0137
+          "hpMul": 62.9077,
+          "dmgMul": 27.2116
         },
         {
           "key": "reef prowler",
           "lvl": 78,
-          "hpMul": 74.0091,
-          "dmgMul": 32.0137
+          "hpMul": 62.9077,
+          "dmgMul": 27.2116
         },
         {
           "key": "clockwork lantern",
           "lvl": 78,
-          "hpMul": 74.0091,
-          "dmgMul": 32.0137
+          "hpMul": 62.9077,
+          "dmgMul": 27.2116
         },
         {
           "key": "kelp hexer",
           "lvl": 78,
-          "hpMul": 74.0091,
-          "dmgMul": 32.0137
+          "hpMul": 62.9077,
+          "dmgMul": 27.2116
         },
         {
           "key": "kelp hexer",
           "lvl": 78,
-          "hpMul": 74.0091,
-          "dmgMul": 32.0137
+          "hpMul": 62.9077,
+          "dmgMul": 27.2116
         }
       ],
       [
         {
           "key": "reef prowler",
           "lvl": 78,
-          "hpMul": 74.0091,
-          "dmgMul": 32.0137
+          "hpMul": 62.9077,
+          "dmgMul": 27.2116
         },
         {
           "key": "saltglass siren",
           "lvl": 78,
-          "hpMul": 74.0091,
-          "dmgMul": 32.0137
+          "hpMul": 62.9077,
+          "dmgMul": 27.2116
         },
         {
           "key": "clockwork lantern",
           "lvl": 78,
-          "hpMul": 74.0091,
-          "dmgMul": 32.0137
+          "hpMul": 62.9077,
+          "dmgMul": 27.2116
         },
         {
           "key": "reef prowler",
           "lvl": 78,
-          "hpMul": 74.0091,
-          "dmgMul": 32.0137
+          "hpMul": 62.9077,
+          "dmgMul": 27.2116
         }
       ],
       [
         {
           "key": "kelp hexer",
           "lvl": 78,
-          "hpMul": 74.0091,
-          "dmgMul": 32.0137
+          "hpMul": 62.9077,
+          "dmgMul": 27.2116
         },
         {
           "key": "reef prowler",
           "lvl": 78,
-          "hpMul": 74.0091,
-          "dmgMul": 32.0137
+          "hpMul": 62.9077,
+          "dmgMul": 27.2116
         },
         {
           "key": "saltglass siren",
           "lvl": 78,
-          "hpMul": 74.0091,
-          "dmgMul": 32.0137
+          "hpMul": 62.9077,
+          "dmgMul": 27.2116
         },
         {
           "key": "saltglass siren",
           "lvl": 78,
-          "hpMul": 74.0091,
-          "dmgMul": 32.0137
+          "hpMul": 62.9077,
+          "dmgMul": 27.2116
         },
         {
           "key": "sylthaine",
           "lvl": 78,
-          "hpMul": 74.0091,
-          "dmgMul": 32.0137,
+          "hpMul": 62.9077,
+          "dmgMul": 27.2116,
           "isHero": true,
           "rewardHero": true,
           "rank": 3
@@ -16706,7 +16714,7 @@
     "recommendedQuality": "Gold +1",
     "qualityMinHeroLevel": 72,
     "bossLevelGate": 0,
-    "difficultyTune": 5.6847,
+    "difficultyTune": 4.832,
     "baselineHp": 194.6014,
     "baselineDmg": 60.8346,
     "portalMode": "normal",
@@ -16715,7 +16723,15 @@
     "chapterName": "The Drowned Bloom",
     "comps": "v337",
     "rewardHero": "sylthaine",
-    "curveV820": true
+    "curveV820": true,
+    "wallFixes": [
+      {
+        "v": "v1109",
+        "date": "2026-10-10",
+        "scale": 0.85,
+        "why": "10 Oct sims (Wall Watch 12:29): Big A (Lv 80) held at 12-9 for 3.5 game days, 10 tries, 0 won, FULLY UPGRADED - all 10 on v1106 (monster stats). Phil: \"If its a wall ease it\"."
+      }
+    ]
   },
   {
     "id": "12-10",

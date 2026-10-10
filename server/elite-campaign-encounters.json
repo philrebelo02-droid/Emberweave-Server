@@ -13080,90 +13080,90 @@
     {
      "key": "zephyr harrier",
      "lvl": 71,
-     "hpMul": 135.7271,
-     "dmgMul": 51.0078
+     "hpMul": 115.368,
+     "dmgMul": 43.3566
     },
     {
      "key": "ironjaw raider",
      "lvl": 71,
-     "hpMul": 135.7271,
-     "dmgMul": 51.0078
+     "hpMul": 115.368,
+     "dmgMul": 43.3566
     },
     {
      "key": "zephyr harrier",
      "lvl": 71,
-     "hpMul": 135.7271,
-     "dmgMul": 51.0078
+     "hpMul": 115.368,
+     "dmgMul": 43.3566
     },
     {
      "key": "zephyr harrier",
      "lvl": 71,
-     "hpMul": 135.7271,
-     "dmgMul": 51.0078
+     "hpMul": 115.368,
+     "dmgMul": 43.3566
     },
     {
      "key": "bonepike guard",
      "lvl": 71,
-     "hpMul": 135.7271,
-     "dmgMul": 51.0078
+     "hpMul": 115.368,
+     "dmgMul": 43.3566
     }
    ],
    [
     {
      "key": "zephyr harrier",
      "lvl": 71,
-     "hpMul": 135.7271,
-     "dmgMul": 51.0078
+     "hpMul": 115.368,
+     "dmgMul": 43.3566
     },
     {
      "key": "ironjaw raider",
      "lvl": 71,
-     "hpMul": 135.7271,
-     "dmgMul": 51.0078
+     "hpMul": 115.368,
+     "dmgMul": 43.3566
     },
     {
      "key": "zephyr harrier",
      "lvl": 71,
-     "hpMul": 135.7271,
-     "dmgMul": 51.0078
+     "hpMul": 115.368,
+     "dmgMul": 43.3566
     },
     {
      "key": "ironjaw raider",
      "lvl": 71,
-     "hpMul": 135.7271,
-     "dmgMul": 51.0078
+     "hpMul": 115.368,
+     "dmgMul": 43.3566
     },
     {
      "key": "ironjaw raider",
      "lvl": 71,
-     "hpMul": 135.7271,
-     "dmgMul": 51.0078
+     "hpMul": 115.368,
+     "dmgMul": 43.3566
     }
    ],
    [
     {
      "key": "frostjaw troll",
      "lvl": 71,
-     "hpMul": 135.7271,
-     "dmgMul": 51.0078
+     "hpMul": 115.368,
+     "dmgMul": 43.3566
     },
     {
      "key": "ironjaw raider",
      "lvl": 71,
-     "hpMul": 135.7271,
-     "dmgMul": 51.0078
+     "hpMul": 115.368,
+     "dmgMul": 43.3566
     },
     {
      "key": "bonepike guard",
      "lvl": 71,
-     "hpMul": 135.7271,
-     "dmgMul": 51.0078
+     "hpMul": 115.368,
+     "dmgMul": 43.3566
     },
     {
      "key": "zephyr harrier",
      "lvl": 71,
-     "hpMul": 135.7271,
-     "dmgMul": 51.0078
+     "hpMul": 115.368,
+     "dmgMul": 43.3566
     }
    ]
   ],
@@ -13173,7 +13173,15 @@
    "scale": 1.1934,
    "target": "1.5x the Normal stage (Phil: \"elite should be roughly 1.5x harder than normal\")"
   },
-  "eliteTune": 1.0464
+  "eliteTune": 1.0464,
+  "wallFixes": [
+   {
+    "v": "v1109",
+    "date": "2026-10-10",
+    "scale": 0.85,
+    "why": "follows Normal 11-8 (v1109 x0.85) so Elite 11-8 stays 1.5x its Normal stage (v1056 rule, Phil: \"elite should be roughly 1.5x harder than normal\")"
+   }
+  ]
  },
  {
   "id": "11-9",
@@ -14475,90 +14483,90 @@
     {
      "key": "clockwork lantern",
      "lvl": 78,
-     "hpMul": 117.1895,
-     "dmgMul": 45.4899
+     "hpMul": 99.6111,
+     "dmgMul": 38.6664
     },
     {
      "key": "reef prowler",
      "lvl": 78,
-     "hpMul": 117.1895,
-     "dmgMul": 45.4899
+     "hpMul": 99.6111,
+     "dmgMul": 38.6664
     },
     {
      "key": "clockwork lantern",
      "lvl": 78,
-     "hpMul": 117.1895,
-     "dmgMul": 45.4899
+     "hpMul": 99.6111,
+     "dmgMul": 38.6664
     },
     {
      "key": "kelp hexer",
      "lvl": 78,
-     "hpMul": 117.1895,
-     "dmgMul": 45.4899
+     "hpMul": 99.6111,
+     "dmgMul": 38.6664
     },
     {
      "key": "kelp hexer",
      "lvl": 78,
-     "hpMul": 117.1895,
-     "dmgMul": 45.4899
+     "hpMul": 99.6111,
+     "dmgMul": 38.6664
     }
    ],
    [
     {
      "key": "reef prowler",
      "lvl": 78,
-     "hpMul": 117.1895,
-     "dmgMul": 45.4899
+     "hpMul": 99.6111,
+     "dmgMul": 38.6664
     },
     {
      "key": "saltglass siren",
      "lvl": 78,
-     "hpMul": 117.1895,
-     "dmgMul": 45.4899
+     "hpMul": 99.6111,
+     "dmgMul": 38.6664
     },
     {
      "key": "clockwork lantern",
      "lvl": 78,
-     "hpMul": 117.1895,
-     "dmgMul": 45.4899
+     "hpMul": 99.6111,
+     "dmgMul": 38.6664
     },
     {
      "key": "reef prowler",
      "lvl": 78,
-     "hpMul": 117.1895,
-     "dmgMul": 45.4899
+     "hpMul": 99.6111,
+     "dmgMul": 38.6664
     }
    ],
    [
     {
      "key": "kelp hexer",
      "lvl": 78,
-     "hpMul": 117.1895,
-     "dmgMul": 45.4899
+     "hpMul": 99.6111,
+     "dmgMul": 38.6664
     },
     {
      "key": "reef prowler",
      "lvl": 78,
-     "hpMul": 117.1895,
-     "dmgMul": 45.4899
+     "hpMul": 99.6111,
+     "dmgMul": 38.6664
     },
     {
      "key": "saltglass siren",
      "lvl": 78,
-     "hpMul": 117.1895,
-     "dmgMul": 45.4899
+     "hpMul": 99.6111,
+     "dmgMul": 38.6664
     },
     {
      "key": "saltglass siren",
      "lvl": 78,
-     "hpMul": 117.1895,
-     "dmgMul": 45.4899
+     "hpMul": 99.6111,
+     "dmgMul": 38.6664
     },
     {
      "key": "clockwork lantern",
      "lvl": 78,
-     "hpMul": 117.1895,
-     "dmgMul": 45.4899
+     "hpMul": 99.6111,
+     "dmgMul": 38.6664
     }
    ]
   ],
@@ -14568,7 +14576,15 @@
    "scale": 1.1008,
    "target": "1.5x the Normal stage (Phil: \"elite should be roughly 1.5x harder than normal\")"
   },
-  "eliteTune": 1.1508
+  "eliteTune": 1.1508,
+  "wallFixes": [
+   {
+    "v": "v1109",
+    "date": "2026-10-10",
+    "scale": 0.85,
+    "why": "follows Normal 12-9 (v1109 x0.85) so Elite 12-9 stays 1.5x its Normal stage (v1056 rule, Phil: \"elite should be roughly 1.5x harder than normal\")"
+   }
+  ]
  },
  {
   "id": "12-10",
