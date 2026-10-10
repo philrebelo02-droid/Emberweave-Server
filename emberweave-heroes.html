@@ -2783,12 +2783,16 @@ function roleGrow(t,lvl){ const g=t&&ROLE_GROWTH[t.role]; if(!g) return null; co
   return {hp:gh*n, dmg:g.dmg*n, apow:g.apow*n, armor:g.armor*n, mr:g.mr*n}; }
 /* Base stat line at a level: heroes = base + per-class growth; anything else = the old curve. */
 function baseAtLevel(t,lvl){ const g=roleGrow(t,lvl);
-  if(!g){ const s=1+0.05*((lvl|0)-1); return {hp:t.hp*s, dmg:t.dmg*s, apow:(t.apow||0)*s, armor:(t.armor||0)*s, mr:(t.mr||0)*s}; }
+  if(!g){ const s=1+0.05*((lvl|0)-1); return {hp:t.hp*s*monHpComp(t,lvl), dmg:t.dmg*s, apow:(t.apow||0)*s, armor:(t.armor||0)*s, mr:(t.mr||0)*s}; }
   return {hp:t.hp+g.hp, dmg:t.dmg+g.dmg, apow:(t.apow||0)+g.apow, armor:(t.armor||0)+g.armor, mr:(t.mr||0)+g.mr}; }
 /* Mitigation gets HARDER with level: the same armour buys less DR as you climb, so defence has to
    keep growing to hold its value. 60 armour = 4.8% at Lv1, 4.7% at Lv2, ~2.0% at Lv100. */
 const DEF_K_BASE=1200, DEF_K_PER_LV=17.4;
 function defK(lvl){ return DEF_K_BASE + DEF_K_PER_LV*Math.max(0,(lvl|0)-1); }
+/* v1106: a monster's HP is cut by the share of damage its own Armor + Magic resist block from a 50/50 physical/magic team at
+   that level, so giving monsters defence leaves a mixed team's difficulty where it was (see MONSTER_DEF). */
+function monHpComp(t,lvl){ if(!t||!t.monster||!(t.armor>0||t.mr>0)) return 1; const s=1+0.05*((lvl|0)-1), K=defK(lvl);
+  const dr=d=>d>0?d/(d+K):0; return 1-(dr((t.armor||0)*s)+dr((t.mr||0)*s))/2; }
 const HERO_KEYS = Object.keys(HERO_TYPES);
 // MYTHICAL heroes — a rarity above the standard roster, obtained only through special purchases.
 function isMythic(key){ return !!(HERO_TYPES[key] && HERO_TYPES[key].myth); }
@@ -9226,7 +9230,7 @@ function makeUnit(key,team,x,y,levelOverride,extra){
      magnitude larger and flat per-level growth would make them weaker every level. */
   const BL=(HERO_TYPES[key]&&!t.monster&&ROLE_GROWTH[t.role])
     ? baseAtLevel(t,lvl)
-    : {hp:t.hp*scale, dmg:t.dmg*scale, apow:(t.apow||0)*scale, armor:(t.armor||0)*scale, mr:(t.mr||0)*scale};
+    : {hp:t.hp*scale*monHpComp(t,lvl), dmg:t.dmg*scale, apow:(t.apow||0)*scale, armor:(t.armor||0)*scale, mr:(t.mr||0)*scale};
   const uHp=BL.hp*bhp*mul.hp*sm + fHp, uDmg=BL.dmg*bdmg*mul.atk*sm + fAtk;
   const u={key,team,t,x,y,level:lvl,boss:!!boss,rank,
     maxHp:uHp,hp:uHp,
@@ -19434,6 +19438,89 @@ Object.assign(MONSTER_TYPES, {
   'ink spirit':{name:'Lesser Ink Spirit',stars:2,swing:1.8,monster:true,role:'Warrior',hp:120,dmg:16,range:28,speed:62,atkSpeed:1.1,color:0x1c1c2a,summonOnly:true},
   'ink horror':{name:'Elder Ink Horror',stars:3,swing:2.2,monster:true,role:'Mage',hp:260,dmg:20,apow:24,range:30,speed:50,atkSpeed:0.9,color:0x101018,summonOnly:true}
 });
+/* v1106 (Phil 10 Oct 2026: "Monsters should have stats" / "some tank monsters should have high armor and low magic resist and
+   some high magic resist low armor" / "this makes it so that stacking more attack damage or more magic damage makes sense").
+   Until now every monster fought with 0 Armor and 0 Magic resist. Each monster now has its own pair [armor, mr] from what it is
+   (Low 15 / Mid 40 / High 100 / Very High 160); it grows with level like its HP and damage. Its HP is cut by exactly what that
+   defence blocks from a half-physical, half-magic team at its level (monHpComp), so a mixed team meets the same difficulty as
+   before and a team stacking the right damage type does better. A monster not in the list keeps 0 / 0 and its full HP. */
+const MONSTER_DEF={
+  'basalt mauler':[160,15],
+  'shellguard sentinel':[160,15],
+  'frostjaw troll':[100,15],
+  'runic automaton':[15,160],
+  'bonepike guard':[15,100],
+  'ironjaw raider':[100,15],
+  'rotbloom ooze':[100,15],
+  'mudsnap crab':[100,15],
+  'crystalhorn grazer':[100,40],
+  'clockwork lantern':[100,40],
+  'cinder skulk':[40,15],
+  'reef prowler':[40,15],
+  'vineback boar':[40,15],
+  'furnace gnawer':[40,40],
+  'magma hound':[40,40],
+  'nightcap mimic':[40,40],
+  'skyroot dryad':[40,100],
+  'riftling spider':[15,100],
+  'crucible acolyte':[15,100],
+  'kelp hexer':[15,100],
+  'saltglass siren':[15,100],
+  'ink spirit':[15,100],
+  'wispweaver shade':[15,160],
+  'luminant orb':[15,160],
+  'ink horror':[15,160],
+  'sootwing imp':[15,40],
+  'storm eel':[15,40],
+  'mourn moth':[15,40],
+  'zephyr harrier':[15,40],
+  'graveclaw ghoul':[15,40],
+  'brukk':[160,15],
+  'vharok':[100,40],
+  'barrowmaw':[100,40],
+  'irix':[100,40],
+  'miregor':[100,40],
+  'hourglass sentinel':[100,100],
+  'nameless admiral':[100,100],
+  'asterion':[40,160],
+  'sable vesper':[15,160],
+  'orryx':[15,100],
+  'nerissa':[40,100],
+  'maelvara':[40,100],
+  'nymira':[40,100],
+  'thorneveil':[40,100],
+  'granith':[160,15],
+  'trapjaw':[160,15],
+  'shellwark':[100,15],
+  'sludgemaw':[15,160],
+  'rustclank':[15,100],
+  'grundle':[15,100],
+  'boar warrior':[40,15],
+  'skulk':[40,15],
+  'gnashul':[40,15],
+  'grushak':[100,15],
+  'ooznik':[100,15],
+  'cindertusk':[40,40],
+  'bilewretch':[40,40],
+  'ashen':[15,40],
+  'volthex':[15,100],
+  'nightgloom':[15,100],
+  'mordath':[40,100],
+  'skarrn':[15,40],
+  'vexmite':[15,40],
+  'boar shaman':[15,100],
+  'blackquill':[15,100],
+  'bitwraith':[15,160],
+  'lost soul':[15,160],
+  'whisp':[15,160],
+  'wintercrag':[160,15],
+  'grommash':[100,15],
+  'voraxis':[100,40],
+  'magmourn':[40,100],
+  'leviath':[40,100],
+  'sylphice':[15,160]
+};
+for(const k in MONSTER_DEF){ const t=MONSTER_TYPES[k]; if(t&&t.monster){ t.armor=MONSTER_DEF[k][0]; t.mr=MONSTER_DEF[k][1]; } }
 MONSTER_KITS['ink horror']={green:{name:'Ink Spin',type:'nova',mul:1.0,radius:2.4*METER,cd:6,gfx:'voidzone',gfxAt:'self',gfxR:2.4*METER,gdur:1.4}};
 ABILITY_CAST_MON['ink horror']={green:0.6};
 HERO_BATTLE_H['ink spirit']=2.3; HERO_BATTLE_H['ink horror']=3.3;   // the wolf is long, not tall; the horror is a mage-sized mass
@@ -26893,7 +26980,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791640952554';
+const BUILD_ID = '1791642782069';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
