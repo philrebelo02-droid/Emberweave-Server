@@ -40,7 +40,7 @@ ok(HB.oakmir[0]['heal/shield strength'] === 0.025 && HB.oakmir[1].health === 640
   ok(worst <= 1, 'class neighbours differ in at least 3 of 4 slots (most alike: ' + pair + ', ' + worst + ' shared slot)'); }
 
 /* ---- labels: every reward kind is readable text in our words ---- */
-{ const want = { hp: /^Health \+320$/, atk: /^(Attack damage|Ability power) \+11$/, arm: /^Armor & Magic resist \+220$/, pen: /^Penetration \+105$/,
+{ const want = { hp: /^Health \+320$/, atk: /^(Attack damage|Ability power) \+40$/, arm: /^Armor & Magic resist \+220$/, pen: /^Penetration \+105$/,
     heal: /^Healing power \+2\.5%$/, en: /^Energy regen \+0\.5$/, edt: /^Energy from damage taken \+10%$/, cdr: /^Cooldown reduction 2%$/,
     as: /^Attack speed \+2\.5%$/, cc: /^Crit chance \+1\.5%$/, cd: /^Crit damage \+5%$/, ls: /^Lifesteal \+2%$/, dodge: /^Dodge \+1\.2%$/,
     dr: /^Damage reduction \+1\.2%$/, ctrl: /^Control resistance \+3%$/ };
@@ -85,7 +85,7 @@ ok(C.FIFTH_ORB_BONUS === 0.15, 'FIFTH_ORB_BONUS is 0.15 (Phil 9 Oct: "make 5th d
   const lit = T.heroBonuses({ steps: st, boonsUnlocked: ALL.slice() }, 'Mage', 'Magic', 'astra'), lit5 = T.heroBonuses({ steps: st, boonsUnlocked: FIVE.slice() }, 'Mage', 'Magic', 'astra');
   /* v1098: Astra's own bars are Health / Ability power / Attack speed / Magic penetration, so her 140-step Attack speed bar is in
      no5 too - the blessing part is the difference */
-  ok(lit5.hpFlat === no5.hpFlat && lit5.apFlat === no5.apFlat + Math.round(44 * 1.15) && (lit5.armorPenFlat || 0) === (no5.armorPenFlat || 0) + Math.round(315 * 1.15)
+  ok(lit5.hpFlat === no5.hpFlat && lit5.apFlat === no5.apFlat + Math.round(160 * 1.15) && (lit5.armorPenFlat || 0) === (no5.armorPenFlat || 0) + Math.round(315 * 1.15)
     && near(lit5['energy regen'] - (no5['energy regen'] || 0), 0.575) && near(lit5['attack speed'] - no5['attack speed'], 0.0575) && near(lit['attack speed'] - no5['attack speed'], 0.05)
     && near(no5['attack speed'], 140 * 0.00075), 'Astra with the 5th dot: her blessings x1.15, her bars (140-step Attack speed = +10.5%) as they were'); }
 

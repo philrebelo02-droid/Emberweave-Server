@@ -25,7 +25,7 @@
      BLESSING_UNIT values are PROPOSED - Phil tunes. code: [reward key, unit per tier] */
   const BLESSING_UNIT = {
     hp:    ["health", 320],                      // flat Health                       (slot 4 = +1,280)
-    atk:   ["attack", 11],                       // flat Attack damage / Ability power by damage type (hybrid: both) (slot 4 = +44)
+    atk:   ["attack", 40],                       // flat Attack damage / Ability power by damage type (hybrid: both) (slot 4 = +160) - v1102 Phil: "+11 ability power bonus, thats really low" (was 11)
     arm:   ["armorMr", 220],                     // flat Armor AND Magic resist        (slot 4 = +880)
     pen:   ["pen", 105],                         // flat Armor AND Magic penetration   (slot 4 = +420)
     heal:  ["heal/shield strength", 0.025],      // Healing power (heals and shields)  (slot 4 = +10%)
@@ -241,7 +241,7 @@
     HERO_ORB_LEVELS: [50, 60, 70, 80],               // our hero-level gates on dots 1-4 (5th: 100)
     BOON_KEEPER_GATES: [1, 5, 13, 19],               // the reference: blessing slots open at Temple 1 / 5 / 13 / 19
     BLESSING_NEEDS: [                                 // MEASURED thresholds, in steps of one bar SLOT (v1098: bar 1..4 of the hero's own four)
-      { slot: 0, need: 20 }, { slot: 1, need: 50 }, { slot: 2, need: 130 }, { slot: 3, need: 190 },
+      { slot: 0, need: 35 }, { slot: 1, need: 70 }, { slot: 2, need: 130 }, { slot: 3, need: 190 },   // v1102 Phil: "1 dot prayer threshold, 500 hp was very easy to get" (was 20 / 50)
     ],
     /* v1096: per-hero rewards (HERO_BLESSINGS, built above from HERO_BLESSING_KINDS x BLESSING_UNIT). blessingReward reads them by
        hero key; BLESSINGS below is only the technical fallback for a key with no row. */

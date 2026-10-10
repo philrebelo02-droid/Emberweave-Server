@@ -2559,7 +2559,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 </script>
 <script src="/hero-profiles.js?v=r1025"></script>
 <script src="/hero-paths.js?v=r1025"></script>
-<script src="/server/temple-of-ash.js?v=r1101"></script>
+<script src="/server/temple-of-ash.js?v=r1102"></script>
 <script src="/server/patron-benefits.js?v=r1093"></script>
 <script src="/server/temple-effects.js?v=r1098"></script>
 <script src="/assets/ui/world-mine-sync.js?v=mi1"></script>
@@ -5040,7 +5040,7 @@ function _skillEffectStrRaw(key,idx,atk,hp){ const t=HERO_TYPES[key],kit=KITS[ke
     if(t.ability==='summonshaman') return 'summons an Elder Ink Horror · '+(d.dur||22)+'s';
     if(t.ability==='heal') return '{i:s:heal} '+Math.round(hp*(d.mul||.95)*sm)+' team heal'; if(t.ability==='rally') return '{i:s:energy} +40 energy · {i:s:heal} '+Math.round(hp*0.3*sm); if(t.ability==='burst') return '{i:s:attack} '+Math.round(atk*3*sm); if(d.hpMul) return '{i:s:attack} '+Math.round(hp*d.hpMul*sm)+(d.radius?' AoE slam':' slam'); return d.mul?('{i:s:attack} '+Math.round(atk*d.mul*sm)+(d.radius?' AoE':'')):'{i:s:attack} strike'; }
   const ab=idx===1?kit.green:idx===2?kit.blue:kit.purple;
-  if(idx===3){ const P={tallow:'{i:s:stun} '+(+(1.6*sm).toFixed(2))+'s encase at 3 wax stacks',   /* v1101: waxOnCaster stuns + silences 1.6 s x the skill level - the readout said only "passive" */ bulwark:'{i:s:shield} −'+Math.round(18*sm)+'% dmg taken',fury:'{i:s:energy} +'+Math.round(25*sm)+'% atk speed',crit:'{i:s:crit-burst} +'+Math.round(20*sm)+'% crit',power:'{i:s:attack} +'+Math.round(15*sm)+'% dmg',regen:'{i:s:heal} '+ (+(0.02*sm*100).toFixed(1))+'%/s heal',beeward:'every ally: +0.4%/s heal',battery:'{i:s:energy} faster energy',lifesteal:'{i:s:heal} '+Math.round(20*sm)+'% lifesteal',ignite:'{i:s:burn} burn',warden:'{i:s:shield} +'+Math.round(4*sm)+'% armour & MR /3s (cap 20%)',juggernaut:'{i:s:heal} '+(+(4*sm).toFixed(1))+'%/s self-heal',mirewall:'{i:s:shield} −'+Math.round(Math.min(35,20*sm))+'% on lowest ally',
+  if(idx===3){ const P={tallow:'{i:s:stun} '+(+tallowEncase(lv).toFixed(3))+'s encase at 3 wax stacks',   /* v1102: tallowEncase - 1 s + 0.015 s per level, the same number the fight uses */ bulwark:'{i:s:shield} −'+Math.round(18*sm)+'% dmg taken',fury:'{i:s:energy} +'+Math.round(25*sm)+'% atk speed',crit:'{i:s:crit-burst} +'+Math.round(20*sm)+'% crit',power:'{i:s:attack} +'+Math.round(15*sm)+'% dmg',regen:'{i:s:heal} '+ (+(0.02*sm*100).toFixed(1))+'%/s heal',beeward:'every ally: +0.4%/s heal',battery:'{i:s:energy} faster energy',lifesteal:'{i:s:heal} '+Math.round(20*sm)+'% lifesteal',ignite:'{i:s:burn} burn',warden:'{i:s:shield} +'+Math.round(4*sm)+'% armour & MR /3s (cap 20%)',juggernaut:'{i:s:heal} '+(+(4*sm).toFixed(1))+'%/s self-heal',mirewall:'{i:s:shield} −'+Math.round(Math.min(35,20*sm))+'% on lowest ally',
     desertmom:'{i:s:energy} up to +'+Math.round(50*sm)+'% atk speed & +'+Math.round(120*sm)+' penetration',
     gruel:'3 casts → encased '+(+(1.6*sm).toFixed(1))+'s', risingheat:'{i:t:apow} up to +'+Math.round(45*sm)+'% spell power', staticcharge:'{i:s:energy} 5 stacks → chain',
     patience:'{i:s:crit-burst} +'+Math.round(5*sm)+'% crit per stack (×6)', convergence:'{i:s:energy} energy back on AoE',
@@ -11230,13 +11230,14 @@ function healUnit(u,a){ if(u.mortalT>0)a*=0.5; a=Math.min(worldHealCap(u)-u.hp,a
    that was the `hush` passive's line, not hers. Her pack text is "Enemy abilities apply wax. At
    three stacks, the enemy becomes encased and temporarily cannot attack or cast", so the wax goes
    on whoever CASTS while she is on the field, and the third coat sets. */
+function tallowEncase(lv){ return 1+0.015*(Math.max(1,lv|0)-1); }   // seconds: 1.0 at level 1, +0.015 s per level
 function waxOnCaster(c){ if(!c||!c.alive) return;
   const foes=(typeof units!=='undefined'?units:[]).filter(w=>w.alive&&w.team!==c.team&&w.pass&&w.pass.tallow);
   if(!foes.length) return;
-  const pm=(foes[0].passMul||1);
+  const _tlv=((foes[0].skillLv||[])[3]|0)||1;   /* v1102 (Phil 9 Oct): "living tallow needs to start 1 second encase and it upgrades .015 per upgrade" */
   c._waxT=4; c._wax=(c._wax||0)+1;
   if(c._wax>=3){ c._wax=0; c._waxT=0;
-    const dur=1.6*pm*(1-(c.ctrlRes||0));
+    const dur=tallowEncase(_tlv)*(1-(c.ctrlRes||0));
     c.stunned=Math.max(c.stunned||0,ccDur(dur)); c.silencedT=Math.max(c.silencedT||0,ccDur(dur)); c._castT=0; c.castAnim=0;
     try{ ringBurst(c.x,c.y,0xe8d8b0,18); }catch(e){}
     floatTexts.push({x:c.x,y:c.y-10,txt:'ENCASED',t:1.2,color:'#e8d8b0',vy:1,sz:13}); }
@@ -26808,7 +26809,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791597990952';
+const BUILD_ID = '1791601648120';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

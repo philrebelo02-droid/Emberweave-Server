@@ -337,6 +337,8 @@ note "test_icons_1100.js (v1100: hero fragments are the hero card; the 20 approv
 node tests/test_icons_1100.js || FAILED=1
 note "test_forge_retry_1101.js (v1101: a failed Forge load offers Retry, not 'being built'; control: server enabled:false)"
 node tests/test_forge_retry_1101.js || FAILED=1
+note "test_living_tallow_1102.js (v1102: Living Tallow encase 1 s + 0.015 s per level, fight and card agree)"
+node tests/test_living_tallow_1102.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi

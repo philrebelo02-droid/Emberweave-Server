@@ -59,12 +59,12 @@ ok(JSON.stringify(HB.oakmir) === JSON.stringify(['health', 'healPow', 'abilityPo
   T.saveSession(st);
   ok(st.heroes.oakmir.steps.health === s.rolls.health.toSteps && st.heroes.oakmir.steps.healPow === s.rolls.healPow.toSteps && st.heroes.oakmir.bars.join() === HB.oakmir.join(), 'Save stores the steps by kind with the layout'); }
 
-/* ---- blessing thresholds sit on bar slots 1-4 (20 / 50 / 130 / 190) ---- */
-ok(C.BLESSING_NEEDS.map(n => n.slot + ':' + n.need).join() === '0:20,1:50,2:130,3:190', 'BLESSING_NEEDS names bar slots 1-4 at 20 / 50 / 130 / 190 steps');
+/* ---- blessing thresholds sit on bar slots 1-4 (v1102: 35 / 70 / 130 / 190) ---- */
+ok(C.BLESSING_NEEDS.map(n => n.slot + ':' + n.need).join() === '0:35,1:70,2:130,3:190', 'BLESSING_NEEDS names bar slots 1-4 at 35 / 70 / 130 / 190 steps (v1102 Phil)');
 { const st = T.newState(); st.playerLevel = 100; st.keeperPoints = 1e7;
   const at = (a, b, c, d) => ({ key: 'rafe', bars: HB.rafe.slice(), steps: { dodge: a, attackSpeed: b, critChance: c, critDamage: d }, boonsUnlocked: NONE.slice() });
-  const rows = T.blessingsFor(st, at(20, 50, 130, 190), { role: 'Marksman', damageProfile: 'Attack', heroLevel: 100, key: 'rafe' });
-  ok(rows.every(r => r.canUnlock) && rows.map(r => r.barName).join() === 'Dodge,Attack speed,Crit chance,Crit damage', 'Rafe: the dots read his own bars (Dodge 20 / Attack speed 50 / Crit chance 130 / Crit damage 190)');
+  const rows = T.blessingsFor(st, at(35, 70, 130, 190), { role: 'Marksman', damageProfile: 'Attack', heroLevel: 100, key: 'rafe' });
+  ok(rows.every(r => r.canUnlock) && rows.map(r => r.barName).join() === 'Dodge,Attack speed,Crit chance,Crit damage', 'Rafe: the dots read his own bars (Dodge 35 / Attack speed 70 / Crit chance 130 / Crit damage 190)');
   ok(T.blessingsFor(st, at(19, 49, 129, 189), { role: 'Marksman', damageProfile: 'Attack', heroLevel: 100, key: 'rafe' }).every(r => !r.canUnlock), 'control: one step short on every slot earns nothing');
   const s = T.heroTempleStats(Object.assign(st, { heroes: { oakmir: { key: 'oakmir', bars: HB.oakmir.slice(), steps: { health: 25, healPow: 10, abilityPower: 0, energyRegen: 0 }, boonsUnlocked: NONE.slice() } } }), 'oakmir', { role: 'Support', damageProfile: 'Healer', heroLevel: 100 });
   ok(s.bars.map(b => b.name + ' ' + b.icon + ' ' + b.text).join(' | ') === 'Health hp 625 | Healing power healPow 1% | Ability power apow 0 | Energy regen energy 0',
@@ -151,7 +151,7 @@ function sweep(steps, lit) {
 
 /* ---- the page loads this build's modules (phones kept the v1094-tagged module after v1096) ---- */
 { const page = fs.readFileSync(path.join(ROOT, 'emberweave-heroes.html'), 'utf8');
-  ok(/<script src="\/server\/temple-of-ash\.js\?v=r1101"><\/script>/.test(page) && /<script src="\/server\/temple-effects\.js\?v=r1098"><\/script>/.test(page), 'the page asks for temple-of-ash.js at ?v=r1101 (v1101 free-prayer rule) and temple-effects.js at ?v=r1098');
+  ok(/<script src="\/server\/temple-of-ash\.js\?v=r1102"><\/script>/.test(page) && /<script src="\/server\/temple-effects\.js\?v=r1098"><\/script>/.test(page), 'the page asks for temple-of-ash.js at ?v=r1102 (v1102 blessing numbers) and temple-effects.js at ?v=r1098');
   const fn = page.slice(page.indexOf('function renderTemple(){'), page.indexOf('function startDungeon(){'));
   ok(/hs\.bars\.map\(/.test(fn) && /\$\{B\.icon\}-v1\.webp/.test(fn) && /escapeHTML\(B\.name\)/.test(fn) && /T\.barText\(bar,val\)/.test(fn) && !/TP2_BARS|tp2BarLabel/.test(fn),
     'renderTemple draws the hero\'s own bars: name, icon, value as number or %');

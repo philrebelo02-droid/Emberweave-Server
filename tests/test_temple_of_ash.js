@@ -101,9 +101,9 @@ ck('Inferno has no pressure (reach = the cap)', T.pressureChance('inferno', 200,
   const h = hero(200, 200, 200, 200), rows = lv => T.blessingsFor(st, h, { role: 'Bruiser', damageProfile: 'Attack', heroLevel: lv }).filter(b => b.canUnlock).map(b => b.slot).join();
   ck('dot gates by hero level', [[49, ''], [50, '1'], [60, '1,2'], [70, '1,2,3'], [80, '1,2,3,4']].every(([hl, want]) => rows(hl) === want));
   st.keeperPoints = pts(12); ck('dot gates by Temple level (12 opens 1-2)', rows(80) === '1,2');
-  st.keeperPoints = 1e7; const thin = hero(19, 49, 129, 189);
+  st.keeperPoints = 1e7; const thin = hero(34, 69, 129, 189);
   ck('control: one step short of every threshold earns nothing', T.blessingsFor(st, thin, { role: 'Bruiser', heroLevel: 100 }).every(b => !b.canUnlock));
-  const fat = hero(20, 50, 130, 190); st.heroes = { x: fat };
+  const fat = hero(35, 70, 130, 190); st.heroes = { x: fat };
   ck('at the thresholds all four dots and the 5th light', T.earnBlessings(st, 'x', { role: 'Bruiser', heroLevel: 100 }).join() === '1,2,3,4,5'); }
 { const st = T.newState(); st.playerLevel = 85; st.keeperPoints = 1e7;
   ck('5th orb: hero 100 yes, 99 no', T.fifthOrbReachable(st, 100) === true && T.fifthOrbReachable(st, 99) === false);
