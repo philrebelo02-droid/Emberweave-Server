@@ -272,7 +272,10 @@ const SAVE_MAX_CHARS=1024*1024;   /* v999 (Account audit #8): a cloud save above
 const MIN_PASS_LEN=8;   // AUDIT: 1-char passwords were accepted. New/changed passwords only — existing logins unaffected.
 // RE-AUDIT (26 Aug): API CORS is no longer '*'. The game is served from the SAME origin, which
 // needs no CORS at all; cross-origin callers must be listed in CORS_ORIGINS (comma-separated).
-const CORS_ORIGINS=new Set((process.env.CORS_ORIGINS||'').split(',').map(x=>x.trim()).filter(Boolean));
+/* v1107 (Phil 10 Oct 2026, server switch on mobile): the game page stays on the front door and calls the chosen server from there,
+   so every server accepts the front door's two origins (tokens ride in x-token, never in cookies). */
+const CORS_ORIGINS=new Set((process.env.CORS_ORIGINS||'').split(',').map(x=>x.trim()).filter(Boolean)
+  .concat(['https://emberweaveheroes.com','https://www.emberweaveheroes.com']));
 let _corsReqOrigin='';   // set per-request in the server handler
 function corsHeaders(){ const h={'Content-Type':'application/json'};
   if(_corsReqOrigin && CORS_ORIGINS.has(_corsReqOrigin)){ h['Access-Control-Allow-Origin']=_corsReqOrigin; h['Vary']='Origin'; h['Access-Control-Allow-Headers']='content-type,x-token'; }

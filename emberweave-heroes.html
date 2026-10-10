@@ -2,6 +2,42 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<script>
+/* v1107 (Phil 10 Oct 2026: "Why when I switch servers on mobile it has this at the top. And doesnt auto tilt landscape" / "go ahead
+   with the server switch fix"). The installed app belongs to emberweaveheroes.com; a switch used to send the page to sN's own
+   address, which Android opens as a browser tab (address bar, no landscape lock). Now the page STAYS on the front door and talks
+   to the chosen server in the background: every '/api/...' call and the game sockets go to https://sN.emberweaveheroes.com
+   (each server lists the front door in its CORS origins). Each server's sign-in and local save live under their own keys
+   (key@sN), so switching back and forth keeps each server's session. Runs before anything else; only on the front door. */
+(function(){
+  window.EW_SVR=1; window.EW_API=''; window.EW_WS='';
+  var n=1;
+  try{
+    if(location.protocol!=='https:'||!/^(www\.)?emberweaveheroes\.com$/i.test(location.hostname)) return;
+    var q=null; try{ q=new URLSearchParams(location.search).get('server'); }catch(e){}
+    var qi=parseInt(q||'',10); if(qi>=1&&qi<=5) localStorage.setItem('ew_server',String(qi));
+    n=parseInt(localStorage.getItem('ew_server')||'',10)||1; if(!(n>=1&&n<=5)) n=1;
+  }catch(e){ n=1; }
+  if(n===1) return;
+  var host='s'+n+'.emberweaveheroes.com', base='https://'+host;
+  window.EW_SVR=n; window.EW_API=base; window.EW_WS='wss://'+host;
+  var PER=/^(ew_acc|emberweave_save_v08|ew_edRounds|ew_edClaim|ew_vaultPending_.*|ew_wellPending_.*)$/, sfx='@s'+n;
+  var P=Storage.prototype, g=P.getItem, st=P.setItem, rm=P.removeItem;
+  var key=function(store,k){ k=String(k); return (store===window.localStorage && PER.test(k)) ? k+sfx : k; };
+  P.getItem=function(k){ return g.call(this,key(this,k)); };
+  P.setItem=function(k,v){ return st.call(this,key(this,k),v); };
+  P.removeItem=function(k){ return rm.call(this,key(this,k)); };
+  window.EW_LS_RAW={ get:function(k){ try{ return g.call(window.localStorage,k); }catch(e){ return null; } } };
+  var f=window.fetch;
+  window.fetch=function(u,o){
+    if(typeof u==='string'){
+      if(u.indexOf('/api/')===0) u=base+u;
+      else if(u.indexOf('/health')===0) u=base+'/api/health'+u.slice(7);   // the plain /health has no CORS; /api/health answers the same
+    }
+    return f.call(this,u,o);
+  };
+})();
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0b0e14">
@@ -25896,7 +25932,7 @@ function devForceUpdate(){
 /* ============================ ONLINE PvP =================================== */
 const NET={ws:null,role:null,code:null,connected:false};
 const OL={active:false,host:false,byId:{},guestRoster:null,tick:0};
-function netURL(){ if(location.protocol==='file:')return null; return (location.protocol==='https:'?'wss://':'ws://')+location.host; }
+function netURL(){ if(location.protocol==='file:')return null; if(window.EW_WS) return window.EW_WS; return (location.protocol==='https:'?'wss://':'ws://')+location.host; }
 /* v945 (Phil, 2 Oct 2026: "Node 1 - server 1, Node 2 - server 2, Node 3 - Server 3" / "when someone loads into the game it loads
    their recent server, if the Server is down then it Pulls up the server list, it says which servers are Up (green color) and what
    server is down (red color)" / "after settings in menu panel, put a server button").
@@ -25916,7 +25952,7 @@ const SVR_LIST=[{id:1,name:'Server 1',host:'s1.emberweaveheroes.com'},{id:2,name
 const SVR_FRONT='emberweaveheroes.com';
 function svrOn(){ try{ return typeof location!=='undefined' && location.protocol==='https:' && /(^|\.)emberweaveheroes\.com$/i.test(location.hostname); }catch(e){ return false; } }
 function svrFront(){ return /^(www\.)?emberweaveheroes\.com$/i.test(location.hostname); }
-function svrHere(){ if(svrFront()) return 1; const s=SVR_LIST.find(x=>x.host===location.hostname.toLowerCase()); return s?s.id:1; }
+function svrHere(){ if(svrFront()) return window.EW_SVR||1; const s=SVR_LIST.find(x=>x.host===location.hostname.toLowerCase()); return s?s.id:1; }
 function svrUrl(id){ return id===1 ? 'https://'+SVR_FRONT+'/play' : 'https://'+SVR_LIST.find(x=>x.id===id).host+'/play'; }
 function svrPing(s,ms){ return new Promise(res=>{ let done=false; const fin=v=>{ if(!done){ done=true; clearTimeout(t); res(v); } };
   const t=setTimeout(()=>fin(false), ms||4000);
@@ -25932,7 +25968,8 @@ function svrHandoffCode(){
   return api('/api/handoff','POST',{}).then(d=>(d&&d.code)||null).catch(()=>null); }
 async function svrGo(id){
   const code=await svrHandoffCode(), h=code?('#handoff='+code):'';
-  if(svrFront()){ svrRecentSet(id); if(id===1){ svrClose(); return; } location.href=svrUrl(id)+h; return; }
+  // v1107: the front door never leaves its own address - it records the server and reloads itself (the head script then talks to it)
+  if(svrFront()){ if(id===svrHere()){ svrClose(); return; } svrRecentSet(id); location.href='https://'+location.hostname+'/play'+h; return; }
   location.href='https://'+SVR_FRONT+'/switch?server='+id+h; }   // v1034: a ~1 KB page on the front door records the choice and forwards
 /* v1034 (Phil 5 Oct: "it reloads twice instead of once"): the code is redeemed and the page signs in where it stands - it used to
    location.replace() and boot the whole game a second time. While it runs the net gate reads "Signing you in…", so Play cannot be
@@ -25975,10 +26012,17 @@ function svrBoot(){
   if(svrFront()){
     let q=null; try{ q=new URLSearchParams(location.search).get('server'); }catch(e){}
     if(q){ const id=parseInt(q,10); if(SVR_LIST.some(s=>s.id===id)) svrRecentSet(id); try{ history.replaceState(null,'',location.pathname); }catch(e){} }
-    const want=SVR_LIST.find(s=>s.id===svrRecentGet())||SVR_LIST[0];
-    if(code){ if(want.id===1) svrRedeem(code); else location.replace(svrUrl(want.id)+'#handoff='+code); return; }   // pass it on, unused
-    svrPing(want).then(up=>{ if(!up){ svrOpen(); return; }
-      if(want.id!==1) svrHandoffCode().then(c=>location.replace(svrUrl(want.id)+(c?('#handoff='+c):''))); });
+    const want=SVR_LIST.find(s=>s.id===svrHere())||SVR_LIST[0];   // v1107: the head script already picked it (ew_server / ?server=N)
+    if(code){ svrRedeem(code); return; }                              // redeemed on the chosen server, in place
+    // v1107: the first visit to a server from the front door - it has no sign-in of its own yet, so the Server 1 account is carried
+    // over once (a handoff code from Server 1, redeemed on the chosen server), the way the old redirect did on every visit.
+    if(want.id!==1 && !(ACC&&ACC.token) && window.EW_LS_RAW){ let s1=null; try{ s1=JSON.parse(window.EW_LS_RAW.get('ew_acc')||'null'); }catch(e){}
+      if(s1 && s1.token && !s1.guest){ window._svrHandoff=true;
+        fetch('https://'+location.hostname+'/api/handoff',{method:'POST',headers:{'Content-Type':'application/json','x-token':s1.token},body:'{}'})
+          .then(r=>r.json()).then(d=>{ if(d&&d.code) svrRedeem(d.code); else throw new Error('no code'); })
+          .catch(()=>{ window._svrHandoff=false; try{ ensureGuest(()=>netGateUpdate()); }catch(e){} });
+        return; } }
+    svrPing(want).then(up=>{ if(!up) svrOpen(); });
   } else {
     if(code){ svrRedeem(code); return; }
     svrPing(SVR_LIST.find(s=>s.id===svrHere())).then(up=>{ if(!up) svrOpen(); });
@@ -26980,7 +27024,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791642782069';
+const BUILD_ID = '1791644959284';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -27183,7 +27227,7 @@ const CHATNET={ws:null,connected:false,name:'',tries:0};
 function chatName(){ return G.playerName||(ACC&&ACC.name)||'Player'; }   // chat uses your in-game character name (what you rename)
 function chatUpdateName(){ if(typeof CHATNET==='undefined')return; CHATNET.name=chatName(); if(CHATNET.ws&&CHATNET.ws.readyState===1){ try{ CHATNET.ws.send(JSON.stringify({t:'chatjoin',name:CHATNET.name,token:(ACC&&ACC.token)||undefined})); }catch(e){} } }
 function chatConnect(){ if(location.protocol==='file:'||!online())return; if(CHATNET.ws&&(CHATNET.ws.readyState===0||CHATNET.ws.readyState===1))return;
-  const url=(location.protocol==='https:'?'wss://':'ws://')+location.host; try{ CHATNET.ws=new WebSocket(url); }catch(e){ return; }
+  const url=window.EW_WS||((location.protocol==='https:'?'wss://':'ws://')+location.host); try{ CHATNET.ws=new WebSocket(url); }catch(e){ return; }
   CHATNET.ws.onopen=()=>{ CHATNET.connected=true; CHATNET.tries=0; CHATNET.name=chatName(); try{ CHATNET.ws.send(JSON.stringify({t:'chatjoin',name:CHATNET.name,token:(ACC&&ACC.token)||undefined})); }catch(e){} };
   CHATNET.ws.onmessage=(e)=>{ let m; try{m=JSON.parse(e.data);}catch(_){return;} onChatNet(m); };
   CHATNET.ws.onclose=()=>{ CHATNET.connected=false; CHATNET.tries++; setTimeout(chatConnect, Math.min(15000,2000*CHATNET.tries)); };
