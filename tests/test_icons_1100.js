@@ -13,7 +13,7 @@ ok(page.indexOf('\u{1F9E9}') < 0, 'no puzzle-piece emoji left anywhere in the pa
 ok(/function fragCard\(key,px\)\{[^\n]*heroIcon\(key,px\)/.test(page), 'fragCard draws the hero\'s own card (heroIcon)');
 const fragUses = (page.match(/fragCard\(/g) || []).length - 1;
 ok(fragUses >= 10, 'hero fragments show the hero card in ' + fragUses + ' places (Elite, results, summon, star-up, wishes)');
-ok(/function glyphFragChip\(k\)[^\n]*g2NodeArtSrc\(\{kind:'fragment',key:k\}\)/.test(page) && (page.match(/glyphFragChip\(k\)/g) || []).length >= 4, 'Vault glyph fragments show their glyph art');
+ok(/function glyphFragChip\(k\)[^\n]*g2NodeArtSrc\(\{kind:'fragment',key:k\}\)/.test(page) && (page.match(/glyphFragChip\(k\)/g) || []).length >= 3 && /tile\(glyphArt\(k\),n,k/.test(page), 'Vault glyph fragments show their glyph art (v1103: the sweep pop-up tiles them)');
 ok((page.match(/img:'fx-(heart|spade|diamond|club)'/g) || []).length === 4 && /if\(f\.img\)\{ const im=ftImg\(f\.img\)/.test(page), "Sorrel's four suits draw their card art on the battle canvas");
 ok(/function edToolIcName\(it\)\{ return it\.anv \? 'mode-forge' : \(it\.rf \? 'ed-item-reforge' : 'ed-item-magnet'\); \}/.test(page), 'Emberdraft Anvil / Reforger / Magnet use their art');
 ok(['Tank','Bruiser','Mage','Marksman','Assassin','Support'].every(c => page.indexOf(c + ":{ic:uiIcon('class-" + c.toLowerCase() + "')") >= 0), 'Emberdraft class synergies use the six class icons');

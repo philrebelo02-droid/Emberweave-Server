@@ -4728,6 +4728,7 @@ function ultTargetOK(u,ab,o){ const mode=ultAimMode(ab), D=ULT_DEF[ab]||{}; if(!
   if(mode==='self') return o===u;
   if(mode==='summon') return o.team===u.team && !!o._summon && o._summonOwner===u;
   return true; }
+const HEALER_ULT_HITS=new Set(['symphony','sunburst','hivemind']);   /* v1103: healer ults that also damage enemies - AUTO fires them as soon as they are full */
 function ultBlockedReason(u){ const ab=u.abilityOverride||u.t.ability, mode=ultAimMode(ab), D=ULT_DEF[ab]||{};
   if(mode==='summon' && !units.some(o=>o.alive&&o._summon&&o._summonOwner===u)) return 'no summoned creature to feed on';
   if(mode==='target' && D.range && !units.some(o=>o.alive&&o.team!==u.team&&!o._dropHidden&&!o._noTarget&&dist(u,o)<=D.range)) return 'no enemy within '+Math.round(D.range/METER)+' m';
@@ -12429,7 +12430,10 @@ function think(u,dt){
   const silenced=(u.silencedT||0)>0;   // silenced (Grosk): can't use ANY ability — only auto-attack
   // ultimate (energy): enemies + AUTO auto-fire; player fires (and aims) via portrait
   if(!silenced && !u.t.monster && u.energy>=100){const auto = CUR.mode==='online' ? false : ((u.team==='enemy')||(u.team==='ally'&&autoUlt));
-    if(auto && !ultBlockedReason(u) && (!u.t.healer||alliesOf(u).some(a=>a.hp<a.maxHp))){
+    /* v1103 (Phil 9 Oct, Emberdraft: "they dont auto ult. i still have to click" - "it was vireo"): a healer's ult waits for the first point of
+       ally damage, but Vireo's Grand Symphony also hits every enemy - with an untouched team she sat full until clicked. An ult that deals damage fires at once. */
+    const _ultDmg=HEALER_ULT_HITS.has(u.abilityOverride||u.t.ability);   // Symphony (Vireo), Sunburst (Lumi), Hive Mind (Mellan); First Spring and Rally only heal - they still wait
+    if(auto && !ultBlockedReason(u) && (!u.t.healer||_ultDmg||alliesOf(u).some(a=>a.hp<a.maxHp))){
       // Every healer ult waits for the FIRST point of ally damage, then fires this tick.
       // AUTO is immediate timing, not a healer/rally strategy planner. A ready ult may
       // cut short a Green/Blue cast, as the ult priority already promises.
@@ -16844,7 +16848,7 @@ function skyTeamBodyHTML(){
       +heroIcon(k,48)+'</div>').join('');
     /* v1103 (Phil: every hero select gets the ALL / TANK / ... class row): the bench filters by class, the shared rosterClassF */
     const free=SKYTEAM.bench.filter(k=>rosterClassF==='All'||(HERO_TYPES[k]||{}).role===rosterClassF).map(k=>skyTeamCard(k,'skyBenchCard')).join('');
-    const clsRow='<div class="rsClass" style="margin:6px 0">'+ROSTER_CLASSES.map(c=>'<button type="button" class="rsClassB'+(rosterClassF===c?' on':'')+'" data-sky-class="'+c+'">'+(c==='All'?'':uiIcon('class-'+c.toLowerCase()))+'<span>'+c.toUpperCase()+'</span></button>').join('')+'</div>';
+    const clsRow='<div class="rsClass" style="margin:6px 0">'+ROSTER_CLASSES.map(c=>'<button type="button" class="rsClassB'+(rosterClassF===c?' on':'')+'" data-sky-class="'+c+'">'+(c==='All'?'':ROSTER_CLASS_IC[c])+'<span>'+c.toUpperCase()+'</span></button>').join('')+'</div>';
     return '<div class="skyPick">'
       +'<div class="skyPickHd"><b>Adjust line '+(i+1)+'</b>'
         +'<span>power '+skyTeamPower(L).toLocaleString()+'</span>'
@@ -20039,6 +20043,7 @@ function wireRosterTaps(r){
 }
 let rosterClassF='All';   /* v1103: the hero-select class filter (ALL / one class) - kept across screens */
 const ROSTER_CLASSES=['All','Tank','Bruiser','Assassin','Mage','Support','Marksman'];
+const ROSTER_CLASS_IC={All:'',Tank:uiIcon('class-tank'),Bruiser:uiIcon('class-bruiser'),Assassin:uiIcon('class-assassin'),Mage:uiIcon('class-mage'),Support:uiIcon('class-support'),Marksman:uiIcon('class-marksman')};   // literal names: the icon-file check reads them
 function reRenderRoster(){
   // Record EVERY scrollable ancestor, not just the immediate parent — on a phone the scroller is
   // usually the screen, so restoring only #roster still snapped the list back to the top on each
@@ -20085,7 +20090,7 @@ function renderRoster(){
   const _pickable=HERO_KEYS.filter(k=>G.unlocked[k]||wellLoan(k));
   _pickable.sort((a,b)=>heroPower(b)-heroPower(a));
   /* v1103: the class row filters the grid; the slots above always show the whole picked team */
-  { const cr=document.getElementById('rosterClass'); if(cr){ cr.innerHTML=ROSTER_CLASSES.map(c=>`<button type="button" class="rsClassB${rosterClassF===c?' on':''}" data-rs-class="${c}">${c==='All'?'':uiIcon('class-'+c.toLowerCase())}<span>${c.toUpperCase()}</span></button>`).join('');
+  { const cr=document.getElementById('rosterClass'); if(cr){ cr.innerHTML=ROSTER_CLASSES.map(c=>`<button type="button" class="rsClassB${rosterClassF===c?' on':''}" data-rs-class="${c}">${c==='All'?'':ROSTER_CLASS_IC[c]}<span>${c.toUpperCase()}</span></button>`).join('');
     cr.querySelectorAll('[data-rs-class]').forEach(b=>b.onclick=()=>{ rosterClassF=b.dataset.rsClass; reRenderRoster(); }); } }
   const _shown=rosterClassF==='All'?_pickable:_pickable.filter(k=>(HERO_TYPES[k]||{}).role===rosterClassF);
   if(!_pickable.length){ r.innerHTML='<div style="grid-column:1/-1;text-align:center;color:#8b98a9;font-size:12px;padding:18px">No heroes yet — summon one at the Wishing Pool.</div>'; }
@@ -22114,7 +22119,7 @@ function rsPickerHTML(heroes,sel,blocked,sub){ const picked=[...sel];
   let h='<div class="rsSlots">';
   for(let i=0;i<5;i++){ const k=picked[i]; h+=k?card(k,'rsSlot full','data-rsp-slot="'+k+'"')+`<div class="rsPow">${statusIcon('attack')} ${myHeroPower(k).toLocaleString()}</div></div>`
     :'<div class="rsSlot"><div class="rsEmpty">+</div><div class="rsName" style="color:#4a5a7e">empty</div><div class="rsPow">&nbsp;</div></div>'; }
-  h+='</div><div class="rsClass">'+ROSTER_CLASSES.map(c=>`<button type="button" class="rsClassB${rosterClassF===c?' on':''}" data-rsp-class="${c}">${c==='All'?'':uiIcon('class-'+c.toLowerCase())}<span>${c.toUpperCase()}</span></button>`).join('')+'</div>';
+  h+='</div><div class="rsClass">'+ROSTER_CLASSES.map(c=>`<button type="button" class="rsClassB${rosterClassF===c?' on':''}" data-rsp-class="${c}">${c==='All'?'':ROSTER_CLASS_IC[c]}<span>${c.toUpperCase()}</span></button>`).join('')+'</div>';
   const shown=rosterClassF==='All'?heroes:heroes.filter(k=>(HERO_TYPES[k]||{}).role===rosterClassF);
   h+='<div class="rsGrid5">'+(shown.length?shown.map(k=>{ const b=blocked(k);
     return card(k,'hero-card rsCard mc-hero'+(sel.has(k)?' selected':''),'data-k="'+k+'" style="cursor:'+(b?'not-allowed':'pointer')+';opacity:'+(b?.45:1)+'"')+`<div class="rsPow">${sub(k)}</div></div>`; }).join('')
@@ -26888,7 +26893,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791601648120';
+const BUILD_ID = '1791606428707';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

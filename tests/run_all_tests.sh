@@ -339,6 +339,10 @@ note "test_forge_retry_1101.js (v1101: a failed Forge load offers Retry, not 'be
 node tests/test_forge_retry_1101.js || FAILED=1
 note "test_living_tallow_1102.js (v1102: Living Tallow encase 1 s + 0.015 s per level, fight and card agree)"
 node tests/test_living_tallow_1102.js || FAILED=1
+note "test_gruel_anim_nine.js (v1103: Gruel's nine approved animations - sheets on disk, grids fit, timing, kit unchanged; control: a broken copy fails)"
+node tests/test_gruel_anim_nine.js || FAILED=1
+note "test_auto_ult_healer_1103.js (v1103: healer ults that also hit enemies fire when full; heal-only ones still wait)"
+node tests/test_auto_ult_healer_1103.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi
