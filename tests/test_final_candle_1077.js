@@ -37,18 +37,32 @@ ok(c.includes("delay:at+(o.shatter||1.5),run:function(){ if(!e.alive||_enc.index
     ccApply: (u, e, k) => { if (k === 'stunned') S.stun.add(e.id); }, floatTexts: { push() {} }, ringBurst() {}, burstAt() {},
     dealDamage: (u, e) => S.hit.add(e.id), candleCastFx() {}, candleEffigyFx: (e) => S.eff.add(e.id), candleEdgeT: ctx.T, candleEdgeF: ctx.F, Math };
   vm.runInNewContext('(function(){' + body + '})()', env);
+  // v1112 (Phil 10 Oct: "the wax needs to hit them first"): at the moment of the cast nobody is coated yet - the coat waits for the edge
+  ok([A, B, C, D].every(e => !e._waxCoatT), 'v1112: no enemy is waxed at the cast - the wax has not reached anyone yet (the old code coated A at once)');
+  const coatAt = {};
   // the fight loop: hazards fire in time order; move enemies as the pour runs (A steps out at once, B is pulled in at 2 s, C in at 2 s and out at 2.3 s)
   const fired = new Set(); let t = 0;
   while (t < 9) { t = +(t + 0.05).toFixed(2);
     if (t === 0.1) A.x = 15 * 32; if (t === 2) { B.x = 0.5 * 32; C.x = 0.5 * 32; } if (t === 2.3) C.x = 15 * 32;
-    for (let i = 0; i < S.hz.length; i++) { const h = S.hz[i]; if (!fired.has(h) && (h._t = h._t ?? t - 0.05 + 0) >= 0 && t >= (h._at = h._at ?? (h._born ?? (h._born = t - 0.05)) + h.delay)) { fired.add(h); h.run(); } } }
+    for (let i = 0; i < S.hz.length; i++) { const h = S.hz[i]; if (!fired.has(h) && (h._t = h._t ?? t - 0.05 + 0) >= 0 && t >= (h._at = h._at ?? (h._born ?? (h._born = t - 0.05)) + h.delay)) { fired.add(h); h.run(); } }
+    for (const e of [A, B, C, D]) if (e._waxCoatT && coatAt[e.id] == null) coatAt[e.id] = t;}
   ok(S.stun.has('in-then-out') && S.eff.has('in-then-out') && S.hit.has('in-then-out'), 'caught at the cast then stepped out: still encased, effigy, shatter');
   ok(S.stun.has('pulled-in') && S.eff.has('pulled-in') && S.hit.has('pulled-in'), 'pulled into the wax while it pours: encased, effigy, shatter');
   ok(S.stun.has('pulled-in-and-out') && S.eff.has('pulled-in-and-out'), 'pulled in and out again mid-pour: still encased');
   ok(!S.stun.has('never-touched') && !S.eff.has('never-touched'), 'CONTROL: an enemy the wax never touches is not encased');
   ok([A, B, C].every(e => e._waxCoatT === 6 && e._waxCoatBy === env.u) && !D._waxCoatT, 'every touched enemy carries her 6 s wax coat (refreshed when it shatters); control: the untouched one has none');
-  ok(c.includes("dealDamage(u,e,_sh,'#fff0c0','magic'); _coat(e);"), 'the coat goes on again when the effigy shatters'); }
-ok(c.includes("_caught.forEach(e=>{ _coat(e); ccApply(u,e,'slow',o.slow||3);"), 'the WAX slow on caught enemies is unchanged (v1101: plus the wax coat)');
+  ok(c.includes("dealDamage(u,e,_sh,'#fff0c0','magic'); _coat(e);"), 'the coat goes on again when the effigy shatters');
+  ok(Math.abs(coatAt['in-then-out'] - ctx.T(1 / 7)) <= 0.101, 'v1112: the enemy 1 m out is waxed when the edge reaches 1 m (' + coatAt['in-then-out'] + ' s vs edge ' + ctx.T(1 / 7).toFixed(2) + ' s), not at the cast'); }
+ok(c.includes("_coat(e); ccApply(u,e,'slow',o.slow||3); floatTexts.push({x:e.x,y:e.y-8,txt:'WAX'") && c.includes('delay:Math.max(0.01,candleEdgeT(dist(_c,e)/_R)),run:function(){ if(!e.alive)return;'), 'the WAX slow + coat land when the edge reaches each caught enemy (v1112)');
+// v1112 (Phil 10 Oct: "please make wax reduce healing on the enemy effected by 30%"): run the real first line of healUnit with stubs
+{ const hs = H.indexOf('function healUnit(u,a){'), he = H.indexOf('u.hp+=a;', hs);
+  const head = H.slice(hs, he) + 'u.hp+=a; }';
+  const env2 = { worldHealCap: u => u.maxHp, WAX_HEAL_CUT: 0.30 }; vm.runInNewContext(head + '\nthis.heal=healUnit;', env2);
+  const mk = x => Object.assign({ hp: 100, maxHp: 1000, mortalT: 0 }, x);
+  const plain = mk({}), coat = mk({ _waxCoatT: 3 }), tallow = mk({ _waxT: 2, _wax: 1 }), spent = mk({ _waxT: 0, _wax: 2 });
+  [plain, coat, tallow, spent].forEach(u => env2.heal(u, 100));
+  ok(coat.hp === 170 && tallow.hp === 170, 'v1112: a waxed enemy (ult coat or Living Tallow stacks) heals 30% less: 100 -> 70');
+  ok(plain.hp === 200 && spent.hp === 200, 'CONTROL: no wax (or wax that has run out) heals in full'); }
 ok(H.includes("ceraline:{deliver:'form',noArt:true}"), 'the old ult plate is off (delivery timing kept)');
 ok(H.includes('killAllWaxFx(); clearCandleFx(); }'), 'cleared with the other FX');
 // CONTROL: the display helpers never touch the fight

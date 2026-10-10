@@ -11063,7 +11063,11 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
       /* v1101 (Phil 9 Oct: 'waxen ult should apply wax during them being hit with wax and after the effigy explodes' / 'it lasts 6 seconds'):
          her wax coat (the Sealing Wax coat Mourning Bell shatters) goes on when the wax touches an enemy and again when its effigy shatters */
       const _coat=e=>{ if(!e.alive)return; e._waxCoatT=Math.max(e._waxCoatT||0,o.coat||6); e._waxCoatBy=u; };
-      _caught.forEach(e=>{ _coat(e); ccApply(u,e,'slow',o.slow||3); floatTexts.push({x:e.x,y:e.y-8,txt:'WAX',t:.8,color:'#e8d8b0',vy:1,sz:11}); });
+      /* v1112 (Phil 10 Oct: "waxens ult seems to be applying wax to enemy before the ult ever hits anyone, the wax needs to hit them first"):
+         the coat, the slow and the WAX text were put on everyone in the radius at the CAST. Each now lands when the spreading edge reaches
+         that enemy's spot (candleEdgeT - the same moment its encase is timed to). */
+      _caught.forEach(e=>{ groundHazards.push({arrival:true,delay:Math.max(0.01,candleEdgeT(dist(_c,e)/_R)),run:function(){ if(!e.alive)return;
+        _coat(e); ccApply(u,e,'slow',o.slow||3); floatTexts.push({x:e.x,y:e.y-8,txt:'WAX',t:.8,color:'#e8d8b0',vy:1,sz:11}); }}); });
       ringBurst(_c.x,_c.y,0xe8d8b0,22);
       /* v1077 (Phil via Grok, spell 21): the wax is poured at the aim point and SPREADS to the full radius; a hero is encased (stun) the
          moment the spreading edge reaches the spot it stood on at the cast, and its effigy shatters (the damage) o.shatter s later. Before:
@@ -11300,7 +11304,10 @@ function orbNextHop(h){ let nx=null,nd=1e9; for(const a of h.left){ if(!a.alive)
 
 function healFrom(src,tgt,a){ return healUnit(tgt,a*((src&&src.healPowMul)||1)); }
 function worldHealCap(u){ return u._worldEntryHpCap==null?u.maxHp:Math.min(u.maxHp,u._worldEntryHpCap); }
-function healUnit(u,a){ if(u.mortalT>0)a*=0.5; a=Math.min(worldHealCap(u)-u.hp,a); if(a<=0)return; u.hp+=a;
+/* v1112 (Phil 10 Oct 2026: "please make wax reduce healing on the enemy effected by 30%"): a unit carrying Ceraline's wax - her ult's
+   coat (_waxCoatT) or Living Tallow's stacks (_wax while _waxT runs) - receives 30% less healing from every source. */
+const WAX_HEAL_CUT=0.30;
+function healUnit(u,a){ if(u.mortalT>0)a*=0.5; if((u._waxCoatT||0)>0||((u._waxT||0)>0&&(u._wax||0)>0))a*=1-WAX_HEAL_CUT; a=Math.min(worldHealCap(u)-u.hp,a); if(a<=0)return; u.hp+=a;
   /* v527 - healing that travels. Golden Thread (Threadseer) sends part of what SHE receives to
      the ally nearest death; Dreamthread (Lysara) shares between the two allies she linked.
      _healing guards the one hop so a link can never feed itself in a loop. */

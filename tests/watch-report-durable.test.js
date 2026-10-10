@@ -20,14 +20,16 @@ seed.watch={[u.id]:{id:u.id,name:u.name,guildId:'g',attacks:[{name:'Previous',et
 fs.writeFileSync(file,JSON.stringify(seed));await launch();await clock(start);
 assert.equal((await call('/api/watch/report',{attacks:[]},null)).status,401);
 for(const attacks of [null,{},[{name:''}],[{name:'x',eta:-1}],[{name:'x',eta:'1'}],[{name:'x',ret:1}],[{name:'x'.repeat(161)}]])assert.equal((await call('/api/watch/report',{attacks})).status,400);
-const before=fs.readFileSync(file,'utf8'),beforeRows=(await call('/api/watch')).data;
+const beforeRows=(await call('/api/watch')).data;
 assert.equal(beforeRows.guilded,true);assert.equal(beforeRows.mates.length,2);
 const packet={id:foreign.id,name:'Spoofed',guildId:'other',t:0,attacks:[{name:'Target',eta:5,ret:false,private:'must drop'}],defends:[],scouts:[]};
-await clock(start,true);const failed=await call('/api/watch/report',packet);const afterRows=(await call('/api/watch')).data;
+// Fail mode on BEFORE the disk snapshot: authed calls set lastSeen in memory and a background debounced save (boot writeDB,
+// 200 ms real time) may land late under full-suite load; with every DB rename failing, only the report save is compared.
+await clock(start,true);const before=fs.readFileSync(file,'utf8');const failed=await call('/api/watch/report',packet);const afterRows=(await call('/api/watch')).data;
 console.log(JSON.stringify({saveFailureStatus:failed.status,ok:failed.data.ok,diskUnchanged:before===fs.readFileSync(file,'utf8'),memoryUnchanged:JSON.stringify(beforeRows)===JSON.stringify(afterRows)}));
 assert.equal(failed.status,503,'Watch report failed save must not acknowledge200');assert.equal(fs.readFileSync(file,'utf8'),before);assert.deepEqual(afterRows,beforeRows,'Watch failed save must not publish the staged report');
 await clock(start);assert.equal((await call('/api/watch/report',packet)).status,200);const saved=disk().watch[u.id];assert.equal(saved.id,u.id);assert.equal(saved.name,u.name);assert.equal(saved.guildId,'g');assert.equal(saved.t,start);assert.deepEqual(saved.attacks,[{name:'Target',eta:5,ret:false}]);assert.equal(disk().watch[foreign.id].attacks[0].name,'Guild visible');
-const durable=fs.readFileSync(file,'utf8');assert.equal((await call('/api/watch/report',packet)).status,200);assert.equal(fs.readFileSync(file,'utf8'),durable,'Exact same-clock retry overwrites once, no duplicate report');await stop();await launch();assert.deepEqual(disk().watch[u.id],saved);assert.equal((await call('/api/watch')).data.mates.find(x=>x.you).attacks[0].name,'Target');
+await clock(start,true);const durable=fs.readFileSync(file,'utf8');assert.equal((await call('/api/watch/report',packet)).status,200,'Exact same-clock retry answers without a save');assert.equal(fs.readFileSync(file,'utf8'),durable,'Exact same-clock retry overwrites once, no duplicate report');await clock(start);await stop();await launch();assert.deepEqual(disk().watch[u.id],saved);assert.equal((await call('/api/watch')).data.mates.find(x=>x.you).attacks[0].name,'Target');
 await stop();const changed=disk();changed.users[foreign.id].guildId='other';fs.writeFileSync(file,JSON.stringify(changed));await launch();assert.equal((await call('/api/watch')).data.mates.length,1,'Stale guildId report cannot grant visibility');
 const many=Array.from({length:21},(_,i)=>({name:'Row'+i,eta:i}));assert.equal((await call('/api/watch/report',{attacks:many})).status,200);assert.equal(disk().watch[u.id].attacks.length,20,'Existing20 row cap retained');
 await clock(start+600000);assert.equal((await call('/api/watch')).data.mates.length,1,'Report remains fresh at exact10 minute boundary');await clock(start+600001);assert.equal((await call('/api/watch')).data.mates.length,0,'Report expires beyond10 minutes');
