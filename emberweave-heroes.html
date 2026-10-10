@@ -4684,7 +4684,7 @@ function setHead(imgEl,key){ if(!imgEl)return; heroHead(key,d=>{ if(d) imgEl.src
 
 /* ---- ability RANK kit: Grey=Ultimate only, Green/Blue=auto actives, Purple=passive ---- */
 const RANK_NAMES=['Grey','Green','Blue','Purple'], RANK_COLOR=['#9aa6bb','#5ee89b','#4aa3ff','#b98bff'];
-const ULT_RADIUS=['aoeStun','deepchoir','fireball','gravcrush','worldweight','eventhorizon','blizzard','thundershower','umbralcata','swamproot','ashfall','finalcandle'];   /* v1101 (Phil 9 Oct): 'final candle by waxen her ult should be aimable also' */   // v544 ashfall: Korvux's Falling Star (Phil: 'korvux ult is not aimable') - the burning patch lands where you aim it   // drag a ground circle sized to the spell radius
+const ULT_RADIUS=['aoeStun','deepchoir','fireball','gravcrush','worldweight','eventhorizon','blizzard','thundershower','umbralcata','swamproot','ashfall','finalcandle','hipposlam'];   /* v1116 (Phil 10 Oct: "please make his ult aimable, and a circle the size of the impact, with a 6 meter range circle"): Grosk's Croc Drop */   /* v1101 (Phil 9 Oct): 'final candle by waxen her ult should be aimable also' */   // v544 ashfall: Korvux's Falling Star (Phil: 'korvux ult is not aimable') - the burning patch lands where you aim it   // drag a ground circle sized to the spell radius
 const ULT_CONE=['cleave','triplecleave'];                              // 45-degree wedge aimed off the caster's body
 const ULT_ALLY_RADIUS=['firstspring'];   // v369 (Phil): Oakmir's First Spring is CLICK-TO-HEAL — lands under the ally you point at, heals every ally within 20 m
 const ULT_LINE=['stampede'];                            // v534 Zahri's Noonday Stampede: a 20 m line; she charges to the LAST foe on it
@@ -5014,7 +5014,7 @@ async function skillUpgrade(key,idx){ const lv=skillLevel(key,idx); if(lv>=SKILL
     adoptLedger(r.ledger); return true; }
   if(!(await txSpend('gold',c,'skillup'))) return false;
   skillLvArr(key)[idx]=lv+1; return true; }
-const ULT_DEF={worldweight:{mul:2.0,radius:8*METER,lift:2.0,slamStun:1.0},finalcandle:{mul:2.0,slow:3,stun:1.5,radius:7*METER,harden:1.6,shatter:1.5,coat:6},worldbreaker:{mul:0.45,stun:0.4,radius:6*METER,slams:3,gap:0.7,wave:12*METER},serpentdance:{mul:0.6,spins:4,dur:2.4,radius:3*METER,exec:0.10},hivemind:{n:30,dmgMul:0.14,healMul:0.5,healPct:0.02,hold:0.7},defensive:{mul:0.45,dur:5},nova:{mul:1.8,radius:4*METER,slow:true},vanishpoint:{mul:2.0,exec:0.20,chain:3,falloff:0.8,gone:0.9,hop:0.35,range:15*METER},aoeStun:{mul:1.4,stun:2,radius:120},deepchoir:{dur:5,radius:8*METER,silence:5,tick:1.0,choirHeal:0.30},cleave:{mul:2.6,bleed:true,radius:6.5*METER},execute:{mul:2.2},burst:{mul:3},multiShot:{mul:1.8,n:5},fireball:{mul:2.2,radius:100},heal:{mul:0.95},rally:{heal:0.30,perLv:0.001},monkSlam:{mul:1.0,stun:2,radius:15*METER},hipposlam:{hpMul:0.10,hpMul100:0.20,radius:3*METER,stun:0.6,allyDr:0.30,allyDrDur:5,perLv:0.0015,leap:1.345},gravcrush:{mul:2.0,radius:8*METER,stun:1.0,gravity:true},eventhorizon:{mul:1.9,radius:7*METER,pull:1.2,silence:1.5,gravity:true},flywheel:{mul:1.6,radius:3*METER},blizzard:{dur:4,radius:8*METER,tick:0.5,freeze:0.10,channel:true},eclipse:{mul:2.2,radius:6*METER,shield:0.4},plaguesov:{mul:1.6,radius:5*METER,dps:0.6,dur:5},umbralcata:{mul:1.6,radius:6.8*METER,dps:0.6,dur:5},symphony:{healMul:0.30,dmgMul:0.30}   /* v567 (Phil): Grand Symphony has NO RANGE - it hits every ally and every enemy on the field. The downside is the size: 30% of ability power as heal and as damage. radius removed entirely. */,thundershower:{dur:3,radius:8*METER,tick:0.5,mul:0.6,channel:true},laststand:{mul:0.25,dur:5,pct:1.0,heal:0.15,perLv:0.001},firstspring:{mul:0.5,dur:5,radius:20*METER},charge:{mul:1.8,radius:5*METER,stun:1.0},stampede:{mul:1.8,radius:20*METER,width:1.6*METER,push:2.0*METER,stun:1.0,speed:18*METER,noArt:true},devourpack:{mul:1.2,healPct:1.0,shieldPct:0.6,dmgPct:0.9,dur:8,radius:3*METER},finalsurvey:{mul:1.4,mortalDur:3,bleedPct:0.10,bleedDur:3,steal:0.35,regen:0.03,buffDur:3,range:30*METER},taunt:{dur:4,dr:0.5,radius:6*METER},volley:{mul:1.4,n:6},ashfall:{dps:0.8,dur:5,radius:6*METER,mul:1.4},swamproot:{mul:1.6,root:2.5,radius:7*METER},sunburst:{mul:1.8,radius:6*METER,heal:0.35},aoedot:{mul:1.2,dps:0.7,dur:5,radius:99999},riftpuncture:{freeze:1,silence:1},triplecleave:{mul:0.8,radius:10*METER,hits:3},
+const ULT_DEF={worldweight:{mul:2.0,radius:8*METER,lift:2.0,slamStun:1.0},finalcandle:{mul:2.0,slow:3,stun:1.5,radius:7*METER,harden:1.6,shatter:1.5,coat:6},worldbreaker:{mul:0.45,stun:0.4,radius:6*METER,slams:3,gap:0.7,wave:12*METER},serpentdance:{mul:0.6,spins:4,dur:2.4,radius:3*METER,exec:0.10},hivemind:{n:30,dmgMul:0.14,healMul:0.5,healPct:0.02,hold:0.7},defensive:{mul:0.45,dur:5},nova:{mul:1.8,radius:4*METER,slow:true},vanishpoint:{mul:2.0,exec:0.20,chain:3,falloff:0.8,gone:0.9,hop:0.35,range:15*METER},aoeStun:{mul:1.4,stun:2,radius:120},deepchoir:{dur:5,radius:8*METER,silence:5,tick:1.0,choirHeal:0.30},cleave:{mul:2.6,bleed:true,radius:6.5*METER},execute:{mul:2.2},burst:{mul:3},multiShot:{mul:1.8,n:5},fireball:{mul:2.2,radius:100},heal:{mul:0.95},rally:{heal:0.30,perLv:0.001},monkSlam:{mul:1.0,stun:2,radius:15*METER},hipposlam:{hpMul:0.10,hpMul100:0.20,aimRange:6*METER,radius:3*METER,stun:0.6,allyDr:0.30,allyDrDur:5,perLv:0.0015,leap:1.345},gravcrush:{mul:2.0,radius:8*METER,stun:1.0,gravity:true},eventhorizon:{mul:1.9,radius:7*METER,pull:1.2,silence:1.5,gravity:true},flywheel:{mul:1.6,radius:3*METER},blizzard:{dur:4,radius:8*METER,tick:0.5,freeze:0.10,channel:true},eclipse:{mul:2.2,radius:6*METER,shield:0.4},plaguesov:{mul:1.6,radius:5*METER,dps:0.6,dur:5},umbralcata:{mul:1.6,radius:6.8*METER,dps:0.6,dur:5},symphony:{healMul:0.30,dmgMul:0.30}   /* v567 (Phil): Grand Symphony has NO RANGE - it hits every ally and every enemy on the field. The downside is the size: 30% of ability power as heal and as damage. radius removed entirely. */,thundershower:{dur:3,radius:8*METER,tick:0.5,mul:0.6,channel:true},laststand:{mul:0.25,dur:5,pct:1.0,heal:0.15,perLv:0.001},firstspring:{mul:0.5,dur:5,radius:20*METER},charge:{mul:1.8,radius:5*METER,stun:1.0},stampede:{mul:1.8,radius:20*METER,width:1.6*METER,push:2.0*METER,stun:1.0,speed:18*METER,noArt:true},devourpack:{mul:1.2,healPct:1.0,shieldPct:0.6,dmgPct:0.9,dur:8,radius:3*METER},finalsurvey:{mul:1.4,mortalDur:3,bleedPct:0.10,bleedDur:3,steal:0.35,regen:0.03,buffDur:3,range:30*METER},taunt:{dur:4,dr:0.5,radius:6*METER},volley:{mul:1.4,n:6},ashfall:{dps:0.8,dur:5,radius:6*METER,mul:1.4},swamproot:{mul:1.6,root:2.5,radius:7*METER},sunburst:{mul:1.8,radius:6*METER,heal:0.35},aoedot:{mul:1.2,dps:0.7,dur:5,radius:99999},riftpuncture:{freeze:1,silence:1},triplecleave:{mul:0.8,radius:10*METER,hits:3},
   plumage:{heal:0.8,shield:0.10,shred:0.30,atkDn:0.20,dur:6},
   quietwings:{sleep:2.2,buff:1.3,haste:1.2,dur:8,perLv:0.001},
   openeverydoor:{lock:1.6,steal:35,mul:0.9,share:0.25},
@@ -11108,9 +11108,15 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
 
     // ---- Grosk ----
     case 'hipposlam':{ const foes=enemiesOf(u); if(!foes.length)break;   // ULT: leap onto the densest 3m cluster; damage = % of his OWN max HP
-      const R=o.radius||3*METER; let best=foes[0], bestN=-1;
-      foes.forEach(c=>{ const n=foes.reduce((s,e)=>s+(dist(c,e)<R?1:0),0); if(n>bestN){bestN=n;best=c;} });
-      const cx=Math.max(60,Math.min(FW-60,best.x)), cy=Math.max(80,Math.min(FD-60,best.y));
+      const R=o.radius||3*METER, _AR=o.aimRange||0; let best=foes[0], bestN=-1;
+      /* v1116 (Phil 10 Oct: aimable, a 6 m range circle): an aimed cast lands on the aimed point (never beyond aimRange); without an aim
+         (AUTO, bots, replays without one) it picks the densest cluster among foes within range - or, if none is in range, leaps the full
+         range toward the densest one. */
+      const _inR=_AR?foes.filter(c=>dist(u,c)<=_AR):foes, _pool=_inR.length?_inR:foes;
+      _pool.forEach(c=>{ const n=foes.reduce((s,e)=>s+(dist(c,e)<R?1:0),0); if(n>bestN){bestN=n;best=c;} });
+      let _tx=aimCtr?aimCtr.x:best.x, _ty=aimCtr?aimCtr.y:best.y;
+      if(_AR){ const _d=Math.hypot(_tx-u.x,_ty-u.y); if(_d>_AR){ _tx=u.x+(_tx-u.x)/_d*_AR; _ty=u.y+(_ty-u.y)/_d*_AR; } }
+      const cx=Math.max(60,Math.min(FW-60,_tx)), cy=Math.max(80,Math.min(FD-60,_ty));
       /* v893 - a real leap: he is in the air on the way and the slam lands when he does (it used to teleport + slam at once) */
       /* v1112 (Phil 10 Oct, ULT2 two-second airtime approved): the leap lasts the clip's airtime - he leaves the ground on cell 10 (0.833 s
          of clip = the 0.56 s cast) and his feet hit it on cell 34, 2.0 s of clip later = 1.345 fight seconds (clips run in real time,
@@ -14523,7 +14529,12 @@ function drawOverlay(){octx.clearRect(0,0,CW,CH); _edOvRect=null;
       octx.strokeStyle='rgba(125,255,176,.98)'; octx.lineWidth=3; octx.setLineDash([9,7]); octx.lineDashOffset=-tt*2; octx.beginPath(); octx.ellipse(cp.x,cp.y,rx,ry,0,0,7); octx.stroke(); octx.setLineDash([]); octx.lineDashOffset=0;
       if(best) glowUnit(best,0.95,'125,255,176');
     } else if(mode==='radius'){
-      const ctr=screenToField(aimTX,aimTY,0.15), cp=project(ctr.x,ctr.y,0.15), _R=(ULD.radius||110);
+      const ctr=screenToField(aimTX,aimTY,0.15);
+      if(ULD.aimRange){ const _AR=ULD.aimRange, _d=Math.hypot(ctr.x-aiming.x,ctr.y-aiming.y);   /* v1116: the range ring (Croc Drop 6 m) and the impact circle kept inside it */
+        if(_d>_AR){ ctr.x=aiming.x+(ctr.x-aiming.x)/_d*_AR; ctr.y=aiming.y+(ctr.y-aiming.y)/_d*_AR; }
+        const ac=project(aiming.x,aiming.y,0.15), arx=Math.max(20,Math.abs(project(aiming.x+_AR,aiming.y,0.15).x-ac.x)), ary=Math.max(10,Math.abs(project(aiming.x,aiming.y+_AR,0.15).y-ac.y));
+        octx.strokeStyle='rgba(255,214,120,.85)'; octx.lineWidth=2; octx.setLineDash([6,6]); octx.beginPath(); octx.ellipse(ac.x,ac.y,arx,ary,0,0,7); octx.stroke(); octx.setLineDash([]); }
+      const cp=project(ctr.x,ctr.y,0.15), _R=(ULD.radius||110);
       const rpx=project(ctr.x+_R,ctr.y,0.15), rpy=project(ctr.x,ctr.y+_R,0.15), rx=Math.max(14,Math.abs(rpx.x-cp.x)), ry=Math.max(7,Math.abs(rpy.y-cp.y));   // ellipse axes = the ACTUAL projected ult radius in both directions
       const _ringOn=aimGround('ring',aiming.key,ctr.x,ctr.y,_R*2*SC*1.04,_R*2*SC*1.04,tt*0.08,0.85+0.15*Math.sin(tt*0.9));
       if(_ringOn){ /* v540: painted ring on the ground, under the heroes */ }
@@ -26593,7 +26604,9 @@ function fireAimed(){ if(isAutoBattle()){ aiming=null; return; } const u=aiming;
       else queueInput({k:'ult', uid:u.uid, tid:null, wx:null, wy:null});
       return; } }
   if(mode==='allyradius'){ const w=best?{x:best.x,y:best.y}:(auto?{x:auto.x,y:auto.y}:screenToField(aimTX,aimTY,0.15)); u._aimWX=w.x; u._aimWY=w.y; }   // v369: snaps to the ally under the cursor
-  else if(mode==='radius'||mode==='line'){ const w=auto?{x:auto.x,y:auto.y}:screenToField(aimTX,aimTY,0.15); u._aimWX=w.x; u._aimWY=w.y; if(best)u.target=best; }   // FREE placement: AoE lands where you point (a tap uses the solved optimum)
+  else if(mode==='radius'||mode==='line'){ const w=auto?{x:auto.x,y:auto.y}:screenToField(aimTX,aimTY,0.15);
+    { const _AR=(ULT_DEF[u.abilityOverride||u.t.ability]||{}).aimRange; if(_AR){ const _d=Math.hypot(w.x-u.x,w.y-u.y); if(_d>_AR){ w.x=u.x+(w.x-u.x)/_d*_AR; w.y=u.y+(w.y-u.y)/_d*_AR; } } }   /* v1116: aimRange - the circle cannot leave the range ring */
+    u._aimWX=w.x; u._aimWY=w.y; if(best)u.target=best; }   // FREE placement: AoE lands where you point (a tap uses the solved optimum)
   else { u._aimWX=null; u._aimWY=null; if(best)u.target=best; }   // cone/target: anchor to the nearest enemy
   if(OL.active&&!OL.host){ relay({k:'ult',id:u.id,tid:(best&&mode!=='allyradius')?best.id:-1,wx:(mode==='radius'||mode==='line'||mode==='allyradius')?u._aimWX:null,wy:(mode==='radius'||mode==='line'||mode==='allyradius')?u._aimWY:null}); }
   // v269: the ult is QUEUED with its resolved FIELD aim + target uid, and fires on the next tick —
