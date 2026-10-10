@@ -41,7 +41,7 @@ ok(JSON.stringify(HB.oakmir) === JSON.stringify(['health', 'healPow', 'abilityPo
     && full('pen') === 960 && full('pen', 'Magic') === 1440, 'flats keep their v1094 steps (Health 35/25, Attack damage 2.4, Ability power 3.2, Armor & MR 7.2/4.8, Penetration 4.8/7.2)');
   const want = { healPow: 0.2, attackSpeed: 0.15, critChance: 0.06, critDamage: 0.3, lifesteal: 0.08, dodge: 0.06, damageReduction: 0.06, energyRegen: 2, cooldown: 0.1, ctrlRes: 0.15 };
   ok(Object.keys(want).every(b => near(full(b), want[b])), 'a full bar: Healing power 20%, Attack speed 15%, Crit chance 6%, Crit damage 30%, Lifesteal 8%, Dodge 6%, Damage reduction 6%, Energy regen 2, Cooldown 10%, Control resistance 15%');
-  ok(T.barText('healPow', 0.033) === '3.3%' && T.barText('energyRegen', 0.21) === '0.21' && T.barText('health', 7000) === '7,000' && T.barText('critDamage', 0.0045, true) === '+0.45%' && T.barText('attack', -4.8, true) === '-4.8',
+  ok(T.barText('healPow', 0.033) === '3.3%' && T.barText('energyRegen', 0.21) === '0.21/s' && T.barText('health', 7000) === '7,000' && T.barText('critDamage', 0.0045, true) === '+0.45%' && T.barText('attack', -4.8, true) === '-4.8',
     'values read as numbers or %: "3.3%", "0.21", "7,000", "+0.45%", "-4.8"'); }
 
 /* ---- every bar kind has its icon on disk ---- */
@@ -67,7 +67,7 @@ ok(C.BLESSING_NEEDS.map(n => n.slot + ':' + n.need).join() === '0:35,1:70,2:130,
   ok(rows.every(r => r.canUnlock) && rows.map(r => r.barName).join() === 'Dodge,Attack speed,Crit chance,Crit damage', 'Rafe: the dots read his own bars (Dodge 35 / Attack speed 70 / Crit chance 130 / Crit damage 190)');
   ok(T.blessingsFor(st, at(19, 49, 129, 189), { role: 'Marksman', damageProfile: 'Attack', heroLevel: 100, key: 'rafe' }).every(r => !r.canUnlock), 'control: one step short on every slot earns nothing');
   const s = T.heroTempleStats(Object.assign(st, { heroes: { oakmir: { key: 'oakmir', bars: HB.oakmir.slice(), steps: { health: 25, healPow: 10, abilityPower: 0, energyRegen: 0 }, boonsUnlocked: NONE.slice() } } }), 'oakmir', { role: 'Support', damageProfile: 'Healer', heroLevel: 100 });
-  ok(s.bars.map(b => b.name + ' ' + b.icon + ' ' + b.text).join(' | ') === 'Health hp 625 | Healing power healPow 1% | Ability power apow 0 | Energy regen energy 0',
+  ok(s.bars.map(b => b.name + ' ' + b.icon + ' ' + b.text).join(' | ') === 'Health hp 625 | Healing power healPow 1% | Ability power apow 0 | Energy regen energy 0/s',
     'the panel bars: own name, own icon, value as number or % (' + s.bars.map(b => b.name + ' ' + b.text).join(', ') + ')');
   ok(s.blessings[0].barName === 'Health' && s.blessings[1].barName === 'Healing power' && s.blessings[1].have === 10 && s.blessings[1].canUnlock === false, 'blessing 2 waits on Oakmir\'s Healing power bar (10 / 50)'); }
 

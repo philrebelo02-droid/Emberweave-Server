@@ -41,16 +41,16 @@ ok(HB.oakmir[0]['heal/shield strength'] === 0.025 && HB.oakmir[1].health === 640
 
 /* ---- labels: every reward kind is readable text in our words ---- */
 { const want = { hp: /^Health \+320$/, atk: /^(Attack damage|Ability power) \+40$/, arm: /^Armor & Magic resist \+220$/, pen: /^Penetration \+105$/,
-    heal: /^Healing power \+2\.5%$/, en: /^Energy regen \+0\.5$/, edt: /^Energy from damage taken \+10%$/, cdr: /^Cooldown reduction 2%$/,
+    heal: /^Healing power \+2\.5%$/, en: /^Energy regen \+0\.5\/s$/, edt: /^Energy from damage taken \+10%$/, cdr: /^Cooldown reduction 2%$/,
     as: /^Attack speed \+2\.5%$/, cc: /^Crit chance \+1\.5%$/, cd: /^Crit damage \+5%$/, ls: /^Lifesteal \+2%$/, dodge: /^Dodge \+1\.2%$/,
     dr: /^Damage reduction \+1\.2%$/, ctrl: /^Control resistance \+3%$/ };
   const bad = Object.keys(UNIT).filter(c => { const r = {}; r[UNIT[c][0]] = UNIT[c][1]; const s = T.blessingLabel(r, c === 'atk' ? 'magic' : 'physical');
     return !(want[c] && want[c].test(s.replace('Attack damage', c === 'atk' ? 'Ability power' : 'Attack damage'))); });
   ok(Object.keys(want).length === Object.keys(UNIT).length && bad.length === 0, 'every reward kind renders as readable text (' + bad.join() + ')');
-  ok(T.blessingLabel({ 'energy regen': 2 }, 'magic') === 'Energy regen +2' && T.blessingLabel({ 'heal/shield strength': 0.075 }, 'magic') === 'Healing power +7.5%'
+  ok(T.blessingLabel({ 'energy regen': 2 }, 'magic') === 'Energy regen +2/s' && T.blessingLabel({ 'heal/shield strength': 0.075 }, 'magic') === 'Healing power +7.5%'
     && T.blessingLabel({ 'cooldown reduction': 0.06 }, 'magic') === 'Cooldown reduction 6%', 'Phil\'s examples: "Energy regen +2", "Healing power +7.5%", "Cooldown reduction 6%"');
   const rows = [].concat.apply([], keys.map(k => HB[k].map(r => T.blessingLabel(r, T.profileOf(SIM.HERO_BASE[k].damageProfile, SIM.HERO_BASE[k].role)))));
-  ok(rows.length === 240 && rows.every(s => s && !/undefined|NaN|\//.test(s)), 'all 240 hero blessing labels render cleanly'); }
+  ok(rows.length === 240 && rows.every(s => s && !/undefined|NaN|\/(?!s$)/.test(s)), 'all 240 hero blessing labels render cleanly'); }
 
 /* ---- lookup: own row by key; class template only for an unknown key ---- */
 ok(JSON.stringify(T.blessingReward('Support', 0, 'oakmir')) === JSON.stringify(HB.oakmir[0]), 'blessingReward reads the hero\'s own row');
@@ -69,7 +69,7 @@ ok(JSON.stringify(T.blessingReward('Tank', 3, 'nobody')) === JSON.stringify(C.BL
   ok(near(T.heroBonuses(G.temple.heroes.lumi, 'Support', 'Healer')['energy regen'], 2), 'browser: an unstamped hero state is found in G.temple.heroes by identity');
   delete globalThis.G;
   const s = T.heroTempleStats(st, 'oakmir', { role: 'Support', damageProfile: 'Healer', heroLevel: 100 });
-  ok(s.blessings.map(r => r.label).join(' | ') === 'Healing power +2.5% | Health +640 | Energy regen +1.5 | Cooldown reduction 8%', 'the Temple panel rows show Oakmir\'s own labels');
+  ok(s.blessings.map(r => r.label).join(' | ') === 'Healing power +2.5% | Health +640 | Energy regen +1.5/s | Cooldown reduction 8%', 'the Temple panel rows show Oakmir\'s own labels');
   ok(s.fifth.label === '5th dot: blessings +15%' && s.fifth.bonus === 0.15, 'the 5th dot reads "5th dot: blessings +15%"'); }
 
 /* ---- the 5th dot: blessings x1.15, the bars untouched ---- */

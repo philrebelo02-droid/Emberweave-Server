@@ -455,7 +455,7 @@
   function barText(kind, value, signed) {
     const k = BAR_KINDS[kind], v = +value || 0, sg = signed && v > 0 ? "+" : "";
     if (k && k.pct) return sg + Math.round(v * 10000) / 100 + "%";
-    if (k && k.effect) return sg + Math.round(v * 100) / 100;
+    if (k && k.effect) return sg + Math.round(v * 100) / 100 + (k.effect === "energy regen" ? "/s" : "");   // Phil 10 Oct: "yes add /s" (energy per second)
     const r = Math.round(v * 10) / 10;
     return sg + (Math.abs(r) >= 1000 ? Math.round(r).toLocaleString("en-US") : String(r));
   }
@@ -736,7 +736,7 @@
   const PCT = function (v) { return Math.round(v * 1000) / 10 + "%"; };
   const BLESSING_TEXT = {                        // our names; "+" for a gain, cooldown reduction reads as a plain %
     "heal/shield strength": function (v) { return "Healing power +" + PCT(v); },
-    "energy regen": function (v) { return "Energy regen +" + Math.round(v * 100) / 100; },
+    "energy regen": function (v) { return "Energy regen +" + Math.round(v * 100) / 100 + "/s"; },   // Phil 10 Oct: "yes add /s\"
     "energy from damage taken": function (v) { return "Energy from damage taken +" + PCT(v); },
     "cooldown reduction": function (v) { return "Cooldown reduction " + PCT(v); },
     "attack speed": function (v) { return "Attack speed +" + PCT(v); },
