@@ -161,6 +161,8 @@ note "test_well_state_read.js (3 Oct audit: a Well state read saves only when it
 node tests/test_well_state_read.js || FAILED=1
 note "test_well_sweep_1110.js (v1110: a Well sweep pays 80% of a played run; every fight a potion; every chest diamonds)"
 node tests/test_well_sweep_1110.js || FAILED=1
+note "test_engine_fixes_1114.js (v1114: chantzone/hornetswarm level once, Magic counters off AP, airborne counts down)"
+node tests/test_engine_fixes_1114.js || FAILED=1
 note "test_vault_status_client.js (3 Oct audit: an unreachable Vault no longer renders the legacy Challenge Dungeon)"
 node tests/test_vault_status_client.js || FAILED=1
 note "test_witch_state_rate.js (3 Oct audit: Witches Hut state reads limited to 60 a minute)"

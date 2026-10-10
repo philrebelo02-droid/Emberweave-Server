@@ -51,7 +51,9 @@ try {
     ck(`${key} blue L100 reduction <= 60%`, 1 - f[100].dm <= 0.60 + 1e-9);
     const oldL46 = Math.min(0.85, dr * SM(46));   // CONTROL: the old SKILL_SCALE_FRAC path made the multiplier GROW = less protection
     ck(`${key} CONTROL: old wrong-way value at L46 (x${oldL46.toFixed(3)} = ${pct(1 - oldL46)} reduction) differs from the fight's x${cast(key, 2, 46, '(u)=>u.drMul').toFixed(3)}`, !near(oldL46, cast(key, 2, 46, '(u)=>u.drMul'), 1e-3));
-    for (const lv of LVS) { const c = card(key, 2, lv); ck(`${key} blue card L${lv} shows -${pct(1 - plan(lv))} and the ${Math.round(1000 * mul * SM(lv))} counter`, c.includes('−' + pct(1 - plan(lv))) && c.includes(String(Math.round(1000 * mul * SM(lv)))), c); }
+    // v1114: the counter swings off the hero's own stat - Magic heroes (Veyr, Vaelora) off Ability Power (card: apw = apow x Attack/dmg)
+    const base = run(`(()=>{ const t=HERO_TYPES['${key}']; return (t.damageProfile==='Magic'||t.damageProfile==='Healer') ? Math.round((t.apow||0)*(1000/t.dmg)) : 1000; })()`);
+    for (const lv of LVS) { const c = card(key, 2, lv); ck(`${key} blue card L${lv} shows -${pct(1 - plan(lv))} and the ${Math.round(base * mul * SM(lv))} counter`, c.includes('−' + pct(1 - plan(lv))) && c.includes(String(Math.round(base * mul * SM(lv)))), c); }
   }
   // A2 - Askel Rallying Ground
   { const f = {}; for (const lv of LVS) f[lv] = cast('askel', 2, lv, '(u,a)=>a.drMul');

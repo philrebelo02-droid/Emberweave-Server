@@ -5317,7 +5317,8 @@ function _skillEffectStrRaw(key,idx,atk,hp){ const t=HERO_TYPES[key],kit=KITS[ke
        because it is harmless and a future kit could use the type. */
     case 'deepchoir': return ccSecFor(d,'silence')+'s silence in 8m · each affected enemy heals its nearest ally for 30% of that enemy’s Ability Power each second · no damage';
     case 'aoeStun': return '{i:s:attack} '+Math.round(atk*(ab.mul||1.2)*sm)+' AoE + '+ccSecFor(ab,'stun')+'s stun'+(ab.silence?' + '+ccSecFor(ab,'silence')+'s silence':'');
-    case 'evadecounter': return 'evade · {i:s:shield} −'+lvPct(1-skLvNum('evadecounter',ab,lv))+' dmg taken · {i:s:attack} '+Math.round(_atkRaw*(ab.mul||1.8)*sm)+' counter';
+    case 'evadecounter': { const _cAp=(t.damageProfile==='Magic'||t.damageProfile==='Healer');   /* v1114: the counter's own stat, as the fight */
+      return 'evade · {i:s:shield} −'+lvPct(1-skLvNum('evadecounter',ab,lv))+' dmg taken · '+(_cAp?'{i:t:apow} ':'{i:s:attack} ')+Math.round((_cAp?apw:_atkRaw)*(ab.mul||1.8)*sm)+' counter'; }
     case 'interruptslam': return '{i:s:attack} '+Math.round(atk*(ab.mul||1.2)*sm)+' AoE + interrupt';
     case 'banner': return '{i:s:shield} team −'+lvPct(1-skLvNum('banner',ab,lv))+' dmg taken · {i:s:energy} +'+Math.round(((ab.haste||1.2)-1)*100)+'% atk speed';
     case 'atkcrush': return '{i:s:attack} '+Math.round(atk*(ab.mul||1.5)*sm)+' + −'+Math.round((ab.pct||0.35)*100)+'% enemy attack';
@@ -9827,7 +9828,10 @@ function dealDamage(src,tgt,amt,color,kind,silent){ kind=kind||((src&&src.t&&(['
     floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'EVADE',t:.6,color:'#bfe8ff',vy:1.3,sz:13});
     try{ ringBurst(tgt.x,tgt.y,0x9fd8ff,10); }catch(e){}
     if(tgt.alive&&src.alive&&(tgt._evadeMul||0)>0){ tgt._ctring=1;
-      try{ (tgt._evadeFrost?dealFrostDamage:dealDamage)(tgt,src,tgt.dmg*(tgt._evadeMul||1.6),'#bfe8ff',tgt._evadeFrost?'magic':undefined); }catch(e){} finally{tgt._evadeFrost=false;}
+      /* v1114: the counter used Attack for every hero - Vaelora (Mage, 16 Attack / 32 AP) and Veyr (Magic) countered at half strength.
+         It now swings off the hero's own stat like every other ability (heroScaleMode: Magic/Healer -> Ability Power, magic damage). */
+      const _cAp=heroScaleMode(tgt)==='ap';
+      try{ (tgt._evadeFrost?dealFrostDamage:dealDamage)(tgt,src,(_cAp?(tgt.apow||0):tgt.dmg)*(tgt._evadeMul||1.6),'#bfe8ff',(tgt._evadeFrost||_cAp)?'magic':undefined); }catch(e){} finally{tgt._evadeFrost=false;}
       tgt._ctring=0; }
     /* v527 - the two passives that pay out ON a dodge, not on a hit. */
     if(tgt.pass&&tgt.pass.weightless){ const pm=(tgt.passMul||1);
@@ -10705,7 +10709,7 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
     case 'chantzone':{ const R=o.radius||5*METER; const C=aimCtr||densestAllyCluster(u,R)||u;
       /* Phil: "only after the circle is complete the 4 seconds starts" - o.lead is the snake's lap round the circle; no tick
          lands during it, then dur seconds of ticks. life = lead + dur so the hazard outlives its own lead-in. */
-      groundHazards.push({x:C.x,y:C.y,r:R,dmg:apB*(o.dps||0.35)*sm,heal:apB*(o.hps||0.6)*sm,team:u.team,interval:o.tick||1,acc:-(o.lead||0),life:(o.lead||0)+(o.dur||4),color:o.color||'#7fe07f',chant:true});
+      groundHazards.push({x:C.x,y:C.y,r:R,dmg:apB*(o.dps||0.35),heal:apB*(o.hps||0.6),team:u.team,   /* v1114: apB already carries the level (sm) - it was applied twice */interval:o.tick||1,acc:-(o.lead||0),life:(o.lead||0)+(o.dur||4),color:o.color||'#7fe07f',chant:true});
       floatTexts.push({x:C.x,y:C.y-12,txt:'BONE CHANT',t:1.0,color:'#8fe08f',vy:1,sz:13}); ringBurst(C.x,C.y,0x5fbf5f,16); break; }
     case 'ashfall':{ if(o.deliver==='travel'){   /* v888 Spiral Current: the whirlpool moves through the formation */
         const _tC=aimCtr||((tgt&&tgt.alive)?tgt:u), _dx=_tC.x-u.x, _dy=_tC.y-u.y, _L=Math.hypot(_dx,_dy)||1, _ux=_dx/_L, _uy=_dy/_L, _spd=o.speed||6*METER, _tt=(_L+3*METER)/_spd;
@@ -11278,7 +11282,7 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
     /* v483 (Phil): Hornet Cloud — 30 bees fly to the most congested enemy group, spread over the radius and sting every enemy there
        for 4 s, then return to the Beekeeper and disappear. Damage ticks come from the swarm controller, so the sim is identical headless. */
     case 'hornetswarm':{ const R=o.radius||2.8*METER; const C=aimCtr||densestEnemyCluster(u,R)||(tgt?{x:tgt.x,y:tgt.y}:null); if(!C)break;
-      spawnHornetSwarm(u,C.x,C.y,R,{n:o.n||30,dur:o.dur||4,dps:apB*(o.dps||0.4)*sm,tick:0.5}); break; }
+      spawnHornetSwarm(u,C.x,C.y,R,{n:o.n||30,dur:o.dur||4,dps:apB*(o.dps||0.4),tick:0.5}); break; }   /* v1114: apB already carries the level - it was applied twice */
     /* v483 (Phil): Royal Nectar — a big glob of honey drops on the most wounded ally's head and vanishes, healing them */
     case 'honeyglob':{ const al=alliesOf(u); if(!al.length)break; const t=al.slice().sort((a,b)=>(a.hp/a.maxHp)-(b.hp/b.maxHp))[0]; const pp=!!(u.pass&&u.pass.perfectpitch);
       const heal=t.maxHp*(o.heal||0.14)+apB*2.0, hot=t.maxHp*(o.hot||0.04)+apB*0.4;
@@ -12576,6 +12580,9 @@ function think(u,dt){
   if((u._noDeathT||0)>0) u._noDeathT-=dt;
   if((u._thornT||0)>0) u._thornT-=dt;
   if((u._waxT||0)>0){ u._waxT-=dt; if(u._waxT<=0) u._wax=0; }
+  /* v1114: _airT (knock-up / knockback, 0.25-0.35 s) was set but never counted down - a unit knocked back once stayed airborne for the
+     rest of the fight: every ability clip it started was cut (hard CC) and Pack Opportunist counted it as held forever. */
+  if((u._airT||0)>0){ u._airT=Math.max(0,u._airT-dt); }
   /* v527 Burrow Guard - he comes back up beneath whoever is nearest and hits them on the way out. */
   if((u._bgT||0)>0){ u._bgT-=dt;
     if(u._bgT<=0){ u._noTarget=false;
