@@ -74,7 +74,11 @@ async function burst(url, fp, n, war) {
       srv.kill(); G.child.kill(); return { cal, h };
     }
     const day = await serverRun(Date.now() - 3600000);
-    ok(day.cal.phase === 'event' && day.h.mode === 'major', 'real server on World Tree day (calendar phase ' + day.cal.phase + '): helper in major mode');
+    // v1105 (10 Oct 2026, Phil: "Have to restart sims"): only a World Tree that is SWITCHED ON is a major war - its event window alone
+    // held Phil's PC in major mode (which suspends every simulation) for 24 h on S2/S4 with the Tree off. The Tree is off in this build
+    // (server/world-tree-sites.js enabled:false), so its event day must leave the helper in normal mode.
+    const treeOn = (await (async () => { try { return require(path.join(root, 'server', 'world-tree-sites.js')).snapshot({ configured: true, phase: 'event' }).enabled === true; } catch (e) { return false; } })());
+    ok(day.cal.phase === 'event' && day.h.mode === (treeOn ? 'major' : 'normal'), 'real server on World Tree day (calendar phase ' + day.cal.phase + ', World Tree ' + (treeOn ? 'on' : 'off') + '): helper ' + (treeOn ? 'in major mode' : 'stays normal (v1105)'));
     const plain = await serverRun(null);
     ok(plain.cal.configured === false && plain.h.mode === 'normal', 'same server on an ordinary day (no World Tree calendar): helper stays normal');
 

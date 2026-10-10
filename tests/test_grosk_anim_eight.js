@@ -68,7 +68,7 @@ try {
   ck('Hammer Fists numbers unchanged: 3 x 60% Attack, taunt 2 s, cd 6', kit.hits === 3 && kit.mul === 0.6 && kit.tauntChance === 1 && kit.tauntDur === 2 && kit.cd === 6);
   ck('Hammer Fists hitTimes = the measured full-extension cells 13/24/34 at 12 fps', JSON.stringify(kit.hitTimes) === '[1.083,2,2.833]');
   ck('Croc Drop numbers unchanged (40% own max HP, 3 m, stun 0.6, wall 30% for 5 s), leap = the 2 s clip airtime in fight seconds',
-    run('JSON.stringify(ULT_DEF.hipposlam)') === '{"hpMul":0.4,"radius":' + run('3*METER') + ',"stun":0.6,"allyDr":0.3,"allyDrDur":5,"leap":1.345}');
+    run('JSON.stringify(ULT_DEF.hipposlam)') === '{"hpMul":0.4,"radius":' + run('3*METER') + ',"stun":0.6,"allyDr":0.3,"allyDrDur":5,"perLv":0.0015,"leap":1.345}');   // perLv: v1112 skill levels (team wall 30% -> 44.9% at level 100)
   ck('cast times (fight s): ult 0.56 (launch cell 10 = 0.833 s of clip), green 0.308 (pull cell 11 = 0.458 s of clip), blue 0.6', run('JSON.stringify(ABILITY_CAST.grosk)') === '{"ult":0.56,"green":0.308,"blue":0.6}');
   const others = run(`(()=>{ const out=[]; const scan=(src,K)=>Object.keys(K).forEach(k=>{ if(k==='grosk')return; ['green','blue'].forEach(sl=>{ const a=K[k]&&K[k][sl]; if(a&&a.type==='punchflurry') out.push([src+':'+k, !!a.hitTimes]); }); });
     scan('hero',KITS); if(typeof MON_KITS!=='undefined') scan('mon',MON_KITS); return out; })()`);
