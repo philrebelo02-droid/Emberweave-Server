@@ -13603,90 +13603,90 @@
     {
      "key": "bitwraith",
      "lvl": 73,
-     "hpMul": 113.9423,
-     "dmgMul": 47.2269
+     "hpMul": 96.851,
+     "dmgMul": 40.1429
     },
     {
      "key": "bitwraith",
      "lvl": 73,
-     "hpMul": 113.9423,
-     "dmgMul": 47.2269
+     "hpMul": 96.851,
+     "dmgMul": 40.1429
     },
     {
      "key": "runic automaton",
      "lvl": 73,
-     "hpMul": 113.9423,
-     "dmgMul": 47.2269
+     "hpMul": 96.851,
+     "dmgMul": 40.1429
     },
     {
      "key": "runic automaton",
      "lvl": 73,
-     "hpMul": 113.9423,
-     "dmgMul": 47.2269
+     "hpMul": 96.851,
+     "dmgMul": 40.1429
     }
    ],
    [
     {
      "key": "runic automaton",
      "lvl": 73,
-     "hpMul": 113.9423,
-     "dmgMul": 47.2269
+     "hpMul": 96.851,
+     "dmgMul": 40.1429
     },
     {
      "key": "runic automaton",
      "lvl": 73,
-     "hpMul": 113.9423,
-     "dmgMul": 47.2269
+     "hpMul": 96.851,
+     "dmgMul": 40.1429
     },
     {
      "key": "clockwork lantern",
      "lvl": 73,
-     "hpMul": 113.9423,
-     "dmgMul": 47.2269
+     "hpMul": 96.851,
+     "dmgMul": 40.1429
     },
     {
      "key": "saltglass siren",
      "lvl": 73,
-     "hpMul": 113.9423,
-     "dmgMul": 47.2269
+     "hpMul": 96.851,
+     "dmgMul": 40.1429
     },
     {
      "key": "runic automaton",
      "lvl": 73,
-     "hpMul": 113.9423,
-     "dmgMul": 47.2269
+     "hpMul": 96.851,
+     "dmgMul": 40.1429
     }
    ],
    [
     {
      "key": "bitwraith",
      "lvl": 73,
-     "hpMul": 113.9423,
-     "dmgMul": 47.2269
+     "hpMul": 96.851,
+     "dmgMul": 40.1429
     },
     {
      "key": "clockwork lantern",
      "lvl": 73,
-     "hpMul": 113.9423,
-     "dmgMul": 47.2269
+     "hpMul": 96.851,
+     "dmgMul": 40.1429
     },
     {
      "key": "saltglass siren",
      "lvl": 73,
-     "hpMul": 113.9423,
-     "dmgMul": 47.2269
+     "hpMul": 96.851,
+     "dmgMul": 40.1429
     },
     {
      "key": "bitwraith",
      "lvl": 73,
-     "hpMul": 113.9423,
-     "dmgMul": 47.2269
+     "hpMul": 96.851,
+     "dmgMul": 40.1429
     },
     {
      "key": "runic automaton",
      "lvl": 73,
-     "hpMul": 113.9423,
-     "dmgMul": 47.2269
+     "hpMul": 96.851,
+     "dmgMul": 40.1429
     }
    ]
   ],
@@ -13696,7 +13696,15 @@
    "scale": 1.2039,
    "target": "1.5x the Normal stage (Phil: \"elite should be roughly 1.5x harder than normal\")"
   },
-  "eliteTune": 1.0357
+  "eliteTune": 1.0357,
+  "wallFixes": [
+   {
+    "v": "v1115",
+    "date": "2026-10-10",
+    "scale": 0.85,
+    "why": "follows Normal 12-2 (v1115 x0.85) so Elite 12-2 stays 1.5x its Normal stage (v1056 rule, Phil: \"elite should be roughly 1.5x harder than normal\")"
+   }
+  ]
  },
  {
   "id": "12-3",

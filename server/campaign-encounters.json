@@ -15614,90 +15614,90 @@
         {
           "key": "bitwraith",
           "lvl": 73,
-          "hpMul": 73.1049,
-          "dmgMul": 32.7149
+          "hpMul": 62.1392,
+          "dmgMul": 27.8077
         },
         {
           "key": "bitwraith",
           "lvl": 73,
-          "hpMul": 73.1049,
-          "dmgMul": 32.7149
+          "hpMul": 62.1392,
+          "dmgMul": 27.8077
         },
         {
           "key": "runic automaton",
           "lvl": 73,
-          "hpMul": 73.1049,
-          "dmgMul": 32.7149
+          "hpMul": 62.1392,
+          "dmgMul": 27.8077
         },
         {
           "key": "runic automaton",
           "lvl": 73,
-          "hpMul": 73.1049,
-          "dmgMul": 32.7149
+          "hpMul": 62.1392,
+          "dmgMul": 27.8077
         }
       ],
       [
         {
           "key": "runic automaton",
           "lvl": 73,
-          "hpMul": 73.1049,
-          "dmgMul": 32.7149
+          "hpMul": 62.1392,
+          "dmgMul": 27.8077
         },
         {
           "key": "runic automaton",
           "lvl": 73,
-          "hpMul": 73.1049,
-          "dmgMul": 32.7149
+          "hpMul": 62.1392,
+          "dmgMul": 27.8077
         },
         {
           "key": "clockwork lantern",
           "lvl": 73,
-          "hpMul": 73.1049,
-          "dmgMul": 32.7149
+          "hpMul": 62.1392,
+          "dmgMul": 27.8077
         },
         {
           "key": "saltglass siren",
           "lvl": 73,
-          "hpMul": 73.1049,
-          "dmgMul": 32.7149
+          "hpMul": 62.1392,
+          "dmgMul": 27.8077
         },
         {
           "key": "runic automaton",
           "lvl": 73,
-          "hpMul": 73.1049,
-          "dmgMul": 32.7149
+          "hpMul": 62.1392,
+          "dmgMul": 27.8077
         }
       ],
       [
         {
           "key": "bitwraith",
           "lvl": 73,
-          "hpMul": 73.1049,
-          "dmgMul": 32.7149
+          "hpMul": 62.1392,
+          "dmgMul": 27.8077
         },
         {
           "key": "clockwork lantern",
           "lvl": 73,
-          "hpMul": 73.1049,
-          "dmgMul": 32.7149
+          "hpMul": 62.1392,
+          "dmgMul": 27.8077
         },
         {
           "key": "saltglass siren",
           "lvl": 73,
-          "hpMul": 73.1049,
-          "dmgMul": 32.7149
+          "hpMul": 62.1392,
+          "dmgMul": 27.8077
         },
         {
           "key": "bitwraith",
           "lvl": 73,
-          "hpMul": 73.1049,
-          "dmgMul": 32.7149
+          "hpMul": 62.1392,
+          "dmgMul": 27.8077
         },
         {
           "key": "runic automaton",
           "lvl": 73,
-          "hpMul": 73.1049,
-          "dmgMul": 32.7149
+          "hpMul": 62.1392,
+          "dmgMul": 27.8077
         }
       ]
     ],
@@ -15706,7 +15706,7 @@
     "recommendedQuality": "Gold +1",
     "qualityMinHeroLevel": 72,
     "bossLevelGate": 0,
-    "difficultyTune": 7.1469,
+    "difficultyTune": 6.0749,
     "baselineHp": 132.4062,
     "baselineDmg": 45.5385,
     "portalMode": "normal",
@@ -15720,7 +15720,15 @@
       "gold-plus-1-bloodroot",
       "gold-plus-1-keenmind"
     ],
-    "curveV820": true
+    "curveV820": true,
+    "wallFixes": [
+      {
+        "v": "v1115",
+        "date": "2026-10-10",
+        "scale": 0.85,
+        "why": "10 Oct sims (Wall Watch 18:14): Medium A (Lv 76) held at 12-2 for 11.2 game days, 33 tries, all on v1106+ (monster stats), 5 lineups (Rhukk/Carn/Dandra/Tick + Vex/Oakmir/Vael), 0 won, FULLY UPGRADED. Phil: \"If its a wall ease it\"."
+      }
+    ]
   },
   {
     "id": "12-3",
