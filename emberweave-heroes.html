@@ -3423,9 +3423,11 @@ const BATTLE_ANIM = {
     ult:{u:'/assets/anim/bloatus/bloatus_ult.webp?v=30',n:48,fw:509,fh:527,cols:6,rows:8,figH:395,feet:466,cx:233,fps:24,flip:false,top:71}
   },
   umbris:{
-  idle:{u:'/assets/anim/umbris/umbris_idle.webp?v=f2',n:72,fw:210,fh:210,cols:6,rows:12,figH:191,feet:204,cx:102,fps:30,flip:true,top:6},
-  walk:{u:'/assets/anim/umbris/umbris_walk.webp?v=f2',n:72,fw:210,fh:208,cols:6,rows:12,figH:176,feet:195,cx:99,fps:30,flip:true,top:5},
-  attack:{u:'/assets/anim/umbris/umbris_attack.webp?v=b7',n:41,fw:402,fh:336,cols:10,rows:5,figH:301,feet:313,cx:201,fps:30,flip:true,hold:1.4,relFrac:0.5,handfx:0.861,handfy:0.476,top:12},
+  idle:{u:'/assets/anim/umbris/umbris_idle_1115.webp?v=1115',n:48,fw:540,fh:508,cols:6,rows:8,figH:376,feet:448,cx:286,fps:24,flip:false,top:72},   /* v1115 Umbris eight (Phil 10 Oct, ChatGPT handoff UMBRIS-EIGHT-10OCT2026-IDLE3-WALK2-PASSIVE1, 'Pass, send them to claude'): idle3, walk2, attack1, hit1, green1 (Shadeburst), blue1 (Creeping Rot), ult1 (Umbral Cataclysm), passive1 (Lingering Dark) - silent variants, sha256 = approved-eight-manifest.json. Shot on GREEN (frame-0 border ~3,242,0); his art owns no green or magenta (black body, white shroud), so cut_umbris.py = Grosk's cs10 settings (PAD 60, 48 cells, lossless, ALPHA_SOFT/FLOOR 4, key off each clip's frame-0 border) WITH the green DESPILL_ALL pass and no magenta pass; keycheck 0 leaning px on all eight. walk/attack/hit/blue/ult CELL_CAP'd to the 4096 texture limit (x0.969/0.962/0.969/0.985/0.809). figH/feet/cx measured on each clip's frame 0 (the same plate pose: figH 376 native, feet = his lowest trailing toe - he floats). Source art faces RIGHT (flip:false). No ax (the slicer's ax tracked the swinging trailing feet, not drift). Release cells (arm at full reach, measured off the sheets): attack 18, green 17 (both hands thrust out), blue 13, ult 26 (both arms thrown forward). Clips play in real time and the fight clock runs at SIM_STEP*SIM_HZ*BATTLE_PACE = 0.6724 of it, so in fight seconds: green cast 17/24 s x 0.6724 = 0.476, blue 13/24 x 0.6724 = 0.364, ult orb release 26/24 x 0.6724 = 0.728 (ABILITY_CAST.umbris). attack relFrac 18/48 at 26 fps = 0.692 s of clip = 0.465 fight s (the bolt fuse below converts it with the same clock; 26 fps so the clip fits his 1.9 s swing hold). walk loop [1,47) (walk_loop.py, score 0.63), fps 14 as Grosk. No crit sheet (mage, range 210: no separate crit animation) - none wired, as before. hit is wired again (v573 unwired the old one). passive plays as his idle-alternate flourish (v522 - Lingering Dark fires no clip of its own). */
+  walk:{u:'/assets/anim/umbris/umbris_walk_1115.webp?v=1115',n:48,fw:530,fh:512,cols:6,rows:8,figH:364,feet:422,cx:296,fps:14,flip:false,top:58,loop:[1,47]},
+  attack:{u:'/assets/anim/umbris/umbris_attack_1115.webp?v=1115',n:48,fw:600,fh:512,cols:6,rows:8,figH:361,feet:423,cx:284,fps:26,flip:false,top:61,relFrac:18/48},   /* v1115: 26 fps, not 24 - his swing hold is 0.95 x his 2.0 s interval = 1.9 s, and a clip LONGER than its hold is squeezed into it (v410 fit) and drawn late (measured on the rig: cell 12 on screen when the bolt left at cell 18). 48/26 = 1.846 s fits the hold, so the clip plays at its own rate and the bolt leaves on the drawn cell 18. */
+  hit:{u:'/assets/anim/umbris/umbris_hit_1115.webp?v=1115',n:48,fw:570,fh:512,cols:6,rows:8,figH:364,feet:447,cx:328,fps:24,flip:false,top:83},
+  passive:{u:'/assets/anim/umbris/umbris_passive_1115.webp?v=1115',n:48,fw:568,fh:504,cols:6,rows:8,figH:376,feet:436,cx:282,fps:24,flip:false,top:60},
   /* v573 (Phil: "unwire hit completely we will not worry about it right now" / "umbris doesnt need hit right now"):
      his hit sheet is a hover with no flinch in it, cut at 147 px against the casts at 444, and it grows 16% over the
      last five frames. UNWIRED, not deleted - the sheet stays at assets/anim/umbris/umbris_hit.webp for the remake.
@@ -3437,7 +3439,7 @@ const BATTLE_ANIM = {
      #00FF00 from the edges. Chest drape measured 4,311 / 4,629 px against the start plate's 4,587, so nothing of the shroud is
      missing from either plate (ART PROTOCOL 2.5a). pingpong gives the rubberband Phil asked for: forward is the wind-up, back is
      the throw, and it lands on cell 0 where the ult FX shadow ball takes over. Detail 187 px. figH 444 = his blue and green. */
-  ult:{u:'/assets/anim/umbris/umbris_ult_cataclysm.webp?v=1',n:36,fw:694,fh:666,cols:6,rows:6,figH:444,feet:605,cx:407,fps:12,flip:true,top:161,hold:1.2,pingpong:true},
+  ult:{u:'/assets/anim/umbris/umbris_ult_1115.webp?v=1115',n:48,fw:559,fh:511,cols:6,rows:8,figH:304,feet:438,cx:238,fps:24,flip:false,top:134,relFrac:26/48},
   /* v486 (Phil: "rubberband him so that his shadow orb he channels doesnt grow out of the frame ... rubber band before it
      goes out and go back to frame zero" — 26 confirmed by him). The orb forms at f13 and swells; measured against the cell
      top it sits 9px clear at f26, then jumps to 6px and doubles in area at f27-f29, which is where it clipped. The clip now
@@ -3448,7 +3450,7 @@ const BATTLE_ANIM = {
      plate's own 2,740 within the first second and holding flat for the remaining five. Three fires landed on the same number. The
      end plate is a HARD TARGET: anything missing from it is an instruction to remove that thing (ART PROTOCOL 2.5a). v3 restored the
      drape (4,636 px vs the start plate's 4,587) and it holds at ~4,200 across all 47 frames. Detail 197 px. */
-  green:{u:'/assets/anim/umbris/umbris_green_shadeburst.webp?v=1',n:36,fw:591,fh:600,cols:6,rows:6,figH:444,feet:540,cx:326,fps:12,flip:true,top:96,hold:0.8,pingpong:true},
+  green:{u:'/assets/anim/umbris/umbris_green_1115.webp?v=1115',n:48,fw:616,fh:510,cols:6,rows:8,figH:376,feet:444,cx:294,fps:24,flip:false,top:68},
   /* v563 (10 Sep, Phil: "umbris is jumping in size") - blue and green are the SAME sheet (umbris_cast.webp, identical n/fw/fh/cols/rows) but blue carried figH:207.6 against green's 171: the same pixels drawn 21% apart, so he changed size every time he swapped abilities. The .6 was a hand-tweak, not a measurement. Verified with a scale proxy FX cannot inflate - sqrt of the BLACK body area only, cloak and spell FX excluded - which reproduces the wired figH within 5% on idle/walk/attack/hit/ult/green and flags ONLY blue (+21%). Set to green's measured 171. */
   /* v567 (11 Sep) - Creeping Rot REMADE. Fourteen clips failed because his plate has him HOVERING: feet off the ground,
      legs trailing, so Hailuo animated flight and silently dropped every described arm gesture - no prompt wording ever fixed it.
@@ -3462,7 +3464,7 @@ const BATTLE_ANIM = {
      was eating a third of it - Phil: "you cropped over 30% of the flames out". Green-ness of the flame is 6, so nothing of his is at risk.
      Cut with PAD=60 (6 left 7px under his feet - "still overly cropped") and hard-despilled: edge pixels leaning green 36.8%%->0%%, solid
      2.18%%->0%%, violet flame pixels UP 2%%. See 25 - PROMPT BIBLE C8, C9, S1, S2, S3. */
-  blue:{u:'/assets/anim/umbris/umbris_blue_cast.webp?v=4',n:33,fw:638,fh:602,cols:6,rows:6,figH:444,feet:542,cx:317,fps:12,flip:true,top:98,hold:0.8,pingpong:true}
+  blue:{u:'/assets/anim/umbris/umbris_blue_1115.webp?v=1115',n:48,fw:607,fh:511,cols:6,rows:8,figH:370,feet:429,cx:286,fps:24,flip:false,top:59}
   },
   vael:{
   idle:{u:'/assets/anim/vael/vael_idle.webp?v=30',n:48,fw:361,fh:450,cols:6,rows:8,figH:326,feet:390,cx:197,fps:24,flip:false,top:64}   /* v1025 (Phil 4 Oct "great wire it and deploy"): seven approved Hailuo takes from the official watermark-free exports - idle3, walk1, attack1, crit1, ult2 Last Stand, green1 Warcry, blue1 Bloodthirst. Their backdrops change colour per frame (and split within a frame on attack1), so each frame was laid onto one flat key off its own border before the cut (figure pixels copied, 3 px edge despill); cs10 48@24, trim 0/0, figH 325 on every state. No hit and no passive animation (Phil: "make sure he has no hit or passive animation from old clips"). walk = 48 + cells 1,0 */,
@@ -3701,11 +3703,11 @@ HERO_SKILL_CLIPS.oakmir = {
 };
 // Umbris/Aureth/Bloatus/Vireo/Fritz skill-tab previews — same strip-from-battle-sheets method (no new art).
 // Missing slots fall back to slot 0 in the UI. Umbris green+blue share one cast clip (same battle anim).
-HERO_SKILL_CLIPS.umbris = {
-  0:{u:'/assets/anim/umbris/umbris_sk_ult.webp',  n:12,fw:176,fh:180,dur:1.8},
-  1:{u:'/assets/anim/umbris/umbris_sk_cast.webp', n:12,fw:189,fh:180,dur:1.8},
-  2:{u:'/assets/anim/umbris/umbris_sk_cast.webp', n:12,fw:189,fh:180,dur:1.8},
-  3:{u:'/assets/anim/umbris/umbris_sk_idle.webp', n:12,fw:180,fh:180,dur:2.4},
+HERO_SKILL_CLIPS.umbris = {   /* v1115: the approved eight (ult, green, blue, passive sheets) */
+  0:{u:'/assets/anim/umbris/umbris_ult_1115.webp?v=1115',n:48,fw:559,fh:511,cols:6,rows:8,dur:2.0},
+  1:{u:'/assets/anim/umbris/umbris_green_1115.webp?v=1115',n:48,fw:616,fh:510,cols:6,rows:8,dur:2.0},
+  2:{u:'/assets/anim/umbris/umbris_blue_1115.webp?v=1115',n:48,fw:607,fh:511,cols:6,rows:8,dur:2.0},
+  3:{u:'/assets/anim/umbris/umbris_passive_1115.webp?v=1115',n:48,fw:568,fh:504,cols:6,rows:8,dur:2.0},
 };
 HERO_SKILL_CLIPS.aureth = {
   0:{u:'/assets/anim/aureth/aureth_sk_ult.webp?v=5',  n:12,fw:226,fh:180,dur:1.8},
@@ -5018,7 +5020,7 @@ const ULT_DEF={worldweight:{mul:2.0,radius:8*METER,lift:2.0,slamStun:1.0},finalc
   rewind:{back:5,revive:0.4,perLv:0.0015}
 };
 // per-hero ability CAST times (s); a hero can't auto-attack while casting; effect visual ~2x cast.
-const ABILITY_CAST={ vael:{ult:0.3}, rhukk:{ult:0.5}, konwu:{ult:1,green:0.3,blue:1}, grosk:{ult:0.56,green:0.308,blue:0.6}, vulmar:{ult:1.5,green:1.5,blue:2}, tick:{ult:1,green:0.4,blue:0.6}, sylthaine:{ult:0.6,green:1,blue:0.8}, aureth:{ult:1.2,green:1,blue:0.5}, bloatus:{ult:1.2,green:0.9,blue:0.8}, vireo:{ult:1,green:0.6,blue:0.5}, fritz:{ult:0.8,green:0.5,blue:0.4} };
+const ABILITY_CAST={ vael:{ult:0.3}, rhukk:{ult:0.5}, konwu:{ult:1,green:0.3,blue:1}, grosk:{ult:0.56,green:0.308,blue:0.6}, vulmar:{ult:1.5,green:1.5,blue:2}, tick:{ult:1,green:0.4,blue:0.6}, sylthaine:{ult:0.6,green:1,blue:0.8}, aureth:{ult:1.2,green:1,blue:0.5}, bloatus:{ult:1.2,green:0.9,blue:0.8}, vireo:{ult:1,green:0.6,blue:0.5}, fritz:{ult:0.8,green:0.5,blue:0.4}, umbris:{ult:0.728,green:0.476,blue:0.364} };   /* v1115 Umbris: the release cells of his approved clips (ult 26, green 17, blue 13 at 24 fps) x 0.6724 */
 function castTimeFor(u,slot){ const m=ABILITY_CAST[u.key]||((u.t&&u.t.monster)?ABILITY_CAST_MON[u.key]:null); return (m&&m[slot])||(slot==='ult'?0.8:0.5); }
 // a hover explanation of what each skill does
 /* v481 (audit): per-HERO ultimate text — the shared type text named the wrong hero or weapon (Nerisse's ult read "Oakmir calls the first bloom…", Carn's read "three cuts with both daggers"). */
@@ -10484,8 +10486,11 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
       // aimed point, and on IMPACT tears open the lingering void zone (initial slam + shadow damage each second).
       const ctr=aimCtr||((tgt&&tgt.alive)?tgt:nearestEnemy(u))||u;
       const cx=Math.max(60,Math.min(FW-60,ctr.x)), cy=Math.max(80,Math.min(FD-60,ctr.y));
-      const A=u.anim&&u.anim.ult; const rel=(A&&A.relFrac!=null)?A.relFrac:0.95; const cd2=(A?A.n/A.fps:1.85);
-      u._voidT=rel*cd2*BATTLE_PACE; u._voidCast={cx,cy,R,dur:o.dur||5,pd,con,dmg:apB*(o.mul||1.6)*rm};
+      const A=(BATTLE_ANIM[u.key]||{}).ult; const rel=(A&&A.relFrac!=null)?A.relFrac:0.95; const cd2=(A?A.n/A.fps:1.85);   /* v1115: read the clip DATA, not u.anim - a headless resolver that builds no figure (render=false) has no u.anim and used to fall back to 0.95 x 1.85 s */
+      /* v1115: the orb leaves his hands on the ult clip's release cell (relFrac of the clip, clip seconds). The clip starts with the cast and plays in real
+         time; the fight clock runs at SIM_STEP*SIM_HZ*BATTLE_PACE (0.6724) of it, and this runs at the END of the cast, so the fuse is that minus the cast
+         time (it was rel*clip*BATTLE_PACE after the cast: 22% slow, plus the whole cast late). Damage, radius, DoT and zone unchanged. */
+      u._voidT=Math.max(0.01,rel*cd2*SIM_STEP*SIM_HZ*BATTLE_PACE-castTimeFor(u,'ult')); u._voidCast={cx,cy,R,dur:o.dur||5,pd,con,dmg:apB*(o.mul||1.6)*rm};
       if(u.team==='ally')screenFlash=Math.max(screenFlash,.3); break; }
     case 'aoedot':{const C=aimCtr||u; enemiesOf(u).forEach(e=>{if(dist(C,e)<(o.radius||90)){if(o.mul)dealDamage(u,e,dB*o.mul,'#ffa657'); pushDot(e,_sD*(o.dps||.4)*sm,o.dur||4,1,'#ffa657');}});burstAt(C.x,C.y,0xffa657,14);break;}
     case 'stun':{if(!tgt)break;dealDamage(u,tgt,dB*(o.mul||1)*rm,'#6ea8ff');ccApply(u,tgt,'stunned',o.stun||1.3);if(u.range>60)spawnShot(u,tgt,u.t.color);break;}
@@ -12753,8 +12758,8 @@ function think(u,dt){
       if(u.key==='umbris'){
         // Seamless throw: hold the damage + flying orb until the attack clip's release frame (the ball leaves his
         // hand). Until then the ball is drawn as part of his sprite. Fuse = relFrac × clipDur × BATTLE_PACE.
-        const A=u.anim&&u.anim.attack; const rel=(A&&A.relFrac!=null)?A.relFrac:0.857; const cd2=(A?A.n/A.fps:1.2);
-        u._boltT=rel*cd2*BATTLE_PACE; u._boltTgt=t; u._boltDmg=dmg;
+        const A=(BATTLE_ANIM[u.key]||{}).attack; const rel=(A&&A.relFrac!=null)?A.relFrac:0.857; const cd2=(A?A.n/A.fps:1.2);   /* v1115: clip DATA, so a figure-less headless fight times the bolt the same */
+        u._boltT=rel*cd2*SIM_STEP*SIM_HZ*BATTLE_PACE/(u._atkSpdMul||1); u._boltTgt=t; u._boltDmg=dmg;   /* v1115: the clip plays in real time (and faster with attack speed, x_atkSpdMul), the fight clock at 0.6724 of real time - so the bolt leaves on the release cell (18/48), not 22% later */
       } else if(u.key==='rafe'){
         /* v339 (Phil): "shooting to slicing based on how close his target is — within 2 m he does sword
            attacks, further he's ranged." The attack sheet is the saber cut; the Pistol Barrage sheet is the
