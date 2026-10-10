@@ -341,6 +341,8 @@ note "test_forge_retry_1101.js (v1101: a failed Forge load offers Retry, not 'be
 node tests/test_forge_retry_1101.js || FAILED=1
 note "test_living_tallow_1102.js (v1102: Living Tallow encase 1 s + 0.015 s per level, fight and card agree)"
 node tests/test_living_tallow_1102.js || FAILED=1
+note "test_skill_levels_1112.js (v1112: skill levels - bug fixes, per-level gains, level-100 nerfs; fight, card and hover agree at 1/50/100; controls: old wrong-way DR, uncapped shred)"
+node tests/test_skill_levels_1112.js || FAILED=1
 note "test_gruel_anim_nine.js (v1103: Gruel's nine approved animations - sheets on disk, grids fit, timing, kit unchanged; control: a broken copy fails)"
 node tests/test_gruel_anim_nine.js || FAILED=1
 note "test_auto_ult_healer_1103.js (v1103: healer ults that also hit enemies fire when full; heal-only ones still wait)"

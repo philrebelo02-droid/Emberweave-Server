@@ -4783,49 +4783,49 @@ const KITS={
   // v1111 (Phil 10 Oct 2026: "grosk punch ability changing to 3 punches at 60% of attack damage"): Hammer Fists was 4 x 26%.
   grosk:{green:{deliver:'form',name:'Gravemaw Pull',type:'pullsilence',radius:5*METER,dur:2,cd:10,gfx:'grosk_green',gdur:4.38},blue:{name:'Hammer Fists',type:'punchflurry',hits:3,mul:0.6,tauntChance:1,tauntDur:2,cd:6,gfx:'grosk_blue',gfxR:3*METER,gdur:3.92},purple:{name:'The Mirewall',pass:'mirewall'}},
   vulmar:{green:{name:'Gravity Sling',type:'gravsling',mul:1.0,splashMul:0.5,cd:7,gfx:'vulmar_green',gfxR:3*METER,gdur:3.75,desc:"Vulmar seizes the nearest enemy with gravity and hurls it into the next one, damaging and stunning both."},blue:{name:'Grasping Vow',type:'tendrilpull',target:'farthest',silence:true,dur:3,stop:2,cd:10,gfx:'vulmar_blue',gfxR:3*METER,gdur:1.21,desc:"Gravity tendrils seize the farthest enemy on the field, silence it, and drag it to Vulmar's side."},purple:{name:'Unstepped',pass:'unstepped'}},
-  tick:{green:{name:'Overclock',type:'haste',mul:1.35,dur:5,self:true,desc:"Tick winds his own mainspring: HIS attack speed only, for a few seconds.",cd:8,gfx:'tick_green',gfxR:3*METER,gdur:5.88},blue:{name:'Mainspring',type:'punchflurry',hits:5,mul:0.28,tauntChance:0,cd:7,gfx:'tick_blue',gfxR:3*METER,gdur:5.21},purple:{name:'Momentum Gears',pass:'momentum'}},
+  tick:{green:{name:'Overclock',type:'haste',mul:1.35,perLv:0.002,dur:5,self:true,desc:"Tick winds his own mainspring: HIS attack speed only, for a few seconds.",cd:8,gfx:'tick_green',gfxR:3*METER,gdur:5.88},blue:{name:'Mainspring',type:'punchflurry',hits:5,mul:0.28,tauntChance:0,cd:7,gfx:'tick_blue',gfxR:3*METER,gdur:5.21},purple:{name:'Momentum Gears',pass:'momentum'}},
   sylthaine:{green:{name:'Frozen Orb',type:'frozenorb',mul:1.1,range:28*METER,width:34,cd:8,gfx:'sylthaine_green',noArt:true,pfx:'sylthaine_green',pscale:2.6,pdur:0.9,gdur:3.92},blue:{deliver:'form',name:'Glacial Prison',type:'freeze',mul:1.2,stun:2,cd:9,gfx:'sylthaine_blue',gfxR:3*METER,gdur:5.54},purple:{name:'Cold Snap',pass:'coldsnap'}},
-  aureth:{green:{deliver:'form',name:'Sunburst',type:'sunburst',mul:1.4,radius:2.8*METER,heal:0.28,cd:8,gfx:'aureth_green',gdur:4.92},blue:{name:'Duality',type:'duality',cd:6,gfx:'aureth_blue',gfxR:3*METER,gdur:3.54},purple:{name:'Twin Fonts',pass:'twinfonts'}},
+  aureth:{green:{deliver:'form',name:'Sunburst',type:'sunburst',mul:1.4,radius:2.8*METER,heal:0.28,cd:8,gfx:'aureth_green',gdur:4.92},blue:{name:'Duality',type:'duality',light:0.12,perLv:0.0006,cd:6,gfx:'aureth_blue',gfxR:3*METER,gdur:3.54},purple:{name:'Twin Fonts',pass:'twinfonts'}},
   bloatus:{green:{name:'Toxic Breath',type:'toxbreath',mul:0.9,dps:0.5,dur:4,radius:2.6*METER,cd:7,gfx:'bloatus_green',gdur:1.04,noArt:true},blue:{deliver:'form',name:'Swampcall',type:'swamproot',mul:0.7,root:2,farthest:2,silence:2/0.7,ccFixed:['silence'],radius:2.4*METER,cd:10,gfx:'bloatus_blue',gdur:2.88,desc:"The swamp swallows the two farthest enemies: each is rooted and silenced for 2 seconds."},purple:{name:'Contagion',pass:'contagion',desc:'when a foe dies still carrying his poison, the poison bursts onto every enemy nearby — and can spread again from them'}},
   vireo:{green:{name:'Crescendo',type:'crescendo',heal:0.16,hot:0.05,dur:5,cd:7,gfx:'vireo_green',gdur:5.88,desc:"Vireo's song swells to heal every ally and keep mending them for 5 seconds; each Crescendo in a row rings louder and heals more."},blue:{name:'Harmony',type:'harmonyshield',mul:2.4,radius:10*METER,dur:12,cd:9,gfx:'vireo_blue',gdur:11.76,desc:"A dome of harmony settles over the most wounded ally, shielding every ally inside it for 12 seconds."}   /* v560 Phil: 'make the radius 10 m ... increase the shields size to match'. The painted dome follows on its own: upMetric spans exactly 2R, so 10 m radius draws a 20 m dome with no art change. (v558 was 7 m / 14 m.) */,purple:{name:'Perfect Pitch',pass:'perfectpitch'}},
   fritz:{green:{name:'Storm Surge',type:'stormsurge',mul:0.85,n:5,cd:8,gfx:'fritz_green',noArt:true,gfxR:3*METER,gdur:1.1},blue:{name:'Chain Lightning',type:'chainlight',mul:1.1,jumps:4,jumpRange:15*METER,previewBolt:true,decay:0.8,cd:7,gfx:'fritz_blue',noArt:true,gfxR:3*METER,gdur:5.88},purple:{name:'Static Veil',pass:'stormdodge'}},
   umbris:{green:{deliver:'form',name:'Shadeburst',type:'shadeburst',at:'cluster',dps:0.3,dur:6,radius:7*METER,cd:7,gfx:'umbris_green',noArt:true,gdur:5.88},blue:{name:'Creeping Rot',type:'creeprot',mul:0.5,dps:0.6,dur:5,color:'#8a5cff',foot:true,handglow:true,cd:6,gfx:'umbris_blue',gfxR:3*METER,gdur:5.38},purple:{name:'Lingering Dark',pass:'contagion',desc:'when a foe dies still rotting from his shadow, the rot spreads to every enemy nearby — and can spread again from them'}},
    vael:{green:{name:'Warcry',type:'warcry',mul:1.1,mulPerLv:0.002,dur:6,cd:8,fear:2/0.7,ccFixed:['fear'],radius:5*METER,   /* v1027 (Phil 4 Oct: "the range should be 5 meters and last 2 seconds running away"): 2 s after ccDur's 30% cut */ desc:"Vael roars: +10% damage (+0.2% per skill level, +0.4% at level 100) for 6 seconds, and every enemy within 5 m runs from him in terror for 2 seconds.",gfx:'vael_green',gfxR:3*METER,gdur:2.25},blue:{name:'Bloodthirst',type:'lifestealbuff',pct:0.1,atkSpd:1.2,atkSpdPerLv:0.002,crit:0.05,critPerLv:0.001,dur:6,cd:7,desc:"Vael feeds on the fight for 6 seconds: +20% attack speed (+0.2% per skill level, +0.4% at level 100), +5% crit chance (+0.1% per skill level, +0.2% at level 100) and he heals for 10% of the damage he deals.",gfx:'vael_blue',gfxR:3*METER,gdur:4.92},purple:{name:'Blood Rage',pass:'bloodrage',desc:"The more damage Vael takes, the harder he hits: +1% damage for every 4% of his max health he has lost this fight, up to +25%."}},
    oakmir:{green:{name:'Mending Bloom',type:'hot',hps:0.06,dur:6,cd:6,gfx:'oakmir_green',gfxR:3*METER,gdur:5.83},blue:{name:'Rally Roots',type:'heal',mul:0.22,cd:9,gfx:'oakmir_blue',gfxR:3*METER,gdur:5.29},purple:{name:'Deep Roots',pass:'deeproots'}},
-   rhukk:{green:{name:'Carapace',type:'defensive',mul:0.5,dur:5,cd:8,gfx:'rhukk_green',gfxR:3*METER,gdur:2.0,desc:"Rhukk locks his shell plates tight, taking half damage for 5 seconds."},blue:{name:'Dig In',type:'taunt',cd:10,gfx:'rhukk_blue',gfxR:3*METER,gdur:5.88,desc:"Rhukk plants his horn and roars: every enemy is forced to attack him for 3 seconds while his hide takes less damage."},purple:{name:'Thick Chitin',pass:'warden'}},
-  hurne:{green:{name:'Unchain the Dead',type:'summonwarriors',n:3,dur:15,radius:1.7*METER,cd:12},blue:{name:'Call the Bone-Chanter',type:'summonshaman',dur:18,radius:1.5*METER,cd:14},purple:{name:'Packmaster',pass:'packstats'}},
+   rhukk:{green:{name:'Carapace',type:'defensive',mul:0.5,perLv:0.001,dur:5,cd:8,gfx:'rhukk_green',gfxR:3*METER,gdur:2.0,desc:"Rhukk locks his shell plates tight, taking half damage for 5 seconds."},blue:{name:'Dig In',type:'taunt',cd:10,gfx:'rhukk_blue',gfxR:3*METER,gdur:5.88,desc:"Rhukk plants his horn and roars: every enemy is forced to attack him for 3 seconds while his hide takes less damage."},purple:{name:'Thick Chitin',pass:'warden'}},
+  hurne:{green:{name:'Unchain the Dead',type:'summonwarriors',n:3,perLv:0.005,dur:15,radius:1.7*METER,cd:12},blue:{name:'Call the Bone-Chanter',type:'summonshaman',perLv:0.005,dur:18,radius:1.5*METER,cd:14},purple:{name:'Packmaster',pass:'packstats'}},
   meridian:{green:{name:'Golden Quill',type:'piercethrow',mul:1.5,width:34,cd:7,gfx:'meridian_green',gfxR:3*METER,gdur:4.62},blue:{deliver:'shot',name:'Plumb Line',type:'plumbline',mul:1.2,farBonus:0.9,cd:6,gfx:'meridian_blue',gfxR:3*METER,gdur:2.83},purple:{name:'Well-Read',pass:'momentum'}},
   gruel:{green:{deliver:'form',name:'Coinflail',type:'cleavecone',mul:1.3,radius:3*METER,angle:70,cd:7,gfx:'gruel_green',gdur:5.88},blue:{name:'Weigh the Debt',type:'weighdebt',mul:1.0,pct:0.35,dur:6,cd:10,gfx:'gruel_blue',gfxR:3*METER,gdur:5.88},purple:{name:'Gluttony',pass:'juggernaut'}},
   astra:{green:{deliver:'form',name:'Starfire',type:'nova',at:'cluster',mul:1.1,radius:2.8*METER,cd:7,gfx:'astra_green',gdur:3.5},blue:{deliver:'form',name:'Nebula',type:'aoedot',at:'cluster',mul:0.5,dps:0.5,dur:4,radius:3*METER,cd:9,gfx:'astra_blue',gdur:5.88},purple:{name:'Stardust',pass:'stardust'}},
   quorrel:{green:{deliver:'form',name:'Gag Order',type:'aoeStun',mul:1.0,stun:1.2,silence:2.5,radius:2.6*METER,cd:10,desc:"The court is called to order: every enemy in the area is struck, held, and forbidden to cast.",gfx:'quorrel_green',gdur:5.88},blue:{name:'Contempt',type:'stun',mul:1.5,stun:1.3,cd:8,gfx:'quorrel_blue',gfxR:3*METER,gdur:5.88},purple:{name:'Tireless',pass:'fury'}},
   korvux:{green:{name:'Comet Dash',type:'charge',mul:1.5,radius:2.4*METER,stun:0.6,cd:9,gfx:'korvux_green',gdur:5.88},blue:{deliver:'form',name:'Ember Cleave',type:'cleave',mul:1.6,radius:3.2*METER,cd:7,gfx:'korvux_blue',gdur:5.88},purple:{name:'Emberskin',pass:'immolate'}},
   maren:{green:{deliver:'land',name:'Tide Pool',type:'ashfall',dps:0.5,dur:4,radius:3*METER,slow:2,color:'#9fe0ff',cd:8,gfx:'maren_green',gdur:5.88},blue:{deliver:'form',name:'Tsunami',type:'tidalsurge',mul:1.1,radius:3.4*METER,push:1.6*METER,slow:2.5,cd:10,gfx:'maren_blue',gdur:3.21},purple:{name:'Deep Reserves',pass:'tidereserve'}},
-  lumi:{green:{name:'Dawnward',type:'dawnward',dur:3,cd:11,gfx:'lumi_green',gfxR:3*METER,gdur:2.54},blue:{name:'Quickening',type:'haste',mul:1.3,dur:5,cd:9,gfx:'lumi_blue',gfxR:3*METER,gdur:3.58},purple:{name:'Hush',pass:'hush'}},
+  lumi:{green:{name:'Dawnward',type:'dawnward',dur:3,perLv:0.01,cd:11,gfx:'lumi_green',gfxR:3*METER,gdur:2.54},blue:{name:'Quickening',type:'haste',mul:1.3,perLv:0.001,dur:5,cd:9,gfx:'lumi_blue',gfxR:3*METER,gdur:3.58},purple:{name:'Hush',pass:'hush'}},
   hollow:{green:{name:'Fan of Knives',type:'bladefan',mul:0.9,radius:3*METER,angle:75,bleed:0.16,cd:7,gfx:'hollow_green',gdur:2.75},blue:{name:'Lacerate',type:'bleedstack',mul:0.8,bleed:0.16,rupture:3,ruptMul:1.9,stackDur:6,cd:6,gfx:'hollow_blue',gfxR:3*METER,gdur:3.79},purple:{name:"The Space He Isn't In",pass:'notthere'}},
   rivet:{green:{name:'Scattergun',type:'spread',mul:1.6,radius:3.2*METER,angle:60,falloff:0.85,minMul:0.25,cd:7,gfx:'rivet_green',gfxAt:'muzzle',desc:"Rivet fires a scrap-metal blast in a wide cone in front of him; enemies closest to the muzzle take the full charge."},blue:{deliver:'shot',name:'Smoke Bomb',type:'slow',mul:0.8,cd:9,gfx:'rivet_blue',gfxR:3*METER,desc:"Rivet lobs a sputtering smoke charge at his target, damaging it and slowing it for 2 seconds."},purple:{name:"Whatever's Loaded",pass:'arsenal'}},
   carn:{green:{name:'Reckless Blow',type:'reckless',mul:2.4,selfPct:0.06,cd:7,gfx:'carn_green',gfxR:3*METER},blue:{deliver:'form',name:'Vein Burst',type:'bloodnova',mul:0.7,missingBonus:2.2,radius:2.8*METER,cd:9,gfx:'carn_blue'},purple:{name:'Unrelenting',pass:'fury'}},
   vesper:{green:{deliver:'form',name:'Errata',type:'erratafield',dps:0.2,dur:5,radius:3*METER,silence:0.6,cd:9,gfx:'vesper_green'},blue:{name:'Loose Leaf',type:'pagestorm',mul:1.1,backMul:0.7,width:34,back:0.45,cd:8,gfx:'vesper_blue',gfxR:3*METER},purple:{name:'Scriptorium',pass:'scriptorium'}},
-  tessit:{green:{name:'Accelerate',type:'dmgbuff',mul:1.3,dur:6,cd:8,gfx:'tessit_green',gfxR:3*METER},blue:{deliver:'shot',name:'Sleight of Hours',type:'spdsteal',dur:5,pct:0.35,cd:10,gfx:'tessit_blue',gfxR:3*METER},purple:{name:'Unwind',pass:'unwind'}},
+  tessit:{green:{name:'Accelerate',type:'dmgbuff',mul:1.3,perLv:0.001,dur:6,cd:8,gfx:'tessit_green',gfxR:3*METER},blue:{deliver:'shot',name:'Sleight of Hours',type:'spdsteal',dur:5,pct:0.35,perLv:0.001,cd:10,gfx:'tessit_blue',gfxR:3*METER},purple:{name:'Unwind',pass:'unwind'}},
   linnet:{green:{name:'Mending Stitch',type:'mendburst',mul:0.5,hot:0.065,dur:6,cd:7,desc:"Immediately heals the most injured ally and continues restoring their health for several seconds.",gfx:'linnet_green'},blue:{name:'Reinforced Seam',type:'lastbreath',mul:1.8,dur:5,cd:10,desc:"Shields the weakest ally and prevents their health from falling below 1 until the shield expires.",gfx:'linnet_blue',gfxR:3*METER},purple:{name:'Golden Thread',pass:'goldthread',desc:"Connects Linnet to the lowest-health ally and transfers part of all healing she receives to them."}},
-  calypsa:{green:{name:'Tidal Ribbon',type:'piercethrow',mul:1.55,width:36,cd:6,desc:"Cuts through a line with both water sabers.",gfx:'calypsa_green',deliver:'line',speed:20*METER},blue:{name:'Fighting Current',type:'evadecounter',mul:1.6,dur:2.6,dr:0.6,cd:9,desc:"Dashes in place through an attack stance and gains dodge.",gfx:'calypsa_blue',gfxR:3*METER},purple:{name:'Prismatic Scales',pass:'prismscales',desc:"Dodges release a small retaliating water blade."}},
+  calypsa:{green:{name:'Tidal Ribbon',type:'piercethrow',mul:1.55,width:36,cd:6,desc:"Cuts through a line with both water sabers.",gfx:'calypsa_green',deliver:'line',speed:20*METER},blue:{name:'Fighting Current',type:'evadecounter',mul:1.6,dur:2.6,dr:0.6,perLv:0.001,cd:9,desc:"Dashes in place through an attack stance and gains dodge.",gfx:'calypsa_blue',gfxR:3*METER},purple:{name:'Prismatic Scales',pass:'prismscales',desc:"Dodges release a small retaliating water blade."}},
   lysara:{green:{name:'Dreamthread',type:'linkheal',mul:0.55,hot:0.022,dur:8,cd:8,desc:"Links two allies so healing and shields are shared.",gfx:'lysara_green'},blue:{name:'Moon Cocoon',type:'harmonyshield',mul:2.2,radius:3*METER,dur:6,cd:9,desc:"Wraps the weakest ally in protective dream silk.",gfx:'lysara_blue',gfxR:3*METER},purple:{name:'Powdered Slumber',pass:'slumber',desc:"Attacks gradually reduce enemy accuracy."}},
   nerisse:{green:{name:'Resonant Star',type:'silencestrike',mul:1.35,silence:2.4,cd:7,desc:"Strikes an enemy with a tuning-fork pulse that silences casting.",gfx:'nerisse_green',deliver:'shot',speed:18*METER},blue:{name:'Drifting Constellation',type:'orbheal',mul:0.38,hot:0.022,dur:4,cd:9,desc:"Sends her star orb between allies, healing each one.",gfx:'nerisse_blue',gfxR:3*METER},purple:{name:'Pelagic Insight',pass:'pelagic',desc:"Every spell reveals the next enemy ability and grants resistance."}},
-  nox:{green:{name:'Lockpick Soul',type:'energysteal',mul:1.25,steal:30,cd:7,muSilence:1.6,desc:"Hooks the highest-Energy enemy, steals part of its Energy, and creates a Skeleton Key. When Master-Unlocked, it strikes three enemies and briefly silences them.",gfx:'nox_green',gdur:5.88,deliver:'shot',speed:18*METER},blue:{name:'Forbidden Key',type:'energygift',give:25,perKey:6,ultMul:1.25,dur:6,cd:9,muUltMul:1.5,desc:"Transfers stolen Energy to the ally nearest its Ultimate and increases that Ultimate's power. Its bonus grows with every held Skeleton Key; when Master-Unlocked, the Ultimate becomes immediately ready, stronger, and uninterruptible.",gfx:'nox_blue',gfxR:3*METER,gdur:2.5},purple:{name:'Skeleton-Key Savant',pass:'skeletonkey',desc:"Every ability creates one Skeleton Key, up to five. At five keys the next ability is Master-Unlocked, and the keys build permanent Fortune - Dodge and critical damage."}},
-  seyla:{green:{name:'Ribbon Fang',type:'bleedstack',mul:1.35,bleed:0.16,rupture:3,ruptMul:1.9,stackDur:6,cd:6,desc:"Crosses both ribbon-blades through the nearest target and applies a stacking wound.",gfx:'seyla_green'},blue:{name:'Hooded Feint',type:'evadecounter',mul:1.9,dur:2.4,dr:0.6,cd:9,desc:"Flares her cobra hood, evades the next attack, and immediately counters from the target's flank.",gfx:'seyla_blue',gfxR:3*METER},purple:{name:'Venom Rhythm',pass:'venomrhythm',desc:"Every third attack injects venom that reduces healing and energy gain."}},
-  vaelora:{green:{name:'Featherfang',type:'piercethrow',frost:true,mul:1.5,width:34,cd:6,desc:"Throws the ice-feather chakram through two enemies.",gfx:'vaelora_green'},blue:{name:'Whiteout Pounce',type:'evadecounter',frost:true,mul:2.0,dur:2.2,dr:0.55,cd:9,desc:"Evades and counters the lowest-health enemy.",gfx:'vaelora_blue',gfxR:3*METER},purple:{name:'Silent Altitude',pass:'silentalt',desc:"Remaining untouched increases critical damage."}},
-  zahri:{green:{name:'Solar Impalement',type:'shred',mul:1.6,shred:0.32,dur:5,cd:6,desc:"Pierces the nearest enemy and reduces its armor."},blue:{name:'Mirage Herd',type:'summonmirage',key:'zahri mirage',dur:0,radius:1.2*METER,cd:9,desc:"Calls up a mirage of herself - a blurred copy with 30% of her stats that fights only with her lance."},purple:{name:'Desert Momentum',pass:'desertmom',desc:"Moving or attacking builds speed and penetration."}},
-  kharos:{green:{name:'Petal Sever',type:'bleedstack',mul:1.6,bleed:0.18,rupture:3,ruptMul:2.0,stackDur:6,cd:6,desc:"Crosses both arm-blades, inflicting a deep wound.",gfx:'kharos_green'},blue:{name:'Bloomstep',type:'evadecounter',mul:2.1,dur:2.2,dr:0.55,cd:9,desc:"Evades the next strike and reappears behind the attacker.",gfx:'kharos_blue',gfxR:3*METER},purple:{name:'Perfect Camouflage',pass:'camouflage',desc:"Standing untouched increases dodge and damage."}},
-  yenna:{green:{name:'Rending Return',type:'boomerang',mul:0.95,n:3,backMul:1.6,back:0.45,cd:7,desc:"Throws her bone boomerang through the enemy line; it deals greater damage while returning.",gfx:'yenna_green'},blue:{name:'Laughing Mark',type:'markreveal',mul:1.28,dur:8,cd:9,desc:"Marks the lowest-health enemy, revealing them and making allied critical hits restore energy.",gfx:'yenna_blue',gfxR:3*METER},purple:{name:'Pack Opportunist',pass:'packopp',desc:"Deals increased damage to isolated, controlled, or low-health enemies."}},
-  sorrel:{green:{name:'Marked Deal',type:'volley',single:true,mul:0.75,n:3,cd:6,desc:"Flicks three edged cards into one target; the third strike marks it.",mark:1.22,markDur:6,gfx:'sorrel_green',gdur:5.88},blue:{name:'House Edge',type:'haste',mul:1.32,dur:6,self:true,cd:9,desc:"Opens his deck case and gains speed while marked enemies are present.",gfx:'sorrel_blue',gdur:5.88},purple:{name:'Loaded Hand',pass:'loadedhand',desc:"Every fourth basic attack draws a stronger random suit bonus."}},
+  nox:{green:{name:'Lockpick Soul',type:'energysteal',mul:1.25,steal:30,cd:7,muSilence:1.6,desc:"Hooks the highest-Energy enemy, steals part of its Energy, and creates a Skeleton Key. When Master-Unlocked, it strikes three enemies and briefly silences them.",gfx:'nox_green',gdur:5.88,deliver:'shot',speed:18*METER},blue:{name:'Forbidden Key',type:'energygift',give:25,perLv:0.1,perKey:6,ultMul:1.25,dur:6,cd:9,muUltMul:1.5,desc:"Transfers stolen Energy to the ally nearest its Ultimate and increases that Ultimate's power. Its bonus grows with every held Skeleton Key; when Master-Unlocked, the Ultimate becomes immediately ready, stronger, and uninterruptible.",gfx:'nox_blue',gfxR:3*METER,gdur:2.5},purple:{name:'Skeleton-Key Savant',pass:'skeletonkey',desc:"Every ability creates one Skeleton Key, up to five. At five keys the next ability is Master-Unlocked, and the keys build permanent Fortune - Dodge and critical damage."}},
+  seyla:{green:{name:'Ribbon Fang',type:'bleedstack',mul:1.35,bleed:0.16,rupture:3,ruptMul:1.9,stackDur:6,cd:6,desc:"Crosses both ribbon-blades through the nearest target and applies a stacking wound.",gfx:'seyla_green'},blue:{name:'Hooded Feint',type:'evadecounter',mul:1.9,dur:2.4,dr:0.6,perLv:0.001,cd:9,desc:"Flares her cobra hood, evades the next attack, and immediately counters from the target's flank.",gfx:'seyla_blue',gfxR:3*METER},purple:{name:'Venom Rhythm',pass:'venomrhythm',desc:"Every third attack injects venom that reduces healing and energy gain."}},
+  vaelora:{green:{name:'Featherfang',type:'piercethrow',frost:true,mul:1.5,width:34,cd:6,desc:"Throws the ice-feather chakram through two enemies.",gfx:'vaelora_green'},blue:{name:'Whiteout Pounce',type:'evadecounter',frost:true,mul:2.0,dur:2.2,dr:0.55,perLv:0.001,cd:9,desc:"Evades and counters the lowest-health enemy.",gfx:'vaelora_blue',gfxR:3*METER},purple:{name:'Silent Altitude',pass:'silentalt',desc:"Remaining untouched increases critical damage."}},
+  zahri:{green:{name:'Solar Impalement',type:'shred',mul:1.6,shred:0.32,dur:5,cd:6,desc:"Pierces the nearest enemy and reduces its armor."},blue:{name:'Mirage Herd',type:'summonmirage',key:'zahri mirage',stat:0.30,perLv:0.001,dur:0,radius:1.2*METER,cd:9,desc:"Calls up a mirage of herself - a blurred copy with 30% of her stats that fights only with her lance."},purple:{name:'Desert Momentum',pass:'desertmom',desc:"Moving or attacking builds speed and penetration."}},
+  kharos:{green:{name:'Petal Sever',type:'bleedstack',mul:1.6,bleed:0.18,rupture:3,ruptMul:2.0,stackDur:6,cd:6,desc:"Crosses both arm-blades, inflicting a deep wound.",gfx:'kharos_green'},blue:{name:'Bloomstep',type:'evadecounter',mul:2.1,dur:2.2,dr:0.55,perLv:0.001,cd:9,desc:"Evades the next strike and reappears behind the attacker.",gfx:'kharos_blue',gfxR:3*METER},purple:{name:'Perfect Camouflage',pass:'camouflage',desc:"Standing untouched increases dodge and damage."}},
+  yenna:{green:{name:'Rending Return',type:'boomerang',mul:0.95,n:3,backMul:1.6,back:0.45,cd:7,desc:"Throws her bone boomerang through the enemy line; it deals greater damage while returning.",gfx:'yenna_green'},blue:{name:'Laughing Mark',type:'markreveal',mul:1.28,perLv:0.001,dur:8,cd:9,desc:"Marks the lowest-health enemy, revealing them and making allied critical hits restore energy.",gfx:'yenna_blue',gfxR:3*METER},purple:{name:'Pack Opportunist',pass:'packopp',desc:"Deals increased damage to isolated, controlled, or low-health enemies."}},
+  sorrel:{green:{name:'Marked Deal',type:'volley',single:true,mul:0.75,n:3,cd:6,desc:"Flicks three edged cards into one target; the third strike marks it.",mark:1.22,markDur:6,gfx:'sorrel_green',gdur:5.88},blue:{name:'House Edge',type:'haste',mul:1.32,perLv:0.002,dur:6,self:true,cd:9,desc:"Opens his deck case and gains speed while marked enemies are present.",gfx:'sorrel_blue',gdur:5.88},purple:{name:'Loaded Hand',pass:'loadedhand',desc:"Every fourth basic attack draws a stronger random suit bonus."}},
   brannus:{green:{deliver:'shot',name:'Rim Breaker',type:'knockstun',mul:1.5,stun:1.2,push:1.6*METER,cd:8,desc:"Drives the bronze wheel forward, stunning the first enemy struck.",gfx:'brannus_green'},blue:{name:'Arena Lock',type:'taunt',dur:3.5,cd:10,desc:"Plants the wheel and forces nearby enemies to attack him.",gfx:'brannus_blue',gfxR:3*METER},purple:{name:"Pride's Momentum",pass:'pridemomentum',desc:"Blocking damage increases his next basic attack."}},
   deepcleft:{green:{name:'Fault Claws',type:'shred',mul:1.5,shred:0.30,dur:5,cd:6,desc:"Rips the ground with both reinforced claws, damaging and lowering enemy armor.",gfx:'deepcleft_green',gdur:5.88},blue:{name:'Burrow Guard',type:'burrowguard',dur:1.4,mul:1.7,cd:10,desc:"Digs into a defensive crouch, becoming untargetable briefly before emerging beneath the nearest attacker.",gfx:'deepcleft_blue',gfxR:3*METER,gdur:5.88},purple:{name:'Relentless Digger',pass:'digger',desc:"Taking damage increases his Attack Speed; control effects grant twice as many stacks."}},
-  askel:{green:{deliver:'form',name:'Standard Crash',type:'interruptslam',mul:1.3,radius:3.2*METER,silence:1.3,cd:8,desc:"Slams the weighted banner base down, damaging enemies and interrupting their casts.",gfx:'askel_green',gdur:5.88},blue:{name:'Rallying Ground',type:'banner',radius:6*METER,dr:0.82,haste:1.22,ctrl:0.25,dur:6,cd:10,desc:"Plants his banner to grant nearby allies armor, attack speed, and control resistance.",gfx:'askel_blue',gfxAt:'front',allyBadge:true,badgeSize:0.2,gdur:5.88},purple:{name:'Unshaken Herd',pass:'unshaken',desc:"Whenever an ally is controlled, Greatbrow gains energy and briefly protects them."}},
+  askel:{green:{deliver:'form',name:'Standard Crash',type:'interruptslam',mul:1.3,radius:3.2*METER,silence:1.3,cd:8,desc:"Slams the weighted banner base down, damaging enemies and interrupting their casts.",gfx:'askel_green',gdur:5.88},blue:{name:'Rallying Ground',type:'banner',radius:6*METER,dr:0.82,perLv:0.001,haste:1.22,ctrl:0.25,dur:6,cd:10,desc:"Plants his banner to grant nearby allies armor, attack speed, and control resistance.",gfx:'askel_blue',gfxAt:'front',allyBadge:true,badgeSize:0.2,gdur:5.88},purple:{name:'Unshaken Herd',pass:'unshaken',desc:"Whenever an ally is controlled, Greatbrow gains energy and briefly protects them."}},
   tharl:{green:{name:'Scale Ram',type:'knockstun',mul:1.45,stun:1.1,push:1.8*METER,cd:8,desc:"Drives both striking blocks forward, stunning the nearest enemy and pushing it backward.",gfx:'tharl_green',gdur:5.88},blue:{name:'Fortress Curl',type:'defensive',mul:0.35,dur:3.5,cd:9,desc:"Curls behind his plated tail, greatly reducing incoming damage before bursting back open.",gfx:'tharl_blue',gfxR:3*METER,gdur:5.88},purple:{name:'Layered Hide',pass:'layered',desc:"Each direct hit hardens one scale layer; at maximum layers he becomes immune to control briefly."}},
-  hobb:{green:{name:'Glazebreaker',type:'shred',mul:1.55,shred:0.30,dur:5,cd:6,desc:"Smashes with the pottery paddle and reduces enemy armor.",gfx:'hobb_green',gdur:3.96},blue:{name:'Sealed Vessel',type:'defensive',mul:0.45,dur:5,cd:9,desc:"Breaks a belt jar to gain one of several defensive glazes.",gfx:'hobb_blue',gfxR:3*METER,gdur:5.71},purple:{name:'Fired Clay',pass:'warden',desc:"Repeated hits harden his ceramic plates."}},
+  hobb:{green:{name:'Glazebreaker',type:'shred',mul:1.55,shred:0.30,dur:5,cd:6,desc:"Smashes with the pottery paddle and reduces enemy armor.",gfx:'hobb_green',gdur:3.96},blue:{name:'Sealed Vessel',type:'defensive',mul:0.45,perLv:0.0005,dur:5,cd:9,desc:"Breaks a belt jar to gain one of several defensive glazes.",gfx:'hobb_blue',gfxR:3*METER,gdur:5.71},purple:{name:'Fired Clay',pass:'warden',desc:"Repeated hits harden his ceramic plates."}},
   orryn:{green:{name:'Pressure Sphere',type:'strike',mul:1.75,color:'#2f8fa8',cd:6,desc:"Crushes an enemy inside a sphere of deep-sea pressure.",gfx:'orryn_green',gdur:2.5,deliver:'form',form:0.4},blue:{name:'Spiral Current',type:'ashfall',dps:0.5,dur:4,radius:3.4*METER,slow:2,nrgSlow:0.4,color:'#2f8fa8',cd:9,desc:"Sends a whirlpool through the enemy formation, slowing energy gain.",gfx:'orryn_blue',gfxR:3*METER,gdur:3.79,deliver:'travel',speed:6*METER,noArt:true},purple:{name:'Abyssal Reserve',pass:'abyssres',desc:"Casting stores pressure; full pressure strengthens his next spell."}},
   pellucid:{green:{name:'Meteor Knuckle',type:'aoeStun',mul:1.25,stun:1.2,radius:2.6*METER,cd:8,desc:"Drives one colossal fist down, stunning nearby enemies.",gfx:'pellucid_green',gdur:6.04,deliver:'land',fall:0.45},blue:{name:'Infernal Clinch',type:'atkcrush',mul:1.5,pct:0.35,stun:0.6,dur:5,cd:10,desc:"Grabs the strongest enemy and crushes its Attack for several seconds.",gfx:'pellucid_blue',gfxR:3*METER,gdur:6.04},purple:{name:'Unmovable Mass',pass:'unmovable',desc:"Cannot be displaced; damage taken builds molten armor."}},
   mirelle:{green:{name:'Scent of Courage',type:'healbuff',mul:0.95,atk:1.28,dur:6,cd:7,desc:"Sprays the weakest ally with restorative perfume, healing them and increasing their Attack.",gfx:'mirelle_green',gdur:5.88},blue:{deliver:'shot',name:'Soporific Bouquet',type:'sleepbouquet',sleep:2.2,slow:3,cd:10,desc:"Releases a drifting fragrance that puts the highest-energy enemy to sleep.",gfx:'mirelle_blue',gfxR:3*METER,gdur:4.42},purple:{name:'Trail of Splendor',pass:'splendor',desc:"Whenever an ally receives a buff, they also gain a small stacking shield."}},
-  veyr:{green:{name:'Gravity Crescent',type:'tendrilpull',nearest:true,mul:1.5,dur:1.2,stop:1.2,cd:7,desc:"Slashes the nearest enemy and pulls it one position forward.",gfx:'veyr_green',gdur:3.33},blue:{name:'Abyssal Mantle',type:'evadecounter',mul:2.0,dur:2.4,dr:0.55,cd:9,desc:"Folds his living mantle around himself, evading attacks before countering.",gfx:'veyr_blue',gfxR:3*METER,gdur:5.88},purple:{name:'Weightless Predator',pass:'weightless',desc:"Every dodge grants Attack Speed and critical chance."}},
+  veyr:{green:{name:'Gravity Crescent',type:'tendrilpull',nearest:true,mul:1.5,dur:1.2,stop:1.2,cd:7,desc:"Slashes the nearest enemy and pulls it one position forward.",gfx:'veyr_green',gdur:3.33},blue:{name:'Abyssal Mantle',type:'evadecounter',mul:2.0,dur:2.4,dr:0.55,perLv:0.001,cd:9,desc:"Folds his living mantle around himself, evading attacks before countering.",gfx:'veyr_blue',gfxR:3*METER,gdur:5.88},purple:{name:'Weightless Predator',pass:'weightless',desc:"Every dodge grants Attack Speed and critical chance."}},
   vex:{green:{name:'Hookline',type:'hookline',mul:1.6,crit:1.5,cd:8,range:28*METER,evade:0.5,gfx:'vex_green',gfxR:3*METER,gdur:4.58,desc:"Vex fires her hook at the most fragile enemy in reach, back-row casters first, and swings in behind them for a crushing strike."},blue:{name:'Bleed Them Dry',type:'dot',mul:1.2,dps:0.30,dur:6,interval:1,color:'#c0392b',cd:9,gfx:'vex_blue',gfxR:3*METER,gdur:5.25,desc:"Vex opens a deep wound that bleeds the target every second for 6 seconds."},purple:{name:'Killer Instinct',pass:'killerinstinct'}},
   grimsby:{green:{name:'Overdue',type:'debtmark',mul:0.5,dps:0.35,maxStk:6,dur:6,cd:6,gfx:'grimsby_green',gfxR:3*METER,gdur:5.88},blue:{deliver:'form',name:'Ledger Slam',type:'pullsilence',radius:4*METER,dur:2,cd:10,gfx:'grimsby_blue',gdur:5.88},purple:{name:'Compound Interest',pass:'debtaura'}},
   dandra:{green:{name:'Seedlight',type:'mendburst',mul:0.45,hot:0.06,dur:6,cd:8,gfx:'dandra_green',gfxR:3*METER},blue:{deliver:'shot',name:'Drowsy Sting',type:'drowsy',mul:0.5,dps:0.25,slowPct:0.3,stung:6,sleep:1.6,cd:6,gfx:'dandra_blue',gfxR:3*METER},purple:{name:'The Swarm Moves On',pass:'contagion',desc:'when a stung foe dies, her bees move to the nearest enemies and sting them too'}},
@@ -4932,6 +4932,64 @@ const SKILL_STEP=0.0120; /* 12 Sep 2026 (Phil: "vastly reduce the percent scale 
 /* v1024 (Phil): a per-level skill bonus adds one step per level above 1, and the 100th level adds two. */
 function vaelSteps(lv){ lv=(lv|0)||1; return Math.max(0,lv-1)+(lv>=100?1:0); }
 function skillMul(lv){ return 1+((lv||1)-1)*SKILL_STEP; }               // +SKILL_STEP effect per level
+/* v1112 (Phil 10 Oct 2026: "1. yes" / "2. yes propose the gains" / "3. if they are too strong at 100 level we need to nerf it and scale back
+   the gains per level to climb"): ONE place for every levelled number that is not the plain skillMul curve. The fight, the card line and the
+   hover text all call these, so the number a player reads is the number the fight uses. lvAdd = base + per x (levels above 1): level 1 never
+   moves. Kits carry their own step as `perLv` (skLvNum reads it per type); passives read SKLV with the passive's level (passLv). */
+function lvStep(lv){ return Math.max(0,((lv|0)||1)-1); }
+function lvAdd(base,per,lv){ return base+(per||0)*lvStep(lv); }
+function lvPct(x){ return (Math.round(x*1000+1e-6)/10)+'%'; }   // one decimal, halves round up (0.3985 -> 39.9%)
+function lvSec(x){ return (+(+x).toFixed(2))+'s'; }
+function passLv(u){ return ((u&&u.skillLv&&u.skillLv[3])|0)||1; }
+/* v1112 nerf (Phil: "if they are too strong at 100 level ... scale back the gains per level"): armour/resist shred took the whole x2.188
+   curve (Zahri/Sloe/Absalie 32% -> 70% at level 100). It now takes 34% of the curve and never passes 45%. */
+const SHRED_CAP=0.45, SHRED_FRAC=0.34;
+function shredAt(v,sm){ return Math.min(SHRED_CAP, v*(1+(Math.max(1,sm||1)-1)*SHRED_FRAC)); }
+const SKLV={
+  wardenCap:lv=>lvAdd(0.20,0.001,lv),             // Adamant Discipline / Thick Chitin / Fired Clay / Tempered Steel / Unmovable Mass: cap 20% -> 29.9%
+  mirewall:lv=>Math.min(lvAdd(0.35,0.001,lv),0.20*skillMul(lv)),   // 20% x skill curve, cap 35% -> 44.9% (was a flat 35% from level 64)
+  momentumCap:lv=>lvAdd(0.50,0.0025,lv),          // Momentum Gears / Well-Read: +50% -> +74.8%
+  coldsnap:lv=>lvAdd(0.05,0.0003,lv),             // Cold Snap per Chill stack (5 stacks): 5% -> 8%
+  twinfonts:lv=>lvAdd(1,0.0066,lv),               // Twin Fonts drain and regen: x1 -> x1.65
+  contagionDur:lv=>lvAdd(4,0.02,lv),              // Contagion / Lingering Dark / The Swarm Moves On spread: 4 s -> 5.98 s
+  pitch:lv=>lvAdd(0.50,0.0025,lv),                // Perfect Pitch shield share: 50% -> 74.8%
+  pitchSymphony:lv=>lvAdd(0.40,0.0025,lv),        //   ... on Grand Symphony: 40% -> 64.8%
+  stormdodge:lv=>lvAdd(0.30,0.0015,lv),           // Static Veil: 30% -> 44.9%
+  bloodrageCap:lv=>lvAdd(0.25,0.0015,lv),         // Blood Rage cap: +25% -> +39.9%
+  stardust:lv=>lvAdd(0.10,0.001,lv),              // Stardust burn: 10% -> 19.9% of attack
+  immolate:lv=>lvAdd(0.25,0.0015,lv),             // Emberskin aura: 25% -> 39.9% of attack
+  notthere:lv=>lvAdd(4,-0.01,lv),                 // The Space He Isn't In: every 4 s -> 3.01 s
+  unwind:lv=>lvAdd(5,-0.015,lv),                  // Unwind: every 5 s -> 3.52 s
+  debtaura:lv=>lvAdd(0.20,0.001,lv),              // Compound Interest: +20% -> +29.9%
+  abyssres:lv=>lvAdd(0.45,0.002,lv),              // Abyssal Reserve: +45% -> +64.8%
+  risingheatCap:lv=>lvAdd(0.45,0.0015,lv),        // Rising Heat cap: +45% -> +59.9%
+  layered:lv=>2.0+0.01*vaelSteps(lv),             // Layered Hide immunity: 2.0 s + 0.01 s a level = 3.0 s at 100 (C: was 2.0 s x skillMul = 4.38 s)
+  tauntDr:lv=>lvAdd(0.40,0.002,lv),               // taunt damage reduction (Dig In, Arena Lock, The Reckoning): 40% -> 59.8% (C: was 1-0.4 x skillMul, 85% from level 89)
+};
+/* the levelled main number of an active skill, from its own kit data (perLv = the gain for each level above 1; no perLv = no change) */
+function skLvNum(type,o,lv){ o=o||{}; const g=(o.perLv||0)*lvStep(lv);
+  switch(type){
+    case 'haste': return (o.mul||1.3)+g;                       // attack speed multiplier
+    case 'dmgbuff': case 'markreveal': return (o.mul||1.25)+g; // damage multiplier
+    case 'defensive': return (o.mul||0.5)-g;                   // damage-TAKEN multiplier (lower = more reduction)
+    case 'evadecounter': return (o.dr||0.6)-g;                 // damage-taken multiplier during the evade
+    case 'banner': return (o.dr||0.82)-g;                      // damage-taken multiplier for rallied allies
+    case 'spdsteal': return (o.pct||0.35)+g;
+    case 'energygift': return (o.give||25)+g;
+    case 'dawnward': return (o.dur||3)+g;                      // seconds the ward holds
+    case 'duality': return (o.light||0.12)+g;                  // Light shield, share of max HP
+    case 'summonwarriors': case 'summonshaman': return 1+g;    // x the summon's share of its master's stats
+    case 'summonmirage': return (o.stat||0.30)+g;              // the mirage's share of Zahri's stats
+    case 'laststand': return o.heal?o.heal+g:0;                // self-heal, share of max HP
+    case 'rally': return (o.heal||0.30)+g;                     // team heal, share of max HP
+    case 'quietwings': return (o.buff||1.3)+g;                 // team damage multiplier
+    case 'rewind': return (o.revive||0.4)+g;                   // revived at this share of the health they had
+    case 'hipposlam': return (o.allyDr||0.30)+g;               // team damage reduction
+  }
+  return 0; }
+function contagionLv(victimTeam){ let lv=1; try{ for(const g of units){ if(g&&g.pass&&g.pass.contagion&&g.team!==victimTeam) lv=Math.max(lv,passLv(g)); } }catch(e){} return lv; }
+function summonShareStr(key,share){ const sc=(typeof SUMMON_SCALE!=='undefined'&&SUMMON_SCALE[key])||null;
+  return sc?(lvPct(sc.dmg*share)+' of the caster\u2019s attack, '+lvPct(sc.hp*share)+' of health'):('x'+(+share.toFixed(3))+' strength'); }
 function skillUnlocked(key,idx){ return idx===0 || heroQuality(key)>=idx; }   // green needs Green quality, blue Blue, passive Purple
 function skillUpCost(idx,lv){ return Math.round((SKILL_UP_BASE[idx]||300)*Math.pow(SKILL_COST_R,(lv||1)-1)); }
 const SKILL_COST_R=1.04; /* 12 Sep 2026 — the old 1.55 was sized for NINE upgrades; across ninety-nine it
@@ -4950,11 +5008,11 @@ async function skillUpgrade(key,idx){ const lv=skillLevel(key,idx); if(lv>=SKILL
     adoptLedger(r.ledger); return true; }
   if(!(await txSpend('gold',c,'skillup'))) return false;
   skillLvArr(key)[idx]=lv+1; return true; }
-const ULT_DEF={worldweight:{mul:2.0,radius:8*METER,lift:2.0,slamStun:1.0},finalcandle:{mul:2.0,slow:3,stun:1.5,radius:7*METER,harden:1.6,shatter:1.5,coat:6},worldbreaker:{mul:0.45,stun:0.4,radius:6*METER,slams:3,gap:0.7,wave:12*METER},serpentdance:{mul:0.6,spins:4,dur:2.4,radius:3*METER,exec:0.10},hivemind:{n:30,dmgMul:0.14,healMul:0.5,healPct:0.02,hold:0.7},defensive:{mul:0.45,dur:5},nova:{mul:1.8,radius:4*METER,slow:true},vanishpoint:{mul:2.0,exec:0.20,chain:3,falloff:0.8,gone:0.9,hop:0.35,range:15*METER},aoeStun:{mul:1.4,stun:2,radius:120},deepchoir:{dur:5,radius:8*METER,silence:5,tick:1.0,choirHeal:0.30},cleave:{mul:2.6,bleed:true,radius:6.5*METER},execute:{mul:2.2},burst:{mul:3},multiShot:{mul:1.8,n:5},fireball:{mul:2.2,radius:100},heal:{mul:0.95},rally:{},monkSlam:{mul:1.0,stun:2,radius:15*METER},hipposlam:{hpMul:0.40,radius:3*METER,stun:0.6,allyDr:0.30,allyDrDur:5},gravcrush:{mul:2.0,radius:8*METER,stun:1.0,gravity:true},eventhorizon:{mul:1.9,radius:7*METER,pull:1.2,silence:1.5,gravity:true},flywheel:{mul:1.6,radius:3*METER},blizzard:{dur:4,radius:8*METER,tick:0.5,freeze:0.10,channel:true},eclipse:{mul:2.2,radius:6*METER,shield:0.4},plaguesov:{mul:1.6,radius:5*METER,dps:0.6,dur:5},umbralcata:{mul:1.6,radius:6.8*METER,dps:0.6,dur:5},symphony:{healMul:0.30,dmgMul:0.30}   /* v567 (Phil): Grand Symphony has NO RANGE - it hits every ally and every enemy on the field. The downside is the size: 30% of ability power as heal and as damage. radius removed entirely. */,thundershower:{dur:3,radius:8*METER,tick:0.5,mul:0.6,channel:true},laststand:{mul:0.25,dur:5,pct:1.0,heal:0.15},firstspring:{mul:0.5,dur:5,radius:20*METER},charge:{mul:1.8,radius:5*METER,stun:1.0},stampede:{mul:1.8,radius:20*METER,width:1.6*METER,push:2.0*METER,stun:1.0,speed:18*METER,noArt:true},devourpack:{mul:1.2,healPct:1.0,shieldPct:0.6,dmgPct:0.9,dur:8,radius:3*METER},finalsurvey:{mul:1.4,mortalDur:3,bleedPct:0.10,bleedDur:3,steal:0.35,regen:0.03,buffDur:3,range:30*METER},taunt:{dur:4,dr:0.5,radius:6*METER},volley:{mul:1.4,n:6},ashfall:{dps:0.8,dur:5,radius:6*METER,mul:1.4},swamproot:{mul:1.6,root:2.5,radius:7*METER},sunburst:{mul:1.8,radius:6*METER,heal:0.35},aoedot:{mul:1.2,dps:0.7,dur:5,radius:99999},riftpuncture:{freeze:1,silence:1},triplecleave:{mul:0.8,radius:10*METER,hits:3},
+const ULT_DEF={worldweight:{mul:2.0,radius:8*METER,lift:2.0,slamStun:1.0},finalcandle:{mul:2.0,slow:3,stun:1.5,radius:7*METER,harden:1.6,shatter:1.5,coat:6},worldbreaker:{mul:0.45,stun:0.4,radius:6*METER,slams:3,gap:0.7,wave:12*METER},serpentdance:{mul:0.6,spins:4,dur:2.4,radius:3*METER,exec:0.10},hivemind:{n:30,dmgMul:0.14,healMul:0.5,healPct:0.02,hold:0.7},defensive:{mul:0.45,dur:5},nova:{mul:1.8,radius:4*METER,slow:true},vanishpoint:{mul:2.0,exec:0.20,chain:3,falloff:0.8,gone:0.9,hop:0.35,range:15*METER},aoeStun:{mul:1.4,stun:2,radius:120},deepchoir:{dur:5,radius:8*METER,silence:5,tick:1.0,choirHeal:0.30},cleave:{mul:2.6,bleed:true,radius:6.5*METER},execute:{mul:2.2},burst:{mul:3},multiShot:{mul:1.8,n:5},fireball:{mul:2.2,radius:100},heal:{mul:0.95},rally:{heal:0.30,perLv:0.001},monkSlam:{mul:1.0,stun:2,radius:15*METER},hipposlam:{hpMul:0.40,radius:3*METER,stun:0.6,allyDr:0.30,allyDrDur:5,perLv:0.0015},gravcrush:{mul:2.0,radius:8*METER,stun:1.0,gravity:true},eventhorizon:{mul:1.9,radius:7*METER,pull:1.2,silence:1.5,gravity:true},flywheel:{mul:1.6,radius:3*METER},blizzard:{dur:4,radius:8*METER,tick:0.5,freeze:0.10,channel:true},eclipse:{mul:2.2,radius:6*METER,shield:0.4},plaguesov:{mul:1.6,radius:5*METER,dps:0.6,dur:5},umbralcata:{mul:1.6,radius:6.8*METER,dps:0.6,dur:5},symphony:{healMul:0.30,dmgMul:0.30}   /* v567 (Phil): Grand Symphony has NO RANGE - it hits every ally and every enemy on the field. The downside is the size: 30% of ability power as heal and as damage. radius removed entirely. */,thundershower:{dur:3,radius:8*METER,tick:0.5,mul:0.6,channel:true},laststand:{mul:0.25,dur:5,pct:1.0,heal:0.15,perLv:0.001},firstspring:{mul:0.5,dur:5,radius:20*METER},charge:{mul:1.8,radius:5*METER,stun:1.0},stampede:{mul:1.8,radius:20*METER,width:1.6*METER,push:2.0*METER,stun:1.0,speed:18*METER,noArt:true},devourpack:{mul:1.2,healPct:1.0,shieldPct:0.6,dmgPct:0.9,dur:8,radius:3*METER},finalsurvey:{mul:1.4,mortalDur:3,bleedPct:0.10,bleedDur:3,steal:0.35,regen:0.03,buffDur:3,range:30*METER},taunt:{dur:4,dr:0.5,radius:6*METER},volley:{mul:1.4,n:6},ashfall:{dps:0.8,dur:5,radius:6*METER,mul:1.4},swamproot:{mul:1.6,root:2.5,radius:7*METER},sunburst:{mul:1.8,radius:6*METER,heal:0.35},aoedot:{mul:1.2,dps:0.7,dur:5,radius:99999},riftpuncture:{freeze:1,silence:1},triplecleave:{mul:0.8,radius:10*METER,hits:3},
   plumage:{heal:0.8,shield:0.10,shred:0.30,atkDn:0.20,dur:6},
-  quietwings:{sleep:2.2,buff:1.3,haste:1.2,dur:8},
+  quietwings:{sleep:2.2,buff:1.3,haste:1.2,dur:8,perLv:0.001},
   openeverydoor:{lock:1.6,steal:35,mul:0.9,share:0.25},
-  rewind:{back:5,revive:0.4}
+  rewind:{back:5,revive:0.4,perLv:0.0015}
 };
 // per-hero ability CAST times (s); a hero can't auto-attack while casting; effect visual ~2x cast.
 const ABILITY_CAST={ vael:{ult:0.3}, rhukk:{ult:0.5}, konwu:{ult:1,green:0.3,blue:1}, grosk:{ult:0.5,green:1,blue:0.6}, vulmar:{ult:1.5,green:1.5,blue:2}, tick:{ult:1,green:0.4,blue:0.6}, sylthaine:{ult:0.6,green:1,blue:0.8}, aureth:{ult:1.2,green:1,blue:0.5}, bloatus:{ult:1.2,green:0.9,blue:0.8}, vireo:{ult:1,green:0.6,blue:0.5}, fritz:{ult:0.8,green:0.5,blue:0.4} };
@@ -5003,7 +5061,7 @@ const ULT_DESC={worldweight:'Player-aimed ultimate \u2014 gravity takes a circle
   swamproot:'Player-aimed ultimate — the water closes over a wide area, damaging and rooting everything caught in it.',sunburst:'Ultimate — a detonation of daylight that sears every nearby enemy and heals the team in the same instant.',aoedot:'Ultimate — every enemy on the field is served, and bleeds for it.',riftpuncture:'Ultimate — tears through parallel space: every enemy freezes for 1 second, then comes out of the freeze silenced for 1 second.',triplecleave:'Player-aimed ultimate — a wide sweep that hits every enemy in front and leaves them bleeding.',aoeStun:'Player-aimed ultimate — slams an area, damaging and stunning all enemies caught in it.',cleave:'Player-aimed ultimate — a wide cleave that hits every enemy in front and causes bleeding.',execute:'Player-aimed ultimate — a massive strike that deals extra damage to low-health foes.',burst:'Player-aimed ultimate — a devastating single-target burst of damage.',multiShot:'Player-aimed ultimate — a volley that strikes several enemies at once.',fireball:'Player-aimed ultimate — a blast that damages all enemies in the impact area.',heal:'Ultimate — restores health to your whole team.',rally:'Ultimate — the whole team is healed, floods with energy so every ultimate charges sooner, and swings faster for a few seconds.',monkSlam:'Ultimate — spins the staff overhead then slams it down where he stands, dealing 100% ATK and stunning every enemy within 15 metres of him for 2 seconds.',flywheel:'Ultimate — spins with limbs extended, striking every enemy around him.',blizzard:'Player-aimed ultimate — channels an ice storm over an area, ticking frost damage with a chance to freeze (cannot act while channeling).',eclipse:'Ultimate — a burst of light and shadow that damages all nearby foes and shields the whole team.',plaguesov:'Ultimate — erupts poison in a huge ring, poisoning every enemy hit.',symphony:'Ultimate — a sweeping finale that reaches the entire field with no range limit at all: every ally is healed and every enemy is damaged, wherever they stand. The price of that reach is the size — each is only a modest share of her ability power.',thundershower:'Ultimate — channels a thunderstorm around him, striking foes repeatedly (cannot act while channeling).',umbralcata:'Player-aimed ultimate — hurls a sphere of raw void that lands where you aim and tears open a vast lingering shadow zone, rotting every enemy caught across its wide radius with dark energy each second.',laststand:'Ultimate — Vael plants his feet and refuses to fall, slashing incoming damage by three-quarters and draining life back with every blow for a few brutal seconds.',firstspring:'Player-aimed ultimate — Oakmir calls the first bloom of spring under an ally you choose. Every ally within 20 metres of that bloom is instantly healed for half their maximum health and wrapped in a lingering regrowth.'   /* v570 (11 Sep): the text said "the whole team" and had since v369, when Phil made it a click-to-heal with a 20 m radius. The BEHAVIOUR was what he asked for; only the description was never updated. */,charge:'Ultimate — Rhukk lowers his horn and rams the farthest foe, goring everyone caught at the impact and stunning them.',hipposlam:'Ultimate — leaps onto the densest enemy cluster, dealing a share of his own max HP and briefly stunning them, then plants: for 5 seconds every ally takes 30% less damage while Grosk still stands.',gravcrush:'Player-aimed ultimate — crushes a wide area with gravity, damaging and stunning every enemy dragged into the center.',eventhorizon:'Player-aimed ultimate — Veyr knots a singularity where you aim: for 1.2 seconds everything nearby is dragged toward it, then it collapses, dealing heavy ability damage and silencing every enemy it swallowed.'};
 // ability scaling labels (what stat an ability scales with) — shown in the (…) tag and used for balance
 const ULT_SCALE={openeverydoor:'Ability Power',   /* v1082 (scan 4 #3): Nox's ult (apow x mul) had no entry - his Skill tab dropped the '% of Ability Power' line */ worldweight:'Attack',finalcandle:'Ability Power',worldbreaker:'Attack',serpentdance:'Attack',deepchoir:'Ability Power',stampede:'Attack',hivemind:'Ability Power',defensive:'Health',nova:'Attack',vanishpoint:'Attack',flywheel:'Attack',blizzard:'Ability Power',eclipse:'Ability Power',plaguesov:'Ability Power',symphony:'Ability Power',thundershower:'Ability Power',monkSlam:'Attack',hipposlam:'Health',gravcrush:'Attack',eventhorizon:'Ability Power',aoeStun:'Attack',cleave:'Attack',execute:'Attack',burst:'Attack',multiShot:'Attack',fireball:'Ability Power',heal:'Health',rally:'—',umbralcata:'Ability Power',laststand:'—',firstspring:'Health',charge:'Attack',devourpack:'\u2014',finalsurvey:'Attack',taunt:'—',volley:'Attack',ashfall:'Attack',swamproot:'Ability Power',sunburst:'Ability Power',aoedot:'Attack',riftpuncture:'—',triplecleave:'Attack'};
-const KIT_SCALE={honeyglob:'Ability Power',hornetswarm:'Ability Power',summonwarriors:'\u2014',summonshaman:'\u2014',summonmirage:'\u2014',plumbline:'Attack',weighdebt:'Attack',tidalsurge:'Ability Power',dawnward:'—',bladefan:'Attack',bleedstack:'Attack',spread:'Attack',reckless:'Attack',bloodnova:'Attack',erratafield:'Attack',pagestorm:'Attack',hookline:'Attack',debtmark:'Attack',drowsy:'Ability Power',piercethrow:'Attack',charge:'Attack',cleave:'Attack',aoeStun:'Attack',ashfall:'Attack',selfheal:'Health',mendburst:'Health',spdsteal:'—',haste:'—',dmgbuff:'—',rally:'—',punchflurry:'Attack',frozenorb:'Ability Power',freeze:'Ability Power',sunburst:'Ability Power',duality:'Health',toxbreath:'Ability Power',swamproot:'Ability Power',crescendo:'Ability Power',harmonyshield:'Ability Power',stormsurge:'Ability Power',chainlight:'Ability Power',strike:'Attack',double:'Attack',volley:'Attack',nova:'Attack',cleavecone:'Attack',blink:'Attack',dot:'Attack',aoedot:'Attack',fireorb:'Ability Power',stun:'Attack',slow:'Attack',mortal:'Attack',hot:'Health',shield:'Health',taunt:'Health',shadeburst:'Ability Power',creeprot:'Ability Power',warcry:'—',lifestealbuff:'—',defensive:'—',pullsilence:'—',gravsling:'Attack',tendrilpull:'—',heal:'Health'};
+const KIT_SCALE={honeyglob:'Ability Power',hornetswarm:'Ability Power',summonwarriors:'\u2014',summonshaman:'\u2014',summonmirage:'\u2014',plumbline:'Attack',weighdebt:'Attack',tidalsurge:'Ability Power',dawnward:'—',bladefan:'Attack',bleedstack:'Attack',spread:'Attack',reckless:'Attack',bloodnova:'Attack',erratafield:'Attack',pagestorm:'Attack',hookline:'Attack',debtmark:'Attack',drowsy:'Ability Power',piercethrow:'Attack',charge:'Attack',cleave:'Attack',aoeStun:'Attack',ashfall:'Attack',selfheal:'Health',mendburst:'Health',spdsteal:'—',haste:'—',dmgbuff:'—',rally:'—',punchflurry:'Attack',frozenorb:'Ability Power',freeze:'Ability Power',sunburst:'Ability Power',duality:'Health',toxbreath:'Ability Power',swamproot:'Ability Power',crescendo:'Ability Power',harmonyshield:'Ability Power',stormsurge:'Ability Power',chainlight:'Ability Power',strike:'Attack',double:'Attack',volley:'Attack',nova:'Attack',cleavecone:'Attack',blink:'Attack',dot:'Attack',aoedot:'Attack',fireorb:'Ability Power',stun:'Attack',slow:'Attack',mortal:'Attack',hot:'Health',shield:'Health',taunt:'Health',shadeburst:'Ability Power',creeprot:'Ability Power',warcry:'—',lifestealbuff:'—',defensive:'—',pullsilence:'—',gravsling:'Attack',tendrilpull:'Attack',heal:'Health',evadecounter:'Attack',shred:'Attack',mrshred:'Ability Power'};   /* v1112: the counter, Veyr's slash and the shred hits show their levelled ratio on hover */
 // build the "(CD Xs · Y m · scales Z)" tag from the ability's own data
 // Standard meta line for every ability: Scales (AP/ATK/HP) · Range · Cast · Lasts (dot/hot) · CD.
 function fmtScale(mul,dps,sc){ if(!sc||sc==='—')return ''; let s='';
@@ -5040,13 +5098,15 @@ function abilityMeta(key,idx){ const t=HERO_TYPES[key],kit=KITS[key]; if(!t||!ki
   const mel=t.range<60, fakeU={key,t};
   const rng=(rad)=> rad?(+(rad/METER).toFixed(1)+' m') : (mel?(t.reach?('Melee · '+(+(t.reach/METER).toFixed(1))+' m reach'):'Melee'):(+(t.range/METER).toFixed(1)+' m'));
   if(idx===0){ const ab=t.ability, d=ULT_DEF[ab]||{}, sc=scaleLabelFor(t,ULT_SCALE[ab]);
-    const s=fmtScale(d.mul||d.hpMul||d.healMul, d.dps, sc); if(s)seg.push(s);
+    const _sm=skillMul(skillLevel(key,0)), _m=d.mul||d.hpMul||d.healMul;   /* v1112: the ratio at his level, as the fight uses it */
+    const s=fmtScale(_m&&_m*_sm, d.dps&&d.dps*_sm, sc); if(s)seg.push(s);
     for(const c of ccMetaSegs(d)) seg.push(c);                 /* v791 - the control it applies */
     seg.push('Range '+rng(d.radius)); seg.push('Cast '+castTimeFor(fakeU,'ult')+'s');
     if(d.dur)seg.push((d.channel?'Channels ':'Lasts ')+d.dur+'s'); seg.push('Ultimate — charges with energy'); }
   else if(idx===1||idx===2){ const ab=idx===1?kit.green:kit.blue; if(!ab)return ''; const sc=scaleLabelFor(t,KIT_SCALE[ab.type]);
     let rad=ab.radius; if(['hookline','frozenorb'].includes(ab.type)) rad=ab.range; if(!rad && ['freeze','chainlight','stun','slow','mortal','dot','creeprot'].includes(ab.type)) rad=t.range;
-    const s=fmtScale(ab.mul, ab.dps, sc); if(s)seg.push(s);
+    const _sm=skillMul(skillLevel(key,idx));   /* v1112: the ratio at his level, as the fight uses it */
+    const s=fmtScale(ab.mul&&ab.mul*_sm, ab.dps&&ab.dps*_sm, sc); if(s)seg.push(s);
     for(const c of ccMetaSegs(ab)) seg.push(c);                /* v791 - the control it applies */
     seg.push('Range '+rng(rad)); seg.push('Cast '+castTimeFor(fakeU,idx===1?'green':'blue')+'s');
     if(ab.dur)seg.push('Lasts '+ab.dur+'s'); if(ab.cd)seg.push('Cooldown '+ab.cd+'s'); }
@@ -5056,14 +5116,77 @@ function abilityMeta(key,idx){ const t=HERO_TYPES[key],kit=KITS[key]; if(!t||!ki
 // tooltip: a full one-sentence description of what the ability does, then the standard meta line.
 /* v1111 (Phil 10 Oct: "this is weirdly worded" / "the description says 20% it doesnt change when i upgrade"): a passive whose numbers grow
    with its level gets its description written FROM the level (same formula the fight uses), so the hover text and the card line agree. */
+/* v1112 (Phil: "make every card line and hover text show the real leveled number"): every passive whose number grows is written here from the
+   same SKLV / skillMul the fight uses, and this text wins over a hero's own fixed description. */
 const PASS_DESC_LV={
-  mirewall: lv=>{ const p=Math.round(Math.min(35,20*skillMul(lv))); return 'the ally closest to dying takes '+p+'% less damage. Grosk takes 35% of the damage they avoided (about '+Math.round(p*0.35)+'% of each hit) and heals back half of what he took'; },
+  warden: lv=>'+'+Math.round(4*skillMul(lv))+'% armour & magic resist every 3s in combat (up to +'+lvPct(SKLV.wardenCap(lv))+')',
+  unmovable: lv=>'cannot be displaced at all; every third hit he takes adds a molten layer worth '+Math.round(4*skillMul(lv))+'% less damage (up to '+lvPct(SKLV.wardenCap(lv))+')',
+  momentum: lv=>'attack speed ramps up the longer he fights (up to +'+lvPct(SKLV.momentumCap(lv))+')',
+  coldsnap: lv=>'each Chill stack makes the target take +'+lvPct(SKLV.coldsnap(lv))+' damage from frost abilities, stacking to +'+lvPct(5*SKLV.coldsnap(lv))+'; Chill expires after 10s without a new application',
+  twinfonts: lv=>'in Dark stance he drains the nearest foe for '+lvPct(0.4*SKLV.twinfonts(lv))+' of his ability power +'+(+(2*SKLV.twinfonts(lv)).toFixed(1))+' a second; in Light stance he regenerates '+lvPct(0.012*SKLV.twinfonts(lv))+' of his max health + '+lvPct(0.25*SKLV.twinfonts(lv))+' of his ability power a second',
+  contagion: (lv,ab)=>((ab&&ab.desc)||PASS_DESC.contagion)+'; the spread lasts '+lvSec(SKLV.contagionDur(lv)),
+  perfectpitch: lv=>'her heals also grant a shield worth '+lvPct(SKLV.pitch(lv))+' of the heal ('+lvPct(SKLV.pitchSymphony(lv))+' from Grand Symphony)',
+  stormdodge: lv=>lvPct(SKLV.stormdodge(lv))+' chance to dodge attacks while casting or channeling',
+  bloodrage: lv=>'The more damage Vael takes, the harder he hits: +1% damage for every 4% of his max health he has lost this fight, up to +'+lvPct(SKLV.bloodrageCap(lv))+'.',
+  stardust: lv=>'every auto-attack leaves a burn worth '+lvPct(SKLV.stardust(lv))+' of attack - 2s, ticking twice a second',
+  immolate: lv=>'a burning aura - '+lvPct(SKLV.immolate(lv))+' of attack to every enemy within 2.4 m, every second',
+  notthere: lv=>'every '+lvSec(SKLV.notthere(lv))+' the next blow aimed at him simply misses - he was never there; and he heals for 10% of damage dealt',
+  unwind: lv=>'every '+lvSec(SKLV.unwind(lv))+' one random ally is cleansed of a negative effect',
+  debtaura: lv=>'damage-over-time on enemies near him lasts '+lvPct(SKLV.debtaura(lv))+' longer',
+  abyssres: lv=>'every third cast releases stored pressure and the next spell hits '+lvPct(SKLV.abyssres(lv))+' harder',
+  risingheat: lv=>'every scorched enemy on the field raises her spell power by '+lvPct(0.09*skillMul(lv))+', up to +'+lvPct(SKLV.risingheatCap(lv)),
+  layered: lv=>'each hit hardens a scale layer; at five layers he shrugs off all control for '+lvSec(SKLV.layered(lv)),
+  skeletonkey: lv=>'every ability makes a Skeleton Key; the fifth Master-Unlocks the next one and adds permanent Fortune: +'+lvPct(0.05*skillMul(lv))+' crit damage and +'+lvPct(0.03*skillMul(lv))+' dodge',
+  deeproots: lv=>'when an ally falls below 30% health, roots wrap them and heal '+lvPct(0.25*skillMul(lv))+' of their max health over 4 seconds - once per ally per fight',
+  packstats: lv=>'+'+lvPct(0.05*skillMul(lv))+' damage dealt and damage shrugged off for every summon still alive',
+  tidereserve: lv=>'restores '+lvPct(0.01*skillMul(lv))+' of max health AND '+lvPct(0.01*skillMul(lv))+' energy every second',
+  scriptorium: lv=>'the whole team gains +'+(+skillMul(lv).toFixed(2))+' energy a second, so every ultimate charges sooner',
+  hush: lv=>'every 5s one random enemy is silenced for '+lvSec(0.7*skillMul(lv)),
+  killerinstinct: lv=>'every auto-attack opens a mortal wound - the target receives half healing for '+lvSec(3*skillMul(lv))+', and each new attack refreshes it',
+  fury: lv=>'+'+lvPct(0.25*skillMul(lv))+' attack speed',
+  juggernaut: lv=>'heals '+lvPct(0.04*skillMul(lv))+' of max HP every second',
+  unbroken: lv=>'once per battle, at 30% health, a shield worth '+lvPct(0.30*skillMul(lv))+' of max HP and heavy control resistance',
+  sacredbells: lv=>'every 4s the bells ring: nearby allies take '+lvPct(0.10*skillMul(lv))+' less damage for the next few seconds',
+  splendor: lv=>'any ally he buffs also gains a shield worth '+lvPct(0.04*skillMul(lv))+' of their max health',
+  goldthread: lv=>lvPct(0.40*skillMul(lv))+' of all healing she receives is passed to the ally nearest death',
+  camouflage: lv=>'three seconds untouched: +'+lvPct(0.18*skillMul(lv))+' dodge and +25% damage until something lands',
+  silentalt: lv=>'three seconds untouched: +'+lvPct(0.50*skillMul(lv))+' critical damage until something lands',
+  pelagic: lv=>'every spell leaves her '+lvPct(0.08*skillMul(lv))+' harder to hurt for the next five seconds',
+  packopp: lv=>'+'+lvPct(0.28*skillMul(lv))+' damage to anything isolated, held, or under 35% health',
+  pridemomentum: lv=>'anything his shield absorbs loads +'+lvPct(0.22*skillMul(lv))+' into his next swing',
+  desertmom: lv=>{ const m=skillMul(lv); return 'every auto attack: +'+lvPct(0.04*m)+' attack speed and +'+(+(6*m).toFixed(1))+' penetration; every 5 m travelled: +'+lvPct(0.01*m)+' attack speed and +'+(+(2*m).toFixed(1))+' penetration - up to +'+lvPct(0.5*m)+' attack speed and +'+Math.round(120*m)+' penetration'; },
+  mirewall: lv=>{ const p=+(SKLV.mirewall(lv)*100).toFixed(1); return 'the ally closest to dying takes '+p+'% less damage. Grosk takes 35% of the damage they avoided (about '+Math.round(p*0.35)+'% of each hit) and heals back half of what he took'; },
+};
+/* v1112: a passive's hover text at a given level - the levelled sentence when one exists, else the hero's own words */
+function passDescAt(ab,lv){ if(!ab) return ''; const _fl=PASS_DESC_LV[ab.pass]; return _fl?_fl(lv,ab):(ab.desc||PASS_DESC[ab.pass]||''); }
+/* v1112: the fixed numbers inside ultimate / active descriptions that now grow, rewritten from the level (the rest of the sentence is kept) */
+const ULT_DESC_LV={
+  monkSlam:(lv,s)=>s.replace(/dealing 100% ATK/,'dealing '+Math.round(100*skillMul(lv))+'% ATK'),
+  hipposlam:(lv,s)=>s.replace(/takes 30% less damage/,'takes '+lvPct(skLvNum('hipposlam',ULT_DEF.hipposlam,lv))+' less damage'),
+  taunt:(lv,s)=>s.replace(/while he takes half damage/,'while he takes '+lvPct(SKLV.tauntDr(lv))+' less damage'),
+  firstspring:(lv,s)=>s.replace(/healed for half their maximum health/,'healed for '+lvPct(0.5*skillMul(lv))+' of their maximum health'),
+  deepchoir:(lv,s)=>s.replace(/for 30% of that enemy/,'for '+lvPct(0.30*skillMul(lv))+' of that enemy'),
+  laststand:(lv,s)=>s.replace(/for a few brutal seconds\./,'for a few brutal seconds, and heals '+lvPct(skLvNum('laststand',ULT_DEF.laststand,lv))+' of his max health.'),
+  rally:(lv,s)=>s.replace(/the whole team is healed/,'the whole team is healed for '+lvPct(skLvNum('rally',ULT_DEF.rally,lv))+' of their max health'),
+  quietwings:(lv,s)=>s.replace(/empowering allies/,'empowering allies (+'+lvPct(skLvNum('quietwings',ULT_DEF.quietwings,lv)-1)+' damage)'),
+  rewind:(lv,s)=>s.replace(/return with partial health/,'return with '+lvPct(skLvNum('rewind',ULT_DEF.rewind,lv))+' of the health they had'),
+  summonshaman:(lv,s)=>s.replace(/Ink Horror/,'Ink Horror ('+summonShareStr(ULT_DEF.summonshaman.key||'ink horror',skLvNum('summonshaman',ULT_DEF.summonshaman,lv))+')'),
+};
+const KIT_DESC_LV={
+  defensive:(lv,s,ab)=>s.replace(/half damage/,lvPct(1-skLvNum('defensive',ab,lv))+' less damage'),
+  summonmirage:(lv,s,ab)=>s.replace(/30% of her stats/,lvPct(skLvNum('summonmirage',ab,lv))+' of her stats'),
+  evadecounter:(lv,s,ab)=>s+' While it lasts the caster takes '+lvPct(1-skLvNum('evadecounter',ab,lv))+' less damage.',
+  banner:(lv,s,ab)=>s+' Rallied allies take '+lvPct(1-skLvNum('banner',ab,lv))+' less damage.',
+  shred:(lv,s,ab)=>s+' Armour -'+lvPct(shredAt((ab&&ab.shred)||0.3,skillMul(lv)))+'.',
+  mrshred:(lv,s,ab)=>s+' Magic resist -'+lvPct(shredAt((ab&&ab.shred)||0.3,skillMul(lv)))+'.',
 };
 function skillDesc(key,idx){ const t=HERO_TYPES[key],kit=KITS[key];
-  if(idx===3){ const ab=kit.purple; const _fl=PASS_DESC_LV[ab.pass]; let _lv=1; try{ _lv=(skillLvArr(key)[3])||1; }catch(e){}
-    return stripIcons(ab.desc||(_fl?_fl(_lv):PASS_DESC[ab.pass])||'Always-on passive.')+' (Passive)'; }
+  let _lv=1; try{ _lv=skillLevel(key,idx)||1; }catch(e){}
+  if(idx===3){ const ab=kit.purple;
+    return stripIcons(passDescAt(ab,_lv)||'Always-on passive.')+' (Passive)'; }
   const _kab=idx===0?null:(idx===1?kit.green:kit.blue);
-  const desc = idx===0 ? (HERO_ULT_DESC[key]||ULT_DESC[t.ability]||'Ultimate ability.') : ((_kab&&_kab.desc)?_kab.desc:((_kab&&_kab.at==='cluster'?'Cast on the most crowded enemy group, any distance — ':'')+(KIT_DESC[_kab.type]||'Active ability.').replace(/^Bursts around the caster — |^Damages all nearby enemies/, m=>_kab.at==='cluster'?(m.startsWith('Bursts')?'':'damages every enemy in the area'):m)));
+  let desc = idx===0 ? (HERO_ULT_DESC[key]||ULT_DESC[t.ability]||'Ultimate ability.') : ((_kab&&_kab.desc)?_kab.desc:((_kab&&_kab.at==='cluster'?'Cast on the most crowded enemy group, any distance — ':'')+(KIT_DESC[_kab.type]||'Active ability.').replace(/^Bursts around the caster — |^Damages all nearby enemies/, m=>_kab.at==='cluster'?(m.startsWith('Bursts')?'':'damages every enemy in the area'):m)));
+  { const _f=idx===0?ULT_DESC_LV[t.ability]:(_kab&&KIT_DESC_LV[_kab.type]); if(_f) desc=_f(_lv,desc,_kab); }   /* v1112 */
   return desc + abilityMeta(key,idx);
 }
 // a short "current effect" readout for a skill at its level, given the hero's effective attack/HP
@@ -5099,7 +5222,7 @@ function stripIcons(str){ return String(str==null?'':str).replace(/\{i:[stuh]:[a
    and an Ability Power hero's damage numbers carry the Ability Power icon (buff lines like 'team +30%' keep theirs). */
 function skillEffectStr(key,idx,atk,hp){ const r=_skillEffectStrRaw(key,idx,atk,hp), d=(HERO_TYPES[key]||{}).damageProfile;
   return ((d==='Magic'||d==='Healer')&&typeof r==='string')?r.replace(/\{i:s:attack\}(?= \d)/g,'{i:t:apow}'):r; }
-function _skillEffectStrRaw(key,idx,atk,hp){ const t=HERO_TYPES[key],kit=KITS[key],lv=skillLevel(key,idx),sm=skillMul(lv);
+function _skillEffectStrRaw(key,idx,atk,hp){ const t=HERO_TYPES[key],kit=KITS[key],lv=skillLevel(key,idx),sm=skillMul(lv), _atkRaw=atk;   /* v1112: the evade counter swings off raw Attack (damage(): tgt.dmg) */
   let apw=Math.round((t.apow||0)*(t.dmg?atk/t.dmg:1));   // approximate effective Ability Power for display
   if(!apw) apw=atk;
   { const _dp=t.damageProfile; if(_dp==='Magic'||_dp==='Healer') atk=apw; else if(_dp==='Attack') apw=atk; }   /* v1101: the stat the fight uses */   // v527: a physical hero scales its abilities off Attack (see heroScaleMode) - printing 0 was a display bug
@@ -5110,62 +5233,68 @@ function _skillEffectStrRaw(key,idx,atk,hp){ const t=HERO_TYPES[key],kit=KITS[ke
     if(t.ability==='plaguesov') return '{i:s:poison} '+Math.round(apw*(d.mul||1.6)*sm)+' + poison';
     if(t.ability==='symphony') return '{i:s:heal} '+Math.round(apw*(d.healMul||0.30)*sm)+' all allies + {i:s:attack} '+Math.round(apw*(d.dmgMul||0.30)*sm)+' all enemies';
     if(t.ability==='thundershower') return '{i:s:energy} '+Math.round(apw*(d.mul||0.6)*sm)+'/tick · '+(d.dur||3)+'s';
-    if(t.ability==='plumage') return '{i:s:heal} cleanse + '+Math.round(apw*(d.heal||0.8)*sm)+' · −'+Math.round((d.shred||0.3)*100)+'% enemy defence';
+    if(t.ability==='plumage') return '{i:s:heal} cleanse + '+Math.round(apw*(d.heal||0.8)*sm)+' · −'+lvPct(shredAt(d.shred||0.3,sm))+' enemy defence';
     /* v793b (Phil: "hers is specific because she heals allies per enemy ability silenced") -
        NERISSE'S ULTIMATE HAD NO ENTRY HERE and fell through to the default, so a no-damage support
        ult printed a damage number on its card. The `case 'deepchoir'` further down is in the switch
        on a KIT type (green/blue) and has never run - deepchoir is an ultimate. Silence length comes
        from ccSecFor, which keeps a channelled control at its channel. */
     if(t.ability==='deepchoir') return '\uD83D\uDD07 '+ccSecFor(d,'silence')+'s silence in 8m, re-sung every '+(d.tick||1)+'s for '+(d.dur||5)+'s \u00b7 \u271a each silenced enemy heals the ally nearest it for '+Math.round(apw*0.30*sm)+' per second \u00b7 no damage';
-    if(t.ability==='quietwings') return '{i:s:sleep} '+ccSecFor(d,'sleep')+'s sleep all · {i:s:attack} team +'+Math.round(((d.buff||1.3)-1)*100)+'%';
-    if(t.ability==='openeverydoor') return ''+(d.lock||1.6)+'s lock all · {i:s:energy} steal '+(d.steal||35);
-    if(t.ability==='rewind') return '↺ team health from '+(d.back||5)+'s ago + revive';
+    if(t.ability==='quietwings') return '{i:s:sleep} '+ccSecFor(d,'sleep')+'s sleep all · {i:s:attack} team +'+lvPct(skLvNum('quietwings',d,lv)-1);
+    if(t.ability==='openeverydoor') return ''+(d.lock||1.6)+'s lock all · {i:s:energy} steal '+(d.steal||35)+' · {i:t:apow} '+Math.round(apw*(d.mul||0.9)*sm)+' +1% per energy stolen';
+    if(t.ability==='rewind') return '↺ team health from '+(d.back||5)+'s ago + revive at '+lvPct(skLvNum('rewind',d,lv));
     if(t.ability==='hivemind') return ''+(d.n||30)+' bees · {i:s:heal} '+Math.round(hp*(d.healPct||0.02)*sm*10)+' team heal';
-    if(t.ability==='summonshaman') return 'summons an Elder Ink Horror · '+(d.dur||22)+'s';
-    if(t.ability==='heal') return '{i:s:heal} '+Math.round(hp*(d.mul||.95)*sm)+' team heal'; if(t.ability==='rally') return '{i:s:energy} +40 energy · {i:s:heal} '+Math.round(hp*0.3*sm); if(t.ability==='burst') return '{i:s:attack} '+Math.round(atk*3*sm); if(d.hpMul) return '{i:s:attack} '+Math.round(hp*d.hpMul*sm)+(d.radius?' AoE slam':' slam'); return d.mul?('{i:s:attack} '+Math.round(atk*d.mul*sm)+(d.radius?' AoE':'')):'{i:s:attack} strike'; }
+    if(t.ability==='summonshaman') return 'summons an Elder Ink Horror · '+(d.dur||22)+'s · '+summonShareStr(d.key||'ink horror',skLvNum('summonshaman',d,lv));
+    /* v1112 (Phil: "make every card line ... show the real leveled number"): these fell to the damage default and printed a hit that never lands */
+    if(t.ability==='laststand') return '{i:s:shield} −'+Math.round((1-(d.mul||0.25))*100)+'% dmg taken · {i:s:heal} '+lvPct(skLvNum('laststand',d,lv))+' max HP · '+Math.round((d.pct||1)*100)+'% lifesteal';
+    if(t.ability==='taunt') return '{i:s:shield} −'+lvPct(SKLV.tauntDr(lv))+' dmg taken · taunt '+(d.dur||4)+'s';
+    if(t.ability==='firstspring') return '{i:s:heal} '+lvPct((d.mul||0.5)*sm)+' max HP + '+lvPct(0.04*sm)+'/s';
+    if(t.ability==='ashfall') return '{i:s:burn} '+Math.round(atk*(d.dps||0.8)*sm)+' every 0.5s · '+(d.dur||5)+'s';
+    if(t.ability==='riftpuncture') return '{i:s:stun} '+ccSecFor(d,'freeze')+'s freeze, then silenced · every enemy';
+    if(t.ability==='heal') return '{i:s:heal} '+Math.round(hp*(d.mul||.95)*sm)+' team heal'; if(t.ability==='rally') return '{i:s:energy} +40 energy · {i:s:heal} '+lvPct(skLvNum('rally',d,lv))+' max HP'; if(t.ability==='burst') return '{i:s:attack} '+Math.round(atk*3*sm); if(d.hpMul) return '{i:s:attack} '+Math.round(hp*d.hpMul*sm)+(d.radius?' AoE slam':' slam')+(d.allyDr?' · {i:s:shield} team −'+lvPct(skLvNum('hipposlam',d,lv))+' dmg '+(d.allyDrDur||5)+'s':''); return d.mul?('{i:s:attack} '+Math.round(atk*d.mul*sm)+(d.radius?' AoE':'')):'{i:s:attack} strike'; }
   const ab=idx===1?kit.green:idx===2?kit.blue:kit.purple;
-  if(idx===3){ const P={tallow:'{i:s:stun} '+(+tallowEncase(lv).toFixed(3))+'s encase at 3 wax stacks',   /* v1102: tallowEncase - 1 s + 0.015 s per level, the same number the fight uses */ bulwark:'{i:s:shield} −'+Math.round(18*sm)+'% dmg taken',fury:'{i:s:energy} +'+Math.round(25*sm)+'% atk speed',crit:'{i:s:crit-burst} +'+Math.round(20*sm)+'% crit',power:'{i:s:attack} +'+Math.round(15*sm)+'% dmg',regen:'{i:s:heal} '+ (+(0.02*sm*100).toFixed(1))+'%/s heal',beeward:'every ally: +0.4%/s heal',battery:'{i:s:energy} faster energy',lifesteal:'{i:s:heal} '+Math.round(20*sm)+'% lifesteal',ignite:'{i:s:burn} burn',warden:'{i:s:shield} +'+Math.round(4*sm)+'% armour & MR /3s (cap 20%)',juggernaut:'{i:s:heal} '+(+(4*sm).toFixed(1))+'%/s self-heal',mirewall:'{i:s:shield} −'+Math.round(Math.min(35,20*sm))+'% on lowest ally',
+  if(idx===3){ const P={tallow:'{i:s:stun} '+(+tallowEncase(lv).toFixed(3))+'s encase at 3 wax stacks',   /* v1102: tallowEncase - 1 s + 0.015 s per level, the same number the fight uses */ bulwark:'{i:s:shield} −'+Math.round(18*sm)+'% dmg taken',fury:'{i:s:energy} +'+Math.round(25*sm)+'% atk speed',crit:'{i:s:crit-burst} +'+Math.round(20*sm)+'% crit',power:'{i:s:attack} +'+Math.round(15*sm)+'% dmg',regen:'{i:s:heal} '+ (+(0.02*sm*100).toFixed(1))+'%/s heal',beeward:'every ally: +0.4%/s heal',battery:'{i:s:energy} faster energy',lifesteal:'{i:s:heal} '+Math.round(20*sm)+'% lifesteal',ignite:'{i:s:burn} burn',warden:'{i:s:shield} +'+Math.round(4*sm)+'% armour & MR /3s (cap '+lvPct(SKLV.wardenCap(lv))+')',juggernaut:'{i:s:heal} '+(+(4*sm).toFixed(1))+'%/s self-heal',mirewall:'{i:s:shield} −'+lvPct(SKLV.mirewall(lv))+' on lowest ally',
     desertmom:'{i:s:energy} up to +'+Math.round(50*sm)+'% atk speed & +'+Math.round(120*sm)+' penetration',
-    gruel:'3 casts → encased '+(+(1.6*sm).toFixed(1))+'s', risingheat:'{i:t:apow} up to +'+Math.round(45*sm)+'% spell power', staticcharge:'{i:s:energy} 5 stacks → chain',
+    gruel:'3 casts → encased '+(+(1.6*sm).toFixed(1))+'s', risingheat:'{i:t:apow} +'+lvPct(0.09*sm)+' per scorched foe, up to +'+lvPct(SKLV.risingheatCap(lv))+' spell power', staticcharge:'{i:s:energy} 5 stacks → chain',
     patience:'{i:s:crit-burst} +'+Math.round(5*sm)+'% crit per stack (×6)', convergence:'{i:s:energy} energy back on AoE',
     unbroken:'{i:s:shield} '+Math.round(30*sm)+'% shield once per battle', sacredbells:'{i:s:shield} allies −'+Math.round(10*sm)+'% dmg /4s',
     livingpages:'{i:t:apow} next attack +'+Math.round(60*sm)+'%', instinct:'{i:s:attack} every 4th shot is true damage',
-    layered:'{i:s:shield} 5 layers → 2s control immunity', unshaken:'{i:s:energy} energy + cover a held ally',
+    layered:'{i:s:shield} 5 layers → '+lvSec(SKLV.layered(lv))+' control immunity', unshaken:'{i:s:energy} energy + cover a held ally',
     splendor:'{i:s:shield} +'+Math.round(4*sm)+'% shield on every buff', goldthread:'{i:s:heal} '+Math.round(40*sm)+'% of her healing passed on',
-    camouflage:'{i:s:crit-burst} untouched: +'+Math.round(18*sm)+'% dodge, +'+Math.round(25*sm)+'% dmg',
-    silentalt:'{i:s:crit-burst} untouched: +'+Math.round(50*sm)+'% crit damage', abyssres:'{i:t:apow} every 3rd cast +45%',
-    pelagic:'{i:s:reveal} reveals the next enemy cast · {i:s:shield} −'+Math.round(8*sm)+'% damage taken', unmovable:'{i:s:shield} immovable + molten armour',
-    skeletonkey:'5 keys → Master-Unlock', venomrhythm:'{i:s:poison} every 3rd attack: −heal, −energy', killerinstinct:'{i:s:poison} every attack: −heal 3s',
+    camouflage:'{i:s:crit-burst} untouched: +'+Math.round(18*sm)+'% dodge, +25% dmg',
+    silentalt:'{i:s:crit-burst} untouched: +'+Math.round(50*sm)+'% crit damage', abyssres:'{i:t:apow} every 3rd cast +'+lvPct(SKLV.abyssres(lv)),
+    pelagic:'{i:s:reveal} reveals the next enemy cast · {i:s:shield} −'+Math.round(8*sm)+'% damage taken', unmovable:'{i:s:shield} immovable · −'+Math.round(4*sm)+'% dmg per molten layer (cap '+lvPct(SKLV.wardenCap(lv))+')',
+    skeletonkey:'5 keys → Master-Unlock · +'+lvPct(0.05*sm)+' crit dmg, +'+lvPct(0.03*sm)+' dodge', venomrhythm:'{i:s:poison} every 3rd attack: −heal, −energy', killerinstinct:'{i:s:poison} every attack: −heal '+lvSec(3*sm),
     packopp:'{i:s:attack} +'+Math.round(28*sm)+'% vs isolated/held/low', digger:'{i:s:energy} atk speed per hit taken',
     loadedhand:'🃏 every 4th attack draws a suit', pridemomentum:'{i:s:attack} +'+Math.round(22*sm)+'% after a block',
     weightless:'{i:s:energy} dodge → atk speed + crit', prismscales:'{i:s:cleanse} dodge → water blade',
     slumber:'{i:s:reveal} attacks lower enemy accuracy',
-    hush:'{i:s:silence} every 5s one enemy is silenced for 0.7s', momentum:'{i:s:energy} atk speed ramps up to +'+Math.round(50*sm)+'%',
-    notthere:'{i:s:untargetable} every 4s the next blow misses', packstats:'{i:s:attack} +5% per living summon',
-    tidereserve:'{i:s:heal} 1% HP and 1% energy per second', scriptorium:'{i:s:energy} the whole team charges faster',
-    unwind:'{i:s:heal} every 5s one ally is cleansed', wrath:'{i:s:attack} +12% every 5s, compounding',
-    coldsnap:'{i:s:slow} Chill adds +5% frost ability damage taken per stack (max +25%); expires after 10s', deepfreeze:'{i:s:slow} every 5s one enemy is frozen',
-    stormdodge:'30% dodge while casting', selfregen:'{i:s:heal} steady regeneration in combat',
+    hush:'{i:s:silence} every 5s one enemy is silenced for '+lvSec(0.7*sm), momentum:'{i:s:energy} atk speed ramps up to +'+lvPct(SKLV.momentumCap(lv)),
+    notthere:'{i:s:untargetable} every '+lvSec(SKLV.notthere(lv))+' the next blow misses', packstats:'{i:s:attack} +'+lvPct(0.05*sm)+' per living summon',
+    tidereserve:'{i:s:heal} '+lvPct(0.01*sm)+' HP and '+lvPct(0.01*sm)+' energy per second', scriptorium:'{i:s:energy} the whole team gains +'+(+sm.toFixed(2))+' energy per second',
+    unwind:'{i:s:heal} every '+lvSec(SKLV.unwind(lv))+' one ally is cleansed', wrath:'{i:s:attack} +12% every 5s, compounding',
+    coldsnap:'{i:s:slow} Chill adds +'+lvPct(SKLV.coldsnap(lv))+' frost ability damage taken per stack (max +'+lvPct(5*SKLV.coldsnap(lv))+'); expires after 10s', deepfreeze:'{i:s:slow} every 5s one enemy is frozen',
+    stormdodge:lvPct(SKLV.stormdodge(lv))+' dodge while casting', selfregen:'{i:s:heal} steady regeneration in combat',
     unstepped:'{i:s:shield} cannot be pulled, knocked or displaced', unstoppable:'{i:s:shield} cannot be slowed, stunned or displaced',
-    immolate:'{i:s:burn} burning aura', debtaura:'{i:s:poison} nearby DoTs last 20% longer',
-    twinfonts:'{i:s:attack}/{i:s:heal} Dark drains, Light regenerates', deeproots:'{i:s:root} an ally below 30% is rooted and healed 25% over 4 s', contagion:'{i:s:poison} his poison spreads on death',
-    perfectpitch:'{i:s:shield} her heals also shield', stardust:'{i:s:burn} every attack leaves a burn',
+    immolate:'{i:s:burn} burning aura: '+lvPct(SKLV.immolate(lv))+' of attack a second', debtaura:'{i:s:poison} nearby DoTs last '+lvPct(SKLV.debtaura(lv))+' longer',
+    twinfonts:'{i:s:attack}/{i:s:heal} Dark drains '+Math.round((apw*0.4+2)*SKLV.twinfonts(lv))+'/s, Light regenerates '+lvPct(0.012*SKLV.twinfonts(lv))+' HP/s', deeproots:'{i:s:root} an ally below 30% is rooted and healed '+lvPct(0.25*sm)+' over 4 s', contagion:'{i:s:poison} his poison spreads on death ('+lvSec(SKLV.contagionDur(lv))+')',
+    perfectpitch:'{i:s:shield} her heals also shield for '+lvPct(SKLV.pitch(lv))+' of the heal', stardust:'{i:s:burn} every attack leaves a '+lvPct(SKLV.stardust(lv))+' attack burn', bloodrage:'{i:s:attack} +1% dmg per 4% health lost, up to +'+lvPct(SKLV.bloodrageCap(lv)),
     darkconv:'every attack curses; every third converges', arsenal:'{i:s:mark} a different projectile every attack'}; return P[ab.pass]||'passive'; }
   switch(ab.type){
     case 'hot': return '{i:s:heal} '+Math.round(hp*(ab.hps||.05)*sm)+'/s heal';
     case 'shield': return '{i:s:shield} '+Math.round(hp*(ab.mul||.4)*sm)+' shield';
-    case 'defensive': return '{i:s:shield} −'+Math.round((1-(ab.mul||0.5))*100)+'% damage taken · '+(ab.dur||4)+'s';
+    case 'defensive': return '{i:s:shield} −'+lvPct(1-skLvNum('defensive',ab,lv))+' damage taken · '+(ab.dur||4)+'s';
     case 'mendburst': return '{i:s:heal} '+Math.round(apw*(ab.mul||0.45)*sm)+' + '+Math.round(hp*(ab.hot||0.06)*sm)+'/s';
     case 'volley': return '{i:s:attack} '+Math.round(atk*(ab.mul||0.9)*sm)+' ×'+(ab.n||3)+(ab.single?' into one target':'');
-    case 'dmgbuff': return '{i:s:attack} +'+Math.round(((ab.mul||1.25)-1)*100)+'% team dmg';
-    case 'haste': return '{i:s:energy} +'+Math.round(((ab.mul||1.3)-1)*100)+'% atk speed';
-    case 'taunt': return '{i:s:shield} −'+Math.round(40*sm)+'% dmg taken';
+    case 'dmgbuff': return '{i:s:attack} +'+lvPct(skLvNum('dmgbuff',ab,lv)-1)+' team dmg';
+    case 'haste': return '{i:s:energy} +'+lvPct(skLvNum('haste',ab,lv)-1)+' atk speed';
+    case 'taunt': return '{i:s:shield} −'+lvPct(SKLV.tauntDr(lv))+' dmg taken';
     case 'creeprot': case 'dot': case 'aoedot': return '{i:s:attack} '+(ab.mul?Math.round(atk*ab.mul*sm)+' + ':'')+'DoT '+Math.round(atk*(ab.dps||.5)*sm)+'/s';
     case 'punchflurry': return '{i:s:attack} '+Math.round(atk*(ab.mul||0.28)*sm)+' ×'+(ab.hits||5);
     case 'frozenorb': return '{i:s:slow} '+Math.round(apw*(ab.mul||1.1)*sm)+' to every foe in a 28 m line + chill';
     case 'freeze': return '{i:s:slow} '+Math.round(apw*(ab.mul||1.2)*sm)+' + '+ccSecFor(ab,'stun')+'s stun';
     case 'sunburst': return ''+Math.round(apw*(ab.mul||1.4)*sm)+' + heal';
-    case 'duality': return '{i:s:attack}/{i:s:shield} stance swap';
+    case 'duality': return '{i:s:attack}/{i:s:shield} stance swap · Light shield '+lvPct(skLvNum('duality',ab,lv))+' max HP + '+Math.round(apw*2);
     case 'toxbreath': return '{i:s:poison} '+Math.round(apw*(ab.mul||0.9)*sm)+' + DoT '+Math.round(apw*(ab.dps||0.5)*sm)+'/s';
     case 'swamproot': return '{i:s:root} '+Math.round(apw*(ab.mul||0.7)*sm)+(ab.farthest?' ×'+ab.farthest:'')+' + '+ccSecFor(ab,'root')+'s root'+(ab.silence?' + '+Math.round(ab.silence*CC_NERF)+'s silence':'');   /* v1030: Bloatus - two farthest, silence */
     case 'crescendo': return '{i:s:heal} '+Math.round(apw*2*sm)+' heal';
@@ -5175,8 +5304,8 @@ function _skillEffectStrRaw(key,idx,atk,hp){ const t=HERO_TYPES[key],kit=KITS[ke
     case 'stormsurge': return '{i:s:energy} '+Math.round(apw*(ab.mul||0.85)*sm)+' ×'+(ab.n||5);
     case 'chainlight': return '{i:s:energy} '+Math.round(apw*(ab.mul||1.1)*sm)+' chain';
     /* v527 — the design-pack behaviours */
-    case 'shred': return '{i:s:attack} '+Math.round(atk*(ab.mul||1.4)*sm)+' + −'+Math.round((ab.shred||0.3)*100)+'% armour';
-    case 'mrshred': return '{i:t:apow} '+Math.round(apw*(ab.mul||1.4)*sm)+' + −'+Math.round((ab.shred||0.3)*100)+'% resist';
+    case 'shred': return '{i:s:attack} '+Math.round(atk*(ab.mul||1.4)*sm)+' + −'+lvPct(shredAt(ab.shred||0.3,sm))+' armour';
+    case 'mrshred': return '{i:t:apow} '+Math.round(apw*(ab.mul||1.4)*sm)+' + −'+lvPct(shredAt(ab.shred||0.3,sm))+' resist';
     case 'knockstun': return '{i:s:attack} '+Math.round(atk*(ab.mul||1.4)*sm)+' + '+ccSecFor(ab,'stun')+'s stun + knockback';
     /* v792 - Nerisse's "Choir of the Deep Sky". This said 5s, typed by hand, while v790 made an
        area silence 1.5s - the game was quoting a number the fight had stopped using. */
@@ -5185,12 +5314,12 @@ function _skillEffectStrRaw(key,idx,atk,hp){ const t=HERO_TYPES[key],kit=KITS[ke
        because it is harmless and a future kit could use the type. */
     case 'deepchoir': return ccSecFor(d,'silence')+'s silence in 8m · each affected enemy heals its nearest ally for 30% of that enemy’s Ability Power each second · no damage';
     case 'aoeStun': return '{i:s:attack} '+Math.round(atk*(ab.mul||1.2)*sm)+' AoE + '+ccSecFor(ab,'stun')+'s stun'+(ab.silence?' + '+ccSecFor(ab,'silence')+'s silence':'');
-    case 'evadecounter': return 'evade + {i:s:attack} '+Math.round(atk*(ab.mul||1.8)*sm)+' counter';
+    case 'evadecounter': return 'evade · {i:s:shield} −'+lvPct(1-skLvNum('evadecounter',ab,lv))+' dmg taken · {i:s:attack} '+Math.round(_atkRaw*(ab.mul||1.8)*sm)+' counter';
     case 'interruptslam': return '{i:s:attack} '+Math.round(atk*(ab.mul||1.2)*sm)+' AoE + interrupt';
-    case 'banner': return '{i:s:shield} team +'+Math.round((1-(ab.dr||0.82))*100)+'% DR · {i:s:energy} +'+Math.round(((ab.haste||1.2)-1)*100)+'% atk speed';
+    case 'banner': return '{i:s:shield} team −'+lvPct(1-skLvNum('banner',ab,lv))+' dmg taken · {i:s:energy} +'+Math.round(((ab.haste||1.2)-1)*100)+'% atk speed';
     case 'atkcrush': return '{i:s:attack} '+Math.round(atk*(ab.mul||1.5)*sm)+' + −'+Math.round((ab.pct||0.35)*100)+'% enemy attack';
     case 'energysteal': return '{i:s:energy} steal '+(ab.steal||30)+' energy + {i:s:attack} '+Math.round(atk*(ab.mul||1.2)*sm);
-    case 'energygift': return '{i:s:energy} ally +'+(ab.give||25)+' energy (+'+(ab.perKey||6)+'/key)';
+    case 'energygift': return '{i:s:energy} ally +'+(+skLvNum('energygift',ab,lv).toFixed(1))+' energy (+'+(ab.perKey||6)+'/key)';
     case 'silencestrike': return '{i:t:apow} '+Math.round(apw*(ab.mul||1.3)*sm)+' + '+ccSecFor(ab,'silence')+'s silence';
     case 'orbheal': return '{i:s:heal} '+Math.round(apw*(ab.mul||0.35)*sm)+' to every ally';
     case 'sleepbouquet': return '{i:s:sleep} '+ccSecFor(ab,'sleep')+'s sleep on the fullest ult';
@@ -5198,13 +5327,13 @@ function _skillEffectStrRaw(key,idx,atk,hp){ const t=HERO_TYPES[key],kit=KITS[ke
     case 'linkheal': return '{i:s:heal} '+Math.round(apw*(ab.mul||0.5)*sm)+' ×2 + shared healing';
     case 'lastbreath': return '{i:s:shield} '+Math.round(apw*(ab.mul||1.8)*sm)+' shield · cannot fall below 1';
     case 'boomerang': return '{i:s:attack} '+Math.round(atk*(ab.mul||0.9)*sm)+' out · '+Math.round(atk*(ab.mul||0.9)*(ab.backMul||1.5)*sm)+' back';
-    case 'markreveal': return '{i:s:crit-burst} mark: +'+Math.round(((ab.mul||1.25)-1)*100)+'% damage taken';
-    case 'summonmirage': return '{i:t:apow} a mirage of herself · 30% stats · until it dies';
+    case 'markreveal': return '{i:s:crit-burst} mark: +'+lvPct(skLvNum('markreveal',ab,lv)-1)+' damage taken';
+    case 'summonmirage': return '{i:t:apow} a mirage of herself · '+lvPct(skLvNum('summonmirage',ab,lv))+' stats · until it dies';
     case 'mirage': return '{i:s:shield} '+Math.round(hp*(ab.pct||0.18)*sm)+' shield + '+Math.round((ab.eva||0.15)*100)+'% dodge';
     case 'sealwax': return '{i:t:apow} '+Math.round(apw*(ab.mul||1.0)*sm)+' + slow '+(ab.harden||2)+'s, then '+ccSecFor(ab,'stun')+'s seal';
     case 'gravknot': return 'pull + slow'+(ab.mul?' · {i:t:apow} '+Math.round(apw*ab.mul*sm):'');
-    case 'thornguard': return '{i:s:shield} '+Math.round(hp*(ab.pct||0.16)*sm)+' shield + '+Math.round((ab.thorn||0.55)*100)+'% retaliation';
-    case 'incense': return '{i:s:attack} −'+Math.round((ab.pct||0.25)*100)+'% enemy attack · {i:s:heal} cleanse';
+    case 'thornguard': return '{i:s:shield} '+Math.round(hp*(ab.pct||0.16)*sm)+' shield + '+Math.round(Math.min(0.85,(ab.thorn||0.55)*sm)*100)+'% retaliation';
+    case 'incense': return '{i:s:attack} −'+Math.round((ab.pct||0.25)*100)+'% enemy attack · {i:s:heal} '+Math.round(apw*(ab.mul||0.35)*sm)+' + cleanse';
     case 'chainquench': return '{i:s:attack} '+Math.round(atk*(ab.mul||0.8)*sm)+' + pull + burn '+Math.round(atk*(ab.dps||0.35)*sm)+'/s';
     case 'chapterrewrite': return '{i:t:apow} '+Math.round(apw*(ab.mul||1.0)*sm)+' + strips buffs · −'+Math.round((ab.pct||0.3)*100)+'% stats';
     case 'grapple': return '{i:s:attack} '+Math.round(atk*(ab.mul||1.2)*sm)+' + pull + '+ccSecFor(ab,'stun')+'s stun';
@@ -5212,6 +5341,16 @@ function _skillEffectStrRaw(key,idx,atk,hp){ const t=HERO_TYPES[key],kit=KITS[ke
     case 'warcry': { const _lw=Math.max(0,Math.round(((sm||1)-1)/SKILL_STEP)); return '{i:s:attack} +'+(((ab.mul||1.4)-1+(ab.mulPerLv||0)*vaelSteps(_lw+1))*100).toFixed(1).replace(/\.0$/,'')+'% dmg · '+(ab.dur||6)+'s'; }   /* v1024: a buff, not a hit */
     case 'lifestealbuff': { const _lv=Math.max(0,Math.round(((sm||1)-1)/SKILL_STEP));   /* v1024: Bloodthirst's numbers at this skill level */
       return (ab.atkSpd?'{i:s:energy} +'+((ab.atkSpd-1+(ab.atkSpdPerLv||0)*vaelSteps(_lv+1))*100).toFixed(1).replace(/\.0$/,'')+'% atk spd · ':'')+(ab.crit?'{i:s:crit-burst} +'+((ab.crit+(ab.critPerLv||0)*vaelSteps(_lv+1))*100).toFixed(1).replace(/\.0$/,'')+'% crit · ':'')+'♥ '+Math.round((ab.pct||0.25)*100)+'% lifesteal'; }
+    /* v1112 (Phil: "make every card line ... show the real leveled number"): these fell to the default and printed an Attack hit the skill never deals */
+    case 'pullsilence': return '{i:s:silence} pull · '+lvSec((ab.dur||2)*CC_NERF)+' silence · taunt '+(ab.dur||2)+'s';
+    case 'tendrilpull': return (ab.mul?'{i:s:attack} '+Math.round(atk*ab.mul*sm)+' + ':'')+'pull the '+(ab.nearest?'nearest':'farthest')+' enemy'+(ab.silence?' + silence':'');
+    case 'summonwarriors': return (ab.n||3)+' × '+(ab.key||'boar warrior')+' · '+summonShareStr(ab.key||'boar warrior',skLvNum('summonwarriors',ab,lv));
+    case 'summonshaman': return '1 × '+(ab.key||'boar shaman')+' · '+summonShareStr(ab.key||'boar shaman',skLvNum('summonshaman',ab,lv));
+    case 'dawnward': return '{i:s:shield} the ally nearest death cannot fall below 1 for '+lvSec(skLvNum('dawnward',ab,lv));
+    case 'spdsteal': return '{i:s:energy} steals '+lvPct(skLvNum('spdsteal',ab,lv))+' atk speed · '+(ab.dur||5)+'s';
+    case 'heal': return '{i:s:heal} '+lvPct((ab.mul||0.9)*sm)+' max HP to every ally';
+    case 'shadeburst': return '{i:s:poison} DoT '+Math.round(apw*(ab.dps||0.3)*sm)+'/s · '+(ab.dur||6)+'s';
+    case 'ashfall': case 'erratafield': return '{i:s:burn} '+Math.round(atk*(ab.dps||0.5)*sm)+' every 0.5s · '+(ab.dur||3)+'s';
     default: return '{i:s:attack} '+Math.round(atk*(ab.mul||1)*sm)+(ab.stun?' + stun':'');
   }
 }
@@ -9387,9 +9526,10 @@ function summonUnit(owner,key,dur,off){
   if(!u)return null;
   const sc=SUMMON_SCALE[key];
   if(sc){                                   // scale off the master so they stay relevant at every level
-    u.maxHp=Math.round(owner.maxHp*sc.hp); u.hp=u.maxHp;
-    u.dmg=Math.round(owner.dmg*sc.dmg);
-    if(sc.apow) u.apow=Math.round((owner.dmg||20)*sc.apow);
+    const _sh=(off&&off.share)||1;   /* v1112: a levelled summon skill grows the share */
+    u.maxHp=Math.round(owner.maxHp*sc.hp*_sh); u.hp=u.maxHp;
+    u.dmg=Math.round(owner.dmg*sc.dmg*_sh);
+    if(sc.apow) u.apow=Math.round((owner.dmg||20)*sc.apow*_sh);
     u.armor=(u.armor||0)+sc.armor; u.mr=(u.mr||0)+sc.mr; u.armorRating=(u.armorRating||0)+sc.armor; u.mrRating=(u.mrRating||0)+sc.mr; u.defRating=(u.defRating||0)+sc.armor+sc.mr;
   }
   // rise clip is 12 frames at 14 fps — hold them underground for exactly that long so the
@@ -9520,11 +9660,11 @@ function damage(u,a,c,noEnergy,crit){
   if(u.drT>0)a*=u.drMul;                 // active damage-reduction cooldown (Shield Wall etc.)
   if(u.glyphDR)a*=(1-u.glyphDR);          // Armor / Magic Resist glyphs
   if(u.pass&&u.pass.bulwark)a*=(1-0.18*(u.passMul||1));   // passive mitigation (scales with skill level)
-  if(u.pass&&u.pass.warden&&u.wardenStk)a*=(1-Math.min(0.20,0.04*(u.passMul||1)*u.wardenStk));   // Adamant Discipline: stacking armour/MR
+  if(u.pass&&u.pass.warden&&u.wardenStk)a*=(1-Math.min(SKLV.wardenCap(passLv(u)),0.04*(u.passMul||1)*u.wardenStk));   /* v1112: the cap grows 20% -> 29.9% */   // Adamant Discipline: stacking armour/MR
   /* v894 - Unmovable Mass: every 3 direct hits build a molten-armour stack (max 5), and the stacks cut damage taken */
   if(u.pass&&u.pass.unmovable){ if(!noEnergy){ u._mmHits=(u._mmHits||0)+1; if(u._mmHits>=3&&(u.wardenStk||0)<5){ u._mmHits=0; u.wardenStk=(u.wardenStk||0)+1;
       try{ firePassiveFx(u); ringBurst(u.x,u.y,0x6fb7c9,8); floatTexts.push({x:u.x,y:u.y-6,txt:'+'+Math.round(4*(u.passMul||1))+'% DR',t:.8,color:'#6fb7c9',vy:1}); }catch(_e){} } }
-    if(u.wardenStk) a*=(1-Math.min(0.20,0.04*(u.passMul||1)*u.wardenStk)); }
+    if(u.wardenStk) a*=(1-Math.min(SKLV.wardenCap(passLv(u)),0.04*(u.passMul||1)*u.wardenStk)); }   /* v1112 */
   /* v894 - Layered Hide: each direct hit hardens one layer (was never counted) */
   if(u.pass&&u.pass.layered&&!noEnergy&&!((u._layT||0)>0)) u._layStk=(u._layStk||0)+1;
 
@@ -9560,7 +9700,8 @@ function damage(u,a,c,noEnergy,crit){
       ringBurst(u.x,u.y,0x8a7a3a,16);
       floatTexts.push({x:u.x,y:u.y-14,txt:'DEBT CALLED IN',t:1.3,color:'#8a7a3a',vy:1,sz:13}); }
     if(u._contagion && u.dots && u.dots.some(d=>d.color===u._plagueColor)){   // only the carrier's own plague/curse spreads — a stray bleed or burn does not // Contagion (King Bloatus): a poisoned foe's death splashes its poison onto nearby enemies, which can chain again
-      units.forEach(e=>{ if(e.alive&&e!==u&&e.team===u.team&&Math.hypot(e.x-u.x,e.y-u.y)<2.6*METER){ plagueDot(e,u._plagueDps||6,4,1,u._plagueColor||'#8fbf3f'); e._contagion=true; e._plagueDps=u._plagueDps||6; e._plagueColor=u._plagueColor; e._plagueHex=u._plagueHex; if(u._darkAuraT!=null)e._darkAuraT=4; } });
+      const _cgDur=SKLV.contagionDur(contagionLv(u.team));   /* v1112: the spread lasts 4 s + 0.02 s a level of the strongest Contagion on the other side */
+      units.forEach(e=>{ if(e.alive&&e!==u&&e.team===u.team&&Math.hypot(e.x-u.x,e.y-u.y)<2.6*METER){ plagueDot(e,u._plagueDps||6,_cgDur,1,u._plagueColor||'#8fbf3f'); e._contagion=true; e._plagueDps=u._plagueDps||6; e._plagueColor=u._plagueColor; e._plagueHex=u._plagueHex; if(u._darkAuraT!=null)e._darkAuraT=4; } });
       ringBurst(u.x,u.y,u._plagueHex||0x8fbf3f,12);
       if((u._plagueColor||'#8fbf3f')==='#8fbf3f') floatTexts.push({x:u.x,y:u.y-12,txt:'POISON SPREADS',t:1.0,color:'#a6e05a',vy:1,sz:12});   /* v1030 (Phil): it is his poison that spreads */
     }
@@ -9635,7 +9776,7 @@ function loreToggle(key,btn){ try{
 function dealDamage(src,tgt,amt,color,kind,silent){ kind=kind||((src&&src.t&&(['Magic','Healer'].includes(src.t.damageProfile)))?'magic':'phys');   // default follows canonical hero damage; explicit kind still wins
   // Packmaster: he is stronger and harder to put down for every summon still alive.
   if(src&&src._packN) amt*=1+0.05*src._packN*(src.passMul||1);
-  if(src&&src.pass&&src.pass.bloodrage&&(src._brTaken||0)>0) amt*=1+Math.min(0.25,0.25*src._brTaken/Math.max(1,src.maxHp||1));   /* v1024 Blood Rage (Vael): +1% per 4% max HP taken this fight, cap +25% */
+  if(src&&src.pass&&src.pass.bloodrage&&(src._brTaken||0)>0) amt*=1+Math.min(SKLV.bloodrageCap(passLv(src)),0.25*src._brTaken/Math.max(1,src.maxHp||1));   /* v1024 Blood Rage (Vael): +1% per 4% max HP taken this fight, cap +25% */
   if(src&&(src._devourT||0)>0&&src._devourBonus) amt+=src._devourBonus;   // Feed Them: the pack's strength, carried
   if(tgt&&tgt._packN) amt/=1+0.05*tgt._packN*(tgt.passMul||1);
   // Weigh the Debt (Gruel): a marked enemy's damage is partly redirected into him, and he heals off it.
@@ -9645,7 +9786,7 @@ function dealDamage(src,tgt,amt,color,kind,silent){ kind=kind||((src&&src.t&&(['
     floatTexts.push({x:g.x,y:g.y-10,txt:'COLLECTED',t:.7,color:'#b9a06a',vy:1,sz:10}); }
   // The Mirewall (Grosk): his lowest-health ally takes 20% less, and 35% of what they avoid lands on HIM instead - he heals back half of it.
   if(tgt&&tgt._mwBy&&tgt._mwBy.alive&&tgt._mwBy!==tgt&&src&&src.team!==tgt.team){
-    const g=tgt._mwBy, cut=amt*Math.min(0.35,0.20*(g.passMul||1)); amt-=cut;
+    const g=tgt._mwBy, cut=amt*SKLV.mirewall(passLv(g)); amt-=cut;   /* v1112: cap 35% + 0.1 pt a level */
     const take=cut*0.35; g.hp=Math.max(1,g.hp-take); healUnit(g,take*0.5);
     if((g._mwFxT||0)<=0){ g._mwFxT=0.7; floatTexts.push({x:g.x,y:g.y-10,txt:'MIREWALL',t:.6,color:'#9ad07a',vy:1,sz:10}); } }
   // Croc Drop's plant: while Grosk lives, the whole team eats 30% less for 5s.
@@ -9655,14 +9796,14 @@ function dealDamage(src,tgt,amt,color,kind,silent){ kind=kind||((src&&src.t&&(['
 
   // The Space He Isn't In (Hollow): he banks a miss every 4s. Not a dodge roll — the blow that
   // arrives while it is banked never lands, which is the one thing his story says twice.
-  if(tgt.pass&&tgt.pass.notthere && tgt._ntReady){ tgt._ntReady=false; tgt._ntCd=4;
+  if(tgt.pass&&tgt.pass.notthere && tgt._ntReady){ tgt._ntReady=false; tgt._ntCd=SKLV.notthere(passLv(tgt));   /* v1112: 4 s - 0.01 s a level */
     floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'NOT THERE',t:.7,color:'#c9a6ff',vy:1.3,sz:13});
     try{ ringBurst(tgt.x,tgt.y,0x4a2a6a,10); }catch(e){}
     firePassiveClip(tgt, tgt.anim&&tgt.anim.passive?(tgt.anim.passive.n/(tgt.anim.passive.fps||12)):0);
     return; }
   if(tgt._vpT>0 || tgt._noTarget) return;   // he is not on the field to be hit
-  if(tgt.pass&&tgt.pass.stormdodge && ((tgt._stormT||0)>0||(tgt._castT||0)>0) && brnd()<0.30){ floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'DODGE',t:.55,color:'#f2d84a',vy:1.3,sz:14}); return; }   // Static Veil (Fritz): 30% dodge while casting or channeling
-  { const _coldStacks=Math.max(((tgt._chillT||0)>0?(tgt._chillStacks||0):0),((tgt._frozenT||0)>0?1:0)); if(src&&src._frostHit&&_coldStacks>0)amt*=1+Math.min(5,_coldStacks)*0.05; }   // Cold Snap: only frost abilities gain +5% damage per Chill, max +25%
+  if(tgt.pass&&tgt.pass.stormdodge && ((tgt._stormT||0)>0||(tgt._castT||0)>0) && brnd()<SKLV.stormdodge(passLv(tgt))){   /* v1112: 30% + 0.15 pt a level */ floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'DODGE',t:.55,color:'#f2d84a',vy:1.3,sz:14}); return; }   // Static Veil (Fritz): 30% dodge while casting or channeling
+  { const _coldStacks=Math.max(((tgt._chillT||0)>0?(tgt._chillStacks||0):0),((tgt._frozenT||0)>0?1:0)); if(src&&src._frostHit&&_coldStacks>0)amt*=1+Math.min(5,_coldStacks)*((src.pass&&src.pass.coldsnap)?SKLV.coldsnap(passLv(src)):0.05); }   /* v1112: Cold Snap 5% + 0.03 pt a level per stack */   // Cold Snap: only frost abilities gain +5% damage per Chill, max +25%
   // ---- v247 TYPED COMBAT (client mirror of the server core) ----
   amt*=(src&&src.dmgBonusMul2)||1;                                              // Damage Bonus stat
   if(src&&(src._atkDnT||0)>0) amt*=1-(src._atkDnPct||0);   // v527: a crushed attack (Infernal Clinch)
@@ -9731,7 +9872,7 @@ function dealDamage(src,tgt,amt,color,kind,silent){ kind=kind||((src&&src.t&&(['
   if(src._lifestealT>0&&tgt!==src&&src.alive) healUnit(src,_hpLost*(src._lifestealPct||0.25));   // timed lifesteal buff (Skarrn: Hive Vigor)
   if(src.pass&&src.pass.ignite&&tgt.alive) pushDot(tgt,src.dmg*0.12,3,1,'#ff6a3a');
   // Stardust (Astra): every auto-attack leaves a burn — 2s, ticking every 0.5s (Phil's numbers)
-  if(src.pass&&src.pass.stardust&&tgt.alive) pushDot(tgt,src.dmg*0.10,2,0.5,'#6fe3d4');
+  if(src.pass&&src.pass.stardust&&tgt.alive) pushDot(tgt,src.dmg*SKLV.stardust(passLv(src)),2,0.5,'#6fe3d4');   /* v1112: 10% + 0.1 pt a level */
   // Whatever's Loaded (Rivet): every attack throws a DIFFERENT projectile, each with its own effect
   if(src.pass&&src.pass.arsenal&&tgt.alive){ src._armIdx=((src._armIdx||0)+1)%6; const pm=(src.passMul||1);
     const _i=src._armIdx, _tx=tgt.x, _ty=tgt.y;
@@ -9761,7 +9902,7 @@ function pushDot(t,dps,dur,interval,color){
   // Compound Interest (Grimsby): a debt near him is slower to clear — every DoT on an enemy
   // within his aura lasts 20% longer. Applies to the WHOLE team's damage-over-time, not just his.
   try{ if(typeof units!=='undefined'&&units&&units.length){ for(const g of units){
-    if(g.alive&&g.pass&&g.pass.debtaura&&g.team!==t.team&&Math.hypot(g.x-t.x,g.y-t.y)<5*METER){ dur*=1.2; break; } } } }catch(e){}
+    if(g.alive&&g.pass&&g.pass.debtaura&&g.team!==t.team&&Math.hypot(g.x-t.x,g.y-t.y)<5*METER){ dur*=1+SKLV.debtaura(passLv(g)); break; } } } }catch(e){}
   t.dots.push({dps,remaining:Math.max(1,Math.round(dur/interval)),interval,acc:0,color:color||'#ff8844'}); }
 function pushHot(t,hps,dur,interval){ t.hots.push({hps,remaining:Math.max(1,Math.round(dur/interval)),interval,acc:0}); }
 function enemiesOf(u){ return units.filter(o=>o.alive&&o.team!==u.team&&!o._dropHidden&&!o._noTarget&&!(o._riseT>0)); }
@@ -10062,7 +10203,7 @@ const SLOW_MUL_BASE=0.55, SLOW_MUL_PER_LEVEL=0.0025, SLOW_MUL_FLOOR=0.30;
 function slowMulFor(lv){
   return Math.max(SLOW_MUL_FLOOR, SLOW_MUL_BASE-Math.max(0,((lv|0)||1)-1)*SLOW_MUL_PER_LEVEL);
 }
-const SKILL_SCALE_FRAC={dr:0.85, allyDr:0.85, thorn:0.85, slowPct:0.90};
+const SKILL_SCALE_FRAC={thorn:0.85, slowPct:0.90};   /* v1112 BUG FIX: `dr` (evadecounter, banner) is a damage-TAKEN multiplier, so x sm made it protect LESS with level; it and Grosk's allyDr now grow through skLvNum */
 function skillScaleOpts(o, sm, lv){
   /* v790 - runs for EVERY cast, not only a levelled one: the control table applies at level 1 too */
   if(!o) return o;
@@ -10070,7 +10211,7 @@ function skillScaleOpts(o, sm, lv){
   if(!(sm>1)) sm=1;
   for(const k of SKILL_SCALE_KEYS){
     const v=o[k]; if(typeof v!=='number' || !v) continue;
-    out=out||Object.assign({},o); out[k]=v*sm;
+    out=out||Object.assign({},o); out[k]=(k==='shred')?shredAt(v,sm):v*sm;   /* v1112: shred takes a third of the curve, max 45% */
   }
   /* v790 - control time is SET from the table, by kind and by whether this cast is an area.
      v794 (Phil: "it doesnt break the rule, she should silence every second during that 5 second
@@ -10169,7 +10310,7 @@ function startAbilityClip(u,type){
 }
 function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,o)) return;   /* v886 DELIVERY: the effect waits for the art */
   o=gsplitScaleArea(u,o||{}); const rm=rageMul, sm=u._castSM||1;
-  o=skillScaleOpts(o, sm, (u._castLv|0)||(u.level|0)||1);   /* v786/v789 */
+  o=skillScaleOpts(o, sm, (u._castLv|0)||(u.level|0)||1);   /* v786/v789 */ const _kLv=(u._castLv|0)||1;   /* v1112: the level of the slot that fired, for skLvNum */
   const _gearSpellCrit=u._gearNextCrit==='spell'; if(_gearSpellCrit){u._gearNextCrit=null;u._gearSpellCrit=true;}
   // Academy Ability Power is already baked into u.apow when the unit is built. Applying apMul here
   // a second time made base AP scale quadratically, and also gave physical abilities an unintended
@@ -10374,7 +10515,7 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
       healFrom(u,l,l.maxHp*(o.mul||0.45)*sm); pushHot(l,l.maxHp*(o.hot||0.06)*sm,o.dur||6,1);
       burstAt(l.x,l.y,0xffe08a,16); ringBurst(l.x,l.y,0x8a5fd0,12);
       floatTexts.push({x:l.x,y:l.y-14,txt:'SEEDLIGHT',t:1.0,color:'#ffe08a',vy:1,sz:12}); break; }
-    case 'spdsteal':{ const pct=o.pct||0.35, dur=o.dur||5;
+    case 'spdsteal':{ const pct=skLvNum('spdsteal',o,_kLv), dur=o.dur||5;
       let victim=(o._tgtU&&o._tgtU.alive)?o._tgtU:null,vs=-1; if(!victim) enemiesOf(u).forEach(e=>{ if(e.alive){ const s=(e.atkSpeed||1)*(e.hasteMul||1); if(s>vs){vs=s;victim=e;} } });   /* v935: the enemy the shot reached */
       let ally=null,as=-1; alliesOf(u).forEach(a=>{ if(a.alive){ const s=(a.atkSpeed||1)*(a.hasteMul||1); if(s>as){as=s;ally=a;} } });
       if(!victim||!ally)break;
@@ -10410,7 +10551,7 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
       floatTexts.push({x:u.x,y:u.y-12,txt:'TSUNAMI',t:1.0,color:'#9fe0ff',vy:1,sz:13}); break; }
 
     // ---- Lumi: the ally nearest death simply cannot fall for a few seconds. ----
-    case 'dawnward':{ const l=lowestAlly(u); if(!l)break; l._wardT=o.dur||3;
+    case 'dawnward':{ const l=lowestAlly(u); if(!l)break; l._wardT=skLvNum('dawnward',o,_kLv);
       burstAt(l.x,l.y,0xffe89a,18); ringBurst(l.x,l.y,0xf2e2a0,14);
       floatTexts.push({x:l.x,y:l.y-14,txt:'WILL NOT FALL',t:1.3,color:'#ffe89a',vy:1,sz:13}); break; }
 
@@ -10511,14 +10652,14 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
         if(u.pass&&u.pass.contagion){ tgt._contagion=true; tgt._plagueDps=_sA*(o.dps||0.25)*sm; tgt._plagueColor='#f2d84a'; tgt._plagueHex=0xf2d84a; }
         floatTexts.push({x:tgt.x,y:tgt.y-10,txt:'STUNG',t:.9,color:'#f2d84a',vy:1,sz:12}); } break; }
     // ---- Hurne: three undead boar warriors haul themselves up out of the floor ----
-    case 'summonwarriors':{ const n=o.n||3, dur=o.dur||18;
+    case 'summonwarriors':{ const n=o.n||3, dur=o.dur||18, _sh=skLvNum('summonwarriors',o,_kLv);   /* v1112: share x(1 + 0.005 a level) */
       /* v542 (Phil): "make sure the boar warriors for hurne are not summoned until the part of his ability animation where he
          puts his hands to the ground" - frame 24 of 48 on his green (1.0 s at 24 fps). The rise is fused to that frame; a
          caster without the clip (or a monster copy) summons at once as before. */
       const _gc=u.anim&&u.anim.green, _at=(_gc&&_gc.n>1)?((o.groundFrame!=null?o.groundFrame:24)/(_gc.fps||24))*BATTLE_PACE:0;
       const _go=()=>{ if(!u.alive) return;
         for(let i=0;i<n;i++){ const a=(-0.6+1.2*(i/(n-1||1))) + (u.team==='ally'?0:Math.PI);
-          summonUnit(u,o.key||'boar warrior',dur,{a:a,r:(o.radius||1.7*METER)}); }
+          summonUnit(u,o.key||'boar warrior',dur,{a:a,r:(o.radius||1.7*METER),share:_sh}); }
         ringBurst(u.x,u.y,0x6b5230,22);
         if(!o.key) floatTexts.push({x:u.x,y:u.y-14,txt:'UP, THE LOT OF YOU',t:1.2,color:'#c9a227',vy:1,sz:13}); };
       if(_at>0.02) (u._fuse||(u._fuse=[])).push({t:_at,tgt:u,go:_go}); else _go();
@@ -10529,7 +10670,7 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
          blue (the open hand clenches at 13-16). Fused to that frame; the Librarian (his own clip) and anyone without the clip
          summon at once as before. */
       const _bc=(u.key==='hurne')?(u.anim&&u.anim.blue):null, _at=(_bc&&_bc.n>1)?((o.handFrame!=null?o.handFrame:15)/(_bc.fps||24))*BATTLE_PACE:0;
-      const _go=()=>{ if(!u.alive) return; const sh=summonUnit(u,o.key||'boar shaman',o.dur||18,{a:(u.team==='ally'?-1.9:1.9),r:(o.radius||1.5*METER),backRow:true});   // v548: rises in the back row
+      const _go=()=>{ if(!u.alive) return; const sh=summonUnit(u,o.key||'boar shaman',o.dur||18,{a:(u.team==='ally'?-1.9:1.9),r:(o.radius||1.5*METER),backRow:true,share:skLvNum('summonshaman',o,_kLv)});   // v548: rises in the back row
         if(sh){ ringBurst(sh.x,sh.y,0x8fbf3f,18); floatTexts.push({x:sh.x,y:sh.y-12,txt:'BONE CHANT',t:1.1,color:'#8fbf3f',vy:1,sz:12}); } };
       if(_at>0.02) (u._fuse||(u._fuse=[])).push({t:_at,tgt:u,go:_go}); else _go();
       break; }
@@ -10548,8 +10689,8 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
     case 'selfheal':{healFrom(u,u,u.maxHp*(o.mul||0.25)*sm);burstAt(u.x,u.y,0x5ee89b,14);break;}   // Ooznik: Divide — regenerate own HP
     case 'hot':{const l=lowestAlly(u); if(l){pushHot(l,l.maxHp*(o.hps||.05)*sm,o.dur||6,1); if(u.key==='oakmir')spawnGroundFx('mendbloom',l.x,l.y,0.9*METER,1.4);} break;}
     case 'shield':{const tg=o.self?u:lowestAlly(u); if(tg){tg.shield=Math.max(tg.shield,tg.maxHp*(o.mul||.4)*sm);tg.shieldT=o.dur||6;burstAt(tg.x,tg.y,0x8fd0ff,10);} break;}
-    case 'dmgbuff':{alliesOf(u).forEach(a=>{a.dmgBuffMul=o.mul||1.25;a.dmgBuffT=o.dur||6;floatTexts.push({x:a.x,y:a.y-10,txt:'Raise Attack',t:1.1,color:'#8fff9b',vy:1.0,sz:13});});burstAt(u.x,u.y,0xffd45e,10);break;}
-    case 'haste':{const tg2=o.self?[u]:alliesOf(u); tg2.forEach(a=>{a.hasteMul=Math.max(a.hasteMul||1,o.mul||1.3);a.hasteT=Math.max(a.hasteT||0,o.dur||5);a._ocMul=o.mul||1.3;a._ocT=o.dur||5;floatTexts.push({x:a.x,y:a.y-10,txt:o.self?'Frenzy':'Haste',t:1.0,color:'#ffe08a',vy:1.0,sz:13});});burstAt(u.x,u.y,0xffe08a,10);break;}
+    case 'dmgbuff':{alliesOf(u).forEach(a=>{a.dmgBuffMul=skLvNum('dmgbuff',o,_kLv);a.dmgBuffT=o.dur||6;floatTexts.push({x:a.x,y:a.y-10,txt:'Raise Attack',t:1.1,color:'#8fff9b',vy:1.0,sz:13});});burstAt(u.x,u.y,0xffd45e,10);break;}
+    case 'haste':{const tg2=o.self?[u]:alliesOf(u), _hm=skLvNum('haste',o,_kLv); tg2.forEach(a=>{a.hasteMul=Math.max(a.hasteMul||1,_hm);a.hasteT=Math.max(a.hasteT||0,o.dur||5);a._ocMul=_hm;a._ocT=o.dur||5;floatTexts.push({x:a.x,y:a.y-10,txt:o.self?'Frenzy':'Haste',t:1.0,color:'#ffe08a',vy:1.0,sz:13});});burstAt(u.x,u.y,0xffe08a,10);break;}
     case 'lifestealbuff':{u._lifestealT=o.dur||5;u._lifestealPct=o.pct||0.25;
       if(o.atkSpd){ const _as=o.atkSpd+(o.atkSpdPerLv||0)*vaelSteps(u._castLv); u.hasteMul=Math.max(u.hasteMul||1,_as); u.hasteT=Math.max(u.hasteT||0,o.dur||5); u._ocMul=_as; u._ocT=o.dur||5; }   /* v1024 (Phil): Bloodthirst +20% attack speed, +0.2% per skill level above 1 - the Overclock buff */
       if(o.crit){ u._critBuffPct=o.crit+(o.critPerLv||0)*vaelSteps(u._castLv); u._critBuffT=o.dur||5; }   /* v1024 (Phil): +5% crit, +0.1% per skill level above 1 */
@@ -10632,13 +10773,13 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
       floatTexts.push({x:u.x,y:u.y-10,txt:'ROAR!',t:1.1,color:'#ffb46a',vy:1.0,sz:15});
       const R=o.radius||2.6*METER; enemiesOf(u).forEach(e=>{ if(dist(u,e)<R && (o.fear||o.stun) && !e.stunImmune){ ccApply(u,e,'fearT',o.fear||2); e._fearFrom=u; floatTexts.push({x:e.x,y:e.y-10,txt:'FEAR!',t:1.0,color:'#b06bff',vy:1.0,sz:13}); } });
       ringBurst(u.x,u.y,0xffb46a,16); burstAt(u.x,u.y,0xffd45e,12); break; }
-    case 'defensive':{u.drMul=o.mul||0.5;u.drT=o.dur||4;break;}
-    case 'laststand':{ u.drMul=o.mul||0.25; u.drT=o.dur||5; u._lifestealT=o.dur||5; u._lifestealPct=o.pct||1.0; if(o.heal) healFrom(u,u,u.maxHp*o.heal);   /* v538 (Phil): +15% self heal */ ringBurst(u.x,u.y,0xE7B84B,18); burstAt(u.x,u.y,0xffe08a,14); if(u._castSlot!=='ult')floatTexts.push({x:u.x,y:u.y-12,txt:'LAST STAND',t:1.1,color:'#ffd45e',vy:1,sz:14}); if(u.team==='ally')screenFlash=Math.max(screenFlash,.2); break; }
+    case 'defensive':{u.drMul=skLvNum('defensive',o,_kLv);u.drT=o.dur||4;break;}   /* v1112: the reduction grows by the kit's perLv */
+    case 'laststand':{ u.drMul=o.mul||0.25; u.drT=o.dur||5; u._lifestealT=o.dur||5; u._lifestealPct=o.pct||1.0; if(o.heal) healFrom(u,u,u.maxHp*skLvNum('laststand',o,_kLv));   /* v1112: 15% + 0.1 pt a level */   /* v538 (Phil): +15% self heal */ ringBurst(u.x,u.y,0xE7B84B,18); burstAt(u.x,u.y,0xffe08a,14); if(u._castSlot!=='ult')floatTexts.push({x:u.x,y:u.y-12,txt:'LAST STAND',t:1.1,color:'#ffd45e',vy:1,sz:14}); if(u.team==='ally')screenFlash=Math.max(screenFlash,.2); break; }
     case 'firstspring':{ /* v369 (Phil): click-to-heal — the spring rises under the ally you aimed at (auto: the most-hurt ally) and heals every ally within 20 m of it */
       const R=o.radius||20*METER; let c=aimCtr; if(!c){ let w=null,ws=2; alliesOf(u).forEach(a=>{ const f=a.hp/Math.max(1,a.maxHp); if(f<ws){ws=f;w=a;} }); c=w?{x:w.x,y:w.y}:{x:u.x,y:u.y}; }
       spawnGroundFx('firstspring',c.x,c.y,3.2*METER,2.2); alliesOf(u).forEach(a=>{ if(Math.hypot(a.x-c.x,a.y-c.y)>R) return; healFrom(u,a,a.maxHp*(o.mul||0.5)*sm); pushHot(a,a.maxHp*0.04*sm,o.dur||5,1); burstAt(a.x,a.y,0x7dffb0,6); }); ringBurst(c.x,c.y,0x5ee89b,24); burstAt(c.x,c.y,0x9fffb0,18); if(u.team==='ally')screenFlash=Math.max(screenFlash,.22); break; }
-    case 'taunt':{enemiesOf(u).forEach(e=>{e.forcedTarget=u;e.forcedTargetT=Math.max(e.forcedTargetT||0,o.dur||3);});u.drMul=Math.max(0.15,1-0.4*sm);u.drT=o.dur||3;burstAt(u.x,u.y,0x6ea8ff,12);break;}
-    case 'rally':{alliesOf(u).forEach(a=>{a.energy=Math.min(100,a.energy+40);healFrom(u,a,a.maxHp*.3);a.hasteMul=1.2;a.hasteT=5;floatTexts.push({x:a.x,y:a.y-16,txt:'Rally!',t:1.0,color:'#ffd45e',vy:1.0,sz:14});});break;}
+    case 'taunt':{enemiesOf(u).forEach(e=>{e.forcedTarget=u;e.forcedTargetT=Math.max(e.forcedTargetT||0,o.dur||3);});u.drMul=1-SKLV.tauntDr(_kLv);u.drT=o.dur||3;   /* v1112 nerf: 40% + 0.2 pt a level (59.8% at 100; was 1-0.4 x sm = 85% from level 89) */burstAt(u.x,u.y,0x6ea8ff,12);break;}
+    case 'rally':{alliesOf(u).forEach(a=>{a.energy=Math.min(100,a.energy+40);healFrom(u,a,a.maxHp*skLvNum('rally',o,_kLv));a.hasteMul=1.2;a.hasteT=5;floatTexts.push({x:a.x,y:a.y-16,txt:'Rally!',t:1.0,color:'#ffd45e',vy:1.0,sz:14});});break;}
 
     /* ==================== v527 — THE PACK KITS =========================================
        Phil, 9 Sep: "Rewire newest 26 heroes ingame using htmls in design pack folder ...
@@ -10668,7 +10809,7 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
       ringBurst(tgt.x,tgt.y,0xffd08a,12); break; }
 
     case 'evadecounter':{                                           // "evades the next attack and counters"
-      u._evadeT=o.dur||2.2; u._evadeMul=o.mul||1.8; u._evadeFrost=!!o.frost; u.drMul=Math.min(u.drMul||1,o.dr||0.6); u.drT=Math.max(u.drT||0,o.dur||2.2);
+      u._evadeT=o.dur||2.2; u._evadeMul=(o.mul||1.8)*sm; u._evadeFrost=!!o.frost; u.drMul=Math.min(u.drMul||1,skLvNum('evadecounter',o,_kLv));   /* v1112 BUG FIX: the counter carries the skill curve (the card always said so), and the reduction GROWS 0.1 pt a level - SKILL_SCALE_FRAC used to multiply this damage-taken multiplier, so it shrank to 15% */ u.drT=Math.max(u.drT||0,o.dur||2.2);
       ringBurst(u.x,u.y,0x9fd8ff,14);
       floatTexts.push({x:u.x,y:u.y-14,txt:'READY',t:.8,color:'#bfe8ff',vy:1,sz:12}); break; }
 
@@ -10682,7 +10823,7 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
     case 'banner':{                                                 // "grant nearby allies armor, attack speed, and control resistance"
       const R=o.radius||6*METER, D=o.dur||6;
       alliesOf(u).forEach(a=>{ if(!a.alive||dist(u,a)>R)return;
-        a.drMul=Math.min(a.drMul||1,o.dr||0.82); a.drT=Math.max(a.drT||0,D);
+        a.drMul=Math.min(a.drMul||1,skLvNum('banner',o,_kLv));   /* v1112 BUG FIX: 18% + 0.1 pt a level (it fell to 15% from level 4) */ a.drT=Math.max(a.drT||0,D);
         a.hasteMul=Math.max(a.hasteMul||1,o.haste||1.2); a.hasteT=Math.max(a.hasteT||0,D);
         a.ctrlRes=Math.min(0.85,(a.ctrlRes||0)+(o.ctrl||0.25)); a._ctrlBonusT=D; a._ctrlBonus=(o.ctrl||0.25);
         floatTexts.push({x:a.x,y:a.y-16,txt:'RALLIED',t:.9,color:'#e8c87a',vy:1,sz:11}); });
@@ -10722,7 +10863,7 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
       /* v529 - "when Master-Unlocked, the Ultimate becomes immediately ready, stronger, and
          uninterruptible." The keys are counted BEFORE they are spent, so the bonus still scales. */
       const _held=(u._keys||0), _mu=noxSpendKeys(u);
-      const give=(o.give||25)+(o.perKey||6)*_held;
+      const give=skLvNum('energygift',o,_kLv)+(o.perKey||6)*_held;   /* v1112: 25 + 0.1 a level */
       best.energy=Math.min(100,(best.energy||0)+(_mu?100:give));
       best.dmgBuffMul=Math.max(best.dmgBuffMul||1,_mu?(o.muUltMul||1.5):(o.ultMul||1.25));
       best.dmgBuffT=Math.max(best.dmgBuffT||0,o.dur||6);
@@ -10801,13 +10942,13 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
     case 'markreveal':{                                             // "marks the lowest-health enemy"
       let best=null,bv=2; enemiesOf(u).forEach(e=>{ if(!e.alive)return; const f=e.hp/e.maxHp; if(f<bv){bv=f;best=e;} });
       if(!best)break;
-      best._markT=o.dur||8; best._markMul=o.mul||1.25; best._markBy=u;
+      best._markT=o.dur||8; best._markMul=skLvNum('markreveal',o,_kLv); best._markBy=u;
       floatTexts.push({x:best.x,y:best.y-10,txt:'MARKED',t:1.1,color:'#ffd45e',vy:1,sz:13});
       ringBurst(best.x,best.y,0xffd45e,14); break; }
 
     /* v532 Mirage Herd (Zahri) is now a SUMMON, "just like librarian and hurne" (Phil): the moment she uses her blue,
        one mirage copy of her builds out of a seed of light beside her - 1/10 of her stats, auto-attacks only, on a leash. */
-    case 'summonmirage':{ const m=summonUnit(u,o.key||'zahri mirage',(o.dur==null?0:o.dur),   /* v546 (Phil): "mirage should last until dead" - dur 0 = no timer */{a:(u.team==='ally'?-1.9:1.9),r:(o.radius||1.2*METER)});
+    case 'summonmirage':{ const m=summonUnit(u,o.key||'zahri mirage',(o.dur==null?0:o.dur),   /* v546 (Phil): "mirage should last until dead" - dur 0 = no timer */{a:(u.team==='ally'?-1.9:1.9),r:(o.radius||1.2*METER),share:skLvNum('summonmirage',o,_kLv)/(o.stat||0.30)});   /* v1112: 30% + 0.1 pt a level */
       if(!m){ floatTexts.push({x:u.x,y:u.y-16,txt:'MIRAGE HOLDS',t:.8,color:'#ffd08a',vy:1,sz:11}); }
       break; }
 
@@ -10833,7 +10974,7 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
       units.filter(a=>a.team===u.team&&!a._dropHidden&&!a._summon).forEach(a=>{ const h=a._hpHist&&a._hpHist.length?a._hpHist[0]:null; if(h==null)return;   /* v894 - the fallen too: the revive could never run */
         _rw.push(a);
         if(a.alive){ if(h>a.hp){ healFrom(u,a,h-a.hp); burstAt(a.x,a.y,0xf0c86a,12); } }
-        else if(o.revive){ a.alive=true; a.deathT=0; a.hp=Math.max(1,Math.min(worldHealCap(a),h*(o.revive||0.4)));
+        else if(o.revive){ a.alive=true; a.deathT=0; a.hp=Math.max(1,Math.min(worldHealCap(a),h*skLvNum('rewind',o,_kLv)));   /* v1112: 40% + 0.15 pt a level */
           a.stunned=0; a.fearT=0; a.silencedT=0; a.energy=0;
           ringBurst(a.x,a.y,0xf0c86a,20);
           floatTexts.push({x:a.x,y:a.y-18,txt:'REWOVEN',t:1.4,color:'#f0c86a',vy:1,sz:14}); } });
@@ -10866,7 +11007,7 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
         e._sleepT=sl; ccApply(u,e,'stunned',sl); ccApply(u,e,'slow',3);
         burstAt(e.x,e.y,0x9b7fd0,10); });
       alliesOf(u).forEach(a=>{ if(!a.alive)return;
-        a.dmgBuffMul=Math.max(a.dmgBuffMul||1,o.buff||1.3); a.dmgBuffT=Math.max(a.dmgBuffT||0,o.dur||8);
+        a.dmgBuffMul=Math.max(a.dmgBuffMul||1,skLvNum('quietwings',o,_kLv)); a.dmgBuffT=Math.max(a.dmgBuffT||0,o.dur||8);
         a.hasteMul=Math.max(a.hasteMul||1,o.haste||1.2); a.hasteT=Math.max(a.hasteT||0,o.dur||8);
         a._buffedT=0.5; burstAt(a.x,a.y,0xb9a6e0,10); });
       if(u.team==='ally')screenFlash=Math.max(screenFlash,.22);
@@ -10962,7 +11103,7 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
       u._dash={x0:u.x,y0:u.y,x1:cx,y1:cy,t:0,dur:_lt,run:function(){
       const dmg=u.maxHp*(o.hpMul||0.40)*rm*sm;
       foes.forEach(e=>{ if(dist(e,{x:cx,y:cy})<R){ dealDamage(u,e,dmg,'#c9a05e'); ccApply(u,e,'stunned',o.stun||0.6); e.brighten=Math.max(e.brighten||0,0.6); } });
-      if(o.allyDr){ alliesOf(u).forEach(a=>{ a._mwDrT=Math.max(a._mwDrT||0,o.allyDrDur||5); a._mwDrPct=o.allyDr; a._mwDrSrc=u; }); floatTexts.push({x:u.x,y:u.y-14,txt:'⬛ THE WALL',t:1.1,color:'#9ad07a',vy:1,sz:13}); }
+      if(o.allyDr){ alliesOf(u).forEach(a=>{ a._mwDrT=Math.max(a._mwDrT||0,o.allyDrDur||5); a._mwDrPct=skLvNum('hipposlam',o,_kLv);   /* v1112 nerf: 30% + 0.15 pt a level (44.9% at 100; the skill curve gave 65.6%) */ a._mwDrSrc=u; }); floatTexts.push({x:u.x,y:u.y-14,txt:'⬛ THE WALL',t:1.1,color:'#9ad07a',vy:1,sz:13}); }
       ringBurst(cx,cy,0x8a6a3a,26); burstAt(cx,cy,0xc9a05e,24); if(u.team==='ally')screenFlash=Math.max(screenFlash,.4);
       }}; break; }
     case 'pullsilence':{ const R=o.radius||5*METER, dur=o.dur||2;   // GREEN: drag nearby foes in, silence + taunt them
@@ -11021,6 +11162,7 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
       const _hand=(FX2_DEF[o.gfx]&&FX2_DEF[o.gfx].dur)||o.dur||3;
       const dur=_hand, stopD=(o.stop||10)*METER;
       if(!tg2.immovable&&!((tg2._gearImmovableT||0)>0)){ tg2.pulledBy=u; tg2.pullT=Math.max(tg2.pullT||0,dur); tg2.pullStop=stopD; tg2.pullSpeed=Math.max(1,(dist(u,tg2)-stopD))/(dur*0.97); tg2._pullGhost=true; }   // no speed floor: near or far, the trip lasts exactly one hand-close // speed sized to cover the gap over the full duration; ghost = phases through the scrum to reach Vulmar
+      if(o.mul&&tg2.alive) dealDamage(u,tg2,dB*o.mul*rm,'#8B5CF6');   /* v1112 BUG FIX (Veyr Gravity Crescent): the kit's 150% slash was never dealt; dB carries the skill curve */
       if(o.silence)ccApply(u,tg2,'silencedT',dur); ccApply(u,tg2,'stunned',dur);   // rooted for the whole drag so it can't walk back out
       ringBurst(u.x,u.y,0x8B5CF6,14); break; }
     // ---- Tick (clockwork bruiser) ----
@@ -11039,12 +11181,12 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
       abilShot(u,o,tg2,0x9fe0ff); break; }
     case 'freeze':{ if(!tgt)break;
       dealFrostDamage(u,tgt,apB*(o.mul||1.2)*rm,'#bfefff','magic'); ccApply(u,tgt,'stunned',o.stun||2); if(u.pass&&u.pass.coldsnap){ tgt._frozenT=Math.max(tgt._frozenT||0,o.stun||2); applyChill(tgt); } burstAt(tgt.x,tgt.y,0xbfefff,16); ringBurst(tgt.x,tgt.y,0x8fd0ff,12); floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'FROZEN',t:1,color:'#bfefff',vy:1,sz:13}); break; }
-    case 'blizzard':{ const ctr=aimCtr||((tgt&&tgt.alive)?tgt:nearestEnemy(u))||u; u._blizzT=o.dur||4; u._blizzAcc=0; u._blizzX=ctr.x; u._blizzY=ctr.y;
+    case 'blizzard':{ const ctr=aimCtr||((tgt&&tgt.alive)?tgt:nearestEnemy(u))||u; u._blizzT=o.dur||4; u._blizzAcc=0; u._blizzSM=sm;   /* v1112 BUG FIX: the channel keeps the cast's skill curve */ u._blizzX=ctr.x; u._blizzY=ctr.y;
       // The hero-specific sylthaine_ult plate is spawned once by abilArt above and lives for the full channel.
  u._castT=Math.max(u._castT||0,o.dur||4); ringBurst(ctr.x,ctr.y,0x9fe0ff,22); if(u._castSlot!=='ult')floatTexts.push({x:u.x,y:u.y-10,txt:'BLIZZARD',t:1.1,color:'#bfefff',vy:1,sz:14}); if(u.team==='ally')screenFlash=Math.max(screenFlash,.22); break; }
     // ---- Aureth (light/dark duality — hybrid) ----
     case 'sunburst':{ const R=o.radius||2.8*METER; enemiesOf(u).forEach(e=>{ if(dist(u,e)<R){ dealDamage(u,e,apB*(o.mul||1.4)*rm,'#ffe89a','magic'); if(o.stun&&e.alive) ccApply(u,e,'stunned',o.stun); } });   /* v895: a row may ask for a stun (Dawnbringer) */ alliesOf(u).forEach(a=>{ if(dist(u,a)<R) healFrom(u,a,a.maxHp*(o.heal||0.28)*sm); }); ringBurst(u.x,u.y,0xffe08a,20); burstAt(u.x,u.y,0xffe89a,16); if(u.team==='ally')screenFlash=Math.max(screenFlash,.25); break; }
-    case 'duality':{ u._darkStance=!u._darkStance; if(u._darkStance){ u.dmgBuffMul=o.mul||1.4; u.dmgBuffT=999; floatTexts.push({x:u.x,y:u.y-10,txt:'DARK',t:1.1,color:'#b06bff',vy:1,sz:14}); ringBurst(u.x,u.y,0x7a3fbf,16);} else { const sh=u.maxHp*0.12+(u.apow||0)*2; alliesOf(u).forEach(a=>{a.shield=Math.max(a.shield,sh);a.shieldT=6;}); u.dmgBuffT=0; floatTexts.push({x:u.x,y:u.y-10,txt:'LIGHT',t:1.1,color:'#ffe08a',vy:1,sz:14}); ringBurst(u.x,u.y,0xffe08a,16);} break; }
+    case 'duality':{ u._darkStance=!u._darkStance; if(u._darkStance){ u.dmgBuffMul=o.mul||1.4; u.dmgBuffT=999; floatTexts.push({x:u.x,y:u.y-10,txt:'DARK',t:1.1,color:'#b06bff',vy:1,sz:14}); ringBurst(u.x,u.y,0x7a3fbf,16);} else { const sh=u.maxHp*skLvNum('duality',o,_kLv)+(u.apow||0)*2;   /* v1112: 12% + 0.06 pt a level */ alliesOf(u).forEach(a=>{a.shield=Math.max(a.shield,sh);a.shieldT=6;}); u.dmgBuffT=0; floatTexts.push({x:u.x,y:u.y-10,txt:'LIGHT',t:1.1,color:'#ffe08a',vy:1,sz:14}); ringBurst(u.x,u.y,0xffe08a,16);} break; }
     case 'eclipse':{ const R=o.radius||6*METER; enemiesOf(u).forEach(e=>{ if(dist(u,e)<R){ dealDamage(u,e,apB*(o.mul||2.2)*rm,'#c9b6ff','magic'); ccApply(u,e,'stunned',0.6);} }); const sh=(u.apow||0)*4; alliesOf(u).forEach(a=>{a.shield=Math.max(a.shield,a.maxHp*(o.shield||0.4)+sh);a.shieldT=6;}); ringBurst(u.x,u.y,0xffe08a,26); burstAt(u.x,u.y,0x7a3fbf,22); if(u.team==='ally')screenFlash=Math.max(screenFlash,.4); break; }
     // ---- King Bloatus (poison tank) — poison scales off ability power ----
     case 'toxbreath':{ const reach=15*METER, pd=apB*(o.dps||0.5), con=!!(u.pass&&u.pass.contagion);
@@ -11100,7 +11242,7 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
     // ---- Vireo (bard support) — heals/shields scale off ability power ----
     case 'crescendo':{
       u._crescStk=Math.min(4,(u._crescStk||0)+1); const ramp=1+(u._crescStk-1)*0.25, heal=apB*2.0*ramp, pp=!!(u.pass&&u.pass.perfectpitch);
-      alliesOf(u).forEach(a=>{ healFrom(u,a,heal); pushHot(a, apB*0.4*ramp, o.dur||5, 1); if(pp){ a.shield=Math.max(a.shield,heal*0.5); a.shieldT=5; firePassiveFx(u,a,{aboveBar:true}); } });   /* v1044: Perfect Pitch's plate over each ally it shields (Phil: "finish them all") */
+      alliesOf(u).forEach(a=>{ healFrom(u,a,heal); pushHot(a, apB*0.4*ramp, o.dur||5, 1); if(pp){ a.shield=Math.max(a.shield,heal*SKLV.pitch(passLv(u))); a.shieldT=5; firePassiveFx(u,a,{aboveBar:true}); } });   /* v1044: Perfect Pitch's plate over each ally it shields (Phil: "finish them all") */
       floatTexts.push({x:u.x,y:u.y-12,txt:'CRESCENDO',t:1.0,color:'#e0b6ff',vy:1,sz:13}); ringBurst(u.x,u.y,0xc07fe0,16); burstAt(u.x,u.y,0xe0b6ff,12); break; }
     /* v558 (Phil, on Vireo's Harmony): 'this is used on the lowest health ally, any ally within 7 meters of the center
        of the dome is shielded also. which means the total dome should be 14 meters. 7 meter radius from the intended target.'
@@ -11119,7 +11261,7 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
     /* v483 (Phil): Royal Nectar — a big glob of honey drops on the most wounded ally's head and vanishes, healing them */
     case 'honeyglob':{ const al=alliesOf(u); if(!al.length)break; const t=al.slice().sort((a,b)=>(a.hp/a.maxHp)-(b.hp/b.maxHp))[0]; const pp=!!(u.pass&&u.pass.perfectpitch);
       const heal=t.maxHp*(o.heal||0.14)+apB*2.0, hot=t.maxHp*(o.hot||0.04)+apB*0.4;
-      spawnHoneyGlob(u,t,()=>{ if(!t.alive)return; healFrom(u,t,heal); pushHot(t,hot,o.dur||5,1); if(pp){ t.shield=Math.max(t.shield||0,heal*0.5); t.shieldT=5; } }); break; }
+      spawnHoneyGlob(u,t,()=>{ if(!t.alive)return; healFrom(u,t,heal); pushHot(t,hot,o.dur||5,1); if(pp){ t.shield=Math.max(t.shield||0,heal*SKLV.pitch(passLv(u))); t.shieldT=5; } }); break; }
     case 'hivemind':{ const n=o.n||30; const tg=alliesOf(u).concat(enemiesOf(u)); if(!tg.length)break;
       const per=Math.floor(n/tg.length); let rem=n-per*tg.length; const plan=[]; tg.forEach(t=>{ let c=per+(rem>0?1:0); if(rem>0)rem--; for(let i=0;i<c;i++)plan.push(t); });
       for(let i=plan.length-1;i>0;i--){ const j=Math.floor(brnd()*(i+1)); const q=plan[i]; plan[i]=plan[j]; plan[j]=q; }
@@ -11127,7 +11269,7 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
       spawnBeeHive(u,plan,{dmg:apB*(o.dmgMul||0.14)*rm, heal:apB*(o.healMul||0.5), healPct:(o.healPct||0.02), hold:(o.hold||0.7), shield:pp});
       if(u.team==='ally')screenFlash=Math.max(screenFlash,.2); break; }
     case 'symphony':{ const pp=!!(u.pass&&u.pass.perfectpitch);   /* v567 (Phil): 'it shouldnt have a range, vireo ult hits all enemy and all allies regardless of range. the downside is its only 30% of ability power heal or damage'. No distance test at all, and the heal is now a flat share of ability power - the old a.maxHp*0.35 + apB*2 term is gone. */
-      alliesOf(u).forEach(a=>{ const h=apB*(o.healMul||0.30); healFrom(u,a,h); if(pp){ a.shield=Math.max(a.shield,h*0.4); a.shieldT=6; firePassiveFx(u,a,{aboveBar:true}); } });   /* v1044: Perfect Pitch's plate */
+      alliesOf(u).forEach(a=>{ const h=apB*(o.healMul||0.30); healFrom(u,a,h); if(pp){ a.shield=Math.max(a.shield,h*SKLV.pitchSymphony(passLv(u))); a.shieldT=6; firePassiveFx(u,a,{aboveBar:true}); } });   /* v1044: Perfect Pitch's plate */
       enemiesOf(u).forEach(e=>{ dealDamage(u,e,apB*(o.dmgMul||0.30)*rm,'#d0a6ff','magic'); });
       if(u._castSlot!=='ult')floatTexts.push({x:u.x,y:u.y-14,txt:'GRAND SYMPHONY',t:1.3,color:'#e0b6ff',vy:1,sz:15}); ringBurst(u.x,u.y,0xc07fe0,30); burstAt(u.x,u.y,0xe0b6ff,24); if(u.team==='ally')screenFlash=Math.max(screenFlash,.35); break; }
     // ---- Fritz (lightning assassin) — lightning scales off ability power ----
@@ -11140,7 +11282,7 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
       for(let j=0;j<jumps && cur;j++){ hit.add(cur); dealDamage(u,cur,dmg,'#bfe6ff'); burstAt(cur.x,cur.y,0x9fd0ff,8); if(prev){ if(!spawnBoltFx(prev,cur,'#cfe8ff')) spawnShot(prev,cur,'#bfe6ff'); } prev=cur;   /* v958: a glowing bolt per jump */ dmg*=dec;
         let nxt=null,nd=1e9; enemiesOf(u).forEach(e=>{ if(!hit.has(e)){ const d=dist(cur,e); if(d<nd&&d<(o.jumpRange||4*METER)){nd=d;nxt=e;} } }); cur=nxt; }   /* v961 (Phil 3 Oct: "jump range of chain lightning should be 15 meters to next target"): per-kit jumpRange, default 4 m */
       break; }
-    case 'thundershower':{ const ctr=u;   /* v491 (Phil: Fritz's ult was not to standard): it is a SELF-CENTRED channel - "a storm around the caster ... enemies within 8 m" - but it aimed at the enemy, so the cloud spawned 20 units away from him */ u._stormT=o.dur||3; u._stormAcc=0; u._stormFxAcc=0; u._stormMul=(o.mul||0.6); u._stormX=ctr.x; u._stormY=ctr.y; u._castT=Math.max(u._castT||0,o.dur||3); if(u._castSlot!=='ult')floatTexts.push({x:u.x,y:u.y-14,txt:'THUNDER SHOWER',t:1.2,color:'#f2e07a',vy:1,sz:14}); ringBurst(ctr.x,ctr.y,0xf2d84a,24); if(typeof spawnFxPlate==='function')spawnFxPlate('fritz_showerfx',ctr.x,ctr.y); if(u.team==='ally')screenFlash=Math.max(screenFlash,.25); break; }
+    case 'thundershower':{ const ctr=u;   /* v491 (Phil: Fritz's ult was not to standard): it is a SELF-CENTRED channel - "a storm around the caster ... enemies within 8 m" - but it aimed at the enemy, so the cloud spawned 20 units away from him */ u._stormT=o.dur||3; u._stormAcc=0; u._stormFxAcc=0; u._stormMul=(o.mul||0.6); u._stormSM=sm;   /* v1112 BUG FIX: the channel keeps the cast's skill curve */ u._stormX=ctr.x; u._stormY=ctr.y; u._castT=Math.max(u._castT||0,o.dur||3); if(u._castSlot!=='ult')floatTexts.push({x:u.x,y:u.y-14,txt:'THUNDER SHOWER',t:1.2,color:'#f2e07a',vy:1,sz:14}); ringBurst(ctr.x,ctr.y,0xf2d84a,24); if(typeof spawnFxPlate==='function')spawnFxPlate('fritz_showerfx',ctr.x,ctr.y); if(u.team==='ally')screenFlash=Math.max(screenFlash,.25); break; }
   }
   if(_buffArt){ try{ buffArtAll(u,o,tgt,aimCtr,type,_buffSnap); }catch(e){} }   /* v552 */
   if(_allyBadge){ try{ buffArtAll(u,o,tgt,aimCtr,type,_buffSnap,true); }catch(e){} }   /* v594 */
@@ -11224,7 +11366,7 @@ function castKit(u,ab){ const slot=(u.blueAb&&ab===u.blueAb)?'blue':'green'; con
       const foes=enemiesOf(u).filter(e=>e.alive).slice(0,3);
       foes.forEach(e=>{ try{ dealDamage(u,e,(u.apow||u.dmg)*0.55*pm,'#8fd0ff','magic'); }catch(err){} });
       if(foes.length){ firePassiveFx(u); ringBurst(u.x,u.y,0x5aa8ff,16); floatTexts.push({x:u.x,y:u.y-14,txt:'CHAIN',t:.9,color:'#8fd0ff',vy:1,sz:12}); } }
-    if(u.pass.abyssres&&u._prReady){ u._prReady=0; u._castSM=(u._castSM||1)*1.45;           // a full pressure gauge empowers this spell
+    if(u.pass.abyssres&&u._prReady){ u._prReady=0; u._castSM=(u._castSM||1)*(1+SKLV.abyssres(passLv(u)));   /* v1112: +45% + 0.2 pt a level */           // a full pressure gauge empowers this spell
       firePassiveFx(u);
       floatTexts.push({x:u.x,y:u.y-14,txt:'PRESSURE RELEASED',t:1.0,color:'#2f8fa8',vy:1,sz:11}); } }
   /* v797 - the clip starts NOW, with the cast clock. `_castSlot` is set first because the picker
@@ -12144,7 +12286,7 @@ function updateBeamFx(dt){ for(let i=_beamFx.length-1;i>=0;i--){ const o=_beamFx
 const _pendingDots=[];
 function plagueDot(t,dps,dur,interval,color){ if(!t)return;
   try{ if(typeof units!=='undefined'&&units&&units.length){ for(const g of units){
-    if(g.alive&&g.pass&&g.pass.debtaura&&g.team!==t.team&&Math.hypot(g.x-t.x,g.y-t.y)<5*METER){ dur*=1.2; break; } } } }catch(e){}
+    if(g.alive&&g.pass&&g.pass.debtaura&&g.team!==t.team&&Math.hypot(g.x-t.x,g.y-t.y)<5*METER){ dur*=1+SKLV.debtaura(passLv(g)); break; } } } }catch(e){}
   if(!t)return; const k=dotKind(color); const curse=!!(color&&/8a5cff|7a3fb0|b06bff|c9a6ff|9a6fff/i.test(color));
   if(k==='poison'||curse){ spawnGroundFx('voidzone',t.x,t.y,0.72*METER,0.5); _pendingDots.push({t,dps,dur,interval,color,delay:0.5}); }
   else pushDot(t,dps,dur,interval,color); }
@@ -12459,14 +12601,14 @@ function think(u,dt){
     if(u._danceT<=0) u._danceT=0;
     return; }
   if((u._blizzT||0)>0){ u._blizzT-=dt; u._blizzAcc=(u._blizzAcc||0)+dt;   // Sylthaine's Blizzard: 4s channel, rooted, ticks every 0.5s in an 8 m radius with a 10% freeze/tick
-    if(u._blizzAcc>=0.5){ u._blizzAcc-=0.5; const R=8*METER, dmg=(u.apow||0)*0.5*(u.dmgBuffT>0?u.dmgBuffMul:1)*rageMul;
+    if(u._blizzAcc>=0.5){ u._blizzAcc-=0.5; const R=8*METER, dmg=(u.apow||0)*0.5*(u.dmgBuffT>0?u.dmgBuffMul:1)*rageMul*(u._blizzSM||1);
       enemiesOf(u).forEach(e=>{ if(e.alive && dist({x:u._blizzX,y:u._blizzY},e)<R){ dealFrostDamage(u,e,dmg,'#bfefff','magic',true); if(u.pass&&u.pass.coldsnap)applyChill(e); if(brnd()<0.10){ e.stunned=Math.max(e.stunned||0,ccDur(1.2)); if(u.pass&&u.pass.coldsnap) e._frozenT=Math.max(e._frozenT||0,1.2); burstAt(e.x,e.y,0xbfefff,8);} } });
       ringBurst(u._blizzX,u._blizzY,0x9fe0ff,12); if(typeof fireRain==='function'){} }
     return; }   // rooted: cannot auto-attack or cast during the channel
   if((u._stormT||0)>0){ u._stormT-=dt; u._stormAcc=(u._stormAcc||0)+dt; u._stormFxAcc=(u._stormFxAcc||0)+dt;   // Fritz's Thunder Shower: 3s channel, rooted, ticks every 0.5s in an 8 m radius at the AIMED center (like Vulmar/Blizzard)
     const sx=(u._stormX!=null?u._stormX:u.x), sy=(u._stormY!=null?u._stormY:u.y);
     if(u._stormFxAcc>=1.25 && u._stormT>0.3){ u._stormFxAcc=0; if(typeof spawnFxPlate==='function')spawnFxPlate('fritz_showerfx',sx,sy); }   // re-spawn the shower FX so it covers the whole channel
-    if(u._stormAcc>=0.5){ u._stormAcc-=0.5; const R=8*METER, dmg=(u.apow||0)*(u._stormMul||0.6)*(u.dmgBuffT>0?u.dmgBuffMul:1)*rageMul;
+    if(u._stormAcc>=0.5){ u._stormAcc-=0.5; const R=8*METER, dmg=(u.apow||0)*(u._stormMul||0.6)*(u.dmgBuffT>0?u.dmgBuffMul:1)*rageMul*(u._stormSM||1);
       enemiesOf(u).forEach(e=>{ if(e.alive && dist({x:sx,y:sy},e)<R){ dealDamage(u,e,dmg,'#f2e07a'); if(Math.random()<0.5)burstAt(e.x,e.y,0xfff0a0,5); } });
       ringBurst(sx,sy,0xf2d84a,14); for(let i=0;i<3;i++){ const a=Math.random()*6.28, d=Math.random()*R; burstAt(sx+Math.cos(a)*d,sy+Math.sin(a)*d,0xfff0a0,3); } }
     return; }   // rooted: cannot auto-attack or cast during the channel (Static Veil grants 30% dodge throughout)
@@ -12578,7 +12720,7 @@ function think(u,dt){
         // Rising Heat (Pyroclast): every scorched enemy she strikes stokes her own power.
         if(u.pass.risingheat){ let sc=0; enemiesOf(u).forEach(e=>{ if(e.alive&&e.dots&&e.dots.length)sc++; });
           if(sc>(u._rhSc||0)) firePassiveFx(u); u._rhSc=sc;   /* v884: art only - the aura flares as the scorched count rises */
-          u.apMul=1+Math.min(0.45,0.09*_pm*sc); }
+          u.apMul=1+Math.min(SKLV.risingheatCap(passLv(u)),0.09*_pm*sc); }   /* v1112: the cap grows 45% -> 59.9% */
       }
       if(u.key==='umbris'){
         // Seamless throw: hold the damage + flying orb until the attack clip's release frame (the ball leaves his
@@ -13538,7 +13680,7 @@ function updateBattle(dt){
       floatTexts.push({x:u.x,y:u.y-16,txt:'UNBROKEN',t:1.4,color:'#f0d070',vy:1,sz:14}); }
     // Layered Hide (Ironcoil): each direct hit hardens one scale layer; at full plate he shrugs off control.
     if(u.pass.layered){ if((u._layT||0)>0) u._layT-=dt;
-      if((u._layStk||0)>=(u._layMax||5)){ u._layStk=0; u._layT=2.0*(u.passMul||1);
+      if((u._layStk||0)>=(u._layMax||5)){ u._layStk=0; u._layT=SKLV.layered(passLv(u));   /* v1112 (Phil: 2.0 s + 0.01 s a level, 3.0 s at 100; was 2.0 s x skillMul = 4.38 s) */
         firePassiveClip(u, u.anim&&u.anim.passive?u.anim.passive.n/(u.anim.passive.fps||24):0);   /* v1055 (ChatGPT handoff IRONCOIL-NINE, Phil "iron passive pass"): the hit that completes the plate plays the approved half-second passive clip (it fires the same FX plate too); render only, the mechanic is unchanged */
         ringBurst(u.x,u.y,0xb8863a,14); floatTexts.push({x:u.x,y:u.y-8,txt:'PLATED',t:1.0,color:'#b8863a',vy:1,sz:12}); }
       if((u._layT||0)>0){ u.stunned=0; u.fearT=0; u._airT=0; u.pullT=0; } }
@@ -13579,7 +13721,7 @@ function updateBattle(dt){
     if(u.pass.unmovable){ u._airT=0; u.pullT=0; u.immovable=true; }   /* v894 - immovable; the armour now builds from hits taken (damage()) */
     // Skeleton-Key Savant (Nox): keys accumulate, and the fifth unlocks the next ability outright.
     if(u.pass.skeletonkey){ if((u._keys||0)>=5 && !u._masterT){ u._masterT=1;
-        u.critDmg=(u.critDmg||0.6)+0.05; u.evaStat=Math.min(0.5,(u.evaStat||0)+0.03);   // permanent Fortune
+        u.critDmg=(u.critDmg||0.6)+0.05*(u.passMul||1); u.evaStat=Math.min(0.5,(u.evaStat||0)+0.03*(u.passMul||1));   /* v1112: Fortune on the skill curve */   // permanent Fortune
         floatTexts.push({x:u.x,y:u.y-12,txt:'5 KEYS',t:1.0,color:'#c9a6ff',vy:1,sz:12}); ringBurst(u.x,u.y,0x6b3f8f,16); } }
     if(u.pass.wrath){ if(u._baseDmg==null)u._baseDmg=u.dmg; u._wrathT=(u._wrathT||0)+dt; if(u._wrathT>=5){ u._wrathT-=5; u.dmg*=1.12; firePassiveFx(u); floatTexts.push({x:u.x,y:u.y-8,txt:'Wrath +',t:.9,color:'#5fd0ff',vy:1,sz:13}); } }   // Wrath of the Deep (Leviath): grows stronger over time
     /* v545 Desert Momentum (Zahri). Phil, 9 Sep: "per auto attack increases her attack speed 4% and armor pen 6. per 5
@@ -13597,11 +13739,11 @@ function updateBattle(dt){
       u.hasteMul=Math.max(u.hasteMul||1,1+(u._dmAS||0)); u.hasteT=Math.max(u.hasteT,0.15);
       u.armorPen=Math.max(u.armorPen||0,(u._dmBaseAP==null?(u._dmBaseAP=u.armorPen||0):u._dmBaseAP)+(u._dmPen||0));
       u.magicPen=Math.max(u.magicPen||0,(u._dmBaseMP==null?(u._dmBaseMP=u.magicPen||0):u._dmBaseMP)+(u._dmPen||0)); }
-    if(u.pass.momentum){ u._momStk=Math.min(0.5,(u._momStk||0)+0.025*dt); u.hasteMul=Math.max(1+u._momStk, (u._ocT>0?(u._ocMul||1):1)); u.hasteT=Math.max(u.hasteT,0.15); }   // ramp respects an active Overclock (uses the separate _ocT/_ocMul so it never self-perpetuates)   // Momentum Gears (Tick): attack speed ramps up to +50% the longer he fights
+    if(u.pass.momentum){ u._momStk=Math.min(SKLV.momentumCap(passLv(u)),(u._momStk||0)+0.025*dt);   /* v1112: cap +50% + 0.25 pt a level */ u.hasteMul=Math.max(1+u._momStk, (u._ocT>0?(u._ocMul||1):1)); u.hasteT=Math.max(u.hasteT,0.15); }   // ramp respects an active Overclock (uses the separate _ocT/_ocMul so it never self-perpetuates)   // Momentum Gears (Tick): attack speed ramps up to +50% the longer he fights
     if(u.pass.twinfonts){ if(!((u.greenAb&&u.greenAb.type==='duality')||(u.blueAb&&u.blueAb.type==='duality'))){ u._tfT=(u._tfT||0)+dt;   /* v895: without Duality he turns his own fonts every 5 s */
         if(u._tfT>=5){ u._tfT-=5; u._darkStance=!u._darkStance; try{ firePassiveFx(u); floatTexts.push({x:u.x,y:u.y-10,txt:u._darkStance?'DARK FONT':'LIGHT FONT',t:.9,color:u._darkStance?'#b06bff':'#ffe89a',vy:1,sz:11}); }catch(_e){} } }
-      if(u._darkStance){ const e=nearestEnemy(u); if(e){ const dd=((u.apow||0)*0.4+2)*dt; dealDamage(u,e,dd,'#b06bff',null,true); healUnit(u,dd*0.8); } } else { u.hp=Math.min(worldHealCap(u),u.hp+(u.maxHp*0.012+(u.apow||0)*0.25)*dt); } }   // Twin Fonts (Aureth): Dark drains the nearest foe into himself, Light regenerates (AP-scaled)
-    if(u.pass.immolate){ u._immT=(u._immT||0)+dt; if(u._immT>=1){ u._immT-=1; const R=2.4*METER; let n=0; enemiesOf(u).forEach(e=>{ if(dist(u,e)<R){ damage(e,u.dmg*0.25,'#ff6a3a',true); n++; } }); if(n) firePassiveFx(u); ringBurst(u.x,u.y,0xff5b2a,6); } }   // Immolate (Magmourn): fire aura
+      if(u._darkStance){ const e=nearestEnemy(u); if(e){ const dd=((u.apow||0)*0.4+2)*dt*SKLV.twinfonts(passLv(u)); dealDamage(u,e,dd,'#b06bff',null,true); healUnit(u,dd*0.8); } } else { u.hp=Math.min(worldHealCap(u),u.hp+(u.maxHp*0.012+(u.apow||0)*0.25)*dt*SKLV.twinfonts(passLv(u)));   /* v1112: Twin Fonts x(1 + 0.0066 a level) */ } }   // Twin Fonts (Aureth): Dark drains the nearest foe into himself, Light regenerates (AP-scaled)
+    if(u.pass.immolate){ u._immT=(u._immT||0)+dt; if(u._immT>=1){ u._immT-=1; const R=2.4*METER; let n=0; enemiesOf(u).forEach(e=>{ if(dist(u,e)<R){ damage(e,u.dmg*SKLV.immolate(passLv(u)),'#ff6a3a',true); n++; } }); if(n) firePassiveFx(u); ringBurst(u.x,u.y,0xff5b2a,6); } }   // Immolate (Magmourn): fire aura
     // Deep Reserves (Old Maren): the sea keeps him topped up — health AND energy
     if(u.pass.tidereserve){ const pm=(u.passMul||1); const _hurt=u.hp<u.maxHp; u.hp=Math.min(worldHealCap(u),u.hp+u.maxHp*0.01*pm*dt); u.energy=Math.min(100,u.energy+1*pm*dt);
       u._drFxT=(u._drFxT||0)+dt; if(u._drFxT>=6){ u._drFxT=0; if(_hurt) firePassiveFx(u,u,{aboveBar:true}); } }   /* v1044 (Phil: "finish them all"): Deep Reserves' plate pulses over his bar every 6 s while it is healing him - art only (a heal marker, v498) */
@@ -13616,7 +13758,7 @@ function updateBattle(dt){
         firePassiveClip(u, u.anim&&u.anim.passive?(u.anim.passive.n/(u.anim.passive.fps||12)):0,e,{aboveBar:true});
         burstAt(e.x,e.y,0xf2e2a0,10); floatTexts.push({x:e.x,y:e.y-8,txt:'SILENCED',t:.9,color:'#f2e2a0',vy:1,sz:12}); } } }
     // Unwind (Tessit): every 5s one random ally is cleansed of a negative effect
-    if(u.pass.unwind){ u._uwT=(u._uwT||0)+dt; if(u._uwT>=5){ u._uwT-=5;
+    if(u.pass.unwind){ u._uwT=(u._uwT||0)+dt; const _uwI=SKLV.unwind(passLv(u)); if(u._uwT>=_uwI){ u._uwT-=_uwI;   /* v1112: every 5 s - 0.015 s a level */
       const hurt=alliesOf(u).filter(a=>a.alive&&((a.dots&&a.dots.length)||a.stunned>0||a.slow>0||a.silencedT>0||a.mortalT>0));
       if(hurt.length){ const a=hurt[Math.floor(brnd()*hurt.length)%hurt.length];   // v268: seeded, not frame-count-derived
         if(a.dots&&a.dots.length)a.dots.pop(); else if(a.stunned>0)a.stunned=0; else if(a.silencedT>0)a.silencedT=0;
@@ -19713,7 +19855,7 @@ Object.assign(KITS, {
   ambrel:{green:{deliver:'form',name:'Cathedral Gates',type:'aoeStun',mul:1.1,stun:1.3,radius:2.8*METER,cd:10,desc:"Slam the cathedral-door shield forward, stunning enemies in a wide arc.",gfxAt:'self',gdur:1.6,gfx:'ambrel_green'},blue:{deliver:'form',name:'Incense of Penance',type:'incense',mul:0.4,pct:0.25,radius:5*METER,dur:6,cd:9,desc:"Release holy incense that reduces enemy damage and cleanses nearby allies.",gfxAt:'self',gdur:2.0,gfx:'ambrel_blue',gfxR:3*METER},purple:{name:'Sacred Bells',pass:'sacredbells',desc:"Every few seconds, the cathedral bells ring and grant nearby allies Armor."}},
   tolley:{green:{deliver:'land',name:'Forge Strike',type:'cleave',mul:1.8,radius:3*METER,cd:7,desc:"Command the molten hammer to crash down and deal heavy damage.",gfxAt:'target',gdur:1.4,gfx:'tolley_green'},blue:{name:'Chain Quench',type:'chainquench',mul:0.85,dps:0.35,dur:4,radius:4.5*METER,pull:2.4*METER,cd:10,desc:"Lash out with molten chains, pulling enemies together and burning them.",gfxAt:'self',gdur:1.8,gfx:'tolley_blue',deliver:'form',form:0.3},purple:{name:'Tempered Steel',pass:'warden',desc:"Each successful hit hardens his armor and increases Defense."}},
   mellan:{green:{name:'Hornet Cloud',type:'hornetswarm',n:30,dps:0.42,dur:4,radius:2.8*METER,cd:7,desc:"Send enraged hornets forward to damage and poison enemies.",gfx:'mellan_green',gdur:5.88},blue:{name:'Royal Nectar',type:'honeyglob',heal:0.15,hot:0.045,dur:5,cd:8,desc:"Coat allies in enchanted honey, restoring health and increasing Attack Speed.",gfx:'mellan_blue',gdur:5.88},purple:{name:'Worker Swarm',pass:'beeward',desc:"A small swarm continuously heals nearby allies."}},
-  aldren:{green:{name:'Ink Spirit',type:'summonwarriors',key:'ink spirit',n:1,dur:16,radius:1.6*METER,cd:11,desc:"Summon a Lesser Ink Spirit that hunts enemies and can only basic attack."},blue:{name:'Chapter Rewrite',type:'chapterrewrite',mul:1.1,pct:0.30,shred:0.25,dur:6,cd:9,desc:"Rewrite an enemy's story, reducing its stats and reversing beneficial effects.",gfxAt:'target',gdur:1.6,gfx:'aldren_blue',gfxR:3*METER},purple:{name:'Living Pages',pass:'livingpages',desc:"Each spell writes a Living Page that empowers his next basic attack."}},
+  aldren:{green:{name:'Ink Spirit',type:'summonwarriors',key:'ink spirit',n:1,perLv:0.005,dur:16,radius:1.6*METER,cd:11,desc:"Summon a Lesser Ink Spirit that hunts enemies and can only basic attack."},blue:{name:'Chapter Rewrite',type:'chapterrewrite',mul:1.1,pct:0.30,shred:0.25,dur:6,cd:9,desc:"Rewrite an enemy's story, reducing its stats and reversing beneficial effects.",gfxAt:'target',gdur:1.6,gfx:'aldren_blue',gfxR:3*METER},purple:{name:'Living Pages',pass:'livingpages',desc:"Each spell writes a Living Page that empowers his next basic attack."}},
   rafe:{green:{name:'Pistol Barrage',type:'volley',mul:0.85,n:4,cd:6,desc:"Fire a rapid volley from both pistols, striking multiple enemies.",pfx:'bullet',pscale:RAFE_BULLET_SCALE,pdur:0.14,gfxAt:'muzzle',gfx:'rafe_green',gfxR:3*METER},blue:{name:'Grappling Hook',type:'grapple',mul:1.25,stun:1.1,pull:5*METER,cd:9,desc:"Launch a hook that pulls an enemy inward and stuns it.",pfx:'rafe_blue_fx',pscale:2.4,gfx:'rafe_blue',gfxR:3*METER,deliver:'shot',speed:18*METER},purple:{name:"Pirate's Instinct",pass:'instinct',desc:"Every few shots, the next attack ignores part of the target's Defense."}},
   ceraline:{green:{name:'Sealing Wax',type:'sealwax',mul:1.1,stun:1.1,harden:2.0,coat:6,cd:7,desc:"Pours molten wax over the enemy with the highest Attack: it damages and slows them while it hardens, then seals them in place, stunning them."},blue:{deliver:'form',name:'Mourning Bell',type:'nova',at:'cluster',mul:1.0,radius:8*METER,detonate:0.8,cd:9,desc:"Damages all enemies and shatters every coat of Sealing Wax for additional area damage.",gfx:'ceraline_blue',gdur:2.21},purple:{name:'Living Tallow',pass:'tallow',desc:"Enemy abilities apply wax. At three stacks, the enemy becomes encased and temporarily cannot attack or cast."}},
 });
@@ -19765,7 +19907,7 @@ const CASTER_BALL={   // v340 (Phil): Beekeeper/Oakmir/Lumi nature, Annotator+Te
 };
 const HERO_ULT_ART={rafe:{evadeEva:0.5,evadeDur:3,pfx:'rafetracer',pscale:0.9,pdur:0.30,spark:'rafespark'}, sloe:{backline:true,pfx:'sloearrow',pscale:0.9,pdur:0.30,stagger:0.12}, kharos:{gfx:'kharos_ult',gdur:2.0}, tolley:{gfx:'tolley_ult',gdur:2.4}, absalie:{gfx:'absalie_ult',gdur:2.4}, rivet:{gfx:'rivet_ult',gdur:2.4}, tessit:{deliver:'land'}, vesper:{deliver:'form'}, lysara:{deliver:'form',gfx:'lysara_ult',gdur:2.4}, nerisse:{deliver:'form',form:0.4}, pyroclast:{gfx:'pyroclast_ult',gdur:6.04,deliver:'land',fall:0.55}, orryn:{gfx:'orryn_ult',gdur:6.04,deliver:'form',form:0.5}, ambrel:{deliver:'form',gfx:'ambrel_ult',gdur:5.88}, vaelora:{gfx:'vaelora_ult',gdur:5.88}, aldren:{gfx:'aldren_ult',gdur:2.2}, astra:{deliver:'form',gfx:'astra_ult',gdur:5.83}, aureth:{deliver:'form',gfx:'aureth_ult',gdur:5.88}, carn:{deliver:'form',gfx:'carn_ult',gdur:2.6,gfxAt:'front'}, sorrel:{gfx:'sorrel_ult',gdur:5.88}, deepcleft:{deliver:'form',gfx:'deepcleft_ult',gdur:2.42}, fritz:{gfx:'fritz_ult',gdur:3.0,previewAt:'self'}, dandra:{gfx:'dandra_ult',gdur:2.6}, grimsby:{gfx:'grimsby_ult',gdur:5.88}, mellan:{gfx:'mellan_ult',gdur:4.88}, bloatus:{deliver:'form',gfx:'bloatus_ult',gdur:3.79}, maren:{deliver:'form',gfx:'maren_ult',gdur:2.8}, askel:{gfx:'askel_ult',gdur:2.29,artR:2.9*METER,fieldWide:'allies',allyShield:0.12,knockAside:2*METER}, grosk:{gfx:'grosk_ult',gdur:5.88}, hollow:{gfx:'hollow_ult',gdur:5.88}, konwu:{gfx:'konwu_ult',gdur:5.88}, lumi:{deliver:'form',gfx:'lumi_ult',gdur:1.04}, quorrel:{gfx:'quorrel_ult',gdur:1.67}, meridian:{gfx:'meridian_ult',gdur:2.75}, nox:{deliver:'form',gfx:'nox_ult',gdur:5.17,fieldWide:'enemies'}, oakmir:{deliver:'form',gfx:'oakmir_ult',gdur:5.67,badgeSize:0.45,noArea:true}, pellucid:{gfx:'pellucid_ult',gdur:6.04}, rhukk:{gfx:'rhukk_ult',gdur:2.08}, iver:{deliver:'land',gfx:'iver_ult',gdur:2.71}, sylthaine:{gfx:'sylthaine_ult',gdur:4.0}, gruel:{gfx:'gruel_ult',gdur:5.88}, tick:{gfx:'tick_ult',gdur:5.71}, umbris:{gfx:'umbris_ult',gdur:5.0}, vael:{gfx:'vael_ult',gdur:5.88}, mirelle:{deliver:'form',gfx:'mirelle_ult',gdur:5.62,fieldWide:'both'}, vex:{gfx:'vex_ult',gdur:4.75,gfxR:10*METER}, veyr:{gfx:'veyr_ult',gdur:5.12}, korvux:{deliver:'land',gfx:'korvux_ult',gdur:5.88}, vireo:{gfx:'vireo_ult',gdur:2.0}, ceraline:{deliver:'form',noArt:true}, tharl:{gfx:'tharl_ult',gdur:5.88,pathHit:0.5}, hobb:{deliver:'form',gfx:'hobb_ult',gdur:5.5}, yenna:{gfx:'yenna_ult',gdur:5.88,ricochet:true}, calypsa:{gfx:'calypsa_ult',gdur:5.88,deliver:'form',form:0.4}, brannus:{gfx:'brannus_ult',gdur:5.88,pathHit:0.5}, joss:{deliver:'form',gfx:'joss_ult',gdur:5.88,stun:1.2}, hurne:{gfx:'hurne_ult',gdur:5.88}
 };
-Object.assign(ULT_DEF, {summonshaman:{key:'ink horror',dur:22,radius:1.6*METER}});
+Object.assign(ULT_DEF, {summonshaman:{key:'ink horror',dur:22,radius:1.6*METER,perLv:0.005}});   /* v1112: horror share x1.495 at level 100 */
 Object.assign(ULT_SCALE, {summonshaman:'\u2014'});
 Object.assign(ULT_DESC, {summonshaman:'Ultimate \u2014 Aldren reads the final chapter aloud: an Elder Ink Horror steps off the page beside him for 22 seconds, striking enemies and spinning ink around itself.'});
 Object.assign(HERO_LORE, {
@@ -26168,7 +26310,7 @@ function abilityTipHTML(u){ const t=u.t, ab=u.abilityOverride||t.ability, kit=KI
   let h=`<b>${iconize('{i:s:energy}')}${t.abilityName}</b> <span style="color:#8b98a9">· Ultimate${eff?' · '+iconize(eff):''}</span><br>${HERO_ULT_DESC[u.key]||ULT_DESC[ab]||''}`;
   if(kit.green) h+=`<div class="atSub"><i class="kitDot" style="background:#5ee89b"></i><b style="color:#5ee89b">${kit.green.name}</b> — ${kit.green.desc||KIT_DESC[kit.green.type]||''}</div>`;
   if(kit.blue)  h+=`<div class="atSub"><i class="kitDot" style="background:#6ea8ff"></i><b style="color:#6ea8ff">${kit.blue.name}</b> — ${kit.blue.desc||KIT_DESC[kit.blue.type]||''}</div>`;
-  if(kit.purple)h+=`<div class="atSub"><i class="kitDot" style="background:#c9b6ff"></i><b style="color:#c9b6ff">${kit.purple.name}</b> — ${iconize(PASS_DESC[kit.purple.pass]||'')}</div>`;
+  if(kit.purple)h+=`<div class="atSub"><i class="kitDot" style="background:#c9b6ff"></i><b style="color:#c9b6ff">${kit.purple.name}</b> — ${iconize(passDescAt(kit.purple,passLv(u)))}</div>`;
   return h; }
 function showAbilityTip(u){ /* DISABLED in combat — ability descriptions live in the Skill tab only (Phil's call). Never render the in-battle popup; keep it hidden no matter which handler calls this. */ const tip=document.getElementById('abilityTip'); if(tip) tip.style.display='none'; }
 function hideAbilityTip(){ const tip=document.getElementById('abilityTip'); if(tip) tip.style.display='none'; }

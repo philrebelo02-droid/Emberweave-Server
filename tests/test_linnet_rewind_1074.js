@@ -20,7 +20,7 @@ ok(/_rw\.forEach\(a=>\{ if\(!a\.alive\) return;/.test(c) && c.indexOf('_rw.forEa
 ok(/spawnGroundFx\('linnet_rewind',a\.x,a\.y,1\.2\*METER,6\.04\)/.test(c) && /fo\.followAbove=a;/.test(c), 'one swirl per ally, riding its head');
 ok(/finally\{ _fxAllow=false; window\._fxTgtH=null; window\._fxTgtU=null; window\._fxAboveBar=false; \}/.test(c), 'the FX globals are reset after');
 // CONTROL: display only - the heal/revive maths are the v894 lines, unchanged
-ok(/if\(h>a\.hp\)\{ healFrom\(u,a,h-a\.hp\);/.test(c) && /a\.hp=Math\.max\(1,Math\.min\(worldHealCap\(a\),h\*\(o\.revive\|\|0\.4\)\)\);/.test(c), 'CONTROL: the heal and revive are unchanged');
+ok(/if\(h>a\.hp\)\{ healFrom\(u,a,h-a\.hp\);/.test(c) && /a\.hp=Math\.max\(1,Math\.min\(worldHealCap\(a\),h\*skLvNum\('rewind',o,_kLv\)\)\);/.test(c), 'CONTROL: the heal is unchanged; the revive is the v1112 levelled share (40% + 0.15 pt a level, Phil 10 Oct)');
 const fxPart = c.slice(c.indexOf('_rw.forEach'));
 ok(!/healFrom|\.hp\s*=|alive\s*=\s*true|energy\s*=/.test(fxPart.slice(0, fxPart.indexOf('floatTexts'))), 'CONTROL: the swirl code touches no hp, life or energy');
 
