@@ -82,7 +82,7 @@ const freePort=()=>new Promise((resolve,reject)=>{const s=net.createServer();s.o
     await page.evaluate(()=>{G.gold=TempleOfAsh.nextGoldCost(G.temple);renderTemple();});
     assert(await page.locator('[data-tp2-tier="gold"]').isEnabled(),'Gold reopens when the wallet can pay');
     await page.evaluate(()=>{G.temple.bonusPrayers=1;renderTemple();});
-    assert.strictEqual(await page.locator('[data-tp2-tier="bonus"]').count(),1,'a banked bonus prayer is offered');
+    assert(/Free prayer/.test(await page.locator('[data-tp2-tier="free"]').innerText())&&await page.locator('[data-tp2-tier="bonus"]').count()===0&&await page.locator('[data-tp2-tier="free"]').isEnabled(),'v1101: a banked free prayer stacks on the one Free prayer row (no separate Bonus row)');
     for(const vp of [{width:844,height:390},{width:390,height:844},{width:320,height:700}]){
       await page.setViewportSize(vp); await page.evaluate(()=>renderTemple()); await page.waitForTimeout(100);
       const box=await page.evaluate(()=>{const s=document.getElementById('tp2Stage').getBoundingClientRect();return {w:s.width,h:s.height,r:s.right,b:s.bottom,vw:innerWidth,vh:innerHeight};});

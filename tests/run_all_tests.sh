@@ -335,6 +335,8 @@ note "test_icons_1098.js (v1098: every icon the page asks for exists; Wishing Po
 node tests/test_icons_1098.js || FAILED=1
 note "test_icons_1100.js (v1100: hero fragments are the hero card; the 20 approved icons on disk and used; control: old mine mail still routes)"
 node tests/test_icons_1100.js || FAILED=1
+note "test_forge_retry_1101.js (v1101: a failed Forge load offers Retry, not 'being built'; control: server enabled:false)"
+node tests/test_forge_retry_1101.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi

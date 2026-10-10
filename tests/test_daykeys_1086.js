@@ -25,6 +25,6 @@ const eo=src.slice(src.indexOf('function etOffsetMs'),src.indexOf('\n',src.index
 const ctx={}; try{ vm.runInNewContext(fmt+'\n'+eo+'\n'+grab('function nyDayKey')+'\n'+grab('function dungeonNextReset')+'\nthis.n=dungeonNextReset;',ctx); }catch(e){ ctx.err=String(e); }
 const nr=ctx.n?ctx.n():0, hm=nr?new Date(nr).toLocaleTimeString('en-GB',{timeZone:'America/New_York',hour:'2-digit',minute:'2-digit'}):'';
 ok(hm==='09:00'&&nr>Date.now()&&nr-Date.now()<=24*3600000,'#3 the Vault nextResetAt is the next 09:00 ET ('+hm+', in '+(nr?((nr-Date.now())/3600000).toFixed(1):'?')+' h)'+(ctx.err?' '+ctx.err:''));
-ok(/<script src="\/server\/temple-of-ash\.js\?v=r1(086|09\d)"><\/script>/.test(fs.readFileSync(path.join(root,'emberweave-heroes.html'),'utf8')),'the client loads the new Temple module (asset version bumped)');
+ok(/<script src="\/server\/temple-of-ash\.js\?v=r1(08[6-9]|09\d|[1-9]\d\d)"><\/script>/.test(fs.readFileSync(path.join(root,'emberweave-heroes.html'),'utf8')),'the client loads the new Temple module (asset version bumped)');
 if(missed.length){ missed.forEach(m=>console.error('FAIL',m)); process.exitCode=1; }
 console.log('test_daykeys_1086.js: '+pass+' checks passed, '+missed.length+' failed');

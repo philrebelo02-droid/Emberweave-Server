@@ -637,6 +637,9 @@
   }
   function freeRitualAvailable(state) {
     dailyResetIfNeeded(state);
+    /* v1101 (Phil 9 Oct): "free prayers that you get stack on top of the Free prayer ... when you have a free prayer, you dont get free daily
+       prayers unless you use it" - while a stored (bonus) prayer is held, the daily one does not arrive. */
+    if ((state.bonusPrayers | 0) > 0) return false;
     return state.freeRitualDay !== null && state._freeClaimedDay !== todayStamp();
   }
   function discountFor(templeLevel, tierId) {

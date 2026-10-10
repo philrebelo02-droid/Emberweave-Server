@@ -1037,6 +1037,8 @@ h1{background:linear-gradient(180deg,#fff4d6 0%,#f3d58a 42%,#c98f2e 100%);-webki
 .tp2Msg{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font-size:calc(var(--u)*40);color:#efd9a8}
 .tp2Msg small{font-size:calc(var(--u)*30);color:#d6c6a4;margin-top:calc(var(--u)*10)}
 .tp2Note{font-size:calc(var(--u)*24);color:#ff9a9a;text-align:center}
+.tp2Pay{display:flex;gap:calc(var(--u)*8)} .tp2PayB{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:calc(var(--u)*6);padding:0;background:rgba(8,14,28,.55);border:calc(var(--u)*2) solid rgba(160,120,60,.45);border-radius:calc(var(--u)*10);color:#efd9a8;font:700 calc(var(--u)*26)/1 inherit;cursor:pointer}
+.tp2PayB .tp2Check{width:calc(var(--u)*32);height:calc(var(--u)*32)} .tp2PayB[aria-pressed="true"]{border-color:#ffcf6b} .tp2PayB[aria-pressed="true"] .tp2Check{background:url(/assets/img/temple/v2/ctl-checkbox-ticked-v1.webp) center/contain no-repeat!important} .tp2PayB:disabled{opacity:.42;cursor:default}
 .tp2Btn{border:0;background:url(/assets/img/temple/v2/button-navy-v1.webp) center/100% 100% no-repeat;color:#fbf2df;font-family:inherit;font-weight:700;font-size:calc(var(--u)*38);text-shadow:0 calc(var(--u)*2) calc(var(--u)*4) #000;cursor:pointer;padding:0}
 .tp2Btn.red{background-image:url(/assets/img/temple/v2/button-red-v1.webp)}
 .tp2Btn.gold{background-image:url(/assets/img/temple/v2/button-gold-v1.webp);color:#3a2208;text-shadow:0 calc(var(--u)*1) 0 rgba(255,240,200,.6)}
@@ -2187,21 +2189,23 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
   .wishpools{flex-wrap:nowrap} .wishpool{flex:1 1 0;min-width:0;padding:12px 9px} .wishpool .btn{font-size:12.5px;padding-left:4px;padding-right:4px}   /* v1092: three pools in one row */
   .wishpool.myth{border-color:#b98cff;background:linear-gradient(170deg,rgba(60,28,92,.92),rgba(22,12,38,.94))} .wishpool.myth .wp-name{color:#e6cfff} .wishpool.myth .wp-cost{color:#d9b8ff}   /* v1092 the Mythical Pool card (art to come from ChatGPT) */
   /* v1098 Wishing Pool stage (wps*): plate 2560x1440 (1440x2560 portrait), --u = 1 plate px; title, three pools and both wish buttons always fit */
-  #wishing.wpsOn>.titlebar,#wishing.wpsOn>.sub,#wishing.wpsOn .hdrbox>.sub{display:none} #wishing.wpsOn>.backbtn{z-index:30}
+  #wishing.wpsOn>.titlebar,#wishing.wpsOn>.sub,#wishing.wpsOn .hdrbox{display:none}   /* v1101 (Phil: 'there is 2 wishing pool titles') - the old header box goes, the stage title stays */ #wishing.wpsOn>.backbtn{z-index:30}
   #wishingBody.wpsHost{position:absolute;inset:0;max-width:none!important;display:flex;align-items:center;justify-content:center;overflow:hidden}
   .wpsStage{position:relative;--u:0.4px;display:flex;flex-direction:column;align-items:center;box-sizing:border-box;padding:calc(var(--u)*30) calc(var(--u)*60);overflow:hidden;color:#e6edf3;font-family:system-ui,sans-serif}
   .wpsTitle{flex:0 0 auto;height:calc(var(--u)*170);display:flex;align-items:center;justify-content:center;gap:calc(var(--u)*24);padding:0 calc(var(--u)*70);border:calc(var(--u)*4) solid #c9a35e;border-radius:calc(var(--u)*85);background:linear-gradient(180deg,rgba(40,30,12,.88),rgba(16,12,6,.9));color:#ffd45e;font-weight:900;font-size:calc(var(--u)*78);letter-spacing:calc(var(--u)*8);text-shadow:0 calc(var(--u)*4) calc(var(--u)*10) #000;box-sizing:border-box}
   .wpsHelp{width:calc(var(--u)*96);height:calc(var(--u)*96);border-radius:50%;border:calc(var(--u)*4) solid #c9a35e;background:rgba(20,16,10,.8);color:#ffd45e;font:800 calc(var(--u)*56)/1 system-ui,sans-serif;cursor:pointer;padding:0;letter-spacing:0}
-  .wpsCards{flex:1 1 0;min-height:0;width:100%;display:flex;gap:calc(var(--u)*80);margin-top:calc(var(--u)*30)}
-  .wpsCard{flex:1 1 0;min-width:0;min-height:0;display:flex;flex-direction:column;align-items:center;text-align:center;box-sizing:border-box;padding:calc(var(--u)*40);border:calc(var(--u)*4) solid #2a3550;border-radius:calc(var(--u)*48);background:rgba(16,22,36,.9);box-shadow:0 calc(var(--u)*12) calc(var(--u)*40) rgba(0,0,0,.45)}
+  /* v1101 (Phil 9 Oct: 'reduce the size of these to only take up 50% of the screen, to let the background show'): cards hug their content,
+   narrower and centred, so the three together cover about half the screen */
+.wpsCards{flex:0 0 auto;width:auto;display:flex;justify-content:center;gap:calc(var(--u)*60);margin:auto 0}
+  .wpsCard{flex:0 0 calc(var(--u)*680);min-width:0;min-height:0;display:flex;flex-direction:column;align-items:center;text-align:center;box-sizing:border-box;padding:calc(var(--u)*40);border:calc(var(--u)*4) solid #2a3550;border-radius:calc(var(--u)*48);background:rgba(16,22,36,.9);box-shadow:0 calc(var(--u)*12) calc(var(--u)*40) rgba(0,0,0,.45)}
   .wpsCard.gold{border-color:#8a6b2e;background:linear-gradient(165deg,rgba(40,32,14,.78),rgba(16,22,36,.94))} .wpsCard.gem{border-color:#3f6fae;background:linear-gradient(165deg,rgba(14,26,44,.8),rgba(16,22,36,.94))} .wpsCard.myth{border-color:#b98cff;background:linear-gradient(170deg,rgba(60,28,92,.92),rgba(22,12,38,.94))}
-  .wpsOrb{flex:0 0 auto;width:calc(var(--u)*300);height:calc(var(--u)*300);object-fit:contain;animation:poolfloat 4.2s cubic-bezier(.45,0,.55,1) infinite} .wpsCard.gem .wpsOrb{animation-delay:-1.4s} .wpsCard.myth .wpsOrb{animation-delay:-2.8s}
+  .wpsOrb{flex:0 0 auto;width:calc(var(--u)*240);height:calc(var(--u)*240);object-fit:contain;animation:poolfloat 4.2s cubic-bezier(.45,0,.55,1) infinite} .wpsCard.gem .wpsOrb{animation-delay:-1.4s} .wpsCard.myth .wpsOrb{animation-delay:-2.8s}
   @media (prefers-reduced-motion:reduce){.wpsOrb{animation:none}}
   .wpsName{font-weight:800;font-size:calc(var(--u)*66);line-height:1.25;margin-top:calc(var(--u)*10)} .wpsCard.myth .wpsName{color:#e6cfff}
   .wpsCost{font-weight:700;font-size:calc(var(--u)*48);line-height:1.3;color:#ffd45e} .wpsCard.gem .wpsCost{color:#8fd0ff} .wpsCard.myth .wpsCost{color:#d9b8ff}
   .wpsFree{font-weight:700;font-size:calc(var(--u)*44);line-height:1.3;color:#9fb0c4;min-height:calc(var(--u)*58)} .wpsFree.on{color:#5ee89b}
   .wpsSub{font-size:calc(var(--u)*36);line-height:1.25;color:#8b98a9;max-height:calc(var(--u)*90);overflow:hidden}
-  .wpsCard .btn{flex:0 0 auto;width:100%;height:calc(var(--u)*130);min-height:0;margin:calc(var(--u)*24) 0 0;padding:0 calc(var(--u)*16);font-size:calc(var(--u)*46);line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-sizing:border-box} .wpsCard .btn:first-of-type{margin-top:auto} .wpsCard .btn span{font-size:.8em!important}
+  .wpsCard .btn{flex:0 0 auto;width:100%;height:calc(var(--u)*124);min-height:0;margin:calc(var(--u)*20) 0 0;padding:0 calc(var(--u)*16);font-size:calc(var(--u)*42);line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-sizing:border-box} .wpsCard .btn:first-of-type{margin-top:calc(var(--u)*30)} .wpsCard .btn span{font-size:.8em!important}
   .wpsStage.tall .wpsCards{flex-direction:column;gap:calc(var(--u)*50)}
   .wpsStage.tall .wpsCard{display:grid;grid-template-columns:calc(var(--u)*300) 1fr;grid-auto-rows:min-content;column-gap:calc(var(--u)*40);align-content:center;text-align:left;align-items:center}
   .wpsStage.tall .wpsOrb{grid-row:1/span 7;width:calc(var(--u)*280);height:calc(var(--u)*280)} .wpsStage.tall .wpsCard>*:not(.wpsOrb){grid-column:2} .wpsStage.tall .wpsCard .btn,.wpsStage.tall .wpsCard .btn:first-of-type{margin-top:calc(var(--u)*16);height:calc(var(--u)*120)}
@@ -2555,7 +2559,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 </script>
 <script src="/hero-profiles.js?v=r1025"></script>
 <script src="/hero-paths.js?v=r1025"></script>
-<script src="/server/temple-of-ash.js?v=r1099"></script>
+<script src="/server/temple-of-ash.js?v=r1101"></script>
 <script src="/server/patron-benefits.js?v=r1093"></script>
 <script src="/server/temple-effects.js?v=r1098"></script>
 <script src="/assets/ui/world-mine-sync.js?v=mi1"></script>
@@ -4600,7 +4604,7 @@ function setHead(imgEl,key){ if(!imgEl)return; heroHead(key,d=>{ if(d) imgEl.src
 
 /* ---- ability RANK kit: Grey=Ultimate only, Green/Blue=auto actives, Purple=passive ---- */
 const RANK_NAMES=['Grey','Green','Blue','Purple'], RANK_COLOR=['#9aa6bb','#5ee89b','#4aa3ff','#b98bff'];
-const ULT_RADIUS=['aoeStun','deepchoir','fireball','gravcrush','worldweight','eventhorizon','blizzard','thundershower','umbralcata','swamproot','ashfall'];   // v544 ashfall: Korvux's Falling Star (Phil: 'korvux ult is not aimable') - the burning patch lands where you aim it   // drag a ground circle sized to the spell radius
+const ULT_RADIUS=['aoeStun','deepchoir','fireball','gravcrush','worldweight','eventhorizon','blizzard','thundershower','umbralcata','swamproot','ashfall','finalcandle'];   /* v1101 (Phil 9 Oct): 'final candle by waxen her ult should be aimable also' */   // v544 ashfall: Korvux's Falling Star (Phil: 'korvux ult is not aimable') - the burning patch lands where you aim it   // drag a ground circle sized to the spell radius
 const ULT_CONE=['cleave','triplecleave'];                              // 45-degree wedge aimed off the caster's body
 const ULT_ALLY_RADIUS=['firstspring'];   // v369 (Phil): Oakmir's First Spring is CLICK-TO-HEAL — lands under the ally you point at, heals every ally within 20 m
 const ULT_LINE=['stampede'];                            // v534 Zahri's Noonday Stampede: a 20 m line; she charges to the LAST foe on it
@@ -4868,7 +4872,7 @@ async function skillUpgrade(key,idx){ const lv=skillLevel(key,idx); if(lv>=SKILL
     adoptLedger(r.ledger); return true; }
   if(!(await txSpend('gold',c,'skillup'))) return false;
   skillLvArr(key)[idx]=lv+1; return true; }
-const ULT_DEF={worldweight:{mul:2.0,radius:8*METER,lift:2.0,slamStun:1.0},finalcandle:{mul:2.0,slow:3,stun:1.5,radius:7*METER,harden:1.6,shatter:1.5},worldbreaker:{mul:0.45,stun:0.4,radius:6*METER,slams:3,gap:0.7,wave:12*METER},serpentdance:{mul:0.6,spins:4,dur:2.4,radius:3*METER,exec:0.10},hivemind:{n:30,dmgMul:0.14,healMul:0.5,healPct:0.02,hold:0.7},defensive:{mul:0.45,dur:5},nova:{mul:1.8,radius:4*METER,slow:true},vanishpoint:{mul:2.0,exec:0.20,chain:3,falloff:0.8,gone:0.9,hop:0.35,range:15*METER},aoeStun:{mul:1.4,stun:2,radius:120},deepchoir:{dur:5,radius:8*METER,silence:5,tick:1.0,choirHeal:0.30},cleave:{mul:2.6,bleed:true,radius:6.5*METER},execute:{mul:2.2},burst:{mul:3},multiShot:{mul:1.8,n:5},fireball:{mul:2.2,radius:100},heal:{mul:0.95},rally:{},monkSlam:{mul:1.0,stun:2,radius:15*METER},hipposlam:{hpMul:0.40,radius:3*METER,stun:0.6,allyDr:0.30,allyDrDur:5},gravcrush:{mul:2.0,radius:8*METER,stun:1.0,gravity:true},eventhorizon:{mul:1.9,radius:7*METER,pull:1.2,silence:1.5,gravity:true},flywheel:{mul:1.6,radius:3*METER},blizzard:{dur:4,radius:8*METER,tick:0.5,freeze:0.10,channel:true},eclipse:{mul:2.2,radius:6*METER,shield:0.4},plaguesov:{mul:1.6,radius:5*METER,dps:0.6,dur:5},umbralcata:{mul:1.6,radius:6.8*METER,dps:0.6,dur:5},symphony:{healMul:0.30,dmgMul:0.30}   /* v567 (Phil): Grand Symphony has NO RANGE - it hits every ally and every enemy on the field. The downside is the size: 30% of ability power as heal and as damage. radius removed entirely. */,thundershower:{dur:3,radius:8*METER,tick:0.5,mul:0.6,channel:true},laststand:{mul:0.25,dur:5,pct:1.0,heal:0.15},firstspring:{mul:0.5,dur:5,radius:20*METER},charge:{mul:1.8,radius:5*METER,stun:1.0},stampede:{mul:1.8,radius:20*METER,width:1.6*METER,push:2.0*METER,stun:1.0,speed:18*METER,noArt:true},devourpack:{mul:1.2,healPct:1.0,shieldPct:0.6,dmgPct:0.9,dur:8,radius:3*METER},finalsurvey:{mul:1.4,mortalDur:3,bleedPct:0.10,bleedDur:3,steal:0.35,regen:0.03,buffDur:3,range:30*METER},taunt:{dur:4,dr:0.5,radius:6*METER},volley:{mul:1.4,n:6},ashfall:{dps:0.8,dur:5,radius:6*METER,mul:1.4},swamproot:{mul:1.6,root:2.5,radius:7*METER},sunburst:{mul:1.8,radius:6*METER,heal:0.35},aoedot:{mul:1.2,dps:0.7,dur:5,radius:99999},riftpuncture:{freeze:1,silence:1},triplecleave:{mul:0.8,radius:10*METER,hits:3},
+const ULT_DEF={worldweight:{mul:2.0,radius:8*METER,lift:2.0,slamStun:1.0},finalcandle:{mul:2.0,slow:3,stun:1.5,radius:7*METER,harden:1.6,shatter:1.5,coat:6},worldbreaker:{mul:0.45,stun:0.4,radius:6*METER,slams:3,gap:0.7,wave:12*METER},serpentdance:{mul:0.6,spins:4,dur:2.4,radius:3*METER,exec:0.10},hivemind:{n:30,dmgMul:0.14,healMul:0.5,healPct:0.02,hold:0.7},defensive:{mul:0.45,dur:5},nova:{mul:1.8,radius:4*METER,slow:true},vanishpoint:{mul:2.0,exec:0.20,chain:3,falloff:0.8,gone:0.9,hop:0.35,range:15*METER},aoeStun:{mul:1.4,stun:2,radius:120},deepchoir:{dur:5,radius:8*METER,silence:5,tick:1.0,choirHeal:0.30},cleave:{mul:2.6,bleed:true,radius:6.5*METER},execute:{mul:2.2},burst:{mul:3},multiShot:{mul:1.8,n:5},fireball:{mul:2.2,radius:100},heal:{mul:0.95},rally:{},monkSlam:{mul:1.0,stun:2,radius:15*METER},hipposlam:{hpMul:0.40,radius:3*METER,stun:0.6,allyDr:0.30,allyDrDur:5},gravcrush:{mul:2.0,radius:8*METER,stun:1.0,gravity:true},eventhorizon:{mul:1.9,radius:7*METER,pull:1.2,silence:1.5,gravity:true},flywheel:{mul:1.6,radius:3*METER},blizzard:{dur:4,radius:8*METER,tick:0.5,freeze:0.10,channel:true},eclipse:{mul:2.2,radius:6*METER,shield:0.4},plaguesov:{mul:1.6,radius:5*METER,dps:0.6,dur:5},umbralcata:{mul:1.6,radius:6.8*METER,dps:0.6,dur:5},symphony:{healMul:0.30,dmgMul:0.30}   /* v567 (Phil): Grand Symphony has NO RANGE - it hits every ally and every enemy on the field. The downside is the size: 30% of ability power as heal and as damage. radius removed entirely. */,thundershower:{dur:3,radius:8*METER,tick:0.5,mul:0.6,channel:true},laststand:{mul:0.25,dur:5,pct:1.0,heal:0.15},firstspring:{mul:0.5,dur:5,radius:20*METER},charge:{mul:1.8,radius:5*METER,stun:1.0},stampede:{mul:1.8,radius:20*METER,width:1.6*METER,push:2.0*METER,stun:1.0,speed:18*METER,noArt:true},devourpack:{mul:1.2,healPct:1.0,shieldPct:0.6,dmgPct:0.9,dur:8,radius:3*METER},finalsurvey:{mul:1.4,mortalDur:3,bleedPct:0.10,bleedDur:3,steal:0.35,regen:0.03,buffDur:3,range:30*METER},taunt:{dur:4,dr:0.5,radius:6*METER},volley:{mul:1.4,n:6},ashfall:{dps:0.8,dur:5,radius:6*METER,mul:1.4},swamproot:{mul:1.6,root:2.5,radius:7*METER},sunburst:{mul:1.8,radius:6*METER,heal:0.35},aoedot:{mul:1.2,dps:0.7,dur:5,radius:99999},riftpuncture:{freeze:1,silence:1},triplecleave:{mul:0.8,radius:10*METER,hits:3},
   plumage:{heal:0.8,shield:0.10,shred:0.30,atkDn:0.20,dur:6},
   quietwings:{sleep:2.2,buff:1.3,haste:1.2,dur:8},
   openeverydoor:{lock:1.6,steal:35,mul:0.9,share:0.25},
@@ -4912,7 +4916,7 @@ const HERO_ULT_DESC={"nerisse": "Ultimate — Nerisse rings the great bell: ever
   "ceraline": "Ultimate — Floods the battlefield with molten wax, heavily slowing enemies before hardening them into statues that shatter for massive damage.",
   "zahri": "Player-aimed ultimate — aim a line up to 20 m: Zahri charges down it to the last enemy on the line, striking everyone in her path and knocking them off to either side."
 };
-const ULT_DESC={worldweight:'Player-aimed ultimate \u2014 gravity takes a circle of ground: every enemy inside is lifted into the air for 2 seconds, then slammed down, taking damage and stunned for 1 second.',finalcandle:'Player-aimed ultimate — molten wax floods the area: everything caught is slowed, hardens into a statue, then shatters.',worldbreaker:'Ultimate — three ground slams; each sends a shockwave rolling out that strikes and staggers every enemy it reaches.',serpentdance:'Ultimate — her serpent star circles her four times, striking every enemy it passes; any enemy below 10% health is executed.',
+const ULT_DESC={worldweight:'Player-aimed ultimate \u2014 gravity takes a circle of ground: every enemy inside is lifted into the air for 2 seconds, then slammed down, taking damage and stunned for 1 second.',finalcandle:'Player-aimed ultimate — molten wax floods the area: everything caught is slowed, hardens into a statue, then shatters. Everyone the wax touches is coated in wax for 6 seconds, and coated again when their statue shatters.',worldbreaker:'Ultimate — three ground slams; each sends a shockwave rolling out that strikes and staggers every enemy it reaches.',serpentdance:'Ultimate — her serpent star circles her four times, striking every enemy it passes; any enemy below 10% health is executed.',
   plumage:'Ultimate \u2014 the full tail opens and the battlefield is perfumed: allies are cleansed, shielded and healed, and every enemy lowers its guard.',
   quietwings:'Ultimate \u2014 her wings unfurl and every enemy falls asleep while her allies are empowered.',
   openeverydoor:'Ultimate \u2014 every enemy is locked and suspended, their Energy stolen, then the locks are shattered for damage scaled by everything taken.',
@@ -5005,9 +5009,16 @@ function hudIcon(n,cls){ return iconImg('h',n,cls); }
 function statusIcon(n,cls){ return iconImg('s',n,cls); }
 function iconize(str){ return String(str==null?'':str).replace(/\{i:([stuh]):([a-zA-Z0-9-]+)\}/g,(m,k,n)=>iconImg(k,n)); }
 function stripIcons(str){ return String(str==null?'':str).replace(/\{i:[stuh]:[a-zA-Z0-9-]+\}\s?/g,''); }
-function skillEffectStr(key,idx,atk,hp){ const t=HERO_TYPES[key],kit=KITS[key],lv=skillLevel(key,idx),sm=skillMul(lv);
+/* v1101 (Phil 9 Oct, Ceraline's skill list: "shouldnt her abilities all have ability power icon by it?"): a Magic or Healer hero's skills
+   hit off Ability Power (doEffect: heroScaleMode 'ap' -> dB=apB) and an Attack hero's off Attack ('ad' -> apB=dB), but the readouts
+   multiplied Attack for most skills and drew the attack swords on every damage number. The readout now uses the stat the fight uses,
+   and an Ability Power hero's damage numbers carry the Ability Power icon (buff lines like 'team +30%' keep theirs). */
+function skillEffectStr(key,idx,atk,hp){ const r=_skillEffectStrRaw(key,idx,atk,hp), d=(HERO_TYPES[key]||{}).damageProfile;
+  return ((d==='Magic'||d==='Healer')&&typeof r==='string')?r.replace(/\{i:s:attack\}(?= \d)/g,'{i:t:apow}'):r; }
+function _skillEffectStrRaw(key,idx,atk,hp){ const t=HERO_TYPES[key],kit=KITS[key],lv=skillLevel(key,idx),sm=skillMul(lv);
   let apw=Math.round((t.apow||0)*(t.dmg?atk/t.dmg:1));   // approximate effective Ability Power for display
-  if(!apw) apw=atk;   // v527: a physical hero scales its abilities off Attack (see heroScaleMode) - printing 0 was a display bug
+  if(!apw) apw=atk;
+  { const _dp=t.damageProfile; if(_dp==='Magic'||_dp==='Healer') atk=apw; else if(_dp==='Attack') apw=atk; }   /* v1101: the stat the fight uses */   // v527: a physical hero scales its abilities off Attack (see heroScaleMode) - printing 0 was a display bug
   if(idx===0){ const d=ULT_DEF[t.ability]||{};
     if(t.ability==='flywheel') return '{i:s:attack} '+Math.round(atk*(d.mul||1.6)*sm)+' AoE';
     if(t.ability==='blizzard') return '{i:s:slow} '+Math.round(apw*0.5*sm)+'/tick · '+(d.dur||4)+'s';
@@ -5029,7 +5040,7 @@ function skillEffectStr(key,idx,atk,hp){ const t=HERO_TYPES[key],kit=KITS[key],l
     if(t.ability==='summonshaman') return 'summons an Elder Ink Horror · '+(d.dur||22)+'s';
     if(t.ability==='heal') return '{i:s:heal} '+Math.round(hp*(d.mul||.95)*sm)+' team heal'; if(t.ability==='rally') return '{i:s:energy} +40 energy · {i:s:heal} '+Math.round(hp*0.3*sm); if(t.ability==='burst') return '{i:s:attack} '+Math.round(atk*3*sm); if(d.hpMul) return '{i:s:attack} '+Math.round(hp*d.hpMul*sm)+(d.radius?' AoE slam':' slam'); return d.mul?('{i:s:attack} '+Math.round(atk*d.mul*sm)+(d.radius?' AoE':'')):'{i:s:attack} strike'; }
   const ab=idx===1?kit.green:idx===2?kit.blue:kit.purple;
-  if(idx===3){ const P={bulwark:'{i:s:shield} −'+Math.round(18*sm)+'% dmg taken',fury:'{i:s:energy} +'+Math.round(25*sm)+'% atk speed',crit:'{i:s:crit-burst} +'+Math.round(20*sm)+'% crit',power:'{i:s:attack} +'+Math.round(15*sm)+'% dmg',regen:'{i:s:heal} '+ (+(0.02*sm*100).toFixed(1))+'%/s heal',beeward:'every ally: +0.4%/s heal',battery:'{i:s:energy} faster energy',lifesteal:'{i:s:heal} '+Math.round(20*sm)+'% lifesteal',ignite:'{i:s:burn} burn',warden:'{i:s:shield} +'+Math.round(4*sm)+'% armour & MR /3s (cap 20%)',juggernaut:'{i:s:heal} '+(+(4*sm).toFixed(1))+'%/s self-heal',mirewall:'{i:s:shield} −'+Math.round(Math.min(35,20*sm))+'% on lowest ally',
+  if(idx===3){ const P={tallow:'{i:s:stun} '+(+(1.6*sm).toFixed(2))+'s encase at 3 wax stacks',   /* v1101: waxOnCaster stuns + silences 1.6 s x the skill level - the readout said only "passive" */ bulwark:'{i:s:shield} −'+Math.round(18*sm)+'% dmg taken',fury:'{i:s:energy} +'+Math.round(25*sm)+'% atk speed',crit:'{i:s:crit-burst} +'+Math.round(20*sm)+'% crit',power:'{i:s:attack} +'+Math.round(15*sm)+'% dmg',regen:'{i:s:heal} '+ (+(0.02*sm*100).toFixed(1))+'%/s heal',beeward:'every ally: +0.4%/s heal',battery:'{i:s:energy} faster energy',lifesteal:'{i:s:heal} '+Math.round(20*sm)+'% lifesteal',ignite:'{i:s:burn} burn',warden:'{i:s:shield} +'+Math.round(4*sm)+'% armour & MR /3s (cap 20%)',juggernaut:'{i:s:heal} '+(+(4*sm).toFixed(1))+'%/s self-heal',mirewall:'{i:s:shield} −'+Math.round(Math.min(35,20*sm))+'% on lowest ally',
     desertmom:'{i:s:energy} up to +'+Math.round(50*sm)+'% atk speed & +'+Math.round(120*sm)+' penetration',
     gruel:'3 casts → encased '+(+(1.6*sm).toFixed(1))+'s', risingheat:'{i:t:apow} up to +'+Math.round(45*sm)+'% spell power', staticcharge:'{i:s:energy} 5 stacks → chain',
     patience:'{i:s:crit-burst} +'+Math.round(5*sm)+'% crit per stack (×6)', convergence:'{i:s:energy} energy back on AoE',
@@ -10965,17 +10976,26 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
     case 'finalcandle':{   /* v896 Waxen Duchess: flood (slow) -> statues (stun) -> shatter (damage), each stage when it happens */
       const _c=aimCtr||((tgt&&tgt.alive)?tgt:nearestEnemy(u))||u, _R=o.radius||7*METER, _sh=apB*(o.mul||2.0)*rm;
       const _caught=enemiesOf(u).filter(e=>e.alive&&dist(_c,e)<_R);
-      _caught.forEach(e=>{ ccApply(u,e,'slow',o.slow||3); floatTexts.push({x:e.x,y:e.y-8,txt:'WAX',t:.8,color:'#e8d8b0',vy:1,sz:11}); });
+      /* v1101 (Phil 9 Oct: 'waxen ult should apply wax during them being hit with wax and after the effigy explodes' / 'it lasts 6 seconds'):
+         her wax coat (the Sealing Wax coat Mourning Bell shatters) goes on when the wax touches an enemy and again when its effigy shatters */
+      const _coat=e=>{ if(!e.alive)return; e._waxCoatT=Math.max(e._waxCoatT||0,o.coat||6); e._waxCoatBy=u; };
+      _caught.forEach(e=>{ _coat(e); ccApply(u,e,'slow',o.slow||3); floatTexts.push({x:e.x,y:e.y-8,txt:'WAX',t:.8,color:'#e8d8b0',vy:1,sz:11}); });
       ringBurst(_c.x,_c.y,0xe8d8b0,22);
       /* v1077 (Phil via Grok, spell 21): the wax is poured at the aim point and SPREADS to the full radius; a hero is encased (stun) the
          moment the spreading edge reaches the spot it stood on at the cast, and its effigy shatters (the damage) o.shatter s later. Before:
          every caught hero turned to a statue at 1.6 s and shattered at 3.1 s together. Stun length and shatter gap are unchanged.
          The edge timing is CANDLE_EDGE (measured from the approved pour clip) - plain numbers, so the server replay is identical. */
       const _enc=[]; try{ if(typeof candleCastFx==='function') candleCastFx(_c.x,_c.y,_R); }catch(_e){}
-      _caught.forEach(e=>{ const at=candleEdgeT(dist(_c,e)/_R);
-        groundHazards.push({arrival:true,delay:at,run:function(){ if(!e.alive||dist(_c,e)>=_R)return; _enc.push(e); ccApply(u,e,'stunned',o.stun||1.5); e.brighten=Math.max(e.brighten||0,0.6); floatTexts.push({x:e.x,y:e.y-10,txt:'STATUE',t:1.0,color:'#f0e6c8',vy:1,sz:12});
+      /* v1101 (Phil 9 Oct: 'everyone touched by waxens ult should be stunned and the effigy should appear on them'): every enemy the wax
+         touches is encased - one caught at the cast is encased when the edge reaches its spot even if it stepped out since, and one that walks
+         into the wax while it spreads is encased when the pour reaches full size. Each gets the effigy, the stun and the shatter. */
+      const _encase=(e,at)=>{ groundHazards.push({arrival:true,delay:at,run:function(){ if(!e.alive||_enc.indexOf(e)>=0)return; _enc.push(e); ccApply(u,e,'stunned',o.stun||1.5); e.brighten=Math.max(e.brighten||0,0.6); floatTexts.push({x:e.x,y:e.y-10,txt:'STATUE',t:1.0,color:'#f0e6c8',vy:1,sz:12});
           try{ if(typeof candleEffigyFx==='function') candleEffigyFx(e,o.shatter||1.5); }catch(_e){} }});
-        groundHazards.push({arrival:true,delay:at+(o.shatter||1.5),run:function(){ if(!e.alive||_enc.indexOf(e)<0)return; dealDamage(u,e,_sh,'#fff0c0','magic'); burstAt(e.x,e.y,0xfff0c0,14); ringBurst(e.x,e.y,0xe8d8b0,10); }}); });
+        groundHazards.push({arrival:true,delay:at+(o.shatter||1.5),run:function(){ if(!e.alive||_enc.indexOf(e)<0)return; dealDamage(u,e,_sh,'#fff0c0','magic'); _coat(e); burstAt(e.x,e.y,0xfff0c0,14); ringBurst(e.x,e.y,0xe8d8b0,10); }}); };
+      _caught.forEach(e=>_encase(e,candleEdgeT(dist(_c,e)/_R)));
+      /* while it pours (Phil: 'even if they are pulled into it while its pouring'): every 0.1 s, anyone inside the wax's edge right now is encased */
+      { const _full=candleEdgeT(1); for(let _t=0.1;_t<=_full+0.001;_t+=0.1){ const _tt=Math.min(_t,_full); groundHazards.push({arrival:true,delay:_tt,run:function(){ const _edge=_R*Math.min(1,candleEdgeF(_tt));
+        enemiesOf(u).forEach(e=>{ if(e.alive&&_caught.indexOf(e)<0&&_enc.indexOf(e)<0&&dist(_c,e)<_edge){ _caught.push(e); _coat(e); ccApply(u,e,'slow',o.slow||3); _encase(e,0); } }); }}); } }
       break; }
     case 'swamproot':{ const R=o.radius||2.4*METER;
       /* v1030 (Phil 4 Oct: Swampcall "hits two of the furthest targets and the root also silences for 2 seconds"): with `farthest` the swamp opens
@@ -15067,7 +15087,10 @@ async function forgeSync(){
   if(!FORGE.cat){ const c=await api('/api/gear/catalog'); if(c&&c.items) FORGE.cat=c; }
   // v256 (80/20 §5): the exact farm source of every gear fragment, from the authored vault table
   if(!FORGE.src){ try{ const sc=await api('/api/gear/sources'); if(sc&&sc.sources) FORGE.src=sc.sources; }catch(e){} }
-  const s=await api('/api/gear/state'); FORGE.st=(s&&s.enabled)?s:{enabled:false}; return FORGE.st;
+  const s=await api('/api/gear/state');
+  /* v1101 (Phil 9 Oct, a screenshot of 'The Forge is being built'): one failed request (a blip, a busy server) cached 'Forge off' until the
+     next account change. Only the server's own enabled:false means off; a failed load (or no catalog) is offline and offers a Retry. */
+  FORGE.st=(s&&s.enabled&&FORGE.cat)?s:(s&&s.enabled===false)?{enabled:false}:{enabled:false,offline:true}; return FORGE.st;
 }
 function forgeDef(id){ return (FORGE.cat&&FORGE.cat.items.find(i=>i.id===id))||null; }
 async function forgePost(path,payload,msg){ if(FORGE.busy)return; FORGE.busy=true;
@@ -15154,7 +15177,7 @@ async function gearPlanRun(plan,equipHero){ if(FORGE.busy) return; FORGE.busy=tr
      piece - and says where it stopped; a failed equip says so */
   const done=n===plan.steps.length;
   if(!done) bannerMsg((n?'Stopped at step '+n+' of '+plan.steps.length+': ':'')+err);
-  else if(last&&last.crafted){ bannerMsg('⚒️ Built '+last.name+' ('+n+' step'+(n!==1?'s':'')+')');
+  else if(last&&last.crafted){ bannerMsg(uiIcon('mode-forge')+' Built '+last.name+' ('+n+' step'+(n!==1?'s':'')+')');
     if(equipHero){ FORGE.busy=true; const e=await api('/api/gear/equip','POST',{expectedRevision:FORGE.st.revision,heroKey:equipHero,itemId:last.crafted}); FORGE.busy=false;
       if(e&&!e.error) bannerMsg(statusIcon('shield')+' '+last.name+' equipped'); else bannerMsg((e&&e.error==='offline')?'Connection lost.':((e&&e.error)||'Could not equip.')); } }
   await forgeSync(); renderHeroDetail(); }
@@ -15166,7 +15189,7 @@ function gearBuildCancel(){ GEAR_BUILD=null; renderHeroDetail(); }
 async function gearBuildDo(gearId,equipHero){ if(FORGE.busy) return; FORGE.busy=true;
   const r=await api('/api/gear/craft','POST',{expectedRevision:FORGE.st.revision,gearId}); FORGE.busy=false;
   if(!r||r.error){ bannerMsg((r&&r.error)||'The Forge is cold.'); await forgeSync(); renderHeroDetail(); return; }
-  bannerMsg('⚒️ Built '+r.name+'!'); await forgeSync();
+  bannerMsg(uiIcon('mode-forge')+' Built '+r.name+'!'); await forgeSync();
   if(equipHero&&r.crafted){ FORGE.busy=true; const e=await api('/api/gear/equip','POST',{expectedRevision:FORGE.st.revision,heroKey:equipHero,itemId:r.crafted}); FORGE.busy=false;
     if(e&&!e.error) bannerMsg(statusIcon('shield')+' '+r.name+' equipped'); else bannerMsg((e&&e.error==='offline')?'Connection lost.':((e&&e.error)||'Could not equip.')); await forgeSync(); }   /* v994 (audit #9): a failed equip says so */
   renderHeroDetail();
@@ -15242,7 +15265,7 @@ function heroGearBuildHTML(key){
   const role=gearLoadoutFor(key), can=gearCanCraft(st,d)||gearPlan(st,d,role).ok, fresh=gearOwnedFresh(st,d.id), col=FORGE_QCOLOR[d.quality]||'#e6edf3';   // v479: deep plan
   const isRoot=!GEAR_BUILD.stack.length, hero=GEAR_BUILD.hero;
   const head=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:6px">
-      <div style="font-size:13px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">⚒️ <b>Equipment</b> <span style="color:#3a4a6e">›</span> <b style="color:#5ee89b">Build Tree</b>${isRoot?'':' <span style="color:#3a4a6e">›</span> <span style="color:#8b98a9">ingredient</span>'}</div>
+      <div style="font-size:13px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${uiIcon('mode-forge')} <b>Equipment</b> <span style="color:#3a4a6e">›</span> <b style="color:#5ee89b">Build Tree</b>${isRoot?'':' <span style="color:#3a4a6e">›</span> <span style="color:#8b98a9">ingredient</span>'}</div>
       <span class="pill" style="color:${col};border:1px solid ${col};flex:none">${d.quality} · ${d.slot}</span></div>`;
   const action=isRoot
     ?(fresh?`<button class="btn" style="flex:1;background:linear-gradient(#5ee89b,#2f9e63);color:#04140a" onclick="gearHeroPost('/equip',{itemId:'${fresh}',heroKey:'${hero}'},r=>'{i:s:shield} Equipped — '+r.slot);GEAR_BUILD=null;">${statusIcon('shield')} Equip</button>`
@@ -15256,7 +15279,7 @@ function heroGearBuildHTML(key){
 function heroGearTabHTML(key){
   const st=(typeof FORGE!=='undefined')&&FORGE.st;
   if(!st){ forgeSync().then(()=>renderHeroDetail()); return '<div class="panel" style="text-align:center;color:#8b98a9;padding:16px">Stoking the Forge…</div>'; }
-  if(!st.enabled||!FORGE.cat) return '<div class="panel" style="text-align:center;color:#8b98a9;padding:16px">⚒️ The Forge is being built.</div>';
+  if(!st.enabled||!FORGE.cat) return '<div class="panel" style="text-align:center;color:#8b98a9;padding:16px">'+uiIcon('mode-forge')+(st.offline?' Could not reach the Forge - open it again to retry.':' The Forge is being built.')+'</div>';
   if(GEAR_BUILD&&GEAR_BUILD.hero===key) return heroGearBuildHTML(key);
   const T=FORGE.cat.meta.temper, eq=(st.equipped||{})[key]||{}, act=(st.active||{})[key];
   const role=gearLoadoutFor(key), ids=GEAR_LOADOUTS[role]||[];
@@ -15321,7 +15344,7 @@ function forgeCraftPick(gearId){
   const sel=feed.slice(0,2).map(e=>e[0]);
   const sh=modalShell();
   const draw=()=>{
-    sh.body.innerHTML=`<div style="font-weight:800;margin-bottom:6px">⚒ Forge ${escapeHTML(d.name)}</div>
+    sh.body.innerHTML=`<div style="font-weight:800;margin-bottom:6px">${uiIcon('mode-forge')} Forge ${escapeHTML(d.name)}</div>
       <div style="font-size:11px;color:#ff8b8b;margin-bottom:6px">These 2 items are <b>destroyed forever</b>. Forge Dust spent tempering them is <b>NOT refunded</b>.</div>
       <div style="font-size:11px;color:#8b98a9;margin-bottom:6px">2 × ${escapeHTML(prevQ||'')}</div>
       ${feed.map(([id,it])=>{ const dd=forgeDef(it.d), on=sel.indexOf(id)>=0;
@@ -15330,12 +15353,12 @@ function forgeCraftPick(gearId){
           <span style="font-size:10px;color:#8b98a9;white-space:nowrap">Temper ${it.temper||0} · ${uiIcon('sparkle-new')}${it.dustSpent||0} spent</span></div>`; }).join('')}
       <div style="display:flex;gap:8px;margin-top:10px;justify-content:flex-end">
         <button class="btn sm secondary" id="fcpX">Cancel</button>
-        <button class="btn sm ${sel.length===2?'':'secondary'}" id="fcpGo">⚒ Destroy 2 &amp; Forge</button></div>`;
+        <button class="btn sm ${sel.length===2?'':'secondary'}" id="fcpGo">${uiIcon('mode-forge')} Destroy 2 &amp; Forge</button></div>`;
     sh.body.querySelectorAll('[data-fcp]').forEach(el=>wireTap(el,()=>{ const id=el.getAttribute('data-fcp'), i=sel.indexOf(id);
       if(i>=0) sel.splice(i,1); else { if(sel.length>=2) sel.shift(); sel.push(id); } draw(); }));
     wireTap(sh.body.querySelector('#fcpX'),()=>sh.close());
     wireTap(sh.body.querySelector('#fcpGo'),()=>{ if(sel.length!==2){ bannerMsg('Pick exactly 2 ingredients.'); return; }
-      const pick=sel.slice(); sh.close(); forgePost('/craft',{gearId:d.id, ingredients:pick},r=>'⚒️ Forged '+r.name+'!'); });
+      const pick=sel.slice(); sh.close(); forgePost('/craft',{gearId:d.id, ingredients:pick},r=>'{i:u:mode-forge} Forged '+r.name+'!'); });
   };
   draw();
 }
@@ -15387,11 +15410,13 @@ function renderForge(){
   const b=document.getElementById('forgeBody'); if(!b) return;
   if(FORGE.st===null){ b.innerHTML='<div class="panel" style="text-align:center;color:#8b98a9;padding:20px">Stoking the Forge…</div>';
     forgeSync().then(()=>renderForge()); return; }
-  if(!FORGE.st.enabled||!FORGE.cat){ b.innerHTML='<div class="panel" style="text-align:center;padding:22px"><div style="font-size:40px">⚒️</div><div style="font-weight:800;margin:6px 0">The Forge is being built</div><div style="font-size:11px;color:#8b98a9">Opening soon.</div></div>'; return; }
+  if(FORGE.st.offline){ b.innerHTML='<div class="panel" style="text-align:center;padding:22px"><div style="font-size:40px">'+uiIcon('mode-forge')+'</div><div style="font-weight:800;margin:6px 0">Could not reach the Forge</div><button class="btn" id="forgeRetry">Retry</button></div>';
+    const rt=document.getElementById('forgeRetry'); if(rt) rt.onclick=()=>{ FORGE.st=null; renderForge(); }; return; }
+  if(!FORGE.st.enabled||!FORGE.cat){ b.innerHTML='<div class="panel" style="text-align:center;padding:22px"><div style="font-size:40px">'+uiIcon('mode-forge')+'</div><div style="font-weight:800;margin:6px 0">The Forge is being built</div><div style="font-size:11px;color:#8b98a9">Opening soon.</div></div>'; return; }
   const st=FORGE.st, res=st.resonance||{rank:0,total:0,next:null};
   b.innerHTML=`<div class="panel">
       <div style="display:flex;justify-content:space-between;align-items:center">
-        <b style="font-size:13px">⚒️ The Forge</b>
+        <b style="font-size:13px">${uiIcon('mode-forge')} The Forge</b>
         <span class="pill" style="border:1px solid #c9922a;color:#ffd45e">${uiIcon('res-forge-dust')} ${st.dust||0} Forge Dust</span></div>
       <div style="font-size:10px;color:#8b98a9;margin-top:3px">🔮 Forge Resonance <b style="color:#c9a2ff">Rank ${res.rank}</b> (+${res.rank}% all gear stats) · total Temper ${res.total}${res.next!=null?' · next rank at '+res.next:''}</div></div>
     <div style="display:flex;gap:4px;margin:8px 0">
@@ -18054,6 +18079,7 @@ function renderDungeon(){
   }
   b.querySelector('#dgStart').onclick=startDg;
 }
+let templePayFlame=null;   /* v1101: the Flame / Diamonds choice under Pray (null = flames when you hold that tier, else diamonds) */
 let templeSelectedHero='',templeSelectedTier='gold',templeClassFilter='All',templeLastRolls=null;
 /* v1094 TEMPLE OF ASH v2 SCREEN (Phil 9 Oct: copy the reference prayer screen, "even ui", our names and pictures).
    One 16:9 stage on ChatGPT's plate (2560 x 1440 coordinates, placed in %); two views: the hero grid and the prayer screen.
@@ -18114,13 +18140,22 @@ function renderTemple(){
       return `<div class="tp2Bless ${x.earned?'on':x.locked?'lock':''}" style="${tp2Box(1640,y+8,640,104)}">${icon}<div><b>${escapeHTML(x.label)}</b><span>${sub}</span></div></div>`; }).join('');
     const f=hs.fifth||{}, fifth=`<div class="tp2Bless tp2Fifth ${f.earned?'on':f.locked?'lock':''}" style="${tp2Box(1640,876,640,92)}">${f.earned?'<img src="/assets/img/temple/card-orb-lit-v2.webp?v=2" alt="">':f.locked?`<img src="${TP2}lock-v1.webp" alt="">`:'<img src="/assets/img/temple/card-orb-unlit-v2.webp?v=2" alt="">'}<div><b>5th dot: blessings +${Math.round((f.bonus||0.15)*100)}%</b><span>${f.earned?'Earned':f.locked?'Needs Temple '+f.templeLevel:'Needs hero Lv '+f.heroLevel}</span></div></div>`;
     const tiers=templePrayerTiers(), free=T.freeRitualAvailable(st), bonus=(st.bonusPrayers|0)>0, heldP=st.heldPrayers||{};
-    const opts=[{id:'free',name:'Daily free prayer',cost:free?'Free':'Used today',locked:!free}]
-      .concat(bonus?[{id:'bonus',name:'Bonus prayer ×'+(st.bonusPrayers|0),cost:'Free',locked:false}]:[])
-      .concat(tiers.map(t=>({id:t.id,name:t.name,locked:t.locked||(t.id==='gold'?(G.gold||0)<t.gold:(G.gems||0)<t.gems),need:t.locked?t.unlockKeeper:0,
+    /* v1101 (Phil 9 Oct): "free prayers that you get stack on top of the Free prayer, it doesnt get its own spot" and the Kindled / Stoked /
+       Blazing / Inferno prayers earned from events or the Mythical Pool "are stacked on the original flames" - one Free row (stored + daily),
+       one row per tier showing how many you hold; under Pray a Flame / Diamonds choice says which one pays. */
+    const freeN=(st.bonusPrayers|0)+(free?1:0);
+    const opts=[{id:'free',name:'Free prayer'+(freeN>1?' ×'+freeN:''),cost:freeN?'Free':'Used today',locked:!freeN}]
+      .concat(tiers.map(t=>({id:t.id,name:t.name+((heldP[t.id]|0)>0?' ×'+(heldP[t.id]|0):''),locked:t.locked||(t.id==='gold'?(G.gold||0)<t.gold:((G.gems||0)<t.gems&&!((heldP[t.id]|0)>0))),need:t.locked?t.unlockKeeper:0,
         cost:t.locked?'Temple '+t.unlockKeeper:t.id==='gold'?`<img src="/assets/img/ui/hud-gold.webp" alt="">${t.gold.toLocaleString()}`:`<img src="/assets/img/ui/hud-gem.webp" alt="">${t.gems}${t.discount?` <small>-${Math.round(t.discount*100)}%</small>`:''}`})))
-      .concat(['kindled','stoked','blazing','inferno'].filter(k=>(heldP[k]|0)>0).map(k=>({id:'held:'+k,art:k,name:((tiers.find(t=>t.id===k)||{}).name||k)+' held ×'+(heldP[k]|0),cost:'Held',locked:false})));
+      ;
     if(!opts.some(o=>o.id===templeSelectedTier&&!o.locked)) templeSelectedTier=(opts.find(o=>o.id==='free'&&!o.locked)||opts.find(o=>o.id==='gold'&&!o.locked)||opts.find(o=>!o.locked)||{}).id||'';
     const blocked=!unlocked||!elig(key);
+    const selHeld=heldP[templeSelectedTier]|0, gemTier=['kindled','stoked','blazing','inferno'].indexOf(templeSelectedTier)>=0;
+    const selTier=tiers.find(t=>t.id===templeSelectedTier)||{}, canGems=gemTier&&(G.gems||0)>=(selTier.gems||0);
+    const payFlame=gemTier&&selHeld>0&&(templePayFlame!==false||!canGems);
+    const payHtml=gemTier?`<div class="tp2Pay" style="${tp2Box(2010,1258,310,80)}">
+        <button type="button" class="tp2PayB" data-tp2-pay="flame" aria-pressed="${payFlame}" ${selHeld>0?'':'disabled'}><i class="tp2Check"></i>Flame</button>
+        <button type="button" class="tp2PayB" data-tp2-pay="gems" aria-pressed="${!payFlame}" ${canGems?'':'disabled'}><i class="tp2Check"></i>Diamonds</button></div>`:'';
     const choice=opts.map(o=>`<button type="button" class="tp2Opt" data-tp2-tier="${o.id}" aria-pressed="${templeSelectedTier===o.id}" ${o.locked||blocked?'disabled':''}>
         <i class="tp2Check"></i><img src="${TP2}${TP2_TIER_ART[o.art||o.id]||'prayer-daily-free'}-v1.webp" alt=""><b>${escapeHTML(o.name)}</b><span>${o.cost}</span></button>`).join('');
     inner=`<img src="${TP2}hero-window-v1.webp" alt="" style="${tp2Box(272,280,296,608)}" class="tp2Win">
@@ -18136,21 +18171,24 @@ function renderTemple(){
           <button type="button" class="tp2Btn red" id="templeSave" style="${tp2Box(1920,1220,360,96)}">Save</button>
           <div class="tp2Msg" style="${tp2Box(1130,1040,1170,160)}">Save or cancel?<small>(Gold or diamonds are not refunded for cancelling.)</small></div>`
         :`<div class="tp2Opts" style="${tp2Box(1125,1028,890,310)}">${choice}</div>
-          <button type="button" class="tp2Btn gold" id="templePray" style="${tp2Box(2030,1150,270,100)}" ${blocked||!templeSelectedTier?'disabled':''}>Pray</button>
+          <button type="button" class="tp2Btn gold" id="templePray" style="${tp2Box(2030,1150,270,100)}" ${blocked||!templeSelectedTier?'disabled':''}>Pray</button>${payHtml}
           ${key&&!elig(key)?`<div class="tp2Note" style="${tp2Box(2010,1060,300,80)}">Purple ascension required</div>`:''}`}`;
   }
   b.innerHTML=`<div class="tp2Stage" id="tp2Stage"><img class="tp2Plate" src="${TP2}plate-v1.webp" alt="">${inner}
     <div id="templeMsg" class="tp2Toast" style="${tp2Box(900,190,760,60)}"></div>${templeAuto?tp2AutoHtml():''}${templeFx?`<div class="tp2Fx" style="${tp2Box(733,380,800,520)}"><img src="${TP2}flare-v1.webp" alt=""><b class="${templeFx>0?'up':'down'}">Power ${templeFx>0?'+':''}${templeFx}</b></div>`:''}</div>`;
   tp2Fit();
   b.querySelectorAll('[data-tp2-hero]').forEach(t=>t.onclick=()=>{ templeSelectedHero=t.dataset.tp2Hero; templeView='pray'; templeLastRolls=null; renderTemple(); });
-  b.querySelectorAll('[data-tp2-tier]').forEach(t=>t.onclick=()=>{ templeSelectedTier=t.dataset.tp2Tier; b.querySelectorAll('[data-tp2-tier]').forEach(x=>x.setAttribute('aria-pressed',String(x===t))); });
+  b.querySelectorAll('[data-tp2-tier]').forEach(t=>t.onclick=()=>{ templeSelectedTier=t.dataset.tp2Tier; templePayFlame=null; renderTemple(); });
+  b.querySelectorAll('[data-tp2-pay]').forEach(t=>t.onclick=()=>{ templePayFlame=t.dataset.tp2Pay==='flame'; renderTemple(); });
   const sw=b.querySelector('#tp2Switch'); if(sw) sw.onclick=()=>{ templeView='grid'; templeLastRolls=null; renderTemple(); };
   const au=b.querySelector('#tp2Auto'); if(au) au.onclick=()=>{ const t=templePrayerTiers().filter(x=>!x.locked); templeAuto={tiers:t.map(x=>x.id),i:0,n:5,result:null}; renderTemple(); };
   const msg=t=>{ const m=document.getElementById('templeMsg'); if(m){ m.textContent=t; m.classList.add('on'); setTimeout(()=>m.classList.remove('on'),2600);} };
   const act=async(path,payload)=>{ const r=await apiOnce('temple',path,payload); if(r&&r.busy) return null;
     if(!(r&&r.ok)){ const e=(r&&r.error==='offline')?'Connection lost.':((r&&r.error)||'Prayer failed.'); try{ await ledgerSync(); }catch(_){} renderTemple(); msg(e); return null; }
     return r; };
-  const pray=b.querySelector('#templePray'); if(pray) pray.onclick=async()=>{ const s=String(templeSelectedTier||''); const r=await act('/api/temple/pray',s.startsWith('held:')?{heroKey:key,tier:s.slice(5),held:true}:{heroKey:key,tier:s});
+  const pray=b.querySelector('#templePray'); if(pray) pray.onclick=async()=>{ const s=String(templeSelectedTier||''), Tst=G.temple||{}, hp=(Tst.heldPrayers||{})[s]|0;
+    const useFlame=['kindled','stoked','blazing','inferno'].indexOf(s)>=0&&hp>0&&b.querySelector('[data-tp2-pay="flame"][aria-pressed="true"]');
+    const r=await act('/api/temple/pray',s==='free'?{heroKey:key,tier:(Tst.bonusPrayers|0)>0?'bonus':'free'}:useFlame?{heroKey:key,tier:s,held:true}:{heroKey:key,tier:s});
     if(!r) return; templeLastRolls=r.rolls; window._tp2Break=(r.breakout|0)>1?r.breakout:0; if(G.temple&&G.temple._pending==null&&r.ledger){} adoptLedger(r.ledger); if(G.temple&&G.temple._pending) G.temple._pending.power=r.power; updateHubChrome(); renderTemple(); };
   const save=b.querySelector('#templeSave'); if(save) save.onclick=async()=>{ const pw=(G.temple&&G.temple._pending&&G.temple._pending.power)||Object.values(templeLastRolls||{}).reduce((a,x)=>a+10*(x.deltaSteps||0),0);
     const r=await act('/api/temple/save',{}); if(!r) return; templeLastRolls=null; adoptLedger(r.ledger); updateHubChrome(); templeFx=pw||0; renderTemple(); setTimeout(()=>{ templeFx=null; if(document.getElementById('tp2Stage')) renderTemple(); },1900); };
@@ -23017,7 +23055,7 @@ function openStarsPanel(key){ const t=HERO_TYPES[key]; if(!t) return;
           Cost per attempt: <b style="color:#c9a2ff">${fIcon} ${T.cost} ${escapeHTML(t.name)} fragments</b><br>
           Success: <b style="color:#5ee89b">${sucPct}%</b> · <b style="color:#ff8b8b">${failPct}% fail</b><br>
           <span style="color:#8b98a9">You have ${fIcon} <b>${frags}</b> fragments.</span></div>
-        <button class="btn" id="spRefine" style="width:100%;${afford?'background:'+T.col+';color:#1a1206':''}" ${afford?'':'disabled'}>⚒ Refine (${T.cost} frags)</button></div>`; }
+        <button class="btn" id="spRefine" style="width:100%;${afford?'background:'+T.col+';color:#1a1206':''}" ${afford?'':'disabled'}>${uiIcon('mode-forge')} Refine (${T.cost} frags)</button></div>`; }
     ov.innerHTML=`<div style="background:#141b2b;border:1px solid #3a4a6e;border-radius:16px 0 0 16px;padding:18px 16px;width:min(380px,94vw);height:100vh;max-height:100vh;overflow:auto;box-shadow:-18px 0 55px rgba(0,0,0,.6)">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-weight:800;font-size:15px">${uiIcon('star-filled')} ${escapeHTML(t.name)} · Stars</div><button class="btn sm secondary" id="spX">${uiIcon('close')}</button></div>
       <div style="display:flex;gap:3px;justify-content:center;align-items:center;min-height:58px;margin-bottom:6px">${starFillRow(key,24)}</div>
@@ -23396,7 +23434,7 @@ function renderHeroDetail(){
   const armorPanel='';
   // ---- RIGHT: tabs ----
   const tabs = owned
-    ? [['stats',uiIcon('chart')+' Stats'],['skills',statusIcon('attack')+' Skills'],['glyphs','💠 Glyphs'],['equip','⚒️ Equipment'],['lore',uiIcon('quest-scroll')+' Lore']]
+    ? [['stats',uiIcon('chart')+' Stats'],['skills',statusIcon('attack')+' Skills'],['glyphs','💠 Glyphs'],['equip',uiIcon('mode-forge')+' Equipment'],['lore',uiIcon('quest-scroll')+' Lore']]
     : [['stats',uiIcon('chart')+' Stats'],['skills',statusIcon('attack')+' Skills'],['lore',uiIcon('quest-scroll')+' Lore']];   // locked heroes: view-only (no upgrade tabs)
   if(!tabs.some(([id])=>id===heroTab)) heroTab = owned?'stats':'lore';
   const tabBar=tabs.map(([id,label])=>`<button class="hd-tab${heroTab===id?' on':''}" data-tab="${id}">${label}</button>`).join('');
@@ -26770,7 +26808,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791592453661';
+const BUILD_ID = '1791597990952';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -27439,7 +27477,7 @@ function edReforge(p,h){ if(!h || !(h.items||[]).length) return false; const rol
 function edAnvilOpen(it){ if(ED.phase!=='plan' || !it || !it.anv) return; edAnvilOpts(it); ED.anvil=it; ED.sel=null; ED.msg=''; edRender(); }
 /* the pick-1-of-3 card (phone first: three big buttons, each with the item's art, name, stats and active) */
 function edAnvilHtml(){ const A=ED.anvil, you=edYou(); if(!A || you.items.indexOf(A)<0){ ED.anvil=null; return ''; }
-  let h=`<div class="edAnv"><div class="anvBox"><div class="anvTop"><span>⚒️ ${edEsc(edItemName(A))}</span><span style="flex:1"></span><button class="btnx" data-a="anvx">Later</button></div><div class="anvSub">Take one - the other two are gone. "Later" keeps the anvil (the same three stay inside).</div><div class="anvRow">`;
+  let h=`<div class="edAnv"><div class="anvBox"><div class="anvTop"><span>${uiIcon('mode-forge')} ${edEsc(edItemName(A))}</span><span style="flex:1"></span><button class="btnx" data-a="anvx">Later</button></div><div class="anvSub">Take one - the other two are gone. "Later" keeps the anvil (the same three stay inside).</div><div class="anvRow">`;
   edAnvilOpts(A).forEach((it,i)=>{ const col=edItemCol(it), act=it.f&&ED.cat&&ED.cat[it.f], cr=edCrestRole(it);
     h+=`<button class="anvOpt" data-a="anv:${i}" style="--c:${col}">${edItemImg(it,44)}<span class="anvNm" style="color:${col}">${edEsc(edItemName(it))}</span><span class="anvSt">${edItemStatLines(it).map(edEsc).join('<br>')}</span>`
       +(act&&act.name?`<span class="anvAc">✦ ${edEsc(act.name)}</span>`:'')+(cr?`<span class="anvAc">✦ counts as a ${edEsc(cr)}</span>`:'')+`</button>`; });
@@ -28996,7 +29034,7 @@ function edAction(a){
   if(a==='book'){ ED.book=!ED.book; return edRender(); }   // v650: the recipe book
   if(a==='side'){ ED.sideMin=!ED.sideMin; return edRender(); }   // v654: fold / unfold the players + synergies panel
   if(a==='anvx'){ ED.anvil=null; return edRender(); }   /* v657: close the anvil - it stays on the bench with the same three inside */
-  if(a.slice(0,4)==='anv:'){ const A=ED.anvil; ED.anvil=null; if(A && ED.phase==='plan'){ const got=edAnvilTake(edYou(),A,+a.slice(4)); if(got) ED.msg='⚒️ You took '+edItemName(got)+' - drag it onto a hero.'; } return edRender(); }
+  if(a.slice(0,4)==='anv:'){ const A=ED.anvil; ED.anvil=null; if(A && ED.phase==='plan'){ const got=edAnvilTake(edYou(),A,+a.slice(4)); if(got) ED.msg='{i:u:mode-forge} You took '+edItemName(got)+' - drag it onto a hero.'; } return edRender(); }
   if(a.slice(0,3)==='bk:'){ ED.bookTab=a.slice(3); ED.bookSel=''; return edRender(); }   // v651: its tabs
   if(a.slice(0,4)==='bki:'){ ED.bookSel=(a==='bki:'||ED.bookSel===a)?'':a; return edRender(); }   // v651: tap an item in the book for its stats
   if(a.slice(0,3)==='ii:'){ const i=+a.slice(3); ED.info=(ED.info===i)?null:i; return edRender(); }

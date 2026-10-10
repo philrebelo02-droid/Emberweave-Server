@@ -59,6 +59,9 @@ ck('breakout chances are 1% x3 and 5% x2', JSON.stringify(T.CONFIG.BREAKOUT) ===
   const s = T.pray(st, 'h', 'gold'); ck('a 5% roll is a x2 breakout: Gold 30 becomes 60', s.breakout === 2 && s.amount === 60); T.discardSession(st); }
 { const st = T.newState(); st.heroes = { h: hero(100, 100, 100, 100) }; st.playerLevel = 100; st.keeperPoints = pts(19); T.setRng(seq([0.999, 0.999, 0.0, 0.5]));
   const s = T.pray(st, 'h', 'gold'); ck('a loss is never multiplied (control)', s.gain === false && s.breakout === 1 && s.amount === 30); T.discardSession(st); }
+// v1101 (Phil 9 Oct): "when you have a free prayer, you dont get free daily prayers unless you use it"
+{ const st = T.newState(); st.bonusPrayers = 2; ck('holding a stored free prayer: the daily one does not arrive', T.freeRitualAvailable(st) === false);
+  st.bonusPrayers = 0; ck('control: none stored and not used today: the daily free prayer is there', T.freeRitualAvailable(st) === true); }
 ck('Inferno gains 50-200 (Phil)', T.CONFIG.PRAYER_AMOUNT.inferno.gain.join() === '50,200');
 ck('reach pressure: none at the reach, 0.6 at the cap', T.pressureChance('gold', 20, 40) === 0 && near(T.pressureChance('gold', 40, 40), 0.6, 1e-9) && near(T.pressureChance('gold', 30, 40), 0.3, 1e-9));
 ck('Inferno has no pressure (reach = the cap)', T.pressureChance('inferno', 200, 200) === 0);
