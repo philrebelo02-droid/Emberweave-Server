@@ -3383,13 +3383,14 @@ const BATTLE_ANIM = {
     ult:{u:'/assets/anim/konwu/konwu_ult.webp?v=30',n:48,fw:530,fh:530,cols:6,rows:8,figH:337,feet:512,cx:212,fps:24,flip:false,top:175}
   },
   grosk:{
-    idle:{u:'/assets/anim/grosk/grosk_idle.webp?v=8',n:60,fw:300,fh:225,cols:6,rows:10,figH:198,feet:222,cx:153,fps:30,flip:false,top:3},
-    walk:{u:'/assets/anim/grosk/grosk_walk.webp?v=21',n:24,fw:561,fh:439,cols:6,rows:4,figH:400,feet:428,cx:290,fps:14,flip:false,top:28,ax:[0,1.6,6,17.4,34.3,52.9,72.7,89.8,100.7,105.2,101.3,94.4,81.1,63.3,44.1,23.2,4.1,-9.4,-18.3,-20.4,-20.8,-20.9,-21,-21.1]},
-    attack:{u:'/assets/anim/grosk/grosk_attack.webp?v=21',n:22,fw:561,fh:435,cols:6,rows:4,figH:400,feet:412,cx:290,fps:20,flip:false,top:12,hold:1.1,ax:[0,-1,-1,-1,7,29,42,141,172,145,94,68,78,86,89,89,88,83,82,76,73,73]},
-    hit:{u:'/assets/anim/grosk/grosk_hit.webp?v=7',n:16,fw:300,fh:277,cols:6,rows:3,figH:185,feet:273,cx:158,fps:16,flip:false,top:2},
-    croc:{u:'/assets/anim/grosk/grosk_croc.webp?v=7',n:24,fw:300,fh:279,cols:6,rows:4,figH:181,feet:271,cx:183,fps:12,flip:false, hold:2.0,top:2},
-    pull:{u:'/assets/anim/grosk/grosk_pull.webp?v=7',n:24,fw:300,fh:265,cols:6,rows:4,figH:183,feet:258,cx:156,fps:13,flip:false, hold:1.85,top:2},
-    fists:{u:'/assets/anim/grosk/grosk_fists.webp?v=7',n:18,fw:300,fh:292,cols:6,rows:3,figH:185,feet:276,cx:217,fps:12,flip:false, hold:1.5,top:2},
+    idle:{u:'/assets/anim/grosk/grosk_idle_1112.webp?v=22',n:48,fw:561,fh:470,cols:6,rows:8,figH:350,feet:410,cx:299,fps:24,flip:false,top:60},   /* v1112 Grosk eight (Phil 10 Oct, ChatGPT handoff GROSK-EIGHT-10OCT2026-BLUE13-ULT2-AIR2, 'send to claude'): idle2, walk2, attack7, crit1, hit1, green4 (Gravemaw Pull), blue13 (Hammer Fists, three punches), ult2 TWO-SECOND-AIRTIME edit (Croc Drop) - sha256 = approved-eight-manifest.json. Cut with cut_grosk.py = Gruel's settings through cs10 (PAD 60, 48 cells, lossless, ALPHA_SOFT/FLOOR 4, key off each clip's frame-0 border) WITHOUT the green DESPILL_ALL pass (Grosk owns green moss), then narrowdespill.py unmix (truly-pink 0.10-0.17% -> 0%). attack/crit/ult CELL_CAP'd to the 4096 texture limit (x0.987/0.920/0.796). figH/feet/cx measured on each clip's frame 0 (feet = soles; figH 350 native on every state). No ax (the slicer's ax tracked the shield and the jump, not the feet). blue = source frames 0,2..94 and ult = 6,8..100 at 12 fps = REAL TIME, because their game timing is measured off the clip: Hammer Fists lands each punch at full extension (cells 13/24/34 = 1.083/2.000/2.833 s of clip, KITS.grosk.blue.hitTimes); Croc Drop launches on cell 10 (0.833 s of clip) and lands on cell 34 (2.833 s of clip); Gravemaw Pull fires on green cell 11 (0.458 s of clip). Clips play in real time and the fight clock runs at SIM_STEP*SIM_HZ*BATTLE_PACE = 0.6724 of it (BATTLE_PACE is in both the tick rate and SIM_STEP - measured on the rig: 17.8 clip cells per fight second at 12 fps), so in fight seconds: punches 0.728/1.345/1.905, ult cast 0.56 + leap 1.345 = slam 1.905, green cast 0.308 (ABILITY_CAST.grosk, ULT_DEF.hipposlam.leap). relFrac = contact cell / 48 (attack: shield at full thrust on cell 8; crit: shield bash out on cell 10). walk loop [1,45) (walk_loop.py, score 0.28), cadence keeps fps 14 / default stride (about 11 cells per step, old sheet 12). Passive OMITTED by Phil: the old passive sheet stays. */
+    walk:{u:'/assets/anim/grosk/grosk_walk_1112.webp?v=22',n:48,fw:561,fh:504,cols:6,rows:8,figH:350,feet:438,cx:272,fps:14,flip:false,top:88,loop:[1,45]},
+    attack:{u:'/assets/anim/grosk/grosk_attack_1112.webp?v=22',n:48,fw:627,fh:511,cols:6,rows:8,figH:345,feet:452,cx:318,fps:24,flip:false,top:106,relFrac:8/48},
+    crit:{u:'/assets/anim/grosk/grosk_crit_1112.webp?v=22',n:48,fw:623,fh:512,cols:6,rows:8,figH:321,feet:438,cx:291,fps:24,flip:false,top:116,relFrac:10/48},
+    hit:{u:'/assets/anim/grosk/grosk_hit_1112.webp?v=22',n:48,fw:613,fh:500,cols:6,rows:8,figH:350,feet:432,cx:336,fps:24,flip:false,top:82},
+    green:{u:'/assets/anim/grosk/grosk_green_1112.webp?v=22',n:48,fw:534,fh:500,cols:6,rows:8,figH:350,feet:440,cx:273,fps:24,flip:false,top:90},
+    blue:{u:'/assets/anim/grosk/grosk_blue_1112.webp?v=22',n:48,fw:595,fh:494,cols:6,rows:8,figH:350,feet:434,cx:268,fps:12,flip:false,top:84},
+    ult:{u:'/assets/anim/grosk/grosk_ult_1112.webp?v=22',n:48,fw:465,fh:512,cols:6,rows:8,figH:278,feet:464,cx:225,fps:12,flip:false,top:185},
     passive:{u:'/assets/anim/grosk/grosk_passive.webp?v=7',n:20,fw:300,fh:251,cols:6,rows:4,figH:185,feet:248,cx:152,fps:10,flip:false, pingpong:true,top:2}
   },
   fritz:{
@@ -3684,9 +3685,9 @@ const BATTLE_ANIM = {
 // Grosk skill-tab previews reuse his battle sheets (declared above). Slots match the Skills list order:
 // 0 Croc Drop (ult), 1 Gravemaw Pull (green), 2 Hammer Fists (blue), 3 Juggernaut (passive → idle stance).
 HERO_SKILL_CLIPS.grosk = {
-  0:{u:GROSK_CROC, n:24,fw:300,fh:279,cols:6,rows:4,dur:2.4},
-  1:{u:GROSK_PULL, n:24,fw:300,fh:265,cols:6,rows:4,dur:2.4},
-  2:{u:GROSK_FISTS, n:18,fw:300,fh:292,cols:6,rows:3,dur:2.4},
+  0:{u:'/assets/anim/grosk/grosk_ult_1112.webp?v=22',n:48,fw:465,fh:512,cols:6,rows:8,dur:4.0},     /* v1112: the approved eight (ult and blue play in real time, 12 fps) */
+  1:{u:'/assets/anim/grosk/grosk_green_1112.webp?v=22',n:48,fw:534,fh:500,cols:6,rows:8,dur:2.0},
+  2:{u:'/assets/anim/grosk/grosk_blue_1112.webp?v=22',n:48,fw:595,fh:494,cols:6,rows:8,dur:4.0},
   3:{u:'/assets/anim/grosk/grosk_passive.webp?v=7',n:20,fw:300,fh:251,cols:6,rows:4,dur:2.6},
 };
 HERO_SKILL_CLIPS.vulmar = { 0:{u:'/assets/anim/vulmar/vulmar_ult.webp?v=7',n:48,fw:241,fh:400,cols:6,rows:8,dur:2.0}, 1:{u:'/assets/anim/vulmar/vulmar_green.webp?v=7',n:48,fw:345,fh:400,cols:6,rows:8,dur:2.0}, 2:{u:'/assets/anim/vulmar/vulmar_blue.webp?v=7',n:48,fw:252,fh:400,cols:6,rows:8,dur:2.0}, 3:{u:'/assets/anim/vulmar/vulmar_passive.webp?v=7',n:48,fw:240,fh:400,cols:6,rows:8,dur:2.0} };
@@ -4781,7 +4782,7 @@ const METER=28.2;   // field-units per in-game metre (tripled from 9.4 so 13 m /
 const KITS={
   konwu:{green:{deliver:'form',name:'Cleaving Arc',type:'cleavecone',mul:1.5,radius:5*METER,angle:45,cd:6,gfx:'konwu_green',gfxAt:'front',gdur:5.88},blue:{name:'Phantom Step',type:'blink',mul:2.0,range:15*METER,cd:10,knock:8*METER,stun:2,chase:1.5,kick:0.667,gfx:'konwu_blue',gfxR:3*METER,gdur:4.08},purple:{name:'Adamant Discipline',pass:'warden'}},
   // v1111 (Phil 10 Oct 2026: "grosk punch ability changing to 3 punches at 60% of attack damage"): Hammer Fists was 4 x 26%.
-  grosk:{green:{deliver:'form',name:'Gravemaw Pull',type:'pullsilence',radius:5*METER,dur:2,cd:10,gfx:'grosk_green',gdur:4.38},blue:{name:'Hammer Fists',type:'punchflurry',hits:3,mul:0.6,tauntChance:1,tauntDur:2,cd:6,gfx:'grosk_blue',gfxR:3*METER,gdur:3.92},purple:{name:'The Mirewall',pass:'mirewall'}},
+  grosk:{green:{deliver:'form',name:'Gravemaw Pull',type:'pullsilence',radius:5*METER,dur:2,cd:10,gfx:'grosk_green',gdur:4.38},blue:{name:'Hammer Fists',type:'punchflurry',hits:3,mul:0.6,hitTimes:[1.083,2.0,2.833],tauntChance:1,tauntDur:2,cd:6,gfx:'grosk_blue',gfxR:3*METER,gdur:3.92},purple:{name:'The Mirewall',pass:'mirewall'}},
   vulmar:{green:{name:'Gravity Sling',type:'gravsling',mul:1.0,splashMul:0.5,cd:7,gfx:'vulmar_green',gfxR:3*METER,gdur:3.75,desc:"Vulmar seizes the nearest enemy with gravity and hurls it into the next one, damaging and stunning both."},blue:{name:'Grasping Vow',type:'tendrilpull',target:'farthest',silence:true,dur:3,stop:2,cd:10,gfx:'vulmar_blue',gfxR:3*METER,gdur:1.21,desc:"Gravity tendrils seize the farthest enemy on the field, silence it, and drag it to Vulmar's side."},purple:{name:'Unstepped',pass:'unstepped'}},
   tick:{green:{name:'Overclock',type:'haste',mul:1.35,perLv:0.002,dur:5,self:true,desc:"Tick winds his own mainspring: HIS attack speed only, for a few seconds.",cd:8,gfx:'tick_green',gfxR:3*METER,gdur:5.88},blue:{name:'Mainspring',type:'punchflurry',hits:5,mul:0.28,tauntChance:0,cd:7,gfx:'tick_blue',gfxR:3*METER,gdur:5.21},purple:{name:'Momentum Gears',pass:'momentum'}},
   sylthaine:{green:{name:'Frozen Orb',type:'frozenorb',mul:1.1,range:28*METER,width:34,cd:8,gfx:'sylthaine_green',noArt:true,pfx:'sylthaine_green',pscale:2.6,pdur:0.9,gdur:3.92},blue:{deliver:'form',name:'Glacial Prison',type:'freeze',mul:1.2,stun:2,cd:9,gfx:'sylthaine_blue',gfxR:3*METER,gdur:5.54},purple:{name:'Cold Snap',pass:'coldsnap'}},
@@ -5010,14 +5011,14 @@ async function skillUpgrade(key,idx){ const lv=skillLevel(key,idx); if(lv>=SKILL
     adoptLedger(r.ledger); return true; }
   if(!(await txSpend('gold',c,'skillup'))) return false;
   skillLvArr(key)[idx]=lv+1; return true; }
-const ULT_DEF={worldweight:{mul:2.0,radius:8*METER,lift:2.0,slamStun:1.0},finalcandle:{mul:2.0,slow:3,stun:1.5,radius:7*METER,harden:1.6,shatter:1.5,coat:6},worldbreaker:{mul:0.45,stun:0.4,radius:6*METER,slams:3,gap:0.7,wave:12*METER},serpentdance:{mul:0.6,spins:4,dur:2.4,radius:3*METER,exec:0.10},hivemind:{n:30,dmgMul:0.14,healMul:0.5,healPct:0.02,hold:0.7},defensive:{mul:0.45,dur:5},nova:{mul:1.8,radius:4*METER,slow:true},vanishpoint:{mul:2.0,exec:0.20,chain:3,falloff:0.8,gone:0.9,hop:0.35,range:15*METER},aoeStun:{mul:1.4,stun:2,radius:120},deepchoir:{dur:5,radius:8*METER,silence:5,tick:1.0,choirHeal:0.30},cleave:{mul:2.6,bleed:true,radius:6.5*METER},execute:{mul:2.2},burst:{mul:3},multiShot:{mul:1.8,n:5},fireball:{mul:2.2,radius:100},heal:{mul:0.95},rally:{heal:0.30,perLv:0.001},monkSlam:{mul:1.0,stun:2,radius:15*METER},hipposlam:{hpMul:0.40,radius:3*METER,stun:0.6,allyDr:0.30,allyDrDur:5,perLv:0.0015},gravcrush:{mul:2.0,radius:8*METER,stun:1.0,gravity:true},eventhorizon:{mul:1.9,radius:7*METER,pull:1.2,silence:1.5,gravity:true},flywheel:{mul:1.6,radius:3*METER},blizzard:{dur:4,radius:8*METER,tick:0.5,freeze:0.10,channel:true},eclipse:{mul:2.2,radius:6*METER,shield:0.4},plaguesov:{mul:1.6,radius:5*METER,dps:0.6,dur:5},umbralcata:{mul:1.6,radius:6.8*METER,dps:0.6,dur:5},symphony:{healMul:0.30,dmgMul:0.30}   /* v567 (Phil): Grand Symphony has NO RANGE - it hits every ally and every enemy on the field. The downside is the size: 30% of ability power as heal and as damage. radius removed entirely. */,thundershower:{dur:3,radius:8*METER,tick:0.5,mul:0.6,channel:true},laststand:{mul:0.25,dur:5,pct:1.0,heal:0.15,perLv:0.001},firstspring:{mul:0.5,dur:5,radius:20*METER},charge:{mul:1.8,radius:5*METER,stun:1.0},stampede:{mul:1.8,radius:20*METER,width:1.6*METER,push:2.0*METER,stun:1.0,speed:18*METER,noArt:true},devourpack:{mul:1.2,healPct:1.0,shieldPct:0.6,dmgPct:0.9,dur:8,radius:3*METER},finalsurvey:{mul:1.4,mortalDur:3,bleedPct:0.10,bleedDur:3,steal:0.35,regen:0.03,buffDur:3,range:30*METER},taunt:{dur:4,dr:0.5,radius:6*METER},volley:{mul:1.4,n:6},ashfall:{dps:0.8,dur:5,radius:6*METER,mul:1.4},swamproot:{mul:1.6,root:2.5,radius:7*METER},sunburst:{mul:1.8,radius:6*METER,heal:0.35},aoedot:{mul:1.2,dps:0.7,dur:5,radius:99999},riftpuncture:{freeze:1,silence:1},triplecleave:{mul:0.8,radius:10*METER,hits:3},
+const ULT_DEF={worldweight:{mul:2.0,radius:8*METER,lift:2.0,slamStun:1.0},finalcandle:{mul:2.0,slow:3,stun:1.5,radius:7*METER,harden:1.6,shatter:1.5,coat:6},worldbreaker:{mul:0.45,stun:0.4,radius:6*METER,slams:3,gap:0.7,wave:12*METER},serpentdance:{mul:0.6,spins:4,dur:2.4,radius:3*METER,exec:0.10},hivemind:{n:30,dmgMul:0.14,healMul:0.5,healPct:0.02,hold:0.7},defensive:{mul:0.45,dur:5},nova:{mul:1.8,radius:4*METER,slow:true},vanishpoint:{mul:2.0,exec:0.20,chain:3,falloff:0.8,gone:0.9,hop:0.35,range:15*METER},aoeStun:{mul:1.4,stun:2,radius:120},deepchoir:{dur:5,radius:8*METER,silence:5,tick:1.0,choirHeal:0.30},cleave:{mul:2.6,bleed:true,radius:6.5*METER},execute:{mul:2.2},burst:{mul:3},multiShot:{mul:1.8,n:5},fireball:{mul:2.2,radius:100},heal:{mul:0.95},rally:{heal:0.30,perLv:0.001},monkSlam:{mul:1.0,stun:2,radius:15*METER},hipposlam:{hpMul:0.40,radius:3*METER,stun:0.6,allyDr:0.30,allyDrDur:5,perLv:0.0015,leap:1.345},gravcrush:{mul:2.0,radius:8*METER,stun:1.0,gravity:true},eventhorizon:{mul:1.9,radius:7*METER,pull:1.2,silence:1.5,gravity:true},flywheel:{mul:1.6,radius:3*METER},blizzard:{dur:4,radius:8*METER,tick:0.5,freeze:0.10,channel:true},eclipse:{mul:2.2,radius:6*METER,shield:0.4},plaguesov:{mul:1.6,radius:5*METER,dps:0.6,dur:5},umbralcata:{mul:1.6,radius:6.8*METER,dps:0.6,dur:5},symphony:{healMul:0.30,dmgMul:0.30}   /* v567 (Phil): Grand Symphony has NO RANGE - it hits every ally and every enemy on the field. The downside is the size: 30% of ability power as heal and as damage. radius removed entirely. */,thundershower:{dur:3,radius:8*METER,tick:0.5,mul:0.6,channel:true},laststand:{mul:0.25,dur:5,pct:1.0,heal:0.15,perLv:0.001},firstspring:{mul:0.5,dur:5,radius:20*METER},charge:{mul:1.8,radius:5*METER,stun:1.0},stampede:{mul:1.8,radius:20*METER,width:1.6*METER,push:2.0*METER,stun:1.0,speed:18*METER,noArt:true},devourpack:{mul:1.2,healPct:1.0,shieldPct:0.6,dmgPct:0.9,dur:8,radius:3*METER},finalsurvey:{mul:1.4,mortalDur:3,bleedPct:0.10,bleedDur:3,steal:0.35,regen:0.03,buffDur:3,range:30*METER},taunt:{dur:4,dr:0.5,radius:6*METER},volley:{mul:1.4,n:6},ashfall:{dps:0.8,dur:5,radius:6*METER,mul:1.4},swamproot:{mul:1.6,root:2.5,radius:7*METER},sunburst:{mul:1.8,radius:6*METER,heal:0.35},aoedot:{mul:1.2,dps:0.7,dur:5,radius:99999},riftpuncture:{freeze:1,silence:1},triplecleave:{mul:0.8,radius:10*METER,hits:3},
   plumage:{heal:0.8,shield:0.10,shred:0.30,atkDn:0.20,dur:6},
   quietwings:{sleep:2.2,buff:1.3,haste:1.2,dur:8,perLv:0.001},
   openeverydoor:{lock:1.6,steal:35,mul:0.9,share:0.25},
   rewind:{back:5,revive:0.4,perLv:0.0015}
 };
 // per-hero ability CAST times (s); a hero can't auto-attack while casting; effect visual ~2x cast.
-const ABILITY_CAST={ vael:{ult:0.3}, rhukk:{ult:0.5}, konwu:{ult:1,green:0.3,blue:1}, grosk:{ult:0.5,green:1,blue:0.6}, vulmar:{ult:1.5,green:1.5,blue:2}, tick:{ult:1,green:0.4,blue:0.6}, sylthaine:{ult:0.6,green:1,blue:0.8}, aureth:{ult:1.2,green:1,blue:0.5}, bloatus:{ult:1.2,green:0.9,blue:0.8}, vireo:{ult:1,green:0.6,blue:0.5}, fritz:{ult:0.8,green:0.5,blue:0.4} };
+const ABILITY_CAST={ vael:{ult:0.3}, rhukk:{ult:0.5}, konwu:{ult:1,green:0.3,blue:1}, grosk:{ult:0.56,green:0.308,blue:0.6}, vulmar:{ult:1.5,green:1.5,blue:2}, tick:{ult:1,green:0.4,blue:0.6}, sylthaine:{ult:0.6,green:1,blue:0.8}, aureth:{ult:1.2,green:1,blue:0.5}, bloatus:{ult:1.2,green:0.9,blue:0.8}, vireo:{ult:1,green:0.6,blue:0.5}, fritz:{ult:0.8,green:0.5,blue:0.4} };
 function castTimeFor(u,slot){ const m=ABILITY_CAST[u.key]||((u.t&&u.t.monster)?ABILITY_CAST_MON[u.key]:null); return (m&&m[slot])||(slot==='ult'?0.8:0.5); }
 // a hover explanation of what each skill does
 /* v481 (audit): per-HERO ultimate text — the shared type text named the wrong hero or weapon (Nerisse's ult read "Oakmir calls the first bloom…", Carn's read "three cuts with both daggers"). */
@@ -11101,8 +11102,13 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
       foes.forEach(c=>{ const n=foes.reduce((s,e)=>s+(dist(c,e)<R?1:0),0); if(n>bestN){bestN=n;best=c;} });
       const cx=Math.max(60,Math.min(FW-60,best.x)), cy=Math.max(80,Math.min(FD-60,best.y));
       /* v893 - a real leap: he is in the air on the way and the slam lands when he does (it used to teleport + slam at once) */
-      const _lt=o.leap||0.6; u._airT=Math.max(u._airT||0,_lt); u._castT=Math.max(u._castT||0,_lt);
-      u._dash={x0:u.x,y0:u.y,x1:cx,y1:cy,t:0,dur:_lt,run:function(){
+      /* v1112 (Phil 10 Oct, ULT2 two-second airtime approved): the leap lasts the clip's airtime - he leaves the ground on cell 10 (0.833 s
+         of clip = the 0.56 s cast) and his feet hit it on cell 34, 2.0 s of clip later = 1.345 fight seconds (clips run in real time,
+         the fight clock at SIM_STEP*SIM_HZ*BATTLE_PACE = 0.6724 of it), which is when the slam lands (ULT_DEF.hipposlam.leap).
+         The clip draws the jump, so he no longer sets _airT on himself: _airT is hard CC that nothing counts down, and it cut his own
+         ult clip (and every later clip lock) the moment he took off. Damage, radius, stun and the wall are unchanged. */
+      const _lt=o.leap||0.6; u._castT=Math.max(u._castT||0,_lt);
+      u._dash={x0:u.x,y0:u.y,x1:cx,y1:cy,t:0,dur:_lt,air:true,run:function(){   /* v1112 air: he is over their heads, so his body does not shove the pack off the landing spot (collision skips an air dash) */
       const dmg=u.maxHp*(o.hpMul||0.40)*rm*sm;
       foes.forEach(e=>{ if(dist(e,{x:cx,y:cy})<R){ dealDamage(u,e,dmg,'#c9a05e'); ccApply(u,e,'stunned',o.stun||0.6); e.brighten=Math.max(e.brighten||0,0.6); } });
       if(o.allyDr){ alliesOf(u).forEach(a=>{ a._mwDrT=Math.max(a._mwDrT||0,o.allyDrDur||5); a._mwDrPct=skLvNum('hipposlam',o,_kLv);   /* v1112 nerf: 30% + 0.15 pt a level (44.9% at 100; the skill curve gave 65.6%) */ a._mwDrSrc=u; }); floatTexts.push({x:u.x,y:u.y-14,txt:'⬛ THE WALL',t:1.1,color:'#9ad07a',vy:1,sz:13}); }
@@ -11118,6 +11124,19 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
       { const c1=(o.ring!=null?o.ring:0x9a7b40), c2=(o.spark!=null?o.spark:0xcaa050);
         ringBurst(u.x,u.y,c1,16); burstAt(u.x,u.y,c2,14); } break; }
     case 'punchflurry':{ const tg=(u.target&&u.target.alive)?u.target:nearestEnemy(u); if(!tg)break;   // BLUE: 4 quick hits, each may taunt+silence
+      /* v1112 (Phil 10 Oct: "the damage dealt should land when the punch is fully extended each time"): a kit with hitTimes lands each
+         punch at its moment in the clip (seconds of clip from the cast start = the clip start; clips play in real time and the fight
+         clock runs at SIM_STEP*SIM_HZ*BATTLE_PACE (0.6724) of it, so a hit is that many fight seconds per clip second in; the effect fires at the END of the cast, so
+         each delay is that minus the cast time). Timed on the fight clock (groundHazards arrival/delay, as Pellucid Rook's slams), so
+         the server replay lands them on the same ticks. The hero holds the cast until the last punch. Kits without hitTimes (Tick,
+         monsters) keep the instant flurry below. */
+      if(Array.isArray(o.hitTimes)&&o.hitTimes.length){ const _ct=castTimeFor(u,u._castSlot||'blue'), _D=dB*(o.mul||0.30)*rm, _clk=SIM_STEP*SIM_HZ*BATTLE_PACE;
+        const _last=Math.max(0.01,o.hitTimes[o.hitTimes.length-1]*_clk-_ct); u._castT=Math.max(u._castT||0,_last+0.15);
+        o.hitTimes.slice(0,o.hits||o.hitTimes.length).forEach(_ht=>{ groundHazards.push({arrival:true,delay:Math.max(0.01,_ht*_clk-_ct),run:function(){
+          if(!u.alive||!tg.alive)return; dealDamage(u,tg,_D,'#e0b070');
+          if(brnd()<(o.tauntChance!=null?o.tauntChance:0.25)){ tg.forcedTarget=u; tg.forcedTargetT=Math.max(tg.forcedTargetT||0,o.tauntDur||2); ccApply(u,tg,'silencedT',o.tauntDur||2); }
+          burstAt(tg.x,tg.y,0xe0b070,10); }}); });
+        u.attackAnim=.2; break; }
       for(let i=0;i<(o.hits||4);i++){ if(!tg.alive)break; dealDamage(u,tg,dB*(o.mul||0.30)*rm,'#e0b070');
         if(brnd()<(o.tauntChance!=null?o.tauntChance:0.25)){ tg.forcedTarget=u; tg.forcedTargetT=Math.max(tg.forcedTargetT||0,o.tauntDur||2); ccApply(u,tg,'silencedT',o.tauntDur||2); } }
       u.attackAnim=.2; burstAt(tg.x,tg.y,0xe0b070,12); break; }
@@ -13554,8 +13573,8 @@ function updateBattle(dt){
   // keep a full body gap; cross-team (melee vs melee) stop when their bodies just touch (~2 m), so pictures
   // meet but never overlap while still landing inside attack range.
   for(let _it=0;_it<2;_it++){
-    for(let a=0;a<units.length;a++){ const A=units[a]; if(!A.alive||A._pullGhost)continue;   // a Grasping-Vow'd target phases through bodies so it can be yanked all the way to Vulmar
-      for(let b=a+1;b<units.length;b++){ const B=units[b]; if(!B.alive||B._pullGhost)continue;
+    for(let a=0;a<units.length;a++){ const A=units[a]; if(!A.alive||A._pullGhost||(A._dash&&A._dash.air))continue;   /* v1112: a leaping unit (Croc Drop) is in the air - no body contact until it lands */   // a Grasping-Vow'd target phases through bodies so it can be yanked all the way to Vulmar
+      for(let b=a+1;b<units.length;b++){ const B=units[b]; if(!B.alive||B._pullGhost||(B._dash&&B._dash.air))continue;
         let dx=B.x-A.x,dy=B.y-A.y,d=Math.hypot(dx,dy); const min=bodyR(A)+bodyR(B);   // SOLID bodies: never overlap — same-team OR cross-team, stop when the actual sprite bodies just touch (Phil: characters are obstacles, never touch)
         if(d<min){ if(d<1e-4){dx=(a-b)||1;dy=((a*7+b*3)%3)-1;d=Math.hypot(dx,dy)||1;}
           const ov=(min-d),ux=dx/d,uy=dy/d, mA=bodyR(A)*bodyR(A), mB=bodyR(B)*bodyR(B), fA=mB/(mA+mB), fB=mA/(mA+mB);   // v347: mass-weighted — a boss barely budges, the hero gives ground (was 50/50)
