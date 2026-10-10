@@ -3173,7 +3173,11 @@ let _SIM_COLLECT=null, _SIM_POOL;
 /* v1040 (Phil 6 Oct 2026: "if there is major war going on, like world tree day, my computer gives a little more than low priority
    help"): during the World Tree event (the calendar's 24 h 'event' phase) battle helpers are asked for major-war mode. */
 const SERVER_ID=String(process.env.SERVER_ID||((String(process.env.SERVER_NAME||'').match(/(\d+)\s*$/)||[])[1])||'');   // v1041: "1".."4"
-function simWarLevel(){ try{ const c=WORLD_TREE_CALENDAR.snapshot(DB); return c.configured&&c.phase==='event'?'major':null; }catch(e){ return null; } }
+/* v1105 (10 Oct 2026, Phil: "Have to restart sims"): the calendar's event window ran on S2 and S4 with the World Tree still switched
+   off (sites enabled:false) - no war, no battles asked - and it held Phil's PC in major mode, which suspends every simulation, for
+   the whole 24 h. Only a World Tree that is ON is a major war. */
+function simWarLevel(){ try{ const c=WORLD_TREE_CALENDAR.snapshot(DB); if(!(c.configured&&c.phase==='event')) return null;
+  return WORLD_TREE_SITES.snapshot(c).enabled===true?'major':null; }catch(e){ return null; } }
 function simPool(){
   if(_SIM_POOL!==undefined) return _SIM_POOL;
   const n=process.env.SIM_WORKERS===undefined?undefined:+process.env.SIM_WORKERS;
