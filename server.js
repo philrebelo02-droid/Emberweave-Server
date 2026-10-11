@@ -584,6 +584,13 @@ function migrateTankGlyphPath(){ let n=0;
 /* v1022 balance layer 1 (Phil 4 Oct: base stats + glyphs + skills): the personal glyph paths changed for mages, marksmen,
    assassins, bruisers and tanks, and glyph values changed (Healing Power x4). A board's banked stats (ascended) were summed
    from the OLD path - every board is recomputed once from the current path and values. Marker glyphs.paths1022. */
+/* Academy v2 (11 Oct): Ironwall glyphs gained Defense. A board's banked stats (ascended) were summed from the old values - every board
+   is recomputed once from its path and the current values. Marker glyphs.defense1123. */
+function migrateGlyphDefenseAv2(){ let n=0;
+  for(const u of Object.values(DB.users||{})){ const g=u&&u.glyphs; if(!g||!g.boards||g.defense1123) continue;
+    for(const k of Object.keys(g.boards)){ const b=g.boards[k]; if(b&&(b.ascensionIndex|0)>0&&SIM.HERO_BASE[k]){ b.ascended=glyphAscendedFromPlan(k,b.ascensionIndex); n++; } }
+    g.defense1123=1; }
+  if(n){ console.log('recomputed '+n+' glyph board(s) for the Academy v2 Ironwall Defense'); writeDB(); } }
 function migrateGlyphPaths1022(){ let n=0;
   for(const u of Object.values(DB.users||{})){ const g=u&&u.glyphs; if(!g||!g.boards||g.paths1022) continue;
     for(const k of Object.keys(g.boards)){ const b=g.boards[k]; if(b&&(b.ascensionIndex|0)>0&&SIM.HERO_BASE[k]){ b.ascended=glyphAscendedFromPlan(k,b.ascensionIndex); n++; } }
@@ -9360,7 +9367,7 @@ const BOOT_FILE_M=(function(){ try{ return fs.statSync(DB_FILE).mtimeMs; }catch(
    world. Everything that persists is now suppressed until the restore decision lands, the mtime is
    sampled once up front, and seed()/backupDB()/listen happen exactly once, afterwards. */
 function bootFinish(){ if(_booted) return; _booted=true; PG_BOOT_PENDING=false;
-  seed(); migrateAdminRoles(); migrateTokenHashes(); migrateDeviceKeys(); migrateHeroKeys1023();   /* v1023: first, so every later migration sees the new keys */ migrateTankGlyphPath();   /* v1019 */ migrateGlyphPaths1022();   /* v1022 */   // stamp role:admin from ADMIN_IDS; hash any plaintext tokens (v241: the Vault, like the Campaign, refuses to boot without its authored table)
+  seed(); migrateAdminRoles(); migrateTokenHashes(); migrateDeviceKeys(); migrateHeroKeys1023();   /* v1023: first, so every later migration sees the new keys */ migrateTankGlyphPath();   /* v1019 */ migrateGlyphPaths1022();   /* v1022 */ migrateGlyphDefenseAv2();   /* Academy v2 */   // stamp role:admin from ADMIN_IDS; hash any plaintext tokens (v241: the Vault, like the Campaign, refuses to boot without its authored table)
   migrateLegacyFeedback();
   migrateBlockedWorldCastles();
   migrateHeroIdsAll();   /* v926: rewrite old hero ids to in-game-name keys in every stored ledger/profile (once, stamped led.idv=2) */

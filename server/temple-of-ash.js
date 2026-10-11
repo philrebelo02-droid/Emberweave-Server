@@ -94,7 +94,7 @@
     health:          { name: "Health",               icon: "hp",       flat: ["hp"],                  step: { physical: 35, magic: 25 } },   // 7,000 / 5,000
     attack:          { name: "Attack damage",        icon: "atk",      flat: ["ad"],                  step: 2.4 },                           // 480
     abilityPower:    { name: "Ability power",        icon: "apow",     flat: ["ap"],                  step: 3.2 },                           // 640
-    armorMr:         { name: "Armor & Magic resist", icon: "armor",    flat: ["armor", "mr"],         step: { physical: 7.2, magic: 4.8 }, defenseStep: 1 }, // 1,440 / 960 each; Academy v2 (11 Oct, Phil): + 1 Defense a step (200 = 10%)
+    armorMr:         { name: "Armor, Magic resist & Defense", icon: "armor",    flat: ["armor", "mr"],         step: { physical: 7.2, magic: 4.8 }, defenseStep: 1 }, // 1,440 / 960 each; Academy v2 (11 Oct, Phil): + 1 Defense a step (200 = 10%)
     armor:           { name: "Armor",                icon: "armor",    flat: ["armor"],               step: 10.8 },                          // 2,160 PROPOSED
     magicResist:     { name: "Magic resist",         icon: "mr",       flat: ["mr"],                  step: 10.8 },                          // 2,160 PROPOSED
     pen:             { name: "Penetration",          icon: "armorPen", iconMagic: "magicPen", flat: ["armorPen", "magicPen"], step: { physical: 4.8, magic: 7.2 } },   // 960 / 1,440 each
@@ -460,6 +460,8 @@
     return sg + (Math.abs(r) >= 1000 ? Math.round(r).toLocaleString("en-US") : String(r));
   }
 
+  /* Academy v2 (11 Oct): a bar that also gives Defense says so in its value text: "1,440 / Defense +200" */
+  function defText(kind, steps) { const k = BAR_KINDS[kind]; return k && k.defenseStep ? " / Defense +" + Math.round((steps || 0) * k.defenseStep) : ""; }
   /* --- legacy maximum (the old model's bar max by temple level) - the migration denominator only --- */
   function effectMax(templeLevel) {
     const M = TEMPLE_CONFIG.LEGACY_MAX, L = Math.max(1, templeLevel);
@@ -860,7 +862,7 @@
     const bars = barKinds.map(function (b, i) {
       const unlock = TEMPLE_CONFIG.BAR_UNLOCK_TEMPLE[i] || 1;
       return { slot: i + 1, unlock: unlock, locked: L < unlock, kind: b, name: barName(b), icon: barIcon(b, profile), pct: isPctKind(b) && !!BAR_KINDS[b].pct, steps: Math.min(cap, steps[b]),
-        value: values[b], text: barText(b, values[b]), capValue: barValue(profile, b, cap), capText: barText(b, barValue(profile, b, cap)), step: stepValues[b] };
+        value: values[b], text: barText(b, values[b]) + defText(b, Math.min(cap, steps[b])), capValue: barValue(profile, b, cap), capText: barText(b, barValue(profile, b, cap)) + defText(b, cap), step: stepValues[b] };
     });
     return { key: key, templeLevel: L, profile: profile, bars: bars, barKinds: barKinds, steps: steps, values: values, cap: cap, capValues: barKinds.reduce(function (o, b) { o[b] = barValue(profile, b, cap); return o; }, {}),
       stepValues: stepValues, pct: Math.round(100 * heroCompletion(h, L, key)),

@@ -60,6 +60,10 @@ function checks(src) {
   add('the 8 tracks are ' + TRACKS.join(' ') + ' on the server and the client, no def', JSON.stringify(st) === JSON.stringify(TRACKS) && JSON.stringify(ct) === JSON.stringify(TRACKS), 'server ' + st + ' / client ' + ct);
   const hrow = JSON.parse(run('JSON.stringify((TECH_TRACKS.find(t=>t[0]==="heal")||[]).slice(2,4))')), crow = JSON.parse(run('JSON.stringify((TECH_TRACKS.find(t=>t[0]==="critres")||[]).slice(2,4))'));
   add('Healing & Shielding row ("Healing and shield strength"); Crit Resist reads "Reduces critical damage taken"', hrow[0] === 'Healing & Shielding' && hrow[1] === 'Healing and shield strength' && /^Reduces critical damage taken/.test(crow[1] || ''), JSON.stringify([hrow, crow]));
+  { const html = fs.readFileSync(src.htmlPath, 'utf8'), a = html.indexOf('function renderTech()'), seg = html.slice(a, html.indexOf("const card=document.createElement('div'); card.className='tw-detail';", a) + 2000);
+    const m = /let preL='', postL=' '\+desc; if\(k==='critres'\)\{ preL='crit damage taken '; postL=' pts'; perStr=perStr\.replace\('\+','-'\); nowStr=nowStr\.replace\('\+','-'\); \}/.test(seg);
+    const t = /Next level: \$\{preL\}<b style="color:#5ee89b">\$\{perStr\}<\/b>\$\{postL\} · `\}now \$\{preL\}<b style="color:#5ee89b">\$\{nowStr\}<\/b>\$\{postL\}/.test(seg);
+    add('Crit Resist detail line reads "crit damage taken -0.8 pts" (no "%": the Academy screen rule)', m && t, ''); }
   const CB = JSON.parse(run('JSON.stringify(TECH_BASE)'));
   add('bases ' + JSON.stringify(WANT) + ' on both tables', JSON.stringify(CB) === JSON.stringify(WANT) && JSON.stringify(Object.assign({}, S.TECH_BASE_SRV)) === JSON.stringify(WANT), JSON.stringify(CB));
 
@@ -142,7 +146,7 @@ async function call(tok, route, data) { const r = await fetch(base + route, { me
     console.log('control (v1122 ' + BASE_REF + '):');
     ctl = sources(BASE_REF);
     const old = checks(ctl), failed = old.filter(x => !x[1]).map(x => x[0]);
-    const mustFail = ['the 8 tracks are', 'bases ', 'track 60: crit', 'Attack == Ability power', 'server unit, Healing', 'crit resist 10%', '30% crit vs 200 Defense', '30% crit vs 800 Defense'];
+    const mustFail = ['Crit Resist detail line', 'the 8 tracks are', 'bases ', 'track 60: crit', 'Attack == Ability power', 'server unit, Healing', 'crit resist 10%', '30% crit vs 200 Defense', '30% crit vs 800 Defense'];
     for (const m of mustFail) ok(failed.some(n => n.indexOf(m) === 0), 'control: v1122 fails "' + m + '..."');
     ok(old.some(x => x[0].indexOf('crit resist 0%') === 0 && x[1]) && old.some(x => x[0].indexOf('30% crit vs 0 Defense') === 0 && x[1]), 'control: v1122 still passes the unchanged cases (0% resist x1.60, 0 Defense 30%) - the harness measures, not breaks');
 

@@ -20686,6 +20686,8 @@ function renderTech(){
   if(isAcad){ const ref=(120+30*30*45)*1000, cut=l=>Math.min(30,l)*0.02; now=Math.round(ref*(1-cut(lvl))); per=Math.round(ref*(1-cut(lvl+1)));
     nowStr=fmtDur(now); perStr=fmtDur(per); }   // the speed-up stops at Lv 30
   else { per=techGainAt(k,lvl); now=techFlat(k,lvl); perStr='+'+(per>=10?Math.round(per).toLocaleString():per.toFixed(1)); nowStr='+'+now.toLocaleString(); }
+  /* Academy v2 (11 Oct): the Crit Resist line reads as what it removes - "crit damage taken -0.8 pts" (rating points, 20 = 1 point of crit damage) */
+  let preL='', postL=' '+desc; if(k==='critres'){ preL='crit damage taken '; postL=' pts'; perStr=perStr.replace('+','-'); nowStr=nowStr.replace('+','-'); }
   let btn;
   if(maxed){ btn=`<button class="btn secondary" disabled>MAX · Lv ${tmax}</button>`; }
   else if(learning&&remain>0){ btn=`<button class="btn" disabled>${uiIcon('timer')} ${fmtDur(remain)} · upgrading to Lv ${lvl+1}</button>`; }
@@ -20696,7 +20698,7 @@ function renderTech(){
   card.innerHTML=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
       <div style="font-size:26px">${ic}</div>
       <div><div style="font-weight:800;font-size:16px">${name} · Lv ${lvl}${maxed?' <span style="color:#ffd45e">MAX</span>':'/'+tmax}</div>
-      <div style="font-size:12px;color:#8b98a9">${isAcad?`${maxed?'':`Next level: <b style="color:#5ee89b">${perStr}</b> ${desc} · `}now <b style="color:#5ee89b">${nowStr}</b> ${desc}`:`${maxed?'':`Next level: <b style="color:#5ee89b">${perStr}</b> ${desc} · `}now <b style="color:#5ee89b">${nowStr}</b> ${desc}`}</div></div></div>
+      <div style="font-size:12px;color:#8b98a9">${isAcad?`${maxed?'':`Next level: <b style="color:#5ee89b">${perStr}</b> ${desc} · `}now <b style="color:#5ee89b">${nowStr}</b> ${desc}`:`${maxed?'':`Next level: ${preL}<b style="color:#5ee89b">${perStr}</b>${postL} · `}now ${preL}<b style="color:#5ee89b">${nowStr}</b>${postL}`}</div></div></div>
     ${isAcad?`<div style="font-size:12px;color:#8b98a9;margin-bottom:4px">Income <b style="color:#5ee89b">+${Math.floor(acadRatePerHour(lvl)).toLocaleString()}</b> each / h${maxed?'':` · Lv ${lvl+1} <b style="color:#5ee89b">+${Math.floor(acadRatePerHour(lvl+1)).toLocaleString()}</b> each / h`}</div>`:''}
     <div style="font-size:11px;color:#8b98a9;margin-bottom:10px">${maxed?'Fully upgraded.':`Learn time: ${fmtDur(learnDur(lvl))}${learning&&remain>0?` · <span style="color:#8fe3ff">in progress…</span>`:''}`}</div>
     <div style="text-align:center">${btn}</div>`;
