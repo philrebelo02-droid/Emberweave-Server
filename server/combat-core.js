@@ -35,7 +35,8 @@ function defToDR(r,lvl){ return r>0 ? r/(r+defK(lvl==null?1:lvl)) : 0; }
 const CONV={
   critPerPt:0.0005, critCap:0.6,           // Crit Chance - v1020 (Phil 4 Oct): 20 crit = 1%
   critDmgPerPt:0.0005,                     // Crit Damage: adds to the 0.6 crit BONUS - v1020 (Phil 4 Oct): every rating stat is 20 points = 1%
-  critResPerPt:0.0005, critResCap:0.75,     // shrinks the crit bonus
+  critResPerPt:0.0005, critResCap:0.75,     // Academy v2 (11 Oct): SUBTRACTS from the attacker's crit damage % (+60% vs 10% = +50%)
+  defensePerPt:0.0005, defenseCap:0.6,      // Academy v2 (11 Oct): Defense rating - subtracts from the attacker's crit CHANCE (30% vs 10% = 20%)
   defPtMul:3,                              // glyph Armor/MR points → defense rating
   evaPerPt:0.0005, evaCap:0.30,             // Evasion (chance to dodge), countered by Accuracy pts
   blockPerPt:0.0005, blockCap:0.30,         // Block halves a PHYSICAL hit
@@ -125,7 +126,7 @@ const DEFAULT_KIT={kind:'phys',shape:'nuke',coef:2.2};
 /* ---- typed unit builder. base: {hp,dmg,apow,armor,mr,role,healer,atkSpeed}; mul: level×star
    multiplier; r: RATINGS {hpFlat,atkFlat,apowFlat,healFlat, armor,mr,armorPen,magicPen, crit,
    critDmg,critRes, energy,startEnergy, regen, lifesteal,atkSpd,haste, eva,acc,block, dmgBonus,
-   dmgRed, shieldStr, ctrlHit,ctrlRes, healPow} (all raw points unless noted); defScale scales the
+   dmgRed, shieldStr, ctrlHit,ctrlRes, healPow, defense} (all raw points unless noted); defScale scales the
    BASE armor/mr like the client (1+0.05·(lvl−1))·starMult. ---- */
 /* v1020 (Phil 4 Oct): class base crit chance - identical to emberweave-heroes.html CLASS_BASE_CRIT */
 const CLASS_BASE_CRIT={Marksman:0.10, Assassin:0.10, Bruiser:0.03, Mage:0.02, Tank:0, Support:0};
@@ -150,6 +151,7 @@ function buildUnit(key, base, mul, defScale, r, extra){
     crit:Math.min(CONV.critCap,(r.crit||0)*CONV.critPerPt + (extra.critFrac||0) + (CLASS_BASE_CRIT[base.role]||0)),
     critDmg:0.6+(r.critDmg||0)*CONV.critDmgPerPt,
     critRes:Math.min(CONV.critResCap,(r.critRes||0)*CONV.critResPerPt+(extra.critResFrac||0)),
+    defense:Math.min(CONV.defenseCap,(r.defense||0)*CONV.defensePerPt),   /* Academy v2 (11 Oct, Phil): DEFENSE rating - 20 points = 1%, cap 60%, takes that much off an attacker's crit CHANCE ("defense = crit% reduction"); sources: glyphs, equipment, prayer, future - none give it yet */
     energyReg:(r.energy||0)*CONV.energyPer100/100 + (extra.energyRegFlat||0),
     startEnergy:Math.max(0,Math.min(60,Math.round((r.startEnergy||0)*0.35))),
     regen:Math.min(0.012,(r.regen||0)*0.0001),   /* v1026 (Phil 4 Oct 'make all changes'): HP regen 100 points = 1% max HP/s - at 20 = 1% a geared tank regenerated the 6%/s cap (1,600 HP/s) */   // v364: 0.01% max-HP/s per point, cap 6%/s (was 0.1%/pt uncapped — mirrors the client mulsFromTotals)
@@ -202,8 +204,8 @@ function applyDamage(rnd, log, round, side, src, tgt, raw, kind, opts){
   let dmg=raw*(src.dmgBonus||1);
   // crit — rolls ALWAYS consumed
   const critRoll=rnd(); let crit=false;
-  if(!opts.noCrit && (src.crit||0)>0 && critRoll<(src.crit||0)){
-    crit=true; dmg*= 1 + (src.critDmg||0.6)*(1-(tgt.critRes||0)); }
+  if(!opts.noCrit && (src.crit||0)>0 && critRoll<Math.max(0,(src.crit||0)-(tgt.defense||0))){   /* Academy v2: the target's Defense comes off the crit chance; the roll is still always consumed */
+    crit=true; dmg*= 1 + Math.max(0, (src.critDmg||0.6) - (tgt.critRes||0)); }   /* Academy v2 (11 Oct, Phil): crit resist SUBTRACTS from crit damage % (+60% vs 10% = +50%), never below a normal hit. = client dealDamage */
   if(tgt._markR>0) dmg*=(tgt._markMul||1);
   // TYPED mitigation: armor vs phys (blockable), MR vs magic — each countered only by its own pen
   if(kind==='phys'){

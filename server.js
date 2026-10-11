@@ -1365,10 +1365,15 @@ function d_levelForXP(xp,cum){ let L=1; while(L<D_MAX_LEVEL && xp>=cum[L+1]) L++
 const TECH_MAX_SRV=60;
 /* v1099 (Phil 9 Oct 2026: "there should be no percentages in academy, please make academy have flat numbers"): every track is a flat
    stat - Attack, Health, Ability power (apowFlat), Defense = Armor AND Magic resist, Armor, Magic resist, Crit rating, Crit resist
-   rating (20 = 1%). = the client's TECH_BASE. */
-const TECH_BASE_SRV={atk:0.7, hp:10, ap:0.78, def:7.2, armor:0.13, mr:0.13, crit:2.6, critres:4};   // PROPOSED - Phil tunes
+   rating (20 = 1%). = the client's TECH_BASE.
+   Academy v2 (11 Oct): Phil "remove defense, reduce crit should be 10% crit and 10% crit res at level 60, scale down from there / ability
+   power and attack damage should be equal stats while leveling / add healing and shielding at level 60 should be 10% increased healing
+   and shielding". Defense is gone; Healing & Shielding ('heal') takes its slot and adds the same rating to healPow AND shieldStr. With
+   growth x1.04 the 60 levels sum to base x 237.99, so crit / critres / heal base 0.8404 = 200 rating = 10% at track 60. Crit resist
+   SUBTRACTS from the attacker's crit damage % (combat-core: +60% crit vs 10% resist = +50%). Attack = Ability power = 0.78 a level. */
+const TECH_BASE_SRV={atk:0.78, hp:10, ap:0.78, heal:0.8404, armor:0.13, mr:0.13, crit:0.8404, critres:0.8404};   // PROPOSED - Phil tunes
 const TECH_GROWTH_SRV=1.04;
-const ACAD_TRACKS=['academy','atk','hp','ap','def','armor','mr','crit','critres'];
+const ACAD_TRACKS=['academy','atk','hp','ap','heal','armor','mr','crit','critres'];   /* Academy v2 (11 Oct): 'def' removed, 'heal' added */
 const ACADEMY_UNLOCK_LEVEL=20;   /* v988: = client ACADEMY_UNLOCK_LEVEL (test_durable_wall checks they match) */
 function techGainSrv(k,lvl){ return (TECH_BASE_SRV[k]!=null?TECH_BASE_SRV[k]:0.1)*Math.pow(TECH_GROWTH_SRV,lvl||0); }
 function techTotalSrv(A,k){ const lvl=(A&&A.lv&&A.lv[k])|0; let v=0; for(let i=0;i<lvl;i++) v+=techGainSrv(k,i); return v; }
@@ -1376,11 +1381,18 @@ function techFlatSrv(A,k){ return Math.round(techTotalSrv(A,k)); }   /* v1099: w
 function learnDurSrv(lvl,acadLvl){ return Math.round((120+lvl*lvl*45)*1000*(1-Math.min(0.6,(acadLvl|0)*0.02))); }
 const RES_NAMES={iron:'Emberite',crystal:'Voidglass',silver:'Starsilver',coal:'Cinderwood'};   // Phil 3 Oct 2026 "Set a is good": player-facing names; keys unchanged
 function learnResCostSrv(track,lvl){ if(track==='academy'){ const n=ACADEMY_ECON.levelCost((lvl|0)+1), c={}; for(const r of ACADEMY_ECON.RESOURCES) c[r]=n; return c; }   /* Phil 3 Oct: the Academy level costs all four, equal */
-  const base={atk:{silver:5,coal:5},ap:{crystal:5,iron:5},hp:{iron:5,silver:5},def:{crystal:5,coal:5},armor:{iron:5,coal:5},mr:{crystal:5,silver:5},crit:{crystal:5,coal:5},critres:{iron:5,silver:5}}[track]||{iron:5}; const c={}; for(const k in base) c[k]=base[k]+lvl*2; return c; }
+  const base={atk:{silver:5,coal:5},ap:{crystal:5,iron:5},hp:{iron:5,silver:5},heal:{crystal:5,coal:5},armor:{iron:5,coal:5},mr:{crystal:5,silver:5},crit:{crystal:5,coal:5},critres:{iron:5,silver:5}}[track]||{iron:5}; const c={}; for(const k in base) c[k]=base[k]+lvl*2; return c; }
 const ACADEMY_CUTOFF=1787841600000;   // v249 deploy: earlier accounts seed once from their save; new accounts start at zero
+/* Academy v2 (11 Oct): a saved account from before keeps lv.def (it gives nothing - acadCombatOf never reads it) and gains lv.heal;
+   a pending research on a track that no longer exists (learn.def) is cancelled, never collected (no refund: no live players yet). */
+function acadNormalize(A){ if(!A||typeof A!=='object') return A;
+  if(!A.lv||typeof A.lv!=='object') A.lv={}; if(!A.learn||typeof A.learn!=='object') A.learn={};
+  for(const k of ACAD_TRACKS) if(!(k in A.lv)) A.lv[k]=0;
+  for(const k of Object.keys(A.learn)) if(!ACAD_TRACKS.includes(k)) delete A.learn[k];
+  return A; }
 function ensureAcad(u){ const led=ensureLedger(u);
-  if(led.acad) return led.acad;
-  const A={ lv:{academy:0,atk:0,hp:0,ap:0,def:0,armor:0,mr:0,crit:0,critres:0}, learn:{}, res:{iron:0,crystal:0,silver:0,coal:0}, mineDay:null };
+  if(led.acad) return acadNormalize(led.acad);
+  const A={ lv:{academy:0,atk:0,hp:0,ap:0,heal:0,armor:0,mr:0,crit:0,critres:0}, learn:{}, res:{iron:0,crystal:0,silver:0,coal:0}, mineDay:null };
   if((led.migratedAt||0) && led.migratedAt<ACADEMY_CUTOFF){ const sv=parseSaveOf(u);
     const t=sv.tech||{}; for(const k of ACAD_TRACKS){ const v=t[k]|0; if(v>0) A.lv[k]=Math.min(TECH_MAX_SRV,v); }
     const r=sv.res||{}; for(const k of ['iron','crystal','silver','coal']){ if((r[k]|0)>0) A.res[k]=Math.min(99999,r[k]|0); } }
@@ -1410,20 +1422,23 @@ function durableReadCommit(u,tag,work){
 function acadCollect(A){ let changed=false; const now=Date.now();
   if(!(A.incAt>0)){ A.incAt=now; changed=true; }   // income starts the first time the Academy is touched - never back-paid
   const ad=A.learn&&A.learn.academy; if(ad&&now>=ad) changed=acadIncome(A,ad)||changed;   // the old level earns up to the moment it finished
-  for(const k in A.learn){ const done=A.learn[k]; if(done&&now>=done){ A.lv[k]=Math.min(acadTrackMax(k),(A.lv[k]|0)+1); delete A.learn[k]; changed=true; } }
+  for(const k in A.learn){ if(!ACAD_TRACKS.includes(k)){ delete A.learn[k]; changed=true; continue; }   /* Academy v2: a retired track (def) is cancelled */
+    const done=A.learn[k]; if(done&&now>=done){ A.lv[k]=Math.min(acadTrackMax(k),(A.lv[k]|0)+1); delete A.learn[k]; changed=true; } }
   changed=acadIncome(A,now)||changed;
   return changed; }
 function acadCombat(u){ const led=u&&u.led; if(!led||!led.acad) return null; return acadCombatOf(led.acad); }
-/* v1099: Academy research in battle = flats and ratings only. Defense lands on Armor AND Magic resist. */
+/* v1099: Academy research in battle = flats and ratings only. Academy v2 (11 Oct): no Defense; Healing & Shielding is one rating that
+   lands on healPow AND shieldStr (20 = 1% each). An old lv.def is ignored. */
 function acadCombatOf(A){
   return { atkFlat:techFlatSrv(A,'atk'), hpFlat:techFlatSrv(A,'hp'), apFlat:techFlatSrv(A,'ap'),
-    armorRating:techFlatSrv(A,'armor')+techFlatSrv(A,'def'), mrRating:techFlatSrv(A,'mr')+techFlatSrv(A,'def'),
-    critRating:techFlatSrv(A,'crit'), critResRating:techFlatSrv(A,'critres') }; }
+    armorRating:techFlatSrv(A,'armor'), mrRating:techFlatSrv(A,'mr'),
+    critRating:techFlatSrv(A,'crit'), critResRating:techFlatSrv(A,'critres'), healRating:techFlatSrv(A,'heal') }; }
 /* v1099: the one place the Academy joins a hero's core ratings (snapshot + sim bots): flats beside the glyph/gear flats, Armor / MR as
    rating on top of the base, crit / crit resist as rating points (CONV 20 = 1%). AP flats never make an ability line (core rule). */
 function acadApply(R,XT,AC){ if(!AC) return;
   R.atkFlat=(R.atkFlat||0)+AC.atkFlat; R.hpFlat=(R.hpFlat||0)+AC.hpFlat; R.apowFlat=(R.apowFlat||0)+AC.apFlat;
   R.crit=(R.crit||0)+AC.critRating; R.critRes=(R.critRes||0)+AC.critResRating;
+  R.healPow=(R.healPow||0)+(AC.healRating||0); R.shieldStr=(R.shieldStr||0)+(AC.healRating||0);   /* Academy v2 (11 Oct): Healing & Shielding */
   XT.armorRating=(XT.armorRating||0)+AC.armorRating; XT.mrRating=(XT.mrRating||0)+AC.mrRating; }
 /* ---- v250: per-loop server authorities (audit P1 — generic tx/earn retired) ---- */
 const ELITE_SEQ_SRV=["tick","sylthaine","vireo","vael","fritz","rhukk","bloatus","umbris","oakmir"];
@@ -1518,7 +1533,7 @@ function glyphFlatStats(u,key){
   // v242 (COMBAT CORE): EVERY catalog stat is collected and typed — nothing is silently dropped.
   const out={hp:0,atk:0,apow:0,heal:0,pen:0,armorPen:0,magicPen:0,armor:0,mr:0,crit:0,critDmg:0,critRes:0,
     energy:0,regenRating:0,ctrlRes:0,ctrlHit:0,startEnergy:0,healPow:0,lifesteal:0,atkSpd:0,haste:0,
-    eva:0,acc:0,block:0,dmgBonus:0,dmgRed:0,shieldStr:0}; const g=u&&u.glyphs; if(!g||!GLYPHS) return out;
+    eva:0,acc:0,block:0,dmgBonus:0,dmgRed:0,shieldStr:0,defense:0}; const g=u&&u.glyphs; if(!g||!GLYPHS) return out;
   const b=g.boards&&g.boards[key]; if(!b) return out;
   const add=(stat,val)=>{ if(/^HP$/i.test(stat)) out.hp+=val;
     else if(/^Physical Attack$/i.test(stat)) out.atk+=val;                 // physical line ONLY
@@ -1544,7 +1559,8 @@ function glyphFlatStats(u,key){
     else if(/^Block$/i.test(stat)) out.block+=val;
     else if(/^Damage Bonus$/i.test(stat)) out.dmgBonus+=val;
     else if(/^Damage Reduction$/i.test(stat)) out.dmgRed+=val;
-    else if(/^Shield Strength$/i.test(stat)) out.shieldStr+=val; };
+    else if(/^Shield Strength$/i.test(stat)) out.shieldStr+=val;
+    else if(/^Defense$/i.test(stat)) out.defense+=val; };   /* Academy v2 (11 Oct): Defense rating (lowers the enemy's crit chance) - no glyph gives it yet */
   for(const st in (b.ascended||{})){ if(!b.ascended[st].pct) add(st,b.ascended[st].val); addRate(st,b.ascended[st].val); }
   for(const iid of (b.slots||[])){ if(!iid) continue; const inst=g.finished[iid]; const d=inst&&GLYPHS.byId[inst.definitionId];
     if(d) for(const sst of d.stats){ if(!sst.pct) add(sst.stat,sst.val); addRate(sst.stat,sst.val); } }
@@ -1610,7 +1626,8 @@ function snapshotHeroFromServer(u, key, save, sOpts){
     moveSpd:((gf&&gf.moveSpd)|0), range:((gf&&gf.range)|0),
     eva:(fl.eva|0)+((gf&&gf.eva)|0), acc:(fl.acc|0)+((gf&&gf.acc)|0), block:(fl.block|0)+((gf&&gf.block)|0),
     dmgBonus:(fl.dmgBonus|0)+((gf&&gf.dmgBonus)|0), dmgRed:(fl.dmgRed|0)+((gf&&gf.dmgRed)|0), shieldStr:(fl.shieldStr|0)+((gf&&gf.shieldStr)|0),
-    ctrlHit:(fl.ctrlHit|0)+((gf&&gf.ctrlHit)|0), ctrlRes:(fl.ctrlRes|0)+((gf&&gf.ctrlRes)|0), healPow:(fl.healPow|0)+((gf&&gf.healPow)|0)
+    ctrlHit:(fl.ctrlHit|0)+((gf&&gf.ctrlHit)|0), ctrlRes:(fl.ctrlRes|0)+((gf&&gf.ctrlRes)|0), healPow:(fl.healPow|0)+((gf&&gf.healPow)|0),
+    defense:(fl.defense|0)+((gf&&gf.defense)|0)   /* Academy v2 (11 Oct): Defense rating */
   };
   let gearSkillSlot=null, gearSkill=null;
   if(u.gear&&GEARCAT){ const aid=(u.gear.active||{})[key]; const it=aid&&u.gear.items[aid]; const d=it&&GEARCAT.byId[it.d];
@@ -3513,7 +3530,7 @@ function campaignHeroSpec(u,key){
     healPow:pick('healPow'), lifesteal:pick('lifesteal'), atkSpd:pick('atkSpd'), haste:pick('haste'),
     moveSpd:pick('moveSpd'), range:pick('range'),
     eva:pick('eva'), acc:pick('acc'), block:pick('block'),
-    dmgBonus:pick('dmgBonus'), dmgRed:pick('dmgRed'), shieldStr:pick('shieldStr') };
+    dmgBonus:pick('dmgBonus'), dmgRed:pick('dmgRed'), shieldStr:pick('shieldStr'), defense:pick('defense') };
   const AC=acadCombat(u);
   const board=(u.glyphs&&u.glyphs.boards&&u.glyphs.boards[key])||null;
   let gearSkill=null;
@@ -3529,9 +3546,10 @@ function campaignHeroSpec(u,key){
     /* Academy research and Temple effects are server-owned and reach the frozen fight spec.
        The legacy client equip bundle contributes nothing — a browser cannot grant power. */
     ex:{ techCrit:AC?AC.critRating:0, techCritRes:AC?AC.critResRating:0,   /* v1099: crit / crit resist RATINGS (mulsFromTotals x 0.0005) */
+         techHeal:AC?(AC.healRating||0):0,   /* Academy v2 (11 Oct): Healing & Shielding rating -> healPow (mulsFromTotals); techHeal below -> shieldStrMul */
          equip:{} },
     fAtk:tt.atk+(AC?AC.atkFlat:0), fHp:tt.hp+(AC?AC.hpFlat:0), fApow:tt.apow+((AC&&(((SIM.HERO_BASE[key]||{}).apow||0)>0||ledHeroLevel(led,key)>1))?AC.apFlat:0),   /* = the core: AP flats only where the hero has an ability line (base or level growth) */
-    techArmor:AC?AC.armorRating:0, techMr:AC?AC.mrRating:0,
+    techArmor:AC?AC.armorRating:0, techMr:AC?AC.mrRating:0, techHeal:AC?(AC.healRating||0):0,
     apMul:1,
     skillLv:ledSkillArr(led,key).slice(), gearSkill, templeBonuses:templeBonusesFor(u,key)
   };
@@ -4399,7 +4417,7 @@ function gearHeroFlats(u,heroKey){
   // Ability Power (its own line), Haste is not Energy Regen, and every key reaches the combat core.
   const out={hp:0,atk:0,apow:0,heal:0,armor:0,mr:0,armorPen:0,magicPen:0,crit:0,critDmg:0,critRes:0,
     energy:0,regenRating:0,haste:0,atkSpd:0,moveSpd:0,range:0,lifesteal:0,eva:0,acc:0,block:0,dmgBonus:0,dmgRed:0,
-    shieldStr:0,ctrlHit:0,ctrlRes:0,healPow:0,startEnergy:0,power:0}; const g=u&&u.gear; if(!g||!GEARCAT) return out;
+    shieldStr:0,ctrlHit:0,ctrlRes:0,healPow:0,startEnergy:0,defense:0,power:0}; const g=u&&u.gear; if(!g||!GEARCAT) return out;
   const eq=g.equipped[heroKey]; if(!eq) return out;
   const res=gearResonanceRank(g); const rmul=1+GEARCAT.meta.resonance.perRank*res.rank;
   for(const slot in eq){ const it=g.items[eq[slot]]; const def=it&&GEARCAT.byId[it.d]; if(!def) continue;
@@ -5638,7 +5656,7 @@ async function api(req,res,url){
       const botGearFlats=(()=>{
         const out={hp:0,atk:0,apow:0,heal:0,armor:0,mr:0,armorPen:0,magicPen:0,crit:0,critDmg:0,critRes:0,
           energy:0,regenRating:0,haste:0,atkSpd:0,moveSpd:0,range:0,lifesteal:0,eva:0,acc:0,block:0,
-          dmgBonus:0,dmgRed:0,shieldStr:0,ctrlHit:0,ctrlRes:0,healPow:0,startEnergy:0};
+          dmgBonus:0,dmgRed:0,shieldStr:0,ctrlHit:0,ctrlRes:0,healPow:0,startEnergy:0,defense:0};
         if(!botGear||!GEARCAT) return out;
         const tmul=1+((GEARCAT.meta.temper.passivePerTemper||0)*botTemper);
         const bySlot={};
@@ -5652,7 +5670,7 @@ async function api(req,res,url){
          research level N gets, because this is ensureAcad's shape fed to techTotalSrv. */
       const botAcadCombat=(()=>{
         if(!botAcad) return null;
-        const A={lv:{academy:botAcad,atk:botAcad,hp:botAcad,ap:botAcad,def:botAcad,armor:botAcad,mr:botAcad,crit:botAcad,critres:botAcad}};
+        const A={lv:{academy:botAcad,atk:botAcad,hp:botAcad,ap:botAcad,heal:botAcad,armor:botAcad,mr:botAcad,crit:botAcad,critres:botAcad}};
         return acadCombatOf(A); })();
       const seedBase=String(b.seed||('sim'+Date.now()));
       let rng=SIM.mulberry32(SIM.seedFrom(seedBase));
@@ -5680,7 +5698,7 @@ async function api(req,res,url){
           moveSpd:(gb.moveSpd|0), range:(gb.range|0),
           eva:(fl.eva|0)+(gb.eva|0), acc:(fl.acc|0)+(gb.acc|0), block:(fl.block|0)+(gb.block|0),
           dmgBonus:(fl.dmgBonus|0)+(gb.dmgBonus|0), dmgRed:(fl.dmgRed|0)+(gb.dmgRed|0), shieldStr:(fl.shieldStr|0)+(gb.shieldStr|0),
-          ctrlHit:(fl.ctrlHit|0)+(gb.ctrlHit|0), ctrlRes:(fl.ctrlRes|0)+(gb.ctrlRes|0), healPow:(fl.healPow|0)+(gb.healPow|0) };
+          ctrlHit:(fl.ctrlHit|0)+(gb.ctrlHit|0), ctrlRes:(fl.ctrlRes|0)+(gb.ctrlRes|0), healPow:(fl.healPow|0)+(gb.healPow|0), defense:(fl.defense|0)+(gb.defense|0) };
         const AC=botAcadCombat;
         /* v762 - and the skill level, which now scales the ultimate in the resolver. */
         const extra={ skillLv:[botSkill,botSkill,botSkill,botSkill] };

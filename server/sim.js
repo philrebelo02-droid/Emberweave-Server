@@ -113,7 +113,7 @@ function starMultFor(stars,pips){ const lv=Math.max(1,Math.min(MAX_STARS,stars|0
    v225 (re-audit): units carry the client's combat fields — dr (fractional damage reduction, capped
    0.6 at apply time), crit (extra crit CHANCE), critRes (reduces crit BONUS damage, client rule),
    energyReg (fractional bonus to energy gain). The resolver applies them with the client's rules:
-   crit multiplier 1.6×, critRes shrinks the bonus (1+(0.6)·(1−critRes)), DR multiplies incoming
+   crit multiplier 1.6×, critRes subtracts from the bonus (1+max(0,0.6−critRes), Academy v2 11 Oct), DR multiplies incoming
    damage under a 0.6 cap. The sim is still a simplified line resolver, not a replay of the full
    client battle (kits, positioning, manual timing), and is labeled as such where it gates results. */
 /* v401 (4 Sep) — PER-CLASS FLAT GROWTH. This table is the SINGLE SOURCE OF TRUTH shared with the

@@ -5423,8 +5423,8 @@ const GLYPH_TIER_POWER=(function(){ const v=[]; let s=0; for(let i=0;i<GMAX_RANK
 function glyphTierPower(rank,filled){ let p=0; for(let i=0;i<Math.min(GMAX_RANK,rank);i++) p+=GLYPH_TIER_POWER[i]; if(rank<GMAX_RANK&&filled>0) p+=GLYPH_TIER_POWER[rank]*Math.min(6,filled)/6; return Math.round(p); }
 function glyphPowerFor(key){ const r=glyphRank(key); let filled=0; try{ const b=RUNE2&&RUNE2.st&&RUNE2.st.boards&&RUNE2.st.boards[key]; if(b&&b.slots) filled=b.slots.filter(Boolean).length; }catch(e){} return glyphTierPower(r,filled); }
 let _powerNoGlyph=false;   // heroPower() zeroes the glyph stat contribution while it computes the non-glyph part
-function glyphSockMul(key){ if(_powerNoGlyph) return {atk:0,apow:0,armorPen:0,magicPen:0,hp:0,armor:0,mr:0,crit:0,critDmg:0,critRes:0,energy:0,regen:0,ctrlRes:0,ctrlHit:0,startEnergy:0,healPow:0,lifesteal:0,atkSpd:0,haste:0,moveSpd:0,range:0,eva:0,acc:0,block:0,dmgBonus:0,dmgRed:0,shieldStr:0};
-  if(typeof RUNE2!=='undefined'&&RUNE2.enabled&&RUNE2.st&&RUNE2.cat) return glyphV2Mul(key); return {atk:0,apow:0,armorPen:0,magicPen:0,hp:0,armor:0,mr:0,crit:0,critDmg:0,critRes:0,energy:0,regen:0,ctrlRes:0,ctrlHit:0,startEnergy:0,healPow:0,lifesteal:0,atkSpd:0,haste:0,moveSpd:0,range:0,eva:0,acc:0,block:0,dmgBonus:0,dmgRed:0,shieldStr:0}; }   // v2 only — legacy socket stats are gone
+function glyphSockMul(key){ if(_powerNoGlyph) return {atk:0,apow:0,armorPen:0,magicPen:0,hp:0,armor:0,mr:0,crit:0,critDmg:0,critRes:0,energy:0,regen:0,ctrlRes:0,ctrlHit:0,startEnergy:0,healPow:0,lifesteal:0,atkSpd:0,haste:0,moveSpd:0,range:0,eva:0,acc:0,block:0,dmgBonus:0,dmgRed:0,shieldStr:0,defense:0};
+  if(typeof RUNE2!=='undefined'&&RUNE2.enabled&&RUNE2.st&&RUNE2.cat) return glyphV2Mul(key); return {atk:0,apow:0,armorPen:0,magicPen:0,hp:0,armor:0,mr:0,crit:0,critDmg:0,critRes:0,energy:0,regen:0,ctrlRes:0,ctrlHit:0,startEnergy:0,healPow:0,lifesteal:0,atkSpd:0,haste:0,moveSpd:0,range:0,eva:0,acc:0,block:0,dmgBonus:0,dmgRed:0,shieldStr:0,defense:0}; }   // v2 only — legacy socket stats are gone
 function glyphHaste(){ return 0; }   // (no haste glyph in this stat set)
 // ---- STARS: heroes start at 1★, grow to 6★ from elite-stage star shards ----
 const MAX_STARS=5, STAR_PIPS=5;   // each star fills over 5 fragment-fed pips (4 small + 1 finisher)
@@ -5479,7 +5479,7 @@ function starMult(key){ return starMultFrom(heroStars(key), starPips(key), refin
 // math exactly — every equipped item's stats × (1 + 0.025·temper) × (1 + 0.01·resonanceRank) — and
 // sockStatTotal folds glyph + gear into one flat-stat bundle for the combat pipeline.
 function gearSockMul(key){
-  const z={atk:0,apow:0,armorPen:0,magicPen:0,hp:0,armor:0,mr:0,crit:0,critDmg:0,critRes:0,energy:0,regen:0,ctrlRes:0,ctrlHit:0,startEnergy:0,healPow:0,lifesteal:0,atkSpd:0,haste:0,moveSpd:0,range:0,eva:0,acc:0,block:0,dmgBonus:0,dmgRed:0,shieldStr:0};
+  const z={atk:0,apow:0,armorPen:0,magicPen:0,hp:0,armor:0,mr:0,crit:0,critDmg:0,critRes:0,energy:0,regen:0,ctrlRes:0,ctrlHit:0,startEnergy:0,healPow:0,lifesteal:0,atkSpd:0,haste:0,moveSpd:0,range:0,eva:0,acc:0,block:0,dmgBonus:0,dmgRed:0,shieldStr:0,defense:0};
   try{
     const st=(typeof FORGE!=='undefined')&&FORGE.st; if(!st||!st.enabled||!st.equipped) return z;
     const eq=st.equipped[key]; if(!eq) return z;
@@ -5698,8 +5698,8 @@ const DEFAULT_G = {
   eqInv:{},                                                    // crafted items inventory (itemId -> count)
   equip:Object.fromEntries(HERO_KEYS.map(k=>[k,[null,null,null,null,null,null]])), // 6 equip slots per hero
   eliteUsed:{}, eliteResetTS:0, eliteResetDay:'',              // daily elite-stage attempts (reset on 09:00 ET day key)
-  tech:{academy:0,atk:0,hp:0,ap:0,def:0,armor:0,mr:0,crit:0,critres:0},   // academy = the research building's own level (speeds all research)
-  techLearn:{academy:0,atk:0,hp:0,ap:0,def:0,armor:0,mr:0,crit:0,critres:0},   // 0 = idle; else timestamp (ms) research completes
+  tech:{academy:0,atk:0,hp:0,ap:0,heal:0,armor:0,mr:0,crit:0,critres:0},   // academy = the research building's own level (speeds all research)
+  techLearn:{academy:0,atk:0,hp:0,ap:0,heal:0,armor:0,mr:0,crit:0,critres:0},   // 0 = idle; else timestamp (ms) research completes
   stamina:60, staminaTS:0,        // stamina (⧗ from food): max = 59+level, regen 1 per 6 min, refills on level-up
   wall:['vael','sylthaine','vireo'],
   arenaDef:['vael','sylthaine','vireo'], // auto-defense team shown to attackers
@@ -5793,7 +5793,7 @@ function learnBusy(){ for(const k in G.techLearn){ if(G.techLearn[k]>Date.now())
 const ACADEMY_MAX=120, ACAD_COST=[64,109,203,349,575,667,763,1048,1349,1529,1701,1880,2065,2257,2455,2817,3193,3583,3986,4424,4609,4812,5031,5269,5526,5804,6105,6430,6779,7158,7493,7850,8231,8639,9075,9539,10033,10558,11115,11706,12334,13000,13701,14446,15230,16061,16935,17858,18828,19850,20927,22056,23243,24487,25797,27168,28604,30107,31681,33329,35054,36853,38735,40699,42750,44891,47122,49447,51872,54395,57023,59757,62604,65566,68642,73279,78172,83334,88781,94516,100559,106922,113616,120659,128061,135839,144012,152585,161588,171032,178190,185595,193260,201182,209376,239633,271920,306342,342990,381969,396922,412360,428299,444751,461719,479230,497296,515931,535135,554940,575358,596401,618085,640429,663441,687922,713306,739627,766919,795218];
 const ACAD_RATE=(()=>{ const r=[0]; for(let n=1;n<=ACADEMY_MAX;n++) r.push(Math.max(r[n-1], n<ACADEMY_MAX?ACAD_COST[n]/(24+2*(n-1)):0)); return r; })();
 function acadRatePerHour(lvl){ return ACAD_RATE[Math.max(0,Math.min(ACADEMY_MAX,lvl|0))]; }
-function learnResCost(track,lvl){ if(track==='academy'){ const n=ACAD_COST[(lvl|0)]||0; return {iron:n,crystal:n,silver:n,coal:n}; } const base={atk:{silver:5,coal:5},ap:{crystal:5,iron:5},hp:{iron:5,silver:5},def:{crystal:5,coal:5},armor:{iron:5,coal:5},mr:{crystal:5,silver:5},crit:{crystal:5,coal:5},critres:{iron:5,silver:5}}[track]||{iron:5}; const c={}; for(const k in base) c[k]=base[k]+lvl*2; return c; }
+function learnResCost(track,lvl){ if(track==='academy'){ const n=ACAD_COST[(lvl|0)]||0; return {iron:n,crystal:n,silver:n,coal:n}; } const base={atk:{silver:5,coal:5},ap:{crystal:5,iron:5},hp:{iron:5,silver:5},heal:{crystal:5,coal:5},armor:{iron:5,coal:5},mr:{crystal:5,silver:5},crit:{crystal:5,coal:5},critres:{iron:5,silver:5}}[track]||{iron:5}; const c={}; for(const k in base) c[k]=base[k]+lvl*2; return c; }
 function canAffordRes(c){ for(const k in c){ if((G.res[k]||0)<c[k]) return false; } return true; }
 function payRes(c){ for(const k in c){ G.res[k]=(G.res[k]||0)-c[k]; } }
 function resCostStr(c){ return Object.entries(c).map(([k,v])=>resMeta(k)[1]+(+v).toLocaleString()).join(' '); }
@@ -5871,6 +5871,7 @@ function migrateG(){
   if(G.starMilestonesClaimed==null) G.starMilestonesClaimed=0;
   if(!G.tech)G.tech={}; if(G.tech.ap==null)G.tech.ap=0; if(G.tech.academy==null)G.tech.academy=0;   // Ability Power + Academy building
   if(!G.techLearn)G.techLearn={}; if(G.techLearn.ap==null)G.techLearn.ap=0; if(G.techLearn.academy==null)G.techLearn.academy=0;
+  if(G.tech.heal==null)G.tech.heal=0; if(G.techLearn.heal==null)G.techLearn.heal=0; delete G.techLearn.def;   // Academy v2 (11 Oct): Defense retired (a pending one is cancelled), Healing & Shielding added
   if(G.regionChosen&&!G.region)G.region='crystor';                 // safety: a chosen player always has a region
   if(G.region&&!G.zone)G.zone=G.region;
   if(G.region){ if(G.castleX==null||G.castleY==null){ const c=zoneCenter(G.region); G.castleX=c.x; G.castleY=c.y; }
@@ -5883,19 +5884,21 @@ function migrateG(){
 // ---- Tech scaling: small FLAT per-track amounts that grow gently each level (see reference tables). ----
 //   v1099 (Phil 9 Oct 2026: "there should be no percentages in academy, please make academy have flat numbers"): EVERY track is a
 //   flat stat that joins the same flats / ratings glyphs and gear use - Attack damage, Health, Ability power (apow flat, spells only),
-//   Defense = Armor AND Magic resist, Armor, Magic resist, Crit rating and Crit resist rating (20 rating = 1%, the gear rule).
+//   Healing & Shielding (healPow AND shieldStr rating), Armor, Magic resist, Crit rating and Crit resist rating (20 rating = 1%, the gear rule).
+//   Academy v2 (11 Oct, Phil): Defense removed; Attack = Ability power (0.78 a level); crit, crit resist and Healing & Shielding are
+//   200 rating = 10% at track 60 (base 0.8404 x the 237.99 growth sum); crit resist subtracts from the attacker's crit damage (+60% -> +50%).
 //   Sized so a level-100 five-star hero at track 60 gets about the old percentage's effect (Ability power vs a median mage's 155 AP,
 //   Defense through defToDR at level 100 vs median Armor 988 / MR 794; crit and crit resist convert exactly). Mirrored in server.js.
 const TECH_MAX=60;                                        // every tech tops out at kingdom level 60
-const TECH_BASE={atk:0.7, hp:10, ap:0.78, def:7.2, armor:0.13, mr:0.13, crit:2.6, critres:4};   // PROPOSED - Phil tunes (v1099: ap was 0.5%, def 0.13%, crit 0.13%, critres 0.2% a level)
+const TECH_BASE={atk:0.78, hp:10, ap:0.78, heal:0.8404, armor:0.13, mr:0.13, crit:0.8404, critres:0.8404};   // PROPOSED - Phil tunes (Academy v2 11 Oct; was atk 0.7, def 7.2, crit 2.6, critres 4) (v1099: ap was 0.5%, def 0.13%, crit 0.13%, critres 0.2% a level)
 const TECH_GROWTH=1.04;                                   // per-level gain rises ~4% each level (matches the reference curve)
-const TECH_FLAT={atk:1,hp:1,ap:1,def:1,armor:1,mr:1,crit:1,critres:1};   // v1099: every track is raw stat points
+const TECH_FLAT={atk:1,hp:1,ap:1,heal:1,armor:1,mr:1,crit:1,critres:1};   // v1099: every track is raw stat points
 function techGainAt(k,lvl){ return (TECH_BASE[k]!=null?TECH_BASE[k]:0.1)*Math.pow(TECH_GROWTH, lvl||0); }   // gain for lvl → lvl+1
 function techTotal(k,lvl){ if(lvl==null) lvl=(G.tech&&G.tech[k])||0; let v=0; for(let i=0;i<lvl;i++) v+=techGainAt(k,i); return v; }
-// v1099: the whole points a track adds in battle (server techFlatSrv rounds the same way); Defense lands on Armor and on Magic resist
+// v1099: the whole points a track adds in battle (server techFlatSrv rounds the same way). Academy v2: no Defense; an old G.tech.def is ignored
 function techFlat(k,lvl){ return Math.round(techTotal(k,lvl)); }
-function techArmorFlat(){ return techFlat('armor')+techFlat('def'); }
-function techMrFlat(){ return techFlat('mr')+techFlat('def'); }
+function techArmorFlat(){ return techFlat('armor'); }
+function techMrFlat(){ return techFlat('mr'); }
 // v1099: Ability Power research is a FLAT apow (techFlat('ap')) on heroes with an ability line - no multiplier any more
 function abilityPowerMul(){ return 1; }
 // ---- name renames: 1st free, then 50 / 100 / 200 / 200… diamonds. Grant v1 resets everyone back to a free rename. ----
@@ -6028,12 +6031,12 @@ function mulsFromTotals(gf, ex){
      with no cap, so an Orange tank's 1,823 banked points healed 182% of its HP every second
      (Phil's Gruel card: "HP Regen 123,849/s"). Mirrored in server/combat-core.js. */
   regen+=Math.min(0.012,(gf.regen||0)*0.0001); energyReg+=(gf.energy||0)*0.01;   /* v1026 (Phil 4 Oct): HP regen 100 points = 1% max HP/s, cap 1.2%/s (was 6%) - the one rating off the 20 = 1% rule; at 20 = 1% a geared tank regenerated the 6%/s cap (energy regen is energy, not a %) */
-  const ctrlRes=Math.min(0.6,(gf.ctrlRes||0)*0.0005), startEnergy=Math.min(60,Math.round((gf.startEnergy||0)*0.35)), healPow=(gf.healPow||0)*0.0005;   /* v1020: 20 points = 1% */
+  const ctrlRes=Math.min(0.6,(gf.ctrlRes||0)*0.0005), startEnergy=Math.min(60,Math.round((gf.startEnergy||0)*0.35)), healPow=((gf.healPow||0)+(ex.techHeal||0))*0.0005;   /* v1020: 20 points = 1%; Academy v2: + the Healing & Shielding rating */
   return {atk,hp,dr:Math.min(dr,0.6),regen,crit:Math.min(crit,0.6),critRes:Math.min(critRes,0.75),energyReg,ctrlRes,startEnergy,healPow};
 }
 function heroMuls(key){
   // glyphs + Forge gear (CR-3) and the AUDIT C6 distinct stats now live in mulsFromTotals — one formula.
-  return mulsFromTotals(sockStatTotal(key), { techCrit:techFlat('crit'), techCritRes:techFlat('critres'),
+  return mulsFromTotals(sockStatTotal(key), { techCrit:techFlat('crit'), techCritRes:techFlat('critres'), techHeal:techFlat('heal'),
     equip:equipMul(key), baseDr:(HERO_TYPES[key]||{}).dr||0 });
 }
 
@@ -9228,7 +9231,7 @@ function snapUnitResolved(u){ return { key:u.key, level:u.level, rank:u.rank, bo
   maxHp:u.maxHp, dmg:u.dmg, range:u.range, speed:u.speed, atkInterval:u.atkInterval, combatDist:u.combatDist, r:u.r, melee:!!u.melee, reach:u.reach||0,
   apow:u.apow, apMul:u.apMul, hybrid:!!u.hybrid, glyphDR:u.glyphDR||0, defRating:u.defRating||0, penRating:u.penRating||0,
   armorRating:u.armorRating||0, mrRating:u.mrRating||0, armorPen:u.armorPen||0, magicPen:u.magicPen||0,
-  critDmg:u.critDmg||0.6, lifestealStat:u.lifestealStat||0, evaStat:u.evaStat||0, accStat:u.accStat||0, blockStat:u.blockStat||0,
+  critDmg:u.critDmg||0.6, defenseStat:u.defenseStat||0, healPowMul:u.healPowMul||1, lifestealStat:u.lifestealStat||0, evaStat:u.evaStat||0, accStat:u.accStat||0, blockStat:u.blockStat||0,
   dmgBonusMul2:u.dmgBonusMul2||1, shieldStrMul:u.shieldStrMul||1, ctrlHitF:u.ctrlHitF||0, hasteEnergyMul:u.hasteEnergyMul||1,
   glyphRegen:u.glyphRegen||0, glyphCrit:u.glyphCrit||0,
   critRes:u.critRes||0, energyReg:u.energyReg||0, templeDamageEnergy:u.templeDamageEnergy||0, energy:u.energy, ctrlRes:u.ctrlRes||0, skillLv:(u.skillLv||[1,1,1,1]).slice(), passMul:u.passMul||1,
@@ -9264,7 +9267,8 @@ function buildUnitFromSnapshot(s,team,x,y){
   if(s.worldEntryHpCap!=null)u._worldEntryHpCap=Math.max(0,Math.min(u.maxHp,s.worldEntryHpCap));
   u.apow=s.apow; u.apMul=s.apMul; u.hybrid=s.hybrid; u.glyphDR=s.glyphDR; u.defRating=s.defRating||0; u.penRating=s.penRating||0;
   u.armorRating=s.armorRating||0; u.mrRating=s.mrRating||0; u.armorPen=s.armorPen||0; u.magicPen=s.magicPen||0;
-  u.critDmg=s.critDmg||0.6; u.lifestealStat=s.lifestealStat||0; u.evaStat=s.evaStat||0; u.accStat=s.accStat||0; u.blockStat=s.blockStat||0;
+  u.critDmg=s.critDmg||0.6; u.defenseStat=s.defenseStat||0; u.healPowMul=s.healPowMul||1; u.lifestealStat=s.lifestealStat||0;   /* Academy v2 (11 Oct): Defense and healing power travel with the snapshot (healing power was dropped before) */
+  u.evaStat=s.evaStat||0; u.accStat=s.accStat||0; u.blockStat=s.blockStat||0;
   u.dmgBonusMul2=s.dmgBonusMul2||1; u.shieldStrMul=s.shieldStrMul||1; u.ctrlHitF=s.ctrlHitF||0; u.hasteEnergyMul=s.hasteEnergyMul||1;
   u.glyphRegen=s.glyphRegen; u.glyphCrit=s.glyphCrit; u.critRes=s.critRes; u.energyReg=s.energyReg; u.templeDamageEnergy=s.templeDamageEnergy||0; if(s.energy!=null)u.energy=s.energy; if(s.hp!=null)u.hp=Math.max(1,Math.min(worldHealCap(u),s.hp)); u.ctrlRes=s.ctrlRes||0;
   u.skillLv=(s.skillLv||[1,1,1,1]).slice(); u.passMul=s.passMul; u.immovable=s.immovable; u.stunImmune=s.stunImmune;
@@ -9477,11 +9481,12 @@ function makeUnit(key,team,x,y,levelOverride,extra){
     u.mrRating   =BL.mr*sm + (S?(S.techMr||0):(owned?techMrFlat():0)) + ((tt.mr||0)*3) + TBF.mrFlat;
     u.armorPen=(tt.armorPen||0)+TBF.armorPenFlat; u.magicPen=(tt.magicPen||0)+TBF.magicPenFlat;
     u.critDmg=0.6+((tt.critDmg||0)*0.0005); /* v1020 (Phil 4 Oct: 'all of them 20 = 1%') */
+    u.defenseStat=Math.min(0.6,(tt.defense||0)*0.0005);   /* Academy v2 (11 Oct, Phil): DEFENSE rating - 20 points = 1%, cap 60%, takes that much off an attacker's crit CHANCE ("defense = crit% reduction"); sources: glyphs, equipment, prayer, future - none give it yet */
     u.lifestealStat=Math.min(0.5,(tt.lifesteal||0)*0.0005);
     u.evaStat=Math.min(0.30,(tt.eva||0)*0.0005); u.accStat=(tt.acc||0);
     u.blockStat=Math.min(0.30,(tt.block||0)*0.0005);
     u.dmgBonusMul2=1+((tt.dmgBonus||0)*0.0005);
-    u.shieldStrMul=1+((tt.shieldStr||0)*0.0005);
+    u.shieldStrMul=1+(((tt.shieldStr||0)+(S?(S.techHeal||0):(owned?techFlat('heal'):0)))*0.0005);   /* Academy v2: + the Healing & Shielding rating (= server acadApply) */
     u.ctrlHitF=(tt.ctrlHit||0)*0.0005;
     u.hasteEnergyMul=1+((tt.haste||0)*0.0005);
     /* Forge mobility ratings: 100 points = 10%, capped at 30%. */
@@ -9896,7 +9901,7 @@ function dealDamage(src,tgt,amt,color,kind,silent){ kind=kind||((src&&src.t&&(['
   if(src&&(src._gearNextStun||0)>0&&tgt&&tgt.alive&&tgt.team!==src.team&&kind!=='true'){ tgt.stunned=Math.max(tgt.stunned||0,ccDur(src._gearNextStun)); src._gearNextStun=0; floatTexts.push({x:tgt.x,y:tgt.y-12,txt:'STUN',t:.6,color:'#ffd45e',vy:1.2,sz:12}); }   /* v646: Brawler's Blow */
   const cc=(src.pass&&src.pass.crit?0.2:0)+(src.glyphCrit||0)+((src._critBuffT||0)>0?(src._critBuffPct||0):0);   // Crit passive + Crit / Crit tech
   let _crit=false;
-  if(_preCrit!=null ? _preCrit : (_gearHitCrit||(src&&src._gearSpellCrit)||(cc&&brnd()<cc))){ /* v532: a crit-clip hero pre-rolled this swing at the wind-up */ const bonus=(src.critDmg||0.6); let mult=1+bonus; if(tgt.critRes) mult=1+bonus*(1-tgt.critRes); amt*=mult; tgt._critHit=true; _crit=true; }   // v247: Crit Damage stat widens the bonus
+  if(_preCrit!=null ? _preCrit : (_gearHitCrit||(src&&src._gearSpellCrit)||(cc&&brnd()<Math.max(0,cc-((tgt&&tgt.defenseStat)||0))))){ /* v532: a crit-clip hero pre-rolled this swing at the wind-up */ const bonus=(src.critDmg||0.6); let mult=1+bonus; if(tgt.critRes) mult=1+Math.max(0,bonus-tgt.critRes);   /* Academy v2 (11 Oct, Phil): crit resist SUBTRACTS from crit damage % (+60% vs 10% = +50%), floor = a normal hit; = combat-core */ amt*=mult; tgt._critHit=true; _crit=true; }   // v247: Crit Damage stat widens the bonus
   tgt._lastHitKind=kind;   // v253: damage() colours the number by damage type
   const _hpBefore=tgt.hp; damage(tgt,amt,color,!!silent,_crit); const _hpLost=Math.max(0,_hpBefore-tgt.hp); 
   if(tgt.pass&&tgt.pass.bloodrage&&src&&src.team!==tgt.team&&_hpLost>0) tgt._brTaken=(tgt._brTaken||0)+_hpLost;   /* v1024 Blood Rage: what an enemy took off him this fight */   // lifesteal heals off HP ACTUALLY removed (0 through a full shield absorb), not the pre-mitigation amount
@@ -12831,11 +12836,12 @@ function think(u,dt){
          plays from the first frame; dealDamage takes the pre-rolled result on the fuse instead of rolling again. Heroes
          without a crit clip roll exactly where they always did, so their fights replay byte-identical. */
       let _swCrit=null; if(u.t && u.t.role==='Tank' && u.t.damageProfile==='Magic') _swCrit=false;   /* v1032 (Phil 4 Oct: "he is a magic tank so he cannot melee crit" / "his spells can crit though"): a magic tank's basic attack never crits; its spells roll as before */
-      if(u.anim&&u.anim.crit){ const _forced=u._gearNextCrit==='hit'; if(_forced)u._gearNextCrit=null; const _cc=(u.pass&&u.pass.crit?0.2:0)+(u.glyphCrit||0)+((u._critBuffT||0)>0?(u._critBuffPct||0):0); _swCrit=!!(_forced||(_cc&&brnd()<_cc)); u._atkClip=_swCrit?'crit':null; }
+      if(u.anim&&u.anim.crit){ const _forced=u._gearNextCrit==='hit'; if(_forced)u._gearNextCrit=null; const _cc=(u.pass&&u.pass.crit?0.2:0)+(u.glyphCrit||0)+((u._critBuffT||0)>0?(u._critBuffPct||0):0); _swCrit=!!(_forced||(_cc&&brnd()<Math.max(0,_cc-((t&&t.defenseStat)||0))));   /* Academy v2: the target's Defense comes off the crit chance; same RNG draws as before */
+      u._atkClip=_swCrit?'crit':null; }
       /* v534 - the MIRAGE's crit is a DOUBLE SWING: the attack clip plays twice at double speed inside the same swing
          window and lands twice for normal damage (Phil: "double attack when it crits instead of doing more damage"). */
       let _dbl=false;
-      if(u._mirage){ const _cc=(u.glyphCrit||0); _dbl=!!(_cc&&brnd()<_cc); _swCrit=false; u._dblSwing=_dbl; }
+      if(u._mirage){ const _cc=(u.glyphCrit||0); _dbl=!!(_cc&&brnd()<Math.max(0,_cc-((t&&t.defenseStat)||0))); _swCrit=false; u._dblSwing=_dbl; }
       // how long this swing's clip wants to run. PURELY VISUAL — see the _animLockT note in think().
       const _atkClipA=u.anim&&u.anim[(u._atkClip&&u.anim[u._atkClip])?u._atkClip:'attack'];
       { u._animLockT=Math.min(ai*0.95, _atkClipA?((_atkClipA.hold||clipDur(_atkClipA))/u._atkSpdMul):0.42); u._lockPri=1; }
@@ -15527,10 +15533,10 @@ function gearFragImg(n,px){ return n?`<img src="/assets/img/gear/frags/${gearSlu
 function gearSubImg(n,px){ return n?`<img src="/assets/img/gear/subs/${gearSlug(n)}.webp${GEAR_ART_V}" alt="" style="width:${px||22}px;height:${px||22}px;border-radius:4px;object-fit:cover;vertical-align:middle;background:#0e1420" loading="lazy">`:''; }
 /* v1095 (Phil 9 Oct: "no more emojis" / the stat icons "will also be used everywhere"): ONE game-wide stat icon set (ChatGPT, approved) */
 const STAT_ICON_KEYS=new Set(['acc','apow','armor','armorPen','atk','atkSpd','block','cooldown','crit','critDmg','critRes','ctrlRes','dmgRed','energy','energySteal','energyTaken','eva','haste','healPow','hp','lifesteal','magicPen','moveSpd','mr','range','regen','shieldStr','skills']);
-const STAT_ICON_ALIAS={heal:'healPow',dmgBonus:'atk',startEnergy:'energy',ctrlHit:'acc',ap:'apow',def:'armor',critres:'critRes',health:'hp',attack:'atk',armorMr:'armor',pen:'armorPen'};
+const STAT_ICON_ALIAS={heal:'healPow',dmgBonus:'atk',startEnergy:'energy',ctrlHit:'acc',ap:'apow',def:'armor',defense:'dmgRed',critres:'critRes',health:'hp',attack:'atk',armorMr:'armor',pen:'armorPen'};
 function statIcon(k,cls){ k=STAT_ICON_ALIAS[k]||k; return STAT_ICON_KEYS.has(k)?`<img class="stIc${cls?' '+cls:''}" src="/assets/img/icons/stat/${k}-v1.webp" alt="">`:''; }
 function gearStatLabel(k){ return statIcon(k)+(GEAR_STAT_LABEL[k]||k); }
-const GEAR_STAT_LABEL={hp:'Health',atk:'Attack',apow:'Ability Power',armor:'Armor',mr:'Magic Resist',crit:'Crit',critDmg:'Crit Dmg',critRes:'Crit Resist',energy:'Energy Regen',regen:'HP Regen',ctrlRes:'Tenacity',ctrlHit:'Control Hit',startEnergy:'Start Energy',healPow:'Healing',lifesteal:'Lifesteal',atkSpd:'Attack Speed',haste:'Haste',eva:'Evasion',acc:'Accuracy',block:'Block',dmgBonus:'Damage Bonus',dmgRed:'Damage Reduction',shieldStr:'Shield Strength',armorPen:'Armor Pen',magicPen:'Magic Pen',heal:'Heal'};
+const GEAR_STAT_LABEL={hp:'Health',atk:'Attack',apow:'Ability Power',armor:'Armor',mr:'Magic Resist',crit:'Crit',critDmg:'Crit Dmg',critRes:'Crit Resist',defense:'Defense',energy:'Energy Regen',regen:'HP Regen',ctrlRes:'Tenacity',ctrlHit:'Control Hit',startEnergy:'Start Energy',healPow:'Healing',lifesteal:'Lifesteal',atkSpd:'Attack Speed',haste:'Haste',eva:'Evasion',acc:'Accuracy',block:'Block',dmgBonus:'Damage Bonus',dmgRed:'Damage Reduction',shieldStr:'Shield Strength',armorPen:'Armor Pen',magicPen:'Magic Pen',heal:'Heal'};
 let gearSlotSel='Weapon';
 function gearSlotSelect(sl){ gearSlotSel=sl; renderHeroDetail(); }
 async function gearHeroPost(path,payload,msg){ if(FORGE.busy)return; FORGE.busy=true;
@@ -20624,11 +20630,11 @@ const TECH_TRACKS=[
   ['atk',statIcon('atk'),'Attack Power','Attack damage',3],
   ['hp',statIcon('hp'),'Health','Health',3],
   ['ap',statIcon('apow'),'Ability Power','Ability power',4],
-  ['def',statIcon('dmgRed'),'Defense','Armor and Magic resist',1.5],
+  ['heal',statIcon('healPow'),'Healing & Shielding','Healing and shield strength',1.5],   // Academy v2 (11 Oct): replaces Defense
   ['armor',statIcon('armor'),'Armor','Armor',1.5],
   ['mr',statIcon('mr'),'Magic Resist','Magic resist',1.5],
   ['crit',statIcon('crit'),'Crit','Crit rating',1.5],
-  ['critres',statIcon('critRes'),'Crit Resist','Crit resist rating',2],
+  ['critres',statIcon('critRes'),'Crit Resist','Reduces critical damage taken (subtracts from the attacker\'s crit damage)',2],   // Academy v2: off the crit damage, not the chance
 ];
 let techSel='atk';
 function renderTech(){
@@ -23652,14 +23658,14 @@ async function glyphV2Sync(){ if(!ACC.token){ RUNE2.enabled=false; return; }
 function g2def(id){ return RUNE2.cat&&RUNE2.cat.byId[id]; }
 function g2board(key){ const b=RUNE2.st&&RUNE2.st.boards&&RUNE2.st.boards[key]; return b||{slots:[null,null,null,null,null,null],ascensionIndex:0,ascended:{}}; }
 // legacy-stat bridge: v2 stats feed the SAME battle fields the old glyphs did, so combat keeps working
-function glyphV2Mul(key){ const out={atk:0,apow:0,armorPen:0,magicPen:0,hp:0,armor:0,mr:0,crit:0,critDmg:0,critRes:0,energy:0,regen:0,ctrlRes:0,ctrlHit:0,startEnergy:0,healPow:0,lifesteal:0,atkSpd:0,haste:0,moveSpd:0,range:0,eva:0,acc:0,block:0,dmgBonus:0,dmgRed:0,shieldStr:0};
+function glyphV2Mul(key){ const out={atk:0,apow:0,armorPen:0,magicPen:0,hp:0,armor:0,mr:0,crit:0,critDmg:0,critRes:0,energy:0,regen:0,ctrlRes:0,ctrlHit:0,startEnergy:0,healPow:0,lifesteal:0,atkSpd:0,haste:0,moveSpd:0,range:0,eva:0,acc:0,block:0,dmgBonus:0,dmgRed:0,shieldStr:0,defense:0};
   if(!RUNE2.enabled||!RUNE2.st||!RUNE2.cat) return out;
   // AUDIT C6: DISTINCT stats — Tenacity/Control Resist = CONTROL resist; Starting Energy = initial
   // energy; Healing Power = healer output; HP Regen = universal regen. Never folded into lookalikes.
   // v241 (audit): Ability Power feeds the ABILITY line (apow), never basic attack; Magic/Armor
   // Penetration are a pen rating that counters the target's defense rating in dealDamage; Energy
   // Regen is the energy rating (1 energy/s per 100, same as gear).
-  const MAP={'HP':'hp','Physical Attack':'atk','Ability Power':'apow','Armor Penetration':'armorPen','Magic Penetration':'magicPen','Energy Regen':'energy','Armor':'armor','Magic Resist':'mr','Crit Chance':'crit','Crit Damage':'critDmg','Crit Resistance':'critRes','Tenacity':'ctrlRes','Control Resist':'ctrlRes','Control Hit':'ctrlHit','Starting Energy':'startEnergy','HP Regen':'regen','Healing Power':'healPow','Lifesteal':'lifesteal','Attack Speed':'atkSpd','Haste':'haste','Evasion':'eva','Accuracy':'acc','Block':'block','Damage Bonus':'dmgBonus','Damage Reduction':'dmgRed','Shield Strength':'shieldStr'};
+  const MAP={'HP':'hp','Physical Attack':'atk','Ability Power':'apow','Armor Penetration':'armorPen','Magic Penetration':'magicPen','Energy Regen':'energy','Armor':'armor','Magic Resist':'mr','Crit Chance':'crit','Crit Damage':'critDmg','Crit Resistance':'critRes','Tenacity':'ctrlRes','Control Resist':'ctrlRes','Control Hit':'ctrlHit','Starting Energy':'startEnergy','HP Regen':'regen','Healing Power':'healPow','Lifesteal':'lifesteal','Attack Speed':'atkSpd','Haste':'haste','Evasion':'eva','Accuracy':'acc','Block':'block','Damage Bonus':'dmgBonus','Damage Reduction':'dmgRed','Shield Strength':'shieldStr','Defense':'defense'};
   const b=g2board(key); const add=(stat,val)=>{ const k=MAP[stat]; if(k) out[k]+=val; };
   for(const st in (b.ascended||{})) add(st, b.ascended[st].val);
   for(const sObj of (b.slots||[])){ if(!sObj)continue; (sObj.stats||[]).forEach(s=>add(s.stat,s.val)); }
@@ -24013,7 +24019,8 @@ function renderHeroDetail(){
       [statIcon('hp')+'Health',S_HP],[statIcon('regen')+'HP Regen',regenStr],
       [statIcon('armor')+'Armor',armorFlat+_pct(armorFlat)],[statIcon('mr')+'Magic Resistance',mrFlat+_pct(mrFlat)],
       [statIcon('atk')+'Attack Damage',S_ATK],[statIcon('apow')+'Ability Power',S_APOW],
-      [statIcon('crit')+'Crit Chance',Math.round(Math.min(0.6,(mul.crit||0)+(CLASS_BASE_CRIT[t.role]||0))*100)+'%'],[statIcon('critRes')+'Crit Resistance',Math.round((mul.critRes||0)*100)+'%'],
+      [statIcon('crit')+'Crit Chance',Math.round(Math.min(0.6,(mul.crit||0)+(CLASS_BASE_CRIT[t.role]||0))*100)+'%'],['<span title="Reduces critical damage taken (subtracts from the attacker\'s crit damage)">'+statIcon('critRes')+'Crit Resistance</span>',Math.round((mul.critRes||0)*100)+'%'],
+      ['<span title="Lowers the enemy\'s chance to crit you">'+statIcon('dmgRed')+'Defense</span>',Math.round(Math.min(0.6,(_tt.defense||0)*0.0005)*100)+'%'],   // Academy v2 (11 Oct): the Defense rating
       [statIcon('atkSpd')+'Attack Speed',S_APS+' /s'],[statIcon('energy')+'Energy Regen',enrStr],
       [statIcon('range')+'Type',t.range>=60?'Ranged':'Melee'],['Combat row',t.combatRow],['Class',t.role],['Damage',t.damageProfile],['Scaling',t.primaryScaling]];
     tab=`<div class="panel"><div style="display:grid;grid-template-columns:1fr 1fr;gap:7px 14px;font-size:12px">${rows.map(([n,v])=>`<div style="display:flex;justify-content:space-between;border-bottom:1px solid #1c2434;padding-bottom:4px"><span style="color:#8b98a9">${n}</span><b>${v}</b></div>`).join('')}</div>

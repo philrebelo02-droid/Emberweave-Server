@@ -17,7 +17,7 @@ const ok = (c, m) => { assert(c, m); pass++; console.log('  ok ' + m); };
 const near = (a, b, e) => Math.abs(a - b) < (e || 1e-6);
 const html = fs.readFileSync(path.join(ROOT, 'emberweave-heroes.html'), 'utf8');
 const srv = fs.readFileSync(path.join(ROOT, 'server.js'), 'utf8');
-const TRACKS = ['atk', 'hp', 'ap', 'def', 'armor', 'mr', 'crit', 'critres'];
+const TRACKS = ['atk', 'hp', 'ap', 'heal', 'armor', 'mr', 'crit', 'critres'];   // Academy v2 (11 Oct): Defense -> Healing & Shielding
 
 /* ---- the server's Academy code, run as written ---- */
 function serverAcademy(patch) {
@@ -52,8 +52,8 @@ function serverUnit(SA, key, L) { const R = {}, XT = {}; SA.acadApply(R, XT, L ?
   return SIM.heroCombatStats(key, Object.assign({}, OPT, { ratings: R, extra: XT })); }
 // the spec exactly as snapshotHeroFromServer builds it from acadCombat (the static check below pins those lines)
 function specFrom(SA, key, L) { const AC = L ? SA.acadCombatOf(lvAll(L)) : null, ap = (SIM.HERO_BASE[key].apow || 0) > 0 || OPT.level > 1;
-  return { key, level: 100, stars: 5, pips: 0, ref: 0, glyphRank: 6, tt: {}, ex: { techCrit: AC ? AC.critRating : 0, techCritRes: AC ? AC.critResRating : 0, equip: {} },
-    fAtk: AC ? AC.atkFlat : 0, fHp: AC ? AC.hpFlat : 0, fApow: (AC && ap) ? AC.apFlat : 0, techArmor: AC ? AC.armorRating : 0, techMr: AC ? AC.mrRating : 0, apMul: 1, skillLv: [1, 1, 1, 1] }; }
+  return { key, level: 100, stars: 5, pips: 0, ref: 0, glyphRank: 6, tt: {}, ex: { techCrit: AC ? AC.critRating : 0, techCritRes: AC ? AC.critResRating : 0, techHeal: AC ? AC.healRating : 0, equip: {} },
+    fAtk: AC ? AC.atkFlat : 0, fHp: AC ? AC.hpFlat : 0, fApow: (AC && ap) ? AC.apFlat : 0, techArmor: AC ? AC.armorRating : 0, techMr: AC ? AC.mrRating : 0, techHeal: AC ? AC.healRating : 0, apMul: 1, skillLv: [1, 1, 1, 1] }; }
 const clientUnit = (SA, key, L) => host.snapFromSpecs([specFrom(SA, key, L)])[0];
 function sweep(SA, L) {
   const bad = [];
@@ -61,7 +61,7 @@ function sweep(SA, L) {
     const s0 = serverUnit(S, key, 0), s1 = serverUnit(SA, key, L), c0 = clientUnit(S, key, 0), c1 = clientUnit(S, key, L);
     const d = { hp: [s1.maxHp - s0.maxHp, c1.maxHp - c0.maxHp], atk: [s1.atkP - s0.atkP, c1.dmg - c0.dmg], ap: [s1.atkM - s0.atkM, c1.apow - c0.apow],
       armor: [s1.armor - s0.armor, c1.armorRating - c0.armorRating], mr: [s1.mr - s0.mr, c1.mrRating - c0.mrRating],
-      crit: [s1.crit, c1.glyphCrit], critRes: [s1.critRes, c1.critRes], dr: [s1.dmgRed - s0.dmgRed, (c1.glyphDR || 0) - (c0.glyphDR || 0)] };
+      crit: [s1.crit, c1.glyphCrit], critRes: [s1.critRes, c1.critRes], heal: [s1.healPow, c1.healPowMul - 1], shield: [s1.shieldStr, c1.shieldStrMul], dr: [s1.dmgRed - s0.dmgRed, (c1.glyphDR || 0) - (c0.glyphDR || 0)] };
     for (const f in d) if (!near(d[f][0], d[f][1])) bad.push(key + '.' + f + ' ' + d[f][0] + ' vs ' + d[f][1]);
   }
   return bad;
@@ -71,7 +71,7 @@ for (const L of [30, 60]) { const bad = sweep(S, L);
 { const AC = S.acadCombatOf(lvAll(60)), mage = keys.find(k => SIM.HERO_BASE[k].role === 'Mage'), phys = keys.find(k => !(SIM.HERO_BASE[k].apow > 0));   // no ability line at level 1 only (every class grows AP with level)
   const m0 = serverUnit(S, mage, 0), m1 = serverUnit(S, mage, 60);
   ok(m1.atkM - m0.atkM === AC.apFlat && m1.armor - m0.armor === AC.armorRating && near(m1.crit - m0.crit, AC.critRating * 0.0005) && m1.dmgRed === m0.dmgRed,
-    'track 60 on ' + mage + ': +' + AC.apFlat + ' Ability power, +' + AC.armorRating + ' Armor (Defense + Armor), +' + AC.critRating + ' crit rating, damage reduction unchanged');
+    'track 60 on ' + mage + ': +' + AC.apFlat + ' Ability power, +' + AC.armorRating + ' Armor, +' + AC.critRating + ' crit rating, damage reduction unchanged');
   { const R = {}, XT = {}; S.acadApply(R, XT, S.acadCombatOf(lvAll(60)));
     ok(!phys || SIM.heroCombatStats(phys, { level: 1, stars: 5, ratings: R, extra: XT }).atkM === 0, 'a level-1 Attack hero with no ability line gets no Ability power from the Academy (' + phys + ')'); } }
 { // the client's own owned-hero helpers read G.tech and give the server's numbers
@@ -88,8 +88,8 @@ for (const L of [30, 60]) { const bad = sweep(S, L);
     'snapshotHeroFromServer sends crit ratings, the AP flat (ability heroes), Armor / MR ratings and apMul 1');
   ok(!/critFrac|dmgRedFrac|apMul:AC/.test(srv), 'no server path still sends an Academy fraction or multiplier'); }
 { // control: one side drifts -> the sweep fails
-  const drift = serverAcademy(code => code.replace('def:7.2', 'def:7.3'));
-  ok(sweep(drift, 60).length > 0, 'control: a server Defense step that drifts from the client fails the parity sweep'); }
+  const drift = serverAcademy(code => code.replace('heal:0.8404', 'heal:0.86'));
+  ok(sweep(drift, 60).length > 0, 'control: a server Healing & Shielding step that drifts from the client fails the parity sweep'); }
 
 /* ---- 3. no '%' on the Academy screen ---- */
 function screenText(src) {
@@ -132,7 +132,7 @@ async function call(tok, route, data) { const r = await fetch(base + route, { me
   const [viewer, hi, lo] = g.map(x => db.users[x.profile.id]);
   const l1 = WL.place([]), l2 = WL.place([l1]);
   hi.worldLocation = l1; lo.worldLocation = l2;
-  const acad = lv => ({ lv: { academy: lv, atk: 0, hp: 0, ap: 0, def: 0, armor: 0, mr: 0, crit: 0, critres: 0 }, learn: {}, res: { iron: 0, crystal: 0, silver: 0, coal: 0 }, mineDay: null });
+  const acad = lv => ({ lv: { academy: lv, atk: 0, hp: 0, ap: 0, heal: 0, armor: 0, mr: 0, crit: 0, critres: 0 }, learn: {}, res: { iron: 0, crystal: 0, silver: 0, coal: 0 }, mineDay: null });
   hi.led.acad = acad(100); lo.led.acad = acad(0);
   fs.writeFileSync(dbFile, JSON.stringify(db));
   await start();
