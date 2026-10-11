@@ -3479,11 +3479,51 @@ function _simWrap(host){
       if(_SIM_COLLECT){ _SIM_COLLECT.push({m,args,k}); SIM_STATS.collected++; throw SIM_NEEDED; }
       SIM_STATS.mainThread++; return orig.apply(host,args); }; }
   return host; }
-async function simPrefetch(list){
+const _SIM_FLIGHT=new Map();   // v1124: key -> the running prefetch (a late async verification reuses it instead of fighting again)
+async function simPrefetch(list,maxWaitMs){
   const pool=simPool(); if(!pool || !pool.stats.ready || !list || !list.length) return;
   const now=Date.now(); if(_SIM_MEMO.size>300) for(const [k,v] of _SIM_MEMO) if(now-v.t>60000) _SIM_MEMO.delete(k);
-  await Promise.all(list.map(({m,args,k})=>{ const key=k||_simKey(m,args); if(_SIM_MEMO.has(key)) return null;
-    return pool.run(m,args).then(r=>{ _SIM_MEMO.set(key,{r,t:Date.now()}); SIM_STATS.prefetched++; },()=>{ SIM_STATS.prefetchFailed++; }); })); }
+  const all=Promise.all(list.map(({m,args,k})=>{ const key=k||_simKey(m,args); if(_SIM_MEMO.has(key)) return null;
+    if(_SIM_FLIGHT.has(key)) return _SIM_FLIGHT.get(key).catch(()=>{});
+    const p=pool.run(m,args).then(r=>{ _SIM_MEMO.set(key,{r,t:Date.now()}); SIM_STATS.prefetched++; return r; },e=>{ SIM_STATS.prefetchFailed++; throw e; });
+    _SIM_FLIGHT.set(key,p); p.then(()=>_SIM_FLIGHT.delete(key),()=>_SIM_FLIGHT.delete(key));
+    return p.catch(()=>{}); }));
+  if(!(maxWaitMs>0)) return all;
+  let t; await Promise.race([all,new Promise(r=>{ t=setTimeout(r,maxWaitMs); })]); clearTimeout(t); }
+/* v1124 ASYNC FIGHT CHECKS (load test 11 Oct 2026: resolve waited for its replay in the battle queue - p95 2.5-10 s, and past the
+   queue's capacity the server never recovered). Phil: "the fight the player saw is the result". A resolve waits at most
+   SIM_RESOLVE_WAIT_MS for its replay; when the battle workers have not finished by then it answers from the player's own result
+   (paid exactly as before - a replay never changed the pay) and the check finishes later: an accepted fight's recording is then
+   dropped, a mismatch is recorded as an incident + review flag, and a check the overloaded queue had to shed is marked
+   'skipped' with its recording kept for review. With battle workers on, a campaign replay never runs on the main thread. */
+const SIM_RESOLVE_WAIT_MS=Math.max(0,+(process.env.SIM_RESOLVE_WAIT_MS||1200));
+function simAsyncVerify(){ const pool=simPool(); return !!(pool&&pool.stats.ready); }
+function campIncident(u,led,x){   // the flagged-fight record (shared by the resolve and the late check)
+  led.battleIncidents=(led.battleIncidents||[]).concat([{t:Date.now(),stage:x.st.id,mode:x.mode,why:x.why,
+    source:x.source,playerTruth:true,engine:x.engine||null,seed:x.seed>>>0,
+    inputs:x.inputLog.length,server:x.serverEndDigest?sha256hex(x.serverEndDigest):null,
+    client:sha256hex(x.clientEnd),serverWon:x.rep?!!x.rep.won:null,
+    serverStars:x.rep?(x.rep.stars|0):null,witnessedWon:x.witnessed.won,
+    witnessedStars:x.witnessed.stars,transcript:x.inputLog}]).slice(-20);
+  console.warn('battle replay incident ('+x.why+') — stage '+x.st.id+' — player-witnessed result recorded');
+  if(x.rep&&x.serverEndDigest) feedbackCheatSignal(u,'campaign-replay',
+    'Campaign replay digest mismatch at '+x.mode+' stage '+x.st.id+'. Player-witnessed result kept for review.',
+    'battle integrity'); }
+const CAMP_VERIFY_STATS={queued:0,accepted:0,flagged:0,skipped:0};
+function campVerifyLater(x){
+  const pool=simPool(); if(!pool) return; CAMP_VERIFY_STATS.queued++;
+  const key=_simKey('campaign',x.args), memo=_SIM_MEMO.get(key);
+  const p=memo?Promise.resolve(memo.r):(_SIM_FLIGHT.get(key)||pool.run('campaign',x.args));
+  p.then(r=>{ _SIM_MEMO.delete(key); campVerifyDone(x,r,null); },e=>{ _SIM_MEMO.delete(key); campVerifyDone(x,null,e); }); }
+function campVerifyDone(x,rep,err){ _reqCtx.run({saveIds:[x.uid]},()=>{   // saves inside name this player only
+  const u=DB.users[x.uid], led=u&&u.led; if(!led) return;
+  const rc=(led.battleReceipts||[]).find(r=>r&&r.verify==='pending'&&r.seed===(x.seed>>>0)&&r.t===x.t); if(!rc) return;   // a rolled-back resolve left nothing to check
+  if(!rep){ rc.verify='skipped'; rc.verifyWhy=String((err&&err.message)||'unavailable').slice(0,60); CAMP_VERIFY_STATS.skipped++; writeDB([x.uid]); return; }
+  const serverEndDigest=String(rep.digest||''), match=!!serverEndDigest&&sha256hex(x.clientEnd)===sha256hex(serverEndDigest);
+  delete rc.verify; rc.digest=serverEndDigest?sha256hex(serverEndDigest):null; rc.match=match;
+  if(match){ delete rc.transcript; CAMP_VERIFY_STATS.accepted++; }   // accepted: the recording is discarded
+  else { CAMP_VERIFY_STATS.flagged++; campIncident(u,led,Object.assign({},x,{rep,serverEndDigest,why:'digest-mismatch'})); }
+  writeDB([x.uid]); }); }
 async function simRun(fn){
   const pool=simPool(); if(!pool || !pool.stats.ready) return fn();
   for(let i=0;i<3;i++){ const need=[]; let out, needed=false; _SIM_COLLECT=need;
@@ -5153,7 +5193,7 @@ async function api(req,res,url){
       banned: DB.users[r.userId] ? banInfo(DB.users[r.userId]) : null })) }); }
 
   if(p==='/api/dev/save-stats'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});   // v1036: group-save counters
-    return send(res,200,Object.assign({},GROUP_SAVE_STATS,{store:Object.assign({split:_store.split},_store.stats)},{battles:Object.assign({},SIM_STATS,{pool:_SIM_POOL?_SIM_POOL.stats:null,memo:_SIM_MEMO.size})},{dbBytes:(()=>{ try{ return fs.statSync(DB_FILE).size; }catch(e){ return 0; } })()},{signup:{ hash:Object.assign({},HASH_STATS), threadpool:+process.env.UV_THREADPOOL_SIZE||4, names:{ indexed:_nameIdx.byId.size, skeletons:_nameIdx.bySk.size, rebuilds:_nameIdx.rebuilds, drift:_nameIdx.drift, lastSyncMs:_nameIdx.lastSyncMs } }})); }   // v1182
+    return send(res,200,Object.assign({},GROUP_SAVE_STATS,{store:Object.assign({split:_store.split},_store.stats)},{battles:Object.assign({},SIM_STATS,{pool:_SIM_POOL?_SIM_POOL.stats:null,memo:_SIM_MEMO.size,inFlight:_SIM_FLIGHT.size,queued:_SIM_POOL?_SIM_POOL.queued:0,verify:CAMP_VERIFY_STATS})},{dbBytes:(()=>{ try{ return fs.statSync(DB_FILE).size; }catch(e){ return 0; } })()},{signup:{ hash:Object.assign({},HASH_STATS), threadpool:+process.env.UV_THREADPOOL_SIZE||4, names:{ indexed:_nameIdx.byId.size, skeletons:_nameIdx.bySk.size, rebuilds:_nameIdx.rebuilds, drift:_nameIdx.drift, lastSyncMs:_nameIdx.lastSyncMs } }})); }   // v1182
   if(p==='/api/dev/gem-audit'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
     const id=String(url.searchParams.get('id')||''); const u=DB.users[id];
     if(!u) return send(res,404,{error:'no such account'});
@@ -7632,7 +7672,7 @@ async function api(req,res,url){
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
     { const _ak='c:'+me.id+':'+String(b.attemptId||'');   /* v1083 (scan 5 #7): K parallel resolves started K worker replays; v1085: the second one waits for the first (no 409 - the client read it as a loss) */
       if(_simInflight.has(_ak)){ try{ await _simInflight.get(_ak); }catch(e){} }
-      else { const _pr=simPrefetch(_campaignSimCandidates(me,b)); _simInflight.set(_ak,_pr); try{ await _pr; } finally{ _simInflight.delete(_ak); } } }   // v1036: the replay runs on a battle worker first; the route uses its result
+      else { const _pr=simPrefetch(_campaignSimCandidates(me,b),SIM_RESOLVE_WAIT_MS); _simInflight.set(_ak,_pr); try{ await _pr; } finally{ _simInflight.delete(_ak); } } }   // v1036: the replay runs on a battle worker first; the route uses its result (v1124: waits at most SIM_RESOLVE_WAIT_MS)
     const out=idem(me.id+':cresolve:'+reqId,()=>{
       const led=ensureLedger(me);
       const aid=String(b.attemptId||'');
@@ -7710,25 +7750,15 @@ async function api(req,res,url){
         return {ok:false,unverified:true,error:'Battle result was incomplete — your stamina was returned.',ledger:ledgerView(me)};
       }
       const host=simHost();
-      let rep=null, replayFailure=null;
+      let rep=null, replayFailure=null, verifyLater=false;
       if(!host || !Array.isArray(rec.snaps) || !rec.snaps.length) replayFailure='replay-unavailable';
+      else if(simAsyncVerify() && !_SIM_MEMO.has(_simKey('campaign',[rec.snaps,st.waves,rec.seed>>>0,inputLog]))) verifyLater=true;   // v1124: checked later, never on the main thread
       else try{ rep=host.campaign(rec.snaps,st.waves,rec.seed>>>0,inputLog); }
         catch(e){ replayFailure='replay-error'; console.error('sim-host replay failed:',e.message); }
       const serverEndDigest=rep?String(rep.digest||''):'';
       const digestMatch=!!serverEndDigest && sha256hex(clientEnd)===sha256hex(serverEndDigest);
-      if(!digestMatch){
-        const why=replayFailure||'digest-mismatch';
-        led.battleIncidents=(led.battleIncidents||[]).concat([{t:Date.now(),stage:st.id,mode,why,
-          source:transcriptSource,playerTruth:true,engine:a.engine||null,seed:rec.seed>>>0,
-          inputs:inputLog.length,server:serverEndDigest?sha256hex(serverEndDigest):null,
-          client:sha256hex(clientEnd),serverWon:rep?!!rep.won:null,
-          serverStars:rep?(rep.stars|0):null,witnessedWon:witnessed.won,
-          witnessedStars:witnessed.stars,transcript:inputLog}]).slice(-20);
-        console.warn('battle replay incident ('+why+') — stage '+st.id+' — player-witnessed result recorded');
-        if(rep&&serverEndDigest) feedbackCheatSignal(me,'campaign-replay',
-          'Campaign replay digest mismatch at '+mode+' stage '+st.id+'. Player-witnessed result kept for review.',
-          'battle integrity');
-      }
+      const _vx={uid:me.id,st,mode,engine:a.engine,seed:rec.seed>>>0,source:transcriptSource,inputLog,clientEnd,witnessed};
+      if(!digestMatch && !verifyLater) campIncident(me,led,Object.assign({},_vx,{rep,serverEndDigest,why:replayFailure||'digest-mismatch'}));
       const won=witnessed.won;
       let stars=0, reward=null;
       if(won){
@@ -7787,12 +7817,14 @@ async function api(req,res,url){
         source:transcriptSource, chain:(rec.stream&&rec.stream.chain)||null,
         heroes:a.heroIds.slice(), inputs:inputLog.length, won, stars,
         digest:serverEndDigest?sha256hex(serverEndDigest):null, transcript:digestMatch?undefined:inputLog,   /* v1124: an accepted fight keeps no recording; a flagged one keeps it (and its incident) */
+        verify:verifyLater?'pending':undefined,   /* v1124: its check finishes after the answer (campVerifyLater) */
         clientDigest:(typeof b.digest==='string'?sha256hex(b.digest):null) };
       led.battleReceipts=(led.battleReceipts||[]).concat([receipt]).slice(-40);
       writeDB([me.id]);
+      if(verifyLater){ const _x=Object.assign({},_vx,{t:receipt.t,args:[rec.snaps,st.waves,rec.seed>>>0,inputLog]}); setImmediate(()=>campVerifyLater(_x)); }
       receipt.match=digestMatch;
       return { ok:true, mode, won, stars, reward, verified:true, playerTruth:true, engine:a.engine||null,
-        serverDigest:receipt.digest, digestMatch, replayIncident:!digestMatch, transcript:transcriptSource,
+        serverDigest:receipt.digest, digestMatch:verifyLater?null:digestMatch, replayIncident:verifyLater?false:!digestMatch, verify:verifyLater?'pending':'done', transcript:transcriptSource,
         actions:inputLog.length, chain:(rec.stream&&rec.stream.chain)?rec.stream.chain.slice(0,16):null,
         replaySeed:rec.seed>>>0, ledger:ledgerView(me) };
     });

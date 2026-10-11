@@ -22,9 +22,14 @@ const os = require('os'), path = require('path'), fs = require('fs');
 
 function create(gameFile, opts = {}) {
   const size = Math.max(1, Math.min(opts.size || (os.cpus().length - 1) || 1, opts.maxSize || 4));   // v1040: a helper machine may run more
-  const timeoutMs = opts.timeoutMs || 15000, queueMax = opts.queueMax || 400;
+  const timeoutMs = opts.timeoutMs || 15000, queueMax = opts.queueMax || +process.env.SIM_QUEUE_MAX || 200;
+  /* v1124 OVERLOAD (load test 11 Oct 2026: at ~1900 players the check queue grew past what it could drain and the server never
+     recovered). A battle waiting longer than queueWaitMs is shed (rejected - its caller decides what a missing check means), so the
+     queue holds only work that can still help someone; a job past timeoutMs is rejected but its worker is only killed when it is
+     still silent at hangMs (a starved worker used to be killed and reloaded - minutes of lost capacity - exactly under overload). */
+  const queueWaitMs = opts.queueWaitMs || +process.env.SIM_QUEUE_WAIT_MS || 10000, hangMs = opts.hangMs || 60000;
   const workers = [], waiting = [], pending = new Map();
-  const stats = { size, ready: 0, runs: 0, errors: 0, timeouts: 0, rejectedFull: 0, buildVersion: null };
+  const stats = { size, ready: 0, runs: 0, errors: 0, timeouts: 0, rejectedFull: 0, shed: 0, late: 0, hung: 0, buildVersion: null };
   const helperMode = !!((opts.helpers && opts.helpers.length) || opts.helpersFile);
   const helpers = [];   // {url, key, tier, ok, why, disabled, limit, mine}
   function setHelpers(list) {
@@ -65,8 +70,9 @@ function create(gameFile, opts = {}) {
         else console.error('battle worker ' + i + ' failed to load: ' + m.error);
         return;
       }
-      const job = pending.get(m.id); if (!job) return;
-      pending.delete(m.id); clearTimeout(job.timer); slot.busy = null;
+      const job = pending.get(m.id);
+      if (!job) { if (slot.busy === m.id) { slot.busy = null; clearTimeout(slot.hang); stats.late++; pump(); } return; }   // v1124: a timed-out job finally answered - the worker is free again
+      pending.delete(m.id); clearTimeout(job.timer); clearTimeout(slot.hang); slot.busy = null;
       if (m.error) { stats.errors++; job.reject(new Error(m.error)); } else { stats.runs++; job.resolve(m.result); }
       pump();
     });
@@ -80,12 +86,18 @@ function create(gameFile, opts = {}) {
     return slot;
   }
   for (let i = 0; i < size; i++) workers.push(spawn(i));
+  function shedOld() {   // v1124: drop battles that waited past queueWaitMs
+    const now = Date.now();
+    while (waiting.length && now - waiting[0].at > queueWaitMs) { const job = waiting.shift(); stats.shed++; job.reject(new Error('battle queue timeout')); }
+  }
+  { const t = setInterval(shedOld, 1000); if (t.unref) t.unref(); }
   function pump() {
+    shedOld();
     while (waiting.length) {
       const slot = workers.find(s => s.ready && !s.busy); if (!slot) return;
       const job = waiting.shift(); slot.busy = job.id; pending.set(job.id, job);
       job.timer = setTimeout(() => { if (pending.has(job.id)) { pending.delete(job.id); stats.timeouts++; job.reject(new Error('battle worker timeout'));
-        slot.busy = null; try { slot.w.terminate(); } catch (e) {} } }, timeoutMs);
+        slot.hang = setTimeout(() => { if (slot.busy === job.id) { stats.hung++; slot.busy = null; try { slot.w.terminate(); } catch (e) {} } }, hangMs); } }, timeoutMs);
       slot.w.postMessage({ id: job.id, method: job.method, args: job.args });
     }
   }
@@ -145,7 +157,7 @@ function create(gameFile, opts = {}) {
   function local(method, args) {
     if (closed || !stats.ready) return Promise.reject(new Error('battle workers not ready'));
     if (waiting.length >= queueMax) { stats.rejectedFull++; return Promise.reject(new Error('battle queue full')); }
-    return new Promise((resolve, reject) => { waiting.push({ id: ++seq, method, args, resolve, reject }); pump(); });
+    return new Promise((resolve, reject) => { waiting.push({ id: ++seq, method, args, resolve, reject, at: Date.now() }); pump(); });
   }
   function close() { closed = true; for (const s of workers) { try { s.w.terminate(); } catch (e) {} } }
   /* v1043: STRAINED (what this server's own helper is told - "a strained server never offers help") = running late in at least 3 of the
