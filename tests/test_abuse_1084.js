@@ -7,7 +7,7 @@ const assert=require('assert'),fs=require('fs'),path=require('path'),vm=require(
 const src=fs.readFileSync(path.join(__dirname,'..',process.env.AUD_SERVER||'server.js'),'utf8');
 let pass=0,missed=[]; const ok=(c,m)=>{ if(process.env.AUD_SERVER&&!c){ missed.push(m); return; } assert(c,m); pass++; console.log('  ✓ '+m); };
 ok(/const _simInflight=new Map\(\);/.test(src),'#7 an in-flight map of battle attempts exists');
-ok(/if\(_simInflight\.has\(_ak\)\)\{ try\{ await _simInflight\.get\(_ak\); \}catch\(e\)\{\} \}/.test(src)&&/const _pr=simPrefetch\(_campaignSimCandidates\(me,b\)\); _simInflight\.set\(_ak,_pr\); try\{ await _pr; \} finally\{ _simInflight\.delete\(_ak\); \}/.test(src),'#7 a second campaign resolve waits for the running replay (no 409), and the slot is always freed');
+ok(/if\(_simInflight\.has\(_ak\)\)\{ try\{ await _simInflight\.get\(_ak\); \}catch\(e\)\{\} \}/.test(src)&&/const _pr=simPrefetch\(_campaignSimCandidates\(me,b\)(,SIM_RESOLVE_WAIT_MS)?\); _simInflight\.set\(_ak,_pr\); try\{ await _pr; \} finally\{ _simInflight\.delete\(_ak\); \}/.test(src),'#7 a second campaign resolve waits for the running replay (no 409), and the slot is always freed');
 ok(/const _pr=simPrefetch\(_provinceSimCandidates\(me,b\)\); _simInflight\.set\(_ak,_pr\);/.test(src),'#7 the same for the Training Province');
 ok(!/This battle is already being settled/.test(src),'#7 no 409 "already being settled" answer remains');
 ok(/if\(p==='\/api\/pvp\/attack'&&rateLimited\(req,'pvpatk:'\+me\.id,Math\.round\(20\*RL_MUL\),60000\)\)/.test(src),'#8 /api/pvp/attack: 20 a minute per account, before the account copies');

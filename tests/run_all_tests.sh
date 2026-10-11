@@ -229,6 +229,8 @@ note "test_save_partial.js (v1124: campaign start+resolve and the other per-play
 node tests/test_save_partial.js || FAILED=1
 note "test_map_delta.js (v1124: world map deltas - no teams in the list, only changed castles since the client's rev, gone list, team on tap, new epoch after a restart, old clients still get the full list; v1123 control)"
 node tests/test_map_delta.js || FAILED=1
+note "test_overload_1124.js (v1124: one battle worker, 400 players - resolves answer from the player's result and are checked later or shed, no main-thread replays, quiet within seconds after; 103eb989 control stalls)"
+node tests/test_overload_1124.js || FAILED=1
 note "test_march_retention_1038.js (v1038: settled city/mine marches are held 2 days, then let go - for every player; unfinished kept; v1037 control)"
 node tests/test_march_retention_1038.js || FAILED=1
 note "test_sim_helper_1039.js (v1039: battle helpers - a backed-up pool shares battles with server/sim-helper.js; identical results, spot checks; wrong key / other engine / busy / dead helper fall back locally; no-helper control)"
