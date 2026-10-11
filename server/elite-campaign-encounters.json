@@ -13632,54 +13632,54 @@
     {
      "key": "zephyr harrier",
      "lvl": 70,
-     "hpMul": 70.3576,
-     "dmgMul": 35.7416
+     "hpMul": 82.7736,
+     "dmgMul": 42.049
     },
     {
      "key": "crystalhorn grazer",
      "lvl": 70,
-     "hpMul": 70.3576,
-     "dmgMul": 35.7416
+     "hpMul": 82.7736,
+     "dmgMul": 42.049
     },
     {
      "key": "bonepike guard",
      "lvl": 70,
-     "hpMul": 70.3576,
-     "dmgMul": 35.7416
+     "hpMul": 82.7736,
+     "dmgMul": 42.049
     },
     {
      "key": "granith",
      "lvl": 70,
-     "hpMul": 70.3576,
-     "dmgMul": 35.7416
+     "hpMul": 82.7736,
+     "dmgMul": 42.049
     }
    ],
    [
     {
      "key": "zephyr harrier",
      "lvl": 70,
-     "hpMul": 70.3576,
-     "dmgMul": 35.7416
+     "hpMul": 82.7736,
+     "dmgMul": 42.049
     },
     {
      "key": "crystalhorn grazer",
      "lvl": 70,
-     "hpMul": 70.3576,
-     "dmgMul": 35.7416
+     "hpMul": 82.7736,
+     "dmgMul": 42.049
     },
     {
      "key": "zephyr harrier",
      "lvl": 70,
-     "hpMul": 70.3576,
-     "dmgMul": 35.7416
+     "hpMul": 82.7736,
+     "dmgMul": 42.049
     }
    ],
    [
     {
      "key": "oakmir",
      "lvl": 70,
-     "hpMul": 70.3576,
-     "dmgMul": 35.7416,
+     "hpMul": 82.7736,
+     "dmgMul": 42.049,
      "isHero": true,
      "rewardHero": true,
      "rank": 3
@@ -13687,26 +13687,26 @@
     {
      "key": "bonepike guard",
      "lvl": 70,
-     "hpMul": 70.3576,
-     "dmgMul": 35.7416
+     "hpMul": 82.7736,
+     "dmgMul": 42.049
     },
     {
      "key": "zephyr harrier",
      "lvl": 70,
-     "hpMul": 70.3576,
-     "dmgMul": 35.7416
+     "hpMul": 82.7736,
+     "dmgMul": 42.049
     },
     {
      "key": "crystalhorn grazer",
      "lvl": 70,
-     "hpMul": 70.3576,
-     "dmgMul": 35.7416
+     "hpMul": 82.7736,
+     "dmgMul": 42.049
     },
     {
      "key": "zephyr harrier",
      "lvl": 70,
-     "hpMul": 70.3576,
-     "dmgMul": 35.7416
+     "hpMul": 82.7736,
+     "dmgMul": 42.049
     }
    ]
   ],
@@ -13731,12 +13731,6 @@
     "scale": 0.7238,
     "dmgScale": 0.7856,
     "why": "follows Normal 11-7 (v1121 curve) so Elite stays ~1.5x its Normal stage"
-   },
-   {
-    "v": "v1122",
-    "date": "2026-10-11",
-    "scale": 0.85,
-    "why": "v1121 sims: Elite 11-7 160 tries, 5 won across 18 tabs. Phil 11 Oct: \"Campaign should not be so hard maxed out heroes are struggling for weeks ... it should technically be possible to clear stages while not maxed out.\""
    }
   ]
  },
@@ -14604,54 +14598,54 @@
     {
      "key": "clockwork lantern",
      "lvl": 75,
-     "hpMul": 107.3919,
-     "dmgMul": 41.9863
+     "hpMul": 126.3434,
+     "dmgMul": 49.3956
     },
     {
      "key": "reef prowler",
      "lvl": 75,
-     "hpMul": 107.3919,
-     "dmgMul": 41.9863
+     "hpMul": 126.3434,
+     "dmgMul": 49.3956
     },
     {
      "key": "runic automaton",
      "lvl": 75,
-     "hpMul": 107.3919,
-     "dmgMul": 41.9863
+     "hpMul": 126.3434,
+     "dmgMul": 49.3956
     }
    ],
    [
     {
      "key": "runic automaton",
      "lvl": 75,
-     "hpMul": 107.3919,
-     "dmgMul": 41.9863
+     "hpMul": 126.3434,
+     "dmgMul": 49.3956
     },
     {
      "key": "runic automaton",
      "lvl": 75,
-     "hpMul": 107.3919,
-     "dmgMul": 41.9863
+     "hpMul": 126.3434,
+     "dmgMul": 49.3956
     },
     {
      "key": "runic automaton",
      "lvl": 75,
-     "hpMul": 107.3919,
-     "dmgMul": 41.9863
+     "hpMul": 126.3434,
+     "dmgMul": 49.3956
     },
     {
      "key": "kelp hexer",
      "lvl": 75,
-     "hpMul": 107.3919,
-     "dmgMul": 41.9863
+     "hpMul": 126.3434,
+     "dmgMul": 49.3956
     }
    ],
    [
     {
      "key": "oakmir",
      "lvl": 75,
-     "hpMul": 107.3919,
-     "dmgMul": 41.9863,
+     "hpMul": 126.3434,
+     "dmgMul": 49.3956,
      "isHero": true,
      "rewardHero": true,
      "rank": 3
@@ -14659,20 +14653,20 @@
     {
      "key": "runic automaton",
      "lvl": 75,
-     "hpMul": 107.3919,
-     "dmgMul": 41.9863
+     "hpMul": 126.3434,
+     "dmgMul": 49.3956
     },
     {
      "key": "clockwork lantern",
      "lvl": 75,
-     "hpMul": 107.3919,
-     "dmgMul": 41.9863
+     "hpMul": 126.3434,
+     "dmgMul": 49.3956
     },
     {
      "key": "runic automaton",
      "lvl": 75,
-     "hpMul": 107.3919,
-     "dmgMul": 41.9863
+     "hpMul": 126.3434,
+     "dmgMul": 49.3956
     }
    ]
   ],
@@ -14691,12 +14685,6 @@
     "scale": 0.85,
     "dmgScale": 0.85,
     "why": "follows Normal 12-4 (v1121 curve) so Elite stays ~1.5x its Normal stage"
-   },
-   {
-    "v": "v1122",
-    "date": "2026-10-11",
-    "scale": 0.85,
-    "why": "v1121 sims: Elite 12-4 23 tries, 0 won (Big A, Whale A and two copies). Phil 11 Oct: \"Campaign should not be so hard maxed out heroes are struggling for weeks ... it should technically be possible to clear stages while not maxed out.\""
    }
   ]
  },
