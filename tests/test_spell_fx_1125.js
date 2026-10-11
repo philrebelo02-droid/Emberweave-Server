@@ -7,8 +7,8 @@
 //   - PARITY: both casts AND the five held-back spells, through the real cast path, give the same HP / stun / position on every tick as
 //     main before this release (BASE);
 //   - the art clocks sit on the damage: the planet's impact cell and the chop's hit-flash cell land on the tick the damage lands;
-//   - CONTROLS: BASE has none of the art (run HTML=<that copy>: the art checks fail); the art code touches no fight state; none of the
-//     five v1123 spells' art is present.
+//   - CONTROLS: BASE has none of the art (run HTML=<that copy>: the art checks fail); the art code touches no fight state.
+//   - v1126: the five v1123 spells now ship too (tests/test_spell_fx_1123.js); here they keep their parity runs against BASE.
 // One line per check; exit code = number of failures.  Run on another copy: HTML=<path> node tests/test_spell_fx_1125.js
 const fs = require('fs'), path = require('path'), vm = require('vm'), cp = require('child_process');
 const ROOT = path.resolve(__dirname, '..');
@@ -106,10 +106,12 @@ if (has('FX2_DEF') && run('!!(FX2_DEF.korvuxcleave&&FX2_DEF.korvuxcleave.sync)')
   ck(`Ember Cleave rides his axe: sync frames ${f.join(',')} -> cells ${c.join(',')}; the flash cell lands on clip frame 28 (the impact, his blue clip's ax lunge frame), cells only move forward`,
     f[f.length - 1] === 28 && c[c.length - 1] === d.hit && c.every((x, i) => i === 0 || x >= c[i - 1]) && f.every((x, i) => i === 0 || x > f[i - 1]) && (() => { const m = H.match(/blue:\{u:'\/assets\/anim\/korvux\/korvux_blue\.webp\?v=\d+'[^}]*?ax:\[([-\d,]+)\]/); return !!m && +m[1].split(',')[28] === 47; })() && d.fit && d.fit.k > 0, JSON.stringify(d.sync));
 } else ck('Ember Cleave: FX2_DEF.korvuxcleave.sync exists', false);
-ck('both warmed with the hero figure (FX1123_WARM astra / korvux, nothing else)', /const FX1123_WARM=\{astra:\['astrahorizon'\],korvux:\['korvuxcleave'\]\};/.test(H));
-ck('HELD BACK: none of the five v1123 spells is in this release (no sheets, helpers, kit flags or old-plate removal)',
-  !/sorrelcard|sorrelspark|carnreap|tharlquake|konwuruyi|rhukkroar|rhukkshell|sorrelHitFx|carnReapFx|tharlQuakeFx|konwuRuyi|rhukkDigInFx|ownFx:'(cards|reap|quake|ruyi|digin)'/.test(H)
-  && ['sorrel_card', 'carn_crimson_reap', 'tharl_scale_ram_quake', 'konwu_ruyi_slam', 'rhukk_dig_in_roar', 'rhukk_dig_in_shell'].every(f => !fs.existsSync(path.join(ROOT, 'assets/anim/fx/' + f + '.webp'))));
+ck('both warmed with the hero figure (FX1123_WARM astra / korvux; v1126 adds the five v1123 spells beside them)', /const FX1123_WARM=\{[^}]*astra:\['astrahorizon'\],korvux:\['korvuxcleave'\][^}]*\};/.test(H));
+// v1126: the five v1123 fx-branch spells ship now (their own checks: tests/test_spell_fx_1123.js); the parity runs above still prove
+// their casts land exactly as on main before v1125 (BASE)
+ck('v1126: the five v1123 spells ship beside s07/s08 (sheets, helpers, kit flags)',
+  /sorrelcard/.test(H) && /carnReapFx/.test(H) && /tharlQuakeFx/.test(H) && /konwuRuyi/.test(H) && /rhukkDigInFx/.test(H) && /ownFx:'reap'/.test(H) && /ownFx:'ruyi'/.test(H)
+  && ['sorrel_card', 'carn_crimson_reap', 'tharl_scale_ram_quake', 'konwu_ruyi_slam', 'rhukk_dig_in_roar', 'rhukk_dig_in_shell'].every(f => fs.existsSync(path.join(ROOT, 'assets/anim/fx/' + f + '.webp'))));
 
 // CONTROL: the display helpers never touch the fight
 { const i0 = H.indexOf('const FX1123_WARM='), i1 = H.indexOf('/* v1115 Grok spell FX 22-24');

@@ -371,6 +371,8 @@ note "test_spell_fx_1125.js (v1125: Grok spell FX s07 Astra Event Horizon flat o
 node tests/test_spell_fx_1125.js || FAILED=1
 note "test_hollow_anim_ten.js (v1126: Hollow's ten approved animations - sheets, grids, measured anchors; the art cut to land on the v1123 engine moments: blow drawn on attack cell 28 / crit cell 25 (rig-measured), Fan of Knives cell 8, Lacerate cell 17, drop touchdown cell 16, Vanishing Point phases, passive on the miss he causes; control: the same fights on v1123 land on the same ticks, a broken grid fails)"
 node tests/test_hollow_anim_ten.js || FAILED=1
+note "test_spell_fx_1123.js (v1123: Grok spell FX - Sorrel Marked Deal cards + sparks, Carn Crimson Reap crescent, Tharl Scale Ram quake, Kon-Wu Ruyi slam (art starts at the press, slam on the 1 s release), Rhukk Dig In roar + shell; parity with v1121 on every tick; controls: v1121 has none of the art, the art code touches no fight state)"
+node tests/test_spell_fx_1123.js || FAILED=1
 note "test_auto_ult_healer_1103.js (v1103: healer ults that also hit enemies fire when full; heal-only ones still wait)"
 node tests/test_auto_ult_healer_1103.js || FAILED=1
 rm -f probe-db-*.json
