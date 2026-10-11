@@ -17083,90 +17083,90 @@
         {
           "key": "furnace gnawer",
           "lvl": 80,
-          "hpMul": 116.8296,
-          "dmgMul": 45.4224
+          "hpMul": 99.3052,
+          "dmgMul": 38.609
         },
         {
           "key": "furnace gnawer",
           "lvl": 80,
-          "hpMul": 116.8296,
-          "dmgMul": 45.4224
+          "hpMul": 99.3052,
+          "dmgMul": 38.609
         },
         {
           "key": "sootwing imp",
           "lvl": 80,
-          "hpMul": 116.8296,
-          "dmgMul": 45.4224
+          "hpMul": 99.3052,
+          "dmgMul": 38.609
         },
         {
           "key": "wispweaver shade",
           "lvl": 80,
-          "hpMul": 116.8296,
-          "dmgMul": 45.4224
+          "hpMul": 99.3052,
+          "dmgMul": 38.609
         }
       ],
       [
         {
           "key": "sootwing imp",
           "lvl": 80,
-          "hpMul": 116.8296,
-          "dmgMul": 45.4224
+          "hpMul": 99.3052,
+          "dmgMul": 38.609
         },
         {
           "key": "wispweaver shade",
           "lvl": 80,
-          "hpMul": 116.8296,
-          "dmgMul": 45.4224
+          "hpMul": 99.3052,
+          "dmgMul": 38.609
         },
         {
           "key": "furnace gnawer",
           "lvl": 80,
-          "hpMul": 116.8296,
-          "dmgMul": 45.4224
+          "hpMul": 99.3052,
+          "dmgMul": 38.609
         },
         {
           "key": "grundle",
           "lvl": 80,
-          "hpMul": 116.8296,
-          "dmgMul": 45.4224
+          "hpMul": 99.3052,
+          "dmgMul": 38.609
         },
         {
           "key": "sootwing imp",
           "lvl": 80,
-          "hpMul": 116.8296,
-          "dmgMul": 45.4224
+          "hpMul": 99.3052,
+          "dmgMul": 38.609
         }
       ],
       [
         {
           "key": "furnace gnawer",
           "lvl": 80,
-          "hpMul": 116.8296,
-          "dmgMul": 45.4224
+          "hpMul": 99.3052,
+          "dmgMul": 38.609
         },
         {
           "key": "wispweaver shade",
           "lvl": 80,
-          "hpMul": 116.8296,
-          "dmgMul": 45.4224
+          "hpMul": 99.3052,
+          "dmgMul": 38.609
         },
         {
           "key": "furnace gnawer",
           "lvl": 80,
-          "hpMul": 116.8296,
-          "dmgMul": 45.4224
+          "hpMul": 99.3052,
+          "dmgMul": 38.609
         },
         {
           "key": "furnace gnawer",
           "lvl": 80,
-          "hpMul": 116.8296,
-          "dmgMul": 45.4224
+          "hpMul": 99.3052,
+          "dmgMul": 38.609
         },
         {
           "key": "sootwing imp",
           "lvl": 80,
-          "hpMul": 116.8296,
-          "dmgMul": 45.4224
+          "hpMul": 99.3052,
+          "dmgMul": 38.609
         }
       ]
     ],
@@ -17175,7 +17175,7 @@
     "recommendedQuality": "Gold +2",
     "qualityMinHeroLevel": 79,
     "bossLevelGate": 0,
-    "difficultyTune": 11.4214,
+    "difficultyTune": 9.7082,
     "baselineHp": 205.6227,
     "baselineDmg": 64.2366,
     "portalMode": "normal",
@@ -17189,7 +17189,15 @@
       "gold-plus-2-bloodroot",
       "gold-plus-2-keenmind"
     ],
-    "curveV820": true
+    "curveV820": true,
+    "wallFixes": [
+      {
+        "v": "v1121",
+        "date": "2026-10-11",
+        "scale": 0.85,
+        "why": "11 Oct sims (Wall Watch night): three FULLY UPGRADED tabs held at 13-2 (Medium B 9 tries, Medium B copy ~15, Whale A copy Lv 87 8 tries over 1.8 days); 13-2 tune 11.4214 is the chapter-13 peak (13-1 10.1201, 13-3 4.627). Phil 11 Oct: \"The entire point of the balancing is to balance\" - ease walls the day they show, not after 30+ tries."
+      }
+    ]
   },
   {
     "id": "13-3",
@@ -17218,84 +17226,84 @@
         {
           "key": "furnace gnawer",
           "lvl": 81,
-          "hpMul": 48.9774,
-          "dmgMul": 24.4423
+          "hpMul": 41.6308,
+          "dmgMul": 20.776
         },
         {
           "key": "skyroot dryad",
           "lvl": 81,
-          "hpMul": 48.9774,
-          "dmgMul": 24.4423
+          "hpMul": 41.6308,
+          "dmgMul": 20.776
         },
         {
           "key": "nightcap mimic",
           "lvl": 81,
-          "hpMul": 48.9774,
-          "dmgMul": 24.4423
+          "hpMul": 41.6308,
+          "dmgMul": 20.776
         },
         {
           "key": "nightcap mimic",
           "lvl": 81,
-          "hpMul": 48.9774,
-          "dmgMul": 24.4423
+          "hpMul": 41.6308,
+          "dmgMul": 20.776
         }
       ],
       [
         {
           "key": "nightcap mimic",
           "lvl": 81,
-          "hpMul": 48.9774,
-          "dmgMul": 24.4423
+          "hpMul": 41.6308,
+          "dmgMul": 20.776
         },
         {
           "key": "vineback boar",
           "lvl": 81,
-          "hpMul": 48.9774,
-          "dmgMul": 24.4423
+          "hpMul": 41.6308,
+          "dmgMul": 20.776
         },
         {
           "key": "nightcap mimic",
           "lvl": 81,
-          "hpMul": 48.9774,
-          "dmgMul": 24.4423
+          "hpMul": 41.6308,
+          "dmgMul": 20.776
         },
         {
           "key": "nightcap mimic",
           "lvl": 81,
-          "hpMul": 48.9774,
-          "dmgMul": 24.4423
+          "hpMul": 41.6308,
+          "dmgMul": 20.776
         },
         {
           "key": "nightcap mimic",
           "lvl": 81,
-          "hpMul": 48.9774,
-          "dmgMul": 24.4423
+          "hpMul": 41.6308,
+          "dmgMul": 20.776
         }
       ],
       [
         {
           "key": "nightcap mimic",
           "lvl": 81,
-          "hpMul": 48.9774,
-          "dmgMul": 24.4423
+          "hpMul": 41.6308,
+          "dmgMul": 20.776
         },
         {
           "key": "furnace gnawer",
           "lvl": 81,
-          "hpMul": 48.9774,
-          "dmgMul": 24.4423
+          "hpMul": 41.6308,
+          "dmgMul": 20.776
         },
         {
           "key": "skyroot dryad",
           "lvl": 81,
-          "hpMul": 48.9774,
-          "dmgMul": 24.4423
+          "hpMul": 41.6308,
+          "dmgMul": 20.776
         },
         {
           "key": "vael",
           "lvl": 81,
-          "hpMul": 48.9774,
-          "dmgMul": 24.4423,
+          "hpMul": 41.6308,
+          "dmgMul": 20.776,
           "isHero": true,
           "rewardHero": true,
           "rank": 3
@@ -17307,7 +17315,7 @@
     "recommendedQuality": "Gold +2",
     "qualityMinHeroLevel": 79,
     "bossLevelGate": 0,
-    "difficultyTune": 4.627,
+    "difficultyTune": 3.9329,
     "baselineHp": 232.0658,
     "baselineDmg": 69.8091,
     "portalMode": "normal",
@@ -17316,7 +17324,15 @@
     "chapterName": "The Hourless Wastes",
     "comps": "v337",
     "rewardHero": "vael",
-    "curveV820": true
+    "curveV820": true,
+    "wallFixes": [
+      {
+        "v": "v1121",
+        "date": "2026-10-11",
+        "scale": 0.85,
+        "why": "11 Oct sims (Wall Watch night): three FULLY UPGRADED tabs held at 13-3, one for 30 tries over 11.9 game days; tune 4.627 is low on paper but 7 of 13 enemies are Nightcap Mimics (stun + slow), a guardian stage. Stats-only ease (Phil: balance by stats, one step). Phil 11 Oct: \"The entire point of the balancing is to balance\"."
+      }
+    ]
   },
   {
     "id": "13-4",

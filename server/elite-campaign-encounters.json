@@ -14894,90 +14894,90 @@
     {
      "key": "furnace gnawer",
      "lvl": 80,
-     "hpMul": 174.7308,
-     "dmgMul": 68.3339
+     "hpMul": 148.5212,
+     "dmgMul": 58.0838
     },
     {
      "key": "furnace gnawer",
      "lvl": 80,
-     "hpMul": 174.7308,
-     "dmgMul": 68.3339
+     "hpMul": 148.5212,
+     "dmgMul": 58.0838
     },
     {
      "key": "sootwing imp",
      "lvl": 80,
-     "hpMul": 174.7308,
-     "dmgMul": 68.3339
+     "hpMul": 148.5212,
+     "dmgMul": 58.0838
     },
     {
      "key": "wispweaver shade",
      "lvl": 80,
-     "hpMul": 174.7308,
-     "dmgMul": 68.3339
+     "hpMul": 148.5212,
+     "dmgMul": 58.0838
     }
    ],
    [
     {
      "key": "sootwing imp",
      "lvl": 80,
-     "hpMul": 174.7308,
-     "dmgMul": 68.3339
+     "hpMul": 148.5212,
+     "dmgMul": 58.0838
     },
     {
      "key": "wispweaver shade",
      "lvl": 80,
-     "hpMul": 174.7308,
-     "dmgMul": 68.3339
+     "hpMul": 148.5212,
+     "dmgMul": 58.0838
     },
     {
      "key": "furnace gnawer",
      "lvl": 80,
-     "hpMul": 174.7308,
-     "dmgMul": 68.3339
+     "hpMul": 148.5212,
+     "dmgMul": 58.0838
     },
     {
      "key": "grundle",
      "lvl": 80,
-     "hpMul": 174.7308,
-     "dmgMul": 68.3339
+     "hpMul": 148.5212,
+     "dmgMul": 58.0838
     },
     {
      "key": "sootwing imp",
      "lvl": 80,
-     "hpMul": 174.7308,
-     "dmgMul": 68.3339
+     "hpMul": 148.5212,
+     "dmgMul": 58.0838
     }
    ],
    [
     {
      "key": "furnace gnawer",
      "lvl": 80,
-     "hpMul": 174.7308,
-     "dmgMul": 68.3339
+     "hpMul": 148.5212,
+     "dmgMul": 58.0838
     },
     {
      "key": "wispweaver shade",
      "lvl": 80,
-     "hpMul": 174.7308,
-     "dmgMul": 68.3339
+     "hpMul": 148.5212,
+     "dmgMul": 58.0838
     },
     {
      "key": "furnace gnawer",
      "lvl": 80,
-     "hpMul": 174.7308,
-     "dmgMul": 68.3339
+     "hpMul": 148.5212,
+     "dmgMul": 58.0838
     },
     {
      "key": "furnace gnawer",
      "lvl": 80,
-     "hpMul": 174.7308,
-     "dmgMul": 68.3339
+     "hpMul": 148.5212,
+     "dmgMul": 58.0838
     },
     {
      "key": "sootwing imp",
      "lvl": 80,
-     "hpMul": 174.7308,
-     "dmgMul": 68.3339
+     "hpMul": 148.5212,
+     "dmgMul": 58.0838
     }
    ]
   ],
@@ -14987,7 +14987,15 @@
    "scale": 1.5211,
    "target": "1.5x the Normal stage (Phil: \"elite should be roughly 1.5x harder than normal\")"
   },
-  "eliteTune": 0.7866
+  "eliteTune": 0.7866,
+  "wallFixes": [
+   {
+    "v": "v1121",
+    "date": "2026-10-11",
+    "scale": 0.85,
+    "why": "follows Normal 13-2 (v1121 x0.85) so Elite 13-2 stays 1.5x its Normal stage (v1056 rule, Phil: \"elite should be roughly 1.5x harder than normal\")"
+   }
+  ]
  },
  {
   "id": "13-3",
@@ -15022,84 +15030,84 @@
     {
      "key": "furnace gnawer",
      "lvl": 81,
-     "hpMul": 89.1089,
-     "dmgMul": 30.2273
+     "hpMul": 75.7426,
+     "dmgMul": 25.6932
     },
     {
      "key": "skyroot dryad",
      "lvl": 81,
-     "hpMul": 89.1089,
-     "dmgMul": 30.2273
+     "hpMul": 75.7426,
+     "dmgMul": 25.6932
     },
     {
      "key": "nightcap mimic",
      "lvl": 81,
-     "hpMul": 89.1089,
-     "dmgMul": 30.2273
+     "hpMul": 75.7426,
+     "dmgMul": 25.6932
     },
     {
      "key": "nightcap mimic",
      "lvl": 81,
-     "hpMul": 89.1089,
-     "dmgMul": 30.2273
+     "hpMul": 75.7426,
+     "dmgMul": 25.6932
     }
    ],
    [
     {
      "key": "nightcap mimic",
      "lvl": 81,
-     "hpMul": 89.1089,
-     "dmgMul": 30.2273
+     "hpMul": 75.7426,
+     "dmgMul": 25.6932
     },
     {
      "key": "vineback boar",
      "lvl": 81,
-     "hpMul": 89.1089,
-     "dmgMul": 30.2273
+     "hpMul": 75.7426,
+     "dmgMul": 25.6932
     },
     {
      "key": "nightcap mimic",
      "lvl": 81,
-     "hpMul": 89.1089,
-     "dmgMul": 30.2273
+     "hpMul": 75.7426,
+     "dmgMul": 25.6932
     },
     {
      "key": "nightcap mimic",
      "lvl": 81,
-     "hpMul": 89.1089,
-     "dmgMul": 30.2273
+     "hpMul": 75.7426,
+     "dmgMul": 25.6932
     },
     {
      "key": "nightcap mimic",
      "lvl": 81,
-     "hpMul": 89.1089,
-     "dmgMul": 30.2273
+     "hpMul": 75.7426,
+     "dmgMul": 25.6932
     }
    ],
    [
     {
      "key": "nightcap mimic",
      "lvl": 81,
-     "hpMul": 89.1089,
-     "dmgMul": 30.2273
+     "hpMul": 75.7426,
+     "dmgMul": 25.6932
     },
     {
      "key": "furnace gnawer",
      "lvl": 81,
-     "hpMul": 89.1089,
-     "dmgMul": 30.2273
+     "hpMul": 75.7426,
+     "dmgMul": 25.6932
     },
     {
      "key": "skyroot dryad",
      "lvl": 81,
-     "hpMul": 89.1089,
-     "dmgMul": 30.2273
+     "hpMul": 75.7426,
+     "dmgMul": 25.6932
     },
     {
      "key": "furnace gnawer",
      "lvl": 81,
-     "hpMul": 89.1089,
-     "dmgMul": 30.2273
+     "hpMul": 75.7426,
+     "dmgMul": 25.6932
     }
    ]
   ],
@@ -15109,7 +15117,15 @@
    "scale": 0.501,
    "target": "1.5x the Normal stage (Phil: \"elite should be roughly 1.5x harder than normal\")"
   },
-  "eliteTune": 2.905
+  "eliteTune": 2.905,
+  "wallFixes": [
+   {
+    "v": "v1121",
+    "date": "2026-10-11",
+    "scale": 0.85,
+    "why": "follows Normal 13-3 (v1121 x0.85) so Elite 13-3 stays 1.5x its Normal stage (v1056 rule, Phil: \"elite should be roughly 1.5x harder than normal\")"
+   }
+  ]
  },
  {
   "id": "13-4",
