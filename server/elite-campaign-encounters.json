@@ -14115,90 +14115,90 @@
     {
      "key": "runic automaton",
      "lvl": 76,
-     "hpMul": 154.0783,
-     "dmgMul": 53.6263
+     "hpMul": 130.9666,
+     "dmgMul": 45.5824
     },
     {
      "key": "rustclank",
      "lvl": 76,
-     "hpMul": 154.0783,
-     "dmgMul": 53.6263
+     "hpMul": 130.9666,
+     "dmgMul": 45.5824
     },
     {
      "key": "nightgloom",
      "lvl": 76,
-     "hpMul": 154.0783,
-     "dmgMul": 53.6263
+     "hpMul": 130.9666,
+     "dmgMul": 45.5824
     },
     {
      "key": "reef prowler",
      "lvl": 76,
-     "hpMul": 154.0783,
-     "dmgMul": 53.6263
+     "hpMul": 130.9666,
+     "dmgMul": 45.5824
     },
     {
      "key": "runic automaton",
      "lvl": 76,
-     "hpMul": 154.0783,
-     "dmgMul": 53.6263
+     "hpMul": 130.9666,
+     "dmgMul": 45.5824
     }
    ],
    [
     {
      "key": "runic automaton",
      "lvl": 76,
-     "hpMul": 154.0783,
-     "dmgMul": 53.6263
+     "hpMul": 130.9666,
+     "dmgMul": 45.5824
     },
     {
      "key": "rustclank",
      "lvl": 76,
-     "hpMul": 154.0783,
-     "dmgMul": 53.6263
+     "hpMul": 130.9666,
+     "dmgMul": 45.5824
     },
     {
      "key": "runic automaton",
      "lvl": 76,
-     "hpMul": 154.0783,
-     "dmgMul": 53.6263
+     "hpMul": 130.9666,
+     "dmgMul": 45.5824
     },
     {
      "key": "rustclank",
      "lvl": 76,
-     "hpMul": 154.0783,
-     "dmgMul": 53.6263
+     "hpMul": 130.9666,
+     "dmgMul": 45.5824
     }
    ],
    [
     {
      "key": "rustclank",
      "lvl": 76,
-     "hpMul": 154.0783,
-     "dmgMul": 53.6263
+     "hpMul": 130.9666,
+     "dmgMul": 45.5824
     },
     {
      "key": "runic automaton",
      "lvl": 76,
-     "hpMul": 154.0783,
-     "dmgMul": 53.6263
+     "hpMul": 130.9666,
+     "dmgMul": 45.5824
     },
     {
      "key": "nightgloom",
      "lvl": 76,
-     "hpMul": 154.0783,
-     "dmgMul": 53.6263
+     "hpMul": 130.9666,
+     "dmgMul": 45.5824
     },
     {
      "key": "rustclank",
      "lvl": 76,
-     "hpMul": 154.0783,
-     "dmgMul": 53.6263
+     "hpMul": 130.9666,
+     "dmgMul": 45.5824
     },
     {
      "key": "runic automaton",
      "lvl": 76,
-     "hpMul": 154.0783,
-     "dmgMul": 53.6263
+     "hpMul": 130.9666,
+     "dmgMul": 45.5824
     }
    ]
   ],
@@ -14208,7 +14208,15 @@
    "scale": 0.8332,
    "target": "1.5x the Normal stage (Phil: \"elite should be roughly 1.5x harder than normal\")"
   },
-  "eliteTune": 1.5969
+  "eliteTune": 1.5969,
+  "wallFixes": [
+   {
+    "v": "v1119",
+    "date": "2026-10-10",
+    "scale": 0.85,
+    "why": "follows Normal 12-6 (v1119 x0.85) so Elite 12-6 stays 1.5x its Normal stage (v1056 rule, Phil: \"elite should be roughly 1.5x harder than normal\")"
+   }
+  ]
  },
  {
   "id": "12-7",

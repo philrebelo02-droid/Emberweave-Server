@@ -16192,90 +16192,90 @@
         {
           "key": "runic automaton",
           "lvl": 76,
-          "hpMul": 92.6396,
-          "dmgMul": 39.6406
+          "hpMul": 78.7437,
+          "dmgMul": 33.6945
         },
         {
           "key": "rustclank",
           "lvl": 76,
-          "hpMul": 92.6396,
-          "dmgMul": 39.6406
+          "hpMul": 78.7437,
+          "dmgMul": 33.6945
         },
         {
           "key": "nightgloom",
           "lvl": 76,
-          "hpMul": 92.6396,
-          "dmgMul": 39.6406
+          "hpMul": 78.7437,
+          "dmgMul": 33.6945
         },
         {
           "key": "reef prowler",
           "lvl": 76,
-          "hpMul": 92.6396,
-          "dmgMul": 39.6406
+          "hpMul": 78.7437,
+          "dmgMul": 33.6945
         },
         {
           "key": "runic automaton",
           "lvl": 76,
-          "hpMul": 92.6396,
-          "dmgMul": 39.6406
+          "hpMul": 78.7437,
+          "dmgMul": 33.6945
         }
       ],
       [
         {
           "key": "runic automaton",
           "lvl": 76,
-          "hpMul": 92.6396,
-          "dmgMul": 39.6406
+          "hpMul": 78.7437,
+          "dmgMul": 33.6945
         },
         {
           "key": "rustclank",
           "lvl": 76,
-          "hpMul": 92.6396,
-          "dmgMul": 39.6406
+          "hpMul": 78.7437,
+          "dmgMul": 33.6945
         },
         {
           "key": "runic automaton",
           "lvl": 76,
-          "hpMul": 92.6396,
-          "dmgMul": 39.6406
+          "hpMul": 78.7437,
+          "dmgMul": 33.6945
         },
         {
           "key": "rustclank",
           "lvl": 76,
-          "hpMul": 92.6396,
-          "dmgMul": 39.6406
+          "hpMul": 78.7437,
+          "dmgMul": 33.6945
         }
       ],
       [
         {
           "key": "rustclank",
           "lvl": 76,
-          "hpMul": 92.6396,
-          "dmgMul": 39.6406
+          "hpMul": 78.7437,
+          "dmgMul": 33.6945
         },
         {
           "key": "runic automaton",
           "lvl": 76,
-          "hpMul": 92.6396,
-          "dmgMul": 39.6406
+          "hpMul": 78.7437,
+          "dmgMul": 33.6945
         },
         {
           "key": "nightgloom",
           "lvl": 76,
-          "hpMul": 92.6396,
-          "dmgMul": 39.6406
+          "hpMul": 78.7437,
+          "dmgMul": 33.6945
         },
         {
           "key": "rustclank",
           "lvl": 76,
-          "hpMul": 92.6396,
-          "dmgMul": 39.6406
+          "hpMul": 78.7437,
+          "dmgMul": 33.6945
         },
         {
           "key": "tick",
           "lvl": 76,
-          "hpMul": 92.6396,
-          "dmgMul": 39.6406,
+          "hpMul": 78.7437,
+          "dmgMul": 33.6945,
           "isHero": true,
           "rewardHero": true,
           "rank": 3
@@ -16287,7 +16287,7 @@
     "recommendedQuality": "Gold +1",
     "qualityMinHeroLevel": 72,
     "bossLevelGate": 0,
-    "difficultyTune": 7.895,
+    "difficultyTune": 6.7107,
     "baselineHp": 170.5286,
     "baselineDmg": 54.8693,
     "portalMode": "normal",
@@ -16296,7 +16296,15 @@
     "chapterName": "The Drowned Bloom",
     "comps": "v337",
     "rewardHero": "tick",
-    "curveV820": true
+    "curveV820": true,
+    "wallFixes": [
+      {
+        "v": "v1119",
+        "date": "2026-10-10",
+        "scale": 0.85,
+        "why": "10 Oct sims (Wall Watch 20:45): Big B (Lv 82) held at 12-6 for 26.8 game days, 84 tries - all on v1106+ (monster stats) - 0 won, FULLY UPGRADED; 12-6 tune 7.895 is a spike between 12-5 (5.649) and 12-7 (6.381). Phil: \"If its a wall ease it\"."
+      }
+    ]
   },
   {
     "id": "12-7",
