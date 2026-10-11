@@ -19,7 +19,7 @@ ck('DR 0.6 cuts damage to ~40% ('+(drHit/base).toFixed(2)+')', drHit/base>0.34 &
 const critHit=avg(hits({crit:1},{},30));
 ck('guaranteed crit ≈ 1.6× ('+(critHit/base).toFixed(2)+')', critHit/base>1.5 && critHit/base<1.7);
 const cresHit=avg(hits({crit:1},{critRes:0.5},30));
-ck('critRes 0.5 halves the crit bonus (~1.3×, got '+(cresHit/base).toFixed(2)+')', cresHit/base>1.2 && cresHit/base<1.4);
+ck('critRes 0.5 subtracts from the +60% crit bonus (Academy v2, Phil 11 Oct: 1+max(0,0.6-0.5) ~1.1×, got '+(cresHit/base).toFixed(2)+')', cresHit/base>1.05 && cresHit/base<1.15);
 // TIME-based energy: a fast (2-swing) unit and a slow unit with the same energyReg gain the same regen per round
 function firstUltRound(att){ const a=S.makeLine([mk(att)]), b=S.makeLine([mk({maxHp:10000000,atk:1})]);
   const r=S.resolveLineBattle(a,b,7); for(const e of r.log){ if(e[1]==='A'&&e[6]) return e[0]; } return 999; }
