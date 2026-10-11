@@ -4824,7 +4824,7 @@ const KITS={
   umbris:{green:{deliver:'form',name:'Shadeburst',type:'shadeburst',at:'cluster',dps:0.3,dur:6,radius:7*METER,cd:7,gfx:'umbris_green',noArt:true,gdur:5.88},blue:{name:'Creeping Rot',type:'creeprot',mul:0.5,dps:0.6,dur:5,color:'#8a5cff',foot:true,handglow:true,cd:6,gfx:'umbris_blue',gfxR:3*METER,gdur:5.38},purple:{name:'Lingering Dark',pass:'contagion',desc:'when a foe dies still rotting from his shadow, the rot spreads to every enemy nearby — and can spread again from them'}},
    vael:{green:{name:'Warcry',type:'warcry',mul:1.1,mulPerLv:0.002,dur:6,cd:8,fear:2/0.7,ccFixed:['fear'],radius:5*METER,   /* v1027 (Phil 4 Oct: "the range should be 5 meters and last 2 seconds running away"): 2 s after ccDur's 30% cut */ desc:"Vael roars: +10% damage (+0.2% per skill level, +0.4% at level 100) for 6 seconds, and every enemy within 5 m runs from him in terror for 2 seconds.",gfx:'vael_green',gfxR:3*METER,gdur:2.25},blue:{name:'Bloodthirst',type:'lifestealbuff',pct:0.1,atkSpd:1.2,atkSpdPerLv:0.002,crit:0.05,critPerLv:0.001,dur:6,cd:7,desc:"Vael feeds on the fight for 6 seconds: +20% attack speed (+0.2% per skill level, +0.4% at level 100), +5% crit chance (+0.1% per skill level, +0.2% at level 100) and he heals for 10% of the damage he deals.",gfx:'vael_blue',gfxR:3*METER,gdur:4.92},purple:{name:'Blood Rage',pass:'bloodrage',desc:"The more damage Vael takes, the harder he hits: +1% damage for every 4% of his max health he has lost this fight, up to +25%."}},
    oakmir:{green:{name:'Mending Bloom',type:'hot',hps:0.06,dur:6,cd:6,gfx:'oakmir_green',gfxR:3*METER,gdur:5.83},blue:{name:'Rally Roots',type:'heal',mul:0.22,cd:9,gfx:'oakmir_blue',gfxR:3*METER,gdur:5.29},purple:{name:'Deep Roots',pass:'deeproots'}},
-   rhukk:{green:{name:'Carapace',type:'defensive',mul:0.5,perLv:0.001,dur:5,cd:8,gfx:'rhukk_green',gfxR:3*METER,gdur:2.0,desc:"Rhukk locks his shell plates tight, taking half damage for 5 seconds."},blue:{name:'Dig In',type:'taunt',cd:10,gfx:'rhukk_blue',gfxR:3*METER,gdur:5.88,desc:"Rhukk plants his horn and roars: every enemy is forced to attack him for 3 seconds while his hide takes less damage."},purple:{name:'Thick Chitin',pass:'warden'}},
+   rhukk:{green:{name:'Carapace',type:'defensive',mul:0.5,perLv:0.001,dur:5,cd:8,gfx:'rhukk_green',gfxR:3*METER,gdur:2.0,desc:"Rhukk locks his shell plates tight, taking half damage for 5 seconds."},blue:{name:'Dig In',type:'taunt',cd:10,ownFx:'digin',gfx:'rhukk_blue',gfxR:3*METER,gdur:5.88,desc:"Rhukk plants his horn and roars: every enemy is forced to attack him for 3 seconds while his hide takes less damage."},purple:{name:'Thick Chitin',pass:'warden'}},
   hurne:{green:{name:'Unchain the Dead',type:'summonwarriors',n:3,perLv:0.005,dur:15,radius:1.7*METER,cd:12},blue:{name:'Call the Bone-Chanter',type:'summonshaman',perLv:0.005,dur:18,radius:1.5*METER,cd:14},purple:{name:'Packmaster',pass:'packstats'}},
   meridian:{green:{name:'Golden Quill',type:'piercethrow',mul:1.5,width:34,cd:7,gfx:'meridian_green',gfxR:3*METER,gdur:4.62},blue:{deliver:'shot',name:'Plumb Line',type:'plumbline',mul:1.2,farBonus:0.9,cd:6,gfx:'meridian_blue',gfxR:3*METER,gdur:2.83},purple:{name:'Well-Read',pass:'momentum'}},
   gruel:{green:{deliver:'form',name:'Coinflail',type:'cleavecone',mul:1.3,radius:3*METER,angle:70,cd:7,gfx:'gruel_green',gdur:5.88},blue:{name:'Weigh the Debt',type:'weighdebt',mul:1.0,pct:0.35,dur:6,cd:10,gfx:'gruel_blue',gfxR:3*METER,gdur:5.88},purple:{name:'Gluttony',pass:'juggernaut'}},
@@ -4848,11 +4848,11 @@ const KITS={
   zahri:{green:{name:'Solar Impalement',type:'shred',mul:1.6,shred:0.32,dur:5,cd:6,desc:"Pierces the nearest enemy and reduces its armor."},blue:{name:'Mirage Herd',type:'summonmirage',key:'zahri mirage',stat:0.30,perLv:0.001,dur:0,radius:1.2*METER,cd:9,desc:"Calls up a mirage of herself - a blurred copy with 30% of her stats that fights only with her lance."},purple:{name:'Desert Momentum',pass:'desertmom',desc:"Moving or attacking builds speed and penetration."}},
   kharos:{green:{name:'Petal Sever',type:'bleedstack',mul:1.6,bleed:0.18,rupture:3,ruptMul:2.0,stackDur:6,cd:6,desc:"Crosses both arm-blades, inflicting a deep wound.",gfx:'kharos_green'},blue:{name:'Bloomstep',type:'evadecounter',mul:2.1,dur:2.2,dr:0.55,perLv:0.001,cd:9,desc:"Evades the next strike and reappears behind the attacker.",gfx:'kharos_blue',gfxR:3*METER},purple:{name:'Perfect Camouflage',pass:'camouflage',desc:"Standing untouched increases dodge and damage."}},
   yenna:{green:{name:'Rending Return',type:'boomerang',mul:0.95,n:3,backMul:1.6,back:0.45,cd:7,desc:"Throws her bone boomerang through the enemy line; it deals greater damage while returning.",gfx:'yenna_green'},blue:{name:'Laughing Mark',type:'markreveal',mul:1.28,perLv:0.001,dur:8,cd:9,desc:"Marks the lowest-health enemy, revealing them and making allied critical hits restore energy.",gfx:'yenna_blue',gfxR:3*METER},purple:{name:'Pack Opportunist',pass:'packopp',desc:"Deals increased damage to isolated, controlled, or low-health enemies."}},
-  sorrel:{green:{name:'Marked Deal',type:'volley',single:true,mul:0.75,n:3,cd:6,desc:"Flicks three edged cards into one target; the third strike marks it.",mark:1.22,markDur:6,gfx:'sorrel_green',gdur:5.88},blue:{name:'House Edge',type:'haste',mul:1.32,perLv:0.002,dur:6,self:true,cd:9,desc:"Opens his deck case and gains speed while marked enemies are present.",gfx:'sorrel_blue',gdur:5.88},purple:{name:'Loaded Hand',pass:'loadedhand',desc:"Every fourth basic attack draws a stronger random suit bonus."}},
+  sorrel:{green:{name:'Marked Deal',type:'volley',single:true,mul:0.75,n:3,cd:6,pfx:'sorrelcard',pscale:0.9,ownFx:'cards',desc:"Flicks three edged cards into one target; the third strike marks it.",mark:1.22,markDur:6,gfx:'sorrel_green',gdur:5.88},blue:{name:'House Edge',type:'haste',mul:1.32,perLv:0.002,dur:6,self:true,cd:9,desc:"Opens his deck case and gains speed while marked enemies are present.",gfx:'sorrel_blue',gdur:5.88},purple:{name:'Loaded Hand',pass:'loadedhand',desc:"Every fourth basic attack draws a stronger random suit bonus."}},
   brannus:{green:{deliver:'shot',name:'Rim Breaker',type:'knockstun',mul:1.5,stun:1.2,push:1.6*METER,cd:8,desc:"Drives the bronze wheel forward, stunning the first enemy struck.",gfx:'brannus_green'},blue:{name:'Arena Lock',type:'taunt',dur:3.5,cd:10,desc:"Plants the wheel and forces nearby enemies to attack him.",gfx:'brannus_blue',gfxR:3*METER},purple:{name:"Pride's Momentum",pass:'pridemomentum',desc:"Blocking damage increases his next basic attack."}},
   deepcleft:{green:{name:'Fault Claws',type:'shred',mul:1.5,shred:0.30,dur:5,cd:6,desc:"Rips the ground with both reinforced claws, damaging and lowering enemy armor.",gfx:'deepcleft_green',gdur:5.88},blue:{name:'Burrow Guard',type:'burrowguard',dur:1.4,mul:1.7,cd:10,desc:"Digs into a defensive crouch, becoming untargetable briefly before emerging beneath the nearest attacker.",gfx:'deepcleft_blue',gfxR:3*METER,gdur:5.88},purple:{name:'Relentless Digger',pass:'digger',desc:"Taking damage increases his Attack Speed; control effects grant twice as many stacks."}},
   askel:{green:{deliver:'form',name:'Standard Crash',type:'interruptslam',mul:1.3,radius:3.2*METER,silence:1.3,cd:8,desc:"Slams the weighted banner base down, damaging enemies and interrupting their casts.",gfx:'askel_green',gdur:5.88},blue:{name:'Rallying Ground',type:'banner',radius:6*METER,dr:0.82,perLv:0.001,haste:1.22,ctrl:0.25,dur:6,cd:10,desc:"Plants his banner to grant nearby allies armor, attack speed, and control resistance.",gfx:'askel_blue',gfxAt:'front',allyBadge:true,badgeSize:0.2,gdur:5.88},purple:{name:'Unshaken Herd',pass:'unshaken',desc:"Whenever an ally is controlled, Greatbrow gains energy and briefly protects them."}},
-  tharl:{green:{name:'Scale Ram',type:'knockstun',mul:1.45,stun:1.1,push:1.8*METER,cd:8,desc:"Drives both striking blocks forward, stunning the nearest enemy and pushing it backward.",gfx:'tharl_green',gdur:5.88},blue:{name:'Fortress Curl',type:'defensive',mul:0.35,dur:3.5,cd:9,desc:"Curls behind his plated tail, greatly reducing incoming damage before bursting back open.",gfx:'tharl_blue',gfxR:3*METER,gdur:5.88},purple:{name:'Layered Hide',pass:'layered',desc:"Each direct hit hardens one scale layer; at maximum layers he becomes immune to control briefly."}},
+  tharl:{green:{name:'Scale Ram',type:'knockstun',mul:1.45,stun:1.1,push:1.8*METER,cd:8,ownFx:'quake',desc:"Drives both striking blocks forward, stunning the nearest enemy and pushing it backward.",gfx:'tharl_green',gdur:5.88},blue:{name:'Fortress Curl',type:'defensive',mul:0.35,dur:3.5,cd:9,desc:"Curls behind his plated tail, greatly reducing incoming damage before bursting back open.",gfx:'tharl_blue',gfxR:3*METER,gdur:5.88},purple:{name:'Layered Hide',pass:'layered',desc:"Each direct hit hardens one scale layer; at maximum layers he becomes immune to control briefly."}},
   hobb:{green:{name:'Glazebreaker',type:'shred',mul:1.55,shred:0.30,dur:5,cd:6,desc:"Smashes with the pottery paddle and reduces enemy armor.",gfx:'hobb_green',gdur:3.96},blue:{name:'Sealed Vessel',type:'defensive',mul:0.45,perLv:0.0005,dur:5,cd:9,desc:"Breaks a belt jar to gain one of several defensive glazes.",gfx:'hobb_blue',gfxR:3*METER,gdur:5.71},purple:{name:'Fired Clay',pass:'warden',desc:"Repeated hits harden his ceramic plates."}},
   orryn:{green:{name:'Pressure Sphere',type:'strike',mul:1.75,color:'#2f8fa8',cd:6,desc:"Crushes an enemy inside a sphere of deep-sea pressure.",gfx:'orryn_green',gdur:2.5,deliver:'form',form:0.4},blue:{name:'Spiral Current',type:'ashfall',dps:0.5,dur:4,radius:3.4*METER,slow:2,nrgSlow:0.4,color:'#2f8fa8',cd:9,desc:"Sends a whirlpool through the enemy formation, slowing energy gain.",gfx:'orryn_blue',gfxR:3*METER,gdur:3.79,deliver:'travel',speed:6*METER,noArt:true},purple:{name:'Abyssal Reserve',pass:'abyssres',desc:"Casting stores pressure; full pressure strengthens his next spell."}},
   pellucid:{green:{name:'Meteor Knuckle',type:'aoeStun',mul:1.25,stun:1.2,radius:2.6*METER,cd:8,desc:"Drives one colossal fist down, stunning nearby enemies.",gfx:'pellucid_green',gdur:6.04,deliver:'land',fall:0.45},blue:{name:'Infernal Clinch',type:'atkcrush',mul:1.5,pct:0.35,stun:0.6,dur:5,cd:10,desc:"Grabs the strongest enemy and crushes its Attack for several seconds.",gfx:'pellucid_blue',gfxR:3*METER,gdur:6.04},purple:{name:'Unmovable Mass',pass:'unmovable',desc:"Cannot be displaced; damage taken builds molten armor."}},
@@ -9162,7 +9162,7 @@ function buildFigure(u){
   spr.center.set(.5,0); spr.scale.set((u.team==='enemy'?-1:1)*h*u.sprA,h,1); spr.position.y=.05; g.add(spr); u.sprite=spr;
   if(HERO_SPRITES[u.key]){ const img=new Image(); img.onload=()=>{ u.sprA=img.width/img.height; if(u.sprite&&!u.anim) u.sprite.scale.set((u.team==='enemy'?-1:1)*u.sprH*u.sprA,u.sprH,1); }; img.src=HERO_SPRITES[u.key]; }
   if(heroHasAnim(u.key)){ const set=loadAnimSet(u.key, u._edIdle?['idle']:(u._edStates||undefined)); /* v606: an idle-only figure (Emberdraft bench/planning) loads just its idle sheet */ if(set&&set.idle&&set.idle.tex){ u.anim=set; u.sprA=set.idle.aspect; spr.material.map=set.idle.tex; spr.material.needsUpdate=true; } }
-  try{ (FX1115_WARM[u.key]||[]).forEach(k=>fx2Tex(k)); }catch(_e){}   /* v1115: load her spell sheets with her figure, so the first Hookline shows its throw */
+  try{ (FX1115_WARM[u.key]||FX1123_WARM[u.key]||[]).forEach(k=>fx2Tex(k)); }catch(_e){}   /* v1115: load her spell sheets with her figure, so the first Hookline shows its throw */
   u.mesh=g; scene.add(g); syncMesh(u,0);
 }
 /* render one hero as a framed portrait bust -> data URL (used to pre-bake portraits) */
@@ -10052,7 +10052,13 @@ const _ABOVE_BAR={healbuff:1,honeyglob:1,lastbreath:1,thornguard:1,dawnward:1,ho
 function abilArt(u,o,tgt,aimCtr,type){ window._fxCaster=u; if(o&&o.noArt) return;   /* v483: the ability draws its own per-target art (Shadeburst) */
   /* v1115 ownFx: the ability draws Grok's clip itself instead of its old plate. 'bell' = Mourning Bell over the cast centre (this runs at the
      form launch, 0.35 s before the damage); 'hook' and 'wound' are drawn by Vex's cases. */
-  if(o&&o.ownFx){ if(o.ownFx==='bell'){ try{ const c=aimCtr||((tgt&&tgt.alive)?tgt:u); bellCastFx(c.x,c.y); }catch(_e){} } return; }
+  if(o&&o.ownFx){ if(o.ownFx==='bell'){ try{ const c=aimCtr||((tgt&&tgt.alive)?tgt:u); bellCastFx(c.x,c.y); }catch(_e){} }
+    /* v1123 ownFx: 'quake' = Tharl's Scale Ram quake flat on the ground where the blocks hit (abilArt runs before the case pushes the
+       target back, so this is the impact point); 'digin' = Rhukk's roar under his feet + the shell on him for the taunt. 'cards' (Sorrel),
+       'reap' (Carn) and 'ruyi' (Kon-Wu) are drawn by their cases. */
+    else if(o.ownFx==='quake'){ try{ if(tgt&&tgt.alive) tharlQuakeFx(tgt); }catch(_e){} }
+    else if(o.ownFx==='digin'){ try{ rhukkDigInFx(u,o.dur||3); }catch(_e){} }
+    return; }
   if(!o||!u||typeof spawnGroundFx!=='function') return;
   if(!o.gfx || !FX2_DEF[o.gfx]) return;
   /* v591 (Phil, 18 Sep: "Effects that effect the entire battlefield should only be a buff or debuff over the enemy or
@@ -10396,7 +10402,7 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
       const _one=!!o.single, _list=_one?(_vt.length?[_vt[0]]:[]):_vt, _reps=_one?(o.n||3):1;
       /* v891 - each projectile's damage lands when IT arrives (o.pdur), not at the cast */
       const _pd=o.pdur||0.30, _VD=dB*(o.mul||.9)*rm;
-      for(let _r=0;_r<_reps;_r++) _list.forEach(e=>{ const _fire=function(){ if(!e.alive)return; abilShot(u,o,e,u.t.color);
+      for(let _r=0;_r<_reps;_r++) _list.forEach(e=>{ const _fire=function(){ if(!e.alive)return; abilShot(u,o,e,u.t.color,(o.ownFx==='cards')?function(){ try{ sorrelHitFx(e,_one&&!!o.mark&&_r===_reps-1); }catch(_e){} }:undefined);   /* v1123: the card lands with its damage (same 0.30 s flight); the spark is display only */
           groundHazards.push({arrival:true,delay:_pd,run:function(){ if(e.alive) dealDamage(u,e,_VD,'#5ee89b'); }}); };
         const _dl=_r*0.15+(o.stagger&&!_one?_list.indexOf(e)*o.stagger:0);   /* v1069: o.stagger = arrows leave one after another (Sloe) */
         if(_dl<=0) _fire(); else groundHazards.push({arrival:true,delay:_dl,run:_fire}); });
@@ -10477,7 +10483,7 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
       if(o.silence){ ccApply(u,e,'silencedT',o.silence); e._castT=0; e.castAnim=0; }}});
       if(o.silence)floatTexts.push({x:ctr.x,y:ctr.y-16,txt:'ORDER',t:1.0,color:'#8fd0ff',vy:1,sz:12});
       burstAt(ctr.x,ctr.y,0x6ea8ff,16);break;}
-    case 'cleave':{ const dir=aimCtr?Math.atan2(aimCtr.y-u.y,aimCtr.x-u.x):(tgt?Math.atan2(tgt.y-u.y,tgt.x-u.x):(u.team==='ally'?0:Math.PI)); const R=o.radius||90, half=(45*Math.PI/180)/2; enemiesOf(u).forEach(e=>{ if(dist(u,e)<=R){ let a=Math.atan2(e.y-u.y,e.x-u.x)-dir; while(a>Math.PI)a-=6.2832; while(a<-Math.PI)a+=6.2832; if(Math.abs(a)<=half){ dealDamage(u,e,dB*(o.mul||1.8)*rm,'#ffa657'); if(o.bleed)pushDot(e,_sD*0.3,4,1,'#c0392b'); } } }); burstAt(u.x+Math.cos(dir)*R*.5,u.y+Math.sin(dir)*R*.5,0xffa657,12); break;}
+    case 'cleave':{ const dir=aimCtr?Math.atan2(aimCtr.y-u.y,aimCtr.x-u.x):(tgt?Math.atan2(tgt.y-u.y,tgt.x-u.x):(u.team==='ally'?0:Math.PI)); const R=o.radius||90, half=(45*Math.PI/180)/2; enemiesOf(u).forEach(e=>{ if(dist(u,e)<=R){ let a=Math.atan2(e.y-u.y,e.x-u.x)-dir; while(a>Math.PI)a-=6.2832; while(a<-Math.PI)a+=6.2832; if(Math.abs(a)<=half){ dealDamage(u,e,dB*(o.mul||1.8)*rm,'#ffa657'); if(o.bleed)pushDot(e,_sD*0.3,4,1,'#c0392b'); } } }); if(o.ownFx==='reap'){ try{ carnReapFx(u,dir,R); }catch(_e){} }   /* v1123 Crimson Reap crescent (display only) */ burstAt(u.x+Math.cos(dir)*R*.5,u.y+Math.sin(dir)*R*.5,0xffa657,12); break;}
     case 'worldbreaker':{   /* v889 Pellucid Rook: three slams; each shockwave hits an enemy when it REACHES it */
       const _R=o.radius||6*METER, _spd=o.wave||12*METER, _D=dB*(o.mul||0.45)*rm, _st=o.stun||0.4, _n=o.slams||3, _gap=o.gap||0.7;
       u._castT=Math.max(u._castT||0,_gap*(_n-1)+0.4);
@@ -10489,8 +10495,9 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
       }
       break; }
     case 'monkSlam':{ const ctr=u;   // Heaven-Splitting Slam: 100% ATK + 2s stun to EVERY enemy within 15 m of KonWu himself (Phil); a phantom Ruyi slams each
-      let di=0; enemiesOf(u).forEach(e=>{ if(dist(ctr,e)<(o.radius||15*METER)){ dealDamage(u,e,dB*(o.mul||1)*rm,'#ffcf40'); ccApply(u,e,'stunned',o.stun||2); e.brighten=Math.max(e.brighten||0,0.6);
-        if(typeof spawnStaffFx==='function') spawnStaffFx(e, di*0.13); di++; } });
+      let di=0; const _ruyi=[]; enemiesOf(u).forEach(e=>{ if(dist(ctr,e)<(o.radius||15*METER)){ dealDamage(u,e,dB*(o.mul||1)*rm,'#ffcf40'); ccApply(u,e,'stunned',o.stun||2); e.brighten=Math.max(e.brighten||0,0.6);
+        if(o.ownFx==='ruyi') _ruyi.push(e); else if(typeof spawnStaffFx==='function') spawnStaffFx(e, di*0.13); di++; } });
+      if(o.ownFx==='ruyi'){ try{ konwuRuyiHitFx(u,_ruyi); }catch(_e){} }   /* v1123: the Ruyi art over each enemy hit (display only) */
       burstAt(ctr.x,ctr.y,0xffcf40,18); if(u.team==='ally')screenFlash=Math.max(screenFlash,.35); break; }
     case 'burst':{if(!tgt)break;dealDamage(u,tgt,dB*3*rm,'#ff8fb0');spawnShot(u,tgt,'#ff8fb0');break;}
     case 'blink':{ // 1s channel BEFORE teleporting — the actual blink+empowered strike runs in konwuBlinkExec
@@ -11584,6 +11591,9 @@ function castAbility(u){ const ab=u.abilityOverride||u.t.ability;
   u._castSlot='ult'; startAbilityClip(u,ab); u._clipStarted=true; u._castSlot=null; sndUlt(u);   /* v1048 sound: this fight's ult line */
   u._pend={ t:_ct, sm:(u._castSM||1), lv:(u._castLv||1), ax:u._aimWX, ay:u._aimWY,
     fire:()=>{ u._castSlot='ult'; doEffect(u, ab, Object.assign({}, ULT_DEF[ab]||{}, (typeof HERO_ULT_ART!=='undefined'&&HERO_ULT_ART[u.key])||{})); } };   /* v332: hero-specific ult plate */
+  /* v1123 Heaven-Splitting Slam: the Ruyi clip runs 1.5 s before its slam - longer than the 1 s cast - so its art starts at the PRESS over
+     each enemy in reach, timed so the slam lands on the release (the damage stays where it was). Display only; an interrupted cast fades it. */
+  try{ if(((typeof HERO_ULT_ART!=='undefined'&&HERO_ULT_ART[u.key])||{}).ownFx==='ruyi'&&ab==='monkSlam') konwuRuyiCastFx(u,_ct,(ULT_DEF[ab]||{}).radius||15*METER,u._pend); }catch(_e){}
   u._castSM=1; u._castLv=0; u._castNow=_ct; u._castT=_ct;
   u._lockPri=6; u._abilPri=6; u._animLockT=Math.max(u._abilHold||0,_ct);   // and once it is running, nothing but CC stops it
   u._ultRootT=Math.max(_ct, ultClipDur(u));   // v542: rooted (no step, swing or skill) for the whole ult clip — sim-side, data-driven, same on both sides
@@ -11925,6 +11935,14 @@ const FX2_DEF={
   hookreel:{u:'/assets/anim/fx/vex_hook_reel.webp?v=1',n:28,fw:1180,fh:154,cols:3,rows:10,dur:1.1667,rt:true,u0:0.0102,u1:0.9525,vRope:0.516,hookPx:135},   /* v1115 Hookline (Grok spell 23, Phil-approved 10 Oct): all 28 clip frames, 24 fps real time; u0 = Vex's end of the rope (clip x 60), u1 = the bite (spark centre x 1172), vRope = the rope row from the bottom */
   hookslash:{u:'/assets/anim/fx/vex_hook_slash.webp?v=1',n:20,fw:330,fh:334,cols:5,rows:4,dur:0.8333,rt:true},   /* v1115: the crimson + violet X on the mark when Vex lands behind it */
   bleedopen:{u:'/assets/anim/fx/vex_bleed_open.webp?v=1',n:36,fw:148,fh:462,cols:6,rows:6,dur:1.5,rt:true,woundC:[0.566,0.49],woundPx:398},   /* v1115 Bleed Them Dry (Grok spell 24, Phil-approved 10 Oct): the drop rips the wound open (1.5 s), the LAST cell is held as the wound while the bleed lasts */
+  sorrelcard:{u:'/assets/anim/fx/sorrel_card.webp?v=1',n:1,fw:90,fh:110,cols:1,rows:1,dur:1,spin:2},   /* v1123 Marked Deal (Grok s02, Phil-approved 10 Oct): his own fan card (s02_sorrel_card_sprite.png), 2 turns over the 0.30 s flight */
+  sorrelspark:{u:'/assets/anim/fx/sorrel_hit_spark.webp?v=1',n:3,fw:141,fh:135,cols:3,rows:1,dur:0.125,rt:true,h:1.6},   /* v1123: the gold spoke spark of a card hit (timing-ref clip frames 8-10, keyed inside r 62 px of the hit); h = world height (the card is 0.9; the clip's 1.5x, a touch up so the thin spokes read) */
+  sorrelflare:{u:'/assets/anim/fx/sorrel_mark_flare.webp?v=1',n:5,fw:250,fh:283,cols:5,rows:1,dur:0.2083,rt:true,h:3.4},   /* v1123: the bigger gold + crimson flare when the third card marks (frames 15-19) */
+  carnreap:{u:'/assets/anim/fx/carn_crimson_reap.webp?v=1',n:64,fw:505,fh:512,cols:8,rows:8,dur:5.3333,rt:true,spanPx:488,size:0.85,peak:40,f0:0.2,front:[146,158,172,185,199,211,223,233,246,260,277,288,298,307,317,329,343,354,364,371,376,381,393,401,409,416,421,425,428,432,444,440,444,452,460,466,472,474,476,476,477,483,489,494,498,500,500,492,495,496,496,496,497,498,499,494,495,463,494,458,468,480,493,487]},   /* v1123 Crimson Reap (Grok s03, Phil's second take): clip frames 0-126 every 2nd, 12 fps, x0.5246 (4096 cap); an upright wave over the units turned to the cleave's on-screen direction, convex side leading; front = the crescent's leading edge per cell (px, measured); spanPx = its peak height, drawn size x Carn's height; it drifts out so the edge reaches the cleave radius on cell `peak` */
+  tharlquake:{u:'/assets/anim/fx/tharl_scale_ram_quake.webp?v=1',n:67,fw:512,fh:435,cols:8,rows:9,dur:5.5833,rt:true,disc:{cx:0.505,cy:0.48,dw:0.88,dh:0.91},R:4},   /* v1123 Scale Ram (Grok s04): top-down quake, frames 0-132 every 2nd, 12 fps, x0.6465 (4096 cap); FLAT on the ground at the impact; disc = the dust ring at its widest (cell fractions), drawn as an R m circle (about one hero height across; the old plate's 2.4 m hid under the target) */
+  konwuruyi:{u:'/assets/anim/fx/konwu_ruyi_slam.webp?v=1',n:48,fw:409,fh:757,cols:10,rows:5,dur:2.0,rt:true,slam:36,anchor:[0.4983,0.1653],staffPx:403,len:0.9,head:0.92},   /* v1123 Heaven-Splitting Slam (Grok s05): clip frames 21-68 at 24 fps, x0.9706 (4096 cap); the slam (gold flash) is frame 57 = cell 36; anchor = the staff's bottom cap at the slam (cell fractions, y from the bottom), pinned on the head (head x the standing head height: the crown, under the health bar); staff = len x the hero's height */
+  rhukkroar:{u:'/assets/anim/fx/rhukk_dig_in_roar.webp?v=1',n:60,fw:578,fh:455,cols:7,rows:9,dur:5.0,rt:true,disc:{cx:0.503,cy:0.615,dw:0.93,dh:0.72},R:4.5},   /* v1123 Dig In (Grok s06): the roar shockwave, frames 0-118 every 2nd, 12 fps, x0.8381 (4096 cap); painted in perspective, laid FLAT under his feet as an R m ground circle (v448 disc rule) */
+  rhukkshell:{u:'/assets/anim/fx/rhukk_dig_in_shell.webp?v=1',n:35,fw:372,fh:414,cols:7,rows:5,dur:2.9167,rt:true,fps:12,inN:10,holdA:10,holdB:27,outC0:28,size:1.0},   /* v1123: the violet shell on him, frames 0-68 every 2nd, 12 fps, full size: forms (cells 0-9), holds (10-27, played back and forth) for the taunt, dissolves (28-34) as it ends */
   rafetracer:{u:'/assets/anim/fx/rafe_tracer.webp?v=1',n:1,fw:512,fh:91,cols:1,rows:1,dur:1},   /* v1075 Dead Man's Fortune (Grok spell 19, Phil-approved 8 Oct): the hot ball + orange tracer, head right */
   rafespark:{u:'/assets/anim/fx/rafe_spark.webp?v=1',n:32,fw:160,fh:160,cols:8,rows:4,dur:1.33,upright:true,upSize:0.9,upExtent:0.95,upPalm:0.5,ro:1},   /* v1075: the spark star where each shot lands (clip frames 64-95, keyed, centred on the burst) */
   linnet_rewind:{u:'/assets/anim/fx/linnet_rewind.webp?v=1',n:73,fw:192,fh:192,cols:9,rows:9,dur:6.04,upright:true,upAbove:true,upAboveM:0.06,upSize:0.5,upExtent:0.95,ro:1},   /* v1074 Rewrite the Pattern (Grok spell 18, Phil-accepted 8 Oct): the gold thread winds into a spiral over each ally's head, keyed from 18_rewrite_pattern_swirl.mp4 (every 2nd frame, 12 fps) */
@@ -12248,7 +12266,7 @@ function spawnProjFx(key,fromx,fromy,tox,toy,scale,dur,onHit,fromH){ _fxCheck('p
   let rot=0; try{ const a=new TH.Vector3(wx(fromx),PH,wz(fromy)).project(camera), b=new TH.Vector3(wx(tox),PH,wz(toy)).project(camera); rot=Math.atan2(b.y-a.y,b.x-a.x); }catch(e){}
   spr.material.rotation=rot;                                                      // front(+x) -> travel direction on screen
   spr.position.set(wx(fromx),PH,wz(fromy)); scene.add(spr);
-  _projFx.push({spr,d,tex,sx:fromx,sy:fromy,tx:tox,ty:toy,t:0,dur:Math.max(.1,dur||.3),onHit,h:PH,tu:(window._projTgtU||null)}); window._projTgtU=null; }
+  _projFx.push({spr,d,tex,sx:fromx,sy:fromy,tx:tox,ty:toy,t:0,dur:Math.max(.1,dur||.3),onHit,h:PH,tu:(window._projTgtU||null),rot0:rot}); window._projTgtU=null; }
 /* v582 (Phil: "the imp did a fire ability that missed hard" / "make sure they are anchored to their
    target they are aiming for"). A projectile used to fly to the coordinates the target occupied at
    LAUNCH. Anything that moved during the flight was missed by the art while the damage still landed
@@ -12329,6 +12347,7 @@ function updateUnitFx(dt){ try{ updateStampFx(dt); }catch(e){} const P=(TH&&_uni
 function updateProjFx(dt){ if(!_texRequalDone) requalifyTextures(); for(let i=_projFx.length-1;i>=0;i--){ const p=_projFx[i]; p.t+=dt; const k=Math.min(1,p.t/p.dur);
   if(p.tu&&p.tu.alive){ p.tx=p.tu.x; p.ty=p.tu.y; }
   fx2SetFrame(p.spr,p.d,Math.floor((p.t/p.d.dur)*p.d.n));
+  if(p.d.spin) p.spr.material.rotation=(p.rot0||0)+((p.tx>=p.sx)?-1:1)*p.d.spin*2*Math.PI*k;   /* v1123: Sorrel's cards turn d.spin times over the flight */
   p.spr.position.set(wx(p.sx+(p.tx-p.sx)*k),(p.h!=null?p.h:1.2)+(1.2-(p.h!=null?p.h:1.2))*k,wz(p.sy+(p.ty-p.sy)*k));
   if(k>=1){ if(p.onHit)p.onHit(); scene.remove(p.spr); p.spr.material.dispose(); _projFx.splice(i,1); } } }
 // King Bloatus Toxic Breath — a stretched gas BEAM. The gas apex (tail) is pinned to his mouth; the whole plume
@@ -12450,7 +12469,7 @@ const _waxFxAll=[];
 function _killWaxFx(u){ if(u&&u._waxFx){ try{ scene.remove(u._waxFx.spr); u._waxFx.spr.material.dispose(); }catch(_){}
     const i=_waxFxAll.indexOf(u._waxFx); if(i>=0)_waxFxAll.splice(i,1); u._waxFx=null; } }
 function killAllWaxFx(){ _waxFxAll.forEach(s=>{ try{ scene.remove(s.spr); s.spr.material.dispose(); }catch(_){} if(s.u)s.u._waxFx=null; }); _waxFxAll.length=0; }
-function updateWaxFx(dt){ try{ updateCandleFx(dt); }catch(_e){} try{ updateFx1115(dt); }catch(_e){} if(!TH||!scene||typeof units==='undefined')return;   /* v1077: the Final Candle art ticks here too */ const de=FX2_DEF.waxerupt, dp=FX2_DEF.waxpool; if(!de||!dp)return; units.forEach(u=>{
+function updateWaxFx(dt){ try{ updateCandleFx(dt); }catch(_e){} try{ updateFx1115(dt); }catch(_e){} try{ updateFx1123(dt); }catch(_e){} if(!TH||!scene||typeof units==='undefined')return;   /* v1077: the Final Candle art ticks here too */ const de=FX2_DEF.waxerupt, dp=FX2_DEF.waxpool; if(!de||!dp)return; units.forEach(u=>{
   if(!(u.alive&&(u._waxCoatT||0)>0)){ if(u._waxFx)_killWaxFx(u); return; }
   if(!u._waxFx){ const te=fx2Tex('waxerupt'); if(!te)return;
     const spr=new TH.Sprite(new TH.SpriteMaterial({map:te,transparent:true,depthWrite:false,depthTest:false,opacity:0.97}));
@@ -12462,6 +12481,87 @@ function updateWaxFx(dt){ try{ updateCandleFx(dt); }catch(_e){} try{ updateFx111
   else { if(!s.pool){ const tp=fx2Tex('waxpool'); if(tp){ s.pool=true; s.spr.material.map=tp; s.spr.material.needsUpdate=true; s.spr.renderOrder=-4; } }
     if(s.pool) fx2SetFrame(s.spr,dp,Math.floor(((s.t-de.dur)/dp.dur)*dp.n)%dp.n); }
   s.spr.position.set(wx(u.rx==null?u.x:u.rx),0.35,wz(u.ry==null?u.y:u.ry)); }); }   // 0.35: the same lift as the bleed/poison/burn marks, so the pool sits under the drawn feet
+/* v1123 Grok spell FX (Phil-approved 10 Oct; Grok notes 18:46-22:24): Sorrel's Marked Deal cards + hit sparks, Carn's Crimson Reap
+   crescent, Tharl's Scale Ram quake, Kon-Wu's Heaven-Splitting Slam Ruyi, Rhukk's Dig In roar + shell. REAL TIME like v1115 (a clip
+   second = FX_RT fight seconds). Display only: these helpers read units and the camera and never touch damage, CC, hazards, positions
+   or the fight state - every damage moment is where v1121 had it, and each clip is timed onto it. */
+const FX1123_WARM={sorrel:['sorrelcard','sorrelspark','sorrelflare'],carn:['carnreap'],tharl:['tharlquake'],konwu:['konwuruyi'],rhukk:['rhukkroar','rhukkshell']};
+const _fx1123=[];
+function _fx22Area(){ return (typeof GSPLIT!=='undefined'&&GSPLIT&&GSPLIT.active)?BONUS_UNIT_SCALE:1; }   /* a bonus run's units are shrunk: so are the metric discs */
+function _fx22Spr(key,ro){ const d=FX2_DEF[key], t=fx2Tex(key); if(!d||!t) return null;
+  const s=new TH.Sprite(new TH.SpriteMaterial({map:t,transparent:true,depthWrite:false,depthTest:false,opacity:1})); fx2Hook(s); fx2SetFrame(s,d,0); s.renderOrder=ro; scene.add(s); return s; }
+function _fx22Flat(key,ro){ const d=FX2_DEF[key], t=fx2Tex(key); if(!d||!t) return null;
+  const m=new TH.Mesh(_FX2_PLANE||new TH.PlaneGeometry(1,1), new TH.MeshBasicMaterial({map:t,transparent:true,depthWrite:false,depthTest:false,side:TH.DoubleSide,opacity:1}));
+  fx2Hook(m); fx2SetFrame(m,d,0); m.renderOrder=ro; scene.add(m); return m; }
+/* a painted disc (d.disc: its centre cx,cy from the cell's top-left and its size dw x dh, cell fractions) laid flat as a ground circle of
+   radius R (field units) centred on (x,y) - the v448 disc rule, so a disc painted in perspective projects back as painted */
+function _fx22Disc(key,x,y,R,ro){ const d=FX2_DEF[key], m=_fx22Flat(key,ro); if(!m) return null; const R3=R*SC, W=2*R3/d.disc.dw, H=2*R3/d.disc.dh;
+  m.scale.set(W,H,1); m.rotation.x=-Math.PI/2; m.position.set(wx(x)-(d.disc.cx-0.5)*W,0.13,wz(y)+(0.5-d.disc.cy)*H); return m; }
+/* a point on a unit, `up` world units along the camera's up from its feet (the v493 rule: raising in world Y slides a billboard sideways) */
+function _fx22On(u,up){ const p=new TH.Vector3(); if(u._sprRef) u._sprRef.getWorldPosition(p); else p.set(wx(u.rx==null?u.x:u.rx),0.05,wz(u.ry==null?u.y:u.ry));
+  return p.add(new TH.Vector3(0,1,0).applyQuaternion(camera.quaternion).multiplyScalar(up)); }
+function _fx22Head(u){ return (typeof restHeadOff==='function')?restHeadOff(u):(u.sprH||3.9); }
+/* s02 Marked Deal: a gold spark where a card lands; the third (marking) card bursts in the bigger gold + crimson flare */
+function sorrelHitFx(e,big){ if(!TH||!scene||!e) return; const k=big?'sorrelflare':'sorrelspark', d=FX2_DEF[k], s=_fx22Spr(k,996); if(!s) return;
+  s.material.blending=TH.AdditiveBlending; { const tw=new TH.Sprite(s.material); s.add(tw); }   /* light: added, two layers (the v1032 `solid` stack) so the thin gold spokes read on a bright map */
+  const h=d.h*(typeof gsplitFxMul==='function'?gsplitFxMul():1); s.center.set(0.5,0.5); s.scale.set(h*d.fw/d.fh,h,1); s.position.set(wx(e.x),1.2,wz(e.y));   /* 1.2 = where the card ends its flight */
+  _fx1123.push({kind:big?'flare':'spark',s,d,t:0}); }
+/* s03 Crimson Reap: the crescent is a wave that sweeps out along the cleave - an upright billboard over the units (a flat ground plate is
+   lost under the melee it cuts through), turned so its convex side leads in the cleave's on-screen direction; at its peak it stands
+   d.size x Carn's height. It drifts out as it grows: its leading edge (d.front, measured per cell) runs from f0 x R to the cleave
+   radius on cell d.peak, at chest height. */
+function carnReapFx(u,dir,R){ if(!TH||!scene||!camera||!u) return; const d=FX2_DEF.carnreap, s=_fx22Spr('carnreap',994); if(!s) return;
+  const R3=R*SC, H=d.size*(u.sprH||3.9)*d.fh/d.spanPx, W=H*d.fw/d.fh, hy=0.45*(u.sprH||3.9);
+  let rot=0; try{ const a=new TH.Vector3(wx(u.x),hy,wz(u.y)).project(camera), b=new TH.Vector3(wx(u.x+Math.cos(dir)*R),hy,wz(u.y+Math.sin(dir)*R)).project(camera); rot=Math.atan2(b.y-a.y,(b.x-a.x)*camera.aspect); }catch(_e){}
+  s.center.set(0.5,0.5); s.scale.set(W,H,1); s.material.rotation=rot;
+  const ax=new TH.Vector3(1,0,0).applyQuaternion(camera.quaternion).multiplyScalar(Math.cos(rot)).add(new TH.Vector3(0,1,0).applyQuaternion(camera.quaternion).multiplyScalar(Math.sin(rot)));
+  const o={kind:'reap',s,d,t:0,fade:0.3,x:u.x,y:u.y,ux:Math.cos(dir),uy:Math.sin(dir),R3,W,hy,ax}; _fx22Reap(o,0); _fx1123.push(o); }
+function _fx22Reap(o,fr){ const d=o.d, q=Math.min(1,(o.t/(d.dur*FX_RT))*d.n/d.peak), f=d.f0+(1-d.f0)*q*q*(3-2*q);
+  const F=new TH.Vector3(wx(o.x)+o.ux*o.R3*f,o.hy,wz(o.y)+o.uy*o.R3*f); o.s.position.copy(F.sub(o.ax.clone().multiplyScalar((d.front[fr]/d.fw-0.5)*o.W))); }
+/* s04 Scale Ram: the quake flat on the ground at the impact point, one-shot */
+function tharlQuakeFx(e){ if(!TH||!scene||!e) return; const d=FX2_DEF.tharlquake, m=_fx22Disc('tharlquake',e.x,e.y,d.R*METER*_fx22Area(),-5); if(!m) return;
+  _fx1123.push({kind:'quake',s:m,d,t:0,fade:0.3}); }
+/* s05 Heaven-Splitting Slam: one Ruyi over each enemy's head (upright), its bottom cap on the head point; it slams on cell d.slam.
+   At the PRESS (castAbility) a copy starts over every enemy in reach, its clock set so cell d.slam lands on the release (_ct later):
+   with the 1 s cast that skips clip frames 0-20 (the sheet starts at 21). At the release konwuRuyiHitFx keeps the copies over enemies
+   the slam hit, fades the rest, and starts one AT the slam over any enemy that walked into reach meanwhile. */
+function _fx22Ruyi(e,u,t0,pend){ const d=FX2_DEF.konwuruyi, s=_fx22Spr('konwuruyi',995); if(!s) return null; s.center.set(d.anchor[0],d.anchor[1]); s.visible=t0>=0;
+  const o={kind:'ruyi',s,d,t:t0,u:e,caster:u,pend,ok:!pend}; _fx22RuyiPos(o); _fx1123.push(o); return o; }
+function _fx22RuyiPos(o){ const d=o.d, e=o.u, H=d.len*(e.sprH||3.9)*d.fh/d.staffPx; o.s.scale.set(H*d.fw/d.fh,H,1); o.s.position.copy(_fx22On(e,d.head*_fx22Head(e))); }
+function konwuRuyiCastFx(u,ct,R,pend){ if(!TH||!scene||!camera||!u) return; const d=FX2_DEF.konwuruyi, t0=(d.slam/d.n)*d.dur*FX_RT-ct;
+  enemiesOf(u).forEach(e=>{ if(e.alive&&dist(u,e)<R) _fx22Ruyi(e,u,t0,pend); }); }
+function konwuRuyiHitFx(u,hit){ if(!TH||!scene||!camera||!u) return; const d=FX2_DEF.konwuruyi, ts=(d.slam/d.n)*d.dur*FX_RT;
+  _fx1123.forEach(o=>{ if(o.kind==='ruyi'&&o.caster===u&&!o.ok){ if(hit.indexOf(o.u)>=0) o.ok=true; else if(o.cut==null) o.cut=Math.max(0,o.t); } });
+  hit.forEach(e=>{ if(!_fx1123.some(o=>o.kind==='ruyi'&&o.caster===u&&o.u===e&&o.ok&&o.t<ts+0.2)) _fx22Ruyi(e,u,ts,null); }); }
+/* s06 Dig In: the roar flat under his feet (one-shot) and the shell on his body for the taunt - it forms, holds (cells holdA-holdB
+   back and forth, real time) and dissolves so it is gone as the taunt ends; it goes with him if he falls */
+function rhukkDigInFx(u,dur){ if(!TH||!scene||!camera||!u) return; const dr=FX2_DEF.rhukkroar, m=_fx22Disc('rhukkroar',u.x,u.y,dr.R*METER*_fx22Area(),-5);
+  if(m) _fx1123.push({kind:'roar',s:m,d:dr,t:0,fade:0.3});
+  for(let i=_fx1123.length-1;i>=0;i--){ const o=_fx1123[i]; if(o.kind==='shell'&&o.u===u){ _fx22Kill(o); _fx1123.splice(i,1); } }
+  const d=FX2_DEF.rhukkshell, s=_fx22Spr('rhukkshell',996); if(!s) return; s.center.set(0.5,0.5);
+  const o={kind:'shell',s,d,t:0,life:Math.max(dur,d.dur*FX_RT),u}; _fx22ShellPos(o); _fx1123.push(o); }
+function _fx22ShellPos(o){ const d=o.d, h=_fx22Head(o.u), H=d.size*h*d.fh/(d.fh-16); o.s.scale.set(H*d.fw/d.fh,H,1); o.s.position.copy(_fx22On(o.u,0.5*h)); }
+function _fx22ShellCell(o){ const d=o.d, c=o.t/FX_RT, tot=o.life/FX_RT, nOut=d.n-d.outC0, a=d.inN/d.fps, z=tot-nOut/d.fps;
+  if(z<=a) return Math.min(d.n-1,Math.floor(c/tot*d.n));                       /* too short to hold: the whole clip, stretched */
+  if(c<a) return Math.floor(c*d.fps);
+  if(c>=z) return Math.min(d.n-1,d.outC0+Math.floor((c-z)*d.fps));
+  const sp=d.holdB-d.holdA, q=Math.floor((c-a)*d.fps)%(2*sp); return d.holdA+(q<=sp?q:2*sp-q); }
+function _fx22Kill(o){ try{ scene.remove(o.s); o.s.material.dispose(); }catch(_){} }
+function clearFx1123(){ _fx1123.forEach(_fx22Kill); _fx1123.length=0; }
+function updateFx1123(dt){ if(!_fx1123.length) return;
+  for(let i=_fx1123.length-1;i>=0;i--){ const o=_fx1123[i], d=o.d; o.t+=dt; const clip=d.dur*FX_RT;
+    if(o.t<0){ o.s.visible=false; if(o.kind==='ruyi'&&!o.ok&&o.caster._pend!==o.pend){ _fx22Kill(o); _fx1123.splice(i,1); } continue; }   /* cancelled before it showed */
+    o.s.visible=true;
+    if(o.kind==='shell'){ if(!o.u.alive) o.life=Math.min(o.life,o.t+0.2);
+      if(o.t>=o.life){ _fx22Kill(o); _fx1123.splice(i,1); continue; }
+      fx2SetFrame(o.s,d,_fx22ShellCell(o)); o.s.material.opacity=o.u.alive?1:Math.max(0,(o.life-o.t)/0.2); _fx22ShellPos(o); continue; }
+    const fr=Math.floor(o.t/clip*d.n); if(fr>=d.n){ _fx22Kill(o); _fx1123.splice(i,1); continue; }
+    fx2SetFrame(o.s,d,fr); let op=o.fade>0?Math.max(0,Math.min(1,(clip-o.t)/o.fade)):1;
+    if(o.kind==='ruyi'){ if(!o.ok&&o.cut==null&&o.caster._pend!==o.pend) o.cut=o.t;   /* the cast was interrupted (or the slam missed this one): it fades */
+      if(o.cut!=null){ op*=Math.max(0,1-(o.t-o.cut)/0.15); if(op<=0){ _fx22Kill(o); _fx1123.splice(i,1); continue; } }
+      _fx22RuyiPos(o); }
+    if(o.kind==='reap') _fx22Reap(o,fr);
+    o.s.material.opacity=op; } }
 /* v1115 Grok spell FX 22-24 (Phil-approved 10 Oct; Grok handoff 17:46). These five clips play in REAL TIME (rt): FX plates tick on
    the fight clock (battleFrameTail runs inside updateBattle on SIM_STEP), and the fight clock runs at SIM_STEP*SIM_HZ*BATTLE_PACE
    = 0.6724 of real time, so a clip second is FX_RT fight seconds - the same conversion as Grosk's hitTimes (v1112).
@@ -12530,7 +12630,7 @@ function updateFx1115(dt){ if(!_fx1115.length) return;
     fx2SetFrame(o.s,d,Math.min(d.n-1,fr));
     if(o.fade>0) o.s.material.opacity=Math.max(0,Math.min(1,(o.life-o.t)/o.fade));
     if(o.u&&(o.kind==='wound'||o.kind==='slash')){ const p=_fx15Pos(o.u); o.s.position.set(p[0],o.h,p[1]); } } }
-function clearFx2(){ _groundFx.forEach(o=>{scene.remove(o.m);o.m.material.dispose();}); _groundFx.length=0;
+function clearFx2(){ try{ clearFx1123(); }catch(_e){}   /* v1123 spell FX */ _groundFx.forEach(o=>{scene.remove(o.m);o.m.material.dispose();}); _groundFx.length=0;
   _projFx.forEach(p=>{scene.remove(p.spr);p.spr.material.dispose();}); _projFx.length=0; clearTipFx();
   _beamFx.forEach(o=>{scene.remove(o.spr);o.spr.material.dispose();}); _beamFx.length=0; _pendingDots.length=0;
   if(typeof _boltFx!=='undefined'){ _boltFx.forEach(o=>{scene.remove(o.spr);o.spr.material.dispose();}); _boltFx.length=0; }   /* v959 */
@@ -20077,7 +20177,7 @@ const CASTER_BALL={   // v340 (Phil): Beekeeper/Oakmir/Lumi nature, Annotator+Te
   fritz:{fx:'fritz_zap',scale:2.2,dur:0.13,bolt:true},   /* v958 (Phil: "also use this for auto attack on a single target"): the chain bolt from Fritz to his target */
   'boar shaman':{fx:'fireball',scale:1.2}   // v547 (Phil): the shaman's auto aims the burning hand, nothing leaves it on the clip - the engine's fireball is the projectile
 };
-const HERO_ULT_ART={rafe:{evadeEva:0.5,evadeDur:3,pfx:'rafetracer',pscale:0.9,pdur:0.30,spark:'rafespark'}, sloe:{backline:true,pfx:'sloearrow',pscale:0.9,pdur:0.30,stagger:0.12}, kharos:{gfx:'kharos_ult',gdur:2.0}, tolley:{gfx:'tolley_ult',gdur:2.4}, absalie:{gfx:'absalie_ult',gdur:2.4}, rivet:{gfx:'rivet_ult',gdur:2.4}, tessit:{deliver:'land'}, vesper:{deliver:'form'}, lysara:{deliver:'form',gfx:'lysara_ult',gdur:2.4}, nerisse:{deliver:'form',form:0.4}, pyroclast:{gfx:'pyroclast_ult',gdur:6.04,deliver:'land',fall:0.55}, orryn:{gfx:'orryn_ult',gdur:6.04,deliver:'form',form:0.5}, ambrel:{deliver:'form',gfx:'ambrel_ult',gdur:5.88}, vaelora:{gfx:'vaelora_ult',gdur:5.88}, aldren:{gfx:'aldren_ult',gdur:2.2}, astra:{deliver:'form',gfx:'astra_ult',gdur:5.83}, aureth:{deliver:'form',gfx:'aureth_ult',gdur:5.88}, carn:{deliver:'form',gfx:'carn_ult',gdur:2.6,gfxAt:'front'}, sorrel:{gfx:'sorrel_ult',gdur:5.88}, deepcleft:{deliver:'form',gfx:'deepcleft_ult',gdur:2.42}, fritz:{gfx:'fritz_ult',gdur:3.0,previewAt:'self'}, dandra:{gfx:'dandra_ult',gdur:2.6}, grimsby:{gfx:'grimsby_ult',gdur:5.88}, mellan:{gfx:'mellan_ult',gdur:4.88}, bloatus:{deliver:'form',gfx:'bloatus_ult',gdur:3.79}, maren:{deliver:'form',gfx:'maren_ult',gdur:2.8}, askel:{gfx:'askel_ult',gdur:2.29,artR:2.9*METER,fieldWide:'allies',allyShield:0.12,knockAside:2*METER}, grosk:{gfx:'grosk_ult',gdur:5.88}, hollow:{gfx:'hollow_ult',gdur:5.88}, konwu:{gfx:'konwu_ult',gdur:5.88}, lumi:{deliver:'form',gfx:'lumi_ult',gdur:1.04}, quorrel:{gfx:'quorrel_ult',gdur:1.67}, meridian:{gfx:'meridian_ult',gdur:2.75}, nox:{deliver:'form',gfx:'nox_ult',gdur:5.17,fieldWide:'enemies'}, oakmir:{deliver:'form',gfx:'oakmir_ult',gdur:5.67,badgeSize:0.45,noArea:true}, pellucid:{gfx:'pellucid_ult',gdur:6.04}, rhukk:{gfx:'rhukk_ult',gdur:2.08}, iver:{deliver:'land',gfx:'iver_ult',gdur:2.71}, sylthaine:{gfx:'sylthaine_ult',gdur:4.0}, gruel:{gfx:'gruel_ult',gdur:5.88}, tick:{gfx:'tick_ult',gdur:5.71}, umbris:{gfx:'umbris_ult',gdur:5.0}, vael:{gfx:'vael_ult',gdur:5.88}, mirelle:{deliver:'form',gfx:'mirelle_ult',gdur:5.62,fieldWide:'both'}, vex:{gfx:'vex_ult',gdur:4.75,gfxR:10*METER}, veyr:{gfx:'veyr_ult',gdur:5.12}, korvux:{deliver:'land',gfx:'korvux_ult',gdur:5.88}, vireo:{gfx:'vireo_ult',gdur:2.0}, ceraline:{deliver:'form',noArt:true}, tharl:{gfx:'tharl_ult',gdur:5.88,pathHit:0.5}, hobb:{deliver:'form',gfx:'hobb_ult',gdur:5.5}, yenna:{gfx:'yenna_ult',gdur:5.88,ricochet:true}, calypsa:{gfx:'calypsa_ult',gdur:5.88,deliver:'form',form:0.4}, brannus:{gfx:'brannus_ult',gdur:5.88,pathHit:0.5}, joss:{deliver:'form',gfx:'joss_ult',gdur:5.88,stun:1.2}, hurne:{gfx:'hurne_ult',gdur:5.88}
+const HERO_ULT_ART={rafe:{evadeEva:0.5,evadeDur:3,pfx:'rafetracer',pscale:0.9,pdur:0.30,spark:'rafespark'}, sloe:{backline:true,pfx:'sloearrow',pscale:0.9,pdur:0.30,stagger:0.12}, kharos:{gfx:'kharos_ult',gdur:2.0}, tolley:{gfx:'tolley_ult',gdur:2.4}, absalie:{gfx:'absalie_ult',gdur:2.4}, rivet:{gfx:'rivet_ult',gdur:2.4}, tessit:{deliver:'land'}, vesper:{deliver:'form'}, lysara:{deliver:'form',gfx:'lysara_ult',gdur:2.4}, nerisse:{deliver:'form',form:0.4}, pyroclast:{gfx:'pyroclast_ult',gdur:6.04,deliver:'land',fall:0.55}, orryn:{gfx:'orryn_ult',gdur:6.04,deliver:'form',form:0.5}, ambrel:{deliver:'form',gfx:'ambrel_ult',gdur:5.88}, vaelora:{gfx:'vaelora_ult',gdur:5.88}, aldren:{gfx:'aldren_ult',gdur:2.2}, astra:{deliver:'form',gfx:'astra_ult',gdur:5.83}, aureth:{deliver:'form',gfx:'aureth_ult',gdur:5.88}, carn:{deliver:'form',gfx:'carn_ult',gdur:2.6,gfxAt:'front',ownFx:'reap'}, sorrel:{gfx:'sorrel_ult',gdur:5.88}, deepcleft:{deliver:'form',gfx:'deepcleft_ult',gdur:2.42}, fritz:{gfx:'fritz_ult',gdur:3.0,previewAt:'self'}, dandra:{gfx:'dandra_ult',gdur:2.6}, grimsby:{gfx:'grimsby_ult',gdur:5.88}, mellan:{gfx:'mellan_ult',gdur:4.88}, bloatus:{deliver:'form',gfx:'bloatus_ult',gdur:3.79}, maren:{deliver:'form',gfx:'maren_ult',gdur:2.8}, askel:{gfx:'askel_ult',gdur:2.29,artR:2.9*METER,fieldWide:'allies',allyShield:0.12,knockAside:2*METER}, grosk:{gfx:'grosk_ult',gdur:5.88}, hollow:{gfx:'hollow_ult',gdur:5.88}, konwu:{gfx:'konwu_ult',gdur:5.88,ownFx:'ruyi'}, lumi:{deliver:'form',gfx:'lumi_ult',gdur:1.04}, quorrel:{gfx:'quorrel_ult',gdur:1.67}, meridian:{gfx:'meridian_ult',gdur:2.75}, nox:{deliver:'form',gfx:'nox_ult',gdur:5.17,fieldWide:'enemies'}, oakmir:{deliver:'form',gfx:'oakmir_ult',gdur:5.67,badgeSize:0.45,noArea:true}, pellucid:{gfx:'pellucid_ult',gdur:6.04}, rhukk:{gfx:'rhukk_ult',gdur:2.08}, iver:{deliver:'land',gfx:'iver_ult',gdur:2.71}, sylthaine:{gfx:'sylthaine_ult',gdur:4.0}, gruel:{gfx:'gruel_ult',gdur:5.88}, tick:{gfx:'tick_ult',gdur:5.71}, umbris:{gfx:'umbris_ult',gdur:5.0}, vael:{gfx:'vael_ult',gdur:5.88}, mirelle:{deliver:'form',gfx:'mirelle_ult',gdur:5.62,fieldWide:'both'}, vex:{gfx:'vex_ult',gdur:4.75,gfxR:10*METER}, veyr:{gfx:'veyr_ult',gdur:5.12}, korvux:{deliver:'land',gfx:'korvux_ult',gdur:5.88}, vireo:{gfx:'vireo_ult',gdur:2.0}, ceraline:{deliver:'form',noArt:true}, tharl:{gfx:'tharl_ult',gdur:5.88,pathHit:0.5}, hobb:{deliver:'form',gfx:'hobb_ult',gdur:5.5}, yenna:{gfx:'yenna_ult',gdur:5.88,ricochet:true}, calypsa:{gfx:'calypsa_ult',gdur:5.88,deliver:'form',form:0.4}, brannus:{gfx:'brannus_ult',gdur:5.88,pathHit:0.5}, joss:{deliver:'form',gfx:'joss_ult',gdur:5.88,stun:1.2}, hurne:{gfx:'hurne_ult',gdur:5.88}
 };
 Object.assign(ULT_DEF, {summonshaman:{key:'ink horror',dur:22,radius:1.6*METER,perLv:0.005}});   /* v1112: horror share x1.495 at level 100 */
 Object.assign(ULT_SCALE, {summonshaman:'\u2014'});
