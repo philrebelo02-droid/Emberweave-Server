@@ -4111,11 +4111,24 @@ function fxWarmKeys(keys, timeoutMs){
 function fxFreeAll(){
   try{ [(typeof _fx2Tex!=='undefined')?_fx2Tex:null, (typeof _fxTexCache!=='undefined')?_fxTexCache:null].forEach(c=>{ if(!c) return;
     for(const k in c){ const t=c[k]; try{ (t.__waiters||[]).forEach(w=>{ try{ w.dispose(); }catch(e){} }); t.dispose(); }catch(e){} delete c[k]; } }); }catch(e){} }
+/* v1120 (Phil 10 Oct: "can we make that 117 ms, 0?"): two one-time costs that landed mid-fight, paid here behind the loading screen.
+   1. doEffect is one very large function and the browser compiles it on its FIRST call - which was the first ultimate of the fight
+      (measured 5v5 at 4x CPU throttle: Tick's Flywheel 26-69 ms on the first cast, ~1 ms after). Calling it with no unit compiles the
+      whole body and then throws on its second line (u._castSM) before it touches anything; the throw is swallowed.
+   2. The first time a symbol outside the normal font (card suits, sparkle, arrow) is drawn, the browser searches the system fonts for
+      it. One off-screen draw of each pays that here. (Battle text emojis were removed instead - Phil's no-emoji rule.) */
+function battleCodeWarm(){
+  try{ doEffect(null,'__warm__',null); }catch(e){}
+  try{ const c=document.createElement('canvas'); c.width=64; c.height=24; const g=c.getContext('2d');
+    const _sy=String.fromCharCode(0x2660,0x2663,0x2665,0x2666,0x2726,0x25b8,0x2212,0x00d7,0x2014);   /* spade club heart diamond, sparkle, arrow, minus, times, dash */
+    ['900 11px sans-serif','900 16px sans-serif','bold 12px sans-serif'].forEach(f=>{ g.font=f; g.lineWidth=3;
+      g.strokeText(_sy,0,16); g.fillText(_sy,0,16); }); }catch(e){}
+}
 function preloadBattleArtFull(keys, bgUrl, onProgress, timeoutMs){
   return new Promise(resolve=>{
     let off=null, done=false, stall=null;
     const arm=()=>{ if(done) return; clearTimeout(stall); stall=setTimeout(finish, timeoutMs||12000); };
-    const finish=()=>{ if(done) return; done=true; clearTimeout(stall); if(off) off(); gpuWarmKeys(keys).then(()=>fxWarmKeys(keys, 8000)).then(resolve, resolve); };
+    const finish=()=>{ if(done) return; done=true; clearTimeout(stall); if(off) off(); battleCodeWarm(); gpuWarmKeys(keys).then(()=>fxWarmKeys(keys, 8000)).then(resolve, resolve); };
     try{ fxSheetKeys(keys).forEach(fxSheetTex); }catch(e){}   // v944: spell sheets start downloading with everything else
     try{
       if(bgUrl && !_artWarmed['bg:'+bgUrl]){ _artWarmed['bg:'+bgUrl]=1; const im=new Image(); im.decoding='async'; im.src=bgUrl; }
@@ -10483,7 +10496,7 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
     case 'blink':{ // 1s channel BEFORE teleporting — the actual blink+empowered strike runs in konwuBlinkExec
       u._blinkT=1.0; u._blinkO=o; u._blinkSM=sm; u.castAnim=1.0;
       burstAt(u.x,u.y,0x8f6fe0,14); ringBurst(u.x,u.y,0x8f6fe0,10);   // charge telegraph at the start point
-      floatTexts.push({x:u.x,y:u.y-8,txt:'⚡ Phantom Step',t:1.0,color:'#c9b6ff',vy:1}); break; }
+      floatTexts.push({x:u.x,y:u.y-8,txt:'Phantom Step',t:1.0,color:'#c9b6ff',vy:1}); break; }
     case 'vanishpoint':{   // he steps off the field; hollowStrike lands each hop
       /* v538 (Phil): the player drags onto the enemy he jumps to (within 15 m). A target that cannot be executed takes
          flat damage and he does NOT vanish again; the chain of vanishes only continues through executions. */
@@ -11163,7 +11176,7 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
       const _hl=Math.max(0,Math.min(99,Math.round((sm-1)/SKILL_STEP))), _hp=(o.hpMul||0.10)+((o.hpMul100||0.20)-(o.hpMul||0.10))*_hl/99;
       const dmg=u.maxHp*_hp*rm;
       foes.forEach(e=>{ if(dist(e,{x:cx,y:cy})<R){ dealDamage(u,e,dmg,'#c9a05e'); ccApply(u,e,'stunned',o.stun||0.6); e.brighten=Math.max(e.brighten||0,0.6); } });
-      if(o.allyDr){ alliesOf(u).forEach(a=>{ a._mwDrT=Math.max(a._mwDrT||0,o.allyDrDur||5); a._mwDrPct=skLvNum('hipposlam',o,_kLv);   /* v1112 nerf: 30% + 0.15 pt a level (44.9% at 100; the skill curve gave 65.6%) */ a._mwDrSrc=u; }); floatTexts.push({x:u.x,y:u.y-14,txt:'⬛ THE WALL',t:1.1,color:'#9ad07a',vy:1,sz:13}); }
+      if(o.allyDr){ alliesOf(u).forEach(a=>{ a._mwDrT=Math.max(a._mwDrT||0,o.allyDrDur||5); a._mwDrPct=skLvNum('hipposlam',o,_kLv);   /* v1112 nerf: 30% + 0.15 pt a level (44.9% at 100; the skill curve gave 65.6%) */ a._mwDrSrc=u; }); floatTexts.push({x:u.x,y:u.y-14,txt:'THE WALL',t:1.1,color:'#9ad07a',vy:1,sz:13}); }
       ringBurst(cx,cy,0x8a6a3a,26); burstAt(cx,cy,0xc9a05e,24); if(u.team==='ally')screenFlash=Math.max(screenFlash,.4);
       }}; break; }
     case 'pullsilence':{ const R=o.radius||5*METER, dur=o.dur||2;   // GREEN: drag nearby foes in, silence + taunt them
@@ -13099,7 +13112,7 @@ function raidReinforce(){
   u.homeX=sl.x; u.homeY=sl.y; u.laneX=sl.x; u._vaultFighter=true;
   units.push(u); buildFigure(u);
   if(u.mesh) u.mesh.visible=true;
-  try{ floatTexts.push({x:u.x,y:u.y-10,txt:'🛡 '+((HERO_TYPES[key]||{}).name||key)+' steps in!',t:1.4,color:'#c9a2ff',vy:1,sz:12}); burstAt(u.x,u.y,0xc9a2ff,14); }catch(e){}
+  try{ floatTexts.push({x:u.x,y:u.y-10,txt:((HERO_TYPES[key]||{}).name||key)+' steps in!',t:1.4,color:'#c9a2ff',vy:1,sz:12}); burstAt(u.x,u.y,0xc9a2ff,14); }catch(e){}
   try{ buildPortraitBar(); refreshCtrlBtns(); updateCounts(); }catch(e){}
 }
 function vaultOpenSubPicker(dead){
@@ -13129,7 +13142,7 @@ function vaultPickSub(dead,k,ov){
   const px=(isFinite(dead.x)&&dead.x>-200&&dead.x<1800)?dead.x:sl.x, py=(isFinite(dead.y)&&dead.y>-200&&dead.y<1800)?dead.y:sl.y;
   const u=makeUnit(k,'ally',px,py,null,{owned:true}); u._vaultFighter=true; units.push(u); buildFigure(u);
   if(u.mesh) u.mesh.visible=true;
-  floatTexts.push({x:u.x,y:u.y-10,txt:'🛡 '+((HERO_TYPES[k]||{}).name||k)+' steps in!',t:1.5,color:'#c9a2ff',vy:1,sz:12});
+  floatTexts.push({x:u.x,y:u.y-10,txt:((HERO_TYPES[k]||{}).name||k)+' steps in!',t:1.5,color:'#c9a2ff',vy:1,sz:12});
   burstAt(u.x,u.y,0xc9a2ff,14);
   buildPortraitBar(); refreshCtrlBtns(); updateCounts();
   ov.remove(); VAULT_PICK_OPEN=false; paused=false;
@@ -20773,8 +20786,16 @@ function netGateUpdate(){ if(window._p2guard||!online()) return; const el=netGat
     else if(NETGATE.bootAt&&Date.now()-NETGATE.bootAt>3000&&!window._svrHandoff){ msg='Connecting to the realm…'; act='retry'; } }
   if(!msg){ el.style.display='none'; return; }
   const btn=act==='wait'?'':act==='signin'?'<button class="btn" id="netGateBtn">Sign in</button>':'<button class="btn secondary" id="netGateBtn">Retry</button>';
-  if(el.dataset.msg!==msg){ el.dataset.msg=msg; el.innerHTML='<div>'+msg+'</div>'+btn;
-    if(act!=='wait') el.querySelector('#netGateBtn').onclick=()=>{ if(act==='signin'){ el.style.display='none'; try{ show('account'); }catch(e){} } else netGateCheck(); }; }
+  /* v1120 (Phil 10 Oct: "fix it so a server going down takes down that server not the game"): when THIS server stops answering, the
+     other servers are offered here - the front door now still opens when Server 1 is down (front door relay, blueprint 26), and this
+     screen covered the only way to switch. */
+  let other='';
+  try{ if(act==='retry' && NETGATE.down>=2 && svrOn()){ const here=svrHere();
+    other='<div style="font-size:13px;font-weight:700;opacity:.8;margin-top:6px">Or play on another server</div><div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center">'+
+      SVR_LIST.filter(x=>x.id!==here).map(x=>'<button class="btn secondary" data-ngsvr="'+x.id+'">'+escapeHTML(x.name)+'</button>').join('')+'</div>'; } }catch(e){ other=''; }
+  if(el.dataset.msg!==msg+'|'+(other?1:0)){ el.dataset.msg=msg+'|'+(other?1:0); el.innerHTML='<div>'+msg+'</div>'+btn+other;
+    if(act!=='wait') el.querySelector('#netGateBtn').onclick=()=>{ if(act==='signin'){ el.style.display='none'; try{ show('account'); }catch(e){} } else netGateCheck(); };
+    el.querySelectorAll('[data-ngsvr]').forEach(b=>{ b.onclick=()=>{ try{ svrGo(+b.dataset.ngsvr); }catch(e){} }; }); }
   el.style.display='flex'; }
 async function netGateCheck(){ if(window._p2guard||!online()||NETGATE.busy) return; NETGATE.busy=true; let ok=false;
   try{ const c=new AbortController(), t=setTimeout(()=>c.abort(),6000); const r=await fetch('/api/health',{cache:'no-store',signal:c.signal});   /* /api/ bypasses the service worker, which answers /health from cache */ clearTimeout(t); ok=!!(r&&r.ok); }catch(e){ ok=false; }
