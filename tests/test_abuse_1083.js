@@ -27,9 +27,9 @@ async function call(route,data){ const r=await fetch(base+route,{method:data?'PO
   let last=200; for(let i=0;i<125;i++){ const r=await call('/api/ledger'); last=r.status; if(r.status===429) break; }
   ok(last===429,'#1 the 121st ledger read in a minute is refused (429)');
   // static: each read saves only on change; the other limits
-  ok(/const _b=_sig\(\); const v=ledgerView\(me\); if\(_sig\(\)!==_b\) writeDB\(\);/.test(src),'#1 /api/ledger saves only when the read changed the account');
-  ok(/if\(_noId\) writeDB\(\); return send\(res,200,\{reports:me\.pvpMail\}\);/.test(src),'#1 /api/pvp/reports saves only when an old report got its id');
-  ok(/const g=ensureGlyphs\(me\); if\(_gs\(\)!==_gb\) writeDB\(\);/.test(src),'#1 /api/glyphs/state saves only when a migration ran');
+  ok(/const _b=_sig\(\); const v=ledgerView\(me\); if\(_sig\(\)!==_b\) writeDB\((\[me\.id\])?\);/.test(src),'#1 /api/ledger saves only when the read changed the account');
+  ok(/if\(_noId\) writeDB\((\[me\.id\])?\); return send\(res,200,\{reports:me\.pvpMail\}\);/.test(src),'#1 /api/pvp/reports saves only when an old report got its id');
+  ok(/const g=ensureGlyphs\(me\); if\(_gs\(\)!==_gb\) writeDB\((\[me\.id\])?\);/.test(src),'#1 /api/glyphs/state saves only when a migration ran');
   ok(/ws\._chatJoinAt&&now-ws\._chatJoinAt<30000/.test(src)&&/_chatJoinAcct\[ak\]&&now-_chatJoinAcct\[ak\]<10000/.test(src),'#2 chat history at most once per 30 s per socket, 10 s per account');
   ok(/chatStore\(\)\[ch\]\.push\(msg\); pruneChat\(ch\); chatSaveSoon\(\);/.test(src)&&/setTimeout\(\(\)=>\{ _chatSaveT=null; writeDB\(\); \},30000\)/.test(src),'#3 a chat line saves at most every 30 s');
   ok(/BODY_MAX_SAVE \|\| Math\.round\(1\.2\*1024\*1024\)/.test(src)&&/rateLimited\(req,'save:'\+me\.id,Math\.round\(60\*RL_MUL\),60000\)/.test(src),'#5 the save upload: 1.2 MB, 60 a minute');

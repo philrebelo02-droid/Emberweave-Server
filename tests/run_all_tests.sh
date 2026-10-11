@@ -229,6 +229,8 @@ note "test_battle_workers_1036.js (v1036: city battles run on a worker thread an
 node tests/test_battle_workers_1036.js || FAILED=1
 note "test_world_store_1037.js (v1037: per-player storage - partial saves, all-or-nothing commits, hard-kill survival, split <-> one-file conversion; one-file control)"
 node tests/test_world_store_1037.js || FAILED=1
+note "test_save_partial.js (v1124: campaign start+resolve and the other per-player routes save only their player's shard; an id-less writeDB stays full; two players + the shared world survive a hard kill; restart keeps progress; v1123 control)"
+node tests/test_save_partial.js || FAILED=1
 note "test_march_retention_1038.js (v1038: settled city/mine marches are held 2 days, then let go - for every player; unfinished kept; v1037 control)"
 node tests/test_march_retention_1038.js || FAILED=1
 note "test_sim_helper_1039.js (v1039: battle helpers - a backed-up pool shares battles with server/sim-helper.js; identical results, spot checks; wrong key / other engine / busy / dead helper fall back locally; no-helper control)"
