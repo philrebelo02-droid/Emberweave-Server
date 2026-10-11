@@ -240,7 +240,8 @@
       "stats": {
         "hp": 90,
         "ctrlRes": 10.7,
-        "armor": 10.7
+        "armor": 10.7,
+        "defense": 48
       }
     },
     {
@@ -260,7 +261,8 @@
       "stats": {
         "hp": 90,
         "mr": 10.7,
-        "energy": 10.7
+        "energy": 10.7,
+        "defense": 48
       }
     },
     {
@@ -577,7 +579,8 @@
       "stats": {
         "hp": 202,
         "armor": 24.0,
-        "block": 24.0
+        "block": 24.0,
+        "defense": 107.8
       }
     },
     {
@@ -597,7 +600,8 @@
       "stats": {
         "hp": 202,
         "mr": 24.0,
-        "shieldStr": 24.0
+        "shieldStr": 24.0,
+        "defense": 107.8
       }
     },
     {

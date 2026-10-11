@@ -94,7 +94,7 @@
     health:          { name: "Health",               icon: "hp",       flat: ["hp"],                  step: { physical: 35, magic: 25 } },   // 7,000 / 5,000
     attack:          { name: "Attack damage",        icon: "atk",      flat: ["ad"],                  step: 2.4 },                           // 480
     abilityPower:    { name: "Ability power",        icon: "apow",     flat: ["ap"],                  step: 3.2 },                           // 640
-    armorMr:         { name: "Armor & Magic resist", icon: "armor",    flat: ["armor", "mr"],         step: { physical: 7.2, magic: 4.8 } }, // 1,440 / 960 each
+    armorMr:         { name: "Armor & Magic resist", icon: "armor",    flat: ["armor", "mr"],         step: { physical: 7.2, magic: 4.8 }, defenseStep: 1 }, // 1,440 / 960 each; Academy v2 (11 Oct, Phil): + 1 Defense a step (200 = 10%)
     armor:           { name: "Armor",                icon: "armor",    flat: ["armor"],               step: 10.8 },                          // 2,160 PROPOSED
     magicResist:     { name: "Magic resist",         icon: "mr",       flat: ["mr"],                  step: 10.8 },                          // 2,160 PROPOSED
     pen:             { name: "Penetration",          icon: "armorPen", iconMagic: "magicPen", flat: ["armorPen", "magicPen"], step: { physical: 4.8, magic: 7.2 } },   // 960 / 1,440 each
@@ -799,7 +799,7 @@
   }
 
   /* THE numbers combat and the card read (RULE 26), for one hero: bar flats (steps) + the hero's own blessing rewards.
-     { hpFlat, adFlat, apFlat, armorFlat, mrFlat, armorPenFlat, magicPenFlat (whole numbers), <effect name>: fraction }.
+     { hpFlat, adFlat, apFlat, armorFlat, mrFlat, armorPenFlat, magicPenFlat, defenseFlat (whole numbers), <effect name>: fraction }.
      heroBonuses(heroState, role, damageProfile, key) - key picks HERO_BLESSINGS[key]; without it heroKeyOf finds it.
      v1096 (Phil 9 Oct): the 5th dot (x1.15) multiplies the BLESSING rewards only, flat and %, never the bars' step values. */
   function heroBonuses(heroState, role, damageProfile, key) {
@@ -807,7 +807,7 @@
     if (!heroState) return out;
     const profile = profileOf(damageProfile, role), hk = heroKeyOf(heroState, key);
     const bars = heroBars(hk, profile), steps = alignSteps(heroState, bars);
-    const blank = function () { return { hp: 0, ad: 0, ap: 0, armor: 0, mr: 0, armorPen: 0, magicPen: 0 }; };
+    const blank = function () { return { hp: 0, ad: 0, ap: 0, armor: 0, mr: 0, armorPen: 0, magicPen: 0, defense: 0 }; };
     const f = blank(), bf = blank(), fx = {}, barFx = {};                           // f / barFx = the bars, bf / fx = the blessings
     const addAttack = function (o, v) { if (profile === "magic") o.ap += v; else if (profile === "hybrid") { o.ad += v; o.ap += v; } else o.ad += v; };
     /* v1098: each of the hero's own four bars feeds its flat outputs (glyph-flat path) or its battle effect (applyCore/applyClient) */
@@ -816,6 +816,7 @@
       if (!v) return;
       if (t.effect) barFx[t.effect] = (barFx[t.effect] || 0) + v;
       else t.flat.forEach(function (o) { f[o] += v; });
+      if (BAR_KINDS[bar].defenseStep) f.defense += steps[bar] * BAR_KINDS[bar].defenseStep;   // Academy v2 (11 Oct): Defense rating
     });
     (heroState.boonsUnlocked || []).slice(0, 4).forEach(function (lit, i) {
       if (!lit) return;
@@ -830,7 +831,7 @@
     const mk = Math.round(templeBonusMult(heroState) * 1000);                       // x1000 integer: 150 x 1.15 = 172.5 exactly
     const put = function (k, a, b) { const n = Math.round(a + b * mk / 1000); if (n) out[k] = n; };
     put("hpFlat", f.hp, bf.hp); put("adFlat", f.ad, bf.ad); put("apFlat", f.ap, bf.ap); put("armorFlat", f.armor, bf.armor); put("mrFlat", f.mr, bf.mr);
-    put("armorPenFlat", f.armorPen, bf.armorPen); put("magicPenFlat", f.magicPen, bf.magicPen);
+    put("armorPenFlat", f.armorPen, bf.armorPen); put("magicPenFlat", f.magicPen, bf.magicPen); put("defenseFlat", f.defense, 0);
     Object.keys(barFx).concat(Object.keys(fx)).forEach(function (k) {
       if (Object.prototype.hasOwnProperty.call(out, k)) return;
       const n = Math.round(((barFx[k] || 0) + (fx[k] || 0) * mk / 1000) * 1e6) / 1e6;   // the 5th dot multiplies the blessing part only

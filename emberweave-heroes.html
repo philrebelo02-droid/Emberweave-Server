@@ -2630,9 +2630,9 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 </script>
 <script src="/hero-profiles.js?v=r1025"></script>
 <script src="/hero-paths.js?v=r1025"></script>
-<script src="/server/temple-of-ash.js?v=r1102"></script>
+<script src="/server/temple-of-ash.js?v=acadv2"></script>
 <script src="/server/patron-benefits.js?v=r1093"></script>
-<script src="/server/temple-effects.js?v=r1098"></script>
+<script src="/server/temple-effects.js?v=acadv2"></script>
 <script src="/assets/ui/world-mine-sync.js?v=mi1"></script>
 <script src="/assets/ui/world-march-sync.js?v=wm1"></script>
 <script src="/assets/ui/world-march-visual.js?v=wv2"></script>
@@ -9481,7 +9481,7 @@ function makeUnit(key,team,x,y,levelOverride,extra){
     u.mrRating   =BL.mr*sm + (S?(S.techMr||0):(owned?techMrFlat():0)) + ((tt.mr||0)*3) + TBF.mrFlat;
     u.armorPen=(tt.armorPen||0)+TBF.armorPenFlat; u.magicPen=(tt.magicPen||0)+TBF.magicPenFlat;
     u.critDmg=0.6+((tt.critDmg||0)*0.0005); /* v1020 (Phil 4 Oct: 'all of them 20 = 1%') */
-    u.defenseStat=Math.min(0.6,(tt.defense||0)*0.0005);   /* Academy v2 (11 Oct, Phil): DEFENSE rating - 20 points = 1%, cap 60%, takes that much off an attacker's crit CHANCE ("defense = crit% reduction"); sources: glyphs, equipment, prayer, future - none give it yet */
+    u.defenseStat=Math.min(0.6,((tt.defense||0)+(TBF.defenseFlat||0))*0.0005);   /* Academy v2 (11 Oct, Phil): DEFENSE rating - 20 points = 1%, cap 60%, takes that much off an attacker's crit CHANCE ("defense = crit% reduction"); sources: glyphs, equipment, prayer, future - none give it yet */
     u.lifestealStat=Math.min(0.5,(tt.lifesteal||0)*0.0005);
     u.evaStat=Math.min(0.30,(tt.eva||0)*0.0005); u.accStat=(tt.acc||0);
     u.blockStat=Math.min(0.30,(tt.block||0)*0.0005);
@@ -24020,7 +24020,7 @@ function renderHeroDetail(){
       [statIcon('armor')+'Armor',armorFlat+_pct(armorFlat)],[statIcon('mr')+'Magic Resistance',mrFlat+_pct(mrFlat)],
       [statIcon('atk')+'Attack Damage',S_ATK],[statIcon('apow')+'Ability Power',S_APOW],
       [statIcon('crit')+'Crit Chance',Math.round(Math.min(0.6,(mul.crit||0)+(CLASS_BASE_CRIT[t.role]||0))*100)+'%'],['<span title="Reduces critical damage taken (subtracts from the attacker\'s crit damage)">'+statIcon('critRes')+'Crit Resistance</span>',Math.round((mul.critRes||0)*100)+'%'],
-      ['<span title="Lowers the enemy\'s chance to crit you">'+statIcon('dmgRed')+'Defense</span>',Math.round(Math.min(0.6,(_tt.defense||0)*0.0005)*100)+'%'],   // Academy v2 (11 Oct): the Defense rating
+      ['<span title="Lowers the enemy\'s chance to crit you">'+statIcon('dmgRed')+'Defense</span>',Math.round(Math.min(0.6,((_tt.defense||0)+(TempleEffects.clientFlats(templeBonusesClient(key)).defenseFlat||0))*0.0005)*100)+'%'],   // Academy v2 (11 Oct): the Defense rating
       [statIcon('atkSpd')+'Attack Speed',S_APS+' /s'],[statIcon('energy')+'Energy Regen',enrStr],
       [statIcon('range')+'Type',t.range>=60?'Ranged':'Melee'],['Combat row',t.combatRow],['Class',t.role],['Damage',t.damageProfile],['Scaling',t.primaryScaling]];
     tab=`<div class="panel"><div style="display:grid;grid-template-columns:1fr 1fr;gap:7px 14px;font-size:12px">${rows.map(([n,v])=>`<div style="display:flex;justify-content:space-between;border-bottom:1px solid #1c2434;padding-bottom:4px"><span style="color:#8b98a9">${n}</span><b>${v}</b></div>`).join('')}</div>

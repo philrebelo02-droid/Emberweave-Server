@@ -10,7 +10,7 @@
   'use strict';
   const get=(b,k)=>Math.max(0,Number(b&&b[k])||0);
   const mul=(n,v)=>n==null?n:n*(1+v);
-  const FLAT_KEYS=['hpFlat','adFlat','apFlat','armorFlat','mrFlat','armorPenFlat','magicPenFlat'];
+  const FLAT_KEYS=['hpFlat','adFlat','apFlat','armorFlat','mrFlat','armorPenFlat','magicPenFlat','defenseFlat'];   // defenseFlat: Academy v2 (11 Oct) Defense rating from the Armor & MR bar
   const PEN_POWER_PER_POINT=0.0001;   // card power: +1% per 100 average penetration (pen is not in the card's EHP x DPS formula)
   /* v1096: two blessing kinds are not fractions - weigh them into the card multiplier as fraction-equivalents (PROPOSED):
      1 energy/s ~ 0.05, energy from damage taken 0.4 ~ 0.1. Every other effect counts its fraction as before. */
@@ -28,6 +28,7 @@
     const f=flats(b);
     R.hpFlat=(R.hpFlat|0)+f.hpFlat; R.atkFlat=(R.atkFlat|0)+f.adFlat; R.apowFlat=(R.apowFlat|0)+f.apFlat;
     R.armorPen=(R.armorPen|0)+f.armorPenFlat; R.magicPen=(R.magicPen|0)+f.magicPenFlat;
+    R.defense=(R.defense|0)+f.defenseFlat;   // Academy v2: Defense rating (combat-core 20 = 1%)
     if(extra){ extra.armorRating=(extra.armorRating||0)+f.armorFlat; extra.mrRating=(extra.mrRating||0)+f.mrFlat; }
     return R;
   }
