@@ -175,18 +175,36 @@ function worldPlanningDB(){return _worldSettlementPlanning?.db||DB;}
 function saveDB(snapshot,suffix='.tmp'){
   // The sole local whole-snapshot writer. Callers own boot checks/error policy/PG.
   if(typeof suffix!=='string'||!/^\.[a-z0-9.-]+\.tmp$/.test(suffix)&&suffix!=='.tmp')throw Error('Invalid DB temporary suffix');   // '.group.tmp' (v1036) matches
-  if(typeof _store!=='undefined'&&_store.split){ _store.write(snapshot,null); _pendingFull=false; return; }   /* typeof: the span tests run saveDB alone */   // v1037: every shard + the manifest, one atomic swap
+  if(typeof _store!=='undefined'&&_store.split){ _store.write(snapshot,null); _pendingFull=false; if(typeof _pendingIds!=='undefined') _pendingIds.clear(); return; }   /* typeof: the span tests run saveDB alone */   // v1037: every shard + the manifest, one atomic swap
   const tmp=DB_FILE+suffix;fs.writeFileSync(tmp,JSON.stringify(snapshot));fs.renameSync(tmp,DB_FILE);
-  _pendingFull=false;
+  _pendingFull=false; if(typeof _pendingIds!=='undefined') _pendingIds.clear();
 }
 var _pendingFull=false;   /* v1037: a generic writeDB() is waiting (or was absorbed into a group save) - its change names no players */
-function writeDB(){ if(_worldSettlementPlanning||_durableIdemActive)return; if(PG_BOOT_PENDING){ _bootDirty=true; return; }   // v327: see bootFinish()
-  _pendingFull=true;
+/* v1124 PARTIAL DEBOUNCED SAVES (Server 1 load test 11 Oct 2026: p95 broke 1 s at ~150-250 players with the CPU at 6-17% - the main
+   thread sat in FULL world saves, 233-883 ms each, 426 of 491 saves full, because every generic writeDB() named no players).
+   writeDB(ids) names the players whose records changed: the debounced save then writes only their shards + the manifest (the
+   shared world, which a split save always writes). ONE id-less writeDB() since the last save keeps today's full save. A route that
+   changes nothing but its own player's record declares it once with _saveScope(me.id): every id-less writeDB()/writeDBNow() inside
+   that request (ledTx, resourceGain, ...) then names that player. The scope ends when the route answers (send), so a timer or a
+   continuation after the reply saves in full. Without DB_STORE=split every save is the full save it always was. */
+var _pendingIds=new Set();   // players named by writeDB(ids) since the last committed save (cleared only by a save that wrote them)
+function _saveIdsFor(ids){ if(Array.isArray(ids)) return ids;
+  const c=(typeof _reqCtx!=='undefined')?_reqCtx.getStore():null;
+  return (c&&Array.isArray(c.saveIds))?c.saveIds:null; }
+function _saveScope(...ids){ const c=(typeof _reqCtx!=='undefined')?_reqCtx.getStore():null; if(c) c.saveIds=ids.filter(x=>typeof x==='string'&&x); }
+function writeDB(ids){ if(_worldSettlementPlanning||_durableIdemActive)return; if(PG_BOOT_PENDING){ _bootDirty=true; return; }   // v327: see bootFinish()
+  const named=_saveIdsFor(ids);
+  if(named){ for(const id of named) if(typeof id==='string'&&id) _pendingIds.add(id); } else _pendingFull=true;
   if(saveTimer)return; saveTimer=setTimeout(()=>{ saveTimer=null;
-  if(_batchOpen){ _batchOpen.actions++; _batchOpen.all=true; return; }   // v1036: a group save is already queued - it writes this change too
-  try{ saveDB(DB); }   // atomic: write temp, then rename
-  catch(e){ console.error('DB write failed:', e.message); }
-  pgSave(); },200); }
+  if(_batchOpen){ _batchOpen.actions++; if(_pendingFull) _batchOpen.all=true; return; }   // v1036: a group save is already queued - it writes this change too (v1124: _runBatch adds the pending ids)
+  const full=_pendingFull||!_store.split;
+  if(!full&&!_pendingIds.size) return;
+  try{ if(full) saveDB(DB);   // atomic: write temp, then rename
+    else { _store.write(DB,[..._pendingIds]); _pendingIds.clear(); } }   // v1124: only the named players' shards + the manifest
+  catch(e){ console.error('DB write failed:', e.message); }   // a failed partial keeps its ids pending: the next save retries them
+  pgSave();
+  if(!full && Date.now()-_store.stats.lastFullAt>STORE_SWEEP_MS) writeDBFull(); },200); }
+function writeDBFull(){ _pendingFull=true; writeDB([]); }   /* v1124: a full save, whatever request scope is active (the periodic sweep) */
 /* v1036 GROUP SAVES (Phil 5 Oct 2026, after the war load test - "do it all"). 90% of the server's CPU went to saving the WHOLE
    world JSON once per durable action (a war declaration took 140-200 ms on an idle 11 MB copy; each server topped out near 6-7
    saves a second). Same promise to the player - nothing is acknowledged before it is on disk - delivered in batches:
@@ -216,7 +234,7 @@ function _runBatch(){
   const b=_batchOpen; if(!b) return; _batchOpen=null;
   if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; }   // this save covers any debounced change too
   const t0=Date.now(), all=b.all||_pendingFull||!_store.split;   // v1037: a partial save only when every change named its players
-  try{ if(all) saveDB(DB,'.group.tmp'); else _store.write(DB,b.ids); }
+  try{ if(all) saveDB(DB,'.group.tmp'); else { for(const id of _pendingIds) b.ids.add(id); _store.write(DB,b.ids); _pendingIds.clear(); } }   // v1124: a debounced writeDB(ids) waiting is written by this save too
   catch(e){
     for(const u of b.undos.slice().reverse()){ try{ u(); }catch(e2){ console.error('group save undo failed:', e2.message); } }
     GROUP_SAVE_STATS.failed++; console.error('group save failed - '+b.actions+' change(s), '+b.undos.length+' undone:', e.message);
@@ -224,7 +242,7 @@ function _runBatch(){
   const ms=Date.now()-t0; _lastSaveMs=ms; _lastSaveEnd=Date.now(); GROUP_SAVE_STATS.batches++; GROUP_SAVE_STATS.actions+=b.actions; GROUP_SAVE_STATS.lastMs=ms;
   if(ms>GROUP_SAVE_STATS.maxMs) GROUP_SAVE_STATS.maxMs=ms;
   b.resolve(true); try{ pgSave(); }catch(e){}
-  if(!all && Date.now()-_store.stats.lastFullAt>STORE_SWEEP_MS) writeDB(); }   // v1037: changes no action declared (presence) reach disk too
+  if(!all && Date.now()-_store.stats.lastFullAt>STORE_SWEEP_MS) writeDBFull(); }   // v1037: changes no action declared (presence) reach disk too (v1124: always full - this runs inside a request's async context)
 function writeDBSync(){ try{ if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; } saveDB(DB); return true; }catch(e){ console.error('DB write failed:', e.message); return false; } }   // v1036: exit paths
 process.on('SIGTERM',()=>{ if(!PG_BOOT_PENDING && _booted) writeDBSync(); process.exit(0); });   // v1036: a restart keeps the last debounced changes
 
@@ -283,6 +301,7 @@ function corsHeaders(){ const h={'Content-Type':'application/json'};
 function _sendNow(res, code, obj){ const b=JSON.stringify(obj); res.writeHead(code,corsHeaders()); res.end(b); }
 function send(res, code, obj){   // v1036: a reply whose request joined a group save waits for that save (503 if it failed)
   const c=(typeof _reqCtx!=='undefined')?_reqCtx.getStore():null;
+  if(c) c.saveIds=null;   // v1124: a declared save scope ends with the reply - later timers/continuations save in full
   if(c && c.waits && c.waits.size){ const ws=[...c.waits]; c.waits.clear();
     Promise.all(ws).then(r=>{ if(r.every(Boolean)) _sendNow(res,code,obj);
       else _sendNow(res,503,{ok:false,storageFailed:true,error:c.failMsg||'Save failed. Retry the same request.'}); }); return; }
@@ -1706,14 +1725,17 @@ function vaultSweepNextCost(sw){ if(sw.freeUsesRemaining>0) return 0; const paid
    record along with the reward — and the client's retry would then be paid a second time. Every
    idem() result is now flushed to disk BEFORE the response is written. */
 var _durableIdemActive=false;   /* 3 Oct audit: set while a durable idem() action runs - its own final save is the only write */
-function writeDBNow(){   /* v1000 (Account audit #9): returns false when the disk write failed (callers that must not ack can check it) */
+function writeDBNow(ids){   /* v1000 (Account audit #9): returns false when the disk write failed (callers that must not ack can check it) */
   if(_worldSettlementPlanning||_durableIdemActive)return true;
   if(PG_BOOT_PENDING){ _bootDirty=true; return true; }   // v327: boot restore window — see bootFinish()
+  const named=_saveIdsFor(ids);   // v1124: the players this save is for (explicit, or the request's _saveScope); null = everything
   if((typeof _reqCtx!=='undefined'&&_reqCtx.getStore())){ if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; }   // v1036: inside a request the reply waits for the group save
-    _holdReply(_joinBatch(null), 'Save failed - try again.'); return true; }
+    _holdReply(_joinBatch(null, named||undefined), 'Save failed - try again.'); return true; }
   try{ if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; }
-    saveDB(DB);
-  }catch(e){ console.error('DB durable write failed:', e.message); return false; }
+    if(named&&_store.split&&!_pendingFull){ const s=new Set(_pendingIds); for(const id of named) if(typeof id==='string'&&id) s.add(id); _store.write(DB,s); _pendingIds.clear(); }   // v1124
+    else saveDB(DB);
+  }catch(e){ if(named) for(const id of named) if(typeof id==='string'&&id) _pendingIds.add(id);   // v1124: the change is still waiting for a save
+    console.error('DB durable write failed:', e.message); return false; }
   try{ pgSave(); }catch(e){}
   return true;
 }
@@ -5945,7 +5967,7 @@ async function api(req,res,url){
       if(snaps.some(s=>!s)) return send(res,400,{error:'Unknown hero in the team.'});
       const floor=prog.currentFloor;
       const attempt={ id:uid(), floor, heroIds:ids, teamSnapshot:snaps, power:{ fighters:ids.slice(0,5).map(k=>vaultHeroPowerRow(me,k)), backups:ids.slice(5).map(k=>vaultHeroPowerRow(me,k)) }, enemyWaves:buildDungeonWaves(floor), startedAt:Date.now() };
-      prog.lastTeamHeroIds=ids; prog.activeAttempt=attempt; prog.version++; writeDB();
+      prog.lastTeamHeroIds=ids; prog.activeAttempt=attempt; prog.version++; writeDB([me.id]);   // v1124: the climb (DB.dungeonProgress) is shared world - the manifest always writes it
       return send(res,200,{ ok:true, attemptId:attempt.id, floor, bossRule:bossRuleForFloor(floor),
         waves:attempt.enemyWaves });   // fixed monster lineup for this floor — the fight happens in the client
     }
@@ -6061,7 +6083,7 @@ async function api(req,res,url){
       if(!glyphsEnabledFor(me)) return send(res,200,{enabled:false});
       if(rateLimited(req,'glyphState:'+me.id,Math.round(120*RL_MUL),60000)) return send(res,429,{error:'Slow down.'});   /* v1083 (scan 5 #1): the limiter below never covered this read */
       const _gs=()=>{ const x=me.glyphs; return x?JSON.stringify([x.revision,x.migratedAt,x.flow2At]):'none'; }, _gb=_gs();
-      glyphMigrate(me); glyphFlowMigrate(me); const g=ensureGlyphs(me); if(_gs()!==_gb) writeDB();   /* v1083: saves only when a migration ran */
+      glyphMigrate(me); glyphFlowMigrate(me); const g=ensureGlyphs(me); if(_gs()!==_gb) writeDB([me.id]);   /* v1083: saves only when a migration ran */
       // Correction Spec v1: materials + locked boards + permanent bonuses ONLY — no loose
       // finished-Glyph or Sub-Glyph inventory exists in the player model any more.
       return send(res,200,{ enabled:true, revision:g.revision, fragments:g.fragments,
@@ -6406,7 +6428,7 @@ async function api(req,res,url){
     return send(res,out.storageFailed?503:out.ok?200:400,out);
   }
 
-  if(p==='/api/save' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'}); if(rateLimited(req,'save:'+me.id,Math.round(60*RL_MUL),60000)) return send(res,429,{error:'Slow down.'});   /* v1083 (scan 5 #5): the client debounces to <=~40 a minute */
+  if(p==='/api/save' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'}); _saveScope(me.id);   /* v1124: team/wall/roster are this player's own record */ if(rateLimited(req,'save:'+me.id,Math.round(60*RL_MUL),60000)) return send(res,429,{error:'Slow down.'});   /* v1083 (scan 5 #5): the client debounces to <=~40 a minute */
     const b=await body(req, BODY_MAX_SAVE);
     /* v272 (full-game audit): `team`/`wall` are the player's chosen line-up — UI state, not power.
        They used to be stored verbatim, unbounded, and a forged `level`/`rank` inside them reached a
@@ -6419,7 +6441,7 @@ async function api(req,res,url){
     if(sv) me.roster=sanitizeSave(me, sv);   // clamp impossible values + flag implausible jumps
     // World position is server-owned. Ignore the legacy browser world blob; it must not
     // change mine travel or another player's visible castle position.
-    if(writeDBNow()===false) return send(res,503,{ok:false,storageFailed:true,error:'Save failed - try again.'});   /* v1003 (Account audit #18): the cloud save is on disk before it is acknowledged */
+    if(writeDBNow([me.id])===false) return send(res,503,{ok:false,storageFailed:true,error:'Save failed - try again.'});   /* v1003 (Account audit #18): the cloud save is on disk before it is acknowledged */
     return send(res,200,{ok:true}); }
 
   // ---- PVP ATTACK REPORTS: when a player raids a REAL castle, the defender gets mail. ----
@@ -6430,11 +6452,11 @@ async function api(req,res,url){
     if(pool.goldUsedDay!==dk){ pool.goldUsedDay=dk; pool.goldFree=0; }
     const goldFreeReady=pool.goldFree<WISH_GOLD_FREE_MAX && (now-pool.goldLast)>=WISH_GOLD_FREE_MS;
     const gemUnlocked=pool.gemFirstDone || ((led.camp&&led.camp.cleared)|0)>=WISH_FIRST_GEM_CLEAR_NODE;
-    const gemFreeReady=pool.gemFreeDay!==dk && gemUnlocked;
+    const gemFreeReady=pool.gemFreeDay!==dk && gemUnlocked; _saveScope(me.id);   /* v1124: the day roll lives in this player's ledger (led.pool) */
     /* 3 Oct Pool audit #3 (v1065: nyDayKey is now the 09:00 ET day, so both agree): the free diamond wish resets at New York midnight (nyDayKey); the client used the 09:00 arena reset for
        its countdown and label, so a wish tapped at "0" was charged. The server now says how long until the next New York day. */
     const _sh=now-GAME_DAY_START_MS, nyOff=etOffsetMs(_sh), nyWall=_sh-nyOff, gemFreeNextMs=Math.max(0,(Math.floor(nyWall/86400000)+1)*86400000+nyOff+GAME_DAY_START_MS-now);   // v1065: next 09:00 ET
-    writeDB();
+    writeDB([me.id]);
     return send(res,200,{ mythOdds:MYTH_ODDS, mythCost:WISH_MYTH_COST, mythUnlockEgp:MYTH_UNLOCK_EGP, odds:{full3:0.01,full2:0.08,frag2:0.15,frag3:0.10,goldHero:0.05,goldFrag:0.15},
       pity:{at:WISH_GEM_PITY,count:pool.pity}, costs:{gold:WISH_GOLD_COST,gem:WISH_GEM_COST,mult10:WISH10_MULT},
       goldFree:{ready:goldFreeReady,usedToday:pool.goldFree,max:WISH_GOLD_FREE_MAX,nextMs:Math.max(0,WISH_GOLD_FREE_MS-(now-pool.goldLast))},
@@ -6790,7 +6812,7 @@ async function api(req,res,url){
     return send(res, out.storageFailed?503:out.ok===false?400:200, out); }
   /* v267: Getting Started rewards are server-granted, once each, from the authored table above. */
   if(p==='/api/tutorial/claim' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
-    const b=await body(req); const step=String(b.step||'').slice(0,16);
+    const b=await body(req); const step=String(b.step||'').slice(0,16); _saveScope(me.id);   /* v1124: per-player save - this route changes only its own player (+ the shared world the manifest always writes) */
     const rw=TUTORIAL_REWARDS[step]; if(!rw) return send(res,400,{error:'Unknown step.'});
     const led=ensureLedger(me); led.tut=led.tut||{};
     if(step==='vexxp'&&((led.xpPotionUsed||{}).vexMinor|0)<=(led.tutVexXpBase|0))return send(res,400,{error:'Use a Minor XP Potion on Vex after claiming the lesson potion.'});
@@ -6806,7 +6828,7 @@ async function api(req,res,url){
     if(rw.frag){ // a fixed, named starter hero — never a random pick made by the browser
       const hk='vex'; creditFrags(me,led,hk,rw.frag,'tutorial:'+step); out.frag={heroKey:hk, qty:rw.frag}; }
     ledTx(me,'tutorial:'+step,{gold:out.gold,gems:out.gems,stamina:out.stam,xpPotion:out.xpPotion||null});
-    writeDB(); return send(res,200,{ok:true, step, reward:out, ledger:ledgerView(me)}); }
+    writeDB([me.id]); return send(res,200,{ok:true, step, reward:out, ledger:ledgerView(me)}); }
   if(p==='/api/hero/xp-potion' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     const b=await body(req), reqId=String(b.requestId||'').slice(0,48);
     if(!reqId)return send(res,400,{error:'requestId required'});
@@ -6986,7 +7008,7 @@ async function api(req,res,url){
   if(p==='/api/ledger'){ if(!me)return send(res,401,{error:'auth'});
     if(rateLimited(req,'ledgerGet:'+me.id,Math.round(120*RL_MUL),60000)) return send(res,429,{error:'Slow down.'});   /* v1083 (scan 5 #1) */
     const _sig=()=>JSON.stringify([me.led?me.led.stam:null, me.led?me.led.rev:null, me.worldLocation||null, !!me.led]);
-    const _b=_sig(); const v=ledgerView(me); if(_sig()!==_b) writeDB(); return send(res,200,v); }   /* v1083: a read saves only what it changed (was a full-world save on every poll) */
+    _saveScope(me.id); const _b=_sig(); const v=ledgerView(me); if(_sig()!==_b) writeDB([me.id]); return send(res,200,v); }   /* v1124: stamina regen / ledger migration of this player only */   /* v1083: a read saves only what it changed (was a full-world save on every poll) */
   if(p==='/api/temple/pray'||p==='/api/temple/save'||p==='/api/temple/discard'||p==='/api/temple/auto'){
     if(!me)return send(res,401,{error:'auth'});
     if(req.method!=='POST')return send(res,404,{error:'temple'});
@@ -7209,7 +7231,7 @@ async function api(req,res,url){
       playerLevel:()=>ledPlayerLevel(led), loanPool:()=>Object.keys(SIM.HERO_BASE).sort() });
     if(out&&out.storageFailed) return send(res, 503, out);   /* 3 Oct audit: durable idem refused a failed save */
     if(out) return send(res, out.status, Object.assign({ ledger:ledgerView(me) }, out.body)); }
-  if(p==='/api/campaign/start' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
+  if(p==='/api/campaign/start' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'}); _saveScope(me.id);   /* v1124: per-player save - this route changes only its own player (+ the shared world the manifest always writes) */
     if(!CAMP_ENC) return send(res,400,{error:'Campaign encounters unavailable.'});
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48);
     const led=ensureLedger(me);
@@ -7256,7 +7278,7 @@ async function api(req,res,url){
           /* A resumed session plays a NEW fight on the same attempt — the interrupted fight's action
              transcript and clock must not survive to be replayed as this result. */
           open.stream=null; open.clock=null;
-          writeDB();
+          writeDB([me.id]);
           return send(res,200,{ ok:true, resumed:true, attemptId:open.id, mode, stage:st0, seed:open.seed,
             snaps:open.snaps, engine:open.engine, stamina:{v:led.stam.v,max:ledStamMax(led)} });
         }
@@ -7282,10 +7304,10 @@ async function api(req,res,url){
     prog.att={ id:uid(), node, mode, heroIds:ids, teamSnapshot:snaps, specs, snaps:fightSnaps, seed,
       engine:(host&&host.buildVersion)||null, startedAt:Date.now(), reqId, stamPaid:cost };
     ledTx(me,mode+':start:'+st.id,{stamina:-cost});
-    writeDB();
+    writeDB([me.id]);
     return send(res,200,{ ok:true, attemptId:prog.att.id, mode, stage:st, seed, snaps:fightSnaps,
       engine:prog.att.engine, stamina:{v:led.stam.v,max:ledStamMax(led)} }); }
-  if(p==='/api/campaign/resolve' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
+  if(p==='/api/campaign/resolve' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'}); _saveScope(me.id);   /* v1124: per-player save - this route changes only its own player (+ the shared world the manifest always writes) */
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
     { const _ak='c:'+me.id+':'+String(b.attemptId||'');   /* v1083 (scan 5 #7): K parallel resolves started K worker replays; v1085: the second one waits for the first (no 409 - the client read it as a loss) */
       if(_simInflight.has(_ak)){ try{ await _simInflight.get(_ak); }catch(e){} }
@@ -7303,7 +7325,7 @@ async function api(req,res,url){
         prog.att=null;
         led.stam.v=Math.min(999, led.stam.v+(a.stamPaid|0));   // refund: never below what they already hold
         ledTx(me,mode+':expired:'+(a.node|0),{stamina:(a.stamPaid|0)});
-        writeDB();
+        writeDB([me.id]);
         return {ok:false, expired:true, error:'That battle expired — your stamina was returned. Start the stage again.', ledger:ledgerView(me)};
       }
       prog.att=null;
@@ -7355,7 +7377,7 @@ async function api(req,res,url){
       if(!witnessed){
         led.stam.v=Math.min(999,led.stam.v+(a.stamPaid|0));
         ledTx(me,mode+':invalid-verdict:'+st.id,{stamina:(a.stamPaid|0)});
-        writeDB();
+        writeDB([me.id]);
         return {ok:false,unverified:true,error:'Battle result was incomplete — your stamina was returned.',ledger:ledgerView(me)};
       }
       const host=simHost();
@@ -7438,7 +7460,7 @@ async function api(req,res,url){
         digest:serverEndDigest?sha256hex(serverEndDigest):null, transcript:inputLog,
         clientDigest:(typeof b.digest==='string'?sha256hex(b.digest):null) };
       led.battleReceipts=(led.battleReceipts||[]).concat([receipt]).slice(-40);
-      writeDB();
+      writeDB([me.id]);
       receipt.match=digestMatch;
       return { ok:true, mode, won, stars, reward, verified:true, playerTruth:true, engine:a.engine||null,
         serverDigest:receipt.digest, digestMatch, replayIncident:!digestMatch, transcript:transcriptSource,
@@ -7566,7 +7588,7 @@ async function api(req,res,url){
     const edAttFor=id=>{ id=String(id||''); return (E.att&&E.att.id===id)?E.att:(E.open.find(x=>x&&x.id===id)||null); };
     if(p==='/api/emberdraft/round'){ const att=edAttFor(b.attemptId);
       if(!att) return send(res,400,{ok:false,error:'No Emberdraft match in progress.'});
-      if(!att.claimed){ edCpIngest(att,b.cps,false); writeDB(); }
+      if(!att.claimed){ edCpIngest(att,b.cps,false); writeDB([me.id]); }   // v1124: led.edraft is this player's
       const have=Object.keys(att.cp||{}).map(Number).reduce((a,x)=>Math.max(a,x),0);
       return send(res,200,{ok:true,have}); }
     const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
@@ -7643,7 +7665,7 @@ async function api(req,res,url){
     if(!PROV_ENC) return send(res,503,{error:'The Training Province is unavailable.'});
     if(rateLimited(req,'province',60,60000)) return send(res,429,{error:'Slow down.'});
     let led=ensureLedger(me);
-    if(p==='/api/province/state'){ const before=JSON.stringify(led.prov===undefined?null:led.prov); const v=provStateView(me,led); if(JSON.stringify(led.prov===undefined?null:led.prov)!==before) writeDB(); return send(res,200,v); }   /* v1011 (re-audit Arena N14): write only when the read changed something (a day roll) */
+    if(p==='/api/province/state'){ const before=JSON.stringify(led.prov===undefined?null:led.prov); const v=provStateView(me,led); if(JSON.stringify(led.prov===undefined?null:led.prov)!==before) writeDB([me.id]); return send(res,200,v); }   /* v1011 (re-audit Arena N14): write only when the read changed something (a day roll) */
     if(req.method!=='POST') return send(res,404,{error:'province'});
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'}); led=ensureLedger(me);   /* v1089 (scan 10): the ledger is taken AFTER the last await - a commit by another request during the await replaces me.led, and writes to the old object were lost while grants to me.glyphs landed (bonus pot / first clear / province repeated) */
     const dev=isDev(me);
@@ -7669,7 +7691,7 @@ async function api(req,res,url){
       if(host){ try{ fightSnaps=host.snapFromSpecs(specs); }catch(e){ console.error('sim-host snapFromSpecs failed (province):',e.message); } }
       const seed=(crypto.randomBytes(4).readUInt32BE(0))>>>0;
       pr.att={ id:uid(), stage, heroIds:ids, snaps:fightSnaps, seed, engine:(host&&host.buildVersion)||null, startedAt:Date.now(), reqId };
-      writeDB();
+      writeDB([me.id]);   // v1124: led.prov is this player's
       return send(res,200,{ ok:true, attemptId:pr.att.id, type:t, stage, seed, snaps:fightSnaps, waves:st.waves, boss:st.boss,
         levelGate:st.levelGate, engine:pr.att.engine, reward:provReward(t,stage) }); }
     if(p==='/api/province/resolve'){ const _ak='p:'+me.id+':'+String(b.attemptId||'');   /* v1083 (scan 5 #7); v1085: wait, not 409 */
