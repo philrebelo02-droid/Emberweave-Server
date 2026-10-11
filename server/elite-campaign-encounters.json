@@ -5473,84 +5473,84 @@
     {
      "key": "riftling spider",
      "lvl": 28,
-     "hpMul": 12.7287,
-     "dmgMul": 9.1332
+     "hpMul": 10.8194,
+     "dmgMul": 7.7632
     },
     {
      "key": "whisp",
      "lvl": 28,
-     "hpMul": 12.7287,
-     "dmgMul": 9.1332
+     "hpMul": 10.8194,
+     "dmgMul": 7.7632
     },
     {
      "key": "skyroot dryad",
      "lvl": 28,
-     "hpMul": 12.7287,
-     "dmgMul": 9.1332
+     "hpMul": 10.8194,
+     "dmgMul": 7.7632
     },
     {
      "key": "whisp",
      "lvl": 28,
-     "hpMul": 12.7287,
-     "dmgMul": 9.1332
+     "hpMul": 10.8194,
+     "dmgMul": 7.7632
     }
    ],
    [
     {
      "key": "whisp",
      "lvl": 28,
-     "hpMul": 12.7287,
-     "dmgMul": 9.1332
+     "hpMul": 10.8194,
+     "dmgMul": 7.7632
     },
     {
      "key": "trapjaw",
      "lvl": 28,
-     "hpMul": 12.7287,
-     "dmgMul": 9.1332
+     "hpMul": 10.8194,
+     "dmgMul": 7.7632
     },
     {
      "key": "whisp",
      "lvl": 28,
-     "hpMul": 12.7287,
-     "dmgMul": 9.1332
+     "hpMul": 10.8194,
+     "dmgMul": 7.7632
     },
     {
      "key": "riftling spider",
      "lvl": 28,
-     "hpMul": 12.7287,
-     "dmgMul": 9.1332
+     "hpMul": 10.8194,
+     "dmgMul": 7.7632
     },
     {
      "key": "skyroot dryad",
      "lvl": 28,
-     "hpMul": 12.7287,
-     "dmgMul": 9.1332
+     "hpMul": 10.8194,
+     "dmgMul": 7.7632
     }
    ],
    [
     {
      "key": "whisp",
      "lvl": 28,
-     "hpMul": 12.7287,
-     "dmgMul": 9.1332
+     "hpMul": 10.8194,
+     "dmgMul": 7.7632
     },
     {
      "key": "trapjaw",
      "lvl": 28,
-     "hpMul": 12.7287,
-     "dmgMul": 9.1332
+     "hpMul": 10.8194,
+     "dmgMul": 7.7632
     },
     {
      "key": "riftling spider",
      "lvl": 28,
-     "hpMul": 12.7287,
-     "dmgMul": 9.1332
+     "hpMul": 10.8194,
+     "dmgMul": 7.7632
     },
     {
      "key": "riftling spider",
      "lvl": 28,
-     "hpMul": 12.7287,
-     "dmgMul": 9.1332
+     "hpMul": 10.8194,
+     "dmgMul": 7.7632
     }
    ]
   ],
@@ -5568,6 +5568,12 @@
     "scale": 0.85,
     "dmgScale": 0.85,
     "why": "follows Normal 5-6 (v1121 curve) so Elite stays ~1.5x its Normal stage"
+   },
+   {
+    "v": "v1122",
+    "date": "2026-10-11",
+    "scale": 0.85,
+    "why": "follows Normal 5-6 (v1122 x0.85) so Elite stays ~1.5x its Normal stage"
    }
   ]
  },
@@ -7730,84 +7736,84 @@
     {
      "key": "granith",
      "lvl": 38,
-     "hpMul": 35.5015,
-     "dmgMul": 20.3179
+     "hpMul": 30.1763,
+     "dmgMul": 17.2702
     },
     {
      "key": "crystalhorn grazer",
      "lvl": 38,
-     "hpMul": 35.5015,
-     "dmgMul": 20.3179
+     "hpMul": 30.1763,
+     "dmgMul": 17.2702
     },
     {
      "key": "zephyr harrier",
      "lvl": 38,
-     "hpMul": 35.5015,
-     "dmgMul": 20.3179
+     "hpMul": 30.1763,
+     "dmgMul": 17.2702
     },
     {
      "key": "granith",
      "lvl": 38,
-     "hpMul": 35.5015,
-     "dmgMul": 20.3179
+     "hpMul": 30.1763,
+     "dmgMul": 17.2702
     }
    ],
    [
     {
      "key": "zephyr harrier",
      "lvl": 38,
-     "hpMul": 35.5015,
-     "dmgMul": 20.3179
+     "hpMul": 30.1763,
+     "dmgMul": 17.2702
     },
     {
      "key": "zephyr harrier",
      "lvl": 38,
-     "hpMul": 35.5015,
-     "dmgMul": 20.3179
+     "hpMul": 30.1763,
+     "dmgMul": 17.2702
     },
     {
      "key": "granith",
      "lvl": 38,
-     "hpMul": 35.5015,
-     "dmgMul": 20.3179
+     "hpMul": 30.1763,
+     "dmgMul": 17.2702
     },
     {
      "key": "ironjaw raider",
      "lvl": 38,
-     "hpMul": 35.5015,
-     "dmgMul": 20.3179
+     "hpMul": 30.1763,
+     "dmgMul": 17.2702
     }
    ],
    [
     {
      "key": "zephyr harrier",
      "lvl": 38,
-     "hpMul": 35.5015,
-     "dmgMul": 20.3179
+     "hpMul": 30.1763,
+     "dmgMul": 17.2702
     },
     {
      "key": "crystalhorn grazer",
      "lvl": 38,
-     "hpMul": 35.5015,
-     "dmgMul": 20.3179
+     "hpMul": 30.1763,
+     "dmgMul": 17.2702
     },
     {
      "key": "zephyr harrier",
      "lvl": 38,
-     "hpMul": 35.5015,
-     "dmgMul": 20.3179
+     "hpMul": 30.1763,
+     "dmgMul": 17.2702
     },
     {
      "key": "ironjaw raider",
      "lvl": 38,
-     "hpMul": 35.5015,
-     "dmgMul": 20.3179
+     "hpMul": 30.1763,
+     "dmgMul": 17.2702
     },
     {
      "key": "granith",
      "lvl": 38,
-     "hpMul": 35.5015,
-     "dmgMul": 20.3179
+     "hpMul": 30.1763,
+     "dmgMul": 17.2702
     }
    ]
   ],
@@ -7831,6 +7837,12 @@
     "scale": 0.85,
     "dmgScale": 0.85,
     "why": "follows Normal 7-3 (v1121 curve) so Elite stays ~1.5x its Normal stage"
+   },
+   {
+    "v": "v1122",
+    "date": "2026-10-11",
+    "scale": 0.85,
+    "why": "follows Normal 7-3 (v1122 x0.85) so Elite stays ~1.5x its Normal stage"
    }
   ]
  },
@@ -13620,54 +13632,54 @@
     {
      "key": "zephyr harrier",
      "lvl": 70,
-     "hpMul": 82.7736,
-     "dmgMul": 42.049
+     "hpMul": 70.3576,
+     "dmgMul": 35.7416
     },
     {
      "key": "crystalhorn grazer",
      "lvl": 70,
-     "hpMul": 82.7736,
-     "dmgMul": 42.049
+     "hpMul": 70.3576,
+     "dmgMul": 35.7416
     },
     {
      "key": "bonepike guard",
      "lvl": 70,
-     "hpMul": 82.7736,
-     "dmgMul": 42.049
+     "hpMul": 70.3576,
+     "dmgMul": 35.7416
     },
     {
      "key": "granith",
      "lvl": 70,
-     "hpMul": 82.7736,
-     "dmgMul": 42.049
+     "hpMul": 70.3576,
+     "dmgMul": 35.7416
     }
    ],
    [
     {
      "key": "zephyr harrier",
      "lvl": 70,
-     "hpMul": 82.7736,
-     "dmgMul": 42.049
+     "hpMul": 70.3576,
+     "dmgMul": 35.7416
     },
     {
      "key": "crystalhorn grazer",
      "lvl": 70,
-     "hpMul": 82.7736,
-     "dmgMul": 42.049
+     "hpMul": 70.3576,
+     "dmgMul": 35.7416
     },
     {
      "key": "zephyr harrier",
      "lvl": 70,
-     "hpMul": 82.7736,
-     "dmgMul": 42.049
+     "hpMul": 70.3576,
+     "dmgMul": 35.7416
     }
    ],
    [
     {
      "key": "oakmir",
      "lvl": 70,
-     "hpMul": 82.7736,
-     "dmgMul": 42.049,
+     "hpMul": 70.3576,
+     "dmgMul": 35.7416,
      "isHero": true,
      "rewardHero": true,
      "rank": 3
@@ -13675,26 +13687,26 @@
     {
      "key": "bonepike guard",
      "lvl": 70,
-     "hpMul": 82.7736,
-     "dmgMul": 42.049
+     "hpMul": 70.3576,
+     "dmgMul": 35.7416
     },
     {
      "key": "zephyr harrier",
      "lvl": 70,
-     "hpMul": 82.7736,
-     "dmgMul": 42.049
+     "hpMul": 70.3576,
+     "dmgMul": 35.7416
     },
     {
      "key": "crystalhorn grazer",
      "lvl": 70,
-     "hpMul": 82.7736,
-     "dmgMul": 42.049
+     "hpMul": 70.3576,
+     "dmgMul": 35.7416
     },
     {
      "key": "zephyr harrier",
      "lvl": 70,
-     "hpMul": 82.7736,
-     "dmgMul": 42.049
+     "hpMul": 70.3576,
+     "dmgMul": 35.7416
     }
    ]
   ],
@@ -13719,6 +13731,12 @@
     "scale": 0.7238,
     "dmgScale": 0.7856,
     "why": "follows Normal 11-7 (v1121 curve) so Elite stays ~1.5x its Normal stage"
+   },
+   {
+    "v": "v1122",
+    "date": "2026-10-11",
+    "scale": 0.85,
+    "why": "v1121 sims: Elite 11-7 160 tries, 5 won across 18 tabs. Phil 11 Oct: \"Campaign should not be so hard maxed out heroes are struggling for weeks ... it should technically be possible to clear stages while not maxed out.\""
    }
   ]
  },
@@ -14586,54 +14604,54 @@
     {
      "key": "clockwork lantern",
      "lvl": 75,
-     "hpMul": 126.3434,
-     "dmgMul": 49.3956
+     "hpMul": 107.3919,
+     "dmgMul": 41.9863
     },
     {
      "key": "reef prowler",
      "lvl": 75,
-     "hpMul": 126.3434,
-     "dmgMul": 49.3956
+     "hpMul": 107.3919,
+     "dmgMul": 41.9863
     },
     {
      "key": "runic automaton",
      "lvl": 75,
-     "hpMul": 126.3434,
-     "dmgMul": 49.3956
+     "hpMul": 107.3919,
+     "dmgMul": 41.9863
     }
    ],
    [
     {
      "key": "runic automaton",
      "lvl": 75,
-     "hpMul": 126.3434,
-     "dmgMul": 49.3956
+     "hpMul": 107.3919,
+     "dmgMul": 41.9863
     },
     {
      "key": "runic automaton",
      "lvl": 75,
-     "hpMul": 126.3434,
-     "dmgMul": 49.3956
+     "hpMul": 107.3919,
+     "dmgMul": 41.9863
     },
     {
      "key": "runic automaton",
      "lvl": 75,
-     "hpMul": 126.3434,
-     "dmgMul": 49.3956
+     "hpMul": 107.3919,
+     "dmgMul": 41.9863
     },
     {
      "key": "kelp hexer",
      "lvl": 75,
-     "hpMul": 126.3434,
-     "dmgMul": 49.3956
+     "hpMul": 107.3919,
+     "dmgMul": 41.9863
     }
    ],
    [
     {
      "key": "oakmir",
      "lvl": 75,
-     "hpMul": 126.3434,
-     "dmgMul": 49.3956,
+     "hpMul": 107.3919,
+     "dmgMul": 41.9863,
      "isHero": true,
      "rewardHero": true,
      "rank": 3
@@ -14641,20 +14659,20 @@
     {
      "key": "runic automaton",
      "lvl": 75,
-     "hpMul": 126.3434,
-     "dmgMul": 49.3956
+     "hpMul": 107.3919,
+     "dmgMul": 41.9863
     },
     {
      "key": "clockwork lantern",
      "lvl": 75,
-     "hpMul": 126.3434,
-     "dmgMul": 49.3956
+     "hpMul": 107.3919,
+     "dmgMul": 41.9863
     },
     {
      "key": "runic automaton",
      "lvl": 75,
-     "hpMul": 126.3434,
-     "dmgMul": 49.3956
+     "hpMul": 107.3919,
+     "dmgMul": 41.9863
     }
    ]
   ],
@@ -14673,6 +14691,12 @@
     "scale": 0.85,
     "dmgScale": 0.85,
     "why": "follows Normal 12-4 (v1121 curve) so Elite stays ~1.5x its Normal stage"
+   },
+   {
+    "v": "v1122",
+    "date": "2026-10-11",
+    "scale": 0.85,
+    "why": "v1121 sims: Elite 12-4 23 tries, 0 won (Big A, Whale A and two copies). Phil 11 Oct: \"Campaign should not be so hard maxed out heroes are struggling for weeks ... it should technically be possible to clear stages while not maxed out.\""
    }
   ]
  },
@@ -15410,60 +15434,60 @@
     {
      "key": "clockwork lantern",
      "lvl": 79,
-     "hpMul": 109.3945,
-     "dmgMul": 36.2822
+     "hpMul": 92.9853,
+     "dmgMul": 30.8399
     },
     {
      "key": "saltglass siren",
      "lvl": 79,
-     "hpMul": 109.3945,
-     "dmgMul": 36.2822
+     "hpMul": 92.9853,
+     "dmgMul": 30.8399
     },
     {
      "key": "clockwork lantern",
      "lvl": 79,
-     "hpMul": 109.3945,
-     "dmgMul": 36.2822
+     "hpMul": 92.9853,
+     "dmgMul": 30.8399
     },
     {
      "key": "runic automaton",
      "lvl": 79,
-     "hpMul": 109.3945,
-     "dmgMul": 36.2822
+     "hpMul": 92.9853,
+     "dmgMul": 30.8399
     }
    ],
    [
     {
      "key": "rustclank",
      "lvl": 79,
-     "hpMul": 109.3945,
-     "dmgMul": 36.2822
+     "hpMul": 92.9853,
+     "dmgMul": 30.8399
     },
     {
      "key": "saltglass siren",
      "lvl": 79,
-     "hpMul": 109.3945,
-     "dmgMul": 36.2822
+     "hpMul": 92.9853,
+     "dmgMul": 30.8399
     },
     {
      "key": "clockwork lantern",
      "lvl": 79,
-     "hpMul": 109.3945,
-     "dmgMul": 36.2822
+     "hpMul": 92.9853,
+     "dmgMul": 30.8399
     },
     {
      "key": "runic automaton",
      "lvl": 79,
-     "hpMul": 109.3945,
-     "dmgMul": 36.2822
+     "hpMul": 92.9853,
+     "dmgMul": 30.8399
     }
    ],
    [
     {
      "key": "umbris",
      "lvl": 79,
-     "hpMul": 109.3945,
-     "dmgMul": 36.2822,
+     "hpMul": 92.9853,
+     "dmgMul": 30.8399,
      "isHero": true,
      "rewardHero": true,
      "rank": 3
@@ -15471,27 +15495,27 @@
     {
      "key": "clockwork lantern",
      "lvl": 79,
-     "hpMul": 109.3945,
-     "dmgMul": 36.2822
+     "hpMul": 92.9853,
+     "dmgMul": 30.8399
     },
     {
      "key": "rustclank",
      "lvl": 79,
-     "hpMul": 109.3945,
-     "dmgMul": 36.2822
+     "hpMul": 92.9853,
+     "dmgMul": 30.8399
     },
     {
      "key": "nymira",
      "lvl": 79,
-     "hpMul": 109.3945,
-     "dmgMul": 36.2822,
+     "hpMul": 92.9853,
+     "dmgMul": 30.8399,
      "boss": true
     },
     {
      "key": "clockwork lantern",
      "lvl": 79,
-     "hpMul": 109.3945,
-     "dmgMul": 36.2822
+     "hpMul": 92.9853,
+     "dmgMul": 30.8399
     }
    ]
   ],
@@ -15510,6 +15534,12 @@
     "scale": 0.85,
     "dmgScale": 0.85,
     "why": "follows Normal 12-10 (v1121 curve) so Elite stays ~1.5x its Normal stage"
+   },
+   {
+    "v": "v1122",
+    "date": "2026-10-11",
+    "scale": 0.85,
+    "why": "follows Normal 12-10 (v1122 x0.85) so Elite stays ~1.5x its Normal stage"
    }
   ]
  },
@@ -15830,84 +15860,84 @@
     {
      "key": "furnace gnawer",
      "lvl": 81,
-     "hpMul": 64.3812,
-     "dmgMul": 21.8392
+     "hpMul": 54.724,
+     "dmgMul": 18.5633
     },
     {
      "key": "skyroot dryad",
      "lvl": 81,
-     "hpMul": 64.3812,
-     "dmgMul": 21.8392
+     "hpMul": 54.724,
+     "dmgMul": 18.5633
     },
     {
      "key": "nightcap mimic",
      "lvl": 81,
-     "hpMul": 64.3812,
-     "dmgMul": 21.8392
+     "hpMul": 54.724,
+     "dmgMul": 18.5633
     },
     {
      "key": "nightcap mimic",
      "lvl": 81,
-     "hpMul": 64.3812,
-     "dmgMul": 21.8392
+     "hpMul": 54.724,
+     "dmgMul": 18.5633
     }
    ],
    [
     {
      "key": "nightcap mimic",
      "lvl": 81,
-     "hpMul": 64.3812,
-     "dmgMul": 21.8392
+     "hpMul": 54.724,
+     "dmgMul": 18.5633
     },
     {
      "key": "vineback boar",
      "lvl": 81,
-     "hpMul": 64.3812,
-     "dmgMul": 21.8392
+     "hpMul": 54.724,
+     "dmgMul": 18.5633
     },
     {
      "key": "nightcap mimic",
      "lvl": 81,
-     "hpMul": 64.3812,
-     "dmgMul": 21.8392
+     "hpMul": 54.724,
+     "dmgMul": 18.5633
     },
     {
      "key": "nightcap mimic",
      "lvl": 81,
-     "hpMul": 64.3812,
-     "dmgMul": 21.8392
+     "hpMul": 54.724,
+     "dmgMul": 18.5633
     },
     {
      "key": "nightcap mimic",
      "lvl": 81,
-     "hpMul": 64.3812,
-     "dmgMul": 21.8392
+     "hpMul": 54.724,
+     "dmgMul": 18.5633
     }
    ],
    [
     {
      "key": "nightcap mimic",
      "lvl": 81,
-     "hpMul": 64.3812,
-     "dmgMul": 21.8392
+     "hpMul": 54.724,
+     "dmgMul": 18.5633
     },
     {
      "key": "furnace gnawer",
      "lvl": 81,
-     "hpMul": 64.3812,
-     "dmgMul": 21.8392
+     "hpMul": 54.724,
+     "dmgMul": 18.5633
     },
     {
      "key": "skyroot dryad",
      "lvl": 81,
-     "hpMul": 64.3812,
-     "dmgMul": 21.8392
+     "hpMul": 54.724,
+     "dmgMul": 18.5633
     },
     {
      "key": "furnace gnawer",
      "lvl": 81,
-     "hpMul": 64.3812,
-     "dmgMul": 21.8392
+     "hpMul": 54.724,
+     "dmgMul": 18.5633
     }
    ]
   ],
@@ -15931,6 +15961,12 @@
     "scale": 0.85,
     "dmgScale": 0.85,
     "why": "follows Normal 13-3 (v1121 curve) so Elite stays ~1.5x its Normal stage"
+   },
+   {
+    "v": "v1122",
+    "date": "2026-10-11",
+    "scale": 0.85,
+    "why": "follows Normal 13-3 (v1122 x0.85) so Elite stays ~1.5x its Normal stage"
    }
   ]
  },
@@ -16915,66 +16951,66 @@
     {
      "key": "basalt mauler",
      "lvl": 87,
-     "hpMul": 146.5349,
-     "dmgMul": 51.1131
+     "hpMul": 124.5547,
+     "dmgMul": 43.4461
     },
     {
      "key": "ashen",
      "lvl": 87,
-     "hpMul": 146.5349,
-     "dmgMul": 51.1131
+     "hpMul": 124.5547,
+     "dmgMul": 43.4461
     },
     {
      "key": "blackquill",
      "lvl": 87,
-     "hpMul": 146.5349,
-     "dmgMul": 51.1131
+     "hpMul": 124.5547,
+     "dmgMul": 43.4461
     },
     {
      "key": "ashen",
      "lvl": 87,
-     "hpMul": 146.5349,
-     "dmgMul": 51.1131
+     "hpMul": 124.5547,
+     "dmgMul": 43.4461
     }
    ],
    [
     {
      "key": "ashen",
      "lvl": 87,
-     "hpMul": 146.5349,
-     "dmgMul": 51.1131
+     "hpMul": 124.5547,
+     "dmgMul": 43.4461
     },
     {
      "key": "basalt mauler",
      "lvl": 87,
-     "hpMul": 146.5349,
-     "dmgMul": 51.1131
+     "hpMul": 124.5547,
+     "dmgMul": 43.4461
     },
     {
      "key": "ashen",
      "lvl": 87,
-     "hpMul": 146.5349,
-     "dmgMul": 51.1131
+     "hpMul": 124.5547,
+     "dmgMul": 43.4461
     },
     {
      "key": "ashen",
      "lvl": 87,
-     "hpMul": 146.5349,
-     "dmgMul": 51.1131
+     "hpMul": 124.5547,
+     "dmgMul": 43.4461
     },
     {
      "key": "crucible acolyte",
      "lvl": 87,
-     "hpMul": 146.5349,
-     "dmgMul": 51.1131
+     "hpMul": 124.5547,
+     "dmgMul": 43.4461
     }
    ],
    [
     {
      "key": "bloatus",
      "lvl": 87,
-     "hpMul": 146.5349,
-     "dmgMul": 51.1131,
+     "hpMul": 124.5547,
+     "dmgMul": 43.4461,
      "isHero": true,
      "rewardHero": true,
      "rank": 3
@@ -16982,26 +17018,26 @@
     {
      "key": "basalt mauler",
      "lvl": 87,
-     "hpMul": 146.5349,
-     "dmgMul": 51.1131
+     "hpMul": 124.5547,
+     "dmgMul": 43.4461
     },
     {
      "key": "blackquill",
      "lvl": 87,
-     "hpMul": 146.5349,
-     "dmgMul": 51.1131
+     "hpMul": 124.5547,
+     "dmgMul": 43.4461
     },
     {
      "key": "ashen",
      "lvl": 87,
-     "hpMul": 146.5349,
-     "dmgMul": 51.1131
+     "hpMul": 124.5547,
+     "dmgMul": 43.4461
     },
     {
      "key": "ashen",
      "lvl": 87,
-     "hpMul": 146.5349,
-     "dmgMul": 51.1131
+     "hpMul": 124.5547,
+     "dmgMul": 43.4461
     }
    ]
   ],
@@ -17020,6 +17056,12 @@
     "scale": 0.8222,
     "dmgScale": 0.85,
     "why": "follows Normal 14-1 (v1121 curve) so Elite stays ~1.5x its Normal stage"
+   },
+   {
+    "v": "v1122",
+    "date": "2026-10-11",
+    "scale": 0.85,
+    "why": "follows Normal 14-1 (v1122 x0.85) so Elite stays ~1.5x its Normal stage"
    }
   ]
  },

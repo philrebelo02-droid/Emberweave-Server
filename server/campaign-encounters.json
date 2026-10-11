@@ -6294,84 +6294,84 @@
         {
           "key": "riftling spider",
           "lvl": 28,
-          "hpMul": 7.7614,
-          "dmgMul": 6.6571
+          "hpMul": 6.5972,
+          "dmgMul": 5.6585
         },
         {
           "key": "whisp",
           "lvl": 28,
-          "hpMul": 7.7614,
-          "dmgMul": 6.6571
+          "hpMul": 6.5972,
+          "dmgMul": 5.6585
         },
         {
           "key": "skyroot dryad",
           "lvl": 28,
-          "hpMul": 7.7614,
-          "dmgMul": 6.6571
+          "hpMul": 6.5972,
+          "dmgMul": 5.6585
         },
         {
           "key": "whisp",
           "lvl": 28,
-          "hpMul": 7.7614,
-          "dmgMul": 6.6571
+          "hpMul": 6.5972,
+          "dmgMul": 5.6585
         }
       ],
       [
         {
           "key": "whisp",
           "lvl": 28,
-          "hpMul": 7.7614,
-          "dmgMul": 6.6571
+          "hpMul": 6.5972,
+          "dmgMul": 5.6585
         },
         {
           "key": "trapjaw",
           "lvl": 28,
-          "hpMul": 7.7614,
-          "dmgMul": 6.6571
+          "hpMul": 6.5972,
+          "dmgMul": 5.6585
         },
         {
           "key": "whisp",
           "lvl": 28,
-          "hpMul": 7.7614,
-          "dmgMul": 6.6571
+          "hpMul": 6.5972,
+          "dmgMul": 5.6585
         },
         {
           "key": "riftling spider",
           "lvl": 28,
-          "hpMul": 7.7614,
-          "dmgMul": 6.6571
+          "hpMul": 6.5972,
+          "dmgMul": 5.6585
         },
         {
           "key": "skyroot dryad",
           "lvl": 28,
-          "hpMul": 7.7614,
-          "dmgMul": 6.6571
+          "hpMul": 6.5972,
+          "dmgMul": 5.6585
         }
       ],
       [
         {
           "key": "whisp",
           "lvl": 28,
-          "hpMul": 7.7614,
-          "dmgMul": 6.6571
+          "hpMul": 6.5972,
+          "dmgMul": 5.6585
         },
         {
           "key": "trapjaw",
           "lvl": 28,
-          "hpMul": 7.7614,
-          "dmgMul": 6.6571
+          "hpMul": 6.5972,
+          "dmgMul": 5.6585
         },
         {
           "key": "riftling spider",
           "lvl": 28,
-          "hpMul": 7.7614,
-          "dmgMul": 6.6571
+          "hpMul": 6.5972,
+          "dmgMul": 5.6585
         },
         {
           "key": "oakmir",
           "lvl": 28,
-          "hpMul": 7.7614,
-          "dmgMul": 6.6571,
+          "hpMul": 6.5972,
+          "dmgMul": 5.6585,
           "isHero": true,
           "rewardHero": true,
           "rank": 3
@@ -6383,7 +6383,7 @@
     "recommendedQuality": "Blue +1",
     "qualityMinHeroLevel": 24,
     "bossLevelGate": 0,
-    "difficultyTune": 2.3815,
+    "difficultyTune": 2.0243,
     "baselineHp": 7.8281,
     "baselineDmg": 4.9375,
     "portalMode": "normal",
@@ -6400,6 +6400,12 @@
         "scale": 0.85,
         "dmgScale": 0.85,
         "why": "campaign curve: spike cap 1.15x chapter median + global x0.85. Phil 11 Oct: \"Campaign should not be so hard maxed out heroes are struggling for weeks ... it should technically be possible to clear stages while not maxed out.\""
+      },
+      {
+        "v": "v1122",
+        "date": "2026-10-11",
+        "scale": 0.85,
+        "why": "v1121 sims: the fresh F2P tab started on v1121 held 28 tries, 0 won. Phil 11 Oct: \"Campaign should not be so hard maxed out heroes are struggling for weeks ... it should technically be possible to clear stages while not maxed out.\""
       }
     ]
   },
@@ -8854,84 +8860,84 @@
         {
           "key": "granith",
           "lvl": 38,
-          "hpMul": 22.6927,
-          "dmgMul": 14.1272
+          "hpMul": 19.2888,
+          "dmgMul": 12.0081
         },
         {
           "key": "crystalhorn grazer",
           "lvl": 38,
-          "hpMul": 22.6927,
-          "dmgMul": 14.1272
+          "hpMul": 19.2888,
+          "dmgMul": 12.0081
         },
         {
           "key": "zephyr harrier",
           "lvl": 38,
-          "hpMul": 22.6927,
-          "dmgMul": 14.1272
+          "hpMul": 19.2888,
+          "dmgMul": 12.0081
         },
         {
           "key": "granith",
           "lvl": 38,
-          "hpMul": 22.6927,
-          "dmgMul": 14.1272
+          "hpMul": 19.2888,
+          "dmgMul": 12.0081
         }
       ],
       [
         {
           "key": "zephyr harrier",
           "lvl": 38,
-          "hpMul": 22.6927,
-          "dmgMul": 14.1272
+          "hpMul": 19.2888,
+          "dmgMul": 12.0081
         },
         {
           "key": "zephyr harrier",
           "lvl": 38,
-          "hpMul": 22.6927,
-          "dmgMul": 14.1272
+          "hpMul": 19.2888,
+          "dmgMul": 12.0081
         },
         {
           "key": "granith",
           "lvl": 38,
-          "hpMul": 22.6927,
-          "dmgMul": 14.1272
+          "hpMul": 19.2888,
+          "dmgMul": 12.0081
         },
         {
           "key": "ironjaw raider",
           "lvl": 38,
-          "hpMul": 22.6927,
-          "dmgMul": 14.1272
+          "hpMul": 19.2888,
+          "dmgMul": 12.0081
         }
       ],
       [
         {
           "key": "zephyr harrier",
           "lvl": 38,
-          "hpMul": 22.6927,
-          "dmgMul": 14.1272
+          "hpMul": 19.2888,
+          "dmgMul": 12.0081
         },
         {
           "key": "crystalhorn grazer",
           "lvl": 38,
-          "hpMul": 22.6927,
-          "dmgMul": 14.1272
+          "hpMul": 19.2888,
+          "dmgMul": 12.0081
         },
         {
           "key": "zephyr harrier",
           "lvl": 38,
-          "hpMul": 22.6927,
-          "dmgMul": 14.1272
+          "hpMul": 19.2888,
+          "dmgMul": 12.0081
         },
         {
           "key": "ironjaw raider",
           "lvl": 38,
-          "hpMul": 22.6927,
-          "dmgMul": 14.1272
+          "hpMul": 19.2888,
+          "dmgMul": 12.0081
         },
         {
           "key": "bloatus",
           "lvl": 38,
-          "hpMul": 22.6927,
-          "dmgMul": 14.1272,
+          "hpMul": 19.2888,
+          "dmgMul": 12.0081,
           "isHero": true,
           "rewardHero": true,
           "rank": 3
@@ -8943,7 +8949,7 @@
     "recommendedQuality": "Purple",
     "qualityMinHeroLevel": 36,
     "bossLevelGate": 0,
-    "difficultyTune": 4.1566,
+    "difficultyTune": 3.5331,
     "baselineHp": 16.5437,
     "baselineDmg": 8.8612,
     "portalMode": "normal",
@@ -8966,6 +8972,12 @@
         "scale": 0.85,
         "dmgScale": 0.85,
         "why": "campaign curve: spike cap 1.15x chapter median + global x0.85. Phil 11 Oct: \"Campaign should not be so hard maxed out heroes are struggling for weeks ... it should technically be possible to clear stages while not maxed out.\""
+      },
+      {
+        "v": "v1122",
+        "date": "2026-10-11",
+        "scale": 0.85,
+        "why": "v1121 sims: both duo tabs held 26 and 31 tries, 0 won (not maxed - by the 11 Oct rule a not-maxed hold of 10+ tries is a wall). Phil 11 Oct: \"Campaign should not be so hard maxed out heroes are struggling for weeks ... it should technically be possible to clear stages while not maxed out.\""
       }
     ]
   },
@@ -17547,85 +17559,85 @@
         {
           "key": "clockwork lantern",
           "lvl": 79,
-          "hpMul": 72.3534,
-          "dmgMul": 24.3807
+          "hpMul": 61.5004,
+          "dmgMul": 20.7236
         },
         {
           "key": "saltglass siren",
           "lvl": 79,
-          "hpMul": 72.3534,
-          "dmgMul": 24.3807
+          "hpMul": 61.5004,
+          "dmgMul": 20.7236
         },
         {
           "key": "clockwork lantern",
           "lvl": 79,
-          "hpMul": 72.3534,
-          "dmgMul": 24.3807
+          "hpMul": 61.5004,
+          "dmgMul": 20.7236
         },
         {
           "key": "runic automaton",
           "lvl": 79,
-          "hpMul": 72.3534,
-          "dmgMul": 24.3807
+          "hpMul": 61.5004,
+          "dmgMul": 20.7236
         }
       ],
       [
         {
           "key": "rustclank",
           "lvl": 79,
-          "hpMul": 72.3534,
-          "dmgMul": 24.3807
+          "hpMul": 61.5004,
+          "dmgMul": 20.7236
         },
         {
           "key": "saltglass siren",
           "lvl": 79,
-          "hpMul": 72.3534,
-          "dmgMul": 24.3807
+          "hpMul": 61.5004,
+          "dmgMul": 20.7236
         },
         {
           "key": "clockwork lantern",
           "lvl": 79,
-          "hpMul": 72.3534,
-          "dmgMul": 24.3807
+          "hpMul": 61.5004,
+          "dmgMul": 20.7236
         },
         {
           "key": "runic automaton",
           "lvl": 79,
-          "hpMul": 72.3534,
-          "dmgMul": 24.3807
+          "hpMul": 61.5004,
+          "dmgMul": 20.7236
         }
       ],
       [
         {
           "key": "saltglass siren",
           "lvl": 79,
-          "hpMul": 72.3534,
-          "dmgMul": 24.3807
+          "hpMul": 61.5004,
+          "dmgMul": 20.7236
         },
         {
           "key": "clockwork lantern",
           "lvl": 79,
-          "hpMul": 72.3534,
-          "dmgMul": 24.3807
+          "hpMul": 61.5004,
+          "dmgMul": 20.7236
         },
         {
           "key": "rustclank",
           "lvl": 79,
-          "hpMul": 72.3534,
-          "dmgMul": 24.3807
+          "hpMul": 61.5004,
+          "dmgMul": 20.7236
         },
         {
           "key": "nymira",
           "lvl": 79,
-          "hpMul": 72.3534,
-          "dmgMul": 24.3807,
+          "hpMul": 61.5004,
+          "dmgMul": 20.7236,
           "boss": true
         },
         {
           "key": "vireo",
           "lvl": 79,
-          "hpMul": 72.3534,
-          "dmgMul": 24.3807,
+          "hpMul": 61.5004,
+          "dmgMul": 20.7236,
           "isHero": true,
           "rewardHero": true,
           "rank": 3
@@ -17637,7 +17649,7 @@
     "recommendedQuality": "Gold +2",
     "qualityMinHeroLevel": 79,
     "bossLevelGate": 79,
-    "difficultyTune": 4.6273,
+    "difficultyTune": 3.9332,
     "baselineHp": 218.4221,
     "baselineDmg": 65.9621,
     "portalMode": "normal",
@@ -17654,6 +17666,12 @@
         "scale": 0.85,
         "dmgScale": 0.85,
         "why": "campaign curve: spike cap 1.15x chapter median + global x0.85. Phil 11 Oct: \"Campaign should not be so hard maxed out heroes are struggling for weeks ... it should technically be possible to clear stages while not maxed out.\""
+      },
+      {
+        "v": "v1122",
+        "date": "2026-10-11",
+        "scale": 0.85,
+        "why": "v1121 sims: 195 tries, 3 won (one whale, Big B) - every F2P and medium tab held 8-30 tries, Medium A and its copy FULLY UPGRADED. Phil 11 Oct: \"Campaign should not be so hard maxed out heroes are struggling for weeks ... it should technically be possible to clear stages while not maxed out.\""
       }
     ]
   },
@@ -18022,84 +18040,84 @@
         {
           "key": "furnace gnawer",
           "lvl": 81,
-          "hpMul": 35.3862,
-          "dmgMul": 17.6596
+          "hpMul": 30.0783,
+          "dmgMul": 15.0107
         },
         {
           "key": "skyroot dryad",
           "lvl": 81,
-          "hpMul": 35.3862,
-          "dmgMul": 17.6596
+          "hpMul": 30.0783,
+          "dmgMul": 15.0107
         },
         {
           "key": "nightcap mimic",
           "lvl": 81,
-          "hpMul": 35.3862,
-          "dmgMul": 17.6596
+          "hpMul": 30.0783,
+          "dmgMul": 15.0107
         },
         {
           "key": "nightcap mimic",
           "lvl": 81,
-          "hpMul": 35.3862,
-          "dmgMul": 17.6596
+          "hpMul": 30.0783,
+          "dmgMul": 15.0107
         }
       ],
       [
         {
           "key": "nightcap mimic",
           "lvl": 81,
-          "hpMul": 35.3862,
-          "dmgMul": 17.6596
+          "hpMul": 30.0783,
+          "dmgMul": 15.0107
         },
         {
           "key": "vineback boar",
           "lvl": 81,
-          "hpMul": 35.3862,
-          "dmgMul": 17.6596
+          "hpMul": 30.0783,
+          "dmgMul": 15.0107
         },
         {
           "key": "nightcap mimic",
           "lvl": 81,
-          "hpMul": 35.3862,
-          "dmgMul": 17.6596
+          "hpMul": 30.0783,
+          "dmgMul": 15.0107
         },
         {
           "key": "nightcap mimic",
           "lvl": 81,
-          "hpMul": 35.3862,
-          "dmgMul": 17.6596
+          "hpMul": 30.0783,
+          "dmgMul": 15.0107
         },
         {
           "key": "nightcap mimic",
           "lvl": 81,
-          "hpMul": 35.3862,
-          "dmgMul": 17.6596
+          "hpMul": 30.0783,
+          "dmgMul": 15.0107
         }
       ],
       [
         {
           "key": "nightcap mimic",
           "lvl": 81,
-          "hpMul": 35.3862,
-          "dmgMul": 17.6596
+          "hpMul": 30.0783,
+          "dmgMul": 15.0107
         },
         {
           "key": "furnace gnawer",
           "lvl": 81,
-          "hpMul": 35.3862,
-          "dmgMul": 17.6596
+          "hpMul": 30.0783,
+          "dmgMul": 15.0107
         },
         {
           "key": "skyroot dryad",
           "lvl": 81,
-          "hpMul": 35.3862,
-          "dmgMul": 17.6596
+          "hpMul": 30.0783,
+          "dmgMul": 15.0107
         },
         {
           "key": "vael",
           "lvl": 81,
-          "hpMul": 35.3862,
-          "dmgMul": 17.6596,
+          "hpMul": 30.0783,
+          "dmgMul": 15.0107,
           "isHero": true,
           "rewardHero": true,
           "rank": 3
@@ -18111,7 +18129,7 @@
     "recommendedQuality": "Gold +2",
     "qualityMinHeroLevel": 79,
     "bossLevelGate": 0,
-    "difficultyTune": 3.343,
+    "difficultyTune": 2.8415,
     "baselineHp": 232.0658,
     "baselineDmg": 69.8091,
     "portalMode": "normal",
@@ -18134,6 +18152,12 @@
         "scale": 0.85,
         "dmgScale": 0.85,
         "why": "campaign curve: spike cap 1.15x chapter median + global x0.85. Phil 11 Oct: \"Campaign should not be so hard maxed out heroes are struggling for weeks ... it should technically be possible to clear stages while not maxed out.\""
+      },
+      {
+        "v": "v1122",
+        "date": "2026-10-11",
+        "scale": 0.85,
+        "why": "v1121 sims: 93 tries, 4 won - Big A 16/0, Big B 19/0, Big A copy 17/0, Medium B copy 17/0 (FULLY UPGRADED). Phil 11 Oct: \"Campaign should not be so hard maxed out heroes are struggling for weeks ... it should technically be possible to clear stages while not maxed out.\""
       }
     ]
   },
@@ -19253,90 +19277,90 @@
         {
           "key": "basalt mauler",
           "lvl": 87,
-          "hpMul": 92.7044,
-          "dmgMul": 35.9079
+          "hpMul": 78.7987,
+          "dmgMul": 30.5217
         },
         {
           "key": "ashen",
           "lvl": 87,
-          "hpMul": 92.7044,
-          "dmgMul": 35.9079
+          "hpMul": 78.7987,
+          "dmgMul": 30.5217
         },
         {
           "key": "blackquill",
           "lvl": 87,
-          "hpMul": 92.7044,
-          "dmgMul": 35.9079
+          "hpMul": 78.7987,
+          "dmgMul": 30.5217
         },
         {
           "key": "ashen",
           "lvl": 87,
-          "hpMul": 92.7044,
-          "dmgMul": 35.9079
+          "hpMul": 78.7987,
+          "dmgMul": 30.5217
         }
       ],
       [
         {
           "key": "ashen",
           "lvl": 87,
-          "hpMul": 92.7044,
-          "dmgMul": 35.9079
+          "hpMul": 78.7987,
+          "dmgMul": 30.5217
         },
         {
           "key": "basalt mauler",
           "lvl": 87,
-          "hpMul": 92.7044,
-          "dmgMul": 35.9079
+          "hpMul": 78.7987,
+          "dmgMul": 30.5217
         },
         {
           "key": "ashen",
           "lvl": 87,
-          "hpMul": 92.7044,
-          "dmgMul": 35.9079
+          "hpMul": 78.7987,
+          "dmgMul": 30.5217
         },
         {
           "key": "ashen",
           "lvl": 87,
-          "hpMul": 92.7044,
-          "dmgMul": 35.9079
+          "hpMul": 78.7987,
+          "dmgMul": 30.5217
         },
         {
           "key": "crucible acolyte",
           "lvl": 87,
-          "hpMul": 92.7044,
-          "dmgMul": 35.9079
+          "hpMul": 78.7987,
+          "dmgMul": 30.5217
         }
       ],
       [
         {
           "key": "ashen",
           "lvl": 87,
-          "hpMul": 92.7044,
-          "dmgMul": 35.9079
+          "hpMul": 78.7987,
+          "dmgMul": 30.5217
         },
         {
           "key": "basalt mauler",
           "lvl": 87,
-          "hpMul": 92.7044,
-          "dmgMul": 35.9079
+          "hpMul": 78.7987,
+          "dmgMul": 30.5217
         },
         {
           "key": "blackquill",
           "lvl": 87,
-          "hpMul": 92.7044,
-          "dmgMul": 35.9079
+          "hpMul": 78.7987,
+          "dmgMul": 30.5217
         },
         {
           "key": "ashen",
           "lvl": 87,
-          "hpMul": 92.7044,
-          "dmgMul": 35.9079
+          "hpMul": 78.7987,
+          "dmgMul": 30.5217
         },
         {
           "key": "ashen",
           "lvl": 87,
-          "hpMul": 92.7044,
-          "dmgMul": 35.9079
+          "hpMul": 78.7987,
+          "dmgMul": 30.5217
         }
       ]
     ],
@@ -19345,7 +19369,7 @@
     "recommendedQuality": "Gold +3",
     "qualityMinHeroLevel": 86,
     "bossLevelGate": 0,
-    "difficultyTune": 9.3765,
+    "difficultyTune": 7.97,
     "baselineHp": 305.575,
     "baselineDmg": 87.5478,
     "portalMode": "normal",
@@ -19367,6 +19391,12 @@
         "scale": 0.8222,
         "dmgScale": 0.85,
         "why": "campaign curve: spike cap 1.15x chapter median + global x0.85. Phil 11 Oct: \"Campaign should not be so hard maxed out heroes are struggling for weeks ... it should technically be possible to clear stages while not maxed out.\""
+      },
+      {
+        "v": "v1122",
+        "date": "2026-10-11",
+        "scale": 0.85,
+        "why": "v1121 sims: 57 tries, 2 won - all three Whale A tabs held 13-18 tries, 0 won. Phil 11 Oct: \"Campaign should not be so hard maxed out heroes are struggling for weeks ... it should technically be possible to clear stages while not maxed out.\""
       }
     ]
   },
