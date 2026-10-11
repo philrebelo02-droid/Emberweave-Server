@@ -175,9 +175,9 @@ function worldPlanningDB(){return _worldSettlementPlanning?.db||DB;}
 function saveDB(snapshot,suffix='.tmp'){
   // The sole local whole-snapshot writer. Callers own boot checks/error policy/PG.
   if(typeof suffix!=='string'||!/^\.[a-z0-9.-]+\.tmp$/.test(suffix)&&suffix!=='.tmp')throw Error('Invalid DB temporary suffix');   // '.group.tmp' (v1036) matches
-  if(typeof _store!=='undefined'&&_store.split){ _store.write(snapshot,null); _pendingFull=false; if(typeof _pendingIds!=='undefined') _pendingIds.clear(); return; }   /* typeof: the span tests run saveDB alone */   // v1037: every shard + the manifest, one atomic swap
+  if(typeof _store!=='undefined'&&_store.split){ _store.write(snapshot,null); _pendingFull=false; if(typeof _pendingIds!=='undefined'){ _pendingIds.clear(); _pendingCore=false; } return; }   /* typeof: the span tests run saveDB alone */   // v1037: every shard + the manifest, one atomic swap
   const tmp=DB_FILE+suffix;fs.writeFileSync(tmp,JSON.stringify(snapshot));fs.renameSync(tmp,DB_FILE);
-  _pendingFull=false; if(typeof _pendingIds!=='undefined') _pendingIds.clear();
+  _pendingFull=false; if(typeof _pendingIds!=='undefined'){ _pendingIds.clear(); _pendingCore=false; }
 }
 var _pendingFull=false;   /* v1037: a generic writeDB() is waiting (or was absorbed into a group save) - its change names no players */
 /* v1124 PARTIAL DEBOUNCED SAVES (Server 1 load test 11 Oct 2026: p95 broke 1 s at ~150-250 players with the CPU at 6-17% - the main
@@ -188,19 +188,20 @@ var _pendingFull=false;   /* v1037: a generic writeDB() is waiting (or was absor
    that request (ledTx, resourceGain, ...) then names that player. The scope ends when the route answers (send), so a timer or a
    continuation after the reply saves in full. Without DB_STORE=split every save is the full save it always was. */
 var _pendingIds=new Set();   // players named by writeDB(ids) since the last committed save (cleared only by a save that wrote them)
+var _pendingCore=false;   // a writeDB([...]) is waiting: even writeDB([]) - a change to the shared world only (tokens, chat, guilds) - writes the manifest
 function _saveIdsFor(ids){ if(Array.isArray(ids)) return ids;
   const c=(typeof _reqCtx!=='undefined')?_reqCtx.getStore():null;
   return (c&&Array.isArray(c.saveIds))?c.saveIds:null; }
 function _saveScope(...ids){ const c=(typeof _reqCtx!=='undefined')?_reqCtx.getStore():null; if(c) c.saveIds=ids.filter(x=>typeof x==='string'&&x); }
 function writeDB(ids){ if(_worldSettlementPlanning||_durableIdemActive)return; if(PG_BOOT_PENDING){ _bootDirty=true; return; }   // v327: see bootFinish()
   const named=_saveIdsFor(ids);
-  if(named){ for(const id of named) if(typeof id==='string'&&id) _pendingIds.add(id); } else _pendingFull=true;
+  if(named){ _pendingCore=true; for(const id of named) if(typeof id==='string'&&id) _pendingIds.add(id); } else _pendingFull=true;
   if(saveTimer)return; saveTimer=setTimeout(()=>{ saveTimer=null;
   if(_batchOpen){ _batchOpen.actions++; if(_pendingFull) _batchOpen.all=true; return; }   // v1036: a group save is already queued - it writes this change too (v1124: _runBatch adds the pending ids)
   const full=_pendingFull||!_store.split;
-  if(!full&&!_pendingIds.size) return;
+  if(!full&&!_pendingIds.size&&!_pendingCore) return;
   try{ if(full) saveDB(DB);   // atomic: write temp, then rename
-    else { _store.write(DB,[..._pendingIds]); _pendingIds.clear(); } }   // v1124: only the named players' shards + the manifest
+    else { _store.write(DB,[..._pendingIds]); _pendingIds.clear(); _pendingCore=false; } }   // v1124: only the named players' shards + the manifest
   catch(e){ console.error('DB write failed:', e.message); }   // a failed partial keeps its ids pending: the next save retries them
   pgSave();
   if(!full && Date.now()-_store.stats.lastFullAt>STORE_SWEEP_MS) writeDBFull(); },200); }
@@ -234,7 +235,7 @@ function _runBatch(){
   const b=_batchOpen; if(!b) return; _batchOpen=null;
   if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; }   // this save covers any debounced change too
   const t0=Date.now(), all=b.all||_pendingFull||!_store.split;   // v1037: a partial save only when every change named its players
-  try{ if(all) saveDB(DB,'.group.tmp'); else { for(const id of _pendingIds) b.ids.add(id); _store.write(DB,b.ids); _pendingIds.clear(); } }   // v1124: a debounced writeDB(ids) waiting is written by this save too
+  try{ if(all) saveDB(DB,'.group.tmp'); else { for(const id of _pendingIds) b.ids.add(id); _store.write(DB,b.ids); _pendingIds.clear(); _pendingCore=false; } }   // v1124: a debounced writeDB(ids) waiting is written by this save too
   catch(e){
     for(const u of b.undos.slice().reverse()){ try{ u(); }catch(e2){ console.error('group save undo failed:', e2.message); } }
     GROUP_SAVE_STATS.failed++; console.error('group save failed - '+b.actions+' change(s), '+b.undos.length+' undone:', e.message);
@@ -571,8 +572,8 @@ function lookupToken(raw){ if(!raw) return null;
   const e=DB.tokens[tokHash(raw)]||(typeof DB.tokens[raw]==='string'?DB.tokens[raw]:null);
   if(!e) return null;
   if(typeof e==='string') return e;                              // pre-migration straggler
-  if(e.exp && Date.now()>e.exp){ delete DB.tokens[tokHash(raw)]; writeDB(); return null; }
-  if(e.exp && e.exp-Date.now()<TOKEN_TTL_MS/2){ e.exp=Date.now()+TOKEN_TTL_MS; writeDB(); }   // sliding renewal
+  if(e.exp && Date.now()>e.exp){ delete DB.tokens[tokHash(raw)]; writeDB([]); return null; }   // v1124: tokens are shared world (manifest only)
+  if(e.exp && e.exp-Date.now()<TOKEN_TTL_MS/2){ e.exp=Date.now()+TOKEN_TTL_MS; writeDB([]); }   // sliding renewal (v1124: manifest only)
   return e.id; }
 function tokOwner(v){ return typeof v==='string'?v:(v&&v.id); }
 function dropTokens(id){ for(const t of Object.keys(DB.tokens)){ if(tokOwner(DB.tokens[t])===id) delete DB.tokens[t]; } }   // single-session / force re-login
@@ -1732,7 +1733,7 @@ function writeDBNow(ids){   /* v1000 (Account audit #9): returns false when the 
   if((typeof _reqCtx!=='undefined'&&_reqCtx.getStore())){ if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; }   // v1036: inside a request the reply waits for the group save
     _holdReply(_joinBatch(null, named||undefined), 'Save failed - try again.'); return true; }
   try{ if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; }
-    if(named&&_store.split&&!_pendingFull){ const s=new Set(_pendingIds); for(const id of named) if(typeof id==='string'&&id) s.add(id); _store.write(DB,s); _pendingIds.clear(); }   // v1124
+    if(named&&_store.split&&!_pendingFull){ const s=new Set(_pendingIds); for(const id of named) if(typeof id==='string'&&id) s.add(id); _store.write(DB,s); _pendingIds.clear(); _pendingCore=false; }   // v1124
     else saveDB(DB);
   }catch(e){ if(named) for(const id of named) if(typeof id==='string'&&id) _pendingIds.add(id);   // v1124: the change is still waiting for a save
     console.error('DB durable write failed:', e.message); return false; }
@@ -2277,7 +2278,7 @@ function warTierOfGuild(t,gid){
 function warTierAmount(tier){ return tier==='champion'?2000:tier==='finalist'?1000:300; }
 function warEscrowRewards(t){   // AUDIT: pay into a per-USER pending list the moment the bracket ends, so
   if(!t||t.escrowedAt) return;  // nothing is lost when the week rolls over and `current` is replaced.
-  t.escrowedAt=warNow(); let changed=false;
+  t.escrowedAt=warNow(); let changed=false; const paid=[];
   for(const e of (t.entrants||[])){
     const tier=warTierOfGuild(t,e.guildId), amt=warTierAmount(tier);
     for(const l of (e.lines||[])){
@@ -2286,10 +2287,10 @@ function warEscrowRewards(t){   // AUDIT: pay into a per-USER pending list the m
       u.pendingWarRewards=u.pendingWarRewards||[];
       if(u.pendingWarRewards.some(x=>x&&x.tid===t.id)) continue;
       u.pendingWarRewards.push({tid:t.id, weekKey:t.weekKey, gid:e.guildId, tier, amt});
-      changed=true;
+      changed=true; paid.push(u.id);
     }
   }
-  if(changed) writeDB();
+  if(changed) writeDB(paid);   // v1124: the tournament (shared world) + exactly the members paid
 }
 function getTournament(){
   DB.tournaments=DB.tournaments||{};
@@ -3268,11 +3269,12 @@ function _campaignSimCandidates(me,b){ try{   // read-only: helpers run on a clo
     const u=JSON.parse(JSON.stringify(me)), led=u.led; if(!led) return [];
     const aid=String(b.attemptId||''); let mode=null, a=null;
     for(const m of PORTAL_MODES){ const pr=portalProg(led,m); if(pr && pr.att && pr.att.id===aid){ mode=m; a=pr.att; break; } }
-    if(!a || !Array.isArray(a.snaps) || !a.snaps.length) return [];
+    const rec=campRec(a);   // v1124: the recording is in memory, not on the account
+    if(!a || !rec || !Array.isArray(rec.snaps) || !rec.snaps.length) return [];
     const st=portalStageOf(mode,a.node); if(!st) return [];
     const logs=[sanitizeInputLog(b.inputLog)];
-    if(a.stream && Array.isArray(a.stream.acts) && a.stream.acts.length) logs.unshift(a.stream.acts.slice(0, INPUT_LOG_MAX));
-    return logs.map(l=>({m:'campaign',args:[a.snaps,st.waves,a.seed>>>0,l]}));
+    if(rec.stream && Array.isArray(rec.stream.acts) && rec.stream.acts.length) logs.unshift(rec.stream.acts.slice(0, INPUT_LOG_MAX));
+    return logs.map(l=>({m:'campaign',args:[rec.snaps,st.waves,rec.seed>>>0,l]}));
   }catch(e){ return []; } }
 function _provinceSimCandidates(me,b){ try{
     const u=JSON.parse(JSON.stringify(me)), led=ensureLedger(u), P=provLedState(u,led), aid=String(b.attemptId||'');
@@ -3329,7 +3331,7 @@ const ACT_MAX=400;                     // the same cap the transcript has always
 function findOpenSession(u, sid){
   const led=u.led; if(!led) return null;
   for(const m of PORTAL_MODES){ const pr=portalProg(led,m);
-    if(pr && pr.att && pr.att.id===sid) return {mode:m, prog:pr, att:pr.att}; }
+    if(pr && pr.att && pr.att.id===sid){ const rec=campRec(pr.att); return rec?{mode:m, prog:pr, att:rec}:null; } }   // v1124: stream/clock live on the recording
   return null;
 }
 /* v275 (§2 P0) — THE SERVER ASSIGNS THE TICK.
@@ -3366,7 +3368,7 @@ function clockAdvance(a, now){
 function findOpenSession(u, sid){
   const led=u.led; if(!led) return null;
   for(const m of PORTAL_MODES){ const pr=portalProg(led,m);
-    if(pr && pr.att && pr.att.id===sid) return {mode:m, prog:pr, att:pr.att}; }
+    if(pr && pr.att && pr.att.id===sid){ const rec=campRec(pr.att); return rec?{mode:m, prog:pr, att:rec}:null; } }   // v1124: stream/clock live on the recording
   return null;
 }
 function streamAction(u, m, ws){
@@ -3499,6 +3501,25 @@ const EQ_SLOT_BASE_SRV=Object.freeze({ plate:[1,0,3,0,3,2], ranged:[2,0,0,2,2,3]
 const EQ_CRAFT_MAT_COST=2;   // a Grey piece costs 2 of its base material
 const SERVER_BUILD='v275-server-ticks';
 const CAMP_SESSION_MS=24*60*60*1000; // a player may spend hours fighting or leave a solo battle paused
+/* v1124 A FIGHT RECORDING IS NOT WORLD DATA (Phil 11 Oct 2026: "in campaign it saves their fight and is ran through bots to decide if
+   its flagged for cheating ... within the 15% +/- rate of acceptance then the recording is discarded"). The persisted attempt
+   (prog.att) is a small stub - id, node, mode, squad keys, engine, start time, request id, stamina paid. The heavy recording - the
+   frozen hero snapshots, specs, seed, the streamed action list and the session clock - lives HERE, in memory, keyed by attempt id.
+   Stamina is still paid at start and saved with the stub (today's rule); a restart loses the recording, and the stub then resolves
+   as an interrupted fight with its stamina returned - the same as an expired or abandoned attempt. An accepted resolve drops the
+   recording (a 60 s grace keeps a retried resolve replayable); a flagged one keeps its transcript in led.battleIncidents. */
+const _CAMP_REC=new Map();
+const CAMP_REC_HEAVY=['snaps','specs','teamSnapshot','seed','stream','clock'];
+function campRec(a){ if(!a||typeof a!=='object'||!a.id) return null;
+  let r=_CAMP_REC.get(a.id);
+  if(!r && Array.isArray(a.snaps)){   // an attempt saved by an older build (heavy fields on the stub): adopt it once
+    r={id:a.id,startedAt:+a.startedAt||Date.now()}; for(const k of CAMP_REC_HEAVY) if(a[k]!==undefined) r[k]=a[k];
+    _CAMP_REC.set(a.id,r); }
+  if(r) for(const k of CAMP_REC_HEAVY) if(a[k]!==undefined) delete a[k];   // the stub stays small (it reaches disk with the next save)
+  return r||null; }
+function campRecDrop(a,grace){ const r=a&&a.id&&_CAMP_REC.get(a.id); if(!r) return; if(grace) r.doneAt=Date.now(); else _CAMP_REC.delete(a.id); }
+function campRecPrune(){ const now=Date.now();
+  for(const [k,r] of _CAMP_REC) if((r.doneAt&&now-r.doneAt>60000)||now-(r.startedAt||0)>CAMP_SESSION_MS+60000) _CAMP_REC.delete(k); }
 const SKILL_MAX_SRV=100, SKILL_COST_R_SRV=1.04;  /* 12 Sep 2026 - must match the client's SKILL_MAX / SKILL_COST_R exactly. */
 const SKILL_UP_BASE_SRV=[300,220,260,400];   // mirrors the client's SKILL_UP_BASE (ult / green / blue / passive)
 function ledSkillArr(led,key){ led.skill=led.skill||{}; const a=led.skill[key];
@@ -4658,7 +4679,7 @@ async function api(req,res,url){
   // local save so an existing offline player isn't wiped to level 1. Guests upgrade in place via
   // /api/register (keeps progress) or are replaced by signing into a real account.
   /* v1000 (Account audit #10): sign-out revokes the token on the server (it stayed valid for 90 days with sliding renewal) */
-  if(p==='/api/logout' && req.method==='POST'){ const raw=String(req.headers['x-token']||''); if(raw&&DB.tokens&&DB.tokens[tokHash(raw)]){ delete DB.tokens[tokHash(raw)]; writeDBNow(); } return send(res,200,{ok:true}); }
+  if(p==='/api/logout' && req.method==='POST'){ const raw=String(req.headers['x-token']||''); if(raw&&DB.tokens&&DB.tokens[tokHash(raw)]){ delete DB.tokens[tokHash(raw)]; writeDBNow([]); } return send(res,200,{ok:true}); }
   if(p==='/api/guest' && req.method==='POST'){ const b=await body(req);
     if(rateLimited(req,'guest',20,60000)) return send(res,429,{error:'Slow down.'});
     const deviceId=devKey((b.deviceId||'').slice(0,64));   /* v1005 (Account audit #11): stored and looked up as a hash */
@@ -4775,7 +4796,7 @@ async function api(req,res,url){
     const u=r.u, id=u.id;
     if(isBanned(u)){ writeDB(); return send(res,403,banResp(u)); }   /* v1097: a banned account does not sign in */
     dropTokens(id);   // single session: signing in here kicks any other device
-    const tok=issueToken(id); writeDB(); return send(res,200,{ token:tok, profile:profileFor(u) }); }
+    _saveScope(id); const tok=issueToken(id); writeDB([id]); return send(res,200,{ token:tok, profile:profileFor(u) }); }   // v1124: the account + its token (shared world)
 
   // email password reset — step 1: request a one-time 6-digit code sent to the account's linked email.
   // Always responds ok (never reveals whether an account or its email exists); only sends if a valid email is on file.
@@ -4993,7 +5014,7 @@ async function api(req,res,url){
       if(!t||t.isNpc) return send(res,404,{error:'Player not found.'});
       if(tid===me.id) return send(res,400,{error:'You cannot block yourself.'});
       if(led.blocked.indexOf(tid)<0){ if(led.blocked.length>=200) return send(res,400,{error:'Your block list is full (200).'}); led.blocked.push(tid); } }
-    if(writeDBNow()===false) return send(res,503,{ok:false,storageFailed:true,error:'Save failed - try again.'});
+    if(writeDBNow([me.id])===false) return send(res,503,{ok:false,storageFailed:true,error:'Save failed - try again.'});
     return send(res,200,{ok:true,blocked:led.blocked.filter(id=>DB.users[id]).map(id=>({id,name:DB.users[id].name}))}); }
   if(p==='/api/chat/report' && req.method==='POST'){ if(!me) return send(res,401,{error:'auth'});
     if(rateLimited(req,'report',12,60000)) return send(res,429,{error:'Too many reports — wait a minute.'});   // the same limits as /api/report
@@ -5016,14 +5037,14 @@ async function api(req,res,url){
         text:(CHAT_REPORT_REASONS[reason]+' report by '+me.name+' ('+f.channel+') - '+(f.sender||'?')+': '+(f.text||'')).slice(0,2000),
         chat,context:f.context||[],resolved:false,action:null};
       DB.reports=Array.isArray(DB.reports)?DB.reports:[]; DB.reports.push(item); if(DB.reports.length>1000) DB.reports=DB.reports.slice(-1000);
-      if(writeDBNow()===false) return send(res,503,{ok:false,storageFailed:true,error:'Save failed - try again.'});
+      if(writeDBNow([me.id])===false) return send(res,503,{ok:false,storageFailed:true,error:'Save failed - try again.'});
       return send(res,200,{ok:true,id:item.id,queue:'moderation'}); }
     const item={id:'FB-'+uid(),userId:me.id,name:me.name,kind:'chat',
       text:('Chat report ('+f.channel+') - '+(f.sender||'?')+': '+(f.text||'')).slice(0,2000),
       chat,meta:'other',t:Date.now(),received:false,
       build:localBuildId(),level:ledPlayerLevel(ensureLedger(me)),screen:'chat',device:String(req.headers['user-agent']||'').slice(0,120)};
     feedbackAppend(item);
-    if(writeDBNow()===false) return send(res,503,{ok:false,storageFailed:true,error:'Save failed - try again.'});
+    if(writeDBNow([me.id])===false) return send(res,503,{ok:false,storageFailed:true,error:'Save failed - try again.'});
     return send(res,200,{ok:true,id:item.id,queue:'feedback'}); }
   // Player feedback has its own durable inbox; balance-bot reports stay in the admin report list.
   if(p==='/api/report' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
@@ -5046,7 +5067,7 @@ async function api(req,res,url){
       me.feedbackDay={k:dk,n:feedbackDay.n+1};
       feedbackAppend(item);
     }
-    writeDB(); return send(res,200,{ok:true,id:item.id}); }
+    writeDB([me.id]); return send(res,200,{ok:true,id:item.id}); }
   if(p==='/api/ember/feedback' && req.method==='GET'){
     if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
     feedbackSweep();
@@ -5057,7 +5078,7 @@ async function api(req,res,url){
     if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
     const b=await body(req); const ids=new Set((Array.isArray(b.ids)?b.ids:[]).slice(0,100).map(String));
     let n=0; for(const item of DB.feedback||[]){ if(ids.has(item.id)&&!item.received){item.received=true;item.receivedAt=Date.now();n++;} }
-    if(n) writeDB(); return send(res,200,{ok:true,acknowledged:n}); }
+    if(n) writeDB([]); return send(res,200,{ok:true,acknowledged:n}); }
   if(p==='/api/admin/reports'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
     const reports=(DB.reports||[]).slice().reverse().slice(0,200); return send(res,200,{reports, count:(DB.reports||[]).length}); }
   if(p==='/api/admin/report' && req.method==='POST'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
@@ -5340,7 +5361,7 @@ async function api(req,res,url){
           if(t.state!=='registration'||!myGuildObj) return ent.powerPool;
           const q=warLivePool(myGuildObj); if(!q) return ent.powerPool;
           if(q.powerPool!==ent.powerPool || (q.lines||[]).length!==(ent.lines||[]).length){
-            ent.lines=q.lines; ent.powerPool=q.powerPool; t.version++; writeDB(); }
+            ent.lines=q.lines; ent.powerPool=q.powerPool; t.version++; writeDB([me.id]); }
           return q.powerPool; })(),
         canRegister:isLeaderOrOfficer,
         pendingWarReward:(me.pendingWarRewards||[]).reduce((s,x)=>s+((x&&x.amt|0)||0),0),
@@ -5380,14 +5401,14 @@ async function api(req,res,url){
       if(!probe.lines.length) return send(res,400,{error:'No eligible members.'});
       t.entrants.push({ guildId:myGid, name:myGuildObj.name, banner:myGuildObj.banner||null, registeredAt:warNow(),
         lines:probe.lines, powerPool:probe.powerPool, indicative:true });
-      t.version++; writeDB();
+      t.version++; writeDB([me.id]);
       return send(res,200,{ok:true, powerPool:probe.powerPool, lines:probe.lines.length, note:'Qualification is recalculated for every registered guild at the Monday lock.'});
     }
     if(p==='/api/guild-war/unregister'){
       if(!isLeaderOrOfficer) return send(res,403,{error:'Only the guild leader can do that.'});
       if(t.state!=='registration') return send(res,400,{error:'Locked — the bracket is set.'});
       const i=t.entrants.findIndex(e=>e.guildId===myGid); if(i<0) return send(res,400,{error:'Not registered.'});
-      t.entrants.splice(i,1); t.version++; writeDB(); return send(res,200,{ok:true});
+      t.entrants.splice(i,1); t.version++; writeDB([me.id]); return send(res,200,{ok:true});
     }
     /* v740 (Phil: "I cannot click adjust or disband on any line. I cannot click add line or save")
        - SAVE. Validation is the authority: the client's array is re-checked against the ledger for
@@ -5398,7 +5419,7 @@ async function api(req,res,url){
       const m=myGid?warMatchOfGuild(t,myGid):null;
       if(m && m.state!=='planning') return send(res,400,{error:'Your lines locked when the war began \u2014 they reopen at the next prep.'});
       const raw=b.lines;
-      if(Array.isArray(raw) && raw.length===0){ delete me.warLines; writeDB();
+      if(Array.isArray(raw) && raw.length===0){ delete me.warLines; writeDB([me.id]);
         return send(res,200, warLinesView(me, true, '')); }
       const v=warLinesValidate(me, raw);
       if(!v.ok) return send(res,400,{error:v.error});
@@ -5409,7 +5430,7 @@ async function api(req,res,url){
       try{ const ent=warEntrant(t,myGid);
         if(ent && t.state==='registration' && myGuildObj){ const probe=warQualifyGuild(myGuildObj);
           ent.lines=probe.lines; ent.powerPool=probe.powerPool; t.version++; } }catch(e){}
-      writeDB();
+      writeDB([me.id]);
       return send(res,200, warLinesView(me, true, ''));
     }
     /* v764 (Phil: "When a player clicks a tower, they need to have the ability to 'place lines' in
@@ -5439,15 +5460,15 @@ async function api(req,res,url){
       const m=myGid?warMatchOfGuild(t,myGid):null;
       /* no board yet - the pick stands and the Monday bracket will honour it */
       if(!m||m.state!=='planning'){
-        writeDB();
+        writeDB([me.id]);
         return send(res,200,{ ok:true, lane, moved:0, standing:true, wasLane:had,
           note:'Your tower is set. Your lines take it when the board is drawn.' });
       }
-      const side=m.sides[myGid]; if(!side){ writeDB(); return send(res,200,{ok:true, lane, moved:0, standing:true}); }
+      const side=m.sides[myGid]; if(!side){ writeDB([me.id]); return send(res,200,{ok:true, lane, moved:0, standing:true}); }
       if(side.citadels[lane].destroyed) return send(res,400,{error:'That citadel has fallen.'});
       const ent=warEntrant(t,myGid);
       const mine=(ent?ent.lines:[]).filter(l=>l.memberId===me.id);
-      if(!mine.length){ writeDB();
+      if(!mine.length){ writeDB([me.id]);
         return send(res,200,{ ok:true, lane, moved:0, standing:true,
           note:'Your tower is set. Your lines take it when your guild enters.' }); }
 
@@ -5466,7 +5487,7 @@ async function api(req,res,url){
 
       if(!moving.length) return send(res,400,{error:'There was nothing of yours to place.'});
       side.citadels[lane].defenders.push(...moving);
-      m.version++; writeDB();
+      m.version++; writeDB([me.id]);
       return send(res,200,{ ok:true, moved:moving.length, lane, match:warMatchView(t,m,myGid,me.id) });
     }
     if(p==='/api/guild-war/assign'){
@@ -5503,7 +5524,7 @@ async function api(req,res,url){
       side.unplaced=(side.unplaced||[]).filter(x=>String((x&&typeof x==='object')?x.memberId:x)!==memberId);
       if(moving.length) side.citadels[lane].defenders.push(...moving);
       else side.citadels[lane].defenders.push({memberId});   /* not yet hydrated: placeholder, as before */
-      m.version++; writeDB();
+      m.version++; writeDB([me.id]);
       return send(res,200,{ok:true, match:warMatchView(t,m,myGid,me.id)});
     }
     /* v802 (Phil: "officers need the ability to move the ENTIRE lane to another tower") - every
@@ -5533,7 +5554,7 @@ async function api(req,res,url){
       if(!moving.length) return send(res,400,{error:'Nothing holds '+WAR_LANES[from].name+'.'});
       side.citadels[from].defenders=[];
       side.citadels[to].defenders.push(...moving);
-      m.version++; writeDB();
+      m.version++; writeDB([me.id]);
       return send(res,200,{ok:true, moved:moving.length, from, to, match:warMatchView(t,m,myGid,me.id)});
     }
     if(p==='/api/guild-war/assault'){
@@ -5542,7 +5563,7 @@ async function api(req,res,url){
          answers its receipt. The save is synchronous; a failed one answers 503 and the retry gets the receipt. */
       const arid=String(b.requestId||'').slice(0,48), ark=arid?me.id+':'+arid:null;
       if(m&&ark&&m.receipts&&m.receipts[ark]) return send(res,200,Object.assign({},m.receipts[ark],{replayed:true, match:warMatchView(t,m,myGid,me.id)}));
-      const keepMarch=o=>{ if(ark){ m.receipts=m.receipts||{}; m.receipts[ark]=o; } m.version++; return writeDBNow()===false?send(res,503,{ok:false,storageFailed:true,error:'Save failed - try again.'}):null; };
+      const keepMarch=(o,ids)=>{ if(ark){ m.receipts=m.receipts||{}; m.receipts[ark]=o; } m.version++; return writeDBNow(ids||[me.id])===false?send(res,503,{ok:false,storageFailed:true,error:'Save failed - try again.'}):null; };
       if(!m||m.state!=='live') return send(res,400,{error:'No live match.'});
       const now=warNow(); if(!(now>=m.startsAt&&now<m.endsAt)) return send(res,400,{error:'Outside the battle window.'});
       const lane=parseInt(b.fromLane,10); if(!(lane>=0&&lane<5)) return send(res,400,{error:'Bad lane.'});
@@ -5630,7 +5651,7 @@ async function api(req,res,url){
         m.eventLog.push({t:warNow(),e:'CITADEL_FELL',lane,by:null}); }
       m.eventLog.push({t:warNow(),e:'ASSAULT',lane,a:me.id,d:defender.memberId,won:r.won});
       const finished=false;                      /* v676: only the bell finishes a war */
-      if(keepMarch({ ok:true, won:r.won, citadelFell, finished })) return;
+      if(keepMarch({ ok:true, won:r.won, citadelFell, finished },[me.id,attacker.memberId,defender.memberId].filter(Boolean))) return;   // v1124: both line owners' Witch's Hut wounds
       return send(res,200,{ ok:true, won:r.won, citadelFell, finished,
         replay:{ seed, lane, attacker:attacker.lineSnapshot, defender:defender.lineSnapshot, log:r.log.slice(0,200) },
         result:{ aState:r.aState, bState:r.bState, rounds:r.rounds }, injuries:warInjuries,
@@ -5654,7 +5675,7 @@ async function api(req,res,url){
       const tt=(last.tid===t.id)?t:null;
       if(tt&&tt.id===last.tid){ tt.rewards=tt.rewards||{}; tt.rewards[(last.gid||'-')+':'+me.id]={t:warNow(),amt:total,tid:last.tid}; if(tt===t) t.version++; }
       const cresp={ok:true, coins:me.coins, amount:total, tier:last.tier}; if(crid) me.lastWarClaim={rid:crid,resp:cresp};
-      if(writeDBNow()===false) return send(res,503,{ok:false,storageFailed:true,error:'Save failed - try again.'});
+      if(writeDBNow([me.id])===false) return send(res,503,{ok:false,storageFailed:true,error:'Save failed - try again.'});
       return send(res,200,cresp);
     }
     /* v374 (Phil): GOD MODE WAR SIMULATOR — "simulate guild wars with a bot guild, and bot allies on my
@@ -6518,7 +6539,7 @@ async function api(req,res,url){
       return {ok:true, ledger:ledgerView(me)}; });
     return send(res,out.storageFailed?503:(out.ok===false?400:200),out); }
   if(p==='/api/market/offers' && req.method==='GET'){ if(!me)return send(res,401,{error:'auth'});   /* v1097 (sweep 9 Oct #19) */
-    const led=ensureLedger(me), had=led.market&&led.market.h, mk=marketOffersSrv(me,led,Date.now()); if(mk.h!==had) writeDB();
+    const led=ensureLedger(me), had=led.market&&led.market.h, mk=marketOffersSrv(me,led,Date.now()); if(mk.h!==had) writeDB([me.id]);
     return send(res,200,{ok:true,hour:mk.h,restockAt:(mk.h+1)*MARKET_HOUR_MS,offers:marketOfferView(mk),
       today:{used:((led.marketDay&&led.marketDay.k===nyDayKey())?(led.marketDay.frags|0):0),max:12}}); }
   if(p==='/api/shop/offers'){ if(!me)return send(res,401,{error:'auth'}); const led=ensureLedger(me);
@@ -7175,7 +7196,7 @@ async function api(req,res,url){
             fragments:e.rewards.glyphFragments, fragmentRolls:e.rewards.fragmentRolls||0 })) }; }),
       fragmentSources:FRAG_SOURCES }); }
   /* Bonus stages own only /api/bonus/*; ordinary Campaign routes remain untouched. */
-  if(BONUS && p.indexOf('/api/bonus/')===0){ if(!me)return send(res,401,{error:'auth'});
+  if(BONUS && p.indexOf('/api/bonus/')===0){ if(!me)return send(res,401,{error:'auth'}); _saveScope(me.id);   /* v1124: the module is handed only this player (me, led) and player-only helpers */
     const _bb=req.method==='POST'?await body(req):{}; const led=ensureLedger(me);   /* v1089 (scan 10): the ledger is taken AFTER the last await - a commit by another request during the await replaces me.led, and writes to the old object were lost while grants to me.glyphs landed (bonus pot / first clear / province repeated) */
     const out=await BONUS.handle(p, req.method, { me, led, query:url.searchParams,
       body:()=>Promise.resolve(_bb), glyphGrantNamedList, srvSeed, ledTx, ledgerView, writeDB, feedbackCheatSignal,
@@ -7183,7 +7204,7 @@ async function api(req,res,url){
       playerLevel:()=>ledPlayerLevel(led), isUnlocked:k=>!!ownsHeroK(led,k) });
     if(out) return send(res, out.status, out.body); }
   /* v825 THE STARLESS WELL (blueprint 22) owns only /api/well/*: a 3-day run of 3 maps, HP/energy carried from the server's replay */
-  if(WELL2 && p.indexOf('/api/well/')===0){ if(!me)return send(res,401,{error:'auth'}); if(rateLimited(req,'well:'+me.id,120,60000)) return send(res,429,{error:'Slow down.'}); if(p==='/api/well/start'&&rateLimited(req,'wellStart:'+me.id,Math.round(10*RL_MUL),60000)) return send(res,429,{error:'Slow down.'});   /* v1083 (scan 5 #11): a Well start's replay runs on the main thread - 10 a minute */   /* v1011 (re-audit Arena N10): state reads and start->resolve replays were unthrottled */
+  if(WELL2 && p.indexOf('/api/well/')===0){ if(!me)return send(res,401,{error:'auth'}); _saveScope(me.id);   /* v1124: the module is handed only this player */ if(rateLimited(req,'well:'+me.id,120,60000)) return send(res,429,{error:'Slow down.'}); if(p==='/api/well/start'&&rateLimited(req,'wellStart:'+me.id,Math.round(10*RL_MUL),60000)) return send(res,429,{error:'Slow down.'});   /* v1083 (scan 5 #11): a Well start's replay runs on the main thread - 10 a minute */   /* v1011 (re-audit Arena N10): state reads and start->resolve replays were unthrottled */
     const _wb=req.method==='POST'?await body(req):{}; const led=ensureLedger(me);   /* v1089 (scan 10): the ledger is taken AFTER the last await - a commit by another request during the await replaces me.led, and writes to the old object were lost while grants to me.glyphs landed (bonus pot / first clear / province repeated) */
     const out=await WELL2.handle(p, req.method, { me, led, heroDisplayName, body:()=>Promise.resolve(_wb), srvSeed, ledTx, ledgerView, writeDB, uid, idem, crypto,
       simHost, campaignHeroSpec, sanitizeInputLog, sha256hex, ledAddPlayerXP, creditGold, creditGems,
@@ -7226,29 +7247,29 @@ async function api(req,res,url){
          and starts a fresh one. */
       const sameSquad = open && Array.isArray(open.heroIds) && open.heroIds.length===ids.length
         && open.heroIds.every((k,i)=>k===ids[i]);
+      campRecPrune();
       if(open && !sameSquad && (Date.now()-(open.startedAt||0) <= CAMP_SESSION_MS) && open.node===node){
         led.stam.v=Math.min(999, led.stam.v+(open.stamPaid|0));   // refund: never below what they already hold
         ledTx(me,mode+':resquad:'+(open.node|0),{stamina:(open.stamPaid|0)});
-        prog.att=null;
+        campRecDrop(open); prog.att=null;
       }
       if(prog.att && (Date.now()-(prog.att.startedAt||0) <= CAMP_SESSION_MS)){
-        const open=prog.att;
-        if(open.node===node){
+        const open=prog.att, rec=campRec(open);
+        if(open.node===node && rec){   // v1124: resumable only while its recording is in memory (a restart refunds below)
           const st0=portalStageOf(mode,node);
           /* A resumed session plays a NEW fight on the same attempt — the interrupted fight's action
-             transcript and clock must not survive to be replayed as this result. */
-          open.stream=null; open.clock=null;
-          writeDB([me.id]);
-          return send(res,200,{ ok:true, resumed:true, attemptId:open.id, mode, stage:st0, seed:open.seed,
-            snaps:open.snaps, engine:open.engine, stamina:{v:led.stam.v,max:ledStamMax(led)} });
+             transcript and clock must not survive to be replayed as this result. (v1124: nothing persisted changes - no save.) */
+          rec.stream=null; rec.clock=null;
+          return send(res,200,{ ok:true, resumed:true, attemptId:open.id, mode, stage:st0, seed:rec.seed,
+            snaps:rec.snaps, engine:open.engine, stamina:{v:led.stam.v,max:ledStamMax(led)} });
         }
         led.stam.v=Math.min(999, led.stam.v+(open.stamPaid|0));   // refund: never below what they already hold
         ledTx(me,mode+':abandoned:'+(open.node|0),{stamina:(open.stamPaid|0)});
-        prog.att=null;
+        campRecDrop(open); prog.att=null;
       } else if(prog.att){ const open=prog.att;
         led.stam.v=Math.min(999, led.stam.v+(open.stamPaid|0));   // refund: never below what they already hold
         ledTx(me,mode+':expired:'+(open.node|0),{stamina:(open.stamPaid|0)});
-        prog.att=null;
+        campRecDrop(open); prog.att=null;
       } }
     if(led.stam.v<cost) return send(res,400,{error:'Not enough stamina.'});
     led.stam.v-=cost;
@@ -7261,8 +7282,9 @@ async function api(req,res,url){
     let fightSnaps=null;
     if(host){ try{ fightSnaps=host.snapFromSpecs(specs); }catch(e){ console.error('sim-host snapFromSpecs failed:',e.message); } }
     const seed=(crypto.randomBytes(4).readUInt32BE(0))>>>0;
-    prog.att={ id:uid(), node, mode, heroIds:ids, teamSnapshot:snaps, specs, snaps:fightSnaps, seed,
-      engine:(host&&host.buildVersion)||null, startedAt:Date.now(), reqId, stamPaid:cost };
+    prog.att={ id:uid(), node, mode, heroIds:ids,
+      engine:(host&&host.buildVersion)||null, startedAt:Date.now(), reqId, stamPaid:cost };   // v1124: the stub that is saved
+    _CAMP_REC.set(prog.att.id,{ id:prog.att.id, startedAt:prog.att.startedAt, teamSnapshot:snaps, specs, snaps:fightSnaps, seed, stream:null, clock:null });   // the recording, in memory
     ledTx(me,mode+':start:'+st.id,{stamina:-cost});
     writeDB([me.id]);
     return send(res,200,{ ok:true, attemptId:prog.att.id, mode, stage:st, seed, snaps:fightSnaps,
@@ -7282,13 +7304,21 @@ async function api(req,res,url){
          played to the end — the stamina goes back and the attempt is closed, rather than being
          resolvable hours later or silently consumed. */
       if(Date.now()-(a.startedAt||0) > CAMP_SESSION_MS){
-        prog.att=null;
+        prog.att=null; campRecDrop(a);
         led.stam.v=Math.min(999, led.stam.v+(a.stamPaid|0));   // refund: never below what they already hold
         ledTx(me,mode+':expired:'+(a.node|0),{stamina:(a.stamPaid|0)});
         writeDB([me.id]);
         return {ok:false, expired:true, error:'That battle expired — your stamina was returned. Start the stage again.', ledger:ledgerView(me)};
       }
-      prog.att=null;
+      campRecPrune(); const rec=campRec(a);
+      if(!rec){   /* v1124: the recording was lost (a server restart mid-fight) - the fight cannot be checked, so it is an interrupted attempt: stamina back */
+        prog.att=null;
+        led.stam.v=Math.min(999, led.stam.v+(a.stamPaid|0));
+        ledTx(me,mode+':interrupted:'+(a.node|0),{stamina:(a.stamPaid|0)});
+        writeDB([me.id]);
+        return {ok:false, expired:true, interrupted:true, error:'That battle was interrupted by a server restart — your stamina was returned. Start the stage again.', ledger:ledgerView(me)};
+      }
+      prog.att=null; campRecDrop(a,true);   // accepted or flagged, the recording goes after a short retry grace
       const st=portalStageOf(mode,a.node); if(!st) return {ok:false,error:'Stage data missing.'};
       /* v270 (PLAYER-TRUTH) — THE RESULT IS THE PLAYER'S OWN FIGHT.
          The server replays the frozen session (its snapshots, its seed, the authored waves) driven by
@@ -7300,11 +7330,11 @@ async function api(req,res,url){
          is replayed from what the server accepted, action by action, as it arrived. A client that
          streamed nothing still resolves from its submitted log (offline-ish path), and the response
          says which of the two happened so it is never ambiguous in a report. */
-      let streamed=(a.stream && Array.isArray(a.stream.acts) && a.stream.acts.length>0);
-      if(a.stream) a.stream.closed=true;
-      let inputLog = streamed ? a.stream.acts.slice(0, INPUT_LOG_MAX) : sanitizeInputLog(b.inputLog);
+      let streamed=(rec.stream && Array.isArray(rec.stream.acts) && rec.stream.acts.length>0);
+      if(rec.stream) rec.stream.closed=true;
+      let inputLog = streamed ? rec.stream.acts.slice(0, INPUT_LOG_MAX) : sanitizeInputLog(b.inputLog);
       let transcriptSource = streamed ? 'streamed-receipts'
-        : ((a.stream&&a.stream.broken) ? 'submitted-log-after-stream-loss' : 'submitted-log');
+        : ((rec.stream&&rec.stream.broken) ? 'submitted-log-after-stream-loss' : 'submitted-log');
       /* v334 (Phil: "I just won 1-1 and it said defeat — it happened when I tabbed out then back in").
          A phone in the background drops the socket. The client's give-up frame ('abandon') dies with
          it, so the server keeps a PARTIAL list of receipts — everything the player did before the
@@ -7314,11 +7344,11 @@ async function api(req,res,url){
          exactly — every accepted action, in order, on the tick the server stamped it — so a client
          cannot rewrite what the server already saw; it can only append what the server never got.
          (A client that never streamed at all was always resolved from its log; this is no wider.) */
-      if(streamed){ const sub=sanitizeInputLog(b.inputLog); const acts=a.stream.acts;
+      if(streamed){ const sub=sanitizeInputLog(b.inputLog); const acts=rec.stream.acts;
         const same=(x,y)=>x&&y&&(x[0]|0)===(y[0]|0)&&String(x[1])===String(y[1])&&(x[2]|0)===(y[2]|0)&&(x[3]|0)===(y[3]|0);
         if(process.env.DEBUG_RESOLVE) console.log('RESOLVE acts',JSON.stringify(acts),'sub',JSON.stringify(sub));
         if(sub.length>acts.length && acts.every((x,i)=>same(x,sub[i]))){
-          inputLog=sub.slice(0, INPUT_LOG_MAX); transcriptSource='submitted-log-extends-receipts'; a.stream.extended=sub.length-acts.length; } }
+          inputLog=sub.slice(0, INPUT_LOG_MAX); transcriptSource='submitted-log-extends-receipts'; rec.stream.extended=sub.length-acts.length; } }
       /* Player truth is the battle result the signed-in player witnessed. The server still owns
          the attempt, charged stamina, stage table, daily limits and every reward amount. Replay is
          an integrity diagnostic; a divergent replay cannot erase a hard-earned completed clear. */
@@ -7342,15 +7372,15 @@ async function api(req,res,url){
       }
       const host=simHost();
       let rep=null, replayFailure=null;
-      if(!host || !Array.isArray(a.snaps) || !a.snaps.length) replayFailure='replay-unavailable';
-      else try{ rep=host.campaign(a.snaps,st.waves,a.seed>>>0,inputLog); }
+      if(!host || !Array.isArray(rec.snaps) || !rec.snaps.length) replayFailure='replay-unavailable';
+      else try{ rep=host.campaign(rec.snaps,st.waves,rec.seed>>>0,inputLog); }
         catch(e){ replayFailure='replay-error'; console.error('sim-host replay failed:',e.message); }
       const serverEndDigest=rep?String(rep.digest||''):'';
       const digestMatch=!!serverEndDigest && sha256hex(clientEnd)===sha256hex(serverEndDigest);
       if(!digestMatch){
         const why=replayFailure||'digest-mismatch';
         led.battleIncidents=(led.battleIncidents||[]).concat([{t:Date.now(),stage:st.id,mode,why,
-          source:transcriptSource,playerTruth:true,engine:a.engine||null,seed:a.seed>>>0,
+          source:transcriptSource,playerTruth:true,engine:a.engine||null,seed:rec.seed>>>0,
           inputs:inputLog.length,server:serverEndDigest?sha256hex(serverEndDigest):null,
           client:sha256hex(clientEnd),serverWon:rep?!!rep.won:null,
           serverStars:rep?(rep.stars|0):null,witnessedWon:witnessed.won,
@@ -7414,18 +7444,18 @@ async function api(req,res,url){
       } else ledTx(me,mode+':loss:'+st.id,{});
       /* The receipt: what was frozen, what the player did, and what the replay produced. Enough to
          re-run this exact battle later and prove the result — kept small and capped. */
-      const receipt={ t:Date.now(), stage:st.id, mode, node:a.node, seed:a.seed>>>0, engine:a.engine||null,
-        source:transcriptSource, chain:(a.stream&&a.stream.chain)||null,
+      const receipt={ t:Date.now(), stage:st.id, mode, node:a.node, seed:rec.seed>>>0, engine:a.engine||null,
+        source:transcriptSource, chain:(rec.stream&&rec.stream.chain)||null,
         heroes:a.heroIds.slice(), inputs:inputLog.length, won, stars,
-        digest:serverEndDigest?sha256hex(serverEndDigest):null, transcript:inputLog,
+        digest:serverEndDigest?sha256hex(serverEndDigest):null, transcript:digestMatch?undefined:inputLog,   /* v1124: an accepted fight keeps no recording; a flagged one keeps it (and its incident) */
         clientDigest:(typeof b.digest==='string'?sha256hex(b.digest):null) };
       led.battleReceipts=(led.battleReceipts||[]).concat([receipt]).slice(-40);
       writeDB([me.id]);
       receipt.match=digestMatch;
       return { ok:true, mode, won, stars, reward, verified:true, playerTruth:true, engine:a.engine||null,
         serverDigest:receipt.digest, digestMatch, replayIncident:!digestMatch, transcript:transcriptSource,
-        actions:inputLog.length, chain:(a.stream&&a.stream.chain)?a.stream.chain.slice(0,16):null,
-        replaySeed:a.seed>>>0, ledger:ledgerView(me) };
+        actions:inputLog.length, chain:(rec.stream&&rec.stream.chain)?rec.stream.chain.slice(0,16):null,
+        replaySeed:rec.seed>>>0, ledger:ledgerView(me) };
     });
     return send(res, out.storageFailed?503:(out.ok===false?400:200), out); }
   /* ---- hero progression endpoints: EXACT mirrors of the game's published rules ---- */
@@ -8115,11 +8145,11 @@ async function api(req,res,url){
     if(rateLimited(req,'pvpReports:'+me.id,Math.round(60*RL_MUL),60000)) return send(res,429,{error:'Slow down.'});   /* v1083 (scan 5 #1) */
     const _noId=(me.pvpMail||[]).some(r=>!r.id);
     me.pvpMail=(me.pvpMail||[]).map(r=>r.id?r:Object.assign({id:uid()},r));
-    if(_noId) writeDB(); return send(res,200,{reports:me.pvpMail}); }   /* v1083: saves only when an old report got its id */
+    if(_noId) writeDB([me.id]); return send(res,200,{reports:me.pvpMail}); }   /* v1083: saves only when an old report got its id */
   if(p==='/api/pvp/reports-ack' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     const b2=await body(req); const ids=new Set(Array.isArray(b2.ids)?b2.ids.map(String):[]);
     me.pvpMail=(me.pvpMail||[]).filter(r=>!ids.has(String(r.id)));
-    writeDB(); return send(res,200,{ok:true, remaining:(me.pvpMail||[]).length}); }
+    writeDB([me.id]);   /* v1124: this player's mail */ return send(res,200,{ok:true, remaining:(me.pvpMail||[]).length}); }
 
   // ---- WORLD MAP: every registered player's castle (server-assigned position).
   //      The client shows these as REAL cities and fills the rest of each region with NPC bots. ----
@@ -8876,7 +8906,7 @@ async function api(req,res,url){
       { const bad=badNewName(name); if(bad) return send(res,400,{error:bad}); }   /* v982 (3 Oct Guild audit #11): the same name rules as a player name (hidden characters, stacked accents, reserved names) */
       if(Object.values(DB.guilds).some(g=>(g.name||'').toLowerCase()===name.toLowerCase()||(nameSkeleton(name)&&nameSkeleton(g.name)===nameSkeleton(name)))) return send(res,409,{error:'That guild name is already taken'});   /* v1085: two symbol-only names both fold to '' */   /* v1080: look-alikes too */
       const id=uid(); const g={ id, name, leader:me.id, members:[me.id], reqs:[], level:1, exp:0, motd:'Welcome to '+name+'!', log:[], createdAt:Date.now() };
-      DB.guilds[id]=g; me.guildId=id; writeDB();
+      DB.guilds[id]=g; me.guildId=id; writeDB([me.id]);
       return send(res,200,{ guild:guildView(g) }); }
 
     if((p==='/api/guild/request'||p==='/api/guild/cancelRequest')&&rateLimited(req,'greq:'+me.id,20,60000)) return send(res,429,{error:'Slow down.'});   /* v1011 (re-audit Arena N10 / Market #15 / Guild #12): per-account throttle on a heavy read */
@@ -8886,9 +8916,9 @@ async function api(req,res,url){
       if((g.members||[]).length>=gCap(g)) return send(res,400,{error:'That guild is full.'});
       g.reqs=g.reqs||[]; if(g.reqs.some(r=>r.id===me.id)) return send(res,200,{ ok:true, already:true });
       if(g.reqs.length>=80) return send(res,400,{error:'That guild has too many pending requests right now.'});
-      g.reqs.push({id:me.id,t:Date.now()}); writeDB(); return send(res,200,{ ok:true }); }
+      g.reqs.push({id:me.id,t:Date.now()}); writeDB([me.id]); return send(res,200,{ ok:true }); }
 
-    if(p==='/api/guild/cancelRequest'){ const g=findGuild(b.guildId); if(g){ g.reqs=(g.reqs||[]).filter(r=>r.id!==me.id); writeDB(); } return send(res,200,{ok:true}); }
+    if(p==='/api/guild/cancelRequest'){ const g=findGuild(b.guildId); if(g){ g.reqs=(g.reqs||[]).filter(r=>r.id!==me.id); writeDB([me.id]); } return send(res,200,{ok:true}); }
 
     const g=myGuild();
     if(['/api/guild/approve','/api/guild/deny','/api/guild/kick','/api/guild/transfer','/api/guild/disband','/api/guild/motd','/api/guild/banner'].includes(p)){
@@ -8898,23 +8928,23 @@ async function api(req,res,url){
     /* v803b - the pool is memoised per guild; membership is the one input that must not wait */
     if(p==='/api/guild/approve'){ const tid=b.id; g.reqs=g.reqs||[]; warPoolForget(g.id);
       if(!g.reqs.some(r=>r.id===tid)) return send(res,400,{error:'No such request.'});
-      const tu=DB.users[tid]; if(!tu){ g.reqs=g.reqs.filter(r=>r.id!==tid); writeDB(); return send(res,400,{error:'That player no longer exists.'}); }
-      if(tu.guildId){ g.reqs=g.reqs.filter(r=>r.id!==tid); writeDB(); return send(res,400,{error:'That player already joined a guild.'}); }
+      const tu=DB.users[tid]; if(!tu){ g.reqs=g.reqs.filter(r=>r.id!==tid); writeDB([me.id]); return send(res,400,{error:'That player no longer exists.'}); }
+      if(tu.guildId){ g.reqs=g.reqs.filter(r=>r.id!==tid); writeDB([me.id]); return send(res,400,{error:'That player already joined a guild.'}); }
       if((g.members||[]).length>=gCap(g)) return send(res,400,{error:'Your guild is full.'});
       g.members.push(tid); tu.guildId=g.id; g.reqs=g.reqs.filter(r=>r.id!==tid);
       g.log=g.log||[]; g.log.push({sys:1,tx:tu.name+' joined the guild.',t:Date.now()}); if(g.log.length>100)g.log=g.log.slice(-100);
-      writeDB(); return send(res,200,{ guild:guildView(g) }); }
-    if(p==='/api/guild/deny'){ g.reqs=(g.reqs||[]).filter(r=>r.id!==b.id); writeDB(); return send(res,200,{ guild:guildView(g) }); }
+      writeDB([me.id,tu.id]);   /* v1124: the guild (shared world) + the leader + the new member */ return send(res,200,{ guild:guildView(g) }); }
+    if(p==='/api/guild/deny'){ g.reqs=(g.reqs||[]).filter(r=>r.id!==b.id); writeDB([me.id]); return send(res,200,{ guild:guildView(g) }); }
     if(p==='/api/guild/kick'){ if(b.id===me.id) return send(res,400,{error:'Use Leave instead.'});
       warPoolForget(g.id);
       if(!(g.members||[]).includes(b.id)) return send(res,400,{error:'Not a member.'});
       g.members=g.members.filter(x=>x!==b.id); const tu=DB.users[b.id]; if(tu&&tu.guildId===g.id) delete tu.guildId;
       g.log=g.log||[]; g.log.push({sys:1,tx:nameOf(b.id)+' was removed from the guild.',t:Date.now()}); guildLogCap(g);
-      writeDB(); return send(res,200,{ guild:guildView(g) }); }
+      writeDB([me.id,String(b.id)]);   /* v1124: the guild + the leader + the removed member */ return send(res,200,{ guild:guildView(g) }); }
     if(p==='/api/guild/transfer'){ if(!(g.members||[]).includes(b.id)) return send(res,400,{error:'Not a member.'});
       g.leader=b.id; g.log=g.log||[]; g.log.push({sys:1,tx:nameOf(b.id)+' is now the guild leader.',t:Date.now()}); guildLogCap(g);
-      writeDB(); return send(res,200,{ guild:guildView(g) }); }
-    if(p==='/api/guild/motd'){ g.motd=(b.motd||'').toString().replace(/[<>]/g,'').slice(0,160); writeDB(); return send(res,200,{ guild:guildView(g) }); }
+      writeDB([me.id]); return send(res,200,{ guild:guildView(g) }); }
+    if(p==='/api/guild/motd'){ g.motd=(b.motd||'').toString().replace(/[<>]/g,'').slice(0,160); writeDB([me.id]); return send(res,200,{ guild:guildView(g) }); }
     /* v769 (Phil: "so that we can set Guild banners") - the leader's choice, validated before it is
        assigned: a rejected banner leaves the guild's current one untouched. */
     if(p==='/api/guild/banner'){
@@ -8922,17 +8952,17 @@ async function api(req,res,url){
       if(!v.ok) return send(res,400,{error:v.error});
       if(v.banner===null) delete g.banner; else g.banner=v.banner;
       g.log=g.log||[]; g.log.push({sys:1,tx:'The guild banner was changed.',t:Date.now()}); guildLogCap(g);
-      writeDB(); return send(res,200,{ guild:guildView(g) }); }
+      writeDB([me.id]); return send(res,200,{ guild:guildView(g) }); }
     if(p==='/api/guild/disband'){ for(const mid of (g.members||[])){ const mu=DB.users[mid]; if(mu&&mu.guildId===g.id) delete mu.guildId; }
-      delete DB.guilds[g.id]; warDropDeletedGuild(g.id); writeDB(); return send(res,200,{ ok:true, disbanded:true }); }
+      delete DB.guilds[g.id]; warDropDeletedGuild(g.id); writeDB([me.id,...(g.members||[])]); return send(res,200,{ ok:true, disbanded:true }); }   // v1124: every member's guildId
 
     if(p==='/api/guild/leave'){ if(!g) return send(res,400,{error:'You are not in a guild.'});
       warPoolForget(g.id);
       if(g.leader===me.id && (g.members||[]).length>1) return send(res,400,{error:'Transfer leadership to another member before you leave.'});
       g.members=(g.members||[]).filter(x=>x!==me.id); delete me.guildId;
-      if((g.members||[]).length===0){ delete DB.guilds[g.id]; warDropDeletedGuild(g.id); writeDB(); return send(res,200,{ ok:true, disbanded:true }); }
+      if((g.members||[]).length===0){ delete DB.guilds[g.id]; warDropDeletedGuild(g.id); writeDB([me.id]); return send(res,200,{ ok:true, disbanded:true }); }
       g.log=g.log||[]; g.log.push({sys:1,tx:me.name+' left the guild.',t:Date.now()}); guildLogCap(g);
-      writeDB(); return send(res,200,{ ok:true }); }
+      writeDB([me.id]); return send(res,200,{ ok:true }); }
 
     if(p==='/api/guild/chat'){ if(!g) return send(res,400,{error:'You are not in a guild.'});
       if(rateLimited(req,'gchat',25,60000)) return send(res,429,{error:'Slow down.'});
@@ -8941,7 +8971,7 @@ async function api(req,res,url){
       try{ if(b.battle && typeof b.battle==='object'){ const s=JSON.stringify(b.battle); if(s.length<=8000) gm.battle=JSON.parse(s); } }catch(e){}   // optional shared-replay chip
       if(gm.battle){ const c=chatChipOk(gm.battle); if(c) gm.battle=c; else delete gm.battle; }   /* v1002 oppName; v1013 (N12) the whole chip shape */
       g.log.push(gm); if(g.log.length>100)g.log=g.log.slice(-100);
-      writeDB(); return send(res,200,{ ok:true, log:g.log.filter(e=>e&&(e.sys||!chatBlocked(me.id,e.id))).slice(-60) }); }   /* v1097: blocked players hidden */
+      writeDB([me.id]); return send(res,200,{ ok:true, log:g.log.filter(e=>e&&(e.sys||!chatBlocked(me.id,e.id))).slice(-60) }); }   /* v1097: blocked players hidden */
 
     if(p==='/api/guild/contribute'){ if(!g) return send(res,400,{error:'You are not in a guild.'}); if(ledPlayerLevel(ensureLedger(me))<13) return send(res,400,{error:'The Guild Hall opens at level 13.'});   /* v1087 (scan 8 #1): the client's building lock was the only gate */
       if(rateLimited(req,'gcontrib',80,60000)) return send(res,429,{error:'Slow down.'});
@@ -9277,7 +9307,7 @@ try{
   function wsNeedAuth(ws){ if(WS_AUTH_REQUIRED && !ws._uid){ wsend(ws,{t:'autherr',reason:'Sign in required.'}); return true; } return false; }
   // ---- live chat: world/region broadcast + name-addressed whispers ----
   // history is stored in the DB (persists across restarts) and kept for ~3h or the last 100 messages per channel
-  let _chatSaveT=null; function chatSaveSoon(){ if(_chatSaveT) return; _chatSaveT=setTimeout(()=>{ _chatSaveT=null; writeDB(); },30000); }   /* v1083: chat is persisted at most every 30 s */
+  let _chatSaveT=null; function chatSaveSoon(){ if(_chatSaveT) return; _chatSaveT=setTimeout(()=>{ _chatSaveT=null; writeDB([]); },30000); }   /* v1124: chat is shared world only - a manifest save */   /* v1083: chat is persisted at most every 30 s */
 const _chatJoinAcct={};   /* v1083: last chat-history send per account */
 const CHAT_KEEP=100, CHAT_AGE_MS=6*3600000;
   const _chatHits={}; setInterval(()=>{ const now=Date.now(); for(const k of Object.keys(_chatHits)){ if(!_chatHits[k].some(t=>now-t<10000)) delete _chatHits[k]; } }, 60000).unref();   // world/region chat messages disappear 6h after being typed
