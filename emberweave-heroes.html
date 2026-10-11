@@ -21494,19 +21494,35 @@ function allBots(){ if(ACC.token&&online()) return SERVER_BOTS||[];
 // ---- REAL player cities (server-sourced, build 1787085000000): every registered account's castle at its
 //      real position. Bots only FILL each region up to the population cap around the real players. ----
 let REAL_CITIES=null, SERVER_BOTS=null, _rcMyGuild=null, _rcFetchedAt=0, _rcTimer=null;
+/* v1124 DELTA MAP: the server sends castle rows without teams, and after the first call only the rows changed since our rev.
+   _rcRaw keeps the server rows by id; a castle's defending team is fetched when it is tapped (cityTeamFetch) and kept in _rcTeams. */
+let _rcRev='', _rcRaw=new Map(), _rcTeams=new Map();
+function cityTeamFetch(c){
+  if(!c||!c.real||!ACC.token||!online()||_rcTeams.has(c.id)) return Promise.resolve(c&&c.team);
+  return api('/api/world/city?id='+encodeURIComponent(c.id)).then(d=>{
+    if(d&&Array.isArray(d.team)){ const tm=d.team.length?d.team.slice(0,5):seededTeam((String(c.id).length*77+(c.level||1)*13)%997);
+      _rcTeams.set(c.id,tm); c.team=tm; if(typeof d.power==='number') c.power=d.power; }
+    return c.team; }).catch(()=>c.team);
+}
 function fetchRealCities(force){
   if(!ACC.token||!online()) return Promise.resolve(null);
   if(!force && REAL_CITIES && (Date.now()-_rcFetchedAt)<45000) return Promise.resolve(REAL_CITIES);
-  return api('/api/world/cities').then(d=>{
+  return api('/api/world/cities?since='+encodeURIComponent(_rcRev||'0')).then(d=>{
     if(d&&Array.isArray(d.cities)){
       _rcMyGuild=d.myGuildId||null; _rcFetchedAt=Date.now();
       SERVER_BOTS=Array.isArray(d.bots)?d.bots:[];
+      if(typeof d.rev==='string'){   // v1124: a delta (or the first full list) - merge into the rows we keep
+        if(d.full) _rcRaw=new Map();
+        d.cities.forEach(c=>{ if(c&&c.id){ _rcRaw.set(c.id,c); _rcTeams.delete(c.id); } });   // a changed castle's team is fetched again on tap
+        (d.gone||[]).forEach(id=>{ _rcRaw.delete(id); _rcTeams.delete(id); });
+        _rcRev=d.rev;
+      } else { _rcRaw=new Map(); d.cities.forEach(c=>{ if(c&&c.id) _rcRaw.set(c.id,c); }); }   // an older server: the whole list, teams included
       const used=new Set(); const mc=myCastlePos(); used.add(cellIndex(mc.x)+','+cellIndex(mc.y));
-      REAL_CITIES=d.cities.filter(c=>REGION_KEYS.indexOf(c.region)>=0).map(c=>{
+      REAL_CITIES=[..._rcRaw.values()].filter(c=>REGION_KEYS.indexOf(c.region)>=0).map(c=>{
         let x=snapToGrid(c.x), y=snapToGrid(c.y), guard=0;                       // real position, cell-snapped;
         while(used.has(cellIndex(x)+','+cellIndex(y))&&guard++<64){ x=snapToGrid(x+GRID_CELL); if(x>99){x=snapToGrid(1); y=snapToGrid(y+GRID_CELL);} }
         used.add(cellIndex(x)+','+cellIndex(y));                                 // nudge off collisions deterministically
-        const tm=(c.team&&c.team.length)?c.team.slice(0,5):seededTeam((String(c.id).length*77+(c.level||1)*13)%997);   // fallback if they never saved a wall
+        const tm=Array.isArray(c.team)?(c.team.length?c.team.slice(0,5):seededTeam((String(c.id).length*77+(c.level||1)*13)%997)):(_rcTeams.get(c.id)||undefined);   // fallback if they never saved a wall; v1124: delta rows carry no team - it comes on tap
         return { id:c.id, name:c.name, level:c.level||1, power:c.power||0, rank:c.rank||undefined, academy:(typeof c.academy==='number'?c.academy:undefined),   // v1099: owner's Academy level -> castle art
                  team:tm, region:c.region, x, y, real:true,
                  ally: !!(_rcMyGuild && c.guildId && c.guildId===_rcMyGuild) };  // guildmate = green ally castle
@@ -23047,6 +23063,7 @@ function openWorldTreeMenu(){ closeCityMenu();const actions=worldTreeActionsUI()
 }
 function openCityMenu(c){
   closeCityMenu(); const inner=document.getElementById('wzoneInner'); if(!inner)return;
+  if(c&&c.real&&!c.team) cityTeamFetch(c);   // v1124: the defending team is loaded when the castle is tapped
   const canAct=canAttackCity(c)||c.ally;   // you can only operate on castles in your own kingdom
   const enemy=!c.ally, opts=[];
   if(!canAct){
