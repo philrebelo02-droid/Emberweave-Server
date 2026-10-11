@@ -20779,7 +20779,11 @@ function netGateEl(){ let el=document.getElementById('netGate'); if(!el){ el=doc
     el.style.cssText='position:fixed;inset:0;z-index:2147483000;background:rgba(6,9,16,.95);display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;text-align:center;color:#e6edf3;font-weight:800;font-size:16px';
     document.body.appendChild(el); } return el; }
 function netGateUpdate(){ if(window._p2guard||!online()) return; const el=netGateEl(); let msg='', act='';
-  if(NETGATE.down>=2){ msg='Connection lost — reconnecting…'; act='retry'; }
+  /* v1120 (Phil 10 Oct: "S1 didnt even show it was down ... didnt allow me to see the server list to switch"): name the server, and say
+     DOWN when the front door says so (503 serverDown) instead of a generic reconnect. */
+  let _svN='the server'; try{ if(svrOn()){ const _s=SVR_LIST.find(x=>x.id===svrHere()); if(_s) _svN=_s.name; } }catch(e){}
+  if(NETGATE.down>=2 && NETGATE.serverDown){ msg=_svN+' is down right now.'; act='retry'; }
+  else if(NETGATE.down>=2){ msg='Lost '+_svN+' — reconnecting…'; act='retry'; }
   else if(window._svrSigningIn){ msg='Signing you in…'; act='wait'; }   // v1034: a server switch is signing in - no Play until it lands
   else if(!(ACC&&ACC.token)){
     if(ACC&&ACC.signedOut){ if(typeof state==='undefined'||state!=='account'){ msg='Sign in to play.'; act='signin'; } }
@@ -20794,12 +20798,18 @@ function netGateUpdate(){ if(window._p2guard||!online()) return; const el=netGat
     other='<div style="font-size:13px;font-weight:700;opacity:.8;margin-top:6px">Or play on another server</div><div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center">'+
       SVR_LIST.filter(x=>x.id!==here).map(x=>'<button class="btn secondary" data-ngsvr="'+x.id+'">'+escapeHTML(x.name)+'</button>').join('')+'</div>'; } }catch(e){ other=''; }
   if(el.dataset.msg!==msg+'|'+(other?1:0)){ el.dataset.msg=msg+'|'+(other?1:0); el.innerHTML='<div>'+msg+'</div>'+btn+other;
-    if(act!=='wait') el.querySelector('#netGateBtn').onclick=()=>{ if(act==='signin'){ el.style.display='none'; try{ show('account'); }catch(e){} } else netGateCheck(); };
+    if(act!=='wait') el.querySelector('#netGateBtn').onclick=async(ev)=>{ if(act==='signin'){ el.style.display='none'; try{ show('account'); }catch(e){} return; }
+      /* v1120 (Phil: "the reconnect button doesnt nothing"): it re-checked silently - when the server was still down the screen did not change */
+      const b=ev.currentTarget; b.disabled=true; b.textContent='Checking…'; NETGATE.busy=false; await netGateCheck();
+      if(NETGATE.down){ const b2=document.getElementById('netGateBtn'); if(b2){ b2.disabled=false; b2.textContent='Still down — Retry'; } } };
     el.querySelectorAll('[data-ngsvr]').forEach(b=>{ b.onclick=()=>{ try{ svrGo(+b.dataset.ngsvr); }catch(e){} }; }); }
   el.style.display='flex'; }
 async function netGateCheck(){ if(window._p2guard||!online()||NETGATE.busy) return; NETGATE.busy=true; let ok=false;
-  try{ const c=new AbortController(), t=setTimeout(()=>c.abort(),6000); const r=await fetch('/api/health',{cache:'no-store',signal:c.signal});   /* /api/ bypasses the service worker, which answers /health from cache */ clearTimeout(t); ok=!!(r&&r.ok); }catch(e){ ok=false; }
-  NETGATE.busy=false; NETGATE.down=ok?0:NETGATE.down+1;
+  try{ const c=new AbortController(), t=setTimeout(()=>c.abort(),6000); const r=await fetch('/api/health',{cache:'no-store',signal:c.signal});   /* /api/ bypasses the service worker, which answers /health from cache */ clearTimeout(t); ok=!!(r&&r.ok);
+    NETGATE.serverDown=false; if(r&&r.status===503){ try{ const j=await r.json(); NETGATE.serverDown=!!(j&&j.serverDown); }catch(e){} } }catch(e){ ok=false; NETGATE.serverDown=false; }
+  const _was=NETGATE.down;
+  NETGATE.busy=false; NETGATE.down=ok?0:(NETGATE.serverDown?Math.max(2,NETGATE.down+1):NETGATE.down+1);   // v1120: the front door saying "down" needs no second miss
+  if(ok&&_was>=2){ try{ CHATNET.tries=0; chatConnect(); }catch(e){} }   // v1120: the server is back - reconnect the live socket now, not after its back-off
   if(ok&&!(ACC&&ACC.token)&&!(ACC&&ACC.signedOut)&&!window._svrHandoff) ensureGuest(()=>netGateUpdate());
   netGateUpdate(); }
 function netGateLoop(){ clearTimeout(NETGATE.timer); NETGATE.timer=setTimeout(async()=>{ await netGateCheck(); netGateLoop(); }, NETGATE.down?4000:15000); }
@@ -26373,7 +26383,7 @@ function myRoster(){ return G.team.map(k=>({key:k,level:heroLevel(k),rank:heroQu
 function netConnect(cb){ const url=netURL(); if(!url){cb&&cb(false);return;} try{NET.ws=new WebSocket(url);}catch(e){cb&&cb(false);return;}
   NET.ws.onopen=()=>{NET.connected=true;cb&&cb(true);};
   NET.ws.onmessage=(e)=>{let m;try{m=JSON.parse(e.data);}catch(_){return;}onServer(m);};
-  NET.ws.onclose=()=>{NET.connected=false;if(OL.active)onPeerLeft('Disconnected.');};
+  NET.ws.onclose=()=>{NET.connected=false;if(OL.active)onPeerLeft('Disconnected.'); try{ netGateCheck(); }catch(e){} };   // v1120
   NET.ws.onerror=()=>{cb&&cb(false);};
 }
 function netSend(o){ if(o&&!o.token&&ACC&&ACC.token)o.token=ACC.token;   // WS auth: every frame carries the account token (server binds socket→account; WS_AUTH_REQUIRED enforces it)
@@ -27574,7 +27584,8 @@ function chatConnect(){ if(location.protocol==='file:'||!online())return; if(CHA
   const url=window.EW_WS||((location.protocol==='https:'?'wss://':'ws://')+location.host); try{ CHATNET.ws=new WebSocket(url); }catch(e){ return; }
   CHATNET.ws.onopen=()=>{ CHATNET.connected=true; CHATNET.tries=0; CHATNET.name=chatName(); try{ CHATNET.ws.send(JSON.stringify({t:'chatjoin',name:CHATNET.name,token:(ACC&&ACC.token)||undefined})); }catch(e){} };
   CHATNET.ws.onmessage=(e)=>{ let m; try{m=JSON.parse(e.data);}catch(_){return;} onChatNet(m); };
-  CHATNET.ws.onclose=()=>{ CHATNET.connected=false; CHATNET.tries++; setTimeout(chatConnect, Math.min(15000,2000*CHATNET.tries)); };
+  CHATNET.ws.onclose=()=>{ CHATNET.connected=false; CHATNET.tries++; setTimeout(chatConnect, Math.min(15000,2000*CHATNET.tries));
+    try{ netGateCheck().then(()=>{ if(NETGATE.down) setTimeout(()=>netGateCheck(),1500); }); }catch(e){} };   // v1120: a dropped socket checks the server now (two quick checks), not at the next 15 s tick
   CHATNET.ws.onerror=()=>{ try{CHATNET.ws.close();}catch(e){} };
 }
 function chatNetSend(o){ try{ if(o&&!o.token&&ACC&&ACC.token)o.token=ACC.token; if(CHATNET.ws&&CHATNET.ws.readyState===1){ CHATNET.ws.send(JSON.stringify(o)); return true; } }catch(e){} return false; }
