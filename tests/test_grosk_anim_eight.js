@@ -54,13 +54,13 @@ const cast = (kind, dropHitTimes) => run(`(()=>{ units=[]; ended=false; paused=f
 
 try {
   const G = run('JSON.parse(JSON.stringify(BATTLE_ANIM.grosk))');
-  const states = ['idle', 'walk', 'attack', 'crit', 'hit', 'green', 'blue', 'ult', 'passive'];
-  ck('Grosk has the eight approved states + the kept passive', states.every(s => G[s]), Object.keys(G).join(','));
+  const states = ['idle', 'walk', 'attack', 'crit', 'hit', 'green', 'blue', 'ult'];
+  ck('Grosk has the eight approved states and NO passive animation (v1118, Phil: "no passive for grosk")', states.every(s => G[s]) && !G.passive, Object.keys(G).join(','));
   const bad = gridProblems(G);
   ck('every sheet exists, file = declared grid, fits 4096, anchors in cell', bad.length === 0, bad.join('; '));
   const eight = states.filter(s => s !== 'passive');
   ck('the eight are new files at ?v=22 (never a reused asset version)', eight.every(s => G[s].u === '/assets/anim/grosk/grosk_' + s + '_1112.webp?v=22'));
-  ck('passive unchanged (OMITTED by Phil - no mechanic removed)', G.passive.u === '/assets/anim/grosk/grosk_passive.webp?v=7' && run("KITS.grosk.purple.pass") === 'mirewall');
+  ck('no passive clip (battle or skill tab) and the Mirewall mechanic kept', !G.passive && !run("JSON.stringify((HERO_SKILL_CLIPS.grosk||{})[3]||null)").includes('grosk_passive') && run("KITS.grosk.purple.pass") === 'mirewall');
   ck('attack lands on cell 8, crit on cell 10 (relFrac = contact / 48)', G.attack.relFrac === 8 / 48 && G.crit.relFrac === 10 / 48);
   ck('walk plays its measured stride loop [1,45)', JSON.stringify(G.walk.loop) === '[1,45]');
   ck('blue and ult play in real time (every 2nd source frame at 12 fps)', G.blue.fps === 12 && G.ult.fps === 12 && G.blue.n === 48 && G.ult.n === 48);

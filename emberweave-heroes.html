@@ -3392,7 +3392,7 @@ const BATTLE_ANIM = {
     green:{u:'/assets/anim/grosk/grosk_green_1112.webp?v=22',n:48,fw:534,fh:500,cols:6,rows:8,figH:350,feet:440,cx:273,fps:24,flip:false,top:90},
     blue:{u:'/assets/anim/grosk/grosk_blue_1112.webp?v=22',n:48,fw:595,fh:494,cols:6,rows:8,figH:350,feet:434,cx:268,fps:12,flip:false,top:84},
     ult:{u:'/assets/anim/grosk/grosk_ult_1112.webp?v=22',n:48,fw:465,fh:512,cols:6,rows:8,figH:278,feet:464,cx:225,fps:12,flip:false,top:185},
-    passive:{u:'/assets/anim/grosk/grosk_passive.webp?v=7',n:20,fw:300,fh:251,cols:6,rows:4,figH:185,feet:248,cx:152,fps:10,flip:false, pingpong:true,top:2}
+    /* v1118 (Phil 10 Oct: "no passive for grosk. if he has one attached remove it as a passive animation"): the old 300 px passive sheet is unwired */
   },
   fritz:{
     idle:{u:'/assets/anim/fritz/fritz_idle.webp?v=30',n:48,fw:386,fh:493,cols:6,rows:8,figH:371,feet:433,cx:215,fps:24,flip:false,top:62},   /* v949 (Phil 3 Oct: "Slice and wire"): Fritz RESTART - all 8 states are the clips Phil passed one by one on 3 Oct (Hailuo 2.0, Start/End plate), cut native with cs10 (PAD 60, lossless, key ~247,3,242), magenta unmix despill (pink 0.000%); figH 371 on every state so he draws the same size in every action, feet/cx from the cut, ax omitted (feet planted); walk = 48 + cells 1,0 (Phil 9 Sep stitch rule); ult = 72 cells at 24 fps = 3 s = the storm, apex 36 = mid-channel so the engine's hold is ~0 s; new passive = the Static Veil clip, played as a resting flourish alternating with idle (v522 rule) - the dodge itself fires no clip */
@@ -3691,7 +3691,7 @@ HERO_SKILL_CLIPS.grosk = {
   0:{u:'/assets/anim/grosk/grosk_ult_1112.webp?v=22',n:48,fw:465,fh:512,cols:6,rows:8,dur:4.0},     /* v1112: the approved eight (ult and blue play in real time, 12 fps) */
   1:{u:'/assets/anim/grosk/grosk_green_1112.webp?v=22',n:48,fw:534,fh:500,cols:6,rows:8,dur:2.0},
   2:{u:'/assets/anim/grosk/grosk_blue_1112.webp?v=22',n:48,fw:595,fh:494,cols:6,rows:8,dur:4.0},
-  3:{u:'/assets/anim/grosk/grosk_passive.webp?v=7',n:20,fw:300,fh:251,cols:6,rows:4,dur:2.6},
+  /* 3: v1118 - no passive animation for Grosk (Phil) */
 };
 HERO_SKILL_CLIPS.vulmar = { 0:{u:'/assets/anim/vulmar/vulmar_ult.webp?v=7',n:48,fw:241,fh:400,cols:6,rows:8,dur:2.0}, 1:{u:'/assets/anim/vulmar/vulmar_green.webp?v=7',n:48,fw:345,fh:400,cols:6,rows:8,dur:2.0}, 2:{u:'/assets/anim/vulmar/vulmar_blue.webp?v=7',n:48,fw:252,fh:400,cols:6,rows:8,dur:2.0}, 3:{u:'/assets/anim/vulmar/vulmar_passive.webp?v=7',n:48,fw:240,fh:400,cols:6,rows:8,dur:2.0} };
 // Oakmir skill-tab previews (Vael's derive from his battle sheets since v1025) — single-row strips re-packed from their battle sheets (assets/anim/<hero>/<hero>_sk_*.webp).
@@ -4056,6 +4056,11 @@ function preloadBattleArt(keys, bgUrl){
    every fighter is pushed to the GPU (renderer.initTexture) BEHIND the loading screen, in ~10 ms slices so the loader keeps
    animating, and the fight starts with nothing left to upload. */
 function gpuWarmKeys(keys){
+  /* v1118 (Phil 10 Oct: "games lagging too much" / "on my desktop and phone it lags in battle"): requalifyTextures() ran from updateProjFx on the
+     FIRST battle frame, after this warm-up had uploaded every sheet, and flagged them all for re-upload - so each sheet went to the GPU a
+     second time mid-fight (measured 5v5 desktop: 51 uploads in the fight, 2.2 s blocked, 22 frames over 33 ms). It now runs here, before the
+     warm-up, so the warm uploads are the final ones (measured: 51 -> 10 uploads, frames over 33 ms 22 -> 6, p99 frame 50 -> 16.8 ms). */
+  try{ if(!_texRequalDone) requalifyTextures(); }catch(e){}
   return new Promise(res=>{
     try{
       if(typeof renderer==='undefined' || !renderer || typeof renderer.initTexture!=='function') return res();
