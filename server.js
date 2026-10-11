@@ -4793,6 +4793,23 @@ function arenaDefOk(me,opp,def){ try{ if(JSON.stringify(def).length>16000) retur
     if(!def.foe.every(s=>foeKeys.has(keyOf(s)))) return false;
     return true; }catch(e){ return false; } }
 
+/* v1124 WORLD MAP DELTAS (load test 11 Oct 2026: /api/world/cities was 139 KB and 156-205 ms of main thread per call, polled every
+   60 s by every player on the map). The castle rows (no teams) are rebuilt server-wide at most every WORLD_CITIES_REFRESH_MS; a row
+   whose fields changed gets the next rev, a castle that left the map a tombstone. A client sends since=<epoch>.<rev> and gets only
+   newer rows (+ removed ids); a restart changes the epoch, so the next call is a full list. Teams come per castle (/api/world/city). */
+const _cityRows=new Map(), _cityGone=new Map(), _cityEpoch=crypto.randomBytes(4).toString('hex');
+let _cityRev=0, _cityBuiltAt=0;
+const WORLD_CITIES_REFRESH_MS=Math.max(0,+(process.env.WORLD_CITIES_REFRESH_MS||20000));
+function worldCityRowsRefresh(){ const now=Date.now(); if(_cityBuiltAt&&now-_cityBuiltAt<WORLD_CITIES_REFRESH_MS) return; _cityBuiltAt=now;
+  const seen=new Set();
+  for(const u of Object.values(DB.users)){ if(!u||!WORLD_LOCATION.valid(u.worldLocation)) continue; seen.add(u.id);
+    const line=(Array.isArray(u.wall)&&u.wall.length?u.wall:(u.team||[]));
+    const row={ id:u.id, name:u.name, rank:u.rank||null, level:ledPlayerLevel(ensureLedger(u)),
+      academy:(u.led&&u.led.acad&&u.led.acad.lv)?(u.led.acad.lv.academy|0):undefined,
+      power:serverTeamPower(line,u)|0, region:u.worldLocation.region, x:u.worldLocation.x, y:u.worldLocation.y, guildId:u.guildId||null };
+    const s=JSON.stringify(row), old=_cityRows.get(u.id);
+    if(!old||old.s!==s){ _cityRows.set(u.id,{row,s,rev:++_cityRev}); _cityGone.delete(u.id); } }
+  for(const id of [..._cityRows.keys()]) if(!seen.has(id)){ _cityRows.delete(id); _cityGone.set(id,++_cityRev); } }
 async function api(req,res,url){
   const p=url.pathname;
   if(p==='/api/health') return send(res,200,{ok:true});   /* v1018: the client's net gate checks this - an /api/ path is never answered from the service worker cache (/health is) */
@@ -8757,6 +8774,16 @@ async function api(req,res,url){
   }
   if(p==='/api/world/cities'){ if(!me)return send(res,401,{error:'auth'});
     if(rateLimited(req,'wcities:'+me.id,30,60000)) return send(res,429,{error:'Slow down.'});   /* v1002 (World audit #10): each call builds up to 500 rosters */
+    if(url.searchParams.has('since')){   /* v1124 DELTA MAP: no defending teams, only the cities changed since the client's rev */
+      worldCityRowsRefresh();
+      const sv=String(url.searchParams.get('since')||''), dot=sv.indexOf('.'), ep=dot>0?sv.slice(0,dot):'', rv=dot>0?(+sv.slice(dot+1)||0):0;
+      const full=!(ep===_cityEpoch&&rv>0&&rv<=_cityRev);
+      const cities=[], gone=[];
+      for(const [id,e] of _cityRows){ if(id===me.id) continue; if(full||e.rev>rv) cities.push(e.row); if(cities.length>=500&&full) break; }
+      if(!full) for(const [id,r] of _cityGone) if(r>rv) gone.push(id);
+      const bots=[];
+      if(worldLocation(me)) for(const regionKey of WORLD_LOCATION.REGION_KEYS) bots.push(...worldBotRoster(me,regionKey));
+      return send(res,200,{ rev:_cityEpoch+'.'+_cityRev, full, cities, gone, bots, myGuildId: me.guildId||null }); }
     const placed=Object.values(DB.users).filter(u=>u.id!==me.id && WORLD_LOCATION.valid(u.worldLocation));
     const cities=placed
       .slice(0,500)
@@ -8772,6 +8799,12 @@ async function api(req,res,url){
       bots.push(...worldBotRoster(me,regionKey));
     return send(res,200,{ cities, bots, myGuildId: me.guildId||null }); }
 
+  if(p==='/api/world/city' && req.method==='GET'){ if(!me)return send(res,401,{error:'auth'});   /* v1124: one castle's defending team, fetched when the player taps it */
+    if(rateLimited(req,'wcity:'+me.id,Math.round(120*RL_MUL),60000)) return send(res,429,{error:'Slow down.'});
+    const u=DB.users[String(url.searchParams.get('id')||'')];
+    if(!u||u.isNpc||!WORLD_LOCATION.valid(u.worldLocation)) return send(res,404,{error:'No such castle.'});
+    const line=(Array.isArray(u.wall)&&u.wall.length?u.wall:(u.team||[]));
+    return send(res,200,{ id:u.id, power:serverTeamPower(line,u)|0, team:hydrateRoster(u,line) }); }
   if(p==='/api/world/mines' && req.method==='GET'){
     if(!me) return send(res,401,{error:'auth'});
     if(!worldLocation(me)) return send(res,200,{ok:false,locked:true,needLevel:WITCH.UNLOCK_LEVEL});
