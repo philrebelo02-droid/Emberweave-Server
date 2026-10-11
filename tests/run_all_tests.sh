@@ -163,6 +163,8 @@ note "test_well_sweep_1110.js (v1110: a Well sweep pays 80% of a played run; eve
 node tests/test_well_sweep_1110.js || FAILED=1
 note "test_engine_fixes_1114.js (v1114: chantzone/hornetswarm level once, Magic counters off AP, airborne counts down)"
 node tests/test_engine_fixes_1114.js || FAILED=1
+note "test_battle_load_1120.js (v1120: spell plates share one sheet, auto-attack balls / Fritz bolt / void zone on the loading list, stall-based load gate with 45 s ceiling; control: v1119 fails all)"
+node tests/test_battle_load_1120.js || FAILED=1
 note "test_vault_status_client.js (3 Oct audit: an unreachable Vault no longer renders the legacy Challenge Dungeon)"
 node tests/test_vault_status_client.js || FAILED=1
 note "test_witch_state_rate.js (3 Oct audit: Witches Hut state reads limited to 60 a minute)"

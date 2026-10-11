@@ -4081,7 +4081,12 @@ function gpuWarmKeys(keys){
 function fxSheetKeys(keys){ const out=new Set(), F=(typeof FX2_DEF!=='undefined')?FX2_DEF:{}, P=(typeof FX_PLATE_DEF!=='undefined')?FX_PLATE_DEF:{};
   const walk=(o,d)=>{ if(o==null||d>3) return; if(typeof o==='string'){ if(F[o]||P[o]) out.add(o); return; } if(typeof o==='object') for(const k in o) walk(o[k],d+1); };
   (keys||[]).filter(Boolean).forEach(k=>{ walk((typeof KITS!=='undefined')&&KITS[k],0); walk((typeof MONSTER_KITS!=='undefined')&&MONSTER_KITS[k],0);
-    const pre=String(k)+'_'; for(const n in F) if(n.indexOf(pre)===0) out.add(n); for(const n in P) if(n.indexOf(pre)===0) out.add(n); });   // sheets named after the fighter (ults wired by name)
+    const pre=String(k)+'_'; for(const n in F) if(n.indexOf(pre)===0) out.add(n); for(const n in P) if(n.indexOf(pre)===0) out.add(n);   // sheets named after the fighter (ults wired by name)
+    /* v1120: sheets the kit walk could not see, measured uploading mid-fight in a 5v5: the auto-attack ball (CASTER_BALL - nature /
+       frost / shadow), Fritz's chain bolt (BOLT_SHEET, his auto and chain), and the void zone every curse / poison DoT blooms. */
+    const cb=(typeof CASTER_BALL!=='undefined')&&CASTER_BALL[k]; if(cb&&cb.fx&&(F[cb.fx]||P[cb.fx])) out.add(cb.fx);
+    if(cb&&cb.bolt&&typeof BOLT_SHEET!=='undefined'){ if(!F.__fritzbolt) F.__fritzbolt=Object.assign({dur:BOLT_LIFE},BOLT_SHEET); out.add('__fritzbolt'); } });
+  if((keys||[]).some(Boolean)&&F.voidzone) out.add('voidzone');
   return [...out]; }
 function fxSheetTex(n){ try{ return (typeof FX2_DEF!=='undefined'&&FX2_DEF[n]) ? fx2Tex(n) : _fxPlateTex(n); }catch(e){ return null; } }
 function fxWarmKeys(keys, timeoutMs){
@@ -4089,13 +4094,17 @@ function fxWarmKeys(keys, timeoutMs){
     try{
       if(typeof renderer==='undefined' || !renderer || typeof renderer.initTexture!=='function') return res();
       const list=fxSheetKeys(keys).map(fxSheetTex).filter(Boolean); if(!list.length) return res();
-      const t0=performance.now(), cap=timeoutMs||8000, done=new Set();
+      /* v1120 (Phil 10 Oct: wait for every sheet before the fight): the cap was a fixed 8 s, so on a slow device (measured at 4x CPU
+         throttle) the fight started with the enemy ults still unloaded and each one froze the fight for 0.2-0.9 s on its first cast.
+         It is now a STALL cap - give up only when no new sheet has arrived for that long - with a 45 s hard ceiling so a dead sheet
+         can never lock a player out of their battle. */
+      const t0=performance.now(), cap=timeoutMs||8000, done=new Set(); let tProg=t0;
       const txt=document.getElementById('blTxt');
       const step=()=>{ const s0=performance.now();
         for(const t of list){ if(done.has(t)) continue; if(!(t.image&&(t.image.complete!==false)&&(t.image.width||t.image.naturalWidth))) continue;
-          try{ renderer.initTexture(t); }catch(e){} done.add(t); if(performance.now()-s0>10) break; }   // one big sheet per slice, so the loader keeps animating
+          try{ renderer.initTexture(t); }catch(e){} done.add(t); tProg=performance.now(); if(performance.now()-s0>10) break; }   // one big sheet per slice, so the loader keeps animating
         try{ if(txt) txt.textContent='Loading spells… '+done.size+' / '+list.length; }catch(e){}
-        if(done.size>=list.length || performance.now()-t0>cap) return res();
+        if(done.size>=list.length || performance.now()-tProg>cap || performance.now()-t0>45000) return res();
         setTimeout(step, 30); };
       step();
     }catch(e){ res(); } }); }
@@ -4104,8 +4113,9 @@ function fxFreeAll(){
     for(const k in c){ const t=c[k]; try{ (t.__waiters||[]).forEach(w=>{ try{ w.dispose(); }catch(e){} }); t.dispose(); }catch(e){} delete c[k]; } }); }catch(e){} }
 function preloadBattleArtFull(keys, bgUrl, onProgress, timeoutMs){
   return new Promise(resolve=>{
-    let off=null, done=false;
-    const finish=()=>{ if(done) return; done=true; if(off) off(); gpuWarmKeys(keys).then(()=>fxWarmKeys(keys, 8000)).then(resolve, resolve); };
+    let off=null, done=false, stall=null;
+    const arm=()=>{ if(done) return; clearTimeout(stall); stall=setTimeout(finish, timeoutMs||12000); };
+    const finish=()=>{ if(done) return; done=true; clearTimeout(stall); if(off) off(); gpuWarmKeys(keys).then(()=>fxWarmKeys(keys, 8000)).then(resolve, resolve); };
     try{ fxSheetKeys(keys).forEach(fxSheetTex); }catch(e){}   // v944: spell sheets start downloading with everything else
     try{
       if(bgUrl && !_artWarmed['bg:'+bgUrl]){ _artWarmed['bg:'+bgUrl]=1; const im=new Image(); im.decoding='async'; im.src=bgUrl; }
@@ -4117,10 +4127,10 @@ function preloadBattleArtFull(keys, bgUrl, onProgress, timeoutMs){
       if(total<=0){ if(onProgress) onProgress(1,0,0); return finish(); }
       const tick=(d,n)=>{ const got=d-baseDone;
         if(onProgress) onProgress(Math.max(0,Math.min(1,got/total)), got, total);
-        if(got>=total) finish(); };
+        if(got>=total) finish(); else arm(); };   // v1120: every sheet that lands re-arms the stall timer
       off=_lqOnDone(tick); tick(_LOADQ.done,_LOADQ.n);
     }catch(e){ return finish(); }
-    setTimeout(finish, timeoutMs||12000);
+    arm(); setTimeout(finish, 45000);   // v1120: stall gate (timeoutMs with nothing arriving) + 45 s ceiling
   });
 }
 /* v611 - THE LOADING SCREEN (Phil, 18 Sep: "The load screen for heroes needs revision. Please make a legit load screen for the
@@ -12566,10 +12576,14 @@ function _fxPlateTex(key){ const d=FX_PLATE_DEF[key]; if(!d||!TH)return null; if
 function spawnFxPlate(key,fx,fy){ if(_ownFxCast&&!_fxAllow)return; if(!TH||!scene)return; const d=FX_PLATE_DEF[key]; if(!d)return; const base=_fxPlateTex(key); if(!base)return;
   const _c=d.cols||d.n, _r=d.rows||1;
   const _ex=1.5/Math.max(1,_c*d.fw), _ey=1.5/Math.max(1,_r*d.fh);
-  const tex=base.clone(); if(base.image) tex.needsUpdate=true;   // v437: never flag an update before the bitmap exists (Three.js warning spam)
-  tex.repeat.set(Math.max(1e-6,1/_c-2*_ex), Math.max(1e-6,1/_r-2*_ey)); tex.offset.set(_ex,1-1/_r+_ey);
-  if(!base.image){ (base.__waiters=base.__waiters||[]).push(tex); }   // still downloading — collect it
+  /* v1120 (Phil 10 Oct: "on my desktop and phone it lags in battle" - keep the full-size art, load it all before the fight): every cast
+     used to CLONE the plate texture, and in three r128 a clone is its own GPU texture, so each cast uploaded the whole sheet mid-fight
+     (measured 5v5: Fritz's storm shower 6876x300 re-uploaded on every pulse, ~18 ms each). Plates now draw from the one shared sheet
+     (warmed behind the loading screen) and keep their frame on the sprite (_uv, applied by fx2Hook just before it is drawn) - the same
+     fix the v286 FX2 effects got. The frame maths is unchanged. */
+  const tex=base;
   const spr=new TH.Sprite(new TH.SpriteMaterial({map:tex,transparent:true,depthWrite:false,depthTest:false,opacity:1}));
+  spr.userData.sharedMap=true; fx2Hook(spr); spr._uv=[Math.max(1e-6,1/_c-2*_ex), Math.max(1e-6,1/_r-2*_ey), _ex, 1-1/_r+_ey];
   spr.center.set(d.ax!=null?d.ax:.5, d.ay!=null?d.ay:.12); spr.renderOrder=-5;   // v446 (Phil: "spell effects are always behind characters") — unit sprites are renderOrder 0; FX plates draw BEFORE them, never over a hero
   const asp=d.fw/d.fh; spr.scale.set(d.scale*asp*FX_SIZE,d.scale*FX_SIZE,1);   // v367
   spr.position.set(wx(fx), d.y!=null?d.y:1.1, wz(fy)); scene.add(spr);
@@ -12577,11 +12591,12 @@ function spawnFxPlate(key,fx,fy){ if(_ownFxCast&&!_fxAllow)return; if(!TH||!scen
 function updateFxPlates(dt){ for(let i=_fxPlates.length-1;i>=0;i--){ const p=_fxPlates[i]; p.t+=dt; const DUR=p.d.dur*(p.dm||1); const prog=Math.min(1,p.t/DUR); const fr=Math.min(p.d.n-1,Math.floor(prog*p.d.n));
     if(p.spr.material.map){ const _c=p.d.cols||p.d.n, _r=p.d.rows||1, _col=fr%_c, _row=Math.floor(fr/_c);
       const _ex=1.5/Math.max(1,_c*p.d.fw), _ey=1.5/Math.max(1,_r*p.d.fh);
-      p.spr.material.map.offset.x=_col/_c+_ex; p.spr.material.map.offset.y=1-(_row+1)/_r+_ey; }
+      if(p.spr._uv){ p.spr._uv[2]=_col/_c+_ex; p.spr._uv[3]=1-(_row+1)/_r+_ey; }   // v1120: per-sprite frame on the shared sheet
+      else { p.spr.material.map.offset.x=_col/_c+_ex; p.spr.material.map.offset.y=1-(_row+1)/_r+_ey; } }
     // graceful dissolve: many FX plates end on a near-full-quad smoke/glow mass; deleting it in one frame
     // reads as a rectangular "box" popping out. Fade opacity (ease-out) + expand slightly over the last 35% so it disperses.
     const FS=(p.d.fade!=null?p.d.fade:0.65); if(prog>FS){ const k=(prog-FS)/(1-FS); p.spr.material.opacity=Math.max(0,1-k*k); const gs=1+0.14*k, asp=p.d.fw/p.d.fh; p.spr.scale.set(p.d.scale*asp*gs, p.d.scale*gs, 1); }
-    if(p.t>=DUR){ scene.remove(p.spr); if(p.spr.material.map)p.spr.material.map.dispose(); p.spr.material.dispose(); _fxPlates.splice(i,1); } } }
+    if(p.t>=DUR){ scene.remove(p.spr); if(p.spr.material.map&&!p.spr.userData.sharedMap)p.spr.material.map.dispose(); p.spr.material.dispose(); _fxPlates.splice(i,1); } } }
 function think(u,dt){
   // Still in the shadow above the field — he does not move, target, or strike until he lands.
   if(u._dropHidden){ u.target=null; u.attackAnim=0; u.castAnim=0; return; }
@@ -12953,7 +12968,7 @@ function clearBattle(){ waveXfer=null;
   shots.forEach(s=>{scene.remove(s.mesh);s.mesh.material.dispose();});shots=[]; particles.forEach(p=>{scene.remove(p.mesh);p.mesh.material.dispose();});particles=[]; floatTexts=[]; groundHazards=[];
   chains.forEach(c=>c.links.forEach(m=>{scene.remove(m);m.material.dispose();})); chains=[];
   voidZones.forEach(z=>[z.disc,z.ring,z.ring2].forEach(m=>{if(m){scene.remove(m);if(m.geometry)m.geometry.dispose();m.material.dispose();}})); voidZones=[]; if(typeof clearFx2==="function")clearFx2();
-  staffFx.forEach(f=>{ if(f.spr){scene.remove(f.spr);f.spr.material.dispose();} if(f.splash){scene.remove(f.splash); if(f.splash.material.map)f.splash.material.map.dispose(); f.splash.material.dispose();} }); staffFx=[]; if(typeof _fxPlates!=='undefined'){ _fxPlates.forEach(p=>{ if(p.spr){ scene.remove(p.spr); if(p.spr.material.map)p.spr.material.map.dispose(); p.spr.material.dispose(); } }); _fxPlates.length=0; } }
+  staffFx.forEach(f=>{ if(f.spr){scene.remove(f.spr);f.spr.material.dispose();} if(f.splash){scene.remove(f.splash); if(f.splash.material.map)f.splash.material.map.dispose(); f.splash.material.dispose();} }); staffFx=[]; if(typeof _fxPlates!=='undefined'){ _fxPlates.forEach(p=>{ if(p.spr){ scene.remove(p.spr); if(p.spr.material.map&&!p.spr.userData.sharedMap)p.spr.material.map.dispose(); p.spr.material.dispose(); } }); _fxPlates.length=0; } }
 // per-mode battle maps: The Vault fights on the forest-road arena; everything else keeps the default painted map
 const BATTLE_MAPS={ vault:'/assets/img/battlefields/dungeon-forest-01.webp', dungeon:'/assets/img/battlefields/dungeon-forest-01.webp', well:'/assets/img/battlefields/starless-well-01.webp' };
 function applyBattleMap(){ const bg=document.getElementById('battleBg'); if(!bg) return;
@@ -13198,7 +13213,7 @@ function purgeTransientFx(){
   voidZones.forEach(z=>[z.disc,z.ring,z.ring2].forEach(m=>{if(m){scene.remove(m);if(m.geometry)m.geometry.dispose();m.material.dispose();}})); voidZones=[]; if(typeof clearFx2==="function")clearFx2();
   floatTexts=[];
   staffFx.forEach(f=>{ if(f.spr){scene.remove(f.spr);f.spr.material.dispose();} if(f.splash){scene.remove(f.splash); if(f.splash.material.map)f.splash.material.map.dispose(); f.splash.material.dispose();} }); staffFx=[];
-  if(typeof _fxPlates!=='undefined'){ _fxPlates.forEach(p=>{ if(p.spr){ scene.remove(p.spr); if(p.spr.material.map)p.spr.material.map.dispose(); p.spr.material.dispose(); } }); _fxPlates.length=0; }
+  if(typeof _fxPlates!=='undefined'){ _fxPlates.forEach(p=>{ if(p.spr){ scene.remove(p.spr); if(p.spr.material.map&&!p.spr.userData.sharedMap)p.spr.material.map.dispose(); p.spr.material.dispose(); } }); _fxPlates.length=0; }
   /* v485 (Phil): bees never carry across a wave. Anything still in the air when the wave ends — hive swarm,
      hornet swarm (and its damage controller), the honey glob — is gone, and the passive's ward bee is dropped
      so it re-attaches on the next wave with a live ally. */
