@@ -361,6 +361,8 @@ note "test_umbris_anim_eight.js (v1115: Umbris's eight approved animations - she
 node tests/test_umbris_anim_eight.js || FAILED=1
 note "test_pellucid_attack_crit_1115.js (v1115: Pellucid's approved haymaker ATTACK + front-kick CRIT - sheets, grids, same ground line, blow on cell 13 / kick on cell 10, damage unchanged, other states untouched; controls: the c2354ddd entries and a broken grid fail)"
 node tests/test_pellucid_attack_crit_1115.js || FAILED=1
+note "test_pellucid_redo1.js (Pellucid redo1: approved GREEN Meteor Knuckle / BLUE Infernal Clinch / ULT Worldbreaker Fists sheets - grids, ground line, the game event lands on the contact cell (green 17, blue 9, ult 14/26/39), root stays 2.0 s, fights tick-identical old vs new; controls: old entries miss the cells, no root:2 diverges)"
+node tests/test_pellucid_redo1.js || FAILED=1
 note "test_vex_ceraline_fx_1115.js (v1115: Grok spell FX 22-24 - Mourning Bell ring + wax shatter, Hookline reel (Vex pulled on the rope retract, clip 0.458-0.958 s) + slash, Bleed Them Dry wound; controls: v1114 teleport/instant strike fail, art touches no fight state)"
 node tests/test_vex_ceraline_fx_1115.js || FAILED=1
 note "test_auto_ult_healer_1103.js (v1103: healer ults that also hit enemies fire when full; heal-only ones still wait)"
