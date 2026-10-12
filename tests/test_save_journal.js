@@ -105,7 +105,7 @@ async function perAction(dir, tag, check) {
 }
 
 async function killLoop(check) {
-  const S = await R.server({ env: { DB_STORE_CKPT_BYTES: '20000', DB_STORE_VERIFY: '1' } });
+  const S = await R.server({ env: { DB_STORE_CKPT_BYTES: '6000', DB_STORE_VERIFY: '1' } });
   try {
     const B = await R.boot(S, 'jk', 8);
     const targets = []; for (const [c0, r0] of [[0, 0], [5, 0], [0, 5], [5, 5]]) { const t = []; for (let c = c0; c < c0 + 5; c++) for (let r = r0; r < r0 + 5; r++) t.push(c + '_' + r);
@@ -115,7 +115,7 @@ async function killLoop(check) {
       const jobs = [];
       for (let k = 0; k < 3; k++) for (let i = 0; i < 8; i++) { const def = targets[(round * 24 + k * 8 + i) % targets.length].id, p = B.players[i]; sent++;
         jobs.push(R.sleep(k * 120).then(() => S.req('POST', '/api/world/war/declare', { defId: def, requestId: 'jk-' + round + '-' + k + '-' + i }, p.token, p.ip)).then(r => { if (r.status === 200 && r.body.ok) acked.push({ p: p.id, def }); }).catch(() => {})); }
-      await R.sleep(150 + Math.floor(Math.random() * 400));
+      await R.sleep(round % 2 ? 450 + Math.floor(Math.random() * 700) : 60 + Math.floor(Math.random() * 250));   // even rounds: saves still in flight; odd: a checkpoint under way
       try { ckpts = Math.max(ckpts, ((await B.stat()).store.io.journal || {}).checkpoints || 0); } catch (_) {}
       await S.kill(); await Promise.allSettled(jobs);
       const w = WS.readWorld(S.db), lost = acked.filter(a => !((w.users[a.p] || {}).worldWars || {})[a.def]);
