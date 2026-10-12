@@ -35,7 +35,26 @@
         (check: `node server/world-store.js layout <DB_FILE>` prints split-v1);
         or, with the game stopped: `node server/world-store.js downgrade <DB_FILE>`;
      2. only then deploy the old code. Started on a pieces world, old code exits at once with "shard 0 is not in the manifest" and
-        writes nothing - restore step 1 and start again. Backups (one plain JSON file) are unaffected by the layout. */
+        writes nothing - restore step 1 and start again. Backups (one plain JSON file) are unaffected by the layout.
+
+   v1128 JOURNAL LAYOUT (S1 copy run 12 Oct 2026: a save rewrote whole 512-shard files, ~170 KB for one action, ~87 files a second
+   at 2,000 players; 2048 / 8192 shards cut the bytes but stalled Windows seconds on file creation). With DB_STORE=split the server
+   now writes {layout:'journal-v1', shards:null, baseGens, pieces, core, journals}: the 512 shard files are a BASE and every save
+   APPENDS one line to <DB_FILE>.d/j-<n>.log with only what changed - each changed player as a patch (server/store-diff.js: changed
+   fields, keys of big objects, elements of big arrays), each new receipt once, each changed shared piece as a patch. A war
+   declaration on a 3,000-player world: 0.8 KB, no file created (v1127: one 33 KB shard file). The io worker folds the journal into
+   the base in the background (server/store-journal.js: rotate, rebuild the touched shards, one manifest rename) once it holds
+   DB_STORE_CKPT_BYTES (128 MB) or is DB_STORE_CKPT_MS (10 min) old. A torn last line (a crash mid-append) is cut off at boot.
+   `shards:null` and no shardGens: c9f40cd8 and older refuse a journal world (SHARD_MISSING) instead of reading a stale base.
+
+   ROLLBACK from v1128 (journal) to c9f40cd8 (v1127, pieces):
+     1. add DB_STORE_JOURNAL=0 to /etc/emberweave.env and restart once on v1128: its boot save writes the pieces layout and drops the
+        journals (check: `node server/world-store.js layout <DB_FILE>` prints pieces);
+        or, with the game stopped: `node server/world-store.js downgrade <DB_FILE>` (split-v1 - c9f40cd8 and older read it);
+     2. only then deploy c9f40cd8. Started on a journal world it exits at once with "shard 0 is not in the manifest" and writes
+        nothing - do step 1 and start again.
+   To 59eaefba or older: DB_STORE_PIECES=0 (split-v1; the journal is off with it), as above. DB_STORE_IO=sync puts every file
+   operation back on the main thread (server/store-io.js). */
 const fs = require('fs'), path = require('path');
 /* 512 (v1037): a war batch touching ~40 players rewrites ~8% of the world, not a third. v1127: DB_STORE_SHARDS changes it at a
    restart (a manifest from another count loads whole and the next save re-shards it). Measured 12 Oct on the 8500-player bench
@@ -44,7 +63,8 @@ const fs = require('fs'), path = require('path');
 const SHARDS = Math.max(16, Math.min(16384, +process.env.DB_STORE_SHARDS || 512)), FORMAT = 'split-v1', LAYOUT = 'pieces-v1';
 const PIECE_KEY = /^[A-Za-z0-9_$]{1,64}$/, PIECE_FILE = /^p-([A-Za-z0-9_$]{1,64})-(\d+)\.json$/;
 const STORE_FILE_RX = '^(\\d+-\\d+|p-[A-Za-z0-9_$]{1,64}-\\d+)\\.json$';   // v1128: every shard and piece file name (the sweep after a failed save)
-const STORE_IO = require('./store-io.js');
+const STORE_IO = require('./store-io.js'), J = require('./store-journal.js'), DIFF = require('./store-diff.js'), crypto = require('crypto');
+const JLAYOUT = 'journal-v1';   // v1128: base shards + an append-only per-player journal (server/store-journal.js)
 
 function shardOf(id) {   // FNV-1a over the id - stable across restarts and Node versions
   let h = 0x811c9dc5; const s = String(id);
@@ -61,8 +81,12 @@ function create(file, opts) {
   const dir = file + '.d';
   const st = { split: !!opts.split, verify: !!opts.verify, pieces: opts.pieces !== false, gen: 0, names: null, last: null,
     pnames: null, plast: new Map(), pflag: new Set(), layout: null, shash: new Map(), broken: false,
+    usig: new Map(), psig: new Map(), rk: new Map(), vhash: null, jcore: null, jstate: null, jinitSent: false, jfiles: null,
     stats: { full: 0, partial: 0, shardsWritten: 0, lastMs: 0, lastShards: 0, lastFullAt: 0, undeclared: 0, undeclaredIds: [],
-      piecesWritten: 0, piecesSkipped: 0, slices: 0, sweepSkipped: 0, lastPieces: [], bytes: { shards: 0, pieces: 0, manifest: 0 }, undeclaredPieces: 0, undeclaredPieceNames: [], mainMs: 0, mainMaxMs: 0, io: null } };
+      piecesWritten: 0, piecesSkipped: 0, slices: 0, sweepSkipped: 0, lastPieces: [], bytes: { shards: 0, pieces: 0, manifest: 0 }, undeclaredPieces: 0, undeclaredPieceNames: [], mainMs: 0, mainMaxMs: 0, io: null, unitsWritten: 0, unitsSkipped: 0, receiptsWritten: 0 } };
+  st.stats.bytes.journal = 0;
+  const JOURNAL = st.split && st.pieces && opts.journal === true;   // v1128: the journal layout (the server turns it on; DB_STORE_JOURNAL=0 = the v1127 pieces layout)
+  const configured = () => JOURNAL ? 'journal' : (st.pieces ? 'pieces' : 'split-v1');
   /* v1128: opts.io = 'worker' (the file work of every save on the store io worker thread) or 'sync' (default: on this thread) */
   let _io = null;
   const io = () => { if (!_io) { _io = STORE_IO.create({ mode: opts.io === 'worker' ? 'worker' : 'sync', onFailure: e => { st.broken = true; if (opts.onFailure) opts.onFailure(e); } }); st.stats.io = _io.stats; } return _io; };
@@ -93,8 +117,9 @@ function create(file, opts) {
   function load() {
     const raw = JSON.parse(fs.readFileSync(file, 'utf8'));
     st.pnames = null; st.plast = new Map(); st.pflag = new Set(); st.shash = new Map();
-    if (!raw || raw.__store !== FORMAT) { st.names = null; st.layout = 'file'; return raw; }   // the one-file world: the next split save writes every shard
-    const pieced = raw.layout === LAYOUT, shardNames = shardNamesOf(raw);
+    if (!raw || raw.__store !== FORMAT) { st.names = null; st.layout = 'file'; st.jstate = null; st.jinitSent = false; return raw; }   // the one-file world: the next split save writes every shard
+    const jl = raw.layout === JLAYOUT, pieced = raw.layout === LAYOUT || jl;
+    const shardNames = jl ? (Array.isArray(raw.baseGens) ? Object.fromEntries(raw.baseGens.map((g, s) => [s, g > 0 ? s + '-' + g + '.json' : null]).filter(x => x[1])) : null) : shardNamesOf(raw);
     const db = Object.assign({}, raw.core || {});
     if (pieced) {
       st.pnames = new Map();
@@ -115,7 +140,22 @@ function create(file, opts) {
       Object.assign(db.users, p.users || {}); Object.assign(idem, p.idem || {});
     }
     db.idem = idem; st.gen = raw.gen | 0; st.names = count === SHARDS ? Object.assign({}, shardNames) : null;
-    st.layout = pieced ? 'pieces' : 'split-v1';
+    st.layout = jl ? 'journal' : pieced ? 'pieces' : 'split-v1';
+    if (jl) {   // v1128: the journals after the base, in order - the latest unit of each player, value of each piece, inline core
+      const f = J.foldJournals(dir, raw.journals || []);
+      for (const [id, list] of f.units) { const u = J.applyPatches(db.users[id], list); if (u === null) delete db.users[id]; else db.users[id] = u; }
+      for (const [k, v] of f.receipts) { if (v === null) delete db.idem[k]; else db.idem[k] = v; }
+      for (const [k, list] of f.pieces) {
+        if (k === 'idem') { const core = {}; for (const x of Object.keys(db.idem)) { const o = ownerOf(x); if (!(o !== null && Object.prototype.hasOwnProperty.call(db.users, o))) { core[x] = db.idem[x]; delete db.idem[x]; } }
+          const v = J.applyPiece(core, list); if (v) Object.assign(db.idem, v); continue; }
+        const v = J.applyPiece(db[k], list); if (v === undefined) delete db[k]; else db[k] = v; }
+      if (f.core !== undefined) { for (const k of Object.keys(db)) if (k !== 'users' && k !== 'idem' && !PIECE_KEY.test(k)) delete db[k]; Object.assign(db, f.core); }
+      st.jfiles = (raw.journals || []).slice(); st.stats.journalLines = f.lines; st.stats.journalTorn = f.tornAt ? 1 : 0;
+    }
+    st.jstate = { gen: raw.gen | 0, baseGens: count === SHARDS && shardNames ? Array.from({ length: SHARDS }, (_, s) => shardNames[s] ? +String(shardNames[s]).split('-')[1].split('.')[0] : 0) : [],
+      pieces: pieced ? Object.assign({}, raw.pieces || {}) : {}, core: JSON.stringify(raw.core || {}), journals: jl ? (raw.journals || []).slice() : [] };
+    st.jinitSent = false;
+    if (JOURNAL && jl && st.names) seedUnits(db);
     if (!st.names) { st.pnames = null; st.plast = new Map(); }   // re-sharded on the next save: every piece is written too
     st.stats.lastFullAt = Date.now();   // what is on disk is the whole world: the sweep clock starts here
     return db;
@@ -123,9 +163,9 @@ function create(file, opts) {
 
   // a server boot in split mode: shard and piece files no manifest names are leftovers of a save that never committed
   function sweepOrphans() {
-    if (!st.names) return 0; const keep = new Set([...Object.values(st.names), ...(st.pnames ? st.pnames.values() : [])]); let n = 0;
+    if (!st.names) return 0; const keep = new Set([...Object.values(st.names), ...(st.pnames ? st.pnames.values() : []), ...(st.jfiles || [])]); let n = 0;
     let files = []; try { files = fs.readdirSync(dir); } catch (e) { return 0; }
-    for (const f of files) if ((/^\d+-\d+\.json$/.test(f) || PIECE_FILE.test(f)) && !keep.has(f)) { try { fs.unlinkSync(path.join(dir, f)); n++; } catch (e) {} }
+    for (const f of files) if ((/^\d+-\d+\.json$/.test(f) || PIECE_FILE.test(f) || J.J_FILE.test(f)) && !keep.has(f)) { try { fs.unlinkSync(path.join(dir, f)); n++; } catch (e) {} }
     return n;
   }
 
@@ -137,8 +177,9 @@ function create(file, opts) {
      store io (server/store-io.js): written by the io worker for writeAsync(), waited for by write(). A job that fails marks the
      store broken: the next save writes every shard and piece under new names and sweeps whatever its manifest does not name. */
   function prepare(db, userIds, dirtyPieces, slice) {   // v1127: slice {slice, of} = a sweep slice - every shard s with s % of === slice too
+    if (JOURNAL) return prepareJournal(db, userIds, dirtyPieces, slice);
     const t0 = Date.now(), S = st.stats, broken = st.broken;
-    const full = !userIds || !st.names || broken;
+    const full = !userIds || !st.names || broken || st.layout === 'journal';   // v1128: leaving the journal layout rewrites every shard
     let want = null, sweepOnly = null;
     if (!full) { want = new Set(); for (const id of userIds) want.add(sh(id));
       if (slice && slice.of > 0) { sweepOnly = new Set(); for (let s = slice.slice % slice.of; s < SHARDS; s += slice.of) if (!want.has(s)) { want.add(s); sweepOnly.add(s); } S.slices++; } }
@@ -175,6 +216,7 @@ function create(file, opts) {
     if (broken) ops.push({ sweep: dir, keep: [...Object.values(names), ...(pnext ? pnext.values() : [])], rx: STORE_FILE_RX });
     else {
       const old = st.names || {};
+      if (st.jfiles) { for (const f of st.jfiles) lazy.push(path.join(dir, f)); st.jfiles = null; }   // v1128: back from the journal layout - its journals go
       for (const s of Object.keys(names)) if (old[s] && old[s] !== names[s]) lazy.push(path.join(dir, old[s]));
       if (st.pnames) for (const [k, f] of st.pnames) if (!pnext || pnext.get(k) !== f) lazy.push(path.join(dir, f));   // superseded or removed pieces (all of them when going back to split-v1)
     }
@@ -192,6 +234,117 @@ function create(file, opts) {
     if (st.verify && st.pieces && considered && !full) verifyPieces(core, considered);
     return { ops, lazy };
   }
+  /* ---------------- v1128 journal layout (server/store-journal.js): a save appends what changed ----------------
+     The main thread stringifies each changed player and each NEW receipt (a receipt is written once, when it is made, and as null
+     when it goes); the engine (io worker) appends them as one journal line and folds the journal into the 512 base shards in the
+     background. st.usig = each player's diff signature as last written (server/store-diff.js) - a save writes only the fields / keys
+     / array elements that changed; st.rk = the receipt keys written for each player. */
+  const md5 = s => crypto.createHash('md5').update(s).digest('base64');
+  // receipt keys grouped by owner for the players in `want` (null = every player); the rest are the shared receipts ('idem' piece)
+  function receiptsOf(db, want) {
+    const users = db.users || {}, idem = db.idem || {}, by = new Map(), coreIdem = {};
+    for (const k of Object.keys(idem)) {
+      const o = ownerOf(k);
+      if (o !== null && Object.prototype.hasOwnProperty.call(users, o)) { if (!want || want.has(o)) { const a = by.get(o); if (a) a.push(k); else by.set(o, [k]); } }
+      else coreIdem[k] = idem[k];
+    }
+    return { by, coreIdem };
+  }
+  const vclean = u => JSON.stringify(u, (k, v) => k === 'lastSeen' ? undefined : v);   // DB_STORE_VERIFY: presence is not saved per request
+  // the shared world: piece values (PIECE_KEY) and the inline rest, as the pieces layout splits it
+  function coreParts(db, coreIdem) {
+    const keys = new Set(), inline = {};
+    for (const k of Object.keys(db)) { if (k === 'users' || db[k] === undefined) continue; const v = k === 'idem' ? coreIdem : db[k]; if (PIECE_KEY.test(k)) keys.add(k); else inline[k] = v; }
+    if (!keys.has('idem')) keys.add('idem');
+    return { keys, inline, val: k => k === 'idem' ? coreIdem : db[k] };
+  }
+  function jcfg() { return { file, dir, shards: SHARDS, ckptBytes: +process.env.DB_STORE_CKPT_BYTES || 0, ckptMs: +process.env.DB_STORE_CKPT_MS || 0 }; }
+  function jinitOp() { if (st.jinitSent) return null; st.jinitSent = true;
+    const m = st.jstate || { gen: st.gen | 0, baseGens: [], pieces: {}, core: '{}', journals: [] };
+    return { j: 'init', m, cfg: jcfg() }; }
+  function prepareJournal(db, userIds, dirtyPieces, slice) {
+    const t0 = Date.now(), S = st.stats, broken = st.broken, full = !userIds || st.layout !== 'journal' || broken;
+    const ops = full || !st.jinitSent ? [{ mk: dir }] : [], init = jinitOp(); if (init) ops.push(init);
+    const users = db.users || {}, idem = db.idem || {};
+    let bytes = 0, unitN = 0;
+    if (full) {
+      const { by, coreIdem } = receiptsOf(db, null), shardUsers = Array.from({ length: SHARDS }, () => []), shardRec = Array.from({ length: SHARDS }, () => []);
+      st.usig = new Map(); st.rk = new Map(); if (st.verify) st.vhash = new Map();
+      for (const id of Object.keys(users)) {
+        const r = DIFF.diff(users[id], null, true), keys = by.get(id), s = sh(id);
+        shardUsers[s].push(JSON.stringify(id) + ':' + r.whole); st.usig.set(id, r.sig); if (st.vhash) st.vhash.set(id, md5(vclean(users[id])));
+        if (keys) { for (const k of keys) shardRec[s].push(JSON.stringify(k) + ':' + JSON.stringify(idem[k])); st.rk.set(id, new Set(keys)); }
+      }
+      const shards = shardUsers.map((u, s) => '{"users":{' + u.join(',') + '},"idem":{' + shardRec[s].join(',') + '}}');
+      const cp = coreParts(db, coreIdem), pieces = [];
+      st.plast = new Map(); st.psig = new Map();
+      for (const k of cp.keys) { const v = JSON.stringify(cp.val(k)); pieces.push([k, v]); st.plast.set(k, v); st.psig.set(k, DIFF.diff({ v: cp.val(k) }, null).sig); bytes += v.length; }
+      const core = JSON.stringify(cp.inline); st.jcore = core;
+      for (const x of shards) bytes += x.length;
+      ops.push({ j: 'full', shards, pieces, core });
+      st.layout = 'journal'; st.broken = false; S.full++; S.lastFullAt = Date.now(); S.shardsWritten += SHARDS; S.bytes.shards += bytes; S.lastShards = SHARDS; S.lastPieces = pieces.map(p => p[0]);
+      st.jfiles = null;
+    } else {
+      // the players this save looks at: the declared ones, and on a sweep slice every player of that slice
+      const declared = new Set(); for (const id of userIds) if (typeof id === 'string' && id) declared.add(id);
+      const cand = new Set(declared);
+      if (slice && slice.of > 0) { S.slices++; const want = slice.slice % slice.of;
+        for (const id of Object.keys(users)) if (sh(id) % slice.of === want) cand.add(id);
+        for (const id of st.usig.keys()) if (!Object.prototype.hasOwnProperty.call(users, id) && sh(id) % slice.of === want) cand.add(id); }
+      const { by, coreIdem } = receiptsOf(db, cand);
+      const units = [], receipts = [];
+      for (const id of cand) {
+        const had = st.rk.get(id);
+        if (!Object.prototype.hasOwnProperty.call(users, id)) {   // a player who is gone, and every receipt written for them
+          if (st.usig.has(id)) { units.push([id, null, true]); st.usig.delete(id); if (st.vhash) st.vhash.delete(id); }
+          if (had) { for (const k of had) receipts.push([k, null]); st.rk.delete(id); }
+          continue; }
+        const prev = st.usig.get(id), r = DIFF.diff(users[id], prev);
+        if (r.patch !== null) { units.push([id, r.patch, !prev]); bytes += r.patch.length; unitN++; if (st.vhash) st.vhash.set(id, md5(vclean(users[id]))); }
+        else if (declared.has(id)) S.unitsSkipped++; else S.sweepSkipped++;
+        st.usig.set(id, r.sig);
+        const keys = by.get(id) || [], now = new Set(keys);
+        for (const k of keys) if (!had || !had.has(k)) { const v = JSON.stringify(idem[k]); receipts.push([k, v]); bytes += v.length; }
+        if (had) for (const k of had) if (!now.has(k)) receipts.push([k, null]);
+        if (keys.length) st.rk.set(id, now); else st.rk.delete(id);
+      }
+      // shared pieces: the declared ones (or all), written when they differ from what was last written; a removed one is null
+      const cp = coreParts(db, coreIdem), pieces = [], declaredP = dirtyPieces ? new Set(dirtyPieces) : null;
+      const considered = !declaredP ? cp.keys : new Set([...cp.keys].filter(k => declaredP.has(k) || !st.plast.has(k)));
+      for (const k of considered) { const v = JSON.stringify(cp.val(k)); if (st.plast.get(k) === v) { S.piecesSkipped++; continue; }
+        const prev = st.psig.get(k), r = DIFF.diff({ v: cp.val(k) }, prev);
+        st.plast.set(k, v); st.psig.set(k, r.sig); st.pflag.delete(k); if (r.patch === null) continue;
+        pieces.push([k, r.patch, !prev]); bytes += r.patch.length; }
+      for (const k of [...st.plast.keys()]) if (!cp.keys.has(k)) { pieces.push([k, null, true]); st.plast.delete(k); st.psig.delete(k); }
+      const coreStr = JSON.stringify(cp.inline), core = coreStr !== st.jcore ? coreStr : null; if (core !== null) { st.jcore = coreStr; bytes += coreStr.length; }
+      if (units.length || receipts.length || pieces.length || core !== null) ops.push({ j: 'rec', units, receipts, pieces, core });
+      S.partial++; S.lastShards = 0; S.unitsWritten += unitN; S.receiptsWritten += receipts.length; S.piecesWritten += pieces.length; S.lastPieces = pieces.map(p => p[0]); S.bytes.journal += bytes;
+      if (st.verify) verifyUnits(db, cand, cp, considered);
+    }
+    const ms = Date.now() - t0; S.lastMs = ms; S.mainMs += ms; if (ms > S.mainMaxMs) S.mainMaxMs = ms;
+    return { ops, lazy: null };
+  }
+  /* DB_STORE_VERIFY=1 (journal): after a partial save, every player it did not look at is compared with what was last written for it
+     (presence ignored) - a difference is a change no save declared; and every piece it did not look at. Counted, never fatal. */
+  function verifyUnits(db, looked, cp, considered) {
+    const users = db.users || {}, bad = [];
+    for (const id of Object.keys(users)) { if (looked.has(id) || !st.vhash.has(id)) continue;
+      const h = md5(vclean(users[id])); if (h !== st.vhash.get(id)) { bad.push(id); st.vhash.set(id, h); } }
+    if (bad.length) { st.stats.undeclared += bad.length; st.stats.undeclaredIds = st.stats.undeclaredIds.concat(bad).slice(-20);
+      console.error('world store verify: ' + bad.length + ' player(s) changed outside their save: ' + bad.slice(0, 5).join(', ')); }
+    const badP = [];
+    for (const k of cp.keys) { if (considered.has(k) || st.pflag.has(k) || !st.plast.has(k)) continue; if (JSON.stringify(cp.val(k)) !== st.plast.get(k)) { badP.push(k); st.pflag.add(k); } }
+    if (badP.length) { st.stats.undeclaredPieces += badP.length; st.stats.undeclaredPieceNames = st.stats.undeclaredPieceNames.concat(badP).slice(-20);
+      console.error('world store verify: shared piece(s) changed outside their save: ' + badP.join(', ')); }
+  }
+  // what is on disk right after a load: the hash of every player, the receipt keys of each, the pieces and the inline core
+  function seedUnits(db) {
+    const users = db.users || {}, { by, coreIdem } = receiptsOf(db, null); st.usig = new Map(); st.rk = new Map(); if (st.verify) st.vhash = new Map();
+    for (const id of Object.keys(users)) { st.usig.set(id, DIFF.diff(users[id], null).sig); if (st.vhash) st.vhash.set(id, md5(vclean(users[id]))); const k = by.get(id); if (k) st.rk.set(id, new Set(k)); }
+    const cp = coreParts(db, coreIdem); st.jcore = JSON.stringify(cp.inline);
+    st.plast = new Map(); st.psig = new Map(); for (const k of cp.keys) { st.plast.set(k, JSON.stringify(cp.val(k))); st.psig.set(k, DIFF.diff({ v: cp.val(k) }, null).sig); }
+  }
+
   // a save that is on disk when it returns (throws if it did not commit)
   function write(db, userIds, dirtyPieces, slice) {
     const j = prepare(db, userIds, dirtyPieces, slice);
@@ -240,7 +393,7 @@ function create(file, opts) {
   }
 
   return { get split() { return st.split; }, get layout() { return st.layout; }, get pieces() { return st.split && st.pieces; },
-    get layoutMismatch() { return st.split && st.layout !== null && st.layout !== (st.pieces ? 'pieces' : 'split-v1'); },
+    get layoutMismatch() { return st.split && st.layout !== null && st.layout !== configured(); }, get journal() { return JOURNAL; },
     get broken() { return st.broken; }, get ioAsync() { return io().async; }, get ioPending() { return io().pending; },
     stats: st.stats, load, write, writeAsync, flush: () => io().flush(), io, sweepOrphans, shardOf, ownerOf, dir };
 }
@@ -248,14 +401,18 @@ function create(file, opts) {
 /* Tools outside the server (setpass, restores): readWorld/writeWorld take any layout. writeWorld keeps the file's layout.
    Stop the game first - it keeps the world in memory and writes it back. */
 function readWorld(file) { return create(file).load(); }
-function layoutOf(file) { try { const r = JSON.parse(fs.readFileSync(file, 'utf8')); return r && r.__store === FORMAT ? (r.layout === LAYOUT ? 'pieces' : 'split-v1') : 'file'; } catch (e) { return 'file'; } }
+function layoutOf(file) { try { const r = JSON.parse(fs.readFileSync(file, 'utf8')); return r && r.__store === FORMAT ? (r.layout === JLAYOUT ? 'journal' : r.layout === LAYOUT ? 'pieces' : 'split-v1') : 'file'; } catch (e) { return 'file'; } }
 function writeWorld(file, db) {
   const lay = layoutOf(file);
   if (lay === 'file') { const tmp = file + '.tool.tmp'; fs.writeFileSync(tmp, JSON.stringify(db)); fs.renameSync(tmp, file); return; }
-  const s = create(file, { split: true, pieces: lay === 'pieces' }); s.load(); s.write(db, null);
+  const s = create(file, { split: true, pieces: lay !== 'split-v1', journal: lay === 'journal' }); s.load(); s.write(db, null);
 }
 
-module.exports = { create, readWorld, writeWorld, layoutOf, shardOf, ownerOf, shardNamesOf, SHARDS, FORMAT, LAYOUT };
+// v1128: every file under <DB_FILE>.d the manifest names (base / shard files, pieces, journals) - tools and tests
+function namedFiles(file) { const r = JSON.parse(fs.readFileSync(file, 'utf8')); if (!r || r.__store !== FORMAT) return new Set();
+  const shards = r.layout === JLAYOUT ? (r.baseGens || []).map((g, s) => g > 0 ? s + '-' + g + '.json' : null).filter(Boolean) : Object.values(shardNamesOf(r) || {});
+  return new Set([...shards, ...Object.values(r.pieces || {}), ...(r.journals || [])]); }
+module.exports = { create, readWorld, writeWorld, layoutOf, namedFiles, shardOf, ownerOf, shardNamesOf, SHARDS, FORMAT, LAYOUT, JLAYOUT };
 
 // CLI (stop the game first):
 //   node server/world-store.js export <DB_FILE> <out.json>   - the whole world as one plain JSON file (any layout)
@@ -265,7 +422,7 @@ if (require.main === module) {
   const [cmd, a, b] = process.argv.slice(2);
   if (cmd === 'export' && a && b) { fs.writeFileSync(b, JSON.stringify(readWorld(a))); console.log('exported ' + a + ' -> ' + b); }
   else if (cmd === 'downgrade' && a) { const was = layoutOf(a); if (was === 'file') { console.log(a + ' is a one-file world - nothing to do'); }
-    else { const s = create(a, { split: true, pieces: false }); const db = s.load(); s.write(db, null); console.log('downgraded ' + a + ' (' + was + ' -> ' + layoutOf(a) + ', ' + Object.keys(db.users || {}).length + ' players)'); } }
+    else { const s = create(a, { split: true, pieces: false, journal: false }); const db = s.load(); s.write(db, null); console.log('downgraded ' + a + ' (' + was + ' -> ' + layoutOf(a) + ', ' + Object.keys(db.users || {}).length + ' players)'); } }
   else if (cmd === 'layout' && a) console.log(layoutOf(a));
   else { console.log('usage: node server/world-store.js export <DB_FILE> <out.json> | downgrade <DB_FILE> | layout <DB_FILE>'); process.exitCode = 1; }
 }

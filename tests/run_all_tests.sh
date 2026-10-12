@@ -253,6 +253,10 @@ note "test_check_backlog.js (v1127 check recordings in <DB_FILE>.checks, not the
 node tests/test_check_backlog.js || FAILED=1
 note "test_save_io.js (v1128 save file work on the store io worker: on a slow disk the event loop keeps answering and makes no world-file call, hard kills with saves queued lose no acknowledged action, a failed worker save answers 503 and is undone, DB_STORE_IO=sync still saves; c9f40cd8 control blocks)"
 node tests/test_save_io.js || FAILED=1
+note "test_store_diff.js (v1128 player / piece patches: 5,000 random edits applied in order give back the player; a broken apply is caught)"
+node tests/test_store_diff.js || FAILED=1
+note "test_save_journal.js (v1128 journal layout: a save appends only what changed - 0.8 KB and no file per war declaration on a 3,000-player world; checkpoints, torn lines, orphans; hard kills with checkpoints lose nothing acknowledged; pieces world migrates, DB_STORE_JOURNAL=0 / downgrade roll back, c9f40cd8 refuses the journal; c9f40cd8 control rewrites a shard per declaration)"
+node tests/test_save_journal.js || FAILED=1
 note "test_march_retention_1038.js (v1038: settled city/mine marches are held 2 days, then let go - for every player; unfinished kept; v1037 control)"
 node tests/test_march_retention_1038.js || FAILED=1
 note "test_sim_helper_1039.js (v1039: battle helpers - a backed-up pool shares battles with server/sim-helper.js; identical results, spot checks; wrong key / other engine / busy / dead helper fall back locally; no-helper control)"

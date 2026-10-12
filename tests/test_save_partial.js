@@ -32,7 +32,7 @@ async function server(script, temp) {
   };
   const start = async adminId => {
     child = spawn(process.execPath, [script], { cwd: root, windowsHide: true, stdio: 'ignore', env: { ...process.env, PORT: String(port), DB_FILE: db, ADMIN_IDS: adminId || '',
-      DB_STORE: 'split', DB_STORE_VERIFY: '1', DB_STORE_SWEEP_MS: '600000', DUNGEON_V2_ENABLED: 'true', GUILD_WAR_V2_ENABLED: 'true', VAULT_MIN_BATTLE_MS: '0',
+      DB_STORE: 'split', DB_STORE_JOURNAL: '0', DB_STORE_VERIFY: '1', DB_STORE_SWEEP_MS: '600000',   /* v1128: the v1124 shard layout under test (the journal: test_save_journal) */ DUNGEON_V2_ENABLED: 'true', GUILD_WAR_V2_ENABLED: 'true', VAULT_MIN_BATTLE_MS: '0',
       NODE_ENV: 'test', SIM_WORKERS: '0', REG_PER_MIN: '1000', REG_ACCOUNTS_PER_IP: '1000', SERVER_SECRET: 'save-partial-test-secret' } });
     for (let i = 0; i < 200; i++) { if (child.exitCode !== null) throw Error('server exited'); try { if ((await fetch(base + '/health')).ok) return; } catch (_) {} await sleep(100); }
     throw Error('server not ready');
