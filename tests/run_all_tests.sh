@@ -247,6 +247,10 @@ note "test_world_pieces.js (v1127 shared-world pieces: a chat line writes only t
 node tests/test_world_pieces.js || FAILED=1
 note "test_attack_copy.js (v1127 per-attack copy on first touch: 8 attack pairs x 2 rounds give replies and accounts identical to 59eaefba's whole copies, fewer bytes copied; a copy that hides the hero ledger is caught)"
 node tests/test_attack_copy.js || FAILED=1
+note "test_helper_roles.js (v1127 helper roles: the mode table, a war spike never puts live battles on the async node while the campaign backlog drains at the reserved rate, live gets every slot when nothing waits, the nodes are borrowed only when every live helper is down, the PC leans async on a long backlog, event-driven dispatch; 59eaefba pool control)"
+node tests/test_helper_roles.js || FAILED=1
+note "test_check_backlog.js (v1127 check recordings in <DB_FILE>.checks, not the player shards: receipts carry a marker only, a hard kill loses no waiting check, orphans dropped, a helper drains them, flagged fights keep their recording; 59eaefba control)"
+node tests/test_check_backlog.js || FAILED=1
 note "test_march_retention_1038.js (v1038: settled city/mine marches are held 2 days, then let go - for every player; unfinished kept; v1037 control)"
 node tests/test_march_retention_1038.js || FAILED=1
 note "test_sim_helper_1039.js (v1039: battle helpers - a backed-up pool shares battles with server/sim-helper.js; identical results, spot checks; wrong key / other engine / busy / dead helper fall back locally; no-helper control)"

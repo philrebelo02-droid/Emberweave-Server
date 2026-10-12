@@ -52,7 +52,7 @@ function create(file, opts) {
   const st = { split: !!opts.split, verify: !!opts.verify, pieces: opts.pieces !== false, gen: 0, names: null, last: null,
     pnames: null, plast: new Map(), pflag: new Set(), layout: null,
     stats: { full: 0, partial: 0, shardsWritten: 0, lastMs: 0, lastShards: 0, lastFullAt: 0, undeclared: 0, undeclaredIds: [],
-      piecesWritten: 0, piecesSkipped: 0, lastPieces: [], bytes: { shards: 0, pieces: 0, manifest: 0 }, undeclaredPieces: 0, undeclaredPieceNames: [] } };
+      piecesWritten: 0, piecesSkipped: 0, slices: 0, lastPieces: [], bytes: { shards: 0, pieces: 0, manifest: 0 }, undeclaredPieces: 0, undeclaredPieceNames: [] } };
   const idShard = new Map();
   const sh = id => { let s = idShard.get(id); if (s === undefined) { s = shardOf(id); if (idShard.size > 500000) idShard.clear(); idShard.set(id, s); } return s; };
 
@@ -119,11 +119,11 @@ function create(file, opts) {
   /* userIds: null = save everything; else the players whose data (or receipts) changed. dirtyPieces: null/undefined = the shared
      systems that changed are not known (every piece is compared with what was last written); a Set/array of keys = only these can
      have changed. Throws if the save did not commit. */
-  function write(db, userIds, dirtyPieces) {
+  function write(db, userIds, dirtyPieces, slice) {   // v1127: slice {slice, of} = a sweep slice - every shard s with s % of === slice too
     const t0 = Date.now(), S = st.stats;
     const full = !userIds || !st.names;
     let want = null;
-    if (!full) { want = new Set(); for (const id of userIds) want.add(sh(id)); }
+    if (!full) { want = new Set(); for (const id of userIds) want.add(sh(id)); if (slice && slice.of > 0) { for (let s = slice.slice % slice.of; s < SHARDS; s += slice.of) want.add(s); S.slices++; } }
     const { parts, core } = split(db, want);
     const gen = ++st.gen, names = Object.assign({}, st.names || {}), fresh = [], strs = st.verify ? new Map() : null;
     let pnext = null, pstr = null, inline = core, considered = null;
