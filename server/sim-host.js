@@ -195,6 +195,11 @@ function fingerprint(htmlPath){
     const dep=path.join(baseDir,src); if(fs.existsSync(dep)) h.update('\0'+src+'\0'+norm(fs.readFileSync(dep,'utf8')));
   }
   h.update('\0loader\0'+norm(fs.readFileSync(__filename,'utf8')));
+  /* v1129: the live battles a worker / helper fights besides the engine (sim-worker.js 'worldtree' and 'line') - the World Tree
+     resolver built on the engine, the Skyfall line resolver and the worker that runs them. A helper with another copy of any of
+     them has another fingerprint and is never sent a battle. */
+  for(const f of ['sim-worker.js','world-tree-battle.js','sim.js','combat-core.js','../hero-profiles.js']){
+    const p=path.join(__dirname,f); h.update('\0'+f+'\0'+(fs.existsSync(p)?norm(fs.readFileSync(p,'utf8')):'-')); }
   return h.digest('hex');
 }
 module.exports={ load, extractGameScript, makeStub, fingerprint };
