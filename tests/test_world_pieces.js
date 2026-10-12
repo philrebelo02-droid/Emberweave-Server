@@ -39,8 +39,8 @@ function unit() {
   const st = WS.create(file, { split: true, verify: true });
   st.write(db, null);
   const m0 = man(file), pf = Object.keys(m0.pieces).sort();
-  R.ok(m0.layout === WS.LAYOUT && m0.shards === null && Object.keys(m0.shardFiles).length === WS.SHARDS && JSON.stringify(pf) === JSON.stringify(['byName', 'chat', 'feedback', 'guilds', 'idem', 'reports', 'seeded', 'tokens']),
-    'pieces layout: the manifest names ' + WS.SHARDS + ' shards (shards: null) and one file per shared system (' + pf.join(',') + ')');
+  R.ok(m0.layout === WS.LAYOUT && m0.shards === null && Object.keys(WS.shardNamesOf(m0)).length === WS.SHARDS && JSON.stringify(pf) === JSON.stringify(['byName', 'chat', 'feedback', 'guilds', 'idem', 'reports', 'seeded', 'tokens']),
+    'pieces layout: the manifest holds a gen for each of ' + WS.SHARDS + ' shards (shards: null) and one file per shared system (' + pf.join(',') + ')');
   R.ok(fs.statSync(file).size < 30000 && deepEq(WS.readWorld(file), db), 'the world reads back whole; the manifest is ' + fs.statSync(file).size + ' bytes');
   const files = () => new Set(fs.readdirSync(st.dir));
   // a declared chat save
@@ -77,7 +77,7 @@ function unit() {
   fs.renameSync = function () { throw Error('injected rename failure'); };
   try { st.write(db, ['u7']); } catch (e) { fails++; } fs.renameSync = realR;
   R.ok(fails === 6 && JSON.stringify(WS.readWorld(file)) === before, 'a save failing at the shard, a piece, the manifest or the swap leaves the committed world exactly (' + fails + ' failures)');
-  st.write(db, ['u7']); const after = WS.readWorld(file), mm = man(file), named = new Set([...Object.values(mm.shardFiles), ...Object.values(mm.pieces)]);
+  st.write(db, ['u7']); const after = WS.readWorld(file), mm = man(file), named = new Set([...Object.values(WS.shardNamesOf(mm)), ...Object.values(mm.pieces)]);
   R.ok(after.users.u7.gold === 1 && after.chat.world.length === 3 && after.guilds.g1.log.length === 2 && fs.readdirSync(st.dir).every(f => named.has(f)), 'the next save commits normally and the failed saves left no files');
   fs.writeFileSync(path.join(st.dir, 'p-chat-999999.json'), '{}'); fs.writeFileSync(path.join(st.dir, '3-999999.json'), '{}');
   const st2 = WS.create(file, { split: true }); st2.load();
@@ -129,7 +129,7 @@ async function chatSave(dir, check) {
     check(s1.partial - s0.partial === 1 && s1.full === s0.full, 'one chat line: one partial save (' + (s1.partial - s0.partial) + ' partial, ' + (s1.full - s0.full) + ' full)');
     check(wr.length === 2 && wr.some(x => /^p-chat-/.test(x.f)) && wr.some(x => x.f === 'db.json.store.tmp') && bytes < 20000,
       'one chat line writes the chat piece + the manifest only: ' + wr.map(x => x.f + ' ' + x.b + ' B').join(', ') + ' = ' + (bytes / 1024).toFixed(1) + ' KB while the shared world is ' + coreKB.toFixed(0) + ' KB');
-    check(m1.pieces && Object.keys(m1.pieces).every(k => k === 'chat' || m1.pieces[k] === m0.pieces[k]) && JSON.stringify(m1.shardFiles) === JSON.stringify(m0.shardFiles), 'no shard and no other piece changed');
+    check(m1.pieces && Object.keys(m1.pieces).every(k => k === 'chat' || m1.pieces[k] === m0.pieces[k]) && JSON.stringify(m1.shardGens) === JSON.stringify(m0.shardGens), 'no shard and no other piece changed');
     check(((WS.readWorld(S.db).chat || {}).world || []).some(x => x.txt === 'one line') && s1.undeclaredPieces === 0, 'the line is on disk; the verifier saw no undeclared piece');
     return { bytes, coreKB };
   } finally { await S.kill(); }
@@ -144,9 +144,9 @@ async function rollingSweep(check) {
     const s0 = (await B.stat()).store, m0 = man(S.db), so = await sock(S, B.players[0], '10.97.0.1'); await R.sleep(200);
     const t0 = Date.now(); let n = 0; while (Date.now() - t0 < 4500) { so.send({ t: 'chat', channel: 'world', text: 'sweep ' + (n++) }); await R.sleep(1800); }
     so.ws.terminate(); await R.sleep(500);
-    const s1 = (await B.stat()).store, m1 = man(S.db), changed = Object.keys(m1.shardFiles).filter(k => m1.shardFiles[k] !== m0.shardFiles[k]).length;
-    check(s1.full === s0.full && s1.slices - s0.slices >= 2 && s1.lastShards <= WS.SHARDS / 16 + 1, 'rolling sweep: ' + (s1.slices - s0.slices) + ' slice saves of ' + (WS.SHARDS / 16) + ' shards, no full save (' + (s1.full - s0.full) + ')');
-    check(changed >= (s1.slices - s0.slices) * (WS.SHARDS / 16) - 1, 'each slice rewrote its own shards (' + changed + ' shard files rewritten)');
+    const s1 = (await B.stat()).store, m1 = man(S.db), changed = m1.shardGens.filter((g, k) => g !== m0.shardGens[k]).length;
+    check(s1.full === s0.full && s1.slices - s0.slices >= 2, 'rolling sweep: ' + (s1.slices - s0.slices) + ' slice saves, no full save (' + (s1.full - s0.full) + ')');
+    check(s1.sweepSkipped - s0.sweepSkipped >= (s1.slices - s0.slices) * 16 && changed <= 4, 'each slice compared its ' + (WS.SHARDS / 16) + ' shards and rewrote only changed ones (' + (s1.sweepSkipped - s0.sweepSkipped) + ' unchanged kept their file, ' + changed + ' shard files rewritten)');
   } finally { await S.kill(); }
 }
 

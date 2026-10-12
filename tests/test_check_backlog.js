@@ -27,7 +27,7 @@ async function realHelper() {
   child.kill(); throw Error('helper did not start');
 }
 const pendingOf = (w, id) => ((w.users[id].led || {}).battleReceipts || []).filter(r => r && r.verify === 'pending');
-const shardBytes = (db, id) => { const m = JSON.parse(fs.readFileSync(db, 'utf8')), names = m.shardFiles || m.shards; return fs.statSync(path.join(db + '.d', names[WS.shardOf(id)])).size; };
+const shardBytes = (db, id) => { const m = JSON.parse(fs.readFileSync(db, 'utf8')), names = WS.shardNamesOf(m); return fs.statSync(path.join(db + '.d', names[WS.shardOf(id)])).size; };
 
 async function fights(S, B, n) {
   const out = [];
