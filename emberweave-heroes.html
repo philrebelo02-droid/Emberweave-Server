@@ -630,6 +630,12 @@
   .wnode .wlab .nl{margin-top:1px;}
   .wnode.me .castle-spr{filter:drop-shadow(0 0 10px rgba(255,212,94,.55)) drop-shadow(0 4px 7px rgba(0,0,0,.6));}
   .wnode.ally .ic{border-color:#5ee89b;}
+  /* v1127 zoom gate: above the close picture level the map shows no castles or mines - only small markers for your castle and your
+     war / march targets, kept the same size on screen at every zoom */
+  #wzoneInner.wfar .wnode.city.me{display:none;}
+  .wfarMark{position:absolute;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;pointer-events:auto;cursor:pointer;transform-origin:50% 50%;}
+  .wfarMark.me{background:radial-gradient(circle at 50% 45%,#fff6cf 0 22%,#ffd45e 48%,#a87810 100%);box-shadow:0 0 0 2px rgba(22,15,4,.9),0 0 10px 2px rgba(255,212,94,.8);z-index:2;}
+  .wfarMark.tgt{width:12px;height:12px;margin:-6px 0 0 -6px;background:radial-gradient(circle at 50% 45%,#ffd6d6 0 22%,#ff5b5b 50%,#8e1b1b 100%);box-shadow:0 0 0 2px rgba(24,6,6,.9),0 0 9px 2px rgba(255,91,91,.75);}
   .wnode:active{transform:translate(-50%,-50%) scale(.94);}
   /* world-map castle action menu */
   .citymenu{position:absolute;transform:translate(-50%,-118%);background:rgba(12,16,24,.97);border:1px solid #3a4a6a;border-radius:10px;padding:6px;z-index:20;display:flex;flex-direction:column;gap:4px;min-width:132px;box-shadow:0 8px 22px rgba(0,0,0,.6);}
@@ -21180,7 +21186,12 @@ function mapViewTiles(){ const zone=document.getElementById('wzone'); let x0,x1,
   for(let c=cl(x0-RC_MARGIN);c<=cl(x1+RC_MARGIN);c++) for(let r=cl(y0-RC_MARGIN);r<=cl(y1+RC_MARGIN);r++) out.push(c+'_'+r);
   return out; }
 function mapViewChangedSoon(){ clearTimeout(_rcViewT); _rcViewT=setTimeout(()=>{   // pan / zoom: fetch only when a tile in view is not held
-  if(!document.getElementById('wzone')||!ACC.token) return; if(mapViewTiles().some(t=>!_rcTiles.has(t))) fetchRealCities(true); },400); }
+  if(!document.getElementById('wzone')||!ACC.token||!mapDetailsOn()) return; if(mapViewTiles().some(t=>!_rcTiles.has(t))) fetchRealCities(true); },400); }
+/* v1127 ZOOM GATE (Phil 11 Oct 2026: "map shouldnt even render castles or mines until you are able to see the 3rd zoom in"): castles
+   and mines exist on the map only at the third picture level (the close pieces, a view at most a third of the map wide and high).
+   Further out nothing is requested and nothing is drawn - your castle and your war / march targets show as small markers. */
+function mapDetailsOn(){ const zone=document.getElementById('wzone'); if(!zone||!worldZoom||!zone.clientWidth||!zone.clientHeight) return false;
+  return worldPictureLevelForViewport(zone.clientWidth/worldZoom,zone.clientHeight/worldZoom)===9; }
 function cityTeamFetch(c){
   if(!c||!c.real||!ACC.token||!online()||_rcTeams.has(c.id)) return Promise.resolve(c&&c.team);
   return api('/api/world/city?id='+encodeURIComponent(c.id)).then(d=>{
@@ -21190,6 +21201,7 @@ function cityTeamFetch(c){
 }
 function fetchRealCities(force){
   if(!ACC.token||!online()) return Promise.resolve(null);
+  if(!mapDetailsOn()) return Promise.resolve(REAL_CITIES);   /* v1127 zoom gate: no castle request above the close picture level */
   if(!force && REAL_CITIES && (Date.now()-_rcFetchedAt)<45000) return Promise.resolve(REAL_CITIES);
   const _vt=mapViewTiles(), _have=_vt.filter(t=>_rcTiles.has(t));
   return api('/api/world/cities?since='+encodeURIComponent(_rcRev||'0')+'&tiles='+_vt.join(',')+'&have='+_have.join(',')).then(d=>{
@@ -21227,7 +21239,7 @@ function fetchRealCities(force){
   }).catch(()=>null);
 }
 function realCitiesIn(regionKey){ return (REAL_CITIES||[]).filter(c=>c.region===regionKey); }
-function startCityPoll(){ if(_rcTimer)return; _rcTimer=setInterval(()=>{ if(document.getElementById('wzone')&&ACC.token) fetchRealCities(true); else { clearInterval(_rcTimer); _rcTimer=null; } },60000); }
+function startCityPoll(){ if(_rcTimer)return; _rcTimer=setInterval(()=>{ if(document.getElementById('wzone')&&ACC.token){ if(mapDetailsOn()) fetchRealCities(true); } else { clearInterval(_rcTimer); _rcTimer=null; } },60000); }   /* v1127: zoomed out, the poll asks for nothing */
 // the whole world's cities: REAL players first, NPC bots fill the rest of each region's population
 function worldCities(){ let out=(REAL_CITIES||[]).slice(); return out.concat(allBots()); }
 // you can march on / attack any rival castle in ANY region — bots AND real players.
@@ -21657,9 +21669,37 @@ function applyMapLOD(){ const inner=document.getElementById('wzoneInner'); if(!i
   inner.dataset.pictureCol=String((closeTiles[0]||middleTiles[0]||{col:0}).col);
   inner.dataset.pictureRow=String((closeTiles[0]||middleTiles[0]||{row:0}).row);
   queueTeleGhosts();
-  const detailsOn=level===9;
-  inner.querySelectorAll('.wnode.city,.wnode.mine').forEach(el=>{ el.style.display=detailsOn?'':'none'; });
+  const detailsOn=level===9;   /* v1127 zoom gate: castles + mines are built only at the close level and removed (not hidden) further out */
+  if(detailsOn&&inner.dataset.details!=='1'){ inner.dataset.details='1'; drawMapDetails(inner); mapViewChangedSoon(); }
+  else if(!detailsOn&&inner.dataset.details!=='0'){ inner.dataset.details='0'; inner.querySelectorAll('.wnode.city:not(.me),.wnode.mine').forEach(el=>el.remove()); }
+  inner.classList.toggle('wfar',!detailsOn); mapFarMarks(inner,!detailsOn);
   inner.querySelectorAll('.worldZoneLabel').forEach(el=>{ el.style.display=level===1?'none':''; }); }
+// v1127: the castles (real players + bot fill) and the mines - drawn only at the close picture level (applyMapLOD)
+function drawMapDetails(inner){ if(!inner)return;
+  const cities=worldCities(); const npcCastle=CASTLE_IMGS.castle2||'';
+  cities.forEach((c)=>{ const el=document.createElement('div'); el.className='wnode city'+(c.ally?' ally':''); el.style.left=c.x+'%'; el.style.top=c.y+'%';
+    const cImg = (c.real && typeof c.academy==='number') ? castleImgAcad(c.academy) : npcCastle;   // v1099: a real player's castle shows their own Academy tier
+    const ic = cImg ? `<img class="castle-spr" src="${cImg}" style="height:44px" draggable="false">` : `<div class="ic">🏰</div>`;
+    el.innerHTML=`${ic}<div class="wlab"><div class="nl" style="color:${cityNameColor(c)};font-weight:800">${c.real?'<span style="color:#5ee89b">●</span> ':''}${escapeHTML(c.name)}${c.ally?' '+uiIcon('ally'):''}</div><div class="nl" style="color:#ffd45e;font-size:9px">Lv ${c.level||1}</div></div>`;
+    el.onclick=(e)=>{ e.stopPropagation(); if(_teleMode)return; openCityMenu(c); }; inner.appendChild(el); });
+  drawMines(inner); }   // scatter the resource mines across the regions
+// v1127: zoomed out - your castle and your war / march targets as small markers (the same size on screen at every zoom)
+function mapFarTargets(){ const out=new Map();
+  try{ pruneWars().forEach(w=>{ if(w&&Number.isFinite(+w.x)&&Number.isFinite(+w.y)) out.set((+w.x).toFixed(2)+','+(+w.y).toFixed(2),{x:+w.x,y:+w.y}); }); }catch(e){}
+  try{ worldVisualMarchRows(activeMarches()).forEach(m=>{ if(m&&m.ctype!=='mine'&&m.dir!=='in'&&Number.isFinite(+m.fx)&&Number.isFinite(+m.fy)) out.set((+m.fx).toFixed(2)+','+(+m.fy).toFixed(2),{x:+m.fx,y:+m.fy}); }); }catch(e){}
+  return [...out.values()]; }
+function mapZoomCloseAt(px,py){ const zone=document.getElementById('wzone'); if(!zone)return; closeCityMenu();
+  const b=worldZoomBounds(zone), z9=Math.max(3*zone.clientWidth/WORLD_W,3*zone.clientHeight/WORLD_H)*1.05;
+  worldZoom=Math.max(b.min,Math.min(b.max,z9)); applyWorldZoom();
+  zone.scrollLeft=px/100*WORLD_W*worldZoom-zone.clientWidth/2; zone.scrollTop=py/100*WORLD_H*worldZoom-zone.clientHeight/2; applyMapLOD(); }
+function mapFarMarks(inner,on){ let lay=inner.querySelector('#wFarMarks');
+  if(!on){ if(lay) lay.remove(); return; }
+  if(!lay){ lay=document.createElement('div'); lay.id='wFarMarks'; lay.style.cssText='position:absolute;inset:0;pointer-events:none;z-index:6'; inner.appendChild(lay); }
+  const me=myCastlePos(), tg=mapFarTargets(), sc=(1/worldZoom).toFixed(4);
+  const key=sc+'|'+me.x+','+me.y+'|'+tg.map(t=>t.x+','+t.y).join(';'); if(lay.dataset.key===key) return; lay.dataset.key=key;
+  lay.innerHTML=tg.map(t=>`<div class="wfarMark tgt" style="left:${t.x}%;top:${t.y}%;transform:scale(${sc})" data-x="${t.x}" data-y="${t.y}"></div>`).join('')
+    +`<div class="wfarMark me" style="left:${me.x}%;top:${me.y}%;transform:scale(${sc})" data-x="${me.x}" data-y="${me.y}"></div>`;
+  lay.querySelectorAll('.wfarMark').forEach(el=>{ el.onclick=(e)=>{ e.stopPropagation(); if(_teleMode)return; mapZoomCloseAt(+el.dataset.x,+el.dataset.y); }; }); }
 // cells that already hold a real castle / mine / the World Tree — teleport ghosts skip these
 function occupiedCells(){ const s=new Set(); const add=(x,y)=>{ if(x!=null&&y!=null) s.add(cellIndex(x)+','+cellIndex(y)); };
   const me=myCastlePos(); add(me.x,me.y);
@@ -21844,7 +21884,7 @@ function renderWorldMap(keepView){
   const _oldZone=document.getElementById('wzone');                              // keepView: poll/grid rebuilds must not yank the pan
   const _keep=(keepView&&_oldZone)?{sl:_oldZone.scrollLeft,st:_oldZone.scrollTop}:null;
   body.innerHTML='';
-  if(ACC.token){ fetchRealCities(); startCityPoll(); syncWorldMarches(false); }   // real players' castles from the server (bots only fill)
+  if(ACC.token){ startCityPoll(); syncWorldMarches(false); }   // real players' castles from the server (bots only fill) - v1127: fetched by applyMapLOD at the close level only
   maybeSpawnRaid();
   const czone=myCastleZone(), cz=ZONES[czone];
   const head=document.createElement('div'); head.style='display:flex;align-items:center;gap:5px;flex-wrap:wrap;justify-content:center;margin:0 0 4px';
@@ -21889,14 +21929,7 @@ function renderWorldMap(keepView){
   const mapWrap=document.createElement('div'); mapWrap.style.cssText='position:relative;display:flex;flex-direction:column;min-height:0'; zone.style.cssText='flex:1 1 0;height:auto;min-height:0'; mapWrap.appendChild(zone); body.appendChild(mapWrap);
   const treeUI=worldTreeControlUI();if(treeUI)treeUI.mount(inner,mapWrap);
   const now=Date.now();
-  // all rival castles (bots) across every region
-  const cities=worldCities(); const npcCastle=CASTLE_IMGS.castle2||'';
-  cities.forEach((c)=>{ const el=document.createElement('div'); el.className='wnode city'+(c.ally?' ally':''); el.style.left=c.x+'%'; el.style.top=c.y+'%';
-    const cImg = (c.real && typeof c.academy==='number') ? castleImgAcad(c.academy) : npcCastle;   // v1099: a real player's castle shows their own Academy tier
-    const ic = cImg ? `<img class="castle-spr" src="${cImg}" style="height:44px" draggable="false">` : `<div class="ic">🏰</div>`;
-    el.innerHTML=`${ic}<div class="wlab"><div class="nl" style="color:${cityNameColor(c)};font-weight:800">${c.real?'<span style="color:#5ee89b">●</span> ':''}${escapeHTML(c.name)}${c.ally?' '+uiIcon('ally'):''}</div><div class="nl" style="color:#ffd45e;font-size:9px">Lv ${c.level||1}</div></div>`;
-    el.onclick=(e)=>{ e.stopPropagation(); if(_teleMode)return; openCityMenu(c); }; inner.appendChild(el); });
-  drawMines(inner);   // scatter the resource mines across the regions
+  // all rival castles (bots) across every region + the mines: v1127 - drawn by applyMapLOD (drawMapDetails) at the close level only
   // your castle at its world position (fits a grid cell; grows a little with kingdom level)
   const CASTLE_H=[0,46,52,58,64,70];
   const cp=myCastlePos(); const meEl=document.createElement('div'); meEl.className='wnode city me'; meEl.style.left=cp.x+'%'; meEl.style.top=cp.y+'%';
@@ -22705,7 +22738,7 @@ const _localMineAvailable=mineAvailable;
 mineAvailable=function(m){return (!mineSignedIn()||worldMineFieldState().nodes.some(n=>n.id===m.id))&&_localMineAvailable(m);};
 const _drawMineField=drawMines;
 function paintWorldMineField(inner){
-  if(!inner||!inner.isConnected)return;
+  if(!inner||!inner.isConnected||inner.dataset.details!=='1')return;   /* v1127 zoom gate: no mines above the close level */
   inner.querySelectorAll('.wnode.mine').forEach(el=>el.remove());
   inner.dataset.mineField=mineSignedIn()?worldMineFieldState().status:'offline';
   _drawMineField(inner);
@@ -22716,6 +22749,7 @@ function refreshWorldMineField(){
     if(_worldMineFieldPoll){clearInterval(_worldMineFieldPoll);_worldMineFieldPoll=null;}
     _worldMineFieldInner=null;return;
   }
+  if(inner.dataset.details!=='1') return;   /* v1127 zoom gate: zoomed out, the mine field is neither drawn nor asked for */
   paintWorldMineField(inner);
   const cache=worldMineFieldCache();if(cache)cache.sync(false).then(()=>{if(inner===_worldMineFieldInner)paintWorldMineField(inner);});
 }
