@@ -1,8 +1,8 @@
 'use strict';
 // v1048 sound system (Phil 6 Oct 2026: "can we eventually get ember to add audio?" -> "yes to Claude's plan. He builds the sound
 // system once, then Ember adds sounds one at a time with his review"; then "I only want 3 different lines for ult per hero, they
-// rotate it per fight, other than that it will be spell FX"). The server's copy of the engine (sim-host) is where the rules must hold
-// hardest: no sound code may run there, change a fight, or throw. Also pins the ult-line rotation and the spell-sound hooks.
+// rotate it per fight, other than that it will be spell FX"; v1124: random per ult, Phil 7 Oct). The server's copy of the engine (sim-host) is where the rules must hold
+// hardest: no sound code may run there, change a fight, or throw. Also pins the random ult-line pick (v1124) and the spell-sound hooks.
 (function main() {
 const path = require('path'), vm = require('vm'), fs = require('fs');
 const ROOT = path.resolve(__dirname, '..');
@@ -26,23 +26,30 @@ try {
   ck('a mapped sound does not play on the server', R.played === false);
   ck('a fight with the ult lines and a spell sound mapped plays out exactly as one without (sound never touches the battle)', JSON.stringify(R.withMap) === JSON.stringify(R.without), JSON.stringify(R));
   ck('no audio context was ever created on the server', R.ctx === null);
-  // the rotation, with playback stubbed (the logic is what is tested; the server never plays)
-  const ROT = run(`(()=>{ const log=[], keepPlay=sndPlay, keepCan=sndCan; sndPlay=(k)=>{ log.push(k); return true; }; sndCan=()=>true;
-    try{ for(const k in _sndRot) delete _sndRot[k];
-      [1,2,3].forEach(i=>AUDIO_MAP['hero.veyr.ult.'+i]=[{f:'x'}]); const out=[];
-      for(let f=0;f<5;f++){ const u={key:'veyr'}; units=[u]; sndUlt(u); units=[u].slice(); sndUlt(u); out.push(log.splice(0).join('+')); }   /* a new unit object per fight; the units array rebuilt mid-fight */
-      for(const k in AUDIO_MAP) delete AUDIO_MAP[k]; AUDIO_MAP['hero.veyr.ult.1']=[{f:'x'}]; AUDIO_MAP['hero.veyr.ult.3']=[{f:'x'}]; for(const k in _sndRot) delete _sndRot[k];
-      const two=[]; for(let f=0;f<3;f++){ const u={key:'veyr'}; units=[u]; sndUlt(u); two.push(log.splice(0)[0]); }
-      return {out, two}; } finally { sndPlay=keepPlay; sndCan=keepCan; for(const k in AUDIO_MAP) delete AUDIO_MAP[k]; } })()`);
-  ck('ult lines rotate per fight: 1, 2, 3, 1, 2 (the same line twice inside one fight)',
-    JSON.stringify(ROT.out) === JSON.stringify(['hero.veyr.ult.1+hero.veyr.ult.1', 'hero.veyr.ult.2+hero.veyr.ult.2', 'hero.veyr.ult.3+hero.veyr.ult.3', 'hero.veyr.ult.1+hero.veyr.ult.1', 'hero.veyr.ult.2+hero.veyr.ult.2']), JSON.stringify(ROT.out));
-  ck('a hero with fewer lines rotates through the ones it has', JSON.stringify(ROT.two) === JSON.stringify(['hero.veyr.ult.1', 'hero.veyr.ult.3', 'hero.veyr.ult.1']), JSON.stringify(ROT.two));
+  // v1124 (Phil 7 Oct: "3 different UNIQUE ult lines, that randomly go off in combat when ulting"), playback stubbed
+  const RND = run(`(()=>{ const log=[], keepPlay=sndPlay, keepCan=sndCan, keep=JSON.stringify(AUDIO_MAP); sndPlay=(k)=>{ log.push(k); return true; }; sndCan=()=>true;
+    try{ for(const k in AUDIO_MAP) delete AUDIO_MAP[k]; [1,2,3].forEach(i=>AUDIO_MAP['hero.veyr.ult.'+i]=[{f:'x'}]);
+      for(let i=0;i<300;i++) sndUlt({key:'veyr'});
+      const seq=log.splice(0); let repeats=0; for(let i=1;i<seq.length;i++) if(seq[i]===seq[i-1]) repeats++;
+      const counts={}; seq.forEach(k=>counts[k]=(counts[k]||0)+1); const nx=k=>'hero.veyr.ult.'+(Number(k.slice(-1))%3+1); let cyc=0; for(let i=1;i<seq.length;i++) if(seq[i]===nx(seq[i-1])) cyc++;
+      for(const k in AUDIO_MAP) delete AUDIO_MAP[k]; AUDIO_MAP['hero.veyr.ult.1']=[{f:'x'}]; AUDIO_MAP['hero.veyr.ult.3']=[{f:'x'}];
+      for(let i=0;i<6;i++) sndUlt({key:'veyr'}); const two=log.splice(0);
+      for(const k in AUDIO_MAP) delete AUDIO_MAP[k]; AUDIO_MAP['hero.veyr.ult.2']=[{f:'x'}];
+      for(let i=0;i<3;i++) sndUlt({key:'veyr'}); const one=log.splice(0);
+      return {n:seq.length, repeats, counts, cyc, two, one}; } finally { sndPlay=keepPlay; sndCan=keepCan; for(const k in AUDIO_MAP) delete AUDIO_MAP[k]; Object.assign(AUDIO_MAP, JSON.parse(keep)); } })()`);
+  ck('every ult plays one of the 3 lines at random: all three are used (300 ults)', RND.n === 300 && Object.keys(RND.counts).length === 3 && Object.values(RND.counts).every(c => c > 60), JSON.stringify(RND.counts));
+  ck('the pick is random, not a fixed 1-2-3 rotation (a rotation follows the cycle 299 times of 299)', RND.cyc < 250, 'cycle steps ' + RND.cyc);
+  ck('the same line never plays twice in a row for a hero', RND.repeats === 0, 'repeats ' + RND.repeats);
+  ck('a hero with 2 lines alternates between them; with 1 line it always plays that one',
+    RND.two.every((k, i) => i === 0 || k !== RND.two[i - 1]) && RND.two.every(k => /ult\.(1|3)$/.test(k)) && RND.one.every(k => k === 'hero.veyr.ult.2'), JSON.stringify(RND));
+  ck('the line pick never draws from the battle generator (_brng) and keeps nothing on the device (the v1048 ew_sound_rot turn is gone)',
+    /function _sndRand\(n\)\{ try\{ if\(window\.crypto&&crypto\.getRandomValues\)/.test(src) && !/_sndRand[^;]*_brng\(/.test(src) && !/ew_sound_rot/.test(src));
   ck('no other voice moments are wired (Phil: ult lines only)', !/sndHero\(|hero\.'\+[^;]*\.attack|'hurt'\)|'victory'\)/.test(src));
   ck('spell sounds: a plate or beam plays fx.<key>; a projectile plays fx.<key>.travel at launch and fx.<key>.impact on landing',
     (src.match(/sndPlay\('fx\.'\+key\);   \/\* v1048 spell sound \*\//g) || []).length === 2 && /sndPlay\('fx\.'\+key\+'\.travel'\); \{ const _oh=onHit; onHit=function\(\)\{ sndPlay\('fx\.'\+key\+'\.impact'\);/.test(src));
-  ck('the shipped map is empty - nothing plays until Phil approves a sound', /const AUDIO_MAP = \{\};/.test(src));
+  ck('the maps start empty and only HERO_VOICES (Phil-approved voices) fills them - no hand-written map rows', /const AUDIO_MAP = \{\};/.test(src) && /const LORE_AUDIO = \{\};/.test(src) && /const HERO_VOICES = \{/.test(src));
   ck('sound plays only after a tap unlocks audio (pointerdown / touchend / keydown)', /\['pointerdown','touchend','keydown'\]\.forEach\(ev=>document\.addEventListener\(ev,sndUnlock/.test(src));
-  ck('lore narration: LORE_AUDIO ships empty; the play button shows only for a hero with a file', /const LORE_AUDIO = \{\};/.test(src) && /\$\{\(LORE_AUDIO\[key\]&&SND\.cfg\.voice\.on\)\?`<div style="text-align:center;margin:-4px 0 12px"><button class="btn sm" id="loreBtn"/.test(src));
+  ck('lore narration: the play button shows only for a hero with a file', /\$\{\(LORE_AUDIO\[key\]&&SND\.cfg\.voice\.on\)\?`<div style="text-align:center;margin:-4px 0 12px"><button class="btn sm" id="loreBtn"/.test(src));
   ck('lore narration streams (an <audio> element, never preloaded) and stops when the player leaves the lore or the screen',
     /const a=new Audio\('\/assets\/audio\/'\+f\); a\.preload='none';/.test(src) && /if\(!\(heroTab==='lore'&&_lore\.key===key\)\) loreStop\(\);/.test(src) && /try\{ if\(name!==state\) loreStop\(\); \}catch\(e\)\{\}/.test(src));
   ck('lore narration code is harmless on the server (loreStop / loreToggle run without a DOM)', run(`(()=>{ try{ loreStop(); loreToggle('veyr',null); return true; }catch(e){ return e.message; } })()`) === true);

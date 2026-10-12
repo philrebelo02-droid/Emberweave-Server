@@ -13,7 +13,7 @@
    cache instantly and revalidated in the background, so a genuinely changed file is picked up on
    the next open instead of never — and a ?v= bumped URL is a new key anyway, so it is fetched
    immediately. */
-const BUILD='1791747358750';
+const BUILD='1791764965659';
 const SHELL_CACHE = 'ember-shell-' + BUILD;   // versioned: wiped on every deploy
 const ASSET_CACHE = 'ember-assets-v1';        // persistent: survives deploys
 const SHELL = ['/play', '/', '/manifest.webmanifest', '/icon-192.png?v=lumi1', '/icon-512.png?v=lumi1', '/icon-512-maskable.png?v=lumi1', '/apple-touch-icon.png?v=lumi1', '/hero-profiles.js?v=r936', '/hero-paths.js?v=r936'];
@@ -46,6 +46,9 @@ self.addEventListener('fetch', (e) => {
   // afterwards and lands for the next open.
   // v605: video is streamed with Range requests; the Cache API cannot store a 206, so let the browser fetch it directly.
   if (isOwnAsset && /\.(mp4|webm)$/i.test(url.pathname)) return;
+  // v1124: the same for any Range request (the lore narration's <audio> element streams .m4a by Range) - a 206 cannot be cached
+  // and a cached whole file must not answer a Range. Ult lines are fetched whole (no Range) and stay cached like art.
+  if (isOwnAsset && req.headers.has('range')) return;
   if (isOwnAsset) {
     // v576 (Phil: "it should only allow me to download new content"). A ?v= URL is IMMUTABLE by
     // protocol - SHIPPING RULE 2.5 forbids reusing a version number, so a bumped asset is a new

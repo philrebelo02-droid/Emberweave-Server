@@ -9194,14 +9194,15 @@ const server=http.createServer((req,res)=>{
     const rel=path.normalize(p.replace(/^\/+/,''));                 // strip leading slash, collapse the path
     if(rel.indexOf('..')!==-1 || p.indexOf('\0')!==-1){ res.writeHead(400); res.end(); return; }
     const ext=path.extname(rel).toLowerCase();
-    const MIME={'.webp':'image/webp','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.gif':'image/gif','.svg':'image/svg+xml','.mp4':'video/mp4','.webm':'video/webm','.json':'application/json','.js':'application/javascript','.css':'text/css','.woff2':'font/woff2','.ttf':'font/ttf'};
+    const MIME={'.webp':'image/webp','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.gif':'image/gif','.svg':'image/svg+xml','.mp4':'video/mp4','.webm':'video/webm','.json':'application/json','.js':'application/javascript','.css':'text/css','.woff2':'font/woff2','.ttf':'font/ttf','.m4a':'audio/mp4'};   // v1124: hero voices (AAC .m4a)
     const type=MIME[ext]||'application/octet-stream';
     // v252: art is immutable per deploy (?v= cache-busters + the service worker own invalidation),
     // so it gets a 30-day cache instead of a daily revalidation round-trip on every phone launch.
     const CC=COMPRESSIBLE.test(type)?'public, max-age=86400':'public, max-age=2592000, immutable';
     /* v605: video answers Range requests (206). iOS Safari will not play a <video> whose server ignores Range, and
        the Emberdraft arenas are looping videos (Phil, 18 Sep: "Let the entire thing be animated"). */
-    if(type.startsWith('video/')) return fs.readFile(path.join(__dirname,rel),(e,buf)=>{
+    /* v1124: audio too - the lore narration streams through an <audio> element, which seeks by Range (iOS refuses audio without it). */
+    if(type.startsWith('video/')||type.startsWith('audio/')) return fs.readFile(path.join(__dirname,rel),(e,buf)=>{
       if(e){ res.writeHead(404); res.end(); return; }
       const total=buf.length, m=/^bytes=(\d*)-(\d*)$/.exec(String(req.headers.range||'').trim()), head=req.method==='HEAD';
       if(m && (m[1]!==''||m[2]!=='')){

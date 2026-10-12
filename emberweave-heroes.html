@@ -9515,6 +9515,7 @@ function makeUnit(key,team,x,y,levelOverride,extra){
   u.sprA=0.7;
   u._bodyR=Math.max(u.r||18, (u.sprH*0.7)*BODY_FRAC/(2*SC));
   u.uid=_uidSeq++;   // v269: a stable per-battle id, so an input log can name exactly who acted on whom
+  if(HERO_TYPES[key]) sndPrimeHero(key);   /* v1124: this hero's ult lines start loading now (render-only; a no-op on the server and in replays) */
   u.id=u.uid;        // v327: the ONLINE network id. It lives here, not in hostStartMatch, because units
                      // summoned mid-match (Hurne's pack) never went through that one-shot index sweep and
                      // shipped id:undefined — every summon collapsed into one slot on the guest.
@@ -9756,13 +9757,15 @@ let _preCrit=null;   // v532: set on the fuse of a swing whose crit was rolled a
    AAC .m4a for phones; a replaced file gets a new ?v= (the asset cache survives deploys).
    AUDIO_MAP: event key -> the layers it plays, [{f:'voice/veyr_ult.m4a?v=1', vol:1}]. One file = one job; layers stack here.
    WHAT PLAYS (Phil 6 Oct: "I only want 3 different lines for ult per hero, they rotate it per fight, other than that it will be spell FX"):
-     voice  - 'hero.<key>.ult.1' / '.2' / '.3': the hero's ult line; each FIGHT uses the next line in turn (a hero who ults twice in
-              one fight says that fight's line again); the turn is kept on the device. No other voice lines.
+     voice  - 'hero.<key>.ult.1' / '.2' / '.3': the hero's ult line. v1124 (Phil 7 Oct: "3 different UNIQUE ult lines, that randomly
+              go off in combat when ulting"): every ult picks one at random, never the same line twice in a row for that hero.
+              No other voice lines. Hero voices are DATA in HERO_VOICES (below LORE_AUDIO), which fills these keys.
      spells - 'fx.<FX2 key>' when that plate or beam appears; 'fx.<FX2 key>.travel' when it flies as a projectile and
               'fx.<FX2 key>.impact' when the projectile lands. A spell gets sound by adding its key to AUDIO_MAP - no code.
    RULES: render-only - never touches battle state or the seeded RNG; a no-op on the server (no AudioContext) and in every headless
    replay (window._p2guard); nothing plays until the player's first tap unlocks audio (phones); at most 8 sounds at once; a file that
-   is not decoded within 0.4 s of its moment is skipped (it plays next time), never late. Everything mapped is fetched on that first tap. */
+   is not decoded within 0.4 s of its moment is skipped (it plays next time), never late. Spell sounds are fetched on that first tap;
+   v1124: a hero's voice lines are fetched only when that hero is put on a battlefield (sndPrimeHero from makeUnit) - never at startup. */
 const AUDIO_MAP = {};
 /* v1049 (Phil 6 Oct: "an audio section, where there is a scale to reduce volume or turn off - FX, Music, Voices"): three channels, each
    with its own on/off and volume, kept on this device. hero.* keys = Voices, music.* = Music, everything else = FX; lore = Voices. */
@@ -9781,9 +9784,14 @@ function sndLoad(f){ if(!SND.ctx) return null; if(f in SND.buf) return null; if(
   return SND.pend[f]; }
 function sndUnlock(){ try{
     if(!SND.ctx){ const C=window.AudioContext||window.webkitAudioContext; if(!C) return; SND.ctx=new C(); SND.out=SND.ctx.createGain(); SND.out.connect(SND.ctx.destination); SND_CH.forEach(ch=>{ const g=SND.ctx.createGain(); g.gain.value=sndGain(ch); g.connect(SND.out); SND.bus[ch]=g; });
-      for(const k in AUDIO_MAP) (AUDIO_MAP[k]||[]).forEach(l=>sndLoad(l.f)); }
+      for(const k in AUDIO_MAP) if(!/^hero\./.test(k)) (AUDIO_MAP[k]||[]).forEach(l=>sndLoad(l.f));   /* v1124: voice lines wait for their hero's fight */
+      try{ (typeof units!=='undefined'&&units||[]).forEach(u=>u&&sndPrimeHero(u.key)); }catch(e){} }
     if(SND.ctx.state==='suspended') SND.ctx.resume().catch(()=>{});
   }catch(e){} }
+/* v1124: fetch + decode a hero's ult lines when the hero is placed on a battlefield (makeUnit), so the first ult has its line ready
+   (a line not decoded within 0.4 s is skipped). Nothing before audio is unlocked, with Voices off, or in a headless replay. */
+function sndPrimeHero(key){ try{ if(!key||!SND.ctx||window._p2guard||!SND.cfg.voice.on) return;
+  for(let i=1;i<=3;i++) (AUDIO_MAP['hero.'+key+'.ult.'+i]||[]).forEach(l=>sndLoad(l.f)); }catch(e){} }
 try{ if(typeof document!=='undefined'&&document.addEventListener) ['pointerdown','touchend','keydown'].forEach(ev=>document.addEventListener(ev,sndUnlock,{passive:true})); }catch(e){}
 function sndPlay(key,gapMs){ if(!sndCan()) return false; const ch=sndCh(key); if(!SND.cfg[ch].on) return false; const L=AUDIO_MAP[key]; if(!L||!L.length||!SND.ctx||SND.ctx.state!=='running') return false;
   const now=performance.now(); if(SND.last[key]!=null && now-SND.last[key]<(gapMs||80)) return false; if(SND.live>=8) return false; SND.last[key]=now;
@@ -9793,23 +9801,39 @@ function sndPlay(key,gapMs){ if(!sndCan()) return false; const ch=sndCh(key); if
   return true; }
 function sndSet(ch,c){ if(!SND.cfg[ch]) return; Object.assign(SND.cfg[ch],c||{}); try{ localStorage.setItem('ew_sound',JSON.stringify(SND.cfg)); }catch(e){} if(SND.bus[ch]) SND.bus[ch].gain.value=sndGain(ch);
   if(ch==='voice'){ try{ if(_lore.a){ if(!SND.cfg.voice.on) loreStop(); else _lore.a.volume=sndGain('voice'); } }catch(e){} } }
-let _sndRot={}; try{ _sndRot=JSON.parse(localStorage.getItem('ew_sound_rot')||'{}')||{}; }catch(e){ _sndRot={}; }
-const _sndLine=(typeof WeakMap==='function')?new WeakMap():null;   // unit -> the line it says this fight (every fight builds new unit objects; the units array itself is rebuilt mid-fight)
+/* v1124 (Phil 7 Oct 2026: "make their ults have 3 different UNIQUE ult lines, that randomly go off in combat when ulting"; the v1048
+   per-fight rotation is gone): every ult picks one of the hero's mapped lines at random, never the same line twice in a row for that
+   hero. The pick uses the browser's own random source - never the battle's seeded generator (_brng) - so a sound can never change a fight. */
+const _sndLast={};
+function _sndRand(n){ try{ if(window.crypto&&crypto.getRandomValues){ const a=new Uint32Array(1); crypto.getRandomValues(a); return a[0]%n; } }catch(e){} return Math.floor(Math.random()*n)%n; }
 function sndUlt(u){ if(!u||!u.key||!sndCan()||!SND.cfg.voice.on) return false;
   const lines=[1,2,3].filter(i=>AUDIO_MAP['hero.'+u.key+'.ult.'+i]); if(!lines.length) return false;
-  let r=_sndLine?_sndLine.get(u):undefined; if(r==null){ r=(u.key in _sndRot)?(((_sndRot[u.key]|0)+1)%lines.length):0; _sndRot[u.key]=r; if(_sndLine) _sndLine.set(u,r); try{ localStorage.setItem('ew_sound_rot',JSON.stringify(_sndRot)); }catch(e){} }
-  return sndPlay('hero.'+u.key+'.ult.'+lines[r%lines.length],0); }
+  const pool=lines.length>1?lines.filter(i=>i!==_sndLast[u.key]):lines;
+  const pick=pool[_sndRand(pool.length)]; _sndLast[u.key]=pick;
+  return sndPlay('hero.'+u.key+'.ult.'+pick,0); }
 /* v1048 LORE NARRATION (Phil 6 Oct 2026: "I want the Lores to be read off by the hero. this is a Big one, but there will be a play button
    above the lore, it will read the entire thing" / "in the heroes voice"). LORE_AUDIO: hero key -> 'voice/lore/<key>_lore.m4a?v=N', the
    whole lore read in that hero's own voice (the same voice as its ult lines). Streamed by an <audio> element - it starts as it downloads,
    it is never preloaded and never decoded into memory. The button shows only when the hero has a file; pressing it is the player's own
    choice, so it plays even with battle sound off; the volume setting applies. It stops when the player leaves the lore or the hero. */
 const LORE_AUDIO = {};
+/* v1124 HERO VOICES - the first one in the game is Vael (Phil 11 Oct 2026: "vael is perfect, put it in game"). One row per hero; adding the
+   next hero is one row here plus its files - no code. Files (fixed names): assets/audio/voice/<key>_ult_<n>.m4a and
+   assets/audio/voice/lore/<key>_lore.m4a. ult = the ?v= of each ult line (its length = how many lines), lore = the ?v= of the lore read
+   (0 = none). A replaced file gets a new number here (SHIPPING RULE 24 - a shipped ?v= never gets new bytes). Only Phil-approved takes
+   go in; the source of each file is in blueprint 27. */
+const HERO_VOICES = {
+  vael:{ ult:[1,1,1], lore:1 },   // v1124: ults "Here! I hold here!" / "Cut me! It only makes me stronger!" / "Last Stand! Come and break me!" (take 1 of each); lore "After Ashford" + ending, pacing B
+};
+for(const k in HERO_VOICES){ const h=HERO_VOICES[k];
+  (h.ult||[]).forEach((v,i)=>{ AUDIO_MAP['hero.'+k+'.ult.'+(i+1)]=[{f:'voice/'+k+'_ult_'+(i+1)+'.m4a?v='+v, vol:1}]; });
+  if(h.lore) LORE_AUDIO[k]='voice/lore/'+k+'_lore.m4a?v='+h.lore; }
 const _lore = { a:null, key:null };
 function loreStop(){ try{ if(_lore.a){ _lore.a.pause(); _lore.a.removeAttribute('src'); _lore.a.load(); } }catch(e){} _lore.a=null; _lore.key=null; }
-function loreBtnSync(btn){ if(!btn) return; const on=!!(_lore.a&&!_lore.a.paused&&!_lore.a.ended); btn.innerHTML=on?uiIcon('pause'):uiIcon('play'); btn.setAttribute('aria-label',on?'Pause the story':'Play the story'); }
+function loreBtnSync(btn){ if(!btn) return; const on=!!(_lore.a&&!_lore.a.paused&&!_lore.a.ended); btn.innerHTML=on?uiIcon('pause'):uiIcon('play'); btn.setAttribute('aria-label',on?'Stop the story':'Play the story'); }   /* v1124: no stop art exists - the pause art marks 'playing', a tap stops */
 function loreToggle(key,btn){ try{
-  if(_lore.a&&_lore.key===key&&!_lore.a.ended){ if(_lore.a.paused) _lore.a.play().catch(()=>{}); else _lore.a.pause(); return; }
+  /* v1124: a tap while the story plays STOPS it (the next tap starts it from the beginning) - was pause/resume in v1048 */
+  if(_lore.a&&_lore.key===key&&!_lore.a.ended&&!_lore.a.paused){ loreStop(); loreBtnSync(btn); return; }
   loreStop(); const f=LORE_AUDIO[key]; if(!f||!SND.cfg.voice.on) return;
   const a=new Audio('/assets/audio/'+f); a.preload='none'; a.volume=sndGain('voice'); _lore.a=a; _lore.key=key;
   a.onplay=a.onpause=a.onended=()=>loreBtnSync(btn); a.play().catch(()=>loreBtnSync(btn)); loreBtnSync(btn);
@@ -14855,7 +14879,8 @@ function popoutScreen(name){ const el=document.getElementById(name); if(!el){ sh
   el.classList.add('active','popout');
   const hm=document.getElementById('hubMenu'); if(hm) hm.classList.remove('open');
 }
-function closePopout(){ const bd=document.getElementById('popoutBackdrop'); if(bd) bd.style.display='none';
+function closePopout(){ try{ loreStop(); }catch(e){}   /* v1124: closing a pop-out panel stops the lore narration */
+  const bd=document.getElementById('popoutBackdrop'); if(bd) bd.style.display='none';
   document.querySelectorAll('.popoutClose').forEach(x=>x.remove());
   if(_popout){ const el=document.getElementById(_popout); if(el) el.classList.remove('active','popout'); _popout=null; } }
 function show(name){
@@ -27387,7 +27412,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791747358750';
+const BUILD_ID = '1791764965659';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
