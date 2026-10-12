@@ -15,12 +15,12 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 let pass = 0; const ok = (c, m) => { assert.ok(c, m); pass++; console.log('  ok  ' + m); };
 const clone = o => JSON.parse(JSON.stringify(o));
 
-function unit() {
+function unit() {   // the v1037 split-v1 layout (pieces: false); the v1127 pieces layout has its own test (test_world_pieces.js)
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'ember-store-unit-')), file = path.join(temp, 'db.json');
   const db = { users: {}, byName: {}, tokens: {}, seeded: true, feedback: [{ t: 1 }], idem: {} };
   for (let i = 0; i < 400; i++) { const id = 'u' + i; db.users[id] = { id, name: 'P' + i, gold: i }; db.idem[id + ':x:1'] = { t: Date.now(), resp: { ok: true, i } }; }
   db.idem['sys:tick'] = { t: Date.now(), resp: { ok: true } };
-  const st = WS.create(file, { split: true });
+  const st = WS.create(file, { split: true, pieces: false });
   st.write(db, null);
   ok(fs.readdirSync(st.dir).length === WS.SHARDS && JSON.parse(fs.readFileSync(file, 'utf8')).__store === WS.FORMAT, 'a full save writes all ' + WS.SHARDS + ' shards and the manifest');
   ok(JSON.stringify(WS.readWorld(file)) === JSON.stringify(WS.readWorld(file)) && WS.readWorld(file).users.u7.gold === 7 && Object.keys(WS.readWorld(file).idem).length === 401, 'the world reads back whole (400 players, 401 receipts)');
@@ -56,7 +56,7 @@ function unit() {
   ok(WS.readWorld(file).users.u7.gold === 1, 'the next save after failures commits normally');
 
   fs.writeFileSync(path.join(st.dir, '5-999999.json'), '{}');
-  const st2 = WS.create(file, { split: true }); st2.load();
+  const st2 = WS.create(file, { split: true, pieces: false }); st2.load();
   ok(st2.sweepOrphans() === 1 && fs.readdirSync(st2.dir).length === WS.SHARDS, 'a leftover shard no manifest names is swept at boot');
   const man = JSON.parse(fs.readFileSync(file, 'utf8')), victim = path.join(st.dir, man.shards[3]);
   fs.renameSync(victim, victim + '.away');
@@ -69,7 +69,7 @@ function unit() {
   const w0 = WS.readWorld(file), coreOnly = Object.assign({}, w0); delete coreOnly.users; coreOnly.idem = {};
   fs.writeFileSync(path.join(other + '.d', '0-1.json'), JSON.stringify({ users: w0.users, idem: w0.idem }));
   fs.writeFileSync(other, JSON.stringify({ __store: WS.FORMAT, gen: 1, count: 1, shards: { 0: '0-1.json' }, core: coreOnly }));
-  const st3 = WS.create(other, { split: true }), w3 = st3.load(); w3.users.u9.gold = 99; st3.write(w3, new Set(['u9']));
+  const st3 = WS.create(other, { split: true, pieces: false }), w3 = st3.load(); w3.users.u9.gold = 99; st3.write(w3, new Set(['u9']));
   const m3 = JSON.parse(fs.readFileSync(other, 'utf8')), w4 = WS.readWorld(other);
   ok(m3.count === WS.SHARDS && Object.keys(m3.shards).length === WS.SHARDS && Object.keys(w4.users).length === 400 && w4.users.u9.gold === 99 && Object.keys(w4.idem).length === Object.keys(w0.idem).length,
     'a world with another shard count loads whole and its next save re-shards it (' + WS.SHARDS + ' shards, all 400 players)');
