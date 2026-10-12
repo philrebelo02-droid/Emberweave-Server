@@ -361,6 +361,8 @@ note "test_vex_ceraline_fx_1115.js (v1115: Grok spell FX 22-24 - Mourning Bell r
 node tests/test_vex_ceraline_fx_1115.js || FAILED=1
 note "test_spell_fx_1123.js (v1123: Grok spell FX - Sorrel Marked Deal cards + sparks, Carn Crimson Reap crescent, Tharl Scale Ram quake, Kon-Wu Ruyi slam (art starts at the press, slam on the 1 s release), Rhukk Dig In roar + shell; parity with v1121 on every tick; controls: v1121 has none of the art, the art code touches no fight state)"
 node tests/test_spell_fx_1123.js || FAILED=1
+note "test_spell_fx_1123b.js (v1123b: Grok spell FX s07 Astra Event Horizon flat on the aimed 8 m circle, the planet lands on the damage; s08 Korvux Ember Cleave chop from the press, its hit flash on the damage; parity with 1682e84c on every tick; controls: 1682e84c has none of the art, the art code touches no fight state)"
+node tests/test_spell_fx_1123b.js || FAILED=1
 note "test_auto_ult_healer_1103.js (v1103: healer ults that also hit enemies fire when full; heal-only ones still wait)"
 node tests/test_auto_ult_healer_1103.js || FAILED=1
 rm -f probe-db-*.json
