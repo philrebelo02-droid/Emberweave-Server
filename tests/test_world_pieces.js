@@ -146,7 +146,7 @@ async function rollingSweep(check) {
     so.ws.terminate(); await R.sleep(500);
     const s1 = (await B.stat()).store, m1 = man(S.db), changed = m1.shardGens.filter((g, k) => g !== m0.shardGens[k]).length;
     check(s1.full === s0.full && s1.slices - s0.slices >= 2, 'rolling sweep: ' + (s1.slices - s0.slices) + ' slice saves, no full save (' + (s1.full - s0.full) + ')');
-    check(s1.sweepSkipped - s0.sweepSkipped >= (s1.slices - s0.slices) * 16 && changed <= 4, 'each slice compared its ' + (WS.SHARDS / 16) + ' shards and rewrote only changed ones (' + (s1.sweepSkipped - s0.sweepSkipped) + ' unchanged kept their file, ' + changed + ' shard files rewritten)');
+    check(s1.sweepLooked - s0.sweepLooked <= (s1.slices - s0.slices) * 2 && changed <= 4, 'the slices looked only at shards holding a dirty player (v1128: ' + (s1.sweepLooked - s0.sweepLooked) + ' shard(s) in ' + (s1.slices - s0.slices) + ' slices) and rewrote only changed ones (' + changed + ' shard files rewritten)');
   } finally { await S.kill(); }
 }
 
