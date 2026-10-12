@@ -221,17 +221,72 @@ function create(gameFile, opts = {}) {
     }
     return local(method, args);
   }
+  /* v1129 LIVE BATTLES ON THE LIVE HELPERS (Phil: World Tree is "the server's largest pvp event"; World Tree and Skyfall are
+     "fast machines" work). runLive(method, args, {mode}) never fights on this server's main thread and, when helpers are
+     configured, never on this server's own workers either: a live helper (role live/any; an async node only when every live
+     helper is down - pick()) or nothing.
+     - With no live slot free the battle WAITS in one FIFO queue, bounded in length (liveQueueMax, SIM_LIVE_QUEUE_MAX, default
+       4 x the live slots, at least 32) and in time (liveWaitMs, SIM_LIVE_WAIT_MS, 3 s). A battle past either bound is refused
+       ('battle servers busy', err.busy) - the server answers busy / retry and the client sends the same request again later.
+     - Fair: the oldest waiting battle takes the next free slot (a slot freed, a helper back up, a backoff over); a battle a
+       helper refused (503 / error) goes back to the FRONT, not the back. Nothing jumps the queue: a new battle starts directly
+       only when nobody is waiting.
+     - No helper configured at all (one machine, a dev box): the same queue feeds this server's battle WORKERS (still not the
+       main thread). SIM_LIVE_LOCAL=1 also lets the workers take live battles while every configured helper is down. */
+  const liveWaitMs = opts.liveWaitMs || +process.env.SIM_LIVE_WAIT_MS || 3000;
+  const liveLocalWhenDown = opts.liveLocalWhenDown !== undefined ? !!opts.liveLocalWhenDown : process.env.SIM_LIVE_LOCAL === '1';
+  const liveQ = []; let liveTimer = null;
+  stats.live = { asked: 0, started: 0, done: 0, failed: 0, queued: 0, maxQueued: 0, refusedFull: 0, timedOut: 0, requeued: 0, onHelper: 0, onWorkers: 0, waitMsMax: 0, cap: 0 };
+  const liveHelpers = () => helperMode && helpers.length > 0;
+  const liveSlots = () => helpers.filter(h => h.ok && !h.disabled && h.duty !== 'async').reduce((s, h) => s + (h.limit || 1), 0);
+  const liveCap = () => { const c = opts.liveQueueMax || +process.env.SIM_LIVE_QUEUE_MAX || Math.max(32, 4 * (liveHelpers() ? liveSlots() : size)); stats.live.cap = c; return c; };
+  const busyErr = why => { const e = new Error('battle servers busy (' + why + ')'); e.busy = true; return e; };
+  const anyHelperUp = () => helpers.some(h => h.ok && !h.disabled);
+  function liveStart(job) {   // start the job now if a slot is free; false = it must wait
+    if (closed) return false;
+    if (liveHelpers() && !(liveLocalWhenDown && !anyHelperUp())) {
+      const h = pick(job.tried, 'live'); if (!h) return false;
+      job.tried.add(h); stats.live.started++; stats.live.onHelper++;
+      remote(h, job.method, job.args, 'live').then(r => { stats.live.done++; job.resolve(r); }, e => {
+        stats.helper.nextHelper++;
+        if (/^helper 503/.test(e.message)) job.tried.delete(h);   // busy is a moment (its backoff), not a refusal of this battle
+        if (Date.now() - job.at > liveWaitMs) { stats.live.failed++; return job.reject(busyErr('helpers refused')); }
+        stats.live.requeued++; liveQ.unshift(job); liveDrain(); });
+      return true;
+    }
+    if (!stats.ready || waiting.length || !workers.some(s => s.ready && !s.busy)) return false;
+    stats.live.started++; stats.live.onWorkers++;
+    local(job.method, job.args).then(r => { stats.live.done++; job.resolve(r); liveDrain(); }, e => { stats.live.failed++; job.reject(e); liveDrain(); });
+    return true;
+  }
+  function liveDrain() {
+    const now = Date.now();
+    while (liveQ.length && now - liveQ[0].at > liveWaitMs) { const j = liveQ.shift(); stats.live.timedOut++; j.reject(busyErr('waited ' + liveWaitMs + ' ms')); }
+    while (liveQ.length) { const j = liveQ[0]; if (!liveStart(j)) break; liveQ.shift(); if (j.queuedAt) { const w = Date.now() - j.queuedAt; if (w > stats.live.waitMsMax) stats.live.waitMsMax = w; } }
+    stats.live.queued = liveQ.length;
+    if (liveQ.length && !liveTimer) { liveTimer = setTimeout(() => { liveTimer = null; liveDrain(); }, 100); if (liveTimer.unref) liveTimer.unref(); }   // a backoff ends / a wait expires
+  }
+  freeListeners.push(liveDrain);   // a helper slot freed or a helper came back: the oldest waiting battle goes first
+  function runLive(method, args) {
+    stats.live.asked++; lastLiveAt = Date.now();
+    return new Promise((resolve, reject) => {
+      const job = { method, args, resolve, reject, at: Date.now(), tried: new Set() };
+      if (!liveQ.length && liveStart(job)) return;
+      if (liveQ.length >= liveCap()) { stats.live.refusedFull++; return reject(busyErr('queue full')); }
+      job.queuedAt = Date.now(); liveQ.push(job); if (liveQ.length > stats.live.maxQueued) stats.live.maxQueued = liveQ.length; liveDrain();
+    });
+  }
   function local(method, args) {
     if (closed || !stats.ready) return Promise.reject(new Error('battle workers not ready'));
     if (waiting.length >= queueMax) { stats.rejectedFull++; return Promise.reject(new Error('battle queue full')); }
     return new Promise((resolve, reject) => { waiting.push({ id: ++seq, method, args, resolve, reject, at: Date.now() }); pump(); });
   }
-  function close() { closed = true; for (const s of workers) { try { s.w.terminate(); } catch (e) {} } }
+  function close() { closed = true; for (const j of liveQ.splice(0)) j.reject(busyErr('closed')); for (const s of workers) { try { s.w.terminate(); } catch (e) {} } }
   /* v1043: STRAINED (what this server's own helper is told - "a strained server never offers help") = running late in at least 3 of the
      last 5 seconds, or battles queuing here. One slow second (a full save) is not strain: it used to lock a quiet server's helper out for
      10 s (measured 6 Oct: 20 of 75 samples on a server whose own CPU use had a median of 7%). stressed() - when THIS server hands its
      battles to helpers - stays as sensitive as before. */
   const sustained = () => lagWindow.filter(x => x > stressLagMs).length >= 3;
-  return { run, close, stats, checkCapacity, canTake, onFree: f => { freeListeners.push(f); }, strained: () => sustained() || waiting.length >= stressQueue, lagMs: () => lastLag, get queued() { return waiting.length; } };
+  return { run, runLive, close, stats, checkCapacity, canTake, onFree: f => { freeListeners.push(f); }, strained: () => sustained() || waiting.length >= stressQueue, lagMs: () => lastLag, get queued() { return waiting.length; } };
 }
 module.exports = { create };

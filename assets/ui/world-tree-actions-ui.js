@@ -27,11 +27,14 @@
       if(key!==hooks.identity()||epoch!==generation){reset();return;}
       if(!operation)operation={kind,payload:JSON.parse(JSON.stringify(payload)),requestId:hooks.requestId()};
       const op=operation;inflight=true;error='';render();
-      let result;try{result=await hooks.post('/api/world-tree/march/'+kind,{...op.payload,requestId:op.requestId});}catch(_e){result={error:'offline'};}
+      // v1129: busy battle servers (a World Tree peak) answer retryAfterMs - the same requestId again, waits growing ~1, 2, 4, 8 s, jittered
+      let result;for(let t=0;;t++){try{result=await hooks.post('/api/world-tree/march/'+kind,{...op.payload,requestId:op.requestId});}catch(_e){result={error:'offline'};}
+        if(!(result?.busy&&result.retryAfterMs)||t>=5||epoch!==generation)break;
+        await new Promise(z=>setTimeout(z,Math.min(10000,Math.max(+result.retryAfterMs||1000,1000*2**t))*(0.75+Math.random()*0.5)));}
       if(epoch!==generation||key!==hooks.identity()){reset();return;}
       inflight=false;
       if(result?.ok){operation=null;selected=null;hooks.control().adopt(result.control);await fresh();error='';}
-      else if(!result||['offline','timeout'].includes(result.error)){error='Unconfirmed';}
+      else if(!result||['offline','timeout'].includes(result.error)||result.busy){error='Unconfirmed';}
       else{operation=null;error=result.error||'Unavailable';}
       render();
     }

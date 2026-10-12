@@ -2654,7 +2654,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 <script src="/assets/ui/world-oasis-markers.js?v=om-painted-01oct-v1"></script>
 <script src="/assets/ui/world-tree-countdown.js?v=wt4"></script>
 <script src="/assets/ui/world-tree-control-ui.js?v=wc5"></script>
-<script src="/assets/ui/world-tree-actions-ui.js?v=wa1"></script>
+<script src="/assets/ui/world-tree-actions-ui.js?v=wa2"></script>
 <script src="/assets/ui/guild-war-calendar.js?v=gw1"></script>
 <script>
 /* ==========================================================================
@@ -21175,8 +21175,12 @@ async function api(path,method,bodyObj){ try{ const h={'Content-Type':'applicati
 const _apiOnceBusy={};
 async function apiOnce(lane,path,bodyObj){ if(_apiOnceBusy[lane]) return {busy:true};
   _apiOnceBusy[lane]=true; const rid=uid8(); let r=null;
-  try{ for(let t=0;t<3;t++){ r=await api(path,'POST',Object.assign({},bodyObj,{requestId:rid}));
-      if(!(r&&(r.error==='offline'||r.storageFailed))||t===2) break; await new Promise(z=>setTimeout(z,1500*(t+1))); } }
+  /* v1129: a fight the battle servers could not take yet answers busy + retryAfterMs (World Tree, Skyfall at a peak) - the same
+     requestId goes again with a growing, jittered wait (about 1, 2, 4, 8 s), so a crowd does not come back in one wave */
+  try{ for(let t=0,busyN=0;t<3+busyN;t++){ r=await api(path,'POST',Object.assign({},bodyObj,{requestId:rid}));
+      const busy=!!(r&&r.retryAfterMs&&r.busy); if(busy&&busyN<4) busyN++;
+      if(!(r&&(r.error==='offline'||r.storageFailed))||t>=2+busyN) break;
+      await new Promise(z=>setTimeout(z,busy?Math.min(10000,Math.max(+r.retryAfterMs||1000,1000*2**(busyN-1)))*(0.75+Math.random()*0.5):1500*(t+1))); } }
   finally{ _apiOnceBusy[lane]=false; }
   return r; }
 let _kickedNotified=false;
@@ -27832,7 +27836,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791824385172';
+const BUILD_ID = '1791971256756';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

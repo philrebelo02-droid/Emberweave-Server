@@ -32,7 +32,6 @@ const WORLD_LOCATION=require('./server/world-location.js');
 const WORLD_TREE_CALENDAR=require('./server/world-tree-calendar.js');
 const WORLD_TREE_SITES=require('./server/world-tree-sites.js');
 const WORLD_TREE_CONTROL=require('./server/world-tree-control.js');
-const WORLD_TREE_BATTLE=require('./server/world-tree-battle.js');
 const WORLD_TREE_SCORE=require('./server/world-tree-score.js');
 const WORLD_TREE_LIFECYCLE=require('./server/world-tree-lifecycle.js');
 const GUILD_WAR_CALENDAR=require('./assets/ui/guild-war-calendar.js');
@@ -3339,7 +3338,7 @@ function simWarLevel(){ try{ const c=WORLD_TREE_CALENDAR.snapshot(DB); if(!(c.co
 function simPool(){
   if(_SIM_POOL!==undefined) return _SIM_POOL;
   const n=process.env.SIM_WORKERS===undefined?undefined:+process.env.SIM_WORKERS;
-  if(n===0){ _SIM_POOL=null; return null; }
+  if(n===0){ _SIM_POOL=null; console.warn('SIM_WORKERS=0: no battle pool - World Tree and Skyfall battles answer busy (v1129: never on the main thread)'); return null; }
   /* v1039: SIM_HELPERS (comma-separated URLs of server/sim-helper.js, e.g. Phil's PC) + SIM_HELPER_KEY - battle helpers that take
      battles only while this server's own workers are backed up ("high war time"); none set = exactly as before. */
   /* v1041 (Phil 6 Oct 2026: "First the server will reach for main and node1-3. If the strained server still needs help my cpu will
@@ -3467,6 +3466,61 @@ async function simRun(fn,mode){   /* v1127: mode picks the helper role (server/s
     if(need.some(x=>!_SIM_MEMO.has(x.k||_simKey(x.m,x.args)))){ SIM_STATS.busy=(SIM_STATS.busy|0)+1;
       return {ok:false,storageFailed:true,busy:true,error:'The battle servers are busy - your army attacks again in a moment.'}; } }
   return fn(); }   // a planner that needed more than 12 rounds of battles: on the main thread, as before
+/* v1129 LIVE BATTLES OFF SERVER 1 (Phil: World Tree is "the server's largest pvp event"; World Tree and Skyfall are "fast machines"
+   work). A World Tree site fight (the full engine: 40 ms on average in the test peak, 145-200 ms for level-60 squads, 12 Oct) and a Skyfall assault ran inside their planners on
+   this thread. Now:
+   - liveBattle(m,args) is the planner's battle call: a result fetched for exactly these inputs is returned; otherwise, inside
+     simRunLive, the planner is stopped (SIM_NEEDED - nothing is committed before the battle call) and the battle is fetched from
+     the battle pool's LIVE path (sim-pool.js runLive: the live helpers, FIFO-queued, bounded); outside simRunLive it throws. It
+     NEVER fights on the main thread - there is no such path.
+   - simRunLive(fn,mode) runs the planner, fetches what it stopped for, runs it again (a World Tree tick can need several fights in
+     a row, each from the state the last one left) - and answers BUSY (503, retry) when the pool could not fight one in time. The
+     fetched results stay in _LIVE_MEMO for LIVE_MEMO_MS, so a busy tick or a retried request keeps the fights already fought.
+   - Results are the same objects the main thread produced: the worker / helper runs the same functions on the same inputs
+     (worldtree = server/world-tree-battle.js on the engine, line = SIM.resolveLineBattle(SIM.makeLine..)), both in the
+     engine fingerprint (test_live_helpers.js compares them byte for byte). */
+const _LIVE_MEMO=new Map(), _LIVE_FLIGHT=new Map(), LIVE_MEMO_MS=120000, LIVE_ROUNDS=Math.max(1,+(process.env.SIM_LIVE_ROUNDS||64));
+const LIVE_STATS={asked:0,memoHits:0,fetched:0,busy:0,rounds:0,maxRounds:0,memo:0,byMode:{}};
+let _LIVE_COLLECT=null, _LIVE_HITS=null;
+const LIVE_BUSY=()=>({ok:false,busy:true,retry:true,storageFailed:true,retryAfterMs:1000+Math.floor(Math.random()*1000),
+  error:'The battle servers are busy - your army attacks again in a moment.'});
+function liveBattle(m,args){
+  const k=m+'|'+require('crypto').createHash('sha1').update(JSON.stringify(args)).digest('base64'), hit=_LIVE_MEMO.get(k); LIVE_STATS.asked++;
+  if(hit){ LIVE_STATS.memoHits++; if(_LIVE_HITS) _LIVE_HITS.push(k); return hit.r; }
+  if(_LIVE_COLLECT){ _LIVE_COLLECT.push({m,args,k}); throw SIM_NEEDED; }
+  throw Error('live battle outside simRunLive');   // never the main thread
+}
+async function liveFetch(need,mode){
+  const pool=simPool(); if(!pool||typeof pool.runLive!=='function') return;
+  const now=Date.now(); if(_LIVE_MEMO.size>500) for(const [k,v] of _LIVE_MEMO) if(now-v.t>LIVE_MEMO_MS) _LIVE_MEMO.delete(k);
+  await Promise.all(need.map(({m,args,k})=>{ if(_LIVE_MEMO.has(k)) return null;
+    let p=_LIVE_FLIGHT.get(k);
+    if(!p){ p=pool.runLive(m,args,{mode}).then(r=>{ _LIVE_MEMO.set(k,{r,t:Date.now()}); LIVE_STATS.fetched++; return r; });
+      _LIVE_FLIGHT.set(k,p); p.then(()=>_LIVE_FLIGHT.delete(k),()=>_LIVE_FLIGHT.delete(k)); }
+    return p.catch(()=>{}); })); }
+async function simRunLive(fn,mode){
+  const bm=LIVE_STATS.byMode[mode]||(LIVE_STATS.byMode[mode]={runs:0,battles:0,busy:0});
+  bm.runs++;
+  for(let i=0;i<LIVE_ROUNDS;i++){ const need=[], hits=[]; let out, needed=false; _LIVE_COLLECT=need; _LIVE_HITS=hits;
+    try{ out=fn(); }catch(e){ if(e!==SIM_NEEDED) throw e; needed=true; } finally{ _LIVE_COLLECT=null; _LIVE_HITS=null; }
+    if(i>LIVE_STATS.maxRounds) LIVE_STATS.maxRounds=i;
+    if(!needed){ for(const k of hits) _LIVE_MEMO.delete(k); LIVE_STATS.memo=_LIVE_MEMO.size; return out; }   // used: gone (a busy run keeps its fights for the retry)
+    LIVE_STATS.rounds++; bm.battles+=need.length;
+    await liveFetch(need,mode);
+    if(need.some(x=>!_LIVE_MEMO.has(x.k))) break; }
+  LIVE_STATS.busy++; bm.busy++; return LIVE_BUSY(); }
+/* v1129: one Skyfall assault per match at a time. An assault's seed is taken from the match version, and every assault bumps it - run
+   side by side, each one's fetched fight went stale when another landed first (measured: 10 players in one match fetched 184 fights
+   for 24 assaults). In line, each assault's fight is fetched once. The line is bounded: at most SKY_LINE_MAX waiting per match, and
+   one that waited longer than SIM_LIVE_WAIT_MS answers busy without asking for a fight. Matches do not wait for each other. */
+const _skyLines=new Map(), SKY_LINE_MAX=Math.max(1,+(process.env.SKY_LINE_MAX||64)), SKY_LINE_WAIT_MS=Math.max(100,+(process.env.SIM_LIVE_WAIT_MS||3000));
+async function skyInLine(key,fn){
+  const q=_skyLines.get(key)||{tail:Promise.resolve(),n:0};
+  if(q.n>=SKY_LINE_MAX){ LIVE_STATS.lineFull=(LIVE_STATS.lineFull|0)+1; return LIVE_BUSY(); }
+  q.n++; _skyLines.set(key,q);
+  const prev=q.tail; let release; q.tail=new Promise(r=>{ release=r; }); const t0=Date.now();
+  try{ await prev; if(Date.now()-t0>SKY_LINE_WAIT_MS){ LIVE_STATS.lineWait=(LIVE_STATS.lineWait|0)+1; return LIVE_BUSY(); } return await fn(); }
+  finally{ release(); if(--q.n===0) _skyLines.delete(key); } }
 function _campaignSimCandidates(me,b){ try{   // read-only: helpers run on a clone (portalProg fills in missing records)
     const u=JSON.parse(JSON.stringify(me)), led=u.led; if(!led) return [];
     const aid=String(b.attemptId||''); let mode=null, a=null;
@@ -4137,8 +4191,7 @@ function worldHeroReturnAt(u,key,now=Date.now()){
 }
 
 // World Tree capture slice remains OFF until the reviewed enable CR.
-const WORLD_TREE_CONTROL_ENABLED=false;
-let _worldTreeBattleHost=null,_worldTreeBattle=null;
+const WORLD_TREE_CONTROL_ENABLED=process.env.NODE_ENV==='test'&&process.env.WORLD_TREE_CONTROL_TEST==='1';   // v1129: OFF everywhere but a test server that asks (test_live_helpers.js)
 function worldTreeWindow(now){return WORLD_TREE_SITES.snapshot(WORLD_TREE_CALENDAR.snapshot(DB,{now}));}
 function worldTreeHooks(now,sites,snapshots=null){
   const guildValid=(gid,owner)=>!!(DB.users[owner]&&DB.users[owner].guildId===gid&&DB.guilds?.[gid]?.members?.includes(owner));
@@ -4159,10 +4212,9 @@ function worldTreeHooks(now,sites,snapshots=null){
       const timing=fixtureMs?null:WORLD_VOID_TIMING.plan(from,to,distance*60000),travelMs=fixtureMs||timing.travelMs;
       return {travelMs,route:WORLD_MARCH_ROUTE.capture(from,to,siteId,travelMs,0,timing?.pacing)};
     },
-    battle:(a,d,seed)=>{const host=simHost();if(!host)throw Error('World Tree battle unavailable');
-      if(_worldTreeBattleHost!==host){_worldTreeBattle=WORLD_TREE_BATTLE.create(host);_worldTreeBattleHost=host;}
-      return _worldTreeBattle(a,d,seed);
-    }
+    /* v1129: the fight runs on a live helper (sim-worker.js 'worldtree' = WORLD_TREE_BATTLE on the engine), never here - see
+       liveBattle / simRunLive. Every caller of worldTreeRun runs it inside simRunLive. */
+    battle:(a,d,seed)=>liveBattle('worldtree',[a,d,seed])
   };
 }
 function worldTreeGuildLabel(gid){const g=gid&&DB.guilds?.[gid];return {guildName:g&&typeof g.name==='string'?g.name.slice(0,100):'Guild',guildTag:g&&typeof g.tag==='string'?g.tag.slice(0,20):''};}
@@ -4202,7 +4254,8 @@ function worldTreeRun(actor,action,payload,now=Date.now(),receiptKey=null){
     for(const [id,witch]of injured)DB.users[id].witch=witch;
     _holdReply(_joinBatch(()=>{ for(const [k,had,v] of prevF){ if(had) DB[k]=v; else delete DB[k]; } DB.idem=prevIdem;
       for(const [id,w] of prevW){ if(DB.users[id]) DB.users[id].witch=w; } console.error('World Tree save failed - undone'); },
-      [...injured.keys(), receiptKey?receiptKey.slice(0,Math.max(0,receiptKey.indexOf(':'))):'']),
+      [...injured.keys(), receiptKey?receiptKey.slice(0,Math.max(0,receiptKey.indexOf(':'))):''],
+      [...Object.keys(fields), ...(receiptKey?['idem']:[])]),   // v1129: the World Tree's own pieces (+ the receipt), not a compare of every system
       'World save failed. Retry the same request.');
     return reply; }
   saveDB({...DB,...fields,users,idem:receipts},'.world-tree.tmp');
@@ -5151,7 +5204,7 @@ async function api(req,res,url){
       banned: DB.users[r.userId] ? banInfo(DB.users[r.userId]) : null })) }); }
 
   if(p==='/api/dev/save-stats'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});   // v1036: group-save counters
-    return send(res,200,Object.assign({},GROUP_SAVE_STATS,{store:Object.assign({split:_store.split,layout:_store.layout},_store.stats)},{attackCopy:ATTACK_COPY_STATS},{checkBacklog:CHECK_BACKLOG.stats},{battles:Object.assign({},SIM_STATS,{pool:_SIM_POOL?_SIM_POOL.stats:null,memo:_SIM_MEMO.size,inFlight:_SIM_FLIGHT.size,queued:_SIM_POOL?_SIM_POOL.queued:0,verify:CAMP_VERIFY_STATS})},{dbBytes:(()=>{ try{ return fs.statSync(DB_FILE).size; }catch(e){ return 0; } })()})); }
+    return send(res,200,Object.assign({},GROUP_SAVE_STATS,{store:Object.assign({split:_store.split,layout:_store.layout},_store.stats)},{attackCopy:ATTACK_COPY_STATS},{checkBacklog:CHECK_BACKLOG.stats},{battles:Object.assign({},SIM_STATS,{pool:_SIM_POOL?_SIM_POOL.stats:null,memo:_SIM_MEMO.size,inFlight:_SIM_FLIGHT.size,queued:_SIM_POOL?_SIM_POOL.queued:0,verify:CAMP_VERIFY_STATS,live:Object.assign({},LIVE_STATS,{memo:_LIVE_MEMO.size,inFlight:_LIVE_FLIGHT.size})})},{dbBytes:(()=>{ try{ return fs.statSync(DB_FILE).size; }catch(e){ return 0; } })()})); }
   if(p==='/api/dev/gem-audit'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
     const id=String(url.searchParams.get('id')||''); const u=DB.users[id];
     if(!u) return send(res,404,{error:'no such account'});
@@ -5864,7 +5917,12 @@ async function api(req,res,url){
       m.version++; writeDB([me.id]);
       return send(res,200,{ok:true, moved:moving.length, from, to, match:warMatchView(t,m,myGid,me.id)});
     }
-    if(p==='/api/guild-war/assault'){
+    /* v1129 (Phil: Skyfall is "fast machines" work): the assault's fight runs on a live helper (sim-worker.js 'line'), never on this
+       thread. The route runs inside simRunLive: the first pass stops at the fight before anything is changed, the fight is fetched,
+       the route runs again from the top (re-reading the match - another assault may have landed meanwhile) and finds it. No live
+       slot in time -> 503 busy (retryAfterMs); the client sends the same requestId again. */
+    if(p==='/api/guild-war/assault'){ const _m0=myGid?warMatchOfGuild(t,myGid):null;
+     const _out=await skyInLine(_m0?_m0.id:'-',()=>simRunLive(()=>{ const t=warAdvance(getTournament()), myGid=me.guildId||null;   // read again on every pass: the route may have waited
       const m=myGid?warMatchOfGuild(t,myGid):null;
       /* v1009 (re-audit Guild #3): one march per requestId. A lost reply and a retap used to send a SECOND march; the same id now
          answers its receipt. The save is synchronous; a failed one answers 503 and the retry gets the receipt. */
@@ -5920,6 +5978,10 @@ async function api(req,res,url){
           m.eventLog.push({t:warNow(),e:'OVERRUN',lane,a:me.id,d:spent.memberId});
           if(keepMarch({ ok:true, won:true, overrun:true, citadelFell:fell, finished:false })) return;
           return send(res,200,{ ok:true, won:true, overrun:true, citadelFell:fell, finished:false, match:warMatchView(t,m,myGid,me.id) }); } }
+      /* v1129: the fight first - before this march changes anything (simRunLive may stop here and run the route again) */
+      const seed=defender?SIM.seedFrom(m.id+':'+me.id+':'+lane+':'+m.version):0;
+      // World-map wounds carried between assaults cap in-battle healing at entry HP (makeLine capToEntry, on the helper).
+      const r=defender?liveBattle('line',[attacker.lineSnapshot,attacker.hpState,defender.lineSnapshot,defender.hpState,seed,true]):null;
       m.assaults[me.id]=(m.assaults[me.id]||0)+1;   // every attack spends an order, win or lose
       attacker.fights=(attacker.fights|0)+1;
       if(!defender){ // undefended citadel: the march captures it without a fight (still costs an order)
@@ -5928,11 +5990,6 @@ async function api(req,res,url){
            go down". Every lane keeps fighting to the bell, and the towers are counted there. */
         if(keepMarch({ ok:true, won:true, captured:true, citadelFell:true, finished:false })) return;
         return send(res,200,{ ok:true, won:true, captured:true, citadelFell:true, finished:false, match:warMatchView(t,m,myGid,me.id) }); }
-      const seed=SIM.seedFrom(m.id+':'+me.id+':'+lane+':'+m.version);
-      // World-map wounds carried between assaults cap in-battle healing at entry HP.
-      const aLine=SIM.makeLine(attacker.lineSnapshot, attacker.hpState, true);
-      const bLine=SIM.makeLine(defender.lineSnapshot, defender.hpState, true);
-      const r=SIM.resolveLineBattle(aLine,bLine,seed);
       // persist survivor HP/energy on BOTH lines (keyed back to snapshot order)
       const mapBack=(snap, state)=>snap.map(h=>{ const st=state.find(x=>x.key===h.key); return st?{hp:st.hp,energy:st.energy}:{hp:0,energy:0}; });
       attacker.hpState=mapBack(attacker.lineSnapshot, r.aState);
@@ -5963,6 +6020,9 @@ async function api(req,res,url){
         replay:{ seed, lane, attacker:attacker.lineSnapshot, defender:defender.lineSnapshot, log:r.log.slice(0,200) },
         result:{ aState:r.aState, bState:r.bState, rounds:r.rounds }, injuries:warInjuries,
         match:warMatchView(t,m,myGid,me.id) });
+     },'skyfall'));
+      if(_out&&_out.busy){ res.setHeader('Retry-After',String(Math.ceil(_out.retryAfterMs/1000))); return send(res,503,_out); }
+      return _out;
     }
     if(p==='/api/guild-war/claim-reward'){
       /* v1009 (re-audit Guild #7): a lost reply used to answer the retry "Nothing to claim" though the coins were paid; the same
@@ -8712,7 +8772,8 @@ async function api(req,res,url){
     if(!WORLD_TREE_CONTROL_ENABLED)return send(res,409,{ok:false,error:'World Tree event disabled'});
     const b=await body(req),rid=String(b.requestId||'').slice(0,48);
     if(!rid)return send(res,400,{error:'requestId required'});
-    try{const action=p.slice(p.lastIndexOf('/')+1),out=worldTreeRun(me,action,b,Date.now(),me.id+':worldtree:'+p+':'+rid);
+    try{const action=p.slice(p.lastIndexOf('/')+1),out=await simRunLive(()=>worldTreeRun(me,action,b,Date.now(),me.id+':worldtree:'+p+':'+rid),'worldtree');   // v1129: its fights on a live helper
+      if(out&&out.busy){res.setHeader('Retry-After',String(Math.ceil(out.retryAfterMs/1000)));return send(res,503,out);}
       return send(res,out.ok?200:400,out);
     }catch(error){console.error('World Tree control:',error.message);return send(res,503,{error:'World Tree control unavailable'});}
   }
@@ -9781,5 +9842,11 @@ if(PG){ PG_BOOT_PENDING=true;   // nothing writes to disk or PG, and the port st
 } else bootFinish();
 // prune the in-memory rate-limiter map so old per-IP hit arrays don't accumulate forever (audit: high)
 // Disabled capture settlement cannot touch live data until the enable CR.
-setInterval(()=>{if(!WORLD_TREE_CONTROL_ENABLED||!DB.worldTreeControl)return;try{worldTreeRun(null,'tick',{});}catch(e){console.error('World Tree tick:',e.message);}},1000).unref();
+/* v1129: the tick's fights run on a live helper (simRunLive). One tick at a time; a busy tick commits nothing and the next one (1 s
+   later) carries on from the fights already fetched. The tick saves like a World Tree request - a group save of the injured players
+   and the World Tree pieces, undone if it fails - not the synchronous whole-world saveDB it did every second (on the bench a 10-player
+   world stalled the event loop up to ~470 ms a tick; a real world takes seconds). */
+let _worldTreeTicking=false;
+setInterval(()=>{if(!WORLD_TREE_CONTROL_ENABLED||!DB.worldTreeControl||_worldTreeTicking)return;_worldTreeTicking=true;
+  simRunLive(()=>_reqCtx.run({},()=>worldTreeRun(null,'tick',{})),'worldtree').then(out=>{if(out&&out.busy)LIVE_STATS.tickBusy=(LIVE_STATS.tickBusy|0)+1;},e=>console.error('World Tree tick:',e.message)).finally(()=>{_worldTreeTicking=false;});},1000).unref();
 setInterval(()=>{ const now=Date.now(); for(const k of Object.keys(_hits)){ const w=_hitWin[k]||600000; const arr=_hits[k].filter(t=>now-t<w); if(arr.length) _hits[k]=arr; else { delete _hits[k]; delete _hitWin[k]; } } }, 10*60000);   /* v1007: per-key window */
