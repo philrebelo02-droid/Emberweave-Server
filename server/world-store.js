@@ -89,7 +89,10 @@ function create(file, opts) {
   const configured = () => JOURNAL ? 'journal' : (st.pieces ? 'pieces' : 'split-v1');
   /* v1128: opts.io = 'worker' (the file work of every save on the store io worker thread) or 'sync' (default: on this thread) */
   let _io = null;
-  const io = () => { if (!_io) { _io = STORE_IO.create({ mode: opts.io === 'worker' ? 'worker' : 'sync', onFailure: e => { st.broken = true; if (opts.onFailure) opts.onFailure(e); } }); st.stats.io = _io.stats; } return _io; };
+  const io = () => { if (!_io) { _io = STORE_IO.create({ mode: opts.io === 'worker' ? 'worker' : 'sync', onFailure: e => { st.broken = true; if (opts.onFailure) opts.onFailure(e); },
+    onWorkerLost: () => { st.broken = true; st.jinitSent = false;   // file names restart well past any gen the lost worker used (it may still be finishing an unlink)
+      const g = Math.max(st.jstate ? st.jstate.gen | 0 : 0, (_io && _io.stats.journal && _io.stats.journal.gen) | 0, st.gen | 0) + 1000;
+      st.jstate = { gen: g, baseGens: [], pieces: {}, core: '{}', journals: [] }; } }); st.stats.io = _io.stats; } return _io; };   // the worker died: saves go on on this thread - the journal engine starts here with a full save
   const idShard = new Map();
   const sh = id => { let s = idShard.get(id); if (s === undefined) { s = shardOf(id); if (idShard.size > 500000) idShard.clear(); idShard.set(id, s); } return s; };
 
@@ -284,7 +287,7 @@ function create(file, opts) {
       for (const k of cp.keys) { const v = JSON.stringify(cp.val(k)); pieces.push([k, v]); st.plast.set(k, v); st.psig.set(k, DIFF.diff({ v: cp.val(k) }, null).sig); bytes += v.length; }
       const core = JSON.stringify(cp.inline); st.jcore = core;
       for (const x of shards) bytes += x.length;
-      ops.push({ j: 'full', shards, pieces, core });
+      ops.push({ j: 'full', shards, pieces, core, sweep: broken });   // after a failure (or a lost io worker) the files no manifest names go too
       st.layout = 'journal'; st.broken = false; st.dirty.clear(); S.dirtyNow = 0; S.full++; S.lastFullAt = Date.now(); S.shardsWritten += SHARDS; S.bytes.shards += bytes; S.lastShards = SHARDS; S.lastPieces = pieces.map(p => p[0]);
       st.jfiles = null;
     } else {
