@@ -9,4 +9,12 @@ if (LOG && DBF) {
     try { const p = typeof f === 'string' ? path.resolve(f) : ''; if (p.startsWith(DBF) && p !== path.resolve(LOG)) append(LOG, (typeof data === 'string' ? Buffer.byteLength(data) : (data && data.length) || 0) + '\t' + path.basename(p) + '\n'); } catch (_) {}
     return r;
   };
+  if (process.env.WRITE_LOG_APPENDS === '1') {   // v1128: the journal appends (and check-backlog lines) too
+    const ap = fs.appendFileSync;
+    fs.appendFileSync = function (f, data) {
+      const r = ap.apply(this, arguments);
+      try { const p = typeof f === 'string' ? path.resolve(f) : ''; if (p.startsWith(DBF) && p !== path.resolve(LOG)) append(LOG, (typeof data === 'string' ? Buffer.byteLength(data) : (data && data.length) || 0) + '\t' + path.basename(p) + '\n'); } catch (_) {}
+      return r;
+    };
+  }
 }

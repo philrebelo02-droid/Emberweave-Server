@@ -16,6 +16,7 @@ const WS = require('../server/world-store.js');
 const HOOK = path.join(__dirname, 'helpers', 'slow-fs-hook.cjs');
 const CONTROL = 'c9f40cd8';
 const DISK_MS = 200;
+const STORE_FILES = /^(\d+-\d+|p-.+-\d+)\.json$|^j-\d+\.log$/;   // shard / base, piece and journal files
 
 function slowServer(dir, extraEnv) {
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'ember-saveio-')), side = fs.mkdtempSync(path.join(os.tmpdir(), 'ember-saveio-side-'));
@@ -77,32 +78,37 @@ async function killLoop(check) {
     }
     const w = WS.readWorld(S.db), lost = acked.filter(a => !((w.users[a.p] || {}).worldWars || {})[a.def]);
     check(acked.length > 0 && lost.length === 0, 'five hard kills with saves queued on the slow disk: all ' + acked.length + ' acknowledged declarations (of ' + sent + ' sent) are on disk, the world loads each time');
-    const files = fs.readdirSync(S.db + '.d'), m = JSON.parse(fs.readFileSync(S.db, 'utf8')), named = new Set([...Object.values(WS.shardNamesOf(m)), ...Object.values(m.pieces || {})]);
-    check(files.filter(f => /^(\d+-\d+|p-.+-\d+)\.json$/.test(f)).every(f => named.has(f)), 'after the restarts every shard / piece file is one the manifest names (orphans of killed saves swept at boot)');
+    const files = fs.readdirSync(S.db + '.d'), named = WS.namedFiles(S.db);
+    check(files.filter(f => STORE_FILES.test(f)).every(f => named.has(f)), 'after the restarts every shard / piece file is one the manifest names (orphans of killed saves swept at boot)');
   } finally { S.slow(false); await S.kill(); }
 }
 
 // a save that fails on the io worker
-async function failedSave(check) {
-  const S = await R.server({});
+async function failedSave(check, env) {
+  const S = await R.server({ env });
   try {
     const B = await R.boot(S, 'sf', 2);
     const targets = await bots(S, B.players[0]), p = B.players[1], target = targets[5].id;
     await R.sleep(1200);
     const s0 = await B.stat();
-    fs.mkdirSync(S.db + '.store.tmp');   // the manifest temp path is a directory: the worker's write fails
+    // the file the next save writes is a directory: the worker's write fails (the journal layout appends to its journal, the pieces
+    // layout writes the manifest temp file)
+    const m0 = JSON.parse(fs.readFileSync(S.db, 'utf8')), jl = m0.layout === WS.JLAYOUT;
+    const blocker = jl ? path.join(S.db + '.d', m0.journals[m0.journals.length - 1]) : S.db + '.store.tmp';
+    if (jl) fs.renameSync(blocker, blocker + '.away'); fs.mkdirSync(blocker);
     const failed = await S.req('POST', '/api/world/war/declare', { defId: target, requestId: 'sf-1' }, p.token, p.ip);
     check(failed.status === 503 && failed.body.storageFailed === true, 'a save that fails on the io worker answers 503 storageFailed (got ' + failed.status + ')');
-    check(!((WS.readWorld(S.db).users[p.id] || {}).worldWars || {})[target], 'nothing of the failed action reached disk');
+    if (jl) await R.sleep(1500);   // journal layout: the recovery save (a new base + journal, backing off from 250 ms) no longer names the blocked file
+    check(!((WS.readWorld(S.db).users[p.id] || {}).worldWars || {})[target], 'nothing of the failed action reached disk' + (jl ? ' (nor the recovery save after it)' : ''));
     const s1 = await B.stat();
     check(s1.failed > s0.failed && s1.store.io.failed >= 1 && s1.store.io.mode === 'worker', 'the failure is counted (group ' + (s1.failed - s0.failed) + ', io ' + s1.store.io.failed + ')');
-    fs.rmdirSync(S.db + '.store.tmp');
+    fs.rmdirSync(blocker); if (jl) fs.unlinkSync(blocker + '.away');   // journal layout: the recovery save (read above) no longer names that journal
     const retry = await S.req('POST', '/api/world/war/declare', { defId: target, requestId: 'sf-1' }, p.token, p.ip);
     check(retry.status === 200 && retry.body.ok === true && !retry.body.existing, 'the same request succeeds once the disk works, as a NEW war (the failed one was undone in memory)');
     await R.sleep(600); await S.kill();
-    const w = WS.readWorld(S.db), m = JSON.parse(fs.readFileSync(S.db, 'utf8')), named = new Set([...Object.values(WS.shardNamesOf(m)), ...Object.values(m.pieces || {})]);
+    const w = WS.readWorld(S.db), named = WS.namedFiles(S.db);
     check(!!(w.users[p.id].worldWars || {})[target] && Object.keys(w.users).length >= 3, 'the retried war is on disk and the world loads whole');
-    check(fs.readdirSync(S.db + '.d').filter(f => /^(\d+-\d+|p-.+-\d+)\.json$/.test(f)).every(f => named.has(f)), 'the save after the failure rewrote the world and swept every file its manifest does not name');
+    check(fs.readdirSync(S.db + '.d').filter(f => STORE_FILES.test(f)).every(f => named.has(f)), 'the save after the failure rewrote the world and swept every file its manifest does not name');
   } finally { await S.kill(); }
 }
 
@@ -112,7 +118,8 @@ async function failedSave(check) {
     console.log('== slow disk, this tree');
     const mine = await slowRound(R.root, R.ok);
     console.log('== hard kills on a slow disk'); await killLoop(R.ok);
-    console.log('== a failed save on the io worker'); await failedSave(R.ok);
+    console.log('== a failed save on the io worker (journal layout)'); await failedSave(R.ok);
+    console.log('== a failed save on the io worker (pieces layout, DB_STORE_JOURNAL=0)'); await failedSave(R.ok, { DB_STORE_JOURNAL: '0' });
     console.log('== DB_STORE_IO=sync (the v1127 path) still saves');
     { const misses = []; const s = await slowRound(R.root, (c, m) => { if (!c) misses.push(m); }, { DB_STORE_IO: 'sync' });
       R.ok(misses.length >= 1 && s.calls > 0 && misses.every(m => !/every acknowledged|answered ok/.test(m)), 'DB_STORE_IO=sync: every declaration saved and answered, the file calls back on the main thread (' + s.calls + ', worst /health ' + s.worst + ' ms)'); }

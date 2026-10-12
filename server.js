@@ -112,7 +112,7 @@ function pgSave(){ if(PG_BOOT_PENDING) return;   // v327: never UPSERT the pre-r
     .finally(()=>{ _pgWriting=false; if(_pgDirty){ _pgDirty=false; pgSave(); } }); }
 /* v1037 PER-PLAYER STORAGE (server/world-store.js). DB_STORE=split: the world file is a manifest + 512 player shard files and a
    save writes only the shards whose players changed; without it the one-file world is read and written exactly as before. */
-const _store=require('./server/world-store.js').create(DB_FILE,{split:process.env.DB_STORE==='split',verify:process.env.DB_STORE_VERIFY==='1',pieces:process.env.DB_STORE_PIECES!=='0',
+const _store=require('./server/world-store.js').create(DB_FILE,{split:process.env.DB_STORE==='split',verify:process.env.DB_STORE_VERIFY==='1',pieces:process.env.DB_STORE_PIECES!=='0',journal:process.env.DB_STORE_PIECES!=='0'&&process.env.DB_STORE_JOURNAL!=='0',
   io:(process.env.DB_STORE==='split'&&process.env.DB_STORE_IO!=='sync')?'worker':'sync', onFailure:e=>console.error('world save failed: '+e.message+' - every save not yet on disk is answered as failed; the next save rewrites the world')});   /* v1128: the save file work on the store io worker (DB_STORE_IO=sync = on this thread, as v1127) */   /* v1127: the shared world in per-system pieces (DB_STORE_PIECES=0 = the v1037 split-v1 layout, for a rollback) */
 const STORE_SWEEP_MS=Math.max(1000,+process.env.DB_STORE_SWEEP_MS||30000);   // partial saves: a full save at least this often
 function readDB(){ try{ DB=_store.load(); }catch(e){
@@ -2511,7 +2511,7 @@ function witchBenchmarkCapacity(hutLevel){
 function witchState(u,now){
   const level=ledPlayerLevel(ensureLedger(u));
   if(level<WITCH.UNLOCK_LEVEL) return null;
-  if(!u.witch){ u.witch=WITCH.create(witchBenchmarkCapacity(WITCH.UNLOCK_LEVEL),now); u.witch.level=WITCH.UNLOCK_LEVEL; writeDB(); }
+  if(!u.witch){ u.witch=WITCH.create(witchBenchmarkCapacity(WITCH.UNLOCK_LEVEL),now); u.witch.level=WITCH.UNLOCK_LEVEL; writeDB([u.id]); }   /* v1128: this player only (an id-less writeDB() made every first Witch's Hut look a whole-world save) */
   u.witch.level=Math.max(WITCH.UNLOCK_LEVEL,Math.min(level,u.witch.level|0));
   const cap=witchBenchmarkCapacity(u.witch.level);
   WITCH.settle(u.witch,cap,now);
