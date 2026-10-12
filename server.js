@@ -2839,6 +2839,7 @@ function _anonWalk(o,tid,oldName,depth){ if(!o||typeof o!=='object'||depth>14) r
     else if(v&&typeof v==='object') _anonWalk(v,tid,oldName,depth+1); } }
 function deleteAccountData(u){
   if(!u||!u.id) return false; const tid=u.id, oldName=String(u.name||''), now=Date.now();
+  _cityBuiltAt=0;   /* v1127: the map's castle rows are rebuilt on the next view request - a deleted account's castle (name) leaves the map at once, not up to WORLD_CITIES_REFRESH_MS later (the whole-map list that read DB.users live is gone) */
   { const gg=u.guildId&&(DB.guilds||{})[u.guildId];   // v1012 (moved from /api/admin/delete)
     if(gg){ warPoolForget(gg.id); gg.members=(gg.members||[]).filter(x=>x!==tid);
       if(!gg.members.length){ delete DB.guilds[gg.id]; warDropDeletedGuild(gg.id); }
@@ -4686,6 +4687,14 @@ function worldCityRowsRefresh(){ const now=Date.now(); if(_cityBuiltAt&&now-_cit
   for(const id of [..._cityRows.keys()]) if(!seen.has(id)){ const e=_cityRows.get(id); _cityTileMove(id,e.tile,null); _regionVer[e.row.region]=(_regionVer[e.row.region]|0)+1;
     _cityRows.delete(id); _cityGone.set(id,++_cityRev); _cityChanged(id); } }
 function cityTilesParam(v){ const out=new Set(); for(const t of String(v||'').split(',').slice(0,100)) if(/^\d_\d$/.test(t)) out.add(t); return out; }
+/* v1127 ZOOM GATE (Phil 11 Oct 2026: "map shouldnt even render castles or mines until you are able to see the 3rd zoom in"). The
+   client asks for castles only at the close picture level (a view at most a third of the map wide and high = 33.4 map units, plus
+   its 4-unit margin each side): that touches at most 6 x 6 tiles. A request for a wider box - or with no tiles at all (the old
+   whole-map list) - is refused, so a modded client cannot pull the map. */
+const CITY_VIEW_MAX=6;
+function cityViewTooBig(tiles){ if(!tiles.size) return true; let c0=9,c1=0,r0=9,r1=0;
+  for(const t of tiles){ const c=+t[0], r=+t[2]; if(c<c0)c0=c; if(c>c1)c1=c; if(r<r0)r0=r; if(r>r1)r1=r; }
+  return (c1-c0+1)>CITY_VIEW_MAX||(r1-r0+1)>CITY_VIEW_MAX; }
 /* the bot fill of a region is the same for every viewer of the same level outside it (and for one viewer inside it) until a castle
    in that region moves - it was rebuilt by the client's engine for every region on every map poll (35% of the main thread in the
    war profile, 11 Oct 2026) */
@@ -8586,11 +8595,13 @@ async function api(req,res,url){
   }
   if(p==='/api/world/cities'){ if(!me)return send(res,401,{error:'auth'});
     if(rateLimited(req,'wcities:'+me.id,30,60000)) return send(res,429,{error:'Slow down.'});   /* v1002 (World audit #10): each call builds up to 500 rosters */
-    if(url.searchParams.has('since')&&url.searchParams.has('tiles')){   /* v1124 VIEWPORT MAP: only the tiles in the player's view */
+    if(!url.searchParams.has('tiles')) return send(res,400,{error:'Zoom in to see castles.',viewport:'required',maxTiles:CITY_VIEW_MAX});   /* v1127 zoom gate: no whole-map list */
+    { const want=cityTilesParam(url.searchParams.get('tiles')); if(cityViewTooBig(want)) return send(res,400,{error:'Zoom in to see castles.',viewport:'too-large',maxTiles:CITY_VIEW_MAX}); }
+    {   /* v1124 VIEWPORT MAP: only the tiles in the player's view */
       worldCityRowsRefresh();
       const sv=String(url.searchParams.get('since')||''), dot=sv.indexOf('.'), ep=dot>0?sv.slice(0,dot):'', rv=dot>0?(+sv.slice(dot+1)||0):0;
       const reset=!(ep===_cityEpoch&&rv>0&&rv<=_cityRev&&rv>=_cityLogFloor);
-      const want=cityTilesParam(url.searchParams.get('tiles')), have=reset?new Set():cityTilesParam(url.searchParams.get('have'));
+      const want=cityTilesParam(url.searchParams.get('tiles')), have=new Set(reset?[]:[...cityTilesParam(url.searchParams.get('have'))].filter(t=>want.has(t)));   /* v1127: held tiles count only inside the view */
       const out=new Map(), gone=new Set();
       for(const t of want) if(!have.has(t)) for(const id of (_cityTiles.get(t)||[])) if(id!==me.id) out.set(id,_cityRows.get(id).row);
       if(!reset&&have.size){ let i=_cityLog.length; while(i>0&&_cityLog[i-1].rev>rv) i--;
@@ -8603,31 +8614,7 @@ async function api(req,res,url){
       const view=new Set([...want,...have]), bots=[];
       if(worldLocation(me)) for(const regionKey of WORLD_LOCATION.REGION_KEYS) for(const bt of worldBotRoster(me,regionKey)) if(view.has(cityTileOf(bt.x,bt.y))||tgt.has(bt.id)) bots.push(bt);
       for(const id of gone) out.delete(id);
-      return send(res,200,{ rev:_cityEpoch+'.'+_cityRev, reset, tiles:[...want], cities:[...out.values()], gone:[...gone], targets, bots, myGuildId: me.guildId||null }); }
-    if(url.searchParams.has('since')){   /* v1124 DELTA MAP: no defending teams, only the cities changed since the client's rev */
-      worldCityRowsRefresh();
-      const sv=String(url.searchParams.get('since')||''), dot=sv.indexOf('.'), ep=dot>0?sv.slice(0,dot):'', rv=dot>0?(+sv.slice(dot+1)||0):0;
-      const full=!(ep===_cityEpoch&&rv>0&&rv<=_cityRev);
-      const cities=[], gone=[];
-      for(const [id,e] of _cityRows){ if(id===me.id) continue; if(full||e.rev>rv) cities.push(e.row); if(cities.length>=500&&full) break; }
-      if(!full) for(const [id,r] of _cityGone) if(r>rv) gone.push(id);
-      const bots=[];
-      if(worldLocation(me)) for(const regionKey of WORLD_LOCATION.REGION_KEYS) bots.push(...worldBotRoster(me,regionKey));
-      return send(res,200,{ rev:_cityEpoch+'.'+_cityRev, full, cities, gone, bots, myGuildId: me.guildId||null }); }
-    const placed=Object.values(DB.users).filter(u=>u.id!==me.id && WORLD_LOCATION.valid(u.worldLocation));
-    const cities=placed
-      .slice(0,500)
-      .map(u=>({ id:u.id, name:u.name, rank:u.rank||null, level:ledPlayerLevel(ensureLedger(u)),
-                 academy:(u.led&&u.led.acad&&u.led.acad.lv)?(u.led.acad.lv.academy|0):undefined,   // v1099: the owner's Academy level picks their castle art
-                 power:serverTeamPower((Array.isArray(u.wall)&&u.wall.length?u.wall:(u.team||[])), u)|0,   // v249: SERVER-computed power, never client-uploaded
-                 region:u.worldLocation.region, x:u.worldLocation.x, y:u.worldLocation.y, guildId:u.guildId||null,
-                 team:hydrateRoster(u,(Array.isArray(u.wall)&&u.wall.length?u.wall:(u.team||[]))) }));
-    // NPCs use the shipped client's existing team/power/placement formula, but
-    // every input comes from server-owned progression and world positions.
-    const bots=[];
-    if(worldLocation(me)) for(const regionKey of WORLD_LOCATION.REGION_KEYS)
-      bots.push(...worldBotRoster(me,regionKey));
-    return send(res,200,{ cities, bots, myGuildId: me.guildId||null }); }
+      return send(res,200,{ rev:_cityEpoch+'.'+_cityRev, reset, tiles:[...want], cities:[...out.values()], gone:[...gone], targets, bots, myGuildId: me.guildId||null }); } }   /* v1127: the whole-map list (no since) and the whole-map delta (since, no tiles) are gone - see the zoom gate */
 
   if(p==='/api/world/city' && req.method==='GET'){ if(!me)return send(res,401,{error:'auth'});   /* v1124: one castle's defending team, fetched when the player taps it */
     if(rateLimited(req,'wcity:'+me.id,Math.round(120*RL_MUL),60000)) return send(res,429,{error:'Slow down.'});
