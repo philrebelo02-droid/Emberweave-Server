@@ -3222,8 +3222,8 @@ const BATTLE_ANIM = {
     attack:{u:'/assets/anim/pellucid/pellucid_attack_1115.webp?v=23',n:48,fw:528,fh:511,cols:6,rows:8,figH:376,feet:460,cx:296,fps:24,flip:true,top:84,relFrac:13/48},   /* v1115 Pellucid ATTACK + CRIT (Phil 10 Oct: "both are a pass give them to claude"; ChatGPT handoff PELLUCID-ATTACK-CRIT-GREEN1-10OCT2026): attack = haymaker take attack-green1 (Hailuo 565450507268001792), crit = big front kick crit-green1 (565450775925809156), silent sources, sha256 = approved-two-manifest.json. Cut with cut_pellucid.py = Grosk's v1112 cs10 settings (PAD 60, 48 cells @24, lossless, ALPHA_SOFT/FLOOR 4, key off each clip's frame-0 border: (4,243,5) / (3,242,4)) WITH the green DESPILL_ALL pass (green screen; Pellucid owns no green - 0.003% of his shipped sheets) plus EDGE_REF (despill alone left an olive clamped rim, keycheck 1.25%/1.38%; now 0.21%/0.24%, gate OK). cs10 action windows: attack source frames 6-142, crit 2-126, CELL_CAP'd to 4096 (x0.8435 / x0.8889). figH/feet/cx measured on frame 0 (his standing pose, soles) so both stand at the size and ground line of his other states; no ax (the slicer's ax tracked the fist / kicked leg, not the feet - his planted foot does not move). flip:true as every Pellucid state (he strikes to sheet-left). relFrac = contact cell / 48: attack 13 (source frame 44, the fist at full forward reach after the haymaker arc - max reach on source 43), crit 10 (source frame 28, sole at full extension; kick lands 27-28). Damage numbers unchanged; with a crit clip his crit is rolled at the wind-up (v532), same chance. The old attack sheet stays on disk. */
     crit:{u:'/assets/anim/pellucid/pellucid_crit_1115.webp?v=23',n:48,fw:528,fh:512,cols:6,rows:8,figH:395,feet:458,cx:326,fps:24,flip:true,top:63,relFrac:10/48},
     hit:{u:'/assets/anim/pellucid/pellucid_hit.webp?v=21',n:48,fw:424,fh:420,cols:6,rows:8,figH:400,feet:414,cx:246,fps:24,flip:true,top:14},
-    green:{u:'/assets/anim/pellucid/pellucid_green_redo1.webp?v=24',n:48,fw:471,fh:512,cols:6,rows:8,figH:348,feet:447,cx:258,fps:12,flip:true,top:99},   /* Pellucid redo1 GREEN / BLUE / ULT (Phil 11 Oct: "send to claude"; ChatGPT handoff PELLUCID-GREEN-BLUE-ULT-REDO1-11OCT2026, approved-three-manifest.json, every sha256 checked): green-redo1 Meteor Knuckle (Hailuo 565829979771117569, one overhead fist ground slam), blue-redo1 Infernal Clinch (565837525030453248, two-hand reach, clamp, squeeze), ult-redo1 Worldbreaker Fists (565839305432789001, exactly three two-fist slams). Silent sources, cut with cut_pellucid.py = the v1115 settings (cs10 PAD 60, lossless, ALPHA_SOFT/FLOOR 4, DESPILL_ALL + EDGE_REF, key off frame-0 border; watermark mask 0 px - nothing scrubbed; keycheck gate OK on all three). 48 cells at 12 fps (green/blue 4 s; the ult plays n:46 = 3.83 s; 5 render frames a cell at 60): the cells are picked from the source by a measured frame map so the art lands on the game's own moments - the clip starts with the cast and plays in real time, the fight clock runs at 0.6724 of it. GREEN: source 4,6..98 (natural pace) - the fist meets the ground on source 38 = cell 17, on screen 1.417-1.500 s; the Meteor Knuckle effect lands at cast 0.5 + fall 0.45 fight s (on the tick 0.957) = 1.423 s; low hold to cell 32, recovery and stance by cell 47. BLUE: source 9..33 over cells 0-9 (x1.33 reach), then natural pace to 109 - the hands close on source 33 = cell 9, on screen 0.750-0.833 s; Infernal Clinch fires at the end of its 0.5 fight-s cast (on the tick) inside that cell; squeeze hold cells 13-25, release 26-37. ULT: slam contacts source 34/67/98 = cells 14/26/39, on screen 1.167-1.250 / 2.167-2.250 / 3.250-3.333 s; the three gameplay slams (cast 0.8 + 0/0.7/1.4 fight s, measured on the tick at 0.820/1.503/2.214 fight s) land at 1.219/2.235/3.293 s - each inside its contact cell; cells 0-14 at natural pace from source 6, 15-39 at x1.37/x1.19 between slams, 40-45 a shortened low hold + the recovery 118-137 (source 105,113,119,124,130,137). n:46 so the clip is over before his cast lock ends (worldbreaker holds _castT to 2.6 fight s = 3.87 s): at 48 cells the swing that starts there pulled the one-shot fit back to a mid-slam cell for the last 0.15 s (seen in the rig). Cells 46-47 are unused padding. The ult was keyed with EDGE_REF_K 1.15: at the default 1.0 its despill fingerprint read 0.606% (keycheck gate 0.6%, a faint olive rim at 5x); 1.15 reads 0.540%, no visible change at 5x (1.5 put a pink fringe on it). figH/feet/cx measured on frame 0 (his standing pose, 445 px native on all three, the same as attack/crit) so all three stand at his size and ground line; figH = feet - top (the slicer's int floor left it 1 px short). No ax (the slicer's ax tracked the fists at the ground, not his planted feet). flip:true as every Pellucid state. `root:2` on the ult: ultClipDur roots him for the clip's n/fps fight seconds; the old 48 @24 clip gave exactly 2.0, and this keeps it at 2.0 - no game logic moves (damage, slam timing, stun, radius, root all unchanged; tests/test_pellucid_redo1.js). The old v=21 sheets stay on disk. */
-    blue:{u:'/assets/anim/pellucid/pellucid_blue_redo1.webp?v=24',n:48,fw:539,fh:512,cols:6,rows:8,figH:403,feet:457,cx:326,fps:12,flip:true,top:54},
+    green:{u:'/assets/anim/pellucid/pellucid_green_redo1.webp?v=24',n:48,fw:471,fh:512,cols:6,rows:8,figH:348,feet:447,cx:258,fps:12,flip:true,top:99,contact:17},   /* Pellucid redo1 GREEN / BLUE / ULT (Phil 11 Oct: "send to claude"; ChatGPT handoff PELLUCID-GREEN-BLUE-ULT-REDO1-11OCT2026, approved-three-manifest.json, every sha256 checked): green-redo1 Meteor Knuckle (Hailuo 565829979771117569, one overhead fist ground slam), blue-redo1 Infernal Clinch (565837525030453248, two-hand reach, clamp, squeeze), ult-redo1 Worldbreaker Fists (565839305432789001, exactly three two-fist slams). Silent sources, cut with cut_pellucid.py = the v1115 settings (cs10 PAD 60, lossless, ALPHA_SOFT/FLOOR 4, DESPILL_ALL + EDGE_REF, key off frame-0 border; watermark mask 0 px - nothing scrubbed; keycheck gate OK on all three). 48 cells at 12 fps (green/blue 4 s; the ult plays n:46 = 3.83 s; 5 render frames a cell at 60): the cells are picked from the source by a measured frame map so the art lands on the game's own moments - the clip starts with the cast and plays in real time, the fight clock runs at 0.6724 of it. GREEN: source 4,6..98 (natural pace) - the fist meets the ground on source 38 = cell 17, on screen 1.417-1.500 s; the Meteor Knuckle effect lands at cast 0.5 + fall 0.45 fight s (on the tick 0.957) = 1.423 s; low hold to cell 32, recovery and stance by cell 47. BLUE: source 9..33 over cells 0-9 (x1.33 reach), then natural pace to 109 - the hands close on source 33 = cell 9, on screen 0.750-0.833 s; Infernal Clinch fires at the end of its 0.5 fight-s cast (on the tick) inside that cell; squeeze hold cells 13-25, release 26-37. ULT: slam contacts source 34/67/98 = cells 14/26/39, on screen 1.167-1.250 / 2.167-2.250 / 3.250-3.333 s; the three gameplay slams (cast 0.8 + 0/0.7/1.4 fight s, measured on the tick at 0.820/1.503/2.214 fight s) land at 1.219/2.235/3.293 s - each inside its contact cell; cells 0-14 at natural pace from source 6, 15-39 at x1.37/x1.19 between slams, 40-45 a shortened low hold + the recovery 118-137 (source 105,113,119,124,130,137). n:46 so the clip is over before his cast lock ends (worldbreaker holds _castT to 2.6 fight s = 3.87 s): at 48 cells the swing that starts there pulled the one-shot fit back to a mid-slam cell for the last 0.15 s (seen in the rig). Cells 46-47 are unused padding. The ult was keyed with EDGE_REF_K 1.15: at the default 1.0 its despill fingerprint read 0.606% (keycheck gate 0.6%, a faint olive rim at 5x); 1.15 reads 0.540%, no visible change at 5x (1.5 put a pink fringe on it). figH/feet/cx measured on frame 0 (his standing pose, 445 px native on all three, the same as attack/crit) so all three stand at his size and ground line; figH = feet - top (the slicer's int floor left it 1 px short). No ax (the slicer's ax tracked the fists at the ground, not his planted feet). flip:true as every Pellucid state. `root:2` on the ult: ultClipDur roots him for the clip's n/fps fight seconds; the old 48 @24 clip gave exactly 2.0, and this keeps it at 2.0 - no game logic moves (damage, slam timing, stun, radius, root all unchanged; tests/test_pellucid_redo1.js). The old v=21 sheets stay on disk. */
+    blue:{u:'/assets/anim/pellucid/pellucid_blue_redo1.webp?v=24',n:48,fw:539,fh:512,cols:6,rows:8,figH:403,feet:457,cx:326,fps:12,flip:true,top:54,contact:9},
     ult:{u:'/assets/anim/pellucid/pellucid_ult_redo1.webp?v=24',n:46,fw:407,fh:512,cols:6,rows:8,figH:321,feet:461,cx:238,fps:12,flip:true,top:140,root:2},
     passive:{u:'/assets/anim/pellucid/pellucid_passive.webp?v=21',n:48,fw:307,fh:412,cols:6,rows:8,figH:400,feet:406,cx:148,fps:24,flip:true,top:6}
   },
@@ -6284,6 +6284,16 @@ let resultWon=false,resultStars=0,resultSquadKeys=[];   // Victory-screen state 
 function ppPer(A){ return (A.pingpong&&A.n>1)?(A.rbk?(A.n+Math.ceil((A.n-1)/A.rbk)):(2*A.n-2)):A.n; }
 function ppFrame(A,p){ if(!(A.pingpong&&A.n>1)) return p; if(p<A.n) return p; return A.rbk?Math.max(0,(A.n-1)-Math.round((p-A.n+1)*A.rbk)):(ppPer(A)-p); }
 function clipDur(A){ if(!A) return 0; const st=ppPer(A); return st/(A.fps||16); }
+/* v1127 SKILL HOLD - the CONTACT CELL of a clip: the sheet cell (in play order) where the hit visibly lands. Read from the clip's own
+   measured data, first match wins: `contact` (cell; an array = several contacts, the first counts), `release` (cell the spell leaves
+   the hands), `apex` (cell), `relFrac` (fraction of the clip - the same number fuseStrike lands a swing's blow on). With none of
+   those, CLIP_CONTACT_FRAC of the clip: halfway, the engine's own default for where a blow connects (fuseStrike). Render only. */
+const CLIP_CONTACT_FRAC=0.5;
+function clipContactCell(A){ if(!A||!(A.n>0)) return 0; const last=A.n-1;
+  const c0=Array.isArray(A.contact)?A.contact[0]:A.contact;
+  const c=(c0!=null)?c0:(A.release!=null)?A.release:(A.apex!=null)?A.apex
+    :(A.relFrac!=null)?Math.floor(A.relFrac*A.n+1e-9):Math.round(CLIP_CONTACT_FRAC*last);
+  return Math.max(0,Math.min(last,c|0)); }
 /* v524 - Phil, 8 Sep: "any hero with a passive like lumi's that has a timer like every 5 second
    or every 4 seconds ... this is the cooldown of their ability, this is considered a 'skill' so
    its put on a queue with her green and blue, it has the same priority as a skill if it has an
@@ -9790,7 +9800,7 @@ function sndUnlock(){ try{
   }catch(e){} }
 /* v1124: fetch + decode a hero's ult lines when the hero is placed on a battlefield (makeUnit), so the first ult has its line ready
    (a line not decoded within 0.4 s is skipped). Nothing before audio is unlocked, with Voices off, or in a headless replay. */
-function sndPrimeHero(key){ try{ if(!key||!SND.ctx||window._p2guard||!SND.cfg.voice.on) return;
+function sndPrimeHero(key){ try{ if(!HERO_ULT_VOICES||!key||!SND.ctx||window._p2guard||!SND.cfg.voice.on) return;   /* v1127: ult lines off - nothing to prime */
   for(let i=1;i<=3;i++) (AUDIO_MAP['hero.'+key+'.ult.'+i]||[]).forEach(l=>sndLoad(l.f)); }catch(e){} }
 try{ if(typeof document!=='undefined'&&document.addEventListener) ['pointerdown','touchend','keydown'].forEach(ev=>document.addEventListener(ev,sndUnlock,{passive:true})); }catch(e){}
 function sndPlay(key,gapMs){ if(!sndCan()) return false; const ch=sndCh(key); if(!SND.cfg[ch].on) return false; const L=AUDIO_MAP[key]; if(!L||!L.length||!SND.ctx||SND.ctx.state!=='running') return false;
@@ -9823,10 +9833,14 @@ const LORE_AUDIO = {};
    (0 = none). A replaced file gets a new number here (SHIPPING RULE 24 - a shipped ?v= never gets new bytes). Only Phil-approved takes
    go in; the source of each file is in blueprint 27. */
 const HERO_VOICES = {
-  vael:{ ult:[1,1,1], lore:1 },   // v1124: ults "Here! I hold here!" / "Cut me! It only makes me stronger!" / "Last Stand! Come and break me!" (take 1 of each); lore "After Ashford" + ending, pacing B
+  vael:{ ult:[], lore:1 },   // v1127 (Phil 11 Oct: "i dont like the ult voices anymore stop them"): no ult lines; assets/audio/voice/vael_ult_1..3.m4a stay on disk, unreferenced. v1124 was: ults "Here! I hold here!" / "Cut me! It only makes me stronger!" / "Last Stand! Come and break me!" (take 1 of each); lore "After Ashford" + ending, pacing B
 };
+/* v1127 (Phil 11 Oct 2026: "i dont like the ult voices anymore stop them"): hero ult voice lines are OFF for every hero - nothing is
+   mapped, primed, fetched or played when a hero ults. The lore narration (LORE_AUDIO, the lore play button) is unchanged. sndUlt stays
+   as the dormant mechanism; turning ult lines back on is this switch plus the ult rows above. */
+const HERO_ULT_VOICES = false;
 for(const k in HERO_VOICES){ const h=HERO_VOICES[k];
-  (h.ult||[]).forEach((v,i)=>{ AUDIO_MAP['hero.'+k+'.ult.'+(i+1)]=[{f:'voice/'+k+'_ult_'+(i+1)+'.m4a?v='+v, vol:1}]; });
+  if(HERO_ULT_VOICES) (h.ult||[]).forEach((v,i)=>{ AUDIO_MAP['hero.'+k+'.ult.'+(i+1)]=[{f:'voice/'+k+'_ult_'+(i+1)+'.m4a?v='+v, vol:1}]; });
   if(h.lore) LORE_AUDIO[k]='voice/lore/'+k+'_lore.m4a?v='+h.lore; }
 const _lore = { a:null, key:null };
 function loreStop(){ try{ if(_lore.a){ _lore.a.pause(); _lore.a.removeAttribute('src'); _lore.a.load(); } }catch(e){} _lore.a=null; _lore.key=null; }
@@ -11623,7 +11637,7 @@ function castAbility(u){ const ab=u.abilityOverride||u.t.ability;
   u._castSM=skillMul((u.skillLv&&u.skillLv[0])||1); u._castLv=((u.skillLv&&u.skillLv[0])|0)||1;   /* v787 */ const _ct=castTimeFor(u,'ult'); u._castNow=_ct;
   /* v797 - the ult's clip starts with its cast clock; v796 - its effect releases at the end. Its
      energy is taken below, at the press, so an interrupt costs the ultimate. */
-  u._castSlot='ult'; startAbilityClip(u,ab); u._clipStarted=true; u._castSlot=null; sndUlt(u);   /* v1048 sound: this fight's ult line */
+  u._castSlot='ult'; startAbilityClip(u,ab); u._clipStarted=true; u._castSlot=null; if(HERO_ULT_VOICES) sndUlt(u);   /* v1048 sound: this fight's ult line - v1127: off (Phil: "stop them") */
   u._pend={ t:_ct, sm:(u._castSM||1), lv:(u._castLv||1), ax:u._aimWX, ay:u._aimWY,
     fire:()=>{ u._castSlot='ult'; doEffect(u, ab, Object.assign({}, ULT_DEF[ab]||{}, (typeof HERO_ULT_ART!=='undefined'&&HERO_ULT_ART[u.key])||{})); } };   /* v332: hero-specific ult plate */
   /* v1123 Heaven-Splitting Slam: the Ruyi clip runs 1.5 s before its slam - longer than the 1 s cast - so its art starts at the PRESS over
@@ -14251,7 +14265,24 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
         const _asm=u._atkSpdMul||1;   // v1024: the swing's attack-speed factor (set in doAtk) - every source, not only timed haste
         const _ai=(u._atkI0||u.atkInterval)/_asm;
         const _ah=Math.min(_ai*0.95, _atkA?((_atkA.hold||clipDur(_atkA))/_asm):0.42);   // v545: attack speed speeds the swing clip (and the crit clip - same path) itself, not only the cap
-        if(u.attackAnim>0 && (u._abilHold||0)>0 && (u._abilPri|0)===4 && (u._abilAnim==='green'||u._abilAnim==='blue') && !((u._castT||0)>0)){ u._abilHold=0; u._abilAnim=null; u._abilPri=0; if((u._lockPri|0)===4){ u._lockPri=1; u._animLockT=0; } }   /* v1031 (Phil: Vael "hits people without attacking"): a new swing ends the follow-through of a skill whose effect has fired - the swing played hidden under the 2 s skill clip and its blow landed with no swing on screen. Never an ult. Render-only. */
+        /* v1031 (Phil: Vael "hits people without attacking"): a new swing ends the follow-through of a skill whose effect has fired - the swing played
+           hidden under the 2 s skill clip and its blow landed with no swing on screen. Never an ult. Render-only.
+           v1127 SKILL HOLD (Phil 11 Oct: "yes fix it for all heroes" - Pellucid's swing cut Meteor Knuckle before the fist hit the ground in 3 of 7
+           casts): the swing may end the skill clip only once that clip has SHOWN its contact cell (clipContactCell) - the cell has been drawn and
+           the clip has moved past it. Until then the swing WAITS (_swWait counts how long, render time) and the skill keeps the screen; the
+           moment the contact cell has played, the skill lets go and the swing starts CAUGHT UP (_swCatch, see the clip-start block below).
+           The engine is untouched: the swing was already rolled, timed and fused in think(); its blow lands on the same tick either way. */
+        { const _skOn=(u._abilHold||0)>0 && (u._abilPri|0)===4 && (u._abilAnim==='green'||u._abilAnim==='blue');
+          const _skPast=()=>!(u._animSt===u._abilAnim && u.anim[u._abilAnim]) || (u._skSeen!=null && u._skSeen>clipContactCell(u.anim[u._abilAnim]));
+          const _newSw=u.attackAnim>0 && u.attackAnim>(u._swAA||0);   /* a swing starts: attackAnim jumps back up */
+          const _letGo=()=>{ u._abilHold=0; u._abilAnim=null; u._abilPri=0; if((u._lockPri|0)===4){ u._lockPri=1; u._animLockT=0; } };
+          const _catch=()=>{ u._swCatch=u._swWait; u._swWait=null; u._atkHold=Math.max(u._atkHold||0,0.001); };
+          if(u._swWait!=null){ u._swWait+=dt; if(_newSw) u._swWait=0;
+            if((u.stunned>0)||((u.fearT||0)>0)||((u._airT||0)>0)||((u.pullT||0)>0)) u._swWait=null;   /* hard CC cut both clips (think): the swing is gone too */
+            else if(!_skOn) _catch();   /* the skill ended on its own (clip over, silence, an ult): the swing shows from where it is */
+            else if(!((u._castT||0)>0) && _skPast()){ _letGo(); _catch(); } }
+          else if(u.attackAnim>0 && _skOn && !((u._castT||0)>0)){ if(_skPast()) _letGo(); else u._swWait=0; }
+          u._swAA=u.attackAnim; }
         if(u.attackAnim>0)u._atkHold=_ah; else if(u._atkHold>0)u._atkHold-=dt;
         /* 29 Aug — the crit flinch was a flat 0.28s regardless of how long the hit clip was. Every
            hit sheet on the roster runs 0.6-1.5s, so all anyone ever saw was its first few frames —
@@ -14398,7 +14429,18 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
         if(u._animSt!==st){ const _soft=(u._animSt==='walk'&&st==='idle')||(u._animSt==='idle'&&st==='walk');
           u._animSt=st; if(!_soft) u._animAcc=0;
           /* v406 — remember how long THIS one-shot was given, at the moment it starts. See _osFrac. */
-          u._osMax=Math.max(u._abilHold||0,u._atkHold||0,u._hitHold||0); }
+          u._osMax=Math.max(u._abilHold||0,u._atkHold||0,u._hitHold||0);
+          u._skSeen=-1;   /* v1127: the furthest cell of this clip drawn so far (skill hold) */
+          /* v1127 SKILL HOLD - CATCH-UP. A swing that waited `e` s behind a skill's contact cell starts where it would be had it started on
+             time, so its blow cell lands with the engine's blow (which never waited). If the wait ran past the blow, it starts two cells
+             before its own contact cell instead - the swing is SEEN to connect, never skipped and never a hit with no swing. It plays at
+             natural speed (no fit: _osMax 0) and its hold covers the rest of the clip, but never runs into the next swing. Render only. */
+          if(st===_atkSt && u._swCatch!=null && A.n>1){ const _k=(A.fps||10)*((u._dblSwing)?2:1)*(u._atkSpdMul||1);
+            const _s=Math.max(0,Math.min(u._swCatch*_k, clipContactCell(A)-2));
+            u._animAcc=_s; u._osMax=0;
+            const _nx=Math.max(0,(u.atkCd||0))/(SIM_STEP*SIM_HZ*BATTLE_PACE)*0.95;
+            u._atkHold=Math.max(u._atkHold||0, Math.min(_nx, (ppPer(A)-_s)/_k)); } }
+        u._swCatch=null;
         /* v410 — a one-shot is FITTED to its window only when the window is SHORTER than the clip,
            and even then never played faster than 1.6x natural speed. v406 fitted every one-shot
            unconditionally: that fixed the truncated swings on the new heroes (Phil: "they don't
@@ -14469,6 +14511,7 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
         else if(A.pingpong && A.n>1){ const per=ppPer(A); let p=Math.floor(u._animAcc)%per; fr=ppFrame(A,p); }
         else if(A.loop && st==='walk'){ const _L=A.loop; fr=_L[0]+Math.floor(u._animAcc)%(_L[1]-_L[0]); }   /* v1047 (Phil: "when someone is walking can you someone stop the part when they go back to start frame? they look like they keep stopping mid walk"): play one clean stride loop [a,b) measured per sheet - no wrap jump back to the start pose, no near-still frames, no 1,0 rewind tail */
         else fr=Math.floor(u._animAcc)%A.n;
+        if(st===u._abilAnim) u._skSeen=Math.max((u._skSeen==null)?-1:u._skSeen, fr);   /* v1127 skill hold: the furthest cell of the running skill clip drawn */
         if(A.reverse) fr=A.n-1-fr;   // v349 (Phil: Corsair/Dawnbringer 'walk backwards'): the Hailuo clip is a backpedal — play it reversed
         // desired facing: during the wave run-in/out they actually travel, so face movement direction; in COMBAT always
         // face the target — never turn our back when shoved into or Vulmar-dragged backward — with a small deadzone so a
@@ -27589,7 +27632,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791772317377';
+const BUILD_ID = '1791776483713';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

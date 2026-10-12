@@ -371,6 +371,8 @@ note "test_spell_fx_1125.js (v1125: Grok spell FX s07 Astra Event Horizon flat o
 node tests/test_spell_fx_1125.js || FAILED=1
 note "test_hollow_anim_ten.js (v1126: Hollow's ten approved animations - sheets, grids, measured anchors; the art cut to land on the v1123 engine moments: blow drawn on attack cell 28 / crit cell 25 (rig-measured), Fan of Knives cell 8, Lacerate cell 17, drop touchdown cell 16, Vanishing Point phases, passive on the miss he causes; control: the same fights on v1123 land on the same ticks, a broken grid fails)"
 node tests/test_hollow_anim_ten.js || FAILED=1
+note "test_skill_anim_hold.js (v1127 skill hold: a swing replaces a green/blue clip only after the clip has drawn past its contact cell (clipContactCell: contact/release/apex/relFrac, else halfway), then starts caught up; 5 whole fights through the real engine + syncMesh tick-identical new/old/no renderer incl. RNG draws; controls: v1126 renderer cuts early, a hold leaking into atkCd moves the trace)"
+node tests/test_skill_anim_hold.js || FAILED=1
 note "test_spell_fx_1123.js (v1123: Grok spell FX - Sorrel Marked Deal cards + sparks, Carn Crimson Reap crescent, Tharl Scale Ram quake, Kon-Wu Ruyi slam (art starts at the press, slam on the 1 s release), Rhukk Dig In roar + shell; parity with v1121 on every tick; controls: v1121 has none of the art, the art code touches no fight state)"
 node tests/test_spell_fx_1123.js || FAILED=1
 note "test_auto_ult_healer_1103.js (v1103: healer ults that also hit enemies fire when full; heal-only ones still wait)"
