@@ -3820,20 +3820,45 @@ function durableCommit(user,key,fn,opts={}){
   const committed=finish(draft,receipts,extra,[],diagnostics,null);
   return committed.ok?reply:committed;
 }
+/* v1127 PER-ATTACK ACCOUNT COPY (Server 1 load test 11 Oct 2026). A world attack planned on a deep copy of the attacker's, the
+   defender's and any defending ally's WHOLE account (JSON round trip - a real account is 20-100 KB: stored save, glyph boards,
+   ledger history, war mail, marches). A staged account is a copy-on-first-touch view instead: each top-level field, and each field
+   of a plain-object field (led, witch, glyphs, ...), is copied (the same JSON round trip) the first time the fight reads or writes
+   it - the squad, its stats, gear, glyph and buff data and whatever the settlement records. _unstage() gives the committed account:
+   the touched fields' copies, the untouched fields' originals (never read, so never changed). The fight sees exactly the values the
+   whole copy held, so the result is the same to the tick (tests/test_attack_copy.js). */
+const _STAGED=Symbol('staged'), ATTACK_COPY_STATS={accounts:0,fieldsCopied:0,bytesCopied:0};
+function _stageValue(v,depth){
+  if(depth>0&&v&&typeof v==='object'&&!Array.isArray(v)&&typeof v.toJSON!=='function'){ const pr=Object.getPrototypeOf(v); if(pr===Object.prototype||pr===null) return _stageAccount(v,depth-1); }
+  const s=JSON.stringify(v); ATTACK_COPY_STATS.fieldsCopied++; ATTACK_COPY_STATS.bytesCopied+=s?s.length:0; return s===undefined?undefined:JSON.parse(s); }
+function _stageAccount(live,depth){
+  const out={}, copied=new Map(), touched=new Set();
+  Object.defineProperty(out,_STAGED,{value:{live,copied,touched},enumerable:false});
+  for(const k of Object.keys(live)){ const v=live[k]; if(v===undefined||typeof v==='function'||typeof v==='symbol') continue;   // a JSON copy leaves these out too
+    Object.defineProperty(out,k,{enumerable:true,configurable:true,
+      get(){ if(!touched.has(k)){ touched.add(k); copied.set(k,_stageValue(v,depth)); } return copied.get(k); },
+      set(nv){ touched.add(k); copied.set(k,nv); }}); }
+  return out; }
+function _unstage(o){ const S=o&&typeof o==='object'?o[_STAGED]:null; if(!S) return o;
+  const res={};
+  for(const k of Object.keys(o)){ const d=Object.getOwnPropertyDescriptor(o,k);
+    if(d.get) res[k]=S.touched.has(k)?_unstage(S.copied.get(k)):S.live[k];   // untouched: the original, unread and unchanged
+    else res[k]=_unstage(d.value); }
+  return res; }
 function worldSettlementDurable(user,key,defId,fn,extraIds=[]){   /* v1097: extraIds = guild allies whose stationed Defend squads may fight (and be wounded) here */
   const now=Date.now(),prior=DB.idem?.[key];
   if(prior&&now-prior.t<=3600000&&prior.resp?.ok===true)return prior.resp;
   if(PG_BOOT_PENDING)return {ok:false,storageFailed:true,error:'World storage restore pending.'};
   if(_worldSettlementPlanning)throw Error('Nested world settlement planning');
-  const actor=JSON.parse(JSON.stringify(user)),related=[];
+  const actor=_stageAccount(user,1),related=[]; ATTACK_COPY_STATS.accounts++;   /* v1127: copy on first touch (was JSON.parse(JSON.stringify(user))) */
   const staged={...DB,users:{...DB.users,[user.id]:actor}}, lazy={};
   /* v1037: the four shared stores are copied the first time the battle reads or writes them (was: deep-copied on every attack,
      ~20 ms on Server 2 under the war load). One that is never touched is not part of the commit - it is unchanged. */
   for(const f of ['watch','feedback','reports','meta']) Object.defineProperty(staged,f,{enumerable:true,configurable:true,
     get(){ if(!Object.prototype.hasOwnProperty.call(lazy,f)) lazy[f]=JSON.parse(JSON.stringify(DB[f]||(f==='feedback'||f==='reports'?[]:{}))); return lazy[f]; },
     set(v){ lazy[f]=v; }});
-  if(DB.users[defId]&&defId!==user.id){const defender=JSON.parse(JSON.stringify(DB.users[defId]));staged.users[defId]=defender;related.push(defender);}
-  for(const xid of extraIds||[]) if(DB.users[xid]&&xid!==user.id&&xid!==defId&&!related.some(r=>r.id===xid)){const ally=JSON.parse(JSON.stringify(DB.users[xid]));staged.users[xid]=ally;related.push(ally);}
+  if(DB.users[defId]&&defId!==user.id){const defender=_stageAccount(DB.users[defId],1);ATTACK_COPY_STATS.accounts++;staged.users[defId]=defender;related.push(defender);}   /* v1127 */
+  for(const xid of extraIds||[]) if(DB.users[xid]&&xid!==user.id&&xid!==defId&&!related.some(r=>r.id===xid)){const ally=_stageAccount(DB.users[xid],1);ATTACK_COPY_STATS.accounts++;staged.users[xid]=ally;related.push(ally);}
   // A fallback roll secret must be durable BEFORE a roll, even when the settlement save later fails.
   if(!process.env.SERVER_SECRET&&!DB.meta?.rollSecret){
     const meta={...(DB.meta||{}),rollSecret:crypto.randomBytes(32).toString('hex')};
@@ -3851,7 +3876,7 @@ function worldSettlementDurable(user,key,defId,fn,extraIds=[]){   /* v1097: extr
   if(!reply?.ok)return reply;
   const receipts=Object.assign(Object.create(DB.idem||{}),{[key]:{t:now,resp:reply}});   // v1037: a receipt overlay - finish() writes the one key
   const extra={...lazy};   // v1037: only the stores the battle touched
-  const out=durableUserCommit(user,actor,receipts,'world-city-settlement',related,extra);
+  const out=durableUserCommit(user,_unstage(actor),receipts,'world-city-settlement',related.map(_unstage),extra);   /* v1127: the committed accounts are plain objects */
   if(out.ok)for(const message of diagnostics)console.log(message);
   return out.ok?reply:out;
 }
@@ -5030,7 +5055,7 @@ async function api(req,res,url){
       banned: DB.users[r.userId] ? banInfo(DB.users[r.userId]) : null })) }); }
 
   if(p==='/api/dev/save-stats'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});   // v1036: group-save counters
-    return send(res,200,Object.assign({},GROUP_SAVE_STATS,{store:Object.assign({split:_store.split,layout:_store.layout},_store.stats)},{battles:Object.assign({},SIM_STATS,{pool:_SIM_POOL?_SIM_POOL.stats:null,memo:_SIM_MEMO.size,inFlight:_SIM_FLIGHT.size,queued:_SIM_POOL?_SIM_POOL.queued:0,verify:CAMP_VERIFY_STATS})},{dbBytes:(()=>{ try{ return fs.statSync(DB_FILE).size; }catch(e){ return 0; } })()})); }
+    return send(res,200,Object.assign({},GROUP_SAVE_STATS,{store:Object.assign({split:_store.split,layout:_store.layout},_store.stats)},{attackCopy:ATTACK_COPY_STATS},{battles:Object.assign({},SIM_STATS,{pool:_SIM_POOL?_SIM_POOL.stats:null,memo:_SIM_MEMO.size,inFlight:_SIM_FLIGHT.size,queued:_SIM_POOL?_SIM_POOL.queued:0,verify:CAMP_VERIFY_STATS})},{dbBytes:(()=>{ try{ return fs.statSync(DB_FILE).size; }catch(e){ return 0; } })()})); }
   if(p==='/api/dev/gem-audit'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
     const id=String(url.searchParams.get('id')||''); const u=DB.users[id];
     if(!u) return send(res,404,{error:'no such account'});
