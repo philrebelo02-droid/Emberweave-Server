@@ -115,7 +115,7 @@ function pgSave(){ if(PG_BOOT_PENDING) return;   // v327: never UPSERT the pre-r
     .finally(()=>{ _pgWriting=false; if(_pgDirty){ _pgDirty=false; pgSave(); } }); }
 /* v1037 PER-PLAYER STORAGE (server/world-store.js). DB_STORE=split: the world file is a manifest + 512 player shard files and a
    save writes only the shards whose players changed; without it the one-file world is read and written exactly as before. */
-const _store=require('./server/world-store.js').create(DB_FILE,{split:process.env.DB_STORE==='split',verify:process.env.DB_STORE_VERIFY==='1'});
+const _store=require('./server/world-store.js').create(DB_FILE,{split:process.env.DB_STORE==='split',verify:process.env.DB_STORE_VERIFY==='1',pieces:process.env.DB_STORE_PIECES!=='0'});   /* v1127: the shared world in per-system pieces (DB_STORE_PIECES=0 = the v1037 split-v1 layout, for a rollback) */
 const _safety=require('./server/world-safety.js');   // v1183: world-load guard, durable writes, pinned backup, push guard
 const STORE_SWEEP_MS=Math.max(1000,+process.env.DB_STORE_SWEEP_MS||30000);   // partial saves: a full save at least this often
 /* v1183 WORLD-LOAD GUARD (16 Oct 2026). A world that does not load used to become an EMPTY world: a power cut left a NUL manifest,
@@ -202,12 +202,12 @@ function saveDB(snapshot,suffix='.tmp'){
   // The sole local whole-snapshot writer. Callers own boot checks/error policy/PG.
   if(typeof suffix!=='string'||!/^\.[a-z0-9.-]+\.tmp$/.test(suffix)&&suffix!=='.tmp')throw Error('Invalid DB temporary suffix');   // '.group.tmp' (v1036) matches
   if(typeof _DB_LOAD_FAILED!=='undefined'&&_DB_LOAD_FAILED) throw Error('the world did not load - refusing to save over it');   // v1183: belt and braces for the load guard
-  if(typeof _store!=='undefined'&&_store.split){ _store.write(snapshot,null); _pendingFull=false; if(typeof _pendingIds!=='undefined'){ _pendingIds.clear(); _pendingCore=false; } return; }   /* typeof: the span tests run saveDB alone */   // v1037: every shard + the manifest, one atomic swap
+  if(typeof _store!=='undefined'&&_store.split){ _store.write(snapshot,null); _pendingFull=false; if(typeof _pendingIds!=='undefined'){ _pendingIds.clear(); _pendingCore=false; if(typeof _clearPieces==='function') _clearPieces(); } return; }   /* typeof: the span tests run saveDB alone */   // v1037: every shard + the manifest, one atomic swap (v1127: every piece compared, the changed ones written)
   const tmp=DB_FILE+suffix;fs.writeFileSync(tmp,JSON.stringify(snapshot));
   if(typeof _safety!=='undefined'&&process.env.DB_FSYNC!=='0'){ _safety.fsyncFile(tmp); _safety.fsyncDir(path.dirname(DB_FILE)); }   // v1183: on the disk before the swap
   fs.renameSync(tmp,DB_FILE);
   if(typeof _safety!=='undefined'&&process.env.DB_FSYNC!=='0') _safety.fsyncDir(path.dirname(DB_FILE));   // v1183: ... and the swap itself
-  _pendingFull=false; if(typeof _pendingIds!=='undefined'){ _pendingIds.clear(); _pendingCore=false; }
+  _pendingFull=false; if(typeof _pendingIds!=='undefined'){ _pendingIds.clear(); _pendingCore=false; if(typeof _clearPieces==='function') _clearPieces(); }
 }
 var _pendingFull=false;   /* v1037: a generic writeDB() is waiting (or was absorbed into a group save) - its change names no players */
 /* v1124 PARTIAL DEBOUNCED SAVES (Server 1 load test 11 Oct 2026: p95 broke 1 s at ~150-250 players with the CPU at 6-17% - the main
@@ -219,19 +219,28 @@ var _pendingFull=false;   /* v1037: a generic writeDB() is waiting (or was absor
    continuation after the reply saves in full. Without DB_STORE=split every save is the full save it always was. */
 var _pendingIds=new Set();   // players named by writeDB(ids) since the last committed save (cleared only by a save that wrote them)
 var _pendingCore=false;   // a writeDB([...]) is waiting: even writeDB([]) - a change to the shared world only (tokens, chat, guilds) - writes the manifest
+/* v1127 SHARED-WORLD PIECES (server/world-store.js): the shared world is saved per system (chat, guilds, tokens, reports, ...). A save
+   that names its pieces - writeDB(ids,['chat']), writeDBNow(ids,[]), a durable commit (its staged stores + 'idem' for a shared
+   receipt) - writes only those that changed; a save that names none compares every piece and writes the ones that differ. So a
+   route never has to declare a piece to be saved correctly: declaring only skips the compare. DB_STORE_VERIFY=1 counts pieces
+   changed outside a declared save (save-stats store.undeclaredPieces). */
+var _pendingPieces=new Set(), _pendingPiecesAll=false;
+function _notePieces(pieces){ if(Array.isArray(pieces)||pieces instanceof Set){ for(const k of pieces) if(typeof k==='string'&&k) _pendingPieces.add(k); } else _pendingPiecesAll=true; }
+function _piecesArg(extra){ if(_pendingPiecesAll||(extra&&extra.all)) return null; const s=new Set(_pendingPieces); if(extra&&extra.set) for(const k of extra.set) s.add(k); return s; }
+function _clearPieces(){ if(typeof _pendingPieces!=='undefined'){ _pendingPieces.clear(); _pendingPiecesAll=false; } }
 function _saveIdsFor(ids){ if(Array.isArray(ids)) return ids;
   const c=(typeof _reqCtx!=='undefined')?_reqCtx.getStore():null;
   return (c&&Array.isArray(c.saveIds))?c.saveIds:null; }
 function _saveScope(...ids){ const c=(typeof _reqCtx!=='undefined')?_reqCtx.getStore():null; if(c) c.saveIds=ids.filter(x=>typeof x==='string'&&x); }
-function writeDB(ids){ if(_worldSettlementPlanning||_durableIdemActive)return; if(PG_BOOT_PENDING){ _bootDirty=true; return; }   // v327: see bootFinish()
+function writeDB(ids,pieces){ if(_worldSettlementPlanning||_durableIdemActive)return; if(PG_BOOT_PENDING){ _bootDirty=true; return; }   // v327: see bootFinish()
   const named=_saveIdsFor(ids);
-  if(named){ _pendingCore=true; for(const id of named) if(typeof id==='string'&&id) _pendingIds.add(id); } else _pendingFull=true;
+  if(named){ _pendingCore=true; for(const id of named) if(typeof id==='string'&&id) _pendingIds.add(id); _notePieces(pieces); } else _pendingFull=true;   /* v1127: pieces = the shared systems this change touched (none given = unknown, all compared) */
   if(saveTimer)return; saveTimer=setTimeout(()=>{ saveTimer=null;
   if(_batchOpen){ _batchOpen.actions++; if(_pendingFull) _batchOpen.all=true; return; }   // v1036: a group save is already queued - it writes this change too (v1124: _runBatch adds the pending ids)
   const full=_pendingFull||!_store.split;
   if(!full&&!_pendingIds.size&&!_pendingCore) return;
   try{ if(full) saveDB(DB);   // atomic: write temp, then rename
-    else { _store.write(DB,[..._pendingIds]); _pendingIds.clear(); _pendingCore=false; } }   // v1124: only the named players' shards + the manifest
+    else { _store.write(DB,[..._pendingIds],_piecesArg()); _pendingIds.clear(); _pendingCore=false; _clearPieces(); } }   // v1124: only the named players' shards + the manifest (v1127: + the shared pieces that changed)
   catch(e){ console.error('DB write failed:', e.message); }   // a failed partial keeps its ids pending: the next save retries them
   pgSave();
   if(!full && Date.now()-_store.stats.lastFullAt>STORE_SWEEP_MS) writeDBFull(); },200); }
@@ -249,10 +258,11 @@ const { AsyncLocalStorage } = require('async_hooks');
 const _reqCtx = new AsyncLocalStorage();
 let _batchOpen = null, _batchScheduled = false, _lastSaveEnd = 0, _lastSaveMs = 0;   // the save gap (below)
 const GROUP_SAVE_STATS = { batches:0, actions:0, failed:0, lastMs:0, maxMs:0 };
-function _joinBatch(undo, ids){   // v1037: ids = the players this action changed (its receipts' owners too); none given = save everything
-  if(!_batchOpen){ let resolve; const promise=new Promise(r=>{ resolve=r; }); _batchOpen={ promise, resolve, undos:[], actions:0, all:false, ids:new Set() }; }
+function _joinBatch(undo, ids, pieces){   // v1037: ids = the players this action changed (its receipts' owners too); none given = save everything (v1127: pieces = the shared systems it changed; none given = compare them all)
+  if(!_batchOpen){ let resolve; const promise=new Promise(r=>{ resolve=r; }); _batchOpen={ promise, resolve, undos:[], actions:0, all:false, ids:new Set(), pieces:new Set(), piecesAll:false }; }
   if(undo) _batchOpen.undos.push(undo);
   if(Array.isArray(ids)){ for(const id of ids) if(typeof id==='string'&&id) _batchOpen.ids.add(id); } else _batchOpen.all=true;
+  if(Array.isArray(pieces)||pieces instanceof Set){ for(const k of pieces) if(typeof k==='string'&&k) _batchOpen.pieces.add(k); } else _batchOpen.piecesAll=true;
   _batchOpen.actions++;
   // SAVE GAP: after a save that took X ms the next one waits until X ms have passed, collecting every change meanwhile - under
   // load saving holds at most about half the thread (the war load test saved back to back otherwise); idle, nothing waits.
@@ -265,7 +275,7 @@ function _runBatch(){
   const b=_batchOpen; if(!b) return; _batchOpen=null;
   if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; }   // this save covers any debounced change too
   const t0=Date.now(), all=b.all||_pendingFull||!_store.split;   // v1037: a partial save only when every change named its players
-  try{ if(all) saveDB(DB,'.group.tmp'); else { for(const id of _pendingIds) b.ids.add(id); _store.write(DB,b.ids); _pendingIds.clear(); _pendingCore=false; } }   // v1124: a debounced writeDB(ids) waiting is written by this save too
+  try{ if(all) saveDB(DB,'.group.tmp'); else { for(const id of _pendingIds) b.ids.add(id); _store.write(DB,b.ids,_piecesArg({all:b.piecesAll,set:b.pieces})); _pendingIds.clear(); _pendingCore=false; _clearPieces(); } }   // v1124: a debounced writeDB(ids) waiting is written by this save too (v1127: and its pieces)
   catch(e){
     for(const u of b.undos.slice().reverse()){ try{ u(); }catch(e2){ console.error('group save undo failed:', e2.message); } }
     GROUP_SAVE_STATS.failed++; console.error('group save failed - '+b.actions+' change(s), '+b.undos.length+' undone:', e.message);
@@ -1912,14 +1922,14 @@ function vaultSweepNextCost(sw){ if(sw.freeUsesRemaining>0) return 0; const paid
    record along with the reward — and the client's retry would then be paid a second time. Every
    idem() result is now flushed to disk BEFORE the response is written. */
 var _durableIdemActive=false;   /* 3 Oct audit: set while a durable idem() action runs - its own final save is the only write */
-function writeDBNow(ids){   /* v1000 (Account audit #9): returns false when the disk write failed (callers that must not ack can check it) */
+function writeDBNow(ids,pieces){   /* v1000 (Account audit #9): returns false when the disk write failed (callers that must not ack can check it) */   /* v1127: pieces as in writeDB */
   if(_worldSettlementPlanning||_durableIdemActive)return true;
   if(PG_BOOT_PENDING){ _bootDirty=true; return true; }   // v327: boot restore window — see bootFinish()
   const named=_saveIdsFor(ids);   // v1124: the players this save is for (explicit, or the request's _saveScope); null = everything
   if((typeof _reqCtx!=='undefined'&&_reqCtx.getStore())){ if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; }   // v1036: inside a request the reply waits for the group save
-    _holdReply(_joinBatch(null, named||undefined), 'Save failed - try again.'); return true; }
+    _holdReply(_joinBatch(null, named||undefined, named?pieces:undefined), 'Save failed - try again.'); return true; }
   try{ if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; }
-    if(named&&_store.split&&!_pendingFull){ const s=new Set(_pendingIds); for(const id of named) if(typeof id==='string'&&id) s.add(id); _store.write(DB,s); _pendingIds.clear(); _pendingCore=false; }   // v1124
+    if(named&&_store.split&&!_pendingFull){ const s=new Set(_pendingIds); for(const id of named) if(typeof id==='string'&&id) s.add(id); _notePieces(pieces); _store.write(DB,s,_piecesArg()); _pendingIds.clear(); _pendingCore=false; _clearPieces(); }   // v1124 (v1127: + its pieces)
     else saveDB(DB);
   }catch(e){ if(named) for(const id of named) if(typeof id==='string'&&id) _pendingIds.add(id);   // v1124: the change is still waiting for a save
     console.error('DB durable write failed:', e.message); return false; }
@@ -3975,23 +3985,27 @@ function durableCommit(user,key,fn,opts={}){
        table and whose own keys are the new receipts. An overlay is applied key by key (O(1)); expired receipts are pruned in
        place at most once a minute (every lookup checks the 24 h limit itself). */
     const proto=receipts&&Object.getPrototypeOf(receipts), overlay=!!proto&&Object.getPrototypeOf(proto)!==null;   // any realm's Object.prototype has no prototype; the live table does
-    const now=Date.now();
-    if(DB.idem&&!(now-(durableCommit.prunedAt||0)<60000)){ durableCommit.prunedAt=now; for(const k of Object.keys(DB.idem)) if(now-DB.idem[k].t>3600000) delete DB.idem[k]; }
+    const now=Date.now(); let pruned=false;
+    if(DB.idem&&!(now-(durableCommit.prunedAt||0)<60000)){ durableCommit.prunedAt=now; pruned=true; for(const k of Object.keys(DB.idem)) if(now-DB.idem[k].t>3600000) delete DB.idem[k]; }
     if((typeof _reqCtx!=='undefined'&&_reqCtx.getStore())){   // v1036: adopt now, group save, undo exactly what was there if that save fails
       // v1037: _adoptUser only swaps top-level fields (old nested objects are never written), so a shallow copy undoes it exactly
       const prevUsers=[user.id,...related.map(o=>o.id)].map(id=>[id,DB.users[id]?Object.assign({},DB.users[id]):undefined]);
       const prevExtra=Object.keys(extra).map(k=>[k,Object.prototype.hasOwnProperty.call(DB,k),DB[k]]), prevIdem=DB.idem;
       const ids=[user.id,...related.map(o=>o.id)], prevI=DB.idem||{}, prevKeys=[];
+      /* v1127: the shared pieces this commit changes - its staged stores, and 'idem' when a receipt is not a player's (or the
+         hourly prune ran); a whole receipt table handed in (not an overlay) is not known piece by piece: every piece is compared */
+      let pieces=Object.keys(extra); if(pruned) pieces.push('idem');
+      const coreReceipt=k=>{ const c=k.indexOf(':'); return !(c>0&&Object.prototype.hasOwnProperty.call(DB.users,k.slice(0,c))); };
       if(overlay){ if(!DB.idem) DB.idem={};
-        for(const k of Object.keys(receipts)){ prevKeys.push([k,Object.prototype.hasOwnProperty.call(DB.idem,k),DB.idem[k]]); const c=k.indexOf(':'); if(c>0) ids.push(k.slice(0,c)); } }
-      else for(const k in receipts) if(prevI[k]!==receipts[k]){ const c=k.indexOf(':'); if(c>0) ids.push(k.slice(0,c)); }   // v1037
+        for(const k of Object.keys(receipts)){ prevKeys.push([k,Object.prototype.hasOwnProperty.call(DB.idem,k),DB.idem[k]]); const c=k.indexOf(':'); if(c>0) ids.push(k.slice(0,c)); if(coreReceipt(k)) pieces.push('idem'); } }
+      else { if(receipts!==prevI) pieces=null; for(const k in receipts) if(prevI[k]!==receipts[k]){ const c=k.indexOf(':'); if(c>0) ids.push(k.slice(0,c)); } }   // v1037
       _adoptUser(user.id,draft);for(const other of related)_adoptUser(other.id,other);Object.assign(DB,extra);
       if(overlay) Object.assign(DB.idem,receipts); else DB.idem=receipts;
       _holdReply(_joinBatch(()=>{
         for(const [id,u] of prevUsers){ if(u===undefined) delete DB.users[id]; else _adoptUser(id,u); }
         for(const [k,had,v] of prevExtra){ if(had) DB[k]=v; else delete DB[k]; }
         if(overlay){ for(const [k,had,v] of prevKeys.reverse()){ if(had) DB.idem[k]=v; else delete DB.idem[k]; } } else DB.idem=prevIdem;
-        console.error(legacyTag?legacyTag+' durable write failed - undone':'Durable commit save failed - undone'); }, ids),
+        console.error(legacyTag?legacyTag+' durable write failed - undone':'Durable commit save failed - undone'); }, ids, pieces||undefined),
         legacyTag?'World save failed. Retry the same request.':'Save failed. Retry the same request.');
       for(const message of diagnostics)console.log(message);
       return {ok:true}; }
@@ -5302,7 +5316,7 @@ async function api(req,res,url){
       banned: DB.users[r.userId] ? banInfo(DB.users[r.userId]) : null })) }); }
 
   if(p==='/api/dev/save-stats'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});   // v1036: group-save counters
-    return send(res,200,Object.assign({},GROUP_SAVE_STATS,{store:Object.assign({split:_store.split},_store.stats)},{battles:Object.assign({},SIM_STATS,{pool:_SIM_POOL?_SIM_POOL.stats:null,memo:_SIM_MEMO.size,inFlight:_SIM_FLIGHT.size,queued:_SIM_POOL?_SIM_POOL.queued:0,verify:CAMP_VERIFY_STATS})},{dbBytes:(()=>{ try{ return fs.statSync(DB_FILE).size; }catch(e){ return 0; } })()},{signup:{ hash:Object.assign({},HASH_STATS), threadpool:+process.env.UV_THREADPOOL_SIZE||4, names:{ indexed:_nameIdx.byId.size, skeletons:_nameIdx.bySk.size, rebuilds:_nameIdx.rebuilds, drift:_nameIdx.drift, lastSyncMs:_nameIdx.lastSyncMs } }})); }   // v1184
+    return send(res,200,Object.assign({},GROUP_SAVE_STATS,{store:Object.assign({split:_store.split,layout:_store.layout},_store.stats)},{battles:Object.assign({},SIM_STATS,{pool:_SIM_POOL?_SIM_POOL.stats:null,memo:_SIM_MEMO.size,inFlight:_SIM_FLIGHT.size,queued:_SIM_POOL?_SIM_POOL.queued:0,verify:CAMP_VERIFY_STATS})},{dbBytes:(()=>{ try{ return fs.statSync(DB_FILE).size; }catch(e){ return 0; } })()},{signup:{ hash:Object.assign({},HASH_STATS), threadpool:+process.env.UV_THREADPOOL_SIZE||4, names:{ indexed:_nameIdx.byId.size, skeletons:_nameIdx.bySk.size, rebuilds:_nameIdx.rebuilds, drift:_nameIdx.drift, lastSyncMs:_nameIdx.lastSyncMs } }})); }   // v1184
   if(p==='/api/dev/gem-audit'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
     const id=String(url.searchParams.get('id')||''); const u=DB.users[id];
     if(!u) return send(res,404,{error:'no such account'});
@@ -9463,7 +9477,7 @@ async function api(req,res,url){
       try{ if(b.battle && typeof b.battle==='object'){ const s=JSON.stringify(b.battle); if(s.length<=8000) gm.battle=JSON.parse(s); } }catch(e){}   // optional shared-replay chip
       if(gm.battle){ const c=chatChipOk(gm.battle); if(c) gm.battle=c; else delete gm.battle; }   /* v1002 oppName; v1013 (N12) the whole chip shape */
       g.log.push(gm); if(g.log.length>100)g.log=g.log.slice(-100);
-      writeDB([me.id]); return send(res,200,{ ok:true, log:g.log.filter(e=>e&&(e.sys||!chatBlocked(me.id,e.id))).slice(-60) }); }   /* v1097: blocked players hidden */
+      writeDB([me.id],['guilds']); return send(res,200,{ ok:true, log:g.log.filter(e=>e&&(e.sys||!chatBlocked(me.id,e.id))).slice(-60) }); }   /* v1097: blocked players hidden */   /* v1127: the guilds piece (+ the poster's ledger tag) */
 
     if(p==='/api/guild/contribute'){ if(!g) return send(res,400,{error:'You are not in a guild.'}); if(ledPlayerLevel(ensureLedger(me))<13) return send(res,400,{error:'The Guild Hall opens at level 13.'});   /* v1087 (scan 8 #1): the client's building lock was the only gate */
       if(rateLimited(req,'gcontrib',80,60000)) return send(res,429,{error:'Slow down.'});
@@ -9827,7 +9841,7 @@ try{
   // ---- live chat: world/region broadcast + name-addressed whispers ----
   // history is stored in the DB (persists across restarts) and kept for ~3h or the last 100 messages per channel
   const CHAT_SAVE_MS=Math.max(200,+process.env.CHAT_SAVE_MS||2000);   /* v1127: a line that fell off the last 100 leaves the saved world within ~2 s (was 30 s) */
-  let _chatSaveT=null; function chatSaveSoon(){ if(_chatSaveT) return; _chatSaveT=setTimeout(()=>{ _chatSaveT=null; writeDB([]); },CHAT_SAVE_MS); }   /* v1124: chat is shared world only - a manifest save */   /* v1083: chat lines are batched into one save (was writeDB() per line) */
+  let _chatSaveT=null; function chatSaveSoon(){ if(_chatSaveT) return; _chatSaveT=setTimeout(()=>{ _chatSaveT=null; writeDB([],['chat']); },CHAT_SAVE_MS); }   /* v1127: the chat piece only */   /* v1124: chat is shared world only - a manifest save */   /* v1083: chat lines are batched into one save (was writeDB() per line) */
 const _chatJoinAcct={};   /* v1083: last chat-history send per account */
 const CHAT_KEEP=100, CHAT_AGE_MS=6*3600000;   /* v1127 (Phil 11 Oct 2026: "chat should disappear after 100 messages and immediately be removed from cache unless saving by a 'report' player option"): every channel - world, region, each guild's log, each whisper pair - keeps its last 100 lines; a reported line is copied to DB.reports / the feedback inbox with its context and stays there */
   const _chatHits={}; setInterval(()=>{ const now=Date.now(); for(const k of Object.keys(_chatHits)){ if(!_chatHits[k].some(t=>now-t<10000)) delete _chatHits[k]; } }, 60000).unref();   // world/region chat messages disappear 6h after being typed
@@ -9949,6 +9963,7 @@ function bootFinish(){ if(_booted) return;
   migrateHeroIdsAll();   /* v926: rewrite old hero ids to in-game-name keys in every stored ledger/profile (once, stamped led.idv=2) */
   nameIdxRebuild();   /* v1184: the look-alike name index, built from the loaded world */
   if(_bootDirty){ _bootDirty=false; writeDB(); }       // flush whatever the restore window suppressed
+  if(_store.layoutMismatch){ console.log('world store: '+_store.layout+' on disk, '+(_store.pieces?'pieces':'split-v1')+' configured - one full save converts it'); writeDB(); }   /* v1127: an old-format world (one file, split-v1) is converted by its first save; DB_STORE_PIECES=0 converts back (rollback) */
   backupDB(); setInterval(backupDB, 60*60*1000);   // snapshot on boot, then hourly (keeps ~48)
     setTimeout(pushBackupToGitHub, 30000); setInterval(pushBackupToGitHub, 6*60*60*1000);   // off-site GitHub backup: ~30s after boot, then every 6h (no-op unless GITHUB_BACKUP_TOKEN + GITHUB_BACKUP_REPO are set)
   const realAccts=Object.values(DB.users).filter(u=>!u.isNpc).length;
