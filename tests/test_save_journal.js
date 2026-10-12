@@ -26,6 +26,8 @@ function controlStore() {
   const f = path.join(os.tmpdir(), 'world-store-' + CONTROL + '-' + process.pid + '.js'); fs.writeFileSync(f, src); return require(f);
 }
 
+// the io worker has no checkpoint under way and nothing left to unlink - the test reads the files (tools stop the game first)
+async function idle(st) { for (let i = 0; i < 200; i++) { st.flush(); const j = st.stats.io.journal || {}; if (!j.ckptActive && !j.lazy) return; await R.sleep(50); } }
 async function unit(mode) {
   process.env.DB_STORE_CKPT_BYTES = '20000';   // small checkpoints (read when the store starts its journal)
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'ember-journal-')), file = path.join(temp, 'db.json');
@@ -51,14 +53,27 @@ async function unit(mode) {
   const ids = Object.keys(db.users);
   for (let r = 0; r < 60; r++) { const w = []; for (let i = 0; i < 30; i++) { const id = ids[(r * 7 + i) % ids.length]; db.users[id].gold = r * 1000 + i; db.users[id].marches.push({ r, pad: 'm'.repeat(300) }); if (db.users[id].marches.length > 4) db.users[id].marches.shift(); w.push(id); }
     db.feedback.push({ id: 'n' + r, text: 'q'.repeat(150) }); if (r % 7 === 0) db.feedback.shift(); await W(w); }
-  if (mode === 'worker') { for (let i = 0; i < 40; i++) { await R.sleep(40); await W([]); } st.flush(); }
+  if (mode === 'worker') { for (let i = 0; i < 40; i++) { await R.sleep(40); await W([]); } await idle(st); }
   const js = st.stats.io.journal;
   R.ok(js.checkpoints >= 2 && js.ckptAborted === 0 && deepEq(WS.readWorld(file), db) && orphans(file).length === 0, m + 'checkpoints fold the journal into the base (' + js.checkpoints + ' checkpoints, ' + js.ckptShards + ' shards rewritten); the world reads back whole; no orphan file');
+  if (mode === 'worker') {
+    const pend = []; for (let k = 0; k < 5; k++) { db.users['u' + (20 + k)].gold = -k; pend.push(st.writeAsync(db, ['u' + (20 + k)])); }
+    db.users.u30.gold = -30; st.write(db, ['u30']);   // a synchronous save (exit, timers) right behind them
+    const queued = st.ioPending; await Promise.all(pend); await idle(st); const now = WS.readWorld(file);
+    R.ok([0, 1, 2, 3, 4].every(k => now.users['u' + (20 + k)].gold === -k) && now.users.u30.gold === -30 && queued === 0, m + 'a synchronous save waits for the saves queued before it: nothing was left in the queue when it returned (' + queued + '); all six are on disk');
+    st.io().lose('test'); db.users.u31.gold = -31; await W(['u31']); db.users.u32.gold = -32; await W(['u32']);
+    R.ok(st.stats.io.mode === 'sync' && deepEq(WS.readWorld(file), db) && orphans(file).length === 0, m + 'the io worker lost: saves go on on the main thread (a full save restarts the journal there) and the world reads back whole');
+  }
+  { const man0 = JSON.parse(fs.readFileSync(file, 'utf8')), s0 = WS.shardOf('u0'), victim = path.join(st.dir, s0 + '-' + man0.baseGens[s0] + '.json'); fs.renameSync(victim, victim + '.away');
+    const a0 = st.stats.io.journal.ckptAborted; for (let k = 0; k < 80; k++) { db.users.u0.gold = k; db.users.u0.marches.push({ k, pad: 'z'.repeat(600) }); await W(['u0']); }
+    if (mode === 'worker') { for (let i = 0; i < 20; i++) { await R.sleep(50); await W([]); } await idle(st); }
+    const a1 = st.stats.io.journal.ckptAborted; fs.renameSync(victim + '.away', victim);
+    R.ok(a1 - a0 === 1 && deepEq(WS.readWorld(file), db), m + 'a checkpoint that cannot read a base file stops once and waits 30 s (' + (a1 - a0) + ' stop, not a retry loop); every save still lands in the journal'); }
   const man = JSON.parse(fs.readFileSync(file, 'utf8')), jf = path.join(st.dir, man.journals[man.journals.length - 1]);
   fs.appendFileSync(jf, 'deadbeefdeadbeef {"u":{"u1":');
   R.ok(deepEq(WS.readWorld(file), db), m + 'a torn last line (a crash in the middle of an append) is ignored');
   const st2 = WS.create(file, { split: true, journal: true, io: mode }), d2 = st2.load(); d2.users.u9.gold = 99;
-  if (mode === 'sync') st2.write(d2, ['u9']); else { await st2.writeAsync(d2, ['u9']); st2.flush(); }
+  if (mode === 'sync') st2.write(d2, ['u9']); else { await st2.writeAsync(d2, ['u9']); await idle(st2); }
   R.ok(WS.readWorld(file).users.u9.gold === 99 && st2.stats.io.journal.truncated === 1, m + 'the next server cuts the torn line off before it appends; its append reads back');
   fs.writeFileSync(path.join(st.dir, 'j-999999.log'), ''); fs.writeFileSync(path.join(st.dir, '7-999999.json'), '{}');
   const st3 = WS.create(file, { split: true, journal: true }); st3.load();

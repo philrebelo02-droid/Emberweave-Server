@@ -1829,7 +1829,7 @@ const DURABLE_IDEM_KINDS=new Set(['dresolve','dsweep','salv','witch','edbuy','ed
    mails total"): every request receipt (idem, durable planners, world routes) is kept 3600000 ms (was 24 h). A city attack's full
    report now lives in both players' war mail instead; the settled march (kept 2 days) blocks a late retry from paying twice. */
 function idem(key, fn, opts){ DB.idem=DB.idem||{}; const now=Date.now();
-  if(!(now-(idem.prunedAt||0)<60000)){ idem.prunedAt=now; for(const k of Object.keys(DB.idem)){ if(now-DB.idem[k].t>3600000){ delete DB.idem[k]; _touchOwner(k); } } }   // v1037: once a minute, not per call (v1128: the owner is marked dirty)
+  if(!(now-(idem.prunedAt||0)<60000)){ idem.prunedAt=now; for(const k of Object.keys(DB.idem)){ if(now-DB.idem[k].t>3600000){ delete DB.idem[k]; if(typeof _touchOwner==='function') _touchOwner(k); } } }   // v1037: once a minute, not per call (v1128: the owner is marked dirty)
   if(DB.idem[key] && now-DB.idem[key].t<=3600000 && !(opts&&opts.retryFailed&&DB.idem[key].resp&&DB.idem[key].resp.ok===false)) return DB.idem[key].resp;
   let du=opts&&opts.durableUser;
   if(!du){ const i=key.indexOf(':'), j=i>0?key.indexOf(':',i+1):-1; if(j>i&&DURABLE_IDEM_KINDS.has(key.slice(i+1,j))&&DB.users[key.slice(0,i)]) du=DB.users[key.slice(0,i)]; }
@@ -3837,7 +3837,7 @@ function durableCommit(user,key,fn,opts={}){
        place at most once a minute (every lookup checks the 24 h limit itself). */
     const proto=receipts&&Object.getPrototypeOf(receipts), overlay=!!proto&&Object.getPrototypeOf(proto)!==null;   // any realm's Object.prototype has no prototype; the live table does
     const now=Date.now(); let pruned=false;
-    if(DB.idem&&!(now-(durableCommit.prunedAt||0)<60000)){ durableCommit.prunedAt=now; pruned=true; for(const k of Object.keys(DB.idem)) if(now-DB.idem[k].t>3600000){ delete DB.idem[k]; _touchOwner(k); } }
+    if(DB.idem&&!(now-(durableCommit.prunedAt||0)<60000)){ durableCommit.prunedAt=now; pruned=true; for(const k of Object.keys(DB.idem)) if(now-DB.idem[k].t>3600000){ delete DB.idem[k]; if(typeof _touchOwner==='function') _touchOwner(k); } }
     if((typeof _reqCtx!=='undefined'&&_reqCtx.getStore())){   // v1036: adopt now, group save, undo exactly what was there if that save fails
       // v1037: _adoptUser only swaps top-level fields (old nested objects are never written), so a shallow copy undoes it exactly
       const prevUsers=[user.id,...related.map(o=>o.id)].map(id=>[id,DB.users[id]?Object.assign({},DB.users[id]):undefined]);
