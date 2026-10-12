@@ -365,6 +365,8 @@ note "test_pellucid_attack_crit_1115.js (v1115: Pellucid's approved haymaker ATT
 node tests/test_pellucid_attack_crit_1115.js || FAILED=1
 note "test_vex_ceraline_fx_1115.js (v1115: Grok spell FX 22-24 - Mourning Bell ring + wax shatter, Hookline reel (Vex pulled on the rope retract, clip 0.458-0.958 s) + slash, Bleed Them Dry wound; controls: v1114 teleport/instant strike fail, art touches no fight state)"
 node tests/test_vex_ceraline_fx_1115.js || FAILED=1
+note "test_spell_fx_1125.js (v1125: Grok spell FX s07 Astra Event Horizon flat on the aimed 8 m circle, the planet lands on the damage; s08 Korvux Ember Cleave riding his axe swing, flash on his impact frame 28; parity with main for both casts and the five held-back v1123 spells; controls: main has none of the art, the art code touches no fight state, none of the five spells' art ships)"
+node tests/test_spell_fx_1125.js || FAILED=1
 note "test_auto_ult_healer_1103.js (v1103: healer ults that also hit enemies fire when full; heal-only ones still wait)"
 node tests/test_auto_ult_healer_1103.js || FAILED=1
 rm -f probe-db-*.json

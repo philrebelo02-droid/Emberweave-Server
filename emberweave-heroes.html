@@ -4830,7 +4830,7 @@ const KITS={
   gruel:{green:{deliver:'form',name:'Coinflail',type:'cleavecone',mul:1.3,radius:3*METER,angle:70,cd:7,gfx:'gruel_green',gdur:5.88},blue:{name:'Weigh the Debt',type:'weighdebt',mul:1.0,pct:0.35,dur:6,cd:10,gfx:'gruel_blue',gfxR:3*METER,gdur:5.88},purple:{name:'Gluttony',pass:'juggernaut'}},
   astra:{green:{deliver:'form',name:'Starfire',type:'nova',at:'cluster',mul:1.1,radius:2.8*METER,cd:7,gfx:'astra_green',gdur:3.5},blue:{deliver:'form',name:'Nebula',type:'aoedot',at:'cluster',mul:0.5,dps:0.5,dur:4,radius:3*METER,cd:9,gfx:'astra_blue',gdur:5.88},purple:{name:'Stardust',pass:'stardust'}},
   quorrel:{green:{deliver:'form',name:'Gag Order',type:'aoeStun',mul:1.0,stun:1.2,silence:2.5,radius:2.6*METER,cd:10,desc:"The court is called to order: every enemy in the area is struck, held, and forbidden to cast.",gfx:'quorrel_green',gdur:5.88},blue:{name:'Contempt',type:'stun',mul:1.5,stun:1.3,cd:8,gfx:'quorrel_blue',gfxR:3*METER,gdur:5.88},purple:{name:'Tireless',pass:'fury'}},
-  korvux:{green:{name:'Comet Dash',type:'charge',mul:1.5,radius:2.4*METER,stun:0.6,cd:9,gfx:'korvux_green',gdur:5.88},blue:{deliver:'form',name:'Ember Cleave',type:'cleave',mul:1.6,radius:3.2*METER,cd:7,gfx:'korvux_blue',gdur:5.88},purple:{name:'Emberskin',pass:'immolate'}},
+  korvux:{green:{name:'Comet Dash',type:'charge',mul:1.5,radius:2.4*METER,stun:0.6,cd:9,gfx:'korvux_green',gdur:5.88},blue:{deliver:'form',name:'Ember Cleave',type:'cleave',mul:1.6,radius:3.2*METER,cd:7,ownFx:'chop',gfx:'korvux_blue',gdur:5.88},purple:{name:'Emberskin',pass:'immolate'}},
   maren:{green:{deliver:'land',name:'Tide Pool',type:'ashfall',dps:0.5,dur:4,radius:3*METER,slow:2,color:'#9fe0ff',cd:8,gfx:'maren_green',gdur:5.88},blue:{deliver:'form',name:'Tsunami',type:'tidalsurge',mul:1.1,radius:3.4*METER,push:1.6*METER,slow:2.5,cd:10,gfx:'maren_blue',gdur:3.21},purple:{name:'Deep Reserves',pass:'tidereserve'}},
   lumi:{green:{name:'Dawnward',type:'dawnward',dur:3,perLv:0.01,cd:11,gfx:'lumi_green',gfxR:3*METER,gdur:2.54},blue:{name:'Quickening',type:'haste',mul:1.3,perLv:0.001,dur:5,cd:9,gfx:'lumi_blue',gfxR:3*METER,gdur:3.58},purple:{name:'Hush',pass:'hush'}},
   hollow:{green:{name:'Fan of Knives',type:'bladefan',mul:0.9,radius:3*METER,angle:75,bleed:0.16,cd:7,gfx:'hollow_green',gdur:2.75},blue:{name:'Lacerate',type:'bleedstack',mul:0.8,bleed:0.16,rupture:3,ruptMul:1.9,stackDur:6,cd:6,gfx:'hollow_blue',gfxR:3*METER,gdur:3.79},purple:{name:"The Space He Isn't In",pass:'notthere'}},
@@ -9165,7 +9165,7 @@ function buildFigure(u){
   spr.center.set(.5,0); spr.scale.set((u.team==='enemy'?-1:1)*h*u.sprA,h,1); spr.position.y=.05; g.add(spr); u.sprite=spr;
   if(HERO_SPRITES[u.key]){ const img=new Image(); img.onload=()=>{ u.sprA=img.width/img.height; if(u.sprite&&!u.anim) u.sprite.scale.set((u.team==='enemy'?-1:1)*u.sprH*u.sprA,u.sprH,1); }; img.src=HERO_SPRITES[u.key]; }
   if(heroHasAnim(u.key)){ const set=loadAnimSet(u.key, u._edIdle?['idle']:(u._edStates||undefined)); /* v606: an idle-only figure (Emberdraft bench/planning) loads just its idle sheet */ if(set&&set.idle&&set.idle.tex){ u.anim=set; u.sprA=set.idle.aspect; spr.material.map=set.idle.tex; spr.material.needsUpdate=true; } }
-  try{ (FX1115_WARM[u.key]||[]).forEach(k=>fx2Tex(k)); }catch(_e){}   /* v1115: load her spell sheets with her figure, so the first Hookline shows its throw */
+  try{ (FX1115_WARM[u.key]||FX1123_WARM[u.key]||[]).forEach(k=>fx2Tex(k)); }catch(_e){}   /* v1115: load her spell sheets with her figure, so the first Hookline shows its throw */
   u.mesh=g; scene.add(g); syncMesh(u,0);
 }
 /* render one hero as a framed portrait bust -> data URL (used to pre-bake portraits) */
@@ -10081,7 +10081,12 @@ const _ABOVE_BAR={healbuff:1,honeyglob:1,lastbreath:1,thornguard:1,dawnward:1,ho
 function abilArt(u,o,tgt,aimCtr,type){ window._fxCaster=u; if(o&&o.noArt) return;   /* v483: the ability draws its own per-target art (Shadeburst) */
   /* v1115 ownFx: the ability draws Grok's clip itself instead of its old plate. 'bell' = Mourning Bell over the cast centre (this runs at the
      form launch, 0.35 s before the damage); 'hook' and 'wound' are drawn by Vex's cases. */
-  if(o&&o.ownFx){ if(o.ownFx==='bell'){ try{ const c=aimCtr||((tgt&&tgt.alive)?tgt:u); bellCastFx(c.x,c.y); }catch(_e){} } return; }
+  if(o&&o.ownFx){ if(o.ownFx==='bell'){ try{ const c=aimCtr||((tgt&&tgt.alive)?tgt:u); bellCastFx(c.x,c.y); }catch(_e){} }
+    /* v1125: 'horizon' = Astra's Event Horizon flat on the aimed 8 m circle (this runs at the form launch, o.form before the damage);
+       'chop' = Korvux's Ember Cleave, started at the press by castKit - the launch only confirms it (an uninterrupted cast) */
+    else if(o.ownFx==='horizon'){ try{ const c=aimCtr||((tgt&&tgt.alive)?tgt:u); astraHorizonFx(c.x,c.y,(o.radius||8*METER)*_fx22Area(),o.form||0.35); }catch(_e){} }
+    else if(o.ownFx==='chop'){ try{ korvuxChopLaunchFx(u,o.radius||3.2*METER,o.form||0.35); }catch(_e){} }
+    return; }
   if(!o||!u||typeof spawnGroundFx!=='function') return;
   if(!o.gfx || !FX2_DEF[o.gfx]) return;
   /* v591 (Phil, 18 Sep: "Effects that effect the entire battlefield should only be a buff or debuff over the enemy or
@@ -10506,7 +10511,7 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
       if(o.silence){ ccApply(u,e,'silencedT',o.silence); e._castT=0; e.castAnim=0; }}});
       if(o.silence)floatTexts.push({x:ctr.x,y:ctr.y-16,txt:'ORDER',t:1.0,color:'#8fd0ff',vy:1,sz:12});
       burstAt(ctr.x,ctr.y,0x6ea8ff,16);break;}
-    case 'cleave':{ const dir=aimCtr?Math.atan2(aimCtr.y-u.y,aimCtr.x-u.x):(tgt?Math.atan2(tgt.y-u.y,tgt.x-u.x):(u.team==='ally'?0:Math.PI)); const R=o.radius||90, half=(45*Math.PI/180)/2; enemiesOf(u).forEach(e=>{ if(dist(u,e)<=R){ let a=Math.atan2(e.y-u.y,e.x-u.x)-dir; while(a>Math.PI)a-=6.2832; while(a<-Math.PI)a+=6.2832; if(Math.abs(a)<=half){ dealDamage(u,e,dB*(o.mul||1.8)*rm,'#ffa657'); if(o.bleed)pushDot(e,_sD*0.3,4,1,'#c0392b'); } } }); burstAt(u.x+Math.cos(dir)*R*.5,u.y+Math.sin(dir)*R*.5,0xffa657,12); break;}
+    case 'cleave':{ const dir=aimCtr?Math.atan2(aimCtr.y-u.y,aimCtr.x-u.x):(tgt?Math.atan2(tgt.y-u.y,tgt.x-u.x):(u.team==='ally'?0:Math.PI)); const R=o.radius||90, half=(45*Math.PI/180)/2; enemiesOf(u).forEach(e=>{ if(dist(u,e)<=R){ let a=Math.atan2(e.y-u.y,e.x-u.x)-dir; while(a>Math.PI)a-=6.2832; while(a<-Math.PI)a+=6.2832; if(Math.abs(a)<=half){ dealDamage(u,e,dB*(o.mul||1.8)*rm,'#ffa657'); if(o.bleed)pushDot(e,_sD*0.3,4,1,'#c0392b'); } } }); if(o.ownFx==='chop'){ try{ korvuxChopHitFx(u,dir,R); }catch(_e){} }   /* v1125 Ember Cleave chop (display only) */ burstAt(u.x+Math.cos(dir)*R*.5,u.y+Math.sin(dir)*R*.5,0xffa657,12); break;}
     case 'worldbreaker':{   /* v889 Pellucid Rook: three slams; each shockwave hits an enemy when it REACHES it */
       const _R=o.radius||6*METER, _spd=o.wave||12*METER, _D=dB*(o.mul||0.45)*rm, _st=o.stun||0.4, _n=o.slams||3, _gap=o.gap||0.7;
       u._castT=Math.max(u._castT||0,_gap*(_n-1)+0.4);
@@ -11492,6 +11497,8 @@ function castKit(u,ab){ const slot=(u.blueAb&&ab===u.blueAb)?'blue':'green'; con
   u._pend={ t:ct, sm:(u._castSM||1), lv:(u._castLv||1), ax:u._aimWX, ay:u._aimWY,
     fire:()=>{ u._castSlot=slot; doEffect(u,ab.type,ab);
       if(u._gearRepeatSpell){ const rp=u._gearRepeatSpell; u._gearRepeatSpell=0; const prev=u._castSM||1; u._castSM=prev*rp; doEffect(u,ab.type,ab); u._castSM=prev; } } };
+  /* v1125 Ember Cleave: the chop rides his axe swing from the press (it shows from his downswing frame 24). Display only; an interrupted cast fades it. */
+  try{ if(ab.ownFx==='chop') korvuxChopCastFx(u,ct+(ab.deliver==='form'?(ab.form||0.35):0),ab.radius||3.2*METER,u._pend); }catch(_e){}
   u._castNow=ct; u._castT=ct; u.castAnim=Math.max(.32,ct);
   // a skill runs to the end of its clip: nothing but the ult or CC may cut it (see _animLockT)
   // v521: unless a passive flourish is still playing, in which case doEffect left the clip alone
@@ -11954,6 +11961,8 @@ const FX2_DEF={
   hookreel:{u:'/assets/anim/fx/vex_hook_reel.webp?v=1',n:28,fw:1180,fh:154,cols:3,rows:10,dur:1.1667,rt:true,u0:0.0102,u1:0.9525,vRope:0.516,hookPx:135},   /* v1115 Hookline (Grok spell 23, Phil-approved 10 Oct): all 28 clip frames, 24 fps real time; u0 = Vex's end of the rope (clip x 60), u1 = the bite (spark centre x 1172), vRope = the rope row from the bottom */
   hookslash:{u:'/assets/anim/fx/vex_hook_slash.webp?v=1',n:20,fw:330,fh:334,cols:5,rows:4,dur:0.8333,rt:true},   /* v1115: the crimson + violet X on the mark when Vex lands behind it */
   bleedopen:{u:'/assets/anim/fx/vex_bleed_open.webp?v=1',n:36,fw:148,fh:462,cols:6,rows:6,dur:1.5,rt:true,woundC:[0.566,0.49],woundPx:398},   /* v1115 Bleed Them Dry (Grok spell 24, Phil-approved 10 Oct): the drop rips the wound open (1.5 s), the LAST cell is held as the wound while the bleed lasts */
+  astrahorizon:{u:'/assets/anim/fx/astra_event_horizon.webp?v=1125',n:72,fw:468,fh:455,cols:8,rows:9,dur:6.0,rt:true,impact:3,disc:{cx:0.513,cy:0.464,dw:0.972,dh:0.974}},   /* v1125 Event Horizon (Grok s07, Phil-approved, note 11 Oct 18:05): clip frames 1-143 every 2nd, 12 fps, x0.538 (4096 cap); the planet lands on frame 7 = cell 3 (timed onto the damage); FLAT on the ground, the core (cx,cy = the impact point) on the aim, the galaxy at its widest (dw x dh, cell fractions) = the 8 m circle */
+  korvuxcleave:{u:'/assets/anim/fx/korvux_ember_cleave.webp?v=1125',n:69,fw:371,fh:409,cols:7,rows:10,dur:2.875,rt:true,hit:29,flash:[0.577,0.359],back:[0.027,0.743],backPx:105,edge:0.03,sync:{f:[24,25,26,27,28],c:[0,1,3,14,29]},fit:{k:2.3665,rot:-14.37,cc:[-44.6,-155.0]},topPx:28,flashPx:262,lift:0.3,top:1.25,hand:1.0},   /* v1125 Ember Cleave (Grok s08): 24 fps, x0.6759; frames 0-16, the hold 17-61 passed in 5 cells, 62-75 (the hit flash = frame 69 = cell 29), the wisps 76-140 every 2nd (double speed); upright, MIRRORED so it opens toward Korvux (Phil 11 Oct picked variant B of korvux-cleave-variants.jpg): the stroke runs out round the enemy side and comes back, the flash low near him; the art's near edge (edge, cell fraction from the side toward him) sits just past his weapon hand (hand x his body radius out along the cleave), so the whole arc is on the enemy side; the row back[1] is the anchor row; the flash row (flashPx) lift x his height up, the arc top (row topPx) top x his height; mirrored when the cleave runs screen-left */
   rafetracer:{u:'/assets/anim/fx/rafe_tracer.webp?v=1',n:1,fw:512,fh:91,cols:1,rows:1,dur:1},   /* v1075 Dead Man's Fortune (Grok spell 19, Phil-approved 8 Oct): the hot ball + orange tracer, head right */
   rafespark:{u:'/assets/anim/fx/rafe_spark.webp?v=1',n:32,fw:160,fh:160,cols:8,rows:4,dur:1.33,upright:true,upSize:0.9,upExtent:0.95,upPalm:0.5,ro:1},   /* v1075: the spark star where each shot lands (clip frames 64-95, keyed, centred on the burst) */
   linnet_rewind:{u:'/assets/anim/fx/linnet_rewind.webp?v=1',n:73,fw:192,fh:192,cols:9,rows:9,dur:6.04,upright:true,upAbove:true,upAboveM:0.06,upSize:0.5,upExtent:0.95,ro:1},   /* v1074 Rewrite the Pattern (Grok spell 18, Phil-accepted 8 Oct): the gold thread winds into a spiral over each ally's head, keyed from 18_rewrite_pattern_swirl.mp4 (every 2nd frame, 12 fps) */
@@ -12479,7 +12488,7 @@ const _waxFxAll=[];
 function _killWaxFx(u){ if(u&&u._waxFx){ try{ scene.remove(u._waxFx.spr); u._waxFx.spr.material.dispose(); }catch(_){}
     const i=_waxFxAll.indexOf(u._waxFx); if(i>=0)_waxFxAll.splice(i,1); u._waxFx=null; } }
 function killAllWaxFx(){ _waxFxAll.forEach(s=>{ try{ scene.remove(s.spr); s.spr.material.dispose(); }catch(_){} if(s.u)s.u._waxFx=null; }); _waxFxAll.length=0; }
-function updateWaxFx(dt){ try{ updateCandleFx(dt); }catch(_e){} try{ updateFx1115(dt); }catch(_e){} if(!TH||!scene||typeof units==='undefined')return;   /* v1077: the Final Candle art ticks here too */ const de=FX2_DEF.waxerupt, dp=FX2_DEF.waxpool; if(!de||!dp)return; units.forEach(u=>{
+function updateWaxFx(dt){ try{ updateCandleFx(dt); }catch(_e){} try{ updateFx1115(dt); }catch(_e){} try{ updateFx1123(dt); }catch(_e){} if(!TH||!scene||typeof units==='undefined')return;   /* v1077: the Final Candle art ticks here too */ const de=FX2_DEF.waxerupt, dp=FX2_DEF.waxpool; if(!de||!dp)return; units.forEach(u=>{
   if(!(u.alive&&(u._waxCoatT||0)>0)){ if(u._waxFx)_killWaxFx(u); return; }
   if(!u._waxFx){ const te=fx2Tex('waxerupt'); if(!te)return;
     const spr=new TH.Sprite(new TH.SpriteMaterial({map:te,transparent:true,depthWrite:false,depthTest:false,opacity:0.97}));
@@ -12491,6 +12500,81 @@ function updateWaxFx(dt){ try{ updateCandleFx(dt); }catch(_e){} try{ updateFx111
   else { if(!s.pool){ const tp=fx2Tex('waxpool'); if(tp){ s.pool=true; s.spr.material.map=tp; s.spr.material.needsUpdate=true; s.spr.renderOrder=-4; } }
     if(s.pool) fx2SetFrame(s.spr,dp,Math.floor(((s.t-de.dur)/dp.dur)*dp.n)%dp.n); }
   s.spr.position.set(wx(u.rx==null?u.x:u.rx),0.35,wz(u.ry==null?u.y:u.ry)); }); }   // 0.35: the same lift as the bleed/poison/burn marks, so the pool sits under the drawn feet
+/* v1125 Grok spell FX s07 + s08 (Phil-approved; Grok note 11 Oct 18:05; Phil 11 Oct "ship korvux and astra"): Astra's Event Horizon
+   flat on the aimed 8 m circle, Korvux's Ember Cleave riding his axe swing. REAL TIME like v1115 (a clip second = FX_RT fight
+   seconds). Display only: these helpers read units and the camera and never touch damage, CC, pulls, hazards, positions or the
+   fight state. The plumbing keeps the v1123 fx-branch names (_fx1123, FX1123_WARM, _fx22*) so that branch's spells can join it. */
+const FX1123_WARM={astra:['astrahorizon'],korvux:['korvuxcleave']};
+const _fx1123=[];
+function _fx22Area(){ return (typeof GSPLIT!=='undefined'&&GSPLIT&&GSPLIT.active)?BONUS_UNIT_SCALE:1; }   /* a bonus run's units are shrunk: so are the metric discs */
+function _fx22Spr(key,ro){ const d=FX2_DEF[key], t=fx2Tex(key); if(!d||!t) return null;
+  const s=new TH.Sprite(new TH.SpriteMaterial({map:t,transparent:true,depthWrite:false,depthTest:false,opacity:1})); fx2Hook(s); fx2SetFrame(s,d,0); s.renderOrder=ro; scene.add(s); return s; }
+function _fx22Flat(key,ro){ const d=FX2_DEF[key], t=fx2Tex(key); if(!d||!t) return null;
+  const m=new TH.Mesh(_FX2_PLANE||new TH.PlaneGeometry(1,1), new TH.MeshBasicMaterial({map:t,transparent:true,depthWrite:false,depthTest:false,side:TH.DoubleSide,opacity:1}));
+  fx2Hook(m); fx2SetFrame(m,d,0); m.renderOrder=ro; scene.add(m); return m; }
+/* a painted disc (d.disc: its centre cx,cy from the cell's top-left and its size dw x dh, cell fractions) laid flat as a ground circle of
+   radius R (field units) centred on (x,y) - the v448 disc rule, so a disc painted in perspective projects back as painted */
+function _fx22Disc(key,x,y,R,ro){ const d=FX2_DEF[key], m=_fx22Flat(key,ro); if(!m) return null; const R3=R*SC, W=2*R3/d.disc.dw, H=2*R3/d.disc.dh;
+  m.scale.set(W,H,1); m.rotation.x=-Math.PI/2; m.position.set(wx(x)-(d.disc.cx-0.5)*W,0.13,wz(y)+(0.5-d.disc.cy)*H); return m; }
+/* v1123b s07 Event Horizon (Grok note 11 Oct 18:05: "Lay it flat on the 8 m ground circle, centered on the target point"): the planet's
+   impact (cell d.impact) is timed onto the damage, which lands `form` fight s after this launch - so the clip waits a beat, hidden */
+function astraHorizonFx(x,y,R,form){ if(!TH||!scene) return; const d=FX2_DEF.astrahorizon, m=_fx22Disc('astrahorizon',x,y,R,-5); if(!m) return;
+  m.visible=false; _fx1123.push({kind:'horizon',s:m,d,t:(d.impact/d.n)*d.dur*FX_RT-form}); }
+/* v1123b s08 Ember Cleave (Grok: "Play upright in front of Korvux on his 45 deg / 3.2 m cone, synced so the hit flash lands on his cast
+   impact"): the overhead chop, mirrored to open toward him (Phil's variant B), its near edge just past his weapon hand (d.hand x his body radius) so the whole arc is on the enemy side, the flash row d.lift x his height up; turned to the
+   side the cleave runs on screen. It starts at the PRESS (castKit), its clock set so cell d.hit lands on the damage; the launch confirms
+   it, the damage turns it to the cleave's own direction. Display only. */
+function _fx22CleaveDir(u){ const a=(u._aimWX!=null)?{x:u._aimWX,y:u._aimWY}:null, t=(u.target&&u.target.alive)?u.target:nearestEnemy(u);
+  return a?Math.atan2(a.y-u.y,a.x-u.x):(t?Math.atan2(t.y-u.y,t.x-u.x):(u.team==='ally'?0:Math.PI)); }
+function _fx22Chop(u,dir,R,t0,pend){ const d=FX2_DEF.korvuxcleave, s=_fx22Spr('korvuxcleave',994); if(!s) return null; s.visible=false;
+  const o={kind:'chop',s,d,t:t0,ts:0,u,caster:u,dir,R,pend,ok:!pend}; _fx22ChopPos(o); _fx1123.push(o); return o; }
+/* Phil 11 Oct: "the slash should go with his axe swing". The arc rides his blue clip: measured on korvux_blue.webp (24 fps, facing
+   right) the axe head (its red pixels' median) winds up behind him (frames 19-23), comes over the top (24-25), out in front (26),
+   down (27) and lands at his feet on frame 28. The variant-B crescent's stroke was fitted to that path (scale k x the cell, turned
+   rot deg, its cell centre at cc hero px from his foot anchor; the fit misses the axe head by 9-46 px on a ~500 px swing) and its
+   cells are driven by the clip frame actually drawn (sync: frame f -> cell c), so the tip trails the blade and the flash (cell
+   d.hit) fires on the impact frame 28; after it the burst and wisps run at 24 fps. Without his clip (a stand-in figure) the same
+   table runs on the clock from the press, and the arc falls back to the cone placement. Display only: the damage stays on its tick. */
+function _fx22ChopTick(o){ const d=o.d, u=o.u, A=u.anim&&u.anim.blue, live=!!(A&&u._animSt==='blue'&&u._abilAnim==='blue'&&u._sprRef);
+  if(!o.ok&&o.cut==null&&o.caster._pend!==o.pend) o.cut=o.t;   /* the cast was interrupted: it fades */
+  let cell; if(o.hitAt==null){ const a=live?(u._animAcc||0):(o.t-o.ts)/FX_RT*24, f=d.sync.f, c=d.sync.c;
+    if(a<f[0]){ o.s.visible=false; return o.cut!=null?-1:0; }
+    if(a>=f[f.length-1]){ o.hitAt=o.t; cell=d.hit; } else { let j=0; while(a>=f[j+1]) j++; cell=Math.floor(c[j]+(c[j+1]-c[j])*(a-f[j])/(f[j+1]-f[j])); } }
+  else cell=d.hit+Math.floor((o.t-o.hitAt)/FX_RT*24);
+  if(cell>=d.n) return -1; fx2SetFrame(o.s,d,cell);
+  let op=1; if(o.cut!=null){ op=Math.max(0,1-(o.t-o.cut)/0.15); if(op<=0) return -1; } o.s.material.opacity=op; o.s.visible=true;
+  if(live){ const P=new TH.Vector3(); u._sprRef.getWorldPosition(P); o.P=P; o.wpp=u._sprRef.scale.y/A.fh; o.mir=!!u._fxMirror; }
+  if(o.P) _fx22ChopAxe(o); else _fx22ChopPos(o); return 0; }
+function _fx22ChopAxe(o){ const d=o.d, F=d.fit, sx=o.mir?-1:1, w=o.wpp, Rc=new TH.Vector3(1,0,0).applyQuaternion(camera.quaternion), Uc=new TH.Vector3(0,1,0).applyQuaternion(camera.quaternion);
+  const v=o.s._uv; if(v&&((v[0]<0)!==!o.mir)) o.s._uv=[-v[0],v[1],v[2]+v[0],v[3]];   /* B: mirrored when he faces right, as painted when he faces left (UV, not scale) */
+  o.s.center.set(0.5,0.5); o.s.scale.set(F.k*d.fw*w,F.k*d.fh*w,1); o.s.material.rotation=-sx*F.rot*Math.PI/180;
+  o.s.position.copy(o.P).add(Rc.multiplyScalar(sx*F.cc[0]*w)).add(Uc.multiplyScalar(-F.cc[1]*w)); }
+function _fx22ChopPos(o){ const d=o.d, u=o.u, h=u.sprH||3.9, H=(d.top-d.lift)*h*d.fh/(d.flashPx-d.topPx), W=H*d.fw/d.fh;   /* mirrored to open toward him (variant B), its near edge anchored past his weapon hand */
+  const off=d.hand*(u._bodyR||30),   /* read only: the body radius the figure build set (bodyR() would cache it) */ px=(u.rx==null?u.x:u.rx)+Math.cos(o.dir)*off, py=(u.ry==null?u.y:u.ry)+Math.sin(o.dir)*off;
+  let right=Math.cos(o.dir)>=0; try{ const a=new TH.Vector3(wx(u.x),0.05,wz(u.y)).project(camera), b=new TH.Vector3(wx(px),0.05,wz(py)).project(camera); if(Math.abs(b.x-a.x)>1e-4) right=b.x>a.x; }catch(_e){}
+  /* mirror by the UV window, not a negative scale (the sprite shader takes |scale|, so scale.x<0 never flips a THREE.Sprite) */
+  /* Phil picked variant B (11 Oct): the crescent MIRRORED so it opens toward Korvux - the stroke goes out round the enemy side and
+     comes back, the flash low near him. Painted, it opens right: so a screen-right cleave flips it, a screen-left one shows it as
+     painted (the true mirror). Its near edge (d.edge from the cell's side, the whole clip's art stays past it) sits on his weapon hand. */
+  const v=o.s._uv; if(v&&((v[0]<0)!==right)) o.s._uv=[-v[0],v[1],v[2]+v[0],v[3]];
+  o.s.center.set(right?d.edge:1-d.edge,d.back[1]); o.s.scale.set(W,H,1);
+  o.s.position.set(wx(px),0.05,wz(py)).add(new TH.Vector3(0,1,0).applyQuaternion(camera.quaternion).multiplyScalar(d.lift*h+(d.flashPx-d.backPx)*H/d.fh)); }
+function korvuxChopCastFx(u,hitT,R,pend){ if(!TH||!scene||!camera||!u) return; const d=FX2_DEF.korvuxcleave; if(!d) return;
+  _fx22Chop(u,_fx22CleaveDir(u),R*_fx22Area(),0,pend); }   /* hitT (the damage) is not the art's clock any more: the axe is */
+function korvuxChopLaunchFx(u,R,form){ if(!TH||!scene||!camera||!u) return; const d=FX2_DEF.korvuxcleave; if(!d) return;
+  const o=_fx1123.find(q=>q.kind==='chop'&&q.caster===u&&!q.ok&&q.cut==null);
+  if(o) o.ok=true; else _fx22Chop(u,_fx22CleaveDir(u),R*_fx22Area(),d.sync.f[0]/24*FX_RT,null); }   /* no pending chop (a repeat cast): one starts now at the swing */
+function korvuxChopHitFx(u,dir,R){ if(!TH||!scene||!camera||!u) return; const d=FX2_DEF.korvuxcleave; if(!d) return; const ts=(d.hit/d.n)*d.dur*FX_RT;
+  const o=_fx1123.find(q=>q.kind==='chop'&&q.caster===u&&q.ok&&!q.aimed);
+  if(o){ o.dir=dir; o.aimed=true; } else { const n=_fx22Chop(u,dir,R*_fx22Area(),d.sync.f[d.sync.f.length-1]/24*FX_RT,null); if(n) n.aimed=true; } }
+function _fx22Kill(o){ try{ scene.remove(o.s); o.s.material.dispose(); }catch(_){} }
+function clearFx1123(){ _fx1123.forEach(_fx22Kill); _fx1123.length=0; }
+function updateFx1123(dt){ if(!_fx1123.length) return;
+  for(let i=_fx1123.length-1;i>=0;i--){ const o=_fx1123[i], d=o.d; o.t+=dt; const clip=d.dur*FX_RT;
+    if(o.kind==='chop'){ if(_fx22ChopTick(o)<0){ _fx22Kill(o); _fx1123.splice(i,1); } continue; }   /* the chop rides his axe swing */
+    if(o.t<0){ o.s.visible=false; continue; }   /* the horizon waits hidden until its impact is due on the damage */
+    o.s.visible=true; const fr=Math.floor(o.t/clip*d.n); if(fr>=d.n){ _fx22Kill(o); _fx1123.splice(i,1); continue; }
+    fx2SetFrame(o.s,d,fr); o.s.material.opacity=o.fade>0?Math.max(0,Math.min(1,(clip-o.t)/o.fade)):1; } }
 /* v1115 Grok spell FX 22-24 (Phil-approved 10 Oct; Grok handoff 17:46). These five clips play in REAL TIME (rt): FX plates tick on
    the fight clock (battleFrameTail runs inside updateBattle on SIM_STEP), and the fight clock runs at SIM_STEP*SIM_HZ*BATTLE_PACE
    = 0.6724 of real time, so a clip second is FX_RT fight seconds - the same conversion as Grosk's hitTimes (v1112).
@@ -12559,7 +12643,7 @@ function updateFx1115(dt){ if(!_fx1115.length) return;
     fx2SetFrame(o.s,d,Math.min(d.n-1,fr));
     if(o.fade>0) o.s.material.opacity=Math.max(0,Math.min(1,(o.life-o.t)/o.fade));
     if(o.u&&(o.kind==='wound'||o.kind==='slash')){ const p=_fx15Pos(o.u); o.s.position.set(p[0],o.h,p[1]); } } }
-function clearFx2(){ _groundFx.forEach(o=>{scene.remove(o.m);o.m.material.dispose();}); _groundFx.length=0;
+function clearFx2(){ try{ clearFx1123(); }catch(_e){}   /* v1125 spell FX */ _groundFx.forEach(o=>{scene.remove(o.m);o.m.material.dispose();}); _groundFx.length=0;
   _projFx.forEach(p=>{scene.remove(p.spr);p.spr.material.dispose();}); _projFx.length=0; clearTipFx();
   _beamFx.forEach(o=>{scene.remove(o.spr);o.spr.material.dispose();}); _beamFx.length=0; _pendingDots.length=0;
   if(typeof _boltFx!=='undefined'){ _boltFx.forEach(o=>{scene.remove(o.spr);o.spr.material.dispose();}); _boltFx.length=0; }   /* v959 */
@@ -20108,7 +20192,7 @@ const CASTER_BALL={   // v340 (Phil): Beekeeper/Oakmir/Lumi nature, Annotator+Te
   fritz:{fx:'fritz_zap',scale:2.2,dur:0.13,bolt:true},   /* v958 (Phil: "also use this for auto attack on a single target"): the chain bolt from Fritz to his target */
   'boar shaman':{fx:'fireball',scale:1.2}   // v547 (Phil): the shaman's auto aims the burning hand, nothing leaves it on the clip - the engine's fireball is the projectile
 };
-const HERO_ULT_ART={rafe:{evadeEva:0.5,evadeDur:3,pfx:'rafetracer',pscale:0.9,pdur:0.30,spark:'rafespark'}, sloe:{backline:true,pfx:'sloearrow',pscale:0.9,pdur:0.30,stagger:0.12}, kharos:{gfx:'kharos_ult',gdur:2.0}, tolley:{gfx:'tolley_ult',gdur:2.4}, absalie:{gfx:'absalie_ult',gdur:2.4}, rivet:{gfx:'rivet_ult',gdur:2.4}, tessit:{deliver:'land'}, vesper:{deliver:'form'}, lysara:{deliver:'form',gfx:'lysara_ult',gdur:2.4}, nerisse:{deliver:'form',form:0.4}, pyroclast:{gfx:'pyroclast_ult',gdur:6.04,deliver:'land',fall:0.55}, orryn:{gfx:'orryn_ult',gdur:6.04,deliver:'form',form:0.5}, ambrel:{deliver:'form',gfx:'ambrel_ult',gdur:5.88}, vaelora:{gfx:'vaelora_ult',gdur:5.88}, aldren:{gfx:'aldren_ult',gdur:2.2}, astra:{deliver:'form',gfx:'astra_ult',gdur:5.83}, aureth:{deliver:'form',gfx:'aureth_ult',gdur:5.88}, carn:{deliver:'form',gfx:'carn_ult',gdur:2.6,gfxAt:'front'}, sorrel:{gfx:'sorrel_ult',gdur:5.88}, deepcleft:{deliver:'form',gfx:'deepcleft_ult',gdur:2.42}, fritz:{gfx:'fritz_ult',gdur:3.0,previewAt:'self'}, dandra:{gfx:'dandra_ult',gdur:2.6}, grimsby:{gfx:'grimsby_ult',gdur:5.88}, mellan:{gfx:'mellan_ult',gdur:4.88}, bloatus:{deliver:'form',gfx:'bloatus_ult',gdur:3.79}, maren:{deliver:'form',gfx:'maren_ult',gdur:2.8}, askel:{gfx:'askel_ult',gdur:2.29,artR:2.9*METER,fieldWide:'allies',allyShield:0.12,knockAside:2*METER}, grosk:{gfx:'grosk_ult',gdur:5.88}, hollow:{gfx:'hollow_ult',gdur:5.88}, konwu:{gfx:'konwu_ult',gdur:5.88}, lumi:{deliver:'form',gfx:'lumi_ult',gdur:1.04}, quorrel:{gfx:'quorrel_ult',gdur:1.67}, meridian:{gfx:'meridian_ult',gdur:2.75}, nox:{deliver:'form',gfx:'nox_ult',gdur:5.17,fieldWide:'enemies'}, oakmir:{deliver:'form',gfx:'oakmir_ult',gdur:5.67,badgeSize:0.45,noArea:true}, pellucid:{gfx:'pellucid_ult',gdur:6.04}, rhukk:{gfx:'rhukk_ult',gdur:2.08}, iver:{deliver:'land',gfx:'iver_ult',gdur:2.71}, sylthaine:{gfx:'sylthaine_ult',gdur:4.0}, gruel:{gfx:'gruel_ult',gdur:5.88}, tick:{gfx:'tick_ult',gdur:5.71}, umbris:{gfx:'umbris_ult',gdur:5.0}, vael:{gfx:'vael_ult',gdur:5.88}, mirelle:{deliver:'form',gfx:'mirelle_ult',gdur:5.62,fieldWide:'both'}, vex:{gfx:'vex_ult',gdur:4.75,gfxR:10*METER}, veyr:{gfx:'veyr_ult',gdur:5.12}, korvux:{deliver:'land',gfx:'korvux_ult',gdur:5.88}, vireo:{gfx:'vireo_ult',gdur:2.0}, ceraline:{deliver:'form',noArt:true}, tharl:{gfx:'tharl_ult',gdur:5.88,pathHit:0.5}, hobb:{deliver:'form',gfx:'hobb_ult',gdur:5.5}, yenna:{gfx:'yenna_ult',gdur:5.88,ricochet:true}, calypsa:{gfx:'calypsa_ult',gdur:5.88,deliver:'form',form:0.4}, brannus:{gfx:'brannus_ult',gdur:5.88,pathHit:0.5}, joss:{deliver:'form',gfx:'joss_ult',gdur:5.88,stun:1.2}, hurne:{gfx:'hurne_ult',gdur:5.88}
+const HERO_ULT_ART={rafe:{evadeEva:0.5,evadeDur:3,pfx:'rafetracer',pscale:0.9,pdur:0.30,spark:'rafespark'}, sloe:{backline:true,pfx:'sloearrow',pscale:0.9,pdur:0.30,stagger:0.12}, kharos:{gfx:'kharos_ult',gdur:2.0}, tolley:{gfx:'tolley_ult',gdur:2.4}, absalie:{gfx:'absalie_ult',gdur:2.4}, rivet:{gfx:'rivet_ult',gdur:2.4}, tessit:{deliver:'land'}, vesper:{deliver:'form'}, lysara:{deliver:'form',gfx:'lysara_ult',gdur:2.4}, nerisse:{deliver:'form',form:0.4}, pyroclast:{gfx:'pyroclast_ult',gdur:6.04,deliver:'land',fall:0.55}, orryn:{gfx:'orryn_ult',gdur:6.04,deliver:'form',form:0.5}, ambrel:{deliver:'form',gfx:'ambrel_ult',gdur:5.88}, vaelora:{gfx:'vaelora_ult',gdur:5.88}, aldren:{gfx:'aldren_ult',gdur:2.2}, astra:{deliver:'form',gfx:'astra_ult',gdur:5.83,ownFx:'horizon'}, aureth:{deliver:'form',gfx:'aureth_ult',gdur:5.88}, carn:{deliver:'form',gfx:'carn_ult',gdur:2.6,gfxAt:'front'}, sorrel:{gfx:'sorrel_ult',gdur:5.88}, deepcleft:{deliver:'form',gfx:'deepcleft_ult',gdur:2.42}, fritz:{gfx:'fritz_ult',gdur:3.0,previewAt:'self'}, dandra:{gfx:'dandra_ult',gdur:2.6}, grimsby:{gfx:'grimsby_ult',gdur:5.88}, mellan:{gfx:'mellan_ult',gdur:4.88}, bloatus:{deliver:'form',gfx:'bloatus_ult',gdur:3.79}, maren:{deliver:'form',gfx:'maren_ult',gdur:2.8}, askel:{gfx:'askel_ult',gdur:2.29,artR:2.9*METER,fieldWide:'allies',allyShield:0.12,knockAside:2*METER}, grosk:{gfx:'grosk_ult',gdur:5.88}, hollow:{gfx:'hollow_ult',gdur:5.88}, konwu:{gfx:'konwu_ult',gdur:5.88}, lumi:{deliver:'form',gfx:'lumi_ult',gdur:1.04}, quorrel:{gfx:'quorrel_ult',gdur:1.67}, meridian:{gfx:'meridian_ult',gdur:2.75}, nox:{deliver:'form',gfx:'nox_ult',gdur:5.17,fieldWide:'enemies'}, oakmir:{deliver:'form',gfx:'oakmir_ult',gdur:5.67,badgeSize:0.45,noArea:true}, pellucid:{gfx:'pellucid_ult',gdur:6.04}, rhukk:{gfx:'rhukk_ult',gdur:2.08}, iver:{deliver:'land',gfx:'iver_ult',gdur:2.71}, sylthaine:{gfx:'sylthaine_ult',gdur:4.0}, gruel:{gfx:'gruel_ult',gdur:5.88}, tick:{gfx:'tick_ult',gdur:5.71}, umbris:{gfx:'umbris_ult',gdur:5.0}, vael:{gfx:'vael_ult',gdur:5.88}, mirelle:{deliver:'form',gfx:'mirelle_ult',gdur:5.62,fieldWide:'both'}, vex:{gfx:'vex_ult',gdur:4.75,gfxR:10*METER}, veyr:{gfx:'veyr_ult',gdur:5.12}, korvux:{deliver:'land',gfx:'korvux_ult',gdur:5.88}, vireo:{gfx:'vireo_ult',gdur:2.0}, ceraline:{deliver:'form',noArt:true}, tharl:{gfx:'tharl_ult',gdur:5.88,pathHit:0.5}, hobb:{deliver:'form',gfx:'hobb_ult',gdur:5.5}, yenna:{gfx:'yenna_ult',gdur:5.88,ricochet:true}, calypsa:{gfx:'calypsa_ult',gdur:5.88,deliver:'form',form:0.4}, brannus:{gfx:'brannus_ult',gdur:5.88,pathHit:0.5}, joss:{deliver:'form',gfx:'joss_ult',gdur:5.88,stun:1.2}, hurne:{gfx:'hurne_ult',gdur:5.88}
 };
 Object.assign(ULT_DEF, {summonshaman:{key:'ink horror',dur:22,radius:1.6*METER,perLv:0.005}});   /* v1112: horror share x1.495 at level 100 */
 Object.assign(ULT_SCALE, {summonshaman:'\u2014'});
