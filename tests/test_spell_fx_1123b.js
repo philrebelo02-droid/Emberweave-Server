@@ -90,6 +90,11 @@ const SS = A.astra.step || 1 / 30;
       d.hit === 29 && Math.abs(flash - 29 / 24) < 1e-9 && flash * FXRT <= HIT.korvux + SS, [flash * FXRT, HIT.korvux]);
   } else ck('Ember Cleave: FX2_DEF.korvuxcleave exists', false);
 }
+if (has('FX2_DEF') && run('!!(FX2_DEF.korvuxcleave&&FX2_DEF.korvuxcleave.sync)')) {
+  const d = JSON.parse(run('JSON.stringify(FX2_DEF.korvuxcleave)')), f = d.sync.f, c = d.sync.c;
+  ck(`Ember Cleave rides his axe: sync frames ${f.join(',')} -> cells ${c.join(',')}; the flash cell lands on clip frame 28 (the impact, his blue clip's ax lunge frame), cells only move forward`,
+    f[f.length - 1] === 28 && c[c.length - 1] === d.hit && c.every((x, i) => i === 0 || x >= c[i - 1]) && f.every((x, i) => i === 0 || x > f[i - 1]) && (() => { const m = H.match(/blue:\{u:'\/assets\/anim\/korvux\/korvux_blue\.webp\?v=\d+'[^}]*?ax:\[([-\d,]+)\]/); return !!m && +m[1].split(',')[28] === 47; })() && d.fit && d.fit.k > 0, JSON.stringify(d.sync));
+} else ck('Ember Cleave: FX2_DEF.korvuxcleave.sync exists', false);
 ck('both warmed with the hero figure (FX1123_WARM astra / korvux)', /astra:\['astrahorizon'\],korvux:\['korvuxcleave'\]\};/.test(H));
 
 // CONTROL: the display helpers never touch the fight

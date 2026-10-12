@@ -11951,7 +11951,7 @@ const FX2_DEF={
   rhukkroar:{u:'/assets/anim/fx/rhukk_dig_in_roar.webp?v=1',n:60,fw:578,fh:455,cols:7,rows:9,dur:5.0,rt:true,disc:{cx:0.503,cy:0.615,dw:0.93,dh:0.72},R:4.5},   /* v1123 Dig In (Grok s06): the roar shockwave, frames 0-118 every 2nd, 12 fps, x0.8381 (4096 cap); painted in perspective, laid FLAT under his feet as an R m ground circle (v448 disc rule) */
   rhukkshell:{u:'/assets/anim/fx/rhukk_dig_in_shell.webp?v=1',n:35,fw:372,fh:414,cols:7,rows:5,dur:2.9167,rt:true,fps:12,inN:10,holdA:10,holdB:27,outC0:28,size:1.0},   /* v1123: the violet shell on him, frames 0-68 every 2nd, 12 fps, full size: forms (cells 0-9), holds (10-27, played back and forth) for the taunt, dissolves (28-34) as it ends */
   astrahorizon:{u:'/assets/anim/fx/astra_event_horizon.webp?v=1',n:72,fw:468,fh:455,cols:8,rows:9,dur:6.0,rt:true,impact:3,disc:{cx:0.513,cy:0.464,dw:0.972,dh:0.974}},   /* v1123b Event Horizon (Grok s07, Phil-approved, note 11 Oct 18:05): clip frames 1-143 every 2nd, 12 fps, x0.538 (4096 cap); the planet lands on frame 7 = cell 3 (timed onto the damage); FLAT on the ground, the core (cx,cy = the impact point) on the aim, the galaxy at its widest (dw x dh, cell fractions) = the 8 m circle */
-  korvuxcleave:{u:'/assets/anim/fx/korvux_ember_cleave.webp?v=1',n:69,fw:371,fh:409,cols:7,rows:10,dur:2.875,rt:true,hit:29,flash:[0.577,0.359],back:[0.027,0.743],backPx:105,topPx:28,flashPx:262,lift:0.3,top:1.25,hand:1.0},   /* v1123b Ember Cleave (Grok s08): 24 fps, x0.6759; frames 0-16, the hold 17-61 passed in 5 cells, 62-75 (the hit flash = frame 69 = cell 29), the wisps 76-140 every 2nd (double speed); upright, as painted (Phil 11 Oct: "meant to go the opposite direction of him, not into him"; the flipped try was wrong): the crescent's back edge (d.back, cell fractions, y from the bottom) sits just past his weapon hand (hand x his body radius out along the cleave), so the whole arc is on the enemy side and sweeps away from him; the flash row (flashPx) lift x his height up, the arc top (row topPx) top x his height; mirrored when the cleave runs screen-left */
+  korvuxcleave:{u:'/assets/anim/fx/korvux_ember_cleave.webp?v=1',n:69,fw:371,fh:409,cols:7,rows:10,dur:2.875,rt:true,hit:29,flash:[0.577,0.359],back:[0.027,0.743],backPx:105,edge:0.03,sync:{f:[24,25,26,27,28],c:[0,1,3,14,29]},fit:{k:2.3665,rot:-14.37,cc:[-44.6,-155.0]},topPx:28,flashPx:262,lift:0.3,top:1.25,hand:1.0},   /* v1123b Ember Cleave (Grok s08): 24 fps, x0.6759; frames 0-16, the hold 17-61 passed in 5 cells, 62-75 (the hit flash = frame 69 = cell 29), the wisps 76-140 every 2nd (double speed); upright, MIRRORED so it opens toward Korvux (Phil 11 Oct picked variant B of korvux-cleave-variants.jpg): the stroke runs out round the enemy side and comes back, the flash low near him; the art's near edge (edge, cell fraction from the side toward him) sits just past his weapon hand (hand x his body radius out along the cleave), so the whole arc is on the enemy side; the row back[1] is the anchor row; the flash row (flashPx) lift x his height up, the arc top (row topPx) top x his height; mirrored when the cleave runs screen-left */
   rafetracer:{u:'/assets/anim/fx/rafe_tracer.webp?v=1',n:1,fw:512,fh:91,cols:1,rows:1,dur:1},   /* v1075 Dead Man's Fortune (Grok spell 19, Phil-approved 8 Oct): the hot ball + orange tracer, head right */
   rafespark:{u:'/assets/anim/fx/rafe_spark.webp?v=1',n:32,fw:160,fh:160,cols:8,rows:4,dur:1.33,upright:true,upSize:0.9,upExtent:0.95,upPalm:0.5,ro:1},   /* v1075: the spark star where each shot lands (clip frames 64-95, keyed, centred on the burst) */
   linnet_rewind:{u:'/assets/anim/fx/linnet_rewind.webp?v=1',n:73,fw:192,fh:192,cols:9,rows:9,dur:6.04,upright:true,upAbove:true,upAboveM:0.06,upSize:0.5,upExtent:0.95,ro:1},   /* v1074 Rewrite the Pattern (Grok spell 18, Phil-accepted 8 Oct): the gold thread winds into a spiral over each ally's head, keyed from 18_rewrite_pattern_swirl.mp4 (every 2nd frame, 12 fps) */
@@ -12560,33 +12560,58 @@ function _fx22ShellCell(o){ const d=o.d, c=o.t/FX_RT, tot=o.life/FX_RT, nOut=d.n
 function astraHorizonFx(x,y,R,form){ if(!TH||!scene) return; const d=FX2_DEF.astrahorizon, m=_fx22Disc('astrahorizon',x,y,R,-5); if(!m) return;
   m.visible=false; _fx1123.push({kind:'horizon',s:m,d,t:(d.impact/d.n)*d.dur*FX_RT-form}); }
 /* v1123b s08 Ember Cleave (Grok: "Play upright in front of Korvux on his 45 deg / 3.2 m cone, synced so the hit flash lands on his cast
-   impact"): the overhead chop, as painted, its back edge just past his weapon hand (d.hand x his body radius) so the arc sweeps away from him, the flash row d.lift x his height up; turned to the
+   impact"): the overhead chop, mirrored to open toward him (Phil's variant B), its near edge just past his weapon hand (d.hand x his body radius) so the whole arc is on the enemy side, the flash row d.lift x his height up; turned to the
    side the cleave runs on screen. It starts at the PRESS (castKit), its clock set so cell d.hit lands on the damage; the launch confirms
    it, the damage turns it to the cleave's own direction. Display only. */
 function _fx22CleaveDir(u){ const a=(u._aimWX!=null)?{x:u._aimWX,y:u._aimWY}:null, t=(u.target&&u.target.alive)?u.target:nearestEnemy(u);
   return a?Math.atan2(a.y-u.y,a.x-u.x):(t?Math.atan2(t.y-u.y,t.x-u.x):(u.team==='ally'?0:Math.PI)); }
-function _fx22Chop(u,dir,R,t0,pend){ const d=FX2_DEF.korvuxcleave, s=_fx22Spr('korvuxcleave',994); if(!s) return null; s.visible=t0>=0;
-  const o={kind:'chop',s,d,t:t0,u,caster:u,dir,R,pend,ok:!pend}; _fx22ChopPos(o); _fx1123.push(o); return o; }
-function _fx22ChopPos(o){ const d=o.d, u=o.u, h=u.sprH||3.9, H=(d.top-d.lift)*h*d.fh/(d.flashPx-d.topPx), W=H*d.fw/d.fh;   /* as painted (opens right, flash lower right), its back edge anchored past his weapon hand */
+function _fx22Chop(u,dir,R,t0,pend){ const d=FX2_DEF.korvuxcleave, s=_fx22Spr('korvuxcleave',994); if(!s) return null; s.visible=false;
+  const o={kind:'chop',s,d,t:t0,ts:0,u,caster:u,dir,R,pend,ok:!pend}; _fx22ChopPos(o); _fx1123.push(o); return o; }
+/* Phil 11 Oct: "the slash should go with his axe swing". The arc rides his blue clip: measured on korvux_blue.webp (24 fps, facing
+   right) the axe head (its red pixels' median) winds up behind him (frames 19-23), comes over the top (24-25), out in front (26),
+   down (27) and lands at his feet on frame 28. The variant-B crescent's stroke was fitted to that path (scale k x the cell, turned
+   rot deg, its cell centre at cc hero px from his foot anchor; the fit misses the axe head by 9-46 px on a ~500 px swing) and its
+   cells are driven by the clip frame actually drawn (sync: frame f -> cell c), so the tip trails the blade and the flash (cell
+   d.hit) fires on the impact frame 28; after it the burst and wisps run at 24 fps. Without his clip (a stand-in figure) the same
+   table runs on the clock from the press, and the arc falls back to the cone placement. Display only: the damage stays on its tick. */
+function _fx22ChopTick(o){ const d=o.d, u=o.u, A=u.anim&&u.anim.blue, live=!!(A&&u._animSt==='blue'&&u._abilAnim==='blue'&&u._sprRef);
+  if(!o.ok&&o.cut==null&&o.caster._pend!==o.pend) o.cut=o.t;   /* the cast was interrupted: it fades */
+  let cell; if(o.hitAt==null){ const a=live?(u._animAcc||0):(o.t-o.ts)/FX_RT*24, f=d.sync.f, c=d.sync.c;
+    if(a<f[0]){ o.s.visible=false; return o.cut!=null?-1:0; }
+    if(a>=f[f.length-1]){ o.hitAt=o.t; cell=d.hit; } else { let j=0; while(a>=f[j+1]) j++; cell=Math.floor(c[j]+(c[j+1]-c[j])*(a-f[j])/(f[j+1]-f[j])); } }
+  else cell=d.hit+Math.floor((o.t-o.hitAt)/FX_RT*24);
+  if(cell>=d.n) return -1; fx2SetFrame(o.s,d,cell);
+  let op=1; if(o.cut!=null){ op=Math.max(0,1-(o.t-o.cut)/0.15); if(op<=0) return -1; } o.s.material.opacity=op; o.s.visible=true;
+  if(live){ const P=new TH.Vector3(); u._sprRef.getWorldPosition(P); o.P=P; o.wpp=u._sprRef.scale.y/A.fh; o.mir=!!u._fxMirror; }
+  if(o.P) _fx22ChopAxe(o); else _fx22ChopPos(o); return 0; }
+function _fx22ChopAxe(o){ const d=o.d, F=d.fit, sx=o.mir?-1:1, w=o.wpp, Rc=new TH.Vector3(1,0,0).applyQuaternion(camera.quaternion), Uc=new TH.Vector3(0,1,0).applyQuaternion(camera.quaternion);
+  const v=o.s._uv; if(v&&((v[0]<0)!==!o.mir)) o.s._uv=[-v[0],v[1],v[2]+v[0],v[3]];   /* B: mirrored when he faces right, as painted when he faces left (UV, not scale) */
+  o.s.center.set(0.5,0.5); o.s.scale.set(F.k*d.fw*w,F.k*d.fh*w,1); o.s.material.rotation=-sx*F.rot*Math.PI/180;
+  o.s.position.copy(o.P).add(Rc.multiplyScalar(sx*F.cc[0]*w)).add(Uc.multiplyScalar(-F.cc[1]*w)); }
+function _fx22ChopPos(o){ const d=o.d, u=o.u, h=u.sprH||3.9, H=(d.top-d.lift)*h*d.fh/(d.flashPx-d.topPx), W=H*d.fw/d.fh;   /* mirrored to open toward him (variant B), its near edge anchored past his weapon hand */
   const off=d.hand*(u._bodyR||30),   /* read only: the body radius the figure build set (bodyR() would cache it) */ px=(u.rx==null?u.x:u.rx)+Math.cos(o.dir)*off, py=(u.ry==null?u.y:u.ry)+Math.sin(o.dir)*off;
   let right=Math.cos(o.dir)>=0; try{ const a=new TH.Vector3(wx(u.x),0.05,wz(u.y)).project(camera), b=new TH.Vector3(wx(px),0.05,wz(py)).project(camera); if(Math.abs(b.x-a.x)>1e-4) right=b.x>a.x; }catch(_e){}
   /* mirror by the UV window, not a negative scale (the sprite shader takes |scale|, so scale.x<0 never flips a THREE.Sprite) */
-  const v=o.s._uv; if(v&&((v[0]<0)===right)) o.s._uv=[-v[0],v[1],v[2]+v[0],v[3]];
-  o.s.center.set(right?d.back[0]:1-d.back[0],d.back[1]); o.s.scale.set(W,H,1);
+  /* Phil picked variant B (11 Oct): the crescent MIRRORED so it opens toward Korvux - the stroke goes out round the enemy side and
+     comes back, the flash low near him. Painted, it opens right: so a screen-right cleave flips it, a screen-left one shows it as
+     painted (the true mirror). Its near edge (d.edge from the cell's side, the whole clip's art stays past it) sits on his weapon hand. */
+  const v=o.s._uv; if(v&&((v[0]<0)!==right)) o.s._uv=[-v[0],v[1],v[2]+v[0],v[3]];
+  o.s.center.set(right?d.edge:1-d.edge,d.back[1]); o.s.scale.set(W,H,1);
   o.s.position.set(wx(px),0.05,wz(py)).add(new TH.Vector3(0,1,0).applyQuaternion(camera.quaternion).multiplyScalar(d.lift*h+(d.flashPx-d.backPx)*H/d.fh)); }
 function korvuxChopCastFx(u,hitT,R,pend){ if(!TH||!scene||!camera||!u) return; const d=FX2_DEF.korvuxcleave; if(!d) return;
-  _fx22Chop(u,_fx22CleaveDir(u),R*_fx22Area(),(d.hit/d.n)*d.dur*FX_RT-hitT,pend); }
+  _fx22Chop(u,_fx22CleaveDir(u),R*_fx22Area(),0,pend); }   /* hitT (the damage) is not the art's clock any more: the axe is */
 function korvuxChopLaunchFx(u,R,form){ if(!TH||!scene||!camera||!u) return; const d=FX2_DEF.korvuxcleave; if(!d) return;
   const o=_fx1123.find(q=>q.kind==='chop'&&q.caster===u&&!q.ok&&q.cut==null);
-  if(o) o.ok=true; else _fx22Chop(u,_fx22CleaveDir(u),R*_fx22Area(),(d.hit/d.n)*d.dur*FX_RT-form,null); }   /* no pending chop (a repeat cast): one starts now, its flash on this damage */
+  if(o) o.ok=true; else _fx22Chop(u,_fx22CleaveDir(u),R*_fx22Area(),d.sync.f[0]/24*FX_RT,null); }   /* no pending chop (a repeat cast): one starts now at the swing */
 function korvuxChopHitFx(u,dir,R){ if(!TH||!scene||!camera||!u) return; const d=FX2_DEF.korvuxcleave; if(!d) return; const ts=(d.hit/d.n)*d.dur*FX_RT;
-  const o=_fx1123.find(q=>q.kind==='chop'&&q.caster===u&&q.ok&&!q.aimed&&q.t<ts+0.2);
-  if(o){ o.dir=dir; o.aimed=true; _fx22ChopPos(o); } else { const n=_fx22Chop(u,dir,R*_fx22Area(),ts,null); if(n) n.aimed=true; } }
+  const o=_fx1123.find(q=>q.kind==='chop'&&q.caster===u&&q.ok&&!q.aimed);
+  if(o){ o.dir=dir; o.aimed=true; } else { const n=_fx22Chop(u,dir,R*_fx22Area(),d.sync.f[d.sync.f.length-1]/24*FX_RT,null); if(n) n.aimed=true; } }
 function _fx22Kill(o){ try{ scene.remove(o.s); o.s.material.dispose(); }catch(_){} }
 function clearFx1123(){ _fx1123.forEach(_fx22Kill); _fx1123.length=0; }
 function updateFx1123(dt){ if(!_fx1123.length) return;
   for(let i=_fx1123.length-1;i>=0;i--){ const o=_fx1123[i], d=o.d; o.t+=dt; const clip=d.dur*FX_RT;
-    if(o.t<0){ o.s.visible=false; if((o.kind==='ruyi'||o.kind==='chop')&&!o.ok&&o.caster._pend!==o.pend){ _fx22Kill(o); _fx1123.splice(i,1); } continue; }   /* cancelled before it showed */
+    if(o.kind==='chop'){ if(_fx22ChopTick(o)<0){ _fx22Kill(o); _fx1123.splice(i,1); } continue; }   /* v1123b: the chop rides his axe swing */
+    if(o.t<0){ o.s.visible=false; if(o.kind==='ruyi'&&!o.ok&&o.caster._pend!==o.pend){ _fx22Kill(o); _fx1123.splice(i,1); } continue; }   /* cancelled before it showed */
     o.s.visible=true;
     if(o.kind==='shell'){ if(!o.u.alive) o.life=Math.min(o.life,o.t+0.2);
       if(o.t>=o.life){ _fx22Kill(o); _fx1123.splice(i,1); continue; }
