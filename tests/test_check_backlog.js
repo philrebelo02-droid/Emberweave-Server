@@ -43,7 +43,7 @@ async function fights(S, B, n) {
 async function runOn(dir, check, full) {
   const down = await downHelper();
   const env = { SIM_WORKERS: '1', SIM_RESOLVE_WAIT_MS: '0', SIM_HELPERS: down.url, SIM_HELPER_KEY: KEY, SERVER_ID: '1' };
-  const S = await R.server({ dir, env });
+  const S = await R.server({ dir, env: Object.assign({ DB_STORE_JOURNAL: '0' }, env) });   // v1128: it reads the v1127 shard files
   let help = null;
   try {
     const B = await R.boot(S, 'bl', 2, { world: false });
