@@ -19,6 +19,15 @@
    - strained() tells the server's own helper (via /internal/strain) that this server is strained, so it offers no help. */
 const { Worker } = require('worker_threads');
 const os = require('os'), path = require('path'), fs = require('fs');
+const ROLES = require('./sim-roles.js');
+/* v1127 HELPER ROLES (server/sim-roles.js holds the mode -> role table). Each helper entry may carry role 'live' | 'async' | 'any'
+   (default 'any') and reserve (0-1, default 0.25). A battle's role comes from its mode (run(m, args, {mode}) / {role}):
+     live  -> helpers with role live/any only; an async helper only when every live/any helper is down (never because live is busy);
+              on a live/any helper, live battles leave `reserve` of its slots to async work while async work is waiting;
+     async -> async helpers first (any tier), then live/any helpers: up to their reserved share while there was live work in the
+              last 2 s, all their free slots when there was none.
+   Dispatch is event-driven: onFree(cb) is called when a helper slot frees or a health poll finds a helper ready, and canTake(role)
+   says whether a battle of that role would find a slot now - the check backlog waits for that instead of asking over and over. */
 
 function create(gameFile, opts = {}) {
   const size = Math.max(1, Math.min(opts.size || (os.cpus().length - 1) || 1, opts.maxSize || 4));   // v1040: a helper machine may run more
@@ -33,10 +42,11 @@ function create(gameFile, opts = {}) {
   const helperMode = !!((opts.helpers && opts.helpers.length) || opts.helpersFile);
   const helpers = [];   // {url, key, tier, ok, why, disabled, limit, mine}
   function setHelpers(list) {
-    const want = (list || []).filter(h => h && h.url).map(h => ({ url: String(h.url).replace(/\/$/, ''), key: h.key || opts.key, tier: +h.tier || 1 }));
+    const want = (list || []).filter(h => h && h.url).map(h => ({ url: String(h.url).replace(/\/$/, ''), key: h.key || opts.key, tier: +h.tier || 1,
+      duty: ROLES.helperRole(h.role), reserve: Number.isFinite(+h.reserve) && h.reserve !== null && h.reserve !== '' ? Math.max(0, Math.min(1, +h.reserve)) : ROLES.DEFAULT_RESERVE }));   // v1127: duty = the configured role
     for (let i = helpers.length - 1; i >= 0; i--) if (!want.some(w => w.url === helpers[i].url)) helpers.splice(i, 1);
     for (const w of want) { const h = helpers.find(x => x.url === w.url);
-      if (h) { h.tier = w.tier; h.key = w.key; } else helpers.push({ ...w, ok: false, why: 'not checked', disabled: false, limit: 0, mine: 0, backoffUntil: 0,
+      if (h) { h.tier = w.tier; h.key = w.key; h.duty = w.duty; h.reserve = w.reserve; } else helpers.push({ ...w, ok: false, why: 'not checked', disabled: false, limit: 0, mine: 0, live: 0, async: 0, backoffUntil: 0,
         n: { sent: 0, done: 0, busy: 0, errors: 0, ms: 0, maxMine: 0 }, cpu: null, mode: null, role: null, theirInFlight: null }); }
     helperView();
   }
@@ -44,12 +54,13 @@ function create(gameFile, opts = {}) {
      server sent, finished, was refused (busy) and its mean battle time, and from the helper's /health its limit, its own in-flight
      count, mode, role and the CPU the rest of its machine uses. */
   function helperView() { if (!stats.helper) return;
-    stats.helper.helpers = helpers.map(h => ({ url: h.url, tier: h.tier, ok: h.ok, why: h.disabled ? 'disabled' : h.why, limit: h.limit, mine: h.mine,
+    stats.helper.helpers = helpers.map(h => ({ url: h.url, tier: h.tier, duty: h.duty, reserve: h.reserve, ok: h.ok, why: h.disabled ? 'disabled' : h.why, limit: h.limit, mine: h.mine, live: h.live, async: h.async,
       maxMine: h.n ? h.n.maxMine : 0, sent: h.n ? h.n.sent : 0, done: h.n ? h.n.done : 0, busy: h.n ? h.n.busy : 0, errors: h.n ? h.n.errors : 0,
       avgMs: h.n && h.n.done ? Math.round(h.n.ms / h.n.done) : null, otherCpu: h.cpu, theirInFlight: h.theirInFlight, mode: h.mode, role: h.role })); }
   function readFile() { if (!opts.helpersFile) return; try { setHelpers([...(opts.helpers || []), ...JSON.parse(fs.readFileSync(opts.helpersFile, 'utf8'))]); } catch (e) { setHelpers(opts.helpers || []); } }
   const stressQueue = opts.stressQueue || size, helperTimeoutMs = opts.helperTimeoutMs || 4000, checkEvery = opts.checkEvery || 25;
-  if (helperMode) stats.helper = { sent: 0, done: 0, fellBack: 0, nextHelper: 0, checked: 0, mismatches: 0, byTier: {}, helpers: [] };
+  if (helperMode) stats.helper = { sent: 0, done: 0, fellBack: 0, nextHelper: 0, checked: 0, mismatches: 0, byTier: {}, helpers: [],
+    byRole: { live: 0, async: 0 }, liveOnAsync: 0, asyncOnLive: 0, wakeups: 0, noHelper: 0 };   // v1127
   setHelpers(opts.helpers || []); readFile();
   const checks = [];
   // main-thread lag, sampled every second: stressed while the mean lag of the last second is above stressLagMs (default 25 ms),
@@ -122,19 +133,42 @@ function create(gameFile, opts = {}) {
       h.ok = j.fp === opts.fp && serves && (!j.busy || slotsFull) && j.ready > 0;   // a full helper stays in the list (its 503 is a short backoff); a busy MACHINE is left alone
       h.why = j.fp !== opts.fp ? 'other build' : !serves ? 'serves others' : j.busy ? 'busy' : j.ready > 0 ? '' : 'loading'; }
     catch (e) { h.ok = false; h.why = 'unreachable'; }
-    helperView();
+    helperView(); if (h.ok) freed();
   }
+  // v1127 event-driven dispatch: whoever waits for a helper slot is woken when one frees (at most once per tick)
+  const freeListeners = []; let freeQueued = false;
+  function freed() { if (freeQueued || !freeListeners.length) return; freeQueued = true;
+    setImmediate(() => { freeQueued = false; if (stats.helper) stats.helper.wakeups++; for (const f of freeListeners.slice()) { try { f(); } catch (e) {} } }); }
+  let lastLiveAt = 0;
+  const asyncWaiting = () => { try { return typeof opts.asyncWaiting === 'function' ? +opts.asyncWaiting() || 0 : 0; } catch (e) { return 0; } };
+  /* Phil's layout (11 Oct 2026): the reserve holds while async work waits; when the backlog would take more than leanAfterMin minutes
+     to drain (opts.asyncDrainMinutes), the flex machines (role 'any', e.g. Phil's PC) lean async - half their slots. */
+  const leanAsync = () => { try { return typeof opts.asyncDrainMinutes === 'function' && +opts.asyncDrainMinutes() > (opts.leanAfterMin || +process.env.SIM_LEAN_AFTER_MIN || 5); } catch (e) { return false; } };
+  const reserved = h => Math.ceil((h.limit || 1) * (h.duty === 'any' && leanAsync() ? Math.max(h.reserve || 0, 0.5) : (h.reserve || 0)));
+  // the slots a battle of this role may use on this helper now
+  function roomFor(h, role) {
+    const limit = h.limit || 1, free = limit - h.mine; if (free <= 0) return 0;
+    if (role === 'live') { if (h.duty === 'async') return free;   // only reached when every live helper is down (pick)
+      const cap = limit - (asyncWaiting() > 0 ? Math.max(0, reserved(h) - h.async) : 0); return Math.max(0, Math.min(free, cap - h.live)); }
+    if (h.duty === 'async') return free;
+    const cap = Date.now() - lastLiveAt < 2000 ? reserved(h) : limit; return Math.max(0, Math.min(free, cap - h.async)); }
   if (helperMode) { const t = setInterval(() => { readFile(); helpers.forEach(poll); }, 5000); if (t.unref) t.unref(); helpers.forEach(poll); }
   // the free helper for the next battle: the lowest tier that has room, then the most free room in it (room = its limit minus the
   // battles this server has in flight there)
-  function pick(skip) {
+  function pick(skip, role) {
+    role = role === 'live' ? 'live' : 'async';
     let best = null;
-    const now = Date.now();
-    for (const h of helpers) { if (!h.ok || h.disabled || skip.has(h) || now < (h.backoffUntil || 0)) continue; const free = h.limit - h.mine; if (free <= 0) continue;
-      if (!best || h.tier < best.h.tier || (h.tier === best.h.tier && free > best.free)) best = { h, free }; }
+    const now = Date.now(), usable = h => h.ok && !h.disabled && !skip.has(h) && now >= (h.backoffUntil || 0);
+    // live: the live/any helpers; the async ones only when every live/any helper is down. async: the async helpers first.
+    const liveUp = helpers.some(h => h.ok && !h.disabled && h.duty !== 'async');
+    const rank = h => role === 'live' ? (h.duty === 'async' ? (liveUp ? -1 : 1) : 0) : (h.duty === 'async' ? 0 : 1);
+    for (const h of helpers) { if (!usable(h)) continue; const r = rank(h); if (r < 0) continue; const free = roomFor(h, role); if (free <= 0) continue;
+      if (!best || r < best.r || (r === best.r && (h.tier < best.h.tier || (h.tier === best.h.tier && free > best.free)))) best = { h, free, r }; }
     return best && best.h;
   }
-  async function remote(h, method, args) {
+  async function remote(h, method, args, role) {
+    role = role === 'live' ? 'live' : 'async'; h[role]++; stats.helper.byRole[role]++;
+    if (role === 'live' && h.duty === 'async') stats.helper.liveOnAsync++; if (role === 'async' && h.duty !== 'async') stats.helper.asyncOnLive++;
     stats.helper.sent++; h.mine++; const t0 = Date.now(); if (h.n) { h.n.sent++; if (h.mine > h.n.maxMine) h.n.maxMine = h.mine; }
     try {
       const r = await fetch(h.url + '/battle', { method: 'POST', headers: { 'content-type': 'application/json', 'x-helper-key': h.key },
@@ -148,7 +182,7 @@ function create(gameFile, opts = {}) {
       if (stats.helper.done % checkEvery === 0 && checks.length < 50) checks.push({ h, method, args, want: JSON.stringify(j.result) });
       return j.result;
     } catch (e) { if (h.n && !/^helper (409|401|503)/.test(e.message)) h.n.errors++; throw e; }
-    finally { h.mine--; helperView(); }
+    finally { h.mine--; h[role]--; helperView(); freed(); }
   }
   function spotCheck() {   // only when this pool has nothing waiting: never slows a player's battle
     if (!checks.length || waiting.length || workers.some(s => s.busy)) return;
@@ -161,24 +195,28 @@ function create(gameFile, opts = {}) {
      to a helper; with no helper free it is refused (the server's backlog keeps it and asks again) - it runs on this machine's workers
      only when no helper is configured at all, or SIM_CHECKS_LOCAL=1. checkCapacity() = the checks worth keeping in flight. */
   const checksLocal = opts.checksLocal !== undefined ? !!opts.checksLocal : process.env.SIM_CHECKS_LOCAL === '1';
-  function checkCapacity() { const hs = helpers.filter(h => h.ok && !h.disabled); const slots = hs.reduce((s, h) => s + (h.limit || 1), 0);
+  function checkCapacity(role) { role = role === 'live' ? 'live' : 'async';   // v1127: the slots this role may use (async: the nodes + the fast helpers' share)
+    const hs = helpers.filter(h => h.ok && !h.disabled); const slots = hs.reduce((s, h) => s + (role === 'async' && h.duty !== 'async' ? (Date.now() - lastLiveAt < 2000 ? reserved(h) : (h.limit || 1)) : (h.limit || 1)), 0);
     return helperMode && helpers.length ? Math.max(1, slots + (checksLocal ? stats.ready : 0)) : Math.max(1, stats.ready || size); }
-  function runCheck(method, args) {
+  const canTake = role => !(helperMode && helpers.length) || checksLocal || !!pick(new Set(), role);   // v1127: would a battle of this role find a slot now
+  function runCheck(method, args, role) {
     if (!(helperMode && helpers.length)) return local(method, args);
     const tried = new Set();
-    const attempt = () => { const h = pick(tried); if (!h) { if (checksLocal) return local(method, args); stats.helper.noHelper = (stats.helper.noHelper || 0) + 1; return Promise.reject(new Error('no helper free')); }
-      tried.add(h); return remote(h, method, args).catch(() => { stats.helper.nextHelper++; return attempt(); }); };
+    const attempt = () => { const h = pick(tried, role); if (!h) { if (checksLocal) return local(method, args); stats.helper.noHelper++; return Promise.reject(new Error('no helper free')); }
+      tried.add(h); return remote(h, method, args, role).catch(() => { stats.helper.nextHelper++; return attempt(); }); };
     return attempt();
   }
   function run(method, args, o) {
-    if (o && o.check) return runCheck(method, args);
+    const role = (o && o.role) || ROLES.roleOf(o && o.mode);   // v1127: unknown or no mode = async
+    if (role === 'live') lastLiveAt = Date.now();
+    if (o && o.check) return runCheck(method, args, role);
     // STRESS ("high war time") = the main thread is running late (event-loop lag), or every local worker is fighting, or a queue
     // formed. Then EVERY battle goes to a helper: that frees this machine's cores for the main thread, which cannot move (measured
     // 6 Oct: on an i5-650 the battle workers and the main thread compete for the same 2 physical cores).
     if (helperMode && helpers.length && (stressed() || waiting.length >= stressQueue || !stats.ready || !workers.some(s => s.ready && !s.busy))) {
       const tried = new Set();
-      const attempt = () => { const h = pick(tried); if (!h) { stats.helper.fellBack++; return local(method, args); }
-        tried.add(h); return remote(h, method, args).catch(() => { stats.helper.nextHelper++; return attempt(); }); };
+      const attempt = () => { const h = pick(tried, role); if (!h) { stats.helper.fellBack++; return local(method, args); }
+        tried.add(h); return remote(h, method, args, role).catch(() => { stats.helper.nextHelper++; return attempt(); }); };
       return attempt();
     }
     return local(method, args);
@@ -194,6 +232,6 @@ function create(gameFile, opts = {}) {
      10 s (measured 6 Oct: 20 of 75 samples on a server whose own CPU use had a median of 7%). stressed() - when THIS server hands its
      battles to helpers - stays as sensitive as before. */
   const sustained = () => lagWindow.filter(x => x > stressLagMs).length >= 3;
-  return { run, close, stats, checkCapacity, strained: () => sustained() || waiting.length >= stressQueue, lagMs: () => lastLag, get queued() { return waiting.length; } };
+  return { run, close, stats, checkCapacity, canTake, onFree: f => { freeListeners.push(f); }, strained: () => sustained() || waiting.length >= stressQueue, lagMs: () => lastLag, get queued() { return waiting.length; } };
 }
 module.exports = { create };
