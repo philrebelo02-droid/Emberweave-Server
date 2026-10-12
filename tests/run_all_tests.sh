@@ -235,6 +235,8 @@ note "test_check_helpers_1124.js (v1124: fight checks go to the helpers only - n
 node tests/test_check_helpers_1124.js || FAILED=1
 note "test_map_zoom_gate.js (v1127 zoom gate: no castle/mine request or element above the close picture level, your castle + targets as small markers, the server refuses the whole-map list and views over 6 x 6 tiles; 59eaefba control fails)"
 node tests/test_map_zoom_gate.js || FAILED=1
+note "test_chat_cap.js (v1127 chat cap: every channel keeps its last 100 lines on the server, on disk and on the device; reported lines stay in the report store through the cap, a save and a hard kill; 59eaefba control fails)"
+node tests/test_chat_cap.js || FAILED=1
 note "test_march_retention_1038.js (v1038: settled city/mine marches are held 2 days, then let go - for every player; unfinished kept; v1037 control)"
 node tests/test_march_retention_1038.js || FAILED=1
 note "test_sim_helper_1039.js (v1039: battle helpers - a backed-up pool shares battles with server/sim-helper.js; identical results, spot checks; wrong key / other engine / busy / dead helper fall back locally; no-helper control)"
