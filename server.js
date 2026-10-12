@@ -3480,12 +3480,12 @@ function _simWrap(host){
       SIM_STATS.mainThread++; return orig.apply(host,args); }; }
   return host; }
 const _SIM_FLIGHT=new Map();   // v1124: key -> the running prefetch (a late async verification reuses it instead of fighting again)
-async function simPrefetch(list,maxWaitMs){
+async function simPrefetch(list,maxWaitMs,runOpts){
   const pool=simPool(); if(!pool || !pool.stats.ready || !list || !list.length) return;
   const now=Date.now(); if(_SIM_MEMO.size>300) for(const [k,v] of _SIM_MEMO) if(now-v.t>60000) _SIM_MEMO.delete(k);
   const all=Promise.all(list.map(({m,args,k})=>{ const key=k||_simKey(m,args); if(_SIM_MEMO.has(key)) return null;
     if(_SIM_FLIGHT.has(key)) return _SIM_FLIGHT.get(key).catch(()=>{});
-    const p=pool.run(m,args).then(r=>{ _SIM_MEMO.set(key,{r,t:Date.now()}); SIM_STATS.prefetched++; return r; },e=>{ SIM_STATS.prefetchFailed++; throw e; });
+    const p=pool.run(m,args,runOpts).then(r=>{ _SIM_MEMO.set(key,{r,t:Date.now()}); SIM_STATS.prefetched++; return r; },e=>{ SIM_STATS.prefetchFailed++; throw e; });
     _SIM_FLIGHT.set(key,p); p.then(()=>_SIM_FLIGHT.delete(key),()=>_SIM_FLIGHT.delete(key));
     return p.catch(()=>{}); }));
   if(!(maxWaitMs>0)) return all;
@@ -3502,35 +3502,71 @@ function campIncident(u,led,x){   // the flagged-fight record (shared by the res
   led.battleIncidents=(led.battleIncidents||[]).concat([{t:Date.now(),stage:x.st.id,mode:x.mode,why:x.why,
     source:x.source,playerTruth:true,engine:x.engine||null,seed:x.seed>>>0,
     inputs:x.inputLog.length,server:x.serverEndDigest?sha256hex(x.serverEndDigest):null,
-    client:sha256hex(x.clientEnd),serverWon:x.rep?!!x.rep.won:null,
+    client:x.clientHash||sha256hex(x.clientEnd),serverWon:x.rep?!!x.rep.won:null,
     serverStars:x.rep?(x.rep.stars|0):null,witnessedWon:x.witnessed.won,
     witnessedStars:x.witnessed.stars,transcript:x.inputLog}]).slice(-20);
   console.warn('battle replay incident ('+x.why+') — stage '+x.st.id+' — player-witnessed result recorded');
   if(x.rep&&x.serverEndDigest) feedbackCheatSignal(u,'campaign-replay',
     'Campaign replay digest mismatch at '+x.mode+' stage '+x.st.id+'. Player-witnessed result kept for review.',
     'battle integrity'); }
-const CAMP_VERIFY_STATS={queued:0,accepted:0,flagged:0,skipped:0};
-function campVerifyLater(x){
-  const pool=simPool(); if(!pool) return; CAMP_VERIFY_STATS.queued++;
-  const key=_simKey('campaign',x.args), memo=_SIM_MEMO.get(key);
-  const p=memo?Promise.resolve(memo.r):(_SIM_FLIGHT.get(key)||pool.run('campaign',x.args));
-  p.then(r=>{ _SIM_MEMO.delete(key); campVerifyDone(x,r,null); },e=>{ _SIM_MEMO.delete(key); campVerifyDone(x,null,e); }); }
-function campVerifyDone(x,rep,err){ _reqCtx.run({saveIds:[x.uid]},()=>{   // saves inside name this player only
-  const u=DB.users[x.uid], led=u&&u.led; if(!led) return;
-  const rc=(led.battleReceipts||[]).find(r=>r&&r.verify==='pending'&&r.seed===(x.seed>>>0)&&r.t===x.t); if(!rc) return;   // a rolled-back resolve left nothing to check
-  if(!rep){ rc.verify='skipped'; rc.verifyWhy=String((err&&err.message)||'unavailable').slice(0,60); CAMP_VERIFY_STATS.skipped++; writeDB([x.uid]); return; }
-  const serverEndDigest=String(rep.digest||''), match=!!serverEndDigest&&sha256hex(x.clientEnd)===sha256hex(serverEndDigest);
-  delete rc.verify; rc.digest=serverEndDigest?sha256hex(serverEndDigest):null; rc.match=match;
+/* v1124 THE CHECK BACKLOG (Phil 11 Oct 2026: "skipped checks must never be lost"). A fight answered before its check keeps what the
+   check needs ON ITS RECEIPT (the frozen snapshots in rc.chk + the transcript + the seed; the stage's waves come from the stage) - so
+   the backlog survives a restart (a boot scan re-queues every receipt still marked pending). The dispatcher keeps at most the battle
+   capacity in flight (helpers' free slots, or the local workers when no helper is set), so nothing is shed: a refused check goes back
+   to the queue and is tried again. Accepted -> the recording is dropped; mismatch -> incident + review flag, recording kept. */
+const CAMP_VERIFY_STATS={queued:0,accepted:0,flagged:0,retried:0,errors:0,inFlight:0,attached:0,backlog:0,drainedLastMin:0};
+const _checkQ=[], _checkKeys=new Set(); let _checkInFlight=0, _checkPumpT=null, _checkDone=[];
+function campCheckEnqueue(uid,t,seed){ const k=uid+'|'+t+'|'+(seed>>>0); if(_checkKeys.has(k)) return; _checkKeys.add(k);
+  const j={uid,t,seed:seed>>>0,tries:0,k}; CAMP_VERIFY_STATS.queued++;
+  const f=campCheckFind(j), st=f&&f.rc.chk&&portalStageOf(f.rc.mode,f.rc.node);   // its resolve's replay may still be running: that result IS the check
+  if(st){ const key=_simKey('campaign',[f.rc.chk.snaps,st.waves,f.rc.seed>>>0,Array.isArray(f.rc.transcript)?f.rc.transcript:[]]), fl=_SIM_FLIGHT.get(key);
+    if(fl){ CAMP_VERIFY_STATS.attached++; fl.then(r=>{ CAMP_VERIFY_STATS.attached--; _SIM_MEMO.delete(key); campCheckDone(j,r); },()=>{ CAMP_VERIFY_STATS.attached--; _checkQ.push(j); CAMP_VERIFY_STATS.backlog=_checkQ.length; campCheckPump(); }); return; } }
+  _checkQ.push(j); CAMP_VERIFY_STATS.backlog=_checkQ.length; campCheckPump(); }
+function campCheckFind(j){ const u=DB.users[j.uid], led=u&&u.led; if(!led) return null;
+  const rc=(led.battleReceipts||[]).find(r=>r&&r.verify==='pending'&&r.seed===j.seed&&r.t===j.t); return rc?{u,led,rc}:null; }
+function campCheckPump(){
+  const pool=simPool(); if(!pool) return;
+  const cap=Math.max(1,typeof pool.checkCapacity==='function'?pool.checkCapacity():pool.stats.size);
+  while(_checkQ.length&&_checkInFlight<cap){
+    const j=_checkQ.shift(), f=campCheckFind(j); if(!f||!f.rc.chk||!Array.isArray(f.rc.chk.snaps)){ _checkKeys.delete(j.k); continue; }   // a rolled-back resolve, or nothing to check
+    const st=portalStageOf(f.rc.mode,f.rc.node); if(!st){ _checkKeys.delete(j.k); continue; }
+    const args=[f.rc.chk.snaps,st.waves,f.rc.seed>>>0,Array.isArray(f.rc.transcript)?f.rc.transcript:[]], key=_simKey('campaign',args), memo=_SIM_MEMO.get(key);
+    _checkInFlight++; CAMP_VERIFY_STATS.inFlight=_checkInFlight;
+    const p=memo?Promise.resolve(memo.r):(_SIM_FLIGHT.get(key)||pool.run('campaign',args,{check:true}));
+    p.then(r=>{ _SIM_MEMO.delete(key); campCheckDone(j,r); },e=>{ _SIM_MEMO.delete(key);
+        j.tries++; CAMP_VERIFY_STATS.retried++; _checkQ.push(j);   // never lost: back of the queue, tried again when there is room
+        j.refusedAt=Date.now(); if(!_checkPumpT) _checkPumpT=setTimeout(()=>{ _checkPumpT=null; campCheckPump(); },Math.min(5000,250*j.tries)); })
+      .finally(()=>{ _checkInFlight--; CAMP_VERIFY_STATS.inFlight=_checkInFlight; CAMP_VERIFY_STATS.backlog=_checkQ.length;
+        if(!j.refusedAt) setImmediate(campCheckPump); else j.refusedAt=0; }); }   // a refusal waits for the timer: re-pumping at once spun the microtask queue
+  CAMP_VERIFY_STATS.backlog=_checkQ.length;
+  if(_checkQ.length&&!_checkPumpT) _checkPumpT=setTimeout(()=>{ _checkPumpT=null; campCheckPump(); },1000); }
+function campCheckDone(j,rep){ _checkKeys.delete(j.k); _reqCtx.run({saveIds:[j.uid]},()=>{   // saves inside name this player only
+  const f=campCheckFind(j); if(!f) return; const {u,led,rc}=f;
+  const serverEndDigest=String(rep&&rep.digest||''), sd=serverEndDigest?sha256hex(serverEndDigest):null, match=!!sd&&sd===rc.clientDigest;
+  delete rc.verify; delete rc.chk; rc.digest=sd; rc.match=match;
+  const now=Date.now(); _checkDone.push(now); while(_checkDone.length&&now-_checkDone[0]>60000) _checkDone.shift(); CAMP_VERIFY_STATS.drainedLastMin=_checkDone.length;
   if(match){ delete rc.transcript; CAMP_VERIFY_STATS.accepted++; }   // accepted: the recording is discarded
-  else { CAMP_VERIFY_STATS.flagged++; campIncident(u,led,Object.assign({},x,{rep,serverEndDigest,why:'digest-mismatch'})); }
-  writeDB([x.uid]); }); }
+  else { CAMP_VERIFY_STATS.flagged++; const st=portalStageOf(rc.mode,rc.node)||{id:rc.stage};
+    campIncident(u,led,{st,mode:rc.mode,engine:rc.engine,seed:rc.seed,source:rc.source,inputLog:rc.transcript||[],clientHash:rc.clientDigest,
+      witnessed:{won:!!rc.won,stars:rc.stars|0},rep,serverEndDigest,why:'digest-mismatch'}); }
+  writeDB([j.uid]); }); }
+function campCheckBootScan(){ let n=0;   // a restart: every receipt still waiting for its check goes back in the queue
+  for(const u of Object.values(DB.users||{})){ const rs=u&&u.led&&u.led.battleReceipts; if(!Array.isArray(rs)) continue;
+    for(const r of rs) if(r&&r.verify==='pending'&&r.chk){ const k=u.id+'|'+r.t+'|'+(r.seed>>>0); if(_checkKeys.has(k)) continue; _checkKeys.add(k); _checkQ.push({uid:u.id,t:r.t,seed:r.seed>>>0,tries:0,k}); n++; } }
+  if(n){ console.log('fight checks: '+n+' waiting from before the restart - re-queued'); CAMP_VERIFY_STATS.backlog=_checkQ.length; campCheckPump(); } }
+if(typeof setTimeout==='function'){ const _t=setTimeout(()=>{ try{ if(typeof DB!=='undefined'&&DB&&DB.users) campCheckBootScan(); }catch(e){ console.error('fight-check boot scan:',e.message); } },15000); if(_t.unref) _t.unref(); }
 async function simRun(fn){
   const pool=simPool(); if(!pool || !pool.stats.ready) return fn();
-  for(let i=0;i<3;i++){ const need=[]; let out, needed=false; _SIM_COLLECT=need;
+  for(let i=0;i<12;i++){ const need=[]; let out, needed=false; _SIM_COLLECT=need;
     try{ out=fn(); }catch(e){ if(e!==SIM_NEEDED) throw e; needed=true; } finally{ _SIM_COLLECT=null; }
     if(!needed) return out;
-    await simPrefetch(need); }
-  return fn(); }   // last resort: on the main thread, as before
+    await simPrefetch(need);
+    /* v1124 OVERLOAD (war profile 11 Oct 2026: a third of the main thread went to city battles fought here after the battle queue
+       refused them, which slowed every route and refused more). A battle the workers could not take is not fought on the main
+       thread: the planner has committed nothing, and the player is told to retry (the client re-sends the same request). */
+    if(need.some(x=>!_SIM_MEMO.has(x.k||_simKey(x.m,x.args)))){ SIM_STATS.busy=(SIM_STATS.busy|0)+1;
+      return {ok:false,storageFailed:true,busy:true,error:'The battle servers are busy - your army attacks again in a moment.'}; } }
+  return fn(); }   // a planner that needed more than 12 rounds of battles: on the main thread, as before
 function _campaignSimCandidates(me,b){ try{   // read-only: helpers run on a clone (portalProg fills in missing records)
     const u=JSON.parse(JSON.stringify(me)), led=u.led; if(!led) return [];
     const aid=String(b.attemptId||''); let mode=null, a=null;
@@ -4238,11 +4274,18 @@ function worldTreeRun(actor,action,payload,now=Date.now(),receiptKey=null){
 function worldBotRoster(u,regionKey){
   const loc=worldLocation(u),host=loc&&simHost();
   if(!host||!WORLD_LOCATION.REGION_KEYS.includes(regionKey)) return [];
-  const realCities=Object.values(DB.users)
-    .filter(v=>v.id!==u.id&&WORLD_LOCATION.valid(v.worldLocation))
-    .map(v=>({id:v.id,region:v.worldLocation.region,x:v.worldLocation.x,y:v.worldLocation.y}));
-  return host.botRoster({regionKey,homeRegion:loc.region,
-    playerXP:ensureLedger(u).px||0,castleX:loc.x,castleY:loc.y,realCities});
+  if(typeof worldCityRowsRefresh!=='function'){   // span tests run this function alone: the original live scan
+    const realCities=Object.values(DB.users).filter(v=>v.id!==u.id&&WORLD_LOCATION.valid(v.worldLocation))
+      .map(v=>({id:v.id,region:v.worldLocation.region,x:v.worldLocation.x,y:v.worldLocation.y}));
+    return host.botRoster({regionKey,homeRegion:loc.region,playerXP:ensureLedger(u).px||0,castleX:loc.x,castleY:loc.y,realCities}); }
+  worldCityRowsRefresh();   /* v1124: real castles come from the row index (refreshed every WORLD_CITIES_REFRESH_MS), the roster from a cache */
+  const px=ensureLedger(u).px||0, home=loc.region===regionKey;
+  const key=regionKey+'|'+ledPlayerLevel(u.led)+'|'+(home?u.id+'@'+loc.x+','+loc.y:'-')+'|'+(_regionVer[regionKey]|0);
+  const hit=_botRosterCache.get(key); if(hit) return hit;
+  const realCities=[]; for(const [id,e] of _cityRows) if(id!==u.id&&e.row.region===regionKey) realCities.push({id,region:e.row.region,x:e.row.x,y:e.row.y});
+  const list=host.botRoster({regionKey,homeRegion:loc.region,playerXP:px,castleX:loc.x,castleY:loc.y,realCities});
+  if(_botRosterCache.size>20000) _botRosterCache.delete(_botRosterCache.keys().next().value);
+  _botRosterCache.set(key,list); return list;
 }
 function worldBotTarget(u,id){
   const match=/^bot_([a-z]+)_(\d{1,3})$/.exec(String(id||''));
@@ -4837,9 +4880,19 @@ function arenaDefOk(me,opp,def){ try{ if(JSON.stringify(def).length>16000) retur
    60 s by every player on the map). The castle rows (no teams) are rebuilt server-wide at most every WORLD_CITIES_REFRESH_MS; a row
    whose fields changed gets the next rev, a castle that left the map a tombstone. A client sends since=<epoch>.<rev> and gets only
    newer rows (+ removed ids); a restart changes the epoch, so the next call is a full list. Teams come per castle (/api/world/city). */
+/* v1124 VIEWPORT MAP (Phil 11 Oct 2026: "only the castles inside the player's current view should load"). The map is cut into
+   10 x 10 tiles of 10 x 10 map units; _cityTiles is a bucket index (tile -> castle ids) kept up to date by the refresh when a castle
+   moves, appears or leaves - a request reads only the buckets of the tiles it asks for, never every castle. _cityLog lists every
+   change by rev, so a client's delta (since=<rev>, have=<tiles it holds>) is a walk of the changes since its rev. */
 const _cityRows=new Map(), _cityGone=new Map(), _cityEpoch=crypto.randomBytes(4).toString('hex');
-let _cityRev=0, _cityBuiltAt=0;
-const WORLD_CITIES_REFRESH_MS=Math.max(0,+(process.env.WORLD_CITIES_REFRESH_MS||20000));
+const _cityTiles=new Map(), _cityLog=[], _regionVer=Object.create(null);
+let _cityRev=0, _cityBuiltAt=0, _cityLogFloor=0;   // changes at or below _cityLogFloor were trimmed from the log
+const WORLD_CITIES_REFRESH_MS=Math.max(0,+(process.env.WORLD_CITIES_REFRESH_MS||20000)), CITY_TILE=10, CITY_LOG_MAX=50000;
+function cityTileOf(x,y){ const c=Math.max(0,Math.min(9,Math.floor((+x||0)/CITY_TILE))), r=Math.max(0,Math.min(9,Math.floor((+y||0)/CITY_TILE))); return c+'_'+r; }
+function _cityTileMove(id,from,to){ if(from===to) return;
+  if(from){ const s=_cityTiles.get(from); if(s){ s.delete(id); if(!s.size) _cityTiles.delete(from); } }
+  if(to){ let s=_cityTiles.get(to); if(!s){ s=new Set(); _cityTiles.set(to,s); } s.add(id); } }
+function _cityChanged(id){ _cityLog.push({rev:_cityRev,id}); if(_cityLog.length>CITY_LOG_MAX){ const cut=_cityLog.splice(0,_cityLog.length-CITY_LOG_MAX); _cityLogFloor=cut[cut.length-1].rev; } }
 function worldCityRowsRefresh(){ const now=Date.now(); if(_cityBuiltAt&&now-_cityBuiltAt<WORLD_CITIES_REFRESH_MS) return; _cityBuiltAt=now;
   const seen=new Set();
   for(const u of Object.values(DB.users)){ if(!u||!WORLD_LOCATION.valid(u.worldLocation)) continue; seen.add(u.id);
@@ -4848,8 +4901,17 @@ function worldCityRowsRefresh(){ const now=Date.now(); if(_cityBuiltAt&&now-_cit
       academy:(u.led&&u.led.acad&&u.led.acad.lv)?(u.led.acad.lv.academy|0):undefined,
       power:serverTeamPower(line,u)|0, region:u.worldLocation.region, x:u.worldLocation.x, y:u.worldLocation.y, guildId:u.guildId||null };
     const s=JSON.stringify(row), old=_cityRows.get(u.id);
-    if(!old||old.s!==s){ _cityRows.set(u.id,{row,s,rev:++_cityRev}); _cityGone.delete(u.id); } }
-  for(const id of [..._cityRows.keys()]) if(!seen.has(id)){ _cityRows.delete(id); _cityGone.set(id,++_cityRev); } }
+    if(!old||old.s!==s){ const tile=cityTileOf(row.x,row.y);
+      if(!old||old.row.x!==row.x||old.row.y!==row.y||old.row.region!==row.region){ _regionVer[row.region]=(_regionVer[row.region]|0)+1; if(old&&old.row.region!==row.region) _regionVer[old.row.region]=(_regionVer[old.row.region]|0)+1; }
+      _cityTileMove(u.id,old&&old.tile,tile);
+      _cityRows.set(u.id,{row,s,tile,rev:++_cityRev}); _cityGone.delete(u.id); _cityChanged(u.id); } }
+  for(const id of [..._cityRows.keys()]) if(!seen.has(id)){ const e=_cityRows.get(id); _cityTileMove(id,e.tile,null); _regionVer[e.row.region]=(_regionVer[e.row.region]|0)+1;
+    _cityRows.delete(id); _cityGone.set(id,++_cityRev); _cityChanged(id); } }
+function cityTilesParam(v){ const out=new Set(); for(const t of String(v||'').split(',').slice(0,100)) if(/^\d_\d$/.test(t)) out.add(t); return out; }
+/* the bot fill of a region is the same for every viewer of the same level outside it (and for one viewer inside it) until a castle
+   in that region moves - it was rebuilt by the client's engine for every region on every map poll (35% of the main thread in the
+   war profile, 11 Oct 2026) */
+const _botRosterCache=new Map();
 async function api(req,res,url){
   const p=url.pathname;
   if(p==='/api/health') return send(res,200,{ok:true});   /* v1018: the client's net gate checks this - an /api/ path is never answered from the service worker cache (/health is) */
@@ -7672,7 +7734,7 @@ async function api(req,res,url){
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
     { const _ak='c:'+me.id+':'+String(b.attemptId||'');   /* v1083 (scan 5 #7): K parallel resolves started K worker replays; v1085: the second one waits for the first (no 409 - the client read it as a loss) */
       if(_simInflight.has(_ak)){ try{ await _simInflight.get(_ak); }catch(e){} }
-      else { const _pr=simPrefetch(_campaignSimCandidates(me,b),SIM_RESOLVE_WAIT_MS); _simInflight.set(_ak,_pr); try{ await _pr; } finally{ _simInflight.delete(_ak); } } }   // v1036: the replay runs on a battle worker first; the route uses its result (v1124: waits at most SIM_RESOLVE_WAIT_MS)
+      else { const _pr=simPrefetch(_campaignSimCandidates(me,b),SIM_RESOLVE_WAIT_MS,{check:true}); _simInflight.set(_ak,_pr); try{ await _pr; } finally{ _simInflight.delete(_ak); } } }   // v1036: the replay runs on a battle worker first; the route uses its result (v1124: waits at most SIM_RESOLVE_WAIT_MS)
     const out=idem(me.id+':cresolve:'+reqId,()=>{
       const led=ensureLedger(me);
       const aid=String(b.attemptId||'');
@@ -7817,11 +7879,11 @@ async function api(req,res,url){
         source:transcriptSource, chain:(rec.stream&&rec.stream.chain)||null,
         heroes:a.heroIds.slice(), inputs:inputLog.length, won, stars,
         digest:serverEndDigest?sha256hex(serverEndDigest):null, transcript:digestMatch?undefined:inputLog,   /* v1124: an accepted fight keeps no recording; a flagged one keeps it (and its incident) */
-        verify:verifyLater?'pending':undefined,   /* v1124: its check finishes after the answer (campVerifyLater) */
+        verify:verifyLater?'pending':undefined, chk:verifyLater?{snaps:rec.snaps}:undefined,   /* v1124: its check finishes after the answer - what it needs stays on the receipt (the backlog survives a restart) */
         clientDigest:(typeof b.digest==='string'?sha256hex(b.digest):null) };
       led.battleReceipts=(led.battleReceipts||[]).concat([receipt]).slice(-40);
       writeDB([me.id]);
-      if(verifyLater){ const _x=Object.assign({},_vx,{t:receipt.t,args:[rec.snaps,st.waves,rec.seed>>>0,inputLog]}); setImmediate(()=>campVerifyLater(_x)); }
+      if(verifyLater){ const _t=receipt.t,_s=rec.seed>>>0,_u=me.id; setImmediate(()=>campCheckEnqueue(_u,_t,_s)); }
       receipt.match=digestMatch;
       return { ok:true, mode, won, stars, reward, verified:true, playerTruth:true, engine:a.engine||null,
         serverDigest:receipt.digest, digestMatch:verifyLater?null:digestMatch, replayIncident:verifyLater?false:!digestMatch, verify:verifyLater?'pending':'done', transcript:transcriptSource,
@@ -8806,6 +8868,24 @@ async function api(req,res,url){
   }
   if(p==='/api/world/cities'){ if(!me)return send(res,401,{error:'auth'});
     if(rateLimited(req,'wcities:'+me.id,30,60000)) return send(res,429,{error:'Slow down.'});   /* v1002 (World audit #10): each call builds up to 500 rosters */
+    if(url.searchParams.has('since')&&url.searchParams.has('tiles')){   /* v1124 VIEWPORT MAP: only the tiles in the player's view */
+      worldCityRowsRefresh();
+      const sv=String(url.searchParams.get('since')||''), dot=sv.indexOf('.'), ep=dot>0?sv.slice(0,dot):'', rv=dot>0?(+sv.slice(dot+1)||0):0;
+      const reset=!(ep===_cityEpoch&&rv>0&&rv<=_cityRev&&rv>=_cityLogFloor);
+      const want=cityTilesParam(url.searchParams.get('tiles')), have=reset?new Set():cityTilesParam(url.searchParams.get('have'));
+      const out=new Map(), gone=new Set();
+      for(const t of want) if(!have.has(t)) for(const id of (_cityTiles.get(t)||[])) if(id!==me.id) out.set(id,_cityRows.get(id).row);
+      if(!reset&&have.size){ let i=_cityLog.length; while(i>0&&_cityLog[i-1].rev>rv) i--;
+        for(;i<_cityLog.length;i++){ const id=_cityLog[i].id; if(id===me.id||out.has(id)) continue; const e=_cityRows.get(id);
+          if(e&&have.has(e.tile)) out.set(id,e.row); else gone.add(id); } }   // removed, or moved out of the tiles the client holds
+      /* the player's war targets and march targets always come back, wherever they are */
+      const tgt=new Set(Object.keys((me.worldWars&&typeof me.worldWars==='object')?me.worldWars:{}));
+      for(const m of (Array.isArray(me.worldCityMarches)?me.worldCityMarches:[])) if(m&&!m.resolved&&m.defId) tgt.add(String(m.defId));
+      const targets=[]; for(const id of tgt){ const e=_cityRows.get(id); if(e) targets.push(e.row); }
+      const view=new Set([...want,...have]), bots=[];
+      if(worldLocation(me)) for(const regionKey of WORLD_LOCATION.REGION_KEYS) for(const bt of worldBotRoster(me,regionKey)) if(view.has(cityTileOf(bt.x,bt.y))||tgt.has(bt.id)) bots.push(bt);
+      for(const id of gone) out.delete(id);
+      return send(res,200,{ rev:_cityEpoch+'.'+_cityRev, reset, tiles:[...want], cities:[...out.values()], gone:[...gone], targets, bots, myGuildId: me.guildId||null }); }
     if(url.searchParams.has('since')){   /* v1124 DELTA MAP: no defending teams, only the cities changed since the client's rev */
       worldCityRowsRefresh();
       const sv=String(url.searchParams.get('since')||''), dot=sv.indexOf('.'), ep=dot>0?sv.slice(0,dot):'', rv=dot>0?(+sv.slice(dot+1)||0):0;

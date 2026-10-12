@@ -22987,6 +22987,21 @@ let REAL_CITIES=null, SERVER_BOTS=null, _rcMyGuild=null, _rcFetchedAt=0, _rcTime
 /* v1124 DELTA MAP: the server sends castle rows without teams, and after the first call only the rows changed since our rev.
    _rcRaw keeps the server rows by id; a castle's defending team is fetched when it is tapped (cityTeamFetch) and kept in _rcTeams. */
 let _rcRev='', _rcRaw=new Map(), _rcTeams=new Map();
+/* v1124 VIEWPORT MAP (Phil 11 Oct 2026: only the castles inside the player's view load): the map is 10 x 10 tiles of 10 x 10 map
+   units. A call names the tiles in view (+ a margin so panning does not pop) and the ones we already hold; the server sends the new
+   tiles whole and only changes for the held ones. Rows outside the view stay cached; their tile reloads when it comes back. */
+let _rcTiles=new Set(), _rcViewT=0;
+const RC_TILE=10, RC_MARGIN=4;
+function rcTileOf(x,y){ return Math.max(0,Math.min(9,Math.floor((+x||0)/RC_TILE)))+'_'+Math.max(0,Math.min(9,Math.floor((+y||0)/RC_TILE))); }
+function mapViewTiles(){ const zone=document.getElementById('wzone'); let x0,x1,y0,y1;
+  if(zone&&worldZoom&&zone.clientWidth){ const zw=WORLD_W*worldZoom, zh=WORLD_H*worldZoom;
+    x0=zone.scrollLeft/zw*100; x1=(zone.scrollLeft+zone.clientWidth)/zw*100; y0=zone.scrollTop/zh*100; y1=(zone.scrollTop+zone.clientHeight)/zh*100; }
+  else { const c=myCastlePos(); x0=c.x-8; x1=c.x+8; y0=c.y-8; y1=c.y+8; }   // map not open: the tiles around your castle
+  const cl=v=>Math.max(0,Math.min(9,Math.floor(v/RC_TILE))), out=[];
+  for(let c=cl(x0-RC_MARGIN);c<=cl(x1+RC_MARGIN);c++) for(let r=cl(y0-RC_MARGIN);r<=cl(y1+RC_MARGIN);r++) out.push(c+'_'+r);
+  return out; }
+function mapViewChangedSoon(){ clearTimeout(_rcViewT); _rcViewT=setTimeout(()=>{   // pan / zoom: fetch only when a tile in view is not held
+  if(!document.getElementById('wzone')||!ACC.token) return; if(mapViewTiles().some(t=>!_rcTiles.has(t))) fetchRealCities(true); },400); }
 function cityTeamFetch(c){
   if(!c||!c.real||!ACC.token||!online()||_rcTeams.has(c.id)) return Promise.resolve(c&&c.team);
   return api('/api/world/city?id='+encodeURIComponent(c.id)).then(d=>{
@@ -22997,11 +23012,20 @@ function cityTeamFetch(c){
 function fetchRealCities(force){
   if(!ACC.token||!online()) return Promise.resolve(null);
   if(!force && REAL_CITIES && (Date.now()-_rcFetchedAt)<45000) return Promise.resolve(REAL_CITIES);
-  return api('/api/world/cities?since='+encodeURIComponent(_rcRev||'0')).then(d=>{
+  const _vt=mapViewTiles(), _have=_vt.filter(t=>_rcTiles.has(t));
+  return api('/api/world/cities?since='+encodeURIComponent(_rcRev||'0')+'&tiles='+_vt.join(',')+'&have='+_have.join(',')).then(d=>{
     if(d&&Array.isArray(d.cities)){
       _rcMyGuild=d.myGuildId||null; _rcFetchedAt=Date.now();
       SERVER_BOTS=Array.isArray(d.bots)?d.bots:[];
-      if(typeof d.rev==='string'){   // v1124: a delta (or the first full list) - merge into the rows we keep
+      if(typeof d.rev==='string'&&Array.isArray(d.tiles)){   // v1124: viewport - new tiles whole, held tiles as changes
+        if(d.reset){ _rcRaw=new Map(); _rcTiles=new Set(); _rcTeams=new Map(); }
+        const fresh=new Set(d.tiles.filter(t=>d.reset||_have.indexOf(t)<0));
+        for(const [id,c] of _rcRaw) if(fresh.has(rcTileOf(c.x,c.y))) _rcRaw.delete(id);   // a reloaded tile holds exactly what the server sent
+        d.cities.forEach(c=>{ if(c&&c.id){ _rcRaw.set(c.id,c); _rcTeams.delete(c.id); } });
+        (d.gone||[]).forEach(id=>{ _rcRaw.delete(id); _rcTeams.delete(id); });
+        (d.targets||[]).forEach(c=>{ if(c&&c.id) _rcRaw.set(c.id,c); });   // war / march targets, wherever they are
+        _rcTiles=new Set(d.tiles); _rcRev=d.rev;
+      } else if(typeof d.rev==='string'){   // v1124: a delta (or the first full list) - merge into the rows we keep
         if(d.full) _rcRaw=new Map();
         d.cities.forEach(c=>{ if(c&&c.id){ _rcRaw.set(c.id,c); _rcTeams.delete(c.id); } });   // a changed castle's team is fetched again on tap
         (d.gone||[]).forEach(id=>{ _rcRaw.delete(id); _rcTeams.delete(id); });
@@ -23490,7 +23514,7 @@ function worldZoomBounds(zone){
   const max=Math.min(zone.clientWidth/(16*cell),zone.clientHeight/(9*cell));
   return {min,max:Math.max(min,max)};
 }
-function applyWorldZoom(){ const inner=document.getElementById('wzoneInner'), zone=document.getElementById('wzone');
+function applyWorldZoom(){ const inner=document.getElementById('wzoneInner'), zone=document.getElementById('wzone'); if(typeof mapViewChangedSoon==='function') mapViewChangedSoon();   /* v1124: zooming out loads the new tiles */
   if(inner){ inner.style.zoom=worldZoom;
     if(window.EmberweaveWorldTreeCountdown) window.EmberweaveWorldTreeCountdown.setZoom(worldZoom);
     if(_worldTreeControlUI)_worldTreeControlUI.zoom(inner);
@@ -23717,7 +23741,7 @@ function renderWorldMap(keepView){
   zone.addEventListener('touchstart',(e)=>{ if(e.touches.length===2){ _pd=tdist(e); _pz=worldZoom; closeCityMenu(); } },{passive:true});
   zone.addEventListener('touchmove',(e)=>{ if(e.touches.length===2 && _pd>0){ e.preventDefault(); const d=tdist(e), mx=(e.touches[0].clientX+e.touches[1].clientX)/2, my=(e.touches[0].clientY+e.touches[1].clientY)/2; worldZoomTo(_pz*(d/_pd), mx, my); } },{passive:false});
   zone.addEventListener('touchend',(e)=>{ if(e.touches.length<2)_pd=0; },{passive:true});
-  zone.addEventListener('scroll',()=>{ applyMapLOD(); },{passive:true});   // picture scale and ghosts follow the viewport as you pan
+  zone.addEventListener('scroll',()=>{ applyMapLOD(); mapViewChangedSoon(); },{passive:true});   /* v1124: a pan loads the castles of the new tiles */   // picture scale and ghosts follow the viewport as you pan
   curWorldZone=zone;
   zone.addEventListener('mousedown',(e)=>{ if(e.button!==0)return; _wdrag=true; _wMoved=false; _wsx=e.clientX; _wsy=e.clientY; _wsl=zone.scrollLeft; _wst=zone.scrollTop; zone.style.cursor='grabbing'; });
   { const bounds=worldZoomBounds(zone); worldZoom=Math.max(bounds.min,Math.min(bounds.max,worldZoom)); applyWorldZoom(); }

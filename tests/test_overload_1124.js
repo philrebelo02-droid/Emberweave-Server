@@ -73,13 +73,18 @@ async function overload(S, W, tag) {
     const r = await overload(S, W, 'f');
     const at = (await S.req('POST', '/api/login', { name: 'olAdm', pass: 'password1' })).body.token;
     const st = (await S.req('GET', '/api/dev/save-stats', null, at)).body.battles || {};
+    await sleep(15000);   // idle: the backlog drains
+    const st2 = (await S.req('GET', '/api/dev/save-stats', null, at)).body.battles || {};
     await S.kill();
     const ms = r.res.map(x => x.ms), pend = r.res.filter(x => x.pending).length;
     console.log('  --  fixed: ' + r.res.length + ' resolves, p50 ' + pct(ms, 0.5) + ' ms, p95 ' + pct(ms, 0.95) + ' ms, max ' + Math.max(...ms) + ' ms; ' + pend + ' answered before their check; probe max ' + Math.max(...r.probe) + ' ms; quiet ' + r.quietAt + ' ms after the load stopped; checks ' + JSON.stringify(st.verify) + ', pool shed ' + (st.pool && st.pool.shed) + ', main-thread replays ' + st.mainThread);
     ok(r.res.length > N && r.res.every(x => x.ok), 'every resolve answered 200 under the overload (' + r.res.length + ')');
     ok(pct(ms, 0.95) < 6000 && pend > 0, 'resolves do not wait for the overloaded check queue (p95 ' + pct(ms, 0.95) + ' ms; ' + pend + ' answered first, checked later)');
     ok(st.mainThread === 0, 'no replay ran on the main thread (' + st.mainThread + ')');
-    ok(st.verify && st.verify.queued > 0 && st.verify.skipped + st.verify.flagged + st.verify.accepted > 0, 'late checks finished or were shed and marked skipped (' + JSON.stringify(st.verify) + ')');
+    const v = st.verify || {}, v2 = st2.verify || {};
+    ok(v.queued > 0 && v.backlog + v.inFlight + v.attached + v.accepted + v.flagged >= v.queued, 'no check is lost: every fight answered first is checked or waiting in the backlog (' + JSON.stringify(v) + ')');
+    const left = x => x.backlog + x.attached + x.inFlight;
+    ok(left(v2) < left(v) && v2.accepted + v2.flagged > v.accepted + v.flagged, 'the backlog drains once the load stops (' + left(v) + ' -> ' + left(v2) + ' waiting in 15 s, ' + (v2.accepted + v2.flagged - v.accepted - v.flagged) + ' checked on one worker)');
     ok(r.quietAt !== null && r.quietAt < 10000, 'the server is quiet again ' + r.quietAt + ' ms after the load stops');
 
     let src = null; try { src = execFileSync('git', ['show', CONTROL + ':server.js'], { cwd: root, maxBuffer: 64 * 1024 * 1024 }); } catch (e) {}
