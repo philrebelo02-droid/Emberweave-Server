@@ -2639,7 +2639,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 <script src="/server/temple-of-ash.js?v=r1123"></script>
 <script src="/server/patron-benefits.js?v=r1093"></script>
 <script src="/server/temple-effects.js?v=r1123"></script>
-<script src="/assets/ui/world-mine-sync.js?v=mi1"></script>
+<script src="/assets/ui/world-mine-sync.js?v=mi2"></script>
 <script src="/assets/ui/world-march-sync.js?v=wm1"></script>
 <script src="/assets/ui/world-march-visual.js?v=wv2"></script>
 <script src="/assets/ui/skill-preview-stage.js?v=sp7"></script>
@@ -6319,6 +6319,21 @@ function noxSpendKeys(u){ if(!(u&&u.pass&&u.pass.skeletonkey)) return false;
   try{ ringBurst(u.x,u.y,0xc9a6ff,20); }catch(e){}
   floatTexts.push({x:u.x,y:u.y-20,txt:'MASTER-UNLOCKED',t:1.3,color:'#c9a6ff',vy:1,sz:13});
   return true; }
+/* v1131 PASSIVE HOLD (render only). v1127 made a swing wait for a green/blue clip's contact cell; a timed passive could still take the
+   screen early. firePassiveClip queues only while the LOCK reads skill/ult (_lockPri >= 4), but a swing rolled in think() during a held
+   skill clip drops the lock to 1 (the swing waits on screen, the lock does not), and a passive firing then took the green/blue or ult clip
+   on the spot. The fix leaves every field the engine writes exactly as it was (_lockPri/_animLockT/_abilHold feed think: the queue and
+   the silence branch), and moves the decision to the screen: the passive notes the clip it displaced (_passOver) and syncMesh keeps
+   DRAWING that clip - an ult (or any priority-6 clip) to the end of its hold, a green/blue until it has drawn past its contact cell (the
+   same test as the swing: _skSeen > clipContactCell; a clip not drawn yet is before its contact). The passive then plays in the time
+   its hold has left, fitted like any one-shot (v410, up to 1.6x); if too little is left to fit it, its body clip is SKIPPED (_passMute) -
+   its effect has already landed and its FX plate already fired, and a passive clipped to its first cells reads as a twitch. Hard CC,
+   silence and death end the hold as they end every clip. */
+function passiveMustWait(o){ const a=o&&o._abilAnim, A=a&&o.anim&&o.anim[a];
+  if(!A || !((o._abilHold||0)>0) || a==='passive') return false;
+  if((o._abilPri|0)>=6) return true;
+  if((o._abilPri|0)===4 && (a==='green'||a==='blue')) return !(o._animSt===a && o._skSeen!=null && o._skSeen>clipContactCell(A));
+  return false; }
 function firePassiveClip(o,hold,target,options){
   if(!o) return;
   firePassiveFx(o,target,options);   // a triggered passive fires its authored plate even without a body clip
@@ -6331,6 +6346,7 @@ function firePassiveClip(o,hold,target,options){
      lock is not up yet (castAbility raises _lockPri 6 only after doEffect returns), so the passive OVERWROTE the ult clip
      and castAbility then pinned the passive at priority 6. A unit mid-cast (`_castSlot` set) queues the passive behind it. */
   if(o._castSlot || (((o._lockPri|0)>=4) && ((o._animLockT||0)>0))){ o._qPass=h; return; }   // queue behind the skill/ult
+  o._passOver=passiveMustWait(o)?{st:o._abilAnim,pri:o._abilPri|0,hold:o._abilHold||0}:null;   /* v1131 passive hold - render only, see passiveMustWait */
   o._abilPri=4; o._abilAnim='passive'; o._abilHold=h;
   o._lockPri=4; o._animLockT=Math.max(o._animLockT||0,h);
 }
@@ -14397,7 +14413,11 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
              and anyone who sets _passFired) keeps that clip meaningful - it is never used as
              filler. For everyone else the passive is just a second resting flourish, so the gap
              alternates between it and the idle instead of playing the same idle every time. */
-          const _passFree=!u._passFired && !!(u.anim&&u.anim.passive) && !u.anim.passive.event;   /* v1126: an `event` passive clip (Hollow's mist - it means "that blow missed") is never idle filler, not even before it first fires */
+          /* v1131: and never while the unit is under control (stun, fear, knock-up/back, pull, silence). CC or silence cuts a skill/ult clip
+             (Phil's ladder) and the filler then picked the passive sheet: Pellucid feared at green cell 1 and silenced at ult cell 24 read as
+             'his passive cut the skill'. Under control the filler is idle; the passive flourish comes back when the control ends. */
+          const _ctlNow=(u.stunned>0)||((u.fearT||0)>0)||((u._airT||0)>0)||((u.pullT||0)>0)||((u.silencedT||0)>0);
+          const _passFree=!u._passFired && !!(u.anim&&u.anim.passive) && !u.anim.passive.event && !_ctlNow;   /* v1126: an `event` passive clip (Hollow's mist - it means "that blow missed") is never idle filler, not even before it first fires */
           const _cand=[];
           if(u.anim&&u.anim.idle)    _cand.push(['idle',    clipDur(u.anim.idle)]);
           if(_passFree)              _cand.push(['passive', clipDur(u.anim.passive)]);
@@ -14439,6 +14459,16 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
                : (abilActive ? u._abilAnim
                : (((u._idleHold||0)>0) ? (u._idleClip||'idle')
                : ((u._atkHold>0) ? _atkSt : 'idle'))))));   // v339: _atkClip = per-swing clip override (Corsair: pistol clip at range, sword up close)
+        /* v1131 PASSIVE HOLD - see passiveMustWait. Render only: only _passOver/_passMute (render notes) are written here. */
+        { const P=u._passOver, _ctl=(u.stunned>0)||((u.fearT||0)>0)||((u._airT||0)>0)||((u.pullT||0)>0)||((u.silencedT||0)>0)||!u.alive;
+          if(P){ P.hold-=dt; const _PA=u.anim[P.st];
+            const _keep=!_ctl && u._abilAnim==='passive' && (u._abilHold||0)>0 && _PA && P.hold>0
+              && (P.pri>=6 || !(u._animSt===P.st && u._skSeen!=null && u._skSeen>clipContactCell(_PA)));
+            if(_keep) st=P.st;
+            else { u._passOver=null;
+              if(!_ctl && u._abilAnim==='passive' && (u._abilHold||0)>0 && u.anim.passive && (u._abilHold||0)*1.6<clipDur(u.anim.passive)) u._passMute=true; } }
+          if(u._passMute){ if(!_ctl && u._abilAnim==='passive' && (u._abilHold||0)>0){ if(st==='passive') st=(u._hitHold>0)?'hit':((walking)?'walk':((u._atkHold>0)?_atkSt:'idle')); }
+            else u._passMute=false; } }
         const rising=(u._riseT>0 && u.anim.rise);   // climbing out of the floor overrides everything
         if(rising) st='rise';
         // Channelled ultimates (Blizzard / Thunder Shower): once the cast clip has finished
@@ -14493,7 +14523,7 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
            the established heroes' 2.4 s ability clips through an 0.8 s hold, a 3x speed-up on art
            that was fine. Now that the attack hold is the clip's own length, most one-shots play at
            natural speed and this only catches the genuinely over-long ones. */
-        const _osH=Math.max(u._abilHold||0,u._atkHold||0,u._hitHold||0);
+        const _osH=Math.max((u._passOver&&st===u._passOver.st)?u._passOver.hold:(u._abilHold||0),u._atkHold||0,u._hitHold||0);   /* v1131: a clip held for a passive is fitted to its OWN hold, not the passive's */
         const _osDur=clipDur(A)/((st===_atkSt)?(u._atkSpdMul||1):1);   // v1024: a sped swing is judged at its sped length
         const _osFit=(u._osMax||0)>0 && _osDur>(u._osMax||0) && _osDur<=(u._osMax||0)*1.6;
         const _osFrac=(_osH>0 && _osFit && st!=='walk' && st!=='idle' && !rising && A.n>1)
@@ -14565,7 +14595,7 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
         else if(A.pingpong && A.n>1){ const per=ppPer(A); let p=Math.floor(u._animAcc)%per; fr=ppFrame(A,p); }
         else if(A.loop && st==='walk'){ const _L=A.loop; fr=_L[0]+Math.floor(u._animAcc)%(_L[1]-_L[0]); }   /* v1047 (Phil: "when someone is walking can you someone stop the part when they go back to start frame? they look like they keep stopping mid walk"): play one clean stride loop [a,b) measured per sheet - no wrap jump back to the start pose, no near-still frames, no 1,0 rewind tail */
         else fr=Math.floor(u._animAcc)%A.n;
-        if(st===u._abilAnim) u._skSeen=Math.max((u._skSeen==null)?-1:u._skSeen, fr);   /* v1127 skill hold: the furthest cell of the running skill clip drawn */
+        if(st===u._abilAnim || (u._passOver && st===u._passOver.st)) u._skSeen=Math.max((u._skSeen==null)?-1:u._skSeen, fr);   /* v1127 skill hold: the furthest cell of the running skill clip drawn */
         if(A.reverse) fr=A.n-1-fr;   // v349 (Phil: Corsair/Dawnbringer 'walk backwards'): the Hailuo clip is a backpedal — play it reversed
         // desired facing: during the wave run-in/out they actually travel, so face movement direction; in COMBAT always
         // face the target — never turn our back when shoved into or Vulmar-dragged backward — with a small deadzone so a
@@ -27725,7 +27755,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791806466393';
+const BUILD_ID = '1791816746541';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

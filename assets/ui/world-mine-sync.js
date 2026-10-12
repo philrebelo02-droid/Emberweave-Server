@@ -1,13 +1,13 @@
 (function(root,factory){if(typeof module==='object'&&module.exports)module.exports=factory();else root.EmberweaveWorldMineSync=factory();})(typeof window!=='undefined'?window:globalThis,function(){
   'use strict';
-  const EPOCH_MS=8*3600000,COUNT=240,COLS=220,CELL=100/COLS,RES=['iron','crystal','silver','coal'];
+  const EPOCH_MS=8*3600000,COUNT=240,COLS=220,CELL=100/COLS,RES=['iron','crystal','silver','coal'],MAX_LEVEL=10;   // v1131: server/world-mines.js MAX_LEVEL (region 1-6, wild 7-10; legacy fields 1-8)
   function validate(data){
     if(!data||!data.ok||data.locked||!Number.isSafeInteger(data.epoch)||data.epoch<0||!Number.isFinite(data.serverNow)||
       Math.floor(data.serverNow/EPOCH_MS)!==data.epoch||data.epochEndsAt!==(data.epoch+1)*EPOCH_MS||
       !Array.isArray(data.nodes)||data.nodes.length!==COUNT)throw Error('Unavailable field');
     const positions=new Set();
     const nodes=data.nodes.map((n,i)=>{
-      if(!n||n.id!=='mn'+data.epoch+'_'+i||!RES.includes(n.res)||!Number.isInteger(n.level)||n.level<1||n.level>8||
+      if(!n||n.id!=='mn'+data.epoch+'_'+i||!RES.includes(n.res)||!Number.isInteger(n.level)||n.level<1||n.level>MAX_LEVEL||
         !Number.isInteger(n.gx)||!Number.isInteger(n.gy)||n.gx<2||n.gy<2||n.gx>=COLS-1||n.gy>=COLS-1||
         n.x!==n.gx*CELL||n.y!==n.gy*CELL||typeof n.region!=='string')throw Error('Invalid node');
       const key=n.gx+','+n.gy;if(positions.has(key))throw Error('Duplicate node');positions.add(key);
@@ -35,5 +35,5 @@
     }
     return {state,sync};
   }
-  return {create,validate};
+  return {create,validate,MAX_LEVEL};
 });

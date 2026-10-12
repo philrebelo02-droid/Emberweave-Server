@@ -181,6 +181,8 @@ note "test_academy_read_durable.js (3 Oct release review: a read that pays Acade
 node tests/test_academy_read_durable.js || FAILED=1
 note "test_mine_levels_ten.js (Phil 3 Oct: region mines 1-6, level 6 at the edge; wild 7-10; nodes keep place/id)"
 node tests/test_mine_levels_ten.js || FAILED=1
+note "test_world_mine_sync_levels.js (v1131: the signed-in map client accepts every level the server deals, 1-10; live field + levels 1-10 all kept; 0/11 refused; control: v1130 sync file drops the field)"
+node tests/test_world_mine_sync_levels.js || FAILED=1
 note "test_market_harden.js (3 Oct Market audit: never-sold hero fragments refused; meal at full stamina refused; spend/earn durable)"
 node tests/test_market_harden.js || FAILED=1
 note "test_pool_forge_harden.js (3 Oct Pool/Forge audit: gear only on owned heroes; free diamond wish countdown = New York midnight)"
@@ -371,7 +373,7 @@ note "test_spell_fx_1125.js (v1125: Grok spell FX s07 Astra Event Horizon flat o
 node tests/test_spell_fx_1125.js || FAILED=1
 note "test_hollow_anim_ten.js (v1126: Hollow's ten approved animations - sheets, grids, measured anchors; the art cut to land on the v1123 engine moments: blow drawn on attack cell 28 / crit cell 25 (rig-measured), Fan of Knives cell 8, Lacerate cell 17, drop touchdown cell 16, Vanishing Point phases, passive on the miss he causes; control: the same fights on v1123 land on the same ticks, a broken grid fails)"
 node tests/test_hollow_anim_ten.js || FAILED=1
-note "test_skill_anim_hold.js (v1127 skill hold: a swing replaces a green/blue clip only after the clip has drawn past its contact cell (clipContactCell: contact/release/apex/relFrac, else halfway), then starts caught up; 5 whole fights through the real engine + syncMesh tick-identical new/old/no renderer incl. RNG draws; controls: v1126 renderer cuts early, a hold leaking into atkCd moves the trace)"
+note "test_skill_anim_hold.js (v1127 skill hold: a swing replaces a green/blue clip only after the clip has drawn past its contact cell (clipContactCell: contact/release/apex/relFrac, else halfway), then starts caught up; 5 whole fights through the real engine + syncMesh tick-identical new/old/no renderer incl. RNG draws; controls: v1126 renderer cuts early, a hold leaking into atkCd moves the trace; v1131 passive hold: no timed passive over a green/blue before contact or an unfinished ult, no passive filler under CC/silence, 9 fights tick-identical, control: v1130 passive renderer)"
 node tests/test_skill_anim_hold.js || FAILED=1
 note "test_askel_vesper_vex.js (v1128: Askel five - attack/crit/green/blue/ult sheets, grids, standing-pose anchors; timing data = v1127 (attack/crit clipDur x relFrac 1.0, ult root 2.0 s, kit/ult numbers); control: the same scripted actions and whole fights (Askel/Vesper/Vex both sides) on v1127 land on the same ticks; art on the engine moments: blow drawn on attack cell 23-24 / crit 27, Standard Crash green cell 25, Rallying Ground blue cell 15, ult charge phases (launch 14, stride loop, lift ends on arrival, slam cell 28); Vesper Puncture tear closes as the effect ends, Vex Razor Tempest standing; FX helpers draw only; controls: root removed + swing moved diverges, a broken grid fails)"
 node tests/test_askel_vesper_vex.js || FAILED=1

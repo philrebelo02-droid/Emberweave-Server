@@ -7,6 +7,7 @@ const TERRAIN_BLOCKED=new Set(require('./world-terrain-blocked.json').cells);
 const VOID_CRATER_R=29;   // cells from the Tree centre: no resource node inside the crater (from the 20:00 ET 1 Oct field)
 const EDGES=[0,90,130,GRID_COLS];
 const RESOURCES=['iron','crystal','silver','coal'];
+const MAX_LEVEL=10;   // highest level field() deals (wild 7-10); assets/ui/world-mine-sync.js validates against the same number
 const ZONES=[
   [{key:'crystor',type:'region',col:0,row:0},{key:'wildN',type:'wild',col:1,row:0},{key:'draymon',type:'region',col:2,row:0}],
   [{key:'wildW',type:'wild',col:0,row:1},{key:'worldtree',type:'worldtree',col:1,row:1},{key:'wildE',type:'wild',col:2,row:1}],
@@ -57,4 +58,4 @@ function nodeById(id,now){
   if(!Number.isInteger(index)||index<0||index>=COUNT||id!==prefix+index) return null;
   return field(ep)[index]||null;
 }
-module.exports={EPOCH_MS,COUNT,GRID_COLS,GRID_CELL,RESOURCES,epochAt,mineRand,field,nodeById};
+module.exports={EPOCH_MS,COUNT,GRID_COLS,GRID_CELL,RESOURCES,MAX_LEVEL,epochAt,mineRand,field,nodeById};
