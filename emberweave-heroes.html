@@ -3290,18 +3290,17 @@ const BATTLE_ANIM = {
     passive:{u:'/assets/anim/veyr/veyr_passive.webp?v=21',n:48,fw:467,fh:440,cols:6,rows:8,figH:400,feet:433,cx:252,fps:24,flip:true,top:33,ax:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,14,15,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}
   },
   hollow:{
-    /* v541 (Phil: "hollow is way too tall when walking, also he does everything backwards"): the walk sheet stands him at 506-526 px
-       while every other sheet crouches him at ~400, but all carried figH 400, so the walk drew him 30% taller - walk figH is now
-       its real 516. And, as with Hurne, his art is not flipped in any state. */
-    idle:{u:'/assets/anim/hollow/hollow_idle.webp?v=21',n:48,fw:351,fh:412,cols:6,rows:8,figH:400,feet:406,cx:206,fps:24,flip:false,top:6,pingpong:true},
-    walk:{u:'/assets/anim/hollow/hollow_walk.webp?v=21',n:48,fw:391,fh:537,cols:6,rows:8,loop:[0,16],figH:516,feet:523,cx:216,fps:24,flip:false,top:123,ax:[0,-1.5,-6,-13.5,-23.8,-31.5,-32.7,-35.5,-38.2,-36.1,-33.2,-31.8,-31.4,-32.5,-33.6,-35,-37.4,-39.6,-42.2,-45,-47.3,-38.8,-33.8,-36.9,-38.8,-33.8,-30.7,-29.2,-29.5,-31.2,-33.4,-36,-38.5,-40.3,-42.5,-44.6,-37.7,-27.9,-29.5,-32.9,-32.5,-28.3,-30.2,-40.6,-50.2,-57.1,-61.4,-62.9]},
-    attack:{u:'/assets/anim/hollow/hollow_attack.webp?v=21',n:48,fw:647,fh:414,cols:6,rows:8,figH:400,feet:409,cx:339,fps:24,flip:false,top:9,ax:[0,1,-1,-240,-242,-244,-246,-248,-250,-252,-253,-253,-253,-253,-253,-253,-253,-253,-253,-254,-254,-254,-254,-254,-254,-254,-254,-254,-254,-254,-254,-254,-254,-254,-254,-254,-254,-252,-251,-249,-246,-243,-240,-2,-2,-1,-1,-1]},
-    hit:{u:'/assets/anim/hollow/hollow_hit.webp?v=21',n:48,fw:472,fh:489,cols:6,rows:8,figH:400,feet:474,cx:218,fps:24,flip:false,top:74,ax:[0,0,48,31,25,-61,-189,-237,-237,-236,-236,-236,-237,-237,-237,-237,-237,-237,-237,-237,-237,-237,-237,-237,-237,-237,-237,-237,-237,-237,-237,-237,-237,-237,-236,-236,-236,-236,-236,-236,-171,5,3,1,1,1,1,1]},
-    green:{u:'/assets/anim/hollow/hollow_green.webp?v=21',n:48,fw:530,fh:548,cols:6,rows:8,figH:400,feet:542,cx:296,fps:24,flip:false,top:142,ax:[0,-2,1,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235,-235]},
-    blue:{u:'/assets/anim/hollow/hollow_blue.webp?v=21',n:48,fw:612,fh:605,cols:6,rows:8,figH:400,feet:553,cx:288,fps:24,flip:false,top:153,ax:[0,1,-25,-53,-112,-171,-244,-244,-244,-244,-244,-244,-244,104,-83,-244,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243,-243]},
-    ult:{u:'/assets/anim/hollow/hollow_ult.webp?v=21',n:48,fw:630,fh:559,cols:6,rows:8,figH:400,feet:553,cx:352,fps:24,flip:false,top:153,ax:[0,0,1,-123,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-239,-233,-242,-250,-250,-250,-250,-250,-250,-250,-250,-250,-250,-250]},
-    passive:{u:'/assets/anim/hollow/hollow_passive.webp?v=21',n:48,fw:349,fh:480,cols:6,rows:8,figH:400,feet:474,cx:204,fps:24,flip:false,top:74},
-    drop:{u:'/assets/anim/hollow/hollow_drop.webp?v=3',n:24,fw:218,fh:300,cols:6,rows:4,figH:254,feet:295,cx:131,fps:14,flip:false,top:4}
+    /* v1126 Hollow ten (Phil 11 Oct, ChatGPT handoff HOLLOW-REBUILD-TEN-PASSIVE2-11OCT2026, 'send to claude'): ENTRANCE2 (drop), IDLE1, WALK1, ATTACK4, CRIT5, HIT4 (no flash), GREEN9 Fan of Knives, BLUE2 Lacerate, ULT3 Vanishing Point, PASSIVE2 The Space He Isn't In (PASSIVE1 excluded) - silent variants, all 20 manifest sha256 matched. Shot on GREEN; his art owns no green (black body, silver blade, violet eyes), so cut_hollow.py = Umbris's cs10 settings (lossless, ALPHA_SOFT/FLOOR 4, key off each clip's frame-0 border, DESPILL_ALL) on EXACT source frames (listed per state); keycheck 0 leaning px on all ten. NATIVE SIZE (no CELL_CAP): PAD trimmed (60 -> 20-32 where needed) and cells re-gridded losslessly to fit 4096; idle 42, walk 36, crit 42 and drop 36 cells because 48 do not fit at native size. The ten were shot at three scales (idle/walk/entrance 1.0, attack/crit/hit 0.659, green/blue/ult/passive 0.460): each state's guard plate is fitted to idle's frame-0 guard (scale + shift, alpha IoU 0.93-1.0) and idle's head (96), sole (687) and centroid carried into every cell, so figH (592 x scale) / feet / cx / top draw him the same size on the same spot in every state. Source art faces RIGHT (flip:false). TIMING IS THE ENGINE'S (v1123): no damage, cast, root, miss or drop time moved - the art is cut to land on it (clips play in real time, the fight clock at SIM_STEP*SIM_HZ*BATTLE_PACE = 0.6724 of it). Accepted caveats (Phil): ATTACK4 blade touches the frame edge f37/f73 and lengthens briefly; CRIT5 blade bends f12-14; GREEN9 six knives, not five; BLUE2 blade smears f23/f29-31; ULT3 landing bend f79-81 and held poses; PASSIVE2 the late ~1.8 s mist fade (the cut starts at f70, the slip). */
+    idle:{u:'/assets/anim/hollow/hollow_idle_1126.webp?v=1126',n:42,fw:515,fh:680,cols:7,rows:6,figH:592,feet:658,cx:307,fps:24,flip:false,top:67},
+    walk:{u:'/assets/anim/hollow/hollow_walk_1126.webp?v=1126',n:36,fw:634,fh:677,cols:6,rows:6,figH:592,feet:628,cx:337,fps:14,flip:false,top:37,loop:[7,24]},
+    attack:{u:'/assets/anim/hollow/hollow_attack_1126.webp?v=1126',n:48,fw:673,fh:442,cols:6,rows:8,figH:390,feet:416,cx:277,fps:24,flip:false,top:27,contact:28},   /* v1126: no relFrac - 48 cells at 24 fps keep his blow at 1.0 clip s x 0.82 (v1123). Measured on the rig: the swing is drawn fitted to his hold and the blow lands on cell 28 - so cell 28 = source f37, the blade at full reach (cells 0-28 = f9-f37 guard, coil, swing; 29-30 = f38, f40 extended; 31-47 = the recovery f72-f96 - the static extended hold f41-f71 is skipped) */
+    crit:{u:'/assets/anim/hollow/hollow_crit_1126.webp?v=1126',n:42,fw:678,fh:571,cols:6,rows:7,figH:389,feet:544,cx:320,fps:21,flip:false,top:155,contact:25},   /* v1126: 42 cells (the 4096 limit at native size) at 21 fps = the same 2.0 s clip and 1.0 clip s blow as the attack; the blow is drawn on cell 25 (rig) = source f17, the neck stab at full lunge (cells 0-7 = his guard f150-f157, 8-25 = f0-f17, 26-41 = f18-f45 recoil to guard) */
+    hit:{u:'/assets/anim/hollow/hollow_hit_1126.webp?v=1126',n:48,fw:488,fh:537,cols:8,rows:6,figH:390,feet:474,cx:305,fps:24,flip:false,top:85},
+    green:{u:'/assets/anim/hollow/hollow_green_1126.webp?v=1126',n:48,fw:610,fh:470,cols:6,rows:8,figH:272,feet:410,cx:285,fps:12,flip:false,top:138,release:8},   /* v1126: source f33-f127 every 2nd frame at 12 fps = real time; the 0.5 fight-s cast = 0.744 s = cell 8 = f49, the six knives out (they linger to f70 and vanish by f74, as approved) */
+    blue:{u:'/assets/anim/hollow/hollow_blue_1126.webp?v=1126',n:48,fw:570,fh:542,cols:7,rows:7,figH:272,feet:482,cx:261,fps:24,flip:false,top:210,release:17},   /* v1126: source f6-f53 at 24 fps = real time; the 0.5 fight-s cast = 0.744 s = cell 17 = f23, the first cut at full reach */
+    ult:{u:'/assets/anim/hollow/hollow_ult_1126.webp?v=1126',n:48,fw:433,fh:544,cols:8,rows:6,figH:272,feet:468,cx:284,fps:24,flip:false,top:196,vanish:{at:14,back:15}},   /* v1126: 48 at 24 fps = 2.0 s = his ult root, unchanged. Cells 0-13 = f11-f37 crouch (timed to the 0.8 s cast), 14 = f39 EMPTY (held while he is off the field), 15-47 = f48-f107 reappear, airborne, drop, land, rise (see the vanish phases in syncMesh) */
+    passive:{u:'/assets/anim/hollow/hollow_passive_1126.webp?v=1126',n:48,fw:361,fh:388,cols:6,rows:8,figH:272,feet:327,cx:216,fps:24,flip:false,top:55,event:true},   /* v1126: source f70-f141 (the slip, the mist, the return to his guard), 2.0 s - fired by the miss he causes (The Space He Isn't In: dealDamage -> firePassiveClip). event: never idle filler, and each miss restarts it from cell 0 (render only) */
+    drop:{u:'/assets/anim/hollow/hollow_drop_1126.webp?v=1126',n:36,fw:613,fh:668,cols:6,rows:6,figH:592,feet:626,cx:324,fps:22,flip:false,top:35,ownFall:true}   /* v1126 ENTRANCE2 (the drop slot - played when he lands behind their back rank): 36 cells (4096 at native size) = f0-f32 every 2nd frame then f34-f88 every 3rd; his feet touch down on cell 16 = f32 at 0.727 s, as the 0.5 fight-s fall (0.744 s) ends. ownFall: the clip draws the fall, so the sprite lift is off and the hold is the clip's own 1.64 s */
   },
   rivet:{
     idle:{u:'/assets/anim/rivet/rivet_idle.webp?v=21',n:48,fw:564,fh:426,cols:6,rows:8,figH:400,feet:419,cx:262,fps:24,flip:false,top:19,pingpong:true},
@@ -6308,6 +6307,7 @@ function firePassiveClip(o,hold,target,options){
   firePassiveFx(o,target,options);   // a triggered passive fires its authored plate even without a body clip
   if(!(o.anim&&o.anim.passive)) return;
   o._passFired=true;                                   // v522: a timed passive is never idle filler
+  if(o.anim.passive.event && o._animSt==='passive') o._animAcc=0;   /* v1126 (render only): an event passive restarts from its first cell - it could be mid-way through as filler or a previous miss */
   const h=hold||clipDur(o.anim.passive);
   /* v539 (Phil: Hurne "must be canceling his ult animation with walk" - it was not walk). Feed Them kills the pack INSIDE
      castAbility's doEffect, every boar sends its soul home, and _soulHome fires his passive clip - at that instant the ult's
@@ -13862,7 +13862,7 @@ function updateBattle(dt){
         burstAt(u.x,u.y,0x7a3fa0,26);
         floatTexts.push({x:u.x,y:u.y-16,txt:'HOLLOW',t:1.4,color:'#c9a6ff',vy:1,sz:15});
         u._fallT=0.5; u._fallMax=0.5; u._noTarget=true;   // he is still in the air for half a second
-        if(u.anim&&u.anim.drop){ u._abilPri=6; u._abilAnim='drop'; u._abilHold=0.5+(u.anim.drop.n/(u.anim.drop.fps||14)); }   // the entry drop is an arrival cinematic — nothing overrides it
+        if(u.anim&&u.anim.drop){ u._abilPri=6; u._abilAnim='drop'; u._abilHold=(u.anim.drop.ownFall?0:0.5)+(u.anim.drop.n/(u.anim.drop.fps||14)); }   /* v1126: an entrance clip that draws its own fall (ownFall: Hollow's portal drop) holds for exactly its length */   // the entry drop is an arrival cinematic — nothing overrides it
         if(u.team==='ally')screenFlash=Math.max(screenFlash,.22); }
       return; }   // nothing else ticks for him while he is still up there
     if(u._fallT>0){ u._fallT-=dt; u.target=null; u.attackAnim=0;
@@ -14143,7 +14143,7 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
            whole body on top of it, which is the wobble. Animated attackers now move only as their
            clip moves — unless the clip is authored with an explicit `lunge`, handled above. */
         else if(u.attackAnim>0&&u.target&&!(u.anim&&u.anim.attack)){const k=u.attackAnim/.18;g.position.x+=(Math.sign(wx(u.target.x)-wx(u.x))||0)*.28*k;g.position.z+=(Math.sign(wz(u.target.y)-wz(u.y))||0)*.28*k;} }
-      spr.position.y=.05+bob+(u.castAnim>0?.4*(u.castAnim/.5):0)+(u._fallH||0)+liftH(u);
+      spr.position.y=.05+bob+(u.castAnim>0?.4*(u.castAnim/.5):0)+((u._abilAnim==='drop'&&u.anim&&u.anim.drop&&u.anim.drop.ownFall)?0:(u._fallH||0))+liftH(u);   /* v1126: Hollow's entrance clip draws the fall out of the portal itself - the 0.5 s sprite lift (render only) would drop him twice */
       /* v276: the ability tell for a hero whose green/blue/ult art does not exist yet — a warm flare
          over the cast, so the attack clip standing in for the ability does not read as an ordinary
          swing. Heroes WITH real ability art never take this path. */
@@ -14186,6 +14186,14 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
           u._atkHold=0; u._animLockT=Math.max(u._animLockT||0,u._hitHold); u._lockPri=2; }
         else if(u._hitHold>0)u._hitHold-=dt; u._critHit=false;
         if(u._abilHold>0)u._abilHold-=dt;
+        /* v1126 VANISHING POINT (Hollow ULT3, render only - nothing here moves the fight). The ult clip carries `vanish:{at,back}`: cells
+           0..at-1 are the wind-up, cell `at` is EMPTY (he is gone), cells back.. are the reappear-drop-land. The sim takes him off the field
+           (_vpT, 0.9 s) at the cast end and lands the strike when it runs out - later than the 2.0 s clip hold - so while he is off the field
+           the ult clip is kept on its empty cell (he used to stand idle on his old spot), and from each strike (a kill hops again: 0.35 s)
+           the reappear cells play in real time from where he lands. */
+        { const _VA=u.anim.ult&&u.anim.ult.vanish;
+          if(_VA){ if((u._vpT||0)>0){ if(u._abilAnim==='ult'||u._vpGone){ u._vpGone=1; u._abilAnim='ult'; u._abilPri=6; u._abilHold=Math.max(u._abilHold||0,0.05); } }
+            else if(u._vpGone){ u._vpGone=0; if(u._abilAnim==='ult'){ u._vpBackAt=battleTime; u._abilPri=6; u._abilHold=(u.anim.ult.n-_VA.back)/(u.anim.ult.fps||24); } } } }
         // hold the walk state for a moment after the last real step, so the 30Hz sim under a 60Hz
         // render (or any frame hitch) can never flicker walk->idle and restart the clip
         if(_speed>1.5) u._moveT=0.20; else u._moveT=Math.max(0,(u._moveT||0)-dt);
@@ -14234,7 +14242,7 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
              and anyone who sets _passFired) keeps that clip meaningful - it is never used as
              filler. For everyone else the passive is just a second resting flourish, so the gap
              alternates between it and the idle instead of playing the same idle every time. */
-          const _passFree=!u._passFired && !!(u.anim&&u.anim.passive);
+          const _passFree=!u._passFired && !!(u.anim&&u.anim.passive) && !u.anim.passive.event;   /* v1126: an `event` passive clip (Hollow's mist - it means "that blow missed") is never idle filler, not even before it first fires */
           const _cand=[];
           if(u.anim&&u.anim.idle)    _cand.push(['idle',    clipDur(u.anim.idle)]);
           if(_passFree)              _cand.push(['passive', clipDur(u.anim.passive)]);
@@ -14367,6 +14375,11 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
           if(u._dash){ fr=R.fly; u._rushFace=u._faceDir||u._rushFace; }   // the facing he launched in (held through impact - see below)
           else if(u._rushLandAt!=null && u._rushLandAt>=u._abilStartAt) fr=Math.min(A.n-1, R.land+Math.floor((battleTime-u._rushLandAt)*f));
           else { fr=Math.min(R.launch, Math.floor((battleTime-u._abilStartAt)*f)); u._rushFace=null; } }
+        else if(st==='ult' && A.vanish && u._abilStartAt!=null){   /* v1126 Vanishing Point phases (see above): wind-up timed to the cast, empty while gone, reappear from the strike */
+          const _V=A.vanish.at, _B=A.vanish.back;
+          if((u._vpT||0)>0) fr=_V;
+          else if(u._vpBackAt!=null && u._vpBackAt>=u._abilStartAt) fr=Math.min(A.n-1, _B+Math.floor((battleTime-u._vpBackAt)/(SIM_STEP*SIM_HZ*BATTLE_PACE)*(A.fps||24)));
+          else fr=Math.min(_V, Math.floor((battleTime-u._abilStartAt)/Math.max(0.05,castTimeFor(u,'ult'))*_V)); }
         else if(_osFrac!==null){ const _per=ppPer(A), _p=Math.floor(_osFrac*_per*((u._dblSwing&&st===_atkSt)?2:1))%_per;   // one-shot: the whole clip, fitted to its hold (v534: twice through for a mirage double swing)
           fr=ppFrame(A,_p); }   // v544: a rubberbanded one-shot runs out AND back inside its hold (the boar shaman's cast/attack) - before this the return leg was never drawn
         else if(_osH>0 && st!=='walk' && st!=='idle' && !A.pingpong && !(u._dblSwing&&st===_atkSt) && A.n>1){   /* v1028 (Phil 4 Oct: Vael's swing "instantly recoils the hit back, instead of naturally doing the full swing"):
