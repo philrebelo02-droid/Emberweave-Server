@@ -43,6 +43,8 @@ const fs = require('fs'), path = require('path');
    grew from 0.75 s to 2.5 s (Windows file creation) - 512 stays the default; try 2048 on Linux. */
 const SHARDS = Math.max(16, Math.min(16384, +process.env.DB_STORE_SHARDS || 512)), FORMAT = 'split-v1', LAYOUT = 'pieces-v1';
 const PIECE_KEY = /^[A-Za-z0-9_$]{1,64}$/, PIECE_FILE = /^p-([A-Za-z0-9_$]{1,64})-(\d+)\.json$/;
+const STORE_FILE_RX = '^(\\d+-\\d+|p-[A-Za-z0-9_$]{1,64}-\\d+)\\.json$';   // v1128: every shard and piece file name (the sweep after a failed save)
+const STORE_IO = require('./store-io.js');
 
 function shardOf(id) {   // FNV-1a over the id - stable across restarts and Node versions
   let h = 0x811c9dc5; const s = String(id);
@@ -58,9 +60,12 @@ function create(file, opts) {
   opts = opts || {};
   const dir = file + '.d';
   const st = { split: !!opts.split, verify: !!opts.verify, pieces: opts.pieces !== false, gen: 0, names: null, last: null,
-    pnames: null, plast: new Map(), pflag: new Set(), layout: null, shash: new Map(),
+    pnames: null, plast: new Map(), pflag: new Set(), layout: null, shash: new Map(), broken: false,
     stats: { full: 0, partial: 0, shardsWritten: 0, lastMs: 0, lastShards: 0, lastFullAt: 0, undeclared: 0, undeclaredIds: [],
-      piecesWritten: 0, piecesSkipped: 0, slices: 0, sweepSkipped: 0, lastPieces: [], bytes: { shards: 0, pieces: 0, manifest: 0 }, undeclaredPieces: 0, undeclaredPieceNames: [] } };
+      piecesWritten: 0, piecesSkipped: 0, slices: 0, sweepSkipped: 0, lastPieces: [], bytes: { shards: 0, pieces: 0, manifest: 0 }, undeclaredPieces: 0, undeclaredPieceNames: [], mainMs: 0, mainMaxMs: 0, io: null } };
+  /* v1128: opts.io = 'worker' (the file work of every save on the store io worker thread) or 'sync' (default: on this thread) */
+  let _io = null;
+  const io = () => { if (!_io) { _io = STORE_IO.create({ mode: opts.io === 'worker' ? 'worker' : 'sync', onFailure: e => { st.broken = true; if (opts.onFailure) opts.onFailure(e); } }); st.stats.io = _io.stats; } return _io; };
   const idShard = new Map();
   const sh = id => { let s = idShard.get(id); if (s === undefined) { s = shardOf(id); if (idShard.size > 500000) idShard.clear(); idShard.set(id, s); } return s; };
 
@@ -126,61 +131,77 @@ function create(file, opts) {
 
   /* userIds: null = save everything; else the players whose data (or receipts) changed. dirtyPieces: null/undefined = the shared
      systems that changed are not known (every piece is compared with what was last written); a Set/array of keys = only these can
-     have changed. Throws if the save did not commit. */
-  function write(db, userIds, dirtyPieces, slice) {   // v1127: slice {slice, of} = a sweep slice - every shard s with s % of === slice too
-    const t0 = Date.now(), S = st.stats;
-    const full = !userIds || !st.names;
+     have changed.
+     v1128: prepare() runs on the main thread - it decides what changed, stringifies it and moves the store's own record (gen, file
+     names, hashes) forward at once, so the next save builds on this one even before it is on disk; the file work is one job for the
+     store io (server/store-io.js): written by the io worker for writeAsync(), waited for by write(). A job that fails marks the
+     store broken: the next save writes every shard and piece under new names and sweeps whatever its manifest does not name. */
+  function prepare(db, userIds, dirtyPieces, slice) {   // v1127: slice {slice, of} = a sweep slice - every shard s with s % of === slice too
+    const t0 = Date.now(), S = st.stats, broken = st.broken;
+    const full = !userIds || !st.names || broken;
     let want = null, sweepOnly = null;
     if (!full) { want = new Set(); for (const id of userIds) want.add(sh(id));
       if (slice && slice.of > 0) { sweepOnly = new Set(); for (let s = slice.slice % slice.of; s < SHARDS; s += slice.of) if (!want.has(s)) { want.add(s); sweepOnly.add(s); } S.slices++; } }
     const { parts, core } = split(db, want);
-    const gen = ++st.gen, names = Object.assign({}, st.names || {}), fresh = [], strs = st.verify ? new Map() : null, newHash = new Map();
+    const gen = ++st.gen, names = Object.assign({}, broken ? {} : (st.names || {})), ops = [{ mk: dir }], strs = st.verify ? new Map() : null, newHash = new Map();
     let pnext = null, pstr = null, inline = core, considered = null;
     if (st.pieces) {
-      inline = {}; pnext = new Map(st.pnames || []); pstr = new Map();
+      inline = {}; pnext = new Map(broken ? [] : (st.pnames || [])); pstr = new Map();
       const keys = new Set(); for (const k of Object.keys(core)) { if (core[k] === undefined) continue; if (PIECE_KEY.test(k)) keys.add(k); else inline[k] = core[k]; }
       for (const k of [...pnext.keys()]) if (!keys.has(k)) pnext.delete(k);   // a system that left the world: its file goes
       const declared = dirtyPieces ? new Set(dirtyPieces) : null;
       considered = (full || !declared || !st.pnames) ? keys : new Set([...keys].filter(k => declared.has(k) || !st.pnames.has(k)));
       for (const k of considered) {
         const s = JSON.stringify(core[k]);
-        if (st.pnames && st.pnames.has(k) && st.plast.get(k) === s) { S.piecesSkipped++; continue; }
+        if (!broken && st.pnames && st.pnames.has(k) && st.plast.get(k) === s) { S.piecesSkipped++; continue; }
         pstr.set(k, s);
       }
     }
-    fs.mkdirSync(dir, { recursive: true });
-    let manifestBytes = 0, shardBytes = 0, pieceBytes = 0;
-    try {
-      for (const [s, p] of parts) {
-        const str = JSON.stringify(p), hsh = fnv(str);
-        if (sweepOnly && sweepOnly.has(s) && st.names && st.names[s] && st.shash.get(s) === hsh) { S.sweepSkipped++; continue; }   // v1127: a sweep shard that did not change keeps its file
-        const name = s + '-' + gen + '.json';
-        fs.writeFileSync(path.join(dir, name), str); fresh.push(name); names[s] = name; shardBytes += str.length; newHash.set(s, hsh);
-        if (strs) strs.set(s, str);
-      }
-      if (pstr) for (const [k, s] of pstr) { const name = 'p-' + k + '-' + gen + '.json'; fs.writeFileSync(path.join(dir, name), s); fresh.push(name); pnext.set(k, name); pieceBytes += s.length; }
-      const tmp = file + '.store.tmp';
-      const man = st.pieces ? JSON.stringify({ __store: FORMAT, layout: LAYOUT, gen, count: SHARDS, shards: null, shardGens: Array.from({ length: SHARDS }, (_, s) => +String(names[s]).split('-')[1].split('.')[0]), pieces: Object.fromEntries(pnext), core: inline })
-        : JSON.stringify({ __store: FORMAT, gen, count: SHARDS, shards: names, core });
-      fs.writeFileSync(tmp, man); manifestBytes = man.length;
-      fs.renameSync(tmp, file);
-    } catch (e) {
-      for (const f of fresh) { try { fs.unlinkSync(path.join(dir, f)); } catch (e2) {} }
-      throw e;
+    let shardBytes = 0, pieceBytes = 0;
+    for (const [s, p] of parts) {
+      const str = JSON.stringify(p), hsh = fnv(str);
+      if (sweepOnly && sweepOnly.has(s) && st.names && st.names[s] && st.shash.get(s) === hsh) { S.sweepSkipped++; continue; }   // v1127: a sweep shard that did not change keeps its file
+      const name = s + '-' + gen + '.json';
+      ops.push({ w: path.join(dir, name), s: str }); names[s] = name; shardBytes += str.length; newHash.set(s, hsh);
+      if (strs) strs.set(s, str);
     }
-    const old = st.names || {};
-    for (const s of Object.keys(names)) if (old[s] && old[s] !== names[s]) { try { fs.unlinkSync(path.join(dir, old[s])); } catch (e) {} }
-    if (st.pnames) for (const [k, f] of st.pnames) if (!pnext || pnext.get(k) !== f) { try { fs.unlinkSync(path.join(dir, f)); } catch (e) {} }   // superseded or removed pieces (all of them when going back to split-v1)
+    if (pstr) for (const [k, s] of pstr) { const name = 'p-' + k + '-' + gen + '.json'; ops.push({ w: path.join(dir, name), s }); pnext.set(k, name); pieceBytes += s.length; }
+    const tmp = file + '.store.tmp';
+    const man = st.pieces ? JSON.stringify({ __store: FORMAT, layout: LAYOUT, gen, count: SHARDS, shards: null, shardGens: Array.from({ length: SHARDS }, (_, s) => +String(names[s]).split('-')[1].split('.')[0]), pieces: Object.fromEntries(pnext), core: inline })
+      : JSON.stringify({ __store: FORMAT, gen, count: SHARDS, shards: names, core });
+    ops.push({ w: tmp, s: man }, { r: tmp, to: file });
+    // what this save supersedes is removed once it has committed (lazily, by the io worker); after a failure, a sweep instead
+    const lazy = [];
+    if (broken) ops.push({ sweep: dir, keep: [...Object.values(names), ...(pnext ? pnext.values() : [])], rx: STORE_FILE_RX });
+    else {
+      const old = st.names || {};
+      for (const s of Object.keys(names)) if (old[s] && old[s] !== names[s]) lazy.push(path.join(dir, old[s]));
+      if (st.pnames) for (const [k, f] of st.pnames) if (!pnext || pnext.get(k) !== f) lazy.push(path.join(dir, f));   // superseded or removed pieces (all of them when going back to split-v1)
+    }
+    // the store's record moves forward now: the next save builds on this one
+    st.broken = false;
     st.names = names; for (const [s, h] of newHash) st.shash.set(s, h); S.lastShards = newHash.size;
     if (st.pieces) { st.pnames = pnext; for (const [k, s] of pstr) { st.plast.set(k, s); st.pflag.delete(k); } for (const k of [...st.plast.keys()]) if (!pnext.has(k)) st.plast.delete(k); st.layout = 'pieces'; }
     else { st.pnames = null; st.plast = new Map(); st.layout = 'split-v1'; }
     const ms = Date.now() - t0;
     if (full) { S.full++; S.lastFullAt = Date.now(); } else S.partial++;
-    S.shardsWritten += newHash.size; S.lastMs = ms;
+    S.shardsWritten += newHash.size; S.lastMs = ms; S.mainMs += ms; if (ms > S.mainMaxMs) S.mainMaxMs = ms;
     S.piecesWritten += pstr ? pstr.size : 0; S.lastPieces = pstr ? [...pstr.keys()] : ['(inline)'];
-    S.bytes.shards += shardBytes; S.bytes.pieces += pieceBytes; S.bytes.manifest += manifestBytes;
+    S.bytes.shards += shardBytes; S.bytes.pieces += pieceBytes; S.bytes.manifest += man.length;
     if (strs) verifyAfter(db, strs, full);
     if (st.verify && st.pieces && considered && !full) verifyPieces(core, considered);
+    return { ops, lazy };
+  }
+  // a save that is on disk when it returns (throws if it did not commit)
+  function write(db, userIds, dirtyPieces, slice) {
+    const j = prepare(db, userIds, dirtyPieces, slice);
+    try { io().submitSync(j.ops, j.lazy); } catch (e) { st.broken = true; throw e; }
+  }
+  /* v1128: a save whose files the io worker writes - resolves once its manifest is renamed into place, rejects if it did not commit
+     (and every save submitted after it before the failure was seen fails too). With DB_STORE_IO=sync it is the synchronous save. */
+  function writeAsync(db, userIds, dirtyPieces, slice) {
+    let j; try { j = prepare(db, userIds, dirtyPieces, slice); } catch (e) { return Promise.reject(e); }
+    return io().submit(j.ops, j.lazy).catch(e => { st.broken = true; throw e; });
   }
 
   /* DB_STORE_VERIFY=1: after a partial save, every shard it did NOT write is compared with what was last written for it. A
@@ -220,7 +241,8 @@ function create(file, opts) {
 
   return { get split() { return st.split; }, get layout() { return st.layout; }, get pieces() { return st.split && st.pieces; },
     get layoutMismatch() { return st.split && st.layout !== null && st.layout !== (st.pieces ? 'pieces' : 'split-v1'); },
-    stats: st.stats, load, write, sweepOrphans, shardOf, ownerOf, dir };
+    get broken() { return st.broken; }, get ioAsync() { return io().async; }, get ioPending() { return io().pending; },
+    stats: st.stats, load, write, writeAsync, flush: () => io().flush(), io, sweepOrphans, shardOf, ownerOf, dir };
 }
 
 /* Tools outside the server (setpass, restores): readWorld/writeWorld take any layout. writeWorld keeps the file's layout.

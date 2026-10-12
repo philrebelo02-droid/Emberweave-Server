@@ -87,7 +87,7 @@ function brokenTree() {
   const dir = path.join(R.root, '.ctl-broken-copy'); fs.rmSync(dir, { recursive: true, force: true }); fs.mkdirSync(dir);
   const tar = execFileSync('git', ['archive', '--format=tar', 'HEAD', '--', '.', ':!assets'], { cwd: R.root, maxBuffer: 1 << 30 });
   execFileSync('tar', ['-x', '-C', dir.split(path.sep).join('/')], { input: tar, maxBuffer: 1 << 30 });
-  for (const f of ['server.js', 'server/world-store.js']) fs.copyFileSync(path.join(R.root, f), path.join(dir, f));   // this tree's code, whatever is committed
+  for (const f of ['server.js', ...fs.readdirSync(path.join(R.root, 'server')).filter(n => /\.js$/.test(n)).map(n => 'server/' + n)]) fs.copyFileSync(path.join(R.root, f), path.join(dir, f));   // this tree's code, whatever is committed (v1128: every server module - store-io.js is new)
   fs.symlinkSync(path.join(R.root, 'assets'), path.join(dir, 'assets'), 'junction');
   const f = path.join(dir, 'server.js'); let s = fs.readFileSync(f, 'utf8');
   const marker = "function _stageAccount(live,depth){\r\n  const out={}, copied=new Map(), touched=new Set();";
