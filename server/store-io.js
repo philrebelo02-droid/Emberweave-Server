@@ -51,7 +51,7 @@ function runJournal(op, ctx) {
   if (op.j === 'init') { ctx.engine = require('./store-journal.js').createEngine(Object.assign({}, op.cfg, { shardOf: id => require('./store-journal.js').shardOfN(id, op.cfg.shards) })); ctx.engine.init(op.m); return; }
   if (!ctx.engine) { const e = Error('world store: journal engine not started'); e.code = 'EJOURNAL'; throw e; }
   if (op.j === 'rec') ctx.engine.record(op.units, op.receipts, op.pieces, op.core);
-  else if (op.j === 'full') ctx.engine.full(op.shards, op.pieces, op.core);
+  else if (op.j === 'full') ctx.engine.full(op.shards, op.pieces, op.core, op.sweep);
   if (ctx.sync) { if (ctx.engine.due()) ctx.engine.settle(); else ctx.engine.unlinkSome(1 << 30); }   // DB_STORE_IO=sync / tools: a due checkpoint runs to its end here
 }
 
@@ -70,7 +70,7 @@ if (!wt.isMainThread && wt.workerData && wt.workerData.__storeIo) {
       else { const e = runOps(j.ops, ctx); if (e) { err = { message: e.message, code: e.code || 'EIO' }; poisonedUpTo = j.epoch; } }
       if (!err && j.lazy) for (const f of j.lazy) lazy.push(f);
       if (j.drain && lazy.length) { for (const f of lazy) { try { fs.unlinkSync(f); } catch (e) {} } Atomics.add(ctl, 1, lazy.length); lazy = []; }   // flush(): superseded files too
-      port.postMessage({ seq: j.seq, err, ms: Date.now() - t0, lazy: lazy.length, journal: ctx.engine ? ctx.engine.stats : undefined });
+      port.postMessage({ seq: j.seq, err, ms: Date.now() - t0, lazy: lazy.length, journal: ctx.engine ? Object.assign({ gen: ctx.engine.gen }, ctx.engine.stats) : undefined });
       Atomics.store(ctl, 0, j.seq); Atomics.notify(ctl, 0);
       ckptStep();   // a checkpoint advances one shard per save even when saves never stop
     }
@@ -97,7 +97,7 @@ function create(opts) {
     syncWaits: 0, syncWaitMs: 0, maxSyncWaitMs: 0, workerErrors: 0 };
   let worker = null, port = null, ctl = null, seq = 0, epoch = 0; const ctx = { engine: null, sync: true };
   const waiting = new Map();   // seq -> {resolve, reject, epoch, sync, err, done}
-  const onFailure = opts.onFailure || (() => {});
+  const onFailure = opts.onFailure || (() => {}), onWorkerLost = opts.onWorkerLost || (() => {});
   const timeIt = ms => { stats.lastMs = ms; stats.totalMs += ms; if (ms > stats.maxMs) stats.maxMs = ms; };
   function syncRun(ops, lazy) {
     const t0 = Date.now(), e = runOps(ops, ctx); stats.jobs++; timeIt(Date.now() - t0); if (ctx.engine) stats.journal = ctx.engine.stats;
@@ -118,7 +118,7 @@ function create(opts) {
     settle(w, e);
   }
   function failAll(why) {   // the worker is gone: every waiting job failed; later saves run on this thread
-    if (worker) { const w = worker; worker = null; stats.mode = 'sync'; stats.workerErrors++; try { w.terminate(); } catch (e) {} }
+    if (worker) { const w = worker; worker = null; stats.mode = 'sync'; stats.workerErrors++; try { w.terminate(); } catch (e) {} try { onWorkerLost(); } catch (e) {} }
     const e = Error('world save: the store io worker stopped (' + why + ')'); e.code = 'EIO';
     const ws = [...waiting.values()]; waiting.clear(); stats.inFlight = 0;
     for (const w of ws) settle(w, e);
@@ -166,6 +166,7 @@ function create(opts) {
     get async() { return !!worker; }, get pending() { return waiting.size; }, stats,
     submit, submitSync,
     flush() { submitSync([], null, true); },   // wait for every job and remove every superseded file (tests, exit)
+    lose(why) { failAll(why || 'stopped by hand'); },   // as if the worker had died (tests): waiting jobs fail, later ones run on this thread
     close() { if (worker) { const w = worker; worker = null; stats.mode = 'sync'; w.terminate(); } },
   };
 }

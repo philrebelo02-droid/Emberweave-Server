@@ -93,7 +93,7 @@ function createEngine(o) {
   const file = o.file, dir = o.dir, SHARDS = o.shards, shardOf = o.shardOf;
   const CKPT_BYTES = Math.max(1 << 12, o.ckptBytes || 128 << 20), CKPT_MS = Math.max(1000, o.ckptMs || 10 * 60000);   // bench 12 Oct: 2 MB/s of journal under war + chat + play - a checkpoint about once a minute rewrites the touched base shards (~1.5 MB/s); boot replays at most ~128 MB
   const st = { gen: 0, baseGens: null, pieces: {}, core: '{}', journals: [], cur: null, curBytes: 0, pend: emptyPend(),
-    ckpt: null, lastCkptAt: Date.now(), lazy: [], broken: false, ready: false };
+    ckpt: null, lastCkptAt: Date.now(), ckptRetryAt: 0, lazy: [], broken: false, ready: false };
   const stats = { appends: 0, appendBytes: 0, fulls: 0, rotations: 0, checkpoints: 0, ckptShards: 0, ckptMs: 0, ckptMaxStepMs: 0, ckptAborted: 0, journalBytes: 0, pendingUnits: 0, lazy: 0, truncated: 0 };
   const P = n => path.join(dir, n);
   function manifest(m) {
@@ -141,7 +141,7 @@ function createEngine(o) {
   }
 
   /* a whole new base: shardStrs[s] = shard JSON for every s, pieceStrs = [[key, json]] for every piece, core = inline JSON */
-  function full(shardStrs, pieceStrs, core) {
+  function full(shardStrs, pieceStrs, core, sweep) {   // sweep: after a failure - every store file the new manifest does not name goes
     const g = st.gen + 1, written = [];
     try {
       fs.mkdirSync(dir, { recursive: true });
@@ -154,7 +154,9 @@ function createEngine(o) {
       for (let s = 0; s < SHARDS; s++) if (st.baseGens && st.baseGens[s]) st.lazy.push(P(s + '-' + st.baseGens[s] + '.json'));
       for (const f of Object.values(st.pieces)) st.lazy.push(P(f));
       for (const f of st.journals) st.lazy.push(P(f));
-      if (st.ckpt) { for (const f of st.ckpt.written) st.lazy.push(P(f)); st.ckpt = null; stats.ckptAborted++; }
+      if (st.ckpt) { for (const f of st.ckpt.written) st.lazy.push(P(f)); st.ckpt = null; stats.ckptActive = false; stats.ckptAborted++; }
+      if (sweep) { const keep = new Set(written); let files = []; try { files = fs.readdirSync(dir); } catch (e) {}
+        for (const f of files) if ((/^\d+-\d+\.json$/.test(f) || /^p-[A-Za-z0-9_$]{1,64}-\d+\.json$/.test(f) || J_FILE.test(f)) && !keep.has(f)) st.lazy.push(P(f)); }
       st.gen = g; st.baseGens = m.baseGens; st.pieces = pieces; st.core = core; st.journals = [j]; st.cur = j; st.curBytes = 0;
       st.pend = emptyPend(); st.broken = false; st.ready = true; st.lastCkptAt = Date.now();
       stats.fulls++; stats.journalBytes = 0; stats.pendingUnits = 0; stats.lazy = st.lazy.length;
@@ -163,7 +165,7 @@ function createEngine(o) {
   }
 
   /* ---- checkpoints ---- */
-  function due() { return st.ready && !st.broken && !st.ckpt && st.pend.u.size + st.pend.i.size + st.pend.p.size + (st.pend.c !== null ? 1 : 0) > 0 && (st.curBytes >= CKPT_BYTES || Date.now() - st.lastCkptAt >= CKPT_MS || st.journals.length > 1); }
+  function due() { return st.ready && !st.broken && !st.ckpt && Date.now() >= st.ckptRetryAt && st.pend.u.size + st.pend.i.size + st.pend.p.size + (st.pend.c !== null ? 1 : 0) > 0 && (st.curBytes >= CKPT_BYTES || Date.now() - st.lastCkptAt >= CKPT_MS || st.journals.length > 1); }
   function rotate() {   // a new empty journal after the current one: appends go there; the old ones are folded into a new base
     const g = st.gen + 1, j = 'j-' + g + '.log';
     fs.writeFileSync(P(j), '');
@@ -175,6 +177,7 @@ function createEngine(o) {
     startCheckpoint(old, frozen);
   }
   function startCheckpoint(oldJournals, frozen) {
+    stats.ckptActive = true;
     if (!frozen) {   // after a restart: the old journals' content was folded into pend by init - split it: what the newest journal holds stays pending
       frozen = pendFrom(foldJournals(dir, oldJournals));
       st.pend = pendFrom(foldJournals(dir, st.journals.slice(-1)));
@@ -187,7 +190,9 @@ function createEngine(o) {
   }
   // one step of the checkpoint (one shard, or the commit); returns true while there is more to do
   function step() {
-    if (!st.ckpt) { if (due()) { rotate(); return true; } return false; }
+    if (!st.ckpt) { if (!due()) return false;
+      try { rotate(); } catch (e) { st.ckptRetryAt = Date.now() + 30000; stats.ckptAborted++; console.error('world store: journal rotation failed (' + e.message + ') - retried in 30 s'); return false; }
+      return true; }
     const c = st.ckpt, t0 = Date.now();
     try {
       if (c.todo.length) {
@@ -211,7 +216,7 @@ function createEngine(o) {
         stats.checkpoints++; stats.lazy = st.lazy.length;
       }
     } catch (e) {   // the committed state is untouched; what this checkpoint wrote goes; it starts again later
-      for (const n of c.written) st.lazy.push(P(n)); st.ckpt = null; stats.ckptAborted++; st.lastCkptAt = Date.now();
+      for (const n of c.written) st.lazy.push(P(n)); st.ckpt = null; stats.ckptActive = false; stats.ckptAborted++; st.lastCkptAt = Date.now(); st.ckptRetryAt = Date.now() + 30000;   // a failing disk is not retried in a loop
       for (const [id, l] of c.frozen.u) { const cur = st.pend.u.get(id); st.pend.u.set(id, cur ? l.concat(cur) : l); }   // still to fold - keep it pending, older patches first
       for (const [k, s] of c.frozen.i) if (!st.pend.i.has(k)) st.pend.i.set(k, s);
       for (const [k, l] of c.frozen.p) { const cur = st.pend.p.get(k); st.pend.p.set(k, cur ? l.concat(cur) : l); }
@@ -219,13 +224,14 @@ function createEngine(o) {
       console.error('world store: checkpoint stopped (' + e.message + ') - the journal keeps everything; it is retried');
       return false;
     }
+    stats.ckptActive = !!st.ckpt;
     const ms = Date.now() - t0; c.ms += ms; if (ms > stats.ckptMaxStepMs) stats.ckptMaxStepMs = ms; stats.ckptMs += ms;
     return true;
   }
   function unlinkSome(n) { const b = st.lazy.splice(0, n); for (const f of b) { try { fs.unlinkSync(f); } catch (e) {} } stats.lazy = st.lazy.length; return b.length; }
   // the sync path (DB_STORE_IO=sync, tools): run a due checkpoint to the end
   function settle() { let guard = 0; while (step() && guard++ < 100000) {} unlinkSome(st.lazy.length); }
-  return { init, record, full, step, due, unlinkSome, settle, stats, get busy() { return !!st.ckpt || due(); }, get lazyCount() { return st.lazy.length; }, state: () => cur() };
+  return { init, record, full, step, due, unlinkSome, settle, stats, get gen() { return st.gen; }, get busy() { return !!st.ckpt || due(); }, get lazyCount() { return st.lazy.length; }, state: () => cur() };
 }
 
 module.exports = { createEngine, shardOfN, parseJournal, foldJournals, applyUnits, applyPatches, applyPiece, lineHash, frame, J_FILE };
