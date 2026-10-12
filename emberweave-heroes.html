@@ -6256,7 +6256,8 @@ function heroKeysRename(v,depth){ const M=HERO_KEY_RENAME_1023; depth=depth|0; i
       if(Object.prototype.hasOwnProperty.call(M,k)){ const nk=M[k]; v[nk]=nv; delete v[k];   /* the old key's data wins (it is the player's real data) */ } else v[k]=nv; }
     return v; }
   return v; }
-function loadG(){ try{ const s=localStorage.getItem('emberweave_save_v08'); if(s){ deepMerge(G, heroKeysRename(JSON.parse(s))); } }catch(e){} migrateG(); }
+function loadG(){ try{ const s=localStorage.getItem('emberweave_save_v08'); if(s){ deepMerge(G, heroKeysRename(JSON.parse(s))); } }catch(e){} migrateG();
+  if(chatPruneSaved()) saveGLocalOnly(); }   /* v1127: chat older than the last 100 lines leaves this device's storage at once */
 // HERO-ID RENAME (v926): old concept keys -> in-game-name keys. Map mirrors server.js HERO_ID_RENAME.
 const HERO_ID_RENAME={tallow:'gruel',vharn:'korvux',fathom:'maren',sprocket:'rivet',sablewick:'tessit',arrears:'grimsby',meryln:'dandra'};
 function renameHeroIdsDeep(o){
@@ -30506,6 +30507,15 @@ function goLandscape(){
 // server ('chathist' on connect); no NPC seed lines, no fake whisper replies.
 let CHAT=null, chatTab='world', openWhispers=[], _chatBattles=[];
 function initChat(){ if(CHAT)return; CHAT={ world:[], region:[] }; }
+/* v1127 CHAT CAP (Phil 11 Oct 2026: "chat should disappear after 100 messages and immediately be removed from cache unless saving by a
+   'report' player option"): every chat list this device keeps - World, Region, each whisper conversation, the local guild log - holds
+   the last 100 lines; the 101st drops the 1st, from memory and (whispers, guild log) from the saved game at once. Report sends a line
+   to the server's report store, which keeps it whatever happens to the chat. */
+function chatCap(a){ const N=100; if(Array.isArray(a)&&a.length>N) a.splice(0,a.length-N); return a; }
+function chatPruneSaved(){ let ch=false;
+  if(G.whispers&&typeof G.whispers==='object') for(const k of Object.keys(G.whispers)){ const a=G.whispers[k]; if(!Array.isArray(a)){ delete G.whispers[k]; ch=true; } else if(a.length>100){ chatCap(a); ch=true; } }
+  if(Array.isArray(G.guildLog)&&G.guildLog.length>100){ chatCap(G.guildLog); ch=true; }
+  return ch; }
 function escAttr(s){ return String(s).replace(/"/g,'&quot;'); }
 // server time = America/New_York (EST/EDT), 24-hour clock, shown by the chat header
 let _serverClock=null;
@@ -30528,16 +30538,16 @@ function openWhisper(name){ if(!name||name===(G.playerName||'You'))return; if(!G
   renderChat(); }
 function closeWhisper(name){ openWhispers=openWhispers.filter(n=>n!==name); if(chatTab==='w:'+name)chatTab='whispers'; renderChat(); }
 function chatSend(){ const inp=document.getElementById('cwInput'); if(!inp)return; const v=inp.value.trim(); if(!v)return; inp.value=''; const me=chatName(); const live=CHATNET.connected;
-  if(chatTab==='world'||chatTab==='region'){ CHAT[chatTab].push({who:me,txt:v,me:true}); if(CHAT[chatTab].length>120)CHAT[chatTab].shift();   // show instantly for the sender
+  if(chatTab==='world'||chatTab==='region'){ CHAT[chatTab].push({who:me,txt:v,me:true}); chatCap(CHAT[chatTab]);   // show instantly for the sender (v1127: last 100)
     if(live) chatNetSend({t:'chat',channel:chatTab,text:v}); }   // server relays to everyone else
   else if(chatTab==='guild'){
     if(GS.guild&&ACC.token){   // REAL server guild chat (same log the Guild Hall shows)
       api('/api/guild/chat','POST',{tx:v}).then(d=>{ if(d&&d.log){ GS.guild.log=d.log; if(chatTab==='guild')renderChat(); if(document.getElementById('guildWrap'))renderGuild(); } });
     } else if(G.guild){ if(!G.guildLog)G.guildLog=[]; G.guildLog.push(v); if(G.guildLog.length>50)G.guildLog=G.guildLog.slice(-50); saveG(); }
     else return; }
-  else if(chatTab.indexOf('w:')===0){ const n=chatTab.slice(2); if(!G.whispers)G.whispers={}; if(!G.whispers[n])G.whispers[n]=[]; G.whispers[n].push({who:me,txt:v,me:true}); saveG();
+  else if(chatTab.indexOf('w:')===0){ const n=chatTab.slice(2); if(!G.whispers)G.whispers={}; if(!G.whispers[n])G.whispers[n]=[]; G.whispers[n].push({who:me,txt:v,me:true}); chatCap(G.whispers[n]); saveG();
     if(live){ chatNetSend({t:'whisper',to:n,text:v}); }   // delivered to that player if they're online
-    else { G.whispers[n].push({who:'{i:u:warning} offline',txt:'Not delivered — reconnect to whisper.',sys:true}); saveG(); } }
+    else { G.whispers[n].push({who:'{i:u:warning} offline',txt:'Not delivered — reconnect to whisper.',sys:true}); chatCap(G.whispers[n]); saveG(); } }
   renderChat();
 }
 function renderChat(){ initChat(); const w=document.getElementById('chatWidget'); if(!w||w.classList.contains('min'))return;
@@ -30633,7 +30643,7 @@ function postReplayChip(channel, meta){
     }).catch(()=>bannerMsg('Could not share to guild'));
     return;
   }
-  else { const ch=(channel==='region')?'region':'world'; initChat(); CHAT[ch].push({who:chatName(),txt,me:true,battle:chip,pt:patMyTag()}); if(CHAT[ch].length>120)CHAT[ch].shift(); if(CHATNET.connected)chatNetSend({t:'chat',channel:ch,text:txt,battle:chip}); chatTab=ch; bannerMsg('\u{1F4E4} Shared to '+(ch==='region'?'region':'world')+' chat'); }
+  else { const ch=(channel==='region')?'region':'world'; initChat(); CHAT[ch].push({who:chatName(),txt,me:true,battle:chip,pt:patMyTag()}); chatCap(CHAT[ch]); if(CHATNET.connected)chatNetSend({t:'chat',channel:ch,text:txt,battle:chip}); chatTab=ch; bannerMsg('\u{1F4E4} Shared to '+(ch==='region'?'region':'world')+' chat'); }
   const w=document.getElementById('chatWidget'); if(w){ w.classList.remove('min'); const tg=w.querySelector('#cwToggle'); if(tg)tg.textContent='▼'; }
   renderChat();
 }
@@ -30670,9 +30680,9 @@ function onChatNet(m){
      they are how we find out that a legitimate player's actions are being refused, rather than
      discovering it from a player whose clear did not count. */
   if(m.t==='actack'){ onActAck(m); return; }
-  if(m.t==='chathist'){ if(Array.isArray(m.world))CHAT.world=m.world.map(x=>({who:x.who,txt:x.txt,me:x.who===CHATNET.name,battle:x.battle||null,pt:x.pt||null,mid:x.mid||null})); if(Array.isArray(m.region))CHAT.region=m.region.map(x=>({who:x.who,txt:x.txt,me:x.who===CHATNET.name,battle:x.battle||null,pt:x.pt||null,mid:x.mid||null})); if(chatTab==='world'||chatTab==='region')renderChat(); }
-  else if(m.t==='chatmsg'){ const ch=m.channel==='region'?'region':'world'; CHAT[ch].push({who:m.who,txt:m.txt,me:m.who===CHATNET.name,battle:m.battle||null,pt:m.pt||null,mid:m.mid||null}); if(CHAT[ch].length>120)CHAT[ch].shift(); if(chatTab===ch)renderChat(); }
-  else if(m.t==='whispermsg'){ const from=m.from; if(from===CHATNET.name)return; if(!G.whispers)G.whispers={}; if(!G.whispers[from])G.whispers[from]=[]; G.whispers[from].push({who:from,txt:m.txt,mid:m.mid||null}); if(!openWhispers.includes(from))openWhispers.push(from); saveG(); if(chatTab==='w:'+from||chatTab==='whispers')renderChat(); bannerMsg(uiIcon('mail')+' Whisper from '+escapeHTML(from)); }
+  if(m.t==='chathist'){ initChat(); if(Array.isArray(m.world))CHAT.world=m.world.slice(-100).map(x=>({who:x.who,txt:x.txt,me:x.who===CHATNET.name,battle:x.battle||null,pt:x.pt||null,mid:x.mid||null})); if(Array.isArray(m.region))CHAT.region=m.region.slice(-100).map(x=>({who:x.who,txt:x.txt,me:x.who===CHATNET.name,battle:x.battle||null,pt:x.pt||null,mid:x.mid||null})); if(chatTab==='world'||chatTab==='region')renderChat(); }
+  else if(m.t==='chatmsg'){ initChat(); const ch=m.channel==='region'?'region':'world'; CHAT[ch].push({who:m.who,txt:m.txt,me:m.who===CHATNET.name,battle:m.battle||null,pt:m.pt||null,mid:m.mid||null}); chatCap(CHAT[ch]); if(chatTab===ch)renderChat(); }
+  else if(m.t==='whispermsg'){ const from=m.from; if(from===CHATNET.name)return; if(!G.whispers)G.whispers={}; if(!G.whispers[from])G.whispers[from]=[]; G.whispers[from].push({who:from,txt:m.txt,mid:m.mid||null}); chatCap(G.whispers[from]); if(!openWhispers.includes(from))openWhispers.push(from); saveG(); if(chatTab==='w:'+from||chatTab==='whispers')renderChat(); bannerMsg(uiIcon('mail')+' Whisper from '+escapeHTML(from)); }
 }
 // ---- boot splash: online/offline status + invisible logo Play button ----
 // "Online" means the actual game SERVER is reachable — /health is answered only by the backend,

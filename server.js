@@ -878,6 +878,10 @@ function sanitizeSave(u, roster){
   if(u.led && u.led.migratedAt){
     for(const k of SERVER_OWNED_SAVE_FIELDS){ if(g[k]!==undefined) delete g[k]; }
   }
+  /* v1127 chat cap: the device's own chat copies (whisper conversations, the offline guild log) keep their last 100 lines in the
+     stored save too - an older client's longer lists are cut here */
+  if(g.whispers&&typeof g.whispers==='object'&&!Array.isArray(g.whispers)) for(const k of Object.keys(g.whispers)){ const a=g.whispers[k]; if(!Array.isArray(a)) delete g.whispers[k]; else if(a.length>100) g.whispers[k]=a.slice(-100); }
+  if(Array.isArray(g.guildLog)&&g.guildLog.length>100) g.guildLog=g.guildLog.slice(-100);
   roster.__save=JSON.stringify(g); return roster; }
 // rotating hourly DB backups (kept alongside the db file)
 /* v1183: written temp + fsync + rename; the newest 48 kept by MTIME (not by name); backups/pinned-last-real.json keeps the last
@@ -5505,7 +5509,7 @@ async function api(req,res,url){
       return send(res,200,{ok:true,id:item.id,queue:'moderation'}); }
     const item={id:'FB-'+uid(),userId:me.id,name:me.name,kind:'chat',
       text:('Chat report ('+f.channel+') - '+(f.sender||'?')+': '+(f.text||'')).slice(0,2000),
-      chat,meta:'other',t:Date.now(),received:false,
+      chat,context:f.context||[],reporterId:me.id,reporterName:me.name,meta:'other',t:Date.now(),received:false,   /* v1127: the lines around it too - the chat itself keeps only 100 */
       build:localBuildId(),level:ledPlayerLevel(ensureLedger(me)),screen:'chat',device:String(req.headers['user-agent']||'').slice(0,120)};
     feedbackAppend(item);
     if(writeDBNow([me.id])===false) return send(res,503,{ok:false,storageFailed:true,error:'Save failed - try again.'});
@@ -9822,9 +9826,10 @@ try{
   function wsNeedAuth(ws){ if(WS_AUTH_REQUIRED && !ws._uid){ wsend(ws,{t:'autherr',reason:'Sign in required.'}); return true; } return false; }
   // ---- live chat: world/region broadcast + name-addressed whispers ----
   // history is stored in the DB (persists across restarts) and kept for ~3h or the last 100 messages per channel
-  let _chatSaveT=null; function chatSaveSoon(){ if(_chatSaveT) return; _chatSaveT=setTimeout(()=>{ _chatSaveT=null; writeDB([]); },30000); }   /* v1124: chat is shared world only - a manifest save */   /* v1083: chat is persisted at most every 30 s */
+  const CHAT_SAVE_MS=Math.max(200,+process.env.CHAT_SAVE_MS||2000);   /* v1127: a line that fell off the last 100 leaves the saved world within ~2 s (was 30 s) */
+  let _chatSaveT=null; function chatSaveSoon(){ if(_chatSaveT) return; _chatSaveT=setTimeout(()=>{ _chatSaveT=null; writeDB([]); },CHAT_SAVE_MS); }   /* v1124: chat is shared world only - a manifest save */   /* v1083: chat lines are batched into one save (was writeDB() per line) */
 const _chatJoinAcct={};   /* v1083: last chat-history send per account */
-const CHAT_KEEP=100, CHAT_AGE_MS=6*3600000;
+const CHAT_KEEP=100, CHAT_AGE_MS=6*3600000;   /* v1127 (Phil 11 Oct 2026: "chat should disappear after 100 messages and immediately be removed from cache unless saving by a 'report' player option"): every channel - world, region, each guild's log, each whisper pair - keeps its last 100 lines; a reported line is copied to DB.reports / the feedback inbox with its context and stays there */
   const _chatHits={}; setInterval(()=>{ const now=Date.now(); for(const k of Object.keys(_chatHits)){ if(!_chatHits[k].some(t=>now-t<10000)) delete _chatHits[k]; } }, 60000).unref();   // world/region chat messages disappear 6h after being typed
   const clip = (s,n)=> String(s==null?'':s).slice(0,n);
   function chatStore(){ if(!DB.chat)DB.chat={world:[],region:[]}; if(!Array.isArray(DB.chat.world))DB.chat.world=[]; if(!Array.isArray(DB.chat.region))DB.chat.region=[]; return DB.chat; }
@@ -9907,6 +9912,8 @@ const CHAT_KEEP=100, CHAT_AGE_MS=6*3600000;
         const fromName=ws._acctName||ws._chatName||'Player';
         const wmid=uid(), toU=DB.byName[to.toLowerCase()]||null;   /* v1097: kept in memory for 'report message'; a player who blocked the sender gets nothing */
         _chatRecent.push({mid:wmid,sid:ws._uid||null,who:fromName,txt,to:toU,t:Date.now(),ch:'whisper'}); if(_chatRecent.length>500) _chatRecent.splice(0,_chatRecent.length-500);
+        { const a=ws._uid||null, pair=_chatRecent.filter(x=>(x.sid===a&&x.to===toU)||(x.sid===toU&&x.to===a));   /* v1127 chat cap: a conversation keeps its last 100 lines here too */
+          if(pair.length>CHAT_KEEP){ const drop=new Set(pair.slice(0,pair.length-CHAT_KEEP)); for(let i=_chatRecent.length-1;i>=0;i--) if(drop.has(_chatRecent[i])) _chatRecent.splice(i,1); } }
         WSS.clients.forEach(c=>{ if(c!==ws && c._chatName===to && c.readyState===1 && !chatBlocked(c._uid,ws._uid)){ try{ c.send(JSON.stringify({t:'whispermsg',from:fromName,txt,mid:wmid})); }catch(e){} } }); }
     }catch(e){ console.error('ws frame refused (handler error): '+(e&&e.message)); } });
     ws.on('close', ()=>{ const r=rooms[ws._room]; if(!r)return; wsend(ws._role==='host'?r.guest:r.host,{t:'peerleft'}); delete rooms[ws._room]; });
