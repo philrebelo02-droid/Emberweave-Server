@@ -114,7 +114,7 @@ function sock(S, p, ip) { return new Promise((res, rej) => { const ws = new WebS
 // one world chat line on a world whose shared part is ~300 KB: what does the save write?
 async function chatSave(dir, check) {
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'ember-pieces-srv-')), log = path.join(temp, 'writes.log');
-  const S = await R.server({ dir, temp, nodeArgs: ['-r', HOOK], env: { DB_STORE_VERIFY: '1', CHAT_SAVE_MS: '300', WRITE_LOG: log } });
+  const S = await R.server({ dir, temp, nodeArgs: ['-r', HOOK], env: { DB_STORE_VERIFY: '1', CHAT_SAVE_MS: '300', WRITE_LOG: log, DB_STORE_JOURNAL: '0' } });   // v1128: this test is the v1127 pieces layout
   try {
     const B = await R.boot(S, 'wp', 2, { world: false });
     await S.kill(); const w = WS.readWorld(S.db); w.feedback = Array.from({ length: 1500 }, (_, i) => ({ id: 'FB-x' + i, kind: 'bug', text: 'y'.repeat(180), t: 1 })); WS.writeWorld(S.db, w);
@@ -137,7 +137,7 @@ async function chatSave(dir, check) {
 
 // the rolling sweep: no full save, the whole world rewritten slice by slice within DB_STORE_SWEEP_MS
 async function rollingSweep(check) {
-  const S = await R.server({ env: { DB_STORE_SWEEP_MS: '3200', CHAT_SAVE_MS: '200' } });
+  const S = await R.server({ env: { DB_STORE_SWEEP_MS: '3200', CHAT_SAVE_MS: '200', DB_STORE_JOURNAL: '0' } });
   try {
     const B = await R.boot(S, 'rs', 1, { world: false });
     await S.kill(); await S.start(B.adminId); await R.sleep(1500);
@@ -152,7 +152,7 @@ async function rollingSweep(check) {
 
 // durable actions under hard kills
 async function killLoop(check) {
-  const S = await R.server({ env: { DB_STORE_VERIFY: '1' } });
+  const S = await R.server({ env: { DB_STORE_VERIFY: '1', DB_STORE_JOURNAL: '0' } });
   try {
     const B = await R.boot(S, 'wk', 6);
     const acked = []; let round = 0;
@@ -173,7 +173,7 @@ async function killLoop(check) {
 
 // an old-format world boots and is converted; DB_STORE_PIECES=0 converts it back for a 59eaefba server; 59eaefba refuses pieces
 async function migrateRollback(check) {
-  const S = await R.server({});
+  const S = await R.server({ env: { DB_STORE_JOURNAL: '0' } });
   try {
     const B = await R.boot(S, 'wm', 3);
     await S.kill();
