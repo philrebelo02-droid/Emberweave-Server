@@ -15,6 +15,10 @@
   try{
     if(location.protocol!=='https:'||!/^(www\.)?emberweaveheroes\.com$/i.test(location.hostname)) return;
     var q=null; try{ q=new URLSearchParams(location.search).get('server'); }catch(e){}
+    /* v1130: a FRESH INSTALL = no server chosen and no account on any server on this device; svrBoot asks where new players go */
+    var fresh=!q && localStorage.getItem('ew_server')===null;
+    for(var fi=0; fresh && fi<localStorage.length; fi++){ if(/^ew_acc(@s\d+)?$/.test(String(localStorage.key(fi)))) fresh=false; }
+    window.EW_FRESH=fresh;
     var qi=parseInt(q||'',10); if(qi>=1&&qi<=5) localStorage.setItem('ew_server',String(qi));
     n=parseInt(localStorage.getItem('ew_server')||'',10)||1; if(!(n>=1&&n<=5)) n=1;
   }catch(e){ n=1; }
@@ -27,7 +31,8 @@
   P.getItem=function(k){ return g.call(this,key(this,k)); };
   P.setItem=function(k,v){ return st.call(this,key(this,k),v); };
   P.removeItem=function(k){ return rm.call(this,key(this,k)); };
-  window.EW_LS_RAW={ get:function(k){ try{ return g.call(window.localStorage,k); }catch(e){ return null; } } };
+  window.EW_LS_RAW={ get:function(k){ try{ return g.call(window.localStorage,k); }catch(e){ return null; } },   // v1130: set = Server 1's own key (a placed device signing in on Server 1)
+    set:function(k,v){ try{ st.call(window.localStorage,k,v); return true; }catch(e){ return false; } } };
   var f=window.fetch;
   window.fetch=function(u,o){
     if(typeof u==='string'){
@@ -938,6 +943,7 @@
 #svrPanel .svrName{flex:1;font-weight:700;}
 #svrPanel .svrTag{font-size:11px;font-weight:700;color:#e9c66c;border:1px solid #6b5326;border-radius:6px;padding:1px 6px;margin-left:6px;vertical-align:middle;}
 #svrPanel .svrState{font-size:14px;font-weight:700;color:#a49b8b;}
+#svrPanel .svrBusy{border-color:#8a6a2a;} #svrPanel .svrBusy .svrDot{background:#e0a64a;box-shadow:0 0 8px #e0a64a;} #svrPanel .svrBusy .svrState{color:#e0a64a;}   /* v1130: at its new-player limit - still open to anyone who picks it */
 #svrPanel .svrUp{border-color:#2f7a45;} #svrPanel .svrUp .svrDot{background:#3ecf6e;box-shadow:0 0 8px #3ecf6e;} #svrPanel .svrUp .svrState{color:#3ecf6e;}
 #svrPanel .svrDown{border-color:#7a2f2c;background:#1b1612;} #svrPanel .svrDown .svrName{color:#8f8676;}
 #svrPanel .svrUp:not(:disabled):hover,#svrPanel .svrUp:not(:disabled):focus-visible{background:#2a2219;outline:none;box-shadow:0 0 0 1px #3ecf6e inset;} #svrPanel .svrDown .svrDot{background:#e0504a;box-shadow:0 0 8px #e0504a;} #svrPanel .svrDown .svrState{color:#e0504a;}
@@ -21221,7 +21227,8 @@ function renderAccount(){ const b=document.getElementById('accountBody');
     if(!tosOK()){ requireTos(()=>go(path), ()=>{ const m=b.querySelector('#acMsg'); if(m){ m.style.color='#ff8b8b'; m.textContent='You must accept the Terms to sign in.'; } }); return; }
     const isReg=path.indexOf('register')>=0;
     if(window._authBusy) return; window._authBusy=true;   /* v1002 (Account audit #13): a double tap signed in twice and dropped the first token */
-    api(path,'POST',{name,pass,roster:rosterPayload(),deviceId:deviceId()}).then(d=>{ window._authBusy=false;
+    api(path,'POST',{name,pass,roster:rosterPayload(),deviceId:deviceId(),auto:(path==='/api/login'&&svrAutoGet())||undefined}).then(d=>{ window._authBusy=false;
+      if(svrHomeLogin(d,name,pass,e=>{ b.querySelector('#acMsg').textContent=e; })) return;   // v1130: the account plays on Server 1
       if(d.reset){ renderSetNewPass(name); return; }             // admin armed a password recovery for this account
       if(d.error){b.querySelector('#acMsg').textContent=d.error;return;}
       finishAuth(d,isReg); }); };
@@ -25975,7 +25982,8 @@ function renderSettings(){
       msg.style.color='#8b98a9'; msg.textContent=acctMode==='create'?'Creating account…':'Signing in…';
       const isCreate=acctMode==='create';
       if(window._authBusy) return; window._authBusy=true;   /* v1002 (Account audit #13) */
-      api(isCreate?'/api/register':'/api/login','POST',{name,pass,roster:rosterPayload(),deviceId:deviceId()}).then(d=>{ window._authBusy=false;
+      api(isCreate?'/api/register':'/api/login','POST',{name,pass,roster:rosterPayload(),deviceId:deviceId(),auto:(!isCreate&&svrAutoGet())||undefined}).then(d=>{ window._authBusy=false;
+        if(svrHomeLogin(d,name,pass,e=>{ msg.style.color='#ff8b8b'; msg.textContent=e; })) return;   // v1130: the account plays on Server 1
         if(d&&d.reset){ _resetName=name; acctMode='reset'; renderSettings(); return; }   // admin armed a password recovery
         if(!d||d.error){ msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error)||'Could not reach the server — try again.'; return; }
         if(!d.token||!d.profile){ msg.style.color='#ff8b8b'; msg.textContent='Unexpected server response.'; return; }
@@ -26614,6 +26622,37 @@ function svrPing(s,ms){ return new Promise(res=>{ let done=false; const fin=v=>{
          .then(r=>r.ok?r.json():null).then(j=>fin(!!(j&&j.build))).catch(()=>fin(false)); }catch(e){ fin(false); } }); }
 function svrRecentGet(){ try{ return parseInt(localStorage.getItem('ew_server')||'',10)||0; }catch(e){ return 0; } }
 function svrRecentSet(id){ try{ localStorage.setItem('ew_server',String(id)); }catch(e){} }
+/* v1130 NEW PLAYERS GO TO THE NEXT SERVER (Phil 12 Oct 2026: "auto open server 2 at 1500 players and start making new downloads join
+   there. Players still have the option to join server 1 if they switch using server list after they are sent to server 2").
+   A fresh install on the front door (EW_FRESH: no server stored, no account on any server) asks /api/front/assign before any guest
+   account is made: the front door first (Server 1, or the relay), then every other server at once - each runs the same placement
+   (server/front-door.js: the first server under its threshold, skipping any that is down or whose count is unknown). The answer is
+   stored as the device's server (ew_server) and, for Server 2+, the page reloads there; ew_auto remembers the device was placed.
+   Existing players never pass through here. Nothing answers at all: the old default (Server 1) and the net gate. */
+function svrAssignFetch(base,ms){ return new Promise(res=>{ let done=false; const fin=v=>{ if(!done){ done=true; clearTimeout(t); res(v); } };
+  const t=setTimeout(()=>fin(null), ms||3000);
+  try{ fetch(base+'/api/front/assign?ts='+Date.now(),{cache:'no-store',mode:'cors'}).then(r=>r.ok?r.json():null)
+         .then(j=>fin(j&&j.ok&&SVR_LIST.some(s=>s.id===+j.server)?j:null)).catch(()=>fin(null)); }catch(e){ fin(null); } }); }
+async function svrAssign(first){ let j=await svrAssignFetch(first);
+  if(!j){ const a=await Promise.all(SVR_LIST.filter(s=>s.id!==1).map(s=>svrAssignFetch('https://'+s.host))); j=a.find(Boolean)||null; }
+  return j; }
+function svrAutoGet(){ try{ const n=parseInt(localStorage.getItem('ew_auto')||'',10)||0; return (svrOn()&&svrFront()&&n>1&&n===svrHere())?n:0; }catch(e){ return 0; } }
+function svrAutoPlace(){ window._svrHandoff=true;
+  svrAssign('https://'+location.hostname).then(async j=>{
+    let id=j?+j.server:0;
+    if(!id){ for(const s of SVR_LIST){ if(await svrPing(s,3000)){ id=s.id; break; } } }   // no placement answered (an older build): the first server that is up
+    if(id){ svrRecentSet(id); if(id!==1){ try{ localStorage.setItem('ew_auto',String(id)); }catch(e){} location.replace('/play?server='+id); return; } }
+    window._svrHandoff=false; try{ ensureGuest(()=>netGateUpdate()); }catch(e){} try{ netGateUpdate(); }catch(e){} }); }
+/* A placed device (ew_auto) signing in to an account that plays on Server 1 and has no player here: the server answers homeServer:1
+   instead of starting a new player, and the sign-in is made on Server 1 (the front door) and the page moves there. */
+function svrHomeLogin(d,name,pass,onErr){ if(!(d&&d.homeServer===1&&svrFront()&&svrHere()!==1&&window.EW_LS_RAW&&window.EW_LS_RAW.set)) return false;
+  fetch('https://'+location.hostname+'/api/login',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({name,pass,roster:rosterPayload(),deviceId:deviceId()})}).then(r=>r.json()).then(j=>{
+    if(!(j&&j.token&&j.profile)){ onErr((j&&j.error)||'Could not reach Server 1 - try again.'); return; }
+    window.EW_LS_RAW.set('ew_acc',JSON.stringify({token:j.token,name:j.profile.name,rank:j.profile.rank,coins:j.profile.coins,id:j.profile.id,
+      email:j.profile.email||'',created:(j.profile.created||0),admin:!!j.profile.admin,guest:false}));
+    try{ localStorage.removeItem('ew_auto'); }catch(e){} svrRecentSet(1); location.replace('/play?server=1'); }).catch(()=>onErr('Could not reach Server 1 - try again.'));
+  return true; }
 /* v947 (Phil: "it logs me as guest when i switch" / "the account needs to be consistent when switching servers"): a signed-in
    account switches signed in. The server being left gets a one-time code (60 s, single use) from the account server; it rides in the
    #fragment (never sent to Cloudflare or any log) and the server arrived on redeems it. Guests switch as guests. */
@@ -26622,6 +26661,7 @@ function svrHandoffCode(){
   return api('/api/handoff','POST',{}).then(d=>(d&&d.code)||null).catch(()=>null); }
 async function svrGo(id){
   const code=await svrHandoffCode(), h=code?('#handoff='+code):'';
+  try{ localStorage.removeItem('ew_auto'); }catch(e){}   // v1130: the player chose a server - no longer a placed device
   // v1107: the front door never leaves its own address - it records the server and reloads itself (the head script then talks to it)
   if(svrFront()){ if(id===svrHere()){ svrClose(); return; } svrRecentSet(id); location.href='https://'+location.hostname+'/play?server='+id+h; return; }   // v1108: ?server=N makes it a real page load - '/play#handoff' alone only changed the hash on /play, so nothing happened
   location.href='https://'+SVR_FRONT+'/switch?server='+id+h; }   // v1034: a ~1 KB page on the front door records the choice and forwards
@@ -26653,9 +26693,13 @@ function svrOpen(){
   document.body.appendChild(p);
   p.querySelector('.svrX').onclick=svrClose;
   p.addEventListener('click',e=>{ if(e.target===p) svrClose(); });
+  const asg=svrAssign('');   // v1130: where new players go now + each server's load (any server answers)
   p.querySelectorAll('.svrRow').forEach(b=>{ const s=SVR_LIST.find(x=>x.id===+b.dataset.id);
     svrPing(s).then(up=>{ b.classList.add(up?'svrUp':'svrDown'); b.querySelector('.svrState').textContent=up?'Online':'Offline';
-      b.disabled=!up; if(up) b.onclick=()=>svrGo(s.id); }); }); }
+      b.disabled=!up; if(up) b.onclick=()=>svrGo(s.id);
+      if(up) asg.then(j=>{ if(!j) return; const row=(j.rows||[]).find(r=>+r.id===s.id), nm=b.querySelector('.svrName');
+        if(+j.server===s.id && nm && !nm.querySelector('.svrRec')) nm.insertAdjacentHTML('beforeend',' <span class="svrTag svrRec">Recommended</span>');
+        if(row && row.state==='busy'){ b.classList.add('svrBusy'); b.querySelector('.svrState').textContent='Busy '+(+row.active).toLocaleString('en-US')+'/'+(+row.threshold).toLocaleString('en-US'); } }); }); }); }
 function svrBoot(){
   if(!svrOn()) return;
   const mi=document.getElementById('miServer');
@@ -26668,6 +26712,7 @@ function svrBoot(){
     if(q){ const id=parseInt(q,10); if(SVR_LIST.some(s=>s.id===id)) svrRecentSet(id); try{ history.replaceState(null,'',location.pathname); }catch(e){} }
     const want=SVR_LIST.find(s=>s.id===svrHere())||SVR_LIST[0];   // v1107: the head script already picked it (ew_server / ?server=N)
     if(code){ svrRedeem(code); return; }                              // redeemed on the chosen server, in place
+    if(window.EW_FRESH && !q && !(ACC&&ACC.token)){ svrAutoPlace(); return; }   // v1130: a fresh install - placed before its guest account is made
     // v1107: the first visit to a server from the front door - it has no sign-in of its own yet, so the Server 1 account is carried
     // over once (a handoff code from Server 1, redeemed on the chosen server), the way the old redirect did on every visit.
     if(want.id!==1 && !(ACC&&ACC.token) && window.EW_LS_RAW){ let s1=null; try{ s1=JSON.parse(window.EW_LS_RAW.get('ew_acc')||'null'); }catch(e){}
@@ -27680,7 +27725,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791792824405';
+const BUILD_ID = '1791806466393';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

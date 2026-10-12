@@ -379,6 +379,8 @@ note "test_spell_fx_1123.js (v1123: Grok spell FX - Sorrel Marked Deal cards + s
 node tests/test_spell_fx_1123.js || FAILED=1
 note "test_auto_ult_healer_1103.js (v1103: healer ults that also hit enemies fire when full; heal-only ones still wait)"
 node tests/test_auto_ult_healer_1103.js || FAILED=1
+note "test_front_door_1130.js (v1130: new players go to the next server - S1 below 1500 -> S1, at 1500 -> S2, hysteresis to 1300, S1 down -> S2, a stale count is unknown, existing accounts never move, the list still joins a busy S1; real servers + the page in Chromium; controls)"
+node tests/test_front_door_1130.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi

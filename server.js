@@ -3200,6 +3200,33 @@ let _SIM_COLLECT=null, _SIM_POOL;
 /* v1040 (Phil 6 Oct 2026: "if there is major war going on, like world tree day, my computer gives a little more than low priority
    help"): during the World Tree event (the calendar's 24 h 'event' phase) battle helpers are asked for major-war mode. */
 const SERVER_ID=String(process.env.SERVER_ID||((String(process.env.SERVER_NAME||'').match(/(\d+)\s*$/)||[])[1])||'');   // v1041: "1".."4"
+/* v1130 (Phil 12 Oct 2026: "auto open server 2 at 1500 players and start making new downloads join there"). ACTIVE PLAYERS = accounts
+   (guests too) with an authenticated request in the last 5 minutes - the same measure as the dev "players online" view; the client's
+   15 s heartbeat keeps an open game inside it. A Map of id -> last seen (only the active ones, pruned when counted), the count cached
+   FRONT_COUNT_MS (2 s). The placement itself is server/front-door.js; every live server polls the others' /api/front/status.
+   On: FRONT_SERVERS ("id|url|threshold|release,..." in order) or, by default, any server with SERVER_ID 1-5 that is not a test copy
+   (NODE_ENV=test) or a sim tab (CLOCK_FILE) - the five LAN addresses with FRONT_THRESHOLD (1500) / FRONT_RELEASE (1300). */
+const FRONT_ACTIVE_MS=5*60000, FRONT_COUNT_MS=Math.max(250,+(process.env.FRONT_COUNT_MS||2000)||2000);
+const _frontSeen=new Map(); let _frontSeeded=false, _frontCount={active:0,at:0};
+function frontSeen(u){ if(u&&u.id&&!u.isNpc) _frontSeen.set(u.id,Date.now()); }
+function frontActive(){ const now=Date.now(); if(now-_frontCount.at<FRONT_COUNT_MS) return _frontCount;
+  if(!_frontSeeded && typeof DB!=='undefined' && DB && DB.users){ _frontSeeded=true;   // after a restart: whoever was seen in the last 5 minutes
+    for(const u of Object.values(DB.users)) if(u && !u.isNpc && now-(u.lastSeen||0)<FRONT_ACTIVE_MS && !_frontSeen.has(u.id)) _frontSeen.set(u.id,u.lastSeen); }
+  let n=0; for(const [id,t] of _frontSeen){ if(now-t>=FRONT_ACTIVE_MS) _frontSeen.delete(id); else n++; }
+  _frontCount={active:n,at:now}; return _frontCount; }
+let _frontDecider;
+function frontDecider(){
+  if(_frontDecider!==undefined) return _frontDecider;
+  const FD=require('./server/front-door.js');
+  let list=null;
+  if(process.env.FRONT_SERVERS) list=FD.parseServers(process.env.FRONT_SERVERS, process.env.FRONT_THRESHOLD, process.env.FRONT_RELEASE);
+  else if(/^[1-5]$/.test(SERVER_ID) && process.env.NODE_ENV!=='test' && !process.env.CLOCK_FILE) list=FD.defaultServers(process.env.FRONT_THRESHOLD, process.env.FRONT_RELEASE);
+  if(!list || !list.length){ _frontDecider=null; return null; }
+  _frontDecider=FD.createDecider({ servers:list, selfId:SERVER_ID, selfCount:()=>{ const c=frontActive(); return {active:c.active, ageMs:Date.now()-c.at}; },
+    staleMs:process.env.FRONT_STALE_MS, pollMs:process.env.FRONT_POLL_MS });
+  _frontDecider.start();
+  console.log('new-player placement on: '+list.map(s=>'S'+s.id+' '+s.threshold+'/'+s.release).join(', '));
+  return _frontDecider; }
 /* v1105 (10 Oct 2026, Phil: "Have to restart sims"): the calendar's event window ran on S2 and S4 with the World Tree still switched
    off (sites enabled:false) - no war, no battles asked - and it held Phil's PC in major mode, which suspends every simulation, for
    the whole 24 h. Only a World Tree that is ON is a major war. */
@@ -4504,6 +4531,13 @@ function arenaDefOk(me,opp,def){ try{ if(JSON.stringify(def).length>16000) retur
 async function api(req,res,url){
   const p=url.pathname;
   if(p==='/api/health') return send(res,200,{ok:true});   /* v1018: the client's net gate checks this - an /api/ path is never answered from the service worker cache (/health is) */
+  /* v1130: this server's active-player count (cached, a few seconds old at most) and the new-player placement (server/front-door.js) */
+  if(p==='/api/front/status' && req.method==='GET'){ const c=frontActive(); return send(res,200,{ ok:true, id:SERVER_ID, active:c.active, ageMs:Math.max(0,Date.now()-c.at) }); }
+  if(p==='/api/front/assign' && req.method==='GET'){ const d=frontDecider();
+    if(!d) return send(res,200,{ ok:true, server:null, off:true, rows:[] });
+    await Promise.race([d.ready, new Promise(r=>setTimeout(r,2000))]);   // a just-started poller answers after its first round
+    const r=d.decide(); return send(res,200,{ ok:true, server:r.server===null?null:+r.server, reason:r.reason,
+      rows:r.rows.map(x=>({ id:+x.id, state:x.state, active:x.active, threshold:x.threshold })) }); }
   if(req.method==='POST' && !/^\/api\/(register|login|guest|reset)/.test(p) && mutationLimited(req))
     return send(res,429,{error:'Slow down — too many requests.'});
   if(req.method==='OPTIONS'){ const h={}; if(_corsReqOrigin&&CORS_ORIGINS.has(_corsReqOrigin)){ h['Access-Control-Allow-Origin']=_corsReqOrigin; h['Vary']='Origin'; h['Access-Control-Allow-Headers']='content-type,x-token'; h['Access-Control-Allow-Methods']='GET,POST,OPTIONS'; } res.writeHead(204,h); res.end(); return; }
@@ -4664,7 +4698,7 @@ async function api(req,res,url){
     if(!linkSecretOk(req)) return send(res,404,{error:'not found'});
     const b=await body(req);
     if(p==='/api/internal/account/verify'){ const r=acctVerify(b.name, b.pass, 'srv:'+String(b.ip||clientIP(req))); writeDB();
-      return r.u ? send(res,200,{ ok:true, gid:r.u.id, name:r.u.name, st:acctState(r.u) }) : send(res,r.status,{error:r.error}); }
+      return r.u ? send(res,200,{ ok:true, gid:r.u.id, name:r.u.name, st:acctState(r.u), s1:!!r.u.lastSeen }) : send(res,r.status,{error:r.error}); }   /* v1130: s1 = the account has played on Server 1 */
     if(p==='/api/internal/account/register'){ const r=acctCreate(b.name, b.pass); if(r.error) return send(res,r.status,{error:r.error});
       if(writeDBNow()===false) return send(res,503,{ok:false,storageFailed:true,error:'Save failed - try again.'});   /* v1013 (re-audit Account N13): the account is on disk before it is acknowledged */
       return send(res,200,{ ok:true, gid:r.u.id, name:r.u.name }); }
@@ -4739,6 +4773,12 @@ async function api(req,res,url){
     // v946: on Servers 2-5 the password is checked by the account server (Server 1); this server keeps its own player.
     if(ACCOUNT_AUTHORITY){
       const name=String(b.name||'').trim(), r=await authorityCall('/api/internal/account/verify',{ name, pass:b.pass, ip:clientIP(req) });   /* v1007 (re-audit Account N3): the player's IP, so the lockout is per player, not per satellite */
+      /* v1130: a device the game PLACED here (a fresh install sent to this server - body.auto) that signs in to an account which
+         plays on Server 1 and has no player here: say where it plays instead of starting a new player, and the client signs in on
+         Server 1. Existing players are never moved by the new-player placement. */
+      if(r && r.status===200 && r.body && r.body.gid && b.auto && r.body.s1 && !(DB.byGid&&DB.byGid[r.body.gid])){
+        const lid=DB.byName[String(r.body.name||'').toLowerCase()], lu=lid&&DB.users[lid];
+        if(!(lu && !lu.gid && !lu.guest && !lu.isNpc)) return send(res,409,{ error:'This account plays on Server 1.', homeServer:1 }); }
       if(r && r.status===200 && r.body && r.body.gid){ const u=linkedUser(r.body.gid, r.body.name, b.pass); delete u.loginFails;
         if(r.body.st){ u.passSeenAt=+r.body.st.passAt||0; applyAcctState(u, r.body.st); }   // v1035: the password was just checked - current
         if(isBanned(u)){ writeDB(); return send(res,403,banResp(u)); }   /* v1097: a banned account does not sign in */
@@ -4782,7 +4822,7 @@ async function api(req,res,url){
     return send(res,200,{ ok:true, token:tok, profile:profileFor(r.u) }); }
 
   const me=authUser(req);
-  if(me) me.lastSeen=Date.now();   // presence, for the dev "players online" view
+  if(me){ me.lastSeen=Date.now(); frontSeen(me); }   // presence, for the dev "players online" view; v1130: + the active count new players are placed by
 
   /* 30 Aug (Phil) — A BAN LOCKS THE ACCOUNT OUT, IT DOES NOT TAKE ANYTHING FROM IT.
      Nothing is rolled back and nothing is deleted: the account simply cannot act until the ban
@@ -9378,7 +9418,7 @@ function bootFinish(){ if(_booted) return; _booted=true; PG_BOOT_PENDING=false;
   const realAccts=Object.values(DB.users).filter(u=>!u.isNpc).length;
   console.log('DB file: '+DB_FILE+'  '+(DB_PERSISTENT?'(persistent)':'(EPHEMERAL — accounts WILL be wiped on redeploy! Add a Railway Volume mounted at /data, or set DB_FILE to a volume path.)'));
   console.log('Player accounts loaded: '+realAccts);
-  server.listen(PORT,()=>{ setImmediate(()=>{ try{ simPool(); }catch(e){} });   // v1036: battle workers load at boot, ready before the first fight
+  server.listen(PORT,()=>{ setImmediate(()=>{ try{ simPool(); }catch(e){} try{ frontDecider(); }catch(e){ console.error('new-player placement off:', e.message); } });   // v1130: the placement polls from boot, so its first answer has every server's count   // v1036: battle workers load at boot, ready before the first fight
     console.log('Emberweave cloud server on http://localhost:'+PORT); console.log('   Seeded '+Object.keys(DB.users).filter(id=>DB.users[id].isNpc).length+' NPC cities · live PvP '+(WSS?'ON':'off')+'. Open the URL to play / install the app.'); });
 }
 if(PG){ PG_BOOT_PENDING=true;   // nothing writes to disk or PG, and the port stays closed, until this resolves
