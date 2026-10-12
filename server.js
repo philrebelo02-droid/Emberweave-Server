@@ -215,10 +215,11 @@ function _timerSave(){ saveTimer=null;
   const full=_pendingFull||!_store.split;
   if(!full&&!_pendingIds.size&&!_pendingCore) return;
   if(_store.split&&_store.ioAsync){   /* v1128: the file work goes to the store io worker; nothing waits on a debounced save */
-    if(_store.ioPending>=SAVE_MAX_INFLIGHT){ saveTimer=setTimeout(_timerSave,50); return; }   // the io queue is full: these changes wait for a slot
+    if(_savesInFlight>=SAVE_MAX_INFLIGHT){ saveTimer=setTimeout(_timerSave,50); return; }   // a save is with the worker: these changes wait for it
     let p; if(full){ p=_store.writeAsync(DB,null); _pendingFull=false; }
     else { const sl=_takeSlice(); p=_store.writeAsync(DB,[..._pendingIds],sl?null:_piecesArg(),sl); _sliceDone(sl); }
-    _pendingIds.clear(); _pendingCore=false; _clearPieces();
+    _pendingIds.clear(); _pendingCore=false; _clearPieces(); _savesInFlight++;
+    p.finally(()=>{ _savesInFlight--; }).catch(()=>{});
     p.then(()=>{ _saveFails=0; try{ pgSave(); }catch(e){} }, e=>{ console.error('DB write failed:', e.message); _saveRecovery(); }).finally(_kickBatch);   // the store is broken after a failure: the next save is full
     if(!full) _sweepIfDue(); return; }
   try{ if(full) saveDB(DB);   // atomic: write temp, then rename
@@ -269,7 +270,7 @@ function _holdReply(batch, failMsg){ const c=_reqCtx.getStore(); if(!c) return;
    batch not yet on disk as failed - the open one too - and undoes them newest first: no acknowledged action ever depended on a
    change that was lost. The store then rewrites the whole world on its next save. */
 const SAVE_MAX_INFLIGHT=Math.max(1,Math.min(16,+process.env.DB_STORE_INFLIGHT||1));   // bench 12 Oct: 1 beat 2 (worst stall 360 vs 521 ms) - the open batch coalesces while the disk works
-let _inflight=[];   // batches whose save is with the io worker, oldest first
+let _inflight=[], _savesInFlight=0;   // batches whose save is with the io worker, oldest first; world saves (batch or debounced) not yet on disk - check-backlog appends do not count (v1128 fix: a batch waiting on an append was never woken)
 function _kickBatch(){ if(_batchOpen&&!_batchScheduled){ _batchScheduled=true; setImmediate(_runBatch); } }
 function _failUnacked(e){
   const victims=[]; if(_batchOpen){ victims.push(_batchOpen); _batchOpen=null; }
@@ -287,7 +288,8 @@ function _runBatchAsync(b, all){
   if(all){ p=_store.writeAsync(DB,null); _pendingFull=false; }
   else { for(const id of _pendingIds) b.ids.add(id); const sl=_takeSlice(); p=_store.writeAsync(DB,b.ids,sl?null:_piecesArg({all:b.piecesAll,set:b.pieces}),sl); _sliceDone(sl); }
   _pendingIds.clear(); _pendingCore=false; _clearPieces();
-  const ms=Date.now()-t0; _lastSaveMs=ms; _lastSaveEnd=Date.now(); b.t0=t0; _inflight.push(b);
+  const ms=Date.now()-t0; _lastSaveMs=ms; _lastSaveEnd=Date.now(); b.t0=t0; _inflight.push(b); _savesInFlight++;
+  p.finally(()=>{ _savesInFlight--; }).catch(()=>{});
   p.then(()=>{ if(b.settled) return; b.settled=true; const i=_inflight.indexOf(b); if(i>=0) _inflight.splice(i,1);
       const total=Date.now()-b.t0; GROUP_SAVE_STATS.batches++; GROUP_SAVE_STATS.actions+=b.actions; GROUP_SAVE_STATS.lastMs=total; if(total>GROUP_SAVE_STATS.maxMs) GROUP_SAVE_STATS.maxMs=total;
       if(ms>GROUP_SAVE_STATS.maxMainMs) GROUP_SAVE_STATS.maxMainMs=ms;
@@ -299,7 +301,7 @@ function _runBatch(){
   _batchScheduled=false;
   const b=_batchOpen; if(!b) return;
   const async=_store.split&&_store.ioAsync;
-  if(async&&_store.ioPending>=SAVE_MAX_INFLIGHT) return;   // v1128: the io worker is full - this batch keeps collecting; the next save done runs it
+  if(async&&_savesInFlight>=SAVE_MAX_INFLIGHT) return;   // v1128: a save is with the io worker - this batch keeps collecting; that save's end runs it
   _batchOpen=null;
   if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; }   // this save covers any debounced change too
   if(async) return _runBatchAsync(b, b.all||_pendingFull);
