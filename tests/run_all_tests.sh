@@ -243,6 +243,8 @@ note "test_map_zoom_gate.js (v1127 zoom gate: no castle/mine request or element 
 node tests/test_map_zoom_gate.js || FAILED=1
 note "test_chat_cap.js (v1127 chat cap: every channel keeps its last 100 lines on the server, on disk and on the device; reported lines stay in the report store through the cap, a save and a hard kill; 59eaefba control fails)"
 node tests/test_chat_cap.js || FAILED=1
+note "test_world_pieces.js (v1127 shared-world pieces: a chat line writes only the chat piece + a small manifest, undeclared saves write only changed pieces, failures at any file keep the committed world, hard kills lose no acknowledged action, old layouts migrate, DB_STORE_PIECES=0 / downgrade roll back and 59eaefba refuses the pieces layout; 59eaefba control rewrites the whole shared world)"
+node tests/test_world_pieces.js || FAILED=1
 note "test_march_retention_1038.js (v1038: settled city/mine marches are held 2 days, then let go - for every player; unfinished kept; v1037 control)"
 node tests/test_march_retention_1038.js || FAILED=1
 note "test_sim_helper_1039.js (v1039: battle helpers - a backed-up pool shares battles with server/sim-helper.js; identical results, spot checks; wrong key / other engine / busy / dead helper fall back locally; no-helper control)"
