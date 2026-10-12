@@ -3172,11 +3172,12 @@ const BATTLE_ANIM = {
   askel:{
     idle:{u:'/assets/anim/askel/askel_idle.webp?v=21',n:48,fw:296,fh:413,cols:6,rows:8,figH:400,feet:406,cx:155,fps:24,flip:true,top:6,pingpong:true},
     walk:{u:'/assets/anim/askel/askel_walk.webp?v=21',n:48,fw:296,fh:418,cols:6,rows:8,figH:400,feet:409,cx:155,fps:24,flip:true,top:9,ax:[0,0.2,0.8,1.5,2.6,3.8,5.2,6.6,8.4,10.3,12.5,14.9,17.5,20.4,23.4,26.1,28.6,30.1,30.8,30.2,28.6,25.2,20.8,16.1,11.5,6.8,2.2,-2.4,-6.9,-11.3,-15.5,-19.1,-22.2,-24.9,-26.5,-27.4,-27.1,-25.9,-23.4,-19.8,-16.5,-13.4,-10.4,-7.8,-5.6,-3.9,-2.7,-2.1]},
-    attack:{u:'/assets/anim/askel/askel_attack.webp?v=27',n:48,fw:570,fh:499,cols:6,rows:8,figH:400,feet:493,cx:316,fps:24,flip:true,top:93},
+    attack:{u:'/assets/anim/askel/askel_attack_1128.webp?v=1128',n:42,fw:641,fh:585,cols:6,rows:7,figH:447,feet:539,cx:369,fps:21,flip:true,top:92,contact:23},   /* v1128 Askel five (Phil 11 Oct: "send to claude"; ChatGPT handoff ASKEL-APPROVED-FIVE-REMAKES-11OCT2026, approved-five-manifest.json - all ten sha256 matched): ATTACK attack-redo3 (Hailuo 565850304827273217, bottom-cap flagstaff bash toward image-left), CRIT crit-redo2 (565853882681806848, antler headbash - his first crit clip), GREEN green-redo1 Standard Crash (565855663004463107), BLUE blue-redo2 Rallying Ground (565859269116055561), ULT ult-redo3 March of the Greatbrow (565873320734961667). Silent sources on MAGENTA (frame-0 border ~254,6,249); cut_askel.py = cut_hollow.py's cs10 route (exact source frames, lossless, ALPHA_SOFT/FLOOR 4, key off the frame-0 border, no DESPILL_ALL - that pass is green-only), native size (no CELL_CAP; PAD 40/24/40/32/32 and a lossless re-grid to fit 4096), watermark mask 0 px on all five (nothing scrubbed). Anchors measured on each clip's frame 0 (his standing pose, 446-448 px on all five; sole y 607-609, centroid x 390 in every source) so all five stand at idle's size and ground line. TIMING IS THE ENGINE'S (no fight timing moves; tests/test_askel_vesper_vex.js): attack/crit clipDur x relFrac = 1.0 clip s as before (attack 42 @21, crit 48 @24 - 48 attack cells do not fit 4096 at native size); the swing clip is fitted to his 0.95 x 1.8 s hold, so the blow is drawn on attack cell 23-24 (source f25, 0-indexed = ChatGPT's 26, the cap at full reach) and crit cell 27 (source f65, the antlers at the bottom of the drive). Green 48 @20: Standard Crash lands 0.847 fight s after the press = 1.26 s = cell 25 = source f39 (the cap meets the ground). Blue 48 @20: Rallying Ground lands 0.519 fight s = 0.77 s = cell 15 = source f45 (the fist at the top of the salute). Ult 46 @12 real time, `charge` phases (render only): wind-up cells 0-14 (source f0-f33) over the 0.8 s cast, the in-place stride loop 15-23 (f35-f51, the 17-frame stride cycle) while the dash carries him, the lift 24-27 (f84-f90) timed to end as he arrives, the planted slam on cell 28 (f92) when the slam lands, then the low hold and recovery 29-45 (f94-f126); root:2 keeps his ult root at the old clip's 2.0 fight s. Kit unchanged (v935: ally shield 12% max HP, path knock-aside 2 m except immovable). ULT CLIPPING (ChatGPT: the finial touches the top 3 px on source f89-90 1-indexed): source f88-89 (0-indexed) reach row 0 - the source frame cuts the tip of the staff finial by a few px on those two frames; remedy = canvas padding only (crop window starts at source row 0, PAD 32 transparent px above it, nothing in the sheet is clipped by the cell); cell 26 = f88 is the one cell with the source-cut tip (83 ms) - no redraw, no rubber-band. */
+    crit:{u:'/assets/anim/askel/askel_crit_1128.webp?v=1128',n:48,fw:617,fh:502,cols:6,rows:8,figH:446,feet:468,cx:391,fps:24,flip:true,top:22,contact:27},
     hit:{u:'/assets/anim/askel/askel_hit.webp?v=21',n:48,fw:343,fh:408,cols:6,rows:8,figH:400,feet:404,cx:202,fps:24,flip:true,top:4},
-    green:{u:'/assets/anim/askel/askel_green.webp?v=27',n:48,fw:649,fh:547,cols:6,rows:8,figH:400,feet:540,cx:345,fps:24,flip:true,top:140,ax:[0,0,0,4,-27,3,6,9,4,4,4,4,8,8,8,9,9,9,9,9,9,9,8,9,9,9,9,9,9,9,9,9,9,10,10,16,18,27,31,32,24,17,10,0,0,-1,-1,-1]},
-    blue:{u:'/assets/anim/askel/askel_blue.webp?v=21',n:48,fw:626,fh:556,cols:6,rows:8,figH:400,feet:551,cx:315,fps:24,flip:true,top:151,ax:[0,0,0,0,0,0,-1,-1,-2,-7,-9,-11,-15,-22,-30,-33,-38,-42,-45,-47,-49,-50,-51,-51,-50,-50,-51,-51,-50,-49,-49,-50,-50,-51,-51,-51,-52,-53,-55,-53,-54,-55,-54,-54,-54,-52,-54,-63]},
-    ult:{u:'/assets/anim/askel/askel_ult.webp?v=21',n:48,fw:613,fh:633,cols:6,rows:8,figH:400,feet:549,cx:302,fps:24,flip:true,top:149,ax:[0,0,0,0,0,0,7,7,7,7,6,7,7,7,7,7,7,7,7,9,17,42,-244,-214,-218,-216,-214,-210,-208,-207,-207,-207,-207,-214,-222,-223,-222,-216,-224,-217,-210,-218,38,21,6,6,6,6]},
+    green:{u:'/assets/anim/askel/askel_green_1128.webp?v=1128',n:48,fw:480,fh:679,cols:8,rows:6,figH:448,feet:636,cx:285,fps:20,flip:true,top:188,contact:25},
+    blue:{u:'/assets/anim/askel/askel_blue_1128.webp?v=1128',n:48,fw:585,fh:582,cols:7,rows:7,figH:448,feet:540,cx:255,fps:20,flip:true,top:92,contact:15},
+    ult:{u:'/assets/anim/askel/askel_ult_1128.webp?v=1128',n:46,fw:445,fh:681,cols:8,rows:6,figH:447,feet:640,cx:245,fps:12,flip:true,top:193,root:2,contact:28,charge:{launch:14,loop:[15,24],lift:24,land:28}},
     passive:{u:'/assets/anim/askel/askel_passive.webp?v=21',n:48,fw:352,fh:413,cols:6,rows:8,figH:400,feet:406,cx:211,fps:24,flip:true,top:6}
   },
   tharl:{   /* v1055 (Phil 7 Oct 2026: "iron passive pass" / "do the ironcoil wiring now"; ChatGPT handoff IRONCOIL-NINE-07OCT2026): nine
@@ -10105,6 +10106,10 @@ function abilArt(u,o,tgt,aimCtr,type){ window._fxCaster=u; if(o&&o.noArt) return
        'reap' (Carn) and 'ruyi' (Kon-Wu) are drawn by their cases. */
     else if(o.ownFx==='quake'){ try{ if(tgt&&tgt.alive) tharlQuakeFx(tgt); }catch(_e){} }
     else if(o.ownFx==='digin'){ try{ rhukkDigInFx(u,o.dur||3); }catch(_e){} }
+    /* v1128: 'puncture' = Vesper's tear, started at the PRESS (castAbility) - the form launch pins it on the target point; 'tempest' = Vex's crossing
+       slashes, standing 40%% along her aimed wedge, from the cast (her damage lands now) */
+    else if(o.ownFx==='puncture'){ try{ const c=aimCtr||((tgt&&tgt.alive)?tgt:u); vesperPunctureLaunchFx(u,c.x,c.y); }catch(_e){} }
+    else if(o.ownFx==='tempest'){ try{ vexTempestFx(u,tgt,aimCtr,o.radius||10*METER); }catch(_e){} }
     return; }
   if(!o||!u||typeof spawnGroundFx!=='function') return;
   if(!o.gfx || !FX2_DEF[o.gfx]) return;
@@ -10598,6 +10603,7 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
     case 'riftpuncture':{ const fz=o.freeze||1, si=o.silence||1;
       enemiesOf(u).forEach(e=>{ if(!e.alive)return; ccApply(u,e,'stunned',fz);
         ccApply(u,e,'silencedT',fz+si); burstAt(e.x,e.y,0xc9a227,12); });
+      if(o.ownFx==='puncture'){ try{ vesperPunctureLandFx(u,enemiesOf(u).reduce((m,e)=>e.alive?Math.max(m,e.silencedT||0):m,0)); }catch(_e){} }   /* v1128: the tear closes as the Puncture ends - the longest freeze + silence it just left on an enemy (read only; display only) */
       if(u._castSlot!=='ult')floatTexts.push({x:u.x,y:u.y-14,txt:'PUNCTURE',t:1.2,color:'#c9a227',vy:1,sz:15});
       for(let i=0;i<3;i++)ringBurst(u.x,u.y,0xc9a227,16); if(u.team==='ally')screenFlash=Math.max(screenFlash,.3); break; }
     case 'triplecleave':{ const hits=o.hits||3, R=o.radius||3*METER, mul=o.mul||1.2;
@@ -11643,6 +11649,7 @@ function castAbility(u){ const ab=u.abilityOverride||u.t.ability;
   /* v1123 Heaven-Splitting Slam: the Ruyi clip runs 1.5 s before its slam - longer than the 1 s cast - so its art starts at the PRESS over
      each enemy in reach, timed so the slam lands on the release (the damage stays where it was). Display only; an interrupted cast fades it. */
   try{ if(((typeof HERO_ULT_ART!=='undefined'&&HERO_ULT_ART[u.key])||{}).ownFx==='ruyi'&&ab==='monkSlam') konwuRuyiCastFx(u,_ct,(ULT_DEF[ab]||{}).radius||15*METER,u._pend); }catch(_e){}
+  try{ if(((typeof HERO_ULT_ART!=='undefined'&&HERO_ULT_ART[u.key])||{}).ownFx==='puncture'&&ab==='riftpuncture') vesperPunctureCastFx(u,_ct,u._pend); }catch(_e){}   /* v1128: the tear opens on the cast (display only) */
   u._castSM=1; u._castLv=0; u._castNow=_ct; u._castT=_ct;
   u._lockPri=6; u._abilPri=6; u._animLockT=Math.max(u._abilHold||0,_ct);   // and once it is running, nothing but CC stops it
   u._ultRootT=Math.max(_ct, ultClipDur(u));   // v542: rooted (no step, swing or skill) for the whole ult clip — sim-side, data-driven, same on both sides
@@ -11985,6 +11992,8 @@ const FX2_DEF={
   hookslash:{u:'/assets/anim/fx/vex_hook_slash.webp?v=1',n:20,fw:330,fh:334,cols:5,rows:4,dur:0.8333,rt:true},   /* v1115: the crimson + violet X on the mark when Vex lands behind it */
   bleedopen:{u:'/assets/anim/fx/vex_bleed_open.webp?v=1',n:36,fw:148,fh:462,cols:6,rows:6,dur:1.5,rt:true,woundC:[0.566,0.49],woundPx:398},   /* v1115 Bleed Them Dry (Grok spell 24, Phil-approved 10 Oct): the drop rips the wound open (1.5 s), the LAST cell is held as the wound while the bleed lasts */
   astrahorizon:{u:'/assets/anim/fx/astra_event_horizon.webp?v=1125',n:72,fw:468,fh:455,cols:8,rows:9,dur:6.0,rt:true,impact:3,disc:{cx:0.513,cy:0.464,dw:0.972,dh:0.974}},   /* v1125 Event Horizon (Grok s07, Phil-approved, note 11 Oct 18:05): clip frames 1-143 every 2nd, 12 fps, x0.538 (4096 cap); the planet lands on frame 7 = cell 3 (timed onto the damage); FLAT on the ground, the core (cx,cy = the impact point) on the aim, the galaxy at its widest (dw x dh, cell fractions) = the 8 m circle */
+  vesperpuncture:{u:'/assets/anim/fx/vesper_puncture.webp?v=1128',n:47,fw:413,fh:682,cols:8,rows:6,dur:3.9167,rt:true,fps:12,open:15,holdA:16,holdB:27,close:28,shut:40,slit:0.9707,foot:0.014,h:1.5},   /* v1128 Puncture (Grok s09, Phil-accepted; 944 px, 24 fps, x0.8685): open f0-f30 every 2nd (cells 0-15, 12 fps), hold f34-f100 every 6th (16-27, stretched or squeezed to fit), close f104-f140 every 2nd (28-46, 12 fps) - a line on cell 40 (f128), faded by 46. Standing; the slit's lower tip (foot, cell fraction from the bottom) on the target point, the slit (slit x the cell height) = d.h hero heights */
+  vextempest:{u:'/assets/anim/fx/vex_razor_tempest.webp?v=1128',n:70,fw:594,fh:341,cols:6,rows:12,dur:5.8333,rt:true,fps:12,xPx:323,xMul:1.6},   /* v1128 Razor Tempest (Grok s10, Phil-accepted; 960 px, 24 fps, x0.8491): f0-f138 every 2nd at 12 fps (real time); the tail f140-f144 (faded) trimmed. Crop = the art's union - a static ~14 px encoder patch in the clip's bottom-right corner stays outside it (cropped, not painted). Standing, its centre 40% along her 10 m wedge at half her height; the crossing X (xPx cell px wide) spans the wedge's width there */
   korvuxcleave:{u:'/assets/anim/fx/korvux_ember_cleave.webp?v=1125',n:69,fw:371,fh:409,cols:7,rows:10,dur:2.875,rt:true,hit:29,flash:[0.577,0.359],back:[0.027,0.743],backPx:105,edge:0.03,sync:{f:[24,25,26,27,28],c:[0,1,3,14,29]},fit:{k:2.3665,rot:-14.37,cc:[-44.6,-155.0]},topPx:28,flashPx:262,lift:0.3,top:1.25,hand:1.0},   /* v1125 Ember Cleave (Grok s08): 24 fps, x0.6759; frames 0-16, the hold 17-61 passed in 5 cells, 62-75 (the hit flash = frame 69 = cell 29), the wisps 76-140 every 2nd (double speed); upright, MIRRORED so it opens toward Korvux (Phil 11 Oct picked variant B of korvux-cleave-variants.jpg): the stroke runs out round the enemy side and comes back, the flash low near him; the art's near edge (edge, cell fraction from the side toward him) sits just past his weapon hand (hand x his body radius out along the cleave), so the whole arc is on the enemy side; the row back[1] is the anchor row; the flash row (flashPx) lift x his height up, the arc top (row topPx) top x his height; mirrored when the cleave runs screen-left */
   sorrelcard:{u:'/assets/anim/fx/sorrel_card.webp?v=1126',n:1,fw:90,fh:110,cols:1,rows:1,dur:1,spin:2},   /* v1123 Marked Deal (Grok s02, Phil-approved 10 Oct): his own fan card (s02_sorrel_card_sprite.png), 2 turns over the 0.30 s flight */
   sorrelspark:{u:'/assets/anim/fx/sorrel_hit_spark.webp?v=1126',n:3,fw:141,fh:135,cols:3,rows:1,dur:0.125,rt:true,h:1.6},   /* v1123: the gold spoke spark of a card hit (timing-ref clip frames 8-10, keyed inside r 62 px of the hit); h = world height (the card is 0.9; the clip's 1.5x, a touch up so the thin spokes read) */
@@ -12540,7 +12549,7 @@ function updateWaxFx(dt){ try{ updateCandleFx(dt); }catch(_e){} try{ updateFx111
    flat on the aimed 8 m circle, Korvux's Ember Cleave riding his axe swing. REAL TIME like v1115 (a clip second = FX_RT fight
    seconds). Display only: these helpers read units and the camera and never touch damage, CC, pulls, hazards, positions or the
    fight state. The plumbing keeps the v1123 fx-branch names (_fx1123, FX1123_WARM, _fx22*) so that branch's spells can join it. */
-const FX1123_WARM={sorrel:['sorrelcard','sorrelspark','sorrelflare'],carn:['carnreap'],tharl:['tharlquake'],konwu:['konwuruyi'],rhukk:['rhukkroar','rhukkshell'],astra:['astrahorizon'],korvux:['korvuxcleave']};
+const FX1123_WARM={sorrel:['sorrelcard','sorrelspark','sorrelflare'],carn:['carnreap'],tharl:['tharlquake'],konwu:['konwuruyi'],rhukk:['rhukkroar','rhukkshell'],astra:['astrahorizon'],korvux:['korvuxcleave'],vesper:['vesperpuncture'],vex:['vextempest']};
 const _fx1123=[];
 function _fx22Area(){ return (typeof GSPLIT!=='undefined'&&GSPLIT&&GSPLIT.active)?BONUS_UNIT_SCALE:1; }   /* a bonus run's units are shrunk: so are the metric discs */
 function _fx22Spr(key,ro){ const d=FX2_DEF[key], t=fx2Tex(key); if(!d||!t) return null;
@@ -12652,11 +12661,40 @@ function korvuxChopLaunchFx(u,R,form){ if(!TH||!scene||!camera||!u) return; cons
 function korvuxChopHitFx(u,dir,R){ if(!TH||!scene||!camera||!u) return; const d=FX2_DEF.korvuxcleave; if(!d) return; const ts=(d.hit/d.n)*d.dur*FX_RT;
   const o=_fx1123.find(q=>q.kind==='chop'&&q.caster===u&&q.ok&&!q.aimed);
   if(o){ o.dir=dir; o.aimed=true; } else { const n=_fx22Chop(u,dir,R*_fx22Area(),d.sync.f[d.sync.f.length-1]/24*FX_RT,null); if(n) n.aimed=true; } }
+/* v1128 s09 PUNCTURE (Grok: "Play once, centred on the Puncture target point; open on cast, close timed to the effect end"): a standing tear. It opens
+   at the PRESS over the enemy the spell will pick (her aim, else her target, else the nearest - deliverLaunch's own choice), is pinned to the
+   target point at the form launch, and its close (cells close..shut) is timed so it is a line exactly as the freeze + silence end: open at 12 fps,
+   the hold cells stretched (or squeezed) to fill the gap, close and fade at 12 fps. An interrupted cast fades it. Display only. */
+function _fx22PunctPos(o){ const d=o.d, h=d.h*(typeof gsplitFxMul==='function'?gsplitFxMul():1)*3.9, H=h/d.slit, p=o.P||((o.u&&o.u.alive)?{x:o.u.x,y:o.u.y}:{x:o.caster.x,y:o.caster.y});
+  o.s.center.set(0.5,d.foot); o.s.scale.set(H*d.fw/d.fh,H,1); o.s.position.set(wx(p.x),0.05,wz(p.y)); }
+function _fx22PunctCell(o){ const d=o.d, c=o.t/FX_RT, e=o.endT/FX_RT, f=d.fps, a=d.holdA/f, tc=Math.max(a,e-(d.shut-d.close)/f);
+  if(c<a) return Math.floor(c*f);
+  if(c<tc) return Math.min(d.holdB,d.holdA+Math.floor((c-a)/Math.max(1e-3,tc-a)*(d.holdB-d.holdA+1)));
+  return d.close+Math.floor((c-tc)*f); }
+function vesperPunctureCastFx(u,ct,pend){ if(!TH||!scene||!camera||!u) return; const d=FX2_DEF.vesperpuncture, s=_fx22Spr('vesperpuncture',994); if(!s) return;
+  const D=ULT_DEF.riftpuncture||{}, a=(u._aimWX!=null)?{x:u._aimWX,y:u._aimWY}:null, t=(u.target&&u.target.alive)?u.target:nearestEnemy(u);
+  const o={kind:'puncture',s,d,t:0,u:t,P:a,caster:u,pend,ok:false,endT:ct+0.35+(D.freeze||1)+(D.silence||1)}; _fx22PunctPos(o); _fx1123.push(o); }
+function vesperPunctureLaunchFx(u,x,y){ if(!TH||!scene||!camera||!u) return; let o=_fx1123.find(q=>q.kind==='puncture'&&q.caster===u&&!q.ok&&q.cut==null);
+  if(!o){ const d=FX2_DEF.vesperpuncture, s=_fx22Spr('vesperpuncture',994); if(!s) return; o={kind:'puncture',s,d,t:0,caster:u,ok:true,endT:0.35+2}; _fx1123.push(o); }
+  o.ok=true; o.P={x,y}; _fx22PunctPos(o); }
+function vesperPunctureLandFx(u,dur){ if(!TH||!scene||!u) return; const o=_fx1123.find(q=>q.kind==='puncture'&&q.caster===u&&q.ok&&!q.landed); if(o){ o.landed=true; o.endT=o.t+dur; } }
+/* v1128 s10 RAZOR TEMPEST (Grok: "Play once, standing (not flat on the ground), centred about 40% along her aimed 45-degree 10 m wedge, starting on
+   cast (damage lands at cast)"): the crossing slashes stand at half her height over the point 40%% along the wedge's centre line (the case's own
+   direction: her aim, else her target), sized so the X spans xMul (1.6) x the wedge's width there (2 x 0.4R x tan 22.5 - at 1.0 it read as a small mark on the phone rig). Display only. */
+function vexTempestFx(u,tgt,aim,R){ if(!TH||!scene||!camera||!u) return; const d=FX2_DEF.vextempest, s=_fx22Spr('vextempest',994); if(!s) return;
+  const dir=aim?Math.atan2(aim.y-u.y,aim.x-u.x):(tgt?Math.atan2(tgt.y-u.y,tgt.x-u.x):(u.team==='ally'?0:Math.PI)), r=R*_fx22Area(), px=u.x+Math.cos(dir)*0.4*r, py=u.y+Math.sin(dir)*0.4*r;
+  const W=(wx(2*0.4*r*Math.tan(22.5*Math.PI/180))-wx(0))*d.fw/d.xPx*(d.xMul||1); s.center.set(0.5,0.5); s.scale.set(W,W*d.fh/d.fw,1);
+  s.position.set(wx(px),0.05,wz(py)).add(new TH.Vector3(0,1,0).applyQuaternion(camera.quaternion).multiplyScalar(0.5*(u.sprH||3.9)));
+  _fx1123.push({kind:'tempest',s,d,t:0,fade:0.2}); }
 function _fx22Kill(o){ try{ scene.remove(o.s); o.s.material.dispose(); }catch(_){} }
 function clearFx1123(){ _fx1123.forEach(_fx22Kill); _fx1123.length=0; }
 function updateFx1123(dt){ if(!_fx1123.length) return;
   for(let i=_fx1123.length-1;i>=0;i--){ const o=_fx1123[i], d=o.d; o.t+=dt; const clip=d.dur*FX_RT;
     if(o.kind==='chop'){ if(_fx22ChopTick(o)<0){ _fx22Kill(o); _fx1123.splice(i,1); } continue; }   /* the chop rides his axe swing */
+    if(o.kind==='puncture'){ if(!o.ok&&o.cut==null&&o.caster._pend!==o.pend) o.cut=o.t;   /* v1128: the cast was interrupted - the tear fades */
+      const fr=_fx22PunctCell(o); let op=1; if(o.cut!=null) op=Math.max(0,1-(o.t-o.cut)/0.15);
+      if(fr>=d.n||op<=0){ _fx22Kill(o); _fx1123.splice(i,1); continue; }
+      fx2SetFrame(o.s,d,fr); o.s.material.opacity=op; o.s.visible=true; _fx22PunctPos(o); continue; }
     if(o.t<0){ o.s.visible=false; if(o.kind==='ruyi'&&!o.ok&&o.caster._pend!==o.pend){ _fx22Kill(o); _fx1123.splice(i,1); } continue; }   /* cancelled before it showed */
     o.s.visible=true;
     if(o.kind==='shell'){ if(!o.u.alive) o.life=Math.min(o.life,o.t+0.2);
@@ -14497,6 +14535,16 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
           if(u._dash){ fr=R.fly; u._rushFace=u._faceDir||u._rushFace; }   // the facing he launched in (held through impact - see below)
           else if(u._rushLandAt!=null && u._rushLandAt>=u._abilStartAt) fr=Math.min(A.n-1, R.land+Math.floor((battleTime-u._rushLandAt)*f));
           else { fr=Math.min(R.launch, Math.floor((battleTime-u._abilStartAt)*f)); u._rushFace=null; } }
+        else if(st==='ult' && A.charge && u._abilStartAt!=null){
+          /* v1128 MARCH OF THE GREATBROW (Askel ult-redo3): the clip runs in REAL time (cells = fight s / FX clock x fps) on the dash the sim already runs
+             (case 'charge': cast, then u._dash, the slam on arrival = u._rushLandAt). Wind-up 0..launch over the cast; while he dashes the in-place stride
+             loop [a,b) cycles, and the lift cells lift..land-1 play out so the last one ends as he arrives; the planted slam (cell land) shows from the
+             landing, then the hold and recovery. Nothing here moves game logic. */
+          const C=A.charge, f=(A.fps||12), k=f/(SIM_STEP*SIM_HZ*BATTLE_PACE);
+          if(u._dash){ const D=u._dash, rem=Math.max(0,D.dur-D.t)*k, nl=C.land-C.lift; u._rushFace=u._faceDir||u._rushFace;
+            fr=(rem<nl)?Math.max(C.lift,C.land-Math.ceil(rem)):C.loop[0]+Math.floor(D.t*k)%(C.loop[1]-C.loop[0]); }
+          else if(u._rushLandAt!=null && u._rushLandAt>=u._abilStartAt) fr=Math.min(A.n-1, C.land+Math.floor((battleTime-u._rushLandAt)*k));
+          else { fr=Math.min(C.launch, Math.floor((battleTime-u._abilStartAt)*k)); u._rushFace=null; } }
         else if(st==='ult' && A.vanish && u._abilStartAt!=null){   /* v1126 Vanishing Point phases (see above): wind-up timed to the cast, empty while gone, reappear from the strike */
           const _V=A.vanish.at, _B=A.vanish.back;
           if((u._vpT||0)>0) fr=_V;
@@ -14523,7 +14571,7 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
         else if(foe){ const dxx=foe.x-u.x; if(Math.abs(dxx)>2) u._faceDir=dxx>=0?1:-1; desired=u._faceDir||(u.team==='ally'?1:-1); }
         else desired=u._faceDir||(u.team==='ally'?1:-1);
         /* v1021: Impale Rush lands ON its target, where the foe's side is a coin toss - he keeps the facing he charged in until the clip ends */
-        if(st==='ult' && A.rush && u._rushFace && u._rushLandAt!=null && u._rushLandAt>=(u._abilStartAt||0)){ desired=u._rushFace; u._faceDir=desired; }
+        if(st==='ult' && (A.rush||A.charge) && u._rushFace && u._rushLandAt!=null && u._rushLandAt>=(u._abilStartAt||0)){ desired=u._rushFace; u._faceDir=desired; }   /* v1128: Askel's charge lands on the farthest foe too - he keeps the facing he charged in */
         // FLIP VIA TEXTURE UV — THREE r128 Sprites ignore a negative scale.x (verified), so mirroring the
         // sheet frame's UVs is the only reliable way to face the sprite. Source art faces LEFT when A.flip is
         // set (sourceRight = !A.flip); mirror the frame whenever the wanted on-screen facing differs from that.
@@ -20328,7 +20376,7 @@ const CASTER_BALL={   // v340 (Phil): Beekeeper/Oakmir/Lumi nature, Annotator+Te
   fritz:{fx:'fritz_zap',scale:2.2,dur:0.13,bolt:true},   /* v958 (Phil: "also use this for auto attack on a single target"): the chain bolt from Fritz to his target */
   'boar shaman':{fx:'fireball',scale:1.2}   // v547 (Phil): the shaman's auto aims the burning hand, nothing leaves it on the clip - the engine's fireball is the projectile
 };
-const HERO_ULT_ART={rafe:{evadeEva:0.5,evadeDur:3,pfx:'rafetracer',pscale:0.9,pdur:0.30,spark:'rafespark'}, sloe:{backline:true,pfx:'sloearrow',pscale:0.9,pdur:0.30,stagger:0.12}, kharos:{gfx:'kharos_ult',gdur:2.0}, tolley:{gfx:'tolley_ult',gdur:2.4}, absalie:{gfx:'absalie_ult',gdur:2.4}, rivet:{gfx:'rivet_ult',gdur:2.4}, tessit:{deliver:'land'}, vesper:{deliver:'form'}, lysara:{deliver:'form',gfx:'lysara_ult',gdur:2.4}, nerisse:{deliver:'form',form:0.4}, pyroclast:{gfx:'pyroclast_ult',gdur:6.04,deliver:'land',fall:0.55}, orryn:{gfx:'orryn_ult',gdur:6.04,deliver:'form',form:0.5}, ambrel:{deliver:'form',gfx:'ambrel_ult',gdur:5.88}, vaelora:{gfx:'vaelora_ult',gdur:5.88}, aldren:{gfx:'aldren_ult',gdur:2.2}, astra:{deliver:'form',gfx:'astra_ult',gdur:5.83,ownFx:'horizon'}, aureth:{deliver:'form',gfx:'aureth_ult',gdur:5.88}, carn:{deliver:'form',gfx:'carn_ult',gdur:2.6,gfxAt:'front',ownFx:'reap'}, sorrel:{gfx:'sorrel_ult',gdur:5.88}, deepcleft:{deliver:'form',gfx:'deepcleft_ult',gdur:2.42}, fritz:{gfx:'fritz_ult',gdur:3.0,previewAt:'self'}, dandra:{gfx:'dandra_ult',gdur:2.6}, grimsby:{gfx:'grimsby_ult',gdur:5.88}, mellan:{gfx:'mellan_ult',gdur:4.88}, bloatus:{deliver:'form',gfx:'bloatus_ult',gdur:3.79}, maren:{deliver:'form',gfx:'maren_ult',gdur:2.8}, askel:{gfx:'askel_ult',gdur:2.29,artR:2.9*METER,fieldWide:'allies',allyShield:0.12,knockAside:2*METER}, grosk:{gfx:'grosk_ult',gdur:5.88}, hollow:{gfx:'hollow_ult',gdur:5.88}, konwu:{gfx:'konwu_ult',gdur:5.88,ownFx:'ruyi'}, lumi:{deliver:'form',gfx:'lumi_ult',gdur:1.04}, quorrel:{gfx:'quorrel_ult',gdur:1.67}, meridian:{gfx:'meridian_ult',gdur:2.75}, nox:{deliver:'form',gfx:'nox_ult',gdur:5.17,fieldWide:'enemies'}, oakmir:{deliver:'form',gfx:'oakmir_ult',gdur:5.67,badgeSize:0.45,noArea:true}, pellucid:{gfx:'pellucid_ult',gdur:6.04}, rhukk:{gfx:'rhukk_ult',gdur:2.08}, iver:{deliver:'land',gfx:'iver_ult',gdur:2.71}, sylthaine:{gfx:'sylthaine_ult',gdur:4.0}, gruel:{gfx:'gruel_ult',gdur:5.88}, tick:{gfx:'tick_ult',gdur:5.71}, umbris:{gfx:'umbris_ult',gdur:5.0}, vael:{gfx:'vael_ult',gdur:5.88}, mirelle:{deliver:'form',gfx:'mirelle_ult',gdur:5.62,fieldWide:'both'}, vex:{gfx:'vex_ult',gdur:4.75,gfxR:10*METER}, veyr:{gfx:'veyr_ult',gdur:5.12}, korvux:{deliver:'land',gfx:'korvux_ult',gdur:5.88}, vireo:{gfx:'vireo_ult',gdur:2.0}, ceraline:{deliver:'form',noArt:true}, tharl:{gfx:'tharl_ult',gdur:5.88,pathHit:0.5}, hobb:{deliver:'form',gfx:'hobb_ult',gdur:5.5}, yenna:{gfx:'yenna_ult',gdur:5.88,ricochet:true}, calypsa:{gfx:'calypsa_ult',gdur:5.88,deliver:'form',form:0.4}, brannus:{gfx:'brannus_ult',gdur:5.88,pathHit:0.5}, joss:{deliver:'form',gfx:'joss_ult',gdur:5.88,stun:1.2}, hurne:{gfx:'hurne_ult',gdur:5.88}
+const HERO_ULT_ART={rafe:{evadeEva:0.5,evadeDur:3,pfx:'rafetracer',pscale:0.9,pdur:0.30,spark:'rafespark'}, sloe:{backline:true,pfx:'sloearrow',pscale:0.9,pdur:0.30,stagger:0.12}, kharos:{gfx:'kharos_ult',gdur:2.0}, tolley:{gfx:'tolley_ult',gdur:2.4}, absalie:{gfx:'absalie_ult',gdur:2.4}, rivet:{gfx:'rivet_ult',gdur:2.4}, tessit:{deliver:'land'}, vesper:{deliver:'form',ownFx:'puncture'}, lysara:{deliver:'form',gfx:'lysara_ult',gdur:2.4}, nerisse:{deliver:'form',form:0.4}, pyroclast:{gfx:'pyroclast_ult',gdur:6.04,deliver:'land',fall:0.55}, orryn:{gfx:'orryn_ult',gdur:6.04,deliver:'form',form:0.5}, ambrel:{deliver:'form',gfx:'ambrel_ult',gdur:5.88}, vaelora:{gfx:'vaelora_ult',gdur:5.88}, aldren:{gfx:'aldren_ult',gdur:2.2}, astra:{deliver:'form',gfx:'astra_ult',gdur:5.83,ownFx:'horizon'}, aureth:{deliver:'form',gfx:'aureth_ult',gdur:5.88}, carn:{deliver:'form',gfx:'carn_ult',gdur:2.6,gfxAt:'front',ownFx:'reap'}, sorrel:{gfx:'sorrel_ult',gdur:5.88}, deepcleft:{deliver:'form',gfx:'deepcleft_ult',gdur:2.42}, fritz:{gfx:'fritz_ult',gdur:3.0,previewAt:'self'}, dandra:{gfx:'dandra_ult',gdur:2.6}, grimsby:{gfx:'grimsby_ult',gdur:5.88}, mellan:{gfx:'mellan_ult',gdur:4.88}, bloatus:{deliver:'form',gfx:'bloatus_ult',gdur:3.79}, maren:{deliver:'form',gfx:'maren_ult',gdur:2.8}, askel:{gfx:'askel_ult',gdur:2.29,artR:2.9*METER,fieldWide:'allies',allyShield:0.12,knockAside:2*METER}, grosk:{gfx:'grosk_ult',gdur:5.88}, hollow:{gfx:'hollow_ult',gdur:5.88}, konwu:{gfx:'konwu_ult',gdur:5.88,ownFx:'ruyi'}, lumi:{deliver:'form',gfx:'lumi_ult',gdur:1.04}, quorrel:{gfx:'quorrel_ult',gdur:1.67}, meridian:{gfx:'meridian_ult',gdur:2.75}, nox:{deliver:'form',gfx:'nox_ult',gdur:5.17,fieldWide:'enemies'}, oakmir:{deliver:'form',gfx:'oakmir_ult',gdur:5.67,badgeSize:0.45,noArea:true}, pellucid:{gfx:'pellucid_ult',gdur:6.04}, rhukk:{gfx:'rhukk_ult',gdur:2.08}, iver:{deliver:'land',gfx:'iver_ult',gdur:2.71}, sylthaine:{gfx:'sylthaine_ult',gdur:4.0}, gruel:{gfx:'gruel_ult',gdur:5.88}, tick:{gfx:'tick_ult',gdur:5.71}, umbris:{gfx:'umbris_ult',gdur:5.0}, vael:{gfx:'vael_ult',gdur:5.88}, mirelle:{deliver:'form',gfx:'mirelle_ult',gdur:5.62,fieldWide:'both'}, vex:{ownFx:'tempest',gfxR:10*METER}, veyr:{gfx:'veyr_ult',gdur:5.12}, korvux:{deliver:'land',gfx:'korvux_ult',gdur:5.88}, vireo:{gfx:'vireo_ult',gdur:2.0}, ceraline:{deliver:'form',noArt:true}, tharl:{gfx:'tharl_ult',gdur:5.88,pathHit:0.5}, hobb:{deliver:'form',gfx:'hobb_ult',gdur:5.5}, yenna:{gfx:'yenna_ult',gdur:5.88,ricochet:true}, calypsa:{gfx:'calypsa_ult',gdur:5.88,deliver:'form',form:0.4}, brannus:{gfx:'brannus_ult',gdur:5.88,pathHit:0.5}, joss:{deliver:'form',gfx:'joss_ult',gdur:5.88,stun:1.2}, hurne:{gfx:'hurne_ult',gdur:5.88}
 };
 Object.assign(ULT_DEF, {summonshaman:{key:'ink horror',dur:22,radius:1.6*METER,perLv:0.005}});   /* v1112: horror share x1.495 at level 100 */
 Object.assign(ULT_SCALE, {summonshaman:'\u2014'});
@@ -27632,7 +27680,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1791776483713';
+const BUILD_ID = '1791780986524';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
