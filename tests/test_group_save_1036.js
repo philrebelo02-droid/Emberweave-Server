@@ -38,8 +38,9 @@ async function freePort() { const s = net.createServer(); await new Promise(r =>
       assert.equal(g.body.ok, true, JSON.stringify(g.body).slice(0, 120));
       players.push({ id: r.body.profile.id, token: r.body.token, ip: '10.21.0.' + (i + 1) });
     }
-    const cities = await req('GET', '/api/world/cities', null, players[0].token, players[0].ip);
-    const bots = cities.body.bots || [];
+    const bots = [];   // v1127 zoom gate: the whole map read as four 5 x 5-tile views
+    for (const [c0, r0] of [[0,0],[5,0],[0,5],[5,5]]) { const t = []; for (let c = c0; c < c0 + 5; c++) for (let r = r0; r < r0 + 5; r++) t.push(c + '_' + r);
+      bots.push(...((await req('GET', '/api/world/cities?since=0&tiles=' + t.join(','), null, players[0].token, players[0].ip)).body.bots || [])); }
     ok(bots.length >= 61, 'setup: 61 level-20 players and ' + bots.length + ' NPC castles');
     const before = (await req('GET', '/api/dev/save-stats', null, A)).body;
 

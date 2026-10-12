@@ -21,6 +21,10 @@ async function run(){
   assert.ok(dir.startsWith(os.tmpdir()+path.sep));
   const db=path.join(dir,'db.json'), port=await freePort(), base=`http://127.0.0.1:${port}`;
   let child, browser;
+  async function wholeMap(token){ const out={cities:[],bots:[]};   // v1127 zoom gate: the whole map read as four 5 x 5-tile views
+    for(const [c0,r0] of [[0,0],[5,0],[0,5],[5,5]]){ const t=[]; for(let c=c0;c<c0+5;c++)for(let r=r0;r<r0+5;r++)t.push(c+'_'+r);
+      const d=await request('GET','/api/world/cities?since=0&tiles='+t.join(','),null,token); out.cities.push(...(d.cities||[])); out.bots.push(...(d.bots||[])); }
+    return out; }
   async function request(method,route,data,token){
     const res=await fetch(base+route,{method,headers:{...(token?{'x-token':token}:{}),...(data?{'content-type':'application/json'}:{})},body:data?JSON.stringify(data):undefined});
     return res.json();
@@ -272,8 +276,8 @@ async function run(){
       const zone=document.getElementById('wzone'),inner=document.getElementById('wzoneInner');
       worldZoomTo(0);
       const low={zoom:worldZoom,expected:zone.clientWidth/WORLD_W,
-        horizontalRange:zone.scrollWidth-zone.clientWidth,city:inner.querySelector('.wnode.city')?.style.display,
-        mine:inner.querySelector('.wnode.mine')?.style.display,
+        horizontalRange:zone.scrollWidth-zone.clientWidth,city:inner.querySelector('.wnode.city:not(.me)')?'built':'none',
+        mine:inner.querySelector('.wnode.mine')?'built':'none',   /* v1127 zoom gate: zoomed out, castles and mines are not built at all */
         middle:inner.querySelector('#worldPictureMiddle')?.style.display,
         close:inner.querySelector('#worldPictureClose')?.style.display,
         zoneLabel:inner.querySelector('.worldZoneLabel')?.style.display,
@@ -441,7 +445,7 @@ async function run(){
     if(await raidPage.locator('#tutSkip').isVisible()) await raidPage.locator('#tutSkip').click();
     await raidPage.locator('#splashPlay').click();
     await raidPage.waitForFunction(()=>document.getElementById('rotateGate')?.style.display==='none',{timeout:10000});
-    const realCity=(await request('GET','/api/world/cities',null,raider.token)).cities
+    const realCity=(await wholeMap(raider.token)).cities
       .find(c=>c.id===admin.profile.id);
     assert.ok(realCity,'the real target is visible on the server-owned world map');
     await raidPage.evaluate(async ({token,city})=>{

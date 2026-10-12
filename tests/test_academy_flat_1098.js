@@ -136,7 +136,10 @@ async function call(tok, route, data) { const r = await fetch(base + route, { me
   hi.led.acad = acad(100); lo.led.acad = acad(0);
   fs.writeFileSync(dbFile, JSON.stringify(db));
   await start();
-  const r = await call(g[0].token, '/api/world/cities'), cities = (r.data && r.data.cities) || [];
+  const r = { status: 200, data: { cities: [] } };   // v1127 zoom gate: the whole map read as four 5 x 5-tile views
+  for (const [c0, r0] of [[0,0],[5,0],[0,5],[5,5]]) { const t = []; for (let c = c0; c < c0 + 5; c++) for (let rr = r0; rr < r0 + 5; rr++) t.push(c + '_' + rr);
+    const q = await call(g[0].token, '/api/world/cities?since=0&tiles=' + t.join(',')); if (q.status !== 200) r.status = q.status; r.data.cities.push(...((q.data && q.data.cities) || [])); }
+  const cities = r.data.cities;
   ok(r.status === 200 && cityHasAcad(cities, hi.id, 100) && cityHasAcad(cities, lo.id, 0),
     'live /api/world/cities: the owner at Academy 100 reads academy 100, the owner at Academy 0 reads 0 (' + cities.map(c => c.name + ':' + c.academy).join(', ') + ')');
   ok(!cityHasAcad(cities.map(c => { const o = Object.assign({}, c); delete o.academy; return o; }), hi.id, 100), 'control: a city view without the field fails the check');
