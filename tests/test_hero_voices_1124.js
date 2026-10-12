@@ -64,6 +64,15 @@ try {
     /if\(_lore\.a&&_lore\.key===key&&!_lore\.a\.ended&&!_lore\.a\.paused\)\{ loreStop\(\); loreBtnSync\(btn\); return; \}/.test(src) && /function closePopout\(\)\{ try\{ loreStop\(\); \}catch\(e\)\{\}/.test(src));
   ck('lore button is icon art with a label (uiIcon play / pause, aria-label), never an emoji',
     /btn\.innerHTML=on\?uiIcon\('pause'\):uiIcon\('play'\); btn\.setAttribute\('aria-label',on\?'Stop the story':'Play the story'\);/.test(src));
+  // v1124 (Phil 11 Oct: "make sure the lore is re-written to match the new lore"): the screen lore is the third-person telling of the
+  // narration, beat for beat (Archive vael_screen_lore_v7.txt); both HERO_LORE copies in the page carry it, and the live one shows it
+  const LO = run(`(()=>{ const L=HERO_LORE.vael||{}; return {title:L.title, text:L.text}; })()`);
+  const loreCopies = (src.match(/\n  vael:\{title:(['"])After Ashford\1,\s?text:"((?:[^"\\]|\\.)*)"\}/g) || []).map(x => x.replace(/^[\s\S]*?text:"/, '').slice(0, -2));
+  const paras = String(LO.text || '').split('\n\n');
+  ck('Vael screen lore: "After Ashford", 5 paragraphs, opens at the fire and ends with the sword counting', LO.title === 'After Ashford' && paras.length === 5
+    && /^They still tell it at every fire in the valley\. It was cold that morning/.test(paras[0]) && /two hundred and seven, two hundred and eight, two hundred and nine\. One day he will let it finish\.$/.test(paras[4]), JSON.stringify(LO).slice(0, 200));
+  ck('the screen lore stays third person (about Vael, never I/me/my outside his quoted thoughts)', !/\b(I|me|my)\b/.test(LO.text || '') && /\bVael\b/.test(LO.text || ''));
+  ck('both HERO_LORE copies of Vael carry the same new text (no stale second copy)', loreCopies.length === 2 && loreCopies[0] === loreCopies[1] && loreCopies[0] === JSON.stringify(LO.text || '').slice(1, -1),'copies ' + loreCopies.length);
   // on the server: makeUnit primes nothing, and a fight with Vael's real lines mapped plays out exactly as one without
   const R = run(`(()=>{ const keep=JSON.stringify(AUDIO_MAP);
     const fight=()=>{ units=[]; ended=false; paused=false; battleTime=0; seedBattle(777001);
