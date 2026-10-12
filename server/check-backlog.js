@@ -22,10 +22,15 @@ function create(dbFile, opts) {
       lines++; if (o && typeof o.a === 'string') live.set(o.a, o.p); else if (o && typeof o.d === 'string') live.delete(o.d); }
   } catch (e) { if (e.code !== 'ENOENT') throw e; }
   stats.waiting = live.size;
-  function append(o) { const s = JSON.stringify(o) + '\n'; fs.appendFileSync(file, s); lines++; stats.bytes += s.length; }
+  /* v1128: with opts.io (the world store's io queue) the appends and the compaction are jobs on the store io worker - FIFO with the
+     world saves, so an 'a' line is on disk before the save that acknowledges its fight (a failed append fails that save too) */
+  const io = opts.io && opts.io.async ? opts.io : null;
+  const ioErr = e => console.error('check backlog: ' + e.message);
+  function append(o) { const s = JSON.stringify(o) + '\n'; if (io) io.submit([{ a: file, s }]).catch(ioErr); else fs.appendFileSync(file, s); lines++; stats.bytes += s.length; }
   function compact() {
     const tmp = file + '.tmp'; let s = ''; for (const [a, p] of live) s += JSON.stringify({ a, p }) + '\n';
-    fs.writeFileSync(tmp, s); fs.renameSync(tmp, file); lines = live.size; stats.compactions++; stats.bytes += s.length;
+    if (io) io.submit([{ w: tmp, s }, { r: tmp, to: file }]).catch(ioErr); else { fs.writeFileSync(tmp, s); fs.renameSync(tmp, file); }
+    lines = live.size; stats.compactions++; stats.bytes += s.length;
   }
   return {
     file, stats,

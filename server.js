@@ -112,7 +112,8 @@ function pgSave(){ if(PG_BOOT_PENDING) return;   // v327: never UPSERT the pre-r
     .finally(()=>{ _pgWriting=false; if(_pgDirty){ _pgDirty=false; pgSave(); } }); }
 /* v1037 PER-PLAYER STORAGE (server/world-store.js). DB_STORE=split: the world file is a manifest + 512 player shard files and a
    save writes only the shards whose players changed; without it the one-file world is read and written exactly as before. */
-const _store=require('./server/world-store.js').create(DB_FILE,{split:process.env.DB_STORE==='split',verify:process.env.DB_STORE_VERIFY==='1',pieces:process.env.DB_STORE_PIECES!=='0'});   /* v1127: the shared world in per-system pieces (DB_STORE_PIECES=0 = the v1037 split-v1 layout, for a rollback) */
+const _store=require('./server/world-store.js').create(DB_FILE,{split:process.env.DB_STORE==='split',verify:process.env.DB_STORE_VERIFY==='1',pieces:process.env.DB_STORE_PIECES!=='0',
+  io:(process.env.DB_STORE==='split'&&process.env.DB_STORE_IO!=='sync')?'worker':'sync', onFailure:e=>console.error('world save failed: '+e.message+' - every save not yet on disk is answered as failed; the next save rewrites the world')});   /* v1128: the save file work on the store io worker (DB_STORE_IO=sync = on this thread, as v1127) */   /* v1127: the shared world in per-system pieces (DB_STORE_PIECES=0 = the v1037 split-v1 layout, for a rollback) */
 const STORE_SWEEP_MS=Math.max(1000,+process.env.DB_STORE_SWEEP_MS||30000);   // partial saves: a full save at least this often
 function readDB(){ try{ DB=_store.load(); }catch(e){
     if(e&&e.code==='SHARD_MISSING'){ console.error(''+e.message+' - refusing to start rather than run a world with players missing.'); process.exit(1); }
@@ -205,15 +206,23 @@ function _saveScope(...ids){ const c=(typeof _reqCtx!=='undefined')?_reqCtx.getS
 function writeDB(ids,pieces){ if(_worldSettlementPlanning||_durableIdemActive)return; if(PG_BOOT_PENDING){ _bootDirty=true; return; }   // v327: see bootFinish()
   const named=_saveIdsFor(ids);
   if(named){ _pendingCore=true; for(const id of named) if(typeof id==='string'&&id) _pendingIds.add(id); _notePieces(pieces); } else _pendingFull=true;   /* v1127: pieces = the shared systems this change touched (none given = unknown, all compared) */
-  if(saveTimer)return; saveTimer=setTimeout(()=>{ saveTimer=null;
+  if(saveTimer)return; saveTimer=setTimeout(_timerSave,200); }
+function _timerSave(){ saveTimer=null;
   if(_batchOpen){ _batchOpen.actions++; if(_pendingFull) _batchOpen.all=true; return; }   // v1036: a group save is already queued - it writes this change too (v1124: _runBatch adds the pending ids)
   const full=_pendingFull||!_store.split;
   if(!full&&!_pendingIds.size&&!_pendingCore) return;
+  if(_store.split&&_store.ioAsync){   /* v1128: the file work goes to the store io worker; nothing waits on a debounced save */
+    if(_store.ioPending>=SAVE_MAX_INFLIGHT){ saveTimer=setTimeout(_timerSave,50); return; }   // the io queue is full: these changes wait for a slot
+    let p; if(full){ p=_store.writeAsync(DB,null); _pendingFull=false; }
+    else { const sl=_takeSlice(); p=_store.writeAsync(DB,[..._pendingIds],sl?null:_piecesArg(),sl); _sliceDone(sl); }
+    _pendingIds.clear(); _pendingCore=false; _clearPieces();
+    p.then(()=>{ _saveFails=0; try{ pgSave(); }catch(e){} }, e=>{ console.error('DB write failed:', e.message); _saveRecovery(); }).finally(_kickBatch);   // the store is broken after a failure: the next save is full
+    if(!full) _sweepIfDue(); return; }
   try{ if(full) saveDB(DB);   // atomic: write temp, then rename
     else { const sl=_takeSlice(); _store.write(DB,[..._pendingIds],sl?null:_piecesArg(),sl); _pendingIds.clear(); _pendingCore=false; _clearPieces(); _sliceDone(sl); } }   // v1124: only the named players' shards + the manifest (v1127: + the shared pieces that changed; a sweep slice adds its shards)
   catch(e){ console.error('DB write failed:', e.message); }   // a failed partial keeps its ids pending: the next save retries them
   pgSave();
-  if(!full) _sweepIfDue(); },200); }
+  if(!full) _sweepIfDue(); }
 function writeDBFull(){ _pendingFull=true; writeDB([]); }   /* v1124: a full save, whatever request scope is active (the periodic sweep) */
 /* v1127 ROLLING SWEEP (S1 copy run 11 Oct 2026: a full save every 30 s - every shard of a 50-150 MB world - stalled the main thread
    1-2 s). The sweep that brings undeclared changes (presence) to disk is cut into STORE_SLICES slices: every STORE_SWEEP_MS/slices
@@ -236,7 +245,7 @@ function _sliceDone(sl){ if(!sl) return; _sliceNext=(_sliceNext+1)%STORE_SLICES;
 const { AsyncLocalStorage } = require('async_hooks');
 const _reqCtx = new AsyncLocalStorage();
 let _batchOpen = null, _batchScheduled = false, _lastSaveEnd = 0, _lastSaveMs = 0;   // the save gap (below)
-const GROUP_SAVE_STATS = { batches:0, actions:0, failed:0, lastMs:0, maxMs:0 };
+const GROUP_SAVE_STATS = { batches:0, actions:0, failed:0, lastMs:0, maxMs:0, maxMainMs:0 };   /* v1128: lastMs/maxMs = cut to on disk; maxMainMs = the main-thread part */
 function _joinBatch(undo, ids, pieces){   // v1037: ids = the players this action changed (its receipts' owners too); none given = save everything (v1127: pieces = the shared systems it changed; none given = compare them all)
   if(!_batchOpen){ let resolve; const promise=new Promise(r=>{ resolve=r; }); _batchOpen={ promise, resolve, undos:[], actions:0, all:false, ids:new Set(), pieces:new Set(), piecesAll:false }; }
   if(undo) _batchOpen.undos.push(undo);
@@ -249,10 +258,48 @@ function _joinBatch(undo, ids, pieces){   // v1037: ids = the players this actio
   return _batchOpen; }
 function _holdReply(batch, failMsg){ const c=_reqCtx.getStore(); if(!c) return;
   (c.waits=c.waits||new Set()).add(batch.promise); if(failMsg && !c.failMsg) c.failMsg=failMsg; }
+/* v1128 SAVES ON THE STORE IO WORKER (S1 copy run 12 Oct 2026: synchronous shard writes were 40-45% of the main thread and one
+   save on a busy disk froze the server 7.5-8.1 s). The batch is still cut and stringified here, at once - what it saves is fixed at
+   that moment - but the file writes, the manifest rename and the unlinks run on the io worker; the batch's replies wait for the
+   rename as before. At most SAVE_MAX_INFLIGHT (1) saves are with the worker; while it is busy the open batch keeps collecting actions
+   (one bigger save instead of a growing queue). Requests build on a batch before it is on disk, so a failed save answers EVERY
+   batch not yet on disk as failed - the open one too - and undoes them newest first: no acknowledged action ever depended on a
+   change that was lost. The store then rewrites the whole world on its next save. */
+const SAVE_MAX_INFLIGHT=Math.max(1,Math.min(16,+process.env.DB_STORE_INFLIGHT||1));   // bench 12 Oct: 1 beat 2 (worst stall 360 vs 521 ms) - the open batch coalesces while the disk works
+let _inflight=[];   // batches whose save is with the io worker, oldest first
+function _kickBatch(){ if(_batchOpen&&!_batchScheduled){ _batchScheduled=true; setImmediate(_runBatch); } }
+function _failUnacked(e){
+  const victims=[]; if(_batchOpen){ victims.push(_batchOpen); _batchOpen=null; }
+  for(let i=_inflight.length-1;i>=0;i--) victims.push(_inflight[i]); _inflight=[];
+  let n=0; for(const v of victims){ if(v.settled) continue; v.settled=true; n+=v.actions;
+    for(const u of v.undos.slice().reverse()){ try{ u(); }catch(e2){ console.error('group save undo failed:', e2.message); } }
+    GROUP_SAVE_STATS.failed++; v.resolve(false); }
+  console.error('group save failed - '+victims.length+' batch(es), '+n+' change(s) undone, newest first:', e&&e.message);
+  _saveRecovery(); }
+let _saveFails=0, _recoveryT=null;
+function _saveRecovery(){ _pendingFull=true; if(_recoveryT) return; const ms=Math.min(30000,250*Math.pow(2,Math.min(7,_saveFails++)));   // a broken disk is retried with a full save, backing off to 30 s
+  _recoveryT=setTimeout(()=>{ _recoveryT=null; writeDBFull(); },ms); if(_recoveryT.unref) _recoveryT.unref(); }
+function _runBatchAsync(b, all){
+  const t0=Date.now(); let p;
+  if(all){ p=_store.writeAsync(DB,null); _pendingFull=false; }
+  else { for(const id of _pendingIds) b.ids.add(id); const sl=_takeSlice(); p=_store.writeAsync(DB,b.ids,sl?null:_piecesArg({all:b.piecesAll,set:b.pieces}),sl); _sliceDone(sl); }
+  _pendingIds.clear(); _pendingCore=false; _clearPieces();
+  const ms=Date.now()-t0; _lastSaveMs=ms; _lastSaveEnd=Date.now(); b.t0=t0; _inflight.push(b);
+  p.then(()=>{ if(b.settled) return; b.settled=true; const i=_inflight.indexOf(b); if(i>=0) _inflight.splice(i,1);
+      const total=Date.now()-b.t0; GROUP_SAVE_STATS.batches++; GROUP_SAVE_STATS.actions+=b.actions; GROUP_SAVE_STATS.lastMs=total; if(total>GROUP_SAVE_STATS.maxMs) GROUP_SAVE_STATS.maxMs=total;
+      if(ms>GROUP_SAVE_STATS.maxMainMs) GROUP_SAVE_STATS.maxMainMs=ms;
+      _saveFails=0; b.resolve(true); try{ pgSave(); }catch(e){} },
+    e=>{ if(!b.settled) _failUnacked(e); })
+   .finally(_kickBatch);
+  if(!all) _sweepIfDue(); }
 function _runBatch(){
   _batchScheduled=false;
-  const b=_batchOpen; if(!b) return; _batchOpen=null;
+  const b=_batchOpen; if(!b) return;
+  const async=_store.split&&_store.ioAsync;
+  if(async&&_store.ioPending>=SAVE_MAX_INFLIGHT) return;   // v1128: the io worker is full - this batch keeps collecting; the next save done runs it
+  _batchOpen=null;
   if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; }   // this save covers any debounced change too
+  if(async) return _runBatchAsync(b, b.all||_pendingFull);
   const t0=Date.now(), all=b.all||_pendingFull||!_store.split;   // v1037: a partial save only when every change named its players
   try{ if(all) saveDB(DB,'.group.tmp'); else { for(const id of _pendingIds) b.ids.add(id); const sl=_takeSlice(); _store.write(DB,b.ids,sl?null:_piecesArg({all:b.piecesAll,set:b.pieces}),sl); _pendingIds.clear(); _pendingCore=false; _clearPieces(); _sliceDone(sl); } }   // v1124: a debounced writeDB(ids) waiting is written by this save too (v1127: and its pieces)
   catch(e){
@@ -3320,7 +3367,7 @@ const CAMP_VERIFY_STATS={queued:0,accepted:0,flagged:0,retried:0,errors:0,inFlig
 const _checkQ=[], _checkKeys=new Set(); let _checkInFlight=0, _checkPumpT=null, _checkDone=[];
 /* v1127: the recordings waiting for a check are in server/check-backlog.js (<DB_FILE>.checks/backlog.jsonl), not on the receipts in
    the player shards; a receipt keeps verify:'pending' only. A receipt from before v1127 still carries rc.chk - it is checked as before. */
-const CHECK_BACKLOG=require('./server/check-backlog.js').create(DB_FILE);
+const CHECK_BACKLOG=require('./server/check-backlog.js').create(DB_FILE,{io:_store.split?_store.io():null});   /* v1128: its appends go through the store io queue, ahead of the save that acknowledges the fight */
 const checkKey=(uid,t,seed)=>uid+'|'+t+'|'+(seed>>>0);
 function campCheckPayload(f){ if(!f) return null; const k=checkKey(f.u.id,f.rc.t,f.rc.seed), p=CHECK_BACKLOG.get(k);
   if(p) return p; if(f.rc.chk&&Array.isArray(f.rc.chk.snaps)) return {snaps:f.rc.chk.snaps,transcript:Array.isArray(f.rc.transcript)?f.rc.transcript:[],legacy:true}; return null; }
@@ -6931,7 +6978,7 @@ async function api(req,res,url){
         writeDB(); return {ok:true, stamina:led.stam.v, cost:c, ledger:ledgerView(me)}; }
       if(what==='gold'){ if(sh.gold>=patronRow(led,'goldBuys')) return {ok:false,error:'No more gold today.'};   /* v1092 */
         const c=SHOP_GOLD_COSTS[Math.min(sh.gold,SHOP_GOLD_COSTS.length-1)]; if(led.gems<c) return {ok:false,error:'Not enough diamonds.'};
-        let amt=1000+(ledPlayerLevel(led)-1)*100; let doubled=false;
+        let amt=1000+(ledPlayerLevel(led)-1)*100; let doubled=false;
         if(patronLevels(led).egp>=PATRON_DOUBLE_GOLD_EGP && (srvSeed('goldbuy2x',me.id,nyDayKey(),String(sh.gold))%2)===0){ amt*=2; doubled=true; }   /* v1093: EGP 6 - 50 % chance of double gold */
         led.gems-=c; sh.gold++; creditGold(me,led,amt,'shop:gold');
         ledTx(me,'shop:gold',{gems:-c,gold:amt});
