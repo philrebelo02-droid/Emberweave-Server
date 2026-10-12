@@ -80,10 +80,12 @@ try {
   ck('every sheet exists, file = declared grid, fits 4096, anchors in cell', bad.length === 0, bad.join('; '));
   ck('attack and crit are the new v1115 files at ?v=23 (never a reused asset version)',
     G.attack && G.attack.u === '/assets/anim/pellucid/pellucid_attack_1115.webp?v=23' && G.crit && G.crit.u === '/assets/anim/pellucid/pellucid_crit_1115.webp?v=23');
-  ck('the other six states are exactly the c2354ddd entries (only ATTACK and CRIT change)',
-    ['idle', 'walk', 'hit', 'green', 'blue', 'ult', 'passive'].every(s => JSON.stringify(G[s]) === JSON.stringify(OLD[s])));
-  ck('same ground line and facing as his other states: feet - top = figH on every state, flip:true, 48 cells @24',
-    states.every(s => G[s] && G[s].feet - G[s].top === G[s].figH && G[s].flip === true && G[s].n === 48 && G[s].fps === 24),
+  // Pellucid redo1 (11 Oct): GREEN / BLUE / ULT were replaced by the approved redo1 takes (48 cells @12, see test_pellucid_redo1.js);
+  // the states this release left alone are still checked byte-for-byte here.
+  ck('the states v1115 and redo1 left alone are exactly the c2354ddd entries (idle, walk, hit, passive)',
+    ['idle', 'walk', 'hit', 'passive'].every(s => JSON.stringify(G[s]) === JSON.stringify(OLD[s])));
+  ck('same ground line and facing as his other states: feet - top = figH on every state, flip:true, 48 cells (@24; redo1 green/blue/ult @12)',
+    states.every(s => G[s] && G[s].feet - G[s].top === G[s].figH && G[s].flip === true && G[s].n === (s === 'ult' ? 46 : 48) && G[s].fps === (['green', 'blue', 'ult'].includes(s) ? 12 : 24)),
     states.map(s => G[s] ? s + ':' + (G[s].feet - G[s].top) + '/' + G[s].figH : s + ':-').join(' '));
   ck('measured contact cells: attack 13/48 (fist at full reach), crit 10/48 (sole at full extension)', G.attack.relFrac === 13 / 48 && G.crit && G.crit.relFrac === 10 / 48);
   ck('no ax on the new sheets (the slicer ax tracked the fist / kicked leg, not his planted feet)', !G.attack.ax && G.crit && !G.crit.ax);
