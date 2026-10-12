@@ -4105,13 +4105,25 @@ function _unstage(o){ const S=o&&typeof o==='object'?o[_STAGED]:null; if(!S) ret
     if(d.get) res[k]=S.touched.has(k)?_unstage(S.copied.get(k)):S.live[k];   // untouched: the original, unread and unchanged
     else res[k]=_unstage(d.value); }
   return res; }
+/* v1127: the planner's users table - the live one with the staged accounts laid over it. It was a spread copy of every player per
+   landing ({...DB.users}: 8500 keys on the bench world, the biggest part of worldSettlementDurable's own time); writes and deletes
+   land in the overlay only (they were discarded with the copy before), reads and enumeration see exactly what the copy held. */
+function _usersOverlay(base,over){ const gone=new Set(), own=k=>Object.prototype.hasOwnProperty.call(over,k);
+  return new Proxy(base,{
+    get(t,k){ if(own(k)) return over[k]; if(gone.has(k)) return undefined; return t[k]; },
+    has(t,k){ return own(k)||(!gone.has(k)&&(k in t)); },
+    set(t,k,v){ over[k]=v; gone.delete(k); return true; },
+    deleteProperty(t,k){ delete over[k]; gone.add(k); return true; },
+    ownKeys(t){ const ks=Reflect.ownKeys(t).filter(k=>!gone.has(k)); for(const k of Reflect.ownKeys(over)) if(!ks.includes(k)) ks.push(k); return ks; },
+    getOwnPropertyDescriptor(t,k){ if(own(k)) return {value:over[k],writable:true,enumerable:true,configurable:true}; if(gone.has(k)) return undefined; return Reflect.getOwnPropertyDescriptor(t,k); },
+    defineProperty(t,k,d){ over[k]=d.value; gone.delete(k); return true; } }); }
 function worldSettlementDurable(user,key,defId,fn,extraIds=[]){   /* v1097: extraIds = guild allies whose stationed Defend squads may fight (and be wounded) here */
   const now=Date.now(),prior=DB.idem?.[key];
   if(prior&&now-prior.t<=3600000&&prior.resp?.ok===true)return prior.resp;
   if(PG_BOOT_PENDING)return {ok:false,storageFailed:true,error:'World storage restore pending.'};
   if(_worldSettlementPlanning)throw Error('Nested world settlement planning');
   const actor=_stageAccount(user,1),related=[]; ATTACK_COPY_STATS.accounts++;   /* v1127: copy on first touch (was JSON.parse(JSON.stringify(user))) */
-  const staged={...DB,users:{...DB.users,[user.id]:actor}}, lazy={};
+  const _over={[user.id]:actor}, staged={...DB,users:_usersOverlay(DB.users,_over)}, lazy={};   /* v1127: an overlay, not a copy of every player */
   /* v1037: the four shared stores are copied the first time the battle reads or writes them (was: deep-copied on every attack,
      ~20 ms on Server 2 under the war load). One that is never touched is not part of the commit - it is unchanged. */
   for(const f of ['watch','feedback','reports','meta']) Object.defineProperty(staged,f,{enumerable:true,configurable:true,

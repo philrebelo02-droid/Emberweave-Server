@@ -41,7 +41,7 @@ async function server(script, temp) {
   const S = { db, req, start, kill }; servers.push(S); return S;
 }
 const manifest = db => JSON.parse(fs.readFileSync(db, 'utf8'));
-const shardsOf = m => m.shardFiles || m.shards;   // v1127: the pieces layout names its shards in shardFiles
+const shardsOf = m => WS.shardNamesOf(m);   // v1127: the pieces layout keeps a gen per shard
 const changedShards = (m0, m1) => Object.keys(shardsOf(m1)).filter(s => shardsOf(m1)[s] !== shardsOf(m0)[s]).map(Number).sort((a, b) => a - b);
 
 // boot with an admin (save-stats), two players; registration's id-less saves land before anything is measured
