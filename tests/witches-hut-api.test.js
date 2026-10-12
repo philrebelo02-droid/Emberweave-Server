@@ -18,6 +18,10 @@ async function run() {
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),'ember-witch-test-'));
   const db=path.join(dir,'db.json'), port=await freePort(), base=`http://127.0.0.1:${port}`;
   let child;
+  async function wholeMap(token){ const out={cities:[],bots:[]};   // v1127 zoom gate: the whole map read as four 5 x 5-tile views
+    for(const [c0,r0] of [[0,0],[5,0],[0,5],[5,5]]){ const t=[]; for(let c=c0;c<c0+5;c++)for(let r=r0;r<r0+5;r++)t.push(c+'_'+r);
+      const d=await request('GET','/api/world/cities?since=0&tiles='+t.join(','),null,token); out.cities.push(...(d.cities||[])); out.bots.push(...(d.bots||[])); }
+    return out; }
   async function request(method,route,data,token) {
     const response=await fetch(base+route,{method,headers:{...(token?{'x-token':token}:{}),...(data?{'content-type':'application/json'}:{})},body:data?JSON.stringify(data):undefined});
     return response.json();
@@ -67,7 +71,7 @@ async function run() {
         assignedBeforeMap[foe.profile.id].worldLocation.y),
       'automatic placement never puts two castles on the same square');
     await request('POST','/api/save',{wall:[{key:'vael'},{key:'sylthaine'},{key:'vireo'}]},foe.token);
-    const worldCities=await request('GET','/api/world/cities',null,admin.token);
+    const worldCities=await wholeMap(admin.token);
     assert.equal(worldCities.cities.length,1);
     assert.equal(worldCities.bots.length,398,'each of the two placed players replaces one of 400 filler bots');
     assert.ok(worldCities.bots.every(bot=>bot.bot&&bot.team.length===5));
@@ -162,7 +166,7 @@ async function run() {
       heroKeys:['vael','sylthaine','vireo'],px:900000,heroXp:200000
     },admin.token);
     assert.equal(botGrant.ok,true);
-    const botCities=await request('GET','/api/world/cities',null,botRaider.token);
+    const botCities=await wholeMap(botRaider.token);
     const targetBot=botCities.bots[0];
     const noBotMarch=await request('POST','/api/world/city/start',{
       defId:targetBot.id,heroIds:['vael','sylthaine','vireo'],requestId:'bot-before-war'
@@ -315,7 +319,7 @@ async function run() {
     assert.equal(premature.ok,false,'mine cannot resolve before real arrival');
     assert.equal(premature.arriveAt,timed.arriveAt);
     const occupied=new Set(map.nodes.map(n=>n.gx+','+n.gy));
-    const otherCities=await request('GET','/api/world/cities',null,admin.token);
+    const otherCities=await wholeMap(admin.token);
     for(const c of otherCities.cities||[]) occupied.add(L.cellKey(c.x,c.y));
     const terrainKeys=new Set(castle.terrainBlockedCells);
     /* 3 Oct audit: the outline is 705 cells since v902 (74f5e2b0); the count was hard-coded at 995 and failed the whole file,

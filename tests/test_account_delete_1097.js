@@ -34,8 +34,11 @@ async function editDB(fn){ await delay(400); await stop(); const db=disk(); fn(d
   await call('/api/guild/request',{guildId:gid},B.token); await call('/api/guild/approve',{id:bid},A.token);
   await call('/api/guild/chat',{tx:'hello from the founder'},A.token); await call('/api/guild/chat',{tx:'hi boss'},B.token);
   const tok=A.token;
-  await call('/api/world/cities',null,A.token);   // places A's castle on the map
-  { const c0=(await call('/api/world/cities',null,B.token)).data, l0=(await call('/api/arena/ladder?q=delalice',null,B.token)).data;
+  await call('/api/world/state',null,A.token);   // places A's castle on the map
+  const wholeMap=async tok=>{ const out={cities:[]};   // v1127 zoom gate: the whole map read as four 5 x 5-tile views
+    for(const [c0,r0] of [[0,0],[5,0],[0,5],[5,5]]){ const t=[]; for(let c=c0;c<c0+5;c++)for(let r=r0;r<r0+5;r++)t.push(c+'_'+r); const q=await call('/api/world/cities?since=0&tiles='+t.join(','),null,tok); if(!Array.isArray(q.data.cities)) out.cities=null; else if(out.cities) out.cities.push(...q.data.cities); }
+    return out; };
+  { const c0=await wholeMap(B.token), l0=(await call('/api/arena/ladder?q=delalice',null,B.token)).data;
     ok(JSON.stringify(c0).includes(aid)&&(l0.entries||[]).some(e=>e.name==='delAlice'),'before: A is on the world map and the arena ladder'); }
   let r=await call('/api/account/delete',{confirm:'DELETE',pass:'password1',requestId:'d1'});
   ok(r.status===401,'no session: refused ('+r.status+')');
@@ -67,7 +70,7 @@ async function editDB(fn){ await delay(400); await stop(); const db=disk(); fn(d
   ok(JSON.stringify(g.members)===JSON.stringify([bid])&&g.leader===bid,'the guild passes to the remaining member');
   const gl=(g.log||[]).filter(e=>!e.sys);
   ok(gl.some(e=>e.tx==='hello from the founder'&&e.name==='Deleted player')&&gl.some(e=>e.tx==='hi boss'&&e.name==='delBruno'),'guild chat other players read stays, the deleted player shown as Deleted player');
-  const cities=(await call('/api/world/cities',null,B.token)).data; const ladder=(await call('/api/arena/ladder?q=delalice',null,B.token)).data;
+  const cities=await wholeMap(B.token); const ladder=(await call('/api/arena/ladder?q=delalice',null,B.token)).data;
   ok(Array.isArray(cities.cities)&&!JSON.stringify(cities).includes(aid)&&Array.isArray(ladder.entries)&&!ladder.entries.length,'the account is off the world map and the arena ladder');
   r=await call('/api/register',{name:'delAlice',pass:'password1'});
   ok(r.status===200&&r.data.profile&&r.data.profile.id!==aid,'the name is free again (a new account)');
