@@ -124,14 +124,17 @@ function dispatch(saved,input,hooks){
       }
       if(e.type==='finish'){
         const a=state.marches[e.f.attacker],d=state.marches[e.f.defender],r=e.f.result;
-        const update=(m,rows)=>{for(const x of m.snaps){const row=rows.find(z=>z.key===x.key);x.hp=row.hp;x.worldEntryHpCap=row.hp;x.energy=0;}};
+        // fight() sends only living heroes, so a hero already at 0 HP has no row: it did not fight and stays at 0.
+        const update=(m,rows)=>{for(const x of m.snaps){const row=rows.find(z=>z.key===x.key);if(!row&&x.hp>0)throw Error('Missing battle outcome');x.hp=row?row.hp:0;x.worldEntryHpCap=x.hp;x.energy=0;}};
         update(a,r.ally);update(d,r.foe);effect(a,r.ally,e.at,'fight:'+a.id+':'+a.fights);effect(d,r.foe.filter(x=>d.heroIds.includes(x.key)),e.at,'defend:'+a.id+':'+a.fights);
         if(e.f.benefit)state.effects[state.effects.length-1].benefit=true;
         e.s.active=null;
         d.regenAt=BENEFIT.eligible(state,d)?e.at+30000:null;
         if(d.phase==='garrison'&&d.holdUntil<e.at)d.holdUntil=e.at;
         if(!d.heroIds.length){e.s.lines=e.s.lines.filter(id=>id!==d.id);d.phase='home';d.homeAt=e.at;}
-        if(state.endedAt!=null||e.at>=state.endsAt){home(a,e.at,'event-ended');if(d.heroIds.length)home(d,e.at,'event-ended');}
+        // A line left with only heroes who fell in an earlier fight cannot defend: it walks home instead of holding the site at 0 HP.
+        else if(!d.snaps.some(x=>x.hp>0))home(d,e.at,'killed');
+        if(state.endedAt!=null||e.at>=state.endsAt){home(a,e.at,'event-ended');if(d.heroIds.length&&d.phase!=='returning')home(d,e.at,'event-ended');}
         else if(r.won){if(e.s.lines.length)fight(e.s,a,e.at);else garrison(a,e.at);}else{home(a,e.at,'defeated');}
         nextAttack(e.s,e.at);
       }
