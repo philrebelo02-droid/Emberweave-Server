@@ -22,7 +22,7 @@ const APPROVED = {
   'voice/vael_ult_1.m4a': '22b71cc906bb85a090b44a96d91e2b784256d87d70491b69c2332e694b05dc0d',        // vael_ult1_64k.m4a "Here! I hold here!"
   'voice/vael_ult_2.m4a': '4ddae7c086fe1ccad44fa1d161933ce26ef8cefe3d1c01fe2012213959020e93',        // vael_ult2_64k.m4a "Cut me! It only makes me stronger!"
   'voice/vael_ult_3.m4a': '3f1fd2fc2f7f856ee8b7bd8019c1bedb1f9ec8ff8bdad964d505df220c8522d0',        // vael_ult3_64k.m4a "Last Stand! Come and break me!"
-  'voice/lore/vael_lore.m4a': 'b9d217f28272101ad2e4aa9d26e0e02b1b69b690631717c8a702267d831d2c0b',    // vael_lore_with_ending_paceB_48k.m4a (After Ashford + ending, pacing B)
+  'voice/lore/vael_lore.m4a': 'e57629b86583c7495ece15f7e178f188cab7928c9354e01ad71b9c4f6c6a71a7',    // v1133 Vael v9: vael_lore_with_ending_paceB_48k.m4a built 12 Oct 12:58 (205.8 s; Carn + Aureth on the wall, 'not sated', five-ten..five-twelve). v1124 bytes were b9d217f2... at ?v=1
 };
 try {
   const src = fs.readFileSync(HTML, 'utf8');
@@ -69,12 +69,15 @@ try {
   ck('lore button is icon art with a label (uiIcon play / pause, aria-label), never an emoji',
     /btn\.innerHTML=on\?uiIcon\('pause'\):uiIcon\('play'\); btn\.setAttribute\('aria-label',on\?'Stop the story':'Play the story'\);/.test(src));
   // v1124 (Phil 11 Oct: "make sure the lore is re-written to match the new lore"): the screen lore is the third-person telling of the
-  // narration, beat for beat (Archive vael_screen_lore_v7.txt); both HERO_LORE copies in the page carry it, and the live one shows it
+  // narration, beat for beat (Archive vael_screen_lore_v7.txt; v1133: vael_screen_lore_v9.txt, Phil 12 Oct); both HERO_LORE copies in the page carry it, and the live one shows it
   const LO = run(`(()=>{ const L=HERO_LORE.vael||{}; return {title:L.title, text:L.text}; })()`);
   const loreCopies = (src.match(/\n  vael:\{title:(['"])After Ashford\1,\s?text:"((?:[^"\\]|\\.)*)"\}/g) || []).map(x => x.replace(/^[\s\S]*?text:"/, '').slice(0, -2));
   const paras = String(LO.text || '').split('\n\n');
   ck('Vael screen lore: "After Ashford", 5 paragraphs, opens at the fire and ends with the sword counting', LO.title === 'After Ashford' && paras.length === 5
-    && /^They still tell it at every fire in the valley\. It was cold that morning/.test(paras[0]) && /two hundred and seven, two hundred and eight, two hundred and nine\. One day he will let it finish\.$/.test(paras[4]), JSON.stringify(LO).slice(0, 200));
+    && /^They still tell it at every fire in the valley\. It was cold that morning/.test(paras[0]) && /five hundred and ten, five hundred and eleven, five hundred and twelve\. One day he will let it finish\.$/.test(paras[4]), JSON.stringify(LO).slice(0, 200));
+  ck('v1133 Vael v9: Carn and Aureth hold the city wall behind him, not sated at the hundredth man, and the text is exactly vael_screen_lore_v9.txt (sha256)', /Behind him, Carn and Aureth dragged the gates shut and held the city wall/.test(paras[0]) && /thin the horde before it ever reached that wall\./.test(paras[0])
+    && crypto.createHash('sha256').update(String(LO.text || '')).digest('hex') === 'c76967eea7805e24bd29f9e47d221e1b38c8c18d32b5c9aba4d2c93ad775ad18', crypto.createHash('sha256').update(String(LO.text || '')).digest('hex'));
+  ck('v1133: the lore read is the v9 file at a new version (?v=2 - the v1124 bytes shipped as ?v=1)', M.l.vael === 'voice/lore/vael_lore.m4a?v=2', M.l.vael);
   ck('the screen lore stays third person (about Vael, never I/me/my outside his quoted thoughts)', !/\b(I|me|my)\b/.test(LO.text || '') && /\bVael\b/.test(LO.text || ''));
   ck('both HERO_LORE copies of Vael carry the same new text (no stale second copy)', loreCopies.length === 2 && loreCopies[0] === loreCopies[1] && loreCopies[0] === JSON.stringify(LO.text || '').slice(1, -1),'copies ' + loreCopies.length);
   // on the server: makeUnit primes nothing, and a fight with Vael's real lines mapped plays out exactly as one without
