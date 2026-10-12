@@ -135,6 +135,21 @@ async function chatSave(dir, check) {
   } finally { await S.kill(); }
 }
 
+// the rolling sweep: no full save, the whole world rewritten slice by slice within DB_STORE_SWEEP_MS
+async function rollingSweep(check) {
+  const S = await R.server({ env: { DB_STORE_SWEEP_MS: '3200', CHAT_SAVE_MS: '200' } });
+  try {
+    const B = await R.boot(S, 'rs', 1, { world: false });
+    await S.kill(); await S.start(B.adminId); await R.sleep(1500);
+    const s0 = (await B.stat()).store, m0 = man(S.db), so = await sock(S, B.players[0], '10.97.0.1'); await R.sleep(200);
+    const t0 = Date.now(); let n = 0; while (Date.now() - t0 < 4500) { so.send({ t: 'chat', channel: 'world', text: 'sweep ' + (n++) }); await R.sleep(1800); }
+    so.ws.terminate(); await R.sleep(500);
+    const s1 = (await B.stat()).store, m1 = man(S.db), changed = Object.keys(m1.shardFiles).filter(k => m1.shardFiles[k] !== m0.shardFiles[k]).length;
+    check(s1.full === s0.full && s1.slices - s0.slices >= 2 && s1.lastShards <= WS.SHARDS / 16 + 1, 'rolling sweep: ' + (s1.slices - s0.slices) + ' slice saves of ' + (WS.SHARDS / 16) + ' shards, no full save (' + (s1.full - s0.full) + ')');
+    check(changed >= (s1.slices - s0.slices) * (WS.SHARDS / 16) - 1, 'each slice rewrote its own shards (' + changed + ' shard files rewritten)');
+  } finally { await S.kill(); }
+}
+
 // durable actions under hard kills
 async function killLoop(check) {
   const S = await R.server({ env: { DB_STORE_VERIFY: '1' } });
@@ -188,6 +203,7 @@ async function migrateRollback(check) {
     console.log('== the store'); unit();
     if (process.env.PIECES_UNIT_ONLY) { console.log('unit only: ' + R.passed() + ' checks passed'); process.exit(0); }
     console.log('== a real server'); const mine = await chatSave(R.root, R.ok);
+    await rollingSweep(R.ok);
     await killLoop(R.ok);
     await migrateRollback(R.ok);
     console.log('== control ' + R.CONTROL_SHA + ' (must fail)');

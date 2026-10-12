@@ -213,11 +213,20 @@ function writeDB(ids,pieces){ if(_worldSettlementPlanning||_durableIdemActive)re
   const full=_pendingFull||!_store.split;
   if(!full&&!_pendingIds.size&&!_pendingCore) return;
   try{ if(full) saveDB(DB);   // atomic: write temp, then rename
-    else { _store.write(DB,[..._pendingIds],_piecesArg()); _pendingIds.clear(); _pendingCore=false; _clearPieces(); } }   // v1124: only the named players' shards + the manifest (v1127: + the shared pieces that changed)
+    else { const sl=_takeSlice(); _store.write(DB,[..._pendingIds],sl?null:_piecesArg(),sl); _pendingIds.clear(); _pendingCore=false; _clearPieces(); _sliceDone(sl); } }   // v1124: only the named players' shards + the manifest (v1127: + the shared pieces that changed; a sweep slice adds its shards)
   catch(e){ console.error('DB write failed:', e.message); }   // a failed partial keeps its ids pending: the next save retries them
   pgSave();
-  if(!full && Date.now()-_store.stats.lastFullAt>STORE_SWEEP_MS) writeDBFull(); },200); }
+  if(!full) _sweepIfDue(); },200); }
 function writeDBFull(){ _pendingFull=true; writeDB([]); }   /* v1124: a full save, whatever request scope is active (the periodic sweep) */
+/* v1127 ROLLING SWEEP (S1 copy run 11 Oct 2026: a full save every 30 s - every shard of a 50-150 MB world - stalled the main thread
+   1-2 s). The sweep that brings undeclared changes (presence) to disk is cut into STORE_SLICES slices: every STORE_SWEEP_MS/slices
+   a partial save also writes the next slice of shards (shard % slices) and compares every shared piece, so the whole world is
+   still on disk within STORE_SWEEP_MS - in 16 small saves instead of one big one. */
+const STORE_SLICES=Math.max(1,Math.min(64,+process.env.DB_STORE_SLICES||16));
+let _sliceNext=0, _sliceAt=Date.now(), _slicePending=false;
+function _sweepIfDue(){ if(Date.now()-_sliceAt>STORE_SWEEP_MS/STORE_SLICES){ _slicePending=true; writeDB([]); } }
+function _takeSlice(){ if(!_slicePending) return null; _slicePending=false; return {slice:_sliceNext,of:STORE_SLICES}; }
+function _sliceDone(sl){ if(!sl) return; _sliceNext=(_sliceNext+1)%STORE_SLICES; _sliceAt=Date.now(); }
 /* v1036 GROUP SAVES (Phil 5 Oct 2026, after the war load test - "do it all"). 90% of the server's CPU went to saving the WHOLE
    world JSON once per durable action (a war declaration took 140-200 ms on an idle 11 MB copy; each server topped out near 6-7
    saves a second). Same promise to the player - nothing is acknowledged before it is on disk - delivered in batches:
@@ -248,7 +257,7 @@ function _runBatch(){
   const b=_batchOpen; if(!b) return; _batchOpen=null;
   if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; }   // this save covers any debounced change too
   const t0=Date.now(), all=b.all||_pendingFull||!_store.split;   // v1037: a partial save only when every change named its players
-  try{ if(all) saveDB(DB,'.group.tmp'); else { for(const id of _pendingIds) b.ids.add(id); _store.write(DB,b.ids,_piecesArg({all:b.piecesAll,set:b.pieces})); _pendingIds.clear(); _pendingCore=false; _clearPieces(); } }   // v1124: a debounced writeDB(ids) waiting is written by this save too (v1127: and its pieces)
+  try{ if(all) saveDB(DB,'.group.tmp'); else { for(const id of _pendingIds) b.ids.add(id); const sl=_takeSlice(); _store.write(DB,b.ids,sl?null:_piecesArg({all:b.piecesAll,set:b.pieces}),sl); _pendingIds.clear(); _pendingCore=false; _clearPieces(); _sliceDone(sl); } }   // v1124: a debounced writeDB(ids) waiting is written by this save too (v1127: and its pieces)
   catch(e){
     for(const u of b.undos.slice().reverse()){ try{ u(); }catch(e2){ console.error('group save undo failed:', e2.message); } }
     GROUP_SAVE_STATS.failed++; console.error('group save failed - '+b.actions+' change(s), '+b.undos.length+' undone:', e.message);
@@ -256,7 +265,7 @@ function _runBatch(){
   const ms=Date.now()-t0; _lastSaveMs=ms; _lastSaveEnd=Date.now(); GROUP_SAVE_STATS.batches++; GROUP_SAVE_STATS.actions+=b.actions; GROUP_SAVE_STATS.lastMs=ms;
   if(ms>GROUP_SAVE_STATS.maxMs) GROUP_SAVE_STATS.maxMs=ms;
   b.resolve(true); try{ pgSave(); }catch(e){}
-  if(!all && Date.now()-_store.stats.lastFullAt>STORE_SWEEP_MS) writeDBFull(); }   // v1037: changes no action declared (presence) reach disk too (v1124: always full - this runs inside a request's async context)
+  if(!all) _sweepIfDue(); }   // v1037: changes no action declared (presence) reach disk too (v1124: always full - this runs inside a request's async context)
 function writeDBSync(){ try{ if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; } saveDB(DB); return true; }catch(e){ console.error('DB write failed:', e.message); return false; } }   // v1036: exit paths
 process.on('SIGTERM',()=>{ if(!PG_BOOT_PENDING && _booted) writeDBSync(); process.exit(0); });
 /* v1182 SIGN-UP GATE: the sign-up / sign-in routes save with the group save instead of a whole-world writeDB() each: inside an API
@@ -3478,11 +3487,15 @@ function simPool(){
   /* v1041 (Phil 6 Oct 2026: "First the server will reach for main and node1-3. If the strained server still needs help my cpu will
      kick in."): an entry may carry its tier - "url|2" (tier 1 = the cluster, 2 = Phil's PC); SIM_HELPERS_FILE (JSON [{url,tier}]) is
      re-read every 5 s, so the release-phase switch needs no restart; SERVER_ID names this server to dedicated helpers. */
-  const helpers=(process.env.SIM_HELPERS||'').split(',').map(u=>u.trim()).filter(Boolean).map(e=>{ const [url,tier]=e.split('|'); return {url,tier:+tier||1,key:process.env.SIM_HELPER_KEY||''}; });
+  /* v1127 HELPER ROLES: "url|tier|role|reserve" (role live | async | any, server/sim-roles.js); SIM_HELPERS_FILE entries {url,tier,role,
+     reserve}. Phil's layout: node1-3 async, the other server machines live (flex to async when idle), his PC any. This server's own
+     workers never take a check (SIM_CHECKS_LOCAL stays off). */
+  const helpers=(process.env.SIM_HELPERS||'').split(',').map(u=>u.trim()).filter(Boolean).map(e=>{ const [url,tier,role,reserve]=e.split('|'); return {url,tier:+tier||1,role:role||undefined,reserve:reserve===undefined?undefined:+reserve,key:process.env.SIM_HELPER_KEY||''}; });
   const helpersFile=process.env.SIM_HELPERS_FILE||null;
   let fp=null; if(helpers.length||helpersFile) try{ fp=require('./server/sim-host.js').fingerprint(GAME_FILE); }catch(e){ console.error('battle helpers off - engine fingerprint failed:', e.message); }
   try{ _SIM_POOL=require('./server/sim-pool.js').create(GAME_FILE,{size:n,helpers:fp?helpers:[],helpersFile:fp?helpersFile:null,key:process.env.SIM_HELPER_KEY||'',
-      self:SERVER_ID,fp,warLevel:simWarLevel,trackStrain:true});
+      self:SERVER_ID,fp,warLevel:simWarLevel,trackStrain:true,
+      asyncWaiting:()=>_checkQ.length, asyncDrainMinutes:()=>_checkQ.length/Math.max(1,CAMP_VERIFY_STATS.drainedLastMin)});   /* v1127: the async backlog drives the fast helpers' reserve */
     console.log('battle workers starting: '+_SIM_POOL.stats.size+(fp?' + helpers ('+helpers.length+(helpersFile?' + file '+helpersFile:'')+')':'')); }
   catch(e){ console.error('battle workers unavailable - battles stay on the main thread:', e.message); _SIM_POOL=null; }
   return _SIM_POOL; }
@@ -3529,53 +3542,67 @@ function campIncident(u,led,x){   // the flagged-fight record (shared by the res
    the backlog survives a restart (a boot scan re-queues every receipt still marked pending). The dispatcher keeps at most the battle
    capacity in flight (helpers' free slots, or the local workers when no helper is set), so nothing is shed: a refused check goes back
    to the queue and is tried again. Accepted -> the recording is dropped; mismatch -> incident + review flag, recording kept. */
-const CAMP_VERIFY_STATS={queued:0,accepted:0,flagged:0,retried:0,errors:0,inFlight:0,attached:0,backlog:0,drainedLastMin:0};
+const CAMP_VERIFY_STATS={queued:0,accepted:0,flagged:0,retried:0,errors:0,inFlight:0,attached:0,backlog:0,drainedLastMin:0,asks:0,waits:0,wakeups:0};
 const _checkQ=[], _checkKeys=new Set(); let _checkInFlight=0, _checkPumpT=null, _checkDone=[];
+/* v1127: the recordings waiting for a check are in server/check-backlog.js (<DB_FILE>.checks/backlog.jsonl), not on the receipts in
+   the player shards; a receipt keeps verify:'pending' only. A receipt from before v1127 still carries rc.chk - it is checked as before. */
+const CHECK_BACKLOG=require('./server/check-backlog.js').create(DB_FILE);
+const checkKey=(uid,t,seed)=>uid+'|'+t+'|'+(seed>>>0);
+function campCheckPayload(f){ if(!f) return null; const k=checkKey(f.u.id,f.rc.t,f.rc.seed), p=CHECK_BACKLOG.get(k);
+  if(p) return p; if(f.rc.chk&&Array.isArray(f.rc.chk.snaps)) return {snaps:f.rc.chk.snaps,transcript:Array.isArray(f.rc.transcript)?f.rc.transcript:[],legacy:true}; return null; }
 function campCheckEnqueue(uid,t,seed){ const k=uid+'|'+t+'|'+(seed>>>0); if(_checkKeys.has(k)) return; _checkKeys.add(k);
   const j={uid,t,seed:seed>>>0,tries:0,k}; CAMP_VERIFY_STATS.queued++;
-  const f=campCheckFind(j), st=f&&f.rc.chk&&portalStageOf(f.rc.mode,f.rc.node);   // its resolve's replay may still be running: that result IS the check
-  if(st){ const key=_simKey('campaign',[f.rc.chk.snaps,st.waves,f.rc.seed>>>0,Array.isArray(f.rc.transcript)?f.rc.transcript:[]]), fl=_SIM_FLIGHT.get(key);
+  const f=campCheckFind(j), pl=campCheckPayload(f), st=pl&&portalStageOf(f.rc.mode,f.rc.node);   // its resolve's replay may still be running: that result IS the check
+  if(st){ const key=_simKey('campaign',[pl.snaps,st.waves,f.rc.seed>>>0,pl.transcript||[]]), fl=_SIM_FLIGHT.get(key);
     if(fl){ CAMP_VERIFY_STATS.attached++; fl.then(r=>{ CAMP_VERIFY_STATS.attached--; _SIM_MEMO.delete(key); campCheckDone(j,r); },()=>{ CAMP_VERIFY_STATS.attached--; _checkQ.push(j); CAMP_VERIFY_STATS.backlog=_checkQ.length; campCheckPump(); }); return; } }
   _checkQ.push(j); CAMP_VERIFY_STATS.backlog=_checkQ.length; campCheckPump(); }
 function campCheckFind(j){ const u=DB.users[j.uid], led=u&&u.led; if(!led) return null;
   const rc=(led.battleReceipts||[]).find(r=>r&&r.verify==='pending'&&r.seed===j.seed&&r.t===j.t); return rc?{u,led,rc}:null; }
+/* v1127 EVENT-DRIVEN DISPATCH (S1 copy run 11 Oct 2026: the dispatcher asked for a free helper ~112,000 times in one run). A check
+   is sent only when the pool says an async slot is free (canTake); otherwise the pump sleeps until the pool reports a freed slot
+   (onFree) or a 2 s fallback timer - a refused check goes back in the queue and waits the same way, never re-asked in a loop. */
+let _checkHooked=false;
 function campCheckPump(){
   const pool=simPool(); if(!pool) return;
-  const cap=Math.max(1,typeof pool.checkCapacity==='function'?pool.checkCapacity():pool.stats.size);
+  if(!_checkHooked&&typeof pool.onFree==='function'){ _checkHooked=true; pool.onFree(()=>{ if(_checkQ.length){ CAMP_VERIFY_STATS.wakeups++; campCheckPump(); } }); }
+  const cap=Math.max(1,typeof pool.checkCapacity==='function'?pool.checkCapacity('async'):pool.stats.size);
   while(_checkQ.length&&_checkInFlight<cap){
-    const j=_checkQ.shift(), f=campCheckFind(j); if(!f||!f.rc.chk||!Array.isArray(f.rc.chk.snaps)){ _checkKeys.delete(j.k); continue; }   // a rolled-back resolve, or nothing to check
+    if(typeof pool.canTake==='function'&&!pool.canTake('async')){ CAMP_VERIFY_STATS.waits++; break; }   // no async slot now: wait for onFree
+    const j=_checkQ.shift(), f=campCheckFind(j), pl=campCheckPayload(f); if(!pl||!Array.isArray(pl.snaps)){ if(!f) CHECK_BACKLOG.done(j.k); _checkKeys.delete(j.k); continue; }   // a rolled-back resolve, or nothing to check
     const st=portalStageOf(f.rc.mode,f.rc.node); if(!st){ _checkKeys.delete(j.k); continue; }
-    const args=[f.rc.chk.snaps,st.waves,f.rc.seed>>>0,Array.isArray(f.rc.transcript)?f.rc.transcript:[]], key=_simKey('campaign',args), memo=_SIM_MEMO.get(key);
-    _checkInFlight++; CAMP_VERIFY_STATS.inFlight=_checkInFlight;
-    const p=memo?Promise.resolve(memo.r):(_SIM_FLIGHT.get(key)||pool.run('campaign',args,{check:true}));
+    const args=[pl.snaps,st.waves,f.rc.seed>>>0,pl.transcript||[]], key=_simKey('campaign',args), memo=_SIM_MEMO.get(key);
+    _checkInFlight++; CAMP_VERIFY_STATS.inFlight=_checkInFlight; CAMP_VERIFY_STATS.asks++;
+    const p=memo?Promise.resolve(memo.r):(_SIM_FLIGHT.get(key)||pool.run('campaign',args,{check:true,mode:'backlog'}));
     p.then(r=>{ _SIM_MEMO.delete(key); campCheckDone(j,r); },e=>{ _SIM_MEMO.delete(key);
-        j.tries++; CAMP_VERIFY_STATS.retried++; _checkQ.push(j);   // never lost: back of the queue, tried again when there is room
-        j.refusedAt=Date.now(); if(!_checkPumpT) _checkPumpT=setTimeout(()=>{ _checkPumpT=null; campCheckPump(); },Math.min(5000,250*j.tries)); })
-      .finally(()=>{ _checkInFlight--; CAMP_VERIFY_STATS.inFlight=_checkInFlight; CAMP_VERIFY_STATS.backlog=_checkQ.length;
-        if(!j.refusedAt) setImmediate(campCheckPump); else j.refusedAt=0; }); }   // a refusal waits for the timer: re-pumping at once spun the microtask queue
+        j.tries++; CAMP_VERIFY_STATS.retried++; _checkQ.push(j); })   // never lost: back of the queue, sent again when a slot frees
+      .finally(()=>{ _checkInFlight--; CAMP_VERIFY_STATS.inFlight=_checkInFlight; CAMP_VERIFY_STATS.backlog=_checkQ.length; }); }
   CAMP_VERIFY_STATS.backlog=_checkQ.length;
-  if(_checkQ.length&&!_checkPumpT) _checkPumpT=setTimeout(()=>{ _checkPumpT=null; campCheckPump(); },1000); }
+  if(_checkQ.length&&!_checkPumpT) _checkPumpT=setTimeout(()=>{ _checkPumpT=null; campCheckPump(); },2000); }
 function campCheckDone(j,rep){ _checkKeys.delete(j.k); _reqCtx.run({saveIds:[j.uid]},()=>{   // saves inside name this player only
-  const f=campCheckFind(j); if(!f) return; const {u,led,rc}=f;
+  const f=campCheckFind(j); if(!f){ CHECK_BACKLOG.done(j.k); return; } const {u,led,rc}=f, pl=campCheckPayload(f)||{};
   const serverEndDigest=String(rep&&rep.digest||''), sd=serverEndDigest?sha256hex(serverEndDigest):null, match=!!sd&&sd===rc.clientDigest;
   delete rc.verify; delete rc.chk; rc.digest=sd; rc.match=match;
+  if(!match&&!Array.isArray(rc.transcript)&&Array.isArray(pl.transcript)) rc.transcript=pl.transcript;   // v1127: a flagged fight keeps its recording on its receipt
   const now=Date.now(); _checkDone.push(now); while(_checkDone.length&&now-_checkDone[0]>60000) _checkDone.shift(); CAMP_VERIFY_STATS.drainedLastMin=_checkDone.length;
   if(match){ delete rc.transcript; CAMP_VERIFY_STATS.accepted++; }   // accepted: the recording is discarded
   else { CAMP_VERIFY_STATS.flagged++; const st=portalStageOf(rc.mode,rc.node)||{id:rc.stage};
     campIncident(u,led,{st,mode:rc.mode,engine:rc.engine,seed:rc.seed,source:rc.source,inputLog:rc.transcript||[],clientHash:rc.clientDigest,
       witnessed:{won:!!rc.won,stars:rc.stars|0},rep,serverEndDigest,why:'digest-mismatch'}); }
-  writeDB([j.uid]); }); }
+  writeDB([j.uid]); CHECK_BACKLOG.done(j.k); }); }   // v1127: the waiting recording leaves the backlog once the receipt says done
 function campCheckBootScan(){ let n=0;   // a restart: every receipt still waiting for its check goes back in the queue
+  const seen=new Set();
   for(const u of Object.values(DB.users||{})){ const rs=u&&u.led&&u.led.battleReceipts; if(!Array.isArray(rs)) continue;
-    for(const r of rs) if(r&&r.verify==='pending'&&r.chk){ const k=u.id+'|'+r.t+'|'+(r.seed>>>0); if(_checkKeys.has(k)) continue; _checkKeys.add(k); _checkQ.push({uid:u.id,t:r.t,seed:r.seed>>>0,tries:0,k}); n++; } }
+    for(const r of rs) if(r&&r.verify==='pending'){ const k=checkKey(u.id,r.t,r.seed); seen.add(k); if(!(r.chk||CHECK_BACKLOG.has(k))||_checkKeys.has(k)) continue; _checkKeys.add(k); _checkQ.push({uid:u.id,t:r.t,seed:r.seed>>>0,tries:0,k}); n++; } }
+  let orphans=0; for(const k of CHECK_BACKLOG.keys()) if(!seen.has(k)){ CHECK_BACKLOG.done(k); orphans++; }   // a resolve that never reached disk (a crash before its save)
+  if(orphans) console.log('fight checks: '+orphans+' recording(s) of unsaved fights dropped');
   if(n){ console.log('fight checks: '+n+' waiting from before the restart - re-queued'); CAMP_VERIFY_STATS.backlog=_checkQ.length; campCheckPump(); } }
 if(typeof setTimeout==='function'){ const _t=setTimeout(()=>{ try{ if(typeof DB!=='undefined'&&DB&&DB.users) campCheckBootScan(); }catch(e){ console.error('fight-check boot scan:',e.message); } },15000); if(_t.unref) _t.unref(); }
-async function simRun(fn){
+async function simRun(fn,mode){   /* v1127: mode picks the helper role (server/sim-roles.js) - the world map's battles are 'live' */
   const pool=simPool(); if(!pool || !pool.stats.ready) return fn();
   for(let i=0;i<12;i++){ const need=[]; let out, needed=false; _SIM_COLLECT=need;
     try{ out=fn(); }catch(e){ if(e!==SIM_NEEDED) throw e; needed=true; } finally{ _SIM_COLLECT=null; }
     if(!needed) return out;
-    await simPrefetch(need);
+    await simPrefetch(need,0,{mode:mode||'map'});
     /* v1124 OVERLOAD (war profile 11 Oct 2026: a third of the main thread went to city battles fought here after the battle queue
        refused them, which slowed every route and refused more). A battle the workers could not take is not fought on the main
        thread: the planner has committed nothing, and the player is told to retry (the client re-sends the same request). */
@@ -5307,7 +5334,7 @@ async function api(req,res,url){
       banned: DB.users[r.userId] ? banInfo(DB.users[r.userId]) : null })) }); }
 
   if(p==='/api/dev/save-stats'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});   // v1036: group-save counters
-    return send(res,200,Object.assign({},GROUP_SAVE_STATS,{store:Object.assign({split:_store.split,layout:_store.layout},_store.stats)},{attackCopy:ATTACK_COPY_STATS},{battles:Object.assign({},SIM_STATS,{pool:_SIM_POOL?_SIM_POOL.stats:null,memo:_SIM_MEMO.size,inFlight:_SIM_FLIGHT.size,queued:_SIM_POOL?_SIM_POOL.queued:0,verify:CAMP_VERIFY_STATS})},{dbBytes:(()=>{ try{ return fs.statSync(DB_FILE).size; }catch(e){ return 0; } })()},{signup:{ hash:Object.assign({},HASH_STATS), threadpool:+process.env.UV_THREADPOOL_SIZE||4, names:{ indexed:_nameIdx.byId.size, skeletons:_nameIdx.bySk.size, rebuilds:_nameIdx.rebuilds, drift:_nameIdx.drift, lastSyncMs:_nameIdx.lastSyncMs } }})); }   // v1182
+    return send(res,200,Object.assign({},GROUP_SAVE_STATS,{store:Object.assign({split:_store.split,layout:_store.layout},_store.stats)},{attackCopy:ATTACK_COPY_STATS},{checkBacklog:CHECK_BACKLOG.stats},{battles:Object.assign({},SIM_STATS,{pool:_SIM_POOL?_SIM_POOL.stats:null,memo:_SIM_MEMO.size,inFlight:_SIM_FLIGHT.size,queued:_SIM_POOL?_SIM_POOL.queued:0,verify:CAMP_VERIFY_STATS})},{dbBytes:(()=>{ try{ return fs.statSync(DB_FILE).size; }catch(e){ return 0; } })()},{signup:{ hash:Object.assign({},HASH_STATS), threadpool:+process.env.UV_THREADPOOL_SIZE||4, names:{ indexed:_nameIdx.byId.size, skeletons:_nameIdx.bySk.size, rebuilds:_nameIdx.rebuilds, drift:_nameIdx.drift, lastSyncMs:_nameIdx.lastSyncMs } }})); }   // v1182
   if(p==='/api/dev/gem-audit'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
     const id=String(url.searchParams.get('id')||''); const u=DB.users[id];
     if(!u) return send(res,404,{error:'no such account'});
@@ -6788,7 +6815,7 @@ async function api(req,res,url){
     if(!me) return send(res,401,{error:'auth'});
     const b=await body(req), rid=String(b.requestId||'').slice(0,48);
     if(!rid) return send(res,400,{error:'requestId required'});
-    const out=await simRun(()=>worldMineDurable(me,me.id+':worldmine:'+p+':'+rid,(me)=>{   // v1036: battle on a worker
+    const out=await simRun(()=>worldMineDurable(me,me.id+':worldmine:'+p+':'+rid,(me)=>{   // v1036: battle on a worker (v1127: a live battle - see the mode below)
       const now=Date.now(), w=witchState(me,now), led=ensureLedger(me);
       if(!w) return {ok:false,error:'The World Map opens at level '+WITCH.UNLOCK_LEVEL+'.'};
       worldMineMarches(me,now);
@@ -7786,7 +7813,7 @@ async function api(req,res,url){
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
     { const _ak='c:'+me.id+':'+String(b.attemptId||'');   /* v1083 (scan 5 #7): K parallel resolves started K worker replays; v1085: the second one waits for the first (no 409 - the client read it as a loss) */
       if(_simInflight.has(_ak)){ try{ await _simInflight.get(_ak); }catch(e){} }
-      else { const _pr=simPrefetch(_campaignSimCandidates(me,b),SIM_RESOLVE_WAIT_MS,{check:true}); _simInflight.set(_ak,_pr); try{ await _pr; } finally{ _simInflight.delete(_ak); } } }   // v1036: the replay runs on a battle worker first; the route uses its result (v1124: waits at most SIM_RESOLVE_WAIT_MS)
+      else { const _pr=simPrefetch(_campaignSimCandidates(me,b),SIM_RESOLVE_WAIT_MS,{check:true,mode:'campaign'}); _simInflight.set(_ak,_pr); try{ await _pr; } finally{ _simInflight.delete(_ak); } } }   // v1036: the replay runs on a battle worker first; the route uses its result (v1124: waits at most SIM_RESOLVE_WAIT_MS)
     const out=idem(me.id+':cresolve:'+reqId,()=>{
       const led=ensureLedger(me);
       const aid=String(b.attemptId||'');
@@ -7930,9 +7957,10 @@ async function api(req,res,url){
       const receipt={ t:Date.now(), stage:st.id, mode, node:a.node, seed:rec.seed>>>0, engine:a.engine||null,
         source:transcriptSource, chain:(rec.stream&&rec.stream.chain)||null,
         heroes:a.heroIds.slice(), inputs:inputLog.length, won, stars,
-        digest:serverEndDigest?sha256hex(serverEndDigest):null, transcript:digestMatch?undefined:inputLog,   /* v1124: an accepted fight keeps no recording; a flagged one keeps it (and its incident) */
-        verify:verifyLater?'pending':undefined, chk:verifyLater?{snaps:rec.snaps}:undefined,   /* v1124: its check finishes after the answer - what it needs stays on the receipt (the backlog survives a restart) */
+        digest:serverEndDigest?sha256hex(serverEndDigest):null, transcript:(digestMatch||verifyLater)?undefined:inputLog,   /* v1124: an accepted fight keeps no recording; a flagged one keeps it (and its incident) */
+        verify:verifyLater?'pending':undefined,   /* v1124: its check finishes after the answer (v1127: its recording waits in the check backlog file, not here) */
         clientDigest:(typeof b.digest==='string'?sha256hex(b.digest):null) };
+      if(verifyLater) CHECK_BACKLOG.add(checkKey(me.id,receipt.t,rec.seed),{snaps:rec.snaps,transcript:inputLog});   // on disk before the save that acknowledges the fight
       led.battleReceipts=(led.battleReceipts||[]).concat([receipt]).slice(-40);
       writeDB([me.id]);
       if(verifyLater){ const _t=receipt.t,_s=rec.seed>>>0,_u=me.id; setImmediate(()=>campCheckEnqueue(_u,_t,_s)); }
@@ -8171,7 +8199,7 @@ async function api(req,res,url){
         levelGate:st.levelGate, engine:pr.att.engine, reward:provReward(t,stage) }); }
     if(p==='/api/province/resolve'){ const _ak='p:'+me.id+':'+String(b.attemptId||'');   /* v1083 (scan 5 #7); v1085: wait, not 409 */
       if(_simInflight.has(_ak)){ try{ await _simInflight.get(_ak); }catch(e){} }
-      else { const _pr=simPrefetch(_provinceSimCandidates(me,b)); _simInflight.set(_ak,_pr); try{ await _pr; } finally{ _simInflight.delete(_ak); } } }   // v1036: replay on a battle worker first
+      else { const _pr=simPrefetch(_provinceSimCandidates(me,b),0,{mode:'province'}); _simInflight.set(_ak,_pr); try{ await _pr; } finally{ _simInflight.delete(_ak); } } }   // v1036: replay on a battle worker first
     if(p==='/api/province/resolve'){ led=ensureLedger(me); const out=idem(me.id+':provres:'+reqId,()=>{   /* v1089: after the replay await */
         const aid=String(b.attemptId||''), P=provLedState(me,led); let t=null, pr=null, a=null;
         for(const k of PROV_TYPES){ if(P[k].att && P[k].att.id===aid){ t=k; pr=P[k]; a=pr.att; break; } }
