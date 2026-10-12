@@ -19277,90 +19277,90 @@
         {
           "key": "basalt mauler",
           "lvl": 87,
-          "hpMul": 78.7987,
-          "dmgMul": 30.5217
+          "hpMul": 66.9789,
+          "dmgMul": 25.9434
         },
         {
           "key": "ashen",
           "lvl": 87,
-          "hpMul": 78.7987,
-          "dmgMul": 30.5217
+          "hpMul": 66.9789,
+          "dmgMul": 25.9434
         },
         {
           "key": "blackquill",
           "lvl": 87,
-          "hpMul": 78.7987,
-          "dmgMul": 30.5217
+          "hpMul": 66.9789,
+          "dmgMul": 25.9434
         },
         {
           "key": "ashen",
           "lvl": 87,
-          "hpMul": 78.7987,
-          "dmgMul": 30.5217
+          "hpMul": 66.9789,
+          "dmgMul": 25.9434
         }
       ],
       [
         {
           "key": "ashen",
           "lvl": 87,
-          "hpMul": 78.7987,
-          "dmgMul": 30.5217
+          "hpMul": 66.9789,
+          "dmgMul": 25.9434
         },
         {
           "key": "basalt mauler",
           "lvl": 87,
-          "hpMul": 78.7987,
-          "dmgMul": 30.5217
+          "hpMul": 66.9789,
+          "dmgMul": 25.9434
         },
         {
           "key": "ashen",
           "lvl": 87,
-          "hpMul": 78.7987,
-          "dmgMul": 30.5217
+          "hpMul": 66.9789,
+          "dmgMul": 25.9434
         },
         {
           "key": "ashen",
           "lvl": 87,
-          "hpMul": 78.7987,
-          "dmgMul": 30.5217
+          "hpMul": 66.9789,
+          "dmgMul": 25.9434
         },
         {
           "key": "crucible acolyte",
           "lvl": 87,
-          "hpMul": 78.7987,
-          "dmgMul": 30.5217
+          "hpMul": 66.9789,
+          "dmgMul": 25.9434
         }
       ],
       [
         {
           "key": "ashen",
           "lvl": 87,
-          "hpMul": 78.7987,
-          "dmgMul": 30.5217
+          "hpMul": 66.9789,
+          "dmgMul": 25.9434
         },
         {
           "key": "basalt mauler",
           "lvl": 87,
-          "hpMul": 78.7987,
-          "dmgMul": 30.5217
+          "hpMul": 66.9789,
+          "dmgMul": 25.9434
         },
         {
           "key": "blackquill",
           "lvl": 87,
-          "hpMul": 78.7987,
-          "dmgMul": 30.5217
+          "hpMul": 66.9789,
+          "dmgMul": 25.9434
         },
         {
           "key": "ashen",
           "lvl": 87,
-          "hpMul": 78.7987,
-          "dmgMul": 30.5217
+          "hpMul": 66.9789,
+          "dmgMul": 25.9434
         },
         {
           "key": "ashen",
           "lvl": 87,
-          "hpMul": 78.7987,
-          "dmgMul": 30.5217
+          "hpMul": 66.9789,
+          "dmgMul": 25.9434
         }
       ]
     ],
@@ -19369,7 +19369,7 @@
     "recommendedQuality": "Gold +3",
     "qualityMinHeroLevel": 86,
     "bossLevelGate": 0,
-    "difficultyTune": 7.97,
+    "difficultyTune": 6.7745,
     "baselineHp": 305.575,
     "baselineDmg": 87.5478,
     "portalMode": "normal",
@@ -19397,6 +19397,12 @@
         "date": "2026-10-11",
         "scale": 0.85,
         "why": "v1121 sims: 57 tries, 2 won - all three Whale A tabs held 13-18 tries, 0 won. Phil 11 Oct: \"Campaign should not be so hard maxed out heroes are struggling for weeks ... it should technically be possible to clear stages while not maxed out.\""
+      },
+      {
+        "v": "v1129",
+        "date": "2026-10-12",
+        "scale": 0.85,
+        "why": "v1128 sims (since v1122): 517 tries, 56 won; Big B FULLY UPGRADED 47/0 (33 tries over 8.0 game days on v1128), Whale A 67/0, F2P B 24/0, imbalance F2P B copy 35/0; the tabs that won it took 18-29 tries over 6-17 game days. Real engine, Big B team at 85: breakpoint 0.440 vs 13-10 0.608 and 14-2 0.558. Second step (v1122 was the first). Phil 11 Oct: \"Campaign should not be so hard maxed out heroes are struggling for weeks ... it should technically be possible to clear stages while not maxed out.\""
       }
     ]
   },
@@ -21590,90 +21596,90 @@
         {
           "key": "riftling spider",
           "lvl": 97,
-          "hpMul": 39.8873,
-          "dmgMul": 20.9311
+          "hpMul": 33.9042,
+          "dmgMul": 17.7914
         },
         {
           "key": "storm eel",
           "lvl": 97,
-          "hpMul": 39.8873,
-          "dmgMul": 20.9311
+          "hpMul": 33.9042,
+          "dmgMul": 17.7914
         },
         {
           "key": "runic automaton",
           "lvl": 97,
-          "hpMul": 39.8873,
-          "dmgMul": 20.9311
+          "hpMul": 33.9042,
+          "dmgMul": 17.7914
         },
         {
           "key": "rustclank",
           "lvl": 97,
-          "hpMul": 39.8873,
-          "dmgMul": 20.9311
+          "hpMul": 33.9042,
+          "dmgMul": 17.7914
         },
         {
           "key": "storm eel",
           "lvl": 97,
-          "hpMul": 39.8873,
-          "dmgMul": 20.9311
+          "hpMul": 33.9042,
+          "dmgMul": 17.7914
         }
       ],
       [
         {
           "key": "runic automaton",
           "lvl": 97,
-          "hpMul": 39.8873,
-          "dmgMul": 20.9311
+          "hpMul": 33.9042,
+          "dmgMul": 17.7914
         },
         {
           "key": "storm eel",
           "lvl": 97,
-          "hpMul": 39.8873,
-          "dmgMul": 20.9311
+          "hpMul": 33.9042,
+          "dmgMul": 17.7914
         },
         {
           "key": "storm eel",
           "lvl": 97,
-          "hpMul": 39.8873,
-          "dmgMul": 20.9311
+          "hpMul": 33.9042,
+          "dmgMul": 17.7914
         },
         {
           "key": "storm eel",
           "lvl": 97,
-          "hpMul": 39.8873,
-          "dmgMul": 20.9311
+          "hpMul": 33.9042,
+          "dmgMul": 17.7914
         }
       ],
       [
         {
           "key": "rustclank",
           "lvl": 97,
-          "hpMul": 39.8873,
-          "dmgMul": 20.9311
+          "hpMul": 33.9042,
+          "dmgMul": 17.7914
         },
         {
           "key": "storm eel",
           "lvl": 97,
-          "hpMul": 39.8873,
-          "dmgMul": 20.9311
+          "hpMul": 33.9042,
+          "dmgMul": 17.7914
         },
         {
           "key": "runic automaton",
           "lvl": 97,
-          "hpMul": 39.8873,
-          "dmgMul": 20.9311
+          "hpMul": 33.9042,
+          "dmgMul": 17.7914
         },
         {
           "key": "storm eel",
           "lvl": 97,
-          "hpMul": 39.8873,
-          "dmgMul": 20.9311
+          "hpMul": 33.9042,
+          "dmgMul": 17.7914
         },
         {
           "key": "vael",
           "lvl": 97,
-          "hpMul": 39.8873,
-          "dmgMul": 20.9311,
+          "hpMul": 33.9042,
+          "dmgMul": 17.7914,
           "isHero": true,
           "rewardHero": true,
           "rank": 3
@@ -21685,7 +21691,7 @@
     "recommendedQuality": "Gold +4",
     "qualityMinHeroLevel": 93,
     "bossLevelGate": 0,
-    "difficultyTune": 3.3993,
+    "difficultyTune": 2.8894,
     "baselineHp": 638.6838,
     "baselineDmg": 154.0068,
     "portalMode": "normal",
@@ -21702,6 +21708,12 @@
         "scale": 0.85,
         "dmgScale": 0.85,
         "why": "campaign curve: spike cap 1.15x chapter median + global x0.85. Phil 11 Oct: \"Campaign should not be so hard maxed out heroes are struggling for weeks ... it should technically be possible to clear stages while not maxed out.\""
+      },
+      {
+        "v": "v1129",
+        "date": "2026-10-12",
+        "scale": 0.85,
+        "why": "v1128 sims: both tabs that reached it held - Big A 34/0 (12.5 game days), imbalance Big A copy 35/0 (5 game days, not maxed) - after clearing 15-1..15-5 in 1-9 tries. Real engine, their team at 86: breakpoint 0.321 vs 15-5 0.419 and 15-7 0.367. Phil 11 Oct: \"Campaign should not be so hard maxed out heroes are struggling for weeks ... it should technically be possible to clear stages while not maxed out.\""
       }
     ]
   },

@@ -16939,66 +16939,66 @@
     {
      "key": "basalt mauler",
      "lvl": 87,
-     "hpMul": 124.5547,
-     "dmgMul": 43.4461
+     "hpMul": 105.8715,
+     "dmgMul": 36.9292
     },
     {
      "key": "ashen",
      "lvl": 87,
-     "hpMul": 124.5547,
-     "dmgMul": 43.4461
+     "hpMul": 105.8715,
+     "dmgMul": 36.9292
     },
     {
      "key": "blackquill",
      "lvl": 87,
-     "hpMul": 124.5547,
-     "dmgMul": 43.4461
+     "hpMul": 105.8715,
+     "dmgMul": 36.9292
     },
     {
      "key": "ashen",
      "lvl": 87,
-     "hpMul": 124.5547,
-     "dmgMul": 43.4461
+     "hpMul": 105.8715,
+     "dmgMul": 36.9292
     }
    ],
    [
     {
      "key": "ashen",
      "lvl": 87,
-     "hpMul": 124.5547,
-     "dmgMul": 43.4461
+     "hpMul": 105.8715,
+     "dmgMul": 36.9292
     },
     {
      "key": "basalt mauler",
      "lvl": 87,
-     "hpMul": 124.5547,
-     "dmgMul": 43.4461
+     "hpMul": 105.8715,
+     "dmgMul": 36.9292
     },
     {
      "key": "ashen",
      "lvl": 87,
-     "hpMul": 124.5547,
-     "dmgMul": 43.4461
+     "hpMul": 105.8715,
+     "dmgMul": 36.9292
     },
     {
      "key": "ashen",
      "lvl": 87,
-     "hpMul": 124.5547,
-     "dmgMul": 43.4461
+     "hpMul": 105.8715,
+     "dmgMul": 36.9292
     },
     {
      "key": "crucible acolyte",
      "lvl": 87,
-     "hpMul": 124.5547,
-     "dmgMul": 43.4461
+     "hpMul": 105.8715,
+     "dmgMul": 36.9292
     }
    ],
    [
     {
      "key": "bloatus",
      "lvl": 87,
-     "hpMul": 124.5547,
-     "dmgMul": 43.4461,
+     "hpMul": 105.8715,
+     "dmgMul": 36.9292,
      "isHero": true,
      "rewardHero": true,
      "rank": 3
@@ -17006,26 +17006,26 @@
     {
      "key": "basalt mauler",
      "lvl": 87,
-     "hpMul": 124.5547,
-     "dmgMul": 43.4461
+     "hpMul": 105.8715,
+     "dmgMul": 36.9292
     },
     {
      "key": "blackquill",
      "lvl": 87,
-     "hpMul": 124.5547,
-     "dmgMul": 43.4461
+     "hpMul": 105.8715,
+     "dmgMul": 36.9292
     },
     {
      "key": "ashen",
      "lvl": 87,
-     "hpMul": 124.5547,
-     "dmgMul": 43.4461
+     "hpMul": 105.8715,
+     "dmgMul": 36.9292
     },
     {
      "key": "ashen",
      "lvl": 87,
-     "hpMul": 124.5547,
-     "dmgMul": 43.4461
+     "hpMul": 105.8715,
+     "dmgMul": 36.9292
     }
    ]
   ],
@@ -17050,6 +17050,12 @@
     "date": "2026-10-11",
     "scale": 0.85,
     "why": "follows Normal 14-1 (v1122 x0.85) so Elite stays ~1.5x its Normal stage"
+   },
+   {
+    "v": "v1129",
+    "date": "2026-10-12",
+    "scale": 0.85,
+    "why": "follows Normal 14-1 (v1129 x0.85) so Elite stays ~1.5x its Normal stage"
    }
   ]
  },
@@ -18983,90 +18989,90 @@
     {
      "key": "riftling spider",
      "lvl": 97,
-     "hpMul": 67.7531,
-     "dmgMul": 27.7255
+     "hpMul": 57.5901,
+     "dmgMul": 23.5667
     },
     {
      "key": "storm eel",
      "lvl": 97,
-     "hpMul": 67.7531,
-     "dmgMul": 27.7255
+     "hpMul": 57.5901,
+     "dmgMul": 23.5667
     },
     {
      "key": "runic automaton",
      "lvl": 97,
-     "hpMul": 67.7531,
-     "dmgMul": 27.7255
+     "hpMul": 57.5901,
+     "dmgMul": 23.5667
     },
     {
      "key": "rustclank",
      "lvl": 97,
-     "hpMul": 67.7531,
-     "dmgMul": 27.7255
+     "hpMul": 57.5901,
+     "dmgMul": 23.5667
     },
     {
      "key": "storm eel",
      "lvl": 97,
-     "hpMul": 67.7531,
-     "dmgMul": 27.7255
+     "hpMul": 57.5901,
+     "dmgMul": 23.5667
     }
    ],
    [
     {
      "key": "runic automaton",
      "lvl": 97,
-     "hpMul": 67.7531,
-     "dmgMul": 27.7255
+     "hpMul": 57.5901,
+     "dmgMul": 23.5667
     },
     {
      "key": "storm eel",
      "lvl": 97,
-     "hpMul": 67.7531,
-     "dmgMul": 27.7255
+     "hpMul": 57.5901,
+     "dmgMul": 23.5667
     },
     {
      "key": "storm eel",
      "lvl": 97,
-     "hpMul": 67.7531,
-     "dmgMul": 27.7255
+     "hpMul": 57.5901,
+     "dmgMul": 23.5667
     },
     {
      "key": "storm eel",
      "lvl": 97,
-     "hpMul": 67.7531,
-     "dmgMul": 27.7255
+     "hpMul": 57.5901,
+     "dmgMul": 23.5667
     }
    ],
    [
     {
      "key": "rustclank",
      "lvl": 97,
-     "hpMul": 67.7531,
-     "dmgMul": 27.7255
+     "hpMul": 57.5901,
+     "dmgMul": 23.5667
     },
     {
      "key": "storm eel",
      "lvl": 97,
-     "hpMul": 67.7531,
-     "dmgMul": 27.7255
+     "hpMul": 57.5901,
+     "dmgMul": 23.5667
     },
     {
      "key": "runic automaton",
      "lvl": 97,
-     "hpMul": 67.7531,
-     "dmgMul": 27.7255
+     "hpMul": 57.5901,
+     "dmgMul": 23.5667
     },
     {
      "key": "storm eel",
      "lvl": 97,
-     "hpMul": 67.7531,
-     "dmgMul": 27.7255
+     "hpMul": 57.5901,
+     "dmgMul": 23.5667
     },
     {
      "key": "riftling spider",
      "lvl": 97,
-     "hpMul": 67.7531,
-     "dmgMul": 27.7255
+     "hpMul": 57.5901,
+     "dmgMul": 23.5667
     }
    ]
   ],
@@ -19084,6 +19090,12 @@
     "scale": 0.85,
     "dmgScale": 0.85,
     "why": "follows Normal 15-6 (v1121 curve) so Elite stays ~1.5x its Normal stage"
+   },
+   {
+    "v": "v1129",
+    "date": "2026-10-12",
+    "scale": 0.85,
+    "why": "follows Normal 15-6 (v1129 x0.85) so Elite stays ~1.5x its Normal stage"
    }
   ]
  },
