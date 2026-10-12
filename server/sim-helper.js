@@ -85,7 +85,7 @@ setInterval(() => { try { if (require('./sim-host.js').fingerprint(GAME) !== FP)
 
 function keyOk(req) { const k = Buffer.from(String(req.headers['x-helper-key'] || '')); return k.length === KEY.length && crypto.timingSafeEqual(k, KEY); }
 function reply(res, code, obj) { const b = JSON.stringify(obj); res.writeHead(code, { 'content-type': 'application/json', 'content-length': Buffer.byteLength(b) }); res.end(b); }
-const METHODS = new Set(['auto', 'campaign', 'raid', 'replay']);
+const METHODS = new Set(['auto', 'campaign', 'raid', 'replay', 'worldtree', 'line']);   // v1129: World Tree and Skyfall fights (sim-worker.js)
 
 const server = http.createServer((req, res) => {
   const [route, query] = String(req.url || '').split('?');
