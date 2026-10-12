@@ -232,6 +232,14 @@ function writeDBFull(){ _pendingFull=true; writeDB([]); }   /* v1124: a full sav
 const STORE_SLICES=Math.max(1,Math.min(64,+process.env.DB_STORE_SLICES||16));
 let _sliceNext=0, _sliceAt=Date.now(), _slicePending=false;
 function _sweepIfDue(){ if(Date.now()-_sliceAt>STORE_SWEEP_MS/STORE_SLICES){ _slicePending=true; writeDB([]); } }
+/* v1128 DIRTY TRACKING (S1 copy run 12 Oct 2026: the rolling sweep stringified 1/16 of the world every 1.9 s to find the few players
+   whose presence changed). A change no save declares marks its player dirty (_touch: presence on every signed-in request, a receipt
+   pruned after its hour); the sweep - every STORE_SWEEP_MS/STORE_SLICES, also when no other save runs - writes exactly the dirty
+   players and never stringifies a clean one. A route that changes a player must still name it in its save (writeDB(ids), a durable
+   commit); DB_STORE_VERIFY=1 counts changes no save declared and no touch marked (save-stats store.undeclared). */
+let _dirtyT=null;
+function _touch(id){ _store.touch(id); if(!_dirtyT&&_store.split){ _dirtyT=setTimeout(()=>{ _dirtyT=null; if(_store.dirtyCount){ _slicePending=true; writeDB([]); } },Math.max(50,STORE_SWEEP_MS/STORE_SLICES)); if(_dirtyT.unref) _dirtyT.unref(); } }
+function _touchOwner(k){ const i=String(k).indexOf(':'); if(i>0){ const o=k.slice(0,i); if(DB.users&&DB.users[o]) _touch(o); } }
 function _takeSlice(){ if(!_slicePending) return null; _slicePending=false; return {slice:_sliceNext,of:STORE_SLICES}; }
 function _sliceDone(sl){ if(!sl) return; _sliceNext=(_sliceNext+1)%STORE_SLICES; _sliceAt=Date.now(); }
 /* v1036 GROUP SAVES (Phil 5 Oct 2026, after the war load test - "do it all"). 90% of the server's CPU went to saving the WHOLE
@@ -1821,7 +1829,7 @@ const DURABLE_IDEM_KINDS=new Set(['dresolve','dsweep','salv','witch','edbuy','ed
    mails total"): every request receipt (idem, durable planners, world routes) is kept 3600000 ms (was 24 h). A city attack's full
    report now lives in both players' war mail instead; the settled march (kept 2 days) blocks a late retry from paying twice. */
 function idem(key, fn, opts){ DB.idem=DB.idem||{}; const now=Date.now();
-  if(!(now-(idem.prunedAt||0)<60000)){ idem.prunedAt=now; for(const k of Object.keys(DB.idem)){ if(now-DB.idem[k].t>3600000) delete DB.idem[k]; } }   // v1037: once a minute, not per call
+  if(!(now-(idem.prunedAt||0)<60000)){ idem.prunedAt=now; for(const k of Object.keys(DB.idem)){ if(now-DB.idem[k].t>3600000){ delete DB.idem[k]; _touchOwner(k); } } }   // v1037: once a minute, not per call (v1128: the owner is marked dirty)
   if(DB.idem[key] && now-DB.idem[key].t<=3600000 && !(opts&&opts.retryFailed&&DB.idem[key].resp&&DB.idem[key].resp.ok===false)) return DB.idem[key].resp;
   let du=opts&&opts.durableUser;
   if(!du){ const i=key.indexOf(':'), j=i>0?key.indexOf(':',i+1):-1; if(j>i&&DURABLE_IDEM_KINDS.has(key.slice(i+1,j))&&DB.users[key.slice(0,i)]) du=DB.users[key.slice(0,i)]; }
@@ -3802,7 +3810,7 @@ function durableCommit(user,key,fn,opts={}){
        place at most once a minute (every lookup checks the 24 h limit itself). */
     const proto=receipts&&Object.getPrototypeOf(receipts), overlay=!!proto&&Object.getPrototypeOf(proto)!==null;   // any realm's Object.prototype has no prototype; the live table does
     const now=Date.now(); let pruned=false;
-    if(DB.idem&&!(now-(durableCommit.prunedAt||0)<60000)){ durableCommit.prunedAt=now; pruned=true; for(const k of Object.keys(DB.idem)) if(now-DB.idem[k].t>3600000) delete DB.idem[k]; }
+    if(DB.idem&&!(now-(durableCommit.prunedAt||0)<60000)){ durableCommit.prunedAt=now; pruned=true; for(const k of Object.keys(DB.idem)) if(now-DB.idem[k].t>3600000){ delete DB.idem[k]; _touchOwner(k); } }
     if((typeof _reqCtx!=='undefined'&&_reqCtx.getStore())){   // v1036: adopt now, group save, undo exactly what was there if that save fails
       // v1037: _adoptUser only swaps top-level fields (old nested objects are never written), so a shallow copy undoes it exactly
       const prevUsers=[user.id,...related.map(o=>o.id)].map(id=>[id,DB.users[id]?Object.assign({},DB.users[id]):undefined]);
@@ -5084,7 +5092,7 @@ async function api(req,res,url){
     return send(res,200,{ ok:true, token:tok, profile:profileFor(r.u) }); }
 
   const me=authUser(req);
-  if(me) me.lastSeen=Date.now();   // presence, for the dev "players online" view
+  if(me){ me.lastSeen=Date.now(); _touch(me.id); }   // presence, for the dev "players online" view (v1128: marked dirty - the sweep writes it; no clean player is stringified)
 
   /* 30 Aug (Phil) — A BAN LOCKS THE ACCOUNT OUT, IT DOES NOT TAKE ANYTHING FROM IT.
      Nothing is rolled back and nothing is deleted: the account simply cannot act until the ban

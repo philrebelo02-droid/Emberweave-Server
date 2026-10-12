@@ -81,9 +81,9 @@ function create(file, opts) {
   const dir = file + '.d';
   const st = { split: !!opts.split, verify: !!opts.verify, pieces: opts.pieces !== false, gen: 0, names: null, last: null,
     pnames: null, plast: new Map(), pflag: new Set(), layout: null, shash: new Map(), broken: false,
-    usig: new Map(), psig: new Map(), rk: new Map(), vhash: null, jcore: null, jstate: null, jinitSent: false, jfiles: null,
+    usig: new Map(), psig: new Map(), rk: new Map(), vhash: null, dirty: new Set(), jcore: null, jstate: null, jinitSent: false, jfiles: null,
     stats: { full: 0, partial: 0, shardsWritten: 0, lastMs: 0, lastShards: 0, lastFullAt: 0, undeclared: 0, undeclaredIds: [],
-      piecesWritten: 0, piecesSkipped: 0, slices: 0, sweepSkipped: 0, lastPieces: [], bytes: { shards: 0, pieces: 0, manifest: 0 }, undeclaredPieces: 0, undeclaredPieceNames: [], mainMs: 0, mainMaxMs: 0, io: null, unitsWritten: 0, unitsSkipped: 0, receiptsWritten: 0 } };
+      piecesWritten: 0, piecesSkipped: 0, slices: 0, sweepSkipped: 0, lastPieces: [], bytes: { shards: 0, pieces: 0, manifest: 0 }, undeclaredPieces: 0, undeclaredPieceNames: [], mainMs: 0, mainMaxMs: 0, io: null, unitsWritten: 0, unitsSkipped: 0, receiptsWritten: 0, sweepLooked: 0, dirtyNow: 0 } };
   st.stats.bytes.journal = 0;
   const JOURNAL = st.split && st.pieces && opts.journal === true;   // v1128: the journal layout (the server turns it on; DB_STORE_JOURNAL=0 = the v1127 pieces layout)
   const configured = () => JOURNAL ? 'journal' : (st.pieces ? 'pieces' : 'split-v1');
@@ -155,7 +155,7 @@ function create(file, opts) {
     st.jstate = { gen: raw.gen | 0, baseGens: count === SHARDS && shardNames ? Array.from({ length: SHARDS }, (_, s) => shardNames[s] ? +String(shardNames[s]).split('-')[1].split('.')[0] : 0) : [],
       pieces: pieced ? Object.assign({}, raw.pieces || {}) : {}, core: JSON.stringify(raw.core || {}), journals: jl ? (raw.journals || []).slice() : [] };
     st.jinitSent = false;
-    if (JOURNAL && jl && st.names) seedUnits(db);
+    if (JOURNAL && jl && st.names) seedUnits(db, st.verify);
     if (!st.names) { st.pnames = null; st.plast = new Map(); }   // re-sharded on the next save: every piece is written too
     st.stats.lastFullAt = Date.now();   // what is on disk is the whole world: the sweep clock starts here
     return db;
@@ -182,8 +182,11 @@ function create(file, opts) {
     const full = !userIds || !st.names || broken || st.layout === 'journal';   // v1128: leaving the journal layout rewrites every shard
     let want = null, sweepOnly = null;
     if (!full) { want = new Set(); for (const id of userIds) want.add(sh(id));
-      if (slice && slice.of > 0) { sweepOnly = new Set(); for (let s = slice.slice % slice.of; s < SHARDS; s += slice.of) if (!want.has(s)) { want.add(s); sweepOnly.add(s); } S.slices++; } }
+      if (slice && slice.of > 0) { sweepOnly = new Set(); S.slices++;   // v1128: only the shards of players marked dirty - a clean shard is never stringified
+        for (const id of st.dirty) { const s = sh(id); if (!want.has(s)) { want.add(s); sweepOnly.add(s); } } S.sweepLooked += sweepOnly.size; } }
     const { parts, core } = split(db, want);
+    if (!full && slice && slice.of > 0) st.dirty.clear(); else if (!full) for (const id of userIds) st.dirty.delete(id); else st.dirty.clear();   // what this save looks at is on its way to disk
+    S.dirtyNow = st.dirty.size;
     const gen = ++st.gen, names = Object.assign({}, broken ? {} : (st.names || {})), ops = [{ mk: dir }], strs = st.verify ? new Map() : null, newHash = new Map();
     let pnext = null, pstr = null, inline = core, considered = null;
     if (st.pieces) {
@@ -282,15 +285,16 @@ function create(file, opts) {
       const core = JSON.stringify(cp.inline); st.jcore = core;
       for (const x of shards) bytes += x.length;
       ops.push({ j: 'full', shards, pieces, core });
-      st.layout = 'journal'; st.broken = false; S.full++; S.lastFullAt = Date.now(); S.shardsWritten += SHARDS; S.bytes.shards += bytes; S.lastShards = SHARDS; S.lastPieces = pieces.map(p => p[0]);
+      st.layout = 'journal'; st.broken = false; st.dirty.clear(); S.dirtyNow = 0; S.full++; S.lastFullAt = Date.now(); S.shardsWritten += SHARDS; S.bytes.shards += bytes; S.lastShards = SHARDS; S.lastPieces = pieces.map(p => p[0]);
       st.jfiles = null;
     } else {
-      // the players this save looks at: the declared ones, and on a sweep slice every player of that slice
+      // the players this save looks at: the declared ones, and on a sweep every player marked dirty since it was last written
+      // (v1128 dirty tracking: presence, pruned receipts - a clean player is never stringified)
       const declared = new Set(); for (const id of userIds) if (typeof id === 'string' && id) declared.add(id);
       const cand = new Set(declared);
-      if (slice && slice.of > 0) { S.slices++; const want = slice.slice % slice.of;
-        for (const id of Object.keys(users)) if (sh(id) % slice.of === want) cand.add(id);
-        for (const id of st.usig.keys()) if (!Object.prototype.hasOwnProperty.call(users, id) && sh(id) % slice.of === want) cand.add(id); }
+      if (slice && slice.of > 0) { S.slices++; for (const id of st.dirty) if (!declared.has(id)) { cand.add(id); S.sweepLooked++; } st.dirty.clear(); }
+      else for (const id of declared) st.dirty.delete(id);
+      S.dirtyNow = st.dirty.size;
       const { by, coreIdem } = receiptsOf(db, cand);
       const units = [], receipts = [];
       for (const id of cand) {
@@ -337,10 +341,12 @@ function create(file, opts) {
     if (badP.length) { st.stats.undeclaredPieces += badP.length; st.stats.undeclaredPieceNames = st.stats.undeclaredPieceNames.concat(badP).slice(-20);
       console.error('world store verify: shared piece(s) changed outside their save: ' + badP.join(', ')); }
   }
-  // what is on disk right after a load: the hash of every player, the receipt keys of each, the pieces and the inline core
-  function seedUnits(db) {
-    const users = db.users || {}, { by, coreIdem } = receiptsOf(db, null); st.usig = new Map(); st.rk = new Map(); if (st.verify) st.vhash = new Map();
-    for (const id of Object.keys(users)) { st.usig.set(id, DIFF.diff(users[id], null).sig); if (st.vhash) st.vhash.set(id, md5(vclean(users[id]))); const k = by.get(id); if (k) st.rk.set(id, new Set(k)); }
+  /* what is on disk right after a load: the receipt keys of each player, the pieces and the inline core. v1128 dirty tracking: no
+     player signature is built at boot (2.7 s on 8,500 players) - a player's first write after a boot is the whole player - except
+     for DB_STORE_VERIFY, which compares every player. */
+  function seedUnits(db, players) {
+    const users = db.users || {}, { by, coreIdem } = receiptsOf(db, null); st.usig = new Map(); st.rk = new Map(); st.dirty = new Set(); if (st.verify) st.vhash = new Map();
+    for (const id of Object.keys(users)) { if (players) st.usig.set(id, DIFF.diff(users[id], null).sig); if (st.vhash) st.vhash.set(id, md5(vclean(users[id]))); const k = by.get(id); if (k) st.rk.set(id, new Set(k)); }
     const cp = coreParts(db, coreIdem); st.jcore = JSON.stringify(cp.inline);
     st.plast = new Map(); st.psig = new Map(); for (const k of cp.keys) { st.plast.set(k, JSON.stringify(cp.val(k))); st.psig.set(k, DIFF.diff({ v: cp.val(k) }, null).sig); }
   }
@@ -394,6 +400,8 @@ function create(file, opts) {
 
   return { get split() { return st.split; }, get layout() { return st.layout; }, get pieces() { return st.split && st.pieces; },
     get layoutMismatch() { return st.split && st.layout !== null && st.layout !== configured(); }, get journal() { return JOURNAL; },
+    touch(id) { if (st.split && typeof id === 'string' && id) st.dirty.add(id); },   // v1128: a change no save declared (presence, a pruned receipt) - the next sweep writes it
+    get dirtyCount() { return st.dirty.size; },
     get broken() { return st.broken; }, get ioAsync() { return io().async; }, get ioPending() { return io().pending; },
     stats: st.stats, load, write, writeAsync, flush: () => io().flush(), io, sweepOrphans, shardOf, ownerOf, dir };
 }
