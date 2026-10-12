@@ -9564,7 +9564,25 @@ try{
   WSS = new WebSocketServer({ server, maxPayload: +(process.env.WS_MSG_MAX||16384) });   // RE-AUDIT: cap enforced at the protocol layer, not just after parse
   const rooms = {};   // code -> { host, guest }
   const roomCode = ()=>{ let c; do{ c=crypto.randomBytes(3).toString('hex').toUpperCase().slice(0,5); }while(rooms[c]); return c; };
-  const wsend = (ws,o)=>{ try{ if(ws && ws.readyState===1) ws.send(JSON.stringify(o)); }catch(e){} };
+  const wsend = (ws,o)=>{ try{ if(ws && ws.readyState===1){ _chatFlushOne(ws); ws.send(JSON.stringify(o)); } }catch(e){} };   /* v1128: queued chat lines go first - a socket sees its messages in order */
+  /* v1128 CHAT FAN-OUT (S1 copy run 12 Oct 2026: world chat broadcast was 10% of the main thread at 2,000 players, 21% at 4,000; the
+     bench profile is one socket write per line per listener). A line is stringified ONCE and framed ONCE (the WebSocket text frame,
+     the same Buffer for every listener); each listener's lines are queued and written together every CHAT_FANOUT_MS (25 ms; 0 = at
+     the end of the event-loop turn) - one socket write for several lines when chat is busy. The per-listener check is a field read
+     (the block list only when it is not empty), not a function call. Without the raw path (a permessage-deflate server) each line is
+     sent with ws.send. */
+  const CHAT_FANOUT_MS=Math.max(0,process.env.CHAT_FANOUT_MS===undefined?25:(+process.env.CHAT_FANOUT_MS||0));
+  const _chatOut=new Map(); let _chatFlushT=null;
+  const wsTextFrame=t=>{ const p=Buffer.from(t), n=p.length; let h;
+    if(n<126){ h=Buffer.allocUnsafe(2); h[0]=0x81; h[1]=n; } else if(n<65536){ h=Buffer.allocUnsafe(4); h[0]=0x81; h[1]=126; h.writeUInt16BE(n,2); } else { h=Buffer.allocUnsafe(10); h[0]=0x81; h[1]=127; h.writeBigUInt64BE(BigInt(n),2); }
+    return Buffer.concat([h,p],h.length+n); };
+  const _rawWs=c=>!WSS.options.perMessageDeflate && c._socket && !c._socket.destroyed && typeof c._socket.write==='function' && !(c._extensions && Object.keys(c._extensions).length);
+  function _chatWrite(c,q){ try{ if(c.readyState!==1) return; if(_rawWs(c)) c._socket.write(q.length===1?q[0].frame:Buffer.concat(q.map(m=>m.frame))); else for(const m of q) c.send(m.text); }catch(e){} }
+  function _chatFlush(){ _chatFlushT=null; const all=[..._chatOut]; _chatOut.clear(); for(const [c,q] of all) _chatWrite(c,q); }
+  function _chatFlushOne(c){ const q=_chatOut.get(c); if(q){ _chatOut.delete(c); _chatWrite(c,q); } }
+  const _chatByName=new Map();   // chat name -> its sockets (whispers find their target without walking every socket)
+  const _setChatName=(ws,name)=>{ if(ws._chatName===name) return; if(ws._chatName){ const set=_chatByName.get(ws._chatName); if(set){ set.delete(ws); if(!set.size) _chatByName.delete(ws._chatName); } }
+    ws._chatName=name; if(name){ let set=_chatByName.get(name); if(!set) _chatByName.set(name,set=new Set()); set.add(ws); } };
   // ---- WebSocket security (audit crit #8): sockets used to be fully unauthenticated — any socket
   //      could claim any name, create rooms, and whisper as anyone. We now (a) size-cap and rate-limit
   //      every frame, (b) bind the socket to an account when it presents a valid token and DERIVE the
@@ -9589,7 +9607,11 @@ const CHAT_KEEP=100, CHAT_AGE_MS=6*3600000;   /* v1127 (Phil 11 Oct 2026: "chat 
   function pruneChat(ch){ const now=Date.now(), st=chatStore(); let a=st[ch].filter(m=>!m.t||(now-m.t)<CHAT_AGE_MS); if(a.length>CHAT_KEEP)a=a.slice(a.length-CHAT_KEEP); st[ch]=a; return a; }
   /* v1013 (re-audit Account N12): only sockets that joined chat and (with WS_AUTH_REQUIRED) are signed in receive it - every open
      socket did, including unauthenticated ones and a banned account's (it has no socket identity since v999). */
-  const chatBroadcast = (o,except,sid)=>{ const j=JSON.stringify(o); WSS.clients.forEach(c=>{ try{ if(c!==except && c.readyState===1 && c._chatName && (!WS_AUTH_REQUIRED || c._uid) && !chatBlocked(c._uid,sid)) c.send(j); }catch(e){} }); };   /* v1097: a player who blocked the sender does not get the line */
+  const chatBroadcast = (o,except,sid)=>{ const text=JSON.stringify(o), m={text,frame:wsTextFrame(text)}, users=DB.users||{};   /* v1128: stringified and framed once */
+    for(const c of WSS.clients){ if(c===except || c.readyState!==1 || !c._chatName || (WS_AUTH_REQUIRED && !c._uid)) continue;
+      if(sid && c._uid){ const v=users[c._uid], bl=v&&v.led&&v.led.blocked; if(Array.isArray(bl) && bl.length && bl.indexOf(sid)>=0) continue; }   /* v1097: a player who blocked the sender does not get the line */
+      const q=_chatOut.get(c); if(q) q.push(m); else _chatOut.set(c,[m]); }
+    if(!_chatFlushT&&_chatOut.size) _chatFlushT=CHAT_FANOUT_MS?setTimeout(_chatFlush,CHAT_FANOUT_MS):setImmediate(_chatFlush); };
   const chatHistFor = (ws,a)=>a.filter(m=>m&&!chatBlocked(ws._uid,m.sid)).map(m=>({who:m.who,txt:m.txt,t:m.t,pt:m.pt||undefined,battle:m.battle||undefined,mid:m.mid||undefined}));   /* v1097: the per-player history - blocked senders left out, sender ids never sent */
   /* 30 Sep 2026 hardening: no cap on sockets meant one machine could open thousands, and half-open ones were never
      dropped. At most 20 per IP (a household on one router still fits); a 30 s ping drops sockets that stop answering. */
@@ -9642,7 +9664,7 @@ const CHAT_KEEP=100, CHAT_AGE_MS=6*3600000;   /* v1127 (Phil 11 Oct 2026: "chat 
         r.guest=ws; ws._room=c; ws._role='guest'; r.t=Date.now(); wsend(ws,{t:'joined',code:c}); wsend(r.host,{t:'peerjoined'}); }
       else if(m.t==='msg'){ if(wsNeedAuth(ws)) return;   // RE-AUDIT round 3: the room relay was the one branch that skipped auth — a revoked token could keep relaying
         const r=rooms[ws._room]; if(!r)return; r.t=Date.now(); wsend(ws._role==='host'?r.guest:r.host,{t:'peer',data:m.data}); }
-      else if(m.t==='chatjoin'){ if(wsNeedAuth(ws)) return; ws._chatName=ws._acctName || clip(m.name,16)||'Player';
+      else if(m.t==='chatjoin'){ if(wsNeedAuth(ws)) return; _setChatName(ws, ws._acctName || clip(m.name,16)||'Player');
         /* v1083 (scan 5 #2): the history (up to ~1.6 MB with replay chips) at most once per 30 s per socket and 10 s per account */
         { const now=Date.now(), ak=ws._uid||('ip:'+(ws._ipKey||''));
           if((ws._chatJoinAt&&now-ws._chatJoinAt<30000)||(_chatJoinAcct[ak]&&now-_chatJoinAcct[ak]<10000)){   /* v1085 (scan 6 #7): a reload / second tab still sees recent chat */
@@ -9667,9 +9689,9 @@ const CHAT_KEEP=100, CHAT_AGE_MS=6*3600000;   /* v1127 (Phil 11 Oct 2026: "chat 
         _chatRecent.push({mid:wmid,sid:ws._uid||null,who:fromName,txt,to:toU,t:Date.now(),ch:'whisper'}); if(_chatRecent.length>500) _chatRecent.splice(0,_chatRecent.length-500);
         { const a=ws._uid||null, pair=_chatRecent.filter(x=>(x.sid===a&&x.to===toU)||(x.sid===toU&&x.to===a));   /* v1127 chat cap: a conversation keeps its last 100 lines here too */
           if(pair.length>CHAT_KEEP){ const drop=new Set(pair.slice(0,pair.length-CHAT_KEEP)); for(let i=_chatRecent.length-1;i>=0;i--) if(drop.has(_chatRecent[i])) _chatRecent.splice(i,1); } }
-        WSS.clients.forEach(c=>{ if(c!==ws && c._chatName===to && c.readyState===1 && !chatBlocked(c._uid,ws._uid)){ try{ c.send(JSON.stringify({t:'whispermsg',from:fromName,txt,mid:wmid})); }catch(e){} } }); }
+        const targets=_chatByName.get(to); if(targets){ let j=null; for(const c of targets){ if(c!==ws && c.readyState===1 && !chatBlocked(c._uid,ws._uid)){ try{ _chatFlushOne(c); c.send(j||(j=JSON.stringify({t:'whispermsg',from:fromName,txt,mid:wmid}))); }catch(e){} } } } }   /* v1128: the sockets of that chat name, not every socket */
     }catch(e){ console.error('ws frame refused (handler error): '+(e&&e.message)); } });
-    ws.on('close', ()=>{ const r=rooms[ws._room]; if(!r)return; wsend(ws._role==='host'?r.guest:r.host,{t:'peerleft'}); delete rooms[ws._room]; });
+    ws.on('close', ()=>{ _setChatName(ws,null); _chatOut.delete(ws); const r=rooms[ws._room]; if(!r)return; wsend(ws._role==='host'?r.guest:r.host,{t:'peerleft'}); delete rooms[ws._room]; });
     ws.on('error', ()=>{});
   });
   // expire idle PvP rooms (audit: rooms were only cleaned on socket close, so a half-open room could linger)
