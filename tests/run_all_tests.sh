@@ -259,6 +259,8 @@ note "test_save_dirty.js (v1128 dirty tracking: a sweep writes exactly the playe
 node tests/test_save_dirty.js || FAILED=1
 note "test_chat_fanout.js (v1128 chat fan-out: 119 listeners get 30 lines in one order as text, long lines whole, block list and whispers kept, replies after queued lines; 0.04 socket writes per line per listener; c9f40cd8 control: 2.08)"
 node tests/test_chat_fanout.js || FAILED=1
+note "test_live_helpers.js (v1129 live battles: Skyfall and World Tree fights on a real live helper, 0 on the main thread; no helper -> 503 busy + retry, the same requestId fights later; a pool peak drains FIFO with a bounded queue and wait; results byte-identical to the main-thread functions; the client retries busy fights; 6bfeb24d control)"
+node tests/test_live_helpers.js || FAILED=1
 note "test_march_retention_1038.js (v1038: settled city/mine marches are held 2 days, then let go - for every player; unfinished kept; v1037 control)"
 node tests/test_march_retention_1038.js || FAILED=1
 note "test_sim_helper_1039.js (v1039: battle helpers - a backed-up pool shares battles with server/sim-helper.js; identical results, spot checks; wrong key / other engine / busy / dead helper fall back locally; no-helper control)"

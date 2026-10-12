@@ -15,7 +15,7 @@ const R = require('./helpers/split-rig.cjs');
 const WS = require('../server/world-store.js');
 const SQUADS = [['vael', 'sylthaine', 'vireo'], ['brannus', 'yenna', 'seyla'], ['kharos', 'tharl', 'orryn'], ['hobb', 'askel', 'calypsa']];
 const CLOCK = /^(t|ts|at|now|iat|exp|created|lastSeen|depart|arrive|home|reachAt|readyAt|expireAt|startedAt|landedAt|resolvedAt|sentAt|serverNow|mtime|day|dayKey|skillImported)$|At$|Ms$/;
-const IDS = /^(id|marchId|mid|requestId|rid|key)$/;
+const IDS = /^(id|marchId|mid|requestId|rid|key|engine)$/;   // v1129: engine = the client BUILD_ID, which every release bumps (not part of the fight)
 function norm(v, k) {
   if (Array.isArray(v)) return v.map(x => norm(x));
   if (v && typeof v === 'object') { const o = {}; for (const kk of Object.keys(v).sort()) { if (CLOCK.test(kk) || IDS.test(kk)) continue; o[kk] = norm(v[kk], kk); } return o; }
