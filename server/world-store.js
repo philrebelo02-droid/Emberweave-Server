@@ -97,7 +97,13 @@ function create(file, opts) {
   st.stats.bytes.journal = 0;
   Object.assign(st.stats, { piecesLooked: 0, pieceBytesLooked: 0, pieceAudits: 0, pieceMissed: 0, pieceMissedNames: [], piecesMarked: 0 });   // v1134
   const FLAGGED = new Set(Array.isArray(opts.flagged) ? opts.flagged : FLAGGED_PIECES);
-  st.pdirty = new Set(); st.psub = new Map(); let auditNext = 0;   // v1134: flagged pieces marked dirty (whole / by key) since they were last looked at; the next one the sweep audits
+  st.pdirty = new Set(); st.psub = new Map(); let auditNext = 0;
+  /* v1134 RECEIPT INDEX (S1 copy run 14 Oct 2026: with the piece compare gone, receiptsOf - every save walking EVERY request receipt
+     of the world (~100k after two minutes at 2,500 players, an hour of them on a real server) to find the few of the saved players -
+     was 14% of the main thread). The server notes each receipt it writes (noteReceipt, server.js _rkn); a save then looks only at
+     the receipts it wrote before for its players plus the ones noted since. The whole table is still walked when the receipt table
+     object was replaced, after a load / full save, and on sweep slice 0 (every ~30 s) - that walk also picks up a receipt nobody noted. */
+  st.rnew = new Map(); st.rcore = new Set(); st.idemRef = null; st.rscan = true;   // v1134: flagged pieces marked dirty (whole / by key) since they were last looked at; the next one the sweep audits
   /* v1134: the pieces a partial save looks at. declared (a Set) = the pieces the save named; null = not known. `written` = the pieces
      with a last-written copy. A piece never written is always looked at; a flagged one only when declared or marked. Returns the
      pieces to compare whole, and (subs, journal only) the object pieces marked by key: only those keys are looked at. */
@@ -310,6 +316,24 @@ function create(file, opts) {
     }
     return { by, coreIdem };
   }
+  // v1134: the receipts of the players in `cand` without walking the whole table (see RECEIPT INDEX); null = walk it (receiptsOf)
+  function receiptsIndexed(db, cand, slice) {
+    const users = db.users || {}, idem = db.idem || {}, own = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
+    if (st.rscan || db.idem !== st.idemRef || (slice && slice.of > 0 && slice.slice === 0)) {
+      const all = receiptsOf(db, null), by = new Map(); st.rcore = new Set(Object.keys(all.coreIdem)); st.idemRef = db.idem; st.rscan = false; st.rnew = new Map();
+      for (const [o, ks] of all.by) { if (cand.has(o)) { by.set(o, ks); continue; } const had = st.rk.get(o), nw = ks.filter(k => !(had && had.has(k)));   // a receipt nobody noted waits for its player's next save
+        if (nw.length) st.rnew.set(o, new Set(nw)); }
+      const r = { by, coreIdem: all.coreIdem };
+      st.stats.receiptScans = (st.stats.receiptScans | 0) + 1; return r; }
+    for (const [o, set] of st.rnew) if (!own(users, o)) { for (const k of set) st.rcore.add(k); st.rnew.delete(o); }   // an owner that is no player: a shared receipt
+    const by = new Map(), coreIdem = {};
+    for (const id of cand) { if (!own(users, id)) continue; const had = st.rk.get(id), nw = st.rnew.get(id), ks = [];
+      if (had) for (const k of had) if (own(idem, k)) ks.push(k);
+      if (nw) { for (const k of nw) if (own(idem, k) && !(had && had.has(k))) ks.push(k); st.rnew.delete(id); }
+      if (ks.length) by.set(id, ks); }
+    for (const k of st.rcore) { if (!own(idem, k)) { st.rcore.delete(k); continue; } const o = ownerOf(k); if (o !== null && own(users, o)) continue; coreIdem[k] = idem[k]; }
+    return { by, coreIdem };
+  }
   const vclean = u => JSON.stringify(u, (k, v) => k === 'lastSeen' ? undefined : v);   // DB_STORE_VERIFY: presence is not saved per request
   // the shared world: piece values (PIECE_KEY) and the inline rest, as the pieces layout splits it
   function coreParts(db, coreIdem) {
@@ -343,7 +367,7 @@ function create(file, opts) {
       for (const x of shards) bytes += x.length;
       ops.push({ j: 'full', shards, pieces, core, sweep: broken });   // after a failure (or a lost io worker) the files no manifest names go too
       st.layout = 'journal'; st.broken = false; st.dirty.clear(); st.pdirty.clear(); st.psub.clear(); S.dirtyNow = 0; S.full++; S.lastFullAt = Date.now(); S.shardsWritten += SHARDS; S.bytes.shards += bytes; S.lastShards = SHARDS; S.lastPieces = pieces.map(p => p[0]);
-      st.jfiles = null;
+      st.jfiles = null; st.rscan = true; st.rnew = new Map();
     } else {
       // the players this save looks at: the declared ones, and on a sweep every player marked dirty since it was last written
       // (v1128 dirty tracking: presence, pruned receipts - a clean player is never stringified)
@@ -352,7 +376,7 @@ function create(file, opts) {
       if (slice && slice.of > 0) { S.slices++; for (const id of st.dirty) if (!declared.has(id)) { cand.add(id); S.sweepLooked++; } st.dirty.clear(); }
       else for (const id of declared) st.dirty.delete(id);
       S.dirtyNow = st.dirty.size;
-      const { by, coreIdem } = receiptsOf(db, cand);
+      const { by, coreIdem } = receiptsIndexed(db, cand, slice);   // v1134: was receiptsOf - a walk of every receipt per save
       const units = [], receipts = [];
       for (const id of cand) {
         const had = st.rk.get(id);
@@ -414,7 +438,7 @@ function create(file, opts) {
   /* what is on disk right after a load: the receipt keys of each player, the pieces and the inline core. v1128 dirty tracking: no
      player signature is built at boot (2.7 s on 8,500 players) - a player's first write after a boot is the whole player - except
      for DB_STORE_VERIFY, which compares every player. */
-  function seedUnits(db, players) {
+  function seedUnits(db, players) { st.rscan = true; st.rnew = new Map();
     const users = db.users || {}, { by, coreIdem } = receiptsOf(db, null); st.usig = new Map(); st.rk = new Map(); st.dirty = new Set(); if (st.verify) st.vhash = new Map();
     for (const id of Object.keys(users)) { if (players) st.usig.set(id, DIFF.diff(users[id], null).sig); if (st.vhash) st.vhash.set(id, md5(vclean(users[id]))); const k = by.get(id); if (k) st.rk.set(id, new Set(k)); }
     const cp = coreParts(db, coreIdem); st.jcore = JSON.stringify(cp.inline);
@@ -474,7 +498,9 @@ function create(file, opts) {
     markPiece(k, sub) { if (!(st.split && st.pieces && typeof k === 'string' && k)) return; st.stats.piecesMarked++;   // v1134: a shared piece changed - the next save looks at it
       if (sub === undefined) { st.pdirty.add(k); return; }   // the whole piece; with `sub` only that key of an object piece (journal: a patch of the marked keys)
       let m = st.psub.get(k); if (!m) { m = new Set(); st.psub.set(k, m); } if (m.size < 4096) m.add(typeof sub === 'string' ? sub : null); else st.pdirty.add(k); },
-    get flagged() { return [...FLAGGED]; },   // v1128: a change no save declared (presence, a pruned receipt) - the next sweep writes it
+    get flagged() { return [...FLAGGED]; },
+    noteReceipt(k) { if (!st.split || typeof k !== 'string' || !k) return; const o = ownerOf(k);   // v1134: a request receipt was written (RECEIPT INDEX)
+      if (o === null) { st.rcore.add(k); return; } let s = st.rnew.get(o); if (!s) { s = new Set(); st.rnew.set(o, s); } if (s.size < 10000) s.add(k); else st.rscan = true; },   // v1128: a change no save declared (presence, a pruned receipt) - the next sweep writes it
     get dirtyCount() { return st.dirty.size; },
     get broken() { return st.broken; }, get ioAsync() { return io().async; }, get ioPending() { return io().pending; },
     stats: st.stats, load, write, writeAsync, flush: () => io().flush(), io, sweepOrphans, shardOf, ownerOf, dir };
