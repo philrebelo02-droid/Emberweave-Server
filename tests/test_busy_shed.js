@@ -31,7 +31,7 @@ async function run(dir, tag, check, env) {
     // a refused cloud save changes nothing: send saves until one is refused, check it is not stored, send it again idle
     let refused = null, lastOk = null;
     for (let i = 0; i < 200 && !refused; i++) { const team = [{ key: i % 2 ? 'vael' : 'vireo' }], r = await fetch(S.base + '/api/save', { method: 'POST', headers: { 'x-token': p0.token, 'content-type': 'application/json', 'x-forwarded-for': p0.ip }, body: JSON.stringify({ team, wall: team, requestId: tag + 's' + i }) });
-      const b = await r.json().catch(() => ({})); if (r.status === 503 && b.busy) refused = { i, team, retryAfter: r.headers.get('retry-after') }; else if (r.status === 200) lastOk = team[0].key; }
+      const b = await r.json().catch(() => ({})); if (r.status === 503 && b.busy) { if (lastOk) refused = { i, team, retryAfter: r.headers.get('retry-after') }; } else if (r.status === 200) lastOk = team[0].key; }   // a refusal counts once a save was accepted before it
     fs.unlinkSync(flag); await R.sleep(2600);
     if (refused) { out.refused = refused; out.lastOk = lastOk; await R.sleep(800); out.stored = (((WS.readWorld(S.db).users[p0.id] || {}).team || [])[0] || {}).key; }
     for (let i = 0; i < 40; i++) { const r = await S.req('GET', '/api/profile', null, p0.token, p0.ip); if (r.status === 503) out.idleBusy++; }
