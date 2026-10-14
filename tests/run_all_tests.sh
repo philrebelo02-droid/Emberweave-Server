@@ -263,6 +263,10 @@ note "test_chat_fanout.js (v1128 chat fan-out: 119 listeners get 30 lines in one
 node tests/test_chat_fanout.js || FAILED=1
 note "test_live_helpers.js (v1129 live battles: Skyfall and World Tree fights on a real live helper, 0 on the main thread; no helper -> 503 busy + retry, the same requestId fights later; a pool peak drains FIFO with a bounded queue and wait; results byte-identical to the main-thread functions; the client retries busy fights; 6bfeb24d control)"
 node tests/test_live_helpers.js || FAILED=1
+note "test_piece_flags.js (v1134 piece dirty flags: a save that names no pieces stringifies none of the big flagged ones (tokens, feedback, reports, watch, byName, ipAccounts, devices, guestByDevice) - journal + pieces layouts; whole and per-key marks reach disk (a key mark = a patch of that key); an unmarked change is found by the sweep audit and counted; real server: sign-in/logout/guest/report/watch on disk after a hard kill, verify 0, 0.7 vs 10 ms per cloud save; f2043269 control)"
+node tests/test_piece_flags.js || FAILED=1
+note "test_busy_shed.js (v1134 early busy: main thread ~95% busy -> polls answered 503 busy + Retry-After at once, actions less often, health/dev never, a refused save changed nothing, idle = 0 refused, off on NODE_ENV=test unless BUSY_SHED=1; f2043269 control refuses none)"
+node tests/test_busy_shed.js || FAILED=1
 note "test_march_retention_1038.js (v1038: settled city/mine marches are held 2 days, then let go - for every player; unfinished kept; v1037 control)"
 node tests/test_march_retention_1038.js || FAILED=1
 note "test_sim_helper_1039.js (v1039: battle helpers - a backed-up pool shares battles with server/sim-helper.js; identical results, spot checks; wrong key / other engine / busy / dead helper fall back locally; no-helper control)"
