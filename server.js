@@ -245,6 +245,10 @@ function _touch(id){ _store.touch(id); if(!_dirtyT&&_store.split){ _dirtyT=setTi
    no mark is still found by the sweep's audit within ~15 s and counted (save-stats store.pieceMissed) - add the mark. */
 function _dp(...keys){ if(typeof _store!=='undefined'&&_store.split) for(const k of keys) _store.markPiece(k); }
 function _dpk(k,sub){ if(typeof _store!=='undefined'&&_store.split) _store.markPiece(k,String(sub)); }
+/* v1134 RECEIPT INDEX (server/world-store.js): every request receipt written into DB.idem is noted, so a save finds its players'
+   receipts without walking the whole table (14% of the main thread at 2,500 players). A receipt nobody notes is still found by the
+   store's full walk (table replaced, boot, every ~30 s on sweep slice 0). */
+function _rkn(k){ if(typeof _store!=='undefined'&&_store.split) _store.noteReceipt(k); }
 function _touchOwner(k){ const i=String(k).indexOf(':'); if(i>0){ const o=k.slice(0,i); if(DB.users&&DB.users[o]) _touch(o); } }
 function _takeSlice(){ if(!_slicePending) return null; _slicePending=false; return {slice:_sliceNext,of:STORE_SLICES}; }
 function _sliceDone(sl){ if(!sl) return; _sliceNext=(_sliceNext+1)%STORE_SLICES; _sliceAt=Date.now(); }
@@ -1841,7 +1845,7 @@ function idem(key, fn, opts){ DB.idem=DB.idem||{}; const now=Date.now();
   if(!du){ const i=key.indexOf(':'), j=i>0?key.indexOf(':',i+1):-1; if(j>i&&DURABLE_IDEM_KINDS.has(key.slice(i+1,j))&&DB.users[key.slice(0,i)]) du=DB.users[key.slice(0,i)]; }
   if(du&&_worldSettlementPlanning) du=null;   /* inside a world planning window the outer durable commit owns the write */
   if(du&&PG_BOOT_PENDING) return {ok:false,storageFailed:true,error:'Storage restore pending. Retry the same request.'};
-  if(!du){ const resp=fn(); DB.idem[key]={t:now,resp};
+  if(!du){ const resp=fn(); DB.idem[key]={t:now,resp}; typeof _rkn==='function'&&_rkn(key);
     if(opts&&opts.retryFailed&&resp&&resp.ok===false){ delete DB.idem[key]; return resp; }
     writeDBNow();                       // the receipt lands with the reward, or neither does
     return resp; }
@@ -1856,7 +1860,7 @@ function idem(key, fn, opts){ DB.idem=DB.idem||{}; const now=Date.now();
   const rollback=()=>{ _adoptUser(du.id,snap); if(DB.dungeonProgress){ if(dpHad) DB.dungeonProgress[du.id]=dpSnap; else delete DB.dungeonProgress[du.id]; }
     if(fbSnap) DB.feedback=fbSnap; else delete DB.feedback; if(rpSnap) DB.reports=rpSnap; else delete DB.reports; typeof _dp==='function'&&_dp('feedback','reports'); };
   let resp; _durableIdemActive=true; try{ resp=fn(); } catch(e){ rollback(); throw e; } finally { _durableIdemActive=false; }
-  DB.idem[key]={t:now,resp};
+  DB.idem[key]={t:now,resp}; typeof _rkn==='function'&&_rkn(key);
   if(opts&&opts.retryFailed&&resp&&resp.ok===false){ delete DB.idem[key]; return resp; }
   if((typeof _reqCtx!=='undefined'&&_reqCtx.getStore())){ if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; }   // v1036: group save; undo on failure
     _holdReply(_joinBatch(()=>{ console.error('Durable idem save failed - account rolled back'); rollback(); if(DB.idem) delete DB.idem[key]; }, [du.id, key.slice(0,Math.max(0,key.indexOf(':')))]), 'Save failed. Retry the same request.');
@@ -3910,7 +3914,7 @@ function durableCommit(user,key,fn,opts={}){
       let pieces=Object.keys(extra); if(pruned) pieces.push('idem');
       const coreReceipt=k=>{ const c=k.indexOf(':'); return !(c>0&&Object.prototype.hasOwnProperty.call(DB.users,k.slice(0,c))); };
       if(overlay){ if(!DB.idem) DB.idem={};
-        for(const k of Object.keys(receipts)){ prevKeys.push([k,Object.prototype.hasOwnProperty.call(DB.idem,k),DB.idem[k]]); const c=k.indexOf(':'); if(c>0) ids.push(k.slice(0,c)); if(coreReceipt(k)) pieces.push('idem'); } }
+        for(const k of Object.keys(receipts)){ typeof _rkn==='function'&&_rkn(k); prevKeys.push([k,Object.prototype.hasOwnProperty.call(DB.idem,k),DB.idem[k]]); const c=k.indexOf(':'); if(c>0) ids.push(k.slice(0,c)); if(coreReceipt(k)) pieces.push('idem'); } }
       else { if(receipts!==prevI) pieces=null; for(const k in receipts) if(prevI[k]!==receipts[k]){ const c=k.indexOf(':'); if(c>0) ids.push(k.slice(0,c)); } }   // v1037
       _adoptUser(user.id,draft);for(const other of related)_adoptUser(other.id,other);Object.assign(DB,extra);
       if(overlay) Object.assign(DB.idem,receipts); else DB.idem=receipts;
@@ -5255,7 +5259,7 @@ async function api(req,res,url){
     DB.idem=DB.idem||{}; const key=me.id+':aban:'+rid, prev=DB.idem[key];
     if(prev&&Date.now()-prev.t<=3600000) return send(res,prev.status||200,prev.resp);
     const out=await adminBan(b, p==='/api/admin/unban');
-    if(out.status===200){ DB.idem[key]={t:Date.now(),resp:out.body,status:200}; if(writeDBNow()===false) return send(res,503,{ok:false,storageFailed:true,error:'Save failed - try again.'}); }
+    if(out.status===200){ DB.idem[key]={t:Date.now(),resp:out.body,status:200}; _rkn(key); if(writeDBNow()===false) return send(res,503,{ok:false,storageFailed:true,error:'Save failed - try again.'}); }
     return send(res,out.status,out.body); }
   if(p==='/api/dev/ban' && req.method==='POST'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
     const b=await body(req); const out=await adminBan(b, !!b.lift);
@@ -5373,7 +5377,7 @@ async function api(req,res,url){
       if(!r.u||r.u.id!==me.id){ writeDB(); return send(res,r.status===429?429:403,{error:r.status===429?r.error:'Wrong password.',needPass:true}); }
     }
     if(DB.users[me.id]) deleteAccountData(DB.users[me.id]);
-    const resp={ok:true,deleted:true}; DB.idem[rk]={t:Date.now(),resp};
+    const resp={ok:true,deleted:true}; DB.idem[rk]={t:Date.now(),resp}; _rkn(rk);
     if(writeDBNow()===false) return send(res,503,{ok:false,storageFailed:true,error:'Save failed - try again.'});
     return send(res,200,resp); }
   /* v1097 (sweep #18): block / unblock a player (by name, or by a chat line's id) and 'report message' */
@@ -8961,7 +8965,7 @@ async function api(req,res,url){
         if(milestoneGems>0){ creditGems(me,led,milestoneGems,'arena:rank-milestone'); ledTx(me,'arena:rank-milestone',{gems:milestoneGems}); } } }
     let glyphFrags=null; if(won && glyphsEnabledFor(me) && me.glyphs && me.glyphs.migratedAt){ glyphFrags=glyphGrantNamedList(me, arenaGlyphFragsFor(me.rank)); }   // Correction Spec v1: named, rank-deterministic — no random family roll
     const aresp={ rank:me.rank, delta:r.delta, reward, coins:me.coins, glyphFrags, won, seed, sim:simRes, goldReward, milestoneGems, bestRank:me.bestRank, authoritative:true, ledger:ledgerView(me), arena:arenaAttView(ensureLedger(me)) };
-    DB.idem[akey]={t:Date.now(),resp:aresp};
+    DB.idem[akey]={t:Date.now(),resp:aresp}; _rkn(akey);
     if((typeof _reqCtx!=='undefined'&&_reqCtx.getStore())){ if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; }   // v1036: group save; a failed save rolls both accounts back
       _holdReply(_joinBatch(()=>{ console.error('Arena result save failed - both accounts rolled back');
         _adoptUser(me.id,_aSnapMe); _adoptUser(_aOppId,_aSnapOpp); if(DB.idem) delete DB.idem[akey];
