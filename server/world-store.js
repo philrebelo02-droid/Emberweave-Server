@@ -65,6 +65,16 @@ const PIECE_KEY = /^[A-Za-z0-9_$]{1,64}$/, PIECE_FILE = /^p-([A-Za-z0-9_$]{1,64}
 const STORE_FILE_RX = '^(\\d+-\\d+|p-[A-Za-z0-9_$]{1,64}-\\d+)\\.json$';   // v1128: every shard and piece file name (the sweep after a failed save)
 const STORE_IO = require('./store-io.js'), J = require('./store-journal.js'), DIFF = require('./store-diff.js'), crypto = require('crypto');
 const JLAYOUT = 'journal-v1';   // v1128: base shards + an append-only per-player journal (server/store-journal.js)
+/* v1134 PIECE DIRTY FLAGS (S1 copy run 12 Oct 2026 on 6bfeb24d: almost every save named no pieces, so prepareJournal stringified all
+   ~20 shared pieces - ~3 MB: tokens 0.87, feedback 0.85, watch 0.72 MB, ipAccounts, byName, reports - only to find 19.8 of 20
+   unchanged: 30-58 ms a save, a third of the main thread). The big pieces below are FLAGGED: a save looks at a flagged piece only
+   when a route declared it (writeDB(ids, ['tokens'])) or the server marked it dirty (store.markPiece(k), server.js _dp() at every
+   place that changes it). A save that names no pieces still compares the small unflagged ones (chat, guilds, wars, tournaments,
+   dungeonProgress, meta, idem, ... - a few KB) and every piece it has not written yet. Safety net: every sweep slice (~1.9 s)
+   compares ONE flagged piece in turn (all of them within ~15 s); a difference nobody marked is written there and counted
+   (save-stats store.pieceMissed / pieceMissedNames) - a missing _dp() costs at most ~15 s of that piece, never the data.
+   DB_STORE_PIECE_COMPARE=1 (server.js) = no flagged pieces: every save compares every piece again, as 6bfeb24d. */
+const FLAGGED_PIECES = ['tokens', 'feedback', 'reports', 'watch', 'byName', 'ipAccounts', 'devices', 'guestByDevice'];
 
 function shardOf(id) {   // FNV-1a over the id - stable across restarts and Node versions
   let h = 0x811c9dc5; const s = String(id);
@@ -85,6 +95,45 @@ function create(file, opts) {
     stats: { full: 0, partial: 0, shardsWritten: 0, lastMs: 0, lastShards: 0, lastFullAt: 0, undeclared: 0, undeclaredIds: [],
       piecesWritten: 0, piecesSkipped: 0, slices: 0, sweepSkipped: 0, lastPieces: [], bytes: { shards: 0, pieces: 0, manifest: 0 }, undeclaredPieces: 0, undeclaredPieceNames: [], mainMs: 0, mainMaxMs: 0, io: null, unitsWritten: 0, unitsSkipped: 0, receiptsWritten: 0, sweepLooked: 0, dirtyNow: 0 } };
   st.stats.bytes.journal = 0;
+  Object.assign(st.stats, { piecesLooked: 0, pieceBytesLooked: 0, pieceAudits: 0, pieceMissed: 0, pieceMissedNames: [], piecesMarked: 0 });   // v1134
+  const FLAGGED = new Set(Array.isArray(opts.flagged) ? opts.flagged : FLAGGED_PIECES);
+  st.pdirty = new Set(); st.psub = new Map(); let auditNext = 0;   // v1134: flagged pieces marked dirty (whole / by key) since they were last looked at; the next one the sweep audits
+  /* v1134: the pieces a partial save looks at. declared (a Set) = the pieces the save named; null = not known. `written` = the pieces
+     with a last-written copy. A piece never written is always looked at; a flagged one only when declared or marked. Returns the
+     pieces to compare whole, and (subs, journal only) the object pieces marked by key: only those keys are looked at. */
+  function lookAt(keys, declared, written, bySub) {
+    const out = new Set(), subs = new Map();
+    for (const k of keys) {
+      if (!written(k) || st.pdirty.has(k)) out.add(k);
+      else if (declared ? declared.has(k) : !FLAGGED.has(k)) out.add(k);
+      else if (st.psub.has(k)) { if (bySub) subs.set(k, st.psub.get(k)); else out.add(k); }
+    }
+    for (const k of out) { st.pdirty.delete(k); st.psub.delete(k); }
+    for (const k of subs.keys()) st.psub.delete(k);
+    return { out, subs };
+  }
+  // v1134: on a sweep slice, the next flagged piece (round robin) that this save does not already look at
+  function auditKey(keys, looked, written) {
+    const list = [...FLAGGED].filter(k => keys.has(k) && !looked.has(k) && written(k)); if (!list.length) return null;
+    return list[(auditNext++) % list.length];
+  }
+  function noteMissed(k) { const S = st.stats; S.pieceMissed++; S.pieceMissedNames = S.pieceMissedNames.concat([k]).slice(-20);
+    console.error('world store: shared piece ' + k + ' changed with no save naming it and no _dp() mark - written by the sweep audit'); }
+  /* v1134: the journal patch of an object piece for the keys marked (store-diff 'o' patch of {"v":value}); null = none changed;
+     false = not possible here (no key signature yet, not a plain object, or marked whole meanwhile) - the caller compares it whole.
+     The piece's signature moves forward key by key; its last-written text becomes unknown (null) - an audit then diffs instead. */
+  function subPatch(k, val, keys) {
+    const ps = st.psig.get(k), e = ps && ps.get('v');
+    if (!e || e.k !== 'o' || !DIFF.plain(val) || keys.has(null)) return false;
+    const sets = [], dels = [];
+    for (const sk of keys) {
+      const s = Object.prototype.hasOwnProperty.call(val, sk) ? DIFF.J(val[sk]) : undefined;
+      if (s === undefined) { if (e.m.has(sk)) { dels.push(sk); e.m.delete(sk); } continue; }
+      const g = DIFF.sig(s); if (e.m.get(sk) !== g) { sets.push(JSON.stringify(sk) + ':' + s); e.m.set(sk, g); }
+    }
+    if (!sets.length && !dels.length) return null;
+    return '{"o":{"v":{"s":{' + sets.join(',') + '}' + (dels.length ? ',"x":' + JSON.stringify(dels) : '') + '}}}';
+  }
   const JOURNAL = st.split && st.pieces && opts.journal === true;   // v1128: the journal layout (the server turns it on; DB_STORE_JOURNAL=0 = the v1127 pieces layout)
   const configured = () => JOURNAL ? 'journal' : (st.pieces ? 'pieces' : 'split-v1');
   /* v1128: opts.io = 'worker' (the file work of every save on the store io worker thread) or 'sync' (default: on this thread) */
@@ -119,7 +168,7 @@ function create(file, opts) {
 
   function load() {
     const raw = JSON.parse(fs.readFileSync(file, 'utf8'));
-    st.pnames = null; st.plast = new Map(); st.pflag = new Set(); st.shash = new Map();
+    st.pnames = null; st.plast = new Map(); st.pflag = new Set(); st.shash = new Map(); st.pdirty.clear(); st.psub.clear();
     if (!raw || raw.__store !== FORMAT) { st.names = null; st.layout = 'file'; st.jstate = null; st.jinitSent = false; return raw; }   // the one-file world: the next split save writes every shard
     const jl = raw.layout === JLAYOUT, pieced = raw.layout === LAYOUT || jl;
     const shardNames = jl ? (Array.isArray(raw.baseGens) ? Object.fromEntries(raw.baseGens.map((g, s) => [s, g > 0 ? s + '-' + g + '.json' : null]).filter(x => x[1])) : null) : shardNamesOf(raw);
@@ -197,12 +246,17 @@ function create(file, opts) {
       const keys = new Set(); for (const k of Object.keys(core)) { if (core[k] === undefined) continue; if (PIECE_KEY.test(k)) keys.add(k); else inline[k] = core[k]; }
       for (const k of [...pnext.keys()]) if (!keys.has(k)) pnext.delete(k);   // a system that left the world: its file goes
       const declared = dirtyPieces ? new Set(dirtyPieces) : null;
-      considered = (full || !declared || !st.pnames) ? keys : new Set([...keys].filter(k => declared.has(k) || !st.pnames.has(k)));
+      const written = k => !!(st.pnames && st.pnames.has(k) && st.plast.has(k));
+      if (full || !st.pnames) { considered = keys; st.pdirty.clear(); st.psub.clear(); }
+      else considered = lookAt(keys, declared, written, false).out;   // v1134: flagged pieces only when named or marked (a piece file is written whole)
+      const audit = (!full && st.pnames && slice && slice.of > 0) ? auditKey(keys, considered, written) : null;
       for (const k of considered) {
-        const s = JSON.stringify(core[k]);
+        const s = JSON.stringify(core[k]); S.piecesLooked++; S.pieceBytesLooked += s ? s.length : 0;
         if (!broken && st.pnames && st.pnames.has(k) && st.plast.get(k) === s) { S.piecesSkipped++; continue; }
         pstr.set(k, s);
       }
+      if (audit) { const s = JSON.stringify(core[audit]); S.pieceAudits++; S.pieceBytesLooked += s ? s.length : 0;
+        if (st.plast.get(audit) !== s) { noteMissed(audit); pstr.set(audit, s); considered.add(audit); } }
     }
     let shardBytes = 0, pieceBytes = 0;
     for (const [s, p] of parts) {
@@ -288,7 +342,7 @@ function create(file, opts) {
       const core = JSON.stringify(cp.inline); st.jcore = core;
       for (const x of shards) bytes += x.length;
       ops.push({ j: 'full', shards, pieces, core, sweep: broken });   // after a failure (or a lost io worker) the files no manifest names go too
-      st.layout = 'journal'; st.broken = false; st.dirty.clear(); S.dirtyNow = 0; S.full++; S.lastFullAt = Date.now(); S.shardsWritten += SHARDS; S.bytes.shards += bytes; S.lastShards = SHARDS; S.lastPieces = pieces.map(p => p[0]);
+      st.layout = 'journal'; st.broken = false; st.dirty.clear(); st.pdirty.clear(); st.psub.clear(); S.dirtyNow = 0; S.full++; S.lastFullAt = Date.now(); S.shardsWritten += SHARDS; S.bytes.shards += bytes; S.lastShards = SHARDS; S.lastPieces = pieces.map(p => p[0]);
       st.jfiles = null;
     } else {
       // the players this save looks at: the declared ones, and on a sweep every player marked dirty since it was last written
@@ -317,8 +371,19 @@ function create(file, opts) {
       }
       // shared pieces: the declared ones (or all), written when they differ from what was last written; a removed one is null
       const cp = coreParts(db, coreIdem), pieces = [], declaredP = dirtyPieces ? new Set(dirtyPieces) : null;
-      const considered = !declaredP ? cp.keys : new Set([...cp.keys].filter(k => declaredP.has(k) || !st.plast.has(k)));
-      for (const k of considered) { const v = JSON.stringify(cp.val(k)); if (st.plast.get(k) === v) { S.piecesSkipped++; continue; }
+      /* v1134: flagged pieces (FLAGGED_PIECES) only when the save named them or they were marked dirty - never stringified just to
+         find out nothing changed; a save that names nothing still compares the small unflagged ones. A sweep slice audits one
+         flagged piece in turn (a change nobody marked is written there and counted). */
+      const written = k => st.plast.has(k), look = lookAt(cp.keys, declaredP, written, true), considered = look.out;
+      for (const [k, keys] of look.subs) {   // v1134: an object piece marked by key: a patch of those keys only (tokens on a sign-in, watch on an attack)
+        const r = subPatch(k, cp.val(k), keys); if (r === false) { considered.add(k); continue; }
+        S.piecesLooked++; if (r === null) { S.piecesSkipped++; continue; }
+        st.plast.set(k, null); st.pflag.delete(k); pieces.push([k, r, false]); bytes += r.length; }
+      const audit = (slice && slice.of > 0) ? auditKey(cp.keys, considered, written) : null;
+      if (audit) { const v = JSON.stringify(cp.val(audit)); S.pieceAudits++; S.pieceBytesLooked += v.length; const was = st.plast.get(audit);
+        if (was !== v) { if (was === null && DIFF.diff({ v: cp.val(audit) }, st.psig.get(audit)).patch === null) st.plast.set(audit, v);   // after key patches: unchanged
+          else { noteMissed(audit); considered.add(audit); } } }
+      for (const k of considered) { const v = JSON.stringify(cp.val(k)); S.piecesLooked++; S.pieceBytesLooked += v === undefined ? 0 : v.length; if (st.plast.get(k) === v) { S.piecesSkipped++; continue; }
         const prev = st.psig.get(k), r = DIFF.diff({ v: cp.val(k) }, prev);
         st.plast.set(k, v); st.psig.set(k, r.sig); st.pflag.delete(k); if (r.patch === null) continue;
         pieces.push([k, r.patch, !prev]); bytes += r.patch.length; }
@@ -340,7 +405,9 @@ function create(file, opts) {
     if (bad.length) { st.stats.undeclared += bad.length; st.stats.undeclaredIds = st.stats.undeclaredIds.concat(bad).slice(-20);
       console.error('world store verify: ' + bad.length + ' player(s) changed outside their save: ' + bad.slice(0, 5).join(', ')); }
     const badP = [];
-    for (const k of cp.keys) { if (considered.has(k) || st.pflag.has(k) || !st.plast.has(k)) continue; if (JSON.stringify(cp.val(k)) !== st.plast.get(k)) { badP.push(k); st.pflag.add(k); } }
+    for (const k of cp.keys) { if (considered.has(k) || st.pflag.has(k) || !st.plast.has(k)) continue; const was = st.plast.get(k);
+      const changed = was === null ? DIFF.diff({ v: cp.val(k) }, st.psig.get(k)).patch !== null : JSON.stringify(cp.val(k)) !== was;   // v1134: after key patches the signature is the record
+      if (changed) { badP.push(k); st.pflag.add(k); } }
     if (badP.length) { st.stats.undeclaredPieces += badP.length; st.stats.undeclaredPieceNames = st.stats.undeclaredPieceNames.concat(badP).slice(-20);
       console.error('world store verify: shared piece(s) changed outside their save: ' + badP.join(', ')); }
   }
@@ -403,7 +470,11 @@ function create(file, opts) {
 
   return { get split() { return st.split; }, get layout() { return st.layout; }, get pieces() { return st.split && st.pieces; },
     get layoutMismatch() { return st.split && st.layout !== null && st.layout !== configured(); }, get journal() { return JOURNAL; },
-    touch(id) { if (st.split && typeof id === 'string' && id) st.dirty.add(id); },   // v1128: a change no save declared (presence, a pruned receipt) - the next sweep writes it
+    touch(id) { if (st.split && typeof id === 'string' && id) st.dirty.add(id); },
+    markPiece(k, sub) { if (!(st.split && st.pieces && typeof k === 'string' && k)) return; st.stats.piecesMarked++;   // v1134: a shared piece changed - the next save looks at it
+      if (sub === undefined) { st.pdirty.add(k); return; }   // the whole piece; with `sub` only that key of an object piece (journal: a patch of the marked keys)
+      let m = st.psub.get(k); if (!m) { m = new Set(); st.psub.set(k, m); } if (m.size < 4096) m.add(typeof sub === 'string' ? sub : null); else st.pdirty.add(k); },
+    get flagged() { return [...FLAGGED]; },   // v1128: a change no save declared (presence, a pruned receipt) - the next sweep writes it
     get dirtyCount() { return st.dirty.size; },
     get broken() { return st.broken; }, get ioAsync() { return io().async; }, get ioPending() { return io().pending; },
     stats: st.stats, load, write, writeAsync, flush: () => io().flush(), io, sweepOrphans, shardOf, ownerOf, dir };
@@ -423,7 +494,7 @@ function writeWorld(file, db) {
 function namedFiles(file) { const r = JSON.parse(fs.readFileSync(file, 'utf8')); if (!r || r.__store !== FORMAT) return new Set();
   const shards = r.layout === JLAYOUT ? (r.baseGens || []).map((g, s) => g > 0 ? s + '-' + g + '.json' : null).filter(Boolean) : Object.values(shardNamesOf(r) || {});
   return new Set([...shards, ...Object.values(r.pieces || {}), ...(r.journals || [])]); }
-module.exports = { create, readWorld, writeWorld, layoutOf, namedFiles, shardOf, ownerOf, shardNamesOf, SHARDS, FORMAT, LAYOUT, JLAYOUT };
+module.exports = { create, readWorld, writeWorld, layoutOf, namedFiles, shardOf, ownerOf, shardNamesOf, SHARDS, FORMAT, LAYOUT, JLAYOUT, FLAGGED_PIECES };
 
 // CLI (stop the game first):
 //   node server/world-store.js export <DB_FILE> <out.json>   - the whole world as one plain JSON file (any layout)

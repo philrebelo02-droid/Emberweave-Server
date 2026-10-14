@@ -62,7 +62,10 @@ function unit() {
   st.write(db, [], ['chat']);
   R.ok(st.stats.undeclaredPieces === 1 && st.stats.undeclaredPieceNames.join() === 'tokens' && !WS.readWorld(file).tokens.t2, 'verifier: a piece changed outside the declared save is counted (tokens) and waits');
   st.write(db, []);
-  R.ok(WS.readWorld(file).tokens.t2 && st.stats.lastPieces.join() === 'tokens', 'the next undeclared save writes it');
+  if (st.markPiece) {   // v1134: tokens is a flagged piece - an undeclared save does not look at it; the sweep's audit finds it
+    R.ok(!WS.readWorld(file).tokens.t2, 'v1134: a flagged piece (tokens) changed with no mark is not stringified by an undeclared save');
+    for (let i = 0; i < 9 && !WS.readWorld(file).tokens.t2; i++) st.write(db, [], null, { slice: i, of: 16 }); }
+  R.ok(WS.readWorld(file).tokens.t2 && (st.markPiece ? st.stats.pieceMissed >= 1 : st.stats.lastPieces.join() === 'tokens'), 'the next undeclared save writes it (v1134: a flagged piece - the sweep audit, counted)');
   // a system that leaves the world
   delete db.reports; st.write(db, []);
   R.ok(!man(file).pieces.reports && ![...files()].some(f => /^p-reports-/.test(f)) && WS.readWorld(file).reports === undefined, 'a removed system loses its piece file');

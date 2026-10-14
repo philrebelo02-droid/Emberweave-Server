@@ -92,4 +92,4 @@ function apply(u, p) {
   return u;
 }
 
-module.exports = { diff, apply, BIG, SMALL };
+module.exports = { diff, apply, BIG, SMALL, sig, J, plain };   // v1134: sig / J / plain for the world store's per-key piece patches
