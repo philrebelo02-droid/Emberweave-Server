@@ -44,15 +44,15 @@ async function unit(mode) {
   R.ok(deepEq(WS.readWorld(file), db) && st.stats.bytes.journal - j0 < 3600, m + 'one player\'s change appends its patch + its new receipt only (' + (st.stats.bytes.journal - j0) + ' B; the player is ' + JSON.stringify(db.users.u5).length + ' B)');
   const j1 = st.stats.bytes.journal; db.users.u5.gold = 556; await W(['u5']);
   R.ok(deepEq(WS.readWorld(file), db) && st.stats.bytes.journal - j1 < 200, m + 'the next change of that player does not write its receipts again (' + (st.stats.bytes.journal - j1) + ' B)');
-  db.chat.world.push({ t: 'hi' }); db['weird-key'] = 6; db.tokens.t2 = 1; await W([], ['chat']); await W([]);
+  db.chat.world.push({ t: 'hi' }); db['weird-key'] = 6; db.tokens.t2 = 1; if (st.markPiece) st.markPiece('tokens', 't2'); await W([], ['chat']); await W([]);   // v1134: tokens is a flagged piece - a change to it is marked (server.js _dpk)
   R.ok(deepEq(WS.readWorld(file), db), m + 'declared and undeclared shared pieces and the inline core read back');
-  const j2 = st.stats.bytes.journal; db.feedback.push({ id: 'new', text: 'q'.repeat(150) }); await W([]);
+  const j2 = st.stats.bytes.journal; db.feedback.push({ id: 'new', text: 'q'.repeat(150) }); if (st.markPiece) st.markPiece('feedback'); await W([]);   // v1134: feedback is flagged (server.js _dp in feedbackAppend)
   R.ok(deepEq(WS.readWorld(file), db) && st.stats.bytes.journal - j2 < 400, m + 'a new entry in a big shared piece writes that entry only (' + (st.stats.bytes.journal - j2) + ' B; the piece is ' + JSON.stringify(db.feedback).length + ' B)');
   delete db.users.u7; delete db.idem['u7:a:1']; delete db.guilds.g2; await W(['u7']);
   R.ok(deepEq(WS.readWorld(file), db), m + 'a deleted player (and its receipts) and a removed key of a piece read back');
   const ids = Object.keys(db.users);
   for (let r = 0; r < 60; r++) { const w = []; for (let i = 0; i < 30; i++) { const id = ids[(r * 7 + i) % ids.length]; db.users[id].gold = r * 1000 + i; db.users[id].marches.push({ r, pad: 'm'.repeat(300) }); if (db.users[id].marches.length > 4) db.users[id].marches.shift(); w.push(id); }
-    db.feedback.push({ id: 'n' + r, text: 'q'.repeat(150) }); if (r % 7 === 0) db.feedback.shift(); await W(w); }
+    db.feedback.push({ id: 'n' + r, text: 'q'.repeat(150) }); if (r % 7 === 0) db.feedback.shift(); if (st.markPiece) st.markPiece('feedback'); await W(w); }
   if (mode === 'worker') { for (let i = 0; i < 40; i++) { await R.sleep(40); await W([]); } await idle(st); }
   const js = st.stats.io.journal;
   R.ok(js.checkpoints >= 2 && js.ckptAborted === 0 && deepEq(WS.readWorld(file), db) && orphans(file).length === 0, m + 'checkpoints fold the journal into the base (' + js.checkpoints + ' checkpoints, ' + js.ckptShards + ' shards rewritten); the world reads back whole; no orphan file');
