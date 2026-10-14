@@ -69,6 +69,24 @@ function unit(WSX, journal, check, opts) {
   check(JSON.stringify(back.tokens) === JSON.stringify(db.tokens) && JSON.stringify(back.watch) === JSON.stringify(db.watch) && JSON.stringify(back.feedback) === JSON.stringify(db.feedback),
     tag + 'tokens, watch and feedback on disk equal the world in memory, byte for byte');
   if (journal) {
+    // v1134 receipt index: a save finds its players' receipts without walking every receipt of the world
+    for (let i = 0; i < 30000; i++) db.idem['p' + (i % 2000) + ':r:' + i] = { t: 1, resp: { ok: true } };
+    st.write(db, [], null, { slice: 0, of: 16 });   // slice 0 walks the table once (these 30,000 are not noted)
+    const sc0 = st.stats.receiptScans | 0;
+    db.idem['p20:new:1'] = { t: 2, resp: { ok: 'noted' } }; st.noteReceipt('p20:new:1'); db.users.p20.gold = 2020;
+    db.idem['p21:new:1'] = { t: 2, resp: { ok: 'unnoted' } }; db.users.p21.gold = 2121;
+    const t0 = process.hrtime.bigint(); st.write(db, ['p20', 'p21']); const ms = Number(process.hrtime.bigint() - t0) / 1e6;
+    let rb = WSX.readWorld(file);
+    check((st.stats.receiptScans | 0) === sc0 && rb.idem['p20:new:1'] && rb.users.p21.gold === 2121 && !rb.idem['p21:new:1'] && ms < 50,
+      tag + 'a save of 2 players on 32,000 receipts walked none of them (' + ms.toFixed(1) + ' ms): the noted receipt is on disk, an unnoted one waits');
+    st.write(db, [], null, { slice: 0, of: 16 }); rb = WSX.readWorld(file);
+    check(!rb.idem['p21:new:1'] && (st.stats.receiptScans | 0) === sc0 + 1, tag + 'slice 0 walks the table again (the unnoted receipt of a player nobody saved still waits for its player)');
+    db.users.p21.gold = 2122; st.write(db, ['p21']); rb = WSX.readWorld(file);
+    check(rb.idem['p21:new:1'] && rb.users.p21.gold === 2122, tag + 'the walk indexed it: the next save of that player writes the unnoted receipt');
+    delete db.idem['p20:new:1']; st.write(db, ['p20']); rb = WSX.readWorld(file);
+    check(!rb.idem['p20:new:1'], tag + 'a pruned receipt of a saved player is written as gone');
+    db.idem = Object.assign({}, db.idem, { 'p22:swap:1': { t: 3, resp: {} } }); st.write(db, ['p22']); rb = WSX.readWorld(file);
+    check(rb.idem['p22:swap:1'], tag + 'a replaced receipt table is walked (its new receipt is on disk)');
     const sv = WSX.create(file, { split: true, journal: true, verify: true, io: 'sync' }), d2 = sv.load();
     d2.watch.p10.t = 1234; sv.write(d2, ['p11']);
     check(sv.stats.undeclaredPieces === 1 && sv.stats.undeclaredPieceNames.includes('watch'), 'journal: DB_STORE_VERIFY=1 counts an unmarked change to a flagged piece (' + sv.stats.undeclaredPieceNames.join(',') + ')');
