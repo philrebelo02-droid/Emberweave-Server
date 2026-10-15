@@ -1,0 +1,10 @@
+const {load,spec}=require('./lib.js'); const vm=require('vm'); const L=load(); const S=L.S;
+if(process.argv[4]) vm.runInContext(process.argv[4],L.ctx);
+const P=JSON.parse(process.argv[2]); const y=process.argv[3]||'konwu'; const mates=['grosk','vael','sylthaine','vireo'];
+const mk=k=>L.host.snapFromSpecs([k,...mates].map(z=>spec(z,P)));
+const og=S.updateBattle; let n=0;
+S.updateBattle=function(dt){ const r=og.apply(this,arguments); n++; const us=vm.runInContext('units',L.ctx), t=vm.runInContext('battleTime',L.ctx);
+  if(n%40===0 && t<30) console.log(t.toFixed(1), us.map(u=>u.team[0]+':'+u.key+(u.alive?'':'(D)')+' hp'+Math.max(0,Math.round(u.hp))+' ->'+(u.target?u.target.key+(u.target.team===u.team?'!SAME':''):'-')+' x'+Math.round(u.x)+',y'+Math.round(u.y)).join(' | '));
+  return r; };
+L.reset(); const r=L.host.auto(mk('hollow'),mk(y),111); console.log('won',r.won);
+console.log(L.report().rows.map(q=>q.team[0]+':'+q.key+' dmg'+Math.round(Object.values(q.dmg).reduce((a,b)=>a+b,0))+' k'+q.kills).join(' | '));

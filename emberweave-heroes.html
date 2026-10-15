@@ -2285,6 +2285,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
   .wpsCost{font-weight:700;font-size:calc(var(--u)*48);line-height:1.3;color:#ffd45e} .wpsCard.gem .wpsCost{color:#8fd0ff} .wpsCard.myth .wpsCost{color:#d9b8ff}
   .wpsFree{font-weight:700;font-size:calc(var(--u)*44);line-height:1.3;color:#9fb0c4;min-height:calc(var(--u)*58)} .wpsFree.on{color:#5ee89b}
   .wpsSub{font-size:calc(var(--u)*36);line-height:1.25;color:#8b98a9;max-height:calc(var(--u)*90);overflow:hidden}
+  .wpsOdds{font-size:calc(var(--u)*28);line-height:1.3;color:#c7d0dd;margin-top:calc(var(--u)*8)}   /* v1144: each pool's odds on its card */
   .wpsCard .btn{flex:0 0 auto;width:100%;height:calc(var(--u)*124);min-height:0;margin:calc(var(--u)*20) 0 0;padding:0 calc(var(--u)*16);font-size:calc(var(--u)*42);line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-sizing:border-box} .wpsCard .btn:first-of-type{margin-top:calc(var(--u)*30)} .wpsCard .btn span{font-size:.8em!important}
   .wpsStage.tall .wpsCards{flex-direction:column;gap:calc(var(--u)*50)}
   .wpsStage.tall .wpsCard{display:grid;grid-template-columns:calc(var(--u)*300) 1fr;grid-auto-rows:min-content;column-gap:calc(var(--u)*40);align-content:center;text-align:left;align-items:center}
@@ -5326,7 +5327,7 @@ function ccSecFor(o,k){
    uiIcon / hudIcon / statusIcon return the same <img> for code that builds HTML directly. */
 const ICON_SRC={s:n=>`/assets/img/icons/status/${n}-v1.webp`, t:n=>`/assets/img/icons/stat/${n}-v1.webp`, u:n=>`/assets/img/icons/ui/${n}-v1.webp`, h:n=>`/assets/img/ui/hud-${n}.webp?v=1`, a:n=>(ART_ICON[n]||ART_ICON['glyph-frag'])};
 /* v1141 (pre-beta sweep: emojis left in the START HERE list): {i:a:<name>} = existing game art used as an inline icon */
-const ART_ICON={'glyph-frag':'/assets/img/glyphs-v2/Grey/fragment-vitality.png?v=4', 'wish-gold':'/assets/img/wishing/pool-gold-v1.webp?v=1', 'wish-diamond':'/assets/img/wishing/pool-diamond-v1.webp?v=1'};
+const ART_ICON={'glyph-frag':'/assets/img/glyphs-v2/Grey/fragment-vitality.png?v=4', 'wish-gold':'/assets/img/wishing/pool-gold-v1.webp?v=1', 'wish-diamond':'/assets/img/wishing/pool-diamond-v1.webp?v=1', 'wish-myth':'/assets/img/wishing/pool-mythical-v1.webp?v=1'};
 function iconImg(k,n,cls){ return `<img class="stIc${cls?' '+cls:''}" src="${ICON_SRC[k](n)}" alt="">`; }
 function uiIcon(n,cls){ return iconImg('u',n,cls); }
 /* v1100 (Phil 9 Oct: 'the hero fragment should be their hero card'): a hero's fragments show that hero's own card, the way the reference
@@ -21527,6 +21528,10 @@ async function api(path,method,bodyObj){ try{ const h={'Content-Type':'applicati
   const r=await fetch(path,{method:method||'GET',headers:h,body:bodyObj?JSON.stringify(bodyObj):undefined}); const j=await r.json();
   // single-session: if our token was invalidated (signed in elsewhere / reset / deleted), drop the local session gracefully
   if(j&&j.error==='auth'&&ACC.token){ handleSignedOutElsewhere(); }
+  /* v1144 (15 Oct, Soul Eater beat 1-10 and saw DEFEAT "Server 1 is down"): a front-door 503 means the reply never arrived - it is a lost
+     reply, not an answer. Report it as offline so every requestId retry loop re-sends the SAME request and gets the receipt, and no
+     result screen ever paints a fight the server may have booked as a defeat. */
+  if(j&&j.serverDown) return {error:'offline', serverDown:1, message:j.error};
   return j; }catch(e){ return {error:'offline'}; } }
 /* v989 (4 Oct City Wall audit #7 #8): one spend at a time per lane. A second tap while one is in flight returns {busy:true} and
    sends nothing; the ONE requestId is re-sent (3 tries) on a lost reply or a refused save, so a booked action answers with
@@ -24859,7 +24864,7 @@ function wishRiggedHeroes(){ const p=wishStarPool(2); return p.length?p:['fritz'
 // ---- WISH POOLS (Phil's economy spec, 2026-08-21) ----
 // GOLD well carries the three 1★ heroes only. DIAMOND well carries the 2★ and 3★ ladders
 // (mythicals and shop/arena-exclusive heroes are excluded from both), plus a 0.1% KonWu.
-const GOLD_WELL_HEROES=['tick','dandra','carn'];          // Tick, Dandra, Carn
+const GOLD_WELL_HEROES=['tick','dandra','carn','vael','vex','sylthaine','vireo'];   // v1144: every 1-star hero (server POOL_GOLD_HEROES)
 function wishStarPool(n){ return HERO_KEYS.filter(k=>{ const t=HERO_TYPES[k];
   return t && t.locked && !t.myth && !t.source && heroStartStars(k)===n; }); }
 function pickFrom(a,fb){ return a.length?a[Math.floor(Math.random()*a.length)]:fb; }
@@ -24974,7 +24979,7 @@ function wishAgainBtnHTML(pool,n,id){ const w=wishAgainInfo(pool,n), ok=w.free||
 function showWishResult(res,pool){ const ov=document.createElement('div');
   ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.82);display:flex;align-items:center;justify-content:center;z-index:20000;padding:16px';
   ov.innerHTML=`<div style="background:linear-gradient(160deg,#122033,#0c1520);border:1px solid ${pool==='gem'?'#3f6fae':'#8a6b2e'};border-radius:18px;padding:22px;width:100%;max-width:320px;text-align:center;box-shadow:0 12px 46px #000b">
-    <div style="font-size:11px;letter-spacing:1px;color:#8b98a9;text-transform:uppercase">${pool==='myth'?'🌟 Mythical Wish':pool==='gem'?'🔮 Diamond Wish':'⛲ Gold Wish'}</div>
+    <div style="font-size:11px;letter-spacing:1px;color:#8b98a9;text-transform:uppercase">${pool==='myth'?iconImg('a','wish-myth')+' Mythical Wish':pool==='gem'?iconImg('a','wish-diamond')+' Diamond Wish':iconImg('a','wish-gold')+' Gold Wish'}</div>
     <div style="font-size:60px;margin:8px 0;display:flex;justify-content:center;${res.big?'animation:wishbob 1.6s ease-in-out infinite':''}">${res.hero?`<div style="width:132px;height:132px">${heroIcon(res.hero,132)}</div>`:(res.art||res.icon)}</div>
     <div style="font-size:16px;font-weight:800;color:#e6edf3;line-height:1.4">${res.name}</div>
     ${res.extra?`<div style="font-size:12px;color:#5ee89b;margin-top:6px">${res.extra}</div>`:''}
@@ -25071,7 +25076,7 @@ async function wishShowInfo(){ const old=document.getElementById('wishInfo'); if
   const o=(st&&st.odds)||{}, mo=(st&&st.mythOdds)||null, pct=v=>v==null?'?':(+(v*100).toFixed(2))+'%';
   const ov=document.createElement('div'); ov.id='wishInfo'; ov.className='wishInfoOv'; ov.onclick=e=>{ if(e.target===ov) ov.remove(); };
   ov.innerHTML=`<div class="wishInfoCard"><div class="wishInfoHead"><b>Wishing Pool</b><button class="btn sm secondary" id="wishInfoX">${uiIcon('close')}</button></div>
-    <div class="wishInfoSec">${iconImg('a','wish-gold')} Gold Pool · ${hudIcon('gold')}${WISH_GOLD_COST}</div><div>Tick, Dandra &amp; Carn · full hero ${pct(o.goldHero)} · fragments ${pct(o.goldFrag)} · glyph fragments of the level below your highest 36.8% (2-4) · of your highest level 20.8% (1-2) · gold 17.6% · diamonds 4.8% · 3 free wishes a day, 1 an hour</div>
+    <div class="wishInfoSec">${iconImg('a','wish-gold')} Gold Pool · ${hudIcon('gold')}${WISH_GOLD_COST}</div><div>every 1${uiIcon('star-filled')} hero (Vael, Vex, Sylthaine, Vireo, Tick, Dandra, Carn) · full hero ${pct(o.goldHero)} · fragments ${pct(o.goldFrag)} · glyph fragments of the level below your highest 36.8% (2-4) · of your highest level 20.8% (1-2) · gold 17.6% · diamonds 4.8% · 3 free wishes a day, 1 an hour</div>
     <div class="wishInfoSec">🔮 Diamond Pool · ${hudIcon('gem')}${WISH_GEM_COST}</div><div>The 2${uiIcon('star-filled')} and 3${uiIcon('star-filled')} ladders · full 3${uiIcon('star-filled')} hero ${pct(o.full3)} · full 2${uiIcon('star-filled')} hero ${pct(o.full2)} · 3${uiIcon('star-filled')} fragments ${pct(o.frag3)} · 2${uiIcon('star-filled')} fragments ${pct(o.frag2)} · full glyph of your level ${pct(o.glyphFull)} · full glyph of the next level ${pct(o.glyphNext)} · ${STAM_ITEM_NAME} (${STAM_ITEM_STAMINA} stamina) ${pct(o.stamItem)} · 1 free wish a day · a hero within ${st&&st.pity?st.pity.at:40} wishes · first wish: a 2${uiIcon('star-filled')} hero</div>
     <div class="wishInfoSec">${uiIcon('mythical-star')} Mythical Pool · ${hudIcon('gem')}${WISH_MYTH_COST} · EGP ${MYTH_UNLOCK_EGP}</div><div>${mo?'Mythical hero '+pct(mo.mythHero)+' · mythical fragments '+pct(mo.mythFrag)+' · glyph fragments '+pct(mo.glyphFrag)+' · full glyph '+pct(mo.glyphFull)+' · attack card '+pct(mo.attackCard)+' · shield '+pct(mo.shield)+' · teleport card '+pct(mo.teleport)+' · Kindled '+pct(mo.kindled)+' · Stoked '+pct(mo.stoked)+' · Blazing '+pct(mo.blazing)+' · Inferno '+pct(mo.inferno):'Only mythical heroes'}</div>
     <div style="display:flex;gap:6px;margin-top:10px"><button class="btn sm secondary" id="wishInfoHist">${uiIcon('quest-scroll')} My roll history</button></div></div>`;
@@ -25113,6 +25118,7 @@ function renderWishing(){ applySceneBg('wishing',WISHPOOL_BG); const b=document.
       <div class="wpsCost">${hudIcon('gold')} ${WISH_GOLD_COST} / wish</div>
       <div class="wpsFree ${goldFree?'on':''}">${goldFree?uiIcon('sparkle-new')+' Free wish ready':(goldLeft>0?(uiIcon('timer')+' Next free '+fmtDur(goldNext||0)):'Daily free wishes used')}</div>
       <div class="wpsSub">Free: ${goldLeft}/${WISH_GOLD_FREE_MAX} today · 1 per hour</div>
+      <div class="wpsOdds">Hero 5% · Hero fragments 15% · Glyph fragments 57.6% · Gold 17.6% · Diamonds 4.8%</div>
       <button class="btn ${canGold?'':'secondary'}" id="wpGold" ${canGold?'':'disabled'}>${goldFree?'Wish · Free':'Wish · '+hudIcon('gold')+WISH_GOLD_COST}</button>
       <button class="btn ${(poolReady&&(G.gold||0)>=wishGold10Cost())?'':'secondary'}" id="wpGold10" ${(poolReady&&(G.gold||0)>=wishGold10Cost())?'':'disabled'}>10 Wishes · ${hudIcon('gold')}${wishGold10Cost()} <span style="font-size:10px;color:#7ee0a0">−10%</span></button>
     </div>
@@ -25122,6 +25128,7 @@ function renderWishing(){ applySceneBg('wishing',WISHPOOL_BG); const b=document.
       <div class="wpsCost">${hudIcon('gem')} ${WISH_GEM_COST} / wish</div>
       <div class="wpsFree ${gemFree?'on':''}">${!gemUnlocked?hudIcon('lock')+' Clear Stage 1-5 to unlock':(gemFree?(gemRigged?uiIcon('sparkle-new')+' Free first wish ready':uiIcon('sparkle-new')+' Free wish ready'):(uiIcon('timer')+' Free wish in '+fmtDur(gemNext||0)))}</div>
       <div class="wpsSub">${gemRigged?'First wish: guaranteed 2'+uiIcon('star-filled')+' hero':'1 free daily (09:00 ET reset)'}</div>
+      <div class="wpsOdds">3${uiIcon('star-filled')} hero 3% · 2${uiIcon('star-filled')} hero 10% · 3${uiIcon('star-filled')} fragments 17% · 2${uiIcon('star-filled')} fragments 23% · Full glyph 20% · Next-level glyph 10% · Ember Roast 17% · hero by wish 40</div>
       <button class="btn ${canGem?'':'secondary'}" id="wpGem" ${canGem?'':'disabled'}>${gemFree?'Wish · Free':'Wish · '+hudIcon('gem')+WISH_GEM_COST}</button>
       <button class="btn ${(poolReady&&gemUnlocked&&(G.gems||0)>=wishGem10Cost())?'':'secondary'}" id="wpGem10" ${(poolReady&&gemUnlocked&&(G.gems||0)>=wishGem10Cost())?'':'disabled'}>10 Wishes · ${hudIcon('gem')}${wishGem10Cost()} <span style="font-size:10px;color:#7ee0a0">−10%</span></button>
     </div>
@@ -25130,6 +25137,7 @@ function renderWishing(){ applySceneBg('wishing',WISHPOOL_BG); const b=document.
       <div class="wpsName">Mythical Pool</div>
       <div class="wpsCost">${hudIcon('gem')} ${WISH_MYTH_COST} / wish</div>
       <div class="wpsFree">${mythPoolOpen()?uiIcon('lock-open')+' Mythical heroes only':hudIcon('lock')+' Opens at EGP '+MYTH_UNLOCK_EGP}</div>
+      <div class="wpsOdds">Mythical hero 1% · Mythical fragments 36% · Glyph fragments 27% · Full glyph 10% · Prayers 11% · Attack card 5% · Shield 5% · Teleport 5%</div>
       <button class="btn ${(poolReady&&mythPoolOpen()&&(G.gems||0)>=WISH_MYTH_COST)?'':'secondary'}" id="wpMyth" ${(poolReady&&mythPoolOpen()&&(G.gems||0)>=WISH_MYTH_COST)?'':'disabled'}>Wish · ${hudIcon('gem')}${WISH_MYTH_COST}</button>
       <button class="btn ${(poolReady&&mythPoolOpen()&&(G.gems||0)>=WISH_MYTH_COST*WISH10_MULT)?'':'secondary'}" id="wpMyth10" ${(poolReady&&mythPoolOpen()&&(G.gems||0)>=WISH_MYTH_COST*WISH10_MULT)?'':'disabled'}>10 Wishes · ${hudIcon('gem')}${WISH_MYTH_COST*WISH10_MULT}</button>
     </div>
