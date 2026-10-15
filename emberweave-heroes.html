@@ -772,7 +772,7 @@
   .ctrlBtn{pointer-events:auto;background:rgba(21,27,43,.92);color:#e6edf3;border:1px solid #33405e;border-radius:20px;padding:0 8px;font-size:12px;font-weight:800;cursor:pointer;width:92px;height:32px;box-sizing:border-box;white-space:nowrap;text-align:center;}
   .ctrlBtn.on{background:#ffd45e;color:#0b0e14;border-color:#ffd45e;}
   .ctrlBtn.pending{background:rgba(21,27,43,.92);border-color:#ffd45e;color:#ffe49c;font-size:10px;cursor:wait;}
-  #banner{position:absolute;inset:0;display:none;align-items:center;justify-content:center;font-size:36px;font-weight:900;color:#ffd45e;text-shadow:0 4px 22px rgba(0,0,0,.7);pointer-events:none;z-index:18;text-align:center;letter-spacing:2px;padding:20px;}
+  #banner{position:absolute;inset:0;display:none;align-items:center;justify-content:center;font-size:36px;font-weight:900;color:#ffd45e;text-shadow:0 4px 22px rgba(0,0,0,.7);pointer-events:none;z-index:75;text-align:center;letter-spacing:2px;padding:20px;}
   #banner.show{display:flex;animation:pop 1.4s ease-out forwards;}
   @keyframes pop{0%{opacity:0;transform:scale(2.2);}20%{opacity:1;transform:scale(1);}72%{opacity:1;}100%{opacity:0;transform:scale(1.1);}}
 
@@ -27397,7 +27397,7 @@ function renderGemShop(){ document.getElementById('hudShopTitle').innerHTML='';
         ${GEM_OFFERS.map((o,i)=>`<div class="sf-item" data-i="${i}">
           <img class="sf-ic" src="${SHOP_ICONS[o.img]||''}" alt="${o.name}" draggable="false">
           <div class="sf-price">${freePacksOn()?'FREE':o.price}</div>
-          <div class="sf-tip"><div class="sf-tip-name">${o.name}</div><div class="sf-tip-desc">${o.detail}</div><div class="sf-tip-price">${o.price}</div></div>
+          <div class="sf-tip"><div class="sf-tip-name">${o.name}</div><div class="sf-tip-desc">${o.detail}</div><div class="sf-tip-price">${freePacksOn()?'FREE':o.price}</div></div>
         </div>`).join('')}
       </div>
     </div>`;
