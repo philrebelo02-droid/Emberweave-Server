@@ -14290,7 +14290,8 @@ function endBattle(won){
       for(let _try=0;_try<3;_try++){
         r=await api('/api/campaign/resolve','POST',{attemptId:att, requestId:_rid,
           inputLog:_log, digest:_dg, won:_wn, stars:_st});   // v412: the fight the player watched IS the result
-        if(!(r&&(r.error==='offline'||r.storageFailed))||_try===2) break;
+        /* v1145 (15 Oct proof sweep): an empty reply, a 500 and a 429 are transient too - the SAME requestId is re-sent and a booked fight answers with its receipt */
+        if(!(!r||r.error==='offline'||r.storageFailed||r.error==='server error'||/slow down/i.test(r.error||''))||_try===2) break;
         await new Promise(z=>setTimeout(z,1500*(_try+1))); }
       if(resultStale(ep)){ if(r&&r.ledger) adoptLedger(r.ledger); return; }   // v328: CUR.node now belongs to a NEWER fight — never bank stars/cleared on it or paint its screen
       const sWon=!!(r&&r.ok&&r.won);   // v412: the server now records and echoes back the PLAYER's own result
@@ -14315,7 +14316,12 @@ function endBattle(won){
          not a defeat. The server recorded nothing and returned the stamina, so the screen must say
          that, not DEFEAT. Same for an attempt the server no longer knows (expired / restarted). */
       const _unv=!!(r && !r.ok && (r.unverified || r.expired || r.storageFailed || r.error==='offline' || /verified|expired|stamina/i.test(r.error||'')));   // v975: a fight that was never saved is not a defeat
-      document.getElementById('resultTitle').textContent=sWon?'VICTORY':(_unv?'NOT COUNTED':'DEFEAT');
+      /* v1145 (Phil 15 Oct, pre-beta: "Players trying 50 times and then seeing defeat, its bad"): a fight the PLAYER WON is never
+         painted DEFEAT. Only the server's own receipt of a loss (ok:true, won:false) or a fight the player lost says DEFEAT; any other
+         answer to a won fight - "No matching campaign battle." after a crash, 429, 500, 413, auth, an empty body - is NOT COUNTED. */
+      const _wonNoReceipt=!!(_wn && !sWon && !(r && r.ok));
+      const _unvAny=_unv||_wonNoReceipt;
+      document.getElementById('resultTitle').textContent=sWon?'VICTORY':(_unvAny?'NOT COUNTED':'DEFEAT');
       document.getElementById('resultTitle').className='result-big '+(sWon?'win':'lose');
       // v253 (visual audit #1): the GUARANTEED stage reward is the headline — exact item, icon and
       // count, with the farm source named — and gold/XP are clearly labelled as bonus.
@@ -14326,7 +14332,7 @@ function endBattle(won){
           +((r.reward&&r.reward.eliteFrag&&r.reward.eliteFrag.qty)?`<div style="margin-top:6px;color:#c9a0ff">${fragCard(r.reward.eliteFrag.heroKey)} +${r.reward.eliteFrag.qty|0} ${escapeHTML((HERO_TYPES[r.reward.eliteFrag.heroKey]||{}).name||r.reward.eliteFrag.heroKey)} fragment${(r.reward.eliteFrag.qty|0)===1?'':'s'}</div>`:'')
           +((r.reward&&r.reward.dailyCapped)?'<div style="margin-top:6px;color:#ff9a9a">Daily limit reached for this stage (3 rewarded runs/day) — no rewards this run.</div>':'')
           +`<div style="margin-top:6px">${uiIcon('star-filled').repeat(r.stars||1)+uiIcon('star-empty').repeat(Math.max(0,3-(r.stars||1)))}${r.reward&&r.reward.first?' · <b style="color:#ffd45e">First clear!</b>':''}</div>`
-        : (_unv?('<div style="color:#ffd45e;font-weight:700;margin-bottom:4px">You '+(/"won":true/.test(window._p2lastDigest||'')?'won':'fought')+' this one — '+((r&&(r.error==='offline'||r.storageFailed))?(r.storageFailed?'but the server could not save it, so it was not counted.':'but the connection was lost before the server answered, so it is not counted here.'):'but the server could not verify it, so nothing was recorded and your stamina is back.')+'</div><span style="color:#ff8b8b">'+escapeHTML((r&&r.error&&r.error!=='offline')?r.error:'')+'</span>'+(r&&r.reason?'<div style="font-size:10.5px;color:#6f7d90;margin-top:4px">('+escapeHTML(r.reason)+(CUR.engine&&CUR.engine!==BUILD_ID?' · the game updated during this fight':'')+')</div>':''))
+        : (_unvAny?('<div style="color:#ffd45e;font-weight:700;margin-bottom:4px">You '+(/"won":true/.test(window._p2lastDigest||'')?'won':'fought')+' this one — '+((!r||r.error==='offline'||r.storageFailed)?((r&&r.storageFailed)?'but the server could not save it, so it was not counted.':'but the connection was lost before the server answered, so it is not counted here.'):(_unv?'but the server could not verify it, so nothing was recorded and your stamina is back.':'but the server did not confirm it, so it is not counted here.'))+'</div><span style="color:#ff8b8b">'+escapeHTML((r&&r.error&&r.error!=='offline')?r.error:'')+'</span>'+(r&&r.reason?'<div style="font-size:10.5px;color:#6f7d90;margin-top:4px">('+escapeHTML(r.reason)+(CUR.engine&&CUR.engine!==BUILD_ID?' · the game updated during this fight':'')+')</div>':''))
           : ((r&&r.error)?('<span style="color:#ff8b8b">'+escapeHTML(r.error)+'</span>'):'Your squad fell.'));
       document.getElementById('resultHint').textContent='';
       updateHubChrome(); gameSpeed=1; show('result');
