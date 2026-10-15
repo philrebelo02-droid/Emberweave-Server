@@ -11881,7 +11881,7 @@ function rivetPick(u,t){ const m=rivetGap(u,t)<=RIVET_WPN.meleeR, L=m?RIVET_WPN.
   const w=L[(u[k]|0)%L.length]; u[k]=((u[k]|0)+1)%L.length; return w; }
 function rivetFire(u,t,dmg,clip,crit){ const W=RIVET_WPN, w=u._rvWpn, rate=u._atkSpdMul||1, melee=W.melee.indexOf(w)>=0;
   const fly=melee?0:0.22*HERO_FX_MUL;   // the same flight the old ranged swing used
-  const hit=(fn,extra)=>fuseStrike(u,t,clip,()=>{ _preCrit=crit; try{ fn(); } finally{ _preCrit=null; } },extra,rate);
+  const hit=(fn,extra)=>{ const _fd=fuseStrike(u,t,clip,()=>{ _preCrit=crit; try{ fn(); } finally{ _preCrit=null; } },extra,rate); if(typeof SFX!=='undefined'&&SFX.loop) sfxAtkFuse(u,_fd,melee); return _fd; };   /* v1138 sound: every weapon blow plays his attack pick on its own fuse (his melee pick in melee) - rivetFire bypassed the generic swing's hook */
   const vis=(extra)=>fuseStrike(u,t,clip,()=>{ try{ if(t.alive){ const i=W.vis[w]; spawnArsenalShot(u,t,i,()=>{ try{ burstAt(t.x,t.y,ARSENAL[i].col,8); }catch(e){} }); } }catch(e){} },extra||0,rate);   /* display only - a plain burst: the old rounds' labels (RICOCHET, HEAVY...) would misname his weapons */
   switch(w){
     case 'gatling': for(let k=0;k<W.gatShots;k++){ const off=k*W.gatGap/rate; vis(off); hit(()=>{ if(t.alive) dealDamage(u,t,dmg*W.gatPct,'#ffe08a'); },fly+off); } break;
@@ -11906,12 +11906,13 @@ function rivetHook(u,e){ const W=RIVET_WPN, clip=(u.anim&&u.anim.w_hook)||(BATTL
   const dmg=u.dmg*(u.dmgBuffT>0?u.dmgBuffMul:1)*rageMul;
   u._rvHookT=clipDur(clip)*0.5*BATTLE_PACE/rate+0.05;   // one hook in flight at a time
   u._atkClip='w_hook'; u.attackAnim=.18; u._faceDir=(e.x>=u.x)?1:-1; u._idleHold=0; u._idleFrozen=false; u._idleClip=null;   /* display: the hook clip plays (an idle flourish in progress gives way, as it does to CC) */
-  fuseStrike(u,e,clip,()=>{ if(!e.alive||!u.alive) return;
+  const _hfd=fuseStrike(u,e,clip,()=>{ if(!e.alive||!u.alive) return;
     if(!e.immovable&&!(e.pass&&(e.pass.unstepped||e.pass.unstoppable))&&!((e._gearImmovableT||0)>0)){
       const dx=e.x-u.x, dy=e.y-u.y, L=Math.hypot(dx,dy)||1, to=Math.min(L,bodyR(u)+bodyR(e)+W.hookTo*METER);
       e._dash=null; e.x=u.x+dx/L*to; e.y=u.y+dy/L*to; e._ax=e.x; e._ay=e.y; }
     dealDamage(u,e,dmg*W.hookPct,'#bfe6ff');
-    if(e.alive) rivetCC(u,e,'stunned',W.hookStun); },0,rate); }
+    if(e.alive) rivetCC(u,e,'stunned',W.hookStun); },0,rate);
+  if(typeof SFX!=='undefined'&&SFX.loop) sfxAtkFuse(u,_hfd,true); }   /* v1138 sound: the chain hook plays his melee attack pick on the hook's fuse */
 function rivetHookTick(dt){ for(const u of units){ if(!u.alive||!(u.pass&&u.pass.arsenal)) continue;
     if((u._rvHookT||0)>0) u._rvHookT=Math.max(0,u._rvHookT-dt);
     const R=RIVET_WPN.meleeR, can=!((u.stunned||0)>0||(u.fearT||0)>0||(u._airT||0)>0||(u.pullT||0)>0||(u._frozenT||0)>0);

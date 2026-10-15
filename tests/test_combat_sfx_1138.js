@@ -19,7 +19,7 @@
 const path = require('path'), vm = require('vm'), fs = require('fs'), cp = require('child_process'), crypto = require('crypto');
 const ROOT = path.resolve(__dirname, '..');
 const HTML = process.env.EW_HTML || path.join(ROOT, 'emberweave-heroes.html');
-const BASE_SHA = process.env.EW_BASE || 'ca323d6d';   // the branch point (v1137 maren/orryn anim tip after the rebase) - no sound before this
+const BASE_SHA = process.env.EW_BASE || 'c78e5525';   // the branch point: live v1137 (Maren/Orryn, Veyr 2 s, Sylthaine, Rivet) after the rebase - no sound before this
 const LOG_DIR = process.env.EW_SFX_LOG || '';          // when set, the timing log of the fights is written there (the rig log)
 const MAN = JSON.parse(fs.readFileSync(path.join(ROOT, 'assets/audio/sfx/sfx_manifest.json'), 'utf8'));
 let pass = 0, fail = 0;
@@ -173,6 +173,12 @@ try {
   console.log('  info timing: ' + matched + ' sounds matched to the frame of their moment (' + entered + ' entered past their lead-in), ' + unmatched + ' with no damage/release on screen (the blow never landed: target dead / interrupted)');
   console.log('  info worst peak-vs-frame error ' + (maxErr * 1000).toFixed(1) + ' ms (' + (worst ? worst.hero + ' ' + worst.id + ' ' + worst.kind : '-') + ')');
   ck('every sound peak lands within one frame (33 ms) of the frame its blow / release / arrival is drawn (uneven phone frames, speed 1 and 2)', matched > 300 && Math.abs(maxErr) <= FRAME + 1e-9, (maxErr * 1000).toFixed(1) + ' ms');
+  {   // v1137 Rivet's ten weapons (rivetFire / rivetHook, his rank-3 passive): each weapon blow plays his attack pick on its own fuse, on the weapon clip's contact
+    const rv = rows2.filter(r => r[0] === 'rivet' && r[2] === 'attack'), wcl = new Set(rv.map(r => (r[4] || '').split(' ')[0]).filter(c => /^w_/.test(c)));
+    const rvMax = rv.reduce((m, r) => Math.max(m, Math.abs(r[3])), 0);
+    console.log('  info Rivet: ' + rv.length + ' weapon/attack sounds matched, weapon clips heard: ' + [...wcl].join(',') + ', worst ' + rvMax + ' ms');
+    ck('Rivet - his weapon blows sound (rivetFire hook) on his weapon clips, each peak within one frame (33 ms) of its blow', rv.length >= 5 && wcl.size >= 2 && rvMax <= 34, rv.length + ' / ' + [...wcl].join(',') + ' / ' + rvMax);
+  }
   {   // CONTROL: a file whose peak is off by 0.1 s (the manifest lying about it) - the same check catches it
     const e = resP[0].live.log.find(q => q.k === 'play' && q.kind === 'attack');
     const m = e && resP[0].live.log.find(q => q.k === 'blow' && q.hero === e.hero && Math.abs(q.due - e.due) < 1e-3);
