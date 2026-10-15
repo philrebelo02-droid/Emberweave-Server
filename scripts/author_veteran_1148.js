@@ -10,7 +10,11 @@
               Elite (capped at Orange). Families follow the matching Elite stage; the Orange stages cycle all 18 Orange families.
      - recommendedPower = Normal x2 (Elite is Normal x1.5); targetLevel / recommendedQuality / qualityMinHeroLevel = the paid band, as
        Elite does; bossLevelGate = Normal's (informational - campBossLevelGate is 0, v825).
-   No hero fragments: Normal's reward-hero units stay in the fight as enemies, their rewardHero flag is dropped (Veteran never paid heroes).
+   v1149 (Phil 15 Oct: "Veteran should give hero fragments yes"): HERO FRAGMENTS like Elite. Every Elite reward-hero stage (x-1/4/7/10, 64
+   stages) is a Veteran reward-hero stage with the SAME hero (Elite's tiered pool: 1-star early, 2-star, then 3-star - no shop, arena or
+   mythical heroes); the server pays it x2 (PORTAL_HERO_FRAG_MUL). The hero takes a final-wave slot exactly as author_portals.js puts
+   Elite's there: the Normal final-wave hero unit if there is one (not the boss), else the first non-boss unit - keeping that unit's
+   Normal x2 hpMul/dmgMul, so the 2x strength holds. Normal's own reward flags are dropped (Veteran pays Elite's hero, not Normal's).
    Usage: node scripts/author_veteran_1148.js   (writes server/veteran-campaign-encounters.json) */
 const fs=require('fs'), path=require('path');
 const DIR=path.join(__dirname,'..','server');
@@ -37,6 +41,13 @@ const veteran=normal.map((n,i)=>{
   if(!catalog.has(key)) throw new Error(n.id+': '+key+' is not a catalog fragment');
   const waves=n.waves.map(w=>w.map(m=>{ const u=Object.assign({},m,{ hpMul:+(m.hpMul*VET_SCALE).toFixed(4), dmgMul:+(m.dmgMul*VET_SCALE).toFixed(4) });
     delete u.rewardHero; return u; }));
+  /* v1149: Elite's reward hero, fought in the final wave (author_portals.js slot rule) */
+  if(e.rewardHero){ const eu=e.waves[e.waves.length-1].find(m=>m&&m.rewardHero&&m.key===e.rewardHero);
+    if(!eu) throw new Error(n.id+': Elite reward hero '+e.rewardHero+' is not in its final wave');
+    const final=waves[waves.length-1]; let at=final.findIndex(m=>m&&m.isHero&&!m.boss); if(at<0) at=final.findIndex(m=>m&&!m.boss);
+    if(at<0) throw new Error(n.id+': no non-boss slot for the reward hero');
+    const u=Object.assign({},final[at],{ key:e.rewardHero, isHero:true, rewardHero:true }); if(eu.rank!=null) u.rank=eu.rank; else delete u.rank;
+    final[at]=u; }
   const er=e.rewards;
   return { id:n.id, node:n.node, mode:'veteran', checkpoint:n.checkpoint,
     recommendedPower:Math.round(n.recommendedPower*VET_SCALE),
@@ -46,6 +57,7 @@ const veteran=normal.map((n,i)=>{
       playerXpFirst:er.playerXpFirst, playerXpRepeat:er.playerXpRepeat, heroXpFirst:er.heroXpFirst, heroXpRepeat:er.heroXpRepeat,
       glyphFragments:[frag(key,2)] },
     waves,
+    ...(e.rewardHero?{ rewardHero:e.rewardHero }:{}),
     veteranRebalance:{ v:'v1148', date:'2026-10-15', scale:VET_SCALE, target:'2x the Normal stage (Phil: "Elite and veteran are 50% and 100% scaling of normal")' } };
 });
 fs.writeFileSync(path.join(DIR,'veteran-campaign-encounters.json'), JSON.stringify(veteran,null,1));

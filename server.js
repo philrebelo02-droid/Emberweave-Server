@@ -1457,6 +1457,12 @@ function isHeroRewardStageSrv(g){ return isEliteStageSrv(g)||campIsBoss(g); }
 /* v1148: Veteran is now Normal x2 on all 160 stages and, like Elite, every stage pays two of one named Glyph Fragment - so every Veteran
    stage is capped like every Elite stage (3 rewarded runs a day) and costs the Elite stamina. portalHardMode is that one answer. */
 function portalHardMode(mode){ return mode==='elite'||mode==='veteran'; }
+/* v1149 (Phil 15 Oct 2026: "Veteran should give hero fragments yes"): which portals pay the hero fragment of the reward hero they fight, and
+   how many. Normal pays on x-3/6/9/10 (isHeroRewardStageSrv), Elite and Veteran on every stage that names a rewardHero (x-1/4/7/10, the same
+   64 stages and heroes - Veteran copies Elite's). One count rule for all three: a first clear rolls 2-4, a repeat run (fight or sweep) pays 1;
+   Veteran pays that x2 (4-8 first, 2 a run), one step above Elite as its gold and glyph band are. The 3-a-day run cap is unchanged. */
+const PORTAL_HERO_FRAG_MUL=Object.freeze({normal:1, elite:1, veteran:2});
+function portalPaysHeroFrag(mode,st,node){ return !!(st&&st.rewardHero) && (portalHardMode(mode) || (mode==='normal' && isHeroRewardStageSrv(node))); }
 function campCapStageSrv(mode,node){ return portalHardMode(mode)||isEliteStageSrv(node)||campIsBoss(node); }
 function eliteHeroForSrv(g){ if(!isHeroRewardStageSrv(g)) return null;
   const ch=Math.floor((g-1)/10)+1, st=((g-1)%10)+1;
@@ -4353,6 +4359,7 @@ function portalCompile(){
         if(e.rewardHero&&!final.some(m=>m&&m.isHero&&m.rewardHero&&m.key===e.rewardHero)) throw new Error(mode+' '+e.id+': Elite hero-reward stage must fight its authored hero');
       }
       if(mode==='veteran'&&gf[0].quantity!==2) throw new Error(mode+' '+e.id+': Veteran stage must pay two Glyph Fragments (v1148)');
+      if(mode==='veteran'&&e.rewardHero&&!(e.waves[e.waves.length-1]||[]).some(m=>m&&m.isHero&&m.rewardHero&&m.key===e.rewardHero)) throw new Error(mode+' '+e.id+': Veteran hero-reward stage must fight its authored hero (v1149)');
       for(const f of gf){
         if(!f.key||!f.fragmentId||!(f.quantity>=1)) throw new Error(mode+' '+e.id+': fragment record malformed');
         const q=f.key.slice(0,f.key.lastIndexOf(' '));
@@ -6901,8 +6908,8 @@ async function api(req,res,url){
       const glyphFragments=glyphGrantNamedList(me,campaignGlyphDrops(st,times,srvSeed('campglyph-sweep',me.id,mode,node,reqId)));
       // Guardian and boss reward stages grant the fragment of the hero fought in their final wave.
       let eliteFrag=null;
-      if(st.rewardHero && (mode==='elite' || (mode==='normal' && isHeroRewardStageSrv(node)))){ const hk=st.rewardHero||eliteHeroForSrv(node);
-        creditFrags(me,led,hk,times,'campaign:sweep'); eliteFrag={heroKey:hk, qty:times}; }
+      if(portalPaysHeroFrag(mode,st,node)){ const hk=st.rewardHero||eliteHeroForSrv(node), q=times*(PORTAL_HERO_FRAG_MUL[mode]||1);
+        creditFrags(me,led,hk,q,'campaign:sweep'); eliteFrag={heroKey:hk, qty:q}; }
       writeDB(); return {ok:true, mode, times, gold, px, heroXp:hxp, xpPotions, glyphFragments, eliteFrag, ledger:ledgerView(me)};
     });
     return send(res, out.storageFailed?503:(out.ok===false?400:200), out); }
@@ -7457,12 +7464,12 @@ async function api(req,res,url){
            first clear included (and a first clear can never be swept: sweep needs three stars).
            Capped on the SAME 3-rewarded-runs-per-day budget the sweep route enforces, so this is not
            a new uncapped farm; the amount is what every other path already pays. */
-        if(rewarded && st.rewardHero && (mode==='elite' || (mode==='normal' && isHeroRewardStageSrv(a.node)))){
+        if(rewarded && portalPaysHeroFrag(mode,st,a.node)){
           prog.runs=prog.runs||{}; const _dk=nyDayKey(); if(prog.runs.k!==_dk) prog.runs={k:_dk};
           const _used=prog.runs['n'+a.node]|0;
           if(_used<3 || (capStage&&!first)){
             const _hk=st.rewardHero||eliteHeroForSrv(a.node);
-            const _amt=first?(2+(srvSeed('efrag', me.id, a.node, reqId)%3)):1;   // first clear: the advertised 2-4 roll; farm runs: +1, same as a sweep run
+            const _amt=(first?(2+(srvSeed('efrag', me.id, a.node, reqId)%3)):1)*(PORTAL_HERO_FRAG_MUL[mode]||1);   /* v1149: Veteran x2 */   // first clear: the advertised 2-4 roll; farm runs: +1, same as a sweep run
             if(first) prog.runs['n'+a.node]=_used+1;   // repeats were counted once by the shared cap above
             led.frags=led.frags||{};
             creditFrags(me,led,_hk,_amt,'campaign:clear');

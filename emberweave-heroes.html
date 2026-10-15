@@ -19615,7 +19615,8 @@ function portalLockMsg(m){ return (G.portals&&G.portals[m]&&G.portals[m].locked)
 /* v1148: the ladder Normal -> Elite -> Veteran, chapter by chapter (= server portalChapterLocked): Elite chapter c after Normal c-10,
    Veteran chapter c after Elite c-10. */
 const PORTAL_PREV={ elite:'normal', veteran:'elite' };
-function portalHardMode(m){ return m==='elite'||m==='veteran'; }   // v1148: every stage capped 3/day and 12 stamina (= server portalHardMode)
+function portalHardMode(m){ return m==='elite'||m==='veteran'; }
+const PORTAL_HERO_FRAG_MUL={normal:1, elite:1, veteran:2};   // v1149: hero fragments per run (= server): first clear 2-4 x this, a repeat run 1 x this   // v1148: every stage capped 3/day and 12 stamina (= server portalHardMode)
 function portalChapterLockMsg(m,ch){ const prev=PORTAL_PREV[m]; if(!prev) return null; const need=Math.max(1,ch|0)*10;
   return portalCleared(prev)<need ? ('Complete '+PORTAL_META[prev].label+' '+ch+'-10 to unlock '+PORTAL_META[m].label+' Chapter '+ch+'.') : null; }
 function portalChapters(m){ return Math.ceil(portalStages(m)/STAGES_PER_CH); }
@@ -19778,7 +19779,7 @@ function renderRoadmap(){
       const _anim=_hk&&BATTLE_ANIM[_hk], _idle=_anim&&(boss?(_anim.walk||_anim.idle):_anim.idle);
       const _ih=boss?56:36, _iw=_idle?Math.max(boss?28:18,Math.min(boss?74:34,_ih*_idle.fw/_idle.fh)):28;
       const face=_idle?`<canvas class="cIdle" width="${_idle.fw}" height="${_idle.fh}" data-u="${_idle.u}" data-fw="${_idle.fw}" data-fh="${_idle.fh}" data-n="${_idle.n}" data-cols="${_idle.cols||6}" data-rows="${_idle.rows||Math.ceil(_idle.n/(_idle.cols||6))}" data-fps="${boss?Math.max(3,Math.min(5,(_idle.fps||10)*.45)):Math.min(12,_idle.fps||8)}" data-ping="${boss?0:(_idle.pingpong?1:0)}" style="--idlew:${_iw}px;--idleh:${_ih}px"></canvas>`:`<span class="clock">${clickable?(boss?uiIcon('crown'):(cleared?uiIcon('check'):s)):hudIcon('lock')}</span>`;
-      el.innerHTML=`${face}<div class="clbl">${boss?'BOSS':((elite&&MODE!=='veteran')?'HERO FRAGMENTS':'STAGE')}<span class="cstagecode">${stageCode(g)}</span>${_sstH}</div>`;
+      el.innerHTML=`${face}<div class="clbl">${boss?'BOSS':((MODE==='normal'?elite:[1,4,7].includes(stageInChapter(g)))?'HERO FRAGMENTS':'STAGE')}<span class="cstagecode">${stageCode(g)}</span>${_sstH}</div>`;
       if(clickable){ try{ wireTap(el, (function(_g){ return function(){ openStageModal(_g,MODE); }; })(g)); }catch(e){ el.onclick=(function(_g){ return function(){ openStageModal(_g,MODE); }; })(g); } } else { el.style.cursor='default'; }
       if(g===G.lastStage && MODE===(G.lastPortal||'normal')) el.classList.add('justplayed');
       _inner.appendChild(el);
@@ -19875,8 +19876,9 @@ function stageDropsHTML(stg,node,mode){
   (vaelFirst?[{key:'Grey Stoneheart',displayName:'Rough Gravel Fragment',quantity:2}]:randomized?gf:(g.length?g:gf.slice(0,1))).forEach(f=>chips.push(vaelFirst?fchip(f,false):randomized
     ?chip(art(f.key),escapeHTML((f.displayName||f.key).replace(/ Fragment$/,'')),'possible','#8fe3ff')
     :fchip(f,false)));
-  if(node!=null && ((mode==='elite'&&stg&&stg.rewardHero)||(mode==='normal'&&isHeroRewardStage(node)))){ const hk=(stg&&stg.rewardHero)||(mode==='normal'&&eliteHeroFor(node)), h=hk&&HERO_TYPES[hk];
-    if(h) chips.push(chip('<span style="font-size:13px;line-height:1">'+(h.emoji||uiIcon('medal'))+'</span>', escapeHTML(h.name), '×'+ELITE_FRAG_MIN+'–'+ELITE_FRAG_MAX, '#c9a0ff')); }
+  if(node!=null && ((portalHardMode(mode)&&stg&&stg.rewardHero)||(mode==='normal'&&isHeroRewardStage(node)))){ const hk=(stg&&stg.rewardHero)||(mode==='normal'&&eliteHeroFor(node)), h=hk&&HERO_TYPES[hk];
+    const _fm=PORTAL_HERO_FRAG_MUL[mode]||1;   // v1149: Veteran pays x2 (= server PORTAL_HERO_FRAG_MUL)
+    if(h) chips.push(chip('<span style="font-size:13px;line-height:1">'+(h.emoji||uiIcon('medal'))+'</span>', escapeHTML(h.name), '×'+(ELITE_FRAG_MIN*_fm)+'–'+(ELITE_FRAG_MAX*_fm), '#c9a0ff')); }
   b.forEach(f=>chips.push(fchip(f,true)));
   const _eb=(node!=null)&&(portalHardMode(mode)||isEliteStage(node)||isBossStage(node));
   const foot=(node==null)?'':`<span style="color:#6f7d90;font-size:10.5px;white-space:nowrap">⧗ ${stageStamCost(node,mode)}${_eb?' · runs <span style="color:'+(stageRunsLeft(node,mode)>0?'#8fe3ff':'#ff9a9a')+'">'+stageRunsLeft(node,mode)+'/'+ELITE_BOSS_DAILY+'</span>':''}</span>`;

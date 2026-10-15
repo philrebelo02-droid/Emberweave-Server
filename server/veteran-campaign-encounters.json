@@ -70,10 +70,13 @@
    ],
    [
     {
-     "key": "sootwing imp",
+     "key": "tick",
      "lvl": 1,
      "hpMul": 2.1736,
-     "dmgMul": 2.3478
+     "dmgMul": 2.3478,
+     "isHero": true,
+     "rewardHero": true,
+     "rank": 0
     },
     {
      "key": "ooznik",
@@ -89,6 +92,7 @@
     }
    ]
   ],
+  "rewardHero": "tick",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -363,10 +367,13 @@
    ],
    [
     {
-     "key": "grushak",
+     "key": "sylthaine",
      "lvl": 4,
      "hpMul": 1.6864,
-     "dmgMul": 2.1918
+     "dmgMul": 2.1918,
+     "isHero": true,
+     "rewardHero": true,
+     "rank": 0
     },
     {
      "key": "skarrn",
@@ -388,6 +395,7 @@
     }
    ]
   ],
+  "rewardHero": "sylthaine",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -680,10 +688,13 @@
    ],
    [
     {
-     "key": "ooznik",
+     "key": "vireo",
      "lvl": 7,
      "hpMul": 9.5222,
-     "dmgMul": 8.9884
+     "dmgMul": 8.9884,
+     "isHero": true,
+     "rewardHero": true,
+     "rank": 1
     },
     {
      "key": "cindertusk",
@@ -699,6 +710,7 @@
     }
    ]
   ],
+  "rewardHero": "vireo",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -1062,7 +1074,8 @@
      "hpMul": 6.526,
      "dmgMul": 4.824,
      "isHero": true,
-     "rank": 1
+     "rank": 1,
+     "rewardHero": true
     },
     {
      "key": "brukk",
@@ -1073,6 +1086,7 @@
     }
    ]
   ],
+  "rewardHero": "vael",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -1175,10 +1189,13 @@
    ],
    [
     {
-     "key": "bilewretch",
+     "key": "tick",
      "lvl": 6,
      "hpMul": 5.1,
-     "dmgMul": 5.9096
+     "dmgMul": 5.9096,
+     "isHero": true,
+     "rewardHero": true,
+     "rank": 1
     },
     {
      "key": "gnashul",
@@ -1194,6 +1211,7 @@
     }
    ]
   ],
+  "rewardHero": "tick",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -1528,10 +1546,13 @@
    ],
    [
     {
-     "key": "nightcap mimic",
+     "key": "fritz",
      "lvl": 8,
      "hpMul": 6.1104,
-     "dmgMul": 6.6652
+     "dmgMul": 6.6652,
+     "isHero": true,
+     "rewardHero": true,
+     "rank": 2
     },
     {
      "key": "rotbloom ooze",
@@ -1553,6 +1574,7 @@
     }
    ]
   ],
+  "rewardHero": "fritz",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -1893,10 +1915,13 @@
    ],
    [
     {
-     "key": "mudsnap crab",
+     "key": "rhukk",
      "lvl": 11,
      "hpMul": 7.764,
-     "dmgMul": 8.8352
+     "dmgMul": 8.8352,
+     "isHero": true,
+     "rewardHero": true,
+     "rank": 2
     },
     {
      "key": "mudsnap crab",
@@ -1918,6 +1943,7 @@
     }
    ]
   ],
+  "rewardHero": "rhukk",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -2247,15 +2273,17 @@
      "boss": true
     },
     {
-     "key": "umbris",
+     "key": "fritz",
      "lvl": 13,
      "hpMul": 5.6736,
      "dmgMul": 6.2842,
      "isHero": true,
-     "rank": 3
+     "rank": 3,
+     "rewardHero": true
     }
    ]
   ],
+  "rewardHero": "fritz",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -2358,10 +2386,13 @@
    ],
    [
     {
-     "key": "blackquill",
+     "key": "rhukk",
      "lvl": 14,
      "hpMul": 9.7264,
-     "dmgMul": 9.9314
+     "dmgMul": 9.9314,
+     "isHero": true,
+     "rewardHero": true,
+     "rank": 3
     },
     {
      "key": "crystalhorn grazer",
@@ -2383,6 +2414,7 @@
     }
    ]
   ],
+  "rewardHero": "rhukk",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -2705,10 +2737,13 @@
    ],
    [
     {
-     "key": "luminant orb",
+     "key": "fritz",
      "lvl": 15,
      "hpMul": 11.053,
-     "dmgMul": 10.9986
+     "dmgMul": 10.9986,
+     "isHero": true,
+     "rewardHero": true,
+     "rank": 3
     },
     {
      "key": "luminant orb",
@@ -2730,6 +2765,7 @@
     }
    ]
   ],
+  "rewardHero": "fritz",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -3034,10 +3070,13 @@
    ],
    [
     {
-     "key": "granith",
+     "key": "rhukk",
      "lvl": 17,
      "hpMul": 10.7726,
-     "dmgMul": 11.8964
+     "dmgMul": 11.8964,
+     "isHero": true,
+     "rewardHero": true,
+     "rank": 3
     },
     {
      "key": "granith",
@@ -3053,6 +3092,7 @@
     }
    ]
   ],
+  "rewardHero": "rhukk",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -3424,15 +3464,17 @@
      "boss": true
     },
     {
-     "key": "vireo",
+     "key": "fritz",
      "lvl": 18,
      "hpMul": 11.0856,
      "dmgMul": 9.7388,
      "isHero": true,
-     "rank": 3
+     "rank": 3,
+     "rewardHero": true
     }
    ]
   ],
+  "rewardHero": "fritz",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -3535,10 +3577,13 @@
    ],
    [
     {
-     "key": "lost soul",
+     "key": "rhukk",
      "lvl": 19,
      "hpMul": 14.8802,
-     "dmgMul": 12.061
+     "dmgMul": 12.061,
+     "isHero": true,
+     "rewardHero": true,
+     "rank": 3
     },
     {
      "key": "lost soul",
@@ -3554,6 +3599,7 @@
     }
    ]
   ],
+  "rewardHero": "rhukk",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -3876,10 +3922,13 @@
    ],
    [
     {
-     "key": "shellguard sentinel",
+     "key": "fritz",
      "lvl": 20,
      "hpMul": 23.3828,
-     "dmgMul": 19.3884
+     "dmgMul": 19.3884,
+     "isHero": true,
+     "rewardHero": true,
+     "rank": 3
     },
     {
      "key": "mordath",
@@ -3895,6 +3944,7 @@
     }
    ]
   ],
+  "rewardHero": "fritz",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -4211,10 +4261,13 @@
    ],
    [
     {
-     "key": "lost soul",
+     "key": "rhukk",
      "lvl": 22,
      "hpMul": 14.7668,
-     "dmgMul": 13.0176
+     "dmgMul": 13.0176,
+     "isHero": true,
+     "rewardHero": true,
+     "rank": 3
     },
     {
      "key": "mordath",
@@ -4236,6 +4289,7 @@
     }
    ]
   ],
+  "rewardHero": "rhukk",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -4583,15 +4637,17 @@
      "boss": true
     },
     {
-     "key": "bloatus",
+     "key": "fritz",
      "lvl": 24,
      "hpMul": 11.9954,
      "dmgMul": 9.2918,
      "isHero": true,
-     "rank": 3
+     "rank": 3,
+     "rewardHero": true
     }
    ]
   ],
+  "rewardHero": "fritz",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -4682,10 +4738,13 @@
    ],
    [
     {
-     "key": "nightgloom",
+     "key": "bloatus",
      "lvl": 25,
      "hpMul": 11.9298,
-     "dmgMul": 11.4062
+     "dmgMul": 11.4062,
+     "isHero": true,
+     "rewardHero": true,
+     "rank": 3
     },
     {
      "key": "mourn moth",
@@ -4707,6 +4766,7 @@
     }
    ]
   ],
+  "rewardHero": "bloatus",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -5059,10 +5119,13 @@
    ],
    [
     {
-     "key": "nightgloom",
+     "key": "umbris",
      "lvl": 26,
      "hpMul": 15.665,
-     "dmgMul": 13.4292
+     "dmgMul": 13.4292,
+     "isHero": true,
+     "rewardHero": true,
+     "rank": 3
     },
     {
      "key": "skyroot dryad",
@@ -5084,6 +5147,7 @@
     }
    ]
   ],
+  "rewardHero": "umbris",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -5412,10 +5476,13 @@
    ],
    [
     {
-     "key": "riftling spider",
+     "key": "oakmir",
      "lvl": 28,
      "hpMul": 22.1082,
-     "dmgMul": 17.4428
+     "dmgMul": 17.4428,
+     "isHero": true,
+     "rewardHero": true,
+     "rank": 3
     },
     {
      "key": "mourn moth",
@@ -5437,6 +5504,7 @@
     }
    ]
   ],
+  "rewardHero": "oakmir",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -5808,15 +5876,17 @@
      "boss": true
     },
     {
-     "key": "sylthaine",
+     "key": "bloatus",
      "lvl": 30,
      "hpMul": 12.3896,
      "dmgMul": 10.1044,
      "isHero": true,
-     "rank": 3
+     "rank": 3,
+     "rewardHero": true
     }
    ]
   ],
+  "rewardHero": "bloatus",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -5895,10 +5965,13 @@
    ],
    [
     {
-     "key": "ashen",
+     "key": "umbris",
      "lvl": 31,
      "hpMul": 34.2314,
-     "dmgMul": 23.3338
+     "dmgMul": 23.3338,
+     "isHero": true,
+     "rewardHero": true,
+     "rank": 3
     },
     {
      "key": "crucible acolyte",
@@ -5926,6 +5999,7 @@
     }
    ]
   ],
+  "rewardHero": "umbris",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -6266,10 +6340,13 @@
    ],
    [
     {
-     "key": "grundle",
+     "key": "oakmir",
      "lvl": 32,
      "hpMul": 31.2276,
-     "dmgMul": 22.8936
+     "dmgMul": 22.8936,
+     "isHero": true,
+     "rewardHero": true,
+     "rank": 3
     },
     {
      "key": "basalt mauler",
@@ -6285,6 +6362,7 @@
     }
    ]
   ],
+  "rewardHero": "oakmir",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -6619,10 +6697,13 @@
    ],
    [
     {
-     "key": "basalt mauler",
+     "key": "bloatus",
      "lvl": 34,
      "hpMul": 32.7664,
-     "dmgMul": 21.6426
+     "dmgMul": 21.6426,
+     "isHero": true,
+     "rewardHero": true,
+     "rank": 3
     },
     {
      "key": "crucible acolyte",
@@ -6644,6 +6725,7 @@
     }
    ]
   ],
+  "rewardHero": "bloatus",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -6991,15 +7073,17 @@
      "boss": true
     },
     {
-     "key": "rhukk",
+     "key": "umbris",
      "lvl": 36,
      "hpMul": 26.3802,
      "dmgMul": 17.8006,
      "isHero": true,
-     "rank": 3
+     "rank": 3,
+     "rewardHero": true
     }
    ]
   ],
+  "rewardHero": "umbris",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -7102,10 +7186,13 @@
    ],
    [
     {
-     "key": "frostjaw troll",
+     "key": "oakmir",
      "lvl": 37,
      "hpMul": 42.0496,
-     "dmgMul": 25.9594
+     "dmgMul": 25.9594,
+     "isHero": true,
+     "rewardHero": true,
+     "rank": 3
     },
     {
      "key": "ironjaw raider",
@@ -7133,6 +7220,7 @@
     }
    ]
   ],
+  "rewardHero": "oakmir",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -7467,10 +7555,13 @@
    ],
    [
     {
-     "key": "zephyr harrier",
+     "key": "bloatus",
      "lvl": 39,
      "hpMul": 33.8826,
-     "dmgMul": 24.1758
+     "dmgMul": 24.1758,
+     "isHero": true,
+     "rewardHero": true,
+     "rank": 3
     },
     {
      "key": "frostjaw troll",
@@ -7486,6 +7577,7 @@
     }
    ]
   ],
+  "rewardHero": "bloatus",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -7820,10 +7912,13 @@
    ],
    [
     {
-     "key": "luminant orb",
+     "key": "umbris",
      "lvl": 41,
      "hpMul": 48.75,
-     "dmgMul": 29.0162
+     "dmgMul": 29.0162,
+     "isHero": true,
+     "rewardHero": true,
+     "rank": 3
     },
     {
      "key": "granith",
@@ -7845,6 +7940,7 @@
     }
    ]
   ],
+  "rewardHero": "umbris",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -8204,15 +8300,17 @@
      "boss": true
     },
     {
-     "key": "tick",
+     "key": "oakmir",
      "lvl": 43,
      "hpMul": 38.8238,
      "dmgMul": 19.8912,
      "isHero": true,
-     "rank": 3
+     "rank": 3,
+     "rewardHero": true
     }
    ]
   ],
+  "rewardHero": "oakmir",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -8297,10 +8395,13 @@
    ],
    [
     {
-     "key": "grundle",
+     "key": "bloatus",
      "lvl": 44,
      "hpMul": 41.4526,
-     "dmgMul": 27.5382
+     "dmgMul": 27.5382,
+     "isHero": true,
+     "rewardHero": true,
+     "rank": 3
     },
     {
      "key": "clockwork lantern",
@@ -8322,6 +8423,7 @@
     }
    ]
   ],
+  "rewardHero": "bloatus",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -8650,10 +8752,13 @@
    ],
    [
     {
-     "key": "clockwork lantern",
+     "key": "umbris",
      "lvl": 46,
      "hpMul": 42.8822,
-     "dmgMul": 25.4742
+     "dmgMul": 25.4742,
+     "isHero": true,
+     "rewardHero": true,
+     "rank": 3
     },
     {
      "key": "riftling spider",
@@ -8675,6 +8780,7 @@
     }
    ]
   ],
+  "rewardHero": "umbris",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -8991,10 +9097,13 @@
    ],
    [
     {
-     "key": "saltglass siren",
+     "key": "oakmir",
      "lvl": 48,
      "hpMul": 39.1534,
-     "dmgMul": 26.5176
+     "dmgMul": 26.5176,
+     "isHero": true,
+     "rewardHero": true,
+     "rank": 3
     },
     {
      "key": "grundle",
@@ -9022,6 +9131,7 @@
     }
    ]
   ],
+  "rewardHero": "oakmir",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -9375,15 +9485,17 @@
      "boss": true
     },
     {
-     "key": "fritz",
+     "key": "bloatus",
      "lvl": 50,
      "hpMul": 33.3236,
      "dmgMul": 20.9104,
      "isHero": true,
-     "rank": 3
+     "rank": 3,
+     "rewardHero": true
     }
    ]
   ],
+  "rewardHero": "bloatus",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -9480,10 +9592,13 @@
    ],
    [
     {
-     "key": "kelp hexer",
+     "key": "umbris",
      "lvl": 51,
      "hpMul": 43.9174,
-     "dmgMul": 25.6014
+     "dmgMul": 25.6014,
+     "isHero": true,
+     "rewardHero": true,
+     "rank": 3
     },
     {
      "key": "lost soul",
@@ -9511,6 +9626,7 @@
     }
    ]
   ],
+  "rewardHero": "umbris",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -9845,10 +9961,13 @@
    ],
    [
     {
-     "key": "bitwraith",
+     "key": "oakmir",
      "lvl": 53,
      "hpMul": 57.089,
-     "dmgMul": 34.2624
+     "dmgMul": 34.2624,
+     "isHero": true,
+     "rewardHero": true,
+     "rank": 3
     },
     {
      "key": "wispweaver shade",
@@ -9870,6 +9989,7 @@
     }
    ]
   ],
+  "rewardHero": "oakmir",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -10222,10 +10342,13 @@
    ],
    [
     {
-     "key": "reef prowler",
+     "key": "bloatus",
      "lvl": 55,
      "hpMul": 59.483,
-     "dmgMul": 36.1798
+     "dmgMul": 36.1798,
+     "isHero": true,
+     "rewardHero": true,
+     "rank": 3
     },
     {
      "key": "storm eel",
@@ -10253,6 +10376,7 @@
     }
    ]
   ],
+  "rewardHero": "bloatus",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -10624,15 +10748,17 @@
      "boss": true
     },
     {
-     "key": "oakmir",
+     "key": "umbris",
      "lvl": 57,
      "hpMul": 30.3162,
      "dmgMul": 16.327,
      "isHero": true,
-     "rank": 3
+     "rank": 3,
+     "rewardHero": true
     }
    ]
   ],
+  "rewardHero": "umbris",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -10729,10 +10855,13 @@
    ],
    [
     {
-     "key": "magma hound",
+     "key": "oakmir",
      "lvl": 58,
      "hpMul": 75.8572,
-     "dmgMul": 35.7472
+     "dmgMul": 35.7472,
+     "isHero": true,
+     "rewardHero": true,
+     "rank": 3
     },
     {
      "key": "ashen",
@@ -10760,6 +10889,7 @@
     }
    ]
   ],
+  "rewardHero": "oakmir",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -11094,10 +11224,13 @@
    ],
    [
     {
-     "key": "furnace gnawer",
+     "key": "bloatus",
      "lvl": 60,
      "hpMul": 94.6934,
-     "dmgMul": 48.8268
+     "dmgMul": 48.8268,
+     "isHero": true,
+     "rewardHero": true,
+     "rank": 3
     },
     {
      "key": "magma hound",
@@ -11119,6 +11252,7 @@
     }
    ]
   ],
+  "rewardHero": "bloatus",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -11471,10 +11605,13 @@
    ],
    [
     {
-     "key": "cinder skulk",
+     "key": "umbris",
      "lvl": 63,
      "hpMul": 82.928,
-     "dmgMul": 45.6542
+     "dmgMul": 45.6542,
+     "isHero": true,
+     "rewardHero": true,
+     "rank": 3
     },
     {
      "key": "furnace gnawer",
@@ -11502,6 +11639,7 @@
     }
    ]
   ],
+  "rewardHero": "umbris",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -11873,15 +12011,17 @@
      "boss": true
     },
     {
-     "key": "vael",
+     "key": "oakmir",
      "lvl": 65,
      "hpMul": 34.6014,
      "dmgMul": 17.9102,
      "isHero": true,
-     "rank": 3
+     "rank": 3,
+     "rewardHero": true
     }
    ]
   ],
+  "rewardHero": "oakmir",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -11978,10 +12118,13 @@
    ],
    [
     {
-     "key": "crystalhorn grazer",
+     "key": "bloatus",
      "lvl": 66,
      "hpMul": 83.0922,
-     "dmgMul": 40.005
+     "dmgMul": 40.005,
+     "isHero": true,
+     "rewardHero": true,
+     "rank": 3
     },
     {
      "key": "granith",
@@ -12009,6 +12152,7 @@
     }
    ]
   ],
+  "rewardHero": "bloatus",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -12343,10 +12487,13 @@
    ],
    [
     {
-     "key": "luminant orb",
+     "key": "umbris",
      "lvl": 68,
      "hpMul": 94.9996,
-     "dmgMul": 46.6084
+     "dmgMul": 46.6084,
+     "isHero": true,
+     "rewardHero": true,
+     "rank": 3
     },
     {
      "key": "luminant orb",
@@ -12368,6 +12515,7 @@
     }
    ]
   ],
+  "rewardHero": "umbris",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -12720,10 +12868,13 @@
    ],
    [
     {
-     "key": "crystalhorn grazer",
+     "key": "oakmir",
      "lvl": 70,
      "hpMul": 111.6966,
-     "dmgMul": 55.3968
+     "dmgMul": 55.3968,
+     "isHero": true,
+     "rewardHero": true,
+     "rank": 3
     },
     {
      "key": "bonepike guard",
@@ -12751,6 +12902,7 @@
     }
    ]
   ],
+  "rewardHero": "oakmir",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -13122,15 +13274,17 @@
      "boss": true
     },
     {
-     "key": "umbris",
+     "key": "bloatus",
      "lvl": 72,
      "hpMul": 78.628,
      "dmgMul": 31.8154,
      "isHero": true,
-     "rank": 3
+     "rank": 3,
+     "rewardHero": true
     }
    ]
   ],
+  "rewardHero": "bloatus",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -13227,10 +13381,13 @@
    ],
    [
     {
-     "key": "kelp hexer",
+     "key": "umbris",
      "lvl": 73,
      "hpMul": 99.7406,
-     "dmgMul": 45.46
+     "dmgMul": 45.46,
+     "isHero": true,
+     "rewardHero": true,
+     "rank": 3
     },
     {
      "key": "bitwraith",
@@ -13258,6 +13415,7 @@
     }
    ]
   ],
+  "rewardHero": "umbris",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -13592,10 +13750,13 @@
    ],
    [
     {
-     "key": "runic automaton",
+     "key": "oakmir",
      "lvl": 75,
      "hpMul": 134.695,
-     "dmgMul": 59.512
+     "dmgMul": 59.512,
+     "isHero": true,
+     "rewardHero": true,
+     "rank": 3
     },
     {
      "key": "runic automaton",
@@ -13617,6 +13778,7 @@
     }
    ]
   ],
+  "rewardHero": "oakmir",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -13969,10 +14131,13 @@
    ],
    [
     {
-     "key": "saltglass siren",
+     "key": "bloatus",
      "lvl": 77,
      "hpMul": 131.7642,
-     "dmgMul": 63.1318
+     "dmgMul": 63.1318,
+     "isHero": true,
+     "rewardHero": true,
+     "rank": 3
     },
     {
      "key": "nightgloom",
@@ -14000,6 +14165,7 @@
     }
    ]
   ],
+  "rewardHero": "bloatus",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -14371,15 +14537,17 @@
      "boss": true
     },
     {
-     "key": "vireo",
+     "key": "umbris",
      "lvl": 79,
      "hpMul": 123.0008,
      "dmgMul": 41.4472,
      "isHero": true,
-     "rank": 3
+     "rank": 3,
+     "rewardHero": true
     }
    ]
   ],
+  "rewardHero": "umbris",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -14476,10 +14644,13 @@
    ],
    [
     {
-     "key": "furnace gnawer",
+     "key": "oakmir",
      "lvl": 80,
      "hpMul": 143.681,
-     "dmgMul": 65.0602
+     "dmgMul": 65.0602,
+     "isHero": true,
+     "rewardHero": true,
+     "rank": 3
     },
     {
      "key": "nightcap mimic",
@@ -14507,6 +14678,7 @@
     }
    ]
   ],
+  "rewardHero": "oakmir",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -14841,10 +15013,13 @@
    ],
    [
     {
-     "key": "sootwing imp",
+     "key": "bloatus",
      "lvl": 82,
      "hpMul": 163.7092,
-     "dmgMul": 71.6282
+     "dmgMul": 71.6282,
+     "isHero": true,
+     "rewardHero": true,
+     "rank": 3
     },
     {
      "key": "mourn moth",
@@ -14866,6 +15041,7 @@
     }
    ]
   ],
+  "rewardHero": "bloatus",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -15218,10 +15394,13 @@
    ],
    [
     {
-     "key": "furnace gnawer",
+     "key": "umbris",
      "lvl": 84,
      "hpMul": 141.4712,
-     "dmgMul": 66.3526
+     "dmgMul": 66.3526,
+     "isHero": true,
+     "rewardHero": true,
+     "rank": 3
     },
     {
      "key": "furnace gnawer",
@@ -15249,6 +15428,7 @@
     }
    ]
   ],
+  "rewardHero": "umbris",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -15620,15 +15800,17 @@
      "boss": true
     },
     {
-     "key": "bloatus",
+     "key": "oakmir",
      "lvl": 86,
      "hpMul": 60.9044,
      "dmgMul": 26.6066,
      "isHero": true,
-     "rank": 3
+     "rank": 3,
+     "rewardHero": true
     }
    ]
   ],
+  "rewardHero": "oakmir",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -15725,10 +15907,13 @@
    ],
    [
     {
-     "key": "ashen",
+     "key": "bloatus",
      "lvl": 87,
      "hpMul": 133.9578,
-     "dmgMul": 51.8868
+     "dmgMul": 51.8868,
+     "isHero": true,
+     "rewardHero": true,
+     "rank": 3
     },
     {
      "key": "basalt mauler",
@@ -15756,6 +15941,7 @@
     }
    ]
   ],
+  "rewardHero": "bloatus",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -16090,10 +16276,13 @@
    ],
    [
     {
-     "key": "basalt mauler",
+     "key": "umbris",
      "lvl": 89,
      "hpMul": 186.376,
-     "dmgMul": 78.4344
+     "dmgMul": 78.4344,
+     "isHero": true,
+     "rewardHero": true,
+     "rank": 3
     },
     {
      "key": "granith",
@@ -16115,6 +16304,7 @@
     }
    ]
   ],
+  "rewardHero": "umbris",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -16467,10 +16657,13 @@
    ],
    [
     {
-     "key": "ashen",
+     "key": "oakmir",
      "lvl": 91,
      "hpMul": 212.8296,
-     "dmgMul": 86.087
+     "dmgMul": 86.087,
+     "isHero": true,
+     "rewardHero": true,
+     "rank": 3
     },
     {
      "key": "crucible acolyte",
@@ -16498,6 +16691,7 @@
     }
    ]
   ],
+  "rewardHero": "oakmir",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -16869,15 +17063,17 @@
      "boss": true
     },
     {
-     "key": "sylthaine",
+     "key": "bloatus",
      "lvl": 93,
      "hpMul": 100.8794,
      "dmgMul": 37.8788,
      "isHero": true,
-     "rank": 3
+     "rank": 3,
+     "rewardHero": true
     }
    ]
   ],
+  "rewardHero": "bloatus",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -16974,10 +17170,13 @@
    ],
    [
     {
-     "key": "frostjaw troll",
+     "key": "umbris",
      "lvl": 94,
      "hpMul": 202.4646,
-     "dmgMul": 74.6214
+     "dmgMul": 74.6214,
+     "isHero": true,
+     "rewardHero": true,
+     "rank": 3
     },
     {
      "key": "clockwork lantern",
@@ -17005,6 +17204,7 @@
     }
    ]
   ],
+  "rewardHero": "umbris",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -17339,10 +17539,13 @@
    ],
    [
     {
-     "key": "clockwork lantern",
+     "key": "oakmir",
      "lvl": 96,
      "hpMul": 307.1244,
-     "dmgMul": 118.029
+     "dmgMul": 118.029,
+     "isHero": true,
+     "rewardHero": true,
+     "rank": 3
     },
     {
      "key": "clockwork lantern",
@@ -17364,6 +17567,7 @@
     }
    ]
   ],
+  "rewardHero": "oakmir",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -17716,10 +17920,13 @@
    ],
    [
     {
-     "key": "bonepike guard",
+     "key": "bloatus",
      "lvl": 98,
      "hpMul": 241.931,
-     "dmgMul": 96.5992
+     "dmgMul": 96.5992,
+     "isHero": true,
+     "rewardHero": true,
+     "rank": 3
     },
     {
      "key": "bonepike guard",
@@ -17747,6 +17954,7 @@
     }
    ]
   ],
+  "rewardHero": "bloatus",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -18118,15 +18326,17 @@
      "boss": true
     },
     {
-     "key": "rhukk",
+     "key": "umbris",
      "lvl": 100,
      "hpMul": 86.6788,
      "dmgMul": 34.0622,
      "isHero": true,
-     "rank": 3
+     "rank": 3,
+     "rewardHero": true
     }
    ]
   ],
+  "rewardHero": "umbris",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -18217,10 +18427,13 @@
    ],
    [
     {
-     "key": "crystalhorn grazer",
+     "key": "oakmir",
      "lvl": 100,
      "hpMul": 239.5396,
-     "dmgMul": 91.7028
+     "dmgMul": 91.7028,
+     "isHero": true,
+     "rewardHero": true,
+     "rank": 3
     },
     {
      "key": "ironjaw raider",
@@ -18248,6 +18461,7 @@
     }
    ]
   ],
+  "rewardHero": "oakmir",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -18606,10 +18820,13 @@
    ],
    [
     {
-     "key": "basalt mauler",
+     "key": "bloatus",
      "lvl": 100,
      "hpMul": 207.6104,
-     "dmgMul": 79.479
+     "dmgMul": 79.479,
+     "isHero": true,
+     "rewardHero": true,
+     "rank": 3
     },
     {
      "key": "ironjaw raider",
@@ -18637,6 +18854,7 @@
     }
    ]
   ],
+  "rewardHero": "bloatus",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -18953,10 +19171,13 @@
    ],
    [
     {
-     "key": "bonepike guard",
+     "key": "umbris",
      "lvl": 100,
      "hpMul": 283.0864,
-     "dmgMul": 108.3856
+     "dmgMul": 108.3856,
+     "isHero": true,
+     "rewardHero": true,
+     "rank": 3
     },
     {
      "key": "bonepike guard",
@@ -18972,6 +19193,7 @@
     }
    ]
   ],
+  "rewardHero": "umbris",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",
@@ -19331,15 +19553,17 @@
      "boss": true
     },
     {
-     "key": "tick",
+     "key": "oakmir",
      "lvl": 100,
      "hpMul": 165.1652,
      "dmgMul": 66.7428,
      "isHero": true,
-     "rank": 3
+     "rank": 3,
+     "rewardHero": true
     }
    ]
   ],
+  "rewardHero": "oakmir",
   "veteranRebalance": {
    "v": "v1148",
    "date": "2026-10-15",

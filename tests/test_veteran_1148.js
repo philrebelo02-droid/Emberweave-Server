@@ -7,6 +7,9 @@
 //   2. ENGINE - Veteran 1-1, 10-10 and 16-10 fought in the real engine (server/sim-host.js) against Normal with the same squad.
 //   3. ROUTES - a real server on a free port: gates, start/resolve on 1-1, 10-10, 16-10, sweep + daily cap on every stage.
 // Control for part 3: AUD_SERVER=<pre-v1148 server.js copied into the repo root> must FAIL.
+// v1149 (Phil 15 Oct: "Veteran should give hero fragments yes"): Veteran pays the hero fragment of Elite's reward hero on the same 64 stages
+// (x-1/4/7/10), x2 Elite's count (first clear 4-8, a repeat run 2), under the same 3-a-day cap. Part 4 is a built-in control: the v1148
+// live server (git e94e80a4) on the same data pays NO Veteran hero fragments.
 const assert=require('assert'),fs=require('fs'),os=require('os'),path=require('path'),net=require('net'),{spawn}=require('child_process');
 const root=path.join(__dirname,'..'), srvFile=process.env.AUD_SERVER||'server.js';
 let pass=0; const missed=[];
@@ -21,7 +24,7 @@ const bandOf=s=>Math.max(...s.rewards.glyphFragments.map(f=>band(f.key)));
 console.log('== v1148 Veteran 1-16 = Normal x2: data ==');
 const isTwoX=(vet)=>vet.length===160 && vet.every((v,i)=>{ const n=N[i]; return v.id===n.id && v.node===n.node && v.checkpoint===n.checkpoint
   && v.waves.length===n.waves.length && v.waves.every((w,wi)=>w.length===n.waves[wi].length && w.every((u,ui)=>{ const m=n.waves[wi][ui];
-    return u.key===m.key && u.lvl===m.lvl && !!u.boss===!!m.boss && Math.abs(u.hpMul/(m.hpMul*2)-1)<1e-3 && Math.abs(u.dmgMul/(m.dmgMul*2)-1)<1e-3; })); });
+    return (u.key===m.key || (u.rewardHero && u.key===v.rewardHero)) && u.lvl===m.lvl && !!u.boss===!!m.boss && Math.abs(u.hpMul/(m.hpMul*2)-1)<1e-3 && Math.abs(u.dmgMul/(m.dmgMul*2)-1)<1e-3; })); });
 ok(V.length===160 && V[0].id==='1-1' && V[159].id==='16-10','Veteran has 160 stages, 1-1 to 16-10 ('+V.length+')');
 ok(isTwoX(V),'every Veteran stage = the matching Normal stage, same units/levels/bosses, hp x2 AND dmg x2');
 { const ctl=JSON.parse(JSON.stringify(V)); ctl[57].waves[1][0].dmgMul=+(N[57].waves[1][0].dmgMul*1.9).toFixed(4);
@@ -35,7 +38,12 @@ ok(V.every(v=>v.mode==='veteran'&&v.portalMode==='veteran'&&v.farmFragment===v.r
 ok(V.every(v=>v.rewards.glyphFragments.length===1&&v.rewards.glyphFragments[0].quantity===2),'every Veteran stage pays two of one named Glyph Fragment (Elite rule)');
 ok(V.every(v=>v.recommendedQuality===LADDER[bandOf(v)]&&v.targetLevel===v.qualityMinHeroLevel),'recommendedQuality = the paid band, targetLevel = its min hero level (Elite rule)');
 ok(V.every((v,i)=>v.bossLevelGate===N[i].bossLevelGate),'bossLevelGate follows Normal (as Elite does)');
-ok(V.every(v=>!v.rewardHero && v.waves.every(w=>w.every(u=>!u.rewardHero))),'Veteran pays no hero fragments: no stage or unit carries rewardHero');
+ok(V.filter(v=>v.rewardHero).length===64 && V.every((v,i)=>(v.rewardHero||null)===(E[i].rewardHero||null)),'v1149: Veteran names a reward hero on exactly the 64 stages Elite does, the same hero ('+V.filter(v=>v.rewardHero).length+')');
+ok(V.filter(v=>v.rewardHero).every(v=>[1,4,7,0].includes(v.node%10)),'v1149: Veteran hero stages are x-1/4/7/10, as Elite');
+{ const eliteHeroes=new Set(E.filter(e=>e.rewardHero).map(e=>e.rewardHero));
+  ok(V.filter(v=>v.rewardHero).every(v=>eliteHeroes.has(v.rewardHero)),'v1149: Veteran pays only heroes Elite already pays ('+[...eliteHeroes].join(', ')+') - no shop, arena or mythical heroes'); }
+ok(V.every(v=>{ const tagged=v.waves.flat().filter(u=>u.rewardHero); return v.rewardHero ? (tagged.length===1&&tagged[0].key===v.rewardHero&&tagged[0].isHero&&!tagged[0].boss&&v.waves[v.waves.length-1].includes(tagged[0])) : tagged.length===0; }),
+  'v1149: each hero stage fights its reward hero once, in the final wave, never as the boss; other stages tag no unit');
 /* reward ordering Normal < Elite < Veteran */
 ok(V.every((v,i)=>N[i].rewards.firstGold<E[i].rewards.firstGold&&E[i].rewards.firstGold<v.rewards.firstGold
   && N[i].rewards.repeatGold<E[i].rewards.repeatGold&&E[i].rewards.repeatGold<v.rewards.repeatGold),'gold: Normal < Elite < Veteran on every stage (first and repeat)');
@@ -54,14 +62,20 @@ ok(V.filter(v=>v.node%10===0).every(v=>{ const b=v.waves[v.waves.length-1].find(
 ok(!/CHAPTER_VETERAN_BOSS_KEYS\s*[=\[]/.test(html.replace(/\/\*[\s\S]*?\*\//g,'')),'the client no longer reads a separate Veteran boss table');
 ok(/veteran:\{label:'Veteran', stages:160/.test(html),'the client portal meta says Veteran has 160 stages');
 ok(!/'veteran'\?10:/.test(html),'no client path pins Veteran to chapter 10');
+{ const srv=fs.readFileSync(path.join(root,'server.js'),'utf8');
+  ok(/const PORTAL_HERO_FRAG_MUL=\{normal:1, elite:1, veteran:2\}/.test(html) && /PORTAL_HERO_FRAG_MUL=Object\.freeze\(\{normal:1, elite:1, veteran:2\}\)/.test(srv),
+    'v1149: the stage card and the server agree - Veteran pays x2 hero fragments (card shows x4-8)');
+  ok(/portalHardMode\(mode\)&&stg&&stg\.rewardHero/.test(html),'v1149: the stage card shows the reward hero chip on Veteran like Elite'); }
 
 /* ---------------- 2. ENGINE ---------------- */
 console.log('== v1148: Veteran 1-1, 10-10, 16-10 in the real engine ==');
 const host=require(path.join(root,'server','sim-host.js')).load(path.join(root,'emberweave-heroes.html'));
-const squad=['vael','sylthaine','vireo','grosk','meridian'];
-const mk=(lvl,k)=>host.snapFromSpecs(squad.map(key=>({key,level:lvl,stars:5,pips:0,ref:0,glyphRank:6,
-  tt:{hp:4000*k,atk:300*k,crit:60,armor:80*k,mr:80*k},ex:{},fAtk:300*k,fHp:4000*k,fApow:0,apMul:1,skillLv:[3,3,3,1]})));
-const minK=(stage,lvl)=>{ for(let e=-8;e<=8;e++){ const k=Math.pow(2,e), r=host.campaign(mk(lvl,k),stage.waves,4242,[]); if(r.won) return {k,r}; } return null; };
+/* v1149: a plain 1-star trio whose flat stats scale by k in sqrt(2) steps - the 5-star line used in v1148 beat 1-1 at any k once Tick
+   took a slot, so "harder" could not be seen there. The weakest k that wins measures the stage. */
+const squad=['vael','sylthaine','vireo'];
+const mk=(lvl,k)=>host.snapFromSpecs(squad.map(key=>({key,level:lvl,stars:1,pips:0,ref:0,glyphRank:0,
+  tt:{hp:100*k,atk:10*k,armor:5*k,mr:5*k},ex:{},fAtk:10*k,fHp:100*k,fApow:0,apMul:1,skillLv:[1,1,1,1]})));
+const minK=(stage,lvl)=>{ for(let e=0;e<=44;e++){ const k=+Math.pow(2,e/2).toFixed(3), r=host.campaign(mk(lvl,k),stage.waves,4242,[]); if(r.won) return {k,r}; } return null; };
 for(const i of [0,99,159]){ const lvl=Math.max(1,N[i].targetLevel|0);
   const a=minK(N[i],lvl), b=minK(V[i],lvl);
   ok(!!a&&!!b,'Veteran '+V[i].id+' is winnable in the engine (Normal needs squad x'+(a&&a.k)+', Veteran x'+(b&&b.k)+')');
@@ -81,6 +95,9 @@ async function stop(){ if(!child)return; child.kill(); for(let i=0;i<60&&child.e
 async function call(route,data){ const r=await fetch(base+route,{method:data?'POST':'GET',headers:{'Content-Type':'application/json','x-token':token},body:data?JSON.stringify(data):undefined});
   let j={}; try{ j=await r.json(); }catch(_){} return {status:r.status,data:j}; }
 const disk=()=>JSON.parse(fs.readFileSync(dbFile,'utf8'));
+async function editDBWith(file,fn){ await delay(400); await stop(); const db=disk(); fn(db.users[id]); fs.writeFileSync(dbFile,JSON.stringify(db));
+  child=spawn(process.execPath,[file],{cwd:root,env:{...process.env,ALLOW_NEW_GUESTS:'1',DATABASE_URL:'',PORT:String(port),DB_FILE:dbFile,RL_MUL:'1000',ADMIN_IDS:''},stdio:'ignore',windowsHide:true});
+  for(let i=0;i<300;i++){ try{ if((await fetch(base+'/health')).ok)return; }catch(_){} await delay(100);} throw Error('no start'); }
 async function editDB(fn){ await delay(400); await stop(); const db=disk(); fn(db.users[id]); fs.writeFileSync(dbFile,JSON.stringify(db)); await start(); }
 let rq=0; const R=()=>'v1148-'+(rq++);
 (async()=>{ try{
@@ -123,6 +140,42 @@ let rq=0; const R=()=>'v1148-'+(rq++);
   ok(sw[0].gold===V[31].rewards.repeatGold,'a Veteran sweep pays the authored repeat gold ('+sw[0].gold+' / '+V[31].rewards.repeatGold+')');
   const card=(await call('/api/campaign/stage?mode=veteran&node=32')).data;
   ok(card.runsLeft===0,'the stage card shows 0 runs left on Veteran 4-2 ('+card.runsLeft+')');
+  /* ---- v1149: hero fragments ---- */
+  const fragsOf=async k=>{ const l=(await call('/api/ledger')).data; return ((l.ledger||l).frags||{})[k]|0; };
+  const hs=V[33];   // Veteran 4-4, Elite's reward hero
+  await editDB(u=>{ u.led.stam={v:999,t:Date.now()}; u.led.portals.veteran.stars={34:3}; u.led.portals.veteran.runs={}; u.led.portals.elite.stars={34:3}; u.led.portals.elite.runs={}; });
+  const f0=await fragsOf(hs.rewardHero);
+  const vs=[]; for(let i=0;i<4;i++) vs.push((await call('/api/campaign/sweep',{mode:'veteran',node:34,times:1,requestId:R()})).data);
+  const es=(await call('/api/campaign/sweep',{mode:'elite',node:34,times:1,requestId:R()})).data;
+  ok(vs.slice(0,3).every(x=>x.ok&&x.eliteFrag&&x.eliteFrag.heroKey===hs.rewardHero&&x.eliteFrag.qty===2),'v1149: each Veteran '+hs.id+' sweep pays 2 '+hs.rewardHero+' fragments ('+vs.slice(0,3).map(x=>JSON.stringify(x.eliteFrag||x.error)).join(' ')+')');
+  ok(es.ok&&es.eliteFrag&&es.eliteFrag.heroKey===hs.rewardHero&&vs[0].eliteFrag&&vs[0].eliteFrag.qty>=es.eliteFrag.qty,'v1149: Veteran pays at least Elite for the same stage and hero (Elite '+JSON.stringify(es.eliteFrag||es.error)+')');
+  ok(vs[3].ok===false&&/Daily limit/.test(vs[3].error||'')&&!vs[3].eliteFrag,'v1149: the 4th Veteran sweep is refused and pays no hero fragments - the cap holds ('+(vs[3].error||'paid')+')');
+  ok((await fragsOf(hs.rewardHero))-f0===6+(es.eliteFrag?es.eliteFrag.qty:0),'v1149: the ledger gained exactly 3x2 Veteran + the Elite sweep ('+((await fragsOf(hs.rewardHero))-f0)+')');
+  const ns=V.find(v=>!v.rewardHero&&v.node%10===2);   // x-2: no hero
+  await editDB(u=>{ u.led.stam={v:999,t:Date.now()}; u.led.portals.veteran.stars={[ns.node]:3}; u.led.portals.veteran.runs={}; });
+  const nsw=(await call('/api/campaign/sweep',{mode:'veteran',node:ns.node,times:1,requestId:R()})).data;
+  ok(nsw.ok===true&&!nsw.eliteFrag,'v1149: a Veteran stage with no reward hero ('+ns.id+') pays no hero fragments');
+  /* first clear: Veteran 1-1 (Tick) with the server's own replay - pays the 2-4 roll x2 */
+  await editDB(u=>{ u.led.stam={v:999,t:Date.now()}; u.led.portals.veteran={cleared:0,stars:{},att:null,runs:{}};
+    for(const k of heroIds){ u.led.hero[k]=Object.assign(u.led.hero[k]||{},{xp:99000000,stars:5,pips:0}); } });   // a levelled squad, so 1-1 is won
+  const fs1=(await call('/api/campaign/start',{mode:'veteran',node:1,heroIds,requestId:R()})).data;
+  const fr=host.campaign(fs1.snaps,fs1.stage.waves,fs1.seed>>>0,[]);
+  const fc=(await call('/api/campaign/resolve',{attemptId:fs1.attemptId,requestId:R(),inputLog:[],digest:fr.digest,won:!!fr.won,stars:fr.won?(fr.stars|0):0})).data;
+  if(fr.won) ok(fc.reward&&fc.reward.eliteFrag&&fc.reward.eliteFrag.heroKey==='tick'&&fc.reward.eliteFrag.qty>=4&&fc.reward.eliteFrag.qty<=8,
+    'v1149: a Veteran 1-1 first clear pays 4-8 Tick fragments (Elite 2-4) ('+JSON.stringify(fc.reward&&fc.reward.eliteFrag)+')');
+  else ok(false,'v1149: the levelled squad should win Veteran 1-1 (heroes '+heroIds.join(',')+')');
+  const card34=(await call('/api/campaign/stage?mode=veteran&node=34')).data;
+  ok(card34.stage&&card34.stage.rewardHero===hs.rewardHero,'v1149: the stage card is served the reward hero ('+(card34.stage&&card34.stage.rewardHero)+')');
+  await stop();
+  /* ---- v1149 control: the v1148 live server (e94e80a4) on the same data pays no Veteran hero fragments ---- */
+  if(!process.env.AUD_SERVER){ const ctlFile='.ctl_v1148_server_'+process.pid+'.js';
+    try{ fs.writeFileSync(path.join(root,ctlFile), require('child_process').execFileSync('git',['show','e94e80a46b83d9882c2e6cc41f140939cd8c2c09:server.js'],{cwd:root,maxBuffer:64<<20}));
+      const keep=srvFile; child=spawn(process.execPath,[ctlFile],{cwd:root,env:{...process.env,ALLOW_NEW_GUESTS:'1',DATABASE_URL:'',PORT:String(port),DB_FILE:dbFile,RL_MUL:'1000',ADMIN_IDS:''},stdio:'ignore',windowsHide:true});
+      for(let i=0;i<300;i++){ try{ if((await fetch(base+'/health')).ok)break; }catch(_){} await delay(100); }
+      await editDBWith(ctlFile,u=>{ u.led.stam={v:999,t:Date.now()}; u.led.portals.veteran={cleared:160,stars:{34:3},att:null,runs:{}}; });
+      const cs=(await call('/api/campaign/sweep',{mode:'veteran',node:34,times:1,requestId:R()})).data;
+      ok(cs.ok===true&&!cs.eliteFrag,'control: the v1148 server (e94e80a4) sweeps Veteran '+hs.id+' and pays NO hero fragments ('+JSON.stringify(cs.eliteFrag||cs.error||null)+')');
+    } finally { await stop(); try{ fs.unlinkSync(path.join(root,ctlFile)); }catch(_){} } }
   if(missed.length){ missed.forEach(m=>console.error('FAIL',m)); process.exitCode=1; }
   console.log('test_veteran_1148.js: '+pass+' checks passed, '+missed.length+' failed (server '+srvFile+')');
 } catch(e){ console.error('FAIL',e&&e.message||e); process.exitCode=1; } finally { await stop(); } })();

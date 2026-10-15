@@ -62,7 +62,7 @@ ck('Veteran chapter c pays one band above Elite chapter c (v1148): 1-1 Green +1,
   && veteranStages[159].rewards.glyphFragments[0].key.startsWith('Orange '));
 ck('Veteran Portal is the matching Normal stage at 2x hp AND 2x dmg on every enemy (v1148, Phil: "Elite and veteran are 50% and 100% scaling of normal")',
   veteranStages.every((v,i)=>{ const n=normalStages[i]; return v.id===n.id && v.waves.length===n.waves.length && v.waves.every((w,wi)=>w.length===n.waves[wi].length
-    && w.every((u,ui)=>{ const m=n.waves[wi][ui]; return u.key===m.key && u.lvl===m.lvl && Math.abs(u.hpMul-m.hpMul*2)<1e-3 && Math.abs(u.dmgMul-m.dmgMul*2)<1e-3; })); }));
+    && w.every((u,ui)=>{ const m=n.waves[wi][ui]; return (u.key===m.key || (u.rewardHero && u.key===v.rewardHero)) && u.lvl===m.lvl && Math.abs(u.hpMul-m.hpMul*2)<1e-3 && Math.abs(u.dmgMul-m.dmgMul*2)<1e-3; })); }));
 
 // fixed Guardian/boss Normal rewards and the stronger Elite variant
 ck('a boss stage grants extra copies of its fixed named fragment',
@@ -80,6 +80,9 @@ ck('most Elite stages keep monsters at least as strong as Normal (the rest are t
   String(eliteStages.filter((e,i)=>e.waves[0][0].hpMul>=normalStages[i].waves[0][0].hpMul).length));
 ck('Elite keeps the Normal wave sizes while replacing one final-wave enemy with its reward hero',
   eliteStages.every((e,i)=>e.waves.every((w,wi)=>w.length===normalStages[i].waves[wi].length)));
+ck('Veteran pays hero fragments on every Elite reward-hero stage, same hero, fought in its final wave (v1149)',
+  veteranStages.filter(s=>s.rewardHero).length===64 && veteranStages.every((v,i)=>v.rewardHero===eliteStages[i].rewardHero
+    && (!v.rewardHero || v.waves[v.waves.length-1].some(m=>m.isHero&&m.rewardHero&&m.key===v.rewardHero))));
 ck('every stage record carries its portal mode', normalStages.every(s=>s.portalMode==='normal')
   && eliteStages.every(s=>s.portalMode==='elite') && veteranStages.every(s=>s.portalMode==='veteran'));
 
