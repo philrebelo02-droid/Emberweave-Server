@@ -65,7 +65,7 @@ const CASES = [
         const titles = []; const el = document.getElementById('resultTitle');
         const mo = new MutationObserver(() => titles.push(el.textContent)); mo.observe(el, { childList: true, characterData: true, subtree: true });
         endBattle(won);
-        for (let i = 0; i < 200 && !(document.getElementById('result').classList.contains('active') && el.textContent); i++) await new Promise(r => setTimeout(r, 100));
+        for (let i = 0; i < 450 && !(document.getElementById('result').classList.contains('active') && el.textContent); i++) await new Promise(r => setTimeout(r, 100));
         await new Promise(r => setTimeout(r, 300)); mo.disconnect();
         const out = { title: el.textContent, titles, calls: n, sameRid: rids.length > 0 && rids.every(x => x === rids[0]), reward: (document.getElementById('resultReward').textContent || '').slice(0, 160) };
         window.fetch = window.__realFetch; show('hub'); return out;

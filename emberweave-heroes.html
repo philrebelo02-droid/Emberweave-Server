@@ -14287,11 +14287,11 @@ function endBattle(won){
       /* v975 (3 Oct Arena+Campaign audit #8): ONE requestId per fight. A lost reply (offline) or a refused save (storageFailed)
          is re-sent with the SAME id, so a fight the server already booked comes back as its receipt, never twice. */
       const _rid=uid8(); let r=null;
-      for(let _try=0;_try<3;_try++){
+      for(let _try=0;_try<7;_try++){   /* v1150 (proof sweep: a booked win showed NOT COUNTED when Server 1 restarted - the retry gave up after ~4.5 s): up to 7 tries over ~30 s for a lost reply */
         r=await api('/api/campaign/resolve','POST',{attemptId:att, requestId:_rid,
           inputLog:_log, digest:_dg, won:_wn, stars:_st});   // v412: the fight the player watched IS the result
         /* v1145 (15 Oct proof sweep): an empty reply, a 500 and a 429 are transient too - the SAME requestId is re-sent and a booked fight answers with its receipt */
-        if(!(!r||r.error==='offline'||r.storageFailed||r.error==='server error'||/slow down/i.test(r.error||''))||_try===2) break;
+        if(!(!r||r.error==='offline'||r.storageFailed||r.error==='server error'||/slow down/i.test(r.error||''))||_try===6) break;
         await new Promise(z=>setTimeout(z,1500*(_try+1))); }
       if(resultStale(ep)){ if(r&&r.ledger) adoptLedger(r.ledger); return; }   // v328: CUR.node now belongs to a NEWER fight — never bank stars/cleared on it or paint its screen
       const sWon=!!(r&&r.ok&&r.won);   // v412: the server now records and echoes back the PLAYER's own result
