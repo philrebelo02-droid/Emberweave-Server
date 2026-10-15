@@ -3313,6 +3313,17 @@ const BATTLE_ANIM = {
     idle:{u:'/assets/anim/rivet/rivet_idle.webp?v=21',n:48,fw:564,fh:426,cols:6,rows:8,figH:400,feet:419,cx:262,fps:24,flip:false,top:19,pingpong:true},
     walk:{u:'/assets/anim/rivet/rivet_walk.webp?v=21',n:48,fw:570,fh:450,cols:6,rows:8,loop:[0,41],figH:400,feet:421,cx:268,fps:13,stride:0.065,flip:false,top:21,ax:[0,-0.2,11.6,21.6,19.5,9.3,10.3,13.5,15.3,19.3,29.5,38,33.8,23.3,16.5,17.1,30.4,37.5,41.9,31.6,25.4,19.4,23.5,30.4,35.2,39.8,32.4,24.1,14.8,26.1,38.4,45.5,47.7,42.6,37.6,31.5,41.5,49.5,54.5,52.2,48.8,49.6,52.3,54.6,56.2,61.8,53.1,52.9]},
     attack:{u:'/assets/anim/rivet/rivet_attack.webp?v=21',n:48,fw:666,fh:435,cols:6,rows:8,figH:400,feet:428,cx:271,fps:24,flip:false,top:28},
+    /* v1137 Rivet's ten weapon clips (Phil 14 Oct; clean-source-manifest.json 14 Oct 21:31, official Without Watermark exports, all twenty sha256 matched, silent twins; the RIGHT REVIEW aliases carried the Hailuo wordmark and were not used). Every clip 36 @18 = 2.0 clip s and no relFrac, like the old attack above, so the swing fuse does not move; the weapon's CONTACT frame sits on cells 20-21, the cells drawn on the fuse tick (his 1.71 s hold fits the 2.0 s clip - rig-measured). GREEN key off frame 0; cs10 EDGE_REF + PLATE_MATCH against Phil's concept (he owns a little grey-green; no DESPILL_ALL) -> green rim 0. Anchors from frame 0 (figH 422 on all ten, w/h 1.38 vs idle 1.35), flip:false like his states. Contact frames: gatling first tracer f34 (fires to f76), revolver f53, saw leaves f29, bolt f38 (the clip's second shot skipped), cannon blast f63-64, blade f31, hammer f56, upper spike f52 (f53 touches the source frame edge), lower spike f27, chain hook f38. Weapon choice: rivetPick; effects: rivetFire; the automatic hook: rivetHookTick. */
+    w_gatling:{u:'/assets/anim/rivet/rivet_gatling_1137.webp?v=1137',n:36,fw:819,fh:468,cols:5,rows:8,figH:422,feet:454,cx:323,fps:18,flip:false,top:32,contact:20},
+    w_revolver:{u:'/assets/anim/rivet/rivet_revolver_1137.webp?v=1137',n:36,fw:798,fh:506,cols:5,rows:8,figH:422,feet:466,cx:344,fps:18,flip:false,top:44,contact:20},
+    w_saw:{u:'/assets/anim/rivet/rivet_saw_1137.webp?v=1137',n:36,fw:806,fh:509,cols:5,rows:8,figH:422,feet:466,cx:331,fps:18,flip:false,top:44,contact:20},
+    w_bolt:{u:'/assets/anim/rivet/rivet_bolt_1137.webp?v=1137',n:36,fw:816,fh:508,cols:5,rows:8,figH:422,feet:466,cx:316,fps:18,flip:false,top:44,contact:20},
+    w_cannon:{u:'/assets/anim/rivet/rivet_cannon_1137.webp?v=1137',n:36,fw:813,fh:462,cols:5,rows:8,figH:422,feet:448,cx:317,fps:18,flip:false,top:26,contact:20},
+    w_blade:{u:'/assets/anim/rivet/rivet_blade_1137.webp?v=1137',n:36,fw:766,fh:512,cols:5,rows:8,figH:422,feet:500,cx:312,fps:18,flip:false,top:78,contact:20},
+    w_hammer:{u:'/assets/anim/rivet/rivet_hammer_1137.webp?v=1137',n:36,fw:677,fh:502,cols:6,rows:6,figH:422,feet:470,cx:325,fps:18,flip:false,top:48,contact:20},
+    w_uspike:{u:'/assets/anim/rivet/rivet_uspike_1137.webp?v=1137',n:36,fw:815,fh:493,cols:5,rows:8,figH:422,feet:469,cx:306,fps:18,flip:false,top:47,contact:20},
+    w_lspike:{u:'/assets/anim/rivet/rivet_lspike_1137.webp?v=1137',n:36,fw:729,fh:506,cols:5,rows:8,figH:422,feet:466,cx:341,fps:18,flip:false,top:44,contact:20},
+    w_hook:{u:'/assets/anim/rivet/rivet_hook_1137.webp?v=1137',n:36,fw:805,fh:486,cols:5,rows:8,figH:422,feet:454,cx:324,fps:18,flip:false,top:32,contact:20},
     hit:{u:'/assets/anim/rivet/rivet_hit.webp?v=27',n:48,fw:667,fh:547,cols:6,rows:8,figH:400,feet:536,cx:335,fps:24,flip:false,top:136,ax:[0,0,1,1,2,5,65,19,-91,-89,33,32,-73,-122,-131,-131,-131,-131,-131,-129,-129,-129,-131,-131,-131,-131,-131,-131,-131,-131,-108,-54,-55,-56,-56,-55,-56,-56,-56,-56,-56,-56,-56,-56,-56,-57,-57,-57]},
     green:{u:'/assets/anim/rivet/rivet_green.webp?v=27',n:48,fw:665,fh:438,cols:6,rows:8,figH:400,feet:430,cx:262,fps:24,flip:false,top:30},
     blue:{u:'/assets/anim/rivet/rivet_blue.webp?v=21',n:48,fw:649,fh:544,cols:6,rows:8,figH:400,feet:537,cx:296,fps:24,flip:false,top:137},
@@ -4931,7 +4942,7 @@ const ABILITY_CAST_MON={
   'wintercrag':{green:0.6,blue:0.9}, 'magmourn':{green:0.7,blue:1.0}, 'voraxis':{green:0.7,blue:0.9},
   'grommash':{green:0.7,blue:0.9}, 'leviath':{green:0.7,blue:0.8}, 'sylphice':{green:0.6,blue:0.9},
 };
-const PASS_DESC={beeward:'a worker bee circles the head of every living ally, the Beekeeper included, for the whole fight, slowly healing the hero it guards (0.4% of their health a second plus a little Ability Power); a bee is gone once its hero falls',notthere:'every 4s the next blow aimed at him simply misses \u2014 he was never there; and he heals for 10% of damage dealt',packstats:'+5% damage dealt and damage shrugged off for every summon still alive',immolate:'a burning aura — 25% of attack to every enemy within 2.4 m, every second',wrath:'+12% damage every 5 seconds, compounding for the whole fight',deepfreeze:'every 5s one random enemy is frozen solid for 1.2s',unstoppable:'cannot be slowed, stunned, or displaced',stardust:'every auto-attack leaves a burn — 2s, ticking twice a second',darkconv:'every auto-attack leaves a dark curse-burn (10% attack + 5% ability power over 2 s); every 3rd auto the void converges and she regains 5 energy',tidereserve:'restores 1% of max health AND 1% energy every second',hush:'every 5s one random enemy is silenced for 1 second',arsenal:'every attack throws a different projectile — stun, splash, bleed, slow, chain, then a heavy shot',scriptorium:'the whole team gains energy faster, so every ultimate charges sooner',unwind:'every 5s one random ally is cleansed of a negative effect',debtaura:'damage-over-time on enemies near him lasts 20% longer',bulwark:'−18% damage taken',fury:'+25% attack speed',crit:'20% chance to crit (×1.6)',power:'+15% damage',regen:'heals allies over time',battery:'allies gain energy faster',lifesteal:'heals for 20% of damage dealt',ignite:'attacks set the target ablaze (burn DoT)',warden:'+4% armour & magic resist every 3s in combat (up to +20%)',juggernaut:'heals 4% of max HP every second',mirewall:'the ally closest to dying takes 20% less damage — 35% of what they avoid is taken by Grosk instead, and he heals back half of it',momentum:'attack speed ramps up the longer he fights (up to +50%)',coldsnap:'each Chill stack makes the target take +5% damage from frost abilities, stacking to +25%; Chill expires after 10s without a new application',twinfonts:'in Dark stance he drains foes into himself; in Light stance he steadily regenerates',deeproots:'when an ally falls below 30% health, roots wrap them and heal 25% of their max health over 4 seconds - once per ally per fight',contagion:'when a foe dies still carrying this caster\u2019s mark, it spreads to every enemy nearby',perfectpitch:'her heals also grant a small shield',stormdodge:'30% chance to dodge attacks while casting or channeling',selfregen:'steadily regenerates a slice of health every second while in combat',unstepped:'cannot be pulled, knocked, or displaced by enemy abilities',
+const PASS_DESC={beeward:'a worker bee circles the head of every living ally, the Beekeeper included, for the whole fight, slowly healing the hero it guards (0.4% of their health a second plus a little Ability Power); a bee is gone once its hero falls',notthere:'every 4s the next blow aimed at him simply misses \u2014 he was never there; and he heals for 10% of damage dealt',packstats:'+5% damage dealt and damage shrugged off for every summon still alive',immolate:'a burning aura — 25% of attack to every enemy within 2.4 m, every second',wrath:'+12% damage every 5 seconds, compounding for the whole fight',deepfreeze:'every 5s one random enemy is frozen solid for 1.2s',unstoppable:'cannot be slowed, stunned, or displaced',stardust:'every auto-attack leaves a burn — 2s, ticking twice a second',darkconv:'every auto-attack leaves a dark curse-burn (10% attack + 5% ability power over 2 s); every 3rd auto the void converges and she regains 5 energy',tidereserve:'restores 1% of max health AND 1% energy every second',hush:'every 5s one random enemy is silenced for 1 second',arsenal:'every attack fires his next weapon for the range: beyond 3 m roof gatling, revolver, flying saw, bolt launcher, chest cannon; within 3 m curved blade, hammer, upper spike, lower spike - and an enemy that dashes or teleports out of 3 m is chain-hooked back',scriptorium:'the whole team gains energy faster, so every ultimate charges sooner',unwind:'every 5s one random ally is cleansed of a negative effect',debtaura:'damage-over-time on enemies near him lasts 20% longer',bulwark:'−18% damage taken',fury:'+25% attack speed',crit:'20% chance to crit (×1.6)',power:'+15% damage',regen:'heals allies over time',battery:'allies gain energy faster',lifesteal:'heals for 20% of damage dealt',ignite:'attacks set the target ablaze (burn DoT)',warden:'+4% armour & magic resist every 3s in combat (up to +20%)',juggernaut:'heals 4% of max HP every second',mirewall:'the ally closest to dying takes 20% less damage — 35% of what they avoid is taken by Grosk instead, and he heals back half of it',momentum:'attack speed ramps up the longer he fights (up to +50%)',coldsnap:'each Chill stack makes the target take +5% damage from frost abilities, stacking to +25%; Chill expires after 10s without a new application',twinfonts:'in Dark stance he drains foes into himself; in Light stance he steadily regenerates',deeproots:'when an ally falls below 30% health, roots wrap them and heal 25% of their max health over 4 seconds - once per ally per fight',contagion:'when a foe dies still carrying this caster\u2019s mark, it spreads to every enemy nearby',perfectpitch:'her heals also grant a small shield',stormdodge:'30% chance to dodge attacks while casting or channeling',selfregen:'steadily regenerates a slice of health every second while in combat',unstepped:'cannot be pulled, knocked, or displaced by enemy abilities',
   desertmom:'every auto attack: +4% attack speed and +6 penetration; every 5 m travelled: +1% attack speed and +2 penetration - up to +50% attack speed and +120 penetration',
   gruel:'every enemy ability cast near her applies a coat of wax; the third coat encases them - no attacking and no casting for 1.6s',
   risingheat:'every scorched enemy on the field raises her spell power, up to +45%',
@@ -5323,7 +5334,7 @@ function _skillEffectStrRaw(key,idx,atk,hp){ const t=HERO_TYPES[key],kit=KITS[ke
     immolate:'{i:s:burn} burning aura: '+lvPct(SKLV.immolate(lv))+' of attack a second', debtaura:'{i:s:poison} nearby DoTs last '+lvPct(SKLV.debtaura(lv))+' longer',
     twinfonts:'{i:s:attack}/{i:s:heal} Dark drains '+Math.round((apw*0.4+2)*SKLV.twinfonts(lv))+'/s, Light regenerates '+lvPct(0.012*SKLV.twinfonts(lv))+' HP/s', deeproots:'{i:s:root} an ally below 30% is rooted and healed '+lvPct(0.25*sm)+' over 4 s', contagion:'{i:s:poison} his poison spreads on death ('+lvSec(SKLV.contagionDur(lv))+')',
     perfectpitch:'{i:s:shield} her heals also shield for '+lvPct(SKLV.pitch(lv))+' of the heal', stardust:'{i:s:burn} every attack leaves a '+lvPct(SKLV.stardust(lv))+' attack burn', bloodrage:'{i:s:attack} +1% dmg per 4% health lost, up to +'+lvPct(SKLV.bloodrageCap(lv)),
-    darkconv:'every attack curses; every third converges', arsenal:'{i:s:mark} a different projectile every attack'}; return P[ab.pass]||'passive'; }
+    darkconv:'every attack curses; every third converges', arsenal:'{i:s:mark} the next weapon every attack'}; return P[ab.pass]||'passive'; }
   switch(ab.type){
     case 'hot': return '{i:s:heal} '+Math.round(hp*(ab.hps||.05)*sm)+'/s heal';
     case 'shield': return '{i:s:shield} '+Math.round(hp*(ab.mul||.4)*sm)+' shield';
@@ -9957,14 +9968,14 @@ function dealDamage(src,tgt,amt,color,kind,silent){ kind=kind||((src&&src.t&&(['
   /* v527 - DEFENCE SHRED. Several pack kits ("reduces enemy armor", "lowers magic resistance")
      had no engine behind them. A shred is a timed percentage off the target's rating, applied
      here so it lands on exactly one path and can never double-count. */
-  const _shA=Math.max(0,(tgt.armorRating||0))*(1-(((tgt._shredT||0)>0)?(tgt._shredPct||0):0))*(1-(((tgt._gearArmorCutT||0)>0)?(tgt._gearArmorCut||0):0));
+  const _shA=Math.max(0,(tgt.armorRating||0))*(1-((src&&src._wpnArmIgn)||0))*(1-(((tgt._shredT||0)>0)?(tgt._shredPct||0):0))*(1-(((tgt._gearArmorCutT||0)>0)?(tgt._gearArmorCut||0):0));
   const _shM=Math.max(0,(tgt.mrRating||0))*(1-(((tgt._mrShredT||0)>0)?(tgt._mrShredPct||0):0));
   if(kind==='magic'){ amt*=1-defToDR(Math.max(0,_shM-((src&&src.magicPen)||0)),tgt.lvl); }      // MR vs Magic Pen
   else if(kind!=='true'){ amt*=1-defToDR(Math.max(0,_shA-((src&&src.armorPen)||0)),tgt.lvl); // Armor vs Armor Pen
     if((tgt.blockStat||0)>0&&brnd()<tgt.blockStat){ amt*=0.5; floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'BLOCK',t:.5,color:'#8fb7ff',vy:1.1,sz:11}); } }
   const _gearHitCrit=src&&src._gearNextCrit==='hit'; if(_gearHitCrit)src._gearNextCrit=null;
   if(src&&(src._gearNextStun||0)>0&&tgt&&tgt.alive&&tgt.team!==src.team&&kind!=='true'){ tgt.stunned=Math.max(tgt.stunned||0,ccDur(src._gearNextStun)); src._gearNextStun=0; floatTexts.push({x:tgt.x,y:tgt.y-12,txt:'STUN',t:.6,color:'#ffd45e',vy:1.2,sz:12}); }   /* v646: Brawler's Blow */
-  const cc=(src.pass&&src.pass.crit?0.2:0)+(src.glyphCrit||0)+((src._critBuffT||0)>0?(src._critBuffPct||0):0);   // Crit passive + Crit / Crit tech
+  const cc=(src.pass&&src.pass.crit?0.2:0)+(src.glyphCrit||0)+((src._critBuffT||0)>0?(src._critBuffPct||0):0)+((src&&src._wpnCrit)||0);   /* v1137: + Rivet's revolver (15% on that hit; 0 on every other unit) */   // Crit passive + Crit / Crit tech
   let _crit=false;
   if(_preCrit!=null ? _preCrit : (_gearHitCrit||(src&&src._gearSpellCrit)||(cc&&brnd()<Math.max(0,cc-((tgt&&tgt.defenseStat)||0))))){ /* v532: a crit-clip hero pre-rolled this swing at the wind-up */ const bonus=(src.critDmg||0.6); let mult=1+bonus; if(tgt.critRes) mult=1+Math.max(0,bonus-tgt.critRes);   /* Academy v2 (11 Oct, Phil): crit resist SUBTRACTS from crit damage % (+60% vs 10% = +50%), floor = a normal hit; = combat-core */ amt*=mult; tgt._critHit=true; _crit=true; }   // v247: Crit Damage stat widens the bonus
   tgt._lastHitKind=kind;   // v253: damage() colours the number by damage type
@@ -9982,20 +9993,7 @@ function dealDamage(src,tgt,amt,color,kind,silent){ kind=kind||((src&&src.t&&(['
   if(src.pass&&src.pass.ignite&&tgt.alive) pushDot(tgt,src.dmg*0.12,3,1,'#ff6a3a');
   // Stardust (Astra): every auto-attack leaves a burn — 2s, ticking every 0.5s (Phil's numbers)
   if(src.pass&&src.pass.stardust&&tgt.alive) pushDot(tgt,src.dmg*SKLV.stardust(passLv(src)),2,0.5,'#6fe3d4');   /* v1112: 10% + 0.1 pt a level */
-  // Whatever's Loaded (Rivet): every attack throws a DIFFERENT projectile, each with its own effect
-  if(src.pass&&src.pass.arsenal&&tgt.alive){ src._armIdx=((src._armIdx||0)+1)%6; const pm=(src.passMul||1);
-    const _i=src._armIdx, _tx=tgt.x, _ty=tgt.y;
-    try{ spawnArsenalShot(src,tgt,_i,()=>arsenalImpact(_i,_tx,_ty)); }catch(e){}
-    switch(_i){
-      case 0: tgt.stunned=Math.max(tgt.stunned||0,ccDur(0.4*pm)); break;
-      case 1: enemiesOf(src).forEach(e=>{ if(e.alive&&dist(tgt,e)<1.6*METER) dealDamage(src,e,src.dmg*0.35*pm,'#ffa657'); }); break;
-      case 2: pushDot(tgt,src.dmg*0.18*pm,3,1,'#c0392b'); break;
-      case 3: tgt.slow=Math.max(tgt.slow||0,ccDur(1.5*pm)); break;
-      case 4: { let nx=null,nd=1e9; enemiesOf(src).forEach(e=>{ if(e.alive&&e!==tgt){ const d=dist(tgt,e); if(d<nd&&d<3*METER){nd=d;nx=e;} } });
-               if(nx){ const _nx=nx.x,_ny=nx.y; dealDamage(src,nx,src.dmg*0.45*pm,'#bfe6ff');
-                       try{ spawnArsenalShot(tgt,nx,4,()=>arsenalImpact(4,_nx,_ny)); }catch(e){} } break; }
-      case 5: dealDamage(src,tgt,src.dmg*0.40*pm,'#ffe08a'); break;
-    } }
+  /* v1137 (Phil 14 Oct): Rivet's old six-step Whatever's Loaded cycle (stun, splash, bleed, slow, chain, heavy shot) lived here, on every hit he dealt. It is REPLACED by his ten weapons - each basic attack's effect is its weapon's (rivetFire), the chain hook is automatic (rivetHookTick). */
 }
 // Hollow's bleed stacks: the third one ruptures for a burst and clears the set.
 function addBleedStack(src,tgt,o){ if(!tgt||!tgt.alive)return; o=o||{};
@@ -11691,6 +11689,67 @@ function castAbility(u){ const ab=u.abilityOverride||u.t.ability;
 // its own weight (arc + flight time), its own trail and its own impact.
 // The ultimate, Full Arsenal, throws all six at once.
 // ---------------------------------------------------------------------------
+/* v1137 RIVET'S TEN WEAPONS (Phil 14 Oct 2026; Mechanics blueprints/Heroes/Rivet.md, his numbers exact). Every basic attack fires the NEXT weapon of the
+   group the target's CURRENT distance picks (re-evaluated every attack; the ground between the two bodies, rivetGap; 3 m exactly counts as melee): beyond 3 m the ranged five, within 3 m the
+   melee four. Each group keeps its own counter on the unit (u._rvRi / u._rvMi) - deterministic, no RNG, identical on the server replay. The chain hook
+   is not in either cycle: it fires automatically when an enemy inside his 3 m melee range dashes or teleports away (rivetHookTick). Phil gave the hook
+   no cooldown - none is built (one hook in flight at a time). Timing: every weapon clip keeps his old attack clip's 2.0 clip s and relFrac 0.5, so the
+   swing fuse is unchanged; melee weapons land ON that fuse (no projectile flight - the old ranged 0.22 s flight is gone for them), ranged rounds leave
+   on it and land after their flight. Weapon sheets: BATTLE_ANIM.rivet.w_<weapon> - the contact cell is drawn on the fuse tick (rig-measured). */
+const RIVET_WPN={ ranged:['gatling','revolver','saw','bolt','cannon'], melee:['blade','hammer','uspike','lspike'], meleeR:3*METER,
+  gatShots:9, gatPct:0.15, gatGap:0.0444,             // roof gatling: 15% per shot x ~9 shots (the clip's tracers f34-f76), single target; gap = 13 drawn firing cells (20-33) / 8 (rig: 1 cell = 1 tick)
+  revPct:1.2, revCrit:0.15,                          // revolver: 120%, +15% crit chance on that hit
+  sawPct:0.7, sawBleed:0.5, sawBleedDur:4,           // flying saw: 70% + a bleed of 50% over 4 s
+  boltPct:1.0, boltArmIgn:0.5,                       // bolt launcher: 100%, ignores 50% of the target's armour
+  canPct:0.75, canAngle:45, canLen:20,               // chest cannon: 75% to every enemy in a 45-degree cone, 20 m long
+  bladePct:1.6, hamPct:1.0, hamStun:2, usPct:0.8, usSil:3, lsPct:1.3, lsShred:0.2, lsShredDur:5,
+  hookPct:0.5, hookStun:3, hookTo:0.5,               // chain hook: 50%, stun 3 s, pulled back to 0.5 m of ground from him (inside his 3 m melee range)
+  vis:{gatling:4, revolver:5, saw:0, bolt:2, cannon:1} };   // the round in flight reuses the arsenal visuals (bearing, slug, spinning scrap, barb, shell)
+function rivetGap(u,e){ return dist(u,e)-bodyR(u)-bodyR(e); }   /* the open ground between the two bodies: his body alone is 1.56 m in radius, so touching
+   bodies sit 3.1-3.6 m apart centre to centre - a centre distance would never reach 3 m. 'Within 3 m' = 3 m or less of ground between them. */
+function rivetPick(u,t){ const m=rivetGap(u,t)<=RIVET_WPN.meleeR, L=m?RIVET_WPN.melee:RIVET_WPN.ranged, k=m?'_rvMi':'_rvRi';
+  const w=L[(u[k]|0)%L.length]; u[k]=((u[k]|0)+1)%L.length; return w; }
+function rivetFire(u,t,dmg,clip,crit){ const W=RIVET_WPN, w=u._rvWpn, rate=u._atkSpdMul||1, melee=W.melee.indexOf(w)>=0;
+  const fly=melee?0:0.22*HERO_FX_MUL;   // the same flight the old ranged swing used
+  const hit=(fn,extra)=>fuseStrike(u,t,clip,()=>{ _preCrit=crit; try{ fn(); } finally{ _preCrit=null; } },extra,rate);
+  const vis=(extra)=>fuseStrike(u,t,clip,()=>{ try{ if(t.alive){ const i=W.vis[w]; spawnArsenalShot(u,t,i,()=>{ try{ burstAt(t.x,t.y,ARSENAL[i].col,8); }catch(e){} }); } }catch(e){} },extra||0,rate);   /* display only - a plain burst: the old rounds' labels (RICOCHET, HEAVY...) would misname his weapons */
+  switch(w){
+    case 'gatling': for(let k=0;k<W.gatShots;k++){ const off=k*W.gatGap/rate; vis(off); hit(()=>{ if(t.alive) dealDamage(u,t,dmg*W.gatPct,'#ffe08a'); },fly+off); } break;
+    case 'revolver': vis(); hit(()=>{ u._wpnCrit=W.revCrit; try{ dealDamage(u,t,dmg*W.revPct,'#fff'); } finally{ u._wpnCrit=0; } },fly); break;
+    case 'saw': vis(); hit(()=>{ dealDamage(u,t,dmg*W.sawPct,'#e0e0e0'); if(t.alive) pushDot(t,dmg*W.sawBleed/W.sawBleedDur,W.sawBleedDur,1,'#c0392b'); },fly); break;
+    case 'bolt': vis(); hit(()=>{ u._wpnArmIgn=W.boltArmIgn; try{ dealDamage(u,t,dmg*W.boltPct,'#bfe6ff'); } finally{ u._wpnArmIgn=0; } },fly); break;
+    case 'cannon': { const ax=t.x-u.x, ay=t.y-u.y, aL=Math.hypot(ax,ay)||1, cMin=Math.cos(W.canAngle/2*Math.PI/180);
+      vis(); hit(()=>{ enemiesOf(u).forEach(e=>{ if(!e.alive) return; const dx=e.x-u.x, dy=e.y-u.y, L=Math.hypot(dx,dy);
+        if(L>W.canLen*METER) return; if(L>1&&(dx*ax+dy*ay)/(L*aL)<cMin) return; dealDamage(u,e,dmg*W.canPct,'#ffa657'); }); },fly); break; }
+    case 'blade': hit(()=>{ dealDamage(u,t,dmg*W.bladePct,'#fff'); },0); break;
+    case 'hammer': hit(()=>{ dealDamage(u,t,dmg*W.hamPct,'#fff'); if(t.alive) ccApply(u,t,'stunned',W.hamStun); },0); break;
+    case 'uspike': hit(()=>{ dealDamage(u,t,dmg*W.usPct,'#fff'); if(t.alive) ccApply(u,t,'silencedT',W.usSil); },0); break;
+    case 'lspike': hit(()=>{ dealDamage(u,t,dmg*W.lsPct,'#fff');
+      if(t.alive){ t._shredPct=Math.max(((t._shredT||0)>0)?(t._shredPct||0):0,W.lsShred); t._shredT=Math.max(t._shredT||0,W.lsShredDur); } },0); break;
+  } }
+/* The automatic chain hook. Watched once per tick after every unit has moved: an enemy that was inside his 3 m melee range on the last tick and is
+   outside it now, having moved ITSELF (its own dash, or a jump of more than 1.5 m in one tick that is not a knock-back or a pull - those set _airT /
+   pullT), is hooked. The hook flies on the hook clip's fuse (the same 2.0 s clip / relFrac 0.5 as every weapon), then pulls it back to 0.5 m of ground from him (unless it
+   cannot be displaced - immovable, Unstepped, Unstoppable, gear immovable), deals 50% attack damage and stuns it 3 s. He cannot hook while stunned,
+   feared, airborne, pulled or frozen; silence does not stop it (it is a weapon, not a skill). */
+function rivetHook(u,e){ const W=RIVET_WPN, clip=(u.anim&&u.anim.w_hook)||(BATTLE_ANIM.rivet||{}).w_hook||(u.anim&&u.anim.attack), rate=u._atkSpdMul||1;
+  const dmg=u.dmg*(u.dmgBuffT>0?u.dmgBuffMul:1)*rageMul;
+  u._rvHookT=clipDur(clip)*0.5*BATTLE_PACE/rate+0.05;   // one hook in flight at a time
+  u._atkClip='w_hook'; u.attackAnim=.18; u._faceDir=(e.x>=u.x)?1:-1; u._idleHold=0; u._idleFrozen=false; u._idleClip=null;   /* display: the hook clip plays (an idle flourish in progress gives way, as it does to CC) */
+  fuseStrike(u,e,clip,()=>{ if(!e.alive||!u.alive) return;
+    if(!e.immovable&&!(e.pass&&(e.pass.unstepped||e.pass.unstoppable))&&!((e._gearImmovableT||0)>0)){
+      const dx=e.x-u.x, dy=e.y-u.y, L=Math.hypot(dx,dy)||1, to=Math.min(L,bodyR(u)+bodyR(e)+W.hookTo*METER);
+      e._dash=null; e.x=u.x+dx/L*to; e.y=u.y+dy/L*to; e._ax=e.x; e._ay=e.y; }
+    dealDamage(u,e,dmg*W.hookPct,'#bfe6ff');
+    if(e.alive) ccApply(u,e,'stunned',W.hookStun); },0,rate); }
+function rivetHookTick(dt){ for(const u of units){ if(!u.alive||!(u.pass&&u.pass.arsenal)) continue;
+    if((u._rvHookT||0)>0) u._rvHookT=Math.max(0,u._rvHookT-dt);
+    const R=RIVET_WPN.meleeR, can=!((u.stunned||0)>0||(u.fearT||0)>0||(u._airT||0)>0||(u.pullT||0)>0||(u._frozenT||0)>0);
+    const prev=u._rvNear||(u._rvNear=new Map());
+    for(const e of units){ if(e.team===u.team) continue; const dNow=e.alive?rivetGap(u,e):1e9, p=prev.get(e);
+      if(p&&p.near&&e.alive&&dNow>R&&can&&!((u._rvHookT||0)>0)&&!e._vpT&&!e._noTarget&&!((e._airT||0)>0)&&!((e.pullT||0)>0)
+         &&(!!e._dash||Math.hypot(e.x-p.x,e.y-p.y)>1.5*METER)) rivetHook(u,e);
+      prev.set(e,{x:e.x,y:e.y,near:e.alive&&dNow<=R}); } } }
 const ARSENAL=[
   {k:'wrench', label:'WRENCH',     col:0xb08d57, trail:0x8a6b3f, geo:'box',  sc:[2.2,.42,.30], dur:.26, arc:2.4, spin:24, aim:false},
   {k:'shell',  label:'INCENDIARY', col:0xffa657, trail:0xff6a2a, geo:'cone', sc:[1.5,.62,.62], dur:.24, arc:1.6, spin:0,  aim:true },
@@ -13111,6 +13170,7 @@ function think(u,dt){
       let _dbl=false;
       if(u._mirage){ const _cc=(u.glyphCrit||0); _dbl=!!(_cc&&brnd()<Math.max(0,_cc-((t&&t.defenseStat)||0))); _swCrit=false; u._dblSwing=_dbl; }
       // how long this swing's clip wants to run. PURELY VISUAL — see the _animLockT note in think().
+      if(u.pass&&u.pass.arsenal){ u._rvWpn=rivetPick(u,t); u._atkClip='w_'+u._rvWpn; }   /* v1137 Rivet: the weapon for this attack (clip + effect) */
       const _atkClipA=u.anim&&u.anim[(u._atkClip&&u.anim[u._atkClip])?u._atkClip:'attack'];
       { u._animLockT=Math.min(ai*0.95, _atkClipA?((_atkClipA.hold||clipDur(_atkClipA))/u._atkSpdMul):0.42); u._lockPri=1; }
       { const _fz=_atkClipA?clipDur(_atkClipA)*(_atkClipA.relFrac!=null?_atkClipA.relFrac:0.5)*BATTLE_PACE/(u._atkSpdMul||1):0; u._recentAtk=Math.max(u._recentAtk||0,_fz+0.05); }   /* v1031 (Phil 4 Oct: Vael "hits people without attacking"): no skill may start until this swing's blow has landed - a skill clip used to replace the swing at 0.3 s and the blow landed under it at 0.4 s */
@@ -13168,6 +13228,7 @@ function think(u,dt){
         // hand). Until then the ball is drawn as part of his sprite. Fuse = relFrac × clipDur × BATTLE_PACE.
         const A=(BATTLE_ANIM[u.key]||{}).attack; const rel=(A&&A.relFrac!=null)?A.relFrac:0.857; const cd2=(A?A.n/A.fps:1.2);   /* v1115: clip DATA, so a figure-less headless fight times the bolt the same */
         u._boltT=rel*cd2*SIM_STEP*SIM_HZ*BATTLE_PACE/(u._atkSpdMul||1); u._boltTgt=t; u._boltDmg=dmg;   /* v1115: the clip plays in real time (and faster with attack speed, x_atkSpdMul), the fight clock at 0.6724 of real time - so the bolt leaves on the release cell (18/48), not 22% later */
+      } else if(u.pass&&u.pass.arsenal&&u._rvWpn){ rivetFire(u,t,dmg,_atkClipA,_swCrit);   /* v1137: the weapon's own hit and effect */
       } else if(u.key==='rafe'){
         /* v339 (Phil): "shooting to slicing based on how close his target is — within 2 m he does sword
            attacks, further he's ranged." The attack sheet is the saber cut; the Pistol Barrage sheet is the
@@ -13989,6 +14050,7 @@ function updateBattle(dt){
   units.forEach(u=>{if(!u.alive)return;u.flash=Math.max(0,u.flash-dt);u.brighten=Math.max(0,(u.brighten||0)-dt);u.attackAnim=Math.max(0,u.attackAnim-dt);u.castAnim=Math.max(0,u.castAnim-dt);u._absorbT=Math.max(0,(u._absorbT||0)-dt);
     if(u._noTargetT>0){ u._noTargetT-=dt; if(u._noTargetT<=0){ u._noTargetT=0; u._noTarget=false; } }   // v268: sim-time untarget
     think(u,dt);if(u._dropHidden)return;u.x=Math.max(FIELD_X_MIN,Math.min(FIELD_X_MAX,u.x));u.y=Math.max(FIELD_Y_MIN,Math.min(FD-60,u.y));});
+  rivetHookTick(dt);   /* v1137: Rivet's automatic chain hook (no-op without Rivet) */
   // ---- collision: units are SOLID obstacles and NEVER overlap — not same-team, not cross-team. Same-team
   // keep a full body gap; cross-team (melee vs melee) stop when their bodies just touch (~2 m), so pictures
   // meet but never overlap while still landing inside attack range.

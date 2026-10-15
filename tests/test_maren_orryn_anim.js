@@ -95,8 +95,8 @@ try {
   ck('the seven new sheets are new files at ?v=1135 (never a reused asset version)', NEW.every(([h, s]) => G[h][s].u === `/assets/anim/${h}/${h}_${s}_1135.webp?v=1135`));
   ck('the old v21 sheets are still on disk (rollback needs nothing)', NEW.every(([h, s]) => fs.existsSync(path.join(ROOT, G0[h][s].u.split('?')[0]))));
   ck('untouched states are byte-for-byte the BASE entries (Maren idle/walk/hit/passive, Orryn idle/walk/hit/ult/passive)', ['maren', 'orryn'].every(h => KEEP[h].every(s => JSON.stringify(G[h][s]) === JSON.stringify(G0[h][s]))));
-  const others = r => r('JSON.stringify(Object.keys(BATTLE_ANIM).filter(k=>k!=="maren"&&k!=="orryn").map(k=>[k,BATTLE_ANIM[k]]))');
-  ck('every other hero\'s BATTLE_ANIM is byte-for-byte BASE', H(others(run)) === H(others(R0)));
+  const others = r => r('JSON.stringify(Object.keys(BATTLE_ANIM).filter(k=>k!=="maren"&&k!=="orryn"&&k!=="rivet").map(k=>[k,BATTLE_ANIM[k]]))');
+  ck('every other hero\'s BATTLE_ANIM is byte-for-byte BASE (v1137: Rivet ships in the same release - his entry is checked by test_rivet_weapons.js)', H(others(run)) === H(others(R0)));
   ck('grids as cut (cells / fps / release cell): ' + NEW.map(x => x[0][0] + '.' + x[1] + ' ' + x[2] + '@' + x[3] + ' c' + x[4]).join(', '),
     NEW.every(([h, s, n, fps, c]) => G[h][s].n === n && G[h][s].fps === fps && G[h][s].contact === c));
   ck('each faces like the rest of its hero (Maren flip:false, Orryn flip:true - he strikes to sheet-left) and stands on its frame-0 standing pose (feet - top = figH, no ax drift table)',
