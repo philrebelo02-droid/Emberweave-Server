@@ -391,6 +391,8 @@ note "test_auto_ult_healer_1103.js (v1103: healer ults that also hit enemies fir
 node tests/test_auto_ult_healer_1103.js || FAILED=1
 note "test_front_door_1130.js (v1130: new players go to the next server - S1 below 1500 -> S1, at 1500 -> S2, hysteresis to 1300, S1 down -> S2, a stale count is unknown, existing accounts never move, the list still joins a busy S1; real servers + the page in Chromium; controls)"
 node tests/test_front_door_1130.js || FAILED=1
+note "test_sylthaine_ult_passive.js (v1137 Sylthaine ULT Blizzard contained snow + PASSIVE Cold Snap - new ?v=1137 sheets from the clean H3 exports, 48 @24 on an 8 x 6 grid under 4096, frame-0 plate-pose anchors, flip:false; timing data = BASE (clipDur 2.0 = the sim-side ult root, apex 31), kit identical; control: scripted swings, Blizzard/green/blue casts (cast tick, root, hold, every unit 7 s), a timed-passive lock and whole fights (Sylthaine both sides, heroes carry BATTLE_ANIM as the server replay) on BASE land on the same ticks; Blizzard starts on cast cell 20 (rig), hold apex 31, Cold Snap contact 9; controls: a 40-cell ult moves the root, a moved swing diverges the fights, a slower passive changes its lock, a broken grid fails)"
+node tests/test_sylthaine_ult_passive.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi
