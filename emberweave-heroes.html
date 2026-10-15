@@ -12804,7 +12804,7 @@ function dotKind(color){ if(!color)return null; const k=DOT_KIND_BY_COLOR[String
   return null; }
 function unitDotKind(u){ if(!u.dots||!u.dots.length)return null; for(let i=u.dots.length-1;i>=0;i--){ const k=dotKind(u.dots[i].color); if(k)return k; } return null; }
 const STATUSFX_KEY={poison:'poison',bleed:'bleed',burn:'firepatch',curse:'voidzone'};   // burn is rendered as a tiny fire patch; v1141 curse = a small void zone lying flat
-const STATUSFX_CURSE_R=1.0;   // v1141: the curse disc radius in metres (a little wider than the 0.72 m plague telegraph, so it reads round the feet), held for the curse life
+const STATUSFX_CURSE_R=1.5;   // v1141: the curse disc radius in metres - wider than the 0.72 m plague telegraph so it shows round the feet (rig: 0.75/1.0 m hid behind the legs), held for the curse life
 /* v488 (Phil: "this should be the same for fire, curse, poison, bleed effects when i go to a new wave ... i keep seeing
    them stay in the image if i end a wave fast"). Same bug the passive bee had: these sprites are scene children owned by a
    unit, and every sweep walked `units` — which clearBattle empties FIRST — so a wave that ended while a DoT was burning
@@ -12820,7 +12820,7 @@ function updateStatusFx(dt){ if(!TH||!scene)return; units.forEach(u=>{
   if(!kind) return;
   if(!u._statusFx){ const key=STATUSFX_KEY[kind], d=FX2_DEF[key], base=fx2Tex(key); if(!base)return;
     if(d.disc){ const R3=STATUSFX_CURSE_R*METER*SC*(u._gauntScale?gsplitFxMul():1), w=R3*2/d.disc.dw, h=R3*2/d.disc.dh;   /* v1141: a disc sheet (the void zone) lies FLAT on the ground under the feet */
-      const m=new TH.Mesh(_FX2_PLANE||new TH.PlaneGeometry(1,1), new TH.MeshBasicMaterial({map:base,transparent:true,depthWrite:false,depthTest:false,side:TH.DoubleSide,opacity:0.9}));
+      const m=new TH.Mesh(_FX2_PLANE||new TH.PlaneGeometry(1,1), new TH.MeshBasicMaterial({map:base,transparent:true,depthWrite:false,depthTest:false,side:TH.DoubleSide,opacity:1}));
       m.scale.set(w,h,1); fx2Hook(m); fx2SetFrame(m,d,0); m.rotation.x=-Math.PI/2; m.renderOrder=-5; scene.add(m);
       u._statusFx={kind,spr:m,tex:base,d,t:0,u,flat:true,zoff:-(d.disc.cy-0.5)*h}; _statusFxAll.push(u._statusFx); }
     else {
