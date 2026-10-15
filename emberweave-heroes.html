@@ -9717,7 +9717,7 @@ function summonUnit(owner,key,dur,off){
   let px=Math.max(60,Math.min(FW-60, owner.x+Math.cos(ang)*rad));
   let py=Math.max(80,Math.min(FD-60, owner.y+Math.sin(ang)*rad));
   if(off&&off.backRow){ const _b=backRowSpawn(owner,key); px=_b.x; py=_b.y; }
-  let u=null; try{ u=makeUnit(key,owner.team,px,py,heroLevel(owner.key)); }catch(e){ return null; }
+  let u=null; try{ u=makeUnit(key,owner.team,px,py,owner.lvl||heroLevel(owner.key)); }catch(e){ return null; }   /* v1145: the owner's FIGHT level (server snapshot) - heroLevel() reads this device's save, which the server's replay does not have (every Hurne fight was a digest miss) */
   if(!u)return null;
   const sc=SUMMON_SCALE[key];
   if(sc){                                   // scale off the master so they stay relevant at every level
