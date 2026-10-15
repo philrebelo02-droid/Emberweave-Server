@@ -16,7 +16,7 @@ for (const [m, k] of [[er, 'eruption'], [po, 'pool']]) {
 ok(er && po && er[3] === po[3] && er[4] === po[4], 'same frame box for both, so the cast hands off into the pool');
 ok(er && +er[9] === 0.5, 'the column peaks at half the hero height (peakH 0.5)');
 const fn = H.slice(H.indexOf('function updateWaxFx'), H.indexOf('function clearFx2'));
-ok(/if\(!\(u\.alive&&\(u\._waxCoatT\|\|0\)>0\)\)\{ if\(u\._waxFx\)_killWaxFx\(u\); return; \}/.test(fn), 'shown only while the coat lasts - removed at coat end, shatter or death');
+ok(/const _coat=u\.alive&&\(u\._waxCoatT\|\|0\)>0, _tal=u\.alive&&\(u\._wax\|\|0\)>0&&\(u\._waxT\|\|0\)>0;/.test(fn) && /if\(!\(_coat\|\|_tal\)\|\|\(_coat&&u\._waxFx&&u\._waxFx\.tal\)\)\{ if\(u\._waxFx\)_killWaxFx\(u\); if\(!\(_coat\|\|_tal\)\) return; \}/.test(fn), 'shown only while the coat (v1141: or Living Tallow wax) lasts - removed at coat end, shatter or death');
 ok(/s\.spr\.material\.map=tp;[^\n]*s\.spr\.renderOrder=-4;/.test(fn), 'after the eruption the pool takes over, behind the unit like the other ground marks');
 ok(/killAllStatusFx\(\); killAllWaxFx\(\);/.test(H), 'cleared with the other FX');   // v1077 appends the candle clear after it
 ok((H.match(/try\{ updateWaxFx\(dt\); \}catch\(e\)\{\}/g) || []).length === 2, 'ticked in battle and after the end');
