@@ -6126,14 +6126,22 @@ let units=[],shots=[],particles=[],floatTexts=[],groundHazards=[],voidZones=[],c
    rises on its own and no longer lands on top of the last one. The status words over one unit form a column: the newest at the TOP,
    each older one a line lower, drifting down as it ages and fading out; drawn at 75% size. Damage and heal numbers are unchanged. */
 const FT_STATUS_SCALE=0.75, FT_STATUS_TOP=14, FT_STATUS_LINE=13, FT_STATUS_DRIFT=10, FT_STATUS_MIN_LIFE=1.6, FT_STATUS_GROUP=1.6*METER;   // TOP/LINE/DRIFT are SCREEN pixels (x the bonus-run scale): field units shrink in depth on screen and the lines piled up
-function ftIsStatus(f){ return !!f && typeof f.txt==='string' && !f.label && /[A-Z]/.test(f.txt) && !/[a-z0-9]/.test(f.txt); }
+function ftIsStatus(f){ return !!f && typeof f.txt==='string' && !f.label && /[A-Z]/.test(f.txt) && !/[a-z0-9]/.test(f.txt) && !ftIsDebuff(f); }
+/* v1141 (Phil, 15 Oct: "Debuffs like burn, bleed, poison, curse, wax, are being treated like buffs and are being placed above a character.
+   they should be under their feet"). A DEBUFF word (a harmful mark or damage-over-time landing on the unit: WAX, SEALED, IN DEBT, MARKED,
+   VENOM, bleed x2, OVERDUE x3, -resist ...) no longer joins the buffs' column over the head: it gets its own column UNDER THE FEET, the
+   newest line nearest the feet, older lines drifting down and fading. Control words (STUN, SILENCED, FEAR!, ASLEEP, FROZEN, ROOTED) and
+   buffs keep the over-head column. Display only: floatTexts are never read by the fight. */
+const FT_DEBUFF_RE=/^(WAX|SEALING WAX|SEALED|ENCASED|STATUE|VENOM|STUNG|IN DEBT|MARKED|REWRITTEN|POISON SPREADS|DEBT CALLED IN|RUPTURE|WEIGHTLESS)$|^(bleed|wax|OVERDUE) x\d+$|^−(resist|armour|attack|energy|SPEED)$/;
+const FT_FEET_TOP=10, FT_FEET_HZ=0.02;   // SCREEN px under the feet line where the newest debuff word sits; the world height it is projected from
+function ftIsDebuff(f){ if(!f||typeof f.txt!=='string'||f.label) return false; if(f._deb==null) f._deb=FT_DEBUFF_RE.test(f.txt); return f._deb; }
 function statusTextStack(dt,k){ k=k||1;
-  const st=floatTexts.filter(ftIsStatus); if(!st.length) return;
+  const st=floatTexts.filter(f=>ftIsStatus(f)||ftIsDebuff(f)); if(!st.length) return;
   st.forEach(f=>{ if(f._ax==null){ f._ax=f.x; f._ay=f.y; f._age=0; f._oy=0; f._seq=++statusTextStack.n; f.t=Math.max(f.t,FT_STATUS_MIN_LIFE); } f._age+=dt; });
   const groups=[];
-  st.forEach(f=>{ let g=groups.find(g=>Math.hypot(g.x-f._ax,g.y-f._ay)<=FT_STATUS_GROUP); if(!g){ g={x:f._ax,y:f._ay,list:[]}; groups.push(g); } g.list.push(f); });
-  groups.forEach(g=>{ g.list.sort((a,b)=>b._seq-a._seq);   // newest first = the top line
-    g.list.forEach((f,i)=>{ const target=(-FT_STATUS_TOP+i*FT_STATUS_LINE+f._age*FT_STATUS_DRIFT)*k;
+  st.forEach(f=>{ const dB=ftIsDebuff(f); let g=groups.find(g=>g.deb===dB&&Math.hypot(g.x-f._ax,g.y-f._ay)<=FT_STATUS_GROUP); if(!g){ g={x:f._ax,y:f._ay,deb:dB,list:[]}; groups.push(g); } g.list.push(f); });
+  groups.forEach(g=>{ g.list.sort((a,b)=>b._seq-a._seq);   // newest first = the top line (over the head) / the line nearest the feet (under them)
+    g.list.forEach((f,i)=>{ const target=(g.deb?(FT_FEET_TOP+i*FT_STATUS_LINE+f._age*FT_STATUS_DRIFT):(-FT_STATUS_TOP+i*FT_STATUS_LINE+f._age*FT_STATUS_DRIFT))*k;
       f._oy+=(target-f._oy)*Math.min(1,dt*12);           // slide, never jump (applied in SCREEN pixels at draw time)
       f.x=g.x; f.y=g.y; f._fade=Math.max(0.35,1-i*0.22); }); }); }
 statusTextStack.n=0;
@@ -10319,6 +10327,11 @@ const _ALLY_CENTRED={hot:1,dawnward:1,mendburst:1,shield:1};
    circle it should be populating in the map not over head"): a debuff's art is a badge over each enemy it landed on
    (debuffArtAll), never a plate on the ground. Ticking areas (blizzard, aoedot, ashfall, erratafield ...) stay on the map. */
 const _DEBUFF_BADGE={shred:1,mrshred:1,bleedstack:1,dot:1,creeprot:1,atkcrush:1,debtmark:1,markreveal:1,chapterrewrite:1};
+/* v1141 (Phil, 15 Oct: "Debuffs like burn, bleed, poison, curse, wax, are being treated like buffs and are being placed above a character.
+   they should be under their feet"): since v595 a debuff's badge stood over the health bar exactly like a buff's. It now stands small at
+   the FEET of the unit it landed on (window._fxBelowFeet -> spawnGroundFx), FEET_BADGE_H x that unit's height at its tallest side.
+   Buffs, heals and shields (_ABOVE_BAR) keep their over-head badge; the over-head icons (silence, stun, fear, taunt, absorb) are unchanged. */
+const FEET_BADGE_H=0.55;
 function _debuffSig(e){ return [(e.dots||[]).length,(typeof _pendingDots!=='undefined'?_pendingDots.filter(p=>p.t===e).length:0),e._blStk||0,e._blT||0,e._shredT||0,e._mrShredT||0,e._atkDnT||0,e._markT||0,e._debtStk||0,e._debtDur||0]; }   // these two always drew their plate on the caster
 /* v498 (Phil, on Lumi's Dawnward: "you need to make sure no buffs or heals are on the character, should be above").
    A buff or a heal is a STATUS MARKER, not a spell landing on the ground: it must never cover the body it belongs to.
@@ -10363,9 +10376,10 @@ function abilArt(u,o,tgt,aimCtr,type){ window._fxCaster=u; if(o&&o.noArt) return
     const who = (_fw==='allies' ? alliesOf(u) : _fw==='enemies' ? enemiesOf(u) : alliesOf(u).concat(enemiesOf(u))).filter(_inR);
     const life = o.gdur||1.6;
     for(const t of who.slice(0,15)){ if(!t||!t.alive||!t._sprRef) continue;
-      try{ window._fxTgtH=t.sprH; window._fxTgtU=t; window._fxAboveBar=true; window._fxAtH=null;
-           const _bo=spawnGroundFx(o.gfx, t.x, t.y, 1.2*METER, life); if(_bo&&_bo.m&&t._sprRef){ const _p=new TH.Vector3(); t._sprRef.getWorldPosition(_p); _bo.followAbove=t; _bo.aboveOff=_bo.m.position.clone().sub(_p); } }catch(e){}   /* v953: a field-wide badge rides its unit too, so it joins the v952 stack */
-      finally{ window._fxTgtH=null; window._fxTgtU=null; window._fxAboveBar=false; } }
+      const _feet=(t.team!==u.team);   /* v1141: an enemy the field-wide effect landed on carries a DEBUFF - its badge goes under the feet */
+      try{ window._fxTgtH=t.sprH; window._fxTgtU=t; window._fxAboveBar=!_feet; window._fxBelowFeet=_feet; window._fxAtH=null;
+           const _bo=spawnGroundFx(o.gfx, t.x, t.y, 1.2*METER, life); if(_bo&&_feet) _bo.follow=t; else if(_bo&&_bo.m&&t._sprRef){ const _p=new TH.Vector3(); t._sprRef.getWorldPosition(_p); _bo.followAbove=t; _bo.aboveOff=_bo.m.position.clone().sub(_p); } }catch(e){}   /* v953: a field-wide badge rides its unit too, so it joins the v952 stack */
+      finally{ window._fxTgtH=null; window._fxTgtU=null; window._fxAboveBar=false; window._fxBelowFeet=false; } }
     return;
   }
   let c = (o.gfxAt==='self'||_SELF_PLATE[type]) ? u : (aimCtr || ((tgt&&tgt.alive)?tgt:u));
@@ -10404,12 +10418,12 @@ function abilArt(u,o,tgt,aimCtr,type){ window._fxCaster=u; if(o&&o.noArt) return
       return; } }
   /* v476: a plate that marks a PROJECTILE'S impact (the ability has pfx) waits for the projectile to land */
   if(o.pfx&&!_mz&&c!==u&&!(FX2_DEF[o.gfx]&&FX2_DEF[o.gfx].cone)){ const cc=c, oo=Object.assign({},o,{pfx:null}); setTimeout(()=>{ try{ if(cc.alive||cc===tgt){ _fxAllow=true; abilArt(u,oo,cc,cc,type); } }finally{ _fxAllow=false; } }, Math.round((o.pdur||0.30)*1000)); return; }   /* v477: pdur defaults to the projectile's own 0.30 s */
-  try{ window._fxTgtH=(c&&c.sprH)||(_mz?u.sprH:null); window._fxTgtU=(c&&c._sprRef)?c:null; window._fxAboveBar=!!((_ABOVE_BAR[type]||_DEBUFF_BADGE[type])&&c&&c._sprRef); window._fxBadgeSize=o.badgeSize||null; window._fxAtH=_mz?_mz.h:null; window._fxDir=_mz?_mz.dir:1; const _life=(type==='tendrilpull')?((o.dur||3)+0.35):(o.gdur||1.6);   /* v489 (Phil: the grasp "never lasts until the target reaches vulmar"): wire_fx only writes gdur onto ULT entries, so the hand fell back to the 1.6s default and died 1.4s into a 3s drag. The fist's life is the drag's life. */
-    window._fxPreScaled=!!o._areaScaled; let _o=null; try{ if(!o.noArea) _o=spawnGroundFx(o.gfx, c.x, c.y, R, _life); }finally{ window._fxPreScaled=false; } if(_o&&_o.m&&(_ABOVE_BAR[type]||_DEBUFF_BADGE[type])&&c&&c._sprRef){ const _p=new TH.Vector3(); c._sprRef.getWorldPosition(_p); _o.followAbove=c; _o.aboveOff=_o.m.position.clone().sub(_p); }   /* v595: an over-head badge rides with its unit */ window._fxTgtH=null; window._fxTgtU=null; window._fxAboveBar=false; window._fxBadgeSize=null;   /* v1073 (Phil 8 Oct, Oakmir ult 'too large so its very saturated pixels'): this single-target badge path never passed the skill's badgeSize, so every badge here was the 0.8 default */ window._fxAtH=null; window._fxDir=1; window._fxCone=null;
+  try{ window._fxTgtH=(c&&c.sprH)||(_mz?u.sprH:null); window._fxTgtU=(c&&c._sprRef)?c:null; window._fxAboveBar=!!(_ABOVE_BAR[type]&&c&&c._sprRef); window._fxBelowFeet=!!(!_ABOVE_BAR[type]&&_DEBUFF_BADGE[type]&&c&&c._sprRef); window._fxBadgeSize=o.badgeSize||null; window._fxAtH=_mz?_mz.h:null; window._fxDir=_mz?_mz.dir:1; const _life=(type==='tendrilpull')?((o.dur||3)+0.35):(o.gdur||1.6);   /* v489 (Phil: the grasp "never lasts until the target reaches vulmar"): wire_fx only writes gdur onto ULT entries, so the hand fell back to the 1.6s default and died 1.4s into a 3s drag. The fist's life is the drag's life. */
+    window._fxPreScaled=!!o._areaScaled; let _o=null; try{ if(!o.noArea) _o=spawnGroundFx(o.gfx, c.x, c.y, R, _life); }finally{ window._fxPreScaled=false; } if(_o&&window._fxBelowFeet) _o.follow=c; else if(_o&&_o.m&&(_ABOVE_BAR[type]||_DEBUFF_BADGE[type])&&c&&c._sprRef){ const _p=new TH.Vector3(); c._sprRef.getWorldPosition(_p); _o.followAbove=c; _o.aboveOff=_o.m.position.clone().sub(_p); }   /* v595: an over-head badge rides with its unit */ window._fxTgtH=null; window._fxTgtU=null; window._fxAboveBar=false; window._fxBelowFeet=false; window._fxBadgeSize=null;   /* v1073 (Phil 8 Oct, Oakmir ult 'too large so its very saturated pixels'): this single-target badge path never passed the skill's badgeSize, so every badge here was the 0.8 default */ window._fxAtH=null; window._fxDir=1; window._fxCone=null;
     /* v463 (Phil: "the hand should not fully close or disappear until the pulled character reaches the pull destination"):
        a plate cast on a unit that is about to be dragged FOLLOWS that unit, so the hand (and its front finger layer) closes
        around him wherever he ends up. */
-    if(_o&&type==='tendrilpull'&&c&&c.alive&&c!==u){ _o.follow=c; if(_o.frontFx)_o.frontFx.follow=c; if(_o.d&&_o.d.upright){ _o.grip=c; if(c.sprite)c.sprite.renderOrder=-1; } _o.gripHold=c; _o.puller=u; if(_o.frontFx){ _o.frontFx.gripHold=c; _o.frontFx.puller=u; } }   /* v489 (Phil): the fist holds him for the WHOLE drag and pops on arrival - see updateGroundFx */   /* v470: the grabbed unit drops to layer -1 for the life of the hand: behind the fingers (-0.5), in front of the palm (-2), every other unit stays at 0 */ if(_o&&_o.m&&_holdsUnit(type,o)){ u._holdFx=_o; Promise.resolve().then(()=>{ if(u._holdFx===_o) u._holdFx=null; }); if(type==='tendrilpull'&&c&&c.alive&&c!==u&&!(_o.d&&_o.d.upright)) holdUnder(_o,c); }   /* v829 (Phil 25 Sep): a bind/freeze plate holds the unit it controls - see holdUnder */ }catch(e){}
+    if(_o&&type==='tendrilpull'&&c&&c.alive&&c!==u){ _o.follow=c; if(_o.frontFx)_o.frontFx.follow=c; if(_o.d&&_o.d.upright){ _o.grip=c; if(c.sprite)c.sprite.renderOrder=-1; } _o.gripHold=c; _o.puller=u; if(_o.frontFx){ _o.frontFx.gripHold=c; _o.frontFx.puller=u; } }   /* v489 (Phil): the fist holds him for the WHOLE drag and pops on arrival - see updateGroundFx */   /* v470: the grabbed unit drops to layer -1 for the life of the hand: behind the fingers (-0.5), in front of the palm (-2), every other unit stays at 0 */ if(_o&&_o.m&&_holdsUnit(type,o)){ u._holdFx=_o; Promise.resolve().then(()=>{ if(u._holdFx===_o) u._holdFx=null; }); if(type==='tendrilpull'&&c&&c.alive&&c!==u&&!(_o.d&&_o.d.upright)) holdUnder(_o,c); }   /* v829 (Phil 25 Sep): a bind/freeze plate holds the unit it controls - see holdUnder */ }catch(e){} finally{ window._fxBelowFeet=false; }
 }
 /* Discrete passive procs use the same plate renderer as green/blue/ult. The
    caller owns the proc timing; persistent stat and aura passives never call it. */
@@ -11694,10 +11708,10 @@ function debuffArtAll(u,o,tgt,aimCtr,type,snap){
   const hit=[]; (snap||[]).forEach(s=>{ const a=s[0]; if(!a.alive)return; const now=_debuffSig(a); for(let i=0;i<now.length;i++){ if(now[i]!==s[i+1]){ hit.push(a); break; } } });
   if(!hit.length){ _fxAllow=true; try{ abilArt(u,o,tgt,aimCtr,type); }finally{ _fxAllow=false; } return; }
   const life=o.gdur||1.6;
-  hit.slice(0,15).forEach(a=>{ try{ window._fxTgtH=a.sprH||null; window._fxTgtU=a._sprRef?a:null; window._fxAboveBar=!!a._sprRef; window._fxAtH=null; window._fxDir=1; window._fxCone=null;
+  hit.slice(0,15).forEach(a=>{ try{ window._fxTgtH=a.sprH||null; window._fxTgtU=a._sprRef?a:null; window._fxAboveBar=false; window._fxBelowFeet=!!a._sprRef; window._fxAtH=null; window._fxDir=1; window._fxCone=null;   /* v1141: under the feet, not over the bar */
       _fxAllow=true; const fo=spawnGroundFx(o.gfx,a.x,a.y,1.2*METER,life);
-      if(fo&&fo.m&&a._sprRef){ const p=new TH.Vector3(); a._sprRef.getWorldPosition(p); fo.followAbove=a; fo.aboveOff=fo.m.position.clone().sub(p); }
-    }catch(e){} finally{ _fxAllow=false; window._fxTgtH=null; window._fxTgtU=null; window._fxAboveBar=false; window._fxAtH=null; window._fxDir=1; } });
+      if(fo&&a._sprRef) fo.follow=a;
+    }catch(e){} finally{ _fxAllow=false; window._fxTgtH=null; window._fxTgtU=null; window._fxAboveBar=false; window._fxBelowFeet=false; window._fxAtH=null; window._fxDir=1; } });
 }
 function kitReady(u,ab){ const ty=ab.type;
   if(ty==='summonmirage' && livingSummonsOf(u,ab.key||'zahri mirage')>=(SUMMON_CAPS[ab.key||'zahri mirage']||1)) return false;   // v546: the mirage lives until it dies - the blue waits, it never re-fires into a full cap
@@ -12398,6 +12412,10 @@ let _ownFxCast=false,_fxAllow=false;   /* v451 FX-OWNERSHIP  a hero with their o
 function spawnGroundFx(key,cx,cy,radius,life){ try{ _fxCheck('plate',arguments[0],arguments[1],arguments[2],window._fxCaster); }catch(e){} if(_ownFxCast&&!_fxAllow)return null; let d=FX2_DEF[key]; if(!TH||!scene||!d)return null; const base=fx2Tex(key); if(!base)return null; sndPlay('fx.'+key);   /* v1048 spell sound */
   /* v498: a buff/heal marker is drawn as an upright badge whose BOTTOM sits just over the target's health bar,
      no matter how its sheet is declared -- a flat ground disc for a shield would still lie across the body. */
+  /* v1141 (Phil, 15 Oct: debuffs "should be under their feet"): a DEBUFF badge (_fxBelowFeet - the v595 badge of a bleed, poison, curse,
+     debt or armour/resist break) is no longer drawn over the health bar like a buff: the ability's own art stands small at the unit's FEET,
+     its middle on the feet line, behind the unit (renderOrder -4, the layer of the bleed/poison/burn marks), and rides with the unit. */
+  if(window._fxBelowFeet && !window._fxAboveBar) d=Object.assign({},d,{upright:true,upAbove:false,upMetric:false,upSize:FEET_BADGE_H*0.95*Math.min(1,d.fw/d.fh),upExtent:0.95,upAnchor:[0.5,0.5],upPalm:null,upFlip:false,cone:false,front:null,solid:0,ro:-4});
   if(window._fxAboveBar && !d.upAbove) d=Object.assign({},d,{upright:true,upAbove:true,upAboveM:0.06,upSize:(window._fxBadgeSize||0.8),upExtent:0.95,upAnchor:null,upPalm:null,cone:false,ro:1});   /* a sheet that already declares upAbove keeps its own tuning (Dandra's lotus, Aureth's eclipse) */
   const tex=base;
   const R3=radius*SC; let w=R3*2*1.12*FX_SIZE, h=w*(d.fh/d.fw), zoff=0;   // v367: FX_SIZE is visual only
@@ -12775,13 +12793,24 @@ function plagueDot(t,dps,dur,interval,color){ if(!t)return;
 function updatePendingDots(dt){ for(let i=_pendingDots.length-1;i>=0;i--){ const p=_pendingDots[i]; p.delay-=dt; if(p.delay<=0){ if(p.t&&p.t.alive)pushDot(p.t,p.dps,p.dur,p.interval,p.color); _pendingDots.splice(i,1);} } }
 // Universal DoT status FX: ANY unit (hero or monster) carrying a bleed/poison/burn DoT shows the matching effect
 // at its feet for the DoT's lifetime. Classified by the dot's colour. Burn = a small fire patch under the feet.
-function dotKind(color){ if(!color)return null; const h=color.replace('#',''); if(h.length<6)return null;
+/* v1141 (Phil, 15 Oct: "Debuffs like burn, bleed, poison, curse, wax ... should be under their feet"): every damage-over-time colour the
+   engine pushes is NAMED here, so a dot's kind comes from the effect that made it, not from a guess at its hue: Umbris' and the plague
+   curses (purple) and Grimsby's debt (ledger brown) were 'null' and drew nothing at the feet; Hollow's grey bleed and Astra's stardust too;
+   the bee sting (yellow) was drawn as fire. The hue test is kept only for a colour no kit names yet. Curse = the void zone flat under
+   the feet; wax (Living Tallow stacks) = Ceraline's wax pool (updateWaxFx). */
+const DOT_KIND_BY_COLOR={'#ff6a3a':'burn','#ff6a2a':'burn','#ff7a2a':'burn','#ff7a3a':'burn','#ffa657':'burn','#ff9a3c':'burn','#ff8844':'burn','#6fe3d4':'burn',
+  '#c0392b':'bleed','#8f8fa8':'bleed', '#8fbf3f':'poison','#8fd648':'poison','#7fd06b':'poison','#f2d84a':'poison',
+  '#8a5cff':'curse','#7a3fb0':'curse','#b06bff':'curse','#c9a6ff':'curse','#9a6fff':'curse','#8a7a3a':'curse'};
+function dotKind(color){ if(!color)return null; const k=DOT_KIND_BY_COLOR[String(color).toLowerCase()]; if(k) return k;
+  const h=color.replace('#',''); if(h.length<6)return null;
   const r=parseInt(h.slice(0,2),16),g=parseInt(h.slice(2,4),16),b=parseInt(h.slice(4,6),16);
   if(g>r-10 && g>b+40) return 'poison';                 // green
   if(r>150 && b<110) return g<95 ? 'bleed' : 'burn';    // warm: low-green=bleed(red), more-green=burn(orange)
+  if(b>g+40 && r>g) return 'curse';                     // v1141: violet
   return null; }
 function unitDotKind(u){ if(!u.dots||!u.dots.length)return null; for(let i=u.dots.length-1;i>=0;i--){ const k=dotKind(u.dots[i].color); if(k)return k; } return null; }
-const STATUSFX_KEY={poison:'poison',bleed:'bleed',burn:'firepatch'};   // burn is rendered as a tiny fire patch
+const STATUSFX_KEY={poison:'poison',bleed:'bleed',burn:'firepatch',curse:'voidzone'};   // burn is rendered as a tiny fire patch; v1141 curse = a small void zone lying flat
+const STATUSFX_CURSE_R=1.5;   // v1141: the curse disc radius in metres - wider than the 0.72 m plague telegraph so it shows round the feet (rig: 0.75/1.0 m hid behind the legs), held for the curse life
 /* v488 (Phil: "this should be the same for fire, curse, poison, bleed effects when i go to a new wave ... i keep seeing
    them stay in the image if i end a wave fast"). Same bug the passive bee had: these sprites are scene children owned by a
    unit, and every sweep walked `units` — which clearBattle empties FIRST — so a wave that ended while a DoT was burning
@@ -12796,11 +12825,18 @@ function updateStatusFx(dt){ if(!TH||!scene)return; units.forEach(u=>{
   if(!kind || (u._statusFx&&u._statusFx.kind!==kind)) _killStatusFx(u);
   if(!kind) return;
   if(!u._statusFx){ const key=STATUSFX_KEY[kind], d=FX2_DEF[key], base=fx2Tex(key); if(!base)return;
+    if(d.disc){ const R3=STATUSFX_CURSE_R*METER*SC*(u._gauntScale?gsplitFxMul():1), w=R3*2/d.disc.dw, h=R3*2/d.disc.dh;   /* v1141: a disc sheet (the void zone) lies FLAT on the ground under the feet */
+      const m=new TH.Mesh(_FX2_PLANE||new TH.PlaneGeometry(1,1), new TH.MeshBasicMaterial({map:base,transparent:true,depthWrite:false,depthTest:false,side:TH.DoubleSide,opacity:1}));
+      m.scale.set(w,h,1); fx2Hook(m); fx2SetFrame(m,d,0); m.rotation.x=-Math.PI/2; m.renderOrder=-5; scene.add(m);
+      u._statusFx={kind,spr:m,tex:base,d,t:0,u,flat:true,zoff:-(d.disc.cy-0.5)*h}; _statusFxAll.push(u._statusFx); }
+    else {
     const tex=base; const asp=d.fw/d.fh, scl=(kind==='burn'?1.5:1.7)*(u._gauntScale?gsplitFxMul():1);   // v589: bonus-run feet plates at unit size
     const spr=new TH.Sprite(new TH.SpriteMaterial({map:tex,transparent:true,depthWrite:false,depthTest:false,opacity:0.95}));
     fx2Hook(spr); fx2SetFrame(spr,d,0);
-    spr.center.set(.5,.10); spr.scale.set(scl*asp,scl,1); spr.renderOrder=-4; scene.add(spr); u._statusFx={kind,spr,tex,d,t:0,u}; _statusFxAll.push(u._statusFx); }
-  const s=u._statusFx; s.t+=dt; fx2SetFrame(s.spr,s.d,Math.floor((s.t/s.d.dur)*s.d.n)); s.spr.position.set(wx(u.rx==null?u.x:u.rx),0.35,wz(u.ry==null?u.y:u.ry)); }); }   // v268: interpolated
+    spr.center.set(.5,.10); spr.scale.set(scl*asp,scl,1); spr.renderOrder=-4; scene.add(spr); u._statusFx={kind,spr,tex,d,t:0,u}; _statusFxAll.push(u._statusFx); } }
+  const s=u._statusFx; s.t+=dt; fx2SetFrame(s.spr,s.d,Math.floor((s.t/s.d.dur)*s.d.n));
+  if(s.flat) s.spr.position.set(wx(u.rx==null?u.x:u.rx),0.12,wz(u.ry==null?u.y:u.ry)+s.zoff);
+  else s.spr.position.set(wx(u.rx==null?u.x:u.rx),0.35,wz(u.ry==null?u.y:u.ry)); }); }   // v268: interpolated
 /* v1077 Court of the Final Candle - the wax edge, measured from Grok's approved pour clip (pool width per frame / its final width):
    it lands at 0.92 s, reaches half the radius at 2.0 s, 90% at ~3.9 s and the full radius at ~5.5 s. GAME LOGIC uses this table
    (candleEdgeT: when the edge reaches a fraction of the radius), and the floor art grows on the same table, so they cannot drift. */
@@ -12842,12 +12878,16 @@ function _killWaxFx(u){ if(u&&u._waxFx){ try{ scene.remove(u._waxFx.spr); u._wax
     const i=_waxFxAll.indexOf(u._waxFx); if(i>=0)_waxFxAll.splice(i,1); u._waxFx=null; } }
 function killAllWaxFx(){ _waxFxAll.forEach(s=>{ try{ scene.remove(s.spr); s.spr.material.dispose(); }catch(_){} if(s.u)s.u._waxFx=null; }); _waxFxAll.length=0; }
 function updateWaxFx(dt){ try{ updateCandleFx(dt); }catch(_e){} try{ updateFx1115(dt); }catch(_e){} try{ updateFx1123(dt); }catch(_e){} if(!TH||!scene||typeof units==='undefined')return;   /* v1077: the Final Candle art ticks here too */ const de=FX2_DEF.waxerupt, dp=FX2_DEF.waxpool; if(!de||!dp)return; units.forEach(u=>{
-  if(!(u.alive&&(u._waxCoatT||0)>0)){ if(u._waxFx)_killWaxFx(u); return; }
-  if(!u._waxFx){ const te=fx2Tex('waxerupt'); if(!te)return;
+  /* v1141: Living Tallow's wax stacks (_wax while _waxT runs) are wax on the unit too - they get the wax pool under the feet (no eruption:
+     the pour is Sealing Wax's own cast); a Sealing Wax coat keeps its eruption, then the same pool. */
+  const _coat=u.alive&&(u._waxCoatT||0)>0, _tal=u.alive&&(u._wax||0)>0&&(u._waxT||0)>0;
+  if(!(_coat||_tal)||(_coat&&u._waxFx&&u._waxFx.tal)){ if(u._waxFx)_killWaxFx(u); if(!(_coat||_tal)) return; }   /* a coat poured on a tallow pool starts its own eruption */
+  if(!u._waxFx){ const te=fx2Tex(_coat?'waxerupt':'waxpool'); if(!te)return;
     const spr=new TH.Sprite(new TH.SpriteMaterial({map:te,transparent:true,depthWrite:false,depthTest:false,opacity:0.97}));
     fx2Hook(spr); fx2SetFrame(spr,de,0); spr.center.set(de.anchor[0],de.anchor[1]);
     const H=(u.sprH||3.9)*de.peakH/de.peakFrac; spr.scale.set(H*de.fw/de.fh,H,1); spr.renderOrder=1; scene.add(spr);
-    u._waxFx={spr,t:0,u,pool:false}; _waxFxAll.push(u._waxFx); }
+    if(!_coat) spr.renderOrder=-4;   /* v1141: tallow starts as the pool, behind the unit like the bleed/poison/burn marks */
+    u._waxFx={spr,t:_coat?0:de.dur,u,pool:!_coat,tal:!_coat}; _waxFxAll.push(u._waxFx); }
   const s=u._waxFx; s.t+=dt;
   if(s.t<de.dur) fx2SetFrame(s.spr,de,Math.min(de.n-1,Math.floor(s.t/de.dur*de.n)));
   else { if(!s.pool){ const tp=fx2Tex('waxpool'); if(tp){ s.pool=true; s.spr.material.map=tp; s.spr.material.needsUpdate=true; s.spr.renderOrder=-4; } }
@@ -14250,7 +14290,7 @@ function battleFrameTail(dt){
   shots.forEach(s=>{s.t+=dt;}); shots.filter(s=>s.t>=s.dur).forEach(s=>{if(s.onDone)s.onDone(); scene.remove(s.mesh);s.mesh.material.dispose();}); shots=shots.filter(s=>s.t<s.dur);
   particles.forEach(p=>{p.t+=dt;p.mesh.position.x+=p.vx*dt;p.mesh.position.y+=p.vy*dt;p.mesh.position.z+=p.vz*dt;p.vy-=6*dt;p.mesh.material.opacity=Math.max(0,1-p.t/p.life);});
   particles.filter(p=>p.t>=p.life).forEach(p=>{scene.remove(p.mesh);p.mesh.material.dispose();}); particles=particles.filter(p=>p.t<p.life);
-  { const _ftD=(typeof GSPLIT!=='undefined' && GSPLIT && GSPLIT.active)?BONUS_UNIT_SCALE:1; floatTexts.forEach(f=>{f.t-=dt; if(ftIsStatus(f)) return; f.y-=(f.vy||1)*(60*dt)*_ftD;}); statusTextStack(dt,_ftD); } floatTexts=floatTexts.filter(f=>f.t>0);   // v593: in a bonus run numbers rise a 0.28-scale distance
+  { const _ftD=(typeof GSPLIT!=='undefined' && GSPLIT && GSPLIT.active)?BONUS_UNIT_SCALE:1; floatTexts.forEach(f=>{f.t-=dt; if(ftIsStatus(f)||ftIsDebuff(f)) return; f.y-=(f.vy||1)*(60*dt)*_ftD;}); statusTextStack(dt,_ftD); } floatTexts=floatTexts.filter(f=>f.t>0);   // v593: in a bonus run numbers rise a 0.28-scale distance
   updateStaffFx(dt);   // KonWu ultimate phantom-staff slams
   updateFxPlates(dt);   // Vulmar placed effect plates
   updateChains(dt);   // Umbris Creeping Rot shadow-chain projectiles
@@ -15229,8 +15269,8 @@ function drawOverlay(){octx.clearRect(0,0,CW,CH); _edOvRect=null; if(state==='ba
      part of the text now takes BONUS_UNIT_SCALE, the factor the heroes and (v592) their spell areas take: font, outline,
      name plate padding/corners, and the rise. Zooming in still grows them with the units. */
   const _ftK=_ftBn?BONUS_UNIT_SCALE:1;
-  floatTexts.forEach(f=>{const p=project(f.x,f.y,(f.hz||(f.label?3.1:1.8))*(_ftBn?BONUS_UNIT_SCALE*1.4:1));if(!p.vis)return; if(f._oy!=null) p.y+=f._oy;   // v942: a status word's place in its unit's column   // v253: ability NAMES float higher, clear of the melee cluster
-    const life=Math.min(1,f.t*2.2), sz=(f.sz||16)*_ftK*(ftIsStatus(f)?FT_STATUS_SCALE:1), col=f.color||'#fff';
+  floatTexts.forEach(f=>{const _fdb=ftIsDebuff(f); const p=project(f.x,f.y,(_fdb?FT_FEET_HZ:(f.hz||(f.label?3.1:1.8)))*(_ftBn?BONUS_UNIT_SCALE*1.4:1));   /* v1141: a debuff word is projected from the feet line */if(!p.vis)return; if(f._oy!=null) p.y+=f._oy;   // v942: a status word's place in its unit's column   // v253: ability NAMES float higher, clear of the melee cluster
+    const life=Math.min(1,f.t*2.2), sz=(f.sz||16)*_ftK*((ftIsStatus(f)||_fdb)?FT_STATUS_SCALE:1), col=f.color||'#fff';
     octx.globalAlpha=life*(f._fade==null?1:f._fade);
     // v253 (visual audit #5): an ability NAME gets a dark plate behind it so it never competes with
     // characters, damage numbers and FX; damage numbers keep the outlined treatment.
