@@ -7,6 +7,7 @@
 const path = require('path'), vm = require('vm');
 const ROOT = path.resolve(__dirname, '..');
 const host = require(path.join(ROOT, 'server/sim-host.js')).load(path.join(ROOT, 'emberweave-heroes.html'));
+require('./helpers/anim-slim-1155.js').undoSlim1155(src => require('vm').runInContext(src, host.ctx));   // v1155 slim: this release's checks see the v1153 entries (tests/test_anim_slim_1155.js checks the slim)
 const run = src => vm.runInContext(src, host.ctx);
 let pass = 0, fail = 0;
 const ck = (name, ok, detail) => { if (ok) { pass++; console.log('  ok  ' + name); } else { fail++; console.log('  FAIL ' + name + (detail ? ' - ' + detail : '')); } };

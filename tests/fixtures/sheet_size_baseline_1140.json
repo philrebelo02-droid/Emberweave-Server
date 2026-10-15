@@ -48,7 +48,6 @@
   "/assets/anim/bloatus/bloatus_hit.webp",
   "/assets/anim/bloatus/bloatus_idle.webp",
   "/assets/anim/bloatus/bloatus_ult.webp",
-  "/assets/anim/bloatus/bloatus_walk.webp",
   "/assets/anim/boarshaman/boarshaman_attack.webp",
   "/assets/anim/boarshaman/boarshaman_cast.webp",
   "/assets/anim/boarshaman/boarshaman_rise.webp",
@@ -100,7 +99,6 @@
   "/assets/anim/fritz/fritz_passive.webp",
   "/assets/anim/fritz/fritz_surge.webp",
   "/assets/anim/fritz/fritz_ult.webp",
-  "/assets/anim/fritz/fritz_walk.webp",
   "/assets/anim/fx/absalie_blue.webp",
   "/assets/anim/fx/absalie_ult.webp",
   "/assets/anim/fx/aldren_blue.webp",
@@ -229,7 +227,6 @@
   "/assets/anim/grosk/grosk_hit_1112.webp",
   "/assets/anim/grosk/grosk_idle_1112.webp",
   "/assets/anim/grosk/grosk_ult_1112.webp",
-  "/assets/anim/grosk/grosk_walk_1112.webp",
   "/assets/anim/gruel/gruel_attack.webp",
   "/assets/anim/gruel/gruel_blue.webp",
   "/assets/anim/gruel/gruel_crit.webp",
@@ -238,7 +235,6 @@
   "/assets/anim/gruel/gruel_idle.webp",
   "/assets/anim/gruel/gruel_passive.webp",
   "/assets/anim/gruel/gruel_ult.webp",
-  "/assets/anim/gruel/gruel_walk.webp",
   "/assets/anim/hobb/hobb_attack.webp",
   "/assets/anim/hobb/hobb_blue.webp",
   "/assets/anim/hobb/hobb_green.webp",
@@ -296,7 +292,6 @@
   "/assets/anim/konwu/konwu_hit.webp",
   "/assets/anim/konwu/konwu_idle.webp",
   "/assets/anim/konwu/konwu_ult.webp",
-  "/assets/anim/konwu/konwu_walk.webp",
   "/assets/anim/korvux/korvux_attack.webp",
   "/assets/anim/korvux/korvux_blue.webp",
   "/assets/anim/korvux/korvux_green.webp",
@@ -437,7 +432,6 @@
   "/assets/anim/oakmir/oakmir_hit.webp",
   "/assets/anim/oakmir/oakmir_idle.webp",
   "/assets/anim/oakmir/oakmir_ult.webp",
-  "/assets/anim/oakmir/oakmir_walk.webp",
   "/assets/anim/orryn/orryn_hit.webp",
   "/assets/anim/orryn/orryn_idle.webp",
   "/assets/anim/orryn/orryn_passive.webp",
@@ -459,7 +453,6 @@
   "/assets/anim/pyroclast/pyroclast_idle.webp",
   "/assets/anim/pyroclast/pyroclast_passive.webp",
   "/assets/anim/pyroclast/pyroclast_ult.webp",
-  "/assets/anim/pyroclast/pyroclast_walk.webp",
   "/assets/anim/quorrel/quorrel_attack.webp",
   "/assets/anim/quorrel/quorrel_blue.webp",
   "/assets/anim/quorrel/quorrel_green.webp",
@@ -485,7 +478,6 @@
   "/assets/anim/rhukk/rhukk_idle.webp",
   "/assets/anim/rhukk/rhukk_passive.webp",
   "/assets/anim/rhukk/rhukk_ult.webp",
-  "/assets/anim/rhukk/rhukk_walk.webp",
   "/assets/anim/rivet/rivet_attack.webp",
   "/assets/anim/rivet/rivet_blue.webp",
   "/assets/anim/rivet/rivet_green.webp",
@@ -539,7 +531,6 @@
   "/assets/anim/tharl/tharl_idle.webp",
   "/assets/anim/tharl/tharl_passive.webp",
   "/assets/anim/tharl/tharl_ult.webp",
-  "/assets/anim/tharl/tharl_walk.webp",
   "/assets/anim/tick/tick_attack.webp",
   "/assets/anim/tick/tick_blue.webp",
   "/assets/anim/tick/tick_green.webp",
@@ -563,14 +554,12 @@
   "/assets/anim/umbris/umbris_idle_1115.webp",
   "/assets/anim/umbris/umbris_passive_1115.webp",
   "/assets/anim/umbris/umbris_ult_1115.webp",
-  "/assets/anim/umbris/umbris_walk_1115.webp",
   "/assets/anim/vael/vael_attack.webp",
   "/assets/anim/vael/vael_blue.webp",
   "/assets/anim/vael/vael_crit.webp",
   "/assets/anim/vael/vael_green.webp",
   "/assets/anim/vael/vael_idle.webp",
   "/assets/anim/vael/vael_ult.webp",
-  "/assets/anim/vael/vael_walk.webp",
   "/assets/anim/vaelora/vaelora_attack.webp",
   "/assets/anim/vaelora/vaelora_blue.webp",
   "/assets/anim/vaelora/vaelora_green.webp",
@@ -639,5 +628,85 @@
   "/assets/anim/zahrimirage/zahrimirage_attack.webp",
   "/assets/anim/zahrimirage/zahrimirage_rise.webp",
   "/assets/anim/zahrimirage/zahrimirage_walk.webp"
- ]
+ ],
+ "derived_1155": [
+  {
+   "file": "/assets/anim/bloatus/bloatus_walk_1155.webp",
+   "from": "/assets/anim/bloatus/bloatus_walk.webp",
+   "w": 2436,
+   "h": 5022,
+   "bytes": 4593562
+  },
+  {
+   "file": "/assets/anim/fritz/fritz_walk_1155.webp",
+   "from": "/assets/anim/fritz/fritz_walk.webp",
+   "w": 2298,
+   "h": 4527,
+   "bytes": 2643868
+  },
+  {
+   "file": "/assets/anim/grosk/grosk_walk_1155.webp",
+   "from": "/assets/anim/grosk/grosk_walk_1112.webp",
+   "w": 3366,
+   "h": 4032,
+   "bytes": 6031830
+  },
+  {
+   "file": "/assets/anim/gruel/gruel_walk_1155.webp",
+   "from": "/assets/anim/gruel/gruel_walk.webp",
+   "w": 3630,
+   "h": 4096,
+   "bytes": 5725946
+  },
+  {
+   "file": "/assets/anim/konwu/konwu_walk_1155.webp",
+   "from": "/assets/anim/konwu/konwu_walk.webp",
+   "w": 1776,
+   "h": 3492,
+   "bytes": 3641914
+  },
+  {
+   "file": "/assets/anim/oakmir/oakmir_walk_1155.webp",
+   "from": "/assets/anim/oakmir/oakmir_walk.webp",
+   "w": 2256,
+   "h": 4064,
+   "bytes": 3135428
+  },
+  {
+   "file": "/assets/anim/pyroclast/pyroclast_walk_1155.webp",
+   "from": "/assets/anim/pyroclast/pyroclast_walk.webp",
+   "w": 2442,
+   "h": 5121,
+   "bytes": 4282932
+  },
+  {
+   "file": "/assets/anim/rhukk/rhukk_walk_1155.webp",
+   "from": "/assets/anim/rhukk/rhukk_walk.webp",
+   "w": 3288,
+   "h": 4041,
+   "bytes": 3388928
+  },
+  {
+   "file": "/assets/anim/tharl/tharl_walk_1155.webp",
+   "from": "/assets/anim/tharl/tharl_walk.webp",
+   "w": 2250,
+   "h": 2772,
+   "bytes": 2891150
+  },
+  {
+   "file": "/assets/anim/umbris/umbris_walk_1155.webp",
+   "from": "/assets/anim/umbris/umbris_walk_1115.webp",
+   "w": 3180,
+   "h": 4096,
+   "bytes": 3812650
+  },
+  {
+   "file": "/assets/anim/vael/vael_walk_1155.webp",
+   "from": "/assets/anim/vael/vael_walk.webp",
+   "w": 2418,
+   "h": 4104,
+   "bytes": 3345908
+  }
+ ],
+ "derived_note": "v1155 animation slim: a sheet cut losslessly from a FROZEN sheet (fewer cells of the same art, same cell size) may stay over 2048 px only within its parent: each side <= the parent sheet (w, h) and bytes <= the parent file. The parent leaves `files` once nothing references it. RATCHET - entries may only shrink or leave."
 }
