@@ -2732,13 +2732,13 @@ const HERO_TYPES = {
    hurne:   {name:'Hurne',emoji:'\u26D3\uFE0F',role:'Bruiser',swing:2.5,stars:3,hp:520,dmg:32,range:30,speed:62,atkSpeed:0.9,color:0x6b5230,abilityName:'Feed Them',ability:'devourpack',locked:true,myth:true,source:'purchase'},
    meridian:{name:'Meridian',emoji:'🧭',role:'Marksman',swing:2.0,stars:3,hp:200,dmg:34,range:210,speed:68,atkSpeed:1.0,color:0xd9b26a,abilityName:'Final Expedition',ability:'finalsurvey',locked:true,start:3},
    gruel:  {name:'Gruel',emoji:'🪙',role:'Tank',swing:2.6,stars:2,hp:560,dmg:26,range:30,speed:55,atkSpeed:0.85,color:0xb9a06a,abilityName:'The Reckoning',ability:'taunt',locked:true,start:2},
-   astra:   {name:'Astra',emoji:'🌌',role:'Mage',swing:2.0,stars:2,hp:180,dmg:16,apow:34,range:230,speed:65,atkSpeed:0.85,color:0x6fe3d4,abilityName:'Event Horizon',ability:'gravcrush',locked:true,start:2},
+   astra:   {name:'Astra',emoji:'🌌',role:'Mage',swing:2.0,stars:2,hp:180,dmg:16,apow:34,range:230,speed:65,atkSpeed:0.85,color:0x6fe3d4,abilityName:'Collapsing Star',ability:'gravcrush',locked:true,start:2},
    quorrel:{name:'Quorrel',emoji:'⚖️',role:'Bruiser',swing:2.2,stars:2,hp:450,dmg:28,range:28,speed:67,atkSpeed:1.0,color:0x2f2f38,abilityName:'Contempt Storm',ability:'volley',locked:true,start:2},
    korvux:   {name:'Korvux',emoji:'🦎',role:'Bruiser',swing:2.3,stars:2,hp:430,dmg:32,range:28,speed:70,atkSpeed:0.95,color:0x8a4fd0,abilityName:'Falling Star',ability:'ashfall',locked:true,start:2},
    maren:  {name:'Maren',emoji:'⚓',role:'Mage',swing:2.2,stars:2,hp:300,dmg:16,apow:30,range:190,speed:60,atkSpeed:0.85,color:0x3f7d86,abilityName:'Maelstrom',ability:'swamproot',locked:true,start:2},
    lumi:    {name:'Lumi',emoji:'🌼',role:'Support',swing:2.0,stars:2,hp:210,dmg:14,apow:30,range:190,speed:67,atkSpeed:0.9,color:0xf2e2a0,abilityName:'Radiant Nova',ability:'sunburst',healer:true,locked:true,start:2},
    hollow:  {name:'Hollow',emoji:'🕳️',role:'Assassin',swing:1.7,stars:3,hp:360,dmg:40,range:26,speed:89,atkSpeed:1.20,color:0x1a1a22,abilityName:'Vanishing Point',ability:'vanishpoint',locked:true,myth:true,source:'purchase'},
-   veyr:{name:'Veyr',emoji:'🐟',role:'Assassin',swing:1.8,stars:3,hp:310,dmg:44,apow:34,range:26,speed:86,atkSpeed:1.2,color:0x3a5fa8,abilityName:'Event Horizon',ability:'eventhorizon',locked:true,start:2},
+   veyr:{name:'Veyr',emoji:'🐟',role:'Assassin',swing:1.8,stars:3,hp:310,dmg:44,apow:34,range:26,speed:86,atkSpeed:1.2,color:0x3a5fa8,abilityName:'Abyssal Undertow',ability:'eventhorizon',locked:true,start:2},
    mirelle:{name:'Mirelle Velvetplum',emoji:'🦚',role:'Support',swing:1.8,stars:3,hp:250,dmg:16,apow:32,range:195,speed:79,atkSpeed:1.25,color:0x3f7f6b,abilityName:'Imperial Plumage',ability:'plumage',locked:true,start:2},
    pellucid:{name:'Pellucid',emoji:'💎',role:'Tank',swing:1.8,stars:3,hp:580,dmg:25,range:30,speed:57,atkSpeed:0.95,color:0x6fb7c9,abilityName:'Worldbreaker Fists',ability:'worldbreaker',locked:true,start:2},
    orryn:{name:'Orryn',emoji:'🐚',role:'Mage',swing:1.8,stars:3,hp:195,dmg:18,apow:34,range:210,speed:65,atkSpeed:1.05,color:0x2f8fa8,abilityName:'Ocean Without Shore',ability:'ashfall',locked:true,start:2},
@@ -5088,7 +5088,7 @@ const HERO_ULT_DESC={"nerisse": "Ultimate — Nerisse rings the great bell: ever
   "vaelora": "Ultimate — Unleashes a blizzard of frozen feathers around all enemies.",
   "mirelle": "Ultimate — Opens her full tail and perfumes the battlefield, cleansing allies while charming enemies into lowering their defenses.",
   "sloe": "Ultimate — A rapid fan of arrows strikes the enemy backline.",
-  "veyr": "Ultimate — Creates a gravity collapse that gathers enemies before detonating.",
+  "veyr": "Ultimate — Abyssal Undertow: the deep opens where he aims and drags every enemy in, then crashes over them — damage and a 2-second slow.",   /* v1136 (Phil 14 Oct: "rename and change veyrs" - he shared Absalie's Event Horizon) */
   "absalie": "Ultimate — A collapsing void repeatedly damages and silences enemies.",
   "ceraline": "Ultimate — Floods the battlefield with molten wax, heavily slowing enemies before hardening them into statues that shatter for massive damage.",
   "zahri": "Player-aimed ultimate — aim a line up to 20 m: Zahri charges down it to the last enemy on the line, striking everyone in her path and knocking them off to either side."
@@ -11295,7 +11295,9 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
       const cx=Math.max(60,Math.min(FW-60,ctr.x)), cy=Math.max(80,Math.min(FD-60,ctr.y)); const caught=[];
       enemiesOf(u).forEach(e=>{ if(dist({x:cx,y:cy},e)<R){ caught.push(e); if(!e.immovable&&!((e._gearImmovableT||0)>0)){ e.pulledBy={x:cx,y:cy,alive:true}; e.pullT=Math.max(e.pullT||0,pullT); e.pullStop=6; e.pullSpeed=Math.max(30,dist({x:cx,y:cy},e)/pullT); e._pullGhost=true; } } });
       const dmg=apB*(o.mul||1.9)*rm, sil=o.silence||1.5;
-      u._horizon={cx,cy,R,t:pullT*BATTLE_PACE,caught,dmg,sil};
+      const und=(u.key==='veyr');   /* v1136 Abyssal Undertow (Phil 14 Oct "rename and change veyrs"): Veyr's own version - the same drag and damage, but the
+         collapse SLOWS 2 s instead of silencing (Absalie keeps Event Horizon: silence). Same mul/radius/pull, so his power is unchanged. */
+      u._horizon={cx,cy,R,t:pullT*BATTLE_PACE,caught,dmg,sil,slow:und?(o.undertowSlow||2.0):0};
       ringBurst(cx,cy,0x6a3fb0,22); if(u.team==='ally')screenFlash=Math.max(screenFlash,.2); break; }
     case 'worldweight':{ const ctr=aimCtr||((tgt&&tgt.alive)?tgt:u); const R=o.radius||8*METER, L=o.lift||2.0;   /* v920 Weight of the World (Phil): lift 2 s, slam, stun 1 s - not a pull */
       enemiesOf(u).forEach(e=>{ if(!e.alive||dist(ctr,e)>=R) return; const amt=dB*(o.mul||2.0)*rm;
@@ -12902,7 +12904,7 @@ function think(u,dt){
   // Umbral Cataclysm: at release the orb leaves his hand (fly); on land it spawns the void zone + slam.
   if(u._voidT>0){ u._voidT-=dt; if(u._voidT<=0){ u._voidT=0; if(u._voidCast){ if(typeof spawnVoidOrb==='function')spawnVoidOrb(u,u._voidCast); u._voidLandT=0.22*BATTLE_PACE; } } }
   if(u._horizon){ const H=u._horizon; H.t-=dt; if(H.t<=0){ /* v339: Event Horizon collapses */
-      H.caught.forEach(e=>{ if(!e.alive) return; dealDamage(u,e,H.dmg,'#9b5cff'); e.silencedT=Math.max(e.silencedT||0,ccDur(H.sil)); e.pullT=0; e._pullGhost=false; e.pullStop=null; e.pullSpeed=null; });
+      H.caught.forEach(e=>{ if(!e.alive) return; dealDamage(u,e,H.dmg,H.slow?'#5fa8ff':'#9b5cff'); if(H.slow) e.slow=Math.max(e.slow||0,ccDur(H.slow)); else e.silencedT=Math.max(e.silencedT||0,ccDur(H.sil)); e.pullT=0; e._pullGhost=false; e.pullStop=null; e.pullSpeed=null; });
       ringBurst(H.cx,H.cy,0x6a3fb0,30); burstAt(H.cx,H.cy,0x2a1040,20);  if(u.team==='ally')screenFlash=Math.max(screenFlash,.4);
       u._horizon=null; } }
   if(u._voidLandT>0){ u._voidLandT-=dt; if(u._voidLandT<=0){ u._voidLandT=0; const vc=u._voidCast; u._voidCast=null;

@@ -81,7 +81,7 @@ const KITS={
   brannus:  {kind:'phys',  shape:'cleave', coef:2.30, n:2},                 // Lionwheel Rampage
   linnet:  {kind:'heal',  who:'allies',   coef:1.35},                      // Rewrite the Pattern
   hobb:    {kind:'phys',  shape:'aoe',    coef:1.40, n:3, stun:1},         // Grand Kiln Shape
-  veyr:        {kind:'phys',  shape:'aoe',    coef:1.45, n:3, stun:1},         // Event Horizon
+  veyr:        {kind:'phys',  shape:'aoe',    coef:1.45, n:3, stun:1},         // Abyssal Undertow (v1136, was Event Horizon)
   kharos:      {kind:'phys',  shape:'lowest', coef:3.00},                      // Orchid Execution
   orryn:       {kind:'magic', shape:'aoe',    coef:1.45, n:3},                 // Ocean Without Shore
   pellucid:    {kind:'phys',  shape:'aoe',    coef:1.50, n:3, stun:1},         // Worldbreaker Fists
