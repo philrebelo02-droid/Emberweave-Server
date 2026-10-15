@@ -4106,7 +4106,7 @@ function ledgerView(u){ const led=ensureLedger(u); ledStamRegen(led); if(ledPlay
     prov:(function(){ try{ return provLedgerView(u,led); }catch(e){ return null; } })(),   /* v663: Training Province stage + plays */
     portals:(function(){ const o={}; for(const m of PORTAL_MODES){ const pr=portalProg(led,m);
       o[m]={ cleared:pr.cleared|0, stars:pr.stars||{}, locked:portalLocked(led,m) }; } return o; })(),
-    stamina:{v:led.stam.v, max:ledStamMax(led), regenMs:STAM_REGEN_MS},
+    stamina:{v:led.stam.v, max:ledStamMax(led), regenMs:STAM_REGEN_MS}, stamItems:led.stamItems|0,   /* v1142: Ember Roasts held (Diamond Pool) */
     dust:u.dust||0,
     plans:(function(){ try{ return plansView(led); }catch(e){ return null; } })(),   /* v1050: the paid plans, server-owned */
     // day-boundary: HUD shop counters are server-owned (the 09:00 ET day via shopState, v1065); the client
@@ -4217,10 +4217,12 @@ const MYTH_PRAYERS=Object.freeze({kindled:[3,6],stoked:[2,5],blazing:[1,3],infer
 function poolTopGlyphTier(u){ const led=ensureLedger(u), g=ensureGlyphs(u); let qi=0;
   for(const hk of Object.keys(g.boards||{})) if(ownsHeroK(led,hk)) qi=Math.max(qi,(g.boards[hk].ascensionIndex|0));
   return Math.min(qi,GLYPH_LADDER.length-1); }
-function poolFullGlyph(u){ const led=ensureLedger(u), g=ensureGlyphs(u), qi=poolTopGlyphTier(u);
+/* v1142 (Phil 15 Oct): step 1 = a full glyph of the NEXT tier (capped at the top of GLYPH_LADDER) for a hero at the player's top tier.
+   Ascending clears a board's six slots, so every slot of that next tier is still empty. Step 0 is the Mythical Pool's rule, unchanged. */
+function poolFullGlyph(u,step){ const led=ensureLedger(u), g=ensureGlyphs(u), top=poolTopGlyphTier(u), qi=Math.min(top+(step|0),GLYPH_LADDER.length-1), ahead=qi>top;
   const heroes=Object.keys(led.unlocked||{}).filter(hk=>ownsHeroK(led,hk)&&SIM.HERO_BASE[hk]);
-  const spots=[]; for(const hk of heroes){ const bd=g.boards[hk]; const ai=bd?(bd.ascensionIndex|0):0; if(ai!==qi) continue;
-    for(let s=0;s<6;s++){ if(bd&&bd.slots&&bd.slots[s]) continue; const def=glyphPreChoice(hk,s,qi); if(def) spots.push({hk,s,def}); } }
+  const spots=[]; for(const hk of heroes){ const bd=g.boards[hk]; const ai=bd?(bd.ascensionIndex|0):0; if(ai!==top) continue;
+    for(let s=0;s<6;s++){ if(!ahead&&bd&&bd.slots&&bd.slots[s]) continue; const def=glyphPreChoice(hk,s,qi); if(def) spots.push({hk,s,def}); } }
   if(!spots.length) return null;
   const sp=spots[Math.floor(Math.random()*spots.length)], cost=g2BuildCost({subGlyphs:{}},sp.def); if(!cost) return null;
   const list=Object.keys(cost.need).map(k=>({key:k,quantity:cost.need[k]})); glyphGrantNamedList(u,list);
@@ -4249,18 +4251,23 @@ function poolRollGem(u, rigged){ const led=u.led, pool=poolState(u);
     const phk=(Math.random()<0.12?poolPickUnowned(led,POOL_P3):null)||poolPickUnowned(led,POOL_P2)||poolPickUnowned(led,POOL_P3);
     if(phk) return Object.assign(poolGrantHero(u,phk),{pity:true});
     return Object.assign(poolGrantHero(u, poolPick(POOL_P2)),{pity:true,exhausted:true}); }
-  const h=Math.random(); let acc=0;   /* v1092 (Phil 9 Oct): "kunwu needs to be removed from regular wishing pool" - he is in the Mythical Pool (EGP 11) */
+  /* v1142 (Phil 15 Oct): ONE roll, Phil's table (GEM_ODDS, published on /api/pool/state). The mythical heroes stay in the Mythical Pool (v1092).
+     Every result but a new full hero counts toward the 40-wish pity; a full hero (not a dupe) resets it. */
+  const O=GEM_ODDS, h=Math.random(); let acc=0; const n=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
   const hit=(fn)=>{ const r=fn(); if(r&&r.type==='hero') pool.pity=0; else pool.pity++; return r; };
-  acc+=0.01;  if(h<acc) return hit(()=>poolGrantHero(u, poolPick(POOL_P3)));
-  acc+=0.08;  if(h<acc) return hit(()=>poolGrantHero(u, poolPick(POOL_P2)));
-  pool.pity++;
-  acc+=0.15;  if(h<acc){ const hk=poolPick(POOL_P2), n=2+Math.floor(Math.random()*2); creditFrags(u,led,hk,n,'wish:gem',{uncapped:true}); return {type:'frags',hero:hk,frags:n}; }
-  acc+=0.10;  if(h<acc){ const hk=poolPick(POOL_P3), n=2+Math.floor(Math.random()*2); creditFrags(u,led,hk,n,'wish:gem',{uncapped:true}); return {type:'frags',hero:hk,frags:n}; }
-  const r=Math.random();
-  if(r<0.36) return poolGlyphFrag(u,'Blue', 2+Math.floor(Math.random()*3));
-  if(r<0.60) return poolGlyphFrag(u,'Green', 4+Math.floor(Math.random()*4));
-  if(r<0.80) return poolGlyphFrag(u,'Blue +1', 1+Math.floor(Math.random()*2));
-  const gm=20+Math.floor(Math.random()*40); creditGems(u,led,gm,'wish:gem'); return {type:'gems', n:gm}; }
+  if(h<(acc+=O.full3)) return hit(()=>poolGrantHero(u, poolPick(POOL_P3)));
+  if(h<(acc+=O.full2)) return hit(()=>poolGrantHero(u, poolPick(POOL_P2)));
+  if(h<(acc+=O.frag3)) return hit(()=>{ const hk=poolPick(POOL_P3), k=n(2,3); creditFrags(u,led,hk,k,'wish:gem',{uncapped:true}); return {type:'frags',hero:hk,frags:k}; });
+  if(h<(acc+=O.frag2)) return hit(()=>{ const hk=poolPick(POOL_P2), k=n(2,3); creditFrags(u,led,hk,k,'wish:gem',{uncapped:true}); return {type:'frags',hero:hk,frags:k}; });
+  const glyph=(step)=>{ const r=poolFullGlyph(u,step); if(r) return Object.assign(r,{next:!!step});   // no empty slot at that tier: 2-4 fragments of it, as the Mythical Pool does
+    const qi=Math.min(poolTopGlyphTier(u)+step,GLYPH_LADDER.length-1); return Object.assign(poolGlyphFrag(u, GLYPH_LADDER[qi], n(2,4)),{next:!!step}); };
+  if(h<(acc+=O.glyphFull)) return hit(()=>glyph(0));
+  if(h<(acc+=O.glyphNext)) return hit(()=>glyph(1));
+  return hit(()=>{ led.stamItems=Math.min(STAM_ITEM_MAX,(led.stamItems|0)+1); return {type:'stamItem', n:1, stamina:STAM_ITEM_STAMINA, name:STAM_ITEM_NAME}; }); }
+/* v1142 THE EMBER ROAST (Phil 15 Oct): a stamina item from the Diamond Pool, kept on the ledger (led.stamItems) and eaten later through
+   /api/stamina/use-item: +120 stamina exactly as a meal gives it (creditStamina, the 999 ceiling, refused at full). */
+const GEM_ODDS=Object.freeze({full3:0.03,full2:0.10,frag3:0.17,frag2:0.23,glyphFull:0.20,glyphNext:0.10,stamItem:0.17});
+const STAM_ITEM_STAMINA=120, STAM_ITEM_MAX=9999, STAM_ITEM_NAME='Ember Roast';
 /* ---- HUD shop (stamina meals + gold purchases, server-owned counts + prices) ---- */
 const SHOP_FOOD_COSTS=[50,50,100,100,200,200,400,400,600,600],   /* v1064 Phil 8 Oct: "It should be 50, 50, 100, 100, 200, 200, 400" / "There is 2 400s, then 600, 600 is last" - ten meals a day */ SHOP_GOLD_COSTS=[20,20,40,40,60,60,100,100], SHOP_FOOD_STAMINA=120;
 function shopState(u){ const led=ensureLedger(u); if(!led.shop) led.shop={day:'',food:0,gold:0};
@@ -6443,7 +6450,7 @@ async function api(req,res,url){
        its countdown and label, so a wish tapped at "0" was charged. The server now says how long until the next New York day. */
     const _sh=now-GAME_DAY_START_MS, nyOff=etOffsetMs(_sh), nyWall=_sh-nyOff, gemFreeNextMs=Math.max(0,(Math.floor(nyWall/86400000)+1)*86400000+nyOff+GAME_DAY_START_MS-now);   // v1065: next 09:00 ET
     writeDB();
-    return send(res,200,{ mythOdds:MYTH_ODDS, mythCost:WISH_MYTH_COST, mythUnlockEgp:MYTH_UNLOCK_EGP, odds:{full3:0.01,full2:0.08,frag2:0.15,frag3:0.10,goldHero:0.05,goldFrag:0.15},
+    return send(res,200,{ mythOdds:MYTH_ODDS, mythCost:WISH_MYTH_COST, mythUnlockEgp:MYTH_UNLOCK_EGP, odds:Object.assign({},GEM_ODDS,{goldHero:0.05,goldFrag:0.15}), stamItem:{name:STAM_ITEM_NAME,stamina:STAM_ITEM_STAMINA},   /* v1142: Phil's Diamond table */
       pity:{at:WISH_GEM_PITY,count:pool.pity}, costs:{gold:WISH_GOLD_COST,gem:WISH_GEM_COST,mult10:WISH10_MULT},
       goldFree:{ready:goldFreeReady,usedToday:pool.goldFree,max:WISH_GOLD_FREE_MAX,nextMs:Math.max(0,WISH_GOLD_FREE_MS-(now-pool.goldLast))},
       gemFree:{ready:gemFreeReady,unlocked:gemUnlocked,clearsNeeded:Math.max(0,WISH_FIRST_GEM_CLEAR_NODE-((led.camp&&led.camp.cleared)|0)),nextMs:gemFreeReady?0:gemFreeNextMs}, firstDone:pool.gemFirstDone, ledger:ledgerView(me) }); }
@@ -6526,6 +6533,14 @@ async function api(req,res,url){
       if((led.gems|0)<c) return {ok:false,error:'You need '+c+' diamonds.'};
       led.gems-=c; a.used=Math.max(0,(a.used|0)-ARENA_FREE_ATTEMPTS); patronDayInc(led,'arenaResets');   /* v1097 (sweep 9 Oct #15): only the 5 free attempts come back - free ones are spent first, so a bought attempt already used stays used (a.used=0 also returned up to 5 bought ones) */
       ledTx(me,'patron:arena-reset',{gems:-c}); return {ok:true, arena:arenaAttView(led), ledger:ledgerView(me)}; });
+    return send(res,out.storageFailed?503:(out.ok===false?400:200),out); }
+  if(p==='/api/stamina/use-item' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});   /* v1142: eat one Ember Roast (+120 stamina) */
+    const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
+    const out=durableCommit(me,me.id+':stamitem:'+reqId,(me)=>{ const led=ensureLedger(me);
+      if((led.stamItems|0)<1) return {ok:false,error:'You have no '+STAM_ITEM_NAME+'.'};
+      ledStamRegen(led); if(led.stam.v>=999) return {ok:false,error:'Stamina is full.'};   // as a meal: never spend the item for nothing
+      led.stamItems=(led.stamItems|0)-1; const got=creditStamina(me,led,STAM_ITEM_STAMINA,'item:stamina');
+      ledTx(me,'item:stamina',{stamina:got}); return {ok:true, stamina:led.stam.v, gained:got, left:led.stamItems, ledger:ledgerView(me)}; });
     return send(res,out.storageFailed?503:(out.ok===false?400:200),out); }
   if(p==='/api/patron/use-attack-card' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});   /* v1092: from the Mythical Pool */
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
@@ -6727,7 +6742,7 @@ async function api(req,res,url){
         writeDB(); return {ok:true, stamina:led.stam.v, cost:c, ledger:ledgerView(me)}; }
       if(what==='gold'){ if(sh.gold>=patronRow(led,'goldBuys')) return {ok:false,error:'No more gold today.'};   /* v1092 */
         const c=SHOP_GOLD_COSTS[Math.min(sh.gold,SHOP_GOLD_COSTS.length-1)]; if(led.gems<c) return {ok:false,error:'Not enough diamonds.'};
-        let amt=1000+(ledPlayerLevel(led)-1)*100; let doubled=false;
+        let amt=1000+(ledPlayerLevel(led)-1)*100; let doubled=false;
         if(patronLevels(led).egp>=PATRON_DOUBLE_GOLD_EGP && (srvSeed('goldbuy2x',me.id,nyDayKey(),String(sh.gold))%2)===0){ amt*=2; doubled=true; }   /* v1093: EGP 6 - 50 % chance of double gold */
         led.gems-=c; sh.gold++; creditGold(me,led,amt,'shop:gold');
         ledTx(me,'shop:gold',{gems:-c,gold:amt});

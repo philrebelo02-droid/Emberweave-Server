@@ -24771,11 +24771,12 @@ function renderBag(){
   // legacy glyph collection stripped 26 Aug — Glyph v2 fragments/glyphs live on each hero's Glyphs tab (server account)
   const st=(typeof RUNE2!=='undefined')&&RUNE2.st;
   const frags=st?Object.entries(st.fragments||{}).filter(([k,n])=>n>0).sort():[];
-  b.innerHTML=`<div style="font-weight:700;margin-bottom:6px">${uiIcon('res-xp-potion')} Hero XP Potions</div><div class="panel" style="margin-bottom:12px;font-size:11px">${XP_POTION_LABELS.map(([id,name,xp])=>`<div style="display:flex;justify-content:space-between;padding:4px 0"><span>${name} · ${xp.toLocaleString()} hero XP</span><b>×${(G.xpPotions||{})[id]|0}</b></div>`).join('')}</div><div style="font-weight:700;margin-bottom:6px">🔮 Glyph Fragments</div>
+  b.innerHTML=`<div style="font-weight:700;margin-bottom:6px">${uiIcon('res-xp-potion')} Hero XP Potions</div><div class="panel" style="margin-bottom:12px;font-size:11px">${XP_POTION_LABELS.map(([id,name,xp])=>`<div style="display:flex;justify-content:space-between;padding:4px 0"><span>${name} · ${xp.toLocaleString()} hero XP</span><b>×${(G.xpPotions||{})[id]|0}</b></div>`).join('')}</div><div style="font-weight:700;margin-bottom:6px">${hudIcon('food')} Stamina</div><div class="panel" style="margin-bottom:12px;font-size:11px"><div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0"><span>${STAM_ITEM_NAME} · +${STAM_ITEM_STAMINA} stamina</span><span><b>×${stamItemCount()}</b>${stamItemCount()>0?` <button class="btn sm" id="bagStamUse">Use</button>`:''}</span></div></div><div style="font-weight:700;margin-bottom:6px">🔮 Glyph Fragments</div>
     ${st?`<div class="panel" style="margin-bottom:10px">
       ${frags.length?`<div style="display:flex;flex-wrap:wrap;gap:4px">${frags.map(([k,n])=>`<span class="pill" style="font-size:9px">${k} ×${n}</span>`).join('')}</div>`:'<div style="font-size:10px;color:#6f7d90">No glyph fragments yet.</div>'}
     </div>`:'<div class="panel" style="font-size:11px;color:#6f7d90;margin-bottom:10px">Sign in to see your glyph fragments.</div>'}
     `;
+  const su=document.getElementById('bagStamUse'); if(su) su.onclick=useStamItem;
 }
 const BUILD_VERSION='v0.16';
 /* ============================ WISHING POOL ============================ */
@@ -24792,7 +24793,18 @@ function wishStarPool(n){ return HERO_KEYS.filter(k=>{ const t=HERO_TYPES[k];
   return t && t.locked && !t.myth && !t.source && heroStartStars(k)===n; }); }
 function pickFrom(a,fb){ return a.length?a[Math.floor(Math.random()*a.length)]:fb; }
 const WISH_GOLD_HERO_CHANCE=0.05, WISH_GOLD_FRAG_CHANCE=0.15;   // gold: 5% full hero, 15% 2-3 fragments (Phil)
-const WISH_GEM_KONWU=0.001, WISH_GEM_FULL3=0.01, WISH_GEM_FULL2=0.08, WISH_GEM_FRAG2=0.15, WISH_GEM_FRAG3=0.10;
+const WISH_GEM_KONWU=0, WISH_GEM_FULL3=0.03, WISH_GEM_FULL2=0.10, WISH_GEM_FRAG2=0.23, WISH_GEM_FRAG3=0.17;   /* v1142 Phil's table (the server rolls; /api/pool/state publishes it) */
+/* v1142 the Ember Roast: a 120-stamina item from the Diamond Pool, held on the server ledger (stamItems), eaten from the Food shop */
+const STAM_ITEM_NAME='Ember Roast', STAM_ITEM_STAMINA=120;
+function STAM_ITEM_ART(px){ return `<img src="/assets/img/ui/hud-food.webp?v=1" alt="" style="width:${px}px;height:${px}px;object-fit:contain;display:block;margin:0 auto">`; }
+function stamItemCount(){ return (typeof LED!=='undefined'&&LED.st&&LED.st.stamItems)|0; }
+let STAM_ITEM_RID=null, STAM_ITEM_BUSY=false;
+async function useStamItem(){ if(STAM_ITEM_BUSY) return; if(stamItemCount()<1){ bannerMsg('You have no '+STAM_ITEM_NAME+'.'); return; } STAM_ITEM_BUSY=true;
+  try{ const rid=STAM_ITEM_RID||(STAM_ITEM_RID=uid8()); const r=await api('/api/stamina/use-item','POST',{requestId:rid});
+    if(!(r&&(r.error==='offline'||r.storageFailed))) STAM_ITEM_RID=null;
+    if(!r||!r.ok){ bannerMsg((r&&r.error)||'Could not use it.'); if(typeof ledgerSync==='function') await ledgerSync(); }
+    else { adoptLedger(r.ledger); saveG(); updateHubChrome(); bannerMsg(hudIcon('food')+' +'+(r.gained|0)+' stamina!'); }
+  } finally { STAM_ITEM_BUSY=false; const m=document.getElementById('hudShop'); if(m&&m.dataset.kind==='food') renderFoodShop(); const bg=document.getElementById('bag'); if(bg&&bg.classList.contains('active')) renderBag(); } }
 const WISH_HERO_CHANCE=WISH_GEM_FULL2+WISH_GEM_FULL3;     // total chance of a FULL hero from the diamond pool (9%)
 const WISH_KONWU_CHANCE=WISH_GEM_KONWU;                   // 0.1% KonWu
 const DUPE_FRAG={1:7,2:14,3:30};                          // fragments refunded when a FULL-hero wish duplicates one you already own, by starting star
@@ -24908,6 +24920,7 @@ function serverWishToRes(r){
   if(!r) return {icon:'❔',name:'…'};
   /* v1092: heroes and their fragments show the hero card; glyph prizes show the glyph art; the Mythical Pool's cards */
   if(r.type==='glyphFull'){ const art=wishGlyphArt(r.q,r.fam,'finished',110); return {icon:'🔮', art, big:true, name:'A full '+(r.tier||'')+' glyph: '+(r.name||''), extra:'Every piece to build it'+(r.hero&&HERO_TYPES[r.hero]?' on '+HERO_TYPES[r.hero].name:'')+' is in your glyph materials'}; }
+  if(r.type==='stamItem') return {icon:hudIcon('food'), art:STAM_ITEM_ART(110), big:true, name:STAM_ITEM_NAME+' ('+(r.stamina||STAM_ITEM_STAMINA)+' stamina)', extra:'Kept in your Bag'};
   if(r.type==='attackCard') return {icon:'⚔️', art:'<img src="/assets/img/items/attack-card-v1.webp?v=1" alt="" style="width:110px;height:110px;object-fit:contain;display:block;margin:0 auto">', big:true, name:'Attack card', extra:'+10 city attacks today when used'};
   if(r.type==='teleport') return {icon:'🌀', art:'<img src="/assets/img/items/teleport-card-v1.webp?v=1" alt="" style="width:110px;height:110px;object-fit:contain;display:block;margin:0 auto">', name:'Teleport card', extra:'Added to your world map scrolls'};
   if(r.type==='shield') return {icon:'🛡️', name:'World map shield', extra:'Added to your shields'};
@@ -24988,7 +25001,7 @@ async function wishShowInfo(){ const old=document.getElementById('wishInfo'); if
   const ov=document.createElement('div'); ov.id='wishInfo'; ov.className='wishInfoOv'; ov.onclick=e=>{ if(e.target===ov) ov.remove(); };
   ov.innerHTML=`<div class="wishInfoCard"><div class="wishInfoHead"><b>Wishing Pool</b><button class="btn sm secondary" id="wishInfoX">${uiIcon('close')}</button></div>
     <div class="wishInfoSec">⛲ Gold Pool · ${hudIcon('gold')}${WISH_GOLD_COST}</div><div>Tick, Dandra &amp; Carn · full hero ${pct(o.goldHero)} · fragments ${pct(o.goldFrag)} · 3 free wishes a day, 1 an hour</div>
-    <div class="wishInfoSec">🔮 Diamond Pool · ${hudIcon('gem')}${WISH_GEM_COST}</div><div>The 2${uiIcon('star-filled')} and 3${uiIcon('star-filled')} ladders · full 3${uiIcon('star-filled')} ${pct(o.full3)} · full 2${uiIcon('star-filled')} ${pct(o.full2)} · 2${uiIcon('star-filled')} fragments ${pct(o.frag2)} · 3${uiIcon('star-filled')} fragments ${pct(o.frag3)} · 1 free wish a day · a hero within ${st&&st.pity?st.pity.at:40} wishes · first wish: a 2${uiIcon('star-filled')} hero</div>
+    <div class="wishInfoSec">🔮 Diamond Pool · ${hudIcon('gem')}${WISH_GEM_COST}</div><div>The 2${uiIcon('star-filled')} and 3${uiIcon('star-filled')} ladders · full 3${uiIcon('star-filled')} hero ${pct(o.full3)} · full 2${uiIcon('star-filled')} hero ${pct(o.full2)} · 3${uiIcon('star-filled')} fragments ${pct(o.frag3)} · 2${uiIcon('star-filled')} fragments ${pct(o.frag2)} · full glyph of your level ${pct(o.glyphFull)} · full glyph of the next level ${pct(o.glyphNext)} · ${STAM_ITEM_NAME} (${STAM_ITEM_STAMINA} stamina) ${pct(o.stamItem)} · 1 free wish a day · a hero within ${st&&st.pity?st.pity.at:40} wishes · first wish: a 2${uiIcon('star-filled')} hero</div>
     <div class="wishInfoSec">${uiIcon('mythical-star')} Mythical Pool · ${hudIcon('gem')}${WISH_MYTH_COST} · EGP ${MYTH_UNLOCK_EGP}</div><div>${mo?'Mythical hero '+pct(mo.mythHero)+' · mythical fragments '+pct(mo.mythFrag)+' · glyph fragments '+pct(mo.glyphFrag)+' · full glyph '+pct(mo.glyphFull)+' · attack card '+pct(mo.attackCard)+' · shield '+pct(mo.shield)+' · teleport card '+pct(mo.teleport)+' · Kindled '+pct(mo.kindled)+' · Stoked '+pct(mo.stoked)+' · Blazing '+pct(mo.blazing)+' · Inferno '+pct(mo.inferno):'Only mythical heroes'}</div>
     <div style="display:flex;gap:6px;margin-top:10px"><button class="btn sm secondary" id="wishInfoHist">${uiIcon('quest-scroll')} My roll history</button></div></div>`;
   document.body.appendChild(ov); ov.querySelector('#wishInfoX').onclick=()=>ov.remove(); ov.querySelector('#wishInfoHist').onclick=()=>{ ov.remove(); wishShowHistory(); }; }
@@ -24996,7 +25009,7 @@ async function wishShowInfo(){ const old=document.getElementById('wishInfo'); if
 async function wishShowOdds(){ const st=await api('/api/pool/state'); if(!st||st.error){ bannerMsg('Sign in to see the pool rules.'); return; }
   const o=st.odds||{}, pct=v=>(v*100).toFixed(v<0.01?1:0)+'%';
   const mo=st.mythOdds||null; if(mo) setTimeout(()=>bannerMsg(uiIcon('mythical-star')+' <b>Mythical Pool</b> (EGP '+(st.mythUnlockEgp||11)+', '+hudIcon('gem')+(st.mythCost||400)+') — mythical hero '+pct(mo.mythHero)+' · mythical frags '+pct(mo.mythFrag)+' · glyph frags '+pct(mo.glyphFrag)+' · full glyph '+pct(mo.glyphFull)+' · attack card '+pct(mo.attackCard)+' · shield '+pct(mo.shield)+' · teleport '+pct(mo.teleport)+' · Kindled '+pct(mo.kindled)+' · Stoked '+pct(mo.stoked)+' · Blazing '+pct(mo.blazing)+' · Inferno '+pct(mo.inferno)),4200);
-  bannerMsg(uiIcon('chart')+' <b>Diamond Pool odds</b> — full 3'+uiIcon('star-filled')+' '+pct(o.full3||0)+' · full 2'+uiIcon('star-filled')+' '+pct(o.full2||0)+' · 3'+uiIcon('star-filled')+' frags '+pct(o.frag3||0)+' · 2'+uiIcon('star-filled')+' frags '+pct(o.frag2||0)+'<br>'+hudIcon('gold')+' <b>Gold Pool</b> — full hero '+pct(o.goldHero||0)+' · fragments '+pct(o.goldFrag||0)+'<br>'+statusIcon('mark')+' <b>Pity:</b> a full hero is GUARANTEED within '+((st.pity&&st.pity.at)||40)+' diamond wishes — you are at '+((st.pity&&st.pity.count)||0)+'.'); }
+  bannerMsg(uiIcon('chart')+' <b>Diamond Pool odds</b> — full 3'+uiIcon('star-filled')+' '+pct(o.full3||0)+' · full 2'+uiIcon('star-filled')+' '+pct(o.full2||0)+' · 3'+uiIcon('star-filled')+' frags '+pct(o.frag3||0)+' · 2'+uiIcon('star-filled')+' frags '+pct(o.frag2||0)+' · full glyph (your level) '+pct(o.glyphFull||0)+' · full glyph (next level) '+pct(o.glyphNext||0)+' · '+STAM_ITEM_NAME+' (120 stamina) '+pct(o.stamItem||0)+'<br>'+hudIcon('gold')+' <b>Gold Pool</b> — full hero '+pct(o.goldHero||0)+' · fragments '+pct(o.goldFrag||0)+'<br>'+statusIcon('mark')+' <b>Pity:</b> a full hero is GUARANTEED within '+((st.pity&&st.pity.at)||40)+' diamond wishes — you are at '+((st.pity&&st.pity.count)||0)+'.'); }
 function wishResultLabel(code){ const p=String(code||'').split(':'), t=p[0], k=p[1], nm=k?escapeHTML((HERO_TYPES[k]||{}).name||k):'';
   if(t==='hero') return nm+' (new hero)'; if(t==='frags') return nm+' fragments'; if(t==='glyphFrag') return 'Glyph fragments'; return escapeHTML(t+(nm?' '+nm:'')); }
 async function wishShowHistory(){ const h=await api('/api/pool/history'); if(!h||h.error||!(h.history||[]).length){ bannerMsg('No recorded wishes yet.'); return; }
@@ -27703,11 +27716,12 @@ function renderFoodShop(){ foodDayReset(); const c=foodNextCost(), gems=G.gems||
   document.getElementById('hudShopTitle').innerHTML=hudIcon('food')+' Food · Restore Stamina';
   document.getElementById('hudShopBody').innerHTML=`
     <div class="shopnote"><b style="color:#bff0a8">+${FOOD_STAMINA} stamina</b> per meal</div>
+    ${stamItemCount()>0?`<div class="buyrow" id="stamItemRow"><div><div class="bl">${hudIcon('food')} ${STAM_ITEM_NAME} · +${STAM_ITEM_STAMINA} Stamina</div><div class="bs">You have ${stamItemCount()}</div></div><div class="bcost"><button class="btn sm" id="stamItemUseBtn">Use</button></div></div>`:''}
     <div class="buyrow"><div><div class="bl">${hudIcon('food')} Meal · +${FOOD_STAMINA} Stamina</div><div class="bs">Bought today: ${n}${out?' · sold out until 09:00 ET':''}</div></div>
       <div class="bcost">${out?'<span class="bs">Back at 09:00 ET</span>':`<button class="btn sm ${gems>=c?'':'secondary'}" id="foodBuyBtn">${hudIcon('gem')} ${c}</button>`}</div></div>
     <div class="costtrack">${Array.from({length:((shopSrv()&&shopSrv().foodMax)||FOOD_COSTS.length)},(_,i)=>FOOD_COSTS[Math.min(i,FOOD_COSTS.length-1)]).map((x,i)=>`<span class="${i<n?'used':i===n?'next':''}">${hudIcon('gem')}${x}</span>`).join(' ')}</div>
     <div class="shopbal">Balance: ${hudIcon('gem')} ${gems}</div>`;
-  const b=document.getElementById('foodBuyBtn'); if(b) b.onclick=buyFood; }
+  const b=document.getElementById('foodBuyBtn'); if(b) b.onclick=buyFood; const u=document.getElementById('stamItemUseBtn'); if(u) u.onclick=useStamItem; }
 function renderGoldShop(){ goldDayReset(); const c=goldNextCost(), gems=G.gems||0, n=G.goldBuys||0, out=(c==null), amt=goldPerBuy();
   document.getElementById('hudShopTitle').innerHTML=hudIcon('gold')+' Buy Gold';
   document.getElementById('hudShopBody').innerHTML=`
