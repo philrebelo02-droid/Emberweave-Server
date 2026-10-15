@@ -5718,7 +5718,7 @@
    "hero": "carn",
    "hook": "EXISTS: fx.carnreap (when the plate appears)",
    "phase": "cast",
-   "rule": "cast",
+   "rule": "land",
    "slot": "ult",
    "timing": "cast frame (ability clip starts)"
   },

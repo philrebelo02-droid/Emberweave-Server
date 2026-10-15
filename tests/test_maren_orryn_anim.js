@@ -97,7 +97,8 @@ try {
   ck('the old v21 sheets are still on disk (rollback needs nothing)', NEW.every(([h, s]) => fs.existsSync(path.join(ROOT, G0[h][s].u.split('?')[0]))));
   ck('untouched states are byte-for-byte the BASE entries (Maren idle/walk/hit/passive, Orryn idle/walk/hit/ult/passive)', ['maren', 'orryn'].every(h => KEEP[h].every(s => JSON.stringify(G[h][s]) === JSON.stringify(G0[h][s]))));
   /* v1137 = one combined animation release (Maren + Orryn, Sylthaine, Rivet): the other parts' heroes are checked by their own tests (Rivet: test_rivet_weapons.js) */
-  const V1137_ANIM = JSON.stringify(['maren', 'orryn', 'sylthaine', 'rivet']);
+  /* v1142: Carn's eight new sheets (a later animation release) are checked by their own test, tests/test_carn_anim_eight.js */
+  const V1137_ANIM = JSON.stringify(['maren', 'orryn', 'sylthaine', 'rivet', 'carn']);
   const others = r => r('JSON.stringify(Object.keys(BATTLE_ANIM).filter(k=>!'+V1137_ANIM+'.includes(k)).map(k=>[k,BATTLE_ANIM[k]]))');
   ck('every hero outside the v1137 animation release has BATTLE_ANIM byte-for-byte BASE', H(others(run)) === H(others(R0)));
   ck('grids as cut (cells / fps / release cell): ' + NEW.map(x => x[0][0] + '.' + x[1] + ' ' + x[2] + '@' + x[3] + ' c' + x[4]).join(', '),

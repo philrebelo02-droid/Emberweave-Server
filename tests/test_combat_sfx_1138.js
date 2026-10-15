@@ -127,6 +127,10 @@ try {
   const HASH = `globalThis.require_hash=function(s){ let h1=0x811c9dc5, h2=0x01000193; for(let i=0;i<s.length;i++){ const c=s.charCodeAt(i); h1=Math.imul(h1^c,16777619)>>>0; h2=Math.imul(h2+c,2246822519)>>>0; } return h1.toString(16)+':'+h2.toString(16)+':'+s.length; }; 1`;
   const runL = load(HTML), runQ = load(HTML), runB = OLD ? load(OLD) : null;
   [runL, runQ, runB].forEach(r => r && r(HASH));
+  /* v1142: Carn now has a crit clip, so by the v532 crit-clip rule (engine code, unchanged) his swing crit is rolled at the wind-up - same chance,
+     earlier in the battle RNG stream. BASE gets the same rule by giving its Carn a crit clip with the OLD attack timing (render data only), exactly
+     as tests/test_carn_anim_eight.js / test_hurne_attack_crit.js prove it; every other difference would still diverge. */
+  if (runB) runB("BATTLE_ANIM.carn=Object.assign({},BATTLE_ANIM.carn,{crit:Object.assign({},BATTLE_ANIM.carn.attack)}); 1");
   const res = FIGHTS.map(F => ({ F, live: fight(runL, F, true), quiet: fight(runQ, F, false), base: runB && fight(runB, F, false) }));
   const runP = load(HTML); runP(HASH);
   const resP = FIGHTS.map((F, i) => ({ F, live: fight(runP, F, true, '', 1 + (i % 2)) }));   // the timing runs: phone clock, speed 1 / 2 alternating
