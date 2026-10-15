@@ -113,8 +113,9 @@ try {
       firePassiveClip(g, 2.0); const fired=[g._abilAnim||null,g._abilHold,g._lockPri,g._animLockT,!!g._passFired,g._qPass||null];
       const cand=[]; if(g.anim.idle) cand.push('idle'); if(!g._passFired && g.anim.passive) cand.push('passive'); return JSON.stringify({fired,cand}); })()`));
     ck('a passive trigger plays no clip and sets no hold or lock (firePassiveClip returns after its FX plate); idle has no passive filler to alternate with', JSON.stringify(r.fired) === JSON.stringify([null, 0, 0, 0, false, null]) && r.cand.join() === 'idle', JSON.stringify(r)); }
-  const others = r => r("JSON.stringify(Object.keys(BATTLE_ANIM).filter(k=>k!=='carn').map(k=>[k,BATTLE_ANIM[k]]))");
-  ck('every other hero and monster has BATTLE_ANIM byte-for-byte BASE', H(others(run)) === H(others(R0)));
+  /* v1153: Aureth's eleven new sheets (a later animation release) are checked by their own test, tests/test_aureth_anim_eleven.js */
+  const others = r => r("JSON.stringify(Object.keys(BATTLE_ANIM).filter(k=>k!=='carn'&&k!=='aureth').map(k=>[k,BATTLE_ANIM[k]]))");
+  ck('every other hero and monster (Aureth: its own later release) has BATTLE_ANIM byte-for-byte BASE', H(others(run)) === H(others(R0)));
   ck('grids as cut (cells / fps / contact cell): ' + NEW.map(x => x[0] + ' ' + x[1] + '@' + x[2] + (x[3] != null ? ' c' + x[3] : '')).join(', '),
     NEW.every(([s, n, fps, c]) => G[s].n === n && G[s].fps === fps && (c == null ? G[s].contact == null : G[s].contact === c)));
   ck('the new art faces RIGHT (flip:false on all eight) and every state stands on the shared frame-0 pose (feet - top = figH, no ax drift table, no pingpong)',

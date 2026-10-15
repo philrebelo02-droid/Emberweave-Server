@@ -120,7 +120,12 @@ try {
   // ---------------------------------------------------------------- 4. ALTERNATION
   const alt = s => s.length >= 6 && s.every((x, i) => x.arm === (i % 2 ? 'attackDark' : 'attackLight'));
   ck('4 swings alternate L/D/L/D (' + fN.sw.slice(0, 8).map(s => s.arm === 'attackLight' ? 'L' : s.arm === 'attackDark' ? 'D' : '?').join('') + ')', alt(fN.sw));
-  ck('4 with no attackLight/attackDark sheet the swing falls back to his attack clip', fN.sw.every(s => s.clip === null && s.shown === 'attack'));
+  /* v1153: the clips are delivered (tests/test_aureth_anim_eleven.js) - every swing plays its arm's own sheet, a crit the X slice; the fallback is
+     still checked on a copy of the page data with the two slots taken out */
+  ck('4 with the v1153 sheets every swing plays its own arm (attackLight / attackDark) or, on a crit, the X slice', fN.sw.length >= 6 && fN.sw.every(s => (s.clip === s.arm && s.shown === s.arm) || (s.clip === 'crit' && s.shown === 'crit')) && fN.sw.some(s => s.shown === 'attackDark') && fN.sw.some(s => s.shown === 'attackLight'),
+    fN.sw.slice(0, 6).map(s => s.arm + '/' + s.clip + '/' + s.shown).join(' '));
+  { const runF = load(HTML); runF(HASH); runF('delete BATTLE_ANIM.aureth.attackLight; delete BATTLE_ANIM.aureth.attackDark; delete BATTLE_ANIM.aureth.crit; 1'); const fF = fight(runF, ...AF);
+    ck('4 with no attackLight/attackDark sheet the swing falls back to his attack clip', fF.sw.length >= 6 && fF.sw.every(s => s.clip === null && s.shown === 'attack')); }
   { const fN2 = fight(runN, ...AF);
     ck('4 deterministic: the same fight twice is tick-identical (' + fN.h + ')', fN2.h === fN.h && JSON.stringify(fN2.sw) === JSON.stringify(fN.sw)); }
   // the two clip slots delivered (the attack's own timing), a crit clip delivered too; then crits forced

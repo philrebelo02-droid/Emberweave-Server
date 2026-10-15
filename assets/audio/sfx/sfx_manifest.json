@@ -3857,7 +3857,7 @@
    "hero": "aureth",
    "hook": "EXISTS: fx.aureth_green (when the plate appears)",
    "phase": "cast",
-   "rule": "cast",
+   "rule": "land",
    "slot": "green",
    "timing": "cast frame (ability clip starts)"
   },
@@ -3870,7 +3870,7 @@
    "hero": "aureth",
    "hook": "EXISTS: fx.aureth_blue (when the plate appears)",
    "phase": "cast",
-   "rule": "cast",
+   "rule": "release",
    "slot": "blue",
    "timing": "cast frame (ability clip starts)"
   },
@@ -3883,7 +3883,7 @@
    "hero": "aureth",
    "hook": "EXISTS: fx.aureth_ult (when the plate appears)",
    "phase": "cast",
-   "rule": "cast",
+   "rule": "release",
    "slot": "ult",
    "timing": "cast frame (ability clip starts)"
   },

@@ -99,6 +99,9 @@ RULES = {
     'S0468': {'rule': 'strike', 'max': 3, 'reuse': 'S0460'}, # Ceraline ult: each effigy shatter (its damage) = the Sealing Wax sound (Phil)
     'S0469': {'rule': 'passive', 'ev': 'tallow', 'reuse': 'S0460'},   # Living Tallow encases = the Sealing Wax sound (Phil)
     'S0382': {'rule': 'land'},                               # v1142 Carn Crimson Reap: its impact peak on the cleave landing (the form delivery, 1.148 fight s = ult clip contact cell 37, the reap swing), not from the press
+    'S0051': {'rule': 'land'},                               # v1153 Aureth Sunburst: its impact peak on the burst when the form delivery lands (1.339 fight s = green clip contact cell 47), not from the press
+    'S0053': {'rule': 'release'},                            # v1153 Aureth Duality: its peak on the stance swap at the 0.5 s cast release (blue clip contact cell 18)
+    'S0054': {'rule': 'release'},                            # v1153 Aureth Eclipse: its peak on the 1.2 s cast release, when the eclipse bursts out of him (ult clip contact cell 42), not 3 s after the press
 }
 PASSIVE_EV = {   # row -> the trigger the client fires (sfxPassive(u, ev))
     'S0446': 'livingpages', 'S0456': 'sacredbells', 'NEW-askel-passive': 'unshaken', 'S0068': 'contagion', 'NEW-brannus-passive': 'pridemomentum',
