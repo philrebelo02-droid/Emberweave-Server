@@ -7,7 +7,8 @@
 // What must NOT change: a fight WITHOUT Rivet is tick-for-tick the BASE fight (the engine edits are gated on his passive or on two new fields that are
 //   undefined on every other unit). The swing TIMING data is unchanged (every weapon clip = 2.0 clip s, relFrac 0.5 = his old attack clip), so his
 //   melee hits land on the old ball-release tick and his ranged rounds land on the old hit tick.
-// Every CC goes through ccApply (the game's control rule: x0.70, CC_NERF) - the test asserts that path, not a hand-coded number.
+// Every CC goes through ccApply (seeded resist roll, caps); the weapons' lengths are Phil's EXACT numbers in the fight - authored /0.7 past the x0.70 rule
+// (ccFixed, as Vael's Warcry fear and Veyr's Undertow): hammer stun 2 s, upper spike silence 3 s, hook stun 3 s.
 (function main() {
 const path = require('path'), vm = require('vm'), fs = require('fs'), cp = require('child_process'), crypto = require('crypto');
 const ROOT = path.resolve(__dirname, '..');
@@ -62,10 +63,15 @@ try {
   const bad = [];
   for (const w of WPN) { const S = A['w_' + w], f = path.join(ROOT, S.u.split('?')[0]); if (!fs.existsSync(f)) { bad.push(w + ' missing'); continue; }
     const sz = webpSize(f); if (!sz || sz[0] !== S.fw * S.cols || sz[1] !== S.fh * S.rows) bad.push(w + ' file ' + sz);
-    if (S.fw * S.cols > 4096 || S.fh * S.rows > 4096) bad.push(w + ' >4096');
+    if (S.fw * S.cols > 2048 || S.fh * S.rows > 2048) bad.push(w + ' >2048');   // phone size (v1137 review)
     if (S.u !== `/assets/anim/rivet/rivet_${w}_1137.webp?v=1137`) bad.push(w + ' url');
-    if (!(S.n === 36 && S.fps === 18 && S.relFrac == null && !S.hold && S.contact === 20 && S.flip === false && S.feet - S.top === S.figH && S.figH === 422)) bad.push(w + ' data'); }
-  ck('every weapon sheet: new file at ?v=1137, file = grid, under 4096, 36 @18 (2.0 clip s, no relFrac = the old attack clip\'s timing), contact 20, flip:false, frame-0 anchors (figH 422)', bad.length === 0, bad.join('; '));
+    if (!(S.n === 36 && S.fps === 18 && S.relFrac == null && !S.hold && S.contact === 20 && S.flip === false && S.feet - S.top === S.figH && S.figH >= 205 && S.figH <= 208 && S.lazy === true)) bad.push(w + ' data'); }
+  const kb = WPN.reduce((t, w) => t + fs.statSync(path.join(ROOT, A['w_' + w].u.split('?')[0])).size, 0) / 1024;
+  ck(`every weapon sheet: new file at ?v=1137, file = grid, within 2048 px (phone size; all ten ${(kb / 1024).toFixed(1)} MB), 36 @18 (2.0 clip s, no relFrac = the old attack clip timing), contact 20, flip:false, frame-0 anchors x0.49 (figH 206-207), lazy`, bad.length === 0 && kb < 9 * 1024, bad.join('; '));
+  ck('every weapon sheet is LAZY (not preloaded with the hero - loaded the first time the weapon is shown) and no other state is', WPN.every(w => A['w_' + w].lazy === true) && Object.keys(A0).every(k => !A[k].lazy));
+  const shown = J(run, `(()=>{ const u={anim:{attack:{n:1},w_saw:{lazy:true},w_x:{lazy:true,tex:{image:{}}},grn:{n:1}}}; const r=[];
+    u._atkClip='w_saw'; r.push(animShown(u)); u._atkClip='w_x'; r.push(animShown(u)); u._atkClip='grn'; r.push(animShown(u)); u._atkClip=null; r.push(animShown(u)); u._atkClip='nope'; r.push(animShown(u)); return JSON.stringify(r); })()`);
+  ck('the render shows his attack sheet until a lazy weapon sheet has arrived, then the weapon; every other clip resolves as before', JSON.stringify(shown) === JSON.stringify(['attack', 'w_x', 'grn', 'attack', 'attack']), JSON.stringify(shown));
   ck('timing data: every weapon clip and the old attack clip are 2.0 clip s at relFrac 0.5', WPN.every(w => A['w_' + w].n / A['w_' + w].fps === 2) && A.attack.n / A.attack.fps === 2 && A.attack.relFrac == null);
 
   // 1. fights WITHOUT Rivet are BASE, tick for tick
@@ -75,7 +81,7 @@ try {
   const withRivet = [[['rivet', 'askel', 'vex'], ['vesper', 'hurne', 'grosk'], 11], [['maren', 'rivet'], ['rivet', 'konwu', 'vael'], 31]];
   ck('CONTROL: fights WITH Rivet are not BASE (the trace sees his weapons - the change is real)', withRivet.every(([a, f, s]) => trace(run, s, a, f) !== trace(R0, s, a, f)));
   ck('fights with Rivet are deterministic (the same fight twice = the same trace; no Math.random in his code)',
-    withRivet.every(([a, f, s]) => trace(run, s, a, f) === trace(run, s, a, f)) && !/Math\.random/.test(run('String(rivetPick)+String(rivetFire)+String(rivetHook)+String(rivetHookTick)+String(rivetGap)')));
+    withRivet.every(([a, f, s]) => trace(run, s, a, f) === trace(run, s, a, f)) && !/Math\.random/.test(run('String(rivetPick)+String(rivetFire)+String(rivetHook)+String(rivetHookTick)+String(rivetGap)+String(rivetCC)')));
 
   // 2. the cycles
   const rg = J(run, DUEL(6, 12)); const order = rg.swings.map(s => s.w);
@@ -123,10 +129,10 @@ try {
   { const r = one('blade', 0.2); const h = r.log.filter(x => x.w === 'blade');
     ck('curved blade: 160% of attack damage', h.length === 1 && near(h[0].amt, r.dmg * 1.6), JSON.stringify(h)); }
   { const r = one('hammer', 0.2, '', 0.9); const h = r.log.filter(x => x.w === 'hammer');
-    ck(`hammer: 100% of attack damage and a 2 s stun through the game's control rule (ccApply x CC_NERF ${r.ctx.CC_NERF} = ${(2 * r.ctx.CC_NERF).toFixed(2)} s, ticked down from the hit)`,
-      h.length === 1 && near(h[0].amt, r.dmg) && r.e.stunned > 2 * r.ctx.CC_NERF - 0.1 && r.e.stunned <= 2 * r.ctx.CC_NERF, JSON.stringify({ h, e: r.e })); }
+    ck(`hammer: 100% of attack damage and Phil's exact 2 s stun in the fight (authored 2/0.7 past ccApply's x${r.ctx.CC_NERF}; ${r.e.stunned} s left a tick after the hit)`,
+      h.length === 1 && near(h[0].amt, r.dmg) && r.e.stunned > 2 - 0.1 && r.e.stunned <= 2 + 1e-9, JSON.stringify({ h, e: r.e })); }
   { const r = one('uspike', 0.2, '', 0.9); const h = r.log.filter(x => x.w === 'uspike');
-    ck(`upper spike arm: 80% of attack damage and a 3 s silence (x ${r.ctx.CC_NERF} = ${(3 * r.ctx.CC_NERF).toFixed(2)} s)`, h.length === 1 && near(h[0].amt, r.dmg * 0.8) && r.e.sil > 3 * r.ctx.CC_NERF - 0.1 && r.e.sil <= 3 * r.ctx.CC_NERF, JSON.stringify({ h, e: r.e })); }
+    ck(`upper spike arm: 80% of attack damage and Phil's exact 3 s silence (${r.e.sil} s left a tick after the hit)`, h.length === 1 && near(h[0].amt, r.dmg * 0.8) && r.e.sil > 3 - 0.1 && r.e.sil <= 3 + 1e-9, JSON.stringify({ h, e: r.e })); }
   { const r = one('lspike', 0.2, '', 0.9); const h = r.log.filter(x => x.w === 'lspike');
     ck('lower spike arm: 130% of attack damage and the target\'s armour -20% for 5 s', h.length === 1 && near(h[0].amt, r.dmg * 1.3) && r.e.shred[0] === 0.2 && r.e.shred[1] > 4.9 && r.e.shred[1] <= 5, JSON.stringify({ h, e: r.e })); }
   { // the old Whatever's Loaded extras are gone: a blade hit is ONE dealDamage, no splash, no dot, no stun
@@ -145,8 +151,10 @@ try {
   const DASH = `globalThis.__dash=(t)=>{ if(t>0.3&&!globalThis.__dashed){ globalThis.__dashed=1; e._dash={x0:e.x,y0:e.y,x1:e.x+7*METER,y1:e.y,t:0,dur:0.25,run:function(){}}; } };
     globalThis.__dashed=0; g.atkCd=99; const _ub2=updateBattle; updateBattle=function(dt){ __dash(battleTime); g.atkCd=99; return _ub2.apply(this,arguments); };`;
   const hk = J(run, DUEL(0.2, 2.6, DASH)); const hh = hk.log.filter(x => x.w !== 'blade');
-  ck('AUTO HOOK: an enemy inside his 3 m range that dashes away is hooked once - 50% of attack damage, stunned 3 s (x 0.70 via ccApply), pulled back inside melee range',
-    hk.log.length === 1 && near(hk.log[0].amt, hk.dmg * 0.5) && hk.e.gap <= 3 && hk.e.stunned > 0 && hk.e.stunned <= 3 * hk.ctx.CC_NERF, JSON.stringify(hk));
+  const hkS = J(run, DUEL(0.2, 1.25, DASH));   // read the stun just after the bite (the hook resolves 0.82 s after it fires at ~0.33 s)
+  ck(`AUTO HOOK: an enemy inside his 3 m range that dashes away is hooked once - 50% of attack damage, Phil's exact 3 s stun (${hkS.e.stunned} s left ${(Math.round(1.25 / hkS.ctx.STEP) * hkS.ctx.STEP - hkS.log[0].t).toFixed(3)} s after the bite), pulled back inside melee range`,
+    hk.log.length === 1 && near(hk.log[0].amt, hk.dmg * 0.5) && hk.e.gap <= 3 && hkS.log.length === 1 && Math.abs(hkS.e.stunned + (Math.round(1.25 / hkS.ctx.STEP) * hkS.ctx.STEP - hkS.log[0].t) - 3) <= hkS.ctx.STEP + 1e-6, JSON.stringify({ hk: hk.log, hkS: hkS.e }));
+  ck('CONTROL: the durations are the ccFixed values (2/0.7, 3/0.7, 3/0.7) - ccApply alone would have left 1.4 / 2.1 / 2.1 s', J(run, 'JSON.stringify([RIVET_WPN.hamStun*CC_NERF,RIVET_WPN.usSil*CC_NERF,RIVET_WPN.hookStun*CC_NERF].map(v=>+v.toFixed(9)))').join() === '2,3,3');
   const KNOCK = `globalThis.__k=(t)=>{ if(t>0.3&&!globalThis.__kd){ globalThis.__kd=1; e.x+=7*METER; e._ax=e.x; e._airT=0.25; } }; globalThis.__kd=0; g.atkCd=99;
     const _ub3=updateBattle; updateBattle=function(dt){ __k(battleTime); g.atkCd=99; return _ub3.apply(this,arguments); };`;
   const kn = J(run, DUEL(0.2, 2.6, KNOCK));

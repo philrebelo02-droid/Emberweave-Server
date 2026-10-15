@@ -3313,17 +3313,17 @@ const BATTLE_ANIM = {
     idle:{u:'/assets/anim/rivet/rivet_idle.webp?v=21',n:48,fw:564,fh:426,cols:6,rows:8,figH:400,feet:419,cx:262,fps:24,flip:false,top:19,pingpong:true},
     walk:{u:'/assets/anim/rivet/rivet_walk.webp?v=21',n:48,fw:570,fh:450,cols:6,rows:8,loop:[0,41],figH:400,feet:421,cx:268,fps:13,stride:0.065,flip:false,top:21,ax:[0,-0.2,11.6,21.6,19.5,9.3,10.3,13.5,15.3,19.3,29.5,38,33.8,23.3,16.5,17.1,30.4,37.5,41.9,31.6,25.4,19.4,23.5,30.4,35.2,39.8,32.4,24.1,14.8,26.1,38.4,45.5,47.7,42.6,37.6,31.5,41.5,49.5,54.5,52.2,48.8,49.6,52.3,54.6,56.2,61.8,53.1,52.9]},
     attack:{u:'/assets/anim/rivet/rivet_attack.webp?v=21',n:48,fw:666,fh:435,cols:6,rows:8,figH:400,feet:428,cx:271,fps:24,flip:false,top:28},
-    /* v1137 Rivet's ten weapon clips (Phil 14 Oct; clean-source-manifest.json 14 Oct 21:31, official Without Watermark exports, all twenty sha256 matched, silent twins; the RIGHT REVIEW aliases carried the Hailuo wordmark and were not used). Every clip 36 @18 = 2.0 clip s and no relFrac, like the old attack above, so the swing fuse does not move; the weapon's CONTACT frame sits on cells 20-21, the cells drawn on the fuse tick (his 1.71 s hold fits the 2.0 s clip - rig-measured). GREEN key off frame 0; cs10 EDGE_REF + PLATE_MATCH against Phil's concept (he owns a little grey-green; no DESPILL_ALL) -> green rim 0. Anchors from frame 0 (figH 422 on all ten, w/h 1.38 vs idle 1.35), flip:false like his states. Contact frames: gatling first tracer f34 (fires to f76), revolver f53, saw leaves f29, bolt f38 (the clip's second shot skipped), cannon blast f63-64, blade f31, hammer f56, upper spike f52 (f53 touches the source frame edge), lower spike f27, chain hook f38. Weapon choice: rivetPick; effects: rivetFire; the automatic hook: rivetHookTick. */
-    w_gatling:{u:'/assets/anim/rivet/rivet_gatling_1137.webp?v=1137',n:36,fw:819,fh:468,cols:5,rows:8,figH:422,feet:454,cx:323,fps:18,flip:false,top:32,contact:20},
-    w_revolver:{u:'/assets/anim/rivet/rivet_revolver_1137.webp?v=1137',n:36,fw:798,fh:506,cols:5,rows:8,figH:422,feet:466,cx:344,fps:18,flip:false,top:44,contact:20},
-    w_saw:{u:'/assets/anim/rivet/rivet_saw_1137.webp?v=1137',n:36,fw:806,fh:509,cols:5,rows:8,figH:422,feet:466,cx:331,fps:18,flip:false,top:44,contact:20},
-    w_bolt:{u:'/assets/anim/rivet/rivet_bolt_1137.webp?v=1137',n:36,fw:816,fh:508,cols:5,rows:8,figH:422,feet:466,cx:316,fps:18,flip:false,top:44,contact:20},
-    w_cannon:{u:'/assets/anim/rivet/rivet_cannon_1137.webp?v=1137',n:36,fw:813,fh:462,cols:5,rows:8,figH:422,feet:448,cx:317,fps:18,flip:false,top:26,contact:20},
-    w_blade:{u:'/assets/anim/rivet/rivet_blade_1137.webp?v=1137',n:36,fw:766,fh:512,cols:5,rows:8,figH:422,feet:500,cx:312,fps:18,flip:false,top:78,contact:20},
-    w_hammer:{u:'/assets/anim/rivet/rivet_hammer_1137.webp?v=1137',n:36,fw:677,fh:502,cols:6,rows:6,figH:422,feet:470,cx:325,fps:18,flip:false,top:48,contact:20},
-    w_uspike:{u:'/assets/anim/rivet/rivet_uspike_1137.webp?v=1137',n:36,fw:815,fh:493,cols:5,rows:8,figH:422,feet:469,cx:306,fps:18,flip:false,top:47,contact:20},
-    w_lspike:{u:'/assets/anim/rivet/rivet_lspike_1137.webp?v=1137',n:36,fw:729,fh:506,cols:5,rows:8,figH:422,feet:466,cx:341,fps:18,flip:false,top:44,contact:20},
-    w_hook:{u:'/assets/anim/rivet/rivet_hook_1137.webp?v=1137',n:36,fw:805,fh:486,cols:5,rows:8,figH:422,feet:454,cx:324,fps:18,flip:false,top:32,contact:20},
+    /* v1137 Rivet's ten weapon clips (Phil 14 Oct; clean-source-manifest.json 14 Oct 21:31, official Without Watermark exports, all twenty sha256 matched, silent twins; the RIGHT REVIEW aliases carried the Hailuo wordmark and were not used). PHONE SIZE (v1137 review): each sheet is the clean native cut scaled x0.49 per cell with premultiplied-alpha Lanczos (figH ~206 - he is drawn ~140 px tall; cs10's CELL_CAP resize put a green rim back), fitted in 2048 px, ONE lossy encode q80 from the lossless array: 7.2 MB for all ten, 36.6 Mpx (139 MB of GPU if every weapon is used); lazy:true = not preloaded with him, loaded the first time the weapon is shown (animShown), his attack sheet stands in until it arrives. Every clip 36 @18 = 2.0 clip s and no relFrac, like the old attack above, so the swing fuse does not move; the weapon's CONTACT frame sits on cells 20-21, the cells drawn on the fuse tick (his 1.71 s hold fits the 2.0 s clip - rig-measured). GREEN key off frame 0; cs10 EDGE_REF + PLATE_MATCH against Phil's concept (he owns a little grey-green; no DESPILL_ALL) -> green rim 0. Anchors from frame 0 x0.49 (figH 206-207 on all ten; frame-0 w/h 1.38 vs idle 1.35), flip:false like his states. Contact frames: gatling first tracer f34 (fires to f76), revolver f53, saw leaves f29, bolt f38 (the clip's second shot skipped), cannon blast f63-64, blade f31, hammer f56, upper spike f52 (f53 touches the source frame edge), lower spike f27, chain hook f38. Weapon choice: rivetPick; effects: rivetFire; the automatic hook: rivetHookTick. */
+    w_gatling:{u:'/assets/anim/rivet/rivet_gatling_1137.webp?v=1137',n:36,fw:401,fh:229,cols:5,rows:8,figH:206,feet:222,cx:158,fps:18,flip:false,top:16,contact:20,lazy:true},
+    w_revolver:{u:'/assets/anim/rivet/rivet_revolver_1137.webp?v=1137',n:36,fw:391,fh:248,cols:5,rows:8,figH:206,feet:228,cx:169,fps:18,flip:false,top:22,contact:20,lazy:true},
+    w_saw:{u:'/assets/anim/rivet/rivet_saw_1137.webp?v=1137',n:36,fw:395,fh:249,cols:5,rows:8,figH:206,feet:228,cx:162,fps:18,flip:false,top:22,contact:20,lazy:true},
+    w_bolt:{u:'/assets/anim/rivet/rivet_bolt_1137.webp?v=1137',n:36,fw:400,fh:249,cols:5,rows:8,figH:206,feet:228,cx:155,fps:18,flip:false,top:22,contact:20,lazy:true},
+    w_cannon:{u:'/assets/anim/rivet/rivet_cannon_1137.webp?v=1137',n:36,fw:398,fh:226,cols:4,rows:9,figH:207,feet:220,cx:155,fps:18,flip:false,top:13,contact:20,lazy:true},
+    w_blade:{u:'/assets/anim/rivet/rivet_blade_1137.webp?v=1137',n:36,fw:375,fh:251,cols:5,rows:8,figH:207,feet:245,cx:153,fps:18,flip:false,top:38,contact:20,lazy:true},
+    w_hammer:{u:'/assets/anim/rivet/rivet_hammer_1137.webp?v=1137',n:36,fw:332,fh:246,cols:6,rows:6,figH:206,feet:230,cx:159,fps:18,flip:false,top:24,contact:20,lazy:true},
+    w_uspike:{u:'/assets/anim/rivet/rivet_uspike_1137.webp?v=1137',n:36,fw:399,fh:242,cols:5,rows:8,figH:207,feet:230,cx:150,fps:18,flip:false,top:23,contact:20,lazy:true},
+    w_lspike:{u:'/assets/anim/rivet/rivet_lspike_1137.webp?v=1137',n:36,fw:357,fh:248,cols:5,rows:8,figH:206,feet:228,cx:167,fps:18,flip:false,top:22,contact:20,lazy:true},
+    w_hook:{u:'/assets/anim/rivet/rivet_hook_1137.webp?v=1137',n:36,fw:394,fh:238,cols:5,rows:8,figH:206,feet:222,cx:159,fps:18,flip:false,top:16,contact:20,lazy:true},
     hit:{u:'/assets/anim/rivet/rivet_hit.webp?v=27',n:48,fw:667,fh:547,cols:6,rows:8,figH:400,feet:536,cx:335,fps:24,flip:false,top:136,ax:[0,0,1,1,2,5,65,19,-91,-89,33,32,-73,-122,-131,-131,-131,-131,-131,-129,-129,-129,-131,-131,-131,-131,-131,-131,-131,-131,-108,-54,-55,-56,-56,-55,-56,-56,-56,-56,-56,-56,-56,-56,-56,-57,-57,-57]},
     green:{u:'/assets/anim/rivet/rivet_green.webp?v=27',n:48,fw:665,fh:438,cols:6,rows:8,figH:400,feet:430,cx:262,fps:24,flip:false,top:30},
     blue:{u:'/assets/anim/rivet/rivet_blue.webp?v=21',n:48,fw:649,fh:544,cols:6,rows:8,figH:400,feet:537,cx:296,fps:24,flip:false,top:137},
@@ -4036,10 +4036,15 @@ function _loadClip(s){ if(!s || s.tex || !isAssetRef(s.u)) return;
    looks like. Nothing was wrong with the art. Load in TIERS instead: every marching unit's idle and
    walk first, then the combat pair, then the abilities. */
 const ANIM_TIERS=[['idle','walk'],['attack','hit'],null];
+/* v1137: the swing clip the RENDER shows. A `lazy` clip (Rivet's ten weapon sheets - not preloaded, so a team without him loads none of them and
+   one with him loads only the weapons he actually uses) starts loading the first time it is wanted and the hero's `attack` sheet stands in until
+   its image has arrived. Every other clip resolves exactly as before. Render only: the sim reads clip DATA (n/fps/relFrac), never a texture. */
+function animShown(u){ const k=u._atkClip, A=k&&u.anim[k]; if(!A) return 'attack'; if(!A.lazy) return k;
+  if(A.tex&&A.tex.image) return k; if(!A.tex){ try{ _loadClip(A); }catch(e){} } return 'attack'; }
 function loadAnimSet(key, states){ const set=BATTLE_ANIM[key]; if(!set||!heroHasAnim(key)) return set;
-  for(const st in set){ if(st[0]==='_')continue; if(states && states.indexOf(st)<0) continue; _loadClip(set[st]); }
+  for(const st in set){ if(st[0]==='_')continue; if(set[st]&&set[st].lazy)continue; if(states && states.indexOf(st)<0) continue; _loadClip(set[st]); }   /* v1137: a `lazy` clip (Rivet's weapons) loads on first use - animShown */
   if(!states){   // full pass: drop any state that never got a texture (unbuilt clip) so runtime falls back to idle
-    for(const st in set){ if(st[0]==='_')continue; if(!set[st].tex) delete set[st]; }
+    for(const st in set){ if(st[0]==='_')continue; if(set[st]&&set[st].lazy)continue; if(!set[st].tex) delete set[st]; }
     set._loaded=true; }
   return set; }
 /* v255 (Phil, live): battle art used to start loading when a unit SPAWNED, so wave 2 and 3 popped
@@ -11702,9 +11707,12 @@ const RIVET_WPN={ ranged:['gatling','revolver','saw','bolt','cannon'], melee:['b
   sawPct:0.7, sawBleed:0.5, sawBleedDur:4,           // flying saw: 70% + a bleed of 50% over 4 s
   boltPct:1.0, boltArmIgn:0.5,                       // bolt launcher: 100%, ignores 50% of the target's armour
   canPct:0.75, canAngle:45, canLen:20,               // chest cannon: 75% to every enemy in a 45-degree cone, 20 m long
-  bladePct:1.6, hamPct:1.0, hamStun:2, usPct:0.8, usSil:3, lsPct:1.3, lsShred:0.2, lsShredDur:5,
-  hookPct:0.5, hookStun:3, hookTo:0.5,               // chain hook: 50%, stun 3 s, pulled back to 0.5 m of ground from him (inside his 3 m melee range)
+  bladePct:1.6, hamPct:1.0, hamStun:2/0.7, usPct:0.8, usSil:3/0.7, lsPct:1.3, lsShred:0.2, lsShredDur:5,   // ccFixed: Phil's exact 2 s stun / 3 s silence - authored /0.7 past ccApply's x0.70 (as Vael's Warcry fear, Veyr's Undertow)
+  hookPct:0.5, hookStun:3/0.7, hookTo:0.5,           // chain hook: 50%, stun 3 s (ccFixed: /0.7 past the x0.70), pulled back to 0.5 m of ground from him (inside his 3 m melee range)
   vis:{gatling:4, revolver:5, saw:0, bolt:2, cannon:1} };   // the round in flight reuses the arsenal visuals (bearing, slug, spinning scrap, barb, shell)
+function rivetCC(u,t,f,v){ /* Phil's EXACT control length in the fight (ccFixed: v is authored /0.7). ccApply rolls the seeded level resist as for every hero; the
+   length is then held at his number - the hook's 3 s stun is past the game-wide stun ceiling (CC_DUR_MAX.stunned 4.0 x 0.7 = 2.8 s), set on purpose. */
+  if(ccApply(u,t,f,v)){ const sec=+(v*CC_NERF).toFixed(6); if((t[f]||0)<sec) t[f]=sec; return true; } return false; }
 function rivetGap(u,e){ return dist(u,e)-bodyR(u)-bodyR(e); }   /* the open ground between the two bodies: his body alone is 1.56 m in radius, so touching
    bodies sit 3.1-3.6 m apart centre to centre - a centre distance would never reach 3 m. 'Within 3 m' = 3 m or less of ground between them. */
 function rivetPick(u,t){ const m=rivetGap(u,t)<=RIVET_WPN.meleeR, L=m?RIVET_WPN.melee:RIVET_WPN.ranged, k=m?'_rvMi':'_rvRi';
@@ -11722,8 +11730,8 @@ function rivetFire(u,t,dmg,clip,crit){ const W=RIVET_WPN, w=u._rvWpn, rate=u._at
       vis(); hit(()=>{ enemiesOf(u).forEach(e=>{ if(!e.alive) return; const dx=e.x-u.x, dy=e.y-u.y, L=Math.hypot(dx,dy);
         if(L>W.canLen*METER) return; if(L>1&&(dx*ax+dy*ay)/(L*aL)<cMin) return; dealDamage(u,e,dmg*W.canPct,'#ffa657'); }); },fly); break; }
     case 'blade': hit(()=>{ dealDamage(u,t,dmg*W.bladePct,'#fff'); },0); break;
-    case 'hammer': hit(()=>{ dealDamage(u,t,dmg*W.hamPct,'#fff'); if(t.alive) ccApply(u,t,'stunned',W.hamStun); },0); break;
-    case 'uspike': hit(()=>{ dealDamage(u,t,dmg*W.usPct,'#fff'); if(t.alive) ccApply(u,t,'silencedT',W.usSil); },0); break;
+    case 'hammer': hit(()=>{ dealDamage(u,t,dmg*W.hamPct,'#fff'); if(t.alive) rivetCC(u,t,'stunned',W.hamStun); },0); break;
+    case 'uspike': hit(()=>{ dealDamage(u,t,dmg*W.usPct,'#fff'); if(t.alive) rivetCC(u,t,'silencedT',W.usSil); },0); break;
     case 'lspike': hit(()=>{ dealDamage(u,t,dmg*W.lsPct,'#fff');
       if(t.alive){ t._shredPct=Math.max(((t._shredT||0)>0)?(t._shredPct||0):0,W.lsShred); t._shredT=Math.max(t._shredT||0,W.lsShredDur); } },0); break;
   } }
@@ -11741,7 +11749,7 @@ function rivetHook(u,e){ const W=RIVET_WPN, clip=(u.anim&&u.anim.w_hook)||(BATTL
       const dx=e.x-u.x, dy=e.y-u.y, L=Math.hypot(dx,dy)||1, to=Math.min(L,bodyR(u)+bodyR(e)+W.hookTo*METER);
       e._dash=null; e.x=u.x+dx/L*to; e.y=u.y+dy/L*to; e._ax=e.x; e._ay=e.y; }
     dealDamage(u,e,dmg*W.hookPct,'#bfe6ff');
-    if(e.alive) ccApply(u,e,'stunned',W.hookStun); },0,rate); }
+    if(e.alive) rivetCC(u,e,'stunned',W.hookStun); },0,rate); }
 function rivetHookTick(dt){ for(const u of units){ if(!u.alive||!(u.pass&&u.pass.arsenal)) continue;
     if((u._rvHookT||0)>0) u._rvHookT=Math.max(0,u._rvHookT-dt);
     const R=RIVET_WPN.meleeR, can=!((u.stunned||0)>0||(u.fearT||0)>0||(u._airT||0)>0||(u.pullT||0)>0||(u._frozenT||0)>0);
@@ -14389,7 +14397,7 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
            was set, capped just under the attack interval so a swing never runs into the next. This
            costs nothing mechanically — the hold is render-only (see _animLockT) — so lengthening it
            changes only what is seen, never when damage lands. */
-        const _atkA=u.anim[(u._atkClip&&u.anim[u._atkClip])?u._atkClip:'attack'];
+        const _atkA=u.anim[animShown(u)];   /* v1137: a lazy weapon sheet not loaded yet -> his attack sheet */
         const _asm=u._atkSpdMul||1;   // v1024: the swing's attack-speed factor (set in doAtk) - every source, not only timed haste
         const _ai=(u._atkI0||u.atkInterval)/_asm;
         const _ah=Math.min(_ai*0.95, _atkA?((_atkA.hold||clipDur(_atkA))/_asm):0.42);   // v545: attack speed speeds the swing clip (and the crit clip - same path) itself, not only the cap
@@ -14451,7 +14459,7 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
            swing or a skill still plays to its end rather than being cut off by the next action.
            _abilPri tags which kind of clip _abilAnim currently holds: 6 ult, 4 skill, 2 passive. */
         const _ultActive=abilActive && (u._abilPri|0)>=6;
-        const _atkSt=(u._atkClip&&u.anim[u._atkClip])?u._atkClip:'attack';
+        const _atkSt=animShown(u);
         /* v521 - Phil, 8 Sep, watching v520: "idle and passive is never interrupted once it
            starts except by ult or hit", and "if a known attack or skill is coming soon idle is
            only sped up by the amount of time before the next animation, that was shes not doing
