@@ -29,12 +29,12 @@ async function boot(env) {
     const g0 = led0.gems, egp0 = JSON.stringify(led0.patron);
     const buy = await A.call('/api/shop/purchase', { offerId: 'd1200', provider: 'prebeta', requestId: 'f1' }, A.guest);
     ok(buy.status === 200 && buy.body.ok && buy.body.granted.gems === 1200, 'a normal player takes 1,200 diamonds for free');
-    ok(buy.body.granted.patron === undefined, 'a free pack does not credit EGP/Patron');
+    ok(buy.body.granted.patron && buy.body.granted.patron.base > 0, 'v1139: a free pack counts toward EGP/Patron like the paid pack (base ' + (buy.body.granted.patron && buy.body.granted.patron.base) + ')');
     const led1 = L((await A.call('/api/ledger', null, A.guest)).body);
-    ok(led1.gems === g0 + 1200, 'the diamonds are on the server ledger');
-    ok(JSON.stringify(led1.patron) === egp0, 'EGP/Patron state unchanged by a free pack');
+    ok(led1.gems >= g0 + 1200, 'the diamonds (plus any Patron rebate) are on the server ledger');
+    ok(JSON.stringify(led1.patron) !== egp0, 'v1139: EGP/Patron state moved by the free pack');
     const again = await A.call('/api/shop/purchase', { offerId: 'd1200', provider: 'prebeta', requestId: 'f1' }, A.guest);
-    ok(L((await A.call('/api/ledger', null, A.guest)).body).gems === g0 + 1200, 'the same request id is not paid twice');
+    ok(L((await A.call('/api/ledger', null, A.guest)).body).gems === led1.gems, 'the same request id is not paid twice');
     const plan = await A.call('/api/shop/purchase', { offerId: 'cluster', provider: 'prebeta', requestId: 'f2' }, A.guest);
     ok(plan.body.ok && plan.body.granted.planDays === 14, 'a daily plan (Cluster Pack) is free too: 14 days');
     const paid = await A.call('/api/shop/purchase', { offerId: 'd500', provider: 'test', requestId: 'f3' }, A.guest);

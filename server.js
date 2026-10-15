@@ -4291,6 +4291,8 @@ function plansView(led){ const pls=shopPlans(led), dk=planDayKey(), o={};
 /* v1135 PRE-BETA FREE PACKS (Phil 14 Oct 2026: "make the shop diamond packs available to all players without them having to pay
    anything" / "we will turn it off in december"). While FREE_PACKS is on, every player can take any shop pack for free (provider
    'prebeta'): same server-side credit as a purchase, recorded at usd 0 and never counted toward EGP/Patron (nothing was paid).
+   v1139 (Phil 15 Oct: "Make it count towards their patron"): a free pack now counts toward EGP/Patron exactly like the paid pack (its usd, the rebate
+   paid) - recorded with free:true so it can be told apart later.
    TURN OFF IN DECEMBER: set FREE_PACKS to false here (or start the server with SHOP_FREE_PACKS=0) - the shop then says "coming soon" again. */
 const FREE_PACKS = true && process.env.SHOP_FREE_PACKS!=='0';
 function verifyPurchase(me,provider,receipt,offer){
@@ -6557,9 +6559,9 @@ async function api(req,res,url){
       else { const pl=shopPlans(led)[offer.plan]; pl.daysLeft=(pl.daysLeft|0)+offer.days; granted.planDays=offer.days; }   // buying again adds the days
       led.purchases=Array.isArray(led.purchases)?led.purchases:[];
       patronState(led);   /* v1092: rebuild (if new) BEFORE this purchase is listed, so it is not counted twice */
-      const usd=v.free?0:offer.usd;   /* v1135: a pre-beta free pack paid nothing */
-      led.purchases.push({t:Date.now(), id:offer.id, usd, ref:v.ref}); if(led.purchases.length>500) led.purchases=led.purchases.slice(-500);
-      if(!v.free) granted.patron=patronCreditPurchase(me,led,offer.usd,offer.id);   /* v1092: paid base diamonds raise EGP; the rebate is paid (v1135: never for a free pack) */
+      const usd=offer.usd;   /* v1139 (Phil 15 Oct): a pre-beta free pack counts toward Patron like the paid pack; free:true marks it */
+      led.purchases.push(Object.assign({t:Date.now(), id:offer.id, usd, ref:v.ref}, v.free?{free:true}:{})); if(led.purchases.length>500) led.purchases=led.purchases.slice(-500);
+      granted.patron=patronCreditPurchase(me,led,offer.usd,offer.id);   /* v1092: paid base diamonds raise EGP; the rebate is paid (v1139: free pre-beta packs too, Phil 15 Oct) */
       ledTx(me,'shop:purchase:'+offer.id,Object.assign({usd},granted));
       writeDB(); return { ok:true, offer:offer.id, granted, plans:plansView(led), ledger:ledgerView(me) }; });
     return send(res,out.storageFailed?503:200,out); }
