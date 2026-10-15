@@ -95,7 +95,6 @@
   "/assets/anim/fritz/fritz_attack.webp",
   "/assets/anim/fritz/fritz_chain.webp",
   "/assets/anim/fritz/fritz_hit.webp",
-  "/assets/anim/fritz/fritz_idle.webp",
   "/assets/anim/fritz/fritz_passive.webp",
   "/assets/anim/fritz/fritz_surge.webp",
   "/assets/anim/fritz/fritz_ult.webp",
@@ -225,14 +224,12 @@
   "/assets/anim/grosk/grosk_crit_1112.webp",
   "/assets/anim/grosk/grosk_green_1112.webp",
   "/assets/anim/grosk/grosk_hit_1112.webp",
-  "/assets/anim/grosk/grosk_idle_1112.webp",
   "/assets/anim/grosk/grosk_ult_1112.webp",
   "/assets/anim/gruel/gruel_attack.webp",
   "/assets/anim/gruel/gruel_blue.webp",
   "/assets/anim/gruel/gruel_crit.webp",
   "/assets/anim/gruel/gruel_green.webp",
   "/assets/anim/gruel/gruel_hit.webp",
-  "/assets/anim/gruel/gruel_idle.webp",
   "/assets/anim/gruel/gruel_passive.webp",
   "/assets/anim/gruel/gruel_ult.webp",
   "/assets/anim/hobb/hobb_attack.webp",
@@ -249,7 +246,6 @@
   "/assets/anim/hollow/hollow_drop_1126.webp",
   "/assets/anim/hollow/hollow_green_1126.webp",
   "/assets/anim/hollow/hollow_hit_1126.webp",
-  "/assets/anim/hollow/hollow_idle_1126.webp",
   "/assets/anim/hollow/hollow_passive_1126.webp",
   "/assets/anim/hollow/hollow_ult_1126.webp",
   "/assets/anim/hollow/hollow_walk_1126.webp",
@@ -430,7 +426,6 @@
   "/assets/anim/oakmir/oakmir_blue.webp",
   "/assets/anim/oakmir/oakmir_green.webp",
   "/assets/anim/oakmir/oakmir_hit.webp",
-  "/assets/anim/oakmir/oakmir_idle.webp",
   "/assets/anim/oakmir/oakmir_ult.webp",
   "/assets/anim/orryn/orryn_hit.webp",
   "/assets/anim/orryn/orryn_idle.webp",
@@ -450,7 +445,6 @@
   "/assets/anim/pyroclast/pyroclast_blue.webp",
   "/assets/anim/pyroclast/pyroclast_green.webp",
   "/assets/anim/pyroclast/pyroclast_hit.webp",
-  "/assets/anim/pyroclast/pyroclast_idle.webp",
   "/assets/anim/pyroclast/pyroclast_passive.webp",
   "/assets/anim/pyroclast/pyroclast_ult.webp",
   "/assets/anim/quorrel/quorrel_attack.webp",
@@ -475,7 +469,6 @@
   "/assets/anim/rhukk/rhukk_crit.webp",
   "/assets/anim/rhukk/rhukk_green.webp",
   "/assets/anim/rhukk/rhukk_hit.webp",
-  "/assets/anim/rhukk/rhukk_idle.webp",
   "/assets/anim/rhukk/rhukk_passive.webp",
   "/assets/anim/rhukk/rhukk_ult.webp",
   "/assets/anim/rivet/rivet_attack.webp",
@@ -528,7 +521,6 @@
   "/assets/anim/tharl/tharl_crit.webp",
   "/assets/anim/tharl/tharl_green.webp",
   "/assets/anim/tharl/tharl_hit.webp",
-  "/assets/anim/tharl/tharl_idle.webp",
   "/assets/anim/tharl/tharl_passive.webp",
   "/assets/anim/tharl/tharl_ult.webp",
   "/assets/anim/tick/tick_attack.webp",
@@ -551,7 +543,6 @@
   "/assets/anim/umbris/umbris_blue_1115.webp",
   "/assets/anim/umbris/umbris_green_1115.webp",
   "/assets/anim/umbris/umbris_hit_1115.webp",
-  "/assets/anim/umbris/umbris_idle_1115.webp",
   "/assets/anim/umbris/umbris_passive_1115.webp",
   "/assets/anim/umbris/umbris_ult_1115.webp",
   "/assets/anim/vael/vael_attack.webp",
@@ -638,11 +629,25 @@
    "bytes": 4593562
   },
   {
+   "file": "/assets/anim/fritz/fritz_idle_1155.webp",
+   "from": "/assets/anim/fritz/fritz_idle.webp",
+   "w": 2316,
+   "h": 3944,
+   "bytes": 2254884
+  },
+  {
    "file": "/assets/anim/fritz/fritz_walk_1155.webp",
    "from": "/assets/anim/fritz/fritz_walk.webp",
    "w": 2298,
    "h": 4527,
    "bytes": 2643868
+  },
+  {
+   "file": "/assets/anim/grosk/grosk_idle_1155.webp",
+   "from": "/assets/anim/grosk/grosk_idle_1112.webp",
+   "w": 3366,
+   "h": 3760,
+   "bytes": 6163658
   },
   {
    "file": "/assets/anim/grosk/grosk_walk_1155.webp",
@@ -652,11 +657,25 @@
    "bytes": 6031830
   },
   {
+   "file": "/assets/anim/gruel/gruel_idle_1155.webp",
+   "from": "/assets/anim/gruel/gruel_idle.webp",
+   "w": 2976,
+   "h": 4096,
+   "bytes": 4845082
+  },
+  {
    "file": "/assets/anim/gruel/gruel_walk_1155.webp",
    "from": "/assets/anim/gruel/gruel_walk.webp",
    "w": 3630,
    "h": 4096,
    "bytes": 5725946
+  },
+  {
+   "file": "/assets/anim/hollow/hollow_idle_1155.webp",
+   "from": "/assets/anim/hollow/hollow_idle_1126.webp",
+   "w": 3605,
+   "h": 4080,
+   "bytes": 4876502
   },
   {
    "file": "/assets/anim/konwu/konwu_walk_1155.webp",
@@ -666,6 +685,13 @@
    "bytes": 3641914
   },
   {
+   "file": "/assets/anim/oakmir/oakmir_idle_1155.webp",
+   "from": "/assets/anim/oakmir/oakmir_idle.webp",
+   "w": 2214,
+   "h": 3744,
+   "bytes": 3162600
+  },
+  {
    "file": "/assets/anim/oakmir/oakmir_walk_1155.webp",
    "from": "/assets/anim/oakmir/oakmir_walk.webp",
    "w": 2256,
@@ -673,11 +699,25 @@
    "bytes": 3135428
   },
   {
+   "file": "/assets/anim/pyroclast/pyroclast_idle_1155.webp",
+   "from": "/assets/anim/pyroclast/pyroclast_idle.webp",
+   "w": 2574,
+   "h": 4640,
+   "bytes": 4241368
+  },
+  {
    "file": "/assets/anim/pyroclast/pyroclast_walk_1155.webp",
    "from": "/assets/anim/pyroclast/pyroclast_walk.webp",
    "w": 2442,
    "h": 5121,
    "bytes": 4282932
+  },
+  {
+   "file": "/assets/anim/rhukk/rhukk_idle_1155.webp",
+   "from": "/assets/anim/rhukk/rhukk_idle.webp",
+   "w": 3060,
+   "h": 3416,
+   "bytes": 3325470
   },
   {
    "file": "/assets/anim/rhukk/rhukk_walk_1155.webp",
@@ -692,6 +732,13 @@
    "w": 2250,
    "h": 2772,
    "bytes": 2891150
+  },
+  {
+   "file": "/assets/anim/umbris/umbris_idle_1155.webp",
+   "from": "/assets/anim/umbris/umbris_idle_1115.webp",
+   "w": 3240,
+   "h": 4064,
+   "bytes": 2894568
   },
   {
    "file": "/assets/anim/umbris/umbris_walk_1155.webp",
