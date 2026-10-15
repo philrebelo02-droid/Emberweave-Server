@@ -1090,19 +1090,19 @@
      "key": "grundle",
      "lvl": 100,
      "hpMul": 79.6022,
-     "dmgMul": 33.3186
+     "dmgMul": 28.3208
     },
     {
      "key": "skulk",
      "lvl": 100,
      "hpMul": 79.6022,
-     "dmgMul": 33.3186
+     "dmgMul": 28.3208
     },
     {
      "key": "lost soul",
      "lvl": 100,
      "hpMul": 79.6022,
-     "dmgMul": 33.3186
+     "dmgMul": 28.3208
     }
    ],
    [
@@ -1110,25 +1110,25 @@
      "key": "trapjaw",
      "lvl": 100,
      "hpMul": 79.6022,
-     "dmgMul": 33.3186
+     "dmgMul": 28.3208
     },
     {
      "key": "bilewretch",
      "lvl": 100,
      "hpMul": 79.6022,
-     "dmgMul": 33.3186
+     "dmgMul": 28.3208
     },
     {
      "key": "gnashul",
      "lvl": 100,
      "hpMul": 79.6022,
-     "dmgMul": 33.3186
+     "dmgMul": 28.3208
     },
     {
      "key": "bitwraith",
      "lvl": 100,
      "hpMul": 79.6022,
-     "dmgMul": 33.3186
+     "dmgMul": 28.3208
     }
    ],
    [
@@ -1136,37 +1136,37 @@
      "key": "sludgemaw",
      "lvl": 100,
      "hpMul": 79.6022,
-     "dmgMul": 33.3186
+     "dmgMul": 28.3208
     },
     {
      "key": "nightgloom",
      "lvl": 100,
      "hpMul": 79.6022,
-     "dmgMul": 33.3186
+     "dmgMul": 28.3208
     },
     {
      "key": "mordath",
      "lvl": 100,
      "hpMul": 79.6022,
-     "dmgMul": 33.3186
+     "dmgMul": 28.3208
     },
     {
      "key": "whisp",
      "lvl": 100,
      "hpMul": 79.6022,
-     "dmgMul": 33.3186
+     "dmgMul": 28.3208
     },
     {
      "key": "skarrn",
      "lvl": 100,
      "hpMul": 79.6022,
-     "dmgMul": 33.3186
+     "dmgMul": 28.3208
     },
     {
      "key": "magmourn",
      "lvl": 100,
      "hpMul": 79.6022,
-     "dmgMul": 33.3186,
+     "dmgMul": 28.3208,
      "boss": true
     }
    ]

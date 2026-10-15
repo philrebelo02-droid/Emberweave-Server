@@ -993,31 +993,31 @@
      "key": "vexmite",
      "lvl": 10,
      "hpMul": 4.4059,
-     "dmgMul": 4.7286
+     "dmgMul": 4.0193
     },
     {
      "key": "cindertusk",
      "lvl": 10,
      "hpMul": 4.4059,
-     "dmgMul": 4.7286
+     "dmgMul": 4.0193
     },
     {
      "key": "shellwark",
      "lvl": 10,
      "hpMul": 4.4059,
-     "dmgMul": 4.7286
+     "dmgMul": 4.0193
     },
     {
      "key": "skarrn",
      "lvl": 10,
      "hpMul": 4.4059,
-     "dmgMul": 4.7286
+     "dmgMul": 4.0193
     },
     {
      "key": "ooznik",
      "lvl": 10,
      "hpMul": 4.4059,
-     "dmgMul": 4.7286
+     "dmgMul": 4.0193
     }
    ],
    [
@@ -1025,25 +1025,25 @@
      "key": "shellwark",
      "lvl": 10,
      "hpMul": 4.4059,
-     "dmgMul": 4.7286
+     "dmgMul": 4.0193
     },
     {
      "key": "ooznik",
      "lvl": 10,
      "hpMul": 4.4059,
-     "dmgMul": 4.7286
+     "dmgMul": 4.0193
     },
     {
      "key": "sootwing imp",
      "lvl": 10,
      "hpMul": 4.4059,
-     "dmgMul": 4.7286
+     "dmgMul": 4.0193
     },
     {
      "key": "grushak",
      "lvl": 10,
      "hpMul": 4.4059,
-     "dmgMul": 4.7286
+     "dmgMul": 4.0193
     }
    ],
    [
@@ -1051,7 +1051,7 @@
      "key": "vael",
      "lvl": 10,
      "hpMul": 4.4059,
-     "dmgMul": 4.7286,
+     "dmgMul": 4.0193,
      "isHero": true,
      "rewardHero": true,
      "rank": 1
@@ -1060,31 +1060,31 @@
      "key": "ooznik",
      "lvl": 10,
      "hpMul": 4.4059,
-     "dmgMul": 4.7286
+     "dmgMul": 4.0193
     },
     {
      "key": "skarrn",
      "lvl": 10,
      "hpMul": 4.4059,
-     "dmgMul": 4.7286
+     "dmgMul": 4.0193
     },
     {
      "key": "cinder skulk",
      "lvl": 10,
      "hpMul": 4.4059,
-     "dmgMul": 4.7286
+     "dmgMul": 4.0193
     },
     {
      "key": "vexmite",
      "lvl": 10,
      "hpMul": 4.4059,
-     "dmgMul": 4.7286
+     "dmgMul": 4.0193
     },
     {
      "key": "brukk",
      "lvl": 10,
      "hpMul": 4.4059,
-     "dmgMul": 4.7286,
+     "dmgMul": 4.0193,
      "boss": true
     }
    ]
