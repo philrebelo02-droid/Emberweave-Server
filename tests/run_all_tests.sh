@@ -255,6 +255,8 @@ note "test_shop_1050.js (v1050: the diamond shop is server-side - purchases cred
 node tests/test_shop_1050.js || FAILED=1
 note "test_free_packs_1135.js (v1135: pre-beta free packs - every player takes any shop pack free via provider prebeta, server-credited at usd 0, no EGP; SHOP_FREE_PACKS=0 turns it off; control: BASE refuses the free claim)"
 node tests/test_free_packs_1135.js || FAILED=1
+note "test_veyr_undertow_1136.js (v1136: Veyr's Abyssal Undertow slows 2 s (ccDur) instead of silencing, same damage as BASE; Absalie's Event Horizon unchanged; fights without Veyr tick-identical to BASE; control: BASE fails the slow check)"
+node tests/test_veyr_undertow_1136.js || FAILED=1
 note "test_servers_1051.js (v1051: the in-game server list holds Servers 1-5; /switch forwards server 5)"
 node tests/test_servers_1051.js || FAILED=1
 note "test_temper_type_1054.js (v1054: Temper belongs to the item type - every copy, on every hero, one Temper; Resonance counts a type once)"
