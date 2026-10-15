@@ -1155,31 +1155,31 @@
           "key": "vexmite",
           "lvl": 10,
           "hpMul": 3.263,
-          "dmgMul": 2.8377
+          "dmgMul": 2.412
         },
         {
           "key": "cindertusk",
           "lvl": 10,
           "hpMul": 3.263,
-          "dmgMul": 2.8377
+          "dmgMul": 2.412
         },
         {
           "key": "shellwark",
           "lvl": 10,
           "hpMul": 3.263,
-          "dmgMul": 2.8377
+          "dmgMul": 2.412
         },
         {
           "key": "skarrn",
           "lvl": 10,
           "hpMul": 3.263,
-          "dmgMul": 2.8377
+          "dmgMul": 2.412
         },
         {
           "key": "ooznik",
           "lvl": 10,
           "hpMul": 3.263,
-          "dmgMul": 2.8377
+          "dmgMul": 2.412
         }
       ],
       [
@@ -1187,25 +1187,25 @@
           "key": "shellwark",
           "lvl": 10,
           "hpMul": 3.263,
-          "dmgMul": 2.8377
+          "dmgMul": 2.412
         },
         {
           "key": "ooznik",
           "lvl": 10,
           "hpMul": 3.263,
-          "dmgMul": 2.8377
+          "dmgMul": 2.412
         },
         {
           "key": "sootwing imp",
           "lvl": 10,
           "hpMul": 3.263,
-          "dmgMul": 2.8377
+          "dmgMul": 2.412
         },
         {
           "key": "grushak",
           "lvl": 10,
           "hpMul": 3.263,
-          "dmgMul": 2.8377
+          "dmgMul": 2.412
         }
       ],
       [
@@ -1213,31 +1213,31 @@
           "key": "vexmite",
           "lvl": 10,
           "hpMul": 3.263,
-          "dmgMul": 2.8377
+          "dmgMul": 2.412
         },
         {
           "key": "ooznik",
           "lvl": 10,
           "hpMul": 3.263,
-          "dmgMul": 2.8377
+          "dmgMul": 2.412
         },
         {
           "key": "skarrn",
           "lvl": 10,
           "hpMul": 3.263,
-          "dmgMul": 2.8377
+          "dmgMul": 2.412
         },
         {
           "key": "cinder skulk",
           "lvl": 10,
           "hpMul": 3.263,
-          "dmgMul": 2.8377
+          "dmgMul": 2.412
         },
         {
           "key": "vael",
           "lvl": 10,
           "hpMul": 3.263,
-          "dmgMul": 2.8377,
+          "dmgMul": 2.412,
           "isHero": true,
           "rewardHero": true,
           "rank": 1
@@ -1246,7 +1246,7 @@
           "key": "brukk",
           "lvl": 10,
           "hpMul": 3.263,
-          "dmgMul": 2.8377,
+          "dmgMul": 2.412,
           "boss": true
         }
       ]
