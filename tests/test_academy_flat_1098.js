@@ -119,7 +119,7 @@ const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ew-acad1099-')), dbFile = pat
 let child, port, base;
 const delay = ms => new Promise(r => setTimeout(r, ms));
 const freePort = () => new Promise(r => { const s = net.createServer(); s.listen(0, '127.0.0.1', () => { const p = s.address().port; s.close(() => r(p)); }); });
-async function start() { child = spawn(process.execPath, ['server.js'], { cwd: ROOT, env: { ...process.env, DATABASE_URL: '', PORT: String(port), DB_FILE: dbFile }, stdio: 'ignore', windowsHide: true });
+async function start() { child = spawn(process.execPath, ['server.js'], { cwd: ROOT, env: { ...process.env, ALLOW_NEW_GUESTS:'1', DATABASE_URL: '', PORT: String(port), DB_FILE: dbFile }, stdio: 'ignore', windowsHide: true });
   for (let i = 0; i < 300; i++) { try { if ((await fetch(base + '/health')).ok) return; } catch (_) {} await delay(100); } throw Error('no start'); }
 async function stop() { if (!child) return; child.kill(); for (let i = 0; i < 60 && child.exitCode === null; i++) await delay(50); child = null; }
 async function call(tok, route, data) { const r = await fetch(base + route, { method: data ? 'POST' : 'GET', headers: { 'Content-Type': 'application/json', 'x-token': tok }, body: data ? JSON.stringify(data) : undefined });

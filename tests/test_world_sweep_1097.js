@@ -12,7 +12,7 @@ let port,base,child,pass=0,missed=[];
 const ok=(c,m)=>{ if(process.env.AUD_SERVER&&!c){ missed.push(m); return; } assert(c,m); pass++; console.log('  ok '+m); };
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
 const freePort=()=>new Promise(r=>{const s=net.createServer();s.listen(0,'127.0.0.1',()=>{const p=s.address().port;s.close(()=>r(p));});});
-async function start(){ child=spawn(process.execPath,[srvFile],{cwd:root,env:{...process.env,DATABASE_URL:'',DB_STORE:'',PORT:String(port),DB_FILE:dbFile,NODE_ENV:'test',SIM_WORKERS:'0',
+async function start(){ child=spawn(process.execPath,[srvFile],{cwd:root,env:{...process.env,ALLOW_NEW_GUESTS:'1',DATABASE_URL:'',DB_STORE:'',PORT:String(port),DB_FILE:dbFile,NODE_ENV:'test',SIM_WORKERS:'0',
     WORLD_WAR_TEST_MS:'100',WORLD_CITY_TEST_MS:'400',SERVER_SECRET:'wd1097',REG_PER_MIN:'1000',REG_ACCOUNTS_PER_IP:'1000'},stdio:'ignore',windowsHide:true});
   for(let i=0;i<300;i++){ try{ if((await fetch(base+'/health')).ok)return; }catch(_){} await delay(100);} throw Error('no start'); }
 async function stop(){ if(!child)return; child.kill(); for(let i=0;i<60&&child.exitCode===null;i++)await delay(50); child=null; }

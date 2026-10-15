@@ -60,7 +60,7 @@ const freePort = () => new Promise(r => { const sv = net.createServer(); sv.list
 async function liveBanked() {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ew-ds-')), dbFile = path.join(dir, 'db.json'), port = await freePort(), base = 'http://127.0.0.1:' + port;
   let child = null;
-  const start = async () => { child = spawn(process.execPath, ['server.js'], { cwd: ROOT, env: { ...process.env, DATABASE_URL: '', PORT: String(port), DB_FILE: dbFile }, stdio: 'ignore', windowsHide: true });
+  const start = async () => { child = spawn(process.execPath, ['server.js'], { cwd: ROOT, env: { ...process.env, ALLOW_NEW_GUESTS:'1', DATABASE_URL: '', PORT: String(port), DB_FILE: dbFile }, stdio: 'ignore', windowsHide: true });
     for (let i = 0; i < 300; i++) { try { if ((await fetch(base + '/health')).ok) return; } catch (_) {} await delay(100); } throw Error('no start'); };
   const stop = async () => { if (!child) return; await delay(400); child.kill(); for (let i = 0; i < 60 && child.exitCode === null; i++) await delay(50); child = null; };
   try {

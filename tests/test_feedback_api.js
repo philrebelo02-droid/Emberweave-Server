@@ -13,7 +13,7 @@ let child,token='';
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const freePort=()=>new Promise((resolve,reject)=>{const s=net.createServer();s.once('error',reject);s.listen(0,'127.0.0.1',()=>{const p=s.address().port;s.close(()=>resolve(p));});});
 async function start(){
-  child=spawn(process.execPath,['server.js'],{cwd:root,env:{...process.env,PORT:String(port),DB_FILE:dbFile},stdio:'ignore',windowsHide:true});
+  child=spawn(process.execPath,['server.js'],{cwd:root,env:{...process.env,ALLOW_NEW_GUESTS:'1',PORT:String(port),DB_FILE:dbFile},stdio:'ignore',windowsHide:true});
   for(let i=0;i<100;i++){if(child.exitCode!==null)throw new Error('throwaway server exited');try{if((await fetch(base+'/health')).ok)return;}catch(_){} await delay(100);}
   throw new Error('throwaway server did not start');
 }

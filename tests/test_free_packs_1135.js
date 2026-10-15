@@ -10,7 +10,7 @@ let checks = 0; const ok = (c, m) => { assert(c, m); checks++; console.log('  ok
 async function freePort() { const s = net.createServer(); await new Promise(r => s.listen(0, '127.0.0.1', r)); const p = s.address().port; await new Promise(r => s.close(r)); return p; }
 async function boot(env) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ew-free1135-')), port = await freePort();
-  const child = cp.spawn(process.execPath, ['server.js'], { cwd: root, env: Object.assign({}, process.env, { PORT: String(port), DB_FILE: path.join(dir, 'db.json'),
+  const child = cp.spawn(process.execPath, ['server.js'], { cwd: root, env: Object.assign({}, process.env, { ALLOW_NEW_GUESTS: '1', PORT: String(port), DB_FILE: path.join(dir, 'db.json'),
     SIM_WORKERS: '0', REG_PER_MIN: '1000', REG_ACCOUNTS_PER_IP: '1000', DB_STORE: '', DATABASE_URL: '', SHOP_TEST_PURCHASES: '' }, env), stdio: ['ignore', 'pipe', 'pipe'] });
   for (let i = 0; i < 80; i++) { try { await fetch('http://127.0.0.1:' + port + '/api/health'); break; } catch (e) { await new Promise(r => setTimeout(r, 250)); } }
   const call = async (route, body, token) => { const r = await fetch('http://127.0.0.1:' + port + route, { method: body ? 'POST' : 'GET',

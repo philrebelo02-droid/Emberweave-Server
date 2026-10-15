@@ -9,7 +9,7 @@ const dbFile=path.join(dir,'db.json'), counter=path.join(dir,'saves.txt'), pairs
 const modPath=process.env.WELL_MODULE||path.join(root,'server','starless-well.js'), sha=crypto.createHash('sha256').update(fs.readFileSync(modPath)).digest('hex');
 let port,base,child,token,id,pass=0; const ok=(c,m)=>{ assert(c,m); pass++; }, delay=ms=>new Promise(r=>setTimeout(r,ms));
 const freePort=()=>new Promise(r=>{const s=net.createServer();s.listen(0,'127.0.0.1',()=>{const p=s.address().port;s.close(()=>r(p));});});
-async function start(){ child=spawn(process.execPath,['--require',hook,'server.js'],{cwd:root,env:{...process.env,DATABASE_URL:'',PORT:String(port),DB_FILE:dbFile,SAVE_COUNTER:counter},stdio:['ignore','ignore','pipe'],windowsHide:true});
+async function start(){ child=spawn(process.execPath,['--require',hook,'server.js'],{cwd:root,env:{...process.env,ALLOW_NEW_GUESTS:'1',DATABASE_URL:'',PORT:String(port),DB_FILE:dbFile,SAVE_COUNTER:counter},stdio:['ignore','ignore','pipe'],windowsHide:true});
   child.stderr.on('data',d=>{ const t=String(d); if(t.includes('[save-count-hook]')) process.stderr.write(t); });
   for(let i=0;i<150;i++){ try{ if((await fetch(base+'/health')).ok)return; }catch(_){} await delay(100);} throw Error('no start'); }
 async function stop(){ if(!child)return; child.kill(); for(let i=0;i<60&&child.exitCode===null;i++)await delay(50); child=null; }

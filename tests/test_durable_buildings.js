@@ -12,7 +12,7 @@ let port,base,child,token,log='',pass=0;
 const ok=(c,m)=>{ assert(c,m); pass++; };
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
 const freePort=()=>new Promise(r=>{const s=net.createServer();s.listen(0,'127.0.0.1',()=>{const p=s.address().port;s.close(()=>r(p));});});
-async function start(){ child=spawn(process.execPath,['--require',hook,'server.js'],{cwd:root,env:{...process.env,DATABASE_URL:'',PORT:String(port),DB_FILE:dbFile,FAIL_FLAG:flag},stdio:['ignore','pipe','pipe'],windowsHide:true});
+async function start(){ child=spawn(process.execPath,['--require',hook,'server.js'],{cwd:root,env:{...process.env,ALLOW_NEW_GUESTS:'1',DATABASE_URL:'',PORT:String(port),DB_FILE:dbFile,FAIL_FLAG:flag},stdio:['ignore','pipe','pipe'],windowsHide:true});
   child.stdout.on('data',x=>log+=x); child.stderr.on('data',x=>log+=x);
   for(let i=0;i<150;i++){ if(child.exitCode!==null)throw Error('server exited: '+log.slice(-600)); try{ if((await fetch(base+'/health')).ok)return; }catch(_){} await delay(100);} throw Error('no start'); }
 async function stop(){ if(!child)return; child.kill(); for(let i=0;i<60&&child.exitCode===null;i++)await delay(50); child=null; }

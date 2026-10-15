@@ -15,7 +15,7 @@ const freePort=()=>new Promise((resolve,reject)=>{const s=net.createServer();s.o
   try{
     const port=await freePort(),base='http://127.0.0.1:'+port;
     const dbFile=path.join(temp,'db.json');
-    const start=()=>{child=spawn(process.execPath,['server.js'],{cwd:root,env:{...process.env,PORT:String(port),DB_FILE:dbFile},stdio:'ignore',windowsHide:true});};
+    const start=()=>{child=spawn(process.execPath,['server.js'],{cwd:root,env:{...process.env,ALLOW_NEW_GUESTS:'1',PORT:String(port),DB_FILE:dbFile},stdio:'ignore',windowsHide:true});};
     start();
     let ready=false;
     for(let i=0;i<100;i++){try{if((await fetch(base+'/health')).ok){ready=true;break;}}catch(_){}await delay(100);}
@@ -42,6 +42,9 @@ const freePort=()=>new Promise((resolve,reject)=>{const s=net.createServer();s.o
     try{browser=await chromium.launch();}catch(_){browser=await chromium.launch({channel:'chrome'});}
     const page=await browser.newPage({viewport:{width:390,height:844}}),errors=[];
     page.on('pageerror',e=>errors.push(e.message));
+    /* v1144: no session = the sign-in gate (no guest is made by the page), so the page starts on this test's own guest session
+       (one that has already seen the one-time "keep your progress" step) */
+    await page.addInitScript(([tok,gid,nm])=>{ if(!localStorage.getItem('ew_acc')) localStorage.setItem('ew_acc',JSON.stringify({token:tok,id:gid,name:nm,guest:true})); localStorage.setItem('ew_guest_step_'+gid,'1'); localStorage.setItem('ew_guest_step_temple-test','1'); },[guest.token,guest.profile.id,guest.profile.name]);
     await page.goto(base+'/play',{waitUntil:'domcontentloaded'});
     await page.waitForTimeout(2000);
     await page.evaluate(()=>{const p=document.querySelector('.splashPlay');if(p)p.click();});
