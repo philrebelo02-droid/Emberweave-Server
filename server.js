@@ -4290,7 +4290,7 @@ function plansView(led){ const pls=shopPlans(led), dk=planDayKey(), o={};
   return o; }
 /* v1135 PRE-BETA FREE PACKS (Phil 14 Oct 2026: "make the shop diamond packs available to all players without them having to pay
    anything" / "we will turn it off in december"). While FREE_PACKS is on, every player can take any shop pack for free (provider
-   'prebeta'): same server-side credit as a purchase, recorded at usd 0 and never counted toward EGP/Patron (nothing was paid).
+   'prebeta'): same server-side credit as a purchase (v1135: recorded at usd 0 with no EGP/Patron; v1139 below: it counts toward Patron).
    v1139 (Phil 15 Oct: "Make it count towards their patron"): a free pack now counts toward EGP/Patron exactly like the paid pack (its usd, the rebate
    paid) - recorded with free:true so it can be told apart later.
    TURN OFF IN DECEMBER: set FREE_PACKS to false here (or start the server with SHOP_FREE_PACKS=0) - the shop then says "coming soon" again. */
