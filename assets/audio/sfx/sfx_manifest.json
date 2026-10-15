@@ -21,6 +21,11 @@
    "mapped_by_claude": false
   },
   "aureth": {
+   "arm": {
+    "attackDark": "ATK-AURETH-DARK",
+    "attackLight": "ATK-AURETH-LIGHT",
+    "crit": "ATK-AURETH-XSLICE"
+   },
    "lib": "LIB-ATK-BLADE-LIGHT",
    "mapped_by_claude": true
   },
@@ -243,6 +248,48 @@
   }
  },
  "files": {
+  "ATK-AURETH-DARK": {
+   "bytes": 8778,
+   "ch": 1,
+   "dur": 0.9,
+   "f": "sfx/ATK-AURETH-DARK.m4a?v=1138",
+   "key": "arm|ATK-AURETH-DARK|0.0|False|2.2|-16.0",
+   "lufs_m": -16.27,
+   "note": "Phil 15 Oct: DARK sword swing = 218.1 PlasmaMagic_Debuff02 (its first 0.25 s of swell trimmed)",
+   "offset": 0.0,
+   "peak": 0.4013,
+   "src": "part-ATK-AURETH-DARK.wav",
+   "target": -16.0,
+   "tp_db": -1.18
+  },
+  "ATK-AURETH-LIGHT": {
+   "bytes": 8409,
+   "ch": 1,
+   "dur": 0.85,
+   "f": "sfx/ATK-AURETH-LIGHT.m4a?v=1138",
+   "key": "arm|ATK-AURETH-LIGHT|0.0|False|2.2|-16.0",
+   "lufs_m": -16.33,
+   "note": "Phil 15 Oct: LIGHT sword swing = 120.0 MagicShimmer_Cast01",
+   "offset": 0.0,
+   "peak": 0.2761,
+   "src": "part-ATK-AURETH-LIGHT.wav",
+   "target": -16.0,
+   "tp_db": -5.72
+  },
+  "ATK-AURETH-XSLICE": {
+   "bytes": 9435,
+   "ch": 1,
+   "dur": 0.97,
+   "f": "sfx/ATK-AURETH-XSLICE.m4a?v=1138",
+   "key": "arm|ATK-AURETH-XSLICE|0.0|False|2.2|-16.0",
+   "lufs_m": -16.28,
+   "note": "X slice = both swords: the light + dark cuts layered, peaks aligned (Claude, from Phil's two picks)",
+   "offset": 0.0,
+   "peak": 0.4026,
+   "src": "part-ATK-AURETH-XSLICE.wav",
+   "target": -16.0,
+   "tp_db": -3.99
+  },
   "LIB-ATK-BLADE-HEAVY": {
    "bytes": 9943,
    "ch": 1,
@@ -6526,7 +6573,7 @@
  },
  "target_lufs_m": -16.0,
  "tolerance_lu": 2.0,
- "total_bytes": 6939620,
+ "total_bytes": 6966242,
  "true_peak_ceiling_db": -1.0,
  "unmapped": [],
  "version": 1138

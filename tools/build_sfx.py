@@ -61,6 +61,45 @@ WEAPON = {
                                     'aldren', 'ceraline', 'orryn', 'mirelle']},
 }
 RAFE_MELEE = 'BLADE-LIGHT'
+# v1156 PER-SWING SOUNDS (Phil 15 Oct 2026: Aureth's swings "should not be regular swords"; his picks from the Spell Pack Library, RPG Magic
+# Pack 3 catalogue numbers - pack_matcher2.catalogue): the swing whose clip is `attackLight` plays the light sound, `attackDark` the dark one,
+# the `crit` X slice (both swords) both cuts LAYERED, peaks aligned. Each is a swing-length cut of the pack file (well under his 1.8 s swing),
+# then the same loudness render as the weapon library (target + 0, BLADE-LIGHT's level). The client picks by the swing's clip
+# (SFX_DATA.heroes[k].arm[u._atkClip], sfxAtk) and the peak lands on the blow (the fuse) like every attack sound.
+#   layer = (pack file under PACK_WAV, cut start s, cut end s, delay s)
+PACK_WAV = os.environ.get('EW_PACK_WAV') or r'C:\Users\Home\OneDrive\Desktop\Emberweave Archive\Game Art\Sound Effects\RPG Magic Pack 3 - WOW Sound (Phil 14OCT2026)\wav'
+_SHIMMER = r'RPG3_Generic_Magic\Generic Magic\RPG3_MagicShimmer_Cast01.wav'      # 120.0 magic shimmer cast (1.93 s, peak 0.28 s)
+_PLASMA = r'RPG3_Plasma_Magic\Plasma Magic\RPG3_PlasmaMagic_Debuff02.wav'         # 218.1 plasma magic debuff (1.95 s, peak 0.65 s)
+ARM_SOUNDS = {
+    'aureth': {
+        'attackLight': ('ATK-AURETH-LIGHT', [(_SHIMMER, 0.0, 0.85, 0.0)], 'Phil 15 Oct: LIGHT sword swing = 120.0 MagicShimmer_Cast01'),
+        'attackDark': ('ATK-AURETH-DARK', [(_PLASMA, 0.25, 1.15, 0.0)], 'Phil 15 Oct: DARK sword swing = 218.1 PlasmaMagic_Debuff02 (its first 0.25 s of swell trimmed)'),
+        'crit': ('ATK-AURETH-XSLICE', [(_SHIMMER, 0.0, 0.85, 0.12), (_PLASMA, 0.25, 1.15, 0.0)], 'X slice = both swords: the light + dark cuts layered, peaks aligned (Claude, from Phil\'s two picks)'),
+    },
+}
+
+
+def arm_cut(layers, td, name):
+    """the swing-length cut: each layer trimmed (and delayed), mixed (no normalising - the render sets the loudness), mono 48 kHz"""
+    out = os.path.join(td, 'part-%s.wav' % name)
+    ins, fl = [], []
+    for i, (f, a, b, dl) in enumerate(layers):
+        ins += ['-i', os.path.join(PACK_WAV, f)]
+        fl.append('[%d:a]atrim=start=%.3f:end=%.3f,asetpts=PTS-STARTPTS,aformat=sample_rates=48000:channel_layouts=mono,adelay=%d:all=1[l%d]' % (i, a, b, round(dl * 1000), i))
+    mix = ''.join('[l%d]' % i for i in range(len(layers)))
+    fl.append(mix + ('amix=inputs=%d:normalize=0:duration=longest[o]' % len(layers) if len(layers) > 1 else 'anull[o]'))
+    ff(*ins, '-filter_complex', ';'.join(fl), '-map', '[o]', '-c:a', 'pcm_f32le', out)
+    return out
+
+
+def arm_sounds(add):
+    """render every per-swing sound through `add` (the build's own renderer); returns {hero: {clip: file name}}"""
+    res = {}
+    with tempfile.TemporaryDirectory() as td:
+        for h, arms in ARM_SOUNDS.items():
+            for clip, (name, layers, note) in arms.items():
+                res.setdefault(h, {})[clip] = add(name, arm_cut(layers, td, name), OFFSETS.get(name, 0.0), None, False, 2.2, note)
+    return res
 
 # ---- play rules. Default from the row's timing text (rule_for); these are the rows whose moment needs saying.
 #   cast    - the cast press (the clip starts): the file starts with the clip (peak not used)
@@ -284,6 +323,8 @@ def build():
     for h, w in WEAPON.items():
         attack[h] = {'lib': 'LIB-ATK-' + w.rstrip('*'), 'mapped_by_claude': w.endswith('*')}
     attack['rafe']['melee'] = 'LIB-ATK-' + RAFE_MELEE
+    for h, arm in arm_sounds(add).items():   # v1156: per-swing sounds (Aureth's light / dark / X slice)
+        attack[h]['arm'] = arm
     # the composite check: a composite played once must have its later hits within a frame of the game's (reported, not fixed here)
     stale = [f for f in os.listdir(OUT) if f.endswith('.m4a') and f[:-4] not in used_names]
     for f in stale:
@@ -306,6 +347,8 @@ def client_data(man):
         H.setdefault(h, {})['atk'] = a['lib']
         if a.get('melee'):
             H[h]['melee'] = a['melee']
+        if a.get('arm'):
+            H[h]['arm'] = a['arm']
     for rid, r in sorted(man['rows'].items()):
         if r.get('none') or not r.get('files'):
             continue

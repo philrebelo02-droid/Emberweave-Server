@@ -195,6 +195,19 @@ try {
     console.log('  info Rivet: ' + rv.length + ' weapon/attack sounds matched, weapon clips heard: ' + [...wcl].join(',') + ', worst ' + rvMax + ' ms');
     ck('Rivet - his weapon blows sound (rivetFire hook) on his weapon clips, each peak within one frame (33 ms) of its blow', rv.length >= 5 && wcl.size >= 2 && rvMax <= 34, rv.length + ' / ' + [...wcl].join(',') + ' / ' + rvMax);
   }
+  {   // v1156 (Phil 15 Oct): Aureth's swings are not swords - the light-sword swing plays his light pick, the dark-sword swing his dark pick, the X-slice
+      // crit both layered (SFX_DATA.heroes.aureth.arm, chosen by the swing's clip); each peak within one frame of its blow; no other hero has an arm table
+    const A = D.heroes.aureth.arm || {}, au = rows2.filter(r => r[0] === 'aureth' && r[2] === 'attack'), by = {};
+    au.forEach(r => { const c = (r[4] || '').split(' ')[0]; (by[c] = by[c] || new Set()).add(r[1]); });
+    const auMax = au.reduce((m, r) => Math.max(m, Math.abs(r[3])), 0);
+    console.log('  info Aureth: ' + au.length + ' swing sounds matched - ' + Object.keys(by).map(c => c + ' -> ' + [...by[c]].join('/')).join(', ') + ', worst ' + auMax + ' ms');
+    ck('Aureth - the light swing plays ATK-AURETH-LIGHT, the dark swing ATK-AURETH-DARK (two different sounds), the X slice ATK-AURETH-XSLICE; each peak within one frame (33 ms) of its blow',
+      A.attackLight === 'ATK-AURETH-LIGHT' && A.attackDark === 'ATK-AURETH-DARK' && A.crit === 'ATK-AURETH-XSLICE' && A.attackLight !== A.attackDark &&
+      by.attackLight && by.attackDark && [...by.attackLight].join() === 'ATK-AURETH-LIGHT' && [...by.attackDark].join() === 'ATK-AURETH-DARK' && (!by.crit || [...by.crit].join() === 'ATK-AURETH-XSLICE') &&
+      au.length >= 4 && auMax <= 34 && Object.keys(D.heroes).filter(k => D.heroes[k].arm).join() === 'aureth', JSON.stringify({ A, by: Object.fromEntries(Object.entries(by).map(([k, v]) => [k, [...v]])), auMax }));
+    ck('Aureth - each swing sound is a swing-length cut (<= 1.0 s, his swing is 1.8 s) at the weapon-library loudness (target -16, as BLADE-LIGHT)',
+      Object.values(A).every(n => files[n] && files[n].dur <= 1.0 && files[n].target === files['LIB-ATK-BLADE-LIGHT'].target && Math.abs(files[n].lufs_m - files[n].target) <= 0.5), Object.values(A).map(n => n + ' ' + (files[n] && files[n].dur + ' s ' + files[n].lufs_m)).join(', '));
+  }
   {   // CONTROL: a file whose peak is off by 0.1 s (the manifest lying about it) - the same check catches it
     const e = resP[0].live.log.find(q => q.k === 'play' && q.kind === 'attack');
     const m = e && resP[0].live.log.find(q => q.k === 'blow' && q.hero === e.hero && Math.abs(q.due - e.due) < 1e-3);

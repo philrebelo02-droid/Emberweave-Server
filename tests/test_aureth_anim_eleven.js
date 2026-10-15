@@ -219,6 +219,12 @@ try {
   ck('sound: Sunburst (S0051) peaks on the form landing (land = green contact 47), Duality (S0053) and Eclipse (S0054) on the cast release (release = contacts 18 / 42), both swings on the blow (BLADE-LIGHT, the fuse) - BASE played all three from the press',
     SD.green[0].id === 'S0051' && SD.green[0].on === 'land' && SD.blue[0].id === 'S0053' && SD.blue[0].on === 'release' && SD.ult[0].id === 'S0054' && SD.ult[0].on === 'release' && SD.atk === 'LIB-ATK-BLADE-LIGHT' &&
     SD0.green[0].on === 'cast' && SD0.blue[0].on === 'cast' && SD0.ult[0].on === 'cast');
+  { /* v1156 (Phil 15 Oct): the swings are not swords - per-swing sounds by clip (tests/test_combat_sfx_1138.js hears them in a fight, peak on each blow) */
+    const MAN = JSON.parse(fs.readFileSync(path.join(ROOT, 'assets/audio/sfx/sfx_manifest.json'), 'utf8')), A = SD.arm || {}, F = n => MAN.files[n];
+    ck('sound (v1156): the light swing ATK-AURETH-LIGHT (pack 120.0), the dark swing ATK-AURETH-DARK (pack 218.1) - two different files - and the X slice both layered (ATK-AURETH-XSLICE); each <= 1.0 s at the blade loudness, the file on disk',
+      A.attackLight === 'ATK-AURETH-LIGHT' && A.attackDark === 'ATK-AURETH-DARK' && A.crit === 'ATK-AURETH-XSLICE' && new Set(Object.values(A)).size === 3 &&
+      Object.values(A).every(n => F(n) && F(n).dur <= 1.0 && F(n).target === F('LIB-ATK-BLADE-LIGHT').target && fs.existsSync(path.join(ROOT, 'assets/audio', F(n).f.split('?')[0]))) &&
+      run("(()=>{ const H=SFX_DATA.heroes.aureth; return sfxFiles(H).indexOf('ATK-AURETH-DARK')>=0 && sfxFiles(SFX_DATA.heroes.carn).every(n=>!/AURETH/.test(n)); })()") === true, JSON.stringify(A)); }
   const ctl = JSON.parse(JSON.stringify(G)); ctl.crit.u = '/assets/anim/aureth/aureth_missing.webp?v=1153'; ctl.attackDark.fw = 900;
   ck('control: the grid check catches a missing sheet and an oversized grid', gridProblems(ctl, ['crit', 'attackDark']).length >= 2);
 } catch (e) { console.log('FAIL after ' + pass + ' checks: ' + (e.stack || e.message)); process.exitCode = 1; return; }
