@@ -9834,7 +9834,7 @@ function sndGain(ch){ const c=SND.cfg[ch]; return c&&c.on?Math.max(0,Math.min(1,
 function sndCan(){ try{ return SND_CH.some(ch=>SND.cfg[ch].on) && !window._p2guard && !!(window.AudioContext||window.webkitAudioContext); }catch(e){ return false; } }
 function sndLoad(f){ if(!SND.ctx) return null; if(f in SND.buf) return null; if(SND.pend[f]) return SND.pend[f];
   SND.pend[f]=fetch('/assets/audio/'+f).then(r=>{ if(!r.ok) throw new Error('http '+r.status); return r.arrayBuffer(); })
-    .then(a=>new Promise((res,rej)=>SND.ctx.decodeAudioData(a,res,rej)))
+    .then(a=>new Promise((res,rej)=>{ const _p=SND.ctx.decodeAudioData(a,res,rej); if(_p&&typeof _p.catch==='function') _p.catch(()=>{}); }))   /* v1138: the promise decodeAudioData ALSO returns rejects on a file this browser cannot decode (the error callback already handles it) - caught, so it is not an unhandled page error */
     .then(b=>{ SND.buf[f]=b; delete SND.pend[f]; return b; }, ()=>{ SND.buf[f]=null; delete SND.pend[f]; return null; });
   return SND.pend[f]; }
 function sndUnlock(){ try{
