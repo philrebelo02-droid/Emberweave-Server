@@ -24,8 +24,18 @@ const LOG_DIR = process.env.EW_SFX_LOG || '';          // when set, the timing l
 const MAN = JSON.parse(fs.readFileSync(path.join(ROOT, 'assets/audio/sfx/sfx_manifest.json'), 'utf8'));
 let pass = 0, fail = 0;
 const ck = (name, ok, detail) => { if (ok) { pass++; console.log('  ok  ' + name); } else { fail++; console.log('  FAIL ' + name + (detail ? ' - ' + detail : '')); } };
+/* v1150 (Phil 15 Oct): Aureth's autos changed ON PURPOSE - 70% physical / 30% magic, a 1.8 s swing, light/dark arms in turn. BASE gets the same
+   rule written into its text (each anchor must match exactly once, or this throws and the control file is missing), so the one fight with
+   Aureth still compares sound-on to the pre-sound engine; tests/test_aureth_1150.js proves every other hero is tick-identical to v1149. */
+function aureth1150(h) { const R = [
+  ["aureth: {name:'Aureth',    emoji:'☯️',role:'Bruiser', swing:2.4,", "aureth: {name:'Aureth',    emoji:'☯️',role:'Bruiser', swing:1.8, autoSplit:{phys:0.7,mag:0.3}, autoAlt:true,"],
+  ["u._atkClip=_swCrit?'crit':null; }", "u._atkClip=_swCrit?'crit':null; } if(u.t&&u.t.autoAlt){ u._armN=((u._armN|0)+1); u._atkArm=(u._armN&1)?'attackLight':'attackDark'; if(!_swCrit) u._atkClip=(u.anim&&u.anim[u._atkArm])?u._atkArm:null; }"],
+  ["dealDamage(u,t,dmg,u.hybrid?'#ffe6b0':'#fff'); } finally{ _preCrit=null; } },_fly,u._atkSpdMul);", "dealDamage(u,t,dmg,u.hybrid?'#ffe6b0':'#fff',(u.t&&u.t.autoSplit)?'split':undefined); } finally{ _preCrit=null; } },_fly,u._atkSpdMul);"],
+  ["  if(kind==='magic'){ amt*=1-defToDR(Math.max(0,_shM-((src&&src.magicPen)||0)),tgt.lvl); }      // MR vs Magic Pen", "  if(kind==='magic'){ amt*=1-defToDR(Math.max(0,_shM-((src&&src.magicPen)||0)),tgt.lvl); } else if(kind==='split'){ const _sp=(src&&src.t&&src.t.autoSplit)||{phys:1,mag:0}; let _ph=amt*_sp.phys*(1-defToDR(Math.max(0,_shA-((src&&src.armorPen)||0)),tgt.lvl)); const _mg=amt*_sp.mag*(1-defToDR(Math.max(0,_shM-((src&&src.magicPen)||0)),tgt.lvl)); if((tgt.blockStat||0)>0&&brnd()<tgt.blockStat){ _ph*=0.5; floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'BLOCK',t:.5,color:'#8fb7ff',vy:1.1,sz:11}); } amt=_ph+_mg; tgt._splitLast={phys:_ph,mag:_mg}; }"]];
+  for (const [a, b] of R) { if (h.split(a).length !== 2) throw new Error('aureth1150: anchor not found once in BASE: ' + a.slice(0, 50)); h = h.replace(a, () => b); }
+  return h; }
 let OLD = null;
-try { OLD = path.join(ROOT, '.test-sfx-base-control.html'); fs.writeFileSync(OLD, cp.execSync('git show ' + BASE_SHA + ':emberweave-heroes.html', { cwd: ROOT, maxBuffer: 64 << 20 }));
+try { OLD = path.join(ROOT, '.test-sfx-base-control.html'); fs.writeFileSync(OLD, aureth1150(cp.execSync('git show ' + BASE_SHA + ':emberweave-heroes.html', { cwd: ROOT, maxBuffer: 64 << 20 }).toString()));
   const t = OLD; process.on('exit', () => { try { fs.unlinkSync(t); } catch (e) {} }); } catch (e) { OLD = null; }
 const tmpFiles = [];
 process.on('exit', () => tmpFiles.forEach(f => { try { fs.unlinkSync(f); } catch (e) {} }));

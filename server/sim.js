@@ -45,7 +45,7 @@ const HERO_BASE={
   vulmar:{swing:2,hp:175,dmg:26,apow:30,role:'Mage',stars:3,healer:false,atkSpeed:0.85},   // v484: Vulmar gets Ability Power (casters scale off AP now)
   tick:{swing:2.2,hp:360,dmg:28,apow:0,role:'Bruiser',stars:1,healer:false,atkSpeed:1.1},
   sylthaine:{swing:2,hp:150,dmg:14,apow:32,role:'Mage',stars:1,healer:false,atkSpeed:0.85},
-  aureth:{swing:2.4,hp:460,dmg:24,apow:24,role:'Bruiser',stars:3,healer:false,atkSpeed:0.9},
+  aureth:{swing:1.8,hp:460,dmg:24,apow:24,role:'Bruiser',stars:3,healer:false,atkSpeed:0.9},
   bloatus:{swing:2.4,hp:540,dmg:24,apow:28,role:'Tank',stars:3,healer:false,atkSpeed:0.9},
   vireo:{swing:2,hp:220,dmg:16,apow:30,role:'Support',stars:1,healer:true,atkSpeed:0.9},
   fritz:{swing:1.8,hp:320,dmg:22,apow:30,role:'Mage',stars:2,healer:false,atkSpeed:1,armor:60,mr:90},
