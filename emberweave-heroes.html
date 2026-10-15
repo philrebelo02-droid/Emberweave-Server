@@ -27218,10 +27218,10 @@ const GEM_OFFERS=[
 /* v1050 (Phil 7 Oct: "make the diamonds shop server side" / "so that people receive diamonds when they purchase"): a purchase is
    credited by the SERVER - diamonds at once, a plan as days on the ledger that the Quest log claims from the server. 'test' is the
    payment the server accepts for dev accounts today; a store receipt replaces it when a payment provider is connected. */
-async function grantGemOffer(i){ const o=GEM_OFFERS[i]; if(!o||!o.id) return;
+async function grantGemOffer(i,provider){ const o=GEM_OFFERS[i]; if(!o||!o.id) return;
   if(!ACC.token){ bannerMsg('Connect to the realm to buy.'); return; }
   if(grantGemOffer._busy) return; grantGemOffer._busy=true;
-  const r=await api('/api/shop/purchase','POST',{offerId:o.id, provider:'test', requestId:uid8()}); grantGemOffer._busy=false;
+  const r=await api('/api/shop/purchase','POST',{offerId:o.id, provider:provider||'test', requestId:uid8()}); grantGemOffer._busy=false;
   if(!r||!r.ok){ bannerMsg((r&&r.error)||'Could not reach the realm.'); return; }
   adoptLedger(r.ledger); saveG(); updateHubChrome();
   bannerMsg(r.granted&&r.granted.gems ? (hudIcon('gem')+' +'+r.granted.gems+' diamonds!') : (uiIcon('gift')+' '+o.name+' - +'+((r.granted&&r.granted.planDays)||0)+' days, claim it daily in Quests'));
@@ -27307,6 +27307,7 @@ async function patAct(route,okMsg){ let r=null; try{ r=await api(route,'POST',{r
   if(r&&r.ok){ if(r.ledger) adoptLedger(r.ledger); updateHubChrome(); renderPatron(); bannerMsg(okMsg); }
   else bannerMsg((r&&r.error)||'Could not reach the server.'); }
 function shopSrv(){ const s=(LED&&LED.st&&LED.st.shop); return (s&&typeof s==='object')?s:null; }
+function freePacksOn(){ const s=shopSrv(); return !!(s&&s.freePacks); }   /* v1135: pre-beta free packs, server-owned switch */
 function foodDayReset(){ if(shopSrv()) return; const d=arenaDayKey(); if(G.foodDay!==d){ G.foodDay=d; G.foodBuys=0; } }
 function goldDayReset(){ if(shopSrv()) return; const d=arenaDayKey(); if(G.goldDay!==d){ G.goldDay=d; G.goldBuys=0; } }
 function foodNextCost(){ const s=shopSrv(); if(s){ G.foodBuys=s.food|0; return (s.foodCost==null)?null:(s.foodCost|0); } foodDayReset(); return (G.foodBuys||0)<FOOD_COSTS.length ? FOOD_COSTS[G.foodBuys||0] : null; }
@@ -27339,6 +27340,18 @@ function buyGemOffer(i){
     ov.querySelector('#_dpOk').onclick=(e)=>{ e.stopPropagation(); close(); grantGemOffer(i); };
     return;
   }
+  /* v1135 PRE-BETA (Phil 14 Oct: free packs for every player until December): the server says so (LED.st.shop.freePacks) */
+  if(freePacksOn()){ const o=GEM_OFFERS[i]||{};
+    const ov=document.createElement('div');
+    ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.8);display:flex;align-items:center;justify-content:center;z-index:20000;padding:20px';
+    ov.innerHTML=`<div style="background:linear-gradient(180deg,#20293e,#121a28);border:1px solid #4a628f;border-radius:16px;padding:22px 20px;width:100%;max-width:330px;text-align:center;box-shadow:0 14px 44px #000b">
+      <div style="font-family:Georgia,serif;font-weight:900;font-size:19px;color:#ffd45e;text-shadow:0 1px 4px #000">Pre-Beta Gift</div>
+      <div style="font-size:13px;color:#cdd6e4;margin:8px 0 16px;line-height:1.45"><b>${escapeHTML(o.name||'')}</b> is free during the pre-beta.<br>${o.detail||''}</div>
+      <button class="btn" style="width:100%" id="_fpOk">Claim for free</button></div>`;
+    document.body.appendChild(ov); const close=()=>ov.remove();
+    ov.addEventListener('click',e=>{ if(e.target===ov) close(); });
+    ov.querySelector('#_fpOk').onclick=(e)=>{ e.stopPropagation(); close(); grantGemOffer(i,'prebeta'); };
+    return; }
   // Normal players: "no diamond packs yet — coming soon" art popup.
   const ov=document.createElement('div');
   ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.78);display:flex;align-items:center;justify-content:center;z-index:20000;padding:20px';
@@ -27383,7 +27396,7 @@ function renderGemShop(){ document.getElementById('hudShopTitle').innerHTML='';
       <div class="sf-content">
         ${GEM_OFFERS.map((o,i)=>`<div class="sf-item" data-i="${i}">
           <img class="sf-ic" src="${SHOP_ICONS[o.img]||''}" alt="${o.name}" draggable="false">
-          <div class="sf-price">${o.price}</div>
+          <div class="sf-price">${freePacksOn()?'FREE':o.price}</div>
           <div class="sf-tip"><div class="sf-tip-name">${o.name}</div><div class="sf-tip-desc">${o.detail}</div><div class="sf-tip-price">${o.price}</div></div>
         </div>`).join('')}
       </div>

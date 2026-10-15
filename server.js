@@ -4113,7 +4113,7 @@ function ledgerView(u){ const led=ensureLedger(u); ledStamRegen(led); if(ledPlay
     // used to keep its own 09:00-ET copy, so the quoted price drifted from the charged price.
     shop:(function(){ try{ const sh=shopState(u); return { food:sh.food|0, gold:sh.gold|0,
       foodCost:((sh.food|0)<patronRow(led,'meals')?SHOP_FOOD_COSTS[Math.min(sh.food|0,SHOP_FOOD_COSTS.length-1)]:null), foodMax:patronRow(led,'meals'),
-      goldCost:((sh.gold|0)<patronRow(led,'goldBuys')?SHOP_GOLD_COSTS[Math.min(sh.gold|0,SHOP_GOLD_COSTS.length-1)]:null), goldMax:patronRow(led,'goldBuys') }; }catch(e){ return null; } })() }; }
+      goldCost:((sh.gold|0)<patronRow(led,'goldBuys')?SHOP_GOLD_COSTS[Math.min(sh.gold|0,SHOP_GOLD_COSTS.length-1)]:null), goldMax:patronRow(led,'goldBuys'), freePacks:FREE_PACKS }; }catch(e){ return null; } })() }; }
 // capped earn table for legacy client-resolved loops (each reason: per-grant max + per-day cap)
 /* v250 (audit P1): GENERIC tx/earn IS RETIRED for normal gameplay. Every loop now has its own
    server-verified route (elite/trial/quest/market/arena-daily/city-pvp/guild). Only a tiny 'misc'
@@ -4288,7 +4288,13 @@ function plansView(led){ const pls=shopPlans(led), dk=planDayKey(), o={};
   for(const k of SHOP_PLAN_KINDS){ const pl=pls[k], off=SHOP_OFFERS.find(x=>x.kind==='plan'&&x.plan===k);
     o[k]={ daysLeft:pl.daysLeft|0, amount:off.amount, name:off.name, offer:off.id, ready:(pl.daysLeft|0)>0 && pl.lastClaim!==dk }; }
   return o; }
+/* v1135 PRE-BETA FREE PACKS (Phil 14 Oct 2026: "make the shop diamond packs available to all players without them having to pay
+   anything" / "we will turn it off in december"). While FREE_PACKS is on, every player can take any shop pack for free (provider
+   'prebeta'): same server-side credit as a purchase, recorded at usd 0 and never counted toward EGP/Patron (nothing was paid).
+   TURN OFF IN DECEMBER: set FREE_PACKS to false here (or start the server with SHOP_FREE_PACKS=0) - the shop then says "coming soon" again. */
+const FREE_PACKS = true && process.env.SHOP_FREE_PACKS!=='0';
 function verifyPurchase(me,provider,receipt,offer){
+  if(provider==='prebeta') return FREE_PACKS ? {ok:true,ref:'prebeta-free',free:true} : {ok:false,error:'Diamond packs are coming soon.'};
   if(provider==='test') return (isDev(me)||process.env.SHOP_TEST_PURCHASES==='1') ? {ok:true,ref:'test'} : {ok:false,error:'Diamond packs are coming soon.'};
   return {ok:false,error:'Diamond packs are coming soon.'};   // a store (App Store / Google Play / web checkout) verifies its receipt HERE
 }
@@ -6540,7 +6546,7 @@ async function api(req,res,url){
     return send(res,200,{ok:true,hour:mk.h,restockAt:(mk.h+1)*MARKET_HOUR_MS,offers:marketOfferView(mk),
       today:{used:((led.marketDay&&led.marketDay.k===nyDayKey())?(led.marketDay.frags|0):0),max:12}}); }
   if(p==='/api/shop/offers'){ if(!me)return send(res,401,{error:'auth'}); const led=ensureLedger(me);
-    return send(res,200,{ ok:true, offers:SHOP_OFFERS.map(o=>({id:o.id,price:o.price,name:o.name,kind:o.kind,plan:o.plan||null,amount:o.amount,days:o.days||null})),
+    return send(res,200,{ ok:true, freePacks:FREE_PACKS, offers:SHOP_OFFERS.map(o=>({id:o.id,price:o.price,name:o.name,kind:o.kind,plan:o.plan||null,amount:o.amount,days:o.days||null})),
       plans:plansView(led) }); }
   if(p==='/api/shop/purchase' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
@@ -6551,9 +6557,10 @@ async function api(req,res,url){
       else { const pl=shopPlans(led)[offer.plan]; pl.daysLeft=(pl.daysLeft|0)+offer.days; granted.planDays=offer.days; }   // buying again adds the days
       led.purchases=Array.isArray(led.purchases)?led.purchases:[];
       patronState(led);   /* v1092: rebuild (if new) BEFORE this purchase is listed, so it is not counted twice */
-      led.purchases.push({t:Date.now(), id:offer.id, usd:offer.usd, ref:v.ref}); if(led.purchases.length>500) led.purchases=led.purchases.slice(-500);
-      granted.patron=patronCreditPurchase(me,led,offer.usd,offer.id);   /* v1092: paid base diamonds raise EGP; the rebate is paid */
-      ledTx(me,'shop:purchase:'+offer.id,Object.assign({usd:offer.usd},granted));
+      const usd=v.free?0:offer.usd;   /* v1135: a pre-beta free pack paid nothing */
+      led.purchases.push({t:Date.now(), id:offer.id, usd, ref:v.ref}); if(led.purchases.length>500) led.purchases=led.purchases.slice(-500);
+      if(!v.free) granted.patron=patronCreditPurchase(me,led,offer.usd,offer.id);   /* v1092: paid base diamonds raise EGP; the rebate is paid (v1135: never for a free pack) */
+      ledTx(me,'shop:purchase:'+offer.id,Object.assign({usd},granted));
       writeDB(); return { ok:true, offer:offer.id, granted, plans:plansView(led), ledger:ledgerView(me) }; });
     return send(res,out.storageFailed?503:200,out); }
   if(p==='/api/shop/plan-claim' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
