@@ -14324,7 +14324,7 @@ function endBattle(won){
           +(Object.entries((r.reward&&r.reward.xpPotions)||{}).filter(([,n])=>n>0).map(([tier,n])=>`<div style="margin-top:6px;color:#c9a0ff">${uiIcon('lore-book')} +${n} ${escapeHTML(tier[0].toUpperCase()+tier.slice(1))} Hero XP Potion${n===1?'':'s'}</div>`).join(''))
           +((r.reward&&r.reward.eliteFrag&&r.reward.eliteFrag.qty)?`<div style="margin-top:6px;color:#c9a0ff">${fragCard(r.reward.eliteFrag.heroKey)} +${r.reward.eliteFrag.qty|0} ${escapeHTML((HERO_TYPES[r.reward.eliteFrag.heroKey]||{}).name||r.reward.eliteFrag.heroKey)} fragment${(r.reward.eliteFrag.qty|0)===1?'':'s'}</div>`:'')
           +((r.reward&&r.reward.dailyCapped)?'<div style="margin-top:6px;color:#ff9a9a">Daily limit reached for this stage (3 rewarded runs/day) — no rewards this run.</div>':'')
-          +`<div style="margin-top:6px">${uiIcon('star-filled').repeat(r.stars||1)}${r.reward&&r.reward.first?' · <b style="color:#ffd45e">First clear!</b>':''}</div>`
+          +`<div style="margin-top:6px">${uiIcon('star-filled').repeat(r.stars||1)+uiIcon('star-empty').repeat(Math.max(0,3-(r.stars||1)))}${r.reward&&r.reward.first?' · <b style="color:#ffd45e">First clear!</b>':''}</div>`
         : (_unv?('<div style="color:#ffd45e;font-weight:700;margin-bottom:4px">You '+(/"won":true/.test(window._p2lastDigest||'')?'won':'fought')+' this one — '+((r&&(r.error==='offline'||r.storageFailed))?(r.storageFailed?'but the server could not save it, so it was not counted.':'but the connection was lost before the server answered, so it is not counted here.'):'but the server could not verify it, so nothing was recorded and your stamina is back.')+'</div><span style="color:#ff8b8b">'+escapeHTML((r&&r.error&&r.error!=='offline')?r.error:'')+'</span>'+(r&&r.reason?'<div style="font-size:10.5px;color:#6f7d90;margin-top:4px">('+escapeHTML(r.reason)+(CUR.engine&&CUR.engine!==BUILD_ID?' · the game updated during this fight':'')+')</div>':''))
           : ((r&&r.error)?('<span style="color:#ff8b8b">'+escapeHTML(r.error)+'</span>'):'Your squad fell.'));
       document.getElementById('resultHint').textContent='';
@@ -27540,7 +27540,7 @@ function updateBattleBanner(){ const bb=document.getElementById('battleBanner');
 // Victory screen extras: 3 gold stars + the surviving squad as hero cards (level + star badges)
 function renderResultExtras(){ const stars=document.getElementById('resultStars'), squad=document.getElementById('resultSquad'); if(!stars||!squad)return;
   if(!resultWon){ stars.classList.remove('show'); squad.classList.remove('show'); stars.innerHTML=''; squad.innerHTML=''; return; }
-  stars.innerHTML=[0,1,2].map(i=>`<span class="rStar${i<resultStars?'':' dim'}">${uiIcon('star-filled')}</span>`).join(''); stars.classList.add('show');
+  stars.innerHTML=[0,1,2].map(i=>`<span class="rStar${i<resultStars?'':' dim'}">${i<resultStars?uiIcon('star-filled'):uiIcon('star-empty')}</span>`).join('');   /* v1146 (Soul Eater: 'it still counts as 3 stars' / Phil: 'It should show the stars you got for that fight at the end report'): since v1098 the star is an <img>, so .dim's colour greyed nothing and all three looked earned - an unearned star is the empty-star art */ stars.classList.add('show');
   squad.innerHTML=(resultSquadKeys||[]).filter(Boolean).map(key=>{ const t=HERO_TYPES[key]; if(!t)return '';
     const pv=HERO_PORTRAITS[key], inner=pv?`<img src="${pv}">`:`<div class="rEmoji">${t.emoji}</div>`;
     return `<div class="rCard">${inner}<div class="rLv">Lv ${heroLevel(key)}</div><div class="rStars">${uiIcon('star-filled').repeat(Math.max(1,heroStars(key)))}</div></div>`; }).join('');
@@ -28356,7 +28356,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1792081802966';
+const BUILD_ID = '1792082956470';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
