@@ -92,8 +92,8 @@ try {
   ck('both are new files at ?v=1137 that BASE never referenced (never a reused asset version)', NEW.every(([s]) => G[s].u === `/assets/anim/sylthaine/sylthaine_${s}_1137.webp?v=1137` && !baseSrc.includes(`sylthaine_${s}_1137`)));
   ck('the old v26 sheets are still on disk (rollback needs nothing)', NEW.every(([s]) => fs.existsSync(path.join(ROOT, G0[s].u.split('?')[0]))));
   ck('untouched states are byte-for-byte the BASE entries (idle/walk/attack/hit/green/blue)', KEEP.every(s => JSON.stringify(G[s]) === JSON.stringify(G0[s])));
-  /* v1137 = one combined animation release (Maren + Orryn, Sylthaine, Rivet): the other parts' heroes are checked by their own tests */
-  const V1137_ANIM = JSON.stringify(['maren', 'orryn', 'sylthaine']);
+  /* v1137 = one combined animation release (Maren + Orryn, Sylthaine, Rivet): the other parts' heroes are checked by their own tests (Rivet: test_rivet_weapons.js) */
+  const V1137_ANIM = JSON.stringify(['maren', 'orryn', 'sylthaine', 'rivet']);
   const others = r => r('JSON.stringify(Object.keys(BATTLE_ANIM).filter(k=>!'+V1137_ANIM+'.includes(k)).map(k=>[k,BATTLE_ANIM[k]]))');
   ck('every hero outside the v1137 animation release has BATTLE_ANIM byte-for-byte BASE', H(others(run)) === H(others(R0)));
   ck('grids as cut: ult 48 @24 apex 31, passive 48 @24 contact 9', NEW.every(([s, n, fps, c, r, f, v]) => G[s].n === n && G[s].fps === fps && G[s].cols === c && G[s].rows === r && G[s][f] === v));
