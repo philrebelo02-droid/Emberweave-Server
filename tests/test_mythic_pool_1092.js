@@ -19,7 +19,7 @@ const led=async()=>{ const l=(await call('/api/ledger')).data; return l.ledger||
 let rq=0; const R=()=>'m'+(rq++);
 (async()=>{ try{
   // static: KonWu is no longer in the Diamond Pool roll
-  const gem=src.slice(src.indexOf('function poolRollGem('),src.indexOf('\n',src.indexOf("acc+=0.15;",src.indexOf('function poolRollGem('))));
+  const gem=src.slice(src.indexOf('function poolRollGem('),src.indexOf('\nfunction ',src.indexOf('function poolRollGem(')+1));   // v1142: the whole Diamond roll (its old 'acc+=0.15;' anchor is gone)
   ok(!/konwu/i.test(gem),'KonWu is not in the Diamond Pool roll');
   port=await freePort(); base='http://127.0.0.1:'+port; await start();
   const g=await call('/api/guest',{deviceId:'myth-'+Date.now()}); token=g.data.token; id=g.data.profile.id; await call('/api/ledger');
