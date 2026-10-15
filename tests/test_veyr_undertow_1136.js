@@ -51,13 +51,13 @@ try {
     names === JSON.stringify(['Abyssal Undertow', 'Collapsing Star', 'Event Horizon', 'eventhorizon', 'gravcrush', 'eventhorizon']), names);
   ck('Veyr\'s ult text names Abyssal Undertow and the slow, not a silence', /Abyssal Undertow/.test(run('HERO_ULT_DESC.veyr')) && /slowed/.test(run('HERO_ULT_DESC.veyr')) && !/silenc/i.test(run('HERO_ULT_DESC.veyr')));
   const mv = run("abilityMeta('veyr',0)"), ma = run("abilityMeta('absalie',0)");
-  ck('skill card control line: Veyr "Slow 1.4s (area)" and no Silence; Absalie keeps "Silence 1.05s (area)"', /Slow 1\.4s \(area\)/.test(mv) && !/Silence/.test(mv) && /Silence 1\.05s \(area\)/.test(ma) && !/Slow/.test(ma), mv + ' | ' + ma);
+  ck('skill card control line: Veyr "Slow 2s (area)" and no Silence; Absalie keeps "Silence 1.05s (area)"', /Slow 2(\.0+)?s \(area\)/.test(mv) && !/Silence/.test(mv) && /Silence 1\.05s \(area\)/.test(ma) && !/Slow/.test(ma), mv + ' | ' + ma);
 
   const v = JSON.parse(run(ULT('veyr'))), v0 = R0 && JSON.parse(R0(ULT('veyr')));
   const a = JSON.parse(run(ULT('absalie'))), a0 = R0 && JSON.parse(R0(ULT('absalie')));
   ck('the scripted ult catches all three dummies (Veyr and Absalie)', v.hits.length >= 3 && a.hits.length >= 3 && new Set(v.hits.map(h => h[2])).size === 3, JSON.stringify({ v: v.hits, a: a.hits }));
-  const want = +run('ccDur(2)'), tick = +run('SIM_STEP');   // 2 s through the game-wide CC cut (CC_NERF 0.70, v818) like every CC: 1.4 s in the fight
-  ck('SLOW: Veyr\'s collapse slows every caught enemy ccDur(2 s) = ' + want.toFixed(2) + ' s (within one tick)', Math.abs(want - 1.4) < 1e-9 && v.mx.every(m => m.slow >= want - tick - 1e-9 && m.slow <= want + 1e-9), JSON.stringify(v.mx));
+  const want = 2.0, tick = +run('SIM_STEP');   // v1137 (Phil 15 Oct "make it a full 2 seconds"): 2/0.7 authored so ccDur gives a full 2 s in the fight
+  ck('SLOW: Veyr\'s collapse slows every caught enemy a full 2 s = ' + want.toFixed(2) + ' s (within one tick)', Math.abs(+run('ccDur(2/0.7)') - 2) < 1e-9 && v.mx.every(m => m.slow >= want - tick - 1e-9 && m.slow <= want + 1e-9), JSON.stringify(v.mx));
   ck('Veyr\'s collapse does NOT silence', v.mx.every(m => m.sil === 0), JSON.stringify(v.mx));
   ck('Absalie\'s Event Horizon still silences every caught enemy and does not slow', a.mx.every(m => m.sil > 0 && m.slow === 0), JSON.stringify(a.mx));
   ck('Veyr\'s damage: every hit on the same tick with the same amount as BASE', v0 && JSON.stringify(v.hits) === JSON.stringify(v0.hits), JSON.stringify({ now: v.hits, base: v0 && v0.hits }));

@@ -5088,7 +5088,7 @@ const HERO_ULT_DESC={"nerisse": "Ultimate — Nerisse rings the great bell: ever
   "vaelora": "Ultimate — Unleashes a blizzard of frozen feathers around all enemies.",
   "mirelle": "Ultimate — Opens her full tail and perfumes the battlefield, cleansing allies while charming enemies into lowering their defenses.",
   "sloe": "Ultimate — A rapid fan of arrows strikes the enemy backline.",
-  "veyr": "Ultimate — Abyssal Undertow: the deep opens where he aims and drags every enemy in, then crashes over them — heavy damage, and every enemy it swallowed is slowed.",   /* v1136 (Phil 14 Oct: "rename and change veyrs" - he shared Absalie's Event Horizon) */
+  "veyr": "Ultimate — Abyssal Undertow: the deep opens where he aims and drags every enemy in, then crashes over them — heavy damage, and every enemy it swallowed is slowed for 2 seconds.",   /* v1136 (Phil 14 Oct: "rename and change veyrs" - he shared Absalie's Event Horizon) */
   "absalie": "Ultimate — A collapsing void repeatedly damages and silences enemies.",
   "ceraline": "Ultimate — Floods the battlefield with molten wax, heavily slowing enemies before hardening them into statues that shatter for massive damage.",
   "zahri": "Player-aimed ultimate — aim a line up to 20 m: Zahri charges down it to the last enemy on the line, striking everyone in her path and knocking them off to either side."
@@ -5137,7 +5137,7 @@ function ccMetaSegs(o){
 }
 /* v1136 rig: Veyr's Abyssal Undertow runs the eventhorizon code but its collapse SLOWS 2 s (ccDur, the fight's 1.4 s) instead of silencing -
    the card's control line must say Slow, not Absalie's Silence. ccFixed: the authored 2 s, not the area-slow table's 3 s. */
-function ultDefShown(key,ab){ const d=ULT_DEF[ab]||{}; return (key==='veyr'&&ab==='eventhorizon')?Object.assign({},d,{silence:0,slow:2,ccFixed:['slow']}):d; }
+function ultDefShown(key,ab){ const d=ULT_DEF[ab]||{}; return (key==='veyr'&&ab==='eventhorizon')?Object.assign({},d,{silence:0,slow:2/0.7,ccFixed:['slow']}):d; }
 function abilityMeta(key,idx){ const t=HERO_TYPES[key],kit=KITS[key]; if(!t||!kit)return ''; const seg=[];
   const mel=t.range<60, fakeU={key,t};
   const rng=(rad)=> rad?(+(rad/METER).toFixed(1)+' m') : (mel?(t.reach?('Melee · '+(+(t.reach/METER).toFixed(1))+' m reach'):'Melee'):(+(t.range/METER).toFixed(1)+' m'));
@@ -11300,7 +11300,7 @@ function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,
       const dmg=apB*(o.mul||1.9)*rm, sil=o.silence||1.5;
       const und=(u.key==='veyr');   /* v1136 Abyssal Undertow (Phil 14 Oct "rename and change veyrs"): Veyr's own version - the same drag and damage, but the
          collapse SLOWS 2 s instead of silencing (Absalie keeps Event Horizon: silence). Same mul/radius/pull, so his power is unchanged. */
-      u._horizon={cx,cy,R,t:pullT*BATTLE_PACE,caught,dmg,sil,slow:und?(o.undertowSlow||2.0):0};
+      u._horizon={cx,cy,R,t:pullT*BATTLE_PACE,caught,dmg,sil,slow:und?(o.undertowSlow||2/0.7):0};   /* v1137 (Phil 15 Oct "make it a full 2 seconds"): 2 s AFTER ccDur's 30% cut, like Vael's Warcry fear */
       ringBurst(cx,cy,0x6a3fb0,22); if(u.team==='ally')screenFlash=Math.max(screenFlash,.2); break; }
     case 'worldweight':{ const ctr=aimCtr||((tgt&&tgt.alive)?tgt:u); const R=o.radius||8*METER, L=o.lift||2.0;   /* v920 Weight of the World (Phil): lift 2 s, slam, stun 1 s - not a pull */
       enemiesOf(u).forEach(e=>{ if(!e.alive||dist(ctr,e)>=R) return; const amt=dB*(o.mul||2.0)*rm;
