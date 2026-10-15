@@ -52,9 +52,12 @@ try {
   const walk = d => fs.existsSync(d) ? fs.readdirSync(d, { withFileTypes: true }).flatMap(e => e.isDirectory() ? walk(path.join(d, e.name)) : [path.join(d, e.name)]) : [];
   const onDisk = walk(path.join(ROOT, 'assets/audio')).map(p => path.relative(path.join(ROOT, 'assets/audio'), p).split(path.sep).join('/')).sort();
   const refd = new Set(refs.map(f => f.split('?')[0]));
+  // v1138: the combat sounds are referenced by the page's SFX_DATA (tools/build_sfx.py; its manifest sits beside them) - tests/test_combat_sfx_1138.js pins them
+  const SFXF = run(`(()=>{ try{ return JSON.stringify(Object.values(SFX_DATA.files).map(f=>f[0])); }catch(e){ return '[]'; } })()`);
+  JSON.parse(SFXF).forEach(f => refd.add(f.split('?')[0])); refd.add('sfx/sfx_manifest.json');
   const RETIRED = ['voice/vael_ult_1.m4a', 'voice/vael_ult_2.m4a', 'voice/vael_ult_3.m4a'];   // v1127: kept on disk, unreferenced (Phil: "stop them")
   ck('every file under assets/audio/ is referenced, except the three retired Vael ult lines kept on disk (no other orphans, no work WAVs)',
-    onDisk.length > 0 && onDisk.every(f => (refd.has(f) || RETIRED.includes(f)) && /\.m4a$/.test(f)) && RETIRED.every(f => onDisk.includes(f) && !refd.has(f)), JSON.stringify(onDisk));
+    onDisk.length > 0 && onDisk.every(f => (refd.has(f) || RETIRED.includes(f)) && (/\.m4a$/.test(f) || f === 'sfx/sfx_manifest.json')) && RETIRED.every(f => onDisk.includes(f) && !refd.has(f)), JSON.stringify(onDisk));
   // never in the startup download
   const sw = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8');
   ck('no audio in the service worker shell or preloaded by the page', !/audio\//.test((sw.match(/const SHELL = \[[^\]]*\]/) || [''])[0]) && !/<link[^>]+(m4a|audio\/)/.test(src) && !/<audio[^>]*(src|preload)=/.test(src));

@@ -6376,8 +6376,9 @@ function firePassiveClip(o,hold,target,options){
    fires immediately, exactly as before, so nothing without art changes. */
 function fuseStrike(u,tgt,clip,go,extra,rate){
   const dur=clipDur(clip)*(clip&&clip.relFrac!=null?clip.relFrac:0.5)*BATTLE_PACE/(rate||1)+(extra||0);   // v1024: `rate` = the swing's attack-speed factor
-  if(!(dur>0.02)){ go(); return; }
+  if(!(dur>0.02)){ go(); return 0; }
   (u._fuse||(u._fuse=[])).push({t:dur,tgt,go});
+  return dur;   /* v1138: the blow's battle-time distance, for its sound (no caller used the old undefined) */
 }
 function setResultVerdict(w,s){ resultWon=!!w; if(!w){ resultStars=0; } else resultStars=(s!=null)?((s|0)||0):3; }
 let gameSpeed=1,autoUlt=false,autoPendingTarget=null,screenFlash=0,aiming=null,aimTX=0,aimTY=0,paused=false;
@@ -6401,7 +6402,7 @@ function battleFxReset(){ try{ if(typeof _bees!=='undefined'){ _bees.forEach(b=>
     if(typeof _beamFx!=='undefined') _beamFx.length=0;
     if(typeof _boltFx!=='undefined'){ _boltFx.forEach(o=>{ try{ scene.remove(o.spr); o.spr.material.dispose(); }catch(_){} }); _boltFx.length=0; }   /* v959 */
     if(typeof _fxPlates!=='undefined') _fxPlates.length=0; }catch(e){} }
-function seedBattle(sd){ let seed=(sd!=null)?(sd>>>0):(((Date.now()>>>0)^((Math.random()*4294967296)>>>0))>>>0); try{ if(CUR&&typeof CUR==='object') CUR.seed=seed; }catch(e){} _brng=mulberry32(seed); _bacc=0; battleInputsReset(); battleFxReset(); return seed; };   // slightly slower overall battle tempo
+function seedBattle(sd){ try{ SFX.q.length=0; SFX.mr=0; SFX.mrt=null; SFX.fd=[]; }catch(e){}   /* v1138: no sound carries into the next fight (render only) */ let seed=(sd!=null)?(sd>>>0):(((Date.now()>>>0)^((Math.random()*4294967296)>>>0))>>>0); try{ if(CUR&&typeof CUR==='object') CUR.seed=seed; }catch(e){} _brng=mulberry32(seed); _bacc=0; battleInputsReset(); battleFxReset(); return seed; };   // slightly slower overall battle tempo
 // per-class attack swing interval (seconds) — lower = faster swings
 const ROLE_SWING={Tank:1.45,Bruiser:1.5,Brute:1.5,Warrior:1.05,Assassin:0.62,Marksman:0.72,Mage:1.45,Support:1.0};
 function swingInterval(t){ return (t.swing!=null? t.swing : (ROLE_SWING[t.role]||1.0)); }
@@ -9768,7 +9769,7 @@ function damage(u,a,c,noEnergy,crit){
   if(u.pass&&u.pass.digger){ const pm=(u.passMul||1), st=(u.stunned>0||(u.fearT||0)>0)?2:1;
     u._digStk=Math.min(10,(u._digStk||0)+st);
     u.hasteMul=Math.max(u.hasteMul||1,1+0.035*pm*u._digStk); u.hasteT=Math.max(u.hasteT||0,4); }
-  if(u.pass&&u.pass.pridemomentum&&u.shield>0){ u.dmgBuffMul=Math.max(u.dmgBuffMul||1,1+0.22*(u.passMul||1)); u.dmgBuffT=Math.max(u.dmgBuffT||0,4); }
+  if(u.pass&&u.pass.pridemomentum&&u.shield>0){ if(SFX.loop&&!(u.dmgBuffT>0)) sfxPassive(u,'pridemomentum',4);   /* v1138 sound: the buff starts */ u.dmgBuffMul=Math.max(u.dmgBuffMul||1,1+0.22*(u.passMul||1)); u.dmgBuffT=Math.max(u.dmgBuffT||0,4); }
   if(u.shield>0){ if(u.shield>=a){ u.shield-=a; u.flash=.1; u._absorbT=0.7; return; } a-=u.shield; u.shield=0; floatTexts.push({x:u.x,y:u.y-6,txt:'ABSORB',t:.5,color:'#6fe0ff',vy:1.1,sz:13}); }
   a=Math.max(0,a); u.hp-=a; u.flash=.14;
   if(a>0&&u.templeDamageEnergy)u.energy=Math.min(100,u.energy+100*a/Math.max(1,u.maxHp)*u.templeDamageEnergy);
@@ -9798,6 +9799,7 @@ function damage(u,a,c,noEnergy,crit){
       const _cgDur=SKLV.contagionDur(contagionLv(u.team));   /* v1112: the spread lasts 4 s + 0.02 s a level of the strongest Contagion on the other side */
       units.forEach(e=>{ if(e.alive&&e!==u&&e.team===u.team&&Math.hypot(e.x-u.x,e.y-u.y)<2.6*METER){ plagueDot(e,u._plagueDps||6,_cgDur,1,u._plagueColor||'#8fbf3f'); e._contagion=true; e._plagueDps=u._plagueDps||6; e._plagueColor=u._plagueColor; e._plagueHex=u._plagueHex; if(u._darkAuraT!=null)e._darkAuraT=4; } });
       ringBurst(u.x,u.y,u._plagueHex||0x8fbf3f,12);
+      if(SFX.loop) sfxSpread(u);   /* v1138 sound: the plague's owner's passive */
       if((u._plagueColor||'#8fbf3f')==='#8fbf3f') floatTexts.push({x:u.x,y:u.y-12,txt:'POISON SPREADS',t:1.0,color:'#a6e05a',vy:1,sz:12});   /* v1030 (Phil): it is his poison that spreads */
     }
   }
@@ -9838,12 +9840,13 @@ function sndLoad(f){ if(!SND.ctx) return null; if(f in SND.buf) return null; if(
 function sndUnlock(){ try{
     if(!SND.ctx){ const C=window.AudioContext||window.webkitAudioContext; if(!C) return; SND.ctx=new C(); SND.out=SND.ctx.createGain(); SND.out.connect(SND.ctx.destination); SND_CH.forEach(ch=>{ const g=SND.ctx.createGain(); g.gain.value=sndGain(ch); g.connect(SND.out); SND.bus[ch]=g; });
       for(const k in AUDIO_MAP) if(!/^hero\./.test(k)) (AUDIO_MAP[k]||[]).forEach(l=>sndLoad(l.f));   /* v1124: voice lines wait for their hero's fight */
+      sfxPrimeLib();   /* v1138: the weapon sounds; a hero's own sounds load with its fight (sndPrimeHero) */
       try{ (typeof units!=='undefined'&&units||[]).forEach(u=>u&&sndPrimeHero(u.key)); }catch(e){} }
     if(SND.ctx.state==='suspended') SND.ctx.resume().catch(()=>{});
   }catch(e){} }
 /* v1124: fetch + decode a hero's ult lines when the hero is placed on a battlefield (makeUnit), so the first ult has its line ready
    (a line not decoded within 0.4 s is skipped). Nothing before audio is unlocked, with Voices off, or in a headless replay. */
-function sndPrimeHero(key){ try{ if(!HERO_ULT_VOICES||!key||!SND.ctx||window._p2guard||!SND.cfg.voice.on) return;   /* v1127: ult lines off - nothing to prime */
+function sndPrimeHero(key){ try{ sfxPrimeHero(key); }catch(e){} try{ if(!HERO_ULT_VOICES||!key||!SND.ctx||window._p2guard||!SND.cfg.voice.on) return;   /* v1127: ult lines off - nothing to prime */
   for(let i=1;i<=3;i++) (AUDIO_MAP['hero.'+key+'.ult.'+i]||[]).forEach(l=>sndLoad(l.f)); }catch(e){} }
 try{ if(typeof document!=='undefined'&&document.addEventListener) ['pointerdown','touchend','keydown'].forEach(ev=>document.addEventListener(ev,sndUnlock,{passive:true})); }catch(e){}
 function sndPlay(key,gapMs){ if(!sndCan()) return false; const ch=sndCh(key); if(!SND.cfg[ch].on) return false; const L=AUDIO_MAP[key]; if(!L||!L.length||!SND.ctx||SND.ctx.state!=='running') return false;
@@ -9854,6 +9857,159 @@ function sndPlay(key,gapMs){ if(!sndCan()) return false; const ch=sndCh(key); if
   return true; }
 function sndSet(ch,c){ if(!SND.cfg[ch]) return; Object.assign(SND.cfg[ch],c||{}); try{ localStorage.setItem('ew_sound',JSON.stringify(SND.cfg)); }catch(e){} if(SND.bus[ch]) SND.bus[ch].gain.value=sndGain(ch);
   if(ch==='voice'){ try{ if(_lore.a){ if(!SND.cfg.voice.on) loreStop(); else _lore.a.volume=sndGain('voice'); } }catch(e){} } }
+/* v1138 COMBAT SOUND (Phil 15 Oct 2026: "wire it all in game"; "remember sfx should match the animation"; "the slice/contact peak of
+   the sword sound should meet with the sword reaching the target"). Every Phil-approved combat sound, built by tools/build_sfx.py from
+   the Archive's SOUND LIST 11OCT2026 picks into assets/audio/sfx/ (manifest: assets/audio/sfx/sfx_manifest.json; blueprint 29).
+   THE SOUND HANGS ON THE SAME MOMENT AS THE DAMAGE. Nothing here decides a moment of its own - it reads the moments the engine already
+   uses to land a blow on its art (fuseStrike's contact fuse, the cast clock, groundHazards arrival delays, u._dash arrivals) and starts
+   each file `peak` seconds early (its measured loudest moment) so the peak sounds on the frame the damage number appears:
+     attack  - every swing: the hero's weapon sound (one shared file per weapon type), its peak on the blow (melee) or on the release
+               (bow / gun / thrown / caster whoosh). A crit swing is the same swing (no separate crit sound exists).
+     cast    - the cast press: the file starts with the clip.
+     release - the end of the cast time (the effect lets go): peak on that moment.
+     hit     - every blow the spell lands: a timed blow (an arrival hazard, a dash) is scheduled the moment the engine queues it; an
+               instant blow plays at once, entering the file at its peak. `max` blows a cast; a `seq` row plays file N on blow N.
+     land    - the first blow / arrival of the spell, once.
+     seq+at  - Vex's Razor Tempest: cut N on the slash flash of her tempest art (real seconds from its start, measured on the sheet).
+     passive - the passive's own trigger, from the file start.
+   RULES: render only - never touches battle state or the seeded RNG (no brnd), keeps its own state in WeakMaps off the units; a no-op
+   on the server (no AudioContext), in every headless replay (window._p2guard) and in any fight not driven by the render loop (SFX.loop);
+   the FX channel's on/off and volume (SND.bus.fx); a file not decoded by its moment is skipped (never late); noise control: at most
+   3 attack sounds in any 0.12 s, the same file never twice within 60 ms, at most SFX_MAXLIVE sounds at once. Files load per hero when
+   the hero is put on a battlefield (sfxPrimeHero from sndPrimeHero); the weapon library on the first tap. */
+/* SFX-DATA BEGIN (generated by tools/build_sfx.py - do not edit by hand) */
+const SFX_DATA={"files":{"LIB-ATK-BLADE-HEAVY":["sfx/LIB-ATK-BLADE-HEAVY.m4a?v=1138",0.2186],"LIB-ATK-BLADE-LIGHT":["sfx/LIB-ATK-BLADE-LIGHT.m4a?v=1138",0.1201],"LIB-ATK-BLUNT":["sfx/LIB-ATK-BLUNT.m4a?v=1138",0.2101],"LIB-ATK-BOW":["sfx/LIB-ATK-BOW.m4a?v=1138",0.3732],"LIB-ATK-CASTER-WHOOSH":["sfx/LIB-ATK-CASTER-WHOOSH.m4a?v=1138",0.2477],"LIB-ATK-CLAW":["sfx/LIB-ATK-CLAW.m4a?v=1138",0.1076],"LIB-ATK-FIST-HEAVY":["sfx/LIB-ATK-FIST-HEAVY.m4a?v=1138",0.0369],"LIB-ATK-FIST-METAL":["sfx/LIB-ATK-FIST-METAL.m4a?v=1138",0.1789],"LIB-ATK-GUN":["sfx/LIB-ATK-GUN.m4a?v=1138",0.0298],"LIB-ATK-STAFF":["sfx/LIB-ATK-STAFF.m4a?v=1138",0.0479],"LIB-ATK-THROWN":["sfx/LIB-ATK-THROWN.m4a?v=1138",0.0758],"LIB-ATK-THRUST":["sfx/LIB-ATK-THRUST.m4a?v=1138",0.0709],"NEW-askel-passive":["sfx/NEW-askel-passive.m4a?v=1138",0.3547],"NEW-brannus-passive":["sfx/NEW-brannus-passive.m4a?v=1138",0.1816],"NEW-veyr-passive":["sfx/NEW-veyr-passive.m4a?v=1138",0.4714],"S0003":["sfx/S0003.m4a?v=1138",0.2036],"S0005":["sfx/S0005.m4a?v=1138",0.0331],"S0008":["sfx/S0008.m4a?v=1138",0.9377],"S0009":["sfx/S0009.m4a?v=1138",0.4028],"S0012":["sfx/S0012.m4a?v=1138",1.1162],"S0014":["sfx/S0014.m4a?v=1138",0.0181],"S0015":["sfx/S0015.m4a?v=1138",0.0999],"S0016":["sfx/S0016.m4a?v=1138",0.9682],"S0021":["sfx/S0021.m4a?v=1138",0.4093],"S0024":["sfx/S0024.m4a?v=1138",0.5262],"S0027":["sfx/S0027.m4a?v=1138",1.1854],"S0029":["sfx/S0029.m4a?v=1138",1.0852],"S0032":["sfx/S0032.m4a?v=1138",0.5329],"S0034":["sfx/S0034.m4a?v=1138",0.0319],"S0035":["sfx/S0035.m4a?v=1138",1.6925],"S0043":["sfx/S0043.m4a?v=1138",0.4808],"S0044":["sfx/S0044.m4a?v=1138",0.3896],"S0046":["sfx/S0046.m4a?v=1138",0.4117],"S0051":["sfx/S0051.m4a?v=1138",0.275],"S0053":["sfx/S0053.m4a?v=1138",0.3427],"S0054":["sfx/S0054.m4a?v=1138",2.9882],"S0060":["sfx/S0060.m4a?v=1138",0.4812],"S0063":["sfx/S0063.m4a?v=1138",0.4795],"S0065":["sfx/S0065.m4a?v=1138",0.0807],"S0068":["sfx/S0068.m4a?v=1138",0.4322],"S0072":["sfx/S0072.m4a?v=1138",0.6818],"S0074":["sfx/S0074.m4a?v=1138",2.4988],"S0076":["sfx/S0076.m4a?v=1138",2.599],"S0081":["sfx/S0081.m4a?v=1138",1.4859],"S0083":["sfx/S0083.m4a?v=1138",0.9335],"S0084":["sfx/S0084.m4a?v=1138",1.7445],"S0091":["sfx/S0091.m4a?v=1138",0.1072],"S0093":["sfx/S0093.m4a?v=1138",1.2698],"S0095":["sfx/S0095.m4a?v=1138",0.2235],"S0096":["sfx/S0096.m4a?v=1138",0.263],"S0098":["sfx/S0098.m4a?v=1138",0.4199],"S0101":["sfx/S0101.m4a?v=1138",1.2426],"S0102":["sfx/S0102.m4a?v=1138",0.9767],"S0104":["sfx/S0104.m4a?v=1138",0.3107],"S0109":["sfx/S0109.m4a?v=1138",0.4005],"S0111":["sfx/S0111.m4a?v=1138",0.5226],"S0113":["sfx/S0113.m4a?v=1138",1.8509],"S0115":["sfx/S0115.m4a?v=1138",0.1312],"S0118":["sfx/S0118.m4a?v=1138",0.4525],"S0119":["sfx/S0119.m4a?v=1138",1.1153],"S0121":["sfx/S0121.m4a?v=1138",0.7055],"S0122":["sfx/S0122.m4a?v=1138",0.0692],"S0126":["sfx/S0126.m4a?v=1138",1.422],"S0128":["sfx/S0128.m4a?v=1138",1.8516],"S0129":["sfx/S0129.m4a?v=1138",1.8215],"S0130":["sfx/S0130.m4a?v=1138",0.2873],"S0134":["sfx/S0134.m4a?v=1138",0.1928],"S0136":["sfx/S0136.m4a?v=1138",0.064],"S0138":["sfx/S0138.m4a?v=1138",0.2301],"S0143":["sfx/S0143.m4a?v=1138",0.0527],"S0145":["sfx/S0145.m4a?v=1138",0.3254],"S0146":["sfx/S0146.m4a?v=1138",0.4148],"S0152":["sfx/S0152.m4a?v=1138",0.1596],"S0154":["sfx/S0154.m4a?v=1138",0.3302],"S0156":["sfx/S0156.m4a?v=1138",2.5368],"S0162":["sfx/S0162.m4a?v=1138",0.3989],"S0164":["sfx/S0164.m4a?v=1138",0.0301],"S0165":["sfx/S0165.m4a?v=1138",0.0377],"S0171":["sfx/S0171.m4a?v=1138",0.1761],"S0172":["sfx/S0172.m4a?v=1138",0.251],"S0174":["sfx/S0174.m4a?v=1138",0.7143],"S0181":["sfx/S0181.m4a?v=1138",0.1271],"S0182":["sfx/S0182.m4a?v=1138",0.2219],"S0184":["sfx/S0184.m4a?v=1138",1.1583],"S0190":["sfx/S0190.m4a?v=1138",0.3536],"S0191":["sfx/S0191.m4a?v=1138",0.489],"S0192":["sfx/S0192.m4a?v=1138",0.4635],"S0194":["sfx/S0194.m4a?v=1138",0.1765],"S0197":["sfx/S0197.m4a?v=1138",0.2225],"S0198":["sfx/S0198.m4a?v=1138",0.2891],"S0200":["sfx/S0200.m4a?v=1138",0.967],"S0201":["sfx/S0201.m4a?v=1138",0.0998],"S0203":["sfx/S0203.m4a?v=1138",0.0751],"S0207":["sfx/S0207.m4a?v=1138",0.5446],"S0209":["sfx/S0209.m4a?v=1138",1.0638],"S0211":["sfx/S0211.m4a?v=1138",0.4721],"S0213":["sfx/S0213.m4a?v=1138",0.1825],"S0217":["sfx/S0217.m4a?v=1138",0.5008],"S0219":["sfx/S0219.m4a?v=1138",0.3386],"S0221":["sfx/S0221.m4a?v=1138",0.7478],"S0223":["sfx/S0223.m4a?v=1138",0.1921],"S0226":["sfx/S0226.m4a?v=1138",0.4567],"S0228":["sfx/S0228.m4a?v=1138",0.1856],"S0229":["sfx/S0229.m4a?v=1138",1.1763],"S0230-1":["sfx/S0230-1.m4a?v=1138",0.4226],"S0230-2":["sfx/S0230-2.m4a?v=1138",0.3067],"S0230-3":["sfx/S0230-3.m4a?v=1138",0.5526],"S0235":["sfx/S0235.m4a?v=1138",0.0359],"S0237":["sfx/S0237.m4a?v=1138",1.0539],"S0239":["sfx/S0239.m4a?v=1138",0.5606],"S0241":["sfx/S0241.m4a?v=1138",0.0991],"S0244":["sfx/S0244.m4a?v=1138",0.1449],"S0245":["sfx/S0245.m4a?v=1138",0.2566],"S0246":["sfx/S0246.m4a?v=1138",0.3271],"S0250":["sfx/S0250.m4a?v=1138",0.0884],"S0251":["sfx/S0251.m4a?v=1138",0.7997],"S0252":["sfx/S0252.m4a?v=1138",0.6049],"S0253":["sfx/S0253.m4a?v=1138",0.3808],"S0254":["sfx/S0254.m4a?v=1138",0.1334],"S0257":["sfx/S0257.m4a?v=1138",0.1353],"S0259":["sfx/S0259.m4a?v=1138",0.1188],"S0262":["sfx/S0262.m4a?v=1138",0.6412],"S0265":["sfx/S0265.m4a?v=1138",0.7267],"S0268":["sfx/S0268.m4a?v=1138",0.2147],"S0273":["sfx/S0273.m4a?v=1138",0.191],"S0274":["sfx/S0274.m4a?v=1138",0.418],"S0276":["sfx/S0276.m4a?v=1138",0.4332],"S0280":["sfx/S0280.m4a?v=1138",0.2114],"S0282":["sfx/S0282.m4a?v=1138",0.3265],"S0283":["sfx/S0283.m4a?v=1138",0.8674],"S0289":["sfx/S0289.m4a?v=1138",0.1564],"S0291":["sfx/S0291.m4a?v=1138",0.3399],"S0292":["sfx/S0292.m4a?v=1138",0.6866],"S0293":["sfx/S0293.m4a?v=1138",0.0691],"S0296":["sfx/S0296.m4a?v=1138",0.0192],"S0298":["sfx/S0298.m4a?v=1138",0.2074],"S0300":["sfx/S0300.m4a?v=1138",1.7847],"S0305":["sfx/S0305.m4a?v=1138",0.0433],"S0306":["sfx/S0306.m4a?v=1138",0.2232],"S0307":["sfx/S0307.m4a?v=1138",0.7679],"S0308":["sfx/S0308.m4a?v=1138",0.0961],"S0312":["sfx/S0312.m4a?v=1138",0.1499],"S0314":["sfx/S0314.m4a?v=1138",0.0306],"S0316":["sfx/S0316.m4a?v=1138",0.2635],"S0320":["sfx/S0320.m4a?v=1138",0.0529],"S0321":["sfx/S0321.m4a?v=1138",0.3337],"S0323":["sfx/S0323.m4a?v=1138",2.1872],"S0329":["sfx/S0329.m4a?v=1138",0.3796],"S0331":["sfx/S0331.m4a?v=1138",0.3675],"S0332":["sfx/S0332.m4a?v=1138",1.1051],"S0333":["sfx/S0333.m4a?v=1138",0.4252],"S0339":["sfx/S0339.m4a?v=1138",0.0992],"S0341":["sfx/S0341.m4a?v=1138",0.2048],"S0342":["sfx/S0342.m4a?v=1138",1.9814],"S0347":["sfx/S0347.m4a?v=1138",1.0562],"S0349":["sfx/S0349.m4a?v=1138",0.2887],"S0350":["sfx/S0350.m4a?v=1138",0.45],"S0356":["sfx/S0356.m4a?v=1138",0.0434],"S0358":["sfx/S0358.m4a?v=1138",0.0809],"S0359":["sfx/S0359.m4a?v=1138",0.5843],"S0361":["sfx/S0361.m4a?v=1138",0.1326],"S0365":["sfx/S0365.m4a?v=1138",0.1841],"S0366":["sfx/S0366.m4a?v=1138",1.6195],"S0367":["sfx/S0367.m4a?v=1138",0.576],"S0372":["sfx/S0372.m4a?v=1138",0.1269],"S0374":["sfx/S0374.m4a?v=1138",0.1056],"S0375":["sfx/S0375.m4a?v=1138",0.45],"S0380":["sfx/S0380.m4a?v=1138",0.0321],"S0381":["sfx/S0381.m4a?v=1138",0.1403],"S0382":["sfx/S0382.m4a?v=1138",1.1494],"S0387":["sfx/S0387.m4a?v=1138",0.3422],"S0389":["sfx/S0389.m4a?v=1138",0.3798],"S0391":["sfx/S0391.m4a?v=1138",2.8839],"S0396":["sfx/S0396.m4a?v=1138",0.1304],"S0398":["sfx/S0398.m4a?v=1138",0.2432],"S0399":["sfx/S0399.m4a?v=1138",0.5685],"S0400":["sfx/S0400.m4a?v=1138",0.3896],"S0401":["sfx/S0401.m4a?v=1138",0.1264],"S0405":["sfx/S0405.m4a?v=1138",0.1262],"S0406":["sfx/S0406.m4a?v=1138",0.1173],"S0408-1":["sfx/S0408-1.m4a?v=1138",0.2794],"S0408-2":["sfx/S0408-2.m4a?v=1138",0.1314],"S0408-3":["sfx/S0408-3.m4a?v=1138",0.2099],"S0413":["sfx/S0413.m4a?v=1138",0.6059],"S0414":["sfx/S0414.m4a?v=1138",0.9785],"S0415":["sfx/S0415.m4a?v=1138",1.3177],"S0421":["sfx/S0421.m4a?v=1138",0.3043],"S0423":["sfx/S0423.m4a?v=1138",0.4538],"S0424":["sfx/S0424.m4a?v=1138",0.2788],"S0426":["sfx/S0426.m4a?v=1138",0.6714],"S0431":["sfx/S0431.m4a?v=1138",0.1779],"S0432":["sfx/S0432.m4a?v=1138",0.519],"S0440":["sfx/S0440.m4a?v=1138",0.3305],"S0442":["sfx/S0442.m4a?v=1138",0.2032],"S0444":["sfx/S0444.m4a?v=1138",1.4342],"S0446":["sfx/S0446.m4a?v=1138",0.1597],"S0449":["sfx/S0449.m4a?v=1138",0.3989],"S0451":["sfx/S0451.m4a?v=1138",0.6306],"S0453":["sfx/S0453.m4a?v=1138",1.3802],"S0456":["sfx/S0456.m4a?v=1138",0.0226],"S0460":["sfx/S0460.m4a?v=1138",0.3636],"S0463":["sfx/S0463.m4a?v=1138",0.5485],"S0465":["sfx/S0465.m4a?v=1138",0.5102],"S0472":["sfx/S0472.m4a?v=1138",0.4331],"S0474":["sfx/S0474.m4a?v=1138",0.5329],"S0477":["sfx/S0477.m4a?v=1138",1.5029],"S0479":["sfx/S0479.m4a?v=1138",0.0847],"S0482":["sfx/S0482.m4a?v=1138",0.2576],"S0483":["sfx/S0483.m4a?v=1138",0.532],"S0484":["sfx/S0484.m4a?v=1138",0.4433],"S0486":["sfx/S0486.m4a?v=1138",0.5415],"S0490":["sfx/S0490.m4a?v=1138",0.8331],"S0493":["sfx/S0493.m4a?v=1138",0.0942],"S0494":["sfx/S0494.m4a?v=1138",0.5434],"S0501":["sfx/S0501.m4a?v=1138",0.4558],"S0502":["sfx/S0502.m4a?v=1138",0.3361],"S0503":["sfx/S0503.m4a?v=1138",0.2038],"S0504":["sfx/S0504.m4a?v=1138",2.0617],"S0510":["sfx/S0510.m4a?v=1138",0.3098],"S0513":["sfx/S0513.m4a?v=1138",0.2328],"S0514":["sfx/S0514.m4a?v=1138",0.45],"S0521":["sfx/S0521.m4a?v=1138",0.0415],"S0522":["sfx/S0522.m4a?v=1138",0.3277],"S0524":["sfx/S0524.m4a?v=1138",0.3591],"S0528":["sfx/S0528.m4a?v=1138",0.0883],"S0530":["sfx/S0530.m4a?v=1138",0.0624],"S0533":["sfx/S0533.m4a?v=1138",0.8786]},"heroes":{"absalie":{"atk":"LIB-ATK-CASTER-WHOOSH","blue":[{"f":["S0432"],"id":"S0432","on":"cast"}],"green":[{"f":["S0431"],"id":"S0431","on":"land"}],"ult":[{"f":["S0129"],"id":"S0434","on":"cast"}]},"aldren":{"atk":"LIB-ATK-CASTER-WHOOSH","blue":[{"f":["S0442"],"id":"S0442","on":"cast"}],"green":[{"f":["S0440"],"id":"S0440","on":"cast"}],"passive":[{"ev":"livingpages","f":["S0446"],"id":"S0446","on":"passive"}],"ult":[{"f":["S0444"],"id":"S0444","on":"cast"}]},"ambrel":{"atk":"LIB-ATK-BLUNT","blue":[{"f":["S0451"],"id":"S0451","on":"cast"}],"green":[{"f":["S0449"],"id":"S0449","on":"cast"}],"passive":[{"ev":"sacredbells","f":["S0456"],"id":"S0456","on":"passive"}],"ult":[{"f":["S0453"],"id":"S0453","on":"cast"}]},"askel":{"atk":"LIB-ATK-STAFF","blue":[{"f":["S0259"],"id":"S0259","on":"cast"}],"green":[{"f":["S0257"],"id":"S0257","on":"cast"}],"passive":[{"ev":"unshaken","f":["NEW-askel-passive"],"id":"NEW-askel-passive","on":"passive"}],"ult":[{"f":["S0262"],"id":"S0262","on":"land"}]},"astra":{"atk":"LIB-ATK-CASTER-WHOOSH","blue":[{"f":["S0154"],"id":"S0154","on":"cast"}],"green":[{"f":["S0152"],"id":"S0152","on":"cast"}],"ult":[{"f":["S0156"],"id":"S0156","on":"cast"}]},"aureth":{"atk":"LIB-ATK-BLADE-LIGHT","blue":[{"f":["S0053"],"id":"S0053","on":"cast"}],"green":[{"f":["S0051"],"id":"S0051","on":"cast"}],"ult":[{"f":["S0054"],"id":"S0054","on":"cast"}]},"bloatus":{"atk":"LIB-ATK-THRUST","blue":[{"f":["S0063"],"id":"S0063","on":"cast"}],"green":[{"f":["S0060"],"id":"S0060","on":"cast"}],"passive":[{"ev":"contagion","f":["S0068"],"id":"S0068","on":"passive"}],"ult":[{"f":["S0065"],"id":"S0065","on":"cast"}]},"brannus":{"atk":"LIB-ATK-BLUNT","blue":[{"f":["S0274"],"id":"S0274","on":"cast"}],"green":[{"f":["S0273"],"id":"S0273","on":"land"}],"passive":[{"ev":"pridemomentum","f":["NEW-brannus-passive"],"id":"NEW-brannus-passive","on":"passive"}],"ult":[{"f":["S0276"],"id":"S0276","on":"land"}]},"calypsa":{"atk":"LIB-ATK-THROWN","blue":[{"f":["S0358"],"id":"S0358","on":"land"}],"green":[{"f":["S0356"],"id":"S0356","max":5,"on":"hit"}],"passive":[{"ev":"prismscales","f":["S0361"],"id":"S0361","on":"passive"}],"ult":[{"f":["S0359"],"id":"S0359","on":"cast"}]},"carn":{"atk":"LIB-ATK-BLADE-HEAVY","blue":[{"f":["S0381"],"id":"S0381","on":"land"}],"green":[{"f":["S0380"],"id":"S0380","on":"release"}],"ult":[{"f":["S0382"],"id":"S0382","on":"cast"}]},"ceraline":{"atk":"LIB-ATK-CASTER-WHOOSH","blue":[{"f":["S0463"],"id":"S0463","on":"cast"}],"green":[{"f":["S0460"],"id":"S0460","on":"land"}],"passive":[{"ev":"tallow","f":["S0460"],"id":"S0469","on":"passive"}],"ult":[{"f":["S0465"],"id":"S0465","on":"cast"},{"f":["S0460"],"id":"S0468","max":3,"on":"strike"}]},"dandra":{"atk":"LIB-ATK-CASTER-WHOOSH","blue":[{"f":["S0423"],"id":"S0423","on":"land"}],"green":[{"f":["S0421"],"id":"S0421","on":"cast"}],"passive":[{"ev":"contagion","f":["S0426"],"id":"S0426","on":"passive"}],"ult":[{"f":["S0424"],"id":"S0424","on":"cast"}]},"deepcleft":{"atk":"LIB-ATK-CLAW","blue":[{"f":["S0060"],"id":"S0266","on":"cast"}],"green":[{"f":["S0265"],"id":"S0265","on":"release"}],"ult":[{"f":["S0268"],"id":"S0268","on":"cast"}]},"fritz":{"atk":"LIB-ATK-CASTER-WHOOSH","blue":[{"f":["S0083"],"id":"S0083","max":5,"on":"hit"}],"green":[{"f":["S0081"],"id":"S0081","max":5,"on":"hit"}],"ult":[{"f":["S0084"],"id":"S0084","on":"cast"}]},"grimsby":{"atk":"LIB-ATK-THROWN","blue":[{"f":["S0414"],"id":"S0414","on":"land"}],"green":[{"f":["S0413"],"id":"S0413","on":"cast"}],"ult":[{"f":["S0415"],"id":"S0415","on":"cast"}]},"grosk":{"atk":"LIB-ATK-FIST-HEAVY","blue":[{"f":["S0014"],"id":"S0014","max":3,"on":"hit"}],"green":[{"f":["S0012"],"id":"S0012","on":"cast"}],"ult":[{"f":["S0015"],"id":"S0015","on":"release"},{"f":["S0016"],"id":"S0016","on":"land"}]},"gruel":{"atk":"LIB-ATK-BLUNT","blue":[{"f":["S0145"],"id":"S0145","on":"cast"}],"green":[{"f":["S0143"],"id":"S0143","on":"cast"}],"ult":[{"f":["S0146"],"id":"S0146","on":"cast"}]},"hobb":{"atk":"LIB-ATK-BLUNT","blue":[{"f":["S0245"],"id":"S0245","on":"cast"}],"green":[{"f":["S0244"],"id":"S0244","on":"release"}],"ult":[{"f":["S0246"],"id":"S0246","on":"cast"}]},"hollow":{"atk":"LIB-ATK-BLADE-LIGHT","blue":[{"f":["S0198"],"id":"S0198","on":"release"}],"green":[{"f":["S0197"],"id":"S0197","on":"cast"}],"passive":[{"ev":"notthere","f":["S0203"],"id":"S0203","on":"passive"}],"ult":[{"f":["S0200"],"id":"S0200","on":"cast"},{"f":["S0201"],"id":"S0201","max":3,"on":"hit","win":4.0}]},"hurne":{"atk":"LIB-ATK-CLAW","blue":[{"f":["S0128"],"id":"S0128","on":"cast"}],"green":[{"f":["S0126"],"id":"S0126","on":"cast"}],"ult":[{"f":["S0129"],"id":"S0129","on":"cast"},{"f":["S0130"],"id":"S0130","on":"release"}]},"iver":{"atk":"LIB-ATK-THRUST","blue":[{"f":["S0474"],"id":"S0474","on":"cast"}],"green":[{"f":["S0472"],"id":"S0472","on":"cast"}],"passive":[{"ev":"staticcharge","f":["S0479"],"id":"S0479","on":"passive"}],"ult":[{"f":["S0477"],"id":"S0477","on":"cast"}]},"joss":{"atk":"LIB-ATK-BLUNT","blue":[{"f":["S0483"],"id":"S0483","on":"cast"}],"green":[{"f":["S0482"],"id":"S0482","on":"release"}],"passive":[{"ev":"unbroken","f":["S0486"],"id":"S0486","on":"passive"}],"ult":[{"f":["S0484"],"id":"S0484","on":"cast"}]},"kharos":{"atk":"LIB-ATK-BLADE-LIGHT","blue":[{"f":["S0298"],"id":"S0298","on":"cast"}],"green":[{"f":["S0296"],"id":"S0296","on":"release"}],"ult":[{"f":["S0300"],"id":"S0300","on":"cast"}]},"konwu":{"atk":"LIB-ATK-STAFF","blue":[{"f":["S0005"],"id":"S0005","on":"cast"}],"green":[{"f":["S0003"],"id":"S0003","on":"cast"}],"ult":[{"f":["S0008"],"id":"S0008","on":"cast"},{"f":["S0009"],"id":"S0009","max":3,"on":"hit"}]},"korvux":{"atk":"LIB-ATK-BLADE-HEAVY","blue":[{"f":["S0172"],"id":"S0172","on":"cast"}],"green":[{"f":["S0171"],"id":"S0171","on":"land"}],"ult":[{"f":["S0174"],"id":"S0174","on":"cast"}]},"linnet":{"atk":"LIB-ATK-CASTER-WHOOSH","blue":[{"f":["S0366"],"id":"S0366","on":"cast"}],"green":[{"f":["S0365"],"id":"S0365","on":"cast"}],"ult":[{"f":["S0367"],"id":"S0367","on":"cast"}]},"lumi":{"atk":"LIB-ATK-CASTER-WHOOSH","blue":[{"f":["S0191"],"id":"S0191","on":"cast"}],"green":[{"f":["S0190"],"id":"S0190","on":"cast"}],"passive":[{"ev":"hush","f":["S0194"],"id":"S0194","on":"passive"}],"ult":[{"f":["S0192"],"id":"S0192","on":"cast"}]},"lysara":{"atk":"LIB-ATK-CASTER-WHOOSH","blue":[{"f":["S0349"],"id":"S0349","on":"cast"}],"green":[{"f":["S0347"],"id":"S0347","on":"cast"}],"ult":[{"f":["S0350"],"id":"S0350","on":"cast"}]},"maren":{"atk":"LIB-ATK-CASTER-WHOOSH","blue":[{"f":["S0182"],"id":"S0182","on":"cast"}],"green":[{"f":["S0181"],"id":"S0181","on":"land"}],"ult":[{"f":["S0184"],"id":"S0184","on":"cast"}]},"mellan":{"atk":"LIB-ATK-CASTER-WHOOSH","blue":[{"f":["S0493"],"id":"S0493","on":"land"}],"green":[{"f":["S0490"],"id":"S0490","on":"cast"}],"ult":[{"f":["S0494"],"id":"S0494","on":"cast"}]},"meridian":{"atk":"LIB-ATK-THROWN","blue":[{"f":["S0136"],"id":"S0136","on":"release"}],"green":[{"f":["S0134"],"id":"S0134","on":"release"}],"ult":[{"f":["S0138"],"id":"S0138","on":"cast"}]},"mirelle":{"atk":"LIB-ATK-CASTER-WHOOSH","blue":[{"f":["S0219"],"id":"S0219","on":"release"}],"green":[{"f":["S0217"],"id":"S0217","on":"cast"}],"passive":[{"ev":"splendor","f":["S0223"],"id":"S0223","on":"passive"}],"ult":[{"f":["S0221"],"id":"S0221","on":"cast"}]},"nerisse":{"atk":"LIB-ATK-CASTER-WHOOSH","blue":[{"f":["S0341"],"id":"S0341","on":"land"}],"green":[{"f":["S0339"],"id":"S0339","on":"land"}],"ult":[{"f":["S0342"],"id":"S0342","on":"cast"}]},"nox":{"atk":"LIB-ATK-BLADE-LIGHT","blue":[{"f":["S0331"],"id":"S0331","on":"cast"}],"green":[{"f":["S0329"],"id":"S0329","on":"release"}],"ult":[{"f":["S0332"],"id":"S0332","on":"cast"},{"f":["S0333"],"id":"S0333","on":"land"}]},"oakmir":{"atk":"LIB-ATK-CASTER-WHOOSH","blue":[{"f":["S0111"],"id":"S0111","on":"cast"}],"green":[{"f":["S0109"],"id":"S0109","on":"cast"}],"passive":[{"ev":"deeproots","f":["S0115"],"id":"S0115","on":"passive"}],"ult":[{"f":["S0113"],"id":"S0113","on":"cast"}]},"orryn":{"atk":"LIB-ATK-CASTER-WHOOSH","blue":[{"f":["S0237"],"id":"S0237","on":"release"}],"green":[{"f":["S0235"],"id":"S0235","on":"cast"}],"passive":[{"ev":"abyssres","f":["S0241"],"id":"S0241","on":"passive"}],"ult":[{"f":["S0239"],"id":"S0239","on":"cast"}]},"pellucid":{"atk":"LIB-ATK-FIST-HEAVY","blue":[{"f":["S0228"],"id":"S0228","on":"release"}],"green":[{"f":["S0226"],"id":"S0226","on":"cast"}],"ult":[{"f":["S0229"],"id":"S0229","on":"cast"},{"f":["S0230-1","S0230-2","S0230-3"],"id":"S0230","max":3,"on":"hit","seq":1}]},"pyroclast":{"atk":"LIB-ATK-CASTER-WHOOSH","blue":[{"f":["S0502"],"id":"S0502","on":"land"}],"green":[{"f":["S0501"],"id":"S0501","on":"land"}],"ult":[{"f":["S0503"],"id":"S0503","on":"cast"},{"f":["S0504"],"id":"S0504","on":"land"}]},"quorrel":{"atk":"LIB-ATK-BLUNT","blue":[{"f":["S0164"],"id":"S0164","on":"release"}],"green":[{"f":["S0162"],"id":"S0162","on":"cast"}],"ult":[{"f":["S0165"],"id":"S0165","on":"release"}]},"rafe":{"atk":"LIB-ATK-GUN","blue":[{"f":["S0513"],"id":"S0513","on":"land"}],"green":[{"f":["S0510"],"id":"S0510","on":"cast"}],"melee":"LIB-ATK-BLADE-LIGHT","ult":[{"f":["S0514"],"id":"S0514","on":"release"}]},"rhukk":{"atk":"LIB-ATK-BLUNT","blue":[{"f":["S0119"],"id":"S0119","on":"cast"}],"green":[{"f":["S0118"],"id":"S0118","on":"cast"}],"ult":[{"f":["S0121"],"id":"S0121","on":"release"},{"f":["S0122"],"id":"S0122","on":"land"}]},"rivet":{"atk":"LIB-ATK-GUN","blue":[{"f":["S0374"],"id":"S0374","on":"land"}],"green":[{"f":["S0372"],"id":"S0372","on":"release"}],"ult":[{"f":["S0375"],"id":"S0375","on":"release"}]},"seyla":{"atk":"LIB-ATK-BLADE-LIGHT","blue":[{"f":["S0321"],"id":"S0321","on":"cast"}],"green":[{"f":["S0320"],"id":"S0320","on":"release"}],"ult":[{"f":["S0323"],"id":"S0323","on":"cast"}]},"sloe":{"atk":"LIB-ATK-BOW","blue":[{"f":["S0522"],"id":"S0522","on":"cast"}],"green":[{"f":["S0521"],"id":"S0521","on":"land"}],"ult":[{"f":["S0524"],"id":"S0524","on":"cast"}]},"sorrel":{"atk":"LIB-ATK-THROWN","blue":[{"f":["S0282"],"id":"S0282","on":"cast"}],"green":[{"f":["S0280"],"id":"S0280","on":"release"}],"ult":[{"f":["S0283"],"id":"S0283","on":"cast"}]},"sylthaine":{"atk":"LIB-ATK-CASTER-WHOOSH","blue":[{"f":["S0044"],"id":"S0044","on":"cast"}],"green":[{"f":["S0043"],"id":"S0043","on":"land"}],"ult":[{"f":["S0046"],"id":"S0046","on":"cast"}]},"tessit":{"atk":"LIB-ATK-CASTER-WHOOSH","blue":[{"f":["S0398"],"id":"S0398","on":"land"}],"green":[{"f":["S0396"],"id":"S0396","on":"cast"}],"passive":[{"ev":"unwind","f":["S0401"],"id":"S0401","on":"passive"}],"ult":[{"f":["S0399"],"id":"S0399","on":"cast"},{"f":["S0400"],"id":"S0400","on":"land"}]},"tharl":{"atk":"LIB-ATK-FIST-HEAVY","blue":[{"f":["S0251"],"id":"S0251","on":"cast"}],"green":[{"f":["S0250"],"id":"S0250","on":"land"}],"passive":[{"ev":"layered","f":["S0254"],"id":"S0254","on":"passive"}],"ult":[{"f":["S0252"],"id":"S0252","on":"release"},{"f":["S0253"],"id":"S0253","on":"land"}]},"tick":{"atk":"LIB-ATK-FIST-METAL","blue":[{"f":["S0034"],"id":"S0034","max":3,"on":"release"}],"green":[{"f":["S0032"],"id":"S0032","on":"cast"}],"ult":[{"f":["S0035"],"id":"S0035","on":"cast"}]},"tolley":{"atk":"LIB-ATK-BLUNT","blue":[{"f":["S0530"],"id":"S0530","on":"cast"}],"green":[{"f":["S0528"],"id":"S0528","on":"cast"}],"ult":[{"f":["S0533"],"id":"S0533","on":"cast"}]},"umbris":{"atk":"LIB-ATK-CASTER-WHOOSH","blue":[{"f":["S0093"],"id":"S0093","on":"land"}],"green":[{"f":["S0091"],"id":"S0091","on":"cast"}],"passive":[{"ev":"contagion","f":["S0098"],"id":"S0098","on":"passive"}],"ult":[{"f":["S0095"],"id":"S0095","on":"cast"},{"f":["S0096"],"id":"S0096","on":"land"}]},"vael":{"atk":"LIB-ATK-BLADE-HEAVY","blue":[{"f":["S0102"],"id":"S0102","on":"cast"}],"green":[{"f":["S0101"],"id":"S0101","on":"cast"}],"ult":[{"f":["S0104"],"id":"S0104","on":"cast"}]},"vaelora":{"atk":"LIB-ATK-CASTER-WHOOSH","blue":[{"f":["S0314"],"id":"S0314","on":"cast"}],"green":[{"f":["S0312"],"id":"S0312","on":"release"}],"ult":[{"f":["S0316"],"id":"S0316","on":"cast"}]},"vesper":{"atk":"LIB-ATK-CASTER-WHOOSH","blue":[{"f":["S0389"],"id":"S0389","on":"release"}],"green":[{"f":["S0387"],"id":"S0387","on":"cast"}],"ult":[{"f":["S0391"],"id":"S0391","on":"cast"}]},"vex":{"atk":"LIB-ATK-BLADE-LIGHT","blue":[{"f":["S0406"],"id":"S0406","on":"release"}],"green":[{"f":["S0405"],"id":"S0405","on":"land"}],"ult":[{"at":[0.16666666666666666,1.5833333333333333,3.25],"f":["S0408-1","S0408-2","S0408-3"],"id":"S0408","max":3,"on":"seq","seq":1}]},"veyr":{"atk":"LIB-ATK-BLADE-LIGHT","blue":[{"f":["S0209"],"id":"S0209","on":"cast"}],"green":[{"f":["S0207"],"id":"S0207","on":"cast"}],"passive":[{"ev":"weightless","f":["NEW-veyr-passive"],"id":"NEW-veyr-passive","on":"passive"}],"ult":[{"f":["S0211"],"id":"S0211","on":"cast"},{"f":["S0213"],"id":"S0213","on":"land"}]},"vireo":{"atk":"LIB-ATK-CASTER-WHOOSH","blue":[{"f":["S0074"],"id":"S0074","on":"cast"}],"green":[{"f":["S0072"],"id":"S0072","on":"cast"}],"ult":[{"f":["S0076"],"id":"S0076","on":"cast"}]},"vulmar":{"atk":"LIB-ATK-CASTER-WHOOSH","blue":[{"f":["S0024"],"id":"S0024","on":"cast"}],"green":[{"f":["S0021"],"id":"S0021","on":"cast"}],"ult":[{"f":["S0027"],"id":"S0027","on":"cast"},{"f":["S0029"],"id":"S0029","on":"land"}]},"yenna":{"atk":"LIB-ATK-THROWN","blue":[{"f":["S0291"],"id":"S0291","on":"cast"}],"green":[{"f":["S0289"],"id":"S0289","on":"release"}],"ult":[{"f":["S0292"],"id":"S0292","on":"cast"},{"f":["S0293"],"id":"S0293","max":5,"on":"hit"}]},"zahri":{"atk":"LIB-ATK-THRUST","blue":[{"f":["S0306"],"id":"S0306","on":"cast"}],"green":[{"f":["S0305"],"id":"S0305","on":"release"}],"ult":[{"f":["S0307"],"id":"S0307","on":"release"},{"f":["S0308"],"id":"S0308","max":5,"on":"hit","win":3.0}]}},"v":1138};
+/* SFX-DATA END */
+const SFX_MAXLIVE=14, SFX_ATK_LIVE=8, SFX_ATK_WIN=0.12, SFX_ATK_MAX=3;
+const SFX_DRAW_LAG=0.008;   // a tick reached between frames is drawn on the NEXT frame: half a 60 fps frame on average (rig-measured, test_combat_sfx_1138)
+const SFX={ loop:0, left:0, q:[], mr:0, mrt:null, fd:[], cx:null, dl:null, hz:new WeakMap(), win:new WeakMap(), lc:new WeakMap(), ar:new WeakSet(), pend:new WeakMap(), fuse:new WeakMap(), last:{}, atk:[], want:{}, log:null };
+function sfxLive(){ try{ return !!(SND.ctx && SND.ctx.state==='running' && SND.cfg.fx.on && SFX.loop && !window._p2guard); }catch(e){ return false; } }
+/* rig log only (SFX.log set): the clip on screen for u and the cell it draws at audio time `at` (clips play in real time at their fps;
+   a swing's clip runs faster by its attack-speed factor), with the clip's own contact cell (clipContactCell - the cell the engine lands on) */
+function sfxClip(u,at,swing){ try{ if(!SFX.log||!u||!u.anim) return null; const st=swing?(u._atkClip&&u.anim[u._atkClip]?u._atkClip:'attack'):u._abilAnim; const A=st&&u.anim[st]; if(!A) return null;
+  const t0=swing?SND.ctx.currentTime:SND.ctx.currentTime-Math.max(0,battleTime-(u._abilStartAt||battleTime))/sfxRate(), fps=(A.fps||10)*(swing?(u._atkSpdMul||1):1);
+  return {clip:st,cell:Math.floor((at-t0)*fps),contact:clipContactCell(A),n:A.n,fps:+fps.toFixed(3)}; }catch(e){ return null; } }
+function sfxNote(k,o){ if(SFX.log){ try{ SFX.log.push(Object.assign({k,bt:+battleTime.toFixed(4),rt:SND.ctx?+SND.ctx.currentTime.toFixed(4):0},o||{})); }catch(e){} } }
+/* battle seconds per real second - the main loop's own accumulator (SIM_HZ x speed x BATTLE_PACE ticks of SIM_STEP each) */
+function sfxRate(){ const spd=(CUR&&CUR.mode==='online')?1:(gameSpeed||1); return SIM_STEP*SIM_HZ*spd*((CUR&&CUR.mode==='replay')?1:BATTLE_PACE); }
+/* THE TICK A MOMENT LANDS ON. The engine counts every timer down once a tick and acts on the tick it reaches zero, so a moment `d` battle
+   seconds away lands on a whole tick: a fuse (a swing's blow / release) or a cast clock on the tick its count-down (t -= SIM_STEP from the
+   next tick) reaches zero; an arrival hazard (queued before the hazard loop runs this tick, so counted down from this tick) one tick sooner. */
+function sfxTickT(d,haz){ let t=Math.max(0,d||0), n=0; while(t>0&&n<100000){ t-=SIM_STEP; n++; } return battleTime+Math.max(0,haz?n-1:n)*SIM_STEP; }   /* the engine's own count-down, float for float */
+function sfxUpT(t,dur,same){ let n=0; t=t||0; while(t<(dur||0)&&n<100000){ t+=SIM_STEP; n++; } return battleTime+Math.max(0,same?n-1:n)*SIM_STEP; }   /* a count-UP timer (t += step until it reaches dur) */
+function sfxDashT(D){ let t=D.t||0, n=0; while(t<(D.dur||0)&&n<100000){ t+=SIM_STEP; n++; } return battleTime+Math.max(0,n-1)*SIM_STEP; }   /* a dash is first advanced on the tick it starts */
+/* the audio-clock time of the frame that draws battle time T: ticks still in this frame's batch are drawn now; a later tick j is drawn when the
+   render clock has fed the accumulator j ticks (it carries _bacc of a tick already) */
+function sfxAtT(T){ const now=SND.ctx.currentTime, j=Math.round((T-battleTime)/SIM_STEP)-(SFX.left|0); if(j<=0) return now;
+  const r=(SFX.mr>0)?SFX.mr:sfxRate();   /* sfxFrame: the nominal clock, or a slow device's clamped one */ return now+(j-Math.max(0,Math.min(1,_bacc||0)))*SIM_STEP/r+SFX_DRAW_LAG; }
+/* JUST IN TIME: a sound for a battle moment T waits in SFX.q and is handed to the audio clock only when its start is near (its peak +
+   SFX_LOOK of real time away), so a pause, a speed change or a slow frame between the queue and the moment cannot leave it early or late */
+const SFX_LOOK=0.06;
+function sfxQ(name,T,o){ if(T<=battleTime+1e-9){ sfxGo({name,T,o}); return; } SFX.q.push({name,T,o}); }
+function sfxGo(q){ const o=q.o||{}, at=sfxAtT(q.T);
+  if(o.atk){ SFX.atk=SFX.atk.filter(t=>t>SND.ctx.currentTime-1); if(SFX.atk.filter(t=>Math.abs(t-at)<SFX_ATK_WIN).length>=SFX_ATK_MAX){ sfxNote('drop',Object.assign({name:q.name,why:'attack density'},o.log||{})); return null; } SFX.atk.push(at); }
+  if(SFX.log&&o.u&&o.log) o.log.cl=sfxClip(o.u,at,o.swing);
+  const src=sfxPlay(q.name,at,o); if(src&&o.rel){ const r=SFX.pend.get(o.u); if(r) r.srcs.push(src); } return src; }
+/* each tick of the render loop's batch and once a frame: start what is due; drop what the fight left behind */
+function sfxPump(){ try{ if(!SFX.q.length||!SND.ctx) return; const now=SND.ctx.currentTime, keep=[];
+  for(const q of SFX.q){ if(q.T<battleTime-0.5){ continue; } const F=SFX_DATA.files[q.name], pk=(F&&+F[1])||0;
+    if(sfxAtT(q.T)-now<=pk+SFX_LOOK) sfxGo(q); else keep.push(q); }
+  SFX.q=keep; }catch(e){} }
+function sfxFrame(){ try{ if(!SND.ctx) return; const now=SND.ctx.currentTime;
+  /* the clock a sound is projected on: the fight runs at its nominal pace on any frame up to the loop's 50 ms clamp, and at 50 ms of
+     fight per frame beyond it. A device whose TYPICAL frame (the median of the last 31) is over 50 ms runs slow all the time - project
+     on that; a one-off hitch cannot be foreseen and is not averaged in (it would make every sound after it late) */
+  if(SFX.mrt!=null&&now>SFX.mrt&&now-SFX.mrt<2){ (SFX.fd||(SFX.fd=[])).push(now-SFX.mrt); if(SFX.fd.length>31) SFX.fd.shift(); }
+  SFX.mrt=now; const fd=SFX.fd; if(fd&&fd.length>=9){ const m=fd.slice().sort((x,y)=>x-y)[fd.length>>1]; SFX.mr=(m>0.05)?sfxRate()*0.05/m:0; } else SFX.mr=0;
+  sfxPump(); }catch(e){} }
+function sfxHero(u){ return (u&&u.key&&!u.summoned&&!u._summon&&!(u.t&&u.t.monster))?SFX_DATA.heroes[u.key]:null; }
+function sfxRows(u,slot){ const H=sfxHero(u); return (H&&H[slot]&&H[slot].length)?H[slot]:null; }
+function sfxFiles(H){ const s=[]; if(!H) return s; ['atk','melee'].forEach(k=>{ if(H[k]) s.push(H[k]); }); ['green','blue','ult','passive'].forEach(sl=>(H[sl]||[]).forEach(r=>r.f.forEach(n=>s.push(n)))); return s; }
+/* fetch + decode a hero's sounds when it is put on a battlefield; keep the decoded set bounded (about 240 s of audio) */
+function sfxPrimeHero(key){ try{ if(!key||!SND.ctx||window._p2guard||!SND.cfg.fx.on) return; const H=SFX_DATA.heroes[key]; if(!H) return;
+  SFX.want[key]=performance.now(); sfxFiles(H).forEach(n=>{ const F=SFX_DATA.files[n]; if(F) sndLoad(F[0]); });
+  let tot=0; const keep={}; Object.keys(SFX.want).sort((a,b)=>SFX.want[b]-SFX.want[a]).forEach(k=>{ sfxFiles(SFX_DATA.heroes[k]).forEach(n=>{ const F=SFX_DATA.files[n], b=F&&SND.buf[F[0]];
+    if(!F||keep[F[0]]) return; if(tot<240||k===key){ keep[F[0]]=1; tot+=b?b.duration:0; } }); });
+  for(const n in SFX_DATA.files){ const f=SFX_DATA.files[n][0]; if(!keep[f]&&!/LIB-ATK-/.test(n)&&SND.buf[f]) delete SND.buf[f]; }
+  for(const k in SFX.want) if(!sfxFiles(SFX_DATA.heroes[k]).some(n=>keep[(SFX_DATA.files[n]||[])[0]])) delete SFX.want[k]; }catch(e){} }
+function sfxPrimeLib(){ try{ for(const n in SFX_DATA.files) if(/^LIB-ATK-/.test(n)) sndLoad(SFX_DATA.files[n][0]); }catch(e){} }
+/* play file `name` so its peak sounds at audio time peakAt (o.fromStart: the file starts at peakAt). Returns the source or null.
+   Noise control: a basic attack yields first (no attack sound once SFX_ATK_LIVE sounds are running), a spell gets up to SFX_MAXLIVE. */
+function sfxPlay(name,peakAt,o){ o=o||{}; const F=SFX_DATA.files[name]; if(!F||!SND.ctx) return null; const f=F[0], pk=o.fromStart?0:(+F[1]||0);
+  const b=SND.buf[f]; if(!b){ if(b!==null) sndLoad(f); sfxNote('miss',{name}); return null; }
+  const ctx=SND.ctx, now=ctx.currentTime; let st=peakAt-pk, off=0;
+  if(st<now){ off=now-st; st=now; }   // its lead-in is already past: enter the file so the peak still lands on the moment
+  if(off>=b.duration-0.02) return null;
+  const lk=name+'|'+(o.key||''); if(SFX.last[lk]!=null && Math.abs(st-SFX.last[lk])<0.06){ sfxNote('drop',Object.assign({name,why:'same file within 60 ms'},o.log||{})); return null; }
+  if((SND.live|0)>=(o.atk?SFX_ATK_LIVE:SFX_MAXLIVE)){ sfxNote('drop',Object.assign({name,why:'too many at once'},o.log||{})); return null; }
+  SFX.last[lk]=st;
+  try{ const src=ctx.createBufferSource(), g=ctx.createGain(); src.buffer=b; g.gain.value=1; src.connect(g); g.connect(SND.bus.fx||SND.out);
+    SND.live=(SND.live|0)+1; src.onended=()=>{ SND.live=Math.max(0,(SND.live|0)-1); }; src.start(st,off);
+    sfxNote('play',Object.assign({name,st:+st.toFixed(4),off:+off.toFixed(4),peakAt:+(o.fromStart?st:peakAt).toFixed(4),pk},o.log||{})); return src; }catch(e){ return null; } }
+/* ATTACK - called where the swing is queued; dB = battle seconds until its blow (melee) or its release (ranged), counted like a fuse */
+function sfxAtk(u,dB,melee){ if(!sfxLive()) return null; const H=sfxHero(u); if(!H) return null;
+  const name=(melee&&H.melee)?H.melee:H.atk; if(!name) return null; const T=(dB>0.02)?sfxTickT(dB):battleTime;
+  const rec={hero:u.key,id:name,kind:'attack',due:+T.toFixed(4)}; if(SFX.log&&!(dB>0.02)) sfxNote('blow',{hero:u.key,id:name,due:rec.due});
+  sfxQ(name,T,{key:u.key,atk:1,u,swing:1,log:rec}); return rec; }
+function sfxAtkFuse(u,dB,melee){ try{ const rec=sfxAtk(u,dB,melee); if(rec&&u._fuse&&u._fuse.length&&dB>0.02) SFX.fuse.set(u._fuse[u._fuse.length-1],rec); }catch(e){} }
+/* a fuse whose sound was scheduled: the blow lands now (rig log only) */
+function sfxFuseGo(F){ if(SFX.log){ const r=SFX.fuse.get(F); if(r) sfxNote('blow',{hero:r.hero,id:r.id,due:r.due}); } }
+/* CAST - the press (castKit / castAbility). ct = the cast time in battle seconds (the effect releases at its end, on the cast clock). */
+function sfxCast(u,slot,ct){ try{ if(!sfxLive()) return; const R=sfxRows(u,slot); if(!R) return; const now=SND.ctx.currentTime, rec={slot,srcs:[]}; SFX.pend.set(u,rec);
+  R.forEach(r=>{ if(r.on==='cast') sfxPlay(r.f[0],now,{fromStart:1,log:{hero:u.key,id:r.id,kind:'cast'}});
+    else if(r.on==='release'){ const T=sfxTickT(ct); sfxQ(r.f[0],T,{u,rel:1,log:{hero:u.key,id:r.id,kind:'release',due:+T.toFixed(4)}}); } });
+  SFX.pend.set(u,rec); }catch(e){} }
+function sfxCancel(u){ try{ const r=SFX.pend.get(u); SFX.q=SFX.q.filter(q=>!(q.o&&q.o.rel&&q.o.u===u));
+  if(r){ r.srcs.forEach(s=>{ try{ s.stop(); }catch(e){} }); SFX.pend.delete(u); sfxNote('cancel',{hero:u.key,slot:r.slot}); } }catch(e){} }
+/* the spell's blows. c = {u, slot, R (hit/land/strike/seq rows), n:{}, t:{}, st:{landed}} (a queued child shares them). T = the battle time the blow is drawn on.
+   how: 'queued' (an arrival hazard), 'deliver' (the spell's own delivery arriving), 'dash' (a dash landing) - scheduled ahead;
+   'instant' / 'window' / 'strike' - the blow is happening now (the file is entered at its peak). */
+function sfxBlow(c,T,how){ const u=c.u, ahead=(how==='queued'||how==='deliver'||how==='dash'); c.R.forEach(r=>{
+    if(r.on==='land'){ if(c.st.landed) return; if(how==='queued') return;   // a land row waits for the delivery / the dash / the first real blow
+      c.st.landed=1; sfxQ(r.f[0],T,{u,log:{hero:u.key,id:r.id,kind:'land',due:+T.toFixed(4),why:how}}); return; }
+    if(r.on==='strike'&&ahead) return;   // a strike row plays only on real damage
+    if(r.on==='hit'||r.on==='strike'||(r.on==='seq'&&!r.at)){ const k=c.n[r.id]|0; if(k>=(r.max||1)) return; if(c.t[r.id]!=null&&Math.abs(c.t[r.id]-T)<1e-6) return;   // one sound per moment (an area blow hits many)
+      if(r.on==='hit'&&!ahead&&c.pre) return;
+      c.n[r.id]=k+1; c.t[r.id]=T; const nm=r.seq?r.f[Math.min(k,r.f.length-1)]:r.f[0];
+      sfxQ(nm,T,{key:'b'+k,u,log:{hero:u.key,id:r.id,kind:'hit',n:k+1,due:+T.toFixed(4),why:how}}); } }); }
+/* adopt what the spell's code queued: every new arrival hazard and a new dash run later inside this context; the first time (a top-level
+   queue) its blow is scheduled now, on the tick it will land */
+function sfxSnap(u){ return {d:u&&u._dash, h:u&&u._horizon, b:(typeof _bees!=='undefined')?_bees.length:0}; }
+function sfxAdopt(c,n0,s0){ try{ const u=c.u, ahead=(obj,T,how)=>{ if(SFX.hz.has(obj)) return; if(c.pre){ SFX.hz.set(obj,c); return; } sfxBlow(c,T,how); SFX.hz.set(obj,Object.assign(Object.create(c),{pre:1,due:T,top:obj})); };
+    for(let i=n0;i<groundHazards.length;i++){ const h=groundHazards[i]; if(!h) continue;
+      if(h.arrival) ahead(h,sfxTickT(h.delay,true),(h===SFX.dl)?'deliver':'queued');
+      else if(h.orb&&h.owner===u) ahead(h,sfxUpT(h.hopT,h.hopDur,true),'deliver'); }   // Drifting Constellation: the orb's first arrival
+    if(u&&u._dash&&u._dash!==s0.d) ahead(u._dash,sfxDashT(u._dash),'dash');
+    if(u&&u._horizon&&u._horizon!==s0.h) ahead(u._horizon,sfxTickT(u._horizon.t),'deliver');   // Event Horizon / Abyssal Undertow: the collapse
+    if(typeof _bees!=='undefined') for(let i=s0.b;i<_bees.length;i++){ const b=_bees[i]; if(b&&b.u===u&&b.ph===7) ahead(b,sfxUpT(b.tt,b.dur,false),'deliver'); }   // Royal Nectar: the glob lands
+  }catch(e){} }
+/* run a hazard / dash landing inside the context that queued it (the hazard loop and the dash call this) */
+function sfxRun(h){ if(!SFX.cx&&!SFX.hz.has(h)) return h.run(); const c=SFX.hz.get(h), p=SFX.cx, n0=groundHazards.length, s0=sfxSnap(c&&c.u);
+  if(c){ SFX.cx=c; if(SFX.log&&c.top===h) sfxNote('arrive',{hero:c.u.key,slot:c.slot,due:+c.due.toFixed(4)}); }
+  try{ return h.run(); } finally{ if(c){ SFX.cx=p; sfxAdopt(c,n0,s0); } } }
+/* a spell-owned moment the engine runs off the hero's own timer (Umbris's orb landing, Calypsa's counter): T = when (now if omitted) */
+function sfxMoment(u,slot,T,how){ try{ if(!sfxLive()) return; const L=SFX.lc.get(u), c=L&&L[slot]; if(!c) return; if(T==null){ T=battleTime; how='strike'; } sfxBlow(c,T,how||'deliver'); }catch(e){} }
+/* rig log only: the frame a spell-owned moment is drawn on */
+function sfxArrive(u,o){ if(SFX.log&&u){ const c=SFX.hz.get(o); sfxNote('arrive',{hero:u.key,due:+(c&&c.due!=null?c.due:battleTime).toFixed(4)}); } }
+function sfxCtx(u){ const slot=u&&u._castSlot; if(!slot||!sfxLive()) return null; const R=sfxRows(u,slot); if(!R) return null;
+  const B=R.filter(r=>r.on==='hit'||r.on==='land'||r.on==='seq'||r.on==='strike'); if(!B.length) return null;
+  const c={u,slot,R:B,n:{},t:{},st:{landed:0},pre:0,at:battleTime};
+  B.forEach(r=>{ if(r.on==='seq'&&r.at){ const now=SND.ctx.currentTime; r.at.forEach((a,i)=>{ if(i<(r.max||r.at.length)) sfxPlay(r.f[Math.min(i,r.f.length-1)],now+a,{key:'c'+i,log:{hero:u.key,id:r.id,kind:'seq',n:i+1,cut_s:a}}); }); } });
+  const w=B.reduce((m,r)=>Math.max(m,r.win||0),0); if(w>0) SFX.win.set(u,{c,until:battleTime+w});
+  const L=SFX.lc.get(u)||{}; L[slot]=c; SFX.lc.set(u,L);
+  return c; }
+/* dealDamage calls this first (render only): a blow from inside a spell context (now, or the one its queue already scheduled), or inside
+   a timed window (a spell whose blows run off the hero's own timer) */
+function sfxDmg(src){ try{ if(!sfxLive()) return; const c=SFX.cx;
+    if(c&&c.u===src){ if(SFX.log&&c.pre) sfxNote('dmg',{hero:src.key,slot:c.slot,due:c.due!=null?+c.due.toFixed(4):null}); sfxBlow(c,battleTime,c.pre?'strike':'instant'); return; }
+    if(c) return; const w=SFX.win.get(src); if(w&&battleTime<=w.until){ if(SFX.log) sfxNote('dmg',{hero:src.key,slot:w.c.slot,due:+battleTime.toFixed(4)}); sfxBlow(w.c,battleTime,'window'); } }catch(e){} }
+/* PASSIVE - its trigger. ev = the trigger name in the row; gapS = the shortest repeat for that hero (s of real time). */
+function sfxPassive(u,ev,gapS){ try{ if(!sfxLive()) return; const R=sfxRows(u,'passive'); if(!R) return; const now=SND.ctx.currentTime;
+  R.forEach(r=>{ if(r.ev!==ev) return; const k='p|'+u.key+'|'+(u.team||'')+'|'+ev; if(SFX.last[k]!=null&&now-SFX.last[k]<(gapS||0.5)) return; SFX.last[k]=now;
+    sfxPlay(r.f[0],now,{fromStart:1,key:u.team,log:{hero:u.key,id:r.id,kind:'passive',ev}}); }); }catch(e){} }
+/* Contagion / The Swarm Moves On / Lingering Dark share the engine's death-spread: the sound is the passive of the hero whose plague it is */
+function sfxSpread(dead){ try{ if(!sfxLive()) return; const own=units.filter(o=>o.alive&&o.team!==dead.team&&o.pass&&o.pass.contagion&&sfxRows(o,'passive'));
+  if(own.length) sfxPassive(own[0],'contagion',1.0); }catch(e){} }
 /* v1124 (Phil 7 Oct 2026: "make their ults have 3 different UNIQUE ult lines, that randomly go off in combat when ulting"; the v1048
    per-fight rotation is gone): every ult picks one of the hero's mapped lines at random, never the same line twice in a row for that
    hero. The pick uses the browser's own random source - never the battle's seeded generator (_brng) - so a sound can never change a fight. */
@@ -9895,7 +10051,7 @@ function loreToggle(key,btn){ try{
   const a=new Audio('/assets/audio/'+f); a.preload='none'; a.volume=sndGain('voice'); _lore.a=a; _lore.key=key;
   a.onplay=a.onpause=a.onended=()=>loreBtnSync(btn); a.play().catch(()=>loreBtnSync(btn)); loreBtnSync(btn);
 }catch(e){} }
-function dealDamage(src,tgt,amt,color,kind,silent){ kind=kind||((src&&src.t&&(['Magic','Healer'].includes(src.t.damageProfile)))?'magic':'phys');   // default follows canonical hero damage; explicit kind still wins
+function dealDamage(src,tgt,amt,color,kind,silent){ if(SFX.loop) sfxDmg(src);   /* v1138 sound (render only) */ kind=kind||((src&&src.t&&(['Magic','Healer'].includes(src.t.damageProfile)))?'magic':'phys');   // default follows canonical hero damage; explicit kind still wins
   // Packmaster: he is stronger and harder to put down for every summon still alive.
   if(src&&src._packN) amt*=1+0.05*src._packN*(src.passMul||1);
   if(src&&src.pass&&src.pass.bloodrage&&(src._brTaken||0)>0) amt*=1+Math.min(SKLV.bloodrageCap(passLv(src)),0.25*src._brTaken/Math.max(1,src.maxHp||1));   /* v1024 Blood Rage (Vael): +1% per 4% max HP taken this fight, cap +25% */
@@ -9919,7 +10075,7 @@ function dealDamage(src,tgt,amt,color,kind,silent){ kind=kind||((src&&src.t&&(['
   // The Space He Isn't In (Hollow): he banks a miss every 4s. Not a dodge roll — the blow that
   // arrives while it is banked never lands, which is the one thing his story says twice.
   if(tgt.pass&&tgt.pass.notthere && tgt._ntReady){ tgt._ntReady=false; tgt._ntCd=SKLV.notthere(passLv(tgt));   /* v1112: 4 s - 0.01 s a level */
-    floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'NOT THERE',t:.7,color:'#c9a6ff',vy:1.3,sz:13});
+    floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'NOT THERE',t:.7,color:'#c9a6ff',vy:1.3,sz:13}); if(SFX.loop) sfxPassive(tgt,'notthere');
     try{ ringBurst(tgt.x,tgt.y,0x4a2a6a,10); }catch(e){}
     firePassiveClip(tgt, tgt.anim&&tgt.anim.passive?(tgt.anim.passive.n/(tgt.anim.passive.fps||12)):0);
     return; }
@@ -9945,7 +10101,7 @@ function dealDamage(src,tgt,amt,color,kind,silent){ kind=kind||((src&&src.t&&(['
     tgt._evadeT=0; tgt._untouched=0;
     floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'EVADE',t:.6,color:'#bfe8ff',vy:1.3,sz:13});
     try{ ringBurst(tgt.x,tgt.y,0x9fd8ff,10); }catch(e){}
-    if(tgt.alive&&src.alive&&(tgt._evadeMul||0)>0){ tgt._ctring=1;
+    if(tgt.alive&&src.alive&&(tgt._evadeMul||0)>0){ tgt._ctring=1; if(SFX.loop) sfxMoment(tgt,'blue');   /* v1138 sound: the counter strike */
       /* v1114: the counter used Attack for every hero - Vaelora (Mage, 16 Attack / 32 AP) and Veyr (Magic) countered at half strength.
          It now swings off the hero's own stat like every other ability (heroScaleMode: Magic/Healer -> Ability Power, magic damage). */
       const _cAp=heroScaleMode(tgt)==='ap';
@@ -9956,12 +10112,12 @@ function dealDamage(src,tgt,amt,color,kind,silent){ kind=kind||((src&&src.t&&(['
       tgt.hasteMul=Math.min(1.6,Math.max(tgt.hasteMul||1,1)+0.08*pm); tgt.hasteT=Math.max(tgt.hasteT||0,5);
       tgt.glyphCrit=Math.min(0.6,(tgt.glyphCrit||0)+0.05*pm);
       firePassiveFx(tgt);
-      floatTexts.push({x:tgt.x,y:tgt.y-14,txt:'WEIGHTLESS',t:.8,color:'#3a5fa8',vy:1,sz:11}); }
+      floatTexts.push({x:tgt.x,y:tgt.y-14,txt:'WEIGHTLESS',t:.8,color:'#3a5fa8',vy:1,sz:11}); if(SFX.loop) sfxPassive(tgt,'weightless',1.5); }
     if(tgt.pass&&tgt.pass.prismscales&&src.alive&&!tgt._ctring){ tgt._ctring=1;
       try{ dealDamage(tgt,src,(tgt.apow||tgt.dmg)*0.55*(tgt.passMul||1),'#3aa0d8','magic'); }catch(e){}
       tgt._ctring=0;
       firePassiveFx(tgt,src);
-      floatTexts.push({x:tgt.x,y:tgt.y-14,txt:'PRISM',t:.8,color:'#3aa0d8',vy:1,sz:11}); }
+      floatTexts.push({x:tgt.x,y:tgt.y-14,txt:'PRISM',t:.8,color:'#3aa0d8',vy:1,sz:11}); if(SFX.loop) sfxPassive(tgt,'prismscales'); }
     return; }
   if(tgt) tgt._untouched=0;   // v527: "untouched" passives (Perfect Camouflage, Silent Altitude) read this
   /* v646: Steady Hands (next hits) / Hawk Eye (timed) can't miss; Astral Drift / Evasive Roll add timed dodge. With no gear
@@ -10437,7 +10593,11 @@ function startAbilityClip(u,type){
       if(u._abilFallback) u._castFlash=0.42;   // the visual tell that this was an ability, not a swing
     } }  // trigger ability billboard clip — hold = exactly ONE playthrough (pingpong clips hold the full forward+back rubberband)
 }
-function doEffect(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,o)) return;   /* v886 DELIVERY: the effect waits for the art */
+/* v1138 sound: the spell's own code runs inside its sound context (render only - the core below is the effect, unchanged) */
+function doEffect(u,type,o){ if(!SFX.loop||!u||!u._castSlot) return _doEffectCore.apply(this,arguments);
+  const c=(SFX.cx&&SFX.cx.u===u)?null:sfxCtx(u); if(!c) return _doEffectCore.apply(this,arguments);
+  const p=SFX.cx, n0=groundHazards.length, s0=sfxSnap(u); SFX.cx=c; try{ return _doEffectCore.apply(this,arguments); } finally{ SFX.cx=p; sfxAdopt(c,n0,s0); } }
+function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,type,o)) return;   /* v886 DELIVERY: the effect waits for the art */
   o=gsplitScaleArea(u,o||{}); const rm=rageMul, sm=u._castSM||1;
   o=skillScaleOpts(o, sm, (u._castLv|0)||(u.level|0)||1);   /* v786/v789 */ const _kLv=(u._castLv|0)||1;   /* v1112: the level of the slot that fired, for skLvNum */
   const _gearSpellCrit=u._gearNextCrit==='spell'; if(_gearSpellCrit){u._gearNextCrit=null;u._gearSpellCrit=true;}
@@ -11545,7 +11705,7 @@ function castKit(u,ab){ const slot=(u.blueAb&&ab===u.blueAb)?'blue':'green'; con
       if(foes.length){ firePassiveFx(u); ringBurst(u.x,u.y,0x5aa8ff,16); floatTexts.push({x:u.x,y:u.y-14,txt:'CHAIN',t:.9,color:'#8fd0ff',vy:1,sz:12}); } }
     if(u.pass.abyssres&&u._prReady){ u._prReady=0; u._castSM=(u._castSM||1)*(1+SKLV.abyssres(passLv(u)));   /* v1112: +45% + 0.2 pt a level */           // a full pressure gauge empowers this spell
       firePassiveFx(u);
-      floatTexts.push({x:u.x,y:u.y-14,txt:'PRESSURE RELEASED',t:1.0,color:'#2f8fa8',vy:1,sz:11}); } }
+      floatTexts.push({x:u.x,y:u.y-14,txt:'PRESSURE RELEASED',t:1.0,color:'#2f8fa8',vy:1,sz:11}); if(SFX.loop) sfxPassive(u,'abyssres'); } }
   /* v797 - the clip starts NOW, with the cast clock. `_castSlot` is set first because the picker
      prefers the hero's own green/blue sheet over the shared clip for the type. */
   u._castSlot=slot; startAbilityClip(u,ab.type); u._clipStarted=true; u._castSlot=null;
@@ -11556,7 +11716,7 @@ function castKit(u,ab){ const slot=(u.blueAb&&ab===u.blueAb)?'blue':'green'; con
       if(u._gearRepeatSpell){ const rp=u._gearRepeatSpell; u._gearRepeatSpell=0; const prev=u._castSM||1; u._castSM=prev*rp; doEffect(u,ab.type,ab); u._castSM=prev; } } };
   /* v1125 Ember Cleave: the chop rides his axe swing from the press (it shows from his downswing frame 24). Display only; an interrupted cast fades it. */
   try{ if(ab.ownFx==='chop') korvuxChopCastFx(u,ct+(ab.deliver==='form'?(ab.form||0.35):0),ab.radius||3.2*METER,u._pend); }catch(_e){}
-  u._castNow=ct; u._castT=ct; u.castAnim=Math.max(.32,ct);
+  u._castNow=ct; u._castT=ct; u.castAnim=Math.max(.32,ct); sfxCast(u,slot,ct);   /* v1138 sound: the cast press (render only) */
   // a skill runs to the end of its clip: nothing but the ult or CC may cut it (see _animLockT)
   // v521: unless a passive flourish is still playing, in which case doEffect left the clip alone
   // and re-tagging it 4 here would relabel the PASSIVE as a skill. Leave the tag where it is.
@@ -11568,7 +11728,7 @@ function castKit(u,ab){ const slot=(u.blueAb&&ab===u.blueAb)?'blue':'green'; con
    which is exactly what makes an interrupt worth landing. */
 function castCancel(u, why){
   if(!u || !u._pend) return false;
-  u._pend=null; u._castNow=0; u.castAnim=0; u._animLockT=0; u._clipStarted=false;
+  u._pend=null; u._castNow=0; u.castAnim=0; u._animLockT=0; u._clipStarted=false; sfxCancel(u);   /* v1138: an interrupted cast stops its release sound */
   u._abilAnim=null; u._abilHold=0; u._abilPri=0;        /* the clip stops with the cast */
   try{ floatTexts.push({x:u.x,y:u.y-16,txt:why||'INTERRUPTED',t:.9,color:'#ffd45e',vy:1.2,sz:11}); }catch(e){}
   return true;
@@ -11584,6 +11744,7 @@ function castTick(u, dt){
   /* restore the multiplier, level and aim the cast was STARTED with - the caller reset them long ago */
   const sm=u._castSM, lv=u._castLv, ax=u._aimWX, ay=u._aimWY;
   u._castSM=p.sm; u._castLv=p.lv; u._aimWX=p.ax; u._aimWY=p.ay;
+  if(SFX.log) sfxNote('fire',{hero:u.key,slot:(SFX.pend.get(u)||{}).slot});   /* v1138 rig log only */
   try{ p.fire(); }catch(e){}
   u._castSlot=null; u._aimWX=null; u._aimWY=null;
   u._castSM=sm; u._castLv=lv;
@@ -11617,6 +11778,7 @@ function deliverLaunch(u,type,o){ try{
     const s1=u._castSM, l1=u._castLv, sl1=u._castSlot; u._castSM=sm0; u._castLv=lv0; u._castSlot=slot0; u._clipStarted=true;
     try{ doEffect(u,type,Object.assign({},o,{_arrived:true,_tgtU:T,_farTgts:_far,_aim:aim?aim:(mode==='land'?P:null),pfx:(mode==='shot'?null:o.pfx),noArt:(mode==='form')||!!o.noArt})); }
     finally{ u._castSM=s1; u._castLv=l1; u._castSlot=sl1; u._clipStarted=false; } }});
+  if(SFX.loop) SFX.dl=groundHazards[groundHazards.length-1];   /* v1138 sound: this is the delivery's arrival (render only) */
   return true; }catch(_e){ return false; } }
 function orbNextHop(h){ let nx=null,nd=1e9; for(const a of h.left){ if(!a.alive)continue; const dd=Math.hypot(a.x-h.x,a.y-h.y); if(dd<nd){nd=dd;nx=a;} }
   if(!nx){ h.done=true; return; } h.left.splice(h.left.indexOf(nx),1); h.tgt=nx; h.hopT=0; h.hopDur=Math.max(0.18,Math.min(0.6,nd/(14*METER)));
@@ -11652,7 +11814,7 @@ function waxOnCaster(c){ if(!c||!c.alive) return;
     const dur=tallowEncase(_tlv)*(1-(c.ctrlRes||0));
     c.stunned=Math.max(c.stunned||0,ccDur(dur)); c.silencedT=Math.max(c.silencedT||0,ccDur(dur)); c._castT=0; c.castAnim=0;
     try{ ringBurst(c.x,c.y,0xe8d8b0,18); }catch(e){}
-    floatTexts.push({x:c.x,y:c.y-10,txt:'ENCASED',t:1.2,color:'#e8d8b0',vy:1,sz:13}); }
+    floatTexts.push({x:c.x,y:c.y-10,txt:'ENCASED',t:1.2,color:'#e8d8b0',vy:1,sz:13}); if(SFX.loop) sfxPassive(foes[0],'tallow'); }
   else floatTexts.push({x:c.x,y:c.y-8,txt:'wax x'+c._wax,t:.7,color:'#e8d8b0',vy:1,sz:10}); }
 /* v542 — how long the hero's ULT CLIP runs, read from BATTLE_ANIM DATA and never from u.anim: only the renderer
    attaches u.anim (buildFigure), and the server's verdict replays this same code with no meshes, so a root read off
@@ -11681,7 +11843,7 @@ function castAbility(u){ const ab=u.abilityOverride||u.t.ability;
      each enemy in reach, timed so the slam lands on the release (the damage stays where it was). Display only; an interrupted cast fades it. */
   try{ if(((typeof HERO_ULT_ART!=='undefined'&&HERO_ULT_ART[u.key])||{}).ownFx==='ruyi'&&ab==='monkSlam') konwuRuyiCastFx(u,_ct,(ULT_DEF[ab]||{}).radius||15*METER,u._pend); }catch(_e){}
   try{ if(((typeof HERO_ULT_ART!=='undefined'&&HERO_ULT_ART[u.key])||{}).ownFx==='puncture'&&ab==='riftpuncture') vesperPunctureCastFx(u,_ct,u._pend); }catch(_e){}   /* v1128: the tear opens on the cast (display only) */
-  u._castSM=1; u._castLv=0; u._castNow=_ct; u._castT=_ct;
+  u._castSM=1; u._castLv=0; u._castNow=_ct; u._castT=_ct; sfxCast(u,'ult',_ct);   /* v1138 sound: the ult press (render only) */
   u._lockPri=6; u._abilPri=6; u._animLockT=Math.max(u._abilHold||0,_ct);   // and once it is running, nothing but CC stops it
   u._ultRootT=Math.max(_ct, ultClipDur(u));   // v542: rooted (no step, swing or skill) for the whole ult clip — sim-side, data-driven, same on both sides
   u._ultChanT=0;   // v525: clock for the wind-up / hold-at-apex / return of a CHANNELLED ult
@@ -12362,7 +12524,7 @@ function updateBees(dt){
         b.fr=(b.fr+dt*24)%48; const f=Math.floor(b.fr); if(b.tex) b.tex.offset.set((f%6)/6,1-(Math.floor(f/6)+1)/8); } continue; }
     if(b.ph===7){ const t=b.t;
       if(b.tt<b.dur){ honeyPlace(b, b.tt/b.dur, 0); continue; }
-      if(!b.done){ b.done=true; try{ b.onLand(); }catch(_){} burstAt(t.x,t.y,0xf0b830,10); }
+      if(!b.done){ b.done=true; if(SFX.log) sfxArrive(b.u,b); try{ b.onLand(); }catch(_){} burstAt(t.x,t.y,0xf0b830,10); }
       const m=(b.tt-b.dur)/b.melt; if(m>=1){ beeDrop(b); _bees.splice(i,1); continue; }
       honeyPlace(b, 1, m); if(b.spr) b.spr.material.opacity=1-m; continue; }
     if(b.ph===5){ b.acc+=dt; if(b.acc>=b.tick){ b.acc-=b.tick; enemiesOf(b.u).forEach(e=>{ if(dist(e,{x:b.cx,y:b.cy})<=b.R) dealDamage(b.u,e,b.dps*b.tick,'#f4c531','magic'); }); } if(b.tt>=b.life){ _bees.splice(i,1); } continue; }
@@ -12969,15 +13131,15 @@ function think(u,dt){
   // does the flying projectile take over. _boltT is a sim-time fuse set when he starts the throw — timed so
   // the orb spawns the instant the body-ball leaves his hand (relFrac of the attack clip, scaled by BATTLE_PACE
   // so it stays frame-synced with the render clock at any game speed). Damage lands with the release, not the windup.
-  if(u._boltT>0){ u._boltT-=dt; if(u._boltT<=0){ u._boltT=0; const tg=u._boltTgt; u._boltTgt=null;
+  if(u._boltT>0){ u._boltT-=dt; if(u._boltT<=0){ u._boltT=0; const tg=u._boltTgt; u._boltTgt=null; if(SFX.log) sfxNote('blow',{hero:u.key,due:+battleTime.toFixed(4)});   /* v1138 rig log only */
     if(tg&&tg.alive){ dealDamage(u,tg,u._boltDmg||u.dmg,'#c9a6ff'); if(typeof spawnUmbrisBolt==='function')spawnUmbrisBolt(u,tg); } } }
   // Umbral Cataclysm: at release the orb leaves his hand (fly); on land it spawns the void zone + slam.
-  if(u._voidT>0){ u._voidT-=dt; if(u._voidT<=0){ u._voidT=0; if(u._voidCast){ if(typeof spawnVoidOrb==='function')spawnVoidOrb(u,u._voidCast); u._voidLandT=0.22*BATTLE_PACE; } } }
-  if(u._horizon){ const H=u._horizon; H.t-=dt; if(H.t<=0){ /* v339: Event Horizon collapses */
+  if(u._voidT>0){ u._voidT-=dt; if(u._voidT<=0){ u._voidT=0; if(u._voidCast){ if(typeof spawnVoidOrb==='function')spawnVoidOrb(u,u._voidCast); u._voidLandT=0.22*BATTLE_PACE; if(SFX.loop) sfxMoment(u,'ult',sfxTickT(u._voidLandT,true),'deliver'); } } }   /* v1138 sound: the orb lands (counted down below this tick) */
+  if(u._horizon){ const H=u._horizon; H.t-=dt; if(H.t<=0){ /* v339: Event Horizon collapses */ if(SFX.log) sfxArrive(u,H);
       H.caught.forEach(e=>{ if(!e.alive) return; dealDamage(u,e,H.dmg,H.slow?'#5fa8ff':'#9b5cff'); if(H.slow) e.slow=Math.max(e.slow||0,ccDur(H.slow)); else e.silencedT=Math.max(e.silencedT||0,ccDur(H.sil)); e.pullT=0; e._pullGhost=false; e.pullStop=null; e.pullSpeed=null; });
       ringBurst(H.cx,H.cy,0x6a3fb0,30); burstAt(H.cx,H.cy,0x2a1040,20);  if(u.team==='ally')screenFlash=Math.max(screenFlash,.4);
       u._horizon=null; } }
-  if(u._voidLandT>0){ u._voidLandT-=dt; if(u._voidLandT<=0){ u._voidLandT=0; const vc=u._voidCast; u._voidCast=null;
+  if(u._voidLandT>0){ u._voidLandT-=dt; if(u._voidLandT<=0){ u._voidLandT=0; const vc=u._voidCast; u._voidCast=null; if(SFX.log) sfxNote('arrive',{hero:u.key,due:+battleTime.toFixed(4)});
     if(vc){ enemiesOf(u).forEach(e=>{ if(e.alive&&e.team!==u.team&&Math.hypot(e.x-vc.cx,e.y-vc.cy)<vc.R){ dealDamage(u,e,vc.dmg,'#c9a6ff'); e._darkAuraT=vc.dur; e._plagueColor='#8a5cff'; e._plagueHex=0x7a3fb0; } });
       if(typeof spawnVoidZone==='function')spawnVoidZone(u,vc.cx,vc.cy,vc.R,vc.dur,vc.pd,vc.con); } } }
   /* v412 — THE HIT LANDS WHEN THE ANIMATION LANDS (Phil, 4 Sep: "any animation that hits someone
@@ -12992,7 +13154,7 @@ function think(u,dt){
      can no longer disagree about a stage the player already won. */
   if(u._fuse && u._fuse.length){
     for(let i=u._fuse.length-1;i>=0;i--){ const F=u._fuse[i]; F.t-=dt;
-      if(F.t<=0){ u._fuse.splice(i,1); if(u.alive && F.tgt && F.tgt.alive) F.go(); } }
+      if(F.t<=0){ u._fuse.splice(i,1); if(u.alive && F.tgt && F.tgt.alive){ if(SFX.log) sfxFuseGo(F); F.go(); } } }
   }
   if(u.stunImmune){u.stunned=0;u.fearT=0;}   // Unstoppable (Grommash): immune to stuns/roots/fear
   /* v409 — THE ANIMATION LOCK (Phil's rules, 4 Sep):
@@ -13097,7 +13259,7 @@ function think(u,dt){
   if((u._chaseT||0)>0){ u._chaseT-=dt; if(!u._chaseTg||!u._chaseTg.alive||dist(u,u._chaseTg)<=u.range+(u._chaseTg.r||0)) u._chaseT=0; }   // v1044: the run after the knocked-back mark
   if(u._dash){ const _D=u._dash; _D.t+=dt; const _k=Math.min(1,_D.t/_D.dur), _f=_D.ease?_D.ease(_k):_k;   /* v892 a dash in progress: travel, then the landing; v1115 ease = Hookline's rope curve */
     u.x=_D.x0+(_D.x1-_D.x0)*_f; u.y=_D.y0+(_D.y1-_D.y0)*_f; u._ax=u.x; u._ay=u.y;
-    if(_k>=1){ u._dash=null; try{ _D.run(); }catch(_e){} }
+    if(_k>=1){ u._dash=null; try{ sfxRun(_D); }catch(_e){} }
     return; }
   if((u._danceT||0)>0){ const _st=Math.min(dt,u._danceT); u._danceT-=dt;   /* v885 Serpent's Last Dance: rooted while the star circles */
     const _w=(u._danceSpins*2*Math.PI)/u._danceDur, _a0=u._danceA, _a1=_a0+_w*_st, _TP=2*Math.PI; u._danceA=_a1;
@@ -13215,7 +13377,7 @@ function think(u,dt){
         // Static Charge (Stormwarden): the charge builds on his swings and empowers the next cast.
         if(u.pass.staticcharge){ u._scStk=Math.min(5,(u._scStk||0)+1);
           if(u._scStk>=5&&!u._scReady){ u._scReady=1; ringBurst(u.x,u.y,0x5aa8ff,12);
-            floatTexts.push({x:u.x,y:u.y-12,txt:'CHARGED',t:1.0,color:'#8fd0ff',vy:1,sz:12}); } }
+            floatTexts.push({x:u.x,y:u.y-12,txt:'CHARGED',t:1.0,color:'#8fd0ff',vy:1,sz:12}); if(SFX.loop) sfxPassive(u,'staticcharge'); } }
         // Pirate's Instinct (Corsair): every few shots one goes straight through the armour.
         if(u.pass.instinct){ u._piN=((u._piN||0)+1)%4;
           if(u._piN===0&&t){ dealDamage(u,t,dmg*0.45*_pm,'#ffe08a','true');
@@ -13225,7 +13387,7 @@ function think(u,dt){
         if(u.pass.livingpages&&(u._pages||0)>0&&t){ u._pages--;
           dealDamage(u,t,dmg*0.6*_pm,'#c8b9e8','magic');
           firePassiveFx(u,t);
-          floatTexts.push({x:t.x,y:t.y-8,txt:'PAGE',t:.8,color:'#c8b9e8',vy:1.2,sz:11}); }
+          floatTexts.push({x:t.x,y:t.y-8,txt:'PAGE',t:.8,color:'#c8b9e8',vy:1.2,sz:11}); if(SFX.loop) sfxPassive(u,'livingpages'); }
         // Rising Heat (Pyroclast): every scorched enemy she strikes stokes her own power.
         if(u.pass.risingheat){ let sc=0; enemiesOf(u).forEach(e=>{ if(e.alive&&e.dots&&e.dots.length)sc++; });
           if(sc>(u._rhSc||0)) firePassiveFx(u); u._rhSc=sc;   /* v884: art only - the aura flares as the scorched count rises */
@@ -13235,7 +13397,7 @@ function think(u,dt){
         // Seamless throw: hold the damage + flying orb until the attack clip's release frame (the ball leaves his
         // hand). Until then the ball is drawn as part of his sprite. Fuse = relFrac × clipDur × BATTLE_PACE.
         const A=(BATTLE_ANIM[u.key]||{}).attack; const rel=(A&&A.relFrac!=null)?A.relFrac:0.857; const cd2=(A?A.n/A.fps:1.2);   /* v1115: clip DATA, so a figure-less headless fight times the bolt the same */
-        u._boltT=rel*cd2*SIM_STEP*SIM_HZ*BATTLE_PACE/(u._atkSpdMul||1); u._boltTgt=t; u._boltDmg=dmg;   /* v1115: the clip plays in real time (and faster with attack speed, x_atkSpdMul), the fight clock at 0.6724 of real time - so the bolt leaves on the release cell (18/48), not 22% later */
+        u._boltT=rel*cd2*SIM_STEP*SIM_HZ*BATTLE_PACE/(u._atkSpdMul||1); u._boltTgt=t; u._boltDmg=dmg; if(SFX.loop) sfxAtk(u,u._boltT,false);   /* v1138 sound: the bolt leaves */   /* v1115: the clip plays in real time (and faster with attack speed, x_atkSpdMul), the fight clock at 0.6724 of real time - so the bolt leaves on the release cell (18/48), not 22% later */
       } else if(u.pass&&u.pass.arsenal&&u._rvWpn){ rivetFire(u,t,dmg,_atkClipA,_swCrit);   /* v1137: the weapon's own hit and effect */
       } else if(u.key==='rafe'){
         /* v339 (Phil): "shooting to slicing based on how close his target is — within 2 m he does sword
@@ -13243,6 +13405,7 @@ function think(u,dt){
            pistol firing, so it doubles as the shooting clip. Saber hits harder (it is the close-quarters answer). */
         const close = d <= 2.5*METER;   // target's centre within ~2 m of his (bodies are ~1 m wide)
         u._atkClip = close ? ((u.anim&&u.anim.melee)?'melee':'attack') : ((u.anim&&u.anim.melee)?'attack':'green');   // v436: dedicated melee clip (cutlass) when he has one; then 'attack' is the pistol shot and Pistol Barrage is the ability only
+        if(SFX.loop) sfxAtk(u,0,close);   /* v1138 sound: his cut or his shot, now (it lands now) */
         dealDamage(u,t,dmg*(close?1.15:1),'#fff'); if(!close){ if(typeof spawnProjFx==='function') { const co=castOrigin(u,t.x,t.y); spawnProjFx('bullet',co.x,co.y,t.x,t.y,RAFE_BULLET_SCALE,.13*HERO_FX_MUL,null,co.h); } else spawnShot(u,t,0xffd27a); }
       } else {
         /* Melee lands on the contact frame. A RANGED auto lands when its ball arrives, not when it
@@ -13250,10 +13413,10 @@ function think(u,dt){
            projectile's own flight time is added on top of the release. */
         { const _el=(u.range>60)?CASTER_BALL[u.key]:null;
           const _fly=(u.range>60)?(((_el&&_el.dur)||0.22)*HERO_FX_MUL):0;
-          fuseStrike(u,t,_atkClipA,()=>{ _preCrit=_swCrit; try{ dealDamage(u,t,dmg,u.hybrid?'#ffe6b0':'#fff'); } finally{ _preCrit=null; } },_fly,u._atkSpdMul);
+          { const _fd=fuseStrike(u,t,_atkClipA,()=>{ _preCrit=_swCrit; try{ dealDamage(u,t,dmg,u.hybrid?'#ffe6b0':'#fff'); } finally{ _preCrit=null; } },_fly,u._atkSpdMul); if(SFX.loop&&!(u.range>60)) sfxAtkFuse(u,_fd,true); }   /* v1138 sound: the weapon on the blow */
           if(_dbl){ // v534 mirage double swing: the second blow lands half a swing later, same damage, no crit multiplier
             floatTexts.push({x:u.x,y:u.y-16,txt:'DOUBLE',t:.8,color:'#ffd08a',vy:1,sz:11});
-            fuseStrike(u,t,_atkClipA,()=>{ _preCrit=false; try{ if(t.alive) dealDamage(u,t,dmg,'#ffe6b0'); } finally{ _preCrit=null; } },_fly+(u._animLockT||clipDur(_atkClipA)||0.8)/2,u._atkSpdMul); } }
+            { const _fd2=fuseStrike(u,t,_atkClipA,()=>{ _preCrit=false; try{ if(t.alive) dealDamage(u,t,dmg,'#ffe6b0'); } finally{ _preCrit=null; } },_fly+(u._animLockT||clipDur(_atkClipA)||0.8)/2,u._atkSpdMul); if(SFX.loop&&!(u.range>60)) sfxAtkFuse(u,_fd2,true); } } }
         /* v341 (Phil): Void Weaver's passive was a borrowed Astra burn (cyan) and her passive clip never played.
            Dark Convergence: every auto leaves a DARK burn in curse colour (10% attack + 5% ability power, 2 s, ticking
            twice a second); every 3rd auto the void visibly converges — she plays the gathering clip and regains 5 energy. */
@@ -13267,10 +13430,10 @@ function think(u,dt){
            the same fuse the damage rides, so picture and effect are one motion: the arm extends, the
            ball goes, it flies, it lands, the number appears. */
         if(u.range>60){
-          fuseStrike(u,t,_atkClipA,()=>{ const el=CASTER_BALL[u.key];
+          const _fdL=fuseStrike(u,t,_atkClipA,()=>{ const el=CASTER_BALL[u.key];
             if(el&&el.bolt&&typeof spawnBoltFx==='function'&&spawnBoltFx(u,t,'#cfe8ff')){}   /* v958 */
             else if(el&&typeof spawnProjFx==='function') { const co=castOrigin(u,t.x,t.y); spawnProjFx(el.fx,co.x,co.y,t.x,t.y,el.scale||1.5,(el.dur||.22)*HERO_FX_MUL,null,co.h); }
-            else spawnShot(u,t,u.t.color); },0,u._atkSpdMul); }
+            else spawnShot(u,t,u.t.color); },0,u._atkSpdMul); if(SFX.loop) sfxAtkFuse(u,_fdL,false); }   /* v1138 sound: the weapon on the release */
       } } };
   /* Phil, 14 Sep 2026 — ASSASSINS NEVER OVERTAKE A LIVING TANK. Every non-Tank has at least
      3.5 m reach while Tanks establish the 1 m baseline, so assassins can fight from 2.5 m behind.
@@ -14173,7 +14336,7 @@ function updateBattle(dt){
     if(u.pass.deeproots) units.forEach(o=>{ if(!o.alive||o.team!==u.team||o.summoned) return;
       if(!o._drUsed&&o.hp>0&&o.hp<o.maxHp*0.30){
         o._drUsed=true; o._drBy=u; o._drLeft=4; o._drRate=o.maxHp*0.25*(u.passMul||1)/4;
-        ringBurst(o.x,o.y,0x6FCF5A,10); if(typeof spawnUnitFx==='function') spawnUnitFx(o,'oakroots'); floatTexts.push({x:o.x,y:o.y-14,txt:'DEEP ROOTS',t:1.1,color:'#9be38a',vy:1,sz:11}); }
+        ringBurst(o.x,o.y,0x6FCF5A,10); if(typeof spawnUnitFx==='function') spawnUnitFx(o,'oakroots'); floatTexts.push({x:o.x,y:o.y-14,txt:'DEEP ROOTS',t:1.1,color:'#9be38a',vy:1,sz:11}); if(SFX.loop) sfxPassive(u,'deeproots',1.0); }
       if(o._drBy===u&&o._drLeft>0){ const s=Math.min(dt,o._drLeft); o._drLeft-=s; o.hp=Math.min(worldHealCap(o),o.hp+o._drRate*s); } });
     /* ==================== v527 — PACK PASSIVES ======================================== */
     // Sacred Bells (The Walking Cathedral): the bells ring and the ranks around him harden.
@@ -14181,19 +14344,19 @@ function updateBattle(dt){
       alliesOf(u).forEach(a=>{ if(!a.alive||dist(u,a)>6*METER)return; n++;
         a.drMul=Math.min(a.drMul||1,1-0.10*(u.passMul||1)); a.drT=Math.max(a.drT||0,4.2);
         burstAt(a.x,a.y,0xffe8b0,6); });
-      if(n){ ringBurst(u.x,u.y,0xffe8b0,16); firePassiveClip(u, u.anim&&u.anim.passive?(u.anim.passive.n/(u.anim.passive.fps||12)):0); } } }
+      if(n){ ringBurst(u.x,u.y,0xffe8b0,16); firePassiveClip(u, u.anim&&u.anim.passive?(u.anim.passive.n/(u.anim.passive.fps||12)):0); if(SFX.loop) sfxPassive(u,'sacredbells'); } } }
     // Unbroken Dawn (Dawnbringer): the one time the light will not let him fall.
     if(u.pass.unbroken && !u._ubUsed && u.hp>0 && u.hp/u.maxHp<0.30){ u._ubUsed=1;
       u.shield=(u.shield||0)+u.maxHp*0.30*(u.passMul||1);
       u.ctrlRes=Math.min(0.85,(u.ctrlRes||0)+0.4); u._ctrlBonus=0.4; u._ctrlBonusT=8;
       firePassiveFx(u);
       ringBurst(u.x,u.y,0xf0d070,22);
-      floatTexts.push({x:u.x,y:u.y-16,txt:'UNBROKEN',t:1.4,color:'#f0d070',vy:1,sz:14}); }
+      floatTexts.push({x:u.x,y:u.y-16,txt:'UNBROKEN',t:1.4,color:'#f0d070',vy:1,sz:14}); if(SFX.loop) sfxPassive(u,'unbroken'); }
     // Layered Hide (Ironcoil): each direct hit hardens one scale layer; at full plate he shrugs off control.
     if(u.pass.layered){ if((u._layT||0)>0) u._layT-=dt;
       if((u._layStk||0)>=(u._layMax||5)){ u._layStk=0; u._layT=SKLV.layered(passLv(u));   /* v1112 (Phil: 2.0 s + 0.01 s a level, 3.0 s at 100; was 2.0 s x skillMul = 4.38 s) */
         firePassiveClip(u, u.anim&&u.anim.passive?u.anim.passive.n/(u.anim.passive.fps||24):0);   /* v1055 (ChatGPT handoff IRONCOIL-NINE, Phil "iron passive pass"): the hit that completes the plate plays the approved half-second passive clip (it fires the same FX plate too); render only, the mechanic is unchanged */
-        ringBurst(u.x,u.y,0xb8863a,14); floatTexts.push({x:u.x,y:u.y-8,txt:'PLATED',t:1.0,color:'#b8863a',vy:1,sz:12}); }
+        ringBurst(u.x,u.y,0xb8863a,14); floatTexts.push({x:u.x,y:u.y-8,txt:'PLATED',t:1.0,color:'#b8863a',vy:1,sz:12}); if(SFX.loop) sfxPassive(u,'layered'); }
       if((u._layT||0)>0){ u.stunned=0; u.fearT=0; u._airT=0; u.pullT=0; } }
     // Unshaken Herd (Greatbrow): when an ally is controlled he gains energy and briefly covers them.
     if(u.pass.unshaken){ u._uhT=(u._uhT||0)+dt; if(u._uhT>=1){ u._uhT-=1;
@@ -14201,12 +14364,12 @@ function updateBattle(dt){
         if(a.stunned>0||a.fearT>0||(a.silencedT||0)>0||(a._airT||0)>0){
           u.energy=Math.min(100,u.energy+4*(u.passMul||1));
           a.drMul=Math.min(a.drMul||1,0.75); a.drT=Math.max(a.drT||0,1.5);
-          firePassiveFx(u,a,{aboveBar:true});
+          firePassiveFx(u,a,{aboveBar:true}); if(SFX.loop) sfxPassive(u,'unshaken',1.5);
           burstAt(a.x,a.y,0x8a6b3f,6); } }); } }
     // Trail of Splendor (Velvetplume): every buff she lands also leaves a small stacking shield.
     if(u.pass.splendor){ alliesOf(u).forEach(a=>{ if(!a.alive)return;
       if((a._buffedT||0)>0){ a._buffedT=0; a.shield=(a.shield||0)+a.maxHp*0.04*(u.passMul||1);
-        firePassiveFx(u,a,{aboveBar:true});
+        firePassiveFx(u,a,{aboveBar:true}); if(SFX.loop) sfxPassive(u,'splendor',1.5);
         burstAt(a.x,a.y,0x6fe0ff,6); } }); }
     // Golden Thread (Threadseer): she is tied to the ally nearest death and shares what she is given.
     if(u.pass.goldthread){ let w=null; alliesOf(u).forEach(a=>{ if(a.alive&&a!==u&&(!w||a.hp/a.maxHp<w.hp/w.maxHp))w=a; }); u._gtTo=w; }
@@ -14267,7 +14430,7 @@ function updateBattle(dt){
            did nothing. Only Hurne and Hollow ever set _abilAnim='passive'. She has a Hush clip now, so
            play it, the same way they do. */
         firePassiveClip(u, u.anim&&u.anim.passive?(u.anim.passive.n/(u.anim.passive.fps||12)):0,e,{aboveBar:true});
-        burstAt(e.x,e.y,0xf2e2a0,10); floatTexts.push({x:e.x,y:e.y-8,txt:'SILENCED',t:.9,color:'#f2e2a0',vy:1,sz:12}); } } }
+        burstAt(e.x,e.y,0xf2e2a0,10); floatTexts.push({x:e.x,y:e.y-8,txt:'SILENCED',t:.9,color:'#f2e2a0',vy:1,sz:12}); if(SFX.loop) sfxPassive(u,'hush'); } } }
     // Unwind (Tessit): every 5s one random ally is cleansed of a negative effect
     if(u.pass.unwind){ u._uwT=(u._uwT||0)+dt; const _uwI=SKLV.unwind(passLv(u)); if(u._uwT>=_uwI){ u._uwT-=_uwI;   /* v1112: every 5 s - 0.015 s a level */
       const hurt=alliesOf(u).filter(a=>a.alive&&((a.dots&&a.dots.length)||a.stunned>0||a.slow>0||a.silencedT>0||a.mortalT>0));
@@ -14275,7 +14438,7 @@ function updateBattle(dt){
         if(a.dots&&a.dots.length)a.dots.pop(); else if(a.stunned>0)a.stunned=0; else if(a.silencedT>0)a.silencedT=0;
         else if(a.slow>0)a.slow=0; else a.mortalT=0;
         firePassiveFx(u,a,{aboveBar:true});
-        burstAt(a.x,a.y,0x4fc4a8,12); floatTexts.push({x:a.x,y:a.y-8,txt:'UNWIND',t:.9,color:'#4fc4a8',vy:1,sz:12}); } } }
+        burstAt(a.x,a.y,0x4fc4a8,12); floatTexts.push({x:a.x,y:a.y-8,txt:'UNWIND',t:.9,color:'#4fc4a8',vy:1,sz:12}); if(SFX.loop) sfxPassive(u,'unwind'); } } }
     if(u.pass.deepfreeze){ u._dfT=(u._dfT||0)+dt; if(u._dfT>=5){ u._dfT-=5; const foes=enemiesOf(u); if(foes.length){ const e=foes[Math.floor(brnd()*foes.length)%foes.length]; e.stunned=Math.max(e.stunned||0,ccDur(1.2)); firePassiveFx(u,e,{aboveBar:true}); burstAt(e.x,e.y,0x9fe0ff,12); floatTexts.push({x:e.x,y:e.y-8,txt:'FROZEN',t:.9,color:'#9fe0ff',vy:1,sz:13}); } } }   // Deep Freeze (Wintercrag) — v268: seeded target
   });
   units.forEach(u=>{ if(!u.alive)return; if(u.glyphRegen) u.hp=Math.min(worldHealCap(u),u.hp+u.maxHp*u.glyphRegen*dt); if(u.energyReg) u.energy=Math.min(100,u.energy+u.energyReg*(u.hasteEnergyMul||1)*dt); }); // glyph HP & energy regen (v247: Haste speeds energy)
@@ -14297,9 +14460,9 @@ function updateBattle(dt){
        feared or silenced. Only the choir sets `channel`; a burning patch outlives its caster by
        design. What has already landed is not taken back - the enemies keep the silence they were
        last given and recover from it normally. It is the RE-APPLICATION that stops. */
-    if(h.arrival){ h.delay-=dt; if(h.delay<=0){ groundHazards.splice(i,1); try{ h.run(); }catch(_e){} } continue; }   /* v886 DELIVERY */
+    if(h.arrival){ h.delay-=dt; if(h.delay<=0){ groundHazards.splice(i,1); try{ sfxRun(h); }catch(_e){} } continue; }   /* v1138: sfxRun = h.run() inside its sound context */   /* v886 DELIVERY */
     if(h.orb){ if(h.done){ groundHazards.splice(i,1); continue; } h.hopT+=dt;   /* v885 Drifting Constellation: heal on arrival, then bounce on */
-      if(h.hopT>=h.hopDur){ const t=h.tgt; if(t&&t.alive){ healFrom(h.owner,t,h.hs); if(h.hot)pushHot(t,t.maxHp*h.hot,h.hotDur,1); burstAt(t.x,t.y,0x8fd8ff,8); h.x=t.x; h.y=t.y; }
+      if(h.hopT>=h.hopDur){ const t=h.tgt; if(SFX.log&&SFX.hz.has(h)&&SFX.hz.get(h).top===h&&!SFX.ar.has(h)){ SFX.ar.add(h); sfxArrive(h.owner,h); } if(t&&t.alive){ healFrom(h.owner,t,h.hs); if(h.hot)pushHot(t,t.maxHp*h.hot,h.hotDur,1); burstAt(t.x,t.y,0x8fd8ff,8); h.x=t.x; h.y=t.y; }
         orbNextHop(h); if(h.done) groundHazards.splice(i,1); }
       continue; }
     if(h.channel){ const o=h.owner;
@@ -27736,7 +27899,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
       _bacc += dt * SIM_HZ * spd * ((CUR.mode==='replay')?1:BATTLE_PACE);
       let n=Math.floor(_bacc); if(n>8)n=8;   // cap-before-subtract: a frame hitch never drops steps
       _bacc-=n;
-      { const _t0=perfMark(); for(let i=0;i<n&&!ended;i++){ if(GSPLIT.active) gsplitStep(SIM_STEP); else updateBattle(SIM_STEP); } if(PERF.on)PERF.sim+=performance.now()-_t0; }
+      { const _t0=perfMark(); SFX.loop=1; try{ for(let i=0;i<n&&!ended;i++){ SFX.left=n-1-i; if(GSPLIT.active) gsplitStep(SIM_STEP); else updateBattle(SIM_STEP); if(SFX.q.length) sfxPump(); } SFX.left=0; sfxFrame(); } finally{ SFX.loop=0; SFX.left=0; } if(PERF.on)PERF.sim+=performance.now()-_t0; }   /* v1138: SFX.loop - a sound plays only from a fight the player is watching */
       if(OL.active&&OL.host){ OL.tick+=dt; if(OL.tick>0.05){OL.tick=0; relay({k:'state',u:units.map(serializeUnit)}); } } }
   }
   else if(state==='battle'&&ended){shots.forEach(s=>s.t+=dt);particles.forEach(p=>{p.t+=dt;});

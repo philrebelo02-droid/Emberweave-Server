@@ -1,0 +1,6533 @@
+{
+ "attack": {
+  "absalie": {
+   "lib": "LIB-ATK-CASTER-WHOOSH",
+   "mapped_by_claude": false
+  },
+  "aldren": {
+   "lib": "LIB-ATK-CASTER-WHOOSH",
+   "mapped_by_claude": false
+  },
+  "ambrel": {
+   "lib": "LIB-ATK-BLUNT",
+   "mapped_by_claude": false
+  },
+  "askel": {
+   "lib": "LIB-ATK-STAFF",
+   "mapped_by_claude": false
+  },
+  "astra": {
+   "lib": "LIB-ATK-CASTER-WHOOSH",
+   "mapped_by_claude": false
+  },
+  "aureth": {
+   "lib": "LIB-ATK-BLADE-LIGHT",
+   "mapped_by_claude": true
+  },
+  "bloatus": {
+   "lib": "LIB-ATK-THRUST",
+   "mapped_by_claude": true
+  },
+  "brannus": {
+   "lib": "LIB-ATK-BLUNT",
+   "mapped_by_claude": true
+  },
+  "calypsa": {
+   "lib": "LIB-ATK-THROWN",
+   "mapped_by_claude": true
+  },
+  "carn": {
+   "lib": "LIB-ATK-BLADE-HEAVY",
+   "mapped_by_claude": false
+  },
+  "ceraline": {
+   "lib": "LIB-ATK-CASTER-WHOOSH",
+   "mapped_by_claude": false
+  },
+  "dandra": {
+   "lib": "LIB-ATK-CASTER-WHOOSH",
+   "mapped_by_claude": false
+  },
+  "deepcleft": {
+   "lib": "LIB-ATK-CLAW",
+   "mapped_by_claude": false
+  },
+  "fritz": {
+   "lib": "LIB-ATK-CASTER-WHOOSH",
+   "mapped_by_claude": false
+  },
+  "grimsby": {
+   "lib": "LIB-ATK-THROWN",
+   "mapped_by_claude": true
+  },
+  "grosk": {
+   "lib": "LIB-ATK-FIST-HEAVY",
+   "mapped_by_claude": false
+  },
+  "gruel": {
+   "lib": "LIB-ATK-BLUNT",
+   "mapped_by_claude": true
+  },
+  "hobb": {
+   "lib": "LIB-ATK-BLUNT",
+   "mapped_by_claude": false
+  },
+  "hollow": {
+   "lib": "LIB-ATK-BLADE-LIGHT",
+   "mapped_by_claude": false
+  },
+  "hurne": {
+   "lib": "LIB-ATK-CLAW",
+   "mapped_by_claude": true
+  },
+  "iver": {
+   "lib": "LIB-ATK-THRUST",
+   "mapped_by_claude": false
+  },
+  "joss": {
+   "lib": "LIB-ATK-BLUNT",
+   "mapped_by_claude": false
+  },
+  "kharos": {
+   "lib": "LIB-ATK-BLADE-LIGHT",
+   "mapped_by_claude": false
+  },
+  "konwu": {
+   "lib": "LIB-ATK-STAFF",
+   "mapped_by_claude": false
+  },
+  "korvux": {
+   "lib": "LIB-ATK-BLADE-HEAVY",
+   "mapped_by_claude": false
+  },
+  "linnet": {
+   "lib": "LIB-ATK-CASTER-WHOOSH",
+   "mapped_by_claude": false
+  },
+  "lumi": {
+   "lib": "LIB-ATK-CASTER-WHOOSH",
+   "mapped_by_claude": false
+  },
+  "lysara": {
+   "lib": "LIB-ATK-CASTER-WHOOSH",
+   "mapped_by_claude": false
+  },
+  "maren": {
+   "lib": "LIB-ATK-CASTER-WHOOSH",
+   "mapped_by_claude": false
+  },
+  "mellan": {
+   "lib": "LIB-ATK-CASTER-WHOOSH",
+   "mapped_by_claude": false
+  },
+  "meridian": {
+   "lib": "LIB-ATK-THROWN",
+   "mapped_by_claude": true
+  },
+  "mirelle": {
+   "lib": "LIB-ATK-CASTER-WHOOSH",
+   "mapped_by_claude": false
+  },
+  "nerisse": {
+   "lib": "LIB-ATK-CASTER-WHOOSH",
+   "mapped_by_claude": false
+  },
+  "nox": {
+   "lib": "LIB-ATK-BLADE-LIGHT",
+   "mapped_by_claude": true
+  },
+  "oakmir": {
+   "lib": "LIB-ATK-CASTER-WHOOSH",
+   "mapped_by_claude": false
+  },
+  "orryn": {
+   "lib": "LIB-ATK-CASTER-WHOOSH",
+   "mapped_by_claude": false
+  },
+  "pellucid": {
+   "lib": "LIB-ATK-FIST-HEAVY",
+   "mapped_by_claude": true
+  },
+  "pyroclast": {
+   "lib": "LIB-ATK-CASTER-WHOOSH",
+   "mapped_by_claude": false
+  },
+  "quorrel": {
+   "lib": "LIB-ATK-BLUNT",
+   "mapped_by_claude": false
+  },
+  "rafe": {
+   "lib": "LIB-ATK-GUN",
+   "mapped_by_claude": false,
+   "melee": "LIB-ATK-BLADE-LIGHT"
+  },
+  "rhukk": {
+   "lib": "LIB-ATK-BLUNT",
+   "mapped_by_claude": true
+  },
+  "rivet": {
+   "lib": "LIB-ATK-GUN",
+   "mapped_by_claude": false
+  },
+  "seyla": {
+   "lib": "LIB-ATK-BLADE-LIGHT",
+   "mapped_by_claude": false
+  },
+  "sloe": {
+   "lib": "LIB-ATK-BOW",
+   "mapped_by_claude": false
+  },
+  "sorrel": {
+   "lib": "LIB-ATK-THROWN",
+   "mapped_by_claude": false
+  },
+  "sylthaine": {
+   "lib": "LIB-ATK-CASTER-WHOOSH",
+   "mapped_by_claude": false
+  },
+  "tessit": {
+   "lib": "LIB-ATK-CASTER-WHOOSH",
+   "mapped_by_claude": false
+  },
+  "tharl": {
+   "lib": "LIB-ATK-FIST-HEAVY",
+   "mapped_by_claude": false
+  },
+  "tick": {
+   "lib": "LIB-ATK-FIST-METAL",
+   "mapped_by_claude": false
+  },
+  "tolley": {
+   "lib": "LIB-ATK-BLUNT",
+   "mapped_by_claude": false
+  },
+  "umbris": {
+   "lib": "LIB-ATK-CASTER-WHOOSH",
+   "mapped_by_claude": false
+  },
+  "vael": {
+   "lib": "LIB-ATK-BLADE-HEAVY",
+   "mapped_by_claude": false
+  },
+  "vaelora": {
+   "lib": "LIB-ATK-CASTER-WHOOSH",
+   "mapped_by_claude": false
+  },
+  "vesper": {
+   "lib": "LIB-ATK-CASTER-WHOOSH",
+   "mapped_by_claude": false
+  },
+  "vex": {
+   "lib": "LIB-ATK-BLADE-LIGHT",
+   "mapped_by_claude": false
+  },
+  "veyr": {
+   "lib": "LIB-ATK-BLADE-LIGHT",
+   "mapped_by_claude": true
+  },
+  "vireo": {
+   "lib": "LIB-ATK-CASTER-WHOOSH",
+   "mapped_by_claude": false
+  },
+  "vulmar": {
+   "lib": "LIB-ATK-CASTER-WHOOSH",
+   "mapped_by_claude": false
+  },
+  "yenna": {
+   "lib": "LIB-ATK-THROWN",
+   "mapped_by_claude": false
+  },
+  "zahri": {
+   "lib": "LIB-ATK-THRUST",
+   "mapped_by_claude": false
+  }
+ },
+ "files": {
+  "LIB-ATK-BLADE-HEAVY": {
+   "bytes": 9943,
+   "ch": 1,
+   "dur": 1.133,
+   "f": "sfx/LIB-ATK-BLADE-HEAVY.m4a?v=1138",
+   "key": "LIB-ATK-BLADE-HEAVY.mp3|None|0.0|False|2.2|16268|1792006014|-16.0|-1.0",
+   "lufs_m": -16.12,
+   "note": "Phil, sword test heavy 5",
+   "offset": 0.0,
+   "peak": 0.2186,
+   "src": "LIB-ATK-BLADE-HEAVY.mp3",
+   "target": -16.0,
+   "tp_db": -1.28
+  },
+  "LIB-ATK-BLADE-LIGHT": {
+   "bytes": 8855,
+   "ch": 1,
+   "dur": 0.9911,
+   "f": "sfx/LIB-ATK-BLADE-LIGHT.m4a?v=1138",
+   "key": "LIB-ATK-BLADE-LIGHT.mp3|None|0.0|False|2.2|12932|1792006014|-16.0|-1.0",
+   "lufs_m": -16.22,
+   "note": "Phil, sword test light 4",
+   "offset": 0.0,
+   "peak": 0.1201,
+   "src": "LIB-ATK-BLADE-LIGHT.mp3",
+   "target": -16.0,
+   "tp_db": -1.18
+  },
+  "LIB-ATK-BLUNT": {
+   "bytes": 11852,
+   "ch": 1,
+   "dur": 1.3269,
+   "f": "sfx/LIB-ATK-BLUNT.m4a?v=1138",
+   "key": "LIB-ATK-BLUNT.mp3|None|0.0|False|2.2|15236|1792006246|-16.0|-1.0",
+   "lufs_m": -16.22,
+   "note": "Phil, attack test blunt_09",
+   "offset": 0.0,
+   "peak": 0.2101,
+   "src": "LIB-ATK-BLUNT.mp3",
+   "target": -16.0,
+   "tp_db": -1.0
+  },
+  "LIB-ATK-BOW": {
+   "bytes": 8667,
+   "ch": 1,
+   "dur": 0.9122,
+   "f": "sfx/LIB-ATK-BOW.m4a?v=1138",
+   "key": "LIB-ATK-BOW.mp3|None|-3.0|False|2.2|18298|1792028590|-16.0|-1.0",
+   "lufs_m": -19.13,
+   "note": "Phil, bow the shot 1",
+   "offset": -3.0,
+   "peak": 0.3732,
+   "src": "LIB-ATK-BOW.mp3",
+   "target": -19.0,
+   "tp_db": -5.42
+  },
+  "LIB-ATK-CASTER-WHOOSH": {
+   "bytes": 17855,
+   "ch": 1,
+   "dur": 2.1088,
+   "f": "sfx/LIB-ATK-CASTER-WHOOSH.m4a?v=1138",
+   "key": "LIB-ATK-CASTER-WHOOSH.mp3|None|-5.0|False|2.2|43565|1792029114|-16.0|-1.0",
+   "lufs_m": -21.11,
+   "note": "Phil, library 132 'magic projectile', 14 Oct",
+   "offset": -5.0,
+   "peak": 0.2477,
+   "src": "LIB-ATK-CASTER-WHOOSH.mp3",
+   "target": -21.0,
+   "tp_db": -6.65
+  },
+  "LIB-ATK-CLAW": {
+   "bytes": 9427,
+   "ch": 1,
+   "dur": 1.0,
+   "f": "sfx/LIB-ATK-CLAW.m4a?v=1138",
+   "key": "LIB-ATK-CLAW.mp3|None|0.0|False|2.2|17179|1792028211|-16.0|-1.0",
+   "lufs_m": -16.18,
+   "note": "Phil, melee takes claw2_03",
+   "offset": 0.0,
+   "peak": 0.1076,
+   "src": "LIB-ATK-CLAW.mp3",
+   "target": -16.0,
+   "tp_db": -1.8
+  },
+  "LIB-ATK-FIST-HEAVY": {
+   "bytes": 9578,
+   "ch": 1,
+   "dur": 1.0252,
+   "f": "sfx/LIB-ATK-FIST-HEAVY.m4a?v=1138",
+   "key": "LIB-ATK-FIST-HEAVY.mp3|None|-3.0|False|2.2|13916|1792006246|-16.0|-1.0",
+   "lufs_m": -19.11,
+   "note": "Phil, attack test fist_01",
+   "offset": -3.0,
+   "peak": 0.0369,
+   "src": "LIB-ATK-FIST-HEAVY.mp3",
+   "target": -19.0,
+   "tp_db": -6.99
+  },
+  "LIB-ATK-FIST-METAL": {
+   "bytes": 9356,
+   "ch": 1,
+   "dur": 1.0,
+   "f": "sfx/LIB-ATK-FIST-METAL.m4a?v=1138",
+   "key": "LIB-ATK-FIST-METAL.mp3|None|0.0|False|2.2|17179|1792028211|-16.0|-1.0",
+   "lufs_m": -16.07,
+   "note": "Phil, melee takes metal2_04",
+   "offset": 0.0,
+   "peak": 0.1789,
+   "src": "LIB-ATK-FIST-METAL.mp3",
+   "target": -16.0,
+   "tp_db": -4.06
+  },
+  "LIB-ATK-GUN": {
+   "bytes": 9418,
+   "ch": 1,
+   "dur": 1.0,
+   "f": "sfx/LIB-ATK-GUN.m4a?v=1138",
+   "key": "LIB-ATK-GUN.mp3|None|0.0|False|2.2|17179|1792028638|-16.0|-1.0",
+   "lufs_m": -16.3,
+   "note": "Phil, gun_04",
+   "offset": 0.0,
+   "peak": 0.0298,
+   "src": "LIB-ATK-GUN.mp3",
+   "target": -16.0,
+   "tp_db": -1.26
+  },
+  "LIB-ATK-STAFF": {
+   "bytes": 3737,
+   "ch": 1,
+   "dur": 0.4129,
+   "f": "sfx/LIB-ATK-STAFF.m4a?v=1138",
+   "key": "LIB-ATK-STAFF.mp3|None|0.0|False|2.2|4268|1792006246|-16.0|-1.0",
+   "lufs_m": -16.69,
+   "note": "Phil, attack test staff_04",
+   "offset": 0.0,
+   "peak": 0.0479,
+   "src": "LIB-ATK-STAFF.mp3",
+   "target": -16.0,
+   "tp_db": -1.42
+  },
+  "LIB-ATK-THROWN": {
+   "bytes": 4404,
+   "ch": 1,
+   "dur": 0.3885,
+   "f": "sfx/LIB-ATK-THROWN.m4a?v=1138",
+   "key": "LIB-ATK-THROWN.mp3|None|0.0|False|2.2|4556|1792006246|-16.0|-1.0",
+   "lufs_m": -16.64,
+   "note": "Phil, attack test thrown_01",
+   "offset": 0.0,
+   "peak": 0.0758,
+   "src": "LIB-ATK-THROWN.mp3",
+   "target": -16.0,
+   "tp_db": -1.14
+  },
+  "LIB-ATK-THRUST": {
+   "bytes": 9354,
+   "ch": 1,
+   "dur": 1.0,
+   "f": "sfx/LIB-ATK-THRUST.m4a?v=1138",
+   "key": "LIB-ATK-THRUST.mp3|None|-3.0|False|2.2|15033|1792028692|-16.0|-1.0",
+   "lufs_m": -19.1,
+   "note": "Phil, melee takes thrust_01",
+   "offset": -3.0,
+   "peak": 0.0709,
+   "src": "LIB-ATK-THRUST.mp3",
+   "target": -19.0,
+   "tp_db": -8.0
+  },
+  "NEW-askel-passive": {
+   "bytes": 22567,
+   "ch": 1,
+   "dur": 2.5806,
+   "f": "sfx/NEW-askel-passive.m4a?v=1138",
+   "key": "RPG3_MagicCute2_Heal01.wav|None|0.0|False|6.5|760632|1792015685|-16.0|-1.0",
+   "lufs_m": -16.21,
+   "note": "Phil pick 14 Oct",
+   "offset": 0.0,
+   "peak": 0.3547,
+   "src": "RPG3_MagicCute2_Heal01.wav",
+   "target": -16.0,
+   "tp_db": -3.96
+  },
+  "NEW-brannus-passive": {
+   "bytes": 10761,
+   "ch": 1,
+   "dur": 1.1378,
+   "f": "sfx/NEW-brannus-passive.m4a?v=1138",
+   "key": "RPG3_ElectricMagic_Buff01.wav|None|0.0|False|6.5|345242|1792015684|-16.0|-1.0",
+   "lufs_m": -16.01,
+   "note": "Phil pick 14 Oct",
+   "offset": 0.0,
+   "peak": 0.1816,
+   "src": "RPG3_ElectricMagic_Buff01.wav",
+   "target": -16.0,
+   "tp_db": -4.34
+  },
+  "NEW-veyr-passive": {
+   "bytes": 11340,
+   "ch": 1,
+   "dur": 1.3198,
+   "f": "sfx/NEW-veyr-passive.m4a?v=1138",
+   "key": "RPG3_Magic_LowWhoosh02.wav|None|0.0|False|6.5|400404|1792015685|-16.0|-1.0",
+   "lufs_m": -16.03,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.4714,
+   "src": "RPG3_Magic_LowWhoosh02.wav",
+   "target": -16.0,
+   "tp_db": -2.33
+  },
+  "S0003": {
+   "bytes": 19304,
+   "ch": 1,
+   "dur": 2.1691,
+   "f": "sfx/S0003.m4a?v=1138",
+   "key": "RPG3_WindMagic_Impact01v2_Short.wav|None|0.0|False|6.5|648808|1792015688|-16.0|-1.0",
+   "lufs_m": -16.11,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.2036,
+   "src": "RPG3_WindMagic_Impact01v2_Short.wav",
+   "target": -16.0,
+   "tp_db": -4.6
+  },
+  "S0005": {
+   "bytes": 8967,
+   "ch": 1,
+   "dur": 0.92,
+   "f": "sfx/S0005.m4a?v=1138",
+   "key": "RPG3_GenericPunch_Impact02.wav|None|0.0|False|6.5|281966|1792015685|-16.0|-1.0",
+   "lufs_m": -16.31,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.0331,
+   "src": "RPG3_GenericPunch_Impact02.wav",
+   "target": -16.0,
+   "tp_db": -1.03
+  },
+  "S0008": {
+   "bytes": 43345,
+   "ch": 2,
+   "dur": 3.4441,
+   "f": "sfx/S0008.m4a?v=1138",
+   "key": "RPG3_WindMagic_Cast03_FULL.wav|None|0.0|True|6.5|1015100|1792015688|-16.0|-1.0",
+   "lufs_m": -15.96,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.9377,
+   "src": "RPG3_WindMagic_Cast03_FULL.wav",
+   "target": -16.0,
+   "tp_db": -5.76
+  },
+  "S0009": {
+   "bytes": 20967,
+   "ch": 2,
+   "dur": 1.6,
+   "f": "sfx/S0009.m4a?v=1138",
+   "key": "RPG3_Magic2_HeavyImpact04Crit.wav|None|0.0|True|1.6|1235844|1792015685|-16.0|-1.0",
+   "lufs_m": -16.31,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.4028,
+   "src": "RPG3_Magic2_HeavyImpact04Crit.wav",
+   "target": -16.0,
+   "tp_db": -6.75
+  },
+  "S0012": {
+   "bytes": 40237,
+   "ch": 1,
+   "dur": 4.7856,
+   "f": "sfx/S0012.m4a?v=1138",
+   "key": "RPG3_WindMagicMisc_Dark01.wav|None|0.0|False|6.5|1414024|1792015688|-16.0|-1.0",
+   "lufs_m": -16.21,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 1.1162,
+   "src": "RPG3_WindMagicMisc_Dark01.wav",
+   "target": -16.0,
+   "tp_db": -1.22
+  },
+  "S0014": {
+   "bytes": 11046,
+   "ch": 1,
+   "dur": 1.2,
+   "f": "sfx/S0014.m4a?v=1138",
+   "key": "GROSK-HAMMER-FISTS.mp3|None|0.0|False|1.6|15788|1792029840|-16.0|-1.0",
+   "lufs_m": -16.03,
+   "note": "Phil 14 Oct, Grosk Hammer Fists option 3 ('there we go')",
+   "offset": 0.0,
+   "peak": 0.0181,
+   "src": "GROSK-HAMMER-FISTS.mp3",
+   "target": -16.0,
+   "tp_db": -3.96
+  },
+  "S0015": {
+   "bytes": 30786,
+   "ch": 2,
+   "dur": 2.4886,
+   "f": "sfx/S0015.m4a?v=1138",
+   "key": "RPG3_Magic_LowWhoosh04.wav|None|0.0|True|6.5|735390|1792015685|-16.0|-1.0",
+   "lufs_m": -16.07,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.0999,
+   "src": "RPG3_Magic_LowWhoosh04.wav",
+   "target": -16.0,
+   "tp_db": -6.95
+  },
+  "S0016": {
+   "bytes": 60291,
+   "ch": 2,
+   "dur": 5.0224,
+   "f": "sfx/S0016.m4a?v=1138",
+   "key": "RPG3_DarkMagic3_HeavyImpact04.wav|None|0.0|True|6.5|1477878|1792015683|-16.0|-1.0",
+   "lufs_m": -16.05,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.9682,
+   "src": "RPG3_DarkMagic3_HeavyImpact04.wav",
+   "target": -16.0,
+   "tp_db": -6.8
+  },
+  "S0021": {
+   "bytes": 29187,
+   "ch": 1,
+   "dur": 3.4255,
+   "f": "sfx/S0021.m4a?v=1138",
+   "key": "vulmar_S0021.mp3|None|0.0|False|6.5|54596|1792033931|-16.0|-1.0",
+   "lufs_m": -16.04,
+   "note": "Phil KEPT 15 Oct (round 3, reuse + adjust)",
+   "offset": 0.0,
+   "peak": 0.4093,
+   "src": "vulmar_S0021.mp3",
+   "target": -16.0,
+   "tp_db": -3.3
+  },
+  "S0024": {
+   "bytes": 39022,
+   "ch": 1,
+   "dur": 4.5998,
+   "f": "sfx/S0024.m4a?v=1138",
+   "key": "RPG3_DarkMagic_Summon01.wav|None|0.0|False|6.5|1341984|1792015683|-16.0|-1.0",
+   "lufs_m": -16.06,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.5262,
+   "src": "RPG3_DarkMagic_Summon01.wav",
+   "target": -16.0,
+   "tp_db": -1.54
+  },
+  "S0027": {
+   "bytes": 52372,
+   "ch": 2,
+   "dur": 4.1807,
+   "f": "sfx/S0027.m4a?v=1138",
+   "key": "RPG3_Magic_Charge01v3_Long.wav|None|0.0|True|6.5|1223146|1792015685|-16.0|-1.0",
+   "lufs_m": -16.15,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 1.1854,
+   "src": "RPG3_Magic_Charge01v3_Long.wav",
+   "target": -16.0,
+   "tp_db": -5.09
+  },
+  "S0029": {
+   "bytes": 43176,
+   "ch": 2,
+   "dur": 3.4926,
+   "f": "sfx/S0029.m4a?v=1138",
+   "key": "RPG3_DarkMagic3_HeavyImpact03.wav|None|0.0|True|6.5|1024198|1792015683|-16.0|-1.0",
+   "lufs_m": -16.07,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 1.0852,
+   "src": "RPG3_DarkMagic3_HeavyImpact03.wav",
+   "target": -16.0,
+   "tp_db": -8.06
+  },
+  "S0032": {
+   "bytes": 19468,
+   "ch": 1,
+   "dur": 2.1869,
+   "f": "sfx/S0032.m4a?v=1138",
+   "key": "RPG3_ElectricMagicEpic_Buffv2.wav|None|0.0|False|6.5|647266|1792015684|-16.0|-1.0",
+   "lufs_m": -16.18,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.5329,
+   "src": "RPG3_ElectricMagicEpic_Buffv2.wav",
+   "target": -16.0,
+   "tp_db": -2.58
+  },
+  "S0034": {
+   "bytes": 16250,
+   "ch": 1,
+   "dur": 1.7947,
+   "f": "sfx/S0034.m4a?v=1138",
+   "key": "tick_S0034.mp3|None|0.0|False|6.5|40167|1792033930|-16.0|-1.0",
+   "lufs_m": -16.06,
+   "note": "Phil KEPT 15 Oct (round 3, reuse + adjust)",
+   "offset": 0.0,
+   "peak": 0.0319,
+   "peak_from": "first hit of 9 loud moments 0.03,0.45,0.66,0.77,0.85,0.94,1.24,1.35",
+   "src": "tick_S0034.mp3",
+   "target": -16.0,
+   "tp_db": -3.52
+  },
+  "S0035": {
+   "bytes": 58926,
+   "ch": 2,
+   "dur": 4.7321,
+   "f": "sfx/S0035.m4a?v=1138",
+   "key": "RPG3_ElectricMagicDark_ChargeSpell.wav|None|0.0|True|6.5|1388346|1792015684|-16.0|-1.0",
+   "lufs_m": -16.16,
+   "note": "Phil KEPT 15 Oct (redo round 1)",
+   "offset": 0.0,
+   "peak": 1.6925,
+   "src": "RPG3_ElectricMagicDark_ChargeSpell.wav",
+   "target": -16.0,
+   "tp_db": -7.02
+  },
+  "S0043": {
+   "bytes": 30582,
+   "ch": 1,
+   "dur": 3.5401,
+   "f": "sfx/S0043.m4a?v=1138",
+   "key": "RPG3_IceMagicEpic_Impact02.wav|None|0.0|False|6.5|1037046|1792015686|-16.0|-1.0",
+   "lufs_m": -16.16,
+   "note": "Phil KEPT 15 Oct (redo round 1)",
+   "offset": 0.0,
+   "peak": 0.4808,
+   "src": "RPG3_IceMagicEpic_Impact02.wav",
+   "target": -16.0,
+   "tp_db": -5.55
+  },
+  "S0044": {
+   "bytes": 33864,
+   "ch": 1,
+   "dur": 3.9722,
+   "f": "sfx/S0044.m4a?v=1138",
+   "key": "RPG3_IceMagic_FreezeMedium01.wav|None|0.0|False|6.5|1190678|1792015686|-16.0|-1.0",
+   "lufs_m": -16.28,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.3896,
+   "src": "RPG3_IceMagic_FreezeMedium01.wav",
+   "target": -16.0,
+   "tp_db": -5.85
+  },
+  "S0046": {
+   "bytes": 61899,
+   "ch": 2,
+   "dur": 4.9939,
+   "f": "sfx/S0046.m4a?v=1138",
+   "key": "sylthaine_S0046.mp3|None|0.0|True|6.5|116134|1792034564|-16.0|-1.0",
+   "lufs_m": -16.24,
+   "note": "Phil KEPT 15 Oct (round 4)",
+   "offset": 0.0,
+   "peak": 0.4117,
+   "src": "sylthaine_S0046.mp3",
+   "target": -16.0,
+   "tp_db": -6.82
+  },
+  "S0051": {
+   "bytes": 30819,
+   "ch": 1,
+   "dur": 3.6054,
+   "f": "sfx/S0051.m4a?v=1138",
+   "key": "RPG3_LightMagicEpic_Impact01.wav|None|0.0|False|6.5|1055990|1792015686|-16.0|-1.0",
+   "lufs_m": -16.22,
+   "note": "Phil pick 14 Oct",
+   "offset": 0.0,
+   "peak": 0.275,
+   "src": "RPG3_LightMagicEpic_Impact01.wav",
+   "target": -16.0,
+   "tp_db": -2.94
+  },
+  "S0053": {
+   "bytes": 29029,
+   "ch": 1,
+   "dur": 3.4443,
+   "f": "sfx/S0053.m4a?v=1138",
+   "key": "RPG3_DarkMagic5_Cast01.wav|None|0.0|False|6.5|1020658|1792015684|-16.0|-1.0",
+   "lufs_m": -16.03,
+   "note": "Phil pick 14 Oct",
+   "offset": 0.0,
+   "peak": 0.3427,
+   "src": "RPG3_DarkMagic5_Cast01.wav",
+   "target": -16.0,
+   "tp_db": -1.98
+  },
+  "S0054": {
+   "bytes": 69122,
+   "ch": 2,
+   "dur": 5.5629,
+   "f": "sfx/S0054.m4a?v=1138",
+   "key": "RPG3_LightMagic4_FULL.wav|None|0.0|True|6.5|1619710|1792015686|-16.0|-1.0",
+   "lufs_m": -15.96,
+   "note": "Phil pick 14 Oct",
+   "offset": 0.0,
+   "peak": 2.9882,
+   "src": "RPG3_LightMagic4_FULL.wav",
+   "target": -16.0,
+   "tp_db": -3.71
+  },
+  "S0060": {
+   "bytes": 17212,
+   "ch": 1,
+   "dur": 1.907,
+   "f": "sfx/S0060.m4a?v=1138",
+   "key": "RPG3_FireMagicFlameThrower_P1_Start.wav|None|0.0|False|6.5|570618|1792015685|-16.0|-1.0",
+   "lufs_m": -16.1,
+   "note": "Phil pick 14 Oct",
+   "offset": 0.0,
+   "peak": 0.4812,
+   "src": "RPG3_FireMagicFlameThrower_P1_Start.wav",
+   "target": -16.0,
+   "tp_db": -3.75
+  },
+  "S0063": {
+   "bytes": 19313,
+   "ch": 1,
+   "dur": 2.4619,
+   "f": "sfx/S0063.m4a?v=1138",
+   "key": "RPG3_DarkMagicEpic_SlowMo_End.wav|None|0.0|False|6.5|727676|1792015683|-16.0|-1.0",
+   "lufs_m": -16.0,
+   "note": "Phil pick 14 Oct",
+   "offset": 0.0,
+   "peak": 0.4795,
+   "src": "RPG3_DarkMagicEpic_SlowMo_End.wav",
+   "target": -16.0,
+   "tp_db": -3.37
+  },
+  "S0065": {
+   "bytes": 48294,
+   "ch": 2,
+   "dur": 3.9331,
+   "f": "sfx/S0065.m4a?v=1138",
+   "key": "RPG3_DarkMagicEpic2_P5_ImpactSpawn.wav|None|0.0|True|6.5|1157052|1792015683|-16.0|-1.0",
+   "lufs_m": -16.06,
+   "note": "Phil pick 14 Oct",
+   "offset": 0.0,
+   "peak": 0.0807,
+   "src": "RPG3_DarkMagicEpic2_P5_ImpactSpawn.wav",
+   "target": -16.0,
+   "tp_db": -7.59
+  },
+  "S0068": {
+   "bytes": 22558,
+   "ch": 1,
+   "dur": 2.6703,
+   "f": "sfx/S0068.m4a?v=1138",
+   "key": "RPG3_DarkMagic3_LightImpact01.wav|None|0.0|False|6.5|786120|1792015684|-16.0|-1.0",
+   "lufs_m": -16.03,
+   "note": "Phil pick 14 Oct",
+   "offset": 0.0,
+   "peak": 0.4322,
+   "src": "RPG3_DarkMagic3_LightImpact01.wav",
+   "target": -16.0,
+   "tp_db": -3.87
+  },
+  "S0072": {
+   "bytes": 31474,
+   "ch": 1,
+   "dur": 3.6573,
+   "f": "sfx/S0072.m4a?v=1138",
+   "key": "RPG3_LightMagic_Buff03_P2.wav|None|0.0|False|6.5|1074270|1792015686|-16.0|-1.0",
+   "lufs_m": -16.24,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.6818,
+   "src": "RPG3_LightMagic_Buff03_P2.wav",
+   "target": -16.0,
+   "tp_db": -4.23
+  },
+  "S0074": {
+   "bytes": 37989,
+   "ch": 1,
+   "dur": 4.4707,
+   "f": "sfx/S0074.m4a?v=1138",
+   "key": "RPG3_LightMagic_Buff03_FULL.wav|None|0.0|False|6.5|1313208|1792015686|-16.0|-1.0",
+   "lufs_m": -16.1,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 2.4988,
+   "src": "RPG3_LightMagic_Buff03_FULL.wav",
+   "target": -16.0,
+   "tp_db": -5.39
+  },
+  "S0076": {
+   "bytes": 62369,
+   "ch": 2,
+   "dur": 5.0,
+   "f": "sfx/S0076.m4a?v=1138",
+   "key": "RPG3_LightMagicEpic_HealingWing_FULL.wav|5.0|0.0|True|6.5|2724128|1792015686|-16.0|-1.0",
+   "lufs_m": -16.18,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 2.599,
+   "src": "RPG3_LightMagicEpic_HealingWing_FULL.wav",
+   "target": -16.0,
+   "tp_db": -5.9
+  },
+  "S0081": {
+   "bytes": 14539,
+   "ch": 1,
+   "dur": 1.6,
+   "f": "sfx/S0081.m4a?v=1138",
+   "key": "RPG3_ElectricMagic4_Impact03_Long.wav|None|0.0|False|1.6|1660940|1792015684|-16.0|-1.0",
+   "lufs_m": -16.06,
+   "note": "Phil pick 14 Oct",
+   "offset": 0.0,
+   "peak": 1.4859,
+   "src": "RPG3_ElectricMagic4_Impact03_Long.wav",
+   "target": -16.0,
+   "tp_db": -4.61
+  },
+  "S0083": {
+   "bytes": 14527,
+   "ch": 1,
+   "dur": 1.6,
+   "f": "sfx/S0083.m4a?v=1138",
+   "key": "RPG3_ElectricMagic_LightningBall.wav|None|0.0|False|1.6|1111124|1792015684|-16.0|-1.0",
+   "lufs_m": -16.03,
+   "note": "Phil pick 14 Oct",
+   "offset": 0.0,
+   "peak": 0.9335,
+   "src": "RPG3_ElectricMagic_LightningBall.wav",
+   "target": -16.0,
+   "tp_db": -2.62
+  },
+  "S0084": {
+   "bytes": 80555,
+   "ch": 2,
+   "dur": 6.5,
+   "f": "sfx/S0084.m4a?v=1138",
+   "key": "RPG3_ElectricMagicMisc_Thunder03_LongTail.wav|None|0.0|True|6.5|2321508|1792015684|-16.0|-1.0",
+   "lufs_m": -16.12,
+   "note": "Phil pick 14 Oct",
+   "offset": 0.0,
+   "peak": 1.7445,
+   "src": "RPG3_ElectricMagicMisc_Thunder03_LongTail.wav",
+   "target": -16.0,
+   "tp_db": -6.91
+  },
+  "S0091": {
+   "bytes": 29525,
+   "ch": 1,
+   "dur": 3.5728,
+   "f": "sfx/S0091.m4a?v=1138",
+   "key": "RPG3_DarkMagic3_LightImpact02.wav|None|0.0|False|6.5|1052444|1792015684|-16.0|-1.0",
+   "lufs_m": -16.08,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.1072,
+   "src": "RPG3_DarkMagic3_LightImpact02.wav",
+   "target": -16.0,
+   "tp_db": -3.6
+  },
+  "S0093": {
+   "bytes": 32044,
+   "ch": 1,
+   "dur": 3.7898,
+   "f": "sfx/S0093.m4a?v=1138",
+   "key": "RPG3_DarkMagic_DebuffVoices01.wav|None|0.0|False|6.5|1110970|1792015683|-16.0|-1.0",
+   "lufs_m": -16.11,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 1.2698,
+   "src": "RPG3_DarkMagic_DebuffVoices01.wav",
+   "target": -16.0,
+   "tp_db": -3.31
+  },
+  "S0095": {
+   "bytes": 34901,
+   "ch": 2,
+   "dur": 2.747,
+   "f": "sfx/S0095.m4a?v=1138",
+   "key": "RPG3_DarkMagicEpic2_P1_Cast_v2.wav|None|0.0|True|6.5|819086|1792015684|-16.0|-1.0",
+   "lufs_m": -16.1,
+   "note": "Phil KEPT 15 Oct (redo round 1)",
+   "offset": 0.0,
+   "peak": 0.2235,
+   "src": "RPG3_DarkMagicEpic2_P1_Cast_v2.wav",
+   "target": -16.0,
+   "tp_db": -4.95
+  },
+  "S0096": {
+   "bytes": 50668,
+   "ch": 2,
+   "dur": 4.0862,
+   "f": "sfx/S0096.m4a?v=1138",
+   "key": "RPG3_DarkMagicEpic_Impact03v2.wav|None|0.0|True|6.5|1195140|1792015684|-16.0|-1.0",
+   "lufs_m": -16.09,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.263,
+   "src": "RPG3_DarkMagicEpic_Impact03v2.wav",
+   "target": -16.0,
+   "tp_db": -6.47
+  },
+  "S0098": {
+   "bytes": 20592,
+   "ch": 1,
+   "dur": 2.368,
+   "f": "sfx/S0098.m4a?v=1138",
+   "key": "RPG3_DarkMagic3_LightImpactCrit01.wav|None|0.0|False|6.5|703728|1792015683|-16.0|-1.0",
+   "lufs_m": -16.08,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.4199,
+   "src": "RPG3_DarkMagic3_LightImpactCrit01.wav",
+   "target": -16.0,
+   "tp_db": -3.26
+  },
+  "S0101": {
+   "bytes": 25977,
+   "ch": 1,
+   "dur": 2.9811,
+   "f": "sfx/S0101.m4a?v=1138",
+   "key": "vael_S0101.mp3|None|0.0|False|6.5|63096|1792033931|-16.0|-1.0",
+   "lufs_m": -16.04,
+   "note": "Phil KEPT 15 Oct (round 3, reuse + adjust)",
+   "offset": 0.0,
+   "peak": 1.2426,
+   "src": "vael_S0101.mp3",
+   "target": -16.0,
+   "tp_db": -5.05
+  },
+  "S0102": {
+   "bytes": 17879,
+   "ch": 1,
+   "dur": 2.0125,
+   "f": "sfx/S0102.m4a?v=1138",
+   "key": "RPG3_DarkMagic5_Cast02.wav|None|0.0|False|6.5|604778|1792015684|-16.0|-1.0",
+   "lufs_m": -16.06,
+   "note": "Phil KEPT 15 Oct (redo round 1)",
+   "offset": 0.0,
+   "peak": 0.9767,
+   "src": "RPG3_DarkMagic5_Cast02.wav",
+   "target": -16.0,
+   "tp_db": -4.0
+  },
+  "S0104": {
+   "bytes": 50078,
+   "ch": 2,
+   "dur": 4.0323,
+   "f": "sfx/S0104.m4a?v=1138",
+   "key": "RPG3_DarkMagic2_TonalImpact03.wav|None|0.0|True|6.5|1185572|1792015683|-16.0|-1.0",
+   "lufs_m": -16.1,
+   "note": "Phil KEPT 15 Oct (redo round 1)",
+   "offset": 0.0,
+   "peak": 0.3107,
+   "src": "RPG3_DarkMagic2_TonalImpact03.wav",
+   "target": -16.0,
+   "tp_db": -5.35
+  },
+  "S0109": {
+   "bytes": 24099,
+   "ch": 1,
+   "dur": 2.7786,
+   "f": "sfx/S0109.m4a?v=1138",
+   "key": "RPG3_MagicCute2_Heal02.wav|None|0.0|False|6.5|817644|1792015685|-16.0|-1.0",
+   "lufs_m": -16.18,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.4005,
+   "src": "RPG3_MagicCute2_Heal02.wav",
+   "target": -16.0,
+   "tp_db": -5.78
+  },
+  "S0111": {
+   "bytes": 29004,
+   "ch": 1,
+   "dur": 3.361,
+   "f": "sfx/S0111.m4a?v=1138",
+   "key": "RPG3_LightMagicEpic_Heal02.wav|None|0.0|False|6.5|987638|1792015686|-16.0|-1.0",
+   "lufs_m": -16.02,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.5226,
+   "src": "RPG3_LightMagicEpic_Heal02.wav",
+   "target": -16.0,
+   "tp_db": -3.53
+  },
+  "S0113": {
+   "bytes": 60348,
+   "ch": 2,
+   "dur": 4.8663,
+   "f": "sfx/S0113.m4a?v=1138",
+   "key": "oakmir_S0113.mp3|None|0.0|True|6.5|108064|1792033930|-16.0|-1.0",
+   "lufs_m": -16.01,
+   "note": "Phil KEPT 15 Oct (round 3, reuse + adjust)",
+   "offset": 0.0,
+   "peak": 1.8509,
+   "src": "oakmir_S0113.mp3",
+   "target": -16.0,
+   "tp_db": -11.18
+  },
+  "S0115": {
+   "bytes": 21899,
+   "ch": 1,
+   "dur": 2.5459,
+   "f": "sfx/S0115.m4a?v=1138",
+   "key": "RPG3_MagicShimmer_Buff02.wav|None|0.0|False|6.5|750962|1792015685|-16.0|-1.0",
+   "lufs_m": -16.04,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.1312,
+   "src": "RPG3_MagicShimmer_Buff02.wav",
+   "target": -16.0,
+   "tp_db": -5.18
+  },
+  "S0118": {
+   "bytes": 19500,
+   "ch": 1,
+   "dur": 2.2009,
+   "f": "sfx/S0118.m4a?v=1138",
+   "key": "RPG3_Magic_Buff01.wav|None|0.0|False|6.5|683798|1792015685|-16.0|-1.0",
+   "lufs_m": -16.4,
+   "note": "Phil KEPT 15 Oct (redo round 1)",
+   "offset": 0.0,
+   "peak": 0.4525,
+   "src": "RPG3_Magic_Buff01.wav",
+   "target": -16.0,
+   "tp_db": -4.7
+  },
+  "S0119": {
+   "bytes": 46602,
+   "ch": 1,
+   "dur": 5.7419,
+   "f": "sfx/S0119.m4a?v=1138",
+   "key": "RPG3_DarkMagicEpic_MonsterRoar01.wav|None|0.0|False|6.5|1686092|1792015683|-16.0|-1.0",
+   "lufs_m": -16.01,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 1.1153,
+   "src": "RPG3_DarkMagicEpic_MonsterRoar01.wav",
+   "target": -16.0,
+   "tp_db": -3.42
+  },
+  "S0121": {
+   "bytes": 13244,
+   "ch": 2,
+   "dur": 0.9936,
+   "f": "sfx/S0121.m4a?v=1138",
+   "key": "rhukk_S0121.mp3|None|0.0|True|6.5|24783|1792034735|-16.0|-1.0",
+   "lufs_m": -16.03,
+   "note": "Phil KEPT 15 Oct (round 5)",
+   "offset": 0.0,
+   "peak": 0.7055,
+   "src": "rhukk_S0121.mp3",
+   "target": -16.0,
+   "tp_db": -8.65
+  },
+  "S0122": {
+   "bytes": 29087,
+   "ch": 2,
+   "dur": 2.2762,
+   "f": "sfx/S0122.m4a?v=1138",
+   "key": "RPG3_GenericCannon_Impact03.wav|None|0.0|True|6.5|672734|1792015685|-16.0|-1.0",
+   "lufs_m": -16.16,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.0692,
+   "src": "RPG3_GenericCannon_Impact03.wav",
+   "target": -16.0,
+   "tp_db": -6.64
+  },
+  "S0126": {
+   "bytes": 51430,
+   "ch": 1,
+   "dur": 6.3623,
+   "f": "sfx/S0126.m4a?v=1138",
+   "key": "RPG3_DarkMagicEpic2_P4_SummonGhoul.wav|None|0.0|False|6.5|1851424|1792015683|-16.0|-1.0",
+   "lufs_m": -16.03,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 1.422,
+   "src": "RPG3_DarkMagicEpic2_P4_SummonGhoul.wav",
+   "target": -16.0,
+   "tp_db": -5.71
+  },
+  "S0128": {
+   "bytes": 24425,
+   "ch": 1,
+   "dur": 2.8864,
+   "f": "sfx/S0128.m4a?v=1138",
+   "key": "RPG3_DarkMagic_Summon02.wav|None|0.0|False|6.5|849042|1792015683|-16.0|-1.0",
+   "lufs_m": -16.04,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 1.8516,
+   "src": "RPG3_DarkMagic_Summon02.wav",
+   "target": -16.0,
+   "tp_db": -2.27
+  },
+  "S0129": {
+   "bytes": 62776,
+   "ch": 2,
+   "dur": 5.0851,
+   "f": "sfx/S0129.m4a?v=1138",
+   "key": "RPG3_DarkMagicEpic2_P3_LongCast.wav|None|0.0|True|6.5|1485294|1792015683|-16.0|-1.0",
+   "lufs_m": -15.99,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 1.8215,
+   "src": "RPG3_DarkMagicEpic2_P3_LongCast.wav",
+   "target": -16.0,
+   "tp_db": -6.97
+  },
+  "S0130": {
+   "bytes": 57580,
+   "ch": 2,
+   "dur": 4.6136,
+   "f": "sfx/S0130.m4a?v=1138",
+   "key": "RPG3_DarkMagicEpic_Impact03.wav|None|0.0|True|6.5|1354144|1792015683|-16.0|-1.0",
+   "lufs_m": -16.07,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.2873,
+   "src": "RPG3_DarkMagicEpic_Impact03.wav",
+   "target": -16.0,
+   "tp_db": -6.78
+  },
+  "S0134": {
+   "bytes": 11791,
+   "ch": 1,
+   "dur": 1.2587,
+   "f": "sfx/S0134.m4a?v=1138",
+   "key": "RPG3_LightMagic3_Projectile02.wav|None|0.0|False|6.5|380330|1792015686|-16.0|-1.0",
+   "lufs_m": -15.99,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.1928,
+   "src": "RPG3_LightMagic3_Projectile02.wav",
+   "target": -16.0,
+   "tp_db": -2.75
+  },
+  "S0136": {
+   "bytes": 7545,
+   "ch": 1,
+   "dur": 0.9167,
+   "f": "sfx/S0136.m4a?v=1138",
+   "key": "RPG3_PlasmaMagicBeam2_Shoot01.wav|None|0.0|False|6.5|282462|1792015687|-16.0|-1.0",
+   "lufs_m": -16.14,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.064,
+   "src": "RPG3_PlasmaMagicBeam2_Shoot01.wav",
+   "target": -16.0,
+   "tp_db": -1.49
+  },
+  "S0138": {
+   "bytes": 67641,
+   "ch": 2,
+   "dur": 5.4688,
+   "f": "sfx/S0138.m4a?v=1138",
+   "key": "RPG3_DarkMagic4_FULL.wav|None|0.0|True|6.5|1595296|1792015683|-16.0|-1.0",
+   "lufs_m": -16.23,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.2301,
+   "src": "RPG3_DarkMagic4_FULL.wav",
+   "target": -16.0,
+   "tp_db": -8.3
+  },
+  "S0143": {
+   "bytes": 17774,
+   "ch": 1,
+   "dur": 1.9837,
+   "f": "sfx/S0143.m4a?v=1138",
+   "key": "RPG3_WindMagic_MediumImpact04_Crit.wav|None|0.0|False|6.5|588778|1792015688|-16.0|-1.0",
+   "lufs_m": -16.18,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.0527,
+   "src": "RPG3_WindMagic_MediumImpact04_Crit.wav",
+   "target": -16.0,
+   "tp_db": -2.26
+  },
+  "S0145": {
+   "bytes": 25988,
+   "ch": 1,
+   "dur": 3.0348,
+   "f": "sfx/S0145.m4a?v=1138",
+   "key": "RPG3_DarkMagic_Buff01.wav|None|0.0|False|6.5|898516|1792015684|-16.0|-1.0",
+   "lufs_m": -16.17,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.3254,
+   "src": "RPG3_DarkMagic_Buff01.wav",
+   "target": -16.0,
+   "tp_db": -1.14
+  },
+  "S0146": {
+   "bytes": 55791,
+   "ch": 2,
+   "dur": 4.4907,
+   "f": "sfx/S0146.m4a?v=1138",
+   "key": "RPG3_DarkMagicEpic_Impact01.wav|None|0.0|True|6.5|1310598|1792015684|-16.0|-1.0",
+   "lufs_m": -16.18,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.4148,
+   "src": "RPG3_DarkMagicEpic_Impact01.wav",
+   "target": -16.0,
+   "tp_db": -5.8
+  },
+  "S0152": {
+   "bytes": 31163,
+   "ch": 1,
+   "dur": 3.6482,
+   "f": "sfx/S0152.m4a?v=1138",
+   "key": "RPG3_FireMagic_Explosion01.wav|None|0.0|False|6.5|1068014|1792015684|-16.0|-1.0",
+   "lufs_m": -16.09,
+   "note": "Phil pick 14 Oct",
+   "offset": 0.0,
+   "peak": 0.1596,
+   "src": "RPG3_FireMagic_Explosion01.wav",
+   "target": -16.0,
+   "tp_db": -5.59
+  },
+  "S0154": {
+   "bytes": 19449,
+   "ch": 1,
+   "dur": 2.2,
+   "f": "sfx/S0154.m4a?v=1138",
+   "key": "RPG3_FireMagic_Cast01.wav|None|0.0|False|6.5|651116|1792015685|-16.0|-1.0",
+   "lufs_m": -16.12,
+   "note": "Phil pick 14 Oct",
+   "offset": 0.0,
+   "peak": 0.3302,
+   "src": "RPG3_FireMagic_Cast01.wav",
+   "target": -16.0,
+   "tp_db": -3.27
+  },
+  "S0156": {
+   "bytes": 69490,
+   "ch": 2,
+   "dur": 5.6571,
+   "f": "sfx/S0156.m4a?v=1138",
+   "key": "RPG3_PlasmaMagicEpic2_FULL.wav|None|0.0|True|6.5|1657166|1792015687|-16.0|-1.0",
+   "lufs_m": -16.23,
+   "note": "Phil pick 14 Oct",
+   "offset": 0.0,
+   "peak": 2.5368,
+   "src": "RPG3_PlasmaMagicEpic2_FULL.wav",
+   "target": -16.0,
+   "tp_db": -6.09
+  },
+  "S0162": {
+   "bytes": 29625,
+   "ch": 1,
+   "dur": 3.4441,
+   "f": "sfx/S0162.m4a?v=1138",
+   "key": "quorrel_S0162.mp3|None|0.0|False|6.5|66009|1792033930|-16.0|-1.0",
+   "lufs_m": -16.05,
+   "note": "Phil KEPT 15 Oct (round 3, reuse + adjust)",
+   "offset": 0.0,
+   "peak": 0.3989,
+   "src": "quorrel_S0162.mp3",
+   "target": -16.0,
+   "tp_db": -4.56
+  },
+  "S0164": {
+   "bytes": 14325,
+   "ch": 1,
+   "dur": 1.5629,
+   "f": "sfx/S0164.m4a?v=1138",
+   "key": "RPG3_GenericCannon_LowImpact01.wav|None|0.0|False|6.5|467322|1792015685|-16.0|-1.0",
+   "lufs_m": -16.04,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.0301,
+   "src": "RPG3_GenericCannon_LowImpact01.wav",
+   "target": -16.0,
+   "tp_db": -3.8
+  },
+  "S0165": {
+   "bytes": 21459,
+   "ch": 2,
+   "dur": 1.6435,
+   "f": "sfx/S0165.m4a?v=1138",
+   "key": "quorrel_S0165.mp3|None|0.0|True|6.5|35871|1792033930|-16.0|-1.0",
+   "lufs_m": -16.12,
+   "note": "Phil KEPT 15 Oct (round 3, reuse + adjust)",
+   "offset": 0.0,
+   "peak": 0.0377,
+   "peak_from": "first hit of 13 loud moments 0.04,0.15,0.26,0.35,0.46,0.55,0.66,0.79",
+   "src": "quorrel_S0165.mp3",
+   "target": -16.0,
+   "tp_db": -8.46
+  },
+  "S0171": {
+   "bytes": 18505,
+   "ch": 1,
+   "dur": 2.0744,
+   "f": "sfx/S0171.m4a?v=1138",
+   "key": "RPG3_FireMagicCannon_Impact03.wav|None|0.0|False|6.5|614818|1792015685|-16.0|-1.0",
+   "lufs_m": -16.06,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.1761,
+   "src": "RPG3_FireMagicCannon_Impact03.wav",
+   "target": -16.0,
+   "tp_db": -1.51
+  },
+  "S0172": {
+   "bytes": 24793,
+   "ch": 1,
+   "dur": 2.8747,
+   "f": "sfx/S0172.m4a?v=1138",
+   "key": "RPG3_FireMagic_Impact01.wav|None|0.0|False|6.5|851690|1792015685|-16.0|-1.0",
+   "lufs_m": -16.08,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.251,
+   "src": "RPG3_FireMagic_Impact01.wav",
+   "target": -16.0,
+   "tp_db": -4.52
+  },
+  "S0174": {
+   "bytes": 61568,
+   "ch": 2,
+   "dur": 4.928,
+   "f": "sfx/S0174.m4a?v=1138",
+   "key": "RPG3_FireMagicEpic_MeteorImpact02_FULL.wav|None|0.0|True|6.5|1436846|1792015685|-16.0|-1.0",
+   "lufs_m": -15.99,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.7143,
+   "src": "RPG3_FireMagicEpic_MeteorImpact02_FULL.wav",
+   "target": -16.0,
+   "tp_db": -9.09
+  },
+  "S0181": {
+   "bytes": 26508,
+   "ch": 1,
+   "dur": 3.0679,
+   "f": "sfx/S0181.m4a?v=1138",
+   "key": "RPG3_WaterMagicCannon_HeavyImpact02.wav|None|0.0|False|6.5|900880|1792015687|-16.0|-1.0",
+   "lufs_m": -16.12,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.1271,
+   "src": "RPG3_WaterMagicCannon_HeavyImpact02.wav",
+   "target": -16.0,
+   "tp_db": -2.56
+  },
+  "S0182": {
+   "bytes": 28719,
+   "ch": 1,
+   "dur": 3.4596,
+   "f": "sfx/S0182.m4a?v=1138",
+   "key": "RPG3_WaterMagicEpic_Impact01.wav|None|0.0|False|6.5|1015618|1792015687|-16.0|-1.0",
+   "lufs_m": -16.1,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.2219,
+   "src": "RPG3_WaterMagicEpic_Impact01.wav",
+   "target": -16.0,
+   "tp_db": -3.23
+  },
+  "S0184": {
+   "bytes": 71204,
+   "ch": 2,
+   "dur": 5.7434,
+   "f": "sfx/S0184.m4a?v=1138",
+   "key": "RPG3_WaterMagicEpic_WaterTornado02.wav|None|0.0|True|6.5|1671444|1792015687|-16.0|-1.0",
+   "lufs_m": -16.08,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 1.1583,
+   "src": "RPG3_WaterMagicEpic_WaterTornado02.wav",
+   "target": -16.0,
+   "tp_db": -8.82
+  },
+  "S0190": {
+   "bytes": 34977,
+   "ch": 1,
+   "dur": 4.0977,
+   "f": "sfx/S0190.m4a?v=1138",
+   "key": "RPG3_LightMagicEpic_Buff01.wav|None|0.0|False|6.5|1212686|1792015686|-16.0|-1.0",
+   "lufs_m": -16.16,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.3536,
+   "src": "RPG3_LightMagicEpic_Buff01.wav",
+   "target": -16.0,
+   "tp_db": -1.23
+  },
+  "S0191": {
+   "bytes": 17450,
+   "ch": 1,
+   "dur": 1.9414,
+   "f": "sfx/S0191.m4a?v=1138",
+   "key": "RPG3_LightMagic_Buff02.wav|None|0.0|False|6.5|576982|1792015686|-16.0|-1.0",
+   "lufs_m": -16.05,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.489,
+   "src": "RPG3_LightMagic_Buff02.wav",
+   "target": -16.0,
+   "tp_db": -3.65
+  },
+  "S0192": {
+   "bytes": 69259,
+   "ch": 2,
+   "dur": 5.5752,
+   "f": "sfx/S0192.m4a?v=1138",
+   "key": "RPG3_LightMagicEpic_Transform02v2LongTail.wav|None|0.0|True|6.5|1633820|1792015686|-16.0|-1.0",
+   "lufs_m": -16.04,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.4635,
+   "src": "RPG3_LightMagicEpic_Transform02v2LongTail.wav",
+   "target": -16.0,
+   "tp_db": -7.38
+  },
+  "S0194": {
+   "bytes": 11595,
+   "ch": 1,
+   "dur": 1.2374,
+   "f": "sfx/S0194.m4a?v=1138",
+   "key": "RPG3_LightMagic_Debuff03.wav|None|0.0|False|6.5|374156|1792015686|-16.0|-1.0",
+   "lufs_m": -16.15,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.1765,
+   "src": "RPG3_LightMagic_Debuff03.wav",
+   "target": -16.0,
+   "tp_db": -4.58
+  },
+  "S0197": {
+   "bytes": 20182,
+   "ch": 1,
+   "dur": 2.3019,
+   "f": "sfx/S0197.m4a?v=1138",
+   "key": "RPG3_Magic2_Projectiles02.wav|None|0.0|False|6.5|680024|1792015685|-16.0|-1.0",
+   "lufs_m": -16.39,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.2225,
+   "src": "RPG3_Magic2_Projectiles02.wav",
+   "target": -16.0,
+   "tp_db": -3.03
+  },
+  "S0198": {
+   "bytes": 16565,
+   "ch": 1,
+   "dur": 1.8656,
+   "f": "sfx/S0198.m4a?v=1138",
+   "key": "RPG3_DarkMagic_Impact02v2_dark.wav|None|0.0|False|6.5|557890|1792015683|-16.0|-1.0",
+   "lufs_m": -16.04,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.2891,
+   "src": "RPG3_DarkMagic_Impact02v2_dark.wav",
+   "target": -16.0,
+   "tp_db": -2.62
+  },
+  "S0200": {
+   "bytes": 57245,
+   "ch": 2,
+   "dur": 4.6709,
+   "f": "sfx/S0200.m4a?v=1138",
+   "key": "RPG3_DarkMagic3_EvilSpiritCast03.wav|None|0.0|True|6.5|1369756|1792015683|-16.0|-1.0",
+   "lufs_m": -16.06,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.967,
+   "src": "RPG3_DarkMagic3_EvilSpiritCast03.wav",
+   "target": -16.0,
+   "tp_db": -8.45
+  },
+  "S0201": {
+   "bytes": 16398,
+   "ch": 2,
+   "dur": 1.2483,
+   "f": "sfx/S0201.m4a?v=1138",
+   "key": "RPG3_ElectricMagicDark_Impact02.wav|None|0.0|True|1.6|381320|1792015684|-16.0|-1.0",
+   "lufs_m": -16.29,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.0998,
+   "src": "RPG3_ElectricMagicDark_Impact02.wav",
+   "target": -16.0,
+   "tp_db": -5.6
+  },
+  "S0203": {
+   "bytes": 10878,
+   "ch": 1,
+   "dur": 1.1514,
+   "f": "sfx/S0203.m4a?v=1138",
+   "key": "RPG3_Generic_SubtleWhoosh02.wav|None|0.0|False|6.5|348594|1792015685|-16.0|-1.0",
+   "lufs_m": -16.35,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.0751,
+   "src": "RPG3_Generic_SubtleWhoosh02.wav",
+   "target": -16.0,
+   "tp_db": -1.14
+  },
+  "S0207": {
+   "bytes": 10317,
+   "ch": 1,
+   "dur": 1.1,
+   "f": "sfx/S0207.m4a?v=1138",
+   "key": "RPG3_DarkMagic_Cast02v2.wav|None|0.0|False|6.5|335410|1792015683|-16.0|-1.0",
+   "lufs_m": -16.14,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.5446,
+   "src": "RPG3_DarkMagic_Cast02v2.wav",
+   "target": -16.0,
+   "tp_db": -3.13
+  },
+  "S0209": {
+   "bytes": 24789,
+   "ch": 1,
+   "dur": 2.8626,
+   "f": "sfx/S0209.m4a?v=1138",
+   "key": "RPG3_DarkMagic_Summon02v2.wav|None|0.0|False|6.5|849716|1792015684|-16.0|-1.0",
+   "lufs_m": -16.02,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 1.0638,
+   "src": "RPG3_DarkMagic_Summon02v2.wav",
+   "target": -16.0,
+   "tp_db": -2.18
+  },
+  "S0211": {
+   "bytes": 46601,
+   "ch": 2,
+   "dur": 3.7465,
+   "f": "sfx/S0211.m4a?v=1138",
+   "key": "RPG3_DarkMagicEpic_SlowMo_Cast03.wav|None|0.0|True|6.5|1114884|1792015684|-16.0|-1.0",
+   "lufs_m": -16.04,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.4721,
+   "src": "RPG3_DarkMagicEpic_SlowMo_Cast03.wav",
+   "target": -16.0,
+   "tp_db": -8.66
+  },
+  "S0213": {
+   "bytes": 30847,
+   "ch": 2,
+   "dur": 2.4534,
+   "f": "sfx/S0213.m4a?v=1138",
+   "key": "RPG3_DarkMagicEpic_Impact02.wav|None|0.0|True|6.5|728512|1792015683|-16.0|-1.0",
+   "lufs_m": -16.11,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.1825,
+   "src": "RPG3_DarkMagicEpic_Impact02.wav",
+   "target": -16.0,
+   "tp_db": -6.73
+  },
+  "S0217": {
+   "bytes": 24174,
+   "ch": 1,
+   "dur": 2.7879,
+   "f": "sfx/S0217.m4a?v=1138",
+   "key": "RPG3_LightMagicEpic_Heal03.wav|None|0.0|False|6.5|820556|1792015686|-16.0|-1.0",
+   "lufs_m": -15.98,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.5008,
+   "src": "RPG3_LightMagicEpic_Heal03.wav",
+   "target": -16.0,
+   "tp_db": -3.58
+  },
+  "S0219": {
+   "bytes": 26165,
+   "ch": 1,
+   "dur": 2.9955,
+   "f": "sfx/S0219.m4a?v=1138",
+   "key": "mirelle_S0219.mp3|None|0.0|False|6.5|76341|1792033930|-16.0|-1.0",
+   "lufs_m": -16.05,
+   "note": "Phil KEPT 15 Oct (round 3, reuse + adjust)",
+   "offset": 0.0,
+   "peak": 0.3386,
+   "src": "mirelle_S0219.mp3",
+   "target": -16.0,
+   "tp_db": -4.75
+  },
+  "S0221": {
+   "bytes": 56689,
+   "ch": 2,
+   "dur": 4.604,
+   "f": "sfx/S0221.m4a?v=1138",
+   "key": "RPG3_WindMagic_Buff03.wav|None|0.0|True|6.5|1352374|1792015687|-16.0|-1.0",
+   "lufs_m": -16.14,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.7478,
+   "src": "RPG3_WindMagic_Buff03.wav",
+   "target": -16.0,
+   "tp_db": -6.86
+  },
+  "S0223": {
+   "bytes": 8425,
+   "ch": 1,
+   "dur": 0.8596,
+   "f": "sfx/S0223.m4a?v=1138",
+   "key": "RPG3_LightMagic2_LightImpact01.wav|None|0.0|False|6.5|265384|1792015686|-16.0|-1.0",
+   "lufs_m": -16.05,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.1921,
+   "src": "RPG3_LightMagic2_LightImpact01.wav",
+   "target": -16.0,
+   "tp_db": -1.33
+  },
+  "S0226": {
+   "bytes": 19291,
+   "ch": 1,
+   "dur": 2.1818,
+   "f": "sfx/S0226.m4a?v=1138",
+   "key": "RPG3_FireMagicEpic_MeteorImpact02_P1.wav|None|0.0|False|6.5|651250|1792015685|-16.0|-1.0",
+   "lufs_m": -16.07,
+   "note": "Phil KEPT 15 Oct (redo round 1)",
+   "offset": 0.0,
+   "peak": 0.4567,
+   "src": "RPG3_FireMagicEpic_MeteorImpact02_P1.wav",
+   "target": -16.0,
+   "tp_db": -6.35
+  },
+  "S0228": {
+   "bytes": 20466,
+   "ch": 1,
+   "dur": 2.3239,
+   "f": "sfx/S0228.m4a?v=1138",
+   "key": "pellucid_S0228.mp3|None|0.0|False|6.5|44404|1792033930|-16.0|-1.0",
+   "lufs_m": -16.09,
+   "note": "Phil KEPT 15 Oct (round 3, reuse + adjust)",
+   "offset": 0.0,
+   "peak": 0.1856,
+   "src": "pellucid_S0228.mp3",
+   "target": -16.0,
+   "tp_db": -3.39
+  },
+  "S0229": {
+   "bytes": 47006,
+   "ch": 2,
+   "dur": 3.7596,
+   "f": "sfx/S0229.m4a?v=1138",
+   "key": "pellucid_S0229.mp3|None|0.0|True|6.5|90919|1792033930|-16.0|-1.0",
+   "lufs_m": -16.06,
+   "note": "Phil KEPT 15 Oct (round 3, reuse + adjust)",
+   "offset": 0.0,
+   "peak": 1.1763,
+   "src": "pellucid_S0229.mp3",
+   "target": -16.0,
+   "tp_db": -7.91
+  },
+  "S0230-1": {
+   "bytes": 9312,
+   "ch": 2,
+   "dur": 0.6821,
+   "f": "sfx/S0230-1.m4a?v=1138",
+   "key": "part0.wav|None|0.0|True|1.6|269168|1792038192|-16.0|-1.0",
+   "lufs_m": -16.08,
+   "note": "split 1/3 of pellucid_S0230.mp3 (hit starts 0.00,0.70,1.40 s)",
+   "offset": 0.0,
+   "peak": 0.4226,
+   "src": "part0.wav",
+   "target": -16.0,
+   "tp_db": -8.21
+  },
+  "S0230-2": {
+   "bytes": 9559,
+   "ch": 2,
+   "dur": 0.7,
+   "f": "sfx/S0230-2.m4a?v=1138",
+   "key": "part1.wav|None|0.0|True|1.6|269168|1792038192|-16.0|-1.0",
+   "lufs_m": -16.07,
+   "note": "split 2/3 of pellucid_S0230.mp3 (hit starts 0.00,0.70,1.40 s)",
+   "offset": 0.0,
+   "peak": 0.3067,
+   "src": "part1.wav",
+   "target": -16.0,
+   "tp_db": -10.82
+  },
+  "S0230-3": {
+   "bytes": 10913,
+   "ch": 2,
+   "dur": 0.8,
+   "f": "sfx/S0230-3.m4a?v=1138",
+   "key": "part2.wav|None|0.0|True|1.6|307568|1792038192|-16.0|-1.0",
+   "lufs_m": -16.03,
+   "note": "split 3/3 of pellucid_S0230.mp3 (hit starts 0.00,0.70,1.40 s)",
+   "offset": 0.0,
+   "peak": 0.5526,
+   "src": "part2.wav",
+   "target": -16.0,
+   "tp_db": -8.04
+  },
+  "S0235": {
+   "bytes": 24210,
+   "ch": 1,
+   "dur": 2.8,
+   "f": "sfx/S0235.m4a?v=1138",
+   "key": "RPG3_WaterMagicBall2_Impact01.wav|None|0.0|False|6.5|823664|1792015687|-16.0|-1.0",
+   "lufs_m": -16.09,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.0359,
+   "src": "RPG3_WaterMagicBall2_Impact01.wav",
+   "target": -16.0,
+   "tp_db": -2.31
+  },
+  "S0237": {
+   "bytes": 30122,
+   "ch": 1,
+   "dur": 3.4963,
+   "f": "sfx/S0237.m4a?v=1138",
+   "key": "orryn_S0237.mp3|None|0.0|False|6.5|75550|1792033930|-16.0|-1.0",
+   "lufs_m": -16.09,
+   "note": "Phil KEPT 15 Oct (round 3, reuse + adjust)",
+   "offset": 0.0,
+   "peak": 1.0539,
+   "src": "orryn_S0237.mp3",
+   "target": -16.0,
+   "tp_db": -4.05
+  },
+  "S0239": {
+   "bytes": 68512,
+   "ch": 2,
+   "dur": 5.4827,
+   "f": "sfx/S0239.m4a?v=1138",
+   "key": "RPG3_WaterMagicEpic_Impact02v2.wav|None|0.0|True|6.5|1596264|1792015687|-16.0|-1.0",
+   "lufs_m": -16.09,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.5606,
+   "src": "RPG3_WaterMagicEpic_Impact02v2.wav",
+   "target": -16.0,
+   "tp_db": -7.1
+  },
+  "S0241": {
+   "bytes": 17571,
+   "ch": 1,
+   "dur": 1.9712,
+   "f": "sfx/S0241.m4a?v=1138",
+   "key": "RPG3_WaterMagic3_P2_Buffv2.wav|None|0.0|False|6.5|586598|1792015687|-16.0|-1.0",
+   "lufs_m": -16.1,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.0991,
+   "src": "RPG3_WaterMagic3_P2_Buffv2.wav",
+   "target": -16.0,
+   "tp_db": -5.9
+  },
+  "S0244": {
+   "bytes": 15821,
+   "ch": 1,
+   "dur": 1.7494,
+   "f": "sfx/S0244.m4a?v=1138",
+   "key": "RPG3_IceMagic2_IceBreak04Crit.wav|None|0.0|False|6.5|521322|1792015686|-16.0|-1.0",
+   "lufs_m": -16.2,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.1449,
+   "src": "RPG3_IceMagic2_IceBreak04Crit.wav",
+   "target": -16.0,
+   "tp_db": -4.67
+  },
+  "S0245": {
+   "bytes": 23085,
+   "ch": 1,
+   "dur": 2.6423,
+   "f": "sfx/S0245.m4a?v=1138",
+   "key": "RPG3_IceMagic2_IceBreakLonger02.wav|None|0.0|False|6.5|781024|1792015686|-16.0|-1.0",
+   "lufs_m": -16.23,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.2566,
+   "src": "RPG3_IceMagic2_IceBreakLonger02.wav",
+   "target": -16.0,
+   "tp_db": -4.08
+  },
+  "S0246": {
+   "bytes": 65931,
+   "ch": 2,
+   "dur": 5.3297,
+   "f": "sfx/S0246.m4a?v=1138",
+   "key": "RPG3_FireMagicEpic_Impact02.wav|None|0.0|True|6.5|1561536|1792015685|-16.0|-1.0",
+   "lufs_m": -16.05,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.3271,
+   "src": "RPG3_FireMagicEpic_Impact02.wav",
+   "target": -16.0,
+   "tp_db": -7.89
+  },
+  "S0250": {
+   "bytes": 16939,
+   "ch": 1,
+   "dur": 1.9032,
+   "f": "sfx/S0250.m4a?v=1138",
+   "key": "RPG3_Magic_BoulderImpact02.wav|None|0.0|False|6.5|567168|1792015685|-16.0|-1.0",
+   "lufs_m": -16.04,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.0884,
+   "src": "RPG3_Magic_BoulderImpact02.wav",
+   "target": -16.0,
+   "tp_db": -5.28
+  },
+  "S0251": {
+   "bytes": 31155,
+   "ch": 1,
+   "dur": 3.6263,
+   "f": "sfx/S0251.m4a?v=1138",
+   "key": "RPG3_WindMagic_Buff02_FULL.wav|None|0.0|False|6.5|1070672|1792015688|-16.0|-1.0",
+   "lufs_m": -16.06,
+   "note": "Phil KEPT 15 Oct (redo round 1)",
+   "offset": 0.0,
+   "peak": 0.7997,
+   "src": "RPG3_WindMagic_Buff02_FULL.wav",
+   "target": -16.0,
+   "tp_db": -2.77
+  },
+  "S0252": {
+   "bytes": 55911,
+   "ch": 2,
+   "dur": 4.5,
+   "f": "sfx/S0252.m4a?v=1138",
+   "key": "RPG3_WaterMagicEpic_WaterTornado02v2.wav|4.5|0.0|True|6.5|2136854|1792015687|-16.0|-1.0",
+   "lufs_m": -15.99,
+   "note": "Phil KEPT 15 Oct (redo round 1)",
+   "offset": 0.0,
+   "peak": 0.6049,
+   "src": "RPG3_WaterMagicEpic_WaterTornado02v2.wav",
+   "target": -16.0,
+   "tp_db": -10.59
+  },
+  "S0253": {
+   "bytes": 34663,
+   "ch": 2,
+   "dur": 2.7619,
+   "f": "sfx/S0253.m4a?v=1138",
+   "key": "RPG3_WaterMagicCannon_HeavyImpact03.wav|None|0.0|True|6.5|812776|1792015687|-16.0|-1.0",
+   "lufs_m": -16.07,
+   "note": "Phil KEPT 15 Oct (redo round 1)",
+   "offset": 0.0,
+   "peak": 0.3808,
+   "src": "RPG3_WaterMagicCannon_HeavyImpact03.wav",
+   "target": -16.0,
+   "tp_db": -5.85
+  },
+  "S0254": {
+   "bytes": 11001,
+   "ch": 1,
+   "dur": 1.1762,
+   "f": "sfx/S0254.m4a?v=1138",
+   "key": "RPG3_LightMagic2_LightImpact04_Crit.wav|None|0.0|False|6.5|356694|1792015686|-16.0|-1.0",
+   "lufs_m": -16.05,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.1334,
+   "src": "RPG3_LightMagic2_LightImpact04_Crit.wav",
+   "target": -16.0,
+   "tp_db": -2.08
+  },
+  "S0257": {
+   "bytes": 18062,
+   "ch": 1,
+   "dur": 2.0217,
+   "f": "sfx/S0257.m4a?v=1138",
+   "key": "RPG3_FireMagicCannon_Impact01.wav|None|0.0|False|6.5|606502|1792015685|-16.0|-1.0",
+   "lufs_m": -16.03,
+   "note": "Phil pick 14 Oct",
+   "offset": 0.0,
+   "peak": 0.1353,
+   "src": "RPG3_FireMagicCannon_Impact01.wav",
+   "target": -16.0,
+   "tp_db": -2.48
+  },
+  "S0259": {
+   "bytes": 13466,
+   "ch": 1,
+   "dur": 1.4395,
+   "f": "sfx/S0259.m4a?v=1138",
+   "key": "RPG3_LightMagic3_MediumImpact01.wav|None|0.0|False|6.5|435804|1792015686|-16.0|-1.0",
+   "lufs_m": -16.18,
+   "note": "Phil pick 14 Oct",
+   "offset": 0.0,
+   "peak": 0.1188,
+   "src": "RPG3_LightMagic3_MediumImpact01.wav",
+   "target": -16.0,
+   "tp_db": -1.59
+  },
+  "S0262": {
+   "bytes": 52719,
+   "ch": 2,
+   "dur": 4.334,
+   "f": "sfx/S0262.m4a?v=1138",
+   "key": "RPG3_FireMagicEpic_MeteorImpact02_P1_ImpactWithTone.wav|None|0.0|True|6.5|1265866|1792015684|-16.0|-1.0",
+   "lufs_m": -16.02,
+   "note": "Phil pick 14 Oct",
+   "offset": 0.0,
+   "peak": 0.6412,
+   "src": "RPG3_FireMagicEpic_MeteorImpact02_P1_ImpactWithTone.wav",
+   "target": -16.0,
+   "tp_db": -9.79
+  },
+  "S0265": {
+   "bytes": 23313,
+   "ch": 1,
+   "dur": 2.647,
+   "f": "sfx/S0265.m4a?v=1138",
+   "key": "RPG3_IceMagic_FreezeLong01.wav|None|0.0|False|6.5|787470|1792015686|-16.0|-1.0",
+   "lufs_m": -16.31,
+   "note": "Phil pick 14 Oct",
+   "offset": 0.0,
+   "peak": 0.7267,
+   "src": "RPG3_IceMagic_FreezeLong01.wav",
+   "target": -16.0,
+   "tp_db": -5.71
+  },
+  "S0268": {
+   "bytes": 64600,
+   "ch": 2,
+   "dur": 5.2054,
+   "f": "sfx/S0268.m4a?v=1138",
+   "key": "RPG3_WaterMagicEpic_Impact02.wav|None|0.0|True|6.5|1516384|1792015687|-16.0|-1.0",
+   "lufs_m": -16.15,
+   "note": "Phil pick 14 Oct",
+   "offset": 0.0,
+   "peak": 0.2147,
+   "src": "RPG3_WaterMagicEpic_Impact02.wav",
+   "target": -16.0,
+   "tp_db": -8.66
+  },
+  "S0273": {
+   "bytes": 18566,
+   "ch": 1,
+   "dur": 2.0776,
+   "f": "sfx/S0273.m4a?v=1138",
+   "key": "RPG3_FireMagicCannon_Impact02.wav|None|0.0|False|6.5|620380|1792015685|-16.0|-1.0",
+   "lufs_m": -16.05,
+   "note": "Phil pick 14 Oct",
+   "offset": 0.0,
+   "peak": 0.191,
+   "src": "RPG3_FireMagicCannon_Impact02.wav",
+   "target": -16.0,
+   "tp_db": -2.62
+  },
+  "S0274": {
+   "bytes": 30952,
+   "ch": 1,
+   "dur": 3.6089,
+   "f": "sfx/S0274.m4a?v=1138",
+   "key": "RPG3_Magic_BoulderImpact04.wav|None|0.0|False|6.5|1065224|1792015685|-16.0|-1.0",
+   "lufs_m": -16.03,
+   "note": "Phil pick 14 Oct",
+   "offset": 0.0,
+   "peak": 0.418,
+   "src": "RPG3_Magic_BoulderImpact04.wav",
+   "target": -16.0,
+   "tp_db": -5.27
+  },
+  "S0276": {
+   "bytes": 69310,
+   "ch": 2,
+   "dur": 5.6426,
+   "f": "sfx/S0276.m4a?v=1138",
+   "key": "RPG3_Magic_BoulderImpact03.wav|None|0.0|True|6.5|1650044|1792015685|-16.0|-1.0",
+   "lufs_m": -16.1,
+   "note": "Phil pick 14 Oct",
+   "offset": 0.0,
+   "peak": 0.4332,
+   "src": "RPG3_Magic_BoulderImpact03.wav",
+   "target": -16.0,
+   "tp_db": -9.73
+  },
+  "S0280": {
+   "bytes": 10175,
+   "ch": 1,
+   "dur": 1.0596,
+   "f": "sfx/S0280.m4a?v=1138",
+   "key": "RPG3_ElectricMagic_SparkProjectile02.wav|None|0.0|False|6.5|322686|1792015684|-16.0|-1.0",
+   "lufs_m": -16.01,
+   "note": "Phil KEPT 15 Oct (redo round 1)",
+   "offset": 0.0,
+   "peak": 0.2114,
+   "src": "RPG3_ElectricMagic_SparkProjectile02.wav",
+   "target": -16.0,
+   "tp_db": -3.73
+  },
+  "S0282": {
+   "bytes": 14462,
+   "ch": 1,
+   "dur": 1.5881,
+   "f": "sfx/S0282.m4a?v=1138",
+   "key": "RPG3_Magic_Buff02.wav|None|0.0|False|6.5|483718|1792015685|-16.0|-1.0",
+   "lufs_m": -16.05,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.3265,
+   "src": "RPG3_Magic_Buff02.wav",
+   "target": -16.0,
+   "tp_db": -4.14
+  },
+  "S0283": {
+   "bytes": 66786,
+   "ch": 2,
+   "dur": 5.4187,
+   "f": "sfx/S0283.m4a?v=1138",
+   "key": "RPG3_WindMagicEpic_Cast01_P2.wav|None|0.0|True|6.5|1578066|1792015688|-16.0|-1.0",
+   "lufs_m": -16.22,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.8674,
+   "src": "RPG3_WindMagicEpic_Cast01_P2.wav",
+   "target": -16.0,
+   "tp_db": -6.36
+  },
+  "S0289": {
+   "bytes": 12853,
+   "ch": 1,
+   "dur": 1.408,
+   "f": "sfx/S0289.m4a?v=1138",
+   "key": "RPG3_WindMagic_Projectiles01.wav|None|0.0|False|6.5|422688|1792015688|-16.0|-1.0",
+   "lufs_m": -16.16,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.1564,
+   "src": "RPG3_WindMagic_Projectiles01.wav",
+   "target": -16.0,
+   "tp_db": -1.36
+  },
+  "S0291": {
+   "bytes": 17891,
+   "ch": 1,
+   "dur": 2.0305,
+   "f": "sfx/S0291.m4a?v=1138",
+   "key": "RPG3_DarkMagic_VoiceImpact02.wav|None|0.0|False|6.5|607292|1792015683|-16.0|-1.0",
+   "lufs_m": -16.05,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.3399,
+   "src": "RPG3_DarkMagic_VoiceImpact02.wav",
+   "target": -16.0,
+   "tp_db": -2.58
+  },
+  "S0292": {
+   "bytes": 48326,
+   "ch": 2,
+   "dur": 3.938,
+   "f": "sfx/S0292.m4a?v=1138",
+   "key": "RPG3_WindMagicEpic_Cast01_P1.wav|None|0.0|True|6.5|1161852|1792015688|-16.0|-1.0",
+   "lufs_m": -16.21,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.6866,
+   "src": "RPG3_WindMagicEpic_Cast01_P1.wav",
+   "target": -16.0,
+   "tp_db": -6.15
+  },
+  "S0293": {
+   "bytes": 12989,
+   "ch": 2,
+   "dur": 0.9524,
+   "f": "sfx/S0293.m4a?v=1138",
+   "key": "RPG3_WindMagic_LightImpact01.wav|None|0.0|True|1.6|291542|1792015687|-16.0|-1.0",
+   "lufs_m": -16.35,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.0691,
+   "src": "RPG3_WindMagic_LightImpact01.wav",
+   "target": -16.0,
+   "tp_db": -0.97
+  },
+  "S0296": {
+   "bytes": 17657,
+   "ch": 1,
+   "dur": 2.0034,
+   "f": "sfx/S0296.m4a?v=1138",
+   "key": "RPG3_WindMagic_MediumImpact01.wav|None|0.0|False|6.5|594300|1792015688|-16.0|-1.0",
+   "lufs_m": -16.14,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.0192,
+   "src": "RPG3_WindMagic_MediumImpact01.wav",
+   "target": -16.0,
+   "tp_db": -2.0
+  },
+  "S0298": {
+   "bytes": 14928,
+   "ch": 1,
+   "dur": 1.6266,
+   "f": "sfx/S0298.m4a?v=1138",
+   "key": "RPG3_WindMagic_Cast02_P1.wav|None|0.0|False|6.5|485746|1792015688|-16.0|-1.0",
+   "lufs_m": -16.07,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.2074,
+   "src": "RPG3_WindMagic_Cast02_P1.wav",
+   "target": -16.0,
+   "tp_db": -1.52
+  },
+  "S0300": {
+   "bytes": 70966,
+   "ch": 2,
+   "dur": 5.7174,
+   "f": "sfx/S0300.m4a?v=1138",
+   "key": "RPG3_WindMagicEpic_Cast01_FULL.wav|None|0.0|True|6.5|1667930|1792015688|-16.0|-1.0",
+   "lufs_m": -16.22,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 1.7847,
+   "src": "RPG3_WindMagicEpic_Cast01_FULL.wav",
+   "target": -16.0,
+   "tp_db": -7.23
+  },
+  "S0305": {
+   "bytes": 16035,
+   "ch": 1,
+   "dur": 1.8011,
+   "f": "sfx/S0305.m4a?v=1138",
+   "key": "RPG3_LightMagic_BeamImpact01.wav|None|0.0|False|6.5|536494|1792015686|-16.0|-1.0",
+   "lufs_m": -16.22,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.0433,
+   "src": "RPG3_LightMagic_BeamImpact01.wav",
+   "target": -16.0,
+   "tp_db": -5.07
+  },
+  "S0306": {
+   "bytes": 32445,
+   "ch": 1,
+   "dur": 3.7754,
+   "f": "sfx/S0306.m4a?v=1138",
+   "key": "RPG3_LightMagicEpic_Transform01.wav|None|0.0|False|6.5|1105286|1792015686|-16.0|-1.0",
+   "lufs_m": -16.21,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.2232,
+   "src": "RPG3_LightMagicEpic_Transform01.wav",
+   "target": -16.0,
+   "tp_db": -6.43
+  },
+  "S0307": {
+   "bytes": 45468,
+   "ch": 2,
+   "dur": 3.6464,
+   "f": "sfx/S0307.m4a?v=1138",
+   "key": "RPG3_FireMagicEpic_MeteorFall03.wav|None|0.0|True|6.5|1068164|1792015685|-16.0|-1.0",
+   "lufs_m": -16.19,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.7679,
+   "src": "RPG3_FireMagicEpic_MeteorFall03.wav",
+   "target": -16.0,
+   "tp_db": -6.61
+  },
+  "S0308": {
+   "bytes": 14419,
+   "ch": 2,
+   "dur": 1.1,
+   "f": "sfx/S0308.m4a?v=1138",
+   "key": "RPG3_WaterMagicCannon_LightImpact03.wav|1.1|0.0|True|1.6|375984|1792015687|-16.0|-1.0",
+   "lufs_m": -16.03,
+   "note": "Phil KEPT 15 Oct (redo round 1)",
+   "offset": 0.0,
+   "peak": 0.0961,
+   "src": "RPG3_WaterMagicCannon_LightImpact03.wav",
+   "target": -16.0,
+   "tp_db": -4.91
+  },
+  "S0312": {
+   "bytes": 13639,
+   "ch": 1,
+   "dur": 1.5157,
+   "f": "sfx/S0312.m4a?v=1138",
+   "key": "RPG3_IceMagic_Projectiles01.wav|None|0.0|False|6.5|466134|1792015686|-16.0|-1.0",
+   "lufs_m": -16.19,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.1499,
+   "src": "RPG3_IceMagic_Projectiles01.wav",
+   "target": -16.0,
+   "tp_db": -0.74
+  },
+  "S0314": {
+   "bytes": 18203,
+   "ch": 1,
+   "dur": 2.0507,
+   "f": "sfx/S0314.m4a?v=1138",
+   "key": "RPG3_IceMagic2_IceBreak03.wav|None|0.0|False|6.5|608082|1792015686|-16.0|-1.0",
+   "lufs_m": -16.19,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.0306,
+   "src": "RPG3_IceMagic2_IceBreak03.wav",
+   "target": -16.0,
+   "tp_db": -3.38
+  },
+  "S0316": {
+   "bytes": 51390,
+   "ch": 2,
+   "dur": 4.128,
+   "f": "sfx/S0316.m4a?v=1138",
+   "key": "RPG3_IceMagicEpic_Cast01v2_LongWithTone.wav|None|0.0|True|6.5|1206686|1792015686|-16.0|-1.0",
+   "lufs_m": -16.05,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.2635,
+   "src": "RPG3_IceMagicEpic_Cast01v2_LongWithTone.wav",
+   "target": -16.0,
+   "tp_db": -6.95
+  },
+  "S0320": {
+   "bytes": 17469,
+   "ch": 1,
+   "dur": 1.9834,
+   "f": "sfx/S0320.m4a?v=1138",
+   "key": "RPG3_WindMagic_MediumImpact04v2_CritwTone.wav|None|0.0|False|6.5|592746|1792015688|-16.0|-1.0",
+   "lufs_m": -16.04,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.0529,
+   "src": "RPG3_WindMagic_MediumImpact04v2_CritwTone.wav",
+   "target": -16.0,
+   "tp_db": -1.95
+  },
+  "S0321": {
+   "bytes": 12914,
+   "ch": 1,
+   "dur": 1.3869,
+   "f": "sfx/S0321.m4a?v=1138",
+   "key": "RPG3_PlasmaMagic_Cast02.wav|None|0.0|False|6.5|437754|1792015687|-16.0|-1.0",
+   "lufs_m": -16.22,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.3337,
+   "src": "RPG3_PlasmaMagic_Cast02.wav",
+   "target": -16.0,
+   "tp_db": -4.98
+  },
+  "S0323": {
+   "bytes": 65844,
+   "ch": 2,
+   "dur": 5.3,
+   "f": "sfx/S0323.m4a?v=1138",
+   "key": "RPG3_WindMagicMisc_Dark02.wav|5.3|0.0|True|6.5|2087726|1792015688|-16.0|-1.0",
+   "lufs_m": -16.05,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 2.1872,
+   "src": "RPG3_WindMagicMisc_Dark02.wav",
+   "target": -16.0,
+   "tp_db": -2.28
+  },
+  "S0329": {
+   "bytes": 14538,
+   "ch": 1,
+   "dur": 1.6067,
+   "f": "sfx/S0329.m4a?v=1138",
+   "key": "RPG3_DarkMagic2_Projectile01.wav|None|0.0|False|6.5|483400|1792015684|-16.0|-1.0",
+   "lufs_m": -16.05,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.3796,
+   "src": "RPG3_DarkMagic2_Projectile01.wav",
+   "target": -16.0,
+   "tp_db": -3.24
+  },
+  "S0331": {
+   "bytes": 37228,
+   "ch": 1,
+   "dur": 4.4498,
+   "f": "sfx/S0331.m4a?v=1138",
+   "key": "RPG3_DarkMagic_Buff01v2_noTone.wav|None|0.0|False|6.5|1304466|1792015684|-16.0|-1.0",
+   "lufs_m": -16.16,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.3675,
+   "src": "RPG3_DarkMagic_Buff01v2_noTone.wav",
+   "target": -16.0,
+   "tp_db": -0.84
+  },
+  "S0332": {
+   "bytes": 60495,
+   "ch": 2,
+   "dur": 4.9052,
+   "f": "sfx/S0332.m4a?v=1138",
+   "key": "RPG3_DarkMagicEpic_SlowMo_Cast02.wav|None|0.0|True|6.5|1445118|1792015684|-16.0|-1.0",
+   "lufs_m": -16.02,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 1.1051,
+   "src": "RPG3_DarkMagicEpic_SlowMo_Cast02.wav",
+   "target": -16.0,
+   "tp_db": -10.07
+  },
+  "S0333": {
+   "bytes": 54600,
+   "ch": 2,
+   "dur": 4.4691,
+   "f": "sfx/S0333.m4a?v=1138",
+   "key": "RPG3_DarkMagic3_HeavyImpactCrit02.wav|None|0.0|True|6.5|1304434|1792015684|-16.0|-1.0",
+   "lufs_m": -16.06,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.4252,
+   "src": "RPG3_DarkMagic3_HeavyImpactCrit02.wav",
+   "target": -16.0,
+   "tp_db": -7.9
+  },
+  "S0339": {
+   "bytes": 27423,
+   "ch": 1,
+   "dur": 3.2392,
+   "f": "sfx/S0339.m4a?v=1138",
+   "key": "RPG3_IceMagic_Debuff02.wav|None|0.0|False|6.5|953036|1792015686|-16.0|-1.0",
+   "lufs_m": -16.03,
+   "note": "Phil KEPT 15 Oct (redo round 1)",
+   "offset": 0.0,
+   "peak": 0.0992,
+   "src": "RPG3_IceMagic_Debuff02.wav",
+   "target": -16.0,
+   "tp_db": -4.69
+  },
+  "S0341": {
+   "bytes": 8782,
+   "ch": 1,
+   "dur": 0.8892,
+   "f": "sfx/S0341.m4a?v=1138",
+   "key": "RPG3_LightMagic2_LightImpact02.wav|None|0.0|False|6.5|273922|1792015686|-16.0|-1.0",
+   "lufs_m": -16.11,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.2048,
+   "src": "RPG3_LightMagic2_LightImpact02.wav",
+   "target": -16.0,
+   "tp_db": -1.8
+  },
+  "S0342": {
+   "bytes": 73224,
+   "ch": 2,
+   "dur": 5.8988,
+   "f": "sfx/S0342.m4a?v=1138",
+   "key": "RPG3_WindMagicEpic_Debuff01v2_Shorter.wav|None|0.0|True|6.5|1728738|1792015688|-16.0|-1.0",
+   "lufs_m": -16.06,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 1.9814,
+   "src": "RPG3_WindMagicEpic_Debuff01v2_Shorter.wav",
+   "target": -16.0,
+   "tp_db": -8.69
+  },
+  "S0347": {
+   "bytes": 22806,
+   "ch": 1,
+   "dur": 2.6152,
+   "f": "sfx/S0347.m4a?v=1138",
+   "key": "RPG3_LightMagicMisc_SubtleLightRay.wav|None|0.0|False|6.5|775704|1792015686|-16.0|-1.0",
+   "lufs_m": -16.08,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 1.0562,
+   "src": "RPG3_LightMagicMisc_SubtleLightRay.wav",
+   "target": -16.0,
+   "tp_db": -5.25
+  },
+  "S0349": {
+   "bytes": 21464,
+   "ch": 1,
+   "dur": 2.4492,
+   "f": "sfx/S0349.m4a?v=1138",
+   "key": "RPG3_WindMagicEpic_Buff01v3_NoWind.wav|None|0.0|False|6.5|724276|1792015688|-16.0|-1.0",
+   "lufs_m": -16.0,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.2887,
+   "src": "RPG3_WindMagicEpic_Buff01v3_NoWind.wav",
+   "target": -16.0,
+   "tp_db": -5.84
+  },
+  "S0350": {
+   "bytes": 58470,
+   "ch": 2,
+   "dur": 4.7068,
+   "f": "sfx/S0350.m4a?v=1138",
+   "key": "RPG3_LightMagicEpic_Cast_FULL_v2noP3.wav|None|0.0|True|6.5|1383630|1792015686|-16.0|-1.0",
+   "lufs_m": -16.17,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.45,
+   "src": "RPG3_LightMagicEpic_Cast_FULL_v2noP3.wav",
+   "target": -16.0,
+   "tp_db": -5.96
+  },
+  "S0356": {
+   "bytes": 8567,
+   "ch": 1,
+   "dur": 0.864,
+   "f": "sfx/S0356.m4a?v=1138",
+   "key": "RPG3_WaterMagic2_WaterOnlyImpact01.wav|None|0.0|False|1.6|265944|1792015687|-16.0|-1.0",
+   "lufs_m": -16.3,
+   "note": "Phil pick 14 Oct",
+   "offset": 0.0,
+   "peak": 0.0434,
+   "src": "RPG3_WaterMagic2_WaterOnlyImpact01.wav",
+   "target": -16.0,
+   "tp_db": -2.94
+  },
+  "S0358": {
+   "bytes": 14208,
+   "ch": 1,
+   "dur": 1.5771,
+   "f": "sfx/S0358.m4a?v=1138",
+   "key": "RPG3_WaterMagicBall_Impact01.wav|None|0.0|False|6.5|471364|1792015687|-16.0|-1.0",
+   "lufs_m": -16.15,
+   "note": "Phil pick 14 Oct",
+   "offset": 0.0,
+   "peak": 0.0809,
+   "src": "RPG3_WaterMagicBall_Impact01.wav",
+   "target": -16.0,
+   "tp_db": -2.75
+  },
+  "S0359": {
+   "bytes": 48628,
+   "ch": 2,
+   "dur": 3.8817,
+   "f": "sfx/S0359.m4a?v=1138",
+   "key": "RPG3_WaterMagic3_FULL.wav|None|0.0|True|6.5|1135370|1792015687|-16.0|-1.0",
+   "lufs_m": -16.1,
+   "note": "Phil pick 14 Oct",
+   "offset": 0.0,
+   "peak": 0.5843,
+   "src": "RPG3_WaterMagic3_FULL.wav",
+   "target": -16.0,
+   "tp_db": -5.86
+  },
+  "S0361": {
+   "bytes": 14578,
+   "ch": 1,
+   "dur": 1.6,
+   "f": "sfx/S0361.m4a?v=1138",
+   "key": "RPG3_WaterMagic_Impact02.wav|None|0.0|False|6.5|478138|1792015687|-16.0|-1.0",
+   "lufs_m": -16.12,
+   "note": "Phil pick 14 Oct",
+   "offset": 0.0,
+   "peak": 0.1326,
+   "src": "RPG3_WaterMagic_Impact02.wav",
+   "target": -16.0,
+   "tp_db": -0.76
+  },
+  "S0365": {
+   "bytes": 22953,
+   "ch": 1,
+   "dur": 2.6824,
+   "f": "sfx/S0365.m4a?v=1138",
+   "key": "RPG3_MagicShimmer_Heal.wav|None|0.0|False|6.5|790388|1792015685|-16.0|-1.0",
+   "lufs_m": -16.14,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.1841,
+   "src": "RPG3_MagicShimmer_Heal.wav",
+   "target": -16.0,
+   "tp_db": -5.23
+  },
+  "S0366": {
+   "bytes": 29254,
+   "ch": 1,
+   "dur": 3.4305,
+   "f": "sfx/S0366.m4a?v=1138",
+   "key": "RPG3_MagicShimmer_Buff01.wav|None|0.0|False|6.5|1011892|1792015685|-16.0|-1.0",
+   "lufs_m": -16.27,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 1.6195,
+   "src": "RPG3_MagicShimmer_Buff01.wav",
+   "target": -16.0,
+   "tp_db": -4.67
+  },
+  "S0367": {
+   "bytes": 59036,
+   "ch": 2,
+   "dur": 4.7759,
+   "f": "sfx/S0367.m4a?v=1138",
+   "key": "RPG3_LightMagicEpic_HealingWing_P1.wav|None|0.0|True|6.5|1393554|1792015686|-16.0|-1.0",
+   "lufs_m": -16.22,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.576,
+   "src": "RPG3_LightMagicEpic_HealingWing_P1.wav",
+   "target": -16.0,
+   "tp_db": -8.76
+  },
+  "S0372": {
+   "bytes": 32398,
+   "ch": 1,
+   "dur": 3.8054,
+   "f": "sfx/S0372.m4a?v=1138",
+   "key": "RPG3_FireMagic_Explosion02v2.wav|None|0.0|False|6.5|1113344|1792015684|-16.0|-1.0",
+   "lufs_m": -16.07,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.1269,
+   "src": "RPG3_FireMagic_Explosion02v2.wav",
+   "target": -16.0,
+   "tp_db": -5.28
+  },
+  "S0374": {
+   "bytes": 10033,
+   "ch": 1,
+   "dur": 1.0374,
+   "f": "sfx/S0374.m4a?v=1138",
+   "key": "RPG3_FireMagicFlameThrower_P3_End01.wav|None|0.0|False|6.5|324788|1792015685|-16.0|-1.0",
+   "lufs_m": -16.32,
+   "note": "Phil KEPT 15 Oct (redo round 1)",
+   "offset": 0.0,
+   "peak": 0.1056,
+   "src": "RPG3_FireMagicFlameThrower_P3_End01.wav",
+   "target": -16.0,
+   "tp_db": -1.15
+  },
+  "S0375": {
+   "bytes": 35133,
+   "ch": 2,
+   "dur": 2.7895,
+   "f": "sfx/S0375.m4a?v=1138",
+   "key": "rivet_S0375.mp3|None|0.0|True|6.5|60975|1792034735|-16.0|-1.0",
+   "lufs_m": -16.16,
+   "note": "Phil KEPT 15 Oct (round 5)",
+   "offset": 0.0,
+   "peak": 0.45,
+   "peak_from": "the recipe's shots-in time",
+   "src": "rivet_S0375.mp3",
+   "target": -16.0,
+   "tp_db": -7.3
+  },
+  "S0380": {
+   "bytes": 15757,
+   "ch": 1,
+   "dur": 1.7469,
+   "f": "sfx/S0380.m4a?v=1138",
+   "key": "RPG3_GenericCannon_LowImpact03.wav|None|0.0|False|6.5|520320|1792015685|-16.0|-1.0",
+   "lufs_m": -16.06,
+   "note": "Phil pick 14 Oct",
+   "offset": 0.0,
+   "peak": 0.0321,
+   "src": "RPG3_GenericCannon_LowImpact03.wav",
+   "target": -16.0,
+   "tp_db": -5.59
+  },
+  "S0381": {
+   "bytes": 44424,
+   "ch": 1,
+   "dur": 5.2688,
+   "f": "sfx/S0381.m4a?v=1138",
+   "key": "RPG3_DarkMagic5_Impact01.wav|None|0.0|False|6.5|1544834|1792015683|-16.0|-1.0",
+   "lufs_m": -16.05,
+   "note": "Phil pick 14 Oct",
+   "offset": 0.0,
+   "peak": 0.1403,
+   "src": "RPG3_DarkMagic5_Impact01.wav",
+   "target": -16.0,
+   "tp_db": -3.11
+  },
+  "S0382": {
+   "bytes": 56867,
+   "ch": 2,
+   "dur": 4.6495,
+   "f": "sfx/S0382.m4a?v=1138",
+   "key": "RPG3_DarkMagic3_HeavyImpactCrit04.wav|None|0.0|True|6.5|1362580|1792015684|-16.0|-1.0",
+   "lufs_m": -16.07,
+   "note": "Phil pick 14 Oct",
+   "offset": 0.0,
+   "peak": 1.1494,
+   "src": "RPG3_DarkMagic3_HeavyImpactCrit04.wav",
+   "target": -16.0,
+   "tp_db": -7.94
+  },
+  "S0387": {
+   "bytes": 24575,
+   "ch": 1,
+   "dur": 2.8439,
+   "f": "sfx/S0387.m4a?v=1138",
+   "key": "RPG3_LightMagic_Debuff02.wav|None|0.0|False|6.5|837632|1792015686|-16.0|-1.0",
+   "lufs_m": -16.27,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.3422,
+   "src": "RPG3_LightMagic_Debuff02.wav",
+   "target": -16.0,
+   "tp_db": -2.69
+  },
+  "S0389": {
+   "bytes": 19854,
+   "ch": 1,
+   "dur": 2.3047,
+   "f": "sfx/S0389.m4a?v=1138",
+   "key": "RPG3_WaterMagic_LongSwoosh01.wav|None|0.0|False|6.5|680938|1792015687|-16.0|-1.0",
+   "lufs_m": -16.05,
+   "note": "Phil KEPT 15 Oct (redo round 1)",
+   "offset": 0.0,
+   "peak": 0.3798,
+   "src": "RPG3_WaterMagic_LongSwoosh01.wav",
+   "target": -16.0,
+   "tp_db": -3.06
+  },
+  "S0391": {
+   "bytes": 60425,
+   "ch": 2,
+   "dur": 4.8834,
+   "f": "sfx/S0391.m4a?v=1138",
+   "key": "vesper_S0391.mp3|None|0.0|True|6.5|106756|1792033931|-16.0|-1.0",
+   "lufs_m": -16.03,
+   "note": "Phil KEPT 15 Oct (round 3, reuse + adjust)",
+   "offset": 0.0,
+   "peak": 2.8839,
+   "src": "vesper_S0391.mp3",
+   "target": -16.0,
+   "tp_db": -4.82
+  },
+  "S0396": {
+   "bytes": 18880,
+   "ch": 1,
+   "dur": 2.1497,
+   "f": "sfx/S0396.m4a?v=1138",
+   "key": "RPG3_WaterMagic_Buff02.wav|None|0.0|False|6.5|636392|1792015687|-16.0|-1.0",
+   "lufs_m": -16.03,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.1304,
+   "src": "RPG3_WaterMagic_Buff02.wav",
+   "target": -16.0,
+   "tp_db": -2.8
+  },
+  "S0398": {
+   "bytes": 17080,
+   "ch": 1,
+   "dur": 1.9263,
+   "f": "sfx/S0398.m4a?v=1138",
+   "key": "RPG3_MagicShimmer_Cast01.wav|None|0.0|False|6.5|576408|1792015685|-16.0|-1.0",
+   "lufs_m": -16.35,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.2432,
+   "src": "RPG3_MagicShimmer_Cast01.wav",
+   "target": -16.0,
+   "tp_db": -5.93
+  },
+  "S0399": {
+   "bytes": 52297,
+   "ch": 2,
+   "dur": 4.1994,
+   "f": "sfx/S0399.m4a?v=1138",
+   "key": "RPG3_WaterMagic3_TimeStop_Full.wav|None|0.0|True|6.5|1227282|1792015687|-16.0|-1.0",
+   "lufs_m": -16.13,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.5685,
+   "src": "RPG3_WaterMagic3_TimeStop_Full.wav",
+   "target": -16.0,
+   "tp_db": -9.06
+  },
+  "S0400": {
+   "bytes": 30967,
+   "ch": 2,
+   "dur": 2.4534,
+   "f": "sfx/S0400.m4a?v=1138",
+   "key": "RPG3_IceMagic2_IceBreakLonger03Crit.wav|None|0.0|True|6.5|728788|1792015686|-16.0|-1.0",
+   "lufs_m": -16.37,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.3896,
+   "src": "RPG3_IceMagic2_IceBreakLonger03Crit.wav",
+   "target": -16.0,
+   "tp_db": -5.82
+  },
+  "S0401": {
+   "bytes": 12870,
+   "ch": 1,
+   "dur": 1.4,
+   "f": "sfx/S0401.m4a?v=1138",
+   "key": "RPG3_WaterMagic3_P2_Buff.wav|None|0.0|False|6.5|420320|1792015687|-16.0|-1.0",
+   "lufs_m": -16.14,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.1264,
+   "src": "RPG3_WaterMagic3_P2_Buff.wav",
+   "target": -16.0,
+   "tp_db": -3.09
+  },
+  "S0405": {
+   "bytes": 15500,
+   "ch": 1,
+   "dur": 1.72,
+   "f": "sfx/S0405.m4a?v=1138",
+   "key": "RPG3_GenericCannon_Impact01.wav|None|0.0|False|6.5|512556|1792015685|-16.0|-1.0",
+   "lufs_m": -16.05,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.1262,
+   "src": "RPG3_GenericCannon_Impact01.wav",
+   "target": -16.0,
+   "tp_db": -1.35
+  },
+  "S0406": {
+   "bytes": 23202,
+   "ch": 1,
+   "dur": 2.7414,
+   "f": "sfx/S0406.m4a?v=1138",
+   "key": "RPG3_DarkMagic_Impact01.wav|None|0.0|False|6.5|806548|1792015684|-16.0|-1.0",
+   "lufs_m": -16.32,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.1173,
+   "src": "RPG3_DarkMagic_Impact01.wav",
+   "target": -16.0,
+   "tp_db": -3.74
+  },
+  "S0408-1": {
+   "bytes": 6523,
+   "ch": 1,
+   "dur": 0.6549,
+   "f": "sfx/S0408-1.m4a?v=1138",
+   "key": "VEX-RAZOR-TEMPEST-CUT1.mp3|None|0.0|False|1.6|9692|1792030147|-16.0|-1.0",
+   "lufs_m": -16.06,
+   "note": "Phil 14 Oct, Vex Razor Tempest round 2 option 2 ('good job')",
+   "offset": 0.0,
+   "peak": 0.2794,
+   "src": "VEX-RAZOR-TEMPEST-CUT1.mp3",
+   "target": -16.0,
+   "tp_db": -3.58
+  },
+  "S0408-2": {
+   "bytes": 6748,
+   "ch": 1,
+   "dur": 0.6804,
+   "f": "sfx/S0408-2.m4a?v=1138",
+   "key": "VEX-RAZOR-TEMPEST-CUT2.mp3|None|0.0|False|1.6|9565|1792030147|-16.0|-1.0",
+   "lufs_m": -16.16,
+   "note": "Phil 14 Oct, Vex Razor Tempest round 2 option 2 ('good job')",
+   "offset": 0.0,
+   "peak": 0.1314,
+   "src": "VEX-RAZOR-TEMPEST-CUT2.mp3",
+   "target": -16.0,
+   "tp_db": -2.2
+  },
+  "S0408-3": {
+   "bytes": 6647,
+   "ch": 1,
+   "dur": 0.6679,
+   "f": "sfx/S0408-3.m4a?v=1138",
+   "key": "VEX-RAZOR-TEMPEST-CUT3.mp3|None|0.0|False|1.6|11493|1792030147|-16.0|-1.0",
+   "lufs_m": -16.03,
+   "note": "Phil 14 Oct, Vex Razor Tempest round 2 option 2 ('good job')",
+   "offset": 0.0,
+   "peak": 0.2099,
+   "src": "VEX-RAZOR-TEMPEST-CUT3.mp3",
+   "target": -16.0,
+   "tp_db": -2.07
+  },
+  "S0413": {
+   "bytes": 37164,
+   "ch": 1,
+   "dur": 4.4097,
+   "f": "sfx/S0413.m4a?v=1138",
+   "key": "RPG3_DarkMagic_Buff02.wav|None|0.0|False|6.5|1290180|1792015684|-16.0|-1.0",
+   "lufs_m": -16.06,
+   "note": "Phil pick 14 Oct",
+   "offset": 0.0,
+   "peak": 0.6059,
+   "src": "RPG3_DarkMagic_Buff02.wav",
+   "target": -16.0,
+   "tp_db": -3.64
+  },
+  "S0414": {
+   "bytes": 32420,
+   "ch": 1,
+   "dur": 3.8462,
+   "f": "sfx/S0414.m4a?v=1138",
+   "key": "RPG3_DarkMagic3_HeavyImpactCrit03.wav|None|0.0|False|6.5|1137512|1792015684|-16.0|-1.0",
+   "lufs_m": -16.12,
+   "note": "Phil pick 14 Oct",
+   "offset": 0.0,
+   "peak": 0.9785,
+   "src": "RPG3_DarkMagic3_HeavyImpactCrit03.wav",
+   "target": -16.0,
+   "tp_db": -4.18
+  },
+  "S0415": {
+   "bytes": 58159,
+   "ch": 2,
+   "dur": 4.7866,
+   "f": "sfx/S0415.m4a?v=1138",
+   "key": "RPG3_DarkMagic_Cast04.wav|None|0.0|True|6.5|1405192|1792015684|-16.0|-1.0",
+   "lufs_m": -16.13,
+   "note": "Phil pick 14 Oct",
+   "offset": 0.0,
+   "peak": 1.3177,
+   "src": "RPG3_DarkMagic_Cast04.wav",
+   "target": -16.0,
+   "tp_db": -6.05
+  },
+  "S0421": {
+   "bytes": 39830,
+   "ch": 1,
+   "dur": 4.7487,
+   "f": "sfx/S0421.m4a?v=1138",
+   "key": "RPG3_MagicCute2_Heal03.wav|None|0.0|False|6.5|1385028|1792015685|-16.0|-1.0",
+   "lufs_m": -16.22,
+   "note": "Phil pick 14 Oct",
+   "offset": 0.0,
+   "peak": 0.3043,
+   "src": "RPG3_MagicCute2_Heal03.wav",
+   "target": -16.0,
+   "tp_db": -5.59
+  },
+  "S0423": {
+   "bytes": 12467,
+   "ch": 1,
+   "dur": 1.3411,
+   "f": "sfx/S0423.m4a?v=1138",
+   "key": "RPG3_PlasmaMagic_LightImpact01.wav|None|0.0|False|6.5|403884|1792015686|-16.0|-1.0",
+   "lufs_m": -15.99,
+   "note": "Phil pick 14 Oct",
+   "offset": 0.0,
+   "peak": 0.4538,
+   "src": "RPG3_PlasmaMagic_LightImpact01.wav",
+   "target": -16.0,
+   "tp_db": -1.64
+  },
+  "S0424": {
+   "bytes": 44184,
+   "ch": 2,
+   "dur": 3.5788,
+   "f": "sfx/S0424.m4a?v=1138",
+   "key": "RPG3_MagicShimmer_EpicHeal.wav|None|0.0|True|6.5|1053140|1792015685|-16.0|-1.0",
+   "lufs_m": -16.37,
+   "note": "Phil pick 14 Oct",
+   "offset": 0.0,
+   "peak": 0.2788,
+   "src": "RPG3_MagicShimmer_EpicHeal.wav",
+   "target": -16.0,
+   "tp_db": -8.12
+  },
+  "S0426": {
+   "bytes": 17808,
+   "ch": 1,
+   "dur": 1.9901,
+   "f": "sfx/S0426.m4a?v=1138",
+   "key": "RPG3_ElectricMagic_Debuff01.wav|None|0.0|False|6.5|604462|1792015684|-16.0|-1.0",
+   "lufs_m": -16.11,
+   "note": "Phil pick 14 Oct",
+   "offset": 0.0,
+   "peak": 0.6714,
+   "src": "RPG3_ElectricMagic_Debuff01.wav",
+   "target": -16.0,
+   "tp_db": -1.71
+  },
+  "S0431": {
+   "bytes": 12673,
+   "ch": 1,
+   "dur": 1.3813,
+   "f": "sfx/S0431.m4a?v=1138",
+   "key": "RPG3_ElectricMagicDark_Impact01.wav|None|0.0|False|6.5|417416|1792015684|-16.0|-1.0",
+   "lufs_m": -15.91,
+   "note": "Phil pick 14 Oct",
+   "offset": 0.0,
+   "peak": 0.1779,
+   "src": "RPG3_ElectricMagicDark_Impact01.wav",
+   "target": -16.0,
+   "tp_db": -2.7
+  },
+  "S0432": {
+   "bytes": 36973,
+   "ch": 1,
+   "dur": 4.4326,
+   "f": "sfx/S0432.m4a?v=1138",
+   "key": "RPG3_DarkMagicEpic_SlowMo_Cast01.wav|None|0.0|False|6.5|1293998|1792015683|-16.0|-1.0",
+   "lufs_m": -16.03,
+   "note": "Phil pick 14 Oct",
+   "offset": 0.0,
+   "peak": 0.519,
+   "src": "RPG3_DarkMagicEpic_SlowMo_Cast01.wav",
+   "target": -16.0,
+   "tp_db": -2.98
+  },
+  "S0440": {
+   "bytes": 27467,
+   "ch": 1,
+   "dur": 3.181,
+   "f": "sfx/S0440.m4a?v=1138",
+   "key": "RPG3_DarkMagic_VoiceImpact01.wav|None|0.0|False|6.5|941804|1792015683|-16.0|-1.0",
+   "lufs_m": -16.04,
+   "note": "Phil pick 14 Oct",
+   "offset": 0.0,
+   "peak": 0.3305,
+   "src": "RPG3_DarkMagic_VoiceImpact01.wav",
+   "target": -16.0,
+   "tp_db": -2.89
+  },
+  "S0442": {
+   "bytes": 21970,
+   "ch": 1,
+   "dur": 2.4985,
+   "f": "sfx/S0442.m4a?v=1138",
+   "key": "RPG3_LightMagic_Debuff01.wav|None|0.0|False|6.5|741240|1792015686|-16.0|-1.0",
+   "lufs_m": -16.06,
+   "note": "Phil pick 14 Oct",
+   "offset": 0.0,
+   "peak": 0.2032,
+   "src": "RPG3_LightMagic_Debuff01.wav",
+   "target": -16.0,
+   "tp_db": -2.03
+  },
+  "S0444": {
+   "bytes": 74168,
+   "ch": 2,
+   "dur": 5.9992,
+   "f": "sfx/S0444.m4a?v=1138",
+   "key": "RPG3_DarkMagic3_EvilSpiritCast01.wav|None|0.0|True|6.5|1749974|1792015684|-16.0|-1.0",
+   "lufs_m": -16.12,
+   "note": "Phil pick 14 Oct",
+   "offset": 0.0,
+   "peak": 1.4342,
+   "src": "RPG3_DarkMagic3_EvilSpiritCast01.wav",
+   "target": -16.0,
+   "tp_db": -5.11
+  },
+  "S0446": {
+   "bytes": 20171,
+   "ch": 1,
+   "dur": 2.2911,
+   "f": "sfx/S0446.m4a?v=1138",
+   "key": "RPG3_DarkMagic2_TonalImpact01.wav|None|0.0|False|6.5|677034|1792015683|-16.0|-1.0",
+   "lufs_m": -16.12,
+   "note": "Phil pick 14 Oct",
+   "offset": 0.0,
+   "peak": 0.1597,
+   "src": "RPG3_DarkMagic2_TonalImpact01.wav",
+   "target": -16.0,
+   "tp_db": -2.84
+  },
+  "S0449": {
+   "bytes": 21842,
+   "ch": 1,
+   "dur": 2.4925,
+   "f": "sfx/S0449.m4a?v=1138",
+   "key": "RPG3_Magic_BoulderImpact01.wav|None|0.0|False|6.5|737156|1792015685|-16.0|-1.0",
+   "lufs_m": -16.03,
+   "note": "Phil pick 14 Oct",
+   "offset": 0.0,
+   "peak": 0.3989,
+   "src": "RPG3_Magic_BoulderImpact01.wav",
+   "target": -16.0,
+   "tp_db": -5.47
+  },
+  "S0451": {
+   "bytes": 37663,
+   "ch": 1,
+   "dur": 4.422,
+   "f": "sfx/S0451.m4a?v=1138",
+   "key": "RPG3_LightMagicEpic_Heal01.wav|None|0.0|False|6.5|1307884|1792015686|-16.0|-1.0",
+   "lufs_m": -15.98,
+   "note": "Phil pick 14 Oct",
+   "offset": 0.0,
+   "peak": 0.6306,
+   "src": "RPG3_LightMagicEpic_Heal01.wav",
+   "target": -16.0,
+   "tp_db": -6.01
+  },
+  "S0453": {
+   "bytes": 47813,
+   "ch": 2,
+   "dur": 3.845,
+   "f": "sfx/S0453.m4a?v=1138",
+   "key": "RPG3_MagicShimmer_EpicSpell01.wav|None|0.0|True|6.5|1129964|1792015685|-16.0|-1.0",
+   "lufs_m": -16.29,
+   "note": "Phil pick 14 Oct",
+   "offset": 0.0,
+   "peak": 1.3802,
+   "src": "RPG3_MagicShimmer_EpicSpell01.wav",
+   "target": -16.0,
+   "tp_db": -7.22
+  },
+  "S0456": {
+   "bytes": 45869,
+   "ch": 1,
+   "dur": 5.4291,
+   "f": "sfx/S0456.m4a?v=1138",
+   "key": "RPG3_LightMagicEpic_Debuff_FULL.wav|None|-3.0|False|6.5|1581398|1792015686|-16.0|-1.0",
+   "lufs_m": -19.0,
+   "note": "Phil pick 14 Oct",
+   "offset": -3.0,
+   "peak": 0.0226,
+   "src": "RPG3_LightMagicEpic_Debuff_FULL.wav",
+   "target": -19.0,
+   "tp_db": -7.85
+  },
+  "S0460": {
+   "bytes": 31780,
+   "ch": 1,
+   "dur": 3.7232,
+   "f": "sfx/S0460.m4a?v=1138",
+   "key": "RPG3_WaterMagicCannon_HeavyImpact01.wav|None|0.0|False|6.5|1089622|1792015687|-16.0|-1.0",
+   "lufs_m": -16.05,
+   "note": "Phil pick 14 Oct",
+   "offset": 0.0,
+   "peak": 0.3636,
+   "src": "RPG3_WaterMagicCannon_HeavyImpact01.wav",
+   "target": -16.0,
+   "tp_db": -1.89
+  },
+  "S0463": {
+   "bytes": 36820,
+   "ch": 1,
+   "dur": 4.3456,
+   "f": "sfx/S0463.m4a?v=1138",
+   "key": "RPG3_WaterMagic3_TimeStop2_P2_End.wav|None|0.0|False|6.5|1276484|1792015687|-16.0|-1.0",
+   "lufs_m": -15.98,
+   "note": "Phil pick 14 Oct",
+   "offset": 0.0,
+   "peak": 0.5485,
+   "src": "RPG3_WaterMagic3_TimeStop2_P2_End.wav",
+   "target": -16.0,
+   "tp_db": -7.11
+  },
+  "S0465": {
+   "bytes": 47661,
+   "ch": 2,
+   "dur": 3.8288,
+   "f": "sfx/S0465.m4a?v=1138",
+   "key": "RPG3_WaterMagic_Buff03.wav|None|0.0|True|6.5|1119994|1792015687|-16.0|-1.0",
+   "lufs_m": -16.02,
+   "note": "Phil pick 14 Oct",
+   "offset": 0.0,
+   "peak": 0.5102,
+   "src": "RPG3_WaterMagic_Buff03.wav",
+   "target": -16.0,
+   "tp_db": -6.15
+  },
+  "S0472": {
+   "bytes": 14107,
+   "ch": 1,
+   "dur": 1.5467,
+   "f": "sfx/S0472.m4a?v=1138",
+   "key": "RPG3_ElectricMagic_Projectiles03_Epic.wav|None|0.0|False|6.5|462880|1792015684|-16.0|-1.0",
+   "lufs_m": -16.3,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.4331,
+   "src": "RPG3_ElectricMagic_Projectiles03_Epic.wav",
+   "target": -16.0,
+   "tp_db": -5.27
+  },
+  "S0474": {
+   "bytes": 19194,
+   "ch": 1,
+   "dur": 2.1696,
+   "f": "sfx/S0474.m4a?v=1138",
+   "key": "RPG3_ElectricMagicEpic_Buff.wav|None|0.0|False|6.5|651042|1792015684|-16.0|-1.0",
+   "lufs_m": -16.09,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.5329,
+   "src": "RPG3_ElectricMagicEpic_Buff.wav",
+   "target": -16.0,
+   "tp_db": -3.29
+  },
+  "S0477": {
+   "bytes": 73414,
+   "ch": 2,
+   "dur": 5.9485,
+   "f": "sfx/S0477.m4a?v=1138",
+   "key": "RPG3_ElectricMagicEpic_LightningStrikeImpact01.wav|None|0.0|True|6.5|1740762|1792015684|-16.0|-1.0",
+   "lufs_m": -16.27,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 1.5029,
+   "src": "RPG3_ElectricMagicEpic_LightningStrikeImpact01.wav",
+   "target": -16.0,
+   "tp_db": -8.5
+  },
+  "S0479": {
+   "bytes": 11666,
+   "ch": 1,
+   "dur": 1.224,
+   "f": "sfx/S0479.m4a?v=1138",
+   "key": "RPG3_ElectricMagic_SparkImpact04.wav|None|0.0|False|6.5|369922|1792015684|-16.0|-1.0",
+   "lufs_m": -15.99,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.0847,
+   "src": "RPG3_ElectricMagic_SparkImpact04.wav",
+   "target": -16.0,
+   "tp_db": -4.24
+  },
+  "S0482": {
+   "bytes": 24378,
+   "ch": 1,
+   "dur": 2.7844,
+   "f": "sfx/S0482.m4a?v=1138",
+   "key": "RPG3_LightMagic4_P3_Impact.wav|None|0.0|False|6.5|830188|1792015686|-16.0|-1.0",
+   "lufs_m": -16.1,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.2576,
+   "src": "RPG3_LightMagic4_P3_Impact.wav",
+   "target": -16.0,
+   "tp_db": -1.7
+  },
+  "S0483": {
+   "bytes": 29854,
+   "ch": 1,
+   "dur": 3.4987,
+   "f": "sfx/S0483.m4a?v=1138",
+   "key": "RPG3_LightMagicEpic_Buff02.wav|None|0.0|False|6.5|1031828|1792015686|-16.0|-1.0",
+   "lufs_m": -16.3,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.532,
+   "src": "RPG3_LightMagicEpic_Buff02.wav",
+   "target": -16.0,
+   "tp_db": -7.97
+  },
+  "S0484": {
+   "bytes": 55190,
+   "ch": 2,
+   "dur": 4.4334,
+   "f": "sfx/S0484.m4a?v=1138",
+   "key": "RPG3_LightMagicEpic_Cast_FULL_v1.wav|None|0.0|True|6.5|1298684|1792015686|-16.0|-1.0",
+   "lufs_m": -16.17,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.4433,
+   "src": "RPG3_LightMagicEpic_Cast_FULL_v1.wav",
+   "target": -16.0,
+   "tp_db": -6.14
+  },
+  "S0486": {
+   "bytes": 18324,
+   "ch": 1,
+   "dur": 2.0478,
+   "f": "sfx/S0486.m4a?v=1138",
+   "key": "RPG3_LightMagic_Buff01.wav|None|0.0|False|6.5|607982|1792015686|-16.0|-1.0",
+   "lufs_m": -16.02,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.5415,
+   "src": "RPG3_LightMagic_Buff01.wav",
+   "target": -16.0,
+   "tp_db": -3.19
+  },
+  "S0490": {
+   "bytes": 21438,
+   "ch": 1,
+   "dur": 2.4427,
+   "f": "sfx/S0490.m4a?v=1138",
+   "key": "RPG3_ElectricMagicDark_Cast03.wav|None|0.0|False|6.5|720986|1792015684|-16.0|-1.0",
+   "lufs_m": -16.02,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.8331,
+   "src": "RPG3_ElectricMagicDark_Cast03.wav",
+   "target": -16.0,
+   "tp_db": -4.39
+  },
+  "S0493": {
+   "bytes": 13735,
+   "ch": 1,
+   "dur": 1.5006,
+   "f": "sfx/S0493.m4a?v=1138",
+   "key": "RPG3_WaterMagicBubble_Impact02.wav|None|0.0|False|6.5|449430|1792015687|-16.0|-1.0",
+   "lufs_m": -16.16,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.0942,
+   "src": "RPG3_WaterMagicBubble_Impact02.wav",
+   "target": -16.0,
+   "tp_db": -1.14
+  },
+  "S0494": {
+   "bytes": 53568,
+   "ch": 2,
+   "dur": 4.2852,
+   "f": "sfx/S0494.m4a?v=1138",
+   "key": "RPG3_PlasmaMagicEpic3_P2_Release.wav|None|0.0|True|6.5|1251940|1792015687|-16.0|-1.0",
+   "lufs_m": -15.97,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.5434,
+   "src": "RPG3_PlasmaMagicEpic3_P2_Release.wav",
+   "target": -16.0,
+   "tp_db": -6.11
+  },
+  "S0501": {
+   "bytes": 16005,
+   "ch": 1,
+   "dur": 1.7892,
+   "f": "sfx/S0501.m4a?v=1138",
+   "key": "RPG3_FireMagic_Impact02.wav|None|0.0|False|6.5|532690|1792015685|-16.0|-1.0",
+   "lufs_m": -15.97,
+   "note": "Phil KEPT 15 Oct (redo round 1)",
+   "offset": 0.0,
+   "peak": 0.4558,
+   "src": "RPG3_FireMagic_Impact02.wav",
+   "target": -16.0,
+   "tp_db": -2.67
+  },
+  "S0502": {
+   "bytes": 31933,
+   "ch": 1,
+   "dur": 3.696,
+   "f": "sfx/S0502.m4a?v=1138",
+   "key": "RPG3_FireMagicFlameThrower_Shoot03.wav|None|0.0|False|6.5|1082066|1792015685|-16.0|-1.0",
+   "lufs_m": -16.03,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.3361,
+   "src": "RPG3_FireMagicFlameThrower_Shoot03.wav",
+   "target": -16.0,
+   "tp_db": -2.92
+  },
+  "S0503": {
+   "bytes": 59991,
+   "ch": 2,
+   "dur": 4.8383,
+   "f": "sfx/S0503.m4a?v=1138",
+   "key": "RPG3_FireMagicEpic_MeteorFall02.wav|None|0.0|True|6.5|1412236|1792015685|-16.0|-1.0",
+   "lufs_m": -16.26,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.2038,
+   "src": "RPG3_FireMagicEpic_MeteorFall02.wav",
+   "target": -16.0,
+   "tp_db": -5.05
+  },
+  "S0504": {
+   "bytes": 47958,
+   "ch": 2,
+   "dur": 3.7867,
+   "f": "sfx/S0504.m4a?v=1138",
+   "key": "RPG3_FireMagicEpic_MeteorImpact02_P2_Buff.wav|None|0.0|True|6.5|1108142|1792015685|-16.0|-1.0",
+   "lufs_m": -16.09,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 2.0617,
+   "src": "RPG3_FireMagicEpic_MeteorImpact02_P2_Buff.wav",
+   "target": -16.0,
+   "tp_db": -3.89
+  },
+  "S0510": {
+   "bytes": 31810,
+   "ch": 1,
+   "dur": 3.68,
+   "f": "sfx/S0510.m4a?v=1138",
+   "key": "RPG3_FireMagicArrow_MutipleShot.wav|None|0.0|False|6.5|1077486|1792015685|-16.0|-1.0",
+   "lufs_m": -16.1,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.3098,
+   "src": "RPG3_FireMagicArrow_MutipleShot.wav",
+   "target": -16.0,
+   "tp_db": -3.41
+  },
+  "S0513": {
+   "bytes": 9667,
+   "ch": 1,
+   "dur": 0.9876,
+   "f": "sfx/S0513.m4a?v=1138",
+   "key": "rafe_S0513.mp3|None|0.0|False|6.5|20700|1792034564|-16.0|-1.0",
+   "lufs_m": -16.21,
+   "note": "Phil KEPT 15 Oct (round 4)",
+   "offset": 0.0,
+   "peak": 0.2328,
+   "src": "rafe_S0513.mp3",
+   "target": -16.0,
+   "tp_db": -1.34
+  },
+  "S0514": {
+   "bytes": 35247,
+   "ch": 2,
+   "dur": 2.7471,
+   "f": "sfx/S0514.m4a?v=1138",
+   "key": "rafe_S0514.mp3|None|0.0|True|6.5|65814|1792034735|-16.0|-1.0",
+   "lufs_m": -16.01,
+   "note": "Phil KEPT 15 Oct (round 5)",
+   "offset": 0.0,
+   "peak": 0.45,
+   "peak_from": "the recipe's shots-in time",
+   "src": "rafe_S0514.mp3",
+   "target": -16.0,
+   "tp_db": -7.91
+  },
+  "S0521": {
+   "bytes": 7657,
+   "ch": 1,
+   "dur": 0.7941,
+   "f": "sfx/S0521.m4a?v=1138",
+   "key": "sloe_S0521.mp3|None|0.0|False|6.5|19071|1792034564|-16.0|-1.0",
+   "lufs_m": -16.31,
+   "note": "Phil KEPT 15 Oct (round 4)",
+   "offset": 0.0,
+   "peak": 0.0415,
+   "src": "sloe_S0521.mp3",
+   "target": -16.0,
+   "tp_db": -0.79
+  },
+  "S0522": {
+   "bytes": 28271,
+   "ch": 1,
+   "dur": 3.3078,
+   "f": "sfx/S0522.m4a?v=1138",
+   "key": "sloe_S0522.mp3|None|0.0|False|6.5|49246|1792034564|-16.0|-1.0",
+   "lufs_m": -16.11,
+   "note": "Phil KEPT 15 Oct (round 4)",
+   "offset": 0.0,
+   "peak": 0.3277,
+   "src": "sloe_S0522.mp3",
+   "target": -16.0,
+   "tp_db": -2.97
+  },
+  "S0524": {
+   "bytes": 51511,
+   "ch": 2,
+   "dur": 4.1268,
+   "f": "sfx/S0524.m4a?v=1138",
+   "key": "RPG3_WindMagicEpic_Cast02.wav|None|0.0|True|6.5|1219794|1792015688|-16.0|-1.0",
+   "lufs_m": -16.2,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.3591,
+   "src": "RPG3_WindMagicEpic_Cast02.wav",
+   "target": -16.0,
+   "tp_db": -7.36
+  },
+  "S0528": {
+   "bytes": 16982,
+   "ch": 1,
+   "dur": 1.8981,
+   "f": "sfx/S0528.m4a?v=1138",
+   "key": "tolley_S0528.mp3|None|0.0|False|6.5|38430|1792034564|-16.0|-1.0",
+   "lufs_m": -16.02,
+   "note": "Phil KEPT 15 Oct (round 4)",
+   "offset": 0.0,
+   "peak": 0.0883,
+   "src": "tolley_S0528.mp3",
+   "target": -16.0,
+   "tp_db": -2.91
+  },
+  "S0530": {
+   "bytes": 19554,
+   "ch": 1,
+   "dur": 2.2026,
+   "f": "sfx/S0530.m4a?v=1138",
+   "key": "tolley_S0530.mp3|None|0.0|False|6.5|48054|1792033930|-16.0|-1.0",
+   "lufs_m": -16.13,
+   "note": "Phil KEPT 15 Oct (round 3, reuse + adjust)",
+   "offset": 0.0,
+   "peak": 0.0624,
+   "src": "tolley_S0530.mp3",
+   "target": -16.0,
+   "tp_db": -2.6
+  },
+  "S0533": {
+   "bytes": 57360,
+   "ch": 2,
+   "dur": 4.608,
+   "f": "sfx/S0533.m4a?v=1138",
+   "key": "RPG3_FireMagicFlameThrower_Shoot01.wav|None|0.0|True|6.5|1344722|1792015685|-16.0|-1.0",
+   "lufs_m": -16.14,
+   "note": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "offset": 0.0,
+   "peak": 0.8786,
+   "src": "RPG3_FireMagicFlameThrower_Shoot01.wav",
+   "target": -16.0,
+   "tp_db": -7.36
+  }
+ },
+ "made_by": "tools/build_sfx.py",
+ "metric": "max momentary loudness, BS.1770 K-weighted, 400 ms (LUFS-M)",
+ "offsets": {
+  "LIB-ATK-BOW": -3.0,
+  "LIB-ATK-CASTER-WHOOSH": -5.0,
+  "LIB-ATK-FIST-HEAVY": -3.0,
+  "LIB-ATK-THRUST": -3.0,
+  "S0456": -3.0
+ },
+ "rows": {
+  "NEW-askel-passive": {
+   "ability": "Unshaken Herd (plays when it triggers; no sound-list row yet)",
+   "by": "Phil pick 14 Oct",
+   "ev": "unshaken",
+   "files": [
+    "NEW-askel-passive"
+   ],
+   "hero": "askel",
+   "hook": null,
+   "phase": null,
+   "rule": "passive",
+   "slot": "passive",
+   "timing": null
+  },
+  "NEW-brannus-passive": {
+   "ability": "Pride's Momentum (plays when it triggers)",
+   "by": "Phil pick 14 Oct",
+   "ev": "pridemomentum",
+   "files": [
+    "NEW-brannus-passive"
+   ],
+   "hero": "brannus",
+   "hook": null,
+   "phase": null,
+   "rule": "passive",
+   "slot": "passive",
+   "timing": null
+  },
+  "NEW-grosk-passive": {
+   "ability": "The Mirewall",
+   "by": "Phil reviewed 14 Oct (no sound)",
+   "hero": "grosk",
+   "none": true,
+   "slot": "passive"
+  },
+  "NEW-hobb-passive": {
+   "ability": "Fired Clay",
+   "by": "Phil reviewed 14 Oct (no sound)",
+   "hero": "hobb",
+   "none": true,
+   "slot": "passive"
+  },
+  "NEW-hurne-passive": {
+   "ability": "Packmaster",
+   "by": "Phil reviewed 14 Oct (no sound)",
+   "hero": "hurne",
+   "none": true,
+   "slot": "passive"
+  },
+  "NEW-konwu-passive": {
+   "ability": "Adamant Discipline",
+   "by": "Phil reviewed 14 Oct (no sound)",
+   "hero": "konwu",
+   "none": true,
+   "slot": "passive"
+  },
+  "NEW-linnet-passive": {
+   "ability": "Golden Thread",
+   "by": "Phil reviewed 14 Oct (no sound)",
+   "hero": "linnet",
+   "none": true,
+   "slot": "passive"
+  },
+  "NEW-lysara-passive": {
+   "ability": "Powdered Slumber",
+   "by": "Phil reviewed 14 Oct (no sound)",
+   "hero": "lysara",
+   "none": true,
+   "slot": "passive"
+  },
+  "NEW-meridian-passive": {
+   "ability": "Well-Read",
+   "by": "Phil reviewed 14 Oct (no sound)",
+   "hero": "meridian",
+   "none": true,
+   "slot": "passive"
+  },
+  "NEW-nerisse-passive": {
+   "ability": "Pelagic Insight",
+   "by": "Phil reviewed 14 Oct (no sound)",
+   "hero": "nerisse",
+   "none": true,
+   "slot": "passive"
+  },
+  "NEW-quorrel-passive": {
+   "ability": "Tireless",
+   "by": "Phil reviewed 14 Oct (no sound)",
+   "hero": "quorrel",
+   "none": true,
+   "slot": "passive"
+  },
+  "NEW-sloe-passive": {
+   "ability": "Hunter's Patience",
+   "by": "Phil reviewed 14 Oct (no sound)",
+   "hero": "sloe",
+   "none": true,
+   "slot": "passive"
+  },
+  "NEW-sylthaine-passive": {
+   "ability": "Cold Snap",
+   "by": "Phil reviewed 14 Oct (no sound)",
+   "hero": "sylthaine",
+   "none": true,
+   "slot": "passive"
+  },
+  "NEW-tick-passive": {
+   "ability": "Momentum Gears",
+   "by": "Phil reviewed 14 Oct (no sound)",
+   "hero": "tick",
+   "none": true,
+   "slot": "passive"
+  },
+  "NEW-tolley-passive": {
+   "ability": "Tempered Steel",
+   "by": "Phil reviewed 14 Oct (no sound)",
+   "hero": "tolley",
+   "none": true,
+   "slot": "passive"
+  },
+  "NEW-vael-passive": {
+   "ability": "Blood Rage",
+   "by": "Phil reviewed 14 Oct (no sound)",
+   "hero": "vael",
+   "none": true,
+   "slot": "passive"
+  },
+  "NEW-vaelora-passive": {
+   "ability": "Silent Altitude",
+   "by": "Phil reviewed 14 Oct (no sound)",
+   "hero": "vaelora",
+   "none": true,
+   "slot": "passive"
+  },
+  "NEW-vesper-passive": {
+   "ability": "Scriptorium",
+   "by": "Phil reviewed 14 Oct (no sound)",
+   "hero": "vesper",
+   "none": true,
+   "slot": "passive"
+  },
+  "NEW-veyr-passive": {
+   "ability": "Weightless Predator",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "ev": "weightless",
+   "files": [
+    "NEW-veyr-passive"
+   ],
+   "hero": "veyr",
+   "hook": null,
+   "phase": null,
+   "rule": "passive",
+   "slot": "passive",
+   "timing": null
+  },
+  "NEW-vulmar-passive": {
+   "ability": "Unstepped",
+   "by": "Phil reviewed 14 Oct (no sound)",
+   "hero": "vulmar",
+   "none": true,
+   "slot": "passive"
+  },
+  "NEW-yenna-passive": {
+   "ability": "Pack Opportunist",
+   "by": "Phil reviewed 14 Oct (no sound)",
+   "hero": "yenna",
+   "none": true,
+   "slot": "passive"
+  },
+  "NEW-zahri-passive": {
+   "ability": "Desert Momentum",
+   "by": "Phil reviewed 14 Oct (no sound)",
+   "hero": "zahri",
+   "none": true,
+   "slot": "passive"
+  },
+  "S0003": {
+   "ability": "Cleaving Arc",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0003"
+   ],
+   "hero": "konwu",
+   "hook": "EXISTS: fx.konwu_green (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "green",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0005": {
+   "ability": "Phantom Step",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0005"
+   ],
+   "hero": "konwu",
+   "hook": "EXISTS: fx.konwu_blue (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "blue",
+   "timing": "cast frame (ability clip starts) (2 s rooted channel)"
+  },
+  "S0008": {
+   "ability": "Heaven-Splitting Slam",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0008"
+   ],
+   "hero": "konwu",
+   "hook": "EXISTS: fx.konwu_ult (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "ult",
+   "timing": "ult press (Ruyi copies appear over each enemy)"
+  },
+  "S0009": {
+   "ability": "Heaven-Splitting Slam",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0009"
+   ],
+   "hero": "konwu",
+   "hook": "PARTIAL: fx.konwu_ult fires at plate time; a separate landing hook is needed",
+   "max": 3,
+   "phase": "impact",
+   "rule": "hit",
+   "slot": "ult",
+   "timing": "each Ruyi slam (cell 36), per target; layer max 3, rest as soft thumps"
+  },
+  "S0012": {
+   "ability": "Gravemaw Pull",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0012"
+   ],
+   "hero": "grosk",
+   "hook": "EXISTS: fx.grosk_green (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "green",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0014": {
+   "ability": "Hammer Fists",
+   "by": "Phil 14 Oct, Grosk Hammer Fists option 3 ('there we go')",
+   "files": [
+    "S0014"
+   ],
+   "hero": "grosk",
+   "hook": "PARTIAL: fx.grosk_blue fires at plate time; a separate landing hook is needed",
+   "max": 3,
+   "phase": "impact",
+   "rule": "hit",
+   "slot": "blue",
+   "timing": "each punch: 1.083 / 2.000 / 2.833 s into the clip"
+  },
+  "S0015": {
+   "ability": "Croc Drop",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0015"
+   ],
+   "hero": "grosk",
+   "hook": "EXISTS: fx.grosk_ult (when the plate appears)",
+   "phase": "cast",
+   "rule": "release",
+   "slot": "ult",
+   "timing": "launch, clip cell 10 (0.833 s)"
+  },
+  "S0016": {
+   "ability": "Croc Drop",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0016"
+   ],
+   "hero": "grosk",
+   "hook": "PARTIAL: fx.grosk_ult fires at plate time; a separate landing hook is needed",
+   "phase": "impact",
+   "rule": "land",
+   "slot": "ult",
+   "timing": "landing, clip cell 34 (2.833 s)"
+  },
+  "S0021": {
+   "ability": "Gravity Sling",
+   "by": "Phil KEPT 15 Oct (round 3, reuse + adjust)",
+   "files": [
+    "S0021"
+   ],
+   "hero": "vulmar",
+   "hook": "EXISTS: fx.vulmar_green (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "green",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0024": {
+   "ability": "Grasping Vow",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0024"
+   ],
+   "hero": "vulmar",
+   "hook": "EXISTS: fx.vulmar_blue (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "blue",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0027": {
+   "ability": "Weight of the World",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0027"
+   ],
+   "hero": "vulmar",
+   "hook": "EXISTS: fx.vulmar_ult (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "ult",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0029": {
+   "ability": "Weight of the World",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0029"
+   ],
+   "hero": "vulmar",
+   "hook": "PARTIAL: fx.vulmar_ult fires at plate time; a separate landing hook is needed",
+   "phase": "impact",
+   "rule": "land",
+   "slot": "ult",
+   "timing": "slam (end of lift)"
+  },
+  "S0032": {
+   "ability": "Overclock",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0032"
+   ],
+   "hero": "tick",
+   "hook": "EXISTS: fx.tick_green (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "green",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0034": {
+   "ability": "Mainspring",
+   "by": "Phil KEPT 15 Oct (round 3, reuse + adjust)",
+   "files": [
+    "S0034"
+   ],
+   "hero": "tick",
+   "hook": "PARTIAL: fx.tick_blue fires at plate time; a separate landing hook is needed",
+   "max": 3,
+   "phase": "impact",
+   "rule": "release",
+   "slot": "blue",
+   "timing": "each damage tick (each punch)"
+  },
+  "S0035": {
+   "ability": "Flywheel",
+   "by": "Phil KEPT 15 Oct (redo round 1)",
+   "files": [
+    "S0035"
+   ],
+   "hero": "tick",
+   "hook": "EXISTS: fx.tick_ult (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "ult",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0043": {
+   "ability": "Frozen Orb",
+   "by": "Phil KEPT 15 Oct (redo round 1)",
+   "files": [
+    "S0043"
+   ],
+   "hero": "sylthaine",
+   "hook": "PARTIAL: fx.sylthaine_green fires at plate time; a separate landing hook is needed",
+   "phase": "impact",
+   "rule": "land",
+   "slot": "green",
+   "timing": "projectile hits"
+  },
+  "S0044": {
+   "ability": "Glacial Prison",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0044"
+   ],
+   "hero": "sylthaine",
+   "hook": "EXISTS: fx.sylthaine_blue (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "blue",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0046": {
+   "ability": "Blizzard",
+   "by": "Phil KEPT 15 Oct (round 4)",
+   "files": [
+    "S0046"
+   ],
+   "hero": "sylthaine",
+   "hook": "EXISTS: fx.sylthaine_ult (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "ult",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0051": {
+   "ability": "Sunburst",
+   "by": "Phil pick 14 Oct",
+   "files": [
+    "S0051"
+   ],
+   "hero": "aureth",
+   "hook": "EXISTS: fx.aureth_green (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "green",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0053": {
+   "ability": "Duality",
+   "by": "Phil pick 14 Oct",
+   "files": [
+    "S0053"
+   ],
+   "hero": "aureth",
+   "hook": "EXISTS: fx.aureth_blue (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "blue",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0054": {
+   "ability": "Eclipse",
+   "by": "Phil pick 14 Oct",
+   "files": [
+    "S0054"
+   ],
+   "hero": "aureth",
+   "hook": "EXISTS: fx.aureth_ult (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "ult",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0060": {
+   "ability": "Toxic Breath",
+   "by": "Phil pick 14 Oct",
+   "files": [
+    "S0060"
+   ],
+   "hero": "bloatus",
+   "hook": "EXISTS: fx.bloatus_green (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "green",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0063": {
+   "ability": "Swampcall",
+   "by": "Phil pick 14 Oct",
+   "files": [
+    "S0063"
+   ],
+   "hero": "bloatus",
+   "hook": "EXISTS: fx.bloatus_blue (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "blue",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0065": {
+   "ability": "Plague Sovereign",
+   "by": "Phil pick 14 Oct",
+   "files": [
+    "S0065"
+   ],
+   "hero": "bloatus",
+   "hook": "EXISTS: fx.bloatus_ult (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "ult",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0068": {
+   "ability": "Contagion",
+   "by": "Phil pick 14 Oct",
+   "ev": "contagion",
+   "files": [
+    "S0068"
+   ],
+   "hero": "bloatus",
+   "hook": "NEW: passive trigger hook",
+   "phase": "trigger",
+   "rule": "passive",
+   "slot": "passive",
+   "timing": "marked foe dies (POISON SPREADS)"
+  },
+  "S0072": {
+   "ability": "Crescendo",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0072"
+   ],
+   "hero": "vireo",
+   "hook": "EXISTS: fx.vireo_green (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "green",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0074": {
+   "ability": "Harmony",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0074"
+   ],
+   "hero": "vireo",
+   "hook": "EXISTS: fx.vireo_blue (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "blue",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0076": {
+   "ability": "Grand Symphony",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0076"
+   ],
+   "hero": "vireo",
+   "hook": "EXISTS: fx.vireo_ult (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "ult",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0078": {
+   "ability": "Perfect Pitch",
+   "by": "Phil reviewed 14 Oct (no sound)",
+   "hero": "vireo",
+   "none": true,
+   "slot": "passive"
+  },
+  "S0081": {
+   "ability": "Storm Surge",
+   "by": "Phil pick 14 Oct",
+   "files": [
+    "S0081"
+   ],
+   "hero": "fritz",
+   "hook": "PARTIAL: fx.fritz_green fires at plate time; a separate landing hook is needed",
+   "max": 5,
+   "phase": "impact",
+   "rule": "hit",
+   "slot": "green",
+   "timing": "each bolt lands: 0.30 s, then every 0.12 s"
+  },
+  "S0083": {
+   "ability": "Chain Lightning",
+   "by": "Phil pick 14 Oct",
+   "files": [
+    "S0083"
+   ],
+   "hero": "fritz",
+   "hook": "PARTIAL: fx.fritz_blue fires at plate time; a separate landing hook is needed",
+   "max": 5,
+   "phase": "impact",
+   "rule": "hit",
+   "slot": "blue",
+   "timing": "each link hit"
+  },
+  "S0084": {
+   "ability": "Thunder Shower",
+   "by": "Phil pick 14 Oct",
+   "files": [
+    "S0084"
+   ],
+   "hero": "fritz",
+   "hook": "EXISTS: fx.fritz_ult (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "ult",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0087": {
+   "ability": "Static Veil",
+   "by": "Phil 14 Oct: no sounds for passive",
+   "hero": "fritz",
+   "none": true,
+   "slot": "passive"
+  },
+  "S0091": {
+   "ability": "Shadeburst",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0091"
+   ],
+   "hero": "umbris",
+   "hook": "EXISTS: fx.umbris_green (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "green",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0093": {
+   "ability": "Creeping Rot",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0093"
+   ],
+   "hero": "umbris",
+   "hook": "PARTIAL: fx.umbris_blue fires at plate time; a separate landing hook is needed",
+   "phase": "impact",
+   "rule": "land",
+   "slot": "blue",
+   "timing": "projectile hits"
+  },
+  "S0095": {
+   "ability": "Umbral Cataclysm",
+   "by": "Phil KEPT 15 Oct (redo round 1)",
+   "files": [
+    "S0095"
+   ],
+   "hero": "umbris",
+   "hook": "PARTIAL: fx.umbris_ult.travel only if it flies via spawnProjFx",
+   "phase": "travel",
+   "rule": "cast",
+   "slot": "ult",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0096": {
+   "ability": "Umbral Cataclysm",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0096"
+   ],
+   "hero": "umbris",
+   "hook": "PARTIAL: fx.umbris_ult fires at plate time; a separate landing hook is needed",
+   "phase": "impact",
+   "rule": "land",
+   "slot": "ult",
+   "timing": "sphere lands at the aim"
+  },
+  "S0098": {
+   "ability": "Lingering Dark",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "ev": "contagion",
+   "files": [
+    "S0098"
+   ],
+   "hero": "umbris",
+   "hook": "NEW: passive trigger hook",
+   "phase": "trigger",
+   "rule": "passive",
+   "slot": "passive",
+   "timing": "marked foe dies"
+  },
+  "S0101": {
+   "ability": "Warcry",
+   "by": "Phil KEPT 15 Oct (round 3, reuse + adjust)",
+   "files": [
+    "S0101"
+   ],
+   "hero": "vael",
+   "hook": "EXISTS: fx.vael_green (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "green",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0102": {
+   "ability": "Bloodthirst",
+   "by": "Phil KEPT 15 Oct (redo round 1)",
+   "files": [
+    "S0102"
+   ],
+   "hero": "vael",
+   "hook": "EXISTS: fx.vael_blue (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "blue",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0104": {
+   "ability": "Last Stand",
+   "by": "Phil KEPT 15 Oct (redo round 1)",
+   "files": [
+    "S0104"
+   ],
+   "hero": "vael",
+   "hook": "EXISTS: fx.vael_ult (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "ult",
+   "timing": "ult press (0.3 s wind-up)"
+  },
+  "S0109": {
+   "ability": "Mending Bloom",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0109"
+   ],
+   "hero": "oakmir",
+   "hook": "EXISTS: fx.oakmir_green (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "green",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0111": {
+   "ability": "Rally Roots",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0111"
+   ],
+   "hero": "oakmir",
+   "hook": "EXISTS: fx.oakmir_blue (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "blue",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0113": {
+   "ability": "First Spring",
+   "by": "Phil KEPT 15 Oct (round 3, reuse + adjust)",
+   "files": [
+    "S0113"
+   ],
+   "hero": "oakmir",
+   "hook": "EXISTS: fx.oakmir_ult (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "ult",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0115": {
+   "ability": "Deep Roots",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "ev": "deeproots",
+   "files": [
+    "S0115"
+   ],
+   "hero": "oakmir",
+   "hook": "NEW: passive trigger hook",
+   "phase": "trigger",
+   "rule": "passive",
+   "slot": "passive",
+   "timing": "ally drops under 30% (once per ally)"
+  },
+  "S0118": {
+   "ability": "Carapace",
+   "by": "Phil KEPT 15 Oct (redo round 1)",
+   "files": [
+    "S0118"
+   ],
+   "hero": "rhukk",
+   "hook": "EXISTS: fx.rhukk_green (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "green",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0119": {
+   "ability": "Dig In",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0119"
+   ],
+   "hero": "rhukk",
+   "hook": "EXISTS: fx.rhukkroar (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "blue",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0121": {
+   "ability": "Impale Rush",
+   "by": "Phil KEPT 15 Oct (round 5)",
+   "files": [
+    "S0121"
+   ],
+   "hero": "rhukk",
+   "hook": "PARTIAL: fx.rhukk_ult.travel only if it flies via spawnProjFx",
+   "phase": "travel",
+   "rule": "release",
+   "slot": "ult",
+   "timing": "dash starts (22 m/s)"
+  },
+  "S0122": {
+   "ability": "Impale Rush",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0122"
+   ],
+   "hero": "rhukk",
+   "hook": "PARTIAL: fx.rhukk_ult fires at plate time; a separate landing hook is needed",
+   "phase": "impact",
+   "rule": "land",
+   "slot": "ult",
+   "timing": "arrival"
+  },
+  "S0123": {
+   "ability": "Thick Chitin",
+   "by": "Phil reviewed 14 Oct (no sound)",
+   "hero": "rhukk",
+   "none": true,
+   "slot": "passive"
+  },
+  "S0126": {
+   "ability": "Unchain the Dead",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0126"
+   ],
+   "hero": "hurne",
+   "hook": "EXISTS: fx.hurne_green (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "green",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0128": {
+   "ability": "Call the Bone-Chanter",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0128"
+   ],
+   "hero": "hurne",
+   "hook": "EXISTS: fx.hurne_blue (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "blue",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0129": {
+   "ability": "Feed Them",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0129"
+   ],
+   "hero": "hurne",
+   "hook": "EXISTS: fx.hurne_ult (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "ult",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0130": {
+   "ability": "Feed Them",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0130"
+   ],
+   "hero": "hurne",
+   "hook": "PARTIAL: fx.hurne_ult fires at plate time; a separate landing hook is needed",
+   "phase": "impact",
+   "rule": "release",
+   "slot": "ult",
+   "timing": "effect lands (after the form/drop delay)"
+  },
+  "S0134": {
+   "ability": "Golden Quill",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0134"
+   ],
+   "hero": "meridian",
+   "hook": "PARTIAL: fx.meridian_green.travel only if it flies via spawnProjFx",
+   "phase": "travel",
+   "rule": "release",
+   "slot": "green",
+   "timing": "projectile leaves the hand"
+  },
+  "S0136": {
+   "ability": "Plumb Line",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0136"
+   ],
+   "hero": "meridian",
+   "hook": "PARTIAL: fx.meridian_blue.travel only if it flies via spawnProjFx",
+   "phase": "travel",
+   "rule": "release",
+   "slot": "blue",
+   "timing": "projectile leaves the hand"
+  },
+  "S0138": {
+   "ability": "Final Expedition",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0138"
+   ],
+   "hero": "meridian",
+   "hook": "EXISTS: fx.meridian_ult (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "ult",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0143": {
+   "ability": "Coinflail",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0143"
+   ],
+   "hero": "gruel",
+   "hook": "EXISTS: fx.gruel_green (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "green",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0145": {
+   "ability": "Weigh the Debt",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0145"
+   ],
+   "hero": "gruel",
+   "hook": "EXISTS: fx.gruel_blue (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "blue",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0146": {
+   "ability": "The Reckoning",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0146"
+   ],
+   "hero": "gruel",
+   "hook": "EXISTS: fx.gruel_ult (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "ult",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0148": {
+   "ability": "Gluttony",
+   "by": "Phil reviewed 14 Oct (no sound)",
+   "hero": "gruel",
+   "none": true,
+   "slot": "passive"
+  },
+  "S0152": {
+   "ability": "Starfire",
+   "by": "Phil pick 14 Oct",
+   "files": [
+    "S0152"
+   ],
+   "hero": "astra",
+   "hook": "EXISTS: fx.astra_green (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "green",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0154": {
+   "ability": "Nebula",
+   "by": "Phil pick 14 Oct",
+   "files": [
+    "S0154"
+   ],
+   "hero": "astra",
+   "hook": "EXISTS: fx.astra_blue (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "blue",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0156": {
+   "ability": "Event Horizon",
+   "by": "Phil pick 14 Oct",
+   "files": [
+    "S0156"
+   ],
+   "hero": "astra",
+   "hook": "EXISTS: fx.astrahorizon (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "ult",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0162": {
+   "ability": "Gag Order",
+   "by": "Phil KEPT 15 Oct (round 3, reuse + adjust)",
+   "files": [
+    "S0162"
+   ],
+   "hero": "quorrel",
+   "hook": "EXISTS: fx.quorrel_green (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "green",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0164": {
+   "ability": "Contempt",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0164"
+   ],
+   "hero": "quorrel",
+   "hook": "PARTIAL: fx.quorrel_blue fires at plate time; a separate landing hook is needed",
+   "phase": "impact",
+   "rule": "release",
+   "slot": "blue",
+   "timing": "cast frame (ability clip starts) (hit on cast)"
+  },
+  "S0165": {
+   "ability": "Contempt Storm",
+   "by": "Phil KEPT 15 Oct (round 3, reuse + adjust)",
+   "files": [
+    "S0165"
+   ],
+   "hero": "quorrel",
+   "hook": "EXISTS: fx.quorrel_ult (when the plate appears)",
+   "phase": "cast",
+   "rule": "release",
+   "slot": "ult",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0171": {
+   "ability": "Comet Dash",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0171"
+   ],
+   "hero": "korvux",
+   "hook": "PARTIAL: fx.korvux_green fires at plate time; a separate landing hook is needed",
+   "phase": "impact",
+   "rule": "land",
+   "slot": "green",
+   "timing": "arrival"
+  },
+  "S0172": {
+   "ability": "Ember Cleave",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0172"
+   ],
+   "hero": "korvux",
+   "hook": "EXISTS: fx.korvuxcleave (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "blue",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0174": {
+   "ability": "Falling Star",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0174"
+   ],
+   "hero": "korvux",
+   "hook": "EXISTS: fx.korvux_ult (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "ult",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0177": {
+   "ability": "Emberskin",
+   "by": "Phil reviewed 14 Oct (no sound)",
+   "hero": "korvux",
+   "none": true,
+   "slot": "passive"
+  },
+  "S0181": {
+   "ability": "Tide Pool",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0181"
+   ],
+   "hero": "maren",
+   "hook": "PARTIAL: fx.maren_green fires at plate time; a separate landing hook is needed",
+   "phase": "impact",
+   "rule": "land",
+   "slot": "green",
+   "timing": "pool lands (0.55 s drop)"
+  },
+  "S0182": {
+   "ability": "Tsunami",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0182"
+   ],
+   "hero": "maren",
+   "hook": "EXISTS: fx.maren_blue (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "blue",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0184": {
+   "ability": "Maelstrom",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0184"
+   ],
+   "hero": "maren",
+   "hook": "EXISTS: fx.maren_ult (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "ult",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0186": {
+   "ability": "Deep Reserves",
+   "by": "Phil reviewed 14 Oct (no sound)",
+   "hero": "maren",
+   "none": true,
+   "slot": "passive"
+  },
+  "S0190": {
+   "ability": "Dawnward",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0190"
+   ],
+   "hero": "lumi",
+   "hook": "EXISTS: fx.lumi_green (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "green",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0191": {
+   "ability": "Quickening",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0191"
+   ],
+   "hero": "lumi",
+   "hook": "EXISTS: fx.lumi_blue (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "blue",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0192": {
+   "ability": "Radiant Nova",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0192"
+   ],
+   "hero": "lumi",
+   "hook": "EXISTS: fx.lumi_ult (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "ult",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0194": {
+   "ability": "Hush",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "ev": "hush",
+   "files": [
+    "S0194"
+   ],
+   "hero": "lumi",
+   "hook": "NEW: passive trigger hook",
+   "phase": "trigger",
+   "rule": "passive",
+   "slot": "passive",
+   "timing": "every 5 s silence"
+  },
+  "S0197": {
+   "ability": "Fan of Knives",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0197"
+   ],
+   "hero": "hollow",
+   "hook": "PARTIAL: fx.hollow_green fires at plate time; a separate landing hook is needed",
+   "phase": "impact",
+   "rule": "cast",
+   "slot": "green",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0198": {
+   "ability": "Lacerate",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0198"
+   ],
+   "hero": "hollow",
+   "hook": "PARTIAL: fx.hollow_blue fires at plate time; a separate landing hook is needed",
+   "phase": "impact",
+   "rule": "release",
+   "slot": "blue",
+   "timing": "cast frame (ability clip starts) (hit on cast)"
+  },
+  "S0200": {
+   "ability": "Vanishing Point",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0200"
+   ],
+   "hero": "hollow",
+   "hook": "EXISTS: fx.hollow_ult (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "ult",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0201": {
+   "ability": "Vanishing Point",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0201"
+   ],
+   "hero": "hollow",
+   "hook": "PARTIAL: fx.hollow_ult fires at plate time; a separate landing hook is needed",
+   "max": 3,
+   "phase": "impact",
+   "rule": "hit",
+   "slot": "ult",
+   "timing": "each strike, up to 3 in a chain",
+   "win": 4.0
+  },
+  "S0203": {
+   "ability": "The Space He Isn't In",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "ev": "notthere",
+   "files": [
+    "S0203"
+   ],
+   "hero": "hollow",
+   "hook": "NEW: passive trigger hook",
+   "phase": "trigger",
+   "rule": "passive",
+   "slot": "passive",
+   "timing": "every 4 s auto-miss"
+  },
+  "S0207": {
+   "ability": "Gravity Crescent",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0207"
+   ],
+   "hero": "veyr",
+   "hook": "EXISTS: fx.veyr_green (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "green",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0209": {
+   "ability": "Abyssal Mantle",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0209"
+   ],
+   "hero": "veyr",
+   "hook": "EXISTS: fx.veyr_blue (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "blue",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0211": {
+   "ability": "Event Horizon",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0211"
+   ],
+   "hero": "veyr",
+   "hook": "EXISTS: fx.veyr_ult (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "ult",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0213": {
+   "ability": "Event Horizon",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0213"
+   ],
+   "hero": "veyr",
+   "hook": "PARTIAL: fx.veyr_ult fires at plate time; a separate landing hook is needed",
+   "phase": "impact",
+   "rule": "land",
+   "slot": "ult",
+   "timing": "effect lands (after the form/drop delay)"
+  },
+  "S0217": {
+   "ability": "Scent of Courage",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0217"
+   ],
+   "hero": "mirelle",
+   "hook": "EXISTS: fx.mirelle_green (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "green",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0219": {
+   "ability": "Soporific Bouquet",
+   "by": "Phil KEPT 15 Oct (round 3, reuse + adjust)",
+   "files": [
+    "S0219"
+   ],
+   "hero": "mirelle",
+   "hook": "PARTIAL: fx.mirelle_blue.travel only if it flies via spawnProjFx",
+   "phase": "travel",
+   "rule": "release",
+   "slot": "blue",
+   "timing": "projectile leaves the hand"
+  },
+  "S0221": {
+   "ability": "Imperial Plumage",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0221"
+   ],
+   "hero": "mirelle",
+   "hook": "EXISTS: fx.mirelle_ult (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "ult",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0223": {
+   "ability": "Trail of Splendor",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "ev": "splendor",
+   "files": [
+    "S0223"
+   ],
+   "hero": "mirelle",
+   "hook": "NEW: passive trigger hook",
+   "phase": "trigger",
+   "rule": "passive",
+   "slot": "passive",
+   "timing": "ally buffed"
+  },
+  "S0226": {
+   "ability": "Meteor Knuckle",
+   "by": "Phil KEPT 15 Oct (redo round 1)",
+   "files": [
+    "S0226"
+   ],
+   "hero": "pellucid",
+   "hook": "EXISTS: fx.pellucid_green (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "green",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0228": {
+   "ability": "Infernal Clinch",
+   "by": "Phil KEPT 15 Oct (round 3, reuse + adjust)",
+   "files": [
+    "S0228"
+   ],
+   "hero": "pellucid",
+   "hook": "PARTIAL: fx.pellucid_blue fires at plate time; a separate landing hook is needed",
+   "phase": "impact",
+   "rule": "release",
+   "slot": "blue",
+   "timing": "cast frame (ability clip starts) (clamp)"
+  },
+  "S0229": {
+   "ability": "Worldbreaker Fists",
+   "by": "Phil KEPT 15 Oct (round 3, reuse + adjust)",
+   "files": [
+    "S0229"
+   ],
+   "hero": "pellucid",
+   "hook": "EXISTS: fx.pellucid_ult (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "ult",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0230": {
+   "ability": "Worldbreaker Fists",
+   "by": "Phil KEPT 15 Oct (round 3, reuse + adjust)",
+   "files": [
+    "S0230-1",
+    "S0230-2",
+    "S0230-3"
+   ],
+   "hero": "pellucid",
+   "hook": "PARTIAL: fx.pellucid_ult fires at plate time; a separate landing hook is needed",
+   "max": 3,
+   "phase": "impact",
+   "rule": "hit",
+   "seq": true,
+   "slot": "ult",
+   "split": 3,
+   "timing": "each of the 3 slams"
+  },
+  "S0231": {
+   "ability": "Unmovable Mass",
+   "by": "Phil reviewed 14 Oct (no sound)",
+   "hero": "pellucid",
+   "none": true,
+   "slot": "passive"
+  },
+  "S0235": {
+   "ability": "Pressure Sphere",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0235"
+   ],
+   "hero": "orryn",
+   "hook": "EXISTS: fx.orryn_green (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "green",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0237": {
+   "ability": "Spiral Current",
+   "by": "Phil KEPT 15 Oct (round 3, reuse + adjust)",
+   "files": [
+    "S0237"
+   ],
+   "hero": "orryn",
+   "hook": "NEW: no loop support (no stop, no loop flag)",
+   "phase": "loop",
+   "rule": "release",
+   "slot": "blue",
+   "timing": "while the pool moves (6 m/s)"
+  },
+  "S0239": {
+   "ability": "Ocean Without Shore",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0239"
+   ],
+   "hero": "orryn",
+   "hook": "EXISTS: fx.orryn_ult (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "ult",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0241": {
+   "ability": "Abyssal Reserve",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "ev": "abyssres",
+   "files": [
+    "S0241"
+   ],
+   "hero": "orryn",
+   "hook": "NEW: passive trigger hook",
+   "phase": "trigger",
+   "rule": "passive",
+   "slot": "passive",
+   "timing": "every 3rd cast"
+  },
+  "S0244": {
+   "ability": "Glazebreaker",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0244"
+   ],
+   "hero": "hobb",
+   "hook": "PARTIAL: fx.hobb_green fires at plate time; a separate landing hook is needed",
+   "phase": "impact",
+   "rule": "release",
+   "slot": "green",
+   "timing": "cast frame (ability clip starts) (hit on cast)"
+  },
+  "S0245": {
+   "ability": "Sealed Vessel",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0245"
+   ],
+   "hero": "hobb",
+   "hook": "EXISTS: fx.hobb_blue (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "blue",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0246": {
+   "ability": "Grand Kiln Shape",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0246"
+   ],
+   "hero": "hobb",
+   "hook": "EXISTS: fx.hobb_ult (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "ult",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0250": {
+   "ability": "Scale Ram",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0250"
+   ],
+   "hero": "tharl",
+   "hook": "PARTIAL: fx.tharlquake fires at plate time; a separate landing hook is needed",
+   "phase": "impact",
+   "rule": "land",
+   "slot": "green",
+   "timing": "impact point (quake plate)"
+  },
+  "S0251": {
+   "ability": "Fortress Curl",
+   "by": "Phil KEPT 15 Oct (redo round 1)",
+   "files": [
+    "S0251"
+   ],
+   "hero": "tharl",
+   "hook": "EXISTS: fx.tharl_blue (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "blue",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0252": {
+   "ability": "Avalanche Coil",
+   "by": "Phil KEPT 15 Oct (redo round 1)",
+   "files": [
+    "S0252"
+   ],
+   "hero": "tharl",
+   "hook": "PARTIAL: fx.tharl_ult.travel only if it flies via spawnProjFx",
+   "phase": "travel",
+   "rule": "release",
+   "slot": "ult",
+   "timing": "dash starts"
+  },
+  "S0253": {
+   "ability": "Avalanche Coil",
+   "by": "Phil KEPT 15 Oct (redo round 1)",
+   "files": [
+    "S0253"
+   ],
+   "hero": "tharl",
+   "hook": "PARTIAL: fx.tharl_ult fires at plate time; a separate landing hook is needed",
+   "phase": "impact",
+   "rule": "land",
+   "slot": "ult",
+   "timing": "arrival"
+  },
+  "S0254": {
+   "ability": "Layered Hide",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "ev": "layered",
+   "files": [
+    "S0254"
+   ],
+   "hero": "tharl",
+   "hook": "NEW: passive trigger hook",
+   "phase": "trigger",
+   "rule": "passive",
+   "slot": "passive",
+   "timing": "5 layers reached (PLATED)"
+  },
+  "S0257": {
+   "ability": "Standard Crash",
+   "by": "Phil pick 14 Oct",
+   "files": [
+    "S0257"
+   ],
+   "hero": "askel",
+   "hook": "EXISTS: fx.askel_green (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "green",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0259": {
+   "ability": "Rallying Ground",
+   "by": "Phil pick 14 Oct",
+   "files": [
+    "S0259"
+   ],
+   "hero": "askel",
+   "hook": "EXISTS: fx.askel_blue (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "blue",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0262": {
+   "ability": "March of the Greatbrow",
+   "by": "Phil pick 14 Oct",
+   "files": [
+    "S0262"
+   ],
+   "hero": "askel",
+   "hook": "PARTIAL: fx.askel_ult fires at plate time; a separate landing hook is needed",
+   "phase": "impact",
+   "rule": "land",
+   "slot": "ult",
+   "timing": "arrival"
+  },
+  "S0265": {
+   "ability": "Fault Claws",
+   "by": "Phil pick 14 Oct",
+   "files": [
+    "S0265"
+   ],
+   "hero": "deepcleft",
+   "hook": "PARTIAL: fx.deepcleft_green fires at plate time; a separate landing hook is needed",
+   "phase": "impact",
+   "rule": "release",
+   "slot": "green",
+   "timing": "cast frame (ability clip starts) (hit on cast)"
+  },
+  "S0266": {
+   "ability": "Burrow Guard",
+   "by": "Phil pick 14 Oct",
+   "files": [
+    "S0060"
+   ],
+   "hero": "deepcleft",
+   "hook": "EXISTS: fx.deepcleft_blue (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "blue",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0268": {
+   "ability": "Quarry Collapse",
+   "by": "Phil pick 14 Oct",
+   "files": [
+    "S0268"
+   ],
+   "hero": "deepcleft",
+   "hook": "EXISTS: fx.deepcleft_ult (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "ult",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0273": {
+   "ability": "Rim Breaker",
+   "by": "Phil pick 14 Oct",
+   "files": [
+    "S0273"
+   ],
+   "hero": "brannus",
+   "hook": "PARTIAL: fx.brannus_green fires at plate time; a separate landing hook is needed",
+   "phase": "impact",
+   "rule": "land",
+   "slot": "green",
+   "timing": "projectile hits"
+  },
+  "S0274": {
+   "ability": "Arena Lock",
+   "by": "Phil pick 14 Oct",
+   "files": [
+    "S0274"
+   ],
+   "hero": "brannus",
+   "hook": "EXISTS: fx.brannus_blue (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "blue",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0276": {
+   "ability": "Lionwheel Rampage",
+   "by": "Phil pick 14 Oct",
+   "files": [
+    "S0276"
+   ],
+   "hero": "brannus",
+   "hook": "PARTIAL: fx.brannus_ult fires at plate time; a separate landing hook is needed",
+   "phase": "impact",
+   "rule": "land",
+   "slot": "ult",
+   "timing": "arrival"
+  },
+  "S0280": {
+   "ability": "Marked Deal",
+   "by": "Phil KEPT 15 Oct (redo round 1)",
+   "files": [
+    "S0280"
+   ],
+   "hero": "sorrel",
+   "hook": "PARTIAL: fx.sorrelcard.travel only if it flies via spawnProjFx",
+   "phase": "travel",
+   "rule": "release",
+   "slot": "green",
+   "timing": "cast (0.30 s flight)"
+  },
+  "S0282": {
+   "ability": "House Edge",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0282"
+   ],
+   "hero": "sorrel",
+   "hook": "EXISTS: fx.sorrel_blue (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "blue",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0283": {
+   "ability": "Grand Reveal",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0283"
+   ],
+   "hero": "sorrel",
+   "hook": "EXISTS: fx.sorrel_ult (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "ult",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0285": {
+   "ability": "Loaded Hand",
+   "by": "Phil reviewed 14 Oct (no sound)",
+   "hero": "sorrel",
+   "none": true,
+   "slot": "passive"
+  },
+  "S0289": {
+   "ability": "Rending Return",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0289"
+   ],
+   "hero": "yenna",
+   "hook": "PARTIAL: fx.yenna_green.travel only if it flies via spawnProjFx",
+   "phase": "travel",
+   "rule": "release",
+   "slot": "green",
+   "timing": "projectile leaves the hand"
+  },
+  "S0291": {
+   "ability": "Laughing Mark",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0291"
+   ],
+   "hero": "yenna",
+   "hook": "EXISTS: fx.yenna_blue (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "blue",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0292": {
+   "ability": "Crescent Stampede",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0292"
+   ],
+   "hero": "yenna",
+   "hook": "EXISTS: fx.yenna_ult (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "ult",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0293": {
+   "ability": "Crescent Stampede",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0293"
+   ],
+   "hero": "yenna",
+   "hook": "PARTIAL: fx.yenna_ult fires at plate time; a separate landing hook is needed",
+   "max": 5,
+   "phase": "impact",
+   "rule": "hit",
+   "slot": "ult",
+   "timing": "each projectile arrives (0.30 s)"
+  },
+  "S0296": {
+   "ability": "Petal Sever",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0296"
+   ],
+   "hero": "kharos",
+   "hook": "PARTIAL: fx.kharos_green fires at plate time; a separate landing hook is needed",
+   "phase": "impact",
+   "rule": "release",
+   "slot": "green",
+   "timing": "cast frame (ability clip starts) (hit on cast)"
+  },
+  "S0298": {
+   "ability": "Bloomstep",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0298"
+   ],
+   "hero": "kharos",
+   "hook": "EXISTS: fx.kharos_blue (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "blue",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0300": {
+   "ability": "Orchid Execution",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0300"
+   ],
+   "hero": "kharos",
+   "hook": "EXISTS: fx.kharos_ult (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "ult",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0302": {
+   "ability": "Perfect Camouflage",
+   "by": "Phil reviewed 14 Oct (no sound)",
+   "hero": "kharos",
+   "none": true,
+   "slot": "passive"
+  },
+  "S0305": {
+   "ability": "Solar Impalement",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0305"
+   ],
+   "hero": "zahri",
+   "hook": "PARTIAL: fx.zahrisolar fires at plate time; a separate landing hook is needed",
+   "phase": "impact",
+   "rule": "release",
+   "slot": "green",
+   "timing": "cast frame (ability clip starts) (hit on cast)"
+  },
+  "S0306": {
+   "ability": "Mirage Herd",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0306"
+   ],
+   "hero": "zahri",
+   "hook": "NEW",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "blue",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0307": {
+   "ability": "Noonday Stampede",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0307"
+   ],
+   "hero": "zahri",
+   "hook": "PARTIAL: fx.stampbody.travel only if it flies via spawnProjFx",
+   "phase": "travel",
+   "rule": "release",
+   "slot": "ult",
+   "timing": "charge starts"
+  },
+  "S0308": {
+   "ability": "Noonday Stampede",
+   "by": "Phil KEPT 15 Oct (redo round 1)",
+   "files": [
+    "S0308"
+   ],
+   "hero": "zahri",
+   "hook": "PARTIAL: fx.stampbody fires at plate time; a separate landing hook is needed",
+   "max": 5,
+   "phase": "impact",
+   "rule": "hit",
+   "slot": "ult",
+   "timing": "each enemy in the path",
+   "win": 3.0
+  },
+  "S0312": {
+   "ability": "Featherfang",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0312"
+   ],
+   "hero": "vaelora",
+   "hook": "PARTIAL: fx.vaelora_green.travel only if it flies via spawnProjFx",
+   "phase": "travel",
+   "rule": "release",
+   "slot": "green",
+   "timing": "projectile leaves the hand"
+  },
+  "S0314": {
+   "ability": "Whiteout Pounce",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0314"
+   ],
+   "hero": "vaelora",
+   "hook": "EXISTS: fx.vaelora_blue (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "blue",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0316": {
+   "ability": "Winter Plumage",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0316"
+   ],
+   "hero": "vaelora",
+   "hook": "EXISTS: fx.vaelora_ult (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "ult",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0320": {
+   "ability": "Ribbon Fang",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0320"
+   ],
+   "hero": "seyla",
+   "hook": "PARTIAL: fx.seyla_green fires at plate time; a separate landing hook is needed",
+   "phase": "impact",
+   "rule": "release",
+   "slot": "green",
+   "timing": "cast frame (ability clip starts) (hit on cast)"
+  },
+  "S0321": {
+   "ability": "Hooded Feint",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0321"
+   ],
+   "hero": "seyla",
+   "hook": "EXISTS: fx.seyla_blue (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "blue",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0323": {
+   "ability": "Serpent's Last Dance",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0323"
+   ],
+   "hero": "seyla",
+   "hook": "EXISTS: fx.seyla_ult (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "ult",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0326": {
+   "ability": "Venom Rhythm",
+   "by": "Phil reviewed 14 Oct (no sound)",
+   "hero": "seyla",
+   "none": true,
+   "slot": "passive"
+  },
+  "S0329": {
+   "ability": "Lockpick Soul",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0329"
+   ],
+   "hero": "nox",
+   "hook": "PARTIAL: fx.nox_green.travel only if it flies via spawnProjFx",
+   "phase": "travel",
+   "rule": "release",
+   "slot": "green",
+   "timing": "projectile leaves the hand (18 m/s)"
+  },
+  "S0331": {
+   "ability": "Forbidden Key",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0331"
+   ],
+   "hero": "nox",
+   "hook": "EXISTS: fx.nox_blue (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "blue",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0332": {
+   "ability": "Open Every Door",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0332"
+   ],
+   "hero": "nox",
+   "hook": "EXISTS: fx.nox_ult (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "ult",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0333": {
+   "ability": "Open Every Door",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0333"
+   ],
+   "hero": "nox",
+   "hook": "PARTIAL: fx.nox_ult fires at plate time; a separate landing hook is needed",
+   "phase": "impact",
+   "rule": "land",
+   "slot": "ult",
+   "timing": "effect lands (after the form/drop delay)"
+  },
+  "S0334": {
+   "ability": "Skeleton-Key Savant",
+   "by": "Phil reviewed 14 Oct (no sound)",
+   "hero": "nox",
+   "none": true,
+   "slot": "passive"
+  },
+  "S0339": {
+   "ability": "Resonant Star",
+   "by": "Phil KEPT 15 Oct (redo round 1)",
+   "files": [
+    "S0339"
+   ],
+   "hero": "nerisse",
+   "hook": "PARTIAL: fx.nerisse_green fires at plate time; a separate landing hook is needed",
+   "phase": "impact",
+   "rule": "land",
+   "slot": "green",
+   "timing": "projectile hits"
+  },
+  "S0341": {
+   "ability": "Drifting Constellation",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0341"
+   ],
+   "hero": "nerisse",
+   "hook": "PARTIAL: fx.nerisse_blue fires at plate time; a separate landing hook is needed",
+   "phase": "impact",
+   "rule": "land",
+   "slot": "blue",
+   "timing": "orb arrives"
+  },
+  "S0342": {
+   "ability": "Choir of the Deep Sky",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0342"
+   ],
+   "hero": "nerisse",
+   "hook": "NEW",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "ult",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0347": {
+   "ability": "Dreamthread",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0347"
+   ],
+   "hero": "lysara",
+   "hook": "EXISTS: fx.lysara_green (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "green",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0349": {
+   "ability": "Moon Cocoon",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0349"
+   ],
+   "hero": "lysara",
+   "hook": "EXISTS: fx.lysara_blue (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "blue",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0350": {
+   "ability": "Queen of Quiet Wings",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0350"
+   ],
+   "hero": "lysara",
+   "hook": "EXISTS: fx.lysara_ult (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "ult",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0356": {
+   "ability": "Tidal Ribbon",
+   "by": "Phil pick 14 Oct",
+   "files": [
+    "S0356"
+   ],
+   "hero": "calypsa",
+   "hook": "PARTIAL: fx.calypsa_green fires at plate time; a separate landing hook is needed",
+   "max": 5,
+   "phase": "impact",
+   "rule": "hit",
+   "slot": "green",
+   "timing": "each enemy (20 m/s along the line)"
+  },
+  "S0358": {
+   "ability": "Fighting Current",
+   "by": "Phil pick 14 Oct",
+   "files": [
+    "S0358"
+   ],
+   "hero": "calypsa",
+   "hook": "PARTIAL: fx.calypsa_blue fires at plate time; a separate landing hook is needed",
+   "phase": "impact",
+   "rule": "land",
+   "slot": "blue",
+   "timing": "counter strike"
+  },
+  "S0359": {
+   "ability": "Thousand-Fin Tempest",
+   "by": "Phil pick 14 Oct",
+   "files": [
+    "S0359"
+   ],
+   "hero": "calypsa",
+   "hook": "EXISTS: fx.calypsa_ult (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "ult",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0361": {
+   "ability": "Prismatic Scales",
+   "by": "Phil pick 14 Oct",
+   "ev": "prismscales",
+   "files": [
+    "S0361"
+   ],
+   "hero": "calypsa",
+   "hook": "NEW: passive trigger hook",
+   "phase": "trigger",
+   "rule": "passive",
+   "slot": "passive",
+   "timing": "each dodge"
+  },
+  "S0365": {
+   "ability": "Mending Stitch",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0365"
+   ],
+   "hero": "linnet",
+   "hook": "EXISTS: fx.linnet_green (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "green",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0366": {
+   "ability": "Reinforced Seam",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0366"
+   ],
+   "hero": "linnet",
+   "hook": "EXISTS: fx.linnet_blue (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "blue",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0367": {
+   "ability": "Rewrite the Pattern",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0367"
+   ],
+   "hero": "linnet",
+   "hook": "EXISTS: fx.linnet_rewind (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "ult",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0372": {
+   "ability": "Scattergun",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0372"
+   ],
+   "hero": "rivet",
+   "hook": "PARTIAL: fx.rivet_green fires at plate time; a separate landing hook is needed",
+   "phase": "impact",
+   "rule": "release",
+   "slot": "green",
+   "timing": "cast frame (ability clip starts) (hit on cast)"
+  },
+  "S0374": {
+   "ability": "Smoke Bomb",
+   "by": "Phil KEPT 15 Oct (redo round 1)",
+   "files": [
+    "S0374"
+   ],
+   "hero": "rivet",
+   "hook": "PARTIAL: fx.rivet_blue fires at plate time; a separate landing hook is needed",
+   "phase": "impact",
+   "rule": "land",
+   "slot": "blue",
+   "timing": "projectile hits"
+  },
+  "S0375": {
+   "ability": "Full Arsenal",
+   "by": "Phil KEPT 15 Oct (round 5)",
+   "files": [
+    "S0375"
+   ],
+   "hero": "rivet",
+   "hook": "EXISTS: fx.rivet_ult (when the plate appears)",
+   "phase": "cast",
+   "rule": "release",
+   "slot": "ult",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0377": {
+   "ability": "Whatever's Loaded",
+   "by": "Phil reviewed 14 Oct (no sound)",
+   "hero": "rivet",
+   "none": true,
+   "slot": "passive"
+  },
+  "S0380": {
+   "ability": "Reckless Blow",
+   "by": "Phil pick 14 Oct",
+   "files": [
+    "S0380"
+   ],
+   "hero": "carn",
+   "hook": "PARTIAL: fx.carn_green fires at plate time; a separate landing hook is needed",
+   "phase": "impact",
+   "rule": "release",
+   "slot": "green",
+   "timing": "cast frame (ability clip starts) (hit on cast)"
+  },
+  "S0381": {
+   "ability": "Vein Burst",
+   "by": "Phil pick 14 Oct",
+   "files": [
+    "S0381"
+   ],
+   "hero": "carn",
+   "hook": "PARTIAL: fx.carn_blue fires at plate time; a separate landing hook is needed",
+   "phase": "impact",
+   "rule": "land",
+   "slot": "blue",
+   "timing": "effect lands (after the form/drop delay)"
+  },
+  "S0382": {
+   "ability": "Crimson Reap",
+   "by": "Phil pick 14 Oct",
+   "files": [
+    "S0382"
+   ],
+   "hero": "carn",
+   "hook": "EXISTS: fx.carnreap (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "ult",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0387": {
+   "ability": "Errata",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0387"
+   ],
+   "hero": "vesper",
+   "hook": "EXISTS: fx.vesper_green (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "green",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0389": {
+   "ability": "Loose Leaf",
+   "by": "Phil KEPT 15 Oct (redo round 1)",
+   "files": [
+    "S0389"
+   ],
+   "hero": "vesper",
+   "hook": "PARTIAL: fx.vesper_blue.travel only if it flies via spawnProjFx",
+   "phase": "travel",
+   "rule": "release",
+   "slot": "blue",
+   "timing": "projectile leaves the hand"
+  },
+  "S0391": {
+   "ability": "Puncture",
+   "by": "Phil KEPT 15 Oct (round 3, reuse + adjust)",
+   "files": [
+    "S0391"
+   ],
+   "hero": "vesper",
+   "hook": "NEW",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "ult",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0396": {
+   "ability": "Accelerate",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0396"
+   ],
+   "hero": "tessit",
+   "hook": "EXISTS: fx.tessit_green (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "green",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0398": {
+   "ability": "Sleight of Hours",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0398"
+   ],
+   "hero": "tessit",
+   "hook": "PARTIAL: fx.tessit_blue fires at plate time; a separate landing hook is needed",
+   "phase": "impact",
+   "rule": "land",
+   "slot": "blue",
+   "timing": "projectile hits"
+  },
+  "S0399": {
+   "ability": "Hourglass",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0399"
+   ],
+   "hero": "tessit",
+   "hook": "NEW",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "ult",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0400": {
+   "ability": "Hourglass",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0400"
+   ],
+   "hero": "tessit",
+   "hook": "NEW",
+   "phase": "impact",
+   "rule": "land",
+   "slot": "ult",
+   "timing": "lands (0.55 s drop)"
+  },
+  "S0401": {
+   "ability": "Unwind",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "ev": "unwind",
+   "files": [
+    "S0401"
+   ],
+   "hero": "tessit",
+   "hook": "NEW: passive trigger hook",
+   "phase": "trigger",
+   "rule": "passive",
+   "slot": "passive",
+   "timing": "every 5 s cleanse"
+  },
+  "S0405": {
+   "ability": "Hookline",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0405"
+   ],
+   "hero": "vex",
+   "hook": "PARTIAL: fx.hookreel fires at plate time; a separate landing hook is needed",
+   "phase": "impact",
+   "rule": "land",
+   "slot": "green",
+   "timing": "strike (hookslash plate)"
+  },
+  "S0406": {
+   "ability": "Bleed Them Dry",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0406"
+   ],
+   "hero": "vex",
+   "hook": "PARTIAL: fx.bleedopen fires at plate time; a separate landing hook is needed",
+   "phase": "impact",
+   "rule": "release",
+   "slot": "blue",
+   "timing": "cast frame (ability clip starts) (hit on cast)"
+  },
+  "S0408": {
+   "ability": "Razor Tempest",
+   "at": [
+    0.16666666666666666,
+    1.5833333333333333,
+    3.25
+   ],
+   "by": "Phil 14 Oct, Vex Razor Tempest round 2 option 2 ('good job')",
+   "files": [
+    "S0408-1",
+    "S0408-2",
+    "S0408-3"
+   ],
+   "hero": "vex",
+   "hook": "PARTIAL: fx.vex_ult fires at plate time; a separate landing hook is needed",
+   "max": 3,
+   "phase": "impact",
+   "rule": "seq",
+   "seq": true,
+   "slot": "ult",
+   "timing": "each of the 3 cuts"
+  },
+  "S0409": {
+   "ability": "Killer Instinct",
+   "by": "Phil reviewed 14 Oct (no sound)",
+   "hero": "vex",
+   "none": true,
+   "slot": "passive"
+  },
+  "S0413": {
+   "ability": "Overdue",
+   "by": "Phil pick 14 Oct",
+   "files": [
+    "S0413"
+   ],
+   "hero": "grimsby",
+   "hook": "EXISTS: fx.grimsby_green (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "green",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0414": {
+   "ability": "Ledger Slam",
+   "by": "Phil pick 14 Oct",
+   "files": [
+    "S0414"
+   ],
+   "hero": "grimsby",
+   "hook": "PARTIAL: fx.grimsby_blue fires at plate time; a separate landing hook is needed",
+   "phase": "impact",
+   "rule": "land",
+   "slot": "blue",
+   "timing": "effect lands (after the form/drop delay)"
+  },
+  "S0415": {
+   "ability": "Foreclosure",
+   "by": "Phil pick 14 Oct",
+   "files": [
+    "S0415"
+   ],
+   "hero": "grimsby",
+   "hook": "EXISTS: fx.grimsby_ult (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "ult",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0421": {
+   "ability": "Seedlight",
+   "by": "Phil pick 14 Oct",
+   "files": [
+    "S0421"
+   ],
+   "hero": "dandra",
+   "hook": "EXISTS: fx.dandra_green (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "green",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0423": {
+   "ability": "Drowsy Sting",
+   "by": "Phil pick 14 Oct",
+   "files": [
+    "S0423"
+   ],
+   "hero": "dandra",
+   "hook": "PARTIAL: fx.dandra_blue fires at plate time; a separate landing hook is needed",
+   "phase": "impact",
+   "rule": "land",
+   "slot": "blue",
+   "timing": "projectile hits"
+  },
+  "S0424": {
+   "ability": "Queen's Call",
+   "by": "Phil pick 14 Oct",
+   "files": [
+    "S0424"
+   ],
+   "hero": "dandra",
+   "hook": "EXISTS: fx.dandra_ult (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "ult",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0426": {
+   "ability": "The Swarm Moves On",
+   "by": "Phil pick 14 Oct",
+   "ev": "contagion",
+   "files": [
+    "S0426"
+   ],
+   "hero": "dandra",
+   "hook": "NEW: passive trigger hook",
+   "phase": "trigger",
+   "rule": "passive",
+   "slot": "passive",
+   "timing": "marked foe dies"
+  },
+  "S0431": {
+   "ability": "Abyssal Needle",
+   "by": "Phil pick 14 Oct",
+   "files": [
+    "S0431"
+   ],
+   "hero": "absalie",
+   "hook": "PARTIAL: fx.absalie_green fires at plate time; a separate landing hook is needed",
+   "phase": "impact",
+   "rule": "land",
+   "slot": "green",
+   "timing": "projectile hits"
+  },
+  "S0432": {
+   "ability": "Gravity Knot",
+   "by": "Phil pick 14 Oct",
+   "files": [
+    "S0432"
+   ],
+   "hero": "absalie",
+   "hook": "EXISTS: fx.absalie_blue (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "blue",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0434": {
+   "ability": "Event Horizon",
+   "by": "Phil pick",
+   "files": [
+    "S0129"
+   ],
+   "hero": "absalie",
+   "hook": "EXISTS: fx.absalie_ult (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "ult",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0440": {
+   "ability": "Ink Spirit",
+   "by": "Phil pick 14 Oct",
+   "files": [
+    "S0440"
+   ],
+   "hero": "aldren",
+   "hook": "EXISTS: fx.aldren_green (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "green",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0442": {
+   "ability": "Chapter Rewrite",
+   "by": "Phil pick 14 Oct",
+   "files": [
+    "S0442"
+   ],
+   "hero": "aldren",
+   "hook": "EXISTS: fx.aldren_blue (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "blue",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0444": {
+   "ability": "Final Volume",
+   "by": "Phil pick 14 Oct",
+   "files": [
+    "S0444"
+   ],
+   "hero": "aldren",
+   "hook": "EXISTS: fx.aldren_ult (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "ult",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0446": {
+   "ability": "Living Pages",
+   "by": "Phil pick 14 Oct",
+   "ev": "livingpages",
+   "files": [
+    "S0446"
+   ],
+   "hero": "aldren",
+   "hook": "NEW: passive trigger hook",
+   "phase": "trigger",
+   "rule": "passive",
+   "slot": "passive",
+   "timing": "attack that spends a page"
+  },
+  "S0449": {
+   "ability": "Cathedral Gates",
+   "by": "Phil pick 14 Oct",
+   "files": [
+    "S0449"
+   ],
+   "hero": "ambrel",
+   "hook": "EXISTS: fx.ambrel_green (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "green",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0451": {
+   "ability": "Incense of Penance",
+   "by": "Phil pick 14 Oct",
+   "files": [
+    "S0451"
+   ],
+   "hero": "ambrel",
+   "hook": "EXISTS: fx.ambrel_blue (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "blue",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0453": {
+   "ability": "Divine Mass",
+   "by": "Phil pick 14 Oct",
+   "files": [
+    "S0453"
+   ],
+   "hero": "ambrel",
+   "hook": "EXISTS: fx.ambrel_ult (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "ult",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0456": {
+   "ability": "Sacred Bells",
+   "by": "Phil pick 14 Oct",
+   "ev": "sacredbells",
+   "files": [
+    "S0456"
+   ],
+   "hero": "ambrel",
+   "hook": "NEW: passive trigger hook",
+   "phase": "trigger",
+   "rule": "passive",
+   "slot": "passive",
+   "timing": "every 4 s"
+  },
+  "S0460": {
+   "ability": "Sealing Wax",
+   "by": "Phil pick 14 Oct",
+   "files": [
+    "S0460"
+   ],
+   "hero": "ceraline",
+   "hook": "PARTIAL: fx.waxerupt fires at plate time; a separate landing hook is needed",
+   "phase": "impact",
+   "rule": "land",
+   "slot": "green",
+   "timing": "wax erupts"
+  },
+  "S0463": {
+   "ability": "Mourning Bell",
+   "by": "Phil pick 14 Oct",
+   "files": [
+    "S0463"
+   ],
+   "hero": "ceraline",
+   "hook": "EXISTS: fx.bellring (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "blue",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0465": {
+   "ability": "Court of the Final Candle",
+   "by": "Phil pick 14 Oct",
+   "files": [
+    "S0465"
+   ],
+   "hero": "ceraline",
+   "hook": "EXISTS: fx.candlepot (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "ult",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0468": {
+   "ability": "Court of the Final Candle",
+   "by": "Phil pick 14 Oct",
+   "files": [
+    "S0460"
+   ],
+   "hero": "ceraline",
+   "hook": "PARTIAL: fx.candlepot fires at plate time; a separate landing hook is needed",
+   "max": 3,
+   "phase": "impact",
+   "reuse": "S0460",
+   "rule": "strike",
+   "slot": "ult",
+   "timing": "shatter"
+  },
+  "S0469": {
+   "ability": "Living Tallow",
+   "by": "Phil pick 14 Oct",
+   "ev": "tallow",
+   "files": [
+    "S0460"
+   ],
+   "hero": "ceraline",
+   "hook": "NEW: passive trigger hook",
+   "phase": "trigger",
+   "reuse": "S0460",
+   "rule": "passive",
+   "slot": "passive",
+   "timing": "third coat encases"
+  },
+  "S0472": {
+   "ability": "Volt Pike",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0472"
+   ],
+   "hero": "iver",
+   "hook": "PARTIAL: fx.iver_green.travel only if it flies via spawnProjFx",
+   "phase": "travel",
+   "rule": "cast",
+   "slot": "green",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0474": {
+   "ability": "Thunder Guard",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0474"
+   ],
+   "hero": "iver",
+   "hook": "EXISTS: fx.iver_blue (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "blue",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0477": {
+   "ability": "Skybreak",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0477"
+   ],
+   "hero": "iver",
+   "hook": "EXISTS: fx.iver_ult (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "ult",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0479": {
+   "ability": "Static Charge",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "ev": "staticcharge",
+   "files": [
+    "S0479"
+   ],
+   "hero": "iver",
+   "hook": "NEW: passive trigger hook",
+   "phase": "trigger",
+   "rule": "passive",
+   "slot": "passive",
+   "timing": "5 charges"
+  },
+  "S0482": {
+   "ability": "Radiant Hammer",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0482"
+   ],
+   "hero": "joss",
+   "hook": "PARTIAL: fx.joss_green fires at plate time; a separate landing hook is needed",
+   "phase": "impact",
+   "rule": "release",
+   "slot": "green",
+   "timing": "cast frame (ability clip starts) (hit on cast)"
+  },
+  "S0483": {
+   "ability": "Sanctuary Guard",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0483"
+   ],
+   "hero": "joss",
+   "hook": "EXISTS: fx.joss_blue (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "blue",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0484": {
+   "ability": "Daybreak Judgment",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0484"
+   ],
+   "hero": "joss",
+   "hook": "EXISTS: fx.joss_ult (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "ult",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0486": {
+   "ability": "Unbroken Dawn",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "ev": "unbroken",
+   "files": [
+    "S0486"
+   ],
+   "hero": "joss",
+   "hook": "NEW: passive trigger hook",
+   "phase": "trigger",
+   "rule": "passive",
+   "slot": "passive",
+   "timing": "once, at 30% health"
+  },
+  "S0490": {
+   "ability": "Hornet Cloud",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0490"
+   ],
+   "hero": "mellan",
+   "hook": "EXISTS: fx.mellan_green (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "green",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0493": {
+   "ability": "Royal Nectar",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0493"
+   ],
+   "hero": "mellan",
+   "hook": "PARTIAL: fx.mellan_blue fires at plate time; a separate landing hook is needed",
+   "phase": "impact",
+   "rule": "land",
+   "slot": "blue",
+   "timing": "projectile hits"
+  },
+  "S0494": {
+   "ability": "Hive Mind",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0494"
+   ],
+   "hero": "mellan",
+   "hook": "EXISTS: fx.mellan_ult (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "ult",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0496": {
+   "ability": "Worker Swarm",
+   "by": "Phil reviewed 14 Oct (no sound)",
+   "hero": "mellan",
+   "none": true,
+   "slot": "passive"
+  },
+  "S0501": {
+   "ability": "Ember Lash",
+   "by": "Phil KEPT 15 Oct (redo round 1)",
+   "files": [
+    "S0501"
+   ],
+   "hero": "pyroclast",
+   "hook": "PARTIAL: fx.pyroclast_green fires at plate time; a separate landing hook is needed",
+   "phase": "impact",
+   "rule": "land",
+   "slot": "green",
+   "timing": "projectile hits"
+  },
+  "S0502": {
+   "ability": "Blazing Orbit",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0502"
+   ],
+   "hero": "pyroclast",
+   "hook": "PARTIAL: fx.pyroclast_blue fires at plate time; a separate landing hook is needed",
+   "phase": "impact",
+   "rule": "land",
+   "slot": "blue",
+   "timing": "effect lands (after the form/drop delay)"
+  },
+  "S0503": {
+   "ability": "Crownfire",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0503"
+   ],
+   "hero": "pyroclast",
+   "hook": "EXISTS: fx.pyroclast_ult (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "ult",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0504": {
+   "ability": "Crownfire",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0504"
+   ],
+   "hero": "pyroclast",
+   "hook": "PARTIAL: fx.pyroclast_ult fires at plate time; a separate landing hook is needed",
+   "phase": "impact",
+   "rule": "land",
+   "slot": "ult",
+   "timing": "pillar lands (0.55 s drop)"
+  },
+  "S0505": {
+   "ability": "Rising Heat",
+   "by": "Phil reviewed 14 Oct (no sound)",
+   "hero": "pyroclast",
+   "none": true,
+   "slot": "passive"
+  },
+  "S0510": {
+   "ability": "Pistol Barrage",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0510"
+   ],
+   "hero": "rafe",
+   "hook": "EXISTS: fx.rafe_green (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "green",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0513": {
+   "ability": "Grappling Hook",
+   "by": "Phil KEPT 15 Oct (round 4)",
+   "files": [
+    "S0513"
+   ],
+   "hero": "rafe",
+   "hook": "PARTIAL: fx.rafe_blue fires at plate time; a separate landing hook is needed",
+   "phase": "impact",
+   "rule": "land",
+   "slot": "blue",
+   "timing": "projectile hits"
+  },
+  "S0514": {
+   "ability": "Dead Man's Fortune",
+   "by": "Phil KEPT 15 Oct (round 5)",
+   "files": [
+    "S0514"
+   ],
+   "hero": "rafe",
+   "hook": "EXISTS: fx.rafetracer (when the plate appears)",
+   "phase": "cast",
+   "rule": "release",
+   "slot": "ult",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0516": {
+   "ability": "Pirate's Instinct",
+   "by": "Phil reviewed 14 Oct (no sound)",
+   "hero": "rafe",
+   "none": true,
+   "slot": "passive"
+  },
+  "S0521": {
+   "ability": "Thornshot",
+   "by": "Phil KEPT 15 Oct (round 4)",
+   "files": [
+    "S0521"
+   ],
+   "hero": "sloe",
+   "hook": "PARTIAL: fx.sloe_green fires at plate time; a separate landing hook is needed",
+   "phase": "impact",
+   "rule": "land",
+   "slot": "green",
+   "timing": "projectile hits"
+  },
+  "S0522": {
+   "ability": "Vine Snare",
+   "by": "Phil KEPT 15 Oct (round 4)",
+   "files": [
+    "S0522"
+   ],
+   "hero": "sloe",
+   "hook": "EXISTS: fx.sloe_blue (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "blue",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0524": {
+   "ability": "Emerald Volley",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0524"
+   ],
+   "hero": "sloe",
+   "hook": "EXISTS: fx.sloearrow (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "ult",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0528": {
+   "ability": "Forge Strike",
+   "by": "Phil KEPT 15 Oct (round 4)",
+   "files": [
+    "S0528"
+   ],
+   "hero": "tolley",
+   "hook": "EXISTS: fx.tolley_green (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "green",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0530": {
+   "ability": "Chain Quench",
+   "by": "Phil KEPT 15 Oct (round 3, reuse + adjust)",
+   "files": [
+    "S0530"
+   ],
+   "hero": "tolley",
+   "hook": "EXISTS: fx.tolley_blue (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "blue",
+   "timing": "cast frame (ability clip starts)"
+  },
+  "S0533": {
+   "ability": "Living Forge",
+   "by": "Claude fill, QA ChatGPT+Grok, Phil reviewed OK 14 Oct",
+   "files": [
+    "S0533"
+   ],
+   "hero": "tolley",
+   "hook": "EXISTS: fx.tolley_ult (when the plate appears)",
+   "phase": "cast",
+   "rule": "cast",
+   "slot": "ult",
+   "timing": "cast frame (ability clip starts)"
+  }
+ },
+ "target_lufs_m": -16.0,
+ "tolerance_lu": 2.0,
+ "total_bytes": 6939620,
+ "true_peak_ceiling_db": -1.0,
+ "unmapped": [],
+ "version": 1138
+}
