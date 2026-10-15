@@ -110,10 +110,13 @@ try {
       const cl=ImageBitmap.prototype.close; ImageBitmap.prototype.close=function(){ if(this.__k) BM.delete(this.__k); return cl.apply(this,arguments); };
       window.__bmpMB=()=>{ let b=0; for(const k of BM) b+=k.w*k.h*4; return b/1048576; }; })();`;
     const loop = async (label, html, fights) => {
-      const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true,
+      const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true,
         userAgent: 'Mozilla/5.0 (Linux; Android 14; SM-S918B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Mobile Safari/537.36' });
       await ctx.addInitScript(INIT);
-      if (html) await ctx.route('**/play', r => r.fulfill({ status: 200, contentType: 'text/html', body: html }));
+      if (html) {   // BASE: its page AND its build stamp (with the newer version.json the old page would update itself to the new one)
+        const ver = cp.execSync('git show ' + BASE_SHA + ':version.json', { cwd: ROOT }).toString();
+        await ctx.route(u => /\/play(\?|$)/.test(new URL(u).pathname + new URL(u).search.slice(0, 1)), r => r.fulfill({ status: 200, contentType: 'text/html', body: html }));
+        await ctx.route('**/version.json*', r => r.fulfill({ status: 200, contentType: 'application/json', body: ver })); }
       const pg = await ctx.newPage(); const errs = []; pg.on('pageerror', e => errs.push(String(e.message)));
       await pg.goto(base + '/play', { waitUntil: 'domcontentloaded' }); await pg.waitForTimeout(2500);
       await pg.evaluate(() => { const p = document.querySelector('.splashPlay'); if (p) p.click(); }); await pg.waitForTimeout(1200);
@@ -126,6 +129,8 @@ try {
         let hero = 0; try { const lib = /\/LIB-ATK-/; for (const f in SND.buf) if (SND.buf[f] && !lib.test(f)) hero++; } catch (e) {}
         let held = 0; for (const k in BATTLE_ANIM) { const s = BATTLE_ANIM[k]; for (const st in s) if (st[0] !== '_' && s[st] && s[st].tex) held++; }
         return { gpu: +__gpuMB().toFixed(1), bmp: +__bmpMB().toFixed(1), heroSnd: hero, held, reg: _texReg.length }; }); };
+      const isNew = await pg.evaluate(() => typeof texSheetK === 'function');
+      if (!!html === isNew) { const e = new Error('the ' + label + ' page did not load (texSheetK ' + isNew + ')'); e.notCrash = true; throw e; }
       const s0 = await sample(); const rows = [];
       const ORDER = heavy.slice(0, 10);
       for (let f = 0; f < fights; f++) {
@@ -159,9 +164,13 @@ try {
       ck('the fight sounds are released after every fight (only the 12 weapon sounds stay decoded)', N.rows.every(r => r.mid.heroSnd > 0 && r.hub.heroSnd === 0), N.rows.map(r => r.mid.heroSnd + '->' + r.hub.heroSnd).join(','));
       ck('memory does not grow over 5 fights (fight 5 within 15% of fight 1 in a fight; _texReg bounded)', N.rows[4].mid.gpu <= N.rows[0].mid.gpu * 1.15 + 32 && N.rows[4].hub.reg <= 40, N.rows[0].mid.gpu + ' -> ' + N.rows[4].mid.gpu + ', reg ' + N.rows[4].hub.reg);
       ck('no page error in the 5 fights', N.errs.length === 0, N.errs.slice(0, 3).join(' | '));
-      const B = await loop('BASE ' + BASE_SHA, baseHtml, 2);
-      const bPeak = Math.max(...B.rows.map(r => r.mid.gpu));
-      ck('CONTROL: BASE (before the fix) breaks the GPU budget (' + bPeak + ' MB) and keeps its bitmaps after the fight (' + B.rows[0].hub.bmp + ' MB)', bPeak > GPU_BUDGET_MB && B.rows[0].hub.bmp > 1000);
+      /* the BASE page can run the rig's browser out of memory (the very crash this test guards): a crash of its page counts as BASE breaking the budget */
+      let B = null, bCrash = '';
+      try { await browser.close(); } catch (e) {}
+      try { browser = await chromium.launch({ args: ['--mute-audio', '--js-flags=--expose-gc'] }); } catch (e) { browser = await chromium.launch({ channel: 'chrome', args: ['--mute-audio', '--js-flags=--expose-gc'] }); }
+      try { B = await loop('BASE ' + BASE_SHA, baseHtml, 2); } catch (e) { if (e && e.notCrash) { ck(e.message, false); } else { bCrash = String(e && e.message || e).slice(0, 80); console.log('  info BASE page crashed: ' + bCrash); } }
+      const bPeak = B ? Math.max(...B.rows.map(r => r.mid.gpu)) : 0;
+      ck('CONTROL: BASE (before the fix) breaks the budget - ' + (B ? 'GPU ' + bPeak + ' MB, bitmaps kept after the fight ' + B.rows[0].hub.bmp + ' MB' : 'its page crashed (' + bCrash + ')'), B ? (bPeak > GPU_BUDGET_MB && B.rows[0].hub.bmp > 1000) : !!bCrash);
     } finally { try { await browser.close(); } catch (e) {} try { srv.kill(); } catch (e) {} }
   }
 } catch (e) { console.log('  FAIL test crashed - ' + (e && e.stack || e)); fail++; }
