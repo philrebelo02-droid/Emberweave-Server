@@ -399,6 +399,8 @@ note "test_sylthaine_ult_passive.js (v1137 Sylthaine ULT Blizzard contained snow
 node tests/test_sylthaine_ult_passive.js || FAILED=1
 note "test_memory_budget_1140.js (v1140 MEMORY BUDGET - the Aw-Snap hotfix: battle sheet files <= 2048 px / 4 MB outside the frozen pre-v1140 ratchet list (control: a 2100 px sheet fails); phone loader uploads every sheet within 2048 px per side (figure floor 160 px, hard 4096), desktop k = 1; heaviest possible 5v5 <= 2048 MB GPU (static + a real 5-fight phone rig), decoded bitmaps <= 400 MB, heaviest-sound 5v5 <= 48 MB decoded; after EVERY fight the hub holds no battle sheet, no bitmap, no hero sound (only the 12 weapon sounds), no growth over 5 fights; CONTROL: BASE v1139 breaks the budget and keeps its bitmaps)"
 node tests/test_memory_budget_1140.js || FAILED=1
+note "test_condense_1141.js (v1141 CONDENSE - size tiers + trim + compression: tiers_1141.json files lossless, exact size/grid, phone <= 2048 px / 4 MB / original bytes / v1140 memory and >= v1140 figure px, high = smaller crop of a lossless frozen original; every cell pixel-identical to the untrimmed cell at its tier (control: a nudged pixel fails); clip data identical to BASE; tier pick phone/desktop/tablet/deviceMemory/override; phone + desktop fights load their tier files at exact size, only the fighters' sheets, freed on the hub; trimmed quad = logical cell; same fight tick-identical on both tiers (control: another seed diverges); /play brotli + ETag + 304, gzip, identity, q11 in the background, compressed API JSON, sw.js revalidates)"
+node tests/test_condense_1141.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi

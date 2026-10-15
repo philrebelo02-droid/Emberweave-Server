@@ -280,7 +280,14 @@ let _corsReqOrigin='';   // set per-request in the server handler
 function corsHeaders(){ const h={'Content-Type':'application/json'};
   if(_corsReqOrigin && CORS_ORIGINS.has(_corsReqOrigin)){ h['Access-Control-Allow-Origin']=_corsReqOrigin; h['Vary']='Origin'; h['Access-Control-Allow-Headers']='content-type,x-token'; }
   return h; }
-function _sendNow(res, code, obj){ const b=JSON.stringify(obj); res.writeHead(code,corsHeaders()); res.end(b); }
+function _sendNow(res, code, obj){ const b=JSON.stringify(obj), h=corsHeaders();
+  /* v1141 (Phil 15 Oct, item 7 "smaller code download"): an API reply over 2 KB (the ledger, rankings, world views) goes out
+     compressed when the client accepts it - brotli at quality 4 (fast; a 200 KB ledger costs ~2 ms) or gzip. res._ae is the request's
+     Accept-Encoding, set by the request handler (a global would race between interleaved requests, like _corsReqOrigin does). */
+  const enc=(b.length>2048 && res && res._ae)?pickEncStr(res._ae):null;
+  if(enc){ let z=null; try{ z=enc==='br'?zlib.brotliCompressSync(Buffer.from(b),{params:{[zlib.constants.BROTLI_PARAM_QUALITY]:4}}):zlib.gzipSync(b,{level:6}); }catch(e){ z=null; }
+    if(z){ h['Content-Encoding']=enc; h['Vary']=h['Vary']?h['Vary']+', Accept-Encoding':'Accept-Encoding'; res.writeHead(code,h); res.end(z); return; } }
+  res.writeHead(code,h); res.end(b); }
 function send(res, code, obj){   // v1036: a reply whose request joined a group save waits for that save (503 if it failed)
   const c=(typeof _reqCtx!=='undefined')?_reqCtx.getStore():null;
   if(c && c.waits && c.waits.size){ const ws=[...c.waits]; c.waits.clear();
@@ -9165,25 +9172,45 @@ async function api(req,res,url){
    built or deployed. Compressed buffers are memoised per (file, size) so we compress once, not
    once per request. Binary art (png/webp/mp4) is already compressed and is served as-is. */
 const COMPRESSIBLE=/^(text\/|application\/(json|javascript|manifest)|image\/svg)/;
-const _zcache=new Map();   // key -> {enc, buf}
-function pickEnc(req){ const a=String((req.headers&&req.headers['accept-encoding'])||'');
+const _zcache=new Map();   // enc:etag -> compressed buffer
+function pickEncStr(a){ a=String(a||'');
   if(/\bbr\b/.test(a)) return 'br';
   if(/\bgzip\b/.test(a)) return 'gzip';
   return null; }
-function zbuf(key, enc, buf){
-  const ck=enc+':'+key+':'+buf.length;
+function pickEnc(req){ return pickEncStr(req.headers&&req.headers['accept-encoding']); }
+/* v1141 (Phil 15 Oct, item 7 "smaller code download"). Three changes, all lossless, none of them touching what the page or the replay runs:
+   1. THE CACHE KEY IS THE CONTENT. It was file+LENGTH, so an edit that kept the length (a BUILD_ID bump is 13 digits either way) was
+      answered with the old compressed bytes until the process restarted. It is now a sha1 of the bytes, which is also the ETag.
+   2. ETag + 304. A launch with nothing new deployed revalidates the 4 MB page and gets "304 Not Modified" (no body) instead of
+      ~1.1 MB again; sw.js now fetches the page with cache:'no-cache' (revalidate) instead of 'reload' (always download) so it can.
+   3. BROTLI 11 FOR THE BIG TEXT. Measured on the v1140 page: quality 5 = 1,102 KB, quality 11 = 960 KB (-13%), but q11 takes ~6 s of
+      CPU, so it runs once per content in the background (libuv thread pool) and q5 answers until it lands.
+   NOT MINIFIED: server/sim-host.js replays every fight from the <script> text of this very file and fingerprints that text for the
+   battle helpers; a minified client would run different code from the replay. Compression only. */
+const _zbig=new Set();   // enc:etag of q11 jobs in flight
+function etagOf(buf){ return '"'+crypto.createHash('sha1').update(buf).digest('base64').slice(0,27)+'"'; }
+function zbuf(etag, enc, buf){
+  const ck=enc+':'+etag;
   const hit=_zcache.get(ck); if(hit) return hit;
   let out;
   try{ out = enc==='br'
     ? zlib.brotliCompressSync(buf,{params:{[zlib.constants.BROTLI_PARAM_QUALITY]:5, [zlib.constants.BROTLI_PARAM_SIZE_HINT]:buf.length}})
-    : zlib.gzipSync(buf,{level:6}); }catch(e){ return null; }
-  if(_zcache.size>40) _zcache.clear();
-  _zcache.set(ck,out); return out; }
+    : zlib.gzipSync(buf,{level:9}); }catch(e){ return null; }
+  if(_zcache.size>60) _zcache.clear();
+  _zcache.set(ck,out);
+  if(enc==='br' && buf.length>262144 && !_zbig.has(ck)){ _zbig.add(ck);
+    zlib.brotliCompress(buf,{params:{[zlib.constants.BROTLI_PARAM_QUALITY]:11, [zlib.constants.BROTLI_PARAM_LGWIN]:24, [zlib.constants.BROTLI_PARAM_SIZE_HINT]:buf.length}},(e,b11)=>{
+      _zbig.delete(ck); if(!e && b11 && b11.length<out.length) _zcache.set(ck,b11); }); }
+  return out; }
 function sendBody(req,res,buf,type,cacheCtl,key){
+  const comp=!!(type&&COMPRESSIBLE.test(type)&&buf.length>1024);
   const head={'Content-Type':type,'Cache-Control':cacheCtl};
-  const enc=(type&&COMPRESSIBLE.test(type)&&buf.length>1024)?pickEnc(req):null;
-  if(enc){ const z=zbuf(key||type, enc, buf);
-    if(z){ head['Content-Encoding']=enc; head['Vary']='Accept-Encoding'; res.writeHead(200,head); res.end(z); return; } }
+  if(comp){ const tag=etagOf(buf); head['ETag']=tag; head['Vary']='Accept-Encoding';
+    const inm=String((req.headers&&req.headers['if-none-match'])||'');
+    if(inm && inm.split(',').some(t=>t.trim().replace(/^W\//,'')===tag)){ res.writeHead(304,head); res.end(); return; }
+    const enc=pickEnc(req);
+    if(enc){ const z=zbuf(tag, enc, buf);
+      if(z){ head['Content-Encoding']=enc; res.writeHead(200,head); res.end(z); return; } } }
   res.writeHead(200,head); res.end(buf); }
 function serveFile(res, file, type, urlPath, req){ fs.readFile(path.join(__dirname,file),(e,buf)=>{
   if(!e){ if(req) return sendBody(req,res,buf,type,'no-cache',file);
@@ -9202,6 +9229,7 @@ const server=http.createServer((req,res)=>{
   res.setHeader('Strict-Transport-Security','max-age=31536000; includeSubDomains');
   res.setHeader('Content-Security-Policy',"frame-ancestors 'none'");
   _corsReqOrigin=String(req.headers.origin||'');
+  res._ae=req.headers['accept-encoding'];   /* v1141: _sendNow compresses API replies by it */
   let url; try{ url=new URL(req.url,'http://x'); }catch(e){ res.statusCode=400; return res.end('Bad request'); }   /* v1091 (scan 12, P0): 'GET //' threw here before any routing - about 20 a minute made the crash backstop exit the process, no sign-in needed */
   const p=url.pathname;
   if(p.startsWith('/api/')){ for(const [qk,qv] of url.searchParams){ if(PROTO_NAMES.has(qk)||(!FREE_TEXT_KEYS.has(qk)&&PROTO_NAMES.has(qv))) return send(res,400,{ok:false,error:'Invalid request.'}); } }   /* v986: the same rule for query values */
@@ -9218,7 +9246,7 @@ const server=http.createServer((req,res)=>{
     if(!(ra==='127.0.0.1'||ra==='::1'||ra==='::ffff:127.0.0.1')) return send(res,404,{error:'not found'});
     if(req.headers['cf-ray']||req.headers['cf-connecting-ip']||req.headers['x-forwarded-for']) return send(res,404,{error:'not found'});   // the Cloudflare tunnel also arrives on loopback
     const pool=_SIM_POOL||null; return send(res,200,{strained:!!(pool&&pool.strained()),lagMs:pool?+pool.lagMs().toFixed(1):null}); }
-  if(p==='/sw.js') return serveFile(res,'sw.js','application/javascript');
+  if(p==='/sw.js') return serveFile(res,'sw.js','application/javascript',null,req);
   if(p==='/hero-profiles.js') return serveFile(res,'hero-profiles.js','application/javascript',null,req);
   if(p==='/hero-paths.js') return serveFile(res,'hero-paths.js','application/javascript',null,req);
   if(p==='/server/temple-of-ash.js') return serveFile(res,'server/temple-of-ash.js','application/javascript',null,req);
@@ -9230,7 +9258,7 @@ const server=http.createServer((req,res)=>{
     const lb=localBuildId();                                  // v581: the build we actually serve wins — see localBuildId()
     if(lb){ res.end(JSON.stringify({build:lb})); return; }
     return fs.readFile(path.join(__dirname,'version.json'),(e,b)=>{ if(!e){res.end(b);return;} remoteAsset('/version.json').then(r=>res.end(r?r.buf:'{}')); }); }
-  if(p==='/manifest.webmanifest') return serveFile(res,'manifest.webmanifest','application/manifest+json');
+  if(p==='/manifest.webmanifest') return serveFile(res,'manifest.webmanifest','application/manifest+json',null,req);
   // PWA icons live in assets/icons/ now (kept off the repo root); the public URLs stay the same.
   if(p==='/icon-192.png') return serveFile(res,'assets/icons/icon-192.png','image/png');
   if(p==='/icon-512.png') return serveFile(res,'assets/icons/icon-512.png','image/png');

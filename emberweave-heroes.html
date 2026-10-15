@@ -3773,9 +3773,9 @@ const HERO_BATTLE_SCALE={};  // optional per-hero fine-tune multipliers (default
 function retryTex(s, tx, attempt){
   if(attempt>3){ s._err=true; return; }                       // genuinely missing -> static-sprite fallback
   setTimeout(()=>{
-    const bust=s.u+(s.u.indexOf('?')<0?'?':'&')+'r='+attempt;
+    const _u=s._fu||s.u, bust=_u+(_u.indexOf('?')<0?'?':'&')+'r='+attempt;   /* v1141: the tier file this device loads */
     new TH.TextureLoader().load(bust,
-      t=>{ const g=s._grid||[s.cols||s.n,s.rows||1]; tx.image=capSheet(t.image,g[0],g[1],cellCapFor(s.u),(s.figH&&s.fh)?s.figH/s.fh:0); if(typeof _applyTexQual==='function')_applyTexQual(tx); tx.needsUpdate=true; s._err=false; },   // fill the EXISTING texture, already bound (at the cap)
+      t=>{ const g=s._grid||[s.cols||s.n,s.rows||1], _tc=s._lay&&s._lay.tc; tx.image=capSheet(t.image,g[0],g[1],cellCapFor(s.u),(s.figH&&s.fh)?(s.figH/s.fh)/(_tc?_tc[3]:1):0); if(typeof _applyTexQual==='function')_applyTexQual(tx); tx.needsUpdate=true; s._err=false; },   // fill the EXISTING texture, already bound (at the cap)
       undefined,
       ()=>retryTex(s, tx, attempt+1));
   }, 400*Math.pow(2.5, attempt-1));                            // 0.4s, 1s, 2.5s
@@ -3855,6 +3855,37 @@ function texFreeAfterUpload(tx){ try{ tx.onUpdate=function(t){ try{ const im=t.i
       t.image={ width:im.width, height:im.height, _freed:true, close(){} }; try{ im.close(); }catch(_){}
       t._freed=true; Object.defineProperty(t,'needsUpdate',{ configurable:true, set(){ /* freed: nothing to re-upload */ } }); }catch(e){} }; }catch(e){} }
 function texImgFree(tx){ try{ const im=tx&&tx.image; if(im && typeof im.close==='function' && !im._freed) im.close(); }catch(e){} }
+/* v1141 CONDENSE (Phil 15 Oct 2026, items 1 + 4: "make the game smaller without lowering quality"; he did NOT approve GPU-compressed
+   textures, a lossy re-encode or lower-bitrate sound). TWO SIZE TIERS of the battle sheets, picked once at load:
+     'high'  - the original files: desktop and big tablets. A sheet whose source was already lossless is served TRIMMED (a pure crop).
+     'phone' - built by tools/condense_sheets.py: every cell resampled on its own (premultiplied Lanczos) to 2 texels per device pixel
+               it is drawn at on a phone (MEASURED in the 844x390 @3x rig at zoom 1) but never more texture memory than the v1140 phone
+               budget uploads, TRIMMED to its visible pixels + 6 px, the cells laid out in the squarest grid (<= 2048 px), saved
+               LOSSLESS - and shipped only where that is no bigger a download than the original. Every other sheet loads its original
+               and v1140 sizes it on load, exactly as before. Idle and walk are never tiered (the UI paints them from the original).
+   PHONE = the screen's short side is <= ART_PHONE_SIDE css px (a phone is 320-430, the smallest big tablet 744), or the browser reports
+   navigator.deviceMemory <= ART_PHONE_MEM GB (Safari never reports it, so an iPhone is found by its screen). localStorage 'ew_art_tier'
+   = 'high' / 'phone' overrides the pick (tests, a player who wants the other one). assets/anim/tiers_1141.json maps each original
+   sheet to its tier file: [url, W, H, cols, rows, tc], tc = the kept rectangle as fractions of the logical cell (null = not trimmed).
+   DISPLAY ONLY: the fight reads clip DATA (n/fps/relFrac/contact/anchors), which no tier changes - fights and sound timing are
+   tick-identical on either tier. */
+const ART_PHONE_SIDE=500, ART_PHONE_MEM=4, ART_TIERS_URL='/assets/anim/tiers_1141.json?v=1141';
+function artTierPick(){ try{ const o=localStorage.getItem('ew_art_tier'); if(o==='high'||o==='phone') return o; }catch(e){}
+  try{ const sw=(typeof screen!=='undefined'&&screen&&screen.width)|0, sh=(typeof screen!=='undefined'&&screen&&screen.height)|0;
+    const side=(sw>0&&sh>0)?Math.min(sw,sh):Math.min(window.innerWidth|0, window.innerHeight|0), mem=navigator.deviceMemory;
+    if(side>0 && side<=ART_PHONE_SIDE) return 'phone';
+    if(typeof mem==='number' && mem>0 && mem<=ART_PHONE_MEM) return 'phone'; }catch(e){}
+  return 'high'; }
+const ART_TIER=artTierPick();
+let ART_TIERS=null, _artTiersP=null;
+function artTiersLoad(){ if(_artTiersP) return _artTiersP;
+  if(window._p2guard || typeof fetch!=='function'){ ART_TIERS={}; return (_artTiersP=Promise.resolve(ART_TIERS)); }
+  _artTiersP=fetch(ART_TIERS_URL).then(r=>r&&r.ok?r.json():null).then(j=>{ ART_TIERS=(j&&j.sheets)||{}; return ART_TIERS; },()=>{ ART_TIERS={}; return ART_TIERS; });
+  return _artTiersP; }
+/* the file a battle sheet loads on this device: {u, W, H, c, r, tc} - or null = its original file */
+function artFile(u){ const T=ART_TIERS&&ART_TIERS[String(u||'').split('?')[0]]; if(!T) return null;
+  const e=(ART_TIER==='phone')?T.p:T.h; return e?{u:e[0], W:e[1], H:e[2], c:e[3], r:e[4], tc:e[5]||null}:null; }
+try{ artTiersLoad(); }catch(e){}
 const GRIP_F=[18,22,25,29];   // Grasping Vow: fingers start to curl / squeezing / nearly shut / shut (30-frame sheet)
 function capSheet(img, cols, rows, cap, figFrac){
   try{
@@ -3890,7 +3921,7 @@ function _fitTex(t, cols, rows, cap, figFrac){ try{ const im=capSheet(t.image, c
    declaration is somehow wrong still land correctly: the resize is proportional to the real image,
    so a mis-declared sheet is at worst slightly off the cap, never broken. */
 const _healed=Object.create(null);   // v519: at most one heal attempt per sheet URL per session
-function bitmapLoad(url, cols, rows, onTex, onErr, fw, fh, figFrac){
+function bitmapLoad(url, cols, rows, onTex, onErr, fw, fh, figFrac, budgeted){   /* v1141: budgeted = a phone tier file, already sized to the v1140 budget - never resized again */
   if(typeof createImageBitmap!=='function' || typeof fetch!=='function') return false;
   const CAP=cellCapFor(url);   // v363: bosses keep more pixels
   /* v494: THIS is the loader that actually runs. capSheet() got the figure-fraction budget in an earlier pass and
@@ -3931,7 +3962,7 @@ function bitmapLoad(url, cols, rows, onTex, onErr, fw, fh, figFrac){
     if(!_heal(bm?(bm.width+'x'+bm.height):'no bitmap')) onErr&&onErr(); };
   fetch(url).then(r=>{ if(!r.ok) throw new Error('http '+r.status); return r.blob(); })
     .then(bl=>{
-      const k0=_figK>0?_figK:((fw&&fh)?Math.min(1, CAP/Math.max(fw,fh)):0), k=k0>0?Math.min(k0, texSheetK(fw, fh, cols, rows, figFrac)):0;   /* v1140: a phone's sheet budget on top */
+      const k0=_figK>0?_figK:((fw&&fh)?Math.min(1, CAP/Math.max(fw,fh)):0), k=k0>0?(budgeted?k0:Math.min(k0, texSheetK(fw, fh, cols, rows, figFrac))):0;   /* v1140: a phone's sheet budget on top (v1141: a phone tier file already is it) */
       if(k>0){
         /* v516 — THE 0.998 CLIFF (Phil: "no sylthaine is not live on phone", after clearing site data
            and with the phone confirmed on the new build). This threshold decides whether a sheet is
@@ -4043,18 +4074,23 @@ const _LOADQ={n:0,done:0,cbs:[]};
 function _lqTick(){ _LOADQ.cbs.slice().forEach(f=>{ try{f(_LOADQ.done,_LOADQ.n);}catch(_){} }); }
 function _lqOnDone(fn){ _LOADQ.cbs.push(fn); return ()=>{ const i=_LOADQ.cbs.indexOf(fn); if(i>=0)_LOADQ.cbs.splice(i,1); }; }
 function _loadClip(s){ if(!s || s.tex || !isAssetRef(s.u)) return;
-  const _c=s.cols||s.n,_r=s.rows||1;
   const tx=new TH.Texture();
-  const _ff=(s.figH&&s.fh)?s.figH/s.fh:0;
   _LOADQ.n++; let _fired=false;
   const _fin=()=>{ if(_fired) return; _fired=true; _LOADQ.done++; _lqTick(); };
   s._fin=_fin;
   if(!_keepsImage(s)) texFreeAfterUpload(tx);   /* v1140: the decoded copy goes once the sheet is on the GPU (not idle/walk) */
-  if(!bitmapLoad(s.u,_c,_r,(bmp)=>{ tx.flipY=false; tx.image=bmp; _applyTexQual(tx); tx.needsUpdate=true; s._err=false; _fin(); },
-                 ()=>{ new TH.TextureLoader().load(s.u, t=>{ tx.image=capSheet(t.image,_c,_r,cellCapFor(s.u),(s.figH&&s.fh)?s.figH/s.fh:0); _applyTexQual(tx); tx.needsUpdate=true; _fin(); }, undefined, ()=>{ _fin(); retryTex(s, tx, 1); }); }, s.fw, s.fh, _ff)){
-    new TH.TextureLoader().load(s.u, t=>{ _fitTex(t,_c,_r,cellCapFor(s.u),(s.figH&&s.fh)?s.figH/s.fh:0); tx.image=t.image; _applyTexQual(tx); tx.needsUpdate=true; _fin(); }, undefined, ()=>{ _fin(); retryTex(s, tx, 1); });
-  }
-  _applyTexQual(tx); tx.wrapS=tx.wrapT=TH.ClampToEdgeWrapping; tx.repeat.set(1/_c,1/_r); s.tex=tx; s.aspect=s.fw/s.fh; s._grid=[_c,_r]; }
+  /* v1141: the FILE this device loads (its tier) and the grid/trim it is stored in. fw/fh/cols/rows below are the STORED cell, so the
+     v1140 size check (the decoded file must be exactly W x H) and texSheetK (a phone tier file is already within budget: k = 1) see the
+     real file; the clip's own data (fw/fh/anchors) is never touched. */
+  const go=()=>{ const F=(typeof _keepsImage==='function'&&_keepsImage(s))?null:artFile(s.u), U=F?F.u:s.u, _c=F?F.c:(s.cols||s.n), _r=F?F.r:(s.rows||1);
+    const _cw=F?F.W/_c:s.fw, _ch=F?F.H/_r:s.fh, _tc=F?F.tc:null, _ff=(s.figH&&s.fh)?(s.figH/s.fh)/(_tc?_tc[3]:1):0;
+    s._lay=F?{c:_c,r:_r,W:F.W,H:F.H,tc:_tc}:null; s._fu=U; s._grid=[_c,_r]; tx.repeat.set(1/_c,1/_r);
+    if(!bitmapLoad(U,_c,_r,(bmp)=>{ tx.flipY=false; tx.image=bmp; _applyTexQual(tx); tx.needsUpdate=true; s._err=false; _fin(); },
+                   ()=>{ new TH.TextureLoader().load(U, t=>{ tx.image=capSheet(t.image,_c,_r,cellCapFor(s.u),_ff); _applyTexQual(tx); tx.needsUpdate=true; _fin(); }, undefined, ()=>{ _fin(); retryTex(s, tx, 1); }); }, _cw, _ch, _ff, !!(F&&ART_TIER==='phone'))){
+      new TH.TextureLoader().load(U, t=>{ _fitTex(t,_c,_r,cellCapFor(s.u),_ff); tx.image=t.image; _applyTexQual(tx); tx.needsUpdate=true; _fin(); }, undefined, ()=>{ _fin(); retryTex(s, tx, 1); });
+    } };
+  _applyTexQual(tx); tx.wrapS=tx.wrapT=TH.ClampToEdgeWrapping; s.tex=tx; s.aspect=s.fw/s.fh;
+  if(ART_TIERS) go(); else { s._lay=null; s._grid=[s.cols||s.n,s.rows||1]; tx.repeat.set(1/s._grid[0],1/s._grid[1]); artTiersLoad().then(go,go); } }
 /* 30 Aug (v306) — THE HEROES THAT "HAVE NO ANIMATION". Every clip a hero owns was requested in one
    burst, in declaration order, hero after hero: all seven of hero #1's sheets (including his ult and
    his passive, which nobody will see for thirty seconds) queued ahead of hero #5's WALK. Measured on
@@ -4081,6 +4117,7 @@ function loadAnimSet(key, states){ const set=BATTLE_ANIM[key]; if(!set||!heroHas
    once (loadAnimSet marks the set _loaded), so spawning is instant. */
 const _artWarmed={};
 function preloadBattleArt(keys, bgUrl){
+  try{ battleUiArt(); }catch(e){}   /* v1141 */
   try{
     if(bgUrl && !_artWarmed['bg:'+bgUrl]){ _artWarmed['bg:'+bgUrl]=1; const im=new Image(); im.decoding='async'; im.src=bgUrl; }
     const _ks=[]; (keys||[]).filter(Boolean).forEach(k=>{ if(_artWarmed['k:'+k]) return; _artWarmed['k:'+k]=1; _ks.push(k); });
@@ -4161,7 +4198,12 @@ function fxWarmKeys(keys, timeoutMs){
     }catch(e){ res(); } }); }
 function fxFreeAll(){
   try{ [(typeof _fx2Tex!=='undefined')?_fx2Tex:null, (typeof _fxTexCache!=='undefined')?_fxTexCache:null].forEach(c=>{ if(!c) return;
-    for(const k in c){ const t=c[k]; try{ (t.__waiters||[]).forEach(w=>{ try{ w.dispose(); }catch(e){} }); t.dispose(); }catch(e){} delete c[k]; } }); }catch(e){} }
+    for(const k in c){ const t=c[k]; try{ (t.__waiters||[]).forEach(w=>{ try{ fxTexInert(w); }catch(e){} }); fxTexInert(t); }catch(e){} delete c[k]; } }); }catch(e){} }
+/* v1141 (item 5, measured in the rig: a desktop held +100 MB of spell sheets on the hub after every fight, 134 -> 550-720 MB over five).
+   A spell sheet freed here was uploaded AGAIN afterwards - a load still in flight finishes after the free (TextureLoader sets image +
+   needsUpdate), or a stray object draws it - and nothing frees it a second time. A freed sheet is now inert: no image, and it refuses
+   needsUpdate, so it can never reach the GPU again (the next fight makes a fresh texture through fx2Tex / _fxPlateTex). */
+function fxTexInert(t){ if(!t) return; t._ewFreed=1; try{ t.dispose(); }catch(e){} try{ t.image=undefined; Object.defineProperty(t,'needsUpdate',{ configurable:true, set(){} }); }catch(e){} }
 /* v1120 (Phil 10 Oct: "can we make that 117 ms, 0?"): two one-time costs that landed mid-fight, paid here behind the loading screen.
    1. doEffect is one very large function and the browser compiles it on its FIRST call - which was the first ultimate of the fight
       (measured 5v5 at 4x CPU throttle: Tick's Flywheel 26-69 ms on the first cast, ~1 ms after). Calling it with no unit compiles the
@@ -4176,6 +4218,7 @@ function battleCodeWarm(){
       g.strokeText(_sy,0,16); g.fillText(_sy,0,16); }); }catch(e){}
 }
 function preloadBattleArtFull(keys, bgUrl, onProgress, timeoutMs){
+  try{ battleUiArt(); }catch(e){}   /* v1141: the status marks load with the battle */
   return new Promise(resolve=>{
     let off=null, done=false, stall=null;
     const arm=()=>{ if(done) return; clearTimeout(stall); stall=setTimeout(finish, timeoutMs||12000); };
@@ -4522,7 +4565,7 @@ function evictUnusedArt(keepKeys){
       for(const st in set){
         if(st[0]==='_') continue;
         const c = set[st];
-        if(c && c.tex){ const _t=c.tex; if(_t.dispose) try{ _t.dispose(); }catch(_){} texImgFree(_t); try{ const i=_texReg.indexOf(_t); if(i>=0) _texReg.splice(i,1); }catch(_){}   /* v1140: the decoded bitmap is closed and _texReg lets go of it - it used to hold every sheet ever loaded */
+        if(c && c.tex){ const _t=c.tex; _t._ewFreed=1; if(_t.dispose) try{ _t.dispose(); }catch(_){} texImgFree(_t); try{ const i=_texReg.indexOf(_t); if(i>=0) _texReg.splice(i,1); }catch(_){}   /* v1140: the decoded bitmap is closed and _texReg lets go of it - it used to hold every sheet ever loaded */
           delete c.tex; delete c._err; any = true; }
       }
       if(any){ delete set._loaded; delete _artWarmed['k:'+key]; freed++; }
@@ -9244,6 +9287,7 @@ function buildFigure(u){
     u.anim=BATTLE_ANIM[u.key]||null;
     return;
   }
+  try{ battleUiArt(); }catch(e){}   /* v1141: any fight that skipped the loaders */
   if(!HERO_SPRITES[u.key] && !heroHasAnim(u.key)) return buildFigure3D(u);   // low-poly only when there is neither a cutout NOR a sheet
   const g=new TH.Group();
   const shadow=new TH.Mesh(new TH.PlaneGeometry(1.5,1.5),new TH.MeshBasicMaterial({map:shadowTex(),transparent:true,depthWrite:false,opacity:.5}));
@@ -12348,9 +12392,11 @@ const _fx2Tex={};
 function fx2Tex(key){ const d=FX2_DEF[key]; if(!d||!TH)return null; if(_fx2Tex[key])return _fx2Tex[key];
   /* v1140 MEMORY HOTFIX: on a phone a spell sheet loads within TEX_SHEET_MAX px per side (measured: a 5v5's spell sheets were 1.1 GB of
      textures at full size) and its decoded copy is freed once it is on the GPU. The UVs are cell fractions, so the art lands the same. */
-  if(d.fw&&d.fh&&d.cols&&texPhone()&&texSheetK(d.fw,d.fh,d.cols,d.rows||1,0)<0.99){ const t=new TH.Texture(); t.magFilter=TH.LinearFilter; t.minFilter=TH.LinearFilter; t.generateMipmaps=false; t.wrapS=t.wrapT=TH.ClampToEdgeWrapping; _fx2Tex[key]=t;
-    const ld=()=>new TH.TextureLoader().load(d.u, im=>{ t.flipY=true; t.image=im.image; t.needsUpdate=true; });   /* the old path, if a bitmap cannot be made */
-    if(!bitmapLoad(d.u, d.cols, d.rows||1, bm=>{ t.flipY=false; texFreeAfterUpload(t); t.image=bm; t.needsUpdate=true; }, ld, d.fw, d.fh, 0)) ld();
+  const _F=(d.fw&&d.fh&&d.cols)?artFile(d.u):null;   /* v1141: this device's tier file (same grid, so the cell-fraction UVs are unchanged) */
+  if(_F || (d.fw&&d.fh&&d.cols&&texPhone()&&texSheetK(d.fw,d.fh,d.cols,d.rows||1,0)<0.99)){ const t=new TH.Texture(); t.magFilter=TH.LinearFilter; t.minFilter=TH.LinearFilter; t.generateMipmaps=false; t.wrapS=t.wrapT=TH.ClampToEdgeWrapping; _fx2Tex[key]=t;
+    const _U=_F?_F.u:d.u, _r=d.rows||1;
+    const ld=()=>new TH.TextureLoader().load(_U, im=>{ t.flipY=true; t.image=im.image; t.needsUpdate=true; });   /* the old path, if a bitmap cannot be made */
+    if(!bitmapLoad(_U, d.cols, _r, bm=>{ t.flipY=false; texFreeAfterUpload(t); t.image=bm; t.needsUpdate=true; }, ld, _F?_F.W/d.cols:d.fw, _F?_F.H/_r:d.fh, 0, !!(_F&&ART_TIER==='phone'))) ld();
     return t; }
   const t=new TH.TextureLoader().load(d.u); t.magFilter=TH.LinearFilter; t.minFilter=TH.LinearFilter; t.wrapS=t.wrapT=TH.ClampToEdgeWrapping; _fx2Tex[key]=t; return t; }
 /* 28 Aug — EFFECT TEXTURE CHURN (v286 §1.3). Every ground zone, projectile, beam and status effect
@@ -12943,7 +12989,7 @@ function _fx22ChopTick(o){ const d=o.d, u=o.u, A=u.anim&&u.anim.blue, live=!!(A&
   else cell=d.hit+Math.floor((o.t-o.hitAt)/FX_RT*24);
   if(cell>=d.n) return -1; fx2SetFrame(o.s,d,cell);
   let op=1; if(o.cut!=null){ op=Math.max(0,1-(o.t-o.cut)/0.15); if(op<=0) return -1; } o.s.material.opacity=op; o.s.visible=true;
-  if(live){ const P=new TH.Vector3(); u._sprRef.getWorldPosition(P); o.P=P; o.wpp=u._sprRef.scale.y/A.fh; o.mir=!!u._fxMirror; }
+  if(live){ const P=new TH.Vector3(); u._sprRef.getWorldPosition(P); o.P=P; o.wpp=(u._sprQh||u._sprRef.scale.y)/A.fh; o.mir=!!u._fxMirror; }
   if(o.P) _fx22ChopAxe(o); else _fx22ChopPos(o); return 0; }
 function _fx22ChopAxe(o){ const d=o.d, F=d.fit, sx=o.mir?-1:1, w=o.wpp, Rc=new TH.Vector3(1,0,0).applyQuaternion(camera.quaternion), Uc=new TH.Vector3(0,1,0).applyQuaternion(camera.quaternion);
   const v=o.s._uv; if(v&&((v[0]<0)!==!o.mir)) o.s._uv=[-v[0],v[1],v[2]+v[0],v[3]];   /* B: mirrored when he faces right, as painted when he faces left (UV, not scale) */
@@ -13114,12 +13160,17 @@ function updateStaffFx(dt){ if(!staffFx.length)return;
 const _fxPlates=[];
 /* Battle UI assets (HUD frame plate + silence/stun mask icons) — inlined data URIs */
 const MR_UI={frame:'/assets/img/miscellaneous/mr-ui-frame.png',silence:'/assets/img/miscellaneous/mr-ui-silence.png',stun:'/assets/img/miscellaneous/mr-ui-stun.png'};
-const _mrSilImg=new Image(); _mrSilImg.src=MR_UI.silence;
-const SHIELD_ICON="/assets/img/miscellaneous/shield-icon.png"; const _absorbShieldImg=new Image(); _absorbShieldImg.src=SHIELD_ICON;
-const _mrStunImg=new Image(); _mrStunImg.src=MR_UI.stun;
+const _mrSilImg=new Image();
+const SHIELD_ICON="/assets/img/miscellaneous/shield-icon.png"; const _absorbShieldImg=new Image();
+const _mrStunImg=new Image();
 MR_UI.fear='/assets/img/miscellaneous/mrstunimg-fear.png';
-const _mrFearImg=new Image(); _mrFearImg.src=MR_UI.fear;
-MR_UI.taunt='/assets/img/miscellaneous/mrfearimg-taunt.png'; const _mrTauntImg=new Image(); _mrTauntImg.src=MR_UI.taunt;
+const _mrFearImg=new Image();
+MR_UI.taunt='/assets/img/miscellaneous/mrfearimg-taunt.png'; const _mrTauntImg=new Image();
+/* v1141 (item 5, load only what's needed): these five status marks are drawn only over a fighter in battle, but were fetched at page start
+   (165 KB of the start-up download, measured). They load with the battle art now (preloadBattleArt / preloadBattleArtFull / buildFigure),
+   behind the loading screen; the draw already waits for a decoded image (_rdy), so nothing else changes. */
+let _battleUiArtOn=false;
+function battleUiArt(){ if(_battleUiArtOn) return; _battleUiArtOn=true; try{ _mrSilImg.src=MR_UI.silence; _absorbShieldImg.src=SHIELD_ICON; _mrStunImg.src=MR_UI.stun; _mrFearImg.src=MR_UI.fear; _mrTauntImg.src=MR_UI.taunt; }catch(e){} }
 const FX_PLATE_DEF={
   // KonWu's phantom Ruyi. ax/ay pin the sprite on the STRIKE POINT (0.747 down the frame),
   // so the burst lands on the target's feet no matter how the plate is scaled.
@@ -13528,6 +13579,11 @@ function think(u,dt){
 /* ---------------------------- battle lifecycle ----------------------------- */
 function wavesForChapter(g){return 3;}   // Phil's spec: every campaign stage is exactly 3 waves
 function clearBattle(){ waveXfer=null;
+  /* v1141 (item 5, measured): a spell effect still standing on the field when the fight ended (a ground plate, an ult sprite) stayed a
+     child of the scene after its texture was freed on the hub; the NEXT fight drew it, which re-uploaded the freed sheet (a ghost
+     of the old spell, and +100 MB of GPU per fight on a desktop: 155 -> 657 MB on the hub over 5 fights). Any scene child whose
+     texture was freed (fxFreeAll / evictUnusedArt mark it _ewFreed) is dropped here, before the new fight builds. */
+  try{ const _st=[]; scene.children.forEach(o=>{ const m=o&&o.material, t=m&&m.map; if(t&&t._ewFreed) _st.push(o); }); _st.forEach(o=>{ try{ scene.remove(o); if(o.material) o.material.dispose(); }catch(_){} }); }catch(_){}
   /* v488: bees are scene children, not unit children, so they survive the unit teardown below unless they are
      explicitly dropped FIRST — clearBattle runs before battleFxReset and empties `units`. */
   try{ if(typeof _bees!=='undefined'){ _bees.forEach(b=>{ if(b.spr){ try{ scene.remove(b.spr); b.spr.material.dispose(); }catch(_){} } if(b.glow){ try{ scene.remove(b.glow); b.glow.material.dispose(); }catch(_){} } }); _bees.length=0; } }catch(_){}
@@ -14901,7 +14957,7 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
         // set (sourceRight = !A.flip); mirror the frame whenever the wanted on-screen facing differs from that.
         const sourceRight=!A.flip, mirror=(desired>0)!==sourceRight;
         u._fxFr=fr; u._fxMirror=mirror;   /* v1070: tip-tracked spell FX read the frame and facing actually drawn */
-        if(A.tex){ const _c=A.cols||A.n,_r=A.rows||1,_col=fr%_c,_row=(_r>1)?Math.floor(fr/_c):0;
+        if(A.tex){ const _L=A._lay, _c=_L?_L.c:(A.cols||A.n),_r=_L?_L.r:(A.rows||1),_col=fr%_c,_row=(_r>1)?Math.floor(fr/_c):0;   /* v1141: a tier file's own grid */
           // PER-UNIT texture (clone shares the sheet image): offset/repeat live on the Texture object, so a
           // single shared per-state texture would force EVERY same-key unit to the LAST-synced unit's frame +
           // facing (same-type monsters lockstep; mirror matchups face the wrong way). One clone per sprite,
@@ -14942,7 +14998,7 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
              neighbouring frame, which draws as a thin box outline around the sprite. Measure the inset
              against the texture that is actually in memory. */
           const _im=T&&T.image, _tw=(_im&&(_im.width|0))||0, _th=(_im&&(_im.height|0))||0;
-          const _iw=Math.max(1, _tw || _c*A.fw), _ih=Math.max(1, _th || _r*A.fh);
+          const _iw=Math.max(1, _tw || (_L?_L.W:_c*A.fw)), _ih=Math.max(1, _th || (_L?_L.H:_r*A.fh));
           const _ex=1.5/_iw, _ey=1.5/_ih;
           const _uw=Math.max(1e-6,(1/_c)-2*_ex);
           const _rx = mirror? -_uw : _uw;
@@ -14973,7 +15029,10 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
              only x1.28, so most of that growth is him RISING and must be left alone; only the 1.28 is
              camera. Smoothed over 7 frames so the scale never jitters. */
           const _fsc=(A.fs&&A.fs.length)?(A.fs[Math.min(fr,A.fs.length-1)]||1):1;
-          const qh=u.sprH*(A.fh/A.figH)*_fsc; spr.scale.set(qh*(A.fw/A.fh), qh, 1);
+          const qh=u.sprH*(A.fh/A.figH)*_fsc, _tc=A._lay&&A._lay.tc; u._sprQh=qh;
+          /* v1141 TRIM: a trimmed cell holds only tc (x, y, w, h as fractions of the logical cell); the quad covers exactly that
+             rectangle, so every visible pixel lands where the untrimmed cell put it (the anchor below is moved into the rectangle) */
+          spr.scale.set(qh*(A.fw/A.fh)*(_tc?_tc[2]:1), qh*(_tc?_tc[3]:1), 1);
           // exact head height of the frame being drawn: the quad is anchored on the feet line,
           // so the top of the character is qh*(feet-top)/fh above the ground. `top` is the measured
           // first row of real body in the cell (thin staffs/antennae ignored). The HP bar rides on this.
@@ -14992,10 +15051,13 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
              Intentional travel is still authored with `lunge`, which moves the whole quad instead. */
           if(spr.center){ let _cxp=(A.cx!=null?A.cx:A.fw*0.5);
             if(A.ax&&A.ax.length) _cxp+=A.ax[Math.min(fr,A.ax.length-1)]||0;
-            const _cxn=_cxp/A.fw; spr.center.set(mirror?1-_cxn:_cxn, 1-(A.feet/A.fh)); }
+            let _cxn=_cxp/A.fw, _cyn=1-(A.feet/A.fh);
+            if(_tc){ _cxn=(_cxn-_tc[0])/_tc[2]; _cyn=1-((A.feet/A.fh)-_tc[1])/_tc[3]; }   /* v1141: the same anchor, inside the kept rectangle */
+            spr.center.set(mirror?1-_cxn:_cxn, _cyn); }
         } else {
-          { const _sc=A.sc||1; spr.scale.set(u.sprH*_sc*(A.aspect||u.sprA),u.sprH*_sc,1); } u._headOff=u.sprH*(A.sc||1); u._sprRef=spr;   // legacy: frame-height maps to sprH; optional per-clip sc for taller re-packed frames (e.g. Grosk croc)
-          if(spr.center) spr.center.set(.5,0);
+          const _tc=A._lay&&A._lay.tc;
+          { const _sc=A.sc||1; spr.scale.set(u.sprH*_sc*(A.aspect||u.sprA)*(_tc?_tc[2]:1),u.sprH*_sc*(_tc?_tc[3]:1),1); u._sprQh=u.sprH*_sc; } u._headOff=u.sprH*(A.sc||1); u._sprRef=spr;   // legacy: frame-height maps to sprH; optional per-clip sc for taller re-packed frames (e.g. Grosk croc)
+          if(spr.center){ if(_tc){ const _x=(0.5-_tc[0])/_tc[2]; spr.center.set(mirror?1-_x:_x, -(1-_tc[1]-_tc[3])/_tc[3]); } else spr.center.set(.5,0); }   /* v1141: bottom-centre of the logical cell */
         }
       } else {
         // ---- procedural motion for STATIC billboard monsters (no sprite-sheet) ----
