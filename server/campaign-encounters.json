@@ -16639,72 +16639,72 @@
         {
           "key": "clockwork lantern",
           "lvl": 75,
-          "hpMul": 79.2323,
-          "dmgMul": 35.0071
+          "hpMul": 67.3475,
+          "dmgMul": 29.756
         },
         {
           "key": "reef prowler",
           "lvl": 75,
-          "hpMul": 79.2323,
-          "dmgMul": 35.0071
+          "hpMul": 67.3475,
+          "dmgMul": 29.756
         },
         {
           "key": "runic automaton",
           "lvl": 75,
-          "hpMul": 79.2323,
-          "dmgMul": 35.0071
+          "hpMul": 67.3475,
+          "dmgMul": 29.756
         }
       ],
       [
         {
           "key": "runic automaton",
           "lvl": 75,
-          "hpMul": 79.2323,
-          "dmgMul": 35.0071
+          "hpMul": 67.3475,
+          "dmgMul": 29.756
         },
         {
           "key": "runic automaton",
           "lvl": 75,
-          "hpMul": 79.2323,
-          "dmgMul": 35.0071
+          "hpMul": 67.3475,
+          "dmgMul": 29.756
         },
         {
           "key": "runic automaton",
           "lvl": 75,
-          "hpMul": 79.2323,
-          "dmgMul": 35.0071
+          "hpMul": 67.3475,
+          "dmgMul": 29.756
         },
         {
           "key": "kelp hexer",
           "lvl": 75,
-          "hpMul": 79.2323,
-          "dmgMul": 35.0071
+          "hpMul": 67.3475,
+          "dmgMul": 29.756
         }
       ],
       [
         {
           "key": "runic automaton",
           "lvl": 75,
-          "hpMul": 79.2323,
-          "dmgMul": 35.0071
+          "hpMul": 67.3475,
+          "dmgMul": 29.756
         },
         {
           "key": "runic automaton",
           "lvl": 75,
-          "hpMul": 79.2323,
-          "dmgMul": 35.0071
+          "hpMul": 67.3475,
+          "dmgMul": 29.756
         },
         {
           "key": "clockwork lantern",
           "lvl": 75,
-          "hpMul": 79.2323,
-          "dmgMul": 35.0071
+          "hpMul": 67.3475,
+          "dmgMul": 29.756
         },
         {
           "key": "runic automaton",
           "lvl": 75,
-          "hpMul": 79.2323,
-          "dmgMul": 35.0071
+          "hpMul": 67.3475,
+          "dmgMul": 29.756
         }
       ]
     ],
@@ -16713,7 +16713,7 @@
     "recommendedQuality": "Gold +1",
     "qualityMinHeroLevel": 72,
     "bossLevelGate": 0,
-    "difficultyTune": 7.2332,
+    "difficultyTune": 6.1482,
     "baselineHp": 144.5909,
     "baselineDmg": 48.782,
     "portalMode": "normal",
@@ -16735,6 +16735,12 @@
         "scale": 0.85,
         "dmgScale": 0.85,
         "why": "campaign curve: spike cap 1.15x chapter median + global x0.85. Phil 11 Oct: \"Campaign should not be so hard maxed out heroes are struggling for weeks ... it should technically be possible to clear stages while not maxed out.\""
+      },
+      {
+        "v": "v1134",
+        "date": "2026-10-15",
+        "scale": 0.85,
+        "why": "v1133 sims: duo fresh 2 FULLY UPGRADED held 22 tries / 16.7 game days, 0 won (Wall Watch 14 Oct). Phil 14 Oct: \"yes i agree\" (one x0.85 step each on 14-3, 14-8, 12-4)."
       }
     ]
   },
@@ -19599,84 +19605,84 @@
         {
           "key": "ashen",
           "lvl": 88,
-          "hpMul": 87.8121,
-          "dmgMul": 35.0316
+          "hpMul": 74.6403,
+          "dmgMul": 29.7769
         },
         {
           "key": "crucible acolyte",
           "lvl": 88,
-          "hpMul": 87.8121,
-          "dmgMul": 35.0316
+          "hpMul": 74.6403,
+          "dmgMul": 29.7769
         },
         {
           "key": "crystalhorn grazer",
           "lvl": 88,
-          "hpMul": 87.8121,
-          "dmgMul": 35.0316
+          "hpMul": 74.6403,
+          "dmgMul": 29.7769
         },
         {
           "key": "ashen",
           "lvl": 88,
-          "hpMul": 87.8121,
-          "dmgMul": 35.0316
+          "hpMul": 74.6403,
+          "dmgMul": 29.7769
         }
       ],
       [
         {
           "key": "crucible acolyte",
           "lvl": 88,
-          "hpMul": 87.8121,
-          "dmgMul": 35.0316
+          "hpMul": 74.6403,
+          "dmgMul": 29.7769
         },
         {
           "key": "ashen",
           "lvl": 88,
-          "hpMul": 87.8121,
-          "dmgMul": 35.0316
+          "hpMul": 74.6403,
+          "dmgMul": 29.7769
         },
         {
           "key": "luminant orb",
           "lvl": 88,
-          "hpMul": 87.8121,
-          "dmgMul": 35.0316
+          "hpMul": 74.6403,
+          "dmgMul": 29.7769
         },
         {
           "key": "crystalhorn grazer",
           "lvl": 88,
-          "hpMul": 87.8121,
-          "dmgMul": 35.0316
+          "hpMul": 74.6403,
+          "dmgMul": 29.7769
         },
         {
           "key": "luminant orb",
           "lvl": 88,
-          "hpMul": 87.8121,
-          "dmgMul": 35.0316
+          "hpMul": 74.6403,
+          "dmgMul": 29.7769
         }
       ],
       [
         {
           "key": "ashen",
           "lvl": 88,
-          "hpMul": 87.8121,
-          "dmgMul": 35.0316
+          "hpMul": 74.6403,
+          "dmgMul": 29.7769
         },
         {
           "key": "crystalhorn grazer",
           "lvl": 88,
-          "hpMul": 87.8121,
-          "dmgMul": 35.0316
+          "hpMul": 74.6403,
+          "dmgMul": 29.7769
         },
         {
           "key": "crucible acolyte",
           "lvl": 88,
-          "hpMul": 87.8121,
-          "dmgMul": 35.0316
+          "hpMul": 74.6403,
+          "dmgMul": 29.7769
         },
         {
           "key": "umbris",
           "lvl": 88,
-          "hpMul": 87.8121,
-          "dmgMul": 35.0316,
+          "hpMul": 74.6403,
+          "dmgMul": 29.7769,
           "isHero": true,
           "rewardHero": true,
           "rank": 3
@@ -19688,7 +19694,7 @@
     "recommendedQuality": "Gold +3",
     "qualityMinHeroLevel": 86,
     "bossLevelGate": 0,
-    "difficultyTune": 8.2959,
+    "difficultyTune": 7.0515,
     "baselineHp": 360.3911,
     "baselineDmg": 98.4726,
     "portalMode": "normal",
@@ -19705,6 +19711,12 @@
         "scale": 0.85,
         "dmgScale": 0.85,
         "why": "campaign curve: spike cap 1.15x chapter median + global x0.85. Phil 11 Oct: \"Campaign should not be so hard maxed out heroes are struggling for weeks ... it should technically be possible to clear stages while not maxed out.\""
+      },
+      {
+        "v": "v1134",
+        "date": "2026-10-15",
+        "scale": 0.85,
+        "why": "v1133 sims: F2P A FULLY UPGRADED held 23 tries / 45.1 game days, 0 won; wallpush F2P B copy FULLY UPGRADED held 31 tries / 36.2 game days, 0 won (Wall Watch 14 Oct). Phil 14 Oct: \"yes i agree\" (one x0.85 step each on 14-3, 14-8, 12-4)."
       }
     ]
   },
@@ -20379,90 +20391,90 @@
         {
           "key": "luminant orb",
           "lvl": 92,
-          "hpMul": 92.7016,
-          "dmgMul": 36.8926
+          "hpMul": 78.7964,
+          "dmgMul": 31.3587
         },
         {
           "key": "ashen",
           "lvl": 92,
-          "hpMul": 92.7016,
-          "dmgMul": 36.8926
+          "hpMul": 78.7964,
+          "dmgMul": 31.3587
         },
         {
           "key": "ashen",
           "lvl": 92,
-          "hpMul": 92.7016,
-          "dmgMul": 36.8926
+          "hpMul": 78.7964,
+          "dmgMul": 31.3587
         },
         {
           "key": "granith",
           "lvl": 92,
-          "hpMul": 92.7016,
-          "dmgMul": 36.8926
+          "hpMul": 78.7964,
+          "dmgMul": 31.3587
         },
         {
           "key": "granith",
           "lvl": 92,
-          "hpMul": 92.7016,
-          "dmgMul": 36.8926
+          "hpMul": 78.7964,
+          "dmgMul": 31.3587
         }
       ],
       [
         {
           "key": "ashen",
           "lvl": 92,
-          "hpMul": 92.7016,
-          "dmgMul": 36.8926
+          "hpMul": 78.7964,
+          "dmgMul": 31.3587
         },
         {
           "key": "ashen",
           "lvl": 92,
-          "hpMul": 92.7016,
-          "dmgMul": 36.8926
+          "hpMul": 78.7964,
+          "dmgMul": 31.3587
         },
         {
           "key": "granith",
           "lvl": 92,
-          "hpMul": 92.7016,
-          "dmgMul": 36.8926
+          "hpMul": 78.7964,
+          "dmgMul": 31.3587
         },
         {
           "key": "ashen",
           "lvl": 92,
-          "hpMul": 92.7016,
-          "dmgMul": 36.8926
+          "hpMul": 78.7964,
+          "dmgMul": 31.3587
         },
         {
           "key": "ashen",
           "lvl": 92,
-          "hpMul": 92.7016,
-          "dmgMul": 36.8926
+          "hpMul": 78.7964,
+          "dmgMul": 31.3587
         }
       ],
       [
         {
           "key": "granith",
           "lvl": 92,
-          "hpMul": 92.7016,
-          "dmgMul": 36.8926
+          "hpMul": 78.7964,
+          "dmgMul": 31.3587
         },
         {
           "key": "ashen",
           "lvl": 92,
-          "hpMul": 92.7016,
-          "dmgMul": 36.8926
+          "hpMul": 78.7964,
+          "dmgMul": 31.3587
         },
         {
           "key": "crucible acolyte",
           "lvl": 92,
-          "hpMul": 92.7016,
-          "dmgMul": 36.8926
+          "hpMul": 78.7964,
+          "dmgMul": 31.3587
         },
         {
           "key": "granith",
           "lvl": 92,
-          "hpMul": 92.7016,
-          "dmgMul": 36.8926
+          "hpMul": 78.7964,
+          "dmgMul": 31.3587
         }
       ]
     ],
@@ -20471,7 +20483,7 @@
     "recommendedQuality": "Gold +3",
     "qualityMinHeroLevel": 86,
     "bossLevelGate": 0,
-    "difficultyTune": 7.3723,
+    "difficultyTune": 6.2665,
     "baselineHp": 415.8453,
     "baselineDmg": 111.3853,
     "portalMode": "normal",
@@ -20493,6 +20505,12 @@
         "scale": 0.7713,
         "dmgScale": 0.8311,
         "why": "campaign curve: spike cap 1.15x chapter median + global x0.85. Phil 11 Oct: \"Campaign should not be so hard maxed out heroes are struggling for weeks ... it should technically be possible to clear stages while not maxed out.\""
+      },
+      {
+        "v": "v1134",
+        "date": "2026-10-15",
+        "scale": 0.85,
+        "why": "v1133 sims: Whale A FULLY UPGRADED held 17 tries / 17.5 game days, 0 won; exploit Whale A copy FULLY UPGRADED held 11 tries / 51.5 game days, 0 won (Wall Watch 14 Oct). Phil 14 Oct: \"yes i agree\" (one x0.85 step each on 14-3, 14-8, 12-4)."
       }
     ]
   },

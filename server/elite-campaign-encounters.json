@@ -14598,54 +14598,54 @@
     {
      "key": "clockwork lantern",
      "lvl": 75,
-     "hpMul": 126.3434,
-     "dmgMul": 49.3956
+     "hpMul": 107.3919,
+     "dmgMul": 41.9863
     },
     {
      "key": "reef prowler",
      "lvl": 75,
-     "hpMul": 126.3434,
-     "dmgMul": 49.3956
+     "hpMul": 107.3919,
+     "dmgMul": 41.9863
     },
     {
      "key": "runic automaton",
      "lvl": 75,
-     "hpMul": 126.3434,
-     "dmgMul": 49.3956
+     "hpMul": 107.3919,
+     "dmgMul": 41.9863
     }
    ],
    [
     {
      "key": "runic automaton",
      "lvl": 75,
-     "hpMul": 126.3434,
-     "dmgMul": 49.3956
+     "hpMul": 107.3919,
+     "dmgMul": 41.9863
     },
     {
      "key": "runic automaton",
      "lvl": 75,
-     "hpMul": 126.3434,
-     "dmgMul": 49.3956
+     "hpMul": 107.3919,
+     "dmgMul": 41.9863
     },
     {
      "key": "runic automaton",
      "lvl": 75,
-     "hpMul": 126.3434,
-     "dmgMul": 49.3956
+     "hpMul": 107.3919,
+     "dmgMul": 41.9863
     },
     {
      "key": "kelp hexer",
      "lvl": 75,
-     "hpMul": 126.3434,
-     "dmgMul": 49.3956
+     "hpMul": 107.3919,
+     "dmgMul": 41.9863
     }
    ],
    [
     {
      "key": "oakmir",
      "lvl": 75,
-     "hpMul": 126.3434,
-     "dmgMul": 49.3956,
+     "hpMul": 107.3919,
+     "dmgMul": 41.9863,
      "isHero": true,
      "rewardHero": true,
      "rank": 3
@@ -14653,20 +14653,20 @@
     {
      "key": "runic automaton",
      "lvl": 75,
-     "hpMul": 126.3434,
-     "dmgMul": 49.3956
+     "hpMul": 107.3919,
+     "dmgMul": 41.9863
     },
     {
      "key": "clockwork lantern",
      "lvl": 75,
-     "hpMul": 126.3434,
-     "dmgMul": 49.3956
+     "hpMul": 107.3919,
+     "dmgMul": 41.9863
     },
     {
      "key": "runic automaton",
      "lvl": 75,
-     "hpMul": 126.3434,
-     "dmgMul": 49.3956
+     "hpMul": 107.3919,
+     "dmgMul": 41.9863
     }
    ]
   ],
@@ -14685,6 +14685,12 @@
     "scale": 0.85,
     "dmgScale": 0.85,
     "why": "follows Normal 12-4 (v1121 curve) so Elite stays ~1.5x its Normal stage"
+   },
+   {
+    "v": "v1134",
+    "date": "2026-10-15",
+    "scale": 0.85,
+    "why": "follows Normal 12-4 (v1134 x0.85) so Elite stays ~1.5x its Normal stage"
    }
   ]
  },
@@ -17229,84 +17235,84 @@
     {
      "key": "ashen",
      "lvl": 88,
-     "hpMul": 136.8433,
-     "dmgMul": 50.5794
+     "hpMul": 116.3168,
+     "dmgMul": 42.9925
     },
     {
      "key": "crucible acolyte",
      "lvl": 88,
-     "hpMul": 136.8433,
-     "dmgMul": 50.5794
+     "hpMul": 116.3168,
+     "dmgMul": 42.9925
     },
     {
      "key": "crystalhorn grazer",
      "lvl": 88,
-     "hpMul": 136.8433,
-     "dmgMul": 50.5794
+     "hpMul": 116.3168,
+     "dmgMul": 42.9925
     },
     {
      "key": "ashen",
      "lvl": 88,
-     "hpMul": 136.8433,
-     "dmgMul": 50.5794
+     "hpMul": 116.3168,
+     "dmgMul": 42.9925
     }
    ],
    [
     {
      "key": "crucible acolyte",
      "lvl": 88,
-     "hpMul": 136.8433,
-     "dmgMul": 50.5794
+     "hpMul": 116.3168,
+     "dmgMul": 42.9925
     },
     {
      "key": "ashen",
      "lvl": 88,
-     "hpMul": 136.8433,
-     "dmgMul": 50.5794
+     "hpMul": 116.3168,
+     "dmgMul": 42.9925
     },
     {
      "key": "luminant orb",
      "lvl": 88,
-     "hpMul": 136.8433,
-     "dmgMul": 50.5794
+     "hpMul": 116.3168,
+     "dmgMul": 42.9925
     },
     {
      "key": "crystalhorn grazer",
      "lvl": 88,
-     "hpMul": 136.8433,
-     "dmgMul": 50.5794
+     "hpMul": 116.3168,
+     "dmgMul": 42.9925
     },
     {
      "key": "luminant orb",
      "lvl": 88,
-     "hpMul": 136.8433,
-     "dmgMul": 50.5794
+     "hpMul": 116.3168,
+     "dmgMul": 42.9925
     }
    ],
    [
     {
      "key": "ashen",
      "lvl": 88,
-     "hpMul": 136.8433,
-     "dmgMul": 50.5794
+     "hpMul": 116.3168,
+     "dmgMul": 42.9925
     },
     {
      "key": "crystalhorn grazer",
      "lvl": 88,
-     "hpMul": 136.8433,
-     "dmgMul": 50.5794
+     "hpMul": 116.3168,
+     "dmgMul": 42.9925
     },
     {
      "key": "crucible acolyte",
      "lvl": 88,
-     "hpMul": 136.8433,
-     "dmgMul": 50.5794
+     "hpMul": 116.3168,
+     "dmgMul": 42.9925
     },
     {
      "key": "ashen",
      "lvl": 88,
-     "hpMul": 136.8433,
-     "dmgMul": 50.5794
+     "hpMul": 116.3168,
+     "dmgMul": 42.9925
     }
    ]
   ],
@@ -17324,6 +17330,12 @@
     "scale": 0.85,
     "dmgScale": 0.85,
     "why": "follows Normal 14-3 (v1121 curve) so Elite stays ~1.5x its Normal stage"
+   },
+   {
+    "v": "v1134",
+    "date": "2026-10-15",
+    "scale": 0.85,
+    "why": "follows Normal 14-3 (v1134 x0.85) so Elite stays ~1.5x its Normal stage"
    }
   ]
  },
@@ -17898,90 +17910,90 @@
     {
      "key": "luminant orb",
      "lvl": 92,
-     "hpMul": 141.9737,
-     "dmgMul": 54.2003
+     "hpMul": 120.6776,
+     "dmgMul": 46.0703
     },
     {
      "key": "ashen",
      "lvl": 92,
-     "hpMul": 141.9737,
-     "dmgMul": 54.2003
+     "hpMul": 120.6776,
+     "dmgMul": 46.0703
     },
     {
      "key": "ashen",
      "lvl": 92,
-     "hpMul": 141.9737,
-     "dmgMul": 54.2003
+     "hpMul": 120.6776,
+     "dmgMul": 46.0703
     },
     {
      "key": "granith",
      "lvl": 92,
-     "hpMul": 141.9737,
-     "dmgMul": 54.2003
+     "hpMul": 120.6776,
+     "dmgMul": 46.0703
     },
     {
      "key": "granith",
      "lvl": 92,
-     "hpMul": 141.9737,
-     "dmgMul": 54.2003
+     "hpMul": 120.6776,
+     "dmgMul": 46.0703
     }
    ],
    [
     {
      "key": "ashen",
      "lvl": 92,
-     "hpMul": 141.9737,
-     "dmgMul": 54.2003
+     "hpMul": 120.6776,
+     "dmgMul": 46.0703
     },
     {
      "key": "ashen",
      "lvl": 92,
-     "hpMul": 141.9737,
-     "dmgMul": 54.2003
+     "hpMul": 120.6776,
+     "dmgMul": 46.0703
     },
     {
      "key": "granith",
      "lvl": 92,
-     "hpMul": 141.9737,
-     "dmgMul": 54.2003
+     "hpMul": 120.6776,
+     "dmgMul": 46.0703
     },
     {
      "key": "ashen",
      "lvl": 92,
-     "hpMul": 141.9737,
-     "dmgMul": 54.2003
+     "hpMul": 120.6776,
+     "dmgMul": 46.0703
     },
     {
      "key": "ashen",
      "lvl": 92,
-     "hpMul": 141.9737,
-     "dmgMul": 54.2003
+     "hpMul": 120.6776,
+     "dmgMul": 46.0703
     }
    ],
    [
     {
      "key": "granith",
      "lvl": 92,
-     "hpMul": 141.9737,
-     "dmgMul": 54.2003
+     "hpMul": 120.6776,
+     "dmgMul": 46.0703
     },
     {
      "key": "ashen",
      "lvl": 92,
-     "hpMul": 141.9737,
-     "dmgMul": 54.2003
+     "hpMul": 120.6776,
+     "dmgMul": 46.0703
     },
     {
      "key": "crucible acolyte",
      "lvl": 92,
-     "hpMul": 141.9737,
-     "dmgMul": 54.2003
+     "hpMul": 120.6776,
+     "dmgMul": 46.0703
     },
     {
      "key": "granith",
      "lvl": 92,
-     "hpMul": 141.9737,
-     "dmgMul": 54.2003
+     "hpMul": 120.6776,
+     "dmgMul": 46.0703
     }
    ]
   ],
@@ -17999,6 +18011,12 @@
     "scale": 0.7713,
     "dmgScale": 0.8311,
     "why": "follows Normal 14-8 (v1121 curve) so Elite stays ~1.5x its Normal stage"
+   },
+   {
+    "v": "v1134",
+    "date": "2026-10-15",
+    "scale": 0.85,
+    "why": "follows Normal 14-8 (v1134 x0.85) so Elite stays ~1.5x its Normal stage"
    }
   ]
  },
