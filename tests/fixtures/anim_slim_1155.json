@@ -224,6 +224,56 @@
   {
    "kind": "anim",
    "key": "carn",
+   "state": "hit",
+   "before": {
+    "u": "/assets/anim/carn/carn_hit_1142.webp?v=1142",
+    "n": 48,
+    "fw": 233,
+    "fh": 341,
+    "cols": 8,
+    "rows": 6,
+    "figH": 312,
+    "feet": 333,
+    "cx": 124,
+    "fps": 24,
+    "flip": false,
+    "top": 21
+   },
+   "after": {
+    "u": "/assets/anim/carn/carn_hit_1155.webp?v=1155",
+    "n": 15,
+    "fw": 233,
+    "fh": 341,
+    "cols": 5,
+    "rows": 3,
+    "figH": 312,
+    "feet": 333,
+    "cx": 124,
+    "fps": 25,
+    "flip": false,
+    "top": 21
+   },
+   "cells": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+   ]
+  },
+  {
+   "kind": "anim",
+   "key": "carn",
    "state": "idle",
    "before": {
     "u": "/assets/anim/carn/carn_idle_1142.webp?v=1142",
@@ -278,6 +328,56 @@
     54,
     57,
     59
+   ]
+  },
+  {
+   "kind": "anim",
+   "key": "fritz",
+   "state": "hit",
+   "before": {
+    "u": "/assets/anim/fritz/fritz_hit.webp?v=30",
+    "n": 48,
+    "fw": 448,
+    "fh": 491,
+    "cols": 6,
+    "rows": 8,
+    "figH": 371,
+    "feet": 431,
+    "cx": 225,
+    "fps": 24,
+    "flip": false,
+    "top": 60
+   },
+   "after": {
+    "u": "/assets/anim/fritz/fritz_hit_1155.webp?v=1155",
+    "n": 15,
+    "fw": 448,
+    "fh": 491,
+    "cols": 4,
+    "rows": 4,
+    "figH": 371,
+    "feet": 431,
+    "cx": 225,
+    "fps": 25,
+    "flip": false,
+    "top": 60
+   },
+   "cells": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
    ]
   },
   {
@@ -422,6 +522,56 @@
   {
    "kind": "anim",
    "key": "grosk",
+   "state": "hit",
+   "before": {
+    "u": "/assets/anim/grosk/grosk_hit_1112.webp?v=22",
+    "n": 48,
+    "fw": 613,
+    "fh": 500,
+    "cols": 6,
+    "rows": 8,
+    "figH": 350,
+    "feet": 432,
+    "cx": 336,
+    "fps": 24,
+    "flip": false,
+    "top": 82
+   },
+   "after": {
+    "u": "/assets/anim/grosk/grosk_hit_1155.webp?v=1155",
+    "n": 15,
+    "fw": 613,
+    "fh": 500,
+    "cols": 4,
+    "rows": 4,
+    "figH": 350,
+    "feet": 432,
+    "cx": 336,
+    "fps": 25,
+    "flip": false,
+    "top": 82
+   },
+   "cells": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+   ]
+  },
+  {
+   "kind": "anim",
+   "key": "grosk",
    "state": "idle",
    "before": {
     "u": "/assets/anim/grosk/grosk_idle_1112.webp?v=22",
@@ -556,6 +706,56 @@
     44,
     45,
     47
+   ]
+  },
+  {
+   "kind": "anim",
+   "key": "gruel",
+   "state": "hit",
+   "before": {
+    "u": "/assets/anim/gruel/gruel_hit.webp?v=22",
+    "n": 48,
+    "fw": 593,
+    "fh": 510,
+    "cols": 6,
+    "rows": 8,
+    "figH": 382,
+    "feet": 446,
+    "cx": 329,
+    "fps": 24,
+    "flip": false,
+    "top": 64
+   },
+   "after": {
+    "u": "/assets/anim/gruel/gruel_hit_1155.webp?v=1155",
+    "n": 15,
+    "fw": 593,
+    "fh": 510,
+    "cols": 4,
+    "rows": 4,
+    "figH": 382,
+    "feet": 446,
+    "cx": 329,
+    "fps": 25,
+    "flip": false,
+    "top": 64
+   },
+   "cells": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
    ]
   },
   {
@@ -701,6 +901,56 @@
   {
    "kind": "anim",
    "key": "hollow",
+   "state": "hit",
+   "before": {
+    "u": "/assets/anim/hollow/hollow_hit_1126.webp?v=1126",
+    "n": 48,
+    "fw": 488,
+    "fh": 537,
+    "cols": 8,
+    "rows": 6,
+    "figH": 390,
+    "feet": 474,
+    "cx": 305,
+    "fps": 24,
+    "flip": false,
+    "top": 85
+   },
+   "after": {
+    "u": "/assets/anim/hollow/hollow_hit_1155.webp?v=1155",
+    "n": 15,
+    "fw": 488,
+    "fh": 537,
+    "cols": 4,
+    "rows": 4,
+    "figH": 390,
+    "feet": 474,
+    "cx": 305,
+    "fps": 25,
+    "flip": false,
+    "top": 85
+   },
+   "cells": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+   ]
+  },
+  {
+   "kind": "anim",
+   "key": "hollow",
    "state": "idle",
    "before": {
     "u": "/assets/anim/hollow/hollow_idle_1126.webp?v=1126",
@@ -835,6 +1085,56 @@
     46,
     47,
     49
+   ]
+  },
+  {
+   "kind": "anim",
+   "key": "oakmir",
+   "state": "hit",
+   "before": {
+    "u": "/assets/anim/oakmir/oakmir_hit.webp?v=8",
+    "n": 48,
+    "fw": 396,
+    "fh": 490,
+    "cols": 6,
+    "rows": 8,
+    "figH": 348,
+    "feet": 430,
+    "cx": 219,
+    "fps": 24,
+    "flip": false,
+    "top": 82
+   },
+   "after": {
+    "u": "/assets/anim/oakmir/oakmir_hit_1155.webp?v=1155",
+    "n": 15,
+    "fw": 396,
+    "fh": 490,
+    "cols": 4,
+    "rows": 4,
+    "figH": 348,
+    "feet": 430,
+    "cx": 219,
+    "fps": 25,
+    "flip": false,
+    "top": 82
+   },
+   "cells": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
    ]
   },
   {
@@ -1059,6 +1359,56 @@
   {
    "kind": "anim",
    "key": "pyroclast",
+   "state": "hit",
+   "before": {
+    "u": "/assets/anim/pyroclast/pyroclast_hit.webp?v=4",
+    "n": 48,
+    "fw": 466,
+    "fh": 584,
+    "cols": 6,
+    "rows": 8,
+    "figH": 443,
+    "feet": 523,
+    "cx": 208,
+    "fps": 24,
+    "flip": true,
+    "top": 80
+   },
+   "after": {
+    "u": "/assets/anim/pyroclast/pyroclast_hit_1155.webp?v=1155",
+    "n": 15,
+    "fw": 466,
+    "fh": 584,
+    "cols": 5,
+    "rows": 3,
+    "figH": 443,
+    "feet": 523,
+    "cx": 208,
+    "fps": 25,
+    "flip": true,
+    "top": 80
+   },
+   "cells": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+   ]
+  },
+  {
+   "kind": "anim",
+   "key": "pyroclast",
    "state": "idle",
    "before": {
     "u": "/assets/anim/pyroclast/pyroclast_idle.webp?v=4",
@@ -1198,6 +1548,56 @@
   {
    "kind": "anim",
    "key": "rhukk",
+   "state": "hit",
+   "before": {
+    "u": "/assets/anim/rhukk/rhukk_hit.webp?v=10",
+    "n": 48,
+    "fw": 554,
+    "fh": 502,
+    "cols": 6,
+    "rows": 8,
+    "figH": 296,
+    "feet": 440,
+    "cx": 321,
+    "fps": 24,
+    "flip": false,
+    "top": 144
+   },
+   "after": {
+    "u": "/assets/anim/rhukk/rhukk_hit_1155.webp?v=1155",
+    "n": 15,
+    "fw": 554,
+    "fh": 502,
+    "cols": 4,
+    "rows": 4,
+    "figH": 296,
+    "feet": 440,
+    "cx": 321,
+    "fps": 25,
+    "flip": false,
+    "top": 144
+   },
+   "cells": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+   ]
+  },
+  {
+   "kind": "anim",
+   "key": "rhukk",
    "state": "idle",
    "before": {
     "u": "/assets/anim/rhukk/rhukk_idle.webp?v=10",
@@ -1329,6 +1729,56 @@
   {
    "kind": "anim",
    "key": "tharl",
+   "state": "hit",
+   "before": {
+    "u": "/assets/anim/tharl/tharl_hit.webp?v=23",
+    "n": 48,
+    "fw": 378,
+    "fh": 346,
+    "cols": 6,
+    "rows": 8,
+    "figH": 226,
+    "feet": 286,
+    "cx": 166,
+    "fps": 24,
+    "flip": true,
+    "top": 60
+   },
+   "after": {
+    "u": "/assets/anim/tharl/tharl_hit_1155.webp?v=1155",
+    "n": 15,
+    "fw": 378,
+    "fh": 346,
+    "cols": 4,
+    "rows": 4,
+    "figH": 226,
+    "feet": 286,
+    "cx": 166,
+    "fps": 25,
+    "flip": true,
+    "top": 60
+   },
+   "cells": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+   ]
+  },
+  {
+   "kind": "anim",
+   "key": "tharl",
    "state": "idle",
    "before": {
     "u": "/assets/anim/tharl/tharl_idle.webp?v=23",
@@ -1455,6 +1905,56 @@
     46,
     47,
     49
+   ]
+  },
+  {
+   "kind": "anim",
+   "key": "umbris",
+   "state": "hit",
+   "before": {
+    "u": "/assets/anim/umbris/umbris_hit_1115.webp?v=1115",
+    "n": 48,
+    "fw": 570,
+    "fh": 512,
+    "cols": 6,
+    "rows": 8,
+    "figH": 364,
+    "feet": 447,
+    "cx": 328,
+    "fps": 24,
+    "flip": false,
+    "top": 83
+   },
+   "after": {
+    "u": "/assets/anim/umbris/umbris_hit_1155.webp?v=1155",
+    "n": 15,
+    "fw": 570,
+    "fh": 512,
+    "cols": 4,
+    "rows": 4,
+    "figH": 364,
+    "feet": 447,
+    "cx": 328,
+    "fps": 25,
+    "flip": false,
+    "top": 83
+   },
+   "cells": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
    ]
   },
   {
