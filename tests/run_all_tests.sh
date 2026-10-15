@@ -397,6 +397,8 @@ note "test_front_door_1130.js (v1130: new players go to the next server - S1 bel
 node tests/test_front_door_1130.js || FAILED=1
 note "test_sylthaine_ult_passive.js (v1137 Sylthaine ULT Blizzard contained snow + PASSIVE Cold Snap - new ?v=1137 sheets from the clean H3 exports, 48 @24 on an 8 x 6 grid under 4096, frame-0 plate-pose anchors, flip:false; timing data = BASE (clipDur 2.0 = the sim-side ult root, apex 31), kit identical; control: scripted swings, Blizzard/green/blue casts (cast tick, root, hold, every unit 7 s), a timed-passive lock and whole fights (Sylthaine both sides, heroes carry BATTLE_ANIM as the server replay) on BASE land on the same ticks; Blizzard starts on cast cell 20 (rig), hold apex 31, Cold Snap contact 9; controls: a 40-cell ult moves the root, a moved swing diverges the fights, a slower passive changes its lock, a broken grid fails)"
 node tests/test_sylthaine_ult_passive.js || FAILED=1
+note "test_memory_budget_1140.js (v1140 MEMORY BUDGET - the Aw-Snap hotfix: battle sheet files <= 2048 px / 4 MB outside the frozen pre-v1140 ratchet list (control: a 2100 px sheet fails); phone loader uploads every sheet within 2048 px per side (figure floor 160 px, hard 4096), desktop k = 1; heaviest possible 5v5 <= 2048 MB GPU (static + a real 5-fight phone rig), decoded bitmaps <= 400 MB, heaviest-sound 5v5 <= 48 MB decoded; after EVERY fight the hub holds no battle sheet, no bitmap, no hero sound (only the 12 weapon sounds), no growth over 5 fights; CONTROL: BASE v1139 breaks the budget and keeps its bitmaps)"
+node tests/test_memory_budget_1140.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi

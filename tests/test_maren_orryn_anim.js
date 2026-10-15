@@ -92,7 +92,8 @@ try {
   ck('Maren keeps her eight states, Orryn his eight (no state added or removed)', Object.keys(G.maren).join() === Object.keys(G0.maren).join() && Object.keys(G.orryn).join() === Object.keys(G0.orryn).join(), Object.keys(G.maren) + ' / ' + Object.keys(G.orryn));
   const bad = [].concat(...['maren', 'orryn'].map(h => gridProblems(G[h], h, NEW.filter(x => x[0] === h).map(x => x[1]))));
   ck('every new sheet exists, file = declared grid, under 4096, anchors in the cell', bad.length === 0, bad.join('; '));
-  ck('the seven new sheets are new files at ?v=1135 (never a reused asset version)', NEW.every(([h, s]) => G[h][s].u === `/assets/anim/${h}/${h}_${s}_1135.webp?v=1135`));
+  /* v1140 memory hotfix: the seven were re-cut within 2048 px per side (same grid, anchors x S) as new files ?v=1140 */
+  ck('the seven new sheets are new files at ?v=1140 (v1140 re-cut within 2048 px; never a reused asset version)', NEW.every(([h, s]) => G[h][s].u === `/assets/anim/${h}/${h}_${s}_1140.webp?v=1140` && G[h][s].fw * G[h][s].cols <= 2048 && G[h][s].fh * G[h][s].rows <= 2048));
   ck('the old v21 sheets are still on disk (rollback needs nothing)', NEW.every(([h, s]) => fs.existsSync(path.join(ROOT, G0[h][s].u.split('?')[0]))));
   ck('untouched states are byte-for-byte the BASE entries (Maren idle/walk/hit/passive, Orryn idle/walk/hit/ult/passive)', ['maren', 'orryn'].every(h => KEEP[h].every(s => JSON.stringify(G[h][s]) === JSON.stringify(G0[h][s]))));
   /* v1137 = one combined animation release (Maren + Orryn, Sylthaine, Rivet): the other parts' heroes are checked by their own tests (Rivet: test_rivet_weapons.js) */

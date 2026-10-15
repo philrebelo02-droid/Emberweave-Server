@@ -89,7 +89,8 @@ try {
   const bad = gridProblems(G, NEW.map(x => x[0]));
   ck('both new sheets exist, file = declared grid (8 x 6), under 4096, anchors in the cell', bad.length === 0, bad.join('; '));
   const baseSrc = fs.readFileSync(OLD, 'utf8');
-  ck('both are new files at ?v=1137 that BASE never referenced (never a reused asset version)', NEW.every(([s]) => G[s].u === `/assets/anim/sylthaine/sylthaine_${s}_1137.webp?v=1137` && !baseSrc.includes(`sylthaine_${s}_1137`)));
+  /* v1140 memory hotfix: both re-cut within 2048 px per side (same 8 x 6 grid, anchors x S) as new files ?v=1140 */
+  ck('both are new files at ?v=1140 that BASE never referenced (v1140 re-cut within 2048 px; never a reused asset version)', NEW.every(([s]) => G[s].u === `/assets/anim/sylthaine/sylthaine_${s}_1140.webp?v=1140` && !baseSrc.includes(`sylthaine_${s}_1140`) && G[s].fw * G[s].cols <= 2048 && G[s].fh * G[s].rows <= 2048));
   ck('the old v26 sheets are still on disk (rollback needs nothing)', NEW.every(([s]) => fs.existsSync(path.join(ROOT, G0[s].u.split('?')[0]))));
   ck('untouched states are byte-for-byte the BASE entries (idle/walk/attack/hit/green/blue)', KEEP.every(s => JSON.stringify(G[s]) === JSON.stringify(G0[s])));
   /* v1137 = one combined animation release (Maren + Orryn, Sylthaine, Rivet): the other parts' heroes are checked by their own tests (Rivet: test_rivet_weapons.js) */

@@ -3009,11 +3009,11 @@ const BATTLE_ANIM = {
   maren:{
     idle:{u:'/assets/anim/maren/maren_idle.webp?v=21',n:48,fw:387,fh:411,cols:6,rows:8,figH:400,feet:405,cx:195,fps:24,flip:false,top:5,pingpong:true},
     walk:{u:'/assets/anim/maren/maren_walk.webp?v=21',n:48,fw:369,fh:423,cols:6,rows:8,loop:[1,25],figH:400,feet:412,cx:181,fps:24,flip:false,top:12,ax:[0,0.1,0.2,0.9,1.8,2.3,2.5,2.1,1.5,1,0.6,0.5,0.8,1.5,2.6,3.9,5,6,6.6,6.6,6.1,5.3,4.5,3.8,3.2,2.9,2.7,2.5,2.3,2.2,1.9,1.6,1.2,0.9,0.7,0.9,1.6,2.5,3.8,5.1,6.2,7.1,7.8,8.2,8.5,8.6,8.6,8.6]},
-    attack:{u:'/assets/anim/maren/maren_attack_1135.webp?v=1135',n:28,fw:862,fh:574,cols:4,rows:7,figH:490,feet:540,cx:330,fps:14,flip:false,top:50,contact:17},   /* v1135 Maren four (Phil passed all four; ChatGPT handoff MAREN-FOUR-13OCT2026 -> clean-source-manifest.json 14 Oct 21:16, 'CLEAN NO WATERMARK' official Without Watermark exports of the same performances, all eight sha256 matched, silent twins): ATTACK creation 566077907681075205, GREEN Tide Pool 566084264454955014, BLUE Tsunami redo3 566499801173475335 (near palm large in perspective - accepted by Phil), ULT Maelstrom redo1 566499366018637830 (brief small water crescent - accepted). MAGENTA key off each source's frame-0 border (the attack plate drifts from 254,11,247 to a flat pale pink ~252,117,246 on f20-f150 and back on f157; the frame-0 key clears both: a 20 px border band keys to 0%), cut_mo.py = the v1132 Hurne cs10 route (exact source frames, lossless, native size, PAD searched to fit 4096, lossless re-grid; no CELL_CAP, no redraw), then narrowdespill unmix KLO 8 / KHI 30: pink rim 0 on edge and body on all four (worst lean 10 = the unmix floor; the shipped v21 idle reads 1.3% edge, worst 143). No watermark: four corners 0 px on five frames per source, no crop box reaches the wordmark band. Anchors from each source's frame 0 (his standing pose, w/h 0.87 = idle cell 0's 0.878), flip:false like all his states. TIMING IS THE ENGINE'S (tests/test_maren_orryn_anim.js): every clip keeps the old 48 @24 clip's 2.0 clip s and no relFrac, so the swing ball (fuse 1.0 clip s x BATTLE_PACE), the 0.5 s green/blue casts, the 0.8 s ult cast, every hold and every queue read the same numbers. The release cell = where that moment is DRAWN (844x390 rig, two reps): ATTACK 28 @14 cell 17 = source f16 (the palm's first full extension; the ball leaves 1.26 real s into the clip; stance f0-f7 on cells 0-11 incl. four held cells, natural-speed thrust f8-f16, hold/retract f19-f60); GREEN 30 @15 cell 11 = f21 (palm first flat to the ground, the pool falls; f20 cuts 8 px of fingertip at the source frame edge - one cell, nothing redrawn); BLUE 36 @18 cell 13 = f46 (the shove at full extension; wind-up f0-f44 played ~2.4x to reach the 0.5 s cast); ULT 34 @17 cell 20 = f82 (the water crescent first shows on the pull; raise and arm-up hold f0-f80 played ~3x to reach the 0.8 s cast). Old v21 sheets stay on disk unused; idle/walk/hit/passive, kit and FX unchanged. */
+    attack:{u:'/assets/anim/maren/maren_attack_1140.webp?v=1140',n:28,fw:439,fh:292,cols:4,rows:7,figH:250,feet:275,cx:168,fps:14,flip:false,top:25,contact:17},   /* v1135 Maren four (Phil passed all four; ChatGPT handoff MAREN-FOUR-13OCT2026 -> clean-source-manifest.json 14 Oct 21:16, 'CLEAN NO WATERMARK' official Without Watermark exports of the same performances, all eight sha256 matched, silent twins): ATTACK creation 566077907681075205, GREEN Tide Pool 566084264454955014, BLUE Tsunami redo3 566499801173475335 (near palm large in perspective - accepted by Phil), ULT Maelstrom redo1 566499366018637830 (brief small water crescent - accepted). MAGENTA key off each source's frame-0 border (the attack plate drifts from 254,11,247 to a flat pale pink ~252,117,246 on f20-f150 and back on f157; the frame-0 key clears both: a 20 px border band keys to 0%), cut_mo.py = the v1132 Hurne cs10 route (exact source frames, lossless, native size, PAD searched to fit 4096, lossless re-grid; no CELL_CAP, no redraw), then narrowdespill unmix KLO 8 / KHI 30: pink rim 0 on edge and body on all four (worst lean 10 = the unmix floor; the shipped v21 idle reads 1.3% edge, worst 143). No watermark: four corners 0 px on five frames per source, no crop box reaches the wordmark band. Anchors from each source's frame 0 (his standing pose, w/h 0.87 = idle cell 0's 0.878), flip:false like all his states. TIMING IS THE ENGINE'S (tests/test_maren_orryn_anim.js): every clip keeps the old 48 @24 clip's 2.0 clip s and no relFrac, so the swing ball (fuse 1.0 clip s x BATTLE_PACE), the 0.5 s green/blue casts, the 0.8 s ult cast, every hold and every queue read the same numbers. The release cell = where that moment is DRAWN (844x390 rig, two reps): ATTACK 28 @14 cell 17 = source f16 (the palm's first full extension; the ball leaves 1.26 real s into the clip; stance f0-f7 on cells 0-11 incl. four held cells, natural-speed thrust f8-f16, hold/retract f19-f60); GREEN 30 @15 cell 11 = f21 (palm first flat to the ground, the pool falls; f20 cuts 8 px of fingertip at the source frame edge - one cell, nothing redrawn); BLUE 36 @18 cell 13 = f46 (the shove at full extension; wind-up f0-f44 played ~2.4x to reach the 0.5 s cast); ULT 34 @17 cell 20 = f82 (the water crescent first shows on the pull; raise and arm-up hold f0-f80 played ~3x to reach the 0.8 s cast). Old v21 sheets stay on disk unused; idle/walk/hit/passive, kit and FX unchanged. */
     hit:{u:'/assets/anim/maren/maren_hit.webp?v=21',n:48,fw:459,fh:468,cols:6,rows:8,figH:400,feet:459,cx:214,fps:24,flip:false,top:59,ax:[0,0,1,1,1,1,1,2,2,3,3,3,4,4,4,5,5,6,6,5,5,6,6,6,6,7,7,7,7,8,8,8,9,9,9,10,10,10,10,11,11,11,11,11,11,11,11,11]},
-    green:{u:'/assets/anim/maren/maren_green_1135.webp?v=1135',n:30,fw:800,fh:636,cols:5,rows:6,figH:522,feet:588,cx:371,fps:15,flip:false,top:66,contact:11},
-    blue:{u:'/assets/anim/maren/maren_blue_1135.webp?v=1135',n:36,fw:672,fh:574,cols:6,rows:6,figH:522,feet:550,cx:361,fps:18,flip:false,top:28,contact:13},
-    ult:{u:'/assets/anim/maren/maren_ult_1135.webp?v=1135',n:34,fw:682,fh:615,cols:6,rows:6,figH:522,feet:577,cx:325,fps:17,flip:false,top:55,contact:20},
+    green:{u:'/assets/anim/maren/maren_green_1140.webp?v=1140',n:30,fw:409,fh:325,cols:5,rows:6,figH:267,feet:301,cx:190,fps:15,flip:false,top:34,contact:11},
+    blue:{u:'/assets/anim/maren/maren_blue_1140.webp?v=1140',n:36,fw:341,fh:291,cols:6,rows:6,figH:265,feet:279,cx:183,fps:18,flip:false,top:14,contact:13},
+    ult:{u:'/assets/anim/maren/maren_ult_1140.webp?v=1140',n:34,fw:341,fh:307,cols:6,rows:6,figH:261,feet:289,cx:163,fps:17,flip:false,top:28,contact:20},
     passive:{u:'/assets/anim/maren/maren_passive.webp?v=21',n:48,fw:398,fh:458,cols:6,rows:8,figH:400,feet:452,cx:208,fps:24,flip:false,top:52}
   },
   lumi:{
@@ -3216,10 +3216,10 @@ const BATTLE_ANIM = {
   orryn:{
     idle:{u:'/assets/anim/orryn/orryn_idle.webp?v=21',n:48,fw:298,fh:411,cols:6,rows:8,figH:400,feet:405,cx:155,fps:24,flip:true,top:5,pingpong:true},
     walk:{u:'/assets/anim/orryn/orryn_walk.webp?v=21',n:48,fw:334,fh:416,cols:6,rows:8,loop:[0,16],figH:400,feet:407,cx:174,fps:24,flip:true,top:7,ax:[0,-1.9,-5.1,-7.2,-8.1,-8.7,-9.6,-10.9,-11.2,-10.7,-9.8,-9,-8.2,-7.1,-6.2,-5.8,-8.1,-10.4,-10.9,-10.4,-9.8,-10.9,-12.6,-13.8,-13.5,-12.7,-11.7,-10.9,-9.9,-8.8,-8,-8.2,-10.7,-11.7,-11.7,-10.7,-10.6,-11.8,-13.2,-13.4,-13.2,-12.2,-11.1,-10.4,-11.2,-12.9,-14.9,-15.3]},
-    attack:{u:'/assets/anim/orryn/orryn_attack_1135.webp?v=1135',n:48,fw:472,fh:546,cols:8,rows:6,figH:399,feet:485,cx:248,fps:24,flip:true,top:86,contact:27},   /* v1135 Orryn three (Phil 13 Oct 'APPROVED 13OCT2026 H3'; clean-source-manifest.json 14 Oct 21:16, 'CLEAN NO WATERMARK' official exports - creation ids 566586469247246336 / 566589322066038793 / 566588471880646657 differ from the review cards 566586468425162757 / 566589321344618496 / 566588471205363716 but every frame matches the approved take (mean |diff| 1.0-1.8 per px vs 22-25 for an 8-frame shift), all six sha256 matched, silent twins): ATTACK (shell-arm thrust), GREEN Pressure Sphere, BLUE Spiral Current. GREEN key off frame 0 (~1,241,1). Orryn owns sea-green (Phil's concept 1.15% true-green, mean 91,119,101), so NO DESPILL_ALL: cs10 EDGE_REF + PLATE_MATCH against Phil's own concept (PHILS GAME CONCEPTS/Orryn of the Spiral Deep - static.png, magenta backdrop masked to the key, art untouched) - the plate showed through his lantern cage as mint on every cell (EDGE_REF alone: edge 1.8%, worst 105); after: green rim 0 on edge and body, worst 6-11, copper/teal/neutral within 1-3 of EDGE_REF alone; his ~1% grey-green trim reads neutral-teal (disclosed). No watermark (corners 0, crop boxes clear of the band, 0 stationary px). Anchors from frame 0 (w/h 0.707 = idle cell 0's 0.713), flip:true like all his states (he strikes to sheet-left). TIMING IS THE ENGINE'S: 2.0 clip s, no relFrac, every number the engine reads unchanged. Release cells (844x390 rig): ATTACK 48 @24 cells 27-28 = f46/f47 (full extension to the left; his swing is fitted to his shorter hold, so the ball leaves while 27.5/48 of the clip is drawn - both cells extended); GREEN 44 @22 cell 16 = f73 (the orb bursts white; the staff lift f8-f63 played ~4x to reach the 0.5 s cast); BLUE 44 @22 cell 16 = f60 (both hands push the current out; gather and ring f0-f57 ~3.5x). The H3 render is warmer/more copper than his v21 idle (disclosed). Old v21 sheets stay on disk; idle/walk/hit/ult/passive, kit and FX unchanged. */
+    attack:{u:'/assets/anim/orryn/orryn_attack_1140.webp?v=1140',n:48,fw:256,fh:296,cols:8,rows:6,figH:216,feet:263,cx:135,fps:24,flip:true,top:47,contact:27},   /* v1135 Orryn three (Phil 13 Oct 'APPROVED 13OCT2026 H3'; clean-source-manifest.json 14 Oct 21:16, 'CLEAN NO WATERMARK' official exports - creation ids 566586469247246336 / 566589322066038793 / 566588471880646657 differ from the review cards 566586468425162757 / 566589321344618496 / 566588471205363716 but every frame matches the approved take (mean |diff| 1.0-1.8 per px vs 22-25 for an 8-frame shift), all six sha256 matched, silent twins): ATTACK (shell-arm thrust), GREEN Pressure Sphere, BLUE Spiral Current. GREEN key off frame 0 (~1,241,1). Orryn owns sea-green (Phil's concept 1.15% true-green, mean 91,119,101), so NO DESPILL_ALL: cs10 EDGE_REF + PLATE_MATCH against Phil's own concept (PHILS GAME CONCEPTS/Orryn of the Spiral Deep - static.png, magenta backdrop masked to the key, art untouched) - the plate showed through his lantern cage as mint on every cell (EDGE_REF alone: edge 1.8%, worst 105); after: green rim 0 on edge and body, worst 6-11, copper/teal/neutral within 1-3 of EDGE_REF alone; his ~1% grey-green trim reads neutral-teal (disclosed). No watermark (corners 0, crop boxes clear of the band, 0 stationary px). Anchors from frame 0 (w/h 0.707 = idle cell 0's 0.713), flip:true like all his states (he strikes to sheet-left). TIMING IS THE ENGINE'S: 2.0 clip s, no relFrac, every number the engine reads unchanged. Release cells (844x390 rig): ATTACK 48 @24 cells 27-28 = f46/f47 (full extension to the left; his swing is fitted to his shorter hold, so the ball leaves while 27.5/48 of the clip is drawn - both cells extended); GREEN 44 @22 cell 16 = f73 (the orb bursts white; the staff lift f8-f63 played ~4x to reach the 0.5 s cast); BLUE 44 @22 cell 16 = f60 (both hands push the current out; gather and ring f0-f57 ~3.5x). The H3 render is warmer/more copper than his v21 idle (disclosed). Old v21 sheets stay on disk; idle/walk/hit/ult/passive, kit and FX unchanged. */
     hit:{u:'/assets/anim/orryn/orryn_hit.webp?v=21',n:48,fw:311,fh:411,cols:6,rows:8,figH:400,feet:406,cx:164,fps:24,flip:true,top:6},
-    green:{u:'/assets/anim/orryn/orryn_green_1135.webp?v=1135',n:44,fw:443,fh:646,cols:9,rows:5,figH:400,feet:586,cx:237,fps:22,flip:true,top:186,contact:16},
-    blue:{u:'/assets/anim/orryn/orryn_blue_1135.webp?v=1135',n:44,fw:476,fh:551,cols:8,rows:6,figH:401,feet:490,cx:228,fps:22,flip:true,top:89,contact:16},
+    green:{u:'/assets/anim/orryn/orryn_green_1140.webp?v=1140',n:44,fw:227,fh:331,cols:9,rows:5,figH:205,feet:301,cx:122,fps:22,flip:true,top:96,contact:16},
+    blue:{u:'/assets/anim/orryn/orryn_blue_1140.webp?v=1140',n:44,fw:256,fh:296,cols:8,rows:6,figH:216,feet:264,cx:123,fps:22,flip:true,top:48,contact:16},
     ult:{u:'/assets/anim/orryn/orryn_ult.webp?v=21',n:48,fw:492,fh:505,cols:6,rows:8,figH:400,feet:490,cx:269,fps:24,flip:true,top:90,ax:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,20,41,33,-6,-20,-20,-12,-13,12,70,98,108,112,112,112,111,111,109,108,109,109,108,51,13,-23,-24,-26,-28,-30]},
     passive:{u:'/assets/anim/orryn/orryn_passive.webp?v=21',n:48,fw:323,fh:419,cols:6,rows:8,figH:400,feet:413,cx:155,fps:24,flip:true,top:13}
   },
@@ -3531,8 +3531,8 @@ const BATTLE_ANIM = {
     hit:{u:'/assets/anim/sylthaine/sylthaine_hit.webp?v=26',n:48,fw:406,fh:520,cols:6,rows:8,figH:502,feet:514,cx:195,fps:24,flip:false,top:12},
     green:{u:'/assets/anim/sylthaine/sylthaine_green.webp?v=26',n:48,fw:542,fh:520,cols:6,rows:8,figH:502,feet:514,cx:263,fps:24,flip:false,top:12},
     blue:{u:'/assets/anim/sylthaine/sylthaine_blue.webp?v=26',n:48,fw:398,fh:520,cols:6,rows:8,figH:502,feet:514,cx:191,fps:24,flip:false,top:12},
-    ult:{u:'/assets/anim/sylthaine/sylthaine_ult_1137.webp?v=1137',n:48,fw:512,fh:611,cols:8,rows:6,figH:466,feet:602,cx:249,fps:24,flip:false,top:136,apex:31},   /* v1137 Sylthaine ULT Blizzard 'contained snow' (MiniMax H3 creation 566969598953037827) + PASSIVE Cold Snap (566967168584491017), Phil PASS 14 Oct (REVIEW 14OCT2026 H3; the first wide-mist Blizzard 566967065383694345 was rejected and is not used). Official Without Watermark exports, manifest sha256 matched (B2DE4C34... / 62EE87E8...), cut from the silent twins (video stream sha256 identical to the originals); four corners 0 px on nine frames per clip (control: a watermarked Hailuo export reads ~2740 px), no crop box reaches the wordmark band. New concept on GREEN (Game Art/Heroes/Sylthaine/Sylthaine - static.png). Key off each source's frame-0 border (1,243,0 / 0,246,0). She owns no green (concept interior 0.7% true-green = its own spill), so cs10 DESPILL_ALL as Umbris v1115, not PLATE_MATCH: matching the H3 render to the concept pulled G 14 over the whole figure and turned the white snow PINK (magenta lean 93% of the rim vs 15% on the un-despilled cut = her purple robe); DESPILL_ALL keeps her skin/robe on the source colours (skin 180,126,104 vs concept 179,124,103) and the snow white; green rim 0 on edge and body (rimcheck; control: the un-despilled cut 11%). 48 @24 like the old sheets - the 1440x1984 full-body plate and the 1320 px snow ring cannot fit 48 cells under 4096 natively, so ONE cs10 CELL_CAP downscale to an 8 x 6 grid (ult x0.375, passive x0.458; torso 214 / 262 px), lossless, then the alpha floor 4 re-applied after the resample (alpha 1-3 specks). Anchors from each source's frame 0 = the plate stance (w/h 0.560 / 0.558 = idle cell 0's 0.556), flip:false like all her states, no ax. TIMING IS THE ENGINE'S (tests/test_sylthaine_ult_passive.js): 48 @24 = clipDur 2.0 s exactly as before (ultClipDur roots her for it - sim-side), ult apex 31 kept (v525: wind-up cells 0-31 = f0-f44 ~1.4x, HOLD cell 31 = f44 the full snow ring circling her for the storm, return 32-47 = the ring thins f84-f94 and the staff comes down to stance f123); the 0.6 s cast draws cells 0-20 (f0-f28, the snow gathering round her) and the Blizzard starts on cell 20 (844x390 rig, two reps, BASE identical); v525's channel clock then restarts the wind-up from cell 0 (pre-existing, same on BASE - disclosed), reaches the apex hold cell 31 at 1.45 fight s, holds it to 3.91 and lands on cell 47 at 4.56 as the storm ends. Cold Snap stays her idle-alternate flourish (v522; no event): stance f0-f4, frost flash and rings at natural speed f6-f42 (contact cell 9 = f12, the flare in her raised hand), settle to stance f45-f123. Old v26 sheets stay on disk unused; kit, numbers, FX and the skill-panel preview unchanged. v525 (Phil, off the contact sheet): hold the apex frame for the length of the blizzard, then the rest to return. */
-    passive:{u:'/assets/anim/sylthaine/sylthaine_passive_1137.webp?v=1137',n:48,fw:512,fh:628,cols:8,rows:6,figH:570,feet:617,cx:207,fps:24,flip:false,top:47,contact:9}
+    ult:{u:'/assets/anim/sylthaine/sylthaine_ult_1140.webp?v=1140',n:48,fw:256,fh:305,cols:8,rows:6,figH:233,feet:301,cx:124,fps:24,flip:false,top:68,apex:31},   /* v1137 Sylthaine ULT Blizzard 'contained snow' (MiniMax H3 creation 566969598953037827) + PASSIVE Cold Snap (566967168584491017), Phil PASS 14 Oct (REVIEW 14OCT2026 H3; the first wide-mist Blizzard 566967065383694345 was rejected and is not used). Official Without Watermark exports, manifest sha256 matched (B2DE4C34... / 62EE87E8...), cut from the silent twins (video stream sha256 identical to the originals); four corners 0 px on nine frames per clip (control: a watermarked Hailuo export reads ~2740 px), no crop box reaches the wordmark band. New concept on GREEN (Game Art/Heroes/Sylthaine/Sylthaine - static.png). Key off each source's frame-0 border (1,243,0 / 0,246,0). She owns no green (concept interior 0.7% true-green = its own spill), so cs10 DESPILL_ALL as Umbris v1115, not PLATE_MATCH: matching the H3 render to the concept pulled G 14 over the whole figure and turned the white snow PINK (magenta lean 93% of the rim vs 15% on the un-despilled cut = her purple robe); DESPILL_ALL keeps her skin/robe on the source colours (skin 180,126,104 vs concept 179,124,103) and the snow white; green rim 0 on edge and body (rimcheck; control: the un-despilled cut 11%). 48 @24 like the old sheets - the 1440x1984 full-body plate and the 1320 px snow ring cannot fit 48 cells under 4096 natively, so ONE cs10 CELL_CAP downscale to an 8 x 6 grid (ult x0.375, passive x0.458; torso 214 / 262 px), lossless, then the alpha floor 4 re-applied after the resample (alpha 1-3 specks). Anchors from each source's frame 0 = the plate stance (w/h 0.560 / 0.558 = idle cell 0's 0.556), flip:false like all her states, no ax. TIMING IS THE ENGINE'S (tests/test_sylthaine_ult_passive.js): 48 @24 = clipDur 2.0 s exactly as before (ultClipDur roots her for it - sim-side), ult apex 31 kept (v525: wind-up cells 0-31 = f0-f44 ~1.4x, HOLD cell 31 = f44 the full snow ring circling her for the storm, return 32-47 = the ring thins f84-f94 and the staff comes down to stance f123); the 0.6 s cast draws cells 0-20 (f0-f28, the snow gathering round her) and the Blizzard starts on cell 20 (844x390 rig, two reps, BASE identical); v525's channel clock then restarts the wind-up from cell 0 (pre-existing, same on BASE - disclosed), reaches the apex hold cell 31 at 1.45 fight s, holds it to 3.91 and lands on cell 47 at 4.56 as the storm ends. Cold Snap stays her idle-alternate flourish (v522; no event): stance f0-f4, frost flash and rings at natural speed f6-f42 (contact cell 9 = f12, the flare in her raised hand), settle to stance f45-f123. Old v26 sheets stay on disk unused; kit, numbers, FX and the skill-panel preview unchanged. v525 (Phil, off the contact sheet): hold the apex frame for the length of the blizzard, then the rest to return. */
+    passive:{u:'/assets/anim/sylthaine/sylthaine_passive_1140.webp?v=1140',n:48,fw:256,fh:314,cols:8,rows:6,figH:284,feet:308,cx:104,fps:24,flip:false,top:24,contact:9}
   },
   'skarrn':{
    idle:{u:'/assets/anim/mon/skarrn_walk_hd.webp?v=1',n:6,fw:220,fh:300,cols:6,rows:2,figH:222,feet:279,cx:69,fps:6,flip:false,pingpong:true,top:57},
@@ -3829,15 +3829,42 @@ const FIG_WOMEN=new Set(['astra','vesper','calypsa','yenna','dandra','lumi','lys
    removing it (k is still clamped to 1), so a hero whose sheet holds less simply stays native. */
 function figCapFor(u){ return (typeof ED!=='undefined' && ED && ED.active) ? ED_FIG_CAP : CELL_FIG_CAP; }   // v606: Emberdraft figures are small on screen; its sheets load with a 200-px figure (edQuit clears them, so other modes reload at full size)
 const ED_FIG_CAP=200;   // a figure is ~30 css px tall on a phone (~90 device px at 3x): 200 px is still 2x the screen
+/* v1140 MEMORY HOTFIX (Phil 15 Oct, pre-beta day: his Android Chrome tab crashed "Aw, Snap!" twice, once during a fight and once as it
+   ended). MEASURED in a headless Chrome rig at 844x390 (blueprint 18, "Battle memory budget"): one 5v5 fight held 5.2 GB of WebGL
+   textures plus 3.4 GB of decoded ImageBitmaps, and the bitmaps were NEVER freed - _texReg kept every one - so five fights reached
+   11 GB in the page process. v1136 measured the same within 3% (the v1137 sheets and the v1138 sound only tipped a phone that was
+   already at the edge). On a PHONE every battle sheet now uploads within TEX_SHEET_MAX px per side: the figure keeps >= TEX_FIG_FLOOR
+   px (a hero is drawn ~140-180 device px tall at zoom 1, so nothing is ever drawn bigger than its texture there), and nothing goes past
+   TEX_SHEET_HARD. Desktop keeps the full sheets. Display only: the fight reads clip DATA (n/fps/relFrac/contact), never a texture. */
+const TEX_SHEET_MAX=2048, TEX_FIG_FLOOR=160, TEX_SHEET_HARD=4096;
+function texPhone(){ try{ if(window.__texPhone!=null) return !!window.__texPhone;   // __texPhone: a test override only
+    const ua=(navigator&&navigator.userAgent)||''; return /Android|iPhone|iPad|iPod|Mobile/i.test(ua) || ((navigator.maxTouchPoints|0)>1 && !!(window.matchMedia&&matchMedia('(pointer:coarse)').matches)); }catch(e){ return false; } }
+/* the scale a sheet of cols x rows cells of fw x fh (figure figFrac*fh px tall) is uploaded at on this device: 1 on desktop */
+function texSheetK(fw, fh, cols, rows, figFrac){ if(!texPhone() || !fw || !fh) return 1;
+  const side=Math.max(fw*(cols||1), fh*(rows||1)), fig=(figFrac>0)?figFrac*fh:0;
+  const kSide=TEX_SHEET_MAX/side, kFloor=fig>0?TEX_FIG_FLOOR/fig:0;
+  return Math.min(1, Math.max(kSide, kFloor), TEX_SHEET_HARD/side); }
+/* After a sheet is on the GPU its decoded copy is dead weight (a 4096 px sheet is 64 MB of page memory). Free it - except the idle and
+   walk sheets, which the battle-loader cards and the Emberdraft carousel paint from on a 2D canvas. The stub keeps the size every
+   reader checks (width/height > 0 = "ready"); a freed texture refuses a re-upload (nothing could re-upload it: evict / edEvictArt drop
+   the texture and _loadClip makes a new one; a lost context reloads the page). */
+const _imgKeep=new WeakSet(); let _imgKeepAt=0;
+function _keepsImage(s){ const n=Object.keys(BATTLE_ANIM).length; if(n!==_imgKeepAt){ _imgKeepAt=n; for(const k in BATTLE_ANIM){ const t=BATTLE_ANIM[k]; if(t){ if(t.idle) _imgKeep.add(t.idle); if(t.walk) _imgKeep.add(t.walk); } } }
+  return _imgKeep.has(s); }
+function texFreeAfterUpload(tx){ try{ tx.onUpdate=function(t){ try{ const im=t.image; if(!im || im._freed || typeof ImageBitmap==='undefined' || !(im instanceof ImageBitmap)) return;
+      t.image={ width:im.width, height:im.height, _freed:true, close(){} }; try{ im.close(); }catch(_){}
+      t._freed=true; Object.defineProperty(t,'needsUpdate',{ configurable:true, set(){ /* freed: nothing to re-upload */ } }); }catch(e){} }; }catch(e){} }
+function texImgFree(tx){ try{ const im=tx&&tx.image; if(im && typeof im.close==='function' && !im._freed) im.close(); }catch(e){} }
 const GRIP_F=[18,22,25,29];   // Grasping Vow: fingers start to curl / squeezing / nearly shut / shut (30-frame sheet)
 function capSheet(img, cols, rows, cap, figFrac){
   try{
     const w=img.width|0, h=img.height|0; if(!w||!h) return img;
     const cw=w/cols, ch=h/rows;
     const boss=(cap||CELL_CAP)>CELL_CAP;                      // bosses keep their own, larger budget
-    const k = boss ? Math.min(1, cap/Math.max(cw,ch))
+    let k = boss ? Math.min(1, cap/Math.max(cw,ch))
                    : (figFrac>0 ? Math.min(1, (CELL_FIG_CAP/figFrac)/ch, CELL_HARD_CAP/Math.max(cw,ch))
                                 : Math.min(1, (cap||CELL_CAP)/Math.max(cw,ch)));
+    k=Math.min(k, texSheetK(cw, ch, cols, rows, figFrac));   // v1140: a phone's sheet budget
     if(k>=0.999) return img;                                   // already small enough — leave it alone
     const nw=Math.max(1,Math.round(cw*k))*cols, nh=Math.max(1,Math.round(ch*k))*rows;
     const cv=document.createElement('canvas'); cv.width=nw; cv.height=nh;
@@ -3904,7 +3931,7 @@ function bitmapLoad(url, cols, rows, onTex, onErr, fw, fh, figFrac){
     if(!_heal(bm?(bm.width+'x'+bm.height):'no bitmap')) onErr&&onErr(); };
   fetch(url).then(r=>{ if(!r.ok) throw new Error('http '+r.status); return r.blob(); })
     .then(bl=>{
-      const k=_figK>0?_figK:((fw&&fh)?Math.min(1, CAP/Math.max(fw,fh)):0);
+      const k0=_figK>0?_figK:((fw&&fh)?Math.min(1, CAP/Math.max(fw,fh)):0), k=k0>0?Math.min(k0, texSheetK(fw, fh, cols, rows, figFrac)):0;   /* v1140: a phone's sheet budget on top */
       if(k>0){
         /* v516 — THE 0.998 CLIFF (Phil: "no sylthaine is not live on phone", after clearing site data
            and with the phone confirmed on the new build). This threshold decides whether a sheet is
@@ -4022,6 +4049,7 @@ function _loadClip(s){ if(!s || s.tex || !isAssetRef(s.u)) return;
   _LOADQ.n++; let _fired=false;
   const _fin=()=>{ if(_fired) return; _fired=true; _LOADQ.done++; _lqTick(); };
   s._fin=_fin;
+  if(!_keepsImage(s)) texFreeAfterUpload(tx);   /* v1140: the decoded copy goes once the sheet is on the GPU (not idle/walk) */
   if(!bitmapLoad(s.u,_c,_r,(bmp)=>{ tx.flipY=false; tx.image=bmp; _applyTexQual(tx); tx.needsUpdate=true; s._err=false; _fin(); },
                  ()=>{ new TH.TextureLoader().load(s.u, t=>{ tx.image=capSheet(t.image,_c,_r,cellCapFor(s.u),(s.figH&&s.fh)?s.figH/s.fh:0); _applyTexQual(tx); tx.needsUpdate=true; _fin(); }, undefined, ()=>{ _fin(); retryTex(s, tx, 1); }); }, s.fw, s.fh, _ff)){
     new TH.TextureLoader().load(s.u, t=>{ _fitTex(t,_c,_r,cellCapFor(s.u),(s.figH&&s.fh)?s.figH/s.fh:0); tx.image=t.image; _applyTexQual(tx); tx.needsUpdate=true; _fin(); }, undefined, ()=>{ _fin(); retryTex(s, tx, 1); });
@@ -4494,13 +4522,19 @@ function evictUnusedArt(keepKeys){
       for(const st in set){
         if(st[0]==='_') continue;
         const c = set[st];
-        if(c && c.tex){ if(c.tex.dispose) try{ c.tex.dispose(); }catch(_){} delete c.tex; delete c._err; any = true; }
+        if(c && c.tex){ const _t=c.tex; if(_t.dispose) try{ _t.dispose(); }catch(_){} texImgFree(_t); try{ const i=_texReg.indexOf(_t); if(i>=0) _texReg.splice(i,1); }catch(_){}   /* v1140: the decoded bitmap is closed and _texReg lets go of it - it used to hold every sheet ever loaded */
+          delete c.tex; delete c._err; any = true; }
       }
       if(any){ delete set._loaded; delete _artWarmed['k:'+key]; freed++; }
     }
   }catch(e){}
+  try{ if(typeof sfxRelease==='function') sfxRelease(); }catch(e){}   /* v1140: a fight's decoded sounds leave with it (the 12 weapon sounds stay) */
   return freed;
 }
+/* v1140: back on the hub nothing of a battle is drawn - free every battle sheet (squad included; the next fight reloads it from the
+   device cache behind its loading screen). Not during Emberdraft, an online match or the Gauntlet, which manage their own art. */
+function evictBattleArtAll(){ try{ if((typeof ED!=='undefined'&&ED&&ED.active) || (typeof OL!=='undefined'&&OL&&OL.active) || (typeof GSPLIT!=='undefined'&&GSPLIT&&GSPLIT.active)) return 0;
+  if(typeof state!=='undefined' && (state==='battle'||state==='result')) return 0; return evictUnusedArt([]); }catch(e){ return 0; } }
 function fmtMB(b){ return (b/1048576).toFixed(1)+' MB'; }
 function preloadStageArt(stage){   // authored campaign stage: squad + EVERY wave's monsters
   const keys=[];
@@ -9933,6 +9967,14 @@ function sfxPrimeHero(key){ try{ if(!key||!SND.ctx||window._p2guard||!SND.cfg.fx
   for(const n in SFX_DATA.files){ const f=SFX_DATA.files[n][0]; if(!keep[f]&&!/LIB-ATK-/.test(n)&&SND.buf[f]) delete SND.buf[f]; }
   for(const k in SFX.want) if(!sfxFiles(SFX_DATA.heroes[k]).some(n=>keep[(SFX_DATA.files[n]||[])[0]])) delete SFX.want[k]; }catch(e){} }
 function sfxPrimeLib(){ try{ for(const n in SFX_DATA.files) if(/^LIB-ATK-/.test(n)) sndLoad(SFX_DATA.files[n][0]); }catch(e){} }
+/* v1140 MEMORY HOTFIX: a fight's decoded sounds leave with the fight. Decoded PCM is 4 bytes per sample (48 kHz: 192 KB a second per
+   channel) and the 240 s keep-rule above let it pile up fight after fight (measured 29 -> 79 MB over five fights). Called wherever the
+   battle art is evicted (evictUnusedArt): every hero sound and hero voice line is dropped; the 12 shared weapon sounds stay. The next
+   fight primes its own heroes again from makeUnit (sndPrimeHero), from the HTTP cache. Render/audio only - no battle state. */
+function sfxRelease(){ try{ const drop=new Set();
+    for(const n in SFX_DATA.files) if(!/^LIB-ATK-/.test(n)) drop.add(SFX_DATA.files[n][0]);
+    for(const k in AUDIO_MAP) if(/^hero\./.test(k)) (AUDIO_MAP[k]||[]).forEach(l=>drop.add(l.f));
+    let n=0; for(const f in SND.buf){ if(drop.has(f)){ delete SND.buf[f]; n++; } } SFX.want={}; return n; }catch(e){ return 0; } }
 /* play file `name` so its peak sounds at audio time peakAt (o.fromStart: the file starts at peakAt). Returns the source or null.
    Noise control: a basic attack yields first (no attack sound once SFX_ATK_LIVE sounds are running), a spell gets up to SFX_MAXLIVE. */
 function sfxPlay(name,peakAt,o){ o=o||{}; const F=SFX_DATA.files[name]; if(!F||!SND.ctx) return null; const f=F[0], pk=o.fromStart?0:(+F[1]||0);
@@ -12304,6 +12346,12 @@ const FX2_DEF={
 };
 const _fx2Tex={};
 function fx2Tex(key){ const d=FX2_DEF[key]; if(!d||!TH)return null; if(_fx2Tex[key])return _fx2Tex[key];
+  /* v1140 MEMORY HOTFIX: on a phone a spell sheet loads within TEX_SHEET_MAX px per side (measured: a 5v5's spell sheets were 1.1 GB of
+     textures at full size) and its decoded copy is freed once it is on the GPU. The UVs are cell fractions, so the art lands the same. */
+  if(d.fw&&d.fh&&d.cols&&texPhone()&&texSheetK(d.fw,d.fh,d.cols,d.rows||1,0)<0.99){ const t=new TH.Texture(); t.magFilter=TH.LinearFilter; t.minFilter=TH.LinearFilter; t.generateMipmaps=false; t.wrapS=t.wrapT=TH.ClampToEdgeWrapping; _fx2Tex[key]=t;
+    const ld=()=>new TH.TextureLoader().load(d.u, im=>{ t.flipY=true; t.image=im.image; t.needsUpdate=true; });   /* the old path, if a bitmap cannot be made */
+    if(!bitmapLoad(d.u, d.cols, d.rows||1, bm=>{ t.flipY=false; texFreeAfterUpload(t); t.image=bm; t.needsUpdate=true; }, ld, d.fw, d.fh, 0)) ld();
+    return t; }
   const t=new TH.TextureLoader().load(d.u); t.magFilter=TH.LinearFilter; t.minFilter=TH.LinearFilter; t.wrapS=t.wrapT=TH.ClampToEdgeWrapping; _fx2Tex[key]=t; return t; }
 /* 28 Aug — EFFECT TEXTURE CHURN (v286 §1.3). Every ground zone, projectile, beam and status effect
    used to call fx2NewTex(), which builds a WHOLE NEW three.js Texture and uploads the entire effect
@@ -15447,6 +15495,7 @@ function show(name){
   { const bg=document.getElementById('battleBg'); if(bg) bg.style.display = (name==='battle') ? 'block' : 'none';
     const eb=document.getElementById('enemyBar'); if(eb && name!=='battle') eb.classList.remove('active'); }
   if(name==='result') renderResultExtras();
+  if(name==='home') setTimeout(()=>{ try{ evictBattleArtAll(); }catch(e){} },0);   /* v1140: the hub draws no battle - its sheets and sounds go (memory hotfix) */
   if(name==='glossary') renderGlossary();
   _fitApp();
   if(name==='home') renderHome();
@@ -27802,7 +27851,8 @@ document.getElementById('exitBtn').onclick=()=>{ paused=false; ended=true; docum
   if(CUR&&CUR.mode==='replay'){ const rr=_replayReturn; _replayReturn=null; clearBattle();
     if(rr){ try{ rr(); return; }catch(e){} } show('home'); return; }
   clearBattle();
-  if(_wasCamp){ try{ PORTAL=_portal; }catch(e){} show('campaign'); } else show('home'); };
+  if(_wasCamp){ try{ PORTAL=_portal; }catch(e){} show('campaign'); } else show('home');
+  try{ evictUnusedArt(G.team); }catch(e){} };   /* v1140: quitting frees the foes' sheets and the fight's sounds, as CONTINUE does */
 document.getElementById('resultBtn').onclick=()=>{ const m=CUR.mode;
   if(m==='well'){ wellBackToMap(); try{ evictUnusedArt(G.team); }catch(e){} return; }   /* v825: back to the Well's map */
   if(m==='province'){ provBackToCard((CUR.prov&&CUR.prov.t)||'gold'); try{ evictUnusedArt(G.team); }catch(e){} return; }   /* v663: back to the province card */
