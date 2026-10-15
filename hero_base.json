@@ -511,7 +511,7 @@
     "class": "Bruiser",
     "combatRow": "Front",
     "damageProfile": "Hybrid",
-    "primaryScaling": "Attack + Ability Power",
+    "primaryScaling": "70% Attack / 30% Ability Power",
     "glyphPath": "bruiser_hybrid_front",
     "equipmentPath": "bruiser_hybrid_front",
     "formationDepth": 1.35,
