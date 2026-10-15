@@ -4241,8 +4241,12 @@ function poolRollGold(u){ const led=u.led; const h=Math.random();
   if(h<0.05) return poolGrantHero(u, poolPick(POOL_GOLD_HEROES));
   if(h<0.20){ const hk=poolPick(POOL_GOLD_HEROES), n=2+Math.floor(Math.random()*2); creditFrags(u,led,hk,n,'wish:gold',{uncapped:true}); return {type:'frags',hero:hk,frags:n}; }
   const r=Math.random();
-  if(r<0.46) return poolGlyphFrag(u,'Grey', 4+Math.floor(Math.random()*5));
-  if(r<0.72) return poolGlyphFrag(u,'Green', 2+Math.floor(Math.random()*3));
+  /* v1142 (Phil 15 Oct: "The percent of fragments should be. Previous stage unlocked, Current stage unlocked fragments not grey and green"):
+     the two glyph-fragment results follow the player's own glyph level - the tier below the highest reached, and that highest tier
+     (same tier reading as the Mythical Pool). A player still on Grey gets Grey for both. Phil: "Reduce the fragements to 2-4 and 1-2". */
+  const _gqi=poolTopGlyphTier(u), _gCur=GLYPH_LADDER[_gqi], _gPrev=GLYPH_LADDER[Math.max(0,_gqi-1)];
+  if(r<0.46) return poolGlyphFrag(u,_gPrev, 2+Math.floor(Math.random()*3));
+  if(r<0.72) return poolGlyphFrag(u,_gCur, 1+Math.floor(Math.random()*2));
   if(r<0.94){ const g=300+Math.floor(Math.random()*500); creditGold(u,led,g,'wish:gold'); return {type:'gold', n:g}; }
   const gm=5+Math.floor(Math.random()*11); creditGems(u,led,gm,'wish:gold'); return {type:'gems', n:gm}; }
 function poolRollGem(u, rigged){ const led=u.led, pool=poolState(u);

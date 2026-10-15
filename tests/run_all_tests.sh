@@ -399,6 +399,10 @@ note "test_sylthaine_ult_passive.js (v1137 Sylthaine ULT Blizzard contained snow
 node tests/test_sylthaine_ult_passive.js || FAILED=1
 note "test_debuff_feet_1141.js (v1141 DEBUFFS UNDER THE FEET, Phil 15 Oct: every DoT colour the engine pushes has a feet kind (burn/bleed/poison/curse, curse = the void zone flat; Umbris curse + Grimsby debt = curse, Hollow grey = bleed; control: BASE gives them none); debuff words (WAX, SEALED, IN DEBT, MARKED, bleed x2, OVERDUE x3, -resist ...) stack under the feet, buff/control words stay over the head (control: BASE puts WAX up); 6 whole fights with every debuffer both sides tick-identical to BASE (control: a 1% stronger DoT diverges); real page, muted 844x390 phone, real fights: Grimsby/Pyroclast/Absalie debuff badges at the victim's feet (renderOrder -4, riding it), buff badges over the bar, curse/debt void zone flat, Living Tallow wax pool, a new fight tears every feet mark down; control: the BASE page draws them over the bar)"
 node tests/test_debuff_feet_1141.js || FAILED=1
+note "test_wish_odds_1142.js (v1142 Diamond wish table + Ember Roast)"
+node tests/test_wish_odds_1142.js || FAILED=1
+note "test_gold_wish_1142.js (v1142 Gold wish glyph fragments follow the player glyph level, 2-4 below / 1-2 highest)"
+node tests/test_gold_wish_1142.js || FAILED=1
 note "test_memory_budget_1140.js (v1140 MEMORY BUDGET - the Aw-Snap hotfix: battle sheet files <= 2048 px / 4 MB outside the frozen pre-v1140 ratchet list (control: a 2100 px sheet fails); phone loader uploads every sheet within 2048 px per side (figure floor 160 px, hard 4096), desktop k = 1; heaviest possible 5v5 <= 2048 MB GPU (static + a real 5-fight phone rig), decoded bitmaps <= 400 MB, heaviest-sound 5v5 <= 48 MB decoded; after EVERY fight the hub holds no battle sheet, no bitmap, no hero sound (only the 12 weapon sounds), no growth over 5 fights; CONTROL: BASE v1139 breaks the budget and keeps its bitmaps)"
 node tests/test_memory_budget_1140.js || FAILED=1
 rm -f probe-db-*.json
