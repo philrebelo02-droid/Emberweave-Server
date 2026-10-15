@@ -995,6 +995,21 @@ async function handle(p, method, ctx){
   /* ---- the result ---- */
   if(p==='/api/bonus/resolve' && method==='POST'){
     const body = await ctx.body();
+    return resolveRun(body, ctx);
+  }
+
+  return { status:404, body:{ok:false,error:'Unknown bonus route.'} };
+}
+
+/* v1151 (15 Oct proof sweep: "Gauntlet (/api/bonus/resolve) has no requestId at all"): the result is a SYNCHRONOUS step so
+   server.js can run it inside its durable receipt (idem 'bonusres', keyed by the client's ONE requestId per run). A retried
+   resolve whose first reply was lost then answers with the stored receipt instead of "No matching bonus run." - the run's
+   first clear is paid once, and the client never loses a won run to a dropped reply. A body without a requestId (an old
+   client) resolves exactly as before. */
+function resolveRun(body, ctx){
+  const now = Date.now();
+  const led = ctx.led, b = ensureBonus(led);
+  {
     const a = b.att;
     if(!a || a.id !== String(body.attemptId||'')) return { status:400, body:{ok:false,error:'No matching bonus run.'} };
     const locked=bonusUnlockError(led,a.stage);
@@ -1054,8 +1069,6 @@ async function handle(p, method, ctx){
       perHour:totalPerHour(b), claim:pending(b, now),
       ledger:ctx.ledgerView(ctx.me) } };
   }
-
-  return { status:404, body:{ok:false,error:'Unknown bonus route.'} };
 }
 
 /* The eight rules that were open when this was written, settled here so the code could
@@ -1077,7 +1090,7 @@ function rulesSettled(){ return [
   'PHIL, NOT CLAUDE (17 Sep): except a summon under the Everlasting boon — it never dies, and fights at 50% power. Flat, not compounding.'
 ]; }
 
-module.exports = { handle, CH_BONUS_TIER, SLOT_RATE, BONUS_CODES, CAP_HOURS, SLOTS, CHAPTERS,
+module.exports = { handle, resolveRun, CH_BONUS_TIER, SLOT_RATE, BONUS_CODES, CAP_HOURS, SLOTS, CHAPTERS,
   LANES, WAVES, WINDOWS, MAX_HEROES, MAX_PER_LANE, STAR_DEATH_LIMIT_2, starExplain,
   BOON_OFFER_SIZE, boonPool, boonCatalogueSize, boonsNeedingEngine, laneProfileFor, ensureBonus, ratesFor, totalPerHour, pending,
   bossFor,

@@ -8669,10 +8669,15 @@ function gsplitFinish(verdict){
   }
   const firstLossAfterSecondClear = won && lost >= 1;
   const attemptId = GSPLIT.attemptId;
+  /* v1151 (15 Oct proof sweep: /api/bonus/resolve had no requestId - a booked win whose reply was lost was re-sent and answered
+     "No matching bonus run." forever): ONE requestId per run and verdict, re-sent by every retry below; the server answers a booked
+     run with its stored receipt and pays the first clear once. */
+  if(!GSPLIT._resolveRid || GSPLIT._resolveVerdict !== verdict){ GSPLIT._resolveRid = uid8(); GSPLIT._resolveVerdict = verdict; }
+  const requestId = GSPLIT._resolveRid;
   const pendingEvidence = (GSPLIT._windowEvidence || []).slice();
   Promise.all(pendingEvidence)
     .then(() => gsplitResendMissingWindows())   // fill any gaps BEFORE ever attempting resolve
-    .then(() => api('/api/bonus/resolve','POST',{ attemptId, lanesCleared:cleared, lanesLost:lost,
+    .then(() => api('/api/bonus/resolve','POST',{ attemptId, requestId, lanesCleared:cleared, lanesLost:lost,
       heroesLost, firstLossAfterSecondClear }))
     .then(data => {
       if(!data || data.ok !== true) return gsplitFinishFailed(won, data, null);
@@ -8689,10 +8694,11 @@ function gsplitFinish(verdict){
    RETRY button (gsplitHudEnter below) that re-attempts the SAME real verdict, preserving an earned
    win, rather than immediately forcing a loss. The run is never silently abandoned, and a real win
    is never silently downgraded, purely by a network hiccup. */
-const GSPLIT_RESOLVE_RETRY_MAX = 4;
+const GSPLIT_RESOLVE_RETRY_MAX = 6;   /* v1151: 7 sends over ~30 s, the campaign's policy (was 5 over 8 s) */
 function gsplitFinishFailed(won, data, err, attempt){
   attempt = attempt || 1;
-  const reason = (data && data.error) ? data.error : (err ? 'a network error' : 'an unknown server error');
+  /* v1151: plain words - never the raw 'offline' token */
+  const reason = (err || resultReplyLost(data)) ? 'connection lost before the server answered' : resultNotCountedText(data);
   bannerMsg('◆ Result not confirmed (' + reason + ') — retrying…');
   if(attempt <= GSPLIT_RESOLVE_RETRY_MAX && GSPLIT.active){
     const attemptId = GSPLIT.attemptId;
@@ -8700,14 +8706,15 @@ function gsplitFinishFailed(won, data, err, attempt){
     let heroesLost = 0;
     for(const L of GSPLIT.lanes) heroesLost += (L.units||[]).filter(u => u.team==='ally' && !u._summon && !u.alive).length;
     const firstLossAfterSecondClear = won && lost >= 1;
+    const requestId = GSPLIT._resolveRid;   // v1151: the SAME requestId as the first send
     setTimeout(() => {
       if(!GSPLIT.active) return;
       gsplitResendMissingWindows()
-        .then(() => api('/api/bonus/resolve','POST',{ attemptId, lanesCleared:cleared, lanesLost:lost,
+        .then(() => api('/api/bonus/resolve','POST',{ attemptId, requestId, lanesCleared:cleared, lanesLost:lost,
           heroesLost, firstLossAfterSecondClear }))
         .then(d => { if(!d || d.ok !== true) return gsplitFinishFailed(won, d, null, attempt+1); gsplitShowResult(won, d); })
         .catch(e => gsplitFinishFailed(won, null, e, attempt+1));
-    }, 800 * attempt);
+    }, 1500 * attempt);
     return;
   }
   /* automatic retries exhausted - release _finishing so a MANUAL retry can act, but GSPLIT._verdictPending
@@ -8716,11 +8723,12 @@ function gsplitFinishFailed(won, data, err, attempt){
      the player explicitly declines that and confirms a real retreat. */
   GSPLIT._finishing = false;
   { const rb=document.getElementById('gsplitRetreat'); if(rb) rb.style.display=''; }   // v585: the button appears only now
-  bannerMsg('◆ Could not confirm this run’s result with the server. Check your connection, then tap RETRY RESULT.');
+  bannerMsg('◆ ' + ((err || resultReplyLost(data)) ? RESULT_LOST_MSG : ('This result is not confirmed - ' + resultNotCountedText(data))) + ' Tap RETRY RESULT.');
 }
 
 function gsplitShowResult(won, data){
   const stageId = GSPLIT.stage;
+  if(data && typeof data.won === 'boolean') won = data.won;   // v1151: the receipt's verdict (a re-sent run answers with its stored receipt)
   const stars = (data && typeof data.stars === 'number') ? data.stars : 0;
   const note = (data && data.starNote) ? data.starNote : (won ? '' : 'Two roads must come home - a second fallen road ends the run.');
   const starStr = stars ? ' '+uiIcon('star-filled').repeat(stars)+uiIcon('star-empty').repeat(3-stars) : '';
@@ -8741,6 +8749,7 @@ function gsplitHudEnter(){
   GSPLIT._windowEvidence = [];        // fresh trail for this run - see gsplitCloseWindow / gsplitFinish
   GSPLIT._windowRetryQueue = [];      // fresh - see gsplitReportWindow / gsplitResendMissingWindows
   GSPLIT._verdictPending = null;      // fresh - see gsplitFinish / gsplitFinishFailed
+  GSPLIT._resolveRid = null; GSPLIT._resolveVerdict = null;   // v1151: a fresh requestId per run
   const pb = document.getElementById('portraitBar');
   if(pb){ GSPLIT._pbDisplay = pb.style.display; pb.style.display = 'none'; }
   /* v585 MOBILE PASS. The floating RETREAT sat at the viewport's top-left - exactly on top of the ⏸
@@ -14148,11 +14157,15 @@ function endBattle(won){
          answer, which was not a replay of this fight at all but a re-simulation with a skill band
          standing in for manual play — and when that estimate disagreed, the screen said one thing
          and the result screen said the other. Campaign has worked this way since v270. */
-      if(att){ const _va=ACC.id, _vt=ACC.token, _vb={attemptId:att, won:!!won, requestId:uid8()}; vaultPendingSave(_vb); r=await api('/api/dungeon/resolve-battle','POST',_vb); if(ACC.id!==_va) r={error:'offline'}; else { vaultPendingSettle(_va,r,_vb.requestId); if(ACC.token!==_vt&&r&&typeof r==='object') r=Object.assign({},r,{ledger:undefined}); } if(resultStale(ep)) return; }   // v328: stale — CUR/VAULT now belong to a newer fight
+      if(att){ const _va=ACC.id, _vt=ACC.token, _vb={attemptId:att, won:!!won, requestId:uid8()}; vaultPendingSave(_vb); r=await apiResultRetry('/api/dungeon/resolve-battle',_vb); if(ACC.id!==_va) r={error:'offline'}; else { vaultPendingSettle(_va,r,_vb.requestId); if(ACC.token!==_vt&&r&&typeof r==='object') r=Object.assign({},r,{ledger:undefined}); } if(resultStale(ep)) return; }   // v328: stale — CUR/VAULT now belong to a newer fight
       CUR.attemptId=null; VAULT.st=null; VAULT.result=null;
-      setResultVerdict(won, null);   // AUDIT #20: ...and the star row / squad panel must follow it too
-      document.getElementById('resultTitle').textContent=won?'FLOOR '+CUR.floor+' CLEARED':'THE VAULT HOLDS';
-      document.getElementById('resultTitle').className='result-big '+(won?'win':'lose');
+      /* v1151: a won floor the server REFUSED (its own ok:false - "No matching Vault battle.", "Stale Vault floor.") is NOT COUNTED, never
+         CLEARED; a won floor whose reply was lost stays CLEARED because it is saved on this device and re-sent with the SAME requestId
+         (vaultResendPending) before the Vault can start or sweep anything - the server keeps the open attempt for exactly that re-send. */
+      const _vRefused=!!(won&&att&&r&&r.ok===false&&!r.storageFailed), _vPend=!!(won&&att&&!pendingDefinite(r));
+      setResultVerdict(won&&!_vRefused, null);   // AUDIT #20: ...and the star row / squad panel must follow it too
+      document.getElementById('resultTitle').textContent=_vRefused?'NOT COUNTED':(won?'FLOOR '+CUR.floor+' CLEARED':'THE VAULT HOLDS');
+      document.getElementById('resultTitle').className='result-big '+((won&&!_vRefused)?'win':'lose');
       let msg;
       // v253 (visual audit #2): ONE vocabulary — Glyph Fragments and Gear Fragments are labelled
       // as what they are, each with its exact name and count; Forge Dust is a bonus currency.
@@ -14164,7 +14177,9 @@ function endBattle(won){
         msg=rewardPanel(gList,{dust:r.reward.dust},'Aether Vault — floor '+CUR.floor,eList)
           +(r.reward.heroXp?'<div style="margin-top:6px;font-size:12px;color:#5ee89b">'+uiIcon('star-filled')+' +'+r.reward.heroXp+' hero XP to every hero on the line</div>':'')
           +(r.reward.firstClearDoubled?'<div style="margin-top:8px"><div style="font-size:11px;letter-spacing:1px;color:#8b98a9">FIRST-CLEAR BONUS</div><b style="color:#ffd45e">Boss floor — package and Dust paid twice, once only.</b></div>':''); }
-      else if(won){ msg=(r&&r.error)?('<span style="color:#ff8b8b">'+escapeHTML(r.error)+'</span>'):'Victory recorded.'; }
+      else if(won&&_vPend){ let _disk=false; try{ _disk=!!localStorage.getItem(vaultPendingKey(ACC.id)); }catch(e){}
+        msg=_disk?'Victory saved - it will be sent when you reconnect.':'Victory saved for this session - keep the game open and it will be sent when you reconnect.'; }
+      else if(won){ msg=_vRefused?('<div style="color:#ffd45e;font-weight:700;margin-bottom:4px">The server did not confirm this floor.</div><span style="color:#ff8b8b">'+escapeHTML(resultNotCountedText(r))+'</span>'):'Victory recorded.'; }
       else { msg='Your squad fell.';   /* v1014 (re-audit Arena N11): no hint prose */ }
       document.getElementById('resultReward').innerHTML=msg;
       document.getElementById('resultHint').textContent='';
@@ -14176,16 +14191,14 @@ function endBattle(won){
      the server's — and every future clear was refused, permanently, with the gap widening each time.
      The attempted floor is now derived without mutating anything, and G.dungeonBest is set from the
      SERVER's `best`, which it returns on a win, a loss and a rejection alike. */
-  if(CUR.mode==='dungeon'){ const gold=won?200:0; let dropLog='',dxp=0,hxp=90,lvlUp=0; if(won){
+  /* v1151 (15 Oct proof sweep: "Trials and Elite results are sent once with no retry ... their banner shows the raw word offline"):
+     the legacy dungeon (/api/trial/resolve) and the Elite screen (/api/elite/resolve) send ONE requestId per fight, re-sent by
+     apiResultRetry while the reply is lost, and the result screen is painted from the server's answer: the receipt of a win says
+     CLEARED, a won fight with no receipt says NOT COUNTED in plain words, and only a fight the player lost says DEFEAT. */
+  if(CUR.mode==='dungeon'){ const gold=won?200:0; let dropLog='',dxp=0,hxp=90,lvlUp=0,_dgReq=null; if(won){
     const _try=(G.dungeonBest||0)+1;
     if(!ACC.token) G.dungeonBest=_try;                       // offline: nothing server-side to disagree with
-    if(ACC.token) api('/api/trial/resolve','POST',{kind:'dungeon',floor:_try,heroIds:(G.team||[]).filter(Boolean),requestId:uid8()}).then(r=>{
-      if(r&&typeof r.best==='number') G.dungeonBest=r.best;  // the server's floor is the floor
-      else if(r&&r.error){ bannerMsg(r.error); ledgerSync(); }
-      if(r&&r.ok){ if(r.ledger) adoptLedger(r.ledger);
-        if(r.mats){ const txt=EQ_BASE.filter(b=>r.mats[b[0]]).map(b=>b[1]+' +'+r.mats[b[0]]).join(' ');
-          const el=document.getElementById('resultReward'); if(el&&txt) el.innerHTML+=' · <span style="color:#8fe3ff">'+txt+(typeof r.matsLeft==='number'?' <span style="color:#8b98a9">('+r.matsLeft+' material drops left today)</span>':'')+'</span>'; }
-        else if(r.matsCapped){ const el=document.getElementById('resultReward'); if(el) el.innerHTML+=' · <span style="color:#ff9a9a">Material drops are limited to '+((r.matsCap|0)||10)+' per day — none this run.</span>'; bannerMsg('Dungeon materials: daily limit of '+((r.matsCap|0)||10)+' reached.'); } } }).catch(()=>{});   // v250: server-verified
+    if(ACC.token) _dgReq={kind:'dungeon',floor:_try,heroIds:(G.team||[]).filter(Boolean),requestId:uid8()};   // v250: server-verified; v1151: ONE requestId, sent from the result step
       /* v273 (audit response P0): the equipment-material roll happens on the SERVER (/api/trial/resolve)
          and arrives with the ledger. Offline play still grants nothing permanent. */
       if(!G.eqMats)G.eqMats={cloth:0,blade:0,wood:0,ore:0};
@@ -14193,19 +14206,35 @@ function endBattle(won){
       dxp=Math.round(12+playerLevel()*1.2); lvlUp=addPlayerXP(dxp); grantTeamXP(hxp);
       /* v250: px/heroXp for this loop come from /api/trial/resolve */
       saveG();updateHubChrome();}   // dungeon now grants player XP (scales with level) + hero XP
-    resultLater(()=>{ document.getElementById('resultTitle').textContent=won?'DUNGEON CLEARED':'DEFEAT'; document.getElementById('resultTitle').className='result-big '+(won?'win':'lose');
-      document.getElementById('resultReward').innerHTML=won?`<span class="coins">${hudIcon('gold')} +${gold}</span> · <span style="color:#9fe6ff">+${dxp} XP</span> · +${hxp} hero XP · <span style="color:#8fe3ff">${dropLog} equipment pieces</span>${lvlUp?` · <b style="color:#ffd45e">Level up! → ${playerLevel()}</b>`:''}`:'Your squad fell in the dungeon.'; document.getElementById('resultHint').textContent=won?'Craft & equip gear on Heroes → hero → Equipment tab.':''; gameSpeed=1; show('result'); },800); return; }
-  if(CUR.mode==='elite'){ const key=CUR.eliteKey; let frags=won?(2+Math.floor(Math.random()*3)):0; let eliteUnlock=''; let _srv=null; if(won){
-      if(ACC.token){ api('/api/elite/resolve','POST',{node:(CUR.node|0),heroIds:(G.team||[]).filter(Boolean),requestId:uid8()}).then(r=>{
-          if(r&&r.ok&&r.won){ const um=giveHeroFrag(r.heroKey,r.frags); if(um)bannerMsg(um); adoptLedger(r.ledger); updateHubChrome();
-            _srv={n:r.frags|0,hk:r.heroKey};
-            try{ const _el=document.getElementById('resultReward'), _ht=HERO_TYPES[r.heroKey]; if(_el) _el.innerHTML='<span style="color:#c9a2ff">'+fragCard(r.heroKey)+' +'+(r.frags|0)+' '+((_ht&&_ht.name)||r.heroKey)+' fragments</span>'; }catch(e){} }
-          else if(r&&r.ok&&!r.won){ bannerMsg('The Guard held — the server scored this run as a loss.'); }
-          else if(r&&r.error) bannerMsg(r.error); }).catch(()=>{}); eliteUnlock=''; frags=0; }   // v250: the SERVER resolves elite and owns the fragment grant   // v250: the SERVER resolves elite and owns the fragment grant
+    resultLater(async(ep)=>{ let r=null;
+      if(_dgReq){ r=await apiResultRetry('/api/trial/resolve',_dgReq);
+        if(r&&typeof r.best==='number') G.dungeonBest=r.best;  // the server's floor is the floor
+        if(r&&r.ok&&r.ledger) adoptLedger(r.ledger); else if(!resultReplyLost(r)) { try{ ledgerSync(); }catch(e){} }
+        if(resultStale(ep)) return; }
+      const sWon=!!(won&&(!_dgReq||(r&&r.ok&&r.won)));
+      if(_dgReq) setResultVerdict(sWon, null);
+      let matsTxt='';
+      if(sWon&&r){ if(r.mats){ const txt=EQ_BASE.filter(b=>r.mats[b[0]]).map(b=>b[1]+' +'+r.mats[b[0]]).join(' ');
+          if(txt) matsTxt=' · <span style="color:#8fe3ff">'+txt+(typeof r.matsLeft==='number'?' <span style="color:#8b98a9">('+r.matsLeft+' material drops left today)</span>':'')+'</span>'; }
+        else if(r.matsCapped){ matsTxt=' · <span style="color:#ff9a9a">Material drops are limited to '+((r.matsCap|0)||10)+' per day — none this run.</span>'; } }
+      document.getElementById('resultTitle').textContent=sWon?'DUNGEON CLEARED':(won?'NOT COUNTED':'DEFEAT'); document.getElementById('resultTitle').className='result-big '+(sWon?'win':'lose');
+      document.getElementById('resultReward').innerHTML=sWon?`<span class="coins">${hudIcon('gold')} +${_dgReq?((r.reward&&r.reward.gold)|0):gold}</span> · <span style="color:#9fe6ff">+${dxp} XP</span> · +${hxp} hero XP · <span style="color:#8fe3ff">${dropLog} equipment pieces</span>${lvlUp?` · <b style="color:#ffd45e">Level up! → ${playerLevel()}</b>`:''}${matsTxt}`
+        :(won?('<div style="color:#ffd45e;font-weight:700;margin-bottom:4px">'+escapeHTML((r&&r.ok&&!r.won)?'The server\'s check did not confirm this win - nothing was paid.':resultNotCountedText(r))+'</div>'):'Your squad fell in the dungeon.');
+      document.getElementById('resultHint').textContent=sWon?'Craft & equip gear on Heroes → hero → Equipment tab.':''; gameSpeed=1; show('result'); },800); return; }
+  if(CUR.mode==='elite'){ const key=CUR.eliteKey; let frags=won?(2+Math.floor(Math.random()*3)):0; let eliteUnlock=''; let _elReq=null; if(won){
+      if(ACC.token){ _elReq={node:(CUR.node|0),heroIds:(G.team||[]).filter(Boolean),requestId:uid8()}; eliteUnlock=''; frags=0; }   // v250: the SERVER resolves elite and owns the fragment grant; v1151: ONE requestId, sent from the result step
       else { eliteUnlock=giveHeroFrag(key,frags); }
       grantTeamXP(70); saveG(); updateHubChrome(); }
-    resultLater(()=>{ document.getElementById('resultTitle').textContent=won?'ELITE CLEARED':'DEFEAT'; document.getElementById('resultTitle').className='result-big '+(won?'win':'lose');
-      document.getElementById('resultReward').innerHTML=won?`<span style="color:#c9a2ff">${fragCard(_srv?_srv.hk:key)} ${_srv?('+'+(_srv.n|0)+' '+((HERO_TYPES[_srv.hk]||{}).name||_srv.hk)):(ACC.token?'tallying':('+'+frags+' '+HERO_TYPES[key].name))} fragments</span>${eliteUnlock?`<br><span style="color:#ffd45e">${eliteUnlock}</span>`:''}`:'Your squad fell. The attempt was still used.'; document.getElementById('resultHint').textContent='Fragments summon a hero, then raise its stars (Heroes → hero → Star Up).'; gameSpeed=1; show('result'); },800); return; }
+    resultLater(async(ep)=>{ let r=null, _srv=null;
+      if(_elReq){ r=await apiResultRetry('/api/elite/resolve',_elReq);
+        if(resultStale(ep)){ if(r&&r.ok&&r.ledger) adoptLedger(r.ledger); return; }
+        if(r&&r.ok&&r.won){ const um=giveHeroFrag(r.heroKey,r.frags); if(um) eliteUnlock=um; if(r.ledger) adoptLedger(r.ledger); updateHubChrome(); _srv={n:r.frags|0,hk:r.heroKey}; } }
+      const sWon=!!(won&&(!_elReq||_srv));
+      if(_elReq) setResultVerdict(sWon, null);
+      document.getElementById('resultTitle').textContent=sWon?'ELITE CLEARED':(won?'NOT COUNTED':'DEFEAT'); document.getElementById('resultTitle').className='result-big '+(sWon?'win':'lose');
+      document.getElementById('resultReward').innerHTML=sWon?`<span style="color:#c9a2ff">${fragCard(_srv?_srv.hk:key)} +${_srv?(_srv.n|0):frags} ${escapeHTML((HERO_TYPES[_srv?_srv.hk:key]||{}).name||(_srv?_srv.hk:key))} fragments</span>${eliteUnlock?`<br><span style="color:#ffd45e">${eliteUnlock}</span>`:''}`
+        :(won?('<div style="color:#ffd45e;font-weight:700;margin-bottom:4px">'+escapeHTML((r&&r.ok&&!r.won)?'The Guard held - the server scored this run as a loss, so nothing was paid.':resultNotCountedText(r))+'</div>'):'Your squad fell. The attempt was still used.');
+      document.getElementById('resultHint').textContent=sWon?'Fragments summon a hero, then raise its stars (Heroes → hero → Star Up).':''; gameSpeed=1; show('result'); },800); return; }
   if(CUR.mode==='raid'){ if(won){grantTeamXP(50);saveG();updateHubChrome();}   // v250: gold + heroXp come from the VERIFIED /api/pvp/attack route
     resultLater(async(ep)=>{
       // v253: a city fight is server-resolved from ANY entry point (map march or direct raid) —
@@ -14271,8 +14300,8 @@ function endBattle(won){
     resultLater(async(ep)=>{ let r=null;
       /* v1017 (re-audit Arena N3): ONE requestId per fight, re-sent on a lost reply or a refused save - a paid win whose reply was lost
          showed NOT COUNTED (the campaign does this since v975) */
-      if(att&&ACC.token){ const _rid=uid8(); for(let _try=0;_try<3;_try++){ try{ r=await api('/api/province/resolve','POST',{attemptId:att, requestId:_rid, inputLog:_log, digest:_dg, won:_wn, stars:_st}); }catch(e){ r=null; }
-          if(!(r&&(r.error==='offline'||r.storageFailed))||_try===2) break; await new Promise(z=>setTimeout(z,1500*(_try+1))); } }
+      /* v1151: the campaign's 7-try policy (~30 s; offline / empty / refused save / 500 / 429) - 3 tries over 4.5 s lost a booked win to a restart */
+      if(att&&ACC.token){ r=await apiResultRetry('/api/province/resolve',{attemptId:att, requestId:uid8(), inputLog:_log, digest:_dg, won:_wn, stars:_st}); }
       if(resultStale(ep)){ if(r&&r.ledger) adoptLedger(r.ledger); return; }
       if(r&&r.ledger) adoptLedger(r.ledger); if(r&&r.prov) provAdopt(r.prov);
       const sWon=!!(r&&r.ok&&r.won), _unv=!!(!r||!r.ok), nm=(PROV_META[P.t]||PROV_META.gold).nm;
@@ -14285,7 +14314,7 @@ function endBattle(won){
           +(r.reward?provReceiptHTML(P.t,r.reward,false):'')
           +(r.dailyCapped?'<div style="margin-top:6px;color:#ff9a9a">Stage cleared — today\'s two plays were already used, so it pays nothing today.</div>':'')
           +(r.replayIncident?'<div style="font-size:10.5px;color:#6f7d90;margin-top:6px">(Your result stands — the server logged a replay difference for review.)</div>':'')
-        : (_unv?`<div style="color:#ffd45e;font-weight:700;margin-bottom:4px">${(!r||r.error==='offline')?'Connection lost before the server answered - this result is not confirmed.':'This fight was not counted — nothing was spent.'}</div><span style="color:#ff8b8b">${escapeHTML(String((r&&r.error&&r.error!=='offline')?r.error:''))}</span>`
+        : (_unv?`<div style="color:#ffd45e;font-weight:700;margin-bottom:4px">${resultReplyLost(r)?resultNotCountedText(r):'This fight was not counted — nothing was spent.'}</div><span style="color:#ff8b8b">${escapeHTML(resultReplyLost(r)?'':resultNotCountedText(r))}</span>`
           :`Your squad fell to ${escapeHTML(nm)} Stage ${P.stage|0}. A loss costs nothing — your plays are untouched.`);
       document.getElementById('resultHint').textContent='';
       updateHubChrome(); gameSpeed=1; show('result'); },800); return; }
@@ -16071,6 +16100,7 @@ function vaultResultHTML(r){
     <button class="btn" style="width:100%;margin-top:8px" onclick="VAULT.result=null;renderDungeon()">${won?'Continue '+uiIcon('play'):'↻ Retry Floor'}</button></div>`;
 }
 async function vaultSweep(){ if(VAULT.busy)return;
+  if(vaultPendingHeld()){ await vaultResendPending(); if(vaultPendingHeld()){ bannerMsg('Your last Vault result is still being sent - try again in a moment.'); return; } }   /* v1151: a sweep closes the open attempt, so a saved win is sent first */
   const cost=(VAULT.st&&VAULT.st.sweep&&VAULT.st.sweep.nextCost)||0;   // v372 (Phil): the 3rd/4th/5th sweep cost 200/400/600 diamonds — confirm before paying
   if(cost>0){ if((G.gems||0)<cost){ bannerMsg('Not enough diamonds — this Sweep costs '+hudIcon('gem')+' '+cost+'.'); return; }
     if(!VAULT._sweepConfirmed){ gameConfirm('Sweep all <b>'+VAULT.st.highestClearedFloor+'</b> cleared floors again for <b style="color:#8fe3ff">'+hudIcon('gem')+' '+cost+'</b>?<br><span style="font-size:12px;color:#8b98a9">You have '+hudIcon('gem')+' '+(G.gems||0)+'. Your 2 free sweeps are used.</span>', ()=>{ VAULT._sweepConfirmed=true; vaultSweep(); }, {side:'right'}); return; } }
@@ -19416,6 +19446,7 @@ function renderElite(){
 function startElite(key){
   regenStamina(); if(eliteLeft(key)<=0 || G.stamina<ELITE_STAM) return;
   const _enode=eliteNodeForHero(key);
+  if(ACC.token){ bannerMsg('Elite stages are played from the Campaign map - open the Elite portal there.'); return; }   /* v1151: signed in, /api/elite/resolve is retired (410) - a fight here could never count, so it never starts */
   if(ACC.token && !_enode){ bannerMsg('Clear '+HERO_TYPES[key].name+"'s campaign reward stage first."); return; }   // never burn stamina/attempt on a run the server must reject
   G.stamina-=ELITE_STAM; G.eliteUsed[key]=(G.eliteUsed[key]||0)+1; saveG(); updateHubChrome();
   const lv=Math.max(2,Math.min(58,playerLevel()+3)), rank=Math.min(3,Math.floor(playerLevel()/5));
@@ -21729,6 +21760,20 @@ async function api(path,method,bodyObj){ try{ const h={'Content-Type':'applicati
      result screen ever paints a fight the server may have booked as a defeat. */
   if(j&&j.serverDown) return {error:'offline', serverDown:1, message:j.error};
   return j; }catch(e){ return {error:'offline'}; } }
+/* v1151 (Phil 15 Oct, pre-beta: "Players trying 50 times and then seeing defeat, its bad"): the campaign's v1145/v1150 result retry,
+   shared by every other battle result (Training Province, Tower of Trials, legacy dungeon, Elite screen, Vault). ONE body - so ONE
+   requestId - is re-sent up to 7 times over ~30 s while the reply is lost: offline (incl. a front-door 503), an empty body, a refused
+   save, a 500 or a 429. Every route behind it keeps a receipt per requestId, so a booked result answers with its receipt, never twice. */
+const RESULT_LOST_MSG='Connection lost before the server answered - this result is not confirmed.';
+function resultReplyLost(r){ return !r||typeof r!=='object'||r.error==='offline'||!!r.serverDown||!!r.storageFailed||r.error==='server error'||/slow down/i.test(String(r.error||'')); }
+async function apiResultRetry(path,body){ let r=null;
+  for(let t=0;t<7;t++){ try{ r=await api(path,'POST',body); }catch(e){ r=null; }
+    if(!resultReplyLost(r)||t===6) break; await new Promise(z=>setTimeout(z,1500*(t+1))); }
+  return r; }
+/* the plain words for a result the server did not confirm - never the raw 'offline' / 'auth' token */
+function resultNotCountedText(r){ if(r&&r.storageFailed) return 'The server could not save it - this result is not confirmed.';
+  if(resultReplyLost(r)) return RESULT_LOST_MSG; if(r&&r.error==='auth') return 'You were signed out - this result is not confirmed.';
+  return String((r&&(r.error||r.message))||'The server did not confirm this result.'); }
 /* v989 (4 Oct City Wall audit #7 #8): one spend at a time per lane. A second tap while one is in flight returns {busy:true} and
    sends nothing; the ONE requestId is re-sent (3 tries) on a lost reply or a refused save, so a booked action answers with
    its receipt and is never applied twice. */
@@ -26156,19 +26201,20 @@ async function towerFloorReward(floor){ let gold=Math.round(400*floor*Math.pow(1
   if(gg>200000)gg=200000; G.gold=(G.gold||0)+gg;
   if(floor%10===0){ const gm=Math.round(floor*1.5); G.gems=(G.gems||0)+gm; s+=' · '+hudIcon('gem')+' '+gm; } updateHubChrome(); return s; }
 async function towerAscend(){ const st=towerState(), next=st.floor+1, req=towerReq(next);
-  if(ACC.token){ let r=null; try{ r=await api('/api/tower/ascend','POST',{requestId:'tower:floor:'+next}); }catch(e){ r=null; }
+  /* v1151: the floor's requestId is the floor itself and is re-sent (apiResultRetry) while the reply is lost - a booked climb answers with its receipt */
+  if(ACC.token){ const r=await apiResultRetry('/api/tower/ascend',{requestId:'tower:floor:'+next});
     if(r&&r.ok){ adoptLedger(r.ledger); st.floor=r.floor|0; saveG(); updateHubChrome(); return {win:true,floor:r.floor,reward:towerRewardText(r.gold,r.gems),elite:!!r.elite}; }
     if(r&&r.wall) return {wall:true,req:r.req};
     if(r&&/Open the Tower/.test(r.error||'')){ await towerSync(); }
-    return {pending:true}; }
+    return {pending:true,msg:resultNotCountedText(r)}; }
   if(battlePow()<req) return {wall:true,req};
   const rw=await towerFloorReward(next); if(rw===null)return {pending:true}; st.floor=next; saveG(); return {win:true,floor:next,reward:rw,elite:next%5===0}; }
 function towerTribReady(){ return towerState().trib!==arenaDayKey() && towerState().floor>0; }
 async function towerTribute(){ const st=towerState(); if(!towerTribReady()) return {none:true}; const day=arenaDayKey();
-  if(ACC.token){ let r=null; try{ r=await api('/api/tower/tribute','POST',{requestId:'tower:tribute:'+day}); }catch(e){ r=null; }
+  if(ACC.token){ const r=await apiResultRetry('/api/tower/tribute',{requestId:'tower:tribute:'+day});   /* v1151: re-sent while the reply is lost */
     if(r&&r.ok){ adoptLedger(r.ledger); st.trib=r.trib||day; saveG(); updateHubChrome(); return {gold:r.gold}; }
     if(r&&r.already){ st.trib=day; saveG(); return {none:true}; }
-    return {pending:true}; }
+    return {pending:true,msg:resultNotCountedText(r)}; }
   const bonus=250*(1+Math.floor(st.floor/4)); let gold=Math.round(500*st.floor)+bonus; if(gold>200000)gold=200000;
   G.gold=(G.gold||0)+gold;
   st.trib=day; updateHubChrome(); saveG(); return {gold}; }
@@ -26186,8 +26232,10 @@ function openTower(){ const ov=isleOverlay();
         <button class="btn secondary" id="twTrib" style="width:100%" ${trib?'':'disabled'}>${trib?uiIcon('medal')+' Claim tribute':(st.floor>0?uiIcon('check')+' Claimed today':'Locked')}</button></div>
       <div id="twMsg" style="font-size:12px;text-align:center;min-height:18px;margin-top:8px">${msg?`<span style="color:${mc}">${msg}</span>`:''}</div>`);
     ov.querySelector('#twX').onclick=()=>ov.remove();
-    ov.querySelector('#twGo').onclick=async()=>{ const r=await towerAscend(); render(r.win?((r.elite?uiIcon('crown')+' Warden felled! ':statusIcon('attack')+' ')+'Floor '+r.floor+' conquered! '+r.reward):(r.pending?'Reward is saved on the server only after confirmation. Retry when connected.':'Squad too weak for this floor.'), r.win?'#5ee89b':'#ff8b8b'); };
-    ov.querySelector('#twTrib').onclick=async()=>{ const r=await towerTribute(); render(r.none?'Already claimed today.':(r.pending?'Tribute not confirmed. Retry when connected.':uiIcon('medal')+' Tribute claimed! '+hudIcon('gold')+' '+r.gold.toLocaleString()), (r.none||r.pending)?'#ff8b8b':'#5ee89b'); };
+    ov.querySelector('#twGo').onclick=async()=>{ const bt=ov.querySelector('#twGo'); if(bt.dataset.busy) return; bt.dataset.busy='1'; bt.disabled=true;   /* v1151: one climb in flight */
+      const r=await towerAscend(); render(r.win?((r.elite?uiIcon('crown')+' Warden felled! ':statusIcon('attack')+' ')+'Floor '+r.floor+' conquered! '+r.reward):(r.pending?escapeHTML(r.msg||RESULT_LOST_MSG):'Squad too weak for this floor.'), r.win?'#5ee89b':'#ff8b8b'); };
+    ov.querySelector('#twTrib').onclick=async()=>{ const bt=ov.querySelector('#twTrib'); if(bt.dataset.busy) return; bt.dataset.busy='1'; bt.disabled=true;
+      const r=await towerTribute(); render(r.none?'Already claimed today.':(r.pending?escapeHTML(r.msg||RESULT_LOST_MSG):uiIcon('medal')+' Tribute claimed! '+hudIcon('gold')+' '+r.gold.toLocaleString()), (r.none||r.pending)?'#ff8b8b':'#5ee89b'); };
   }
   render(); towerSync().then(r=>{ if(r&&r.ok&&document.body.contains(ov)) render(); });
 }

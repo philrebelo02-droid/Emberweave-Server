@@ -1731,7 +1731,7 @@ function writeDBNow(){   /* v1000 (Account audit #9): returns false when the dis
    player could be shown a reward that a crash then took back (Well/Vault reproduced). opts.durableUser = the caller's
    account: it is snapshotted before fn runs; if the save throws, the account and the receipt are put back exactly and the
    caller gets {ok:false,storageFailed:true} (routes answer 503) - the same contract as durableCommit(). Opt-in per route. */
-const DURABLE_IDEM_KINDS=new Set(['dresolve','dsweep','salv','witch','edbuy','edstart','edresult','trial','well2','spend','earn','csweep','cresolve','provres','provsweep','abuy','temple','acad','xp-potion','skillup','starstep','refine','summon','quest']);   /* v988 (4 Oct Temple+Academy #2 #3, City Wall #4) */   /* 3 Oct Market audit #4: tx/spend + tx/earn no longer ack a failed save; v975 (Arena+Campaign audit #7): campaign sweep/resolve, province resolve/sweep, arena attempt buy */
+const DURABLE_IDEM_KINDS=new Set(['bonusres','dresolve','dsweep','salv','witch','edbuy','edstart','edresult','trial','well2','spend','earn','csweep','cresolve','provres','provsweep','abuy','temple','acad','xp-potion','skillup','starstep','refine','summon','quest']);   /* v988 (4 Oct Temple+Academy #2 #3, City Wall #4) */   /* 3 Oct Market audit #4: tx/spend + tx/earn no longer ack a failed save; v975 (Arena+Campaign audit #7): campaign sweep/resolve, province resolve/sweep, arena attempt buy */
 /* v1042 RECEIPTS LAST ONE HOUR (Phil 6 Oct 2026: "Make it one hour, with a copy of the report living in the players war inbox up to 50
    mails total"): every request receipt (idem, durable planners, world routes) is kept 3600000 ms (was 24 h). A city attack's full
    report now lives in both players' war mail instead; the settled march (kept 2 days) blocks a late retry from paying twice. */
@@ -7243,6 +7243,17 @@ async function api(req,res,url){
   /* Bonus stages own only /api/bonus/*; ordinary Campaign routes remain untouched. */
   if(BONUS && p.indexOf('/api/bonus/')===0){ if(!me)return send(res,401,{error:'auth'});
     const _bb=req.method==='POST'?await body(req):{}; const led=ensureLedger(me);   /* v1089 (scan 10): the ledger is taken AFTER the last await - a commit by another request during the await replaces me.led, and writes to the old object were lost while grants to me.glyphs landed (bonus pot / first clear / province repeated) */
+    /* v1151 (15 Oct proof sweep): the Gauntlet result is idempotent per requestId - ONE id per run, re-sent on a lost reply, answers
+       with the stored receipt and never pays twice (durable idem 'bonusres': the account and the receipt are saved together or not at
+       all). A refusal is not kept (retryFailed) so a run still missing window evidence can be resolved once the evidence lands. A body
+       without a requestId (an old client) takes the old path unchanged. */
+    if(p==='/api/bonus/resolve' && req.method==='POST' && _bb && _bb.requestId!==undefined){
+      const _rid=(typeof _bb.requestId==='string'&&_bb.requestId.length>=1&&_bb.requestId.length<=48)?_bb.requestId:null;
+      if(!_rid) return send(res,400,{ok:false,error:'requestId must be a string of 1-48 characters'});
+      const out=idem(me.id+':bonusres:'+_rid,()=>{ const L=ensureLedger(me);
+        const r=BONUS.resolveRun(_bb,{ me, led:L, glyphGrantNamedList, srvSeed, ledTx, ledgerView, writeDB, feedbackCheatSignal, GLYPHS });
+        return Object.assign({},r.body,(r.status===403&&r.body&&r.body.ok===false)?{locked:true}:{}); },{retryFailed:true});
+      return send(res, out.storageFailed?503:(out.ok===true?200:(out.locked?403:400)), out); }
     const out=await BONUS.handle(p, req.method, { me, led, query:url.searchParams,
       body:()=>Promise.resolve(_bb), glyphGrantNamedList, srvSeed, ledTx, ledgerView, writeDB, feedbackCheatSignal,
       GLYPHS, CAMP_ENC:CAMP_ENC?Object.values(CAMP_ENC.byNode):[], uid,

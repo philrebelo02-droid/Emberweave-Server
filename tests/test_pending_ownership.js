@@ -77,7 +77,7 @@ function site(kind,route,refresh){
     { const {c}=site(kind,route); c.localStorage.setItem=()=>{ throw Error('quota'); }; c.p={attemptId:'a1',requestId:'rA'};
       ok(vm.runInContext(S()+'(p)',c)===false,kind+': a failed local save reports false');
       const end=kind==='well'?html.slice(html.indexOf('if(att&&ACC.token){ const _wa'),html.indexOf('\n',html.indexOf('if(att&&ACC.token){ const _wa'))):html.slice(html.indexOf('if(att){ const _va'),html.indexOf('\n',html.indexOf('if(att){ const _va')));
-      ok(end.length>0&&/PendingSave\(_[wv]b\); (try\{ )?r=await api\(/.test(end),kind+': the end path sends regardless of the save result'); }
+      ok(end.length>0&&/PendingSave\(_[wv]b\); (try\{ )?r=await (api|apiResultRetry)\(/.test(end),kind+': the end path sends regardless of the save result'); }
   }
 
   // 10 both fight starts re-send and refuse while a result is unsent, BEFORE the start request
