@@ -19726,11 +19726,21 @@ function renderRoadmap(){
   const _dim=(typeof CH_MAP_DIMS!=='undefined'&&CH_MAP_DIMS[ch])?CH_MAP_DIMS[ch]:[1000,1450];
   const _nodes=(typeof CH_NODES!=='undefined'&&CH_NODES[ch])?CH_NODES[ch]:null;
   const _app=document.getElementById('app');
-  const _wideCampaign=window.matchMedia('(orientation:landscape)').matches && _app && _app.clientWidth/Math.max(1,_app.clientHeight)>1.65 && !!CH_WIDE_MAPS[ch];
+  /* v1147 (15 Oct 2026, chapters 10-15 on a landscape phone): with no wide art the map fell back to width-fit, so the 3:2 map was
+     ~44% taller than the screen and #cmapScroll (overflow-y hidden) cut off its bottom third - all three lower BONUS plates of 10-15
+     were off-screen and 10-8 / 11-8 sat under the portal tabs. A screen wider than the map now fits the map to the HEIGHT the same way the
+     wide chapters do (same plate maths, every plate on screen); with no wide art the side bars are the chapter's own map, blurred and
+     darkened, until the wide image exists. Wide chapters keep their 1.65 switch-over unchanged. */
+  const _scrAR=_app?_app.clientWidth/Math.max(1,_app.clientHeight):0, _mapAR=(CH_MAP_DIMS[ch]||[3,2])[0]/(CH_MAP_DIMS[ch]||[3,2])[1];
+  const _hasWide=!!CH_WIDE_MAPS[ch];
+  const _wideCampaign=window.matchMedia('(orientation:landscape)').matches && !!_app && !!CH_MAP_DIMS[ch] && (_hasWide?_scrAR>1.65:_scrAR>_mapAR);
   const _wideX=x=>_wideCampaign?50+(x-50)*(CH_MAP_DIMS[ch][0]/CH_MAP_DIMS[ch][1])/(_app.clientWidth/Math.max(1,_app.clientHeight)):x;
   if(_mapUrl&&_nodes){
     map.style.height=_wideCampaign?'100%':''; map.style.aspectRatio=''; map.style.background='none'; map.style.textAlign='center'; map.innerHTML='';
-    const _inner=document.createElement('div'); _inner.style.cssText=_wideCampaign?'position:relative;display:block;width:100%;height:100%;vertical-align:top;background:url("'+CH_WIDE_MAPS[ch]+'") center / 100% 100% no-repeat':'position:relative;display:block;width:100%;vertical-align:top';
+    const _inner=document.createElement('div'); _inner.style.cssText=_wideCampaign?'position:relative;display:block;width:100%;height:100%;vertical-align:top;'+(_hasWide?'background:url("'+CH_WIDE_MAPS[ch]+'") center / 100% 100% no-repeat':'background:#05080d;overflow:hidden'):'position:relative;display:block;width:100%;vertical-align:top';
+    if(_wideCampaign&&!_hasWide){ const _bars=document.createElement('div'); _bars.className='cmapBars'; _bars.setAttribute('aria-hidden','true');
+      _bars.style.cssText='position:absolute;inset:-24px;background:url("'+_mapUrl+'") center / cover no-repeat;filter:blur(18px) brightness(.42) saturate(.9);pointer-events:none';
+      _inner.appendChild(_bars); }
     const _img=document.createElement('img'); _img.src=_mapUrl; _img.draggable=false;
     _img.style.cssText=_wideCampaign?'position:absolute;left:50%;top:0;transform:translateX(-50%);display:block;width:auto;height:100%;max-width:none;-webkit-user-drag:none;mask-image:linear-gradient(to right,transparent,black 4%,black 96%,transparent)':'display:block;width:100%;height:auto;-webkit-user-drag:none';
     _inner.appendChild(_img);
