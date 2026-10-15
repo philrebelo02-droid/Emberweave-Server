@@ -21610,7 +21610,7 @@ function authGateRender(){ const el=authGateEl(), need=authGateNeed()||'out', m=
       ${last&&last.name&&last.id!==ACC.id?`<div class="agWarn" id="agOther">This device was signed in to <b>${escapeHTML(last.name)}</b>. You are on guest <b>${escapeHTML(ACC.name||'')}</b> now, not that account.</div>`:''}
       ${inp('agName','text','Username','off',' maxlength="16"')}${inp('agPass','password','Password (8+ characters)','new-password')}${inp('agPass2','password','Confirm password','new-password')}
       <button class="btn" id="agGo">Create account</button>
-      <div class="agRow"><button class="btn xs secondary" id="agToIn">${last&&last.name&&last.id!==ACC.id?'Sign in to '+escapeHTML(last.name):'Sign in to an account'}</button><button class="btn xs secondary" id="agKeep">Keep playing as guest</button></div>`;
+      <div class="agRow"><button class="btn xs secondary" id="agToIn">${last&&last.name&&last.id!==ACC.id?'Sign in to '+escapeHTML(last.name):'Sign in to an account'}</button></div>`;
   el.innerHTML=`<div class="agCard">${tabs}${body}<div id="agMsg" class="agMsg"></div></div>`;
   const $=s=>el.querySelector(s), msg=(t,good)=>{ const e=$('#agMsg'); if(e){ e.style.color=good?'#8b98a9':'#ff8b8b'; e.textContent=t; } };
   const to=(mode)=>{ AUTHG.mode=mode; authGateRender(); };

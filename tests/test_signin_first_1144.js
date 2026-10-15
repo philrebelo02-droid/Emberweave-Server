@@ -167,10 +167,14 @@ const AUDIO_STUB = () => { const node = () => ({ connect() {}, disconnect() {}, 
       ok(/signed in to\s+SoulEaterT/i.test(t) && /guest\s+\S+\s+now/i.test(t), 'a device that was on a real account says so plainly ("signed in to SoulEaterT ... on guest ... now")');
       ok(await page.evaluate(() => /Sign in to SoulEaterT/.test((document.querySelector('#agToIn') || {}).textContent || '')), 'and offers Sign in to that account');
       await shot(page, '5-guest-other-account.png');
-      if (await page.$('#agKeep')) await page.click('#agKeep');
+      ok(!(await page.$('#agKeep')), 'v1145: there is no "Keep playing as guest" - a guest must create an account or sign in');
+      await page.keyboard.press('Escape'); await page.waitForTimeout(300);
+      ok(await gateOpen(page), 'v1145: Escape does not close the account step');
+      /* the GUEST marker still guards any guest session that reaches the hub (an old cached page, a resumed device): open it directly */
+      await page.evaluate(() => { try { guestStepDone(); AUTHG.ask = false; authGateRefresh(); } catch (e) {} });
       await page.waitForTimeout(800);
       if (await visible(page, '#tutSkip')) { await page.click('#tutSkip'); await page.waitForTimeout(800); }
-      ok(!(await gateOpen(page)), 'the guest may choose to keep playing (the step is one-time)');
+      ok(!(await gateOpen(page)), 'with the step closed by the page itself, the hub is reachable for the marker checks');
       const mk = await page.evaluate(() => { const e = document.getElementById('guestMark'); return e ? e.textContent : ''; });
       ok(await visible(page, '#guestMark') && /GUEST - progress not saved to an account/.test(mk), 'the hub shows the GUEST marker next to the player name (' + mk.trim() + ')');
       ok(/not SoulEaterT/.test(mk), 'the marker names the account this device is NOT on');
