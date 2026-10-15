@@ -111,6 +111,7 @@ const elite=camp.map((e,i)=>{ const n=i+1;
 fs.writeFileSync(path.join(DIR,'elite-campaign-encounters.json'), JSON.stringify(elite,null,1));
 
 // ---------- 3) Veteran Portal: the 18 Orange sources ----------
+// SUPERSEDED v1148: Veteran is 160 stages = Normal x2, written by scripts/author_veteran_1148.js. This 100-stage-era block is history.
 const VET_HP=2.6, VET_DMG=1.9;   // post-campaign content, built on the chapter-10 encounters
 const veteran=VETERAN.map((fam,ix)=>{ const n=ix+1, src=camp[90+(ix%10)];   // chapter-10 themes
   return { id:code(n), node:n, mode:'veteran', checkpoint:(n%10===0)?'boss':(n%10===5?'guardian':'normal'),

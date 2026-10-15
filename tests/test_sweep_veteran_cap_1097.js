@@ -19,8 +19,9 @@ const editDB=fn=>editRaw(db=>fn(db.users[id]));
 const led=async()=>{ const l=(await call('/api/ledger')).data; return l.ledger||l; };
 let rq=0; const R=()=>'vt'+(rq++);
 const dk=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(Date.now()-9*3600000));
-const fixture=runs=>editDB(u=>{ u.led.px=99000000; u.led.camp.cleared=160; u.led.stam={v:900,t:Date.now()};
-  u.led.portals=u.led.portals||{}; u.led.portals.veteran={cleared:10,stars:{2:3,3:3,6:3},att:null,runs:runs||{}}; });
+/* v1148: Veteran chapter c opens after Elite c-10, so the fixture clears Elite too; Normal 1-2 is three-starred for the control */
+const fixture=runs=>editDB(u=>{ u.led.px=99000000; u.led.camp.cleared=160; u.led.camp.stars=Object.assign(u.led.camp.stars||{},{2:3}); u.led.stam={v:900,t:Date.now()};
+  u.led.portals=u.led.portals||{}; u.led.portals.elite={cleared:160,stars:{},att:null,runs:{}}; u.led.portals.veteran={cleared:10,stars:{2:3,3:3,6:3},att:null,runs:runs||{}}; });
 const sweep=(node,times)=>call('/api/campaign/sweep',{mode:'veteran',node,times:times||1,requestId:R()});
 (async()=>{ try{
   port=await freePort(); base='http://127.0.0.1:'+port; await start();
@@ -42,9 +43,12 @@ const sweep=(node,times)=>call('/api/campaign/sweep',{mode:'veteran',node,times:
   /* the stage card agrees */
   const sc=(await call('/api/campaign/stage?mode=veteran&node=3')).data;
   if(sc&&('runsLeft' in sc)) ok(sc.runsLeft===0,'the stage card shows 0 runs left ('+sc.runsLeft+')');
-  /* control: a stage without the cap (Veteran 1-2) sweeps freely */
+  /* v1148: Veteran is capped on EVERY stage like Elite - Veteran 1-2 now stops at 3 too */
   const c=[]; for(let i=0;i<4;i++) c.push((await sweep(2)).data);
-  ok(c.every(x=>x.ok===true),'control: Veteran 1-2 (no cap) sweeps 4 times');
+  ok(c.slice(0,3).every(x=>x.ok===true)&&c[3].ok===false&&/Daily limit/.test(c[3].error||''),'v1148: Veteran 1-2 is capped at 3 sweeps like every Elite stage ('+c.map(x=>x.ok?'ok':x.error).join(', ')+')');
+  /* control: a stage without the cap (Normal 1-2) sweeps freely */
+  const n=[]; for(let i=0;i<4;i++) n.push((await call('/api/campaign/sweep',{mode:'normal',node:2,times:1,requestId:R()})).data);
+  ok(n.every(x=>x.ok===true),'control: Normal 1-2 (no cap) sweeps 4 times ('+n.map(x=>x.ok?'ok':x.error).join(', ')+')');
   if(missed.length){ missed.forEach(m=>console.error('FAIL',m)); process.exitCode=1; }
   console.log('test_sweep_veteran_cap_1097.js: '+pass+' checks passed, '+missed.length+' failed (server '+srvFile+')');
 } catch(e){ console.error('FAIL',e&&e.message||e); process.exitCode=1; } finally { await stop(); } })();

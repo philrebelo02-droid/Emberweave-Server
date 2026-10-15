@@ -2896,7 +2896,8 @@ const DUNGEON_BG = "/assets/img/world-map/dungeon.webp";
 const ART_BASE="/assets/img/";
 const CH_MAPS={1:ART_BASE+"Campaign/ch1.webp?v=1789531860446",2:ART_BASE+"Campaign/ch2.webp?v=1789531860446",3:ART_BASE+"Campaign/ch3.webp?v=1789531860446",4:ART_BASE+"Campaign/ch4.webp?v=1789531860446",5:ART_BASE+"Campaign/ch5.webp?v=1789531860446",6:ART_BASE+"Campaign/ch6.webp?v=1789531860446",7:ART_BASE+"Campaign/ch7.webp?v=1789531860446",8:ART_BASE+"Campaign/ch8.webp?v=1789531860446",9:ART_BASE+"Campaign/ch9.webp?v=1789531860446",10:ART_BASE+"Campaign/ch10.webp?v=1790342893337",11:ART_BASE+"Campaign/ch11.webp?v=1790342893337",12:ART_BASE+"Campaign/ch12.webp?v=1790342893337",13:ART_BASE+"Campaign/ch13.webp?v=1790342893337",14:ART_BASE+"Campaign/ch14.webp?v=1790342893337",15:ART_BASE+"Campaign/ch15.webp?v=1790342893337",16:ART_BASE+"Campaign/ch16.webp?v=1790342893337"};
 const CHAPTER_MAP_BOSS_KEYS=[null,'brukk','miregor','wintercrag','nerissa','sable vesper','vharok','maelvara','orryx','nameless admiral','barrowmaw','asterion','nymira','hourglass sentinel','thorneveil','magmourn','irix'];   // v883: all 16 chapters, the x-10 boss in server/campaign-encounters.json
-const CHAPTER_VETERAN_BOSS_KEYS={1:'magmourn'};   /* v935: the server's Veteran 1-10 boss is Magmourn (veteran-campaign-encounters.json); the map showed Irix */ // authored Veteran 1-10; future entries follow the server encounter table
+/* v1148: CHAPTER_VETERAN_BOSS_KEYS is retired - Veteran is Normal x2 on all 160 stages (same waves, same bosses), so the Veteran map shows
+   the Normal chapter boss from CHAPTER_MAP_BOSS_KEYS (v935 had Veteran 1-10 = Magmourn from the old 18-stage table). */
 const CH_WIDE_MAPS={1:ART_BASE+"Campaign/ch1-wide-v1.webp",2:ART_BASE+"Campaign/ch2-wide-v1.webp",3:ART_BASE+"Campaign/ch3-wide-v1.webp",4:ART_BASE+"Campaign/ch4-wide-v1.webp",5:ART_BASE+"Campaign/ch5-wide-v1.webp",6:ART_BASE+"Campaign/ch6-wide-v1.webp",7:ART_BASE+"Campaign/ch7-wide-v1.webp",8:ART_BASE+"Campaign/ch8-wide-v1.webp",9:ART_BASE+"Campaign/ch9-wide-v1.webp",16:ART_BASE+"Campaign/ch16-wide-v1.webp?v=1790342893337"};
 const CH_MAP_DIMS={1:[1536,1024],2:[1536,1024],3:[1536,1024],4:[1536,1024],5:[1536,1024],6:[1536,1024],7:[1536,1024],8:[1536,1024],9:[1536,1024],10:[1536,1024],11:[1536,1024],12:[1536,1024],13:[1536,1024],14:[1536,1024],15:[1536,1024],16:[1536,1024]};
 const CH_NODES={"1":[[5.0,40.0],[14.0,48.5],[24.6,46.5],[34.6,43.5],[45.2,47.0],[54.8,51.7],[65.3,52.0],[74.9,56.5],[85.2,52.3],[95.0,47.0]],"2":[[5.0,39.1],[14.2,46.5],[24.8,48.3],[34.5,41.8],[45.1,40.0],[54.3,46.4],[64.6,48.5],[74.6,41.0],[85.1,43.7],[95.0,49.1]],"3":[[5.0,44.8],[15.1,40.0],[25.4,40.7],[34.2,49.0],[44.3,52.8],[54.6,49.8],[64.4,44.5],[74.4,49.0],[84.6,53.5],[95.0,50.0]],"4":[[5.0,40.7],[14.3,48.7],[24.1,54.6],[34.6,55.6],[44.2,47.2],[54.6,44.5],[64.9,48.5],[75.1,52.7],[85.6,51.8],[95.0,43.4]],"5":[[5.0,39.6],[15.2,44.0],[25.1,49.4],[35.4,53.0],[45.8,50.1],[54.8,42.6],[64.4,48.3],[74.5,53.8],[85.1,51.6],[95.0,46.0]],"6":[[5.0,40.5],[15.4,43.0],[25.2,43.5],[35.6,37.5],[45.7,41.5],[54.0,50.5],[64.1,54.2],[74.2,49.7],[84.6,48.2],[95.0,48.4]],"7":[[5.0,55.4],[15.4,56.8],[25.7,57.9],[36.0,57.5],[45.4,51.2],[54.9,43.7],[65.1,42.0],[75.2,46.1],[84.8,41.0],[95.0,37.2]],"8":[[5.0,34.5],[15.5,34.3],[24.5,43.2],[34.6,47.8],[44.9,44.4],[54.9,38.4],[64.3,45.5],[74.4,51.1],[84.9,49.5],[95.0,43.7]],"9":[[5.0,32.1],[14.4,39.5],[24.5,46.0],[35.2,45.9],[45.1,39.7],[55.6,41.7],[63.9,52.3],[74.2,54.0],[84.8,53.0],[95.0,47.8]],"10":[[10.4,28.1],[16.3,39.0],[25.0,44.7],[35.0,46.3],[45.0,50.9],[56.6,51.2],[65.0,56.2],[75.0,62.0],[89.2,54.5],[95.0,52.0]],"11":[[8.3,25.9],[15.0,36.6],[25.0,45.7],[35.0,46.9],[45.0,49.8],[55.0,51.8],[65.0,58.2],[75.0,62.5],[85.0,56.4],[93.7,41.5]],"12":[[18.6,44.4],[25.1,50.6],[31.2,53.9],[38.0,55.0],[47.0,52.0],[56.0,42.0],[66.0,43.6],[76.0,48.4],[89.6,38.3],[95.0,31.0]],"13":[[8.3,41.4],[15.0,43.9],[23.0,51.5],[35.0,55.9],[45.0,54.3],[55.0,44.4],[65.0,50.3],[75.0,55.0],[85.0,51.8],[93.4,42.0]],"14":[[9.1,41.0],[15.0,46.7],[25.0,53.5],[40.0,50.7],[45.8,44.7],[55.0,44.7],[65.0,52.1],[75.0,53.3],[85.0,58.3],[95.0,65.1]],"15":[[10.8,28.8],[17.6,36.1],[25.0,37.8],[35.0,40.8],[45.0,50.3],[56.8,56.6],[65.0,58.7],[75.0,56.7],[85.0,52.0],[90.0,41.7]],"16":[[5.0,43.4],[15.5,46.0],[25.5,52.3],[36.2,53.7],[46.4,49.3],[55.1,39.3],[65.6,38.0],[75.0,46.0],[84.8,52.2],[95.0,47.3]]};
@@ -5873,7 +5874,7 @@ const TROOP_CUM=cumArr(TROOP_STEP), HERO_CUM=cumArr(HERO_STEP);
 function levelForXP(xp,cum){ let L=1; while(L<MAX_LEVEL && xp>=cum[L+1]) L++; return L; }
 // stamina: max = 59 + level (60 at Lv1 ... 119 at Lv60); spend 6 per cleared stage; +1 every 6 min; refills to full on level-up
 const STAM_REGEN_MS=6*60*1000, STAM_STAGE_COST=6, BOSS_STAM_COST=12;
-function stageStamCost(g,mode){ return ((mode||PORTAL)==='elite'||(typeof isBossStage==='function'&&isBossStage(g))) ? BOSS_STAM_COST : STAM_STAGE_COST; }   // every Elite stage and all bosses cost 12 stamina
+function stageStamCost(g,mode){ return ((mode||PORTAL)==='elite'||(mode||PORTAL)==='veteran'||(typeof isBossStage==='function'&&isBossStage(g))) ? BOSS_STAM_COST : STAM_STAGE_COST; }   // every Elite stage and all bosses cost 12 stamina
 function maxStamina(){ return 59 + playerLevel() + (typeof embassyStamBonus==='function'?embassyStamBonus():0); }
 function regenStamina(){ if(!G.staminaTS)G.staminaTS=Date.now(); const now=Date.now(); const mx=maxStamina();
   if(G.stamina<mx){ const gained=Math.floor((now-G.staminaTS)/STAM_REGEN_MS);
@@ -6101,8 +6102,8 @@ function isBossStage(g){ return stageInChapter(g)===STAGES_PER_CH; }   // stage 
 function isHeroRewardStage(g){ return isEliteStage(g)||isBossStage(g); }
 const ELITE_BOSS_DAILY=3;   // Phil 26 Aug: elite & boss campaign stages give rewards 3x/day MAX, sweeps included
 function stageDaily(){ const d=arenaDayKey(); if(!G.stageDaily||G.stageDaily.day!==d) G.stageDaily={day:d,n:{}}; return G.stageDaily; }
-function stageRunsLeft(i,mode){ mode=mode||PORTAL||'normal'; if(!(mode==='elite'||isEliteStage(i)||isBossStage(i))) return Infinity; const sd=stageDaily(), key=mode+':'+i; return Math.max(0,ELITE_BOSS_DAILY-(sd.n[key]||0)); }
-function stageCountRun(i,k,mode){ mode=mode||PORTAL||'normal'; if(!(mode==='elite'||isEliteStage(i)||isBossStage(i))) return; const sd=stageDaily(), key=mode+':'+i; sd.n[key]=(sd.n[key]||0)+(k||1); }
+function stageRunsLeft(i,mode){ mode=mode||PORTAL||'normal'; if(!(mode==='elite'||mode==='veteran'||isEliteStage(i)||isBossStage(i))) return Infinity; const sd=stageDaily(), key=mode+':'+i; return Math.max(0,ELITE_BOSS_DAILY-(sd.n[key]||0)); }
+function stageCountRun(i,k,mode){ mode=mode||PORTAL||'normal'; if(!(mode==='elite'||mode==='veteran'||isEliteStage(i)||isBossStage(i))) return; const sd=stageDaily(), key=mode+':'+i; sd.n[key]=(sd.n[key]||0)+(k||1); }
 // Phil 26 Aug: every elite stage drops ONE SPECIFIC hero's fragments — never random, and NO REPEATS:
 // the eligible roster is laid out 1★ heroes first, then 2★, then 3★ (never Grosk, mythicals,
 // shop/arena-exclusive or wip heroes) and dealt one hero per elite stage in campaign order. Each hero
@@ -19602,17 +19603,21 @@ function renderMarket(){
 }
 let campViewCh=0;   // which chapter the roadmap is showing (0 = auto = the chapter you're on)
 /* v266 — Exact Glyph Fragment Farm Map v1: three fixed portals, each with its own progress and its
-   own 100/100/18 fragment sources. PORTAL is which one the roadmap is showing. */
+   own 160/160/160 fragment sources (v1148: Veteran 1-16 like Normal and Elite). PORTAL is which one the roadmap is showing. */
 const PORTAL_META={ normal:{label:'Normal', stages:160, icon:uiIcon('map')},
-  elite:{label:'Elite', stages:160, icon:statusIcon('attack')}, veteran:{label:'Veteran', stages:18, icon:uiIcon('mode-portal-veteran')} };
+  elite:{label:'Elite', stages:160, icon:statusIcon('attack')}, veteran:{label:'Veteran', stages:160, icon:uiIcon('mode-portal-veteran')} };   // v1148: 16 chapters, Normal x2
 let PORTAL='normal';
 function portalStages(m){ return (PORTAL_META[m]||PORTAL_META.normal).stages; }
 function portalCleared(m){ return m==='normal' ? (G.campaignCleared|0) : ((G.portals&&G.portals[m]&&G.portals[m].cleared)|0); }
 function portalStars(m,node){ return m==='normal' ? ((G.stageStars&&G.stageStars[node])|0)
   : ((G.portals&&G.portals[m]&&G.portals[m].stars&&G.portals[m].stars[node])|0); }
 function portalLockMsg(m){ return (G.portals&&G.portals[m]&&G.portals[m].locked)||null; }
-function portalChapterLockMsg(m,ch){ if(m!=='elite') return null; const need=Math.max(1,ch|0)*10;
-  return (G.campaignCleared|0)<need ? ('Complete Normal '+ch+'-10 to unlock Elite Chapter '+ch+'.') : null; }
+/* v1148: the ladder Normal -> Elite -> Veteran, chapter by chapter (= server portalChapterLocked): Elite chapter c after Normal c-10,
+   Veteran chapter c after Elite c-10. */
+const PORTAL_PREV={ elite:'normal', veteran:'elite' };
+function portalHardMode(m){ return m==='elite'||m==='veteran'; }   // v1148: every stage capped 3/day and 12 stamina (= server portalHardMode)
+function portalChapterLockMsg(m,ch){ const prev=PORTAL_PREV[m]; if(!prev) return null; const need=Math.max(1,ch|0)*10;
+  return portalCleared(prev)<need ? ('Complete '+PORTAL_META[prev].label+' '+ch+'-10 to unlock '+PORTAL_META[m].label+' Chapter '+ch+'.') : null; }
 function portalChapters(m){ return Math.ceil(portalStages(m)/STAGES_PER_CH); }
 function setPortal(m){ if(!PORTAL_META[m]) return; PORTAL=m; campViewCh=0; renderRoadmap(); }
 /* ===== TOTAL CAMPAIGN STARS reward track (Phil 26 Aug: milestones every 15 stars) ===== */
@@ -19713,7 +19718,7 @@ function renderRoadmap(){
   // chapter header + nav
   const hdr=document.getElementById('cmapHdr');
   if(hdr){ hdr.innerHTML=`<button class="btn xs secondary" id="chPrev" ${ch<=1?'disabled':''}>◀</button>
-    <div style="text-align:center;line-height:1.2"><div style="font-weight:800;font-size:14px">${MODE==='normal'?'':PORTAL_META[MODE].icon+' '} Chapter ${ch}${locked?' '+hudIcon('lock'):''}</div><div style="font-size:11px;color:#c9a35e">${MODE==='veteran'?'Veteran Portal — Orange':(CHAPTER_NAMES[ch-1]||'')}</div></div>
+    <div style="text-align:center;line-height:1.2"><div style="font-weight:800;font-size:14px">${MODE==='normal'?'':PORTAL_META[MODE].icon+' '} Chapter ${ch}${locked?' '+hudIcon('lock'):''}</div><div style="font-size:11px;color:#c9a35e">${CHAPTER_NAMES[ch-1]||''}</div></div>
     <button class="btn xs secondary" id="chNext" ${ch>=TOTAL_CH?'disabled':''}>${uiIcon('play')}</button>`;
     const pv=hdr.querySelector('#chPrev'), nx=hdr.querySelector('#chNext');
     if(pv) pv.onclick=()=>{ campViewCh=ch-1; renderRoadmap(); };
@@ -19769,11 +19774,11 @@ function renderRoadmap(){
       el.dataset.code=stageCode(g);
       const _sst=cleared?portalStars(MODE,g):null;
       const _sstH=_sst==null?'':`<div class="cstars">${[0,1,2].map(x=>`<span class="${x<_sst?'on':'off'}">${uiIcon('star-filled')}</span>`).join('')}</div>`;
-      const _hk=boss?((MODE==='veteran'&&CHAPTER_VETERAN_BOSS_KEYS[ch])||CHAPTER_MAP_BOSS_KEYS[ch]):((MODE==='normal'&&elite)?eliteHeroFor(g):null);
+      const _hk=boss?CHAPTER_MAP_BOSS_KEYS[ch]:((MODE==='normal'&&elite)?eliteHeroFor(g):null);
       const _anim=_hk&&BATTLE_ANIM[_hk], _idle=_anim&&(boss?(_anim.walk||_anim.idle):_anim.idle);
       const _ih=boss?56:36, _iw=_idle?Math.max(boss?28:18,Math.min(boss?74:34,_ih*_idle.fw/_idle.fh)):28;
       const face=_idle?`<canvas class="cIdle" width="${_idle.fw}" height="${_idle.fh}" data-u="${_idle.u}" data-fw="${_idle.fw}" data-fh="${_idle.fh}" data-n="${_idle.n}" data-cols="${_idle.cols||6}" data-rows="${_idle.rows||Math.ceil(_idle.n/(_idle.cols||6))}" data-fps="${boss?Math.max(3,Math.min(5,(_idle.fps||10)*.45)):Math.min(12,_idle.fps||8)}" data-ping="${boss?0:(_idle.pingpong?1:0)}" style="--idlew:${_iw}px;--idleh:${_ih}px"></canvas>`:`<span class="clock">${clickable?(boss?uiIcon('crown'):(cleared?uiIcon('check'):s)):hudIcon('lock')}</span>`;
-      el.innerHTML=`${face}<div class="clbl">${boss?'BOSS':(elite?'HERO FRAGMENTS':'STAGE')}<span class="cstagecode">${stageCode(g)}</span>${_sstH}</div>`;
+      el.innerHTML=`${face}<div class="clbl">${boss?'BOSS':((elite&&MODE!=='veteran')?'HERO FRAGMENTS':'STAGE')}<span class="cstagecode">${stageCode(g)}</span>${_sstH}</div>`;
       if(clickable){ try{ wireTap(el, (function(_g){ return function(){ openStageModal(_g,MODE); }; })(g)); }catch(e){ el.onclick=(function(_g){ return function(){ openStageModal(_g,MODE); }; })(g); } } else { el.style.cursor='default'; }
       if(g===G.lastStage && MODE===(G.lastPortal||'normal')) el.classList.add('justplayed');
       _inner.appendChild(el);
@@ -19821,11 +19826,10 @@ function renderRoadmap(){
 }
 const STAGE_XP_FIRST=30, STAGE_XP_SWEEP=6;
 // Commander and each participating hero earn the same XP: five runs on first clear, one on repeat.
-function campaignPlayerXP(g,firstClear,mode){
-  if((mode||PORTAL)==='veteran') return 0;
+function campaignPlayerXP(g,firstClear,mode){   // v1148: Veteran pays XP again (it was the level-100 endgame portal)
   return stageStamCost(g,mode)*(firstClear?5:1); }
 function xpPotionStageText(node,mode){
-  const ch=mode==='veteran'?10:Math.ceil(node/10);
+  const ch=Math.ceil(node/10);   // v1148: Veteran chapters 1-16 (= server xpPotionTier)
   if(ch<=2)return 'Minor'; if(ch<=4)return 'Greater';
   if(ch===5)return 'Greater 90% · Major 10%';
   if(ch<=7)return 'Major'; return 'Major 90% · Superior 10%';
@@ -19874,7 +19878,7 @@ function stageDropsHTML(stg,node,mode){
   if(node!=null && ((mode==='elite'&&stg&&stg.rewardHero)||(mode==='normal'&&isHeroRewardStage(node)))){ const hk=(stg&&stg.rewardHero)||(mode==='normal'&&eliteHeroFor(node)), h=hk&&HERO_TYPES[hk];
     if(h) chips.push(chip('<span style="font-size:13px;line-height:1">'+(h.emoji||uiIcon('medal'))+'</span>', escapeHTML(h.name), '×'+ELITE_FRAG_MIN+'–'+ELITE_FRAG_MAX, '#c9a0ff')); }
   b.forEach(f=>chips.push(fchip(f,true)));
-  const _eb=(node!=null)&&(mode==='elite'||isEliteStage(node)||isBossStage(node));
+  const _eb=(node!=null)&&(portalHardMode(mode)||isEliteStage(node)||isBossStage(node));
   const foot=(node==null)?'':`<span style="color:#6f7d90;font-size:10.5px;white-space:nowrap">⧗ ${stageStamCost(node,mode)}${_eb?' · runs <span style="color:'+(stageRunsLeft(node,mode)>0?'#8fe3ff':'#ff9a9a')+'">'+stageRunsLeft(node,mode)+'/'+ELITE_BOSS_DAILY+'</span>':''}</span>`;
   return `<div style="border-top:1px solid #1c2434;padding-top:6px;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:4px 10px">
     <span style="font-size:9px;letter-spacing:1px;color:#6f7d90">${vaelFirst?'FIRST CLEAR · VAEL':randomized?'2 RANDOM':'DROPS'}</span>
@@ -19963,7 +19967,7 @@ function openStageModal(i,mode){
   const body=document.getElementById('stageModalBody');
   regenStamina();
   const canPay=G.stamina>=stageStamCost(i,mode);
-  const _eb=mode==='elite'||isEliteStage(i)||isBossStage(i), _left=stageRunsLeft(i,mode), _farmable=!_eb||_left>0;
+  const _eb=portalHardMode(mode)||isEliteStage(i)||isBossStage(i), _left=stageRunsLeft(i,mode), _farmable=!_eb||_left>0;
   // Blueprint v1: normal stages may be attempted early; a chapter boss is a hard player-level gate.
   const _gate=0;   /* v825 (Phil 25 Sep): "if they are strong enough to kill the boss, they can send it" */
   const _gateOK=!_gate||playerLevel()>=_gate;

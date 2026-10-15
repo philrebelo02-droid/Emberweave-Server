@@ -34,8 +34,10 @@ ck('every Veteran stage names exactly ONE glyph fragment', veteranStages.every(s
 ck('ordinary Normal pools cover all 218 fragment types', uniq(normalFragmentIds).size===218, String(uniq(normalFragmentIds).size));
 ck('unique(eliteFragmentIds).size === 160', uniq(eliteFragmentIds).size===160, String(uniq(eliteFragmentIds).size));
 ck('every Elite fragment also has an ordinary Normal home', eliteFragmentIds.every(x=>normalFragmentIds.includes(x)));
-ck('veteranOrangeFragmentIds.size === 18', uniq(vetIds).size===18, String(uniq(vetIds).size));
-ck('every Veteran fragment is Orange', veteranStages.every(s=>s.rewards.glyphFragments[0].key.startsWith('Orange ')));
+ck('veteranStages.length === 160 (16 chapters, v1148)', veteranStages.length===160, String(veteranStages.length));
+ck('every Veteran stage awards two of one named Glyph Fragment (v1148, like Elite)', veteranStages.every(s=>s.rewards.glyphFragments[0].quantity===2));
+ck('Veteran carries all 18 Orange families (v1148: its Orange stages cycle them)', uniq(vetIds.filter(x=>x.startsWith('orange-'))).size===18,
+  String(uniq(vetIds.filter(x=>x.startsWith('orange-'))).size));
 
 // the catalog is fully covered by ordinary Normal stages; Elite/Veteran remain alternate sources
 const raw=Object.values(require('../server/glyph-source.json'));
@@ -55,8 +57,12 @@ ck('Normal 1-1 begins the progression-ordered ordinary pools', nAt('1-1')==='Gre
 ck('Elite chapter c pays one band ahead of Normal chapter c (v823, 07 COMBAT RULE 16a): 1-1 Green, 10-10 Gold, 16-10 Orange',
   eAt('1-1').startsWith('Green ') && eAt('10-10').startsWith('Gold ') && !eAt('10-10').startsWith('Gold +') && eAt('16-10').startsWith('Orange '), eAt('1-1')+' / '+eAt('10-10')+' / '+eAt('16-10'));
 ck('Elite 15-1 pays Gold +4 and 15-6 pays Orange (the split that keeps all 160 unique)', eAt('15-1').startsWith('Gold +4 ') && eAt('15-6').startsWith('Orange '));
-ck('Veteran 1-1 drops Orange Stoneheart', veteranStages[0].rewards.glyphFragments[0].key==='Orange Stoneheart');
-ck('Veteran 2-8 drops Orange Cataclysm', veteranStages[17].rewards.glyphFragments[0].key==='Orange Cataclysm');
+ck('Veteran chapter c pays one band above Elite chapter c (v1148): 1-1 Green +1, 10-10 Gold +1, 16-10 Orange',
+  veteranStages[0].rewards.glyphFragments[0].key.startsWith('Green +1 ') && veteranStages[99].rewards.glyphFragments[0].key.startsWith('Gold +1 ')
+  && veteranStages[159].rewards.glyphFragments[0].key.startsWith('Orange '));
+ck('Veteran Portal is the matching Normal stage at 2x hp AND 2x dmg on every enemy (v1148, Phil: "Elite and veteran are 50% and 100% scaling of normal")',
+  veteranStages.every((v,i)=>{ const n=normalStages[i]; return v.id===n.id && v.waves.length===n.waves.length && v.waves.every((w,wi)=>w.length===n.waves[wi].length
+    && w.every((u,ui)=>{ const m=n.waves[wi][ui]; return u.key===m.key && u.lvl===m.lvl && Math.abs(u.hpMul-m.hpMul*2)<1e-3 && Math.abs(u.dmgMul-m.dmgMul*2)<1e-3; })); }));
 
 // fixed Guardian/boss Normal rewards and the stronger Elite variant
 ck('a boss stage grants extra copies of its fixed named fragment',

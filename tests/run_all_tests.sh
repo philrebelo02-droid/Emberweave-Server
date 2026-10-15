@@ -351,6 +351,8 @@ note "test_sweep_emberdraft_1097.js (v1097 sweep P0: Emberdraft always pays the 
 node tests/test_sweep_emberdraft_1097.js || FAILED=1
 note "test_sweep_veteran_cap_1097.js (v1097 sweep P0: Veteran x-3/6/9 sweeps count toward and respect the 3-a-day run cap the fights use)"
 node tests/test_sweep_veteran_cap_1097.js || FAILED=1
+note "test_veteran_1148.js (v1148: Veteran 1-16 = Normal x2 on all 160 stages, rewards above Elite, Elite-chapter gates, every stage capped like Elite)"
+node tests/test_veteran_1148.js || FAILED=1
 note "test_icons_1098.js (v1098: every icon the page asks for exists; Wishing Pool is the stage-fit layout; control: a missing icon is caught)"
 node tests/test_icons_1098.js || FAILED=1
 note "test_icons_1100.js (v1100: hero fragments are the hero card; the 20 approved icons on disk and used; control: old mine mail still routes)"

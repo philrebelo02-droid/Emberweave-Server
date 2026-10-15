@@ -1350,7 +1350,7 @@ const D_TROOP_CUM=d_cum(D_TROOP_INC), D_HERO_CUM=d_cum(D_HERO_STEP);   // v820: 
 // XP amount; the recipient is limited by Commander level.
 const XP_POTION_BASE=Object.freeze({minor:60,greater:300,major:1000,superior:2500});
 function xpPotionTier(mode,node,seed){
-  const chapter=mode==='veteran'?10:Math.ceil(node/10);
+  const chapter=Math.ceil(node/10);   /* v1148: Veteran has 16 chapters like Normal/Elite (was a fixed chapter 10 for the old 18-stage endgame portal) */
   if(chapter<=2) return 'minor';
   if(chapter<=4) return 'greater';
   if(chapter===5) return seed%10===0?'major':'greater';
@@ -1454,7 +1454,10 @@ function isEliteStageSrv(g){ const st=((g-1)%10)+1; return st===3||st===6||st===
 function isHeroRewardStageSrv(g){ return isEliteStageSrv(g)||campIsBoss(g); }
 /* v1097 (sweep 9 Oct P0 #5): ONE answer to "does this stage have 3 rewarded runs a day" for the fight, the sweep and the stage card -
    every Elite stage, and x-3/6/9/10 in Normal AND Veteran. The sweep asked only Normal, so Veteran x-3/6/9 sweeps were uncapped. */
-function campCapStageSrv(mode,node){ return mode==='elite'||isEliteStageSrv(node)||campIsBoss(node); }
+/* v1148: Veteran is now Normal x2 on all 160 stages and, like Elite, every stage pays two of one named Glyph Fragment - so every Veteran
+   stage is capped like every Elite stage (3 rewarded runs a day) and costs the Elite stamina. portalHardMode is that one answer. */
+function portalHardMode(mode){ return mode==='elite'||mode==='veteran'; }
+function campCapStageSrv(mode,node){ return portalHardMode(mode)||isEliteStageSrv(node)||campIsBoss(node); }
 function eliteHeroForSrv(g){ if(!isHeroRewardStageSrv(g)) return null;
   const ch=Math.floor((g-1)/10)+1, st=((g-1)%10)+1;
   const idx=(ch-1)*4 + ({3:0,6:1,9:2,10:3})[st];
@@ -4320,11 +4323,13 @@ const CAMPAIGN_NODES=160;   // v821 (Phil 25 Sep: "There should be 160 stages"):
 const PORTAL_MODES=Object.freeze(['normal','elite','veteran']);
 const PORTAL_LABEL=Object.freeze({normal:'Normal Portal', elite:'Elite Portal', veteran:'Veteran Portal'});
 const PORTAL_FILE=Object.freeze({normal:'campaign-encounters.json', elite:'elite-campaign-encounters.json', veteran:'veteran-campaign-encounters.json'});
-const PORTAL_SIZE=Object.freeze({normal:160, elite:160, veteran:18});   // v823: Normal and Elite both 16 chapters
-/* unlock gates (spec §"Campaign mode" table) */
+const PORTAL_SIZE=Object.freeze({normal:160, elite:160, veteran:160});   // v823: Normal and Elite both 16 chapters; v1148: Veteran too (Phil: "All normal/ elite/ veteran should go from 1-16")
+/* unlock gates (spec §"Campaign mode" table). v1148: the ladder is Normal -> Elite -> Veteran, chapter by chapter - Elite chapter c opens
+   after Normal c-10, Veteran chapter c after Elite c-10 (was: the whole 18-stage Veteran portal after Normal 16-10). `after` names the
+   portal whose progress opens this one. */
 const PORTAL_GATE=Object.freeze({ normal:null,
-  elite:{ afterNode:10, level:0, text:'Elite Chapter 1 opens after completing Normal 1-10.' },
-  veteran:{ afterNode:160, level:0, text:'Veteran Portal opens after Normal 16-10.' } });   /* v825: no player-level locks (Phil) - progress only */
+  elite:{ after:'normal', afterNode:10, level:0, text:'Elite Chapter 1 opens after completing Normal 1-10.' },
+  veteran:{ after:'elite', afterNode:10, level:0, text:'Veteran Chapter 1 opens after completing Elite 1-10.' } });   /* v825: no player-level locks (Phil) - progress only */
 let PORTALS={};          // mode -> { byNode, list }
 let FRAG_SOURCES={};     // fragmentId -> [{ mode, stageId }]
 let CAMP_ENC=null;
@@ -4347,6 +4352,7 @@ function portalCompile(){
         if(gf[0].quantity!==2) throw new Error(mode+' '+e.id+': Elite stage must pay two Glyph Fragments');
         if(e.rewardHero&&!final.some(m=>m&&m.isHero&&m.rewardHero&&m.key===e.rewardHero)) throw new Error(mode+' '+e.id+': Elite hero-reward stage must fight its authored hero');
       }
+      if(mode==='veteran'&&gf[0].quantity!==2) throw new Error(mode+' '+e.id+': Veteran stage must pay two Glyph Fragments (v1148)');
       for(const f of gf){
         if(!f.key||!f.fragmentId||!(f.quantity>=1)) throw new Error(mode+' '+e.id+': fragment record malformed');
         const q=f.key.slice(0,f.key.lastIndexOf(' '));
@@ -4376,14 +4382,14 @@ function portalProg(led,mode){
 }
 function portalLocked(led,mode){
   const g=PORTAL_GATE[mode]; if(!g) return null;
-  if((led.camp.cleared|0) < g.afterNode) return g.text;
+  if((portalProg(led,g.after||'normal').cleared|0) < g.afterNode) return g.text;
   if(ledPlayerLevel(led) < g.level) return g.text;
   return null;
 }
 function portalChapterLocked(led,mode,node){
-  if(mode!=='elite') return null;
-  const ch=Math.max(1,Math.ceil((node|0)/10)), need=ch*10;
-  return (led.camp.cleared|0)<need ? ('Complete Normal '+ch+'-10 to unlock Elite Chapter '+ch+'.') : null;
+  const g=PORTAL_GATE[mode]; if(!g) return null;
+  const ch=Math.max(1,Math.ceil((node|0)/10)), need=ch*10, prev=g.after||'normal';
+  return (portalProg(led,prev).cleared|0)<need ? ('Complete '+PORTAL_LABEL[prev].replace(' Portal','')+' '+ch+'-10 to unlock '+PORTAL_LABEL[mode].replace(' Portal','')+' Chapter '+ch+'.') : null;
 }
 function campCompile(){
   try{ const raw=JSON.parse(fs.readFileSync(path.join(__dirname,'server','campaign-encounters.json'),'utf8'));
@@ -4606,7 +4612,7 @@ async function api(req,res,url){
         {id:'gems', sources:['Quests','Arena daily','Rank milestones','Guild raid'], sinks:['Wishing Pool (diamond pool)','Shop','Market fragments'], caps:{}},
         {id:'stamina', sources:['Regeneration (6 min/point)','Level-ups'], sinks:['Campaign battles & sweeps'], caps:{max:'59 + player level'}},
         {id:'dust', sources:['Vault floors','Fragment salvage'], sinks:['Gear Temper'], caps:{}},
-        {id:'glyphFragments', sources:['Normal Portal — 100 families, one fixed stage each','Elite Portal — the other 100 families','Veteran Portal — all 18 Orange families','Vault boss floors','Arena wins','Daily','Wishing Pool'], sinks:['Glyph builds (permanent, per slot)'], caps:{}},
+        {id:'glyphFragments', sources:['Normal Portal — 100 families, one fixed stage each','Elite Portal — the other 100 families','Veteran Portal — 160 stages, two of one named fragment a band above Elite (all 18 Orange families)','Vault boss floors','Arena wins','Daily','Wishing Pool'], sinks:['Glyph builds (permanent, per slot)'], caps:{}},
         {id:'gearFragments', sources:['Authored Vault floors (2 targeted per floor)'], sinks:['Gear crafting'], caps:{}},
         {id:'cityResources', sources:['World-map mining (capped)'], sinks:['Academy research'], caps:{perResourcePerDay:60}},
         {id:'guildCoins', sources:['Guild raid'], sinks:['Guild shop'], caps:{}},
@@ -6879,7 +6885,7 @@ async function api(req,res,url){
       if(elite){ const used=prog.runs['n'+node]|0; const left=Math.max(0,3-used);
         if(left<1) return {ok:false,error:'Daily limit reached (3/day for guardian & boss stages).'};
         times=Math.min(times,left); }
-      const cost=((mode==='elite'||campIsBoss(node))?STAM_COST_BOSS:STAM_COST_NORMAL)*times;
+      const cost=((portalHardMode(mode)||campIsBoss(node))?STAM_COST_BOSS:STAM_COST_NORMAL)*times;
       ledStamRegen(led); if(led.stam.v<cost) return {ok:false,error:'Not enough stamina.'};
       led.stam.v-=cost;
       if(elite) prog.runs['n'+node]=(prog.runs['n'+node]|0)+times;
@@ -7256,14 +7262,14 @@ async function api(req,res,url){
     /* Daily run cap (elite 3/6/9 & boss 10): refuse up front so stamina is not spent on a run the
        resolve route will not pay. An open, still-valid session for this node is left alone so a
        reconnect can resume the fight it already paid for. */
-    if((mode==='elite'||isEliteStageSrv(node)||campIsBoss(node)) && node<=prog.cleared && !(prog.att && prog.att.node===node && (Date.now()-(prog.att.startedAt||0) <= CAMP_SESSION_MS))){
+    if(campCapStageSrv(mode,node) && node<=prog.cleared && !(prog.att && prog.att.node===node && (Date.now()-(prog.att.startedAt||0) <= CAMP_SESSION_MS))){
       const _r=prog.runs; if(_r && _r.k===nyDayKey() && (_r['n'+node]|0)>=3 && !isDev(me)) return send(res,400,{error:'Daily limit reached (3/day for guardian & boss stages).'}); }   // v343: dev accounts exempt (Phil testing 1-5)
     { const gate=campBossLevelGate(node), pl=ledPlayerLevel(led);
       if(gate && pl<gate) return send(res,400,{error:'Chapter boss — reach player level '+gate+' first (you are '+pl+').', bossLevelGate:gate, playerLevel:pl}); }
     const ids=Array.isArray(b.heroIds)?[...new Set(b.heroIds.map(String))].slice(0,5):[];   /* v559: no dedupe meant five copies of one hero were a legal lineup AND collected the per-entry XP award five times (City PvP, /api/pvp/attack). The Vault already rejects duplicates; every squad route now agrees. */
     if(!ids.length||new Set(ids).size!==ids.length) return send(res,400,{error:'Pick your squad (no duplicates).'});
     for(const k of ids){ if(!ownsHeroK(led,k)) return send(res,400,{error:'You have not unlocked '+heroDisplayName(k)+'.'}); }
-    ledStamRegen(led); const cost=(mode==='elite'||campIsBoss(node))?STAM_COST_BOSS:STAM_COST_NORMAL;
+    ledStamRegen(led); const cost=(portalHardMode(mode)||campIsBoss(node))?STAM_COST_BOSS:STAM_COST_NORMAL;
     /* v273 (audit response §4.5) — RECONNECT RESUMES, IT DOES NOT RE-CHARGE.
        Closing the app mid-battle used to abandon the frozen session and take the stamina again on the
        next attempt. Now: the same stage returns the SAME session (same seed, same snapshots — no
