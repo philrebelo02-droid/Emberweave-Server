@@ -19,7 +19,7 @@
 const path = require('path'), vm = require('vm'), fs = require('fs'), cp = require('child_process'), crypto = require('crypto');
 const ROOT = path.resolve(__dirname, '..');
 const HTML = process.env.EW_HTML || path.join(ROOT, 'emberweave-heroes.html');
-const BASE_SHA = process.env.EW_BASE || 'b5b4723f';   // the branch point (v1137 maren/orryn anim tip) - no sound before this
+const BASE_SHA = process.env.EW_BASE || 'ca323d6d';   // the branch point (v1137 maren/orryn anim tip after the rebase) - no sound before this
 const LOG_DIR = process.env.EW_SFX_LOG || '';          // when set, the timing log of the fights is written there (the rig log)
 const MAN = JSON.parse(fs.readFileSync(path.join(ROOT, 'assets/audio/sfx/sfx_manifest.json'), 'utf8'));
 let pass = 0, fail = 0;
