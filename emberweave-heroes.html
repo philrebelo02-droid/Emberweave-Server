@@ -2920,7 +2920,7 @@ dandra:{
   0:{u:'/assets/anim/dandra/dandra_ult.webp?v=12',n:72,fw:300,fh:299,cols:6,rows:12,dur:2.4},   // Queen's Call (ultimate)
   1:{u:'/assets/anim/dandra/dandra_green.webp?v=12',n:72,fw:161,fh:300,cols:6,rows:12,dur:2.4},   // Seedlight
   2:{u:'/assets/anim/dandra/dandra_blue.webp?v=12',n:72,fw:300,fh:291,cols:6,rows:12,dur:2.4},   // Drowsy Sting
-  3:{u:'/assets/anim/dandra/dandra_passive.webp?v=11',n:72,fw:300,fh:279,cols:6,rows:12,dur:2.4},   // The Swarm Moves On (passive)
+  /* 3 (passive) removed v1155 (Phil 15 Oct: "remove passive for anyone without an active passive") - with no battle passive clip the Skills tab would fall back to this old sheet */
 },
 carn:{
   0:{u:'/assets/anim/carn/carn_ult.webp?v=3',n:72,fw:300,fh:277,cols:6,rows:12,dur:2.4},   // Crimson Reap (ultimate)
@@ -2932,13 +2932,13 @@ sylthaine:{
   0:{u:'/assets/anim/sylthaine/sylthaine_ult.webp?v=11',n:72,fw:265,fh:300,cols:6,rows:12,dur:2.4},   // Blizzard (ultimate)
   1:{u:'/assets/anim/sylthaine/sylthaine_green.webp?v=11',n:72,fw:169,fh:300,cols:6,rows:12,dur:2.4},   // Frozen Orb
   2:{u:'/assets/anim/sylthaine/sylthaine_blue.webp?v=11',n:72,fw:205,fh:300,cols:6,rows:12,dur:2.4},   // Glacial Prison
-  3:{u:'/assets/anim/sylthaine/sylthaine_passive.webp?v=11',n:72,fw:137,fh:300,cols:6,rows:12,dur:2.4},   // Cold Snap (passive)
+  /* 3 (passive) removed v1155 (Phil 15 Oct: "remove passive for anyone without an active passive") - with no battle passive clip the Skills tab would fall back to this old sheet */
 },
 tick:{
   0:{u:'/assets/anim/tick/tick_ult.webp?v=7',n:48,fw:300,fh:244,cols:6,rows:8,dur:2.4},
   1:{u:'/assets/anim/tick/tick_green.webp?v=7',n:48,fw:200,fh:300,cols:6,rows:8,dur:2.4},
   2:{u:'/assets/anim/tick/tick_blue.webp?v=7',n:48,fw:281,fh:300,cols:6,rows:8,dur:2.4},
-  3:{u:'/assets/anim/tick/tick_pass.webp?v=7',n:12,fw:260,fh:210,cols:6,rows:2,dur:1.2},
+  /* 3 (passive) removed v1155 (Phil 15 Oct: "remove passive for anyone without an active passive") - with no battle passive clip the Skills tab would fall back to this old sheet */
 }};
 const MOBILE=(('ontouchstart' in window)||(navigator.maxTouchPoints||0)>0);
 // an animation source is "real" if the build replaced its marker — either an inline data: URI OR an external
@@ -2972,8 +2972,8 @@ const BATTLE_ANIM = {
     hit:{u:'/assets/anim/tessit/tessit_hit.webp?v=21',n:48,fw:348,fh:526,cols:6,rows:8,figH:500,feet:519,cx:194,fps:24,flip:false,top:19},
     green:{u:'/assets/anim/tessit/tessit_green.webp?v=21',n:48,fw:358,fh:510,cols:6,rows:8,figH:500,feet:505,cx:176,fps:24,flip:false,top:5},
     blue:{u:'/assets/anim/tessit/tessit_blue.webp?v=21',n:48,fw:453,fh:528,cols:6,rows:8,figH:500,feet:521,cx:217,fps:24,flip:false,top:21},
-    ult:{u:'/assets/anim/tessit/tessit_ult.webp?v=21',n:48,fw:445,fh:569,cols:6,rows:8,figH:500,feet:562,cx:230,fps:24,flip:false,top:62},
-    passive:{u:'/assets/anim/tessit/tessit_passive.webp?v=21',n:48,fw:323,fh:518,cols:6,rows:8,figH:500,feet:510,cx:159,fps:24,flip:false,top:10}
+    ult:{u:'/assets/anim/tessit/tessit_ult.webp?v=21',n:48,fw:445,fh:569,cols:6,rows:8,figH:500,feet:562,cx:230,fps:24,flip:false,top:62}
+    /* v1155 passive clip removed (Phil 15 Oct: "remove passive for anyone without an active passive"): nothing in a fight fires it (no firePassiveClip for tessit) - it only ever played as idle filler. The sheet stays on disk. */
   },
   vex:{
     idle:{u:'/assets/anim/vex/vex_idle.webp?v=79',n:48,fw:502,fh:621,cols:6,rows:8,figH:501,feet:560,cx:273,fps:24,flip:true,top:60,pingpong:true},
@@ -2983,8 +2983,8 @@ const BATTLE_ANIM = {
     hit:{u:'/assets/anim/vex/vex_hit.webp?v=83',n:48,fw:551,fh:625,cols:6,rows:8,figH:501,feet:562,cx:282,fps:24,flip:true,top:62,ax:[0.0,-0.0,-0.1,-0.4,-1.8,-3.3,-3.9,-2.7,-11.2,-21.2,-27.2,-36.7,-39.3,-40.4,-41.4,-42.2,-42.2,-41.6,-41.3,-40.2,-38.8,-37.9,-36.4,-34.5,-32.9,-28.5,-24.1,-21.7,-13.7,-4.2,1.1,11.3,13.9,14.9,13.3,12.0,9.6,6.6,4.8,0.2,-2.9,-4.0,-4.4,-4.3,-4.3,-2.8,-2.7,-2.1]},
     green:{u:'/assets/anim/vex/vex_green.webp?v=84',n:48,fw:644,fh:880,cols:6,rows:8,figH:502,feet:813,cx:253,fps:24,flip:true,top:312},
     blue:{u:'/assets/anim/vex/vex_blue.webp?v=85',n:48,fw:666,fh:654,cols:6,rows:8,figH:501,feet:591,cx:336,fps:24,flip:true,top:91,ax:[0.0,1.4,3.5,4.2,-6.5,-30.6,-55.2,-75.7,-83.5,-88.9,-90.0,-89.7,-89.3,-88.1,-83.3,-68.7,-47.6,-33.6,-12.6,2.8,11.5,17.1,17.3,17.5,17.4,17.2,16.9,16.3,14.1,-1.5,-36.4,-57.4,-54.3,-21.9,-9.3,1.2,2.9,0.2,-6.3,-11.4,-17.7,-25.9,-31.1,-23.7,-8.3,-4.2,-2.6,-1.1]},
-    ult:{u:'/assets/anim/vex/vex_ult.webp?v=86',n:48,fw:726,fh:643,cols:6,rows:8,figH:501,feet:578,cx:446,fps:24,flip:true,top:78,ax:[0.0,-0.1,3.0,29.3,122.2,181.8,168.1,115.3,105.4,102.1,102.1,103.7,105.4,106.5,106.6,106.3,106.2,106.0,105.9,105.3,57.8,-0.1,-34.0,-36.9,-37.5,-38.2,-38.4,-38.1,-37.8,-37.8,-37.7,-38.0,-39.1,-39.6,-39.9,-39.6,-39.7,-49.5,-61.0,-64.5,-65.4,-66.2,-66.1,-63.3,-46.2,14.2,18.9,4.7]},
-    passive:{u:'/assets/anim/vex/vex_passive.webp?v=87',n:48,fw:740,fh:765,cols:6,rows:8,figH:501,feet:703,cx:446,fps:24,flip:true,top:203,ax:[0.0,4.0,-8.3,-22.2,-40.1,-42.0,-42.1,-46.4,-51.5,-49.9,-49.5,-44.9,-41.1,-12.0,40.5,73.5,101.9,110.9,106.5,103.6,102.3,104.5,107.6,113.7,118.7,119.9,110.9,107.9,108.5,107.4,105.9,104.1,103.9,103.9,103.9,108.9,115.7,116.3,115.4,114.8,115.3,114.7,115.7,117.8,92.5,80.2,46.0,21.9]}
+    ult:{u:'/assets/anim/vex/vex_ult.webp?v=86',n:48,fw:726,fh:643,cols:6,rows:8,figH:501,feet:578,cx:446,fps:24,flip:true,top:78,ax:[0.0,-0.1,3.0,29.3,122.2,181.8,168.1,115.3,105.4,102.1,102.1,103.7,105.4,106.5,106.6,106.3,106.2,106.0,105.9,105.3,57.8,-0.1,-34.0,-36.9,-37.5,-38.2,-38.4,-38.1,-37.8,-37.8,-37.7,-38.0,-39.1,-39.6,-39.9,-39.6,-39.7,-49.5,-61.0,-64.5,-65.4,-66.2,-66.1,-63.3,-46.2,14.2,18.9,4.7]}
+    /* v1155 passive clip removed (Phil 15 Oct: "remove passive for anyone without an active passive"): nothing in a fight fires it (no firePassiveClip for vex) - it only ever played as idle filler. The sheet stays on disk. */
   },
   grimsby:{
     idle:{u:'/assets/anim/grimsby/grimsby_idle.webp?v=21',n:48,fw:295,fh:414,cols:6,rows:8,figH:400,feet:409,cx:138,fps:24,flip:false,top:9,pingpong:true},
@@ -2993,8 +2993,8 @@ const BATTLE_ANIM = {
     hit:{u:'/assets/anim/grimsby/grimsby_hit.webp?v=21',n:48,fw:377,fh:512,cols:6,rows:8,figH:400,feet:506,cx:192,fps:24,flip:false,top:106},
     green:{u:'/assets/anim/grimsby/grimsby_green.webp?v=21',n:48,fw:441,fh:411,cols:6,rows:8,figH:400,feet:405,cx:205,fps:24,flip:false,top:5},
     blue:{u:'/assets/anim/grimsby/grimsby_blue.webp?v=21',n:48,fw:572,fh:452,cols:6,rows:8,figH:400,feet:443,cx:240,fps:24,flip:false,top:43,ax:[0,0,0,0,0,0,0,0,0,0,-93,-125,-1,-4,-5,-8,-13,-15,-23,-37,-54,-62,-69,-72,-74,-73,-69,-64,-58,-51,-40,-71,-113,-101,-17,-12,-9,-7,-4,-3,-3,-2,-1,0,0,0,0,0]},
-    ult:{u:'/assets/anim/grimsby/grimsby_ult.webp?v=21',n:48,fw:561,fh:557,cols:6,rows:8,figH:400,feet:551,cx:234,fps:24,flip:false,top:151},
-    passive:{u:'/assets/anim/grimsby/grimsby_passive.webp?v=21',n:48,fw:379,fh:486,cols:6,rows:8,figH:400,feet:470,cx:199,fps:24,flip:false,top:70,ax:[0,0,-1,0,-1,-2,-4,-6,-5,-6,-9,-7,-7,-8,-8,-8,-7,-7,-7,-7,-7,-9,-7,-8,-9,-10,-11,-12,-12,-13,-14,-14,-15,-16,-14,-16,-16,-15,-14,-13,-13,-12,-11,-8,-7,-5,-2,-2]}
+    ult:{u:'/assets/anim/grimsby/grimsby_ult.webp?v=21',n:48,fw:561,fh:557,cols:6,rows:8,figH:400,feet:551,cx:234,fps:24,flip:false,top:151}
+    /* v1155 passive clip removed (Phil 15 Oct: "remove passive for anyone without an active passive"): nothing in a fight fires it (no firePassiveClip for grimsby) - it only ever played as idle filler. The sheet stays on disk. */
   },
   gruel:{
     idle:{u:'/assets/anim/gruel/gruel_idle_1155.webp?v=1155',n:24,fw:496,fh:512,cols:5,rows:5,figH:382,feet:452,cx:271,fps:12,flip:false,top:70},   /* Gruel nine (Phil 9 Oct, ChatGPT handoff GRUEL-NINE-09OCT2026-ULT4-PASSIVE7, 'pass send to claude'): idle3, walk2, attack3, crit2, hit1, green2, blue5 BOUNDED (frames 1-48 of the 1-48-47-1 artifact, pingpong = the approved 95 frames at 24 fps), ult4 (drops the flail, arms overhead, retrieves it), passive7 (spits two bills that turn to dust) - sha256 = manifest. Cut with slicehero.py settings through cs10 (PAD 60, 48@24, lossless, ALPHA_SOFT, key off each clip's frame-0 border) WITHOUT the green DESPILL_ALL pass (it greyed his green register display and banknotes - he is shot on magenta), then narrowdespill.py unmix (truly-pink 0.16-0.33% -> 0%). walk/attack/crit/green/ult/passive CELL_CAP'd to the 4096 texture limit (x0.985/0.873/0.717/0.920/0.862/0.952). figH/feet/cx measured on each clip's frame 0 (feet = soles, checked against the skin sole line on every cell); figH 381-382 native on every state. No ax: measured foot-pair midpoint stays within ~6 px through each clip, and the slicer's ax tracked the flail ball/bills, not the feet. relFrac = flail contact frame 18/48 (attack: ball at full reach; crit: ball hits the ground). walk loop [1,43] (walk_loop.py, score 0.40); cadence keeps his old fps 13 / stride 0.065. Animation only - kit, numbers and passive (Gluttony) unchanged. */
@@ -3004,8 +3004,8 @@ const BATTLE_ANIM = {
     hit:{u:'/assets/anim/gruel/gruel_hit_1155.webp?v=1155',n:15,fw:593,fh:510,cols:4,rows:4,figH:382,feet:446,cx:329,fps:25,flip:false,top:64},
     green:{u:'/assets/anim/gruel/gruel_green.webp?v=22',n:48,fw:682,fh:477,cols:6,rows:8,figH:351,feet:417,cx:316,fps:24,flip:false,top:66},
     blue:{u:'/assets/anim/gruel/gruel_blue.webp?v=22',n:48,fw:582,fh:506,cols:6,rows:8,figH:382,feet:444,cx:277,fps:24,flip:false,top:62,pingpong:true},
-    ult:{u:'/assets/anim/gruel/gruel_ult.webp?v=22',n:48,fw:483,fh:512,cols:6,rows:8,figH:329,feet:441,cx:247,fps:24,flip:false,top:112},
-    passive:{u:'/assets/anim/gruel/gruel_passive.webp?v=22',n:48,fw:579,fh:512,cols:6,rows:8,figH:363,feet:426,cx:250,fps:24,flip:false,top:62}
+    ult:{u:'/assets/anim/gruel/gruel_ult.webp?v=22',n:48,fw:483,fh:512,cols:6,rows:8,figH:329,feet:441,cx:247,fps:24,flip:false,top:112}
+    /* v1155 passive clip removed (Phil 15 Oct: "remove passive for anyone without an active passive"): nothing in a fight fires it (no firePassiveClip for gruel) - it only ever played as idle filler. The sheet stays on disk. */
   },
   astra:{
     idle:{u:'/assets/anim/astra/astra_idle.webp?v=21',n:48,fw:382,fh:562,cols:6,rows:8,figH:500,feet:548,cx:187,fps:24,flip:false,top:48,pingpong:true,ax:[0,2,2,3,2,2,1,0,-2,-4,-7,-8,-11,-15,-18,-19,-22,-26,-29,-32,-34,-37,-40,-43,-44,-41,-30,-24,-20,-16,-15,-9,-6,-6,-8,-11,-13,-14,-20,-24,-21,-19,-14,-9,-5,-4,-1,1]},
@@ -3014,8 +3014,8 @@ const BATTLE_ANIM = {
     hit:{u:'/assets/anim/astra/astra_hit.webp?v=21',n:48,fw:470,fh:553,cols:6,rows:8,figH:500,feet:546,cx:244,fps:24,flip:false,top:46,ax:[0,-1,-2,-1,-1,0,1,1,2,2,2,2,2,12,66,126,170,186,187,183,176,168,156,143,134,119,100,75,48,29,2,-19,-32,-18,-21,-29,-38,-42,-41,-34,-29,-22,-16,-11,-6,-4,-2,0]},
     green:{u:'/assets/anim/astra/astra_green.webp?v=21',n:48,fw:435,fh:645,cols:6,rows:8,figH:500,feet:594,cx:212,fps:24,flip:false,top:94,ax:[0,0,0,0,0,0,0,0,0,0,0,-1,-1,-1,-1,-2,-2,-3,-3,-4,-6,-7,-6,-3,-5,-6,-3,-1,1,1,1,2,2,2,2,2,3,3,4,4,4,5,5,6,5,3,0,-2]},
     blue:{u:'/assets/anim/astra/astra_blue.webp?v=21',n:48,fw:409,fh:527,cols:6,rows:8,figH:500,feet:516,cx:188,fps:24,flip:false,top:16,ax:[0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,-1,6,7,6,6,7,8,6,6,3,1,0,-1,-1,-3,-3,-3,-3,-3,-3,-2,-2,-1,-1,-1,-1,-1]},
-    ult:{u:'/assets/anim/astra/astra_ult.webp?v=21',n:48,fw:490,fh:614,cols:6,rows:8,figH:500,feet:607,cx:208,fps:24,flip:false,top:107},
-    passive:{u:'/assets/anim/astra/astra_passive.webp?v=21',n:48,fw:373,fh:573,cols:6,rows:8,figH:500,feet:554,cx:193,fps:24,flip:false,top:54,ax:[0,0,0,-1,-1,-1,-1,-2,-2,-2,-2,-3,-3,-4,-4,-4,-5,-5,-6,-6,-7,-7,-7,-8,-9,-9,-9,-10,-10,-10,-9,-9,-9,-8,-7,-7,-6,-5,-4,-3,-2,-1,-1,0,0,0,0,0]}
+    ult:{u:'/assets/anim/astra/astra_ult.webp?v=21',n:48,fw:490,fh:614,cols:6,rows:8,figH:500,feet:607,cx:208,fps:24,flip:false,top:107}
+    /* v1155 passive clip removed (Phil 15 Oct: "remove passive for anyone without an active passive"): nothing in a fight fires it (no firePassiveClip for astra) - it only ever played as idle filler. The sheet stays on disk. */
   },
   quorrel:{
     idle:{u:'/assets/anim/quorrel/quorrel_idle.webp?v=21',n:48,fw:337,fh:424,cols:6,rows:8,figH:400,feet:418,cx:161,fps:24,flip:false,top:18,pingpong:true},
@@ -3024,8 +3024,8 @@ const BATTLE_ANIM = {
     hit:{u:'/assets/anim/quorrel/quorrel_hit.webp?v=27',n:48,fw:379,fh:458,cols:6,rows:8,figH:400,feet:452,cx:161,fps:24,flip:false,top:52},
     green:{u:'/assets/anim/quorrel/quorrel_green.webp?v=27',n:48,fw:527,fh:539,cols:6,rows:8,figH:400,feet:530,cx:203,fps:24,flip:false,top:130,ax:[0,0,0,0,1,1,1,1,1,2,1,2,2,2,2,2,2,3,4,4,6,2,66,85,85,90,93,94,96,97,100,102,104,107,110,112,114,116,118,120,117,84,33,20,-1,-3,-3,-3]},
     blue:{u:'/assets/anim/quorrel/quorrel_blue.webp?v=27',n:48,fw:477,fh:465,cols:6,rows:8,figH:400,feet:459,cx:203,fps:24,flip:false,top:59},
-    ult:{u:'/assets/anim/quorrel/quorrel_ult.webp?v=27',n:48,fw:402,fh:452,cols:6,rows:8,figH:400,feet:446,cx:188,fps:24,flip:false,top:46},
-    passive:{u:'/assets/anim/quorrel/quorrel_passive.webp?v=21',n:48,fw:337,fh:430,cols:6,rows:8,figH:400,feet:424,cx:161,fps:24,flip:false,top:24}
+    ult:{u:'/assets/anim/quorrel/quorrel_ult.webp?v=27',n:48,fw:402,fh:452,cols:6,rows:8,figH:400,feet:446,cx:188,fps:24,flip:false,top:46}
+    /* v1155 passive clip removed (Phil 15 Oct: "remove passive for anyone without an active passive"): nothing in a fight fires it (no firePassiveClip for quorrel) - it only ever played as idle filler. The sheet stays on disk. */
   },
   korvux:{
     idle:{u:'/assets/anim/korvux/korvux_idle.webp?v=27',n:48,fw:445,fh:420,cols:6,rows:8,figH:400,feet:414,cx:215,fps:24,flip:false,top:14,pingpong:true},
@@ -3034,8 +3034,8 @@ const BATTLE_ANIM = {
     hit:{u:'/assets/anim/korvux/korvux_hit.webp?v=27',n:48,fw:485,fh:550,cols:6,rows:8,figH:400,feet:545,cx:242,fps:24,flip:false,top:145,ax:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,15,21,18,10,2,0,0,0,0,0,0,0,0,0,0,0,0,0]},
     green:{u:'/assets/anim/korvux/korvux_green.webp?v=21',n:48,fw:570,fh:503,cols:6,rows:8,figH:400,feet:495,cx:217,fps:24,flip:false,top:95,ax:[0,0,0,-15,-27,-45,-49,-49,-52,-62,-52,-51,-51,-51,-51,-53,-53,-51,-51,-51,-51,-51,-51,-51,-51,-51,-51,-51,-51,-51,-51,-51,-51,-51,-51,-51,-51,-51,-51,-51,-51,-52,-54,-44,-29,-6,0,0]},
     blue:{u:'/assets/anim/korvux/korvux_blue.webp?v=27',n:48,fw:523,fh:557,cols:6,rows:8,figH:400,feet:545,cx:251,fps:24,flip:false,top:145,ax:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,0,0,47,-7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},
-    ult:{u:'/assets/anim/korvux/korvux_ult.webp?v=27',n:48,fw:528,fh:552,cols:6,rows:8,figH:400,feet:546,cx:267,fps:24,flip:false,top:146},
-    passive:{u:'/assets/anim/korvux/korvux_passive.webp?v=27',n:48,fw:541,fh:423,cols:6,rows:8,figH:400,feet:416,cx:312,fps:24,flip:false,top:16}
+    ult:{u:'/assets/anim/korvux/korvux_ult.webp?v=27',n:48,fw:528,fh:552,cols:6,rows:8,figH:400,feet:546,cx:267,fps:24,flip:false,top:146}
+    /* v1155 passive clip removed (Phil 15 Oct: "remove passive for anyone without an active passive"): nothing in a fight fires it (no firePassiveClip for korvux) - it only ever played as idle filler. The sheet stays on disk. */
   },
   maren:{
     idle:{u:'/assets/anim/maren/maren_idle.webp?v=21',n:48,fw:387,fh:411,cols:6,rows:8,figH:400,feet:405,cx:195,fps:24,flip:false,top:5,pingpong:true},
@@ -3044,8 +3044,8 @@ const BATTLE_ANIM = {
     hit:{u:'/assets/anim/maren/maren_hit.webp?v=21',n:48,fw:459,fh:468,cols:6,rows:8,figH:400,feet:459,cx:214,fps:24,flip:false,top:59,ax:[0,0,1,1,1,1,1,2,2,3,3,3,4,4,4,5,5,6,6,5,5,6,6,6,6,7,7,7,7,8,8,8,9,9,9,10,10,10,10,11,11,11,11,11,11,11,11,11]},
     green:{u:'/assets/anim/maren/maren_green_1140.webp?v=1140',n:30,fw:409,fh:325,cols:5,rows:6,figH:267,feet:301,cx:190,fps:15,flip:false,top:34,contact:11},
     blue:{u:'/assets/anim/maren/maren_blue_1140.webp?v=1140',n:36,fw:341,fh:291,cols:6,rows:6,figH:265,feet:279,cx:183,fps:18,flip:false,top:14,contact:13},
-    ult:{u:'/assets/anim/maren/maren_ult_1140.webp?v=1140',n:34,fw:341,fh:307,cols:6,rows:6,figH:261,feet:289,cx:163,fps:17,flip:false,top:28,contact:20},
-    passive:{u:'/assets/anim/maren/maren_passive.webp?v=21',n:48,fw:398,fh:458,cols:6,rows:8,figH:400,feet:452,cx:208,fps:24,flip:false,top:52}
+    ult:{u:'/assets/anim/maren/maren_ult_1140.webp?v=1140',n:34,fw:341,fh:307,cols:6,rows:6,figH:261,feet:289,cx:163,fps:17,flip:false,top:28,contact:20}
+    /* v1155 passive clip removed (Phil 15 Oct: "remove passive for anyone without an active passive"): nothing in a fight fires it (no firePassiveClip for maren) - it only ever played as idle filler. The sheet stays on disk. */
   },
   lumi:{
     /* v531 (9 Sep 2026) - Lumi regenerated one state at a time on Hailuo 2.0 dual-plate, every clip approved by Phil;
@@ -3068,8 +3068,8 @@ const BATTLE_ANIM = {
     hit:{u:'/assets/anim/dandra/dandra_hit.webp?v=21',n:48,fw:564,fh:514,cols:6,rows:8,figH:500,feet:506,cx:250,fps:24,flip:false,top:6},
     green:{u:'/assets/anim/dandra/dandra_green.webp?v=21',n:48,fw:425,fh:597,cols:6,rows:8,figH:500,feet:590,cx:219,fps:24,flip:false,top:90,ax:[0,-10,-11,-11,-11,-11,-11,-11,-11,-11,-11,-11,-11,-11,-11,-11,-11,-11,-11,-11,-11,-11,-11,-11,-11,-11,-11,-11,-11,-11,-11,-11,-11,-11,-11,-11,-11,-11,-11,-11,-11,-11,-11,-11,-11,-11,-11,-11]},
     blue:{u:'/assets/anim/dandra/dandra_blue.webp?v=21',n:48,fw:611,fh:526,cols:6,rows:8,figH:500,feet:515,cx:224,fps:24,flip:false,top:15,ax:[0,0,0,-1,2,2,1,1,1,2,8,1,16,17,17,1,-17,-17,-17,-17,-17,-17,-17,-17,-17,-17,-17,-17,-17,-17,-17,-17,-17,-17,-17,-17,-17,-17,-17,-17,-17,-17,-17,-17,-17,-17,-17,-5]},
-    ult:{u:'/assets/anim/dandra/dandra_ult.webp?v=21',n:48,fw:541,fh:574,cols:6,rows:8,figH:500,feet:567,cx:302,fps:24,flip:false,top:67,ax:[0,-3,-3,-3,-3,-3,-3,-3,-4,-4,-4,-4,-11,-16,-16,-16,-16,-16,-16,-16,-16,-16,-16,-16,-15,-15,-15,-15,-15,-15,-15,-15,-15,-15,-15,-15,-15,-15,-15,-15,-15,-15,-15,-15,-15,-15,-4,2]},
-    passive:{u:'/assets/anim/dandra/dandra_passive.webp?v=21',n:48,fw:470,fh:518,cols:6,rows:8,figH:500,feet:511,cx:261,fps:24,flip:false,top:11,ax:[0,0,0,0,0,0,0,0,0,-1,-1,-1,-1,0,0,-1,-1,49,62,62,62,62,62,62,62,62,62,62,62,62,62,62,62,62,62,62,62,62,62,62,62,62,27,0,-1,-1,-1,-1]}
+    ult:{u:'/assets/anim/dandra/dandra_ult.webp?v=21',n:48,fw:541,fh:574,cols:6,rows:8,figH:500,feet:567,cx:302,fps:24,flip:false,top:67,ax:[0,-3,-3,-3,-3,-3,-3,-3,-4,-4,-4,-4,-11,-16,-16,-16,-16,-16,-16,-16,-16,-16,-16,-16,-15,-15,-15,-15,-15,-15,-15,-15,-15,-15,-15,-15,-15,-15,-15,-15,-15,-15,-15,-15,-15,-15,-4,2]}
+    /* v1155 passive clip removed (Phil 15 Oct: "remove passive for anyone without an active passive"): nothing in a fight fires it (no firePassiveClip for dandra) - it only ever played as idle filler. The sheet stays on disk. */
   },
   linnet:{
     idle:{u:'/assets/anim/linnet/linnet_idle.webp?v=21',n:48,fw:341,fh:520,cols:6,rows:8,figH:500,feet:513,cx:198,fps:24,flip:true,top:13,pingpong:true},
@@ -3078,8 +3078,8 @@ const BATTLE_ANIM = {
     hit:{u:'/assets/anim/linnet/linnet_hit.webp?v=21',n:48,fw:481,fh:525,cols:6,rows:8,figH:500,feet:518,cx:317,fps:24,flip:true,top:18},
     green:{u:'/assets/anim/linnet/linnet_green.webp?v=21',n:48,fw:509,fh:528,cols:6,rows:8,figH:500,feet:512,cx:360,fps:24,flip:true,top:12,ax:[0,2,4,-6,-111,-118,-131,-128,-126,-130,-130,-130,-130,-130,-130,-130,-130,-132,-132,-132,-132,-132,-132,-132,-132,-132,-132,-132,-132,-132,-132,-132,-125,-114,-123,-128,-125,-104,-59,-34,-54,-40,-5,0,0,0,0,0]},
     blue:{u:'/assets/anim/linnet/linnet_blue.webp?v=21',n:48,fw:510,fh:595,cols:6,rows:8,figH:500,feet:587,cx:281,fps:24,flip:true,top:87},
-    ult:{u:'/assets/anim/linnet/linnet_ult.webp?v=21',n:48,fw:502,fh:514,cols:6,rows:8,figH:500,feet:506,cx:313,fps:24,flip:true,top:6},
-    passive:{u:'/assets/anim/linnet/linnet_passive.webp?v=21',n:48,fw:325,fh:520,cols:6,rows:8,figH:500,feet:513,cx:188,fps:24,flip:true,top:13}
+    ult:{u:'/assets/anim/linnet/linnet_ult.webp?v=21',n:48,fw:502,fh:514,cols:6,rows:8,figH:500,feet:506,cx:313,fps:24,flip:true,top:6}
+    /* v1155 passive clip removed (Phil 15 Oct: "remove passive for anyone without an active passive"): nothing in a fight fires it (no firePassiveClip for linnet) - it only ever played as idle filler. The sheet stays on disk. */
   },
   calypsa:{
     idle:{u:'/assets/anim/calypsa/calypsa_idle.webp?v=21',n:48,fw:516,fh:521,cols:6,rows:8,figH:499,feet:511,cx:273,fps:24,flip:true,top:11,pingpong:true,ax:[0,-1,-2,-4,-7,-10,-10,-8,-8,-7,-7,-4,10,17,26,31,49,63,163,154,154,152,150,142,141,140,139,137,137,136,136,136,136,131,131,132,137,137,143,144,144,16,13,9,9,9,5,2]},
@@ -3088,8 +3088,8 @@ const BATTLE_ANIM = {
     hit:{u:'/assets/anim/calypsa/calypsa_hit.webp?v=21',n:48,fw:523,fh:585,cols:6,rows:8,figH:500,feet:573,cx:273,fps:24,flip:true,top:73,ax:[0,5,8,8,7,9,9,9,0,-12,-13,-10,-3,13,16,13,0,-10,-24,-25,-25,-26,-26,-23,-22,-20,-17,-13,-8,-5,-2,0,0,11,22,54,57,48,38,22,6,4,2,-2,-4,-3,-4,-4]},
     green:{u:'/assets/anim/calypsa/calypsa_green.webp?v=21',n:48,fw:598,fh:513,cols:6,rows:8,figH:500,feet:505,cx:378,fps:24,flip:true,top:5,ax:[0,0,0,-1,-5,-5,-8,-10,-10,-9,-10,-10,-10,-10,-13,-5,0,-1,-4,-22,-20,-21,-20,-20,-19,-19,-19,-18,-18,-18,-18,-19,-18,-18,-17,-19,-19,-20,-19,-20,-20,-17,-14,-12,-11,-8,-8,-8]},
     blue:{u:'/assets/anim/calypsa/calypsa_blue.webp?v=21',n:48,fw:511,fh:533,cols:6,rows:8,figH:500,feet:517,cx:264,fps:24,flip:true,top:17,ax:[0,-7,-38,-55,-92,-100,-93,-84,-78,-71,-64,-65,-97,-107,-114,-118,-117,-108,-89,-69,-27,5,35,13,-9,1,-42,-81,-92,-92,-85,-75,-66,-57,-57,-69,-28,4,32,17,-4,-6,-57,-78,-97,-97,-90,-81]},
-    ult:{u:'/assets/anim/calypsa/calypsa_ult.webp?v=21',n:48,fw:614,fh:623,cols:6,rows:8,figH:499,feet:617,cx:259,fps:24,flip:true,top:117,ax:[0,-1,-2,-4,-6,-6,-7,-6,-6,-4,-5,-4,-2,0,1,4,3,4,4,4,3,1,-1,-3,-5,-5,-5,-6,-6,-6,-5,-5,-3,-1,2,4,6,9,9,9,9,7,5,4,1,0,-3,-2]},
-    passive:{u:'/assets/anim/calypsa/calypsa_passive.webp?v=21',n:48,fw:465,fh:537,cols:6,rows:8,figH:499,feet:506,cx:246,fps:24,flip:true,top:6,ax:[0,1,4,7,12,19,36,69,95,100,94,87,83,75,68,61,56,51,45,44,43,43,43,43,43,44,45,46,47,48,49,51,52,43,38,33,31,29,25,26,26,19,13,12,8,2,3,3]}
+    ult:{u:'/assets/anim/calypsa/calypsa_ult.webp?v=21',n:48,fw:614,fh:623,cols:6,rows:8,figH:499,feet:617,cx:259,fps:24,flip:true,top:117,ax:[0,-1,-2,-4,-6,-6,-7,-6,-6,-4,-5,-4,-2,0,1,4,3,4,4,4,3,1,-1,-3,-5,-5,-5,-6,-6,-6,-5,-5,-3,-1,2,4,6,9,9,9,9,7,5,4,1,0,-3,-2]}
+    /* v1155 passive clip removed (Phil 15 Oct: "remove passive for anyone without an active passive"): nothing in a fight fires it (no firePassiveClip for calypsa) - it only ever played as idle filler. The sheet stays on disk. */
   },
   lysara:{
     idle:{u:'/assets/anim/lysara/lysara_idle.webp?v=21',n:48,fw:628,fh:515,cols:6,rows:8,figH:500,feet:508,cx:293,fps:24,flip:true,top:8,pingpong:true},
@@ -3098,8 +3098,8 @@ const BATTLE_ANIM = {
     hit:{u:'/assets/anim/lysara/lysara_hit.webp?v=21',n:48,fw:635,fh:678,cols:6,rows:8,figH:500,feet:646,cx:294,fps:24,flip:true,top:146,ax:[0,-10,-13,-19,-18,-15,-11,-5,0,2,3,8,6,8,75,248,209,188,174,162,156,22,-12,-28,-29,-15,101,91,100,101,68,46,35,31,28,31,43,49,53,62,73,88,95,97,95,83,80,56]},
     green:{u:'/assets/anim/lysara/lysara_green.webp?v=21',n:48,fw:660,fh:664,cols:6,rows:8,figH:500,feet:648,cx:292,fps:24,flip:true,top:148,ax:[0,-1,-4,4,2,0,-5,-9,-13,-17,-18,-17,-19,-17,-18,192,115,129,142,135,150,147,130,117,115,115,115,115,116,132,126,127,117,115,115,115,115,115,115,116,116,117,117,117,117,115,115,100]},
     blue:{u:'/assets/anim/lysara/lysara_blue.webp?v=21',n:48,fw:681,fh:688,cols:6,rows:8,figH:500,feet:642,cx:315,fps:24,flip:true,top:142,ax:[0,-4,-19,-31,-53,-54,-54,-54,-54,-54,-19,20,22,22,20,14,5,-5,-15,-3,115,141,160,183,-52,-48,-45,-48,-49,-4,168,164,163,163,163,161,161,160,159,159,157,154,145,121,45,7,-7,-7]},
-    ult:{u:'/assets/anim/lysara/lysara_ult.webp?v=21',n:48,fw:652,fh:636,cols:6,rows:8,figH:500,feet:606,cx:288,fps:24,flip:true,top:106,ax:[0,0,0,-3,-7,16,193,4,-17,-22,-31,-41,-47,-50,-51,-47,-21,1,3,4,4,4,5,6,6,3,1,0,1,1,4,0,-1,6,18,24,28,30,32,31,23,-2,0,-4,-6,-4,-4,-4]},
-    passive:{u:'/assets/anim/lysara/lysara_passive.webp?v=21',n:48,fw:536,fh:517,cols:6,rows:8,figH:500,feet:506,cx:234,fps:24,flip:true,top:6,ax:[0,-6,-2,4,4,3,10,23,38,34,35,33,31,33,31,31,31,31,32,29,31,33,31,19,24,10,10,1,-1,-6,-7,-6,-6,0,3,3,11,24,24,36,35,34,31,33,32,31,31,31]}
+    ult:{u:'/assets/anim/lysara/lysara_ult.webp?v=21',n:48,fw:652,fh:636,cols:6,rows:8,figH:500,feet:606,cx:288,fps:24,flip:true,top:106,ax:[0,0,0,-3,-7,16,193,4,-17,-22,-31,-41,-47,-50,-51,-47,-21,1,3,4,4,4,5,6,6,3,1,0,1,1,4,0,-1,6,18,24,28,30,32,31,23,-2,0,-4,-6,-4,-4,-4]}
+    /* v1155 passive clip removed (Phil 15 Oct: "remove passive for anyone without an active passive"): nothing in a fight fires it (no firePassiveClip for lysara) - it only ever played as idle filler. The sheet stays on disk. */
   },
   nerisse:{
     idle:{u:'/assets/anim/nerisse/nerisse_idle.webp?v=33',n:48,fw:268,fh:400,cols:6,rows:8,figH:369,feet:381,cx:118,fps:24,flip:true,top:12,ax:[0,2,3,-1,-1,0,1,-5,-6,-7,-16,-21,-23,-23,-24,-24,-23,-23,-24,-23,-23,-23,-23,-23,-23,-23,-15,-6,-3,-5,-3,-3,-7,-6,-7,-9,-24,-23,-23,-23,-23,-23,-23,-23,-23,-23,-23,-23]},
@@ -3108,8 +3108,8 @@ const BATTLE_ANIM = {
     hit:{u:'/assets/anim/nerisse/nerisse_hit.webp?v=33',n:48,fw:386,fh:400,cols:6,rows:8,figH:399,feet:400,cx:178,fps:24,flip:true,top:1,ax:[0,0,1,3,5,-3,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-7,2,13,18,18,15,5,-5,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-9,-6,-5,-3,-1,-1,0,0,1]},
     green:{u:'/assets/anim/nerisse/nerisse_green.webp?v=33',n:48,fw:316,fh:400,cols:6,rows:8,figH:395,feet:400,cx:138,fps:24,flip:true,top:5,ax:[0,2,5,7,8,10,11,12,13,15,17,18,20,22,25,30,40,42,43,40,40,40,42,39,33,25,21,26,26,26,26,26,23,15,-7,-20,-23,-23,-23,-23,-23,-24,-24,-24,-23,-24,-23,-23],hold:0.8},
     blue:{u:'/assets/anim/nerisse/nerisse_blue.webp?v=33',n:48,fw:252,fh:400,cols:6,rows:8,figH:399,feet:401,cx:124,fps:24,flip:true,top:2,ax:[0,0,0,-1,-1,-1,-2,-3,-4,-6,-7,-7,-7,-8,-9,-9,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-9,-8,-7,-7,-7,-6,-5,-3,-2,-2,-1,-1,0,0,0,0],hold:0.8},
-    ult:{u:'/assets/anim/nerisse/nerisse_ult.webp?v=33',n:48,fw:337,fh:400,cols:6,rows:8,figH:303,feet:389,cx:169,fps:24,flip:true,top:86,ax:[0,5,8,9,9,4,-1,-11,-15,-9,2,7,10,12,14,14,15,18,21,23,24,25,27,28,28,28,27,25,24,22,22,21,20,18,14,13,7,2,3,2,1,2,3,5,6,7,8,9]},
-    passive:{u:'/assets/anim/nerisse/nerisse_passive.webp?v=33',n:48,fw:242,fh:400,cols:6,rows:8,figH:399,feet:400,cx:115,fps:24,flip:true,top:1,ax:[0,0,0,2,3,4,5,7,9,11,12,13,13,13,13,12,12,11,11,10,8,7,4,4,2,1,1,1,1,2,4,4,5,7,8,9,10,10,11,11,12,13,13,13,13,13,13,14]}
+    ult:{u:'/assets/anim/nerisse/nerisse_ult.webp?v=33',n:48,fw:337,fh:400,cols:6,rows:8,figH:303,feet:389,cx:169,fps:24,flip:true,top:86,ax:[0,5,8,9,9,4,-1,-11,-15,-9,2,7,10,12,14,14,15,18,21,23,24,25,27,28,28,28,27,25,24,22,22,21,20,18,14,13,7,2,3,2,1,2,3,5,6,7,8,9]}
+    /* v1155 passive clip removed (Phil 15 Oct: "remove passive for anyone without an active passive"): nothing in a fight fires it (no firePassiveClip for nerisse) - it only ever played as idle filler. The sheet stays on disk. */
   },
   nox:{
     idle:{u:'/assets/anim/nox/nox_idle.webp?v=21',n:48,fw:369,fh:469,cols:6,rows:8,figH:400,feet:465,cx:178,fps:24,flip:true,top:65,pingpong:true},
@@ -3118,8 +3118,8 @@ const BATTLE_ANIM = {
     hit:{u:'/assets/anim/nox/nox_hit.webp?v=21',n:48,fw:468,fh:422,cols:6,rows:8,figH:400,feet:417,cx:191,fps:24,flip:true,top:17},
     green:{u:'/assets/anim/nox/nox_green.webp?v=21',n:48,fw:484,fh:481,cols:6,rows:8,figH:399,feet:469,cx:247,fps:24,flip:true,top:69,ax:[0,0,0,0,0,0,0,0,0,0,0,-2,-1,-2,218,-2,-3,-3,0,1,5,4,4,4,4,4,4,4,3,3,4,5,7,2,-2,-1,-2,-2,-2,-2,-2,-2,-2,-2,-2,-2,-2,-2]},
     blue:{u:'/assets/anim/nox/nox_blue.webp?v=21',n:48,fw:413,fh:498,cols:6,rows:8,figH:400,feet:493,cx:203,fps:24,flip:true,top:93},
-    ult:{u:'/assets/anim/nox/nox_ult.webp?v=21',n:48,fw:387,fh:479,cols:6,rows:8,figH:399,feet:474,cx:182,fps:24,flip:true,top:74},
-    passive:{u:'/assets/anim/nox/nox_passive.webp?v=21',n:48,fw:421,fh:456,cols:6,rows:8,figH:400,feet:420,cx:178,fps:24,flip:true,top:20,ax:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,10,90,157,193,229,255,268,270,272,273,274,276,275,272,263,244,177,130,55,0,0,0,0]}
+    ult:{u:'/assets/anim/nox/nox_ult.webp?v=21',n:48,fw:387,fh:479,cols:6,rows:8,figH:399,feet:474,cx:182,fps:24,flip:true,top:74}
+    /* v1155 passive clip removed (Phil 15 Oct: "remove passive for anyone without an active passive"): nothing in a fight fires it (no firePassiveClip for nox) - it only ever played as idle filler. The sheet stays on disk. */
   },
   seyla:{
     idle:{u:'/assets/anim/seyla/seyla_idle.webp?v=21',n:48,fw:474,fh:519,cols:6,rows:8,figH:500,feet:512,cx:235,fps:24,flip:true,top:12,pingpong:true},
@@ -3128,8 +3128,8 @@ const BATTLE_ANIM = {
     hit:{u:'/assets/anim/seyla/seyla_hit.webp?v=21',n:48,fw:612,fh:633,cols:6,rows:8,figH:500,feet:625,cx:293,fps:24,flip:true,top:125},
     green:{u:'/assets/anim/seyla/seyla_green.webp?v=21',n:48,fw:884,fh:723,cols:6,rows:8,figH:500,feet:691,cx:445,fps:24,flip:true,top:191,ax:[0,0,0,0,83,259,300,272,201,252,288,293,293,291,292,290,258,257,259,259,259,248,244,239,153,0,0,0,23,16,126,169,199,199,191,182,178,182,191,207,219,151,25,0,0,0,0,0]},
     blue:{u:'/assets/anim/seyla/seyla_blue.webp?v=21',n:48,fw:601,fh:662,cols:6,rows:8,figH:500,feet:648,cx:322,fps:24,flip:true,top:148,ax:[0,0,0,0,0,0,0,0,0,2,6,24,55,18,56,60,60,57,38,37,38,37,37,37,39,40,59,61,79,80,78,83,81,78,74,73,72,71,71,46,32,17,-11,-63,-71,-57,-30,-11]},
-    ult:{u:'/assets/anim/seyla/seyla_ult.webp?v=21',n:48,fw:642,fh:678,cols:6,rows:8,figH:500,feet:671,cx:357,fps:24,flip:true,top:171},
-    passive:{u:'/assets/anim/seyla/seyla_passive.webp?v=21',n:48,fw:451,fh:546,cols:6,rows:8,figH:500,feet:539,cx:230,fps:24,flip:true,top:39}
+    ult:{u:'/assets/anim/seyla/seyla_ult.webp?v=21',n:48,fw:642,fh:678,cols:6,rows:8,figH:500,feet:671,cx:357,fps:24,flip:true,top:171}
+    /* v1155 passive clip removed (Phil 15 Oct: "remove passive for anyone without an active passive"): nothing in a fight fires it (no firePassiveClip for seyla) - it only ever played as idle filler. The sheet stays on disk. */
   },
   vaelora:{
     idle:{u:'/assets/anim/vaelora/vaelora_idle.webp?v=21',n:48,fw:417,fh:511,cols:6,rows:8,figH:500,feet:505,cx:166,fps:24,flip:true,top:5,pingpong:true},
@@ -3138,8 +3138,8 @@ const BATTLE_ANIM = {
     hit:{u:'/assets/anim/vaelora/vaelora_hit.webp?v=21',n:48,fw:447,fh:612,cols:6,rows:8,figH:500,feet:606,cx:182,fps:24,flip:true,top:106},
     green:{u:'/assets/anim/vaelora/vaelora_green.webp?v=21',n:48,fw:431,fh:615,cols:6,rows:8,figH:500,feet:609,cx:165,fps:24,flip:true,top:109},
     blue:{u:'/assets/anim/vaelora/vaelora_blue.webp?v=21',n:48,fw:388,fh:601,cols:6,rows:8,figH:500,feet:596,cx:166,fps:24,flip:true,top:96},
-    ult:{u:'/assets/anim/vaelora/vaelora_ult.webp?v=21',n:48,fw:450,fh:511,cols:6,rows:8,figH:500,feet:505,cx:164,fps:24,flip:true,top:5,apex:36},
-    passive:{u:'/assets/anim/vaelora/vaelora_passive.webp?v=21',n:48,fw:496,fh:557,cols:6,rows:8,figH:500,feet:551,cx:214,fps:24,flip:true,top:51}
+    ult:{u:'/assets/anim/vaelora/vaelora_ult.webp?v=21',n:48,fw:450,fh:511,cols:6,rows:8,figH:500,feet:505,cx:164,fps:24,flip:true,top:5,apex:36}
+    /* v1155 passive clip removed (Phil 15 Oct: "remove passive for anyone without an active passive"): nothing in a fight fires it (no firePassiveClip for vaelora) - it only ever played as idle filler. The sheet stays on disk. */
   },
   zahri:{
     /* v532 (9 Sep 2026) - Zahri Sunhorn regenerated one state at a time on Hailuo 2.0 dual-plate (wide 1366x768 plate for the
@@ -3163,8 +3163,8 @@ const BATTLE_ANIM = {
     hit:{u:'/assets/anim/kharos/kharos_hit.webp?v=21',n:48,fw:450,fh:432,cols:6,rows:8,figH:400,feet:427,cx:271,fps:24,flip:true,top:27},
     green:{u:'/assets/anim/kharos/kharos_green.webp?v=21',n:48,fw:504,fh:458,cols:6,rows:8,figH:400,feet:453,cx:310,fps:24,flip:true,top:53,ax:[0,0,0,0,2,6,-15,-50,-65,-70,-70,-71,-71,-71,-71,-66,-67,-71,-70,-70,-70,-70,-70,-62,-56,-54,-69,-69,-69,-69,-69,-69,-67,-62,-56,-28,-7,1,1,0,0,0,0,0,0,0,0,0]},
     blue:{u:'/assets/anim/kharos/kharos_blue.webp?v=21',n:48,fw:405,fh:507,cols:6,rows:8,figH:400,feet:492,cx:277,fps:24,flip:true,top:92,ax:[0,0,-3,-5,-8,-9,-10,-10,-10,-10,-10,-10,-10,-9,-10,-10,-9,-9,-13,-18,-23,-25,-25,-25,-25,-25,-25,-25,-25,-25,-25,-25,-25,-24,-24,-24,-24,-25,-25,-25,-25,-25,-23,-20,-16,-13,-8,-5]},
-    ult:{u:'/assets/anim/kharos/kharos_ult.webp?v=21',n:48,fw:443,fh:417,cols:6,rows:8,figH:400,feet:412,cx:312,fps:24,flip:true,top:12},
-    passive:{u:'/assets/anim/kharos/kharos_passive.webp?v=21',n:48,fw:313,fh:409,cols:6,rows:8,figH:400,feet:404,cx:186,fps:24,flip:true,top:4}
+    ult:{u:'/assets/anim/kharos/kharos_ult.webp?v=21',n:48,fw:443,fh:417,cols:6,rows:8,figH:400,feet:412,cx:312,fps:24,flip:true,top:12}
+    /* v1155 passive clip removed (Phil 15 Oct: "remove passive for anyone without an active passive"): nothing in a fight fires it (no firePassiveClip for kharos) - it only ever played as idle filler. The sheet stays on disk. */
   },
   yenna:{
     idle:{u:'/assets/anim/yenna/yenna_idle.webp?v=22',n:48,fw:312,fh:456,cols:6,rows:8,figH:440,feet:449,cx:166,fps:24,flip:true,top:10,pingpong:true},
@@ -3173,8 +3173,8 @@ const BATTLE_ANIM = {
     hit:{u:'/assets/anim/yenna/yenna_hit.webp?v=21',n:48,fw:470,fh:617,cols:6,rows:8,figH:500,feet:610,cx:246,fps:24,flip:true,top:110},
     green:{u:'/assets/anim/yenna/yenna_green.webp?v=21',n:48,fw:547,fh:528,cols:6,rows:8,figH:500,feet:520,cx:312,fps:24,flip:true,top:20,ax:[0,0,0,2,4,4,2,4,15,23,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,26,21,16,10,0,-1]},
     blue:{u:'/assets/anim/yenna/yenna_blue.webp?v=21',n:48,fw:678,fh:634,cols:6,rows:8,figH:500,feet:625,cx:291,fps:24,flip:true,top:125,ax:[0,0,0,0,0,0,0,0,0,0,21,60,50,74,83,83,83,83,85,85,85,85,83,82,82,82,84,84,83,83,82,81,66,55,55,55,56,47,18,1,1,1,1,0,0,0,0,0]},
-    ult:{u:'/assets/anim/yenna/yenna_ult.webp?v=21',n:48,fw:739,fh:696,cols:6,rows:8,figH:500,feet:688,cx:450,fps:24,flip:true,top:188},
-    passive:{u:'/assets/anim/yenna/yenna_passive.webp?v=21',n:48,fw:344,fh:513,cols:6,rows:8,figH:500,feet:506,cx:185,fps:24,flip:true,top:6}
+    ult:{u:'/assets/anim/yenna/yenna_ult.webp?v=21',n:48,fw:739,fh:696,cols:6,rows:8,figH:500,feet:688,cx:450,fps:24,flip:true,top:188}
+    /* v1155 passive clip removed (Phil 15 Oct: "remove passive for anyone without an active passive"): nothing in a fight fires it (no firePassiveClip for yenna) - it only ever played as idle filler. The sheet stays on disk. */
   },
   sorrel:{
     idle:{u:'/assets/anim/sorrel/sorrel_idle.webp?v=21',n:48,fw:314,fh:409,cols:6,rows:8,figH:400,feet:404,cx:134,fps:24,flip:true,top:4,pingpong:true},
@@ -3183,8 +3183,8 @@ const BATTLE_ANIM = {
     hit:{u:'/assets/anim/sorrel/sorrel_hit.webp?v=21',n:48,fw:413,fh:409,cols:6,rows:8,figH:400,feet:404,cx:145,fps:24,flip:true,top:4},
     green:{u:'/assets/anim/sorrel/sorrel_green.webp?v=21',n:48,fw:375,fh:496,cols:6,rows:8,figH:400,feet:482,cx:217,fps:24,flip:true,top:82},
     blue:{u:'/assets/anim/sorrel/sorrel_blue.webp?v=21',n:48,fw:294,fh:408,cols:6,rows:8,figH:400,feet:404,cx:146,fps:24,flip:true,top:4},
-    ult:{u:'/assets/anim/sorrel/sorrel_ult.webp?v=21',n:48,fw:441,fh:470,cols:6,rows:8,figH:400,feet:461,cx:267,fps:24,flip:true,top:61},
-    passive:{u:'/assets/anim/sorrel/sorrel_passive.webp?v=21',n:48,fw:303,fh:412,cols:6,rows:8,figH:400,feet:405,cx:150,fps:24,flip:true,top:5}
+    ult:{u:'/assets/anim/sorrel/sorrel_ult.webp?v=21',n:48,fw:441,fh:470,cols:6,rows:8,figH:400,feet:461,cx:267,fps:24,flip:true,top:61}
+    /* v1155 passive clip removed (Phil 15 Oct: "remove passive for anyone without an active passive"): nothing in a fight fires it (no firePassiveClip for sorrel) - it only ever played as idle filler. The sheet stays on disk. */
   },
   brannus:{
     idle:{u:'/assets/anim/brannus/brannus_idle.webp?v=21',n:48,fw:379,fh:412,cols:6,rows:8,figH:400,feet:407,cx:175,fps:24,flip:true,top:7,pingpong:true},
@@ -3193,8 +3193,8 @@ const BATTLE_ANIM = {
     hit:{u:'/assets/anim/brannus/brannus_hit.webp?v=21',n:48,fw:469,fh:444,cols:6,rows:8,figH:400,feet:438,cx:252,fps:24,flip:true,top:38},
     green:{u:'/assets/anim/brannus/brannus_green.webp?v=21',n:48,fw:598,fh:551,cols:6,rows:8,figH:400,feet:545,cx:291,fps:24,flip:true,top:145,ax:[0,0,0,0,-4,0,-54,-75,-71,-72,-71,-70,-74,-80,-78,-73,-72,-72,-73,-72,-73,-73,-73,-73,-73,-73,-72,-72,-72,-72,-72,-72,-72,-71,-70,-70,-70,-70,-70,-70,-68,-67,-66,-1,7,1,1,1]},
     blue:{u:'/assets/anim/brannus/brannus_blue.webp?v=21',n:48,fw:525,fh:557,cols:6,rows:8,figH:400,feet:551,cx:287,fps:24,flip:true,top:151,ax:[0,0,0,-1,0,0,0,0,0,1,0,0,0,1,-11,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,-4]},
-    ult:{u:'/assets/anim/brannus/brannus_ult.webp?v=21',n:48,fw:419,fh:559,cols:6,rows:8,figH:400,feet:553,cx:231,fps:24,flip:true,top:153},
-    passive:{u:'/assets/anim/brannus/brannus_passive.webp?v=21',n:48,fw:391,fh:413,cols:6,rows:8,figH:400,feet:408,cx:175,fps:24,flip:true,top:8}
+    ult:{u:'/assets/anim/brannus/brannus_ult.webp?v=21',n:48,fw:419,fh:559,cols:6,rows:8,figH:400,feet:553,cx:231,fps:24,flip:true,top:153}
+    /* v1155 passive clip removed (Phil 15 Oct: "remove passive for anyone without an active passive"): nothing in a fight fires it (no firePassiveClip for brannus) - it only ever played as idle filler. The sheet stays on disk. */
   },
   deepcleft:{
     idle:{u:'/assets/anim/deepcleft/deepcleft_idle.webp?v=21',n:48,fw:402,fh:431,cols:6,rows:8,figH:400,feet:425,cx:212,fps:24,flip:true,top:25,pingpong:true},
@@ -3203,8 +3203,8 @@ const BATTLE_ANIM = {
     hit:{u:'/assets/anim/deepcleft/deepcleft_hit.webp?v=21',n:48,fw:443,fh:562,cols:6,rows:8,figH:400,feet:556,cx:256,fps:24,flip:true,top:156},
     green:{u:'/assets/anim/deepcleft/deepcleft_green.webp?v=21',n:48,fw:634,fh:575,cols:6,rows:8,figH:400,feet:569,cx:317,fps:24,flip:true,top:169},
     blue:{u:'/assets/anim/deepcleft/deepcleft_blue.webp?v=21',n:48,fw:502,fh:577,cols:6,rows:8,figH:400,feet:571,cx:268,fps:24,flip:true,top:171,ax:[0,0,0,0,0,0,0,0,0,15,21,28,29,30,30,30,29,30,29,29,29,29,29,29,30,30,30,30,30,30,30,29,29,29,29,29,29,29,29,30,30,29,30,29,30,29,30,29]},
-    ult:{u:'/assets/anim/deepcleft/deepcleft_ult.webp?v=21',n:48,fw:426,fh:433,cols:6,rows:8,figH:400,feet:428,cx:223,fps:24,flip:true,top:28,ax:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,-74,-231,-231,-233,21,17]},
-    passive:{u:'/assets/anim/deepcleft/deepcleft_passive.webp?v=21',n:48,fw:423,fh:434,cols:6,rows:8,figH:400,feet:428,cx:222,fps:24,flip:true,top:28}
+    ult:{u:'/assets/anim/deepcleft/deepcleft_ult.webp?v=21',n:48,fw:426,fh:433,cols:6,rows:8,figH:400,feet:428,cx:223,fps:24,flip:true,top:28,ax:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,-74,-231,-231,-233,21,17]}
+    /* v1155 passive clip removed (Phil 15 Oct: "remove passive for anyone without an active passive"): nothing in a fight fires it (no firePassiveClip for deepcleft) - it only ever played as idle filler. The sheet stays on disk. */
   },
   askel:{
     idle:{u:'/assets/anim/askel/askel_idle.webp?v=21',n:48,fw:296,fh:413,cols:6,rows:8,figH:400,feet:406,cx:155,fps:24,flip:true,top:6,pingpong:true},
@@ -3214,8 +3214,8 @@ const BATTLE_ANIM = {
     hit:{u:'/assets/anim/askel/askel_hit.webp?v=21',n:48,fw:343,fh:408,cols:6,rows:8,figH:400,feet:404,cx:202,fps:24,flip:true,top:4},
     green:{u:'/assets/anim/askel/askel_green_1128.webp?v=1128',n:48,fw:480,fh:679,cols:8,rows:6,figH:448,feet:636,cx:285,fps:20,flip:true,top:188,contact:25},
     blue:{u:'/assets/anim/askel/askel_blue_1128.webp?v=1128',n:48,fw:585,fh:582,cols:7,rows:7,figH:448,feet:540,cx:255,fps:20,flip:true,top:92,contact:15},
-    ult:{u:'/assets/anim/askel/askel_ult_1128.webp?v=1128',n:46,fw:445,fh:681,cols:8,rows:6,figH:447,feet:640,cx:245,fps:12,flip:true,top:193,root:2,contact:28,charge:{launch:14,loop:[15,24],lift:24,land:28}},
-    passive:{u:'/assets/anim/askel/askel_passive.webp?v=21',n:48,fw:352,fh:413,cols:6,rows:8,figH:400,feet:406,cx:211,fps:24,flip:true,top:6}
+    ult:{u:'/assets/anim/askel/askel_ult_1128.webp?v=1128',n:46,fw:445,fh:681,cols:8,rows:6,figH:447,feet:640,cx:245,fps:12,flip:true,top:193,root:2,contact:28,charge:{launch:14,loop:[15,24],lift:24,land:28}}
+    /* v1155 passive clip removed (Phil 15 Oct: "remove passive for anyone without an active passive"): nothing in a fight fires it (no firePassiveClip for askel) - it only ever played as idle filler. The sheet stays on disk. */
   },
   tharl:{   /* v1055 (Phil 7 Oct 2026: "iron passive pass" / "do the ironcoil wiring now"; ChatGPT handoff IRONCOIL-NINE-07OCT2026): nine
      approved Hailuo takes, official watermark-free files, sha256-matched to the manifest - idle1 walk1 attack2 crit9 hit1 ult2 green3
@@ -3241,8 +3241,8 @@ const BATTLE_ANIM = {
     hit:{u:'/assets/anim/hobb/hobb_hit.webp?v=21',n:48,fw:475,fh:473,cols:6,rows:8,figH:400,feet:466,cx:287,fps:24,flip:true,top:66},
     green:{u:'/assets/anim/hobb/hobb_green.webp?v=21',n:48,fw:675,fh:571,cols:6,rows:8,figH:400,feet:513,cx:379,fps:24,flip:true,top:113,ax:[0,-2,-2,1,8,11,10,11,16,15,15,15,10,15,10,11,11,11,16,16,16,16,11,11,11,11,16,16,15,15,10,10,11,11,11,7,-8,-74,158,-16,-17,-18,-16,-10,12,15,17,17]},
     blue:{u:'/assets/anim/hobb/hobb_blue.webp?v=21',n:48,fw:328,fh:421,cols:6,rows:8,figH:400,feet:416,cx:189,fps:24,flip:true,top:16},
-    ult:{u:'/assets/anim/hobb/hobb_ult.webp?v=21',n:48,fw:461,fh:557,cols:6,rows:8,figH:400,feet:521,cx:263,fps:24,flip:true,top:121,ax:[0,0,0,-1,-5,-4,-4,-3,-4,-4,-4,-4,-4,-4,-4,-4,-4,-3,-3,-247,-49,-29,-2,-5,-5,-5,-5,-5,-5,-5,-5,-5,-5,-5,-5,-5,-5,-5,-6,-5,-6,-5,-5,-6,-6,-5,-7,-10]},
-    passive:{u:'/assets/anim/hobb/hobb_passive.webp?v=21',n:48,fw:344,fh:408,cols:6,rows:8,figH:400,feet:404,cx:191,fps:24,flip:true,top:4}
+    ult:{u:'/assets/anim/hobb/hobb_ult.webp?v=21',n:48,fw:461,fh:557,cols:6,rows:8,figH:400,feet:521,cx:263,fps:24,flip:true,top:121,ax:[0,0,0,-1,-5,-4,-4,-3,-4,-4,-4,-4,-4,-4,-4,-4,-4,-3,-3,-247,-49,-29,-2,-5,-5,-5,-5,-5,-5,-5,-5,-5,-5,-5,-5,-5,-5,-5,-6,-5,-6,-5,-5,-6,-6,-5,-7,-10]}
+    /* v1155 passive clip removed (Phil 15 Oct: "remove passive for anyone without an active passive"): nothing in a fight fires it (no firePassiveClip for hobb) - it only ever played as idle filler. The sheet stays on disk. */
   },
   orryn:{
     idle:{u:'/assets/anim/orryn/orryn_idle.webp?v=21',n:48,fw:298,fh:411,cols:6,rows:8,figH:400,feet:405,cx:155,fps:24,flip:true,top:5,pingpong:true},
@@ -3251,8 +3251,8 @@ const BATTLE_ANIM = {
     hit:{u:'/assets/anim/orryn/orryn_hit.webp?v=21',n:48,fw:311,fh:411,cols:6,rows:8,figH:400,feet:406,cx:164,fps:24,flip:true,top:6},
     green:{u:'/assets/anim/orryn/orryn_green_1140.webp?v=1140',n:44,fw:227,fh:331,cols:9,rows:5,figH:205,feet:301,cx:122,fps:22,flip:true,top:96,contact:16},
     blue:{u:'/assets/anim/orryn/orryn_blue_1140.webp?v=1140',n:44,fw:256,fh:296,cols:8,rows:6,figH:216,feet:264,cx:123,fps:22,flip:true,top:48,contact:16},
-    ult:{u:'/assets/anim/orryn/orryn_ult.webp?v=21',n:48,fw:492,fh:505,cols:6,rows:8,figH:400,feet:490,cx:269,fps:24,flip:true,top:90,ax:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,20,41,33,-6,-20,-20,-12,-13,12,70,98,108,112,112,112,111,111,109,108,109,109,108,51,13,-23,-24,-26,-28,-30]},
-    passive:{u:'/assets/anim/orryn/orryn_passive.webp?v=21',n:48,fw:323,fh:419,cols:6,rows:8,figH:400,feet:413,cx:155,fps:24,flip:true,top:13}
+    ult:{u:'/assets/anim/orryn/orryn_ult.webp?v=21',n:48,fw:492,fh:505,cols:6,rows:8,figH:400,feet:490,cx:269,fps:24,flip:true,top:90,ax:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,20,41,33,-6,-20,-20,-12,-13,12,70,98,108,112,112,112,111,111,109,108,109,109,108,51,13,-23,-24,-26,-28,-30]}
+    /* v1155 passive clip removed (Phil 15 Oct: "remove passive for anyone without an active passive"): nothing in a fight fires it (no firePassiveClip for orryn) - it only ever played as idle filler. The sheet stays on disk. */
   },
   pellucid:{
     idle:{u:'/assets/anim/pellucid/pellucid_idle.webp?v=21',n:48,fw:340,fh:419,cols:6,rows:8,figH:400,feet:413,cx:190,fps:24,flip:true,top:13,pingpong:true},
@@ -3262,8 +3262,8 @@ const BATTLE_ANIM = {
     hit:{u:'/assets/anim/pellucid/pellucid_hit.webp?v=21',n:48,fw:424,fh:420,cols:6,rows:8,figH:400,feet:414,cx:246,fps:24,flip:true,top:14},
     green:{u:'/assets/anim/pellucid/pellucid_green_redo1.webp?v=24',n:48,fw:471,fh:512,cols:6,rows:8,figH:348,feet:447,cx:258,fps:12,flip:true,top:99,contact:17},   /* Pellucid redo1 GREEN / BLUE / ULT (Phil 11 Oct: "send to claude"; ChatGPT handoff PELLUCID-GREEN-BLUE-ULT-REDO1-11OCT2026, approved-three-manifest.json, every sha256 checked): green-redo1 Meteor Knuckle (Hailuo 565829979771117569, one overhead fist ground slam), blue-redo1 Infernal Clinch (565837525030453248, two-hand reach, clamp, squeeze), ult-redo1 Worldbreaker Fists (565839305432789001, exactly three two-fist slams). Silent sources, cut with cut_pellucid.py = the v1115 settings (cs10 PAD 60, lossless, ALPHA_SOFT/FLOOR 4, DESPILL_ALL + EDGE_REF, key off frame-0 border; watermark mask 0 px - nothing scrubbed; keycheck gate OK on all three). 48 cells at 12 fps (green/blue 4 s; the ult plays n:46 = 3.83 s; 5 render frames a cell at 60): the cells are picked from the source by a measured frame map so the art lands on the game's own moments - the clip starts with the cast and plays in real time, the fight clock runs at 0.6724 of it. GREEN: source 4,6..98 (natural pace) - the fist meets the ground on source 38 = cell 17, on screen 1.417-1.500 s; the Meteor Knuckle effect lands at cast 0.5 + fall 0.45 fight s (on the tick 0.957) = 1.423 s; low hold to cell 32, recovery and stance by cell 47. BLUE: source 9..33 over cells 0-9 (x1.33 reach), then natural pace to 109 - the hands close on source 33 = cell 9, on screen 0.750-0.833 s; Infernal Clinch fires at the end of its 0.5 fight-s cast (on the tick) inside that cell; squeeze hold cells 13-25, release 26-37. ULT: slam contacts source 34/67/98 = cells 14/26/39, on screen 1.167-1.250 / 2.167-2.250 / 3.250-3.333 s; the three gameplay slams (cast 0.8 + 0/0.7/1.4 fight s, measured on the tick at 0.820/1.503/2.214 fight s) land at 1.219/2.235/3.293 s - each inside its contact cell; cells 0-14 at natural pace from source 6, 15-39 at x1.37/x1.19 between slams, 40-45 a shortened low hold + the recovery 118-137 (source 105,113,119,124,130,137). n:46 so the clip is over before his cast lock ends (worldbreaker holds _castT to 2.6 fight s = 3.87 s): at 48 cells the swing that starts there pulled the one-shot fit back to a mid-slam cell for the last 0.15 s (seen in the rig). Cells 46-47 are unused padding. The ult was keyed with EDGE_REF_K 1.15: at the default 1.0 its despill fingerprint read 0.606% (keycheck gate 0.6%, a faint olive rim at 5x); 1.15 reads 0.540%, no visible change at 5x (1.5 put a pink fringe on it). figH/feet/cx measured on frame 0 (his standing pose, 445 px native on all three, the same as attack/crit) so all three stand at his size and ground line; figH = feet - top (the slicer's int floor left it 1 px short). No ax (the slicer's ax tracked the fists at the ground, not his planted feet). flip:true as every Pellucid state. `root:2` on the ult: ultClipDur roots him for the clip's n/fps fight seconds; the old 48 @24 clip gave exactly 2.0, and this keeps it at 2.0 - no game logic moves (damage, slam timing, stun, radius, root all unchanged; tests/test_pellucid_redo1.js). The old v=21 sheets stay on disk. */
     blue:{u:'/assets/anim/pellucid/pellucid_blue_redo1.webp?v=24',n:48,fw:539,fh:512,cols:6,rows:8,figH:403,feet:457,cx:326,fps:12,flip:true,top:54,contact:9},
-    ult:{u:'/assets/anim/pellucid/pellucid_ult_redo1.webp?v=24',n:46,fw:407,fh:512,cols:6,rows:8,figH:321,feet:461,cx:238,fps:12,flip:true,top:140,root:2},
-    passive:{u:'/assets/anim/pellucid/pellucid_passive.webp?v=21',n:48,fw:307,fh:412,cols:6,rows:8,figH:400,feet:406,cx:148,fps:24,flip:true,top:6}
+    ult:{u:'/assets/anim/pellucid/pellucid_ult_redo1.webp?v=24',n:46,fw:407,fh:512,cols:6,rows:8,figH:321,feet:461,cx:238,fps:12,flip:true,top:140,root:2}
+    /* v1155 passive clip removed (Phil 15 Oct: "remove passive for anyone without an active passive"): nothing in a fight fires it (no firePassiveClip for pellucid) - it only ever played as idle filler. The sheet stays on disk. */
   },
   tick:{
     idle:{u:'/assets/anim/tick/tick_idle.webp?v=21',n:48,fw:307,fh:424,cols:6,rows:8,figH:400,feet:419,cx:164,fps:24,flip:false,top:19,pingpong:true,ax:[0,-4,-15,-22,-33,-40,-41,-33,-27,-13,-7,-4,-2,-1,0,-1,-11,-28,-41,-44,-41,-24,-11,-4,-2,-1,-10,-25,-37,-41,-43,-31,-15,-6,-3,0,-7,-23,-36,-42,-43,-33,-16,-8,-4,-2,-1,0]},
@@ -3272,8 +3272,8 @@ const BATTLE_ANIM = {
     hit:{u:'/assets/anim/tick/tick_hit.webp?v=21',n:48,fw:350,fh:470,cols:6,rows:8,figH:400,feet:464,cx:188,fps:24,flip:false,top:64},
     green:{u:'/assets/anim/tick/tick_green.webp?v=21',n:48,fw:405,fh:421,cols:6,rows:8,figH:400,feet:415,cx:181,fps:24,flip:false,top:15},
     blue:{u:'/assets/anim/tick/tick_blue.webp?v=21',n:48,fw:423,fh:411,cols:6,rows:8,figH:400,feet:405,cx:266,fps:24,flip:false,top:5},
-    ult:{u:'/assets/anim/tick/tick_ult.webp?v=21',n:48,fw:428,fh:475,cols:6,rows:8,figH:400,feet:468,cx:222,fps:24,flip:false,top:68},
-    passive:{u:'/assets/anim/tick/tick_passive.webp?v=21',n:48,fw:327,fh:412,cols:6,rows:8,figH:400,feet:406,cx:160,fps:24,flip:false,top:6}
+    ult:{u:'/assets/anim/tick/tick_ult.webp?v=21',n:48,fw:428,fh:475,cols:6,rows:8,figH:400,feet:468,cx:222,fps:24,flip:false,top:68}
+    /* v1155 passive clip removed (Phil 15 Oct: "remove passive for anyone without an active passive"): nothing in a fight fires it (no firePassiveClip for tick) - it only ever played as idle filler. The sheet stays on disk. */
   },
   vireo:{
     /* v556 (10 Sep 2026) - RECUT AT NATIVE. v555 was cut wrong: the slicer scaled her body box to a
@@ -3294,8 +3294,8 @@ const BATTLE_ANIM = {
     hit:{u:'/assets/anim/vireo/vireo_hit.webp?v=23',n:48,fw:404,fh:625,cols:6,rows:8,figH:596,feet:614,cx:167,fps:24,flip:false,top:18},
     green:{u:'/assets/anim/vireo/vireo_green.webp?v=23',n:48,fw:306,fh:622,cols:6,rows:8,figH:596,feet:610,cx:169,fps:24,flip:false,top:14,hold:0.8},
     blue:{u:'/assets/anim/vireo/vireo_blue.webp?v=23',n:48,fw:305,fh:608,cols:6,rows:8,figH:596,feet:602,cx:135,fps:24,flip:false,top:6,hold:0.8},
-    ult:{u:'/assets/anim/vireo/vireo_ult.webp?v=23',n:48,fw:368,fh:620,cols:6,rows:8,figH:596,feet:604,cx:177,fps:24,flip:false,top:8},
-    passive:{u:'/assets/anim/vireo/vireo_passive.webp?v=23',n:48,fw:450,fh:624,cols:6,rows:8,figH:596,feet:604,cx:258,fps:24,flip:false,top:8}
+    ult:{u:'/assets/anim/vireo/vireo_ult.webp?v=23',n:48,fw:368,fh:620,cols:6,rows:8,figH:596,feet:604,cx:177,fps:24,flip:false,top:8}
+    /* v1155 passive clip removed (Phil 15 Oct: "remove passive for anyone without an active passive"): nothing in a fight fires it (no firePassiveClip for vireo) - it only ever played as idle filler. The sheet stays on disk. */
   },
   vulmar:{
     idle:{u:'/assets/anim/vulmar/vulmar_idle.webp?v=21',n:48,fw:250,fh:464,cols:6,rows:8,figH:400,feet:459,cx:116,fps:24,flip:false,top:59,pingpong:true},
@@ -3304,8 +3304,8 @@ const BATTLE_ANIM = {
     hit:{u:'/assets/anim/vulmar/vulmar_hit.webp?v=21',n:48,fw:279,fh:410,cols:6,rows:8,figH:400,feet:405,cx:144,fps:24,flip:false,top:5},
     green:{u:'/assets/anim/vulmar/vulmar_green.webp?v=21',n:48,fw:411,fh:477,cols:6,rows:8,figH:400,feet:464,cx:251,fps:24,flip:false,top:64,ax:[0,0,0,0,4,10,4,-25,96,94,94,94,94,94,94,94,94,94,94,94,94,94,94,94,94,94,94,94,95,94,94,94,94,94,94,94,94,94,94,94,94,94,94,94,94,94,94,94]},
     blue:{u:'/assets/anim/vulmar/vulmar_blue.webp?v=21',n:48,fw:278,fh:442,cols:6,rows:8,figH:400,feet:434,cx:144,fps:24,flip:false,top:34},
-    ult:{u:'/assets/anim/vulmar/vulmar_ult.webp?v=21',n:48,fw:251,fh:416,cols:6,rows:8,figH:400,feet:410,cx:116,fps:24,flip:false,top:10,ax:[0,0,0,0,0,1,3,3,4,5,6,7,8,8,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,7,8,6,5,4,3,1,1,0,0,0,0,0,0,0]},
-    passive:{u:'/assets/anim/vulmar/vulmar_passive.webp?v=21',n:48,fw:252,fh:421,cols:6,rows:8,figH:400,feet:405,cx:118,fps:24,flip:false,top:5,ax:[0,0,0,0,0,0,0,0,0,0,0,0,-1,1,4,6,8,9,11,11,13,13,14,14,13,12,11,11,11,11,11,9,8,4,2,1,1,1,2,3,4,4,5,5,5,5,5,5]}
+    ult:{u:'/assets/anim/vulmar/vulmar_ult.webp?v=21',n:48,fw:251,fh:416,cols:6,rows:8,figH:400,feet:410,cx:116,fps:24,flip:false,top:10,ax:[0,0,0,0,0,1,3,3,4,5,6,7,8,8,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,7,8,6,5,4,3,1,1,0,0,0,0,0,0,0]}
+    /* v1155 passive clip removed (Phil 15 Oct: "remove passive for anyone without an active passive"): nothing in a fight fires it (no firePassiveClip for vulmar) - it only ever played as idle filler. The sheet stays on disk. */
   },
   mirelle:{
     idle:{u:'/assets/anim/mirelle/mirelle_idle.webp?v=21',n:48,fw:400,fh:514,cols:6,rows:8,figH:500,feet:506,cx:198,fps:24,flip:true,top:6,pingpong:true},
@@ -3314,8 +3314,8 @@ const BATTLE_ANIM = {
     hit:{u:'/assets/anim/mirelle/mirelle_hit.webp?v=21',n:48,fw:438,fh:516,cols:6,rows:8,figH:500,feet:509,cx:246,fps:24,flip:true,top:9},
     green:{u:'/assets/anim/mirelle/mirelle_green.webp?v=21',n:48,fw:646,fh:691,cols:6,rows:8,figH:500,feet:684,cx:346,fps:24,flip:true,top:184,ax:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,3,3,3,3,3,3,3,3,3,57,84,3,3,3,3,0,0,0,0,0,0,0,3,3,3,3,3,3,3,3,3]},
     blue:{u:'/assets/anim/mirelle/mirelle_blue.webp?v=21',n:48,fw:662,fh:651,cols:6,rows:8,figH:500,feet:644,cx:353,fps:24,flip:true,top:144},
-    ult:{u:'/assets/anim/mirelle/mirelle_ult.webp?v=21',n:48,fw:601,fh:583,cols:6,rows:8,figH:500,feet:576,cx:308,fps:24,flip:true,top:76},
-    passive:{u:'/assets/anim/mirelle/mirelle_passive.webp?v=21',n:48,fw:420,fh:518,cols:6,rows:8,figH:500,feet:511,cx:202,fps:24,flip:true,top:11}
+    ult:{u:'/assets/anim/mirelle/mirelle_ult.webp?v=21',n:48,fw:601,fh:583,cols:6,rows:8,figH:500,feet:576,cx:308,fps:24,flip:true,top:76}
+    /* v1155 passive clip removed (Phil 15 Oct: "remove passive for anyone without an active passive"): nothing in a fight fires it (no firePassiveClip for mirelle) - it only ever played as idle filler. The sheet stays on disk. */
   },
   veyr:{
     idle:{u:'/assets/anim/veyr/veyr_idle.webp?v=21',n:48,fw:476,fh:410,cols:6,rows:8,figH:400,feet:404,cx:252,fps:24,flip:true,top:4,pingpong:true},
@@ -3324,8 +3324,8 @@ const BATTLE_ANIM = {
     hit:{u:'/assets/anim/veyr/veyr_hit.webp?v=21',n:48,fw:485,fh:418,cols:6,rows:8,figH:400,feet:412,cx:251,fps:24,flip:true,top:12},
     green:{u:'/assets/anim/veyr/veyr_green.webp?v=21',n:48,fw:527,fh:558,cols:6,rows:8,figH:400,feet:525,cx:306,fps:24,flip:true,top:125,ax:[0,0,0,0,0,0,-2,12,9,-25,-56,-71,-80,-91,-87,-79,-79,-63,-52,-50,-47,-44,-40,-35,-24,-18,-11,-10,-7,-7,-8,-7,-7,-3,-2,-1,0,0,0,0,0,0,0,0,0,0,0,0]},
     blue:{u:'/assets/anim/veyr/veyr_blue.webp?v=21',n:48,fw:489,fh:411,cols:6,rows:8,figH:400,feet:406,cx:251,fps:24,flip:true,top:6},
-    ult:{u:'/assets/anim/veyr/veyr_ult.webp?v=21',n:48,fw:479,fh:576,cols:6,rows:8,figH:400,feet:525,cx:268,fps:24,flip:true,top:125,ax:[0,0,0,0,0,0,0,0,0,0,-17,-67,-70,-72,-72,-71,-68,-37,0,1,3,3,3,3,3,2,2,2,2,2,2,2,2,2,2,1,1,1,0,0,0,0,0,0,0,0,0,0]},
-    passive:{u:'/assets/anim/veyr/veyr_passive.webp?v=21',n:48,fw:467,fh:440,cols:6,rows:8,figH:400,feet:433,cx:252,fps:24,flip:true,top:33,ax:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,14,15,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}
+    ult:{u:'/assets/anim/veyr/veyr_ult.webp?v=21',n:48,fw:479,fh:576,cols:6,rows:8,figH:400,feet:525,cx:268,fps:24,flip:true,top:125,ax:[0,0,0,0,0,0,0,0,0,0,-17,-67,-70,-72,-72,-71,-68,-37,0,1,3,3,3,3,3,2,2,2,2,2,2,2,2,2,2,1,1,1,0,0,0,0,0,0,0,0,0,0]}
+    /* v1155 passive clip removed (Phil 15 Oct: "remove passive for anyone without an active passive"): nothing in a fight fires it (no firePassiveClip for veyr) - it only ever played as idle filler. The sheet stays on disk. */
   },
   hollow:{
     /* v1126 Hollow ten (Phil 11 Oct, ChatGPT handoff HOLLOW-REBUILD-TEN-PASSIVE2-11OCT2026, 'send to claude'): ENTRANCE2 (drop), IDLE1, WALK1, ATTACK4, CRIT5, HIT4 (no flash), GREEN9 Fan of Knives, BLUE2 Lacerate, ULT3 Vanishing Point, PASSIVE2 The Space He Isn't In (PASSIVE1 excluded) - silent variants, all 20 manifest sha256 matched. Shot on GREEN; his art owns no green (black body, silver blade, violet eyes), so cut_hollow.py = Umbris's cs10 settings (lossless, ALPHA_SOFT/FLOOR 4, key off each clip's frame-0 border, DESPILL_ALL) on EXACT source frames (listed per state); keycheck 0 leaning px on all ten. NATIVE SIZE (no CELL_CAP): PAD trimmed (60 -> 20-32 where needed) and cells re-gridded losslessly to fit 4096; idle 42, walk 36, crit 42 and drop 36 cells because 48 do not fit at native size. The ten were shot at three scales (idle/walk/entrance 1.0, attack/crit/hit 0.659, green/blue/ult/passive 0.460): each state's guard plate is fitted to idle's frame-0 guard (scale + shift, alpha IoU 0.93-1.0) and idle's head (96), sole (687) and centroid carried into every cell, so figH (592 x scale) / feet / cx / top draw him the same size on the same spot in every state. Source art faces RIGHT (flip:false). TIMING IS THE ENGINE'S (v1123): no damage, cast, root, miss or drop time moved - the art is cut to land on it (clips play in real time, the fight clock at SIM_STEP*SIM_HZ*BATTLE_PACE = 0.6724 of it). Accepted caveats (Phil): ATTACK4 blade touches the frame edge f37/f73 and lengthens briefly; CRIT5 blade bends f12-14; GREEN9 six knives, not five; BLUE2 blade smears f23/f29-31; ULT3 landing bend f79-81 and held poses; PASSIVE2 the late ~1.8 s mist fade (the cut starts at f70, the slip). */
@@ -3358,8 +3358,8 @@ const BATTLE_ANIM = {
     hit:{u:'/assets/anim/rivet/rivet_hit.webp?v=27',n:48,fw:667,fh:547,cols:6,rows:8,figH:400,feet:536,cx:335,fps:24,flip:false,top:136,ax:[0,0,1,1,2,5,65,19,-91,-89,33,32,-73,-122,-131,-131,-131,-131,-131,-129,-129,-129,-131,-131,-131,-131,-131,-131,-131,-131,-108,-54,-55,-56,-56,-55,-56,-56,-56,-56,-56,-56,-56,-56,-56,-57,-57,-57]},
     green:{u:'/assets/anim/rivet/rivet_green.webp?v=27',n:48,fw:665,fh:438,cols:6,rows:8,figH:400,feet:430,cx:262,fps:24,flip:false,top:30},
     blue:{u:'/assets/anim/rivet/rivet_blue.webp?v=21',n:48,fw:649,fh:544,cols:6,rows:8,figH:400,feet:537,cx:296,fps:24,flip:false,top:137},
-    ult:{u:'/assets/anim/rivet/rivet_ult.webp?v=27',n:48,fw:690,fh:418,cols:6,rows:8,figH:400,feet:411,cx:287,fps:24,flip:false,top:11,ax:[0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,-1,-1,0,1,3,57,109,152,136,53,53,53,53,53,53,53,53,53,53,53,53,53,53,53,53,53,53,53,53,53,53,53,53]},
-    passive:{u:'/assets/anim/rivet/rivet_passive.webp?v=21',n:48,fw:564,fh:471,cols:6,rows:8,figH:400,feet:463,cx:263,fps:24,flip:false,top:63,ax:[0,1,0,1,0,1,1,1,-1,-8,-20,-12,-2,15,146,161,161,161,161,161,161,161,160,155,-135,-135,-136,-12,14,16,17,17,17,18,18,18,18,18,10,-16,-16,-16,-13,-31,-31,-1,-5,-4]}
+    ult:{u:'/assets/anim/rivet/rivet_ult.webp?v=27',n:48,fw:690,fh:418,cols:6,rows:8,figH:400,feet:411,cx:287,fps:24,flip:false,top:11,ax:[0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,-1,-1,0,1,3,57,109,152,136,53,53,53,53,53,53,53,53,53,53,53,53,53,53,53,53,53,53,53,53,53,53,53,53]}
+    /* v1155 passive clip removed (Phil 15 Oct: "remove passive for anyone without an active passive"): nothing in a fight fires it (no firePassiveClip for rivet) - it only ever played as idle filler. The sheet stays on disk. */
   },
   meridian:{
     idle:{u:'/assets/anim/meridian/meridian_idle.webp?v=21',n:48,fw:224,fh:411,cols:6,rows:8,figH:400,feet:405,cx:113,fps:24,flip:true,top:5,pingpong:true},
@@ -3368,8 +3368,8 @@ const BATTLE_ANIM = {
     hit:{u:'/assets/anim/meridian/meridian_hit.webp?v=21',n:48,fw:535,fh:477,cols:6,rows:8,figH:400,feet:470,cx:285,fps:24,flip:true,top:70},
     green:{u:'/assets/anim/meridian/meridian_green.webp?v=21',n:48,fw:426,fh:457,cols:6,rows:8,figH:400,feet:446,cx:171,fps:24,flip:true,top:46,ax:[0,0,0,-3,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-4,0,0,0,0]},
     blue:{u:'/assets/anim/meridian/meridian_blue.webp?v=21',n:48,fw:384,fh:477,cols:6,rows:8,figH:400,feet:472,cx:273,fps:24,flip:true,top:72},
-    ult:{u:'/assets/anim/meridian/meridian_ult.webp?v=21',n:48,fw:497,fh:531,cols:6,rows:8,figH:400,feet:524,cx:272,fps:24,flip:true,top:124,ax:[0,0,0,0,0,0,-2,-5,-6,-7,-7,-8,-9,-26,-42,-53,-54,-54,-54,-54,-54,-54,-54,-54,-54,-54,-54,-54,-54,-54,-54,-54,-54,-54,-54,-54,-54,-54,-54,-54,-54,-54,-54,-54,-54,-54,-54,-54]},
-    passive:{u:'/assets/anim/meridian/meridian_passive.webp?v=21',n:48,fw:259,fh:413,cols:6,rows:8,figH:400,feet:407,cx:117,fps:24,flip:true,top:7}
+    ult:{u:'/assets/anim/meridian/meridian_ult.webp?v=21',n:48,fw:497,fh:531,cols:6,rows:8,figH:400,feet:524,cx:272,fps:24,flip:true,top:124,ax:[0,0,0,0,0,0,-2,-5,-6,-7,-7,-8,-9,-26,-42,-53,-54,-54,-54,-54,-54,-54,-54,-54,-54,-54,-54,-54,-54,-54,-54,-54,-54,-54,-54,-54,-54,-54,-54,-54,-54,-54,-54,-54,-54,-54,-54,-54]}
+    /* v1155 passive clip removed (Phil 15 Oct: "remove passive for anyone without an active passive"): nothing in a fight fires it (no firePassiveClip for meridian) - it only ever played as idle filler. The sheet stays on disk. */
   },
   hurne:{
     /* v538: green and ult re-sliced from the archive clips with registration zoom correction (the source camera pushed in: body 263->503 px on the old sheets) at 400 art px, 520 cells, ?v=22 so the service worker's persistent asset cache lets go of the old files (Phil: "this isnt the ult animation i see in game").
@@ -3450,8 +3450,8 @@ const BATTLE_ANIM = {
     hit:{u:'/assets/anim/fritz/fritz_hit_1155.webp?v=1155',n:15,fw:448,fh:491,cols:4,rows:4,figH:371,feet:431,cx:225,fps:25,flip:false,top:60},
     surge:{u:'/assets/anim/fritz/fritz_surge.webp?v=30',n:48,fw:515,fh:588,cols:6,rows:8,figH:371,feet:526,cx:217,fps:24,flip:false,top:155},
     chain:{u:'/assets/anim/fritz/fritz_chain.webp?v=30',n:48,fw:602,fh:491,cols:6,rows:8,figH:371,feet:431,cx:245,fps:24,flip:false,top:60},
-    ult:{u:'/assets/anim/fritz/fritz_ult.webp?v=30',n:72,fw:474,fh:579,cols:6,rows:12,figH:371,feet:519,cx:205,fps:24,flip:false,top:148,apex:36},
-    passive:{u:'/assets/anim/fritz/fritz_passive.webp?v=30',n:48,fw:626,fh:520,cols:6,rows:8,figH:371,feet:459,cx:245,fps:24,flip:false,top:88}
+    ult:{u:'/assets/anim/fritz/fritz_ult.webp?v=30',n:72,fw:474,fh:579,cols:6,rows:12,figH:371,feet:519,cx:205,fps:24,flip:false,top:148,apex:36}
+    /* v1155 passive clip removed (Phil 15 Oct: "remove passive for anyone without an active passive"): nothing in a fight fires it (no firePassiveClip for fritz) - it only ever played as idle filler. The sheet stays on disk. */
   },
   aureth:{
     /* v1153 Aureth eleven (Phil PASS 15 Oct 2026 "aureth pass", REVIEW 15OCT2026 H3, clean-source-manifest.json: all eleven 'Phil PASS', official
@@ -3506,7 +3506,7 @@ const BATTLE_ANIM = {
   walk:{u:'/assets/anim/umbris/umbris_walk_1155.webp?v=1155',n:36,fw:530,fh:512,cols:6,rows:6,figH:364,feet:422,cx:296,fps:10.3478,stride:0.0887,flip:false,top:58,loop:[1,35]},
   attack:{u:'/assets/anim/umbris/umbris_attack_1115.webp?v=1115',n:48,fw:600,fh:512,cols:6,rows:8,figH:361,feet:423,cx:284,fps:26,flip:false,top:61,relFrac:18/48},   /* v1115: 26 fps, not 24 - his swing hold is 0.95 x his 2.0 s interval = 1.9 s, and a clip LONGER than its hold is squeezed into it (v410 fit) and drawn late (measured on the rig: cell 12 on screen when the bolt left at cell 18). 48/26 = 1.846 s fits the hold, so the clip plays at its own rate and the bolt leaves on the drawn cell 18. */
   hit:{u:'/assets/anim/umbris/umbris_hit_1155.webp?v=1155',n:15,fw:570,fh:512,cols:4,rows:4,figH:364,feet:447,cx:328,fps:25,flip:false,top:83},
-  passive:{u:'/assets/anim/umbris/umbris_passive_1115.webp?v=1115',n:48,fw:568,fh:504,cols:6,rows:8,figH:376,feet:436,cx:282,fps:24,flip:false,top:60},
+  /* v1155 passive clip removed (Phil 15 Oct: "remove passive for anyone without an active passive"): nothing in a fight fires it (no firePassiveClip for umbris) - it only ever played as idle filler. The sheet stays on disk. */
   /* v573 (Phil: "unwire hit completely we will not worry about it right now" / "umbris doesnt need hit right now"):
      his hit sheet is a hover with no flinch in it, cut at 147 px against the casts at 444, and it grows 16% over the
      last five frames. UNWIRED, not deleted - the sheet stays at assets/anim/umbris/umbris_hit.webp for the remake.
@@ -3571,8 +3571,8 @@ const BATTLE_ANIM = {
   hit:{u:'/assets/anim/rhukk/rhukk_hit_1155.webp?v=1155',n:15,fw:554,fh:502,cols:4,rows:4,figH:296,feet:440,cx:321,fps:25,flip:false,top:144},
   ult:{u:'/assets/anim/rhukk/rhukk_ult.webp?v=10',n:48,fw:573,fh:435,cols:6,rows:8,figH:296,feet:360,cx:231,fps:24,flip:false,top:64,rush:{launch:12,fly:13,land:14},ax:[0,0,2,3,12,20,44,59,53,54,45,31,57,160,160,156,156,156,156,156,156,156,135,118,61,20,21,21,21,21,20,20,21,20,20,20,20,20,20,20,19,-7,-4,4,1,1,1,2]}   /* v1021 Impale Rush: wind-up 0-11, horn-led launch 12, flight 13 (held for the whole dash), impact 14-21, recovery 22-47 */,
   green:{u:'/assets/anim/rhukk/rhukk_green.webp?v=10',n:48,fw:436,fh:418,cols:6,rows:8,figH:296,feet:357,cx:212,fps:24,flip:false,top:61},
-  blue:{u:'/assets/anim/rhukk/rhukk_blue.webp?v=10',n:48,fw:574,fh:510,cols:6,rows:8,figH:297,feet:448,cx:302,fps:24,flip:false,top:151},
-  passive:{u:'/assets/anim/rhukk/rhukk_passive.webp?v=1',n:48,fw:484,fh:474,cols:6,rows:8,figH:296,feet:382,cx:248,fps:24,flip:false,top:86}
+  blue:{u:'/assets/anim/rhukk/rhukk_blue.webp?v=10',n:48,fw:574,fh:510,cols:6,rows:8,figH:297,feet:448,cx:302,fps:24,flip:false,top:151}
+  /* v1155 passive clip removed (Phil 15 Oct: "remove passive for anyone without an active passive"): nothing in a fight fires it (no firePassiveClip for rhukk) - it only ever played as idle filler. The sheet stays on disk. */
   },
   carn:{
     /* v1142 Carn eight (Phil PASS 15 Oct 2026, REVIEW 15OCT2026 H3, clean-source-manifest.json: all eight 'Phil PASS', official Hailuo Without Watermark
@@ -3614,8 +3614,8 @@ const BATTLE_ANIM = {
     hit:{u:'/assets/anim/sylthaine/sylthaine_hit.webp?v=26',n:48,fw:406,fh:520,cols:6,rows:8,figH:502,feet:514,cx:195,fps:24,flip:false,top:12},
     green:{u:'/assets/anim/sylthaine/sylthaine_green.webp?v=26',n:48,fw:542,fh:520,cols:6,rows:8,figH:502,feet:514,cx:263,fps:24,flip:false,top:12},
     blue:{u:'/assets/anim/sylthaine/sylthaine_blue.webp?v=26',n:48,fw:398,fh:520,cols:6,rows:8,figH:502,feet:514,cx:191,fps:24,flip:false,top:12},
-    ult:{u:'/assets/anim/sylthaine/sylthaine_ult_1140.webp?v=1140',n:48,fw:256,fh:305,cols:8,rows:6,figH:233,feet:301,cx:124,fps:24,flip:false,top:68,apex:31},   /* v1137 Sylthaine ULT Blizzard 'contained snow' (MiniMax H3 creation 566969598953037827) + PASSIVE Cold Snap (566967168584491017), Phil PASS 14 Oct (REVIEW 14OCT2026 H3; the first wide-mist Blizzard 566967065383694345 was rejected and is not used). Official Without Watermark exports, manifest sha256 matched (B2DE4C34... / 62EE87E8...), cut from the silent twins (video stream sha256 identical to the originals); four corners 0 px on nine frames per clip (control: a watermarked Hailuo export reads ~2740 px), no crop box reaches the wordmark band. New concept on GREEN (Game Art/Heroes/Sylthaine/Sylthaine - static.png). Key off each source's frame-0 border (1,243,0 / 0,246,0). She owns no green (concept interior 0.7% true-green = its own spill), so cs10 DESPILL_ALL as Umbris v1115, not PLATE_MATCH: matching the H3 render to the concept pulled G 14 over the whole figure and turned the white snow PINK (magenta lean 93% of the rim vs 15% on the un-despilled cut = her purple robe); DESPILL_ALL keeps her skin/robe on the source colours (skin 180,126,104 vs concept 179,124,103) and the snow white; green rim 0 on edge and body (rimcheck; control: the un-despilled cut 11%). 48 @24 like the old sheets - the 1440x1984 full-body plate and the 1320 px snow ring cannot fit 48 cells under 4096 natively, so ONE cs10 CELL_CAP downscale to an 8 x 6 grid (ult x0.375, passive x0.458; torso 214 / 262 px), lossless, then the alpha floor 4 re-applied after the resample (alpha 1-3 specks). Anchors from each source's frame 0 = the plate stance (w/h 0.560 / 0.558 = idle cell 0's 0.556), flip:false like all her states, no ax. TIMING IS THE ENGINE'S (tests/test_sylthaine_ult_passive.js): 48 @24 = clipDur 2.0 s exactly as before (ultClipDur roots her for it - sim-side), ult apex 31 kept (v525: wind-up cells 0-31 = f0-f44 ~1.4x, HOLD cell 31 = f44 the full snow ring circling her for the storm, return 32-47 = the ring thins f84-f94 and the staff comes down to stance f123); the 0.6 s cast draws cells 0-20 (f0-f28, the snow gathering round her) and the Blizzard starts on cell 20 (844x390 rig, two reps, BASE identical); v525's channel clock then restarts the wind-up from cell 0 (pre-existing, same on BASE - disclosed), reaches the apex hold cell 31 at 1.45 fight s, holds it to 3.91 and lands on cell 47 at 4.56 as the storm ends. Cold Snap stays her idle-alternate flourish (v522; no event): stance f0-f4, frost flash and rings at natural speed f6-f42 (contact cell 9 = f12, the flare in her raised hand), settle to stance f45-f123. Old v26 sheets stay on disk unused; kit, numbers, FX and the skill-panel preview unchanged. v525 (Phil, off the contact sheet): hold the apex frame for the length of the blizzard, then the rest to return. */
-    passive:{u:'/assets/anim/sylthaine/sylthaine_passive_1140.webp?v=1140',n:48,fw:256,fh:314,cols:8,rows:6,figH:284,feet:308,cx:104,fps:24,flip:false,top:24,contact:9}
+    ult:{u:'/assets/anim/sylthaine/sylthaine_ult_1140.webp?v=1140',n:48,fw:256,fh:305,cols:8,rows:6,figH:233,feet:301,cx:124,fps:24,flip:false,top:68,apex:31}   /* v1137 Sylthaine ULT Blizzard 'contained snow' (MiniMax H3 creation 566969598953037827) + PASSIVE Cold Snap (566967168584491017), Phil PASS 14 Oct (REVIEW 14OCT2026 H3; the first wide-mist Blizzard 566967065383694345 was rejected and is not used). Official Without Watermark exports, manifest sha256 matched (B2DE4C34... / 62EE87E8...), cut from the silent twins (video stream sha256 identical to the originals); four corners 0 px on nine frames per clip (control: a watermarked Hailuo export reads ~2740 px), no crop box reaches the wordmark band. New concept on GREEN (Game Art/Heroes/Sylthaine/Sylthaine - static.png). Key off each source's frame-0 border (1,243,0 / 0,246,0). She owns no green (concept interior 0.7% true-green = its own spill), so cs10 DESPILL_ALL as Umbris v1115, not PLATE_MATCH: matching the H3 render to the concept pulled G 14 over the whole figure and turned the white snow PINK (magenta lean 93% of the rim vs 15% on the un-despilled cut = her purple robe); DESPILL_ALL keeps her skin/robe on the source colours (skin 180,126,104 vs concept 179,124,103) and the snow white; green rim 0 on edge and body (rimcheck; control: the un-despilled cut 11%). 48 @24 like the old sheets - the 1440x1984 full-body plate and the 1320 px snow ring cannot fit 48 cells under 4096 natively, so ONE cs10 CELL_CAP downscale to an 8 x 6 grid (ult x0.375, passive x0.458; torso 214 / 262 px), lossless, then the alpha floor 4 re-applied after the resample (alpha 1-3 specks). Anchors from each source's frame 0 = the plate stance (w/h 0.560 / 0.558 = idle cell 0's 0.556), flip:false like all her states, no ax. TIMING IS THE ENGINE'S (tests/test_sylthaine_ult_passive.js): 48 @24 = clipDur 2.0 s exactly as before (ultClipDur roots her for it - sim-side), ult apex 31 kept (v525: wind-up cells 0-31 = f0-f44 ~1.4x, HOLD cell 31 = f44 the full snow ring circling her for the storm, return 32-47 = the ring thins f84-f94 and the staff comes down to stance f123); the 0.6 s cast draws cells 0-20 (f0-f28, the snow gathering round her) and the Blizzard starts on cell 20 (844x390 rig, two reps, BASE identical); v525's channel clock then restarts the wind-up from cell 0 (pre-existing, same on BASE - disclosed), reaches the apex hold cell 31 at 1.45 fight s, holds it to 3.91 and lands on cell 47 at 4.56 as the storm ends. Cold Snap stays her idle-alternate flourish (v522; no event): stance f0-f4, frost flash and rings at natural speed f6-f42 (contact cell 9 = f12, the flare in her raised hand), settle to stance f45-f123. Old v26 sheets stay on disk unused; kit, numbers, FX and the skill-panel preview unchanged. v525 (Phil, off the contact sheet): hold the apex frame for the length of the blizzard, then the rest to return. */
+    /* v1155 passive clip removed (Phil 15 Oct: "remove passive for anyone without an active passive"): nothing in a fight fires it (no firePassiveClip for sylthaine) - it only ever played as idle filler. The sheet stays on disk. */
   },
   'skarrn':{
    idle:{u:'/assets/anim/mon/skarrn_walk_hd.webp?v=1',n:6,fw:220,fh:300,cols:6,rows:2,figH:222,feet:279,cx:69,fps:6,flip:false,pingpong:true,top:57},
@@ -3794,7 +3794,7 @@ HERO_SKILL_CLIPS.grosk = {
   2:{u:'/assets/anim/grosk/grosk_blue_1112.webp?v=22',n:48,fw:595,fh:494,cols:6,rows:8,dur:4.0},
   /* 3: v1118 - no passive animation for Grosk (Phil) */
 };
-HERO_SKILL_CLIPS.vulmar = { 0:{u:'/assets/anim/vulmar/vulmar_ult.webp?v=7',n:48,fw:241,fh:400,cols:6,rows:8,dur:2.0}, 1:{u:'/assets/anim/vulmar/vulmar_green.webp?v=7',n:48,fw:345,fh:400,cols:6,rows:8,dur:2.0}, 2:{u:'/assets/anim/vulmar/vulmar_blue.webp?v=7',n:48,fw:252,fh:400,cols:6,rows:8,dur:2.0}, 3:{u:'/assets/anim/vulmar/vulmar_passive.webp?v=7',n:48,fw:240,fh:400,cols:6,rows:8,dur:2.0} };
+HERO_SKILL_CLIPS.vulmar = { 0:{u:'/assets/anim/vulmar/vulmar_ult.webp?v=7',n:48,fw:241,fh:400,cols:6,rows:8,dur:2.0}, 1:{u:'/assets/anim/vulmar/vulmar_green.webp?v=7',n:48,fw:345,fh:400,cols:6,rows:8,dur:2.0}, 2:{u:'/assets/anim/vulmar/vulmar_blue.webp?v=7',n:48,fw:252,fh:400,cols:6,rows:8,dur:2.0} };   /* v1155: 3 (passive) removed (Phil 15 Oct: 'remove passive for anyone without an active passive') */
 // Oakmir skill-tab previews (Vael's derive from his battle sheets since v1025) — single-row strips re-packed from their battle sheets (assets/anim/<hero>/<hero>_sk_*.webp).
 // Slots match the Skills list order: 0 ult, 1 green, 2 blue, 3 passive → idle stance.
 HERO_SKILL_CLIPS.oakmir = {
@@ -3809,7 +3809,7 @@ HERO_SKILL_CLIPS.umbris = {   /* v1115: the approved eight (ult, green, blue, pa
   0:{u:'/assets/anim/umbris/umbris_ult_1115.webp?v=1115',n:48,fw:559,fh:511,cols:6,rows:8,dur:2.0},
   1:{u:'/assets/anim/umbris/umbris_green_1115.webp?v=1115',n:48,fw:616,fh:510,cols:6,rows:8,dur:2.0},
   2:{u:'/assets/anim/umbris/umbris_blue_1115.webp?v=1115',n:48,fw:607,fh:511,cols:6,rows:8,dur:2.0},
-  3:{u:'/assets/anim/umbris/umbris_passive_1115.webp?v=1115',n:48,fw:568,fh:504,cols:6,rows:8,dur:2.0},
+  /* 3 (passive) removed v1155 (Phil 15 Oct: "remove passive for anyone without an active passive") - with no battle passive clip the Skills tab would fall back to this old sheet */
 };
 HERO_SKILL_CLIPS.aureth = {
   0:{u:'/assets/anim/aureth/aureth_sk_ult.webp?v=5',  n:12,fw:226,fh:180,dur:1.8},
@@ -3820,7 +3820,7 @@ HERO_SKILL_CLIPS.vireo = {
   0:{u:'/assets/anim/vireo/vireo_sk_ult.webp?v=8',  n:12,fw:265,fh:180,dur:1.8},
   1:{u:'/assets/anim/vireo/vireo_sk_green.webp?v=8',n:12,fw:243,fh:180,dur:1.8},
   2:{u:'/assets/anim/vireo/vireo_sk_blue.webp?v=8', n:12,fw:280,fh:180,dur:1.8},
-  3:{u:'/assets/anim/vireo/vireo_sk_pass.webp?v=8', n:12,fw:250,fh:180,dur:2.4},
+  /* 3 (passive) removed v1155 (Phil 15 Oct: "remove passive for anyone without an active passive") - with no battle passive clip the Skills tab would fall back to this old sheet */
 };
 HERO_SKILL_CLIPS.fritz = {
   0:{u:'/assets/anim/fritz/fritz_sk_ult.webp',  n:12,fw:179,fh:180,dur:1.8},
@@ -20750,8 +20750,8 @@ Object.assign(BATTLE_ANIM, {
     hit:{u:'/assets/anim/pyroclast/pyroclast_hit_1155.webp?v=1155',n:15,fw:466,fh:584,cols:5,rows:3,figH:443,feet:523,cx:208,fps:25,flip:true,top:80},
     green:{u:'/assets/anim/pyroclast/pyroclast_green.webp?v=4',n:48,fw:414,fh:726,cols:6,rows:8,figH:443,feet:666,cx:198,fps:24,flip:true,top:223},
     blue:{u:'/assets/anim/pyroclast/pyroclast_blue.webp?v=4',n:48,fw:476,fh:592,cols:6,rows:8,figH:444,feet:517,cx:222,fps:24,flip:true,top:73},
-    ult:{u:'/assets/anim/pyroclast/pyroclast_ult.webp?v=4',n:48,fw:458,fh:687,cols:6,rows:8,figH:443,feet:627,cx:206,fps:24,flip:true,top:184},
-    passive:{u:'/assets/anim/pyroclast/pyroclast_passive.webp?v=4',n:48,fw:427,fh:577,cols:6,rows:8,figH:443,feet:517,cx:218,fps:24,flip:true,top:74}
+    ult:{u:'/assets/anim/pyroclast/pyroclast_ult.webp?v=4',n:48,fw:458,fh:687,cols:6,rows:8,figH:443,feet:627,cx:206,fps:24,flip:true,top:184}
+    /* v1155 passive clip removed (Phil 15 Oct: "remove passive for anyone without an active passive"): nothing in a fight fires it (no firePassiveClip for pyroclast) - it only ever played as idle filler. The sheet stays on disk. */
   },
   iver:{
     idle:{u:'/assets/anim/iver/iver_idle.webp?v=3',n:48,fw:292,fh:400,cols:6,rows:8,figH:365,feet:394.0,cx:142.0,fps:24,flip:true,top:30,pingpong:true},
@@ -20759,8 +20759,8 @@ Object.assign(BATTLE_ANIM, {
     attack:{u:'/assets/anim/iver/iver_attack.webp?v=3',n:48,fw:400,fh:372,cols:6,rows:8,figH:251,feet:366.0,cx:213.0,fps:24,flip:true,top:116,ax:[0.0,0.3,0.4,0.5,0.5,0.3,0.1,-0.4,-0.7,-1.2,-1.4,-1.4,-1.6,1.3,1.1,0.1,-1.2,-1.3,-1.3,0.1,0.7,0.9,2.6,8.4,15.3,18.4,21.8,23.8,15.9,8.0,9.3,10.9,11.5,14.2,17.8,19.5,13.7,13.8,13.8,13.8,13.9,14.9,14.8,13.7,11.7,8.1,6.2,6.1]},
     green:{u:'/assets/anim/iver/iver_green.webp?v=3',n:48,fw:370,fh:400,cols:6,rows:8,figH:269,feet:395.0,cx:205.5,fps:24,flip:true,top:127},
     blue:{u:'/assets/anim/iver/iver_blue.webp?v=3',n:48,fw:342,fh:400,cols:6,rows:8,figH:268,feet:363.0,cx:183.0,fps:24,flip:true,top:96,ax:[0.0,0.2,0.8,0.3,0.8,-0.6,-0.1,-1.2,-2.4,-3.8,-5.9,-6.0,-6.9,-7.0,-8.0,-6.9,-5.0,-3.5,-1.0,0.7,1.9,2.5,3.1,2.3,1.6,1.8,0.6,0.1,-0.9,-0.5,0.6,0.9,3.5,2.2,2.1,1.7,1.8,2.0,2.6,3.1,2.9,2.3,1.1,0.1,-0.1,-0.1,1.9,1.2]},
-    ult:{u:'/assets/anim/iver/iver_ult.webp?v=3',n:48,fw:343,fh:400,cols:6,rows:8,figH:257,feet:350.0,cx:215.5,fps:24,flip:true,top:94,ax:[0.0,-0.6,-0.3,0.8,1.0,2.1,1.6,1.6,0.7,0.7,0.7,0.7,0.7,0.7,0.7,0.7,10.7,10.2,12.0,13.3,14.5,14.8,14.1,13.9,13.4,12.6,11.9,13.0,14.8,14.8,14.8,18.3,16.0,13.1,10.9,8.2,0.3,-5.4,-10.6,-12.7,-12.3,-13.8,-12.4,-7.6,0.2,4.3,5.8,5.0]},
-    passive:{u:'/assets/anim/iver/iver_passive.webp?v=3',n:48,fw:385,fh:400,cols:6,rows:8,figH:278,feet:394.0,cx:247.5,fps:24,flip:true,top:117,ax:[0.0,-0.3,0.3,0.3,0.0,-1.7,-1.6,-2.1,-1.7,-3.0,-2.9,-3.7,-3.2,-3.7,-3.7,-3.8,-3.7,-3.9,-4.1,-4.3,-4.5,-4.5,-4.6,-4.7,-5.2,-5.6,-1.3,-1.3,-1.3,-4.7,-4.7,16.5,16.5,17.1,17.1,17.1,17.1,17.1,17.3,14.2,11.1,8.1,-1.5,-3.7,-4.6,-4.3,-3.7,-4.0]}
+    ult:{u:'/assets/anim/iver/iver_ult.webp?v=3',n:48,fw:343,fh:400,cols:6,rows:8,figH:257,feet:350.0,cx:215.5,fps:24,flip:true,top:94,ax:[0.0,-0.6,-0.3,0.8,1.0,2.1,1.6,1.6,0.7,0.7,0.7,0.7,0.7,0.7,0.7,0.7,10.7,10.2,12.0,13.3,14.5,14.8,14.1,13.9,13.4,12.6,11.9,13.0,14.8,14.8,14.8,18.3,16.0,13.1,10.9,8.2,0.3,-5.4,-10.6,-12.7,-12.3,-13.8,-12.4,-7.6,0.2,4.3,5.8,5.0]}
+    /* v1155 passive clip removed (Phil 15 Oct: "remove passive for anyone without an active passive"): nothing in a fight fires it (no firePassiveClip for iver) - it only ever played as idle filler. The sheet stays on disk. */
   },
   sloe:{
     idle:{u:'/assets/anim/sloe/sloe_idle.webp?v=2',n:36,fw:276,fh:400,cols:6,rows:6,figH:390,feet:394.0,cx:119.5,fps:15,flip:false,top:5},
@@ -20769,8 +20769,8 @@ Object.assign(BATTLE_ANIM, {
     hit:{u:'/assets/anim/sloe/sloe_hit.webp?v=2',n:20,fw:305,fh:400,cols:6,rows:4,figH:369,feet:394.0,cx:157.5,fps:16,flip:false,top:26},
     green:{u:'/assets/anim/sloe/sloe_green.webp?v=2',n:36,fw:338,fh:400,cols:6,rows:6,figH:295,feet:395.0,cx:107.5,fps:15,flip:false,top:101,hold:0.8},
     blue:{u:'/assets/anim/sloe/sloe_blue.webp?v=2',n:36,fw:400,fh:339,cols:6,rows:6,figH:302,feet:330.0,cx:204.0,fps:15,flip:false,top:29,hold:0.8},
-    ult:{u:'/assets/anim/sloe/sloe_ult.webp?v=2',n:48,fw:400,fh:376,cols:6,rows:8,figH:290,feet:371.0,cx:144.0,fps:15,flip:false,top:82},
-    passive:{u:'/assets/anim/sloe/sloe_passive.webp?v=2',n:36,fw:319,fh:400,cols:6,rows:6,figH:367,feet:394.0,cx:142.5,fps:15,flip:false,top:28}
+    ult:{u:'/assets/anim/sloe/sloe_ult.webp?v=2',n:48,fw:400,fh:376,cols:6,rows:8,figH:290,feet:371.0,cx:144.0,fps:15,flip:false,top:82}
+    /* v1155 passive clip removed (Phil 15 Oct: "remove passive for anyone without an active passive"): nothing in a fight fires it (no firePassiveClip for sloe) - it only ever played as idle filler. The sheet stays on disk. */
   },
   absalie:{
     idle:{u:'/assets/anim/absalie/absalie_idle.webp?v=2',n:36,fw:267,fh:400,cols:6,rows:6,figH:372,feet:394.0,cx:133.0,fps:15,flip:false,top:23},
@@ -20779,8 +20779,8 @@ Object.assign(BATTLE_ANIM, {
     hit:{u:'/assets/anim/absalie/absalie_walk.webp?v=2',n:36,fw:400,fh:391,cols:6,rows:6,figH:325,feet:378.0,cx:166.0,flip:false,top:54,fps:24},
     green:{u:'/assets/anim/absalie/absalie_passive.webp?v=2',n:36,fw:266,fh:400,cols:6,rows:6,figH:357,feet:388.0,cx:134.5,flip:false,top:32,fps:15,hold:0.8},
     blue:{u:'/assets/anim/absalie/absalie_green.webp?v=2',n:36,fw:315,fh:400,cols:6,rows:6,figH:305,feet:395.0,cx:120.5,flip:false,top:91,fps:15,hold:0.8},
-    ult:{u:'/assets/anim/absalie/absalie_hit.webp?v=2',n:20,fw:388,fh:400,cols:6,rows:4,figH:281,feet:395.0,cx:249.5,flip:false,top:115,fps:12,hold:0.8},
-    passive:{u:'/assets/anim/absalie/absalie_blue.webp?v=2',n:36,fw:237,fh:400,cols:6,rows:6,figH:314,feet:395.0,cx:121.0,flip:false,top:82,fps:15}
+    ult:{u:'/assets/anim/absalie/absalie_hit.webp?v=2',n:20,fw:388,fh:400,cols:6,rows:4,figH:281,feet:395.0,cx:249.5,flip:false,top:115,fps:12,hold:0.8}
+    /* v1155 passive clip removed (Phil 15 Oct: "remove passive for anyone without an active passive"): nothing in a fight fires it (no firePassiveClip for absalie) - it only ever played as idle filler. The sheet stays on disk. */
   },
   joss:{
     idle:{u:'/assets/anim/joss/joss_idle.webp?v=3',n:48,fw:329,fh:400,cols:6,rows:8,figH:386,feet:393.0,cx:166.5,fps:24,flip:true,top:8,pingpong:true},
@@ -20789,8 +20789,8 @@ Object.assign(BATTLE_ANIM, {
     hit:{u:'/assets/anim/joss/joss_hit.webp?v=3',n:48,fw:400,fh:363,cols:6,rows:8,figH:351,feet:356.0,cx:186.0,fps:24,flip:true,top:6,ax:[0.0,0.1,-0.1,-0.1,-0.2,-0.2,-0.7,-1.1,-1.3,-1.9,-2.1,0.1,7.2,26.7,26.7,26.7,26.7,26.7,26.7,26.7,26.7,26.7,26.7,26.7,26.7,26.7,26.7,26.7,26.7,26.7,26.7,26.7,26.7,26.7,26.7,26.7,26.7,26.7,26.7,42.7,42.7,42.7,31.1,31.1,31.1,31.1,31.1,31.1]},
     green:{u:'/assets/anim/joss/joss_green.webp?v=3',n:48,fw:381,fh:400,cols:6,rows:8,figH:310,feet:394.0,cx:197.0,fps:24,flip:true,top:85,ax:[0.0,-0.2,-0.5,-0.7,-0.8,-0.7,-0.6,-0.5,-2.9,-3.4,-1.7,-0.1,2.9,6.0,7.9,8.0,8.1,4.1,-4.6,-4.6,-4.6,15.0,8.8,8.1,6.0,7.2,17.2,29.0,44.1,51.1,51.1,51.1,31.0,30.9,30.5,31.2,31.3,30.7,33.9,31.0,29.3,29.3,10.0,-3.1,-3.1,-3.1,-3.1,-3.1]},
     blue:{u:'/assets/anim/joss/joss_blue.webp?v=3',n:48,fw:346,fh:400,cols:6,rows:8,figH:358,feet:394.0,cx:201.0,fps:24,flip:true,top:37,ax:[0.0,-0.1,-0.2,-0.4,-0.5,-1.0,-1.3,-2.8,-2.8,-2.8,-2.8,-2.8,-2.8,-2.8,-2.8,-2.8,-2.8,-2.8,18.2,18.2,29.2,31.2,29.1,27.1,26.9,26.2,39.0,38.3,38.0,36.0,35.1,33.1,32.9,32.1,32.8,32.9,33.9,34.2,34.0,34.0,34.0,34.3,36.0,36.9,37.9,39.8,40.0,40.9]},
-    ult:{u:'/assets/anim/joss/joss_ult.webp?v=3',n:48,fw:346,fh:400,cols:6,rows:8,figH:298,feet:393.0,cx:196.0,fps:24,flip:true,top:96,ax:[0.0,-0.2,-0.5,-0.5,-0.5,-0.3,-2.7,-2.7,-2.0,-2.9,-2.7,-0.8,0.2,5.1,5.1,5.1,5.1,1.0,8.9,8.9,8.9,8.9,31.8,25.9,25.2,25.2,25.2,25.2,25.2,25.2,25.2,25.2,25.2,25.2,25.2,8.2,-0.2,-2.9,-13.9,-21.8,-21.8,-21.8,-21.8,-21.8,1.8,1.8,1.8,-1.9]},
-    passive:{u:'/assets/anim/joss/joss_passive.webp?v=3',n:48,fw:374,fh:400,cols:6,rows:8,figH:365,feet:379.0,cx:193.0,fps:24,flip:true,top:15,ax:[0.0,-1.4,-2.2,-3.3,-4.2,-4.5,-4.4,-4.1,1.6,-2.5,-1.6,-0.7,-0.4,0.1,0.3,0.2,1.5,11.0,8.9,18.8,18.8,18.8,18.8,18.8,18.8,18.8,18.8,18.8,33.8,36.8,39.9,40.0,32.7,45.7,45.7,39.6,40.8,43.9,43.9,43.9,37.9,48.0,58.9,58.9,58.9,58.9,58.9,58.9]}
+    ult:{u:'/assets/anim/joss/joss_ult.webp?v=3',n:48,fw:346,fh:400,cols:6,rows:8,figH:298,feet:393.0,cx:196.0,fps:24,flip:true,top:96,ax:[0.0,-0.2,-0.5,-0.5,-0.5,-0.3,-2.7,-2.7,-2.0,-2.9,-2.7,-0.8,0.2,5.1,5.1,5.1,5.1,1.0,8.9,8.9,8.9,8.9,31.8,25.9,25.2,25.2,25.2,25.2,25.2,25.2,25.2,25.2,25.2,25.2,25.2,8.2,-0.2,-2.9,-13.9,-21.8,-21.8,-21.8,-21.8,-21.8,1.8,1.8,1.8,-1.9]}
+    /* v1155 passive clip removed (Phil 15 Oct: "remove passive for anyone without an active passive"): nothing in a fight fires it (no firePassiveClip for joss) - it only ever played as idle filler. The sheet stays on disk. */
   },
   ambrel:{
     idle:{u:'/assets/anim/ambrel/ambrel_idle.webp?v=3',n:48,fw:345,fh:400,cols:6,rows:8,figH:381,feet:394.0,cx:191.5,fps:24,flip:false,top:14,pingpong:true},
@@ -20809,8 +20809,8 @@ Object.assign(BATTLE_ANIM, {
     hit:{u:'/assets/anim/tolley/tolley_hit.webp?v=3',n:48,fw:400,fh:318,cols:6,rows:8,figH:274,feet:313.0,cx:216.5,fps:24,flip:true,top:40,ax:[0.0,-0.1,-0.5,-1.6,-2.5,-2.9,-2.2,-0.3,2.0,6.5,10.1,10.1,10.1,10.1,10.1,0.8,0.8,0.8,0.8,0.8,-12.1,-15.9,-15.8,-12.0,-3.8,3.9,14.7,14.7,14.7,14.7,14.7,7.6,2.8,-0.8,-2.1,-2.4,-2.5,-2.7,-2.7,-2.6,-2.3,-1.9,-1.3,-0.6,-0.2,0.1,0.2,0.2]},
     green:{u:'/assets/anim/tolley/tolley_green.webp?v=3',n:48,fw:316,fh:400,cols:6,rows:8,figH:273,feet:395.0,cx:185.5,fps:24,flip:true,top:123},
     blue:{u:'/assets/anim/tolley/tolley_blue.webp?v=3',n:48,fw:400,fh:347,cols:6,rows:8,figH:216,feet:311.0,cx:199.0,fps:24,flip:true,top:96,ax:[0.0,-0.0,-0.0,-0.0,-0.0,-0.1,-0.1,-0.3,-0.7,-0.8,-0.9,-1.0,-1.4,-1.9,-2.3,-2.7,-2.1,-2.1,-2.1,-0.5,-0.8,-1.0,-1.1,-1.7,-1.7,-1.7,-1.7,-4.3,-4.1,-3.3,-1.9,0.4,1.7,1.7,-0.1,-13.9,1.9,1.6,1.0,0.7,0.3,0.1,0.0,0.0,0.0,0.0,0.0,0.0]},
-    ult:{u:'/assets/anim/tolley/tolley_ult.webp?v=3',n:48,fw:315,fh:400,cols:6,rows:8,figH:313,feet:394.0,cx:142.5,fps:24,flip:true,top:82,ax:[0.0,-0.0,-0.1,-0.0,0.0,0.0,0.0,0.0,0.1,0.0,-0.0,-20.9,-21.0,-21.0,-21.1,-21.0,-21.0,-21.2,-21.4,-21.3,-21.3,-21.3,-22.2,-22.4,-24.4,-24.8,-24.8,-25.0,-25.0,-25.3,-25.2,-25.1,-25.0,-25.0,-25.0,-25.0,-24.1,-24.3,-24.1,-24.1,-24.1,-24.1,-24.1,-24.1,-22.4,-22.4,-22.4,-22.4]},
-    passive:{u:'/assets/anim/tolley/tolley_passive.webp?v=3',n:48,fw:376,fh:400,cols:6,rows:8,figH:311,feet:392.0,cx:191.0,fps:24,flip:true,top:82,ax:[0.0,-0.4,-1.0,-1.4,-2.0,-2.7,-3.5,-4.1,-4.5,-5.2,-5.7,-6.0,-5.7,-4.4,-3.1,-0.7,1.2,5.0,5.0,5.0,5.0,-0.4,-4.8,-6.2,-6.4,-6.7,-7.2,-7.4,-7.5,-7.9,-7.6,-7.3,-7.0,-6.3,-5.8,-4.7,-2.9,-0.9,0.7,3.0,3.1,2.8,2.3,1.7,1.1,0.8,0.3,-0.1]}
+    ult:{u:'/assets/anim/tolley/tolley_ult.webp?v=3',n:48,fw:315,fh:400,cols:6,rows:8,figH:313,feet:394.0,cx:142.5,fps:24,flip:true,top:82,ax:[0.0,-0.0,-0.1,-0.0,0.0,0.0,0.0,0.0,0.1,0.0,-0.0,-20.9,-21.0,-21.0,-21.1,-21.0,-21.0,-21.2,-21.4,-21.3,-21.3,-21.3,-22.2,-22.4,-24.4,-24.8,-24.8,-25.0,-25.0,-25.3,-25.2,-25.1,-25.0,-25.0,-25.0,-25.0,-24.1,-24.3,-24.1,-24.1,-24.1,-24.1,-24.1,-24.1,-22.4,-22.4,-22.4,-22.4]}
+    /* v1155 passive clip removed (Phil 15 Oct: "remove passive for anyone without an active passive"): nothing in a fight fires it (no firePassiveClip for tolley) - it only ever played as idle filler. The sheet stays on disk. */
   },
   mellan:{
     idle:{u:'/assets/anim/mellan/mellan_idle.webp?v=3',n:48,fw:268,fh:400,cols:6,rows:8,figH:327,feet:394.0,cx:134.5,fps:24,flip:false,top:68,pingpong:true},
@@ -20818,8 +20818,8 @@ Object.assign(BATTLE_ANIM, {
     attack:{u:'/assets/anim/mellan/mellan_attack.webp?v=3',n:48,fw:400,fh:380,cols:6,rows:8,figH:288,feet:374.0,cx:197.0,fps:24,flip:false,top:87,ax:[0.0,0.1,0.4,0.8,1.8,2.7,3.1,6.0,2.3,0.8,-2.7,-5.9,-7.2,-7.3,-7.7,-7.7,-7.7,-7.7,-7.7,-7.7,-7.7,-7.7,-7.7,-7.7,-7.7,-7.7,-7.7,-7.7,-13.4,-10.7,-7.5,-4.0,-0.3,2.6,3.7,3.9,3.4,2.7,2.1,1.7,1.4,1.1,1.0,0.6,0.3,0.1,0.1,0.0]},
     green:{u:'/assets/anim/mellan/mellan_green.webp?v=3',n:48,fw:334,fh:400,cols:6,rows:8,figH:301,feet:395.0,cx:124.0,fps:24,flip:false,top:95,ax:[0.0,0.0,0.0,-0.0,-0.2,-0.6,-1.2,-1.4,-1.6,-1.7,-1.4,-1.9,-3.1,-4.2,-4.7,-4.3,-3.6,-3.8,-4.7,-5.4,-6.0,-7.5,-9.3,-11.0,-11.4,-11.4,-10.6,-8.4,-7.0,-4.5,-1.9,0.2,1.3,1.3,0.9,0.1,-0.4,-0.6,-0.9,-1.0,-1.0,-1.0,-0.9,-0.7,-0.3,-0.2,-0.0,0.0]},
     blue:{u:'/assets/anim/mellan/mellan_blue.webp?v=3',n:48,fw:360,fh:400,cols:6,rows:8,figH:370,feet:393.0,cx:178.0,fps:24,flip:false,top:24,ax:[0.0,-0.1,-1.1,-3.7,-9.9,-16.3,-18.9,-19.1,-19.1,-19.1,-18.3,-17.1,-17.1,-17.1,-17.1,-12.1,-11.8,-11.8,-11.7,-11.7,-11.7,-11.7,-11.7,-11.7,-11.7,-11.8,-12.0,-12.6,-13.4,-14.3,-15.6,-16.4,-17.5,-18.5,-19.3,-20.0,-20.2,-21.1,-21.7,-22.2,-22.6,-23.0,-23.0,-22.9,-22.3,-21.6,-20.3,-18.5]},
-    ult:{u:'/assets/anim/mellan/mellan_ult.webp?v=3',n:48,fw:386,fh:400,cols:6,rows:8,figH:293,feet:394.0,cx:208.5,fps:24,flip:false,top:102,ax:[0.0,0.0,0.1,-1.1,-2.3,-2.9,-4.1,-5.5,-6.5,-26.2,-25.8,-25.7,-25.8,-26.7,-26.6,-26.8,-26.9,-27.3,-27.1,-24.4,-24.4,-29.4,-48.3,-60.6,-80.1,-80.1,-80.1,-80.1,-80.1,-80.1,-80.1,-80.1,-80.1,-80.1,-80.1,-80.1,-80.1,-80.1,-80.1,-80.1,-80.1,-80.1,-80.1,-80.1,-80.1,-80.1,-99.7,-99.7]},
-    passive:{u:'/assets/anim/mellan/mellan_passive.webp?v=3',n:48,fw:386,fh:400,cols:6,rows:8,figH:367,feet:393.0,cx:162.5,fps:24,flip:false,top:27}
+    ult:{u:'/assets/anim/mellan/mellan_ult.webp?v=3',n:48,fw:386,fh:400,cols:6,rows:8,figH:293,feet:394.0,cx:208.5,fps:24,flip:false,top:102,ax:[0.0,0.0,0.1,-1.1,-2.3,-2.9,-4.1,-5.5,-6.5,-26.2,-25.8,-25.7,-25.8,-26.7,-26.6,-26.8,-26.9,-27.3,-27.1,-24.4,-24.4,-29.4,-48.3,-60.6,-80.1,-80.1,-80.1,-80.1,-80.1,-80.1,-80.1,-80.1,-80.1,-80.1,-80.1,-80.1,-80.1,-80.1,-80.1,-80.1,-80.1,-80.1,-80.1,-80.1,-80.1,-80.1,-99.7,-99.7]}
+    /* v1155 passive clip removed (Phil 15 Oct: "remove passive for anyone without an active passive"): nothing in a fight fires it (no firePassiveClip for mellan) - it only ever played as idle filler. The sheet stays on disk. */
   },
   aldren:{
     idle:{u:'/assets/anim/aldren/aldren_idle.webp?v=3',n:48,fw:345,fh:400,cols:6,rows:8,figH:361,feet:394.0,cx:171.5,fps:24,flip:false,top:34,pingpong:true},
@@ -20839,8 +20839,8 @@ Object.assign(BATTLE_ANIM, {
     hit:{u:'/assets/anim/rafe/rafe_hit.webp?v=5',n:48,fw:400,fh:351,cols:6,rows:8,figH:295,feet:345.0,cx:184.5,fps:24,flip:true,top:51},
     green:{u:'/assets/anim/rafe/rafe_green.webp?v=5',n:48,fw:397,fh:400,cols:6,rows:8,figH:391,feet:395.0,cx:242.0,fps:24,flip:true,top:5},
     blue:{u:'/assets/anim/rafe/rafe_blue.webp?v=5',n:48,fw:400,fh:345,cols:6,rows:8,figH:330,feet:336.0,cx:210.0,fps:24,flip:true,top:7},
-    ult:{u:'/assets/anim/rafe/rafe_ult.webp?v=5',n:48,fw:400,fh:331,cols:6,rows:8,figH:294,feet:327.0,cx:172.5,fps:24,flip:true,top:34},
-    passive:{u:'/assets/anim/rafe/rafe_passive.webp?v=3',n:48,fw:299,fh:400,cols:6,rows:8,figH:326,feet:395.0,cx:168.0,fps:24,flip:true,top:70}
+    ult:{u:'/assets/anim/rafe/rafe_ult.webp?v=5',n:48,fw:400,fh:331,cols:6,rows:8,figH:294,feet:327.0,cx:172.5,fps:24,flip:true,top:34}
+    /* v1155 passive clip removed (Phil 15 Oct: "remove passive for anyone without an active passive"): nothing in a fight fires it (no firePassiveClip for rafe) - it only ever played as idle filler. The sheet stays on disk. */
   },
   ceraline:{
     idle:{u:'/assets/anim/ceraline/ceraline_idle.webp?v=2',n:36,fw:323,fh:400,cols:6,rows:6,figH:373,feet:386.0,cx:137.0,fps:15,flip:true,top:14},
@@ -20849,8 +20849,8 @@ Object.assign(BATTLE_ANIM, {
     hit:{u:'/assets/anim/ceraline/ceraline_hit.webp?v=2',n:20,fw:323,fh:400,cols:6,rows:4,figH:389,feet:393.0,cx:174.0,fps:16,flip:true,top:5},
     green:{u:'/assets/anim/ceraline/ceraline_green.webp?v=2',n:36,fw:355,fh:400,cols:6,rows:6,figH:380,feet:393.0,cx:207.0,fps:15,flip:true,top:14,hold:0.8},
     blue:{u:'/assets/anim/ceraline/ceraline_blue.webp?v=2',n:36,fw:321,fh:400,cols:6,rows:6,figH:298,feet:395.0,cx:188.0,fps:15,flip:true,top:98,hold:0.8},
-    ult:{u:'/assets/anim/ceraline/ceraline_ult.webp?v=2',n:48,fw:400,fh:398,cols:6,rows:8,figH:298,feet:378.0,cx:197.5,fps:15,flip:true,top:81},
-    passive:{u:'/assets/anim/ceraline/ceraline_passive.webp?v=2',n:36,fw:349,fh:400,cols:6,rows:6,figH:384,feet:393.0,cx:201.5,fps:15,flip:true,top:10}
+    ult:{u:'/assets/anim/ceraline/ceraline_ult.webp?v=2',n:48,fw:400,fh:398,cols:6,rows:8,figH:298,feet:378.0,cx:197.5,fps:15,flip:true,top:81}
+    /* v1155 passive clip removed (Phil 15 Oct: "remove passive for anyone without an active passive"): nothing in a fight fires it (no firePassiveClip for ceraline) - it only ever played as idle filler. The sheet stays on disk. */
   },
 });
 Object.assign(KITS, {
