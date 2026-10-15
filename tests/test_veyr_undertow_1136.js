@@ -49,7 +49,9 @@ try {
   const names = run("JSON.stringify([HERO_TYPES.veyr.abilityName,HERO_TYPES.astra.abilityName,HERO_TYPES.absalie.abilityName,HERO_TYPES.veyr.ability,HERO_TYPES.astra.ability,HERO_TYPES.absalie.ability])");
   ck('names: Veyr "Abyssal Undertow", Astra "Collapsing Star", Absalie keeps "Event Horizon"; abilities unchanged (eventhorizon / gravcrush / eventhorizon)',
     names === JSON.stringify(['Abyssal Undertow', 'Collapsing Star', 'Event Horizon', 'eventhorizon', 'gravcrush', 'eventhorizon']), names);
-  ck('Veyr\'s ult text names Abyssal Undertow and the 2-second slow', /Abyssal Undertow/.test(run('HERO_ULT_DESC.veyr')) && /2-second slow/.test(run('HERO_ULT_DESC.veyr')));
+  ck('Veyr\'s ult text names Abyssal Undertow and the slow, not a silence', /Abyssal Undertow/.test(run('HERO_ULT_DESC.veyr')) && /slowed/.test(run('HERO_ULT_DESC.veyr')) && !/silenc/i.test(run('HERO_ULT_DESC.veyr')));
+  const mv = run("abilityMeta('veyr',0)"), ma = run("abilityMeta('absalie',0)");
+  ck('skill card control line: Veyr "Slow 1.4s (area)" and no Silence; Absalie keeps "Silence 1.05s (area)"', /Slow 1\.4s \(area\)/.test(mv) && !/Silence/.test(mv) && /Silence 1\.05s \(area\)/.test(ma) && !/Slow/.test(ma), mv + ' | ' + ma);
 
   const v = JSON.parse(run(ULT('veyr'))), v0 = R0 && JSON.parse(R0(ULT('veyr')));
   const a = JSON.parse(run(ULT('absalie'))), a0 = R0 && JSON.parse(R0(ULT('absalie')));

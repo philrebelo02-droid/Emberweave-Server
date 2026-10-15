@@ -5088,7 +5088,7 @@ const HERO_ULT_DESC={"nerisse": "Ultimate — Nerisse rings the great bell: ever
   "vaelora": "Ultimate — Unleashes a blizzard of frozen feathers around all enemies.",
   "mirelle": "Ultimate — Opens her full tail and perfumes the battlefield, cleansing allies while charming enemies into lowering their defenses.",
   "sloe": "Ultimate — A rapid fan of arrows strikes the enemy backline.",
-  "veyr": "Ultimate — Abyssal Undertow: the deep opens where he aims and drags every enemy in, then crashes over them — damage and a 2-second slow.",   /* v1136 (Phil 14 Oct: "rename and change veyrs" - he shared Absalie's Event Horizon) */
+  "veyr": "Ultimate — Abyssal Undertow: the deep opens where he aims and drags every enemy in, then crashes over them — heavy damage, and every enemy it swallowed is slowed.",   /* v1136 (Phil 14 Oct: "rename and change veyrs" - he shared Absalie's Event Horizon) */
   "absalie": "Ultimate — A collapsing void repeatedly damages and silences enemies.",
   "ceraline": "Ultimate — Floods the battlefield with molten wax, heavily slowing enemies before hardening them into statues that shatter for massive damage.",
   "zahri": "Player-aimed ultimate — aim a line up to 20 m: Zahri charges down it to the last enemy on the line, striking everyone in her path and knocking them off to either side."
@@ -5135,10 +5135,13 @@ function ccMetaSegs(o){
   }
   return out;   /* v793 - taunt and freeze are in CC_SECONDS now, so the loop above covers them */
 }
+/* v1136 rig: Veyr's Abyssal Undertow runs the eventhorizon code but its collapse SLOWS 2 s (ccDur, the fight's 1.4 s) instead of silencing -
+   the card's control line must say Slow, not Absalie's Silence. ccFixed: the authored 2 s, not the area-slow table's 3 s. */
+function ultDefShown(key,ab){ const d=ULT_DEF[ab]||{}; return (key==='veyr'&&ab==='eventhorizon')?Object.assign({},d,{silence:0,slow:2,ccFixed:['slow']}):d; }
 function abilityMeta(key,idx){ const t=HERO_TYPES[key],kit=KITS[key]; if(!t||!kit)return ''; const seg=[];
   const mel=t.range<60, fakeU={key,t};
   const rng=(rad)=> rad?(+(rad/METER).toFixed(1)+' m') : (mel?(t.reach?('Melee · '+(+(t.reach/METER).toFixed(1))+' m reach'):'Melee'):(+(t.range/METER).toFixed(1)+' m'));
-  if(idx===0){ const ab=t.ability, d=ULT_DEF[ab]||{}, sc=scaleLabelFor(t,ULT_SCALE[ab]);
+  if(idx===0){ const ab=t.ability, d=ultDefShown(key,ab), sc=scaleLabelFor(t,ULT_SCALE[ab]);
     const _sm=skillMul(skillLevel(key,0)), _m=d.mul||d.hpMul||d.healMul;   /* v1112: the ratio at his level, as the fight uses it */
     const s=fmtScale(_m&&_m*_sm, d.dps&&d.dps*_sm, sc); if(s)seg.push(s);
     for(const c of ccMetaSegs(d)) seg.push(c);                 /* v791 - the control it applies */
