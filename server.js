@@ -1277,7 +1277,7 @@ function glyphGrantNamedList(u, list){ if(!GLYPHS||!Array.isArray(list)||!list.l
   const g=ensureGlyphs(u); glyphMigrate(u); glyphFlowMigrate(u);
   const receipt=[];
   for(const it of list){ const q=Math.max(1,it.quantity|0); g.fragments[it.key]=(g.fragments[it.key]||0)+q;
-    receipt.push({ fragmentId:glyphFragSlug(it.key), displayName:glyphFragName(it.key), quantity:q }); }
+    receipt.push({ fragmentId:glyphFragSlug(it.key), key:it.key, displayName:glyphFragName(it.key), quantity:q }); }   /* v1141: key rides along so the result art uses the real quality, not the display name */
   g.revision++; return receipt; }
 function campaignGlyphDrops(st,runs,seed){
   const list=(st&&st.rewards&&st.rewards.glyphFragments)||[], n=Math.max(1,runs|0);

@@ -763,7 +763,8 @@
   #resultSquad{display:none;justify-content:center;flex-wrap:wrap;gap:8px;margin:6px 0 10px;max-width:min(94vw,520px);}
   #resultSquad.show{display:flex;}
   #resultSquad .rCard{position:relative;width:70px;height:70px;border-radius:10px;overflow:hidden;border:2px solid #c8973a;background:#151b2b;box-shadow:0 3px 8px rgba(0,0,0,.5);}
-  #resultSquad .rCard img{width:100%;height:100%;object-fit:cover;display:block;}
+  #resultSquad .rCard > img{width:100%;height:100%;object-fit:cover;display:block;}
+  #resultSquad .rCard .rStars img{width:9px;height:9px;display:inline-block;vertical-align:middle;}   /* v1141: the portrait rule no longer swells the star badges over the card */
   #resultSquad .rCard .rEmoji{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:34px;}
   #resultSquad .rCard .rLv{position:absolute;top:0;left:0;background:rgba(10,14,22,.86);color:#ffd45e;font-size:9px;font-weight:900;padding:1px 4px;border-bottom-right-radius:6px;}
   #resultSquad .rCard .rStars{position:absolute;bottom:1px;left:0;right:0;text-align:center;font-size:8px;color:#ffd45e;text-shadow:0 1px 2px #000;line-height:1;}
@@ -847,6 +848,8 @@
   .tut-next-glow{outline:2px solid #ffd45e!important;outline-offset:2px;animation:tutGoldPulse 1.25s ease-in-out infinite!important;position:relative;z-index:3;}
   .tut-target-glow{outline:3px solid #ffd45e!important;outline-offset:3px;box-shadow:0 0 0 2px #fff1a5,0 0 24px #ffcf5e!important;animation:tutGoldPulse 1.25s ease-in-out infinite!important;position:relative;z-index:3;}
   .cnode.tut-target-glow{position:absolute!important;z-index:6!important;}
+  .portrait.ult-coach-glow{outline:3px solid #ffd45e;outline-offset:2px;animation:tutGoldPulse 1.0s ease-in-out infinite;z-index:5;}
+  #ultHint.ult-coach{font-size:15px;font-weight:900;color:#ffe08a;text-shadow:0 1px 3px #000,0 0 10px #000;}
   .qcard .qt{letter-spacing:.12px;text-shadow:0 1px 3px #000;}.qcard .qd{color:#aab7c9;line-height:1.45;}.qrew{text-shadow:0 1px 5px rgba(255,212,94,.26);}
   .qbar{height:9px;background:#080d16;border-color:#2e3c57;box-shadow:inset 0 2px 4px rgba(0,0,0,.55);}
   .qbar>i{background:linear-gradient(90deg,#45c984,#72efb0);box-shadow:0 0 10px rgba(94,232,155,.42);}
@@ -5298,7 +5301,9 @@ function ccSecFor(o,k){
    approved icon art where the text is HTML, stripIcons() drops them where it is plain text (title tooltips, textContent). */
 /* v1098 (Phil 9 Oct: 'no more emojis in this game' / 'put all the new icons in'): {i:u:<ui>} = icons/ui, {i:h:<hud>} = the HUD art (gold, gem, food, lock).
    uiIcon / hudIcon / statusIcon return the same <img> for code that builds HTML directly. */
-const ICON_SRC={s:n=>`/assets/img/icons/status/${n}-v1.webp`, t:n=>`/assets/img/icons/stat/${n}-v1.webp`, u:n=>`/assets/img/icons/ui/${n}-v1.webp`, h:n=>`/assets/img/ui/hud-${n}.webp?v=1`};
+const ICON_SRC={s:n=>`/assets/img/icons/status/${n}-v1.webp`, t:n=>`/assets/img/icons/stat/${n}-v1.webp`, u:n=>`/assets/img/icons/ui/${n}-v1.webp`, h:n=>`/assets/img/ui/hud-${n}.webp?v=1`, a:n=>(ART_ICON[n]||ART_ICON['glyph-frag'])};
+/* v1141 (pre-beta sweep: emojis left in the START HERE list): {i:a:<name>} = existing game art used as an inline icon */
+const ART_ICON={'glyph-frag':'/assets/img/glyphs-v2/Grey/fragment-vitality.png?v=4', 'wish-gold':'/assets/img/wishing/pool-gold-v1.webp?v=1', 'wish-diamond':'/assets/img/wishing/pool-diamond-v1.webp?v=1'};
 function iconImg(k,n,cls){ return `<img class="stIc${cls?' '+cls:''}" src="${ICON_SRC[k](n)}" alt="">`; }
 function uiIcon(n,cls){ return iconImg('u',n,cls); }
 /* v1100 (Phil 9 Oct: 'the hero fragment should be their hero card'): a hero's fragments show that hero's own card, the way the reference
@@ -5308,8 +5313,8 @@ function glyphFragChip(k){ try{ return `<img class="stIc" src="${g2NodeArtSrc({k
 const FT_IMG={}; function ftImg(n){ let im=FT_IMG[n]; if(!im){ im=new Image(); im.src=ICON_SRC.u(n); FT_IMG[n]=im; } return im; }   /* v1100: icon art drawn on the battle canvas */
 function hudIcon(n,cls){ return iconImg('h',n,cls); }
 function statusIcon(n,cls){ return iconImg('s',n,cls); }
-function iconize(str){ return String(str==null?'':str).replace(/\{i:([stuh]):([a-zA-Z0-9-]+)\}/g,(m,k,n)=>iconImg(k,n)); }
-function stripIcons(str){ return String(str==null?'':str).replace(/\{i:[stuh]:[a-zA-Z0-9-]+\}\s?/g,''); }
+function iconize(str){ return String(str==null?'':str).replace(/\{i:([stuha]):([a-zA-Z0-9-]+)\}/g,(m,k,n)=>iconImg(k,n)); }
+function stripIcons(str){ return String(str==null?'':str).replace(/\{i:[stuha]:[a-zA-Z0-9-]+\}\s?/g,''); }
 /* v1101 (Phil 9 Oct, Ceraline's skill list: "shouldnt her abilities all have ability power icon by it?"): a Magic or Healer hero's skills
    hit off Ability Power (doEffect: heroScaleMode 'ap' -> dB=apB) and an Attack hero's off Attack ('ad' -> apB=dB), but the readouts
    multiplied Attack for most skills and drew the attack swords on every damage number. The readout now uses the stat the fight uses,
@@ -6293,7 +6298,8 @@ function actGiveUp(){
 }
 const ACT_INPUT_DELAY_CLIENT=9;   // must match the server's ACT_INPUT_DELAY
 function queueInput(inp){
-  if(REPLAY_IN) return;                       // a replay is driven by its log, not by live taps
+  if(REPLAY_IN) return;
+  try{ if(inp&&inp.k==='ult'&&ULTCOACH.u&&ULTCOACH.u.uid===inp.uid){ ULTCOACH.done[inp.uid]=1; ultCoachClear(); } }catch(e){}   /* v1141: the coached ult was cast - the fight resumes */                       // a replay is driven by its log, not by live taps
   /* v275: with a live session the SERVER decides the tick — send the intent and wait for the receipt.
      The action is applied by pumpInputs() on exactly the tick that comes back. */
   if(streamAct(inp)) return;
@@ -12182,8 +12188,8 @@ const FX2_DEF={
   tessit_green:{u:'/assets/anim/fx/tessit_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:-0.5},
   rivet_blue:{u:'/assets/anim/fx/rivet_blue.webp?v=2',n:48,fw:195,fh:300,cols:8,rows:6,dur:2.0,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:1},   // v924 Grok: Smoke Bomb plume
   rivet_ult:{u:'/assets/anim/fx/rivet_ult.webp?v=1',n:48,fw:300,fh:275,cols:6,rows:8,dur:2.0},   // v912 Grok: Full Arsenal - scrap volley burst at the aim
-  kharos_ult:{u:'/assets/anim/fx/kharos_ult.webp?v=1',n:48,fw:210,fh:209,cols:6,rows:8,dur:2.0},   // v919 Grok (filed 17 Sep, never wired): Orchid Execution - blade swirl on the target
-  lysara_ult:{u:'/assets/anim/fx/lysara_ult.webp?v=1',n:48,fw:177,fh:210,cols:6,rows:8,dur:2.4,upright:true,upSize:1.6,upExtent:0.95,upAnchor:[0.5,0.0],ro:1},   // v919 Grok: Queen of Quiet Wings - winged moon
+  kharos_ult:{u:'/assets/anim/fx/kharos_ult.webp?v=2',n:48,fw:210,fh:209,cols:6,rows:8,dur:2.0},   // v919 Grok (filed 17 Sep, never wired): Orchid Execution - blade swirl on the target
+  lysara_ult:{u:'/assets/anim/fx/lysara_ult.webp?v=2',n:48,fw:177,fh:210,cols:6,rows:8,dur:2.4,upright:true,upSize:1.6,upExtent:0.95,upAnchor:[0.5,0.0],ro:1},   // v919 Grok: Queen of Quiet Wings - winged moon
   tolley_ult:{u:'/assets/anim/fx/tolley_ult.webp?v=1',n:48,fw:300,fh:265,cols:6,rows:8,dur:2.4,upright:true,upSize:1.8,upExtent:0.95,upAnchor:[0.5,0.0],ro:1},   // v919 Grok: Living Forge - the molten hammer slams down
   rivet_green:{u:'/assets/anim/fx/rivet_green.webp?v=2',n:48,fw:226,fh:300,cols:6,rows:8,dur:1.6,upright:true,upSize:1.0,upExtent:0.95,upAnchor:[0.5,0.0],ro:2},   // v919 Grok: Scattergun - muzzle scrap spray
   iver_blue:{u:'/assets/anim/fx/iver_blue.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.29,disc:{cy:0.5,dh:0.369,dw:0.9}},
@@ -13593,6 +13599,7 @@ function startBattle(){
   }catch(e){ go(); }
 }
 function _startBattleNow(){
+  try{ ultCoachReset(); }catch(e){}   // v1141
   syncActiveSquad();   // load THIS mode's squad into G.team so the fight uses the right heroes (per-mode squads)
   applyBattleMap();
   // v255: warm EVERY wave's art before the first frame — no more sprites appearing on wave 2
@@ -15152,7 +15159,7 @@ const BAR_FRAME={img:null,W:1088,H:64,T:14,R:31,B:13,L:30};
 function barFrameReady(){ if(!BAR_FRAME.img){ try{ BAR_FRAME.img=new Image(); BAR_FRAME.img.src='/assets/ui/bars/bar_overhead.png?v=1'; }catch(e){ return false; } } return BAR_FRAME.img.complete&&BAR_FRAME.img.naturalWidth>0; }
 function drawBarFrame(g,x,y,w,h){ const F=BAR_FRAME, im=F.img, s=h/(F.H-F.T-F.B), top=y-F.T*s, H=F.H*s, lw=F.L*s, rw=F.R*s;
   g.drawImage(im,0,0,F.L,F.H, x-lw,top,lw,H); g.drawImage(im,F.L,0,F.W-F.L-F.R,F.H, x,top,w,H); g.drawImage(im,F.W-F.R,0,F.R,F.H, x+w,top,rw,H); }
-function drawOverlay(){octx.clearRect(0,0,CW,CH); _edOvRect=null;
+function drawOverlay(){octx.clearRect(0,0,CW,CH); _edOvRect=null; if(state==='battle'){ try{ ultCoachDraw(); }catch(e){} }
   if(state==='battle' && typeof CUR!=='undefined' && CUR && CUR.mode==='emberdraft' && window.ED && ED.active){ try{ edAvFrame(_olDt); }catch(e){} }   /* v648: your avatar + loot orbs */
   { const _n=(typeof performance!=='undefined'?performance.now():Date.now())/1000; _olDt=_olPrev?Math.min(0.1,_n-_olPrev):0.016; _olPrev=_n; }
   { const uc=document.getElementById('ultCancel'); if(uc) uc.classList.toggle('active', state==='battle'&&!!aiming); }
@@ -19883,7 +19890,7 @@ function closeStageModal(){ window.SM_KEY=null; document.getElementById('stageMo
    count and the farm source; gold/XP below, clearly labelled bonus. Glyph materials always read
    "Glyph Fragment"; gear materials always read "Gear Fragment" — never mixed. */
 function rewardPanel(glyphFrags, bonus, sourceLine, gearFrags){
-  const gf=(glyphFrags||[]).map(f=>{ const k=String(f.displayName||f.key||'').replace(/ Fragment$/,'');
+  const gf=(glyphFrags||[]).map(f=>{ const k=String(f.key||f.displayName||'').replace(/ Fragment$/,'');   /* v1141: art from the key ('Grey Sinew'), never the display name ('Rough Sinew' has no Rough folder) */
     return `<div style="display:flex;align-items:center;gap:8px;justify-content:center;margin:3px 0">
       ${(typeof g2artKey==='function')?g2artKey('fragment',k,26):'◆'}
       <b style="color:#8fe3ff">${escapeHTML(f.displayName||f.key)}</b>
@@ -25288,16 +25295,16 @@ const TUTORIAL_STEPS=[
   {id:'win11', icon:'{i:s:attack}', title:'Choose your first squad', desc:'Open Campaign and Stage 1-1. Tap all three hero portraits; a highlighted portrait means that hero is selected. Start only after all three are highlighted, then clear the stage.', rewardLabel:'{i:h:gold} 500 bonus Gold', go:()=>show('campaign'), reward:{gold:500}, done:()=>(G.campaignCleared||0)>=1},
   {id:'quest11', icon:'{i:u:quest-scroll}', title:'Collect your first quest reward', desc:'Open Quests and claim the completed Stage 1-1 objective. The starter quest chain awards Vex fragments toward your fourth hero.', rewardLabel:'{i:u:star-filled} 2 Vex fragments', go:()=>show('quest'), reward:{}, done:()=>((G.questChainStep||0)>=1)},
   {id:'skill', icon:'{i:u:sparkle-new}', title:'Spend your first skill point', desc:'Open Heroes, choose a hero, and raise one skill before Stage 1-2. Skill levels make that hero’s specific job stronger.', rewardLabel:'{i:h:gold} 800 bonus Gold', go:()=>{menuReturn='home'; show('heroesPanel');}, reward:{gold:800}, done:anySkillRaised},
-  {id:'win12', icon:'{i:u:map}', title:'Test the upgrade', desc:'Return to Campaign and clear Stage 1-2 with the same highlighted squad.', rewardLabel:'{i:h:gold} 180 · {i:u:star-filled} 30 Hero XP each · {i:u:medal} 30 Commander XP · {i:u:res-xp-potion} 1 Minor XP Potion · 💠 2 Rough Gravel glyph fragments for Vael', go:()=>show('campaign'), reward:{}, done:()=>(G.campaignCleared||0)>=2},
+  {id:'win12', icon:'{i:u:map}', title:'Test the upgrade', desc:'Return to Campaign and clear Stage 1-2 with the same highlighted squad.', rewardLabel:'{i:h:gold} 180 · {i:u:star-filled} 30 Hero XP each · {i:u:medal} 30 Commander XP · {i:u:res-xp-potion} 1 Minor XP Potion · {i:a:glyph-frag} 2 Rough Gravel glyph fragments for Vael', go:()=>show('campaign'), reward:{}, done:()=>(G.campaignCleared||0)>=2},
   {id:'quest12', icon:'{i:u:quest-scroll}', title:'Claim the next Vex fragments', desc:'Open Quests and collect the Stage 1-2 reward. Claimable rewards are never added automatically.', rewardLabel:'{i:u:star-filled} 2 Vex fragments', go:()=>show('quest'), reward:{}, done:()=>((G.questChainStep||0)>=2)},
-  {id:'rune',  icon:'💠', title:'Build Vael’s first glyph', desc:'Open Heroes → Vael → Glyphs. Tap his first empty slot and build Stone Glyph with the two Rough Gravel Fragments guaranteed on your first Stage 1-2 clear. Later glyphs use named Campaign stages that you can replay to farm.', rewardLabel:'{i:h:gem} 30 bonus Diamonds', go:()=>{menuReturn='home'; show('heroesPanel');}, reward:{gems:30}, done:anyGlyphSocketed},
-  {id:'win13', icon:'{i:s:shield}', title:'Clear the first Guardian stage', desc:'Return to Campaign and clear Stage 1-3. Guardian stages award hero fragments and can be replayed a limited number of times each day.', rewardLabel:'{i:h:gold} 210 · {i:u:star-filled} 30 Hero XP each · {i:u:medal} 30 Commander XP · {i:u:res-xp-potion} 1 Minor XP Potion · 💠 1 glyph fragment · {i:u:hero} 2–4 Tick fragments', go:()=>show('campaign'), reward:{}, done:()=>(G.campaignCleared||0)>=3},
+  {id:'rune',  icon:'{i:a:glyph-frag}', title:'Build Vael’s first glyph', desc:'Open Heroes → Vael → Glyphs. Tap his first empty slot and build Stone Glyph with the two Rough Gravel Fragments guaranteed on your first Stage 1-2 clear. Later glyphs use named Campaign stages that you can replay to farm.', rewardLabel:'{i:h:gem} 30 bonus Diamonds', go:()=>{menuReturn='home'; show('heroesPanel');}, reward:{gems:30}, done:anyGlyphSocketed},
+  {id:'win13', icon:'{i:s:shield}', title:'Clear the first Guardian stage', desc:'Return to Campaign and clear Stage 1-3. Guardian stages award hero fragments and can be replayed a limited number of times each day.', rewardLabel:'{i:h:gold} 210 · {i:u:star-filled} 30 Hero XP each · {i:u:medal} 30 Commander XP · {i:u:res-xp-potion} 1 Minor XP Potion · {i:a:glyph-frag} 1 glyph fragment · {i:u:hero} 2–4 Tick fragments', go:()=>show('campaign'), reward:{}, done:()=>(G.campaignCleared||0)>=3},
   {id:'quest13', icon:'{i:u:quest-scroll}', title:'Collect the Guardian quest reward', desc:'Open Quests and claim the Stage 1-3 objective for another Vex fragment bundle.', rewardLabel:'{i:u:star-filled} 3 Vex fragments', go:()=>show('quest'), reward:{}, done:()=>((G.questChainStep||0)>=3)},
-  {id:'wish',  icon:'⛲', title:'Use the Wishing Pool', desc:'Open the Wishing Pool and use a free Gold wish. Its result is random: a hero, hero fragments, or a named glyph fragment.', rewardLabel:'⛲ 1 free Gold-wish result', go:()=>show('wishing'), reward:{}, done:()=>((G.wishClicks||0)>0)},
-  {id:'win14', icon:'{i:u:map}', title:'Finish recruiting your fourth hero', desc:'Clear Stage 1-4 to complete the last starter fragment quest.', rewardLabel:'{i:h:gold} 240 · {i:u:star-filled} 30 Hero XP each · {i:u:medal} 30 Commander XP · {i:u:res-xp-potion} 1 Minor XP Potion · 💠 2 glyph fragments', go:()=>show('campaign'), reward:{}, done:()=>(G.campaignCleared||0)>=4},
+  {id:'wish',  icon:'{i:a:wish-gold}', title:'Use the Wishing Pool', desc:'Open the Wishing Pool and use a free Gold wish. Its result is random: a hero, hero fragments, or a named glyph fragment.', rewardLabel:'{i:a:wish-gold} 1 free Gold-wish result', go:()=>show('wishing'), reward:{}, done:()=>((G.wishClicks||0)>0)},
+  {id:'win14', icon:'{i:u:map}', title:'Finish recruiting your fourth hero', desc:'Clear Stage 1-4 to complete the last starter fragment quest.', rewardLabel:'{i:h:gold} 240 · {i:u:star-filled} 30 Hero XP each · {i:u:medal} 30 Commander XP · {i:u:res-xp-potion} 1 Minor XP Potion · {i:a:glyph-frag} 2 glyph fragments', go:()=>show('campaign'), reward:{}, done:()=>(G.campaignCleared||0)>=4},
   {id:'quest14', icon:'{i:u:hero}', title:'Recruit your fourth hero', desc:'First claim the Stage 1-4 reward in Quests. Then open Heroes, choose Vex under Ready to Summon, and press Summon Now. The four starter quest rewards provide the 10 fragments she needs.', rewardLabel:'{i:u:hero} Vex summoned · {i:u:res-xp-potion} claim 1 Minor XP Potion', go:()=>{ if((G.questChainStep||0)<4) show('quest'); else { menuReturn='home'; detailHero='vex'; heroTab='stats'; show('heroesPanel'); setTimeout(renderHeroDetail,0); } }, reward:{xpPotion:'minor'}, done:()=>!!(G.unlocked&&G.unlocked.vex)},
   {id:'vexxp', icon:'{i:u:res-xp-potion}', title:'Level Vex with a Minor XP Potion', desc:'Open Heroes → Vex → Stats. Tap Minor XP Potion once. It gives Vex 60 hero XP and cannot level her beyond Commander level. Claim this lesson after using the potion.', rewardLabel:'{i:u:check} Vex leveled with a claimed Minor potion', go:()=>{menuReturn='home';detailHero='vex';heroTab='stats';show('heroesPanel');setTimeout(renderHeroDetail,0);}, reward:{}, done:()=>((G.xpPotionUsed||{}).vexMinor|0)>(G.tutVexXpBase|0)},
-  {id:'win15', icon:'🔮', title:'Earn your first Diamond wish', desc:'Clear Stage 1-5 to unlock the guaranteed first Diamond wish.', rewardLabel:'{i:h:gold} 270 · {i:u:star-filled} 30 Hero XP each · {i:u:medal} 30 Commander XP · {i:u:res-xp-potion} 1 Minor XP Potion · 💠 2 glyph fragments · 🔮 free Diamond wish', go:()=>show('campaign'), reward:{}, done:()=>(G.campaignCleared||0)>=5},
+  {id:'win15', icon:'{i:a:wish-diamond}', title:'Earn your first Diamond wish', desc:'Clear Stage 1-5 to unlock the guaranteed first Diamond wish.', rewardLabel:'{i:h:gold} 270 · {i:u:star-filled} 30 Hero XP each · {i:u:medal} 30 Commander XP · {i:u:res-xp-potion} 1 Minor XP Potion · {i:a:glyph-frag} 2 glyph fragments · {i:a:wish-diamond} free Diamond wish', go:()=>show('campaign'), reward:{}, done:()=>(G.campaignCleared||0)>=5},
   {id:'gemwish', icon:'{i:h:gem}', title:'Claim your free Diamond wish', desc:'Open the Wishing Pool and claim the free Diamond wish you earned. Your first Diamond wish guarantees a 2{i:u:star-filled} hero and gives you your fifth hero.', rewardLabel:'{i:u:hero} guaranteed 2{i:u:star-filled} hero · {i:h:gem} 140 bonus Diamonds', go:()=>show('wishing'), reward:{gems:140}, done:()=>!!G.wishGemFirstDone},
 ];
 const TUTORIAL_GROUPS=[
@@ -27199,6 +27206,7 @@ function buildPortraitBar(side){side=side||'ally';const bar=document.getElementB
     el.innerHTML=(pv?`<img class="pPortrait" draggable="false" src="${pv}">`:`<div class="pEmoji">${(HERO_TYPES[u.key]||{}).emoji||uiIcon('profile')}</div>`);   // no in-combat "?" info button — ability descriptions live in the Skill tab
     const hp=document.createElement('div'); hp.className='pHp'; hp.innerHTML='<div class="pHpFill"></div>';
     const en=document.createElement('div'); en.className='pEnergyBar'; en.innerHTML='<div class="pEnFill"></div>';
+    u._pEl=el;   // v1141: the ult coach glows this portrait
     attachUltPress(el,u,false);   // press-hold-drag-release aiming; quick tap fires at nearest
     // dedicated info tap: always shows the description (even when the ult is ready)
     const info=el.querySelector('.pInfo'); if(info){ const showOnly=(e)=>{ e.stopPropagation(); e.preventDefault(); showAbilityTip(u); clearTimeout(u._tipT); u._tipT=setTimeout(hideAbilityTip,4500); }; info.addEventListener('pointerdown',(e)=>e.stopPropagation()); info.addEventListener('click',showOnly); info.addEventListener('touchstart',showOnly,{passive:false}); }
@@ -27312,6 +27320,39 @@ function refreshCtrlBtns(){const sb=document.getElementById('speedBtn'),ab=docum
   ab.style.opacity=forced?'.7':'';}
 
 /* input */
+/* v1141 ULT COACH (Phil 15 Oct, pre-beta: "add a part in the tutorial where it forces you to use the ult. By highlighting the ready ult
+   then highlighting the target" / "Also teaches people how to manually ult" / "When the first ult is ready freeze the screen until they
+   click those" / "For each hero"). The pre-beta sweep found a new player lost Stage 1-1 0/10 without ultimates while AUTO is locked
+   until EGP 1. On the FIRST clear of Stage 1-1, each hero's first ready ultimate freezes the fight: the portrait glows, then (once
+   pressed) a ring glows on the best target; the player drags onto it and lets go. Render and input only - the cast is the same
+   queued input on the same tick, so the server's replay of the fight is unchanged. */
+const ULTCOACH={u:null,done:{},ring:null,hold:false};
+function ultCoachReset(){ ultCoachClear(); ULTCOACH.done={}; }
+function ultCoachArmed(){ try{ return state==='battle'&&!ended&&CUR&&CUR.mode==='campaign'&&CUR.node===1&&(CUR.portal||'normal')==='normal'&&!CUR.headless&&!CUR.manualReplay
+  &&!REPLAY_IN&&!autoUlt&&!isAutoBattle()&&(G.campaignCleared||0)<1; }catch(e){ return false; } }
+function ultCoachClear(){ const c=ULTCOACH; if(c.u&&c.u._pEl) c.u._pEl.classList.remove('ult-coach-glow'); c.u=null; c.ring=null; c.hold=false;
+  const h=document.getElementById('ultHint'); if(h&&h.classList.contains('ult-coach')){ h.classList.remove('ult-coach'); h.textContent=AIM_HINT; } }
+function ultCoachReady(x){ return x&&x.team==='ally'&&x.alive&&HERO_TYPES[x.key]&&x.energy>=100&&!(x.stunned>0)&&!((x.fearT||0)>0)&&!((x.silencedT||0)>0)&&!ultBlockedReason(x); }
+function ultCoachTick(){ const c=ULTCOACH;
+  if(!ultCoachArmed()){ if(c.u||c.hold) ultCoachClear(); units.forEach(x=>{ if(x._pEl) x._pEl.classList.remove('ult-coach-glow'); }); return; }
+  if(c.u&&!ultCoachReady(c.u)){ c.done[c.u.uid]=1; ultCoachClear(); }
+  if(!c.u){ const u=units.find(x=>ultCoachReady(x)&&!c.done[x.uid]); if(u){ c.u=u; c.hold=true; } }
+  /* after each hero's lesson, a ready portrait keeps glowing for the rest of this first fight (no freeze) */
+  units.forEach(x=>{ if(x._pEl&&x!==c.u) x._pEl.classList.toggle('ult-coach-glow', !!(c.done[x.uid]&&ultCoachReady(x)&&aiming!==x)); });
+  if(!c.u) return;
+  const u=c.u, h=document.getElementById('ultHint'), nm=escapeHTML((HERO_TYPES[u.key]||{}).name||u.key), ab=escapeHTML(u.t.abilityName||'Ultimate');
+  if(h) h.classList.add('ult-coach');
+  if(aiming===u){ if(u._pEl) u._pEl.classList.remove('ult-coach-glow');
+    if(!c.ring) c.ring={x:aimTX,y:aimTY};
+    if(h) h.innerHTML=statusIcon('mark')+' Keep holding, drag onto the glowing ring, then let go to cast '+ab; }
+  else { c.ring=null; if(u._pEl) u._pEl.classList.add('ult-coach-glow');
+    if(h) h.innerHTML=uiIcon('sparkle-new')+' '+nm+'’s ultimate is ready! '+(ULT_AIMED.includes(u.abilityOverride||u.t.ability)?'Press and hold the glowing portrait':'Tap the glowing portrait'); } }
+function ultCoachOnRing(px,py){ const r=ULTCOACH.ring; return !!r&&Math.hypot(px-r.x,py-r.y)<=62; }
+function ultCoachDraw(){ const c=ULTCOACH; if(!c.ring||!c.u||aiming!==c.u) return;
+  const t=(typeof performance!=='undefined'?performance.now():Date.now())/1000, R=34+6*Math.sin(t*6);
+  octx.save(); octx.lineWidth=4; octx.strokeStyle='#ffd45e'; octx.shadowColor='#ffcf5e'; octx.shadowBlur=18;
+  octx.beginPath(); octx.arc(c.ring.x,c.ring.y,R,0,Math.PI*2); octx.stroke();
+  octx.globalAlpha=0.22; octx.fillStyle='#ffd45e'; octx.fill(); octx.restore(); }
 const AIM_HINT='';   // persistent ult hint removed (redundant, Phil); the brief drag instruction still shows while actively aiming
 /* 30 Aug — AIMING AN ULTIMATE WHILE ZOOMED HIT THE WRONG PLACE.
    applyBattleView() CSS-transforms #overlay with translate(...) scale(battleZoom). getBoundingClientRect()
@@ -27455,6 +27496,7 @@ function attachUltPress(el,u,relayMode){
   const finish=(e)=>{
     if(holdAim){ holdAim=false; try{el.releasePointerCapture(e.pointerId);}catch(_){}
       if(overCancel(e.clientX,e.clientY)){ cancelAim(); return; }
+      if(ULTCOACH.u===u&&ULTCOACH.ring){ const q=evXY(e); if(!(moved&&ultCoachOnRing(q.x,q.y))){ cancelAim(); return; } }   /* v1141: the lesson is the drag - let go on the ring */
       if(moved){ const p=evXY(e); aimTX=p.x; aimTY=p.y; u._autoAimUse=false; } else { u._autoAimUse=true; }   // tap fires the solved optimum, drag fires where you pointed
       /* Phil 14 Sep 2026: click-release without a drag always casts. It uses optimalAimField's
          authored solution where one exists, otherwise the nearest valid target. Dragging remains
@@ -27934,7 +27976,8 @@ function loop(now){let dt=(now-last)/1000;last=now;
   // the loop on a phone. Four times a second is plenty to catch a width change.
   if(renderer && (now-_szChk)>250){ _szChk=now; const app=document.getElementById('app'); if(app && app.clientWidth!==CW) resize3D(); }
   if(aiming&&!aiming.alive)cancelAim();
-  const freeze = paused || (aiming && CUR.mode!=='online'); // pause or aim freezes (online never freezes)
+  try{ ultCoachTick(); }catch(e){}
+  const freeze = paused || (aiming && CUR.mode!=='online') || ULTCOACH.hold; // pause or aim freezes (online never freezes); v1141: the ult coach holds the fight
   /* v327: drive the server's clock off the SAME condition that gates the sim below, plus the wave
      cinematic (updateBattle returns before simTick++ while waveXfer is set). */
   try{ streamStall(state==='battle' && !ended && (freeze || !!waveXfer)); }catch(e){}
@@ -28058,7 +28101,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1792061575082';
+const BUILD_ID = '1792071627433';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
