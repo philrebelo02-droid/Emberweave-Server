@@ -2895,7 +2895,7 @@ carn:{
   0:{u:'/assets/anim/carn/carn_ult.webp?v=3',n:72,fw:300,fh:277,cols:6,rows:12,dur:2.4},   // Crimson Reap (ultimate)
   1:{u:'/assets/anim/carn/carn_green.webp?v=3',n:72,fw:300,fh:262,cols:6,rows:12,dur:2.4},   // Reckless Blow
   2:{u:'/assets/anim/carn/carn_blue.webp?v=3',n:72,fw:300,fh:296,cols:6,rows:12,dur:2.4},   // Vein Burst
-  3:{u:'/assets/anim/carn/carn_passive.webp?v=3',n:72,fw:267,fh:300,cols:6,rows:12,dur:2.4},   // Unrelenting (passive)
+  /* 3 (passive) removed v1142 (Phil 15 Oct: "remove his passive animation") - with no battle passive clip the Skills tab would fall back to the old v21 sheet here */
 },
 sylthaine:{
   0:{u:'/assets/anim/sylthaine/sylthaine_ult.webp?v=11',n:72,fw:265,fh:300,cols:6,rows:12,dur:2.4},   // Blizzard (ultimate)
@@ -3545,8 +3545,7 @@ const BATTLE_ANIM = {
     hit:{u:'/assets/anim/carn/carn_hit_1142.webp?v=1142',n:48,fw:233,fh:341,cols:8,rows:6,figH:312,feet:333,cx:124,fps:24,flip:false,top:21},
     green:{u:'/assets/anim/carn/carn_green_1142.webp?v=1142',n:48,fw:341,fh:255,cols:6,rows:8,figH:231,feet:248,cx:116,fps:24,flip:false,top:17,contact:18},
     blue:{u:'/assets/anim/carn/carn_blue_1142.webp?v=1142',n:48,fw:292,fh:263,cols:7,rows:7,figH:233,feet:257,cx:139,fps:24,flip:false,top:24,contact:30},
-    ult:{u:'/assets/anim/carn/carn_ult_1142.webp?v=1142',n:44,fw:341,fh:237,cols:6,rows:8,figH:193,feet:226,cx:148,fps:22,flip:false,top:33,contact:37},
-    passive:{u:'/assets/anim/carn/carn_passive.webp?v=21',n:48,fw:290,fh:457,cols:6,rows:8,figH:400,feet:448,cx:138,fps:24,flip:true,top:48,ax:[0,1,1,1,2,2,4,-5,-5,-4,-16,-14,-14,-15,-15,-15,-15,-31,-31,-31,-31,-31,-28,-28,-28,-31,-31,-31,-31,-31,-30,-30,-30,-30,-30,-30,-15,-15,-15,-16,-6,2,1,0,-1,-1,-1,-1]}
+    ult:{u:'/assets/anim/carn/carn_ult_1142.webp?v=1142',n:44,fw:341,fh:237,cols:6,rows:8,figH:193,feet:226,cx:148,fps:22,flip:false,top:33,contact:37}   /* v1142 (Phil 15 Oct: "Make sure you remove his passive animation"): NO passive clip - the v21 passive (old art) never plays, not as idle filler and not after the ult; when Unrelenting triggers he stays in his new idle/attack art. firePassiveClip still fires its FX plate (firePassiveFx) and returns before any clip/hold; carn_passive.webp stays on disk unreferenced */
   },
   sylthaine:{
     idle:{u:'/assets/anim/sylthaine/sylthaine_idle.webp?v=26',n:48,fw:314,fh:520,cols:6,rows:8,figH:501,feet:514,cx:149,fps:24,flip:false,top:13},

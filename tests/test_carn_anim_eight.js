@@ -1,7 +1,9 @@
 'use strict';
 // v1142 - Carn's eight new animations (Phil PASS 15 Oct 2026, REVIEW 15OCT2026 H3, clean-source-manifest.json - all eight "Phil PASS", official
 //   Hailuo Without Watermark exports, sha256 matched): IDLE, WALK, ATTACK, CRIT (creation 566994430037954560 - his first crit clip), HIT,
-//   GREEN Reckless Blow (corrected creation 566993116109373444), BLUE Vein Burst, ULT Crimson Reap. No passive was made: his v21 passive stays.
+//   GREEN Reckless Blow (corrected creation 566993116109373444), BLUE Vein Burst, ULT Crimson Reap. No passive was made, and Phil (15 Oct): "Make sure
+//   you remove his passive animation" - Carn has NO passive clip: the v21 sheet (old art) never plays, not as idle filler, not after the ult, not in the
+//   Skills tab; his passive (Unrelenting, a static attack-speed buff) never fired a clip, so no fight moved (80 whole fights = the build before).
 // THE ART IS TIMED TO THE ENGINE, NOT THE OTHER WAY ROUND. Checked three ways:
 //   1. the timing DATA the engine reads is unchanged: every action clip keeps clipDur 2.0 s and relFrac 0.5 (the old 48 @24), so the swing fuse,
 //      the skill hold (_abilHold = one playthrough), the cast clock and the ult root read the same numbers;
@@ -98,13 +100,19 @@ const H = s => crypto.createHash('sha256').update(s).digest('hex').slice(0, 16);
 try {
   ck('control file (BASE emberweave-heroes.html from git ' + BASE_SHA + ') loaded', !!R0, 'git show failed');
   const G = run('JSON.parse(JSON.stringify(BATTLE_ANIM.carn))'), G0 = R0('JSON.parse(JSON.stringify(BATTLE_ANIM.carn))');
-  ck('Carn has his eight states + the new crit (nine), BASE had no crit clip', Object.keys(G).sort().join() === 'attack,blue,crit,green,hit,idle,passive,ult,walk' && !G0.crit, Object.keys(G).join(','));
+  ck('Carn has exactly the eight new states (with his first crit) and NO passive clip; BASE had a passive and no crit', Object.keys(G).sort().join() === 'attack,blue,crit,green,hit,idle,ult,walk' && !G.passive && !!G0.passive && !G0.crit, Object.keys(G).join(','));
   const bad = gridProblems(G, NEW.map(x => x[0]));
   ck('every new sheet exists, file = declared grid, within 2048 px per side and 4 MB (v1140 budget), anchors in the cell', bad.length === 0, bad.join('; '));
   const baseSrc = fs.readFileSync(OLD, 'utf8');
   ck('the eight are new files at ?v=1142 that BASE never referenced (never a reused asset version)', NEW.every(([s]) => G[s].u === `/assets/anim/carn/carn_${s}_1142.webp?v=1142` && !baseSrc.includes(`carn_${s}_1142`)));
   ck('the old v21 sheets are still on disk (rollback needs nothing)', NEW.filter(([s]) => s !== 'crit').every(([s]) => fs.existsSync(path.join(ROOT, G0[s].u.split('?')[0]))));
-  ck('his passive (no new clip was made) is byte-for-byte the BASE entry', JSON.stringify(G.passive) === JSON.stringify(G0.passive));
+  ck('no passive clip anywhere: not in BATTLE_ANIM, not in the Skills-tab preview (hand table or derived), and no page reference to the v21 sheet (its file stays on disk)',
+    !G.passive && run("(()=>{ ensureSkillPreview('carn'); const s=HERO_SKILL_CLIPS.carn||{}; return !s[3] && !!s[0]; })()") && !/carn_passive\.webp\?/.test(fs.readFileSync(HTML, 'utf8'))
+    && fs.existsSync(path.join(ROOT, G0.passive.u.split('?')[0])));
+  { const r = JSON.parse(run(`(()=>{ units=[]; seedBattle(3); const g=makeUnit('carn','ally',500,700,30,{owned:false,rank:3}); g.anim=BATTLE_ANIM.carn; units=[g]; g._abilHold=0; g._lockPri=0; g._animLockT=0;
+      firePassiveClip(g, 2.0); const fired=[g._abilAnim||null,g._abilHold,g._lockPri,g._animLockT,!!g._passFired,g._qPass||null];
+      const cand=[]; if(g.anim.idle) cand.push('idle'); if(!g._passFired && g.anim.passive) cand.push('passive'); return JSON.stringify({fired,cand}); })()`));
+    ck('a passive trigger plays no clip and sets no hold or lock (firePassiveClip returns after its FX plate); idle has no passive filler to alternate with', JSON.stringify(r.fired) === JSON.stringify([null, 0, 0, 0, false, null]) && r.cand.join() === 'idle', JSON.stringify(r)); }
   const others = r => r("JSON.stringify(Object.keys(BATTLE_ANIM).filter(k=>k!=='carn').map(k=>[k,BATTLE_ANIM[k]]))");
   ck('every other hero and monster has BATTLE_ANIM byte-for-byte BASE', H(others(run)) === H(others(R0)));
   ck('grids as cut (cells / fps / contact cell): ' + NEW.map(x => x[0] + ' ' + x[1] + '@' + x[2] + (x[3] != null ? ' c' + x[3] : '')).join(', '),
