@@ -2241,6 +2241,30 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 
 /* v1092 EGP / EDP (blueprint 25) */
 #patBadge{position:absolute;left:50%;transform:translateX(-50%);top:calc(127% + 1px);z-index:3;border:1px solid #c9a35e;border-radius:8px;padding:0 7px;font:800 10px/14px system-ui,sans-serif;letter-spacing:.04em;color:#ffe3a3;background:linear-gradient(#3a2a12,#20160a);cursor:pointer;white-space:nowrap}
+/* v1144: the sign-in gate and the GUEST marker */
+#authGate{position:fixed;inset:0;z-index:2147481000;display:none;align-items:center;justify-content:flex-end;padding:12px max(16px,5vw);
+  background:linear-gradient(90deg,rgba(5,7,12,.15) 0%,rgba(5,7,12,.55) 45%,rgba(5,7,12,.88) 100%),url(/assets/img/miscellaneous/splash-v2.jpg) center/cover no-repeat,#0b0f17;
+  font-family:Georgia,'Times New Roman',serif;color:#f6e8c8;overflow-y:auto}
+#authGate .agCard{width:100%;max-width:340px;max-height:100%;overflow-y:auto;background:linear-gradient(160deg,rgba(43,29,13,.96),rgba(18,12,6,.97));border:1.5px solid #d8b25a;
+  border-radius:14px;padding:12px 14px;box-shadow:0 12px 40px #000c,inset 0 1px 0 rgba(255,235,190,.2);display:flex;flex-direction:column;gap:7px}
+#authGate .agTabs{display:flex;gap:6px}
+#authGate .agTab{flex:1;font:800 13px Georgia,serif;padding:7px 6px;border-radius:9px;border:1px solid #b8913f;background:linear-gradient(180deg,#1f2b48,#0c1326);color:#cdb98a;cursor:pointer}
+#authGate .agTab.on{background:linear-gradient(90deg,#ffb347,#ff8a5b);color:#0b0e14;border-color:#ffd27a}
+#authGate .agTitle{font-weight:800;font-size:15px;color:#ffe6a8;text-shadow:0 1px 2px #000;text-align:center}
+#authGate input{width:100%;box-sizing:border-box;background:#0f1420;border:1px solid #6b5426;border-radius:8px;color:#e6edf3;padding:8px 10px;font:14px system-ui,sans-serif}
+#authGate .btn{width:100%;margin:0}
+#authGate .agRow{display:flex;gap:6px} #authGate .agRow .btn{flex:1;font-size:11px;padding:6px 4px}
+#authGate .agLink{font:11px system-ui,sans-serif;color:#d8c08a;text-align:center;text-decoration:none}
+#authGate .agNote{font:12px/1.4 system-ui,sans-serif;color:#cdb98a;text-align:center}
+#authGate .agGuest{align-self:center;font:800 12px system-ui,sans-serif;letter-spacing:.04em;color:#ffd45e;border:1px solid #c9a35e;border-radius:8px;padding:2px 9px;background:#20160a}
+#authGate .agWarn{font:12px/1.4 system-ui,sans-serif;color:#ffd0a0;background:#3a1a10;border:1px solid #c0703a;border-radius:8px;padding:6px 8px;text-align:center}
+#authGate .agMsg{font:12px system-ui,sans-serif;min-height:15px;text-align:center}
+#guestMark{position:absolute;right:calc(100% + 10px);top:50%;transform:translateY(-50%);z-index:9}
+#guestMarkRes{margin:14px auto 0;display:block}
+#guestMark,#guestMarkRes{border:1.5px solid #ffb347;border-radius:8px;padding:3px 9px;font:800 11px/16px system-ui,sans-serif;letter-spacing:.03em;color:#ffe3a3;
+  background:linear-gradient(#5a2a0c,#2b1406);box-shadow:0 2px 6px #000a;cursor:pointer;white-space:nowrap}
+#guestMark[hidden],#guestMarkRes[hidden]{display:none}
+#guestMark .stIc,#guestMarkRes .stIc{width:14px;height:14px;vertical-align:-3px}
 #patBadge.edp{border-color:#8fd8ff;color:#d6f3ff;background:linear-gradient(#123448,#0a1c28)}
 #patScreen{position:fixed;inset:0;z-index:9000;background:rgba(4,7,12,.82);display:flex;align-items:center;justify-content:center;padding:14px}
 #patScreen .patCard{width:100%;max-width:640px;max-height:92vh;overflow:auto;background:#121826;border:1px solid #c9a35e;border-radius:14px;padding:14px;color:#e8edf5;font:13px/1.4 system-ui,sans-serif}
@@ -2330,6 +2354,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
       <img id="pfFrame" src="/assets/img/ui/hud-ring.webp?v=1" alt="" aria-hidden="true">
       <div id="pfName"><span class="pname" id="resName">Commander</span></div>
       <button id="patBadge" hidden aria-label="Patron"></button>
+      <button id="guestMark" hidden aria-label="Guest account - create an account"></button>
     </div>
     <div id="hubMenu">
       <div id="menuBtn"><img class="mbIc" src="/assets/img/ui/mi-menu.webp?v=1" alt=""><span>Menu</span><span class="chev">▾</span></div>
@@ -2595,6 +2620,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
     <div id="resultSquad"></div>
     <div class="reward" id="resultReward"></div>
     <div class="hint" id="resultHint"></div>
+    <button id="guestMarkRes" hidden aria-label="Guest account - create an account"></button>
     <button class="btn wide" id="resultBtn" style="margin-top:20px">CONTINUE <img class="stIc" src="/assets/img/icons/ui/play-v1.webp" alt=""></button>
   </div>
 
@@ -15557,6 +15583,9 @@ function closePopout(){ try{ loreStop(); }catch(e){}   /* v1124: closing a pop-o
 function show(name){
   try{ if(name!==state) loreStop(); }catch(e){}   /* v1048: leaving the screen stops the lore narration */
   try{ if(typeof netGateUpdate==='function'&&NETGATE.bootAt) setTimeout(netGateUpdate,0); }catch(e){}   /* v1018: a signed-out player may only use the sign-in screen */
+  /* v1144: with no session nothing but the sign-in gate is reachable - any navigation lands on the (covered) town and opens the gate */
+  if(!(ACC&&ACC.token)&&online()&&!window._p2guard&&name!=='home'){ name='home'; }
+  try{ setTimeout(authGateRefresh,0); }catch(e){}
   if(name==='home'&&G.tutStarted&&!G.tutDone&&ACC.token) name='tutorial';
   const _leavingResult=(typeof state!=='undefined'&&state==='result'&&name!=='result');
   if(_popout) closePopout();   // any full navigation closes an open pop-out
@@ -15573,7 +15602,7 @@ function show(name){
   else if(document.getElementById(name)){ const target=document.getElementById(name); target.scrollTop=0; target.classList.add('active'); }
   { const bg=document.getElementById('battleBg'); if(bg) bg.style.display = (name==='battle') ? 'block' : 'none';
     const eb=document.getElementById('enemyBar'); if(eb && name!=='battle') eb.classList.remove('active'); }
-  if(name==='result') renderResultExtras();
+  if(name==='result'){ renderResultExtras(); try{ updateGuestMarks(); }catch(e){} }
   if(name==='home') setTimeout(()=>{ try{ evictBattleArtAll(); }catch(e){} },0);   /* v1140: the hub draws no battle - its sheets and sounds go (memory hotfix) */
   if(name==='glossary') renderGlossary();
   _fitApp();
@@ -15664,6 +15693,7 @@ function updateHubChrome(){
   const st=document.getElementById('resStaminaTimer'); if(st) st.textContent=full?'':('⏳'+fmtDur(staminaToNext()));
   const ring=document.getElementById('xpRing'); if(ring) ring.style.setProperty('--xp',(xpIntoLevel()*3.6)+'deg');
   if(typeof checkTutorial==='function') checkTutorial();
+  try{ updateGuestMarks(); }catch(e){}   /* v1144 */
 }
 /* Phil 27 Sep 13:10 (phone): "I cannot see the unlock level of starless because it goes off the screen". A town lock tip is centred
    over its padlock, so a building at the map's edge pushes it past the visible map. When a tip shows, slide it sideways just enough
@@ -21443,8 +21473,7 @@ function signOutFully(){
   try{ clearServerCaches(); }catch(e){}
   G=JSON.parse(JSON.stringify(DEFAULT_G)); saveGLocalOnly();
   try{ updateHubChrome(); }catch(e){} }
-function playAsGuest(cb){ if(ACC) delete ACC.signedOut; saveAcc(); ensureGuest(()=>{ try{ updateHubChrome(); }catch(e){} if(cb)cb(); }); }
-function saveAcc(){ try{localStorage.setItem('ew_acc',JSON.stringify(ACC));}catch(e){} }
+function saveAcc(){ try{localStorage.setItem('ew_acc',JSON.stringify(ACC));}catch(e){} lastAcctSet(); try{ updateGuestMarks(); }catch(e){} }
 // GUEST SESSION: when there's no signed-in account, provision a persistent server-backed "level 1 guest"
 // so progress is always saved and the player appears online. Seeds the guest with the CURRENT local save,
 // so an offline player who reached e.g. level 7 without an account is NOT reset to 1. One guest per device
@@ -21453,10 +21482,17 @@ function saveAcc(){ try{localStorage.setItem('ew_acc',JSON.stringify(ACC));}catc
    There was no signed-out state: every path that found no token immediately provisioned a device
    guest, including Log out itself. A deliberate sign-out now sets ACC.signedOut and STAYS signed
    out until the player logs in, registers, or taps "Play as guest". */
+/* v1144 (15 Oct 2026, live incident): this used to MAKE a guest whenever the device had no token - a tester's second browser became
+   Guest-617D and played two hours there while his real account sat empty. It never makes one now (the server refuses new guests too):
+   no session = the sign-in gate (authGateRefresh). The one thing it still does is RESUME this device's existing guest when the stored
+   session was a guest whose token was lost, so an old guest keeps its progress and can upgrade it. A lost real-account token goes
+   straight to Sign in. */
 function ensureGuest(cb){
-  if((ACC&&ACC.token) || (ACC&&ACC.signedOut) || !online()){ if(cb)cb(); return; }
-  let r={}; try{ if(typeof rosterPayload==='function') r=rosterPayload(); r.__save=JSON.stringify(G); }catch(e){}
-  api('/api/guest','POST',{deviceId:deviceId(), roster:r}).then(d=>{
+  if((ACC&&ACC.token) || !online()){ if(cb)cb(); return; }
+  if(!(ACC&&ACC.guest&&!ACC.signedOut) || ensureGuest._busy){ try{ authGateRefresh(); }catch(e){} if(cb)cb(); return; }
+  ensureGuest._busy=true;
+  api('/api/guest','POST',{deviceId:deviceId(), resume:true}).then(d=>{ ensureGuest._busy=false;
+    if(!(d&&d.token&&d.profile) && !(d&&d.error==='offline')){ ACC={token:null,name:null,rank:null,coins:0,id:null}; saveAcc(); }   // no guest to resume: Sign in (a dropped connection keeps the guest and tries again)
     if(d&&d.token&&d.profile){ ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,guest:true,created:(d.profile.created||0),admin:!!d.profile.admin}; saveAcc(); clearServerCaches();   // 31 Aug: a pre-token /api/gear/state 401 may already have cached "Forge disabled" — drop it now that we have a token
       /* 30 Aug — RESUMING A GUEST WAS DESTROYING THAT GUEST'S SAVE.
          This comment was only ever true for a BRAND-NEW guest. /api/guest also RESUMES an existing
@@ -21470,8 +21506,9 @@ function ensureGuest(cb){
          when the account genuinely has no save yet. */
       if(!(_cloudReady=true, applyCloudSave(d.profile, true))) pushSave();
       try{ DEV.on=false; }catch(e){} if(typeof updateHubChrome==='function')updateHubChrome(); if(typeof renderAccount==='function')renderAccount(); }
+    try{ authGateRefresh(); }catch(e){}
     if(cb)cb();
-  }).catch(()=>{ if(cb)cb(); });
+  }).catch(()=>{ ensureGuest._busy=false; if(cb)cb(); });
 }
 function online(){ return location.protocol!=='file:'; }
 /* v1018 (Phil 4 Oct: "players should not be able to play offline, server needs to be connected to play"). THE NET GATE: a
@@ -21491,8 +21528,12 @@ function netGateUpdate(){ if(window._p2guard||!online()) return; const el=netGat
   else if(NETGATE.down>=2){ msg='Lost '+_svN+' — reconnecting…'; act='retry'; }
   else if(window._svrSigningIn){ msg='Signing you in…'; act='wait'; }   // v1034: a server switch is signing in - no Play until it lands
   else if(!(ACC&&ACC.token)){
-    if(ACC&&ACC.signedOut){ if(typeof state==='undefined'||state!=='account'){ msg='Sign in to play.'; act='signin'; } }
-    else if(NETGATE.bootAt&&Date.now()-NETGATE.bootAt>3000&&!window._svrHandoff){ msg='Connecting to the realm…'; act='retry'; } }
+    /* v1144: no session is never "being provisioned" any more - it is the sign-in gate. While that gate (or the sign-in screen) is
+       up this gate stays out of its way; anywhere else it blocks with Sign in. */
+    const _ag=(typeof authGateOpen==='function')&&authGateOpen();
+    if(_ag || (typeof state!=='undefined'&&state==='account') || (typeof _splashEntered!=='undefined'&&!_splashEntered)){}   // the splash comes first; the gate opens on Play
+    else if(ACC&&ACC.guest&&!ACC.signedOut&&!(NETGATE.bootAt&&Date.now()-NETGATE.bootAt>3000)){}   // a lost guest token is being resumed
+    else if(!window._svrHandoff){ msg='Sign in to play.'; act='signin'; } }
   if(!msg){ el.style.display='none'; return; }
   const btn=act==='wait'?'':act==='signin'?'<button class="btn" id="netGateBtn">Sign in</button>':'<button class="btn secondary" id="netGateBtn">Retry</button>';
   /* v1120 (Phil 10 Oct: "fix it so a server going down takes down that server not the game"): when THIS server stops answering, the
@@ -21503,7 +21544,7 @@ function netGateUpdate(){ if(window._p2guard||!online()) return; const el=netGat
     other='<div style="font-size:13px;font-weight:700;opacity:.8;margin-top:6px">Or play on another server</div><div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center">'+
       SVR_LIST.filter(x=>x.id!==here).map(x=>'<button class="btn secondary" data-ngsvr="'+x.id+'">'+escapeHTML(x.name)+'</button>').join('')+'</div>'; } }catch(e){ other=''; }
   if(el.dataset.msg!==msg+'|'+(other?1:0)){ el.dataset.msg=msg+'|'+(other?1:0); el.innerHTML='<div>'+msg+'</div>'+btn+other;
-    if(act!=='wait') el.querySelector('#netGateBtn').onclick=async(ev)=>{ if(act==='signin'){ el.style.display='none'; try{ show('account'); }catch(e){} return; }
+    if(act!=='wait') el.querySelector('#netGateBtn').onclick=async(ev)=>{ if(act==='signin'){ el.style.display='none'; try{ authGateRefresh(true); }catch(e){} return; }
       /* v1120 (Phil: "the reconnect button doesnt nothing"): it re-checked silently - when the server was still down the screen did not change */
       const b=ev.currentTarget; b.disabled=true; b.textContent='Checking…'; NETGATE.busy=false; await netGateCheck();
       if(NETGATE.down){ const b2=document.getElementById('netGateBtn'); if(b2){ b2.disabled=false; b2.textContent='Still down — Retry'; } } };
@@ -21515,13 +21556,135 @@ async function netGateCheck(){ if(window._p2guard||!online()||NETGATE.busy) retu
   const _was=NETGATE.down;
   NETGATE.busy=false; NETGATE.down=ok?0:(NETGATE.serverDown?Math.max(2,NETGATE.down+1):NETGATE.down+1);   // v1120: the front door saying "down" needs no second miss
   if(ok&&_was>=2){ try{ CHATNET.tries=0; chatConnect(); }catch(e){} }   // v1120: the server is back - reconnect the live socket now, not after its back-off
-  if(ok&&!(ACC&&ACC.token)&&!(ACC&&ACC.signedOut)&&!window._svrHandoff) ensureGuest(()=>netGateUpdate());
+  if(ok&&!(ACC&&ACC.token)&&!(ACC&&ACC.signedOut)&&!window._svrHandoff) ensureGuest(()=>netGateUpdate());   // v1144: resumes a lost GUEST token only; never makes one
   netGateUpdate(); }
 function netGateLoop(){ clearTimeout(NETGATE.timer); NETGATE.timer=setTimeout(async()=>{ await netGateCheck(); netGateLoop(); }, NETGATE.down?4000:15000); }
 function netGateStart(){ if(window._p2guard||!online()||NETGATE.bootAt) return; NETGATE.bootAt=Date.now();
   window.addEventListener('offline',()=>{ NETGATE.down=Math.max(NETGATE.down,2); netGateUpdate(); netGateLoop(); });
   window.addEventListener('online',()=>{ netGateCheck(); });
   setTimeout(netGateUpdate,3200); netGateLoop(); }
+/* v1144 (15 Oct 2026, live incident: tester SOUL EATER registered on Server 1; two minutes later a browser with no stored token quietly
+   became Guest-617D and he played two hours there, so his account looked wiped. Phil: "please make sure the first thing someone is
+   forced to to is sign in or create an account" / "Its important that if someone is logged into a guest they are aware of it").
+   THE SIGN-IN GATE. After the splash, a device with no session sees only this: Create account or Sign in. Nothing behind it can be
+   tapped (it covers the page above every game layer; only the Terms and the net gate sit over it) and no guest is ever made.
+   A device that still holds a GUEST session keeps it: it gets a one-time step "Create your account to keep your progress" (the
+   guest is upgraded in place by /api/register - same id, same ledger) that cannot be dismissed without a choice, and for as long as
+   it stays a guest it wears a GUEST marker on the hub and on the battle result screen. A device that was signed in to a real account
+   and is now on a guest says so and offers that account's sign-in. Servers 2-5 run the same calls through the account server. */
+const AUTHG={mode:'', shown:'', fgStep:'name', fgName:'', resetName:'', ask:false};   // ask = the guest tapped its GUEST marker
+function lastAcctGet(){ try{ const v=JSON.parse(localStorage.getItem('ew_last_acct')||'null'); return (v&&v.name)?v:null; }catch(e){ return null; } }
+function lastAcctSet(){ try{ if(ACC&&ACC.token&&!ACC.guest&&ACC.name) localStorage.setItem('ew_last_acct',JSON.stringify({name:String(ACC.name),id:ACC.id||''})); }catch(e){} }
+function guestStepSeen(){ try{ return !!(ACC&&ACC.id&&localStorage.getItem('ew_guest_step_'+ACC.id)); }catch(e){ return false; } }
+function guestStepDone(){ try{ if(ACC&&ACC.id) localStorage.setItem('ew_guest_step_'+ACC.id,'1'); }catch(e){} }
+function authGateEl(){ let el=document.getElementById('authGate'); if(!el){ el=document.createElement('div'); el.id='authGate'; el.style.display='none'; document.body.appendChild(el); } return el; }
+function authGateOpen(){ const g=document.getElementById('authGate'); return !!(g&&g.style.display!=='none'); }
+/* '' = no gate, 'out' = no session (Create account / Sign in), 'guest' = the one-time upgrade step */
+function authGateNeed(){ if(window._p2guard||!online()) return ''; if(window._svrHandoff||window._svrSigningIn) return '';
+  if(!(ACC&&ACC.token)) return (ACC&&ACC.guest&&!ACC.signedOut&&ensureGuest._busy)?'':'out';
+  if(ACC.guest&&(!guestStepSeen()||AUTHG.ask)) return 'guest';
+  return ''; }
+function authGateRefresh(force){ let entered=false; try{ entered=_splashEntered; }catch(e){}
+  const el=authGateEl(), need=entered?authGateNeed():'';
+  if(!need){ if(el.style.display!=='none'){ el.style.display='none'; el.innerHTML=''; AUTHG.shown=''; } updateGuestMarks(); return; }
+  const okModes=need==='out'?['create','signin','forgot','reset']:['guest','signin'];
+  if(okModes.indexOf(AUTHG.mode)<0) AUTHG.mode = need==='guest' ? 'guest' : (lastAcctGet()?'signin':'create');
+  if(force || AUTHG.shown!==need+'/'+AUTHG.mode || el.style.display==='none') authGateRender();
+  el.style.display='flex'; updateGuestMarks();
+  try{ document.querySelectorAll('#tutOffer').forEach(n=>n.remove()); }catch(e){} }
+function authGateRender(){ const el=authGateEl(), need=authGateNeed()||'out', m=AUTHG.mode, last=lastAcctGet();
+  AUTHG.shown=need+'/'+m;
+  const inp=(id,type,ph,ac,extra)=>`<input id="${id}" type="${type}" placeholder="${ph}" autocomplete="${ac}" autocapitalize="off" spellcheck="false"${extra||''}>`;
+  const tabs=need==='out'&&(m==='create'||m==='signin')?`<div class="agTabs"><button class="agTab${m==='create'?' on':''}" id="agTabNew">Create account</button><button class="agTab${m==='signin'?' on':''}" id="agTabIn">Sign in</button></div>`:'';
+  let body='';
+  if(m==='create') body=`<div class="agTitle">Create your account</div>
+      ${inp('agName','text','Username','off',' maxlength="16"')}${inp('agPass','password','Password (8+ characters)','new-password')}${inp('agPass2','password','Confirm password','new-password')}
+      <button class="btn" id="agGo">Create account</button>`;
+  else if(m==='signin') body=`<div class="agTitle">${need==='guest'?'Sign in to your account':'Sign in'}</div>
+      ${need==='guest'?`<div class="agNote">Signing in leaves guest <b>${escapeHTML(ACC.name||'')}</b> on this device.</div>`:''}
+      ${inp('agName','text','Username','username',' maxlength="16"'+(last?' value="'+escapeHTML(last.name)+'"':''))}${inp('agPass','password','Password','current-password')}
+      <button class="btn" id="agGo">Sign in</button>
+      ${need==='out'?'<a href="#" id="agForgot" class="agLink">Forgot your password?</a>':'<button class="btn xs secondary" id="agBack">Back</button>'}`;
+  else if(m==='forgot') body=AUTHG.fgStep==='name'
+      ? `<div class="agTitle">Forgot password</div>${inp('agFgName','text','Username','username',' maxlength="16"')}
+         <button class="btn" id="agFgSend">Send reset code</button><button class="btn xs secondary" id="agBack">Back to sign in</button>`
+      : `<div class="agTitle">Enter your code</div><div class="agNote">For <b>${escapeHTML(AUTHG.fgName)}</b>, if it has a linked email.</div>
+         ${inp('agFgCode','text','6-digit code','one-time-code',' inputmode="numeric" maxlength="6"')}${inp('agFgNew','password','New password','new-password')}${inp('agFgNew2','password','Confirm new password','new-password')}
+         <button class="btn" id="agFgSubmit">Set password &amp; sign in</button><button class="btn xs secondary" id="agBack">Back to sign in</button>`;
+  else if(m==='reset') body=`<div class="agTitle">Your password has been reset</div><div class="agNote">Set a new password for <b>${escapeHTML(AUTHG.resetName)}</b>.</div>
+      ${inp('agNew','password','New password','new-password')}${inp('agNew2','password','Confirm new password','new-password')}
+      <button class="btn" id="agSetPass">Set password &amp; sign in</button><button class="btn xs secondary" id="agBack">Back</button>`;
+  else if(m==='guest') body=`<div class="agTitle">Create your account to keep your progress</div>
+      <div class="agGuest">${uiIcon('guest')} GUEST <b>${escapeHTML(ACC.name||'')}</b> · Lv ${playerLevel()}</div>
+      ${last&&last.name&&last.id!==ACC.id?`<div class="agWarn" id="agOther">This device was signed in to <b>${escapeHTML(last.name)}</b>. You are on guest <b>${escapeHTML(ACC.name||'')}</b> now, not that account.</div>`:''}
+      ${inp('agName','text','Username','off',' maxlength="16"')}${inp('agPass','password','Password (8+ characters)','new-password')}${inp('agPass2','password','Confirm password','new-password')}
+      <button class="btn" id="agGo">Create account</button>
+      <div class="agRow"><button class="btn xs secondary" id="agToIn">${last&&last.name&&last.id!==ACC.id?'Sign in to '+escapeHTML(last.name):'Sign in to an account'}</button></div>`;
+  el.innerHTML=`<div class="agCard">${tabs}${body}<div id="agMsg" class="agMsg"></div></div>`;
+  const $=s=>el.querySelector(s), msg=(t,good)=>{ const e=$('#agMsg'); if(e){ e.style.color=good?'#8b98a9':'#ff8b8b'; e.textContent=t; } };
+  const to=(mode)=>{ AUTHG.mode=mode; authGateRender(); };
+  if($('#agTabNew')) $('#agTabNew').onclick=()=>to('create');
+  if($('#agTabIn')) $('#agTabIn').onclick=()=>to('signin');
+  if($('#agToIn')) $('#agToIn').onclick=()=>to('signin');
+  if($('#agBack')) $('#agBack').onclick=()=>{ AUTHG.fgStep='name'; to(need==='guest'?'guest':'signin'); };
+  if($('#agForgot')) $('#agForgot').onclick=(e)=>{ e.preventDefault(); AUTHG.fgStep='name'; to('forgot'); };
+  if($('#agKeep')) $('#agKeep').onclick=()=>{ guestStepDone(); AUTHG.ask=false; authGateRefresh(); };
+  const enter=(ids,fn)=>ids.forEach(i=>{ const x=$(i); if(x) x.onkeydown=(e)=>{ if(e.key==='Enter') fn(); }; });
+  if($('#agGo')){ const go=()=>{ const name=($('#agName').value||'').trim(), pass=$('#agPass').value||'', p2=$('#agPass2')?($('#agPass2').value||''):null;
+      const isNew=m==='create'||m==='guest';
+      if(name.length<2){ msg('Username needs at least 2 characters.'); return; }
+      if(!pass){ msg('Enter a password.'); return; }
+      if(isNew&&pass.length<8){ msg('Password needs at least 8 characters.'); return; }
+      if(isNew&&pass!==p2){ msg('Passwords do not match.'); return; }
+      if(!tosOK()){ requireTos(go, ()=>msg('You must accept the Terms to continue.')); return; }
+      if(window._authBusy) return; window._authBusy=true; msg(isNew?'Creating account…':'Signing in…',true);
+      api(isNew?'/api/register':'/api/login','POST',{name,pass,roster:rosterPayload(),deviceId:deviceId(),auto:(!isNew&&svrAutoGet())||undefined}).then(d=>{ window._authBusy=false;
+        if(!isNew && svrHomeLogin(d,name,pass,e=>msg(e))) return;   // v1130: the account plays on Server 1
+        if(d&&d.reset){ AUTHG.resetName=name; to('reset'); return; }
+        if(!d||d.error||!d.token||!d.profile){ msg((d&&d.error==='offline')?'Connection lost - try again.':((d&&d.error)||'Could not reach the server - try again.')); return; }
+        authGateDone(d, m==='guest'?'upgrade':(isNew?'create':'signin')); }); };
+    $('#agGo').onclick=go; enter(['#agName','#agPass','#agPass2'],go); }
+  if($('#agFgSend')){ const send=()=>{ const nm=($('#agFgName').value||'').trim(); if(nm.length<2){ msg('Enter your username.'); return; }
+      msg('Sending…',true); api('/api/reset-request','POST',{name:nm}).then(()=>{ AUTHG.fgName=nm; AUTHG.fgStep='code'; authGateRender(); }); };
+    $('#agFgSend').onclick=send; enter(['#agFgName'],send); }
+  if($('#agFgSubmit')){ const sub=()=>{ const code=($('#agFgCode').value||'').replace(/\D/g,''), np=$('#agFgNew').value||'', cf=$('#agFgNew2').value||'';
+      if(code.length!==6){ msg('Enter the 6-digit code from your email.'); return; }
+      if(!np){ msg('Enter a new password.'); return; } if(np!==cf){ msg('Passwords do not match.'); return; }
+      msg('Setting password…',true);
+      api('/api/reset-verify','POST',{name:AUTHG.fgName, code, newPass:np, roster:rosterPayload()}).then(d=>{
+        if(!d||d.error||!d.token||!d.profile){ msg((d&&d.error)||'Could not reset password.'); return; }
+        AUTHG.fgStep='name'; authGateDone(d,'signin'); }); };
+    $('#agFgSubmit').onclick=sub; enter(['#agFgCode','#agFgNew','#agFgNew2'],sub); }
+  if($('#agSetPass')){ const set=()=>{ const np=$('#agNew').value||'', cf=$('#agNew2').value||'';
+      if(!np){ msg('Enter a new password.'); return; } if(np!==cf){ msg('Passwords do not match.'); return; }
+      msg('Setting password…',true);
+      api('/api/login','POST',{name:AUTHG.resetName, newPass:np, roster:rosterPayload()}).then(d=>{
+        if(!d||d.error||!d.token||!d.profile){ msg((d&&d.error)||'Could not set password.'); return; }
+        authGateDone(d,'signin'); }); };
+    $('#agSetPass').onclick=set; enter(['#agNew','#agNew2'],set); }
+}
+/* One finish for every gate path. kind: 'create' (new account, no session before), 'signin', 'upgrade' (this guest, same id). */
+function authGateDone(d,kind){ const prevId=ACC&&ACC.token?ACC.id:null, p=d.profile;
+  const next={token:d.token,name:p.name,rank:p.rank,coins:p.coins,id:p.id,guest:!!p.guest,email:p.email||'',created:(p.created||0),admin:!!p.admin};
+  if(kind==='create'){ clearServerCaches(); G=JSON.parse(JSON.stringify(DEFAULT_G)); saveGLocalOnly(); }   // a new account starts from the starter save, never a previous session's copy
+  ACC=next; saveAcc(); DEV.on=isDevAcct(); AUTHG.mode=''; AUTHG.shown=''; AUTHG.ask=false;
+  if(kind==='upgrade'){ if(p.id!==prevId){ clearServerCaches(); if(acctSwitchReload(prevId,p.id,true)) return; }
+    _cloudReady=true; pushSave(); try{ chatUpdateName(); }catch(e){} }
+  else if(kind==='create'){ _cloudReady=true; pushSave(); try{ chatUpdateName(); }catch(e){} }
+  else { clearServerCaches(); if(acctSwitchReload(prevId,p.id,false)) return;
+    if((_cloudReady=true,applyCloudSave(p,true))){ loginReload(); return; } G=JSON.parse(JSON.stringify(DEFAULT_G)); saveGLocalOnly(); pushSave(); }   // no save on this account yet: it starts from the starter save, not this device's last session   /* v957: a sign-in with a save reboots once */
+  authGateRefresh();
+  try{ _ledgerBoot=ledgerSync(); }catch(e){}
+  try{ if(typeof questStateSync==='function') questStateSync(true); }catch(e){}
+  updateHubChrome(); show('home');
+  if(kind==='upgrade') bannerMsg('Account created. Your progress is kept.'); }
+/* The GUEST marker: always on while this session is a guest - on the hub next to the player name and on the result screen. */
+function updateGuestMarks(){ const g=!!(ACC&&ACC.token&&ACC.guest), last=g?lastAcctGet():null, other=!!(last&&last.id!==ACC.id);
+  const txt=g?('GUEST - progress not saved to an account'+(other?' · not '+last.name:'')):'';
+  ['guestMark','guestMarkRes'].forEach(id=>{ const e=document.getElementById(id); if(!e) return; e.hidden=!g;
+    if(g&&e.dataset.t!==txt){ e.dataset.t=txt; e.innerHTML=uiIcon('guest')+' <span>'+escapeHTML(txt)+'</span>'; }
+    if(!e._wired){ e._wired=1; e.addEventListener('pointerdown',ev=>ev.stopPropagation()); e.addEventListener('pointerup',ev=>ev.stopPropagation());
+      e.onclick=ev=>{ ev.stopPropagation(); if(!(ACC&&ACC.guest)) return; AUTHG.mode=other?'signin':'guest'; AUTHG.ask=true; authGateRefresh(true); }; } }); }
 // stable-ish per-device id used to cap account creation (3 per device)
 function deviceId(){ try{ let d=localStorage.getItem('ew_device'); if(!d){ d='d'+Date.now().toString(36)+(function(){ try{ const a=new Uint8Array(16); crypto.getRandomValues(a); return Array.from(a,x=>x.toString(16).padStart(2,'0')).join(''); }catch(e){ return Math.random().toString(36).slice(2,10)+Math.random().toString(36).slice(2,10); } })();   /* v1005 (Account audit #11): 128 random bits for NEW device ids (existing ids are kept) */ localStorage.setItem('ew_device',d); } return d; }catch(e){ return ''; } }
 async function api(path,method,bodyObj){ try{ const h={'Content-Type':'application/json'}; if(ACC.token)h['x-token']=ACC.token;
@@ -21545,16 +21708,17 @@ async function apiOnce(lane,path,bodyObj){ if(_apiOnceBusy[lane]) return {busy:t
   return r; }
 let _kickedNotified=false;
 function handleSignedOutElsewhere(){ if(_kickedNotified)return; _kickedNotified=true;
-  try{ ACC={token:null,name:null,rank:null,coins:0,id:null}; DEV.on=false; DEV.god=false; saveAcc(); clearServerCaches(); }catch(e){}
+  try{ const _wasGuest=!!(ACC&&ACC.guest); ACC={token:null,name:null,rank:null,coins:0,id:null}; if(_wasGuest) ACC.guest=true; DEV.on=false; DEV.god=false; saveAcc(); clearServerCaches(); }catch(e){}
   if(typeof updateHubChrome==='function') updateHubChrome();
   showKickedNotice();
+  try{ authGateRefresh(); }catch(e){}   // v1144: a lost session goes to Sign in (the notice above sits over the gate); never a new guest. A kicked guest is resumed on its next launch, not here (two tabs would take the session back and forth)
   setTimeout(()=>{ _kickedNotified=false; }, 4000);
   if(state==='settings' && typeof renderSettings==='function') renderSettings(); }
 // clear, must-acknowledge notice so the player knows their account was opened elsewhere (and can contact a dev if it wasn't them)
 function showKickedNotice(){
   if(document.getElementById('kickedNotice')) return;
   const ov=document.createElement('div'); ov.id='kickedNotice';
-  ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.86);display:flex;align-items:center;justify-content:center;z-index:20000;padding:18px';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.86);display:flex;align-items:center;justify-content:center;z-index:2147482500;padding:18px';   /* v1144: over the sign-in gate */
   ov.innerHTML=`<div style="background:linear-gradient(160deg,#2a1b1b,#160c10);border:1px solid #8f4a4a;border-radius:18px;padding:22px;width:100%;max-width:340px;text-align:center;box-shadow:0 12px 44px #000b">
     <div style="font-size:40px">${hudIcon('lock')}</div>
     <div style="font-weight:800;font-size:17px;margin:6px 0;color:#ffb4b4">You've been logged out</div>
@@ -21618,9 +21782,7 @@ function renderAccount(){ const b=document.getElementById('accountBody');
   b.innerHTML=`${(ACC&&ACC.guest)?`<div style="background:#132033;border:1px solid #24406b;border-radius:10px;padding:9px 11px;margin-bottom:10px;font-size:12px;color:#cdd8ea;line-height:1.5">${uiIcon('guest')} <b>Playing as a guest</b> (${escapeHTML(ACC.name||'')}). Your progress is being saved. <b>Create an account</b> below to keep it safe across devices, or <b>Sign in</b> to your main account.</div>`:''}<input id="acName" placeholder="Name" maxlength="16" style="width:100%;padding:9px;margin-bottom:6px;border-radius:8px;border:1px solid #33405e;background:#0f1420;color:#e6edf3">
     <input id="acPass" type="password" placeholder="Password" style="width:100%;padding:9px;margin-bottom:8px;border-radius:8px;border:1px solid #33405e;background:#0f1420;color:#e6edf3">
     <div style="display:flex;gap:8px"><button class="btn" id="loginBtn" style="flex:1">Log in</button><button class="btn secondary" id="regBtn" style="flex:1">Register</button></div>
-    ${(ACC&&ACC.signedOut)?`<button class="btn xs secondary" id="guestBtn" style="width:100%;margin-top:8px">${uiIcon('guest')} Play as a guest instead</button>`:''}
-    <div id="acMsg" style="font-size:12px;color:#ffd45e;margin-top:8px;text-align:center;min-height:16px"></div>`;
-  { const gb=b.querySelector('#guestBtn'); if(gb) gb.onclick=()=>{ gb.disabled=true; playAsGuest(()=>{ renderAccount(); show('home'); }); }; }
+    <div id="acMsg" style="font-size:12px;color:#ffd45e;margin-top:8px;text-align:center;min-height:16px"></div>`;   /* v1144: "Play as a guest instead" is gone - new guests are closed */
   const finishAuth=(d,isReg)=>{ const _prevId=ACC&&ACC.id; clearServerCaches(); ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,guest:!!(d.profile&&d.profile.guest),created:(d.profile.created||0),admin:!!d.profile.admin};saveAcc(); DEV.on=isDevAcct();
       if(acctSwitchReload(_prevId, d.profile.id, isReg)) return;   // v401: switching account reboots the app (see acctSwitchReload)
       if(isReg){ _cloudReady=true; pushSave(); } else if(!(_cloudReady=true,applyCloudSave(d.profile,true))){ pushSave(); } else { loginReload(); return; }   /* v957 */
@@ -25519,7 +25681,7 @@ function renderTutorial(){ checkTutorial(); const b=document.getElementById('tut
   b.querySelectorAll('[data-tut-claim]').forEach(btn=>btn.onclick=()=>claimTutorialStep(btn.dataset.tutClaim));
 }
 // first-run prompt for brand-new accounts
-function maybeOfferTutorial(){ if(G.tutDone||G.tutStarted||G.tutSkipped) return; if((G.campaignCleared||0)>0) return;
+function maybeOfferTutorial(){ if(G.tutDone||G.tutStarted||G.tutSkipped) return; if(!(ACC&&ACC.token)) return;   /* v1144: never before sign-in */ if((G.campaignCleared||0)>0) return;
   if(document.getElementById('tutOffer')) return;   // 2 Sep: renderHome runs more than once at boot — each call stacked another full-screen overlay, and every extra layer swallowed a tap
   const ov=document.createElement('div'); ov.id='tutOffer'; ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.8);display:flex;align-items:center;justify-content:center;z-index:20000;padding:18px';
   ov.innerHTML=`<div style="background:linear-gradient(160deg,#1c2334,#0c1420);border:1px solid #4a628f;border-radius:18px;padding:22px;width:100%;max-width:320px;text-align:center;box-shadow:0 12px 44px #000b">
@@ -26091,7 +26253,7 @@ function tosBodyHTML(){
 }
 function showTerms(){
   const ov=document.createElement('div');
-  ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.85);display:flex;align-items:center;justify-content:center;z-index:9600;padding:16px';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.85);display:flex;align-items:center;justify-content:center;z-index:2147482000;padding:16px';   /* v1144: over the sign-in gate */
   ov.innerHTML=`<div style="background:linear-gradient(160deg,#161d2c,#0b1220);border:1px solid #38507c;border-radius:16px;width:100%;max-width:440px;max-height:86vh;display:flex;flex-direction:column;box-shadow:0 14px 48px #000c">
     <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px;border-bottom:1px solid #223052">
       <div style="font-weight:800;font-size:15px">${uiIcon('quest-scroll')} Terms of Service &amp; Privacy</div>
@@ -26106,7 +26268,7 @@ function showTerms(){
 function requireTos(onAccept,onDecline){
   if(tosOK()){ onAccept&&onAccept(); return; }
   const ov=document.createElement('div');
-  ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.92);display:flex;align-items:center;justify-content:center;z-index:9700;padding:16px';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.92);display:flex;align-items:center;justify-content:center;z-index:2147482100;padding:16px';   /* v1144: over the sign-in gate */
   ov.innerHTML=`<div style="background:linear-gradient(160deg,#161d2c,#0b1220);border:1px solid #38507c;border-radius:16px;width:100%;max-width:440px;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 14px 48px #000c">
     <div style="padding:14px 16px 8px;border-bottom:1px solid #223052"><div style="font-weight:800;font-size:15px">${uiIcon('quest-scroll')} Terms of Service &amp; Privacy</div>
       <div style="font-size:11px;color:#8b98a9;margin-top:3px">Please review and accept to continue signing in.</div></div>
@@ -28453,8 +28615,9 @@ function enterGame(){ if(_splashEntered)return; _splashEntered=true;
     let _f=0; const _lift=()=>{ if(++_f<4){ resize3D(); requestAnimationFrame(_lift); } else if(gate) gate.style.display='none'; };
     requestAnimationFrame(_lift);
     setTimeout(()=>{ if(gate) gate.style.display='none'; }, 600);   // safety: never leave the gate stuck
-    if(ACC&&ACC.signedOut&&!ACC.token){ try{ show('account'); }catch(e){} }   // 2 Sep: a deliberate sign-out opens on the sign-in screen, never on a guest's town
-    else if(ACC.token&&G.tutStarted&&!G.tutDone){ try{ show('tutorial'); }catch(e){} }
+    if(!ACC.token){ try{ authGateRefresh(); }catch(e){} }   // v1144: no session = the sign-in gate, first thing (2 Sep: a deliberate sign-out never lands on a guest's town)
+    else if(G.tutStarted&&!G.tutDone){ try{ show('tutorial'); }catch(e){} }
+    try{ authGateRefresh(); }catch(e){}   // v1144: a guest session gets its one-time "keep your progress" step
   });
 }
 function setupLandscape(){
@@ -28507,13 +28670,14 @@ else { document.body.classList.add('gated'); loadG(); applyBetaUnlocks(); loadAc
   checkForUpdate();   // on load: if the server has a newer build, download & refresh automatically
   // auto-login: resume the last account you signed into. Only sign out if the token is genuinely invalid —
   // a network hiccup must NOT log you out (that would drop your character on a bad connection).
-  if(!ACC.token && online() && !window._svrHandoff){ ensureGuest(); }   // no session → provision a persistent level-1 guest account (v947: not while a server-switch sign-in is being redeemed - the page reloads signed in)
+  if(!ACC.token && online() && !window._svrHandoff){ ensureGuest(); }   // v1144: no session → the sign-in gate (a lost GUEST token is resumed, never a new guest made) (v947: not while a server-switch sign-in is being redeemed - the page reloads signed in)
   /* v1034: the signed-in boot is a function so a server-switch sign-in (svrRedeem) runs it in place instead of reloading. */
   window.bootSignedIn=function(){ _profileBoot=api('/api/profile').then(d=>{ if(d&&d.profile){ACC.rank=d.profile.rank;ACC.coins=d.profile.coins;ACC.name=d.profile.name;ACC.email=d.profile.email||'';ACC.guest=!!d.profile.guest;ACC.admin=!!d.profile.admin;saveAcc(); DEV.on=isDevAcct();
       const adopted=(_cloudReady=true,applyCloudSave(d.profile,true)); _cloudReady=true;   // CLOUD IS THE TRUTH (Phil 26 Aug): adopt the cloud save FIRST, only then may this session push
       if(adopted){ updateHubChrome(); if(state==='home') renderHome(); } else { pushSave(); }
+      try{ authGateRefresh(); }catch(e){}   // v1144: the server says whether this session is a guest
       try{ questStateSync(true).then(function(){ updateMailBadges(); if(state==='quest') renderQuests(); }); }catch(e){} }   // server-owned quest claims must be adopted before badges or claim buttons are trusted
-    else if(d&&d.error==='auth'){ ACC={token:null,name:null,rank:null,coins:0,id:null};saveAcc(); ensureGuest(); }   // token no longer valid → drop to a fresh level-1 guest
+    else if(d&&d.error==='auth'){ const _wasGuest=!!ACC.guest; ACC={token:null,name:null,rank:null,coins:0,id:null}; if(_wasGuest) ACC.guest=true; saveAcc(); ensureGuest(); }   // v1144: token no longer valid → Sign in (a guest's lost token is resumed by its device; never a fresh guest)
     /* else: offline / transient error → stay signed in with local progress */ }).catch(()=>{}); return _profileBoot; };
   if(ACC.token && online() && !window._svrHandoff) window.bootSignedIn();
   setInterval(()=>{ if(!(_splashEntered && online() && !_updating && !_updateNoticeShown))return;

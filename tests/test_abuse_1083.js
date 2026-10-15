@@ -9,7 +9,7 @@ const root=path.join(__dirname,'..'), srvFile=process.env.AUD_SERVER||'server.js
 const dbFile=path.join(dir,'db.json'), src=fs.readFileSync(path.join(root,srvFile),'utf8');
 let port,base,child,token,pass=0,missed=[]; const ok=(c,m)=>{ if(process.env.AUD_SERVER&&!c){ missed.push(m); return; } assert(c,m); pass++; }, delay=ms=>new Promise(r=>setTimeout(r,ms));
 const freePort=()=>new Promise(r=>{const s=net.createServer();s.listen(0,'127.0.0.1',()=>{const p=s.address().port;s.close(()=>r(p));});});
-async function start(){ const env={...process.env,DATABASE_URL:'',PORT:String(port),DB_FILE:dbFile}; delete env.CLOCK_FILE; delete env.RL_MUL;
+async function start(){ const env={...process.env,ALLOW_NEW_GUESTS:'1',DATABASE_URL:'',PORT:String(port),DB_FILE:dbFile}; delete env.CLOCK_FILE; delete env.RL_MUL;
   child=spawn(process.execPath,[srvFile],{cwd:root,env,stdio:'ignore',windowsHide:true});
   for(let i=0;i<300;i++){ try{ if((await fetch(base+'/health')).ok)return; }catch(_){} await delay(100);} throw Error('no start'); }
 async function stop(){ if(!child)return; child.kill(); for(let i=0;i<60&&child.exitCode===null;i++)await delay(50); child=null; }

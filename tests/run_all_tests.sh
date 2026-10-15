@@ -12,7 +12,7 @@ cd "$(dirname "$0")/.."   # v559: the runner cd-ed INTO tests/ and then called t
 SRV=../server.js; [ -f ./server.js ] && SRV=./server.js
 PORT=${PORT:-8871}
 DBDIR=$(mktemp -d); DB="$DBDIR/db.json"
-FLAGS="VAULT_MIN_BATTLE_MS=0 DUNGEON_V2_ENABLED=true GEAR_V2_ENABLED=true GUILD_WAR_V2_ENABLED=true REG_PER_MIN=200 REG_ACCOUNTS_PER_IP=200 GLYPH_RL_PER_MIN=1000"
+FLAGS="ALLOW_NEW_GUESTS=1 VAULT_MIN_BATTLE_MS=0 DUNGEON_V2_ENABLED=true GEAR_V2_ENABLED=true GUILD_WAR_V2_ENABLED=true REG_PER_MIN=200 REG_ACCOUNTS_PER_IP=200 GLYPH_RL_PER_MIN=1000"
 FAILED=0; SRV_PID=""
 cleanup(){ if [ -n "$SRV_PID" ] && kill -0 "$SRV_PID" 2>/dev/null; then
   kill "$SRV_PID" 2>/dev/null
@@ -407,6 +407,8 @@ note "test_memory_budget_1140.js (v1140 MEMORY BUDGET - the Aw-Snap hotfix: batt
 node tests/test_memory_budget_1140.js || FAILED=1
 note "test_carn_anim_eight.js (v1142 Carn eight - idle/walk/attack/CRIT (his first)/hit/green Reckless Blow/blue Vein Burst/ult Crimson Reap from the Phil PASS clean H3 exports: new ?v=1142 sheets within 2048 px / 4 MB, frame-0 pose anchors, flip:false, passive untouched; timing data = BASE (clipDur 2.0, relFrac 0.5), kit/FX identical; control: swings, forced crit, green/blue/ult casts (cast tick, landing ticks, hold, every unit 6 s) and whole fights (Carn both sides) on BASE land on the same ticks - at crit 0, and at his real crit = BASE + the v532 crit-clip rule; contact cells re-derived from the engine (attack/crit 30 at attack speed x1-x1.25, green 18, blue 30, ult 37); Crimson Reap sound on the landing; controls: moved timing diverges, a longer green changes the hold, the rule control differs, a broken grid fails)"
 node tests/test_carn_anim_eight.js || FAILED=1
+note "test_signin_first_1144.js (v1144 SIGN-IN FIRST, live incident 15 Oct: no session = the sign-in gate, no /api/guest call, nothing behind it reachable; Create account lands on the game; an old guest token gets the one-time keep-your-progress step and keeps its id + ledger; GUEST marker on the hub + result screen, a device that was on a real account says so; a lost real token goes to Sign in; /api/guest refuses new guests (403) but resumes existing ones, Servers 2-5 the same; inline scripts parse; CONTROL: AUD_ROOT=255d7b72 fails)"
+node tests/test_signin_first_1144.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi

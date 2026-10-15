@@ -338,6 +338,7 @@ const ADMIN_IDS = new Set((process.env.ADMIN_IDS||'').split(',').map(s=>s.trim()
 // runner can create its fixture accounts without weakening production (defaults unchanged).
 const REG_PER_MIN=Math.max(1,parseInt(process.env.REG_PER_MIN||'6',10));
 const REG_ACCOUNTS_PER_IP=Math.max(1,parseInt(process.env.REG_ACCOUNTS_PER_IP||'6',10));
+const ALLOW_NEW_GUESTS=process.env.ALLOW_NEW_GUESTS==='1';   /* v1144: new guest accounts only on local test / sim servers (see /api/guest) */
 const GLYPH_RL_PER_MIN=Math.max(1,parseInt(process.env.GLYPH_RL_PER_MIN||'60',10));
 // One-time bootstrap: the accounts CURRENTLY holding these names get role:'admin' stamped on them
 // at startup. After that, authority is the role — renaming, or a (impossible, names are unique)
@@ -4697,6 +4698,12 @@ async function api(req,res,url){
     let u = deviceId && DB.guestByDevice[deviceId] && DB.users[DB.guestByDevice[deviceId]];
     if(u && !u.guest){ u=null; if(deviceId) delete DB.guestByDevice[deviceId]; }   // was upgraded to a real account → make a fresh guest
     if(u && isBanned(u)) return send(res,403,banResp(u));   /* v1097: a banned guest is not resumed */
+    /* v1144 (15 Oct 2026, live incident: a tester's browser with no stored token quietly became Guest-617D and played two hours there
+       instead of on his account; Phil: "make sure the first thing someone is forced to do is sign in or create an account").
+       NEW guest accounts are closed: the game starts on Create account / Sign in. An EXISTING guest is still resumed by its device id
+       (so an old guest device can sign back in and upgrade in place through /api/register). ALLOW_NEW_GUESTS=1 is for local test and
+       sim servers only - the live servers never set it. */
+    if(!u && !ALLOW_NEW_GUESTS) return send(res,403,{error:'Create an account or sign in to play.', guestsClosed:true});
     if(!u){
       // 30 Sep 2026 hardening: 20/min per IP still allowed ~28,800 real accounts a day per IP (each a full DB write).
       if(rateLimited(req,'guestday',15,86400000)) return send(res,429,{error:'Too many new guest accounts from this network today.'});

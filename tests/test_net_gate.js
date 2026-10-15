@@ -23,13 +23,13 @@ const freePort=()=>new Promise(r=>{const s=net.createServer();s.listen(0,'127.0.
     ctx.up(); ok(el.style.display==='none','a connected session sees no gate');
     ctx.NG.down=2; ctx.up(); ok(el.style.display==='flex'&&/Lost .*reconnecting/.test(el.innerHTML),'two failed checks block the game');
     ctx.NG.down=1; ctx.up(); ok(el.style.display==='none','one failed check (a blip) does not');
-    ctx.NG.down=0; ctx.ACC={token:null}; ctx.up(); ok(el.style.display==='flex'&&/Connecting/.test(el.innerHTML),'no session blocks the game while one is provisioned');
+    ctx.NG.down=0; ctx.ACC={token:null}; ctx.up(); ok(el.style.display==='flex'&&/Sign in to play/.test(el.innerHTML),'no session blocks the game with Sign in (v1144: no guest is provisioned any more)');
     ctx.ACC={token:null,signedOut:true}; ctx.state='home'; ctx.up(); ok(el.style.display==='flex'&&/Sign in to play/.test(el.innerHTML),'a signed-out player cannot reach the town');
     ctx.state='account'; ctx.up(); ok(el.style.display==='none','the sign-in screen stays usable');
   }
   /* ---- server ---- */
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),'ew-netgate-')), port=await freePort(), base='http://127.0.0.1:'+port;
-  child=spawn(process.execPath,[srvFile],{cwd:root,env:{...process.env,DATABASE_URL:'',PORT:String(port),DB_FILE:path.join(dir,'db.json')},stdio:'ignore',windowsHide:true});
+  child=spawn(process.execPath,[srvFile],{cwd:root,env:{...process.env,ALLOW_NEW_GUESTS:'1',DATABASE_URL:'',PORT:String(port),DB_FILE:path.join(dir,'db.json')},stdio:'ignore',windowsHide:true});
   for(let i=0;i<300;i++){ try{ if((await fetch(base+'/health')).ok) break; }catch(_){} await delay(100); }
   const h=await fetch(base+'/api/health'); let hj={}; try{ hj=await h.json(); }catch(_){}
   ok(h.status===200&&hj.ok===true,'/api/health answers ('+h.status+')');

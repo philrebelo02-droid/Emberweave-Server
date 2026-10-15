@@ -62,7 +62,7 @@ function partA() {
 }
 
 function startSrv(port, dbDir, extra) {
-  const env = { ...process.env, DATABASE_URL: '', PORT: String(port), DB_FILE: path.join(dbDir, 'db.json'), SIM_WORKERS: '0', NODE_ENV: '',
+  const env = { ...process.env, ALLOW_NEW_GUESTS:'1', DATABASE_URL: '', PORT: String(port), DB_FILE: path.join(dbDir, 'db.json'), SIM_WORKERS: '0', NODE_ENV: '',
     REG_PER_MIN: '200', REG_ACCOUNTS_PER_IP: '200', FRONT_THRESHOLD: '2', FRONT_RELEASE: '1', FRONT_POLL_MS: '200', FRONT_COUNT_MS: '250',
     FRONT_STALE_MS: '1500', ACCOUNT_LINK_SECRET: 'test-link-secret-1130', ...extra };
   delete env.CLOCK_FILE;
@@ -164,8 +164,10 @@ async function partC(ctx) {
   // S1 is at its threshold (part B). A fresh install is placed on S2 before any account is made.
   let c = await newCtx(), page = await c.newPage();
   await page.goto('https://emberweaveheroes.com/play', { waitUntil: 'domcontentloaded' });
-  const placed = await until(page, () => localStorage.getItem('ew_server') === '2' && !!localStorage.getItem('ew_acc@s2') && window.EW_SVR === 2, 30000);
-  ok(!!placed, 'fresh install with S1 at its threshold: placed on S2 (ew_server 2) and its guest made on S2');
+  const placed = await until(page, () => localStorage.getItem('ew_server') === '2' && window.EW_SVR === 2 && typeof authGateOpen === 'function', 30000);
+  await delay(2500);
+  /* v1144: a placed fresh install makes NO guest on S2 - it opens on the sign-in gate after the splash */
+  ok(!!placed && !(await page.evaluate(() => { try { return JSON.parse(localStorage.getItem('ew_acc') || '{}').token; } catch (e) { return null; } })), 'fresh install with S1 at its threshold: placed on S2 (ew_server 2), no guest made there (v1144: sign-in first)');
   ok(await ls(page, 'ew_auto') === '2' && !(await page.evaluate(() => window.EW_LS_RAW.get('ew_acc'))), 'the device is marked placed (ew_auto 2) and has no Server 1 account');
   // the server list: S1 busy with its load, S2 recommended, S1 still selectable
   await page.evaluate(() => svrOpen());
@@ -182,7 +184,7 @@ async function partC(ctx) {
   c = await newCtx({ cookies: [], origins: [{ origin: 'https://emberweaveheroes.com', localStorage: [{ name: 'ew_acc', value: JSON.stringify({ token: null, name: null, rank: null, coins: 0, id: null }) }] }] });
   page = await c.newPage(); let asked = 0; page.on('request', r => { if (/\/api\/front\/assign/.test(r.url())) asked++; });
   await page.goto('https://emberweaveheroes.com/play', { waitUntil: 'domcontentloaded' });
-  await until(page, () => !!JSON.parse(localStorage.getItem('ew_acc') || '{}').token, 20000);
+  await until(page, () => typeof authGateOpen === 'function', 20000); await delay(3000);   // v1144: no guest token ever arrives now - give placement time to (not) ask
   ok(asked === 0 && await ls(page, 'ew_server') === null && await page.evaluate(() => window.EW_SVR) === 1, 'CONTROL: an existing device stays on S1 - placement never asked');
   await c.close();
 
@@ -191,7 +193,7 @@ async function partC(ctx) {
   await J(ctx.p1, '/api/profile', { headers: { 'x-token': v2.j.token } });
   c = await newCtx(); page = await c.newPage();
   await page.goto('https://emberweaveheroes.com/play', { waitUntil: 'domcontentloaded' });
-  ok(!!await until(page, () => localStorage.getItem('ew_server') === '2' && !!localStorage.getItem('ew_acc@s2'), 30000), 'new phone placed on S2');
+  ok(!!await until(page, () => localStorage.getItem('ew_server') === '2' && window.EW_SVR === 2 && typeof svrHomeLogin === 'function', 30000), 'new phone placed on S2');
   const hint = await page.evaluate(async () => { const d = await api('/api/login', 'POST', { name: 'vet2b1130', pass: 'password1130', roster: rosterPayload(), deviceId: deviceId(), auto: svrAutoGet() || undefined });
     let err = ''; const took = svrHomeLogin(d, 'vet2b1130', 'password1130', e => { err = e; }); return { auto: svrAutoGet(), home: d.homeServer, took, err }; });
   ok(hint.auto === 2 && hint.home === 1 && hint.took === true, 'the sign-in on S2 answers homeServer 1 and the client takes it (' + JSON.stringify(hint) + ')');

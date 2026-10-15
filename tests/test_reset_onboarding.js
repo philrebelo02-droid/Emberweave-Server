@@ -14,7 +14,7 @@ const freePort=()=>new Promise((resolve,reject)=>{const s=net.createServer();s.o
 (async()=>{
   try{
     const port=await freePort(),base='http://127.0.0.1:'+port;
-    child=spawn(process.execPath,['server.js'],{cwd:root,env:{...process.env,PORT:String(port),DB_FILE:path.join(temp,'db.json')},stdio:'ignore',windowsHide:true});
+    child=spawn(process.execPath,['server.js'],{cwd:root,env:{...process.env,ALLOW_NEW_GUESTS:'1',PORT:String(port),DB_FILE:path.join(temp,'db.json')},stdio:'ignore',windowsHide:true});
     let ready=false;
     for(let i=0;i<100;i++){try{if((await fetch(base+'/health')).ok){ready=true;break;}}catch(_){}await delay(100);}
     assert(ready,'throwaway server did not start');
@@ -40,7 +40,9 @@ const freePort=()=>new Promise((resolve,reject)=>{const s=net.createServer();s.o
     try{browser=await chromium.launch();}catch(_){browser=await chromium.launch({channel:'chrome'});}
     const page=await browser.newPage({viewport:{width:390,height:844}}),errors=[];
     page.on('pageerror',e=>errors.push(e.message));
-    await page.addInitScript(id=>localStorage.setItem('ew_device',id),deviceId);
+    /* v1144: a page never makes or adopts a guest from the device id alone any more (no session = the sign-in gate). This fixture is a
+       device that HOLDS its guest session and has already seen the one-time "keep your progress" step. */
+    await page.addInitScript(([id,tok,gid,nm])=>{ localStorage.setItem('ew_device',id); if(!localStorage.getItem('ew_acc')) localStorage.setItem('ew_acc',JSON.stringify({token:tok,id:gid,name:nm,guest:true})); localStorage.setItem('ew_guest_step_'+gid,'1'); },[deviceId,resumed.token,resumed.profile.id,resumed.profile.name]);
     await page.goto(base+'/play',{waitUntil:'domcontentloaded'});
     await page.waitForTimeout(1000);
     await page.evaluate(()=>{const p=document.querySelector('.splashPlay');if(p)p.click();});
