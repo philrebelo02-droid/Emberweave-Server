@@ -1,5 +1,5 @@
 'use strict';
-// v1168 - Vael's and Deepcleft's three spell FX each (Grok renders, Phil approved all six 16 Oct 2026; Grok's handoffs 07:45 and 09:32), DISPLAY ONLY.
+// v1171 - Vael's and Deepcleft's three spell FX each (Grok renders, Phil approved all six 16 Oct 2026; Grok's handoffs 07:45 and 09:32), DISPLAY ONLY.
 // DEEPCLEFT: FAULT CLAWS flat from his claws back to the screen-left (mirrored with facing), green cell 18; BURROW GUARD upright at his feet on blue
 //   cell 15 and again where he pops up (the engine's emerge); QUARRY COLLAPSE flat on the case's own centre at the kit radius (120 units), ult cell 9
 //   (22 fps clip) - each real time, once. VAEL:
@@ -17,10 +17,10 @@
 const path = require('path'), vm = require('vm'), fs = require('fs'), cp = require('child_process'), crypto = require('crypto');
 const ROOT = path.resolve(__dirname, '..');
 const HTML = process.env.EW_HTML || path.join(ROOT, 'emberweave-heroes.html');
-const VER = process.env.EW_VER || '1168';
+const VER = process.env.EW_VER || '1171';
 const BASE_SHA = process.env.EW_BASE || '31e5cab2';   // live v1169 (Nox + Grimsby, on v1170 / v1166 / v1165), before this change
 let OLD = process.env.EW_HTML_OLD;
-if (!OLD) { try { OLD = path.join(ROOT, '.test-vfx1168-base.html'); fs.writeFileSync(OLD, cp.execSync('git show ' + BASE_SHA + ':emberweave-heroes.html', { cwd: ROOT, maxBuffer: 64 << 20 }));
+if (!OLD) { try { OLD = path.join(ROOT, '.test-vfx1171-base.html'); fs.writeFileSync(OLD, cp.execSync('git show ' + BASE_SHA + ':emberweave-heroes.html', { cwd: ROOT, maxBuffer: 64 << 20 }));
   const tmp = OLD; process.on('exit', () => { try { fs.unlinkSync(tmp); } catch (e) {} }); } catch (e) { OLD = null; } }
 const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); return src => vm.runInContext(src, h.ctx); };
 const run = load(HTML), R0 = OLD ? load(OLD) : null;
@@ -97,7 +97,7 @@ try {
   ck('the old plates are still on disk (rollback needs nothing)', KEYS.every(k => fs.existsSync(fileOf(F0[k].u))));
   { const ctl = JSON.parse(JSON.stringify(F)); ctl.vael_blue.fw = 900; ctl.vael_ult.u = '/assets/anim/fx/vael_missing.webp?v=1';
     ck('CONTROL: the sheet check catches an oversized grid and a missing file', sheetProblems(ctl).length >= 2); }
-  const PY = cp.execFileSync(process.env.PYTHON || 'python', ['-I', path.join(__dirname, 'helpers', 'vael_fx_1168_check.py')].concat(KEYS.map(k => fileOf(F[k].u))), { maxBuffer: 1 << 24 }).toString();
+  const PY = cp.execFileSync(process.env.PYTHON || 'python', ['-I', path.join(__dirname, 'helpers', 'vael_fx_1171_check.py')].concat(KEYS.map(k => fileOf(F[k].u))), { maxBuffer: 1 << 24 }).toString();
   const Q = JSON.parse(PY), qs = Object.entries(Q);
   const oliveCap = n => /fault_claws/.test(n) ? 0.1 : 0.01;   // Fault Claws owns a yellow-amber flash at the olive band's edge (hue ~55)
   ck('green key, no fringe (measured on the shipped sheets): visible green (G > max(R,B)+24) 0 on edge and body; olive (plate left in a soft edge) <= 0.01% of edge px (Fault Claws 0.1%: its amber flash); violet (the unmix complement) <= 2.5% of edge px, 0.01% of body: ' + qs.map(([n, m]) => n + ' ' + m.green_edge + '% / ' + m.olive_edge + '% / ' + m.violet_edge + '%').join(', '),
@@ -214,8 +214,8 @@ try {
       db && db.length === 2 && db[0].kind === 'fx16puff' && db[0].at === 'self' && db[0].t0 === +(15 / 24).toFixed(4) && db[1].at === 'target' && Math.abs(db[1].t0 - (rel + 1.4 / C.FX_RT)) < 1e-3 &&
       du && du.length === 1 && du[0].kind === 'disc22' && du[0].at === 'target' && du[0].R === 120 && du[0].t0 === +(9 / 22).toFixed(4), JSON.stringify(D));
     const stage = fs.readFileSync(path.join(ROOT, 'assets/ui/skill-preview-stage.js'), 'utf8');
-    ck('the preview stage draws the fx16up / fx16puff / fx16claws kinds (fxBox + drawFx) and the page loads it at a new ?v= (sp1168; BASE sp1164)', /case 'fx16up': case 'fx16puff': \{ const H=d\.size\*h/.test(stage) && /case 'fx16up': \{ const life=e\.life\|\|5;/.test(stage) && /case 'fx16puff': case 'fx16claws': \{ const L=e\.real\|\|5;/.test(stage) &&
-      src.includes('skill-preview-stage.js?v=sp1168') && baseSrc.includes('skill-preview-stage.js?v=sp1164')); }
+    ck('the preview stage draws the fx16up / fx16puff / fx16claws kinds (fxBox + drawFx) and the page loads it at a new ?v= (sp1171; BASE sp1164)', /case 'fx16up': case 'fx16puff': \{ const H=d\.size\*h/.test(stage) && /case 'fx16up': \{ const life=e\.life\|\|5;/.test(stage) && /case 'fx16puff': case 'fx16claws': \{ const L=e\.real\|\|5;/.test(stage) &&
+      src.includes('skill-preview-stage.js?v=sp1171') && baseSrc.includes('skill-preview-stage.js?v=sp1164')); }
   { const T = JSON.parse(fs.readFileSync(path.join(ROOT, 'assets/anim/tiers_1141.json'), 'utf8')).sheets, t0 = cp.execSync('git show ' + BASE_SHA + ':assets/anim/tiers_1141.json', { cwd: ROOT }).toString();
     const live = JSON.parse(run(`JSON.stringify(['vael_green','vael_blue','vael_ult','deepcleft_green','deepcleft_blue','deepcleft_ult'].map(k=>typeof artFile==='function'?artFile(FX2_DEF[k].u):null))`));
     ck('the tier table is BASE byte for byte (no ?v= change): its entries for the replaced plates are left unreferenced, and the new sheets have no tier file (each is <= 2048 px: the phone loads it and v1140 sizes it, as the v1160 Veyr FX)',

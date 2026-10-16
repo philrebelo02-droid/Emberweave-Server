@@ -1,7 +1,7 @@
 'use strict';
 // helpers for tests/test_skill_previews_1164.js: what the FIGHT does for one slot, recorded off the real engine in server/sim-host.js
 const OWN = ['bellCastFx', 'astraHorizonFx', 'korvuxChopCastFx', 'tharlQuakeFx', 'rhukkDigInFx', 'vesperPunctureCastFx', 'vexTempestFx', 'veyrMantleFx',
-  'veyrUndertowFx', 'veyrCrescentFx', 'konwuRuyiCastFx', 'vexWoundFx', 'sorrelHitFx', 'carnReapFx', 'hookReelFx', 'hookSlashFx', 'spawnTipFx', 'spawnProjFx', 'spawnBeamFx', 'fx16Show'];   // v1168: Vael's / Deepcleft's art is recorded when it SHOWS (on the clip's cell, or the emerge), not at the press
+  'veyrUndertowFx', 'veyrCrescentFx', 'konwuRuyiCastFx', 'vexWoundFx', 'sorrelHitFx', 'carnReapFx', 'hookReelFx', 'hookSlashFx', 'spawnTipFx', 'spawnProjFx', 'spawnBeamFx', 'fx16Show'];   // v1171: Vael's / Deepcleft's art is recorded when it SHOWS (on the clip's cell, or the emerge), not at the press
 const OWNKEY = { bellCastFx: 'bellring', astraHorizonFx: 'astrahorizon', korvuxChopCastFx: 'korvuxcleave', tharlQuakeFx: 'tharlquake', rhukkDigInFx: 'rhukkroar',
   vesperPunctureCastFx: 'vesperpuncture', vexTempestFx: 'vextempest', veyrMantleFx: 'veyrmantle', veyrUndertowFx: 'veyrundertow', veyrCrescentFx: 'veyrcrescent',
   konwuRuyiCastFx: 'konwuruyi', vexWoundFx: 'bleedopen', carnReapFx: 'carnreap', hookReelFx: 'hookreel', hookSlashFx: 'hookslash' };
