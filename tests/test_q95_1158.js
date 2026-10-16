@@ -13,6 +13,9 @@ const path = require('path'), fs = require('fs'), cp = require('child_process'),
 const ROOT = path.resolve(__dirname, '..');
 const Q = require('./helpers/q95-1158.js'), FIX = Q.Q95, BASE = process.env.EW_BASE || FIX.base;
 const PY = process.env.PYTHON || 'python';
+/* v1159: the two 'nothing else changed' checks are about the v1158 RELEASE, so they read the v1158 commit (REL) when the tree is later - a later
+   release that adds files (v1159 music) or changes the page must not fail them. A flat bundle without git history uses the tree as before. */
+const REL = process.env.EW_REL || '102a8bfefd5e7d03f0938f172fb178e921427038';
 let pass = 0, fail = 0;
 const ck = (name, ok, detail) => { if (ok) { pass++; console.log('  ok  ' + name); } else { fail++; console.log('  FAIL ' + name + (detail ? ' - ' + String(detail).slice(0, 600) : '')); } };
 const git = (...a) => cp.execFileSync('git', a, { cwd: ROOT, maxBuffer: 512 << 20 });
@@ -35,7 +38,9 @@ try {
   ck('every BASE sheet named with a ?v= exists in BASE (' + named.size + ')', miss.length === 0, miss.slice(0, 5).join(','));
   ck('every lossless sheet BASE names (' + lossless.length + ') is re-encoded (' + fx.size + ') or kept because q95 was bigger (' + kept.size + '); nothing else is in the fixture',
     lossless.every(p => fx.has(p) || kept.has(p)) && [...fx, ...kept].every(p => lossless.includes(p)) && fx.size + kept.size === lossless.length);
-  const changed = git('diff', '--name-only', '--no-renames', BASE, '--', 'assets').toString().split(/\r?\n/).filter(Boolean).map(x => '/' + x);
+  let relOk = false; try { git('cat-file', '-e', REL + '^{commit}'); relOk = true; } catch (e) {}
+  const relPage = relOk ? git('show', REL + ':emberweave-heroes.html').toString() : page, relTiers = relOk ? git('show', REL + ':assets/anim/tiers_1141.json').toString() : tiers;
+  const changed = git(...['diff', '--name-only', '--no-renames', BASE].concat(relOk ? [REL] : []).concat(['--', 'assets'])).toString().split(/\r?\n/).filter(Boolean).map(x => '/' + x);
   const extra = changed.filter(p => !fx.has(p) && p !== '/assets/anim/tiers_1141.json');
   ck('the only asset files that differ from BASE are the ' + fx.size + ' q95 sheets and the tier table (' + changed.length + ' changed)', extra.length === 0 && fx.size + 1 === changed.length && FIX.sheets.every(e => changed.includes(e.path)), extra.slice(0, 5).join(','));
   // ------------------------------------------------ 2. FILES
@@ -89,8 +94,8 @@ try {
   ck('every page and tier-table URL of a q95 sheet is ?v=1158, none keeps its old ?v=', uBad.length === 0, uBad.slice(0, 5).join('; '));
   ck("ART_TIERS_URL is ?v=1158 (the tier table's bytes changed)", page.includes("ART_TIERS_URL='/assets/anim/tiers_1141.json?v=1158'"));
   const norm = s => s.split(String.fromCharCode(13, 10)).join(String.fromCharCode(10)).replace(/const BUILD_ID = '\d+';/, "const BUILD_ID = 'X';").replace("tiers_1141.json?v=1158'", "tiers_1141.json?v=1141'");
-  ck('with the q95 URLs put back the page is BASE byte for byte (apart from the build stamp) and the tier table is BASE\'s', norm(Q.undoText(page)) === norm(bPage) && norm(Q.undoText(tiers)) === norm(bTiers));
-  ck('CONTROL: one URL left at ?v=1158 breaks that equality', norm(Q.undoText(page).replace(FIX.sheets[0].path + FIX.sheets[0].old_v, FIX.sheets[0].path + '?v=1158')) !== norm(bPage));
+  ck('with the q95 URLs put back the page is BASE byte for byte (apart from the build stamp) and the tier table is BASE\'s', norm(Q.undoText(relPage)) === norm(bPage) && norm(Q.undoText(relTiers)) === norm(bTiers));
+  ck('CONTROL: one URL left at ?v=1158 breaks that equality', norm(Q.undoText(relPage).replace(FIX.sheets[0].path + FIX.sheets[0].old_v, FIX.sheets[0].path + '?v=1158')) !== norm(bPage));
 } catch (e) { fail++; console.log('  FAIL threw: ' + (e && e.stack || e)); }
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exitCode = fail ? 1 : 0;
