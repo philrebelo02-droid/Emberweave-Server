@@ -95,6 +95,7 @@ const FIGHT = (seed, a, f) => `(()=>{ window._p2guard=true; const svA=autoUlt; a
       if(globalThis.__crit0) units.forEach(u=>{ if(u.key==='hobb'||u.key==='kharos') u.glyphCrit=0; }); tr.push(units.map(u=>[u.key,Math.round(u.hp*100),Math.round(u.x*10),Math.round(u.y*10),u.alive?1:0,Math.round((u.energy||0)*10),+(u.atkCd||0).toFixed(3)].join(':')).join('|')); }
     let h=2166136261>>>0; const s=tr.length+'@'+tr.join('#'); for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619)>>>0; }
     firePassiveClip=_fp; return JSON.stringify({h:s.length+':'+h.toString(16),clips,pcs}); } finally{ autoUlt=svA; window._p2guard=false; } })()`;
+const SLOW = (...ks) => `(()=>{ const _mu=makeUnit, K=${JSON.stringify(ks)}; makeUnit=function(k){ const u=_mu.apply(this,arguments); if(K.includes(k)){ u._atkI0*=1.05; u.atkInterval*=1.05; } return u; }; return 1; })()`;   // CONTROL: a slower swing
 const fight = (f, s, a, e, pre) => { const r = load(f); if (pre) r(pre); return JSON.parse(r(FIGHT(s, a, e))); };   // a fresh load per fight
 
 const WITHRULE = `(()=>{ for(const k of ['hobb','kharos']){ const A=BATTLE_ANIM[k]; if(A&&A.attack&&!A.crit) BATTLE_ANIM[k]=Object.assign({},A,{crit:Object.assign({},A.attack)}); } return 1; })()`;   // BASE + the v532 crit-clip rule (render data only)
@@ -189,7 +190,7 @@ try {
     ck('Kharos\'s camouflage plays his passive clip the tick it comes on (' + pcs.length + ' plays, each 2.0 s); in the fights his swings ran ' + JSON.stringify(cl), pcs.length > 0 && pcs.every(p => p[1] === 2 && p[2] === 1) && (cl['kharos:attack'] || 0) > 0 && (cl['kharos:attackB'] || 0) > 0);
     ck('and WITH his passive clip the same fights are still BASE + the rule tick for tick - the camouflage clip is display only (it plays while he acts)', HF.every(([a, f, s], i) => res[i].h === fight(OLD, s, a, f, WITHRULE).h)); }
   // CONTROL: a fight's timing comes from the timing data, never the sheet (a sheet's fps / cells move nothing - BASE above), so the control moves the swing itself
-  ck('CONTROL: the same fights with Kharos\'s swing moved (1.8 s -> 1.9 s) diverge - the trace sees a timing change', HF.filter(([a, f]) => a.includes('kharos') || f.includes('kharos')).every(([a, f, s]) => fight(HTML, s, a, f, 'HERO_TYPES.kharos.swing=1.9; 1').h !== fight(OLD, s, a, f, WITHRULE).h));
+  ck('CONTROL: the same fights with Kharos\'s swing moved (his attack interval x1.05) diverge in every fight he swings in (seed 64 he never reaches a swing) - the trace sees a timing change', HF.filter(([a, f, s]) => Object.keys(fight(HTML, s, a, f).clips).some(k => /^kharos:/.test(k))).every(([a, f, s]) => fight(HTML, s, a, f, SLOW('kharos')).h !== fight(OLD, s, a, f, WITHRULE).h));
   const NONE = [[['askel', 'vesper', 'seyla'], ['vael', 'tick', 'lumi'], 11], [['nox', 'sorrel', 'umbris'], ['pellucid', 'veyr', 'oakmir'], 222], [['korvux', 'rafe', 'astra'], ['askel', 'hurne', 'carn'], 5]];
   ck('whole fights without Hobb or Kharos are tick-for-tick BASE', NONE.every(([a, f, s]) => fight(HTML, s, a, f).h === fight(OLD, s, a, f).h));
   { const SD = JSON.parse(run('JSON.stringify({h:SFX_DATA.heroes.hobb,k:SFX_DATA.heroes.kharos})')), SD0 = JSON.parse(R0('JSON.stringify({h:SFX_DATA.heroes.hobb,k:SFX_DATA.heroes.kharos})'));
