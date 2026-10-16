@@ -369,17 +369,12 @@ def aud_end(path, rel_db=-30):
 def _page_mix(sw, swpk, sh, shpk, sh_gain_db):
     """Phil's page (scratch ms_src/make.py mix(), nominal rates): swing + shimmer, the shimmer's peak on the swing's impact peak, its head cut
     (12 ms fade-in) when it peaks later, ringing SHIM_TRAIL past the audible swing (0.2 s fade). Mono numpy."""
-    s = sw
+    # v1165b (Phil: "are the shimmers being cut off?"): the shimmer rides out - its whole length, no head cut (the pair is padded at the front)
     h = sh * 10 ** (sh_gain_db / 20)
-    sh_at = swpk - shpk
-    if sh_at < 0:
-        h = h[int(-sh_at * L.SR):].copy(); sh_at = 0.0
-        k = int(0.012 * L.SR); h[:k] *= np.linspace(0, 1, k)
-    e = L.envelope(s[None], 0.02); ae = np.where(e > e.max() * 10 ** (-30 / 20))[0][-1] / L.SR
-    hl = int((ae + SHIM_TRAIL - sh_at) * L.SR)
-    h = h[:max(1, hl)].copy(); n = min(len(h), int(0.2 * L.SR)); h[len(h) - n:] *= np.linspace(1, 0, n)
-    buf = np.zeros(int((max(len(s) / L.SR, sh_at + len(h) / L.SR) + 0.02) * L.SR))
-    buf[:len(s)] += s; i = int(round(sh_at * L.SR)); buf[i:i + len(h)] += h[:len(buf) - i]
+    pad = max(0.0, shpk - swpk)
+    i = int(round(pad * L.SR)); j = int(round((pad + swpk - shpk) * L.SR))
+    buf = np.zeros(max(i + len(sw), j + len(h)) + 1)
+    buf[i:i + len(sw)] += sw; buf[j:j + len(h)] += h
     return buf
 
 
@@ -471,7 +466,7 @@ def build():
         k = 'LIB-ATK-' + t
         takes[k] = [k] + [add('%s-%d' % (k, r['n']), os.path.join(SL, r['file']), OFFSETS.get(k, 0.0), None, False, 2.2,
                               'take %d: %s%s' % (r['n'], r['label'], ' (made: %s)' % r['made'] if r.get('made') else '')) for r in tr[1:]]
-    shims = [add('LIB-SHIM-%d' % r['n'], os.path.join(SL, r['file']), 0.0, None, False, 2.2, 'melee shimmer %d: %s' % (r['n'], r['label'])) for r in TAK['shimmer']]
+    shims = [add('LIB-SHIM-%d' % r['n'], os.path.join(SL, r['file']), 0.0, None, False, 4.0, 'melee shimmer %d: %s (natural length)' % (r['n'], r['label'])) for r in TAK['shimmer']]   # rides out: no 2.2 s cap
     # 2. every picked row
     out_rows, unmapped = {}, []
     for rid, p in sorted(picks.items()):
