@@ -10360,7 +10360,7 @@ function _mWinLevel(e){ if(!e||e===document.documentElement||e===document.body||
   return w>0&&h>0&&w*h>=0.4*vw*vh; }
 /* every visible painted box that can reach region R. anchor = the element the button will live in (null = fixed on the viewport):
    scrollers that hold the anchor move the button with them, so they are not swept. Returns [{k:'fill'|'band'|'text'|'art', r, e, a}]. */
-function muteScan(R, anchor){ const vw=window.innerWidth, vh=window.innerHeight, VIEW={l:0,t:0,r:vw,b:vh}, Z={l:0,r:0,u:0,d:0};
+function muteScan(R, anchor, still){ const vw=window.innerWidth, vh=window.innerHeight, VIEW={l:0,t:0,r:vw,b:vh}, Z={l:0,r:0,u:0,d:0};
   const btn=document.getElementById('muteBtn'), out=[], rg=document.createRange();
   const sweep=(r,s,cl)=>_mI({ l:r.l-s.l, t:r.t-s.u, r:r.r+s.r, b:r.b+s.d }, cl);
   const push=(k,r,e,a)=>{ if(r.r>r.l&&r.b>r.t&&_mHit(r,R)) out.push({ k, r, e, a }); };
@@ -10414,7 +10414,7 @@ function muteScan(R, anchor){ const vw=window.innerWidth, vh=window.innerHeight,
       const pad=sweep({ l:box.l+bl, t:box.t+bt, r:box.l+bl+e.clientWidth, b:box.t+bt+e.clientHeight },s,VIEW);
       ccl=_mI(cl,pad); if(pos!=='static') ccp=_mI(cp,pad);
       if(!_mHit(ccp,R)) return; }   // nothing inside can show in R (a fixed box inside a clipped one is not looked for)
-    if(!(anchor&&e.contains(anchor))){ const my=e.scrollHeight-e.clientHeight, mx=e.scrollWidth-e.clientWidth;
+    if(!still&&!(anchor&&e.contains(anchor))){ const my=e.scrollHeight-e.clientHeight, mx=e.scrollWidth-e.clientWidth;
       if((oy==='auto'||oy==='scroll')&&my>1) cs2={ l:cs2.l, r:cs2.r, u:cs2.u+Math.max(0,my-e.scrollTop), d:cs2.d+Math.max(0,e.scrollTop) };
       if((ox==='auto'||ox==='scroll')&&mx>1) cs2={ l:cs2.l+Math.max(0,mx-e.scrollLeft), r:cs2.r+Math.max(0,e.scrollLeft), u:cs2.u, d:cs2.d }; }
     for(let c=e.firstElementChild;c;c=c.nextElementSibling) visit(c,ccl,ccp,cs2); };
@@ -10425,9 +10425,8 @@ function muteFree(q,items,win,deep,why){ const vw=window.innerWidth, vh=window.i
   const Q={ l:q.l-MUTE_PAD, t:q.t-MUTE_PAD, r:q.r+MUTE_PAD, b:q.b+MUTE_PAD };
   if(q.l<2||q.t<2||q.r>vw-2||q.b>vh-2) return false;
   let keep=null;
-  if(deep){ const btn=document.getElementById('muteBtn'), pe=btn&&btn.style.pointerEvents; if(btn) btn.style.pointerEvents='none';
-    const pts=[[(q.l+q.r)/2,(q.t+q.b)/2],[q.l+2,q.t+2],[q.r-2,q.t+2],[q.l+2,q.b-2],[q.r-2,q.b-2]], stacks=pts.map(p=>document.elementsFromPoint(p[0],p[1]));
-    if(btn) btn.style.pointerEvents=pe||'';
+  if(deep){ const btn=document.getElementById('muteBtn');   // (muteBtnPlace made the button click-through once for the whole pass: reads only here)
+    const pts=[[(q.l+q.r)/2,(q.t+q.b)/2],[q.l+2,q.t+2],[q.r-2,q.t+2],[q.l+2,q.b-2],[q.r-2,q.b-2]], stacks=pts.map(p=>document.elementsFromPoint(p[0],p[1]).filter(e=>e!==btn&&!(btn&&btn.contains(e))));
     let occ=null; for(const e of stacks[0]){ if(e===document.documentElement) break; const cs=getComputedStyle(e), g=e.getBoundingClientRect();
       if(_mAlpha(cs.backgroundColor)>=0.6&&(_mWinLevel(e)||e===win)&&g.left<=Q.l&&g.top<=Q.t&&g.right>=Q.r&&g.bottom>=Q.b&&parseFloat(cs.opacity)>=0.95){ occ=e; break; } }
     if(occ){ const above=new Set(), seen=new Set(); stacks.forEach(st=>{ const i=st.indexOf(occ); st.forEach((e,j)=>{ seen.add(e); if(i<0||j<i) above.add(e); }); });
@@ -10453,7 +10452,26 @@ function muteCloseX(){ const vw=window.innerWidth, vh=window.innerHeight; let be
     if(!fl||g.top-w.top>Math.max(0.3*w.height,24)+8||w.right-g.right>Math.max(0.3*w.width,24)+8) continue;
     best={ x, g, win }; }
   return best; }
-function muteBtnPlace(){ try{ let b=document.getElementById('muteBtn'); if(!b){ muteBtnMake(); b=document.getElementById('muteBtn'); } if(!b) return;
+/* v1163 LAG FIX (Phil 16 Oct: "Game is lagging alot lately" / "While im going through hero tab it was"): v1159-v1162 re-measured the
+   spot every second (setInterval) with up to ~435 elementFromPoint probes on a busy window - layout forced over and over on the Heroes
+   grid. Now NOTHING polls: the button is placed only when something it depends on changes - a screen change (show), a window or panel
+   opening or closing, a resize / orientation change (150 ms debounce), fonts arriving - then checked again 0.9 s and 2.5 s later for
+   art and text that arrive with the new window, and at most 3 more times while that window stays open when content is added next to
+   the button (a list arriving). A placement call while that signature is unchanged costs one querySelectorAll. */
+const MUTE_SIG = { s:'', verify:0, verify2:0, k:0 };
+function _muteSig(){ let pop=''; try{ pop=_popout||''; }catch(e){}
+  let open=''; try{ for(const e of document.querySelectorAll('.active,.open,.popout')) open+=(e.id||e.className)+';'; }catch(e){}
+  return ((typeof state!=='undefined'&&state)||'')+'|'+pop+'|'+window.innerWidth+'x'+window.innerHeight+'|'+(document.body?document.body.childElementCount+'|'+document.body.className:'')+'|'+open; }
+/* force: true = measure again (resize, fonts, the timed re-checks); 'dom' = content was added next to the button - at most 3 per window */
+function muteBtnPlace(force){ try{ const b=document.getElementById('muteBtn'), sig=_muteSig(), same=sig===MUTE_SIG.s&&b&&b.isConnected;
+    if(same&&!force) return;   // nothing it depends on changed: no work at all
+    if(same&&force==='dom'){ if(MUTE_SIG.k>=3) return; MUTE_SIG.k++; }
+    if(!same){ MUTE_SIG.s=sig; MUTE_SIG.k=0; }
+    muteBtnPlaceNow();
+    if(!same){ clearTimeout(MUTE_SIG.verify); clearTimeout(MUTE_SIG.verify2);   // twice more, for the window's late art and text
+      MUTE_SIG.verify=setTimeout(()=>{ MUTE_SIG.verify=0; muteBtnPlace(true); },900); MUTE_SIG.verify2=setTimeout(()=>{ MUTE_SIG.verify2=0; muteBtnPlace(true); },2500); }
+  }catch(e){} }
+function muteBtnPlaceNow(){ try{ let b=document.getElementById('muteBtn'); if(!b){ muteBtnMake(); b=document.getElementById('muteBtn'); } if(!b) return;
     const vw=window.innerWidth||document.documentElement.clientWidth, vh=window.innerHeight||document.documentElement.clientHeight; if(!vw||!vh) return;
     const now=()=>(window.performance&&performance.now())||Date.now(), t0=now(); b.style.pointerEvents='none';
     try{
@@ -10471,12 +10489,13 @@ function muteBtnPlace(){ try{ let b=document.getElementById('muteBtn'); if(!b){ 
       const r=b.getBoundingClientRect(), top=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2); b.style.pointerEvents='none';
       if(top&&(top===b||b.contains(top))&&Math.abs(r.left-x)<2&&Math.abs(r.top-y)<2){ done(why,x,y,s); return true; } return false; };
     const free=(x,y,s,items,win)=>muteFree(sq(x,y,s),items,win,false)||muteFree(sq(x,y,s),items,win,true);
-    /* the nearest free square to (px,py) within reach (0 = anywhere); quick pass over all, the deep one over the nearest 80 */
+    /* the nearest free square to (px,py) within reach (0 = anywhere): a pure-arithmetic pass over the measured boxes (no DOM read), then
+       the deep pass (elementsFromPoint) over the nearest 20 */
     const near=(px,py,s,items,win,reach)=>{ const C=[], step=reach?6:8;
       for(let y=4;y<=vh-s-4;y+=step) for(let x=4;x<=vw-s-4;x+=step){ const d=Math.hypot(x-px,y-py); if(reach&&d>reach) continue; C.push([d,x,y]); }
       C.sort((a,c)=>a[0]-c[0]);
       for(const [,x,y] of C) if(muteFree(sq(x,y,s),items,win,false)) return [x,y];
-      let k=0; for(const [,x,y] of C){ if(k++>400) break; if(muteFree(sq(x,y,s),items,win,true)) return [x,y]; }
+      let k=0; for(const [,x,y] of C){ if(k++>=20) break; if(muteFree(sq(x,y,s),items,win,true)) return [x,y]; }   // the DOM-reading pass: 20 spots at most
       return null; };
     /* 1. a window or panel with its own close X: docked to it - below, the X's size, centred; left of it; else the nearest free spot */
     let X=muteCloseX();
@@ -10517,20 +10536,41 @@ function muteBtnPlace(){ try{ let b=document.getElementById('muteBtn'); if(!b){ 
     /* 3. every other screen: the hub's spot, else the nearest free spot (remembered per screen + window + viewport, re-checked) */
     let pop=''; try{ pop=_popout||''; }catch(e){}
     const key=st+'|'+pop+'|'+(X?'x':'')+'|'+vw+'x'+vh, memo=MUTE_MEMO[key];
-    if(memo){ const it=muteScan(around(memo[0],memo[1],MUTE_SZ,0),null); if(free(memo[0],memo[1],MUTE_SZ,it,null)) return void fix(memo[0],memo[1],MUTE_SZ,'memo'); }
-    let items=muteScan(around(hx,hy,MUTE_SZ,160),null);
-    if(free(hx,hy,MUTE_SZ,items,null)){ MUTE_MEMO[key]=[hx,hy]; return void fix(hx,hy,MUTE_SZ,'hub-spot'); }
-    let n=near(hx,hy,MUTE_SZ,items,null,160);
-    if(!n){ items=muteScan({ l:0, t:0, r:vw, b:vh },null); n=near(hx,hy,MUTE_SZ,items,null,0); }
-    if(n){ MUTE_MEMO[key]=n; return void fix(n[0],n[1],MUTE_SZ,'near'); }
+    /* docked into the screen's own scrolling box (below): it scrolls with that screen's content - kept while that screen is up */
+    const SD=MUTE_DOCK.scr;
+    if(SD&&MUTE_DOCK.key===key&&b.classList.contains('dock')&&b.parentNode===SD&&SD.getClientRects().length){
+      if(SD.scrollTop>0) return void done('screen-dock-scrolled',hx,hy,MUTE_SZ);
+      const r=b.getBoundingClientRect(), it=muteScan(around(r.left,r.top,r.width,0),SD); if(free(r.left,r.top,r.width,it,null)) return void done('screen-dock',r.left,r.top,MUTE_SZ); }
+    if(memo&&memo[2]!==2){ const z=memo[3]||MUTE_SZ, it=muteScan(around(memo[0],memo[1],z,0),null,memo[2]); if(free(memo[0],memo[1],z,it,null)) return void fix(memo[0],memo[1],z,memo[2]?'memo-now':'memo'); }
+    if(!(memo&&memo[2])){   // (a screen already known to have no spot clear of its scrolling content goes straight to the 'now' search)
+      let items=muteScan(around(hx,hy,MUTE_SZ,160),null);
+      if(free(hx,hy,MUTE_SZ,items,null)){ MUTE_MEMO[key]=[hx,hy]; return void fix(hx,hy,MUTE_SZ,'hub-spot'); }
+      let n=near(hx,hy,MUTE_SZ,items,null,160);
+      if(!n){ items=muteScan({ l:0, t:0, r:vw, b:vh },null); n=near(hx,hy,MUTE_SZ,items,null,0); }
+      if(n){ MUTE_MEMO[key]=n; return void fix(n[0],n[1],MUTE_SZ,'near'); } }
+    /* a screen whose scrolling content reaches every spot (the Arena's top row at 844x390): docked into that screen's scrolling box at a
+       spot free at the top of the scroll, so it scrolls with the content and nothing ever slides under it */
+    { let scr=null; for(const e of document.elementsFromPoint(hx+MUTE_SZ/2,hy+MUTE_SZ/2)){ if(e===b) continue; const c=getComputedStyle(e);
+        if((c.overflowY==='auto'||c.overflowY==='scroll')&&e.scrollHeight>e.clientHeight+1&&c.position!=='static'&&_mWinLevel(e)){ scr=e; break; } }
+      if(scr){ const sr=scr.getBoundingClientRect(), y0=hy+scr.scrollTop;   // the spot at the top of the scroll
+        if(scr.scrollTop===0){ const it=muteScan(around(hx,hy,MUTE_SZ,160),scr);
+          const n=free(hx,y0,MUTE_SZ,it,null)?[hx,y0]:near(hx,y0,MUTE_SZ,it,null,160);
+          if(n&&dock(n[0],n[1],MUTE_SZ,'screen-dock',scr)){ MUTE_DOCK.scr=scr; MUTE_DOCK.key=key; MUTE_MEMO[key]=[n[0],n[1],2]; return; } } } }
+    /* else free where things are NOW, re-placed on every scroll;
+       on a screen packed edge to edge the button may go down to 32, then 28 px (the size of the game's small round buttons) */
+    const itNow=muteScan({ l:0, t:0, r:vw, b:vh },null,true);
+    for(const z of [MUTE_SZ,32,28]){ const zx=hx+(MUTE_SZ-z)/2, zy=hy+(MUTE_SZ-z)/2;
+      if(free(zx,zy,z,itNow,null)){ MUTE_MEMO[key]=[zx,zy,1,z]; return void fix(zx,zy,z,'now-hub-spot'); }
+      const n=near(zx,zy,z,itNow,null,0); if(n){ MUTE_MEMO[key]=[n[0],n[1],1,z]; return void fix(n[0],n[1],z,'now-near'); } }
     fix(hx,hy,MUTE_SZ,'none-free');   // no free square anywhere on the screen: the hub spot (on top either way)
     } finally { b.style.pointerEvents=''; }
   }catch(e){ try{ MUTE_DBG.err=String(e&&e.message||e); }catch(_){} } }
-/* re-place when the page changes (a window opens or closes, a list fills) - batched, at most every 300 ms; and on a timer (1.5 s, or 4 s
-   when measuring a screen takes over 15 ms) for layout that moves without a DOM change (images arriving, fit, orientation) */
-let _muteT=0, _muteLast=0;
-function muteSoon(){ if(_muteT) return; const wait=Math.max(60,300-(Date.now()-_muteLast)); _muteT=setTimeout(()=>{ _muteT=0; _muteLast=Date.now(); muteBtnPlace(); },wait); }
-function muteTick(){ try{ if(!document.hidden) muteBtnPlace(); }catch(e){} const ms=(MUTE_DBG.last&&MUTE_DBG.last.ms)||0; setTimeout(muteTick,ms>15?4000:1500); }
+/* a window opening or closing (DOM change, batched at most every 300 ms - and then a no-op unless the signature changed); force = measure
+   again even with the same signature (resize, fonts, a 'now' spot being scrolled) */
+let _muteT=0, _muteLast=0, _muteF=false;
+function muteSoon(force){ if(force&&_muteF!==true) _muteF=force; if(_muteT) return; const wait=Math.max(60,300-(Date.now()-_muteLast));
+  _muteT=setTimeout(()=>{ _muteT=0; _muteLast=Date.now(); const f=_muteF; _muteF=false; muteBtnPlace(f); },wait); }
+let _muteRz=0; function muteResize(){ clearTimeout(_muteRz); _muteRz=setTimeout(()=>{ _muteRz=0; muteBtnPlace(true); },150); }
 function muteBtnMake(){ try{ if(document.getElementById('muteBtn')||!document.body) return;
     if(!document.getElementById('muteBtnCss')){ const st=document.createElement('style'); st.id='muteBtnCss'; st.textContent=
       '#muteBtn{position:fixed;z-index:2147483000;left:min(var(--mx,0px),calc(100vw - var(--ms,'+MUTE_SZ+'px) - env(safe-area-inset-right,0px)));'+
@@ -10545,15 +10585,25 @@ function muteBtnMake(){ try{ if(document.getElementById('muteBtn')||!document.bo
     const b=document.createElement('button'); b.id='muteBtn'; b.type='button'; b.innerHTML='<img alt="" draggable="false">';
     document.body.appendChild(b); sndMuteApply(); muteBtnPlace();
     if(!window._muteWired){ window._muteWired=true;
-      window.addEventListener('resize',()=>{ muteBtnPlace(); setTimeout(muteBtnPlace,120); });
-      try{ if(window.visualViewport) window.visualViewport.addEventListener('resize',muteSoon); }catch(e){}
+      window.addEventListener('resize',muteResize); window.addEventListener('orientationchange',muteResize);
+      try{ if(window.visualViewport) window.visualViewport.addEventListener('resize',muteResize); }catch(e){}
+      try{ if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>muteBtnPlace(true)); }catch(e){}
+      /* a spot that is only free at the current scroll (why 'now-...' / 'memo-now') is re-checked as the player scrolls */
+      window.addEventListener('scroll',()=>{ const w=(MUTE_DBG.last&&MUTE_DBG.last.why)||''; if(/now|none/.test(w)) muteSoon('dom'); },{ capture:true, passive:true });
       try{ new MutationObserver(ms=>{ if(typeof state!=='undefined'&&state==='battle'&&document.getElementById('muteBtn')) return;   // a fight's HUD changes every frame: the timer covers it
           const bb=document.getElementById('muteBtn'), el=n=>n.nodeType===1&&n!==bb;
-          for(const m of ms){ const t=m.target; if(bb&&(t===bb||bb.contains(t))) continue;
-            if(m.type==='childList'&&!Array.prototype.some.call(m.addedNodes,el)&&!Array.prototype.some.call(m.removedNodes,el)) continue;   // a text update, or the button moving
-            muteSoon(); return; } })
-        .observe(document.body,{ childList:true, subtree:true, attributes:true, attributeFilter:['class','style','hidden','open'] }); }catch(e){}
-      setTimeout(muteTick,1500); }
+          /* only a change that can matter: near the button (240 px), a whole window/screen opening or closing, or a page-level node */
+          const br=bb&&bb.getBoundingClientRect(), Z=br?{ l:br.left-240, t:br.top-240, r:br.right+240, b:br.bottom+240 }:null;
+          const near=e=>{ if(!Z||!e||e.nodeType!==1) return true; if(e===document.body||e.parentNode===document.body) return true; const g=e.getBoundingClientRect();
+            if(!g.width&&!g.height) return true; return _mHit({ l:g.left, t:g.top, r:g.right, b:g.bottom },Z)||_mWinLevel(e); };
+          for(const m of ms){ const t=m.target; if(bb&&(t===bb||bb.contains(t))) continue; let added=false;
+            if(m.type==='childList'){ const ad=Array.prototype.filter.call(m.addedNodes,el), rm=Array.prototype.filter.call(m.removedNodes,el);
+              if(!ad.length&&!rm.length) continue;   // a text update, or the button moving
+              if(!rm.length&&!ad.some(near)&&!near(t)) continue; added=ad.length>0; }
+            else if(m.oldValue===t.getAttribute(m.attributeName)||!near(t)) continue;   // a write of the same value (the hub refreshes its badges every second)
+            muteSoon(added?'dom':false); return; } })
+        .observe(document.body,{ childList:true, subtree:true, attributes:true, attributeFilter:['class','style','hidden','open'], attributeOldValue:true }); }catch(e){}
+    }
   }catch(e){} }
 /* A tap on the button is the button's alone: these window CAPTURE listeners run before every game listener (they are registered first),
    so no screen under it, no "tap anywhere to close" overlay and no battle input ever sees it. It still unlocks audio like any tap. */
@@ -29057,7 +29107,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1792146708333';
+const BUILD_ID = '1792153471202';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

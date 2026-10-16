@@ -22,6 +22,7 @@
          (MUTE_ROOT=<a v1162 checkout>) must FAIL this test
      (7) FIGHTS: 200 seeded 5v5 fights are tick-identical to live v1162 466a65c1 (node, server/sim-host.js), and the harness sees a
          one-number change to a sim-read clip
+   Every screen that scrolls is also judged scrolled to the bottom, with no placement call from the test (the game's own handling).
    Screenshots: SHOT_DIR (default C:\Users\Home\Downloads\ew-sweep\mute2) + contact-sheet.jpg (python + Pillow, if present). */
 const fs = require('fs'), os = require('os'), path = require('path'), net = require('net'), vm = require('vm'), cp = require('child_process');
 const ROOT = process.env.MUTE_ROOT || path.join(__dirname, '..');
@@ -225,9 +226,15 @@ const SCREENS = ['campaign', 'menu', 'heroesPanel', 'bag', 'settings', 'temple',
       await pg.evaluate(() => document.querySelectorAll('#uiConfirmWrap').forEach(n => n.remove())); await delay(300);
       /* full screens */
       for (const s of SCREENS) {
-        await pg.evaluate(s => { try { closePopout(); } catch (e) {} try { show(s); } catch (e) {} }, s); await delay(800);
+        await pg.evaluate(s => { try { closePopout(); } catch (e) {} try { show(s); } catch (e) {} }, s); await delay(1200);   // (the game re-checks 0.9 s after a screen opens)
         const st = await pg.evaluate(() => state); if (st !== s) { ck(false, VW + ' screen ' + s + ' opened', 'state=' + st); continue; }
         const r = await judge(); clean('screen ' + s, r); res.screens[s] = r;
+        { /* a screen that scrolls: scrolled to the bottom, the game alone (its own scroll / DOM handling, no call from here) keeps it clear */
+          const sc = await pg.evaluate(async s => { const el = document.getElementById(s); if (!(el.scrollHeight > el.clientHeight + 1)) return null;
+            el.scrollTop = el.scrollHeight; await new Promise(r => setTimeout(r, 900)); const j = window.__judge(); j.top = el.scrollTop; el.scrollTop = 0; await new Promise(r => setTimeout(r, 600)); return j; }, s);
+          if (sc && sc.docked && /^screen-dock/.test(sc.why))   // docked into the screen's scrolling box: it went up with the content (may be partly out of view)
+            ck(sc.n === 0, VW + ' screen ' + s + ' scrolled to the bottom (' + sc.top + ' px): docked in the screen, it scrolled with the content and overlaps nothing (' + sc.x + ',' + sc.y + ')', JSON.stringify(sc));
+          else if (sc) clean('screen ' + s + ' scrolled to the bottom (' + sc.top + ' px)', sc); }
         if (doShots && ['campaign', 'menu', 'temple', 'forge', 'guild', 'arena', 'wall', 'skyfall', 'watchtower', 'glossary', 'heroesPanel', 'tech'].includes(s)) await shot(doShots + '-' + s);
         if (s === 'heroesPanel') {   // the full-screen Heroes list scrolled to the bottom: still nothing under it
           const r2 = await pg.evaluate(async () => { const el = document.getElementById('heroesPanel'); el.scrollTop = el.scrollHeight; await new Promise(r => setTimeout(r, 400)); try { muteBtnPlace(); } catch (e) {}

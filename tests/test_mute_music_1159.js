@@ -104,7 +104,7 @@ const SCREENS = ['home', 'campaign', 'menu', 'heroesPanel', 'bag', 'settings', '
     const screens = [];
     let n = 1;
     for (const s of SCREENS) {
-      await pg.evaluate(s => { try { show(s); } catch (e) {} }, s); await delay(700);
+      await pg.evaluate(s => { try { show(s); } catch (e) {} }, s); await delay(1200);
       const r = await probe(); screens.push([s, r]);
       ck(!r.none && r.onTop && !r.hits.length && r.w >= 40, 'screen ' + s + ': button on top, covers no control', JSON.stringify(r));
       if (['home', 'campaign', 'temple', 'wishing', 'forge', 'guild', 'settings', 'heroesPanel', 'arena', 'skyfall', 'mail', 'quest'].includes(s)) await shot(String(n++).padStart(2, '0') + '-' + s);
@@ -123,7 +123,7 @@ const SCREENS = ['home', 'campaign', 'menu', 'heroesPanel', 'bag', 'settings', '
     /* ---- desktop 1920x1080 and phone portrait 390x844 ---- */
     for (const [w, h, list] of [[1920, 1080, ['home', 'campaign', 'menu', 'temple', 'wall', 'skyfall', 'settings', 'guild']], [390, 844, ['home', 'campaign', 'settings']]]) {
       await pg.setViewportSize({ width: w, height: h }); await delay(900);
-      for (const s of list) { await pg.evaluate(s => { try { show(s); } catch (e) {} }, s); await delay(700); const r = await probe(); screens.push([s + '@' + w + 'x' + h, r]);
+      for (const s of list) { await pg.evaluate(s => { try { show(s); } catch (e) {} }, s); await delay(1200); const r = await probe(); screens.push([s + '@' + w + 'x' + h, r]);
         if (h > w) ck(!r.none && r.onTop && r.w >= 40, w + 'x' + h + ' ' + s + ': button shown (portrait is not a game layout - the game locks landscape; overlap not judged)', JSON.stringify(r));
         else ck(!r.none && r.onTop && !r.hits.length && r.w >= 40, w + 'x' + h + ' ' + s + ': button on top, covers no control', JSON.stringify(r));
         if (s === 'home' || s === 'campaign') await shot(String(n++).padStart(2, '0') + '-' + s + '-' + w + 'x' + h); }
