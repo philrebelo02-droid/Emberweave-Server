@@ -15148,90 +15148,90 @@
     {
      "key": "bitwraith",
      "lvl": 78,
-     "hpMul": 103.936,
-     "dmgMul": 41.0151
+     "hpMul": 88.3456,
+     "dmgMul": 34.8628
     },
     {
      "key": "bitwraith",
      "lvl": 78,
-     "hpMul": 103.936,
-     "dmgMul": 41.0151
+     "hpMul": 88.3456,
+     "dmgMul": 34.8628
     },
     {
      "key": "kelp hexer",
      "lvl": 78,
-     "hpMul": 103.936,
-     "dmgMul": 41.0151
+     "hpMul": 88.3456,
+     "dmgMul": 34.8628
     },
     {
      "key": "kelp hexer",
      "lvl": 78,
-     "hpMul": 103.936,
-     "dmgMul": 41.0151
+     "hpMul": 88.3456,
+     "dmgMul": 34.8628
     },
     {
      "key": "reef prowler",
      "lvl": 78,
-     "hpMul": 103.936,
-     "dmgMul": 41.0151
+     "hpMul": 88.3456,
+     "dmgMul": 34.8628
     }
    ],
    [
     {
      "key": "saltglass siren",
      "lvl": 78,
-     "hpMul": 103.936,
-     "dmgMul": 41.0151
+     "hpMul": 88.3456,
+     "dmgMul": 34.8628
     },
     {
      "key": "reef prowler",
      "lvl": 78,
-     "hpMul": 103.936,
-     "dmgMul": 41.0151
+     "hpMul": 88.3456,
+     "dmgMul": 34.8628
     },
     {
      "key": "saltglass siren",
      "lvl": 78,
-     "hpMul": 103.936,
-     "dmgMul": 41.0151
+     "hpMul": 88.3456,
+     "dmgMul": 34.8628
     },
     {
      "key": "bitwraith",
      "lvl": 78,
-     "hpMul": 103.936,
-     "dmgMul": 41.0151
+     "hpMul": 88.3456,
+     "dmgMul": 34.8628
     },
     {
      "key": "kelp hexer",
      "lvl": 78,
-     "hpMul": 103.936,
-     "dmgMul": 41.0151
+     "hpMul": 88.3456,
+     "dmgMul": 34.8628
     }
    ],
    [
     {
      "key": "reef prowler",
      "lvl": 78,
-     "hpMul": 103.936,
-     "dmgMul": 41.0151
+     "hpMul": 88.3456,
+     "dmgMul": 34.8628
     },
     {
      "key": "saltglass siren",
      "lvl": 78,
-     "hpMul": 103.936,
-     "dmgMul": 41.0151
+     "hpMul": 88.3456,
+     "dmgMul": 34.8628
     },
     {
      "key": "bitwraith",
      "lvl": 78,
-     "hpMul": 103.936,
-     "dmgMul": 41.0151
+     "hpMul": 88.3456,
+     "dmgMul": 34.8628
     },
     {
      "key": "bitwraith",
      "lvl": 78,
-     "hpMul": 103.936,
-     "dmgMul": 41.0151
+     "hpMul": 88.3456,
+     "dmgMul": 34.8628
     }
    ]
   ],
@@ -15249,6 +15249,12 @@
     "scale": 0.85,
     "dmgScale": 0.85,
     "why": "follows Normal 12-8 (v1121 curve) so Elite stays ~1.5x its Normal stage"
+   },
+   {
+    "v": "v1167",
+    "date": "2026-10-16",
+    "scale": 0.85,
+    "why": "follows Normal 12-8 (v1167 x0.85) so Elite stays ~1.5x its Normal stage"
    }
   ]
  },
@@ -17781,54 +17787,54 @@
     {
      "key": "ashen",
      "lvl": 91,
-     "hpMul": 156.6808,
-     "dmgMul": 65.7774
+     "hpMul": 133.1787,
+     "dmgMul": 55.9108
     },
     {
      "key": "ashen",
      "lvl": 91,
-     "hpMul": 156.6808,
-     "dmgMul": 65.7774
+     "hpMul": 133.1787,
+     "dmgMul": 55.9108
     },
     {
      "key": "blackquill",
      "lvl": 91,
-     "hpMul": 156.6808,
-     "dmgMul": 65.7774
+     "hpMul": 133.1787,
+     "dmgMul": 55.9108
     },
     {
      "key": "blackquill",
      "lvl": 91,
-     "hpMul": 156.6808,
-     "dmgMul": 65.7774
+     "hpMul": 133.1787,
+     "dmgMul": 55.9108
     }
    ],
    [
     {
      "key": "crucible acolyte",
      "lvl": 91,
-     "hpMul": 156.6808,
-     "dmgMul": 65.7774
+     "hpMul": 133.1787,
+     "dmgMul": 55.9108
     },
     {
      "key": "crystalhorn grazer",
      "lvl": 91,
-     "hpMul": 156.6808,
-     "dmgMul": 65.7774
+     "hpMul": 133.1787,
+     "dmgMul": 55.9108
     },
     {
      "key": "crystalhorn grazer",
      "lvl": 91,
-     "hpMul": 156.6808,
-     "dmgMul": 65.7774
+     "hpMul": 133.1787,
+     "dmgMul": 55.9108
     }
    ],
    [
     {
      "key": "oakmir",
      "lvl": 91,
-     "hpMul": 156.6808,
-     "dmgMul": 65.7774,
+     "hpMul": 133.1787,
+     "dmgMul": 55.9108,
      "isHero": true,
      "rewardHero": true,
      "rank": 3
@@ -17836,26 +17842,26 @@
     {
      "key": "crucible acolyte",
      "lvl": 91,
-     "hpMul": 156.6808,
-     "dmgMul": 65.7774
+     "hpMul": 133.1787,
+     "dmgMul": 55.9108
     },
     {
      "key": "ashen",
      "lvl": 91,
-     "hpMul": 156.6808,
-     "dmgMul": 65.7774
+     "hpMul": 133.1787,
+     "dmgMul": 55.9108
     },
     {
      "key": "crystalhorn grazer",
      "lvl": 91,
-     "hpMul": 156.6808,
-     "dmgMul": 65.7774
+     "hpMul": 133.1787,
+     "dmgMul": 55.9108
     },
     {
      "key": "blackquill",
      "lvl": 91,
-     "hpMul": 156.6808,
-     "dmgMul": 65.7774
+     "hpMul": 133.1787,
+     "dmgMul": 55.9108
     }
    ]
   ],
@@ -17874,6 +17880,12 @@
     "scale": 0.85,
     "dmgScale": 0.8286,
     "why": "follows Normal 14-7 (v1121 curve) so Elite stays ~1.5x its Normal stage"
+   },
+   {
+    "v": "v1167",
+    "date": "2026-10-16",
+    "scale": 0.85,
+    "why": "follows Normal 14-7 (v1167 x0.85) so Elite stays ~1.5x its Normal stage"
    }
   ]
  },
@@ -19279,90 +19291,90 @@
     {
      "key": "zephyr harrier",
      "lvl": 99,
-     "hpMul": 187.0391,
-     "dmgMul": 67.2943
+     "hpMul": 158.9832,
+     "dmgMul": 57.2002
     },
     {
      "key": "bonepike guard",
      "lvl": 99,
-     "hpMul": 187.0391,
-     "dmgMul": 67.2943
+     "hpMul": 158.9832,
+     "dmgMul": 57.2002
     },
     {
      "key": "frostjaw troll",
      "lvl": 99,
-     "hpMul": 187.0391,
-     "dmgMul": 67.2943
+     "hpMul": 158.9832,
+     "dmgMul": 57.2002
     },
     {
      "key": "zephyr harrier",
      "lvl": 99,
-     "hpMul": 187.0391,
-     "dmgMul": 67.2943
+     "hpMul": 158.9832,
+     "dmgMul": 57.2002
     },
     {
      "key": "zephyr harrier",
      "lvl": 99,
-     "hpMul": 187.0391,
-     "dmgMul": 67.2943
+     "hpMul": 158.9832,
+     "dmgMul": 57.2002
     }
    ],
    [
     {
      "key": "runic automaton",
      "lvl": 99,
-     "hpMul": 187.0391,
-     "dmgMul": 67.2943
+     "hpMul": 158.9832,
+     "dmgMul": 57.2002
     },
     {
      "key": "bonepike guard",
      "lvl": 99,
-     "hpMul": 187.0391,
-     "dmgMul": 67.2943
+     "hpMul": 158.9832,
+     "dmgMul": 57.2002
     },
     {
      "key": "zephyr harrier",
      "lvl": 99,
-     "hpMul": 187.0391,
-     "dmgMul": 67.2943
+     "hpMul": 158.9832,
+     "dmgMul": 57.2002
     },
     {
      "key": "frostjaw troll",
      "lvl": 99,
-     "hpMul": 187.0391,
-     "dmgMul": 67.2943
+     "hpMul": 158.9832,
+     "dmgMul": 57.2002
     },
     {
      "key": "runic automaton",
      "lvl": 99,
-     "hpMul": 187.0391,
-     "dmgMul": 67.2943
+     "hpMul": 158.9832,
+     "dmgMul": 57.2002
     }
    ],
    [
     {
      "key": "zephyr harrier",
      "lvl": 99,
-     "hpMul": 187.0391,
-     "dmgMul": 67.2943
+     "hpMul": 158.9832,
+     "dmgMul": 57.2002
     },
     {
      "key": "bonepike guard",
      "lvl": 99,
-     "hpMul": 187.0391,
-     "dmgMul": 67.2943
+     "hpMul": 158.9832,
+     "dmgMul": 57.2002
     },
     {
      "key": "zephyr harrier",
      "lvl": 99,
-     "hpMul": 187.0391,
-     "dmgMul": 67.2943
+     "hpMul": 158.9832,
+     "dmgMul": 57.2002
     },
     {
      "key": "zephyr harrier",
      "lvl": 99,
-     "hpMul": 187.0391,
-     "dmgMul": 67.2943
+     "hpMul": 158.9832,
+     "dmgMul": 57.2002
     }
    ]
   ],
@@ -19380,6 +19392,12 @@
     "scale": 0.7308,
     "dmgScale": 0.8364,
     "why": "follows Normal 15-8 (v1121 curve) so Elite stays ~1.5x its Normal stage"
+   },
+   {
+    "v": "v1167",
+    "date": "2026-10-16",
+    "scale": 0.85,
+    "why": "follows Normal 15-8 (v1167 x0.85) so Elite stays ~1.5x its Normal stage"
    }
   ]
  },
