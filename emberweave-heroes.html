@@ -28739,6 +28739,30 @@ function kbTyping(e){ if(e.isComposing||e.keyCode===229) return true;
   return false; }
 function kbVisible(el){ if(!el||!el.getClientRects().length) return false; const g=el.getBoundingClientRect(); if(g.width<2||g.height<2) return false;
   const t=document.elementFromPoint(g.left+g.width/2,g.top+g.height/2); return !!t&&(t===el||el.contains(t)); }
+/* v1177: a layer's own dismiss control, best first: a confirm's Cancel, the window's back button (the hero window -> Heroes), its X, then
+   the dismiss words. Action buttons (Fight Again, Sweep, Buy, Confirm, Claim...) are never pressed. */
+const KB_DISMISS=[/^back to map$/i,/^cancel$/i,/^(back|◀\s*.*)$/i,/^close$/i,/^(no|not now|later|maybe later)$/i,/^(ok|okay|got it|done|continue)\b/i];
+function kbIsX(b){ const lab=(b.getAttribute('aria-label')||'').trim(), im=b.querySelector&&b.querySelector('img'), tx=(b.textContent||'').trim();
+  return b.classList.contains('popoutClose')||b.classList.contains('glClose')||/^close$/i.test(lab)||(!!im&&/\/icons\/ui\/close-v1/.test(im.getAttribute('src')||'')&&tx.length<=2)||/^[\u00d7\u2715\u2716]$/.test(tx); }
+function kbDismissIn(root){ const bs=[...root.querySelectorAll('button,[role=button],.btn')].filter(kbVisible);
+  const no=bs.find(b=>b.id==='uiCfNo'||b.id==='_gcNo'); if(no) return no;
+  const bk=bs.filter(b=>b.classList.contains('backbtn')).pop(); if(bk) return bk;
+  const x=bs.filter(kbIsX).pop(); if(x) return x;
+  for(const rx of KB_DISMISS){ const b=bs.find(b=>rx.test((b.textContent||'').replace(/\s+/g,' ').trim())); if(b) return b; }
+  return null; }
+function kbZ(e){ let z=0; for(let x=e;x&&x!==document.body;x=x.parentElement){ const v=parseInt(getComputedStyle(x).zIndex,10); if(v>z) z=v; } return z; }
+/* every open overlay, top first: [{root, t:{el|fn}}] */
+function kbOverlays(){ const vw=window.innerWidth, vh=window.innerHeight, roots=new Set();
+  const shown=e=>{ if(!e||!e.getClientRects().length) return false; const cs=getComputedStyle(e); return cs.display!=='none'&&cs.visibility!=='hidden'&&parseFloat(cs.opacity)>0.04; };
+  for(const e of document.querySelectorAll('#stageModal.active,#profileModal.active,#hudShop.active,#glModal.open,#uiConfirmWrap,.gmodal-ov')) if(shown(e)) roots.add(e);
+  for(const e of document.body.children){ if(/^(muteBtn|chatWidget|netGate|app|battleLoader|rotateGate|authGate|popoutBackdrop|banner)$/.test(e.id)||/^(SCRIPT|STYLE|LINK)$/.test(e.tagName)) continue;
+    const cs=getComputedStyle(e); if(cs.position!=='fixed'||!shown(e)) continue; const g=e.getBoundingClientRect();
+    if(g.width*g.height>=0.4*vw*vh&&(parseInt(cs.zIndex,10)||0)>=1000&&cs.pointerEvents!=='none') roots.add(e); }
+  let X=null; try{ X=muteCloseX(); }catch(e){}
+  const out=[...roots].map(r=>{ const d=kbDismissIn(r); return { root:r, t:d?{el:d}:{el:r, backdrop:true} }; });
+  if(X&&![...roots].some(r=>r.contains(X.x))){ const bk=[...X.win.querySelectorAll('.backbtn')].filter(kbVisible).pop(); out.push({ root:X.win, t:{el:bk||X.x} }); }
+  out.sort((a,b)=>(kbZ(b.root)-kbZ(a.root))||((a.root.compareDocumentPosition(b.root)&Node.DOCUMENT_POSITION_FOLLOWING)?1:-1));
+  return out; }
 /* the control one Backspace presses, or null when there is nothing to go back from (the hub with nothing open) */
 function kbBackTarget(){
   const st=(typeof state!=='undefined'&&state)||'';
@@ -28746,13 +28770,14 @@ function kbBackTarget(){
     if(pm&&pm.classList.contains('active')) return {el:document.getElementById('resumeBtn'), battle:true};
     if(pb&&pb.classList.contains('active')&&!paused) return {el:pb, battle:true};
     return {el:null, battle:true}; }
-  /* the top-most open window: a confirm's Cancel or a window's X (its own back button first: the hero window -> Heroes), whichever
-     is uncovered and last in the page (windows open on top of what came before) */
-  const cand=[...document.querySelectorAll('#uiCfNo,#_gcNo,button')].filter(b=>(b.id==='uiCfNo'||b.id==='_gcNo'||/^cancel$/i.test((b.textContent||'').trim()))&&kbVisible(b)
-    &&(()=>{ for(let e=b.parentElement,d=0;e&&d<6&&e!==document.body;e=e.parentElement,d++) if(getComputedStyle(e).position==='fixed') return true; return false; })());
-  let X=null; try{ X=muteCloseX(); }catch(e){}
-  if(X){ const bk=[...X.win.querySelectorAll('.backbtn')].filter(kbVisible).pop(); cand.push(bk||X.x); }
-  if(cand.length){ cand.sort((a,b)=>(a.compareDocumentPosition(b)&Node.DOCUMENT_POSITION_FOLLOWING)?-1:1); return {el:cand[cand.length-1]}; }
+  /* v1177 (Phil 16 Oct: "escape brought me back to city but didnt remove the pop out" - the Stage 1-5 popup has no X, so v1176 pressed
+     the campaign screen's back button and left the popup open over the city). THE TOP-MOST LAYER FIRST, whatever it is: every open
+     overlay (kbOverlays - the same list uiWindowOpen() judges, plus any window with a close X) is a candidate, the highest one (z-index,
+     then page order) is dismissed by its OWN dismiss control (kbDismissIn: its X, a confirm's Cancel, Back to Map / Back / Close / OK /
+     Continue - never an action like Fight Again or Sweep), else by a tap on its backdrop (the overlays' own "click outside closes"). */
+  const ov=kbOverlays(); if(ov.length) return ov[0].t;
+  const cw=document.getElementById('chatWidget'), ct=cw&&document.getElementById('cwToggle');   // the chat panel, expanded
+  if(cw&&ct&&cw.style.display!=='none'&&!cw.classList.contains('min')&&kbVisible(ct)) return {el:ct};
   const hm=document.getElementById('hubMenu'); if(hm&&hm.classList.contains('open')){ const t=document.getElementById('menuBtn'); if(t) return {el:t}; }
   if(_popout){ const x=document.querySelector('.popoutClose'); return x?{el:x}:{fn:closePopout}; }
   if(st==='result'){ const rb=document.getElementById('resultBtn'); return rb?{el:rb, result:true}:null; }
@@ -28772,7 +28797,7 @@ window.addEventListener('keydown',e=>{
   let last=null; KB.steps=0;
   for(let i=0;i<20;i++){ const t=kbBackTarget(); if(!t) break;
     if(t.battle){ if(t.el) t.el.click(); break; }   // a fight: Pause / Resume only, never Leave or Quit
-    const key=(t.el||t.fn), sig=((typeof state!=='undefined'&&state)||'')+'|'+(_popout||'')+'|'+document.body.childElementCount;
+    const key=(t.el||t.fn), sig=((typeof state!=='undefined'&&state)||'')+'|'+(_popout||'')+'|'+document.body.childElementCount+'|'+kbOverlays().map(o=>o.root.id||o.root.className).join(',');
     if(last&&last.key===key&&last.sig===sig) break;   // that step changed nothing
     last={key,sig}; if(t.el) t.el.click(); else t.fn(); KB.steps++;
     if(t.result) break; }   // the result screen: CONTINUE goes back where the fight was started from
@@ -29360,7 +29385,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1792184450301';
+const BUILD_ID = '1792187006727';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

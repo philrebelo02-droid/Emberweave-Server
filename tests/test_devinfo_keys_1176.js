@@ -10,7 +10,9 @@
       time (profile -> Arena Shop -> Arena -> hub, then nothing on the hub) and never navigates history; typing in chat and in the report
       box is untouched (Backspace deletes, Esc does nothing); mid-battle Esc does not end the fight (no pause button: nothing; with the
       pause button: Pause, then Resume - never Quit); on the result screen Esc = Continue; nothing happens on the sign-in gate.
-   CONTROL: KEYS_ROOT=<a pre-v1176 checkout> serves that page and server - this test must FAIL. */
+   C) v1177 OVERLAYS: the campaign stage popup (no X) and six other overlay types - Esc leaves the hub with nothing on top; Backspace on
+      the stage popup = Back to Map.
+   CONTROL: KEYS_ROOT=<a pre-v1176 checkout> (or the v1176 page, which fails C on the stage popup) serves that page and server - this test must FAIL. */
 const fs = require('fs'), os = require('os'), path = require('path'), net = require('net'), cp = require('child_process');
 const ROOT = process.env.KEYS_ROOT || path.join(__dirname, '..'), control = !!process.env.KEYS_ROOT;
 const SHOTS = process.env.SHOT_DIR || (control ? '' : 'C:\\Users\\Home\\Downloads\\ew-sweep\\devinfo');
@@ -123,6 +125,42 @@ const SILENT = () => { const oc = AudioNode.prototype.connect;
       ck(v[0] === 'bu' && v[1] === 'settings', 'typing in the report box: Backspace deletes, Esc leaves Settings open ("' + v[0] + '", ' + v[1] + ')'); }
     await pg.evaluate(() => { try { document.activeElement.blur(); } catch (e) {} }); await pg.keyboard.press('Backspace'); await delay(500);
     { const s = await S(); ck(s.st === 'home' && !s.pop, 'Backspace (not typing) closes Settings', JSON.stringify(s)); }
+    /* v1177 (Phil: "escape brought me back to city but didnt remove the pop out"): every overlay type - Esc lands on the hub with
+       NOTHING on top (the overlay list empty, uiWindowOpen() false, and the screen at five points is the hub, not a window) */
+    const hubClean = () => pg.evaluate(() => { const pts = [[.5, .5], [.25, .3], [.75, .3], [.25, .75], [.75, .75]].map(([a, b]) => document.elementFromPoint(innerWidth * a, innerHeight * b));
+      const onTop = pts.map(e => e && e.closest('#stageModal,#profileModal,#hudShop,#glModal,.gmodal-ov,#popoutBackdrop,.popout,[id^=uiCf],.pai-card')).filter(Boolean).map(e => e.id || e.className);
+      let ov = []; try { ov = kbOverlays().map(o => o.root.id || o.root.className); } catch (e) { ov = []; }   // (the v1176 control has no kbOverlays: judged by uiWindowOpen, the stage flag and the five points)
+      let win = null; try { win = uiWindowOpen(); } catch (e) {}
+      const sm = document.getElementById('stageModal'); return { st: state, ov, win, onTop, stage: !!(sm && sm.classList.contains('active')), pop: (typeof _popout !== 'undefined' && _popout) || '' }; });
+    const cleanOk = r => r.st === 'home' && r.ov.length === 0 && r.win === false && r.onTop.length === 0 && !r.stage && !r.pop;
+    { const h0 = await hubClean(); ck(cleanOk(h0), 'the hub itself has no overlay (the overlay list is empty there)', JSON.stringify(h0)); }
+    const OVERLAYS = [
+      ['the campaign stage popup (Stage 1-1, no X: Back to Map)', async () => { show('campaign'); await new Promise(r => setTimeout(r, 900)); openStageModal(1, 'normal'); }, () => document.getElementById('stageModal').classList.contains('active')],
+      ['the profile window', async () => { show('home'); await new Promise(r => setTimeout(r, 400)); openProfile(); }, () => document.getElementById('profileModal').classList.contains('active')],
+      ['the food shop window', async () => { show('home'); await new Promise(r => setTimeout(r, 400)); openHudShop('food'); }, () => document.getElementById('hudShop').classList.contains('active')],
+      ['the glossary card over the glossary', async () => { show('glossary'); await new Promise(r => setTimeout(r, 900)); openGlossaryCard('heroes', 'vael'); }, () => document.getElementById('glModal').classList.contains('open')],
+      ['a confirm over the Arena Shop', async () => { show('arena'); await new Promise(r => setTimeout(r, 400)); show('arenaShop'); await new Promise(r => setTimeout(r, 400)); gameConfirm('Buy?', () => { window.__bought2 = true; }); }, () => !!document.getElementById('_gcNo')],
+      ['the hero window over the Heroes pop-out', async () => { show('home'); popoutScreen('heroesPanel'); await new Promise(r => setTimeout(r, 900)); const c = document.querySelector('#heroesPanel .hero-card'); if (c) c.click(); }, () => typeof _popout !== 'undefined' && !!_popout],
+      ['the expanded chat panel', async () => { show('home'); await new Promise(r => setTimeout(r, 400)); ensureChatWidget(); const w = document.getElementById('chatWidget'); w.style.display = 'block'; w.classList.remove('min'); }, () => !document.getElementById('chatWidget').classList.contains('min')],
+    ];
+    for (const [name, open, isOpen] of OVERLAYS) {
+      await pg.evaluate(() => { try { document.activeElement.blur(); } catch (e) {} });
+      await pg.evaluate(open); await delay(1200);
+      const o = await pg.evaluate(isOpen); ck(o === true, name + ': opened', o);
+      if (name.startsWith('the campaign') && SHOTS) await pg.screenshot({ path: path.join(SHOTS, 'esc-stage-popup-before.png') });
+      await pg.keyboard.press('Escape'); await delay(900);
+      const r = await hubClean(); const chat = name.includes('chat') ? await pg.evaluate(() => document.getElementById('chatWidget').classList.contains('min') || document.getElementById('chatWidget').style.display === 'none') : true;
+      ck(cleanOk(r) && chat, name + ': Esc -> the hub with nothing on top', JSON.stringify(r));
+      if (name.startsWith('the campaign') && SHOTS) await pg.screenshot({ path: path.join(SHOTS, 'esc-stage-popup-after.png') });
+    }
+    ck(!(await pg.evaluate(() => !!window.__bought2)), 'Esc cancelled the confirm - it never confirmed');
+    /* Backspace on the stage popup = Back to Map: one level, the campaign map stays */
+    await pg.evaluate(async () => { show('campaign'); await new Promise(r => setTimeout(r, 900)); openStageModal(1, 'normal'); }); await delay(1000);
+    await pg.keyboard.press('Backspace'); await delay(700);
+    { const r = await pg.evaluate(() => ({ st: state, stage: document.getElementById('stageModal').classList.contains('active') }));
+      ck(r.st === 'campaign' && !r.stage, 'Backspace on the stage popup = Back to Map (the campaign map stays)', JSON.stringify(r)); }
+    await pg.keyboard.press('Backspace'); await delay(700);
+    { const r = await hubClean(); ck(cleanOk(r), 'Backspace again: the campaign map -> the hub', JSON.stringify(r)); }
     // battle
     await pg.evaluate(() => { closePopout(); show('home'); CUR = { node: 1, mode: 'arena' }; _startVersusNow([{ key: 'grosk', level: 5, rank: 1 }, { key: 'gruel', level: 5, rank: 1 }], true); }); await delay(2000);
     { const b = await pg.evaluate(() => [state, ended]); ck(b[0] === 'battle' && !b[1], 'a fight is running', JSON.stringify(b)); }
