@@ -1,5 +1,5 @@
 'use strict';
-// v1166 - NOX QUILLFINGER's eight and GRIMSBY's seven new animations (Phil PASS 16 Oct 2026, ChatGPT handoff 08:51:28, REVIEW 16OCT2026 H3,
+// v1169 - NOX QUILLFINGER's eight and GRIMSBY's seven new animations (Phil PASS 16 Oct 2026, ChatGPT handoff 08:51:28, REVIEW 16OCT2026 H3,
 //   clean-source-manifest.json - every clip "Phil PASS", official Hailuo Without Watermark exports, sha256 matched, cut from the silent twins).
 //   NOX: idle, walk, attack (the final take, creation 567361975987597318 - never the rejected first attack), hit, green Lockpick Soul, blue
 //   Forbidden Key, ult Open Every Door, passive Skeleton-Key Savant (an event clip the fifth key fires). No crit. His crescent hook throughout.
@@ -17,7 +17,7 @@ const path = require('path'), vm = require('vm'), fs = require('fs'), cp = requi
 const ROOT = path.resolve(__dirname, '..');
 const HTML = process.env.EW_HTML || path.join(ROOT, 'emberweave-heroes.html');
 const BASE_SHA = process.env.EW_BASE || 'df2313ec';   // live v1164, the build before this change (Nox / Grimsby = their v21 entries)
-const VER = process.env.EW_NOXGRIM_VER || '1166';
+const VER = process.env.EW_NOXGRIM_VER || '1169';
 const BD = fs.mkdtempSync(path.join(os.tmpdir(), 'noxg-base-'));
 process.on('exit', () => { try { fs.rmSync(BD, { recursive: true, force: true }); } catch (e) {} });
 let baseOk = true;

@@ -16,7 +16,7 @@
 const BUILD='1792164512046';
 const SHELL_CACHE = 'ember-shell-' + BUILD;   // versioned: wiped on every deploy
 const ASSET_CACHE = 'ember-assets-v1';        // persistent: survives deploys
-const SHELL = ['/play', '/', '/manifest.webmanifest', '/icon-192.png?v=lumi1', '/icon-512.png?v=lumi1', '/icon-512-maskable.png?v=lumi1', '/apple-touch-icon.png?v=lumi1', '/hero-profiles.js?v=r1166', '/hero-paths.js?v=r1025'];
+const SHELL = ['/play', '/', '/manifest.webmanifest', '/icon-192.png?v=lumi1', '/icon-512.png?v=lumi1', '/icon-512-maskable.png?v=lumi1', '/apple-touch-icon.png?v=lumi1', '/hero-profiles.js?v=r1169', '/hero-paths.js?v=r1025'];
 
 self.addEventListener('install', (e) => {
   self.skipWaiting();

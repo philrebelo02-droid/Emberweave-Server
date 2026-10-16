@@ -1,5 +1,5 @@
 'use strict';
-// v1166 - NOX QUILLFINGER, Phil 16 Oct 2026 (ChatGPT handoff 08:51:28): "hes midrow magic assasin ranged with 10 meter attack range".
+// v1169 - NOX QUILLFINGER, Phil 16 Oct 2026 (ChatGPT handoff 08:51:28): "hes midrow magic assasin ranged with 10 meter attack range".
 // Nox is MID ROW, ASSASSIN, MAGIC damage, RANGED, with a 10 m basic attack range (the game's METER = 28.2 field units -> 282; never 10 raw
 // units). He holds at his own 10 m range (rangeHold), not the 13 m mid-row ranged hold that would widen his range to 13.6 m. His auto is
 // the game's ranged-magic delivery: a shadow ball (CASTER_BALL, as Vesper / Tessit) released on the attack clip's release cell, landing
@@ -7,7 +7,7 @@
 // multiplier changed (dmg 40, apow 0, swing 1.8, atkSpeed 1.2, every KITS / ULT number = BASE).
 // Checks: the canonical profile (one file, browser and server), the unit the engine builds, server/client parity (server/sim.js HERO_BASE +
 // the server replay host = the client), the delivery, sound, fights WITHOUT Nox tick-identical to BASE (CONTROL: fights with him differ; the
-// v1166 page with Nox's old line put back = BASE tick for tick, so nothing else moved), and the before/after table over 10 seeded fights.
+// v1169 page with Nox's old line put back = BASE tick for tick, so nothing else moved), and the before/after table over 10 seeded fights.
 (function main() {
 const path = require('path'), vm = require('vm'), fs = require('fs'), cp = require('child_process'), crypto = require('crypto'), os = require('os');
 const ROOT = path.resolve(__dirname, '..');
@@ -125,7 +125,7 @@ try {
     [['gruel', 'aureth', 'tharl'], ['nox', 'hollow', 'calypsa'], 77], [['astra', 'nox', 'rivet'], ['maren', 'lumi', 'nox'], 31]];
   ck('whole fights WITHOUT Nox (6, including Grimsby\'s) are tick-for-tick identical to BASE (hp, x, y, alive, energy, swing timer every tick)', NO_NOX.every(([a, f, s]) => fight(run, s, a, f).h === fight(R0, s, a, f).h));
   ck('CONTROL: whole fights WITH Nox differ from BASE (the check sees his change)', WITH.every(([a, f, s]) => fight(run, s, a, f).h !== fight(R0, s, a, f).h));
-  ck('CONTROL: the v1166 page with Nox\'s old line put back (range 26, no rangeHold, Attack, no shadow ball, the v21 clips) is BASE tick for tick in those fights - nothing else in the engine moved',
+  ck('CONTROL: the v1169 page with Nox\'s old line put back (range 26, no rangeHold, Attack, no shadow ball, the v21 clips) is BASE tick for tick in those fights - nothing else in the engine moved',
     WITH.every(([a, f, s]) => fight(undone, s, a, f).h === fight(R0, s, a, f).h));
   // 7. before / after over 10 seeded fights (Nox on the ally side, rank 3, no gear: the same fights on both builds)
   const TEN = [['askel', 'vesper', 'lumi'], ['vael', 'tick', 'oakmir'], ['grosk', 'meridian', 'dandra'], ['pellucid', 'umbris', 'mirelle'], ['tharl', 'astra', 'vireo'],
@@ -141,7 +141,7 @@ try {
   console.log('  info before / after (10 seeded fights, Nox and everyone level 30, rank 3, no gear, autoUlt, 45 s cap; DPS = his damage dealt / his time alive, fight seconds):');
   console.log('  info | | row | class | damage | basic attack range | delivery | DPS (10 fights) | wins |');
   console.log('  info | BEFORE v1164 | Mid | Assassin | Attack (physical) | 26 units = 0.92 m, melee | the hook cut, on the blow | ' + dO.toFixed(1) + ' | ' + rows.filter(r => r.o.won).length + '/10 |');
-  console.log('  info | AFTER v1166 | Mid | Assassin | Magic | 282 units = 10 m (attacks from ' + dist('n', 'minD').toFixed(1) + '-' + dist('n', 'maxD').toFixed(1) + ' m) | shadow ball on the release cell, lands after its flight | ' + dN.toFixed(1) + ' | ' + rows.filter(r => r.n.won).length + '/10 |');
+  console.log('  info | AFTER v1169 | Mid | Assassin | Magic | 282 units = 10 m (attacks from ' + dist('n', 'minD').toFixed(1) + '-' + dist('n', 'maxD').toFixed(1) + ' m) | shadow ball on the release cell, lands after its flight | ' + dN.toFixed(1) + ' | ' + rows.filter(r => r.n.won).length + '/10 |');
   console.log('  info per fight DPS before -> after: ' + rows.map(r => dps(r.o).toFixed(0) + '->' + dps(r.n).toFixed(0)).join(', '));
   ck('table: in all 10 seeded fights he opens from range on v1166 (his farthest auto 9-10 m, none beyond his 10 m; nearer only when a foe walks into him) and only ever from melee on BASE (<= 4 m centre to centre)', rows.every(r => r.n.autos > 0 && r.n.maxD / METER > 9 && r.n.maxD / METER <= 10.0001 && (r.o.autos === 0 || r.o.maxD / METER < 4)),
     JSON.stringify(rows.map(r => [r.n.minD, r.n.maxD, r.o.maxD])));

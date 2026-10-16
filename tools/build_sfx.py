@@ -85,7 +85,7 @@ WEAPON = {
     **{k: 'CASTER-WHOOSH' for k in ['vulmar', 'sylthaine', 'vireo', 'fritz', 'umbris', 'oakmir', 'astra', 'maren', 'lumi', 'vesper',
                                     'tessit', 'linnet', 'lysara', 'nerisse', 'vaelora', 'dandra', 'pyroclast', 'absalie', 'mellan',
                                     'aldren', 'ceraline', 'orryn', 'mirelle',
-                                    'nox']},   # v1166 (Phil 16 Oct): Nox is a ranged magic assassin now - the caster whoosh, not BLADE-LIGHT
+                                    'nox']},   # v1169 (Phil 16 Oct): Nox is a ranged magic assassin now - the caster whoosh, not BLADE-LIGHT
 }
 RAFE_MELEE = 'BLADE-LIGHT'
 # v1156 PER-SWING SOUNDS (Phil 15 Oct 2026: Aureth's swings "should not be regular swords"; his picks from the Spell Pack Library, RPG Magic
@@ -175,11 +175,11 @@ RULES = {
     'S0211': {'rule': 'release'},                            # v1160 Veyr Abyssal Undertow cast: its peak on the 0.8 s release, his arm out where the deep opens (ult clip contact cell 29); S0213 stays on the collapse (land)
     'S0266': {'rule': 'release'},                            # v1160 Deepcleft Burrow Guard: its peak as he digs in at the 0.5 s release (blue clip contact cell 18, untargetable from then)
     'S0268': {'rule': 'land'},                               # v1160 Deepcleft Quarry Collapse: its peak on the slam when the form delivery lands (1.148 fight s = ult clip contact cell 37), not from the press
-    'S0329': {'rule': 'release'},                            # v1166 Nox Lockpick Soul: its peak as the hook is thrown out on the 0.5 s release (green clip contact cell 18, f44)
-    'S0331': {'rule': 'release'},                            # v1166 Nox Forbidden Key: its peak as the key appears in his hand on the 0.5 s release (blue clip contact cell 18, f40), not from the press
-    'S0332': {'rule': 'release'},                            # v1166 Nox Open Every Door: its peak as he holds the lock out on the 0.8 s release (ult clip cell 29, f53) - every enemy locked; S0333 stays on the shatter (land, contact cell 40)
-    'S0413': {'rule': 'release'},                            # v1166 Grimsby Overdue: its peak on the quill's tick at the 0.5 s release, when the mark lands (green clip contact cell 18, f42), not from the press
-    'S0415': {'rule': 'release'},                            # v1166 Grimsby Foreclosure: its peak as the ledger snaps shut and the notice is served on the 0.8 s release (ult clip contact cell 29, f76), not from the press
+    'S0329': {'rule': 'release'},                            # v1169 Nox Lockpick Soul: its peak as the hook is thrown out on the 0.5 s release (green clip contact cell 18, f44)
+    'S0331': {'rule': 'release'},                            # v1169 Nox Forbidden Key: its peak as the key appears in his hand on the 0.5 s release (blue clip contact cell 18, f40), not from the press
+    'S0332': {'rule': 'release'},                            # v1169 Nox Open Every Door: its peak as he holds the lock out on the 0.8 s release (ult clip cell 29, f53) - every enemy locked; S0333 stays on the shatter (land, contact cell 40)
+    'S0413': {'rule': 'release'},                            # v1169 Grimsby Overdue: its peak on the quill's tick at the 0.5 s release, when the mark lands (green clip contact cell 18, f42), not from the press
+    'S0415': {'rule': 'release'},                            # v1169 Grimsby Foreclosure: its peak as the ledger snaps shut and the notice is served on the 0.8 s release (ult clip contact cell 29, f76), not from the press
 }
 PASSIVE_EV = {   # row -> the trigger the client fires (sfxPassive(u, ev))
     'S0446': 'livingpages', 'S0456': 'sacredbells', 'NEW-askel-passive': 'unshaken', 'S0068': 'contagion', 'NEW-brannus-passive': 'pridemomentum',
