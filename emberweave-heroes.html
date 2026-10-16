@@ -10138,7 +10138,11 @@ const SFX_DATA={"files":{"ATK-AURETH-DARK":["sfx/ATK-AURETH-DARK.m4a?v=1138",0.4
 const SFX_MAXLIVE=14, SFX_ATK_LIVE=8, SFX_ATK_WIN=0.12, SFX_ATK_MAX=3;
 const SFX_ATK_GAIN=0.85;   /* v1160 (Phil 16 Oct): weapon strikes 15% quieter - sfxPlay */
 const SFX_DRAW_LAG=0.008;   // a tick reached between frames is drawn on the NEXT frame: half a 60 fps frame on average (rig-measured, test_combat_sfx_1138)
-const SFX={ loop:0, left:0, q:[], mr:0, mrt:null, fd:[], cx:null, dl:null, hz:new WeakMap(), win:new WeakMap(), lc:new WeakMap(), ar:new WeakSet(), pend:new WeakMap(), fuse:new WeakMap(), last:{}, atk:[], want:{}, log:null };
+const SFX={ srcs:new Set(), loop:0, left:0, q:[], mr:0, mrt:null, fd:[], cx:null, dl:null, hz:new WeakMap(), win:new WeakMap(), lc:new WeakMap(), ar:new WeakSet(), pend:new WeakMap(), fuse:new WeakMap(), last:{}, atk:[], want:{}, log:null };
+/* v1164: every sound of the fight stops - the scheduled ones fade over `fade` s and are stopped, the queued and pending ones are dropped */
+function sfxStopAll(fade){ try{ SFX.q.length=0; SFX.pend=new WeakMap(); SFX.fuse=new WeakMap(); if(!SND.ctx) { SFX.srcs.clear(); return; } const t=SND.ctx.currentTime, f=Math.max(0.01,fade||0.08);
+    for(const v of SFX.srcs){ try{ const g=v.g.gain; g.cancelScheduledValues(t); g.setValueAtTime(g.value,t); g.linearRampToValueAtTime(0,t+f); v.src.stop(t+f+0.01); }catch(e){} }
+    SFX.srcs.clear(); }catch(e){} }
 function sfxLive(){ try{ return !!(SND.ctx && SND.ctx.state==='running' && SND.cfg.fx.on && SFX.loop && !window._p2guard); }catch(e){ return false; } }
 /* rig log only (SFX.log set): the clip on screen for u and the cell it draws at audio time `at` (clips play in real time at their fps;
    a swing's clip runs faster by its attack-speed factor), with the clip's own contact cell (clipContactCell - the cell the engine lands on) */
@@ -10208,7 +10212,8 @@ function sfxPlay(name,peakAt,o){ o=o||{}; const F=SFX_DATA.files[name]; if(!F||!
   if((SND.live|0)>=(o.atk?SFX_ATK_LIVE:SFX_MAXLIVE)){ sfxNote('drop',Object.assign({name,why:'too many at once'},o.log||{})); return null; }
   SFX.last[lk]=st;
   try{ const src=ctx.createBufferSource(), g=ctx.createGain(); src.buffer=b; g.gain.value=o.atk?SFX_ATK_GAIN:1; src.connect(g); g.connect(SND.bus.fx||SND.out);   /* v1160 (Phil 16 Oct: "make weapon strike less loud like 15%"): every basic swing and crit (o.atk: sfxAtk's sounds, Aureth's light / dark ARM cuts included) plays at 0.85; spells, hits and voices at 1 */
-    SND.live=(SND.live|0)+1; src.onended=()=>{ SND.live=Math.max(0,(SND.live|0)-1); }; src.start(st,off);
+    const _lv={ src, g }; SFX.srcs.add(_lv);   /* v1164: tracked, so a torn-down fight can silence them */
+    SND.live=(SND.live|0)+1; src.onended=()=>{ SND.live=Math.max(0,(SND.live|0)-1); SFX.srcs.delete(_lv); }; src.start(st,off);
     sfxNote('play',Object.assign({name,st:+st.toFixed(4),off:+off.toFixed(4),peakAt:+(o.fromStart?st:peakAt).toFixed(4),pk,gain:g.gain.value},o.log||{})); return src; }catch(e){ return null; } }
 /* ATTACK - called where the swing is queued; dB = battle seconds until its blow (melee) or its release (ranged), counted like a fuse */
 function sfxAtk(u,dB,melee){ if(!sfxLive()) return null; const H=sfxHero(u); if(!H) return null;
@@ -10329,28 +10334,17 @@ function sndMuteApply(){ const on=SND_MUTE.on;
       const im=b.querySelector('img'); if(im) im.src=ICON_SRC.u(on?'audio-off':'audio-on'); } }catch(e){}
   try{ const cb=document.getElementById('snd_mute'); if(cb) cb.checked=on; }catch(e){} }
 function sndMuteSet(on){ SND_MUTE.on=!!on; try{ localStorage.setItem('ew_mute',SND_MUTE.on?'1':'0'); }catch(e){} sndMuteApply(); }
-/* The button lives on <body>, above every modal and the sign-in gate - or, docked to a window's close X, inside that X's own box.
-   v1163 (Phil 16 Oct 2026, on his phone: "can you make the audio button not layered over buttons" - it sat on the HEROES title plate):
-   it never overlaps ANY visible thing under it - controls, close X's, title plates, banners, frames and borders, text, icons, bars,
-   cards, dropdowns. Where it sits:
-   - the hub: immediately left of the profile portrait (#profileBtn), centred on it, a 6 px gap (v1159);
-   - a window or panel with its own close X: docked to that X - directly BELOW it, the X's size, centred on it (the empty margin beside
-     the title plate); LEFT of it when below is taken; otherwise the nearest free spot. Docked, the button is a child of the X's own
-     containing box, so it scrolls with the X and the window's content can never slide under it;
-   - every other screen: the hub's spot (MUTE_POS, fractions of the viewport), else the nearest spot that overlaps nothing.
-   "Free" is measured on the rendered page (muteScan): every visible box in the area - fills, painted images, border and border-image
-   bands, text runs, ::before/::after art - clipped by its scrollers and swept over their whole scroll range (so scrolling never brings
-   anything under it), under whatever opaque surface is on top there. A box only counts as background the button may sit on when it is
-   screen-sized (>= 15% of the viewport) or the docked window itself, and the button sits wholly inside it, clear of its frame band.
-   Render only - never touches battle state or the seeded RNG. */
-const MUTE_SZ = 40, MUTE_GAP = 6, MUTE_PAD = 2;
+/* The button lives on <body>, above every modal and the sign-in gate - or, docked under a window's close X, in that X's own row.
+   v1163 (Phil 16 Oct 2026: "can you make the audio button not layered over buttons"): it never overlaps any visible thing under it.
+   v1165 (Phil 16 Oct: "the mute button just randomly places itself, it needs to find a spot for each screen"): one FIXED spot per screen
+   type (the table at muteBtnPlaceNow), no search at all. When it is placed: muteBtnPlace. Render only - never touches battle state or
+   the seeded RNG. Tests: tests/test_mute_dock_1163.js (zero overlap, the same spot every time), tests/test_mute_perf_1163.js. */
+const MUTE_SZ = 40, MUTE_GAP = 6;
 const MUTE_POS = { rx:null, ty:null };   // the hub's spot: right edge distance and centre y, as fractions of the viewport
-const MUTE_MEMO = {};                    // screen + window + viewport -> the free spot found there
-const MUTE_DBG = { last:null };
-const MUTE_DOCK = { x:null, host:null };   // the close X the button is docked to (it stays with it when that X scrolls out of view)          // what the last placement chose and why (read by tests)
+const MUTE_DBG = { last:null, unlisted:'' };   // what the last placement chose and why (read by tests)
+const MUTE_DOCK = { x:null, relHost:null, relWas:'' };   // the close X the button is docked under (it stays with it when that X scrolls out of view)
 function _mAlpha(c){ if(!c||c==='transparent') return 0; const s=c.indexOf('/'); if(s>=0) return parseFloat(c.slice(s+1))||0;
   const m=/^rgba\([^,]+,[^,]+,[^,]+,\s*([\d.]+)/.exec(c); return m?parseFloat(m[1]):1; }
-function _mI(a,b){ return { l:Math.max(a.l,b.l), t:Math.max(a.t,b.t), r:Math.min(a.r,b.r), b:Math.min(a.b,b.b) }; }
 function _mHit(a,b){ return a.r>b.l&&a.l<b.r&&a.b>b.t&&a.t<b.b; }
 /* a window-level surface: the page, a screen, a floating window or overlay covering >= 40% of the viewport. Only these (and the docked
    window) are background the button may sit on - a panel, card, plate or banner never is, however big. */
@@ -10358,85 +10352,6 @@ function _mWinLevel(e){ if(!e||e===document.documentElement||e===document.body||
   const p=getComputedStyle(e).position; if(p!=='fixed'&&p!=='absolute') return false;
   const g=e.getBoundingClientRect(), vw=window.innerWidth, vh=window.innerHeight, w=Math.min(g.right,vw)-Math.max(g.left,0), h=Math.min(g.bottom,vh)-Math.max(g.top,0);
   return w>0&&h>0&&w*h>=0.4*vw*vh; }
-/* every visible painted box that can reach region R. anchor = the element the button will live in (null = fixed on the viewport):
-   scrollers that hold the anchor move the button with them, so they are not swept. Returns [{k:'fill'|'band'|'text'|'art', r, e, a}]. */
-function muteScan(R, anchor, still){ const vw=window.innerWidth, vh=window.innerHeight, VIEW={l:0,t:0,r:vw,b:vh}, Z={l:0,r:0,u:0,d:0};
-  const btn=document.getElementById('muteBtn'), out=[], rg=document.createRange();
-  const sweep=(r,s,cl)=>_mI({ l:r.l-s.l, t:r.t-s.u, r:r.r+s.r, b:r.b+s.d }, cl);
-  const push=(k,r,e,a)=>{ if(r.r>r.l&&r.b>r.t&&_mHit(r,R)) out.push({ k, r, e, a }); };
-  const px=(v,base)=>{ if(v==null||v==='auto') return null; if(/%$/.test(v)) return parseFloat(v)/100*base; if(/px$/.test(v)) return parseFloat(v); const n=parseFloat(v); return isNaN(n)?null:n; };
-  /* clip = what clips an in-flow box, clipP = what clips an absolute one (only positioned clippers do); sw = scroll sweep */
-  const visit=(e,clip,clipP,sw)=>{ const tag=e.tagName;
-    if(e===btn||tag==='SCRIPT'||tag==='STYLE'||tag==='TEMPLATE'||tag==='NOSCRIPT'||tag==='LINK'||tag==='META') return;
-    const cs=getComputedStyle(e);
-    if(!e.getClientRects().length){ if(cs.display==='contents') for(let c=e.firstElementChild;c;c=c.nextElementSibling) visit(c,clip,clipP,sw); return; }
-    if(parseFloat(cs.opacity)<0.04) return;
-    const pos=cs.position; let cl=clip, cp=clipP, s=sw;
-    if(pos==='fixed'){ cl=cp=VIEW; s=Z; } else if(pos==='absolute') cl=cp;   // an absolute box escapes the clip of a static parent
-    const g=e.getBoundingClientRect(), box={ l:g.left, t:g.top, r:g.right, b:g.bottom }, vis=sweep(box,s,cl);
-    const svg=e instanceof SVGElement;
-    if(cs.visibility==='visible'&&vis.r>vis.l&&vis.b>vis.t&&_mHit(vis,R)){
-      const bimg=cs.borderImageSource&&cs.borderImageSource!=='none', va=(Math.min(box.r,vw)-Math.max(box.l,0))*(Math.min(box.b,vh)-Math.max(box.t,0));
-      const framed=bimg||['Top','Right','Bottom','Left'].some(k=>parseFloat(cs['border'+k+'Width'])>=2&&cs['border'+k+'Style']!=='none'&&_mAlpha(cs['border'+k+'Color'])>0.04);
-      /* 1 = may be background: the page, a screen, a floating window/overlay, or a frameless full-screen picture (the town, a map, the sky) */
-      const area=(_mWinLevel(e)||(va>=0.4*vw*vh&&!framed)||va>=0.7*vw*vh)?1:0;   // (>= 70%: a framed stage filling the screen, the Skyfall board - its frame band still counts)
-      if(svg||/^(IMG|CANVAS|VIDEO|IFRAME|INPUT|SELECT|TEXTAREA|PROGRESS|METER|OBJECT|EMBED)$/.test(tag)) push('fill',vis,e,area);
-      else if(_mAlpha(cs.backgroundColor)>0.04||cs.backgroundImage!=='none'||(bimg&&/fill/.test(cs.borderImageSlice))) push('fill',vis,e,area);
-      const bw=[cs.borderTopWidth,cs.borderRightWidth,cs.borderBottomWidth,cs.borderLeftWidth].map(v=>parseFloat(v)||0);
-      let bd=[0,0,0,0], ob=box;
-      if(cs.borderImageSource&&cs.borderImageSource!=='none'){
-        const W=cs.borderImageWidth.split(/\s+/), O=(cs.borderImageOutset||'0').split(/\s+/), q=(a,i)=>a[i]!=null?a[i]:a[i===3?1:i===2?0:0];
-        const one=(v,i)=>{ if(v==='auto') return bw[i]; if(/px$|%$/.test(v)) return px(v,(i%2?box.r-box.l:box.b-box.t))||0; return (parseFloat(v)||0)*bw[i]; };
-        const ou=[0,1,2,3].map(i=>{ const v=q(O,i); return /px$/.test(v)?parseFloat(v):(parseFloat(v)||0)*bw[i]; });
-        bd=[0,1,2,3].map(i=>one(q(W,i),i)); ob={ l:box.l-ou[3], t:box.t-ou[0], r:box.r+ou[1], b:box.b+ou[2] };
-      } else { const st=[cs.borderTopStyle,cs.borderRightStyle,cs.borderBottomStyle,cs.borderLeftStyle], co=[cs.borderTopColor,cs.borderRightColor,cs.borderBottomColor,cs.borderLeftColor];
-        bd=bw.map((w,i)=>(st[i]!=='none'&&st[i]!=='hidden'&&_mAlpha(co[i])>0.04)?w:0); }
-      if(bd[0]) push('band',sweep({ l:ob.l, t:ob.t, r:ob.r, b:ob.t+bd[0] },s,cl),e);
-      if(bd[2]) push('band',sweep({ l:ob.l, t:ob.b-bd[2], r:ob.r, b:ob.b },s,cl),e);
-      if(bd[3]) push('band',sweep({ l:ob.l, t:ob.t, r:ob.l+bd[3], b:ob.b },s,cl),e);
-      if(bd[1]) push('band',sweep({ l:ob.r-bd[1], t:ob.t, r:ob.r, b:ob.b },s,cl),e);
-      if(!svg) for(let n=e.firstChild;n;n=n.nextSibling) if(n.nodeType===3&&/\S/.test(n.data)){ rg.selectNodeContents(n);
-        for(const t of rg.getClientRects()) push('text',sweep({ l:t.left, t:t.top, r:t.right, b:t.bottom },s,cl),e); }
-      if(!svg) for(const p of ['::before','::after']){ const pc=getComputedStyle(e,p), ct=pc.content;
-        if(!ct||ct==='none'||ct==='normal'||pc.display==='none'||pc.visibility!=='visible'||parseFloat(pc.opacity)<0.04) continue;
-        if(!(ct!=='""'&&ct!=="''"||_mAlpha(pc.backgroundColor)>0.04||pc.backgroundImage!=='none'||parseFloat(pc.borderTopWidth)||parseFloat(pc.borderLeftWidth)||(pc.borderImageSource&&pc.borderImageSource!=='none'))) continue;
-        let r=box; const w=px(pc.width,box.r-box.l), h=px(pc.height,box.b-box.t), L=px(pc.left,box.r-box.l), T=px(pc.top,box.b-box.t), Rt=px(pc.right,box.r-box.l), B=px(pc.bottom,box.b-box.t);
-        if((pc.position==='absolute')&&cs.position!=='static'){ const il=box.l+bw[3], it=box.t+bw[0], ir=box.r-bw[1], ib=box.b-bw[2];
-          const x0=L!=null?il+L:(Rt!=null&&w!=null?ir-Rt-w:null), x1=Rt!=null?ir-Rt:(x0!=null&&w!=null?x0+w:null);
-          const y0=T!=null?it+T:(B!=null&&h!=null?ib-B-h:null), y1=B!=null?ib-B:(y0!=null&&h!=null?y0+h:null);
-          if(x0!=null&&x1!=null&&y0!=null&&y1!=null) r={ l:Math.min(x0,x1), t:Math.min(y0,y1), r:Math.max(x0,x1), b:Math.max(y0,y1) }; }
-        const pa=(Math.min(r.r,vw)-Math.max(r.l,0))*(Math.min(r.b,vh)-Math.max(r.t,0)), pf=(pc.borderImageSource&&pc.borderImageSource!=='none')||parseFloat(pc.borderTopWidth)>=2;
-        push(pa>=0.7*vw*vh||(pa>=0.4*vw*vh&&!pf)?'fill':'art',sweep(r,s,cl),e,(pa>=0.7*vw*vh||(pa>=0.4*vw*vh&&!pf))?1:0); }   // a screen-filling ::after (a vignette, the sky) is background like its box
-    }
-    if(svg) return;
-    let ccl=cl, ccp=cp, cs2=s; const ox=cs.overflowX, oy=cs.overflowY;
-    if(ox!=='visible'||oy!=='visible'){ const bl=parseFloat(cs.borderLeftWidth)||0, bt=parseFloat(cs.borderTopWidth)||0;
-      const pad=sweep({ l:box.l+bl, t:box.t+bt, r:box.l+bl+e.clientWidth, b:box.t+bt+e.clientHeight },s,VIEW);
-      ccl=_mI(cl,pad); if(pos!=='static') ccp=_mI(cp,pad);
-      if(!_mHit(ccp,R)) return; }   // nothing inside can show in R (a fixed box inside a clipped one is not looked for)
-    if(!still&&!(anchor&&e.contains(anchor))){ const my=e.scrollHeight-e.clientHeight, mx=e.scrollWidth-e.clientWidth;
-      if((oy==='auto'||oy==='scroll')&&my>1) cs2={ l:cs2.l, r:cs2.r, u:cs2.u+Math.max(0,my-e.scrollTop), d:cs2.d+Math.max(0,e.scrollTop) };
-      if((ox==='auto'||ox==='scroll')&&mx>1) cs2={ l:cs2.l+Math.max(0,mx-e.scrollLeft), r:cs2.r+Math.max(0,e.scrollLeft), u:cs2.u, d:cs2.d }; }
-    for(let c=e.firstElementChild;c;c=c.nextElementSibling) visit(c,ccl,ccp,cs2); };
-  visit(document.body,VIEW,VIEW,Z); return out; }
-/* is the square q (viewport px) free? win = the docked window (its own fill is background there). deep = also judge what is hidden
-   under the topmost opaque surface at q (a window over the town hides the town); the quick pass counts everything (stricter). */
-function muteFree(q,items,win,deep,why){ const vw=window.innerWidth, vh=window.innerHeight;
-  const Q={ l:q.l-MUTE_PAD, t:q.t-MUTE_PAD, r:q.r+MUTE_PAD, b:q.b+MUTE_PAD };
-  if(q.l<2||q.t<2||q.r>vw-2||q.b>vh-2) return false;
-  let keep=null;
-  if(deep){ const btn=document.getElementById('muteBtn');   // (muteBtnPlace made the button click-through once for the whole pass: reads only here)
-    const pts=[[(q.l+q.r)/2,(q.t+q.b)/2],[q.l+2,q.t+2],[q.r-2,q.t+2],[q.l+2,q.b-2],[q.r-2,q.b-2]], stacks=pts.map(p=>document.elementsFromPoint(p[0],p[1]).filter(e=>e!==btn&&!(btn&&btn.contains(e))));
-    let occ=null; for(const e of stacks[0]){ if(e===document.documentElement) break; const cs=getComputedStyle(e), g=e.getBoundingClientRect();
-      if(_mAlpha(cs.backgroundColor)>=0.6&&(_mWinLevel(e)||e===win)&&g.left<=Q.l&&g.top<=Q.t&&g.right>=Q.r&&g.bottom>=Q.b&&parseFloat(cs.opacity)>=0.95){ occ=e; break; } }
-    if(occ){ const above=new Set(), seen=new Set(); stacks.forEach(st=>{ const i=st.indexOf(occ); st.forEach((e,j)=>{ seen.add(e); if(i<0||j<i) above.add(e); }); });
-      keep=it=>{ const e=it.e; if(e===occ||occ.contains(e)||above.has(e)) return true; if(seen.has(e)||e.contains(occ)) return false;
-        return !!(occ.compareDocumentPosition(e)&Node.DOCUMENT_POSITION_FOLLOWING); }; } }
-  for(const it of items){ if(keep&&!keep(it)) continue; const r=it.r; if(!_mHit(r,Q)) continue;
-    if(it.k==='fill'&&(it.a||it.e===win||(win&&it.e.contains(win)))&&r.l<=Q.l&&r.t<=Q.t&&r.r>=Q.r&&r.b>=Q.b) continue;
-    if(why) why.push(it); else return false; }
-  if(why&&why.length) return false;
-  return true; }
 /* the open window's close X: a visible, uncovered close control near the top right of a floating box (fixed/absolute, or held in a
    fixed overlay). The last one in the page wins (windows opened later sit on top). */
 function muteCloseX(){ const vw=window.innerWidth, vh=window.innerHeight; let best=null;
@@ -10471,99 +10386,71 @@ function muteBtnPlace(force){ try{ const b=document.getElementById('muteBtn'), s
     if(!same){ clearTimeout(MUTE_SIG.verify); clearTimeout(MUTE_SIG.verify2);   // twice more, for the window's late art and text
       MUTE_SIG.verify=setTimeout(()=>{ MUTE_SIG.verify=0; muteBtnPlace(true); },900); MUTE_SIG.verify2=setTimeout(()=>{ MUTE_SIG.verify2=0; muteBtnPlace(true); },2500); }
   }catch(e){} }
+/* v1164 (Phil 16 Oct 08:31: "the mute button just randomly places itself, it needs to find a spot for each screen"): NO SEARCH. Each
+   screen type has ONE deliberate spot, chosen by measuring that screen in the rig, all in the top-right corner area and clear of its UI.
+   Every spot is anchored to the viewport or to that screen's own top-right control, so it holds across phone sizes:
+     a window with a close X   directly under the X, the X's size, centred on it (the hero window: left of its X; the glossary card:
+                               just right of the card, level with its X) - docked in the X's own row, so it scrolls with the X
+     the hub                   left of the profile portrait as drawn (its ring frame), 6 px gap, just above centre (the name plate)
+     battle                    directly left of the speed (x1) button, centred on it - the same spot every fight
+     battle loading screen     the top-right corner, level with the title, above the hero cards
+     campaign map / team select / City Wall / Skyfall   under that screen's own top-right button (Glossary / World / War), right-aligned
+     sign-in gate              the top-right corner of the screen
+     Arena                     the hub's spot, docked in the Arena's scrolling box (its rows scroll under every other spot)
+     result screen and every other building   the hub's spot (the same place as on the hub, kept as fractions of the viewport)
+   A screen not in this table gets the hub's spot too and is reported (MUTE_DBG.unlisted, read by the tests) so it can be added. */
+const MUTE_UNDER = { campaign:'#campGlossBtn', menu:'#glossaryBtn', wall:'#wall>[data-nav="world"]', skyfall:'#skyMenuBtn' };
+const MUTE_LISTED = ['home','result','temple','wishing','forge','guild','arena','arenaShop','market','shadymarket','dungeon','elite','quest','signin','mail',
+  'tech','world','skyisland','rankings','glossary','watchtower','account','online','heroesPanel','heroDetail','bag','settings','tutorial','campaign','menu','wall','skyfall','battle'];
 function muteBtnPlaceNow(){ try{ let b=document.getElementById('muteBtn'); if(!b){ muteBtnMake(); b=document.getElementById('muteBtn'); } if(!b) return;
     const vw=window.innerWidth||document.documentElement.clientWidth, vh=window.innerHeight||document.documentElement.clientHeight; if(!vw||!vh) return;
-    const now=()=>(window.performance&&performance.now())||Date.now(), t0=now(); b.style.pointerEvents='none';
-    try{
-    const home=document.getElementById('home'), pf=document.getElementById('profileBtn'), st=(typeof state!=='undefined'&&state)||'';
-    const sq=(x,y,s)=>({ l:x, t:y, r:x+s, b:y+s }), around=(x,y,s,d)=>({ l:x-d-MUTE_PAD, t:y-d-MUTE_PAD, r:x+s+d+MUTE_PAD, b:y+s+d+MUTE_PAD });
-    const done=(why,x,y,s)=>{ MUTE_DBG.last={ why, x:Math.round(x), y:Math.round(y), s, ms:Math.round(now()-t0), st }; };
-    const fix=(x,y,s,why)=>{ if(b.parentNode!==document.body) document.body.appendChild(b); b.classList.remove('dock');
-      b.style.setProperty('--ms',s+'px'); b.style.setProperty('--mx',Math.round(x)+'px'); b.style.setProperty('--my',Math.round(y)+'px');
-      b.dataset.spot=Math.round(x)+','+Math.round(y); b.dataset.why=why; done(why,x,y,s); return true; };
-    /* docked: a child of the X's own containing box, so it scrolls with the X; checked on top where it landed */
-    const dock=(x,y,s,why,host)=>{ const hr=host.getBoundingClientRect(), k=(host.offsetWidth?hr.width/host.offsetWidth:1)||1;
-      if(b.parentNode!==host) host.appendChild(b); b.classList.add('dock');
+    const t0=(window.performance&&performance.now())||0, st=(typeof state!=='undefined'&&state)||'';
+    const done=(why,x,y,s)=>{ MUTE_DBG.last={ why, x:Math.round(x), y:Math.round(y), s, ms:Math.round((((window.performance&&performance.now())||0)-t0)*10)/10, st }; };
+    const unhost=()=>{ const h=MUTE_DOCK.relHost; if(h&&h!==b.parentNode){ h.style.position=MUTE_DOCK.relWas||''; MUTE_DOCK.relHost=null; } };
+    const fix=(x,y,s,why)=>{ if(b.parentNode!==document.body) document.body.appendChild(b); b.classList.remove('dock'); unhost();
+      b.style.setProperty('--ms',s+'px'); b.style.setProperty('--mx',Math.round(x)+'px'); b.style.setProperty('--my',Math.round(y)+'px'); b.dataset.spot=Math.round(x)+','+Math.round(y); b.dataset.why=why; done(why,x,y,s); };
+    /* docked: a child of `host`, placed in its own coordinates, so it moves (scrolls) with it */
+    const dock=(x,y,s,why,host)=>{ if(getComputedStyle(host).position==='static'){ if(MUTE_DOCK.relHost!==host){ unhost(); MUTE_DOCK.relHost=host; MUTE_DOCK.relWas=host.style.position; } host.style.position='relative'; }
+      if(b.parentNode!==host) host.appendChild(b); b.classList.add('dock'); if(MUTE_DOCK.relHost&&MUTE_DOCK.relHost!==host) unhost();
+      const hr=host.getBoundingClientRect(), k=(host.offsetWidth?hr.width/host.offsetWidth:1)||1;
       b.style.setProperty('--ms',(s/k)+'px'); b.style.setProperty('--mx',((x-hr.left)/k-host.clientLeft+host.scrollLeft)+'px'); b.style.setProperty('--my',((y-hr.top)/k-host.clientTop+host.scrollTop)+'px');
-      b.dataset.spot=Math.round(x)+','+Math.round(y); b.dataset.why=why; b.style.pointerEvents='';
-      const r=b.getBoundingClientRect(), top=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2); b.style.pointerEvents='none';
-      if(top&&(top===b||b.contains(top))&&Math.abs(r.left-x)<2&&Math.abs(r.top-y)<2){ done(why,x,y,s); return true; } return false; };
-    const free=(x,y,s,items,win)=>muteFree(sq(x,y,s),items,win,false)||muteFree(sq(x,y,s),items,win,true);
-    /* the nearest free square to (px,py) within reach (0 = anywhere): a pure-arithmetic pass over the measured boxes (no DOM read), then
-       the deep pass (elementsFromPoint) over the nearest 20 */
-    const near=(px,py,s,items,win,reach)=>{ const C=[], step=reach?6:8;
-      for(let y=4;y<=vh-s-4;y+=step) for(let x=4;x<=vw-s-4;x+=step){ const d=Math.hypot(x-px,y-py); if(reach&&d>reach) continue; C.push([d,x,y]); }
-      C.sort((a,c)=>a[0]-c[0]);
-      for(const [,x,y] of C) if(muteFree(sq(x,y,s),items,win,false)) return [x,y];
-      let k=0; for(const [,x,y] of C){ if(k++>=20) break; if(muteFree(sq(x,y,s),items,win,true)) return [x,y]; }   // the DOM-reading pass: 20 spots at most
-      return null; };
-    /* 1. a window or panel with its own close X: docked to it - below, the X's size, centred; left of it; else the nearest free spot */
-    let X=muteCloseX();
-    /* still docked to an X that the player has scrolled out of view (the window is open, its X just above the fold): stay with it */
-    if(!X&&b.classList.contains('dock')&&MUTE_DOCK.x&&MUTE_DOCK.x.isConnected&&MUTE_DOCK.x.getClientRects().length&&b.parentNode===MUTE_DOCK.host&&MUTE_DOCK.host.getClientRects().length){
-      const g=MUTE_DOCK.x.getBoundingClientRect(); let out=g.bottom<=0||g.top>=vh;
-      for(let e=MUTE_DOCK.x.parentElement;!out&&e&&e!==document.body;e=e.parentElement){ if(e.scrollHeight>e.clientHeight+1){ const r=e.getBoundingClientRect(); if(g.bottom<=r.top+1||g.top>=r.bottom-1) out=true; } }
-      if(out){ done('docked-scrolled',g.left,g.bottom,parseFloat(b.style.getPropertyValue('--ms'))||MUTE_SZ); return; } }
-    if(X){ const g=X.g, s=Math.round(Math.max(30,Math.min(44,Math.min(g.width,g.height)))), host=X.x.offsetParent;
-      const hostOK=host&&host!==document.body&&host!==document.documentElement, an=hostOK?host:null;
-      const cx=g.left+g.width/2, cy=g.top+g.height/2;
-      /* inside the X's box: docked in it (scrolls with it); a spot outside that box (beside the window) is fixed on the page */
-      const inHost=p=>{ if(!hostOK) return false; const r=host.getBoundingClientRect(), L=r.left+host.clientLeft, T=r.top+host.clientTop;
-        return p[0]>=L&&p[1]>=T&&p[0]+s<=L+host.clientWidth&&p[1]+s<=T+host.clientHeight; };
-      const put=(p,why)=>{ const d=inHost(p), ok=d?dock(p[0],p[1],s,why,host):fix(p[0],p[1],s,why); if(ok){ MUTE_DOCK.x=X.x; MUTE_DOCK.host=d?host:null; } return ok; };
-      let items=muteScan({ l:g.left-MUTE_GAP-s-8-MUTE_PAD, t:g.top-8-MUTE_PAD, r:g.right+8+MUTE_PAD, b:g.bottom+MUTE_GAP+s+MUTE_PAD },an);
-      /* directly below (a 6 px gap, then 3), centred - or shifted up to 8 px sideways when a plate's frame reaches the X; then the same left of it */
-      const C=[]; for(const gp of [MUTE_GAP,3]) for(const d of [0,1,-1,2,-2,3,-3,4,-4,5,-5,6,-6,7,-7,8,-8]) C.push([[cx-s/2+d,g.bottom+gp],'below-x']);
-      for(const gp of [MUTE_GAP,3]) for(const d of [0,1,-1,2,-2,3,-3,4,-4,5,-5,6,-6,7,-7,8,-8]) C.push([[g.left-gp-s,cy-s/2+d],'left-x']);
-      for(const [p,why] of C) if(free(p[0],p[1],s,items,X.win)&&put(p,why)) return;
-      items=muteScan(around(cx-s/2,g.bottom+MUTE_GAP,s,180),an);
-      const n=near(cx-s/2,g.bottom+MUTE_GAP,s,items,X.win,180); if(n&&put(n,'near-x')) return; }
-    MUTE_DOCK.x=null; MUTE_DOCK.host=null;
-    /* 2. the hub: left of the profile portrait as it is drawn (its ring frame reaches past the box), centred on it, always */
-    if(home&&home.classList.contains('active')&&pf){ const r=pf.getBoundingClientRect();
-      if(r.width>0&&r.height>0){ const fr=document.getElementById('pfFrame'), f=fr&&fr.getBoundingClientRect(), L=f&&f.width>0?Math.min(r.left,f.left):r.left;
-        const x=L-MUTE_GAP-MUTE_SZ, y=r.top+r.height/2-MUTE_SZ/2; MUTE_POS.rx=(vw-(x+MUTE_SZ))/vw; MUTE_POS.ty=(y+MUTE_SZ/2)/vh;
-        const top=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2), covered=!(top&&(top===pf||pf.contains(top)));
-        if(!covered){ const items=muteScan(around(x,y,MUTE_SZ,150),null);
-          if(free(x,y,MUTE_SZ,items,null)) return void fix(x,y,MUTE_SZ,'hub');
-          /* nearest free spot that is still left of the portrait */
-          const C=[]; for(let dy=-40;dy<=150;dy+=2) for(let dx=0;dx<=150;dx+=2){ const qx=x-dx, qy=y+dy; if(qx<4||qy<4||qy>vh-MUTE_SZ-4) continue; C.push([Math.hypot(dx,dy),qx,qy]); }
-          C.sort((a,c)=>a[0]-c[0]); for(const [,qx,qy] of C) if(muteFree(sq(qx,qy,MUTE_SZ),items,null,false)) return void fix(qx,qy,MUTE_SZ,'hub-near'); } } }
+      b.dataset.spot=Math.round(x)+','+Math.round(y); b.dataset.why=why; done(why,x,y,s); };
+    const R=sel=>{ const e=typeof sel==='string'?document.querySelector(sel):sel; if(!e) return null; const g=e.getBoundingClientRect(); return (g.width>0&&g.height>0)?g:null; };
+    MUTE_DBG.unlisted='';
+    /* the battle loading screen (any mode): top-right, level with the title */
+    const ldr=document.getElementById('battleLoader');
+    if(ldr&&R(ldr)){ const t=R('#battleLoader .bl-title'), y=Math.max(6,t?(t.top+t.height/2-MUTE_SZ/2):6); return void fix(vw-MUTE_SZ-16,y,MUTE_SZ,'loader'); }
+    /* the sign-in gate */
+    const ag=document.getElementById('authGate'); if(ag&&R(ag)&&(typeof authGateOpen!=='function'||authGateOpen())) return void fix(vw-MUTE_SZ-12,6,MUTE_SZ,'gate');
+    /* a window with its own close X */
+    b.style.pointerEvents='none'; let X=null; try{ X=muteCloseX(); } finally { b.style.pointerEvents=''; }
+    /* still docked under an X the player has scrolled out of view (its window is open): it stays with the X */
+    if(!X&&MUTE_DOCK.x&&MUTE_DOCK.x.isConnected&&MUTE_DOCK.x.getClientRects().length&&b.classList.contains('dock')&&b.parentNode===MUTE_DOCK.x.parentElement){
+      const g=MUTE_DOCK.x.getBoundingClientRect(); return void done('win-scrolled',g.left,g.bottom,parseFloat(b.style.getPropertyValue('--ms'))||MUTE_SZ); }
+    if(X){ const g=X.g, s=Math.round(Math.max(30,Math.min(44,Math.min(g.width,g.height)))), cx=g.left+g.width/2, cy=g.top+g.height/2, w=X.win;
+      const host=X.x.parentElement;
+      MUTE_DOCK.x=X.x;
+      if(w.id==='heroDetail'||(w.closest&&w.closest('#heroDetail'))) return void dock(g.left-MUTE_GAP-s,cy-s/2,s,'win-left-x',host);
+      if(w.id==='glCardBig'){ MUTE_DOCK.x=null; const wr=w.getBoundingClientRect(); return void fix(wr.right+8,cy-s/2,s,'win-beside'); }
+      return void dock(cx-s/2,g.bottom+MUTE_GAP,s,'win-under-x',host); }
+    MUTE_DOCK.x=null;
+    /* the hub */
+    const home=document.getElementById('home'), pf=document.getElementById('profileBtn');
+    if(home&&home.classList.contains('active')&&st==='home'&&pf){ const r=R(pf);
+      if(r){ const f=R('#pfFrame'), L=f?Math.min(r.left,f.left):r.left, x=L-MUTE_GAP-MUTE_SZ, y=Math.max(4,r.top+r.height/2-MUTE_SZ/2-6);
+        MUTE_POS.rx=(vw-(x+MUTE_SZ))/vw; MUTE_POS.ty=(y+MUTE_SZ/2)/vh; return void fix(x,y,MUTE_SZ,'hub'); } }
     if(MUTE_POS.rx==null){ /* never on the hub yet: the hub's own CSS geometry (#cornerHud right .5%, #profileBtn clamp(56px,10vh,92px) + its margin) */
       const w=Math.max(56,Math.min(92,vh*0.10)), m=Math.max(30,Math.min(46,vh*0.047));
-      MUTE_POS.rx=(vw*0.005+m+w+MUTE_GAP+0.07*w)/vw; MUTE_POS.ty=(vh*0.02+w/2)/vh; }
+      MUTE_POS.rx=(vw*0.005+m+w+MUTE_GAP+0.07*w)/vw; MUTE_POS.ty=(vh*0.02+w/2-6)/vh; }
     const hx=vw-MUTE_POS.rx*vw-MUTE_SZ, hy=MUTE_POS.ty*vh-MUTE_SZ/2;
-    /* 3. every other screen: the hub's spot, else the nearest free spot (remembered per screen + window + viewport, re-checked) */
-    let pop=''; try{ pop=_popout||''; }catch(e){}
-    const key=st+'|'+pop+'|'+(X?'x':'')+'|'+vw+'x'+vh, memo=MUTE_MEMO[key];
-    /* docked into the screen's own scrolling box (below): it scrolls with that screen's content - kept while that screen is up */
-    const SD=MUTE_DOCK.scr;
-    if(SD&&MUTE_DOCK.key===key&&b.classList.contains('dock')&&b.parentNode===SD&&SD.getClientRects().length){
-      if(SD.scrollTop>0) return void done('screen-dock-scrolled',hx,hy,MUTE_SZ);
-      const r=b.getBoundingClientRect(), it=muteScan(around(r.left,r.top,r.width,0),SD); if(free(r.left,r.top,r.width,it,null)) return void done('screen-dock',r.left,r.top,MUTE_SZ); }
-    if(memo&&memo[2]!==2){ const z=memo[3]||MUTE_SZ, it=muteScan(around(memo[0],memo[1],z,0),null,memo[2]); if(free(memo[0],memo[1],z,it,null)) return void fix(memo[0],memo[1],z,memo[2]?'memo-now':'memo'); }
-    if(!(memo&&memo[2])){   // (a screen already known to have no spot clear of its scrolling content goes straight to the 'now' search)
-      let items=muteScan(around(hx,hy,MUTE_SZ,160),null);
-      if(free(hx,hy,MUTE_SZ,items,null)){ MUTE_MEMO[key]=[hx,hy]; return void fix(hx,hy,MUTE_SZ,'hub-spot'); }
-      let n=near(hx,hy,MUTE_SZ,items,null,160);
-      if(!n){ items=muteScan({ l:0, t:0, r:vw, b:vh },null); n=near(hx,hy,MUTE_SZ,items,null,0); }
-      if(n){ MUTE_MEMO[key]=n; return void fix(n[0],n[1],MUTE_SZ,'near'); } }
-    /* a screen whose scrolling content reaches every spot (the Arena's top row at 844x390): docked into that screen's scrolling box at a
-       spot free at the top of the scroll, so it scrolls with the content and nothing ever slides under it */
-    { let scr=null; for(const e of document.elementsFromPoint(hx+MUTE_SZ/2,hy+MUTE_SZ/2)){ if(e===b) continue; const c=getComputedStyle(e);
-        if((c.overflowY==='auto'||c.overflowY==='scroll')&&e.scrollHeight>e.clientHeight+1&&c.position!=='static'&&_mWinLevel(e)){ scr=e; break; } }
-      if(scr){ const sr=scr.getBoundingClientRect(), y0=hy+scr.scrollTop;   // the spot at the top of the scroll
-        if(scr.scrollTop===0){ const it=muteScan(around(hx,hy,MUTE_SZ,160),scr);
-          const n=free(hx,y0,MUTE_SZ,it,null)?[hx,y0]:near(hx,y0,MUTE_SZ,it,null,160);
-          if(n&&dock(n[0],n[1],MUTE_SZ,'screen-dock',scr)){ MUTE_DOCK.scr=scr; MUTE_DOCK.key=key; MUTE_MEMO[key]=[n[0],n[1],2]; return; } } } }
-    /* else free where things are NOW, re-placed on every scroll;
-       on a screen packed edge to edge the button may go down to 32, then 28 px (the size of the game's small round buttons) */
-    const itNow=muteScan({ l:0, t:0, r:vw, b:vh },null,true);
-    for(const z of [MUTE_SZ,32,28]){ const zx=hx+(MUTE_SZ-z)/2, zy=hy+(MUTE_SZ-z)/2;
-      if(free(zx,zy,z,itNow,null)){ MUTE_MEMO[key]=[zx,zy,1,z]; return void fix(zx,zy,z,'now-hub-spot'); }
-      const n=near(zx,zy,z,itNow,null,0); if(n){ MUTE_MEMO[key]=[n[0],n[1],1,z]; return void fix(n[0],n[1],z,'now-near'); } }
-    fix(hx,hy,MUTE_SZ,'none-free');   // no free square anywhere on the screen: the hub spot (on top either way)
-    } finally { b.style.pointerEvents=''; }
+    /* battle: left of the speed button */
+    if(st==='battle'){ const sp=R('#speedBtn'); if(sp) return void fix(sp.left-MUTE_GAP-MUTE_SZ,sp.top+sp.height/2-MUTE_SZ/2,MUTE_SZ,'battle'); return void fix(hx,hy,MUTE_SZ,'battle-hub'); }
+    /* screens with their own top-right button: under it, right-aligned */
+    if(MUTE_UNDER[st]){ const u=R(MUTE_UNDER[st]); if(u) return void fix(u.right-MUTE_SZ,u.bottom+MUTE_GAP,MUTE_SZ,'under-'+st); }
+    /* the Arena: the hub's spot inside its scrolling box */
+    if(st==='arena'){ const a=document.getElementById('arena'); if(R(a)) return void dock(hx,hy-a.scrollTop,MUTE_SZ,'arena',a); }
+    if(MUTE_LISTED.indexOf(st)<0) MUTE_DBG.unlisted=st;
+    fix(hx,hy,MUTE_SZ,MUTE_LISTED.indexOf(st)<0?'unlisted':'hub-spot');
   }catch(e){ try{ MUTE_DBG.err=String(e&&e.message||e); }catch(_){} } }
 /* a window opening or closing (DOM change, batched at most every 300 ms - and then a no-op unless the signature changed); force = measure
    again even with the same signature (resize, fonts, a 'now' spot being scrolled) */
@@ -10687,6 +10574,7 @@ function musOK(){ try{ return !!(SND.ctx&&SND.bus&&SND.bus.music&&SND.cfg.music.
 /* where the game is, as a music setting - one rule covering every mode, no list of modes */
 function musSkyLive(){ try{ if(SKYSIM&&SKYSIM.running) return true; const m=SKY&&SKY.st&&SKY.st.match; return !!(m&&m.state==='live'); }catch(e){ return false; } }
 function musWant(){ try{ if(window._p2guard) return null;
+    if(typeof _blLoading!=='undefined'&&_blLoading&&(MUS.cur==='battle'||MUS.cur===null)) return null;   /* v1164: a restart's loading screen is silent */
     const s=(typeof state!=='undefined')?state:'home', rep=!!(CUR&&CUR.mode==='replay');
     /* v1163 (Phil 16 Oct: "make it so the combat music doesnt end until I click continue on the rewards screen. Just loop the song they
        were listening to"): a fight that has ended - win or loss, every mode - keeps its battle song on the result / reward screen, looping on
@@ -10738,6 +10626,8 @@ function musEnter(L,fade){
   if(L.name==='battle'){ if(L.slot) musFree(L.slot); L.slot=null; const song=musBattleSong(); if(song){ L.song=song; L.slot=musStart(L,song,song.start,0.25); } return; }
   if(L.slot&&L.slot.lane===L.name){ const el=L.slot.el; if(el.paused){ const p=el.play(); if(p&&p.catch) p.catch(()=>{}); } musRamp(L.slot,1,fade); musLog(['resume',L.name,+el.currentTime.toFixed(3),performance.now()|0]); return; }
   const song=musNextSong(L); if(song){ L.song=song; L.slot=musStart(L,song,song.start,fade); } }
+/* v1164: the fight is torn down - its song fades out over `fade` s and is released; the next fight starts the next song of the cycle */
+function musHalt(fade){ try{ if(MUS.cur!=='battle') return; MUS.cur=null; MUS.over=false; musLog(['halt',performance.now()|0]); musLeave(musLane('battle'),fade||0.3,true); }catch(e){} }
 function musSwitch(w){ const old=MUS.cur; if(old===w) return; MUS.cur=w; musLog(['scene',old,w,performance.now()|0]);
   if(old){ const L=musLane(old); musLeave(L, old==='battle'?(w?MUS_XF_SCENE:MUS_END_FADE):MUS_XF_SCENE, old==='battle'); }
   if(w) musEnter(musLane(w), MUS_XF_SCENE); }
@@ -14299,6 +14189,8 @@ function think(u,dt){
 /* ---------------------------- battle lifecycle ----------------------------- */
 function wavesForChapter(g){return 3;}   // Phil's spec: every campaign stage is exactly 3 waves
 function clearBattle(){ waveXfer=null;
+  try{ sfxStopAll(0.08); }catch(_){}   /* v1164: the fight's ability / swing sounds fade out in 80 ms, the queued ones are dropped */
+  try{ musHalt(0.3); }catch(_){}       /* v1164: its battle song fades out in 0.3 s and is released (never looped on) */
   /* v1141 (item 5, measured): a spell effect still standing on the field when the fight ended (a ground plate, an ult sprite) stayed a
      child of the scene after its texture was freed on the hub; the NEXT fight drew it, which re-uploaded the freed sheet (a ghost
      of the old spell, and +100 MB of GPU per fight on a desktop: 155 -> 657 MB on the hub over 5 fights). Any scene child whose
@@ -14341,6 +14233,14 @@ function battleKeysForMatch(){
   return _k;
 }
 let _blBusy=false;
+/* v1164 (Phil 16 Oct: "when I hit restart stage, it should stop battle music and spell effect from that stage until the new one starts.
+   The battle was still going on while I was reloading a new fight"). ONE teardown for every restart / retry / reload: battleHalt() stops
+   the old fight's ticks at once (_battleHalted - the frame loop runs no sim step) and clearBattle() - the battle-end teardown - drops its
+   units, spell FX, hazards, projectiles and sprites, fades its ability / swing sounds (80 ms) and its battle song (0.3 s). The loading
+   screen is silent and still (_blLoading); the new fight starts its own song, the next of the cycle, when it begins. Display only: the
+   new fight's seed and result logic are untouched. */
+let _battleHalted=false, _blLoading=false;
+function battleHalt(){ try{ if(typeof state!=='undefined'&&state==='battle') _battleHalted=true; }catch(e){} try{ clearBattle(); }catch(e){ try{console.error(e);}catch(_){} } }
 /* v611: which lineup the loading screen shows for this fight (see showBattleLoader) */
 function battleLoaderSpec(){ const team=(G.team||[]).slice(0,5);
   try{ if(CUR&&CUR.mode==='emberdraft'&&CUR.edAlly) return { mine:CUR.edAlly, foe:CUR.edFoe, mineName:'You', foeName:CUR.oppName||'Rival' };
@@ -14351,7 +14251,8 @@ function battleLoaderSpec(){ const team=(G.team||[]).slice(0,5);
     if(foe.length) return { mine:team, foe, mineName:(typeof ACC!=='undefined'&&ACC.name)||'You', foeName:(CUR&&CUR.oppName)||'Enemy' }; }catch(e){}
   return { mine:team }; }
 function startBattle(){
-  if(_blBusy) return; 
+  if(_blBusy) return;
+  battleHalt(); _blLoading=true;   /* v1164: the old fight (restart / retry) stops here, before the loading screen */
   try{ syncActiveSquad(); }catch(e){}
   const keys=battleKeysForMatch();
   const bg=(CUR&&BATTLE_MAPS[CUR.mode])||BATTLE_BG;
@@ -14361,6 +14262,7 @@ function startBattle(){
   const go=()=>{ _blBusy=false;
     const wait=Math.max(0, MIN-(Date.now()-t0));
     setTimeout(()=>{ try{ if(ui) ui.set(1,0,0); }catch(e){}
+      _blLoading=false; _battleHalted=false;
       try{ _startBattleNow(); }catch(e){ try{console.error(e);}catch(_){}}
       try{ if(ui) ui.close(); }catch(e){} }, wait);
   };
@@ -14380,7 +14282,7 @@ function _startBattleNow(){
     if(CUR.mode==='graid') (CUR.cwaves||[]).forEach(w=>w.forEach(m=>_k.push(m.key)));   /* v666 */
     (CUR.opp||[]).forEach(e=>e&&_k.push(e.key));
     preloadBattleArt(_k,(CUR&&BATTLE_MAPS[CUR.mode])||BATTLE_BG); }catch(e){}
-  clearBattle(); selected=null;aiming=null;battleTime=0;ended=false;screenFlash=0; cancelResult(); gameSpeed=1; setBattleZoom(1); seedBattle((CUR&&CUR.seed!=null&&(CUR.mode==='replay'||CUR.mode==='campaign'||CUR.mode==='province'||CUR.mode==='well'))?CUR.seed:null);   // v270: the campaign fights on the SERVER's seed   // default 1x standard; pinch/wheel 0.5x..1.5x
+  clearBattle(); _battleHalted=false; _blLoading=false; selected=null;aiming=null;battleTime=0;ended=false;screenFlash=0; cancelResult(); gameSpeed=1; setBattleZoom(1); seedBattle((CUR&&CUR.seed!=null&&(CUR.mode==='replay'||CUR.mode==='campaign'||CUR.mode==='province'||CUR.mode==='well'))?CUR.seed:null);   // v270: the campaign fights on the SERVER's seed   // default 1x standard; pinch/wheel 0.5x..1.5x
   if(isAutoBattle()) autoUlt=true;   // deterministic fight: ultimates are on rails from the first frame
   try{ preloadAimArt(); }catch(e){}   // v537: painted aim indicators
   if(CUR.mode==='campaign'){ autoUlt=false; chapterWaves=(Array.isArray(CUR.cwaves)&&CUR.cwaves.length)?CUR.cwaves.length:wavesForChapter(CUR.node); waveIdx=0;
@@ -22245,7 +22147,19 @@ function online(){ return location.protocol!=='file:'; }
    4 s while down); two failures in a row (~8 s) show the gate, so a blip never interrupts. With no session the game keeps
    provisioning one (ensureGuest); a player who signed out may only use the sign-in screen. The check is /api/health: the service
    worker never caches /api/ (a cached /health said the server was up while it was down). */
-const NETGATE={down:0, bootAt:0, busy:false, timer:null};
+const NETGATE={down:0, bootAt:0, busy:false, timer:null, first:0, apiFail:0};
+/* v1164 (Phil 16 Oct 08:31: "the server constantly says its disconnected. I am fairly certain its not actually disconnected" - /api/health
+   answered in 0.2 s every time). On a phone a loading battle or a heavy fight can stall the page for seconds: the 6 s abort fired before
+   the answer was handled, and a dropped chat socket added two quick checks - two false misses in seconds showed "Lost Server 1".
+   Now: a 10 s timeout; a check whose own timer fired over 2 s late (a stall) or that ran while the page was hidden does not count; a
+   network error (offline, fetch TypeError) is retried after 2 s before it counts; the gate needs 3 counted misses spanning >= 12 s
+   (a real 503 "serverDown" from the front door still shows at once); any answer to a game request (/api/*) resets the count; a chat
+   socket close is one check; and never during a battle's loading screen unless a real game request failed. */
+function netGateShown(){ if(NETGATE.serverDown&&NETGATE.down>=1) return true;
+  if(!(NETGATE.down>=3&&NETGATE.first&&Date.now()-NETGATE.first>=12000)) return false;
+  try{ if(document.getElementById('battleLoader')&&!(NETGATE.apiFail&&Date.now()-NETGATE.apiFail<20000)) return false; }catch(e){}
+  return true; }
+function netGateOk(){ const was=netGateShown(); NETGATE.down=0; NETGATE.first=0; NETGATE.serverDown=false; if(was) try{ netGateUpdate(); }catch(e){} }
 function netGateEl(){ let el=document.getElementById('netGate'); if(!el){ el=document.createElement('div'); el.id='netGate';
     el.style.cssText='position:fixed;inset:0;z-index:2147483000;background:rgba(6,9,16,.95);display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;text-align:center;color:#e6edf3;font-weight:800;font-size:16px';
     document.body.appendChild(el); } return el; }
@@ -22253,8 +22167,9 @@ function netGateUpdate(){ if(window._p2guard||!online()) return; const el=netGat
   /* v1120 (Phil 10 Oct: "S1 didnt even show it was down ... didnt allow me to see the server list to switch"): name the server, and say
      DOWN when the front door says so (503 serverDown) instead of a generic reconnect. */
   let _svN='the server'; try{ if(svrOn()){ const _s=SVR_LIST.find(x=>x.id===svrHere()); if(_s) _svN=_s.name; } }catch(e){}
-  if(NETGATE.down>=2 && NETGATE.serverDown){ msg=_svN+' is down right now.'; act='retry'; }
-  else if(NETGATE.down>=2){ msg='Lost '+_svN+' — reconnecting…'; act='retry'; }
+  const _shown=netGateShown();
+  if(_shown && NETGATE.serverDown){ msg=_svN+' is down right now.'; act='retry'; }
+  else if(_shown){ msg='Lost '+_svN+' — reconnecting…'; act='retry'; }
   else if(window._svrSigningIn){ msg='Signing you in…'; act='wait'; }   // v1034: a server switch is signing in - no Play until it lands
   else if(!(ACC&&ACC.token)){
     /* v1144: no session is never "being provisioned" any more - it is the sign-in gate. While that gate (or the sign-in screen) is
@@ -22269,7 +22184,7 @@ function netGateUpdate(){ if(window._p2guard||!online()) return; const el=netGat
      other servers are offered here - the front door now still opens when Server 1 is down (front door relay, blueprint 26), and this
      screen covered the only way to switch. */
   let other='';
-  try{ if(act==='retry' && NETGATE.down>=2 && svrOn()){ const here=svrHere();
+  try{ if(act==='retry' && _shown && svrOn()){ const here=svrHere();
     other='<div style="font-size:13px;font-weight:700;opacity:.8;margin-top:6px">Or play on another server</div><div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center">'+
       SVR_LIST.filter(x=>x.id!==here).map(x=>'<button class="btn secondary" data-ngsvr="'+x.id+'">'+escapeHTML(x.name)+'</button>').join('')+'</div>'; } }catch(e){ other=''; }
   if(el.dataset.msg!==msg+'|'+(other?1:0)){ el.dataset.msg=msg+'|'+(other?1:0); el.innerHTML='<div>'+msg+'</div>'+btn+other;
@@ -22279,17 +22194,32 @@ function netGateUpdate(){ if(window._p2guard||!online()) return; const el=netGat
       if(NETGATE.down){ const b2=document.getElementById('netGateBtn'); if(b2){ b2.disabled=false; b2.textContent='Still down — Retry'; } } };
     el.querySelectorAll('[data-ngsvr]').forEach(b=>{ b.onclick=()=>{ try{ svrGo(+b.dataset.ngsvr); }catch(e){} }; }); }
   el.style.display='flex'; }
-async function netGateCheck(){ if(window._p2guard||!online()||NETGATE.busy) return; NETGATE.busy=true; let ok=false;
-  try{ const c=new AbortController(), t=setTimeout(()=>c.abort(),6000); const r=await fetch('/api/health',{cache:'no-store',signal:c.signal});   /* /api/ bypasses the service worker, which answers /health from cache */ clearTimeout(t); ok=!!(r&&r.ok);
-    NETGATE.serverDown=false; if(r&&r.status===503){ try{ const j=await r.json(); NETGATE.serverDown=!!(j&&j.serverDown); }catch(e){} } }catch(e){ ok=false; NETGATE.serverDown=false; }
-  const _was=NETGATE.down;
-  NETGATE.busy=false; NETGATE.down=ok?0:(NETGATE.serverDown?Math.max(2,NETGATE.down+1):NETGATE.down+1);   // v1120: the front door saying "down" needs no second miss
-  if(ok&&_was>=2){ try{ CHATNET.tries=0; chatConnect(); }catch(e){} }   // v1120: the server is back - reconnect the live socket now, not after its back-off
+/* one /api/health probe: 'ok' | 'down' (503 serverDown) | 'miss' | 'net' (offline / TypeError) | 'void' (a stall or a hidden page: not counted) */
+async function _netProbe(){ const c=new AbortController(), T=10000, t0=performance.now(); let late=0, hid=document.hidden;
+  const vis=()=>{ if(document.hidden) hid=true; }; document.addEventListener('visibilitychange',vis);
+  const t=setTimeout(()=>{ late=performance.now()-t0-T; c.abort(); },T);
+  try{ const r=await fetch('/api/health',{cache:'no-store',signal:c.signal});   /* /api/ bypasses the service worker, which answers /health from cache */ clearTimeout(t);
+    if(r&&r.ok) return 'ok';
+    if(r&&r.status===503){ try{ const j=await r.json(); if(j&&j.serverDown) return 'down'; }catch(e){} }
+    return (hid||document.hidden)?'void':'miss';
+  }catch(e){ clearTimeout(t); if(late>2000||hid||document.hidden) return 'void';   // the page stalled (its own timer ran late) or was hidden
+    if((typeof navigator!=='undefined'&&navigator.onLine===false)||(e&&e.name==='TypeError')) return 'net';
+    return 'miss'; }
+  finally{ document.removeEventListener('visibilitychange',vis); } }
+async function netGateCheck(){ if(window._p2guard||!online()||NETGATE.busy) return; NETGATE.busy=true; let res='miss';
+  try{ res=await _netProbe(); if(res==='net'){ await new Promise(r=>setTimeout(r,2000)); res=await _netProbe(); if(res==='net') res='miss'; } }catch(e){ res='miss'; }
+  const _was=netGateShown(), ok=res==='ok';
+  NETGATE.busy=false;
+  if(ok){ NETGATE.down=0; NETGATE.first=0; NETGATE.serverDown=false; }
+  else if(res==='down'){ NETGATE.serverDown=true; NETGATE.down=Math.max(1,NETGATE.down+1); if(!NETGATE.first) NETGATE.first=Date.now(); }   // v1120: the front door saying "down" shows at once
+  else if(res==='miss'){ NETGATE.serverDown=false; NETGATE.down++; if(!NETGATE.first) NETGATE.first=Date.now(); }
+  /* 'void': nothing learned - the count stays as it was */
+  if(ok&&_was){ try{ CHATNET.tries=0; chatConnect(); }catch(e){} }   // v1120: the server is back - reconnect the live socket now, not after its back-off
   if(ok&&!(ACC&&ACC.token)&&!(ACC&&ACC.signedOut)&&!window._svrHandoff) ensureGuest(()=>netGateUpdate());   // v1144: resumes a lost GUEST token only; never makes one
   netGateUpdate(); }
 function netGateLoop(){ clearTimeout(NETGATE.timer); NETGATE.timer=setTimeout(async()=>{ await netGateCheck(); netGateLoop(); }, NETGATE.down?4000:15000); }
 function netGateStart(){ if(window._p2guard||!online()||NETGATE.bootAt) return; NETGATE.bootAt=Date.now();
-  window.addEventListener('offline',()=>{ NETGATE.down=Math.max(NETGATE.down,2); netGateUpdate(); netGateLoop(); });
+  window.addEventListener('offline',()=>{ netGateCheck(); netGateLoop(); });   // v1164: checked (offline is retried after 2 s), not shown at once
   window.addEventListener('online',()=>{ netGateCheck(); });
   setTimeout(netGateUpdate,3200); netGateLoop(); }
 /* v1144 (15 Oct 2026, live incident: tester SOUL EATER registered on Server 1; two minutes later a browser with no stored token quietly
@@ -22424,7 +22354,8 @@ async function api(path,method,bodyObj){ try{ const h={'Content-Type':'applicati
      reply, not an answer. Report it as offline so every requestId retry loop re-sends the SAME request and gets the receipt, and no
      result screen ever paints a fight the server may have booked as a defeat. */
   if(j&&j.serverDown) return {error:'offline', serverDown:1, message:j.error};
-  return j; }catch(e){ return {error:'offline'}; } }
+  try{ if(String(path).indexOf('/api/')===0&&r.status<500) netGateOk(); }catch(e){}   /* v1164: the server answered a game request - it is up */
+  return j; }catch(e){ try{ NETGATE.apiFail=Date.now(); }catch(_){} return {error:'offline'}; } }
 /* v1151 (Phil 15 Oct, pre-beta: "Players trying 50 times and then seeing defeat, its bad"): the campaign's v1145/v1150 result retry,
    shared by every other battle result (Training Province, Tower of Trials, legacy dungeon, Elite screen, Vault). ONE body - so ONE
    requestId - is re-sent up to 7 times over ~30 s while the reply is lost: offline (incl. a front-door 503), an empty body, a refused
@@ -25092,17 +25023,19 @@ function escapeHTML(s){ return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','
    screen too (they had none) - both squads' art is warmed first, exactly like startBattle. */
 function startVersus(enemyTeam,auto,allyKeys){
   if(_blBusy) return;
+  battleHalt(); _blLoading=true;   /* v1164: a retry from a fight or its result screen stops the old fight first */
   const ally=((allyKeys&&allyKeys.length)?allyKeys:(G.team||[])).slice(0,9), foe=(enemyTeam||[]).map(e=>e&&e.key).filter(Boolean);
   let ui=null; try{ ui=showBattleLoader({ mine:ally, foe, mineName:(typeof ACC!=='undefined'&&ACC.name)||'You', foeName:(CUR&&CUR.oppName)||'Enemy' }); }catch(e){}
   _blBusy=true; const t0=Date.now(), MIN=1100;
   const go=()=>{ _blBusy=false; setTimeout(()=>{ try{ if(ui) ui.set(1,0,0); }catch(e){}
+      _blLoading=false; _battleHalted=false;
       try{ _startVersusNow(enemyTeam,auto,allyKeys); }catch(e){ try{console.error(e);}catch(_){} }
       try{ if(ui) ui.close(); }catch(e){} }, Math.max(0, MIN-(Date.now()-t0))); };
   try{ preloadBattleArtFull(ally.concat(foe), (CUR&&BATTLE_MAPS[CUR.mode])||BATTLE_BG, (f,got,total)=>{ try{ if(ui) ui.set(f,got,total); }catch(e){} }, 12000).then(go, go); }
   catch(e){ go(); }
 }
 function _startVersusNow(enemyTeam,auto,allyKeys){
-  clearBattle();selected=null;aiming=null;battleTime=0;ended=false;screenFlash=0;chapterWaves=1;waveIdx=0; cancelResult(); seedBattle(CUR&&CUR.mode==='replay'&&CUR.seed!=null?CUR.seed:null);
+  clearBattle(); _battleHalted=false; _blLoading=false; selected=null;aiming=null;battleTime=0;ended=false;screenFlash=0;chapterWaves=1;waveIdx=0; cancelResult(); seedBattle(CUR&&CUR.mode==='replay'&&CUR.seed!=null?CUR.seed:null);
   if(CUR&&CUR.replayAlly&&CUR.replayAlly.length){   // v2 exact replay: build BOTH teams from data exactly as the headless resolver did (laneSlot), so the replay == the recorded fight
     /* v756b - BOTH means both. enemyTeam here has been through trimTeam and is only keys and
        levels; CUR.replayFoe is the line the server actually fought with. */
@@ -29007,7 +28940,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
        on the server. Smoothness is preserved by INTERPOLATING the render between ticks (the earlier
        attempt failed because it stepped the animation timers too — those still run on render time,
        in syncMesh, below). */
-    else if(!freeze && !actHold()){ const spd=(CUR.mode==='online')?1:(gameSpeed||1);
+    else if(!freeze && !actHold() && !_battleHalted){ const spd=(CUR.mode==='online')?1:(gameSpeed||1);   /* v1164: a halted fight (restart loading) never ticks */
       _bacc += dt * SIM_HZ * spd * ((CUR.mode==='replay')?1:BATTLE_PACE);
       let n=Math.floor(_bacc); if(n>8)n=8;   // cap-before-subtract: a frame hitch never drops steps
       _bacc-=n;
@@ -29326,7 +29259,7 @@ function chatConnect(){ if(location.protocol==='file:'||!online())return; if(CHA
   CHATNET.ws.onopen=()=>{ CHATNET.connected=true; CHATNET.tries=0; CHATNET.name=chatName(); try{ CHATNET.ws.send(JSON.stringify({t:'chatjoin',name:CHATNET.name,token:(ACC&&ACC.token)||undefined})); }catch(e){} };
   CHATNET.ws.onmessage=(e)=>{ let m; try{m=JSON.parse(e.data);}catch(_){return;} onChatNet(m); };
   CHATNET.ws.onclose=()=>{ CHATNET.connected=false; CHATNET.tries++; setTimeout(chatConnect, Math.min(15000,2000*CHATNET.tries));
-    try{ netGateCheck().then(()=>{ if(NETGATE.down) setTimeout(()=>netGateCheck(),1500); }); }catch(e){} };   // v1120: a dropped socket checks the server now (two quick checks), not at the next 15 s tick
+    try{ netGateCheck(); }catch(e){} };   // v1120: a dropped socket checks the server now, not at the next 15 s tick - v1164: ONE check (it was two quick ones)
   CHATNET.ws.onerror=()=>{ try{CHATNET.ws.close();}catch(e){} };
 }
 function chatNetSend(o){ try{ if(o&&!o.token&&ACC&&ACC.token)o.token=ACC.token; if(CHATNET.ws&&CHATNET.ws.readyState===1){ CHATNET.ws.send(JSON.stringify(o)); return true; } }catch(e){} return false; }
