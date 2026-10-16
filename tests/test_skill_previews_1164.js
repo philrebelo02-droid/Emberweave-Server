@@ -135,7 +135,7 @@ ck('recent remakes: Aureth v1153 ult + light/dark arms, Carn v1150, Deepcleft v1
       const tr=[]; for(let i=0;i<Math.round(45/SIM_STEP)&&!ended;i++){ updateBattle(SIM_STEP); tr.push(units.map(u=>[u.key,Math.round(u.hp*100),Math.round(u.x*10),Math.round(u.y*10),u.alive?1:0,Math.round((u.energy||0)*10),+(u.atkCd||0).toFixed(3)].join(':')).join('|')); }
       return tr.length+'@'+tr.join('#'); } finally{ autoUlt=svA; window._p2guard=false; } })()`)).digest('hex');
   const FIGHTS = [[11, ['korvux', 'aureth', 'veyr'], ['carn', 'deepcleft', 'hollow']], [12, ['hurne', 'konwu', 'vex'], ['rivet', 'zahri', 'sorrel']], [13, ['umbris', 'oakmir', 'lumi'], ['grosk', 'sylthaine', 'rafe']]];
-  const rn = load(HTML); require('./helpers/anim-meridian-rafe-1171.js').undoMR1171(rn);   // v1171: Rafe's swing now lands on its fuse - this section checks the previews moved nothing else
+  const rn = load(HTML); require('./helpers/anim-meridian-rafe-1173.js').undoMR1173(rn);   // v1173: Rafe's swing now lands on its fuse - this section checks the previews moved nothing else
   const same = rb && FIGHTS.every(([s, a, f]) => trace(rn, s, a, f) === trace(rb, s, a, f));
   ck('6. ENGINE: whole seeded fights are tick-for-tick identical to BASE ' + BASE_SHA + ' (hp, x, y, alive, energy, swing timer)', same); }
 

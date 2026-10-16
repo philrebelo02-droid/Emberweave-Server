@@ -1,5 +1,5 @@
 {
- "note": "v1171: what live v1169 (31e5cab2) had for the entries the Meridian + Rafe change replaced - BATTLE_ANIM meridian / rafe and SFX_DATA heroes meridian / rafe (Rafe's swing landing on the press is RAFE_SWING.fuse = false)",
+ "note": "v1173: what live v1169 (31e5cab2) had for the entries the Meridian + Rafe change replaced - BATTLE_ANIM meridian / rafe and SFX_DATA heroes meridian / rafe (Rafe's swing landing on the press is RAFE_SWING.fuse = false)",
  "before": {
   "anim": {
    "meridian": {

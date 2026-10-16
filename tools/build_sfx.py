@@ -175,8 +175,8 @@ RULES = {
     'S0211': {'rule': 'release'},                            # v1160 Veyr Abyssal Undertow cast: its peak on the 0.8 s release, his arm out where the deep opens (ult clip contact cell 29); S0213 stays on the collapse (land)
     'S0266': {'rule': 'release'},                            # v1160 Deepcleft Burrow Guard: its peak as he digs in at the 0.5 s release (blue clip contact cell 18, untargetable from then)
     'S0268': {'rule': 'land'},                               # v1160 Deepcleft Quarry Collapse: its peak on the slam when the form delivery lands (1.148 fight s = ult clip contact cell 37), not from the press
-    'S0138': {'rule': 'release'},                            # v1171 Meridian Final Expedition: its peak as the survey is plotted on the 0.8 s release (ult clip contact cell 29, f60), not from the press
-    'S0510': {'rule': 'release'},                            # v1171 Rafe Pistol Barrage: its peak on the volley at the 0.5 s release (green clip contact cell 18, f72), not from the press
+    'S0138': {'rule': 'release'},                            # v1173 Meridian Final Expedition: its peak as the survey is plotted on the 0.8 s release (ult clip contact cell 29, f60), not from the press
+    'S0510': {'rule': 'release'},                            # v1173 Rafe Pistol Barrage: its peak on the volley at the 0.5 s release (green clip contact cell 18, f72), not from the press
     'S0329': {'rule': 'release'},                            # v1169 Nox Lockpick Soul: its peak as the hook is thrown out on the 0.5 s release (green clip contact cell 18, f44)
     'S0331': {'rule': 'release'},                            # v1169 Nox Forbidden Key: its peak as the key appears in his hand on the 0.5 s release (blue clip contact cell 18, f40), not from the press
     'S0332': {'rule': 'release'},                            # v1169 Nox Open Every Door: its peak as he holds the lock out on the 0.8 s release (ult clip cell 29, f53) - every enemy locked; S0333 stays on the shatter (land, contact cell 40)

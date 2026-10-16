@@ -1,5 +1,5 @@
 'use strict';
-// v1171 - MERIDIAN's seven and RAFE MARROW's ten new animations (Phil PASS 16 Oct 2026 "Both pass send them to claude", ChatGPT 11:28, REVIEW 16OCT2026 H3,
+// v1173 - MERIDIAN's seven and RAFE MARROW's ten new animations (Phil PASS 16 Oct 2026 "Both pass send them to claude", ChatGPT 11:28, REVIEW 16OCT2026 H3,
 //   clean-source-manifest.json - the CORRECTED sets, official Hailuo Without Watermark exports, sha256 matched, cut from the silent twins).
 //   MERIDIAN: idle, walk, ranged attack, hit, green Golden Quill, blue Plumb Line, ult Final Expedition (the final casts 567519836126564353 /
 //   567519850848542723 / 567519866933702658). NO crit (Phil: he is ranged), no passive.
@@ -17,7 +17,7 @@ const path = require('path'), vm = require('vm'), fs = require('fs'), cp = requi
 const ROOT = path.resolve(__dirname, '..');
 const HTML = process.env.EW_HTML || path.join(ROOT, 'emberweave-heroes.html');
 const BASE_SHA = process.env.EW_BASE || '31e5cab2';   // live v1169, the build this change sits on
-const VER = process.env.EW_MR_VER || '1171';
+const VER = process.env.EW_MR_VER || '1173';
 const BD = fs.mkdtempSync(path.join(os.tmpdir(), 'mr-base-'));
 process.on('exit', () => { try { fs.rmSync(BD, { recursive: true, force: true }); } catch (e) {} });
 let baseOk = true;
@@ -25,7 +25,7 @@ try { fs.mkdirSync(path.join(BD, 'server')); for (const f of ['emberweave-heroes
   fs.writeFileSync(path.join(BD, f), cp.execSync('git show ' + BASE_SHA + ':' + f, { cwd: ROOT, maxBuffer: 64 << 20 })); } catch (e) { baseOk = false; }
 const OLD = path.join(BD, 'emberweave-heroes.html');
 const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); return src => vm.runInContext(src, h.ctx); };
-const UMR = require('./helpers/anim-meridian-rafe-1171.js');
+const UMR = require('./helpers/anim-meridian-rafe-1173.js');
 const run = load(HTML), R0 = baseOk ? load(OLD) : null;
 let pass = 0, fail = 0;
 const ck = (name, ok, detail) => { if (ok) { pass++; console.log('  ok  ' + name); } else { fail++; console.log('  FAIL ' + name + (detail ? ' - ' + String(detail).slice(0, 700) : '')); } };
@@ -36,7 +36,7 @@ function webpSize(file) { const b = fs.readFileSync(file); const tag = b.toStrin
   if (tag === 'VP8 ') return [b.readUInt16LE(26) & 0x3fff, b.readUInt16LE(28) & 0x3fff]; return null; }
 const fileOf = u => path.join(ROOT, String(u).split('?')[0].replace(/^\//, ''));
 const py = args => JSON.parse(cp.execFileSync(process.env.PYTHON || 'python', ['-I', path.join(__dirname, 'helpers', 'noxgrim_1166_check.py'), ROOT, JSON.stringify(args)], { maxBuffer: 1 << 24 }).toString());
-const FR = JSON.parse(fs.readFileSync(path.join(ROOT, 'tests/fixtures/meridian_rafe_1171_frames.json'), 'utf8'));
+const FR = JSON.parse(fs.readFileSync(path.join(ROOT, 'tests/fixtures/meridian_rafe_1173_frames.json'), 'utf8'));
 const NEW = {
   meridian: [['idle', 62, 12, null], ['walk', 36, 36 * 24 / 49, null], ['attack', 48, 24, 24, 20], ['hit', 15, 25, null], ['green', 48, 24, 18, 20], ['blue', 48, 24, 18, 30], ['ult', 48, 24, 29, 60]],
   rafe: [['idle', 62, 12, null], ['walk', 36, 36 * 24 / 38, null], ['attack', 48, 24, 24, 64], ['melee', 48, 24, 24, 57], ['crit', 48, 24, 24, 67], ['critMelee', 48, 24, 24, 40],
@@ -99,7 +99,7 @@ const FIGHT = (seed, a, f) => `(()=>{ window._p2guard=true; const svA=autoUlt; a
       tr.push(units.map(u=>[u.key,Math.round(u.hp*100),Math.round(u.x*10),Math.round(u.y*10),u.alive?1:0,Math.round((u.energy||0)*10),+(u.atkCd||0).toFixed(3)].join(':')).join('|')); }
     let h=2166136261>>>0; const s=tr.length+'@'+tr.join('#'); for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619)>>>0; }
     return JSON.stringify({h:s.length+':'+h.toString(16),clips}); } finally{ autoUlt=svA; window._p2guard=false; } })()`;
-const fight = (f, s, a, e, undo) => { const r = load(f); if (undo) UMR.undoMR1171(r); return JSON.parse(r(FIGHT(s, a, e))); };   // a fresh load per fight
+const fight = (f, s, a, e, undo) => { const r = load(f); if (undo) UMR.undoMR1173(r); return JSON.parse(r(FIGHT(s, a, e))); };   // a fresh load per fight
 
 try {
   ck('control file (BASE page + its own external scripts from git ' + BASE_SHA + ') loaded', !!R0, 'git show failed');
@@ -173,7 +173,7 @@ try {
       [far, close].every(w => w.every(x => Math.abs(x.hit - x.st - 0.82) < 0.04 && Math.abs(x.rel - x.hit) < 1e-9)) && far0.every(x => Math.abs(x.hit - x.st) < 0.04));
     ck('rafe: the same amounts as BASE (gun ' + far[0].amt + ', sword x1.15 ' + close[0].amt + '; crits ' + farC[0].amt + ' / ' + closeC[0].amt + '), the same swing timer',
       far[0].amt === far0[0].amt && close[0].amt === close0[0].amt && farC[0].amt === farC0[0].amt && closeC[0].amt === closeC0[0].amt && far.map(x => (x.st).toFixed(3)).join() === far0.map(x => (x.st).toFixed(3)).join(), JSON.stringify({ far, far0, farC, farC0, closeC, closeC0 }));
-    const u = load(HTML); UMR.undoMR1171(u); const fu = SW(u, 250), fu0 = far0;
+    const u = load(HTML); UMR.undoMR1173(u); const fu = SW(u, 250), fu0 = far0;
     ck('CONTROL: with RAFE_SWING.fuse off and his old clips back the swing lands on the press again, as BASE, tick for tick', JSON.stringify(fu.map(x => [x.st, x.hit, x.amt])) === JSON.stringify(fu0.map(x => [x.st, x.hit, x.amt]))); }
   // contact cells re-derived from the engine: each swing clip at x1 (and the plain attacks at x1.25 / x0.8), the casts at x1
   const drawnSwing = (w, A) => { const D = dur(A) / w.mul, ah = Math.min(0.95 * w.ai, D), fit = D > ah && D <= ah * 1.6; return { d: fit ? (w.rel - w.free) / CLK / ah * A.n : (w.rel - w.st) / CLK * A.fps * w.mul, fit }; };
@@ -189,7 +189,7 @@ try {
   const RF = [[['rafe', 'askel', 'vex'], ['grimsby', 'vesper', 'grosk'], 11], [['grosk', 'rafe'], ['pellucid', 'veyr', 'oakmir'], 222], [['rafe', 'sloe', 'astra'], ['askel', 'hurne', 'carn'], 5], [['tharl', 'vael'], ['rafe', 'kharos', 'lumi'], 64]];
   const rf = RF.map(([a, f, s]) => fight(HTML, s, a, f)), clips = rf.reduce((o, x) => { for (const k in x.clips) o[k] = (o[k] || 0) + x.clips[k]; return o; }, {});
   ck('CONTROL: whole fights with Rafe differ from BASE (his blow moved to its fuse); in them he plays ' + JSON.stringify(clips), RF.every(([a, f, s], i) => rf[i].h !== fight(OLD, s, a, f).h) && clips.attack > 0);
-  ck('CONTROL: the same fights with his old clips and the press landing put back (undoMR1171) are BASE tick for tick - nothing else moved', RF.every(([a, f, s]) => fight(HTML, s, a, f, true).h === fight(OLD, s, a, f).h));
+  ck('CONTROL: the same fights with his old clips and the press landing put back (undoMR1173) are BASE tick for tick - nothing else moved', RF.every(([a, f, s]) => fight(HTML, s, a, f, true).h === fight(OLD, s, a, f).h));
   const NONE = [[['askel', 'vesper', 'kharos'], ['vael', 'tick', 'lumi'], 11], [['nox', 'sorrel', 'umbris'], ['pellucid', 'veyr', 'oakmir'], 222], [['korvux', 'sloe', 'astra'], ['askel', 'hurne', 'carn'], 5]];
   ck('whole fights without Meridian or Rafe are tick-for-tick BASE', NONE.every(([a, f, s]) => fight(HTML, s, a, f).h === fight(OLD, s, a, f).h));
   // sound

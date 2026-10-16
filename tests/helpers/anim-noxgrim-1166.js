@@ -17,5 +17,5 @@ const CODE = `(()=>{ const B=${JSON.stringify(FIX.before)};
   const t=HERO_TYPES.nox; t.range=B.hero.nox.range; delete t.rangeHold; t.damageProfile=B.hero.nox.damageProfile; t.primaryScaling=B.hero.nox.primaryScaling;
   if(typeof CASTER_BALL!=='undefined') delete CASTER_BALL.nox;
   return 1; })()`;
-const UMR = require('./anim-meridian-rafe-1171.js');   /* v1171: Meridian's and Rafe's entries (and Rafe's press landing) go back too */
-module.exports = { undoNoxGrim1166: run => { UMR.undoMR1171(run); return run(CODE); }, FIX_NOXGRIM_1166: FIX };
+const UMR = require('./anim-meridian-rafe-1173.js');   /* v1173: Meridian's and Rafe's entries (and Rafe's press landing) go back too */
+module.exports = { undoNoxGrim1166: run => { UMR.undoMR1173(run); return run(CODE); }, FIX_NOXGRIM_1166: FIX };

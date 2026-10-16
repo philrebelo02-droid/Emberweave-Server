@@ -18,7 +18,7 @@ const BD = fs.mkdtempSync(path.join(os.tmpdir(), 'noxr-base-'));
 process.on('exit', () => { try { fs.rmSync(BD, { recursive: true, force: true }); } catch (e) {} });
 let baseOk = true;
 try { fs.mkdirSync(path.join(BD, 'server')); for (const f of ['emberweave-heroes.html', 'hero-profiles.js', 'hero-paths.js', 'server/temple-of-ash.js', 'server/patron-benefits.js', 'server/temple-effects.js']) fs.writeFileSync(path.join(BD, f), cp.execSync('git show ' + BASE_SHA + ':' + f, { cwd: ROOT, maxBuffer: 64 << 20 })); } catch (e) { baseOk = false; }
-const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); const r = src => vm.runInContext(src, h.ctx); require('./helpers/anim-meridian-rafe-1171.js').undoMR1171(r); return r; };   // v1171: Meridian / Rafe as v1169 on every page - tests/test_meridian_rafe_1171.js checks them
+const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); const r = src => vm.runInContext(src, h.ctx); require('./helpers/anim-meridian-rafe-1173.js').undoMR1173(r); return r; };   // v1173: Meridian / Rafe as v1169 on every page - tests/test_meridian_rafe_1173.js checks them
 const run = load(HTML), R0 = baseOk ? load(path.join(BD, 'emberweave-heroes.html')) : null;
 const undone = load(HTML); require('./helpers/anim-noxgrim-1166.js').undoNoxGrim1166(undone);
 let pass = 0, fail = 0;

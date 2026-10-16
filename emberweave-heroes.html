@@ -3401,20 +3401,20 @@ const BATTLE_ANIM = {
     /* v1155 passive clip removed (Phil 15 Oct: "remove passive for anyone without an active passive"): nothing in a fight fires it (no firePassiveClip for rivet) - it only ever played as idle filler. The sheet stays on disk. */
   },
   meridian:{
-    /* v1171 Meridian seven (Phil PASS 16 Oct 2026 "Both pass send them to claude", ChatGPT 11:28, REVIEW 16OCT2026 H3, clean-source-manifest.json: the CORRECTED set,
+    /* v1173 Meridian seven (Phil PASS 16 Oct 2026 "Both pass send them to claude", ChatGPT 11:28, REVIEW 16OCT2026 H3, clean-source-manifest.json: the CORRECTED set,
        official Hailuo Without Watermark, cut from the silent twins (all 7 sha256 matched); green 567519836126564353, blue 567519850848542723, ult
        567519866933702658 - never the rejected first casts). IDLE 62 @12, WALK 36 (f27-f75), ATTACK (ranged quill throw; contact 24 = f20, the release),
        HIT 15 @25, GREEN Golden Quill (contact 18 = f20, the quill meets the map), BLUE Plumb Line (contact 18 = f30, the quill sighting), ULT Final
        Expedition (contact 29 = f60, the survey plotted). NO crit clip (Phil: he is ranged), no passive. One framing (frame 0 top 405 / sole 1052 /
        cx 1079.9 of 2176x1440 on all seven): every state anchors on idle's frame-0 figure. flip:false (the art faces right). Timing data = BASE
        (clipDur 2.0 / relFrac 0.5, hit 0.6 s): his fights are tick-identical. The v21 sheets stay on disk. */
-    idle:{u:'/assets/anim/meridian/meridian_idle_1171.webp?v=1171',n:62,fw:188,fh:260,cols:9,rows:7,figH:239,feet:251,cx:104,fps:12,flip:false,top:12},
-    walk:{u:'/assets/anim/meridian/meridian_walk_1171.webp?v=1171',n:36,fw:181,fh:260,cols:6,rows:6,loop:[0,36],figH:240,feet:250,cx:87.9,fps:17.632653,stride:0.088163,flip:false,top:10},
-    attack:{u:'/assets/anim/meridian/meridian_attack_1171.webp?v=1171',n:48,fw:292,fh:284,cols:7,rows:7,figH:234,feet:275,cx:103.9,fps:24,flip:false,top:41,contact:24},
-    hit:{u:'/assets/anim/meridian/meridian_hit_1171.webp?v=1171',n:15,fw:169,fh:258,cols:5,rows:3,figH:239,feet:249,cx:85.2,fps:25,flip:false,top:10},
-    green:{u:'/assets/anim/meridian/meridian_green_1171.webp?v=1171',n:48,fw:173,fh:257,cols:8,rows:6,figH:239,feet:248,cx:75.7,fps:24,flip:false,top:9,contact:18},
-    blue:{u:'/assets/anim/meridian/meridian_blue_1171.webp?v=1171',n:48,fw:221,fh:271,cols:8,rows:6,figH:240,feet:262,cx:75.1,fps:24,flip:false,top:22,contact:18},
-    ult:{u:'/assets/anim/meridian/meridian_ult_1171.webp?v=1171',n:48,fw:163,fh:263,cols:8,rows:6,figH:240,feet:254,cx:75.2,fps:24,flip:false,top:14,contact:29}
+    idle:{u:'/assets/anim/meridian/meridian_idle_1173.webp?v=1173',n:62,fw:188,fh:260,cols:9,rows:7,figH:239,feet:251,cx:104,fps:12,flip:false,top:12},
+    walk:{u:'/assets/anim/meridian/meridian_walk_1173.webp?v=1173',n:36,fw:181,fh:260,cols:6,rows:6,loop:[0,36],figH:240,feet:250,cx:87.9,fps:17.632653,stride:0.088163,flip:false,top:10},
+    attack:{u:'/assets/anim/meridian/meridian_attack_1173.webp?v=1173',n:48,fw:292,fh:284,cols:7,rows:7,figH:234,feet:275,cx:103.9,fps:24,flip:false,top:41,contact:24},
+    hit:{u:'/assets/anim/meridian/meridian_hit_1173.webp?v=1173',n:15,fw:169,fh:258,cols:5,rows:3,figH:239,feet:249,cx:85.2,fps:25,flip:false,top:10},
+    green:{u:'/assets/anim/meridian/meridian_green_1173.webp?v=1173',n:48,fw:173,fh:257,cols:8,rows:6,figH:239,feet:248,cx:75.7,fps:24,flip:false,top:9,contact:18},
+    blue:{u:'/assets/anim/meridian/meridian_blue_1173.webp?v=1173',n:48,fw:221,fh:271,cols:8,rows:6,figH:240,feet:262,cx:75.1,fps:24,flip:false,top:22,contact:18},
+    ult:{u:'/assets/anim/meridian/meridian_ult_1173.webp?v=1173',n:48,fw:163,fh:263,cols:8,rows:6,figH:240,feet:254,cx:75.2,fps:24,flip:false,top:14,contact:29}
   },
   hurne:{
     /* v538: green and ult re-sliced from the archive clips with registration zoom correction (the source camera pushed in: body 263->503 px on the old sheets) at 400 art px, 520 cells, ?v=22 so the service worker's persistent asset cache lets go of the old files (Phil: "this isnt the ult animation i see in game").
@@ -10947,7 +10947,7 @@ function konwuKickExec(u){ const tg=u._kickTg, o=u._kickO||{}; u._kickTg=null; u
    and rains — and nothing about hitboxes. v368 (Phil): "auto-attack effects aren't spells" — projectiles,
    auto-attack balls, bullets, arrows and plain hit sparks are never scaled. */
 let FX_SIZE=2;
-const RAFE_SWING={fuse:true};   /* v1171: Rafe's swing lands on its fuse (the clip's release cell) */
+const RAFE_SWING={fuse:true};   /* v1173: Rafe's swing lands on its fuse (the clip's release cell) */
 const RAFE_BULLET_SCALE=0.22;   // v378 (Phil): "bullets roughly the width of his barrel" — was 1.3 (a third of the hero tall). Sprite height in world units; Marksman row is 3.5 tall.
 let HERO_FX_MUL=1;   // effect-animation duration multiplier — set to 2 while one of the 3 built heroes casts, so their FX (particles, plates, staff) last twice as long; 1 for everyone else. Cast times are untouched.
 /* v313 — GENERIC ABILITY ART.
@@ -14261,14 +14261,14 @@ function think(u,dt){
            attacks, further he's ranged." The attack sheet is the saber cut; the Pistol Barrage sheet is the
            pistol firing, so it doubles as the shooting clip. Saber hits harder (it is the close-quarters answer). */
         const close = d <= 2.5*METER;   // target's centre within ~2 m of his (bodies are ~1 m wide)
-        const _rcr=!!_swCrit&&!!(u.anim&&u.anim.crit);   /* v1171 (Phil 16 Oct: sword and gun kept apart for the attack AND the crit) */
+        const _rcr=!!_swCrit&&!!(u.anim&&u.anim.crit);   /* v1173 (Phil 16 Oct: sword and gun kept apart for the attack AND the crit) */
         u._atkClip = close ? ((u.anim&&u.anim.melee)?((_rcr&&u.anim.critMelee)?'critMelee':'melee'):'attack') : ((u.anim&&u.anim.melee)?(_rcr?'crit':'attack'):'green');   // v436: dedicated melee clip (cutlass) when he has one; then 'attack' is the pistol shot and Pistol Barrage is the ability only
-        /* v1171: the blow lands on the swing's fuse - the release cell of the clip it plays (the shot's flash / the cutlass at full reach), as every other
+        /* v1173: the blow lands on the swing's fuse - the release cell of the clip it plays (the shot's flash / the cutlass at full reach), as every other
            hero's swing; it used to land on the press, before the clip showed it. The pre-rolled crit (v532) is the one dealDamage takes. */
         const _rClip=(RAFE_SWING.fuse&&u.anim)?u.anim[u._atkClip]:null;   /* RAFE_SWING.fuse false = the old landing on the press (a null clip fuses at once) - kept only so older tests can rebuild their BASE */
         { const _fd=fuseStrike(u,t,_rClip,()=>{ _preCrit=_swCrit; try{ dealDamage(u,t,dmg*(close?1.15:1),'#fff'); } finally{ _preCrit=null; }
             if(!close){ if(typeof spawnProjFx==='function') { const co=castOrigin(u,t.x,t.y); spawnProjFx('bullet',co.x,co.y,t.x,t.y,RAFE_BULLET_SCALE,.13*HERO_FX_MUL,null,co.h); } else spawnShot(u,t,0xffd27a); } },0,u._atkSpdMul);
-          if(typeof SFX!=='undefined'&&SFX.loop) sfxAtk(u,_fd,close); }   /* v1138 sound: his cut or his shot - v1171 on the blow */
+          if(typeof SFX!=='undefined'&&SFX.loop) sfxAtk(u,_fd,close); }   /* v1138 sound: his cut or his shot - v1173 on the blow */
       } else {
         /* Melee lands on the contact frame. A RANGED auto lands when its ball arrives, not when it
            leaves the hand — that is what "the animation hits the player" means for a caster — so the
@@ -21515,7 +21515,7 @@ Object.assign(BATTLE_ANIM, {
     passive:{u:'/assets/anim/aldren/aldren_passive.webp?v=3',n:48,fw:344,fh:400,cols:6,rows:8,figH:355,feet:393.0,cx:170.5,fps:24,flip:false,top:39}
   },
   rafe:{
-    /* v1171 Rafe Marrow ten (Phil PASS 16 Oct 2026 "Both pass send them to claude", ChatGPT 11:28, REVIEW 16OCT2026 H3, clean-source-manifest.json: the CORRECTED
+    /* v1173 Rafe Marrow ten (Phil PASS 16 Oct 2026 "Both pass send them to claude", ChatGPT 11:28, REVIEW 16OCT2026 H3, clean-source-manifest.json: the CORRECTED
        set, official Hailuo Without Watermark, cut from the silent twins (all 10 sha256 matched); the FINAL sword attack 567520055807434758 - never
        567510731072684036, rejected for its stray gunshot). Sword and gun kept apart for the attack AND the crit: ATTACK = the pistol shot (contact
        24 = f64, the muzzle flash), MELEE = the cutlass cut (24 = f57), CRIT = the pistol crit (24 = f67), CRITMELEE = the cutlass crit (24 = f40, the
@@ -21524,16 +21524,16 @@ Object.assign(BATTLE_ANIM, {
        ULT Dead Man's Fortune (36 = f81, the big blaze on the 1.0 s release). No passive. One framing (frame 0 top 428 / sole 1014 / cx 1067.3):
        every state anchors on idle's frame-0 figure. flip:false. Action clips keep clipDur 2.0 / relFrac 0.5; his swing now lands on its fuse
        (see the rafe branch in think()). The v5 / v6 sheets stay on disk. */
-    idle:{u:'/assets/anim/rafe/rafe_idle_1171.webp?v=1171',n:62,fw:255,fh:253,cols:8,rows:8,figH:232,feet:243,cx:112.6,fps:12,flip:false,top:11},
-    walk:{u:'/assets/anim/rafe/rafe_walk_1171.webp?v=1171',n:36,fw:270,fh:271,cols:6,rows:6,loop:[0,36],figH:239,feet:261,cx:115.3,fps:22.736842,stride:0.113684,flip:false,top:22},
-    attack:{u:'/assets/anim/rafe/rafe_attack_1171.webp?v=1171',n:48,fw:341,fh:230,cols:6,rows:8,figH:212,feet:221,cx:99.7,fps:24,flip:false,top:9,contact:24},
-    melee:{u:'/assets/anim/rafe/rafe_melee_1171.webp?v=1171',n:48,fw:361,fh:204,cols:5,rows:10,figH:184,feet:196,cx:153.1,fps:24,flip:false,top:12,contact:24},
-    crit:{u:'/assets/anim/rafe/rafe_crit_1171.webp?v=1171',n:48,fw:341,fh:246,cols:6,rows:8,figH:204,feet:234,cx:94.4,fps:24,flip:false,top:30,contact:24},
-    critMelee:{u:'/assets/anim/rafe/rafe_critMelee_1171.webp?v=1171',n:48,fw:333,fh:256,cols:6,rows:8,figH:185,feet:248,cx:106,fps:24,flip:false,top:63,contact:24},
-    hit:{u:'/assets/anim/rafe/rafe_hit_1171.webp?v=1171',n:15,fw:264,fh:261,cols:3,rows:5,figH:240,feet:250,cx:117,fps:25,flip:false,top:10},
-    green:{u:'/assets/anim/rafe/rafe_green_1171.webp?v=1171',n:48,fw:292,fh:259,cols:7,rows:7,figH:240,feet:250,cx:101.7,fps:24,flip:false,top:10,contact:18},
-    blue:{u:'/assets/anim/rafe/rafe_blue_1171.webp?v=1171',n:48,fw:266,fh:260,cols:7,rows:7,figH:239,feet:250,cx:118.8,fps:24,flip:false,top:11,contact:21},
-    ult:{u:'/assets/anim/rafe/rafe_ult_1171.webp?v=1171',n:48,fw:341,fh:213,cols:6,rows:8,figH:157,feet:207,cx:127.5,fps:24,flip:false,top:50,contact:36}
+    idle:{u:'/assets/anim/rafe/rafe_idle_1173.webp?v=1173',n:62,fw:255,fh:253,cols:8,rows:8,figH:232,feet:243,cx:112.6,fps:12,flip:false,top:11},
+    walk:{u:'/assets/anim/rafe/rafe_walk_1173.webp?v=1173',n:36,fw:270,fh:271,cols:6,rows:6,loop:[0,36],figH:239,feet:261,cx:115.3,fps:22.736842,stride:0.113684,flip:false,top:22},
+    attack:{u:'/assets/anim/rafe/rafe_attack_1173.webp?v=1173',n:48,fw:341,fh:230,cols:6,rows:8,figH:212,feet:221,cx:99.7,fps:24,flip:false,top:9,contact:24},
+    melee:{u:'/assets/anim/rafe/rafe_melee_1173.webp?v=1173',n:48,fw:361,fh:204,cols:5,rows:10,figH:184,feet:196,cx:153.1,fps:24,flip:false,top:12,contact:24},
+    crit:{u:'/assets/anim/rafe/rafe_crit_1173.webp?v=1173',n:48,fw:341,fh:246,cols:6,rows:8,figH:204,feet:234,cx:94.4,fps:24,flip:false,top:30,contact:24},
+    critMelee:{u:'/assets/anim/rafe/rafe_critMelee_1173.webp?v=1173',n:48,fw:333,fh:256,cols:6,rows:8,figH:185,feet:248,cx:106,fps:24,flip:false,top:63,contact:24},
+    hit:{u:'/assets/anim/rafe/rafe_hit_1173.webp?v=1173',n:15,fw:264,fh:261,cols:3,rows:5,figH:240,feet:250,cx:117,fps:25,flip:false,top:10},
+    green:{u:'/assets/anim/rafe/rafe_green_1173.webp?v=1173',n:48,fw:292,fh:259,cols:7,rows:7,figH:240,feet:250,cx:101.7,fps:24,flip:false,top:10,contact:18},
+    blue:{u:'/assets/anim/rafe/rafe_blue_1173.webp?v=1173',n:48,fw:266,fh:260,cols:7,rows:7,figH:239,feet:250,cx:118.8,fps:24,flip:false,top:11,contact:21},
+    ult:{u:'/assets/anim/rafe/rafe_ult_1173.webp?v=1173',n:48,fw:341,fh:213,cols:6,rows:8,figH:157,feet:207,cx:127.5,fps:24,flip:false,top:50,contact:36}
   },
   ceraline:{
     idle:{u:'/assets/anim/ceraline/ceraline_idle.webp?v=2',n:36,fw:323,fh:400,cols:6,rows:6,figH:373,feet:386.0,cx:137.0,fps:15,flip:true,top:14},
