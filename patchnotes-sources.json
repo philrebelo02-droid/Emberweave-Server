@@ -3,7 +3,7 @@
  "patches": [
   {
    "ver": "0.94",
-   "releases": "v1159-v1166, v1169, v1171 (v1167 wall step and its v1170 undo left out: no net change)",
+   "releases": "v1159-v1166, v1169, v1171, v1173 (v1167 wall step and its v1170 undo left out: no net change)",
    "items": [
     {
      "text": "The game now has music: ten songs each for the city, the maps, battles and Skyfall, shuffled with a soft crossfade.",
@@ -67,6 +67,18 @@
      "text": "Grimsby: seven new animations.",
      "sources": [
       "SHIPPED-v1169-nox-grimsby-16-10-2026.md"
+     ]
+    },
+    {
+     "text": "Meridian: seven new animations.",
+     "sources": [
+      "SHIPPED-v1173-meridian-rafe-16-10-2026.md"
+     ]
+    },
+    {
+     "text": "Rafe Marrow: ten new animations, with his pistol and his cutlass each getting their own attack and critical strike. Every shot and cut now lands on the moment his animation shows it.",
+     "sources": [
+      "SHIPPED-v1173-meridian-rafe-16-10-2026.md"
      ]
     },
     {
