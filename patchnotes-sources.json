@@ -3,7 +3,7 @@
  "patches": [
   {
    "ver": "0.94",
-   "releases": "v1159-v1166, v1169, v1171, v1173 (v1167 wall step and its v1170 undo left out: no net change)",
+   "releases": "v1159-v1166, v1169, v1171, v1173, v1174 (v1167 wall step and its v1170 undo left out: no net change)",
    "items": [
     {
      "text": "The game now has music: ten songs each for the city, the maps, battles and Skyfall, shuffled with a soft crossfade.",
@@ -55,6 +55,12 @@
      "text": "New spell effects for Vael's Warcry, Bloodthirst and Last Stand, and Deepcleft's Fault Claws, Burrow Guard and Quarry Collapse.",
      "sources": [
       "SHIPPED-v1171-vael-deepcleft-spell-fx-16-10-2026.md"
+     ]
+    },
+    {
+     "text": "New spell effects for Mirelle's Scent of Courage, Soporific Bouquet and Imperial Plumage.",
+     "sources": [
+      "SHIPPED-v1174-mirelle-spell-fx-16-10-2026.md"
      ]
     },
     {

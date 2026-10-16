@@ -1,0 +1,56 @@
+{
+ "note": "live v1173 (1fabc0e2) FX2_DEF entries the Mirelle spell FX release (v1174) replaced in place (tests/helpers/mirelle-fx-1174.js)",
+ "fx": {
+  "mirelle_green": {
+   "u": "/assets/anim/fx/mirelle_green.webp?v=20",
+   "n": 30,
+   "fw": 320,
+   "fh": 320,
+   "cols": 6,
+   "rows": 5,
+   "dur": 5.88,
+   "upright": true,
+   "upSize": 1.3,
+   "upExtent": 0.9,
+   "upAnchor": [
+    0.5,
+    0
+   ],
+   "ro": 1
+  },
+  "mirelle_blue": {
+   "u": "/assets/anim/fx/mirelle_blue.webp?v=20",
+   "n": 30,
+   "fw": 320,
+   "fh": 320,
+   "cols": 6,
+   "rows": 5,
+   "dur": 4.42,
+   "upright": true,
+   "upSize": 1.3,
+   "upExtent": 0.9,
+   "upAnchor": [
+    0.5,
+    0
+   ],
+   "ro": 1
+  },
+  "mirelle_ult": {
+   "u": "/assets/anim/fx/mirelle_ult.webp?v=20",
+   "n": 30,
+   "fw": 320,
+   "fh": 320,
+   "cols": 6,
+   "rows": 5,
+   "dur": 5.62,
+   "upright": true,
+   "upSize": 2,
+   "upExtent": 0.9,
+   "upAnchor": [
+    0.5,
+    0
+   ],
+   "ro": 1
+  }
+ }
+}
