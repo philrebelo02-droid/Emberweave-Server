@@ -168,7 +168,7 @@ else {
         if (src) { const st = src.stop.bind(src), rec = window.__plays[window.__plays.length - 1]; src.stop = function () { rec.stopped = true; try { st(); } catch (e) {} }; } return src; };
       SFX.log = []; });
     const open = hk => pg.evaluate(hk => { G.unlocked[hk] = true; detailHero = hk; heroTab = 'skills'; skClipIdx = 0; popoutScreen('heroDetail'); renderHeroDetail(); return !!document.getElementById('skStage'); }, hk);
-    const tapRow = async sl => { const el = await pg.$(`.skrow[data-skill="${sl}"]`); const b = await el.boundingBox(); await pg.touchscreen.tap(b.x + 30, b.y + b.height / 2); };
+    const tapRow = async sl => { const el = await pg.$(`.skrow[data-skill="${sl}"]`); await el.scrollIntoViewIfNeeded(); await delay(150); const b = await el.boundingBox(); await pg.touchscreen.tap(b.x + 30, b.y + b.height / 2); };
     // the first tap anywhere unlocks audio (a phone's rule); opening the tab must stay silent
     await pg.touchscreen.tap(420, 380); await delay(300);
     ck('5. the Skills tab opens with a stage', await open('korvux')); await delay(1500);
@@ -205,7 +205,7 @@ else {
     // shots: the Skills tab of 12 heroes (the review contact sheet is built from these)
     fs.mkdirSync(SHOTS, { recursive: true });
     for (const hk of ['aureth', 'carn', 'veyr', 'deepcleft', 'korvux', 'hollow', 'hurne', 'konwu', 'vex', 'zahri', 'grosk', 'sylthaine']) {
-      await open(hk); await delay(2500); await pg.evaluate(() => { const st = EmberSkillStage.current(); st.t0 = performance.now() - 1200; }); await delay(120);
+      await open(hk); await delay(2500); await pg.evaluate(() => { const w = document.getElementById('skClipWrap'); if (w) w.scrollIntoView({ block: 'start' }); const st = EmberSkillStage.current(); st.t0 = performance.now() - 1200; }); await delay(160);
       await pg.screenshot({ path: path.join(SHOTS, 'panel_' + hk + '.png') }); }
     ck('5. no page errors', errs.length === 0, errs.slice(0, 5).join(' | '));
   } catch (e) { ck('5. BROWSER ran', false, e && e.stack); }
