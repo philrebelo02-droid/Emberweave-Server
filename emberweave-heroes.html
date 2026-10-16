@@ -10329,60 +10329,231 @@ function sndMuteApply(){ const on=SND_MUTE.on;
       const im=b.querySelector('img'); if(im) im.src=ICON_SRC.u(on?'audio-off':'audio-on'); } }catch(e){}
   try{ const cb=document.getElementById('snd_mute'); if(cb) cb.checked=on; }catch(e){} }
 function sndMuteSet(on){ SND_MUTE.on=!!on; try{ localStorage.setItem('ew_mute',SND_MUTE.on?'1':'0'); }catch(e){} sndMuteApply(); }
-/* The button lives on <body>, outside #app, above every modal and gate. Where it sits: on the hub, immediately left of the profile
-   portrait (#profileBtn), centred on it with a 6 px gap; on every other screen, the same spot the hub measured (MUTE_POS, fractions of
-   the viewport so a resize keeps it), unless that screen's own controls are there - then the nearest free spot, found by measuring (muteBtnPlace). */
-const MUTE_SZ = 40, MUTE_GAP = 6;
+/* The button lives on <body>, above every modal and the sign-in gate - or, docked to a window's close X, inside that X's own box.
+   v1163 (Phil 16 Oct 2026, on his phone: "can you make the audio button not layered over buttons" - it sat on the HEROES title plate):
+   it never overlaps ANY visible thing under it - controls, close X's, title plates, banners, frames and borders, text, icons, bars,
+   cards, dropdowns. Where it sits:
+   - the hub: immediately left of the profile portrait (#profileBtn), centred on it, a 6 px gap (v1159);
+   - a window or panel with its own close X: docked to that X - directly BELOW it, the X's size, centred on it (the empty margin beside
+     the title plate); LEFT of it when below is taken; otherwise the nearest free spot. Docked, the button is a child of the X's own
+     containing box, so it scrolls with the X and the window's content can never slide under it;
+   - every other screen: the hub's spot (MUTE_POS, fractions of the viewport), else the nearest spot that overlaps nothing.
+   "Free" is measured on the rendered page (muteScan): every visible box in the area - fills, painted images, border and border-image
+   bands, text runs, ::before/::after art - clipped by its scrollers and swept over their whole scroll range (so scrolling never brings
+   anything under it), under whatever opaque surface is on top there. A box only counts as background the button may sit on when it is
+   screen-sized (>= 15% of the viewport) or the docked window itself, and the button sits wholly inside it, clear of its frame band.
+   Render only - never touches battle state or the seeded RNG. */
+const MUTE_SZ = 40, MUTE_GAP = 6, MUTE_PAD = 2;
 const MUTE_POS = { rx:null, ty:null };   // the hub's spot: right edge distance and centre y, as fractions of the viewport
-const MUTE_MEMO = {};                    // screen + viewport -> the free spot found there
-/* is anything the player can tap under this square (+3 px)? A 5x5 grid of elementFromPoint, the button itself skipped. */
-function muteHitsAt(b,x,y){ const pad=3, s=MUTE_SZ+2*pad, out=[];
-  const clk=el=>{ for(let e=el,d=0;e&&d<6;e=e.parentElement,d++){ if(e===document.body||e===document.documentElement||e===b) return null;
-      if(e.matches&&e.matches('button,a[href],input,select,textarea,label,[onclick],[data-nav],[role=button],.btn,.mitem,.resplus')) return e;
-      const cs=getComputedStyle(e); if(cs.cursor==='pointer'&&cs.pointerEvents!=='none') return e; } return null; };
-  for(let i=0;i<5;i++) for(let j=0;j<5;j++){ const el=document.elementFromPoint(x-pad+s*i/4, y-pad+s*j/4), c=el&&clk(el); if(c) out.push(c); }
-  return out.length; }
-function muteBtnPlace(){ try{ const b=document.getElementById('muteBtn'); if(!b) return;
+const MUTE_MEMO = {};                    // screen + window + viewport -> the free spot found there
+const MUTE_DBG = { last:null };
+const MUTE_DOCK = { x:null, host:null };   // the close X the button is docked to (it stays with it when that X scrolls out of view)          // what the last placement chose and why (read by tests)
+function _mAlpha(c){ if(!c||c==='transparent') return 0; const s=c.indexOf('/'); if(s>=0) return parseFloat(c.slice(s+1))||0;
+  const m=/^rgba\([^,]+,[^,]+,[^,]+,\s*([\d.]+)/.exec(c); return m?parseFloat(m[1]):1; }
+function _mI(a,b){ return { l:Math.max(a.l,b.l), t:Math.max(a.t,b.t), r:Math.min(a.r,b.r), b:Math.min(a.b,b.b) }; }
+function _mHit(a,b){ return a.r>b.l&&a.l<b.r&&a.b>b.t&&a.t<b.b; }
+/* a window-level surface: the page, a screen, a floating window or overlay covering >= 40% of the viewport. Only these (and the docked
+   window) are background the button may sit on - a panel, card, plate or banner never is, however big. */
+function _mWinLevel(e){ if(!e||e===document.documentElement||e===document.body||e.id==='app'||(e.classList&&e.classList.contains('screen'))) return !!e;
+  const p=getComputedStyle(e).position; if(p!=='fixed'&&p!=='absolute') return false;
+  const g=e.getBoundingClientRect(), vw=window.innerWidth, vh=window.innerHeight, w=Math.min(g.right,vw)-Math.max(g.left,0), h=Math.min(g.bottom,vh)-Math.max(g.top,0);
+  return w>0&&h>0&&w*h>=0.4*vw*vh; }
+/* every visible painted box that can reach region R. anchor = the element the button will live in (null = fixed on the viewport):
+   scrollers that hold the anchor move the button with them, so they are not swept. Returns [{k:'fill'|'band'|'text'|'art', r, e, a}]. */
+function muteScan(R, anchor){ const vw=window.innerWidth, vh=window.innerHeight, VIEW={l:0,t:0,r:vw,b:vh}, Z={l:0,r:0,u:0,d:0};
+  const btn=document.getElementById('muteBtn'), out=[], rg=document.createRange();
+  const sweep=(r,s,cl)=>_mI({ l:r.l-s.l, t:r.t-s.u, r:r.r+s.r, b:r.b+s.d }, cl);
+  const push=(k,r,e,a)=>{ if(r.r>r.l&&r.b>r.t&&_mHit(r,R)) out.push({ k, r, e, a }); };
+  const px=(v,base)=>{ if(v==null||v==='auto') return null; if(/%$/.test(v)) return parseFloat(v)/100*base; if(/px$/.test(v)) return parseFloat(v); const n=parseFloat(v); return isNaN(n)?null:n; };
+  /* clip = what clips an in-flow box, clipP = what clips an absolute one (only positioned clippers do); sw = scroll sweep */
+  const visit=(e,clip,clipP,sw)=>{ const tag=e.tagName;
+    if(e===btn||tag==='SCRIPT'||tag==='STYLE'||tag==='TEMPLATE'||tag==='NOSCRIPT'||tag==='LINK'||tag==='META') return;
+    const cs=getComputedStyle(e);
+    if(!e.getClientRects().length){ if(cs.display==='contents') for(let c=e.firstElementChild;c;c=c.nextElementSibling) visit(c,clip,clipP,sw); return; }
+    if(parseFloat(cs.opacity)<0.04) return;
+    const pos=cs.position; let cl=clip, cp=clipP, s=sw;
+    if(pos==='fixed'){ cl=cp=VIEW; s=Z; } else if(pos==='absolute') cl=cp;   // an absolute box escapes the clip of a static parent
+    const g=e.getBoundingClientRect(), box={ l:g.left, t:g.top, r:g.right, b:g.bottom }, vis=sweep(box,s,cl);
+    const svg=e instanceof SVGElement;
+    if(cs.visibility==='visible'&&vis.r>vis.l&&vis.b>vis.t&&_mHit(vis,R)){
+      const bimg=cs.borderImageSource&&cs.borderImageSource!=='none', va=(Math.min(box.r,vw)-Math.max(box.l,0))*(Math.min(box.b,vh)-Math.max(box.t,0));
+      const framed=bimg||['Top','Right','Bottom','Left'].some(k=>parseFloat(cs['border'+k+'Width'])>=2&&cs['border'+k+'Style']!=='none'&&_mAlpha(cs['border'+k+'Color'])>0.04);
+      /* 1 = may be background: the page, a screen, a floating window/overlay, or a frameless full-screen picture (the town, a map, the sky) */
+      const area=(_mWinLevel(e)||(va>=0.4*vw*vh&&!framed)||va>=0.7*vw*vh)?1:0;   // (>= 70%: a framed stage filling the screen, the Skyfall board - its frame band still counts)
+      if(svg||/^(IMG|CANVAS|VIDEO|IFRAME|INPUT|SELECT|TEXTAREA|PROGRESS|METER|OBJECT|EMBED)$/.test(tag)) push('fill',vis,e,area);
+      else if(_mAlpha(cs.backgroundColor)>0.04||cs.backgroundImage!=='none'||(bimg&&/fill/.test(cs.borderImageSlice))) push('fill',vis,e,area);
+      const bw=[cs.borderTopWidth,cs.borderRightWidth,cs.borderBottomWidth,cs.borderLeftWidth].map(v=>parseFloat(v)||0);
+      let bd=[0,0,0,0], ob=box;
+      if(cs.borderImageSource&&cs.borderImageSource!=='none'){
+        const W=cs.borderImageWidth.split(/\s+/), O=(cs.borderImageOutset||'0').split(/\s+/), q=(a,i)=>a[i]!=null?a[i]:a[i===3?1:i===2?0:0];
+        const one=(v,i)=>{ if(v==='auto') return bw[i]; if(/px$|%$/.test(v)) return px(v,(i%2?box.r-box.l:box.b-box.t))||0; return (parseFloat(v)||0)*bw[i]; };
+        const ou=[0,1,2,3].map(i=>{ const v=q(O,i); return /px$/.test(v)?parseFloat(v):(parseFloat(v)||0)*bw[i]; });
+        bd=[0,1,2,3].map(i=>one(q(W,i),i)); ob={ l:box.l-ou[3], t:box.t-ou[0], r:box.r+ou[1], b:box.b+ou[2] };
+      } else { const st=[cs.borderTopStyle,cs.borderRightStyle,cs.borderBottomStyle,cs.borderLeftStyle], co=[cs.borderTopColor,cs.borderRightColor,cs.borderBottomColor,cs.borderLeftColor];
+        bd=bw.map((w,i)=>(st[i]!=='none'&&st[i]!=='hidden'&&_mAlpha(co[i])>0.04)?w:0); }
+      if(bd[0]) push('band',sweep({ l:ob.l, t:ob.t, r:ob.r, b:ob.t+bd[0] },s,cl),e);
+      if(bd[2]) push('band',sweep({ l:ob.l, t:ob.b-bd[2], r:ob.r, b:ob.b },s,cl),e);
+      if(bd[3]) push('band',sweep({ l:ob.l, t:ob.t, r:ob.l+bd[3], b:ob.b },s,cl),e);
+      if(bd[1]) push('band',sweep({ l:ob.r-bd[1], t:ob.t, r:ob.r, b:ob.b },s,cl),e);
+      if(!svg) for(let n=e.firstChild;n;n=n.nextSibling) if(n.nodeType===3&&/\S/.test(n.data)){ rg.selectNodeContents(n);
+        for(const t of rg.getClientRects()) push('text',sweep({ l:t.left, t:t.top, r:t.right, b:t.bottom },s,cl),e); }
+      if(!svg) for(const p of ['::before','::after']){ const pc=getComputedStyle(e,p), ct=pc.content;
+        if(!ct||ct==='none'||ct==='normal'||pc.display==='none'||pc.visibility!=='visible'||parseFloat(pc.opacity)<0.04) continue;
+        if(!(ct!=='""'&&ct!=="''"||_mAlpha(pc.backgroundColor)>0.04||pc.backgroundImage!=='none'||parseFloat(pc.borderTopWidth)||parseFloat(pc.borderLeftWidth)||(pc.borderImageSource&&pc.borderImageSource!=='none'))) continue;
+        let r=box; const w=px(pc.width,box.r-box.l), h=px(pc.height,box.b-box.t), L=px(pc.left,box.r-box.l), T=px(pc.top,box.b-box.t), Rt=px(pc.right,box.r-box.l), B=px(pc.bottom,box.b-box.t);
+        if((pc.position==='absolute')&&cs.position!=='static'){ const il=box.l+bw[3], it=box.t+bw[0], ir=box.r-bw[1], ib=box.b-bw[2];
+          const x0=L!=null?il+L:(Rt!=null&&w!=null?ir-Rt-w:null), x1=Rt!=null?ir-Rt:(x0!=null&&w!=null?x0+w:null);
+          const y0=T!=null?it+T:(B!=null&&h!=null?ib-B-h:null), y1=B!=null?ib-B:(y0!=null&&h!=null?y0+h:null);
+          if(x0!=null&&x1!=null&&y0!=null&&y1!=null) r={ l:Math.min(x0,x1), t:Math.min(y0,y1), r:Math.max(x0,x1), b:Math.max(y0,y1) }; }
+        const pa=(Math.min(r.r,vw)-Math.max(r.l,0))*(Math.min(r.b,vh)-Math.max(r.t,0)), pf=(pc.borderImageSource&&pc.borderImageSource!=='none')||parseFloat(pc.borderTopWidth)>=2;
+        push(pa>=0.7*vw*vh||(pa>=0.4*vw*vh&&!pf)?'fill':'art',sweep(r,s,cl),e,(pa>=0.7*vw*vh||(pa>=0.4*vw*vh&&!pf))?1:0); }   // a screen-filling ::after (a vignette, the sky) is background like its box
+    }
+    if(svg) return;
+    let ccl=cl, ccp=cp, cs2=s; const ox=cs.overflowX, oy=cs.overflowY;
+    if(ox!=='visible'||oy!=='visible'){ const bl=parseFloat(cs.borderLeftWidth)||0, bt=parseFloat(cs.borderTopWidth)||0;
+      const pad=sweep({ l:box.l+bl, t:box.t+bt, r:box.l+bl+e.clientWidth, b:box.t+bt+e.clientHeight },s,VIEW);
+      ccl=_mI(cl,pad); if(pos!=='static') ccp=_mI(cp,pad);
+      if(!_mHit(ccp,R)) return; }   // nothing inside can show in R (a fixed box inside a clipped one is not looked for)
+    if(!(anchor&&e.contains(anchor))){ const my=e.scrollHeight-e.clientHeight, mx=e.scrollWidth-e.clientWidth;
+      if((oy==='auto'||oy==='scroll')&&my>1) cs2={ l:cs2.l, r:cs2.r, u:cs2.u+Math.max(0,my-e.scrollTop), d:cs2.d+Math.max(0,e.scrollTop) };
+      if((ox==='auto'||ox==='scroll')&&mx>1) cs2={ l:cs2.l+Math.max(0,mx-e.scrollLeft), r:cs2.r+Math.max(0,e.scrollLeft), u:cs2.u, d:cs2.d }; }
+    for(let c=e.firstElementChild;c;c=c.nextElementSibling) visit(c,ccl,ccp,cs2); };
+  visit(document.body,VIEW,VIEW,Z); return out; }
+/* is the square q (viewport px) free? win = the docked window (its own fill is background there). deep = also judge what is hidden
+   under the topmost opaque surface at q (a window over the town hides the town); the quick pass counts everything (stricter). */
+function muteFree(q,items,win,deep,why){ const vw=window.innerWidth, vh=window.innerHeight;
+  const Q={ l:q.l-MUTE_PAD, t:q.t-MUTE_PAD, r:q.r+MUTE_PAD, b:q.b+MUTE_PAD };
+  if(q.l<2||q.t<2||q.r>vw-2||q.b>vh-2) return false;
+  let keep=null;
+  if(deep){ const btn=document.getElementById('muteBtn'), pe=btn&&btn.style.pointerEvents; if(btn) btn.style.pointerEvents='none';
+    const pts=[[(q.l+q.r)/2,(q.t+q.b)/2],[q.l+2,q.t+2],[q.r-2,q.t+2],[q.l+2,q.b-2],[q.r-2,q.b-2]], stacks=pts.map(p=>document.elementsFromPoint(p[0],p[1]));
+    if(btn) btn.style.pointerEvents=pe||'';
+    let occ=null; for(const e of stacks[0]){ if(e===document.documentElement) break; const cs=getComputedStyle(e), g=e.getBoundingClientRect();
+      if(_mAlpha(cs.backgroundColor)>=0.6&&(_mWinLevel(e)||e===win)&&g.left<=Q.l&&g.top<=Q.t&&g.right>=Q.r&&g.bottom>=Q.b&&parseFloat(cs.opacity)>=0.95){ occ=e; break; } }
+    if(occ){ const above=new Set(), seen=new Set(); stacks.forEach(st=>{ const i=st.indexOf(occ); st.forEach((e,j)=>{ seen.add(e); if(i<0||j<i) above.add(e); }); });
+      keep=it=>{ const e=it.e; if(e===occ||occ.contains(e)||above.has(e)) return true; if(seen.has(e)||e.contains(occ)) return false;
+        return !!(occ.compareDocumentPosition(e)&Node.DOCUMENT_POSITION_FOLLOWING); }; } }
+  for(const it of items){ if(keep&&!keep(it)) continue; const r=it.r; if(!_mHit(r,Q)) continue;
+    if(it.k==='fill'&&(it.a||it.e===win||(win&&it.e.contains(win)))&&r.l<=Q.l&&r.t<=Q.t&&r.r>=Q.r&&r.b>=Q.b) continue;
+    if(why) why.push(it); else return false; }
+  if(why&&why.length) return false;
+  return true; }
+/* the open window's close X: a visible, uncovered close control near the top right of a floating box (fixed/absolute, or held in a
+   fixed overlay). The last one in the page wins (windows opened later sit on top). */
+function muteCloseX(){ const vw=window.innerWidth, vh=window.innerHeight; let best=null;
+  for(const x of document.querySelectorAll('button,[role=button],.popoutClose,.glClose')){
+    const g=x.getBoundingClientRect(); if(g.width<16||g.height<16||g.width>64||g.height>64||g.right<=0||g.bottom<=0||g.left>=vw||g.top>=vh) continue;
+    const lab=(x.getAttribute('aria-label')||'').trim(), im=x.querySelector('img'), tx=(x.textContent||'').trim();
+    if(!(x.classList.contains('popoutClose')||x.classList.contains('glClose')||/^close$/i.test(lab)||(im&&/\/icons\/ui\/close-v1/.test(im.getAttribute('src')||'')&&tx.length<=2)||/^[×✕✖]$/.test(tx))) continue;
+    const top=document.elementFromPoint(g.left+g.width/2,g.top+g.height/2); if(!top||!(top===x||x.contains(top))) continue;
+    let win=null; for(let e=x.parentElement,d=0;e&&d<10&&e!==document.body;e=e.parentElement,d++){ const cs=getComputedStyle(e), w=e.getBoundingClientRect();
+      if((_mAlpha(cs.backgroundColor)>0.3||cs.backgroundImage!=='none'||(cs.borderImageSource&&cs.borderImageSource!=='none'))&&w.width>=3*g.width&&w.height>=3*g.height){ win=e; break; } }
+    if(!win) continue; const w=win.getBoundingClientRect();
+    let fl=false; for(let e=win,d=0;e&&d<4&&e!==document.body;e=e.parentElement,d++){ const p=getComputedStyle(e).position; if(p==='fixed'||p==='absolute'){ fl=true; break; } }
+    if(!fl||g.top-w.top>Math.max(0.3*w.height,24)+8||w.right-g.right>Math.max(0.3*w.width,24)+8) continue;
+    best={ x, g, win }; }
+  return best; }
+function muteBtnPlace(){ try{ let b=document.getElementById('muteBtn'); if(!b){ muteBtnMake(); b=document.getElementById('muteBtn'); } if(!b) return;
     const vw=window.innerWidth||document.documentElement.clientWidth, vh=window.innerHeight||document.documentElement.clientHeight; if(!vw||!vh) return;
+    const now=()=>(window.performance&&performance.now())||Date.now(), t0=now(); b.style.pointerEvents='none';
+    try{
     const home=document.getElementById('home'), pf=document.getElementById('profileBtn'), st=(typeof state!=='undefined'&&state)||'';
-    const put=(x,y)=>{ x=Math.max(4,Math.min(vw-MUTE_SZ-4,Math.round(x))); y=Math.max(4,Math.min(vh-MUTE_SZ-4,Math.round(y)));
-      b.style.setProperty('--mx',x+'px'); b.style.setProperty('--my',y+'px'); b.dataset.spot=x+','+y; };
+    const sq=(x,y,s)=>({ l:x, t:y, r:x+s, b:y+s }), around=(x,y,s,d)=>({ l:x-d-MUTE_PAD, t:y-d-MUTE_PAD, r:x+s+d+MUTE_PAD, b:y+s+d+MUTE_PAD });
+    const done=(why,x,y,s)=>{ MUTE_DBG.last={ why, x:Math.round(x), y:Math.round(y), s, ms:Math.round(now()-t0), st }; };
+    const fix=(x,y,s,why)=>{ if(b.parentNode!==document.body) document.body.appendChild(b); b.classList.remove('dock');
+      b.style.setProperty('--ms',s+'px'); b.style.setProperty('--mx',Math.round(x)+'px'); b.style.setProperty('--my',Math.round(y)+'px');
+      b.dataset.spot=Math.round(x)+','+Math.round(y); b.dataset.why=why; done(why,x,y,s); return true; };
+    /* docked: a child of the X's own containing box, so it scrolls with the X; checked on top where it landed */
+    const dock=(x,y,s,why,host)=>{ const hr=host.getBoundingClientRect(), k=(host.offsetWidth?hr.width/host.offsetWidth:1)||1;
+      if(b.parentNode!==host) host.appendChild(b); b.classList.add('dock');
+      b.style.setProperty('--ms',(s/k)+'px'); b.style.setProperty('--mx',((x-hr.left)/k-host.clientLeft+host.scrollLeft)+'px'); b.style.setProperty('--my',((y-hr.top)/k-host.clientTop+host.scrollTop)+'px');
+      b.dataset.spot=Math.round(x)+','+Math.round(y); b.dataset.why=why; b.style.pointerEvents='';
+      const r=b.getBoundingClientRect(), top=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2); b.style.pointerEvents='none';
+      if(top&&(top===b||b.contains(top))&&Math.abs(r.left-x)<2&&Math.abs(r.top-y)<2){ done(why,x,y,s); return true; } return false; };
+    const free=(x,y,s,items,win)=>muteFree(sq(x,y,s),items,win,false)||muteFree(sq(x,y,s),items,win,true);
+    /* the nearest free square to (px,py) within reach (0 = anywhere); quick pass over all, the deep one over the nearest 80 */
+    const near=(px,py,s,items,win,reach)=>{ const C=[], step=reach?6:8;
+      for(let y=4;y<=vh-s-4;y+=step) for(let x=4;x<=vw-s-4;x+=step){ const d=Math.hypot(x-px,y-py); if(reach&&d>reach) continue; C.push([d,x,y]); }
+      C.sort((a,c)=>a[0]-c[0]);
+      for(const [,x,y] of C) if(muteFree(sq(x,y,s),items,win,false)) return [x,y];
+      let k=0; for(const [,x,y] of C){ if(k++>400) break; if(muteFree(sq(x,y,s),items,win,true)) return [x,y]; }
+      return null; };
+    /* 1. a window or panel with its own close X: docked to it - below, the X's size, centred; left of it; else the nearest free spot */
+    let X=muteCloseX();
+    /* still docked to an X that the player has scrolled out of view (the window is open, its X just above the fold): stay with it */
+    if(!X&&b.classList.contains('dock')&&MUTE_DOCK.x&&MUTE_DOCK.x.isConnected&&MUTE_DOCK.x.getClientRects().length&&b.parentNode===MUTE_DOCK.host&&MUTE_DOCK.host.getClientRects().length){
+      const g=MUTE_DOCK.x.getBoundingClientRect(); let out=g.bottom<=0||g.top>=vh;
+      for(let e=MUTE_DOCK.x.parentElement;!out&&e&&e!==document.body;e=e.parentElement){ if(e.scrollHeight>e.clientHeight+1){ const r=e.getBoundingClientRect(); if(g.bottom<=r.top+1||g.top>=r.bottom-1) out=true; } }
+      if(out){ done('docked-scrolled',g.left,g.bottom,parseFloat(b.style.getPropertyValue('--ms'))||MUTE_SZ); return; } }
+    if(X){ const g=X.g, s=Math.round(Math.max(30,Math.min(44,Math.min(g.width,g.height)))), host=X.x.offsetParent;
+      const hostOK=host&&host!==document.body&&host!==document.documentElement, an=hostOK?host:null;
+      const cx=g.left+g.width/2, cy=g.top+g.height/2;
+      /* inside the X's box: docked in it (scrolls with it); a spot outside that box (beside the window) is fixed on the page */
+      const inHost=p=>{ if(!hostOK) return false; const r=host.getBoundingClientRect(), L=r.left+host.clientLeft, T=r.top+host.clientTop;
+        return p[0]>=L&&p[1]>=T&&p[0]+s<=L+host.clientWidth&&p[1]+s<=T+host.clientHeight; };
+      const put=(p,why)=>{ const d=inHost(p), ok=d?dock(p[0],p[1],s,why,host):fix(p[0],p[1],s,why); if(ok){ MUTE_DOCK.x=X.x; MUTE_DOCK.host=d?host:null; } return ok; };
+      let items=muteScan({ l:g.left-MUTE_GAP-s-8-MUTE_PAD, t:g.top-8-MUTE_PAD, r:g.right+8+MUTE_PAD, b:g.bottom+MUTE_GAP+s+MUTE_PAD },an);
+      /* directly below (a 6 px gap, then 3), centred - or shifted up to 8 px sideways when a plate's frame reaches the X; then the same left of it */
+      const C=[]; for(const gp of [MUTE_GAP,3]) for(const d of [0,1,-1,2,-2,3,-3,4,-4,5,-5,6,-6,7,-7,8,-8]) C.push([[cx-s/2+d,g.bottom+gp],'below-x']);
+      for(const gp of [MUTE_GAP,3]) for(const d of [0,1,-1,2,-2,3,-3,4,-4,5,-5,6,-6,7,-7,8,-8]) C.push([[g.left-gp-s,cy-s/2+d],'left-x']);
+      for(const [p,why] of C) if(free(p[0],p[1],s,items,X.win)&&put(p,why)) return;
+      items=muteScan(around(cx-s/2,g.bottom+MUTE_GAP,s,180),an);
+      const n=near(cx-s/2,g.bottom+MUTE_GAP,s,items,X.win,180); if(n&&put(n,'near-x')) return; }
+    MUTE_DOCK.x=null; MUTE_DOCK.host=null;
+    /* 2. the hub: left of the profile portrait as it is drawn (its ring frame reaches past the box), centred on it, always */
     if(home&&home.classList.contains('active')&&pf){ const r=pf.getBoundingClientRect();
-      if(r.width>0&&r.height>0){ const x=r.left-MUTE_GAP-MUTE_SZ, y=r.top+r.height/2-MUTE_SZ/2; MUTE_POS.rx=(vw-(x+MUTE_SZ))/vw; MUTE_POS.ty=(y+MUTE_SZ/2)/vh;
-        /* the hub: left of the portrait, always. A window open over the hub (menu, profile, shop) is checked like any other screen. */
-        b.style.pointerEvents='none'; const busy=muteHitsAt(b,x,y); b.style.pointerEvents='';
-        if(!busy){ put(x,y); return; } } }
+      if(r.width>0&&r.height>0){ const fr=document.getElementById('pfFrame'), f=fr&&fr.getBoundingClientRect(), L=f&&f.width>0?Math.min(r.left,f.left):r.left;
+        const x=L-MUTE_GAP-MUTE_SZ, y=r.top+r.height/2-MUTE_SZ/2; MUTE_POS.rx=(vw-(x+MUTE_SZ))/vw; MUTE_POS.ty=(y+MUTE_SZ/2)/vh;
+        const top=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2), covered=!(top&&(top===pf||pf.contains(top)));
+        if(!covered){ const items=muteScan(around(x,y,MUTE_SZ,150),null);
+          if(free(x,y,MUTE_SZ,items,null)) return void fix(x,y,MUTE_SZ,'hub');
+          /* nearest free spot that is still left of the portrait */
+          const C=[]; for(let dy=-40;dy<=150;dy+=2) for(let dx=0;dx<=150;dx+=2){ const qx=x-dx, qy=y+dy; if(qx<4||qy<4||qy>vh-MUTE_SZ-4) continue; C.push([Math.hypot(dx,dy),qx,qy]); }
+          C.sort((a,c)=>a[0]-c[0]); for(const [,qx,qy] of C) if(muteFree(sq(qx,qy,MUTE_SZ),items,null,false)) return void fix(qx,qy,MUTE_SZ,'hub-near'); } } }
     if(MUTE_POS.rx==null){ /* never on the hub yet: the hub's own CSS geometry (#cornerHud right .5%, #profileBtn clamp(56px,10vh,92px) + its margin) */
       const w=Math.max(56,Math.min(92,vh*0.10)), m=Math.max(30,Math.min(46,vh*0.047));
-      MUTE_POS.rx=(vw*0.005+m+w+MUTE_GAP)/vw; MUTE_POS.ty=(vh*0.02+w/2)/vh; }
+      MUTE_POS.rx=(vw*0.005+m+w+MUTE_GAP+0.07*w)/vw; MUTE_POS.ty=(vh*0.02+w/2)/vh; }
     const hx=vw-MUTE_POS.rx*vw-MUTE_SZ, hy=MUTE_POS.ty*vh-MUTE_SZ/2;
-    /* every other screen: the hub's spot, unless that screen has a control there - then the nearest free spot (10 px steps, right/left/down
-       within 140 px), remembered per screen and viewport and re-checked every second. */
-    const key=st+'|'+vw+'x'+vh;
-    b.style.pointerEvents='none';
-    try{ const memo=MUTE_MEMO[key];
-      if(memo&&!muteHitsAt(b,memo[0],memo[1])){ put(memo[0],memo[1]); return; }
-      if(!muteHitsAt(b,hx,hy)){ MUTE_MEMO[key]=[hx,hy]; put(hx,hy); return; }
-      const C=[]; for(let dx=-140;dx<=140;dx+=10) for(let dy=0;dy<=140;dy+=10){ const x=hx+dx, y=hy+dy; if(x<4||x>vw-MUTE_SZ-4||y>vh-MUTE_SZ-4) continue; C.push([Math.hypot(dx,dy),x,y]); }
-      C.sort((a,c)=>a[0]-c[0]);
-      for(const [,x,y] of C){ if(!muteHitsAt(b,x,y)){ MUTE_MEMO[key]=[x,y]; put(x,y); return; } }
-      put(hx,hy);   // nothing free within reach: the hub spot (the button sits on top either way)
-    } finally { b.style.pointerEvents=''; } }catch(e){} }
+    /* 3. every other screen: the hub's spot, else the nearest free spot (remembered per screen + window + viewport, re-checked) */
+    let pop=''; try{ pop=_popout||''; }catch(e){}
+    const key=st+'|'+pop+'|'+(X?'x':'')+'|'+vw+'x'+vh, memo=MUTE_MEMO[key];
+    if(memo){ const it=muteScan(around(memo[0],memo[1],MUTE_SZ,0),null); if(free(memo[0],memo[1],MUTE_SZ,it,null)) return void fix(memo[0],memo[1],MUTE_SZ,'memo'); }
+    let items=muteScan(around(hx,hy,MUTE_SZ,160),null);
+    if(free(hx,hy,MUTE_SZ,items,null)){ MUTE_MEMO[key]=[hx,hy]; return void fix(hx,hy,MUTE_SZ,'hub-spot'); }
+    let n=near(hx,hy,MUTE_SZ,items,null,160);
+    if(!n){ items=muteScan({ l:0, t:0, r:vw, b:vh },null); n=near(hx,hy,MUTE_SZ,items,null,0); }
+    if(n){ MUTE_MEMO[key]=n; return void fix(n[0],n[1],MUTE_SZ,'near'); }
+    fix(hx,hy,MUTE_SZ,'none-free');   // no free square anywhere on the screen: the hub spot (on top either way)
+    } finally { b.style.pointerEvents=''; }
+  }catch(e){ try{ MUTE_DBG.err=String(e&&e.message||e); }catch(_){} } }
+/* re-place when the page changes (a window opens or closes, a list fills) - batched, at most every 300 ms; and on a timer (1.5 s, or 4 s
+   when measuring a screen takes over 15 ms) for layout that moves without a DOM change (images arriving, fit, orientation) */
+let _muteT=0, _muteLast=0;
+function muteSoon(){ if(_muteT) return; const wait=Math.max(60,300-(Date.now()-_muteLast)); _muteT=setTimeout(()=>{ _muteT=0; _muteLast=Date.now(); muteBtnPlace(); },wait); }
+function muteTick(){ try{ if(!document.hidden) muteBtnPlace(); }catch(e){} const ms=(MUTE_DBG.last&&MUTE_DBG.last.ms)||0; setTimeout(muteTick,ms>15?4000:1500); }
 function muteBtnMake(){ try{ if(document.getElementById('muteBtn')||!document.body) return;
-    const st=document.createElement('style'); st.textContent=
-      '#muteBtn{position:fixed;z-index:2147483000;left:min(var(--mx,0px),calc(100vw - '+MUTE_SZ+'px - env(safe-area-inset-right,0px)));'+
-      'top:max(var(--my,8px),env(safe-area-inset-top,0px));width:'+MUTE_SZ+'px;height:'+MUTE_SZ+'px;margin:0;padding:0;box-sizing:border-box;'+
+    if(!document.getElementById('muteBtnCss')){ const st=document.createElement('style'); st.id='muteBtnCss'; st.textContent=
+      '#muteBtn{position:fixed;z-index:2147483000;left:min(var(--mx,0px),calc(100vw - var(--ms,'+MUTE_SZ+'px) - env(safe-area-inset-right,0px)));'+
+      'top:max(var(--my,8px),env(safe-area-inset-top,0px));width:var(--ms,'+MUTE_SZ+'px);height:var(--ms,'+MUTE_SZ+'px);margin:0;padding:0;box-sizing:border-box;'+
       'border-radius:50%;border:2px solid #c9a35e;background:radial-gradient(circle at 50% 38%,rgba(52,38,20,.92),rgba(16,12,8,.92));'+
       'box-shadow:0 2px 8px rgba(0,0,0,.6),inset 0 0 6px rgba(255,200,120,.18);display:flex;align-items:center;justify-content:center;cursor:pointer;'+
       'touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;outline:none}'+
-      '#muteBtn img{width:28px;height:28px;object-fit:contain;pointer-events:none;filter:drop-shadow(0 1px 1px #000)}'+
+      '#muteBtn.dock{position:absolute;left:var(--mx,0px);top:var(--my,0px)}'+
+      '#muteBtn img{width:70%;height:70%;object-fit:contain;pointer-events:none;filter:drop-shadow(0 1px 1px #000)}'+
       '#muteBtn.off{border-color:#8a6b2e}#muteBtn:active{transform:scale(.94)}#muteBtn:focus-visible{box-shadow:0 0 0 2px #ffd45e}';
-    document.head.appendChild(st);
+      document.head.appendChild(st); }
     const b=document.createElement('button'); b.id='muteBtn'; b.type='button'; b.innerHTML='<img alt="" draggable="false">';
     document.body.appendChild(b); sndMuteApply(); muteBtnPlace();
-    window.addEventListener('resize',()=>{ muteBtnPlace(); setTimeout(muteBtnPlace,120); });
-    try{ if(window.visualViewport) window.visualViewport.addEventListener('resize',muteBtnPlace); }catch(e){}
-    setInterval(muteBtnPlace,1000);   // a screen that re-lays itself out (fit, orientation) is caught within a second
+    if(!window._muteWired){ window._muteWired=true;
+      window.addEventListener('resize',()=>{ muteBtnPlace(); setTimeout(muteBtnPlace,120); });
+      try{ if(window.visualViewport) window.visualViewport.addEventListener('resize',muteSoon); }catch(e){}
+      try{ new MutationObserver(ms=>{ if(typeof state!=='undefined'&&state==='battle'&&document.getElementById('muteBtn')) return;   // a fight's HUD changes every frame: the timer covers it
+          const bb=document.getElementById('muteBtn'), el=n=>n.nodeType===1&&n!==bb;
+          for(const m of ms){ const t=m.target; if(bb&&(t===bb||bb.contains(t))) continue;
+            if(m.type==='childList'&&!Array.prototype.some.call(m.addedNodes,el)&&!Array.prototype.some.call(m.removedNodes,el)) continue;   // a text update, or the button moving
+            muteSoon(); return; } })
+        .observe(document.body,{ childList:true, subtree:true, attributes:true, attributeFilter:['class','style','hidden','open'] }); }catch(e){}
+      setTimeout(muteTick,1500); }
   }catch(e){} }
 /* A tap on the button is the button's alone: these window CAPTURE listeners run before every game listener (they are registered first),
    so no screen under it, no "tap anywhere to close" overlay and no battle input ever sees it. It still unlocks audio like any tap. */
@@ -10458,7 +10629,7 @@ const MUSIC_LISTS = {
     { f:'music/sky-epic-heroic.mp3?v=1160', name:'Epic Heroic Music', src:'Pixabay 387132 (Tunetank)', start:0, end:212.0, lufs:-18.0 },
     { f:'music/sky-epical-cinematic.mp3?v=1160', name:'Epical Cinematic', src:'Pixabay 262602 (leberch)', start:0, end:128.5, lufs:-18.0 } ] };
 const MUS_XF_SCENE=1.0, MUS_XF_SONG=3.5, MUS_XF_SEAM=0.04, MUS_END_FADE=1.2, MUS_POOL=8;
-const MUS = { pool:[], lanes:{}, cur:null, timer:0, hidden:false, held:[], log:[] };
+const MUS = { pool:[], lanes:{}, cur:null, timer:0, hidden:false, held:[], log:[], over:false };   // over: the battle song is playing on past its fight's end (v1163)
 function musLog(x){ MUS.log.push(x); if(MUS.log.length>200) MUS.log.splice(0,MUS.log.length-200); }   /* the last 200 music events (the v1159 test reads them) */
 function musRand(n){ try{ const a=new Uint32Array(1); crypto.getRandomValues(a); return a[0]%n; }catch(e){ MUS._x=((MUS._x||(Date.now()>>>0)||1)*1103515245+12345)>>>0; return MUS._x%n; } }
 function musLane(name){ return MUS.lanes[name]||(MUS.lanes[name]={ name, slot:null, next:null, song:null, bag:[], last:-1, xf:false, seamT:0 }); }
@@ -10467,8 +10638,11 @@ function musOK(){ try{ return !!(SND.ctx&&SND.bus&&SND.bus.music&&SND.cfg.music.
 function musSkyLive(){ try{ if(SKYSIM&&SKYSIM.running) return true; const m=SKY&&SKY.st&&SKY.st.match; return !!(m&&m.state==='live'); }catch(e){ return false; } }
 function musWant(){ try{ if(window._p2guard) return null;
     const s=(typeof state!=='undefined')?state:'home', rep=!!(CUR&&CUR.mode==='replay');
-    if(s==='battle') return (rep&&MUS.cur==='skyfall')?'skyfall':(ended?null:'battle');
-    if(s==='result') return (rep&&MUS.cur==='skyfall')?'skyfall':null;
+    /* v1163 (Phil 16 Oct: "make it so the combat music doesnt end until I click continue on the rewards screen. Just loop the song they
+       were listening to"): a fight that has ended - win or loss, every mode - keeps its battle song on the result / reward screen, looping on
+       its seam, until that screen is left (Continue, Retry, any navigation) */
+    if(s==='battle') return (rep&&MUS.cur==='skyfall')?'skyfall':(ended?(MUS.cur==='battle'?'battle':null):'battle');
+    if(s==='result') return (rep&&MUS.cur==='skyfall')?'skyfall':(MUS.cur==='battle'?'battle':null);
     if(s==='skyfall'&&musSkyLive()) return 'skyfall';
     if(s==='campaign'||s==='world') return 'map';
     return 'city'; }catch(e){ return 'city'; } }
@@ -10536,7 +10710,12 @@ function musWatch(L){ const s=L.slot; if(!s||!s.song) return; const el=s.el, son
 function musTick(){ try{
     if(!musOK()){ if(MUS.cur&&SND.ctx&&!MUS.hidden&&!(SND.cfg&&SND.cfg.music&&SND.cfg.music.on)) musSwitch(null); return; }
     if(!MUS.pool.length) musPrime();
-    musSwitch(musWant()); const L=MUS.cur&&MUS.lanes[MUS.cur]; if(L) musWatch(L); }catch(e){} }
+    const w=musWant(), st=(typeof state!=='undefined')?state:'';
+    /* v1163: the battle song held over a result screen gives way to the NEXT song when a new fight starts straight from it (Next / Retry) */
+    if(w==='battle'&&MUS.cur==='battle'){ if(st==='result'||(st==='battle'&&ended)) MUS.over=true;
+      else if(MUS.over&&st==='battle'&&!ended){ MUS.over=false; const B=musLane('battle'); musLog(['refight',performance.now()|0]); musLeave(B,MUS_XF_SCENE,true); musEnter(B,MUS_XF_SCENE); } }
+    else MUS.over=false;
+    musSwitch(w); const L=MUS.cur&&MUS.lanes[MUS.cur]; if(L) musWatch(L); }catch(e){} }
 function musBoot(){ if(MUS.timer||!SND.ctx||window._p2guard) return; musPrime(); MUS.timer=setInterval(musTick,250); musTick(); }
 try{ if(typeof document!=='undefined'&&document.addEventListener) document.addEventListener('visibilitychange',()=>{ try{
     if(document.visibilityState==='hidden'){ MUS.hidden=true; MUS.held=MUS.pool.filter(s=>s.lane&&!s.el.paused); MUS.held.forEach(s=>s.el.pause()); }
@@ -28878,7 +29057,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1792134735040';
+const BUILD_ID = '1792146708333';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

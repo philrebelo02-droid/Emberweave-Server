@@ -97,8 +97,10 @@ const SCREENS = ['home', 'campaign', 'menu', 'heroesPanel', 'bag', 'settings', '
 
     /* ---- (2) the hub: immediately left of the portrait, centred on it ---- */
     const hub = await pg.evaluate(() => { muteBtnPlace(); const b = document.getElementById('muteBtn').getBoundingClientRect(), p = document.getElementById('profileBtn').getBoundingClientRect();
-      return { gap: Math.round(p.left - b.right), dy: Math.round((b.top + b.height / 2) - (p.top + p.height / 2)), b: [Math.round(b.left), Math.round(b.top)], p: [Math.round(p.left), Math.round(p.top), Math.round(p.width)] }; }).catch(() => null);
-    ck(hub && hub.gap >= 2 && hub.gap <= 12 && Math.abs(hub.dy) <= 2, 'hub: the button sits immediately left of the profile portrait, centred on it (' + JSON.stringify(hub) + ')');
+      /* v1163: measured from the portrait as drawn - its ring frame (#pfFrame) reaches past the box; within 8 px of centred (the name plate under it) */
+      const f = document.getElementById('pfFrame').getBoundingClientRect(), L = Math.min(p.left, f.width ? f.left : p.left);
+      return { gap: Math.round(L - b.right), dy: Math.round((b.top + b.height / 2) - (p.top + p.height / 2)), b: [Math.round(b.left), Math.round(b.top)], p: [Math.round(p.left), Math.round(p.top), Math.round(p.width)] }; }).catch(() => null);
+    ck(hub && hub.gap >= 2 && hub.gap <= 12 && Math.abs(hub.dy) <= 8, 'hub: the button sits immediately left of the profile portrait, centred on it (' + JSON.stringify(hub) + ')');
     const screens = [];
     let n = 1;
     for (const s of SCREENS) {
@@ -195,10 +197,30 @@ const SCREENS = ['home', 'campaign', 'menu', 'heroesPanel', 'bag', 'settings', '
       await new Promise(r => setTimeout(r, 400)); const n = L.slot; return { moved: n !== s, t: n && n.el.currentTime, loopStart: song.loopStart, loopEnd: song.loopEnd, same: n && n.song === song, log: MUS.log.filter(x => x[0] === 'seam'), oldFree: !s.lane }; });
     ck(seam.moved && seam.same && seam.t >= seam.loopStart && seam.t < seam.loopStart + 1.2 && seam.log.length === 1 && seam.oldFree,
       'battle: at loopEnd (' + seam.loopEnd + ') the song joins its loopStart (' + seam.loopStart + ') - now ' + (seam.t || 0).toFixed(2), JSON.stringify(seam));
-    // the end
-    await pg.evaluate(() => { paused = false; endBattle(true); }); await delay(2200);
-    const be = await pg.evaluate(() => ({ cur: MUS.cur, slot: !!(MUS.lanes.battle.slot), busy: MUS.pool.filter(s => s.lane === 'battle').length }));
-    ck(be.cur === null && !be.slot && be.busy === 0, 'battle end: the song fades out and is released', JSON.stringify(be));
+    // the end - v1163 (Phil 16 Oct, Aether Vault FLOOR 28 CLEARED: "make it so the combat music doesnt end until I click continue on the
+    // rewards screen. Just loop the song they were listening to"): the same song plays on over the result screen, loops on its seam, and only
+    // gives way on Continue; the battle cycle does not move until the next fight
+    const toResult = async won => { await pg.evaluate(w => { paused = false; endBattle(w); }, won);
+      for (let i = 0; i < 100; i++) { if (await pg.evaluate(() => state === 'result')) break; await delay(100); } await delay(1600); };
+    const onResult = () => pg.evaluate(() => { const s = MUS.lanes.battle && MUS.lanes.battle.slot; return { st: state, cur: MUS.cur, f: s && s.song && s.song.f, playing: !!(s && !s.el.paused),
+      gain: s ? +s.g.gain.value.toFixed(2) : null, k: localStorage.getItem('ew_battle_track'), rate: s && s.el.playbackRate }; });
+    const kBefore = await pg.evaluate(() => localStorage.getItem('ew_battle_track')), fBefore = await pg.evaluate(() => MUS.lanes.battle.slot && MUS.lanes.battle.slot.song.f);
+    await toResult(true);
+    const r1 = await onResult();
+    ck(r1.st === 'result' && r1.cur === 'battle' && r1.f === fBefore && r1.playing && r1.gain > 0.9 && r1.k === kBefore && r1.rate === 1,
+      'result screen (a win): the same battle song plays on at full level, rate 1, the cycle index unchanged (' + r1.f + ')', JSON.stringify([r1, fBefore, kBefore]));
+    await shot(String(n++).padStart(2, '0') + '-result-music');
+    const rseam = await pg.evaluate(async () => { const L = MUS.lanes.battle, s = L.slot, song = s.song; MUS.log.length = 0; s.el.currentTime = song.loopEnd - 2.2;
+      for (let i = 0; i < 60 && L.slot === s; i++) await new Promise(r => setTimeout(r, 100));
+      await new Promise(r => setTimeout(r, 400)); const nn = L.slot; return { st: state, cur: MUS.cur, moved: nn !== s, same: nn && nn.song === song, t: nn && nn.el.currentTime, loopStart: song.loopStart, loopEnd: song.loopEnd, seams: MUS.log.filter(x => x[0] === 'seam').length }; });
+    ck(rseam.st === 'result' && rseam.cur === 'battle' && rseam.moved && rseam.same && rseam.t >= rseam.loopStart && rseam.t < rseam.loopStart + 1.2 && rseam.seams === 1,
+      'result screen: at loopEnd (' + rseam.loopEnd + ') the song loops seamlessly to its loopStart (' + rseam.loopStart + ') while the screen is open', JSON.stringify(rseam));
+    const cont = await pg.evaluate(async () => { const s = MUS.lanes.battle.slot, t0 = s.el.currentTime; await new Promise(r => setTimeout(r, 1500));
+      const still = state === 'result' && MUS.cur === 'battle' && MUS.lanes.battle.slot === s && !s.el.paused && s.el.currentTime > t0;
+      document.getElementById('resultBtn').click(); await new Promise(r => setTimeout(r, 1900));
+      return { still, st: state, cur: MUS.cur, slot: !!MUS.lanes.battle.slot, busy: MUS.pool.filter(x => x.lane === 'battle').length, k: localStorage.getItem('ew_battle_track') }; });
+    ck(cont.still && cont.st !== 'result' && cont.cur && cont.cur !== 'battle' && !cont.slot && cont.busy === 0 && cont.k === kBefore,
+      'it switches only after Continue: still playing 1.5 s later, then Continue crossfades to the ' + cont.cur + ' song and releases it; the cycle index still unchanged', JSON.stringify(cont));
     await pg.evaluate(() => { try { cancelResult(); } catch (e) {} show('home'); }); await delay(1500);
     const back2 = await pg.evaluate(() => ({ cur: MUS.cur, t: MUS.lanes.city.slot.el.currentTime, playing: !MUS.lanes.city.slot.el.paused }));
     ck(back2.cur === 'city' && back2.playing && back2.t >= back1.t, 'after the battle the city song resumes (not from the start)', JSON.stringify(back2));
@@ -206,7 +228,22 @@ const SCREENS = ['home', 'campaign', 'menu', 'heroesPanel', 'bag', 'settings', '
     await startFight(); await delay(1200);
     const b2 = await pg.evaluate(() => MUS.lanes.battle.slot && MUS.lanes.battle.slot.song.f);
     ck(b2 === list[(kExp + 1) % list.length], 'the next fight plays the next song in the cycle (' + b2 + ')');
-    await pg.evaluate(() => { ended = true; }); await delay(1600);
+    // a defeat: the same - the song plays on over the DEFEAT screen
+    const kB2 = await pg.evaluate(() => localStorage.getItem('ew_battle_track'));
+    await toResult(false);
+    const d1 = await onResult();
+    ck(d1.st === 'result' && d1.cur === 'battle' && d1.f === b2 && d1.playing && d1.gain > 0.9 && d1.k === kB2, 'defeat screen: the same battle song plays on, the cycle index unchanged', JSON.stringify(d1));
+    // a new fight straight from the result screen (Retry / Next): the NEXT song, the old one released
+    await startFight(); await delay(1800);
+    const b3 = await pg.evaluate(() => ({ f: MUS.lanes.battle.slot && MUS.lanes.battle.slot.song.f, busy: MUS.pool.filter(x => x.lane === 'battle').length, cur: MUS.cur }));
+    ck(b3.cur === 'battle' && b3.f === list[(kExp + 2) % list.length] && b3.busy === 1, 'a new fight started from the result screen plays the next song (' + b3.f + '), the held one released', JSON.stringify(b3));
+    // CONTROL: v1159's end-of-fight fade put back (musWant -> no music once the fight has ended) must fail the result-screen check
+    await pg.evaluate(() => { window.__mwKeep = musWant; window.musWant = function () { const s = state, rep = !!(CUR && CUR.mode === 'replay');
+        if (s === 'battle') return (rep && MUS.cur === 'skyfall') ? 'skyfall' : (ended ? null : 'battle'); if (s === 'result') return (rep && MUS.cur === 'skyfall') ? 'skyfall' : null; return window.__mwKeep(); }; });
+    await toResult(true); const cr = await onResult();
+    await pg.evaluate(() => { window.musWant = window.__mwKeep; });
+    const ctlPass = cr.st === 'result' && cr.cur === 'battle' && cr.playing;
+    ck(!ctlPass, 'CONTROL: with v1159\'s 1.2 s fade-on-end put back, the result-screen check FAILS (music ' + cr.cur + ' on the result screen)', JSON.stringify(cr));
     await pg.evaluate(() => { try { cancelResult(); } catch (e) {} show('home'); }); await delay(800);
 
     /* ---- skyfall ---- */
