@@ -141,6 +141,11 @@ RULES = {
     'S0051': {'rule': 'land'},                               # v1153 Aureth Sunburst: its impact peak on the burst when the form delivery lands (1.339 fight s = green clip contact cell 47), not from the press
     'S0053': {'rule': 'release'},                            # v1153 Aureth Duality: its peak on the stance swap at the 0.5 s cast release (blue clip contact cell 18)
     'S0054': {'rule': 'release'},                            # v1153 Aureth Eclipse: its peak on the 1.2 s cast release, when the eclipse bursts out of him (ult clip contact cell 42), not 3 s after the press
+    'S0207': {'rule': 'release'},                            # v1160 Veyr Gravity Crescent: its peak on the slash at the 0.5 s release (green clip contact cell 18, the crescent leaves the blade), not from the press
+    'S0209': {'rule': 'release'},                            # v1160 Veyr Abyssal Mantle: its peak as the mantle closes round him at the 0.5 s release (blue clip contact cell 18, the evade starts)
+    'S0211': {'rule': 'release'},                            # v1160 Veyr Abyssal Undertow cast: its peak on the 0.8 s release, his arm out where the deep opens (ult clip contact cell 29); S0213 stays on the collapse (land)
+    'S0266': {'rule': 'release'},                            # v1160 Deepcleft Burrow Guard: its peak as he digs in at the 0.5 s release (blue clip contact cell 18, untargetable from then)
+    'S0268': {'rule': 'land'},                               # v1160 Deepcleft Quarry Collapse: its peak on the slam when the form delivery lands (1.148 fight s = ult clip contact cell 37), not from the press
 }
 PASSIVE_EV = {   # row -> the trigger the client fires (sfxPassive(u, ev))
     'S0446': 'livingpages', 'S0456': 'sacredbells', 'NEW-askel-passive': 'unshaken', 'S0068': 'contagion', 'NEW-brannus-passive': 'pridemomentum',

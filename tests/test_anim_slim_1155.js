@@ -27,6 +27,7 @@ const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'ew-slim-'));
 process.on('exit', () => { try { fs.unlinkSync(OLD); } catch (e) {} try { fs.rmSync(TMP, { recursive: true, force: true }); } catch (e) {} });
 const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); return src => vm.runInContext(src, h.ctx); };
 const run = load(HTML), R0 = load(OLD);
+require('./helpers/anim-1160.js').undo1160(run);   // v1160: Veyr's and Deepcleft's new entries go back to their v1158 (slim) state - tests/test_veyr_deepcleft_1160.js checks them
 const SNAP = r => JSON.parse(r(`JSON.stringify({BA:BATTLE_ANIM,FX:FX2_DEF,SC:HERO_SKILL_CLIPS,HT:Object.keys(HERO_TYPES)})`));
 const NOW = SNAP(run), BASE = SNAP(R0);
 const deep = o => o == null ? 'null' : JSON.stringify(o, (k, v) => (v && typeof v === 'object' && !Array.isArray(v)) ? Object.keys(v).sort().reduce((a, x) => (a[x] = v[x], a), {}) : v);

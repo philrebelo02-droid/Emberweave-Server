@@ -4735,7 +4735,7 @@
    "hero": "veyr",
    "hook": "EXISTS: fx.veyr_green (when the plate appears)",
    "phase": "cast",
-   "rule": "cast",
+   "rule": "release",
    "slot": "green",
    "timing": "cast frame (ability clip starts)"
   },
@@ -4748,7 +4748,7 @@
    "hero": "veyr",
    "hook": "EXISTS: fx.veyr_blue (when the plate appears)",
    "phase": "cast",
-   "rule": "cast",
+   "rule": "release",
    "slot": "blue",
    "timing": "cast frame (ability clip starts)"
   },
@@ -4761,7 +4761,7 @@
    "hero": "veyr",
    "hook": "EXISTS: fx.veyr_ult (when the plate appears)",
    "phase": "cast",
-   "rule": "cast",
+   "rule": "release",
    "slot": "ult",
    "timing": "cast frame (ability clip starts)"
   },
@@ -5114,7 +5114,7 @@
    "hero": "deepcleft",
    "hook": "EXISTS: fx.deepcleft_blue (when the plate appears)",
    "phase": "cast",
-   "rule": "cast",
+   "rule": "release",
    "slot": "blue",
    "timing": "cast frame (ability clip starts)"
   },
@@ -5127,7 +5127,7 @@
    "hero": "deepcleft",
    "hook": "EXISTS: fx.deepcleft_ult (when the plate appears)",
    "phase": "cast",
-   "rule": "cast",
+   "rule": "land",
    "slot": "ult",
    "timing": "cast frame (ability clip starts)"
   },

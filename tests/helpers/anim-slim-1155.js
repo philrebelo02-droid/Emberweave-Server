@@ -14,4 +14,6 @@ const CODE = `(()=>{ const F=${JSON.stringify({ c: FIX.changes, s: FIX.skillClip
     for(const x of Object.keys(o)) delete o[x]; Object.assign(o,n); };
   for(const k in F.o) re(BATTLE_ANIM,k,F.o[k]); for(const k in F.so) re(HERO_SKILL_CLIPS,k,F.so[k]);
   return F.c.length; })()`;
-module.exports = { undoSlim1155: run => run(CODE), SLIM_1155: FIX };
+/* v1160: Veyr's and Deepcleft's entries were replaced after the slim - their v1158 entries (the slim's own "after") go back first (tests/helpers/anim-1160.js) */
+const U1160 = require('./anim-1160.js');
+module.exports = { undoSlim1155: run => { U1160.undo1160(run); return run(CODE); }, SLIM_1155: FIX };
