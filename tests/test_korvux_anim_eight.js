@@ -22,7 +22,7 @@
 const path = require('path'), vm = require('vm'), fs = require('fs'), cp = require('child_process'), crypto = require('crypto');
 const ROOT = path.resolve(__dirname, '..');
 const HTML = process.env.EW_HTML || path.join(ROOT, 'emberweave-heroes.html');
-const BASE_SHA = process.env.EW_BASE || 'c6c0523e';   // the live build before this change (its Korvux entries = v1159's)
+const BASE_SHA = process.env.EW_BASE || '1debe711';   // live v1160, the build before this change (its Korvux entries = v1159's)
 const VER = process.env.EW_KORVUX_VER || '1162';
 let OLD = process.env.EW_HTML_OLD;
 if (!OLD) { try { OLD = path.join(ROOT, '.test-korvux8-base.html'); fs.writeFileSync(OLD, cp.execSync('git show ' + BASE_SHA + ':emberweave-heroes.html', { cwd: ROOT, maxBuffer: 64 << 20 }));
