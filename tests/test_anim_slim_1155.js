@@ -36,11 +36,12 @@ const webpSize = f => { const b = fs.readFileSync(f); const t = b.toString('asci
 const isLossless = f => { const b = fs.readFileSync(f); return b.indexOf('VP8L') >= 0 && b.indexOf('VP8 ') < 0; };
 const ppPer = A => (A.pingpong && A.n > 1) ? (A.rbk ? (A.n + Math.ceil((A.n - 1) / A.rbk)) : (2 * A.n - 2)) : A.n;
 const WALK_STRIDE = +run('WALK_STRIDE');
-const FILLER_ALL = ['joss', 'vulmar', 'tick', 'sylthaine', 'vireo', 'fritz', 'umbris', 'rhukk', 'meridian', 'gruel', 'astra', 'quorrel', 'korvux', 'maren', 'veyr',
+const FILLER_ALL = ['joss', 'vulmar', 'tick', 'vireo', 'fritz', 'umbris', 'rhukk', 'meridian', 'gruel', 'astra', 'quorrel', 'korvux', 'maren', 'veyr',
   'mirelle', 'pellucid', 'orryn', 'hobb', 'askel', 'deepcleft', 'brannus', 'sorrel', 'yenna', 'kharos', 'vaelora', 'seyla', 'nox', 'nerisse', 'lysara', 'calypsa',
   'linnet', 'rivet', 'tessit', 'vex', 'grimsby', 'dandra', 'pyroclast', 'iver', 'sloe', 'tolley', 'mellan', 'rafe', 'ceraline', 'absalie'];
 const ACTIVE = ['hurne', 'lumi', 'hollow', 'tharl', 'zahri', 'ambrel', 'aldren'];   // zahri / aldren: _soulHome when their summon dies (line ~9739)
-const SKILL3_ALL = ['dandra', 'sylthaine', 'tick', 'vulmar', 'umbris', 'vireo'];
+const SKILL3_ALL = ['dandra', 'tick', 'vulmar', 'umbris', 'vireo'];
+const KEPT = ['sylthaine'];   // v1157 (Phil 15 Oct): Cold Snap stays - approved 14 Oct, removed as filler by mistake; Aureth/Carn idle stay at their originals
 const PASSIVES_DONE = FIX.changes.some(c => c.kind === 'anim' && c.state === 'passive');   // the passive commit of the slim (the walk/idle/hit commits come first)
 const FILLER = PASSIVES_DONE ? FILLER_ALL : [], SKILL3 = PASSIVES_DONE ? SKILL3_ALL : [];
 try {
@@ -131,7 +132,9 @@ print(json.dumps(out))`;
   const removed = FIX.changes.filter(c => c.kind === 'anim' && c.state === 'passive' && c.before && !c.after).map(c => c.key);
   ck('passive clip removed for the ' + FILLER.length + ' FILLER heroes and nobody else', removed.sort().join() === FILLER.slice().sort().join() && FILLER.every(k => BASE.BA[k].passive && !NOW.BA[k].passive), removed.join(','));
   ck('kept for the ACTIVE heroes (' + ACTIVE.join(', ') + ') and for Aureth\'s two crowns (byte-for-byte BASE)', ACTIVE.concat(['aureth']).every(k => deep(NOW.BA[k].passive) === deep(BASE.BA[k].passive)) && deep(NOW.BA.aureth.passiveDark) === deep(BASE.BA.aureth.passiveDark));
-  ck('no hero outside the two lists had a passive clip in BASE', NOW.HT.filter(k => BASE.BA[k] && BASE.BA[k].passive).every(k => FILLER_ALL.includes(k) || ACTIVE.includes(k) || k === 'aureth'));
+  ck('no hero outside the two lists had a passive clip in BASE', NOW.HT.filter(k => BASE.BA[k] && BASE.BA[k].passive).every(k => FILLER_ALL.includes(k) || ACTIVE.includes(k) || KEPT.includes(k) || k === 'aureth'));
+  ck('v1157: Sylthaine's Cold Snap passive (battle clip + Skills slot 3) and Aureth's and Carn's idle are byte-for-byte BASE', KEPT.every(k => deep(NOW.BA[k].passive) === deep(BASE.BA[k].passive) && !!NOW.BA[k].passive && deep(NOW.SC[k][3]) === deep(BASE.SC[k][3]) && !!NOW.SC[k][3])
+    && ['aureth', 'carn'].every(k => deep(NOW.BA[k].idle) === deep(BASE.BA[k].idle)) && !FIX.changes.some(c => (c.key === 'aureth' || c.key === 'carn') && c.state === 'idle'));
   ck('the Skills tab derives no passive preview for a FILLER hero (ensureSkillPreview, the no-stage fallback)', JSON.parse(run(`JSON.stringify(${JSON.stringify(FILLER)}.map(k=>{ try{ ensureSkillPreview(k); }catch(e){} const s=HERO_SKILL_CLIPS[k]||{}; return !s[3] || (k==='fritz'); }))`)).every(Boolean));
   const firePlays = r => JSON.parse(r(`(()=>{ const out=[]; units=[]; seedBattle(3); for(const k of ${JSON.stringify(FILLER.concat(ACTIVE))}){ const g=makeUnit(k,'ally',500,700,30,{owned:false,rank:5}); g.anim=BATTLE_ANIM[k]; units=[g];
       g._abilHold=0; g._lockPri=0; g._animLockT=0; g._abilAnim=null; firePassiveClip(g,2.0); out.push([k,g._abilAnim==='passive'?1:0]); } return JSON.stringify(out); })()`));
@@ -173,7 +176,7 @@ print(json.dumps(out))`;
       fs.writeFileSync(path.join(TMP, 'ctl.json'), JSON.stringify([jj]));
       const r = JSON.parse(cp.execFileSync(process.env.PYTHON || 'python', ['-I', path.join(TMP, 'px.py'), path.join(TMP, 'ctl.json')]).toString());
       ck('CONTROL: a cell map shifted by one cell fails the bit-for-bit check', r[0][1] === false); } }
-  ck('CONTROL: a FILLER passive put back would be caught (the removed list must equal FILLER)', removed.concat(['sylthaine']).sort().join() !== FILLER.slice().sort().join());
+  ck('CONTROL: a FILLER passive put back would be caught (the removed list must equal FILLER)', removed.slice(1).sort().join() !== FILLER.slice().sort().join());
 } catch (e) { fail++; console.log('  FAIL threw: ' + (e && e.stack || e)); }
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exitCode = fail ? 1 : 0;

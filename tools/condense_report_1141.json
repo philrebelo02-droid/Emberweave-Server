@@ -28,34 +28,6 @@
 "pBytes": 1244978,
 "pShipped": false
 },
-"/assets/anim/absalie/absalie_blue.webp": {
-"key": "absalie",
-"kind": "clip",
-"states": [
-"passive"
-],
-"src": "lossy",
-"bytes": 844126,
-"u": "/assets/anim/absalie/absalie_blue.webp?v=2",
-"n": 36,
-"fw": 237,
-"fh": 400,
-"cols": 6,
-"rows": 6,
-"figH": 314,
-"kV1140": 0.8533333333333334,
-"figOnScreen": 149.98375,
-"k2x": 0.95531050955414,
-"trimHigh": false,
-"memBudget": 2479752,
-"sideMax": 2048,
-"kWant": 0.95531050955414,
-"kMem": 0.8524103328370827,
-"kSide": 0.8533333333333334,
-"k": 0.8533333333333334,
-"pBytes": 2107508,
-"pShipped": false
-},
 "/assets/anim/absalie/absalie_green.webp": {
 "key": "absalie",
 "kind": "clip",
@@ -872,34 +844,6 @@
 "figH": 400,
 "skip": "idle/walk sheet (painted by the UI from the original)"
 },
-"/assets/anim/askel/askel_passive.webp": {
-"key": "askel",
-"kind": "clip",
-"states": [
-"passive"
-],
-"src": "lossy",
-"bytes": 1192288,
-"u": "/assets/anim/askel/askel_passive.webp?v=21",
-"n": 48,
-"fw": 352,
-"fh": 413,
-"cols": 6,
-"rows": 8,
-"figH": 400,
-"kV1140": 0.6198547215496368,
-"figOnScreen": 284.0412371134021,
-"k2x": 1.4202061855670103,
-"trimHigh": false,
-"memBudget": 2678784,
-"sideMax": 2048,
-"kWant": 1.0,
-"kMem": 0.6132314933735697,
-"kSide": 0.7084053960567278,
-"k": 0.6198547215496368,
-"pBytes": 2696642,
-"pShipped": false
-},
 "/assets/anim/askel/askel_ult_1128.webp": {
 "key": "askel",
 "kind": "clip",
@@ -1072,34 +1016,6 @@
 "rows": 8,
 "figH": 500,
 "skip": "idle/walk sheet (painted by the UI from the original)"
-},
-"/assets/anim/astra/astra_passive.webp": {
-"key": "astra",
-"kind": "clip",
-"states": [
-"passive"
-],
-"src": "lossy",
-"bytes": 1611792,
-"u": "/assets/anim/astra/astra_passive.webp?v=21",
-"n": 48,
-"fw": 373,
-"fh": 573,
-"cols": 6,
-"rows": 8,
-"figH": 500,
-"kV1140": 0.4467713787085515,
-"figOnScreen": 222.31270358306188,
-"k2x": 0.8892508143322475,
-"trimHigh": false,
-"memBudget": 2052096,
-"sideMax": 2048,
-"kWant": 0.8892508143322475,
-"kMem": 0.44265876703237883,
-"kSide": 0.5105958613812017,
-"k": 0.4467713787085515,
-"pBytes": 1778702,
-"pShipped": false
 },
 "/assets/anim/astra/astra_ult.webp": {
 "key": "astra",
@@ -1404,20 +1320,20 @@
 "skip": "cannot match v1140 within 2048 px",
 "k": null
 },
-"/assets/anim/aureth/aureth_walk_1153.webp": {
+"/assets/anim/aureth/aureth_walk_1155.webp": {
 "key": "aureth",
 "kind": "clip",
 "states": [
 "walk"
 ],
 "src": "lossless",
-"bytes": 2135858,
-"u": "/assets/anim/aureth/aureth_walk_1153.webp?v=1153",
-"n": 53,
+"bytes": 1476708,
+"u": "/assets/anim/aureth/aureth_walk_1155.webp?v=1155",
+"n": 36,
 "fw": 229,
 "fh": 255,
-"cols": 8,
-"rows": 7,
+"cols": 6,
+"rows": 6,
 "figH": 239,
 "skip": "idle/walk sheet (painted by the UI from the original)"
 },
@@ -1578,20 +1494,20 @@
 "pBytes": 2237606,
 "pShipped": false
 },
-"/assets/anim/bloatus/bloatus_walk.webp": {
+"/assets/anim/bloatus/bloatus_walk_1155.webp": {
 "key": "bloatus",
 "kind": "clip",
 "states": [
 "walk"
 ],
 "src": "lossless",
-"bytes": 4593562,
-"u": "/assets/anim/bloatus/bloatus_walk.webp?v=30",
-"n": 50,
+"bytes": 3330934,
+"u": "/assets/anim/bloatus/bloatus_walk_1155.webp?v=1155",
+"n": 36,
 "fw": 406,
 "fh": 558,
 "cols": 6,
-"rows": 9,
+"rows": 6,
 "figH": 394,
 "skip": "idle/walk sheet (painted by the UI from the original)"
 },
@@ -1982,34 +1898,6 @@
 "figH": 400,
 "skip": "idle/walk sheet (painted by the UI from the original)"
 },
-"/assets/anim/brannus/brannus_passive.webp": {
-"key": "brannus",
-"kind": "clip",
-"states": [
-"passive"
-],
-"src": "lossy",
-"bytes": 1655848,
-"u": "/assets/anim/brannus/brannus_passive.webp?v=21",
-"n": 48,
-"fw": 391,
-"fh": 413,
-"cols": 6,
-"rows": 8,
-"figH": 400,
-"kV1140": 0.6198547215496368,
-"figOnScreen": 231.83098591549296,
-"k2x": 1.1591549295774648,
-"trimHigh": false,
-"memBudget": 2973696,
-"sideMax": 2048,
-"kWant": 1.0,
-"kMem": 0.6130372153110806,
-"kSide": 0.7084053960567278,
-"k": 0.6198547215496368,
-"pBytes": 3232448,
-"pShipped": false
-},
 "/assets/anim/brannus/brannus_ult.webp": {
 "key": "brannus",
 "kind": "clip",
@@ -2183,34 +2071,6 @@
 "figH": 499,
 "skip": "idle/walk sheet (painted by the UI from the original)"
 },
-"/assets/anim/calypsa/calypsa_passive.webp": {
-"key": "calypsa",
-"kind": "clip",
-"states": [
-"passive"
-],
-"src": "lossy",
-"bytes": 2667356,
-"u": "/assets/anim/calypsa/calypsa_passive.webp?v=21",
-"n": 48,
-"fw": 465,
-"fh": 537,
-"cols": 6,
-"rows": 8,
-"figH": 499,
-"kV1140": 0.4767225325884544,
-"figOnScreen": 196.50283553875235,
-"k2x": 0.7875865151853801,
-"trimHigh": false,
-"memBudget": 2727936,
-"sideMax": 2048,
-"kWant": 0.7875865151853801,
-"kMem": 0.4721776531241542,
-"kSide": 0.5448257515296622,
-"k": 0.4767225325884544,
-"pBytes": 3417794,
-"pShipped": false
-},
 "/assets/anim/calypsa/calypsa_ult.webp": {
 "key": "calypsa",
 "kind": "clip",
@@ -2363,31 +2223,30 @@
 "skip": "cannot match v1140 within 2048 px",
 "k": null
 },
-"/assets/anim/carn/carn_hit_1142.webp": {
+"/assets/anim/carn/carn_hit_1155.webp": {
 "key": "carn",
 "kind": "clip",
 "states": [
 "hit"
 ],
 "src": "lossless",
-"bytes": 2941066,
-"u": "/assets/anim/carn/carn_hit_1142.webp?v=1142",
-"n": 48,
+"bytes": 905912,
+"u": "/assets/anim/carn/carn_hit_1155.webp?v=1155",
+"n": 15,
 "fw": 233,
 "fh": 341,
-"cols": 8,
-"rows": 6,
+"cols": 5,
+"rows": 3,
 "figH": 312,
 "kV1140": 1.0,
 "figOnScreen": 284.0412371134021,
 "k2x": 1.8207771609833467,
 "trimHigh": true,
-"memBudget": 3813744,
+"memBudget": 1191795,
 "sideMax": 2048,
 "kWant": 1.0,
-"kMem": 0.9933316599016166,
-"kSide": 0.8605042016806723,
-"skip": "cannot match v1140 within 2048 px",
+"kMem": 0.9781007423383629,
+"kSide": 1.5058823529411764,
 "k": null
 },
 "/assets/anim/carn/carn_idle_1142.webp": {
@@ -2578,34 +2437,6 @@
 "figH": 373,
 "skip": "idle/walk sheet (painted by the UI from the original)"
 },
-"/assets/anim/ceraline/ceraline_passive.webp": {
-"key": "ceraline",
-"kind": "clip",
-"states": [
-"passive"
-],
-"src": "lossy",
-"bytes": 822816,
-"u": "/assets/anim/ceraline/ceraline_passive.webp?v=2",
-"n": 36,
-"fw": 349,
-"fh": 400,
-"cols": 6,
-"rows": 6,
-"figH": 384,
-"kV1140": 0.8533333333333334,
-"figOnScreen": 157.0115577889447,
-"k2x": 0.8177685301507537,
-"trimHigh": false,
-"memBudget": 3658248,
-"sideMax": 2048,
-"kWant": 0.8177685301507537,
-"kMem": 0.8531838231607254,
-"kSide": 0.8533333333333334,
-"k": 0.8533333333333334,
-"pBytes": 2699944,
-"pShipped": false
-},
 "/assets/anim/ceraline/ceraline_ult.webp": {
 "key": "ceraline",
 "kind": "clip",
@@ -2778,34 +2609,6 @@
 "rows": 8,
 "figH": 444,
 "skip": "idle/walk sheet (painted by the UI from the original)"
-},
-"/assets/anim/dandra/dandra_passive.webp": {
-"key": "dandra",
-"kind": "clip",
-"states": [
-"passive"
-],
-"src": "lossy",
-"bytes": 1770108,
-"u": "/assets/anim/dandra/dandra_passive.webp?v=21",
-"n": 48,
-"fw": 470,
-"fh": 518,
-"cols": 6,
-"rows": 8,
-"figH": 500,
-"kV1140": 0.4942084942084942,
-"figOnScreen": 215.6794425087108,
-"k2x": 0.8627177700348432,
-"trimHigh": false,
-"memBudget": 2850816,
-"sideMax": 2048,
-"kWant": 0.8627177700348432,
-"kMem": 0.4888467643224486,
-"kSide": 0.5648097076668506,
-"k": 0.4942084942084942,
-"pBytes": 2434330,
-"pShipped": false
 },
 "/assets/anim/dandra/dandra_ult.webp": {
 "key": "dandra",
@@ -2980,34 +2783,6 @@
 "figH": 400,
 "skip": "idle/walk sheet (painted by the UI from the original)"
 },
-"/assets/anim/deepcleft/deepcleft_passive.webp": {
-"key": "deepcleft",
-"kind": "clip",
-"states": [
-"passive"
-],
-"src": "lossy",
-"bytes": 1524626,
-"u": "/assets/anim/deepcleft/deepcleft_passive.webp?v=21",
-"n": 48,
-"fw": 423,
-"fh": 434,
-"cols": 6,
-"rows": 8,
-"figH": 400,
-"kV1140": 0.5898617511520737,
-"figOnScreen": 211.54782608695655,
-"k2x": 1.0577391304347827,
-"trimHigh": false,
-"memBudget": 3072000,
-"sideMax": 2048,
-"kWant": 1.0,
-"kMem": 0.5843829241409635,
-"kSide": 0.67412771560237,
-"k": 0.5898617511520737,
-"pBytes": 3062796,
-"pShipped": false
-},
 "/assets/anim/deepcleft/deepcleft_ult.webp": {
 "key": "deepcleft",
 "kind": "clip",
@@ -3109,78 +2884,50 @@
 "pBytes": 1688402,
 "pShipped": true
 },
-"/assets/anim/fritz/fritz_hit.webp": {
+"/assets/anim/fritz/fritz_hit_1155.webp": {
 "key": "fritz",
 "kind": "clip",
 "states": [
 "hit"
 ],
 "src": "lossless",
-"bytes": 2331462,
-"u": "/assets/anim/fritz/fritz_hit.webp?v=30",
-"n": 48,
+"bytes": 693988,
+"u": "/assets/anim/fritz/fritz_hit_1155.webp?v=1155",
+"n": 15,
 "fw": 448,
 "fh": 491,
-"cols": 6,
-"rows": 8,
+"cols": 4,
+"rows": 4,
 "figH": 371,
-"kV1140": 0.5213849287169042,
+"kV1140": 1.0,
 "figOnScreen": 210.81001727115716,
 "k2x": 1.1364421416234887,
 "trimHigh": true,
-"memBudget": 2875392,
+"memBudget": 3519488,
 "sideMax": 2048,
 "kWant": 1.0,
-"kMem": 0.6712922673124938,
-"kSide": 0.7638940693770981,
-"k": 0.6712922673124938,
-"pBytes": 1756076,
-"pShipped": true
+"kMem": 1.417089726424757,
+"kSide": 1.3368146214099217,
+"k": 1.0,
+"pBytes": 705758,
+"pShipped": false
 },
-"/assets/anim/fritz/fritz_idle.webp": {
+"/assets/anim/fritz/fritz_idle_1155.webp": {
 "key": "fritz",
 "kind": "clip",
 "states": [
 "idle"
 ],
 "src": "lossless",
-"bytes": 2254884,
-"u": "/assets/anim/fritz/fritz_idle.webp?v=30",
-"n": 48,
+"bytes": 1234418,
+"u": "/assets/anim/fritz/fritz_idle_1155.webp?v=1155",
+"n": 24,
 "fw": 386,
 "fh": 493,
 "cols": 6,
-"rows": 8,
+"rows": 4,
 "figH": 371,
 "skip": "idle/walk sheet (painted by the UI from the original)"
-},
-"/assets/anim/fritz/fritz_passive.webp": {
-"key": "fritz",
-"kind": "clip",
-"states": [
-"passive"
-],
-"src": "lossless",
-"bytes": 2309708,
-"u": "/assets/anim/fritz/fritz_passive.webp?v=30",
-"n": 48,
-"fw": 626,
-"fh": 520,
-"cols": 6,
-"rows": 8,
-"figH": 371,
-"kV1140": 0.49230769230769234,
-"figOnScreen": 210.81001727115716,
-"k2x": 1.1364421416234887,
-"trimHigh": true,
-"memBudget": 3784704,
-"sideMax": 2048,
-"kWant": 1.0,
-"kMem": 0.6015952959077807,
-"kSide": 0.5648097076668506,
-"k": 0.5648097076668506,
-"pBytes": 1441140,
-"pShipped": true
 },
 "/assets/anim/fritz/fritz_surge.webp": {
 "key": "fritz",
@@ -3238,20 +2985,20 @@
 "pBytes": 1914944,
 "pShipped": true
 },
-"/assets/anim/fritz/fritz_walk.webp": {
+"/assets/anim/fritz/fritz_walk_1155.webp": {
 "key": "fritz",
 "kind": "clip",
 "states": [
 "walk"
 ],
 "src": "lossless",
-"bytes": 2643868,
-"u": "/assets/anim/fritz/fritz_walk.webp?v=30",
-"n": 50,
+"bytes": 1931996,
+"u": "/assets/anim/fritz/fritz_walk_1155.webp?v=1155",
+"n": 36,
 "fw": 383,
 "fh": 503,
 "cols": 6,
-"rows": 9,
+"rows": 6,
 "figH": 371,
 "skip": "idle/walk sheet (painted by the UI from the original)"
 },
@@ -9206,34 +8953,6 @@
 "figH": 400,
 "skip": "idle/walk sheet (painted by the UI from the original)"
 },
-"/assets/anim/grimsby/grimsby_passive.webp": {
-"key": "grimsby",
-"kind": "clip",
-"states": [
-"passive"
-],
-"src": "lossy",
-"bytes": 1606994,
-"u": "/assets/anim/grimsby/grimsby_passive.webp?v=21",
-"n": 48,
-"fw": 379,
-"fh": 486,
-"cols": 6,
-"rows": 8,
-"figH": 400,
-"kV1140": 0.5267489711934157,
-"figOnScreen": 227.71992818671455,
-"k2x": 1.1385996409335728,
-"trimHigh": false,
-"memBudget": 2457600,
-"sideMax": 2048,
-"kWant": 1.0,
-"kMem": 0.5218189175238238,
-"kSide": 0.6019988242210464,
-"k": 0.5267489711934157,
-"pBytes": 1692532,
-"pShipped": false
-},
 "/assets/anim/grimsby/grimsby_ult.webp": {
 "key": "grimsby",
 "kind": "clip",
@@ -9295,8 +9014,8 @@
 "rows": 8,
 "figH": 345,
 "kV1140": 0.5009784735812133,
-"figOnScreen": 234.86111111111111,
-"k2x": 1.3615136876006442,
+"figOnScreen": 231.250390625,
+"k2x": 1.340581974637681,
 "trimHigh": true,
 "memBudget": 3858432,
 "sideMax": 2048,
@@ -9323,8 +9042,8 @@
 "rows": 8,
 "figH": 350,
 "kV1140": 0.5182186234817814,
-"figOnScreen": 234.86111111111111,
-"k2x": 1.3420634920634922,
+"figOnScreen": 231.250390625,
+"k2x": 1.3214308035714286,
 "trimHigh": true,
 "memBudget": 3784704,
 "sideMax": 2048,
@@ -9351,8 +9070,8 @@
 "rows": 8,
 "figH": 321,
 "kV1140": 0.5,
-"figOnScreen": 234.86111111111111,
-"k2x": 1.4633091034960195,
+"figOnScreen": 231.250390625,
+"k2x": 1.440812402647975,
 "trimHigh": true,
 "memBudget": 3833856,
 "sideMax": 2048,
@@ -9379,8 +9098,8 @@
 "rows": 8,
 "figH": 350,
 "kV1140": 0.512,
-"figOnScreen": 234.86111111111111,
-"k2x": 1.3420634920634922,
+"figOnScreen": 231.250390625,
+"k2x": 1.3214308035714286,
 "trimHigh": true,
 "memBudget": 3354624,
 "sideMax": 2048,
@@ -9391,48 +9110,48 @@
 "pBytes": 3661108,
 "pShipped": true
 },
-"/assets/anim/grosk/grosk_hit_1112.webp": {
+"/assets/anim/grosk/grosk_hit_1155.webp": {
 "key": "grosk",
 "kind": "clip",
 "states": [
 "hit"
 ],
 "src": "lossless",
-"bytes": 6706450,
-"u": "/assets/anim/grosk/grosk_hit_1112.webp?v=22",
-"n": 48,
+"bytes": 1992128,
+"u": "/assets/anim/grosk/grosk_hit_1155.webp?v=1155",
+"n": 15,
 "fw": 613,
 "fh": 500,
-"cols": 6,
-"rows": 8,
+"cols": 4,
+"rows": 4,
 "figH": 350,
-"kV1140": 0.512,
-"figOnScreen": 234.86111111111111,
-"k2x": 1.3420634920634922,
+"kV1140": 0.835236541598695,
+"figOnScreen": 231.250390625,
+"k2x": 1.3214308035714286,
 "trimHigh": true,
-"memBudget": 3858432,
+"memBudget": 3424256,
 "sideMax": 2048,
 "kWant": 1.0,
-"kMem": 0.6306939468051698,
-"kSide": 0.5793493635077793,
-"k": 0.5793493635077793,
-"pBytes": 3359160,
-"pShipped": true
+"kMem": 1.0397630953264834,
+"kSide": 1.0138613861386139,
+"k": 1.0,
+"pBytes": 2029134,
+"pShipped": false
 },
-"/assets/anim/grosk/grosk_idle_1112.webp": {
+"/assets/anim/grosk/grosk_idle_1155.webp": {
 "key": "grosk",
 "kind": "clip",
 "states": [
 "idle"
 ],
 "src": "lossless",
-"bytes": 6163658,
-"u": "/assets/anim/grosk/grosk_idle_1112.webp?v=22",
-"n": 48,
+"bytes": 3306370,
+"u": "/assets/anim/grosk/grosk_idle_1155.webp?v=1155",
+"n": 24,
 "fw": 561,
 "fh": 470,
-"cols": 6,
-"rows": 8,
+"cols": 5,
+"rows": 5,
 "figH": 350,
 "skip": "idle/walk sheet (painted by the UI from the original)"
 },
@@ -9452,8 +9171,8 @@
 "rows": 8,
 "figH": 278,
 "kV1140": 0.5755395683453237,
-"figOnScreen": 234.86111111111111,
-"k2x": 1.6896482813749,
+"figOnScreen": 231.250390625,
+"k2x": 1.663671875,
 "trimHigh": true,
 "memBudget": 3794880,
 "sideMax": 2360,
@@ -9464,20 +9183,20 @@
 "pBytes": 2871652,
 "pShipped": true
 },
-"/assets/anim/grosk/grosk_walk_1112.webp": {
+"/assets/anim/grosk/grosk_walk_1155.webp": {
 "key": "grosk",
 "kind": "clip",
 "states": [
 "walk"
 ],
 "src": "lossless",
-"bytes": 6031830,
-"u": "/assets/anim/grosk/grosk_walk_1112.webp?v=22",
-"n": 48,
+"bytes": 4538404,
+"u": "/assets/anim/grosk/grosk_walk_1155.webp?v=1155",
+"n": 36,
 "fw": 561,
 "fh": 504,
 "cols": 6,
-"rows": 8,
+"rows": 6,
 "figH": 350,
 "skip": "idle/walk sheet (painted by the UI from the original)"
 },
@@ -9497,8 +9216,8 @@
 "rows": 8,
 "figH": 333,
 "kV1140": 0.5,
-"figOnScreen": 232.209375,
-"k2x": 1.394650900900901,
+"figOnScreen": 226.95859375,
+"k2x": 1.3631146771771772,
 "trimHigh": true,
 "memBudget": 4055040,
 "sideMax": 2048,
@@ -9525,8 +9244,8 @@
 "rows": 8,
 "figH": 382,
 "kV1140": 0.5059288537549407,
-"figOnScreen": 232.209375,
-"k2x": 1.215755890052356,
+"figOnScreen": 226.95859375,
+"k2x": 1.1882648887434555,
 "trimHigh": true,
 "memBudget": 3612672,
 "sideMax": 2048,
@@ -9553,8 +9272,8 @@
 "rows": 8,
 "figH": 273,
 "kV1140": 0.5860805860805861,
-"figOnScreen": 232.209375,
-"k2x": 1.7011675824175825,
+"figOnScreen": 226.95859375,
+"k2x": 1.6627003205128206,
 "trimHigh": true,
 "memBudget": 3873600,
 "sideMax": 2400,
@@ -9581,8 +9300,8 @@
 "rows": 8,
 "figH": 351,
 "kV1140": 0.5004887585532747,
-"figOnScreen": 232.209375,
-"k2x": 1.323130341880342,
+"figOnScreen": 226.95859375,
+"k2x": 1.2932113603988604,
 "trimHigh": true,
 "memBudget": 3911952,
 "sideMax": 2048,
@@ -9592,78 +9311,50 @@
 "skip": "cannot match v1140 within 2048 px",
 "k": null
 },
-"/assets/anim/gruel/gruel_hit.webp": {
+"/assets/anim/gruel/gruel_hit_1155.webp": {
 "key": "gruel",
 "kind": "clip",
 "states": [
 "hit"
 ],
 "src": "lossless",
-"bytes": 4759016,
-"u": "/assets/anim/gruel/gruel_hit.webp?v=22",
-"n": 48,
+"bytes": 1437988,
+"u": "/assets/anim/gruel/gruel_hit_1155.webp?v=1155",
+"n": 15,
 "fw": 593,
 "fh": 510,
-"cols": 6,
-"rows": 8,
+"cols": 4,
+"rows": 4,
 "figH": 382,
-"kV1140": 0.5019607843137255,
-"figOnScreen": 232.209375,
-"k2x": 1.215755890052356,
+"kV1140": 0.863406408094435,
+"figOnScreen": 226.95859375,
+"k2x": 1.1882648887434555,
 "trimHigh": true,
-"memBudget": 3661824,
+"memBudget": 3604480,
 "sideMax": 2048,
 "kWant": 1.0,
-"kMem": 0.6191085439917278,
-"kSide": 0.603240058910162,
-"k": 0.603240058910162,
-"pBytes": 2696322,
-"pShipped": true
+"kMem": 1.0776071238638234,
+"kSide": 1.0556701030927835,
+"k": 1.0,
+"pBytes": 1443524,
+"pShipped": false
 },
-"/assets/anim/gruel/gruel_idle.webp": {
+"/assets/anim/gruel/gruel_idle_1155.webp": {
 "key": "gruel",
 "kind": "clip",
 "states": [
 "idle"
 ],
 "src": "lossless",
-"bytes": 4845082,
-"u": "/assets/anim/gruel/gruel_idle.webp?v=22",
-"n": 48,
+"bytes": 2478172,
+"u": "/assets/anim/gruel/gruel_idle_1155.webp?v=1155",
+"n": 24,
 "fw": 496,
 "fh": 512,
-"cols": 6,
-"rows": 8,
+"cols": 5,
+"rows": 5,
 "figH": 382,
 "skip": "idle/walk sheet (painted by the UI from the original)"
-},
-"/assets/anim/gruel/gruel_passive.webp": {
-"key": "gruel",
-"kind": "clip",
-"states": [
-"passive"
-],
-"src": "lossless",
-"bytes": 5816598,
-"u": "/assets/anim/gruel/gruel_passive.webp?v=22",
-"n": 48,
-"fw": 579,
-"fh": 512,
-"cols": 6,
-"rows": 8,
-"figH": 363,
-"kV1140": 0.5,
-"figOnScreen": 232.209375,
-"k2x": 1.2793904958677687,
-"trimHigh": true,
-"memBudget": 3563520,
-"sideMax": 2048,
-"kWant": 1.0,
-"kMem": 0.6043226216553045,
-"kSide": 0.6082566082566082,
-"k": 0.6043226216553045,
-"pBytes": 2440236,
-"pShipped": true
 },
 "/assets/anim/gruel/gruel_ult.webp": {
 "key": "gruel",
@@ -9681,8 +9372,8 @@
 "rows": 8,
 "figH": 329,
 "kV1140": 0.5,
-"figOnScreen": 232.209375,
-"k2x": 1.4116071428571428,
+"figOnScreen": 226.95859375,
+"k2x": 1.3796875,
 "trimHigh": true,
 "memBudget": 2973696,
 "sideMax": 2048,
@@ -9693,20 +9384,20 @@
 "pBytes": 2000362,
 "pShipped": true
 },
-"/assets/anim/gruel/gruel_walk.webp": {
+"/assets/anim/gruel/gruel_walk_1155.webp": {
 "key": "gruel",
 "kind": "clip",
 "states": [
 "walk"
 ],
 "src": "lossless",
-"bytes": 5725946,
-"u": "/assets/anim/gruel/gruel_walk.webp?v=22",
-"n": 48,
+"bytes": 4312864,
+"u": "/assets/anim/gruel/gruel_walk_1155.webp?v=1155",
+"n": 36,
 "fw": 605,
 "fh": 512,
 "cols": 6,
-"rows": 8,
+"rows": 6,
 "figH": 376,
 "skip": "idle/walk sheet (painted by the UI from the original)"
 },
@@ -9837,34 +9528,6 @@
 "rows": 8,
 "figH": 400,
 "skip": "idle/walk sheet (painted by the UI from the original)"
-},
-"/assets/anim/hobb/hobb_passive.webp": {
-"key": "hobb",
-"kind": "clip",
-"states": [
-"passive"
-],
-"src": "lossy",
-"bytes": 1414538,
-"u": "/assets/anim/hobb/hobb_passive.webp?v=21",
-"n": 48,
-"fw": 344,
-"fh": 408,
-"cols": 6,
-"rows": 8,
-"figH": 400,
-"kV1140": 0.6274509803921569,
-"figOnScreen": 206.71328671328672,
-"k2x": 1.0335664335664336,
-"trimHigh": false,
-"memBudget": 2654208,
-"sideMax": 2048,
-"kWant": 1.0,
-"kMem": 0.6212410342859688,
-"kSide": 0.7170868347338936,
-"k": 0.6274509803921569,
-"pBytes": 2859020,
-"pShipped": false
 },
 "/assets/anim/hobb/hobb_ult.webp": {
 "key": "hobb",
@@ -10050,48 +9713,48 @@
 "pBytes": 1056088,
 "pShipped": true
 },
-"/assets/anim/hollow/hollow_hit_1126.webp": {
+"/assets/anim/hollow/hollow_hit_1155.webp": {
 "key": "hollow",
 "kind": "clip",
 "states": [
 "hit"
 ],
 "src": "lossless",
-"bytes": 2584438,
-"u": "/assets/anim/hollow/hollow_hit_1126.webp?v=1126",
-"n": 48,
+"bytes": 793220,
+"u": "/assets/anim/hollow/hollow_hit_1155.webp?v=1155",
+"n": 15,
 "fw": 488,
 "fh": 537,
-"cols": 8,
-"rows": 6,
+"cols": 4,
+"rows": 4,
 "figH": 390,
-"kV1140": 0.5245901639344263,
+"kV1140": 0.9534450651769087,
 "figOnScreen": 192.3,
 "k2x": 0.9861538461538462,
 "trimHigh": true,
-"memBudget": 3465216,
+"memBudget": 3809280,
 "sideMax": 2048,
 "kWant": 0.9861538461538462,
-"kMem": 0.6586378293074029,
-"kSide": 0.681984681984682,
-"k": 0.6586378293074029,
-"pBytes": 1686922,
-"pShipped": true
+"kMem": 1.259211811259085,
+"kSide": 1.1934731934731935,
+"k": 0.9861538461538462,
+"pBytes": 1043642,
+"pShipped": false
 },
-"/assets/anim/hollow/hollow_idle_1126.webp": {
+"/assets/anim/hollow/hollow_idle_1155.webp": {
 "key": "hollow",
 "kind": "clip",
 "states": [
 "idle"
 ],
 "src": "lossless",
-"bytes": 4876502,
-"u": "/assets/anim/hollow/hollow_idle_1126.webp?v=1126",
-"n": 42,
+"bytes": 2939592,
+"u": "/assets/anim/hollow/hollow_idle_1155.webp?v=1155",
+"n": 24,
 "fw": 515,
 "fh": 680,
-"cols": 7,
-"rows": 6,
+"cols": 6,
+"rows": 4,
 "figH": 592,
 "skip": "idle/walk sheet (painted by the UI from the original)"
 },
@@ -10499,34 +10162,6 @@
 "figH": 365,
 "skip": "idle/walk sheet (painted by the UI from the original)"
 },
-"/assets/anim/iver/iver_passive.webp": {
-"key": "iver",
-"kind": "clip",
-"states": [
-"passive"
-],
-"src": "lossy",
-"bytes": 970352,
-"u": "/assets/anim/iver/iver_passive.webp?v=3",
-"n": 48,
-"fw": 385,
-"fh": 400,
-"cols": 6,
-"rows": 8,
-"figH": 278,
-"kV1140": 0.64,
-"figOnScreen": 210.05599999999998,
-"k2x": 1.5111942446043165,
-"trimHigh": false,
-"memBudget": 3022848,
-"sideMax": 2048,
-"kWant": 1.0,
-"kMem": 0.6329213627023199,
-"kSide": 0.7314285714285714,
-"k": 0.64,
-"pBytes": 1598566,
-"pShipped": false
-},
 "/assets/anim/iver/iver_ult.webp": {
 "key": "iver",
 "kind": "clip",
@@ -10701,34 +10336,6 @@
 "figH": 386,
 "skip": "idle/walk sheet (painted by the UI from the original)"
 },
-"/assets/anim/joss/joss_passive.webp": {
-"key": "joss",
-"kind": "clip",
-"states": [
-"passive"
-],
-"src": "lossy",
-"bytes": 1121644,
-"u": "/assets/anim/joss/joss_passive.webp?v=3",
-"n": 48,
-"fw": 374,
-"fh": 400,
-"cols": 6,
-"rows": 8,
-"figH": 365,
-"kV1140": 0.64,
-"figOnScreen": 270.29650000000004,
-"k2x": 1.4810767123287674,
-"trimHigh": false,
-"memBudget": 2936832,
-"sideMax": 2048,
-"kWant": 1.0,
-"kMem": 0.632959197616584,
-"kSide": 0.7314285714285714,
-"k": 0.64,
-"pBytes": 2427058,
-"pShipped": false
-},
 "/assets/anim/joss/joss_ult.webp": {
 "key": "joss",
 "kind": "clip",
@@ -10902,34 +10509,6 @@
 "rows": 8,
 "figH": 400,
 "skip": "idle/walk sheet (painted by the UI from the original)"
-},
-"/assets/anim/kharos/kharos_passive.webp": {
-"key": "kharos",
-"kind": "clip",
-"states": [
-"passive"
-],
-"src": "lossy",
-"bytes": 1101054,
-"u": "/assets/anim/kharos/kharos_passive.webp?v=21",
-"n": 48,
-"fw": 313,
-"fh": 409,
-"cols": 6,
-"rows": 8,
-"figH": 400,
-"kV1140": 0.6259168704156479,
-"figOnScreen": 193.7560975609756,
-"k2x": 0.968780487804878,
-"trimHigh": false,
-"memBudget": 2408448,
-"sideMax": 2048,
-"kWant": 0.968780487804878,
-"kMem": 0.61963618904365,
-"kSide": 0.7153335661893119,
-"k": 0.6259168704156479,
-"pBytes": 2156646,
-"pShipped": false
 },
 "/assets/anim/kharos/kharos_ult.webp": {
 "key": "kharos",
@@ -11160,20 +10739,20 @@
 "pBytes": 1250440,
 "pShipped": false
 },
-"/assets/anim/konwu/konwu_walk.webp": {
+"/assets/anim/konwu/konwu_walk_1155.webp": {
 "key": "konwu",
 "kind": "clip",
 "states": [
 "walk"
 ],
 "src": "lossless",
-"bytes": 3641914,
-"u": "/assets/anim/konwu/konwu_walk.webp?v=30",
-"n": 50,
+"bytes": 2690678,
+"u": "/assets/anim/konwu/konwu_walk_1155.webp?v=1155",
+"n": 36,
 "fw": 296,
 "fh": 388,
 "cols": 6,
-"rows": 9,
+"rows": 6,
 "figH": 335,
 "skip": "idle/walk sheet (painted by the UI from the original)"
 },
@@ -11305,33 +10884,6 @@
 "rows": 8,
 "figH": 400,
 "skip": "idle/walk sheet (painted by the UI from the original)"
-},
-"/assets/anim/korvux/korvux_passive.webp": {
-"key": "korvux",
-"kind": "clip",
-"states": [
-"passive"
-],
-"src": "lossy",
-"bytes": 1701356,
-"u": "/assets/anim/korvux/korvux_passive.webp?v=27",
-"n": 48,
-"fw": 541,
-"fh": 423,
-"cols": 6,
-"rows": 8,
-"figH": 400,
-"kV1140": 0.6052009456264775,
-"figOnScreen": 237.12746858168762,
-"k2x": 1.1856373429084381,
-"trimHigh": false,
-"memBudget": 4018176,
-"sideMax": 2048,
-"kWant": 1.0,
-"kMem": 0.5986150362451781,
-"kSide": 0.5407974650118827,
-"skip": "cannot match v1140 within 2048 px",
-"k": null
 },
 "/assets/anim/korvux/korvux_ult.webp": {
 "key": "korvux",
@@ -11506,34 +11058,6 @@
 "rows": 8,
 "figH": 500,
 "skip": "idle/walk sheet (painted by the UI from the original)"
-},
-"/assets/anim/linnet/linnet_passive.webp": {
-"key": "linnet",
-"kind": "clip",
-"states": [
-"passive"
-],
-"src": "lossy",
-"bytes": 1072420,
-"u": "/assets/anim/linnet/linnet_passive.webp?v=21",
-"n": 48,
-"fw": 325,
-"fh": 520,
-"cols": 6,
-"rows": 8,
-"figH": 500,
-"kV1140": 0.49230769230769234,
-"figOnScreen": 204.6153846153846,
-"k2x": 0.8184615384615385,
-"trimHigh": false,
-"memBudget": 1966080,
-"sideMax": 2048,
-"kWant": 0.8184615384615385,
-"kMem": 0.4872582491622336,
-"kSide": 0.5626373626373626,
-"k": 0.49230769230769234,
-"pBytes": 1703440,
-"pShipped": false
 },
 "/assets/anim/linnet/linnet_ult.webp": {
 "key": "linnet",
@@ -11911,34 +11435,6 @@
 "figH": 500,
 "skip": "idle/walk sheet (painted by the UI from the original)"
 },
-"/assets/anim/lysara/lysara_passive.webp": {
-"key": "lysara",
-"kind": "clip",
-"states": [
-"passive"
-],
-"src": "lossy",
-"bytes": 2272486,
-"u": "/assets/anim/lysara/lysara_passive.webp?v=21",
-"n": 48,
-"fw": 536,
-"fh": 517,
-"cols": 6,
-"rows": 8,
-"figH": 500,
-"kV1140": 0.4951644100580271,
-"figOnScreen": 211.47798742138366,
-"k2x": 0.8459119496855346,
-"trimHigh": false,
-"memBudget": 3256320,
-"sideMax": 2048,
-"kWant": 0.8459119496855346,
-"kMem": 0.4897087138560221,
-"kSide": 0.5458422174840085,
-"k": 0.4951644100580271,
-"pBytes": 3394288,
-"pShipped": false
-},
 "/assets/anim/lysara/lysara_ult.webp": {
 "key": "lysara",
 "kind": "clip",
@@ -12110,34 +11606,6 @@
 "figH": 400,
 "skip": "idle/walk sheet (painted by the UI from the original)"
 },
-"/assets/anim/maren/maren_passive.webp": {
-"key": "maren",
-"kind": "clip",
-"states": [
-"passive"
-],
-"src": "lossy",
-"bytes": 1887902,
-"u": "/assets/anim/maren/maren_passive.webp?v=21",
-"n": 48,
-"fw": 398,
-"fh": 458,
-"cols": 6,
-"rows": 8,
-"figH": 400,
-"kV1140": 0.5589519650655022,
-"figOnScreen": 200.94562647754137,
-"k2x": 1.0047281323877069,
-"trimHigh": false,
-"memBudget": 2727936,
-"sideMax": 2048,
-"kWant": 1.0,
-"kMem": 0.5526431273428279,
-"kSide": 0.6388022457891454,
-"k": 0.5589519650655022,
-"pBytes": 3410912,
-"pShipped": false
-},
 "/assets/anim/maren/maren_ult_1140.webp": {
 "key": "maren",
 "kind": "clip",
@@ -12281,34 +11749,6 @@
 "rows": 8,
 "figH": 327,
 "skip": "idle/walk sheet (painted by the UI from the original)"
-},
-"/assets/anim/mellan/mellan_passive.webp": {
-"key": "mellan",
-"kind": "clip",
-"states": [
-"passive"
-],
-"src": "lossy",
-"bytes": 1510432,
-"u": "/assets/anim/mellan/mellan_passive.webp?v=3",
-"n": 48,
-"fw": 386,
-"fh": 400,
-"cols": 6,
-"rows": 8,
-"figH": 367,
-"kV1140": 0.64,
-"figOnScreen": 148.4625,
-"k2x": 0.8090599455040872,
-"trimHigh": false,
-"memBudget": 3035136,
-"sideMax": 2048,
-"kWant": 0.8090599455040872,
-"kMem": 0.6333844397976423,
-"kSide": 0.7314285714285714,
-"k": 0.64,
-"pBytes": 3026386,
-"pShipped": false
 },
 "/assets/anim/mellan/mellan_ult.webp": {
 "key": "mellan",
@@ -12484,34 +11924,6 @@
 "figH": 400,
 "skip": "idle/walk sheet (painted by the UI from the original)"
 },
-"/assets/anim/meridian/meridian_passive.webp": {
-"key": "meridian",
-"kind": "clip",
-"states": [
-"passive"
-],
-"src": "lossy",
-"bytes": 831180,
-"u": "/assets/anim/meridian/meridian_passive.webp?v=21",
-"n": 48,
-"fw": 259,
-"fh": 413,
-"cols": 6,
-"rows": 8,
-"figH": 400,
-"kV1140": 0.6198547215496368,
-"figOnScreen": 222.52354048964216,
-"k2x": 1.112617702448211,
-"trimHigh": false,
-"memBudget": 1978368,
-"sideMax": 2048,
-"kWant": 1.0,
-"kMem": 0.6143708357072928,
-"kSide": 0.7084053960567278,
-"k": 0.6198547215496368,
-"pBytes": 1566488,
-"pShipped": false
-},
 "/assets/anim/meridian/meridian_ult.webp": {
 "key": "meridian",
 "kind": "clip",
@@ -12684,34 +12096,6 @@
 "rows": 8,
 "figH": 500,
 "skip": "idle/walk sheet (painted by the UI from the original)"
-},
-"/assets/anim/mirelle/mirelle_passive.webp": {
-"key": "mirelle",
-"kind": "clip",
-"states": [
-"passive"
-],
-"src": "lossy",
-"bytes": 1844380,
-"u": "/assets/anim/mirelle/mirelle_passive.webp?v=21",
-"n": 48,
-"fw": 420,
-"fh": 518,
-"cols": 6,
-"rows": 8,
-"figH": 500,
-"kV1140": 0.4942084942084942,
-"figOnScreen": 192.42424242424244,
-"k2x": 0.7696969696969698,
-"trimHigh": false,
-"memBudget": 2555904,
-"sideMax": 2048,
-"kWant": 0.7696969696969698,
-"kMem": 0.4896488104143766,
-"kSide": 0.5648097076668506,
-"k": 0.4942084942084942,
-"pBytes": 3115522,
-"pShipped": false
 },
 "/assets/anim/mirelle/mirelle_ult.webp": {
 "key": "mirelle",
@@ -17866,34 +17250,6 @@
 "figH": 369,
 "skip": "idle/walk sheet (painted by the UI from the original)"
 },
-"/assets/anim/nerisse/nerisse_passive.webp": {
-"key": "nerisse",
-"kind": "clip",
-"states": [
-"passive"
-],
-"src": "lossy",
-"bytes": 1968492,
-"u": "/assets/anim/nerisse/nerisse_passive.webp?v=33",
-"n": 48,
-"fw": 242,
-"fh": 400,
-"cols": 6,
-"rows": 8,
-"figH": 399,
-"kV1140": 0.64,
-"figOnScreen": 147.8295,
-"k2x": 0.741,
-"trimHigh": false,
-"memBudget": 1904640,
-"sideMax": 2048,
-"kWant": 0.741,
-"kMem": 0.6336810673029364,
-"kSide": 0.7314285714285714,
-"k": 0.64,
-"pBytes": 3425822,
-"pShipped": false
-},
 "/assets/anim/nerisse/nerisse_ult.webp": {
 "key": "nerisse",
 "kind": "clip",
@@ -18068,34 +17424,6 @@
 "figH": 400,
 "skip": "idle/walk sheet (painted by the UI from the original)"
 },
-"/assets/anim/nox/nox_passive.webp": {
-"key": "nox",
-"kind": "clip",
-"states": [
-"passive"
-],
-"src": "lossy",
-"bytes": 1592700,
-"u": "/assets/anim/nox/nox_passive.webp?v=21",
-"n": 48,
-"fw": 421,
-"fh": 456,
-"cols": 6,
-"rows": 8,
-"figH": 400,
-"kV1140": 0.5614035087719298,
-"figOnScreen": 200.78239608801957,
-"k2x": 1.0039119804400978,
-"trimHigh": false,
-"memBudget": 2899968,
-"sideMax": 2048,
-"kWant": 1.0,
-"kMem": 0.5552327740581937,
-"kSide": 0.6416040100250626,
-"k": 0.5614035087719298,
-"pBytes": 2371746,
-"pShipped": false
-},
 "/assets/anim/nox/nox_ult.webp": {
 "key": "nox",
 "kind": "clip",
@@ -18225,48 +17553,48 @@
 "pBytes": 1431724,
 "pShipped": true
 },
-"/assets/anim/oakmir/oakmir_hit.webp": {
+"/assets/anim/oakmir/oakmir_hit_1155.webp": {
 "key": "oakmir",
 "kind": "clip",
 "states": [
 "hit"
 ],
 "src": "lossless",
-"bytes": 2952518,
-"u": "/assets/anim/oakmir/oakmir_hit.webp?v=8",
-"n": 48,
+"bytes": 937754,
+"u": "/assets/anim/oakmir/oakmir_hit_1155.webp?v=1155",
+"n": 15,
 "fw": 396,
 "fh": 490,
-"cols": 6,
-"rows": 8,
+"cols": 4,
+"rows": 4,
 "figH": 348,
-"kV1140": 0.5224489795918368,
+"kV1140": 1.0,
 "figOnScreen": 223.60509803921568,
 "k2x": 1.28508677034032,
 "trimHigh": true,
-"memBudget": 2543616,
+"memBudget": 3104640,
 "sideMax": 2048,
 "kWant": 1.0,
-"kMem": 0.6869099523341208,
-"kSide": 0.7658937920718025,
-"k": 0.6869099523341208,
-"pBytes": 1976272,
-"pShipped": true
+"kMem": 1.3373798684805538,
+"kSide": 1.3403141361256545,
+"k": 1.0,
+"pBytes": 942044,
+"pShipped": false
 },
-"/assets/anim/oakmir/oakmir_idle.webp": {
+"/assets/anim/oakmir/oakmir_idle_1155.webp": {
 "key": "oakmir",
 "kind": "clip",
 "states": [
 "idle"
 ],
 "src": "lossless",
-"bytes": 3162600,
-"u": "/assets/anim/oakmir/oakmir_idle.webp?v=8",
-"n": 48,
+"bytes": 1626100,
+"u": "/assets/anim/oakmir/oakmir_idle_1155.webp?v=1155",
+"n": 24,
 "fw": 369,
 "fh": 468,
 "cols": 6,
-"rows": 8,
+"rows": 4,
 "figH": 348,
 "skip": "idle/walk sheet (painted by the UI from the original)"
 },
@@ -18298,20 +17626,20 @@
 "pBytes": 1569502,
 "pShipped": true
 },
-"/assets/anim/oakmir/oakmir_walk.webp": {
+"/assets/anim/oakmir/oakmir_walk_1155.webp": {
 "key": "oakmir",
 "kind": "clip",
 "states": [
 "walk"
 ],
 "src": "lossless",
-"bytes": 3135428,
-"u": "/assets/anim/oakmir/oakmir_walk.webp?v=8",
-"n": 48,
+"bytes": 2397338,
+"u": "/assets/anim/oakmir/oakmir_walk_1155.webp?v=1155",
+"n": 36,
 "fw": 376,
 "fh": 508,
 "cols": 6,
-"rows": 8,
+"rows": 6,
 "figH": 348,
 "skip": "idle/walk sheet (painted by the UI from the original)"
 },
@@ -18443,34 +17771,6 @@
 "rows": 8,
 "figH": 400,
 "skip": "idle/walk sheet (painted by the UI from the original)"
-},
-"/assets/anim/orryn/orryn_passive.webp": {
-"key": "orryn",
-"kind": "clip",
-"states": [
-"passive"
-],
-"src": "lossy",
-"bytes": 1479006,
-"u": "/assets/anim/orryn/orryn_passive.webp?v=21",
-"n": 48,
-"fw": 323,
-"fh": 419,
-"cols": 6,
-"rows": 8,
-"figH": 400,
-"kV1140": 0.6109785202863962,
-"figOnScreen": 224.31683168316832,
-"k2x": 1.1215841584158417,
-"trimHigh": false,
-"memBudget": 2420736,
-"sideMax": 2048,
-"kWant": 1.0,
-"kMem": 0.6041814703550368,
-"kSide": 0.6982611660415956,
-"k": 0.6109785202863962,
-"pBytes": 2641862,
-"pShipped": false
 },
 "/assets/anim/orryn/orryn_ult.webp": {
 "key": "orryn",
@@ -18674,34 +17974,6 @@
 "figH": 400,
 "skip": "idle/walk sheet (painted by the UI from the original)"
 },
-"/assets/anim/pellucid/pellucid_passive.webp": {
-"key": "pellucid",
-"kind": "clip",
-"states": [
-"passive"
-],
-"src": "lossy",
-"bytes": 1432176,
-"u": "/assets/anim/pellucid/pellucid_passive.webp?v=21",
-"n": 48,
-"fw": 307,
-"fh": 412,
-"cols": 6,
-"rows": 8,
-"figH": 400,
-"kV1140": 0.6213592233009708,
-"figOnScreen": 234.28571428571428,
-"k2x": 1.1714285714285715,
-"trimHigh": false,
-"memBudget": 2347008,
-"sideMax": 2048,
-"kWant": 1.0,
-"kMem": 0.6153772677208302,
-"kSide": 0.710124826629681,
-"k": 0.6213592233009708,
-"pBytes": 3337302,
-"pShipped": false
-},
 "/assets/anim/pellucid/pellucid_ult_redo1.webp": {
 "key": "pellucid",
 "kind": "clip",
@@ -18831,78 +18103,50 @@
 "pBytes": 1298346,
 "pShipped": true
 },
-"/assets/anim/pyroclast/pyroclast_hit.webp": {
+"/assets/anim/pyroclast/pyroclast_hit_1155.webp": {
 "key": "pyroclast",
 "kind": "clip",
 "states": [
 "hit"
 ],
 "src": "lossless",
-"bytes": 4280152,
-"u": "/assets/anim/pyroclast/pyroclast_hit.webp?v=4",
-"n": 48,
+"bytes": 1341548,
+"u": "/assets/anim/pyroclast/pyroclast_hit_1155.webp?v=1155",
+"n": 15,
 "fw": 466,
 "fh": 584,
-"cols": 6,
-"rows": 8,
+"cols": 5,
+"rows": 3,
 "figH": 443,
-"kV1140": 0.4383561643835616,
+"kV1140": 0.878969957081545,
 "figOnScreen": 231.8314487632509,
 "k2x": 1.046643109540636,
 "trimHigh": true,
-"memBudget": 2506752,
-"sideMax": 2048,
+"memBudget": 3154950,
+"sideMax": 2050,
 "kWant": 1.0,
-"kMem": 0.5479143254065659,
-"kSide": 0.6146458583433373,
-"k": 0.5479143254065659,
-"pBytes": 2139508,
+"kMem": 1.1354329898915927,
+"kSide": 1.0789473684210527,
+"k": 1.0,
+"pBytes": 1338756,
 "pShipped": true
 },
-"/assets/anim/pyroclast/pyroclast_idle.webp": {
+"/assets/anim/pyroclast/pyroclast_idle_1155.webp": {
 "key": "pyroclast",
 "kind": "clip",
 "states": [
 "idle"
 ],
 "src": "lossless",
-"bytes": 4241368,
-"u": "/assets/anim/pyroclast/pyroclast_idle.webp?v=4",
-"n": 48,
+"bytes": 2155366,
+"u": "/assets/anim/pyroclast/pyroclast_idle_1155.webp?v=1155",
+"n": 24,
 "fw": 429,
 "fh": 580,
 "cols": 6,
-"rows": 8,
+"rows": 4,
 "figH": 443,
 "skip": "idle/walk sheet (painted by the UI from the original)"
-},
-"/assets/anim/pyroclast/pyroclast_passive.webp": {
-"key": "pyroclast",
-"kind": "clip",
-"states": [
-"passive"
-],
-"src": "lossless",
-"bytes": 4167916,
-"u": "/assets/anim/pyroclast/pyroclast_passive.webp?v=4",
-"n": 48,
-"fw": 427,
-"fh": 577,
-"cols": 6,
-"rows": 8,
-"figH": 443,
-"kV1140": 0.4436741767764298,
-"figOnScreen": 231.8314487632509,
-"k2x": 1.046643109540636,
-"trimHigh": true,
-"memBudget": 2322432,
-"sideMax": 2048,
-"kWant": 1.0,
-"kMem": 0.5628487430076337,
-"kSide": 0.6238196771245811,
-"k": 0.5628487430076337,
-"pBytes": 2154902,
-"pShipped": true
 },
 "/assets/anim/pyroclast/pyroclast_ult.webp": {
 "key": "pyroclast",
@@ -18932,20 +18176,20 @@
 "pBytes": 1294002,
 "pShipped": true
 },
-"/assets/anim/pyroclast/pyroclast_walk.webp": {
+"/assets/anim/pyroclast/pyroclast_walk_1155.webp": {
 "key": "pyroclast",
 "kind": "clip",
 "states": [
 "walk"
 ],
 "src": "lossless",
-"bytes": 4282932,
-"u": "/assets/anim/pyroclast/pyroclast_walk.webp?v=4",
-"n": 50,
+"bytes": 3111162,
+"u": "/assets/anim/pyroclast/pyroclast_walk_1155.webp?v=1155",
+"n": 36,
 "fw": 407,
 "fh": 569,
 "cols": 6,
-"rows": 9,
+"rows": 6,
 "figH": 443,
 "skip": "idle/walk sheet (painted by the UI from the original)"
 },
@@ -19077,34 +18321,6 @@
 "rows": 8,
 "figH": 400,
 "skip": "idle/walk sheet (painted by the UI from the original)"
-},
-"/assets/anim/quorrel/quorrel_passive.webp": {
-"key": "quorrel",
-"kind": "clip",
-"states": [
-"passive"
-],
-"src": "lossy",
-"bytes": 1982442,
-"u": "/assets/anim/quorrel/quorrel_passive.webp?v=21",
-"n": 48,
-"fw": 337,
-"fh": 430,
-"cols": 6,
-"rows": 8,
-"figH": 400,
-"kV1140": 0.5953488372093023,
-"figOnScreen": 211.54362416107384,
-"k2x": 1.0577181208053692,
-"trimHigh": false,
-"memBudget": 2469888,
-"sideMax": 2048,
-"kWant": 1.0,
-"kMem": 0.589781861421638,
-"kSide": 0.6803986710963456,
-"k": 0.5953488372093023,
-"pBytes": 2807826,
-"pShipped": false
 },
 "/assets/anim/quorrel/quorrel_ult.webp": {
 "key": "quorrel",
@@ -19307,34 +18523,6 @@
 "pBytes": 1572184,
 "pShipped": false
 },
-"/assets/anim/rafe/rafe_passive.webp": {
-"key": "rafe",
-"kind": "clip",
-"states": [
-"passive"
-],
-"src": "lossy",
-"bytes": 1063076,
-"u": "/assets/anim/rafe/rafe_passive.webp?v=3",
-"n": 48,
-"fw": 299,
-"fh": 400,
-"cols": 6,
-"rows": 8,
-"figH": 326,
-"kV1140": 0.64,
-"figOnScreen": 205.2670694864048,
-"k2x": 1.2593071747632196,
-"trimHigh": false,
-"memBudget": 2347008,
-"sideMax": 2048,
-"kWant": 1.0,
-"kMem": 0.632839611318441,
-"kSide": 0.7314285714285714,
-"k": 0.64,
-"pBytes": 2003950,
-"pShipped": false
-},
 "/assets/anim/rafe/rafe_ult.webp": {
 "key": "rafe",
 "kind": "clip",
@@ -19491,78 +18679,50 @@
 "pBytes": 3047964,
 "pShipped": true
 },
-"/assets/anim/rhukk/rhukk_hit.webp": {
+"/assets/anim/rhukk/rhukk_hit_1155.webp": {
 "key": "rhukk",
 "kind": "clip",
 "states": [
 "hit"
 ],
 "src": "lossless",
-"bytes": 3725476,
-"u": "/assets/anim/rhukk/rhukk_hit.webp?v=10",
-"n": 48,
+"bytes": 1229550,
+"u": "/assets/anim/rhukk/rhukk_hit_1155.webp?v=1155",
+"n": 15,
 "fw": 554,
 "fh": 502,
-"cols": 6,
-"rows": 8,
+"cols": 4,
+"rows": 4,
 "figH": 296,
-"kV1140": 0.5405405405405406,
+"kV1140": 0.924187725631769,
 "figOnScreen": 246.93885057471263,
 "k2x": 1.6685057471264366,
 "trimHigh": true,
-"memBudget": 3889392,
-"sideMax": 2168,
+"memBudget": 3801088,
+"sideMax": 2048,
 "kWant": 1.0,
-"kMem": 0.6720897592103697,
-"kSide": 0.6944266495836002,
-"k": 0.6720897592103697,
-"pBytes": 2474848,
+"kMem": 1.1627288019256792,
+"kSide": 1.147982062780269,
+"k": 1.0,
+"pBytes": 1166902,
 "pShipped": true
 },
-"/assets/anim/rhukk/rhukk_idle.webp": {
+"/assets/anim/rhukk/rhukk_idle_1155.webp": {
 "key": "rhukk",
 "kind": "clip",
 "states": [
 "idle"
 ],
 "src": "lossless",
-"bytes": 3325470,
-"u": "/assets/anim/rhukk/rhukk_idle.webp?v=10",
-"n": 48,
+"bytes": 1707560,
+"u": "/assets/anim/rhukk/rhukk_idle_1155.webp?v=1155",
+"n": 24,
 "fw": 510,
 "fh": 427,
-"cols": 6,
-"rows": 8,
+"cols": 5,
+"rows": 5,
 "figH": 294,
 "skip": "idle/walk sheet (painted by the UI from the original)"
-},
-"/assets/anim/rhukk/rhukk_passive.webp": {
-"key": "rhukk",
-"kind": "clip",
-"states": [
-"passive"
-],
-"src": "lossless",
-"bytes": 3874498,
-"u": "/assets/anim/rhukk/rhukk_passive.webp?v=1",
-"n": 48,
-"fw": 484,
-"fh": 474,
-"cols": 6,
-"rows": 8,
-"figH": 296,
-"kV1140": 0.5405405405405406,
-"figOnScreen": 246.93885057471263,
-"k2x": 1.6685057471264366,
-"trimHigh": true,
-"memBudget": 3219456,
-"sideMax": 2048,
-"kWant": 1.0,
-"kMem": 0.6909692838931303,
-"kSide": 0.7781155015197568,
-"k": 0.6909692838931303,
-"pBytes": 2770032,
-"pShipped": true
 },
 "/assets/anim/rhukk/rhukk_ult.webp": {
 "key": "rhukk",
@@ -19592,20 +18752,20 @@
 "pBytes": 2414026,
 "pShipped": true
 },
-"/assets/anim/rhukk/rhukk_walk.webp": {
+"/assets/anim/rhukk/rhukk_walk_1155.webp": {
 "key": "rhukk",
 "kind": "clip",
 "states": [
 "walk"
 ],
 "src": "lossless",
-"bytes": 3388928,
-"u": "/assets/anim/rhukk/rhukk_walk.webp?v=10",
-"n": 50,
+"bytes": 2455862,
+"u": "/assets/anim/rhukk/rhukk_walk_1155.webp?v=1155",
+"n": 36,
 "fw": 548,
 "fh": 449,
 "cols": 6,
-"rows": 9,
+"rows": 6,
 "figH": 294,
 "skip": "idle/walk sheet (painted by the UI from the original)"
 },
@@ -19925,33 +19085,6 @@
 "pBytes": 2310120,
 "pShipped": false
 },
-"/assets/anim/rivet/rivet_passive.webp": {
-"key": "rivet",
-"kind": "clip",
-"states": [
-"passive"
-],
-"src": "lossy",
-"bytes": 2570396,
-"u": "/assets/anim/rivet/rivet_passive.webp?v=21",
-"n": 48,
-"fw": 564,
-"fh": 471,
-"cols": 6,
-"rows": 8,
-"figH": 400,
-"kV1140": 0.5435244161358811,
-"figOnScreen": 201.4354066985646,
-"k2x": 1.007177033492823,
-"trimHigh": false,
-"memBudget": 3772416,
-"sideMax": 2048,
-"kWant": 1.0,
-"kMem": 0.5383463136045692,
-"kSide": 0.5187436676798379,
-"skip": "cannot match v1140 within 2048 px",
-"k": null
-},
 "/assets/anim/rivet/rivet_revolver_1137.webp": {
 "key": "rivet",
 "kind": "clip",
@@ -20205,34 +19338,6 @@
 "figH": 500,
 "skip": "idle/walk sheet (painted by the UI from the original)"
 },
-"/assets/anim/seyla/seyla_passive.webp": {
-"key": "seyla",
-"kind": "clip",
-"states": [
-"passive"
-],
-"src": "lossy",
-"bytes": 1651834,
-"u": "/assets/anim/seyla/seyla_passive.webp?v=21",
-"n": 48,
-"fw": 451,
-"fh": 546,
-"cols": 6,
-"rows": 8,
-"figH": 500,
-"kV1140": 0.46886446886446886,
-"figOnScreen": 203.1021897810219,
-"k2x": 0.8124087591240876,
-"trimHigh": false,
-"memBudget": 2592768,
-"sideMax": 2048,
-"kWant": 0.8124087591240876,
-"kMem": 0.4635527871870279,
-"kSide": 0.5358451072736787,
-"k": 0.46886446886446886,
-"pBytes": 2280070,
-"pShipped": false
-},
 "/assets/anim/seyla/seyla_ult.webp": {
 "key": "seyla",
 "kind": "clip",
@@ -20402,34 +19507,6 @@
 "rows": 6,
 "figH": 390,
 "skip": "idle/walk sheet (painted by the UI from the original)"
-},
-"/assets/anim/sloe/sloe_passive.webp": {
-"key": "sloe",
-"kind": "clip",
-"states": [
-"passive"
-],
-"src": "lossy",
-"bytes": 837084,
-"u": "/assets/anim/sloe/sloe_passive.webp?v=2",
-"n": 36,
-"fw": 319,
-"fh": 400,
-"cols": 6,
-"rows": 6,
-"figH": 367,
-"kV1140": 0.8533333333333334,
-"figOnScreen": 148.95103244837756,
-"k2x": 0.811722247675082,
-"trimHigh": false,
-"memBudget": 3339072,
-"sideMax": 2048,
-"kWant": 0.811722247675082,
-"kMem": 0.8525822844301527,
-"kSide": 0.8533333333333334,
-"k": 0.8533333333333334,
-"pBytes": 2591564,
-"pShipped": false
 },
 "/assets/anim/sloe/sloe_ult.webp": {
 "key": "sloe",
@@ -20603,34 +19680,6 @@
 "rows": 8,
 "figH": 400,
 "skip": "idle/walk sheet (painted by the UI from the original)"
-},
-"/assets/anim/sorrel/sorrel_passive.webp": {
-"key": "sorrel",
-"kind": "clip",
-"states": [
-"passive"
-],
-"src": "lossy",
-"bytes": 1124110,
-"u": "/assets/anim/sorrel/sorrel_passive.webp?v=21",
-"n": 48,
-"fw": 303,
-"fh": 412,
-"cols": 6,
-"rows": 8,
-"figH": 400,
-"kV1140": 0.6213592233009708,
-"figOnScreen": 203.82978723404256,
-"k2x": 1.0191489361702128,
-"trimHigh": false,
-"memBudget": 2310144,
-"sideMax": 2048,
-"kWant": 1.0,
-"kMem": 0.6145419918173812,
-"kSide": 0.710124826629681,
-"k": 0.6213592233009708,
-"pBytes": 2346818,
-"pShipped": false
 },
 "/assets/anim/sorrel/sorrel_ult.webp": {
 "key": "sorrel",
@@ -21006,34 +20055,6 @@
 "figH": 500,
 "skip": "idle/walk sheet (painted by the UI from the original)"
 },
-"/assets/anim/tessit/tessit_passive.webp": {
-"key": "tessit",
-"kind": "clip",
-"states": [
-"passive"
-],
-"src": "lossy",
-"bytes": 1691512,
-"u": "/assets/anim/tessit/tessit_passive.webp?v=21",
-"n": 48,
-"fw": 323,
-"fh": 518,
-"cols": 6,
-"rows": 8,
-"figH": 500,
-"kV1140": 0.4942084942084942,
-"figOnScreen": 203.0214424951267,
-"k2x": 0.8120857699805069,
-"trimHigh": false,
-"memBudget": 1966080,
-"sideMax": 2048,
-"kWant": 0.8120857699805069,
-"kMem": 0.4897071123506926,
-"kSide": 0.5648097076668506,
-"k": 0.4942084942084942,
-"pBytes": 1899184,
-"pShipped": false
-},
 "/assets/anim/tessit/tessit_ult.webp": {
 "key": "tessit",
 "kind": "clip",
@@ -21095,8 +20116,8 @@
 "rows": 8,
 "figH": 226,
 "kV1140": 0.7804878048780488,
-"figOnScreen": 232.31038961038962,
-"k2x": 2.055844155844156,
+"figOnScreen": 229.92627118644066,
+"k2x": 2.0347457627118644,
 "trimHigh": true,
 "memBudget": 4005888,
 "sideMax": 2048,
@@ -21123,8 +20144,8 @@
 "rows": 8,
 "figH": 226,
 "kV1140": 0.7079646017699115,
-"figOnScreen": 232.31038961038962,
-"k2x": 2.055844155844156,
+"figOnScreen": 229.92627118644066,
+"k2x": 2.0347457627118644,
 "trimHigh": true,
 "memBudget": 3473280,
 "sideMax": 2160,
@@ -21151,8 +20172,8 @@
 "rows": 8,
 "figH": 225,
 "kV1140": 0.7111111111111111,
-"figOnScreen": 232.31038961038962,
-"k2x": 2.064981240981241,
+"figOnScreen": 229.92627118644066,
+"k2x": 2.043789077212806,
 "trimHigh": true,
 "memBudget": 5490720,
 "sideMax": 2790,
@@ -21179,8 +20200,8 @@
 "rows": 8,
 "figH": 225,
 "kV1140": 0.7398843930635838,
-"figOnScreen": 232.31038961038962,
-"k2x": 2.064981240981241,
+"figOnScreen": 229.92627118644066,
+"k2x": 2.043789077212806,
 "trimHigh": true,
 "memBudget": 3649536,
 "sideMax": 2048,
@@ -21191,48 +20212,48 @@
 "pBytes": 2650328,
 "pShipped": false
 },
-"/assets/anim/tharl/tharl_hit.webp": {
+"/assets/anim/tharl/tharl_hit_1155.webp": {
 "key": "tharl",
 "kind": "clip",
 "states": [
 "hit"
 ],
 "src": "lossless",
-"bytes": 2032262,
-"u": "/assets/anim/tharl/tharl_hit.webp?v=23",
-"n": 48,
+"bytes": 586526,
+"u": "/assets/anim/tharl/tharl_hit_1155.webp?v=1155",
+"n": 15,
 "fw": 378,
 "fh": 346,
-"cols": 6,
-"rows": 8,
+"cols": 4,
+"rows": 4,
 "figH": 226,
-"kV1140": 0.7398843930635838,
-"figOnScreen": 232.31038961038962,
-"k2x": 2.055844155844156,
+"kV1140": 1.0,
+"figOnScreen": 229.92627118644066,
+"k2x": 2.0347457627118644,
 "trimHigh": true,
-"memBudget": 3440640,
+"memBudget": 2092608,
 "sideMax": 2048,
 "kWant": 1.0,
-"kMem": 1.0453247094400537,
-"kSide": 1.0835978835978837,
+"kMem": 1.4266373462261033,
+"kSide": 1.8962962962962964,
 "k": 1.0,
-"pBytes": 2061998,
+"pBytes": 600294,
 "pShipped": false
 },
-"/assets/anim/tharl/tharl_idle.webp": {
+"/assets/anim/tharl/tharl_idle_1155.webp": {
 "key": "tharl",
 "kind": "clip",
 "states": [
 "idle"
 ],
 "src": "lossless",
-"bytes": 3220406,
-"u": "/assets/anim/tharl/tharl_idle.webp?v=23",
-"n": 48,
+"bytes": 1639342,
+"u": "/assets/anim/tharl/tharl_idle_1155.webp?v=1155",
+"n": 24,
 "fw": 322,
 "fh": 302,
-"cols": 6,
-"rows": 8,
+"cols": 5,
+"rows": 5,
 "figH": 226,
 "skip": "idle/walk sheet (painted by the UI from the original)"
 },
@@ -21252,8 +20273,8 @@
 "rows": 4,
 "figH": 226,
 "kV1140": 0.9588014981273408,
-"figOnScreen": 232.31038961038962,
-"k2x": 2.055844155844156,
+"figOnScreen": 229.92627118644066,
+"k2x": 2.0347457627118644,
 "trimHigh": true,
 "memBudget": 2717088,
 "sideMax": 2048,
@@ -21280,8 +20301,8 @@
 "rows": 8,
 "figH": 226,
 "kV1140": 0.7079646017699115,
-"figOnScreen": 232.31038961038962,
-"k2x": 2.055844155844156,
+"figOnScreen": 229.92627118644066,
+"k2x": 2.0347457627118644,
 "trimHigh": true,
 "memBudget": 6124224,
 "sideMax": 2672,
@@ -21292,20 +20313,20 @@
 "pBytes": 2093200,
 "pShipped": false
 },
-"/assets/anim/tharl/tharl_walk.webp": {
+"/assets/anim/tharl/tharl_walk_1155.webp": {
 "key": "tharl",
 "kind": "clip",
 "states": [
 "walk"
 ],
 "src": "lossless",
-"bytes": 2891150,
-"u": "/assets/anim/tharl/tharl_walk.webp?v=23",
-"n": 50,
+"bytes": 2120410,
+"u": "/assets/anim/tharl/tharl_walk_1155.webp?v=1155",
+"n": 36,
 "fw": 375,
 "fh": 308,
 "cols": 6,
-"rows": 9,
+"rows": 6,
 "figH": 226,
 "skip": "idle/walk sheet (painted by the UI from the original)"
 },
@@ -21437,34 +20458,6 @@
 "rows": 8,
 "figH": 400,
 "skip": "idle/walk sheet (painted by the UI from the original)"
-},
-"/assets/anim/tick/tick_passive.webp": {
-"key": "tick",
-"kind": "clip",
-"states": [
-"passive"
-],
-"src": "lossy",
-"bytes": 1152568,
-"u": "/assets/anim/tick/tick_passive.webp?v=21",
-"n": 48,
-"fw": 327,
-"fh": 412,
-"cols": 6,
-"rows": 8,
-"figH": 400,
-"kV1140": 0.6213592233009708,
-"figOnScreen": 232.64150943396226,
-"k2x": 1.1632075471698113,
-"trimHigh": false,
-"memBudget": 2494464,
-"sideMax": 2048,
-"kWant": 1.0,
-"kMem": 0.6147069111755505,
-"kSide": 0.710124826629681,
-"k": 0.6213592233009708,
-"pBytes": 2187636,
-"pShipped": false
 },
 "/assets/anim/tick/tick_ult.webp": {
 "key": "tick",
@@ -21638,34 +20631,6 @@
 "figH": 366,
 "skip": "idle/walk sheet (painted by the UI from the original)"
 },
-"/assets/anim/tolley/tolley_passive.webp": {
-"key": "tolley",
-"kind": "clip",
-"states": [
-"passive"
-],
-"src": "lossy",
-"bytes": 1325882,
-"u": "/assets/anim/tolley/tolley_passive.webp?v=3",
-"n": 48,
-"fw": 376,
-"fh": 400,
-"cols": 6,
-"rows": 8,
-"figH": 311,
-"kV1140": 0.64,
-"figOnScreen": 215.4878048780488,
-"k2x": 1.3857736648106032,
-"trimHigh": false,
-"memBudget": 2961408,
-"sideMax": 2048,
-"kWant": 1.0,
-"kMem": 0.6339093601267254,
-"kSide": 0.7314285714285714,
-"k": 0.64,
-"pBytes": 2567076,
-"pShipped": false
-},
 "/assets/anim/tolley/tolley_ult.webp": {
 "key": "tolley",
 "kind": "clip",
@@ -21795,78 +20760,50 @@
 "pBytes": 1660388,
 "pShipped": true
 },
-"/assets/anim/umbris/umbris_hit_1115.webp": {
+"/assets/anim/umbris/umbris_hit_1155.webp": {
 "key": "umbris",
 "kind": "clip",
 "states": [
 "hit"
 ],
 "src": "lossless",
-"bytes": 3835436,
-"u": "/assets/anim/umbris/umbris_hit_1115.webp?v=1115",
-"n": 48,
+"bytes": 1107016,
+"u": "/assets/anim/umbris/umbris_hit_1155.webp?v=1155",
+"n": 15,
 "fw": 570,
 "fh": 512,
-"cols": 6,
-"rows": 8,
+"cols": 4,
+"rows": 4,
 "figH": 364,
-"kV1140": 0.5,
+"kV1140": 0.8982456140350877,
 "figOnScreen": 217.6187866927593,
 "k2x": 1.1957076191909852,
 "trimHigh": true,
-"memBudget": 3502080,
+"memBudget": 3768320,
 "sideMax": 2048,
 "kWant": 1.0,
-"kMem": 0.6075296166587721,
-"kSide": 0.6224924012158055,
-"k": 0.6075296166587721,
-"pBytes": 1674678,
+"kMem": 1.1028497760752072,
+"kSide": 1.0893617021276596,
+"k": 1.0,
+"pBytes": 1083748,
 "pShipped": true
 },
-"/assets/anim/umbris/umbris_idle_1115.webp": {
+"/assets/anim/umbris/umbris_idle_1155.webp": {
 "key": "umbris",
 "kind": "clip",
 "states": [
 "idle"
 ],
 "src": "lossless",
-"bytes": 2894568,
-"u": "/assets/anim/umbris/umbris_idle_1115.webp?v=1115",
-"n": 48,
+"bytes": 1466730,
+"u": "/assets/anim/umbris/umbris_idle_1155.webp?v=1155",
+"n": 24,
 "fw": 540,
 "fh": 508,
-"cols": 6,
-"rows": 8,
+"cols": 5,
+"rows": 5,
 "figH": 376,
 "skip": "idle/walk sheet (painted by the UI from the original)"
-},
-"/assets/anim/umbris/umbris_passive_1115.webp": {
-"key": "umbris",
-"kind": "clip",
-"states": [
-"passive"
-],
-"src": "lossless",
-"bytes": 2689356,
-"u": "/assets/anim/umbris/umbris_passive_1115.webp?v=1115",
-"n": 48,
-"fw": 568,
-"fh": 504,
-"cols": 6,
-"rows": 8,
-"figH": 376,
-"kV1140": 0.5079365079365079,
-"figOnScreen": 217.6187866927593,
-"k2x": 1.157546737727443,
-"trimHigh": true,
-"memBudget": 3551232,
-"sideMax": 2048,
-"kWant": 1.0,
-"kMem": 0.6307612046080349,
-"kSide": 0.6360248447204969,
-"k": 0.6307612046080349,
-"pBytes": 1737712,
-"pShipped": true
 },
 "/assets/anim/umbris/umbris_ult_1115.webp": {
 "key": "umbris",
@@ -21896,20 +20833,20 @@
 "pBytes": 1224928,
 "pShipped": true
 },
-"/assets/anim/umbris/umbris_walk_1115.webp": {
+"/assets/anim/umbris/umbris_walk_1155.webp": {
 "key": "umbris",
 "kind": "clip",
 "states": [
 "walk"
 ],
 "src": "lossless",
-"bytes": 3812650,
-"u": "/assets/anim/umbris/umbris_walk_1115.webp?v=1115",
-"n": 48,
+"bytes": 2878208,
+"u": "/assets/anim/umbris/umbris_walk_1155.webp?v=1155",
+"n": 36,
 "fw": 530,
 "fh": 512,
 "cols": 6,
-"rows": 8,
+"rows": 6,
 "figH": 364,
 "skip": "idle/walk sheet (painted by the UI from the original)"
 },
@@ -21929,8 +20866,8 @@
 "rows": 8,
 "figH": 326,
 "kV1140": 0.49079754601226994,
-"figOnScreen": 230.2732456140351,
-"k2x": 1.412719298245614,
+"figOnScreen": 225.99850968703427,
+"k2x": 1.386493924460333,
 "trimHigh": false,
 "memBudget": 4585920,
 "sideMax": 2248,
@@ -21957,8 +20894,8 @@
 "rows": 8,
 "figH": 326,
 "kV1140": 0.5739910313901345,
-"figOnScreen": 230.2732456140351,
-"k2x": 1.412719298245614,
+"figOnScreen": 225.99850968703427,
+"k2x": 1.386493924460333,
 "trimHigh": false,
 "memBudget": 2691072,
 "sideMax": 2048,
@@ -21985,8 +20922,8 @@
 "rows": 8,
 "figH": 326,
 "kV1140": 0.49079754601227005,
-"figOnScreen": 230.2732456140351,
-"k2x": 1.412719298245614,
+"figOnScreen": 225.99850968703427,
+"k2x": 1.386493924460333,
 "trimHigh": false,
 "memBudget": 5052960,
 "sideMax": 2552,
@@ -22013,8 +20950,8 @@
 "rows": 8,
 "figH": 326,
 "kV1140": 0.49079754601226994,
-"figOnScreen": 230.2732456140351,
-"k2x": 1.412719298245614,
+"figOnScreen": 225.99850968703427,
+"k2x": 1.386493924460333,
 "trimHigh": false,
 "memBudget": 3189264,
 "sideMax": 2152,
@@ -22058,8 +20995,8 @@
 "rows": 8,
 "figH": 325,
 "kV1140": 0.49230769230769234,
-"figOnScreen": 230.2732456140351,
-"k2x": 1.4170661268556006,
+"figOnScreen": 225.99850968703427,
+"k2x": 1.3907600596125187,
 "trimHigh": false,
 "memBudget": 3072960,
 "sideMax": 2640,
@@ -22070,20 +21007,20 @@
 "pBytes": 1482114,
 "pShipped": false
 },
-"/assets/anim/vael/vael_walk.webp": {
+"/assets/anim/vael/vael_walk_1155.webp": {
 "key": "vael",
 "kind": "clip",
 "states": [
 "walk"
 ],
 "src": "lossless",
-"bytes": 3345908,
-"u": "/assets/anim/vael/vael_walk.webp?v=30",
-"n": 50,
+"bytes": 2462742,
+"u": "/assets/anim/vael/vael_walk_1155.webp?v=1155",
+"n": 36,
 "fw": 403,
 "fh": 456,
 "cols": 6,
-"rows": 9,
+"rows": 6,
 "figH": 326,
 "skip": "idle/walk sheet (painted by the UI from the original)"
 },
@@ -22215,34 +21152,6 @@
 "rows": 8,
 "figH": 500,
 "skip": "idle/walk sheet (painted by the UI from the original)"
-},
-"/assets/anim/vaelora/vaelora_passive.webp": {
-"key": "vaelora",
-"kind": "clip",
-"states": [
-"passive"
-],
-"src": "lossy",
-"bytes": 1902252,
-"u": "/assets/anim/vaelora/vaelora_passive.webp?v=21",
-"n": 48,
-"fw": 496,
-"fh": 557,
-"cols": 6,
-"rows": 8,
-"figH": 500,
-"kV1140": 0.45960502692998206,
-"figOnScreen": 197.84735812133073,
-"k2x": 0.7913894324853229,
-"trimHigh": false,
-"memBudget": 2801664,
-"sideMax": 2048,
-"kWant": 0.7913894324853229,
-"kMem": 0.4549268281527036,
-"kSide": 0.5252628879199794,
-"k": 0.45960502692998206,
-"pBytes": 1964744,
-"pShipped": false
 },
 "/assets/anim/vaelora/vaelora_ult.webp": {
 "key": "vaelora",
@@ -22620,34 +21529,6 @@
 "figH": 501,
 "skip": "idle/walk sheet (painted by the UI from the original)"
 },
-"/assets/anim/vex/vex_passive.webp": {
-"key": "vex",
-"kind": "clip",
-"states": [
-"passive"
-],
-"src": "lossy",
-"bytes": 520940,
-"u": "/assets/anim/vex/vex_passive.webp?v=87",
-"n": 48,
-"fw": 740,
-"fh": 765,
-"cols": 6,
-"rows": 8,
-"figH": 501,
-"kV1140": 0.33464052287581697,
-"figOnScreen": 200.8733834586466,
-"k2x": 0.8018897543259346,
-"trimHigh": false,
-"memBudget": 3047424,
-"sideMax": 2048,
-"kWant": 0.8018897543259346,
-"kMem": 0.3870144475050333,
-"kSide": 0.44531419873885625,
-"k": 0.3870144475050333,
-"pBytes": 764682,
-"pShipped": false
-},
 "/assets/anim/vex/vex_ult.webp": {
 "key": "vex",
 "kind": "clip",
@@ -22819,34 +21700,6 @@
 "rows": 8,
 "figH": 400,
 "skip": "idle/walk sheet (painted by the UI from the original)"
-},
-"/assets/anim/veyr/veyr_passive.webp": {
-"key": "veyr",
-"kind": "clip",
-"states": [
-"passive"
-],
-"src": "lossy",
-"bytes": 1793562,
-"u": "/assets/anim/veyr/veyr_passive.webp?v=21",
-"n": 48,
-"fw": 467,
-"fh": 440,
-"cols": 6,
-"rows": 8,
-"figH": 400,
-"kV1140": 0.5818181818181818,
-"figOnScreen": 201.73611111111111,
-"k2x": 1.0086805555555556,
-"trimHigh": false,
-"memBudget": 3342336,
-"sideMax": 2048,
-"kWant": 1.0,
-"kMem": 0.5761588468614983,
-"kSide": 0.6264912817375344,
-"k": 0.5818181818181818,
-"pBytes": 3157226,
-"pShipped": false
 },
 "/assets/anim/veyr/veyr_ult.webp": {
 "key": "veyr",
@@ -23022,34 +21875,6 @@
 "figH": 595,
 "skip": "idle/walk sheet (painted by the UI from the original)"
 },
-"/assets/anim/vireo/vireo_passive.webp": {
-"key": "vireo",
-"kind": "clip",
-"states": [
-"passive"
-],
-"src": "lossy",
-"bytes": 568574,
-"u": "/assets/anim/vireo/vireo_passive.webp?v=23",
-"n": 48,
-"fw": 450,
-"fh": 624,
-"cols": 6,
-"rows": 8,
-"figH": 596,
-"kV1140": 0.41025641025641024,
-"figOnScreen": 198.12193548387094,
-"k2x": 0.6648387096774193,
-"trimHigh": false,
-"memBudget": 2273280,
-"sideMax": 2048,
-"kWant": 0.6648387096774193,
-"kMem": 0.40647128813244726,
-"kSide": 0.46886446886446886,
-"k": 0.41025641025641024,
-"pBytes": 1050588,
-"pShipped": false
-},
 "/assets/anim/vireo/vireo_ult.webp": {
 "key": "vireo",
 "kind": "clip",
@@ -23224,34 +22049,6 @@
 "figH": 400,
 "skip": "idle/walk sheet (painted by the UI from the original)"
 },
-"/assets/anim/vulmar/vulmar_passive.webp": {
-"key": "vulmar",
-"kind": "clip",
-"states": [
-"passive"
-],
-"src": "lossy",
-"bytes": 1095114,
-"u": "/assets/anim/vulmar/vulmar_passive.webp?v=21",
-"n": 48,
-"fw": 252,
-"fh": 421,
-"cols": 6,
-"rows": 8,
-"figH": 400,
-"kV1140": 0.6080760095011877,
-"figOnScreen": 220.57692307692307,
-"k2x": 1.1028846153846152,
-"trimHigh": false,
-"memBudget": 1880064,
-"sideMax": 2048,
-"kWant": 1.0,
-"kMem": 0.6013771996535094,
-"kSide": 0.6949440108585002,
-"k": 0.6080760095011877,
-"pBytes": 2019090,
-"pShipped": false
-},
 "/assets/anim/vulmar/vulmar_ult.webp": {
 "key": "vulmar",
 "kind": "clip",
@@ -23425,34 +22222,6 @@
 "rows": 8,
 "figH": 440,
 "skip": "idle/walk sheet (painted by the UI from the original)"
-},
-"/assets/anim/yenna/yenna_passive.webp": {
-"key": "yenna",
-"kind": "clip",
-"states": [
-"passive"
-],
-"src": "lossy",
-"bytes": 1548186,
-"u": "/assets/anim/yenna/yenna_passive.webp?v=21",
-"n": 48,
-"fw": 344,
-"fh": 513,
-"cols": 6,
-"rows": 8,
-"figH": 500,
-"kV1140": 0.49902534113060426,
-"figOnScreen": 223.7787356321839,
-"k2x": 0.8951149425287356,
-"trimHigh": false,
-"memBudget": 2113536,
-"sideMax": 2048,
-"kWant": 0.8951149425287356,
-"kMem": 0.494389092969943,
-"kSide": 0.5703146755778334,
-"k": 0.49902534113060426,
-"pBytes": 2321360,
-"pShipped": false
 },
 "/assets/anim/yenna/yenna_ult.webp": {
 "key": "yenna",
@@ -23834,23 +22603,6 @@
 "pShipped": false
 },
 {
-"path": "/assets/anim/absalie/absalie_blue.webp",
-"src_bytes": 844126,
-"W": 1422,
-"H": 2400,
-"h": null,
-"p": {
-"W": 1528,
-"H": 1615,
-"bytes": 2107508,
-"k": 0.8077801841564521,
-"fig": 253.555,
-"c": 8,
-"r": 5
-},
-"pShipped": false
-},
-{
 "path": "/assets/anim/absalie/absalie_green.webp",
 "src_bytes": 821410,
 "W": 1890,
@@ -24141,23 +22893,6 @@
 "pShipped": false
 },
 {
-"path": "/assets/anim/askel/askel_passive.webp",
-"src_bytes": 1192288,
-"W": 2112,
-"H": 3304,
-"h": null,
-"p": {
-"W": 1744,
-"H": 1536,
-"bytes": 2696642,
-"k": 0.6198547215496368,
-"fig": 247.94188861985472,
-"c": 8,
-"r": 6
-},
-"pShipped": false
-},
-{
 "path": "/assets/anim/askel/askel_ult_1128.webp",
 "src_bytes": 4316300,
 "W": 3560,
@@ -24229,23 +22964,6 @@
 "bytes": 1856786,
 "k": 0.4629294755877034,
 "fig": 231.46473779385173,
-"c": 8,
-"r": 6
-},
-"pShipped": false
-},
-{
-"path": "/assets/anim/astra/astra_passive.webp",
-"src_bytes": 1611792,
-"W": 2238,
-"H": 4584,
-"h": null,
-"p": {
-"W": 1336,
-"H": 1536,
-"bytes": 1778702,
-"k": 0.4467713787085515,
-"fig": 223.38568935427574,
 "c": 8,
 "r": 6
 },
@@ -24554,23 +23272,6 @@
 "pShipped": false
 },
 {
-"path": "/assets/anim/brannus/brannus_passive.webp",
-"src_bytes": 1655848,
-"W": 2346,
-"H": 3304,
-"h": null,
-"p": {
-"W": 1673,
-"H": 1771,
-"bytes": 3232448,
-"k": 0.6121076843865912,
-"fig": 245.0363196125908,
-"c": 7,
-"r": 7
-},
-"pShipped": false
-},
-{
 "path": "/assets/anim/brannus/brannus_ult.webp",
 "src_bytes": 1506740,
 "W": 2514,
@@ -24639,23 +23340,6 @@
 "pShipped": false
 },
 {
-"path": "/assets/anim/calypsa/calypsa_passive.webp",
-"src_bytes": 2667356,
-"W": 2790,
-"H": 4296,
-"h": null,
-"p": {
-"W": 1776,
-"H": 1536,
-"bytes": 3417794,
-"k": 0.4767225325884544,
-"fig": 237.88454376163872,
-"c": 8,
-"r": 6
-},
-"pShipped": false
-},
-{
 "path": "/assets/anim/calypsa/calypsa_ult.webp",
 "src_bytes": 2526250,
 "W": 3684,
@@ -24709,10 +23393,10 @@
 "pShipped": false
 },
 {
-"path": "/assets/anim/carn/carn_hit_1142.webp",
-"src_bytes": 2941066,
-"W": 1864,
-"H": 2046,
+"path": "/assets/anim/carn/carn_hit_1155.webp",
+"src_bytes": 905912,
+"W": 1165,
+"H": 1023,
 "h": null,
 "p": null,
 "pShipped": false
@@ -24772,23 +23456,6 @@
 "bytes": 2745408,
 "k": 0.8533333333333334,
 "fig": 323.95,
-"c": 6,
-"r": 6
-},
-"pShipped": false
-},
-{
-"path": "/assets/anim/ceraline/ceraline_passive.webp",
-"src_bytes": 822816,
-"W": 2094,
-"H": 2400,
-"h": null,
-"p": {
-"W": 1788,
-"H": 2046,
-"bytes": 2699944,
-"k": 0.8533333333333334,
-"fig": 327.36,
 "c": 6,
 "r": 6
 },
@@ -24863,23 +23530,6 @@
 "pShipped": false
 },
 {
-"path": "/assets/anim/dandra/dandra_passive.webp",
-"src_bytes": 1770108,
-"W": 2820,
-"H": 4144,
-"h": null,
-"p": {
-"W": 1603,
-"H": 1771,
-"bytes": 2434330,
-"k": 0.4881194754256515,
-"fig": 244.20849420849422,
-"c": 7,
-"r": 7
-},
-"pShipped": false
-},
-{
 "path": "/assets/anim/dandra/dandra_ult.webp",
 "src_bytes": 1811006,
 "W": 3246,
@@ -24948,23 +23598,6 @@
 "pShipped": false
 },
 {
-"path": "/assets/anim/deepcleft/deepcleft_passive.webp",
-"src_bytes": 1524626,
-"W": 2538,
-"H": 3472,
-"h": null,
-"p": {
-"W": 1729,
-"H": 1771,
-"bytes": 3062796,
-"k": 0.5832279153797169,
-"fig": 233.17972350230414,
-"c": 7,
-"r": 7
-},
-"pShipped": false
-},
-{
 "path": "/assets/anim/deepcleft/deepcleft_ult.webp",
 "src_bytes": 1532668,
 "W": 2556,
@@ -25016,38 +23649,21 @@
 "pShipped": true
 },
 {
-"path": "/assets/anim/fritz/fritz_hit.webp",
-"src_bytes": 2331462,
-"W": 2688,
-"H": 3928,
+"path": "/assets/anim/fritz/fritz_hit_1155.webp",
+"src_bytes": 693988,
+"W": 1792,
+"H": 1964,
 "h": null,
 "p": {
-"W": 1596,
-"H": 1792,
-"bytes": 1756076,
-"k": 0.6427688751737036,
-"fig": 238.76985743380857,
-"c": 7,
-"r": 7
+"W": 1430,
+"H": 1149,
+"bytes": 705758,
+"k": 1.0,
+"fig": 371.0,
+"c": 5,
+"r": 3
 },
-"pShipped": true
-},
-{
-"path": "/assets/anim/fritz/fritz_passive.webp",
-"src_bytes": 2309708,
-"W": 3756,
-"H": 4160,
-"h": null,
-"p": {
-"W": 1812,
-"H": 1936,
-"bytes": 1441140,
-"k": 0.5648097076668506,
-"fig": 209.7576923076923,
-"c": 6,
-"r": 8
-},
-"pShipped": true
+"pShipped": false
 },
 {
 "path": "/assets/anim/fritz/fritz_surge.webp",
@@ -27260,23 +25876,6 @@
 "pShipped": false
 },
 {
-"path": "/assets/anim/grimsby/grimsby_passive.webp",
-"src_bytes": 1606994,
-"W": 2274,
-"H": 3888,
-"h": null,
-"p": {
-"W": 1600,
-"H": 1536,
-"bytes": 1692532,
-"k": 0.5267489711934157,
-"fig": 210.69958847736626,
-"c": 8,
-"r": 6
-},
-"pShipped": false
-},
-{
 "path": "/assets/anim/grimsby/grimsby_ult.webp",
 "src_bytes": 1218310,
 "W": 3366,
@@ -27366,21 +25965,21 @@
 "pShipped": true
 },
 {
-"path": "/assets/anim/grosk/grosk_hit_1112.webp",
-"src_bytes": 6706450,
-"W": 3678,
-"H": 4000,
+"path": "/assets/anim/grosk/grosk_hit_1155.webp",
+"src_bytes": 1992128,
+"W": 2452,
+"H": 2000,
 "h": null,
 "p": {
-"W": 1818,
-"H": 1904,
-"bytes": 3359160,
-"k": 0.5793493635077793,
-"fig": 203.0,
-"c": 6,
-"r": 8
+"W": 1515,
+"H": 1960,
+"bytes": 2029134,
+"k": 1.0,
+"fig": 350.0,
+"c": 3,
+"r": 5
 },
-"pShipped": true
+"pShipped": false
 },
 {
 "path": "/assets/anim/grosk/grosk_ult_1112.webp",
@@ -27472,42 +26071,21 @@
 "pShipped": false
 },
 {
-"path": "/assets/anim/gruel/gruel_hit.webp",
-"src_bytes": 4759016,
-"W": 3558,
-"H": 4080,
+"path": "/assets/anim/gruel/gruel_hit_1155.webp",
+"src_bytes": 1437988,
+"W": 2372,
+"H": 2040,
 "h": null,
 "p": {
-"W": 1812,
-"H": 2016,
-"bytes": 2696322,
-"k": 0.603240058910162,
-"fig": 230.69803921568626,
-"c": 6,
-"r": 8
+"W": 1940,
+"H": 1600,
+"bytes": 1443524,
+"k": 1.0,
+"fig": 382.0,
+"c": 4,
+"r": 4
 },
-"pShipped": true
-},
-{
-"path": "/assets/anim/gruel/gruel_passive.webp",
-"src_bytes": 5816598,
-"W": 3474,
-"H": 4096,
-"h": {
-"W": 2886,
-"H": 3312,
-"bytes": 5613604
-},
-"p": {
-"W": 1752,
-"H": 2016,
-"bytes": 2440236,
-"k": 0.5943997630947162,
-"fig": 215.53125,
-"c": 6,
-"r": 8
-},
-"pShipped": true
+"pShipped": false
 },
 {
 "path": "/assets/anim/gruel/gruel_ult.webp",
@@ -27578,23 +26156,6 @@
 "fig": 213.95348837209303,
 "c": 7,
 "r": 7
-},
-"pShipped": false
-},
-{
-"path": "/assets/anim/hobb/hobb_passive.webp",
-"src_bytes": 1414538,
-"W": 2064,
-"H": 3264,
-"h": null,
-"p": {
-"W": 1728,
-"H": 1536,
-"bytes": 2859020,
-"k": 0.6274509803921569,
-"fig": 250.98039215686273,
-"c": 8,
-"r": 6
 },
 "pShipped": false
 },
@@ -27693,21 +26254,25 @@
 "pShipped": true
 },
 {
-"path": "/assets/anim/hollow/hollow_hit_1126.webp",
-"src_bytes": 2584438,
-"W": 3904,
-"H": 3222,
-"h": null,
-"p": {
-"W": 1750,
-"H": 1974,
-"bytes": 1686922,
-"k": 0.6362649019070462,
-"fig": 248.37988826815644,
-"c": 7,
-"r": 7
+"path": "/assets/anim/hollow/hollow_hit_1155.webp",
+"src_bytes": 793220,
+"W": 1952,
+"H": 2148,
+"h": {
+"W": 1400,
+"H": 1716,
+"bytes": 783222
 },
-"pShipped": true
+"p": {
+"W": 1400,
+"H": 1712,
+"bytes": 1043642,
+"k": 0.9861538461538462,
+"fig": 384.91620111731845,
+"c": 4,
+"r": 4
+},
+"pShipped": false
 },
 {
 "path": "/assets/anim/hollow/hollow_passive_1126.webp",
@@ -27914,23 +26479,6 @@
 "pShipped": false
 },
 {
-"path": "/assets/anim/iver/iver_passive.webp",
-"src_bytes": 970352,
-"W": 2310,
-"H": 3200,
-"h": null,
-"p": {
-"W": 1701,
-"H": 1771,
-"bytes": 1598566,
-"k": 0.6319583699717287,
-"fig": 175.835,
-"c": 7,
-"r": 7
-},
-"pShipped": false
-},
-{
 "path": "/assets/anim/iver/iver_ult.webp",
 "src_bytes": 818382,
 "W": 2058,
@@ -28010,23 +26558,6 @@
 "bytes": 2838822,
 "k": 0.6973027969002675,
 "fig": 244.63636363636363,
-"c": 7,
-"r": 7
-},
-"pShipped": false
-},
-{
-"path": "/assets/anim/joss/joss_passive.webp",
-"src_bytes": 1121644,
-"W": 2244,
-"H": 3200,
-"h": null,
-"p": {
-"W": 1652,
-"H": 1771,
-"bytes": 2427058,
-"k": 0.6320342411778026,
-"fig": 230.8625,
 "c": 7,
 "r": 7
 },
@@ -28114,23 +26645,6 @@
 "fig": 234.25925925925927,
 "c": 7,
 "r": 7
-},
-"pShipped": false
-},
-{
-"path": "/assets/anim/kharos/kharos_passive.webp",
-"src_bytes": 1101054,
-"W": 1878,
-"H": 3272,
-"h": null,
-"p": {
-"W": 1568,
-"H": 1536,
-"bytes": 2156646,
-"k": 0.6259168704156479,
-"fig": 250.36674816625916,
-"c": 8,
-"r": 6
 },
 "pShipped": false
 },
@@ -28390,23 +26904,6 @@
 "pShipped": false
 },
 {
-"path": "/assets/anim/linnet/linnet_passive.webp",
-"src_bytes": 1072420,
-"W": 1950,
-"H": 4160,
-"h": null,
-"p": {
-"W": 1280,
-"H": 1536,
-"bytes": 1703440,
-"k": 0.49230769230769234,
-"fig": 246.15384615384616,
-"c": 8,
-"r": 6
-},
-"pShipped": false
-},
-{
 "path": "/assets/anim/linnet/linnet_ult.webp",
 "src_bytes": 1394194,
 "W": 3012,
@@ -28594,23 +27091,6 @@
 "pShipped": false
 },
 {
-"path": "/assets/anim/lysara/lysara_passive.webp",
-"src_bytes": 2272486,
-"W": 3216,
-"H": 4136,
-"h": null,
-"p": {
-"W": 1834,
-"H": 1771,
-"bytes": 3394288,
-"k": 0.4895955808023155,
-"fig": 244.68085106382978,
-"c": 7,
-"r": 7
-},
-"pShipped": false
-},
-{
 "path": "/assets/anim/lysara/lysara_ult.webp",
 "src_bytes": 1897490,
 "W": 3912,
@@ -28662,23 +27142,6 @@
 "pShipped": false
 },
 {
-"path": "/assets/anim/maren/maren_passive.webp",
-"src_bytes": 1887902,
-"W": 2388,
-"H": 3664,
-"h": null,
-"p": {
-"W": 1776,
-"H": 1536,
-"bytes": 3410912,
-"k": 0.5589519650655022,
-"fig": 223.58078602620088,
-"c": 8,
-"r": 6
-},
-"pShipped": false
-},
-{
 "path": "/assets/anim/mellan/mellan_attack.webp",
 "src_bytes": 1117186,
 "W": 2400,
@@ -28726,23 +27189,6 @@
 "fig": 192.64,
 "c": 8,
 "r": 6
-},
-"pShipped": false
-},
-{
-"path": "/assets/anim/mellan/mellan_passive.webp",
-"src_bytes": 1510432,
-"W": 2316,
-"H": 3200,
-"h": null,
-"p": {
-"W": 1708,
-"H": 1771,
-"bytes": 3026386,
-"k": 0.6328022881869928,
-"fig": 232.1275,
-"c": 7,
-"r": 7
 },
 "pShipped": false
 },
@@ -28832,23 +27278,6 @@
 "pShipped": false
 },
 {
-"path": "/assets/anim/meridian/meridian_passive.webp",
-"src_bytes": 831180,
-"W": 1554,
-"H": 3304,
-"h": null,
-"p": {
-"W": 1288,
-"H": 1536,
-"bytes": 1566488,
-"k": 0.6198547215496368,
-"fig": 247.94188861985472,
-"c": 8,
-"r": 6
-},
-"pShipped": false
-},
-{
 "path": "/assets/anim/meridian/meridian_ult.webp",
 "src_bytes": 850074,
 "W": 2982,
@@ -28911,23 +27340,6 @@
 "bytes": 3124528,
 "k": 0.49612403100775193,
 "fig": 248.06201550387595,
-"c": 8,
-"r": 6
-},
-"pShipped": false
-},
-{
-"path": "/assets/anim/mirelle/mirelle_passive.webp",
-"src_bytes": 1844380,
-"W": 2520,
-"H": 4144,
-"h": null,
-"p": {
-"W": 1664,
-"H": 1536,
-"bytes": 3115522,
-"k": 0.4942084942084942,
-"fig": 247.1042471042471,
 "c": 8,
 "r": 6
 },
@@ -29682,23 +28094,6 @@
 "pShipped": false
 },
 {
-"path": "/assets/anim/nerisse/nerisse_passive.webp",
-"src_bytes": 1968492,
-"W": 1452,
-"H": 3200,
-"h": null,
-"p": {
-"W": 1240,
-"H": 1536,
-"bytes": 3425822,
-"k": 0.64,
-"fig": 255.36,
-"c": 8,
-"r": 6
-},
-"pShipped": false
-},
-{
 "path": "/assets/anim/nerisse/nerisse_ult.webp",
 "src_bytes": 1395236,
 "W": 2022,
@@ -29778,23 +28173,6 @@
 "bytes": 2615896,
 "k": 0.5998125954379079,
 "fig": 239.81042654028437,
-"c": 7,
-"r": 7
-},
-"pShipped": false
-},
-{
-"path": "/assets/anim/nox/nox_passive.webp",
-"src_bytes": 1592700,
-"W": 2526,
-"H": 3648,
-"h": null,
-"p": {
-"W": 1631,
-"H": 1771,
-"bytes": 2371746,
-"k": 0.5544457403922286,
-"fig": 221.9298245614035,
 "c": 7,
 "r": 7
 },
@@ -29881,25 +28259,21 @@
 "pShipped": true
 },
 {
-"path": "/assets/anim/oakmir/oakmir_hit.webp",
-"src_bytes": 2952518,
-"W": 2376,
-"H": 3920,
-"h": {
-"W": 1728,
-"H": 3056,
-"bytes": 2908916
-},
+"path": "/assets/anim/oakmir/oakmir_hit_1155.webp",
+"src_bytes": 937754,
+"W": 1584,
+"H": 1960,
+"h": null,
 "p": {
-"W": 1600,
-"H": 1578,
-"bytes": 1976272,
-"k": 0.6674563177249199,
-"fig": 232.23673469387754,
-"c": 8,
-"r": 6
+"W": 1420,
+"H": 1146,
+"bytes": 942044,
+"k": 1.0,
+"fig": 348.0,
+"c": 5,
+"r": 3
 },
-"pShipped": true
+"pShipped": false
 },
 {
 "path": "/assets/anim/oakmir/oakmir_ult.webp",
@@ -29985,23 +28359,6 @@
 "bytes": 2739380,
 "k": 0.6228710462287105,
 "fig": 249.1484184914842,
-"c": 8,
-"r": 6
-},
-"pShipped": false
-},
-{
-"path": "/assets/anim/orryn/orryn_passive.webp",
-"src_bytes": 1479006,
-"W": 1938,
-"H": 3352,
-"h": null,
-"p": {
-"W": 1576,
-"H": 1536,
-"bytes": 2641862,
-"k": 0.6109785202863962,
-"fig": 244.39140811455846,
 "c": 8,
 "r": 6
 },
@@ -30126,23 +28483,6 @@
 "pShipped": false
 },
 {
-"path": "/assets/anim/pellucid/pellucid_passive.webp",
-"src_bytes": 1432176,
-"W": 1842,
-"H": 3296,
-"h": null,
-"p": {
-"W": 1528,
-"H": 1536,
-"bytes": 3337302,
-"k": 0.6213592233009708,
-"fig": 248.54368932038835,
-"c": 8,
-"r": 6
-},
-"pShipped": false
-},
-{
 "path": "/assets/anim/pellucid/pellucid_ult_redo1.webp",
 "src_bytes": 4753430,
 "W": 2442,
@@ -30215,36 +28555,23 @@
 "pShipped": true
 },
 {
-"path": "/assets/anim/pyroclast/pyroclast_hit.webp",
-"src_bytes": 4280152,
-"W": 2796,
-"H": 4672,
-"h": null,
-"p": {
-"W": 1584,
-"H": 1566,
-"bytes": 2139508,
-"k": 0.5266503405258179,
-"fig": 233.63698630136986,
-"c": 8,
-"r": 6
+"path": "/assets/anim/pyroclast/pyroclast_hit_1155.webp",
+"src_bytes": 1341548,
+"W": 2330,
+"H": 1752,
+"h": {
+"W": 1610,
+"H": 1425,
+"bytes": 1338756
 },
-"pShipped": true
-},
-{
-"path": "/assets/anim/pyroclast/pyroclast_passive.webp",
-"src_bytes": 4167916,
-"W": 2562,
-"H": 4616,
-"h": null,
 "p": {
-"W": 1464,
-"H": 1584,
-"bytes": 2154902,
-"k": 0.5410842917750096,
-"fig": 239.5424610051993,
-"c": 8,
-"r": 6
+"W": 1610,
+"H": 1425,
+"bytes": 1338756,
+"k": 1.0,
+"fig": 443.0,
+"c": 5,
+"r": 3
 },
 "pShipped": true
 },
@@ -30338,23 +28665,6 @@
 "pShipped": false
 },
 {
-"path": "/assets/anim/quorrel/quorrel_passive.webp",
-"src_bytes": 1982442,
-"W": 2022,
-"H": 3440,
-"h": null,
-"p": {
-"W": 1608,
-"H": 1536,
-"bytes": 2807826,
-"k": 0.5953488372093023,
-"fig": 238.13953488372093,
-"c": 8,
-"r": 6
-},
-"pShipped": false
-},
-{
 "path": "/assets/anim/quorrel/quorrel_ult.webp",
 "src_bytes": 1811760,
 "W": 2412,
@@ -30440,23 +28750,6 @@
 "pShipped": false
 },
 {
-"path": "/assets/anim/rafe/rafe_passive.webp",
-"src_bytes": 1063076,
-"W": 1794,
-"H": 3200,
-"h": null,
-"p": {
-"W": 1528,
-"H": 1536,
-"bytes": 2003950,
-"k": 0.64,
-"fig": 208.64,
-"c": 8,
-"r": 6
-},
-"pShipped": false
-},
-{
 "path": "/assets/anim/rhukk/rhukk_attack.webp",
 "src_bytes": 3907468,
 "W": 3168,
@@ -30525,40 +28818,23 @@
 "pShipped": true
 },
 {
-"path": "/assets/anim/rhukk/rhukk_hit.webp",
-"src_bytes": 3725476,
-"W": 3324,
-"H": 4016,
+"path": "/assets/anim/rhukk/rhukk_hit_1155.webp",
+"src_bytes": 1229550,
+"W": 2216,
+"H": 2008,
 "h": {
-"W": 2676,
-"H": 3152,
-"bytes": 3690412
+"W": 1784,
+"H": 1576,
+"bytes": 1166902
 },
 "p": {
-"W": 2093,
-"H": 1855,
-"bytes": 2474848,
-"k": 0.6523473503333249,
-"fig": 192.81274900398407,
-"c": 7,
-"r": 7
-},
-"pShipped": true
-},
-{
-"path": "/assets/anim/rhukk/rhukk_passive.webp",
-"src_bytes": 3874498,
-"W": 2904,
-"H": 3792,
-"h": null,
-"p": {
-"W": 1813,
-"H": 1771,
-"bytes": 2770032,
-"k": 0.6677277023065887,
-"fig": 197.957805907173,
-"c": 7,
-"r": 7
+"W": 1784,
+"H": 1576,
+"bytes": 1166902,
+"k": 1.0,
+"fig": 296.0,
+"c": 4,
+"r": 4
 },
 "pShipped": true
 },
@@ -30665,23 +28941,6 @@
 "pShipped": false
 },
 {
-"path": "/assets/anim/seyla/seyla_passive.webp",
-"src_bytes": 1651834,
-"W": 2706,
-"H": 4368,
-"h": null,
-"p": {
-"W": 1688,
-"H": 1536,
-"bytes": 2280070,
-"k": 0.46886446886446886,
-"fig": 234.43223443223442,
-"c": 8,
-"r": 6
-},
-"pShipped": false
-},
-{
 "path": "/assets/anim/seyla/seyla_ult.webp",
 "src_bytes": 1865824,
 "W": 3852,
@@ -30727,23 +28986,6 @@
 "bytes": 2024126,
 "k": 0.8533333333333334,
 "fig": 251.4875,
-"c": 6,
-"r": 6
-},
-"pShipped": false
-},
-{
-"path": "/assets/anim/sloe/sloe_passive.webp",
-"src_bytes": 837084,
-"W": 1914,
-"H": 2400,
-"h": null,
-"p": {
-"W": 1632,
-"H": 2046,
-"bytes": 2591564,
-"k": 0.8533333333333334,
-"fig": 312.8675,
 "c": 6,
 "r": 6
 },
@@ -30814,23 +29056,6 @@
 "fig": 247.43276283618582,
 "c": 7,
 "r": 7
-},
-"pShipped": false
-},
-{
-"path": "/assets/anim/sorrel/sorrel_passive.webp",
-"src_bytes": 1124110,
-"W": 1818,
-"H": 3296,
-"h": null,
-"p": {
-"W": 1504,
-"H": 1536,
-"bytes": 2346818,
-"k": 0.6213592233009708,
-"fig": 248.54368932038835,
-"c": 8,
-"r": 6
 },
 "pShipped": false
 },
@@ -30988,23 +29213,6 @@
 "pShipped": false
 },
 {
-"path": "/assets/anim/tessit/tessit_passive.webp",
-"src_bytes": 1691512,
-"W": 1938,
-"H": 4144,
-"h": null,
-"p": {
-"W": 1280,
-"H": 1536,
-"bytes": 1899184,
-"k": 0.4942084942084942,
-"fig": 247.1042471042471,
-"c": 8,
-"r": 6
-},
-"pShipped": false
-},
-{
 "path": "/assets/anim/tessit/tessit_ult.webp",
 "src_bytes": 1794152,
 "W": 2670,
@@ -31094,19 +29302,19 @@
 "pShipped": false
 },
 {
-"path": "/assets/anim/tharl/tharl_hit.webp",
-"src_bytes": 2032262,
-"W": 2268,
-"H": 2768,
+"path": "/assets/anim/tharl/tharl_hit_1155.webp",
+"src_bytes": 586526,
+"W": 1512,
+"H": 1384,
 "h": null,
 "p": {
-"W": 1890,
-"H": 1666,
-"bytes": 2061998,
+"W": 1080,
+"H": 952,
+"bytes": 600294,
 "k": 1.0,
 "fig": 226.0,
-"c": 7,
-"r": 7
+"c": 4,
+"r": 4
 },
 "pShipped": false
 },
@@ -31213,23 +29421,6 @@
 "pShipped": false
 },
 {
-"path": "/assets/anim/tick/tick_passive.webp",
-"src_bytes": 1152568,
-"W": 1962,
-"H": 3296,
-"h": null,
-"p": {
-"W": 1624,
-"H": 1536,
-"bytes": 2187636,
-"k": 0.6213592233009708,
-"fig": 248.54368932038835,
-"c": 8,
-"r": 6
-},
-"pShipped": false
-},
-{
 "path": "/assets/anim/tick/tick_ult.webp",
 "src_bytes": 1085712,
 "W": 2568,
@@ -31277,23 +29468,6 @@
 "fig": 174.72,
 "c": 8,
 "r": 6
-},
-"pShipped": false
-},
-{
-"path": "/assets/anim/tolley/tolley_passive.webp",
-"src_bytes": 1325882,
-"W": 2256,
-"H": 3200,
-"h": null,
-"p": {
-"W": 1666,
-"H": 1771,
-"bytes": 2567076,
-"k": 0.6328022881869928,
-"fig": 196.7075,
-"c": 7,
-"r": 7
 },
 "pShipped": false
 },
@@ -31374,40 +29548,23 @@
 "pShipped": true
 },
 {
-"path": "/assets/anim/umbris/umbris_hit_1115.webp",
-"src_bytes": 3835436,
-"W": 3420,
-"H": 4096,
+"path": "/assets/anim/umbris/umbris_hit_1155.webp",
+"src_bytes": 1107016,
+"W": 2280,
+"H": 2048,
 "h": {
-"W": 2820,
-"H": 3296,
-"bytes": 3791020
+"W": 1880,
+"H": 1648,
+"bytes": 1083748
 },
 "p": {
-"W": 1995,
-"H": 1750,
-"bytes": 1674678,
-"k": 0.5904057096458113,
-"fig": 214.703125,
-"c": 7,
-"r": 7
-},
-"pShipped": true
-},
-{
-"path": "/assets/anim/umbris/umbris_passive_1115.webp",
-"src_bytes": 2689356,
-"W": 3408,
-"H": 4032,
-"h": null,
-"p": {
-"W": 1752,
-"H": 2024,
-"bytes": 1737712,
-"k": 0.6136942650245095,
-"fig": 230.52380952380952,
-"c": 6,
-"r": 8
+"W": 1880,
+"H": 1648,
+"bytes": 1083748,
+"k": 1.0,
+"fig": 364.0,
+"c": 4,
+"r": 4
 },
 "pShipped": true
 },
@@ -31584,23 +29741,6 @@
 "r": 6
 },
 "pShipped": true
-},
-{
-"path": "/assets/anim/vaelora/vaelora_passive.webp",
-"src_bytes": 1902252,
-"W": 2976,
-"H": 4456,
-"h": null,
-"p": {
-"W": 1575,
-"H": 1771,
-"bytes": 1964744,
-"k": 0.4544361135992767,
-"fig": 227.10951526032315,
-"c": 7,
-"r": 7
-},
-"pShipped": false
 },
 {
 "path": "/assets/anim/vaelora/vaelora_ult.webp",
@@ -31790,23 +29930,6 @@
 "pShipped": false
 },
 {
-"path": "/assets/anim/vex/vex_passive.webp",
-"src_bytes": 520940,
-"W": 4440,
-"H": 6120,
-"h": null,
-"p": {
-"W": 1708,
-"H": 1778,
-"bytes": 764682,
-"k": 0.36538040221952217,
-"fig": 183.37254901960785,
-"c": 7,
-"r": 7
-},
-"pShipped": false
-},
-{
 "path": "/assets/anim/vex/vex_ult.webp",
 "src_bytes": 572954,
 "W": 4356,
@@ -31852,23 +29975,6 @@
 "bytes": 1883106,
 "k": 0.453621711962002,
 "fig": 181.36200716845877,
-"c": 7,
-"r": 7
-},
-"pShipped": false
-},
-{
-"path": "/assets/anim/veyr/veyr_passive.webp",
-"src_bytes": 1793562,
-"W": 2802,
-"H": 3520,
-"h": null,
-"p": {
-"W": 1883,
-"H": 1771,
-"bytes": 3157226,
-"k": 0.5752748074427206,
-"fig": 230.0,
 "c": 7,
 "r": 7
 },
@@ -31960,23 +30066,6 @@
 "pShipped": false
 },
 {
-"path": "/assets/anim/vireo/vireo_passive.webp",
-"src_bytes": 568574,
-"W": 2700,
-"H": 4992,
-"h": null,
-"p": {
-"W": 1480,
-"H": 1536,
-"bytes": 1050588,
-"k": 0.41025641025641024,
-"fig": 244.51282051282053,
-"c": 8,
-"r": 6
-},
-"pShipped": false
-},
-{
 "path": "/assets/anim/vireo/vireo_ult.webp",
 "src_bytes": 570642,
 "W": 2208,
@@ -32062,23 +30151,6 @@
 "pShipped": false
 },
 {
-"path": "/assets/anim/vulmar/vulmar_passive.webp",
-"src_bytes": 1095114,
-"W": 1512,
-"H": 3368,
-"h": null,
-"p": {
-"W": 1200,
-"H": 1500,
-"bytes": 2019090,
-"k": 0.5942145568217905,
-"fig": 237.52969121140143,
-"c": 8,
-"r": 6
-},
-"pShipped": false
-},
-{
 "path": "/assets/anim/vulmar/vulmar_ult.webp",
 "src_bytes": 1002394,
 "W": 1506,
@@ -32158,23 +30230,6 @@
 "bytes": 1677510,
 "k": 0.41491085899513774,
 "fig": 207.45542949756887,
-"c": 8,
-"r": 6
-},
-"pShipped": false
-},
-{
-"path": "/assets/anim/yenna/yenna_passive.webp",
-"src_bytes": 1548186,
-"W": 2064,
-"H": 4104,
-"h": null,
-"p": {
-"W": 1376,
-"H": 1536,
-"bytes": 2321360,
-"k": 0.49902534113060426,
-"fig": 249.51267056530213,
 "c": 8,
 "r": 6
 },

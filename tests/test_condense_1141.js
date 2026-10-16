@@ -95,8 +95,11 @@ try {
   // ------------------------------------------------------------------ 3. CLIP DATA UNCHANGED
   const baseHtml = cp.execSync('git show ' + BASE_SHA + ':emberweave-heroes.html', { cwd: ROOT, maxBuffer: 64 << 20 }).toString();
   const BASEF = path.join(ROOT, '.test-condense-base.html'); fs.writeFileSync(BASEF, baseHtml); process.on('exit', () => { try { fs.unlinkSync(BASEF); } catch (e) {} });
-  const a = run(DUMP), b = load(BASEF)(DUMP);
-  ck('every BATTLE_ANIM / FX2_DEF entry (cells, fps, anchors, ax, contact/relFrac) is identical to BASE ' + BASE_SHA, a === b && a.length > 100000, a.length + ' vs ' + b.length);
+  /* v1157: the v1155 animation slim (tests/fixtures/anim_slim_1155.json, checked entry by entry in tests/test_anim_slim_1155.js) is the only
+     clip-data change since BASE - with its entries put back, every table must be BASE byte for byte; the condense itself changes none */
+  const runU = load(HTML); require('./helpers/anim-slim-1155.js').undoSlim1155(runU);
+  const a = runU(DUMP), b = load(BASEF)(DUMP);
+  ck('every BATTLE_ANIM / FX2_DEF entry (cells, fps, anchors, ax, contact/relFrac) is identical to BASE ' + BASE_SHA + ' once the v1155 slim entries are put back', a === b && a.length > 100000, a.length + ' vs ' + b.length);
 
   // ------------------------------------------------------------------ 4-7. BROWSER + SERVER
   let chromium = null; try { chromium = require('playwright').chromium; } catch (e) {}
