@@ -17273,90 +17273,90 @@
         {
           "key": "bitwraith",
           "lvl": 78,
-          "hpMul": 57.1813,
-          "dmgMul": 23.9392
+          "hpMul": 67.2721,
+          "dmgMul": 28.1638
         },
         {
           "key": "bitwraith",
           "lvl": 78,
-          "hpMul": 57.1813,
-          "dmgMul": 23.9392
+          "hpMul": 67.2721,
+          "dmgMul": 28.1638
         },
         {
           "key": "kelp hexer",
           "lvl": 78,
-          "hpMul": 57.1813,
-          "dmgMul": 23.9392
+          "hpMul": 67.2721,
+          "dmgMul": 28.1638
         },
         {
           "key": "kelp hexer",
           "lvl": 78,
-          "hpMul": 57.1813,
-          "dmgMul": 23.9392
+          "hpMul": 67.2721,
+          "dmgMul": 28.1638
         },
         {
           "key": "reef prowler",
           "lvl": 78,
-          "hpMul": 57.1813,
-          "dmgMul": 23.9392
+          "hpMul": 67.2721,
+          "dmgMul": 28.1638
         }
       ],
       [
         {
           "key": "saltglass siren",
           "lvl": 78,
-          "hpMul": 57.1813,
-          "dmgMul": 23.9392
+          "hpMul": 67.2721,
+          "dmgMul": 28.1638
         },
         {
           "key": "reef prowler",
           "lvl": 78,
-          "hpMul": 57.1813,
-          "dmgMul": 23.9392
+          "hpMul": 67.2721,
+          "dmgMul": 28.1638
         },
         {
           "key": "saltglass siren",
           "lvl": 78,
-          "hpMul": 57.1813,
-          "dmgMul": 23.9392
+          "hpMul": 67.2721,
+          "dmgMul": 28.1638
         },
         {
           "key": "bitwraith",
           "lvl": 78,
-          "hpMul": 57.1813,
-          "dmgMul": 23.9392
+          "hpMul": 67.2721,
+          "dmgMul": 28.1638
         },
         {
           "key": "kelp hexer",
           "lvl": 78,
-          "hpMul": 57.1813,
-          "dmgMul": 23.9392
+          "hpMul": 67.2721,
+          "dmgMul": 28.1638
         }
       ],
       [
         {
           "key": "reef prowler",
           "lvl": 78,
-          "hpMul": 57.1813,
-          "dmgMul": 23.9392
+          "hpMul": 67.2721,
+          "dmgMul": 28.1638
         },
         {
           "key": "saltglass siren",
           "lvl": 78,
-          "hpMul": 57.1813,
-          "dmgMul": 23.9392
+          "hpMul": 67.2721,
+          "dmgMul": 28.1638
         },
         {
           "key": "bitwraith",
           "lvl": 78,
-          "hpMul": 57.1813,
-          "dmgMul": 23.9392
+          "hpMul": 67.2721,
+          "dmgMul": 28.1638
         },
         {
           "key": "bitwraith",
           "lvl": 78,
-          "hpMul": 57.1813,
-          "dmgMul": 23.9392
+          "hpMul": 67.2721,
+          "dmgMul": 28.1638
         }
       ]
     ],
@@ -17365,7 +17365,7 @@
     "recommendedQuality": "Gold +1",
     "qualityMinHeroLevel": 72,
     "bossLevelGate": 0,
-    "difficultyTune": 4.5475,
+    "difficultyTune": 5.35,
     "baselineHp": 172.4273,
     "baselineDmg": 55.9785,
     "portalMode": "normal",
@@ -17387,12 +17387,6 @@
         "scale": 0.85,
         "dmgScale": 0.85,
         "why": "campaign curve: spike cap 1.15x chapter median + global x0.85. Phil 11 Oct: \"Campaign should not be so hard maxed out heroes are struggling for weeks ... it should technically be possible to clear stages while not maxed out.\""
-      },
-      {
-        "v": "v1167",
-        "date": "2026-10-16",
-        "scale": 0.85,
-        "why": "Wall Watch 16 Oct: exploit fresh FULLY UPGRADED held 55 tries / 24.4 game days on v1121+, 0 won; every tab that reached it after v1121 held 14-27 game days (duo fresh 2 60 tries, duo fresh 58, imbalance F2P fresh v1121 32); str 2986 vs 12-7 2654 (+12.5%) and 12-9 2412 (+23.8%). Phil 16 Oct: \"Cut them back yes\"."
       }
     ]
   },
@@ -20243,78 +20237,78 @@
         {
           "key": "ashen",
           "lvl": 91,
-          "hpMul": 90.4526,
-          "dmgMul": 36.587
+          "hpMul": 106.4148,
+          "dmgMul": 43.0435
         },
         {
           "key": "ashen",
           "lvl": 91,
-          "hpMul": 90.4526,
-          "dmgMul": 36.587
+          "hpMul": 106.4148,
+          "dmgMul": 43.0435
         },
         {
           "key": "blackquill",
           "lvl": 91,
-          "hpMul": 90.4526,
-          "dmgMul": 36.587
+          "hpMul": 106.4148,
+          "dmgMul": 43.0435
         },
         {
           "key": "blackquill",
           "lvl": 91,
-          "hpMul": 90.4526,
-          "dmgMul": 36.587
+          "hpMul": 106.4148,
+          "dmgMul": 43.0435
         }
       ],
       [
         {
           "key": "crucible acolyte",
           "lvl": 91,
-          "hpMul": 90.4526,
-          "dmgMul": 36.587
+          "hpMul": 106.4148,
+          "dmgMul": 43.0435
         },
         {
           "key": "crystalhorn grazer",
           "lvl": 91,
-          "hpMul": 90.4526,
-          "dmgMul": 36.587
+          "hpMul": 106.4148,
+          "dmgMul": 43.0435
         },
         {
           "key": "crystalhorn grazer",
           "lvl": 91,
-          "hpMul": 90.4526,
-          "dmgMul": 36.587
+          "hpMul": 106.4148,
+          "dmgMul": 43.0435
         }
       ],
       [
         {
           "key": "ashen",
           "lvl": 91,
-          "hpMul": 90.4526,
-          "dmgMul": 36.587
+          "hpMul": 106.4148,
+          "dmgMul": 43.0435
         },
         {
           "key": "crucible acolyte",
           "lvl": 91,
-          "hpMul": 90.4526,
-          "dmgMul": 36.587
+          "hpMul": 106.4148,
+          "dmgMul": 43.0435
         },
         {
           "key": "ashen",
           "lvl": 91,
-          "hpMul": 90.4526,
-          "dmgMul": 36.587
+          "hpMul": 106.4148,
+          "dmgMul": 43.0435
         },
         {
           "key": "crystalhorn grazer",
           "lvl": 91,
-          "hpMul": 90.4526,
-          "dmgMul": 36.587
+          "hpMul": 106.4148,
+          "dmgMul": 43.0435
         },
         {
           "key": "blackquill",
           "lvl": 91,
-          "hpMul": 90.4526,
-          "dmgMul": 36.587
+          "hpMul": 106.4148,
+          "dmgMul": 43.0435
         }
       ]
     ],
@@ -20323,7 +20317,7 @@
     "recommendedQuality": "Gold +3",
     "qualityMinHeroLevel": 86,
     "bossLevelGate": 0,
-    "difficultyTune": 7.4468,
+    "difficultyTune": 8.761,
     "baselineHp": 397.9381,
     "baselineDmg": 107.6187,
     "portalMode": "normal",
@@ -20345,12 +20339,6 @@
         "scale": 0.85,
         "dmgScale": 0.8286,
         "why": "campaign curve: spike cap 1.15x chapter median + global x0.85. Phil 11 Oct: \"Campaign should not be so hard maxed out heroes are struggling for weeks ... it should technically be possible to clear stages while not maxed out.\""
-      },
-      {
-        "v": "v1167",
-        "date": "2026-10-16",
-        "scale": 0.85,
-        "why": "Wall Watch 16 Oct: duo fresh 2 FULLY UPGRADED held 42 tries / 22.1 game days, 0 won; 17 of 20 tabs held a game day or more (Medium A 135 tries / 90.2 days); str 4507 vs 14-6 3092 (+45.8%) and 14-8 3897 (+15.7%). Phil 16 Oct: \"Cut them back yes\"."
       }
     ]
   },
@@ -21950,90 +21938,90 @@
         {
           "key": "zephyr harrier",
           "lvl": 99,
-          "hpMul": 102.5519,
-          "dmgMul": 39.4114
+          "hpMul": 120.6493,
+          "dmgMul": 46.3664
         },
         {
           "key": "bonepike guard",
           "lvl": 99,
-          "hpMul": 102.5519,
-          "dmgMul": 39.4114
+          "hpMul": 120.6493,
+          "dmgMul": 46.3664
         },
         {
           "key": "frostjaw troll",
           "lvl": 99,
-          "hpMul": 102.5519,
-          "dmgMul": 39.4114
+          "hpMul": 120.6493,
+          "dmgMul": 46.3664
         },
         {
           "key": "zephyr harrier",
           "lvl": 99,
-          "hpMul": 102.5519,
-          "dmgMul": 39.4114
+          "hpMul": 120.6493,
+          "dmgMul": 46.3664
         },
         {
           "key": "zephyr harrier",
           "lvl": 99,
-          "hpMul": 102.5519,
-          "dmgMul": 39.4114
+          "hpMul": 120.6493,
+          "dmgMul": 46.3664
         }
       ],
       [
         {
           "key": "runic automaton",
           "lvl": 99,
-          "hpMul": 102.5519,
-          "dmgMul": 39.4114
+          "hpMul": 120.6493,
+          "dmgMul": 46.3664
         },
         {
           "key": "bonepike guard",
           "lvl": 99,
-          "hpMul": 102.5519,
-          "dmgMul": 39.4114
+          "hpMul": 120.6493,
+          "dmgMul": 46.3664
         },
         {
           "key": "zephyr harrier",
           "lvl": 99,
-          "hpMul": 102.5519,
-          "dmgMul": 39.4114
+          "hpMul": 120.6493,
+          "dmgMul": 46.3664
         },
         {
           "key": "frostjaw troll",
           "lvl": 99,
-          "hpMul": 102.5519,
-          "dmgMul": 39.4114
+          "hpMul": 120.6493,
+          "dmgMul": 46.3664
         },
         {
           "key": "runic automaton",
           "lvl": 99,
-          "hpMul": 102.5519,
-          "dmgMul": 39.4114
+          "hpMul": 120.6493,
+          "dmgMul": 46.3664
         }
       ],
       [
         {
           "key": "zephyr harrier",
           "lvl": 99,
-          "hpMul": 102.5519,
-          "dmgMul": 39.4114
+          "hpMul": 120.6493,
+          "dmgMul": 46.3664
         },
         {
           "key": "bonepike guard",
           "lvl": 99,
-          "hpMul": 102.5519,
-          "dmgMul": 39.4114
+          "hpMul": 120.6493,
+          "dmgMul": 46.3664
         },
         {
           "key": "zephyr harrier",
           "lvl": 99,
-          "hpMul": 102.5519,
-          "dmgMul": 39.4114
+          "hpMul": 120.6493,
+          "dmgMul": 46.3664
         },
         {
           "key": "zephyr harrier",
           "lvl": 99,
-          "hpMul": 102.5519,
-          "dmgMul": 39.4114
+          "hpMul": 120.6493,
+          "dmgMul": 46.3664
         }
       ]
     ],
@@ -22042,7 +22030,7 @@
     "recommendedQuality": "Gold +4",
     "qualityMinHeroLevel": 93,
     "bossLevelGate": 0,
-    "difficultyTune": 8.1558,
+    "difficultyTune": 9.595,
     "baselineHp": 645.795,
     "baselineDmg": 157.12,
     "portalMode": "normal",
@@ -22064,12 +22052,6 @@
         "scale": 0.7308,
         "dmgScale": 0.8364,
         "why": "campaign curve: spike cap 1.15x chapter median + global x0.85. Phil 11 Oct: \"Campaign should not be so hard maxed out heroes are struggling for weeks ... it should technically be possible to clear stages while not maxed out.\""
-      },
-      {
-        "v": "v1167",
-        "date": "2026-10-16",
-        "scale": 0.85,
-        "why": "Wall Watch 16 Oct: wallpush F2P B copy held 58 tries / 35.1 game days (1 open upgrade - campaign rule wall), 0 won; 11 of 17 tabs that reached it still stuck (wallpush Big B copy 223 tries / 129 days); str 6230 vs 15-7 5412 (+15.1%) and 15-9 5376 (+15.9%). Phil 16 Oct: \"Cut them back yes\"."
       }
     ]
   },
