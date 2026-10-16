@@ -32,7 +32,7 @@ const VER = process.env.EW_KORVUX_VER || '1162';
 let OLD = process.env.EW_HTML_OLD;
 if (!OLD) { try { OLD = path.join(ROOT, '.test-korvux8-base.html'); fs.writeFileSync(OLD, cp.execSync('git show ' + BASE_SHA + ':emberweave-heroes.html', { cwd: ROOT, maxBuffer: 64 << 20 }));
   const tmp = OLD; process.on('exit', () => { try { fs.unlinkSync(tmp); } catch (e) {} }); } catch (e) { OLD = null; } }
-const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); return src => vm.runInContext(src, h.ctx); };
+const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); const r = src => vm.runInContext(src, h.ctx); require('./helpers/anim-noxgrim-1166.js').undoNoxGrim1166(r); return r; };   // v1166: Nox's and Grimsby's v1164 entries (and Nox's melee Attack line) back on every page - tests/test_nox_grimsby_anims.js / test_nox_ranged_1166.js check v1166
 const run = load(HTML);
 const R0 = OLD ? load(OLD) : null;
 let pass = 0, fail = 0;
