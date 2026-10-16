@@ -104,5 +104,55 @@ with tempfile.TemporaryDirectory() as d:
     e = dict(file='t_16oct', show={'state': 'green', 'cell': 7}, placement='ground', life={'mode': 'real', 'fps2': 12})
     line = FX.js(FX.fx2_entry(e, rep, pl, '9'))
     ck('FX2_DEF entry carries spawn, the disc and real-time life', 'spawn:7' in line and 'disc:{' in line and 'rt:true' in line and 'fps2:12' in line, line)
+# SOUND rows: the proposal against the rows v1162 / v1175 moved by hand (engine moments as engine_moments.js measures them on each BASE)
+from integrate import sound as SO  # noqa: E402
+ENG = {'korvux': {'blue': dict(release=0.5193, land=0.8473, releaseCell=18, landCell=30), 'ult': dict(release=0.82, land=1.3667, releaseCell=29, landCell=48),
+                  'green': dict(release=0.5193, land=0.5193, releaseCell=18, landCell=18)},
+       'hobb': {'blue': dict(release=0.5193, land=0.5193, releaseCell=18, landCell=18), 'ult': dict(release=0.82, land=1.148, releaseCell=29, landCell=40)},
+       'kharos': {'blue': dict(release=0.5193, land=0.5193, releaseCell=18, landCell=18), 'ult': dict(release=0.82, land=0.82, releaseCell=29, landCell=29)}}
+ROWS = {'korvux': {'S0171': dict(slot='green', rule='land'), 'S0172': dict(slot='blue', rule='cast'), 'S0174': dict(slot='ult', rule='cast')},
+        'hobb': {'S0245': dict(slot='blue', rule='cast'), 'S0246': dict(slot='ult', rule='cast')},
+        'kharos': {'S0298': dict(slot='blue', rule='cast'), 'S0300': dict(slot='ult', rule='cast')}}
+SHIPPED_SOUND = {'korvux': {'S0172': 'land', 'S0174': 'land'}, 'hobb': {'S0245': 'release', 'S0246': 'land'}, 'kharos': {'S0298': 'release', 'S0300': 'release'}}
+for h in SHIPPED_SOUND:
+    got = {k: v['rule'] for k, v in SO.propose(ROWS[h], ENG[h]).items()}
+    ck('sound proposal %s = the shipped hand rows %s (a row already off cast is left alone)' % (h, SHIPPED_SOUND[h]), got == SHIPPED_SOUND[h], got)
+ctl = {k: v['rule'] for k, v in SO.propose(ROWS['kharos'], dict(ENG['kharos'], ult=ENG['hobb']['ult'])).items()}
+ck('CONTROL: give Kharos\' ult a landing after its release and the proposal moves S0300 to land', ctl['S0300'] == 'land', ctl)
+ch, src = SO.decide({'S0174': 'release'}, ROWS['korvux'], ENG['korvux'])
+ck('the config key decides over the proposal ({"S0174": "release"} -> only S0174, release); {} = no change', ch == {'S0174': 'release'} and src == 'config' and SO.decide({}, ROWS['korvux'], ENG['korvux'])[0] == {})
+try:
+    SO.decide({'S0999': 'land'}, ROWS['korvux'], ENG['korvux'])
+    ck('CONTROL: a row that is not the hero\'s is refused', False)
+except ValueError:
+    ck('CONTROL: a row that is not the hero\'s is refused', True)
+# the three text edits: BASE 1debe711's files -> v1162 31e692b9's (git objects, when the repo has them)
+import subprocess  # noqa: E402
+gs = lambda ref: subprocess.run(['git', 'show', ref], cwd=os.path.join(os.path.dirname(__file__), '..', '..'), capture_output=True).stdout.decode('utf-8')
+m0, m1 = gs('1debe711:assets/audio/sfx/sfx_manifest.json'), gs('31e692b9:assets/audio/sfx/sfx_manifest.json')
+if m0 and m1:
+    KCH = {'S0172': 'land', 'S0174': 'land'}
+    ck('manifest edit: 1debe711 + the Korvux rows = 31e692b9\'s sfx_manifest.json byte for byte', SO.edit_manifest(m0, KCH) == m1)
+    ck('CONTROL: the unedited 1debe711 manifest is not 31e692b9\'s', m0 != m1)
+    p0, p1 = gs('1debe711:emberweave-heroes.html'), gs('31e692b9:emberweave-heroes.html')
+    sfx = lambda s: s[s.index('const SFX_DATA='):s.index('\n', s.index('const SFX_DATA='))]
+    rk = {k: dict(slot=v['slot']) for k, v in ROWS['korvux'].items()}
+    ck('page edit: 1debe711 + the Korvux rows = 31e692b9\'s SFX_DATA line', sfx(SO.edit_page(p0, 'korvux', rk, KCH)) == sfx(p1) and sfx(p0) != sfx(p1))
+    b0 = gs('1debe711:tools/build_sfx.py')
+    b2 = SO.edit_rules(b0, KCH, {'S0172': 'c1', 'S0174': 'c2'})
+    NL = '\r\n' if '\r\n' in b0 else '\n'
+    R0, R2 = SO.rules_dict(b0), SO.rules_dict(b2)
+    ck('RULES edit: two new lines before the closing brace, the file\'s own line ends kept, every other entry unchanged',
+       R2['S0172'] == {'rule': 'land'} and R2['S0174'] == {'rule': 'land'} and {k: v for k, v in R2.items() if k not in KCH} == R0 and
+       b2.replace("    'S0172': {'rule': 'land'},                               # c1" + NL, '').replace("    'S0174': {'rule': 'land'},                               # c2" + NL, '') == b0, b2[b2.index("'S0172'") - 80:b2.index("'S0172'") + 200])
+    b3 = SO.edit_rules(b2, {'S0172': 'release'}, {})
+    ck('RULES edit on an existing line changes only its rule (no second line)', b3.count("'S0172'") == 1 and SO.rules_dict(b3)['S0172'] == {'rule': 'release'})
+    try:
+        SO.edit_page(p0, 'korvux', {'S0999': dict(slot='blue')}, {'S0999': 'land'})
+        ck('CONTROL: a page edit for a row the page does not hold is refused', False)
+    except ValueError:
+        ck('CONTROL: a page edit for a row the page does not hold is refused', True)
+else:
+    print('  info no git objects for 1debe711 / 31e692b9 here: the byte checks against v1162 are skipped')
 print(('FAIL ' if F else 'PASS ') + '%d checks' % P + (', %d failed' % F if F else ''))
 sys.exit(1 if F else 0)

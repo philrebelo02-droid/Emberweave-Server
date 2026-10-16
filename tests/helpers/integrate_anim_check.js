@@ -183,7 +183,14 @@ try {
     ck('sound: every other hero\'s rows are BASE\'s; the sound files table is BASE\'s', H(run(q)) === H(R0(q)) && H(run('JSON.stringify(SFX_DATA.files)')) === H(R0('JSON.stringify(SFX_DATA.files)')));
     const SD = JSON.parse(run(`JSON.stringify(SFX_DATA.heroes.${HERO}||null)`)), SD0 = JSON.parse(R0(`JSON.stringify(SFX_DATA.heroes.${HERO}||null)`));
     if (FX.sound) { const on = (x, id) => { for (const k in (x || {})) { const e = (Array.isArray(x[k]) ? x[k] : []).find(e => e.id === id); if (e) return e.on; } };
-      ck('sound peaks on contact: ' + JSON.stringify(FX.sound), Object.entries(FX.sound).every(([id, rule]) => on(SD, id) === rule), JSON.stringify(SD)); }
+      const MV = Object.entries(FX.sound), strip = x => JSON.stringify(Object.fromEntries(Object.entries(x || {}).map(([k, v]) => [k, Array.isArray(v) ? v.map(e => FX.sound[e.id] ? Object.assign({}, e, { on: '*' }) : e) : v])));
+      ck('sound peaks on contact: ' + JSON.stringify(FX.sound) + ' in SFX_DATA.heroes.' + HERO, MV.every(([id, rule]) => on(SD, id) === rule), JSON.stringify(SD));
+      ck('CONTROL: BASE\'s rows fail that check (every moved row had another rule there)', MV.every(([id, rule]) => on(SD0, id) !== undefined && on(SD0, id) !== rule), JSON.stringify(SD0));
+      ck(HERO + '\'s sound rows are otherwise BASE\'s (only the moved rows\' "on" differs)', strip(SD) === strip(SD0));
+      const MAN = JSON.parse(fs.readFileSync(path.join(ROOT, 'assets/audio/sfx/sfx_manifest.json'), 'utf8')).rows, BS = fs.readFileSync(path.join(ROOT, 'tools/build_sfx.py'), 'utf8'),
+        RB = BS.slice(BS.indexOf('\nRULES = {'), BS.indexOf('\n}', BS.indexOf('\nRULES = {')));
+      ck('the same rules in sfx_manifest.json rows and tools/build_sfx.py RULES (a rebuild keeps them)', MV.every(([id, rule]) => MAN[id] && MAN[id].rule === rule &&
+        new RegExp("\\n    '" + id + "': \\{'rule': '" + rule + "'").test(RB)), MV.map(([id]) => id + '=' + (MAN[id] || {}).rule).join(' ')); }
     else ck(HERO + '\'s sound rows are BASE\'s (no sound change in this release)', JSON.stringify(SD) === JSON.stringify(SD0)); }
   if (run("typeof skillPreviewStates") !== 'function') console.log('  info no skill previews on this page (before v1164)');
   else { const sp = JSON.parse(run(`JSON.stringify(skillPreviewStates('${HERO}','attack'))`));

@@ -66,7 +66,6 @@ Nothing here bumps `BUILD_ID`, `sw.js` or `version.json`, deploys, or posts to t
    ```
 
 5. **Release steps** (unchanged, by hand):
-   - sound rows, if a cast's peak moves to its release or landing (the `wire` report lists the hero's rows);
    - the passive hook, if the hero has a new event passive clip;
    - the Archive copy of `masters/`, `cut_report.json`, `frame_maps.json` and the config;
    - blueprints and patch notes;
@@ -113,6 +112,11 @@ Nothing here bumps `BUILD_ID`, `sw.js` or `version.json`, deploys, or posts to t
 - **Sheets.** Copied to `assets/anim/<hero>/<hero>_<state>_<ver>.webp` and referenced at `?v=<ver>`. The old sheets stay on disk.
 - **BATTLE_ANIM.** The hero's block is replaced, in the page's own field order, and read back through the sim host. On a mismatch the page is restored. Timing data is never touched: action clips keep clipDur 2.0 s and relFrac 0.5, and the hit keeps its 0.6 s hold.
 - **`autoAlt`.** Written onto HERO_TYPES. It is the list the v1175 engine and `skillPreviewStates` read.
+- **Sound rows** (`sound.py`). An ability sound whose peak belongs on the release or the landing moves off rule `cast` (the client starts a sound `peak` s before its moment; `cast` = the press).
+  - **The decision.** The config key `sound: {"S0172": "land"}` when given (`{}` = no sound change). When the key is absent, the proposal from the engine stage's moments: a `cast` row whose cast lands after its release goes to `land`, otherwise `release`. It matches every row v1162 and v1175 moved by hand; Aureth S0054 and Nox S0329 / S0332 are judgement calls it would get wrong, so read the `propose sound` line and set the key when it is not what the art shows.
+  - **The edits**, the same three v1162 / v1175 made by hand: `tools/build_sfx.py` RULES (a new line with a comment before the closing brace, or the existing line's rule), the row's `rule` in `assets/audio/sfx/sfx_manifest.json`, and the row's `on` in SFX_DATA.heroes. Text edits only, every other byte kept. No audio is re-encoded, SFX_ATK_GAIN and the loudness / peak data are never touched.
+  - **Read-back.** The manifest JSON, the RULES literal and the page's SFX_DATA must show the new rules, or all three files are restored.
+  - The fixture's `sound` is what moved. The generated test checks those rows in all three places, the hero's other rows = BASE's, and a CONTROL (BASE's rows fail). The undo helper puts BASE's rows back.
 - **Fixtures.** `<hero>_<ver>_integrate.json` (everything the test asserts) and `anim_<hero>_<ver>_before.json` (BASE's entries).
 - **Undo helper.** `tests/helpers/anim-<hero>-<ver>.js` is chained into the previous newest helper, and the previous release's own test loads it. Older tests compare against an older BASE, and keep doing so.
 - **Test.** `tests/test_<hero>_anim_<ver>.js` is generated from `tests/templates/hero_anim_test.tmpl.js` and registered in `run_all_tests.sh`.
@@ -121,7 +125,8 @@ Nothing here bumps `BUILD_ID`, `sw.js` or `version.json`, deploys, or posts to t
   - the condense dry run (the tier decision per new sheet);
   - `allAssetUrls()` holds every new sheet (Update all features);
   - `skillPreviewStates` for each slot;
-  - the passive hook, for an event clip.
+  - the passive hook, for an event clip;
+  - the sound rows: what moved, from the config or the proposal, and the proposal itself.
 
 ### The checks
 
@@ -236,7 +241,7 @@ The keyed frames are pixel-identical to the v1162 run's. The fit gives the same 
 - Update all lists all eight;
 - the undo helper chained into anim-1160.js, and test_veyr_deepcleft_1160 loading it (what v1162 did by hand).
 
-SFX_DATA differs, as expected: v1162 also moved S0172 and S0174 from cast to land. Sound rows are a reported step here, not an automatic one.
+- the sound rows: with no `sound` key, the proposal moves S0172 and S0174 from cast to land, as v1162 did by hand. The whole SFX_DATA table is hash-identical to 466a65c1's (the SFX_DATA line is the same text), `sfx_manifest.json` is byte-identical to v1162's (blob f8151552), and the two RULES lines carry the pipeline's comment, placed before the closing brace (v1162 put them after S0382 by hand).
 
 **3. Planner versus v1162's hand decisions:**
 
