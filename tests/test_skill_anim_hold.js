@@ -54,6 +54,7 @@ const FIGHTS = [
 function fight(file, [a, f, seed], render) {
   const H = require(path.join(ROOT, 'server/sim-host.js')).load(file);   // a FRESH game per fight: no global state carried from an earlier run
   const run = s => vm.runInContext(s, H.ctx);
+  require('./helpers/anim-slim-1155.js').undoSlim1155(run);   // v1155 slim: these renderer checks (and the PCONTROL's Pellucid filler passive) run on the v1153 entries
   return JSON.parse(run(`(()=>{ window._p2guard=true; const svA=autoUlt; autoUlt=true; const tr=[]; const cuts=[]; const swings=[]; let err=null, segs=0; const pcuts=[], disp=[], seenPO=[], pjump=[]; let muted=0, fr=0;
     try{ ended=false; state='battle'; CUR={mode:'replay',seed:${seed}}; battleTime=0; gameSpeed=1; groundHazards.length=0; seedBattle(${seed});
       let draws=0; const _r0=_brng; _brng=function(){ draws++; return _r0(); };

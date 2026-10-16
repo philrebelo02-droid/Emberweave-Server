@@ -46,19 +46,31 @@ try {
      its tier file, which tests/test_condense_1141.js holds to this same rule. Such an original is desktop-only and LEAVES the frozen list. */
   const TIERS = (() => { try { return JSON.parse(fs.readFileSync(path.join(ROOT, 'assets/anim/tiers_1141.json'), 'utf8')).sheets; } catch (e) { return {}; } })();
   const phoneTiered = new Set(Object.keys(TIERS).filter(p => TIERS[p] && TIERS[p].p));
+  /* v1155 animation slim: a sheet cut losslessly from a frozen sheet (fewer cells, same cell size) may stay oversize only WITHIN its parent -
+     each side <= the parent sheet and bytes <= the parent file (fixture derived_1155: the parent's numbers are recorded, so the parent file
+     can leave the repo). It is not a new oversize sheet: it is a strict subset of one that was already frozen. */
+  const derived = new Map((BASEL.derived_1155 || []).map(d => [d.file, d]));
+  const derivedOk = (u, d, by) => { const D = derived.get(u); return !!D && d[0] <= D.w && d[1] <= D.h && by <= D.bytes; };
   const files = [...new Set(CLIPS.concat(FX).map(c => c.u).filter(u => /^\/assets\//.test(u)).map(u => u.split('?')[0]))];
   const sheetProblems = (list, fz) => list.map(u => { const f = path.join(ROOT, u); if (!fs.existsSync(f)) return null; const d = webpSize(f) || [0, 0], by = fs.statSync(f).size;
-    return (Math.max(d[0], d[1]) > SHEET_MAX || by > FILE_MAX) && !fz.has(u) && !phoneTiered.has(u) ? u + ' ' + d.join('x') + ' ' + (by / 1e6).toFixed(1) + ' MB' : null; }).filter(Boolean);
+    return (Math.max(d[0], d[1]) > SHEET_MAX || by > FILE_MAX) && !fz.has(u) && !phoneTiered.has(u) && !derivedOk(u, d, by) ? u + ' ' + d.join('x') + ' ' + (by / 1e6).toFixed(1) + ' MB' : null; }).filter(Boolean);
   const bad = sheetProblems(files, frozen);
   ck('no battle sheet file outside the frozen pre-v1140 list is over ' + SHEET_MAX + ' px per side or ' + FILE_MAX / 1e6 + ' MB (' + files.length + ' files, ' + frozen.size + ' frozen)', bad.length === 0, bad.slice(0, 6).join('; '));
-  ck('the v1140 re-cuts (Maren / Orryn / Sylthaine v1137 sheets) are within 2048 px and not frozen', CLIPS.filter(c => /_1140\.webp/.test(c.u)).length === 9 &&
+  ck('the v1140 re-cuts (Maren / Orryn / Sylthaine v1137 sheets) are within 2048 px and not frozen', CLIPS.filter(c => /_1140\.webp/.test(c.u)).length === 9 - require('./helpers/anim-slim-1155.js').SLIM_1155.changes.filter(c => c.before && !c.after && /_1140\.webp/.test(c.before.u)).length &&   /* v1155: Sylthaine's filler passive left the page */
     CLIPS.filter(c => /_1140\.webp/.test(c.u)).every(c => { const d = webpSize(path.join(ROOT, c.u.split('?')[0])); return d && Math.max(...d) <= SHEET_MAX && !frozen.has(c.u.split('?')[0]); }));
   ck('the frozen list only shrinks: every frozen file still exists and is still oversize (a fixed file must leave the list)', BASEL.files.every(u => { const f = path.join(ROOT, u);
     if (!fs.existsSync(f)) return false; const d = webpSize(f) || [0, 0]; return Math.max(...d) > SHEET_MAX || fs.statSync(f).size > FILE_MAX; }));
   ck('v1141: an original with a phone tier file is not on the frozen list (' + phoneTiered.size + ' phone-tiered, ' + BASEL.files.length + ' still frozen)', BASEL.files.every(u => !phoneTiered.has(u)) && BASEL.files.length <= 654);
   { const tmp = path.join(ROOT, 'assets/anim/.memtest-' + process.pid + '.webp'); cp.execFileSync(process.env.PYTHON || 'python', ['-I', '-c',
       'import sys; from PIL import Image; Image.new("RGBA",(2100,64),(0,0,0,0)).save(sys.argv[1],"WEBP",lossless=True)', tmp]);
-    try { ck('CONTROL: a new 2100 px sheet fails the file check', sheetProblems(['/assets/anim/' + path.basename(tmp)], frozen).length === 1); } finally { try { fs.unlinkSync(tmp); } catch (e) {} } }
+    try { ck('CONTROL: a new 2100 px sheet fails the file check', sheetProblems(['/assets/anim/' + path.basename(tmp)], frozen).length === 1);
+      /* v1155: a derived entry that grows past its parent (here: a parent cap of 2099 px wide, the 2100 px file) fails too */
+      const tu = '/assets/anim/' + path.basename(tmp); derived.set(tu, { file: tu, w: 2099, h: 64, bytes: 1e9 });
+      ck('CONTROL (v1155): a derived sheet wider than its frozen parent fails the file check', sheetProblems([tu], frozen).length === 1);
+      derived.set(tu, { file: tu, w: 2100, h: 64, bytes: 1e9 }); ck('CONTROL (v1155): the same sheet within its parent passes', sheetProblems([tu], frozen).length === 0); derived.delete(tu);
+    } finally { try { fs.unlinkSync(tmp); } catch (e) {} } }
+  ck('v1155 ratchet: the frozen list never grows (<= the 638 files of v1140) and every derived_1155 entry is in use, within its parent and its parent left the frozen list',
+    BASEL.files.length <= 638 && [...derived.values()].every(D => files.includes(D.file) && !frozen.has(D.from) && !files.includes(D.from)));
 
   // ------------------------------------------------------------------ 2. LOADER POLICY
   const K = (phone, list) => JSON.parse(run(`(()=>{ window.__texPhone=${phone}; try{ return JSON.stringify(${JSON.stringify(list)}.map(c=>texSheetK(c.fw,c.fh,c.cols,c.rows,(c.figH&&c.fh)?c.figH/c.fh:0))); } finally{ window.__texPhone=null; } })()`));
