@@ -7,7 +7,7 @@
    loading screen is up, sampled every 150 ms:
      - no battle tick runs (updateBattle not called, battleTime frozen)
      - no unit, spell FX, ground hazard, projectile or particle of the old fight is left
-     - no fight sound is alive (SND.live 0, nothing queued) 0.2 s after the press
+     - no fight sound is alive (no live voice in SFX.act - fused swings, ability tails, capped rows - nothing queued) 0.2 s after the press
      - the battle song is faded out (released, or its element paused / at gain 0)
    then the new fight plays the NEXT song of the battle cycle (ew_battle_track moved by exactly one).
    Control: RT_ROOT=<a v1164 checkout> must FAIL (the old fight ticked on and its sounds stayed alive under the loading screen). */
@@ -33,7 +33,8 @@ const SILENT = () => { const oc = AudioNode.prototype.connect;
     if (!up) throw new Error('server did not start');
     const { chromium } = require(path.join(__dirname, '..', 'node_modules', 'playwright'));
     const args = ['--mute-audio', '--autoplay-policy=no-user-gesture-required', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu'];
-    try { browser = await chromium.launch({ args }); } catch (e) { browser = await chromium.launch({ channel: 'chrome', args }); }
+    // Chrome first: the fight sounds are AAC (.m4a), which Playwright's own Chromium cannot decode - with it no fight would make a sound
+    try { browser = await chromium.launch({ channel: 'chrome', args }); } catch (e) { browser = await chromium.launch({ args }); }
     const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, hasTouch: true, serviceWorkers: 'block' });
     await ctx.addInitScript(SILENT);
     const pg = await ctx.newPage(); const errs = []; pg.on('pageerror', e => errs.push(String(e.message).slice(0, 200)));
@@ -45,19 +46,25 @@ const SILENT = () => { const oc = AudioNode.prototype.connect;
     await delay(2500);
     await pg.mouse.click(5, 385); await delay(400);   // a tap: audio unlocks
     await pg.evaluate(() => { sndMuteSet(false); try { sndSet('music', { on: true }); sndSet('fx', { on: true }); } catch (e) {} window.__ub = 0; const o = updateBattle; window.updateBattle = function () { window.__ub++; return o.apply(this, arguments); }; });
+    // the fight's sounds decoded first (the rig is slow: a sound still loading is skipped, which would leave nothing to silence)
+    await pg.evaluate(() => { for (const v of Object.values(SFX_DATA.files)) { try { if (SND.buf[v[0]] === undefined) sndLoad(v[0]); } catch (e) {} } });
+    for (let i = 0; i < 60; i++) { const left = await pg.evaluate(() => Object.values(SFX_DATA.files).filter(v => SND.buf[v[0]] === undefined || SND.buf[v[0]] === false).length); if (!left) break; await delay(500); }
     // a real campaign fight: stage 1-1, BATTLE
     await pg.evaluate(() => { CUR = { mode: 'campaign', node: 1, portal: 'normal' }; try { teamCtx = 'campaign'; } catch (e) {} show('menu'); }); await delay(1200);
     await pg.evaluate(() => document.getElementById('startBtn').click());
     for (let i = 0; i < 120; i++) { if (await pg.evaluate(() => state === 'battle' && !document.getElementById('battleLoader') && units.length > 0)) break; await delay(150); }
+    await pg.evaluate(() => { window.__maxLive = 0; window.__mlIv = setInterval(() => { const n = SFX.act ? SFX.act.filter(v => !v.dying).length : (SND.live | 0); if (n > window.__maxLive) window.__maxLive = n; }, 50); });
     await delay(6000);
-    const before = await pg.evaluate(() => ({ st: state, units: units.length, ub: window.__ub, live: SND.live | 0, cur: MUS.cur, song: MUS.lanes.battle && MUS.lanes.battle.slot && MUS.lanes.battle.slot.song.f, k: localStorage.getItem('ew_battle_track'), bt: battleTime }));
+    await pg.evaluate(() => clearInterval(window.__mlIv));
+    const before = await pg.evaluate(() => ({ maxLive: window.__maxLive, st: state, units: units.length, ub: window.__ub, live: (SFX.act ? SFX.act.length : (SND.live | 0)), cur: MUS.cur, song: MUS.lanes.battle && MUS.lanes.battle.slot && MUS.lanes.battle.slot.song.f, k: localStorage.getItem('ew_battle_track'), bt: battleTime }));
+    ck(before.maxLive > 0, 'the fight was making sound (up to ' + before.maxLive + ' live voices) - the silence check below is not vacuous', JSON.stringify(before));
     ck(before.st === 'battle' && before.units > 0 && before.ub > 50 && before.cur === 'battle' && before.song, 'a campaign fight is running with its battle song (' + before.song + ')', JSON.stringify(before));
     // Pause -> Restart Stage
     await pg.evaluate(() => { document.getElementById('pauseBtn').click(); }); await delay(300);
     await pg.evaluate(() => { window.__ub = 0; window.__t0 = performance.now(); document.getElementById('restartBtn').click(); });
     const S = []; for (let i = 0; i < 40; i++) { const s = await pg.evaluate(() => { const L = MUS.lanes.battle, sl = L && L.slot;
         return { t: Math.round(performance.now() - window.__t0), ldr: !!document.getElementById('battleLoader') && (typeof _blLoading === 'undefined' || _blLoading), ub: window.__ub, bt: +battleTime.toFixed(3), units: units.length, haz: groundHazards.length, shots: shots.length, parts: particles.length,
-          plates: (typeof _fxPlates !== 'undefined' ? _fxPlates.length : 0), live: SND.live | 0, q: SFX.q.length, cur: MUS.cur,
+          plates: (typeof _fxPlates !== 'undefined' ? _fxPlates.length : 0), live: (SFX.act ? SFX.act.filter(v => !v.dying && v.end > SND.ctx.currentTime).length : (SND.live | 0)), q: SFX.q.length, cur: MUS.cur,
           music: MUS.pool.filter(x => x.lane === 'battle' && !x.el.paused && x.g.gain.value > 0.02).length }; });
       S.push(s); if (!s.ldr && i > 2) break; await delay(150); }
     const during = S.filter(s => s.ldr && s.t >= 250);

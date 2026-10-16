@@ -130,7 +130,7 @@ const SCREENS = ['campaign', 'menu', 'heroesPanel', 'bag', 'settings', 'temple',
       const NF = +(process.env.MUTE_FIGHTS || 200); const diff = []; let ticks = 0;
       for (let f = 0; f < NF; f++) { const a = [], c = []; for (let i = 0; i < 5; i++) { a.push(heroes[(f * 10 + i) % heroes.length]); c.push(heroes[(f * 10 + 5 + i) % heroes.length]); }
         const x = run(FIGHT(a, c, 3000 + f, [1, 3, 5][f % 3], f % 2)), y = R0(FIGHT(a, c, 3000 + f, [1, 3, 5][f % 3], f % 2)); ticks += +x.split(':')[0]; if (x !== y) diff.push(f + ' ' + x + ' vs ' + y); }
-      ck(diff.length === 0 && ticks > 0, 'FIGHTS: ' + NF + ' seeded 5v5 fights (' + ticks + ' ticks, ranks 1/3/5, crit on/off) are tick-identical to live v1162 ' + BASE_SHA.slice(0, 8), diff.slice(0, 3).join('; '));
+      ck(diff.length === 0 && ticks > 0, 'FIGHTS: ' + NF + ' seeded 5v5 fights (' + ticks + ' ticks, ranks 1/3/5, crit on/off) are tick-identical to ' + BASE_SHA.slice(0, 8) + (BASE_SHA.startsWith('466a65c1') ? ' (live v1162)' : ''), diff.slice(0, 3).join('; '));
       const a = heroes.slice(0, 5), c = heroes.slice(5, 10), k = heroes[0];
       const base = run(FIGHT(a, c, 3000, 3, 0)), mut = run(`(()=>{ const T=BATTLE_ANIM[${JSON.stringify(k)}].attack, sv=T.n; T.n=sv-12; try{ return eval(${JSON.stringify(FIGHT(a, c, 3000, 3, 0))}); } finally{ T.n=sv; } })()`);
       ck(base !== mut, 'CONTROL: the fight harness sees a change to sim-read clip data (' + k + '\'s attack clip 12 cells shorter -> a different digest)', base + ' vs ' + mut);
