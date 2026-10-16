@@ -144,6 +144,8 @@ try {
   if (runB) runB("BATTLE_ANIM.aureth=Object.assign({},BATTLE_ANIM.aureth,{crit:Object.assign({},BATTLE_ANIM.aureth.attack)}); 1");
   /* v1160: Veyr and Deepcleft have crit clips too (seeds 19 / 17) - the same v532 rule, given to BASE's Veyr / Deepcleft the same way (tests/helpers/anim-1160.js) */
   if (runB) require('./helpers/anim-1160.js').critRule1160(runB);
+  /* v1162: Korvux has a crit clip too (his overhead chop) - the same v532 rule, given to BASE's Korvux the same way (tests/test_korvux_anim_eight.js) */
+  if (runB) require('./helpers/anim-korvux-1162.js').critRuleKorvux1162(runB);
   const res = FIGHTS.map(F => ({ F, live: fight(runL, F, true), quiet: fight(runQ, F, false), base: runB && fight(runB, F, false) }));
   const runP = load(HTML); runP(HASH);
   const resP = FIGHTS.map((F, i) => ({ F, live: fight(runP, F, true, '', 1 + (i % 2)) }));   // the timing runs: phone clock, speed 1 / 2 alternating

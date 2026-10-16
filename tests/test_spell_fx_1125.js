@@ -34,6 +34,7 @@ for (const [k, [file, cells]] of Object.entries(SHEETS)) {
 // ---------------------------------------------------------------- engine
 function load(html) { const host = require(path.join(ROOT, 'server/sim-host.js')).load(html); return s => vm.runInContext(s, host.ctx); }
 const run = load(HTML);
+require('./helpers/anim-korvux-1162.js').undoKorvux1162(run);   // v1162: Korvux's blue clip and the chop's sync / fit are the v1159 ones here (tests/test_korvux_anim_eight.js checks the re-sync)
 const has = n => run(`typeof ${n}`) !== 'undefined';
 const FXRT = has('FX_RT') ? run('FX_RT') : NaN;
 
@@ -105,7 +106,7 @@ const SS = A.astra.step || 1 / 30;
 if (has('FX2_DEF') && run('!!(FX2_DEF.korvuxcleave&&FX2_DEF.korvuxcleave.sync)')) {
   const d = JSON.parse(run('JSON.stringify(FX2_DEF.korvuxcleave)')), f = d.sync.f, c = d.sync.c;
   ck(`Ember Cleave rides his axe: sync frames ${f.join(',')} -> cells ${c.join(',')}; the flash cell lands on clip frame 28 (the impact, his blue clip's ax lunge frame), cells only move forward`,
-    f[f.length - 1] === 28 && c[c.length - 1] === d.hit && c.every((x, i) => i === 0 || x >= c[i - 1]) && f.every((x, i) => i === 0 || x > f[i - 1]) && (() => { const m = H.match(/blue:\{u:'\/assets\/anim\/korvux\/korvux_blue\.webp\?v=\d+'[^}]*?ax:\[([-\d,]+)\]/); return !!m && +m[1].split(',')[28] === 47; })() && d.fit && d.fit.k > 0, JSON.stringify(d.sync));
+    f[f.length - 1] === 28 && c[c.length - 1] === d.hit && c.every((x, i) => i === 0 || x >= c[i - 1]) && f.every((x, i) => i === 0 || x > f[i - 1]) && (() => { const ax = JSON.parse(run('JSON.stringify((BATTLE_ANIM.korvux.blue||{}).ax||null)')); return !!ax && /korvux_blue\.webp\?v=\d+$/.test(run('BATTLE_ANIM.korvux.blue.u')) && +ax[28] === 47; })() && d.fit && d.fit.k > 0, JSON.stringify(d.sync));
 } else ck('Ember Cleave: FX2_DEF.korvuxcleave.sync exists', false);
 ck('both warmed with the hero figure (FX1123_WARM astra / korvux; v1126 adds the five v1123 spells beside them)', /const FX1123_WARM=\{[^}]*astra:\['astrahorizon'\],korvux:\['korvuxcleave'\][^}]*\};/.test(H));
 // v1126: the five v1123 fx-branch spells ship now (their own checks: tests/test_spell_fx_1123.js); the parity runs above still prove
