@@ -30,7 +30,7 @@ if (!OLD) { try { OLD = path.join(ROOT, '.test-vd1160-base.html'); fs.writeFileS
   const tmp = OLD; process.on('exit', () => { try { fs.unlinkSync(tmp); } catch (e) {} }); } catch (e) { OLD = null; } }
 const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); return src => vm.runInContext(src, h.ctx); };
 const run = load(HTML);
-require('./helpers/vael-fx-1165.js').undoVaelFx1165(run);   // v1165: Vael's three FX entries + ownFx tags go back to v1163's (tests/test_vael_fx_1165.js checks them)
+require('./helpers/vael-fx-1168.js').undoVaelFx1168(run);   // v1168: Vael's three FX entries + ownFx tags go back to v1163's (tests/test_vael_fx_1168.js checks them)
 require('./helpers/anim-korvux-1162.js').undoKorvux1162(run);   // v1162: Korvux's new entries go back to their v1159 state (tests/test_korvux_anim_eight.js checks them)
 const R0 = OLD ? load(OLD) : null;
 let pass = 0, fail = 0;

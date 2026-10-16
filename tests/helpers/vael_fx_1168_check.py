@@ -1,11 +1,11 @@
-# Vael spell FX sheets (tests/test_vael_deepcleft_fx_1165.js): the green-key fringe, measured, with a CONTROL.
+# Vael spell FX sheets (tests/test_vael_deepcleft_fx_1168.js): the green-key fringe, measured, with a CONTROL.
 #   edge = alpha 8..200, body = alpha > 200
 #   GREEN = G > max(R,B) + 24 (visible green, the v1160 measure)
 #   OLIVE = hue 55-180 deg, saturation > 0.20, value > 0.08 - plate left inside a semi-transparent colour and despilled to yellow-green, which the
 #           GREEN measure cannot see (a despill caps G at max(R,B)); these clips own no green or yellow (tan dust, red blood, bronze shields)
 #   VIOLET = hue 250-335, saturation > 0.25 - the green's complement a 4:2:0 soft edge keeps after the unmix (these clips own no violet)
 #   CONTROL: the same sheet with 35% of the plate (0,254,0) mixed back into every edge pixel and despilled the v1160 way must read as OLIVE
-#   usage: python -I vael_fx_1165_check.py <sheet.webp>...   prints JSON {name: {...}}
+#   usage: python -I vael_fx_1168_check.py <sheet.webp>...   prints JSON {name: {...}}
 import sys, os, json
 import numpy as np
 from PIL import Image
