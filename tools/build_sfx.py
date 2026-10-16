@@ -19,6 +19,18 @@ LOUDNESS (Phil 15 Oct: "they should all be about the same loudness, minus the on
 PEAK (Phil: "the slice/contact peak of the sword sound should meet with the sword reaching the target"):
   every file's impact peak (seconds from its start to its loudest 10 ms) is measured on the FINAL encoded file
   and stored as `peak`; the client starts a sound `peak` seconds before its moment.
+v1165 RIDE OUT + SPARKLE (Phil 16 Oct 2026, listening page "spell ride", db spell_ride_picks: "Sparkle is good do c for every ability and put
+it in game"; "Yes lets do it, full effects will sound cleaner"): every ABILITY file (green / blue / ult / passive rows - every file that is not
+a weapon strike) plays to its natural end - no `trim`, no 1.6 / 6.5 s cap (ABIL_MAX_LEN 10 s), the composites rebuilt without their cut by
+tools/sfx_rideout_sources.py - plus the version-C tail: a soft echo bloom + high shimmer, wet held at 0 until 30 ms after the dry's own peak,
+fading smoothly over SPARK_TAIL s (spark_base: the listening page's recipe, verbatim). The impact peak is re-measured on the final file
+at the v1138 peak (`peak_at`, anchor_peak): the same moment of the same take, so no hit's timing moves - a global re-measure flips between
+near-equal loud moments (the limiter / encoder on the new gain) and would move 26 of them by 10-670 ms; inside +-30 ms the argmax wanders up
+to 30 ms on 12 flat-topped transients whose level at the v1138 peak is within 0.6 dB of it - the v1138 peak is kept there.
+v1165 MELEE VARIETY + SHIMMER (Phil 16 Oct: "melee hits are kind of annoying after a while", "add a magic shimmer", "6 random shimmers 6 random
+hits"): every weapon type has 6 takes (LIB-ATK-<T> = the approved file, unchanged; LIB-ATK-<T>-2..6 from approved/takes_v1165, picked by
+tools/sfx_pick_takes.py) and the 6 melee shimmers LIB-SHIM-1..6 - all through render() at the type's own target. The client layers a shimmer
+under each melee swing at the level / alignment of Phil's page (shim_table: the page's mix() measured on the shipped files).
 Run:  python tools/build_sfx.py            (needs ffmpeg/ffprobe on PATH, numpy, scipy)
       python tools/build_sfx.py --check    (re-measure the shipped files, change nothing)
 """
@@ -32,12 +44,18 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SL = os.environ.get('EW_SOUND_LIST') or r'C:\Users\Home\OneDrive\Desktop\Emberweave Archive\Open Projects\3 - Heroes, Art and Lore\SOUND LIST 11OCT2026'
 OUT = os.path.join(ROOT, 'assets', 'audio', 'sfx')
 HTML = os.path.join(ROOT, 'emberweave-heroes.html')
-VER = 1138
+VER = 1165              # v1165: every re-rendered file (the abilities, the new takes) gets ?v=1165; unchanged files keep their own version
 TARGET_LUFS = -16.0
 TP_CEIL = -1.0
 TOL_LU = 2.0
 MAX_LEN = 6.5          # no combat sound runs longer (ult beds are 4-6 s)
-HIT_MAX_LEN = 1.6      # a sound that plays on each of several hits stays short
+HIT_MAX_LEN = 1.6      # a sound that plays on each of several hits stays short (v1165: weapon strikes only - abilities ride out)
+ABIL_MAX_LEN = 10.0    # v1165 ride out: an ability file plays to its natural end (the longest natural end is 8.6 s, S0076); this is only a ceiling
+SPARK_TAIL = 1.3       # v1165 the sparkle tail (version C on Phil's page): bloom + shimmer fading over this past the dry's natural end
+RIDE_DIR = os.path.join(SL, 'approved', 'spells_rideout')     # tools/sfx_rideout_sources.py: the composites without their cut
+TAKES_DIR = os.path.join(SL, 'approved', 'takes_v1165')       # tools/sfx_pick_takes.py: weapon takes 2-6 + the 6 melee shimmers
+MELEE = ['BLADE-LIGHT', 'BLADE-HEAVY', 'BLUNT', 'FIST-HEAVY', 'FIST-METAL', 'CLAW', 'THRUST', 'STAFF']   # these get the shimmer; BOW GUN THROWN CASTER-WHOOSH do not
+SHIM_UNDER, SHIM_TRAIL = 10.0, 0.45   # Phil's page (melee_shimmer_picks): the shimmer 10 dB under the swing, ringing 0.45 s past the audible swing
 # Phil's deliberate offsets, relative to the target (15 Oct, coordinator): everything else = the target.
 OFFSETS = {'LIB-ATK-FIST-HEAVY': -3.0, 'LIB-ATK-BOW': -3.0, 'LIB-ATK-THRUST': -3.0, 'LIB-ATK-CASTER-WHOOSH': -5.0,
            'S0456': -3.0}   # S0456 = Ambrel's Sacred Bells passive, briefed as quiet
@@ -192,16 +210,79 @@ def ff(*args):
     subprocess.run(['ffmpeg', '-v', 'error', '-y', *args], check=True)
 
 
-def render(src, dst, offset_db, trim, stereo, max_len):
-    """trim -> silence-trim -> loudness to TARGET+offset with a -1 dBTP ceiling -> AAC. Returns the final measurement."""
+def nat_end(x, floor_rel=-60):
+    """the time a 20 ms envelope last sits above (its peak + floor_rel dB) - the listening page's natural end"""
+    w = int(0.02 * L.SR)
+    e = np.sqrt(np.convolve(np.mean(x ** 2, axis=0), np.ones(w) / w, mode='same'))
+    idx = np.nonzero(e > e.max() * 10 ** (floor_rel / 20))[0]
+    return idx[-1] / L.SR if len(idx) else x.shape[1] / L.SR
+
+
+def spark_graph(tot, fade_st, fade_d, pk, wet_db):
+    """v1165 version C (verbatim from the listening page's render.py): dry untouched + a wet-only bloom (multi-tap echo, two diffusion stages)
+    + a high shimmer; the wet is held at 0 until just after the dry's own peak (pk) so the hit stays where it is, then ramps in; everything
+    fades smoothly to `tot`"""
+    rv = [(31, .50), (47, .44), (67, .38), (89, .33), (113, .28), (149, .24), (193, .20), (241, .16), (307, .12), (389, .09), (487, .06)]
+    sh = [(70, .55), (140, .45), (215, .37), (300, .30), (395, .24), (500, .19), (620, .15), (760, .11), (920, .08), (1100, .05)]
+    g = ['[0:a]apad=pad_dur=1.6,asplit=3[d][r][s]']
+    g.append('[r]asplit=%d%s' % (len(rv), ''.join('[r%d]' % i for i in range(len(rv)))))
+    for i, (ms, gn) in enumerate(rv):
+        g.append('[r%d]adelay=%d:all=1,volume=%.3f[rt%d]' % (i, ms, gn, i))
+    g.append('%samix=inputs=%d:normalize=0:duration=first,aecho=0.9:0.9:53|97|151:0.25|0.18|0.12,lowpass=f=9000[rw]' % (''.join('[rt%d]' % i for i in range(len(rv))), len(rv)))
+    g.append('[s]highpass=f=3800,asplit=%d%s' % (len(sh), ''.join('[s%d]' % i for i in range(len(sh)))))
+    for i, (ms, gn) in enumerate(sh):
+        g.append('[s%d]adelay=%d:all=1,volume=%.3f[st%d]' % (i, ms, gn, i))
+    g.append('%samix=inputs=%d:normalize=0:duration=first,volume=0.6[sw]' % (''.join('[st%d]' % i for i in range(len(sh))), len(sh)))
+    g.append("[rw][sw]amix=inputs=2:normalize=0:duration=first,volume=%.2fdB,volume='if(lt(t,%.3f),0,min(1,(t-%.3f)/0.2))':eval=frame[w]" % (wet_db, pk + 0.03, pk + 0.03))
+    g.append('[d][w]amix=inputs=2:normalize=0:duration=first,atrim=end=%.3f,afade=t=out:st=%.3f:d=%.3f[o]' % (tot, fade_st, fade_d))
+    return ';'.join(g)
+
+
+def spark_base(src, ch, td, max_len=None, tail=None):
+    """v1165 ride out + sparkle, the page's B -> C -> C2 steps verbatim: leading silence off, cut at the natural end (-60 dB) + 25 ms
+    anti-click; + the bloom / shimmer (the wet level stepped down until the dry's impact peak is where it was, within 12 ms); cut where the
+    bloom itself has died away (-60 dB) + 30 ms. Returns (wav, info)."""
+    max_len = ABIL_MAX_LEN if max_len is None else max_len
+    tail = SPARK_TAIL if tail is None else tail
+    raw = os.path.join(td, 'raw.wav')
+    ff('-i', src, '-af', 'silenceremove=start_periods=1:start_threshold=-55dB:start_silence=0.005', '-ac', ch, '-ar', '48000', '-c:a', 'pcm_f32le', raw)
+    xr = L.decode(raw)
+    ne = min(xr.shape[1] / L.SR, nat_end(xr) + 0.05, max_len)
+    baseB = os.path.join(td, 'B.wav')
+    ff('-i', raw, '-af', 'atrim=end=%.3f,afade=t=out:st=%.3f:d=0.025' % (ne, ne - 0.025), '-c:a', 'pcm_f32le', baseB)
+    tot = ne + tail
+    baseC = os.path.join(td, 'C.wav')
+    pkB = L.impact_peak(L.decode(baseB))
+    for wet_db in (-8, -11, -14, -17, -20):
+        ff('-i', baseB, '-filter_complex', spark_graph(tot, max(0, ne - 0.2), tail + 0.2, pkB, wet_db), '-map', '[o]', '-ac', ch, '-c:a', 'pcm_f32le', baseC)
+        if abs(L.impact_peak(L.decode(baseC)) - pkB) < 0.012:
+            break
+    xc = L.decode(baseC)
+    ce = max(ne, min(xc.shape[1] / L.SR, nat_end(xc) + 0.05))
+    baseC2 = os.path.join(td, 'C2.wav')
+    ff('-i', baseC, '-af', 'atrim=end=%.3f,afade=t=out:st=%.3f:d=0.03' % (ce, ce - 0.03), '-c:a', 'pcm_f32le', baseC2)
+    return baseC2, {'natural': round(ne, 3), 'wet_db': wet_db, 'dry_peak': round(pkB, 4), 'end': round(ce, 3)}
+
+
+PEAK_ANCHOR = 0.03
+
+
+def render(src, dst, offset_db, trim, stereo, max_len, spark=False, pk_at=None):
+    """trim -> silence-trim -> loudness to TARGET+offset with a -1 dBTP ceiling -> AAC. Returns the final measurement.
+    v1165 spark=True (an ability file): the ride out + sparkle base (spark_base) instead of the trim / cap; pk_at: the impact peak is the
+    loudest 10 ms within +-PEAK_ANCHOR s of the v1138 peak, measured on the final file - the hit timing does not move."""
     want = TARGET_LUFS + offset_db
     with tempfile.TemporaryDirectory() as td:
         base = os.path.join(td, 'base.wav')
         ln = min(max_len, trim) if trim else max_len
         ch = '2' if stereo else '1'
-        # leading silence (below -55 dB) off, the length cap with a 60 ms fade so a cut never clicks
-        ff('-i', src, '-af', 'silenceremove=start_periods=1:start_threshold=-55dB:start_silence=0.005,atrim=start=0:end=%.3f,afade=t=out:st=%.3f:d=0.06' % (ln, max(0, ln - 0.06)),
-           '-ac', ch, '-ar', '48000', '-c:a', 'pcm_f32le', base)
+        info = None
+        if spark:
+            base, info = spark_base(src, ch, td, max_len)
+        else:
+            # leading silence (below -55 dB) off, the length cap with a 60 ms fade so a cut never clicks
+            ff('-i', src, '-af', 'silenceremove=start_periods=1:start_threshold=-55dB:start_silence=0.005,atrim=start=0:end=%.3f,afade=t=out:st=%.3f:d=0.06' % (ln, max(0, ln - 0.06)),
+               '-ac', ch, '-ar', '48000', '-c:a', 'pcm_f32le', base)
         x = L.decode(base)
         g = want - L.max_momentary(x)
         lim_db = TP_CEIL - 0.3
@@ -219,7 +300,31 @@ def render(src, dst, offset_db, trim, stereo, max_len):
             if not ok_p:      # the encoder overshoots the limiter on a sharp transient: pull the ceiling down by the over
                 lim_db -= (m['tp_db'] - TP_CEIL) + 0.2
             g += want - m['lufs_m']
+        if info:
+            m['spark'] = info
+        if pk_at is not None:
+            m['peak_global'] = m['peak']
+            m.update(anchor_peak(dst, pk_at))
         return m
+
+
+PEAK_FLAT_DB = 1.0
+
+
+def anchor_peak(dst, pk_at):
+    """v1165: re-measure the impact peak on the final file at the v1138 peak. The dry take is the same take from the same first sample (the tail
+    is held at 0 until 30 ms after it), so the hit is where it was; the 10 ms loudest moment within +-PEAK_ANCHOR is measured on the encoded file
+    (`peak_meas`). If the level at the v1138 peak is within PEAK_FLAT_DB of it (a flat-topped transient: the encoder / limiter on the new gain
+    only moves the argmax around inside it) the v1138 peak is kept; otherwise the measured one is used (flagged)."""
+    x = L.decode(dst)
+    e = L.envelope(x)
+    a = max(0, int((pk_at - PEAK_ANCHOR - 0.005) * L.SR)); b = min(len(e), int((pk_at + PEAK_ANCHOR - 0.005) * L.SR) + 1)
+    i = a + int(np.argmax(e[a:b]))
+    meas = round((i + 0.005 * L.SR) / L.SR, 4)
+    lv = e[min(len(e) - 1, max(0, int(round((pk_at - 0.005) * L.SR))))]
+    flat = 20 * np.log10(e[i] / (lv + 1e-12) + 1e-12)
+    keep = flat <= PEAK_FLAT_DB
+    return {'peak': round(pk_at, 4) if keep else meas, 'peak_meas': meas, 'peak_flat_db': round(float(flat), 2), 'peak_kept': bool(keep)}
 
 
 def split_composite(src, n, gap, td):
@@ -238,8 +343,74 @@ def split_composite(src, n, gap, td):
     return outs, cuts[:-1]
 
 
+def _v1138_files():
+    """the v1138 files (git: the manifest as main shipped it before v1165): every ability file's peak anchor"""
+    for ref in ('cd6b232d', 'origin/main'):
+        try:
+            raw = subprocess.run(['git', 'show', ref + ':assets/audio/sfx/sfx_manifest.json'], cwd=ROOT, capture_output=True, check=True).stdout
+            fs = json.loads(raw)['files']
+            if not any(v.get('spark') for v in fs.values()):
+                return fs
+        except Exception:
+            pass
+    return {}
+
+
+V1138 = {}
+
+
+def aud_end(path, rel_db=-30):
+    """where the file stops being heard (20 ms envelope under its peak - 30 dB): the shimmer rings SHIM_TRAIL past this"""
+    x = L.decode(path)
+    e = L.envelope(x, 0.02)
+    return round(float(np.nonzero(e > e.max() * 10 ** (rel_db / 20))[0][-1] / L.SR), 4)
+
+
+def _page_mix(sw, swpk, sh, shpk, sh_gain_db):
+    """Phil's page (scratch ms_src/make.py mix(), nominal rates): swing + shimmer, the shimmer's peak on the swing's impact peak, its head cut
+    (12 ms fade-in) when it peaks later, ringing SHIM_TRAIL past the audible swing (0.2 s fade). Mono numpy."""
+    s = sw
+    h = sh * 10 ** (sh_gain_db / 20)
+    sh_at = swpk - shpk
+    if sh_at < 0:
+        h = h[int(-sh_at * L.SR):].copy(); sh_at = 0.0
+        k = int(0.012 * L.SR); h[:k] *= np.linspace(0, 1, k)
+    e = L.envelope(s[None], 0.02); ae = np.where(e > e.max() * 10 ** (-30 / 20))[0][-1] / L.SR
+    hl = int((ae + SHIM_TRAIL - sh_at) * L.SR)
+    h = h[:max(1, hl)].copy(); n = min(len(h), int(0.2 * L.SR)); h[len(h) - n:] *= np.linspace(1, 0, n)
+    buf = np.zeros(int((max(len(s) / L.SR, sh_at + len(h) / L.SR) + 0.02) * L.SR))
+    buf[:len(s)] += s; i = int(round(sh_at * L.SR)); buf[i:i + len(h)] += h[:len(buf) - i]
+    return buf
+
+
+def shim_table(files, shims):
+    """per melee type and shimmer: [shimmer gain dB, master gain dB] - the page's levels (the shimmer SHIM_UNDER dB under the swing, the pair
+    brought back to the swing's own max momentary loudness), measured on the SHIPPED files"""
+    out = {}
+    sh = [(L.decode(os.path.join(OUT, n + '.m4a'), 1)[0]) for n in shims]
+    for t in MELEE:
+        sw = L.decode(os.path.join(OUT, 'LIB-ATK-%s.m4a' % t), 1)[0]
+        tgt = L.max_momentary(sw[None]); swpk = files['LIB-ATK-' + t]['peak']
+        row = []
+        for n, x in zip(shims, sh):
+            sg = (tgt - SHIM_UNDER) - L.max_momentary(x[None])
+            m = _page_mix(sw, swpk, x, files[n]['peak'], sg)
+            row.append([round(sg, 2), round(tgt - L.max_momentary(m[None]), 2)])
+        out[t] = row
+    return out
+
+
 def build():
     rows, picks, appr = load()
+    V1138.update(_v1138_files())
+    try:
+        ride = {k: os.path.join(SL, v['out']) for k, v in json.load(open(os.path.join(RIDE_DIR, 'rideout.json'), encoding='utf-8')).items() if v.get('ok')}
+    except Exception:
+        ride = {}
+    try:
+        TAK = json.load(open(os.path.join(TAKES_DIR, 'TAKES.json'), encoding='utf-8'))
+    except Exception:
+        TAK = {'types': {}, 'shimmer': []}
     os.makedirs(OUT, exist_ok=True)
     files, made = {}, {}           # name -> manifest entry; source key -> name (dedupe: one file per source + trim + offset)
     used_names = set()
@@ -249,20 +420,41 @@ def build():
         prev = {}
     force = '--force' in sys.argv
 
-    def add(name, src, offset, trim, stereo, max_len, note):
-        key = (os.path.normcase(src), trim, offset, stereo, max_len)
+    def add(name, src, offset, trim, stereo, max_len, note, spark=False):
+        key = (os.path.normcase(src), trim, offset, stereo, max_len, spark)
         if key in made:
             return made[key]
         dst = os.path.join(OUT, name + '.m4a')
         st = os.stat(src)
         ckey = '%s|%s|%s|%s|%s|%d|%d|%s|%s' % (os.path.basename(src), trim, offset, stereo, max_len, st.st_size, int(st.st_mtime), TARGET_LUFS, TP_CEIL)
-        if not force and name in prev and prev[name].get('key') == ckey and os.path.exists(dst) and not os.path.basename(src).startswith('part'):
+        if spark:   # v1165: the ride out + sparkle settings are part of the file's identity
+            ckey += '|spark %.2f %.1f' % (SPARK_TAIL, ABIL_MAX_LEN)
+        split = os.path.basename(src).startswith('part')
+        # v1165: a swing-length ARM cut (a temp 'part-*' file, made fresh every build) is the same file when everything but its temp mtime matches -
+        # Aureth's three cuts keep their bytes and url (they were re-encoded on every build before)
+        nomt = lambda k: '|'.join(f for i, f in enumerate((k or '').split('|')) if i != 6)   # noqa: E731
+        same = name in prev and (prev[name].get('key') == ckey or (split and not spark and nomt(prev[name].get('key')) == nomt(ckey)))
+        if not force and same and os.path.exists(dst) and (not split or not spark) and (not spark or 'peak_at' in prev[name]):
             files[name] = prev[name]; made[key] = name; used_names.add(name)
+            if spark and files[name].get('peak_at') is not None:   # v1165: the peak re-measured on the (unchanged) final file
+                files[name].update(anchor_peak(dst, files[name]['peak_at']))
+            if name.startswith('LIB-') and files[name].get('ae') is None:
+                files[name]['ae'] = aud_end(dst)   # v1165: the audible end of an unchanged weapon file (its bytes and url stay)
             return name
-        m = render(src, dst, offset, trim, stereo, max_len)
+        pk_at = None
+        if spark:   # the v1138 peak: this file's anchor (kept across rebuilds)
+            pv = prev.get(name) or {}
+            pk_at = pv.get('peak_at') if pv.get('peak_at') is not None else (V1138.get(name) or {}).get('peak')
+        m = render(src, dst, offset, None if spark else trim, stereo, ABIL_MAX_LEN if spark else max_len, spark, pk_at)
         files[name] = {'key': ckey, 'f': 'sfx/%s.m4a?v=%d' % (name, VER), 'peak': m['peak'], 'dur': m['dur'], 'lufs_m': m['lufs_m'], 'tp_db': m['tp_db'],
                        'target': TARGET_LUFS + offset, 'offset': offset, 'ch': m['channels'], 'bytes': os.path.getsize(dst),
                        'src': os.path.basename(src), 'note': note}
+        if spark:
+            files[name].update({'spark': m.get('spark'), 'peak_at': pk_at, 'peak_global': m.get('peak_global'), 'trim_dropped': trim,
+                                'peak_meas': m.get('peak_meas'), 'peak_flat_db': m.get('peak_flat_db'), 'peak_kept': m.get('peak_kept'),
+                                'v1138_dur': (V1138.get(name) or {}).get('dur')})
+        if name.startswith('LIB-'):
+            files[name]['ae'] = aud_end(dst)
         made[key] = name
         used_names.add(name)
         print('  %-28s %6.1f LUFS-M (target %6.1f) TP %5.1f peak %.3f s  %5.2f s  %s' % (name, m['lufs_m'], TARGET_LUFS + offset, m['tp_db'], m['peak'], m['dur'], os.path.basename(src)))
@@ -273,6 +465,13 @@ def build():
     for k, v in appr.items():
         if k.startswith('LIB-ATK-'):
             lib[k] = add(k, src_path(v['file']), OFFSETS.get(k, 0.0), None, False, 2.2, v.get('picked', ''))
+    # v1165: takes 2-6 of every weapon type + the 6 melee shimmers (same render, the type's own target)
+    takes = {}
+    for t, tr in TAK['types'].items():
+        k = 'LIB-ATK-' + t
+        takes[k] = [k] + [add('%s-%d' % (k, r['n']), os.path.join(SL, r['file']), OFFSETS.get(k, 0.0), None, False, 2.2,
+                              'take %d: %s%s' % (r['n'], r['label'], ' (made: %s)' % r['made'] if r.get('made') else '')) for r in tr[1:]]
+    shims = [add('LIB-SHIM-%d' % r['n'], os.path.join(SL, r['file']), 0.0, None, False, 2.2, 'melee shimmer %d: %s' % (r['n'], r['label'])) for r in TAK['shimmer']]
     # 2. every picked row
     out_rows, unmapped = {}, []
     for rid, p in sorted(picks.items()):
@@ -295,27 +494,29 @@ def build():
             names = out_rows[spec['reuse']]['files'] if spec['reuse'] in out_rows else None
             if names is None:   # the reused row comes later in sort order: render it now
                 rp = picks[spec['reuse']]
-                names = [add(spec['reuse'], src_path(rp['file']), OFFSETS.get(spec['reuse'], 0.0), rp.get('trim'), False, MAX_LEN, rp.get('by', ''))]
+                names = [add(spec['reuse'], ride.get(spec['reuse']) or src_path(rp['file']), OFFSETS.get(spec['reuse'], 0.0), rp.get('trim'), False, MAX_LEN, rp.get('by', ''), True)]
         elif p.get('approved'):
             a = appr[p['approved']]
             fl = a.get('files') or [a['file']]
             for i, f in enumerate(fl):
                 nm = rid if len(fl) == 1 else '%s-%d' % (rid, i + 1)
-                names.append(add(nm, src_path(f), OFFSETS.get(rid, 0.0), None, False, HIT_MAX_LEN, a.get('picked', '')))
+                names.append(add(nm, src_path(f), OFFSETS.get(rid, 0.0), None, False, HIT_MAX_LEN, a.get('picked', ''), True))
         elif spec.get('split'):
             with tempfile.TemporaryDirectory() as td:
                 parts, top = split_composite(src_path(p['file']), spec['split'], p['recipe']['gap'], td)
                 for i, pp in enumerate(parts):
                     names.append(add('%s-%d' % (rid, i + 1), pp, OFFSETS.get(rid, 0.0), None, stereo_ok and L.decode(pp).shape[0] > 1, HIT_MAX_LEN,
-                                     'split %d/%d of %s (hit starts %s s)' % (i + 1, spec['split'], os.path.basename(p['file']), ','.join('%.2f' % t for t in top))))
+                                     'split %d/%d of %s (hit starts %s s)' % (i + 1, spec['split'], os.path.basename(p['file']), ','.join('%.2f' % t for t in top)), True))
             spec['seq'] = True
         else:
-            src = src_path(p['file'])
-            st = stereo_ok and L.decode(src).shape[0] > 1
-            names.append(add(rid, src, OFFSETS.get(rid, 0.0), p.get('trim'), st, ml, p.get('by', '')))
+            src = ride.get(rid) or src_path(p['file'])   # v1165: a composite without its cut (sfx_rideout_sources.py)
+            st = stereo_ok and L.decode(src_path(p['file'])).shape[0] > 1
+            names.append(add(rid, src, OFFSETS.get(rid, 0.0), p.get('trim'), st, ml, p.get('by', '') + (' | ride out: %s' % os.path.basename(src) if rid in ride else ''), True))
             if spec.get('peak') is not None:   # a composite: align its FIRST hit, not its loudest
                 f = files[names[-1]]
-                if spec['peak'] == 'first':
+                if spec['peak'] == 'first' and f.get('peak_at') is not None:   # v1165: the v1138 first hit, re-measured on the final file (anchored)
+                    f['peak_from'] = 'the v1138 first hit (%.4f s), re-measured within %.2f s on the final file' % (f['peak_at'], PEAK_ANCHOR)
+                elif spec['peak'] == 'first':
                     pk = L.peaks(L.decode(os.path.join(OUT, names[-1] + '.m4a')), rel_db=-8.0, min_gap_s=0.08)
                     f['peak'], f['peak_from'] = round(pk[0], 4), 'first hit of %d loud moments %s' % (len(pk), ','.join('%.2f' % t for t in pk[:8]))
                 else:
@@ -338,6 +539,8 @@ def build():
         os.remove(os.path.join(OUT, f))
     man = {'version': VER, 'made_by': 'tools/build_sfx.py', 'metric': 'max momentary loudness, BS.1770 K-weighted, 400 ms (LUFS-M)',
            'target_lufs_m': TARGET_LUFS, 'tolerance_lu': TOL_LU, 'true_peak_ceiling_db': TP_CEIL, 'offsets': OFFSETS,
+           'spark_tail_s': SPARK_TAIL, 'ability_max_len_s': ABIL_MAX_LEN,
+           'takes': takes, 'melee': MELEE, 'shim': {'f': shims, 'under_db': SHIM_UNDER, 'trail_s': SHIM_TRAIL, 'gain': shim_table(files, shims) if shims else {}},
            'files': files, 'rows': out_rows, 'attack': attack, 'unmapped': unmapped,
            'total_bytes': sum(v['bytes'] for v in files.values())}
     json.dump(man, open(os.path.join(OUT, 'sfx_manifest.json'), 'w', encoding='utf-8'), indent=1, sort_keys=True)
@@ -348,7 +551,7 @@ def build():
 
 def client_data(man):
     """The compact table the client reads: files {name:[url, peak]}, heroes {key:{atk, melee?, green/blue/ult/passive:[row...]}}."""
-    F = {k: [v['f'], v['peak']] for k, v in sorted(man['files'].items())}
+    F = {k: ([v['f'], v['peak'], v['ae']] if v.get('ae') is not None else [v['f'], v['peak']]) for k, v in sorted(man['files'].items())}   # v1165: weapon takes / shimmers carry their audible end
     H = {}
     for h, a in sorted(man['attack'].items()):
         H.setdefault(h, {})['atk'] = a['lib']
@@ -366,7 +569,7 @@ def client_data(man):
         if r.get('seq'):
             e['seq'] = 1
         H.setdefault(r['hero'], {}).setdefault(r['slot'], []).append(e)
-    return {'v': man['version'], 'files': F, 'heroes': H}
+    return {'v': man['version'], 'files': F, 'heroes': H, 'takes': man.get('takes', {}), 'melee': man.get('melee', []), 'shim': man.get('shim', {})}
 
 
 BEGIN = '/* SFX-DATA BEGIN (generated by tools/build_sfx.py - do not edit by hand) */'
