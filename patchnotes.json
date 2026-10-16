@@ -3,13 +3,20 @@
     {"ver": "0.94", "date": "16 October 2026", "title": "Pre-beta: music and the mute button", "items": [
       "The game now has music: ten songs each for the city, the maps, battles and Skyfall, shuffled with a soft crossfade.",
       "Battle songs start where the action starts, and keep playing on the rewards screen until you tap Continue.",
-      "A mute button sits beside your profile portrait on every screen, and Settings > Audio has Mute all.",
-      "The mute button no longer covers other buttons or titles.",
-      "Fixed: lag in the Heroes window and other busy screens.",
+      "A mute button is on every screen, and Settings > Audio has Mute all.",
+      "The mute button now has its own fixed spot on each screen, and no longer covers other buttons or titles.",
+      "Fixed: lag in the Heroes window and other busy screens. The hero list scrolls smoothly.",
       "Veyr and Deepcleft: eight new animations each, and new spell effects for Veyr's Gravity Crescent, Abyssal Mantle and Abyssal Undertow.",
       "Korvux: eight new animations, and Ember Cleave's effect now follows his axe swing.",
+      "Nox Quillfinger: eight new animations, and he is now a mid-row ranged magic assassin. His attacks fly up to 10 m as a shadow ball and deal magic damage.",
+      "Grimsby: seven new animations.",
       "Weapon strike sounds are 15% quieter.",
-      "Skill previews on the hero panel now play each hero's real battle animation, spell effect and sound."
+      "Spell sounds now play to their natural end and ring out with a soft sparkle.",
+      "Melee swings carry a magic shimmer, and each swing sounds a little different from the last.",
+      "Skill previews on the hero panel now play each hero's real battle animation, spell effect and sound.",
+      "Restart Stage now stops the old fight at once: its music, sounds and spell effects end before the new fight begins.",
+      "The chat bar now shows only in the city and on the world map.",
+      "Fixed: the game could say the server was lost while the connection was fine."
     ]},
     {"ver": "0.93", "date": "15 October 2026", "title": "Pre-beta opens", "items": [
       "Pre-beta is open. Every diamond pack in the shop is free during pre-beta, and free packs count toward your Patron level.",

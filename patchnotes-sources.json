@@ -3,7 +3,7 @@
  "patches": [
   {
    "ver": "0.94",
-   "releases": "v1159-v1164",
+   "releases": "v1159-v1166, v1169 (v1167 wall step and its v1170 undo left out: no net change)",
    "items": [
     {
      "text": "The game now has music: ten songs each for the city, the maps, battles and Skyfall, shuffled with a soft crossfade.",
@@ -20,19 +20,21 @@
      ]
     },
     {
-     "text": "A mute button sits beside your profile portrait on every screen, and Settings > Audio has Mute all.",
+     "text": "A mute button is on every screen, and Settings > Audio has Mute all.",
      "sources": [
-      "SHIPPED-v1159-mute-button-music-16-10-2026.md"
+      "SHIPPED-v1159-mute-button-music-16-10-2026.md",
+      "SHIPPED-v1166-hotfix-mute-spots-netgate-restart-chat-16-10-2026.md"
      ]
     },
     {
-     "text": "The mute button no longer covers other buttons or titles.",
+     "text": "The mute button now has its own fixed spot on each screen, and no longer covers other buttons or titles.",
      "sources": [
-      "SHIPPED-v1163-mute-lag-fix-dock-16-10-2026.md"
+      "SHIPPED-v1163-mute-lag-fix-dock-16-10-2026.md",
+      "SHIPPED-v1166-hotfix-mute-spots-netgate-restart-chat-16-10-2026.md"
      ]
     },
     {
-     "text": "Fixed: lag in the Heroes window and other busy screens.",
+     "text": "Fixed: lag in the Heroes window and other busy screens. The hero list scrolls smoothly.",
      "sources": [
       "SHIPPED-v1163-mute-lag-fix-dock-16-10-2026.md"
      ]
@@ -50,15 +52,57 @@
      ]
     },
     {
+     "text": "Nox Quillfinger: eight new animations, and he is now a mid-row ranged magic assassin. His attacks fly up to 10 m as a shadow ball and deal magic damage.",
+     "sources": [
+      "SHIPPED-v1169-nox-grimsby-16-10-2026.md"
+     ]
+    },
+    {
+     "text": "Grimsby: seven new animations.",
+     "sources": [
+      "SHIPPED-v1169-nox-grimsby-16-10-2026.md"
+     ]
+    },
+    {
      "text": "Weapon strike sounds are 15% quieter.",
      "sources": [
       "SHIPPED-v1160-veyr-deepcleft-music-16-10-2026.md"
      ]
     },
     {
+     "text": "Spell sounds now play to their natural end and ring out with a soft sparkle.",
+     "sources": [
+      "SHIPPED-v1165-sparkle-tails-fused-melee-16-10-2026.md"
+     ]
+    },
+    {
+     "text": "Melee swings carry a magic shimmer, and each swing sounds a little different from the last.",
+     "sources": [
+      "SHIPPED-v1165-sparkle-tails-fused-melee-16-10-2026.md"
+     ]
+    },
+    {
      "text": "Skill previews on the hero panel now play each hero's real battle animation, spell effect and sound.",
      "sources": [
       "SHIPPED-v1164-skill-previews-16-10-2026.md"
+     ]
+    },
+    {
+     "text": "Restart Stage now stops the old fight at once: its music, sounds and spell effects end before the new fight begins.",
+     "sources": [
+      "SHIPPED-v1166-hotfix-mute-spots-netgate-restart-chat-16-10-2026.md"
+     ]
+    },
+    {
+     "text": "The chat bar now shows only in the city and on the world map.",
+     "sources": [
+      "SHIPPED-v1166-hotfix-mute-spots-netgate-restart-chat-16-10-2026.md"
+     ]
+    },
+    {
+     "text": "Fixed: the game could say the server was lost while the connection was fine.",
+     "sources": [
+      "SHIPPED-v1166-hotfix-mute-spots-netgate-restart-chat-16-10-2026.md"
      ]
     }
    ]
