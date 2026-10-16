@@ -8601,7 +8601,7 @@
    "hero": "meridian",
    "hook": "EXISTS: fx.meridian_ult (when the plate appears)",
    "phase": "cast",
-   "rule": "cast",
+   "rule": "release",
    "slot": "ult",
    "timing": "cast frame (ability clip starts)"
   },
@@ -10671,7 +10671,7 @@
    "hero": "rafe",
    "hook": "EXISTS: fx.rafe_green (when the plate appears)",
    "phase": "cast",
-   "rule": "cast",
+   "rule": "release",
    "slot": "green",
    "timing": "cast frame (ability clip starts)"
   },

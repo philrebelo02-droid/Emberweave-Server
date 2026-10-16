@@ -1,0 +1,440 @@
+{
+ "note": "v1171: what live v1169 (31e5cab2) had for the entries the Meridian + Rafe change replaced - BATTLE_ANIM meridian / rafe and SFX_DATA heroes meridian / rafe (Rafe's swing landing on the press is RAFE_SWING.fuse = false)",
+ "before": {
+  "anim": {
+   "meridian": {
+    "idle": {
+     "u": "/assets/anim/meridian/meridian_idle.webp?v=21",
+     "n": 48,
+     "fw": 224,
+     "fh": 411,
+     "cols": 6,
+     "rows": 8,
+     "figH": 400,
+     "feet": 405,
+     "cx": 113,
+     "fps": 24,
+     "flip": true,
+     "top": 5,
+     "pingpong": true
+    },
+    "walk": {
+     "u": "/assets/anim/meridian/meridian_walk.webp?v=21",
+     "n": 48,
+     "fw": 235,
+     "fh": 425,
+     "cols": 6,
+     "rows": 8,
+     "loop": [
+      0,
+      24
+     ],
+     "figH": 400,
+     "feet": 409,
+     "cx": 115,
+     "fps": 24,
+     "flip": true,
+     "top": 9,
+     "ax": [
+      0,
+      0.4,
+      1.2,
+      2.8,
+      4.8,
+      7.6,
+      10.9,
+      14.4,
+      17.2,
+      17.5,
+      17.9,
+      18.5,
+      18.8,
+      19.2,
+      19.6,
+      18.9,
+      17.2,
+      14.7,
+      12.1,
+      9.8,
+      7.4,
+      5.2,
+      3.1,
+      1.2,
+      -0.3,
+      -0.4,
+      1.9,
+      4.7,
+      7.3,
+      10,
+      12.5,
+      14.5,
+      16.8,
+      17.5,
+      18.1,
+      18.6,
+      18.9,
+      19.6,
+      20.1,
+      19.5,
+      19.2,
+      18.4,
+      16.6,
+      14.5,
+      11.8,
+      9.4,
+      9,
+      9
+     ]
+    },
+    "attack": {
+     "u": "/assets/anim/meridian/meridian_attack.webp?v=21",
+     "n": 48,
+     "fw": 404,
+     "fh": 413,
+     "cols": 6,
+     "rows": 8,
+     "figH": 400,
+     "feet": 407,
+     "cx": 158,
+     "fps": 24,
+     "flip": true,
+     "top": 7
+    },
+    "hit": {
+     "u": "/assets/anim/meridian/meridian_hit.webp?v=21",
+     "n": 48,
+     "fw": 535,
+     "fh": 477,
+     "cols": 6,
+     "rows": 8,
+     "figH": 400,
+     "feet": 470,
+     "cx": 285,
+     "fps": 24,
+     "flip": true,
+     "top": 70
+    },
+    "green": {
+     "u": "/assets/anim/meridian/meridian_green.webp?v=21",
+     "n": 48,
+     "fw": 426,
+     "fh": 457,
+     "cols": 6,
+     "rows": 8,
+     "figH": 400,
+     "feet": 446,
+     "cx": 171,
+     "fps": 24,
+     "flip": true,
+     "top": 46,
+     "ax": [
+      0,
+      0,
+      0,
+      -3,
+      -9,
+      -9,
+      -9,
+      -9,
+      -9,
+      -9,
+      -9,
+      -9,
+      -9,
+      -9,
+      -9,
+      -9,
+      -9,
+      -9,
+      -9,
+      -9,
+      -9,
+      -9,
+      -9,
+      -9,
+      -9,
+      -9,
+      -9,
+      -9,
+      -9,
+      -9,
+      -9,
+      -9,
+      -9,
+      -9,
+      -9,
+      -9,
+      -9,
+      -9,
+      -9,
+      -9,
+      -9,
+      -9,
+      -9,
+      -4,
+      0,
+      0,
+      0,
+      0
+     ]
+    },
+    "blue": {
+     "u": "/assets/anim/meridian/meridian_blue.webp?v=21",
+     "n": 48,
+     "fw": 384,
+     "fh": 477,
+     "cols": 6,
+     "rows": 8,
+     "figH": 400,
+     "feet": 472,
+     "cx": 273,
+     "fps": 24,
+     "flip": true,
+     "top": 72
+    },
+    "ult": {
+     "u": "/assets/anim/meridian/meridian_ult.webp?v=21",
+     "n": 48,
+     "fw": 497,
+     "fh": 531,
+     "cols": 6,
+     "rows": 8,
+     "figH": 400,
+     "feet": 524,
+     "cx": 272,
+     "fps": 24,
+     "flip": true,
+     "top": 124,
+     "ax": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      -2,
+      -5,
+      -6,
+      -7,
+      -7,
+      -8,
+      -9,
+      -26,
+      -42,
+      -53,
+      -54,
+      -54,
+      -54,
+      -54,
+      -54,
+      -54,
+      -54,
+      -54,
+      -54,
+      -54,
+      -54,
+      -54,
+      -54,
+      -54,
+      -54,
+      -54,
+      -54,
+      -54,
+      -54,
+      -54,
+      -54,
+      -54,
+      -54,
+      -54,
+      -54,
+      -54,
+      -54,
+      -54,
+      -54,
+      -54,
+      -54,
+      -54
+     ]
+    }
+   },
+   "rafe": {
+    "idle": {
+     "u": "/assets/anim/rafe/rafe_idle.webp?v=5",
+     "n": 48,
+     "fw": 290,
+     "fh": 400,
+     "cols": 6,
+     "rows": 8,
+     "figH": 386,
+     "feet": 395,
+     "cx": 139,
+     "fps": 24,
+     "flip": true,
+     "top": 10,
+     "pingpong": true
+    },
+    "walk": {
+     "u": "/assets/anim/rafe/rafe_walk.webp?v=6",
+     "n": 48,
+     "fw": 285,
+     "fh": 400,
+     "cols": 6,
+     "rows": 8,
+     "figH": 384,
+     "feet": 395,
+     "cx": 125.5,
+     "fps": 24,
+     "flip": true,
+     "top": 12
+    },
+    "attack": {
+     "u": "/assets/anim/rafe/rafe_attack.webp?v=5",
+     "n": 48,
+     "fw": 362,
+     "fh": 400,
+     "cols": 6,
+     "rows": 8,
+     "figH": 356,
+     "feet": 395,
+     "cx": 228,
+     "fps": 24,
+     "flip": true,
+     "top": 40
+    },
+    "melee": {
+     "u": "/assets/anim/rafe/rafe_melee.webp?v=5",
+     "n": 48,
+     "fw": 300,
+     "fh": 400,
+     "cols": 6,
+     "rows": 8,
+     "figH": 336,
+     "feet": 391,
+     "cx": 143.5,
+     "fps": 24,
+     "flip": true,
+     "top": 56
+    },
+    "hit": {
+     "u": "/assets/anim/rafe/rafe_hit.webp?v=5",
+     "n": 48,
+     "fw": 400,
+     "fh": 351,
+     "cols": 6,
+     "rows": 8,
+     "figH": 295,
+     "feet": 345,
+     "cx": 184.5,
+     "fps": 24,
+     "flip": true,
+     "top": 51
+    },
+    "green": {
+     "u": "/assets/anim/rafe/rafe_green.webp?v=5",
+     "n": 48,
+     "fw": 397,
+     "fh": 400,
+     "cols": 6,
+     "rows": 8,
+     "figH": 391,
+     "feet": 395,
+     "cx": 242,
+     "fps": 24,
+     "flip": true,
+     "top": 5
+    },
+    "blue": {
+     "u": "/assets/anim/rafe/rafe_blue.webp?v=5",
+     "n": 48,
+     "fw": 400,
+     "fh": 345,
+     "cols": 6,
+     "rows": 8,
+     "figH": 330,
+     "feet": 336,
+     "cx": 210,
+     "fps": 24,
+     "flip": true,
+     "top": 7
+    },
+    "ult": {
+     "u": "/assets/anim/rafe/rafe_ult.webp?v=5",
+     "n": 48,
+     "fw": 400,
+     "fh": 331,
+     "cols": 6,
+     "rows": 8,
+     "figH": 294,
+     "feet": 327,
+     "cx": 172.5,
+     "fps": 24,
+     "flip": true,
+     "top": 34
+    }
+   }
+  },
+  "sfx": {
+   "meridian": {
+    "atk": "LIB-ATK-THROWN",
+    "blue": [
+     {
+      "f": [
+       "S0136"
+      ],
+      "id": "S0136",
+      "on": "release"
+     }
+    ],
+    "green": [
+     {
+      "f": [
+       "S0134"
+      ],
+      "id": "S0134",
+      "on": "release"
+     }
+    ],
+    "ult": [
+     {
+      "f": [
+       "S0138"
+      ],
+      "id": "S0138",
+      "on": "cast"
+     }
+    ]
+   },
+   "rafe": {
+    "atk": "LIB-ATK-GUN",
+    "blue": [
+     {
+      "f": [
+       "S0513"
+      ],
+      "id": "S0513",
+      "on": "land"
+     }
+    ],
+    "green": [
+     {
+      "f": [
+       "S0510"
+      ],
+      "id": "S0510",
+      "on": "cast"
+     }
+    ],
+    "melee": "LIB-ATK-BLADE-LIGHT",
+    "ult": [
+     {
+      "f": [
+       "S0514"
+      ],
+      "id": "S0514",
+      "on": "release"
+     }
+    ]
+   }
+  }
+ }
+}
