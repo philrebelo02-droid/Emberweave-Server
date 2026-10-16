@@ -1,6 +1,6 @@
 {
- "note": "v1160 Veyr + Deepcleft eight + Veyr spell FX: what live v1158 (102a8bfe) had for the entries v1160 changed. tests/helpers/anim-1160.js undo1160(run) puts them back in a loaded page, so the per-hero tests of earlier releases keep testing what they were written for; tests/test_veyr_deepcleft_1160.js checks v1160 itself.",
- "base": "102a8bfefd5e7d03f0938f172fb178e921427038",
+ "note": "v1160 Veyr + Deepcleft eight + Veyr spell FX: what live v1159 (c6c0523e; the same entries as v1158 102a8bfe) had for the entries v1160 changed. tests/helpers/anim-1160.js undo1160(run) puts them back in a loaded page, so the per-hero tests of earlier releases keep testing what they were written for; tests/test_veyr_deepcleft_1160.js checks v1160 itself.",
+ "base": "c6c0523e5a09ca279d5308a1bdb8a2a1c00fbac5",
  "fxAdded": [
   "veyrcrescent",
   "veyrmantle",

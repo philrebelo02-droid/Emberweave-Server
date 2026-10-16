@@ -19,7 +19,7 @@
 const path = require('path'), vm = require('vm'), fs = require('fs'), cp = require('child_process'), crypto = require('crypto');
 const ROOT = path.resolve(__dirname, '..');
 const HTML = process.env.EW_HTML || path.join(ROOT, 'emberweave-heroes.html');
-const BASE_SHA = process.env.EW_BASE || '102a8bfe';   // live v1158, before this change
+const BASE_SHA = process.env.EW_BASE || 'c6c0523e';   // live v1159, before this change (its Veyr / Deepcleft entries = v1158's)
 let OLD = process.env.EW_HTML_OLD;
 if (!OLD) { try { OLD = path.join(ROOT, '.test-vd1160-base.html'); fs.writeFileSync(OLD, cp.execSync('git show ' + BASE_SHA + ':emberweave-heroes.html', { cwd: ROOT, maxBuffer: 64 << 20 }));
   const tmp = OLD; process.on('exit', () => { try { fs.unlinkSync(tmp); } catch (e) {} }); } catch (e) { OLD = null; } }
@@ -105,7 +105,7 @@ const H = s => crypto.createHash('sha256').update(s).digest('hex').slice(0, 16);
 [run, R0].forEach(r => r && r(`globalThis.crypto_like = s => { let h = 2166136261 >>> 0; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; } return s.length + ':' + h.toString(16); }; 1`));
 
 try {
-  ck('control file (BASE emberweave-heroes.html from git ' + BASE_SHA + ', live v1158) loaded', !!R0, 'git show failed');
+  ck('control file (BASE emberweave-heroes.html from git ' + BASE_SHA + ', live v1159) loaded', !!R0, 'git show failed');
   { const html = fs.readFileSync(HTML, 'utf8'); let n = 0, bad = [];
     for (const m of html.matchAll(/<script>([\s\S]*?)<\/script>/g)) { n++; try { new vm.Script(m[1]); } catch (e) { bad.push(n + ': ' + e.message); } }
     ck('every inline <script> block of the page parses (' + n + ' blocks)', n > 0 && bad.length === 0, bad.join('; ')); }
@@ -252,6 +252,17 @@ try {
     JSON.stringify([SD.v.atk, SD.d.atk, SD.v.green[0].f, SD.v.blue[0].f, SD.d.blue[0].f, SD.d.ult[0].f]) === JSON.stringify([SD0.v.atk, SD0.d.atk, SD0.v.green[0].f, SD0.v.blue[0].f, SD0.d.blue[0].f, SD0.d.ult[0].f]));
   { const others2 = r => r("JSON.stringify(Object.keys(SFX_DATA.heroes).filter(k=>k!=='veyr'&&k!=='deepcleft').map(k=>[k,SFX_DATA.heroes[k]]))");
     ck('sound: every other hero\'s rows and every file entry are BASE\'s', H(others2(run)) === H(others2(R0)) && H(run('JSON.stringify(SFX_DATA.files)')) === H(R0('JSON.stringify(SFX_DATA.files)'))); }
+  // v1160 sound + music (Phil 16 Oct, held from v1159): weapon strikes 15% quieter; the 6th battle song and the 6th map song
+  ck('weapon strikes 15% quieter: SFX_ATK_GAIN 0.85 on every sfxPlay with the atk flag (sfxAtk sets it for every swing, crit and Aureth\'s ARM cuts), 1 for everything else; BASE played all at 1',
+    run('SFX_ATK_GAIN') === 0.85 && /g\.gain\.value=o\.atk\?SFX_ATK_GAIN:1;/.test(src) && /sfxQ\(name,T,\{key:u\.key,atk:1,u,swing:1,log:rec\}\)/.test(src) && /g\.gain\.value=1; src\.connect\(g\)/.test(baseSrc) && !/SFX_ATK_GAIN/.test(baseSrc));
+  { const M = JSON.parse(run('JSON.stringify(MUSIC_LISTS)')), M0 = JSON.parse(R0('JSON.stringify(MUSIC_LISTS)'));
+    const ef = M.battle.find(x => /battle-epic-fight\.mp3\?v=1160$/.test(x.f)), ee = M.map.find(x => /map-echoes-of-eternity\.mp3\?v=1160$/.test(x.f));
+    const fileOk = x => { const f = path.join(ROOT, 'assets/audio', x.f.split('?')[0]); return fs.existsSync(f) && fs.statSync(f).size > 5e5 && fs.readFileSync(f).slice(0, 3).toString('hex').match(/^(494433|fffb|fff3)/); };
+    const bar = 4 * 60 / 115.001;
+    ck('music: the 6th battle song Epic Fight (Nastelbom, Pixabay 436865) from 0, its loop seam on its own bar grid (loopStart the bar nearest 9.5 s, loopEnd the bar line before 90 s, a whole number of bars apart), and the 6th map song Echoes of Eternity (Tunetank 347743) from the start; new ?v=1160 files on disk; every BASE song unchanged',
+      M.battle.length === M0.battle.length + 1 && M.map.length === M0.map.length + 1 && !!ef && !!ee && ef.start === 0 && Math.abs(ef.loopStart - 8.957) < 1e-9 && ef.loopEnd < 90 && ef.loopEnd > 90 - bar &&
+      Math.abs(((ef.loopEnd - ef.loopStart) / bar) - Math.round((ef.loopEnd - ef.loopStart) / bar)) < 0.01 && ee.start === 0 && fileOk(ef) && fileOk(ee) &&
+      JSON.stringify(Object.fromEntries(Object.entries(M).map(([k, v]) => [k, v.filter(x => !/\?v=1160$/.test(x.f))]))) === JSON.stringify(M0), JSON.stringify({ ef, ee })); }
   const ctl = JSON.parse(JSON.stringify(G)); ctl.veyr.crit.u = '/assets/anim/veyr/veyr_missing.webp?v=1160'; ctl.deepcleft.attack.fw = 900;
   ck('control: the grid check catches a missing sheet and an oversized grid', gridProblems(ctl, [['veyr', 'crit'], ['deepcleft', 'attack']]).length >= 2);
 } catch (e) { console.log('FAIL after ' + pass + ' checks: ' + (e.stack || e.message)); process.exitCode = 1; return; }
