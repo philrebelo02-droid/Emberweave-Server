@@ -4784,7 +4784,7 @@ function skillPreviewPlan(hk,slot){ try{ const sts=skillPreviewStates(hk,slot); 
   const rel=(bs&&bs!=='passive')?_skpCast(hk,bs)/FX_RT:0;   // the release: the cast clock (fight seconds) on the real clock
   if(slot==='attack'||slot==='crit'){ const melee=!!(HERO_TYPES[hk]&&HERO_TYPES[hk].range<60);
     clips.forEach(c=>{ const wm=(typeof RIVET_WPN!=='undefined'&&/^w_/.test(c.st))?RIVET_WPN.melee.indexOf(c.st.slice(2))>=0:null;
-      const name=H&&((H.arm&&H.arm[c.st])||(((c.st==='melee')||(wm===true))&&H.melee?H.melee:H.atk)); if(name) snd.push({name,at:hitT(c),atk:1,id:name,on:'blow'}); }); }   // sfxAtk: arm pick, melee pick, weapon
+      const name=H&&((H.arm&&H.arm[c.st])||(((c.st==='melee')||(wm===true))&&H.melee?H.melee:H.atk)); if(name){ const FU=(SFX_DATA.fused||{})[name]; snd.push({name:(FU&&FU.length)?FU[Math.floor(Math.random()*FU.length)]:name,at:hitT(c),atk:1,id:name,on:'blow'}); } }); }   // sfxAtk: arm pick, melee pick, weapon (v1165: a melee swing plays one of its fused swings, as in the fight)
   else if(H&&bs&&H[bs]){ const c=clips[0], A=c.A, cs=Array.isArray(A.contact)?A.contact:[clipContactCell(A)];
     H[bs].forEach(r=>{ if(r.on==='cast'||r.on==='passive') snd.push({name:r.f[0],at:c.t0,fromStart:1,id:r.id,on:r.on});
       else if(r.on==='seq'&&r.at) r.at.forEach((a,k)=>snd.push({name:r.f[Math.min(k,r.f.length-1)],at:rel+a,id:r.id,on:r.on}));   // Razor Tempest: each cut on its measured slash flash

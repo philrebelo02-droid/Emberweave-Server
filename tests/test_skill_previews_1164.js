@@ -81,13 +81,14 @@ function checkFx(r) {
     if (q.p && q.def !== q.fx.includes(k + '_passive')) bad.push(k + ' passive art ' + q.fx); }
   return bad;
 }
+/* v1165: a melee swing (and Aureth's cuts) previews one of its 6 fused swings, as the fight plays it (SFX_DATA.fused[want]) */
 function checkSound(r) {
   return JSON.parse(r(`(()=>{ const bad=[]; const BS={0:'ult',1:'green',2:'blue',3:'passive'};
     for(const k of HERO_KEYS){ if(!HERO_TYPES[k]||HERO_TYPES[k].monster) continue; const Hd=SFX_DATA.heroes[k]||{};
       for(const sl of SKILL_PREVIEW_SLOTS){ const p=skillPreviewPlan(k,sl); if(!p) continue;
         if(sl==='attack'||sl==='crit'){ p.clips.forEach((c,i)=>{ const melee=(c.st==='melee')||(/^w_/.test(c.st)&&RIVET_WPN.melee.indexOf(c.st.slice(2))>=0);
             const want=(Hd.arm&&Hd.arm[c.st])||((melee&&Hd.melee)?Hd.melee:Hd.atk), s=p.snd[i], at=c.t0+clipContactCell(c.A)/(c.A.fps||10);
-            if(!s||s.name!==want||!s.atk||s.fromStart||Math.abs(s.at-at)>1e-9) bad.push(k+' '+sl+' '+c.st+' '+JSON.stringify(s)+' want '+want+'@'+at.toFixed(3)); }); continue; }
+            if(!s||!(s.name===want||((SFX_DATA.fused||{})[want]||[]).indexOf(s.name)>=0)||!s.atk||s.fromStart||Math.abs(s.at-at)>1e-9) bad.push(k+' '+sl+' '+c.st+' '+JSON.stringify(s)+' want '+want+'@'+at.toFixed(3)); }); continue; }
         const R=Hd[BS[sl]]||[], c=p.clips[0], files=new Set(); R.forEach(x=>x.f.forEach(f=>files.add(f)));
         if(!p.snd.every(s=>files.has(s.name))) bad.push(k+' '+sl+' plays a file the fight does not: '+p.snd.map(s=>s.name));
         R.forEach(x=>{ const mine=p.snd.filter(s=>s.id===x.id); if(!mine.length){ bad.push(k+' '+sl+' row '+x.id+' missing'); return; }
