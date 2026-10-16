@@ -48,7 +48,7 @@ const SILENT = () => {
     const css = document.createElement('style'); css.textContent = '*{pointer-events:auto!important}#muteBtn,#muteBtn *{pointer-events:none!important}'; document.head.appendChild(css);
     const A = c => { if (!c || c === 'transparent') return 0; const s = c.indexOf('/'); if (s >= 0) return parseFloat(c.slice(s + 1)) || 0; const m = /^rgba\([^,]+,[^,]+,[^,]+,\s*([\d.]+)/.exec(c); return m ? +m[1] : 1; };
     const visArea = g => Math.max(0, Math.min(g.right, vw) - Math.max(g.left, 0)) * Math.max(0, Math.min(g.bottom, vh) - Math.max(g.top, 0));
-    const host = new Set(); if (b.parentElement !== document.body) for (let e = b.parentElement; e; e = e.parentElement) host.add(e);
+    const host = new Set(); if (b.parentElement !== document.body) for (let e = b.parentElement; e; e = e.parentElement) host.add(e);   // (v1165: the box it is docked in - a stage popup's header bar - is its ground)
     const framed = cs => (cs.borderImageSource && cs.borderImageSource !== 'none') || ['Top', 'Right', 'Bottom', 'Left'].some(k => parseFloat(cs['border' + k + 'Width']) >= 2 && cs['border' + k + 'Style'] !== 'none' && A(cs['border' + k + 'Color']) > 0.04);
     /* the window of each uncovered close X (the box the X sits in: its nearest painted ancestor at least 3x the X) is background too */
     for (const x of document.querySelectorAll('button,[role=button]')) { const gx = x.getBoundingClientRect(); if (gx.width < 16 || gx.width > 64 || gx.height < 16 || gx.height > 64) continue;
@@ -62,7 +62,7 @@ const SILENT = () => {
     const found = new Map(), rg = document.createRange();
     const band = (e, cs, g, x, y) => { const bw = [cs.borderTopWidth, cs.borderRightWidth, cs.borderBottomWidth, cs.borderLeftWidth].map(v => parseFloat(v) || 0);
       let w = [0, 0, 0, 0], o = [0, 0, 0, 0];
-      if (cs.borderImageSource && cs.borderImageSource !== 'none') { const W = cs.borderImageWidth.split(/\s+/), O = (cs.borderImageOutset || '0').split(/\s+/);
+      if (cs.borderImageSource && cs.borderImageSource !== 'none' && !host.has(e)) { const W = cs.borderImageWidth.split(/\s+/), O = (cs.borderImageOutset || '0').split(/\s+/);
         const at = (a, i) => a[i] != null ? a[i] : a[i === 3 ? 1 : i === 2 ? 0 : 0];
         w = [0, 1, 2, 3].map(i => { const v = at(W, i); if (v === 'auto') return bw[i]; if (/px$/.test(v)) return parseFloat(v); if (/%$/.test(v)) return parseFloat(v) / 100 * (i % 2 ? g.width : g.height); return (parseFloat(v) || 0) * bw[i]; });
         o = [0, 1, 2, 3].map(i => { const v = at(O, i); return /px$/.test(v) ? parseFloat(v) : (parseFloat(v) || 0) * bw[i]; });
@@ -82,7 +82,7 @@ const SILENT = () => {
         const cs = getComputedStyle(e), g = e.getBoundingClientRect(), bk = back(e, cs, g), inBox = x >= g.left - 1 && x < g.right + 1 && y >= g.top - 1 && y < g.bottom + 1;   // 1 px: hit tests snap to device pixels
         const descHit = stack.slice(0, i).some(d => e.contains(d));
         let why = null;
-        if (band(e, cs, g, x, y)) why = 'frame';
+        if (band(e, cs, g, x, y)) why = 'frame';   // (the window the button is docked in: its real border only - the game's own X and header bar sit inside its wide border-image band)
         else if (inBox && !bk && (A(cs.backgroundColor) > 0.04 || cs.backgroundImage !== 'none' || (cs.borderImageSource !== 'none' && /fill/.test(cs.borderImageSlice)) || /^(IMG|CANVAS|VIDEO|IFRAME|INPUT|SELECT|TEXTAREA|PROGRESS|METER)$/.test(e.tagName) || e instanceof SVGElement)) why = 'box';
         if (!why && !(e instanceof SVGElement)) for (const n of e.childNodes) if (n.nodeType === 3 && /\S/.test(n.data)) { rg.selectNodeContents(n);
           for (const t of rg.getClientRects()) if (x >= t.left && x < t.right && y >= t.top && y < t.bottom) { why = 'text'; break; } if (why) break; }
@@ -148,7 +148,9 @@ const SCREENS = ['campaign', 'menu', 'heroesPanel', 'bag', 'settings', 'temple',
     await ctx.addInitScript(SILENT);
     const pg = await ctx.newPage(); const errs = []; pg.on('pageerror', e => errs.push(String(e.message).slice(0, 200)));
     const shot = async name => { if (!SHOTS) return; try { const f = path.join(SHOTS, name + '.png'); await pg.screenshot({ path: f }); shots.push(f); } catch (e) {} };
-    const judge = () => pg.evaluate(() => { try { muteBtnPlace(); } catch (e) {} return window.__judge(); });
+    const UNL = new Set();
+    const judge = async () => { const j = await pg.evaluate(() => { try { muteBtnPlace(); } catch (e) {} const j = window.__judge(); j.unl = (typeof MUTE_DBG !== 'undefined' && MUTE_DBG.unlisted) || ''; return j; });
+      if (j.unl) UNL.add(j.unl); return j; };
     let VW = '844x390';
     const clean = (name, r, extra) => ck(!r.none && r.onTop && r.on && r.n === 0 && r.w >= 28, VW + ' ' + name + ': zero overlap, on top, on screen (' + r.x + ',' + r.y + ' ' + r.w + 'px, ' + r.why + (r.docked ? ', docked' : '') + ')' + (extra || ''), JSON.stringify(r));
     const xInfo = () => pg.evaluate(() => { const b = document.getElementById('muteBtn').getBoundingClientRect(); const X = [...document.querySelectorAll('.popoutClose,.glClose,#profClose,#hudShopClose,button[aria-label=Close]')]
@@ -157,7 +159,7 @@ const SCREENS = ['campaign', 'menu', 'heroesPanel', 'bag', 'settings', 'temple',
       const s = Math.round(Math.max(30, Math.min(44, Math.min(g.width, g.height)))), cx = g.left + g.width / 2, cy = g.top + g.height / 2;
       const bl = window.__judge(new DOMRect(cx - s / 2, g.bottom + 6, s, s)), lf = window.__judge(new DOMRect(g.left - 6 - s, cy - s / 2, s, s));
       const bl3 = window.__judge(new DOMRect(cx - s / 2, g.bottom + 3, s, s)), lf3 = window.__judge(new DOMRect(g.left - 3 - s, cy - s / 2, s, s));
-      const out = { size: s, bw: Math.round(b.width), dcx: Math.round((b.left + b.width / 2) - cx), dcy: Math.round((b.top + b.height / 2) - cy), below: b.top >= g.bottom - 0.5, left: b.right <= g.left + 0.5,
+      const out = { why: document.getElementById('muteBtn').dataset.why || '', size: s, bw: Math.round(b.width), dcx: Math.round((b.left + b.width / 2) - cx), dcy: Math.round((b.top + b.height / 2) - cy), below: b.top >= g.bottom - 0.5, left: b.right <= g.left + 0.5,
         dist: Math.round(Math.hypot((b.left + b.width / 2) - cx, (b.top + b.height / 2) - cy)), belowTaken: bl.n > 0 && bl3.n > 0, leftTaken: lf.n > 0 && lf3.n > 0, belowOver: bl.over.slice(0, 2), leftOver: lf.over.slice(0, 2) };
       /* a spot over a scrolling box the button could not live in (the X scrolls in it, but the X's own containing block is outside it) is taken:
          that box's content scrolls under it */
@@ -168,9 +170,10 @@ const SCREENS = ['campaign', 'menu', 'heroesPanel', 'bag', 'settings', 'temple',
           if (hit({ l: g.left - 3 - s, t: cy - s / 2, r: g.left - 3, b: cy + s / 2 })) { out.leftTaken = true; out.leftOver = ['scrolling ' + (e.className || e.tagName)]; } } }
       return out; });
     /* docked to the X: below it (or left of it), its size, centred within 8 px - or, only when BOTH are taken (judged), the nearest free spot */
-    const docked = (name, xi) => { const at = xi && Math.abs(xi.bw - xi.size) <= 1 && ((xi.below && Math.abs(xi.dcx) <= 8) || (xi.left && Math.abs(xi.dcy) <= 8));
-      const nearOk = xi && !at && xi.belowTaken && xi.leftTaken && xi.dist <= 240;
-      ck(at || nearOk, VW + ' ' + name + ': ' + (at ? 'docked to the window\'s close X - ' + (xi.below ? 'below it' : 'left of it') + ', its size, centred on it' : 'below and left of its X are both taken (' + (xi && xi.belowOver[0]) + ' / ' + (xi && xi.leftOver[0]) + '): the nearest free spot, ' + (xi && xi.dist) + ' px from the X'), JSON.stringify(xi)); };
+    /* v1165: the window's fixed spot - directly under its X (its size, centred), the hero window left of its X, the glossary card beside it */
+    const docked = (name, xi) => { const sz = xi && Math.abs(xi.bw - xi.size) <= 1;
+      const ok = xi && ((xi.why === 'win-under-x' && sz && xi.below && Math.abs(xi.dcx) <= 1) || (xi.why === 'win-left-x' && sz && xi.left && Math.abs(xi.dcy) <= 1) || (xi.why === 'win-beside' && xi.dist <= 120));
+      ck(ok, VW + ' ' + name + ': the window\'s fixed spot - ' + (xi && xi.why === 'win-left-x' ? 'left of its X' : xi && xi.why === 'win-beside' ? 'beside the card, level with its X' : 'directly under its X') + ', the X\'s size, centred on it', JSON.stringify(xi)); };
 
     /* ---- the sign-in gate (a fresh page, no token) ---- */
     await pg.goto(base + '/play', { waitUntil: 'domcontentloaded' });
@@ -232,7 +235,7 @@ const SCREENS = ['campaign', 'menu', 'heroesPanel', 'bag', 'settings', 'temple',
         { /* a screen that scrolls: scrolled to the bottom, the game alone (its own scroll / DOM handling, no call from here) keeps it clear */
           const sc = await pg.evaluate(async s => { const el = document.getElementById(s); if (!(el.scrollHeight > el.clientHeight + 1)) return null;
             el.scrollTop = el.scrollHeight; await new Promise(r => setTimeout(r, 900)); const j = window.__judge(); j.top = el.scrollTop; el.scrollTop = 0; await new Promise(r => setTimeout(r, 600)); return j; }, s);
-          if (sc && sc.docked && /^screen-dock/.test(sc.why))   // docked into the screen's scrolling box: it went up with the content (may be partly out of view)
+          if (sc && sc.docked && /^(screen-dock|arena)/.test(sc.why))   // docked into the screen's scrolling box: it went up with the content (may be partly out of view)
             ck(sc.n === 0, VW + ' screen ' + s + ' scrolled to the bottom (' + sc.top + ' px): docked in the screen, it scrolled with the content and overlaps nothing (' + sc.x + ',' + sc.y + ')', JSON.stringify(sc));
           else if (sc) clean('screen ' + s + ' scrolled to the bottom (' + sc.top + ' px)', sc); }
         if (doShots && ['campaign', 'menu', 'temple', 'forge', 'guild', 'arena', 'wall', 'skyfall', 'watchtower', 'glossary', 'heroesPanel', 'tech'].includes(s)) await shot(doShots + '-' + s);
@@ -249,6 +252,12 @@ const SCREENS = ['campaign', 'menu', 'heroesPanel', 'bag', 'settings', 'temple',
           await pg.evaluate(() => { const x = document.querySelector('#glCardBig .glClose'); if (x) x.click(); }); await delay(300);
         }
       }
+      /* v1165: a stage popup over the campaign map (it fills the screen; the spot is in its header bar, left of the stars) */
+      await pg.evaluate(() => { try { closePopout(); } catch (e) {} CUR = { mode: 'campaign', node: 1, portal: 'normal' }; show('campaign'); }); await delay(900);
+      const smOk = await pg.evaluate(() => { try { openStageModal(1, 'normal'); return document.getElementById('stageModal').classList.contains('active'); } catch (e) { return String(e); } }); await delay(1300);
+      if (smOk === true) { const r = await judge(); clean('stage popup (Stage 1-1)', r); res.screens.stagePopup = r; ck(r.why === 'stage-head', VW + ' stage popup: the spot is its header bar, left of the stars', r.why); if (doShots) await shot(doShots + '-stage-popup'); }
+      else ck(false, VW + ' stage popup opened', smOk);
+      await pg.evaluate(() => { const c = document.getElementById('smClose'); if (c) c.click(); document.getElementById('stageModal').classList.remove('active'); show('home'); }); await delay(600);
       /* the battle and its result */
       await pg.evaluate(() => { show('home'); CUR = { node: 1, mode: 'arena' }; _startVersusNow([{ key: 'grosk', level: 5, rank: 1 }, { key: 'gruel', level: 5, rank: 1 }], true); paused = true; }); await delay(1600);
       { const r = await judge(); clean('battle', r); res.screens.battle = r; if (doShots) await shot(doShots + '-battle'); }
@@ -261,7 +270,25 @@ const SCREENS = ['campaign', 'menu', 'heroesPanel', 'bag', 'settings', 'temple',
     all.push(await sweep(844, 390, 'p844'));
     all.push(await sweep(915, 412, 'p915'));
     all.push(await sweep(1920, 1080, ''));
-    await pg.setViewportSize({ width: 844, height: 390 }); VW = '844x390'; await pg.evaluate(() => show('home')); await delay(900);
+    await pg.setViewportSize({ width: 844, height: 390 }); VW = '844x390'; await pg.evaluate(() => show('home')); await delay(1200);
+
+    /* ---- v1165: ONE spot per screen - identical over 3 entries, and the same place (in proportion) on two phone sizes ---- */
+    { const spotOf = async open => { await pg.evaluate(open); await delay(1300); return pg.evaluate(() => { const r = document.getElementById('muteBtn').getBoundingClientRect(); return [Math.round(r.left), Math.round(r.top), Math.round(r.width), document.getElementById('muteBtn').dataset.why]; }); };
+      const ENTRIES = [['hub', () => { try { closePopout(); } catch (e) {} show('home'); }], ['campaign', () => show('campaign')], ['team select', () => show('menu')], ['City Wall', () => show('wall')],
+        ['Skyfall', () => show('skyfall')], ['Temple', () => show('temple')], ['Arena', () => show('arena')], ['Heroes window', () => { show('home'); popoutScreen('heroesPanel'); }],
+        ['Settings window', () => { closePopout(); show('home'); popoutScreen('settings'); }],
+        ['battle', () => { closePopout(); show('home'); CUR = { node: 1, mode: 'arena' }; _startVersusNow([{ key: 'grosk', level: 5, rank: 1 }, { key: 'gruel', level: 5, rank: 1 }], true); paused = true; }]];
+      for (const [name, open] of ENTRIES) { const seen = [];
+        for (let k = 0; k < 3; k++) { seen.push(JSON.stringify(await spotOf(open))); await pg.evaluate(() => { try { ended = true; closePopout(); } catch (e) {} try { cancelResult(); } catch (e) {} show('glossary'); }); await delay(500); }
+        ck(seen[0] === seen[1] && seen[1] === seen[2], '844x390 ' + name + ': the same spot on 3 entries ' + seen[0], seen.join(' / ')); }
+      await pg.evaluate(() => show('home')); await delay(800); }
+    { const A = all[0], B = all[1], va = A.vp.split('x').map(Number), vb = B.vp.split('x').map(Number), bad = [];
+      for (const k of Object.keys(A.screens)) { const a = A.screens[k], b = B.screens[k]; if (!a || !b || a.none || b.none || a.docked && /scroll/.test(k)) continue;
+        const ra = (va[0] - (a.x + a.w)) / va[0], rb = (vb[0] - (b.x + b.w)) / vb[0], ya = (a.y + a.h / 2) / va[1], yb = (b.y + b.h / 2) / vb[1];
+        if (Math.abs(ra - rb) > 0.03 || Math.abs(ya - yb) > 0.04) bad.push(k + ' ' + ra.toFixed(3) + '/' + rb.toFixed(3) + ' ' + ya.toFixed(3) + '/' + yb.toFixed(3)); }
+      ck(bad.length === 0, 'every screen\'s spot is the same place in proportion at 844x390 and 915x412 (right inset / width within 3%, centre / height within 4%)', bad.join('; ')); }
+    console.log('  unlisted screens (placed on the fallback corner - add them to the table): ' + ([...UNL].join(', ') || 'none'));
+    ck(UNL.size === 0, 'no screen of this sweep is missing from the spot table');
 
     /* ---- (6) CONTROLS: the judge fails a button on the title plate and on a hero card ---- */
     await pg.evaluate(() => { closePopout(); popoutScreen('heroesPanel'); }); await delay(1000);
