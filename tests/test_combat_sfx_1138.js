@@ -143,6 +143,8 @@ try {
   if (runB) runB("BATTLE_ANIM.carn=Object.assign({},BATTLE_ANIM.carn,{crit:Object.assign({},BATTLE_ANIM.carn.attack)}); 1");
   /* v1153: Aureth has a crit clip too (the both-swords X slice) - the same v532 rule, given to BASE's Aureth the same way (tests/test_aureth_anim_eleven.js) */
   if (runB) runB("BATTLE_ANIM.aureth=Object.assign({},BATTLE_ANIM.aureth,{crit:Object.assign({},BATTLE_ANIM.aureth.attack)}); 1");
+  /* v1162: Korvux has a crit clip too (his overhead chop) - the same v532 rule, given to BASE's Korvux the same way (tests/test_korvux_anim_eight.js) */
+  if (runB) require('./helpers/anim-korvux-1162.js').critRuleKorvux1162(runB);
   const res = FIGHTS.map(F => ({ F, live: fight(runL, F, true), quiet: fight(runQ, F, false), base: runB && fight(runB, F, false) }));
   const runP = load(HTML); runP(HASH);
   const resP = FIGHTS.map((F, i) => ({ F, live: fight(runP, F, true, '', 1 + (i % 2)) }));   // the timing runs: phone clock, speed 1 / 2 alternating

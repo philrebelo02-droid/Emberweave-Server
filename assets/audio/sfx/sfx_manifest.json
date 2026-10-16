@@ -4535,7 +4535,7 @@
    "hero": "korvux",
    "hook": "EXISTS: fx.korvuxcleave (when the plate appears)",
    "phase": "cast",
-   "rule": "cast",
+   "rule": "land",
    "slot": "blue",
    "timing": "cast frame (ability clip starts)"
   },
@@ -4548,7 +4548,7 @@
    "hero": "korvux",
    "hook": "EXISTS: fx.korvux_ult (when the plate appears)",
    "phase": "cast",
-   "rule": "cast",
+   "rule": "land",
    "slot": "ult",
    "timing": "cast frame (ability clip starts)"
   },
