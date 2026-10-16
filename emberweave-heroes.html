@@ -16341,6 +16341,11 @@ function _wireIntegrity(host){
 const DEV={ on:false, god:false, who:'', orbPreview:0 };   // session-only (resets each launch; never saved)
 // Developer Panel gate: the SERVER's confirmed admin role (profile.admin), never a name list.
 // Every /api/admin/* route 403s for non-admins regardless — this only controls whether the UI shows.
+/* v1176 character names: the server's rule (server.js badCharName) shown before the request - the server still decides */
+function charNameWhy(v){ v=String(v||''); const b=v.match(/[<>&"'`\\\/|;{}]/); if(b) return 'Names cannot use '+b[0]+'.';
+  if(/\p{Extended_Pictographic}/u.test(v)) return 'Names cannot use emoji.';
+  if(!/^[\p{L}\p{M}0-9 _\-.!?#@$%*+=~()\[\]:,^]*$/u.test(v)) return 'Letters, numbers, spaces and _ - . ! ? # @ $ % * + = ~ ( ) [ ] : , ^ only.';
+  if(v&&!/[\p{L}0-9]/u.test(v)) return 'A name needs at least one letter or number.'; return ''; }
 function isDevAcct(){ return !!(ACC && ACC.token && ACC.admin); }
 let acctMode='signin';   // 'signin' | 'create' | 'reset' | 'forgot' — which tab the account panel shows
 let pwStep='idle';       // 'idle' | 'sent' — email password-reset flow state (signed-in account panel)
@@ -16690,6 +16695,7 @@ function renderProfileModal(){
   const nameBtn=body.querySelector('#pfSave'); const pfSaveTap=()=>{
     const v=body.querySelector('#pfNameInput').value.trim(), msg=body.querySelector('#pfMsg');
     if(v.length<2){ msg.textContent='Name needs at least 2 characters.'; return; }
+    { const why=charNameWhy(v); if(why){ msg.textContent=why; return; } }
     if(v===(G.playerName||'')){ msg.textContent='That is already your name.'; return; }
     if(ACC.token&&ACC.guest){ msg.textContent='Make an account first - guests keep their guest name.'; return; }   /* v1082 (scan 3 F2) */
     const cost=renameCost();
@@ -22491,6 +22497,7 @@ function authGateRender(){ const el=authGateEl(), need=authGateNeed()||'out', m=
   if($('#agGo')){ const go=()=>{ const name=($('#agName').value||'').trim(), pass=$('#agPass').value||'', p2=$('#agPass2')?($('#agPass2').value||''):null;
       const isNew=m==='create'||m==='guest';
       if(name.length<2){ msg('Username needs at least 2 characters.'); return; }
+      if(isNew){ const why=charNameWhy(name); if(why){ msg(why); return; } }
       if(!pass){ msg('Enter a password.'); return; }
       if(isNew&&pass.length<8){ msg('Password needs at least 8 characters.'); return; }
       if(isNew&&pass!==p2){ msg('Passwords do not match.'); return; }
@@ -23047,7 +23054,7 @@ function renderArena(){ const b=document.getElementById('arenaBody');
       const idx=opps.indexOf(pick), card=b.querySelectorAll('.arOpp')[idx];
       if(card){ b.querySelectorAll('.arOpp').forEach(x=>x.style.filter='');
         card.style.filter='brightness(1.35)'; card.scrollIntoView({block:'nearest',inline:'nearest'}); }
-      bannerMsg(beatable.length?('Top pick: '+pick.name+' \u2014 rank #'+pick.rank)
+      bannerMsg(beatable.length?('Top pick: '+escapeHTML(String(pick.name||''))+' \u2014 rank #'+pick.rank)
                               :('Every opponent outguns you \u2014 weakest is '+pick.name)); }; }
   b.querySelector('#arenaRulesBtn').onclick=arenaRules;
   const _arf=b.querySelector('#arenaRefresh'); if(_arf){ _arf.disabled=arenaRefreshLeft()<=0; _arf.onclick=()=>{ if(!useArenaRefresh()){ bannerMsg('No free arena refreshes left today.'); return; } if(ACC.token){ ARENA.oppsRank=null; arenaSync().then(()=>{ if(state==='arena')renderArena(); }); } else renderArena(); }; }
@@ -23851,7 +23858,7 @@ async function declareWarByMe(c){
     if(!r||!r.ok){bannerMsg((r&&r.error)||'War declaration could not be verified. Try again.');return false;}
     pushWar(c,false,r);
   }else pushWar(c,false);
-  marchReport('{i:s:burn} War declared','You declared war on '+c.name+'. Combat begins in 30 minutes — you cannot attack until then.');
+  marchReport('{i:s:burn} War declared','You declared war on '+escapeHTML(String(c.name||''))+'. Combat begins in 30 minutes — you cannot attack until then.');
   return true;
 }
 // Bots are PASSIVE — they never declare war on you. (Kept as a no-op; real players will declare via the server.)
@@ -24500,7 +24507,7 @@ function cityAction(a,c){ closeCityMenu();
     const w=document.getElementById('chatWidget'); if(w){ w.style.display='block'; w.classList.remove('min'); const tg=w.querySelector('#cwToggle'); if(tg)tg.textContent='▼'; }
     renderChat(); return; }
   if(a==='block'){ if(!c.bot) chatBlock(c.name); return; }   /* v1097 */
-  if(a==='war'){ if(atWarWith(c.name,false)){ bannerMsg(statusIcon('attack')+' War with '+c.name+' is already live — attack now!'); return; }
+  if(a==='war'){ if(atWarWith(c.name,false)){ bannerMsg(statusIcon('attack')+' War with '+escapeHTML(String(c.name||''))+' is already live — attack now!'); return; }
     if(warPending(c.name,false)){ bannerMsg(statusIcon('burn')+' War already declared — combat begins in '+uiIcon('timer')+' '+fmtDur(warPrepRemaining(c.name,false))); return; }
     declareWarByMe(c); return; }
   if(a==='scout'){ startMarch('scout',c,[]); return; }
@@ -24510,7 +24517,7 @@ function cityAction(a,c){ closeCityMenu();
       const squad=wallOrderedSquad();
       if(!squad.length){ bannerMsg(uiIcon('warning')+' No wall heroes available to attack — assign heroes to your wall lines first (and make sure they aren\'t mining or marching).'); return; }
       startMarch(a,c,squad); return; }
-    if(warPending(c.name,false)){ bannerMsg(uiIcon('timer')+' Cannot attack yet — war with '+c.name+' begins in '+fmtDur(warPrepRemaining(c.name,false))); return; }
+    if(warPending(c.name,false)){ bannerMsg(uiIcon('timer')+' Cannot attack yet — war with '+escapeHTML(String(c.name||''))+' begins in '+fmtDur(warPrepRemaining(c.name,false))); return; }
     gameConfirm('You are not at war with <b>'+escapeHTML(c.name)+'</b>. Declare war? Combat begins after a <b>30-minute</b> countdown — you cannot attack until it ends.',()=>{ declareWarByMe(c); });
     return;
   }
@@ -27450,6 +27457,7 @@ function renderSettings(){
   if(acGo){ const go=()=>{ const msg=b.querySelector('#acMsg');
       const name=(b.querySelector('#acUser').value||'').trim(), pass=(b.querySelector('#acPass').value||'');
       if(name.length<2){ msg.style.color='#ff8b8b'; msg.textContent='Username needs at least 2 characters.'; return; }
+      if(acctMode==='create'){ const why=charNameWhy(name); if(why){ msg.style.color='#ff8b8b'; msg.textContent=why; return; } }
       if(!pass){ msg.style.color='#ff8b8b'; msg.textContent='Enter a password.'; return; }
       if(acctMode==='create' && pass!==(b.querySelector('#acPass2').value||'')){ msg.style.color='#ff8b8b'; msg.textContent='Passwords do not match.'; return; }
       if(!tosOK()){ requireTos(go, ()=>{ msg.style.color='#ff8b8b'; msg.textContent='You must accept the Terms to sign in.'; }); return; }
@@ -27498,6 +27506,7 @@ function renderSettings(){
   const acgGo=b.querySelector('#acgGo'); if(acgGo){ const go=()=>{ const msg=b.querySelector('#acgMsg');
       const name=(b.querySelector('#acgName').value||'').trim(), pass=b.querySelector('#acgPass').value||'', pass2=b.querySelector('#acgPass2').value||'';
       if(name.length<2){ msg.style.color='#ff8b8b'; msg.textContent='Username needs at least 2 characters.'; return; }
+      { const why=charNameWhy(name); if(why){ msg.style.color='#ff8b8b'; msg.textContent=why; return; } }
       if(pass.length<8){ msg.style.color='#ff8b8b'; msg.textContent='Password needs at least 8 characters.'; return; }
       if(pass!==pass2){ msg.style.color='#ff8b8b'; msg.textContent='Passwords do not match.'; return; }
       if(!tosOK()){ requireTos(go, ()=>{ msg.style.color='#ff8b8b'; msg.textContent='You must accept the Terms to create an account.'; }); return; }
@@ -28000,14 +28009,62 @@ function adminBanMenu(host, p, opts, onDone){ opts=opts||{}; if(!host||!p) retur
   const del=host.querySelector('[data-bandel]'); if(del) del.onclick=()=>{ gameConfirm('Permanently DELETE <b>'+escapeHTML(p.name||'')+'</b>?<br><span style="font-size:11px;color:#ff8b8b">This cannot be undone.</span>',()=>{
     msg.style.color='#8b98a9'; msg.textContent='Deleting...'; api('/api/admin/delete','POST',{id:p.id,name:p.name}).then(d=>{ if(d&&d.ok){ if(opts.onDeleted) opts.onDeleted(); } else { msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error)||'Failed'; } }); }); };
 }
+/* v1176: the player-info sections of the admin popup, drawn from GET /api/admin/player (server ledger, dev only, read-only) */
+function playerInfoFill(host, id){ if(!host||!id) return;
+  api('/api/admin/player?id='+encodeURIComponent(id)).then(d=>{ if(!host.isConnected) return;
+    if(!d||!d.ok||!d.player){ host.innerHTML='<div style="font-size:11px;color:#ff8b8b">'+escapeHTML(String((d&&d.error)||'Server unreachable'))+'</div>'; return; }
+    const P=d.player, I=P.identity||{}, G=P.progress||{}, C=P.currencies||{}, R=P.roster||null, A=P.account||null, Rp=P.reports||{}, X=P.integrity||{};
+    const e=v=>escapeHTML(String(v==null?'':v)), n=v=>(+v||0).toLocaleString();
+    const dt=t=>{ if(!t)return '—'; const x=new Date(t); return x.toLocaleDateString()+' '+x.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); };
+    const row=(k,v,c)=>'<div class="pai-r"><span>'+e(k)+'</span><b'+(c?' class="'+c+'"':'')+'>'+e(v)+'</b></div>';
+    const sec=(t,rows)=>'<div class="pai-sec"><div class="pai-st">'+e(t)+'</div>'+rows.join('')+'</div>';
+    const yn=v=>v?'Yes':'No', cp=m=>{ const c=(G.campaign||{})[m]; return c?(c.cleared?c.stage+'  ('+c.cleared+'/'+c.of+')':'none'):'—'; };
+    const stars=h=>h.stars+' star'+(h.stars===1?'':'s')+(h.pips?' +'+h.pips:'')+(h.refine?' R'+h.refine:'');
+    const pat=G.patron?(G.patron.prestiged?'EDP '+G.patron.edp:'EGP '+G.patron.egp):'—';
+    const well=G.well?('Normal '+G.well.cleared.normal+' / Hard '+G.well.cleared.hard+(G.well.run?' · map '+G.well.run.map+(G.well.run.path?' '+G.well.run.path:'')+(G.well.run.done?' done':''):'')):'—';
+    const S=[];
+    S.push(sec('Identity',[row('Account id',I.id),row('Server',I.server?'Server '+I.server:'—'),row('Created',dt(I.created)),row('Last seen',dt(I.lastSeen)),
+      row('Sign-in',I.guest?'Guest':'Signed in',I.guest?'warn':''),row('Email on file',yn(I.hasEmail)),row('Dev account',yn(I.dev),I.dev?'good':'')]));
+    if(!P.ledger) S.push(sec('Progress',[row('Ledger','Not started yet','warn'),row('Arena rank','#'+(G.arenaRank|0))]));
+    else {
+      S.push(sec('Progress',[row('Player level','Lv '+(G.level|0)+' · '+n(G.xp)+' XP'),row('Patron',pat),row('Normal',cp('normal')),row('Elite',cp('elite')),row('Veteran',cp('veteran')),
+        row('Aether Vault','Floor '+(G.vaultFloor|0)+(G.vaultDone?' (cleared)':'')),row('Arena','#'+(G.arenaRank|0)+(G.bestArenaRank?' · best #'+G.bestArenaRank:'')),
+        row('Tower of Trials','Floor '+(G.towerFloor|0)),row('Training Province','Gold '+((G.province||{}).gold|0)+' · Rune '+((G.province||{}).rune|0)),
+        row('Starless Well',well),row('Island of Trials today',((G.islandToday||{}).used|0)+' played'+(((G.islandToday||{}).bought|0)?' · '+G.islandToday.bought+' bought':'')),
+        row('Guild',G.guild?G.guild.name+' ('+G.guild.role+')':'None')]));
+      S.push(sec('Currencies',[row('Diamonds',n(C.gems)),row('Gold',n(C.gold)),row('Stamina',n(C.stamina)+' / '+n(C.staminaMax)),row('Ember Roasts',n(C.emberRoasts)),
+        row('Forge Dust',n(C.forgeDust)),row('Arena coins',n(C.arenaCoins)),row('Guild coins',n(C.guildCoins)),row('XP potions',n(C.xpPotions)),row('Shields',n(C.shields))]));
+      if(R) S.push(sec('Roster',[row('Heroes',R.heroes),row('Team power',n(R.teamPower)),row('Roster power',n(R.rosterPower))]
+        .concat((R.top||[]).map((h,i)=>row((i+1)+'. '+h.name,'Lv '+h.level+' · '+stars(h)+' · '+n(h.power))))));
+      if(A) S.push(sec('Account',[row('Packs claimed',n(A.packs)),row('Free packs',n(A.freePacks)),row('Plans',n(A.plans)),row('Diamonds bought',n(A.diamondsBought)),row('Temple level',G.templeLevel|0)]));
+    }
+    S.push(sec('Reports',[row('Reports sent',n(Rp.sent)),row('Latest',Rp.lastAt?dt(Rp.lastAt):'—')]));
+    S.push(sec('Integrity',[row('Flag',X.flag?X.flag.reason:'None',X.flag?'bad':''),row('Cheat signals',n(X.cheatSignals)+(X.lastCheat?' · last '+dt(X.lastCheat.t):''),X.cheatSignals?'warn':''),
+      row('Battle incidents',n(X.battleIncidents)+(X.lastIncident?' · '+X.lastIncident.why:''),X.battleIncidents?'warn':''),
+      row('Reports on them',n(X.reportsAgainst)+(X.openReportsAgainst?' · '+X.openReportsAgainst+' open':''),X.openReportsAgainst?'warn':''),
+      row('Ban',I.ban?banLabel(I.ban):'None',I.ban?'bad':'')]));
+    host.innerHTML=S.join('');
+  }); }
 // admin options for one player (dev only)
 function openPlayerAdmin(r, kind, panel){ if(!r)return;
   const ov=document.createElement('div');
-  ov.style.cssText='position:fixed;inset:0;background:rgba(4,6,10,.8);z-index:14000;display:flex;align-items:center;justify-content:center;padding:16px';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(4,6,10,.8);z-index:14000;display:flex;align-items:center;justify-content:center;padding:12px';
   const dt=t=>{ if(!t)return '—'; const x=new Date(t); return x.toLocaleDateString()+' '+x.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); };
-  ov.innerHTML=`<div style="background:#141b2b;border:1px solid #33405e;border-radius:16px;padding:18px;width:100%;max-width:340px">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div style="font-weight:800;font-size:16px">🛠️ ${escapeHTML(r.name)}</div><button class="btn sm secondary" id="paX">${uiIcon('close')}</button></div>
-    <div style="font-size:11px;color:#8b98a9;line-height:1.6;margin-bottom:12px">Arena rank #${r.rank}<br>Created ${dt(r.created)}<br>Last seen ${dt(r.lastSeen)}${r.mustReset?'<br><b style="color:#ffb454">'+uiIcon('key')+' Password recovery is armed</b>':''}${r.ban?'<br><b style="color:#ff8b8b">'+escapeHTML(banLabel(r.ban))+'</b>'+(r.ban.reason?' - '+escapeHTML(r.ban.reason):''):''}</div>
+  /* v1176 (Phil 16 Oct: "can you make it so that I can see their info? their level, diamonds, gold, top campaign/vault level etc etc"):
+     the player's info from the SERVER's ledger (GET /api/admin/player, dev only). The header holds the X with room under it for the
+     docked mute button; the info and the buttons scroll below it. */
+  ov.innerHTML=`<style>.pai-card{background:#141b2b;border:1px solid #33405e;border-radius:16px;padding:12px 14px;width:100%;max-width:640px;max-height:100%;box-sizing:border-box;display:flex;flex-direction:column}
+.pai-hd{display:grid;grid-template-columns:1fr auto;gap:8px;flex:0 0 auto}.pai-nm{font-weight:800;font-size:16px;color:#e6edf3}.pai-sub{font-size:11px;color:#8b98a9;line-height:1.5;margin-top:2px}
+.pai-xc{display:flex;flex-direction:column;align-items:flex-end}.pai-xs{height:46px}
+.pai-body{overflow-y:auto;flex:1 1 auto;min-height:0;margin-top:4px;padding-right:2px}.pai-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:6px;margin-bottom:8px}
+.pai-sec{background:#0f1622;border:1px solid #26324a;border-radius:10px;padding:6px 9px}.pai-st{font-size:10px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:#6bbf95;margin-bottom:3px}
+.pai-r{display:flex;justify-content:space-between;gap:8px;font-size:11px;line-height:1.55}.pai-r span{color:#8b98a9;white-space:nowrap}.pai-r b{color:#e6edf3;font-weight:700;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pai-r b.warn{color:#ffb454}.pai-r b.bad{color:#ff8b8b}.pai-r b.good{color:#5ee89b}</style>
+  <div class="pai-card">
+    <div class="pai-hd"><div style="min-width:0"><div class="pai-nm">${escapeHTML(String(r.name||''))}</div>
+      <div class="pai-sub">Arena rank #${r.rank|0}${r.mustReset?'<br><b style="color:#ffb454">'+uiIcon('key')+' Password recovery is armed</b>':''}${r.ban?'<br><b style="color:#ff8b8b">'+escapeHTML(banLabel(r.ban))+'</b>'+(r.ban.reason?' - '+escapeHTML(String(r.ban.reason)):''):''}</div></div>
+      <div class="pai-xc"><button class="btn sm secondary" id="paX" aria-label="Close">${uiIcon('close')}</button><div class="pai-xs"></div></div></div>
+    <div class="pai-body"><div id="paInfo" class="pai-grid"><div style="font-size:11px;color:#8b98a9">Loading…</div></div>
     <div id="paMsg" style="font-size:11px;color:#ffd45e;min-height:15px;margin-bottom:8px"></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
       <button class="btn sm" id="paGrant" style="background:#2e7d46">${hudIcon('gem')} +2000</button>
@@ -28017,15 +28074,16 @@ function openPlayerAdmin(r, kind, panel){ if(!r)return;
       ? `<button class="btn sm secondary" id="paUndo" style="width:100%;margin-bottom:6px">Cancel password recovery</button>`
       : `<button class="btn sm" id="paReset" style="width:100%;margin-bottom:6px">${uiIcon('key')} Recover password</button>`}
     <button class="btn sm secondary" id="paBan" style="width:100%;margin-bottom:6px;color:#ff8b8b;border-color:#5a2a2a">${r.ban?'Banned - Unban / change':'Ban'}</button>
-    <div id="paBanBox"></div>
+    <div id="paBanBox"></div></div>
   </div>`;
   document.body.appendChild(ov); const close=()=>ov.remove();
   ov.addEventListener('click',e=>{ if(e.target===ov)close(); });
   ov.querySelector('#paX').onclick=close;
   const msg=ov.querySelector('#paMsg');
+  playerInfoFill(ov.querySelector('#paInfo'), r.id);
   const gemAct=(path,label)=>{ msg.style.color='#8b98a9'; msg.textContent='Working…';
     api(path,'POST',{id:r.id,name:r.name}).then(d=>{ if(d&&d.ok){ msg.style.color='#5ee89b'; msg.textContent=label+' — '+d.name+' now has '+d.gems+' diamonds'+(d&&d.live?' — they will see it within a minute.':''); }
-      else { msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error)||'Failed'; } }); };
+      else { msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error)||'Failed'; } if(d&&d.ok) playerInfoFill(ov.querySelector('#paInfo'), r.id); }); };
   const gB=ov.querySelector('#paGrant'); if(gB) gB.onclick=()=>gemAct('/api/admin/grant','Granted 2000');   // no confirmation
   const tB=ov.querySelector('#paTake');  if(tB) tB.onclick=()=>gemAct('/api/admin/take','Took 2000');      // no confirmation
   /* v1097 (Phil 9 Oct): Delete became Ban; the old admin delete stays only behind the Ban menu */
@@ -28669,6 +28727,57 @@ function attachUltPress(el,u,relayMode){
 /* nav wiring */
 function bindNav(root){ (root||document).querySelectorAll('[data-nav]').forEach(el=>{ el.onclick=()=> el.hasAttribute('data-pop') ? popoutScreen(el.dataset.nav) : show(el.dataset.nav); }); }
 bindNav(document);
+/* v1176 KEYBOARD (Phil 16 Oct 2026: "can you make the esc button exit to main city and backspace to go back one menu, unless in chat
+   typing of course"). No navigation logic of its own: every step CLICKS the control a tap would (the top window's X or its back
+   button, a confirm's Cancel, the screen's back button, Continue), so music, the chat bar and the mute dock follow exactly as on a tap.
+   - Backspace = one level back. Esc = step back until the hub (at most 20 steps; it stops if a step changes nothing).
+   - Never while typing (input / textarea / select / contenteditable focused) or during an IME composition; nothing before sign-in.
+   - A fight is never quit: Esc / Backspace open the game's own Pause (campaign, Vault, province, Well fights - the modes with the
+     pause button) and close it again with Resume; in other fights they do nothing. The result screen: Esc / Backspace = CONTINUE. */
+function kbTyping(e){ if(e.isComposing||e.keyCode===229) return true;
+  for(const el of [e.target, document.activeElement]) if(el&&el.nodeType===1&&(el.isContentEditable||/^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName))) return true;
+  return false; }
+function kbVisible(el){ if(!el||!el.getClientRects().length) return false; const g=el.getBoundingClientRect(); if(g.width<2||g.height<2) return false;
+  const t=document.elementFromPoint(g.left+g.width/2,g.top+g.height/2); return !!t&&(t===el||el.contains(t)); }
+/* the control one Backspace presses, or null when there is nothing to go back from (the hub with nothing open) */
+function kbBackTarget(){
+  const st=(typeof state!=='undefined'&&state)||'';
+  if(st==='battle'){ const pm=document.getElementById('pauseModal'), pb=document.getElementById('pauseBtn');
+    if(pm&&pm.classList.contains('active')) return {el:document.getElementById('resumeBtn'), battle:true};
+    if(pb&&pb.classList.contains('active')&&!paused) return {el:pb, battle:true};
+    return {el:null, battle:true}; }
+  /* the top-most open window: a confirm's Cancel or a window's X (its own back button first: the hero window -> Heroes), whichever
+     is uncovered and last in the page (windows open on top of what came before) */
+  const cand=[...document.querySelectorAll('#uiCfNo,#_gcNo,button')].filter(b=>(b.id==='uiCfNo'||b.id==='_gcNo'||/^cancel$/i.test((b.textContent||'').trim()))&&kbVisible(b)
+    &&(()=>{ for(let e=b.parentElement,d=0;e&&d<6&&e!==document.body;e=e.parentElement,d++) if(getComputedStyle(e).position==='fixed') return true; return false; })());
+  let X=null; try{ X=muteCloseX(); }catch(e){}
+  if(X){ const bk=[...X.win.querySelectorAll('.backbtn')].filter(kbVisible).pop(); cand.push(bk||X.x); }
+  if(cand.length){ cand.sort((a,b)=>(a.compareDocumentPosition(b)&Node.DOCUMENT_POSITION_FOLLOWING)?-1:1); return {el:cand[cand.length-1]}; }
+  const hm=document.getElementById('hubMenu'); if(hm&&hm.classList.contains('open')){ const t=document.getElementById('menuBtn'); if(t) return {el:t}; }
+  if(_popout){ const x=document.querySelector('.popoutClose'); return x?{el:x}:{fn:closePopout}; }
+  if(st==='result'){ const rb=document.getElementById('resultBtn'); return rb?{el:rb, result:true}:null; }
+  if(st&&st!=='home'){ const sc=document.getElementById(st); const bk=sc&&[...sc.querySelectorAll('.backbtn')].filter(b=>b.getClientRects().length).shift();
+    return bk?{el:bk}:{fn:()=>show('home')}; }
+  return null; }
+function kbStep(){ const t=kbBackTarget(); if(!t) return null; if(t.el) t.el.click(); else if(t.fn) t.fn(); return t; }
+const KB={ steps:0 };
+window.addEventListener('keydown',e=>{
+  if(e.key!=='Escape'&&e.key!=='Backspace') return;
+  if(e.ctrlKey||e.metaKey||e.altKey||kbTyping(e)) return;
+  if(!(ACC&&ACC.token)) return; try{ if(authGateOpen()) return; }catch(err){}
+  if(e.key==='Backspace') e.preventDefault();   // the browser never goes back in history
+  if(e.repeat) return;
+  if(e.key==='Backspace'){ const t=kbStep(); if(t) { KB.steps++; e.stopPropagation(); } return; }
+  /* Esc: back to the hub */
+  let last=null; KB.steps=0;
+  for(let i=0;i<20;i++){ const t=kbBackTarget(); if(!t) break;
+    if(t.battle){ if(t.el) t.el.click(); break; }   // a fight: Pause / Resume only, never Leave or Quit
+    const key=(t.el||t.fn), sig=((typeof state!=='undefined'&&state)||'')+'|'+(_popout||'')+'|'+document.body.childElementCount;
+    if(last&&last.key===key&&last.sig===sig) break;   // that step changed nothing
+    last={key,sig}; if(t.el) t.el.click(); else t.fn(); KB.steps++;
+    if(t.result) break; }   // the result screen: CONTINUE goes back where the fight was started from
+  e.preventDefault(); e.stopPropagation();
+},{capture:true});
 wireTap(document.getElementById('profileBtn'), openProfile);
 document.getElementById('profClose').onclick=closeProfile;
 document.getElementById('profileModal').addEventListener('click',(e)=>{ if(e.target.id==='profileModal') closeProfile(); });
@@ -29251,7 +29360,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1792179779095';
+const BUILD_ID = '1792184450301';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

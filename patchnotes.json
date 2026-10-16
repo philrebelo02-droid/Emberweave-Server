@@ -22,7 +22,9 @@
       "Skill previews on the hero panel now play each hero's real battle animation, spell effect and sound.",
       "Restart Stage now stops the old fight at once: its music, sounds and spell effects end before the new fight begins.",
       "The chat bar now shows only in the city and on the world map.",
-      "Fixed: the game could say the server was lost while the connection was fine."
+      "Fixed: the game could say the server was lost while the connection was fine.",
+      "On desktop, Esc returns to the city and Backspace goes back one menu.",
+      "Character names can now use numbers and common symbols."
     ]},
     {"ver": "0.93", "date": "15 October 2026", "title": "Pre-beta opens", "items": [
       "Pre-beta is open. Every diamond pack in the shop is free during pre-beta, and free packs count toward your Patron level.",

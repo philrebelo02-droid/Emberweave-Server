@@ -3,7 +3,7 @@
  "patches": [
   {
    "ver": "0.94",
-   "releases": "v1159-v1166, v1169, v1171, v1173, v1174 (v1167 wall step and its v1170 undo left out: no net change)",
+   "releases": "v1159-v1166, v1169, v1171, v1173, v1174, v1176 (v1167 wall step and its v1170 undo left out: no net change)",
    "items": [
     {
      "text": "The game now has music: ten songs each for the city, the maps, battles and Skyfall, shuffled with a soft crossfade.",
@@ -139,6 +139,18 @@
      "text": "Fixed: the game could say the server was lost while the connection was fine.",
      "sources": [
       "SHIPPED-v1166-hotfix-mute-spots-netgate-restart-chat-16-10-2026.md"
+     ]
+    },
+    {
+     "text": "On desktop, Esc returns to the city and Backspace goes back one menu.",
+     "sources": [
+      "SHIPPED-v1176-devinfo-keys-names-16-10-2026.md"
+     ]
+    },
+    {
+     "text": "Character names can now use numbers and common symbols.",
+     "sources": [
+      "SHIPPED-v1176-devinfo-keys-names-16-10-2026.md"
      ]
     }
    ]

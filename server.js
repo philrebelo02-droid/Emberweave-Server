@@ -260,6 +260,21 @@ function badNewName(n){ const s=String(n||'');
   if(RESERVED_NAMES.has(plain) || /^guest[0-9a-f]{0,4}$/.test(plain)) return 'That name is reserved — please choose another.';
   if(CHATF.nameHits(s)) return 'That name is not allowed - please choose another.';   /* v1097 (sweep #18): no slurs or hate terms in player and guild names */
   return ''; }
+/* v1176 CHARACTER NAMES (Phil 16 Oct 2026: "please allow numbers in someones character name" / "dont make any special characters that
+   may mess up coding" / "or backup"). THE SERVER IS THE AUTHORITY for every new or changed player name (sign-up on any server and on
+   the account server, guest upgrade, rename, the dev panel's Create account). Allowed: letters (any language, with their accents),
+   digits 0-9, single spaces and _ - . ! ? # @ $ % * + = ~ ( ) [ ] : , ^ . Blocked: < > & " ' ` \ / | ; { } (HTML / JSON / CSV and
+   backups / paths / shells), emoji, anything else, names of only symbols - plus every badNewName rule (hidden characters, stacked
+   accents, reserved and Guest names, slurs). 2-16 characters after trimming; runs of spaces become one. Existing names are untouched. */
+const CHAR_NAME_MAX=16;
+const CHAR_NAME_BANNED=/[<>&"'`\\\/|;{}]/;
+function cleanCharName(raw){ return String(raw==null?'':raw).trim().replace(/ {2,}/g,' ').slice(0,CHAR_NAME_MAX).trim(); }
+function badCharName(n){ const s=String(n||''); if(!s) return ''; const why=badNewName(s); if(why) return why;
+  const bad=s.match(CHAR_NAME_BANNED); if(bad) return 'Names cannot use '+bad[0]+' - letters, numbers, spaces and _ - . ! ? # @ $ % * + = ~ ( ) [ ] : , ^ only.';
+  if(/\p{Extended_Pictographic}/u.test(s)) return 'Names cannot use emoji.';
+  if(!/^[\p{L}\p{M}0-9 _\-.!?#@$%*+=~()\[\]:,^]+$/u.test(s)) return 'That name uses a character that is not allowed - letters, numbers, spaces and _ - . ! ? # @ $ % * + = ~ ( ) [ ] : , ^ only.';
+  if(!/[\p{L}0-9]/u.test(s)) return 'A name needs at least one letter or number.';
+  return ''; }
 function hashPass(pass, salt, iters){ return crypto.pbkdf2Sync(pass, salt, iters||60000, 32, 'sha256').toString('hex'); }
 // AUDIT (26 Aug, high): 60k PBKDF2 is below current guidance. NEW password hashes use 210k iterations
 // with a 16-byte salt and store their iteration count on the account; old 60k hashes keep verifying
@@ -454,8 +469,8 @@ function acctVerify(name, pass, ip){
   if(!u.iters){ const c=makeCred(pass||''); u.hash=c.hash; u.salt=c.salt; u.iters=c.iters; }   // transparent 60k→210k upgrade
   return {u}; }
 function acctCreate(rawName, pass){
-  const name=String(rawName||'').replace(/[<>]/g,'').trim().slice(0,16);
-  { const why=badNewName(name); if(why) return {status:400,error:why}; }
+  const name=cleanCharName(rawName);   /* v1176: no silent stripping - a blocked character is refused with its reason */
+  { const why=badCharName(name); if(why) return {status:400,error:why}; }
   if(name.length<2||!pass) return {status:400,error:'Name (2+) and password required'};
   if(String(pass).length<8) return {status:400,error:'Password must be at least 8 characters.'};
   if(nameTaken(name)) return {status:409,error:'That Profile name is already taken'};   /* v1080: look-alikes too */
@@ -3119,6 +3134,57 @@ function banInfo(u){
   return { until, permanent, daysLeft: permanent ? null : Math.ceil((until - Date.now())/86400000), reason: u.banReason || '',
            by: (u.ban && u.ban.by) || '', at: (u.ban && u.ban.at) || 0 };
 }
+/* v1176 (Phil 16 Oct 2026, Accounts > Online now > a player: "can you make it so that I can see their info? their level, diamonds,
+   gold, top campaign/vault level etc etc"). GET /api/admin/player?id=<id> - dev only (isDev, the same gate as Ban / +-diamonds), READ-ONLY:
+   it never calls ensureLedger / portalProg / patronState on the real ledger (those create state) and never writes the DB.
+   A WHITELIST built field by field from the server's ledger: no hash / salt / token / email / IP / device / save blob ever leaves. */
+function adminNodeLabel(n){ n=n|0; return n>0?(Math.ceil(n/10)+'-'+(((n-1)%10)+1)):'none'; }
+function adminPlayerInfo(u){
+  const now=Date.now(), led=(u.led&&u.led.migratedAt)?u.led:null;
+  const out={ identity:{ id:u.id, name:u.name, server:SERVER_ID||String(process.env.SERVER_NAME||''), created:u.created||0, lastSeen:u.lastSeen||0,
+      signedIn:!u.guest, guest:!!u.guest, hasEmail:!!u.email, dev:isDev(u), ban:banInfo(u) }, ledger:!!led };
+  const g=u.guildId&&(DB.guilds||{})[u.guildId];
+  const guild=g?{ name:String(g.name||''), role:g.leader===u.id?'Leader':((g.officers||[]).includes(u.id)?'Officer':'Member') }:null;
+  const dp=(DB.dungeonProgress||{})[u.id]||null;
+  out.progress={ arenaRank:u.rank|0, bestArenaRank:u.bestRank!=null?(u.bestRank|0):null, guild, vaultFloor:dp?(dp.highestClearedFloor|0):0, vaultDone:!!(dp&&dp.vaultStatus==='complete') };
+  out.currencies={ arenaCoins:Math.max(0,u.coins|0), forgeDust:Math.max(0,+u.dust||0), shields:Math.max(0,u.shields|0) };
+  if(led){
+    const lvl=ledPlayerLevel(led);
+    const portals=led.portals||{}, pc=m=>m==='normal'?((led.camp&&led.camp.cleared)|0):((portals[m]&&portals[m].cleared)|0);
+    const camp={}; for(const m of PORTAL_MODES){ const n=pc(m); camp[m]={ cleared:n, stage:adminNodeLabel(n), of:PORTAL_SIZE[m] }; }
+    const pat=patronLevels({patron:led.patron, purchases:led.purchases});   // a throwaway holder: patronState never writes the real ledger
+    const tw=(led.tower&&typeof led.tower==='object')?led.tower:null, w2=led.well2||null, prov=led.prov||{};
+    let stam=(led.stam&&led.stam.v)|0; const mx=ledStamMax(led);
+    if(led.stam&&stam<mx){ stam=Math.min(mx, stam+Math.max(0,Math.floor((now-(+led.stam.ts||now))/STAM_REGEN_MS))); }   // what the player sees now, computed - not written
+    Object.assign(out.progress,{ level:lvl, xp:led.px|0, patron:{ egp:pat.egp|0, prestiged:!!pat.prestiged, edp:pat.edp|0 }, campaign:camp,
+      towerFloor:tw?(tw.floor|0):0,
+      province:{ gold:(prov.gold&&prov.gold.stage)|0, rune:(prov.rune&&prov.rune.stage)|0 },
+      well:w2?{ cleared:{ normal:((w2.cleared||{}).normal)|0, hard:((w2.cleared||{}).hard)|0 },
+        run:(w2.run&&w2.run.started)?{ map:w2.run.map|0, path:w2.run.path||'', done:!!w2.run.done }:null }:null,
+      islandToday:(led.edraft&&led.edraft.day===nyDayKey())?{ used:led.edraft.used|0, bought:led.edraft.bought|0 }:{ used:0, bought:0 },
+      templeLevel:(led.temple?TEMPLE.keeperLevel(led.temple.keeperPoints||0, lvl):0)|0 });
+    let xpPot=0; for(const k in (led.xpPotions||{})) xpPot+=Math.max(0,led.xpPotions[k]|0);
+    Object.assign(out.currencies,{ gems:led.gems|0, gold:led.gold|0, stamina:stam, staminaMax:mx, emberRoasts:led.stamItems|0, guildCoins:led.guildCoins|0, xpPotions:xpPot });
+    const keys=Object.keys(led.unlocked||{}).filter(k=>led.unlocked[k]&&SIM.HERO_BASE[k]);
+    const heroes=keys.map(k=>{ const h=led.hero[k]||{}; return { key:k, name:(typeof heroDisplayName==='function'?heroDisplayName(k):k), level:ledHeroLevel(led,k),
+      stars:Math.max(SIM.HERO_BASE[k].stars|0,Math.min(5,h.stars|0)), pips:h.pips|0, refine:h.ref|0, power:cardPower(u,k) }; }).sort((a,b)=>b.power-a.power);
+    let teamPower=0; try{ teamPower=ledgerTeamPower(u); }catch(e){}
+    out.roster={ heroes:keys.length, teamPower, rosterPower:heroes.reduce((s,h)=>s+h.power,0), top:heroes.slice(0,5) };
+    const buys=Array.isArray(led.purchases)?led.purchases:[]; let bought=0, freeN=0, planN=0, usd=0;
+    for(const x of buys){ const o=x&&SHOP_OFFER_BY_ID[x.id]; if(!o) continue; if(x.free) freeN++; usd+=+x.usd||0; if(o.kind==='gems') bought+=o.amount|0; else planN++; }
+    out.account={ packs:buys.length, freePacks:freeN, plans:planN, diamondsBought:bought, usd:Math.round(usd*100)/100 };
+    const inc=Array.isArray(led.battleIncidents)?led.battleIncidents:[];
+    out.integrity={ battleIncidents:inc.length, lastIncident:inc.length?{ t:inc[inc.length-1].t||0, why:String(inc[inc.length-1].why||''), stage:String(inc[inc.length-1].stage||'') }:null };
+  } else out.integrity={ battleIncidents:0, lastIncident:null };
+  const fb=Array.isArray(DB.feedback)?DB.feedback:[], rp=Array.isArray(DB.reports)?DB.reports:[];
+  const sent=fb.filter(x=>x&&x.userId===u.id&&x.kind!=='cheat').concat(rp.filter(x=>x&&x.kind==='moderation'&&x.reporterId===u.id));
+  out.reports={ sent:sent.length, lastAt:sent.reduce((m,x)=>Math.max(m,+x.t||0),0) };
+  const cheat=fb.filter(x=>x&&x.kind==='cheat'&&x.userId===u.id), irep=rp.filter(x=>x&&x.kind!=='moderation'&&x.userId===u.id), lc=cheat[cheat.length-1], lr=irep[irep.length-1];
+  Object.assign(out.integrity,{ flag:u.flag?{ reason:String(u.flag.reason||''), t:u.flag.t||0 }:null,
+    cheatSignals:cheat.length, lastCheat:lc?{ t:lc.t||0, signal:String(lc.signal||''), text:String(lc.text||'').slice(0,200) }:null,
+    reportsAgainst:irep.length, openReportsAgainst:irep.filter(x=>!x.resolved).length, lastReport:lr?{ t:lr.t||0, kind:String(lr.kind||''), detail:String(lr.detail||'').slice(0,200) }:null });
+  return out;
+}
 function banDate(t){ try{ return new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(t))+' ET'; }catch(e){ return new Date(t).toISOString(); } }
 function banText(u){ const b=banInfo(u); return !b ? '' : b.permanent ? 'Account banned permanently.' : 'Account banned until '+banDate(b.until)+'.'; }
 function banResp(u){ const b=banInfo(u)||{}; return { error:banText(u), banned:true, until:b.until||0, permanent:!!b.permanent, reason:b.reason||'' }; }
@@ -4637,8 +4703,8 @@ async function api(req,res,url){
       ],
       dailyCaps:{ cityAttacks:20, vaultSweeps:2, trainingProvincePlays:PROV_PLAYS, eliteBossStageRuns:3, mining:60, marketFragments:12, guildContributions:20 }
     }); }
-  if(p==='/api/register' && req.method==='POST'){ const b=await body(req); const name=(b.name||'').replace(/[<>]/g,'').trim().slice(0,16);
-    { const why=badNewName(name); if(why) return send(res,400,{error:why}); }
+  if(p==='/api/register' && req.method==='POST'){ const b=await body(req); const name=cleanCharName(b.name);
+    { const why=badCharName(name); if(why) return send(res,400,{error:why}); }
     if(rateLimited(req,'reg',REG_PER_MIN,60000)) return send(res,429,{error:'Too many attempts — wait a minute and try again.'});
     if(name.length<2||!b.pass) return send(res,400,{error:'Name (2+) and password required'});
     if(String(b.pass).length<8) return send(res,400,{error:'Password must be at least 8 characters.'});
@@ -4944,6 +5010,12 @@ async function api(req,res,url){
     const snap=snapshotHeroFromServer(me,hk);
     if(!snap) return send(res,400,{error:'unknown hero'});
     return send(res,200,{snapshot:snap}); }
+  if(p==='/api/admin/player'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});   /* v1176: one player's info for the dev panel - read-only, see adminPlayerInfo */
+    if(req.method!=='GET') return send(res,405,{error:'GET only'});
+    const tid=String(url.searchParams.get('id')||''), u=tid&&DB.users[tid];
+    if(!u||u.isNpc) return send(res,404,{error:'account not found'});
+    let info=null; try{ info=adminPlayerInfo(u); }catch(e){ console.error('admin player info failed:',e&&e.message); return send(res,500,{error:'Could not read that account.'}); }
+    return send(res,200,{ok:true, player:info}); }
   if(p==='/api/admin/online'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
     const cutoff=Date.now()-5*60000;
     const online=Object.values(DB.users).filter(u=>!u.isNpc && (u.lastSeen||0)>=cutoff)
@@ -4982,7 +5054,8 @@ async function api(req,res,url){
     if(!u||u.isNpc) return send(res,404,{error:'account not found'}); delete u.flag; writeDB(); return send(res,200,{ok:true, name:u.name}); }
   // admin: create an account directly
   if(p==='/api/admin/create' && req.method==='POST'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
-    const b=await body(req); const name=(b.name||'').replace(/[<>]/g,'').trim().slice(0,16);
+    const b=await body(req); const name=cleanCharName(b.name);
+    { const why=badCharName(name); if(why) return send(res,400,{error:why}); }   /* v1176: the dev panel follows the same name rules */
     if(name.length<2||!b.pass||String(b.pass).length<8) return send(res,400,{error:'Name (2+) and a password of 8+ characters required'});
     if(ACCOUNT_AUTHORITY){   // v946: accounts are made on the account server; this server links its own player to it
       const r=await authorityCall('/api/internal/account/register',{ name, pass:b.pass });
@@ -5154,8 +5227,8 @@ async function api(req,res,url){
     const out=durableCommit(me,me.id+':rename:'+reqId,(me)=>{
       if(me.guest) return {ok:false,error:'Make an account first - guests keep their guest name.'};
       if(ACCOUNT_AUTHORITY&&me.gid) return {ok:false,error:'Change your name on Server 1 - it carries to every server.'};
-      const name=String(b.name||'').replace(/[<>]/g,'').trim().slice(0,16);
-      { const why=badNewName(name); if(why) return {ok:false,error:why}; }
+      const name=cleanCharName(b.name);
+      { const why=badCharName(name); if(why) return {ok:false,error:why}; }
       if(name.length<2) return {ok:false,error:'Name needs at least 2 characters.'};
       if(name===me.name) return {ok:false,error:'That is already your name.'};
       if(nameTaken(name,me.id)) return {ok:false,error:'That Profile name is already taken'};
