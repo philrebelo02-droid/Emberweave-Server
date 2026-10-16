@@ -2672,7 +2672,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 <script src="/assets/ui/world-mine-sync.js?v=mi2"></script>
 <script src="/assets/ui/world-march-sync.js?v=wm1"></script>
 <script src="/assets/ui/world-march-visual.js?v=wv2"></script>
-<script src="/assets/ui/skill-preview-stage.js?v=sp1174"></script>
+<script src="/assets/ui/skill-preview-stage.js?v=sp1178"></script>
 <script src="/assets/ui/world-tree-cycle.js?v=wt4"></script>
 <script src="/assets/ui/world-tree-art.js?v=wt3"></script>
 <script src="/assets/ui/world-oasis-markers.js?v=om-painted-01oct-v1"></script>
@@ -12919,7 +12919,7 @@ const FX2_DEF={
   ambrel_blue:{u:'/assets/anim/fx/ambrel_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:1},
   ambrel_green:{u:'/assets/anim/fx/ambrel_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.583,dh:0.365,dw:0.75}},
   brannus_blue:{u:'/assets/anim/fx/brannus_arena_lock_16oct.webp?v=1178',n:49,fw:355,fh:204,cols:5,rows:10,dur:4.0833,rt:true,fps2:12,spawn:7,anchor:[0.49,0.046],span:0.905,size:1.08,fadeR:0.75},   /* v1178 Arena Lock (Grok, Phil approved 16 Oct; brannus_blue_arena_lock_16oct.mp4 md5 18f632dd, GREEN plate): clip frames 0-96 every 2nd at 12 fps REAL TIME, faded out over its last 0.75 s (gone by 4.1 s; the dust line would stay). Upright at his feet, BEHIND him, shown on blue cell 7 (f19, the wheel plants); the chain line (650 of the 718 source px = span) is the kit's 3 m radius each side (gfxR); the column's base (anchor: source 576,599) on his feet. The v33 plate stays on disk. */
-  brannus_green:{u:'/assets/anim/fx/brannus_rim_breaker_16oct.webp?v=1178',n:67,fw:341,fh:167,cols:6,rows:12,dur:5.5833,rt:true,fps2:12,spawn:18,anchor:[0.066,0.212],size:0.92},   /* v1178 Rim Breaker (Grok, Phil approved 16 Oct; brannus_green_rim_breaker_16oct.mp4 md5 8fcf84ba, GREEN plate): clip frames 0-132 every 2nd at 12 fps REAL TIME, once (the wheel clears itself by 5.5 s). Side view, upright, IN FRONT of him: the wheel starts where he stands (anchor: its left edge and ground, source 272,516) and rolls toward the target, mirrored when he faces left; shown on green cell 18 (f48, the forward thrust). The wheel 0.41 x his height, as the one he carries. Nothing else flies (noFly). The v33 plate stays on disk. */
+  brannus_green:{u:'/assets/anim/fx/brannus_rim_breaker_16oct.webp?v=1178',n:67,fw:341,fh:167,cols:6,rows:12,dur:5.5833,rt:true,fps2:12,spawn:18,anchor:[0.137,0.433],size:1.06,weapon:{fwd:0.593,up0:0.603,up1:0.237,t:0.45}},   /* v1178 Rim Breaker (Grok, Phil approved 16 Oct; brannus_green_rim_breaker_16oct.mp4 md5 8fcf84ba, GREEN plate): clip frames 0-132 every 2nd at 12 fps REAL TIME, once (the wheel clears itself by 5.5 s). Side view, upright, IN FRONT of him. v1178 (Phil: "released from his weapon height not from the floor"): the wheel starts ON HIS WEAPON - the held wheel's centre on the release cell (green cell 18 = f48: 0.593 x his height in front of his feet, 0.603 x his height up; measured on the keyed source frame) - and comes down in a smooth arc (smoothstep over 0.45 real s) to roll on the ground (its centre 0.237 x his height up = the wheel's own radius), then rolls toward the target; mirrored when he faces left. The anchor is the art wheel's centre at its start (source 335,420); the wheel 0.474 x his height, as the one he carries (size 1.06). Nothing else flies (noFly). The v33 plate stays on disk. */
   rafe_blue:{u:'/assets/anim/fx/rafe_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:1},
   rafe_green:{u:'/assets/anim/fx/rafe_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.655,dh:0.185,dw:0.6},upright:true,upSize:0.8,upExtent:0.57,upAnchor:[0.025,0.26],upFlip:true,ro:2},
   joss_blue:{u:'/assets/anim/fx/joss_blue.webp?v=33',n:48,fw:392,fh:512,cols:6,rows:8,dur:1.6,disc:{cy:0.578,dh:0.295,dw:0.925}},
@@ -13840,9 +13840,11 @@ function _fx22Fx16Tick(o){ const d=o.d, u=o.u, V=FX16_ART[o.vk];
   o.s.material.opacity=op; o.s.visible=true; if(V.mode==='fit'||V.mode==='hold'||V.mode==='puff') _fx22Fx16Up(o); if(V.mode==='ally'||V.mode==='over') _fx22Fx16On(o); if(V.mode==='side'||V.mode==='ring') _fx22Fx16Side(o); return 0; }
 /* v1178 Brannus: an upright side view pinned where he stood, mirrored with the facing he had at the show; 'side' is d.size x his height,
    'ring' is as wide as its chain line (d.span of the cell) = 2 x the kit radius */
-function _fx22Fx16Side(o){ const d=o.d, u=o.u, H=(o.R?(2*o.R*SC/d.span)*d.fh/d.fw:d.size*_fx22Head(u)), mir=!!o.mir; o.s.center.set(mir?1-d.anchor[0]:d.anchor[0],d.anchor[1]); o.s.scale.set(H*d.fw/d.fh,H,1);
+function _fx22Fx16Side(o){ const d=o.d, u=o.u, hd=_fx22Head(u), H=(o.R?(2*o.R*SC/d.span)*d.fh/d.fw:d.size*hd), mir=!!o.mir; o.s.center.set(mir?1-d.anchor[0]:d.anchor[0],d.anchor[1]); o.s.scale.set(H*d.fw/d.fh,H,1);
   const v=o.s._uv; if(v&&((v[0]<0)!==mir)) o.s._uv=[-v[0],v[1],v[2]+v[0],v[3]];
-  o.s.position.set(wx(o.P.x),0.05,wz(o.P.y)); }
+  o.s.position.set(wx(o.P.x),0.05,wz(o.P.y));
+  if(d.weapon){ const w=d.weapon, k=Math.max(0,Math.min(1,((o.t-(o.ts||0))/FX_RT)/w.t)), e=k*k*(3-2*k), up=(w.up0+(w.up1-w.up0)*e)*hd;   /* v1178 Rim Breaker: from his weapon, a smooth arc down to the ground */
+    o.s.position.x+=(mir?-1:1)*w.fwd*hd; o.s.position.add(new TH.Vector3(0,1,0).applyQuaternion(camera.quaternion).multiplyScalar(up)); o.up=up; } }
 function _fx22Kill(o){ try{ scene.remove(o.s); o.s.material.dispose(); }catch(_){} }
 function clearFx1123(){ _fx1123.forEach(_fx22Kill); _fx1123.length=0; }
 function updateFx1123(dt){ if(!_fx1123.length) return;
