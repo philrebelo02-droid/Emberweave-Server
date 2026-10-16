@@ -18,7 +18,7 @@ const path = require('path'), vm = require('vm'), fs = require('fs'), cp = requi
 const ROOT = path.resolve(__dirname, '..');
 const HTML = process.env.EW_HTML || path.join(ROOT, 'emberweave-heroes.html');
 const VER = process.env.EW_VER || '1168';
-const BASE_SHA = process.env.EW_BASE || '51679f74';   // live v1165 (sound + the v1167 wall step), before this change
+const BASE_SHA = process.env.EW_BASE || 'fb3dca16';   // live v1166 (the hotfix, on v1165 sound + v1167 wall step), before this change
 let OLD = process.env.EW_HTML_OLD;
 if (!OLD) { try { OLD = path.join(ROOT, '.test-vfx1168-base.html'); fs.writeFileSync(OLD, cp.execSync('git show ' + BASE_SHA + ':emberweave-heroes.html', { cwd: ROOT, maxBuffer: 64 << 20 }));
   const tmp = OLD; process.on('exit', () => { try { fs.unlinkSync(tmp); } catch (e) {} }); } catch (e) { OLD = null; } }
