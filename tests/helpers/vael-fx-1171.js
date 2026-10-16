@@ -8,7 +8,7 @@ const fs = require('fs'), path = require('path');
 const FIX = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'fixtures', 'vael_fx_1171_before.json'), 'utf8'));
 const Q = require('./q95-1158.js');
 const probe = Q.Q95.sheets.map(e => e.path + '?v=1158');
-function undoVaelFx1171(run) {
+function undoVaelFx1171(run) { require('./mirelle-fx-1172.js').undoMirelleFx1172(run);   // v1172: Mirelle's entries (replaced after this release) go back too
   const q95view = run(`(()=>{ const s=JSON.stringify(FX2_DEF)+JSON.stringify(BATTLE_ANIM); return !${JSON.stringify(probe)}.some(u=>s.indexOf(u)>=0); })()`) === true;
   const B = q95view ? JSON.parse(Q.undoText(JSON.stringify(FIX.fx))) : FIX.fx;
   return run(`(()=>{ const B=${JSON.stringify(B)};
