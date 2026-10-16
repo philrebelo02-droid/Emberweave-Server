@@ -16,5 +16,6 @@ const CODE = `(()=>{ const F=${JSON.stringify({ c: FIX.changes, s: FIX.skillClip
   return F.c.length; })()`;
 /* v1160: Veyr's and Deepcleft's entries were replaced after the slim - their v1158 entries (the slim's own "after") go back first (tests/helpers/anim-1160.js) */
 /* v1162: Korvux's entries were replaced after the slim too - his v1159 entries go back first (tests/helpers/anim-korvux-1162.js) */
-const U1160 = require('./anim-1160.js'), UK1162 = require('./anim-korvux-1162.js'), UNG1166 = require('./anim-noxgrim-1166.js');   /* v1166: Nox's and Grimsby's entries replaced after the slim too */
-module.exports = { undoSlim1155: run => { UNG1166.undoNoxGrim1166(run); UK1162.undoKorvux1162(run); U1160.undo1160(run); return run(CODE); }, SLIM_1155: FIX };
+/* v1168: Vael's and Deepcleft's three spell FX entries were replaced after the slim - their live entries go back first (tests/helpers/vael-fx-1168.js) */
+const U1160 = require('./anim-1160.js'), UK1162 = require('./anim-korvux-1162.js'), UNG1166 = require('./anim-noxgrim-1166.js'), UV1168 = require('./vael-fx-1168.js');   /* v1166: Nox's and Grimsby's entries replaced after the slim too */
+module.exports = { undoSlim1155: run => { UV1168.undoVaelFx1168(run); UNG1166.undoNoxGrim1166(run); UK1162.undoKorvux1162(run); U1160.undo1160(run); return run(CODE); }, SLIM_1155: FIX };
