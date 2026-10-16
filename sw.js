@@ -71,7 +71,9 @@ self.addEventListener('fetch', (e) => {
   }
 
   // APP SHELL: network-first so a pushed update always wins, cache as the offline fallback.
-  const fetchOpts = isDoc ? { cache: 'reload' } : {};
+  /* v1141: 'no-cache' REVALIDATES the page (If-None-Match -> 304, no body, when nothing was deployed) where 'reload' downloaded the whole
+     ~1 MB page on every launch. The server's ETag is a hash of the bytes, so a deploy always gets the new page. */
+  const fetchOpts = isDoc ? { cache: 'no-cache' } : {};
   e.respondWith(
     fetch(new Request(req, fetchOpts)).then(res => {
       const copy = res.clone();
