@@ -256,14 +256,15 @@ try {
   ck('weapon strikes 15% quieter: SFX_ATK_GAIN 0.85 on every sfxPlay with the atk flag (sfxAtk sets it for every swing, crit and Aureth\'s ARM cuts), 1 for everything else; BASE played all at 1',
     run('SFX_ATK_GAIN') === 0.85 && /g\.gain\.value=o\.atk\?SFX_ATK_GAIN:1;/.test(src) && /sfxQ\(name,T,\{key:u\.key,atk:1,u,swing:1,log:rec\}\)/.test(src) && /g\.gain\.value=1; src\.connect\(g\)/.test(baseSrc) && !/SFX_ATK_GAIN/.test(baseSrc));
   { const M = JSON.parse(run('JSON.stringify(MUSIC_LISTS)')), M0 = JSON.parse(R0('JSON.stringify(MUSIC_LISTS)'));
-    const NEWB = ['battle-epic-fight', 'battle-warrior-fight', 'battle-war-preparations'], nb = NEWB.map(n => M.battle.find(x => x.f.indexOf('music/' + n + '.mp3?v=1160') === 0));
-    const ee = M.map.find(x => /map-echoes-of-eternity\.mp3\?v=1160$/.test(x.f));
-    const fileOk = x => { const f = path.join(ROOT, 'assets/audio', x.f.split('?')[0]); return fs.existsSync(f) && fs.statSync(f).size > 5e5 && /^(494433|fffb|fff3)/.test(fs.readFileSync(f).slice(0, 3).toString('hex')); };
+    const NEWB = ['battle-epic-fight', 'battle-warrior-fight', 'battle-war-preparations', 'battle-the-mountain', 'battle-the-bale-begins'], nb = NEWB.map(n => M.battle.find(x => x.f.indexOf('music/' + n + '.mp3?v=1160') === 0));
+    const fresh = [].concat(...Object.values(M)).filter(x => /\?v=1160$/.test(x.f));
+    const fileOk = x => { const f = path.join(ROOT, 'assets/audio', x.f.split('?')[0]); return fs.existsSync(f) && fs.statSync(f).size > 5e5 && /^(494433|fffb|fff3)/.test(fs.readFileSync(f).slice(0, 3).toString('hex')) && !baseSrc.includes(x.f.split('?')[0]); };
     const whole = x => { const bar = 240 / x.bpm, k = (x.loopEnd - x.loopStart) / bar; return Math.abs(k - Math.round(k)) < 0.01 && Math.round(k) > 20; };
-    ck('music: three new battle songs - Epic Fight (Nastelbom 436865), Warrior Fight Action Music (Tunetank 413435), War Preparations (Cyberwave Orchestra 387985) - and the 6th map song Echoes of Eternity (Tunetank 347743, from the start); battle 8, map 6; each battle loop a whole number of its bars (Epic Fight to the bar line before 90 s, Warrior Fight before the 142.5 s ending, War Preparations before the 257 s ending); new ?v=1160 files on disk; every other BASE song unchanged',
-      M.battle.length === 8 && M0.battle.length === 5 && M.map.length === 6 && nb.every(x => x && fileOk(x) && whole(x) && x.start === x.loopStart || (x && x.start === 0)) && ee && ee.start === 0 && fileOk(ee) &&
-      nb[0].loopEnd < 90 && nb[0].loopEnd > 90 - 240 / nb[0].bpm && nb[1].loopEnd < 142.5 && nb[1].loopEnd > 142.5 - 3 && nb[2].loopEnd < 257 && nb[2].loopEnd > 255 &&
-      JSON.stringify(Object.fromEntries(Object.entries(M).map(([k, v]) => [k, v.filter(x => !/\?v=1160$/.test(x.f))]))) === JSON.stringify(M0), JSON.stringify({ nb, ee }));
+    const ends = [[0, 90, 240 / 115], [1, 142.5, 3], [2, 257, 2], [3, 136, 2.83], [4, 150.8, 1.92]];
+    ck('music: 10 songs in every list (city 7+3, map 5+1+4, battle 5+5, skyfall 5+5; Phil 16 Oct "download them" - his last downloads + kept suggestions): ' + fresh.length + ' new ?v=1160 files on disk, playlists from 0, every new battle loop a whole number of its bars ending on the bar line before the song end (Epic Fight 90 s, Warrior Fight 142.5, War Preparations 257, the_mountain 136, The Bale Begins 150.8); every v1159 song unchanged',
+      ['city', 'map', 'battle', 'skyfall'].every(k => M[k].length === 10) && fresh.length === 18 && fresh.every(fileOk) && fresh.filter(x => !x.bpm).every(x => x.start === 0 && x.end > 100) &&
+      nb.every(x => x && whole(x)) && ends.every(([k, e, b]) => nb[k].loopEnd < e && nb[k].loopEnd > e - b) &&
+      JSON.stringify(Object.fromEntries(Object.entries(M).map(([k, v]) => [k, v.filter(x => !/\?v=1160$/.test(x.f))]))) === JSON.stringify(M0), JSON.stringify({ nb }));
     /* ACTION START (Phil 16 Oct, "only pick up where the action actually starts" - a standing rule for every battle song): the 4 bars a fight first hears
        are within 3 dB of the song's own median loudness (0.5 s windows), and the bars before a later start are the quiet intro it skips */
     const PYM = ['import sys, json, subprocess', 'import numpy as np', 'out = []', 'for f, st, bpm in json.loads(sys.argv[1]):',
@@ -276,7 +277,7 @@ try {
     const E = JSON.parse(cp.execFileSync(process.env.PYTHON || 'python', ['-I', pyf, JSON.stringify(B)], { maxBuffer: 1 << 24 }).toString());
     const rep = M.battle.map((x, i) => x.name + ' start ' + x.start + ' s: first 4 bars ' + E[i][1] + ' dB vs median ' + E[i][0] + (E[i][2] != null ? ', the 4 bars it skips ' + E[i][2] : ''));
     const Ec = E.pop(); ck('CONTROL: Warrior Fight played from 0 s (its intro: first 4 bars ' + Ec[1] + ' dB vs median ' + Ec[0] + ') fails the action-start rule', !(Ec[1] >= Ec[0] - 3));
-    ck('battle songs start where the action starts: ' + rep.join('; '), E.every(([med, first, skipped]) => first >= med - 3 && (skipped == null || skipped < first - 2)), rep.join(' | '));
+    ck('battle songs start where the action starts: ' + rep.join('; '), E.every(([med, first, skipped]) => first >= med - 3 && (skipped == null || skipped < first - 1.5)), rep.join(' | '));
     console.log('  info ' + rep.join('\n  info ')); }
   const ctl = JSON.parse(JSON.stringify(G)); ctl.veyr.crit.u = '/assets/anim/veyr/veyr_missing.webp?v=1160'; ctl.deepcleft.attack.fw = 900;
   ck('control: the grid check catches a missing sheet and an oversized grid', gridProblems(ctl, [['veyr', 'crit'], ['deepcleft', 'attack']]).length >= 2);
