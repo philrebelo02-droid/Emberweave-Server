@@ -1,4 +1,4 @@
-# Mirelle spell FX sheets (tests/test_mirelle_fx_1172.js): the key fringe, measured, with CONTROLS.
+# Mirelle spell FX sheets (tests/test_mirelle_fx_1174.js): the key fringe, measured, with CONTROLS.
 #   edge = alpha 8..200, body = alpha > 200
 #   GREEN plate:   visible green G > max(R,B) + 24; OLIVE = hue 55-150, saturation > 0.20 (plate left in a soft edge and despilled; the art is
 #                  lavender / white / cyan-blue - cyan sits above 150)

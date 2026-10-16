@@ -24,7 +24,7 @@ if (!OLD) { try { OLD = path.join(ROOT, '.test-vfx1171-base.html'); fs.writeFile
   const tmp = OLD; process.on('exit', () => { try { fs.unlinkSync(tmp); } catch (e) {} }); } catch (e) { OLD = null; } }
 const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); return src => vm.runInContext(src, h.ctx); };
 const run = load(HTML), R0 = OLD ? load(OLD) : null;
-require('./helpers/mirelle-fx-1172.js').undoMirelleFx1172(run);   // v1172: Mirelle's three FX entries go back to v1171's (tests/test_mirelle_fx_1172.js checks them)
+require('./helpers/mirelle-fx-1174.js').undoMirelleFx1174(run);   // v1174: Mirelle's three FX entries go back to v1171's (tests/test_mirelle_fx_1174.js checks them)
 let pass = 0, fail = 0;
 const ck = (name, ok, detail) => { if (ok) { pass++; console.log('  ok  ' + name); } else { fail++; console.log('  FAIL ' + name + (detail ? ' - ' + String(detail).slice(0, 900) : '')); } };
 const H = s => crypto.createHash('sha256').update(s).digest('hex').slice(0, 16);
@@ -199,7 +199,7 @@ try {
       const o={d:FX2_DEF.vael_ult,u:g,s:mk()}; g._fxMirror=false; _fx22Fx16Up(o); const a=o.s._uv[0]; g._fxMirror=true; _fx22Fx16Up(o); const b=o.s._uv[0]; return JSON.stringify([a,b]); })()`));
     ck('upright art is mirrored (UV window) with his facing', M[0] > 0 && M[1] < 0, JSON.stringify(M)); }
   ck('hooks: castKit starts the green / blue art and castAbility the ult art at the press (FX16_ART), abilArt confirms at the release, the burrow timer calls the emerge burst, the tick runs them',
-    /if\(ab\.ownFx&&FX16_ART\[ab\.ownFx\](&&!FX16_ART\[ab\.ownFx\]\.atRelease)?\) fx16Cast\(u,ab\.ownFx,ct,u\._pend,ab\.dur\|\|6\)/.test(src)   /* v1172: release-time art (Mirelle) skips the press */ && /if\(_ua\.ownFx&&FX16_ART\[_ua\.ownFx\]\) fx16Cast\(u,_ua\.ownFx,_ct,u\._pend/.test(src) && /ownFx==='dburrow'\) deepcleftEmergeFx\(u\)/.test(src) &&
+    /if\(ab\.ownFx&&FX16_ART\[ab\.ownFx\](&&!FX16_ART\[ab\.ownFx\]\.atRelease)?\) fx16Cast\(u,ab\.ownFx,ct,u\._pend,ab\.dur\|\|6\)/.test(src)   /* v1174: release-time art (Mirelle) skips the press */ && /if\(_ua\.ownFx&&FX16_ART\[_ua\.ownFx\]\) fx16Cast\(u,_ua\.ownFx,_ct,u\._pend/.test(src) && /ownFx==='dburrow'\) deepcleftEmergeFx\(u\)/.test(src) &&
     /else if\(FX16_ART\[o\.ownFx\]\)\{ try\{ const c=/.test(src) && /if\(o\.kind==='fx16'\)\{ if\(_fx22Fx16Tick\(o\)<0\)/.test(src) &&
     /const _buffArt=!!\(o&&o\.gfx&&FX2_DEF\[o\.gfx\]&&_ABOVE_BAR\[type\]\)&&!o\.ownFx;/.test(src));
   { const P = JSON.parse(run(`JSON.stringify([0,1,2].map(sl=>{ const p=skillPreviewPlan('vael',sl); return p?p.fx.map(e=>({k:e.k,kind:e.kind,t0:+e.t0.toFixed(4),real:e.real!=null?+e.real.toFixed(3):null,life:e.life!=null?+e.life.toFixed(4):null})):null; }))`));
@@ -216,7 +216,7 @@ try {
       du && du.length === 1 && du[0].kind === 'disc22' && du[0].at === 'target' && du[0].R === 120 && du[0].t0 === +(9 / 22).toFixed(4), JSON.stringify(D));
     const stage = fs.readFileSync(path.join(ROOT, 'assets/ui/skill-preview-stage.js'), 'utf8');
     ck('the preview stage draws the fx16up / fx16puff / fx16claws kinds (fxBox + drawFx) and the page loads it at a new ?v= (sp1171; BASE sp1164)', /case 'fx16up': case 'fx16puff': \{ const H=d\.size\*h/.test(stage) && /case 'fx16up': \{ const life=e\.life\|\|5;/.test(stage) && /case 'fx16puff': case 'fx16claws': \{ const L=e\.real\|\|5;/.test(stage) &&
-      /skill-preview-stage\.js\?v=sp11(7[1-9]|[89]\d)/.test(src) && baseSrc.includes('skill-preview-stage.js?v=sp1164')); }   /* v1172: a later release may bump the stage again */
+      /skill-preview-stage\.js\?v=sp11(7[1-9]|[89]\d)/.test(src) && baseSrc.includes('skill-preview-stage.js?v=sp1164')); }   /* v1174: a later release may bump the stage again */
   { const T = JSON.parse(fs.readFileSync(path.join(ROOT, 'assets/anim/tiers_1141.json'), 'utf8')).sheets, t0 = cp.execSync('git show ' + BASE_SHA + ':assets/anim/tiers_1141.json', { cwd: ROOT }).toString();
     const live = JSON.parse(run(`JSON.stringify(['vael_green','vael_blue','vael_ult','deepcleft_green','deepcleft_blue','deepcleft_ult'].map(k=>typeof artFile==='function'?artFile(FX2_DEF[k].u):null))`));
     ck('the tier table is BASE byte for byte (no ?v= change): its entries for the replaced plates are left unreferenced, and the new sheets have no tier file (each is <= 2048 px: the phone loads it and v1140 sizes it, as the v1160 Veyr FX)',

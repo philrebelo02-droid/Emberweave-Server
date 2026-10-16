@@ -2672,7 +2672,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 <script src="/assets/ui/world-mine-sync.js?v=mi2"></script>
 <script src="/assets/ui/world-march-sync.js?v=wm1"></script>
 <script src="/assets/ui/world-march-visual.js?v=wv2"></script>
-<script src="/assets/ui/skill-preview-stage.js?v=sp1172"></script>
+<script src="/assets/ui/skill-preview-stage.js?v=sp1174"></script>
 <script src="/assets/ui/world-tree-cycle.js?v=wt4"></script>
 <script src="/assets/ui/world-tree-art.js?v=wt3"></script>
 <script src="/assets/ui/world-oasis-markers.js?v=om-painted-01oct-v1"></script>
@@ -4756,7 +4756,7 @@ function _skpFx(hk,slot,st,T0,rel){ const out=[], add=(e)=>{ if(e&&FX2_DEF[e.k])
          _fx22Fx16Tick); Fault Claws flat from his claws; Burrow Guard upright at his feet and again under the target as he emerges (release + dur) */
       case 'vwarcry': case 'dquarry': { const d=FX2_DEF[k], A=BATTLE_ANIM[hk]&&BATTLE_ANIM[hk][st], cps=(A&&A.fps)||24; add({k,kind:'disc22',at:o.ownFx==='dquarry'?'target':'self',t0:T0+(d?d.spawn:0)/cps,R:o.ownFx==='dquarry'?(o.radius||110):5*METER,real:d?d.n/d.fps2:5}); break; }
       case 'vblood': case 'vstand': { const d=FX2_DEF[k], A=BATTLE_ANIM[hk]&&BATTLE_ANIM[hk][st], cps=(A&&A.fps)||24, sp=(d?d.spawn:0)/cps; const life=Math.max(0.2,ct-sp*FX_RT+(o.dur||(o.ownFx==='vstand'?5:6))); add({k,kind:'fx16up',vk:o.ownFx,t0:T0+sp,life,real:life/FX_RT}); break; }   /* real: its length on the preview's real clock */
-      /* v1172 Mirelle: Scent of Courage on the healed ally from the release (the one-hero preview: him), Soporific Bouquet over the target when the shot lands */
+      /* v1174 Mirelle: Scent of Courage on the healed ally from the release (the one-hero preview: him), Soporific Bouquet over the target when the shot lands */
       case 'mcourage': { const d=FX2_DEF[k]; add({k,kind:'fx16puff',at:'self',t0:rel,real:d?d.n/d.fps2:5.5}); break; }
       case 'msleep': { const d=FX2_DEF[k], dl=Math.max(0.12,Math.min(0.8,skillPreviewTargetDist(hk)/(o.speed||16*METER))); add({k,kind:'fx16over',at:'target',t0:rel+dl/FX_RT,real:d?d.n/d.fps2:6}); break; }
       case 'dclaws': { const d=FX2_DEF[k]; add({k,kind:'fx16claws',at:'self',t0:T0+(d?d.spawn:0)/24,real:d?d.n/d.fps2:6}); break; }
@@ -12481,7 +12481,7 @@ function deliverLaunch(u,type,o){ try{
   if(u._clipStarted){ u._clipStarted=false; } else { try{ startAbilityClip(u,type); }catch(_e){} }
   const sm0=u._castSM, lv0=u._castLv, slot0=u._castSlot;
   try{ if(TH&&scene){ window._fxCaster=u;
-    if(mode==='shot'){ const k=(o.ownFx&&typeof FX16_ART!=='undefined'&&FX16_ART[o.ownFx]&&FX16_ART[o.ownFx].noFly)?null:(o.pfx||o.gfx); if(k&&FX2_DEF[k]){   /* v1172: Soporific Bouquet's art is the drift over the slept enemy - nothing flies */ const co=castOrigin(u,tU.x,tU.y); window._projTgtU=tU; spawnProjFx(k,co.x,co.y,tU.x,tU.y,o.pscale||2.6,delay,function(){},co.h); } }
+    if(mode==='shot'){ const k=(o.ownFx&&typeof FX16_ART!=='undefined'&&FX16_ART[o.ownFx]&&FX16_ART[o.ownFx].noFly)?null:(o.pfx||o.gfx); if(k&&FX2_DEF[k]){   /* v1174: Soporific Bouquet's art is the drift over the slept enemy - nothing flies */ const co=castOrigin(u,tU.x,tU.y); window._projTgtU=tU; spawnProjFx(k,co.x,co.y,tU.x,tU.y,o.pscale||2.6,delay,function(){},co.h); } }
     else if(mode==='land'){ const k=o.gfx; if(k&&FX2_DEF[k]) spawnProjFx(k,P.x,P.y,P.x,P.y,o.pscale||3.0,delay,function(){},9); }
     else if(mode==='form'){ _fxAllow=true; try{ if(_far&&_far.length>1) _far.forEach(f=>abilArt(u,o,f,null,type)); else abilArt(u,o,tU,aim,type); }finally{ _fxAllow=false; } } } }catch(_e){}
   groundHazards.push({arrival:true,delay,run:function(){
@@ -12792,8 +12792,8 @@ const FX2_DEF={
   umbris_green:{u:'/assets/anim/fx/umbris_green.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.88,disc:{cy:0.503,dh:0.275,dw:0.9}},
   vaelora_green:{u:'/assets/anim/fx/vaelora_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,cone:true,coneFoot:0.05},
   vaelora_blue:{u:'/assets/anim/fx/vaelora_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:1},
-  mirelle_blue:{u:'/assets/anim/fx/mirelle_soporific_bouquet_16oct.webp?v=1172',n:71,fw:409,fh:131,cols:5,rows:15,dur:5.9167,rt:true,fps2:12,anchor:[0.5,0.477],size:0.586,mid:0.5},   /* v1172 Soporific Bouquet (Grok, Phil approved 16 Oct; mirelle_blue_soporific_bouquet_16oct.mp4 md5 1f33d18e, GREEN plate): clip frames 0-140 every 2nd at 12 fps REAL TIME, once (it fades out on its own by ~5.8 s). Over the enemy it sleeps, from the moment the shot lands (the sleep): centred on its middle (mid x its height up; anchor = the ribbons' centre, source 585,385), the ribbons (705 source px) 1.6 x its height across; painted drifting left to right - as painted when that enemy is on her right, mirrored when it is on her left, so it drifts away from her. Nothing flies (noFly) */
-  mirelle_green:{u:'/assets/anim/fx/mirelle_scent_of_courage_16oct.webp?v=1172',n:66,fw:292,fh:192,cols:7,rows:10,dur:5.5,rt:true,fps2:12,anchor:[0.507,0.24],size:1.318},   /* v1172 Scent of Courage (Grok, Phil approved 16 Oct; mirelle_green_scent_of_courage_16oct.mp4 md5 9cb3dc67, GREEN plate - lavender: no violet clamp): clip frames 0-130 every 2nd at 12 fps REAL TIME, once (it clears itself by f130 = 5.4 s). Upright BEHIND the ally it heals (the lowest health fraction, the case's own pick), from the heal: the haze's centre (anchor: source 600,530) on its feet, the haze (840 source px) 1.6 x its height across; it rides with that ally */
+  mirelle_blue:{u:'/assets/anim/fx/mirelle_soporific_bouquet_16oct.webp?v=1174',n:71,fw:409,fh:131,cols:5,rows:15,dur:5.9167,rt:true,fps2:12,anchor:[0.5,0.477],size:0.586,mid:0.5},   /* v1174 Soporific Bouquet (Grok, Phil approved 16 Oct; mirelle_blue_soporific_bouquet_16oct.mp4 md5 1f33d18e, GREEN plate): clip frames 0-140 every 2nd at 12 fps REAL TIME, once (it fades out on its own by ~5.8 s). Over the enemy it sleeps, from the moment the shot lands (the sleep): centred on its middle (mid x its height up; anchor = the ribbons' centre, source 585,385), the ribbons (705 source px) 1.6 x its height across; painted drifting left to right - as painted when that enemy is on her right, mirrored when it is on her left, so it drifts away from her. Nothing flies (noFly) */
+  mirelle_green:{u:'/assets/anim/fx/mirelle_scent_of_courage_16oct.webp?v=1174',n:66,fw:292,fh:192,cols:7,rows:10,dur:5.5,rt:true,fps2:12,anchor:[0.507,0.24],size:1.318},   /* v1174 Scent of Courage (Grok, Phil approved 16 Oct; mirelle_green_scent_of_courage_16oct.mp4 md5 9cb3dc67, GREEN plate - lavender: no violet clamp): clip frames 0-130 every 2nd at 12 fps REAL TIME, once (it clears itself by f130 = 5.4 s). Upright BEHIND the ally it heals (the lowest health fraction, the case's own pick), from the heal: the haze's centre (anchor: source 600,530) on its feet, the haze (840 source px) 1.6 x its height across; it rides with that ally */
   sloe_blue:{u:'/assets/anim/fx/sloe_blue.webp?v=3',n:48,fw:535,fh:512,cols:6,rows:8,dur:1.8,disc:{cy:0.5,dh:0.95,dw:0.95}},
   stampbody:{u:'/assets/anim/fx/zahri_stamp_body.webp?v=1158',n:1,fw:680,fh:122,cols:1,rows:1,dur:1},   /* v1072 Noonday Stampede (Grok, Phil-approved 8 Oct, spell 17): the streak - stretched from her start point to her */
   stamphead:{u:'/assets/anim/fx/zahri_stamp_head.webp?v=1158',n:1,fw:148,fh:122,cols:1,rows:1,dur:1},     /* v1072: the blazing head - pinned on Zahri, never scaled by the distance */
@@ -12996,7 +12996,7 @@ const FX2_DEF={
   orryn_ult:{u:'/assets/anim/fx/orryn_ult.webp?v=30',n:48,fw:320,fh:281,cols:6,rows:8,dur:6.04,upright:true,upSize:2.0,upExtent:0.83,upAnchor:[0.5,0.0],ro:1},   // v1044 Grok fx2 12 Ocean Without Shore
   umbris_ult:{u:'/assets/anim/fx/umbris_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.0,upright:true,upSize:2.0,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   vael_ult:{u:'/assets/anim/fx/vael_last_stand_16oct.webp?v=1171',n:61,fw:335,fh:186,cols:6,rows:11,dur:5.0833,rt:true,spawn:8,anchor:[0.5,0.48],size:1.431,hold:[40,96],fade:24},   /* v1171 Last Stand (Grok, Phil approved 16 Oct; vael_ult_last_stand_16oct.mp4 md5 c5d09410, GREEN plate): clip frames 0-120 every 2nd (the clip's first 5 s). Upright on him and BEHIND him: the ring's ground centre (anchor: source 584,455, midway between the back and the front shield bases) on his feet; a front shield (180 source px) stands 0.4 x his height. It slams up from ult cell 8 (source f27, the sword in the ground) in real time to f40, the hold (f40-f96) is stretched to fill the ult, and f96-f120 run in real time ending as the 5 s Last Stand ends, fading out over those 24 frames (the clip's last second before its 5 s mark; the fallen shields of f121-f144 are never shown); mirrored with his facing */
-  mirelle_ult:{u:'/assets/anim/fx/mirelle_imperial_plumage_16oct.webp?v=1172',n:67,fw:284,fh:204,cols:7,rows:10,dur:3.7543,hold:true,upright:true,upSize:2.0,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},   /* v1172 Imperial Plumage (Grok, Phil approved 16 Oct; mirelle_ult_imperial_plumage_16oct.mp4 md5 b682ba38, MAGENTA plate, keyed on the magenta it lacks): clip frames 0-132 every 2nd; dur = 67 cells at 12 fps in real time (x FX_RT) and `hold` keeps the (empty) last cell to the end of the plate's life, so it plays ONCE. Same draw as before (fieldWide 'both', v591): the ult reaches every unit, so each ally gets the burst over its bar and each enemy under its feet (v1141) - not one plate at the field centre */
+  mirelle_ult:{u:'/assets/anim/fx/mirelle_imperial_plumage_16oct.webp?v=1174',n:67,fw:284,fh:204,cols:7,rows:10,dur:3.7543,hold:true,upright:true,upSize:2.0,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},   /* v1174 Imperial Plumage (Grok, Phil approved 16 Oct; mirelle_ult_imperial_plumage_16oct.mp4 md5 b682ba38, MAGENTA plate, keyed on the magenta it lacks): clip frames 0-132 every 2nd; dur = 67 cells at 12 fps in real time (x FX_RT) and `hold` keeps the (empty) last cell to the end of the plate's life, so it plays ONCE. Same draw as before (fieldWide 'both', v591): the ult reaches every unit, so each ally gets the burst over its bar and each enemy under its feet (v1141) - not one plate at the field centre */
   vex_passive:{u:'/assets/anim/fx/vex_passive.webp?v=1',n:48,fw:296,fh:300,cols:6,rows:8,dur:1.4},   // v912 Grok: Killer Instinct - the wound mark (fired on each auto-attack wound)
   vex_ult:{u:'/assets/anim/fx/vex_ult.webp?v=21',n:48,fw:300,fh:299,cols:6,rows:8,dur:4.75,cone:true,coneFoot:0.05},
   veyr_ult:{u:'/assets/anim/fx/veyr_ult.webp?v=21',n:48,fw:300,fh:276,cols:6,rows:8,dur:5.12,upright:true,upSize:2.0,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
@@ -13737,8 +13737,8 @@ function _fx22VeyrTick(o){ const d=o.d;
                           the rim = the kit radius (120 units), real time, once */
 const FX16_ART={vwarcry:{k:'vael_green',st:'green',mode:'disc'},vblood:{k:'vael_blue',st:'blue',mode:'fit'},vstand:{k:'vael_ult',st:'ult',mode:'hold'},
   dclaws:{k:'deepcleft_green',st:'green',mode:'claws'},dburrow:{k:'deepcleft_blue',st:'blue',mode:'puff'},dquarry:{k:'deepcleft_ult',st:'ult',mode:'aim'},
-  mcourage:{k:'mirelle_green',st:'green',mode:'ally',atRelease:true},msleep:{k:'mirelle_blue',st:'blue',mode:'over',atRelease:true,noFly:true}};   /* v1172 Mirelle: shown at the engine's own moment (the heal / the sleep), on the unit it lands on */
-/* v1172 Mirelle: the units her cases pick, read the same way BEFORE the case runs (abilArt draws first): Scent of Courage heals the ally with the
+  mcourage:{k:'mirelle_green',st:'green',mode:'ally',atRelease:true},msleep:{k:'mirelle_blue',st:'blue',mode:'over',atRelease:true,noFly:true}};   /* v1174 Mirelle: shown at the engine's own moment (the heal / the sleep), on the unit it lands on */
+/* v1174 Mirelle: the units her cases pick, read the same way BEFORE the case runs (abilArt draws first): Scent of Courage heals the ally with the
    lowest health fraction; Soporific Bouquet sleeps the enemy the shot reached (o._tgtU), else the highest-energy enemy. Read only. */
 function _fx16Weakest(u){ let best=null,bv=2; alliesOf(u).forEach(a=>{ if(!a.alive)return; const f=a.hp/a.maxHp; if(f<bv){bv=f;best=a;} }); return best; }
 function _fx16Sleeper(u,o){ if(o&&o._tgtU&&o._tgtU.alive) return o._tgtU; let best=null,bv=-1; enemiesOf(u).forEach(e=>{ if(!e.alive)return; if((e.energy||0)>bv){bv=e.energy||0;best=e;} }); return best; }
@@ -13763,13 +13763,13 @@ function fx16Show(o){ const u=o.u, V=FX16_ART[o.vk], x=u.rx==null?u.x:u.rx, y=u.
     const px=x+(mir?-1:1)*(u._bodyR||30)*d.reach, ax=mir?1-d.anchor[0]:d.anchor[0];   /* read only: the body radius the figure build set */
     m.scale.set(W,H,1); m.position.set(wx(px)-(ax-0.5)*W,0.13,wz(y)+(0.5-d.anchor[1])*H); o.mir=mir; return m; }
   if(V.mode==='puff'){ if(!o.P) o.P={x,y}; return _fx22Spr(V.k,-1); }
-  if(V.mode==='ally'){ if(!o.T) return null; return _fx22Spr(V.k,-1); }   /* v1172 Scent of Courage: behind the ally it heals (v498) */
-  if(V.mode==='over'){ if(!o.T) return null; const T=o.T; o.mir=!((T.x-(u.x))>=0); return _fx22Spr(V.k,995); }   /* v1172 Soporific Bouquet: over the enemy it sleeps; painted drifting left to right = away from her when it is on her right, mirrored when it is on her left */
+  if(V.mode==='ally'){ if(!o.T) return null; return _fx22Spr(V.k,-1); }   /* v1174 Scent of Courage: behind the ally it heals (v498) */
+  if(V.mode==='over'){ if(!o.T) return null; const T=o.T; o.mir=!((T.x-(u.x))>=0); return _fx22Spr(V.k,995); }   /* v1174 Soporific Bouquet: over the enemy it sleeps; painted drifting left to right = away from her when it is on her right, mirrored when it is on her left */
   return _fx22Spr(V.k,-1); }
 function _fx22Fx16Up(o){ const d=o.d, u=o.u, H=d.size*_fx22Head(u), mir=!!u._fxMirror; o.s.center.set(mir?1-d.anchor[0]:d.anchor[0],d.anchor[1]); o.s.scale.set(H*d.fw/d.fh,H,1);
   const v=o.s._uv; if(v&&((v[0]<0)!==mir)) o.s._uv=[-v[0],v[1],v[2]+v[0],v[3]];   /* mirrored (UV window) with his facing */
   if(o.P) o.s.position.set(wx(o.P.x),0.05,wz(o.P.y)); else o.s.position.copy(_fx22On(u,0)); }
-function _fx22Fx16On(o){ const d=o.d, T=o.T, H=d.size*_fx22Head(T), W=H*d.fw/d.fh, mir=!!o.mir;   /* v1172: on the unit (it rides with it): Scent at its feet, the Bouquet at its middle */
+function _fx22Fx16On(o){ const d=o.d, T=o.T, H=d.size*_fx22Head(T), W=H*d.fw/d.fh, mir=!!o.mir;   /* v1174: on the unit (it rides with it): Scent at its feet, the Bouquet at its middle */
   o.s.center.set(mir?1-d.anchor[0]:d.anchor[0],d.anchor[1]); o.s.scale.set(W,H,1);
   const v=o.s._uv; if(v&&((v[0]<0)!==mir)) o.s._uv=[-v[0],v[1],v[2]+v[0],v[3]];
   o.s.position.copy(_fx22On(T,(d.mid||0)*_fx22Head(T))); }
@@ -29210,7 +29210,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1792172355787';
+const BUILD_ID = '1792174811967';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

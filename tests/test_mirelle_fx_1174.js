@@ -1,5 +1,5 @@
 'use strict';
-// v1172 - Mirelle's three spell FX (Grok renders, Phil approved 16 Oct 2026; Grok's handoff 12:51), DISPLAY ONLY:
+// v1174 - Mirelle's three spell FX (Grok renders, Phil approved 16 Oct 2026; Grok's handoff 12:51), DISPLAY ONLY:
 //   SCENT OF COURAGE  mirelle_green_scent_of_courage_16oct.mp4 (green key): upright behind the ally the heal lands on (the case's own pick - the lowest
 //                     health fraction), from the heal, riding that ally; real time, once (clears itself by 5.4 s)
 //   SOPORIFIC BOUQUET mirelle_blue_soporific_bouquet_16oct.mp4 (green key): over the enemy the shot sleeps, from the landing; drifting away from her
@@ -11,10 +11,10 @@
 const path = require('path'), vm = require('vm'), fs = require('fs'), cp = require('child_process'), crypto = require('crypto');
 const ROOT = path.resolve(__dirname, '..');
 const HTML = process.env.EW_HTML || path.join(ROOT, 'emberweave-heroes.html');
-const VER = process.env.EW_VER || '1172';
+const VER = process.env.EW_VER || '1174';
 const BASE_SHA = process.env.EW_BASE || 'd37ad2b6';   // live v1171 (Vael + Deepcleft FX), before this change
 let OLD = process.env.EW_HTML_OLD;
-if (!OLD) { try { OLD = path.join(ROOT, '.test-mfx1172-base.html'); fs.writeFileSync(OLD, cp.execSync('git show ' + BASE_SHA + ':emberweave-heroes.html', { cwd: ROOT, maxBuffer: 64 << 20 }));
+if (!OLD) { try { OLD = path.join(ROOT, '.test-mfx1174-base.html'); fs.writeFileSync(OLD, cp.execSync('git show ' + BASE_SHA + ':emberweave-heroes.html', { cwd: ROOT, maxBuffer: 64 << 20 }));
   const tmp = OLD; process.on('exit', () => { try { fs.unlinkSync(tmp); } catch (e) {} }); } catch (e) { OLD = null; } }
 const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); return src => vm.runInContext(src, h.ctx); };
 const run = load(HTML), R0 = OLD ? load(OLD) : null;
@@ -87,7 +87,7 @@ try {
   ck('the old plates are still on disk (rollback needs nothing)', KEYS.every(k => fs.existsSync(fileOf(F0[k].u))));
   { const ctl = JSON.parse(JSON.stringify(F)); ctl.mirelle_blue.fw = 900; ctl.mirelle_ult.u = '/assets/anim/fx/mirelle_missing.webp?v=1';
     ck('CONTROL: the sheet check catches an oversized grid and a missing file', sheetProblems(ctl).length >= 2); }
-  { const PY = cp.execFileSync(process.env.PYTHON || 'python', ['-I', path.join(__dirname, 'helpers', 'mirelle_fx_1172_check.py')].concat(KEYS.map(k => fileOf(F[k].u))), { maxBuffer: 1 << 24 }).toString();
+  { const PY = cp.execFileSync(process.env.PYTHON || 'python', ['-I', path.join(__dirname, 'helpers', 'mirelle_fx_1174_check.py')].concat(KEYS.map(k => fileOf(F[k].u))), { maxBuffer: 1 << 24 }).toString();
     const Q = JSON.parse(PY), g = Q[FILES.mirelle_green + '.webp'], b = Q[FILES.mirelle_blue + '.webp'], u = Q[FILES.mirelle_ult + '.webp'];
     ck('no fringe, measured: the two green-plate sheets - visible green 0 and olive (plate left in a soft edge) <= 0.01% (they own lavender, so no violet clamp); the magenta-plate ult - visible magenta (min(R,B) - G > 60, R >= 0.85 B) 0 on edge and body: ' + PY,
       [g, b].every(m => m.green_edge === 0 && m.green_body === 0 && m.olive_edge <= 0.01 && m.olive_body <= 0.01) && u.magenta_edge === 0 && u.magenta_body === 0);
