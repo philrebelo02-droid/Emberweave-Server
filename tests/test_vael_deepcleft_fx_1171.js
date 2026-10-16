@@ -22,7 +22,7 @@ const BASE_SHA = process.env.EW_BASE || '31e5cab2';   // live v1169 (Nox + Grims
 let OLD = process.env.EW_HTML_OLD;
 if (!OLD) { try { OLD = path.join(ROOT, '.test-vfx1171-base.html'); fs.writeFileSync(OLD, cp.execSync('git show ' + BASE_SHA + ':emberweave-heroes.html', { cwd: ROOT, maxBuffer: 64 << 20 }));
   const tmp = OLD; process.on('exit', () => { try { fs.unlinkSync(tmp); } catch (e) {} }); } catch (e) { OLD = null; } }
-const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); return src => vm.runInContext(src, h.ctx); };
+const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); const r = src => vm.runInContext(src, h.ctx); require('./helpers/anim-meridian-rafe-1173.js').undoMR1173(r); return r; };   // v1173: Meridian / Rafe as v1171 on every page - tests/test_meridian_rafe_1173.js checks them
 const run = load(HTML), R0 = OLD ? load(OLD) : null;
 let pass = 0, fail = 0;
 const ck = (name, ok, detail) => { if (ok) { pass++; console.log('  ok  ' + name); } else { fail++; console.log('  FAIL ' + name + (detail ? ' - ' + String(detail).slice(0, 900) : '')); } };

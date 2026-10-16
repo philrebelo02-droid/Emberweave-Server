@@ -16,7 +16,7 @@
 const path = require('path'), vm = require('vm'), fs = require('fs'), cp = require('child_process'), crypto = require('crypto'), os = require('os');
 const ROOT = path.resolve(__dirname, '..');
 const HTML = process.env.EW_HTML || path.join(ROOT, 'emberweave-heroes.html');
-const BASE_SHA = process.env.EW_BASE || '31e5cab2';   // live v1169, the build this change sits on
+const BASE_SHA = process.env.EW_BASE || 'd37ad2b6';   // live v1172 (v1171 Vael + Deepcleft FX, website patch notes), the build this change sits on
 const VER = process.env.EW_MR_VER || '1173';
 const BD = fs.mkdtempSync(path.join(os.tmpdir(), 'mr-base-'));
 process.on('exit', () => { try { fs.rmSync(BD, { recursive: true, force: true }); } catch (e) {} });
