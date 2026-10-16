@@ -1,4 +1,9 @@
 'use strict';
+
+/* v1165: the ability files were re-rendered ON PURPOSE (ride out + sparkle, Phil 16 Oct; tests/test_sparkle_tails_1165.js checks them: same peak within
+   10 ms, same loudness within 0.5 LU) - they (and the new fused melee swings) are left out; every other entry is compared exactly */
+function sfxFilesV1165(r, cur) { const o = JSON.parse(r('JSON.stringify(SFX_DATA.files)')), c = JSON.parse(cur('JSON.stringify(SFX_DATA.files)'));
+  return JSON.stringify(Object.keys(o).sort().filter(n => !(c[n] && /\?v=1165$/.test(c[n][0]))).map(n => [n, o[n]])); }   // v1165 files (re-rendered or new fused swings) left out on both sides
 // v1160 - Veyr's and Deepcleft's eight new animations each (Phil PASS 15 Oct 2026, REVIEW 15OCT2026 H3, clean-source-manifest.json - all sixteen
 //   "Phil PASS", official Hailuo Without Watermark exports, sha256 matched): IDLE, WALK (in place), ATTACK, CRIT (their first crit clips), HIT,
 //   GREEN, BLUE, ULT. NO passive animation for either (Phil: "not doing passive for him"; Deepcleft's set has none). Plus Veyr's three Grok
@@ -252,10 +257,10 @@ try {
     ['S0207', 'S0209', 'S0211'].every(i => on(SD0.v, i === 'S0207' ? 'green' : i === 'S0209' ? 'blue' : 'ult', i) === 'cast') && on(SD0.d, 'blue', 'S0266') === 'cast' && on(SD0.d, 'ult', 'S0268') === 'cast' &&
     JSON.stringify([SD.v.atk, SD.d.atk, SD.v.green[0].f, SD.v.blue[0].f, SD.d.blue[0].f, SD.d.ult[0].f]) === JSON.stringify([SD0.v.atk, SD0.d.atk, SD0.v.green[0].f, SD0.v.blue[0].f, SD0.d.blue[0].f, SD0.d.ult[0].f]));
   { const others2 = r => r("JSON.stringify(Object.keys(SFX_DATA.heroes).filter(k=>k!=='veyr'&&k!=='deepcleft').map(k=>[k,SFX_DATA.heroes[k]]))");
-    ck('sound: every other hero\'s rows and every file entry are BASE\'s', H(others2(run)) === H(others2(R0)) && H(run('JSON.stringify(SFX_DATA.files)')) === H(R0('JSON.stringify(SFX_DATA.files)'))); }
+    ck('sound: every other hero\'s rows and every file entry are BASE\'s', H(others2(run)) === H(others2(R0)) && H(sfxFilesV1165(run, run)) === H(sfxFilesV1165(R0, run))); }
   // v1160 sound + music (Phil 16 Oct, held from v1159): weapon strikes 15% quieter; the 6th battle song and the 6th map song
   ck('weapon strikes 15% quieter: SFX_ATK_GAIN 0.85 on every sfxPlay with the atk flag (sfxAtk sets it for every swing, crit and Aureth\'s ARM cuts), 1 for everything else; BASE played all at 1',
-    run('SFX_ATK_GAIN') === 0.85 && /g\.gain\.value=o\.atk\?SFX_ATK_GAIN:1;/.test(src) && /sfxQ\(name,T,\{key:u\.key,atk:1,u,swing:1,log:rec\}\)/.test(src) && /g\.gain\.value=1; src\.connect\(g\)/.test(baseSrc) && !/SFX_ATK_GAIN/.test(baseSrc));
+    run('SFX_ATK_GAIN') === 0.85 && /g\.gain\.value=o\.atk\?SFX_ATK_GAIN:1;/.test(src) && /sfxQ\(nm,T,\{key:u\.key,atk:1,u,swing:1,log:rec,rate,jdb\}\)/.test(src) && /g\.gain\.value=1; src\.connect\(g\)/.test(baseSrc) && !/SFX_ATK_GAIN/.test(baseSrc));
   { const M = JSON.parse(run('JSON.stringify(MUSIC_LISTS)')), M0 = JSON.parse(R0('JSON.stringify(MUSIC_LISTS)'));
     const NEWB = ['battle-epic-fight', 'battle-warrior-fight', 'battle-war-preparations', 'battle-the-mountain', 'battle-the-bale-begins'], nb = NEWB.map(n => M.battle.find(x => x.f.indexOf('music/' + n + '.mp3?v=1160') === 0));
     const fresh = [].concat(...Object.values(M)).filter(x => /\?v=1160$/.test(x.f));

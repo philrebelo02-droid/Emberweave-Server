@@ -23,8 +23,11 @@ const BASE_SHA = process.env.EW_BASE || 'd36a9beb';   // live v1139, the release
    6.5 GB of textures + 4.4 GB of decoded bitmaps and grew every fight - the "Aw, Snap!". A tighter number (e.g. 350 MB) would need ~1000 px
    sheets, i.e. figures under the 140-180 px a phone draws them at: every hero blurry on every phone (rule 22). Bitmaps 400 MB = the idle +
    walk sheets the loader cards / Emberdraft paint from (measured 294). Audio 48 MB = the 10 heroes with the most sound + the 12 weapon
-   sounds, decoded at 48 kHz float (43.3 MB; a normal 5v5 ~25 MB). Raise a number only with Phil's OK and the blueprint. */
-const GPU_BUDGET_MB = 2048, BMP_BUDGET_MB = 400, AUDIO_BUDGET_MB = 48, SHEET_MAX = 2048, FILE_MAX = 4e6;
+   sounds, decoded at 48 kHz float (43.3 MB; a normal 5v5 ~25 MB). Raise a number only with Phil's OK and the blueprint.
+   v1165 AUDIO 48 -> 72 MB with Phil's OK (16 Oct 2026, "Yes lets do it, full effects will sound cleaner"): every ability sound rides out to
+   its natural end with the sparkle tail, and every melee swing is one of 6 fused swing + shimmer files (Phil: "There we go") - measured below (the heaviest-sound 5v5
+   + the whole weapon library). Audio is separate from the 2048 MB GPU budget behind the v1137 crash (textures + bitmaps, unchanged). */
+const GPU_BUDGET_MB = 2048, BMP_BUDGET_MB = 400, AUDIO_BUDGET_MB = 72, AUDIO_BUDGET_OLD_MB = 48, SHEET_MAX = 2048, FILE_MAX = 4e6;
 let pass = 0, fail = 0;
 const ck = (name, ok, detail) => { if (ok) { pass++; console.log('  ok  ' + name); } else { fail++; console.log('  FAIL ' + name + (detail ? ' - ' + detail : '')); } };
 const webpSize = f => { const b = Buffer.alloc(30); const fd = fs.openSync(f, 'r'); fs.readSync(fd, b, 0, 30, 0); fs.closeSync(fd);
@@ -95,14 +98,20 @@ try {
   const SD = JSON.parse(run('JSON.stringify(SFX_DATA)'));
   const dec = n => { const F = MAN.files[n]; return F ? Math.ceil(F.dur * 48000) * (F.ch || 2) * 4 : 0; };
   const sndPer = {}; for (const k in SD.heroes) { const H = SD.heroes[k], s = new Set(); ['green', 'blue', 'ult', 'passive'].forEach(sl => (H[sl] || []).forEach(r => r.f.forEach(n => s.add(n))));
-    sndPer[k] = [...s].filter(n => !/^LIB-ATK-/.test(n)).reduce((a, n) => a + dec(n), 0); }
-  const lib = Object.keys(MAN.files).filter(n => /^LIB-ATK-/.test(n)).reduce((a, n) => a + dec(n), 0);
+    if (H.arm) for (const c in H.arm) { s.add(H.arm[c]); ((SD.fused || {})[H.arm[c]] || []).forEach(n => s.add(n)); }   /* v1165: a hero's own swing cuts + their fused swings count with the hero */
+    sndPer[k] = [...s].filter(n => !/^LIB-/.test(n)).reduce((a, n) => a + dec(n), 0); }
+  const lib = Object.keys(MAN.files).filter(n => /^LIB-/.test(n)).reduce((a, n) => a + dec(n), 0);   /* v1165: the whole weapon library - the 12 weapon sounds + the 48 fused melee swings LIB-MEL-* (all decoded on the first tap) */
   const sTop = Object.keys(sndPer).sort((a, b) => sndPer[b] - sndPer[a]).slice(0, 10), audio = (sTop.reduce((a, k) => a + sndPer[k], 0) + lib) / 1048576;
-  console.log('  info heaviest-sound 5v5: ' + sTop.join(',') + ' + 12 weapon sounds = ' + audio.toFixed(1) + ' MB decoded (48 kHz float)');
-  ck('BUDGET: the heaviest-sound 5v5 decodes within ' + AUDIO_BUDGET_MB + ' MB', audio <= AUDIO_BUDGET_MB, audio.toFixed(1));
+  console.log('  info heaviest-sound 5v5: ' + sTop.join(',') + ' + the weapon library (' + Object.keys(MAN.files).filter(n => /^LIB-/.test(n)).length + ' files, ' + (lib / 1048576).toFixed(1) + ' MB) = ' + audio.toFixed(1) + ' MB decoded (48 kHz float)');
+  ck('BUDGET: the heaviest-sound 5v5 decodes within ' + AUDIO_BUDGET_MB + ' MB (v1165, Phil 16 Oct: "full effects will sound cleaner")', audio <= AUDIO_BUDGET_MB, audio.toFixed(1));
+  { /* CONTROL: the same sum with one more hero's worth of sound - an over-budget set must fail the check;
+       and the v1165 sounds really needed the raise (they do not fit the old 48 MB) */
+    const over = audio + 2.5 * sndPer[sTop[0]] / 1048576;
+    ck('CONTROL: the heaviest-sound 5v5 with 2.5 more copies of its heaviest hero (' + over.toFixed(1) + ' MB) fails the ' + AUDIO_BUDGET_MB + ' MB check', !(over <= AUDIO_BUDGET_MB));
+    ck('CONTROL: the v1165 set does not fit the old ' + AUDIO_BUDGET_OLD_MB + ' MB (' + audio.toFixed(1) + ' MB) - the raise was needed, the check measures the new files', audio > AUDIO_BUDGET_OLD_MB); }
   const relSrc = run('String(sfxRelease)'), evSrc = run('String(evictUnusedArt)');
   ck('disposal is wired: evictUnusedArt closes the bitmaps, leaves _texReg and releases the fight sounds; the hub frees every battle sheet',
-    /texImgFree/.test(evSrc) && /_texReg\.splice/.test(evSrc) && /sfxRelease/.test(evSrc) && /LIB-ATK-/.test(relSrc) && /name==='home'\) setTimeout\(\(\)=>\{ try\{ evictBattleArtAll/.test(fs.readFileSync(HTML, 'utf8')));
+    /texImgFree/.test(evSrc) && /_texReg\.splice/.test(evSrc) && /sfxRelease/.test(evSrc) && /\^LIB-/.test(relSrc) && /name==='home'\) setTimeout\(\(\)=>\{ try\{ evictBattleArtAll/.test(fs.readFileSync(HTML, 'utf8')));
 
   // ------------------------------------------------------------------ 4. BROWSER (real loader, real GPU uploads)
   let chromium = null; try { chromium = require('playwright').chromium; } catch (e) {}
@@ -143,7 +152,7 @@ try {
       await pg.evaluate(() => { const b = [...document.querySelectorAll('button')].find(x => /Skip Tutorial/i.test(x.textContent) && x.offsetParent); if (b) b.click(); });
       const gc = () => pg.evaluate(() => { try { gc(); } catch (e) {} });
       const sample = async () => { await gc(); await pg.waitForTimeout(250); await gc(); return pg.evaluate(() => {
-        let hero = 0; try { const lib = /\/LIB-ATK-/; for (const f in SND.buf) if (SND.buf[f] && !lib.test(f)) hero++; } catch (e) {}
+        let hero = 0; try { const lib = /\/LIB-/; for (const f in SND.buf) if (SND.buf[f] && !lib.test(f)) hero++; } catch (e) {}
         let held = 0; for (const k in BATTLE_ANIM) { const s = BATTLE_ANIM[k]; for (const st in s) if (st[0] !== '_' && s[st] && s[st].tex) held++; }
         return { gpu: +__gpuMB().toFixed(1), bmp: +__bmpMB().toFixed(1), heroSnd: hero, held, reg: _texReg.length }; }); };
       const isNew = await pg.evaluate(() => typeof texSheetK === 'function');
@@ -178,7 +187,7 @@ try {
       ck('BUDGET: decoded bitmaps held in a fight <= ' + BMP_BUDGET_MB + ' MB (' + peakB + ') - a sheet\'s copy is freed once it is on the GPU', peakB <= BMP_BUDGET_MB);
       ck('back on the hub after EVERY fight the battle textures are back to the start (<= start + 64 MB)', N.rows.every(r => r.hub.gpu <= N.s0.gpu + 64), N.rows.map(r => r.hub.gpu).join(','));
       ck('back on the hub after EVERY fight the decoded bitmaps are gone (<= 16 MB) and no battle sheet is held', N.rows.every(r => r.hub.bmp <= 16 && r.hub.held === 0), N.rows.map(r => r.hub.bmp + '/' + r.hub.held).join(','));
-      ck('the fight sounds are released after every fight (only the 12 weapon sounds stay decoded)', N.rows.every(r => r.mid.heroSnd > 0 && r.hub.heroSnd === 0), N.rows.map(r => r.mid.heroSnd + '->' + r.hub.heroSnd).join(','));
+      ck('the fight sounds are released after every fight (only the weapon library stays decoded: the takes + shimmers)', N.rows.every(r => r.mid.heroSnd > 0 && r.hub.heroSnd === 0), N.rows.map(r => r.mid.heroSnd + '->' + r.hub.heroSnd).join(','));
       ck('memory does not grow over 5 fights (fight 5 within 15% of fight 1 in a fight; _texReg bounded)', N.rows[4].mid.gpu <= N.rows[0].mid.gpu * 1.15 + 32 && N.rows[4].hub.reg <= 40, N.rows[0].mid.gpu + ' -> ' + N.rows[4].mid.gpu + ', reg ' + N.rows[4].hub.reg);
       ck('no page error in the 5 fights', N.errs.length === 0, N.errs.slice(0, 3).join(' | '));
       /* the BASE page can run the rig's browser out of memory (the very crash this test guards): a crash of its page counts as BASE breaking the budget */

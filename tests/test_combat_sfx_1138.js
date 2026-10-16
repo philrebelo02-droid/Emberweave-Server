@@ -51,7 +51,8 @@ try {
   const picked = Object.entries(rows).filter(([, r]) => !r.none);
   const unres = picked.filter(([, r]) => !(r.files && r.files.length && r.files.every(n => files[n])));
   ck('every row with a pick resolves to shipped files (' + picked.length + ' rows; ' + (Object.keys(rows).length - picked.length) + ' marked no sound)', unres.length === 0, unres.map(u => u[0]).join(','));
-  ck('every file is a new asset version (?v=1138) and none existed in BASE', Object.values(files).every(v => /\?v=1138$/.test(v.f)) &&
+  /* v1165: the re-rendered ability files (ride out + sparkle) and the new fused melee swings (Phil 16 Oct) are ?v=1165; every unchanged file keeps ?v=1138 (never reuse a version) */
+  ck('every file is a new asset version (?v=1138, the v1165 re-renders ?v=1165) and none existed in BASE', Object.values(files).every(v => /\?v=1138$/.test(v.f) || (/\?v=1165$/.test(v.f) && (v.spark || v.fused))) &&
     !cp.execSync('git ls-tree -r --name-only ' + BASE_SHA + ' assets/audio/sfx', { cwd: ROOT }).toString().trim());
   ck("the page's SFX_DATA is the manifest's (same files, urls and peaks)", Object.keys(D.files).length === Object.keys(files).length &&
     Object.entries(files).every(([n, v]) => D.files[n] && D.files[n][0] === v.f && D.files[n][1] === v.peak) && D.v === MAN.version);
@@ -99,7 +100,7 @@ try {
       createBufferSource(){ const s={buffer:null,onended:null,connect(){},start(t,off){ s.t=t; s.off=off||0; s.end=t+(s.buffer?s.buffer.duration:1)-(off||0); globalThis.__src.push(s); },stop(){ s.end=0; }}; return s; } };
     SND.ctx=C; SND.out=C.createGain(); SND.bus.fx=C.createGain(); SND.cfg.fx.on=true; SND.live=0;
     for(const n in SFX_DATA.files){ SND.buf[SFX_DATA.files[n][0]]={duration:dur[n]||2}; }
-    SFX.log=[]; SFX.last={}; SFX.atk=[]; return 1; })()`;
+    SFX.log=[]; SFX.last={}; SFX.atk=[]; if(SFX.act) SFX.act=[]; return 1; })()`;   /* v1165: the voice list too - each fight's fake clock starts at 0 again */
   const FIGHTS = [
     [['vex', 'grosk', 'ceraline'], ['tick', 'sloe', 'sylthaine'], 11],
     [['tick', 'ceraline', 'sloe'], ['vex', 'grosk', 'umbris'], 222],

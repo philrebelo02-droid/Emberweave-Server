@@ -1,4 +1,9 @@
 'use strict';
+
+/* v1165: the ability files were re-rendered ON PURPOSE (ride out + sparkle, Phil 16 Oct; tests/test_sparkle_tails_1165.js checks them: same peak within
+   10 ms, same loudness within 0.5 LU) - they (and the new fused melee swings) are left out; every other entry is compared exactly */
+function sfxFilesV1165(r, cur) { const o = JSON.parse(r('JSON.stringify(SFX_DATA.files)')), c = JSON.parse(cur('JSON.stringify(SFX_DATA.files)'));
+  return JSON.stringify(Object.keys(o).sort().filter(n => !(c[n] && /\?v=1165$/.test(c[n][0]))).map(n => [n, o[n]])); }   // v1165 files (re-rendered or new fused swings) left out on both sides
 // v1162 - Korvux's eight new animations (Phil PASS 16 Oct 2026 "all pass", ChatGPT "send to claude" 00:18, REVIEW 15OCT2026 H3,
 //   clean-source-manifest.json - all eight "Phil PASS", official Hailuo Without Watermark exports, sha256 matched): IDLE, WALK (natural steps
 //   in place), ATTACK, CRIT (his first crit clip), HIT, GREEN Comet Dash, BLUE Ember Cleave, ULT Falling Star. NO passive animation (Phil).
@@ -253,7 +258,7 @@ try {
     JSON.stringify([SD.atk, SD.green[0].f, SD.blue[0].f, SD.ult[0].f]) === JSON.stringify([SD0.atk, SD0.green[0].f, SD0.blue[0].f, SD0.ult[0].f]));
   { const others2 = r => r("JSON.stringify(Object.keys(SFX_DATA.heroes).filter(k=>k!=='korvux').map(k=>[k,SFX_DATA.heroes[k]]))");
     const MAN = JSON.parse(fs.readFileSync(path.join(ROOT, 'assets/audio/sfx/sfx_manifest.json'), 'utf8'));
-    ck('sound: every other hero\'s rows and every file entry are BASE\'s; the manifest rows say land too', H(others2(run)) === H(others2(R0)) && H(run('JSON.stringify(SFX_DATA.files)')) === H(R0('JSON.stringify(SFX_DATA.files)')) &&
+    ck('sound: every other hero\'s rows and every file entry are BASE\'s; the manifest rows say land too', H(others2(run)) === H(others2(R0)) && H(sfxFilesV1165(run, run)) === H(sfxFilesV1165(R0, run)) &&
       MAN.rows.S0172.rule === 'land' && MAN.rows.S0174.rule === 'land' && MAN.rows.S0171.rule === 'land'); }
   const ctl = JSON.parse(JSON.stringify(G)); ctl.crit.u = '/assets/anim/korvux/korvux_missing.webp?v=' + VER; ctl.attack.fw = 900;
   ck('control: the grid check catches a missing sheet and an oversized grid', gridProblems(ctl, ['crit', 'attack']).length >= 2);
