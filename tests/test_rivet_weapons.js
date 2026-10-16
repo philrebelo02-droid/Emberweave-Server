@@ -12,7 +12,8 @@
 (function main() {
 const path = require('path'), vm = require('vm'), fs = require('fs'), cp = require('child_process'), crypto = require('crypto');
 const ROOT = path.resolve(__dirname, '..');
-const HTML = process.env.EW_HTML || path.join(ROOT, 'emberweave-heroes.html');
+const Q95 = require('./helpers/q95-1158.js');   // v1158: q95 sheets are checked as the v1157 lossless originals they were (tests/test_q95_1158.js checks the q95 files)
+const HTML = process.env.EW_HTML || Q95.page(path.join(ROOT, 'emberweave-heroes.html'));
 const BASE_SHA = process.env.EW_BASE || 'cb4460c3';   // claude/maren-orryn-anim = v1137 before Rivet (v1136 + Maren/Orryn + Veyr 2 s + Sylthaine; built against b5b4723f)
 let OLD = process.env.EW_HTML_OLD;
 if (!OLD) { try { OLD = path.join(ROOT, '.test-rivet-base-control.html'); fs.writeFileSync(OLD, cp.execSync('git show ' + BASE_SHA + ':emberweave-heroes.html', { cwd: ROOT, maxBuffer: 64 << 20 }));
@@ -62,7 +63,7 @@ try {
   ck('Rivet has the ten weapon clips w_<weapon> and keeps every old state', WPN.every(w => A['w_' + w]) && Object.keys(A0).every(k => A[k]));
   ck('his old states are byte-for-byte BASE (idle, walk, attack, hit, green, blue, ult, passive)', Object.keys(A0).every(k => JSON.stringify(A[k]) === JSON.stringify(A0[k])));
   const bad = [];
-  for (const w of WPN) { const S = A['w_' + w], f = path.join(ROOT, S.u.split('?')[0]); if (!fs.existsSync(f)) { bad.push(w + ' missing'); continue; }
+  for (const w of WPN) { const S = A['w_' + w], f = Q95.file(ROOT, S.u); if (!fs.existsSync(f)) { bad.push(w + ' missing'); continue; }
     const sz = webpSize(f); if (!sz || sz[0] !== S.fw * S.cols || sz[1] !== S.fh * S.rows) bad.push(w + ' file ' + sz);
     if (S.fw * S.cols > 2048 || S.fh * S.rows > 2048) bad.push(w + ' >2048');   // phone size (v1137 review)
     if (S.u !== `/assets/anim/rivet/rivet_${w}_1137.webp?v=1137`) bad.push(w + ' url');

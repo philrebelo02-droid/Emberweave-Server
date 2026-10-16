@@ -7,7 +7,8 @@
 (function main() {
 const path = require('path'), vm = require('vm'), fs = require('fs');
 const ROOT = path.resolve(__dirname, '..');
-const host = require(path.join(ROOT, 'server/sim-host.js')).load(path.join(ROOT, 'emberweave-heroes.html'));
+const Q95 = require('./helpers/q95-1158.js');   // v1158: q95 sheets are checked as the v1157 lossless originals they were (tests/test_q95_1158.js checks the q95 files)
+const host = require(path.join(ROOT, 'server/sim-host.js')).load(Q95.page(path.join(ROOT, 'emberweave-heroes.html')));
 require('./helpers/anim-slim-1155.js').undoSlim1155(src => require('vm').runInContext(src, host.ctx));   // v1155 slim: this release's checks see the v1153 entries (tests/test_anim_slim_1155.js checks the slim)
 let pass = 0, fail = 0;
 const ck = (name, ok, detail) => { if (ok) { pass++; console.log('  ok  ' + name); } else { fail++; console.log('  FAIL ' + name + (detail ? ' - ' + detail : '')); } };
@@ -22,7 +23,7 @@ function webpSize(file) {   // VP8L (lossless) / VP8X header - no image library 
 function gridProblems(G) {
   const bad = [];
   for (const [st, A] of Object.entries(G)) {
-    const f = path.join(ROOT, A.u.split('?')[0]);
+    const f = Q95.file(ROOT, A.u);
     if (!fs.existsSync(f)) { bad.push(st + ' missing'); continue; }
     const sz = webpSize(f);
     if (A.n > A.cols * A.rows) bad.push(st + ' n>grid');

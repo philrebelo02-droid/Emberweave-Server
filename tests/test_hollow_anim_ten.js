@@ -19,7 +19,8 @@
 (function main() {
 const path = require('path'), vm = require('vm'), fs = require('fs'), cp = require('child_process');
 const ROOT = path.resolve(__dirname, '..');
-const HTML = process.env.EW_HTML || path.join(ROOT, 'emberweave-heroes.html');
+const Q95 = require('./helpers/q95-1158.js');   // v1158: q95 sheets are checked as the v1157 lossless originals they were (tests/test_q95_1158.js checks the q95 files)
+const HTML = process.env.EW_HTML || Q95.page(path.join(ROOT, 'emberweave-heroes.html'));
 const BASE_SHA = '216c328cf4f061ad17965af6ad223416f2c0dc12';   // v1123 live, before the ten
 let OLD = process.env.EW_HTML_OLD;
 // the control copy sits beside the live file (sim-host loads the page's sibling scripts from its folder; v1126 changed none of them) and is removed on exit
@@ -40,7 +41,7 @@ function webpSize(file) {
 function gridProblems(G) {
   const bad = [];
   for (const [st, A] of Object.entries(G)) {
-    const f = path.join(ROOT, A.u.split('?')[0]);
+    const f = Q95.file(ROOT, A.u);
     if (!fs.existsSync(f)) { bad.push(st + ' missing'); continue; }
     const sz = webpSize(f);
     if (A.n > A.cols * A.rows) bad.push(st + ' n>grid');

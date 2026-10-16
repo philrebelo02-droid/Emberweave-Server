@@ -14,7 +14,8 @@
 (function main() {
 const path = require('path'), vm = require('vm'), fs = require('fs'), cp = require('child_process'), os = require('os');
 const ROOT = path.resolve(__dirname, '..');
-const HTML = path.join(ROOT, 'emberweave-heroes.html');
+const Q95 = require('./helpers/q95-1158.js');   // v1158: q95 sheets are checked as the v1157 lossless originals they were (tests/test_q95_1158.js checks the q95 files)
+const HTML = Q95.page(path.join(ROOT, 'emberweave-heroes.html'));
 const BASE_SHA = process.env.EW_BASE || 'c5adff17';   // live v1153
 const FIX = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/anim_slim_1155.json'), 'utf8'));
 const NFIGHTS = +(process.env.EW_SLIM_FIGHTS || 120);
@@ -67,7 +68,7 @@ try {
   const KEEP_FIELDS = (b, a) => Object.keys(b).filter(f => !['u', 'n', 'fps', 'cols', 'rows', 'loop', 'ax', 'stride'].includes(f)).every(f => deep(b[f]) === deep(a[f])) &&
     Object.keys(a).every(f => f in b || f === 'stride');
   const bad = []; const shape = [];
-  for (const c of recut) { const b = c.before, a = c.after, id = c.key + '.' + c.state, f = path.join(ROOT, a.u.split('?')[0]);
+  for (const c of recut) { const b = c.before, a = c.after, id = c.key + '.' + c.state, f = Q95.file(ROOT, a.u);
     const nm = a.u.split('?')[0];
     if (!/_1155\.webp\?v=1155$/.test(a.u) || baseSrc.includes(path.basename(nm))) bad.push(id + ' not a new _1155 file');
     if (!KEEP_FIELDS(b, a)) bad.push(id + ' changed a field other than u/n/fps/cols/rows/loop/ax/stride (anchors, size, facing must stay)');
@@ -103,7 +104,7 @@ try {
 
   // pixels: every new cell is the BASE cell it names, bit for bit (BASE sheets read from git, so this holds after old files leave the repo)
   const jobs = recut.map((c, i) => { const bf = path.join(TMP, 'b' + i + '.webp'); fs.writeFileSync(bf, cp.execSync('git show ' + BASE_SHA + ':' + c.before.u.split('?')[0].slice(1), { cwd: ROOT, maxBuffer: 64 << 20 }));
-    return { id: c.key + '.' + c.state, b: bf, a: path.join(ROOT, c.after.u.split('?')[0]), fw: c.after.fw, fh: c.after.fh, c0: c.before.cols, c1: c.after.cols, cells: c.cells,
+    return { id: c.key + '.' + c.state, b: bf, a: Q95.file(ROOT, c.after.u), fw: c.after.fw, fh: c.after.fh, c0: c.before.cols, c1: c.after.cols, cells: c.cells,
       loop: c.state === 'walk' ? (c.after.loop || [0, c.after.n]) : null }; });
   const PY = `
 import sys,json

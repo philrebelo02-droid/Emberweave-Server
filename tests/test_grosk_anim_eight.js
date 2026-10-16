@@ -12,7 +12,8 @@
 (function main() {
 const path = require('path'), vm = require('vm'), fs = require('fs');
 const ROOT = path.resolve(__dirname, '..');
-const host = require(path.join(ROOT, 'server/sim-host.js')).load(path.join(ROOT, 'emberweave-heroes.html'));
+const Q95 = require('./helpers/q95-1158.js');   // v1158: q95 sheets are checked as the v1157 lossless originals they were (tests/test_q95_1158.js checks the q95 files)
+const host = require(path.join(ROOT, 'server/sim-host.js')).load(Q95.page(path.join(ROOT, 'emberweave-heroes.html')));
 require('./helpers/anim-slim-1155.js').undoSlim1155(src => require('vm').runInContext(src, host.ctx));   // v1155 slim: this release's checks see the v1153 entries (tests/test_anim_slim_1155.js checks the slim)
 const run = src => vm.runInContext(src, host.ctx);
 let pass = 0, fail = 0;
@@ -28,7 +29,7 @@ function webpSize(file) {   // VP8L (lossless) / VP8X header - no image library 
 function gridProblems(G) {
   const bad = [];
   for (const [st, A] of Object.entries(G)) {
-    const f = path.join(ROOT, A.u.split('?')[0]);
+    const f = Q95.file(ROOT, A.u);
     if (!fs.existsSync(f)) { bad.push(st + ' missing'); continue; }
     const sz = webpSize(f);
     if (A.n > A.cols * A.rows) bad.push(st + ' n>grid');
@@ -107,7 +108,7 @@ try {
     try{ doEffect(u,'hipposlam',ab,null,{x:${ax},y:${ay}}); } catch(err){ return JSON.stringify({err:String(err)}); }
     const d=u._dash||{}; return JSON.stringify({tx:d.tx!=null?d.tx:(d.x2!=null?d.x2:null), ty:d.ty!=null?d.ty:(d.y2!=null?d.y2:null), ux:u.x, uy:u.y, keys:Object.keys(d)}); })()`));
   ck('Croc Drop is radius-aimed (ULT_RADIUS) with a 6 m aim range', run("ultAimMode('hipposlam')") === 'radius' && run('ULT_DEF.hipposlam.aimRange') === run('6*METER'));
-  const H = require('fs').readFileSync(require('path').join(__dirname, '..', 'emberweave-heroes.html'), 'utf8');
+  const H = require('fs').readFileSync(Q95.page(require('path').join(__dirname, '..', 'emberweave-heroes.html')), 'utf8');
   ck('the release clamps an aimRange ult to its range (the circle cannot leave the ring)', H.includes('/* v1116: aimRange - the circle cannot leave the range ring */'));
   ck('the aim view draws the range ring around the caster', H.includes('/* v1116: the range ring (Croc Drop 6 m) and the impact circle kept inside it */'));
   ck('the effect lands on the aimed point, clamped to aimRange; no aim -> densest cluster within range', H.includes("let _tx=aimCtr?aimCtr.x:best.x, _ty=aimCtr?aimCtr.y:best.y;") && H.includes('const _inR=_AR?foes.filter(c=>dist(u,c)<=_AR):foes'));

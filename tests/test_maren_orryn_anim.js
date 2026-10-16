@@ -13,7 +13,8 @@
 (function main() {
 const path = require('path'), vm = require('vm'), fs = require('fs'), cp = require('child_process'), crypto = require('crypto');
 const ROOT = path.resolve(__dirname, '..');
-const HTML = process.env.EW_HTML || path.join(ROOT, 'emberweave-heroes.html');
+const Q95 = require('./helpers/q95-1158.js');   // v1158: q95 sheets are checked as the v1157 lossless originals they were (tests/test_q95_1158.js checks the q95 files)
+const HTML = process.env.EW_HTML || Q95.page(path.join(ROOT, 'emberweave-heroes.html'));
 const BASE_SHA = process.env.EW_BASE || '0734321d';   // origin/main before this change (v1136; the branch was cut from v1134 b2aea01e and rebased)
 let OLD = process.env.EW_HTML_OLD;
 if (!OLD) { try { OLD = path.join(ROOT, '.test-maren-orryn-base-control.html'); fs.writeFileSync(OLD, cp.execSync('git show ' + BASE_SHA + ':emberweave-heroes.html', { cwd: ROOT, maxBuffer: 64 << 20 }));
@@ -39,7 +40,7 @@ const FLIP = { maren: false, orryn: true };
 function gridProblems(G, hero, states) {
   const bad = [];
   for (const st of states) { const A = G[st]; if (!A) { bad.push(hero + '.' + st + ' missing entry'); continue; }
-    const f = path.join(ROOT, A.u.split('?')[0]);
+    const f = Q95.file(ROOT, A.u);
     if (!fs.existsSync(f)) { bad.push(hero + '.' + st + ' missing file'); continue; }
     const sz = webpSize(f);
     if (A.n > A.cols * A.rows) bad.push(hero + '.' + st + ' n>grid');
@@ -95,7 +96,7 @@ try {
   ck('every new sheet exists, file = declared grid, under 4096, anchors in the cell', bad.length === 0, bad.join('; '));
   /* v1140 memory hotfix: the seven were re-cut within 2048 px per side (same grid, anchors x S) as new files ?v=1140 */
   ck('the seven new sheets are new files at ?v=1140 (v1140 re-cut within 2048 px; never a reused asset version)', NEW.every(([h, s]) => G[h][s].u === `/assets/anim/${h}/${h}_${s}_1140.webp?v=1140` && G[h][s].fw * G[h][s].cols <= 2048 && G[h][s].fh * G[h][s].rows <= 2048));
-  ck('the old v21 sheets are still on disk (rollback needs nothing)', NEW.every(([h, s]) => fs.existsSync(path.join(ROOT, G0[h][s].u.split('?')[0]))));
+  ck('the old v21 sheets are still on disk (rollback needs nothing)', NEW.every(([h, s]) => fs.existsSync(Q95.file(ROOT, G0[h][s].u))));
   ck('untouched states are byte-for-byte the BASE entries (Maren idle/walk/hit/passive, Orryn idle/walk/hit/ult/passive)', ['maren', 'orryn'].every(h => KEEP[h].every(s => JSON.stringify(G[h][s]) === JSON.stringify(G0[h][s]))));
   /* v1137 = one combined animation release (Maren + Orryn, Sylthaine, Rivet): the other parts' heroes are checked by their own tests (Rivet: test_rivet_weapons.js) */
   /* v1142: Carn's eight new sheets (a later animation release) are checked by their own test, tests/test_carn_anim_eight.js */

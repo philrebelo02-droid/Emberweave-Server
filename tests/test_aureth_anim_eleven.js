@@ -21,7 +21,8 @@
 (function main() {
 const path = require('path'), vm = require('vm'), fs = require('fs'), cp = require('child_process'), crypto = require('crypto');
 const ROOT = path.resolve(__dirname, '..');
-const HTML = process.env.EW_HTML || path.join(ROOT, 'emberweave-heroes.html');
+const Q95 = require('./helpers/q95-1158.js');   // v1158: q95 sheets are checked as the v1157 lossless originals they were (tests/test_q95_1158.js checks the q95 files)
+const HTML = process.env.EW_HTML || Q95.page(path.join(ROOT, 'emberweave-heroes.html'));
 const BASE_SHA = process.env.EW_BASE || '34ce183a';   // live v1152, before this change
 let OLD = process.env.EW_HTML_OLD;
 if (!OLD) { try { OLD = path.join(ROOT, '.test-aureth-anim-base.html'); fs.writeFileSync(OLD, cp.execSync('git show ' + BASE_SHA + ':emberweave-heroes.html', { cwd: ROOT, maxBuffer: 64 << 20 }));
@@ -47,7 +48,7 @@ const ACT = ['attackLight', 'attackDark', 'crit', 'green', 'blue', 'ult'];
 function gridProblems(G, states) {
   const bad = [];
   for (const st of states) { const A = G[st]; if (!A) { bad.push(st + ' missing entry'); continue; }
-    const f = path.join(ROOT, A.u.split('?')[0]);
+    const f = Q95.file(ROOT, A.u);
     if (!fs.existsSync(f)) { bad.push(st + ' missing file'); continue; }
     const sz = webpSize(f);
     if (A.n > A.cols * A.rows) bad.push(st + ' n>grid');
@@ -115,7 +116,7 @@ try {
   ck('every new sheet exists, file = declared grid, within 2048 px per side and 4 MB (v1140 budget), anchors in the cell', bad.length === 0, bad.join('; '));
   const baseSrc = fs.readFileSync(OLD, 'utf8');
   ck('the eleven are new files at ?v=1153 that BASE never referenced (never a reused asset version)', NEW.every(([s, stem]) => G[s].u === `/assets/anim/aureth/aureth_${stem}_1153.webp?v=1153` && !baseSrc.includes(`aureth_${stem}_1153`)));
-  ck('the old v21 sheets are still on disk (rollback needs nothing)', ['idle', 'walk', 'attack', 'hit', 'green', 'blue', 'ult', 'passive'].every(s => fs.existsSync(path.join(ROOT, G0[s].u.split('?')[0]))));
+  ck('the old v21 sheets are still on disk (rollback needs nothing)', ['idle', 'walk', 'attack', 'hit', 'green', 'blue', 'ult', 'passive'].every(s => fs.existsSync(Q95.file(ROOT, G0[s].u))));
   const others = r => r("JSON.stringify(Object.keys(BATTLE_ANIM).filter(k=>k!=='aureth').map(k=>[k,BATTLE_ANIM[k]]))");
   ck('every other hero and monster has BATTLE_ANIM byte-for-byte BASE', H(others(run)) === H(others(R0)));
   ck('grids as cut (cells / fps / contact cell): ' + NEW.map(x => x[0] + ' ' + x[2] + '@' + x[3] + (x[4] != null ? ' c' + x[4] : '')).join(', '),

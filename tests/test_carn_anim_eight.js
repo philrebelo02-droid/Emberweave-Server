@@ -20,7 +20,8 @@
 (function main() {
 const path = require('path'), vm = require('vm'), fs = require('fs'), cp = require('child_process'), crypto = require('crypto');
 const ROOT = path.resolve(__dirname, '..');
-const HTML = process.env.EW_HTML || path.join(ROOT, 'emberweave-heroes.html');
+const Q95 = require('./helpers/q95-1158.js');   // v1158: q95 sheets are checked as the v1157 lossless originals they were (tests/test_q95_1158.js checks the q95 files)
+const HTML = process.env.EW_HTML || Q95.page(path.join(ROOT, 'emberweave-heroes.html'));
 const BASE_SHA = process.env.EW_BASE || '25d88920';   // origin/main before this change (v1140)
 let OLD = process.env.EW_HTML_OLD;
 if (!OLD) { try { OLD = path.join(ROOT, '.test-carn-base-control.html'); fs.writeFileSync(OLD, cp.execSync('git show ' + BASE_SHA + ':emberweave-heroes.html', { cwd: ROOT, maxBuffer: 64 << 20 }));
@@ -45,7 +46,7 @@ const ACT = ['attack', 'crit', 'hit', 'green', 'blue', 'ult'];
 function gridProblems(G, states) {
   const bad = [];
   for (const st of states) { const A = G[st]; if (!A) { bad.push(st + ' missing entry'); continue; }
-    const f = path.join(ROOT, A.u.split('?')[0]);
+    const f = Q95.file(ROOT, A.u);
     if (!fs.existsSync(f)) { bad.push(st + ' missing file'); continue; }
     const sz = webpSize(f);
     if (A.n > A.cols * A.rows) bad.push(st + ' n>grid');
@@ -106,10 +107,10 @@ try {
   ck('every new sheet exists, file = declared grid, within 2048 px per side and 4 MB (v1140 budget), anchors in the cell', bad.length === 0, bad.join('; '));
   const baseSrc = fs.readFileSync(OLD, 'utf8');
   ck('the eight are new files at ?v=1142 that BASE never referenced (never a reused asset version)', NEW.every(([s]) => G[s].u === `/assets/anim/carn/carn_${s}_1142.webp?v=1142` && !baseSrc.includes(`carn_${s}_1142`)));
-  ck('the old v21 sheets are still on disk (rollback needs nothing)', NEW.filter(([s]) => s !== 'crit').every(([s]) => fs.existsSync(path.join(ROOT, G0[s].u.split('?')[0]))));
+  ck('the old v21 sheets are still on disk (rollback needs nothing)', NEW.filter(([s]) => s !== 'crit').every(([s]) => fs.existsSync(Q95.file(ROOT, G0[s].u))));
   ck('no passive clip anywhere: not in BATTLE_ANIM, not in the Skills-tab preview (hand table or derived), and no page reference to the v21 sheet (its file stays on disk)',
     !G.passive && run("(()=>{ ensureSkillPreview('carn'); const s=HERO_SKILL_CLIPS.carn||{}; return !s[3] && !!s[0]; })()") && !/carn_passive\.webp\?/.test(fs.readFileSync(HTML, 'utf8'))
-    && fs.existsSync(path.join(ROOT, G0.passive.u.split('?')[0])));
+    && fs.existsSync(Q95.file(ROOT, G0.passive.u)));
   { const r = JSON.parse(run(`(()=>{ units=[]; seedBattle(3); const g=makeUnit('carn','ally',500,700,30,{owned:false,rank:3}); g.anim=BATTLE_ANIM.carn; units=[g]; g._abilHold=0; g._lockPri=0; g._animLockT=0;
       firePassiveClip(g, 2.0); const fired=[g._abilAnim||null,g._abilHold,g._lockPri,g._animLockT,!!g._passFired,g._qPass||null];
       const cand=[]; if(g.anim.idle) cand.push('idle'); if(!g._passFired && g.anim.passive) cand.push('passive'); return JSON.stringify({fired,cand}); })()`));

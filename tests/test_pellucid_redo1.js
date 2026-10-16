@@ -13,7 +13,8 @@
 (function main() {
 const path = require('path'), vm = require('vm'), fs = require('fs'), crypto = require('crypto');
 const ROOT = path.resolve(__dirname, '..');
-const host = require(path.join(ROOT, 'server/sim-host.js')).load(path.join(ROOT, 'emberweave-heroes.html'));
+const Q95 = require('./helpers/q95-1158.js');   // v1158: q95 sheets are checked as the v1157 lossless originals they were (tests/test_q95_1158.js checks the q95 files)
+const host = require(path.join(ROOT, 'server/sim-host.js')).load(Q95.page(path.join(ROOT, 'emberweave-heroes.html')));
 require('./helpers/anim-slim-1155.js').undoSlim1155(src => require('vm').runInContext(src, host.ctx));   // v1155 slim: this release's checks see the v1153 entries (tests/test_anim_slim_1155.js checks the slim)
 const run = src => vm.runInContext(src, host.ctx);
 let pass = 0, fail = 0;
@@ -60,7 +61,7 @@ try {
   const G = run('JSON.parse(JSON.stringify(BATTLE_ANIM.pellucid))');
   const bad = [];
   for (const st of ['green', 'blue', 'ult']) {
-    const A = G[st], f = path.join(ROOT, A.u.split('?')[0]), sz = fs.existsSync(f) ? webpSize(f) : null;
+    const A = G[st], f = Q95.file(ROOT, A.u), sz = fs.existsSync(f) ? webpSize(f) : null;
     if (!sz) { bad.push(st + ' missing'); continue; }
     if (sz[0] !== A.fw * A.cols || sz[1] !== A.fh * A.rows) bad.push(st + ' file ' + sz + ' != grid');
     if (A.fw * A.cols > 4096 || A.fh * A.rows > 4096) bad.push(st + ' >4096');

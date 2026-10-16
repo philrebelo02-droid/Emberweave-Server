@@ -9,18 +9,33 @@ For every sheet in assets/anim/tiers_1141.json and every tier it lists:
 For a sample of sheets (--regen N) the untrimmed phone cells are rebuilt from the high source with the build's own
 resampler and must hash to the manifest too (the manifest is the source, not a copy of the output).
 Usage: py -I tools/condense_verify.py <worktree> [--regen N]"""
-import json, os, random, sys
+import io, json, os, random, subprocess, sys
 import numpy as np
 from PIL import Image
 
 here = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, here)
 import condense_sheets as C
 
+# v1158: --q95 <fixture>: a sheet re-encoded at q95 (tests/fixtures/q95_1158.json) is checked as the v1157 LOSSLESS original it was (read
+# from git at the fixture's base) - the trim/tier rules hold for that file; tests/test_q95_1158.js checks the q95 file against it.
+Q95 = None
+def src(root, rel):
+    rel = rel.split('?')[0].lstrip('/')
+    if Q95 and ('/' + rel) in Q95['by']:
+        return io.BytesIO(subprocess.check_output(['git', '-C', root, 'show', Q95['base'] + ':' + rel]))
+    return os.path.join(root, rel)
+def kind(f):
+    if not isinstance(f, io.BytesIO): return C.webp_kind(f)
+    import tempfile
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.webp') as t: t.write(f.getvalue())
+    try: return C.webp_kind(t.name)
+    finally: os.unlink(t.name)
+
 
 def check(root, path, tier, e, man, poke=False):
     url, W, H, cols, rows, tc = e
-    f = os.path.join(root, url.split('?')[0].lstrip('/'))
-    if C.webp_kind(f) != 'lossless': return 'not lossless'
+    f = src(root, url)
+    if kind(f) != 'lossless': return 'not lossless'
     a = np.asarray(Image.open(f).convert('RGBA')).copy()
     if a.shape[1] != W or a.shape[0] != H: return 'size %dx%d != %dx%d' % (a.shape[1], a.shape[0], W, H)
     m = man[tier]; cw, ch = m['cw'], m['ch']; x0, y0, w, h = m['rect']
@@ -40,6 +55,9 @@ def check(root, path, tier, e, man, poke=False):
 
 
 def main():
+    global Q95
+    if '--q95' in sys.argv:
+        F = json.load(open(sys.argv[sys.argv.index('--q95') + 1])); Q95 = {'base': F['base'], 'by': {e['path'] for e in F['sheets']}}
     root = os.path.abspath(sys.argv[1]); regen = int(sys.argv[sys.argv.index('--regen') + 1]) if '--regen' in sys.argv else 0
     tiers = json.load(open(os.path.join(root, 'assets/anim/tiers_' + C.VER + '.json')))['sheets']
     man = json.load(open(os.path.join(here, 'condense_cells_' + C.VER + '.json')))
@@ -61,7 +79,7 @@ def main():
             for c in tables['clips'] + tables['fx2']:
                 if c.get('u'): decl.setdefault(c['u'].split('?')[0], c)
         c = decl[p]; cols = c.get('cols') or c['n']; rows = c.get('rows') or 1
-        a = np.asarray(Image.open(os.path.join(root, p.lstrip('/'))).convert('RGBA'))
+        a = np.asarray(Image.open(src(root, p)).convert('RGBA'))
         cells, cw, ch = C.cells_of(a, cols, rows, min(c['n'], cols * rows), c['fw'], c['fh'])
         if [C.cell_hash(x) for x in cells] != man[p]['h']['cells']: src_bad.append(p)
     if regen:
@@ -72,7 +90,7 @@ def main():
         ps = sorted(p for p in tiers if 'p' in tiers[p]); random.Random(1141).shuffle(ps); sample = ps[:regen]
         for p in sample:
             c = decl[p]; cols = c.get('cols') or c['n']; rows = c.get('rows') or 1
-            a = np.asarray(Image.open(os.path.join(root, p.lstrip('/'))).convert('RGBA'))
+            a = np.asarray(Image.open(src(root, p)).convert('RGBA'))
             cells, cw, ch = C.cells_of(a, cols, rows, min(c['n'], cols * rows), c['fw'], c['fh'])
             m = man[p]['p']
             got = [C.cell_hash(C.resample_cell(x, m['cw'], m['ch'])) for x in cells[:len(m['cells'])]]

@@ -16,7 +16,8 @@
 (function main() {
 const path = require('path'), vm = require('vm'), fs = require('fs'), os = require('os'), crypto = require('crypto');
 const ROOT = path.resolve(__dirname, '..');
-const HTML = path.join(ROOT, 'emberweave-heroes.html');
+const Q95 = require('./helpers/q95-1158.js');   // v1158: q95 sheets are checked as the v1157 lossless originals they were (tests/test_q95_1158.js checks the q95 files)
+const HTML = Q95.page(path.join(ROOT, 'emberweave-heroes.html'));
 const SRC = fs.readFileSync(HTML, 'utf8');
 const NL = SRC.includes('\r\n') ? '\r\n' : '\n';
 let pass = 0, fail = 0;

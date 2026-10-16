@@ -6,7 +6,8 @@
 // Runs the real battle engine (server/sim-host.js - the same file the server replays fights with) through updateBattle.
 const path = require('path'), vm = require('vm');
 const ROOT = path.resolve(__dirname, '..');
-const host = require(path.join(ROOT, 'server/sim-host.js')).load(path.join(ROOT, 'emberweave-heroes.html'));
+const Q95 = require('./helpers/q95-1158.js');   // v1158: q95 sheets are checked as the v1157 lossless originals they were (tests/test_q95_1158.js checks the q95 files)
+const host = require(path.join(ROOT, 'server/sim-host.js')).load(Q95.page(path.join(ROOT, 'emberweave-heroes.html')));
 require('./helpers/anim-slim-1155.js').undoSlim1155(src => require('vm').runInContext(src, host.ctx));   // v1155 slim: this release's checks see the v1153 entries (tests/test_anim_slim_1155.js checks the slim)
 const run = src => vm.runInContext(src, host.ctx);
 let pass = 0, fail = 0;

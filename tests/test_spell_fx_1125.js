@@ -12,7 +12,8 @@
 // One line per check; exit code = number of failures.  Run on another copy: HTML=<path> node tests/test_spell_fx_1125.js
 const fs = require('fs'), path = require('path'), vm = require('vm'), cp = require('child_process');
 const ROOT = path.resolve(__dirname, '..');
-const HTML = process.env.HTML || path.join(ROOT, 'emberweave-heroes.html');
+const Q95 = require('./helpers/q95-1158.js');   // v1158: q95 sheets are checked as the v1157 lossless originals they were (tests/test_q95_1158.js checks the q95 files)
+const HTML = process.env.HTML || Q95.page(path.join(ROOT, 'emberweave-heroes.html'));
 const H = fs.readFileSync(HTML, 'utf8');
 const BASE = process.env.BASE || '2f15f200';   // main before v1125
 let pass = 0, fail = 0;
@@ -25,7 +26,7 @@ const SHEETS = { astrahorizon: ['astra_event_horizon', 72], korvuxcleave: ['korv
 ck('the two sheets carry a fresh ?v=1125 (never a shipped version)', /astrahorizon:\{u:'\/assets\/anim\/fx\/astra_event_horizon\.webp\?v=1125'/.test(H) && /korvuxcleave:\{u:'\/assets\/anim\/fx\/korvux_ember_cleave\.webp\?v=1125'/.test(H));
 for (const [k, [file, cells]] of Object.entries(SHEETS)) {
   const m = H.match(new RegExp('\\n\\s*' + k + ":\\{u:'/(assets/anim/fx/" + file + "\\.webp)\\?v=(\\d+)',n:(\\d+),fw:(\\d+),fh:(\\d+),cols:(\\d+),rows:(\\d+)"));
-  const f = m && path.join(ROOT, m[1]), sz = f && fs.existsSync(f) && webpSize(f);
+  const f = m && Q95.file(ROOT, m[1]), sz = f && fs.existsSync(f) && webpSize(f);
   ck(`${k}: ${file}.webp on disk, ${cells} cells fit the grid, sheet = cols*fw x rows*fh, <= 4096`,
     !!(m && sz && +m[3] === cells && +m[3] <= +m[6] * +m[7] && sz[0] === +m[4] * +m[6] && sz[1] === +m[5] * +m[7] && sz[0] <= 4096 && sz[1] <= 4096), JSON.stringify([m && m.slice(3), sz]));
 }

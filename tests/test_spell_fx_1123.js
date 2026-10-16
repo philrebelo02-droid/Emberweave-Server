@@ -10,7 +10,8 @@
 // One line per check; exit code = number of failures.  Run on another copy: HTML=<path> node tests/test_spell_fx_1123.js
 const fs = require('fs'), path = require('path'), vm = require('vm'), os = require('os'), cp = require('child_process');
 const ROOT = path.resolve(__dirname, '..');
-const HTML = process.env.HTML || path.join(ROOT, 'emberweave-heroes.html');
+const Q95 = require('./helpers/q95-1158.js');   // v1158: q95 sheets are checked as the v1157 lossless originals they were (tests/test_q95_1158.js checks the q95 files)
+const HTML = process.env.HTML || Q95.page(path.join(ROOT, 'emberweave-heroes.html'));
 const H = fs.readFileSync(HTML, 'utf8');
 let pass = 0, fail = 0;
 const ck = (name, ok, detail) => { if (ok) { pass++; console.log('  ok   ' + name); } else { fail++; console.log('  FAIL ' + name + (detail !== undefined ? ' - ' + detail : '')); } };
@@ -24,7 +25,7 @@ const SHEETS = { sorrelcard: 'sorrel_card', sorrelspark: 'sorrel_hit_spark', sor
 const CELLS = { sorrelcard: 1, sorrelspark: 3, sorrelflare: 5, carnreap: 64, tharlquake: 67, konwuruyi: 48, rhukkroar: 60, rhukkshell: 35 };
 for (const [k, file] of Object.entries(SHEETS)) {
   const m = H.match(new RegExp('\\n\\s*' + k + ":\\{u:'/(assets/anim/fx/" + file + "\\.webp)\\?v=(\\d+)',n:(\\d+),fw:(\\d+),fh:(\\d+),cols:(\\d+),rows:(\\d+)"));
-  const f = m && path.join(ROOT, m[1]), sz = f && fs.existsSync(f) && webpSize(f);
+  const f = m && Q95.file(ROOT, m[1]), sz = f && fs.existsSync(f) && webpSize(f);
   ck(`${k}: ${file}.webp on disk, ${CELLS[k]} cells fit the grid, sheet = cols*fw x rows*fh, <= 4096`,
     !!(m && sz && +m[3] === CELLS[k] && +m[3] <= +m[6] * +m[7] && sz[0] === +m[4] * +m[6] && sz[1] === +m[5] * +m[7] && sz[0] <= 4096 && sz[1] <= 4096), JSON.stringify([m && m.slice(3), sz]));
 }

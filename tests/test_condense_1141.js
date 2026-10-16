@@ -21,6 +21,7 @@
 const path = require('path'), vm = require('vm'), fs = require('fs'), cp = require('child_process'), os = require('os'), net = require('net'), http = require('http'), zlib = require('zlib');
 const ROOT = path.resolve(__dirname, '..');
 const HTML = path.join(ROOT, 'emberweave-heroes.html');
+const Q95 = require('./helpers/q95-1158.js');   // v1158: a q95 tier file is checked as the v1157 lossless file it was (tests/test_q95_1158.js checks the q95 file)
 const BASE_SHA = process.env.EW_BASE || 'c5adff17';   // v1154: live v1153, the release this one is built on (was v1140 25d88920 when the condense was first cut)
 const PY = process.env.PYTHON || 'python';
 let pass = 0, fail = 0;
@@ -47,11 +48,11 @@ try {
   let nP = 0, nH = 0, bytesOrig = 0, bytesP = 0, memV = 0, memP = 0, figGain = [];
   for (const p of paths) {
     const cs = byPath[p]; if (!cs) { probs.push(p + ' is in no clip table'); continue; }
-    const c = cs[0], cols = c.cols || c.n, rows = c.rows || 1, orig = path.join(ROOT, p), ob = fs.statSync(orig).size;
+    const c = cs[0], cols = c.cols || c.n, rows = c.rows || 1, orig = Q95.file(ROOT, p), ob = fs.statSync(orig).size;
     if (cs.some(x => x.s === 'idle' || x.s === 'walk')) probs.push(p + ' is an idle/walk sheet');
     for (const t of Object.keys(T[p])) {
-      const [u, W, H, gc, gr, tc] = T[p][t], f = path.join(ROOT, u.split('?')[0]);
-      if (!/\?v=1141$/.test(u) || !fs.existsSync(f)) { probs.push(u + ' missing / not ?v=1141'); continue; }
+      const [u, W, H, gc, gr, tc] = T[p][t], f = Q95.file(ROOT, u);
+      if (!/\?v=1141$/.test(u.replace(/\?v=1158$/, Q95.BY.has(u.split('?')[0]) ? '?v=1141' : '?v=bad')) || !fs.existsSync(f)) { probs.push(u + ' missing / not ?v=1141 (v1158: ?v=1158 exactly when q95)'); continue; }
       const i = webpInfo(f), by = fs.statSync(f).size, n = Math.min(c.n, cols * rows);
       if (!i || i.kind !== 'lossless') probs.push(u + ' is not lossless WebP');
       if (!i || i.w !== W || i.h !== H) probs.push(u + ' decodes ' + (i && i.w) + 'x' + (i && i.h) + ' not ' + W + 'x' + H);
@@ -86,7 +87,7 @@ try {
     probs.length === 0 && nP > 50 && nH > 5, probs.slice(0, 6).join('; '));
 
   // ------------------------------------------------------------------ 2. TRIM CORRECTNESS
-  const V = JSON.parse(cp.execFileSync(PY, ['-I', path.join(ROOT, 'tools/condense_verify.py'), ROOT, '--regen', '8'], { maxBuffer: 16 << 20 }).toString());
+  const V = JSON.parse(cp.execFileSync(PY, ['-I', path.join(ROOT, 'tools/condense_verify.py'), ROOT, '--regen', '8', '--q95', path.join(__dirname, 'fixtures/q95_1158.json')], { maxBuffer: 16 << 20 }).toString());
   ck('every cell of every tier file is pixel-identical to the untrimmed cell at its tier (' + V.checked + ' files)', V.nbad === 0 && V.checked === nP + nH, JSON.stringify(V.bad.slice(0, 3)));
   ck('trimmed HIGH files match their original file cell for cell (' + V.high_src_checked + ' sheets)', V.high_src_checked === nH && V.high_src_bad.length === 0, V.high_src_bad.join(','));
   ck('8 phone sheets re-resampled from the original reproduce the manifest exactly', V.regen.length === 8 && V.regen_bad.length === 0, V.regen_bad.join(','));
@@ -97,7 +98,7 @@ try {
   const BASEF = path.join(ROOT, '.test-condense-base.html'); fs.writeFileSync(BASEF, baseHtml); process.on('exit', () => { try { fs.unlinkSync(BASEF); } catch (e) {} });
   /* v1157: the v1155 animation slim (tests/fixtures/anim_slim_1155.json, checked entry by entry in tests/test_anim_slim_1155.js) is the only
      clip-data change since BASE - with its entries put back, every table must be BASE byte for byte; the condense itself changes none */
-  const runU = load(HTML); require('./helpers/anim-slim-1155.js').undoSlim1155(runU);
+  const runU = load(Q95.page(HTML)); require('./helpers/anim-slim-1155.js').undoSlim1155(runU);
   const a = runU(DUMP), b = load(BASEF)(DUMP);
   ck('every BATTLE_ANIM / FX2_DEF entry (cells, fps, anchors, ax, contact/relFrac) is identical to BASE ' + BASE_SHA + ' once the v1155 slim entries are put back', a === b && a.length > 100000, a.length + ' vs ' + b.length);
 
@@ -121,7 +122,7 @@ try {
     ck('gzip for a gzip-only client; identity (no Content-Encoding, the exact bytes) with no Accept-Encoding', rg.h['content-encoding'] === 'gzip' && zlib.gunzipSync(rg.b).equals(raw) && !rp.h['content-encoding'] && rp.b.equals(raw));
     let best = r1.b.length; for (let i = 0; i < 60 && best >= r1.b.length; i++) { await new Promise(r => setTimeout(r, 500)); best = (await get('/play', { 'accept-encoding': 'br' })).b.length; }
     ck('the page reaches brotli quality 11 in the background (' + r1.b.length + ' -> ' + best + ' bytes, still the same ETag)', best < r1.b.length * 0.95);
-    const js = await get('/hero-profiles.js', { 'accept-encoding': 'br' }), js2 = await get('/assets/anim/tiers_1141.json?v=1141', { 'accept-encoding': 'br' }), sw = await get('/sw.js', { 'accept-encoding': 'gzip' });
+    const js = await get('/hero-profiles.js', { 'accept-encoding': 'br' }), js2 = await get('/assets/anim/tiers_1141.json?v=1158', { 'accept-encoding': 'br' }), sw = await get('/sw.js', { 'accept-encoding': 'gzip' });
     ck('JS and JSON go out compressed with an ETag (hero-profiles.js, tiers_1141.json, sw.js)', js.h['content-encoding'] === 'br' && js2.h['content-encoding'] === 'br' && sw.h['content-encoding'] === 'gzip' && !!js.h.etag && !!js2.h.etag);
     /* v1154: since v1144 (sign-in first) /api/guest refuses a NEW guest (403), so the API check signs up a real account */
     const guest = await (await fetch(base + '/api/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: 'cnd' + Date.now().toString(36), pass: 'password1' }) })).json();

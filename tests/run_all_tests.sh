@@ -423,6 +423,8 @@ note "test_condense_1141.js (v1141 CONDENSE - size tiers + trim + compression: t
 node tests/test_condense_1141.js || FAILED=1
 note "test_offline_art_1154.js (v1154 OFFLINE ART LIST - Settings Update all features saves what THIS device loads: phone = phone tier files, desktop = trimmed files, originals only where a screen paints them (idle/walk, Skills previews); every listed URL 200, no v1154-retired file; card = N of N files and the list's MB (/api/asset-sizes), equal to the bytes really cached after a download; a device holding the old v1153 set fetches only the tier files, clears the replaced originals within the quarter cap and fights Carn + Aureth with no 404; CONTROL: the v1153 page lists no tier file)"
 node tests/test_offline_art_1154.js || FAILED=1
+note "test_q95_1158.js (v1158 q95: every lossless sheet the page / tier table names re-encoded WebP q95 or kept when bigger; lossy sheets untouched; files lossy+alpha, same size, smaller, fixture sha; alpha bit-exact vs v1157; composited >= 29 dB; Kon-Wu hidden green gone; every q95 URL ?v=1158; page = v1157 with the URLs put back; CONTROLS)"
+node tests/test_q95_1158.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi
