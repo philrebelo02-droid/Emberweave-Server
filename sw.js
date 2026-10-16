@@ -13,7 +13,7 @@
    cache instantly and revalidated in the background, so a genuinely changed file is picked up on
    the next open instead of never — and a ?v= bumped URL is a new key anyway, so it is fetched
    immediately. */
-const BUILD='1792115217859';
+const BUILD='1792119707710';
 const SHELL_CACHE = 'ember-shell-' + BUILD;   // versioned: wiped on every deploy
 const ASSET_CACHE = 'ember-assets-v1';        // persistent: survives deploys
 const SHELL = ['/play', '/', '/manifest.webmanifest', '/icon-192.png?v=lumi1', '/icon-512.png?v=lumi1', '/icon-512-maskable.png?v=lumi1', '/apple-touch-icon.png?v=lumi1', '/hero-profiles.js?v=r1150', '/hero-paths.js?v=r1025'];
@@ -48,6 +48,23 @@ self.addEventListener('fetch', (e) => {
   if (isOwnAsset && /\.(mp4|webm)$/i.test(url.pathname)) return;
   // v1124: the same for any Range request (the lore narration's <audio> element streams .m4a by Range) - a 206 cannot be cached
   // and a cached whole file must not answer a Range. Ult lines are fetched whole (no Range) and stay cached like art.
+  /* v1159: MUSIC streams by Range too (an <audio> element). Update all features saves each song whole; a Range read of a saved song is
+     answered from that copy as a 206 slice, so a downloaded song plays from the device. Not saved -> the network, uncached, as before. */
+  if (isOwnAsset && req.headers.has('range') && url.pathname.startsWith('/assets/audio/music/')) {
+    e.respondWith(caches.open(ASSET_CACHE).then(c => c.match(req.url)).then(hit => {
+      if (!hit) return fetch(req);
+      return hit.arrayBuffer().then(buf => {
+        const m = /bytes=(\d*)-(\d*)/.exec(req.headers.get('range') || ''), n = buf.byteLength;
+        let a = m && m[1] !== '' ? +m[1] : 0, z = m && m[2] !== '' ? +m[2] : n - 1;
+        if (m && m[1] === '' && m[2] !== '') { a = Math.max(0, n - +m[2]); z = n - 1; }
+        if (!(a < n)) return new Response(null, { status: 416, headers: { 'Content-Range': 'bytes */' + n } });
+        z = Math.min(z, n - 1);
+        return new Response(buf.slice(a, z + 1), { status: 206, headers: { 'Content-Type': hit.headers.get('Content-Type') || 'audio/mpeg',
+          'Content-Range': 'bytes ' + a + '-' + z + '/' + n, 'Content-Length': String(z - a + 1), 'Accept-Ranges': 'bytes' } });
+      });
+    }).catch(() => fetch(req)));
+    return;
+  }
   if (isOwnAsset && req.headers.has('range')) return;
   if (isOwnAsset) {
     // v576 (Phil: "it should only allow me to download new content"). A ?v= URL is IMMUTABLE by

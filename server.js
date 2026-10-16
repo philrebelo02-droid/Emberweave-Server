@@ -9329,7 +9329,7 @@ const server=http.createServer((req,res)=>{
     const rel=path.normalize(p.replace(/^\/+/,''));                 // strip leading slash, collapse the path
     if(rel.indexOf('..')!==-1 || p.indexOf('\0')!==-1){ res.writeHead(400); res.end(); return; }
     const ext=path.extname(rel).toLowerCase();
-    const MIME={'.webp':'image/webp','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.gif':'image/gif','.svg':'image/svg+xml','.mp4':'video/mp4','.webm':'video/webm','.json':'application/json','.js':'application/javascript','.css':'text/css','.woff2':'font/woff2','.ttf':'font/ttf','.m4a':'audio/mp4'};   // v1124: hero voices (AAC .m4a)
+    const MIME={'.webp':'image/webp','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.gif':'image/gif','.svg':'image/svg+xml','.mp4':'video/mp4','.webm':'video/webm','.json':'application/json','.js':'application/javascript','.css':'text/css','.woff2':'font/woff2','.ttf':'font/ttf','.m4a':'audio/mp4','.mp3':'audio/mpeg'};   // v1124: hero voices (AAC .m4a)
     const type=MIME[ext]||'application/octet-stream';
     // v252: art is immutable per deploy (?v= cache-busters + the service worker own invalidation),
     // so it gets a 30-day cache instead of a daily revalidation round-trip on every phone launch.

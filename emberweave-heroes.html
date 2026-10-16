@@ -4520,6 +4520,7 @@ function allAssetUrls(){
   try{ if(typeof BATTLE_BG!=='undefined') add(BATTLE_BG); }catch(e){}
   try{ if(typeof AIM_ART!=='undefined') for(const k in AIM_ART) add(AIM_ART[k]); }catch(e){}
   try{ if(typeof FX_ANIM!=='undefined') for(const k in FX_ANIM){ const c=FX_ANIM[k]; if(c&&c.u) add(c.u); } }catch(e){}
+  try{ if(typeof MUSIC_LISTS!=='undefined') for(const k in MUSIC_LISTS) (MUSIC_LISTS[k]||[]).forEach(m=>m&&m.f&&add('/assets/audio/'+m.f)); }catch(e){}   /* v1159: the music, whole files (sw.js answers the player's Range reads from them) */
   return [...out];
 }
 let _dlAbort=false;
@@ -10038,11 +10039,12 @@ function sndLoad(f){ if(!SND.ctx) return null; if(f in SND.buf) return null; if(
     .then(b=>{ SND.buf[f]=b; delete SND.pend[f]; return b; }, ()=>{ SND.buf[f]=null; delete SND.pend[f]; return null; });
   return SND.pend[f]; }
 function sndUnlock(){ try{
-    if(!SND.ctx){ const C=window.AudioContext||window.webkitAudioContext; if(!C) return; SND.ctx=new C(); SND.out=SND.ctx.createGain(); SND.out.connect(SND.ctx.destination); SND_CH.forEach(ch=>{ const g=SND.ctx.createGain(); g.gain.value=sndGain(ch); g.connect(SND.out); SND.bus[ch]=g; });
+    if(!SND.ctx){ const C=window.AudioContext||window.webkitAudioContext; if(!C) return; SND.ctx=new C(); SND.out=SND.ctx.createGain(); SND.out.connect(SND.ctx.destination); SND_CH.forEach(ch=>{ const g=SND.ctx.createGain(); g.gain.value=sndGain(ch); g.connect(SND.out); SND.bus[ch]=g; }); sndMuteApply();   /* v1159 master mute */
       for(const k in AUDIO_MAP) if(!/^hero\./.test(k)) (AUDIO_MAP[k]||[]).forEach(l=>sndLoad(l.f));   /* v1124: voice lines wait for their hero's fight */
       sfxPrimeLib();   /* v1138: the weapon sounds; a hero's own sounds load with its fight (sndPrimeHero) */
       try{ (typeof units!=='undefined'&&units||[]).forEach(u=>u&&sndPrimeHero(u.key)); }catch(e){} }
     if(SND.ctx.state==='suspended') SND.ctx.resume().catch(()=>{});
+    musBoot(); musTick();   /* v1159 music: starts inside the tap that unlocks audio */
   }catch(e){} }
 /* v1124: fetch + decode a hero's ult lines when the hero is placed on a battlefield (makeUnit), so the first ult has its line ready
    (a line not decoded within 0.4 s is skipped). Nothing before audio is unlocked, with Voices off, or in a headless replay. */
@@ -10056,7 +10058,8 @@ function sndPlay(key,gapMs){ if(!sndCan()) return false; const ch=sndCh(key); if
     const b=SND.buf[l.f]; if(b) go(b); else if(b!==null){ const p=sndLoad(l.f); if(p) p.then(go); } });
   return true; }
 function sndSet(ch,c){ if(!SND.cfg[ch]) return; Object.assign(SND.cfg[ch],c||{}); try{ localStorage.setItem('ew_sound',JSON.stringify(SND.cfg)); }catch(e){} if(SND.bus[ch]) SND.bus[ch].gain.value=sndGain(ch);
-  if(ch==='voice'){ try{ if(_lore.a){ if(!SND.cfg.voice.on) loreStop(); else _lore.a.volume=sndGain('voice'); } }catch(e){} } }
+  if(ch==='voice'){ try{ if(_lore.a){ if(!SND.cfg.voice.on) loreStop(); else _lore.a.volume=sndGain('voice'); } }catch(e){} }
+  if(ch==='music'){ try{ musTick(); }catch(e){} } }
 /* v1138 COMBAT SOUND (Phil 15 Oct 2026: "wire it all in game"; "remember sfx should match the animation"; "the slice/contact peak of
    the sword sound should meet with the sword reaching the target"). Every Phil-approved combat sound, built by tools/build_sfx.py from
    the Archive's SOUND LIST 11OCT2026 picks into assets/audio/sfx/ (manifest: assets/audio/sfx/sfx_manifest.json; blueprint 29).
@@ -10256,9 +10259,216 @@ function loreToggle(key,btn){ try{
   /* v1124: a tap while the story plays STOPS it (the next tap starts it from the beginning) - was pause/resume in v1048 */
   if(_lore.a&&_lore.key===key&&!_lore.a.ended&&!_lore.a.paused){ loreStop(); loreBtnSync(btn); return; }
   loreStop(); const f=LORE_AUDIO[key]; if(!f||!SND.cfg.voice.on) return;
-  const a=new Audio('/assets/audio/'+f); a.preload='none'; a.volume=sndGain('voice'); _lore.a=a; _lore.key=key;
+  const a=new Audio('/assets/audio/'+f); a.preload='none'; a.volume=sndGain('voice'); a.muted=SND_MUTE.on; _lore.a=a; _lore.key=key;
   a.onplay=a.onpause=a.onended=()=>loreBtnSync(btn); a.play().catch(()=>loreBtnSync(btn)); loreBtnSync(btn);
 }catch(e){} }
+/* v1159 MASTER MUTE (Phil 15 Oct 2026: "put a sound symbol in the top right so someone can mute all volume whenever they want and unmute.
+   put it on every window"; placed "left of the profile portrait"). One switch over everything: the master output (SND.out, which carries
+   FX, Music and Voices) goes to 0 and the lore narration element is muted. The FX/Music/Voices settings in SND.cfg are never touched, so
+   unmuting gives back exactly what Settings had. Kept on this device (ew_mute) and read here, before any sound can play. Render only -
+   never touches battle state or the seeded RNG. */
+const SND_MUTE = { on:false };
+try{ SND_MUTE.on = localStorage.getItem('ew_mute')==='1'; }catch(e){}
+function sndMuteApply(){ const on=SND_MUTE.on;
+  try{ if(SND.out&&SND.ctx){ const g=SND.out.gain, t=SND.ctx.currentTime; g.cancelScheduledValues(t); g.setValueAtTime(on?0:1, t); g.value=on?0:1; } }catch(e){}
+  try{ if(_lore.a) _lore.a.muted=on; }catch(e){}
+  try{ const b=document.getElementById('muteBtn'); if(b){ b.classList.toggle('off',on); b.setAttribute('aria-pressed',on?'true':'false'); b.setAttribute('aria-label',on?'Sound off - turn sound on':'Sound on - mute all sound');
+      const im=b.querySelector('img'); if(im) im.src=ICON_SRC.u(on?'audio-off':'audio-on'); } }catch(e){}
+  try{ const cb=document.getElementById('snd_mute'); if(cb) cb.checked=on; }catch(e){} }
+function sndMuteSet(on){ SND_MUTE.on=!!on; try{ localStorage.setItem('ew_mute',SND_MUTE.on?'1':'0'); }catch(e){} sndMuteApply(); }
+/* The button lives on <body>, outside #app, above every modal and gate. Where it sits: on the hub, immediately left of the profile
+   portrait (#profileBtn), centred on it with a 6 px gap; on every other screen, the same spot the hub measured (MUTE_POS, fractions of
+   the viewport so a resize keeps it), unless that screen's own controls are there - then the nearest free spot, found by measuring (muteBtnPlace). */
+const MUTE_SZ = 40, MUTE_GAP = 6;
+const MUTE_POS = { rx:null, ty:null };   // the hub's spot: right edge distance and centre y, as fractions of the viewport
+const MUTE_MEMO = {};                    // screen + viewport -> the free spot found there
+/* is anything the player can tap under this square (+3 px)? A 5x5 grid of elementFromPoint, the button itself skipped. */
+function muteHitsAt(b,x,y){ const pad=3, s=MUTE_SZ+2*pad, out=[];
+  const clk=el=>{ for(let e=el,d=0;e&&d<6;e=e.parentElement,d++){ if(e===document.body||e===document.documentElement||e===b) return null;
+      if(e.matches&&e.matches('button,a[href],input,select,textarea,label,[onclick],[data-nav],[role=button],.btn,.mitem,.resplus')) return e;
+      const cs=getComputedStyle(e); if(cs.cursor==='pointer'&&cs.pointerEvents!=='none') return e; } return null; };
+  for(let i=0;i<5;i++) for(let j=0;j<5;j++){ const el=document.elementFromPoint(x-pad+s*i/4, y-pad+s*j/4), c=el&&clk(el); if(c) out.push(c); }
+  return out.length; }
+function muteBtnPlace(){ try{ const b=document.getElementById('muteBtn'); if(!b) return;
+    const vw=window.innerWidth||document.documentElement.clientWidth, vh=window.innerHeight||document.documentElement.clientHeight; if(!vw||!vh) return;
+    const home=document.getElementById('home'), pf=document.getElementById('profileBtn'), st=(typeof state!=='undefined'&&state)||'';
+    const put=(x,y)=>{ x=Math.max(4,Math.min(vw-MUTE_SZ-4,Math.round(x))); y=Math.max(4,Math.min(vh-MUTE_SZ-4,Math.round(y)));
+      b.style.setProperty('--mx',x+'px'); b.style.setProperty('--my',y+'px'); b.dataset.spot=x+','+y; };
+    if(home&&home.classList.contains('active')&&pf){ const r=pf.getBoundingClientRect();
+      if(r.width>0&&r.height>0){ const x=r.left-MUTE_GAP-MUTE_SZ, y=r.top+r.height/2-MUTE_SZ/2; MUTE_POS.rx=(vw-(x+MUTE_SZ))/vw; MUTE_POS.ty=(y+MUTE_SZ/2)/vh;
+        /* the hub: left of the portrait, always. A window open over the hub (menu, profile, shop) is checked like any other screen. */
+        b.style.pointerEvents='none'; const busy=muteHitsAt(b,x,y); b.style.pointerEvents='';
+        if(!busy){ put(x,y); return; } } }
+    if(MUTE_POS.rx==null){ /* never on the hub yet: the hub's own CSS geometry (#cornerHud right .5%, #profileBtn clamp(56px,10vh,92px) + its margin) */
+      const w=Math.max(56,Math.min(92,vh*0.10)), m=Math.max(30,Math.min(46,vh*0.047));
+      MUTE_POS.rx=(vw*0.005+m+w+MUTE_GAP)/vw; MUTE_POS.ty=(vh*0.02+w/2)/vh; }
+    const hx=vw-MUTE_POS.rx*vw-MUTE_SZ, hy=MUTE_POS.ty*vh-MUTE_SZ/2;
+    /* every other screen: the hub's spot, unless that screen has a control there - then the nearest free spot (10 px steps, right/left/down
+       within 140 px), remembered per screen and viewport and re-checked every second. */
+    const key=st+'|'+vw+'x'+vh;
+    b.style.pointerEvents='none';
+    try{ const memo=MUTE_MEMO[key];
+      if(memo&&!muteHitsAt(b,memo[0],memo[1])){ put(memo[0],memo[1]); return; }
+      if(!muteHitsAt(b,hx,hy)){ MUTE_MEMO[key]=[hx,hy]; put(hx,hy); return; }
+      const C=[]; for(let dx=-140;dx<=140;dx+=10) for(let dy=0;dy<=140;dy+=10){ const x=hx+dx, y=hy+dy; if(x<4||x>vw-MUTE_SZ-4||y>vh-MUTE_SZ-4) continue; C.push([Math.hypot(dx,dy),x,y]); }
+      C.sort((a,c)=>a[0]-c[0]);
+      for(const [,x,y] of C){ if(!muteHitsAt(b,x,y)){ MUTE_MEMO[key]=[x,y]; put(x,y); return; } }
+      put(hx,hy);   // nothing free within reach: the hub spot (the button sits on top either way)
+    } finally { b.style.pointerEvents=''; } }catch(e){} }
+function muteBtnMake(){ try{ if(document.getElementById('muteBtn')||!document.body) return;
+    const st=document.createElement('style'); st.textContent=
+      '#muteBtn{position:fixed;z-index:2147483000;left:min(var(--mx,0px),calc(100vw - '+MUTE_SZ+'px - env(safe-area-inset-right,0px)));'+
+      'top:max(var(--my,8px),env(safe-area-inset-top,0px));width:'+MUTE_SZ+'px;height:'+MUTE_SZ+'px;margin:0;padding:0;box-sizing:border-box;'+
+      'border-radius:50%;border:2px solid #c9a35e;background:radial-gradient(circle at 50% 38%,rgba(52,38,20,.92),rgba(16,12,8,.92));'+
+      'box-shadow:0 2px 8px rgba(0,0,0,.6),inset 0 0 6px rgba(255,200,120,.18);display:flex;align-items:center;justify-content:center;cursor:pointer;'+
+      'touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;outline:none}'+
+      '#muteBtn img{width:28px;height:28px;object-fit:contain;pointer-events:none;filter:drop-shadow(0 1px 1px #000)}'+
+      '#muteBtn.off{border-color:#8a6b2e}#muteBtn:active{transform:scale(.94)}#muteBtn:focus-visible{box-shadow:0 0 0 2px #ffd45e}';
+    document.head.appendChild(st);
+    const b=document.createElement('button'); b.id='muteBtn'; b.type='button'; b.innerHTML='<img alt="" draggable="false">';
+    document.body.appendChild(b); sndMuteApply(); muteBtnPlace();
+    window.addEventListener('resize',()=>{ muteBtnPlace(); setTimeout(muteBtnPlace,120); });
+    try{ if(window.visualViewport) window.visualViewport.addEventListener('resize',muteBtnPlace); }catch(e){}
+    setInterval(muteBtnPlace,1000);   // a screen that re-lays itself out (fit, orientation) is caught within a second
+  }catch(e){} }
+/* A tap on the button is the button's alone: these window CAPTURE listeners run before every game listener (they are registered first),
+   so no screen under it, no "tap anywhere to close" overlay and no battle input ever sees it. It still unlocks audio like any tap. */
+try{ if(typeof window!=='undefined'&&window.addEventListener){
+  const _onBtn=e=>{ try{ const b=document.getElementById('muteBtn'); return !!(b&&e.target&&(e.target===b||b.contains(e.target))); }catch(_){ return false; } };
+  ['pointerdown','pointerup','pointercancel','mousedown','mouseup','touchstart','touchend','touchcancel','dblclick','contextmenu'].forEach(ev=>
+    window.addEventListener(ev,e=>{ if(!_onBtn(e)) return; e.stopImmediatePropagation(); if(ev==='touchend'||ev==='contextmenu') { /* keep the click */ }
+      if(ev==='pointerdown'||ev==='touchstart'||ev==='mousedown') sndUnlock(); },{capture:true,passive:true}));
+  window.addEventListener('click',e=>{ if(!_onBtn(e)) return; e.stopImmediatePropagation(); e.preventDefault(); sndUnlock(); sndMuteSet(!SND_MUTE.on);
+    try{ document.getElementById('muteBtn').blur(); }catch(_){} },{capture:true});
+  window.addEventListener('keydown',e=>{ if(!_onBtn(e)) return; e.stopImmediatePropagation(); },{capture:true});
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',muteBtnMake); else setTimeout(muteBtnMake,0); } }catch(e){}
+
+/* v1159 MUSIC (Phil 15 Oct 2026). Playlists per setting - adding a song later is adding an entry here, nothing else.
+   city    the default for everything that is not the map or combat: the hub, every building, window and popup. "I want the first song to
+           continue even when you are clicking in and out of buildings" / "not pause and restart" - it plays straight through them.
+   map     the campaign map (and the City Wall's world).
+   battle  anything that builds a battlefield (state 'battle', every mode). Each new fight plays the NEXT song (ew_battle_track on this
+           device), from its start; at loopEnd it joins loopStart seamlessly (both are the same bar line) for as long as the waves go on;
+           when the fight ends the music fades out.
+   skyfall the Skyfall board while a war is live (and a march watched from it).
+   City, map and skyfall shuffle (never the same song twice running) and crossfade 3.5 s into the next song at `end`; a list of one loops
+   the same way. Leaving a setting fades it out over 1 s and PAUSES it there; coming back resumes it where it was (battle excepted).
+   Rules: streamed (an <audio> element per song through createMediaElementSource into the Music bus - nothing decoded whole: phone memory,
+   v1140); real time, playbackRate 1 whatever the battle speed; nothing before the first tap; none in a headless replay or on the server;
+   render only - never reads or advances the battle RNG (shuffles use crypto). Files: assets/audio/music, 128 kbps mp3, -18 LUFS;
+   originals + sources in Archive Game Art/Music/REFERENCE from Phil 15OCT2026 (all Pixabay Content License).
+   Song fields: f file, name, start (where it begins), end (playlists: where its crossfade out finishes), loopStart/loopEnd (battle: the
+   seam, both on the same bar line minus 20 ms; a bar grid measured by onset regression), lufs (after the -18 LUFS re-encode). */
+const MUSIC_LISTS = {
+  city:[
+    { f:'music/city-dragons.mp3?v=1159', name:'Battle of the Dragons', src:'Pixabay 8037', start:0, end:237.0, lufs:-18.1 },
+    { f:'music/city-for-the-king.mp3?v=1159', name:'For the King', src:'Pixabay 141778 (giri_is)', start:0, end:68.25, lufs:-18.1 },
+    { f:'music/city-apalon-battle.mp3?v=1159', name:'Battle (Apalonbeats)', src:'Pixabay 549411', start:0, end:110.75, lufs:-18.0 },
+    { f:'music/city-soundscape.mp3?v=1159', name:'Battle Soundscape', src:'Pixabay 146987 (the_mountain)', start:0.5, end:127.75, lufs:-18.1 },
+    { f:'music/city-ancient-forest.mp3?v=1159', name:'Shadow of the Ancient Forest', src:'Pixabay 440911 (kaazoom)', start:0, end:205.25, lufs:-18.1 },
+    { f:'music/city-mover-underscore.mp3?v=1159', name:'Epic Dramatic Cinematic Mover Underscore', src:'Pixabay 333629 (Alex_Besss)', start:0, end:143.5, lufs:-18.1 } ],
+  map:[
+    { f:'music/map-forgotten-keep.mp3?v=1159', name:'The Forgotten Keep (Night)', src:'Pixabay 572748 (kaazoom)', start:0, end:131.25, lufs:-18.0 },
+    { f:'music/map-epic-battle-song.mp3?v=1159', name:'Epic Battle Song', src:'Pixabay 182915 (Rolandomat)', start:0, end:159.5, lufs:-18.1 },
+    { f:'music/map-under-the-elven-star.mp3?v=1159', name:'Under the Elven Star', src:'Pixabay 447854 (kaazoom)', start:0, end:149.0, lufs:-18.0 },
+    { f:'music/map-fantasy-rpg-exploration.mp3?v=1159', name:'Fantasy RPG Exploration v2', src:'Pixabay 461303 (RubyZephyr)', start:0, end:200.75, lufs:-18.1 },
+    { f:'music/map-we-rise-again.mp3?v=1159', name:'We Rise Again', src:'Pixabay 448107 (kaazoom)', start:0, end:221.5, lufs:-18.0 } ],
+  battle:[
+    { f:'music/battle-crimson-horizon.mp3?v=1159', name:'Crimson Horizon', src:'Pixabay 409985 (MrOneILoveALot)', bpm:120.0, start:40.545, loopStart:40.545, loopEnd:178.543, lufs:-18.0 },   // 69 bars of 2.000 s
+    { f:'music/battle-paulyudin.mp3?v=1159', name:'Battle (PaulYudin)', src:'Pixabay 491417', bpm:170.66, start:0, loopStart:17.813, loopEnd:142.971, lufs:-18.0 },   // 89 bars of 1.406 s
+    { f:'music/battle-echoes-of-lumen.mp3?v=1159', name:'Battle (Echoes of Lumen)', src:'Pixabay 586988', bpm:99.86, start:0, loopStart:33.326, loopEnd:160.699, lufs:-18.0 },   // 53 bars of 2.403 s
+    { f:'music/battle-tunetank.mp3?v=1159', name:'Cinematic Powerful Battle Music', src:'Pixabay 414692 (Tunetank)', bpm:77.67, start:46.358, loopStart:46.358, loopEnd:179.229, lufs:-18.0 },   // 43 bars of 3.090 s
+    { f:'music/battle-francisco-samuel.mp3?v=1159', name:'Epic Battle (Francisco Samuel)', src:'Pixabay 123469', bpm:82.0, start:11.89, loopStart:11.89, loopEnd:152.379, lufs:-18.0 } ],   // 48 bars of 2.927 s
+  skyfall:[
+    { f:'music/sky-final-stand.mp3?v=1159', name:'The Final Stand', src:'Pixabay 545608 (turning_pages)', start:0, end:151.25, lufs:-18.0 },
+    { f:'music/sky-heroic-battle.mp3?v=1159', name:'Heroic Battle', src:'Pixabay 251914 (leberch)', start:0, end:91.0, lufs:-18.1 },
+    { f:'music/sky-battle-wave.mp3?v=1159', name:'Battle Wave', src:'Pixabay 136095 (the_mountain)', start:0.5, end:110.0, lufs:-18.1 },
+    { f:'music/sky-battle-cinematic.mp3?v=1159', name:'Battle Cinematic', src:'Pixabay 162437 (PaulYudin)', start:0, end:106.5, lufs:-18.0 },
+    { f:'music/sky-forward-assault.mp3?v=1159', name:'Battle Engine - Forward Assault', src:'Pixabay 541157 (SenorMusica81)', start:0, end:127.0, lufs:-18.1 } ] };
+const MUS_XF_SCENE=1.0, MUS_XF_SONG=3.5, MUS_XF_SEAM=0.04, MUS_END_FADE=1.2, MUS_POOL=8;
+const MUS = { pool:[], lanes:{}, cur:null, timer:0, hidden:false, held:[], log:[] };
+function musLog(x){ MUS.log.push(x); if(MUS.log.length>200) MUS.log.splice(0,MUS.log.length-200); }   /* the last 200 music events (the v1159 test reads them) */
+function musRand(n){ try{ const a=new Uint32Array(1); crypto.getRandomValues(a); return a[0]%n; }catch(e){ MUS._x=((MUS._x||(Date.now()>>>0)||1)*1103515245+12345)>>>0; return MUS._x%n; } }
+function musLane(name){ return MUS.lanes[name]||(MUS.lanes[name]={ name, slot:null, next:null, song:null, bag:[], last:-1, xf:false, seamT:0 }); }
+function musOK(){ try{ return !!(SND.ctx&&SND.bus&&SND.bus.music&&SND.cfg.music.on&&!window._p2guard&&!MUS.hidden); }catch(e){ return false; } }
+/* where the game is, as a music setting - one rule covering every mode, no list of modes */
+function musSkyLive(){ try{ if(SKYSIM&&SKYSIM.running) return true; const m=SKY&&SKY.st&&SKY.st.match; return !!(m&&m.state==='live'); }catch(e){ return false; } }
+function musWant(){ try{ if(window._p2guard) return null;
+    const s=(typeof state!=='undefined')?state:'home', rep=!!(CUR&&CUR.mode==='replay');
+    if(s==='battle') return (rep&&MUS.cur==='skyfall')?'skyfall':(ended?null:'battle');
+    if(s==='result') return (rep&&MUS.cur==='skyfall')?'skyfall':null;
+    if(s==='skyfall'&&musSkyLive()) return 'skyfall';
+    if(s==='campaign'||s==='world') return 'map';
+    return 'city'; }catch(e){ return 'city'; } }
+/* a silent clip, played once on every pooled element inside the first tap: iOS then lets those elements play later without a tap */
+const MUS_SILENT=(()=>{ try{ const n=64, b=new Uint8Array(44+n), v=new DataView(b.buffer), w=(o,s)=>{ for(let i=0;i<s.length;i++) b[o+i]=s.charCodeAt(i); };
+  w(0,'RIFF'); v.setUint32(4,36+n,true); w(8,'WAVEfmt '); v.setUint32(16,16,true); v.setUint16(20,1,true); v.setUint16(22,1,true); v.setUint32(24,8000,true);
+  v.setUint32(28,8000,true); v.setUint16(32,1,true); v.setUint16(34,8,true); w(36,'data'); v.setUint32(40,n,true); b.fill(128,44);
+  let s=''; for(let i=0;i<b.length;i++) s+=String.fromCharCode(b[i]); return 'data:audio/wav;base64,'+btoa(s); }catch(e){ return ''; } })();
+function musPrime(){ try{ if(MUS.pool.length||!SND.ctx||!SND.bus.music) return;
+    for(let i=0;i<MUS_POOL;i++){ const el=new Audio(); el.preload='none'; el.loop=false;
+      const node=SND.ctx.createMediaElementSource(el), g=SND.ctx.createGain(); g.gain.value=0; node.connect(g); g.connect(SND.bus.music);
+      const s={ el, node, g, lane:null, song:null, id:i }; MUS.pool.push(s);
+      el.addEventListener('pause',()=>{ if(s.lane) musLog(['pause',s.lane,+el.currentTime.toFixed(3),performance.now()|0]); });
+      if(MUS_SILENT){ el.src=MUS_SILENT; const p=el.play(); if(p&&p.then) p.then(()=>{ if(!s.lane) el.pause(); },()=>{}); } } }catch(e){} }
+function musFree(s){ try{ s.lane=null; s.song=null; s.g.gain.cancelScheduledValues(SND.ctx.currentTime); s.g.gain.value=0; s.el.pause(); s.el.removeAttribute('src'); s.el.load(); }catch(e){} }
+function musSlot(){ let s=MUS.pool.find(x=>!x.lane); if(s) return s;
+  /* all in use: free a paused setting's song (skyfall, then map, then city) - it starts afresh next time */
+  for(const n of ['skyfall','map','city','battle']){ const L=MUS.lanes[n]; if(L&&n!==MUS.cur&&L.slot&&L.slot.el.paused){ s=L.slot; L.slot=null; musFree(s); return s; } }
+  return null; }
+function musRamp(s,to,secs){ try{ const g=s.g.gain, t=SND.ctx.currentTime; g.cancelScheduledValues(t); g.setValueAtTime(g.value,t); g.linearRampToValueAtTime(to,t+Math.max(0.005,secs)); }catch(e){} }
+function musStart(L,song,at,fade){ const s=musSlot(); if(!s) return null;
+  s.lane=L.name; s.song=song; const el=s.el, u='/assets/audio/'+song.f;
+  if(el.getAttribute('src')!==u){ el.preload='auto'; el.src=u; }
+  try{ el.currentTime=at||0; }catch(e){} el.playbackRate=1; el.defaultPlaybackRate=1;
+  try{ s.g.gain.cancelScheduledValues(SND.ctx.currentTime); s.g.gain.value=0; }catch(e){}
+  const p=el.play(); if(p&&p.catch) p.catch(()=>{});
+  musRamp(s,1,fade); musLog(['start',L.name,song.f,at||0,performance.now()|0]); return s; }
+/* playlists: a shuffled bag, refilled so the next song is never the one that just played */
+function musNextSong(L){ const list=MUSIC_LISTS[L.name]||[]; if(!list.length) return null; if(list.length===1){ L.last=0; return list[0]; }
+  if(!L.bag.length){ const a=list.map((_,i)=>i); for(let i=a.length-1;i>0;i--){ const j=musRand(i+1); [a[i],a[j]]=[a[j],a[i]]; }
+    if(a[0]===L.last){ const j=1+musRand(a.length-1); [a[0],a[j]]=[a[j],a[0]]; } L.bag=a; }
+  L.last=L.bag.shift(); return list[L.last]; }
+function musBattleSong(){ const list=MUSIC_LISTS.battle||[]; if(!list.length) return null; let k=-1;
+  try{ const v=parseInt(localStorage.getItem('ew_battle_track'),10); if(isFinite(v)) k=v; }catch(e){}
+  k=(k+1)%list.length; if(k<0) k=0; try{ localStorage.setItem('ew_battle_track',String(k)); }catch(e){} return list[k]; }
+function musLeave(L,fade,release){ const s=L.slot, nx=L.next; L.next=null; L.xf=false; if(L.seamT){ clearTimeout(L.seamT); L.seamT=0; }
+  if(nx&&nx!==s) musFree(nx);
+  if(!s) return; musRamp(s,0,fade);
+  setTimeout(()=>{ if(MUS.cur===L.name&&L.slot===s&&!release) return;   // came back during the fade: keep playing
+    if(release){ if(L.slot===s) L.slot=null; if(s.lane===L.name) musFree(s); } else if(MUS.cur!==L.name) s.el.pause(); }, fade*1000+60);
+  if(release) L.slot=null; }
+function musEnter(L,fade){
+  if(L.name==='battle'){ if(L.slot) musFree(L.slot); L.slot=null; const song=musBattleSong(); if(song){ L.song=song; L.slot=musStart(L,song,song.start,0.25); } return; }
+  if(L.slot&&L.slot.lane===L.name){ const el=L.slot.el; if(el.paused){ const p=el.play(); if(p&&p.catch) p.catch(()=>{}); } musRamp(L.slot,1,fade); musLog(['resume',L.name,+el.currentTime.toFixed(3),performance.now()|0]); return; }
+  const song=musNextSong(L); if(song){ L.song=song; L.slot=musStart(L,song,song.start,fade); } }
+function musSwitch(w){ const old=MUS.cur; if(old===w) return; MUS.cur=w; musLog(['scene',old,w,performance.now()|0]);
+  if(old){ const L=musLane(old); musLeave(L, old==='battle'?(w?MUS_XF_SCENE:MUS_END_FADE):MUS_XF_SCENE, old==='battle'); }
+  if(w) musEnter(musLane(w), MUS_XF_SCENE); }
+/* inside a setting: playlists crossfade into the next song; the battle song joins its loop seam */
+function musWatch(L){ const s=L.slot; if(!s||!s.song) return; const el=s.el, song=s.song; if(el.paused&&!el.ended) return;
+  const t=el.currentTime||0, dur=isFinite(el.duration)?el.duration:0;
+  if(L.name==='battle'){ const le=song.loopEnd||dur; if(!le) return; const rem=le-t;
+    if(rem<8&&!L.next){ const n=musSlot(); if(n){ n.lane=L.name; n.song=song; n.el.preload='auto'; const u='/assets/audio/'+song.f; if(n.el.getAttribute('src')!==u) n.el.src=u; try{ n.el.currentTime=song.loopStart||0; }catch(e){} L.next=n; } }
+    if(L.next&&!L.seamT&&(rem<0.6||el.ended)){ const n=L.next;
+      L.seamT=setTimeout(()=>{ L.seamT=0; if(L.slot!==s||L.next!==n||MUS.cur!=='battle') return;
+        const p=n.el.play(); if(p&&p.catch) p.catch(()=>{}); musRamp(n,1,MUS_XF_SEAM); musRamp(s,0,MUS_XF_SEAM);
+        musLog(['seam',+s.el.currentTime.toFixed(3),song.loopStart,performance.now()|0]);
+        L.slot=n; L.next=null; setTimeout(()=>{ if(s.lane===L.name&&L.slot!==s) musFree(s); },400); }, Math.max(0,(rem-MUS_XF_SEAM/2)*1000-12)); }
+    return; }
+  const end=Math.min(song.end||dur||1e9, dur||1e9); if(L.xf||!end) return;
+  if(end-t<=MUS_XF_SONG||el.ended){ const nx=musNextSong(L); if(!nx) return; L.xf=true;
+    const n=musStart(L,nx,nx.start,MUS_XF_SONG); if(!n){ L.xf=false; return; } musRamp(s,0,MUS_XF_SONG);
+    musLog(['xfade',L.name,song.f,nx.f,performance.now()|0]);
+    L.slot=n; L.song=nx; setTimeout(()=>{ L.xf=false; if(s.lane===L.name&&L.slot!==s) musFree(s); },MUS_XF_SONG*1000+300); } }
+function musTick(){ try{
+    if(!musOK()){ if(MUS.cur&&SND.ctx&&!MUS.hidden&&!(SND.cfg&&SND.cfg.music&&SND.cfg.music.on)) musSwitch(null); return; }
+    if(!MUS.pool.length) musPrime();
+    musSwitch(musWant()); const L=MUS.cur&&MUS.lanes[MUS.cur]; if(L) musWatch(L); }catch(e){} }
+function musBoot(){ if(MUS.timer||!SND.ctx||window._p2guard) return; musPrime(); MUS.timer=setInterval(musTick,250); musTick(); }
+try{ if(typeof document!=='undefined'&&document.addEventListener) document.addEventListener('visibilitychange',()=>{ try{
+    if(document.visibilityState==='hidden'){ MUS.hidden=true; MUS.held=MUS.pool.filter(s=>s.lane&&!s.el.paused); MUS.held.forEach(s=>s.el.pause()); }
+    else { MUS.hidden=false; MUS.held.forEach(s=>{ if(s.lane){ const p=s.el.play(); if(p&&p.catch) p.catch(()=>{}); } }); MUS.held=[]; musTick(); } }catch(e){} }); }catch(e){}
 function dealDamage(src,tgt,amt,color,kind,silent){ if(typeof SFX!=='undefined'&&SFX.loop) sfxDmg(src);   /* v1138 sound (render only) */ kind=kind||((src&&src.t&&(['Magic','Healer'].includes(src.t.damageProfile)))?'magic':'phys');   // default follows canonical hero damage; explicit kind still wins
   // Packmaster: he is stronger and harder to put down for every summon still alive.
   if(src&&src._packN) amt*=1+0.05*src._packN*(src.passMul||1);
@@ -15744,7 +15954,8 @@ function closePopout(){ try{ loreStop(); }catch(e){}   /* v1124: closing a pop-o
   document.querySelectorAll('.popoutClose').forEach(x=>x.remove());
   if(_popout){ const el=document.getElementById(_popout); if(el) el.classList.remove('active','popout'); _popout=null; } }
 function show(name){
-  try{ if(name!==state) loreStop(); }catch(e){}   /* v1048: leaving the screen stops the lore narration */
+  try{ if(name!==state) loreStop(); }catch(e){}
+  try{ setTimeout(()=>{ musTick(); muteBtnPlace(); },0); }catch(e){}   /* v1159 */   /* v1048: leaving the screen stops the lore narration */
   try{ if(typeof netGateUpdate==='function'&&NETGATE.bootAt) setTimeout(netGateUpdate,0); }catch(e){}   /* v1018: a signed-out player may only use the sign-in screen */
   /* v1144: with no session nothing but the sign-in gate is reachable - any navigation lands on the (covered) town and opens the gate */
   if(!(ACC&&ACC.token)&&online()&&!window._p2guard&&name!=='home'){ name='home'; }
@@ -26669,6 +26880,7 @@ function renderSettings(){
         <span id="snd_${ch}_pct" style="width:34px;text-align:right;color:#8b98a9;font-variant-numeric:tabular-nums">${Math.round(SND.cfg[ch].vol*100)}%</span></div>`;
   const soundCard = `<div class="panel">
       <div style="font-weight:800;font-size:13px">${uiIcon('audio-on')} Audio</div>
+      <div style="display:flex;align-items:center;gap:8px;font-size:12px;margin-top:6px"><label style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="snd_mute" ${SND_MUTE.on?'checked':''}> Mute all</label></div>
       ${_sndRow('fx','FX')}${_sndRow('music','Music')}${_sndRow('voice','Voices')}
     </div>`;
   b.innerHTML=`<div style="display:flex;flex-direction:column;gap:10px">
@@ -26685,6 +26897,7 @@ function renderSettings(){
       <div style="margin-top:6px;color:#6f7d90">© 2026 Xanthyr Games · Emberweave Heroes™ · All rights reserved.</div>
     </div>
   </div>`;
+  { const sm=b.querySelector('#snd_mute'); if(sm) sm.onchange=()=>{ sndMuteSet(sm.checked); sndUnlock(); }; }   // v1159 master mute (same flag as the top-right button)
   SND_CH.forEach(ch=>{ const so=b.querySelector('#snd_'+ch+'_on'), sv=b.querySelector('#snd_'+ch+'_vol'), sp=b.querySelector('#snd_'+ch+'_pct');   // v1049 audio settings
     if(so) so.onchange=()=>{ sndSet(ch,{on:so.checked}); if(sv) sv.disabled=!so.checked; if(so.checked) sndUnlock(); };
     if(sv) sv.oninput=()=>{ const v=Math.max(0,Math.min(1,(+sv.value||0)/100)); sndSet(ch,{vol:v}); if(sp) sp.textContent=Math.round(v*100)+'%'; }; });
@@ -28557,7 +28770,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1792115217859';
+const BUILD_ID = '1792119707710';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

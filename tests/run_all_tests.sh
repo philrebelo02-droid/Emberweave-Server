@@ -425,6 +425,8 @@ note "test_offline_art_1154.js (v1154 OFFLINE ART LIST - Settings Update all fea
 node tests/test_offline_art_1154.js || FAILED=1
 note "test_q95_1158.js (v1158 q95: every lossless sheet the page / tier table names re-encoded WebP q95 or kept when bigger; lossy sheets untouched; files lossy+alpha, same size, smaller, fixture sha; alpha bit-exact vs v1157; composited >= 29 dB; Kon-Wu hidden green gone; every q95 URL ?v=1158; page = v1157 with the URLs put back; CONTROLS)"
 node tests/test_q95_1158.js || FAILED=1
+note "test_mute_music_1159.js (v1159 MASTER MUTE + MUSIC: the button on every screen/window incl. the sign-in gate, battle and result, on top, covering no control, left of the hub portrait; a tap mutes the master output only (Settings untouched), reaches no game listener or battle input, persists over a reload; city/map/battle/skyfall playlists; the city song never pauses or restarts through buildings and resumes after the map and a fight; battle cycle + loop seam + fade on end; rate 1 at 2x; 2-song crossfade; no AudioBuffer > 10 MB; seeded fight tick-identical with music + mute toggles; silent rig; CONTROL: AUD_ROOT=v1158 fails)"
+node tests/test_mute_music_1159.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi
