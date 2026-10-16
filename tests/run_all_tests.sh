@@ -433,6 +433,8 @@ note "test_veyr_deepcleft_1160.js (v1160 Veyr + Deepcleft eight each - idle/walk
 node tests/test_veyr_deepcleft_1160.js || FAILED=1
 note "test_korvux_anim_eight.js (v1162 Korvux eight - idle/walk/attack/CRIT (his first)/hit/green Comet Dash/blue Ember Cleave/ult Falling Star from the Phil PASS clean H3 exports, NO passive: new q95 sheets within 2048 px / 4 MB; the two reference framings measured and normalised - every state drawn at the same size on the same spot as idle (CONTROL: assuming the framings match fails); timing data = BASE, kits/FX plates identical; swings, forced crit, casts and whole fights on BASE land on the same ticks - crit at 0, and at his real crit = BASE + the v532 crit-clip rule; contact cells re-derived at x1/x1.25/x0.8; the Ember Cleave crescent re-synced to the new axe head (tip within 12 px, flash on the contact; CONTROL: the v1125 fit misses); S0172/S0174 on land)"
 node tests/test_korvux_anim_eight.js || FAILED=1
+note "test_skill_previews_1164.js (v1164 SKILL PREVIEWS read from the fight: every slot of all 60 heroes - the clip startAbilityClip / real swings / crit / passive play (same BATTLE_ANIM object, the engine hold and cell clock; stand-ins show nothing), every FX sheet the cast draws recorded live at its moment, the fight's SFX rows with peaks on the contact cell; CONTROLS: an old Korvux sheet, a sound a cell off, a dropped FX fail; phone browser: silent on open, a tap plays through sfxPlay (swing 0.85), one at a time, FX off / master mute, only the open hero's tier sheets held and released; fights tick-identical to BASE)"
+node tests/test_skill_previews_1164.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi

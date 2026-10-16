@@ -85,7 +85,7 @@ try {
     blue: { name: 'Creeping Rot', type: 'creeprot', mul: 0.5, dps: 0.6, dur: 5, color: '#8a5cff', foot: true, handglow: true, cd: 6, gfx: 'umbris_blue', gfxR: 3 * M, gdur: 5.38 },
     purple: { name: 'Lingering Dark', pass: 'contagion', desc: run('KITS.umbris.purple.desc') } }), kit);
   ck('Umbral Cataclysm numbers unchanged (1.6 x AP, 6.8 m, 0.6 AP/s for 5 s)', run('JSON.stringify(ULT_DEF.umbralcata)') === JSON.stringify({ mul: 1.6, radius: 6.8 * M, dps: 0.6, dur: 5 }));
-  ck('skill-tab previews use the new ult / green / blue / passive sheets', run("[0,1,2,3].map(i=>HERO_SKILL_CLIPS.umbris[i].u).join()") === ['ult', 'green', 'blue', 'passive'].map(s => G[s].u).join());
+  ck('skill-tab previews use the new ult / green / blue sheets (v1164: read from the fight - skillPreviewPlan; the passive slot only with a passive clip)', run("[0,1,2].map(i=>skillPreviewPlan('umbris',i).clips[0].A.u).join()") === ['ult', 'green', 'blue'].map(s => G[s].u).join() && run("(p=>p?p.clips[0].A.u:null)(skillPreviewPlan('umbris',3))") === (G.passive ? G.passive.u : null));
 
   const CLK = run('SIM_STEP*SIM_HZ*BATTLE_PACE');
   ck('the fight clock is 0.6724 of real time', Math.abs(CLK - 0.6724) < 1e-9, CLK);

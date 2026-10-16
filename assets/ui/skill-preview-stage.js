@@ -1,113 +1,194 @@
-/* v905 (Phil 1 Oct: "fix all skill previews ... a nice background not just black ... center them ... it should show the hero,
-   and the spell effect ... like 3 monster 2 allies for a small preview").
-   A small battle on the hero's Skills tab: the hero and two allies on the left, three monsters on the right, a real arena
-   behind them. Pick a skill and the hero plays that skill's own battle clip; when it releases, the spell's own art (the
-   same FX2_DEF sheets the fight uses) flies, lands or forms where the spell does its work, and the monsters flinch when it
-   hits. Heals and buffs land on the hero's side. Cosmetic only - nothing here touches the fight. */
+/* v1164 SKILL PREVIEW STAGE (Phil 16 Oct 2026: "update all the skill previews with the new animations, skill fx and also the sound it
+   makes" / "With the real animations"). The hero on the Cinderforge arena (v906) plays ONE slot of skillPreviewPlan (emberweave-heroes.html):
+   the fight's own clip(s) cell by cell at their fps, the slot's spell art from the fight's own FX2_DEF sheets at the fight's moments and
+   places, and - on a TAP only - the fight's own sounds through sfxPlay (the FX channel: Settings FX on/off + volume and the master mute
+   apply; a swing at SFX_ATK_GAIN). One preview sound at a time; a new slot stops the last. The loop is at least 6 s (v907) and idles on
+   the fight's idle clip between plays. Every sheet is the file this device loads in a fight (artFile, as _loadClip / fx2Tex); only the
+   open hero's sheets are held, and they (and any hero sound it decoded) are let go when the panel closes or another hero opens.
+   RENDER ONLY - no unit, no battle state, no RNG, no server. World units are the fight's (wx: field x SC); the camera's 50 degree tilt
+   squashes a ground plate to SQ of its depth and a world-Y lift to CY on screen, a billboard is drawn upright at full size. */
 (function(root){
   'use strict';
-  const BG='/assets/img/battlefields/emberdraft/cinderforge.webp';   // v906 (Phil: "Dont use campaign map please. Use a battle art"): the Cinderforge arena
-  const FOES=['boar warrior','boar shaman','boar warrior'];
-  const MATES=['vael','nerisse','oakmir','lumi'];
-  const ALLY_WORDS=/heal|hot|shield|ward|bless|regen|rally|spring|cleanse|haste|aura|buff|mend|font|duality|laststand|taunt|barrier|sanct|prayer|revive|rewind/i;
-  const imgs={};
-  function img(u){ if(!u) return null; let i=imgs[u]; if(!i){ i=new Image(); i.decoding='async'; i.src=u; imgs[u]=i; } return (i.complete&&i.naturalWidth)?i:null; }
-  function anim(key){ try{ return BATTLE_ANIM[key]||null; }catch(_){ return null; } }
-  function fxDef(k){ try{ return k&&FX2_DEF[k]?FX2_DEF[k]:null; }catch(_){ return null; } }
-  // which battle clip a slot plays (same choice as the fight / ensureSkillPreview)
-  function slotClip(key,idx){ const an=anim(key); if(!an) return null; const kit=(typeof KITS!=='undefined'&&KITS[key])||{};
-    const slot=['ult','green','blue','passive'][idx], type=idx===0?(HERO_TYPES[key]&&HERO_TYPES[key].ability):idx===1?(kit.green&&kit.green.type):idx===2?(kit.blue&&kit.blue.type):null;
-    if(an[slot]) return an[slot]; if(type&&an[type]) return an[type];
-    try{ if(type&&ABIL_ANIM[type]&&an[ABIL_ANIM[type].st]) return an[ABIL_ANIM[type].st]; }catch(_){}
-    return an.attack||an.idle||null; }
-  // the spell as the fight sees it: its row, its art, where it lands
-  function spellOf(key,idx){ const kit=(typeof KITS!=='undefined'&&KITS[key])||{}; let o={}, type='', gfx=null, pfx=null;
-    if(idx===0){ type=(HERO_TYPES[key]&&HERO_TYPES[key].ability)||''; try{ o=Object.assign({},ULT_DEF[type]||{},(typeof HERO_ULT_ART!=='undefined'&&HERO_ULT_ART[key])||{}); }catch(_){}
-      gfx=o.gfx||(fxDef(key+'_ult')?key+'_ult':null); pfx=o.pfx||null; }
-    else if(idx===3){ gfx=fxDef(key+'_passive')?key+'_passive':null; o={gfxAt:'self'}; type='passive'; }
-    else { const row=idx===1?kit.green:kit.blue; o=Object.assign({},row||{}); type=o.type||''; gfx=o.gfx||(fxDef(key+(idx===1?'_green':'_blue'))?key+(idx===1?'_green':'_blue'):null); pfx=o.pfx||null; }
-    let mode='aoe'; let desc=''; try{ desc=String(skillDesc(key,idx)||''); }catch(_){}
-    const selfish=/(himself|herself|itself|his own|her own)/i.test(desc)||type==='laststand';
-    const teamish=/(heal|heals|allies|ally|team|shield)/i.test(desc)&&!/(enem|damage|strike|foe|stun)/i.test(desc);
-    let aim=''; try{ if(idx===0&&typeof ultAimMode==='function') aim=ultAimMode(type); }catch(_){}
-    if(idx===3||selfish||aim==='self') mode='self';
-    else if(teamish||aim==='ally'||aim==='allyradius'||o.heal) mode='team';
-    else if(o.gfxAt==='self') mode=ALLY_WORDS.test(type)?'team':'self';
-    else if(fxDef(gfx)&&fxDef(gfx).cone) mode='cone';
-    else if(o.deliver==='shot'||aim==='target'||(pfx&&!o.radius)) mode='single';
-    const cast=(()=>{ try{ return castTimeFor({key,t:HERO_TYPES[key]},['ult','green','blue','passive'][idx]); }catch(_){ return idx===0?0.8:0.5; } })();
-    /* v961 (Phil 3 Oct: "fix skill previews"): a spell can say how its preview reads - previewBolt (Fritz's Chain Lightning: the
-       chain bolt jumping foe to foe, not the rune plate it no longer shows in battle) and previewAt:'self' (Thunder Shower is a
-       self-centred storm: drawn over the hero, as the fight now draws it). */
-    return {mode,gfx:(o.previewBolt?null:gfx),pfx,cast,shot:(o.deliver==='shot'||!!pfx)&&mode==='single',bolt:!!o.previewBolt,at:o.previewAt||null}; }
-  function frameRect(c,i){ const cols=c.cols||c.n, f=Math.max(0,Math.min(c.n-1,i|0)); return [(f%cols)*c.fw,Math.floor(f/cols)*c.fh,c.fw,c.fh]; }
-  // draw a battle-anim frame standing at (x, feet) with the figure scaled to height h, facing right or left
-  function drawUnit(g,c,i,x,feet,h,faceRight,tint){ const im=img(c&&c.u); if(!im) return;
-    const fig=c.figH||c.fh*0.8, s=h/fig, [sx,sy,sw,sh]=frameRect(c,i), cx=(c.cx!=null?c.cx:c.fw/2), fy=(c.feet!=null?c.feet:c.fh);
-    const sourceRight=!c.flip, mirror=faceRight!==sourceRight;
-    let src=im, ox=sx, oy=sy;
-    if(tint){ const oc=tintCanvas(sw,sh), og=oc.getContext('2d'); og.clearRect(0,0,sw,sh); og.globalCompositeOperation='source-over'; og.drawImage(im,sx,sy,sw,sh,0,0,sw,sh);
-      og.globalCompositeOperation='source-atop'; og.fillStyle=tint; og.fillRect(0,0,sw,sh); src=oc; ox=0; oy=0; }
-    g.save(); g.translate(x,feet); if(mirror) g.scale(-1,1);
-    g.drawImage(src,ox,oy,sw,sh,-cx*s,-fy*s,sw*s,sh*s);
-    g.restore(); }
-  let _tc=null; function tintCanvas(w,h){ if(!_tc) _tc=document.createElement('canvas'); if(_tc.width<w) _tc.width=w; if(_tc.height<h) _tc.height=h; return _tc; }
-  function drawFx(g,d,i,x,y,size,flip,rot){ const im=img(d&&d.u); if(!im) return; const [sx,sy,sw,sh]=frameRect(d,i);
-    g.save(); g.translate(x,y); if(rot) g.rotate(rot); if(flip) g.scale(-1,1);
-    if(d.upright){ const an=d.upAnchor||[0.5,0], s=size/sh; g.drawImage(im,sx,sy,sw,sh,-an[0]*sw*s,-(1-an[1])*sh*s,sw*s,sh*s); }
-    else if(d.disc){ const dk=d.disc, s=size/(sw*(dk.dw||1)), flat=(dk.dh||1)/(dk.dw||1)>0.6?0.45:1; g.scale(1,flat); g.drawImage(im,sx,sy,sw,sh,-sw*s/2,-(dk.cy||0.5)*sh*s,sw*s,sh*s); }
-    else { const s=size/Math.max(sw,sh); g.drawImage(im,sx,sy,sw,sh,-sw*s/2,-sh*s/2,sw*s,sh*s); }
-    g.restore(); }
+  const BG='/assets/img/battlefields/emberdraft/cinderforge.webp';
+  const SQ=0.766, CY=0.643, LOOP_MIN=6, CAP_H=20;   // sin / cos of the battle camera's 50 deg elevation (camera (0,20.5,16.5) -> (0,0.8,0))
   let cur=null;
-  function stop(){ if(cur){ cur.dead=true; cur=null; } }
-  function mount(canvas,key){ stop(); if(!canvas) return null;
-    const st={canvas,key,idx:0,t0:performance.now(),dead:false};
-    st.mates=MATES.filter(k=>k!==key&&anim(k)&&anim(k).idle).slice(0,2);
-    st.play=(idx)=>{ st.idx=+idx||0; st.sp=spellOf(key,st.idx); st.clip=slotClip(key,st.idx); st.t0=performance.now(); };
-    st.play(0);
-    function loop(now){ if(st.dead||!canvas.isConnected){ st.dead=true; return; }
-      const dpr=Math.min(2,root.devicePixelRatio||1), W=canvas.clientWidth||320, H=canvas.clientHeight||190;
+  /* ---- images: the open hero's only ---- */
+  function imgOf(st,u){ if(!u) return null; let i=st.imgs[u]; if(!i){ i=new Image(); i.decoding='async'; i.src=u; st.imgs[u]=i; } return (i.complete&&i.naturalWidth)?i:null; }
+  function releaseImgs(st){ for(const u in st.imgs){ try{ st.imgs[u].src=''; }catch(_){} } st.imgs={}; }
+  function fileOf(A,fx){ let F=null; try{ F=(!fx&&typeof _keepsImage==='function'&&_keepsImage(A))?null:artFile(A.u); }catch(_){}
+    const c=F?F.c:(A.cols||A.n), r=F?F.r:(A.rows||Math.ceil(A.n/(A.cols||A.n))||1);
+    return {u:F?F.u:A.u, c, r, cw:F?F.W/c:A.fw, ch:F?F.H/r:A.fh, tc:(!fx&&F)?F.tc:null}; }
+  function cellSrc(F,fr){ return [(fr%F.c)*F.cw, Math.floor(fr/F.c)*F.ch, F.cw, F.ch]; }
+  /* ---- the hero: syncMesh's figH-normalised quad, anchored at (cx + ax[fr], feet), per-frame fs, mirrored with the facing ---- */
+  function heroGeom(A,fr,h){ const fs=(A.fs&&A.fs.length)?(A.fs[Math.min(fr,A.fs.length-1)]||1):1;
+    if(A.figH){ const qh=h*(A.fh/A.figH)*fs, wpp=qh/A.fh; let cxp=(A.cx!=null?A.cx:A.fw*0.5); if(A.ax&&A.ax.length) cxp+=A.ax[Math.min(fr,A.ax.length-1)]||0;
+      return {wpp, cxp, feet:A.feet}; }
+    const sc=A.sc||1, wpp=h*sc/A.fh; return {wpp, cxp:A.fw*0.5, feet:A.fh}; }
+  function drawHero(g,st,A,fr,V){ const F=fileOf(A,false), im=imgOf(st,F.u); if(!im) return null; const G=heroGeom(A,fr,V.h), s=V.s;
+    const mirror=!!A.flip;   // the preview faces right: mirror when the sheet faces left (sourceRight = !A.flip)
+    const tc=F.tc||[0,0,1,1], [sx,sy,sw,sh]=cellSrc(F,fr);
+    g.save(); g.translate(V.ox,V.oy); if(mirror) g.scale(-1,1);
+    const k=G.wpp*s; g.drawImage(im,sx,sy,sw,sh,(tc[0]*A.fw-G.cxp)*k,(tc[1]*A.fh-G.feet)*k,tc[2]*A.fw*k,tc[3]*A.fh*k); g.restore();
+    return {G,mirror}; }
+  /* ---- an FX2 cell drawn with its anchor at (x,y) screen px ---- */
+  function fxDraw(g,st,d,fr,x,y,w,h,ax,ayTop,o){ o=o||{}; const F=fileOf(d,true), im=imgOf(st,F.u); if(!im||w<=0||h<=0) return; const n=d.n||1;
+    fr=Math.max(0,Math.min(n-1,fr|0)); const [sx,sy,sw,sh]=cellSrc(F,fr);
+    g.save(); g.globalAlpha=Math.max(0,Math.min(1,o.a==null?1:o.a)); if(o.add) g.globalCompositeOperation='lighter';
+    g.translate(x,y); if(o.rot) g.rotate(o.rot); if(o.flip) g.scale(-1,1);
+    g.drawImage(im,sx,sy,sw,sh,-ax*w,-ayTop*h,w,h); g.restore(); }
+  /* ---- the scene: hero at x 0, the enemy the spell is cast at to his right (its body is not drawn - the art lands where it stands) ---- */
+  function sceneOf(st){ const hk=st.key, h=(typeof roleBattleH==='function'?roleBattleH(hk):3.9)*((typeof HERO_BATTLE_SCALE!=='undefined'&&HERO_BATTLE_SCALE[hk])||1);
+    const d=(typeof skillPreviewTargetDist==='function')?skillPreviewTargetDist(hk):2.2*METER;
+    return {h, th:h, xt:Math.max(d*SC,1.5*h)}; }
+  /* the world-space box an FX entry covers at full size (for the fit), and its anchor */
+  function fxBox(e,S){ const d=e.d, R3=(e.R||2.4*METER)*SC, h=S.h, th=S.th, X=(e.at==='target')?S.xt:0;
+    switch(e.kind){
+      case 'disc': case 'disc22': case 'undertow': { const w=2*R3/d.disc.dw, hh=2*R3/d.disc.dh*SQ; return [X-w/2,-hh/2,X+w/2,hh/2]; }
+      case 'flat': { const w=R3*2*1.12*FX_SIZE, hh=w*d.fh/d.fw*SQ; return [X-w/2,-hh/2,X+w/2,hh/2]; }
+      case 'cone': { const w=R3*1.15, hh=w*d.fh/d.fw*SQ; return [0,-hh/2,w,hh/2]; }
+      case 'up': { const g=upGeom(e,S); return [g.x-g.ax*g.w,g.y,g.x+(1-g.ax)*g.w,g.y+g.h]; }
+      case 'above': case 'feet': { const g=upGeom(e,S); return [g.x-g.ax*g.w,g.y,g.x+(1-g.ax)*g.w,g.y+g.h]; }
+      case 'proj': return [0,0,S.xt,1.2*CY+e.scale];
+      case 'beam': return [h*0.25,1.55*CY-0.6*h,S.xt,1.55*CY+0.6*h];
+      case 'drop': return [S.xt-e.scale,0,S.xt+e.scale,Math.min(9*CY,2.2*h)];
+      case 'ruyi': { const H=d.len*th*d.fh/d.staffPx; return [S.xt-0.5*H*d.fw/d.fh,d.head*th-d.anchor[1]*H,S.xt+0.5*H*d.fw/d.fh,d.head*th+(1-d.anchor[1])*H]; }
+      case 'punct': { const H=d.h*3.9/d.slit, W=H*d.fw/d.fh; return [S.xt-W/2,0,S.xt+W/2,H]; }
+      case 'tempest': { const r=(e.R||10*METER)*SC, W=2*0.4*r*Math.tan(22.5*Math.PI/180)*d.fw/d.xPx*(d.xMul||1), H=W*d.fh/d.fw; return [0.4*r-W/2,0.5*h-H/2,0.4*r+W/2,0.5*h+H/2]; }
+      case 'mantle': case 'shell': { const H=(e.kind==='shell')?d.size*h*d.fh/(d.fh-16):d.size*h, W=H*d.fw/d.fh; return [-W/2,0.5*h-H/2,W/2,0.5*h+H/2]; }
+      case 'crescent': { const H=d.size*h, W=H*d.fw/d.fh; return [-W/2,0.5*h-H/2,S.xt+W/2,0.5*h+H/2]; }
+      case 'bell': { const H=0.75*3.9*d.fh/d.bellPx; return [S.xt-0.5*H*d.fw/d.fh,1.05*3.9*CY-d.anchor[1]*H,S.xt+0.5*H*d.fw/d.fh,1.05*3.9*CY+(1-d.anchor[1])*H]; }
+      case 'reap': { const H=d.size*h*d.fh/d.spanPx, W=H*d.fw/d.fh; return [0,0.45*h*CY-H/2,R3+W/2,0.45*h*CY+H/2]; }
+      default: return null; } }
+  /* the v468 upright plate (and the v498 / v1141 badges it becomes over a head / under the feet) */
+  function upGeom(e,S){ let d=e.d; const th=(e.at==='target')?S.th:S.h, X=(e.at==='target')?S.xt:(e.at==='muzzle'?S.h*0.25:(e.at==='front'?S.h*0.2:0));
+    if(e.kind==='feet') d=Object.assign({},d,{upright:true,upAbove:false,upMetric:false,upSize:FEET_BADGE_H*0.95*Math.min(1,d.fw/d.fh),upExtent:0.95,upAnchor:[0.5,0.5],upPalm:null});
+    if(e.kind==='above'&&!d.upAbove) d=Object.assign({},d,{upright:true,upAbove:true,upAboveM:0.06,upSize:(e.badge||0.8),upExtent:0.95,upAnchor:null,upPalm:null});
+    const R3=(e.R||2.4*METER)*SC, Sz=d.upMetric?((R3*2)/(d.upExtent||0.85)):(th*(d.upSize||1.2)/(d.upExtent||0.85));
+    const ax=(d.upAnchor?d.upAnchor[0]:0.5), ay=(d.upAnchor?d.upAnchor[1]:(d.upAbove?0.0:(d.upPalm!=null?d.upPalm:0.28)));
+    let y; if(e.atH!=null) y=(0.05+th*e.atH)*CY; else if(e.at==='muzzle') y=1.2*CY; else if(d.upAbove) y=th*(1+(d.upAboveM||0)); else y=(d.upAnchor?0.05:(0.05+th*0.5))*CY;
+    const w=Sz, hh=Sz*(d.fh/d.fw); return {d,x:X,y:y-ay*hh,w,h:hh,ax,ay}; }
+  /* fit: the hero and the enemy spot set the scale; an effect that would leave the box is shrunk about its own centre and slid back in */
+  function fitView(st,W,H){ const S=sceneOf(st), P=st.plan; const usesT=P&&P.fx.some(e=>e.at==='target'||/proj|ruyi|punct|crescent|hook|slash|spark|bell|wound/.test(e.kind));
+    const span=usesT?(S.xt+1.3*S.h):(1.3*S.h), s=Math.min(W*0.9/span,(H-CAP_H)*0.6/S.h);
+    const ox=usesT?(W/2-S.xt*s/2):(W/2), oy=H-Math.max(10,(H-CAP_H)*0.12);
+    const V={s,ox,oy,h:S.h,th:S.th,xt:S.xt,S,fit:new Map()};
+    if(P) P.fx.forEach(e=>{ const b=fxBox(e,S); if(!b) return; const x0=ox+b[0]*s, x1=ox+b[2]*s, y0=oy-b[3]*s, y1=oy-b[1]*s;
+      const bw=x1-x0, bh=y1-y0, aw=W-8, ah=H-CAP_H-6; let k=Math.min(1,aw/Math.max(1,bw),ah/Math.max(1,bh));
+      const cx=(x0+x1)/2, cy=(y0+y1)/2, nx0=cx-bw*k/2, ny0=cy-bh*k/2; let dx=0, dy=0;
+      if(nx0<4) dx=4-nx0; if(nx0+bw*k>W-4) dx=(W-4)-(nx0+bw*k); if(ny0<CAP_H) dy=CAP_H-ny0; if(ny0+bh*k>H-2) dy=(H-2)-(ny0+bh*k);
+      V.fit.set(e,{k,cx,cy,dx,dy}); });
+    return V; }
+  function withFit(g,V,e,fn){ const f=V.fit.get(e); if(!f||(f.k>=0.999&&!f.dx&&!f.dy)){ fn(); return; }
+    g.save(); g.translate(f.cx+f.dx,f.cy+f.dy); g.scale(f.k,f.k); g.translate(-f.cx,-f.cy); fn(); g.restore(); }
+  /* ---- one FX entry at preview time t (real s) ---- */
+  function drawFx(g,st,V,e,t,hero,layer){ const d=e.d, s=V.s, ox=V.ox, oy=V.oy, h=V.h, th=V.th, X=x=>ox+x*s, Y=y=>oy-y*s;
+    const lt=t-e.t0; if(lt<0) return; const tb=lt*FX_RT, n=d.n||1, clipR=d.dur||1;   // tb: fight seconds since it spawned
+    const ground=(e.kind==='disc'||e.kind==='flat'||e.kind==='cone'||e.kind==='disc22'||e.kind==='undertow');
+    const front=(e.kind==='above'||e.kind==='proj'||e.kind==='drop'||e.kind==='beam'||e.kind==='tip'||e.kind==='chop'||e.kind==='spark'||e.kind==='bell'||e.kind==='crescent'||e.kind==='wound'||e.kind==='slash'||e.kind==='ruyi'||e.kind==='reap'||e.kind==='tempest'||e.kind==='shell'||e.kind==='mantle'||e.kind==='punct'||e.kind==='hook');
+    if(layer==='ground'&&!ground) return; if(layer==='back'&&(ground||front)) return; if(layer==='front'&&!front) return;
+    const R3=(e.R||2.4*METER)*SC, AX=(e.at==='target')?V.xt:0;
+    withFit(g,V,e,()=>{ switch(e.kind){
+      case 'disc': case 'flat': case 'cone': case 'up': case 'above': case 'feet': {   // updateGroundFx: the cycle loops for its life (hold: freezes), fade in 0.12 / out 0.18 fight s
+        const life=e.life||1.6; if(tb>=life) return; let fr=Math.floor(tb/d.dur*n); fr=d.hold?Math.min(n-1,fr):((fr%n)+n)%n;
+        const a=Math.min(1,tb/0.12)*Math.min(1,(life-tb)/0.18), mvX=e.mv?(e.mv.x0+e.mv.v*Math.min(tb,e.mv.tt))*SC:0;   // a travelling plate follows its hazard
+        if(e.kind==='disc'){ const w=2*R3/d.disc.dw, hh=2*R3/d.disc.dh; fxDraw(g,st,d,fr,X(AX+mvX),Y(0),w*s,hh*SQ*s,(d.disc.cx!=null?d.disc.cx:0.5),d.disc.cy,{a}); }
+        else if(e.kind==='flat'){ const w=R3*2*1.12*FX_SIZE, hh=w*d.fh/d.fw; fxDraw(g,st,d,fr,X(AX+mvX),Y(0),w*s,hh*SQ*s,0.5,0.5,{a}); }
+        else if(e.kind==='cone'){ const w=R3*1.15, hh=w*d.fh/d.fw, foot=(d.coneFoot!=null?1-2*d.coneFoot:0.9); fxDraw(g,st,d,fr,X(w*0.5*foot),Y(0),w*s,hh*SQ*s,0.5,0.5,{a}); }
+        else { const G=upGeom(e,V.S); fxDraw(g,st,G.d,fr,X(G.x+mvX),Y(G.y+G.h),G.w*s,G.h*s,G.ax,0,{a}); }
+        return; }
+      case 'proj': { const D=e.dur||0.45; if(lt>D) return; const k=lt/D, fr=Math.floor(tb/(d.dur||1)*n)%n, H=e.scale||2.6, y=1.2*CY;
+        fxDraw(g,st,d,fr,X(h*0.25+(V.xt-h*0.25)*k),Y(y),H*d.fw/d.fh*s,H*s,0.5,0.5); return; }
+      case 'beam': { const tot=(e.ext||0.45)+(e.ret||0.3); if(tb>=tot) return; let grow=tb<=e.ext?Math.pow(tb/e.ext,0.85):1-(tb-e.ext)/e.ret; grow=Math.max(0.04,grow);   // updateBeamFx
+        const fr=Math.floor(tb/d.dur*n)%n, x0=h*0.25, L=(V.xt-x0)*grow, W=L*d.fw/Math.max(1,(d.lead[0]-d.apex[0])), H=W*d.fh/d.fw;
+        fxDraw(g,st,d,fr,X(x0),Y(1.55*CY),W*s,H*s,d.apex[0]/d.fw,d.apex[1]/d.fh); return; }
+      case 'drop': { const D=e.dur||0.8; if(lt>D) return; const k=lt/D, fr=Math.floor(tb/(d.dur||1)*n)%n, H=e.scale||3.0;   // deliverLaunch 'land': it falls from 9 up onto the spot
+        fxDraw(g,st,d,fr,X(V.xt),Y(9*CY*(1-k)),H*d.fw/d.fh*s,H*s,0.5,0.5); return; }
+      case 'tip': { if(!hero||!e.trackA) return; const A=e.trackA, c=hero.clipCell, lastK=e._k|0; let k;
+        if(hero.st===e.st&&hero.live){ k=c; e._k=c; e._kt=t; } else { if(e._kt==null) return; k=lastK+Math.floor((t-e._kt)*24); }
+        if(k>=n) return; const G=heroGeom(A,Math.min(A.n-1,c),h), wpp=G.wpp, Wf=d.heroPx*wpp, tr=e.track[Math.min(c,e.track.length-1)], mir=!!A.flip;
+        const cxp=G.cxp; let dx=(tr[0]-cxp)*wpp; const dy=(A.feet-tr[1])*wpp; let th2=tr[2]*Math.PI/180; if(mir){ dx=-dx; th2=-th2; }   // updateTipFx: the tip rides the drawn cell, mirrored with the facing
+        fxDraw(g,st,d,k,X(dx),Y(dy),Wf*s,Wf*s,d.tip[0],1-d.tip[1],{rot:-th2,flip:mir}); return; }
+      case 'chop': { if(!hero||!e.trackA) return; const A=e.trackA, F=d.fit; let cell;
+        if(e._hitAt==null){ const a=(hero.st===e.st&&hero.live)?hero.acc:(lt*24), f=d.sync.f, c=d.sync.c; if(a<f[0]) return;
+          if(a>=f[f.length-1]){ e._hitAt=t; cell=d.hit; } else { let j=0; while(a>=f[j+1]) j++; cell=Math.floor(c[j]+(c[j+1]-c[j])*(a-f[j])/(f[j+1]-f[j])); } }
+        else cell=d.hit+Math.floor((t-e._hitAt)*24);
+        if(cell>=n) return; const G=heroGeom(A,Math.min(A.n-1,hero.clipCell),h), w=G.wpp, mir=!!A.flip, sx=mir?-1:1;   // _fx22ChopAxe: k x the cell, turned rot, centred cc hero px off his anchor
+        fxDraw(g,st,d,cell,X(sx*F.cc[0]*w),Y(-F.cc[1]*w),F.k*d.fw*w*s,F.k*d.fh*w*s,0.5,0.5,{rot:sx*F.rot*Math.PI/180,flip:F.paint?mir:!mir}); return; }
+      case 'ruyi': { const ob=(e.tb||0)+tb, clip=d.dur*FX_RT; if(ob<0) return; const fr=Math.floor(ob/clip*n); if(fr>=n) return; const H=d.len*th*d.fh/d.staffPx;
+        fxDraw(g,st,d,fr,X(V.xt),Y(d.head*th),H*d.fw/d.fh*s,H*s,d.anchor[0],1-d.anchor[1]); return; }
+      case 'punct': { const c=tb/FX_RT, en=(e.endT||2.35)/FX_RT, f=d.fps, a0=d.holdA/f, tc=Math.max(a0,en-(d.shut-d.close)/f); let fr;
+        if(c<a0) fr=Math.floor(c*f); else if(c<tc) fr=Math.min(d.holdB,d.holdA+Math.floor((c-a0)/Math.max(1e-3,tc-a0)*(d.holdB-d.holdA+1))); else fr=d.close+Math.floor((c-tc)*f);
+        if(fr>=n) return; const H=d.h*3.9/d.slit; fxDraw(g,st,d,fr,X(V.xt),Y(0.05*CY),H*d.fw/d.fh*s,H*s,0.5,1-d.foot); return; }
+      case 'disc22': { const ob=(e.tb||0)+tb, fr=Math.floor(ob/(d.dur*FX_RT)*n); if(ob<0||fr>=n) return; const clip=d.dur*FX_RT, a=e.fade?Math.max(0,Math.min(1,(clip-ob)/e.fade)):1;
+        const w=2*R3/d.disc.dw, hh=2*R3/d.disc.dh; fxDraw(g,st,d,fr,X(AX),Y(0),w*s,hh*SQ*s,d.disc.cx!=null?d.disc.cx:0.5,d.disc.cy,{a}); return; }
+      case 'undertow': { const tc=e.tc||0.98, fr=tb<tc?Math.floor(tb/tc*d.crash):d.crash+Math.floor((tb-tc)/FX_RT*d.fps2); if(fr>=n) return;
+        const w=2*R3/d.disc.dw, hh=2*R3/d.disc.dh; fxDraw(g,st,d,fr,X(AX),Y(0),w*s,hh*SQ*s,d.disc.cx!=null?d.disc.cx:0.5,d.disc.cy); return; }
+      case 'shell': { const c=tb/FX_RT, tot=(e.life||3)/FX_RT; if(c>=tot) return; const nOut=n-d.outC0, a0=d.inN/d.fps, z=tot-nOut/d.fps; let fr;
+        if(z<=a0) fr=Math.min(n-1,Math.floor(c/tot*n)); else if(c<a0) fr=Math.floor(c*d.fps); else if(c>=z) fr=Math.min(n-1,d.outC0+Math.floor((c-z)*d.fps));
+        else { const sp=d.holdB-d.holdA, q=Math.floor((c-a0)*d.fps)%(2*sp); fr=d.holdA+(q<=sp?q:2*sp-q); }
+        const H=d.size*h*d.fh/(d.fh-16); fxDraw(g,st,d,fr,X(0),Y(0.5*h),H*d.fw/d.fh*s,H*s,0.5,0.5); return; }
+      case 'tempest': { const clip=d.dur*FX_RT, fr=Math.floor(tb/clip*n); if(fr>=n) return; const r=(e.R||10*METER)*SC, W=2*0.4*r*Math.tan(22.5*Math.PI/180)*d.fw/d.xPx*(d.xMul||1);
+        fxDraw(g,st,d,fr,X(0.4*r),Y(0.5*h),W*s,W*d.fh/d.fw*s,0.5,0.5,{a:e.fade?Math.max(0,Math.min(1,(clip-tb)/e.fade)):1}); return; }
+      case 'mantle': { const life=e.life||2.4, fr=Math.floor(tb/life*n); if(fr>=n) return; const H=d.size*h; fxDraw(g,st,d,fr,X(0),Y(0.5*h),H*d.fw/d.fh*s,H*s,0.5,0.5); return; }
+      case 'crescent': { const clip=d.dur*FX_RT, fr=Math.floor(tb/clip*n); if(fr>=n) return; const H=d.size*h, W=H*d.fw/d.fh, k=Math.min(1,tb/d.fly), q=k*k*(3-2*k);
+        fxDraw(g,st,d,fr,X(V.xt*q),Y(0.5*h+(0.5*th-0.5*h)*q),W*s,H*s,0.5,0.5,{a:Math.max(0,Math.min(1,(clip-tb)/d.fade))}); return; }
+      case 'bell': { const clip=d.dur*FX_RT; if(tb>=clip) return; const fr=Math.floor(tb/clip*n), H=0.75*3.9*d.fh/d.bellPx;
+        fxDraw(g,st,d,fr,X(V.xt),Y(1.05*3.9*CY),H*d.fw/d.fh*s,H*s,d.anchor[0],1-d.anchor[1],{a:Math.max(0,Math.min(1,(clip-tb)/(e.fade||0.25)))}); return; }
+      case 'wound': { const life=e.life||6, clip=d.dur*FX_RT; if(tb>=life) return; const fr=Math.min(n-1,Math.floor(tb/clip*n)), H=0.45*th*d.fh/d.woundPx;
+        fxDraw(g,st,d,fr,X(V.xt),Y(0.55*th*CY),H*d.fw/d.fh*s,H*s,d.woundC[0],1-d.woundC[1],{a:Math.max(0,Math.min(1,(life-tb)/(e.fade||0.3)))}); return; }
+      case 'reap': { const clip=d.dur*FX_RT, fr=Math.floor(tb/clip*n); if(fr>=n) return; const H=d.size*h*d.fh/d.spanPx, W=H*d.fw/d.fh;
+        const q=Math.min(1,(tb/clip)*n/d.peak), f=d.f0+(1-d.f0)*q*q*(3-2*q), fx=R3*f-((d.front[fr]/d.fw)-0.5)*W;
+        fxDraw(g,st,d,fr,X(fx),Y(0.45*h*CY),W*s,H*s,0.5,0.5,{a:Math.max(0,Math.min(1,(clip-tb)/(e.fade||0.3)))}); return; }
+      case 'hook': { const clip=d.dur*FX_RT; if(tb>=clip) return; const fr=Math.floor(tb/clip*n), L=V.xt, Wq=L/(d.u1-d.u0), sx=Wq/d.fw, b=0.45*th/d.hookPx, sy=Math.max(0.5*b,Math.min(b,sx)), Hq=sy*d.fh;
+        fxDraw(g,st,d,fr,X((0.5-d.u0)*Wq),Y(0.5*h*CY+(0.5-d.vRope)*Hq),Wq*s,Hq*s,0.5,0.5); return; }
+      case 'slash': { const clip=d.dur*FX_RT; if(tb>=clip) return; const fr=Math.floor(tb/clip*n); fxDraw(g,st,d,fr,X(V.xt),Y(0.5*th*CY),0.9*th*d.fw/d.fh*s,0.9*th*s,0.5,0.5); return; }
+      case 'spark': { const clip=d.dur*FX_RT; if(tb>=clip) return; const fr=Math.floor(tb/clip*n), H=d.h||1.6; fxDraw(g,st,d,fr,X(V.xt),Y(1.2*CY),H*d.fw/d.fh*s,H*s,0.5,0.5,{add:true}); return; }
+    } }); }
+  /* ---- sound: on a tap, the plan's files through sfxPlay, peaks on the preview's own clock ---- */
+  function sndStop(st){ (st.srcs||[]).forEach(s=>{ try{ s.stop(); }catch(_){} }); st.srcs=[]; st.sndTok=(st.sndTok|0)+1; }
+  function sndOk(){ try{ return !!(SND.ctx&&SND.cfg.fx.on&&sndCan()&&!window._p2guard); }catch(_){ return false; } }
+  function sndGo(st){ sndStop(st); const P=st.plan; if(!P||!P.snd.length||!sndOk()) return false; const tok=st.sndTok, files=[];
+    P.snd.forEach(x=>{ const F=SFX_DATA.files[x.name]; if(F&&files.indexOf(F[0])<0) files.push(F[0]); });
+    files.forEach(f=>{ if(!(f in SND.buf)&&st.ownBuf.indexOf(f)<0) st.ownBuf.push(f); });
+    const wait=files.map(f=>(SND.buf[f]?Promise.resolve(SND.buf[f]):(sndLoad(f)||Promise.resolve(SND.buf[f]||null))));
+    const go=()=>{ if(st.dead||tok!==st.sndTok) return; const ctx=SND.ctx; if(!ctx) return; const lead=0.06, base=ctx.currentTime+lead;
+      st.t0=performance.now()+lead*1000; st.played=true;   // the clip restarts with its sound
+      P.snd.forEach((x,i)=>{ const src=sfxPlay(x.name,base+x.at,{fromStart:!!x.fromStart,atk:x.atk?1:0,key:'skp'+tok+'.'+i}); if(src) st.srcs.push(src); }); };
+    let done=false; const once=()=>{ if(!done){ done=true; go(); } };
+    Promise.all(wait).then(once,once); setTimeout(once,1200); return true; }
+  function releaseSnd(st){ sndStop(st); try{ const keep=new Set(); for(const k in (SFX.want||{})) sfxFiles(SFX_DATA.heroes[k]).forEach(n=>{ const F=SFX_DATA.files[n]; if(F) keep.add(F[0]); });
+    st.ownBuf.forEach(f=>{ if(!keep.has(f)&&!/LIB-ATK-/.test(f)) delete SND.buf[f]; }); }catch(_){} st.ownBuf=[]; }
+  /* ---- mount / play / stop ---- */
+  function stop(){ if(cur){ const st=cur; cur=null; st.dead=true; releaseSnd(st); releaseImgs(st); } }
+  function mount(canvas,key){ if(!canvas) return null;
+    if(cur&&cur.key===key&&!cur.dead){ cur.canvas=canvas; if(!cur.loopOn) start(cur); return cur; }   // a re-render of the same hero keeps its sheets, slot and clock
+    stop(); const st={canvas,key,slot:null,plan:null,t0:performance.now(),dead:false,imgs:{},srcs:[],ownBuf:[],sndTok:0};
+    st.play=(slot,withSound)=>{ const p=(typeof skillPreviewPlan==='function')?skillPreviewPlan(key,slot):null; st.slot=slot; st.plan=p; st.t0=performance.now(); sndStop(st);
+      if(p){ p.fx.forEach(e=>{ if(e.kind==='tip'||e.kind==='chop'){ e.trackA=BATTLE_ANIM[key][e.st]; } e._k=0; e._kt=null; e._hitAt=null; }); }
+      if(withSound&&p) sndGo(st); return !!p; };
+    st.tap=(slot)=>st.play(slot,true);
+    cur=st; start(st); return st; }
+  function start(st){ st.loopOn=true;
+    function loop(now){ if(st.dead||cur!==st){ st.loopOn=false; return; } const canvas=st.canvas;
+      if(!canvas||!canvas.isConnected||canvas.offsetParent===null){ st.loopOn=false; if(cur===st) stop(); return; }   // the panel closed (or the tab changed): its sheets and sounds go
+      const dpr=Math.min(2,root.devicePixelRatio||1), W=canvas.clientWidth||320, H=canvas.clientHeight||200;
       if(canvas.width!==Math.round(W*dpr)||canvas.height!==Math.round(H*dpr)){ canvas.width=Math.round(W*dpr); canvas.height=Math.round(H*dpr); }
       const g=canvas.getContext('2d'); g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,W,H);
-      // arena - cover-fit, centred on the arena floor
-      const bg=img(BG); if(bg){ const nw=bg.naturalWidth, nh=bg.naturalHeight;   // the arena floor inside its walls, cover-fit, centre line in the middle
-        let sx=nw*0.14, sy=nh*0.12, sw=nw*0.72, sh=nh*0.62;   /* v906 (Phil: "zoom them in a bit") */ const want=W/H; if(sw/sh>want){ const nsw=sh*want; sx+=(sw-nsw)/2; sw=nsw; } else { const nsh=sw/want; sy+=(sh-nsh)/2; sh=nsh; }
-        g.drawImage(bg,sx,sy,sw,sh,0,0,W,H); }
-      else { const gr=g.createLinearGradient(0,0,0,H); gr.addColorStop(0,'#24324a'); gr.addColorStop(1,'#3b2f22'); g.fillStyle=gr; g.fillRect(0,0,W,H); }
-      /* v907 (Phil 1 Oct: "Just do the hero by itself doing the spell animation then the spell FX next to it timed perfectly to go off
-         over a 6 second clip" / "Any buffs go over their own head"): one hero, one spell, a 6 s loop. The clip plays at its own speed;
-         the spell's art goes off at the moment the clip releases it (the same cast time the fight uses) and plays out inside the 6 s -
-         beside the hero for an attack, over the hero's head for a buff, heal or passive. */
-      const sp=st.sp, clip=st.clip, t=(now-st.t0)/1000, LOOP=6;
-      const tt=t%LOOP, fx=fxDef(sp.gfx), pf=fxDef(sp.pfx);
-      const buff=(sp.mode==='self'||sp.mode==='team');
-      const clipDur=clip?Math.min(4,clip.n/(clip.fps||12)):1;
-      const rel=st.idx===3?0.4:Math.min(clipDur,Math.max(0.2,sp.cast||0.5));
-      const travel=(!buff&&sp.shot&&pf)?0.3:0, fxStart=rel+travel;
-      const fxDur=fx?Math.max(0.6,Math.min(fx.dur||1.6,LOOP-fxStart-0.3)):0;
-      const base=H*0.94, hero=buff?{x:W*0.5,f:base,h:H*0.52}:{x:W*0.3,f:H*0.92,h:H*0.66};
-      const spot=buff?{x:hero.x,f:base-hero.h*1.02}:{x:W*0.7,f:H*0.8};   // a buff sits just above the head
-      const aboveSize=H*0.3;
-      const drawBolt=(k)=>{ const B=(typeof BOLT_SHEET!=='undefined')?BOLT_SHEET:null, im=B&&img(B.u); if(!im) return;
-        const pts=[[hero.x+W*0.07,hero.f-hero.h*0.62],[W*0.56,H*0.5],[W*0.72,H*0.72],[W*0.9,H*0.46]];
-        g.save(); g.globalCompositeOperation='lighter'; g.globalAlpha=Math.min(1,k*6)*Math.min(1,(1-k)*4);
-        for(let i=0;i<pts.length-1;i++){ const a=pts[i], b=pts[i+1], L=Math.hypot(b[0]-a[0],b[1]-a[1]), r=frameRect(B,Math.floor(k*B.n*0.999+i*3)%B.n), th=Math.max(H*0.09,L*B.fh/B.fw*1.6);
-          g.save(); g.translate(a[0],a[1]); g.rotate(Math.atan2(b[1]-a[1],b[0]-a[0])); g.drawImage(im,r[0],r[1],r[2],r[3],0,-th/2,L,th); g.restore(); }
-        g.restore(); };
-      const drawSpell=()=>{ if(sp.bolt){ if(tt>=fxStart&&tt<fxStart+0.6) drawBolt((tt-fxStart)/0.6); return; }
-        if(travel&&tt>=rel&&tt<fxStart){ const k=(tt-rel)/travel, x0=hero.x+W*0.06, y0=hero.f-hero.h*0.55, x1=spot.x, y1=spot.f-hero.h*0.45;
-          drawFx(g,pf,Math.floor(k*pf.n*0.999),x0+(x1-x0)*k,y0+(y1-y0)*k,H*0.45,false,Math.atan2(y1-y0,x1-x0)); }
-        if(fx&&tt>=fxStart&&tt<fxStart+fxDur){ const fr=Math.floor((tt-fxStart)/fxDur*fx.n);
-          if(buff){ const s=aboveSize, im=img(fx.u); if(im){ const r=frameRect(fx,fr), sc=s/Math.max(r[2],r[3]); g.drawImage(im,r[0],r[1],r[2],r[3],spot.x-r[2]*sc/2,spot.f-r[3]*sc,r[2]*sc,r[3]*sc); } }
-          else if(sp.at==='self') drawFx(g,fx,fr,hero.x,hero.f,H*0.98,false,0);   /* v961: a self-centred spell plays over the hero */
-          else drawFx(g,fx,fr,spot.x,(fx.upright||fx.disc)?spot.f:spot.f-hero.h*0.42,fx.upright?H*0.86:(fx.disc?W*0.42:H*0.7),false,0); }   // a plain plate sits at chest height
-        else if(!fx&&tt>=fxStart&&tt<fxStart+0.9){ const k=(tt-fxStart)/0.9, r=H*(0.1+0.2*k), cy=buff?spot.f-aboveSize*0.5:spot.f-hero.h*0.4, gr=g.createRadialGradient(spot.x,cy,0,spot.x,cy,r);
-          const col=buff?'140,255,180':'255,215,140'; gr.addColorStop(0,'rgba('+col+','+(0.6*(1-k))+')'); gr.addColorStop(1,'rgba('+col+',0)'); g.fillStyle=gr; g.beginPath(); g.arc(spot.x,cy,r,0,6.283); g.fill(); } };
-      if(!buff) drawSpell();   // an attack's art is under the hero's feet line; a buff is drawn over the head, after the hero
-      { const an=anim(st.key); const casting=clip&&tt<clipDur; const c=casting?clip:(an&&an.idle); if(c){ const fr=casting?Math.floor(tt/clipDur*c.n):Math.floor(t*(c.fps||12))%c.n; drawUnit(g,c,fr,hero.x,hero.f,hero.h,true,null); } }
-      if(buff) drawSpell();
+      const bg=imgOf(st,BG); if(bg){ const nw=bg.naturalWidth, nh=bg.naturalHeight; let sx=nw*0.14, sy=nh*0.12, sw=nw*0.72, sh=nh*0.62; const want=W/H;
+        if(sw/sh>want){ const nsw=sh*want; sx+=(sw-nsw)/2; sw=nsw; } else { const nsh=sw/want; sy+=(sh-nsh)/2; sh=nsh; } g.drawImage(bg,sx,sy,sw,sh,0,0,W,H); }
+      else { g.fillStyle='#1d2433'; g.fillRect(0,0,W,H); }
+      const P=st.plan, an=BATTLE_ANIM[st.key]||{}, V=fitView(st,W,H);
+      const LOOP=P?Math.max(LOOP_MIN,P.end+0.4):LOOP_MIN, t=Math.max(0,(now-st.t0)/1000), tt=P?(t%LOOP):t;
+      if(P&&t>=LOOP&&st.played){ st.played=false; sndStop(st); }   // the sound belongs to the tapped play only; the loop after it is silent
+      // which clip is on screen
+      let hero=null; if(P){ for(const c of P.clips){ if(tt>=c.t0&&tt<c.t0+c.dur){ hero={st:c.st,A:c.A,live:true,acc:(tt-c.t0)*(c.A.fps||10),clipCell:skillPreviewCell(c.A,tt-c.t0)}; break; } }
+        if(!hero){ const L=P.clips[P.clips.length-1]; hero={st:L.st,A:L.A,live:false,acc:0,clipCell:skillPreviewCell(L.A,L.dur)}; } }
+      if(P) P.fx.forEach(e=>drawFx(g,st,V,e,tt,hero,'ground'));
+      if(P) P.fx.forEach(e=>drawFx(g,st,V,e,tt,hero,'back'));
+      { let A=null, fr=0; if(hero&&hero.live){ A=hero.A; fr=hero.clipCell; } else if(an.idle){ A=an.idle; const per=ppPer(A), p=Math.floor(tt*(A.fps||10))%per; fr=ppFrame(A,p); }
+        if(A) drawHero(g,st,A,fr,V); }
+      if(P) P.fx.forEach(e=>drawFx(g,st,V,e,tt,hero,'front'));
       requestAnimationFrame(loop); }
-    requestAnimationFrame(loop);
-    cur=st; return st; }
-  root.EmberSkillStage={mount,stop,spellOf};
+    requestAnimationFrame(loop); }
+  root.EmberSkillStage={mount,stop,current:()=>cur};
 })(window);

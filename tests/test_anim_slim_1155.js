@@ -61,8 +61,12 @@ try {
     : deep(BASE.FX[c.key]) === deep(c.before) && deep(NOW.FX[c.key]) === deep(c.after)));
   const scDiff = []; for (const k of new Set([...Object.keys(BASE.SC), ...Object.keys(NOW.SC)])) { const b = BASE.SC[k] || {}, c = NOW.SC[k] || {};
     for (const s of new Set([...Object.keys(b), ...Object.keys(c)])) if (deep(b[s]) !== deep(c[s])) scDiff.push(k + '.' + s); }
-  ck('Skills-tab hand table: only the passive slot (3) of ' + SKILL3.join('/') + ' is gone', scDiff.sort().join() === SKILL3.map(k => k + '.3').sort().join()
-    && SKILL3.every(k => BASE.SC[k][3] && !NOW.SC[k][3]), scDiff.join(','));
+  /* v1164: the hand table is gone - the Skills tab reads the fight's own clips (skillPreviewPlan; tests/test_skill_previews_1164.js). The v1155 intent
+     (no passive preview for the five) is checked on the derived preview when the page has no hand table. */
+  const derived = Object.keys(NOW.SC).length === 0;
+  ck('Skills-tab hand table: only the passive slot (3) of ' + SKILL3.join('/') + ' is gone' + (derived ? ' (v1164: no hand table - the derived preview has no passive for them)' : ''), derived
+    ? JSON.parse(run(`JSON.stringify(${JSON.stringify(SKILL3)}.every(k=>!skillPreviewPlan(k,3)))`))
+    : (scDiff.sort().join() === SKILL3.map(k => k + '.3').sort().join() && SKILL3.every(k => BASE.SC[k][3] && !NOW.SC[k][3])), scDiff.join(','));
 
   // ------------------------------------------------------------ 2. RE-CUT SHEETS
   const recut = FIX.changes.filter(c => c.kind === 'anim' && c.before && c.after);
@@ -136,7 +140,7 @@ print(json.dumps(out))`;
   ck('passive clip removed for the ' + FILLER.length + ' FILLER heroes and nobody else', removed.sort().join() === FILLER.slice().sort().join() && FILLER.every(k => BASE.BA[k].passive && !NOW.BA[k].passive), removed.join(','));
   ck('kept for the ACTIVE heroes (' + ACTIVE.join(', ') + ') and for Aureth\'s two crowns (byte-for-byte BASE)', ACTIVE.concat(['aureth']).every(k => deep(NOW.BA[k].passive) === deep(BASE.BA[k].passive)) && deep(NOW.BA.aureth.passiveDark) === deep(BASE.BA.aureth.passiveDark));
   ck('no hero outside the two lists had a passive clip in BASE', NOW.HT.filter(k => BASE.BA[k] && BASE.BA[k].passive).every(k => FILLER_ALL.includes(k) || ACTIVE.includes(k) || KEPT.includes(k) || k === 'aureth'));
-  ck('v1157: the Sylthaine Cold Snap passive (battle clip + Skills slot 3) and the Aureth + Carn idles are byte-for-byte BASE', KEPT.every(k => deep(NOW.BA[k].passive) === deep(BASE.BA[k].passive) && !!NOW.BA[k].passive && deep(NOW.SC[k][3]) === deep(BASE.SC[k][3]) && !!NOW.SC[k][3])
+  ck('v1157: the Sylthaine Cold Snap passive (battle clip + Skills slot 3) and the Aureth + Carn idles are byte-for-byte BASE', KEPT.every(k => deep(NOW.BA[k].passive) === deep(BASE.BA[k].passive) && !!NOW.BA[k].passive && (derived ? JSON.parse(run(`JSON.stringify((()=>{ const p=skillPreviewPlan('${k}',3); return !!p&&p.clips[0].A===BATTLE_ANIM['${k}'].passive; })())`)) : (deep(NOW.SC[k][3]) === deep(BASE.SC[k][3]) && !!NOW.SC[k][3])))
     && ['aureth', 'carn'].every(k => deep(NOW.BA[k].idle) === deep(BASE.BA[k].idle)) && !FIX.changes.some(c => (c.key === 'aureth' || c.key === 'carn') && c.state === 'idle'));
   ck('the Skills tab derives no passive preview for a FILLER hero (ensureSkillPreview, the no-stage fallback)', JSON.parse(run(`JSON.stringify(${JSON.stringify(FILLER)}.map(k=>{ try{ ensureSkillPreview(k); }catch(e){} const s=HERO_SKILL_CLIPS[k]||{}; return !s[3] || (k==='fritz'); }))`)).every(Boolean));
   const firePlays = r => JSON.parse(r(`(()=>{ const out=[]; units=[]; seedBattle(3); for(const k of ${JSON.stringify(FILLER.concat(ACTIVE))}){ const g=makeUnit(k,'ally',500,700,30,{owned:false,rank:5}); g.anim=BATTLE_ANIM[k]; units=[g];

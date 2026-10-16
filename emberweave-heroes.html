@@ -2672,7 +2672,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 <script src="/assets/ui/world-mine-sync.js?v=mi2"></script>
 <script src="/assets/ui/world-march-sync.js?v=wm1"></script>
 <script src="/assets/ui/world-march-visual.js?v=wv2"></script>
-<script src="/assets/ui/skill-preview-stage.js?v=sp7"></script>
+<script src="/assets/ui/skill-preview-stage.js?v=sp1164"></script>
 <script src="/assets/ui/world-tree-cycle.js?v=wt4"></script>
 <script src="/assets/ui/world-tree-art.js?v=wt3"></script>
 <script src="/assets/ui/world-oasis-markers.js?v=om-painted-01oct-v1"></script>
@@ -2908,48 +2908,16 @@ const SCENE_SCRIM="linear-gradient(180deg,rgba(8,10,16,.30),rgba(8,10,16,.72))";
 function _isArt(u){return !!u&&(u.indexOf("http")===0||u.indexOf("data:")===0||u.indexOf("assets/")>=0);}
 function applySceneBg(id,url){var sc=document.getElementById(id); if(sc&&_isArt(url)){sc.style.backgroundImage=SCENE_SCRIM+",url('"+url+"')";sc.style.backgroundSize="cover";sc.style.backgroundPosition="center";sc.style.backgroundRepeat="no-repeat";}}        // full-screen Dungeon splash art (with the "Choose squad" button drawn in)
 // ---- SKILL ABILITY CLIPS: animated sprite previews shown when hovering a skill (Skills tab) ----
-const CLIP_ULT="/assets/anim/konwu/konwu_ult.png?v=4", CLIP_CLEAVE="/assets/anim/konwu/konwu_cleave.png?v=4", CLIP_TP="/assets/anim/konwu/konwu_phantomstep.png?v=4", CLIP_IDLE="/assets/anim/konwu/konwu_idle.png?v=4";
-const HERO_SKILL_CLIPS = {   /* v1044: KonWu's 19-frame PNG previews retired - his skill previews play the fight's own sheets */
-lumi:{
-  0:{u:'/assets/anim/lumi/lumi_ult.webp?v=25',n:48,fw:332,fh:600,cols:6,rows:8,dur:2.0,flip:true},   // Radiant Nova (ultimate) (v531 - same sheet the fight uses)
-  1:{u:'/assets/anim/lumi/lumi_green.webp?v=25',n:48,fw:370,fh:544,cols:6,rows:8,dur:2.0,flip:true},   // Dawnward (v531 - same sheet the fight uses)
-  2:{u:'/assets/anim/lumi/lumi_blue.webp?v=25',n:48,fw:384,fh:520,cols:6,rows:8,dur:2.0,flip:true},   // Quickening (v531 - same sheet the fight uses)
-  3:{u:'/assets/anim/lumi/lumi_passive.webp?v=25',n:48,fw:336,fh:520,cols:6,rows:8,dur:2.0,flip:true},   // Hush (passive) (v531 - same sheet the fight uses)
-},
-dandra:{
-  0:{u:'/assets/anim/dandra/dandra_ult.webp?v=12',n:72,fw:300,fh:299,cols:6,rows:12,dur:2.4},   // Queen's Call (ultimate)
-  1:{u:'/assets/anim/dandra/dandra_green.webp?v=12',n:72,fw:161,fh:300,cols:6,rows:12,dur:2.4},   // Seedlight
-  2:{u:'/assets/anim/dandra/dandra_blue.webp?v=12',n:72,fw:300,fh:291,cols:6,rows:12,dur:2.4},   // Drowsy Sting
-  /* 3 (passive) removed v1155 (Phil 15 Oct: "remove passive for anyone without an active passive") - with no battle passive clip the Skills tab would fall back to this old sheet */
-},
-carn:{
-  0:{u:'/assets/anim/carn/carn_ult.webp?v=3',n:72,fw:300,fh:277,cols:6,rows:12,dur:2.4},   // Crimson Reap (ultimate)
-  1:{u:'/assets/anim/carn/carn_green.webp?v=3',n:72,fw:300,fh:262,cols:6,rows:12,dur:2.4},   // Reckless Blow
-  2:{u:'/assets/anim/carn/carn_blue.webp?v=3',n:72,fw:300,fh:296,cols:6,rows:12,dur:2.4},   // Vein Burst
-  /* 3 (passive) removed v1142 (Phil 15 Oct: "remove his passive animation") - with no battle passive clip the Skills tab would fall back to the old v21 sheet here */
-},
-sylthaine:{
-  0:{u:'/assets/anim/sylthaine/sylthaine_ult.webp?v=11',n:72,fw:265,fh:300,cols:6,rows:12,dur:2.4},   // Blizzard (ultimate)
-  1:{u:'/assets/anim/sylthaine/sylthaine_green.webp?v=11',n:72,fw:169,fh:300,cols:6,rows:12,dur:2.4},   // Frozen Orb
-  2:{u:'/assets/anim/sylthaine/sylthaine_blue.webp?v=11',n:72,fw:205,fh:300,cols:6,rows:12,dur:2.4},   // Glacial Prison
-  3:{u:'/assets/anim/sylthaine/sylthaine_passive.webp?v=11',n:72,fw:137,fh:300,cols:6,rows:12,dur:2.4},   // Cold Snap (passive)
-},
-tick:{
-  0:{u:'/assets/anim/tick/tick_ult.webp?v=7',n:48,fw:300,fh:244,cols:6,rows:8,dur:2.4},
-  1:{u:'/assets/anim/tick/tick_green.webp?v=7',n:48,fw:200,fh:300,cols:6,rows:8,dur:2.4},
-  2:{u:'/assets/anim/tick/tick_blue.webp?v=7',n:48,fw:281,fh:300,cols:6,rows:8,dur:2.4},
-  /* 3 (passive) removed v1155 (Phil 15 Oct: "remove passive for anyone without an active passive") - with no battle passive clip the Skills tab would fall back to this old sheet */
-}};
+const HERO_SKILL_CLIPS = {};   /* v1164: no hand-written preview tables - the Skills tab reads the fight's own data (skillPreviewPlan); ensureSkillPreview fills this view per hero */
 const MOBILE=(('ontouchstart' in window)||(navigator.maxTouchPoints||0)>0);
 // an animation source is "real" if the build replaced its marker — either an inline data: URI OR an external
 // assets/ URL. An un-replaced marker (starts with "/*__") means that clip wasn't built in → treat as absent.
 function isAssetRef(u){ return !!u && (u.indexOf('data:')===0 || u.indexOf('http')===0 || u.indexOf('assets/')>=0); }
 // per-hero: has skill previews iff that hero's own slot-0 clip was actually built in (not KonWu-global)
-function heroHasClips(key){ const s=HERO_SKILL_CLIPS[key]; return !!(s && s[0] && isAssetRef(s[0].u)); }
+function heroHasClips(key){ return (typeof heroHasPreview==='function')?heroHasPreview(key):false; }   /* v1164: a preview exists iff the fight has a real clip for one of the slots */
 // ---- in-battle sprite animation (idle/walk/attack/hit sheets played on a hero's billboard) ----
 const CLIP_WALK="/assets/anim/konwu/konwu_walk.png?v=4", CLIP_ATK="/assets/anim/konwu/konwu_attack.png?v=4", CLIP_HIT="/assets/anim/konwu/konwu_hit.png?v=4";
 const GROSK_IDLE="/assets/anim/grosk/grosk_idle.webp?v=7", GROSK_WALK="/assets/anim/grosk/grosk_walk.webp?v=7", GROSK_ATK="/assets/anim/grosk/grosk_attack.webp?v=7", GROSK_HIT="/assets/anim/grosk/grosk_hit.webp?v=7";
-const GROSK_CROC="/assets/anim/grosk/grosk_croc.webp?v=7", GROSK_PULL="/assets/anim/grosk/grosk_pull.webp?v=7", GROSK_FISTS="/assets/anim/grosk/grosk_fists.webp?v=7";
 // KonWu's source art faces LEFT (tail on the right) → flip:true. Grosk's source art faces RIGHT (snout right) → flip:false.
 // A missing state falls back to idle at runtime, so a hero can ship with just idle+walk and gain attack/hit later.
 /* 2 Sep (Phil: "the Annotator, Tessit, Sylthaine, Dandra face the wrong way"): their side-profile art
@@ -3838,48 +3806,6 @@ const BATTLE_ANIM = {
    cast:{u:'/assets/anim/mon/sylphice_cast_2k.webp?v=1',n:12,fw:808,fh:715,cols:6,rows:2,figH:564,feet:709,cx:425,fps:10,flip:false,hold:0.8,top:145}
   }
 };
-// Grosk skill-tab previews reuse his battle sheets (declared above). Slots match the Skills list order:
-// 0 Croc Drop (ult), 1 Gravemaw Pull (green), 2 Hammer Fists (blue), 3 Juggernaut (passive → idle stance).
-HERO_SKILL_CLIPS.grosk = {
-  0:{u:'/assets/anim/grosk/grosk_ult_1112.webp?v=1158',n:48,fw:465,fh:512,cols:6,rows:8,dur:4.0},     /* v1112: the approved eight (ult and blue play in real time, 12 fps) */
-  1:{u:'/assets/anim/grosk/grosk_green_1112.webp?v=1158',n:48,fw:534,fh:500,cols:6,rows:8,dur:2.0},
-  2:{u:'/assets/anim/grosk/grosk_blue_1112.webp?v=1158',n:48,fw:595,fh:494,cols:6,rows:8,dur:4.0},
-  /* 3: v1118 - no passive animation for Grosk (Phil) */
-};
-HERO_SKILL_CLIPS.vulmar = { 0:{u:'/assets/anim/vulmar/vulmar_ult.webp?v=7',n:48,fw:241,fh:400,cols:6,rows:8,dur:2.0}, 1:{u:'/assets/anim/vulmar/vulmar_green.webp?v=7',n:48,fw:345,fh:400,cols:6,rows:8,dur:2.0}, 2:{u:'/assets/anim/vulmar/vulmar_blue.webp?v=7',n:48,fw:252,fh:400,cols:6,rows:8,dur:2.0} };   /* v1155: 3 (passive) removed (Phil 15 Oct: 'remove passive for anyone without an active passive') */
-// Oakmir skill-tab previews (Vael's derive from his battle sheets since v1025) — single-row strips re-packed from their battle sheets (assets/anim/<hero>/<hero>_sk_*.webp).
-// Slots match the Skills list order: 0 ult, 1 green, 2 blue, 3 passive → idle stance.
-HERO_SKILL_CLIPS.oakmir = {
-  0:{u:'/assets/anim/oakmir/oakmir_sk_ult.webp?v=4',      n:12,fw:125,fh:180,dur:1.8},
-  1:{u:'/assets/anim/oakmir/oakmir_sk_green.webp?v=5',n:12,fw:130,fh:180,dur:1.8},
-  2:{u:'/assets/anim/oakmir/oakmir_sk_blue.webp?v=5', n:12,fw:130,fh:180,dur:1.8},
-  3:{u:'/assets/anim/oakmir/oakmir_sk_pass.webp?v=4',     n:12,fw:135,fh:180,dur:2.4},
-};
-// Umbris/Aureth/Bloatus/Vireo/Fritz skill-tab previews — same strip-from-battle-sheets method (no new art).
-// Missing slots fall back to slot 0 in the UI. Umbris green+blue share one cast clip (same battle anim).
-HERO_SKILL_CLIPS.umbris = {   /* v1115: the approved eight (ult, green, blue, passive sheets) */
-  0:{u:'/assets/anim/umbris/umbris_ult_1115.webp?v=1158',n:48,fw:559,fh:511,cols:6,rows:8,dur:2.0},
-  1:{u:'/assets/anim/umbris/umbris_green_1115.webp?v=1158',n:48,fw:616,fh:510,cols:6,rows:8,dur:2.0},
-  2:{u:'/assets/anim/umbris/umbris_blue_1115.webp?v=1158',n:48,fw:607,fh:511,cols:6,rows:8,dur:2.0},
-  /* 3 (passive) removed v1155 (Phil 15 Oct: "remove passive for anyone without an active passive") - with no battle passive clip the Skills tab would fall back to this old sheet */
-};
-HERO_SKILL_CLIPS.aureth = {
-  0:{u:'/assets/anim/aureth/aureth_sk_ult.webp?v=5',  n:12,fw:226,fh:180,dur:1.8},
-  2:{u:'/assets/anim/aureth/aureth_sk_blue.webp?v=5', n:12,fw:203,fh:180,dur:1.8},
-  3:{u:'/assets/anim/aureth/aureth_sk_idle.webp?v=5', n:12,fw:145,fh:180,dur:2.4},
-};
-HERO_SKILL_CLIPS.vireo = {
-  0:{u:'/assets/anim/vireo/vireo_sk_ult.webp?v=8',  n:12,fw:265,fh:180,dur:1.8},
-  1:{u:'/assets/anim/vireo/vireo_sk_green.webp?v=8',n:12,fw:243,fh:180,dur:1.8},
-  2:{u:'/assets/anim/vireo/vireo_sk_blue.webp?v=8', n:12,fw:280,fh:180,dur:1.8},
-  /* 3 (passive) removed v1155 (Phil 15 Oct: "remove passive for anyone without an active passive") - with no battle passive clip the Skills tab would fall back to this old sheet */
-};
-HERO_SKILL_CLIPS.fritz = {
-  0:{u:'/assets/anim/fritz/fritz_sk_ult.webp',  n:12,fw:179,fh:180,dur:1.8},
-  1:{u:'/assets/anim/fritz/fritz_sk_green.webp?v=4',n:12,fw:198,fh:180,dur:1.8},
-  2:{u:'/assets/anim/fritz/fritz_sk_blue.webp', n:12,fw:280,fh:180,dur:1.8},
-  3:{u:'/assets/anim/fritz/fritz_sk_idle.webp', n:12,fw:136,fh:180,dur:2.4},
-};
 // a hero is "animated" if its own idle sheet was actually built into the bundle (per-hero, not KonWu-global)
 function heroHasAnim(key){ const set=BATTLE_ANIM[key]; return !!(set && set.idle && isAssetRef(set.idle.u)); }
 /* 30 Aug (v309, Phil) — FOOT SLIDE. The legs were cycling faster than the hero was actually
@@ -4565,7 +4491,6 @@ function allAssetUrls(){
      desktop, else the original. Idle/walk always the original (the UI paints them). Call after artTiersLoad() (assetCachePlan does). */
   const tierU=c=>{ try{ if(typeof artFile!=='function' || (typeof _keepsImage==='function' && _keepsImage(c))) return c.u; const F=artFile(c.u); return F?F.u:c.u; }catch(e){ return c.u; } };
   try{ for(const k in BATTLE_ANIM){ const set=BATTLE_ANIM[k]; for(const st in set){ if(st[0]==='_')continue; const c=set[st]; if(c&&c.u) add(tierU(c)); } } }catch(e){}
-  try{ for(const k in HERO_SKILL_CLIPS){ const g=HERO_SKILL_CLIPS[k]; for(const i in g){ if(g[i]&&g[i].u) add(g[i].u); } } }catch(e){}
   try{ for(const k in HERO_PORTRAITS) add(HERO_PORTRAITS[k]); }catch(e){}
   try{ for(const k in HERO_SPRITES) add(HERO_SPRITES[k]); }catch(e){}
   try{ for(const k in BATTLE_MAPS) add(BATTLE_MAPS[k]); }catch(e){}
@@ -4746,60 +4671,135 @@ function preloadVaultArt(waves){
   try{ (waves||[]).forEach(w=>w.forEach(m=>keys.push(m.key))); }catch(e){}
   preloadBattleArt(keys, (typeof BATTLE_MAPS!=='undefined'&&BATTLE_MAPS.vault)||null);
 }
-/* v401: the preview box is 158px tall with a caption and a hint inside it, so ~124px is clear art
-   height; SK_CLIP_W is the narrowest the panel gets on a phone. Scale is never >1 (small sheets are
-   left at native size) and is anchored at the feet by .sk-clipsprite's transform-origin. */
-const SK_CLIP_H=124, SK_CLIP_W=300;
-function skClipFit(c){ return Math.min(1, SK_CLIP_H/(c.fh||1), SK_CLIP_W/(c.fw||1)); }
-/* v483 (Phil): the Beekeeper's skill previews show the bee projectiles working — a 2D canvas overlay on the clip */
-function skillClipFxHTML(key,idx,c){ if(key!=='mellan') return '';
-  return `<canvas class="sk-clipfx" data-key="${key}" data-idx="${idx}" data-t0="${Date.now()}" width="${c.fw}" height="${c.fh}" style="position:absolute;left:0;top:0;width:${c.fw}px;height:${c.fh}px;pointer-events:none"></canvas>`; }
-function skillClipFxTick(){ const cs=document.querySelectorAll('canvas.sk-clipfx'); cs.forEach(cv=>{ try{ const g=cv.getContext('2d'); const W=cv.width,H=cv.height; g.clearRect(0,0,W,H); const idx=+cv.dataset.idx; const T=(Date.now()-(+cv.dataset.t0))/1000; const per=(idx===2)?2.6:3.4, t=T%per;
-    const hx=W*0.5, hy=H*0.16;   // roughly above the hero's head in the clip
-    const bee=(x,y,sc,dir)=>{ g.save(); g.translate(x,y); g.scale(dir*sc,sc); g.fillStyle='rgba(225,238,255,0.8)'; g.beginPath(); g.ellipse(-3,-4,5,2.6,-0.5,0,6.283); g.fill(); g.beginPath(); g.ellipse(3,-4,5,2.6,0.5,0,6.283); g.fill(); g.fillStyle='#f4c531'; g.beginPath(); g.ellipse(0,0,6.5,4,0,0,6.283); g.fill(); g.fillStyle='#1c130a'; [-3,0.5,4].forEach(x=>{ g.beginPath(); g.ellipse(x,0,1.2,4,0,0,6.283); g.fill(); }); g.beginPath(); g.arc(7.5,0,2.4,0,6.283); g.fill(); g.restore(); };
-    if(idx===2){ const drop=Math.min(1,t/0.9), yy=-40+(hy+H*0.02+40)*drop*drop; const melt=Math.max(0,Math.min(1,(t-1.0)/0.7)); if(melt<1){ g.save(); g.globalAlpha=1-melt; g.translate(hx,yy); g.scale(1+0.5*melt,1-0.6*melt); g.fillStyle='#e9a21c'; g.beginPath(); g.moveTo(0,-30); g.bezierCurveTo(10,-12,24,-2,24,10); g.arc(0,10,24,0,Math.PI,false); g.bezierCurveTo(-24,-2,-10,-12,0,-30); g.fill(); g.fillStyle='rgba(255,245,200,0.8)'; g.beginPath(); g.ellipse(-8,0,5,8,-0.5,0,6.283); g.fill(); g.restore(); }
-      if(t>1.0&&t<1.8){ g.fillStyle='rgba(255,230,120,'+(0.8*(1-(t-1)/0.8))+')'; for(let i=0;i<8;i++){ const a=i/8*6.283, r=20+(t-1)*60; g.beginPath(); g.arc(hx+Math.cos(a)*r,hy+H*0.02+Math.sin(a)*r*0.4,3,0,6.283); g.fill(); } } return; }
-    const N=30; for(let i=0;i<N;i++){ const seed=i*7.31; const ang=seed%6.283, rad=8+(seed*3.7)%22, spin=(i%2?1:-1)*(4+(i%5)); let x,y,dir=1;
-      if(idx===0){ const dep=0.9+i*0.03; if(t<dep){ const a=ang+spin*t; x=hx+Math.cos(a)*rad; y=hy+Math.sin(a)*rad*0.5+Math.sin(t*6+seed)*3; dir=Math.cos(a)>=0?1:-1; } else { const k=Math.min(1,(t-dep)/1.2); const oa=seed*1.9, ex=hx+Math.cos(oa)*(W*0.7), ey=hy+Math.sin(oa)*(H*0.45); x=hx+(ex-hx)*k; y=hy+(ey-hy)*k; dir=Math.cos(oa)>=0?1:-1; if(k>=1) continue; } }
-      else { const dep=0.25+i*0.02; if(t<dep) continue; const k=Math.min(1,(t-dep)/0.7); const tx=W*0.86, ty=H*0.42; if(t<2.4){ const bx=hx+(tx-hx)*k, by=hy+(ty-hy)*k; const sw=k>=1?1:0; const a=ang+spin*(t-dep); x=bx+sw*Math.cos(a)*rad; y=by+sw*Math.sin(a)*rad*0.6; dir=sw?(Math.cos(a)>=0?1:-1):1; } else { const kk=Math.min(1,(t-2.4)/0.8); const a=ang; const sx=tx+Math.cos(a)*rad, sy=ty+Math.sin(a)*rad*0.6; x=sx+(hx-sx)*kk; y=sy+(hy-sy)*kk; dir=-1; if(kk>=1) continue; } }
-      bee(x,y,0.9,dir); } }catch(_){} }); requestAnimationFrame(skillClipFxTick); }
-try{ requestAnimationFrame(skillClipFxTick); }catch(_){}
-function skillClipHTML(key,idx){ const c=HERO_SKILL_CLIPS[key]&&HERO_SKILL_CLIPS[key][idx]; if(!c||!isAssetRef(c.u)) return '';
-  const d=(c.dur/1.5).toFixed(3);   // /1.5 → skill previews play 50% faster
-  const fit=skClipFit(c), tf=fit<1?('transform:scale('+fit.toFixed(4)+');'):'';
-  /* 29 Aug — GRID SHEETS. This used to assume every preview sheet was ONE horizontal strip
-     (background-size fw*n) and pan it with a single steps(n) animation. The newer sheets are grids
-     — Lumi and Dandra are 6 wide by 8 tall — and a strip pan on a grid shows a 6x-too-wide slice of
-     row 0, which is why sylthaine's cols/rows entry never previewed correctly either.
-     A grid needs two animations: step across the columns once per row, and step down the rows once
-     per cycle. background-position-x and -y animate independently, so they compose cleanly. */
-  if(c.cols && c.rows && c.rows>1){ const W=c.fw*c.cols, H=c.fh*c.rows;
-    const fx=skillClipFxHTML(key,idx,c); const sp=`<div class="sk-clipsprite" style="width:${c.fw}px;height:${c.fh}px;background-image:url('${c.u}');background-size:${W}px ${H}px;${fx?'':tf}animation:skcx-${key}-${idx} ${(c.dur/1.5/c.rows).toFixed(3)}s steps(${c.cols}) infinite, skcy-${key}-${idx} ${d}s steps(${c.rows}) infinite"></div>`;
-    return fx?`<div style="position:relative;width:${c.fw}px;height:${c.fh}px;${tf}transform-origin:50% 100%">${sp}${fx}</div>`:sp; }
-  const strip=c.fw*c.n;
-  const fx=skillClipFxHTML(key,idx,c); const sp=`<div class="sk-clipsprite" style="width:${c.fw}px;height:${c.fh}px;background:url('${c.u}');background-size:${strip}px ${c.fh}px;${fx?'':tf}animation:skc-${key}-${idx} ${d}s steps(${c.n}) infinite"></div>`;
-  return fx?`<div style="position:relative;width:${c.fw}px;height:${c.fh}px;${tf}transform-origin:50% 100%">${sp}${fx}</div>`:sp; }
-// inject one keyframe per built-in clip (per-clip guard, so any hero with clips gets its previews)
-(function(){ let css='';
-  for(const hk in HERO_SKILL_CLIPS){ const set=HERO_SKILL_CLIPS[hk];
-    for(const i in set){ const c=set[i]; if(!isAssetRef(c.u))continue;
-      if(c.cols && c.rows && c.rows>1){ css+=`@keyframes skcx-${hk}-${i}{from{background-position-x:0}to{background-position-x:-${c.fw*c.cols}px}}@keyframes skcy-${hk}-${i}{from{background-position-y:0}to{background-position-y:-${c.fh*c.rows}px}}`; }
-      else css+=`@keyframes skc-${hk}-${i}{from{background-position:0 0}to{background-position:-${c.fw*c.n}px 0}}`; } }
-  const st=document.createElement('style'); st.textContent=css; document.head.appendChild(st); })();
-/* 2 Sep — 13 heroes had battle clips for every ability but no Skills-tab preview entry, so their
-   skill page showed nothing. Derive the preview from the same battle sheet the fight uses, through
-   the same ability→clip mapping, the first time that hero's card is opened (KITS/ABIL_ANIM are
-   defined later in the file than the table above, so this cannot run at load). */
-function ensureSkillPreview(hk){ try{
-  const have=HERO_SKILL_CLIPS[hk]||{}; if(have._derived) return; const an=BATTLE_ANIM[hk]; if(!an||!HERO_TYPES[hk]) return;
-  const kit=KITS[hk]||{}; const pick=(slot,type)=>{ let st=an[slot]?slot:null; if(!st&&type&&an[type]) st=type; if(!st&&type&&ABIL_ANIM[type]&&an[ABIL_ANIM[type].st]) st=ABIL_ANIM[type].st; return st?an[st]:null; };
-  const src={0:pick('ult',HERO_TYPES[hk].ability),1:pick('green',kit.green&&kit.green.type),2:pick('blue',kit.blue&&kit.blue.type),3:an.passive||null};
-  const set={}; let css=''; for(const i in src){ const c=src[i]; if(!c||!c.u){ if(have[i]&&isAssetRef(have[i].u)) set[i]=have[i]; continue; }   /* v961 (Phil 3 Oct: "fix skill previews"): the CURRENT battle sheet wins; a hand-written preview entry is only a fallback where no battle clip exists. The 9 heroes with hand-written tables (grosk, vulmar, vael, oakmir, umbris, aureth, bloatus, vireo, fritz) kept stale strips after their remakes; Vulmar's declared frame sizes no longer matched his re-cut sheets. */ const cols=c.cols||c.n, rows=Math.ceil(c.n/cols);
-    set[i]={u:c.u,n:c.n,fw:c.fw,fh:c.fh,cols,rows,dur:+(c.n/(c.fps||12)).toFixed(2),flip:!!c.flip};
-    if(rows>1) css+=`@keyframes skcx-${hk}-${i}{from{background-position-x:0}to{background-position-x:-${c.fw*cols}px}}@keyframes skcy-${hk}-${i}{from{background-position-y:0}to{background-position-y:-${c.fh*rows}px}}`;
-    else css+=`@keyframes skc-${hk}-${i}{from{background-position:0 0}to{background-position:-${c.fw*c.n}px 0}}`; }
-  if(!set[0]) return; Object.defineProperty(set,'_derived',{value:1,enumerable:false}); HERO_SKILL_CLIPS[hk]=set; if(css){ const st=document.createElement('style'); st.textContent=css; document.head.appendChild(st); }
-}catch(e){} }
+/* v1164 SKILL PREVIEWS (Phil 16 Oct 2026: "Can you please update all the skill previews with the new animations, skill fx and also the
+   sound it makes" / "With the real animations"). The Skills tab no longer keeps tables of its own: every preview is READ from the fight's
+   own data the moment it is shown, so a re-made hero's preview changes the day its battle sheet does and the two can never drift:
+     CLIP  - the state the fight plays for that slot, picked the way startAbilityClip / the swing pick it (the slot's own sheet, else
+             ABIL_ANIM's state for the ability type; an attack is the hero's swing clip(s) - Aureth's light + dark arms, Rafe's pistol + cutlass,
+             Rivet's arsenal; a crit is his crit clip). The BATTLE_ANIM entry itself - same file (artFile: this device's tier, as _loadClip),
+             cells, fps, pingpong, anchors - played as the fight plays a one-shot (skillPreviewCell). A slot whose fight has no real clip of
+             its own (the attack stand-in a cast falls back to, no passive clip, no crit clip) shows NOTHING - never a substitute.
+     FX    - the slot's spell art as abilArt / buffArtAll / debuffArtAll / the ownFx painters / TIPFX / abilShot draw it: the same FX2_DEF
+             sheet, at the release (the cast clock, castTimeFor) or the press (the art the fight starts at the press), on the caster, the
+             target, as a wedge from the caster, over the head (a buff) or under the feet (a debuff), flying (a projectile).
+     SOUND - the slot's SFX_DATA rows (the files the fight plays), peak on the clip's contact cell (clipContactCell - the cell the engine
+             lands the blow on) for a swing / release / land / hit / strike, from the start on the press for a cast and on the trigger for a
+             passive; a swing at SFX_ATK_GAIN. The stage plays them through sfxPlay (the FX channel) on a TAP only.
+   RENDER ONLY: no unit, no battle state, no RNG, no server - the plan is pure data off the tables (tests/test_skill_previews_1164.js). */
+const SKILL_PREVIEW_SLOTS=['attack','crit',0,1,2,3];
+const SKP_BSLOT={0:'ult',1:'green',2:'blue',3:'passive'};
+function _skpHas(an,st){ return !!(st&&an&&an[st]&&an[st].u&&isAssetRef(an[st].u)); }
+/* the fight's clip(s) for a slot, as state names of BATTLE_ANIM[hk] */
+function skillPreviewStates(hk,slot){ try{ const an=BATTLE_ANIM[hk], T=HERO_TYPES[hk]; if(!an||!T||T.monster) return [];
+  const kit=KITS[hk]||{}, has=st=>_skpHas(an,st);
+  if(slot==='attack'){
+    if((kit.purple||{}).pass==='arsenal' && typeof RIVET_WPN!=='undefined') return RIVET_WPN.ranged.concat(RIVET_WPN.melee).map(w=>'w_'+w).filter(has);   // rivetPick: the weapon clip of each swing
+    if(T.autoAlt && (has('attackLight')||has('attackDark'))) return ['attackLight','attackDark'].filter(has);   // v1150: light, dark, light, dark
+    return ['attack','melee'].filter(has); }   // v436: a hero with a melee clip swings it up close, the attack clip at range
+  if(slot==='crit') return has('crit')?['crit']:[];   // v532: only a hero WITH a crit clip plays one
+  if(+slot===3) return has('passive')?['passive'].concat(has('passiveDark')?['passiveDark']:[]):[];   // v1155: no passive clip = no passive preview
+  const bs=SKP_BSLOT[+slot]; if(!bs) return [];
+  const type=(+slot===0)?T.ability:(((+slot===1)?kit.green:kit.blue)||{}).type, aa=ABIL_ANIM[type];
+  const st=has(bs)?bs:((aa&&has(aa.st))?aa.st:null);   // startAbilityClip: the cast slot's sheet, else ABIL_ANIM - its attack stand-in is not a preview
+  return st?[st]:[]; }catch(e){ return []; } }
+/* the cell a one-shot draws `t` real seconds into its clip (syncMesh: _animAcc += dt x fps; one playthrough = ppPer cells, a non-pingpong
+   clip holds its last cell, a pingpong runs out and back; `reverse` plays backwards) */
+function skillPreviewCell(A,t){ if(!A||!(A.n>0)) return 0; const per=ppPer(A); let p=Math.floor(Math.max(0,t)*(A.fps||10)+1e-9); if(p>=per) p=per-1;
+  let fr=(A.pingpong&&A.n>1)?ppFrame(A,p):Math.min(A.n-1,p); if(A.reverse) fr=A.n-1-fr; return fr; }
+function skillPreviewClipDur(A){ return A?ppPer(A)/(A.fps||10):0; }
+/* how far the enemy a preview casts at stands (field units): touching for a melee hero, his range (up to 8 m) for a ranged one */
+function skillPreviewTargetDist(hk){ const T=HERO_TYPES[hk]||{}; return ((T.range||0)<60)?2.2*METER:Math.min(T.range||8*METER,8*METER); }
+function _skpCast(hk,bs){ try{ return castTimeFor({key:hk,t:HERO_TYPES[hk]},bs); }catch(e){ return bs==='ult'?0.8:0.5; } }
+function _skpOpts(hk,slot){ const kit=KITS[hk]||{}, T=HERO_TYPES[hk]||{};
+  if(+slot===0){ const ab=T.ability; return {type:ab,o:Object.assign({},ULT_DEF[ab]||{},(typeof HERO_ULT_ART!=='undefined'&&HERO_ULT_ART[hk])||{})}; }
+  const row=(+slot===1)?kit.green:kit.blue; return {type:(row||{}).type,o:Object.assign({},row||{})}; }
+/* the spell art of a skill slot (1 green, 2 blue, 0 ult) the way the fight places it. Times are REAL seconds from the press. */
+const SKP_OWNFX={bell:'bellring',horizon:'astrahorizon',chop:'korvuxcleave',quake:'tharlquake',digin:'rhukkroar',puncture:'vesperpuncture',tempest:'vextempest',
+  mantle:'veyrmantle',undertow:'veyrundertow',crescent:'veyrcrescent',ruyi:'konwuruyi',wound:'bleedopen',cards:'sorrelcard',reap:'carnreap',hook:'hookreel'};
+function _skpFx(hk,slot,st,T0,rel){ const out=[], add=(e)=>{ if(e&&FX2_DEF[e.k]) out.push(Object.assign({d:FX2_DEF[e.k]},e)); };
+  const tip=(typeof TIPFX!=='undefined')&&TIPFX[hk]&&TIPFX[hk][st]; if(tip) add({k:tip.fx,kind:'tip',t0:T0,track:tip.track,st});   // spawnTipFx (startAbilityClip): rides the clip
+  if(+slot===3){ const k=hk+'_passive', d=FX2_DEF[k]; if(d) add({k,kind:d.upright?'up':(d.disc?'disc':'flat'),at:'self',t0:T0,life:(d.dur||1.6),R:2.4*METER}); return out; }   // firePassiveFx: on him, the sheet's own length
+  const {type,o}=_skpOpts(hk,slot); if(!o) return out;   /* noArt: no abilArt plate - the case's own art (below) still draws */
+  const form=(o.deliver==='form')?(o.form||0.35)/FX_RT:0, kase=rel+form;   // a form spell's own case (its damage) runs `form` after the release
+  const R=(o.artR>0)?o.artR:((o.radius>0&&o.radius<=30*METER)?o.radius:(o.gfxR||2.4*METER));
+  if(o.ownFx){ const k=SKP_OWNFX[o.ownFx]; const ct=_skpCast(hk,SKP_BSLOT[+slot]);
+    switch(o.ownFx){
+      case 'chop': add({k,kind:'chop',t0:T0,st}); break;   // korvuxChopCastFx at the press; the axe frame drives it
+      case 'ruyi': add({k,kind:'ruyi',t0:T0,tb:(FX2_DEF[k]?(FX2_DEF[k].slam/FX2_DEF[k].n)*FX2_DEF[k].dur*FX_RT:0)-ct}); break;   // konwuRuyiCastFx: cell `slam` on the release
+      case 'puncture': { const D=ULT_DEF.riftpuncture||{}; add({k,kind:'punct',t0:T0,endT:ct+0.35+(D.freeze||1)+(D.silence||1)}); break; }
+      case 'horizon': { const d=FX2_DEF[k]; add({k,kind:'disc22',at:'target',t0:rel,R:(o.radius||8*METER),tb:d?(d.impact/d.n)*d.dur*FX_RT-(o.form||0.35):0}); break; }
+      case 'quake': add({k,kind:'disc22',at:'target',t0:rel,R:((FX2_DEF[k]||{}).R||4)*METER,fade:0.3}); break;
+      case 'digin': add({k,kind:'disc22',at:'self',t0:rel,R:((FX2_DEF[k]||{}).R||4.5)*METER,fade:0.3}); add({k:'rhukkshell',kind:'shell',t0:rel,life:Math.max(o.dur||3,(FX2_DEF.rhukkshell||{dur:0}).dur*FX_RT)}); break;
+      case 'tempest': add({k,kind:'tempest',t0:rel,R:(o.radius||10*METER),fade:0.2}); break;
+      case 'mantle': add({k,kind:'mantle',t0:rel,life:(o.dur||2.4)}); break;
+      case 'undertow': add({k,kind:'undertow',at:'target',t0:rel,R:(o.radius||7*METER),tc:Math.max(0.05,(o.pull||1.2)*BATTLE_PACE)}); break;
+      case 'crescent': add({k,kind:'crescent',t0:kase}); break;   // the tendrilpull case
+      case 'bell': add({k,kind:'bell',at:'target',t0:rel,fade:0.25}); break;
+      case 'wound': add({k,kind:'wound',t0:kase,life:Math.max(o.dur||6,(FX2_DEF[k]||{dur:0}).dur*FX_RT),fade:0.3}); break;
+      case 'reap': add({k,kind:'reap',t0:kase,R:(o.radius||3.2*METER),fade:0.3}); break;
+      case 'hook': add({k,kind:'hook',t0:kase}); add({k:'hookslash',kind:'slash',t0:kase+HOOK_LAND}); break;   // the rope at the cast, the slash as she lands (HOOK_LAND, clip seconds)
+      case 'cards': { const n=o.single?(o.n||3):1; for(let i=0;i<n;i++){ add({k:o.pfx||k,kind:'proj',t0:kase+i*0.15/FX_RT,dur:(o.pdur||0.30)/FX_RT,scale:o.pscale||2.6});   // the volley case: one card every 0.15 fight s
+        add({k:(i===n-1&&o.mark)?'sorrelflare':'sorrelspark',kind:'spark',at:'target',t0:kase+(i*0.15+(o.pdur||0.30))/FX_RT}); } break; }
+    }
+    return out; }
+  const tdist=skillPreviewTargetDist(hk);
+  /* deliverLaunch (v888): 'shot' flies pfx||gfx caster -> enemy over dist/speed (0.12-0.8 fight s), 'land' drops the gfx from the sky over `fall`,
+     then the spell lands (doEffect again: its plate draws there, with no pfx); 'form' draws the art at the launch and its damage `form` later */
+  let land=rel;
+  if(o.deliver==='shot'){ const k=o.pfx||o.gfx, dl=Math.max(0.12,Math.min(0.8,tdist/(o.speed||16*METER))); if(k&&FX2_DEF[k]) add({k,kind:'proj',t0:rel,dur:dl/FX_RT,scale:o.pscale||2.6}); land=rel+dl/FX_RT; o.pfx=null; }
+  else if(o.deliver==='land'){ const dl=o.fall||0.55; if(o.gfx&&FX2_DEF[o.gfx]) add({k:o.gfx,kind:'drop',at:'target',t0:rel,dur:dl/FX_RT,scale:o.pscale||3.0}); land=rel+dl/FX_RT; }
+  else if(o.pfx&&FX2_DEF[o.pfx]) add({k:o.pfx,kind:'proj',t0:kase,dur:(o.pdur||0.30)/FX_RT,scale:o.pscale||2.6});   // abilShot: caster -> victim
+  /* plates a spell's own case draws by name (doEffect): Oakmir's spring / bloom / roots, the Greatbrow banner's roots, Linnet's rewind,
+     Fritz's storm strike, Umbris's void pool where his orb lands, Rafe's tracer spark */
+  const CASE={firstspring:['firstspring','self',3.2*METER,2.2], rewind:['linnet_rewind','above',1.2*METER,6.04], stormsurge:['fritz_green','target',3*METER,(typeof STORM_STRIKE_LIFE!=='undefined'?STORM_STRIKE_LIFE:1.1),0.3],
+    banner:['rallyroots','self',(o.radius||5*METER)*0.5,1.0], umbralcata:['voidzone','target',o.radius||3*METER,o.dur||5,0.22*BATTLE_PACE], shadeburst:[o.gfx,'target',o.artR||2*METER,o.gdur||1.6,0,0.84]};
+  if(hk==='oakmir'){ CASE.hot=['mendbloom','self',0.9*METER,1.4]; CASE.heal=['rallyroots','self',2.2*METER,1.0]; }
+  const cz=CASE[type]; if(cz&&FX2_DEF[cz[0]]){ const dd=FX2_DEF[cz[0]]; add({k:cz[0],kind:cz[1]==='above'?'above':(dd.upright?'up':(dd.disc?'disc':'flat')),at:cz[1]==='target'?'target':'self',t0:kase+(cz[4]||0)/FX_RT,life:cz[3],R:cz[2],atH:cz[5]||null}); }
+  if(o.deliver==='travel'&&o.gfx&&FX2_DEF[o.gfx]){ const dd=FX2_DEF[o.gfx], spd=o.speed||6*METER, tt=(tdist+3*METER)/spd;   // v888 Spiral Current: the plate rides the hazard through the formation
+    add({k:o.gfx,kind:dd.upright?'up':(dd.disc?'disc':'flat'),at:'self',t0:kase,life:tt+0.6,R:o.gfxR||o.radius||3*METER,mv:{x0:METER,v:spd,tt}}); }
+  if(type==='toxbreath'&&FX2_DEF.toxcone) add({k:'toxcone',kind:'beam',t0:kase,ext:0.45,ret:0.3});   // spawnBeamFx: the plume shoots mouth -> target, then thins
+  if(type==='blink'&&o.gfx&&FX2_DEF[o.gfx]&&!o.noArt){ const dd=FX2_DEF[o.gfx]; add({k:o.gfx,kind:dd.upright?'up':(dd.disc?'disc':'flat'),at:'target',t0:rel+1.0,life:o.gdur||1.6,R}); return out; }   // abilArt defers a blink's flash 1 s (setTimeout, real time) to where he lands
+  if(o.noArt||o.deliver==='travel') return out;
+  if(o.spark&&FX2_DEF[o.spark]) add({k:o.spark,kind:FX2_DEF[o.spark].upright?'up':(FX2_DEF[o.spark].disc?'disc':'flat'),at:'target',t0:kase+(o.pdur||0.30)/FX_RT,life:FX2_DEF[o.spark].dur||1.2,R:1.2*METER});
+  if(!o.gfx||!FX2_DEF[o.gfx]) return out;
+  const d=FX2_DEF[o.gfx], life=((type==='tendrilpull')?((o.dur||3)+0.35):(o.gdur||1.6));
+  const rU=(o.radius>0)?o.radius:0, fw=o.fieldWide||((rU>20*METER)?(_ABOVE_BAR[type]?'allies':'enemies'):null);
+  if(fw){ if(fw!=='enemies') add({k:o.gfx,kind:'above',at:'self',t0:rel,life}); if(fw!=='allies') add({k:o.gfx,kind:'above',at:'target',t0:rel,life}); return out; }   // v591: a badge on each unit it touches
+  const at0=(o.deliver==='shot'||o.deliver==='land')?land:kase;
+  if(_ABOVE_BAR[type]){ add({k:o.gfx,kind:'above',at:'self',t0:at0,life,badge:o.badgeSize||null}); return out; }   // buffArtAll: over the ally it changed (him)
+  if(_DEBUFF_BADGE[type]){ add({k:o.gfx,kind:'feet',at:'target',t0:at0,life}); return out; }   // debuffArtAll: under the enemy's feet
+  let at=(o.gfxAt==='self'||_SELF_PLATE[type])?'self':'target';
+  if(o.gfxAt!=='muzzle'&&o.gfxAt!=='target'&&o.gfxAt!=='self'){ if(_SELF_CENTRED[type]||_ALLY_CENTRED[type]||type==='harmonyshield'||type==='chantzone') at='self'; }   // the lowest / clustered ally is him in a one-hero preview
+  if(d.cone) { add({k:o.gfx,kind:'cone',at:'self',t0:rel,life,R}); return out; }
+  if(o.gfxAt==='muzzle') at='muzzle'; else if(o.gfxAt==='front') at='front';
+  const late=(o.pfx&&at==='target')?(o.pdur||0.30)/FX_RT:0;   // v476: a projectile's impact plate waits for it to land
+  const tp=(o.deliver==='shot'||o.deliver==='land')?land:(o.deliver==='form'?rel:rel+late);
+  add({k:o.gfx,kind:d.upright?'up':(d.disc?'disc':'flat'),at,t0:tp,life,R});
+  return out; }
+/* THE PLAN for one slot: {hk, slot, clips:[{st,A,t0,dur}], fx:[...], snd:[{name,at,atk,fromStart}], rel, end} - or null (no real clip) */
+function skillPreviewPlan(hk,slot){ try{ const sts=skillPreviewStates(hk,slot); if(!sts.length) return null;
+  const an=BATTLE_ANIM[hk], clips=[]; let t=0; sts.forEach(st=>{ const A=an[st], dur=skillPreviewClipDur(A); clips.push({st,A,t0:t,dur}); t+=dur; });
+  const H=(typeof SFX_DATA!=='undefined'&&SFX_DATA.heroes&&SFX_DATA.heroes[hk])||null, snd=[], hitT=c=>c.t0+clipContactCell(c.A)/(c.A.fps||10);
+  const bs=(typeof slot==='number'||/^\d$/.test(String(slot)))?SKP_BSLOT[+slot]:null;
+  const rel=(bs&&bs!=='passive')?_skpCast(hk,bs)/FX_RT:0;   // the release: the cast clock (fight seconds) on the real clock
+  if(slot==='attack'||slot==='crit'){ const melee=!!(HERO_TYPES[hk]&&HERO_TYPES[hk].range<60);
+    clips.forEach(c=>{ const wm=(typeof RIVET_WPN!=='undefined'&&/^w_/.test(c.st))?RIVET_WPN.melee.indexOf(c.st.slice(2))>=0:null;
+      const name=H&&((H.arm&&H.arm[c.st])||(((c.st==='melee')||(wm===true))&&H.melee?H.melee:H.atk)); if(name) snd.push({name,at:hitT(c),atk:1,id:name,on:'blow'}); }); }   // sfxAtk: arm pick, melee pick, weapon
+  else if(H&&bs&&H[bs]){ const c=clips[0], A=c.A, cs=Array.isArray(A.contact)?A.contact:[clipContactCell(A)];
+    H[bs].forEach(r=>{ if(r.on==='cast'||r.on==='passive') snd.push({name:r.f[0],at:c.t0,fromStart:1,id:r.id,on:r.on});
+      else if(r.on==='seq'&&r.at) r.at.forEach((a,k)=>snd.push({name:r.f[Math.min(k,r.f.length-1)],at:rel+a,id:r.id,on:r.on}));   // Razor Tempest: each cut on its measured slash flash
+      else if(r.on==='hit'||r.on==='seq'){ const m=Math.max(1,Math.min(r.max||1,cs.length)); for(let k=0;k<m;k++) snd.push({name:r.seq?r.f[Math.min(k,r.f.length-1)]:r.f[0],at:c.t0+Math.max(0,Math.min(A.n-1,cs[k]|0))/(A.fps||10),id:r.id,on:r.on}); }
+      else snd.push({name:r.f[0],at:hitT(c),id:r.id,on:r.on}); }); }   // release / land / strike: peak on the contact cell
+  const fx=(slot==='attack'||slot==='crit')?[]:_skpFx(hk,slot,sts[0],clips[0].t0,rel);
+  let end=t; fx.forEach(e=>{ const L=(e.life!=null)?(e.d.rt?e.life:e.life/FX_RT):(e.dur!=null?e.dur:e.d.dur||1); end=Math.max(end,e.t0+Math.min(8,L)); });
+  snd.forEach(s=>{ end=Math.max(end,s.at+0.2); });
+  return {hk,slot,clips,fx,snd,rel,end}; }catch(e){ return null; } }
+/* v1164: HERO_SKILL_CLIPS is no longer a table of its own - kept as a view of the plan (slot -> the fight's clip) for the code that asks
+   "does this hero have a preview" (offline downloader, older tests). Filled per hero on demand. */
+function ensureSkillPreview(hk){ try{ if(HERO_SKILL_CLIPS[hk]&&HERO_SKILL_CLIPS[hk]._derived) return; const set={};
+  [0,1,2,3].forEach(i=>{ const s=skillPreviewStates(hk,i); if(s.length) set[i]=BATTLE_ANIM[hk][s[0]]; });
+  Object.defineProperty(set,'_derived',{value:1,enumerable:false}); HERO_SKILL_CLIPS[hk]=set; }catch(e){} }
+function heroHasPreview(hk){ return SKILL_PREVIEW_SLOTS.some(s=>skillPreviewStates(hk,s).length>0); }
 // ---- HERO LORE: a title + backstory for every hero, shown on the Lore tab of the hero screen ----
 const HERO_LORE = {
   hurne:{title:"The Chain and the Herd",text:"Nobody made Hurne a warlord. He was a swineherd, in a valley whose name is not on any map because the valley is not there any more, and he was good at it in the way that men are good at work nobody else wants: quietly, for forty years, without ever once being asked how it was going.\n\nThe army that came through did not stop. That is the part he returns to. They were going somewhere else and the valley was simply in the way, and it took them most of an afternoon, and the herd went with everything else \u2014 not eaten, not taken, just killed, because killing was faster than walking around. He was in the high pasture. He watched all of it from a distance at which he could do nothing, which is a specific kind of ruin that does not heal over.\n\nWhat he dug up afterward, he dug up by hand. What he swore over the hole is not recorded and he has never repeated it. But something in the ground took the oath seriously, and when he stood up he was wearing more than he had lain down in, and the chains were already on his arms, and the herd came back up out of the soil behind him \u2014 wrong, and armoured, and willing.\n\nThey have never left. He calls and they claw their way up wherever he happens to be standing, still carrying the shields he was buried with them, and the old sow who used to lead them comes up last and tends the others exactly as she always did. He does not think of them as summons. He is quite insistent on this. They are his herd, they were always his herd, and the only thing that has changed is that now he is standing between them and the road.\n\nWhen it goes badly he takes them back into himself, which costs him something he cannot name, and he does it anyway, and afterward he calls them again."},
@@ -16286,12 +16286,13 @@ function popoutScreen(name){ const el=document.getElementById(name); if(!el){ sh
   el.classList.add('active','popout');
   const hm=document.getElementById('hubMenu'); if(hm) hm.classList.remove('open');
 }
-function closePopout(){ try{ loreStop(); }catch(e){}   /* v1124: closing a pop-out panel stops the lore narration */
+function closePopout(){ try{ loreStop(); }catch(e){} try{ if(window.EmberSkillStage) window.EmberSkillStage.stop(); }catch(e){}   /* v1164 */   /* v1124: closing a pop-out panel stops the lore narration */
   const bd=document.getElementById('popoutBackdrop'); if(bd) bd.style.display='none';
   document.querySelectorAll('.popoutClose').forEach(x=>x.remove());
   if(_popout){ const el=document.getElementById(_popout); if(el) el.classList.remove('active','popout'); _popout=null; } }
 function show(name){
   try{ if(name!==state) loreStop(); }catch(e){}
+  try{ if(name!==state && window.EmberSkillStage) window.EmberSkillStage.stop(); }catch(e){}   /* v1164: leaving a screen lets the Skills-tab preview's sheets + sounds go */
   try{ setTimeout(()=>{ musTick(); muteBtnPlace(); },0); }catch(e){}   /* v1159 */   /* v1048: leaving the screen stops the lore narration */
   try{ if(typeof netGateUpdate==='function'&&NETGATE.bootAt) setTimeout(netGateUpdate,0); }catch(e){}   /* v1018: a signed-out player may only use the sign-in screen */
   /* v1144: with no session nothing but the sign-in gate is reachable - any navigation lands on the (covered) town and opens the gate */
@@ -25641,11 +25642,19 @@ function renderHeroDetail(){
       {idx:2,name:kit.blue.name,tier:'Blue',col:RANK_COLOR[2]},
       {idx:3,name:kit.purple.name,tier:'Purple',col:RANK_COLOR[3]},
     ];
+    /* v1164 (Phil 16 Oct: the previews play the fight's own animation, spell art and sound): every slot the fight has a real clip for -
+       the swing and the crit as well as the four skills - previews from skillPreviewPlan; a slot with no real clip has no preview */
     ensureSkillPreview(key);
-    const hasClips=heroHasClips(key), stageOK=!!(window.EmberSkillStage&&BATTLE_ANIM[key]);   /* v905 battle preview */
-    if(!stageOK && hasClips && !HERO_SKILL_CLIPS[key][skClipIdx]) skClipIdx=0;
-    const rows=skills.map(s=>{ const on=skillUnlocked(key,s.idx), lv=skillLevel(key,s.idx), atMax=lv>=SKILL_MAX, cost=skillUpCost(s.idx,lv), can=on&&!atMax&&(G.gold||0)>=cost;
-      const tip=(skillDesc(key,s.idx)+(on?'':' (Unlocks at '+s.tier+' quality)')).replace(/"/g,'&quot;'); const hasClip=stageOK||(hasClips&&!!HERO_SKILL_CLIPS[key][s.idx]);
+    const stageOK=!!(window.EmberSkillStage&&BATTLE_ANIM[key]), pv=sl=>stageOK&&skillPreviewStates(key,sl).length>0;
+    if(!pv(skClipIdx)) skClipIdx=SKILL_PREVIEW_SLOTS.filter(pv).sort((a,b)=>(typeof a==='number'?0:1)-(typeof b==='number'?0:1))[0];
+    if(skClipIdx===undefined) skClipIdx=0;
+    const swingRows=[['attack','Attack',S_ATK+' damage'],['crit','Critical Strike',Math.round(((mul&&mul.crit)||0)*100)+'% chance']].filter(r=>pv(r[0])).map(([sl,nm,line])=>
+      `<div class="skrow${sl===skClipIdx?' sksel':''}" data-skill="${sl}" style="display:flex;gap:9px;align-items:center;padding:9px 0;border-bottom:1px solid #1c2434;cursor:pointer">
+        <span style="width:10px;height:10px;border-radius:50%;background:#c3ccd8;flex:none"></span>
+        <div style="flex:1;min-width:0"><div style="font-size:13px"><b>${nm}</b> <span style="font-size:9px;color:#6ea8ff">${uiIcon('play')} clip</span></div>
+          <div style="font-size:11px;color:#c3ccd8;font-weight:600">${line}</div></div></div>`).join('');
+    const rows=swingRows+skills.map(s=>{ const on=skillUnlocked(key,s.idx), lv=skillLevel(key,s.idx), atMax=lv>=SKILL_MAX, cost=skillUpCost(s.idx,lv), can=on&&!atMax&&(G.gold||0)>=cost;
+      const tip=(skillDesc(key,s.idx)+(on?'':' (Unlocks at '+s.tier+' quality)')).replace(/"/g,'&quot;'); const hasClip=pv(s.idx);
       return `<div class="skrow${hasClip&&s.idx===skClipIdx?' sksel':''}" data-skill="${s.idx}" title="${tip}" style="display:flex;gap:9px;align-items:center;padding:9px 0;border-bottom:1px solid #1c2434;opacity:${on?1:.5};cursor:${hasClip?'pointer':'help'}">
         <span style="width:10px;height:10px;border-radius:50%;background:${s.col};flex:none"></span>
         <div style="flex:1;min-width:0">
@@ -25657,8 +25666,8 @@ function renderHeroDetail(){
           ${atMax?`<span style="font-size:10px;color:#ffd45e;font-weight:800">MAX</span>`:`<button class="btn xs" data-skillup="${s.idx}" ${can?'':'disabled'}>＋ ${hudIcon('gold')}${cost}</button>`}
         </div>`:''}
       </div>`; }).join('');
-    /* v905 (Phil): the preview is a small battle - hero + 2 allies vs 3 monsters on a real arena, the skill's own clip and spell art */
-    const clipBox=(stageOK||hasClips)?`<div class="sk-clipwrap sk-stagewrap" id="skClipWrap"><div class="sk-clipcap" id="skClipCap">${(skills[skClipIdx]||{}).name||''}</div>${stageOK?'<canvas id="skStage" class="sk-stage"></canvas>':`<div id="skClip">${skillClipHTML(key,skClipIdx)}</div>`}</div>`:'';
+    const capOf=sl=>sl==='attack'?'Attack':sl==='crit'?'Critical Strike':((skills[+sl]||{}).name||'');
+    const clipBox=SKILL_PREVIEW_SLOTS.some(pv)?`<div class="sk-clipwrap sk-stagewrap" id="skClipWrap"><div class="sk-clipcap" id="skClipCap">${escapeHTML(capOf(skClipIdx))}</div><canvas id="skStage" class="sk-stage"></canvas></div>`:'';
     /* v767 (Phil: "these little notes all around are useless") - the how-to paragraph is gone. */
     tab=`<div class="panel">${clipBox}${rows}</div>`;
   } else if(heroTab==='glyphs'){
@@ -25700,20 +25709,23 @@ function renderHeroDetail(){
   const uneq=body.querySelector('#eqUnequip'); if(uneq) uneq.onclick=()=>{ unequipItem(key,eqSlotSel); saveG(); updateHubChrome(); renderHeroDetail(); };
   // skill leveling
   body.querySelectorAll('[data-skillup]').forEach(el=>el.onclick=async()=>{ if(await skillUpgrade(key,+el.dataset.skillup)){ saveG(); updateHubChrome(); renderHeroDetail(); } });
-  // skill ability-clip preview: hover (desktop) or tap (mobile) a skill row to play its clip
-  const _stg=(window.EmberSkillStage&&document.getElementById('skStage'))?window.EmberSkillStage.mount(document.getElementById('skStage'),key):null;
-  if(_stg) _stg.play(skClipIdx);
-  if(_stg||heroHasClips(key)){ const setClip=(idx)=>{ if(!_stg&&!HERO_SKILL_CLIPS[key][idx])return; skClipIdx=+idx;
-      const box=document.getElementById('skClip'), cap=document.getElementById('skClipCap');
-      if(_stg) _stg.play(idx); else if(box) box.innerHTML=skillClipHTML(key,idx);
-      if(cap){ const nm={0:HERO_TYPES[key].abilityName,1:KITS[key].green.name,2:KITS[key].blue.name,3:KITS[key].purple.name}; cap.textContent=nm[idx]||''; }
-      body.querySelectorAll('.skrow[data-skill]').forEach(r=>r.classList.toggle('sksel',+r.dataset.skill===+idx)); };
-    body.querySelectorAll('.skrow[data-skill]').forEach(r=>{ const idx=r.dataset.skill; if(!_stg&&!HERO_SKILL_CLIPS[key][idx])return;
-      r.addEventListener('mouseenter',()=>setClip(idx));
-      r.addEventListener('click',(e)=>{ if(e.target.closest('[data-skillup]'))return; setClip(idx); }); });
+  /* v1164 skill preview: hover (desktop) previews a slot silently; a tap / click plays it WITH its sound (never on opening the tab: a phone's
+     audio unlocks on the first tap, and a tab that opened shouting would be a bad surprise). Another slot stops the last one's sound. */
+  const _stgCv=(heroTab==='skills')?document.getElementById('skStage'):null;
+  const _stg=(window.EmberSkillStage&&_stgCv)?window.EmberSkillStage.mount(_stgCv,key):null;
+  if(!_stgCv){ try{ if(window.EmberSkillStage) window.EmberSkillStage.stop(); }catch(e){} }
+  if(_stg){ const _slotOf=v=>(v==='attack'||v==='crit')?v:+v, _has=sl=>skillPreviewStates(key,sl).length>0;
+    if(_stg.slot!==skClipIdx||!_stg.plan) _stg.play(skClipIdx,false);
+    const setClip=(sl,snd)=>{ if(!_has(sl))return; const same=(skClipIdx===sl&&_stg.slot===sl); skClipIdx=sl;
+      if(snd) _stg.tap(sl); else if(!same) _stg.play(sl,false);
+      const cap=document.getElementById('skClipCap'); if(cap){ const nm={attack:'Attack',crit:'Critical Strike',0:HERO_TYPES[key].abilityName,1:KITS[key].green.name,2:KITS[key].blue.name,3:KITS[key].purple.name}; cap.textContent=nm[sl]||''; }
+      body.querySelectorAll('.skrow[data-skill]').forEach(r=>r.classList.toggle('sksel',_slotOf(r.dataset.skill)===sl)); };
+    body.querySelectorAll('.skrow[data-skill]').forEach(r=>{ const sl=_slotOf(r.dataset.skill); if(!_has(sl))return;
+      if(!MOBILE) r.addEventListener('mouseenter',()=>setClip(sl,false));
+      r.addEventListener('click',(e)=>{ if(e.target.closest('[data-skillup]'))return; setClip(sl,true); }); });
   }
   // double-tap / double-click any skill row → show its full description (mobile has no hover tooltip)
-  body.querySelectorAll('.skrow[data-skill]').forEach(r=>{ const idx=+r.dataset.skill;
+  body.querySelectorAll('.skrow[data-skill]').forEach(r=>{ const idx=+r.dataset.skill; if(!(idx>=0&&idx<=3)) return;   /* v1164: Attack / Critical Strike rows have no skill text */
     r.addEventListener('dblclick',(e)=>{ if(e.target.closest('[data-skillup]'))return; e.preventDefault(); showSkillDesc(key,idx,r); });
     let _lt=0; r.addEventListener('pointerup',(e)=>{ if(e.target.closest('[data-skillup]'))return; const now=Date.now(); if(now-_lt<340){ e.preventDefault(); showSkillDesc(key,idx,r); _lt=0; } else { _lt=now; } }); });
   body.querySelectorAll('[data-xp-potion]').forEach(btn=>btn.onclick=()=>useHeroXpPotion(key,btn.dataset.xpPotion));
