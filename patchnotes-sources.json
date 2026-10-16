@@ -1,0 +1,968 @@
+{
+ "note": "Each draft item mapped to the SHIPPED note(s) in Emberweave Archive/Operating procedure/SHIPPED it came from.",
+ "patches": [
+  {
+   "ver": "0.94",
+   "releases": "v1159-v1164",
+   "items": [
+    {
+     "text": "The game now has music: ten songs each for the city, the maps, battles and Skyfall, shuffled with a soft crossfade.",
+     "sources": [
+      "SHIPPED-v1159-mute-button-music-16-10-2026.md",
+      "SHIPPED-v1160-veyr-deepcleft-music-16-10-2026.md"
+     ]
+    },
+    {
+     "text": "Battle songs start where the action starts, and keep playing on the rewards screen until you tap Continue.",
+     "sources": [
+      "SHIPPED-v1160-veyr-deepcleft-music-16-10-2026.md",
+      "SHIPPED-v1163-mute-lag-fix-dock-16-10-2026.md"
+     ]
+    },
+    {
+     "text": "A mute button sits beside your profile portrait on every screen, and Settings > Audio has Mute all.",
+     "sources": [
+      "SHIPPED-v1159-mute-button-music-16-10-2026.md"
+     ]
+    },
+    {
+     "text": "The mute button no longer covers other buttons or titles.",
+     "sources": [
+      "SHIPPED-v1163-mute-lag-fix-dock-16-10-2026.md"
+     ]
+    },
+    {
+     "text": "Fixed: lag in the Heroes window and other busy screens.",
+     "sources": [
+      "SHIPPED-v1163-mute-lag-fix-dock-16-10-2026.md"
+     ]
+    },
+    {
+     "text": "Veyr and Deepcleft: eight new animations each, and new spell effects for Veyr's Gravity Crescent, Abyssal Mantle and Abyssal Undertow.",
+     "sources": [
+      "SHIPPED-v1160-veyr-deepcleft-music-16-10-2026.md"
+     ]
+    },
+    {
+     "text": "Korvux: eight new animations, and Ember Cleave's effect now follows his axe swing.",
+     "sources": [
+      "SHIPPED-v1162-korvux-eight-16-10-2026.md"
+     ]
+    },
+    {
+     "text": "Weapon strike sounds are 15% quieter.",
+     "sources": [
+      "SHIPPED-v1160-veyr-deepcleft-music-16-10-2026.md"
+     ]
+    },
+    {
+     "text": "Skill previews on the hero panel now play each hero's real battle animation, spell effect and sound.",
+     "sources": [
+      "SHIPPED-v1164-skill-previews-16-10-2026.md"
+     ]
+    }
+   ]
+  },
+  {
+   "ver": "0.93",
+   "releases": "v1135-v1158",
+   "items": [
+    {
+     "text": "Pre-beta is open. Every diamond pack in the shop is free during pre-beta, and free packs count toward your Patron level.",
+     "sources": [
+      "SHIPPED-v1135-prebeta-free-packs-14-10-2026.md",
+      "SHIPPED-v1139-free-packs-patron-15-10-2026.md"
+     ]
+    },
+    {
+     "text": "Combat has sound: every attack, spell, ultimate and passive, timed to land on the hit.",
+     "sources": [
+      "SHIPPED-v1138-combat-sound-15-10-2026.md"
+     ]
+    },
+    {
+     "text": "New animations for Maren, Orryn, Sylthaine, Carn and Aureth. Aureth's light and dark sword swings each have their own sound.",
+     "sources": [
+      "SHIPPED-v1137-animations-maren-orryn-sylthaine-rivet-15-10-2026.md",
+      "SHIPPED-v1143-carn-hollow-1-10-15-10-2026.md",
+      "SHIPPED-v1153-aureth-eleven-15-10-2026.md",
+      "SHIPPED-v1156-aureth-swing-sounds-15-10-2026.md"
+     ]
+    },
+    {
+     "text": "Rivet now cycles through ten weapons: gatling, revolver, flying saw, bolt and chest cannon at range; blade, hammer and two spikes up close. His chain hook pulls back enemies who walk away.",
+     "sources": [
+      "SHIPPED-v1137-animations-maren-orryn-sylthaine-rivet-15-10-2026.md"
+     ]
+    },
+    {
+     "text": "Astra's ultimate is now Collapsing Star. Veyr has his own ultimate, Abyssal Undertow: it drags enemies in and slows them for 2 seconds.",
+     "sources": [
+      "SHIPPED-v1136-astra-veyr-ult-15-10-2026.md",
+      "SHIPPED-v1137-animations-maren-orryn-sylthaine-rivet-15-10-2026.md"
+     ]
+    },
+    {
+     "text": "Hollow: Vanishing Point damage reduced by 40%, he drops into the fight 2 seconds later, and his base attack is 10% lower.",
+     "sources": [
+      "SHIPPED-v1143-carn-hollow-1-10-15-10-2026.md",
+      "SHIPPED-v1144-hollow-hurne-goldpool-frontdoor-15-10-2026.md"
+     ]
+    },
+    {
+     "text": "Hurne's Feed Them always casts: +10% damage, attack speed and damage reduction for 10 seconds, plus 3% for each beast he devours.",
+     "sources": [
+      "SHIPPED-v1144-hollow-hurne-goldpool-frontdoor-15-10-2026.md"
+     ]
+    },
+    {
+     "text": "Aureth's basic attacks deal 70% physical and 30% magic damage, one swing every 1.8 seconds.",
+     "sources": [
+      "SHIPPED-v1150-results-summons-aureth-15-10-2026.md"
+     ]
+    },
+    {
+     "text": "Stage 1-10 enemies deal 15% less damage on Normal, Elite and Veteran.",
+     "sources": [
+      "SHIPPED-v1143-carn-hollow-1-10-15-10-2026.md"
+     ]
+    },
+    {
+     "text": "Stage 1-1 now teaches ultimates on your first clear: the fight pauses when each hero's ultimate is ready and shows where to aim it.",
+     "sources": [
+      "SHIPPED-v1142-prebeta-fixes-wishes-debuffs-15-10-2026.md"
+     ]
+    },
+    {
+     "text": "Veteran now covers all 16 chapters: each stage is its Normal stage at double strength, with bigger rewards, and pays twice Elite's hero fragments on the same stages.",
+     "sources": [
+      "SHIPPED-v1148-veteran-1-16-15-10-2026.md",
+      "SHIPPED-v1149-veteran-hero-fragments-15-10-2026.md"
+     ]
+    },
+    {
+     "text": "Wishing Pool: new Diamond Pool odds, every pool shows its odds on its card, and the Gold Pool now holds every 1-star hero.",
+     "sources": [
+      "SHIPPED-v1142-prebeta-fixes-wishes-debuffs-15-10-2026.md",
+      "SHIPPED-v1144-hollow-hurne-goldpool-frontdoor-15-10-2026.md"
+     ]
+    },
+    {
+     "text": "New item: Ember Roast, worth 120 stamina, from the Diamond Pool.",
+     "sources": [
+      "SHIPPED-v1142-prebeta-fixes-wishes-debuffs-15-10-2026.md"
+     ]
+    },
+    {
+     "text": "You now sign in or create an account before playing, and a GUEST marker shows when you are playing as a guest.",
+     "sources": [
+      "SHIPPED-v1145-signin-first-15-10-2026.md"
+     ]
+    },
+    {
+     "text": "Fixed: a won fight could show DEFEAT when the connection dropped. Results now retry, and a win is never shown as a loss.",
+     "sources": [
+      "SHIPPED-v1144-hollow-hurne-goldpool-frontdoor-15-10-2026.md",
+      "SHIPPED-v1150-results-summons-aureth-15-10-2026.md",
+      "SHIPPED-v1151-results-retry-15-10-2026.md"
+     ]
+    },
+    {
+     "text": "Fixed: the victory screen always showed 3 stars. It now shows the stars you earned in that fight; the map keeps your best.",
+     "sources": [
+      "SHIPPED-v1146-result-stars-15-10-2026.md"
+     ]
+    },
+    {
+     "text": "Fixed: summoned units now fight at the battle's level.",
+     "sources": [
+      "SHIPPED-v1150-results-summons-aureth-15-10-2026.md"
+     ]
+    },
+    {
+     "text": "Chapters 10 to 15 have new full-width phone maps.",
+     "sources": [
+      "SHIPPED-v1147-chapter-map-fit-15-10-2026.md",
+      "SHIPPED-v1152-chapter-wide-maps-15-10-2026.md"
+     ]
+    },
+    {
+     "text": "Debuff icons and marks now sit at a hero's feet.",
+     "sources": [
+      "SHIPPED-v1142-prebeta-fixes-wishes-debuffs-15-10-2026.md"
+     ]
+    },
+    {
+     "text": "Fewer phone crashes in and after battles, and much smaller battle art downloads.",
+     "sources": [
+      "SHIPPED-v1140-memory-hotfix-15-10-2026.md",
+      "SHIPPED-v1157-condense-anim-slim-15-10-2026.md",
+      "SHIPPED-v1158-q95-reencode-15-10-2026.md"
+     ]
+    }
+   ]
+  },
+  {
+   "ver": "0.92",
+   "releases": "v1128-v1134",
+   "items": [
+    {
+     "text": "Askel Greatbrow: five new animations, including his first crit.",
+     "sources": [
+      "SHIPPED-v1128-askel-five-vesper-vex-fx-12-10-2026.md"
+     ]
+    },
+    {
+     "text": "Hurne: a new attack and his first crit.",
+     "sources": [
+      "SHIPPED-v1132-hurne-attack-crit-12-10-2026.md"
+     ]
+    },
+    {
+     "text": "New spell art for Vesper's Puncture and Vex's Razor Tempest.",
+     "sources": [
+      "SHIPPED-v1128-askel-five-vesper-vex-fx-12-10-2026.md"
+     ]
+    },
+    {
+     "text": "Vael's lore is updated, on screen and in his voice.",
+     "sources": [
+      "SHIPPED-v1133-vael-lore-v9-12-10-2026.md"
+     ]
+    },
+    {
+     "text": "Fixed: level 9 and 10 mines were missing from the world map for signed-in players.",
+     "sources": [
+      "SHIPPED-v1131-mines-9-10-passive-hold-12-10-2026.md"
+     ]
+    },
+    {
+     "text": "Stages 12-4, 14-1, 14-3, 14-8 and 15-6 made easier: enemies have 15% less health and damage (Elite follows).",
+     "sources": [
+      "SHIPPED-v1129-wall-step-14-1-15-6-12-10-2026.md",
+      "SHIPPED-v1134-wall-step-14-3-14-8-12-4-15-10-2026.md"
+     ]
+    }
+   ]
+  },
+  {
+   "ver": "0.91",
+   "releases": "v1103-v1127",
+   "items": [
+    {
+     "text": "Vael is the first hero with a voice: tap play above his lore to hear him tell it. His lore is rewritten to match.",
+     "sources": [
+      "SHIPPED-v1124-vael-voice-11-10-2026.md"
+     ]
+    },
+    {
+     "text": "Academy: the Defense track is gone, Healing and Shielding is new, Crit and Crit Resist reach 10% at level 60, and Attack and Ability Power research are now equal.",
+     "sources": [
+      "SHIPPED-v1123-academy-v2-defense-crit-11-10-2026.md"
+     ]
+    },
+    {
+     "text": "Crit Resist now reduces the attacker's crit damage, and a new Defense stat lowers the attacker's crit chance.",
+     "sources": [
+      "SHIPPED-v1123-academy-v2-defense-crit-11-10-2026.md"
+     ]
+    },
+    {
+     "text": "Monsters now have their own Armor and Magic Resist: some shrug off physical damage, others magic.",
+     "sources": [
+      "SHIPPED-v1106-monster-armor-and-magic-resist-10-10-2026.md"
+     ]
+    },
+    {
+     "text": "Team select screens: five hero slots on top, class tabs, and a five-column hero grid.",
+     "sources": [
+      "SHIPPED-v1103-hero-select-sweep-gruel-autoult-10-10-2026.md"
+     ]
+    },
+    {
+     "text": "Starless Well: every fight won pays an XP potion, chests pay diamonds, and a sweep pays 80% of a full run's rewards.",
+     "sources": [
+      "SHIPPED-v1110-starless-well-rewards-sweep-80-10-10-2026.md"
+     ]
+    },
+    {
+     "text": "New animations for Gruel, Grosk, Umbris, Hollow and Pellucid.",
+     "sources": [
+      "SHIPPED-v1103-hero-select-sweep-gruel-autoult-10-10-2026.md",
+      "SHIPPED-v1112-skill-levels-waxen-grosk-eight-10-10-2026.md",
+      "SHIPPED-v1116-umbris-pellucid-croc-drop-10-10-2026.md",
+      "SHIPPED-v1126-hollow-pellucid-anims-spell-fx-11-10-2026.md"
+     ]
+    },
+    {
+     "text": "Grosk: Hammer Fists is now 3 punches at 60% Attack, each landing as the fist reaches full length. Croc Drop can be aimed (6 m range) and is weaker: 10% of max health at skill level 1, up to 20% at level 100. The Mirewall grows from 20% to 35% by level 100.",
+     "sources": [
+      "SHIPPED-v1111-grosk-fists-forge-refresh-mirewall-text-10-10-2026.md",
+      "SHIPPED-v1112-skill-levels-waxen-grosk-eight-10-10-2026.md",
+      "SHIPPED-v1116-umbris-pellucid-croc-drop-10-10-2026.md",
+      "SHIPPED-v1117-croc-drop-aim-spell-fx-22-24-10-10-2026.md"
+     ]
+    },
+    {
+     "text": "Every skill now gains something from each level, and skill cards show the levelled numbers.",
+     "sources": [
+      "SHIPPED-v1112-skill-levels-waxen-grosk-eight-10-10-2026.md"
+     ]
+    },
+    {
+     "text": "Ceraline's wax cuts healing on the enemy by 30%.",
+     "sources": [
+      "SHIPPED-v1112-skill-levels-waxen-grosk-eight-10-10-2026.md"
+     ]
+    },
+    {
+     "text": "AUTO now fires healer ultimates as soon as they are ready.",
+     "sources": [
+      "SHIPPED-v1103-hero-select-sweep-gruel-autoult-10-10-2026.md"
+     ]
+    },
+    {
+     "text": "New spell art for Astra, Korvux, Sorrel, Carn, Tharl Ironcoil, Kon-Wu, Rhukk, Ceraline and Vex.",
+     "sources": [
+      "SHIPPED-v1117-croc-drop-aim-spell-fx-22-24-10-10-2026.md",
+      "SHIPPED-v1125-astra-korvux-spell-fx-11-10-2026.md",
+      "SHIPPED-v1126-hollow-pellucid-anims-spell-fx-11-10-2026.md"
+     ]
+    },
+    {
+     "text": "Skill animations now play through to the hit before the next swing.",
+     "sources": [
+      "SHIPPED-v1127-skill-anim-hold-ult-voices-off-11-10-2026.md"
+     ]
+    },
+    {
+     "text": "Campaign chapters 4 to 16 smoothed out: spike stages trimmed and every stage 15% easier. Stages 5-6, 7-3, 11-4, 11-7, 11-8, 12-2, 12-6, 12-9, 12-10, 13-2, 13-3 and 14-1 also eased (Elite follows).",
+     "sources": [
+      "SHIPPED-v1104-wall-step-11-4-11-7-10-10-2026.md",
+      "SHIPPED-v1109-wall-step-11-8-12-9-10-10-2026.md",
+      "SHIPPED-v1115-wall-step-12-2-10-10-2026.md",
+      "SHIPPED-v1119-wall-step-12-6-10-10-2026.md",
+      "SHIPPED-v1121-campaign-curve-11-10-2026.md",
+      "SHIPPED-v1122-wall-step-11-10-2026.md"
+     ]
+    },
+    {
+     "text": "Battles run smoother: nothing loads in the middle of a fight.",
+     "sources": [
+      "SHIPPED-v1118-battle-lag-upload-grosk-passive-10-10-2026.md",
+      "SHIPPED-v1120-battle-lag-zero-server-down-screen-10-10-2026.md"
+     ]
+    },
+    {
+     "text": "When a server is down, the game says which one and lists the others.",
+     "sources": [
+      "SHIPPED-v1120-battle-lag-zero-server-down-screen-10-10-2026.md"
+     ]
+    },
+    {
+     "text": "Fixed: knocked-up units could stay in the air for the whole fight.",
+     "sources": [
+      "SHIPPED-v1114-engine-fixes-chant-counter-airborne-10-10-2026.md"
+     ]
+    },
+    {
+     "text": "The Forge shows newly earned parts straight away, and the Vault sweep shows a tidy reward summary.",
+     "sources": [
+      "SHIPPED-v1103-hero-select-sweep-gruel-autoult-10-10-2026.md",
+      "SHIPPED-v1111-grosk-fists-forge-refresh-mirewall-text-10-10-2026.md"
+     ]
+    }
+   ]
+  },
+  {
+   "ver": "0.90",
+   "releases": "v1057-v1102",
+   "items": [
+    {
+     "text": "The Temple of Ash is rebuilt: every hero has four prayer bars of its own, 60 new hero portraits, and blessings drawn from its own skills. The 5th dot adds 15% to blessings.",
+     "sources": [
+      "SHIPPED-v1094-temple-v2-09-10-2026.md",
+      "SHIPPED-v1095-portraits-v2-stat-icons-09-10-2026.md",
+      "SHIPPED-v1096-temple-per-hero-blessings-09-10-2026.md",
+      "SHIPPED-v1098-temple-bars-rolls-sweep-icons-09-10-2026.md",
+      "SHIPPED-v1102-tallow-encase-blessing-numbers-09-10-2026.md"
+     ]
+    },
+    {
+     "text": "Prayers roll a gain or a loss across your open bars, with a chance of a 2x or 3x breakout. Auto pray opens at Temple 12, and free and held prayers stack on one row.",
+     "sources": [
+      "SHIPPED-v1094-temple-v2-09-10-2026.md",
+      "SHIPPED-v1098-temple-bars-rolls-sweep-icons-09-10-2026.md",
+      "SHIPPED-v1099-temple-roll-power-max-stat-pool-steady-09-10-2026.md",
+      "SHIPPED-v1101-temple-free-held-pool-candle-forge-ap-09-10-2026.md"
+     ]
+    },
+    {
+     "text": "Patron levels: buying diamonds raises your Patron level, with rebates and daily perks such as more meals, gold buys, city attacks and armies out at once. 2x speed and auto ultimates now need Patron level 1.",
+     "sources": [
+      "SHIPPED-v1092-egp-edp-mythical-pool-09-10-2026.md",
+      "SHIPPED-v1093-patron-chart-standard-09-10-2026.md"
+     ]
+    },
+    {
+     "text": "The Mythical Pool opens at Patron 11: 400 diamonds a wish, featuring the mythical heroes Kon-Wu, Vulmar, Aureth, Hurne and Hollow.",
+     "sources": [
+      "SHIPPED-v1092-egp-edp-mythical-pool-09-10-2026.md"
+     ]
+    },
+    {
+     "text": "Wishing Pool: new background and emblems, odds behind a ? button, and the screen fits better.",
+     "sources": [
+      "SHIPPED-v1092-egp-edp-mythical-pool-09-10-2026.md",
+      "SHIPPED-v1093-patron-chart-standard-09-10-2026.md",
+      "SHIPPED-v1098-temple-bars-rolls-sweep-icons-09-10-2026.md",
+      "SHIPPED-v1101-temple-free-held-pool-candle-forge-ap-09-10-2026.md"
+     ]
+    },
+    {
+     "text": "Game art icons replace emojis across the game, and hero fragments now show that hero's card.",
+     "sources": [
+      "SHIPPED-v1095-portraits-v2-stat-icons-09-10-2026.md",
+      "SHIPPED-v1098-temple-bars-rolls-sweep-icons-09-10-2026.md",
+      "SHIPPED-v1100-fragment-hero-cards-20-icons-09-10-2026.md"
+     ]
+    },
+    {
+     "text": "Oakmir: seven new animations and a new passive, Deep Roots, which roots and heals an ally below 30% health for 25% of max health over 4 seconds, once per fight. His First Spring flowers are smaller.",
+     "sources": [
+      "SHIPPED-v1067-oakmir-deep-roots-and-seven-08-10-2026.md",
+      "SHIPPED-v1071-deep-roots-art-08-10-2026.md",
+      "SHIPPED-v1073-oakmir-ult-badge-08-10-2026.md",
+      "SHIPPED-v1096-temple-per-hero-blessings-09-10-2026.md"
+     ]
+    },
+    {
+     "text": "New spell art for Sloe's Emerald Volley, Zahri's Solar Impalement and Noonday Stampede, Linnet's Rewrite the Pattern, Rafe Marrow's Dead Man's Fortune, and Ceraline's Sealing Wax and Court of the Final Candle.",
+     "sources": [
+      "SHIPPED-v1069-sloe-arrow-and-6-5-08-10-2026.md",
+      "SHIPPED-v1070-zahri-solar-impalement-08-10-2026.md",
+      "SHIPPED-v1072-noonday-stampede-trail-08-10-2026.md",
+      "SHIPPED-v1074-linnet-rewrite-pattern-08-10-2026.md",
+      "SHIPPED-v1075-rafe-dead-mans-fortune-08-10-2026.md",
+      "SHIPPED-v1076-ceraline-sealing-wax-09-10-2026.md",
+      "SHIPPED-v1077-ceraline-final-candle-09-10-2026.md"
+     ]
+    },
+    {
+     "text": "Ceraline: Court of the Final Candle can be aimed and encases everyone the wax touches. Living Tallow encases for 1 second, plus 0.015 seconds per skill level.",
+     "sources": [
+      "SHIPPED-v1101-temple-free-held-pool-candle-forge-ap-09-10-2026.md",
+      "SHIPPED-v1102-tallow-encase-blessing-numbers-09-10-2026.md"
+     ]
+    },
+    {
+     "text": "Stamina meals come in pairs: ten a day at 50, 50, 100, 100, 200, 200, 400, 400, 600 and 600 diamonds.",
+     "sources": [
+      "SHIPPED-v1064-meal-pairs-08-10-2026.md"
+     ]
+    },
+    {
+     "text": "Every daily reset now happens at 09:00 ET.",
+     "sources": [
+      "SHIPPED-v1065-game-day-0900-08-10-2026.md"
+     ]
+    },
+    {
+     "text": "Arena coins and protection shields are now kept with your account.",
+     "sources": [
+      "SHIPPED-v1079-arena-coins-server-09-10-2026.md",
+      "SHIPPED-v1081-server-shields-09-10-2026.md"
+     ]
+    },
+    {
+     "text": "Chat: block and report other players. You can also delete your account.",
+     "sources": [
+      "SHIPPED-v1098-temple-bars-rolls-sweep-icons-09-10-2026.md"
+     ]
+    },
+    {
+     "text": "Stages 6-2, 6-5, 7-3, 7-7, 9-8, 10-1 and 3-10 made easier: enemies have 15% less health and damage (Elite follows). Vault floors 28 to 30, 44 and 49 eased the same way.",
+     "sources": [
+      "SHIPPED-v1057-vault-28-30-08-10-2026.md",
+      "SHIPPED-v1058-campaign-6-2-08-10-2026.md",
+      "SHIPPED-v1059-campaign-7-3-08-10-2026.md",
+      "SHIPPED-v1060-campaign-7-7-08-10-2026.md",
+      "SHIPPED-v1061-vault-44-08-10-2026.md",
+      "SHIPPED-v1062-boss-gates-08-10-2026.md",
+      "SHIPPED-v1063-vault-49-08-10-2026.md",
+      "SHIPPED-v1068-6-2-second-step-08-10-2026.md",
+      "SHIPPED-v1069-sloe-arrow-and-6-5-08-10-2026.md",
+      "SHIPPED-v1094-temple-v2-09-10-2026.md",
+      "SHIPPED-v1098-temple-bars-rolls-sweep-icons-09-10-2026.md"
+     ]
+    },
+    {
+     "text": "Bosses 2-10 and 6-10 are 15% stronger.",
+     "sources": [
+      "SHIPPED-v1062-boss-gates-08-10-2026.md"
+     ]
+    },
+    {
+     "text": "Fixed: Temple orbs drew over the hero filter menu.",
+     "sources": [
+      "SHIPPED-v1066-hero-menus-above-orbs-08-10-2026.md"
+     ]
+    }
+   ]
+  },
+  {
+   "ver": "0.89",
+   "releases": "v1033-v1056",
+   "items": [
+    {
+     "text": "Kon-Wu: eight new animations. Phantom Step is now a dropkick that knocks the target 8 m back and stuns it for 2 seconds while he chases at 1.5x speed. Cleaving Arc now reaches 5 m.",
+     "sources": [
+      "SHIPPED-v1044-konwu-grok-fx-06-10-2026.md",
+      "SHIPPED-v1046-konwu-kick-hold-06-10-2026.md"
+     ]
+    },
+    {
+     "text": "New spell art for Vulmar's Gravity Sling, Vireo's Crescendo, Harmony and Perfect Pitch, Maren's Tide Pool, Maelstrom and Deep Reserves, Rhukk's Impale Rush and Thick Chitin, Orryn's spells and Pellucid's Meteor Knuckle, Infernal Clinch and Worldbreaker Fists.",
+     "sources": [
+      "SHIPPED-v1044-konwu-grok-fx-06-10-2026.md"
+     ]
+    },
+    {
+     "text": "Bloatus's Toxic Breath is now a green gas plume from his mouth.",
+     "sources": [
+      "SHIPPED-v1045-toxic-breath-06-10-2026.md"
+     ]
+    },
+    {
+     "text": "Every walk now plays as one smooth stride.",
+     "sources": [
+      "SHIPPED-v1047-walk-loops-06-10-2026.md"
+     ]
+    },
+    {
+     "text": "Settings has an Audio section with its own FX, Music and Voices volumes.",
+     "sources": [
+      "SHIPPED-v1048-sound-system-06-10-2026.md",
+      "SHIPPED-v1049-audio-settings-06-10-2026.md"
+     ]
+    },
+    {
+     "text": "Tharl Ironcoil: nine new animations.",
+     "sources": [
+      "SHIPPED-v1055-ironcoil-nine-animations-07-10-2026.md"
+     ]
+    },
+    {
+     "text": "Forge: Temper now belongs to the item, so every copy of an item shares its Temper.",
+     "sources": [
+      "SHIPPED-v1054-temper-per-item-type-07-10-2026.md"
+     ]
+    },
+    {
+     "text": "Elite stages are now 1.5 times as hard as their Normal stage in every chapter.",
+     "sources": [
+      "SHIPPED-v1056-elite-1-5x-normal-07-10-2026.md"
+     ]
+    },
+    {
+     "text": "Stages 3-10, 4-10 and 5-9 made easier: enemies have 15% less health and damage. Vault floor 1 enemies have 40% less.",
+     "sources": [
+      "SHIPPED-v1052-campaign-brick-walls-07-10-2026.md",
+      "SHIPPED-v1053-vault-floor-1-07-10-2026.md"
+     ]
+    },
+    {
+     "text": "City attack reports are kept in your war mail, up to 50.",
+     "sources": [
+      "SHIPPED-v1042-war-reports-receipts-world-tree-06-10-2026.md"
+     ]
+    }
+   ]
+  },
+  {
+   "ver": "0.88",
+   "releases": "v949-v1032",
+   "items": [
+    {
+     "text": "Every hero now has a name and a title, shown on the hero panel. Named for the first time: Aldren, Ambrel, Tolley, Mellan, Rafe Marrow, Ceraline, Quorrel, Brannus, Sorrel, Linnet, Iver, Sloe, Absalie, Joss Gatley and Hobb Kilnmask.",
+     "sources": [
+      "SHIPPED-v1023-hero-names-and-keys-04-10-2026.md"
+     ]
+    },
+    {
+     "text": "Vael: new animations and new lore. Bloodthirst gives +20% attack speed, Warcry makes enemies within 5 m flee for 2 seconds, Blood Rage adds up to 25% damage as he takes damage, and his sword deals damage the moment it lands.",
+     "sources": [
+      "SHIPPED-v1024-vael-kit-and-attack-speed-clips-04-10-2026.md",
+      "SHIPPED-v1025-vael-animations-and-lore-04-10-2026.md",
+      "SHIPPED-v1027-vael-hit-timing-and-fear-04-10-2026.md",
+      "SHIPPED-v1028-swing-plays-through-04-10-2026.md",
+      "SHIPPED-v1029-vael-blow-at-sword-tip-04-10-2026.md",
+      "SHIPPED-v1030-bloatus-swampcall-poison-04-10-2026.md",
+      "SHIPPED-v1031-no-hit-without-swing-04-10-2026.md"
+     ]
+    },
+    {
+     "text": "Attack speed now speeds up the attack animation too, and feared enemies run away instead of standing still.",
+     "sources": [
+      "SHIPPED-v1024-vael-kit-and-attack-speed-clips-04-10-2026.md",
+      "SHIPPED-v1027-vael-hit-timing-and-fear-04-10-2026.md"
+     ]
+    },
+    {
+     "text": "Fritz: new animations. Thunder Shower is back to its original storm, Chain Lightning bounces to 4 enemies up to 15 m apart, and his basic attack fires a bolt.",
+     "sources": [
+      "SHIPPED-v1032-bloatus-animations-magic-tank-crit-fritz-storm-04-10-2026.md",
+      "SHIPPED-v949-fritz-restart-03-10-2026.md",
+      "SHIPPED-v950-fritz-original-ult-fx-03-10-2026.md",
+      "SHIPPED-v951-fritz-ult-upright-03-10-2026.md",
+      "SHIPPED-v958-fritz-green-blue-auto-03-10-2026.md",
+      "SHIPPED-v960-chain-label-fx-cleanup-03-10-2026.md",
+      "SHIPPED-v961-chain-range-skill-previews-03-10-2026.md"
+     ]
+    },
+    {
+     "text": "Bloatus: new animations. Swampcall hits the two farthest enemies, rooting and silencing for 2 seconds, and Plague Sovereign's radius grows from 3.4 m to 5 m.",
+     "sources": [
+      "SHIPPED-v1030-bloatus-swampcall-poison-04-10-2026.md",
+      "SHIPPED-v1032-bloatus-animations-magic-tank-crit-fritz-storm-04-10-2026.md"
+     ]
+    },
+    {
+     "text": "Magic tanks (Bloatus, Ambrel, Joss Gatley) no longer crit with basic attacks. Their spells still can.",
+     "sources": [
+      "SHIPPED-v1032-bloatus-animations-magic-tank-crit-fritz-storm-04-10-2026.md"
+     ]
+    },
+    {
+     "text": "Rhukk: nine new animations, and Impale Rush charges with its animation.",
+     "sources": [
+      "SHIPPED-v1021-rhukk-tanks-autoult-online-04-10-2026.md"
+     ]
+    },
+    {
+     "text": "Balance: marksmen, assassins and bruisers gain far more Attack from glyphs, mage Ability Power is lower, melee tanks gain Attack, and skills grow 1.20% per level.",
+     "sources": [
+      "SHIPPED-v1022-balance-layer-1-04-10-2026.md"
+     ]
+    },
+    {
+     "text": "Balance: health regen is capped at 1.2% of max health per second. Marksman gear is stronger, bruiser and tank gear gives less health, and the attack assassins (Sorrel, Hollow, Kharos, Nox, Seyla, Vex) now wear attack gear.",
+     "sources": [
+      "SHIPPED-v1026-gear-balance-and-hp-regen-04-10-2026.md"
+     ]
+    },
+    {
+     "text": "Tank health at max: about 22,000 for melee tanks and 18,000 for magic tanks.",
+     "sources": [
+      "SHIPPED-v1021-rhukk-tanks-autoult-online-04-10-2026.md"
+     ]
+    },
+    {
+     "text": "In auto-resolved fights (marches, mines, war lines) both sides now cast their ultimates.",
+     "sources": [
+      "SHIPPED-v1021-rhukk-tanks-autoult-online-04-10-2026.md"
+     ]
+    },
+    {
+     "text": "New health and energy bars over every hero and at the bottom of the screen.",
+     "sources": [
+      "SHIPPED-v962-health-bars-03-10-2026.md"
+     ]
+    },
+    {
+     "text": "Buff badges over a hero's head now scroll: the newest slides in on top and pushes the older ones out.",
+     "sources": [
+      "SHIPPED-v952-buff-badges-scroll-03-10-2026.md",
+      "SHIPPED-v953-fieldwide-badges-03-10-2026.md",
+      "SHIPPED-v954-vireo-ult-badge-timing-03-10-2026.md",
+      "SHIPPED-v955-badge-push-03-10-2026.md"
+     ]
+    },
+    {
+     "text": "Spell effects no longer linger after a fight ends. Vireo's ultimate and Crescendo art are smaller.",
+     "sources": [
+      "SHIPPED-v954-vireo-ult-badge-timing-03-10-2026.md",
+      "SHIPPED-v956-vireo-green-smaller-03-10-2026.md",
+      "SHIPPED-v959-fx-after-fight-03-10-2026.md"
+     ]
+    },
+    {
+     "text": "The Academy now runs to level 120, the Witches Hut can be upgraded, and map resources have their names: Emberite, Voidglass, Starsilver and Cinderwood.",
+     "sources": [
+      "SHIPPED-v963-audit-academy-hut-mines-03-10-2026.md"
+     ]
+    },
+    {
+     "text": "March pickers no longer offer heroes at 0% health, and Starless Well squares show their XP potions.",
+     "sources": [
+      "SHIPPED-v964-picker-fallen-heroes-03-10-2026.md",
+      "SHIPPED-v966-well-prize-potions-03-10-2026.md"
+     ]
+    },
+    {
+     "text": "An arena or guild raid fight that did not count now says NOT COUNTED instead of showing a false result.",
+     "sources": [
+      "SHIPPED-v977-arena-not-counted-04-10-2026.md",
+      "SHIPPED-v984-raid-client-04-10-2026.md"
+     ]
+    },
+    {
+     "text": "The guild contribute screen now shows its real price: 200 gold for 100 guild experience.",
+     "sources": [
+      "SHIPPED-v979-contribute-04-10-2026.md"
+     ]
+    },
+    {
+     "text": "The Market shows how many fragment buys you have left today.",
+     "sources": [
+      "SHIPPED-v998-ui-p2-04-10-2026.md"
+     ]
+    },
+    {
+     "text": "You now need to be online to play.",
+     "sources": [
+      "SHIPPED-v1021-rhukk-tanks-autoult-online-04-10-2026.md"
+     ]
+    },
+    {
+     "text": "Fixed: a dropped connection could lose a mine haul or battle loot.",
+     "sources": [
+      "SHIPPED-v1001-world-client-04-10-2026.md"
+     ]
+    }
+   ]
+  },
+  {
+   "ver": "0.87",
+   "releases": "v856-v948",
+   "items": [
+    {
+     "text": "Spells now take effect when their art reaches the target: bolts fly, blows fall and areas form before the damage, stun or heal lands.",
+     "sources": [
+      "SHIPPED-v886-delivery-engine-pyroclast-01-10-2026.md",
+      "SHIPPED-v887-delivery-pellucid-orryn-nerisse-calypsa-01-10-2026.md",
+      "SHIPPED-v888-tidal-ribbon-line-spiral-current-travel-01-10-2026.md",
+      "SHIPPED-v890-delivery-51-spells-01-10-2026.md",
+      "SHIPPED-v891-volleys-hit-on-arrival-01-10-2026.md",
+      "SHIPPED-v893-grosk-leap-fritz-bolts-nox-lastfurnace-01-10-2026.md"
+     ]
+    },
+    {
+     "text": "Charges are real dashes: heroes and monsters run at their target and strike on arrival. Grosk's ultimate is a real leap.",
+     "sources": [
+      "SHIPPED-v892-real-dashes-and-hook-01-10-2026.md",
+      "SHIPPED-v893-grosk-leap-fritz-bolts-nox-lastfurnace-01-10-2026.md"
+     ]
+    },
+    {
+     "text": "New spell art for Pellucid, Pyroclast, Orryn, Nerisse, Calypsa, Seyla Silkcoil, Veyr, Absalie, Vex, Vireo, Rivet, Ceraline, Rhukk, Kharos, Lysara, Tolley and Vulmar.",
+     "sources": [
+      "SHIPPED-v859-resonant-star-fighting-current-node-images-01-10-2026.md",
+      "SHIPPED-v860-drifting-constellation-orb-art-01-10-2026.md",
+      "SHIPPED-v863-orryn-ult-art-01-10-2026.md",
+      "SHIPPED-v865-orryn-abyssal-reserve-art-01-10-2026.md",
+      "SHIPPED-v868-pellucid-meteor-knuckle-art-01-10-2026.md",
+      "SHIPPED-v870-pellucid-infernal-clinch-art-01-10-2026.md",
+      "SHIPPED-v872-pellucid-worldbreaker-fists-art-01-10-2026.md",
+      "SHIPPED-v873-pellucid-unmovable-mass-art-01-10-2026.md",
+      "SHIPPED-v874-pyroclast-ember-lash-grok-art-01-10-2026.md",
+      "SHIPPED-v877-pyroclast-blazing-orbit-grok-art-01-10-2026.md",
+      "SHIPPED-v878-pyroclast-crownfire-grok-art-01-10-2026.md",
+      "SHIPPED-v882-silkcoil-ult-passive-grok-art-01-10-2026.md",
+      "SHIPPED-v884-grok-redos-ribbonfang-hoodedfeint-risingheat-01-10-2026.md",
+      "SHIPPED-v912-grok-batch-ten-spells-01-10-2026.md",
+      "SHIPPED-v915-hookline-mourning-bell-01-10-2026.md",
+      "SHIPPED-v917-rhukk-dig-in-01-10-2026.md",
+      "SHIPPED-v919-unwired-ults-scattergun-01-10-2026.md",
+      "SHIPPED-v924-castle-placement-art-01-10-2026.md",
+      "SHIPPED-v927-rhukk-carapace-art-01-10-2026.md"
+     ]
+    },
+    {
+     "text": "Seyla Silkcoil's Serpent's Last Dance: a star circles her four times, striking each enemy it passes and finishing anyone under 10% health.",
+     "sources": [
+      "SHIPPED-v885-serpent-dance-and-orb-bounce-mechanics-01-10-2026.md"
+     ]
+    },
+    {
+     "text": "Nerisse's Drifting Constellation orb now bounces from ally to ally and heals each one as it arrives.",
+     "sources": [
+      "SHIPPED-v860-drifting-constellation-orb-art-01-10-2026.md",
+      "SHIPPED-v885-serpent-dance-and-orb-bounce-mechanics-01-10-2026.md"
+     ]
+    },
+    {
+     "text": "Pellucid's Worldbreaker Fists: three slams, each sending out a shockwave that strikes and staggers.",
+     "sources": [
+      "SHIPPED-v889-worldbreaker-fists-01-10-2026.md"
+     ]
+    },
+    {
+     "text": "Vulmar's Weight of the World lifts every enemy in the circle for 2 seconds, then slams them down for a 1-second stun.",
+     "sources": [
+      "SHIPPED-v920-weight-of-the-world-sealing-wax-01-10-2026.md"
+     ]
+    },
+    {
+     "text": "Ceraline's new Sealing Wax replaces Waxen Effigy, and Court of the Final Candle turns enemies into wax statues that shatter.",
+     "sources": [
+      "SHIPPED-v896-waxen-duchess-effigy-bell-candle-01-10-2026.md",
+      "SHIPPED-v920-weight-of-the-world-sealing-wax-01-10-2026.md"
+     ]
+    },
+    {
+     "text": "Fixed spells that did nothing: Tharl Ironcoil's Layered Hide, Pellucid's Unmovable Mass and Linnet's Rewrite the Pattern revive. Joss Gatley's Daybreak Judgment now stuns.",
+     "sources": [
+      "SHIPPED-v894-layered-hide-unmovable-mass-rewind-revive-01-10-2026.md",
+      "SHIPPED-v895-daybreak-stun-oakmir-fonts-01-10-2026.md"
+     ]
+    },
+    {
+     "text": "Ultimates fire the moment you tap them.",
+     "sources": [
+      "SHIPPED-v897-ult-fires-on-press-01-10-2026.md"
+     ]
+    },
+    {
+     "text": "Ten spells that had no description now have one.",
+     "sources": [
+      "SHIPPED-v911-ten-spell-descriptions-01-10-2026.md"
+     ]
+    },
+    {
+     "text": "Skill previews show the hero casting the spell, with its effect, on a battle arena.",
+     "sources": [
+      "SHIPPED-v905-skill-battle-previews-01-10-2026.md",
+      "SHIPPED-v906-v907-skill-previews-redo-01-10-2026.md"
+     ]
+    },
+    {
+     "text": "World map: four painted oases around the World Tree, and the countdown now sits at the tree's roots.",
+     "sources": [
+      "SHIPPED-v879-v880-oasis-placement-cr0822-01-10-2026.md",
+      "SHIPPED-v898-oases-on-the-compass-01-10-2026.md",
+      "SHIPPED-v899-tree-countdown-at-the-roots-01-10-2026.md",
+      "SHIPPED-v903-painted-oases-01-10-2026.md"
+     ]
+    },
+    {
+     "text": "Marches cross the Void at half speed, and you can now teleport right up to the crystals.",
+     "sources": [
+      "SHIPPED-v858-tree-ring-one-tile-smaller-01-10-2026.md",
+      "SHIPPED-v881-void-march-timing-cr1015-01-10-2026.md",
+      "SHIPPED-v900-only-crystals-block-teleport-01-10-2026.md",
+      "SHIPPED-v901-phil-crystal-outlines-01-10-2026.md",
+      "SHIPPED-v902-five-more-crystals-blocked-01-10-2026.md",
+      "SHIPPED-v904-void-march-pacing-01-10-2026.md"
+     ]
+    },
+    {
+     "text": "Resource nodes no longer appear on crystals or inside the Void, and there is no daily mining limit.",
+     "sources": [
+      "SHIPPED-v913-nodes-off-crystals-01-10-2026.md",
+      "SHIPPED-v914-no-nodes-in-void-crater-01-10-2026.md",
+      "SHIPPED-v941-no-daily-farming-limit-02-10-2026.md"
+     ]
+    },
+    {
+     "text": "The Watch Tower shows your guildmates' trips, and city marches have a Retreat button.",
+     "sources": [
+      "SHIPPED-v866-watchtower-server-recorded-trips-01-10-2026.md",
+      "SHIPPED-v926-city-recall-01-10-2026.md"
+     ]
+    },
+    {
+     "text": "Buff and debuff words now stack and scroll instead of overlapping.",
+     "sources": [
+      "SHIPPED-v942-buff-text-stack-02-10-2026.md"
+     ]
+    },
+    {
+     "text": "Battles run smoother: spell art loads before the fight and is cleared after it.",
+     "sources": [
+      "SHIPPED-v943-v944-battle-lag-02-10-2026.md"
+     ]
+    },
+    {
+     "text": "Chapters 11 to 16 show their bosses on the chapter intro and the map.",
+     "sources": [
+      "SHIPPED-v883-sixteen-chapter-bosses-01-10-2026.md"
+     ]
+    },
+    {
+     "text": "Pyroclast: eight new animations.",
+     "sources": [
+      "SHIPPED-v948-pyroclast-hailuo-sheets-02-10-2026.md"
+     ]
+    },
+    {
+     "text": "A Server button in the menu lists the servers and which are up. One account works on every server, with separate progress on each, and switching keeps you signed in.",
+     "sources": [
+      "SHIPPED-v945-three-servers-02-10-2026.md",
+      "SHIPPED-v946-game-wide-accounts-02-10-2026.md",
+      "SHIPPED-v947-switch-keeps-sign-in-02-10-2026.md"
+     ]
+    },
+    {
+     "text": "Rewards, purchases and world map actions are now saved before they are confirmed, so a server restart cannot lose them.",
+     "sources": [
+      "SHIPPED-v921-map-portrait-mine-durability-01-10-2026.md",
+      "SHIPPED-v922-teleport-durability-01-10-2026.md",
+      "SHIPPED-v924-castle-placement-art-01-10-2026.md",
+      "SHIPPED-v925-city-launch-durability-01-10-2026.md",
+      "SHIPPED-v930-settlement-durability-01-10-2026.md",
+      "SHIPPED-v937-quest-chain-durable-02-10-2026.md",
+      "SHIPPED-v939-shared-durable-commit-02-10-2026.md",
+      "SHIPPED-v940-durability-batch1-02-10-2026.md"
+     ]
+    },
+    {
+     "text": "Fixed: Kharos fought in the Hourglass Sentinel boss's look.",
+     "sources": [
+      "SHIPPED-v934-boss-key-hourglass-sentinel-01-10-2026.md"
+     ]
+    },
+    {
+     "text": "Fixed: the game could fail to load on a device that had played recently.",
+     "sources": [
+      "SHIPPED-v936-versioned-root-scripts-boot-fix-01-10-2026.md"
+     ]
+    }
+   ]
+  }
+ ],
+ "upcoming": [
+  {
+   "text": "Fixed: the mute button's position on some screens.",
+   "source": "coordinator brief 16 Oct 2026 (hotfix); not live, no SHIPPED note yet"
+  },
+  {
+   "text": "Fixed: a false \"Lost Server\" message.",
+   "source": "coordinator brief 16 Oct 2026 (hotfix); not live, no SHIPPED note yet"
+  },
+  {
+   "text": "Restarting a stage now stops the old fight.",
+   "source": "coordinator brief 16 Oct 2026 (hotfix); not live, no SHIPPED note yet"
+  },
+  {
+   "text": "The chat bar shows only in the city and on the world map.",
+   "source": "coordinator brief 16 Oct 2026 (hotfix); not live, no SHIPPED note yet"
+  },
+  {
+   "text": "Spells ring out with a sparkle, and melee swings carry a magic shimmer.",
+   "source": "coordinator brief 16 Oct 2026 (sound); not live, no SHIPPED note yet"
+  },
+  {
+   "text": "New spell effects for Vael and Deepcleft.",
+   "source": "coordinator brief 16 Oct 2026 (Vael and Deepcleft spell effects); not live, no SHIPPED note yet"
+  },
+  {
+   "text": "Nox and Grimsby updates.",
+   "source": "coordinator brief 16 Oct 2026 (Nox and Grimsby); not live, no SHIPPED note yet"
+  },
+  {
+   "text": "Stages 12-8, 14-7 and 15-8 made easier.",
+   "source": "coordinator brief 16 Oct 2026 (campaign 12-8, 14-7, 15-8); not live, no SHIPPED note yet"
+  }
+ ]
+}
