@@ -8699,7 +8699,7 @@
    "hero": "quorrel",
    "hook": "EXISTS: fx.quorrel_green (when the plate appears)",
    "phase": "cast",
-   "rule": "cast",
+   "rule": "land",
    "slot": "green",
    "timing": "cast frame (ability clip starts)"
   },
@@ -8725,7 +8725,7 @@
    "hero": "quorrel",
    "hook": "EXISTS: fx.quorrel_ult (when the plate appears)",
    "phase": "cast",
-   "rule": "release",
+   "rule": "land",
    "slot": "ult",
    "timing": "cast frame (ability clip starts)"
   },
@@ -9369,7 +9369,7 @@
    "hero": "brannus",
    "hook": "EXISTS: fx.brannus_blue (when the plate appears)",
    "phase": "cast",
-   "rule": "cast",
+   "rule": "release",
    "slot": "blue",
    "timing": "cast frame (ability clip starts)"
   },

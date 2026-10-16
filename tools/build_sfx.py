@@ -149,7 +149,7 @@ RULES = {
     # Man's Fortune 5, Rivet Full Arsenal 5 - each deals every blow on the release tick): played once, the FIRST hit's peak on that tick
     # (`peak`: 'first' = the first loud moment in the file; a number = the recipe's "shots in at" time, the bed swelling before it).
     'S0034': {'rule': 'release', 'peak': 'first'},
-    'S0165': {'rule': 'release', 'peak': 'first'},
+    'S0165': {'rule': 'land', 'peak': 'first'},              # v1178 Quorrel Contempt Storm: the volley's blows land together 1.0933 fight s after the press (ult clip contact cell 39, f66) - the first hit's peak there, not on the 0.8 s release
     'S0514': {'rule': 'release', 'peak': 0.45},
     'S0375': {'rule': 'release', 'peak': 0.45},
     'S0230': {'rule': 'hit', 'max': 3, 'split': 3},          # Pellucid Worldbreaker: 3 slams, the composite split per slam
@@ -186,6 +186,8 @@ RULES = {
     'S0332': {'rule': 'release'},                            # v1169 Nox Open Every Door: its peak as he holds the lock out on the 0.8 s release (ult clip cell 29, f53) - every enemy locked; S0333 stays on the shatter (land, contact cell 40)
     'S0413': {'rule': 'release'},                            # v1169 Grimsby Overdue: its peak on the quill's tick at the 0.5 s release, when the mark lands (green clip contact cell 18, f42), not from the press
     'S0415': {'rule': 'release'},                            # v1169 Grimsby Foreclosure: its peak as the ledger snaps shut and the notice is served on the 0.8 s release (ult clip contact cell 29, f76), not from the press
+    'S0274': {'rule': 'release'},                            # v1178 Brannus Arena Lock: its peak on the taunt at the 0.5 s release (blue clip contact cell 18, f48), not from the press
+    'S0162': {'rule': 'land'},                               # v1178 Quorrel Gag Order: its peak as the gavel comes down on the form landing (0.847 fight s = green clip contact cell 30, f74), not from the press
 }
 PASSIVE_EV = {   # row -> the trigger the client fires (sfxPassive(u, ev))
     'S0446': 'livingpages', 'S0456': 'sacredbells', 'NEW-askel-passive': 'unshaken', 'S0068': 'contagion', 'NEW-brannus-passive': 'pridemomentum',

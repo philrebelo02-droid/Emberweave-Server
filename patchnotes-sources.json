@@ -3,7 +3,7 @@
  "patches": [
   {
    "ver": "0.94",
-   "releases": "v1159-v1166, v1169, v1171, v1173, v1174, v1176 (v1167 wall step and its v1170 undo left out: no net change)",
+   "releases": "v1159-v1166, v1169, v1171, v1173, v1174, v1175, v1176, v1178 (v1167 wall step and its v1170 undo left out: no net change)",
    "items": [
     {
      "text": "The game now has music: ten songs each for the city, the maps, battles and Skyfall, shuffled with a soft crossfade.",
@@ -97,6 +97,18 @@
      "text": "Kharos Bloomknife: ten new animations. His attacks now alternate between his two blades, and his Perfect Camouflage fades him to a see-through figure.",
      "sources": [
       "SHIPPED-v1175-hobb-kharos-16-10-2026.md"
+     ]
+    },
+      {
+     "text": "Brannus: eight new animations, including his first critical strike, and new spell effects for Rim Breaker, Arena Lock and Lionwheel Rampage.",
+     "sources": [
+      "SHIPPED-v1178-brannus-quorrel-16-10-2026.md"
+     ]
+    },
+      {
+     "text": "Quorrel: eight new animations, including his first critical strike.",
+     "sources": [
+      "SHIPPED-v1178-brannus-quorrel-16-10-2026.md"
      ]
     },
     {

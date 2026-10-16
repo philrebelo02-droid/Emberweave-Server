@@ -200,7 +200,7 @@ try {
     ck('upright art is mirrored (UV window) with his facing', M[0] > 0 && M[1] < 0, JSON.stringify(M)); }
   ck('hooks: castKit starts the green / blue art and castAbility the ult art at the press (FX16_ART), abilArt confirms at the release, the burrow timer calls the emerge burst, the tick runs them',
     /if\(ab\.ownFx&&FX16_ART\[ab\.ownFx\](&&!FX16_ART\[ab\.ownFx\]\.atRelease)?\) fx16Cast\(u,ab\.ownFx,ct,u\._pend,ab\.dur\|\|6\)/.test(src)   /* v1174: release-time art (Mirelle) skips the press */ && /if\(_ua\.ownFx&&FX16_ART\[_ua\.ownFx\]\) fx16Cast\(u,_ua\.ownFx,_ct,u\._pend/.test(src) && /ownFx==='dburrow'\) deepcleftEmergeFx\(u\)/.test(src) &&
-    /else if\(FX16_ART\[o\.ownFx\]\)\{ try\{ const c=/.test(src) && /if\(o\.kind==='fx16'\)\{ if\(_fx22Fx16Tick\(o\)<0\)/.test(src) &&
+    /else if\(FX16_ART\[o\.ownFx\](&&!FX16_ART\[o\.ownFx\]\.atLaunch)?\)\{ try\{ const c=/.test(src)   /* v1178: a shot's art (Brannus's Rim Breaker) is confirmed at its launch instead */ && /if\(o\.kind==='fx16'\)\{ if\(_fx22Fx16Tick\(o\)<0\)/.test(src) &&
     /const _buffArt=!!\(o&&o\.gfx&&FX2_DEF\[o\.gfx\]&&_ABOVE_BAR\[type\]\)&&!o\.ownFx;/.test(src));
   { const P = JSON.parse(run(`JSON.stringify([0,1,2].map(sl=>{ const p=skillPreviewPlan('vael',sl); return p?p.fx.map(e=>({k:e.k,kind:e.kind,t0:+e.t0.toFixed(4),real:e.real!=null?+e.real.toFixed(3):null,life:e.life!=null?+e.life.toFixed(4):null})):null; }))`));
     const [u, g, b] = P, sp = c => +(c / 24).toFixed(4);

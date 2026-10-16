@@ -10,4 +10,5 @@ const CODE = `(()=>{ const B=${JSON.stringify(FIX.before)};
   if(typeof SFX_DATA!=='undefined'&&SFX_DATA.heroes){ SFX_DATA.heroes.hobb=JSON.parse(JSON.stringify(B.sfx.hobb)); SFX_DATA.heroes.kharos=JSON.parse(JSON.stringify(B.sfx.kharos)); }
   if(typeof HERO_TYPES!=='undefined'&&HERO_TYPES.kharos) delete HERO_TYPES.kharos.autoAlt;
   return 1; })()`;
-module.exports = { undoHK1175: run => run(CODE), FIX_HK_1175: FIX };
+const UBQ = require('./anim-brannus-quorrel-1178.js');   /* v1178: Brannus's and Quorrel's entries go back too (every caller of this helper compares with a BASE before v1178) */
+module.exports = { undoHK1175: run => { UBQ.undoBQ1178(run); return run(CODE); }, FIX_HK_1175: FIX };

@@ -20,7 +20,7 @@ let baseOk = true;
 try { fs.mkdirSync(path.join(BD, 'server')); for (const f of ['emberweave-heroes.html', 'hero-profiles.js', 'hero-paths.js', 'server/temple-of-ash.js', 'server/patron-benefits.js', 'server/temple-effects.js'])
   fs.writeFileSync(path.join(BD, f), cp.execSync('git show ' + BASE_SHA + ':' + f, { cwd: ROOT, maxBuffer: 64 << 20 })); } catch (e) { baseOk = false; }
 const OLD = path.join(BD, 'emberweave-heroes.html');
-const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); return src => vm.runInContext(src, h.ctx); };
+const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); const r = src => vm.runInContext(src, h.ctx); require('./helpers/anim-brannus-quorrel-1178.js').undoBQ1178(r); return r; };   // v1178: Brannus's / Quorrel's entries back to v1175's (tests/test_brannus_quorrel_1178.js checks them)
 const UHK = require('./helpers/anim-hobb-kharos-1175.js');
 const run = load(HTML), R0 = baseOk ? load(OLD) : null;
 let pass = 0, fail = 0;
