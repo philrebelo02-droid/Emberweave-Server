@@ -101,7 +101,7 @@ const AUDIO_STUB = () => { const node = () => ({ connect() {}, disconnect() {}, 
       ok(!calls.some(c => c.includes('/api/guest')), 'a fresh page makes NO /api/guest call (' + (calls.filter(c => c.includes('/api/guest')).join(', ') || 'none') + ')');
       ok(await page.evaluate(() => !(window.ACC && ACC.token)), 'a fresh page holds no session');
       await shot(page, '1-first-screen.png');
-      const hits = await page.evaluate(() => [[120, 200], [420, 195], [800, 30], [60, 360], [700, 360]].map(([x, y]) => { const e = document.elementFromPoint(x, y); return !!(e && e.closest('#authGate')); }));
+      const hits = await page.evaluate(() => [[120, 200], [420, 195], [800, 30], [60, 360], [700, 360]].map(([x, y]) => { const e = document.elementFromPoint(x, y); return !!(e && (e.closest('#authGate') || e.closest('#muteBtn'))); }));   /* v1165: the mute button sits over the gate's top-right corner - it is never the town */
       ok(hits.every(Boolean), 'every tap on the screen lands on the gate, not the town (' + hits.join(',') + ')');
       const nav = await page.evaluate(() => { try { show('arena'); } catch (e) {} const a = state; try { show('campaign'); } catch (e) {} const b = state; try { show('tutorial'); } catch (e) {} return [a, b, state]; });
       await page.waitForTimeout(200);

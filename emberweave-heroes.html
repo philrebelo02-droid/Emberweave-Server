@@ -10414,6 +10414,7 @@ function muteBtnPlace(force){ try{ const b=document.getElementById('muteBtn'), s
     if(same&&force==='dom'){ if(MUTE_SIG.k>=3) return; MUTE_SIG.k++; }
     if(!same){ MUTE_SIG.s=sig; MUTE_SIG.k=0; }
     muteBtnPlaceNow();
+    try{ updateChatVisibility(); }catch(e){}   /* v1165: the chat bar follows the same screen + window state */
     if(!same){ clearTimeout(MUTE_SIG.verify); clearTimeout(MUTE_SIG.verify2);   // twice more, for the window's late art and text
       MUTE_SIG.verify=setTimeout(()=>{ MUTE_SIG.verify=0; muteBtnPlace(true); },900); MUTE_SIG.verify2=setTimeout(()=>{ MUTE_SIG.verify2=0; muteBtnPlace(true); },2500); }
   }catch(e){} }
@@ -10428,6 +10429,8 @@ function muteBtnPlace(force){ try{ const b=document.getElementById('muteBtn'), s
      campaign map / team select / City Wall / Skyfall   under that screen's own top-right button (Glossary / World / War), right-aligned
      sign-in gate              the top-right corner of the screen
      Arena                     the hub's spot, docked in the Arena's scrolling box (its rows scroll under every other spot)
+     Temple, Island of Trials  the hub's spot 6 px lower (Temple 10 px in): their framed panel's corner reaches it
+     a stage popup             in its header bar, just left of the stars (it fills the screen, edge to edge)
      result screen and every other building   the hub's spot (the same place as on the hub, kept as fractions of the viewport)
    A screen not in this table gets the hub's spot too and is reported (MUTE_DBG.unlisted, read by the tests) so it can be added. */
 const MUTE_UNDER = { campaign:'#campGlossBtn', menu:'#glossaryBtn', wall:'#wall>[data-nav="world"]', skyfall:'#skyMenuBtn' };
@@ -10451,6 +10454,11 @@ function muteBtnPlaceNow(){ try{ let b=document.getElementById('muteBtn'); if(!b
     /* the battle loading screen (any mode): top-right, level with the title */
     const ldr=document.getElementById('battleLoader');
     if(ldr&&R(ldr)){ const t=R('#battleLoader .bl-title'), y=Math.max(6,t?(t.top+t.height/2-MUTE_SZ/2):6); return void fix(vw-MUTE_SZ-16,y,MUTE_SZ,'loader'); }
+    /* a stage popup (campaign / elite / veteran): it fills the screen - in its header bar, just left of the stars, docked in that bar */
+    const sm=document.getElementById('stageModal');
+    if(sm&&sm.classList.contains('active')){ const hd=R('#stageModal .smStageHead'), ss=R('#stageModal .smStars');
+      if(hd){ const s=Math.round(Math.max(28,Math.min(36,hd.height-8))), x=(ss?ss.left:hd.right-10)-8-s, y=hd.top+hd.height/2-s/2;
+        return void dock(x,y,s,'stage-head',document.querySelector('#stageModal .smStageHead')); } }
     /* the sign-in gate */
     const ag=document.getElementById('authGate'); if(ag&&R(ag)&&(typeof authGateOpen!=='function'||authGateOpen())) return void fix(vw-MUTE_SZ-12,6,MUTE_SZ,'gate');
     /* a window with its own close X */
@@ -10461,7 +10469,7 @@ function muteBtnPlaceNow(){ try{ let b=document.getElementById('muteBtn'); if(!b
     if(X){ const g=X.g, s=Math.round(Math.max(30,Math.min(44,Math.min(g.width,g.height)))), cx=g.left+g.width/2, cy=g.top+g.height/2, w=X.win;
       const host=X.x.parentElement;
       MUTE_DOCK.x=X.x;
-      if(w.id==='heroDetail'||(w.closest&&w.closest('#heroDetail'))) return void dock(g.left-MUTE_GAP-s,cy-s/2,s,'win-left-x',host);
+      if(w.id==='heroDetail'||(w.closest&&w.closest('#heroDetail'))) return void dock(g.left-MUTE_GAP-s,g.top+8,s,'win-left-x',host);   // (its tabs are under the X; 8 px down clears the window's top frame)
       if(w.id==='glCardBig'){ MUTE_DOCK.x=null; const wr=w.getBoundingClientRect(); return void fix(wr.right+8,cy-s/2,s,'win-beside'); }
       return void dock(cx-s/2,g.bottom+MUTE_GAP,s,'win-under-x',host); }
     MUTE_DOCK.x=null;
@@ -10469,15 +10477,21 @@ function muteBtnPlaceNow(){ try{ let b=document.getElementById('muteBtn'); if(!b
     const home=document.getElementById('home'), pf=document.getElementById('profileBtn');
     if(home&&home.classList.contains('active')&&st==='home'&&pf){ const r=R(pf);
       if(r){ const f=R('#pfFrame'), L=f?Math.min(r.left,f.left):r.left, x=L-MUTE_GAP-MUTE_SZ, y=Math.max(4,r.top+r.height/2-MUTE_SZ/2-6);
-        MUTE_POS.rx=(vw-(x+MUTE_SZ))/vw; MUTE_POS.ty=(y+MUTE_SZ/2)/vh; return void fix(x,y,MUTE_SZ,'hub'); } }
+        MUTE_POS.rx=(vw-(x+MUTE_SZ))/vw; MUTE_POS.ty=(r.top+r.height/2)/vh; return void fix(x,y,MUTE_SZ,'hub'); } }   // (other screens: level with the portrait's centre)
     if(MUTE_POS.rx==null){ /* never on the hub yet: the hub's own CSS geometry (#cornerHud right .5%, #profileBtn clamp(56px,10vh,92px) + its margin) */
       const w=Math.max(56,Math.min(92,vh*0.10)), m=Math.max(30,Math.min(46,vh*0.047));
-      MUTE_POS.rx=(vw*0.005+m+w+MUTE_GAP+0.07*w)/vw; MUTE_POS.ty=(vh*0.02+w/2-6)/vh; }
+      MUTE_POS.rx=(vw*0.005+m+w+MUTE_GAP+0.07*w)/vw; MUTE_POS.ty=(vh*0.02+w/2)/vh; }
     const hx=vw-MUTE_POS.rx*vw-MUTE_SZ, hy=MUTE_POS.ty*vh-MUTE_SZ/2;
     /* battle: left of the speed button */
     if(st==='battle'){ const sp=R('#speedBtn'); if(sp) return void fix(sp.left-MUTE_GAP-MUTE_SZ,sp.top+sp.height/2-MUTE_SZ/2,MUTE_SZ,'battle'); return void fix(hx,hy,MUTE_SZ,'battle-hub'); }
     /* screens with their own top-right button: under it, right-aligned */
-    if(MUTE_UNDER[st]){ const u=R(MUTE_UNDER[st]); if(u) return void fix(u.right-MUTE_SZ,u.bottom+MUTE_GAP,MUTE_SZ,'under-'+st); }
+    if(MUTE_UNDER[st]){ const u=R(MUTE_UNDER[st]); if(u){
+        if(st==='campaign'){ const hd=R('#cmapHdr'); return void fix(u.right-MUTE_SZ,Math.max(u.bottom,hd?hd.bottom:0)+MUTE_GAP,MUTE_SZ,'under-campaign'); }   // (under the map's header bar too)
+        if(st==='skyfall') return void fix(u.right-MUTE_SZ-10,u.bottom+MUTE_GAP,MUTE_SZ,'under-skyfall');   // (10 px in: clear of the board's frame)
+        return void fix(u.right-MUTE_SZ,u.bottom+MUTE_GAP,MUTE_SZ,'under-'+st); } }
+    /* Temple and the Island of Trials: their framed panel's top-right corner reaches the hub's spot - 6 px lower (Temple also 10 px in) */
+    if(st==='temple') return void fix(hx-10,hy+6,MUTE_SZ,'hub-spot-temple');
+    if(st==='skyisland') return void fix(hx,hy+6,MUTE_SZ,'hub-spot-low');
     /* the Arena: the hub's spot inside its scrolling box */
     if(st==='arena'){ const a=document.getElementById('arena'); if(R(a)) return void dock(hx,hy-a.scrollTop,MUTE_SZ,'arena',a); }
     if(MUTE_LISTED.indexOf(st)<0) MUTE_DBG.unlisted=st;
@@ -29279,8 +29293,20 @@ function postReplayChip(channel, meta){
   const w=document.getElementById('chatWidget'); if(w){ w.classList.remove('min'); const tg=w.querySelector('#cwToggle'); if(tg)tg.textContent='▼'; }
   renderChat();
 }
+/* v1165 (Phil 16 Oct: "Why is chat in campaign and over pop outs it should only be in city and world map"): THE ONE PLACE the chat bar's
+   visibility is decided. It shows only on the city hub and the World view (the City Wall's world map - not the campaign chapter map),
+   and only while no window, popup or modal is open over them (uiWindowOpen: the same window state the mute button is placed from).
+   Called on every screen change (show) and on every window opening or closing (muteBtnPlace). Messages keep arriving - the bar only hides. */
+function uiWindowOpen(){ try{ if(typeof _popout!=='undefined'&&_popout) return true; }catch(e){}
+  try{ if(document.querySelector('#stageModal.active,#profileModal.active,#hudShop.active,#glModal.open,#battleLoader,#uiConfirmWrap,.gmodal-ov')) return true; }catch(e){}
+  try{ const b=document.getElementById('muteBtn'), pe=b&&b.style.pointerEvents; if(b) b.style.pointerEvents='none'; let x=null; try{ x=muteCloseX(); } finally { if(b) b.style.pointerEvents=pe||''; } if(x) return true; }catch(e){}
+  try{ const vw=window.innerWidth, vh=window.innerHeight;   // any other full-screen overlay put on the page (confirms, pickers)
+    for(const e of document.body.children){ if(e.id==='muteBtn'||e.id==='chatWidget'||e.id==='netGate'||e.id==='app'||e.tagName==='SCRIPT'||e.tagName==='STYLE') continue;
+      const cs=getComputedStyle(e); if(cs.position!=='fixed'||cs.display==='none'||cs.visibility==='hidden') continue;
+      const g=e.getBoundingClientRect(); if(g.width*g.height>=0.4*vw*vh&&(parseInt(cs.zIndex,10)||0)>=1000) return true; } }catch(e){}
+  return false; }
 function updateChatVisibility(){ const w=document.getElementById('chatWidget'); if(!w)return;
-  const onMap=!!document.getElementById('wzone'); const vis=_splashEntered && !document.body.classList.contains('gated') && (state==='home'||onMap);
+  const vis=_splashEntered && !document.body.classList.contains('gated') && (state==='home'||state==='world') && !uiWindowOpen();
   w.style.display=vis?'block':'none'; }
 // ---- LIVE chat over the game server (world/region broadcast + name-addressed whispers) ----
 const CHATNET={ws:null,connected:false,name:'',tries:0};
