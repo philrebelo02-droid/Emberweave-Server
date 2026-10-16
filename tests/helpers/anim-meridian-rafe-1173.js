@@ -11,4 +11,5 @@ const CODE = `(()=>{ const B=${JSON.stringify(FIX.before)};
   if(typeof SFX_DATA!=='undefined'&&SFX_DATA.heroes){ SFX_DATA.heroes.meridian=JSON.parse(JSON.stringify(B.sfx.meridian)); SFX_DATA.heroes.rafe=JSON.parse(JSON.stringify(B.sfx.rafe)); }
   if(typeof RAFE_SWING!=='undefined') RAFE_SWING.fuse=false;
   return 1; })()`;
-module.exports = { undoMR1173: run => run(CODE), FIX_MR_1173: FIX };
+const UHK = require('./anim-hobb-kharos-1174.js');   /* v1174: Hobb's and Kharos's entries go back too (every caller of this helper compares with a BASE before v1174) */
+module.exports = { undoMR1173: run => { UHK.undoHK1174(run); return run(CODE); }, FIX_MR_1173: FIX };

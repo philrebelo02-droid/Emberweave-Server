@@ -9186,7 +9186,7 @@
    "hero": "hobb",
    "hook": "EXISTS: fx.hobb_blue (when the plate appears)",
    "phase": "cast",
-   "rule": "cast",
+   "rule": "release",
    "slot": "blue",
    "timing": "cast frame (ability clip starts)"
   },
@@ -9199,7 +9199,7 @@
    "hero": "hobb",
    "hook": "EXISTS: fx.hobb_ult (when the plate appears)",
    "phase": "cast",
-   "rule": "cast",
+   "rule": "land",
    "slot": "ult",
    "timing": "cast frame (ability clip starts)"
   },
@@ -9507,7 +9507,7 @@
    "hero": "kharos",
    "hook": "EXISTS: fx.kharos_blue (when the plate appears)",
    "phase": "cast",
-   "rule": "cast",
+   "rule": "release",
    "slot": "blue",
    "timing": "cast frame (ability clip starts)"
   },
@@ -9520,7 +9520,7 @@
    "hero": "kharos",
    "hook": "EXISTS: fx.kharos_ult (when the plate appears)",
    "phase": "cast",
-   "rule": "cast",
+   "rule": "release",
    "slot": "ult",
    "timing": "cast frame (ability clip starts)"
   },
