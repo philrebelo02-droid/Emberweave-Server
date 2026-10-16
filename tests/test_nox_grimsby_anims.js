@@ -26,6 +26,7 @@ try { fs.mkdirSync(path.join(BD, 'server')); for (const f of ['emberweave-heroes
 const OLD = path.join(BD, 'emberweave-heroes.html');
 const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); return src => vm.runInContext(src, h.ctx); };
 const run = load(HTML), R0 = baseOk ? load(OLD) : null;
+require('./helpers/vael-fx-1171.js').undoVaelFx1171(run);   // v1171: Vael's and Deepcleft's FX entries + ownFx tags go back to v1169's (tests/test_vael_deepcleft_fx_1171.js checks them)
 let pass = 0, fail = 0;
 const ck = (name, ok, detail) => { if (ok) { pass++; console.log('  ok  ' + name); } else { fail++; console.log('  FAIL ' + name + (detail ? ' - ' + String(detail).slice(0, 700) : '')); } };
 const chunks = b => { const o = []; let i = 12; while (i + 8 <= b.length) { const t = b.toString('ascii', i, i + 4), n = b.readUInt32LE(i + 4); o.push(t); i += 8 + n + (n & 1); } return o; };
