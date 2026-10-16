@@ -445,6 +445,8 @@ note "test_mirelle_fx_1174.js (v1174 Mirelle's three Grok spell FX in place of m
 node tests/test_mirelle_fx_1174.js || FAILED=1
 note "test_hobb_kharos_1175.js (v1175 Hobb eight - his first crit - and Kharos ten - attack A / B alternating every 1.8 s swing, his first crit, the camouflage passive kept see-through - from the Phil PASS final H3 exports: q95 sheets, the references fitted on every frame 0 (attack B on its own start frame), same size + spot (CONTROL), timing data = BASE, casts identical, swings on BASE ticks, whole fights at crit 0 = BASE and at real crit = BASE + the v532 rule (CONTROL: timing moved diverges), contact cells re-derived, S0245 / S0298 / S0300 on release, S0246 on land)"
 node tests/test_hobb_kharos_1175.js || FAILED=1
+note "test_integrate_tool.js (tools/integrate_hero.py + integrate_fx.py: frame maps = the v1162 / v1175 maps, the Korvux scale fit, BATTLE_ANIM line format, the page patch, fringe, FX key + placement - each with a CONTROL)"
+node tests/test_integrate_tool.js || FAILED=1
 note "test_skill_previews_1164.js (v1164 SKILL PREVIEWS read from the fight: every slot of all 60 heroes - the clip startAbilityClip / real swings / crit / passive play (same BATTLE_ANIM object, the engine hold and cell clock; stand-ins show nothing), every FX sheet the cast draws recorded live at its moment, the fight's SFX rows with peaks on the contact cell; CONTROLS: an old Korvux sheet, a sound a cell off, a dropped FX fail; phone browser: silent on open, a tap plays through sfxPlay (swing 0.85), one at a time, FX off / master mute, only the open hero's tier sheets held and released; fights tick-identical to BASE)"
 node tests/test_skill_previews_1164.js || FAILED=1
 rm -f probe-db-*.json

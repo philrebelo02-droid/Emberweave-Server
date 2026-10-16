@@ -1,0 +1,98 @@
+{
+ "note": "v1171 Vael's three Grok spell FX (live 4edf7239) in the FX pipeline's terms. Knobs found by re-keying (v1171 did not record them): EXT -30 (no RATIO) + DEVIOL - the re-cut sheets and masters are byte-identical to v1171's. disc / anchor / size are the values v1171 shipped (the measured proposals differ: art-specific choices, see README).",
+ "hero": "vael",
+ "version": "1171",
+ "work": "C:/Users/Home/Downloads/ew-sweep/integrate/vael-fx-1171-proof",
+ "fx": [
+  {
+   "name": "warcry",
+   "src": "vael_green_warcry_16oct.mp4",
+   "md5": "bf7e6a63",
+   "key": "vael_green",
+   "file": "vael_warcry_16oct",
+   "title": "Warcry",
+   "plate": "green",
+   "deviol": true,
+   "frames": "0:133:2",
+   "crop": [
+    586,
+    396,
+    372
+   ],
+   "ramp": 0.9,
+   "show": {
+    "state": "green",
+    "cell": 7
+   },
+   "placement": "ground",
+   "ownFx": "vwarcry",
+   "life": {
+    "mode": "real",
+    "fps2": 12
+   },
+   "disc": {
+    "cx": 0.5,
+    "cy": 0.5,
+    "dw": 0.914,
+    "dh": 0.914
+   }
+  },
+  {
+   "name": "bloodthirst",
+   "src": "vael_blue_bloodthirst_16oct.mp4",
+   "md5": "ca374c9d",
+   "key": "vael_blue",
+   "file": "vael_bloodthirst_16oct",
+   "title": "Bloodthirst",
+   "plate": "green",
+   "deviol": true,
+   "frames": "0:145:2",
+   "heightOfArt": 1.15,
+   "show": {
+    "state": "blue",
+    "cell": 16
+   },
+   "placement": "fit",
+   "ownFx": "vblood",
+   "life": {
+    "mode": "fit",
+    "fade": 0.3
+   },
+   "anchor": [
+    0.505,
+    0.153
+   ],
+   "size": 1.455
+  },
+  {
+   "name": "laststand",
+   "src": "vael_ult_last_stand_16oct.mp4",
+   "md5": "c5d09410",
+   "key": "vael_ult",
+   "file": "vael_last_stand_16oct",
+   "title": "Last Stand",
+   "plate": "green",
+   "deviol": true,
+   "frames": "0:121:2",
+   "show": {
+    "state": "ult",
+    "cell": 8
+   },
+   "placement": "hold",
+   "ownFx": "vstand",
+   "life": {
+    "mode": "hold",
+    "hold": [
+     40,
+     96
+    ],
+    "fade": 24
+   },
+   "anchor": [
+    0.5,
+    0.48
+   ],
+   "size": 1.431
+  }
+ ]
+}
