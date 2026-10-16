@@ -17,12 +17,12 @@
                 plays the slot's files through sfxPlay on the FX bus (a swing at 0.85); a second slot stops the first; FX off = silent; the
                 master mute holds; the stage holds only the open hero's sheets - the device's tier files (artFile) - and lets them and its
                 decoded sounds go when the panel closes. Shots for the review in SHOT_DIR.
-     6. ENGINE - render only: whole fights are tick-identical to BASE (v1163, 1ab87041). */
+     6. ENGINE - render only: whole fights are tick-identical to BASE (v1163, 27570597). */
 (async function main() {
 const path = require('path'), vm = require('vm'), fs = require('fs'), cp = require('child_process'), os = require('os'), net = require('net'), crypto = require('crypto');
 const ROOT = path.resolve(__dirname, '..');
 const HTML = process.env.EW_HTML || path.join(ROOT, 'emberweave-heroes.html');
-const BASE_SHA = process.env.EW_BASE || '1ab87041';   // v1163 (the mute fix), the build this change sits on
+const BASE_SHA = process.env.EW_BASE || '27570597';   // v1163 (the mute dock + lag fix), the build this change sits on
 const H = require('./helpers/skill-preview-1164.js');
 let pass = 0, fail = 0;
 const ck = (name, ok, detail) => { if (ok) { pass++; console.log('  ok  ' + name); } else { fail++; console.log('  FAIL ' + name + (detail ? ' - ' + String(detail).slice(0, 900) : '')); } };
