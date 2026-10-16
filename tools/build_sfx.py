@@ -177,10 +177,10 @@ RULES = {
     'S0268': {'rule': 'land'},                               # v1160 Deepcleft Quarry Collapse: its peak on the slam when the form delivery lands (1.148 fight s = ult clip contact cell 37), not from the press
     'S0138': {'rule': 'release'},                            # v1173 Meridian Final Expedition: its peak as the survey is plotted on the 0.8 s release (ult clip contact cell 29, f60), not from the press
     'S0510': {'rule': 'release'},                            # v1173 Rafe Pistol Barrage: its peak on the volley at the 0.5 s release (green clip contact cell 18, f72), not from the press
-    'S0245': {'rule': 'release'},                            # v1174 Hobb Sealed Vessel: its peak as the belt jar's glaze flashes over him on the 0.5 s release (blue clip contact cell 18, f42), not from the press
-    'S0246': {'rule': 'land'},                               # v1174 Hobb Grand Kiln Shape: its peak as the clay is thrown down on the form landing (1.148 fight s = ult clip contact cell 40, f105), not from the press
-    'S0298': {'rule': 'release'},                            # v1174 Kharos Bloomstep: its peak on the counter cut at the 0.5 s release (blue clip contact cell 18, f45), not from the press
-    'S0300': {'rule': 'release'},                            # v1174 Kharos Orchid Execution: its peak on the execution cut at the 0.8 s release (ult clip contact cell 29, f30), not from the press
+    'S0245': {'rule': 'release'},                            # v1175 Hobb Sealed Vessel: its peak as the belt jar's glaze flashes over him on the 0.5 s release (blue clip contact cell 18, f42), not from the press
+    'S0246': {'rule': 'land'},                               # v1175 Hobb Grand Kiln Shape: its peak as the clay is thrown down on the form landing (1.148 fight s = ult clip contact cell 40, f105), not from the press
+    'S0298': {'rule': 'release'},                            # v1175 Kharos Bloomstep: its peak on the counter cut at the 0.5 s release (blue clip contact cell 18, f45), not from the press
+    'S0300': {'rule': 'release'},                            # v1175 Kharos Orchid Execution: its peak on the execution cut at the 0.8 s release (ult clip contact cell 29, f30), not from the press
     'S0329': {'rule': 'release'},                            # v1169 Nox Lockpick Soul: its peak as the hook is thrown out on the 0.5 s release (green clip contact cell 18, f44)
     'S0331': {'rule': 'release'},                            # v1169 Nox Forbidden Key: its peak as the key appears in his hand on the 0.5 s release (blue clip contact cell 18, f40), not from the press
     'S0332': {'rule': 'release'},                            # v1169 Nox Open Every Door: its peak as he holds the lock out on the 0.8 s release (ult clip cell 29, f53) - every enemy locked; S0333 stays on the shatter (land, contact cell 40)

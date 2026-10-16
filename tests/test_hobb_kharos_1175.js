@@ -1,5 +1,5 @@
 'use strict';
-// v1174 - HOBB KILNMASK's eight and KHAROS BLOOMKNIFE's ten new animations (Phil PASS 16 Oct 2026, ChatGPT 13:23, REVIEW 16OCT2026 H3, clean-source-manifest.json -
+// v1175 - HOBB KILNMASK's eight and KHAROS BLOOMKNIFE's ten new animations (Phil PASS 16 Oct 2026, ChatGPT 13:23, REVIEW 16OCT2026 H3, clean-source-manifest.json -
 //   the final sets, official Hailuo Without Watermark exports, sha256 matched, cut from the silent twins). Both MELEE (Phil).
 //   HOBB: idle, walk, attack, crit (his first), hit, green Glazebreaker, blue Sealed Vessel, ult Grand Kiln Shape. No passive.
 //   KHAROS: idle, walk, attack A, attack B (567549954798575616, the far arm), crit (his first), hit, green Petal Sever (567544138133647364), blue Bloomstep,
@@ -12,8 +12,8 @@
 const path = require('path'), vm = require('vm'), fs = require('fs'), cp = require('child_process'), crypto = require('crypto'), os = require('os');
 const ROOT = path.resolve(__dirname, '..');
 const HTML = process.env.EW_HTML || path.join(ROOT, 'emberweave-heroes.html');
-const BASE_SHA = process.env.EW_BASE || '1fabc0e2';   // live v1173 (Meridian + Rafe), the build this change sits on
-const VER = process.env.EW_HK_VER || '1174';
+const BASE_SHA = process.env.EW_BASE || 'af209869';   // live v1174 (Mirelle FX, on v1173 Meridian + Rafe), the build this change sits on
+const VER = process.env.EW_HK_VER || '1175';
 const BD = fs.mkdtempSync(path.join(os.tmpdir(), 'hk-base-'));
 process.on('exit', () => { try { fs.rmSync(BD, { recursive: true, force: true }); } catch (e) {} });
 let baseOk = true;
@@ -21,7 +21,7 @@ try { fs.mkdirSync(path.join(BD, 'server')); for (const f of ['emberweave-heroes
   fs.writeFileSync(path.join(BD, f), cp.execSync('git show ' + BASE_SHA + ':' + f, { cwd: ROOT, maxBuffer: 64 << 20 })); } catch (e) { baseOk = false; }
 const OLD = path.join(BD, 'emberweave-heroes.html');
 const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); return src => vm.runInContext(src, h.ctx); };
-const UHK = require('./helpers/anim-hobb-kharos-1174.js');
+const UHK = require('./helpers/anim-hobb-kharos-1175.js');
 const run = load(HTML), R0 = baseOk ? load(OLD) : null;
 let pass = 0, fail = 0;
 const ck = (name, ok, detail) => { if (ok) { pass++; console.log('  ok  ' + name); } else { fail++; console.log('  FAIL ' + name + (detail ? ' - ' + String(detail).slice(0, 700) : '')); } };
@@ -32,7 +32,7 @@ function webpSize(file) { const b = fs.readFileSync(file); const tag = b.toStrin
   if (tag === 'VP8 ') return [b.readUInt16LE(26) & 0x3fff, b.readUInt16LE(28) & 0x3fff]; return null; }
 const fileOf = u => path.join(ROOT, String(u).split('?')[0].replace(/^\//, ''));
 const py = args => JSON.parse(cp.execFileSync(process.env.PYTHON || 'python', ['-I', path.join(__dirname, 'helpers', 'noxgrim_1166_check.py'), ROOT, JSON.stringify(args)], { maxBuffer: 1 << 24 }).toString());
-const FR = JSON.parse(fs.readFileSync(path.join(ROOT, 'tests/fixtures/hobb_kharos_1174_frames.json'), 'utf8'));
+const FR = JSON.parse(fs.readFileSync(path.join(ROOT, 'tests/fixtures/hobb_kharos_1175_frames.json'), 'utf8'));
 const NEW = {
   hobb: [['idle', 62, 12, null], ['walk', 36, 36 * 24 / 49, null], ['attack', 48, 24, 27, 51], ['crit', 48, 24, 27, 46], ['hit', 15, 25, null], ['green', 48, 24, 18, 53], ['blue', 48, 24, 18, 42], ['ult', 48, 24, 40, 105]],
   kharos: [['idle', 62, 12, null], ['walk', 36, 36 * 24 / 55, null], ['attack', 48, 24, 27, 27], ['attackB', 48, 24, 27, 9], ['crit', 48, 24, 27, 43], ['hit', 15, 25, null],

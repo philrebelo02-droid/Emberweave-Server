@@ -1,5 +1,5 @@
 {
- "note": "v1174: what live v1173 (1fabc0e2) had for the entries the Hobb + Kharos change replaced - BATTLE_ANIM hobb / kharos and SFX_DATA heroes hobb / kharos (and no autoAlt on Kharos)",
+ "note": "v1175: what live v1173 (1fabc0e2) had for the entries the Hobb + Kharos change replaced - BATTLE_ANIM hobb / kharos and SFX_DATA heroes hobb / kharos (and no autoAlt on Kharos)",
  "before": {
   "anim": {
    "hobb": {

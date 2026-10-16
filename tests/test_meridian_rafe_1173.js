@@ -24,7 +24,7 @@ let baseOk = true;
 try { fs.mkdirSync(path.join(BD, 'server')); for (const f of ['emberweave-heroes.html', 'hero-profiles.js', 'hero-paths.js', 'server/temple-of-ash.js', 'server/patron-benefits.js', 'server/temple-effects.js'])
   fs.writeFileSync(path.join(BD, f), cp.execSync('git show ' + BASE_SHA + ':' + f, { cwd: ROOT, maxBuffer: 64 << 20 })); } catch (e) { baseOk = false; }
 const OLD = path.join(BD, 'emberweave-heroes.html');
-const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); const r = src => vm.runInContext(src, h.ctx); require('./helpers/anim-hobb-kharos-1174.js').undoHK1174(r); return r; };   // v1174: Hobb / Kharos as v1173 on every page - tests/test_hobb_kharos_1174.js checks them
+const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); const r = src => vm.runInContext(src, h.ctx); require('./helpers/anim-hobb-kharos-1175.js').undoHK1175(r); return r; };   // v1175: Hobb / Kharos as v1173 on every page - tests/test_hobb_kharos_1175.js checks them
 const UMR = require('./helpers/anim-meridian-rafe-1173.js');
 const run = load(HTML), R0 = baseOk ? load(OLD) : null;
 require('./helpers/mirelle-fx-1174.js').undoMirelleFx1174(run);   // v1174: Mirelle's FX entries + ownFx tags go back to v1173's (tests/test_mirelle_fx_1174.js checks them)
