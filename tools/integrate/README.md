@@ -253,4 +253,9 @@ SFX_DATA differs, as expected: v1162 also moved S0172 and S0174 from cast to lan
 
 The ult row is why a cast's contact is always a reviewer's pick. The engine stage gives v1162's contact cells (30 / 30 / 18 / 30 on the landing / 29), and the same on Hobb and Kharos (fitted 27, Hobb's ult landing 40).
 
-**4. Checks.** The generated `tests/test_korvux_anim_1162.js` was run on the proof tree, with BASE 1debe711, along with the older tests the helper chain touches. The results are in `<work>/checks/`.
+**4. Checks** (on the proof tree, BASE 1debe711; logs in `<work>/checks/`):
+- the generated `tests/test_korvux_anim_1162.js` passed **37/37**. It gave v1162's own numbers: the blow on cell 30.24 at x1, 30.49 at x1.25, 29.66 at x0.8; whole fights at crit 0 = BASE and at real crit = BASE + the v532 rule; the slowed-swing control diverged in 4 of 4 fights;
+- `test_veyr_deepcleft_1160` passed 70/70 and `test_anim_slim_1155` 23/23, both through the auto-chained undo helper (v1162 reported the same);
+- `test_integrate_tool` passed 20/20.
+
+The browser checks (memory budget, offline art, condense) and a fresh rig did **not** run. The 4080 had under 1 GB free (Ember's llama-servers), and `locked.sh` refused, as designed. The stills and clip page in `<work>/look/` were built by `outputs` from v1162's own rig frames, which drew these byte-identical sheets.
