@@ -12,8 +12,10 @@
                     release's own test loads it (its 'every other hero = BASE' check stays true).
   5. test        -> tests/test_<hero>_anim_<ver>.js from tests/templates/hero_anim_test.tmpl.js, registered in run_all_tests.sh.
   6. ratchet     -> tests/fixtures/sheet_size_baseline_1140.json drops the replaced sheets (the list only shrinks).
+  3b. sound     -> the hero's ability rows moved off 'cast' to 'release' / 'land' where the peak belongs (sound.py): config `sound` when given,
+                    else the engine-moments proposal; tools/build_sfx.py RULES + sfx_manifest.json rows + SFX_DATA.heroes, no audio touched.
   7. reports     -> condense dry run (tier decision for each new sheet), Update all (allAssetUrls carries every new sheet), skill previews,
-                    the passive hook (an event clip needs the passive's own code to fire it) and the sound rows (cast vs the contact moment).
+                    the passive hook (an event clip needs the passive's own code to fire it) and the sound rows (moved / proposed).
 Nothing here bumps BUILD_ID / sw.js / version.json: that is the release step (tools/integrate/README.md), after the checks.
 """
 import json
@@ -157,6 +159,22 @@ def stage_wire(cfg, a):
     if not _eq(after, ents):
         write_page(tree, s_orig)
         die('the page does not read back the entries written (page restored): %s' % json.dumps(after)[:400])
+    # 3b. sound rows: 'cast' -> 'release' / 'land' where the peak belongs (config `sound`, else the engine-moments proposal)
+    from . import sound as SO
+    srows = SO.hero_rows(tree, H)
+    sprop = SO.propose(srows, r.get('engine'))
+    try:
+        schg, ssrc = SO.decide(cfg.d.get('sound'), srows, r.get('engine'))
+        smoved = SO.apply(tree, cfg, srows, schg, r.get('engine'))
+    except ValueError as e:
+        write_page(tree, s_orig)
+        die('sound: %s (page restored)' % e)
+    log(cfg.work, 'wire sound (%s): %s; proposed %s' % (ssrc, smoved or 'no change', {k: v['rule'] for k, v in sprop.items()}))
+    if smoved:
+        sd = dump(tree, os.path.join(tree, 'emberweave-heroes.html'), 'SFX_DATA.heroes.%s' % H)
+        got = {e['id']: e['on'] for k, v in sd.items() if isinstance(v, list) for e in v}
+        if any(got.get(rid) != rule for rid, (_, rule) in smoved.items()):
+            die('sound: the page does not read back the rows written: %s' % json.dumps(sd)[:400])
     # 4. fixtures + helper chain
     norm = r['normalise']
     ver = r['verify']
@@ -167,7 +185,7 @@ def stage_wire(cfg, a):
                                cut={k: cut[st][k] for k in ('box', 'sx', 'sy', 'fw', 'fh', 'cols', 'rows', 'top', 'feet', 'cx', 'figH', 'figH_exact')},
                                anchors={k: norm['states'][st][k] for k in ('framing', 'k', 'top', 'sole', 'cx', 'h')}) for st in order},
               walk=cfg.st('walk') if 'walk' in order else None, idle=cfg.st('idle'), reference=norm['ref'],
-              fights=cfg.d.get('fights'), sound=cfg.d.get('sound'), newCrit=('crit' in order and not (before['anim'] or {}).get('crit')))
+              fights=cfg.d.get('fights'), sound={rid: v[1] for rid, v in smoved.items()} or None, newCrit=('crit' in order and not (before['anim'] or {}).get('crit')))
     fdir = os.path.join(tree, 'tests', 'fixtures')
     save_json(os.path.join(fdir, '%s_%s_integrate.json' % (H, V)), fx)
     save_json(os.path.join(fdir, 'anim_%s_%s_before.json' % (H, V)), dict(note='v%s: what BASE %s had for the entries the %s change replaced (tools/integrate_hero.py wire)' % (V, base, cfg.name), before=before))
@@ -241,7 +259,7 @@ def stage_wire(cfg, a):
                 fh.write(out)
         log(cfg.work, 'wire size baseline %d -> %d (replaced %s sheets leave the ratchet)' % (n0, len(B['files']), H))
     # 7. reports
-    rep = dict(base=base, autoAlt=alt, helper=hname, chainedInto=prev, test=tname, entries={st: entry_line(st, ents[st]).strip() for st in order})
+    rep = dict(base=base, autoAlt=alt, sound=dict(source=ssrc, moved=smoved, proposed=sprop), helper=hname, chainedInto=prev, test=tname, entries={st: entry_line(st, ents[st]).strip() for st in order})
     urls = dump(tree, os.path.join(tree, 'emberweave-heroes.html'), 'allAssetUrls()')
     rep['updateAll'] = {st: ents[st]['u'] in urls for st in order}
     rep['skillPreview'] = dump(tree, os.path.join(tree, 'emberweave-heroes.html'),

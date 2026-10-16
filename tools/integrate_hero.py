@@ -7,7 +7,7 @@ stages (in order; `all` runs verify .. outputs; each stage reads what the earlie
   extract    silent twin -> raw/<state>/fNNN.png (ffmpeg, every frame)
   key        cs10 green-screen key -> keyed/<state>/kNNN.png + measure_<state>.json (plate, boxes, frame-0 figure, corners)
   engine     the engine's own moments (sim host): the contact cell each 48 @24 action clip must draw its blow / release / landing on
-  propose    the planner's numbers for anything the config leaves out (walk stride, idle loop, hit flinch, contact frames) -> proposals.json
+  propose    the planner's numbers for anything the config leaves out (walk stride, idle loop, hit flinch, contact frames, sound rows) -> proposals.json
   normalise  one size, one spot (the Korvux method): every state's anchors from the reference figure
   cut        frame maps -> sheets: unmix, despill, one Lanczos, 2048 px / 4 MB, lossless master + q95, fringe measured
   wire       BATTLE_ANIM entries into <tree>/emberweave-heroes.html, fixtures, the test from the template, size-baseline ratchet,
@@ -93,7 +93,8 @@ def stage_engine(cfg, a):
     for st in ('green', 'blue', 'ult'):
         if M.get(st):
             mom = cfg.st(st).get('moment', 'release')
-            eng[st] = dict(cell=M[st]['landCell'] if mom == 'land' else M[st]['releaseCell'], releaseCell=M[st]['releaseCell'], landCell=M[st]['landCell'], moment=mom, effects=M[st]['effects'])
+            eng[st] = dict(cell=M[st]['landCell'] if mom == 'land' else M[st]['releaseCell'], releaseCell=M[st]['releaseCell'], landCell=M[st]['landCell'],
+                           release=M[st]['release'], land=M[st]['land'], moment=mom, effects=M[st]['effects'])
     r = cfg.run()
     r['engine'] = eng
     cfg.save_run(r)
@@ -114,6 +115,11 @@ def stage_propose(cfg, a):
         p['config_has'] = sorted(k for k in sc if k in ('frames', 'segments', 'contactFrame', 'from', 'len', 'flinch', 'loop'))
         out[st] = p
         log(cfg.work, 'propose %-8s %s' % (st, {k: v for k, v in p.items() if k in ('walk', 'idle', 'hit', 'contactFrame', 'end', 'contactCell', 'why')}))
+    from integrate.common import REPO
+    from integrate import sound as SO   # the sound rows: which 'cast' rows move to release / land (the config key `sound` decides when given)
+    sp = SO.propose(SO.hero_rows(a.tree or REPO, cfg.hero), eng)
+    out['_sound'] = dict(proposed=sp, config=cfg.d.get('sound'))
+    log(cfg.work, 'propose sound %s%s' % ({k: v['rule'] for k, v in sp.items()}, ' (config sound %s decides)' % cfg.d['sound'] if cfg.d.get('sound') is not None else ''))
     save_json(os.path.join(cfg.work, 'proposals.json'), out)
 
 
