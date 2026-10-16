@@ -12,7 +12,7 @@
 const path = require('path'), vm = require('vm'), fs = require('fs'), cp = require('child_process'), crypto = require('crypto'), os = require('os');
 const ROOT = path.resolve(__dirname, '..');
 const HTML = process.env.EW_HTML || path.join(ROOT, 'emberweave-heroes.html');
-const BASE_SHA = process.env.EW_BASE || 'df2313ec';   // live v1164, the build before this change
+const BASE_SHA = process.env.EW_BASE || 'fb3dca16';   // live v1166 (the hotfix; v1165 sound + v1167 walls under it), the build this change sits on
 // BASE tree: its own page AND its own hero-profiles.js / hero-paths.js (sim-host loads the page's external scripts from the page's folder)
 const BD = fs.mkdtempSync(path.join(os.tmpdir(), 'noxr-base-'));
 process.on('exit', () => { try { fs.rmSync(BD, { recursive: true, force: true }); } catch (e) {} });
