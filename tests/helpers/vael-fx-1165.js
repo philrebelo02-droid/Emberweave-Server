@@ -1,0 +1,20 @@
+'use strict';
+// Vael's three spell FX (Grok, Phil approved 16 Oct 2026; tests/fixtures/vael_fx_1165_before.json). The FX, condense, slim and per-hero tests of
+// earlier releases compare the page with their own BASE. undoVaelFx1165(run) puts what live v1163 had for the entries this change replaced back in a
+// loaded page - FX2_DEF.vael_green / vael_blue / vael_ult and the three ownFx display tags (KITS.vael green / blue, HERO_ULT_ART.vael) - so those
+// checks keep testing what they were written for. On a q95 test view of the page (tests/helpers/q95-1158.js page(): every q95 URL put back to its
+// v1157 ?v=) the restored entries get the same inverse, so they read as that view of v1163 would. tests/test_vael_fx_1165.js checks the change itself.
+const fs = require('fs'), path = require('path');
+const FIX = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'fixtures', 'vael_fx_1165_before.json'), 'utf8'));
+const Q = require('./q95-1158.js');
+const probe = Q.Q95.sheets.map(e => e.path + '?v=1158');
+function undoVaelFx1165(run) {
+  const q95view = run(`(()=>{ const s=JSON.stringify(FX2_DEF)+JSON.stringify(BATTLE_ANIM); return !${JSON.stringify(probe)}.some(u=>s.indexOf(u)>=0); })()`) === true;
+  const B = q95view ? JSON.parse(Q.undoText(JSON.stringify(FIX.fx))) : FIX.fx;
+  return run(`(()=>{ const B=${JSON.stringify(B)};
+    if(typeof FX2_DEF==='undefined'||!FX2_DEF.vael_green||!/vael_warcry_16oct/.test(FX2_DEF.vael_green.u||'')) return 0;   /* not a page with the change: nothing to undo */
+    for(const k in B) FX2_DEF[k]=JSON.parse(JSON.stringify(B[k]));
+    try{ delete KITS.vael.green.ownFx; delete KITS.vael.blue.ownFx; delete HERO_ULT_ART.vael.ownFx; }catch(e){}
+    if(typeof FX1123_WARM!=='undefined') delete FX1123_WARM.vael;
+    return 1; })()`); }
+module.exports = { undoVaelFx1165, FIX_VAEL_FX_1165: FIX };
