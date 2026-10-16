@@ -65,7 +65,7 @@ try {
     if (rig === 'phone') {
       // the old v1153 list, from the BASE page on this phone (CONTROL: it lists no tier file, and its card is the storage estimate)
       const html = cp.execSync('git show ' + BASE_SHA + ':emberweave-heroes.html', { cwd: ROOT, maxBuffer: 64 << 20 }).toString();
-      const B = await open(PHONE, html), BP = await plan(B.pg), bc = await card(B.pg);
+      const B = await open(Object.assign({}, PHONE, { serviceWorkers: 'block' }), html)   /* v1157: no SW - on a tree past BASE the newer sw.js swaps the BASE page for the current one */, BP = await plan(B.pg), bc = await card(B.pg);
       OLD.push(...BP.urls);
       const oldT = BP.urls.reduce((a, u) => a + (sizes[u.split('?')[0]] || 0), 0);
       ck('CONTROL: the BASE page lists ' + BP.urls.filter(u => /_[pt]1141\./.test(u)).length + ' tier files and its card ("' + bc + '") is not the list\'s bytes (' + fmt(oldT) + ')', !BP.urls.some(u => /_[pt]1141\./.test(u)) && bc.indexOf(fmt(oldT)) < 0);
@@ -76,7 +76,8 @@ try {
     await S.pg.evaluate(async L0 => { const c = await caches.open(ASSET_CACHE_NAME); const q = L0.slice();
       await Promise.all(Array.from({ length: 6 }, async () => { while (q.length) { const u = q.shift(); const r = await fetch(u, { cache: 'no-store' }); if (r.ok) await c.put(new URL(u, location.origin).href, r); } })); }, OLD);
     const P1 = await plan(S.pg);
-    const replaced = OLD.filter(u => !L.has(u)).length;
+    /* v1157: 'replaced' = an old URL whose PATH this device still wants (a new ?v=) or an original it now loads through a tier file - the v577 rule. A file whose path left the game (the v1155 slim's superseded sheets) is not touched by the plan, as for every renamed sheet before it. */
+    const LP = new Set(P.urls.map(u => u.split('?')[0])), replaced = OLD.filter(u => { const q = u.split('?')[0]; return !L.has(u) && (LP.has(q) || !!(T[q] && T[q][tkey])); }).length;
     ck(rig + ': old-set device - ' + P1.cached + ' saved, ' + P1.missing + ' to fetch (the tier files), ' + P1.stale + ' replaced originals to clear',
       P1.missing <= P.urls.filter(u => !OLD.includes(u)).length && P1.missing > 0 && P1.stale === replaced && P1.stale <= Math.floor((P1.cached + P1.stale) * 0.25));
     const R = await S.pg.evaluate(() => downloadAllAssets());
@@ -87,6 +88,7 @@ try {
       R.failed === 0 && R.dropped === replaced && P2.missing === 0 && P2.stale === 0 && held.n === P.urls.length && held.b === T0 && c2.startsWith(P.urls.length + ' of ' + P.urls.length + ' files saved') && c2.endsWith(fmt(T0) + ' of ' + fmt(T0)));
     const seen = []; S.pg.on('response', r => { if (/\/assets\/anim\//.test(r.url())) seen.push([r.status(), r.url()]); });
     await S.pg.evaluate(() => show('home'));
+    S.bad.length = 0;   /* v1157: the fight's own requests - the old-set fill above fetched v1153 URLs, and files the slim retired answer 404 there by design */
     await S.pg.evaluate(() => { const A = ['carn', 'aureth', 'sylthaine', 'maren', 'orryn']; G.team = A.slice(); CUR = { mode: 'arena', seed: 9 }; startVersus(['zahri', 'seyla', 'vex', 'lysara', 'mirelle'].map(k => ({ key: k, level: 30, rank: 3 })), true, A); });
     for (let i = 0; i < 240; i++) { if (await S.pg.evaluate(() => state === 'battle' && units.length > 0)) break; await delay(250); }
     await delay(5000);
