@@ -54,6 +54,7 @@
       case 'ruyi': { const H=d.len*th*d.fh/d.staffPx; return [S.xt-0.5*H*d.fw/d.fh,d.head*th-d.anchor[1]*H,S.xt+0.5*H*d.fw/d.fh,d.head*th+(1-d.anchor[1])*H]; }
       case 'punct': { const H=d.h*3.9/d.slit, W=H*d.fw/d.fh; return [S.xt-W/2,0,S.xt+W/2,H]; }
       case 'tempest': { const r=(e.R||10*METER)*SC, W=2*0.4*r*Math.tan(22.5*Math.PI/180)*d.fw/d.xPx*(d.xMul||1), H=W*d.fh/d.fw; return [0.4*r-W/2,0.5*h-H/2,0.4*r+W/2,0.5*h+H/2]; }
+      case 'vael': { const H=d.size*h, W=H*d.fw/d.fh; return [-d.anchor[0]*W,-d.anchor[1]*H,(1-d.anchor[0])*W,(1-d.anchor[1])*H]; }   /* v1165 Vael: upright, anchor on his feet */
       case 'mantle': case 'shell': { const H=(e.kind==='shell')?d.size*h*d.fh/(d.fh-16):d.size*h, W=H*d.fw/d.fh; return [-W/2,0.5*h-H/2,W/2,0.5*h+H/2]; }
       case 'crescent': { const H=d.size*h, W=H*d.fw/d.fh; return [-W/2,0.5*h-H/2,S.xt+W/2,0.5*h+H/2]; }
       case 'bell': { const H=0.75*3.9*d.fh/d.bellPx; return [S.xt-0.5*H*d.fw/d.fh,1.05*3.9*CY-d.anchor[1]*H,S.xt+0.5*H*d.fw/d.fh,1.05*3.9*CY+(1-d.anchor[1])*H]; }
@@ -129,6 +130,12 @@
         const H=d.size*h*d.fh/(d.fh-16); fxDraw(g,st,d,fr,X(0),Y(0.5*h),H*d.fw/d.fh*s,H*s,0.5,0.5); return; }
       case 'tempest': { const clip=d.dur*FX_RT, fr=Math.floor(tb/clip*n); if(fr>=n) return; const r=(e.R||10*METER)*SC, W=2*0.4*r*Math.tan(22.5*Math.PI/180)*d.fw/d.xPx*(d.xMul||1);
         fxDraw(g,st,d,fr,X(0.4*r),Y(0.5*h),W*s,W*d.fh/d.fw*s,0.5,0.5,{a:e.fade?Math.max(0,Math.min(1,(clip-tb)/e.fade)):1}); return; }
+      case 'vael': { const life=e.life||5; if(tb>=life) return; let fr, a=1;   /* v1165 _fx22VaelTick: Bloodthirst fitted to the buff, Last Stand slam / stretched hold / faded end */
+        if(e.vk==='vblood'){ fr=Math.floor(tb/life*n); a=Math.min(1,(life-tb)/(d.fade||0.3)); }
+        else { const F0=d.hold[0], F1=d.hold[1], tA=F0/24*FX_RT, tC=life-(2*(n-1)-F1)/24*FX_RT; let F;
+          if(tC<=tA) F=tb/life*2*(n-1); else if(tb<tA) F=lt*24; else if(tb<tC) F=F0+(tb-tA)/(tC-tA)*(F1-F0); else { F=F1+(tb-tC)/FX_RT*24; a=Math.max(0,1-(F-F1)/d.fade); }
+          fr=Math.floor(F/2); }
+        const H=d.size*h, W=H*d.fw/d.fh; fxDraw(g,st,d,Math.max(0,Math.min(n-1,fr)),X(0),Y(0),W*s,H*s,d.anchor[0],1-d.anchor[1],{a}); return; }
       case 'mantle': { const life=e.life||2.4, fr=Math.floor(tb/life*n); if(fr>=n) return; const H=d.size*h; fxDraw(g,st,d,fr,X(0),Y(0.5*h),H*d.fw/d.fh*s,H*s,0.5,0.5); return; }
       case 'crescent': { const clip=d.dur*FX_RT, fr=Math.floor(tb/clip*n); if(fr>=n) return; const H=d.size*h, W=H*d.fw/d.fh, k=Math.min(1,tb/d.fly), q=k*k*(3-2*k);
         fxDraw(g,st,d,fr,X(V.xt*q),Y(0.5*h+(0.5*th-0.5*h)*q),W*s,H*s,0.5,0.5,{a:Math.max(0,Math.min(1,(clip-tb)/d.fade))}); return; }

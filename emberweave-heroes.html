@@ -2672,7 +2672,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 <script src="/assets/ui/world-mine-sync.js?v=mi2"></script>
 <script src="/assets/ui/world-march-sync.js?v=wm1"></script>
 <script src="/assets/ui/world-march-visual.js?v=wv2"></script>
-<script src="/assets/ui/skill-preview-stage.js?v=sp1164"></script>
+<script src="/assets/ui/skill-preview-stage.js?v=sp1165"></script>
 <script src="/assets/ui/world-tree-cycle.js?v=wt4"></script>
 <script src="/assets/ui/world-tree-art.js?v=wt3"></script>
 <script src="/assets/ui/world-oasis-markers.js?v=om-painted-01oct-v1"></script>
@@ -4715,7 +4715,7 @@ function _skpOpts(hk,slot){ const kit=KITS[hk]||{}, T=HERO_TYPES[hk]||{};
   const row=(+slot===1)?kit.green:kit.blue; return {type:(row||{}).type,o:Object.assign({},row||{})}; }
 /* the spell art of a skill slot (1 green, 2 blue, 0 ult) the way the fight places it. Times are REAL seconds from the press. */
 const SKP_OWNFX={bell:'bellring',horizon:'astrahorizon',chop:'korvuxcleave',quake:'tharlquake',digin:'rhukkroar',puncture:'vesperpuncture',tempest:'vextempest',
-  mantle:'veyrmantle',undertow:'veyrundertow',crescent:'veyrcrescent',ruyi:'konwuruyi',wound:'bleedopen',cards:'sorrelcard',reap:'carnreap',hook:'hookreel'};
+  mantle:'veyrmantle',undertow:'veyrundertow',crescent:'veyrcrescent',ruyi:'konwuruyi',wound:'bleedopen',cards:'sorrelcard',reap:'carnreap',hook:'hookreel',vwarcry:'vael_green',vblood:'vael_blue',vstand:'vael_ult'};
 function _skpFx(hk,slot,st,T0,rel){ const out=[], add=(e)=>{ if(e&&FX2_DEF[e.k]) out.push(Object.assign({d:FX2_DEF[e.k]},e)); };
   const tip=(typeof TIPFX!=='undefined')&&TIPFX[hk]&&TIPFX[hk][st]; if(tip) add({k:tip.fx,kind:'tip',t0:T0,track:tip.track,st});   // spawnTipFx (startAbilityClip): rides the clip
   if(+slot===3){ const k=hk+'_passive', d=FX2_DEF[k]; if(d) add({k,kind:d.upright?'up':(d.disc?'disc':'flat'),at:'self',t0:T0,life:(d.dur||1.6),R:2.4*METER}); return out; }   // firePassiveFx: on him, the sheet's own length
@@ -4732,6 +4732,10 @@ function _skpFx(hk,slot,st,T0,rel){ const out=[], add=(e)=>{ if(e&&FX2_DEF[e.k])
       case 'digin': add({k,kind:'disc22',at:'self',t0:rel,R:((FX2_DEF[k]||{}).R||4.5)*METER,fade:0.3}); add({k:'rhukkshell',kind:'shell',t0:rel,life:Math.max(o.dur||3,(FX2_DEF.rhukkshell||{dur:0}).dur*FX_RT)}); break;
       case 'tempest': add({k,kind:'tempest',t0:rel,R:(o.radius||10*METER),fade:0.2}); break;
       case 'mantle': add({k,kind:'mantle',t0:rel,life:(o.dur||2.4)}); break;
+      /* v1165 Vael (vaelFxCast at the press, shown on his clip's cell `spawn`): Warcry flat on him at 5 m in real time; Bloodthirst / Last Stand upright on his
+         feet behind him, from the show to the buff's end (the release + its dur) - life in fight s, as _fx22VaelTick */
+      case 'vwarcry': { const d=FX2_DEF[k]; add({k,kind:'disc22',at:'self',t0:T0+(d?d.spawn:0)/24,R:5*METER,real:d?d.n/d.fps2:5}); break; }
+      case 'vblood': case 'vstand': { const d=FX2_DEF[k], sp=(d?d.spawn:0)/24; const life=Math.max(0.2,ct-sp*FX_RT+(o.dur||(o.ownFx==='vstand'?5:6))); add({k,kind:'vael',vk:o.ownFx,t0:T0+sp,life,real:life/FX_RT}); break; }   /* real: its length on the preview's real clock */
       case 'undertow': add({k,kind:'undertow',at:'target',t0:rel,R:(o.radius||7*METER),tc:Math.max(0.05,(o.pull||1.2)*BATTLE_PACE)}); break;
       case 'crescent': add({k,kind:'crescent',t0:kase}); break;   // the tendrilpull case
       case 'bell': add({k,kind:'bell',at:'target',t0:rel,fade:0.25}); break;
@@ -4791,7 +4795,7 @@ function skillPreviewPlan(hk,slot){ try{ const sts=skillPreviewStates(hk,slot); 
       else if(r.on==='hit'||r.on==='seq'){ const m=Math.max(1,Math.min(r.max||1,cs.length)); for(let k=0;k<m;k++) snd.push({name:r.seq?r.f[Math.min(k,r.f.length-1)]:r.f[0],at:c.t0+Math.max(0,Math.min(A.n-1,cs[k]|0))/(A.fps||10),id:r.id,on:r.on}); }
       else snd.push({name:r.f[0],at:hitT(c),id:r.id,on:r.on}); }); }   // release / land / strike: peak on the contact cell
   const fx=(slot==='attack'||slot==='crit')?[]:_skpFx(hk,slot,sts[0],clips[0].t0,rel);
-  let end=t; fx.forEach(e=>{ const L=(e.life!=null)?(e.d.rt?e.life:e.life/FX_RT):(e.dur!=null?e.dur:e.d.dur||1); end=Math.max(end,e.t0+Math.min(8,L)); });
+  let end=t; fx.forEach(e=>{ const L=(e.real!=null)?e.real:(e.life!=null)?(e.d.rt?e.life:e.life/FX_RT):(e.dur!=null?e.dur:e.d.dur||1); end=Math.max(end,e.t0+Math.min(8,L)); });
   snd.forEach(s=>{ end=Math.max(end,s.at+0.2); });
   return {hk,slot,clips,fx,snd,rel,end}; }catch(e){ return null; } }
 /* v1164: HERO_SKILL_CLIPS is no longer a table of its own - kept as a view of the plan (slot -> the fight's clip) for the code that asks
@@ -13709,14 +13713,15 @@ function vaelFxRelease(u,vk,dur){ if(!TH||!scene||!camera||!u) return; const o=_
 function _fx22VaelUp(o){ const d=o.d, u=o.u, H=d.size*_fx22Head(u), mir=!!u._fxMirror; o.s.center.set(mir?1-d.anchor[0]:d.anchor[0],d.anchor[1]); o.s.scale.set(H*d.fw/d.fh,H,1);
   const v=o.s._uv; if(v&&((v[0]<0)!==mir)) o.s._uv=[-v[0],v[1],v[2]+v[0],v[3]];   /* mirrored (UV window) with his facing */
   o.s.position.copy(_fx22On(u,0)); }
+function vaelFxShow(o){ const u=o.u;   /* the art appears: Warcry flat where he stands, the upright two behind him (renderOrder -1) */
+  if(o.vk==='vwarcry') return _fx22Disc('vael_green',u.rx==null?u.x:u.rx,u.ry==null?u.y:u.ry,5*METER*_fx22Area(),-5);
+  return _fx22Spr(VAEL_FX[o.vk].k,-1); }
 function _fx22VaelTick(o){ const d=o.d, u=o.u;
   if(!o.ok&&o.cut==null&&u._pend!==o.pend) o.cut=o.t;   /* the cast was interrupted */
   if(!o.s){ if(o.cut!=null||!u.alive) return -1;
     const A=u.anim&&u.anim[o.st], live=!!(A&&u._animSt===o.st&&u._abilAnim===o.st), a=live?(u._fxFr!=null?u._fxFr:Math.floor(u._animAcc||0)):o.t/FX_RT*((A&&A.fps)||24);   /* the cell DRAWN (syncMesh's _fxFr: a one-shot fitted to a short hold is drawn ahead of _animAcc) */
     if(!o.now&&a<d.spawn) return 0;
-    if(o.vk==='vwarcry'){ const m=_fx22Disc('vael_green',u.rx==null?u.x:u.rx,u.ry==null?u.y:u.ry,5*METER*_fx22Area(),-5); if(!m) return -1; o.s=m; }
-    else { const s=_fx22Spr(VAEL_FX[o.vk].k,-1); if(!s) return -1; o.s=s; }
-    o.ts=o.t; o.cell0=a; }
+    const s=vaelFxShow(o); if(!s) return -1; o.s=s; o.ts=o.t; o.cell0=a; }
   const tl=o.t-o.ts, rt=tl/FX_RT; let fr, op=1;
   if(o.vk==='vwarcry'){ fr=Math.floor(rt*d.fps2); if(fr>=d.n) return -1; }
   else { const L=Math.max(0.2,((o.relT!=null?o.relT:o.ct)-o.ts)+o.dur);   /* from the show to the buff's end */

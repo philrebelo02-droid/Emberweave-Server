@@ -1,7 +1,7 @@
 'use strict';
 // helpers for tests/test_skill_previews_1164.js: what the FIGHT does for one slot, recorded off the real engine in server/sim-host.js
 const OWN = ['bellCastFx', 'astraHorizonFx', 'korvuxChopCastFx', 'tharlQuakeFx', 'rhukkDigInFx', 'vesperPunctureCastFx', 'vexTempestFx', 'veyrMantleFx',
-  'veyrUndertowFx', 'veyrCrescentFx', 'konwuRuyiCastFx', 'vexWoundFx', 'sorrelHitFx', 'carnReapFx', 'hookReelFx', 'hookSlashFx', 'spawnTipFx', 'spawnProjFx', 'spawnBeamFx'];
+  'veyrUndertowFx', 'veyrCrescentFx', 'konwuRuyiCastFx', 'vexWoundFx', 'sorrelHitFx', 'carnReapFx', 'hookReelFx', 'hookSlashFx', 'spawnTipFx', 'spawnProjFx', 'spawnBeamFx', 'vaelFxShow'];   // v1165: Vael's art is recorded when it SHOWS (on his clip's cell), not at the press
 const OWNKEY = { bellCastFx: 'bellring', astraHorizonFx: 'astrahorizon', korvuxChopCastFx: 'korvuxcleave', tharlQuakeFx: 'tharlquake', rhukkDigInFx: 'rhukkroar',
   vesperPunctureCastFx: 'vesperpuncture', vexTempestFx: 'vextempest', veyrMantleFx: 'veyrmantle', veyrUndertowFx: 'veyrundertow', veyrCrescentFx: 'veyrcrescent',
   konwuRuyiCastFx: 'konwuruyi', vexWoundFx: 'bleedopen', carnReapFx: 'carnreap', hookReelFx: 'hookreel', hookSlashFx: 'hookslash' };
@@ -11,6 +11,7 @@ const castSrc = (k, slot) => `(()=>{ const rec=[]; const OWN=${JSON.stringify(OW
   OWN.forEach(n=>{ sv[n]=globalThis[n]; globalThis[n]=function(){ if(n==='spawnTipFx'){ const T=TIPFX[arguments[0].key]&&TIPFX[arguments[0].key][arguments[1]]; if(T) rec.push({src:'tip',key:T.fx,t:+battleTime.toFixed(4)}); }
       else if(n==='sorrelHitFx') rec.push({src:'own',key:arguments[1]?'sorrelflare':'sorrelspark',t:+battleTime.toFixed(4)});
       else if(n==='spawnBeamFx') rec.push({src:'beam',key:arguments[0],t:+battleTime.toFixed(4)});
+      else if(n==='vaelFxShow') rec.push({src:'own',key:VAEL_FX[arguments[0].vk].k,t:+battleTime.toFixed(4)});
       else if(n==='rhukkDigInFx'){ rec.push({src:'own',key:'rhukkroar',t:+battleTime.toFixed(4)}); rec.push({src:'own',key:'rhukkshell',t:+battleTime.toFixed(4)}); }
       else if(n!=='spawnProjFx') rec.push({src:'own',key:OK[n],t:+battleTime.toFixed(4)});
       try{ return sv[n].apply(this,arguments); }catch(e){} }; });

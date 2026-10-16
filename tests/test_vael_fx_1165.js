@@ -15,7 +15,7 @@ const path = require('path'), vm = require('vm'), fs = require('fs'), cp = requi
 const ROOT = path.resolve(__dirname, '..');
 const HTML = process.env.EW_HTML || path.join(ROOT, 'emberweave-heroes.html');
 const VER = process.env.EW_VER || '1165';
-const BASE_SHA = process.env.EW_BASE || '1ab87041';   // live v1163, before this change
+const BASE_SHA = process.env.EW_BASE || 'df2313ec';   // live v1164, before this change
 let OLD = process.env.EW_HTML_OLD;
 if (!OLD) { try { OLD = path.join(ROOT, '.test-vfx1165-base.html'); fs.writeFileSync(OLD, cp.execSync('git show ' + BASE_SHA + ':emberweave-heroes.html', { cwd: ROOT, maxBuffer: 64 << 20 }));
   const tmp = OLD; process.on('exit', () => { try { fs.unlinkSync(tmp); } catch (e) {} }); } catch (e) { OLD = null; } }
@@ -164,6 +164,19 @@ try {
     /if\(ab\.ownFx==='vwarcry'\|\|ab\.ownFx==='vblood'\) vaelFxCast\(u,ab\.ownFx,ct,u\._pend,ab\.dur\|\|6\)/.test(src) && /ownFx==='vstand'&&ab==='laststand'\) vaelFxCast\(u,'vstand',_ct,u\._pend/.test(src) &&
     /else if\(o\.ownFx==='vwarcry'\|\|o\.ownFx==='vblood'\|\|o\.ownFx==='vstand'\)\{ try\{ vaelFxRelease\(/.test(src) && /if\(o\.kind==='vael'\)\{ if\(_fx22VaelTick\(o\)<0\)/.test(src) &&
     /const _buffArt=!!\(o&&o\.gfx&&FX2_DEF\[o\.gfx\]&&_ABOVE_BAR\[type\]\)&&!o\.ownFx;/.test(src));
+  { const P = JSON.parse(run(`JSON.stringify([0,1,2].map(sl=>{ const p=skillPreviewPlan('vael',sl); return p?p.fx.map(e=>({k:e.k,kind:e.kind,t0:+e.t0.toFixed(4),real:e.real!=null?+e.real.toFixed(3):null,life:e.life!=null?+e.life.toFixed(4):null})):null; }))`));
+    const [u, g, b] = P, sp = c => +(c / 24).toFixed(4);
+    ck('Skills tab previews (v1164) show the new art at the moment the fight shows it: Warcry flat (disc22) from green cell 7, Bloodthirst and Last Stand upright (vael) from blue cell 16 / ult cell 8, each for its real length (' + JSON.stringify(P) + ')',
+      g && g.length === 1 && g[0].k === 'vael_green' && g[0].kind === 'disc22' && g[0].t0 === sp(7) && Math.abs(g[0].real - 67 / 12) < 1e-3 &&
+      b && b.length === 1 && b[0].k === 'vael_blue' && b[0].kind === 'vael' && b[0].t0 === sp(16) && Math.abs(b[0].life - (0.5 - 16 / 24 * C.FX_RT + 6)) < 1e-3 && Math.abs(b[0].real - b[0].life / C.FX_RT) < 1e-3 &&
+      u && u.length === 1 && u[0].k === 'vael_ult' && u[0].kind === 'vael' && u[0].t0 === sp(8) && Math.abs(u[0].life - (0.3 - 8 / 24 * C.FX_RT + 5)) < 1e-3, JSON.stringify(P));
+    const stage = fs.readFileSync(path.join(ROOT, 'assets/ui/skill-preview-stage.js'), 'utf8');
+    ck('the preview stage draws the vael kind (fxBox + drawFx) and the page loads it at a new ?v= (sp1165; BASE sp1164)', /case 'vael': \{ const H=d\.size\*h/.test(stage) && /case 'vael': \{ const life=e\.life\|\|5;/.test(stage) &&
+      src.includes('skill-preview-stage.js?v=sp1165') && baseSrc.includes('skill-preview-stage.js?v=sp1164')); }
+  { const T = JSON.parse(fs.readFileSync(path.join(ROOT, 'assets/anim/tiers_1141.json'), 'utf8')).sheets, t0 = cp.execSync('git show ' + BASE_SHA + ':assets/anim/tiers_1141.json', { cwd: ROOT }).toString();
+    const live = JSON.parse(run(`JSON.stringify(['vael_green','vael_blue','vael_ult'].map(k=>typeof artFile==='function'?artFile(FX2_DEF[k].u):null))`));
+    ck('the tier table is BASE byte for byte (no ?v= change): its entries for the two replaced plates are left unreferenced, and the new sheets have no tier file (each is <= 2048 px: the phone loads it and v1140 sizes it, as the v1160 Veyr FX)',
+      fs.readFileSync(path.join(ROOT, 'assets/anim/tiers_1141.json'), 'utf8') === t0 && !!T['/assets/anim/fx/vael_green.webp'] && live.every(x => x === null)); }
   ck('no emoji added', !/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u.test(src.slice(src.indexOf('function vaelFxCast'), src.indexOf('function vaelFxCast') + 6000)));
 } catch (e) { console.log('FAIL after ' + pass + ' checks: ' + (e.stack || e.message)); process.exitCode = 1; return; }
 console.log((fail ? 'FAIL ' : 'PASS ') + pass + ' checks' + (fail ? ', ' + fail + ' failed' : ''));
