@@ -22,6 +22,8 @@ const near = (a, b, e) => Math.abs(a - b) <= (e == null ? 1e-6 : e);
 let OLD = null;
 try { OLD = path.join(ROOT, '.test-aureth-1150-base.html'); fs.writeFileSync(OLD, cp.execSync('git show ' + BASE_SHA + ':emberweave-heroes.html', { cwd: ROOT, maxBuffer: 64 << 20 }));
   const t = OLD; process.on('exit', () => { try { fs.unlinkSync(t); } catch (e) {} }); } catch (e) { OLD = null; }
+const BAL = require('./helpers/balance-1143-1150.js');   // v1161: the intended v1143-v1150 gameplay changes, for the BASE side of whole-fight checks
+const writeTmp = (name, text) => { const f = path.join(ROOT, name); fs.writeFileSync(f, text); process.on('exit', () => { try { fs.unlinkSync(f); } catch (e) {} }); return f; };
 const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); return src => vm.runInContext(src, h.ctx); };
 const J = (r, src) => JSON.parse(r(src));
 
@@ -75,7 +77,7 @@ try {
   // ---------------------------------------------------------------- whole-fight driver
   // a replay-clock fight ticked straight through updateBattle(SIM_STEP); `rec` logs Aureth's swings and his auto hits
   const fight = (r, a, f, seed, mut) => J(r, `(()=>{ window._p2guard=true; const svA=autoUlt; autoUlt=true; let draws=0;
-    try{ ended=false; state='battle'; CUR={mode:'replay',seed:${seed}}; battleTime=0; gameSpeed=1; groundHazards.length=0; seedBattle(${seed});
+    try{ ended=false; state='battle'; CUR={mode:'replay',seed:${seed}}; battleTime=0; gameSpeed=1; groundHazards.length=0; waveXfer=null; chapterWaves=1; waveIdx=0; /* v1161: as the replay starts a fight */ seedBattle(${seed});
       const _r0=_brng; _brng=function(){ draws++; return _r0(); };
       units=[]; ${JSON.stringify(a)}.forEach((k,i)=>units.push(makeUnit(k,'ally',300+i*40,600+i*90,30,{owned:false,rank:3})));
       ${JSON.stringify(f)}.forEach((k,i)=>units.push(makeUnit(k,'enemy',900+i*40,600+i*90,30,{owned:false,rank:3})));
@@ -157,10 +159,20 @@ try {
   const covered = new Set(FIGHTS.flatMap(F => F[0].concat(F[1])));
   const others = J(runN, `JSON.stringify(Object.keys(KITS).filter(k=>HERO_TYPES[k]&&!HERO_TYPES[k].monster&&k!=='aureth'))`);
   ck('5 the fights cover every hero but Aureth (' + others.length + ')', others.length === 59 && others.every(k => covered.has(k)) && !covered.has('aureth'), others.filter(k => !covered.has(k)).join(','));
-  const res = FIGHTS.map(F => ({ F, n: fight(runN, ...F), b: fight(runB, ...F) }));
+  /* v1161 re-baseline: v1150 also shipped the summon-level fix (cf3bf0c4: a summon takes its owner's fight level), which moves the two summoner
+     fights (seed 5 Hurne's pack, seed 29 Tolley / Mellan) on purpose - so the comparison file is v1149 + that one change (tests/helpers/
+     balance-1143-1150.js, copied from its commit); every other difference from v1149 still fails this check. The controls in 6 keep plain v1149. */
+  const runB5 = load(writeTmp('.test-aureth-1150-base-summon.html', BAL.withChanges(fs.readFileSync(OLD, 'utf8'), ['v1150-summon-level']))); runB5(HASH);
+  /* v1160: Veyr and Deepcleft got their first crit clips, so by the v532 crit-clip rule their crit is rolled at the wind-up (same chance, earlier in
+     the RNG stream); the comparison file's Veyr / Deepcleft get a crit clip with their OLD attack timing (render data only, tests/helpers/anim-1160.js) */
+  require('./helpers/anim-1160.js').critRule1160(runB5);
+  const res = FIGHTS.map(F => ({ F, n: fight(runN, ...F), b: fight(runB5, ...F) }));
   const same = res.filter(x => x.n.h === x.b.h && x.n.n > 100);
-  ck('5 whole fights without Aureth are tick-identical to v1149 (hp/x/y/alive/energy/atkCd + RNG draws, ' + res.reduce((s, x) => s + x.n.n, 0) + ' ticks)',
+  ck('5 whole fights without Aureth are tick-identical to v1149 + the v1150 summon-level fix (hp/x/y/alive/energy/atkCd + RNG draws, ' + res.reduce((s, x) => s + x.n.n, 0) + ' ticks)',
     same.length === FIGHTS.length, res.filter(x => !same.includes(x)).map(x => x.F[2] + ':' + x.n.h + '/' + x.b.h).join(' '));
+  { const runBR = load(OLD); runBR(HASH); require('./helpers/anim-1160.js').critRule1160(runBR);   // plain v1149 (+ the same v1160 crit-clip rule)
+    const moved = res.filter(x => x.b.h !== fight(runBR, ...x.F).h).map(x => x.F[2]);
+    ck('5 CONTROL: plain v1149 differs in exactly the summoner fights the summon-level fix moves (seeds ' + moved.join(',') + ')', moved.join() === '5,29', moved.join()); }
 
   // ---------------------------------------------------------------- 6. CONTROLS (v1149 must fail every new check)
   const cs = splitChecks(runB, '');

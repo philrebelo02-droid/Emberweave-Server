@@ -142,6 +142,9 @@ const PFIGHTS = FIGHTS.concat([
   [['hollow', 'lumi', 'pellucid'], ['tharl', 'umbris', 'sloe'], 42],
   [['ambrel', 'hurne', 'lumi'], ['rhukk', 'pellucid', 'korvux'], 7],
   [['tharl', 'lumi'], ['hollow', 'ambrel', 'tick'], 90],
+  /* v1161 re-baseline: the timed passive over a pri-6 clip (Hollow's NOT THERE fired while his drop clip plays) came from seed 42 until v1144
+     (5121b055: his drop 3.5 -> 5.5 s, Attack 40 -> 36) moved it; the same teams on seed 3 exercise it on today's numbers */
+  [['hollow', 'lumi', 'pellucid'], ['tharl', 'umbris', 'sloe'], 3],
 ]);
 // a passive on screen right after a green/blue clip must come after that clip drew past its contact cell; right after an ult, only once the
 // ult has played its whole hold (2 render frames of slack). Under CC/silence the clip was cut by the control (Phil's ladder, kept): the

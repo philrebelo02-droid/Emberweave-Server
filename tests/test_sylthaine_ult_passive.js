@@ -22,6 +22,14 @@ const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).loa
 const run = load(HTML);
 require('./helpers/anim-slim-1155.js').undoSlim1155(run);   // v1155 slim: this release's checks see the v1153 entries (tests/test_anim_slim_1155.js checks the slim)
 const R0 = OLD ? load(OLD) : null;
+/* v1161 re-baseline: one whole fight below (seed 5) runs Hurne, whose Feed Them Phil changed after BASE - v1144 (5121b055) it always casts
+   (+10% damage / attack speed / damage reduction for 10 s, +3% per beast) and v1150 (cf3bf0c4) his beasts take his fight level. The fights' BASE
+   side is BASE + the v1143-v1150 balance changes (tests/helpers/balance-1143-1150.js, copied from the commits), so they still compare Sylthaine's
+   new art against the old art on today's numbers; a CONTROL shows plain BASE differs in exactly that fight. */
+const BAL = require('./helpers/balance-1143-1150.js');
+let RF = null;
+if (OLD) { const f = path.join(ROOT, '.test-sylthaine-base-balance.html'); fs.writeFileSync(f, BAL.withChanges(fs.readFileSync(OLD, 'utf8')));
+  process.on('exit', () => { try { fs.unlinkSync(f); } catch (e) {} }); RF = load(f); }
 let pass = 0, fail = 0;
 const ck = (name, ok, detail) => { if (ok) { pass++; console.log('  ok  ' + name); } else { fail++; console.log('  FAIL ' + name + (detail ? ' - ' + detail : '')); } };
 function webpSize(file) {
@@ -73,7 +81,7 @@ const PASSLOCK = `(()=>{ units=[]; battleTime=0; const g=makeUnit('sylthaine','a
   firePassiveClip(g); return JSON.stringify({lock:+(g._animLockT||0).toFixed(6),hold:+(g._abilHold||0).toFixed(6)}); })()`;
 // whole fights, autoUlt both sides: per-tick hp/x/y/alive of every unit, heroes carry u.anim (buildFigure under _p2guard, as the server replay does)
 const fightSrc = (seed, a, f) => `(()=>{ window._p2guard=true; const svA=autoUlt; autoUlt=true;
-    try{ ended=false; state='battle'; CUR={mode:'replay',seed:${seed}}; battleTime=0; gameSpeed=1; groundHazards.length=0; seedBattle(${seed});
+    try{ ended=false; state='battle'; CUR={mode:'replay',seed:${seed}}; battleTime=0; gameSpeed=1; groundHazards.length=0; waveXfer=null; chapterWaves=1; waveIdx=0; /* v1161: as the replay starts a fight */ seedBattle(${seed});
       units=[]; ${JSON.stringify(a)}.forEach((k,i)=>units.push(makeUnit(k,'ally',300+i*40,600+i*90,30,{owned:false,rank:3})));
       ${JSON.stringify(f)}.forEach((k,i)=>units.push(makeUnit(k,'enemy',900+i*40,600+i*90,30,{owned:false,rank:3})));
       units.forEach(u=>buildFigure(u));
@@ -81,7 +89,7 @@ const fightSrc = (seed, a, f) => `(()=>{ window._p2guard=true; const svA=autoUlt
       return storm+'|'+tr.length+'@'+tr.join('#'); } finally{ autoUlt=svA; window._p2guard=false; } })()`;
 const trace = (r, seed, a, f) => { const s = r(fightSrc(seed, a, f)); return { storm: +s.split('|')[0], h: crypto.createHash('sha256').update(s).digest('hex') }; };
 const H = s => crypto.createHash('sha256').update(s).digest('hex').slice(0, 16);
-[run, R0].forEach(r => r && r(`globalThis.crypto_like = s => { let h = 2166136261 >>> 0; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; } return s.length + ':' + h.toString(16); }; 1`));
+[run, R0, RF].forEach(r => r && r(`globalThis.crypto_like = s => { let h = 2166136261 >>> 0; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; } return s.length + ':' + h.toString(16); }; 1`));
 
 try {
   const G = run('JSON.parse(JSON.stringify(BATTLE_ANIM.sylthaine))');
@@ -129,9 +137,11 @@ try {
   }
   const fights = [[['sylthaine', 'askel', 'maren'], ['vaelora', 'sylthaine', 'grosk'], 11], [['sylthaine', 'pellucid'], ['rhukk', 'sylthaine', 'vael'], 222],
                   [['sylthaine', 'sloe', 'umbris'], ['orryn', 'hurne', 'vex'], 5], [['sylthaine', 'sylthaine'], ['sylthaine', 'vael'], 31]];
-  const T1 = fights.map(([x, f, s]) => trace(run, s, x, f)), T0 = fights.map(([x, f, s]) => trace(R0, s, x, f));
+  const T1 = fights.map(([x, f, s]) => trace(run, s, x, f)), T0 = fights.map(([x, f, s]) => trace(RF, s, x, f));
   ck('the fights exercise her ult: a Blizzard is raging on ' + T1.map(t => t.storm).join('/') + ' ticks', T1.every(t => t.storm > 0));
   ck('whole fights (autoUlt, Sylthaine on both sides, heroes carry BATTLE_ANIM as the server replay) are tick-for-tick identical to BASE', T1.every((t, i) => t.h === T0[i].h));
+  { const moved = fights.filter(([x, f, s], i) => trace(R0, s, x, f).h !== T0[i].h).map(F => F[2]);
+    ck('CONTROL: plain BASE (without the v1143-v1150 balance changes) differs in exactly the fight with Hurne (seeds ' + moved.join(',') + ')', moved.join() === '5', moved.join()); }
   // The Blizzard channel already roots her for the 0.6 s cast + 4 s storm, so in these fights even a 6 s ult clip root changed nothing measurable
   // (measured: same ult ticks, same 30 swings, same hash) - fights are blind to her ult clip length. So the ult clip is guarded by the scripted cast
   // (_ultRootT is in its trace), and the fight control moves a clip number the fights DO read (her swing's relFrac), proving the trace sees anim data.

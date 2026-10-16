@@ -24,6 +24,14 @@ if (!OLD) { try { OLD = path.join(ROOT, '.test-hurne-base-control.html'); fs.wri
 const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); return src => vm.runInContext(src, h.ctx); };
 const run = load(HTML);
 const R0 = OLD ? load(OLD) : null;
+/* v1161 re-baseline: Phil changed Hurne's Feed Them after BASE - v1144 (5121b055) it always casts, +10% damage / attack speed / damage reduction
+   for 10 s, +3% per beast devoured - and v1150 (cf3bf0c4) his beasts take his fight level. The whole fights' BASE side is BASE + exactly those
+   changes (tests/helpers/balance-1143-1150.js, copied from the commits; the Hollow ones do not touch these fights), so they still compare his new
+   art against his old art on today's numbers; a CONTROL shows plain BASE differs in every one of these Hurne fights. */
+const BAL = require('./helpers/balance-1143-1150.js');
+let RF = null;
+if (OLD) { const f = path.join(ROOT, '.test-hurne-base-balance.html'); fs.writeFileSync(f, BAL.withChanges(fs.readFileSync(OLD, 'utf8')));
+  process.on('exit', () => { try { fs.unlinkSync(f); } catch (e) {} }); RF = load(f); }
 let pass = 0, fail = 0;
 const ck = (name, ok, detail) => { if (ok) { pass++; console.log('  ok  ' + name); } else { fail++; console.log('  FAIL ' + name + (detail ? ' - ' + detail : '')); } };
 function webpSize(file) {
@@ -73,7 +81,7 @@ const CAST = kind => `(()=>{ units=[]; ended=false; paused=false; battleTime=0; 
   return tr.join('#'); })()`;
 // whole fights, autoUlt both sides: per-tick hp/x/y/alive of every unit. crit: null = as built, a number = Hurne's crit chance
 const trace = (r, seed, a, f, crit) => crypto.createHash('sha256').update(r(`(()=>{ window._p2guard=true; const svA=autoUlt; autoUlt=true;
-    try{ ended=false; state='battle'; CUR={mode:'replay',seed:${seed}}; battleTime=0; gameSpeed=1; groundHazards.length=0; seedBattle(${seed});
+    try{ ended=false; state='battle'; CUR={mode:'replay',seed:${seed}}; battleTime=0; gameSpeed=1; groundHazards.length=0; waveXfer=null; chapterWaves=1; waveIdx=0; /* v1161: as the replay starts a fight */ seedBattle(${seed});
       units=[]; ${JSON.stringify(a)}.forEach((k,i)=>units.push(makeUnit(k,'ally',300+i*40,600+i*90,30,{owned:false,rank:3})));
       ${JSON.stringify(f)}.forEach((k,i)=>units.push(makeUnit(k,'enemy',900+i*40,600+i*90,30,{owned:false,rank:3})));
       units.forEach(u=>buildFigure(u));   /* as the server replay does: under _p2guard buildFigure attaches u.anim = BATTLE_ANIM[key] (strike timing reads it) */
@@ -120,16 +128,18 @@ try {
   }
   const fights = [[['hurne', 'askel', 'vex'], ['hurne', 'vesper', 'grosk'], 11], [['hurne', 'pellucid'], ['rhukk', 'hurne', 'vael'], 222], [['hurne', 'sloe', 'umbris'], ['askel', 'hurne', 'vex'], 5]];
   ck('whole fights (autoUlt, Hurne on both sides) with his crit at 0 are tick-for-tick identical to BASE',
-    R0 && fights.every(([a, f, s]) => trace(run, s, a, f, 0) === trace(R0, s, a, f, 0)));
+    RF && fights.every(([a, f, s]) => trace(run, s, a, f, 0) === trace(RF, s, a, f, 0)));
   ck('whole fights with his real crit (Bruiser 3%) are tick-for-tick identical to BASE + the v532 crit-clip rule (the art moves nothing)',
-    R0 && fights.every(([a, f, s]) => trace(run, s, a, f, null) === withRule(R0, () => trace(R0, s, a, f, null))));
+    RF && fights.every(([a, f, s]) => trace(run, s, a, f, null) === withRule(RF, () => trace(RF, s, a, f, null))));
   const broken = JSON.parse(JSON.stringify(G)); broken.attack.relFrac = 0.6; broken.crit.fps = 16;
   ck('CONTROL: the same fights with the swing moved (relFrac 0.6) and the crit clip slowed (fps 16) diverge - the trace sees a timing change',
-    R0 && fights.every(([a, f, s]) => { run(`globalThis.__svHu=BATTLE_ANIM.hurne; BATTLE_ANIM.hurne=${JSON.stringify(broken)}; 1`);
-      try { return trace(run, s, a, f, 0) !== trace(R0, s, a, f, 0); } finally { run('BATTLE_ANIM.hurne=globalThis.__svHu; 1'); } }));
+    RF && fights.every(([a, f, s]) => { run(`globalThis.__svHu=BATTLE_ANIM.hurne; BATTLE_ANIM.hurne=${JSON.stringify(broken)}; 1`);
+      try { return trace(run, s, a, f, 0) !== trace(RF, s, a, f, 0); } finally { run('BATTLE_ANIM.hurne=globalThis.__svHu; 1'); } }));
   ck('CONTROL: the rule control is real - BASE with and without the crit-clip rule differ at his 3% (the roll moved in the RNG stream)',
-    R0 && fights.some(([a, f, s]) => trace(R0, s, a, f, null) !== withRule(R0, () => trace(R0, s, a, f, null))));
-  const plain = fights.every(([a, f, s]) => trace(run, s, a, f, null) === trace(R0, s, a, f, null));
+    RF && fights.some(([a, f, s]) => trace(RF, s, a, f, null) !== withRule(RF, () => trace(RF, s, a, f, null))));
+  const plain = fights.every(([a, f, s]) => trace(run, s, a, f, null) === trace(RF, s, a, f, null));
+  { const moved = fights.filter(([a, f, s]) => trace(R0, s, a, f, 0) !== trace(RF, s, a, f, 0)).map(F => F[2]);
+    ck('CONTROL: plain BASE (without the v1144 Feed Them / v1150 summon-level changes) differs in every Hurne fight (seeds ' + moved.join(',') + ')', moved.join() === '11,222,5', moved.join()); }
   console.log('  info Hurne at his real 3% crit vs plain BASE: fights ' + (plain ? 'identical' : 'NOT identical') + ' - the v532 crit-clip rule rolls his crit at the wind-up now that he has a crit clip (same chance, earlier in the RNG stream)');
 
   // 3. the art lands on those moments. His hold (min(0.95 x 2.5 s, 2.0 s) = the whole clip) means NO fit: the swing clip plays at its own fps in

@@ -30,6 +30,14 @@ const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).loa
 const run = load(HTML);
 require('./helpers/anim-slim-1155.js').undoSlim1155(run);   // v1155 slim: this release's checks see the v1153 entries (tests/test_anim_slim_1155.js checks the slim)
 const R0 = OLD ? load(OLD) : null;
+/* v1161 re-baseline: the whole fights below run Hollow and Hurne, whose numbers Phil changed after BASE - v1143 Vanishing Point 2.0 -> 1.2
+   (0c5e8a29), v1144 Hollow's drop 3.5 -> 5.5 s + Attack 40 -> 36 and Hurne's Feed Them always casting (5121b055), v1150 a summon takes its
+   owner's fight level (cf3bf0c4). Their BASE side is BASE + exactly those changes (tests/helpers/balance-1143-1150.js, copied from the commits),
+   so they still compare Carn's art against his old art on today's numbers; a CONTROL shows plain BASE differs in exactly those fights. */
+const BAL = require('./helpers/balance-1143-1150.js');
+let RF = null;
+if (OLD) { const f = path.join(ROOT, '.test-carn-base-balance.html'); fs.writeFileSync(f, BAL.withChanges(fs.readFileSync(OLD, 'utf8')));
+  process.on('exit', () => { try { fs.unlinkSync(f); } catch (e) {} }); RF = load(f); }
 let pass = 0, fail = 0;
 const ck = (name, ok, detail) => { if (ok) { pass++; console.log('  ok  ' + name); } else { fail++; console.log('  FAIL ' + name + (detail ? ' - ' + detail : '')); } };
 function webpSize(file) {
@@ -86,7 +94,7 @@ const CAST = kind => `(()=>{ units=[]; ended=false; paused=false; battleTime=0; 
     return JSON.stringify({hold,anim,fired,fx,trace:crypto_like(tr.join('#'))});
   } finally { doEffect=_de; } })()`;
 const trace = (r, seed, a, f, crit) => crypto.createHash('sha256').update(r(`(()=>{ window._p2guard=true; const svA=autoUlt; autoUlt=true;
-    try{ ended=false; state='battle'; CUR={mode:'replay',seed:${seed}}; battleTime=0; gameSpeed=1; groundHazards.length=0; seedBattle(${seed});
+    try{ ended=false; state='battle'; CUR={mode:'replay',seed:${seed}}; battleTime=0; gameSpeed=1; groundHazards.length=0; waveXfer=null; chapterWaves=1; waveIdx=0; /* v1161: as the replay starts a fight */ seedBattle(${seed});
       units=[]; ${JSON.stringify(a)}.forEach((k,i)=>units.push(makeUnit(k,'ally',300+i*40,600+i*90,30,{owned:false,rank:3})));
       ${JSON.stringify(f)}.forEach((k,i)=>units.push(makeUnit(k,'enemy',900+i*40,600+i*90,30,{owned:false,rank:3})));
       units.forEach(u=>buildFigure(u));
@@ -97,7 +105,7 @@ const withRule = (r, fn) => {   // BASE + the v532 rule: give BASE's Carn a crit
   r('globalThis.__svC=BATTLE_ANIM.carn; BATTLE_ANIM.carn=Object.assign({},BATTLE_ANIM.carn,{crit:Object.assign({},BATTLE_ANIM.carn.attack)}); 1');
   try { return fn(); } finally { r('BATTLE_ANIM.carn=globalThis.__svC; 1'); } };
 const H = s => crypto.createHash('sha256').update(s).digest('hex').slice(0, 16);
-[run, R0].forEach(r => r && r(`globalThis.crypto_like = s => { let h = 2166136261 >>> 0; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; } return s.length + ':' + h.toString(16); }; 1`));
+[run, R0, RF].forEach(r => r && r(`globalThis.crypto_like = s => { let h = 2166136261 >>> 0; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; } return s.length + ':' + h.toString(16); }; 1`));
 
 try {
   ck('control file (BASE emberweave-heroes.html from git ' + BASE_SHA + ') loaded', !!R0, 'git show failed');
@@ -152,16 +160,18 @@ try {
   const fights = [[['carn', 'askel', 'vex'], ['carn', 'vesper', 'grosk'], 11], [['carn', 'pellucid'], ['rhukk', 'carn', 'vael'], 222],
                   [['carn', 'sloe', 'umbris'], ['askel', 'hurne', 'vex'], 5], [['gruel', 'carn', 'tharl'], ['sorrel', 'hollow', 'rhukk'], 77]];
   ck('whole fights (autoUlt, Carn on both sides, heroes carry BATTLE_ANIM as the server replay) with his crit at 0 are tick-for-tick identical to BASE',
-    fights.every(([a, f, s]) => trace(run, s, a, f, 0) === trace(R0, s, a, f, 0)));
+    fights.every(([a, f, s]) => trace(run, s, a, f, 0) === trace(RF, s, a, f, 0)));
   ck('whole fights with his real crit (Bruiser 3%) are tick-for-tick identical to BASE + the v532 crit-clip rule (the art moves nothing)',
-    fights.every(([a, f, s]) => trace(run, s, a, f, null) === withRule(R0, () => trace(R0, s, a, f, null))));
+    fights.every(([a, f, s]) => trace(run, s, a, f, null) === withRule(RF, () => trace(RF, s, a, f, null))));
   const broken = JSON.parse(JSON.stringify(G)); broken.attack.relFrac = 0.6; broken.crit.fps = 20; broken.ult.n = 40;
   ck('CONTROL: the same fights with the timing moved (attack relFrac 0.6, crit 20 fps, ult 40 cells) diverge - the trace sees a timing change',
     fights.every(([a, f, s]) => { run(`globalThis.__svCa=BATTLE_ANIM.carn; BATTLE_ANIM.carn=${JSON.stringify(broken)}; 1`);
-      try { return trace(run, s, a, f, 0) !== trace(R0, s, a, f, 0); } finally { run('BATTLE_ANIM.carn=globalThis.__svCa; 1'); } }));
+      try { return trace(run, s, a, f, 0) !== trace(RF, s, a, f, 0); } finally { run('BATTLE_ANIM.carn=globalThis.__svCa; 1'); } }));
   ck('CONTROL: the rule control is real - BASE with and without the crit-clip rule differ at his 3% (the roll moved in the RNG stream)',
-    fights.some(([a, f, s]) => trace(R0, s, a, f, null) !== withRule(R0, () => trace(R0, s, a, f, null))));
-  const plain = fights.every(([a, f, s]) => trace(run, s, a, f, null) === trace(R0, s, a, f, null));
+    fights.some(([a, f, s]) => trace(RF, s, a, f, null) !== withRule(RF, () => trace(RF, s, a, f, null))));
+  const plain = fights.every(([a, f, s]) => trace(run, s, a, f, null) === trace(RF, s, a, f, null));
+  { const moved = fights.filter(([a, f, s]) => trace(R0, s, a, f, 0) !== trace(RF, s, a, f, 0)).map(F => F[2]);
+    ck('CONTROL: plain BASE (without the v1143-v1150 balance changes) differs in exactly the fights with Hollow or Hurne (seeds ' + moved.join(',') + ')', moved.join() === '5,77', moved.join()); }
   console.log('  info Carn at his real 3% crit vs plain BASE: fights ' + (plain ? 'identical' : 'NOT identical') + ' - the v532 crit-clip rule rolls his crit at the wind-up now that he has a crit clip (same chance, earlier in the RNG stream)');
   { const bs = JSON.parse(JSON.stringify(G)); bs.green.n = 56;
     run(`globalThis.__svCa=BATTLE_ANIM.carn; BATTLE_ANIM.carn=${JSON.stringify(bs)}; 1`);

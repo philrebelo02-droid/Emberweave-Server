@@ -23,6 +23,14 @@ const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).loa
 const run = load(HTML);
 require('./helpers/anim-slim-1155.js').undoSlim1155(run);   // v1155 slim: this release's checks see the v1153 entries (tests/test_anim_slim_1155.js checks the slim)
 const R0 = OLD ? load(OLD) : null;
+/* v1161 re-baseline: one whole fight below (seed 5) runs Hurne, whose Feed Them Phil changed after BASE - v1144 (5121b055) it always casts
+   (+10% damage / attack speed / damage reduction for 10 s, +3% per beast) and v1150 (cf3bf0c4) his beasts take his fight level. The fights' BASE
+   side is BASE + the v1143-v1150 balance changes (tests/helpers/balance-1143-1150.js, copied from the commits), so they still compare Maren and Orryn's
+   new art against the old art on today's numbers; a CONTROL shows plain BASE differs in exactly that fight. */
+const BAL = require('./helpers/balance-1143-1150.js');
+let RF = null;
+if (OLD) { const f = path.join(ROOT, '.test-maren-orryn-base-balance.html'); fs.writeFileSync(f, BAL.withChanges(fs.readFileSync(OLD, 'utf8')));
+  process.on('exit', () => { try { fs.unlinkSync(f); } catch (e) {} }); RF = load(f); }
 let pass = 0, fail = 0;
 const ck = (name, ok, detail) => { if (ok) { pass++; console.log('  ok  ' + name); } else { fail++; console.log('  FAIL ' + name + (detail ? ' - ' + detail : '')); } };
 function webpSize(file) {
@@ -78,14 +86,14 @@ const CAST = (hero, kind) => `(()=>{ units=[]; ended=false; paused=false; battle
   return JSON.stringify({hold,anim,fired,trace:crypto_like(tr.join('#'))}); })()`;
 // whole fights, autoUlt both sides: per-tick hp/x/y/alive of every unit, heroes carry u.anim (buildFigure under _p2guard, as the server replay does)
 const trace = (r, seed, a, f) => crypto.createHash('sha256').update(r(`(()=>{ window._p2guard=true; const svA=autoUlt; autoUlt=true;
-    try{ ended=false; state='battle'; CUR={mode:'replay',seed:${seed}}; battleTime=0; gameSpeed=1; groundHazards.length=0; seedBattle(${seed});
+    try{ ended=false; state='battle'; CUR={mode:'replay',seed:${seed}}; battleTime=0; gameSpeed=1; groundHazards.length=0; waveXfer=null; chapterWaves=1; waveIdx=0; /* v1161: as the replay starts a fight */ seedBattle(${seed});
       units=[]; ${JSON.stringify(a)}.forEach((k,i)=>units.push(makeUnit(k,'ally',300+i*40,600+i*90,30,{owned:false,rank:3})));
       ${JSON.stringify(f)}.forEach((k,i)=>units.push(makeUnit(k,'enemy',900+i*40,600+i*90,30,{owned:false,rank:3})));
       units.forEach(u=>buildFigure(u));
       const tr=[]; for(let i=0;i<Math.round(45/SIM_STEP)&&!ended;i++){ updateBattle(SIM_STEP); tr.push(units.map(u=>[u.key,Math.round(u.hp*100),Math.round(u.x*10),Math.round(u.y*10),u.alive?1:0].join(':')).join('|')); }
       return tr.length+'@'+tr.join('#'); } finally{ autoUlt=svA; window._p2guard=false; } })()`)).digest('hex');
 const H = s => crypto.createHash('sha256').update(s).digest('hex').slice(0, 16);
-[run, R0].forEach(r => r && r(`globalThis.crypto_like = s => { let h = 2166136261 >>> 0; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; } return s.length + ':' + h.toString(16); }; 1`));
+[run, R0, RF].forEach(r => r && r(`globalThis.crypto_like = s => { let h = 2166136261 >>> 0; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; } return s.length + ':' + h.toString(16); }; 1`));
 
 try {
   const G = { maren: run('JSON.parse(JSON.stringify(BATTLE_ANIM.maren))'), orryn: run('JSON.parse(JSON.stringify(BATTLE_ANIM.orryn))') };
@@ -128,11 +136,13 @@ try {
   }
   const fights = [[['maren', 'orryn', 'askel'], ['vesper', 'maren', 'grosk'], 11], [['orryn', 'pellucid', 'maren'], ['rhukk', 'orryn', 'vael'], 222], [['maren', 'sloe', 'umbris'], ['orryn', 'hurne', 'vex'], 5], [['orryn', 'maren'], ['maren', 'orryn'], 31]];
   ck('whole fights (autoUlt, Maren and Orryn on both sides, heroes carry BATTLE_ANIM as the server replay) are tick-for-tick identical to BASE',
-    fights.every(([a, f, s]) => trace(run, s, a, f) === trace(R0, s, a, f)));
+    fights.every(([a, f, s]) => trace(run, s, a, f) === trace(RF, s, a, f)));
   const broken = JSON.parse(JSON.stringify(G)); broken.maren.attack.fps = 12; broken.maren.blue.n = 40; broken.orryn.green.relFrac = 0.6; broken.orryn.attack.fps = 20;
   ck('CONTROL: the same fights with the timing moved (Maren attack 12 fps, blue 40 cells, Orryn green relFrac 0.6, attack 20 fps) diverge - the trace sees a timing change',
     fights.every(([a, f, s]) => { run(`globalThis.__svM=BATTLE_ANIM.maren; globalThis.__svO=BATTLE_ANIM.orryn; BATTLE_ANIM.maren=${JSON.stringify(broken.maren)}; BATTLE_ANIM.orryn=${JSON.stringify(broken.orryn)}; 1`);
-      try { return trace(run, s, a, f) !== trace(R0, s, a, f); } finally { run('BATTLE_ANIM.maren=globalThis.__svM; BATTLE_ANIM.orryn=globalThis.__svO; 1'); } }));
+      try { return trace(run, s, a, f) !== trace(RF, s, a, f); } finally { run('BATTLE_ANIM.maren=globalThis.__svM; BATTLE_ANIM.orryn=globalThis.__svO; 1'); } }));
+  { const moved = fights.filter(([a, f, s]) => trace(R0, s, a, f) !== trace(RF, s, a, f)).map(F => F[2]);
+    ck('CONTROL: plain BASE (without the v1143-v1150 balance changes) differs in exactly the fight with Hurne (seeds ' + moved.join(',') + ')', moved.join() === '5', moved.join()); }
   const bs = JSON.parse(JSON.stringify(G)); bs.maren.green.n = 36;
   run(`globalThis.__svM=BATTLE_ANIM.maren; BATTLE_ANIM.maren=${JSON.stringify(bs.maren)}; 1`);
   let ctlCast; try { ctlCast = JSON.parse(run(CAST('maren', 'green'))); } finally { run('BATTLE_ANIM.maren=globalThis.__svM; 1'); }

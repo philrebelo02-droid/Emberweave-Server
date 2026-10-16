@@ -22,6 +22,16 @@ const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).loa
 const run = load(HTML);
 require('./helpers/anim-slim-1155.js').undoSlim1155(run);   // v1155 slim: this release's checks see the v1153 entries (tests/test_anim_slim_1155.js checks the slim)
 const R0 = OLD ? load(OLD) : null;
+/* v1161 re-baseline: the no-Rivet fights below run Hurne (seed 11) and Hollow (seed 5), whose numbers Phil changed after BASE - v1143 Vanishing
+   Point 2.0 -> 1.2 (0c5e8a29), v1144 Hollow's drop 3.5 -> 5.5 s + Attack 40 -> 36 and Hurne's Feed Them always casting (5121b055), v1150 a summon
+   takes its owner's fight level (cf3bf0c4). The whole fights' BASE side is BASE + exactly those changes (tests/helpers/balance-1143-1150.js,
+   copied from the commits), so "a fight without Rivet is BASE" still means his engine edits move nothing else; a CONTROL shows plain BASE differs
+   in exactly those two fights. The trace now starts each fight as the replay does (waveXfer / chapterWaves / waveIdx reset): since v1144 seed 11
+   is won inside 45 s and the wave-exit cinematic it starts leaked into the next fight of the same file, which read as "not deterministic". */
+const BAL = require('./helpers/balance-1143-1150.js');
+let RF = null;
+if (OLD) { const f = path.join(ROOT, '.test-rivet-base-balance.html'); fs.writeFileSync(f, BAL.withChanges(fs.readFileSync(OLD, 'utf8')));
+  process.on('exit', () => { try { fs.unlinkSync(f); } catch (e) {} }); RF = load(f); }
 let pass = 0, fail = 0;
 const ck = (name, ok, detail) => { if (ok) { pass++; console.log('  ok  ' + name); } else { fail++; console.log('  FAIL ' + name + (detail ? ' - ' + detail : '')); } };
 const J = (r, src) => JSON.parse(r(src));
@@ -49,7 +59,7 @@ const DUEL = (gapM, secs, pre, seed) => `(()=>{ globalThis.__UB=globalThis.__UB|
   return JSON.stringify({log,swings,dmg:g.dmg,e:{stunned:+(e.stunned||0).toFixed(3),sil:+(e.silencedT||0).toFixed(3),shred:[e._shredPct||0,+(e._shredT||0).toFixed(3)],dots:e.dots.map(d=>[+d.dps.toFixed(4),d.remaining,d.interval]),gap:(typeof rivetGap==='function')?+(rivetGap(g,e)/METER).toFixed(3):null},
     ctx:{CC_NERF,STEP:SIM_STEP,ai:g.atkInterval}}); })()`;
 const trace = (r, seed, a, f) => crypto.createHash('sha256').update(r(`(()=>{ window._p2guard=true; const svA=autoUlt; autoUlt=true;
-    try{ ended=false; state='battle'; CUR={mode:'replay',seed:${seed}}; battleTime=0; gameSpeed=1; groundHazards.length=0; seedBattle(${seed});
+    try{ ended=false; state='battle'; CUR={mode:'replay',seed:${seed}}; battleTime=0; gameSpeed=1; groundHazards.length=0; waveXfer=null; chapterWaves=1; waveIdx=0; /* v1161: as the replay starts a fight */ seedBattle(${seed});
       units=[]; ${JSON.stringify(a)}.forEach((k,i)=>units.push(makeUnit(k,'ally',300+i*40,600+i*90,30,{owned:false,rank:3})));
       ${JSON.stringify(f)}.forEach((k,i)=>units.push(makeUnit(k,'enemy',900+i*40,600+i*90,30,{owned:false,rank:3})));
       units.forEach(u=>buildFigure(u));
@@ -79,9 +89,11 @@ try {
   // 1. fights WITHOUT Rivet are BASE, tick for tick
   const noRivet = [[['maren', 'orryn', 'askel'], ['vesper', 'hurne', 'grosk'], 11], [['vael', 'pellucid', 'umbris'], ['rhukk', 'sloe', 'vex'], 222], [['hollow', 'konwu', 'tick'], ['sylthaine', 'brannus', 'zahri'], 5]];
   ck('whole fights WITHOUT Rivet (autoUlt, heroes carry BATTLE_ANIM as the server replay) are tick-for-tick identical to BASE',
-    noRivet.every(([a, f, s]) => trace(run, s, a, f) === trace(R0, s, a, f)));
+    noRivet.every(([a, f, s]) => trace(run, s, a, f) === trace(RF, s, a, f)));
+  { const moved = noRivet.filter(([a, f, s]) => trace(R0, s, a, f) !== trace(RF, s, a, f)).map(F => F[2]);
+    ck('CONTROL: plain BASE (without the v1143-v1150 balance changes) differs in exactly the no-Rivet fights with Hurne or Hollow (seeds ' + moved.join(',') + ')', moved.join() === '11,5', moved.join()); }
   const withRivet = [[['rivet', 'askel', 'vex'], ['vesper', 'hurne', 'grosk'], 11], [['maren', 'rivet'], ['rivet', 'konwu', 'vael'], 31]];
-  ck('CONTROL: fights WITH Rivet are not BASE (the trace sees his weapons - the change is real)', withRivet.every(([a, f, s]) => trace(run, s, a, f) !== trace(R0, s, a, f)));
+  ck('CONTROL: fights WITH Rivet are not BASE (the trace sees his weapons - the change is real)', withRivet.every(([a, f, s]) => trace(run, s, a, f) !== trace(RF, s, a, f)));
   ck('fights with Rivet are deterministic (the same fight twice = the same trace; no Math.random in his code)',
     withRivet.every(([a, f, s]) => trace(run, s, a, f) === trace(run, s, a, f)) && !/Math\.random/.test(run('String(rivetPick)+String(rivetFire)+String(rivetHook)+String(rivetHookTick)+String(rivetGap)+String(rivetCC)')));
 

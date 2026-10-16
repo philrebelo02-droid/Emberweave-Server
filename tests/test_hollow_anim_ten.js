@@ -24,7 +24,13 @@ const HTML = process.env.EW_HTML || Q95.page(path.join(ROOT, 'emberweave-heroes.
 const BASE_SHA = '216c328cf4f061ad17965af6ad223416f2c0dc12';   // v1123 live, before the ten
 let OLD = process.env.EW_HTML_OLD;
 // the control copy sits beside the live file (sim-host loads the page's sibling scripts from its folder; v1126 changed none of them) and is removed on exit
-if (!OLD) { try { OLD = path.join(ROOT, '.test-hollow-v1123-control.html'); fs.writeFileSync(OLD, cp.execSync('git show ' + BASE_SHA + ':emberweave-heroes.html', { cwd: ROOT, maxBuffer: 64 << 20 }));
+/* v1161 re-baseline: Phil changed Hollow's numbers after v1123 - v1143 Vanishing Point 2.0 -> 1.2 x Attack (0c5e8a29, pre-beta tester report) and
+   v1144 his drop 3.5 -> 5.5 s and Attack 40 -> 36 (5121b055). The control file is v1123 + exactly those changes (tests/helpers/balance-1143-1150.js,
+   copied from the commits), so every blow below is still compared tick for tick and number for number with the pre-art engine on today's numbers;
+   a CONTROL shows plain v1123 deals the old damage. */
+const BAL = require('./helpers/balance-1143-1150.js');
+const V1123 = (() => { try { return cp.execSync('git show ' + BASE_SHA + ':emberweave-heroes.html', { cwd: ROOT, maxBuffer: 64 << 20 }).toString(); } catch (e) { return null; } })();
+if (!OLD) { try { OLD = path.join(ROOT, '.test-hollow-v1123-control.html'); fs.writeFileSync(OLD, BAL.withChanges(V1123));
   const tmp = OLD; process.on('exit', () => { try { fs.unlinkSync(tmp); } catch (e) {} }); } catch (e) { OLD = null; } }
 const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); return src => vm.runInContext(src, h.ctx); };
 const run = load(HTML);
@@ -101,15 +107,21 @@ try {
     green: { name: 'Fan of Knives', type: 'bladefan', mul: 0.9, radius: 3 * run('METER'), angle: 75, bleed: 0.16, cd: 7, gfx: 'hollow_green', gdur: 2.75 },
     blue: { name: 'Lacerate', type: 'bleedstack', mul: 0.8, bleed: 0.16, rupture: 3, ruptMul: 1.9, stackDur: 6, cd: 6, gfx: 'hollow_blue', gfxR: 3 * run('METER'), gdur: 3.79 },
     purple: { name: "The Space He Isn't In", pass: 'notthere' } }));
-  ck('Vanishing Point numbers unchanged', run('JSON.stringify(ULT_DEF.vanishpoint)') === JSON.stringify({ mul: 2.0, exec: 0.20, chain: 3, falloff: 0.8, gone: 0.9, hop: 0.35, range: 15 * run('METER') }));
+  ck('Vanishing Point numbers: v1123 with the v1143 cut (mul 2.0 -> 1.2), the rest unchanged', run('JSON.stringify(ULT_DEF.vanishpoint)') === JSON.stringify({ mul: 1.2, exec: 0.20, chain: 3, falloff: 0.8, gone: 0.9, hop: 0.35, range: 15 * run('METER') }));
+  ck('Hollow: Attack 36 and the drop 5.5 s (v1144)', run("HERO_TYPES.hollow.dmg") === 36 && run("makeUnit('hollow','ally',0,0,20,{owned:false})._dropT") === 5.5);
 
   // 2. CONTROL: the same scripted fights on v1123
   const R0 = OLD ? load(OLD) : null;
   ck('control file (v1123 emberweave-heroes.html from git) loaded', !!R0, 'git show failed');
+  { const fx = V1123 && path.join(ROOT, '.test-hollow-v1123-plain.html'); let P = null;
+    if (fx) { fs.writeFileSync(fx, V1123); process.on('exit', () => { try { fs.unlinkSync(fx); } catch (e) {} }); P = load(fx); }
+    const a = act(run, 'attack'), u = act(run, 'ult'), pa = P && act(P, 'attack'), pu = P && act(P, 'ult');
+    ck('CONTROL: plain v1123 (before the v1143 / v1144 changes) lands the same blows on the same ticks with the old numbers (swing ' + (pa && pa.hits[0][1]) + ' vs ' + a.hits[0][1] + ', Vanishing Point ' + (pu && pu.hits[0][1]) + ' vs ' + u.hits[0][1] + ')',
+      !!P && JSON.stringify(pa.hits.map(h => h[0])) === JSON.stringify(a.hits.map(h => h[0])) && pa.hits[0][1] > a.hits[0][1] && pu.hits[0][1] > u.hits[0][1] * 1.5); }
   for (const kind of ['attack', 'crit', 'green', 'blue', 'ult', 'miss', 'drop']) {
     const a = act(run, kind), b = R0 ? act(R0, kind) : null;
     const strip = o => JSON.stringify(Object.assign({}, o, { pre: Object.assign({}, o.pre, { clip: undefined, hold: undefined }), dropHold: undefined }));
-    ck(kind + ': every blow, miss and landing on the same tick with the same damage as v1123', b && strip(a) === strip(b) && (kind === 'miss' || kind === 'drop' || a.hits.length > 0) && (kind !== 'green' || a.hits.some(h => h[1] !== a.hits[a.hits.length - 1][1] || h[0] < 0.6)),
+    ck(kind + ': every blow, miss and landing on the same tick with the same damage as v1123 + the v1143/v1144 Hollow numbers', b && strip(a) === strip(b) && (kind === 'miss' || kind === 'drop' || a.hits.length > 0) && (kind !== 'green' || a.hits.some(h => h[1] !== a.hits[a.hits.length - 1][1] || h[0] < 0.6)),
       JSON.stringify({ now: a, v1123: b }));
     if (kind === 'miss') {
       ck('the miss he causes fires his passive clip (2.0 s, PASSIVE2) on the blow it refuses', a.pre.missed === true && a.pre.ntReady === false && a.pre.clip === 'passive' && Math.abs(a.pre.hold - G.passive.n / G.passive.fps) < 1e-9, JSON.stringify(a.pre));

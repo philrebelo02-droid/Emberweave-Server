@@ -27,13 +27,12 @@ const ck = (name, ok, detail) => { if (ok) { pass++; console.log('  ok  ' + name
 /* v1150 (Phil 15 Oct): Aureth's autos changed ON PURPOSE - 70% physical / 30% magic, a 1.8 s swing, light/dark arms in turn. BASE gets the same
    rule written into its text (each anchor must match exactly once, or this throws and the control file is missing), so the one fight with
    Aureth still compares sound-on to the pre-sound engine; tests/test_aureth_1150.js proves every other hero is tick-identical to v1149. */
-function aureth1150(h) { const R = [
-  ["aureth: {name:'Aureth',    emoji:'☯️',role:'Bruiser', swing:2.4,", "aureth: {name:'Aureth',    emoji:'☯️',role:'Bruiser', swing:1.8, autoSplit:{phys:0.7,mag:0.3}, autoAlt:true,"],
-  ["u._atkClip=_swCrit?'crit':null; }", "u._atkClip=_swCrit?'crit':null; } if(u.t&&u.t.autoAlt){ u._armN=((u._armN|0)+1); u._atkArm=(u._armN&1)?'attackLight':'attackDark'; if(!_swCrit) u._atkClip=(u.anim&&u.anim[u._atkArm])?u._atkArm:null; }"],
-  ["dealDamage(u,t,dmg,u.hybrid?'#ffe6b0':'#fff'); } finally{ _preCrit=null; } },_fly,u._atkSpdMul);", "dealDamage(u,t,dmg,u.hybrid?'#ffe6b0':'#fff',(u.t&&u.t.autoSplit)?'split':undefined); } finally{ _preCrit=null; } },_fly,u._atkSpdMul);"],
-  ["  if(kind==='magic'){ amt*=1-defToDR(Math.max(0,_shM-((src&&src.magicPen)||0)),tgt.lvl); }      // MR vs Magic Pen", "  if(kind==='magic'){ amt*=1-defToDR(Math.max(0,_shM-((src&&src.magicPen)||0)),tgt.lvl); } else if(kind==='split'){ const _sp=(src&&src.t&&src.t.autoSplit)||{phys:1,mag:0}; let _ph=amt*_sp.phys*(1-defToDR(Math.max(0,_shA-((src&&src.armorPen)||0)),tgt.lvl)); const _mg=amt*_sp.mag*(1-defToDR(Math.max(0,_shM-((src&&src.magicPen)||0)),tgt.lvl)); if((tgt.blockStat||0)>0&&brnd()<tgt.blockStat){ _ph*=0.5; floatTexts.push({x:tgt.x,y:tgt.y-8,txt:'BLOCK',t:.5,color:'#8fb7ff',vy:1.1,sz:11}); } amt=_ph+_mg; tgt._splitLast={phys:_ph,mag:_mg}; }"]];
-  for (const [a, b] of R) { if (h.split(a).length !== 2) throw new Error('aureth1150: anchor not found once in BASE: ' + a.slice(0, 50)); h = h.replace(a, () => b); }
-  return h; }
+/* v1161: the same Aureth change now comes from tests/helpers/balance-1143-1150.js (the anchors this function held, unchanged), with the other
+   intended gameplay changes since BASE - v1143 Vanishing Point 2.0 -> 1.2 (0c5e8a29), v1144 Hollow's drop 3.5 -> 5.5 s + Attack 40 -> 36 and
+   Hurne's Feed Them always casting (5121b055), v1150 a summon takes its owner's fight level (cf3bf0c4). Without them the fights with Hurne (seed
+   77) and Hollow (seed 31) differ from BASE on purpose; with them every fight still compares sound-on with the pre-sound engine. */
+const BAL = require('./helpers/balance-1143-1150.js');
+function aureth1150(h) { return BAL.withChanges(h, BAL.BALANCE.concat(['v1150-aureth'])); }
 let OLD = null;
 try { OLD = path.join(ROOT, '.test-sfx-base-control.html'); fs.writeFileSync(OLD, aureth1150(cp.execSync('git show ' + BASE_SHA + ':emberweave-heroes.html', { cwd: ROOT, maxBuffer: 64 << 20 }).toString()));
   const t = OLD; process.on('exit', () => { try { fs.unlinkSync(t); } catch (e) {} }); } catch (e) { OLD = null; }
@@ -143,6 +142,8 @@ try {
   if (runB) runB("BATTLE_ANIM.carn=Object.assign({},BATTLE_ANIM.carn,{crit:Object.assign({},BATTLE_ANIM.carn.attack)}); 1");
   /* v1153: Aureth has a crit clip too (the both-swords X slice) - the same v532 rule, given to BASE's Aureth the same way (tests/test_aureth_anim_eleven.js) */
   if (runB) runB("BATTLE_ANIM.aureth=Object.assign({},BATTLE_ANIM.aureth,{crit:Object.assign({},BATTLE_ANIM.aureth.attack)}); 1");
+  /* v1160: Veyr and Deepcleft have crit clips too (seeds 19 / 17) - the same v532 rule, given to BASE's Veyr / Deepcleft the same way (tests/helpers/anim-1160.js) */
+  if (runB) require('./helpers/anim-1160.js').critRule1160(runB);
   const res = FIGHTS.map(F => ({ F, live: fight(runL, F, true), quiet: fight(runQ, F, false), base: runB && fight(runB, F, false) }));
   const runP = load(HTML); runP(HASH);
   const resP = FIGHTS.map((F, i) => ({ F, live: fight(runP, F, true, '', 1 + (i % 2)) }));   // the timing runs: phone clock, speed 1 / 2 alternating
@@ -257,7 +258,8 @@ try {
       const hold=()=>{ units.forEach(u=>{ if(u!==g){ if(u.team===g.team) u.atkCd=99; u.greenCd=u.blueCd=99; u.energy=0; u.speed=0; } });   /* the foes swing (a counter needs a blow to answer), never cast */ g.greenCd=g.blueCd=99; g.atkCd=99; if(slot!=='ult') g.energy=0; };
       hold(); g.target=fo[0];
       SFX.loop=1; try{ if(slot==='ult'){ g.energy=100; castAbility(g); } else { const ab=slot==='blue'?g.blueAb:g.greenAb; if(ab){ g._castSM=1; g._castLv=1; castKit(g,ab); g._castSM=1; g._castLv=0; } } } finally{ SFX.loop=0; }
-      for(let fr=0; fr<60*7; fr++){ globalThis.__rt+=1/60; _bacc += (1/60)*SIM_HZ*((CUR.mode==='replay')?1:BATTLE_PACE); let n=Math.floor(_bacc); if(n>8)n=8; _bacc-=n;
+      for(let fr=0; fr<60*9; fr++){ globalThis.__rt+=1/60;   /* v1161: 9 s (was 7): since v1144 Hollow drops in at 5.5 s (was 3.5), so his Vanishing Point strike (S0201) lands at 7.2 s */
+        _bacc += (1/60)*SIM_HZ*((CUR.mode==='replay')?1:BATTLE_PACE); let n=Math.floor(_bacc); if(n>8)n=8; _bacc-=n;
         SFX.loop=1; try{ for(let i=0;i<n;i++){ SFX.left=n-1-i; hold(); updateBattle(SIM_STEP); if(SFX.q.length) sfxPump(); } SFX.left=0; sfxFrame(); } finally{ SFX.loop=0; }
         globalThis.__src.forEach(q=>{ if(q.end&&q.end<=globalThis.__rt&&q.onended){ const o=q.onended; q.onended=null; o(); } }); }
       out[k+'.'+slot]=SFX.log.filter(e=>e.k==='play'&&e.hero===k&&e.kind!=='attack').map(e=>[e.id,e.kind,e.why||'',+e.bt.toFixed(3)]);

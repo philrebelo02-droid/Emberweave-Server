@@ -86,7 +86,17 @@ try {
         tr.push(units.map(u=>[u.key,Math.round(u.hp*100),Math.round(u.x*10),Math.round(u.y*10),u.alive?1:0,Math.round((u.energy||0)*10),Math.round((u.atkCd||0)*1000)].join(':')).join('|')+'#'+draws); }
       return JSON.stringify({n:tr.length,h:require_hash(tr.join('\\n')),dots,deb}); } finally{ autoUlt=svA; window._p2guard=false; } })()`));
   if (runB) {
-    const rN = load(HTML), rB = load(OLD); rN(HASH); rB(HASH); rN('ftIsDebuff'); rB('globalThis.ftIsDebuff=globalThis.ftIsDebuff||(()=>false)');
+    /* v1161 re-baseline: these fights run Hollow, Carn, Mellan and Tolley, changed on purpose after BASE - v1143 Vanishing Point 2.0 -> 1.2
+       (0c5e8a29), v1144 Hollow's drop 3.5 -> 5.5 s + Attack 40 -> 36 (5121b055), v1150 a summon takes its owner's fight level (cf3bf0c4), and
+       v1142 Carn's first crit clip (by the v532 crit-clip rule his crit is rolled at the wind-up - same chance, earlier in the RNG stream). The
+       BASE side is BASE + those changes (tests/helpers/balance-1143-1150.js, copied from the commits; Carn's crit clip given with his OLD attack
+       timing, render data only, as tests/test_carn_anim_eight.js proves it), so the fights still compare the feet display with the pre-v1141
+       engine; a CONTROL shows plain BASE differs. */
+    const BAL = require('./helpers/balance-1143-1150.js');
+    const OLDF = path.join(ROOT, '.test-debuff-feet-base-balance-' + process.pid + '.html'); fs.writeFileSync(OLDF, BAL.withChanges(baseHtml));
+    process.on('exit', () => { try { fs.unlinkSync(OLDF); } catch (e) {} });
+    const CARN_RULE = "BATTLE_ANIM.carn=Object.assign({},BATTLE_ANIM.carn,{crit:Object.assign({},BATTLE_ANIM.carn.attack)}); 1";
+    const rN = load(HTML), rB = load(OLDF); rN(HASH); rB(HASH); rN('ftIsDebuff'); rB('globalThis.ftIsDebuff=globalThis.ftIsDebuff||(()=>false)'); rB(CARN_RULE);
     const res = FIGHTS.map(F => { let n = null, b = null; try { n = fight(rN, F); } catch (e) { n = { h: 'ERR ' + e.message }; } try { b = fight(rB, F); } catch (e) { b = { h: 'ERR ' + e.message }; } return { F, n, b }; });
     const same = res.filter(x => x.n.h === x.b.h && x.n.n > 300 && x.n.dots > 0);
     ck('whole fights (' + FIGHTS.length + ', every debuffer both sides, autoUlt) are tick-identical to BASE (hp/x/y/alive/energy/atkCd + RNG draws) and really carried DoTs',
@@ -94,6 +104,9 @@ try {
     ck('those fights really put debuff words under the feet (' + res.reduce((s, x) => s + (x.n.deb || 0), 0) + ' word-ticks)', res.reduce((s, x) => s + (x.n.deb || 0), 0) > 50);
     const moved = fight(rN, FIGHTS[0], `{ const _pd=pushDot; pushDot=function(t,dps,dur,iv,c){ return _pd.call(this,t,dps*1.01,dur,iv,c); }; }`);
     ck('CONTROL: the same fight with every DoT 1% stronger diverges - the trace sees a fight change', moved.h !== res[0].b.h);
+    { const r0 = load(OLD); r0(HASH); r0('globalThis.ftIsDebuff=globalThis.ftIsDebuff||(()=>false)'); r0(CARN_RULE);
+      const diff = FIGHTS.filter((F, i) => fight(r0, F).h !== res[i].b.h).map(F => F[2]);
+      ck('CONTROL: plain BASE (without the v1143-v1150 balance changes) differs in the fights with Hollow (seeds ' + diff.join(',') + ')', diff.length >= 3 && diff.includes(11) && diff.includes(13) && diff.includes(21), diff.join()); }
   }
 
   // ------------------------------------------------------------------ 4. BROWSER
