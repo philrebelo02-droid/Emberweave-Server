@@ -35,6 +35,7 @@ for (const [k, [file, cells]] of Object.entries(SHEETS)) {
 function load(html) { const host = require(path.join(ROOT, 'server/sim-host.js')).load(html); return s => vm.runInContext(s, host.ctx); }
 const run = load(HTML);
 require('./helpers/anim-korvux-1162.js').undoKorvux1162(run);   // v1162: Korvux's blue clip and the chop's sync / fit are the v1159 ones here (tests/test_korvux_anim_eight.js checks the re-sync)
+require('./helpers/anim-noxgrim-1166.js').undoNoxGrim1166(run);   // v1166: Nox's and Grimsby's new entries (and Nox's ranged magic line) go back to their v1164 state - tests/test_nox_grimsby_anims.js and test_nox_ranged_1166.js check them
 const has = n => run(`typeof ${n}`) !== 'undefined';
 const FXRT = has('FX_RT') ? run('FX_RT') : NaN;
 

@@ -331,8 +331,8 @@
   "nox": {
     "class": "Assassin",
     "combatRow": "Mid",
-    "damageProfile": "Attack",
-    "primaryScaling": "Attack Damage",
+    "damageProfile": "Magic",
+    "primaryScaling": "Ability Power",
     "glyphPath": "assassin_other",
     "equipmentPath": "assassin_other",
     "formationDepth": 2,

@@ -24,7 +24,7 @@ try { OLD = path.join(ROOT, '.test-aureth-1150-base.html'); fs.writeFileSync(OLD
   const t = OLD; process.on('exit', () => { try { fs.unlinkSync(t); } catch (e) {} }); } catch (e) { OLD = null; }
 const BAL = require('./helpers/balance-1143-1150.js');   // v1161: the intended v1143-v1150 gameplay changes, for the BASE side of whole-fight checks
 const writeTmp = (name, text) => { const f = path.join(ROOT, name); fs.writeFileSync(f, text); process.on('exit', () => { try { fs.unlinkSync(f); } catch (e) {} }); return f; };
-const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); return src => vm.runInContext(src, h.ctx); };
+const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); const r = src => vm.runInContext(src, h.ctx); require('./helpers/anim-noxgrim-1166.js').undoNoxGrim1166(r); return r; };   // v1166: every page (this one and the BASE read from this checkout) gets Nox's and Grimsby's v1164 entries and Nox's melee Attack line back - tests/test_nox_grimsby_anims.js / test_nox_ranged_1166.js check v1166
 const J = (r, src) => JSON.parse(r(src));
 
 try {

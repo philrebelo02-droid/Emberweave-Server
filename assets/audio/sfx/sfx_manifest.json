@@ -139,8 +139,8 @@
    "mapped_by_claude": false
   },
   "nox": {
-   "lib": "LIB-ATK-BLADE-LIGHT",
-   "mapped_by_claude": true
+   "lib": "LIB-ATK-CASTER-WHOOSH",
+   "mapped_by_claude": false
   },
   "oakmir": {
    "lib": "LIB-ATK-CASTER-WHOOSH",
@@ -9692,7 +9692,7 @@
    "hero": "nox",
    "hook": "EXISTS: fx.nox_blue (when the plate appears)",
    "phase": "cast",
-   "rule": "cast",
+   "rule": "release",
    "slot": "blue",
    "timing": "cast frame (ability clip starts)"
   },
@@ -9705,7 +9705,7 @@
    "hero": "nox",
    "hook": "EXISTS: fx.nox_ult (when the plate appears)",
    "phase": "cast",
-   "rule": "cast",
+   "rule": "release",
    "slot": "ult",
    "timing": "cast frame (ability clip starts)"
   },
@@ -10154,7 +10154,7 @@
    "hero": "grimsby",
    "hook": "EXISTS: fx.grimsby_green (when the plate appears)",
    "phase": "cast",
-   "rule": "cast",
+   "rule": "release",
    "slot": "green",
    "timing": "cast frame (ability clip starts)"
   },
@@ -10180,7 +10180,7 @@
    "hero": "grimsby",
    "hook": "EXISTS: fx.grimsby_ult (when the plate appears)",
    "phase": "cast",
-   "rule": "cast",
+   "rule": "release",
    "slot": "ult",
    "timing": "cast frame (ability clip starts)"
   },
