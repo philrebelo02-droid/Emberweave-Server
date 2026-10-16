@@ -256,13 +256,28 @@ try {
   ck('weapon strikes 15% quieter: SFX_ATK_GAIN 0.85 on every sfxPlay with the atk flag (sfxAtk sets it for every swing, crit and Aureth\'s ARM cuts), 1 for everything else; BASE played all at 1',
     run('SFX_ATK_GAIN') === 0.85 && /g\.gain\.value=o\.atk\?SFX_ATK_GAIN:1;/.test(src) && /sfxQ\(name,T,\{key:u\.key,atk:1,u,swing:1,log:rec\}\)/.test(src) && /g\.gain\.value=1; src\.connect\(g\)/.test(baseSrc) && !/SFX_ATK_GAIN/.test(baseSrc));
   { const M = JSON.parse(run('JSON.stringify(MUSIC_LISTS)')), M0 = JSON.parse(R0('JSON.stringify(MUSIC_LISTS)'));
-    const ef = M.battle.find(x => /battle-epic-fight\.mp3\?v=1160$/.test(x.f)), ee = M.map.find(x => /map-echoes-of-eternity\.mp3\?v=1160$/.test(x.f));
-    const fileOk = x => { const f = path.join(ROOT, 'assets/audio', x.f.split('?')[0]); return fs.existsSync(f) && fs.statSync(f).size > 5e5 && fs.readFileSync(f).slice(0, 3).toString('hex').match(/^(494433|fffb|fff3)/); };
-    const bar = 4 * 60 / 115.001;
-    ck('music: the 6th battle song Epic Fight (Nastelbom, Pixabay 436865) from 0, its loop seam on its own bar grid (loopStart the bar nearest 9.5 s, loopEnd the bar line before 90 s, a whole number of bars apart), and the 6th map song Echoes of Eternity (Tunetank 347743) from the start; new ?v=1160 files on disk; every BASE song unchanged',
-      M.battle.length === M0.battle.length + 1 && M.map.length === M0.map.length + 1 && !!ef && !!ee && ef.start === 0 && Math.abs(ef.loopStart - 8.957) < 1e-9 && ef.loopEnd < 90 && ef.loopEnd > 90 - bar &&
-      Math.abs(((ef.loopEnd - ef.loopStart) / bar) - Math.round((ef.loopEnd - ef.loopStart) / bar)) < 0.01 && ee.start === 0 && fileOk(ef) && fileOk(ee) &&
-      JSON.stringify(Object.fromEntries(Object.entries(M).map(([k, v]) => [k, v.filter(x => !/\?v=1160$/.test(x.f))]))) === JSON.stringify(M0), JSON.stringify({ ef, ee })); }
+    const NEWB = ['battle-epic-fight', 'battle-warrior-fight', 'battle-war-preparations'], nb = NEWB.map(n => M.battle.find(x => x.f.indexOf('music/' + n + '.mp3?v=1160') === 0));
+    const ee = M.map.find(x => /map-echoes-of-eternity\.mp3\?v=1160$/.test(x.f));
+    const fileOk = x => { const f = path.join(ROOT, 'assets/audio', x.f.split('?')[0]); return fs.existsSync(f) && fs.statSync(f).size > 5e5 && /^(494433|fffb|fff3)/.test(fs.readFileSync(f).slice(0, 3).toString('hex')); };
+    const whole = x => { const bar = 240 / x.bpm, k = (x.loopEnd - x.loopStart) / bar; return Math.abs(k - Math.round(k)) < 0.01 && Math.round(k) > 20; };
+    ck('music: three new battle songs - Epic Fight (Nastelbom 436865), Warrior Fight Action Music (Tunetank 413435), War Preparations (Cyberwave Orchestra 387985) - and the 6th map song Echoes of Eternity (Tunetank 347743, from the start); battle 8, map 6; each battle loop a whole number of its bars (Epic Fight to the bar line before 90 s, Warrior Fight before the 142.5 s ending, War Preparations before the 257 s ending); new ?v=1160 files on disk; every other BASE song unchanged',
+      M.battle.length === 8 && M0.battle.length === 5 && M.map.length === 6 && nb.every(x => x && fileOk(x) && whole(x) && x.start === x.loopStart || (x && x.start === 0)) && ee && ee.start === 0 && fileOk(ee) &&
+      nb[0].loopEnd < 90 && nb[0].loopEnd > 90 - 240 / nb[0].bpm && nb[1].loopEnd < 142.5 && nb[1].loopEnd > 142.5 - 3 && nb[2].loopEnd < 257 && nb[2].loopEnd > 255 &&
+      JSON.stringify(Object.fromEntries(Object.entries(M).map(([k, v]) => [k, v.filter(x => !/\?v=1160$/.test(x.f))]))) === JSON.stringify(M0), JSON.stringify({ nb, ee }));
+    /* ACTION START (Phil 16 Oct, "only pick up where the action actually starts" - a standing rule for every battle song): the 4 bars a fight first hears
+       are within 3 dB of the song's own median loudness (0.5 s windows), and the bars before a later start are the quiet intro it skips */
+    const PYM = ['import sys, json, subprocess', 'import numpy as np', 'out = []', 'for f, st, bpm in json.loads(sys.argv[1]):',
+      "    x = np.frombuffer(subprocess.run(['ffmpeg', '-v', 'error', '-i', f, '-ac', '1', '-ar', '22050', '-f', 'f32le', '-'], capture_output=True).stdout, dtype=np.float32); SR = 22050",
+      '    w = SR // 2; n = len(x) // w; r = 20 * np.log10(np.sqrt((x[:n * w].reshape(n, w) ** 2).mean(1)) + 1e-9); med = float(np.median(r)); bar = 240 / bpm',
+      '    db = lambda a, b: float(20 * np.log10(np.sqrt(np.mean(x[int(a * SR):int(b * SR)] ** 2)) + 1e-9))',
+      '    out.append([round(med, 1), round(db(st, st + 4 * bar), 1), round(db(max(0, st - 4 * bar), st), 1) if st > 1 else None])', 'print(json.dumps(out))'].join('\n');
+    const pyf = path.join(require('os').tmpdir(), 'ew-vd1160-music.py'); fs.writeFileSync(pyf, PYM);
+    const B = M.battle.map(x => [path.join(ROOT, 'assets/audio', x.f.split('?')[0]), x.start, x.bpm]).concat([[path.join(ROOT, 'assets/audio/music/battle-warrior-fight.mp3'), 0, 80]]);   /* + CONTROL: Warrior Fight from 0 (its quiet intro) */
+    const E = JSON.parse(cp.execFileSync(process.env.PYTHON || 'python', ['-I', pyf, JSON.stringify(B)], { maxBuffer: 1 << 24 }).toString());
+    const rep = M.battle.map((x, i) => x.name + ' start ' + x.start + ' s: first 4 bars ' + E[i][1] + ' dB vs median ' + E[i][0] + (E[i][2] != null ? ', the 4 bars it skips ' + E[i][2] : ''));
+    const Ec = E.pop(); ck('CONTROL: Warrior Fight played from 0 s (its intro: first 4 bars ' + Ec[1] + ' dB vs median ' + Ec[0] + ') fails the action-start rule', !(Ec[1] >= Ec[0] - 3));
+    ck('battle songs start where the action starts: ' + rep.join('; '), E.every(([med, first, skipped]) => first >= med - 3 && (skipped == null || skipped < first - 2)), rep.join(' | '));
+    console.log('  info ' + rep.join('\n  info ')); }
   const ctl = JSON.parse(JSON.stringify(G)); ctl.veyr.crit.u = '/assets/anim/veyr/veyr_missing.webp?v=1160'; ctl.deepcleft.attack.fw = 900;
   ck('control: the grid check catches a missing sheet and an oversized grid', gridProblems(ctl, [['veyr', 'crit'], ['deepcleft', 'attack']]).length >= 2);
 } catch (e) { console.log('FAIL after ' + pass + ' checks: ' + (e.stack || e.message)); process.exitCode = 1; return; }
