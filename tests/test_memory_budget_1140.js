@@ -187,7 +187,7 @@ try {
       ck('BUDGET: decoded bitmaps held in a fight <= ' + BMP_BUDGET_MB + ' MB (' + peakB + ') - a sheet\'s copy is freed once it is on the GPU', peakB <= BMP_BUDGET_MB);
       ck('back on the hub after EVERY fight the battle textures are back to the start (<= start + 64 MB)', N.rows.every(r => r.hub.gpu <= N.s0.gpu + 64), N.rows.map(r => r.hub.gpu).join(','));
       ck('back on the hub after EVERY fight the decoded bitmaps are gone (<= 16 MB) and no battle sheet is held', N.rows.every(r => r.hub.bmp <= 16 && r.hub.held === 0), N.rows.map(r => r.hub.bmp + '/' + r.hub.held).join(','));
-      ck('the fight sounds are released after every fight (only the weapon library stays decoded: the takes + shimmers)', N.rows.every(r => r.mid.heroSnd > 0 && r.hub.heroSnd === 0), N.rows.map(r => r.mid.heroSnd + '->' + r.hub.heroSnd).join(','));
+      ck('the fight sounds are released after every fight (only the weapon library stays decoded: the 12 weapon sounds + the fused melee swings)', N.rows.every(r => r.mid.heroSnd > 0 && r.hub.heroSnd === 0), N.rows.map(r => r.mid.heroSnd + '->' + r.hub.heroSnd).join(','));
       ck('memory does not grow over 5 fights (fight 5 within 15% of fight 1 in a fight; _texReg bounded)', N.rows[4].mid.gpu <= N.rows[0].mid.gpu * 1.15 + 32 && N.rows[4].hub.reg <= 40, N.rows[0].mid.gpu + ' -> ' + N.rows[4].mid.gpu + ', reg ' + N.rows[4].hub.reg);
       ck('no page error in the 5 fights', N.errs.length === 0, N.errs.slice(0, 3).join(' | '));
       /* the BASE page can run the rig's browser out of memory (the very crash this test guards): a crash of its page counts as BASE breaking the budget */
