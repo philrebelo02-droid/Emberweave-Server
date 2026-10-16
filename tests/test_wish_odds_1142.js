@@ -72,7 +72,10 @@ const TABLE={full3:0.03,full2:0.10,frag3:0.17,frag2:0.23,glyphFull:0.20,glyphNex
     ok(Math.abs(f-TABLE[k])<=tol,k+' lands on '+(TABLE[k]*100)+' % ('+(f*100).toFixed(2)+' %)'); }
   ok(badFrag===0,'every hero-fragment prize is 2-3 fragments ('+badFrag+' outside)');
   ok(badTier===0,'a level glyph is the top tier ('+LADDER[top]+'), a next-level glyph is the tier above ('+LADDER[top+1]+') ('+badTier+' wrong)');
-  ok((L1.stamItems|0)===items&&items>0,'every Ember Roast that dropped is held on the ledger ('+(L1.stamItems|0)+' of '+items+')');
+  // the ledger gain over the batch, not the raw total: the 39th wish in 1b is an ordinary roll and is itself an Ember Roast 17 % of the time,
+  // which sat on the ledger before L0 and made this read 1 over (16 Oct 2026, 1 run in 4 - never a double credit)
+  const gained=(L1.stamItems|0)-(L0.stamItems|0);
+  ok(gained===items&&items>0,'every Ember Roast that dropped in the batch is held on the ledger (+'+gained+' of '+items+', '+(L0.stamItems|0)+' held before)');
 
   // ---- 5. the Ember Roast: +120, spends one, refuses at 0, a replayed requestId pays once ----
   await editDB(u=>{ u.led.stamItems=2; u.led.stam={v:500,ts:Date.now()}; });
