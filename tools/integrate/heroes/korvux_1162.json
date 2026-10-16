@@ -1,0 +1,25 @@
+{
+ "note": "v1162 Korvux eight (shipped 16 Oct 2026, 466a65c1) - the proof config: the decisions the release made (frame maps, contact cells), written in the pipeline's terms. Re-running it must give the live sheets and BATTLE_ANIM entries.",
+ "hero": "korvux",
+ "name": "Korvux",
+ "version": "1162",
+ "review": "REVIEW 15OCT2026 H3",
+ "work": "C:/Users/Home/Downloads/ew-sweep/integrate/korvux-1162-proof",
+ "expectStates": ["idle", "walk", "attack", "crit", "hit", "green", "blue", "ult"],
+ "order": ["idle", "walk", "attack", "crit", "hit", "green", "blue", "ult"],
+ "melee": true,
+ "key": {"unmixSoft": true, "pad": 24, "maxFig": 240},
+ "states": {
+  "idle":   {},
+  "walk":   {"from": 29, "len": 50},
+  "attack": {"contact": 30, "contactFrame": 52, "end": 96, "hold": 1},
+  "crit":   {"contact": 30, "contactFrame": 43, "end": 104, "hold": 1},
+  "hit":    {"flinch": [26, 40], "recover": [84, 96]},
+  "green":  {"contact": 18, "contactFrame": 28, "segments": [[0, 26, 18], [28, 46, 10], [48, 56, 4], [58, 116, 16]]},
+  "blue":   {"contact": 30, "contactFrame": 37, "moment": "land", "segments": [[0, 32, 26], [33, 39, 7], [40, 100, 15]]},
+  "ult":    {"contact": 29, "contactFrame": 32, "segments": [[0, 31, 29], [32, 32, 1], [33, 62, 14], [64, 64, 1], [66, 66, 1], [68, 68, 1], [72, 72, 1]]}
+ },
+ "rig": {"walkGap": 700},
+ "captions": {"attack": "attack - the axe lands low in front (contact 30)", "crit": "crit - the overhead chop (contact 30)", "green": "green Comet Dash - the launch (contact 18)",
+              "blue": "blue Ember Cleave - full reach on the form landing (contact 30)", "ult": "ult Falling Star - the axe raised to call the star (contact 29)", "attack-wide": "attack, wide"}
+}
