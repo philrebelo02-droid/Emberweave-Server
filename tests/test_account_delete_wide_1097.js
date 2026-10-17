@@ -8,7 +8,7 @@ let pass=0,missed=[];
 const ok=(c,m)=>{ if(process.env.AUD_SERVER&&!c){ missed.push(m); return; } assert(c,m); pass++; console.log('  ok '+m); };
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
 const freePort=()=>new Promise(r=>{const s=net.createServer();s.listen(0,'127.0.0.1',()=>{const p=s.address().port;s.close(()=>r(p));});});
-const dbOf=n=>path.join(dir,n+'.json');
+const dbOf=n=>{ const d=path.join(dir,'s'+n); fs.mkdirSync(d,{recursive:true}); return path.join(d,n+'.json'); };   // v1183: one folder per server (load guard)
 async function start(n,env){ ports[n]=ports[n]||await freePort();
   procs[n]=spawn(process.execPath,[srvFile],{cwd:root,env:{...process.env,DATABASE_URL:'',PORT:String(ports[n]),DB_FILE:dbOf(n),RL_MUL:'1000',REG_PER_MIN:'100',REG_ACCOUNTS_PER_IP:'100',ADMIN_IDS:'',ACCOUNT_LINK_SECRET:SECRET,...env},stdio:'ignore',windowsHide:true});
   for(let i=0;i<300;i++){ try{ if((await fetch('http://127.0.0.1:'+ports[n]+'/health')).ok)return; }catch(_){} await delay(100);} throw Error('no start '+n); }

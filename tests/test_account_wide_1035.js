@@ -3,7 +3,8 @@
 const fs = require('fs'), path = require('path'), os = require('os'), cp = require('child_process'), http = require('http');
 const dir = process.argv[2] || path.join(__dirname, '..');
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'v1035-'));
-const DB1 = path.join(tmp, 'db1.json'), DB2 = path.join(tmp, 'db2.json');
+const DB1 = path.join(tmp, 's1', 'db1.json'), DB2 = path.join(tmp, 's2', 'db2.json');   // v1183: one folder per server (load guard: another world's backups/ is not a fresh install)
+fs.mkdirSync(path.dirname(DB1)); fs.mkdirSync(path.dirname(DB2));
 const P1 = 8700 + Math.floor(Math.random() * 40), P2 = P1 + 50, SECRET = 'test-link-secret-123';
 const FLAGS = { VAULT_MIN_BATTLE_MS: '0', REG_PER_MIN: '200', REG_ACCOUNTS_PER_IP: '200', GLYPH_RL_PER_MIN: '1000' };
 let pass = 0, fail = 0; const procs = {};

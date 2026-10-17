@@ -1,7 +1,8 @@
 // Loads server.js with the HTTP listener neutered so internals can be unit-probed.
 module.exports=function(dbFile){
-  process.env.DB_FILE=dbFile||'./probe-db.json'; process.env.PORT='8899';
-  const fs=require('fs'), path=require('path');
+  const fs=require('fs'), path=require('path'), os=require('os');
+  // v1183: each probe world in its OWN fresh folder - a world file beside another world's backups/ is not a fresh install (load guard)
+  process.env.DB_FILE=path.join(fs.mkdtempSync(path.join(os.tmpdir(),'ember-probe-')), path.basename(dbFile||'probe-db.json')); process.env.PORT='8899';
   // v229 (audit P0-6): resolve server.js whether this loader sits NEXT TO it (flat bundle) or in
   // scripts/ under a repo checkout — and generate the probe module BESIDE the real server.js so
   // its __dirname-relative data files (server/glyph-source.json etc.) still resolve.

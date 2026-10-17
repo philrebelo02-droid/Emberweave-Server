@@ -53,7 +53,7 @@ const AUDIO_STUB = () => { const node = () => ({ connect() {}, disconnect() {}, 
     ok(parseAll(broken).bad.length > 0, 'the parse check catches an unescaped quote');
 
     /* ---- server setup: two guests made on an ALLOW_NEW_GUESTS server (the "old device" case), then the live setting ---- */
-    const P1 = await freePort(), DB1 = path.join(tmp, 'db1.json');
+    const P1 = await freePort(), DB1 = path.join(fs.mkdtempSync(path.join(tmp, 's1-')), 'db1.json');   // v1183: one folder per server (load guard)
     let s1 = start(P1, { DB_FILE: DB1, ALLOW_NEW_GUESTS: '1' }); assert(await up(P1), 'setup server did not start');
     const devA = 'ew1144-old-device-a', devB = 'ew1144-old-device-b';
     const gA = (await call(P1, '/api/guest', { deviceId: devA })).j, gB = (await call(P1, '/api/guest', { deviceId: devB })).j;
@@ -199,10 +199,11 @@ const AUDIO_STUB = () => { const node = () => ({ connect() {}, disconnect() {}, 
 
     /* ---- (8) Servers 2-5: register, sign in and guest upgrade through the account server ---- */
     { const SECRET = 'ew1144-link-secret', PA = await freePort(), PB = await freePort();
-      const a = start(PA, { DB_FILE: path.join(tmp, 'acct.json'), ACCOUNT_LINK_SECRET: SECRET }); assert(await up(PA), 'account server did not start');
-      let b = start(PB, { DB_FILE: path.join(tmp, 's2.json'), ACCOUNT_LINK_SECRET: SECRET, ACCOUNT_AUTHORITY: 'http://127.0.0.1:' + PA, ALLOW_NEW_GUESTS: '1', SERVER_NAME: 'Server 2' }); assert(await up(PB), 'server 2 did not start');
+      const DA = path.join(fs.mkdtempSync(path.join(tmp, 'acct-')), 'acct.json'), DB2 = path.join(fs.mkdtempSync(path.join(tmp, 's2-')), 's2.json');   // v1183: one folder per server
+      const a = start(PA, { DB_FILE: DA, ACCOUNT_LINK_SECRET: SECRET }); assert(await up(PA), 'account server did not start');
+      let b = start(PB, { DB_FILE: DB2, ACCOUNT_LINK_SECRET: SECRET, ACCOUNT_AUTHORITY: 'http://127.0.0.1:' + PA, ALLOW_NEW_GUESTS: '1', SERVER_NAME: 'Server 2' }); assert(await up(PB), 'server 2 did not start');
       const g2 = (await call(PB, '/api/guest', { deviceId: 'ew1144-s2-old' })).j; await call(PB, '/api/ledger', null, g2.token);
-      await stop(b); b = start(PB, { DB_FILE: path.join(tmp, 's2.json'), ACCOUNT_LINK_SECRET: SECRET, ACCOUNT_AUTHORITY: 'http://127.0.0.1:' + PA, SERVER_NAME: 'Server 2' }); assert(await up(PB), 'server 2 did not restart');
+      await stop(b); b = start(PB, { DB_FILE: DB2, ACCOUNT_LINK_SECRET: SECRET, ACCOUNT_AUTHORITY: 'http://127.0.0.1:' + PA, SERVER_NAME: 'Server 2' }); assert(await up(PB), 'server 2 did not restart');
       const n2 = await call(PB, '/api/guest', { deviceId: 'ew1144-s2-new' });
       ok(n2.status === 403 && !n2.j.token, 'Server 2 refuses a new guest too');
       const nm = 'Xs' + Date.now().toString(36).slice(-7);
