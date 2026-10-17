@@ -32,7 +32,8 @@ function runOps(ops, ctx) {
       if (op.j !== undefined) { runJournal(op, ctx); continue; }   // v1128: the journal layout's engine (server/store-journal.js)
       if (op.w !== undefined) { fs.writeFileSync(op.w, op.s); created.push(op.w); }
       else if (op.a !== undefined) fs.appendFileSync(op.a, op.s);
-      else if (op.r !== undefined) { fs.renameSync(op.r, op.to); const i = created.indexOf(op.r); if (i >= 0) created.splice(i, 1); }
+      else if (op.r !== undefined) { if (global.__ewStoreReplaced && global.__ewStoreReplaced()) { const e = Error('world store: this io worker was replaced - not committing'); e.code = 'EREPLACED'; throw e; }
+        fs.renameSync(op.r, op.to); const i = created.indexOf(op.r); if (i >= 0) created.splice(i, 1); }
       else if (op.mk !== undefined && op.link === undefined) fs.mkdirSync(op.mk, { recursive: true });
       // v1183 (world-load guard): {link, to, mk} = a hard-link copy of the new manifest in <DB_FILE>.m for `recover` (best effort);
       // {flush, files, dirs} = every new file of this save on the disk before the swap - ONE syncfs (an fsync per file where `sync -f`
@@ -65,6 +66,9 @@ function runJournal(op, ctx) {
 if (!wt.isMainThread && wt.workerData && wt.workerData.__storeIo) {
   /* ---------------- the worker ---------------- */
   const { ctl: ctlBuf, port } = wt.workerData; const ctl = new Int32Array(ctlBuf);
+  /* v1185: the main thread replaced this worker (no answer for 5 minutes, e.g. stuck in a flush on a hung disk) and carries on with a
+     full save of its own: a world-file swap this worker had in hand must not land after it - checked right before every swap */
+  global.__ewStoreReplaced = () => ctl.length > 2 && Atomics.load(ctl, 2) === 1;
   const queue = []; let lazy = [], scheduled = false, poisonedUpTo = -1; const ctx = { engine: null, sync: false };
   const ckptStep = () => { if (ctx.engine && ctx.engine.busy) { try { ctx.engine.step(); } catch (e) { console.error('world store checkpoint: ' + e.message); } } };
   const LAZY_BATCH = 64;
@@ -125,14 +129,15 @@ function create(opts) {
     settle(w, e);
   }
   function failAll(why) {   // the worker is gone: every waiting job failed; later saves run on this thread
-    if (worker) { const w = worker; worker = null; stats.mode = 'sync'; stats.workerErrors++; try { w.terminate(); } catch (e) {} try { onWorkerLost(); } catch (e) {} }
+    if (worker) { try { Atomics.store(ctl, 2, 1); } catch (e) {}   // v1185: a worker that is only stuck (a hung disk under a flush) must never commit later
+      const w = worker; worker = null; stats.mode = 'sync'; stats.workerErrors++; try { w.terminate(); } catch (e) {} try { onWorkerLost(); } catch (e) {} }
     const e = Error('world save: the store io worker stopped (' + why + ')'); e.code = 'EIO';
     const ws = [...waiting.values()]; waiting.clear(); stats.inFlight = 0;
     for (const w of ws) settle(w, e);
   }
   if (opts.mode === 'worker') {
     try {
-      const sab = new SharedArrayBuffer(8); ctl = new Int32Array(sab);
+      const sab = new SharedArrayBuffer(12); ctl = new Int32Array(sab);   // [0] last job done, [1] files unlinked, [2] v1185: this worker was replaced
       const ch = new wt.MessageChannel(); port = ch.port1;
       worker = new wt.Worker(__filename, { workerData: { __storeIo: true, ctl: sab, port: ch.port2 }, transferList: [ch.port2] });
       worker.unref(); port.unref();
