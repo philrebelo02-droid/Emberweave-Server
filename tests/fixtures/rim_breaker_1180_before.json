@@ -1,0 +1,48 @@
+{
+ "note": "v1180: what live v1178 (1199aafe) had for the entries the Rim Breaker change replaced - KITS.brannus.green, FX2_DEF.brannus_green, FX16_ART.bgreen",
+ "before": {
+  "kit": {
+   "deliver": "shot",
+   "name": "Rim Breaker",
+   "type": "knockstun",
+   "mul": 1.5,
+   "stun": 1.2,
+   "push": 45.120000000000005,
+   "cd": 8,
+   "desc": "Drives the bronze wheel forward, stunning the first enemy struck.",
+   "ownFx": "bgreen",
+   "gfx": "brannus_green"
+  },
+  "fx": {
+   "u": "/assets/anim/fx/brannus_rim_breaker_16oct.webp?v=1178",
+   "n": 67,
+   "fw": 341,
+   "fh": 167,
+   "cols": 6,
+   "rows": 12,
+   "dur": 5.5833,
+   "rt": true,
+   "fps2": 12,
+   "spawn": 18,
+   "anchor": [
+    0.137,
+    0.433
+   ],
+   "size": 1.06,
+   "weapon": {
+    "fwd": 0.593,
+    "up0": 0.603,
+    "up1": 0.237,
+    "t": 0.45
+   }
+  },
+  "art": {
+   "k": "brannus_green",
+   "st": "green",
+   "mode": "side",
+   "ro": 2,
+   "noFly": true,
+   "atLaunch": true
+  }
+ }
+}

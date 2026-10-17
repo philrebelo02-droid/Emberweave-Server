@@ -22,7 +22,7 @@ let baseOk = true;
 try { fs.mkdirSync(path.join(BD, 'server')); for (const f of ['emberweave-heroes.html', 'hero-profiles.js', 'hero-paths.js', 'server/temple-of-ash.js', 'server/patron-benefits.js', 'server/temple-effects.js'])
   fs.writeFileSync(path.join(BD, f), cp.execSync('git show ' + BASE_SHA + ':' + f, { cwd: ROOT, maxBuffer: 64 << 20 })); } catch (e) { baseOk = false; }
 const OLD = path.join(BD, 'emberweave-heroes.html');
-const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); return src => vm.runInContext(src, h.ctx); };
+const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); const r = src => vm.runInContext(src, h.ctx); require('./helpers/rim-breaker-1180.js').undoRim1180(r); return r; };   // v1180: Rim Breaker as v1178 (tests/test_rim_breaker_1180.js checks the glide and the pierce)
 const run = load(HTML), R0 = baseOk ? load(OLD) : null;
 let pass = 0, fail = 0;
 const ck = (name, ok, detail) => { if (ok) { pass++; console.log('  ok  ' + name); } else { fail++; console.log('  FAIL ' + name + (detail ? ' - ' + String(detail).slice(0, 900) : '')); } };
@@ -280,7 +280,7 @@ try {
     ck(`an interrupted cast: before its cell the art never shows (Rim Breaker cancelled at 0.1 s: shown ${pre.shown}); after it, it fades out (Arena Lock cancelled at 0.3 s, after cell 7: shown ${post.shown}, cut ${post.cut}, gone ${post.gone})`,
       pre.shown === null && post.shown != null && post.cut != null && post.gone != null && post.gone - post.cut <= 0.15 + 2 * step, JSON.stringify({ pre, post: post.cells })); }
   ck('hooks: the shot launch confirms an atLaunch art and abilArt skips it at the landing; the show / tick run the two new modes',
-    /if\(mode==='shot'&&o\.ownFx&&typeof FX16_ART!=='undefined'&&FX16_ART\[o\.ownFx\]&&FX16_ART\[o\.ownFx\]\.atLaunch&&TH&&scene\) fx16Release\(u,o\.ownFx,o\.dur\|\|6,null,0\)/.test(src) &&
+    /if\(mode==='shot'&&o\.ownFx&&typeof FX16_ART!=='undefined'&&FX16_ART\[o\.ownFx\]&&FX16_ART\[o\.ownFx\]\.atLaunch(&&FX16_ART\[o\.ownFx\]\.mode!=='glide')?&&TH&&scene\) fx16Release\(u,o\.ownFx,o\.dur\|\|6,null,0\)/.test(src) &&
     /else if\(FX16_ART\[o\.ownFx\]&&!FX16_ART\[o\.ownFx\]\.atLaunch\)\{ try\{/.test(src) && /if\(V\.mode==='side'\|\|V\.mode==='ring'\)\{ o\.P=\{x,y\}; o\.mir=!!u\._fxMirror;/.test(src) && /if\(V\.mode==='side'\|\|V\.mode==='ring'\) _fx22Fx16Side\(o\); return 0; \}/.test(src));
   { const P = JSON.parse(run(`JSON.stringify([0,1,2].map(sl=>{ const p=skillPreviewPlan('brannus',sl); return p?p.fx.map(e=>({k:e.k,kind:e.kind,at:e.at||null,t0:+e.t0.toFixed(4),real:e.real!=null?+e.real.toFixed(3):null})):null; }))`));
     const [u, g, b] = P, one = (p, k, cell, real) => p && p.length === 1 && p[0].k === k && p[0].kind === 'fx16puff' && p[0].at === 'self' && p[0].t0 === +(cell / 24).toFixed(4) && Math.abs(p[0].real - real) < 1e-3;

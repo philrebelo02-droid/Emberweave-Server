@@ -2672,7 +2672,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 <script src="/assets/ui/world-mine-sync.js?v=mi2"></script>
 <script src="/assets/ui/world-march-sync.js?v=wm1"></script>
 <script src="/assets/ui/world-march-visual.js?v=wv2"></script>
-<script src="/assets/ui/skill-preview-stage.js?v=sp1178"></script>
+<script src="/assets/ui/skill-preview-stage.js?v=sp1180"></script>
 <script src="/assets/ui/world-tree-cycle.js?v=wt4"></script>
 <script src="/assets/ui/world-tree-art.js?v=wt3"></script>
 <script src="/assets/ui/world-oasis-markers.js?v=om-painted-01oct-v1"></script>
@@ -4798,7 +4798,9 @@ function _skpFx(hk,slot,st,T0,rel){ const out=[], add=(e)=>{ if(e&&FX2_DEF[e.k])
       case 'mcourage': { const d=FX2_DEF[k]; add({k,kind:'fx16puff',at:'self',t0:rel,real:d?d.n/d.fps2:5.5}); break; }
       case 'msleep': { const d=FX2_DEF[k], dl=Math.max(0.12,Math.min(0.8,skillPreviewTargetDist(hk)/(o.speed||16*METER))); add({k,kind:'fx16over',at:'target',t0:rel+dl/FX_RT,real:d?d.n/d.fps2:6}); break; }
       case 'dclaws': { const d=FX2_DEF[k]; add({k,kind:'fx16claws',at:'self',t0:T0+(d?d.spawn:0)/24,real:d?d.n/d.fps2:6}); break; }
-      case 'bgreen': case 'bblue': case 'bult': { const d=FX2_DEF[k]; add({k,kind:'fx16puff',at:'self',t0:T0+(d?d.spawn:0)/24,real:d?d.n/d.fps2:5}); break; }   /* v1178 Brannus: upright on his cast cell, real time, once */
+      case 'bgreen': case 'bblue': case 'bult': { const d=FX2_DEF[k];
+        if(FX16_ART[o.ownFx]&&FX16_ART[o.ownFx].mode==='glide'){ const dl=Math.max(0.12,Math.min(0.8,skillPreviewTargetDist(hk)/(o.speed||16*METER))); add({k,kind:'fx16glide',t0:rel,dur:dl/FX_RT,real:dl/FX_RT}); break; }   /* v1180: the glide from the release to the target */
+        add({k,kind:'fx16puff',at:'self',t0:T0+(d?d.spawn:0)/24,real:d?d.n/d.fps2:5}); break; }   /* v1178 Brannus: upright on his cast cell, real time, once */
       case 'dburrow': { const d=FX2_DEF[k], real=d?d.n/d.fps2:5; add({k,kind:'fx16puff',at:'self',t0:T0+(d?d.spawn:0)/24,real}); add({k,kind:'fx16puff',at:'target',t0:rel+(o.dur||1.4)/FX_RT,real}); break; }
       case 'undertow': add({k,kind:'undertow',at:'target',t0:rel,R:(o.radius||7*METER),tc:Math.max(0.05,(o.pull||1.2)*BATTLE_PACE)}); break;
       case 'crescent': add({k,kind:'crescent',t0:kase}); break;   // the tendrilpull case
@@ -5172,7 +5174,7 @@ const KITS={
   kharos:{green:{name:'Petal Sever',type:'bleedstack',mul:1.6,bleed:0.18,rupture:3,ruptMul:2.0,stackDur:6,cd:6,desc:"Crosses both arm-blades, inflicting a deep wound.",gfx:'kharos_green'},blue:{name:'Bloomstep',type:'evadecounter',mul:2.1,dur:2.2,dr:0.55,perLv:0.001,cd:9,desc:"Evades the next strike and reappears behind the attacker.",gfx:'kharos_blue',gfxR:3*METER},purple:{name:'Perfect Camouflage',pass:'camouflage',desc:"Standing untouched increases dodge and damage."}},
   yenna:{green:{name:'Rending Return',type:'boomerang',mul:0.95,n:3,backMul:1.6,back:0.45,cd:7,desc:"Throws her bone boomerang through the enemy line; it deals greater damage while returning.",gfx:'yenna_green'},blue:{name:'Laughing Mark',type:'markreveal',mul:1.28,perLv:0.001,dur:8,cd:9,desc:"Marks the lowest-health enemy, revealing them and making allied critical hits restore energy.",gfx:'yenna_blue',gfxR:3*METER},purple:{name:'Pack Opportunist',pass:'packopp',desc:"Deals increased damage to isolated, controlled, or low-health enemies."}},
   sorrel:{green:{name:'Marked Deal',type:'volley',single:true,mul:0.75,n:3,cd:6,pfx:'sorrelcard',pscale:0.9,ownFx:'cards',desc:"Flicks three edged cards into one target; the third strike marks it.",mark:1.22,markDur:6,gfx:'sorrel_green',gdur:5.88},blue:{name:'House Edge',type:'haste',mul:1.32,perLv:0.002,dur:6,self:true,cd:9,desc:"Opens his deck case and gains speed while marked enemies are present.",gfx:'sorrel_blue',gdur:5.88},purple:{name:'Loaded Hand',pass:'loadedhand',desc:"Every fourth basic attack draws a stronger random suit bonus."}},
-  brannus:{green:{deliver:'shot',name:'Rim Breaker',type:'knockstun',mul:1.5,stun:1.2,push:1.6*METER,cd:8,desc:"Drives the bronze wheel forward, stunning the first enemy struck.",ownFx:'bgreen',gfx:'brannus_green'},blue:{name:'Arena Lock',type:'taunt',dur:3.5,cd:10,desc:"Plants the wheel and forces nearby enemies to attack him.",ownFx:'bblue',gfx:'brannus_blue',gfxR:3*METER},purple:{name:"Pride's Momentum",pass:'pridemomentum',desc:"Blocking damage increases his next basic attack."}},
+  brannus:{green:{deliver:'shot',name:'Rim Breaker',type:'knockstun',mul:1.5,stun:1.2,push:1.6*METER,cd:8,pierce:{range:10*METER},desc:"Throws the bronze wheel at the furthest enemy within 10 m. It strikes and stuns every enemy it passes through on the way.",ownFx:'bgreen',gfx:'brannus_green'},blue:{name:'Arena Lock',type:'taunt',dur:3.5,cd:10,desc:"Plants the wheel and forces nearby enemies to attack him.",ownFx:'bblue',gfx:'brannus_blue',gfxR:3*METER},purple:{name:"Pride's Momentum",pass:'pridemomentum',desc:"Blocking damage increases his next basic attack."}},
   deepcleft:{green:{name:'Fault Claws',type:'shred',mul:1.5,shred:0.30,dur:5,cd:6,desc:"Rips the ground with both reinforced claws, damaging and lowering enemy armor.",ownFx:'dclaws',gfx:'deepcleft_green',gdur:5.88},blue:{name:'Burrow Guard',type:'burrowguard',dur:1.4,mul:1.7,cd:10,desc:"Digs into a defensive crouch, becoming untargetable briefly before emerging beneath the nearest attacker.",ownFx:'dburrow',gfx:'deepcleft_blue',gfxR:3*METER,gdur:5.88},purple:{name:'Relentless Digger',pass:'digger',desc:"Taking damage increases his Attack Speed; control effects grant twice as many stacks."}},
   askel:{green:{deliver:'form',name:'Standard Crash',type:'interruptslam',mul:1.3,radius:3.2*METER,silence:1.3,cd:8,desc:"Slams the weighted banner base down, damaging enemies and interrupting their casts.",gfx:'askel_green',gdur:5.88},blue:{name:'Rallying Ground',type:'banner',radius:6*METER,dr:0.82,perLv:0.001,haste:1.22,ctrl:0.25,dur:6,cd:10,desc:"Plants his banner to grant nearby allies armor, attack speed, and control resistance.",gfx:'askel_blue',gfxAt:'front',allyBadge:true,badgeSize:0.2,gdur:5.88},purple:{name:'Unshaken Herd',pass:'unshaken',desc:"Whenever an ally is controlled, Greatbrow gains energy and briefly protects them."}},
   tharl:{green:{name:'Scale Ram',type:'knockstun',mul:1.45,stun:1.1,push:1.8*METER,cd:8,ownFx:'quake',desc:"Drives both striking blocks forward, stunning the nearest enemy and pushing it backward.",gfx:'tharl_green',gdur:5.88},blue:{name:'Fortress Curl',type:'defensive',mul:0.35,dur:3.5,cd:9,desc:"Curls behind his plated tail, greatly reducing incoming damage before bursting back open.",gfx:'tharl_blue',gfxR:3*METER,gdur:5.88},purple:{name:'Layered Hide',pass:'layered',desc:"Each direct hit hardens one scale layer; at maximum layers he becomes immune to control briefly."}},
@@ -5668,7 +5670,7 @@ function _skillEffectStrRaw(key,idx,atk,hp){ const t=HERO_TYPES[key],kit=KITS[ke
     /* v527 — the design-pack behaviours */
     case 'shred': return '{i:s:attack} '+Math.round(atk*(ab.mul||1.4)*sm)+' + −'+lvPct(shredAt(ab.shred||0.3,sm))+' armour';
     case 'mrshred': return '{i:t:apow} '+Math.round(apw*(ab.mul||1.4)*sm)+' + −'+lvPct(shredAt(ab.shred||0.3,sm))+' resist';
-    case 'knockstun': return '{i:s:attack} '+Math.round(atk*(ab.mul||1.4)*sm)+' + '+ccSecFor(ab,'stun')+'s stun + knockback';
+    case 'knockstun': return '{i:s:attack} '+Math.round(atk*(ab.mul||1.4)*sm)+' + '+ccSecFor(ab,'stun')+'s stun + knockback'+(ab.pierce?' to every enemy on its path':'');   // v1180 Rim Breaker
     /* v792 - Nerisse's "Choir of the Deep Sky". This said 5s, typed by hand, while v790 made an
        area silence 1.5s - the game was quoting a number the fight had stopped using. */
     /* v793b - DEAD: this switch is on a green/blue KIT type and deepchoir is an ultimate, so this
@@ -12514,13 +12516,26 @@ function deliverLaunch(u,type,o){ try{
   let aim=(u._aimWX!=null)?{x:u._aimWX,y:u._aimWY}:null;
   if(!aim&&o.at==='cluster'){ const c=densestEnemyCluster(u,o.radius||3*METER); if(c) aim={x:c.x,y:c.y}; }
   const _far=(o.farthest>0)?enemiesOf(u).filter(e=>e.alive).sort((a,b)=>dist(u,b)-dist(u,a)).slice(0,o.farthest):null;   /* v1030: Swampcall - the N farthest enemies */
-  const tU=(_far&&_far.length)?_far[0]:(deliverPick(u,type)||((u.target&&u.target.alive)?u.target:nearestEnemy(u)));   /* v935: the shot flies to the enemy the spell will affect */
+  let tU=(_far&&_far.length)?_far[0]:(deliverPick(u,type)||((u.target&&u.target.alive)?u.target:nearestEnemy(u)));   /* v935: the shot flies to the enemy the spell will affect */
   if(mode==='shot'&&!tU) return false;
-  try{ if(mode==='shot'&&o.ownFx&&typeof FX16_ART!=='undefined'&&FX16_ART[o.ownFx]&&FX16_ART[o.ownFx].atLaunch&&TH&&scene) fx16Release(u,o.ownFx,o.dur||6,null,0); }catch(_e){}   /* v1178 Rim Breaker: the art is confirmed as the wheel leaves him (display only) */
+  /* v1180 Rim Breaker (Phil 16 Oct: "it should be thrown at the furthest person within 10 meters, and strikes anyone along the way, stunning them"):
+     o.pierce - the shot flies at the FURTHEST living enemy within o.pierce.range of him at the release (none in range: the target it had, as before),
+     and every other living enemy whose body (its hit radius e.r) the line from him to that enemy passes through takes the full effect once, when the
+     wheel reaches it (its distance along the line at the shot's speed); the far enemy last, on the shot's own arrival. Seeded order, no art timing. */
+  let _pierce=null;
+  if(mode==='shot'&&o.pierce){ const R=o.pierce.range||10*METER; let fz=null,fd=-1; enemiesOf(u).forEach(e=>{ if(!e.alive) return; const d=dist(u,e); if(d<=R&&d>fd){ fd=d; fz=e; } }); if(fz) tU=fz;
+    const px=tU.x-u.x, py=tU.y-u.y, pl=Math.hypot(px,py)||1, ux=px/pl, uy=py/pl; _pierce=[];
+    enemiesOf(u).forEach(e=>{ if(!e.alive||e===tU) return; const rx=e.x-u.x, ry=e.y-u.y, pr=rx*ux+ry*uy; if(pr<=0||pr>=pl) return; if(Math.abs(rx*uy-ry*ux)>(e.r||0)) return; _pierce.push({e,pr}); });
+    _pierce.sort((a,b)=>a.pr-b.pr); }
+  try{ if(mode==='shot'&&o.ownFx&&typeof FX16_ART!=='undefined'&&FX16_ART[o.ownFx]&&FX16_ART[o.ownFx].atLaunch&&FX16_ART[o.ownFx].mode!=='glide'&&TH&&scene) fx16Release(u,o.ownFx,o.dur||6,null,0); }catch(_e){}   /* v1178 Rim Breaker: the art is confirmed as the wheel leaves him (display only) */
   const P=aim||(tU?{x:tU.x,y:tU.y}:{x:u.x,y:u.y});
   const delay=(mode==='shot')?Math.max(0.12,Math.min(0.8,dist(u,tU)/(o.speed||16*METER))):(mode==='land')?(o.fall||0.55):(o.form||0.35);
   if(u._clipStarted){ u._clipStarted=false; } else { try{ startAbilityClip(u,type); }catch(_e){} }
   const sm0=u._castSM, lv0=u._castLv, slot0=u._castSlot;
+  try{ if(mode==='shot'&&o.ownFx&&typeof FX16_ART!=='undefined'&&FX16_ART[o.ownFx]&&FX16_ART[o.ownFx].mode==='glide'&&TH&&scene) rimGlideFx(u,tU,delay); }catch(_e){}   /* v1180 Rim Breaker: the wheel glides from his hand to the target's chest on the shot's own flight time (display only) */
+  if(_pierce) _pierce.forEach(({e,pr})=>{ const dl=Math.max(SIM_STEP,Math.min(delay-SIM_STEP,pr/(o.speed||16*METER)));   /* v1180: each enemy on the path, when the wheel reaches it, before the far one */
+    groundHazards.push({arrival:true,delay:dl,run:function(){ if(!e.alive||!u.alive) return; const s1=u._castSM, l1=u._castLv, sl1=u._castSlot; u._castSM=sm0; u._castLv=lv0; u._castSlot=slot0; u._clipStarted=true;
+      try{ doEffect(u,type,Object.assign({},o,{_arrived:true,_tgtU:e,pfx:null,noArt:true,_pierced:true})); } finally{ u._castSM=s1; u._castLv=l1; u._castSlot=sl1; u._clipStarted=false; } }}); });
   try{ if(TH&&scene){ window._fxCaster=u;
     if(mode==='shot'){ const k=(o.ownFx&&typeof FX16_ART!=='undefined'&&FX16_ART[o.ownFx]&&FX16_ART[o.ownFx].noFly)?null:(o.pfx||o.gfx); if(k&&FX2_DEF[k]){   /* v1174: Soporific Bouquet's art is the drift over the slept enemy - nothing flies */ const co=castOrigin(u,tU.x,tU.y); window._projTgtU=tU; spawnProjFx(k,co.x,co.y,tU.x,tU.y,o.pscale||2.6,delay,function(){},co.h); } }
     else if(mode==='land'){ const k=o.gfx; if(k&&FX2_DEF[k]) spawnProjFx(k,P.x,P.y,P.x,P.y,o.pscale||3.0,delay,function(){},9); }
@@ -12919,7 +12934,7 @@ const FX2_DEF={
   ambrel_blue:{u:'/assets/anim/fx/ambrel_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:1},
   ambrel_green:{u:'/assets/anim/fx/ambrel_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.583,dh:0.365,dw:0.75}},
   brannus_blue:{u:'/assets/anim/fx/brannus_arena_lock_16oct.webp?v=1178',n:49,fw:355,fh:204,cols:5,rows:10,dur:4.0833,rt:true,fps2:12,spawn:7,anchor:[0.49,0.046],span:0.905,size:1.08,fadeR:0.75},   /* v1178 Arena Lock (Grok, Phil approved 16 Oct; brannus_blue_arena_lock_16oct.mp4 md5 18f632dd, GREEN plate): clip frames 0-96 every 2nd at 12 fps REAL TIME, faded out over its last 0.75 s (gone by 4.1 s; the dust line would stay). Upright at his feet, BEHIND him, shown on blue cell 7 (f19, the wheel plants); the chain line (650 of the 718 source px = span) is the kit's 3 m radius each side (gfxR); the column's base (anchor: source 576,599) on his feet. The v33 plate stays on disk. */
-  brannus_green:{u:'/assets/anim/fx/brannus_rim_breaker_16oct.webp?v=1178',n:67,fw:341,fh:167,cols:6,rows:12,dur:5.5833,rt:true,fps2:12,spawn:18,anchor:[0.137,0.433],size:1.06,weapon:{fwd:0.593,up0:0.603,up1:0.237,t:0.45}},   /* v1178 Rim Breaker (Grok, Phil approved 16 Oct; brannus_green_rim_breaker_16oct.mp4 md5 8fcf84ba, GREEN plate): clip frames 0-132 every 2nd at 12 fps REAL TIME, once (the wheel clears itself by 5.5 s). Side view, upright, IN FRONT of him. v1178 (Phil: "released from his weapon height not from the floor"): the wheel starts ON HIS WEAPON - the held wheel's centre on the release cell (green cell 18 = f48: 0.593 x his height in front of his feet, 0.603 x his height up; measured on the keyed source frame) - and comes down in a smooth arc (smoothstep over 0.45 real s) to roll on the ground (its centre 0.237 x his height up = the wheel's own radius), then rolls toward the target; mirrored when he faces left. The anchor is the art wheel's centre at its start (source 335,420); the wheel 0.474 x his height, as the one he carries (size 1.06). Nothing else flies (noFly). The v33 plate stays on disk. */
+  brannus_green:{u:'/assets/anim/fx/brannus_rim_breaker_16oct.webp?v=1178',n:67,fw:341,fh:167,cols:6,rows:12,dur:5.5833,rt:true,fps2:12,spawn:18,anchor:[0.137,0.433],size:1.06,weapon:{fwd:0.593,up0:0.603,up1:0.237,t:0.45},glide:{fwd:0.593,up:0.603,chest:1.2,c0:2,c1:43,spin:6.0},wc:[[0.132,0.419],[0.136,0.425],[0.141,0.428],[0.155,0.428],[0.169,0.431],[0.183,0.431],[0.195,0.434],[0.202,0.437],[0.216,0.437],[0.227,0.434],[0.24,0.437],[0.248,0.434],[0.257,0.434],[0.27,0.431],[0.279,0.44],[0.289,0.437],[0.296,0.437],[0.305,0.437],[0.312,0.434],[0.324,0.44],[0.32,0.434],[0.345,0.434],[0.35,0.437],[0.356,0.434],[0.37,0.434],[0.378,0.431],[0.386,0.437],[0.391,0.431],[0.402,0.437],[0.409,0.434],[0.405,0.437],[0.422,0.44],[0.433,0.437],[0.44,0.434],[0.447,0.437],[0.455,0.44],[0.46,0.437],[0.469,0.437],[0.474,0.434],[0.482,0.437],[0.491,0.434],[0.5,0.434],[0.504,0.437],[0.509,0.434],[0.519,0.434],[0.525,0.437],[0.532,0.44],[0.54,0.434]]},   /* v1178 Rim Breaker (Grok, Phil approved 16 Oct; brannus_green_rim_breaker_16oct.mp4 md5 8fcf84ba, GREEN plate): clip frames 0-132 every 2nd at 12 fps REAL TIME, once (the wheel clears itself by 5.5 s). Side view, upright, IN FRONT of him. v1178 (Phil: "released from his weapon height not from the floor"): the wheel starts ON HIS WEAPON - the held wheel's centre on the release cell (green cell 18 = f48: 0.593 x his height in front of his feet, 0.603 x his height up; measured on the keyed source frame) - and comes down in a smooth arc (smoothstep over 0.45 real s) to roll on the ground (its centre 0.237 x his height up = the wheel's own radius), then rolls toward the target; mirrored when he faces left. The anchor is the art wheel's centre at its start (source 335,420); the wheel 0.474 x his height, as the one he carries (size 1.06). Nothing else flies (noFly). The v33 plate stays on disk. */
   rafe_blue:{u:'/assets/anim/fx/rafe_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:1},
   rafe_green:{u:'/assets/anim/fx/rafe_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,disc:{cy:0.655,dh:0.185,dw:0.6},upright:true,upSize:0.8,upExtent:0.57,upAnchor:[0.025,0.26],upFlip:true,ro:2},
   joss_blue:{u:'/assets/anim/fx/joss_blue.webp?v=33',n:48,fw:392,fh:512,cols:6,rows:8,dur:1.6,disc:{cy:0.578,dh:0.295,dw:0.925}},
@@ -13779,7 +13794,7 @@ function _fx22VeyrTick(o){ const d=o.d;
 const FX16_ART={vwarcry:{k:'vael_green',st:'green',mode:'disc'},vblood:{k:'vael_blue',st:'blue',mode:'fit'},vstand:{k:'vael_ult',st:'ult',mode:'hold'},
   dclaws:{k:'deepcleft_green',st:'green',mode:'claws'},dburrow:{k:'deepcleft_blue',st:'blue',mode:'puff'},dquarry:{k:'deepcleft_ult',st:'ult',mode:'aim'},
   mcourage:{k:'mirelle_green',st:'green',mode:'ally',atRelease:true},msleep:{k:'mirelle_blue',st:'blue',mode:'over',atRelease:true,noFly:true},
-  bgreen:{k:'brannus_green',st:'green',mode:'side',ro:2,noFly:true,atLaunch:true},bblue:{k:'brannus_blue',st:'blue',mode:'ring',ro:-1,R:3*METER},bult:{k:'brannus_ult',st:'ult',mode:'side',ro:2}};   /* v1178 Brannus (Grok, Phil approved 16 Oct): Rim Breaker and Lionwheel Rampage from where he stood toward the target, Arena Lock at his feet (3 m) */   /* v1174 Mirelle: shown at the engine's own moment (the heal / the sleep), on the unit it lands on */
+  bgreen:{k:'brannus_green',st:'green',mode:'glide',ro:994,noFly:true,atLaunch:true,atRelease:true},bblue:{k:'brannus_blue',st:'blue',mode:'ring',ro:-1,R:3*METER},bult:{k:'brannus_ult',st:'ult',mode:'side',ro:2}};   /* v1178 Brannus (Grok, Phil approved 16 Oct): Rim Breaker and Lionwheel Rampage from where he stood toward the target, Arena Lock at his feet (3 m) */   /* v1174 Mirelle: shown at the engine's own moment (the heal / the sleep), on the unit it lands on */
 /* v1174 Mirelle: the units her cases pick, read the same way BEFORE the case runs (abilArt draws first): Scent of Courage heals the ally with the
    lowest health fraction; Soporific Bouquet sleeps the enemy the shot reached (o._tgtU), else the highest-energy enemy. Read only. */
 function _fx16Weakest(u){ let best=null,bv=2; alliesOf(u).forEach(a=>{ if(!a.alive)return; const f=a.hp/a.maxHp; if(f<bv){bv=f;best=a;} }); return best; }
@@ -13845,13 +13860,31 @@ function _fx22Fx16Side(o){ const d=o.d, u=o.u, hd=_fx22Head(u), H=(o.R?(2*o.R*SC
   o.s.position.set(wx(o.P.x),0.05,wz(o.P.y));
   if(d.weapon){ const w=d.weapon, k=Math.max(0,Math.min(1,((o.t-(o.ts||0))/FX_RT)/w.t)), e=k*k*(3-2*k), up=(w.up0+(w.up1-w.up0)*e)*hd;   /* v1178 Rim Breaker: from his weapon, a smooth arc down to the ground */
     o.s.position.x+=(mir?-1:1)*w.fwd*hd; o.s.position.add(new TH.Vector3(0,1,0).applyQuaternion(camera.quaternion).multiplyScalar(up)); o.up=up; } }
+/* v1180 Rim Breaker (Phil 16 Oct: "it needs to be treated like a projectile, gliding, not rolling on the ground"): the wheel leaves his hand on the
+   release (the held wheel's centre on the release frame f48: glide.fwd x his height in front, glide.up x up), fully opaque from its first frame
+   (cells c0..c1 of the sheet: the whole wheel, never the grow-in), and glides in a straight line to the target's chest (world Y glide.chest, where
+   projectiles hit) over the shot's own flight time - it reaches the target on the engine's hit tick - spinning the whole way (the art's own roll
+   plus a turn of glide.spin rad per real second), each cell anchored on its own wheel centre (wc) so the art's painted travel never shows;
+   mirrored when he throws to the left. A target that falls in flight keeps the spot it fell on. Display only. */
+function rimGlideFx(u,T,dur){ if(!TH||!scene||!camera||!u||!T) return; const d=FX2_DEF.brannus_green; if(!d||!d.glide) return; const s=_fx22Spr('brannus_green',994); if(!s) return;
+  const g=d.glide, hd=_fx22Head(u), dir=((T.rx==null?T.x:T.rx)>=(u.rx==null?u.x:u.rx))?1:-1, up=new TH.Vector3(0,1,0).applyQuaternion(camera.quaternion), x=u.rx==null?u.x:u.rx, y=u.ry==null?u.y:u.ry;
+  const P0=new TH.Vector3(wx(x)+dir*g.fwd*hd,0.05,wz(y)).add(up.multiplyScalar(g.up*hd));
+  const o={kind:'fx16glide',vk:'bgreen',d,u,T,s,P0,dir,t:0,dur:Math.max(0.05,dur||0.3)}; _fx1123.push(o); _fx22GlideTick(o); return o; }
+function _fx22GlideTick(o){ const d=o.d, g=d.glide, k=o.t/o.dur; if(k>=1) return -1;
+  const rt=o.t/FX_RT, fr=g.c0+Math.floor(rt*(d.fps2||12))%(g.c1-g.c0+1); fx2SetFrame(o.s,d,fr);
+  const T=o.T, P1=new TH.Vector3(wx(T.rx==null?T.x:T.rx),g.chest*(typeof gsplitFxMul==='function'?gsplitFxMul():1),wz(T.ry==null?T.y:T.ry));
+  o.s.position.copy(o.P0).lerp(P1,k);
+  const H=d.size*_fx22Head(o.u), mir=o.dir<0, c=(d.wc&&d.wc[fr])||d.anchor; o.s.center.set(mir?1-c[0]:c[0],c[1]); o.s.scale.set(H*d.fw/d.fh,H,1);
+  const v=o.s._uv; if(v&&((v[0]<0)!==mir)) o.s._uv=[-v[0],v[1],v[2]+v[0],v[3]];
+  o.s.material.rotation=-o.dir*rt*g.spin; o.s.material.opacity=1; o.s.visible=true; o.fr=fr; o.k=k; return 0; }
 function _fx22Kill(o){ try{ scene.remove(o.s); o.s.material.dispose(); }catch(_){} }
 function clearFx1123(){ _fx1123.forEach(_fx22Kill); _fx1123.length=0; }
 function updateFx1123(dt){ if(!_fx1123.length) return;
   for(let i=_fx1123.length-1;i>=0;i--){ const o=_fx1123[i], d=o.d; o.t+=dt; const clip=d.dur*FX_RT;
     if(o.kind==='chop'){ if(_fx22ChopTick(o)<0){ _fx22Kill(o); _fx1123.splice(i,1); } continue; }   /* the chop rides his axe swing */
     if(o.kind==='vcres'||o.kind==='vmantle'||o.kind==='vund'){ o.s.visible=true; if(_fx22VeyrTick(o)<0){ _fx22Kill(o); _fx1123.splice(i,1); } continue; }   /* v1160 Veyr */
-    if(o.kind==='fx16'){ if(_fx22Fx16Tick(o)<0){ _fx22Kill(o); _fx1123.splice(i,1); } continue; }   /* v1171 Vael + Deepcleft */
+    if(o.kind==='fx16'){ if(_fx22Fx16Tick(o)<0){ _fx22Kill(o); _fx1123.splice(i,1); } continue; }
+    if(o.kind==='fx16glide'){ if(_fx22GlideTick(o)<0){ _fx22Kill(o); _fx1123.splice(i,1); } continue; }   /* v1180 Rim Breaker */   /* v1171 Vael + Deepcleft */
     if(o.kind==='puncture'){ if(!o.ok&&o.cut==null&&o.caster._pend!==o.pend) o.cut=o.t;   /* v1128: the cast was interrupted - the tear fades */
       const fr=_fx22PunctCell(o); let op=1; if(o.cut!=null) op=Math.max(0,1-(o.t-o.cut)/0.15);
       if(fr>=d.n||op<=0){ _fx22Kill(o); _fx1123.splice(i,1); continue; }
@@ -29410,7 +29443,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1792189698248';
+const BUILD_ID = '1792195562430';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

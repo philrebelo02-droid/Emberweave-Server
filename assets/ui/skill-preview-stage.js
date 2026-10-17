@@ -55,6 +55,7 @@
       case 'punct': { const H=d.h*3.9/d.slit, W=H*d.fw/d.fh; return [S.xt-W/2,0,S.xt+W/2,H]; }
       case 'tempest': { const r=(e.R||10*METER)*SC, W=2*0.4*r*Math.tan(22.5*Math.PI/180)*d.fw/d.xPx*(d.xMul||1), H=W*d.fh/d.fw; return [0.4*r-W/2,0.5*h-H/2,0.4*r+W/2,0.5*h+H/2]; }
       case 'fx16up': case 'fx16puff': { const H=d.size*h, W=H*d.fw/d.fh, wp=d.weapon, ox=wp?wp.fwd*h:0, oy=wp?wp.up0*h:0; return [X+ox-d.anchor[0]*W,oy-d.anchor[1]*H,X+ox+(1-d.anchor[0])*W,oy+(1-d.anchor[1])*H]; }   /* v1178: a weapon start (Rim Breaker) shifts the box */   /* v1171 Vael / Deepcleft: upright, anchor on the ground point */
+      case 'fx16glide': { const gl=d.glide, H=d.size*h; return [0,0,S.xt+H,Math.max(gl.up*h,1.2*CY)+H]; }   /* v1180 Rim Breaker: hand to target */
       case 'fx16over': { const H=d.size*S.th, W=H*d.fw/d.fh, X=S.xt, cy=(d.mid||0.5)*S.th; return [X-W/2,cy-H/2,X+W/2,cy+H/2]; }   /* v1174 Mirelle's Bouquet: centred on the target's middle */
       case 'fx16claws': { const w=d.len*h/d.lineW, hh=w*d.fh/d.fw*SQ, px=30*SC*d.reach; return [px-d.anchor[0]*w,-(1-d.anchor[1])*hh,px+(1-d.anchor[0])*w,d.anchor[1]*hh]; }
       case 'mantle': case 'shell': { const H=(e.kind==='shell')?d.size*h*d.fh/(d.fh-16):d.size*h, W=H*d.fw/d.fh; return [-W/2,0.5*h-H/2,W/2,0.5*h+H/2]; }
@@ -138,6 +139,8 @@
           if(tC<=tA) F=tb/life*2*(n-1); else if(tb<tA) F=lt*24; else if(tb<tC) F=F0+(tb-tA)/(tC-tA)*(F1-F0); else { F=F1+(tb-tC)/FX_RT*24; a=Math.max(0,1-(F-F1)/d.fade); }
           fr=Math.floor(F/2); }
         const H=d.size*h, W=H*d.fw/d.fh; fxDraw(g,st,d,Math.max(0,Math.min(n-1,fr)),X(0),Y(0),W*s,H*s,d.anchor[0],1-d.anchor[1],{a}); return; }
+      case 'fx16glide': { const D=e.dur||0.5; if(lt>=D) return; const gl=d.glide, k=lt/D, fr=gl.c0+Math.floor(lt*(d.fps2||12))%(gl.c1-gl.c0+1), c=(d.wc&&d.wc[fr])||d.anchor, H=d.size*h, W=H*d.fw/d.fh;   /* v1180 Rim Breaker: a straight glide from his hand to the target's chest */
+        const x0=gl.fwd*h, y0=gl.up*h; fxDraw(g,st,d,fr,X(x0+(V.xt-x0)*k),Y(y0+(1.2*CY-y0)*k),W*s,H*s,c[0],1-c[1]); return; }
       case 'fx16over': { const L=e.real||6; if(lt>=L) return; const fr=Math.min(n-1,Math.floor(lt*(d.fps2||12))), H=d.size*th, W=H*d.fw/d.fh;   /* v1174: real time, once; the target is on her right - as painted */
         fxDraw(g,st,d,fr,X(V.xt),Y((d.mid||0.5)*th),W*s,H*s,d.anchor[0],1-d.anchor[1]); return; }
       case 'fx16puff': case 'fx16claws': { const L=e.real||5; if(lt>=L) return; const fr=Math.min(n-1,Math.floor(lt*(d.fps2||12))), a=d.fadeR?Math.max(0,Math.min(1,(L-lt)/d.fadeR)):1;   /* v1171 Deepcleft: real time, once */
