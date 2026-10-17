@@ -31,7 +31,7 @@ async function server(script, db) {
     return { status: r.status, body, bytes: Buffer.byteLength(text), ms };
   };
   const start = async adminId => {
-    child = spawn(process.execPath, [script], { cwd: root, windowsHide: true, stdio: 'ignore', env: { ...process.env, PORT: String(port), DB_FILE: db, ADMIN_IDS: adminId || '',
+    child = spawn(process.execPath, [script], { cwd: path.dirname(script), windowsHide: true, stdio: 'ignore', env: { ...process.env, PORT: String(port), DB_FILE: db, ADMIN_IDS: adminId || '',
       DB_STORE: 'split', NODE_ENV: 'test', SIM_WORKERS: '0', REG_PER_MIN: '1000', REG_ACCOUNTS_PER_IP: '1000', SERVER_SECRET: 'map-delta-secret', WORLD_CITIES_REFRESH_MS: String(REFRESH) } });
     for (let i = 0; i < 300; i++) { if (child.exitCode !== null) throw Error('server exited'); try { if ((await fetch(base + '/health')).ok) return; } catch (_) {} await sleep(100); }
     throw Error('server not ready');
@@ -79,7 +79,7 @@ async function wholeMap(S, token, since) {
 }
 
 (async () => {
-  const tmpCtl = path.join(root, '.map-delta-control-v1123.js');
+  let tmpCtl = null, ctlSha = null;   /* v1181: the control runs in its own commit's tree (its server/ data too) - a lone old server.js broke on today's data (veteran portal 160 stages) */
   try {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ember-map-delta-'));
     const W = await seedWorld(dir);
@@ -177,13 +177,13 @@ async function wholeMap(S, token, since) {
     let src = null; try { src = execFileSync('git', ['show', V1123 + ':server.js'], { cwd: root, maxBuffer: 64 * 1024 * 1024 }); } catch (e) {}
     if (!src) console.log('  --  control skipped: git cannot read ' + V1123.slice(0, 8));
     else {
-      fs.writeFileSync(tmpCtl, src);
-      const C = await server(tmpCtl, W.db); await C.start(W.adm);
+      ctlSha = V1123; tmpCtl = path.join(require('./helpers/split-rig.cjs').controlTree(ctlSha), 'server.js');
+      execFileSync(process.execPath, [path.join(root, 'server/world-store.js'), 'downgrade', W.db], { stdio: 'ignore' });   /* v1181: the control's own store reads split-v1 only (the rollback step) */ const C = await server(tmpCtl, W.db); await C.start(W.adm);
       const tc = (await C.req('POST', '/api/login', { name: 'mdView', pass: 'password1' })).body.token;
       const c0 = await C.req('GET', '/api/world/cities', null, tc); await C.kill();
       ok(c0.status === 200 && c0.body.cities.length === 297, 'control 59eaefba: the whole-map list is answered (' + c0.status + ', ' + c0.body.cities.length + ' castles, ' + (c0.bytes / 1024).toFixed(1) + ' KB) - the zoom gate check fails there');
     }
     console.log('PASS ' + pass + ' checks');
   } catch (e) { console.log('FAIL after ' + pass + ' checks: ' + (e.stack || e.message)); process.exitCode = 1; }
-  finally { for (const s of servers) await s.kill().catch(() => {}); try { fs.unlinkSync(tmpCtl); } catch (e) {} }
+  finally { for (const s of servers) await s.kill().catch(() => {}); try { if (ctlSha) require('./helpers/split-rig.cjs').removeControlTree(ctlSha); } catch (e) {} }
 })();

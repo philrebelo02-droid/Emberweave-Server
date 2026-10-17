@@ -246,7 +246,12 @@ function mainThreadOf(dir) {
       fs.writeFileSync(f, s.replace('const WORLD_TREE_CONTROL_ENABLED=false;', "const WORLD_TREE_CONTROL_ENABLED=process.env.WORLD_TREE_CONTROL_TEST==='1';")); }
     const old = mainThreadOf(ctl);
     const sameOld = all.filter(x => { const a = here[x.m](...x.args), b = old[x.m](...x.args); if (x.m === 'worldtree') { delete a.engine; delete b.engine; } return JSON.stringify(a) === JSON.stringify(b); }).length;
-    check(sameOld === all.length, 'and equal 6bfeb24d\'s main-thread functions on the same inputs (' + sameOld + '/' + all.length + '; the World Tree result carries the engine build id, ' + here.engine + ' vs ' + old.engine + ')');
+    /* v1181: the engine itself moved after 6bfeb24d (v1135-v1180 hero changes), so the identity that matters for shipping is with
+       the LIVE engine this branch sits on (LIVE_BASE, default v1180 15ddba3f): every helper result = live's main-thread functions. */
+    const LIVE_BASE = process.env.LIVE_BASE || '15ddba3f', base = mainThreadOf(R.controlTree(LIVE_BASE));
+    const sameBase = all.filter(x => { const a = here[x.m](...x.args), c = base[x.m](...x.args); if (x.m === 'worldtree') { delete a.engine; delete c.engine; } return JSON.stringify(a) === JSON.stringify(c); }).length;
+    try { R.removeControlTree(LIVE_BASE); } catch (e) {}
+    check(sameBase === all.length, 'and equal the main-thread functions of the live engine (' + LIVE_BASE + ') on the same inputs (' + sameBase + '/' + all.length + '; 6bfeb24d, before the v1135-v1180 engine changes: ' + sameOld + '/' + all.length + ')');
     const csky = await skyfall(ctl, 'control ' + CONTROL, 'c');
     check(csky.mainLine > 0, 'CONTROL ' + CONTROL + ': its Skyfall fights run on the main thread (' + csky.mainLine + ') - check 1 fails there');
     check(!(csky.down && csky.down.status === 503), 'CONTROL ' + CONTROL + ': with the helper down the assault is fought anyway (' + (csky.down && csky.down.status) + ') - check 2 fails there');
