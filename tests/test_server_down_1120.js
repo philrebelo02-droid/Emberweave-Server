@@ -12,10 +12,10 @@ function checks(src) {
   const gc = src.slice(src.indexOf('async function netGateCheck('), src.indexOf('function netGateLoop('));
   return {
     names: /is down right now\./.test(gu) && /'Lost '\+_svN/.test(gu),
-    oneCheck: /NETGATE\.serverDown=!!\(j&&j\.serverDown\)/.test(gc) && /Math\.max\(2,NETGATE\.down\+1\)/.test(gc),
+    oneCheck: /NETGATE\.serverDown=true; NETGATE\.down=Math\.max\(1,NETGATE\.down\+1\)/.test(gc) && /NETGATE\.serverDown&&NETGATE\.down>=1\) return true/.test(src.slice(src.indexOf('function netGateShown('), src.indexOf('function netGateOk('))),
     list: /data-ngsvr/.test(gu) && /svrGo\(\+b\.dataset\.ngsvr\)/.test(gu),
     retry: /Checking…/.test(gu) && /Still down — Retry/.test(gu),
-    reconnect: /if\(ok&&_was>=2\)\{ try\{ CHATNET\.tries=0; chatConnect\(\);/.test(gc),
+    reconnect: /if\(ok&&_was\)\{ try\{ CHATNET\.tries=0; chatConnect\(\);/.test(gc),
     socketDrop: /CHATNET\.ws\.onclose=\(\)=>\{[^\n]*\n\s*try\{ netGateCheck\(\)/.test(src),
   };
 }

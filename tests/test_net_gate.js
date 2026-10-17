@@ -16,13 +16,13 @@ const freePort=()=>new Promise(r=>{const s=net.createServer();s.listen(0,'127.0.
   if(a<0||b<0){ ok(false,'the page has a net gate'); }
   else {
     const el={style:{display:'none'},dataset:{},innerHTML:'',innerText:'',querySelector:()=>({}),querySelectorAll:()=>[]};
-    const ctx={window:{}, location:{protocol:'https:'}, document:{getElementById:()=>el, createElement:()=>el, body:{appendChild(){}}}, Date, setTimeout:()=>0, clearTimeout(){},
+    const ctx={window:{}, location:{protocol:'https:'}, document:{getElementById:id=>id==='battleLoader'?null:el, createElement:()=>el, body:{appendChild(){}}}, Date, setTimeout:()=>0, clearTimeout(){},
       ACC:{token:'t'}, state:'home', show(){}};
     vm.createContext(ctx); vm.runInContext('function online(){ return true; }'+src.slice(a,b)+';this.NG=NETGATE;this.up=netGateUpdate;',ctx);
     ctx.NG.bootAt=Date.now()-10000;
     ctx.up(); ok(el.style.display==='none','a connected session sees no gate');
-    ctx.NG.down=2; ctx.up(); ok(el.style.display==='flex'&&/Lost .*reconnecting/.test(el.innerHTML),'two failed checks block the game');
-    ctx.NG.down=1; ctx.up(); ok(el.style.display==='none','one failed check (a blip) does not');
+    ctx.NG.down=3; ctx.NG.first=Date.now()-13000; ctx.up(); ok(el.style.display==='flex'&&/Lost .*reconnecting/.test(el.innerHTML),'v1164: three counted misses spanning 12 s block the game');
+    ctx.NG.down=1; ctx.NG.first=Date.now(); ctx.up(); ok(el.style.display==='none','one failed check (a blip) does not');
     ctx.NG.down=0; ctx.ACC={token:null}; ctx.up(); ok(el.style.display==='flex'&&/Sign in to play/.test(el.innerHTML),'no session blocks the game with Sign in (v1144: no guest is provisioned any more)');
     ctx.ACC={token:null,signedOut:true}; ctx.state='home'; ctx.up(); ok(el.style.display==='flex'&&/Sign in to play/.test(el.innerHTML),'a signed-out player cannot reach the town');
     ctx.state='account'; ctx.up(); ok(el.style.display==='none','the sign-in screen stays usable');
