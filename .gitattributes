@@ -1,0 +1,2 @@
+# vASTC: compressed GPU textures (gzip KTX) are binary - never line-ending converted
+*.ktz binary
