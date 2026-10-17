@@ -22,6 +22,10 @@ try { fs.mkdirSync(path.join(BD, 'server')); for (const f of ['emberweave-heroes
 const OLD = path.join(BD, 'emberweave-heroes.html');
 const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); return src => vm.runInContext(src, h.ctx); };
 const run = load(HTML), R0 = baseOk ? load(OLD) : null;   require('./helpers/tessit-hourglass-1189.js').undoTessit1189(run);   // v1189: Tessit's Hourglass (a later release) back out, so this test keeps testing v1186
+/* v1195: Kharos's DEATH (v1190 Batch 3, 12 streamed sheets) is checked by tests/test_death_state.js; it goes back out here too (tests/helpers/death-1182.js),
+   so "battle clips identical to BASE" keeps comparing his v1186 clips. KHAROS_DEATH = his death states as loaded (the CONTROL below). */
+const KHAROS_DEATH = JSON.parse(run('JSON.stringify(Object.keys(BATTLE_ANIM.kharos||{}).filter(s=>/^death\\d*$/.test(s)))'));
+require('./helpers/death-1182.js').undoDeath1182(run);
 require('./helpers/hollow-fx-1191.js').undoHollowFx1191(run);   // v1191: Hollow's FX + green clip (a later release) back to BASE
 let pass = 0, fail = 0;
 const ck = (name, ok, detail) => { if (ok) { pass++; console.log('  ok  ' + name); } else { fail++; console.log('  FAIL ' + name + (detail ? ' - ' + String(detail).slice(0, 900) : '')); } };
@@ -97,6 +101,9 @@ try {
   // 2. the data the engine reads is BASE's
   const strip = o => JSON.parse(JSON.stringify(o, (k, v) => (k === 'ownFx' || k === 'bloom' || k === 'desc') ? undefined : v));
   const kit = r => JSON.stringify(strip(JSON.parse(r('JSON.stringify([KITS.kharos,HERO_ULT_ART.kharos,HERO_TYPES.kharos,ABILITY_CAST.kharos||null,BATTLE_ANIM.kharos])'))));
+  { const rd = load(HTML); require('./helpers/tessit-hourglass-1189.js').undoTessit1189(rd);   /* the page with his death states still in */
+    ck('v1195 CONTROL: the loaded page carries Kharos\'s 12 death states (with them in, the BASE comparison below fails), the helper took them out, and they were the only difference', KHAROS_DEATH.length === 12 &&
+      !JSON.parse(run('JSON.stringify(Object.keys(BATTLE_ANIM.kharos))')).some(s => /^death/.test(s)) && kit(rd) !== kit(R0) && (require('./helpers/death-1182.js').undoDeath1182(rd), kit(rd) === kit(run)), KHAROS_DEATH.join(',')); }
   ck('kit, ult art, hero stats, cast times and battle clips identical to BASE apart from the three ownFx display tags (kgreen / kblue / kult), Bloomstep\'s bloom flag and its text', kit(run) === kit(R0) && run("[KITS.kharos.green.ownFx,KITS.kharos.blue.ownFx,HERO_ULT_ART.kharos.ownFx,KITS.kharos.blue.bloom].join('/')") === 'kgreen/kblue/kult/true' && R0('KITS.kharos.blue.bloom') === undefined);
   { const D = run('KITS.kharos.blue.desc');
     ck('Bloomstep\'s text says what it does now, in plain words: "' + D + '"', /dodges the next hit/.test(D) && /appears behind the enemy and strikes/.test(D) && /2\.2 seconds/.test(D)); }
