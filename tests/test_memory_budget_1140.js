@@ -137,8 +137,12 @@ try {
         const ti=P.texImage2D; P.texImage2D=function(target,level){ const r=ti.apply(this,arguments); try{ if(level===0&&target===this.TEXTURE_2D&&this.__b){ const a=[].slice.call(arguments,2); let w,h;
           if(typeof a[1]==='number'&&a.length>=6){ w=a[1]; h=a[2]; } else { const s=a[a.length-1]; w=s&&(s.width||s.videoWidth||0); h=s&&(s.height||s.videoHeight||0); } T.set(this.__b,{w,h,mip:false}); } }catch(e){} return r; };
         const gm=P.generateMipmap; P.generateMipmap=function(t){ const r=gm.apply(this,arguments); const o=T.get(this.__b); if(o) o.mip=true; return r; };
+        /* vASTC: a compressed upload counts its real bytes (every level's data) */
+        const cti=P.compressedTexImage2D; if(cti) P.compressedTexImage2D=function(target,level){ const r=cti.apply(this,arguments); try{ if(target===this.TEXTURE_2D&&this.__b){ const s=arguments[6], n=typeof s==='number'?s:(s&&s.byteLength)||0;
+          const o=(level===0||!T.get(this.__b))?{w:arguments[3],h:arguments[4],cb:0,c:1}:T.get(this.__b); o.cb+=n; T.set(this.__b,o); } }catch(e){} return r; };
         const dt=P.deleteTexture; P.deleteTexture=function(x){ T.delete(x); return dt.apply(this,arguments); }; }
-      window.__gpuMB=()=>{ let b=0; for(const v of T.values()) b+=(v.w||0)*(v.h||0)*4*(v.mip?4/3:1); return b/1048576; };
+      window.__gpuMB=()=>{ let b=0; for(const v of T.values()) b+=v.c?v.cb:(v.w||0)*(v.h||0)*4*(v.mip?4/3:1); return b/1048576; };
+      window.__gpuList=()=>[...T.values()].filter(v=>v.c).map(v=>v.w+'x'+v.h); window.__gpuSplit=()=>{ let c=0,u=0,n=0; for(const v of T.values()){ if(v.c){ c+=v.cb; n++; } else u+=(v.w||0)*(v.h||0)*4*(v.mip?4/3:1); } return {astcMB:c/1048576, rgbaMB:u/1048576, astcN:n}; };
       const BM=new Set(), fr=new FinalizationRegistry(k=>BM.delete(k)); const cib=window.createImageBitmap;
       window.createImageBitmap=function(){ return cib.apply(this,arguments).then(bm=>{ const k={w:bm.width,h:bm.height}; BM.add(k); bm.__k=k; fr.register(bm,k); return bm; }); };
       const cl=ImageBitmap.prototype.close; ImageBitmap.prototype.close=function(){ if(this.__k) BM.delete(this.__k); return cl.apply(this,arguments); };
@@ -147,6 +151,7 @@ try {
       const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true,
         userAgent: 'Mozilla/5.0 (Linux; Android 14; SM-S918B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Mobile Safari/537.36' });
       await ctx.addInitScript(INIT);
+      if (process.env.EW_ASTC === 'off') await ctx.addInitScript('window.__noAstc=1;');   /* vASTC: EW_ASTC=off measures the WebP path (phones without ASTC) */
       if (html) {   // BASE: its page AND its build stamp (with the newer version.json the old page would update itself to the new one)
         const ver = cp.execSync('git show ' + BASE_SHA + ':version.json', { cwd: ROOT }).toString();
         await ctx.route(u => /\/play(\?|$)/.test(new URL(u).pathname + new URL(u).search.slice(0, 1)), r => r.fulfill({ status: 200, contentType: 'text/html', body: html }));

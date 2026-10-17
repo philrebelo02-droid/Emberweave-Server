@@ -4004,6 +4004,55 @@ function artTiersLoad(){ if(_artTiersP) return _artTiersP;
 function artFile(u){ const T=ART_TIERS&&ART_TIERS[String(u||'').split('?')[0]]; if(!T) return null;
   const e=(ART_TIER==='phone')?T.p:T.h; return e?{u:e[0], W:e[1], H:e[2], c:e[3], r:e[4], tc:e[5]||null}:null; }
 try{ artTiersLoad(); }catch(e){}
+/* vASTC GPU TEXTURE COMPRESSION (Phil 17 Oct 2026: "Lets do it, compress the ingame ones", then "to human eye those images looked identical" -
+   ASTC 4x4 -thorough approved for hero sheets, FX and deaths; blueprint 18 "GPU texture compression"). A PHONE (ART_TIER 'phone') whose WebGL2
+   context reports WEBGL_compressed_texture_astc (and has DecompressionStream) uploads the battle sheets as ASTC 4x4 - 1 byte per texel on the GPU
+   instead of 4. Built by tools/astc_sheets.py from the very texture this phone uploads from WebP today (same file, size, grid, alpha, mips), table
+   assets/anim/astc_sheets.json { original path: [url, W, H, levels, gpuBytes, pm] }; files <stem>_a<hash8>.ktz = KTX 1, gzip -9 (gunzipped here).
+   Every other device - desktop, the high tier, WebGL1, no ASTC, Emberdraft's small figures, a failed fetch/parse - loads the WebP exactly as before.
+   localStorage ew_astc='off' / window.__noAstc (tests) force the WebP path. DISPLAY ONLY: the fight reads clip DATA, never a texture. */
+const ASTC_TABLE_V='5cfef039';   /* tools/astc_sheets.py writes the table's own hash here */
+const ASTC={on:null, why:'', sheets:null, p:null};
+function astcOn(){ if(ASTC.on===null){ let why='';
+    try{ let o=null; try{ o=localStorage.getItem('ew_astc'); }catch(e){}
+      if(window.__noAstc) why='forced off'; else if(o==='off') why='ew_astc off'; else if(ART_TIER!=='phone') why='not the phone tier';
+      else if(typeof DecompressionStream!=='function') why='no DecompressionStream';
+      else if(typeof renderer==='undefined' || !renderer || !renderer.capabilities) return false;   /* asked before the renderer exists: WebP this time, ask again */
+      else if(!renderer.capabilities.isWebGL2) why='WebGL1';
+      else if(!renderer.extensions.get('WEBGL_compressed_texture_astc')) why='no WEBGL_compressed_texture_astc';
+      else { const gl=renderer.getContext(); for(let i=0;i<8&&gl.getError();i++){}   /* one LDR void-extent block: the driver must take it cleanly */
+        const t=new TH.CompressedTexture([{data:new Uint8Array([252,253,255,255,255,255,255,255,0,0,0,0,0,0,255,255]),width:4,height:4}],4,4,TH.RGBA_ASTC_4x4_Format);
+        t.minFilter=t.magFilter=TH.LinearFilter; t.generateMipmaps=false;
+        try{ renderer.initTexture(t); const er=gl.getError(); if(er) why='upload error '+er; }catch(e){ why='upload threw'; } try{ t.dispose(); }catch(e){} }
+    }catch(e){ why='probe failed'; }
+    ASTC.on=!why; ASTC.why=why||'on'; try{ console.log('[EW] ASTC textures: '+ASTC.why); }catch(e){}
+    if(ASTC.on) astcTableLoad(); }
+  return ASTC.on && !(typeof ED!=='undefined' && ED && ED.active); }   /* Emberdraft loads its 200-px figures from WebP */
+function astcTableLoad(){ if(ASTC.p) return ASTC.p;
+  ASTC.p=fetch('/assets/anim/astc_sheets.json?v='+ASTC_TABLE_V).then(r=>r&&r.ok?r.json():null).then(j=>{ ASTC.sheets=(j&&j.sheets)||{}; return ASTC.sheets; },()=>{ ASTC.sheets={}; return ASTC.sheets; });
+  return ASTC.p; }
+/* the compressed texture this device loads for a battle sheet (by its ORIGINAL url): {u, W, H, lv, gpu, pm} - or null = the WebP path */
+function astcFile(u){ if(!astcOn() || !ASTC.sheets) return null; const e=ASTC.sheets[String(u||'').split('?')[0]];
+  return e?{u:e[0], W:e[1], H:e[2], lv:e[3], gpu:e[4], pm:e[5]}:null; }
+/* fetch + gunzip + parse one .ktz -> {W, H, mips:[{data,width,height}]} (KTX 1, glInternalFormat COMPRESSED_RGBA_ASTC_4x4) */
+function astcFetch(url){ return fetch(url).then(r=>{ if(!r.ok) throw new Error('http '+r.status); return r.arrayBuffer(); }).then(b=>{ const m=new Uint8Array(b,0,Math.min(2,b.byteLength));
+    return (m[0]===0x1f&&m[1]===0x8b) ? new Response(new Blob([b]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer() : b; }).then(astcParse); }
+function astcParse(b){ const d=new DataView(b), id=[0xAB,0x4B,0x54,0x58,0x20,0x31,0x31,0xBB,0x0D,0x0A,0x1A,0x0A];
+  for(let i=0;i<12;i++) if(d.getUint8(i)!==id[i]) throw new Error('not a KTX file');
+  if(d.getUint32(12,true)!==0x04030201 || d.getUint32(28,true)!==0x93B0) throw new Error('not ASTC 4x4');
+  const W=d.getUint32(36,true), H=d.getUint32(40,true), n=Math.max(1,d.getUint32(56,true)), mips=[]; let o=64+d.getUint32(60,true), w=W, h=H;
+  for(let i=0;i<n;i++){ const s=d.getUint32(o,true); o+=4; if(s!==Math.ceil(w/4)*Math.ceil(h/4)*16 || o+s>b.byteLength) throw new Error('bad level '+i);
+    mips.push({data:new Uint8Array(b,o,s), width:w, height:h}); o+=s; w=Math.max(1,w>>1); h=Math.max(1,h>>1); }
+  return {W, H, mips}; }
+/* turns a texture the scene already holds (materials keep the object) into the compressed one, in place. Mipmapped exactly when the WebP path
+   would be (WebGL2: the clips, the full chain from the file); the spell sheets are level 0 + LinearFilter as today. Once on the GPU the
+   compressed bytes are dropped and the texture refuses a re-upload - the v1140 rule for a freed bitmap. */
+function astcApply(tx, K, mip){ const m=!!(mip && K.mips.length>1 && _texCaps());
+  tx.isCompressedTexture=true; tx.mipmaps=m?K.mips:[K.mips[0]]; tx.image={width:K.W, height:K.H}; tx.format=TH.RGBA_ASTC_4x4_Format; tx.type=TH.UnsignedByteType;
+  tx.flipY=false; tx.premultiplyAlpha=false; tx.generateMipmaps=false; tx.minFilter=m?TH.LinearMipmapLinearFilter:TH.LinearFilter; tx.magFilter=TH.LinearFilter; if(m) tx.anisotropy=_ANISO;
+  tx._astc=tx.mipmaps.reduce((a,x)=>a+x.data.byteLength,0);
+  tx.onUpdate=function(t){ try{ t.mipmaps=[]; t._freed=true; Object.defineProperty(t,'needsUpdate',{ configurable:true, set(){ /* freed: nothing to re-upload */ } }); }catch(e){} };
+  tx.needsUpdate=true; }
 const GRIP_F=[18,22,25,29];   // Grasping Vow: fingers start to curl / squeezing / nearly shut / shut (30-frame sheet)
 function capSheet(img, cols, rows, cap, figFrac){
   try{
@@ -4169,7 +4218,7 @@ function _texCaps(){
    gone on deleteTexture), per texture unit - and texTallyMB() returns it. Bookkeeping only: every call goes straight through to WebGL. */
 const _glTally={on:false, T:new Map(), b:0, mb(){ return this.b/1048576; }};
 (function glTallyHook(){ try{
-  const T=_glTally.T, sz=o=>(o.w||0)*(o.h||0)*4*(o.mip?4/3:1)*(o.f||1), put=(x,o)=>{ const p=T.get(x); if(p) _glTally.b-=sz(p); T.set(x,o); _glTally.b+=sz(o); };
+  const T=_glTally.T, sz=o=>(o.cb!=null)?o.cb:(o.w||0)*(o.h||0)*4*(o.mip?4/3:1)*(o.f||1), put=(x,o)=>{ const p=T.get(x); if(p) _glTally.b-=sz(p); T.set(x,o); _glTally.b+=sz(o); };
   for(const C of [self.WebGL2RenderingContext, self.WebGLRenderingContext]){ if(!C||!C.prototype||C.prototype.__ewTally) continue; const P=C.prototype; P.__ewTally=1;
     const at=P.activeTexture, bt=P.bindTexture, ti=P.texImage2D, ts=P.texStorage2D, gm=P.generateMipmap, dt=P.deleteTexture;
     const cur=(g,t)=>{ const u=g.__ewU||0, B=t===g.TEXTURE_CUBE_MAP?(g.__ewBc||(g.__ewBc=[])):(g.__ewB2||(g.__ewB2=[])); return B[u]; };
@@ -4179,6 +4228,12 @@ const _glTally={on:false, T:new Map(), b:0, mb(){ return this.b/1048576; }};
       if(x){ let w,h; if(arguments.length>=9){ w=arguments[3]; h=arguments[4]; } else { const q=arguments[arguments.length-1]; w=q&&(q.width||q.videoWidth||0); h=q&&(q.height||q.videoHeight||0); }
         const p=T.get(x); put(x,{w:w|0,h:h|0,mip:false,f:cube?Math.min(6,((p&&p.cube&&p.f)||0)+1):1,cube}); _glTally.on=true; } } }catch(e){} return r; };
     if(ts) P.texStorage2D=function(t,levels,fmt,w,h){ const r=ts.apply(this,arguments); try{ const x=cur(this,t); if(x){ put(x,{w:w|0,h:h|0,mip:levels>1,f:t===this.TEXTURE_CUBE_MAP?6:1}); _glTally.on=true; } }catch(e){} return r; };
+    /* vASTC: a compressed texture counts its REAL bytes - the sum of every level's data as uploaded (ASTC 4x4 = 16 bytes per 4x4 block) */
+    const cti=P.compressedTexImage2D;
+    if(cti) P.compressedTexImage2D=function(t,level){ const r=cti.apply(this,arguments); try{ if(t===this.TEXTURE_2D){ const x=cur(this,t); if(x){ const a=arguments, s=a[6];
+        const n=(typeof s==='number')?s:(s&&s.byteLength!=null?((a.length>=9&&a[8])?a[8]:s.byteLength-((a[7]|0)*(s.BYTES_PER_ELEMENT||1))):0);
+        const p=T.get(x), lv=(level===0||!p||!p.lv)?[]:p.lv.slice(); lv[level]=n;
+        put(x,{w:level===0?(a[3]|0):(p?p.w:0), h:level===0?(a[4]|0):(p?p.h:0), mip:lv.length>1, f:1, lv, cb:lv.reduce((q,v)=>q+(v||0),0)}); _glTally.on=true; } } }catch(e){} return r; };
     P.generateMipmap=function(t){ const r=gm.apply(this,arguments); try{ const x=cur(this,t), o=x&&T.get(x); if(o&&!o.mip) put(x,Object.assign({},o,{mip:true})); }catch(e){} return r; };
     P.deleteTexture=function(x){ try{ const o=T.get(x); if(o){ _glTally.b-=sz(o); T.delete(x); } }catch(e){} return dt.apply(this,arguments); }; }
 }catch(e){} })();
@@ -4186,6 +4241,7 @@ const _texReg=[];
 function _applyTexQual(tx){
   try{
     if(_texReg.indexOf(tx)<0) _texReg.push(tx);
+    if(tx.isCompressedTexture) return;   /* vASTC: its filters and mips came with the file (astcApply); a compressed texture cannot generateMipmap */
     if(_texCaps()){ tx.generateMipmaps=true; tx.minFilter=TH.LinearMipmapLinearFilter; tx.anisotropy=_ANISO; }
     else { tx.generateMipmaps=false; tx.minFilter=TH.LinearFilter; }
     tx.magFilter=TH.LinearFilter;
@@ -4200,7 +4256,7 @@ function requalifyTextures(){
     if(typeof renderer==='undefined' || !renderer || !renderer.capabilities) return;
     _MIPOK=null; if(!_texCaps()) return;          // recompute now that the caps are real
     _texRequalDone=true;
-    for(const tx of _texReg){
+    for(const tx of _texReg){ if(tx.isCompressedTexture) continue;   /* vASTC: set once by astcApply (the renderer existed then) */
       try{ tx.generateMipmaps=true; tx.minFilter=TH.LinearMipmapLinearFilter;
            tx.magFilter=TH.LinearFilter; tx.anisotropy=_ANISO; tx.needsUpdate=true; }catch(e){}
     }
@@ -4222,12 +4278,22 @@ function _loadClip(s){ if(!s || s.tex || !isAssetRef(s.u)) return;
   const go=()=>{ const F=(typeof _keepsImage==='function'&&_keepsImage(s))?null:artFile(s.u), U=F?F.u:s.u, _c=F?F.c:(s.cols||s.n), _r=F?F.r:(s.rows||1);
     const _cw=F?F.W/_c:s.fw, _ch=F?F.H/_r:s.fh, _tc=F?F.tc:null, _ff=(s.figH&&s.fh)?(s.figH/s.fh)/(_tc?_tc[3]:1):0;
     s._lay=F?{c:_c,r:_r,W:F.W,H:F.H,tc:_tc}:null; s._fu=U; s._grid=[_c,_r]; tx.repeat.set(1/_c,1/_r);
+    /* vASTC: the same texture, compressed (same grid, trim and size as the file above - built from it), else the WebP below */
+    const _K=(typeof _keepsImage==='function'&&_keepsImage(s))?null:astcFile(s.u);
+    if(_K && !s._astcFail){ s._fu=_K.u;
+      astcFetch(_K.u).then(K=>{ if(K.W!==_K.W||K.H!==_K.H) throw new Error('size'); if(tx._ewFreed) return _fin(); astcApply(tx,K,true); s._err=false; _fin(); })
+        .catch(e=>{ try{ console.warn('[EW] ASTC sheet failed, WebP instead', _K.u, String(e)); }catch(_){} s._astcFail=1; s._fu=U; if(tx._ewFreed){ _fin(); return; } webp(); });
+      return; }
+    webp(); };
+  const webp=()=>{ const F=(typeof _keepsImage==='function'&&_keepsImage(s))?null:artFile(s.u), U=F?F.u:s.u, _c=F?F.c:(s.cols||s.n), _r=F?F.r:(s.rows||1);
+    const _cw=F?F.W/_c:s.fw, _ch=F?F.H/_r:s.fh, _tc=F?F.tc:null, _ff=(s.figH&&s.fh)?(s.figH/s.fh)/(_tc?_tc[3]:1):0;
     if(!bitmapLoad(U,_c,_r,(bmp)=>{ tx.flipY=false; tx.image=bmp; _applyTexQual(tx); tx.needsUpdate=true; s._err=false; _fin(); },
                    ()=>{ new TH.TextureLoader().load(U, t=>{ tx.image=capSheet(t.image,_c,_r,cellCapFor(s.u),_ff); _applyTexQual(tx); tx.needsUpdate=true; _fin(); }, undefined, ()=>{ _fin(); retryTex(s, tx, 1); }); }, _cw, _ch, _ff, !!(F&&ART_TIER==='phone'))){
       new TH.TextureLoader().load(U, t=>{ _fitTex(t,_c,_r,cellCapFor(s.u),_ff); tx.image=t.image; _applyTexQual(tx); tx.needsUpdate=true; _fin(); }, undefined, ()=>{ _fin(); retryTex(s, tx, 1); });
     } };
   _applyTexQual(tx); tx.wrapS=tx.wrapT=TH.ClampToEdgeWrapping; s.tex=tx; s.aspect=s.fw/s.fh;
-  if(ART_TIERS) go(); else { s._lay=null; s._grid=[s.cols||s.n,s.rows||1]; tx.repeat.set(1/s._grid[0],1/s._grid[1]); artTiersLoad().then(go,go); } }
+  if(ART_TIERS && (ASTC.sheets || !astcOn())) go(); else { s._lay=null; s._grid=[s.cols||s.n,s.rows||1]; tx.repeat.set(1/s._grid[0],1/s._grid[1]);
+    Promise.all([artTiersLoad(), astcOn()?astcTableLoad():null]).then(go,go); } }   /* vASTC: and the compressed table, on a device that uses it */
 /* 30 Aug (v306) — THE HEROES THAT "HAVE NO ANIMATION". Every clip a hero owns was requested in one
    burst, in declaration order, hero after hero: all seven of hero #1's sheets (including his ult and
    his passive, which nobody will see for thirty seconds) queued ahead of hero #5's WALK. Measured on
@@ -4260,13 +4326,13 @@ function deathClip(u){ const A=DEATH_CLIPS.on&&u&&u.anim&&u.anim.death; return (
 function deathParts(set,A){ return (A&&A.parts||[]).map(s=>set&&set[s]).filter(Boolean); }
 function deathTexOk(c){ const im=c&&c.tex&&!c._err&&c.tex.image; if(!im) return false; return ('naturalWidth' in im)?(im.complete&&im.naturalWidth>0):((im.width|0)>0); }
 function deathReady(u){ const A=deathClip(u), ps=deathParts(u&&u.anim,A); return !!A && ps.length===A.parts.length && deathTexOk(ps[0]); }   /* v1190: the first sheet; the rest stream */
-function deathSetMB(ps){ return ps.reduce((s,c)=>s+(c.cols*c.fw)*(c.rows*c.fh)*4*4/3,0)/1048576; }
+function deathSetMB(ps){ return ps.reduce((s,c)=>{ const K=c._astcFail?null:astcFile(c.u); return s+(K?K.gpu:(c.cols*c.fw)*(c.rows*c.fh)*4*4/3); },0)/1048576; }   /* vASTC: a compressed sheet at its real size */
 function deathPeakMB(ps){ let m=deathSetMB(ps.slice(0,1)); for(let i=0;i+1<ps.length;i++) m=Math.max(m,deathSetMB([ps[i],ps[i+1]])); return m; }   /* the most a playing death holds */
 function texTallyMB(){ if(_glTally.on) return _glTally.mb();   /* v1190: the real GPU total (every texture of every WebGL context) */
   let b=0; for(const t of _texReg){ const im=t&&t.image; if(im&&im.width) b+=im.width*im.height*4*(t.generateMipmaps?4/3:1); } return b/1048576; }
 function deathWarm(c){ if(c&&c.tex&&!c.tex._ewWarm&&deathTexOk(c)){ c.tex._ewWarm=1; try{ if(typeof renderer!=='undefined'&&renderer&&renderer.initTexture) renderer.initTexture(c.tex); }catch(e){} } }   /* uploaded before it is drawn */
 function deathFetchRest(ps){ for(let i=1;i<ps.length;i++){ const c=ps[i]; if(c._pf||c.tex) continue; c._pf=1;   /* bytes only, into the browser cache */
-  try{ const F=(typeof artFile==='function')?artFile(c.u):null; fetch(F?F.u:c.u).then(r=>r.ok?r.arrayBuffer():null).then(()=>{},()=>{ c._pf=0; }); }catch(e){ c._pf=0; } } }
+  try{ const K=astcFile(c.u), F=(typeof artFile==='function')?artFile(c.u):null; fetch(K?K.u:(F?F.u:c.u)).then(r=>r.ok?r.arrayBuffer():null).then(()=>{},()=>{ c._pf=0; }); }catch(e){ c._pf=0; } } }
 function deathPreload(u){ const A=deathClip(u); if(!A) return; const ps=deathParts(u.anim,A); if(ps.length!==A.parts.length) return;
   const c0=ps[0]; if(c0.tex){ u._dPre=1; deathWarm(c0); deathFetchRest(ps); return; }
   if(ART_TIER==='phone'){ const now=(typeof performance!=='undefined')?performance.now():0; if(A._gateAt&&now-A._gateAt<1000) return; A._gateAt=now;   /* asked at most once a second */
@@ -4646,7 +4712,7 @@ function allAssetUrls(){
   const add=u=>{ if(typeof u==='string' && u.indexOf('/assets/')===0) out.add(u); };
   /* v1154: a battle sheet is listed as the FILE this device loads (_loadClip's own rule): its phone-tier file on a phone, its trimmed file on
      desktop, else the original. Idle/walk always the original (the UI paints them). Call after artTiersLoad() (assetCachePlan does). */
-  const tierU=c=>{ try{ if(typeof artFile!=='function' || (typeof _keepsImage==='function' && _keepsImage(c))) return c.u; const F=artFile(c.u); return F?F.u:c.u; }catch(e){ return c.u; } };
+  const tierU=c=>{ try{ if(typeof artFile!=='function' || (typeof _keepsImage==='function' && _keepsImage(c))) return c.u; const K=astcFile(c.u); if(K) return K.u; const F=artFile(c.u); return F?F.u:c.u; }catch(e){ return c.u; } };   /* vASTC: a device on compressed sheets saves those */
   try{ for(const k in BATTLE_ANIM){ const set=BATTLE_ANIM[k]; for(const st in set){ if(st[0]==='_')continue; const c=set[st]; if(c&&c.u) add(tierU(c)); } } }catch(e){}
   try{ for(const k in HERO_PORTRAITS) add(HERO_PORTRAITS[k]); }catch(e){}
   try{ for(const k in HERO_SPRITES) add(HERO_SPRITES[k]); }catch(e){}
@@ -4670,6 +4736,7 @@ function _absUrl(u){ try{ return new URL(u, location.origin).href; }catch(e){ re
 function _pathOf(u){ try{ return new URL(u, location.origin).pathname; }catch(e){ return u; } }
 async function assetCachePlan(){
   try{ await artTiersLoad(); }catch(e){}   /* v1154: the list depends on this device's tier */
+  try{ if(astcOn()) await astcTableLoad(); }catch(e){}   /* vASTC: and on whether it loads the compressed sheets */
   const urls=allAssetUrls();
   const want=new Set(urls.map(_absUrl));
   // v577: a REPLACED asset is one whose path we still want but under a different ?v=. Anything else
@@ -4679,6 +4746,9 @@ async function assetCachePlan(){
   /* v1154: an ORIGINAL sheet saved by an older run that this device now loads through a tier file (assets/anim/tiers_1141.json) is
      replaced art too - it goes with the stale ones, under the same v583 guards (never more than a quarter of the library per run). */
   try{ if(ART_TIERS) for(const p0 in ART_TIERS){ if(!wantPath.has(p0) && artFile(p0)) wantPath.add(p0); } }catch(e){}
+  /* vASTC: a sheet this device now loads compressed - its WebP copies (original and phone file) saved by an older run are replaced art too */
+  try{ if(astcOn() && ASTC.sheets){ const inPage=new Set(); for(const k in BATTLE_ANIM){ const set=BATTLE_ANIM[k]; for(const st in set){ const c=set[st]; if(st[0]!=='_'&&c&&c.u) inPage.add(_pathOf(c.u)); } }
+    for(const p0 in ASTC.sheets){ if(!inPage.has(p0)) continue; wantPath.add(p0); const F=artFile(p0); if(F) wantPath.add(_pathOf(F.u)); } } }catch(e){}
   let cache=null, have=[];
   try{ cache=await caches.open(ASSET_CACHE_NAME); have=await cache.keys(); }catch(e){}
   const haveSet=new Set(have.map(r=>r.url));
@@ -9398,6 +9468,7 @@ function initThree(){
   SPH=new TH.SphereGeometry(0.1,6,6);
   renderer=new TH.WebGLRenderer({antialias:true,alpha:true});
   renderer.setClearColor(0x000000,0); three.appendChild(renderer.domElement);   // transparent → painted battle map shows behind the units
+  try{ astcOn(); }catch(e){}   /* vASTC: decide once the context exists and fetch the compressed table now, long before the first spell sheet asks for it */
   /* 28 Aug (Phil: "you destroyed the game ... I cannot even enter campaign battles anymore").
      A phone that runs out of GPU memory does not crash the tab — Chrome silently DROPS the WebGL
      context. Nothing here listened for that, so every later frame drew into a dead context: the
@@ -13208,6 +13279,13 @@ const FX2_DEF={
 };
 const _fx2Tex={};
 function fx2Tex(key){ const d=FX2_DEF[key]; if(!d||!TH)return null; if(_fx2Tex[key])return _fx2Tex[key];
+  /* vASTC: the compressed spell sheet (built from the very texture the lines below upload: same file, size and alpha; level 0, LinearFilter).
+     If it fails, the next cast asks again and gets the WebP path. */
+  const _K=(d.fw&&d.fh&&d.cols&&!d._astcFail)?astcFile(d.u):null;
+  if(_K){ const t=new TH.Texture(); t.magFilter=TH.LinearFilter; t.minFilter=TH.LinearFilter; t.generateMipmaps=false; t.wrapS=t.wrapT=TH.ClampToEdgeWrapping; _fx2Tex[key]=t;
+    astcFetch(_K.u).then(K=>{ if(K.W!==_K.W||K.H!==_K.H) throw new Error('size'); if(!t._ewFreed) astcApply(t,K,false); })
+      .catch(e=>{ try{ console.warn('[EW] ASTC spell sheet failed, WebP instead', _K.u, String(e)); }catch(_){} d._astcFail=1; if(_fx2Tex[key]===t) delete _fx2Tex[key]; });
+    return t; }
   /* v1140 MEMORY HOTFIX: on a phone a spell sheet loads within TEX_SHEET_MAX px per side (measured: a 5v5's spell sheets were 1.1 GB of
      textures at full size) and its decoded copy is freed once it is on the GPU. The UVs are cell fractions, so the art lands the same. */
   const _F=(d.fw&&d.fh&&d.cols)?artFile(d.u):null;   /* v1141: this device's tier file (same grid, so the cell-fraction UVs are unchanged) */

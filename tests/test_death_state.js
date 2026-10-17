@@ -129,6 +129,7 @@ try {
         userAgent: 'Mozilla/5.0 (Linux; Android 14; SM-S918B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Mobile Safari/537.36' });
       await ctx.addInitScript(() => { window.AudioContext = undefined; window.webkitAudioContext = undefined; });
       if (INIT) await ctx.addInitScript(INIT);
+      if (process.env.EW_ASTC === 'off') await ctx.addInitScript('window.__noAstc=1;');   /* vASTC: EW_ASTC=off measures the WebP path (phones without ASTC) */
       const pg = await ctx.newPage(); const errs = [], dreq = [];
       pg.on('pageerror', e => errs.push(String(e.message))); pg.on('request', r => { if (/_death\d*_/.test(r.url())) dreq.push(r.url().split('/').pop()); });
       await pg.goto(base + '/play', { waitUntil: 'domcontentloaded' }); await pg.waitForTimeout(2500);
