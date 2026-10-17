@@ -22,6 +22,7 @@
    DB_STORE_IO=sync keeps every file operation on the main thread (the v1127 behaviour). */
 const fs = require('fs'), path = require('path');
 const wt = require('worker_threads');
+const SAFE = require('./world-safety.js');   // v1183: durable saves (flushBatch / fsyncDir)
 
 /* one job: ops run in order; on failure every file the job created is removed */
 function runOps(ops, ctx) {
@@ -32,7 +33,13 @@ function runOps(ops, ctx) {
       if (op.w !== undefined) { fs.writeFileSync(op.w, op.s); created.push(op.w); }
       else if (op.a !== undefined) fs.appendFileSync(op.a, op.s);
       else if (op.r !== undefined) { fs.renameSync(op.r, op.to); const i = created.indexOf(op.r); if (i >= 0) created.splice(i, 1); }
-      else if (op.mk !== undefined) fs.mkdirSync(op.mk, { recursive: true });
+      else if (op.mk !== undefined && op.link === undefined) fs.mkdirSync(op.mk, { recursive: true });
+      // v1183 (world-load guard): {link, to, mk} = a hard-link copy of the new manifest in <DB_FILE>.m for `recover` (best effort);
+      // {flush, files, dirs} = every new file of this save on the disk before the swap - ONE syncfs (an fsync per file where `sync -f`
+      // is missing); a failed flush fails the save. {fsyncDir} = the swap itself is flushed.
+      else if (op.link !== undefined) { try { fs.mkdirSync(op.mk, { recursive: true }); try { fs.unlinkSync(op.to); } catch (e) {} fs.linkSync(op.link, op.to); created.push(op.to); } catch (e) {} }
+      else if (op.flush !== undefined) { const t0 = Date.now(); SAFE.flushBatch(op.files || [], op.dirs || [], op.flush); if (ctx && ctx.stats) ctx.stats.lastSyncMs = Date.now() - t0; }
+      else if (op.fsyncDir !== undefined) SAFE.fsyncDir(op.fsyncDir);
       else if (op.u !== undefined) { try { fs.unlinkSync(op.u); } catch (e) { if (e.code !== 'ENOENT') throw e; } }
       else if (op.sweep !== undefined) {   // remove every file matching rx that keep does not name (orphans after a failed save)
         const keep = new Set(op.keep), rx = new RegExp(op.rx); let files = []; try { files = fs.readdirSync(op.sweep); } catch (e) {}

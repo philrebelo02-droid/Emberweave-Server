@@ -48,7 +48,10 @@ function freshInstall(file) {
   if (nonEmptyDir(file + '.m')) evidence.push('the manifest copies folder ' + file + '.m has files');
   try { const b = fs.readdirSync(path.join(dir, 'backups')).filter(f => !f.endsWith('.tmp')); if (b.length) evidence.push(b.length + ' backup file(s) in ' + path.join(dir, 'backups')); }
   catch (e) { if (e.code !== 'ENOENT') evidence.push('the backups folder is unreadable (' + e.code + ')'); }
-  try { const side = fs.readdirSync(dir).filter(f => f !== base && f.startsWith(base) && f !== base + '.d' && f !== base + '.m'); if (side.length) evidence.push('side files of the world: ' + side.slice(0, 5).join(', ')); }
+  // v1185: <DB_FILE>.checks (the fight-check backlog, server/check-backlog.js) is made at start-up before the world loads - it is
+  // evidence of a world only when a file in it holds something (a waiting check)
+  const emptyChecks = f => { if (f !== base + '.checks') return false; try { return fs.readdirSync(path.join(dir, f)).every(x => fs.statSync(path.join(dir, f, x)).size === 0); } catch (e) { return false; } };
+  try { const side = fs.readdirSync(dir).filter(f => f !== base && f.startsWith(base) && f !== base + '.d' && f !== base + '.m' && !emptyChecks(f)); if (side.length) evidence.push('side files of the world: ' + side.slice(0, 5).join(', ')); }
   catch (e) { if (e.code !== 'ENOENT') evidence.push('the data folder is unreadable (' + e.code + ')'); }
   return { fresh: evidence.length === 0, evidence };
 }
@@ -127,6 +130,11 @@ function recover(file, opts) {
     try {
       const man = readJSON(path.join(mdir, c.f));
       if (!man || man.__store !== WS.FORMAT) throw Error('not a manifest');
+      if (man.layout) {   // v1185: a pieces / journal manifest - the store itself loads it against the live .d (every base, piece and journal it names)
+        const db = WS.create(path.join(mdir, c.f), { dir }).load();
+        picked = { manifest: man, text: fs.readFileSync(path.join(mdir, c.f), 'utf8'), db, keep: WS.namedFiles(path.join(mdir, c.f)) };
+        out.source = 'manifest copy ' + c.f + ' (exact: the last committed save, layout ' + man.layout + ')'; break;
+      }
       const count = man.count || 128;
       for (let s = 0; s < count; s++) { const n = man.shards && man.shards[s]; if (!n) throw Error('shard ' + s + ' not named'); readJSON(path.join(dir, n)); }
       picked = { manifest: man, text: JSON.stringify(man) }; out.source = 'manifest copy ' + c.f + ' (exact: the last committed save)'; break;
@@ -137,6 +145,8 @@ function recover(file, opts) {
   if (!picked) {
     const by = new Map(); let files = [];
     try { files = fs.readdirSync(dir); } catch (e) { out.error = 'no shard folder ' + dir; return out; }
+    // v1185: a pieces / journal world (no usable manifest copy): rebuild it from what is in .d - see recoverLayout()
+    if (files.some(f => /^p-[A-Za-z0-9_$]{1,64}-\d+\.json$/.test(f) || /^j-\d+\.log$/.test(f))) return recoverLayout(file, files, opts, out);
     for (const f of files) { const m = /^(\d+)-(\d+)\.json$/.exec(f); if (!m) continue; const s = +m[1]; if (!by.has(s)) by.set(s, []); by.get(s).push({ f, g: +m[2] }); }
     chosen = {}; const missing = []; let gen = 0;
     for (let s = 0; s < WS.SHARDS; s++) {
@@ -167,9 +177,10 @@ function recover(file, opts) {
     picked = { manifest: man, text: JSON.stringify(man) };
   }
   // what the recovered world holds
-  const man = picked.manifest, db = Object.assign({}, man.core); db.users = {}; const idem = Object.assign({}, (man.core && man.core.idem) || {});
-  for (let s = 0; s < (man.count || 128); s++) { const p = readJSON(path.join(dir, man.shards[s])); Object.assign(db.users, p.users || {}); Object.assign(idem, p.idem || {}); }
-  db.idem = idem;
+  const man = picked.manifest; let db = picked.db;
+  if (!db) { db = Object.assign({}, man.core); db.users = {}; const idem = Object.assign({}, (man.core && man.core.idem) || {});
+    for (let s = 0; s < (man.count || 128); s++) { const p = readJSON(path.join(dir, man.shards[s])); Object.assign(db.users, p.users || {}); Object.assign(idem, p.idem || {}); }
+    db.idem = idem; }
   out.players = Object.keys(db.users).length; out.realPlayers = realPlayerCount(db); out.npcs = Object.values(db.users).filter(u => u && u.isNpc).length;
   out.digest = worldDigest(db).all; out.gen = man.gen;
   if (opts.returnWorld) Object.defineProperty(out, 'world', { value: db, enumerable: false });   // checks only; never printed
@@ -178,8 +189,9 @@ function recover(file, opts) {
   // aside (never deleted) so the next boot's sweep cannot remove them
   const stamp = new Date().toISOString().replace(/[:.]/g, '-');
   if (fs.existsSync(file)) { fs.renameSync(file, file + '.before-recover-' + stamp); out.keptOld = file + '.before-recover-' + stamp; }
-  const keep = new Set(Object.values(man.shards)), aside = file + '.d.recover-' + stamp; let moved = 0;
-  for (const f of fs.readdirSync(dir)) if (/^\d+-\d+\.json$/.test(f) && !keep.has(f)) { fs.mkdirSync(aside, { recursive: true }); fs.renameSync(path.join(dir, f), path.join(aside, f)); moved++; }
+  const keep = picked.keep || new Set(Object.values(man.shards)), aside = file + '.d.recover-' + stamp; let moved = 0;
+  const storeFile = f => /^\d+-\d+\.json$/.test(f) || /^p-[A-Za-z0-9_$]{1,64}-\d+\.json$/.test(f) || /^j-\d+\.log$/.test(f);   // v1185: pieces and journals too
+  for (const f of fs.readdirSync(dir)) if (storeFile(f) && !keep.has(f)) { fs.mkdirSync(aside, { recursive: true }); fs.renameSync(path.join(dir, f), path.join(aside, f)); moved++; }
   if (moved) { out.movedAside = moved; out.asideDir = aside; fsyncDir(dir); }
   writeAtomic(file, picked.text, '.recover.tmp');
   const back = WS.readWorld(file);
@@ -187,5 +199,71 @@ function recover(file, opts) {
   return out;
 }
 
-module.exports = { fsyncFile, fsyncDir, flushBatch, writeDurable, writeAtomic, freshInstall, isWorld, isRealPlayer, realPlayerCount,
+/* v1185 recover for the pieces / journal layout when no manifest copy in .m is usable. The world is rebuilt from .d alone:
+   - every shard: its newest readable base file <s>-<g>.json (missing -> error, as split-v1);
+   - every shared piece: its newest readable p-<key>-<g>.json;
+   - the journals j-<x>.log, in order, applied ONLY where they are newer than that base: a base of gen g written by a full save has
+     j-g beside it (its own journal) - patches from j-g on; one written by a checkpoint was folded from the journals before the
+     rotation that made j-(g-1) - patches from j-(g-1) on. Older journals (already folded, maybe not yet removed) are never re-applied.
+   - the inline core (the few keys that are not pieces): the newest one in a journal, else from the newest backup.
+   --write moves every store file in .d (and .m) ASIDE (never deleted) and writes the rebuilt world as ONE plain world file (atomic);
+   the next boot of a split server writes it back as a journal world (a full save). */
+function recoverLayout(file, files, opts, out) {
+  const WS = require('./world-store.js'), J = require('./store-journal.js');
+  const dir = file + '.d', readJSON = p => JSON.parse(fs.readFileSync(p, 'utf8'));
+  const SH = WS.SHARDS, shards = new Map(), pfiles = new Map(), jlist = [];
+  for (const f of files) { let m;
+    if ((m = /^(\d+)-(\d+)\.json$/.exec(f))) { const s = +m[1]; if (!shards.has(s)) shards.set(s, []); shards.get(s).push({ f, g: +m[2] }); }
+    else if ((m = /^p-([A-Za-z0-9_$]{1,64})-(\d+)\.json$/.exec(f))) { if (!pfiles.has(m[1])) pfiles.set(m[1], []); pfiles.get(m[1]).push({ f, g: +m[2] }); }
+    else if ((m = /^j-(\d+)\.log$/.exec(f))) jlist.push({ f, g: +m[1] }); }
+  jlist.sort((a, b) => a.g - b.g); const jgen = new Set(jlist.map(j => j.g));
+  const from = g => jgen.has(g) ? g : g - 1;   // the first journal that is newer than a base / piece file of gen g
+  const newest = list => { for (const c of (list || []).sort((a, b) => b.g - a.g)) { try { return { c, v: readJSON(path.join(dir, c.f)) }; } catch (e) { out.warnings.push(c.f + ' unreadable (' + e.message + '), trying an older one'); } } return null; };
+  const db = { users: {} }, idem = {}, baseOf = new Array(SH).fill(0), missing = []; let G = 0;
+  for (let s = 0; s < SH; s++) { const n = newest(shards.get(s)); if (!n) { missing.push(s); continue; } baseOf[s] = n.c.g; G = Math.max(G, n.c.g);
+    Object.assign(db.users, n.v.users || {}); Object.assign(idem, n.v.idem || {}); }
+  if (missing.length) { out.error = missing.length + ' shard(s) have no readable base file: ' + missing.slice(0, 10).join(','); out.missing = missing; return out; }
+  const pieceFrom = {};
+  for (const [k, list] of pfiles) { const n = newest(list); if (!n) continue; db[k] = n.v; pieceFrom[k] = from(n.c.g); }
+  // the journals, oldest first: each player / receipt / piece patch applied only when its journal is newer than the file it sits on
+  const units = new Map(), recs = new Map(), plist = new Map(); let core, lines = 0, torn = 0;
+  for (const j of jlist) {
+    let text; try { text = fs.readFileSync(path.join(dir, j.f), 'utf8'); } catch (e) { out.warnings.push('journal ' + j.f + ' unreadable (' + e.message + ') - skipped'); continue; }
+    const r = J.parseJournal(text); if (r.torn) { torn++; out.warnings.push('journal ' + j.f + ': a torn last line was ignored'); }
+    for (const rec of r.recs) { lines++;
+      if (rec.u) for (const id of Object.keys(rec.u)) { if (j.g < from(baseOf[J.shardOfN(id, SH)])) continue; const v = rec.u[id]; let l = units.get(id); if (!l || v === null || (v && v.w !== undefined)) units.set(id, l = []); l.push(v); }
+      if (rec.i) for (const k of Object.keys(rec.i)) { const o = WS.ownerOf(k); const t = o === null ? from(G) : from(baseOf[J.shardOfN(o, SH)]); if (j.g >= t) recs.set(k, rec.i[k]); }
+      if (rec.p) for (const k of Object.keys(rec.p)) { const t = pieceFrom[k] !== undefined ? pieceFrom[k] : from(G); if (j.g < t) continue; const v = rec.p[k]; let l = plist.get(k); if (!l || v === null || (v && v.w !== undefined)) plist.set(k, l = []); l.push(v); }
+      if (rec.c !== undefined && j.g >= from(G)) core = rec.c; } }
+  for (const [id, list] of units) { const u = J.applyPatches(db.users[id], list); if (u === null) delete db.users[id]; else db.users[id] = u; }
+  for (const [k, v] of recs) { if (v === null) delete idem[k]; else idem[k] = v; }
+  for (const [k, list] of plist) { const v = J.applyPiece(db[k], list); if (v === undefined) delete db[k]; else db[k] = v; }
+  // the inline core: from the journals, else the keys a piece does not hold from the newest backup
+  if (core !== undefined) Object.assign(db, core);
+  else {
+    let coreDb = null, coreFrom = opts.core || null;
+    if (coreFrom) { try { coreDb = readJSON(coreFrom); } catch (e) {} }
+    else { const bdir = path.join(path.dirname(file), 'backups'); let c = [];
+      try { c = fs.readdirSync(bdir).filter(f => /^db-.*\.json$/.test(f) || f === PIN).map(f => ({ f: path.join(bdir, f), m: fs.statSync(path.join(bdir, f)).mtimeMs })).sort((a, b) => b.m - a.m); } catch (e) {}
+      for (const x of c) { try { const d = readJSON(x.f); if (isWorld(d)) { coreDb = d; coreFrom = x.f; break; } } catch (e) {} } }
+    if (coreDb) { let n = 0; for (const k of Object.keys(coreDb)) if (k !== 'users' && k !== 'idem' && db[k] === undefined) { db[k] = coreDb[k]; n++; }
+      if (n) out.warnings.push(n + ' shared key(s) that are not pieces came from ' + coreFrom); }
+  }
+  db.idem = Object.assign({}, db.idem || {}, idem);
+  out.source = 'newest base / piece files in ' + dir + ' (base gen up to ' + G + ') + ' + jlist.length + ' journal(s) applied only past their base (' + lines + ' lines' + (torn ? ', ' + torn + ' torn tail(s) ignored' : '') + ')';
+  out.players = Object.keys(db.users).length; out.realPlayers = realPlayerCount(db); out.npcs = Object.values(db.users).filter(u => u && u.isNpc).length;
+  out.digest = worldDigest(db).all; out.gen = G; out.layout = 'journal (rebuilt)';
+  if (opts.returnWorld) Object.defineProperty(out, 'world', { value: db, enumerable: false });
+  if (!opts.write) return out;
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+  if (fs.existsSync(file)) { fs.renameSync(file, file + '.before-recover-' + stamp); out.keptOld = file + '.before-recover-' + stamp; }
+  const aside = file + '.d.recover-' + stamp; fs.renameSync(dir, aside); out.asideDir = aside; out.movedAside = files.length;   // every store file kept, never deleted
+  if (fs.existsSync(file + '.m')) { fs.renameSync(file + '.m', file + '.m.recover-' + stamp); out.asideManifestCopies = file + '.m.recover-' + stamp; }
+  fsyncDir(path.dirname(file));
+  writeAtomic(file, JSON.stringify(db), '.recover.tmp');   // one plain world file: the next split boot writes it back as a journal world
+  out.verified = worldDigest(WS.readWorld(file)).all === out.digest; out.wrote = true;
+  return out;
+}
+
+module.exports = { recoverLayout, fsyncFile, fsyncDir, flushBatch, writeDurable, writeAtomic, freshInstall, isWorld, isRealPlayer, realPlayerCount,
   readPinMeta, rotateBackups, pinVerdict, backupWorld, pushVerdict, canon, worldDigest, recover, PIN, PIN_META };
