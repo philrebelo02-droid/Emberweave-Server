@@ -3,7 +3,7 @@
  "patches": [
   {
    "ver": "0.95",
-   "releases": "v1183, v1186, v1187, v1188",
+   "releases": "v1183, v1184, v1186, v1187, v1188",
    "items": [
     {
      "text": "Server data safety improvements: a server that cannot read its saved world now stops safely instead of starting fresh, saves are fully written to disk before they count, and backups of real player progress are always kept.",
@@ -33,6 +33,12 @@
      "text": "Bloomstep: Kharos now vanishes into the petal storm, then appears behind the enemy and strikes with the counter's 2.1x damage: behind the one that hit him, or behind his target when the 2.2 seconds end.",
      "sources": [
       "SHIPPED-v1186-kharos-spell-fx-17-10-2026.md"
+     ]
+    },
+    {
+     "text": "Signing up and signing in stay quick when many players join at once: new accounts no longer fail with \"Accounts are unreachable\" during a rush.",
+     "sources": [
+      "SHIPPED-v1184-signup-gate-17-10-2026.md"
      ]
     }
    ]
