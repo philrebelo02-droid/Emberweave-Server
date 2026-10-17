@@ -15,7 +15,7 @@
 const path = require('path'), vm = require('vm'), fs = require('fs'), cp = require('child_process'), crypto = require('crypto'), os = require('os'), net = require('net');
 const ROOT = path.resolve(__dirname, '..');
 const HTML = process.env.EW_HTML || path.join(ROOT, 'emberweave-heroes.html');
-const BASE_SHA = process.env.EW_BASE || '3e44595d';   // live v1183 (world-load guard, on v1182 the first four deaths), the build this change sits on
+const BASE_SHA = process.env.EW_BASE || '95027853';   // live v1187 (death batch 1), the build this change sits on
 const VER = process.env.EW_DEATH_VER || '1182';
 const HEROES = ['vael', 'sylthaine', 'vex', 'vireo'];   // the first four: the browser scenarios run on them
 const SRCS = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures', 'death_sources.json'), 'utf8'));   // every hero with a death (tools: death_batch.py adds each batch)

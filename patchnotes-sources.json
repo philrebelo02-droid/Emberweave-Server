@@ -3,7 +3,7 @@
  "patches": [
   {
    "ver": "0.95",
-   "releases": "v1183, v1187",
+   "releases": "v1183, v1187, v1188",
    "items": [
     {
      "text": "Server data safety improvements: a server that cannot read its saved world now stops safely instead of starting fresh, saves are fully written to disk before they count, and backups of real player progress are always kept.",
@@ -15,6 +15,12 @@
      "text": "Absalie, Aldren, Ambrel, Askel Greatbrow, Astra, Aureth, Bloatus and Brannus now have their own death animations.",
      "sources": [
       "SHIPPED-v1187-hero-deaths-batch1-17-10-2026.md"
+     ]
+    },
+    {
+     "text": "Calypsa Prismfin, Carn, Ceraline, Dandra, Deepcleft, Fritz, Grimsby and Grosk now have their own death animations.",
+     "sources": [
+      "SHIPPED-v1188-hero-deaths-batch2-17-10-2026.md"
      ]
     }
    ]

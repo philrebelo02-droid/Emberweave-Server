@@ -125,7 +125,7 @@
   "plate": "green",
   "flip": true,
   "end": "hide",
-  "ver": "1198"
+  "ver": "1188"
  },
  {
   "key": "carn",
@@ -135,7 +135,7 @@
   "plate": "green",
   "flip": false,
   "end": "hide",
-  "ver": "1198"
+  "ver": "1188"
  },
  {
   "key": "ceraline",
@@ -145,7 +145,7 @@
   "plate": "green",
   "flip": true,
   "end": "hide",
-  "ver": "1198"
+  "ver": "1188"
  },
  {
   "key": "dandra",
@@ -155,7 +155,7 @@
   "plate": "magenta",
   "flip": false,
   "end": "hide",
-  "ver": "1198"
+  "ver": "1188"
  },
  {
   "key": "deepcleft",
@@ -165,7 +165,7 @@
   "plate": "green",
   "flip": false,
   "end": "hide",
-  "ver": "1198"
+  "ver": "1188"
  },
  {
   "key": "fritz",
@@ -175,7 +175,7 @@
   "plate": "magenta",
   "flip": false,
   "end": "hide",
-  "ver": "1198"
+  "ver": "1188"
  },
  {
   "key": "grimsby",
@@ -185,7 +185,7 @@
   "plate": "green",
   "flip": false,
   "end": "hide",
-  "ver": "1198"
+  "ver": "1188"
  },
  {
   "key": "grosk",
@@ -195,6 +195,6 @@
   "plate": "magenta",
   "flip": false,
   "end": "hold",
-  "ver": "1198"
+  "ver": "1188"
  }
 ]
