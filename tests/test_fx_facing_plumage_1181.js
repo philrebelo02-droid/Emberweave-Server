@@ -16,6 +16,7 @@ if (!OLD) { try { OLD = path.join(ROOT, '.test-face1181-base.html'); fs.writeFil
   const tmp = OLD; process.on('exit', () => { try { fs.unlinkSync(tmp); } catch (e) {} }); } catch (e) { OLD = null; } }
 const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); return src => vm.runInContext(src, h.ctx); };
 const run = load(HTML), R0 = OLD ? load(OLD) : null;   require('./helpers/kharos-fx-1186.js').undoKFX1186(run);   require('./helpers/tessit-hourglass-1189.js').undoTessit1189(run);   // v1186 Kharos's FX and v1189 Tessit's Hourglass back to BASE, so this test keeps testing v1181
+require('./helpers/hollow-fx-1191.js').undoHollowFx1191(run);   // v1191: Hollow's FX entries + green clip go back to v1178's (tests/test_hollow_fx_1191.js checks them)
 let pass = 0, fail = 0;
 const ck = (name, ok, detail) => { if (ok) { pass++; console.log('  ok  ' + name); } else { fail++; console.log('  FAIL ' + name + (detail ? ' - ' + String(detail).slice(0, 900) : '')); } };
 const H = s => crypto.createHash('sha256').update(s).digest('hex').slice(0, 16);
@@ -90,7 +91,7 @@ try {
   const others = r => r("JSON.stringify(Object.keys(FX2_DEF).filter(k=>k!=='mirelle_ult').map(k=>[k,FX2_DEF[k]]))");
   ck('every other FX2_DEF entry is byte-for-byte BASE', H(others(run)) === H(others(R0)));
   { const stage = fs.readFileSync(path.join(ROOT, 'assets/ui/skill-preview-stage.js'), 'utf8');
-    ck('the Skills-tab preview sizes the badges the same way (badgeH) and the page loads the stage at a new ?v= (sp1181)', (stage.match(/d\.badgeH>0\?d\.badgeH\*0\.95/g) || []).length === 2 && src.includes('skill-preview-stage.js?v=sp1181')); }
+    ck('the Skills-tab preview sizes the badges the same way (badgeH) and the page loads the stage at a new ?v= (sp1181)', (stage.match(/d\.badgeH>0\?d\.badgeH\*0\.95/g) || []).length === 2 && /skill-preview-stage\.js\?v=sp11(8[1-9]|9\d)/.test(src)); }
   // 3. display only
   for (const [K, kind] of [['mirelle', 'ult'], ['deepcleft', 'green'], ['vael', 'blue']]) ck(`${K} ${kind}: a cast is tick-identical to BASE for 6 s`, H(run(CAST(K, kind))) === H(R0(CAST(K, kind))));
   { const T = [[11, ['mirelle', 'vael', 'tick', 'lumi', 'korvux'], ['grosk', 'vireo', 'sylthaine', 'carn', 'hollow']], [5, ['deepcleft', 'mirelle'], ['vael', 'umbris', 'nox']]];

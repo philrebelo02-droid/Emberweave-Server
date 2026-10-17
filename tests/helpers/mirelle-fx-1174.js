@@ -8,7 +8,7 @@ const fs = require('fs'), path = require('path');
 const FIX = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'fixtures', 'mirelle_fx_1174_before.json'), 'utf8'));
 const Q = require('./q95-1158.js');
 const probe = Q.Q95.sheets.map(e => e.path + '?v=1158');
-function undoMirelleFx1174(run) {
+function undoMirelleFx1174(run) { require('./hollow-fx-1191.js').undoHollowFx1191(run);   // v1191: Hollow's entries (replaced after this release) go back too
   const q95view = run(`(()=>{ const s=JSON.stringify(FX2_DEF)+JSON.stringify(BATTLE_ANIM); return !${JSON.stringify(probe)}.some(u=>s.indexOf(u)>=0); })()`) === true;
   const B = q95view ? JSON.parse(Q.undoText(JSON.stringify(FIX.fx))) : FIX.fx;
   return run(`(()=>{ const B=${JSON.stringify(B)};

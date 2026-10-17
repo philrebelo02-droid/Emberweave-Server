@@ -22,6 +22,7 @@ try { fs.mkdirSync(path.join(BD, 'server')); for (const f of ['emberweave-heroes
 const OLD = path.join(BD, 'emberweave-heroes.html');
 const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); return src => vm.runInContext(src, h.ctx); };
 const run = load(HTML), R0 = baseOk ? load(OLD) : null;   require('./helpers/tessit-hourglass-1189.js').undoTessit1189(run);   // v1189: Tessit's Hourglass (a later release) back out, so this test keeps testing v1186
+require('./helpers/hollow-fx-1191.js').undoHollowFx1191(run);   // v1191: Hollow's FX + green clip (a later release) back to BASE
 let pass = 0, fail = 0;
 const ck = (name, ok, detail) => { if (ok) { pass++; console.log('  ok  ' + name); } else { fail++; console.log('  FAIL ' + name + (detail ? ' - ' + String(detail).slice(0, 900) : '')); } };
 const H = s => crypto.createHash('sha256').update(s).digest('hex').slice(0, 16);

@@ -3,7 +3,7 @@
  "patches": [
   {
    "ver": "0.95",
-   "releases": "v1183, v1184, v1186, v1187, v1188, v1189, v1190",
+   "releases": "v1183, v1184, v1186, v1187, v1188, v1189, v1190, v1191",
    "items": [
     {
      "text": "Server data safety improvements: a server that cannot read its saved world now stops safely instead of starting fresh, saves are fully written to disk before they count, and backups of real player progress are always kept.",
@@ -57,6 +57,12 @@
      "text": "Death animations now load in small pieces while they play, so phones use much less memory in big fights.",
      "sources": [
       "SHIPPED-v1190-hero-deaths-stream-batch3-17-10-2026.md"
+     ]
+    },
+    {
+     "text": "New spell effects for Hollow's Fan of Knives, Lacerate and Vanishing Point, and a new Fan of Knives animation: he draws five knives and throws them.",
+     "sources": [
+      "SHIPPED-v1191-hollow-spell-fx-17-10-2026.md"
      ]
     }
    ]
@@ -165,19 +171,19 @@
       "SHIPPED-v1175-hobb-kharos-16-10-2026.md"
      ]
     },
-      {
+    {
      "text": "Brannus: eight new animations, including his first critical strike, and new spell effects for Rim Breaker, Arena Lock and Lionwheel Rampage.",
      "sources": [
       "SHIPPED-v1178-brannus-quorrel-16-10-2026.md"
      ]
     },
-      {
+    {
      "text": "Quorrel: eight new animations, including his first critical strike.",
      "sources": [
       "SHIPPED-v1178-brannus-quorrel-16-10-2026.md"
      ]
     },
-      {
+    {
      "text": "Rim Breaker now flies at the furthest enemy within 10 m, striking and stunning every enemy along its path, and Brannus throws the wheel through the air instead of rolling it.",
      "sources": [
       "SHIPPED-v1180-rim-breaker-16-10-2026.md"

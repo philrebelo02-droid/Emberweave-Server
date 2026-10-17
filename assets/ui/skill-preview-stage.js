@@ -56,6 +56,7 @@
       case 'tempest': { const r=(e.R||10*METER)*SC, W=2*0.4*r*Math.tan(22.5*Math.PI/180)*d.fw/d.xPx*(d.xMul||1), H=W*d.fh/d.fw; return [0.4*r-W/2,0.5*h-H/2,0.4*r+W/2,0.5*h+H/2]; }
       case 'fx16up': case 'fx16puff': { const H=d.size*h, W=H*d.fw/d.fh, wp=d.weapon, ox=wp?wp.fwd*h:0, oy=wp?wp.up0*h:0; return [X+ox-d.anchor[0]*W,oy-d.anchor[1]*H,X+ox+(1-d.anchor[0])*W,oy+(1-d.anchor[1])*H]; }   /* v1178: a weapon start (Rim Breaker) shifts the box */   /* v1171 Vael / Deepcleft: upright, anchor on the ground point */
       case 'fx16glide': { const gl=d.glide, H=d.size*h; return [0,0,S.xt+H,Math.max(gl.up*h,1.2*CY)+H]; }   /* v1180 Rim Breaker: hand to target */
+      case 'fx16hand': { const W=e.hw*h*(d.flyMul||1), H=W*d.fh/d.fw, x=e.hx*h, y=e.hy*h; return [x-d.anchor[0]*W,y-d.anchor[1]*H,x+(1-d.anchor[0])*W,y+(1-d.anchor[1])*H]; }   /* v1191 Hollow's knives: the fan's root on his hand
       case 'fx16over': { const H=d.size*S.th, W=H*d.fw/d.fh, X=S.xt, cy=(d.mid||0.5)*S.th; return [X-W/2,cy-H/2,X+W/2,cy+H/2]; }   /* v1174 Mirelle's Bouquet: centred on the target's middle */
       case 'fx16claws': { const w=d.len*h/d.lineW, hh=w*d.fh/d.fw*SQ, px=30*SC*d.reach; return [px-d.anchor[0]*w,-(1-d.anchor[1])*hh,px+(1-d.anchor[0])*w,d.anchor[1]*hh]; }
       case 'mantle': case 'shell': { const H=(e.kind==='shell')?d.size*h*d.fh/(d.fh-16):d.size*h, W=H*d.fw/d.fh; return [-W/2,0.5*h-H/2,W/2,0.5*h+H/2]; }
@@ -88,7 +89,7 @@
   function drawFx(g,st,V,e,t,hero,layer){ const d=e.d, s=V.s, ox=V.ox, oy=V.oy, h=V.h, th=V.th, X=x=>ox+x*s, Y=y=>oy-y*s;
     const lt=t-e.t0; if(lt<0) return; const tb=lt*FX_RT, n=d.n||1, clipR=d.dur||1;   // tb: fight seconds since it spawned
     const ground=(e.kind==='disc'||e.kind==='flat'||e.kind==='cone'||e.kind==='disc22'||e.kind==='undertow'||e.kind==='fx16claws');
-    const front=(e.kind==='above'||e.kind==='proj'||e.kind==='drop'||e.kind==='beam'||e.kind==='tip'||e.kind==='chop'||e.kind==='spark'||e.kind==='bell'||e.kind==='crescent'||e.kind==='wound'||e.kind==='slash'||e.kind==='ruyi'||e.kind==='reap'||e.kind==='tempest'||e.kind==='shell'||e.kind==='mantle'||e.kind==='punct'||e.kind==='hook'||e.kind==='fx16over');
+    const front=(e.kind==='above'||e.kind==='proj'||e.kind==='drop'||e.kind==='beam'||e.kind==='tip'||e.kind==='chop'||e.kind==='spark'||e.kind==='bell'||e.kind==='crescent'||e.kind==='wound'||e.kind==='slash'||e.kind==='ruyi'||e.kind==='reap'||e.kind==='tempest'||e.kind==='shell'||e.kind==='mantle'||e.kind==='punct'||e.kind==='hook'||e.kind==='fx16over'||e.kind==='fx16hand');
     if(layer==='ground'&&!ground) return; if(layer==='back'&&(ground||front)) return; if(layer==='front'&&!front) return;
     const R3=(e.R||2.4*METER)*SC, AX=(e.at==='target')?V.xt:0;
     withFit(g,V,e,()=>{ switch(e.kind){
@@ -141,6 +142,8 @@
         const H=d.size*h, W=H*d.fw/d.fh; fxDraw(g,st,d,Math.max(0,Math.min(n-1,fr)),X(0),Y(0),W*s,H*s,d.anchor[0],1-d.anchor[1],{a}); return; }
       case 'fx16glide': { const D=e.dur||0.5; if(lt>=D) return; const gl=d.glide, k=lt/D, fr=gl.c0+Math.floor(lt*(d.fps2||12))%(gl.c1-gl.c0+1), c=(d.wc&&d.wc[fr])||d.anchor, H=d.size*h, W=H*d.fw/d.fh;   /* v1180 Rim Breaker: a straight glide from his hand to the target's chest */
         const x0=gl.fwd*h, y0=gl.up*h; fxDraw(g,st,d,fr,X(x0+(V.xt-x0)*k),Y(y0+(1.2*CY-y0)*k),W*s,H*s,c[0],1-c[1]); return; }
+      case 'fx16hand': { const L=e.real||5; if(lt>=L) return; const fr=Math.min(n-1,Math.floor(lt*(d.fps2||12))), kk=Math.max(0,Math.min(1,lt/(d.grow||1e-6))), W=e.hw*h*(1+((d.flyMul||1)-1)*kk*kk*(3-2*kk)), H=W*d.fh/d.fw;   /* v1191: opens to flyMul over `grow`, as _fx22Fx16Hand */   /* v1191: real time, once, from his hand; the preview faces right - as painted */
+        fxDraw(g,st,d,fr,X(e.hx*h),Y(e.hy*h),W*s,H*s,d.anchor[0],1-d.anchor[1]); return; }
       case 'fx16over': { const L=e.real||6; if(lt>=L) return; const fr=Math.min(n-1,Math.floor(lt*(d.fps2||12))), H=d.size*th, W=H*d.fw/d.fh;   /* v1174: real time, once; the target is on her right - as painted */
         fxDraw(g,st,d,fr,X(V.xt),Y((d.mid||0.5)*th),W*s,H*s,d.anchor[0],1-d.anchor[1]); return; }
       case 'fx16puff': case 'fx16claws': { const L=e.real||5; if(lt>=L) return; const fr=Math.min(n-1,Math.floor(lt*(d.fps2||12))), a=d.fadeR?Math.max(0,Math.min(1,(L-lt)/d.fadeR)):1;   /* v1171 Deepcleft: real time, once */

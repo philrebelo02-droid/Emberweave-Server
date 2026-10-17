@@ -16,7 +16,7 @@ const BASE_SHA = process.env.EW_BASE || '1fabc0e2';   // live v1173 (Meridian + 
 let OLD = process.env.EW_HTML_OLD;
 if (!OLD) { try { OLD = path.join(ROOT, '.test-mfx1174-base.html'); fs.writeFileSync(OLD, cp.execSync('git show ' + BASE_SHA + ':emberweave-heroes.html', { cwd: ROOT, maxBuffer: 64 << 20 }));
   const tmp = OLD; process.on('exit', () => { try { fs.unlinkSync(tmp); } catch (e) {} }); } catch (e) { OLD = null; } }
-const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); const r = src => vm.runInContext(src, h.ctx); require('./helpers/anim-brannus-quorrel-1178.js').undoBQ1178(r); return r; };   // v1178: Brannus's three FX entries (and his / Quorrel's clips) back to v1175's (tests/test_brannus_quorrel_1178.js checks them)
+const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); const r = src => vm.runInContext(src, h.ctx); require('./helpers/anim-brannus-quorrel-1178.js').undoBQ1178(r); require('./helpers/hollow-fx-1191.js').undoHollowFx1191(r); return r; };   // v1191: Hollow's entries too   // v1178: Brannus's three FX entries (and his / Quorrel's clips) back to v1175's (tests/test_brannus_quorrel_1178.js checks them)
 const run = load(HTML), R0 = OLD ? load(OLD) : null;
 let pass = 0, fail = 0;
 const ck = (name, ok, detail) => { if (ok) { pass++; console.log('  ok  ' + name); } else { fail++; console.log('  FAIL ' + name + (detail ? ' - ' + String(detail).slice(0, 900) : '')); } };

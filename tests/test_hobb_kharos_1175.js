@@ -23,7 +23,7 @@ const OLD = path.join(BD, 'emberweave-heroes.html');
 const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); const r = src => vm.runInContext(src, h.ctx); require('./helpers/anim-brannus-quorrel-1178.js').undoBQ1178(r); return r; };   // v1178: Brannus's / Quorrel's entries back to v1175's (tests/test_brannus_quorrel_1178.js checks them)
 const UHK = require('./helpers/anim-hobb-kharos-1175.js');
 const run = load(HTML), R0 = baseOk ? load(OLD) : null;
-require('./helpers/plumage-1181.js').undoPlumage1181(run);   // v1181: Imperial Plumage's badgeH (a later release) comes back off before the FX2_DEF comparison
+require('./helpers/plumage-1181.js').undoPlumage1181(run); require('./helpers/hollow-fx-1191.js').undoHollowFx1191(run);   // v1191: Hollow's FX + green clip back to BASE   // v1181: Imperial Plumage's badgeH (a later release) comes back off before the FX2_DEF comparison
 require('./helpers/death-1182.js').undoDeath1182(run);   // v1182: the four new death states go back out (tests/test_death_state.js checks them)
 let pass = 0, fail = 0;
 const ck = (name, ok, detail) => { if (ok) { pass++; console.log('  ok  ' + name); } else { fail++; console.log('  FAIL ' + name + (detail ? ' - ' + String(detail).slice(0, 700) : '')); } };

@@ -24,7 +24,7 @@ try { fs.mkdirSync(path.join(BD, 'server')); for (const f of ['emberweave-heroes
 const OLD = path.join(BD, 'emberweave-heroes.html');
 const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); const r = src => vm.runInContext(src, h.ctx); require('./helpers/rim-breaker-1180.js').undoRim1180(r); return r; };   // v1180: Rim Breaker as v1178 (tests/test_rim_breaker_1180.js checks the glide and the pierce)
 const run = load(HTML), R0 = baseOk ? load(OLD) : null;
-require('./helpers/plumage-1181.js').undoPlumage1181(run);   // v1181: Imperial Plumage's badgeH (a later release) comes back off before the FX2_DEF comparison
+require('./helpers/plumage-1181.js').undoPlumage1181(run); require('./helpers/hollow-fx-1191.js').undoHollowFx1191(run);   // v1191: Hollow's FX + green clip back to BASE   // v1181: Imperial Plumage's badgeH (a later release) comes back off before the FX2_DEF comparison
 require('./helpers/death-1182.js').undoDeath1182(run);   // v1182: the four new death states go back out (tests/test_death_state.js checks them)
 require('./helpers/tessit-hourglass-1189.js').undoTessit1189(run);   // v1189: Tessit's Hourglass (a later release) comes back out (tests/test_tessit_hourglass.js checks it)
 let pass = 0, fail = 0;
@@ -284,7 +284,7 @@ try {
       pre.shown === null && post.shown != null && post.cut != null && post.gone != null && post.gone - post.cut <= 0.15 + 2 * step, JSON.stringify({ pre, post: post.cells })); }
   ck('hooks: the shot launch confirms an atLaunch art and abilArt skips it at the landing; the show / tick run the two new modes',
     /if\(mode==='shot'&&o\.ownFx&&typeof FX16_ART!=='undefined'&&FX16_ART\[o\.ownFx\]&&FX16_ART\[o\.ownFx\]\.atLaunch(&&FX16_ART\[o\.ownFx\]\.mode!=='glide')?&&TH&&scene\) fx16Release\(u,o\.ownFx,o\.dur\|\|6,null,0\)/.test(src) &&
-    /else if\(FX16_ART\[o\.ownFx\]&&!FX16_ART\[o\.ownFx\]\.atLaunch\)\{ try\{/.test(src) && /if\(V\.mode==='side'\|\|V\.mode==='ring'\)\{ o\.P=\{x,y\}; o\.mir=!!u\._fxMirror;/.test(src) && /if\(V\.mode==='side'\|\|V\.mode==='ring'\) _fx22Fx16Side\(o\); return 0; \}/.test(src));
+    /else if\(FX16_ART\[o\.ownFx\]&&!FX16_ART\[o\.ownFx\]\.atLaunch\)\{ try\{/.test(src) && /if\(V\.mode==='side'\|\|V\.mode==='ring'\)\{ o\.P=\{x,y\}; o\.mir=!!u\._fxMirror;/.test(src) && /if\(V\.mode==='side'\|\|V\.mode==='ring'\) _fx22Fx16Side\(o\);( if\(V\.mode==='[a-z]+'\) _fx22Fx16[A-Za-z]+\(o\);)* return 0; \}/.test(src));   /* v1191: Hollow's cut / hand painters follow it */
   { const P = JSON.parse(run(`JSON.stringify([0,1,2].map(sl=>{ const p=skillPreviewPlan('brannus',sl); return p?p.fx.map(e=>({k:e.k,kind:e.kind,at:e.at||null,t0:+e.t0.toFixed(4),real:e.real!=null?+e.real.toFixed(3):null})):null; }))`));
     const [u, g, b] = P, one = (p, k, cell, real) => p && p.length === 1 && p[0].k === k && p[0].kind === 'fx16puff' && p[0].at === 'self' && p[0].t0 === +(cell / 24).toFixed(4) && Math.abs(p[0].real - real) < 1e-3;
     ck('Skills tab previews (v1164) show the new art at the moment the fight shows it, upright at his feet for its real length: Rim Breaker from green cell 18, Arena Lock blue 7, Lionwheel Rampage ult 29 (' + JSON.stringify(P) + ')',

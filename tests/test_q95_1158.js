@@ -89,7 +89,7 @@ try {
   // ------------------------------------------------ 4. URLS
   const both = page + tiers, uBad = [];
   const esc = s => s.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&');
-  const RETIRED = new Set(['/assets/anim/fx/vael_ult.webp']);   // v1171: replaced in place by vael_last_stand_16oct.webp (the file stays on disk; tests/test_vael_fx_1171.js)
+  const RETIRED = new Set(['/assets/anim/fx/vael_ult.webp', '/assets/anim/hollow/hollow_green_1126.webp']);   // v1171: replaced in place by vael_last_stand_16oct.webp (the file stays on disk; tests/test_vael_fx_1171.js); v1191: Hollow's green clip replaced by hollow_green_1191.webp (tests/test_hollow_fx_1191.js)
   for (const e of FIX.sheets) { if (!both.includes(e.path + '?v=1158') && !RETIRED.has(e.path)) uBad.push(e.path + ' has no ?v=1158 URL');
     for (const m of both.matchAll(new RegExp(esc(e.path) + '\\?v=([A-Za-z0-9_.-]+)', 'g'))) if (m[1] !== '1158') uBad.push(e.path + ' ?v=' + m[1]); }
   ck('every page and tier-table URL of a q95 sheet is ?v=1158, none keeps its old ?v=', uBad.length === 0, uBad.slice(0, 5).join('; '));

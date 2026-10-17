@@ -88,6 +88,7 @@ const dig = r => { r.digest = crypto.createHash('sha256').update(r.digest).diges
 
 // contact cells from the NEW table, for every hero and every clip
 const runNew = s => vm.runInContext(s, hostFor(HTML).ctx);
+require('./helpers/anim-slim-1155.js').undoSlim1155(runNew);   // v1191: the contact table reads the same entries the fights run on (undoSlim1155 also puts back the clips replaced later, Hollow's v1191 green among them)
 const CC = JSON.parse(runNew(`(()=>{ const o={}; for(const h in BATTLE_ANIM){ const set=BATTLE_ANIM[h]; if(!set||typeof set!=='object'||!heroHasAnim(h)) continue; o[h]={};
   for(const s in set){ const A=set[s]; if(A&&A.n>0) o[h][s]=clipContactCell(A); } } return JSON.stringify(o); })()`));
 const badCC = [];
