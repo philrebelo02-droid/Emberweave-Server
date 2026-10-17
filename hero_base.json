@@ -223,7 +223,7 @@
   "nox": {
     "hp": 245,
     "dmg": 40,
-    "apow": 0,
+    "apow": 31,
     "role": "Assassin",
     "stars": 2,
     "healer": false,

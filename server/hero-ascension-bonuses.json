@@ -3125,7 +3125,7 @@
       "steps": [
         {
           "quality": "Grey",
-          "stat": "Physical Attack",
+          "stat": "Ability Power",
           "amount": 3,
           "pct": false
         },
@@ -3155,13 +3155,13 @@
         },
         {
           "quality": "Blue +2",
-          "stat": "Armor Penetration",
+          "stat": "Magic Penetration",
           "amount": 1.25,
           "pct": false
         },
         {
           "quality": "Purple",
-          "stat": "Physical Attack",
+          "stat": "Ability Power",
           "amount": 3.87,
           "pct": false
         },
@@ -3191,13 +3191,13 @@
         },
         {
           "quality": "Gold +1",
-          "stat": "Armor Penetration",
+          "stat": "Magic Penetration",
           "amount": 1.54,
           "pct": false
         },
         {
           "quality": "Gold +2",
-          "stat": "Physical Attack",
+          "stat": "Ability Power",
           "amount": 4.74,
           "pct": false
         },

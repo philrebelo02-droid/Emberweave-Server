@@ -17,6 +17,7 @@ if (!OLD) { try { OLD = path.join(ROOT, '.test-face1181-base.html'); fs.writeFil
 const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); return src => vm.runInContext(src, h.ctx); };
 const run = load(HTML), R0 = OLD ? load(OLD) : null;   require('./helpers/kharos-fx-1186.js').undoKFX1186(run);   require('./helpers/tessit-hourglass-1189.js').undoTessit1189(run);   // v1186 Kharos's FX and v1189 Tessit's Hourglass back to BASE, so this test keeps testing v1181
 require('./helpers/hollow-fx-1191.js').undoHollowFx1191(run);   // v1191: Hollow's FX entries + green clip go back to v1178's (tests/test_hollow_fx_1191.js checks them)
+require('./helpers/nox-magic-1194.js').undoNoxMagic1194(run);   // v1194: Nox's base AP and paths back to BASE
 let pass = 0, fail = 0;
 const ck = (name, ok, detail) => { if (ok) { pass++; console.log('  ok  ' + name); } else { fail++; console.log('  FAIL ' + name + (detail ? ' - ' + String(detail).slice(0, 900) : '')); } };
 const H = s => crypto.createHash('sha256').update(s).digest('hex').slice(0, 16);

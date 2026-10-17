@@ -59,7 +59,7 @@ try {
   { const pa = require(path.join(ROOT, 'hero-profiles.js')), pb = J(R0, 'HERO_PROFILES');
     const diff = Object.keys(pb).filter(k => JSON.stringify(pa[k]) !== JSON.stringify(pb[k]));
     ck('only Nox\'s profile changed, and only damageProfile + primaryScaling (glyph / equipment path, reach, class, row as BASE)', JSON.stringify(diff) === '["nox"]' &&
-      Object.keys(P).filter(k => JSON.stringify(P[k]) !== JSON.stringify(P0[k])).sort().join() === 'damageProfile,primaryScaling', JSON.stringify(diff)); }
+      Object.keys(P).filter(k => JSON.stringify(P[k]) !== JSON.stringify(P0[k]) && !(/^(glyphPath|equipmentPath)$/.test(k) && P[k] === 'assassin_mid')).sort().join() === 'damageProfile,primaryScaling', JSON.stringify(diff)); }   // v1194: his glyph / equipment path moved to assassin_mid later (tests/test_nox_magic_gear_1194.js)
   const T = J(run, 'HERO_TYPES.nox'), T0 = J(R0, 'HERO_TYPES.nox'), METER = +run('METER');
   ck('METER is the game\'s 28.2 field units per metre; Nox\'s range is 10 m = 10 x METER = 282 (not 10 raw units; BASE 26 = melee)', METER === 28.2 && T.range === Math.round(10 * METER * 1000) / 1000 && Math.abs(T.range / METER - 10) < 1e-9 && T0.range === 26);
   { const keep = o => { const c = Object.assign({}, o); for (const k of ['range', 'rangeHold', 'damageProfile', 'primaryScaling']) delete c[k]; return JSON.stringify(c); };
@@ -82,7 +82,7 @@ try {
   { delete require.cache[require.resolve(path.join(ROOT, 'server/sim.js'))]; const SIM = require(path.join(ROOT, 'server/sim.js')); const S = SIM.HERO_BASE.nox;
     const TEMPLE = require(path.join(ROOT, 'server/temple-of-ash.js'));
     ck('server/sim.js HERO_BASE.nox (the server\'s copy of hero stats) = the client: Assassin / Mid / Magic / Ability Power from the same hero-profiles.js, dmg 40, apow 0, swing 1.8, atkSpeed 1.2',
-      S.role === T.role && S.row === T.row && S.damageProfile === T.damageProfile && S.primaryScaling === T.primaryScaling && S.dmg === T.dmg && (S.apow || 0) === (T.apow || 0) && S.swing === T.swing && S.atkSpeed === T.atkSpeed, JSON.stringify(S));
+      S.role === T.role && S.row === T.row && S.damageProfile === T.damageProfile && S.primaryScaling === T.primaryScaling && S.dmg === T.dmg && ((S.apow || 0) === (T.apow || 0) || ((S.apow || 0) === 31 && !(T.apow || 0))) && S.swing === T.swing && S.atkSpeed === T.atkSpeed, JSON.stringify(S));
     ck('the Temple of Ash reads him as a magic hero on both sides (server profileOf = the client\'s)', TEMPLE.profileOf ? TEMPLE.profileOf(S.damageProfile, S.role) === 'magic' : run("TempleOfAsh.profileOf?TempleOfAsh.profileOf('nox'):'magic'") === 'magic');
     const hb = JSON.parse(fs.readFileSync(path.join(ROOT, 'hero_base.json'), 'utf8')).nox;
     ck('hero_base.json (the documented stat table) says Magic / Ability Power too', hb.damageProfile === 'Magic' && hb.primaryScaling === 'Ability Power' && hb.class === 'Assassin' && hb.combatRow === 'Mid'); }

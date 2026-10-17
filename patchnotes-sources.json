@@ -3,7 +3,7 @@
  "patches": [
   {
    "ver": "0.95",
-   "releases": "v1183, v1184, v1186, v1187, v1188, v1189, v1190, v1191, v1193",
+   "releases": "v1183, v1184, v1186, v1187, v1188, v1189, v1190, v1191, v1193, v1194",
    "items": [
     {
      "text": "Server data safety improvements: a server that cannot read its saved world now stops safely instead of starting fresh, saves are fully written to disk before they count, and backups of real player progress are always kept.",
@@ -69,6 +69,12 @@
      "text": "Hollow's Fan of Knives: the knives now fly out twice as fast.",
      "sources": [
       "SHIPPED-v1193-hollow-knives-faster-17-10-2026.md"
+     ]
+    },
+    {
+     "text": "Nox now uses magic assassin gear and glyphs, and he has his own Ability Power, so his spells grow with it. Gear already on him becomes the matching magic piece, keeping its Temper.",
+     "sources": [
+      "SHIPPED-v1194-nox-magic-gear-17-10-2026.md"
      ]
     }
    ]

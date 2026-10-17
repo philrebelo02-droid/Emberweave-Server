@@ -755,6 +755,52 @@ function migrateGlyphDefenseAv2(){ let n=0;
     for(const k of Object.keys(g.boards)){ const b=g.boards[k]; if(b&&(b.ascensionIndex|0)>0&&SIM.HERO_BASE[k]){ b.ascended=glyphAscendedFromPlan(k,b.ascensionIndex); n++; } }
     g.defense1123=1; }
   if(n){ console.log('recomputed '+n+' glyph board(s) for the Academy v2 Ironwall Defense'); writeDB(); } }
+/* v1194 NOX TO MAGIC ASSASSIN GEAR (Phil 17 Oct: "Switch nox to magic gear and swap everything of his to magic assassin gear"). Nox is
+   Magic / Ability Power, but his equipment and glyph paths were the attack assassins' (assassin_other); the one other magic assassin, Veyr, is
+   on assassin_mid. hero-profiles.js now puts Nox on assassin_mid, his personal glyph tiers are Veyr's and his ascension steps read Ability
+   Power / Magic Penetration where they read Physical Attack / Armor Penetration (same amounts; read at use, nothing banked). An existing
+   account is moved ONCE, nothing lost:
+     gear   - each piece equipped on Nox that belongs to the old path becomes the new path's piece for the SAME slot and quality (same item id,
+              still bound, still his, his gear active kept). Temper is per item type (v1054): the new type takes the higher of the two types'
+              Temper (never lower), and the old type keeps its own record for any other copy. Idempotent (an old-path id maps, a new one does not).
+     glyphs - his board's banked stats (ascended) were summed from the old tiers: exact old sum -> subtract it and add the new tiers' sum;
+              anything else (an older board) -> keep it and top it up to the new sum (glyphPersonalMigrate's rule). The glyphs slotted on his
+              current tier that are the old tier's pre-choice become the new pre-choice of the same tier (sourceDefinitionId kept).
+              Marker: board.noxMagic1194. Unslotted glyphs, fragments and sub-glyphs are untouched. */
+const NOX_OLD_TIERS_1194=[["Stoneheart", "Veilward", "Ravager", "Hawkeye", "Windstep", "Hawkeye"], ["Stoneheart", "Veilward", "Ravager", "Sunder", "Shadepath", "Hawkeye"], ["Stoneheart", "Veilward", "Ravager", "Sunder", "Shadepath", "Hawkeye"], ["Stoneheart", "Veilward", "Ravager", "Sunder", "Shadepath", "Hawkeye"], ["Stoneheart", "Veilward", "Ravager", "Sunder", "Shadepath", "Hawkeye"], ["Stoneheart", "Veilward", "Ravager", "Sunder", "Shadepath", "Hawkeye"], ["Stoneheart", "Veilward", "Ravager", "Sunder", "Shadepath", "Hawkeye"], ["Stoneheart", "Veilward", "Ravager", "Sunder", "Shadepath", "Hawkeye"], ["Stoneheart", "Veilward", "Ravager", "Sunder", "Shadepath", "Hawkeye"], ["Stoneheart", "Veilward", "Ravager", "Sunder", "Shadepath", "Hawkeye"], ["Stoneheart", "Veilward", "Ravager", "Sunder", "Shadepath", "Hawkeye"], ["Stoneheart", "Veilward", "Sunder", "Sunder", "Shadepath", "Hawkeye"], ["Stoneheart", "Veilward", "Ravager", "Sunder", "Shadepath", "Hawkeye"], ["Stoneheart", "Veilward", "Ravager", "Sunder", "Shadepath", "Hawkeye"], ["Stoneheart", "Veilward", "Ravager", "Sunder", "Shadepath", "Hawkeye"], ["Stoneheart", "Veilward", "Ravager", "Sunder", "Shadepath", "Hawkeye"]];
+const NOX_GEAR_MAP_1194=(()=>{ const a=HERO_PATHS.assassin_other.equipment, b=HERO_PATHS.assassin_mid.equipment, m={};
+  a.forEach((id,i)=>{ if(id!==b[i]) m[id]=b[i]; }); return m; })();
+function noxPlanFromTiers(tiers,qi){ const p=HERO_PROFILES.nox;
+  return tiers[qi].map((family,slotIdx)=>{ const pick=GLYPHS.raw.find(d=>d.qi===qi&&d.family===family&&glyphAllowed(slotIdx,d,p.class)&&glyphSupplyOK(d));
+    if(!pick) throw new Error('Nox old glyph tier is not forgeable: '+GLYPH_LADDER[qi]+' '+GLYPH_SLOTS[slotIdx]+' '+family); return pick; }); }
+function noxMagicMigrateUser(u){ const out={gear:0,glyph:0};
+  const g=u&&u.gear, eq=g&&g.equipped&&g.equipped.nox;
+  if(eq) for(const slot of Object.keys(eq)){ const it=g.items&&g.items[eq[slot]]; const to=it&&NOX_GEAR_MAP_1194[it.d]; if(!to) continue;
+    const from=it.d, tf=gearTT(g,from), tt=gearTT(g,to);
+    const keepFrom=Object.assign({},tf), best=(tf.temper>tt.temper||(tf.temper===tt.temper&&(tf.prog|0)>(tt.prog|0)))?tf:tt;
+    it.d=to; it.migratedFrom=from; it.migratedAt=Date.now();
+    gearTTSet(g,to,{temper:best.temper|0,prog:best.prog|0,dustSpent:Math.max(tf.dustSpent|0,tt.dustSpent|0)});
+    if(Object.values(g.items).some(x=>x&&x.d===from)) gearTTSet(g,from,keepFrom);   /* any other copy of the old type keeps its Temper */
+    g.revision=(g.revision|0)+1; out.gear++; }
+  const G=u&&u.glyphs, b=G&&G.boards&&G.boards.nox;
+  if(b&&!b.noxMagic1194){ const count=Math.max(0,Math.min(GLYPH_MAX_ASC,b.ascensionIndex|0));
+    const add=(bank,st,sign)=>{ const o=bank[st.stat]||{val:0,pct:st.pct}; o.val=+(o.val+sign*st.val).toFixed(2); o.pct=st.pct; if(Math.abs(o.val)<0.001) delete bank[st.stat]; else bank[st.stat]=o; };
+    const oldBank={}, newBank={};
+    for(let qi=0;qi<count;qi++){ for(const d of noxPlanFromTiers(NOX_OLD_TIERS_1194,qi)) for(const st of d.stats) add(oldBank,st,1);
+      for(const d of glyphPersonalPlan('nox',qi)) for(const st of d.stats) add(newBank,st,1); }
+    const actual=b.ascended||{};
+    const exact=Object.entries(oldBank).every(([k,v])=>actual[k]&&actual[k].pct===v.pct&&(actual[k].val||0)+0.01>=v.val);
+    if(exact){ for(const [k,v] of Object.entries(oldBank)) add(actual,{stat:k,val:v.val,pct:v.pct},-1); for(const [k,v] of Object.entries(newBank)) add(actual,{stat:k,val:v.val,pct:v.pct},1); b.noxMagicMode='exact-delta'; }
+    else { for(const [k,v] of Object.entries(newBank)){ const have=actual[k]&&actual[k].pct===v.pct?(actual[k].val||0):0; if(have+0.001<v.val) add(actual,{stat:k,val:+(v.val-have).toFixed(2),pct:v.pct},1); } b.noxMagicMode='preserve-legacy'; }
+    b.ascended=actual;
+    if(count<GLYPH_MAX_ASC&&b.slots){ const op=noxPlanFromTiers(NOX_OLD_TIERS_1194,count), np=glyphPersonalPlan('nox',count);
+      for(let s=0;s<6;s++){ const iid=b.slots[s], inst=iid&&G.finished&&G.finished[iid]; if(!inst) continue;
+        if(inst.definitionId===op[s].id&&np[s].id!==op[s].id){ inst.sourceDefinitionId=inst.definitionId; inst.definitionId=np[s].id; inst.pathMigratedAt=Date.now(); } } }
+    b.noxMagic1194=1; G.revision=(G.revision|0)+1; glyphAudit(G,'nox-magic-1194',{tier:count,mode:b.noxMagicMode}); out.glyph++; }
+  return out; }
+function migrateNoxMagic1194(){ let gear=0, glyph=0, users=0;
+  for(const u of Object.values(DB.users||{})){ const r=noxMagicMigrateUser(u); if(r.gear||r.glyph){ users++; gear+=r.gear; glyph+=r.glyph; } }
+  if(users){ console.log('v1194 Nox to magic assassin gear: '+users+' account(s), '+gear+' equipped piece(s) swapped, '+glyph+' glyph board(s) moved'); writeDB(); } }
 function migrateGlyphPaths1022(){ let n=0;
   for(const u of Object.values(DB.users||{})){ const g=u&&u.glyphs; if(!g||!g.boards||g.paths1022) continue;
     for(const k of Object.keys(g.boards)){ const b=g.boards[k]; if(b&&(b.ascensionIndex|0)>0&&SIM.HERO_BASE[k]){ b.ascended=glyphAscendedFromPlan(k,b.ascensionIndex); n++; } }
@@ -7170,6 +7216,10 @@ async function api(req,res,url){
       writeDB(); return {ok:true, mode, times, gold, px, heroXp:hxp, xpPotions, glyphFragments, eliteFrag, ledger:ledgerView(me)};
     });
     return send(res, out.storageFailed?503:(out.ok===false?400:200), out); }
+  if(p==='/api/admin/nox-magic-plan'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});   /* v1194 dev read-only: the old (attack) and new (magic) Nox glyph tiers, for the migration test */
+    const v=pl=>pl.map(d=>({id:d.id,family:d.family,stats:d.stats})); const old=[], cur=[];
+    for(let qi=0;qi<GLYPH_MAX_ASC;qi++){ old.push(v(noxPlanFromTiers(NOX_OLD_TIERS_1194,qi))); cur.push(v(glyphPersonalPlan('nox',qi))); }
+    return send(res,200,{ old, cur, gearMap:NOX_GEAR_MAP_1194 }); }
   if(p==='/api/admin/led-grant' && req.method==='POST'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
     const b=await body(req);
     const tgt=(b.userId&&DB.users[String(b.userId)])||me;   // v229: admin may grant to a named account (test fixtures, support)
@@ -9752,7 +9802,7 @@ const BOOT_FILE_M=(function(){ try{ return fs.statSync(DB_FILE).mtimeMs; }catch(
 function bootFinish(){ if(_booted) return;
   if(_DB_LOAD_FAILED){ _worldLoadRefusal(_DB_LOAD_FAILED,['PostgreSQL had no world to restore either']); process.exit(1); }   // v1183: never seed over a world that did not load
   _booted=true; PG_BOOT_PENDING=false;
-  seed(); migrateAdminRoles(); migrateTokenHashes(); migrateDeviceKeys(); migrateHeroKeys1023();   /* v1023: first, so every later migration sees the new keys */ migrateTankGlyphPath();   /* v1019 */ migrateGlyphPaths1022();   /* v1022 */ migrateGlyphDefenseAv2();   /* Academy v2 */   // stamp role:admin from ADMIN_IDS; hash any plaintext tokens (v241: the Vault, like the Campaign, refuses to boot without its authored table)
+  seed(); migrateAdminRoles(); migrateTokenHashes(); migrateDeviceKeys(); migrateHeroKeys1023();   /* v1023: first, so every later migration sees the new keys */ migrateTankGlyphPath();   /* v1019 */ migrateGlyphPaths1022();   /* v1022 */ migrateGlyphDefenseAv2();   /* Academy v2 */ migrateNoxMagic1194();   /* v1194 */   // stamp role:admin from ADMIN_IDS; hash any plaintext tokens (v241: the Vault, like the Campaign, refuses to boot without its authored table)
   migrateLegacyFeedback();
   migrateBlockedWorldCastles();
   migrateHeroIdsAll();   /* v926: rewrite old hero ids to in-game-name keys in every stored ledger/profile (once, stamped led.idv=2) */

@@ -8,4 +8,4 @@ const CODE = `(()=>{ const B=${JSON.stringify(FIX.before)}, J=o=>JSON.parse(JSON
   if(typeof KITS==='undefined'||!KITS.brannus||!KITS.brannus.green||!KITS.brannus.green.pierce) return 0;   /* not a v1180 page: nothing to undo */
   KITS.brannus.green=J(B.kit); FX2_DEF.brannus_green=J(B.fx); if(typeof FX16_ART!=='undefined') FX16_ART.bgreen=J(B.art);
   return 1; })()`;
-module.exports = { undoRim1180: run => { require('./kharos-fx-1186.js').undoKFX1186(run); return run(CODE); }, FIX_RIM_1180: FIX };   // v1186: Kharos's FX back too
+module.exports = { undoRim1180: run => { require('./kharos-fx-1186.js').undoKFX1186(run); require('./nox-magic-1194.js').undoNoxMagic1194(run); return run(CODE); }, FIX_RIM_1180: FIX };   // v1186: Kharos's FX back too

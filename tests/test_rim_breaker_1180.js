@@ -52,7 +52,7 @@ const FIGHT = (seed, a, f, c0) => `(()=>{ window._p2guard=true; const svA=autoUl
     const tr=[]; for(let i=0;i<Math.round(45/SIM_STEP)&&!ended;i++){ ${c0 ? "units.forEach(u=>{ u.glyphCrit=0; });" : ''} updateBattle(SIM_STEP); tr.push(units.map(u=>[u.key,Math.round(u.hp*100),Math.round(u.x*10),Math.round(u.y*10),u.alive?1:0,Math.round((u.energy||0)*10),+(u.stunned||0).toFixed(2)].join(':')).join('|')); }
     deliverLaunch=_dl; let h=2166136261>>>0; const s=tr.length+'@'+tr.join('#'); for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619)>>>0; }
     return JSON.stringify({h:s.length+':'+h.toString(16),casts}); } finally{ autoUlt=svA; window._p2guard=false; } })()`;
-const UKF = r => require('./helpers/kharos-fx-1186.js').undoKFX1186(r);   // v1186 Kharos's FX + Bloomstep back to BASE where a check compares whole fights with BASE
+const UKF = r => { require('./helpers/kharos-fx-1186.js').undoKFX1186(r); require('./helpers/nox-magic-1194.js').undoNoxMagic1194(r); };   // v1194: and Nox's base AP   // v1186 Kharos's FX + Bloomstep back to BASE where a check compares whole fights with BASE
 const fight = (f, s, a, e, c0) => JSON.parse(load(f)(FIGHT(s, a, e, c0)));
 let FXD = null;
 const BRF = [[['brannus', 'askel', 'vex'], ['grimsby', 'vesper', 'grosk', 'sloe'], 11], [['tharl', 'brannus', 'lumi'], ['quorrel', 'nox', 'kharos'], 64], [['brannus', 'hobb'], ['pellucid', 'veyr', 'carn', 'astra'], 5]];

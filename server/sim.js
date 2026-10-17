@@ -30,7 +30,7 @@ const HERO_BASE={
   hobb:{swing:1.8,hp:370,dmg:40,apow:0,role:'Bruiser',stars:3,healer:false,atkSpeed:1.0},
   lysara:{swing:1.8,hp:195,dmg:16,apow:32,role:'Mage',stars:2,healer:false,atkSpeed:0.95},
   nerisse:{swing:1.8,hp:215,dmg:14,apow:30,role:'Support',stars:2,healer:true,atkSpeed:0.95},
-  nox:{swing:1.8,hp:245,dmg:40,apow:0,role:'Assassin',stars:2,healer:false,atkSpeed:1.2},
+  nox:{swing:1.8,hp:245,dmg:40,apow:31,role:'Assassin',stars:2,healer:false,atkSpeed:1.2},
   orryn:{swing:1.8,hp:195,dmg:18,apow:34,role:'Mage',stars:3,healer:false,atkSpeed:1.05},
   pellucid:{swing:1.8,hp:580,dmg:25,apow:0,role:'Tank',stars:3,healer:false,atkSpeed:0.95},
   seyla:{swing:1.8,hp:255,dmg:39,apow:0,role:'Assassin',stars:2,healer:false,atkSpeed:1.15},

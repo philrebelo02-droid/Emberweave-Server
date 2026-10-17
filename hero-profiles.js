@@ -333,8 +333,8 @@
     "combatRow": "Mid",
     "damageProfile": "Magic",
     "primaryScaling": "Ability Power",
-    "glyphPath": "assassin_other",
-    "equipmentPath": "assassin_other",
+    "glyphPath": "assassin_mid",
+    "equipmentPath": "assassin_mid",
     "formationDepth": 2,
     "minimumReachMeters": 3.5
   },
