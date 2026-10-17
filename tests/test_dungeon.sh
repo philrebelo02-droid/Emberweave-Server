@@ -2,7 +2,7 @@
 # THE VAULT endpoint suite — real client battles vs pre-determined monsters (Phil 26 Aug):
 # floors are fixed per floor number (practice, not RNG), client reports won, server validates
 # plausibility + timing and owns every reward. Run server with VAULT_MIN_BATTLE_MS=0 for speed.
-B=http://localhost:8871
+B=http://localhost:${PORT:-8871}
 PASS=0; FAIL=0
 ck(){ if [[ "$3" == *"$2"* ]]; then PASS=$((PASS+1)); echo "  ✓ $1"; else FAIL=$((FAIL+1)); echo "  ✗ $1 — wanted '$2' in: ${3:0:170}"; fi }
 jq(){ python3 -c "import sys,json;d=json.load(sys.stdin);print(d$1)" 2>/dev/null; }

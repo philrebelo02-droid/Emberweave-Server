@@ -1,6 +1,6 @@
 #!/bin/bash
 # Skyfall tournament lifecycle test (uses dev time-warp)
-B=http://localhost:8871
+B=http://localhost:${PORT:-8871}
 PASS=0; FAIL=0
 ck(){ if [[ "$3" == *"$2"* ]]; then PASS=$((PASS+1)); echo "  ✓ $1"; else FAIL=$((FAIL+1)); echo "  ✗ $1 — wanted '$2' in: ${3:0:200}"; fi }
 jv(){ python3 -c "import sys,json;d=json.load(sys.stdin);print(d$1)" 2>/dev/null; }

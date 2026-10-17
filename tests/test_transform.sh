@@ -2,7 +2,7 @@
 # TRANSFORMATION acceptance suite (80/20 audit §6): ledger authority, authored-campaign determinism
 # + curve, reward idempotency, tamper resistance, authoritative vault/arena, pool odds/pity, shop,
 # hero progression endpoints. Server needs the v2 flags; run on a FRESH DB.
-B=http://localhost:8871
+B=http://localhost:${PORT:-8871}
 PASS=0; FAIL=0
 ck(){ if [ "${4:-}" = "invert" ]; then
         if [[ "$3" != *"$2"* ]]; then PASS=$((PASS+1)); echo "  ✓ $1"; else FAIL=$((FAIL+1)); echo "  ✗ $1 — did NOT want '$2' in: ${3:0:200}"; fi

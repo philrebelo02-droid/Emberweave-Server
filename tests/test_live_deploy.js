@@ -4,7 +4,7 @@
    host what it is, then tries to cheat it.
      BASE=https://emberweave-server-production.up.railway.app node test_live_deploy.js
    =========================================================================== */
-const BASE=process.env.BASE||'http://localhost:8871';
+const BASE=process.env.BASE||('http://localhost:'+(process.env.PORT||8871));
 const url=(p)=>BASE.replace(/\/$/,'')+p;
 async function J(p, body, token){
   const r=await fetch(url(p),{method:body?'POST':'GET',
