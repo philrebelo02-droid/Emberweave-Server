@@ -133,7 +133,7 @@ try {
       g && g.fx.length === 1 && g.fx[0].kind === 'fx16puff' && Math.abs(g.fx[0].t0 - g.rel) < 1e-3 && b && b.fx.length === 1 && b.fx[0].kind === 'fx16over' && b.fx[0].at === 'target' && b.fx[0].t0 > b.rel &&
       u && u.fx.some(e => e.k === 'mirelle_ult'), JSON.stringify(P));
     const stage = fs.readFileSync(path.join(ROOT, 'assets/ui/skill-preview-stage.js'), 'utf8');
-    ck('the preview stage draws fx16over and the page loads it at a new ?v= (sp' + VER + ')', /case 'fx16over': \{ const L=e\.real\|\|6;/.test(stage) && src.includes('skill-preview-stage.js?v=sp' + VER) && !baseSrc.includes('skill-preview-stage.js?v=sp' + VER)); }
+    ck('the preview stage draws fx16over and the page loads it at a new ?v= (sp' + VER + ')', /case 'fx16over': \{ const L=e\.real\|\|6;/.test(stage) && (src.includes('skill-preview-stage.js?v=sp' + VER) || /skill-preview-stage\.js\?v=sp11(7[5-9]|[89]\d)/.test(src)) && !baseSrc.includes('skill-preview-stage.js?v=sp' + VER)); }   /* v1179: a later release may bump the stage again */
   ck('no emoji added', !/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u.test(src.slice(src.indexOf('function _fx16Weakest'), src.indexOf('function _fx16Weakest') + 3000)));
 } catch (e) { console.log('FAIL after ' + pass + ' checks: ' + (e.stack || e.message)); process.exitCode = 1; return; }
 console.log((fail ? 'FAIL ' : 'PASS ') + pass + ' checks' + (fail ? ', ' + fail + ' failed' : ''));

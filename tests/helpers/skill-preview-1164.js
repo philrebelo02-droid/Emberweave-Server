@@ -1,10 +1,10 @@
 'use strict';
 // helpers for tests/test_skill_previews_1164.js: what the FIGHT does for one slot, recorded off the real engine in server/sim-host.js
 const OWN = ['bellCastFx', 'astraHorizonFx', 'korvuxChopCastFx', 'tharlQuakeFx', 'rhukkDigInFx', 'vesperPunctureCastFx', 'vexTempestFx', 'veyrMantleFx',
-  'veyrUndertowFx', 'veyrCrescentFx', 'konwuRuyiCastFx', 'vexWoundFx', 'sorrelHitFx', 'carnReapFx', 'hookReelFx', 'hookSlashFx', 'spawnTipFx', 'spawnProjFx', 'spawnBeamFx', 'fx16Show'];   // v1171: Vael's / Deepcleft's art is recorded when it SHOWS (on the clip's cell, or the emerge), not at the press
+  'veyrUndertowFx', 'veyrCrescentFx', 'konwuRuyiCastFx', 'vexWoundFx', 'sorrelHitFx', 'carnReapFx', 'hookReelFx', 'hookSlashFx', 'spawnTipFx', 'spawnProjFx', 'spawnBeamFx', 'fx16Show', 'rimGlideFx'];   /* v1180: Rim Breaker's glide is recorded at the shot's launch */   // v1171: Vael's / Deepcleft's art is recorded when it SHOWS (on the clip's cell, or the emerge), not at the press
 const OWNKEY = { bellCastFx: 'bellring', astraHorizonFx: 'astrahorizon', korvuxChopCastFx: 'korvuxcleave', tharlQuakeFx: 'tharlquake', rhukkDigInFx: 'rhukkroar',
   vesperPunctureCastFx: 'vesperpuncture', vexTempestFx: 'vextempest', veyrMantleFx: 'veyrmantle', veyrUndertowFx: 'veyrundertow', veyrCrescentFx: 'veyrcrescent',
-  konwuRuyiCastFx: 'konwuruyi', vexWoundFx: 'bleedopen', carnReapFx: 'carnreap', hookReelFx: 'hookreel', hookSlashFx: 'hookslash' };
+  konwuRuyiCastFx: 'konwuruyi', vexWoundFx: 'bleedopen', carnReapFx: 'carnreap', hookReelFx: 'hookreel', hookSlashFx: 'hookslash', rimGlideFx: 'brannus_green' };
 // one cast of slot (0 ult, 1 green, 2 blue) by hero k at an enemy standing skillPreviewTargetDist away: [{key, t (fight s from the press)}] + the clip it played
 const castSrc = (k, slot) => `(()=>{ const rec=[]; const OWN=${JSON.stringify(OWN)}, OK=${JSON.stringify(OWNKEY)}; const sv={}; const _fc=_fxCheck;
   _fxCheck=function(kind,key){ rec.push({src:kind,key,t:+battleTime.toFixed(4)}); };
