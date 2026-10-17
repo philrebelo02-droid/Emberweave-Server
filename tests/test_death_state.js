@@ -233,7 +233,18 @@ try {
       await pg.evaluate(() => { waveXfer = { phase: 'exit', t: 0 }; }); const rw2 = await watch(40); await pg.evaluate(() => { waveXfer = null; }); const rw3 = await watch(30);
       ck('a WAVE transfer mid-death: the body fades out over 0.25 s and ends there (hidden, sheets released) - never frozen half-dead, never walked through', rw1.every(r => r.cell != null && r.op === 1) &&
         rw2.slice(16).every(r => r.op === 0) && rw2.some(r => r.op > 0 && r.op < 1) && rw3.every(r => r.op === 0 && r.held === 0), JSON.stringify(rw2.slice(0, 18).map(r => r.op)));
-      await pg.evaluate(() => { try { endBattle(true); } catch (e) {} });
+      // a death that ENDS ON THE BODY (end:'hold' - Ambrel, Askel, Grosk ..): an enemy's body stays drawn on its last cell after the 6 s (in _corpses, its sheets
+      // kept), and leaving the fight for the hub clears it - no corpse and no death sheet outlives the fight (Vex's clip set to hold for this check)
+      await pg.evaluate(() => { BATTLE_ANIM.vex.death.end = 'hold'; });
+      await lowAndWait('vex', 'enemy'); await kill(); const rh = await watch(Math.round(60 * (SECS + 1.5)));
+      const hEnd = rh.slice(Math.round(60 * SECS) + 6);
+      await pg.evaluate(() => { window.requestAnimationFrame = window.__raf0; requestAnimationFrame(loop); endBattle(true); }); await pg.waitForTimeout(1200);
+      await pg.evaluate(() => { try { document.getElementById('resultBtn').click(); } catch (e) {} }); await pg.waitForTimeout(800);
+      await pg.evaluate(() => show('home')); await pg.waitForTimeout(2500);
+      const hHub = await pg.evaluate(() => ({ corpses: _corpses.length, held: BATTLE_ANIM.vex.death.parts.filter(st => BATTLE_ANIM.vex[st].tex).length }));
+      await pg.evaluate(() => { BATTLE_ANIM.vex.death.end = 'hide'; });
+      ck('end:hold - after its 6 s the enemy body stays on its last cell (drawn, in _corpses, sheets kept), never loops; going to the hub clears it (no corpse, no death sheet)',
+        hEnd.length > 30 && hEnd.every(r => r.cell === 47 && r.op === 1 && r.corpse && r.inScene && r.held > 0) && hHub.corpses === 0 && hHub.held === 0, JSON.stringify({ last: hEnd.slice(-1), hHub }));
 
       // RENDERED fights: clips on (sheets loaded up front so they play) vs off - the fight underneath is the same tick for tick
       /* one battle scene; each run clears it (clearBattle) and rebuilds the fight from tick 0 (seedBattle: RNG, accumulator, inputs, unit ids), then

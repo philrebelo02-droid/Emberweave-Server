@@ -4775,7 +4775,8 @@ function evictUnusedArt(keepKeys){
 /* v1140: back on the hub nothing of a battle is drawn - free every battle sheet (squad included; the next fight reloads it from the
    device cache behind its loading screen). Not during Emberdraft, an online match or the Gauntlet, which manage their own art. */
 function evictBattleArtAll(){ try{ if((typeof ED!=='undefined'&&ED&&ED.active) || (typeof OL!=='undefined'&&OL&&OL.active) || (typeof GSPLIT!=='undefined'&&GSPLIT&&GSPLIT.active)) return 0;
-  if(typeof state!=='undefined' && (state==='battle'||state==='result')) return 0; return evictUnusedArt([]); }catch(e){ return 0; } }
+  if(typeof state!=='undefined' && (state==='battle'||state==='result')) return 0; try{ corpseClear(); }catch(_){}   /* v1182+: a held body (death end:'hold') leaves with the fight - no corpse outlives it on the hub */
+  return evictUnusedArt([]); }catch(e){ return 0; } }
 function fmtMB(b){ return (b/1048576).toFixed(1)+' MB'; }
 function preloadStageArt(stage){   // authored campaign stage: squad + EVERY wave's monsters
   const keys=[];
