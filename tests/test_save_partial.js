@@ -31,7 +31,7 @@ async function server(script, temp) {
     return { status: r.status, body: await r.json().catch(() => ({})) };
   };
   const start = async adminId => {
-    child = spawn(process.execPath, [script], { cwd: root, windowsHide: true, stdio: 'ignore', env: { ...process.env, PORT: String(port), DB_FILE: db, ADMIN_IDS: adminId || '',
+    child = spawn(process.execPath, [script], { cwd: path.dirname(script), windowsHide: true, stdio: 'ignore', env: { ...process.env, PORT: String(port), DB_FILE: db, ADMIN_IDS: adminId || '',
       DB_STORE: 'split', DB_STORE_JOURNAL: '0', DB_STORE_VERIFY: '1', DB_STORE_SWEEP_MS: '600000',   /* v1128: the v1124 shard layout under test (the journal: test_save_journal) */ DUNGEON_V2_ENABLED: 'true', GUILD_WAR_V2_ENABLED: 'true', VAULT_MIN_BATTLE_MS: '0',
       NODE_ENV: 'test', SIM_WORKERS: '0', REG_PER_MIN: '1000', REG_ACCOUNTS_PER_IP: '1000', SERVER_SECRET: 'save-partial-test-secret' } });
     for (let i = 0; i < 200; i++) { if (child.exitCode !== null) throw Error('server exited'); try { if ((await fetch(base + '/health')).ok) return; } catch (_) {} await sleep(100); }
@@ -67,7 +67,7 @@ async function campaignPair(S, p, node, rid) {
 }
 
 (async () => {
-  const tmpCtl = path.join(root, '.save-partial-control-v1123.js');
+  let tmpCtl = null, ctlSha = null;   /* v1181: the control runs in its own commit's tree (its server/ data too) - a lone old server.js broke on today's data (veteran portal 160 stages) */
   try {
     const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'ember-save-partial-'));
     const S = await server('server.js', temp);
@@ -181,7 +181,7 @@ async function campaignPair(S, p, node, rid) {
     let src = null; try { src = execFileSync('git', ['show', V1123 + ':server.js'], { cwd: root, maxBuffer: 64 * 1024 * 1024 }); } catch (e) {}
     if (!src) { console.log('  --  (e) control skipped: git cannot read ' + V1123.slice(0, 8) + ' here'); }
     else {
-      fs.writeFileSync(tmpCtl, src);
+      ctlSha = V1123; tmpCtl = path.join(require('./helpers/split-rig.cjs').controlTree(ctlSha), 'server.js');
       const C = await server(tmpCtl, fs.mkdtempSync(path.join(os.tmpdir(), 'ember-save-partial-ctl-')));
       const CB = await boot(C, 'sc'); await settle(C, CB);
       const c0 = await CB.stat(), cm0 = manifest(C.db);
@@ -191,5 +191,5 @@ async function campaignPair(S, p, node, rid) {
     }
     console.log('PASS ' + pass + ' checks');
   } catch (e) { console.log('FAIL after ' + pass + ' checks: ' + (e.stack || e.message)); process.exitCode = 1; }
-  finally { for (const s of servers) await s.kill().catch(() => {}); try { fs.unlinkSync(tmpCtl); } catch (e) {} }
+  finally { for (const s of servers) await s.kill().catch(() => {}); try { if (ctlSha) require('./helpers/split-rig.cjs').removeControlTree(ctlSha); } catch (e) {} }
 })();

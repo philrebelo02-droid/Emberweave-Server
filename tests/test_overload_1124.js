@@ -27,7 +27,7 @@ async function server(script, db) {
     try { const r = await fetch(base + route, { method, headers: { ...(token ? { 'x-token': token } : {}), ...(data ? { 'content-type': 'application/json' } : {}) }, body: data ? JSON.stringify(data) : undefined, signal: AbortSignal.timeout(tmo || 60000) });
       return { status: r.status, body: await r.json().catch(() => ({})), ms: Date.now() - t0 }; } catch (e) { return { status: 0, body: {}, ms: Date.now() - t0 }; } };
   const start = async adminId => {
-    child = spawn(process.execPath, [script], { cwd: root, windowsHide: true, stdio: 'ignore', env: { ...process.env, PORT: String(port), DB_FILE: db, ADMIN_IDS: adminId || '',
+    child = spawn(process.execPath, [script], { cwd: path.dirname(script), windowsHide: true, stdio: 'ignore', env: { ...process.env, PORT: String(port), DB_FILE: db, ADMIN_IDS: adminId || '',
       DB_STORE: 'split', NODE_ENV: 'test', SIM_WORKERS: '1', REG_PER_MIN: '1000', REG_ACCOUNTS_PER_IP: '1000', SERVER_SECRET: 'overload-secret', RL_MUL: '1000' } });
     for (let i = 0; i < 300; i++) { if (child.exitCode !== null) throw Error('server exited'); try { if ((await fetch(base + '/health')).ok) break; } catch (_) {} await sleep(100); }
     await sleep(3000);   // the battle worker loads the engine
@@ -66,7 +66,7 @@ async function overload(S, W, tag) {
 }
 
 (async () => {
-  const tmpCtl = path.join(root, '.overload-control.js');
+  let tmpCtl = null, ctlSha = null;   /* v1181: the control runs in its own commit's tree (its server/ data too) - a lone old server.js broke on today's data (veteran portal 160 stages) */
   try {
     const W = await world(fs.mkdtempSync(path.join(os.tmpdir(), 'ember-overload-')));
     const S = await server(path.join(root, 'server.js'), W.db); await S.start(W.adminId);
@@ -90,8 +90,8 @@ async function overload(S, W, tag) {
     let src = null; try { src = execFileSync('git', ['show', CONTROL + ':server.js'], { cwd: root, maxBuffer: 64 * 1024 * 1024 }); } catch (e) {}
     if (!src) console.log('  --  control skipped: git cannot read ' + CONTROL);
     else {
-      fs.writeFileSync(tmpCtl, src);
-      const C = await server(tmpCtl, W.db); await C.start(W.adminId);
+      ctlSha = CONTROL; tmpCtl = path.join(require('./helpers/split-rig.cjs').controlTree(ctlSha), 'server.js');
+      execFileSync(process.execPath, [path.join(root, 'server/world-store.js'), 'downgrade', W.db], { stdio: 'ignore' });   /* v1181: the control's own store reads split-v1 only (the rollback step) */ const C = await server(tmpCtl, W.db); await C.start(W.adminId);
       const c = await overload(C, W, 'c'); await C.kill();
       const cms = c.res.map(x => x.ms);
       console.log('  --  control ' + CONTROL + ': ' + c.res.length + ' resolves, p50 ' + pct(cms, 0.5) + ' ms, p95 ' + pct(cms, 0.95) + ' ms; probe max ' + Math.max(...c.probe) + ' ms; quiet ' + c.quietAt + ' ms after');
@@ -99,5 +99,5 @@ async function overload(S, W, tag) {
     }
     console.log('PASS ' + pass + ' checks');
   } catch (e) { console.log('FAIL after ' + pass + ' checks: ' + (e.stack || e.message)); process.exitCode = 1; }
-  finally { for (const s of servers) await s.kill().catch(() => {}); try { fs.unlinkSync(tmpCtl); } catch (e) {} }
+  finally { for (const s of servers) await s.kill().catch(() => {}); try { if (ctlSha) require('./helpers/split-rig.cjs').removeControlTree(ctlSha); } catch (e) {} }
 })();
