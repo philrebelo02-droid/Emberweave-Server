@@ -3,8 +3,14 @@
  "patches": [
   {
    "ver": "0.95",
-   "releases": "v1183, v1184, v1186, v1187, v1188, v1189, v1190, v1191, v1193, v1196",
+   "releases": "v1183, v1184, v1186, v1187, v1188, v1189, v1190, v1191, v1192, v1193, v1196",
    "items": [
+    {
+     "text": "Saving is much lighter with many players online: actions and fights answer faster, and new players joining no longer slow the server down.",
+     "sources": [
+      "SHIPPED-v1192-save-upgrade-17-10-2026.md"
+     ]
+    },
     {
      "text": "Server data safety improvements: a server that cannot read its saved world now stops safely instead of starting fresh, saves are fully written to disk before they count, and backups of real player progress are always kept.",
      "sources": [
