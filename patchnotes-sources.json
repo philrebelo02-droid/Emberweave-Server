@@ -3,7 +3,7 @@
  "patches": [
   {
    "ver": "0.95",
-   "releases": "v1183, v1184, v1186, v1187, v1188, v1189, v1190, v1191, v1193",
+   "releases": "v1183, v1184, v1186, v1187, v1188, v1189, v1190, v1191, v1193, v1196",
    "items": [
     {
      "text": "Server data safety improvements: a server that cannot read its saved world now stops safely instead of starting fresh, saves are fully written to disk before they count, and backups of real player progress are always kept.",
@@ -69,6 +69,12 @@
      "text": "Hollow's Fan of Knives: the knives now fly out twice as fast.",
      "sources": [
       "SHIPPED-v1193-hollow-knives-faster-17-10-2026.md"
+     ]
+    },
+    {
+     "text": "All 60 heroes now have their own death animations: Korvux, Linnet, Lumi, Lysara Moonveil, Maren, Mellan, Meridian, Mirelle Velvetplum, Nerisse Bellglass, Nox Quillfinger, Oakmir, Orryn, Pellucid, Pyroclast, Quorrel, Rafe Marrow, Rhukk, Rivet, Seyla Silkcoil, Sloe, Sorrel, Tessit, Tharl Ironcoil, Tick, Tolley, Umbris, Vaelora Velvetclaw, Vesper, Veyr, Vulmar, Yenna Cacklefang and Zahri Sunhorn join today.",
+     "sources": [
+      "SHIPPED-v1196-hero-deaths-batches4-7-17-10-2026.md"
      ]
     }
    ]
