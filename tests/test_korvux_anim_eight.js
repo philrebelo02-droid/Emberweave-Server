@@ -34,6 +34,7 @@ if (!OLD) { try { OLD = path.join(ROOT, '.test-korvux8-base.html'); fs.writeFile
   const tmp = OLD; process.on('exit', () => { try { fs.unlinkSync(tmp); } catch (e) {} }); } catch (e) { OLD = null; } }
 const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); const r = src => vm.runInContext(src, h.ctx); require('./helpers/anim-noxgrim-1166.js').undoNoxGrim1166(r); return r; };   // v1166: Nox's and Grimsby's v1164 entries (and Nox's melee Attack line) back on every page - tests/test_nox_grimsby_anims.js / test_nox_ranged_1166.js check v1166
 const run = load(HTML);
+require('./helpers/tolley-fx-1197.js').undoTolleyFx1197(run);   // v1197: Tolley's FX entries, ownFx tags and his FX1123_WARM / SKP_OWNFX rows (a later release) go back to v1195's - tests/test_tolley_fx_1197.js checks them
 require('./helpers/vael-fx-1171.js').undoVaelFx1171(run);   // v1171: Vael's three FX entries + ownFx tags go back to v1163's (tests/test_vael_fx_1171.js checks them)
 const R0 = OLD ? load(OLD) : null;
 let pass = 0, fail = 0;

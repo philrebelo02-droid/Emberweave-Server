@@ -1,0 +1,81 @@
+{
+ "note": "v1197 Tolley spell FX: what live v1195 (625db3e7) had, for tests/helpers/tolley-fx-1197.js",
+ "fx": {
+  "tolley_green": {
+   "u": "/assets/anim/fx/tolley_green.webp?v=1",
+   "n": 18,
+   "fw": 200,
+   "fh": 200,
+   "cols": 6,
+   "rows": 3,
+   "dur": 1.5,
+   "cone": true,
+   "coneFoot": 0.05
+  },
+  "tolley_blue": {
+   "u": "/assets/anim/fx/tolley_blue.webp?v=1",
+   "n": 18,
+   "fw": 200,
+   "fh": 200,
+   "cols": 6,
+   "rows": 3,
+   "dur": 1.5,
+   "upright": true,
+   "upAnchor": [
+    0.5,
+    0.2
+   ],
+   "upMetric": true,
+   "upExtent": 0.9
+  },
+  "tolley_ult": {
+   "u": "/assets/anim/fx/tolley_ult.webp?v=1",
+   "n": 48,
+   "fw": 300,
+   "fh": 265,
+   "cols": 6,
+   "rows": 8,
+   "dur": 2.4,
+   "upright": true,
+   "upSize": 1.8,
+   "upExtent": 0.95,
+   "upAnchor": [
+    0.5,
+    0
+   ],
+   "ro": 1
+  }
+ },
+ "green": {
+  "deliver": "land",
+  "name": "Forge Strike",
+  "type": "cleave",
+  "mul": 1.8,
+  "radius": 84.6,
+  "cd": 7,
+  "desc": "Command the molten hammer to crash down and deal heavy damage.",
+  "gfxAt": "target",
+  "gdur": 1.4,
+  "gfx": "tolley_green"
+ },
+ "blue": {
+  "name": "Chain Quench",
+  "type": "chainquench",
+  "mul": 0.85,
+  "dps": 0.35,
+  "dur": 4,
+  "radius": 126.89999999999999,
+  "pull": 67.67999999999999,
+  "cd": 10,
+  "desc": "Lash out with molten chains, pulling enemies together and burning them.",
+  "gfxAt": "self",
+  "gdur": 1.8,
+  "gfx": "tolley_blue",
+  "deliver": "form",
+  "form": 0.3
+ },
+ "ultArt": {
+  "gfx": "tolley_ult",
+  "gdur": 2.4
+ }
+}

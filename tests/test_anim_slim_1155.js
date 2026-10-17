@@ -27,6 +27,7 @@ const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'ew-slim-'));
 process.on('exit', () => { try { fs.unlinkSync(OLD); } catch (e) {} try { fs.rmSync(TMP, { recursive: true, force: true }); } catch (e) {} });
 const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); const r = src => vm.runInContext(src, h.ctx); require('./helpers/anim-noxgrim-1166.js').undoNoxGrim1166(r); return r; };   // v1166: every page (this one and the BASE read from this checkout) gets Nox's and Grimsby's v1164 entries and Nox's melee Attack line back - tests/test_nox_grimsby_anims.js / test_nox_ranged_1166.js check v1166
 const run = load(HTML), R0 = load(OLD);
+require('./helpers/tolley-fx-1197.js').undoTolleyFx1197(run);   // v1197: Tolley's FX entries, ownFx tags and his FX1123_WARM / SKP_OWNFX rows (a later release) go back to v1195's - tests/test_tolley_fx_1197.js checks them
 require('./helpers/anim-1160.js').undo1160(run);   // v1160: Veyr's and Deepcleft's new entries go back to their v1158 (slim) state - tests/test_veyr_deepcleft_1160.js checks them
 require('./helpers/anim-korvux-1162.js').undoKorvux1162(run);   // v1162: Korvux's new entries go back to their v1159 (slim) state - tests/test_korvux_anim_eight.js checks them
 require('./helpers/vael-fx-1171.js').undoVaelFx1171(run);   // v1171: Vael's three FX entries go back to v1163's - tests/test_vael_fx_1171.js checks them
