@@ -98,7 +98,7 @@ function unit(WSX, journal, check, opts) {
 }
 
 async function serverPart(dir, tag, check) {
-  const S = await R.server({ dir, env: { DB_STORE_SWEEP_MS: '16000', RL_MUL: '1000' } });
+  const S = await R.server({ dir, env: { DB_STORE_SWEEP_MS: '16000', RL_MUL: '1000', ALLOW_NEW_GUESTS: '1' /* v1181: new guests are off by default since v1144 */ } });
   const B = await R.boot(S, tag, 4, { world: false });
   await S.kill();
   const w = WS.readWorld(S.db);   // ~3 MB of shared pieces, as Server 1
