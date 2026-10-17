@@ -2,14 +2,14 @@
 // then prove a following 'msg' frame is NOT relayed to the peer (re-audit round 3, High 2).
 // Requires: server on :8871 with WS_AUTH_REQUIRED=true (default), npm package 'ws'.
 const WebSocket=require('ws'); const http=require('http');
-const B='http://localhost:8871';
+const PORT=process.env.PORT||8871, B='http://localhost:'+PORT;
 function post(p,body){ return new Promise((res,rej)=>{ const d=JSON.stringify(body);
   const r=http.request(B+p,{method:'POST',headers:{'content-type':'application/json','content-length':Buffer.byteLength(d)}},x=>{let b='';x.on('data',c=>b+=c);x.on('end',()=>{try{res(JSON.parse(b))}catch(e){rej(e)}});}); r.on('error',rej); r.end(d); }); }
 (async()=>{
   let pass=0,fail=0; const ck=(n,c)=>{ c?(pass++,console.log('  ✓ '+n)):(fail++,console.log('  ✗ '+n)); };
   const reg=await post('/api/register',{name:'wsrv'+Math.floor(Math.random()*1e6),pass:'password1'});
   let tok=reg.token; const name=reg.profile.name;
-  const A=new WebSocket('ws://localhost:8871'), Bws=new WebSocket('ws://localhost:8871');
+  const A=new WebSocket('ws://localhost:'+PORT), Bws=new WebSocket('ws://localhost:'+PORT);
   const wait=(ws,t)=>new Promise(res=>{ const h=d=>{ const m=JSON.parse(d); if(m.t===t){ ws.off('message',h); res(m);} }; ws.on('message',h); setTimeout(()=>res(null),4000); });
   await Promise.all([new Promise(r=>A.on('open',r)), new Promise(r=>Bws.on('open',r))]);
   A.send(JSON.stringify({t:'host',token:tok}));

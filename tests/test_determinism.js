@@ -10,7 +10,7 @@ const { chromium } = require('playwright');
   let pass=0,fail=0; const ck=(n,c,d)=>{ c?(pass++,console.log('  ✓ '+n)):(fail++,console.log('  ✗ '+n+(d?' — '+d:''))); };
   const b=await chromium.launch();
   const pg=await (await b.newContext({viewport:{width:1000,height:520}})).newPage();
-  await pg.goto('http://localhost:8871/play',{waitUntil:'domcontentloaded'});
+  await pg.goto('http://localhost:'+(process.env.PORT||8871)+'/play',{waitUntil:'domcontentloaded'});
   await pg.waitForTimeout(2200);
   await pg.evaluate(()=>{ const p=document.querySelector('.splashPlay'); if(p)p.click(); });
   await pg.waitForTimeout(1000);
