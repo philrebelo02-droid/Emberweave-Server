@@ -7,7 +7,9 @@
       "New spell effects for Kharos's Petal Sever, Bloomstep and Orchid Execution.",
       "Bloomstep: Kharos now vanishes into the petal storm, then appears behind the enemy and strikes with the counter's 2.1x damage: behind the one that hit him, or behind his target when the 2.2 seconds end.",
       "Signing up and signing in stay quick when many players join at once: new accounts no longer fail with \"Accounts are unreachable\" during a rush.",
-      "Tessit's Hourglass has a new spell effect: the hourglass shatters over the enemies, its sand hangs frozen in the air while they are stunned, then falls."
+      "Tessit's Hourglass has a new spell effect: the hourglass shatters over the enemies, its sand hangs frozen in the air while they are stunned, then falls.",
+      "Gruel, Hobb Kilnmask, Hollow, Hurne, Iver, Joss Gatley, Kharos Bloomknife and KonWu now have their own death animations.",
+      "Death animations now load in small pieces while they play, so phones use much less memory in big fights."
     ]},
     {"ver": "0.94", "date": "16 October 2026", "title": "Pre-beta: music and the mute button", "items": [
       "The game now has music: ten songs each for the city, the maps, battles and Skyfall, shuffled with a soft crossfade.",

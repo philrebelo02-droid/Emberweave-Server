@@ -3,7 +3,7 @@
  "patches": [
   {
    "ver": "0.95",
-   "releases": "v1183, v1184, v1186, v1187, v1188, v1189",
+   "releases": "v1183, v1184, v1186, v1187, v1188, v1189, v1190",
    "items": [
     {
      "text": "Server data safety improvements: a server that cannot read its saved world now stops safely instead of starting fresh, saves are fully written to disk before they count, and backups of real player progress are always kept.",
@@ -45,6 +45,18 @@
      "text": "Tessit's Hourglass has a new spell effect: the hourglass shatters over the enemies, its sand hangs frozen in the air while they are stunned, then falls.",
      "sources": [
       "SHIPPED-v1189-tessit-hourglass-17-10-2026.md"
+     ]
+    },
+    {
+     "text": "Gruel, Hobb Kilnmask, Hollow, Hurne, Iver, Joss Gatley, Kharos Bloomknife and KonWu now have their own death animations.",
+     "sources": [
+      "SHIPPED-v1190-hero-deaths-stream-batch3-17-10-2026.md"
+     ]
+    },
+    {
+     "text": "Death animations now load in small pieces while they play, so phones use much less memory in big fights.",
+     "sources": [
+      "SHIPPED-v1190-hero-deaths-stream-batch3-17-10-2026.md"
      ]
     }
    ]
