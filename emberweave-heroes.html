@@ -4231,19 +4231,6 @@ BATTLE_ANIM.aureth.attack=BATTLE_ANIM.aureth.attackLight;
    unchanged (the server replays fights headless, with no mesh). LAZY: never in the loading screen, loadAnimSet or the GPU warm-up; the sheets load when
    the hero drops under 30% hp (deathPreload) - on a phone only while the GPU tally plus them stays under DEATH_CLIPS.gpuMB - and a hero that dies before
    they have arrived fades exactly as before (the fallback). RELEASED as soon as that hero's last running death ends (deathRelease), and with the fight's art. */
-BATTLE_ANIM.vael.death={u:'/assets/anim/vael/vael_death_1182.webp?v=1182',n:24,first:0,fw:307,fh:433,cols:6,rows:4,figH:326,feet:423,top:97,cx:166.7,fps:8,flip:false,lazy:true,dn:48,parts:['death','death2'],end:'hide'};
-BATTLE_ANIM.vael.death2={u:'/assets/anim/vael/vael_death2_1182.webp?v=1182',n:24,first:24,fw:233,fh:263,cols:4,rows:6,figH:326,feet:253,top:-73,cx:98.7,fps:8,flip:false,lazy:true};
-BATTLE_ANIM.sylthaine.death={u:'/assets/anim/sylthaine/sylthaine_death_1182.webp?v=1182',n:12,first:0,fw:512,fh:514,cols:4,rows:3,figH:501,feet:507,top:6,cx:227.9,fps:8,flip:false,lazy:true,dn:48,parts:['death','death2','death3','death4'],end:'hide'};
-BATTLE_ANIM.sylthaine.death2={u:'/assets/anim/sylthaine/sylthaine_death2_1182.webp?v=1182',n:16,first:12,fw:455,fh:466,cols:4,rows:4,figH:501,feet:459,top:-42,cx:227.5,fps:8,flip:false,lazy:true};
-BATTLE_ANIM.sylthaine.death3={u:'/assets/anim/sylthaine/sylthaine_death3_1182.webp?v=1182',n:16,first:28,fw:453,fh:466,cols:4,rows:4,figH:501,feet:459,top:-42,cx:226.3,fps:8,flip:false,lazy:true};
-BATTLE_ANIM.sylthaine.death4={u:'/assets/anim/sylthaine/sylthaine_death4_1182.webp?v=1182',n:4,first:44,fw:354,fh:354,cols:1,rows:4,figH:501,feet:347,top:-154,cx:167.1,fps:8,flip:false,lazy:true};
-BATTLE_ANIM.vex.death={u:'/assets/anim/vex/vex_death_1182.webp?v=1182',n:12,first:0,fw:406,fh:515,cols:4,rows:3,figH:501,feet:508,top:7,cx:223.0,fps:8,flip:true,lazy:true,dn:48,parts:['death','death2','death3'],end:'hide'};
-BATTLE_ANIM.vex.death2={u:'/assets/anim/vex/vex_death2_1182.webp?v=1182',n:20,first:12,fw:447,fh:400,cols:4,rows:5,figH:501,feet:393,top:-108,cx:263.5,fps:8,flip:true,lazy:true};
-BATTLE_ANIM.vex.death3={u:'/assets/anim/vex/vex_death3_1182.webp?v=1182',n:16,first:32,fw:325,fh:505,cols:4,rows:4,figH:501,feet:497,top:-4,cx:207.0,fps:8,flip:true,lazy:true};
-BATTLE_ANIM.vireo.death={u:'/assets/anim/vireo/vireo_death_1182.webp?v=1182',n:12,first:0,fw:446,fh:628,cols:4,rows:3,figH:595,feet:602,top:7,cx:225.9,fps:8,flip:false,lazy:true,dn:48,parts:['death','death2','death3','death4'],end:'hide'};
-BATTLE_ANIM.vireo.death2={u:'/assets/anim/vireo/vireo_death2_1182.webp?v=1182',n:16,first:12,fw:419,fh:433,cols:4,rows:4,figH:595,feet:408,top:-187,cx:207.8,fps:8,flip:false,lazy:true};
-BATTLE_ANIM.vireo.death3={u:'/assets/anim/vireo/vireo_death3_1182.webp?v=1182',n:16,first:28,fw:419,fh:443,cols:4,rows:4,figH:595,feet:418,top:-177,cx:207.8,fps:8,flip:false,lazy:true};
-BATTLE_ANIM.vireo.death4={u:'/assets/anim/vireo/vireo_death4_1182.webp?v=1182',n:4,first:44,fw:15,fh:16,cols:1,rows:4,figH:595,feet:9,top:-586,cx:7.2,fps:8,flip:false,lazy:true};
 const DEATH_CLIPS={on:true, hp:0.30, gpuMB:1990};   /* gpuMB: a phone loads a death only while the live texture tally + its sheets stays under this (budget 2048) */
 let _corpses=[];   /* render-owned: a dead ENEMY's body after the fight removed it at 0.9 s, while its death clip plays (updateBattle / applyState hand the mesh over) */
 function deathClip(u){ const A=DEATH_CLIPS.on&&u&&u.anim&&u.anim.death; return (A&&A.u&&A.parts)?A:null; }
@@ -21741,6 +21728,41 @@ Object.assign(BATTLE_ANIM, {
     /* v1155 passive clip removed (Phil 15 Oct: "remove passive for anyone without an active passive"): nothing in a fight fires it (no firePassiveClip for ceraline) - it only ever played as idle filler. The sheet stays on disk. */
   },
 });
+/* DEATH TABLE (v1182+, blueprint 18): every hero's death states - here, after the last Object.assign(BATTLE_ANIM, ..), so each hero's set exists.
+   Pipeline tools/death/death_batch.py replaces a hero's lines and adds new heroes before the END marker. The engine is the v1182 DEATH block (deathDraw ..). */
+BATTLE_ANIM.vael.death={u:'/assets/anim/vael/vael_death_1182.webp?v=1182',n:24,first:0,fw:307,fh:433,cols:6,rows:4,figH:326,feet:423,top:97,cx:166.7,fps:8,flip:false,lazy:true,dn:48,parts:['death','death2'],end:'hide'};
+BATTLE_ANIM.vael.death2={u:'/assets/anim/vael/vael_death2_1182.webp?v=1182',n:24,first:24,fw:233,fh:263,cols:4,rows:6,figH:326,feet:253,top:-73,cx:98.7,fps:8,flip:false,lazy:true};
+BATTLE_ANIM.sylthaine.death={u:'/assets/anim/sylthaine/sylthaine_death_1182.webp?v=1182',n:12,first:0,fw:512,fh:514,cols:4,rows:3,figH:501,feet:507,top:6,cx:227.9,fps:8,flip:false,lazy:true,dn:48,parts:['death','death2','death3','death4'],end:'hide'};
+BATTLE_ANIM.sylthaine.death2={u:'/assets/anim/sylthaine/sylthaine_death2_1182.webp?v=1182',n:16,first:12,fw:455,fh:466,cols:4,rows:4,figH:501,feet:459,top:-42,cx:227.5,fps:8,flip:false,lazy:true};
+BATTLE_ANIM.sylthaine.death3={u:'/assets/anim/sylthaine/sylthaine_death3_1182.webp?v=1182',n:16,first:28,fw:453,fh:466,cols:4,rows:4,figH:501,feet:459,top:-42,cx:226.3,fps:8,flip:false,lazy:true};
+BATTLE_ANIM.sylthaine.death4={u:'/assets/anim/sylthaine/sylthaine_death4_1182.webp?v=1182',n:4,first:44,fw:354,fh:354,cols:1,rows:4,figH:501,feet:347,top:-154,cx:167.1,fps:8,flip:false,lazy:true};
+BATTLE_ANIM.vex.death={u:'/assets/anim/vex/vex_death_1182.webp?v=1182',n:12,first:0,fw:406,fh:515,cols:4,rows:3,figH:501,feet:508,top:7,cx:223.0,fps:8,flip:true,lazy:true,dn:48,parts:['death','death2','death3'],end:'hide'};
+BATTLE_ANIM.vex.death2={u:'/assets/anim/vex/vex_death2_1182.webp?v=1182',n:20,first:12,fw:447,fh:400,cols:4,rows:5,figH:501,feet:393,top:-108,cx:263.5,fps:8,flip:true,lazy:true};
+BATTLE_ANIM.vex.death3={u:'/assets/anim/vex/vex_death3_1182.webp?v=1182',n:16,first:32,fw:325,fh:505,cols:4,rows:4,figH:501,feet:497,top:-4,cx:207.0,fps:8,flip:true,lazy:true};
+BATTLE_ANIM.vireo.death={u:'/assets/anim/vireo/vireo_death_1182.webp?v=1182',n:12,first:0,fw:446,fh:628,cols:4,rows:3,figH:595,feet:602,top:7,cx:225.9,fps:8,flip:false,lazy:true,dn:48,parts:['death','death2','death3','death4'],end:'hide'};
+BATTLE_ANIM.vireo.death2={u:'/assets/anim/vireo/vireo_death2_1182.webp?v=1182',n:16,first:12,fw:419,fh:433,cols:4,rows:4,figH:595,feet:408,top:-187,cx:207.8,fps:8,flip:false,lazy:true};
+BATTLE_ANIM.vireo.death3={u:'/assets/anim/vireo/vireo_death3_1182.webp?v=1182',n:16,first:28,fw:419,fh:443,cols:4,rows:4,figH:595,feet:418,top:-177,cx:207.8,fps:8,flip:false,lazy:true};
+BATTLE_ANIM.vireo.death4={u:'/assets/anim/vireo/vireo_death4_1182.webp?v=1182',n:4,first:44,fw:15,fh:16,cols:1,rows:4,figH:595,feet:9,top:-586,cx:7.2,fps:8,flip:false,lazy:true};
+BATTLE_ANIM.aldren.death={u:'/assets/anim/aldren/aldren_death_1199.webp?v=1199',n:25,first:0,fw:387,fh:381,cols:5,rows:5,figH:361,feet:367,top:6,cx:198.9,fps:8,flip:false,lazy:true,dn:48,parts:['death','death2'],end:'hide'};
+BATTLE_ANIM.aldren.death2={u:'/assets/anim/aldren/aldren_death2_1199.webp?v=1199',n:23,first:25,fw:366,fh:171,cols:3,rows:8,figH:361,feet:157,top:-204,cx:179.5,fps:8,flip:false,lazy:true};
+BATTLE_ANIM.astra.death={u:'/assets/anim/astra/astra_death_1199.webp?v=1199',n:9,first:0,fw:528,fh:555,cols:3,rows:3,figH:500,feet:506,top:6,cx:281.2,fps:8,flip:false,lazy:true,dn:48,parts:['death','death2','death3','death4'],end:'hide'};
+BATTLE_ANIM.astra.death2={u:'/assets/anim/astra/astra_death2_1199.webp?v=1199',n:12,first:9,fw:536,fh:433,cols:3,rows:4,figH:500,feet:417,top:-83,cx:281.2,fps:8,flip:false,lazy:true};
+BATTLE_ANIM.astra.death3={u:'/assets/anim/astra/astra_death3_1199.webp?v=1199',n:16,first:21,fw:511,fh:424,cols:4,rows:4,figH:500,feet:409,top:-91,cx:255.3,fps:8,flip:false,lazy:true};
+BATTLE_ANIM.astra.death4={u:'/assets/anim/astra/astra_death4_1199.webp?v=1199',n:11,first:37,fw:497,fh:274,cols:2,rows:6,figH:500,feet:263,top:-237,cx:242.2,fps:8,flip:false,lazy:true};
+BATTLE_ANIM.aureth.death={u:'/assets/anim/aureth/aureth_death_1199.webp?v=1199',n:40,first:0,fw:347,fh:239,cols:5,rows:8,figH:214,feet:220,top:6,cx:153.5,fps:8,flip:false,lazy:true,dn:48,parts:['death','death2'],end:'hide'};
+BATTLE_ANIM.aureth.death2={u:'/assets/anim/aureth/aureth_death2_1199.webp?v=1199',n:8,first:40,fw:144,fh:109,cols:1,rows:8,figH:214,feet:102,top:-112,cx:69.9,fps:8,flip:false,lazy:true};
+BATTLE_ANIM.bloatus.death={u:'/assets/anim/bloatus/bloatus_death_1199.webp?v=1199',n:20,first:0,fw:403,fh:435,cols:5,rows:4,figH:396,feet:412,top:16,cx:219.4,fps:8,flip:false,lazy:true,dn:48,parts:['death','death2','death3'],end:'hide'};
+BATTLE_ANIM.bloatus.death2={u:'/assets/anim/bloatus/bloatus_death2_1199.webp?v=1199',n:20,first:20,fw:477,fh:373,cols:4,rows:5,figH:396,feet:346,top:-50,cx:281.1,fps:8,flip:false,lazy:true};
+BATTLE_ANIM.bloatus.death3={u:'/assets/anim/bloatus/bloatus_death3_1199.webp?v=1199',n:8,first:40,fw:410,fh:209,cols:1,rows:8,figH:396,feet:196,top:-200,cx:281.6,fps:8,flip:false,lazy:true};
+BATTLE_ANIM.brannus.death={u:'/assets/anim/brannus/brannus_death_1199.webp?v=1199',n:48,first:0,fw:261,fh:239,cols:6,rows:8,figH:222,feet:228,top:6,cx:154.0,fps:8,flip:false,lazy:true,dn:48,parts:['death'],end:'hide'};
+BATTLE_ANIM.absalie.death={u:'/assets/anim/absalie/absalie_death_1199.webp?v=1199',n:20,first:0,fw:481,fh:396,cols:4,rows:5,figH:372,feet:380,top:8,cx:262.8,fps:8,flip:false,lazy:true,dn:48,parts:['death','death2'],end:'hide'};
+BATTLE_ANIM.absalie.death2={u:'/assets/anim/absalie/absalie_death2_1199.webp?v=1199',n:28,first:20,fw:344,fh:261,cols:4,rows:7,figH:372,feet:248,top:-124,cx:212.0,fps:8,flip:false,lazy:true};
+BATTLE_ANIM.ambrel.death={u:'/assets/anim/ambrel/ambrel_death_1199.webp?v=1199',n:20,first:0,fw:406,fh:416,cols:5,rows:4,figH:381,feet:391,top:10,cx:232.8,fps:8,flip:false,lazy:true,dn:48,parts:['death','death2'],end:'hold'};
+BATTLE_ANIM.ambrel.death2={u:'/assets/anim/ambrel/ambrel_death2_1199.webp?v=1199',n:28,first:20,fw:362,fh:302,cols:5,rows:6,figH:381,feet:276,top:-105,cx:188.7,fps:8,flip:false,lazy:true};
+BATTLE_ANIM.askel.death={u:'/assets/anim/askel/askel_death_1199.webp?v=1199',n:16,first:0,fw:477,fh:419,cols:4,rows:4,figH:400,feet:406,top:6,cx:334.3,fps:8,flip:true,lazy:true,dn:48,parts:['death','death2','death3'],end:'hold'};
+BATTLE_ANIM.askel.death2={u:'/assets/anim/askel/askel_death2_1199.webp?v=1199',n:16,first:16,fw:467,fh:416,cols:4,rows:4,figH:400,feet:391,top:-9,cx:275.0,fps:8,flip:true,lazy:true};
+BATTLE_ANIM.askel.death3={u:'/assets/anim/askel/askel_death3_1199.webp?v=1199',n:16,first:32,fw:450,fh:241,cols:2,rows:8,figH:400,feet:221,top:-179,cx:257.7,fps:8,flip:true,lazy:true};
+/* DEATH TABLE END */
 Object.assign(KITS, {
   pyroclast:{green:{name:'Ember Lash',type:'creeprot',mul:1.0,dps:0.55,dur:4,color:'#ff7a2a',cd:6,desc:"A focused fire strike that applies Scorch.",pfx:'pyroclast_green_fx',pscale:2.4,gfx:'pyroclast_green',deliver:'shot',speed:16*METER,gfxR:3*METER,gdur:6.04},blue:{name:'Blazing Orbit',type:'nova',mul:1.15,radius:2.8*METER,push:1.5*METER,burn:0.3,burnDur:3,cd:8,desc:"A close-range ring of flame that damages and repels attackers.",gfxAt:'self',deliver:'form',form:0.35,gdur:6.04,gfx:'pyroclast_blue'},purple:{name:'Rising Heat',pass:'risingheat',desc:"Scorched enemies increase her spell power when damaged."}},
   iver:{green:{name:'Volt Pike',type:'piercethrow',mul:1.5,width:34,cd:7,desc:"A piercing spear thrust damages enemies in a narrow line.",pfx:'iver_green_fx',pscale:2.6,gfx:'iver_green',gfxR:3*METER,gdur:2.62},blue:{name:'Thunder Guard',type:'thornguard',pct:0.18,thorn:0.6,dur:5,cd:9,desc:"A defensive brace shields him and retaliates against direct attacks.",gfxAt:'self',gdur:5.29,gfx:'iver_blue',gfxR:3*METER},purple:{name:'Static Charge',pass:'staticcharge',desc:"Attacks build Charge; at maximum, his next ability chains."}},

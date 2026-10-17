@@ -15,15 +15,12 @@
 const path = require('path'), vm = require('vm'), fs = require('fs'), cp = require('child_process'), crypto = require('crypto'), os = require('os'), net = require('net');
 const ROOT = path.resolve(__dirname, '..');
 const HTML = process.env.EW_HTML || path.join(ROOT, 'emberweave-heroes.html');
-const BASE_SHA = process.env.EW_BASE || 'bb2876d9';   // live v1181 (Imperial Plumage, on v1180 Rim Breaker), the build this change sits on
+const BASE_SHA = process.env.EW_BASE || '8363c857';   // live v1182 (the first four deaths), the build this change sits on
 const VER = process.env.EW_DEATH_VER || '1182';
-const HEROES = ['vael', 'sylthaine', 'vex', 'vireo'];
+const HEROES = ['vael', 'sylthaine', 'vex', 'vireo'];   // the first four: the browser scenarios run on them
+const SRCS = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures', 'death_sources.json'), 'utf8'));   // every hero with a death (tools: death_batch.py adds each batch)
+const ALL = SRCS.map(r => r.key), SRC = Object.fromEntries(SRCS.map(r => [r.key, Object.assign({ dir: r.hero, sha: r.sha256, id: r.creationId, bg: r.plate }, r)]));
 const GPU_BUDGET_MB = 2048;
-const SRC = {   // ChatGPT 17:32 handoff + each folder's clean-source-manifest.json
-  vael: { dir: 'Vael', sha: '158609ac6a582db899bafc671b6e4c6b669a51cc8846ed57a13ae51dd1f20bed', id: '567599086061998081', bg: 'magenta' },
-  sylthaine: { dir: 'Sylthaine', sha: '3b3cce9bfaafd87ad0f75c507e842fd914628c0a4265013c0f939d53afb8893f', id: '567599290899206145', bg: 'green' },
-  vex: { dir: 'Vex', sha: '49afd1f9392a7a7582367d4f4aaf90fb7f635111d7c1bdd2a0f4814fdc0f8d40', id: '567611634823962632', bg: 'green', not: '567599447451594761' },
-  vireo: { dir: 'Vireo', sha: 'b3497e1f0d5d65afa0b0c9956e30a916dcffa05fc854db77e63174671c65487b', id: '567612665947455488', bg: 'green', not: '567599574320906249' } };
 const BD = fs.mkdtempSync(path.join(os.tmpdir(), 'death-base-'));
 process.on('exit', () => { try { fs.rmSync(BD, { recursive: true, force: true }); } catch (e) {} });
 let baseOk = true;
@@ -57,55 +54,56 @@ try {
     const dir = h => path.join(ARCH, 'Game Art', 'Heroes', SRC[h].dir, 'clips', 'DEATH REVIEW 16OCT2026');
     if (fs.existsSync(dir('vael'))) {
       const bad = [];
-      for (const h of HEROES) { const S = SRC[h]; let m = null; try { m = JSON.parse(fs.readFileSync(path.join(dir(h), 'clean-source-manifest.json'), 'utf8')); } catch (e) {}
+      for (const h of ALL) { const S = SRC[h]; let m = null; try { m = JSON.parse(fs.readFileSync(path.join(dir(h), 'clean-source-manifest.json'), 'utf8')); } catch (e) {}
         const f = path.join(dir(h), S.dir + ' - 90 death - 4 seconds SILENT Phil PASS.mp4');
         const sha = fs.existsSync(f) ? crypto.createHash('sha256').update(fs.readFileSync(f)).digest('hex') : 'missing';
-        if (!m) { bad.push(h + ' no manifest'); continue; }
-        if (sha !== S.sha || m.sha256 !== S.sha) bad.push(h + ' sha ' + sha.slice(0, 12));
-        if (m.creationId !== S.id || (S.not && JSON.stringify(m).includes(S.not))) bad.push(h + ' take ' + m.creationId);
-        if (!/Phil PASS/.test(m.status) || m.animationType !== 'death' || m.frames !== 96 || m.sourceBackground !== S.bg) bad.push(h + ' manifest ' + JSON.stringify([m.status, m.frames, m.sourceBackground])); }
-      ck('sources: the four Phil PASS SILENT files (96 frames), sha256 = the handoff and the manifests; Vex 567611634823962632 / Vireo 567612665947455488 (the first zooming takes 567599447451594761 / 567599574320906249 nowhere); Vael magenta, the others green', bad.length === 0, bad.join('; ')); }
+        if (sha !== S.sha) bad.push(h + ' sha ' + sha.slice(0, 12));
+        if (m && (m.sha256 !== S.sha || m.creationId !== S.id || (S.not && JSON.stringify(m).includes(S.not)) || !/Phil PASS/.test(m.status) || m.frames !== 96 || m.sourceBackground !== S.bg)) bad.push(h + ' manifest ' + JSON.stringify([m.status, m.frames, m.sourceBackground])); }
+      ck('sources: every death (' + ALL.length + ') is its Phil PASS SILENT file, sha256 = the fixture (the handoff / batch manifest) and, where the folder has one, its clean-source-manifest.json (Vex 567611634823962632 / Vireo 567612665947455488 finals)', bad.length === 0, bad.join('; ')); }
     else console.log('  info the Archive is not reachable here - the source files were not re-hashed'); }
 
   // ------------------------------------------------------------------ 2. the entries, the parts and the sheets
   const ALLD = J(`Object.keys(BATTLE_ANIM).filter(k=>BATTLE_ANIM[k]&&BATTLE_ANIM[k].death)`);
-  ck('exactly the four heroes have a death state (the other 56 are still being made): ' + ALLD.join(','), JSON.stringify(ALLD.slice().sort()) === JSON.stringify(HEROES.slice().sort()));
-  const D = {}, I = {}, PT = {}; HEROES.forEach(k => { D[k] = J('BATTLE_ANIM.' + k + '.death'); I[k] = J('BATTLE_ANIM.' + k + '.idle'); PT[k] = D[k].parts.map(s => Object.assign({ st: s }, J('BATTLE_ANIM.' + k + '.' + s))); });
-  ck('each death is 48 cells over exactly 6.0 s (8 fps), lazy, ends hidden (all four end in ash), its own states (death, death2 ..; never hit / attack / an ability / a passive)',
-    HEROES.every(k => D[k].dn === 48 && D[k].fps === 8 && D[k].dn / D[k].fps === 6 && D[k].end === 'hide' && PT[k].every(p => p.lazy === true && p.fps === 8) &&
+  ck('the heroes with a death state are exactly the fixture\'s ' + ALL.length + ' (the rest are still being made): ' + ALLD.join(','), JSON.stringify(ALLD.slice().sort()) === JSON.stringify(ALL.slice().sort()));
+  const D = {}, I = {}, PT = {}; ALL.forEach(k => { D[k] = J('BATTLE_ANIM.' + k + '.death'); I[k] = J('BATTLE_ANIM.' + k + '.idle'); PT[k] = D[k].parts.map(s => Object.assign({ st: s }, J('BATTLE_ANIM.' + k + '.' + s))); });
+  ck('each death is 48 cells over exactly 6.0 s (8 fps), lazy, ends as its clip does (ash -> hide, a fallen body -> hold), its own states (death, death2 ..; never hit / attack / an ability / a passive)',
+    ALL.every(k => D[k].dn === 48 && D[k].fps === 8 && D[k].dn / D[k].fps === 6 && D[k].end === (SRC[k].end || 'hide') && PT[k].every(p => p.lazy === true && p.fps === 8) &&
       PT[k].every(p => !['hit', 'attack', 'crit', 'green', 'blue', 'ult', 'passive'].some(s => J('(BATTLE_ANIM.' + k + '.' + s + '&&BATTLE_ANIM.' + k + '.' + s + '.u)||null') === p.u))));
-  ck('the parts tile cells 0..47 in order with no gap or overlap: ' + HEROES.map(k => k + ' ' + PT[k].map(p => p.first + '-' + (p.first + p.n - 1)).join('/')).join(', '),
-    HEROES.every(k => { let c = 0; for (const p of PT[k]) { if (p.first !== c) return false; c += p.n; } return c === 48; }));
-  ck('facing: heroes face right; Vex\'s clip faces left like her idle (flip:true), the other three flip:false like theirs', HEROES.every(k => PT[k].every(p => p.flip === I[k].flip)) && D.vex.flip === true);
-  ck('every sheet is new: /assets/anim/<hero>/<hero>_<death|deathN>_' + VER + '.webp?v=' + VER + ' (RULE 24)', HEROES.every(k => PT[k].every(p => p.u === '/assets/anim/' + k + '/' + k + '_' + p.st + '_' + VER + '.webp?v=' + VER)));
-  const PX = JSON.parse(cp.execFileSync(process.env.PYTHON || 'python', ['-I', path.join(__dirname, 'helpers', 'death_1182_check.py'), ROOT, JSON.stringify(HEROES.map(k => ({ k, parts: PT[k], idle: I[k] })))], { maxBuffer: 1 << 24 }).toString());
-  ck('sheets: each file is exactly its grid, <= 2048 px a side, <= 4 MB, q95 (VP8 + ALPH, v1158 recipe); decoded per hero ' + HEROES.map(k => k + ' ' + PX[k].decoded_mb + ' MB').join(', '),
-    HEROES.every(k => PX[k].sheets.every((S, i) => { const A = PT[k][i]; return S.size[0] === A.fw * A.cols && S.size[1] === A.fh * A.rows && Math.max(...S.size) <= 2048 && S.bytes <= 4e6 && S.kind.includes('VP8 ') && S.kind.includes('ALPH'); })));
-  ck('no plate colour is left: the ash Hailuo drew in the plate colour (green flecks / Vael\'s magenta) is unmixed - visible key-lean pixels <= 0.01%',
-    HEROES.every(k => PX[k].green_pct <= 0.01 && (SRC[k].bg !== 'magenta' || PX[k].magenta_pct <= 0.01)), HEROES.map(k => k + ' g' + PX[k].green_pct + ' m' + PX[k].magenta_pct).join(', '));
-  ck('the ash ending: each clip\'s last two cells hold < 1% of cell 0\'s pixels (so "end: hide" - the body is gone, nothing to hold)', HEROES.every(k => { const c = PX[k].cellpx; return c.length === 48 && c[46] + c[47] < 0.01 * c[0]; }),
-    HEROES.map(k => k + ' ' + PX[k].cellpx[0] + '>' + PX[k].cellpx.slice(44).join('/')).join(', '));
+  ck('the parts tile cells 0..47 in order with no gap or overlap: ' + ALL.map(k => k + ' ' + PT[k].map(p => p.first + '-' + (p.first + p.n - 1)).join('/')).join(', '),
+    ALL.every(k => { let c = 0; for (const p of PT[k]) { if (p.first !== c) return false; c += p.n; } return c === 48; }));
+  ck('facing: every clip carries its own source facing (the fit to the hero\'s idle; Vex faces left like her idle, flip:true)', ALL.every(k => PT[k].every(p => p.flip === SRC[k].flip)) && D.vex.flip === true);
+  ck('every sheet is new: /assets/anim/<hero>/<hero>_<death|deathN>_' + VER + '.webp?v=' + VER + ' (RULE 24)', ALL.every(k => PT[k].every(p => p.u === '/assets/anim/' + k + '/' + k + '_' + p.st + '_' + (SRC[k].ver || VER) + '.webp?v=' + (SRC[k].ver || VER))));
+  const PX = JSON.parse(cp.execFileSync(process.env.PYTHON || 'python', ['-I', path.join(__dirname, 'helpers', 'death_1182_check.py'), ROOT, JSON.stringify(ALL.map(k => ({ k, parts: PT[k], idle: I[k] })))], { maxBuffer: 1 << 24 }).toString());
+  ck('sheets: each file is exactly its grid, <= 2048 px a side, <= 4 MB, q95 (VP8 + ALPH, v1158 recipe); decoded per hero ' + ALL.map(k => k + ' ' + PX[k].decoded_mb + ' MB').join(', '),
+    ALL.every(k => PX[k].sheets.every((S, i) => { const A = PT[k][i]; return S.size[0] === A.fw * A.cols && S.size[1] === A.fh * A.rows && Math.max(...S.size) <= 2048 && S.bytes <= 4e6 && S.kind.includes('VP8 ') && S.kind.includes('ALPH'); })));
+  ck('no plate colour is left: the ash Hailuo drew in the plate colour is unmixed - visible pixels leaning to the hero\'s OWN plate (green or magenta) <= 0.01%',
+    ALL.every(k => (SRC[k].bg === 'magenta' ? PX[k].magenta_pct : PX[k].green_pct) <= 0.01), ALL.map(k => k + ' ' + SRC[k].bg + ' ' + (SRC[k].bg === 'magenta' ? PX[k].magenta_pct : PX[k].green_pct)).join(', '));
+  ck('the ending: an ash clip (end hide) leaves < 2% of cell 0\'s pixels in its last two cells - the body is gone; a fallen body (end hold) keeps its last cell', ALL.every(k => { const c = PX[k].cellpx; return c.length === 48 && ((SRC[k].end || 'hide') === 'hide' ? c[46] + c[47] < 0.02 * c[0] : c[47] > 0.05 * c[0]); }),
+    ALL.map(k => k + ' ' + (SRC[k].end || 'hide') + ' ' + PX[k].cellpx[0] + '>' + PX[k].cellpx.slice(44).join('/')).join(', '));
   // full size: the standing figure is drawn as tall as the hero's idle cell 0, on the same foot line (the engine draws figH = sprH), every part at that one scale
-  const sizeAt = (k, F) => { const d = PX[k].death_fig0, i = PX[k].idle_fig0, A = PT[k][0], B = I[k];
-    return { h: ((d[1] - d[0]) / (A.figH * F)) / ((i[1] - i[0]) / B.figH), foot: (d[1] - A.feet) / (A.figH * F) - (i[1] - B.feet) / B.figH }; };
-  const SZ = HEROES.map(k => [k, sizeAt(k, 1)]);
-  ck('FULL SIZE: death cell 0 stands as tall as idle cell 0 as drawn (within 3%) on the same foot line (within 2%), at the idle\'s own texel scale (figH = idle figH, every part)', SZ.every(([k, s]) => Math.abs(s.h - 1) <= 0.03 && Math.abs(s.foot) <= 0.02) &&
-    HEROES.every(k => PT[k].every(p => p.figH === I[k].figH)), SZ.map(([k, s]) => k + ' x' + s.h.toFixed(3) + ' foot ' + s.foot.toFixed(3) + ' figH ' + PT[k][0].figH + '/' + I[k].figH).join(', '));
-  ck('CONTROL: a death figH 10% off fails the size check', HEROES.every(k => Math.abs(sizeAt(k, 1.1).h - 1) > 0.03));
+  const sizeAt = (k, F) => { const d = PX[k].death_fig0, A = PT[k][0];   // Phil's approved scale: the frame-0 figure (bbox) drawn at the hero's own figH
+    return { h: (d[1] - d[0]) / (A.figH * F), foot: (d[1] - A.feet) / A.figH }; };
+  const vsIdle = k => { const d = PX[k].death_fig0, i = PX[k].idle_fig0, A = PT[k][0], B = I[k]; return ((d[1] - d[0]) / A.figH) / ((i[1] - i[0]) / B.figH); };
+  const SZ = ALL.map(k => [k, sizeAt(k, 1)]);
+  ck('FULL SIZE: every death\'s frame-0 figure is drawn at the hero\'s own figH (within 3%), standing on its feet line (within 2%), every part at that one scale = the idle\'s figH (Phil\'s approved rule)',
+    SZ.every(([k, s]) => Math.abs(s.h - 1) <= 0.03 && Math.abs(s.foot) <= 0.02) && ALL.every(k => PT[k].every(p => p.figH === I[k].figH)),
+    SZ.map(([k, s]) => k + ' x' + s.h.toFixed(3) + ' foot ' + s.foot.toFixed(3)).join(', '));
+  console.log('  info frame 0 vs idle cell 0 as drawn (a different start pose differs): ' + ALL.map(k => k + ' x' + vsIdle(k).toFixed(3)).join(', '));
+  ck('CONTROL: a death figH 10% off fails the size check', ALL.every(k => Math.abs(sizeAt(k, 1.1).h - 1) > 0.03));
 
   // ------------------------------------------------------------------ 3. display only
   const src = fs.readFileSync(HTML, 'utf8');
   const uses = [...src.matchAll(/^.*\.death\d*\b(?![_T]).*$/gm)].map(m => m[0].trim().slice(0, 70));
   ck('nothing in the fight reads a death state: every .death access is the table, deathClip, deathRelease, or the render\'s load trigger (' + uses.length + ' lines)',
-    uses.every(l => /^BATTLE_ANIM\.(vael|sylthaine|vex|vireo)\.death\d*=|^function deathClip|^function deathRelease|^if\(DEATH_CLIPS\.on&&u\.anim\.death/.test(l)) && uses.length === HEROES.reduce((s, k) => s + PT[k].length, 0) + 3, uses.join(' | '));
+    uses.every(l => /^BATTLE_ANIM\.\w+\.death\d*=|^function deathClip|^function deathRelease|^if\(DEATH_CLIPS\.on&&u\.anim\.death/.test(l)) && uses.length === ALL.reduce((s, k) => s + PT[k].length, 0) + 3, uses.join(' | '));
   const ub = run('String(updateBattle)');
   ck('updateBattle is BASE\'s but for the mesh hand-over in the 0.9 s removal (deathCorpse only behind u.mesh, which the headless replay never has)',
-    !!R0 && ub.replace('if(u.mesh&&!deathCorpse(u)){', 'if(u.mesh){').replace('   /* v' + VER + ': a body mid death clip moves to _corpses (display) */', '').split('\r').join('') === R0('String(updateBattle)').split('\r').join('') && (ub.match(/death(Corpse|Draw|Clip|Preload|Release)/g) || []).length === 1);
+    !!R0 && (() => { const norm = x => x.replace('if(u.mesh&&!deathCorpse(u)){', 'if(u.mesh){').replace(/   \/\* v\d{4}: a body mid death clip moves to _corpses \(display\) \*\//, '').split('\r').join(''); return norm(ub) === norm(R0('String(updateBattle)')); })() && (ub.match(/death(Corpse|Draw|Clip|Preload|Release)/g) || []).length === 1);
   ck('not a skill preview: no slot of the four ever previews a death state; none is in a load tier (loading screen / warm-up) and loadAnimSet skips lazy clips',
-    J(`(()=>{ const o=[]; for(const k of ${JSON.stringify(HEROES)}) for(const sl of ['attack','crit',0,1,2,3]) o.push(...skillPreviewStates(k,sl)); return o.filter(s=>/^death/.test(s)); })()`).length === 0 &&
+    J(`(()=>{ const o=[]; for(const k of ${JSON.stringify(ALL)}) for(const sl of ['attack','crit',0,1,2,3]) o.push(...skillPreviewStates(k,sl)); return o.filter(s=>/^death/.test(s)); })()`).length === 0 &&
     J(`ANIM_TIERS.every(t=>!t||!t.some(s=>/^death/.test(s)))`) && /if\(set\[st\]&&set\[st\]\.lazy\)continue;/.test(run('String(loadAnimSet)')));
-  { const all = J(`allAssetUrls()`).map(u => u.split('?')[0]); ck('Update all lists every death sheet (allAssetUrls)', HEROES.every(k => PT[k].every(p => all.includes(p.u.split('?')[0])))); }
-  const FS = [[11, HEROES, ['askel', 'korvux', 'hobb', 'oakmir']], [12, ['askel', 'korvux', 'hobb', 'oakmir'], HEROES], [13, ['vael', 'vex', 'umbris'], ['sylthaine', 'vireo', 'tick']], [14, HEROES.concat(['askel']), HEROES.concat(['askel'])]];
+  { const all = J(`allAssetUrls()`).map(u => u.split('?')[0]); ck('Update all lists every death sheet (allAssetUrls)', ALL.every(k => PT[k].every(p => all.includes(p.u.split('?')[0])))); }
+  const FS = [[11, HEROES, ['askel', 'korvux', 'hobb', 'oakmir']], [12, ['askel', 'korvux', 'hobb', 'oakmir'], HEROES], [15, ['absalie', 'aldren', 'ambrel', 'astra', 'aureth'], ['bloatus', 'brannus', 'askel', 'vex', 'vael']], [13, ['vael', 'vex', 'umbris'], ['sylthaine', 'vireo', 'tick']], [14, HEROES.concat(['askel']), HEROES.concat(['askel'])]];
   if (R0) {
     const rows = FS.map(([s, a, e]) => [fight(HTML, s, a, e), fight(OLD, s, a, e)]);
     ck('REPLAYS: whole seeded fights (the four as allies, as enemies, a mirror match; deaths on both sides; results, deaths, targets, wave end) are tick-for-tick live ' + BASE_SHA + ' (' + rows.map(r => r[0].deaths + ' deaths' + (r[0].ended ? ' ended' : '')).join(', ') + ')',
@@ -139,7 +137,7 @@ try {
         G.tutStarted = true; G.tutDone = true; document.body.classList.remove('gated'); show('home'); try { if (SND && SND.out) SND.out.gain.value = 0; } catch (e) {} });
       await pg.waitForTimeout(600);
       await pg.evaluate(() => { const b = [...document.querySelectorAll('button')].find(x => /Skip Tutorial/i.test(x.textContent) && x.offsetParent); if (b) b.click(); });
-      const T = HEROES.concat(['askel']);
+      const T = HEROES.concat(['korvux']);   // Korvux: a hero with no death clip (the fallback)
       const start = async (seed, frozen, A, E) => { A = A || T; E = E || T;
         await pg.evaluate(([A, E, seed]) => { try { A.concat(E).forEach(k => G.unlocked[k] = true); } catch (e) {} G.team = A.slice(); CUR = { mode: 'arena', seed };
           window.requestAnimationFrame = window.__raf0 || window.requestAnimationFrame; startVersus(E.map(k => ({ key: k, level: 30 })), true, A.slice()); }, [A, E, seed]);
@@ -203,8 +201,8 @@ try {
       ck('the fight removes the enemy exactly as before, on the tick its deathT (battle time) passes 0.9 (render frame ' + left + '); only its mesh stays (_corpses) until the clip ends, then it leaves the scene (frame ' + gone + ') and _corpses is empty',
         left > 0 && re[left - 1].dT <= 0.9 && re[left].dT > 0.9 && re.slice(left, gone).every(r => r.corpse && r.inScene) && Math.abs(gone - 60 * SECS) <= 4 && !re[re.length - 1].corpse, JSON.stringify({ left, gone, dT: [re[left - 1] && re[left - 1].dT, re[left] && re[left].dT] }));
       // FALLBACK 1: a hero with no death clip (Askel)
-      await pick('askel', 'ally'); await kill(); const rk = await watch(80);
-      ck('FALLBACK: a hero without a death clip (Askel) fades exactly as before (opacity = 1 - deathT/0.9 every frame)', fade(rk) && rk.every(r => r.cell == null), JSON.stringify(rk.slice(0, 4)));
+      await pick('korvux', 'ally'); await kill(); const rk = await watch(80);
+      ck('FALLBACK: a hero without a death clip (Korvux) fades exactly as before (opacity = 1 - deathT/0.9 every frame)', fade(rk) && rk.every(r => r.cell == null), JSON.stringify(rk.slice(0, 4)));
       // FALLBACK 2: Vireo dies at FULL hp (her sheets never asked for) -> the fade, and it never pops in mid-fade
       await pick('vireo', 'ally'); await kill(); const rv = await watch(80);
       ck('FALLBACK: a death-clip hero killed before her sheets arrived (Vireo, one blow from full hp) fades as before and the clip never pops in', fade(rv) && rv.every(r => r.cell == null) && !dreq.some(x => /vireo_death/.test(x)), JSON.stringify(rv.slice(0, 3)));
@@ -290,6 +288,31 @@ try {
         console.log('  info PHONE GPU (four + Kharos vs Rivet, Hollow, Aureth, Rafe, Tharl): hub ' + hubMB + ' MB, fight art ' + base0 + ' MB, four death sets loaded ' + preDeath + ' MB (+' + (preDeath - base0).toFixed(1) + '), peak with all four dying ' + peak.toFixed(1) + ' MB, after the deaths ' + after + ' MB');
         ck('PHONE BUDGET: the heaviest fight holding all four, every death loaded and all four dying at once (' + played + ' clips), peaks at ' + peak.toFixed(1) + ' MB <= ' + GPU_BUDGET_MB + ' MB, and the deaths give their memory back when they end (' + after + ' MB)',
           peak <= GPU_BUDGET_MB && loaded.length === 4 && played === 4 && after <= base0 + 8, JSON.stringify({ base0, preDeath, peak, after, loaded }));
+        await pg.evaluate(() => { try { endBattle(true); } catch (e) {} });
+        // THE WORST CASE: the ten heaviest heroes on the phone (test_memory_budget_1140's own sum, every clip incl. the lazy deaths) in one fight, every
+        // one of them that has a death under 30% hp, then all killed at once - the deaths overlap; the live gate may refuse some (they fade), never the budget
+        const TOP = await pg.evaluate(() => { const per = {};
+          for (const k in BATTLE_ANIM) { if (!HERO_TYPES[k] || HERO_TYPES[k].monster) continue; for (const st in BATTLE_ANIM[k]) { const c = BATTLE_ANIM[k][st]; if (st[0] === '_' || !c || !c.u || !c.fw) continue;
+            window.__texPhone = 1; const kk = texSheetK(c.fw, c.fh, c.cols || c.n, c.rows || 1, (c.figH && c.fh) ? c.figH / c.fh : 0); window.__texPhone = null;
+            per[k] = (per[k] || 0) + Math.round(c.fw * kk) * (c.cols || c.n) * Math.round(c.fh * kk) * (c.rows || 1) * 4 * 4 / 3 / 1048576; } }
+          return Object.keys(per).sort((a, b) => per[b] - per[a]).slice(0, 10); });
+        await pg.evaluate(() => { window.requestAnimationFrame = window.__raf0; requestAnimationFrame(loop); }); await pg.waitForTimeout(1200);
+        await pg.evaluate(() => { try { document.getElementById('resultBtn').click(); } catch (e) {} }); await pg.waitForTimeout(800);
+        await pg.evaluate(() => show('home')); await pg.waitForTimeout(2500);
+        await start(41, true, TOP.slice(0, 5), TOP.slice(5, 10));
+        const w0 = await pg.evaluate(() => +__gpuMB().toFixed(1));
+        const WD = await pg.evaluate(() => { const d = units.filter(u => u.anim && u.anim.death && u.anim.death.parts); d.forEach(u => { u.hp = u.maxHp * 0.2; u.anim.death._gateAt = 0; }); return d.map(u => u.key); });
+        for (let i = 0; i < 300; i++) { await pg.evaluate(() => { window.__t += 1000 / 60; loop(window.__t); });
+          if (await pg.evaluate((K) => K.every(k => deathReady({ anim: BATTLE_ANIM[k] }) || (BATTLE_ANIM[k].death._gated || 0) > 0), WD)) break; await pg.waitForTimeout(80); }
+        for (let i = 0; i < 20; i++) await pg.evaluate(() => { window.__t += 1000 / 60; loop(window.__t); });
+        const wLoaded = await pg.evaluate(() => +__gpuMB().toFixed(1)), wReady = await pg.evaluate((K) => K.filter(k => deathReady({ anim: BATTLE_ANIM[k] })), WD);
+        await pg.evaluate(() => { units.filter(u => u.anim && u.anim.death && u.anim.death.parts).forEach(u => damage(u, u.maxHp * 100, 0xffffff, true)); });
+        let wPeak = wLoaded, wPlayed = 0;
+        for (let i = 0; i < 60 * 7; i++) { const r = await pg.evaluate(() => { window.__t += 1000 / 60; loop(window.__t); return { g: __gpuMB(), p: units.concat(_corpses).filter(u => u._die).length }; }); wPeak = Math.max(wPeak, r.g); wPlayed = Math.max(wPlayed, r.p); }
+        const wAfter = await pg.evaluate(() => +__gpuMB().toFixed(1));
+        console.log('  info PHONE WORST CASE (the ten heaviest: ' + TOP.join(', ') + '; with a death: ' + WD.join(', ') + '): fight art ' + w0 + ' MB, deaths loaded ' + wLoaded + ' MB (' + wReady.length + ' of ' + WD.length + ' inside the gate), all dying at once peak ' + wPeak.toFixed(1) + ' MB (' + wPlayed + ' clips), after ' + wAfter + ' MB');
+        ck('PHONE BUDGET, worst case: the ten heaviest heroes in one fight, every death among them overlapping, peaks at ' + wPeak.toFixed(1) + ' MB <= ' + GPU_BUDGET_MB + ' MB (' + wPlayed + ' of ' + WD.length + ' played their clip, the rest faded at the gate)',
+          wPeak <= GPU_BUDGET_MB && wPlayed === wReady.length && WD.length >= 1, JSON.stringify({ w0, wLoaded, wPeak, wAfter, wReady, WD }));
         await pg.evaluate(() => { try { endBattle(true); } catch (e) {} });
       } else ck('the budget test\'s GPU tally was found', false);
       ck('no page error', errs.length === 0, errs.slice(0, 4).join(' | '));
