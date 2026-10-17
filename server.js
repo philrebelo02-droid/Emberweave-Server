@@ -9947,6 +9947,11 @@ const server=http.createServer((req,res)=>{
     if(!(ra==='127.0.0.1'||ra==='::1'||ra==='::ffff:127.0.0.1')) return send(res,404,{error:'not found'});
     if(req.headers['cf-ray']||req.headers['cf-connecting-ip']||req.headers['x-forwarded-for']) return send(res,404,{error:'not found'});   // the Cloudflare tunnel also arrives on loopback
     const pool=_SIM_POOL||null; return send(res,200,{strained:!!(pool&&pool.strained()),lagMs:pool?+pool.lagMs().toFixed(1):null}); }
+  /* v1183: the save counters for an on-box check after a deploy (layout, io.failed, pieceMissed, undeclared) - loopback only, never
+     through the tunnel, the same guard as /internal/strain; counters only, no player data. /api/dev/save-stats stays the dev view. */
+  if(p==='/internal/save-stats'){ const ra=String(req.socket.remoteAddress||'');
+    if(!(ra==='127.0.0.1'||ra==='::1'||ra==='::ffff:127.0.0.1')||req.headers['cf-ray']||req.headers['cf-connecting-ip']||req.headers['x-forwarded-for']) return send(res,404,{error:'not found'});
+    return send(res,200,Object.assign({},GROUP_SAVE_STATS,{store:Object.assign({split:_store.split,layout:_store.layout},_store.stats)},{shed:{on:SHED.on}})); }
   if(p==='/sw.js') return serveFile(res,'sw.js','application/javascript',null,req);
   if(p==='/hero-profiles.js') return serveFile(res,'hero-profiles.js','application/javascript',null,req);
   if(p==='/hero-paths.js') return serveFile(res,'hero-paths.js','application/javascript',null,req);
