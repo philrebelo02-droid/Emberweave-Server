@@ -359,5 +359,245 @@
   "flip": true,
   "end": "hide",
   "ver": "1198"
+ },
+ {
+  "key": "nerisse",
+  "hero": "Nerisse Bellglass",
+  "sha256": "2ea942a2deb13bea6dc7a34d03e37a943eb8ab8c5783e6c72dcf27ddd67c14f5",
+  "creationId": "567677635376689154",
+  "plate": "green",
+  "flip": true,
+  "end": "hide",
+  "ver": "1198"
+ },
+ {
+  "key": "nox",
+  "hero": "Nox Quillfinger",
+  "sha256": "a797d6fdbd151912798a876f195a7a9796c529206804b97615f0a9cfa2bea675",
+  "creationId": "567905499443339264",
+  "plate": "green",
+  "flip": false,
+  "end": "hide",
+  "ver": "1198"
+ },
+ {
+  "key": "oakmir",
+  "hero": "Oakmir",
+  "sha256": "6741f9c90c1fe932afd08689a3f032b6712f2850d534a5202d4ab6b1131c93bd",
+  "creationId": "567905588794601473",
+  "plate": "magenta",
+  "flip": false,
+  "end": "hold",
+  "ver": "1198"
+ },
+ {
+  "key": "orryn",
+  "hero": "Orryn",
+  "sha256": "7e368839ebf50be0184b69d85326144ea476c451040c7297b946cfc00808c44a",
+  "creationId": "567905676593979394",
+  "plate": "magenta",
+  "flip": true,
+  "end": "hide",
+  "ver": "1198"
+ },
+ {
+  "key": "pellucid",
+  "hero": "Pellucid",
+  "sha256": "8de580e7211f3a220b1134b2a36aa547568a8274f3613669230ecc181d9cef83",
+  "creationId": "567905766381416455",
+  "plate": "green",
+  "flip": true,
+  "end": "hide",
+  "ver": "1198"
+ },
+ {
+  "key": "pyroclast",
+  "hero": "Pyroclast",
+  "sha256": "7b7aad85b3af32ec210b99edd0c903a8f487cb25a73e7951f15843bf67d3106c",
+  "creationId": "567905859276824578",
+  "plate": "green",
+  "flip": true,
+  "end": "hide",
+  "ver": "1198"
+ },
+ {
+  "key": "quorrel",
+  "hero": "Quorrel",
+  "sha256": "1759c3acee9f2e9e9b8bc58a432fd55a382ffea2d9f5361b5fb6a9b512b2f4c9",
+  "creationId": "567905964516106249",
+  "plate": "green",
+  "flip": false,
+  "end": "hide",
+  "ver": "1198"
+ },
+ {
+  "key": "rafe",
+  "hero": "Rafe Marrow",
+  "sha256": "526f067163fb835f2af5c9fee524a95b127d7aaeae9b16b99ae7adc221208451",
+  "creationId": "567917100284166145",
+  "plate": "green",
+  "flip": false,
+  "end": "hide",
+  "ver": "1198"
+ },
+ {
+  "key": "rhukk",
+  "hero": "Rhukk",
+  "sha256": "5c55aa7f06c3a527e0bca3bab3ba4e6ee7ca92d638f4098c6af395bc1e8cedf2",
+  "creationId": "567906962106204169",
+  "plate": "green",
+  "flip": false,
+  "end": "hide",
+  "ver": "1198"
+ },
+ {
+  "key": "rivet",
+  "hero": "Rivet",
+  "sha256": "cd0078b6bd4bb693c9951f5e73e71974d02504a7b0ad3190492f9e6f9e0fcfe0",
+  "creationId": "567907043848953863",
+  "plate": "magenta",
+  "flip": false,
+  "end": "hide",
+  "ver": "1198"
+ },
+ {
+  "key": "seyla",
+  "hero": "Seyla Silkcoil",
+  "sha256": "5a6f49c02064ec7009604ba765de8f0d2bf678fbf930b32badabc435804bb270",
+  "creationId": "567907681320243207",
+  "plate": "magenta",
+  "flip": true,
+  "end": "hide",
+  "ver": "1198"
+ },
+ {
+  "key": "sloe",
+  "hero": "Sloe",
+  "sha256": "048b2c82037a0fbacd6ab8856a41bd0b71e9e98b1cb0f3e095afa1213918b31f",
+  "creationId": "567909098340708352",
+  "plate": "magenta",
+  "flip": false,
+  "end": "hide",
+  "ver": "1198"
+ },
+ {
+  "key": "sorrel",
+  "hero": "Sorrel",
+  "sha256": "c0f5e0ec35d03ced34272387180d44caf69550d54040963d304680457ae7136d",
+  "creationId": "567909172806397953",
+  "plate": "magenta",
+  "flip": true,
+  "end": "hide",
+  "ver": "1198"
+ },
+ {
+  "key": "tessit",
+  "hero": "Tessit",
+  "sha256": "ec5726ffc01026fde6942811a54e8a44aee85247b551ace33da5ba601466fa45",
+  "creationId": "567909262530945027",
+  "plate": "green",
+  "flip": false,
+  "end": "hide",
+  "ver": "1198"
+ },
+ {
+  "key": "tharl",
+  "hero": "Tharl Ironcoil",
+  "sha256": "11b2207b6a6d925528a0404fea315cf9e9b1f1a64add2b1716a702d881154ffb",
+  "creationId": "567918197681909769",
+  "plate": "magenta",
+  "flip": true,
+  "end": "hide",
+  "ver": "1198"
+ },
+ {
+  "key": "tick",
+  "hero": "Tick",
+  "sha256": "5ee0acc30dc02e57959b01969eb218f6ba671d5753e70590dd27ce0f5d75fbb9",
+  "creationId": "567909846755512321",
+  "plate": "magenta",
+  "flip": false,
+  "end": "hide",
+  "ver": "1198"
+ },
+ {
+  "key": "tolley",
+  "hero": "Tolley",
+  "sha256": "6addd2d413bfc1a0c5f8d25c9572b05bb225300dbfccafe64e424d0c1fd60c6c",
+  "creationId": "567911329106464771",
+  "plate": "magenta",
+  "flip": true,
+  "end": "hide",
+  "ver": "1198"
+ },
+ {
+  "key": "umbris",
+  "hero": "Umbris",
+  "sha256": "32a592edc56a4920caa12bb95cb049ebfa394687a13b5dd84a72294c0fca235a",
+  "creationId": "567912370396962820",
+  "plate": "green",
+  "flip": false,
+  "end": "hide",
+  "ver": "1198"
+ },
+ {
+  "key": "vaelora",
+  "hero": "Vaelora Velvetclaw",
+  "sha256": "d3f6210f49030618e21b83f2693dc8695a8a131fed77903871ade9d2633ada36",
+  "creationId": "567913938408140806",
+  "plate": "green",
+  "flip": true,
+  "end": "hide",
+  "ver": "1198"
+ },
+ {
+  "key": "vesper",
+  "hero": "Vesper",
+  "sha256": "a151ccd54fb1b1ed224d292c8b36aa381a2e8011969412d852833f6c2a70ddb0",
+  "creationId": "567914581692760070",
+  "plate": "green",
+  "flip": false,
+  "end": "hide",
+  "ver": "1198"
+ },
+ {
+  "key": "veyr",
+  "hero": "Veyr",
+  "sha256": "0a759047b023140ef03a4c59c2dbeb759e87d83a49f99d56dd3c43c856d4097c",
+  "creationId": "567916317115330568",
+  "plate": "green",
+  "flip": false,
+  "end": "hide",
+  "ver": "1198"
+ },
+ {
+  "key": "vulmar",
+  "hero": "Vulmar",
+  "sha256": "d0ee3fb9044f5690070f110aa93a3e607ff5a4a31ea928409f47d802f7efe4db",
+  "creationId": "567918521540911110",
+  "plate": "magenta",
+  "flip": false,
+  "end": "hide",
+  "ver": "1198"
+ },
+ {
+  "key": "yenna",
+  "hero": "Yenna Cacklefang",
+  "sha256": "3b98a7bb5e7ce6f603d8086085e93fa68f525efe37d1ff64d5d2b9ba2165c783",
+  "creationId": "567919099058827270",
+  "plate": "magenta",
+  "flip": true,
+  "end": "hide",
+  "ver": "1198"
+ },
+ {
+  "key": "zahri",
+  "hero": "Zahri Sunhorn",
+  "sha256": "57fb1b48a777391b8a9f75ff56dd80633347a3af63447c4e46ebb4c39162bcdd",
+  "creationId": "567919454735765508",
+  "plate": "green",
+  "flip": true,
+  "end": "hide",
+  "ver": "1198"
  }
 ]
