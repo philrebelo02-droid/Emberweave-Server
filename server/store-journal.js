@@ -89,6 +89,7 @@ function pendFrom(f) { const p = emptyPend();
 
 /* ---------------- the engine: every file operation of the journal layout (in the io worker, or on the main thread with
    DB_STORE_IO=sync). All calls are synchronous; a call that throws leaves the committed state (and the manifest) untouched. ---------------- */
+const SAFE = require('./world-safety.js');   // v1183 world-load guard: durable journal lines and manifests
 function createEngine(o) {
   const file = o.file, dir = o.dir, SHARDS = o.shards, shardOf = o.shardOf;
   const CKPT_BYTES = Math.max(1 << 12, o.ckptBytes || 128 << 20), CKPT_MS = Math.max(1000, o.ckptMs || 10 * 60000);   // bench 12 Oct: 2 MB/s of journal under war + chat + play - a checkpoint about once a minute rewrites the touched base shards (~1.5 MB/s); boot replays at most ~128 MB
@@ -96,18 +97,30 @@ function createEngine(o) {
     ckpt: null, lastCkptAt: Date.now(), ckptRetryAt: 0, lazy: [], broken: false, ready: false };
   const stats = { appends: 0, appendBytes: 0, fulls: 0, rotations: 0, checkpoints: 0, ckptShards: 0, ckptMs: 0, ckptMaxStepMs: 0, ckptAborted: 0, journalBytes: 0, pendingUnits: 0, lazy: 0, truncated: 0 };
   const P = n => path.join(dir, n);
-  function manifest(m) {
-    const tmp = file + '.store.tmp';
+  /* v1183 (world-load guard, kept in the journal layout): the manifest gets a hard-link copy in <DB_FILE>.m (`recover` reads it),
+     every file it names that this step wrote is flushed with it - ONE syncfs, not an fsync per file - BEFORE the swap, and the swap
+     itself is flushed (its directory). o.sync false = DB_FSYNC=0 (dev timing runs only). */
+  function manifest(m, files) {
+    const tmp = file + '.store.tmp', parent = path.dirname(file), copy = 'manifest-' + m.gen + '.json';
     const s = '{"__store":"split-v1","layout":"journal-v1","gen":' + m.gen + ',"count":' + SHARDS + ',"shards":null,"baseGens":' + JSON.stringify(m.baseGens) +
       ',"pieces":' + JSON.stringify(m.pieces) + ',"core":' + m.core + ',"journals":' + JSON.stringify(m.journals) + '}';
-    fs.writeFileSync(tmp, s); fs.renameSync(tmp, file);
+    fs.writeFileSync(tmp, s);
+    let linked = false;
+    if (o.mdir) { try { fs.mkdirSync(o.mdir, { recursive: true }); try { fs.unlinkSync(path.join(o.mdir, copy)); } catch (e) {} fs.linkSync(tmp, path.join(o.mdir, copy)); linked = true; } catch (e) {} }
+    try {
+      if (o.sync) { const t0 = Date.now(); SAFE.flushBatch((files || []).map(P).concat([tmp]), linked ? [dir, o.mdir, parent] : [dir, parent], dir); stats.lastSyncMs = Date.now() - t0; }
+      fs.renameSync(tmp, file);
+    } catch (e) { if (linked) { try { fs.unlinkSync(path.join(o.mdir, copy)); } catch (e2) {} } throw e; }
+    if (o.sync) SAFE.fsyncDir(parent);
+    if (st.manCopy && st.manCopy !== copy && o.mdir) st.lazy.push(path.join(o.mdir, st.manCopy));   // the previous copy, once this one committed
+    st.manCopy = linked ? copy : null;
     return s.length;
   }
   function cur() { return { gen: st.gen, baseGens: st.baseGens, pieces: st.pieces, core: st.core, journals: st.journals }; }
 
   // the state on disk (from the main thread's load) - also cuts a torn last line off before anything is appended after it
   function init(m) {
-    st.gen = m.gen; st.baseGens = m.baseGens.slice(); st.pieces = Object.assign({}, m.pieces); st.core = m.core; st.journals = m.journals.slice();
+    st.gen = m.gen; st.manCopy = 'manifest-' + m.gen + '.json'; st.baseGens = m.baseGens.slice(); st.pieces = Object.assign({}, m.pieces); st.core = m.core; st.journals = m.journals.slice();
     st.cur = st.journals[st.journals.length - 1] || null; st.pend = emptyPend(); st.ckpt = null; st.broken = false;
     if (st.journals.length) {
       const f = foldJournals(dir, st.journals);
@@ -129,7 +142,7 @@ function createEngine(o) {
     if (core !== null && core !== undefined) json += ',"c":' + core;
     json += '}';
     const line = frame(json);
-    try { fs.appendFileSync(P(st.cur), line); }
+    try { fs.appendFileSync(P(st.cur), line); if (o.sync) SAFE.fsyncFile(P(st.cur)); }   // v1183: the line is the commit - on the disk before the save is answered
     catch (e) { st.broken = true; throw e; }   // a torn line may be on disk: nothing is appended after it - the next save is full
     st.curBytes += line.length; stats.appends++; stats.appendBytes += line.length; stats.journalBytes = st.curBytes;
     for (const [id, s, whole] of units) { const l = st.pend.u.get(id); if (!l || s === null || whole) st.pend.u.set(id, [s]); else l.push(s); }
@@ -149,7 +162,7 @@ function createEngine(o) {
       const pieces = {}; for (const [k, s] of pieceStrs) { const n = 'p-' + k + '-' + g + '.json'; fs.writeFileSync(P(n), s); written.push(n); pieces[k] = n; }
       const j = 'j-' + g + '.log'; fs.writeFileSync(P(j), ''); written.push(j);
       const m = { gen: g, baseGens: new Array(SHARDS).fill(g), pieces, core, journals: [j] };
-      const bytes = manifest(m);
+      const bytes = manifest(m, written);
       // committed: everything the old manifest named (and a checkpoint in progress) goes
       for (let s = 0; s < SHARDS; s++) if (st.baseGens && st.baseGens[s]) st.lazy.push(P(s + '-' + st.baseGens[s] + '.json'));
       for (const f of Object.values(st.pieces)) st.lazy.push(P(f));
@@ -169,7 +182,7 @@ function createEngine(o) {
   function rotate() {   // a new empty journal after the current one: appends go there; the old ones are folded into a new base
     const g = st.gen + 1, j = 'j-' + g + '.log';
     fs.writeFileSync(P(j), '');
-    try { manifest({ gen: g, baseGens: st.baseGens, pieces: st.pieces, core: st.core, journals: st.journals.concat(j) }); }
+    try { manifest({ gen: g, baseGens: st.baseGens, pieces: st.pieces, core: st.core, journals: st.journals.concat(j) }, [j]); }
     catch (e) { try { fs.unlinkSync(P(j)); } catch (e2) {} throw e; }
     const old = st.journals.slice();
     st.gen = g; st.journals = st.journals.concat(j); st.cur = j; st.curBytes = 0; stats.rotations++;
@@ -209,7 +222,7 @@ function createEngine(o) {
           const n = 'p-' + k + '-' + c.g + '.json'; fs.writeFileSync(P(n), JSON.stringify(v)); c.written.push(n); pieces[k] = n; }
         const core = c.frozen.c !== null ? c.frozen.c : st.core, journals = st.journals.filter(j => !c.old.includes(j));
         const mg = st.gen + 1;
-        manifest({ gen: mg, baseGens: c.baseGens, pieces, core, journals });
+        manifest({ gen: mg, baseGens: c.baseGens, pieces, core, journals }, c.written);
         for (let s = 0; s < SHARDS; s++) if (c.baseGens[s] !== st.baseGens[s]) st.lazy.push(P(s + '-' + st.baseGens[s] + '.json'));
         for (const f of gone) st.lazy.push(P(f)); for (const f of c.old) st.lazy.push(P(f));
         st.gen = mg; st.baseGens = c.baseGens; st.pieces = pieces; st.core = core; st.journals = journals; st.ckpt = null; st.lastCkptAt = Date.now();

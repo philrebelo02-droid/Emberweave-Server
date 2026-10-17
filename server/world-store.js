@@ -63,6 +63,7 @@ const fs = require('fs'), path = require('path');
 const SHARDS = Math.max(16, Math.min(16384, +process.env.DB_STORE_SHARDS || 512)), FORMAT = 'split-v1', LAYOUT = 'pieces-v1';
 const PIECE_KEY = /^[A-Za-z0-9_$]{1,64}$/, PIECE_FILE = /^p-([A-Za-z0-9_$]{1,64})-(\d+)\.json$/;
 const STORE_FILE_RX = '^(\\d+-\\d+|p-[A-Za-z0-9_$]{1,64}-\\d+)\\.json$';   // v1128: every shard and piece file name (the sweep after a failed save)
+const SAFE = require('./world-safety.js');   // v1183 world-load guard: durable writes, the .m manifest copies, recover
 const STORE_IO = require('./store-io.js'), J = require('./store-journal.js'), DIFF = require('./store-diff.js'), crypto = require('crypto');
 const JLAYOUT = 'journal-v1';   // v1128: base shards + an append-only per-player journal (server/store-journal.js)
 /* v1134 PIECE DIRTY FLAGS (S1 copy run 12 Oct 2026 on 6bfeb24d: almost every save named no pieces, so prepareJournal stringified all
@@ -88,11 +89,13 @@ function ownerOf(key) { const i = String(key).indexOf(':'); return i > 0 ? key.s
 
 function create(file, opts) {
   opts = opts || {};
-  const dir = file + '.d';
+  const dir = opts.dir || file + '.d', mdir = file + '.m';   // v1183: .m holds a hard link to each committed manifest (recover reads it); opts.dir: recover loads a .m copy against the live .d
+  const sync = opts.fsync !== false && process.env.DB_FSYNC !== '0';   // v1183: durable saves - DB_FSYNC=0 only for dev timing runs
   const st = { split: !!opts.split, verify: !!opts.verify, pieces: opts.pieces !== false, gen: 0, names: null, last: null,
     pnames: null, plast: new Map(), pflag: new Set(), layout: null, shash: new Map(), broken: false,
     usig: new Map(), psig: new Map(), rk: new Map(), vhash: null, dirty: new Set(), jcore: null, jstate: null, jinitSent: false, jfiles: null,
-    stats: { full: 0, partial: 0, shardsWritten: 0, lastMs: 0, lastShards: 0, lastFullAt: 0, undeclared: 0, undeclaredIds: [],
+    manCopy: null,
+    stats: { lastSyncMs: 0, durable: sync, full: 0, partial: 0, shardsWritten: 0, lastMs: 0, lastShards: 0, lastFullAt: 0, undeclared: 0, undeclaredIds: [],
       piecesWritten: 0, piecesSkipped: 0, slices: 0, sweepSkipped: 0, lastPieces: [], bytes: { shards: 0, pieces: 0, manifest: 0 }, undeclaredPieces: 0, undeclaredPieceNames: [], mainMs: 0, mainMaxMs: 0, io: null, unitsWritten: 0, unitsSkipped: 0, receiptsWritten: 0, sweepLooked: 0, dirtyNow: 0 } };
   st.stats.bytes.journal = 0;
   Object.assign(st.stats, { piecesLooked: 0, pieceBytesLooked: 0, pieceAudits: 0, pieceMissed: 0, pieceMissedNames: [], piecesMarked: 0 });   // v1134
@@ -197,7 +200,7 @@ function create(file, opts) {
       catch (err) { if (err.code === 'SHARD_MISSING') throw err; const e = Error('world store: shard file ' + name + ' unreadable (' + err.message + ')'); e.code = 'SHARD_MISSING'; throw e; }
       Object.assign(db.users, p.users || {}); Object.assign(idem, p.idem || {});
     }
-    db.idem = idem; st.gen = raw.gen | 0; st.names = count === SHARDS ? Object.assign({}, shardNames) : null;
+    db.idem = idem; st.gen = raw.gen | 0; st.manCopy = 'manifest-' + st.gen + '.json'; st.names = count === SHARDS ? Object.assign({}, shardNames) : null;
     st.layout = jl ? 'journal' : pieced ? 'pieces' : 'split-v1';
     if (jl) {   // v1128: the journals after the base, in order - the latest unit of each player, value of each piece, inline core
       const f = J.foldJournals(dir, raw.journals || []);
@@ -224,6 +227,7 @@ function create(file, opts) {
     if (!st.names) return 0; const keep = new Set([...Object.values(st.names), ...(st.pnames ? st.pnames.values() : []), ...(st.jfiles || [])]); let n = 0;
     let files = []; try { files = fs.readdirSync(dir); } catch (e) { return 0; }
     for (const f of files) if ((/^\d+-\d+\.json$/.test(f) || PIECE_FILE.test(f) || J.J_FILE.test(f)) && !keep.has(f)) { try { fs.unlinkSync(path.join(dir, f)); n++; } catch (e) {} }
+    try { for (const f of fs.readdirSync(mdir)) if (/^manifest-\d+\.json$/.test(f) && f !== st.manCopy) { try { fs.unlinkSync(path.join(mdir, f)); } catch (e) {} } } catch (e) {}   // v1183: copies of saves that never committed
     return n;
   }
 
@@ -276,7 +280,13 @@ function create(file, opts) {
     const tmp = file + '.store.tmp';
     const man = st.pieces ? JSON.stringify({ __store: FORMAT, layout: LAYOUT, gen, count: SHARDS, shards: null, shardGens: Array.from({ length: SHARDS }, (_, s) => +String(names[s]).split('-')[1].split('.')[0]), pieces: Object.fromEntries(pnext), core: inline })
       : JSON.stringify({ __store: FORMAT, gen, count: SHARDS, shards: names, core });
-    ops.push({ w: tmp, s: man }, { r: tmp, to: file });
+    // v1183: a second name for this manifest in .m (hard link, no extra bytes) for `recover`; every new file and the manifest are
+    // flushed to the disk (ONE syncfs, not an fsync per file) BEFORE the swap, and the swap itself is flushed (its directory)
+    const manCopy = 'manifest-' + gen + '.json', written = ops.filter(o => o.w).map(o => o.w).concat([tmp]);
+    ops.push({ w: tmp, s: man }, { link: tmp, to: path.join(mdir, manCopy), mk: mdir });
+    if (sync) ops.push({ flush: dir, files: written, dirs: [dir, mdir, path.dirname(file)] });
+    ops.push({ r: tmp, to: file });
+    if (sync) ops.push({ fsyncDir: path.dirname(file) });
     // what this save supersedes is removed once it has committed (lazily, by the io worker); after a failure, a sweep instead
     const lazy = [];
     if (broken) ops.push({ sweep: dir, keep: [...Object.values(names), ...(pnext ? pnext.values() : [])], rx: STORE_FILE_RX });
@@ -284,10 +294,11 @@ function create(file, opts) {
       const old = st.names || {};
       if (st.jfiles) { for (const f of st.jfiles) lazy.push(path.join(dir, f)); st.jfiles = null; }   // v1128: back from the journal layout - its journals go
       for (const s of Object.keys(names)) if (old[s] && old[s] !== names[s]) lazy.push(path.join(dir, old[s]));
+      if (st.manCopy && st.manCopy !== manCopy) lazy.push(path.join(mdir, st.manCopy));   // v1183: the previous save's manifest copy
       if (st.pnames) for (const [k, f] of st.pnames) if (!pnext || pnext.get(k) !== f) lazy.push(path.join(dir, f));   // superseded or removed pieces (all of them when going back to split-v1)
     }
     // the store's record moves forward now: the next save builds on this one
-    st.broken = false;
+    st.broken = false; st.manCopy = manCopy;
     st.names = names; for (const [s, h] of newHash) st.shash.set(s, h); S.lastShards = newHash.size;
     if (st.pieces) { st.pnames = pnext; for (const [k, s] of pstr) { st.plast.set(k, s); st.pflag.delete(k); } for (const k of [...st.plast.keys()]) if (!pnext.has(k)) st.plast.delete(k); st.layout = 'pieces'; }
     else { st.pnames = null; st.plast = new Map(); st.layout = 'split-v1'; }
@@ -342,7 +353,7 @@ function create(file, opts) {
     if (!keys.has('idem')) keys.add('idem');
     return { keys, inline, val: k => k === 'idem' ? coreIdem : db[k] };
   }
-  function jcfg() { return { file, dir, shards: SHARDS, ckptBytes: +process.env.DB_STORE_CKPT_BYTES || 0, ckptMs: +process.env.DB_STORE_CKPT_MS || 0 }; }
+  function jcfg() { return { file, dir, mdir, sync, shards: SHARDS, ckptBytes: +process.env.DB_STORE_CKPT_BYTES || 0, ckptMs: +process.env.DB_STORE_CKPT_MS || 0 }; }
   function jinitOp() { if (st.jinitSent) return null; st.jinitSent = true;
     const m = st.jstate || { gen: st.gen | 0, baseGens: [], pieces: {}, core: '{}', journals: [] };
     return { j: 'init', m, cfg: jcfg() }; }
@@ -512,7 +523,7 @@ function readWorld(file) { return create(file).load(); }
 function layoutOf(file) { try { const r = JSON.parse(fs.readFileSync(file, 'utf8')); return r && r.__store === FORMAT ? (r.layout === JLAYOUT ? 'journal' : r.layout === LAYOUT ? 'pieces' : 'split-v1') : 'file'; } catch (e) { return 'file'; } }
 function writeWorld(file, db) {
   const lay = layoutOf(file);
-  if (lay === 'file') { const tmp = file + '.tool.tmp'; fs.writeFileSync(tmp, JSON.stringify(db)); fs.renameSync(tmp, file); return; }
+  if (lay === 'file') { SAFE.writeAtomic(file, JSON.stringify(db), '.tool.tmp'); return; }   // v1183: fsync + rename + fsync dir
   const s = create(file, { split: true, pieces: lay !== 'split-v1', journal: lay === 'journal' }); s.load(); s.write(db, null);
 }
 
@@ -525,12 +536,22 @@ module.exports = { create, readWorld, writeWorld, layoutOf, namedFiles, shardOf,
 // CLI (stop the game first):
 //   node server/world-store.js export <DB_FILE> <out.json>   - the whole world as one plain JSON file (any layout)
 //   node server/world-store.js downgrade <DB_FILE>           - rewrite a pieces-layout world as split-v1 (code before v1127 reads it)
-//   node server/world-store.js layout <DB_FILE>              - print the layout: file | split-v1 | pieces
+//   node server/world-store.js layout <DB_FILE>              - print the layout: file | split-v1 | pieces | journal
+//   node server/world-store.js recover <DB_FILE> [--write] [--core <backup.json>]   - v1183: rebuild a damaged/missing manifest from
+//        <DB_FILE>.m (exact, any layout) or, split-v1 only, from the shard files + the newest backup. DRY RUN without --write.
 if (require.main === module) {
-  const [cmd, a, b] = process.argv.slice(2);
+  const args = process.argv.slice(2), [cmd, a, b] = args;
   if (cmd === 'export' && a && b) { fs.writeFileSync(b, JSON.stringify(readWorld(a))); console.log('exported ' + a + ' -> ' + b); }
   else if (cmd === 'downgrade' && a) { const was = layoutOf(a); if (was === 'file') { console.log(a + ' is a one-file world - nothing to do'); }
     else { const s = create(a, { split: true, pieces: false, journal: false }); const db = s.load(); s.write(db, null); console.log('downgraded ' + a + ' (' + was + ' -> ' + layoutOf(a) + ', ' + Object.keys(db.users || {}).length + ' players)'); } }
   else if (cmd === 'layout' && a) console.log(layoutOf(a));
-  else { console.log('usage: node server/world-store.js export <DB_FILE> <out.json> | downgrade <DB_FILE> | layout <DB_FILE>'); process.exitCode = 1; }
+  else if (cmd === 'recover' && a) {   // v1183 (any layout since v1185): rebuild a damaged / missing manifest - see server/world-safety.js recover()
+    const ci = args.indexOf('--core'), r = SAFE.recover(a, { write: args.includes('--write'), core: ci > 0 ? args[ci + 1] : null });
+    console.log(JSON.stringify(r, null, 2));
+    if (r.error) { console.error('recover: ' + r.error); process.exitCode = 2; }
+    else if (!r.wrote) console.log('recover: DRY RUN - nothing written. Add --write (game stopped) to write this manifest.');
+    else if (!r.verified) { console.error('recover: the written world did not read back the same'); process.exitCode = 3; }
+    else console.log('recover: manifest written and verified (' + r.players + ' players, ' + r.realPlayers + ' real).');
+  }
+  else { console.log('usage: node server/world-store.js export <DB_FILE> <out.json> | downgrade <DB_FILE> | layout <DB_FILE> | recover <DB_FILE> [--write] [--core <backup.json>]'); process.exitCode = 1; }
 }
