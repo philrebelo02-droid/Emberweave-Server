@@ -267,6 +267,8 @@ note "test_piece_flags.js (v1134 piece dirty flags + receipt index: a save on 32
 node tests/test_piece_flags.js || FAILED=1
 note "test_busy_shed.js (v1134 early busy: main thread ~95% busy -> polls answered 503 busy + Retry-After at once, actions less often, health/dev never, a refused save changed nothing, idle = 0 refused, off on NODE_ENV=test unless BUSY_SHED=1; f2043269 control refuses none)"
 node tests/test_busy_shed.js || FAILED=1
+note "test_internal_save_stats_1183.js (v1183: loopback-only save counters for the deploy's on-box check - layout, io.failed; 404 through the tunnel; no player data; v1182 control has none)"
+node tests/test_internal_save_stats_1183.js || FAILED=1
 note "test_march_retention_1038.js (v1038: settled city/mine marches are held 2 days, then let go - for every player; unfinished kept; v1037 control)"
 node tests/test_march_retention_1038.js || FAILED=1
 note "test_sim_helper_1039.js (v1039: battle helpers - a backed-up pool shares battles with server/sim-helper.js; identical results, spot checks; wrong key / other engine / busy / dead helper fall back locally; no-helper control)"
