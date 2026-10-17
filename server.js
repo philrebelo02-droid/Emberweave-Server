@@ -9900,10 +9900,10 @@ function serveFile(res, file, type, urlPath, req){ fs.readFile(path.join(__dirna
    /api/ requests is answered at once with 503 busy {busy, retry, retryAfterMs} + Retry-After, before any work (no body read, no state
    touched - the same requestId may simply be sent again; the client's apiOnce does). Polls (GET) go first; actions (POST) only in the
    upper half of the band. Never shed: /api/health, /api/front/*, /api/internal/*, /api/dev/*, /api/admin/* and everything outside /api/
-   (pages, assets, /health); nothing in the first 15 s after start (BUSY_SHED_WARM_MS - boot work is not load). BUSY_SHED=0 = off; on by default except on
-   NODE_ENV=test servers (the test suite's servers, the load-test copies), where BUSY_SHED=1 turns it on.
+   (pages, assets, /health); nothing in the first 15 s after start (BUSY_SHED_WARM_MS - boot work is not load). OFF by default everywhere (v1182, Phil: no error screens at launch - a plain api() caller shows the busy answer as an error);
+   BUSY_SHED=1 in /etc/emberweave.env + a restart turns it on. Turn it on only after the client treats 'busy' as a quiet retry.
    Counters: save-stats shed {elu, lagMs, p, shed, shedGet, shedPost, passed, maxElu, maxLagMs}. */
-const SHED={ on:process.env.BUSY_SHED==='1'||(process.env.BUSY_SHED!=='0'&&process.env.NODE_ENV!=='test'), lo:Math.min(0.99,Math.max(0.5,+process.env.BUSY_SHED_ELU||0.90)), full:Math.min(1,Math.max(0.51,+process.env.BUSY_SHED_FULL||0.98)), from:Date.now()+Math.max(0,process.env.BUSY_SHED_WARM_MS===undefined?15000:+process.env.BUSY_SHED_WARM_MS||0) };
+const SHED={ on:process.env.BUSY_SHED==='1', lo:Math.min(0.99,Math.max(0.5,+process.env.BUSY_SHED_ELU||0.90)), full:Math.min(1,Math.max(0.51,+process.env.BUSY_SHED_FULL||0.98)), from:Date.now()+Math.max(0,process.env.BUSY_SHED_WARM_MS===undefined?15000:+process.env.BUSY_SHED_WARM_MS||0) };
 const SHED_STATS={ elu:0, lagMs:0, p:0, shed:0, shedGet:0, shedPost:0, passed:0, maxElu:0, maxLagMs:0 };
 const SHED_EXEMPT=/^\/api\/(health\b|front\/|internal\/|dev\/|admin\/)/;
 { const PH=require('perf_hooks').performance; let prev=PH.eventLoopUtilization(), at=Date.now(); const win=[];
