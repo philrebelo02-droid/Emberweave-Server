@@ -11,6 +11,9 @@
    resets on redeploy — swap readDB/writeDB for a real database (Postgres,
    SQLite, Mongo) when you go live. The seam is intentionally tiny.
    =========================================================================== */
+/* v1182 SIGN-UP GATE (Phil 16 Oct 2026): password hashing runs on libuv's thread pool (async crypto.pbkdf2), so the pool is sized here,
+   before anything uses it. A UV_THREADPOOL_SIZE in the service environment wins. */
+if(!process.env.UV_THREADPOOL_SIZE) process.env.UV_THREADPOOL_SIZE='8';
 const http = require('http');
 const zlib = require('zlib');   // v252 (audit P2): text responses are compressed — the 1.7MB client ships ~10x smaller
 const fs   = require('fs');
@@ -226,7 +229,16 @@ function _runBatch(){
   b.resolve(true); try{ pgSave(); }catch(e){}
   if(!all && Date.now()-_store.stats.lastFullAt>STORE_SWEEP_MS) writeDB(); }   // v1037: changes no action declared (presence) reach disk too
 function writeDBSync(){ try{ if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; } saveDB(DB); return true; }catch(e){ console.error('DB write failed:', e.message); return false; } }   // v1036: exit paths
-process.on('SIGTERM',()=>{ if(!PG_BOOT_PENDING && _booted) writeDBSync(); process.exit(0); });   // v1036: a restart keeps the last debounced changes
+process.on('SIGTERM',()=>{ if(!PG_BOOT_PENDING && _booted) writeDBSync(); process.exit(0); });
+/* v1182 SIGN-UP GATE: the sign-up / sign-in routes save with the group save instead of a whole-world writeDB() each: inside an API
+   request the reply waits until these players' shards and the shared world are on disk (503 "Save failed" if that save failed - no
+   ack before it is on disk); outside a request (unit tests that run spans) the durable write happens at once. */
+function saveSoon(ids, failMsg){
+  if(_worldSettlementPlanning||_durableIdemActive) return true;
+  if(PG_BOOT_PENDING){ _bootDirty=true; return true; }
+  if(typeof _reqCtx!=='undefined'&&_reqCtx.getStore()){ if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; }
+    _holdReply(_joinBatch(null, (ids||[]).filter(x=>typeof x==='string'&&x)), failMsg||'Save failed - try again.'); return true; }
+  return writeDBNow(); }   // v1036: a restart keeps the last debounced changes
 
 /* ------------------------------- helpers ---------------------------------- */
 function uid(){ return crypto.randomBytes(8).toString('hex'); }
@@ -241,9 +253,35 @@ const NAME_CONFUSABLE={'а':'a','в':'b','е':'e','ё':'e','к':'k','м':'m','н
   'α':'a','β':'b','ε':'e','η':'n','ι':'i','κ':'k','ν':'v','ο':'o','ρ':'p','τ':'t','υ':'u','χ':'x','ζ':'z','μ':'u','ω':'w'};
 function nameSkeleton(n){ return String(n||'').normalize('NFKC').toLowerCase().replace(/[l1|]/g,'i').replace(/0/g,'o').normalize('NFKD').replace(/\p{M}/gu,'')   /* v1085 (scan 6 #5): after lower-casing, l / 1 / | fold to i and 0 to o - 'PhiI' (capital i), 'Phi1' and 'Phil' are one name; 'MARIGOLD' and 'Marigold' still match */
   .replace(/./gu,c=>NAME_CONFUSABLE[c]||c).replace(/[^\p{L}\p{N}]/gu,''); }
+/* v1182 SIGN-UP GATE: nameTaken scanned every player (nameSkeleton of each name, ~15 ms per 10,000 players) on every sign-up - on
+   Server 1 for all five servers. An index now maps skeleton -> player ids. It is kept current where a player is made, renamed or
+   deleted (nameIdxPut / nameIdxDrop) and rebuilt whenever the world object is (re)loaded (boot, restore). Each hit is re-checked
+   against the live player exactly as the scan checked it (same id rule, not an NPC, has a name, same skeleton), so a stale entry can
+   never refuse a free name; and at most once a second a cheap pass (a name compare per player, no skeleton) adds any player whose name
+   reached the world without the index and logs it as drift. Same answers as the scan (tests/test_signup_gate_1182.js compares them). */
+const _nameIdx={ db:null, byId:new Map(), bySk:new Map(), rebuilds:0, drift:0, lastSyncAt:0, lastSyncMs:0 };
+function _nameIdxAdd(id,n){ const sk=nameSkeleton(n); _nameIdx.byId.set(id,{n,sk}); if(!sk) return;
+  let set=_nameIdx.bySk.get(sk); if(!set){ set=new Set(); _nameIdx.bySk.set(sk,set); } set.add(id); }
+function _nameIdxDel(id){ const e=_nameIdx.byId.get(id); if(!e) return; _nameIdx.byId.delete(id);
+  const set=e.sk&&_nameIdx.bySk.get(e.sk); if(set){ set.delete(id); if(!set.size) _nameIdx.bySk.delete(e.sk); } }
+function nameIdxRebuild(){ _nameIdx.db=DB; _nameIdx.byId=new Map(); _nameIdx.bySk=new Map(); _nameIdx.rebuilds++; _nameIdx.lastSyncAt=Date.now();
+  for(const u of Object.values(DB.users||{})){ if(u&&u.id&&!u.isNpc&&u.name) _nameIdxAdd(u.id,u.name); } }
+function _nameIdxReady(){ if(_nameIdx.db!==DB) nameIdxRebuild(); }
+function nameIdxPut(u){ if(!u||!u.id) return; _nameIdxReady(); const e=_nameIdx.byId.get(u.id);
+  if(e&&e.n===u.name&&!u.isNpc) return; _nameIdxDel(u.id); if(!u.isNpc&&u.name) _nameIdxAdd(u.id,u.name); }
+function nameIdxDrop(id){ if(_nameIdx.db!==DB) return; _nameIdxDel(id); }
+function _nameIdxSync(){ const t0=Date.now(); let d=0;
+  for(const u of Object.values(DB.users||{})){ if(!u||!u.id||u.isNpc||!u.name) continue; const e=_nameIdx.byId.get(u.id);
+    if(!e||e.n!==u.name){ _nameIdxDel(u.id); _nameIdxAdd(u.id,u.name); d++; } }
+  _nameIdx.lastSyncAt=Date.now(); _nameIdx.lastSyncMs=_nameIdx.lastSyncAt-t0;
+  if(d){ _nameIdx.drift+=d; console.error('[names] '+d+' player name(s) reached the world without the name index - added (v1182 drift)'); } }
 function nameTaken(name,exceptId){ const lid=DB.byName[String(name||'').toLowerCase()]; if(lid&&lid!==exceptId) return true;
   const sk=nameSkeleton(name); if(!sk) return false;
-  for(const u of Object.values(DB.users||{})){ if(u&&u.id!==exceptId&&!u.isNpc&&u.name&&nameSkeleton(u.name)===sk) return true; } return false; }
+  _nameIdxReady(); if(Date.now()-_nameIdx.lastSyncAt>=1000) _nameIdxSync();
+  const ids=_nameIdx.bySk.get(sk); if(!ids) return false;
+  for(const id of ids){ const u=DB.users[id], e=_nameIdx.byId.get(id);
+    if(u&&u.id!==exceptId&&!u.isNpc&&u.name&&((e&&e.n===u.name)?e.sk:nameSkeleton(u.name))===sk) return true; }
+  return false; }
 /* v1081 (scan 2 #1): PROTECTION SHIELDS ARE THE SERVER'S. Players paid diamonds / guild coins for shields that only the browser knew
    about - no attack route ever checked one, so a 'protected' castle could still be attacked. Now: me.shields (owned), me.shieldUntil
    (active until), the beginner peace (72 h from the account's creation while under level 30, until you attack) - and war declare /
@@ -275,14 +313,40 @@ function badCharName(n){ const s=String(n||''); if(!s) return ''; const why=badN
   if(!/^[\p{L}\p{M}0-9 _\-.!?#@$%*+=~()\[\]:,^]+$/u.test(s)) return 'That name uses a character that is not allowed - letters, numbers, spaces and _ - . ! ? # @ $ % * + = ~ ( ) [ ] : , ^ only.';
   if(!/[\p{L}0-9]/u.test(s)) return 'A name needs at least one letter or number.';
   return ''; }
-function hashPass(pass, salt, iters){ return crypto.pbkdf2Sync(pass, salt, iters||60000, 32, 'sha256').toString('hex'); }
 // AUDIT (26 Aug, high): 60k PBKDF2 is below current guidance. NEW password hashes use 210k iterations
 // with a 16-byte salt and store their iteration count on the account; old 60k hashes keep verifying
 // (u.iters undefined → 60000) and are transparently re-hashed at the next successful login.
 const PBKDF2_ITERS=210000;
-function makeCred(pass){ const salt=crypto.randomBytes(16).toString('hex'); return { salt, iters:PBKDF2_ITERS, hash:hashPass(pass,salt,PBKDF2_ITERS) }; }
-function checkPass(u,pass){ try{ const a=Buffer.from(u.hash||'','hex'), b=Buffer.from(hashPass(pass||'',u.salt,u.iters),'hex');
+/* v1182 SIGN-UP GATE (Phil 16 Oct 2026, "ok thats good"): PBKDF2 ran synchronously on the main thread (pbkdf2Sync, ~22 ms a hash on
+   Server 1, which also hashed every sign-up and sign-in of Servers 2-5): ~600 sign-ups in 30 s stalled Server 1 (resolve p95 47 s,
+   23% errors). Every password and code hash now runs on libuv's thread pool (async crypto.pbkdf2 - the same salt, iterations, length
+   and digest, so every stored hash still verifies), at most HASH_CONCURRENCY at once (env; default half the cores, 2-4) so a burst
+   never takes every core from the game and its battle helper. Callers await it and re-read what they change after the await. */
+const HASH_CONCURRENCY=Math.max(1, parseInt(process.env.HASH_CONCURRENCY||'0',10) || Math.max(2, Math.min(4, (()=>{ const os=require('os'); return (typeof os.availableParallelism==='function')?os.availableParallelism():os.cpus().length; })()>>1)));
+const HASH_STATS={ n:0, failed:0, running:0, queued:0, maxQueued:0, maxWaitMs:0, lastMs:0, maxMs:0, concurrency:HASH_CONCURRENCY };
+const _hashQ=[];
+function hashPassAsync(pass, salt, iters){
+  return new Promise((resolve, reject)=>{
+    const qt=Date.now();
+    const run=()=>{ HASH_STATS.running++; const t0=Date.now(); if(t0-qt>HASH_STATS.maxWaitMs) HASH_STATS.maxWaitMs=t0-qt;
+      let fin=false;
+      const done=(e, key)=>{ if(fin) return; fin=true; HASH_STATS.running--; const ms=Date.now()-t0; HASH_STATS.lastMs=ms; if(ms>HASH_STATS.maxMs) HASH_STATS.maxMs=ms;
+        const nx=_hashQ.shift(); HASH_STATS.queued=_hashQ.length; if(nx) nx();
+        if(e){ HASH_STATS.failed++; reject(e); } else { HASH_STATS.n++; resolve(key.toString('hex')); } };
+      try{ crypto.pbkdf2(pass, salt, iters||60000, 32, 'sha256', done); }catch(e){ done(e); } };   // a bad pass/salt type throws here, as pbkdf2Sync did
+    if(HASH_STATS.running<HASH_CONCURRENCY) run();
+    else { _hashQ.push(run); HASH_STATS.queued=_hashQ.length; if(_hashQ.length>HASH_STATS.maxQueued) HASH_STATS.maxQueued=_hashQ.length; } }); }
+async function makeCredAsync(pass){ const salt=crypto.randomBytes(16).toString('hex'); return { salt, iters:PBKDF2_ITERS, hash:await hashPassAsync(pass,salt,PBKDF2_ITERS) }; }
+async function checkPassAsync(u,pass){ try{ const a=Buffer.from(u.hash||'','hex'), b=Buffer.from(await hashPassAsync(pass||'',u.salt,u.iters),'hex');
   return a.length===b.length && crypto.timingSafeEqual(a,b); }catch(e){ return false; } }   // RE-AUDIT: constant-time compare
+/* v1182: a password hash made on another server (Servers 2-5 hash their own players' passwords and send Server 1 the result). Only the
+   exact shape a current makeCredAsync makes is taken; anything else is ignored and the password is hashed here as before. */
+function credOk(c){ return (c&&typeof c==='object'&&typeof c.salt==='string'&&/^[0-9a-f]{32}$/.test(c.salt)&&c.iters===PBKDF2_ITERS&&typeof c.hash==='string'&&/^[0-9a-f]{64}$/.test(c.hash))
+  ? { salt:c.salt, iters:c.iters, hash:c.hash } : null; }
+/* v1182: the credential TAG - a fingerprint of the password Server 1 holds for an account (sha256 over its salt, iterations and hash,
+   cut to 32 hex). It changes whenever that password changes in any way (reset, upgrade, a tool), it cannot sign anyone in, and without
+   the salt (which never leaves Server 1) it cannot be used to guess the password. Satellites keep it beside their local copy. */
+function credTag(u){ return (u&&u.hash) ? crypto.createHash('sha256').update('ew-cred-v1|'+String(u.salt||'')+'|'+String(u.iters||60000)+'|'+String(u.hash)).digest('hex').slice(0,32) : ''; }
 const SAVE_MAX_CHARS=1024*1024;   /* v999 (Account audit #8): a cloud save above 1 MB is refused (a request could store 4 MB of any shape) */
 const MIN_PASS_LEN=8;   // AUDIT: 1-char passwords were accepted. New/changed passwords only — existing logins unaffected.
 // RE-AUDIT (26 Aug): API CORS is no longer '*'. The game is served from the SAME origin, which
@@ -395,23 +459,33 @@ async function authorityCall(path, payload){
     clearTimeout(t); return { status:r.status, body:await r.json().catch(()=>({})) };
   }catch(e){ return null; } }
 // the local player of a game-wide account on THIS server; made fresh (progress starts over) on its first sign-in here
-function linkedUser(gid, name, pass){
+/* v1182: async. The password work runs first on the thread pool (the adoption check below, the local copy), then the linking runs in
+   one synchronous step on freshly read state, exactly as before. opts.cred = a local copy already hashed (sign-up / reset: the hash this
+   server made and sent to Server 1); opts.keepCopy = the local copy was just checked here and Server 1 confirmed its tag (no new hash);
+   opts.tag = Server 1's credential tag for the copy; opts.touched receives the ids of other players this changed (the ~old rename). */
+async function linkedUser(gid, name, pass, opts){
+  opts=opts||{}; DB.byGid=DB.byGid||{};
+  let adopt=null;
+  if(!(DB.byGid[gid] && DB.users[DB.byGid[gid]]) && pass){ const lid=DB.byName[String(name).toLowerCase()]; const lu=lid&&DB.users[lid];
+    if(lu && !lu.guest && !lu.gid && !lu.isNpc && lu.hash && await checkPassAsync(lu,pass)) adopt={ id:lu.id, hash:lu.hash }; }
+  const c=credOk(opts.cred) || ((pass && !opts.keepCopy) ? await makeCredAsync(pass) : null);
   DB.byGid=DB.byGid||{};
   let u=DB.byGid[gid] && DB.users[DB.byGid[gid]];
   if(!u){ const lid=DB.byName[String(name).toLowerCase()]; const lu=lid&&DB.users[lid];
-    if(lu && !lu.guest && !lu.gid && !lu.isNpc && lu.hash && checkPass(lu,pass)) u=lu; }   // a local account made before linking, same name: adopt it - v999 (Account audit #2, P0): ONLY with that account's own password (it used to adopt on the name alone and overwrite the hash)
+    if(lu && adopt && lu.id===adopt.id && lu.hash===adopt.hash && !lu.guest && !lu.gid && !lu.isNpc) u=lu; }   // a local account made before linking, same name: adopt it - v999 (Account audit #2, P0): ONLY with that account's own password (it used to adopt on the name alone and overwrite the hash)
   if(!u){ const lid=DB.byName[String(name).toLowerCase()]; const lu=lid&&DB.users[lid];
     /* v1007 (re-audit N8 / review #5): a local account of this name that did not adopt (other password, or a handoff) used to be
        orphaned when byName was repointed. Keep it under name~old so its progress stays on disk, and say so in the log. */
     if(lu && !lu.gid && !lu.isNpc){ let nn=String(lu.name)+'~old', i=2; while(DB.byName[nn.toLowerCase()]) nn=String(lu.name)+'~old'+(i++);
-      DB.byName[nn.toLowerCase()]=lu.id; lu.name=nn; console.log('[link] local account kept as '+nn+' - a game-wide account took its name'); }
+      DB.byName[nn.toLowerCase()]=lu.id; lu.name=nn; nameIdxPut(lu); if(Array.isArray(opts.touched)) opts.touched.push(lu.id); console.log('[link] local account kept as '+nn+' - a game-wide account took its name'); }
     const id=uid();
     u={ id, name, rank:nextJoinRank(), coins:0, team:defaultTeam(), wall:defaultTeam(), roster:{}, lastDaily:0,
         cityX:Math.round(Math.random()*1000), cityY:Math.round(Math.random()*1000), created:Date.now() };
     DB.users[id]=u; }
   if(u.name && u.name.toLowerCase()!==String(name).toLowerCase() && DB.byName[u.name.toLowerCase()]===u.id) delete DB.byName[u.name.toLowerCase()];
-  u.gid=gid; u.name=name; DB.byName[String(name).toLowerCase()]=u.id; DB.byGid[gid]=u.id;
-  if(pass){ const c=makeCred(pass); u.hash=c.hash; u.salt=c.salt; u.iters=c.iters; }   // local copy for sign-in while Server 1 is down
+  u.gid=gid; u.name=name; DB.byName[String(name).toLowerCase()]=u.id; DB.byGid[gid]=u.id; nameIdxPut(u);
+  if(c){ u.hash=c.hash; u.salt=c.salt; u.iters=c.iters; if(opts.tag) u.s1Tag=String(opts.tag).slice(0,64); else delete u.s1Tag; }   // local copy for sign-in while Server 1 is down (v1182: and for the local check)
+  else if(opts.keepCopy && opts.tag && u.hash) u.s1Tag=String(opts.tag).slice(0,64);
   delete u.guest;
   return u; }
 /* v1035 (Phil, 5 Oct 2026: "ban should be account wide" / "and so should password reset"). The ACCOUNT SERVER (Server 1) holds the
@@ -452,58 +526,91 @@ async function acctStatusSync(){
 if(ACCOUNT_AUTHORITY) setInterval(acctStatusSync, ACCOUNT_STATUS_MS);
 // v946: the account checks, shared by this server's own endpoints and the account-server endpoints (bodies moved unchanged
 // from /api/login, /api/register, /api/reset-request and /api/reset-verify). Callers write the DB.
-function acctVerify(name, pass, ip){
-  const id=DB.byName[String(name||'').trim().toLowerCase()];
-  const u=id&&DB.users[id]; if(!u){ hashPass(String(pass||''),'00000000000000000000000000000000',PBKDF2_ITERS); return {status:401,error:'Wrong name or password'}; }   /* v1000 (Account audit #19): the same work for an unknown name */
+/* v1182: async (the hash runs on the thread pool). The lock is checked before the hash and again after it, and the failure is counted on
+   the account as it is AFTER the await, so attempts that overlap count exactly as one-at-a-time ones did. opts.trust = {gid, tag}: a
+   satellite checked the password against its local copy and sends Server 1's tag for it - when the tag is this account's current one
+   nothing is hashed here (the lock still applies; a stale tag falls back to the full check with the password). Returns changed = the
+   account was written (fail count, 60k -> 210k upgrade, fails cleared), id, trusted. */
+async function acctVerify(name, pass, ip, opts){
+  const key=String(name||'').trim().toLowerCase(), id=DB.byName[key];
+  let u=id&&DB.users[id]; if(!u){ try{ await hashPassAsync(String(pass||''),'00000000000000000000000000000000',PBKDF2_ITERS); }catch(e){} return {status:401,error:'Wrong name or password'}; }   /* v1000 (Account audit #19): the same work for an unknown name */
   /* v1000 (Account audit #5): 10 wrong passwords in an hour lock THIS account for 15 min from THAT IP only (was: from every IP - anyone
      could keep any account locked, names are public). A much higher account-wide cap (200/h) still locks for 5 min against a spread attack. IPs are stored hashed. */
-  const now=Date.now(), ipk=crypto.createHash('sha256').update(String(ip||'unknown')).digest('hex').slice(0,16);
-  const lf=(u.loginFails&&u.loginFails.v===2&&now-u.loginFails.t<3600000)?u.loginFails:{v:2,n:0,t:now,ip:{}};
-  const li=(lf.ip[ipk]&&now-lf.ip[ipk].t<3600000)?lf.ip[ipk]:{n:0,t:now};
-  if((li.until&&now<li.until)||(lf.until&&now<lf.until)) return {status:429,error:'Too many wrong passwords — try again in 15 minutes.'};
+  const ipk=crypto.createHash('sha256').update(String(ip||'unknown')).digest('hex').slice(0,16);
+  const lockOf=(acc,now)=>{ const lf=(acc.loginFails&&acc.loginFails.v===2&&now-acc.loginFails.t<3600000)?acc.loginFails:{v:2,n:0,t:now,ip:{}};
+    const li=(lf.ip[ipk]&&now-lf.ip[ipk].t<3600000)?lf.ip[ipk]:{n:0,t:now};
+    return { lf, li, locked:!!((li.until&&now<li.until)||(lf.until&&now<lf.until)) }; };
+  const LOCKED={status:429,error:'Too many wrong passwords — try again in 15 minutes.'};
+  if(lockOf(u,Date.now()).locked) return LOCKED;
   // SECURITY (audit crit #1): no mustReset shortcut before the password check - recovery is the verified email flow only.
-  if(!checkPass(u,pass)){ li.n++; if(li.n>=10) li.until=now+15*60000; lf.ip[ipk]=li; lf.n++; if(lf.n>=200) lf.until=now+5*60000;
+  const tr=opts&&opts.trust;
+  let good=false, trusted=false, settled=false;
+  for(let k=0;k<2&&!settled;k++){ const hashWas=u.hash;
+    trusted=!!(tr && tr.gid===u.id && u.hash && tr.tag && tr.tag===credTag(u));
+    good=trusted || await checkPassAsync(u,pass);
+    u=DB.users[id]; if(!u || DB.byName[key]!==id) return {status:401,error:'Wrong name or password'};   // deleted or renamed while it was hashed
+    settled=(u.hash===hashWas); }   // the password changed while it was hashed: check once more against the new one
+  if(!settled) return {status:401,error:'Wrong name or password'};
+  const now=Date.now(), L=lockOf(u,now);
+  if(L.locked) return LOCKED;   // another attempt locked it while this one was hashed
+  if(!good){ const lf=L.lf, li=L.li; li.n++; if(li.n>=10) li.until=now+15*60000; lf.ip[ipk]=li; lf.n++; if(lf.n>=200) lf.until=now+5*60000;
     const ks=Object.keys(lf.ip); if(ks.length>50) for(const k of ks.slice(0,ks.length-50)) delete lf.ip[k];
-    u.loginFails=lf; return {status:401,error:'Wrong name or password'}; }
-  delete u.loginFails;
-  if(!u.iters){ const c=makeCred(pass||''); u.hash=c.hash; u.salt=c.salt; u.iters=c.iters; }   // transparent 60k→210k upgrade
-  return {u}; }
-function acctCreate(rawName, pass){
+    u.loginFails=lf; return {status:401,error:'Wrong name or password',changed:true,id}; }
+  let changed=!!u.loginFails; delete u.loginFails;
+  if(!u.iters && pass!=null){ const hw=u.hash, c=await makeCredAsync(pass||'');   // transparent 60k→210k upgrade
+    const u2=DB.users[id]; if(u2===u && u.hash===hw && !u.iters){ u.hash=c.hash; u.salt=c.salt; u.iters=c.iters; changed=true; } }
+  return {u, changed, id, trusted}; }
+async function acctCreate(rawName, pass, cred){
   const name=cleanCharName(rawName);   /* v1176: no silent stripping - a blocked character is refused with its reason */
   { const why=badCharName(name); if(why) return {status:400,error:why}; }
-  if(name.length<2||!pass) return {status:400,error:'Name (2+) and password required'};
-  if(String(pass).length<8) return {status:400,error:'Password must be at least 8 characters.'};
+  const pre=credOk(cred);   // v1182: the satellite's own hash of the password (it checked the length) - nothing to hash here
+  if(name.length<2||!(pass||pre)) return {status:400,error:'Name (2+) and password required'};
+  if(pass && String(pass).length<8) return {status:400,error:'Password must be at least 8 characters.'};
   if(nameTaken(name)) return {status:409,error:'That Profile name is already taken'};   /* v1080: look-alikes too */
-  const id=uid(), c=makeCred(pass);
+  const c=pre || await makeCredAsync(pass);
+  if(!pre && nameTaken(name)) return {status:409,error:'That Profile name is already taken'};   // v1182: again after the await - two sign-ups of one name at once
+  const id=uid();
   const u={ id, name, hash:c.hash, salt:c.salt, iters:c.iters, rank:nextJoinRank(), coins:0, team:defaultTeam(), wall:defaultTeam(),
     roster:{}, lastDaily:0, cityX:Math.round(Math.random()*1000), cityY:Math.round(Math.random()*1000), created:Date.now() };
-  DB.users[id]=u; DB.byName[name.toLowerCase()]=id; return {u}; }
+  DB.users[id]=u; DB.byName[name.toLowerCase()]=id; nameIdxPut(u); return {u}; }
 /* v1017 (re-audit Account N7): the account-wide day caps (codes, wrong guesses) are a brute-force CEILING, but anyone could burn a
    player's whole allowance and lock them out of recovery for a day. Each requesting network now has its own share per account
    (2 codes, 5 wrong guesses a day) under a higher ceiling (8 codes, 20 wrong guesses: 20 guesses at a 6-digit code is ~1 in 50,000). */
 const RESET_CODES_MAX=8, RESET_BAD_MAX=20, RESET_CODES_PER_IP=2, RESET_BAD_PER_IP=5;
 function resetIpKey(ip){ return crypto.createHash('sha256').update(String(ip||'')).digest('hex').slice(0,16); }
-function acctResetRequest(name, ip){
+async function acctResetRequest(name, ip){   // v1182: async - the code hash runs on the thread pool
   const id=DB.byName[String(name||'').trim().toLowerCase()]; const u=id&&DB.users[id];
   // 30 Sep 2026 hardening: day caps per account, whatever the IP. v1017: plus a share per requesting network.
   const rl=u&&u.resetLog&&Date.now()-u.resetLog.t<86400000?u.resetLog:{t:Date.now(),codes:0,bad:0};
   rl.ip=rl.ip||{}; const ik=resetIpKey(ip), ir=rl.ip[ik]||(rl.ip[ik]={codes:0,bad:0});
   if(u && !u.isNpc && u.email && rl.codes<RESET_CODES_MAX && rl.bad<RESET_BAD_MAX && ir.codes<RESET_CODES_PER_IP && ir.bad<RESET_BAD_PER_IP){ const code=gen6(), salt=crypto.randomBytes(8).toString('hex');
     rl.codes++; ir.codes++; u.resetLog=rl;
-    u.reset={ hash:hashPass(code,salt), salt, exp:Date.now()+15*60000, tries:0 }; writeDB();
+    const h=await hashPassAsync(code,salt); if(DB.users[id]!==u) return;   // deleted while it was hashed
+    u.reset={ hash:h, salt, exp:Date.now()+15*60000, tries:0 }; writeDB();
     sendResetEmail(u.email, u.name, code); } }
-function acctResetVerify(name, rawCode, newPass, ip){
-  const id=DB.byName[String(name||'').trim().toLowerCase()]; const u=id&&DB.users[id];
+/* v1182: async. The caps are checked before the code's hash and again after it (attempts that overlap count as one-at-a-time ones did);
+   newCred = the new password already hashed by the satellite that asked (its length is still checked here). */
+async function acctResetVerify(name, rawCode, newPass, ip, newCred){
+  const key=String(name||'').trim().toLowerCase(), id=DB.byName[key]; let u=id&&DB.users[id];
   if(!u||u.isNpc||!u.reset) return {status:400,error:'No active reset — request a new code.'};
-  if(Date.now()>u.reset.exp){ delete u.reset; writeDB(); return {status:400,error:'That code expired — request a new one.'}; }
-  const code=(rawCode||'').toString().replace(/\D/g,'');
-  const _rl=(u.resetLog && Date.now()-u.resetLog.t<86400000)?u.resetLog:null, _ik=resetIpKey(ip), _ir=_rl&&_rl.ip&&_rl.ip[_ik];
-  if(_rl && _rl.bad>=RESET_BAD_MAX){ delete u.reset; writeDB(); return {status:400,error:'Too many wrong codes today — try again tomorrow.'}; }
-  if(_ir && _ir.bad>=RESET_BAD_PER_IP) return {status:400,error:'Too many wrong codes from this network today — try again tomorrow.'};   /* v1017: this network's share is used; the code stays valid for the owner */
-  if((u.reset.tries||0)>=5){ delete u.reset; writeDB(); return {status:400,error:'Too many wrong codes — request a new one.'}; }
-  if(hashPass(code,u.reset.salt)!==u.reset.hash){ u.reset.tries=(u.reset.tries||0)+1; if(u.resetLog){ u.resetLog.bad=(u.resetLog.bad||0)+1; u.resetLog.ip=u.resetLog.ip||{}; const r2=u.resetLog.ip[_ik]||(u.resetLog.ip[_ik]={codes:0,bad:0}); r2.bad++; } writeDB(); return {status:400,error:'Incorrect code — check your email and try again.'}; }
+  const code=(rawCode||'').toString().replace(/\D/g,''), _ik=resetIpKey(ip);
+  const gate=()=>{
+    if(Date.now()>u.reset.exp){ delete u.reset; writeDB(); return {status:400,error:'That code expired — request a new one.'}; }
+    const _rl=(u.resetLog && Date.now()-u.resetLog.t<86400000)?u.resetLog:null, _ir=_rl&&_rl.ip&&_rl.ip[_ik];
+    if(_rl && _rl.bad>=RESET_BAD_MAX){ delete u.reset; writeDB(); return {status:400,error:'Too many wrong codes today — try again tomorrow.'}; }
+    if(_ir && _ir.bad>=RESET_BAD_PER_IP) return {status:400,error:'Too many wrong codes from this network today — try again tomorrow.'};   /* v1017: this network's share is used; the code stays valid for the owner */
+    if((u.reset.tries||0)>=5){ delete u.reset; writeDB(); return {status:400,error:'Too many wrong codes — request a new one.'}; }
+    return null; };
+  const NONE={status:400,error:'No active reset — request a new code.'};
+  let g=gate(); if(g) return g;
+  const rs=u.reset, h=await hashPassAsync(code,rs.salt);
+  u=DB.users[id]; if(!u||u.isNpc||DB.byName[key]!==id||u.reset!==rs) return NONE;   // used, replaced or deleted while it was hashed
+  g=gate(); if(g) return g;
+  if(h!==rs.hash){ rs.tries=(rs.tries||0)+1; if(u.resetLog){ u.resetLog.bad=(u.resetLog.bad||0)+1; u.resetLog.ip=u.resetLog.ip||{}; const r2=u.resetLog.ip[_ik]||(u.resetLog.ip[_ik]={codes:0,bad:0}); r2.bad++; } writeDB(); return {status:400,error:'Incorrect code — check your email and try again.'}; }
   const np=(newPass||'').toString(); if(np.length<8) return {status:400,error:'New password must be at least 8 characters.'};
-  const c=makeCred(np); u.salt=c.salt; u.hash=c.hash; u.iters=c.iters; u.mustReset=false; delete u.reset;
+  const c=credOk(newCred) || await makeCredAsync(np);
+  u=DB.users[id]; if(!u||u.isNpc||DB.byName[key]!==id||u.reset!==rs) return NONE;
+  u.salt=c.salt; u.hash=c.hash; u.iters=c.iters; u.mustReset=false; delete u.reset;
   u.passAt=Date.now();   // v1035: Servers 2-5 sign the account out and drop their local password copy when this moves
   dropTokens(id); writeDB(); return {u}; }
 // v947: one-time server-switch codes, held by the account server in memory only (a restart simply expires them).
@@ -518,7 +625,7 @@ function handoffRedeem(code){
   const k=crypto.createHash('sha256').update(String(code)).digest('hex'), v=HANDOFF.get(k);
   HANDOFF.delete(k);   // single use, valid or not
   return (v && v.exp>=Date.now()) ? v.gid : null; }
-function acctEmailRequest(me, rawEmail){   // v946: moved unchanged from /api/email-request -> {status, body}
+async function acctEmailRequest(me, rawEmail){   // v946: moved unchanged from /api/email-request -> {status, body}; v1182: async (code hash on the thread pool)
   const email=normalizeEmail(rawEmail);
   if(!email) return {status:400,body:{error:'Enter a valid email address.'}};
   if(me.email && email===me.email) return {status:400,body:{error:'That is already your recovery email.'}};
@@ -527,15 +634,22 @@ function acctEmailRequest(me, rawEmail){   // v946: moved unchanged from /api/em
   { const dk=nyDayKey(); if(!me.emailSends||me.emailSends.k!==dk) me.emailSends={k:dk,n:0}; if(me.emailSends.n>=3) return {status:429,body:{error:'Too many codes today - try again tomorrow.'}}; me.emailSends.n++; }
   const toCurrent=!!me.email, target=toCurrent?me.email:email;
   const code=gen6(), salt=crypto.randomBytes(8).toString('hex');
-  me.emailChange={ newEmail:email, hash:hashPass(code,salt), salt, exp:Date.now()+15*60000, tries:0, toCurrent };
+  const h=await hashPassAsync(code,salt);
+  me.emailChange={ newEmail:email, hash:h, salt, exp:Date.now()+15*60000, tries:0, toCurrent };
   writeDB(); sendChangeCode(target, me.name, code, toCurrent);
   return {status:200,body:{ ok:true, toCurrent, sentTo:maskEmail(target) }}; }
-function acctEmailVerify(me, rawCode){   // v946: moved unchanged from /api/email-verify -> {status, body}
-  if(!me.emailChange) return {status:400,body:{error:'No pending email change — start again.'}};
-  if(Date.now()>me.emailChange.exp){ delete me.emailChange; writeDB(); return {status:400,body:{error:'That code expired — start again.'}}; }
-  if((me.emailChange.tries||0)>=5){ delete me.emailChange; writeDB(); return {status:400,body:{error:'Too many wrong codes — start again.'}}; }
-  const code=(rawCode||'').toString().replace(/\D/g,'');
-  if(hashPass(code,me.emailChange.salt)!==me.emailChange.hash){ me.emailChange.tries=(me.emailChange.tries||0)+1; writeDB(); return {status:400,body:{error:'Incorrect code — check your email and try again.'}}; }
+async function acctEmailVerify(me, rawCode){   // v946: moved unchanged from /api/email-verify -> {status, body}; v1182: async, caps checked before and after the hash
+  const NONE={status:400,body:{error:'No pending email change — start again.'}};
+  if(!me.emailChange) return NONE;
+  const gate=()=>{
+    if(Date.now()>me.emailChange.exp){ delete me.emailChange; writeDB(); return {status:400,body:{error:'That code expired — start again.'}}; }
+    if((me.emailChange.tries||0)>=5){ delete me.emailChange; writeDB(); return {status:400,body:{error:'Too many wrong codes — start again.'}}; }
+    return null; };
+  let g=gate(); if(g) return g;
+  const code=(rawCode||'').toString().replace(/\D/g,''), ec=me.emailChange, h=await hashPassAsync(code,ec.salt);
+  if(me.emailChange!==ec) return NONE;
+  g=gate(); if(g) return g;
+  if(h!==ec.hash){ ec.tries=(ec.tries||0)+1; writeDB(); return {status:400,body:{error:'Incorrect code — check your email and try again.'}}; }
   me.email=me.emailChange.newEmail; delete me.emailChange; writeDB();
   return {status:200,body:{ ok:true, email:me.email }}; }
 // headless/cloud DB backups: a shared secret lets an unattended job pull /api/admin/backup
@@ -566,7 +680,7 @@ function tokHash(t){ return crypto.createHash('sha256').update(String(t)).digest
    restart used to disappear with the debounced write, logging them out and, for a new account,
    losing the account itself. Issuing a token is rare; make it durable. */
 function issueToken(id){ const raw=uid()+uid(); DB.tokens[tokHash(raw)]={id, iat:Date.now(), exp:Date.now()+TOKEN_TTL_MS};
-  if(writeDBNow()===false){ delete DB.tokens[tokHash(raw)]; const e=new Error('Save failed - try again.'); e.code='WORLD_STORAGE_FAILURE'; throw e; }   /* v1000 (Account audit #9): no token for a sign-in the disk did not keep */
+  if(saveSoon([id])===false){ delete DB.tokens[tokHash(raw)]; const e=new Error('Save failed - try again.'); e.code='WORLD_STORAGE_FAILURE'; throw e; }   /* v1000 (Account audit #9): no token for a sign-in the disk did not keep */   /* v1182: the group save of this player + the shared world (tokens live there) - it was a save of the WHOLE world on every sign-in; a route that changed more calls writeDB(), which still makes that save whole */
   return raw; }
 function lookupToken(raw){ if(!raw) return null;
   /* 30 Sep 2026 hardening: `||DB.tokens[raw]` let the stored HASH itself sign in - and every backup (GitHub push,
@@ -821,7 +935,9 @@ function seed(){
   DB.seeded=true; DB.seedVersion=SEED_VERSION; writeDB();
 }
 // the next open rank a newly-registered player inherits (just below the 5000 bots)
-function nextJoinRank(){ const occ=new Set(Object.values(DB.users).map(u=>u.rank)); let r=BOT_COUNT+1; while(occ.has(r)) r++; return r; }
+/* v1182 SIGN-UP GATE: only ranks above the bots can stop the search, so only those are collected (the old Set of every rank, 5,000 bots
+   included, cost ~13 ms per sign-up on the main thread). Same answer. */
+function nextJoinRank(){ const occ=new Set(); for(const id in DB.users){ const u=DB.users[id]; if(u && u.rank>BOT_COUNT) occ.add(u.rank); } let r=BOT_COUNT+1; while(occ.has(r)) r++; return r; }
 
 /* ------------------------------ ladder logic ------------------------------ */
 function allUsersByRank(){ return Object.values(DB.users).sort((a,b)=>a.rank-b.rank); }
@@ -2877,7 +2993,7 @@ function deleteAccountData(u){
   if(DB.guestByDevice) for(const dk of Object.keys(DB.guestByDevice)) if(DB.guestByDevice[dk]===tid) delete DB.guestByDevice[dk];
   if(!u.guest&&!u.isNpc&&!ACCOUNT_AUTHORITY){ DB.deletedGids=DB.deletedGids||{}; DB.deletedGids[tid]=now;
     const ks=Object.keys(DB.deletedGids); if(ks.length>50000) for(const k of ks.slice(0,ks.length-50000)) delete DB.deletedGids[k]; }
-  delete DB.users[tid]; dropTokens(tid);
+  delete DB.users[tid]; nameIdxDrop(tid); dropTokens(tid);
   try{ if(typeof WSS!=='undefined'&&WSS) WSS.clients.forEach(c=>{ if(c._uid===tid){ c._uid=null; c._acctName=null; c._chatName=null; try{ c.close(4001,'account deleted'); }catch(e){} } }); }catch(e){}
   console.log('[account] deleted '+tid);
   return true; }
@@ -4647,7 +4763,10 @@ async function api(req,res,url){
     await Promise.race([d.ready, new Promise(r=>setTimeout(r,2000))]);   // a just-started poller answers after its first round
     const r=d.decide(); return send(res,200,{ ok:true, server:r.server===null?null:+r.server, reason:r.reason,
       rows:r.rows.map(x=>({ id:+x.id, state:x.state, active:x.active, threshold:x.threshold })) }); }
-  if(req.method==='POST' && !/^\/api\/(register|login|guest|reset)/.test(p) && mutationLimited(req))
+  /* v1182 SIGN-UP GATE: Server 1's account calls from Servers 2-5 (link secret checked) are not counted against the per-address limit -
+     every player of a server arrives from that ONE address, so a sign-up burst on Server 2 met 240 a minute and its players were told
+     "Slow down" (seen on the load-test copies). Each satellite still limits its own players per address before it calls Server 1. */
+  if(req.method==='POST' && !/^\/api\/(register|login|guest|reset)/.test(p) && !(p.startsWith('/api/internal/account/') && linkSecretOk(req)) && mutationLimited(req))
     return send(res,429,{error:'Slow down — too many requests.'});
   if(req.method==='OPTIONS'){ const h={}; if(_corsReqOrigin&&CORS_ORIGINS.has(_corsReqOrigin)){ h['Access-Control-Allow-Origin']=_corsReqOrigin; h['Vary']='Origin'; h['Access-Control-Allow-Headers']='content-type,x-token'; h['Access-Control-Allow-Methods']='GET,POST,OPTIONS'; } res.writeHead(204,h); res.end(); return; }
 
@@ -4708,6 +4827,9 @@ async function api(req,res,url){
     if(rateLimited(req,'reg',REG_PER_MIN,60000)) return send(res,429,{error:'Too many attempts — wait a minute and try again.'});
     if(name.length<2||!b.pass) return send(res,400,{error:'Name (2+) and password required'});
     if(String(b.pass).length<8) return send(res,400,{error:'Password must be at least 8 characters.'});
+    /* v1182 SIGN-UP GATE: the password is hashed first, on the thread pool and on THIS server (Servers 2-5 send Server 1 the finished
+       hash), so the caps, the name check and the account below still run in one synchronous step after the last await here. */
+    const cred=await makeCredAsync(b.pass);
     // v328 — caps run BEFORE the guest-upgrade branch. The live client always registers as a signed-in guest,
     // so the device/network caps below were dead code and guest→upgrade→logout→new guest looped forever.
     const deviceId=devKey((b.deviceId||'').slice(0,64)), ip=clientIP(req); DB.devices=DB.devices||{}; DB.ipAccounts=DB.ipAccounts||{};   /* v1005: hashed */
@@ -4725,23 +4847,26 @@ async function api(req,res,url){
     // v946: on Servers 2-5 the account is made on the account server (one name, one password, game-wide); this server's player
     // links to it - a signed-in guest keeps its progress here, as before.
     if(ACCOUNT_AUTHORITY){
-      const r=await authorityCall('/api/internal/account/register',{ name, pass:b.pass });
+      /* v1182: Server 1 stores this server's hash (cred) as the game-wide password without hashing again; the same hash is this server's
+         local copy. pass still travels on the LAN as before, only so a Server 1 not on v1182 (a rollback) still makes the account. */
+      const r=await authorityCall('/api/internal/account/register',{ name, pass:b.pass, cred });
       if(!r) return send(res,503,{error:'Accounts are unreachable right now - try again in a minute.'});
       if(r.status!==200 || !r.body || !r.body.gid) return send(res,r.status||400,{error:(r.body&&r.body.error)||'Could not create the account.'});
+      const touched=[], lopts={ cred, tag:r.body.tag, touched };
       const gu=authUser(req); let u;
       if(gu && gu.guest){
         delete DB.byName[(gu.name||'').toLowerCase()];
         if(b.roster) gu.roster=sanitizeSave(gu, b.roster);
         if(DB.guestByDevice){ for(const dk of Object.keys(DB.guestByDevice)){ if(DB.guestByDevice[dk]===gu.id) delete DB.guestByDevice[dk]; } }
         DB.byGid=DB.byGid||{}; DB.byGid[r.body.gid]=gu.id;   // linkedUser() then names it, stores the local password copy, drops guest
-        u=linkedUser(r.body.gid, r.body.name, b.pass);
+        u=await linkedUser(r.body.gid, r.body.name, b.pass, lopts);
       } else {
-        u=linkedUser(r.body.gid, r.body.name, b.pass);
+        u=await linkedUser(r.body.gid, r.body.name, b.pass, lopts);
         if(b.roster && typeof b.roster==='object') u.roster=sanitizeSave(u, b.roster);
       }
       if(deviceId) DB.devices[deviceId]=(DB.devices[deviceId]||0)+1;
       DB.ipAccounts[ip]=(Array.isArray(DB.ipAccounts[ip])?DB.ipAccounts[ip]:[]).concat([Date.now()]).slice(-50);
-      dropTokens(u.id); const tok=issueToken(u.id); writeDB();
+      dropTokens(u.id); const tok=issueToken(u.id); saveSoon([u.id].concat(touched));
       return send(res,200,{ token:tok, profile:profileFor(u) });
     }
     // GUEST UPGRADE: if a guest is signed in, convert THAT account in place — keep its id, roster and
@@ -4749,28 +4874,28 @@ async function api(req,res,url){
     const gu=authUser(req);
     if(gu && gu.guest){
       if(nameTaken(name,gu.id)) return send(res,409,{error:'That Profile name is already taken'});   /* v1080: look-alikes too */
-      const oldName=(gu.name||'').toLowerCase(), c=makeCred(b.pass);
+      const oldName=(gu.name||'').toLowerCase(), c=cred;
       delete DB.byName[oldName]; gu.name=name; gu.hash=c.hash; gu.salt=c.salt; gu.iters=c.iters; delete gu.guest;
       if(b.roster) gu.roster=sanitizeSave(gu, b.roster);
       // AUDIT (critical): registering a name NEVER grants a role. Admin comes only from the stored
       // role stamped by migrateAdminRoles() (env-driven) or ADMIN_IDS.
-      DB.byName[name.toLowerCase()]=gu.id;
+      DB.byName[name.toLowerCase()]=gu.id; nameIdxPut(gu);
       if(DB.guestByDevice){ for(const dk of Object.keys(DB.guestByDevice)){ if(DB.guestByDevice[dk]===gu.id) delete DB.guestByDevice[dk]; } }  // this device now needs a fresh guest next time, not this real account
       if(deviceId) DB.devices[deviceId]=(DB.devices[deviceId]||0)+1;   // v328 — an upgrade IS an account creation for cap purposes
       DB.ipAccounts[ip]=(Array.isArray(DB.ipAccounts[ip])?DB.ipAccounts[ip]:[]).concat([Date.now()]).slice(-50);
-      dropTokens(gu.id); const tok=issueToken(gu.id); writeDB();
+      dropTokens(gu.id); const tok=issueToken(gu.id); saveSoon([gu.id]);
       return send(res,200,{ token:tok, profile:profileFor(gu) });
     }
     if(nameTaken(name)) return send(res,409,{error:'That Profile name is already taken'});   /* v1080: look-alikes too */
     // (v328: device / network caps now run above, before the guest-upgrade branch)
-    const id=uid(), c=makeCred(b.pass);
+    const id=uid(), c=cred;
     const u={ id, name, hash:c.hash, salt:c.salt, iters:c.iters, rank:nextJoinRank(), coins:0, team:defaultTeam(), wall:defaultTeam(),
       roster:{}, lastDaily:0, cityX:Math.round(Math.random()*1000), cityY:Math.round(Math.random()*1000), created:Date.now() };
     if(b.roster && typeof b.roster==='object') u.roster=sanitizeSave(u, b.roster);   // RE-AUDIT: imports go through the same clamps as /api/save
     // AUDIT (critical): registering a name NEVER grants a role — admin only via stored role/env.
-    DB.users[id]=u; DB.byName[name.toLowerCase()]=id; if(deviceId) DB.devices[deviceId]=(DB.devices[deviceId]||0)+1;
+    DB.users[id]=u; DB.byName[name.toLowerCase()]=id; nameIdxPut(u); if(deviceId) DB.devices[deviceId]=(DB.devices[deviceId]||0)+1;
     DB.ipAccounts[ip]=(Array.isArray(DB.ipAccounts[ip])?DB.ipAccounts[ip]:[]).concat([Date.now()]).slice(-50);
-    const tok=issueToken(id); writeDB();
+    const tok=issueToken(id); saveSoon([id]);
     return send(res,200,{ token:tok, profile:profileFor(u) }); }
 
   // GUEST SESSION: a player who isn't signed in still gets a real server-backed account so their
@@ -4800,7 +4925,7 @@ async function api(req,res,url){
       u={ id, name, guest:true, rank:nextJoinRank(), coins:0, team:defaultTeam(), wall:defaultTeam(),
           roster:{}, lastDaily:0,
           cityX:Math.round(Math.random()*1000), cityY:Math.round(Math.random()*1000), created:Date.now() };
-      DB.users[id]=u; DB.byName[name.toLowerCase()]=id; if(deviceId) DB.guestByDevice[deviceId]=id;
+      DB.users[id]=u; DB.byName[name.toLowerCase()]=id; nameIdxPut(u); if(deviceId) DB.guestByDevice[deviceId]=id;
       { const sv=saveShape(b.roster); if(sv&&sv!=='big') u.roster=sanitizeSave(u, sv); }   // RE-AUDIT: guest seed goes through the clamps too
     } else if(saveShape(b.roster) && saveShape(b.roster)!=='big' && (!u.roster || !u.roster.__save)){   /* v1007: same one-string shape */
       u.roster=sanitizeSave(u, saveShape(b.roster));   // first-time adoption of an existing local save — clamped like every other save write (RE-AUDIT)
@@ -4812,15 +4937,19 @@ async function api(req,res,url){
   if(p.startsWith('/api/internal/account/') && req.method==='POST'){
     if(!linkSecretOk(req)) return send(res,404,{error:'not found'});
     const b=await body(req);
-    if(p==='/api/internal/account/verify'){ const r=acctVerify(b.name, b.pass, 'srv:'+String(b.ip||clientIP(req))); writeDB();
-      return r.u ? send(res,200,{ ok:true, gid:r.u.id, name:r.u.name, st:acctState(r.u), s1:!!r.u.lastSeen }) : send(res,r.status,{error:r.error}); }   /* v1130: s1 = the account has played on Server 1 */
-    if(p==='/api/internal/account/register'){ const r=acctCreate(b.name, b.pass); if(r.error) return send(res,r.status,{error:r.error});
-      if(writeDBNow()===false) return send(res,503,{ok:false,storageFailed:true,error:'Save failed - try again.'});   /* v1013 (re-audit Account N13): the account is on disk before it is acknowledged */
-      return send(res,200,{ ok:true, gid:r.u.id, name:r.u.name }); }
-    if(p==='/api/internal/account/reset-request'){ acctResetRequest(b.name, String(b.ip||clientIP(req))); return send(res,200,{ ok:true }); }
-    if(p==='/api/internal/account/reset-verify'){ const r=acctResetVerify(b.name, b.code, b.newPass, String(b.ip||clientIP(req)));
+    /* v1182 SIGN-UP GATE: gid + tag = the satellite checked the password against its local copy of this account; a current tag means
+       nothing is hashed here (lock, ban and state still come from here). Saved only when something changed, with the group save. */
+    if(p==='/api/internal/account/verify'){ const trust=(b.gid&&b.tag)?{ gid:String(b.gid), tag:String(b.tag) }:null;
+      const r=await acctVerify(b.name, b.pass, 'srv:'+String(b.ip||clientIP(req)), { trust });
+      if(r.changed) saveSoon([r.id]);
+      return r.u ? send(res,200,{ ok:true, gid:r.u.id, name:r.u.name, st:acctState(r.u), s1:!!r.u.lastSeen, tag:credTag(r.u), trusted:!!r.trusted }) : send(res,r.status,{error:r.error}); }   /* v1130: s1 = the account has played on Server 1 */
+    if(p==='/api/internal/account/register'){ const r=await acctCreate(b.name, b.pass, b.cred); if(r.error) return send(res,r.status,{error:r.error});
+      if(saveSoon([r.u.id])===false) return send(res,503,{ok:false,storageFailed:true,error:'Save failed - try again.'});   /* v1013 (re-audit Account N13): the account is on disk before it is acknowledged (v1182: the group save, this player's shard) */
+      return send(res,200,{ ok:true, gid:r.u.id, name:r.u.name, tag:credTag(r.u) }); }
+    if(p==='/api/internal/account/reset-request'){ acctResetRequest(b.name, String(b.ip||clientIP(req))).catch(e=>console.error('[account] reset request failed: '+e.message)); return send(res,200,{ ok:true }); }
+    if(p==='/api/internal/account/reset-verify'){ const r=await acctResetVerify(b.name, b.code, b.newPass, String(b.ip||clientIP(req)), b.newCred);
       if(r.u && writeDBNow()===false) return send(res,503,{ok:false,storageFailed:true,error:'Save failed - try again.'});   /* v1013 (N13): the new password is on disk before it is acknowledged */
-      return r.u ? send(res,200,{ ok:true, gid:r.u.id, name:r.u.name, st:acctState(r.u) }) : send(res,r.status,{error:r.error}); }
+      return r.u ? send(res,200,{ ok:true, gid:r.u.id, name:r.u.name, st:acctState(r.u), tag:credTag(r.u) }) : send(res,r.status,{error:r.error}); }
     if(p==='/api/internal/account/handoff-issue'){ const u=DB.users[String(b.gid||'')];
       if(!u || u.isNpc || u.guest) return send(res,404,{error:'No such account.'});
       if(isBanned(u)) return send(res,403,{error:'This account is suspended.'});   // v1035: a banned account cannot switch servers
@@ -4829,7 +4958,7 @@ async function api(req,res,url){
       return u ? send(res,200,{ ok:true, gid:u.id, name:u.name, st:acctState(u) }) : send(res,400,{error:'expired'}); }
     if(p==='/api/internal/account/email-request' || p==='/api/internal/account/email-verify'){
       const u=DB.users[String(b.gid||'')]; if(!u || u.isNpc || u.guest) return send(res,404,{error:'No such account.'});
-      const r = p.endsWith('request') ? acctEmailRequest(u, b.email) : acctEmailVerify(u, b.code);
+      const r = p.endsWith('request') ? await acctEmailRequest(u, b.email) : await acctEmailVerify(u, b.code);
       if(r.status===200 && writeDBNow()===false) return send(res,503,{ok:false,storageFailed:true,error:'Save failed - try again.'});   /* v1013 (N13) */
       return send(res,r.status,r.body); }
     // v1035: the satellites' once-a-minute check - ban and password-change time of the accounts they hold sessions for
@@ -4878,7 +5007,7 @@ async function api(req,res,url){
       if(r.status===200 && r.body && r.body.gid){ gid=r.body.gid; name=r.body.name; st=r.body.st||null; } }
     else { const g=handoffRedeem(code); const au=g&&DB.users[g]; if(au){ gid=au.id; name=au.name; } }
     if(!gid) return send(res,400,{error:'That switch link expired - sign in on this server.'});
-    const u = ACCOUNT_AUTHORITY ? linkedUser(gid, name, null) : DB.users[gid];
+    const u = ACCOUNT_AUTHORITY ? await linkedUser(gid, name, null) : DB.users[gid];
     if(ACCOUNT_AUTHORITY) applyAcctState(u, st);   // v1035: ban / password change follow the account
     dropTokens(u.id); const tok=issueToken(u.id); writeDB();
     return send(res,200,{ token:tok, profile:profileFor(u) }); }
@@ -4887,28 +5016,35 @@ async function api(req,res,url){
     if(rateLimited(req,'login',15,60000)) return send(res,429,{error:'Too many attempts — wait a minute and try again.'});
     // v946: on Servers 2-5 the password is checked by the account server (Server 1); this server keeps its own player.
     if(ACCOUNT_AUTHORITY){
-      const name=String(b.name||'').trim(), r=await authorityCall('/api/internal/account/verify',{ name, pass:b.pass, ip:clientIP(req) });   /* v1007 (re-audit Account N3): the player's IP, so the lockout is per player, not per satellite */
+      /* v1182 SIGN-UP GATE: a player with a local copy tagged by Server 1 (made on a sign-in or sign-up here since v1182) is checked HERE
+         first, on this server's thread pool; Server 1 is then asked with the tag instead of hashing (it still applies the lock, the ban
+         and a changed password: a tag that is no longer current gets the full check). No tag or a wrong local check = the full check. */
+      const name=String(b.name||'').trim(), llid=DB.byName[name.toLowerCase()], llu=llid&&DB.users[llid];
+      let tagOk=null;
+      if(llu && llu.gid && llu.hash && llu.s1Tag && !llu.isNpc && !llu.guest && await checkPassAsync(llu,b.pass)) tagOk={ gid:llu.gid, tag:llu.s1Tag };
+      const r=await authorityCall('/api/internal/account/verify',Object.assign({ name, pass:b.pass, ip:clientIP(req) }, tagOk||{}));   /* v1007 (re-audit Account N3): the player's IP, so the lockout is per player, not per satellite */
       /* v1130: a device the game PLACED here (a fresh install sent to this server - body.auto) that signs in to an account which
          plays on Server 1 and has no player here: say where it plays instead of starting a new player, and the client signs in on
          Server 1. Existing players are never moved by the new-player placement. */
       if(r && r.status===200 && r.body && r.body.gid && b.auto && r.body.s1 && !(DB.byGid&&DB.byGid[r.body.gid])){
         const lid=DB.byName[String(r.body.name||'').toLowerCase()], lu=lid&&DB.users[lid];
         if(!(lu && !lu.gid && !lu.guest && !lu.isNpc)) return send(res,409,{ error:'This account plays on Server 1.', homeServer:1 }); }
-      if(r && r.status===200 && r.body && r.body.gid){ const u=linkedUser(r.body.gid, r.body.name, b.pass); delete u.loginFails;
-        if(r.body.st){ u.passSeenAt=+r.body.st.passAt||0; applyAcctState(u, r.body.st); }   // v1035: the password was just checked - current
-        if(isBanned(u)){ writeDB(); return send(res,403,banResp(u)); }   /* v1097: a banned account does not sign in */
-        dropTokens(u.id); const tok=issueToken(u.id); writeDB(); return send(res,200,{ token:tok, profile:profileFor(u) }); }
+      if(r && r.status===200 && r.body && r.body.gid){ const touched=[], keep=!!(tagOk && r.body.trusted && tagOk.gid===r.body.gid);
+        const u=await linkedUser(r.body.gid, r.body.name, b.pass, keep?{ keepCopy:true, tag:r.body.tag, touched }:{ tag:r.body.tag, touched }); delete u.loginFails;
+        if(r.body.st){ u.passSeenAt=+r.body.st.passAt||0; if(applyAcctState(u, r.body.st)) writeDB(); }   // v1035: the password was just checked - current (v1182: a state change saves everything, as before)
+        if(isBanned(u)){ saveSoon([u.id].concat(touched)); return send(res,403,banResp(u)); }   /* v1097: a banned account does not sign in */
+        dropTokens(u.id); const tok=issueToken(u.id); saveSoon([u.id].concat(touched)); return send(res,200,{ token:tok, profile:profileFor(u) }); }
       if(r) return send(res, r.status===429?429:401, {error:(r.body&&r.body.error)||'Wrong name or password'});
       // the account server did not answer: a player who has signed in here before can still get in with the local copy
       const lid=DB.byName[name.toLowerCase()], lu=lid&&DB.users[lid];
       if(!(lu && lu.gid && lu.hash)) return send(res,503,{error:'Accounts are unreachable right now - try again in a minute.'});
     }
-    const r=acctVerify(b.name, b.pass, clientIP(req));
-    if(!r.u){ writeDB(); return send(res,r.status,{error:r.error}); }
+    const r=await acctVerify(b.name, b.pass, clientIP(req));
+    if(!r.u){ if(r.changed) saveSoon([r.id]); return send(res,r.status,{error:r.error}); }   // v1182: saved only when the fail count moved
     const u=r.u, id=u.id;
-    if(isBanned(u)){ writeDB(); return send(res,403,banResp(u)); }   /* v1097: a banned account does not sign in */
+    if(isBanned(u)){ if(r.changed) saveSoon([id]); return send(res,403,banResp(u)); }   /* v1097: a banned account does not sign in */
     dropTokens(id);   // single session: signing in here kicks any other device
-    const tok=issueToken(id); writeDB(); return send(res,200,{ token:tok, profile:profileFor(u) }); }
+    const tok=issueToken(id); saveSoon([id]); return send(res,200,{ token:tok, profile:profileFor(u) }); }
 
   // email password reset — step 1: request a one-time 6-digit code sent to the account's linked email.
   // Always responds ok (never reveals whether an account or its email exists); only sends if a valid email is on file.
@@ -4916,21 +5052,22 @@ async function api(req,res,url){
     if(rateLimited(req,'resetreq',5,10*60000)) return send(res,429,{error:'Too many requests — wait a few minutes and try again.'});
     // v946: the account (and its email) lives on the account server; Servers 2-5 pass the request on
     if(ACCOUNT_AUTHORITY) await authorityCall('/api/internal/account/reset-request',{ name:b.name, ip:clientIP(req) });   /* v1017: the player's network */
-    else acctResetRequest(b.name, clientIP(req));
+    else acctResetRequest(b.name, clientIP(req)).catch(e=>console.error('[account] reset request failed: '+e.message));
     return send(res,200,{ ok:true }); }   // RE-AUDIT: identical response whether or not the account/email exists — no enumeration
 
   // email password reset — step 2: verify the code and set a new password. Signs the user in on success.
   if(p==='/api/reset-verify' && req.method==='POST'){ const b=await body(req);
     if(rateLimited(req,'resetver',12,10*60000)) return send(res,429,{error:'Too many attempts — wait a few minutes.'});
     if(ACCOUNT_AUTHORITY){   // v946: the account server checks the code and sets the password; this server signs its own player in
-      const r=await authorityCall('/api/internal/account/reset-verify',{ name:b.name, code:b.code, newPass:b.newPass, ip:clientIP(req) });
+      const np=String(b.newPass==null?'':b.newPass), newCred=np.length>=8?await makeCredAsync(np):null;   // v1182: this server hashes the new password; Server 1 stores it
+      const r=await authorityCall('/api/internal/account/reset-verify',{ name:b.name, code:b.code, newPass:b.newPass, newCred, ip:clientIP(req) });
       if(!r) return send(res,503,{error:'Accounts are unreachable right now - try again in a minute.'});
       if(r.status!==200 || !r.body || !r.body.gid) return send(res,r.status||400,{error:(r.body&&r.body.error)||'Reset failed.'});
-      const lu=linkedUser(r.body.gid, r.body.name, b.newPass); if(r.body.st){ lu.passSeenAt=+r.body.st.passAt||0; applyAcctState(lu, r.body.st); } dropTokens(lu.id);
+      const lu=await linkedUser(r.body.gid, r.body.name, b.newPass, { cred:newCred, tag:r.body.tag }); if(r.body.st){ lu.passSeenAt=+r.body.st.passAt||0; applyAcctState(lu, r.body.st); } dropTokens(lu.id);
       if(isBanned(lu)){ writeDB(); return send(res,403,banResp(lu)); }   /* v1097 */
       const tok=issueToken(lu.id); writeDB();
       return send(res,200,{ ok:true, token:tok, profile:profileFor(lu) }); }
-    const r=acctResetVerify(b.name, b.code, b.newPass, clientIP(req));
+    const r=await acctResetVerify(b.name, b.code, b.newPass, clientIP(req));
     if(!r.u) return send(res,r.status,{error:r.error});
     if(isBanned(r.u)){ writeDB(); return send(res,403,banResp(r.u)); }   /* v1097: the new password is set; a banned account still does not sign in */
     const tok=issueToken(r.u.id); writeDB();   // invalidate other sessions (done in acctResetVerify), sign this one in
@@ -4956,7 +5093,7 @@ async function api(req,res,url){
       banned: DB.users[r.userId] ? banInfo(DB.users[r.userId]) : null })) }); }
 
   if(p==='/api/dev/save-stats'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});   // v1036: group-save counters
-    return send(res,200,Object.assign({},GROUP_SAVE_STATS,{store:Object.assign({split:_store.split},_store.stats)},{battles:Object.assign({},SIM_STATS,{pool:_SIM_POOL?_SIM_POOL.stats:null,memo:_SIM_MEMO.size})},{dbBytes:(()=>{ try{ return fs.statSync(DB_FILE).size; }catch(e){ return 0; } })()})); }
+    return send(res,200,Object.assign({},GROUP_SAVE_STATS,{store:Object.assign({split:_store.split},_store.stats)},{battles:Object.assign({},SIM_STATS,{pool:_SIM_POOL?_SIM_POOL.stats:null,memo:_SIM_MEMO.size})},{dbBytes:(()=>{ try{ return fs.statSync(DB_FILE).size; }catch(e){ return 0; } })()},{signup:{ hash:Object.assign({},HASH_STATS), threadpool:+process.env.UV_THREADPOOL_SIZE||4, names:{ indexed:_nameIdx.byId.size, skeletons:_nameIdx.bySk.size, rebuilds:_nameIdx.rebuilds, drift:_nameIdx.drift, lastSyncMs:_nameIdx.lastSyncMs } }})); }   // v1182
   if(p==='/api/dev/gem-audit'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
     const id=String(url.searchParams.get('id')||''); const u=DB.users[id];
     if(!u) return send(res,404,{error:'no such account'});
@@ -5058,15 +5195,18 @@ async function api(req,res,url){
     { const why=badCharName(name); if(why) return send(res,400,{error:why}); }   /* v1176: the dev panel follows the same name rules */
     if(name.length<2||!b.pass||String(b.pass).length<8) return send(res,400,{error:'Name (2+) and a password of 8+ characters required'});
     if(ACCOUNT_AUTHORITY){   // v946: accounts are made on the account server; this server links its own player to it
-      const r=await authorityCall('/api/internal/account/register',{ name, pass:b.pass });
+      const cred=await makeCredAsync(b.pass);   // v1182: hashed here, stored by Server 1
+      const r=await authorityCall('/api/internal/account/register',{ name, pass:b.pass, cred });
       if(!r) return send(res,503,{error:'Accounts are unreachable right now - try again in a minute.'});
       if(r.status!==200 || !r.body || !r.body.gid) return send(res,r.status||400,{error:(r.body&&r.body.error)||'Could not create the account.'});
-      const lu=linkedUser(r.body.gid, r.body.name, b.pass); lu.rank=5000; writeDB(); return send(res,200,{ok:true, name:lu.name}); }
+      const lu=await linkedUser(r.body.gid, r.body.name, b.pass, { cred, tag:r.body.tag }); lu.rank=5000; writeDB(); return send(res,200,{ok:true, name:lu.name}); }
     if(nameTaken(name)) return send(res,409,{error:'That Profile name is already taken'});   /* v1080: look-alikes too */
-    const id=uid(), c=makeCred(b.pass);
+    const c=await makeCredAsync(b.pass);   // v1182: on the thread pool
+    if(nameTaken(name)) return send(res,409,{error:'That Profile name is already taken'});   // v1182: again after the await
+    const id=uid();
     DB.users[id]={ id, name, hash:c.hash, salt:c.salt, iters:c.iters, rank:5000, coins:0, team:defaultTeam(), wall:defaultTeam(),
       roster:{}, lastDaily:0, cityX:Math.round(Math.random()*1000), cityY:Math.round(Math.random()*1000), created:Date.now() };
-    DB.byName[name.toLowerCase()]=id; writeDB(); return send(res,200,{ok:true, name}); }
+    DB.byName[name.toLowerCase()]=id; nameIdxPut(DB.users[id]); writeDB(); return send(res,200,{ok:true, name}); }
   // admin: delete an account
   if(p==='/api/admin/delete' && req.method==='POST'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
     const b=await body(req); const tid=b.id||DB.byName[(b.name||'').trim().toLowerCase()]; const u=tid&&DB.users[tid];
@@ -5110,7 +5250,7 @@ async function api(req,res,url){
       const d=await authorityCall('/api/internal/account/delete',{ gid:me.gid });
       if(!d||d.status!==200) return send(res,503,{error:(d&&d.body&&d.body.error)||'Accounts are unreachable right now - try again in a minute.'});
     } else if(hasPass){
-      const r=acctVerify(me.name, b.pass, clientIP(req));
+      const r=await acctVerify(me.name, b.pass, clientIP(req));
       if(!r.u||r.u.id!==me.id){ writeDB(); return send(res,r.status===429?429:403,{error:r.status===429?r.error:'Wrong password.',needPass:true}); }
     }
     if(DB.users[me.id]) deleteAccountData(DB.users[me.id]);
@@ -5275,7 +5415,7 @@ async function api(req,res,url){
       const r=await authorityCall('/api/internal/account/email-request',{ gid:me.gid, email:b.email });
       if(!r) return send(res,503,{error:'Accounts are unreachable right now - try again in a minute.'});
       return send(res,r.status,r.body||{}); }
-    const r=acctEmailRequest(me, b.email); return send(res,r.status,r.body); }
+    const r=await acctEmailRequest(me, b.email); return send(res,r.status,r.body); }
 
   // change / link recovery email — STEP 2: verify the code and commit the new email. Signed-in only.
   if(p==='/api/email-verify' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
@@ -5286,7 +5426,7 @@ async function api(req,res,url){
       const r=await authorityCall('/api/internal/account/email-verify',{ gid:me.gid, code:b.code });
       if(!r) return send(res,503,{error:'Accounts are unreachable right now - try again in a minute.'});
       return send(res,r.status,r.body||{}); }
-    const r=acctEmailVerify(me, b.code); return send(res,r.status,r.body); }
+    const r=await acctEmailVerify(me, b.code); return send(res,r.status,r.body); }
 
   /* ------------------------- THE FORGE (Gear v2) routes -------------------------
      The client sends only ids + expectedRevision. Costs, outputs, temper progress,
@@ -9580,6 +9720,7 @@ function bootFinish(){ if(_booted) return; _booted=true; PG_BOOT_PENDING=false;
   migrateLegacyFeedback();
   migrateBlockedWorldCastles();
   migrateHeroIdsAll();   /* v926: rewrite old hero ids to in-game-name keys in every stored ledger/profile (once, stamped led.idv=2) */
+  nameIdxRebuild();   /* v1182: the look-alike name index, built from the loaded world */
   if(_bootDirty){ _bootDirty=false; writeDB(); }       // flush whatever the restore window suppressed
   backupDB(); setInterval(backupDB, 60*60*1000);   // snapshot on boot, then hourly (keeps ~48)
     setTimeout(pushBackupToGitHub, 30000); setInterval(pushBackupToGitHub, 6*60*60*1000);   // off-site GitHub backup: ~30s after boot, then every 6h (no-op unless GITHUB_BACKUP_TOKEN + GITHUB_BACKUP_REPO are set)
