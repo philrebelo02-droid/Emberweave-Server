@@ -8,6 +8,12 @@
 # Register caps are raised via env for fixtures only (REG_PER_MIN/REG_ACCOUNTS_PER_IP) — the
 # production defaults are untouched. Cleanup signals ONLY the PID this runner started.
 set -u
+# Windows: the WindowsApps python3 is a Store stub (prints "Python was not found", exits non-zero), so the phase-1 admin bootstrap fails. Fall back to python / py -3.
+if ! python3 -c 1 >/dev/null 2>&1; then
+  if python -c 1 >/dev/null 2>&1; then python3(){ python "$@"; }
+  elif py -3 -c 1 >/dev/null 2>&1; then python3(){ py -3 "$@"; }
+  else echo "FATAL: no working python3/python/py on PATH"; exit 1; fi
+fi
 cd "$(dirname "$0")/.."   # v559: the runner cd-ed INTO tests/ and then called tests/... so every path resolved to tests/tests/... and the suite never ran
 SRV=../server.js; [ -f ./server.js ] && SRV=./server.js
 PORT=${PORT:-8871}

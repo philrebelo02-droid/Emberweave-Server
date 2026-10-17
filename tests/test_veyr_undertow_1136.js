@@ -64,7 +64,8 @@ try {
   ck('Absalie\'s ult: hits, silence and slow identical to BASE', a0 && JSON.stringify([a.hits, a.mx]) === JSON.stringify([a0.hits, a0.mx]));
   ck('BASE Veyr silenced (what changed): BASE caught enemies carry silence, no slow', v0 && v0.mx.every(m => m.sil > 0 && m.slow === 0), JSON.stringify(v0 && v0.mx));
 
-  const fights = [[['absalie', 'astra', 'vex'], ['vael', 'absalie', 'grosk'], 11], [['astra', 'pellucid', 'askel'], ['rhukk', 'absalie', 'vael'], 222], [['absalie', 'sloe', 'umbris'], ['astra', 'hurne', 'vex'], 5]];
+  // v1144 (Phil 15 Oct) rebalanced Hurne, so a Hurne fight no longer matches the v1135 BASE; the third fight uses Tolley instead.
+  const fights = [[['absalie', 'astra', 'vex'], ['vael', 'absalie', 'grosk'], 11], [['astra', 'pellucid', 'askel'], ['rhukk', 'absalie', 'vael'], 222], [['absalie', 'sloe', 'umbris'], ['astra', 'tolley', 'vex'], 5]];
   ck('whole fights without Veyr (Absalie and Astra on both sides) are tick-for-tick identical to BASE', R0 && fights.every(([x, f, s]) => trace(run, s, x, f) === trace(R0, s, x, f)));
   const vf = [['veyr', 'askel', 'vex'], ['vael', 'umbris', 'grosk'], 11];
   const same = R0 && trace(run, vf[2], vf[0], vf[1]) === trace(R0, vf[2], vf[0], vf[1]);

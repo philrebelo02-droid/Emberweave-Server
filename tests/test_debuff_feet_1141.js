@@ -134,12 +134,12 @@ try {
         G.tutStarted = true; G.tutDone = true; document.body.classList.remove('gated'); show('home'); });
       await pg.waitForTimeout(500);
       await pg.evaluate(() => { const b = [...document.querySelectorAll('button')].find(x => /Skip Tutorial/i.test(x.textContent) && x.offsetParent); if (b) b.click(); });
-      const VICT = ['vael', 'tick', 'rhukk'], CAST = ['grimsby', 'pyroclast', 'absalie'];
+      const VICT = ['mirelle', 'tick', 'rhukk'], CAST = ['grimsby', 'pyroclast', 'absalie'];
       await pg.evaluate(({ VICT, CAST }) => { G.team = VICT.slice(); CUR = { mode: 'arena', seed: 41 }; startVersus(CAST.map(k => ({ key: k, level: 30, rank: 5 })), true, VICT); }, { VICT, CAST });
       for (let i = 0; i < 240; i++) { if (await pg.evaluate(() => state === 'battle' && units.length > 0)) break; await pg.waitForTimeout(250); }
       await pg.evaluate(() => { window.__gf = []; const _g = spawnGroundFx;
         spawnGroundFx = function (k) { const r = _g.apply(this, arguments); if (r && (window._fxAboveBar || window._fxBelowFeet)) window.__gf.push({ k, r, above: !!window._fxAboveBar, below: !!window._fxBelowFeet, tgt: window._fxTgtU }); return r; };
-        units.forEach(u => { u.maxHp = u.hp = 1e7; if (u.team === 'ally') { u.dmg = 0; u.apow = 0; u.energy = u.maxEnergy || 100; } }); gameSpeed = 2; });   /* full allies: Vael's ult is a BUFF badge over the bar */
+        units.forEach(u => { u.maxHp = u.hp = 1e7; if (u.team === 'ally') { u.dmg = 0; u.apow = 0; u.energy = u.maxEnergy || 100; } }); gameSpeed = 2; });   /* full allies: Mirelle's ult is a BUFF badge over the bar (v1168: Vael's Last Stand moved to its own painter, no over-bar badge) */
       const DEBUFF_GFX = ['grimsby_green', 'pyroclast_green', 'absalie_green', 'grimsby_ult'];
       let seen = [];
       for (let i = 0; i < 120; i++) { await pg.waitForTimeout(250);
