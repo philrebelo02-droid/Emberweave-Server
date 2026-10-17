@@ -3,7 +3,7 @@
  "patches": [
   {
    "ver": "0.95",
-   "releases": "v1183, v1184, v1186, v1187, v1188, v1189, v1190, v1191",
+   "releases": "v1183, v1184, v1186, v1187, v1188, v1189, v1190, v1191, v1193",
    "items": [
     {
      "text": "Server data safety improvements: a server that cannot read its saved world now stops safely instead of starting fresh, saves are fully written to disk before they count, and backups of real player progress are always kept.",
@@ -63,6 +63,12 @@
      "text": "New spell effects for Hollow's Fan of Knives, Lacerate and Vanishing Point, and a new Fan of Knives animation: he draws five knives and throws them.",
      "sources": [
       "SHIPPED-v1191-hollow-spell-fx-17-10-2026.md"
+     ]
+    },
+    {
+     "text": "Hollow's Fan of Knives: the knives now fly out twice as fast.",
+     "sources": [
+      "SHIPPED-v1193-hollow-knives-faster-17-10-2026.md"
      ]
     }
    ]
