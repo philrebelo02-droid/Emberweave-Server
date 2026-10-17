@@ -23,6 +23,11 @@ if (!OLD) { try { OLD = path.join(ROOT, '.test-hurne-base-control.html'); fs.wri
   const tmp = OLD; process.on('exit', () => { try { fs.unlinkSync(tmp); } catch (e) {} }); } catch (e) { OLD = null; } }
 const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); return src => vm.runInContext(src, h.ctx); };
 const run = load(HTML);
+/* v1191: Hurne's DEATH (v1190 Batch 3, 12 streamed sheets death .. death12) is checked by tests/test_death_state.js; it goes back out here (as in the
+   other per-hero tables, tests/helpers/death-1182.js) so this test keeps checking his eight states + crit. A streamed death sheet's anchors refer to
+   frame 0's figure, so its `top` is above its own cell by design. */
+const HURNE_RAW = JSON.parse(run('JSON.stringify(Object.keys(BATTLE_ANIM.hurne||{}))'));
+const DEATH_OUT = require('./helpers/death-1182.js').undoDeath1182(run);
 const R0 = OLD ? load(OLD) : null;
 /* v1161 re-baseline: Phil changed Hurne's Feed Them after BASE - v1144 (5121b055) it always casts, +10% damage / attack speed / damage reduction
    for 10 s, +3% per beast devoured - and v1150 (cf3bf0c4) his beasts take his fight level. The whole fights' BASE side is BASE + exactly those
@@ -96,6 +101,9 @@ try {
   const G = run('JSON.parse(JSON.stringify(BATTLE_ANIM.hurne))');
   const G0 = R0 && R0('JSON.parse(JSON.stringify(BATTLE_ANIM.hurne))');
   const states = ['idle', 'walk', 'attack', 'crit', 'hit', 'green', 'blue', 'ult', 'passive'];
+  { const rawDeath = HURNE_RAW.filter(s => /^death\d*$/.test(s)), rest = HURNE_RAW.filter(s => !/^death\d*$/.test(s));
+    ck('v1191 CONTROL: the loaded page carries Hurne\'s 12 death states (so the state check below would fail with them in), the helper took them out (' + DEATH_OUT + ' death states in all), and they were his only extra states',
+      rawDeath.length === 12 && HURNE_RAW.length === 21 && DEATH_OUT >= 12 && rest.length === 9 && !Object.keys(G).some(s => /^death/.test(s)), HURNE_RAW.join(',')); }
   ck('Hurne has his eight states + the new crit', states.every(s => G[s]) && Object.keys(G).length === 9, Object.keys(G).join(','));
   ck('BASE had no crit clip (this is his first)', G0 && !G0.crit);
   const bad = gridProblems(G);
