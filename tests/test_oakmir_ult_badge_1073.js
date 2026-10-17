@@ -9,7 +9,7 @@ const ok = (c, m) => { if (c) { pass++; console.log('  ✓ ' + m); } else { fail
 ok(/oakmir:\{deliver:'form',gfx:'oakmir_ult',gdur:5\.67,badgeSize:0\.45,noArea:true\}/.test(H), "Oakmir's ult: per-ally badges at 0.45 and NO area plate (v1096, Phil 9 Oct: 'the giant flower that still pops up' was the area plate at 30x scale)");
 ok(/window\._fxAboveBar=!!\(_ABOVE_BAR\[type\]&&c&&c\._sprRef\); window\._fxBelowFeet=!!\(!_ABOVE_BAR\[type\]&&_DEBUFF_BADGE\[type\]&&c&&c\._sprRef\); window\._fxBadgeSize=o\.badgeSize\|\|null;/.test(H), 'the single-target badge path passes the skill\'s badgeSize (v1141: a debuff badge goes under the feet, _fxBelowFeet)');
 ok(/window\._fxAboveBar=false; window\._fxBelowFeet=false; window\._fxBadgeSize=null;   \/\* v1073/.test(H), 'and clears it after, so it cannot leak into the next plate');
-ok(/upSize:\(window\._fxBadgeSize\|\|0\.8\)/.test(H), 'a skill with no badgeSize still gets the 0.8 default');
+ok(/upSize:\(window\._fxBadgeSize\|\|(0\.8|\(d\.badgeH>0\?d\.badgeH\*0\.95:0\.8\))\)/.test(H), 'a skill with no badgeSize still gets the 0.8 default');   /* v1175: a sheet's own badgeH (Imperial Plumage) comes before the 0.8 default */
 // CONTROL: the badge size is display only - the ult def carries no heal/damage field change
 ok(/try\{ if\(!o\.noArea\) _o=spawnGroundFx\(o\.gfx, c\.x, c\.y, R, _life\); \}/.test(H), 'abilArt skips the area plate when noArea');
 const ult = (H.match(/oakmir:\{deliver:'form'[^}]*\}/) || [''])[0];

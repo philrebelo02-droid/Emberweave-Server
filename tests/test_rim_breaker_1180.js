@@ -115,7 +115,7 @@ const tests = async () => {
     ck('each stun is BASE Rim Breaker\'s own (' + B3c.map(c => c[3] + ' s').join() + ' at this level, from the kit\'s 1.2 s)', L3.cc.every(c => c[1] === 'stunned' && c[3] === B3c[0][3]) && B3c.length === 1, JSON.stringify({ L3: L3.cc, B3c })); }
   { const Pv = JSON.parse(run(`JSON.stringify((skillPreviewPlan('brannus',1)||{fx:[]}).fx.map(e=>({k:e.k,kind:e.kind,t0:+e.t0.toFixed(4),dur:e.dur!=null?+e.dur.toFixed(4):null})))`));
     const stage = fs.readFileSync(path.join(ROOT, 'assets/ui/skill-preview-stage.js'), 'utf8');
-    ck('Skills tab preview: the same glide from the release to the target (fx16glide, ' + JSON.stringify(Pv) + '), drawn by the stage (?v=sp' + VER + ')', Pv.length === 1 && Pv[0].kind === 'fx16glide' && Pv[0].dur > 0 && /case 'fx16glide': \{ const D=e\.dur/.test(stage) && src.includes('skill-preview-stage.js?v=sp' + VER), JSON.stringify(Pv)); }
+    ck('Skills tab preview: the same glide from the release to the target (fx16glide, ' + JSON.stringify(Pv) + '), drawn by the stage (?v=sp' + VER + ')', Pv.length === 1 && Pv[0].kind === 'fx16glide' && Pv[0].dur > 0 && /case 'fx16glide': \{ const D=e\.dur/.test(stage) && (src.includes('skill-preview-stage.js?v=sp' + VER) || /skill-preview-stage\.js\?v=sp11(8[1-9]|9\d)/.test(src)), JSON.stringify(Pv)); }   /* v1181: a later release may bump the stage again */
   FXD = d;
   ck('no emoji added', !/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u.test(src.slice(src.indexOf('function rimGlideFx'), src.indexOf('function rimGlideFx') + 3000)));
   // 5. BROWSER: the client runs the same Brannus fight as the server replay (sim-host), tick for tick

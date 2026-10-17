@@ -23,6 +23,7 @@ const OLD = path.join(BD, 'emberweave-heroes.html');
 const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); const r = src => vm.runInContext(src, h.ctx); require('./helpers/anim-brannus-quorrel-1178.js').undoBQ1178(r); return r; };   // v1178: Brannus's / Quorrel's entries back to v1175's (tests/test_brannus_quorrel_1178.js checks them)
 const UHK = require('./helpers/anim-hobb-kharos-1175.js');
 const run = load(HTML), R0 = baseOk ? load(OLD) : null;
+require('./helpers/plumage-1181.js').undoPlumage1181(run);   // v1181: Imperial Plumage's badgeH (a later release) comes back off before the FX2_DEF comparison
 let pass = 0, fail = 0;
 const ck = (name, ok, detail) => { if (ok) { pass++; console.log('  ok  ' + name); } else { fail++; console.log('  FAIL ' + name + (detail ? ' - ' + String(detail).slice(0, 700) : '')); } };
 const chunks = b => { const o = []; let i = 12; while (i + 8 <= b.length) { const t = b.toString('ascii', i, i + 4), n = b.readUInt32LE(i + 4); o.push(t); i += 8 + n + (n & 1); } return o; };

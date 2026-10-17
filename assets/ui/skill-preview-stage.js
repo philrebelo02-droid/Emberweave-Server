@@ -65,8 +65,8 @@
       default: return null; } }
   /* the v468 upright plate (and the v498 / v1141 badges it becomes over a head / under the feet) */
   function upGeom(e,S){ let d=e.d; const th=(e.at==='target')?S.th:S.h, X=(e.at==='target')?S.xt:(e.at==='muzzle'?S.h*0.25:(e.at==='front'?S.h*0.2:0));
-    if(e.kind==='feet') d=Object.assign({},d,{upright:true,upAbove:false,upMetric:false,upSize:FEET_BADGE_H*0.95*Math.min(1,d.fw/d.fh),upExtent:0.95,upAnchor:[0.5,0.5],upPalm:null});
-    if(e.kind==='above'&&!d.upAbove) d=Object.assign({},d,{upright:true,upAbove:true,upAboveM:0.06,upSize:(e.badge||0.8),upExtent:0.95,upAnchor:null,upPalm:null});
+    if(e.kind==='feet') d=Object.assign({},d,{upright:true,upAbove:false,upMetric:false,upSize:(d.badgeH>0?d.badgeH*0.95:FEET_BADGE_H*0.95*Math.min(1,d.fw/d.fh)),upExtent:0.95,upAnchor:[0.5,0.5],upPalm:null});
+    if(e.kind==='above'&&!d.upAbove) d=Object.assign({},d,{upright:true,upAbove:true,upAboveM:0.06,upSize:(e.badge||(d.badgeH>0?d.badgeH*0.95:0.8)),   /* v1181 badgeH, as spawnGroundFx */upExtent:0.95,upAnchor:null,upPalm:null});
     const R3=(e.R||2.4*METER)*SC, Sz=d.upMetric?((R3*2)/(d.upExtent||0.85)):(th*(d.upSize||1.2)/(d.upExtent||0.85));
     const ax=(d.upAnchor?d.upAnchor[0]:0.5), ay=(d.upAnchor?d.upAnchor[1]:(d.upAbove?0.0:(d.upPalm!=null?d.upPalm:0.28)));
     let y; if(e.atH!=null) y=(0.05+th*e.atH)*CY; else if(e.at==='muzzle') y=1.2*CY; else if(d.upAbove) y=th*(1+(d.upAboveM||0)); else y=(d.upAnchor?0.05:(0.05+th*0.5))*CY;

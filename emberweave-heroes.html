@@ -2672,7 +2672,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 <script src="/assets/ui/world-mine-sync.js?v=mi2"></script>
 <script src="/assets/ui/world-march-sync.js?v=wm1"></script>
 <script src="/assets/ui/world-march-visual.js?v=wv2"></script>
-<script src="/assets/ui/skill-preview-stage.js?v=sp1180"></script>
+<script src="/assets/ui/skill-preview-stage.js?v=sp1181"></script>
 <script src="/assets/ui/world-tree-cycle.js?v=wt4"></script>
 <script src="/assets/ui/world-tree-art.js?v=wt3"></script>
 <script src="/assets/ui/world-oasis-markers.js?v=om-painted-01oct-v1"></script>
@@ -11056,12 +11056,13 @@ function abilArt(u,o,tgt,aimCtr,type){ window._fxCaster=u; if(o&&o.noArt) return
     const _ctr = (o.gfxAt==='self'||_SELF_PLATE[type]) ? u : (aimCtr || ((tgt&&tgt.alive)?tgt:u));
     const _inR = (!o.fieldWide && _rU<=30*METER) ? (t=>dist(_ctr,t)<=o.radius+(t.r||0)) : (()=>true);
     const who = (_fw==='allies' ? alliesOf(u) : _fw==='enemies' ? enemiesOf(u) : alliesOf(u).concat(enemiesOf(u))).filter(_inR);
-    const life = o.gdur||1.6;
+    const life = o.gdur||1.6, _spread=[];
     for(const t of who.slice(0,15)){ if(!t||!t.alive||!t._sprRef) continue;
       const _feet=(t.team!==u.team);   /* v1141: an enemy the field-wide effect landed on carries a DEBUFF - its badge goes under the feet */
       try{ window._fxTgtH=t.sprH; window._fxTgtU=t; window._fxAboveBar=!_feet; window._fxBelowFeet=_feet; window._fxAtH=null;
-           const _bo=spawnGroundFx(o.gfx, t.x, t.y, 1.2*METER, life); if(_bo&&_feet) _bo.follow=t; else if(_bo&&_bo.m&&t._sprRef){ const _p=new TH.Vector3(); t._sprRef.getWorldPosition(_p); _bo.followAbove=t; _bo.aboveOff=_bo.m.position.clone().sub(_p); } }catch(e){}   /* v953: a field-wide badge rides its unit too, so it joins the v952 stack */
+           const _bo=spawnGroundFx(o.gfx, t.x, t.y, 1.2*METER, life); if(_bo&&_bo.m) _spread.push(_bo); if(_bo&&_feet) _bo.follow=t; else if(_bo&&_bo.m&&t._sprRef){ const _p=new TH.Vector3(); t._sprRef.getWorldPosition(_p); _bo.followAbove=t; _bo.aboveOff=_bo.m.position.clone().sub(_p); } }catch(e){}   /* v953: a field-wide badge rides its unit too, so it joins the v952 stack */
       finally{ window._fxTgtH=null; window._fxTgtU=null; window._fxAboveBar=false; window._fxBelowFeet=false; } }
+    try{ if(FX2_DEF[o.gfx]&&FX2_DEF[o.gfx].badgeH>0) fxBadgeSpread(_spread); }catch(_e){}   /* v1181: a small burst never overlaps its neighbour's */
     return;
   }
   let c = (o.gfxAt==='self'||_SELF_PLATE[type]) ? u : (aimCtr || ((tgt&&tgt.alive)?tgt:u));
@@ -11109,6 +11110,22 @@ function abilArt(u,o,tgt,aimCtr,type){ window._fxCaster=u; if(o&&o.noArt) return
 }
 /* Discrete passive procs use the same plate renderer as green/blue/ult. The
    caller owns the proc timing; persistent stat and aura passives never call it. */
+/* v1181 (Phil 16 Oct on Imperial Plumage: "make her feather burst small", "not massive"; the coordinator: never overlapping the neighbours' in a 5v5):
+   the per-unit badges of a badgeH sheet are measured on screen as they spawn; any two whose boxes overlap are both shrunk about their own anchor
+   (the bar badge toward the bar, the feet badge toward the feet) until they clear, down to 0.3 of their size. Display only. */
+function fxBadgeSpread(list){ if(!TH||!camera||!list||list.length<2) return;
+  const Rc=new TH.Vector3(1,0,0).applyQuaternion(camera.quaternion), Uc=new TH.Vector3(0,1,0).applyQuaternion(camera.quaternion);
+  const rect=(b,k)=>{ const m=b.m, sx=Math.abs(m.scale.x)*k, sy=Math.abs(m.scale.y)*k, c=m.center, P=m.position;
+    const a=P.clone().add(Rc.clone().multiplyScalar(-c.x*sx)).add(Uc.clone().multiplyScalar(-c.y*sy)).project(camera), z=P.clone().add(Rc.clone().multiplyScalar((1-c.x)*sx)).add(Uc.clone().multiplyScalar((1-c.y)*sy)).project(camera);
+    return [Math.min(a.x,z.x),Math.min(a.y,z.y),Math.max(a.x,z.x),Math.max(a.y,z.y)]; };
+  const hit=(p,q)=>p[0]<q[2]&&q[0]<p[2]&&p[1]<q[3]&&q[1]<p[3];
+  const K=list.map(()=>1);
+  for(let pass=0;pass<4;pass++){ let any=false;
+    for(let i=0;i<list.length;i++) for(let j=i+1;j<list.length;j++){ if(!hit(rect(list[i],K[i]),rect(list[j],K[j]))) continue; any=true;
+      let lo=0.3, hi=1; for(let n=0;n<12;n++){ const md=(lo+hi)/2; if(hit(rect(list[i],K[i]*md),rect(list[j],K[j]*md))) hi=md; else lo=md; }
+      const f=Math.max(0.3,lo*0.88); K[i]*=f; K[j]*=f; }   /* 0.88: a clear gap, so a step of the scrum (or the bar badge's entrance lift) does not close it */
+    if(!any) break; }
+  list.forEach((b,i)=>{ if(K[i]<1){ b.m.scale.set(b.m.scale.x*K[i],b.m.scale.y*K[i],b.m.scale.z); b._spreadK=K[i]; if(b.aboveOff&&b.followAbove) { /* the bar badge keeps its bottom on the bar: its anchor is its bottom edge */ } } }); }
 function firePassiveFx(u,target,options){
   if(!u||!u.key||typeof FX2_DEF==='undefined'||typeof abilArt!=='function') return false;
   const key=u.key+'_passive', def=FX2_DEF[key];
@@ -13052,7 +13069,7 @@ const FX2_DEF={
   orryn_ult:{u:'/assets/anim/fx/orryn_ult.webp?v=30',n:48,fw:320,fh:281,cols:6,rows:8,dur:6.04,upright:true,upSize:2.0,upExtent:0.83,upAnchor:[0.5,0.0],ro:1},   // v1044 Grok fx2 12 Ocean Without Shore
   umbris_ult:{u:'/assets/anim/fx/umbris_ult.webp?v=20',n:30,fw:320,fh:320,cols:6,rows:5,dur:5.0,upright:true,upSize:2.0,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
   vael_ult:{u:'/assets/anim/fx/vael_last_stand_16oct.webp?v=1171',n:61,fw:335,fh:186,cols:6,rows:11,dur:5.0833,rt:true,spawn:8,anchor:[0.5,0.48],size:1.431,hold:[40,96],fade:24},   /* v1171 Last Stand (Grok, Phil approved 16 Oct; vael_ult_last_stand_16oct.mp4 md5 c5d09410, GREEN plate): clip frames 0-120 every 2nd (the clip's first 5 s). Upright on him and BEHIND him: the ring's ground centre (anchor: source 584,455, midway between the back and the front shield bases) on his feet; a front shield (180 source px) stands 0.4 x his height. It slams up from ult cell 8 (source f27, the sword in the ground) in real time to f40, the hold (f40-f96) is stretched to fill the ult, and f96-f120 run in real time ending as the 5 s Last Stand ends, fading out over those 24 frames (the clip's last second before its 5 s mark; the fallen shields of f121-f144 are never shown); mirrored with his facing */
-  mirelle_ult:{u:'/assets/anim/fx/mirelle_imperial_plumage_16oct.webp?v=1174',n:67,fw:284,fh:204,cols:7,rows:10,dur:3.7543,hold:true,upright:true,upSize:2.0,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},   /* v1174 Imperial Plumage (Grok, Phil approved 16 Oct; mirelle_ult_imperial_plumage_16oct.mp4 md5 b682ba38, MAGENTA plate, keyed on the magenta it lacks): clip frames 0-132 every 2nd; dur = 67 cells at 12 fps in real time (x FX_RT) and `hold` keeps the (empty) last cell to the end of the plate's life, so it plays ONCE. Same draw as before (fieldWide 'both', v591): the ult reaches every unit, so each ally gets the burst over its bar and each enemy under its feet (v1141) - not one plate at the field centre */
+  mirelle_ult:{u:'/assets/anim/fx/mirelle_imperial_plumage_16oct.webp?v=1174',n:67,fw:284,fh:204,cols:7,rows:10,dur:3.7543,hold:true,badgeH:0.45,upright:true,upSize:2.0,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},   /* v1181 badgeH 0.45 (Phil: "make her feather burst small", "not massive"): each per-unit burst is 0.45 x that unit's height across, over the bar and at the feet (was 0.8 over the bar / 0.52 at the feet); timing and play-once unchanged */   /* v1174 Imperial Plumage (Grok, Phil approved 16 Oct; mirelle_ult_imperial_plumage_16oct.mp4 md5 b682ba38, MAGENTA plate, keyed on the magenta it lacks): clip frames 0-132 every 2nd; dur = 67 cells at 12 fps in real time (x FX_RT) and `hold` keeps the (empty) last cell to the end of the plate's life, so it plays ONCE. Same draw as before (fieldWide 'both', v591): the ult reaches every unit, so each ally gets the burst over its bar and each enemy under its feet (v1141) - not one plate at the field centre */
   vex_passive:{u:'/assets/anim/fx/vex_passive.webp?v=1',n:48,fw:296,fh:300,cols:6,rows:8,dur:1.4},   // v912 Grok: Killer Instinct - the wound mark (fired on each auto-attack wound)
   vex_ult:{u:'/assets/anim/fx/vex_ult.webp?v=21',n:48,fw:300,fh:299,cols:6,rows:8,dur:4.75,cone:true,coneFoot:0.05},
   veyr_ult:{u:'/assets/anim/fx/veyr_ult.webp?v=21',n:48,fw:300,fh:276,cols:6,rows:8,dur:5.12,upright:true,upSize:2.0,upExtent:0.9,upAnchor:[0.5,0.0],ro:1},
@@ -13127,8 +13144,10 @@ function spawnGroundFx(key,cx,cy,radius,life){ try{ _fxCheck('plate',arguments[0
   /* v1141 (Phil, 15 Oct: debuffs "should be under their feet"): a DEBUFF badge (_fxBelowFeet - the v595 badge of a bleed, poison, curse,
      debt or armour/resist break) is no longer drawn over the health bar like a buff: the ability's own art stands small at the unit's FEET,
      its middle on the feet line, behind the unit (renderOrder -4, the layer of the bleed/poison/burn marks), and rides with the unit. */
-  if(window._fxBelowFeet && !window._fxAboveBar) d=Object.assign({},d,{upright:true,upAbove:false,upMetric:false,upSize:FEET_BADGE_H*0.95*Math.min(1,d.fw/d.fh),upExtent:0.95,upAnchor:[0.5,0.5],upPalm:null,upFlip:false,cone:false,front:null,solid:0,ro:-4});
-  if(window._fxAboveBar && !d.upAbove) d=Object.assign({},d,{upright:true,upAbove:true,upAboveM:0.06,upSize:(window._fxBadgeSize||0.8),upExtent:0.95,upAnchor:null,upPalm:null,cone:false,ro:1});   /* a sheet that already declares upAbove keeps its own tuning (Dandra's lotus, Aureth's eclipse) */
+  /* v1181 `badgeH` (Phil 16 Oct on Imperial Plumage: "make her feather burst small" / "not massive"): a sheet may fix its badge to badgeH x the unit's
+     height ACROSS (the sprite's full width; upSize = badgeH x upExtent), over the bar and at the feet alike. Display only. */
+  if(window._fxBelowFeet && !window._fxAboveBar) d=Object.assign({},d,{upright:true,upAbove:false,upMetric:false,upSize:(d.badgeH>0?d.badgeH*0.95:FEET_BADGE_H*0.95*Math.min(1,d.fw/d.fh)),upExtent:0.95,upAnchor:[0.5,0.5],upPalm:null,upFlip:false,cone:false,front:null,solid:0,ro:-4});
+  if(window._fxAboveBar && !d.upAbove) d=Object.assign({},d,{upright:true,upAbove:true,upAboveM:0.06,upSize:(window._fxBadgeSize||(d.badgeH>0?d.badgeH*0.95:0.8)),upExtent:0.95,upAnchor:null,upPalm:null,cone:false,ro:1});   /* a sheet that already declares upAbove keeps its own tuning (Dandra's lotus, Aureth's eclipse) */
   const tex=base;
   const R3=radius*SC; let w=R3*2*1.12*FX_SIZE, h=w*(d.fh/d.fw), zoff=0;   // v367: FX_SIZE is visual only
   /* v448 (Phil: "when I place a spell it doesn't land where I want" / "the radius circle should be the same shape as the
@@ -29443,7 +29462,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1792195562430';
+const BUILD_ID = '1792199031600';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
