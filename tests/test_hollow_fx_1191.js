@@ -20,6 +20,7 @@ if (!OLD) { try { OLD = path.join(ROOT, '.test-hfx1191-base.html'); fs.writeFile
   const tmp = OLD; process.on('exit', () => { try { fs.unlinkSync(tmp); } catch (e) {} }); } catch (e) { OLD = null; } }
 const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); return src => vm.runInContext(src, h.ctx); };
 const run = load(HTML), R0 = OLD ? load(OLD) : null;
+require('./helpers/tolley-fx-1197.js').undoTolleyFx1197(run);   // v1197: Tolley's FX entries, ownFx tags and his FX1123_WARM / SKP_OWNFX rows (a later release) go back to v1195's - tests/test_tolley_fx_1197.js checks them
 let pass = 0, fail = 0;
 const ck = (name, ok, detail) => { if (ok) { pass++; console.log('  ok  ' + name); } else { fail++; console.log('  FAIL ' + name + (detail ? ' - ' + String(detail).slice(0, 900) : '')); } };
 const H = s => crypto.createHash('sha256').update(s).digest('hex').slice(0, 16);

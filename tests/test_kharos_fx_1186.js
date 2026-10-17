@@ -22,6 +22,7 @@ try { fs.mkdirSync(path.join(BD, 'server')); for (const f of ['emberweave-heroes
 const OLD = path.join(BD, 'emberweave-heroes.html');
 const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); return src => vm.runInContext(src, h.ctx); };
 const run = load(HTML), R0 = baseOk ? load(OLD) : null;   require('./helpers/tessit-hourglass-1189.js').undoTessit1189(run);   // v1189: Tessit's Hourglass (a later release) back out, so this test keeps testing v1186
+require('./helpers/tolley-fx-1197.js').undoTolleyFx1197(run);   // v1197: Tolley's FX entries, ownFx tags and his FX1123_WARM / SKP_OWNFX rows (a later release) go back to v1195's - tests/test_tolley_fx_1197.js checks them
 /* v1195: Kharos's DEATH (v1190 Batch 3, 12 streamed sheets) is checked by tests/test_death_state.js; it goes back out here too (tests/helpers/death-1182.js),
    so "battle clips identical to BASE" keeps comparing his v1186 clips. KHAROS_DEATH = his death states as loaded (the CONTROL below). */
 const KHAROS_DEATH = JSON.parse(run('JSON.stringify(Object.keys(BATTLE_ANIM.kharos||{}).filter(s=>/^death\\d*$/.test(s)))'));

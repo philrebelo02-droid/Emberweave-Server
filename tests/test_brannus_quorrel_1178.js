@@ -24,6 +24,7 @@ try { fs.mkdirSync(path.join(BD, 'server')); for (const f of ['emberweave-heroes
 const OLD = path.join(BD, 'emberweave-heroes.html');
 const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); const r = src => vm.runInContext(src, h.ctx); require('./helpers/rim-breaker-1180.js').undoRim1180(r); return r; };   // v1180: Rim Breaker as v1178 (tests/test_rim_breaker_1180.js checks the glide and the pierce)
 const run = load(HTML), R0 = baseOk ? load(OLD) : null;
+require('./helpers/tolley-fx-1197.js').undoTolleyFx1197(run);   // v1197: Tolley's FX entries, ownFx tags and his FX1123_WARM / SKP_OWNFX rows (a later release) go back to v1195's - tests/test_tolley_fx_1197.js checks them
 require('./helpers/plumage-1181.js').undoPlumage1181(run); require('./helpers/hollow-fx-1191.js').undoHollowFx1191(run);   // v1191: Hollow's FX + green clip back to BASE   // v1181: Imperial Plumage's badgeH (a later release) comes back off before the FX2_DEF comparison
 require('./helpers/death-1182.js').undoDeath1182(run);   // v1182: the four new death states go back out (tests/test_death_state.js checks them)
 require('./helpers/tessit-hourglass-1189.js').undoTessit1189(run);   // v1189: Tessit's Hourglass (a later release) comes back out (tests/test_tessit_hourglass.js checks it)

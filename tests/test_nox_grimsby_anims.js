@@ -26,6 +26,7 @@ try { fs.mkdirSync(path.join(BD, 'server')); for (const f of ['emberweave-heroes
 const OLD = path.join(BD, 'emberweave-heroes.html');
 const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); const r = src => vm.runInContext(src, h.ctx); require('./helpers/anim-meridian-rafe-1173.js').undoMR1173(r); return r; };   // v1173: Meridian / Rafe as v1169 on every page - tests/test_meridian_rafe_1173.js checks them
 const run = load(HTML), R0 = baseOk ? load(OLD) : null;
+require('./helpers/tolley-fx-1197.js').undoTolleyFx1197(run);   // v1197: Tolley's FX entries, ownFx tags and his FX1123_WARM / SKP_OWNFX rows (a later release) go back to v1195's - tests/test_tolley_fx_1197.js checks them
 require('./helpers/death-1182.js').undoDeath1182(run);   // v1182: the four new death states go back out (tests/test_death_state.js checks them)
 require('./helpers/vael-fx-1171.js').undoVaelFx1171(run);   // v1171: Vael's and Deepcleft's FX entries + ownFx tags go back to v1169's (tests/test_vael_deepcleft_fx_1171.js checks them)
 let pass = 0, fail = 0;

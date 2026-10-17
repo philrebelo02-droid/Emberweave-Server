@@ -30,6 +30,7 @@ if (!OLD) { try { OLD = path.join(ROOT, '.test-vd1160-base.html'); fs.writeFileS
   const tmp = OLD; process.on('exit', () => { try { fs.unlinkSync(tmp); } catch (e) {} }); } catch (e) { OLD = null; } }
 const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); return src => vm.runInContext(src, h.ctx); };
 const run = load(HTML);
+require('./helpers/tolley-fx-1197.js').undoTolleyFx1197(run);   // v1197: Tolley's FX entries, ownFx tags and his FX1123_WARM / SKP_OWNFX rows (a later release) go back to v1195's - tests/test_tolley_fx_1197.js checks them
 require('./helpers/vael-fx-1171.js').undoVaelFx1171(run);   // v1171: Vael's three FX entries + ownFx tags go back to v1163's (tests/test_vael_fx_1171.js checks them)
 require('./helpers/anim-korvux-1162.js').undoKorvux1162(run);   // v1162: Korvux's new entries go back to their v1159 state (tests/test_korvux_anim_eight.js checks them)
 require('./helpers/anim-noxgrim-1166.js').undoNoxGrim1166(run);   // v1166: Nox's and Grimsby's new entries (and Nox's ranged magic line) go back to their v1164 state - tests/test_nox_grimsby_anims.js and test_nox_ranged_1166.js check them
