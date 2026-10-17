@@ -120,7 +120,7 @@ async function perAction(dir, tag, check) {
 }
 
 async function killLoop(check) {
-  const S = await R.server({ env: { DB_STORE_CKPT_BYTES: '6000', DB_STORE_VERIFY: '1' } });
+  const S = await R.server({ env: { DB_STORE_CKPT_BYTES: '6000', DB_STORE_VERIFY: '1', DB_FSYNC: '0' } });   // v1185: a hard KILL (not a power cut) loses nothing in the page cache - the fsyncs are proven in test_world_guard_layouts_1185; on Windows they fall back to one fsync per file and slow this race below its checkpoints
   try {
     const B = await R.boot(S, 'jk', 8);
     const targets = []; for (const [c0, r0] of [[0, 0], [5, 0], [0, 5], [5, 5]]) { const t = []; for (let c = c0; c < c0 + 5; c++) for (let r = r0; r < r0 + 5; r++) t.push(c + '_' + r);

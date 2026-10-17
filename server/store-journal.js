@@ -109,6 +109,7 @@ function createEngine(o) {
     if (o.mdir) { try { fs.mkdirSync(o.mdir, { recursive: true }); try { fs.unlinkSync(path.join(o.mdir, copy)); } catch (e) {} fs.linkSync(tmp, path.join(o.mdir, copy)); linked = true; } catch (e) {} }
     try {
       if (o.sync) { const t0 = Date.now(); SAFE.flushBatch((files || []).map(P).concat([tmp]), linked ? [dir, o.mdir, parent] : [dir, parent], dir); stats.lastSyncMs = Date.now() - t0; }
+      if (global.__ewStoreReplaced && global.__ewStoreReplaced()) { const e = Error('world store: this io worker was replaced - not committing'); e.code = 'EREPLACED'; throw e; }   // v1185
       fs.renameSync(tmp, file);
     } catch (e) { if (linked) { try { fs.unlinkSync(path.join(o.mdir, copy)); } catch (e2) {} } throw e; }
     if (o.sync) SAFE.fsyncDir(parent);
