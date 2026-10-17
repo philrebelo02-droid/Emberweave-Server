@@ -39,7 +39,7 @@ const webpSize = f => { const b = Buffer.alloc(30); const fd = fs.openSync(f, 'r
 const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); return src => vm.runInContext(src, h.ctx); };
 const run = load(HTML);
 const CLIPS = JSON.parse(run(`JSON.stringify([].concat(...Object.keys(BATTLE_ANIM).map(k=>Object.keys(BATTLE_ANIM[k]).filter(s=>s[0]!=='_'&&BATTLE_ANIM[k][s]&&BATTLE_ANIM[k][s].u).map(s=>{ const c=BATTLE_ANIM[k][s];
-  return {k,s,u:c.u,fw:c.fw,fh:c.fh,cols:c.cols||c.n,rows:c.rows||1,figH:c.figH,lazy:!!c.lazy,hero:!!(HERO_TYPES[k]&&!HERO_TYPES[k].monster)}; }))))`));
+  return {k,s,u:c.u,n:c.n,fw:c.fw,fh:c.fh,cols:c.cols||c.n,rows:c.rows||1,figH:c.figH,lazy:!!c.lazy,hero:!!(HERO_TYPES[k]&&!HERO_TYPES[k].monster)}; }))))`));
 const FX = JSON.parse(run(`JSON.stringify(Object.keys(FX2_DEF).map(k=>({k,u:FX2_DEF[k].u,fw:FX2_DEF[k].fw,fh:FX2_DEF[k].fh,cols:FX2_DEF[k].cols,rows:FX2_DEF[k].rows||1})))`));
 try {
   // ------------------------------------------------------------------ 1. FILES (ratchet)
@@ -89,7 +89,15 @@ try {
 
   // ------------------------------------------------------------------ 3. STATIC BUDGET
   const mb = x => x.w * x.h * 4 * 4 / 3 / 1048576;
-  const per = {}; up.forEach(x => { if (!x.c.s || !x.c.hero) return; per[x.c.k] = (per[x.c.k] || 0) + mb(x); });
+  /* v1189: a death STREAMS (its sheets of <= 8 cells; the one shown + the next on the GPU, the one behind freed - blueprint 18), so a hero's death
+     counts as its heaviest pair of neighbouring sheets, not all of them */
+  const per = {}, dp = {}; up.forEach(x => { if (!x.c.s || !x.c.hero) return;
+    if (/^death\d*$/.test(x.c.s)) { (dp[x.c.k] = dp[x.c.k] || [])[x.c.s === 'death' ? 0 : +x.c.s.slice(5) - 1] = mb(x); return; }
+    per[x.c.k] = (per[x.c.k] || 0) + mb(x); });
+  for (const k in dp) { const a = dp[k]; let m = a[0] || 0; for (let i = 0; i + 1 < a.length; i++) m = Math.max(m, (a[i] || 0) + (a[i + 1] || 0)); per[k] = (per[k] || 0) + m; }
+  { const big = Object.keys(dp).filter(k => dp[k].length > 2 && dp[k].every(v => v > 0));
+    ck('v1189 streaming: every death is cut into sheets of at most 8 cells (' + Object.keys(dp).length + ' deaths), so it holds two sheets, not all',
+      CLIPS.filter(c => /^death\d*$/.test(c.s)).every(c => c.n >= 1 && c.n <= 8) && big.length === Object.keys(dp).length); }
   const heavy = Object.keys(per).sort((a, b) => per[b] - per[a]);
   const top10 = heavy.slice(0, 10), gpuStatic = top10.reduce((s, k) => s + per[k], 0);
   console.log('  info heaviest 10 heroes (phone, every clip incl. lazy): ' + top10.map(k => k + ' ' + per[k].toFixed(0)).join(', ') + ' = ' + gpuStatic.toFixed(0) + ' MB');

@@ -5,7 +5,7 @@
 import json, os, struct, sys
 import numpy as np
 from PIL import Image
-root, items = sys.argv[1], json.loads(sys.argv[2])
+root = sys.argv[1]; items = json.load(open(sys.argv[2][1:], encoding='utf-8')) if sys.argv[2].startswith('@') else json.loads(sys.argv[2])   # v1189: @file (28 deaths x 6 sheets outgrew the command line)
 def kind(p):
     d = open(p, 'rb').read(1 << 20); i = 12; out = []
     while i + 8 <= len(d):

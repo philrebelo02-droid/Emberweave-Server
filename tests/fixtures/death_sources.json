@@ -6,7 +6,8 @@
   "creationId": "567599086061998081",
   "plate": "magenta",
   "flip": false,
-  "end": "hide"
+  "end": "hide",
+  "ver": "1199"
  },
  {
   "key": "sylthaine",
@@ -15,7 +16,8 @@
   "creationId": "567599290899206145",
   "plate": "green",
   "flip": false,
-  "end": "hide"
+  "end": "hide",
+  "ver": "1199"
  },
  {
   "key": "vex",
@@ -25,6 +27,7 @@
   "plate": "green",
   "flip": true,
   "end": "hide",
+  "ver": "1199",
   "not": "567599447451594761"
  },
  {
@@ -35,57 +38,7 @@
   "plate": "green",
   "flip": false,
   "end": "hide",
-  "not": "567599574320906249"
- },
- {
-  "key": "aldren",
-  "hero": "Aldren",
-  "sha256": "3b87b3b4f769b466cd9fffd6cf369352fb5652cc13edeceebd0157eb65064e7b",
-  "creationId": "567618443819343872",
-  "plate": "magenta",
-  "flip": false,
-  "end": "hide",
-  "ver": "1187"
- },
- {
-  "key": "astra",
-  "hero": "Astra",
-  "sha256": "8f84a3cedd9ef22996da86ba429ffc33770bc7da67449e7c859e9aced905a186",
-  "creationId": "567619165164085252",
-  "plate": "green",
-  "flip": false,
-  "end": "hide",
-  "ver": "1187"
- },
- {
-  "key": "aureth",
-  "hero": "Aureth",
-  "sha256": "8a76dc176885d30d3d38e50949c7411f76a9be5c8f946ffda646c2d8acbd9aab",
-  "creationId": "567619262014730243",
-  "plate": "green",
-  "flip": false,
-  "end": "hide",
-  "ver": "1187"
- },
- {
-  "key": "bloatus",
-  "hero": "Bloatus",
-  "sha256": "9509569b0a6c47cdf0784c0e7fe69eb40130bd5c09ed904b739d979b439335d2",
-  "creationId": "567619342809669635",
-  "plate": "magenta",
-  "flip": false,
-  "end": "hide",
-  "ver": "1187"
- },
- {
-  "key": "brannus",
-  "hero": "Brannus",
-  "sha256": "bbfc52ef188fd4abb1f01b84179539509a76e9ae2d8c60ecce3acc3faa5a3e1a",
-  "creationId": "567619563912368128",
-  "plate": "green",
-  "flip": false,
-  "end": "hide",
-  "ver": "1187"
+  "ver": "1199"
  },
  {
   "key": "absalie",
@@ -95,7 +48,17 @@
   "plate": "green",
   "flip": false,
   "end": "hide",
-  "ver": "1187"
+  "ver": "1199"
+ },
+ {
+  "key": "aldren",
+  "hero": "Aldren",
+  "sha256": "3b87b3b4f769b466cd9fffd6cf369352fb5652cc13edeceebd0157eb65064e7b",
+  "creationId": "567618443819343872",
+  "plate": "magenta",
+  "flip": false,
+  "end": "hide",
+  "ver": "1199"
  },
  {
   "key": "ambrel",
@@ -105,7 +68,7 @@
   "plate": "magenta",
   "flip": false,
   "end": "hold",
-  "ver": "1187"
+  "ver": "1199"
  },
  {
   "key": "askel",
@@ -115,7 +78,47 @@
   "plate": "magenta",
   "flip": true,
   "end": "hold",
-  "ver": "1187"
+  "ver": "1199"
+ },
+ {
+  "key": "astra",
+  "hero": "Astra",
+  "sha256": "8f84a3cedd9ef22996da86ba429ffc33770bc7da67449e7c859e9aced905a186",
+  "creationId": "567619165164085252",
+  "plate": "green",
+  "flip": false,
+  "end": "hide",
+  "ver": "1199"
+ },
+ {
+  "key": "aureth",
+  "hero": "Aureth",
+  "sha256": "8a76dc176885d30d3d38e50949c7411f76a9be5c8f946ffda646c2d8acbd9aab",
+  "creationId": "567619262014730243",
+  "plate": "green",
+  "flip": false,
+  "end": "hide",
+  "ver": "1199"
+ },
+ {
+  "key": "bloatus",
+  "hero": "Bloatus",
+  "sha256": "9509569b0a6c47cdf0784c0e7fe69eb40130bd5c09ed904b739d979b439335d2",
+  "creationId": "567619342809669635",
+  "plate": "magenta",
+  "flip": false,
+  "end": "hide",
+  "ver": "1199"
+ },
+ {
+  "key": "brannus",
+  "hero": "Brannus",
+  "sha256": "bbfc52ef188fd4abb1f01b84179539509a76e9ae2d8c60ecce3acc3faa5a3e1a",
+  "creationId": "567619563912368128",
+  "plate": "green",
+  "flip": false,
+  "end": "hide",
+  "ver": "1199"
  },
  {
   "key": "calypsa",
@@ -125,7 +128,7 @@
   "plate": "green",
   "flip": true,
   "end": "hide",
-  "ver": "1188"
+  "ver": "1199"
  },
  {
   "key": "carn",
@@ -135,7 +138,7 @@
   "plate": "green",
   "flip": false,
   "end": "hide",
-  "ver": "1188"
+  "ver": "1199"
  },
  {
   "key": "ceraline",
@@ -145,7 +148,7 @@
   "plate": "green",
   "flip": true,
   "end": "hide",
-  "ver": "1188"
+  "ver": "1199"
  },
  {
   "key": "dandra",
@@ -155,7 +158,7 @@
   "plate": "magenta",
   "flip": false,
   "end": "hide",
-  "ver": "1188"
+  "ver": "1199"
  },
  {
   "key": "deepcleft",
@@ -165,7 +168,7 @@
   "plate": "green",
   "flip": false,
   "end": "hide",
-  "ver": "1188"
+  "ver": "1199"
  },
  {
   "key": "fritz",
@@ -175,7 +178,7 @@
   "plate": "magenta",
   "flip": false,
   "end": "hide",
-  "ver": "1188"
+  "ver": "1199"
  },
  {
   "key": "grimsby",
@@ -185,7 +188,7 @@
   "plate": "green",
   "flip": false,
   "end": "hide",
-  "ver": "1188"
+  "ver": "1199"
  },
  {
   "key": "grosk",
@@ -195,6 +198,86 @@
   "plate": "magenta",
   "flip": false,
   "end": "hold",
-  "ver": "1188"
+  "ver": "1199"
+ },
+ {
+  "key": "gruel",
+  "hero": "Gruel",
+  "sha256": "9645efd4fed061701120ef8ac347a9c568c2242665823f60dcc2237308954aa8",
+  "creationId": "567672688677404676",
+  "plate": "magenta",
+  "flip": false,
+  "end": "hide",
+  "ver": "1199"
+ },
+ {
+  "key": "hobb",
+  "hero": "Hobb Kilnmask",
+  "sha256": "c6d7ebfa08f07cd86039a61a5607f5a765ec9bcd0f7bdf5971ed92029f42aabc",
+  "creationId": "567672815429312517",
+  "plate": "green",
+  "flip": false,
+  "end": "hide",
+  "ver": "1199"
+ },
+ {
+  "key": "hollow",
+  "hero": "Hollow",
+  "sha256": "8b155e727a80666dbb123af13ee455ca9e99a4abf34c155b6aa25d50a8835561",
+  "creationId": "567672898480742409",
+  "plate": "green",
+  "flip": false,
+  "end": "hide",
+  "ver": "1199"
+ },
+ {
+  "key": "hurne",
+  "hero": "Hurne",
+  "sha256": "0e3b55581eefe36d241cb774730de4af77cb3a77ef4092db48213fd40d20ef2e",
+  "creationId": "567672966252273672",
+  "plate": "magenta",
+  "flip": false,
+  "end": "hide",
+  "ver": "1199"
+ },
+ {
+  "key": "iver",
+  "hero": "Iver",
+  "sha256": "1657fe49cbccba311e441897ec4c4fe8ab23da6662681f1182bf4db8f192ce4e",
+  "creationId": "567673068110950403",
+  "plate": "magenta",
+  "flip": true,
+  "end": "hide",
+  "ver": "1199"
+ },
+ {
+  "key": "joss",
+  "hero": "Joss Gatley",
+  "sha256": "8d287a01de88e33584ee8416ed8fd4a20bdc0020ac031f3b3e9abd2de516c6f2",
+  "creationId": "567673196188229636",
+  "plate": "magenta",
+  "flip": true,
+  "end": "hide",
+  "ver": "1199"
+ },
+ {
+  "key": "kharos",
+  "hero": "Kharos Bloomknife",
+  "sha256": "f927fd8ed4e8e4342971bebeec9e005497e6d33ec7b69051ad2ed9913ed3fde5",
+  "creationId": "567673294607568899",
+  "plate": "green",
+  "flip": false,
+  "end": "hide",
+  "ver": "1199"
+ },
+ {
+  "key": "konwu",
+  "hero": "KonWu",
+  "sha256": "ffe77c718246c8cbc5bc790da53a1b4edec42cdcfb83a878731a2df30434c245",
+  "creationId": "567673426698743814",
+  "plate": "magenta",
+  "flip": false,
+  "end": "hide",
+  "ver": "1199"
  }
 ]
