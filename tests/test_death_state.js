@@ -129,7 +129,7 @@ try {
         userAgent: 'Mozilla/5.0 (Linux; Android 14; SM-S918B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Mobile Safari/537.36' });
       await ctx.addInitScript(() => { window.AudioContext = undefined; window.webkitAudioContext = undefined; });
       if (INIT) await ctx.addInitScript(INIT);
-      if (process.env.EW_ASTC === 'off') await ctx.addInitScript('window.__noAstc=1;');   /* vASTC: EW_ASTC=off measures the WebP path (phones without ASTC) */
+      if (process.env.EW_ASTC === 'off') await ctx.addInitScript('window.__noAstc=1;');   /* v1191: EW_ASTC=off measures the WebP path (phones without ASTC) */
       const pg = await ctx.newPage(); const errs = [], dreq = [];
       pg.on('pageerror', e => errs.push(String(e.message))); pg.on('request', r => { if (/_death\d*_/.test(r.url())) dreq.push(r.url().split('/').pop()); });
       await pg.goto(base + '/play', { waitUntil: 'domcontentloaded' }); await pg.waitForTimeout(2500);
@@ -245,7 +245,7 @@ try {
         rw2.slice(16).every(r => r.op === 0) && rw2.some(r => r.op > 0 && r.op < 1) && rw3.every(r => r.op === 0 && r.held === 0), JSON.stringify(rw2.slice(0, 18).map(r => r.op)));
       // v1190 a LATE SHEET: Sylthaine's third sheet answers 2.5 s late (a slow phone / network) - the death holds the last cell shown (the end of her second
       // sheet) for as long as it takes, then plays on: all 48 cells in order, never idle, never skipped; the rest of the fight is untouched (display only)
-      { const S3 = PT.sylthaine[2].u.split('?')[0].split('/').pop(), last2 = PT.sylthaine[1].first + PT.sylthaine[1].n - 1;
+      { const S3 = (await pg.evaluate(u => { const K = (typeof astcFile === 'function') ? astcFile(u) : null; return (K ? K.u : u); }, PT.sylthaine[2].u)).split('?')[0].split('/').pop(), last2 = PT.sylthaine[1].first + PT.sylthaine[1].n - 1;   /* v1191: the file THIS device loads (its .ktz on an ASTC phone) */
         const parked = []; await pg.route('**/' + S3 + '*', r => { parked.push(r); });   /* its requests wait until 1.5 s of the death after the sheet was due */
         await lowAndWait('sylthaine', 'ally'); await kill(); const rl1 = await watch(Math.round(60 * PT.sylthaine[2].first / 8) + 90);
         for (const r of parked) { try { await r.continue(); } catch (e) {} } await pg.unroute('**/' + S3 + '*');

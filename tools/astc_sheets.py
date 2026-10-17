@@ -159,7 +159,7 @@ def recipe_key(src_b, job):
 
 def verify(wt):
     """no encoding: every sheet a phone uploads has a table entry built from its CURRENT source with the current recipe, its file is there,
-    and nothing else is in the table. Exit 1 on any problem (tests/test_astc_1191.js runs this)."""
+    and nothing else is in the table. Exit 1 on any problem (tests/test_astc_textures.js runs this)."""
     tab = json.load(open(os.path.join(wt, TABLE))); S = tab['sheets']; bad = []
     jobs = plan(wt); want = set()
     for j in jobs:

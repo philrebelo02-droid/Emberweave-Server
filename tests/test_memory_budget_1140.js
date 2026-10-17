@@ -102,6 +102,14 @@ try {
   const top10 = heavy.slice(0, 10), gpuStatic = top10.reduce((s, k) => s + per[k], 0);
   console.log('  info heaviest 10 heroes (phone, every clip incl. lazy): ' + top10.map(k => k + ' ' + per[k].toFixed(0)).join(', ') + ' = ' + gpuStatic.toFixed(0) + ' MB');
   ck('BUDGET: the heaviest possible 5v5 on a phone (every clip of the 10 heaviest heroes, mipmapped) <= ' + GPU_BUDGET_MB + ' MB of GPU textures', gpuStatic <= GPU_BUDGET_MB, gpuStatic.toFixed(0));
+  { /* v1191 GPU TEXTURE COMPRESSION: the same sum on an ASTC phone - a compressed sheet at its real bytes (assets/anim/astc_sheets.json), idle/walk
+       stay WebP. The WebP sum above is the budget for phones without ASTC; tests/test_astc_textures.js gates the ASTC path (with the spell sheets). */
+    let AT = {}; try { AT = JSON.parse(fs.readFileSync(path.join(ROOT, 'assets/anim/astc_sheets.json'), 'utf8')).sheets; } catch (e) {}
+    const mbA = x => { const e = AT[x.c.u.split('?')[0]]; return e ? e[4] / 1048576 : mb(x); }, perA = {}, dpA = {};
+    up.forEach(x => { if (!x.c.s || !x.c.hero) return; if (/^death\d*$/.test(x.c.s)) { (dpA[x.c.k] = dpA[x.c.k] || [])[x.c.s === 'death' ? 0 : +x.c.s.slice(5) - 1] = mbA(x); return; } perA[x.c.k] = (perA[x.c.k] || 0) + mbA(x); });
+    for (const k in dpA) { const a = dpA[k]; let m = a[0] || 0; for (let i = 0; i + 1 < a.length; i++) m = Math.max(m, (a[i] || 0) + (a[i + 1] || 0)); perA[k] = (perA[k] || 0) + m; }
+    const tA = Object.keys(perA).sort((a, b) => perA[b] - perA[a]).slice(0, 10), sA = tA.reduce((s, k) => s + perA[k], 0);
+    console.log('  info v1191 the same on an ASTC phone (compressed sheets at their real bytes, idle/walk WebP): ' + tA.map(k => k + ' ' + perA[k].toFixed(0)).join(', ') + ' = ' + sA.toFixed(0) + ' MB'); }
   const MAN = JSON.parse(fs.readFileSync(path.join(ROOT, 'assets/audio/sfx/sfx_manifest.json'), 'utf8'));
   const SD = JSON.parse(run('JSON.stringify(SFX_DATA)'));
   const dec = n => { const F = MAN.files[n]; return F ? Math.ceil(F.dur * 48000) * (F.ch || 2) * 4 : 0; };
@@ -137,7 +145,7 @@ try {
         const ti=P.texImage2D; P.texImage2D=function(target,level){ const r=ti.apply(this,arguments); try{ if(level===0&&target===this.TEXTURE_2D&&this.__b){ const a=[].slice.call(arguments,2); let w,h;
           if(typeof a[1]==='number'&&a.length>=6){ w=a[1]; h=a[2]; } else { const s=a[a.length-1]; w=s&&(s.width||s.videoWidth||0); h=s&&(s.height||s.videoHeight||0); } T.set(this.__b,{w,h,mip:false}); } }catch(e){} return r; };
         const gm=P.generateMipmap; P.generateMipmap=function(t){ const r=gm.apply(this,arguments); const o=T.get(this.__b); if(o) o.mip=true; return r; };
-        /* vASTC: a compressed upload counts its real bytes (every level's data) */
+        /* v1191: a compressed upload counts its real bytes (every level's data) */
         const cti=P.compressedTexImage2D; if(cti) P.compressedTexImage2D=function(target,level){ const r=cti.apply(this,arguments); try{ if(target===this.TEXTURE_2D&&this.__b){ const s=arguments[6], n=typeof s==='number'?s:(s&&s.byteLength)||0;
           const o=(level===0||!T.get(this.__b))?{w:arguments[3],h:arguments[4],cb:0,c:1}:T.get(this.__b); o.cb+=n; T.set(this.__b,o); } }catch(e){} return r; };
         const dt=P.deleteTexture; P.deleteTexture=function(x){ T.delete(x); return dt.apply(this,arguments); }; }
@@ -151,7 +159,7 @@ try {
       const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true,
         userAgent: 'Mozilla/5.0 (Linux; Android 14; SM-S918B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Mobile Safari/537.36' });
       await ctx.addInitScript(INIT);
-      if (process.env.EW_ASTC === 'off') await ctx.addInitScript('window.__noAstc=1;');   /* vASTC: EW_ASTC=off measures the WebP path (phones without ASTC) */
+      if (process.env.EW_ASTC === 'off') await ctx.addInitScript('window.__noAstc=1;');   /* v1191: EW_ASTC=off measures the WebP path (phones without ASTC) */
       if (html) {   // BASE: its page AND its build stamp (with the newer version.json the old page would update itself to the new one)
         const ver = cp.execSync('git show ' + BASE_SHA + ':version.json', { cwd: ROOT }).toString();
         await ctx.route(u => /\/play(\?|$)/.test(new URL(u).pathname + new URL(u).search.slice(0, 1)), r => r.fulfill({ status: 200, contentType: 'text/html', body: html }));

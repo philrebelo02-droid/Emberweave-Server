@@ -1,5 +1,5 @@
 'use strict';
-// vASTC GPU TEXTURE COMPRESSION (Phil 17 Oct 2026: "Lets do it, compress the ingame ones"; "to human eye those images looked identical" -
+// v1191 GPU TEXTURE COMPRESSION (Phil 17 Oct 2026: "Lets do it, compress the ingame ones"; "to human eye those images looked identical" -
 // ASTC 4x4 -thorough approved for hero sheets, FX and deaths). Blueprint 18 "GPU texture compression".
 //   1. FILES: tools/astc_sheets.py --verify (every sheet a phone uploads has a compressed entry built from its CURRENT source with the current
 //      recipe - new art that skipped the tool fails here); every .ktz parses with the page's own parser at the table's size, levels and bytes;

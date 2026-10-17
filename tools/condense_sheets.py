@@ -306,7 +306,7 @@ def main():
             print('baseline', n0, '->', len(B['files']))
     json.dump({'plan': plan, 'built': built}, open(os.path.join(here, 'condense_report_' + VER + '.json'), 'w'), indent=0, default=float)
     print('sheets', len(plan), 'built', len(res), 'tiered', len(tiers), 'phone', sum(1 for t in tiers.values() if 'p' in t), 'high-trim', sum(1 for t in tiers.values() if 'h' in t))
-    if not dry:   # vASTC: the phone's compressed copies are built FROM these tier files - rebuild them (cached: only changed sheets are encoded)
+    if not dry:   # v1191: the phone's compressed copies are built FROM these tier files - rebuild them (cached: only changed sheets are encoded)
         subprocess.run([sys.executable, '-I', os.path.join(here, 'astc_sheets.py'), root], check=False)
 
 
