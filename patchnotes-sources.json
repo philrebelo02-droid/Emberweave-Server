@@ -3,7 +3,7 @@
  "patches": [
   {
    "ver": "0.95",
-   "releases": "v1183, v1184, v1186, v1187, v1188",
+   "releases": "v1183, v1184, v1186, v1187, v1188, v1189",
    "items": [
     {
      "text": "Server data safety improvements: a server that cannot read its saved world now stops safely instead of starting fresh, saves are fully written to disk before they count, and backups of real player progress are always kept.",
@@ -39,6 +39,12 @@
      "text": "Signing up and signing in stay quick when many players join at once: new accounts no longer fail with \"Accounts are unreachable\" during a rush.",
      "sources": [
       "SHIPPED-v1184-signup-gate-17-10-2026.md"
+     ]
+    },
+    {
+     "text": "Tessit's Hourglass has a new spell effect: the hourglass shatters over the enemies, its sand hangs frozen in the air while they are stunned, then falls.",
+     "sources": [
+      "SHIPPED-v1189-tessit-hourglass-17-10-2026.md"
      ]
     }
    ]
