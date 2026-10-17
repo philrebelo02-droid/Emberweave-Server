@@ -1,0 +1,72 @@
+{
+ "note": "v1186: what live v1180 (15ddba3f) had for the entries the Kharos FX change replaced",
+ "before": {
+  "fx": {
+   "kharos_green": {
+    "u": "/assets/anim/fx/kharos_green.webp?v=1",
+    "n": 18,
+    "fw": 200,
+    "fh": 200,
+    "cols": 6,
+    "rows": 3,
+    "dur": 1.5,
+    "cone": true,
+    "coneFoot": 0.05
+   },
+   "kharos_blue": {
+    "u": "/assets/anim/fx/kharos_blue.webp?v=1",
+    "n": 18,
+    "fw": 200,
+    "fh": 200,
+    "cols": 6,
+    "rows": 3,
+    "dur": 1.5,
+    "upright": true,
+    "upSize": 1.25,
+    "upExtent": 1,
+    "upAnchor": [
+     0.5,
+     0
+    ],
+    "ro": 1
+   },
+   "kharos_ult": {
+    "u": "/assets/anim/fx/kharos_ult.webp?v=2",
+    "n": 48,
+    "fw": 210,
+    "fh": 209,
+    "cols": 6,
+    "rows": 8,
+    "dur": 2
+   }
+  },
+  "green": {
+   "name": "Petal Sever",
+   "type": "bleedstack",
+   "mul": 1.6,
+   "bleed": 0.18,
+   "rupture": 3,
+   "ruptMul": 2,
+   "stackDur": 6,
+   "cd": 6,
+   "desc": "Crosses both arm-blades, inflicting a deep wound.",
+   "gfx": "kharos_green"
+  },
+  "blue": {
+   "name": "Bloomstep",
+   "type": "evadecounter",
+   "mul": 2.1,
+   "dur": 2.2,
+   "dr": 0.55,
+   "perLv": 0.001,
+   "cd": 9,
+   "desc": "Evades the next strike and reappears behind the attacker.",
+   "gfx": "kharos_blue",
+   "gfxR": 84.6
+  },
+  "ult": {
+   "gfx": "kharos_ult",
+   "gdur": 2
+  }
+ }
+}

@@ -15,5 +15,5 @@ const CODE = `(()=>{ const B=${JSON.stringify(FIX.before)}, J=o=>JSON.parse(JSON
   if(typeof FX1123_WARM!=='undefined') delete FX1123_WARM.brannus;
   if(typeof SKP_OWNFX!=='undefined'){ delete SKP_OWNFX.bgreen; delete SKP_OWNFX.bblue; delete SKP_OWNFX.bult; }
   return 1; })()`;
-const UD = require('./death-1182.js');   /* v1182: the four death states go back out too (every caller of this helper compares with a BASE before them) */
-module.exports = { undoBQ1178: run => { UD.undoDeath1182(run); return run(CODE); }, FIX_BQ_1178: FIX };
+const UD = require('./death-1182.js'), UKF = require('./kharos-fx-1186.js');   /* v1182: the four death states go back out too; v1186: Kharos's FX too (every caller of this helper compares with a BASE before them) */
+module.exports = { undoBQ1178: run => { UD.undoDeath1182(run); UKF.undoKFX1186(run); return run(CODE); }, FIX_BQ_1178: FIX };

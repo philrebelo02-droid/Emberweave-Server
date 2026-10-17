@@ -52,6 +52,7 @@ const FIGHT = (seed, a, f, c0) => `(()=>{ window._p2guard=true; const svA=autoUl
     const tr=[]; for(let i=0;i<Math.round(45/SIM_STEP)&&!ended;i++){ ${c0 ? "units.forEach(u=>{ u.glyphCrit=0; });" : ''} updateBattle(SIM_STEP); tr.push(units.map(u=>[u.key,Math.round(u.hp*100),Math.round(u.x*10),Math.round(u.y*10),u.alive?1:0,Math.round((u.energy||0)*10),+(u.stunned||0).toFixed(2)].join(':')).join('|')); }
     deliverLaunch=_dl; let h=2166136261>>>0; const s=tr.length+'@'+tr.join('#'); for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619)>>>0; }
     return JSON.stringify({h:s.length+':'+h.toString(16),casts}); } finally{ autoUlt=svA; window._p2guard=false; } })()`;
+const UKF = r => require('./helpers/kharos-fx-1186.js').undoKFX1186(r);   // v1186 Kharos's FX + Bloomstep back to BASE where a check compares whole fights with BASE
 const fight = (f, s, a, e, c0) => JSON.parse(load(f)(FIGHT(s, a, e, c0)));
 let FXD = null;
 const BRF = [[['brannus', 'askel', 'vex'], ['grimsby', 'vesper', 'grosk', 'sloe'], 11], [['tharl', 'brannus', 'lumi'], ['quorrel', 'nox', 'kharos'], 64], [['brannus', 'hobb'], ['pellucid', 'veyr', 'carn', 'astra'], 5]];
@@ -94,13 +95,13 @@ const tests = async () => {
     ck('seeded: the same staged cast twice is the same hits on the same ticks', a === b); }
   // 3. whole fights
   { const NB = [[['askel', 'vesper', 'seyla'], ['vael', 'tick', 'lumi'], 11], [['nox', 'sorrel', 'umbris'], ['pellucid', 'veyr', 'oakmir'], 222], [['korvux', 'rafe', 'kharos'], ['hobb', 'hurne', 'quorrel'], 5]];
-    ck('whole fights without Brannus are tick-for-tick BASE', NB.every(([a, f, s]) => fight(HTML, s, a, f).h === fight(OLD, s, a, f).h)); }
+    ck('whole fights without Brannus are tick-for-tick BASE', NB.every(([a, f, s]) => { const r = load(HTML); UKF(r); return JSON.parse(r(FIGHT(s, a, f))).h === fight(OLD, s, a, f).h; })); }   // v1186: Kharos's Bloomstep jump undone (a later release)
   { const res = BRF.map(([a, f, s]) => [fight(HTML, s, a, f, 1), fight(OLD, s, a, f, 1)]);
     ck('whole fights WITH Brannus: he casts Rim Breaker in each (' + res.map(r => r[0].casts).join(' / ') + ' casts) and the new throw changes ' + res.filter(([n, o]) => n.h !== o.h).length + ' of ' + res.length + ' fights against BASE', res.every(([n]) => n.casts > 0) && res.some(([n, o]) => n.h !== o.h));
     const again = BRF.map(([a, f, s]) => fight(HTML, s, a, f, 1).h);
     ck('and they are deterministic: the same seed twice gives the same fight', again.every((h, i) => h === res[i][0].h)); }
   {
-    const r2 = BRF.map(([a, f, s]) => { const r = load(HTML); r('delete KITS.brannus.green.pierce; 1'); return JSON.parse(r(FIGHT(s, a, f, 1))).h; });
+    const r2 = BRF.map(([a, f, s]) => { const r = load(HTML); UKF(r); r('delete KITS.brannus.green.pierce; 1'); return JSON.parse(r(FIGHT(s, a, f, 1))).h; });
     ck('CONTROL: the same fights with the pierce taken off are BASE tick for tick (the display change moves nothing)', r2.every((h, i) => h === fight(OLD, BRF[i][2], BRF[i][0], BRF[i][1], 1).h)); }
   // 4. the glide (display)
   const G = JSON.parse(run('JSON.stringify({d:FX2_DEF.brannus_green,a:FX16_ART.bgreen,FX_RT})')), d = G.d;
