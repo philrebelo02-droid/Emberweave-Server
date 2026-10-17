@@ -5,7 +5,7 @@
 //  - polls (GET /api/...) are answered at once with 503 {busy, retry, storageFailed, retryAfterMs} + Retry-After; actions (POST) less often;
 //  - /api/health, /api/dev/save-stats and pages are never refused; save-stats counts what was refused (shed.elu, shed.p, shedGet/Post);
 //  - a refused cloud save changed nothing (the same request sent again later is saved);
-//  - with the main thread idle again nothing is refused; BUSY_SHED unset on a NODE_ENV=test server = off (the suite's servers).
+//  - with the main thread idle again nothing is refused; BUSY_SHED unset = off on every server (v1182: off in production too).
 // CONTROL f2043269 (before v1134): the same burn - not one request is refused; every one waits its turn.
 const fs = require('node:fs'), path = require('node:path'), os = require('node:os');
 const R = require('./helpers/split-rig.cjs');
@@ -56,6 +56,9 @@ async function run(dir, tag, check, env) {
     console.log('== NODE_ENV=test without BUSY_SHED (the suite\'s servers): off');
     const off = await run(R.root, 'bo', R.ok, {});
     R.ok(off.busyGet === 0 && off.busyPost === 0 && off.stat && off.stat.on === false, 'off: 0 of ' + off.sent + ' refused under the same burn');
+    console.log('== production (NODE_ENV not test) without BUSY_SHED: off since v1182 (Phil: no error screens at launch)');
+    const prod = await run(R.root, 'bp', R.ok, { NODE_ENV: 'production' });
+    R.ok(prod.busyGet === 0 && prod.busyPost === 0 && prod.stat && prod.stat.on === false, 'production default off: 0 of ' + prod.sent + ' refused under the same burn');
     console.log('== control ' + CONTROL + ' (must fail)');
     const c = await run(R.controlTree(CONTROL), 'bc', () => {}, { BUSY_SHED: '1' });
     R.ok(c.busyGet === 0 && c.busyPost === 0 && !c.stat, 'CONTROL: ' + CONTROL + ' refused 0 of ' + c.sent + ' requests under the same burn (this tree: ' + (a.busyGet + a.busyPost) + ') - every one waited its turn');
