@@ -29,6 +29,8 @@ for it in items:
     fi = os.path.join(root, I['u'].split('?')[0].lstrip('/')); si = Image.open(fi).convert('RGBA')
     sx = si.width / (I['fw'] * I['cols']); sy = si.height / (I['fh'] * I['rows'])
     ic = np.asarray(si.crop((0, 0, round(I['fw'] * sx), round(I['fh'] * sy))).resize((I['fw'], I['fh']), Image.LANCZOS))[..., 3].astype(int)
+    ia = np.asarray(si).astype(int); iv = ia[..., 3] >= 8   # v1196: the hero's OWN approved idle art leaning to each plate colour (a peacock on green is green)
+    ig = round(100.0 * int((((ia[..., 1] - np.maximum(ia[..., 0], ia[..., 2])) > 24) & iv).sum()) / max(1, int(iv.sum())), 4); im_ = round(100.0 * int((((np.minimum(ia[..., 0], ia[..., 2]) - ia[..., 1]) > 24) & iv).sum()) / max(1, int(iv.sum())), 4)
     res[it['k']] = dict(sheets=sheets, cellpx=cellpx, green_pct=round(100.0 * g_n / max(1, vis_n), 4), magenta_pct=round(100.0 * m_n / max(1, vis_n), 4),
-                        death_fig0=fig0, idle_fig0=fig(ic), decoded_mb=round(sum(s['size'][0] * s['size'][1] * 4 for s in sheets) / 1048576, 2))
+                        death_fig0=fig0, idle_fig0=fig(ic), idle_green_pct=ig, idle_magenta_pct=im_, decoded_mb=round(sum(s['size'][0] * s['size'][1] * 4 for s in sheets) / 1048576, 2))
 print(json.dumps(res))

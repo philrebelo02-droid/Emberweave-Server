@@ -279,5 +279,85 @@
   "flip": false,
   "end": "hide",
   "ver": "1190"
+ },
+ {
+  "key": "korvux",
+  "hero": "Korvux",
+  "sha256": "323dde23282fbcfe1f939044f86b2503f69594061462bdea419a22e1ed19b0cd",
+  "creationId": "567675830043328519",
+  "plate": "green",
+  "flip": false,
+  "end": "hide",
+  "ver": "1198"
+ },
+ {
+  "key": "linnet",
+  "hero": "Linnet",
+  "sha256": "3fe98e72b88ee85f37f205d53afdfe24a7203299c09aa20ef28800dba3251ac8",
+  "creationId": "567905336502968327",
+  "plate": "green",
+  "flip": true,
+  "end": "hide",
+  "ver": "1198"
+ },
+ {
+  "key": "lumi",
+  "hero": "Lumi",
+  "sha256": "b43d4606aae1c0966cbe50110c1fb92e5d42cef06a49a7dad552abcc80e64956",
+  "creationId": "567905104247578633",
+  "plate": "magenta",
+  "flip": true,
+  "end": "hide",
+  "ver": "1198"
+ },
+ {
+  "key": "lysara",
+  "hero": "Lysara Moonveil",
+  "sha256": "f46b6ae85d6e2d462a2b23598fe4087650daf0155a5b21c024f9616c513735c7",
+  "creationId": "567675999346413575",
+  "plate": "green",
+  "flip": true,
+  "end": "hide",
+  "ver": "1198"
+ },
+ {
+  "key": "maren",
+  "hero": "Maren",
+  "sha256": "cf42072de0baddee9272076268fdc5671259a2b83020db0902f3da39f466e8a1",
+  "creationId": "567676075582099460",
+  "plate": "magenta",
+  "flip": false,
+  "end": "hide",
+  "ver": "1198"
+ },
+ {
+  "key": "mellan",
+  "hero": "Mellan",
+  "sha256": "44cf3d9ad7588beb9bcd8cba7f7425433953d4c7e96aaceaab7112c95220aa6c",
+  "creationId": "567676143508828168",
+  "plate": "magenta",
+  "flip": false,
+  "end": "hide",
+  "ver": "1198"
+ },
+ {
+  "key": "meridian",
+  "hero": "Meridian",
+  "sha256": "a81e73c3dfa5de39d2b2c795ed3c48bc077c9ca94850d900824c8d57612bdf93",
+  "creationId": "567676482215731207",
+  "plate": "green",
+  "flip": false,
+  "end": "hide",
+  "ver": "1198"
+ },
+ {
+  "key": "mirelle",
+  "hero": "Mirelle Velvetplum",
+  "sha256": "8a023d0d312d333d53388bb1dc2cf60512a50d2ee692610039f368b99495d03d",
+  "creationId": "567676556316463110",
+  "plate": "green",
+  "flip": true,
+  "end": "hide",
+  "ver": "1198"
  }
 ]

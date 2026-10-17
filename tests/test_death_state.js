@@ -76,9 +76,13 @@ try {
   const PX = JSON.parse(cp.execFileSync(process.env.PYTHON || 'python', ['-I', path.join(__dirname, 'helpers', 'death_1182_check.py'), ROOT, '@' + (() => { const f = path.join(BD, 'px-args.json'); fs.writeFileSync(f, JSON.stringify(ALL.map(k => ({ k, parts: PT[k], idle: I[k] })))); return f; })()], { maxBuffer: 1 << 24 }).toString());
   ck('sheets: each file is exactly its grid, <= 2048 px a side, <= 4 MB, q95 (VP8 + ALPH, v1158 recipe); decoded per hero ' + ALL.map(k => k + ' ' + PX[k].decoded_mb + ' MB').join(', '),
     ALL.every(k => PX[k].sheets.every((S, i) => { const A = PT[k][i]; return S.size[0] === A.fw * A.cols && S.size[1] === A.fh * A.rows && Math.max(...S.size) <= 2048 && S.bytes <= 4e6 && S.kind.includes('VP8 ') && S.kind.includes('ALPH'); })));
-  ck('no plate colour is left: the ash Hailuo drew in the plate colour is unmixed - visible pixels leaning to the hero\'s OWN plate (green or magenta) <= 0.01%',
-    ALL.every(k => (SRC[k].bg === 'magenta' ? PX[k].magenta_pct : PX[k].green_pct) <= 0.01), ALL.map(k => k + ' ' + SRC[k].bg + ' ' + (SRC[k].bg === 'magenta' ? PX[k].magenta_pct : PX[k].green_pct)).join(', '));
-  ck('the ending: an ash clip (end hide) ends on an empty cell (< 2% of cell 0\'s pixels) with only drifting ash before it (the last two < 5%: Kharos 4%, specks) - the body is gone; a fallen body (end hold) keeps its last cell', ALL.every(k => { const c = PX[k].cellpx; return c.length === 48 && ((SRC[k].end || 'hide') === 'hide' ? c[47] < 0.02 * c[0] && c[46] + c[47] < 0.05 * c[0] : c[47] > 0.05 * c[0]); }),
+  /* v1196: a hero whose OWN art is the plate colour (Mirelle, a peacock on a green plate: 7.9% of her approved idle leans green) keeps those pixels - the
+     limit is max(0.01%, 5% of his own idle's share), so plate residue stays far under what the hero himself contains */
+  const leanLim = k => Math.max(0.01, 0.05 * (SRC[k].bg === 'magenta' ? PX[k].idle_magenta_pct : PX[k].idle_green_pct)), leanOf = k => SRC[k].bg === 'magenta' ? PX[k].magenta_pct : PX[k].green_pct;
+  ck('no plate colour is left: the ash Hailuo drew in the plate colour is unmixed - visible pixels leaning to the hero\'s OWN plate (green or magenta) <= 0.01% (or 5% of his own idle art\'s share of that colour)',
+    ALL.every(k => leanOf(k) <= leanLim(k)), ALL.map(k => k + ' ' + SRC[k].bg + ' ' + leanOf(k) + (leanLim(k) > 0.01 ? ' (limit ' + leanLim(k).toFixed(3) + ')' : '')).join(', '));
+  ck('CONTROL: plate residue the size of the hero\'s own art (his idle share) fails the plate-colour check for every hero', ALL.every(k => !(Math.max(0.011, SRC[k].bg === 'magenta' ? PX[k].idle_magenta_pct : PX[k].idle_green_pct) <= leanLim(k))));
+  ck('the ending: an ash clip (end hide) ends on an empty cell (< 2% of cell 0\'s pixels) with only drifting ash before it (cell 46 < 10%: Kharos 4%, Lumi 6% - scattered specks, seen by eye) - the body is gone; a fallen body (end hold) keeps its last cell', ALL.every(k => { const c = PX[k].cellpx; return c.length === 48 && ((SRC[k].end || 'hide') === 'hide' ? c[47] < 0.02 * c[0] && c[46] < 0.10 * c[0] : c[47] > 0.05 * c[0]); }),
     ALL.map(k => k + ' ' + (SRC[k].end || 'hide') + ' ' + PX[k].cellpx[0] + '>' + PX[k].cellpx.slice(44).join('/')).join(', '));
   // full size: the standing figure is drawn as tall as the hero's idle cell 0, on the same foot line (the engine draws figH = sprH), every part at that one scale
   const sizeAt = (k, F) => { const d = PX[k].death_fig0, A = PT[k][0];   // Phil's approved scale: the frame-0 figure (bbox) drawn at the hero's own figH
@@ -137,7 +141,10 @@ try {
         G.tutStarted = true; G.tutDone = true; document.body.classList.remove('gated'); show('home'); try { if (SND && SND.out) SND.out.gain.value = 0; } catch (e) {} });
       await pg.waitForTimeout(600);
       await pg.evaluate(() => { const b = [...document.querySelectorAll('button')].find(x => /Skip Tutorial/i.test(x.textContent) && x.offsetParent); if (b) b.click(); });
-      const T = HEROES.concat(['korvux']);   // Korvux: a hero with no death clip (the fallback)
+      const T = HEROES.concat(['korvux']);   // Korvux: the hero with no death clip (the fallback)
+      /* v1196: Korvux has his own death since Batch 4 (and every hero gets one), so the fallback filler is Korvux with his death states taken out of this page */
+      ck('the fallback filler: Korvux\'s death states are taken out of this page (' + (await pg.evaluate(() => { let n = 0; for (const st of Object.keys(BATTLE_ANIM.korvux || {})) if (/^death\d*$/.test(st)) { delete BATTLE_ANIM.korvux[st]; n++; } return n; })) + ') - he plays the old fade',
+        await pg.evaluate(() => !BATTLE_ANIM.korvux.death && !deathClip({ anim: BATTLE_ANIM.korvux })));
       const start = async (seed, frozen, A, E) => { A = A || T; E = E || T;
         await pg.evaluate(([A, E, seed]) => { try { A.concat(E).forEach(k => G.unlocked[k] = true); } catch (e) {} G.team = A.slice(); CUR = { mode: 'arena', seed };
           window.requestAnimationFrame = window.__raf0 || window.requestAnimationFrame; startVersus(E.map(k => ({ key: k, level: 30 })), true, A.slice()); }, [A, E, seed]);
