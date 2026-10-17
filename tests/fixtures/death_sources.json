@@ -116,5 +116,85 @@
   "flip": true,
   "end": "hold",
   "ver": "1187"
+ },
+ {
+  "key": "calypsa",
+  "hero": "Calypsa Prismfin",
+  "sha256": "85eb01a04fd1fcaa25c47107156c5e78487a798ecfaffd2e6d2aa9a8b4a4dba3",
+  "creationId": "567621430251806724",
+  "plate": "green",
+  "flip": true,
+  "end": "hide",
+  "ver": "1198"
+ },
+ {
+  "key": "carn",
+  "hero": "Carn",
+  "sha256": "d532b2220ceb2625ccd5aca0d7a8e57a15653c5a83758d2288cddcd9ab37050e",
+  "creationId": "567621524971819016",
+  "plate": "green",
+  "flip": false,
+  "end": "hide",
+  "ver": "1198"
+ },
+ {
+  "key": "ceraline",
+  "hero": "Ceraline",
+  "sha256": "c0ff06c28ec3d0fa3743d50323ada9ac00988ce1d6a56983c198a7932b3b4851",
+  "creationId": "567621626801135625",
+  "plate": "green",
+  "flip": true,
+  "end": "hide",
+  "ver": "1198"
+ },
+ {
+  "key": "dandra",
+  "hero": "Dandra",
+  "sha256": "771ff8fd56f72e5b7128a8878017c4556a29211a632bde7e7d2f3b199f8879df",
+  "creationId": "567622063042244617",
+  "plate": "magenta",
+  "flip": false,
+  "end": "hide",
+  "ver": "1198"
+ },
+ {
+  "key": "deepcleft",
+  "hero": "Deepcleft",
+  "sha256": "5eb5bf37f5c17044fc1011928c9c16028cd5d5225ac7aedd20d28857f1e563c6",
+  "creationId": "567621955013799942",
+  "plate": "green",
+  "flip": false,
+  "end": "hide",
+  "ver": "1198"
+ },
+ {
+  "key": "fritz",
+  "hero": "Fritz",
+  "sha256": "acab31d31e4fd75e08ebd9931a2d7769c3b38c872772121785d829bcb0161339",
+  "creationId": "567622190230380548",
+  "plate": "magenta",
+  "flip": false,
+  "end": "hide",
+  "ver": "1198"
+ },
+ {
+  "key": "grimsby",
+  "hero": "Grimsby",
+  "sha256": "a28c273474d863d46180a4312151a6c17c1703ee84db69788b616a90cb92fdd9",
+  "creationId": "567671206339117064",
+  "plate": "green",
+  "flip": false,
+  "end": "hide",
+  "ver": "1198"
+ },
+ {
+  "key": "grosk",
+  "hero": "Grosk",
+  "sha256": "18475dee3b3248013b4f4c3fc1634d33736a9d207df293afa87b5cf76e5842b6",
+  "creationId": "567671364669919235",
+  "plate": "magenta",
+  "flip": false,
+  "end": "hold",
+  "ver": "1198"
  }
 ]
