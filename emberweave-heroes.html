@@ -4220,6 +4220,80 @@ function _loadClip(s){ if(!s || s.tex || !isAssetRef(s.u)) return;
 /* v1153 Aureth: his `attack` slot IS the light-sword swing (the same object - one sheet, one texture, loaded and freed once); every swing
    alternates attackLight / attackDark (v1150). */
 BATTLE_ANIM.aureth.attack=BATTLE_ANIM.aureth.attackLight;
+/* v1182 DEATH - a NEW animation type (Phil 16 Oct, via ChatGPT 17:32: a separate death state, "play once when dead, then remain dead/hidden; never loop,
+   return to idle or revive"; then Phil: full size, "make the deaths 6 seconds", "do 48"). Each hero's approved SILENT clip (96 frames): every 2nd frame
+   (0, 2 .. 94) = 48 cells over 6.0 s = 8 fps at game speed 1 (it follows the game speed like every clip). FULL SIZE: the body is drawn at the hero's own
+   scale (idle figH on the death's frame-0 figure, the same feet line and centre), so the death is exactly as sharp as his other states. The cells are
+   split over several sheets <= 2048 px (death, death2 ..: each its own lazy state, so Update all, the fight's art eviction and the memory budget see
+   every one); each sheet's cell is the tight union of only its own frames (the standing frames are big, the kneeling and ash frames small). All four
+   end in ash, so `end:'hide'`: after the last cell the body is gone (an enemy's mesh then leaves the scene). `end:'hold'` would keep the last cell.
+   DISPLAY ONLY. Nothing in the fight reads a death state: the 0.9 s removal of a dead enemy (updateBattle), deathT, alive, targeting and the waves are
+   unchanged (the server replays fights headless, with no mesh). LAZY: never in the loading screen, loadAnimSet or the GPU warm-up; the sheets load when
+   the hero drops under 30% hp (deathPreload) - on a phone only while the GPU tally plus them stays under DEATH_CLIPS.gpuMB - and a hero that dies before
+   they have arrived fades exactly as before (the fallback). RELEASED as soon as that hero's last running death ends (deathRelease), and with the fight's art. */
+BATTLE_ANIM.vael.death={u:'/assets/anim/vael/vael_death_1182.webp?v=1182',n:24,first:0,fw:307,fh:433,cols:6,rows:4,figH:326,feet:423,top:97,cx:166.7,fps:8,flip:false,lazy:true,dn:48,parts:['death','death2'],end:'hide'};
+BATTLE_ANIM.vael.death2={u:'/assets/anim/vael/vael_death2_1182.webp?v=1182',n:24,first:24,fw:233,fh:263,cols:4,rows:6,figH:326,feet:253,top:-73,cx:98.7,fps:8,flip:false,lazy:true};
+BATTLE_ANIM.sylthaine.death={u:'/assets/anim/sylthaine/sylthaine_death_1182.webp?v=1182',n:12,first:0,fw:512,fh:514,cols:4,rows:3,figH:501,feet:507,top:6,cx:227.9,fps:8,flip:false,lazy:true,dn:48,parts:['death','death2','death3','death4'],end:'hide'};
+BATTLE_ANIM.sylthaine.death2={u:'/assets/anim/sylthaine/sylthaine_death2_1182.webp?v=1182',n:16,first:12,fw:455,fh:466,cols:4,rows:4,figH:501,feet:459,top:-42,cx:227.5,fps:8,flip:false,lazy:true};
+BATTLE_ANIM.sylthaine.death3={u:'/assets/anim/sylthaine/sylthaine_death3_1182.webp?v=1182',n:16,first:28,fw:453,fh:466,cols:4,rows:4,figH:501,feet:459,top:-42,cx:226.3,fps:8,flip:false,lazy:true};
+BATTLE_ANIM.sylthaine.death4={u:'/assets/anim/sylthaine/sylthaine_death4_1182.webp?v=1182',n:4,first:44,fw:354,fh:354,cols:1,rows:4,figH:501,feet:347,top:-154,cx:167.1,fps:8,flip:false,lazy:true};
+BATTLE_ANIM.vex.death={u:'/assets/anim/vex/vex_death_1182.webp?v=1182',n:12,first:0,fw:406,fh:515,cols:4,rows:3,figH:501,feet:508,top:7,cx:223.0,fps:8,flip:true,lazy:true,dn:48,parts:['death','death2','death3'],end:'hide'};
+BATTLE_ANIM.vex.death2={u:'/assets/anim/vex/vex_death2_1182.webp?v=1182',n:20,first:12,fw:447,fh:400,cols:4,rows:5,figH:501,feet:393,top:-108,cx:263.5,fps:8,flip:true,lazy:true};
+BATTLE_ANIM.vex.death3={u:'/assets/anim/vex/vex_death3_1182.webp?v=1182',n:16,first:32,fw:325,fh:505,cols:4,rows:4,figH:501,feet:497,top:-4,cx:207.0,fps:8,flip:true,lazy:true};
+BATTLE_ANIM.vireo.death={u:'/assets/anim/vireo/vireo_death_1182.webp?v=1182',n:12,first:0,fw:446,fh:628,cols:4,rows:3,figH:595,feet:602,top:7,cx:225.9,fps:8,flip:false,lazy:true,dn:48,parts:['death','death2','death3','death4'],end:'hide'};
+BATTLE_ANIM.vireo.death2={u:'/assets/anim/vireo/vireo_death2_1182.webp?v=1182',n:16,first:12,fw:419,fh:433,cols:4,rows:4,figH:595,feet:408,top:-187,cx:207.8,fps:8,flip:false,lazy:true};
+BATTLE_ANIM.vireo.death3={u:'/assets/anim/vireo/vireo_death3_1182.webp?v=1182',n:16,first:28,fw:419,fh:443,cols:4,rows:4,figH:595,feet:418,top:-177,cx:207.8,fps:8,flip:false,lazy:true};
+BATTLE_ANIM.vireo.death4={u:'/assets/anim/vireo/vireo_death4_1182.webp?v=1182',n:4,first:44,fw:15,fh:16,cols:1,rows:4,figH:595,feet:9,top:-586,cx:7.2,fps:8,flip:false,lazy:true};
+const DEATH_CLIPS={on:true, hp:0.30, gpuMB:1990};   /* gpuMB: a phone loads a death only while the live texture tally + its sheets stays under this (budget 2048) */
+let _corpses=[];   /* render-owned: a dead ENEMY's body after the fight removed it at 0.9 s, while its death clip plays (updateBattle / applyState hand the mesh over) */
+function deathClip(u){ const A=DEATH_CLIPS.on&&u&&u.anim&&u.anim.death; return (A&&A.u&&A.parts)?A:null; }
+function deathParts(set,A){ return (A&&A.parts||[]).map(s=>set&&set[s]).filter(Boolean); }
+function deathTexOk(c){ const im=c&&c.tex&&!c._err&&c.tex.image; if(!im) return false; return ('naturalWidth' in im)?(im.complete&&im.naturalWidth>0):((im.width|0)>0); }
+function deathReady(u){ const A=deathClip(u), ps=deathParts(u&&u.anim,A); return !!A && ps.length===A.parts.length && ps.every(deathTexOk); }
+function deathSetMB(ps){ return ps.reduce((s,c)=>s+(c.cols*c.fw)*(c.rows*c.fh)*4*4/3,0)/1048576; }
+function texTallyMB(){ let b=0; for(const t of _texReg){ const im=t&&t.image; if(im&&im.width) b+=im.width*im.height*4*(t.generateMipmaps?4/3:1); } return b/1048576; }
+function deathPreload(u){ const A=deathClip(u); if(!A) return; const ps=deathParts(u.anim,A); if(ps.length!==A.parts.length) return;
+  if(ps.every(c=>c.tex)){ ps.forEach(c=>{ if(deathTexOk(c)&&!c.tex._ewWarm){ c.tex._ewWarm=1; try{ if(typeof renderer!=='undefined'&&renderer&&renderer.initTexture) renderer.initTexture(c.tex); }catch(e){} } }); return; }   /* uploaded before the death, never on its first frame */
+  if(ART_TIER==='phone'){ const now=(typeof performance!=='undefined')?performance.now():0; if(A._gateAt&&now-A._gateAt<1000) return; A._gateAt=now;   /* asked at most once a second */
+    const need=deathSetMB(ps.filter(c=>!c.tex)); if(texTallyMB()+need>DEATH_CLIPS.gpuMB){ A._gated=(A._gated||0)+1; return; } }
+  ps.forEach(c=>{ if(!c.tex){ try{ _loadClip(c); }catch(e){} } }); }
+/* frees one hero's death sheets once no body of that hero is still playing its death (the next one under 30% hp loads them again) */
+function deathRelease(key){ try{ const set=BATTLE_ANIM[key], A=set&&set.death; if(!A||!A.parts) return 0;
+  if(units.concat(_corpses).some(x=>x&&x.key===key&&x._die&&!x._die.end)) return 0; let n=0;
+  deathParts(set,A).forEach(c=>{ const t=c.tex; if(!t) return; t._ewFreed=1; try{ t.dispose(); }catch(_){} try{ texImgFree(t); }catch(_){} const i=_texReg.indexOf(t); if(i>=0) _texReg.splice(i,1); delete c.tex; delete c._err; n++; });
+  return n; }catch(e){ return 0; } }
+/* the cell drawn on the hero's own sprite - the same UV window, half-texel inset, figH scale and foot anchor as a living clip (syncMesh) */
+function deathCell(u,spr,A,fr,mirror){ const T=A.tex, _L=A._lay, _c=_L?_L.c:(A.cols||A.n), _r=_L?_L.r:(A.rows||1), _col=fr%_c, _row=(_r>1)?Math.floor(fr/_c):0;
+  if(!spr._uvHook){ spr._uvHook=true; spr.onBeforeRender=function(){ const m=this.material&&this.material.map, v=this._uv; if(m&&v){ m.repeat.set(v[0],v[1]); m.offset.set(v[2],v[3]); m.updateMatrix(); } }; }
+  const _im=T.image, _tw=(_im&&(_im.width|0))||0, _th=(_im&&(_im.height|0))||0, _iw=Math.max(1,_tw||(_L?_L.W:_c*A.fw)), _ih=Math.max(1,_th||(_L?_L.H:_r*A.fh));
+  const _ex=1.5/_iw, _ey=1.5/_ih, _uw=Math.max(1e-6,(1/_c)-2*_ex), _rx=mirror?-_uw:_uw, _ox=mirror?((_col+1)/_c-_ex):(_col/_c+_ex);
+  let _ry,_oy; if(_r>1){ _ry=Math.max(1e-6,(1/_r)-2*_ey); _oy=1-(_row+1)/_r+_ey; } else { _ry=1-2*_ey; _oy=_ey; }
+  spr._uv=[_rx,_ry,_ox,_oy]; T.repeat.set(_rx,_ry); T.offset.set(_ox,_oy);
+  if(spr.material.map!==T){ const _had=!!spr.material.map; spr.material.map=T; if(!_had) spr.material.needsUpdate=true; }
+  const qh=u.sprH*(A.fh/A.figH), _tc=_L&&_L.tc; u._sprQh=qh; spr.scale.set(qh*(A.fw/A.fh)*(_tc?_tc[2]:1), qh*(_tc?_tc[3]:1), 1);
+  if(spr.center){ let _cxn=((A.cx!=null)?A.cx:A.fw*0.5)/A.fw, _cyn=1-(A.feet/A.fh); if(_tc){ _cxn=(_cxn-_tc[0])/_tc[2]; _cyn=1-((A.feet/A.fh)-_tc[1])/_tc[3]; } spr.center.set(mirror?1-_cxn:_cxn,_cyn); } }
+/* the dead branch of syncMesh: true = the death clip drew this frame (else the old fade runs). Decided ONCE, on the first dead frame (every sheet of it
+   ready): a clip that is not ready then never pops in mid-fade. Its clock is render time (u._die.t), never deathT. Plays cell 0 -> the last ONCE, never
+   loops or returns to idle; then hidden ('hide') and its sheets released, or held ('hold'). A wave transfer fades a body still on the field in 0.25 s and
+   ends it (so the next wave never walks through it); a fight that ends mid-death plays it out on the result screen, and leaving frees it (clearBattle). */
+function deathDraw(u,spr,dt){
+  if(u._die==null){ const A=deathClip(u); u._die=(A&&deathReady(u)&&u.sprH>0)?{A:A,ps:deathParts(u.anim,A),t:0,face:(u._faceDir||(u.team==='ally'?1:-1))}:false; }
+  const D=u._die; if(!D) return false;
+  const A=D.A, f=A.fps||8, n=A.dn||A.n, dur=n/f; if(!D.end) D.t+=dt;
+  let op=1; if(waveXfer||D.xf!=null){ D.xf=(D.xf||0)+dt; op=Math.max(0,1-D.xf/0.25); }
+  const fin=D.t>=dur; if(fin&&A.end!=='hold') op=0;
+  const end=(fin&&A.end!=='hold')||op<=0; if(end&&!D.end){ D.end=true; deathRelease(u.key); }
+  const idx=Math.min(n-1,Math.floor(D.t*f)); let P=null; for(const c of D.ps){ if(idx>=(c.first||0)) P=c; }
+  if(!D.end&&P&&deathTexOk(P)) deathCell(u,spr,P,idx-(P.first||0),(D.face>0)!==!A.flip); else op=0;   /* ended, or its sheets freed under it: nothing is drawn */
+  spr.material.opacity=op; spr.material.color.setRGB(1,1,1); spr.position.y=.05;
+  if(u.ring) u.ring.material.opacity=Math.max(0,.85*(1-D.t/.9))*op;
+  if(u.shadow) u.shadow.material.opacity=.5*Math.max(0,Math.min(1,(1-D.t/dur)/0.4))*op;
+  return true; }
+/* a dead enemy leaves the fight at 0.9 s (logic, unchanged); its mesh stays on screen until its death clip ends. false = dispose it as before */
+function deathCorpse(u){ if(!u||!u.mesh||!u._die||u._die.end) return false; if(_corpses.indexOf(u)<0) _corpses.push(u); return true; }
+function corpseTick(dt){ if(!_corpses.length) return; _corpses=_corpses.filter(u=>{ try{ if(u.mesh&&u._die&&!u._die.end) syncMesh(u,dt); }catch(e){}
+  if(u._die&&!u._die.end) return true; try{ if(u.mesh){ scene.remove(u.mesh); disposeObj(u.mesh); } }catch(e){} return false; }); }
+function corpseClear(){ _corpses.forEach(u=>{ try{ if(u.mesh){ u.mesh.traverse(x=>{ if(x.isSprite&&x.material){ try{ x.material.dispose(); }catch(_){} } }); scene.remove(u.mesh); disposeObj(u.mesh); } }catch(e){} }); _corpses=[]; }
 const ANIM_TIERS=[['idle','walk'],['attack','hit','attackDark'],null];   /* v1153: Aureth's dark swing loads with his light one (no other hero has the slot) */
 /* v1137: the swing clip the RENDER shows. A `lazy` clip (Rivet's ten weapon sheets - not preloaded, so a team without him loads none of them and
    one with him loads only the weapons he actually uses) starts loading the first time it is wanted and the hero's `attack` sheet stands in until
@@ -14463,6 +14537,7 @@ function clearBattle(){ waveXfer=null;
      explicitly dropped FIRST — clearBattle runs before battleFxReset and empties `units`. */
   try{ if(typeof _bees!=='undefined'){ _bees.forEach(b=>{ if(b.spr){ try{ scene.remove(b.spr); b.spr.material.dispose(); }catch(_){} } if(b.glow){ try{ scene.remove(b.glow); b.glow.material.dispose(); }catch(_){} } }); _bees.length=0; } }catch(_){}
   try{ const stray=[]; scene.traverse(o=>{ if(o.isSprite&&o.material&&_beeTex&&o.material.map===_beeTex) stray.push(o); }); stray.forEach(o=>{ try{ scene.remove(o); o.material.dispose(); }catch(_){} }); }catch(_){}
+  try{ corpseClear(); }catch(_){}   /* v1182 */
   try{ killAllStatusFx(); }catch(_){} units.forEach(u=>{if(u.mesh){u.mesh.traverse(x=>{if(x.isSprite){if(x._utex){try{x._utex.dispose();}catch(_){}} if(x.material){try{x.material.dispose();}catch(_){}}}});scene.remove(u.mesh);disposeObj(u.mesh);}}); units=[];
   shots.forEach(s=>{scene.remove(s.mesh);s.mesh.material.dispose();});shots=[]; particles.forEach(p=>{scene.remove(p.mesh);p.mesh.material.dispose();});particles=[]; floatTexts=[]; groundHazards=[];
   chains.forEach(c=>c.links.forEach(m=>{scene.remove(m);m.material.dispose();})); chains=[];
@@ -15498,7 +15573,7 @@ function updateBattle(dt){
     if(h.life<=0)groundHazards.splice(i,1); }
   if(!GSPLIT.active) battleFrameTail(dt);
   units.forEach(u=>{if(!u.alive)u.deathT+=dt;});
-  units.filter(u=>!u.alive&&u.team==='enemy'&&u.deathT>.9).forEach(u=>{if(u.mesh){scene.remove(u.mesh);disposeObj(u.mesh);}u._gone=true;});
+  units.filter(u=>!u.alive&&u.team==='enemy'&&u.deathT>.9).forEach(u=>{if(u.mesh&&!deathCorpse(u)){scene.remove(u.mesh);disposeObj(u.mesh);}u._gone=true;});   /* v1182: a body mid death clip moves to _corpses (display) */
   units=units.filter(u=>!u._gone);
   updateCounts();
   if(!ended){ if(CUR.mode==='graid') raidReinforce(); else vaultReinforce(); }   // The Vault pauses for the player's pick; the guild raid substitutes automatically (v666)
@@ -15567,6 +15642,8 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
       if(u.anim && u.anim.idle && u.anim.idle._err){ u.anim=null; spr.material.map=spriteTex(u.key); spr.material.needsUpdate=true; u.sprA=0.7;
         const im=new Image(); im.onload=()=>{ if(u.sprite&&!u.anim){u.sprA=im.width/im.height;} }; im.src=HERO_SPRITES[u.key]||''; }
       if(u.anim){ // animated hero: idle / walk / attack / hit
+        u._die=null;   /* v1182: alive (a revive) - any death display is over */
+        if(DEATH_CLIPS.on&&u.anim.death&&u.maxHp>0&&u.hp<u.maxHp*DEATH_CLIPS.hp) deathPreload(u);   /* v1182: under 30% hp the death sheet loads (display only - reads hp, never writes it) */
         /* v410 — HOW LONG A SWING STAYS ON SCREEN. Phil: "use logic from early created classes …
            vulmar for mages for example, check out his cast/animation times."
            Every established hero follows one rule: the attack clip is short and its `hold` is
@@ -16002,10 +16079,11 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
       if(u.ring)u.ring.material.opacity=.85;
       if(u._darkAuraT>0)u._darkAuraT-=dt;
       if(u.shadow){ if(u._darkAuraT>0){ u.shadow.material.opacity=0.72+0.22*Math.sin(u.bob*3); u.shadow.scale.setScalar((u.r/18)*(u.boss?1.5:1)*1.5); } else { u.shadow.material.opacity=(u.t&&u.t.fly)?.18:.5; u.shadow.scale.setScalar((u.r/18)*(u.boss?1.5:1)); } }
-    } else { if(OL.active&&!OL.host)u.deathT=(u.deathT||0)+dt; const k=Math.min(1,u.deathT/.9);
+    } else { if(OL.active&&!OL.host)u.deathT=(u.deathT||0)+dt;
+      if(!deathDraw(u,spr,dt)){ const k=Math.min(1,u.deathT/.9);   /* v1182: a hero with a ready death clip plays it; everyone else fades exactly as before */
       spr.material.opacity=Math.max(0,1-k); spr.position.y=.05-k*.25;
       { const _dA=u.anim&&u.anim[u._animSt], _dtc=_dA&&_dA._lay&&_dA._lay.tc; spr.scale.y=Math.max(.01,u.sprH*(1-k*0.45))*(_dtc?_dtc[3]:1); }   // death: wither downward as it fades (v1154: a trimmed cell's quad is tc[3] of the logical cell, so it withers exactly like the untrimmed one)
-      if(u.ring)u.ring.material.opacity=Math.max(0,.85*(1-k)); if(u.shadow)u.shadow.material.opacity=Math.max(0,.5*(1-k)); }
+      if(u.ring)u.ring.material.opacity=Math.max(0,.85*(1-k)); if(u.shadow)u.shadow.material.opacity=Math.max(0,.5*(1-k)); } }
     return; }
   g.position.x=wx(u.rx==null?u.x:u.rx);g.position.z=wz(u.ry==null?u.y:u.ry);g.rotation.y=(u.team==='ally')?Math.PI:0;   // v268: interpolated
   if(u.alive){u.bob+=dt*6;const bobY=Math.sin(u.bob)*.05;g.position.y=Math.max(0,bobY);
@@ -28429,7 +28507,7 @@ function applyState(list){
     if(!u){const _t=HERO_TYPES[s.key]||HERO_TYPES.grosk;u={id:s.id,key:s.key,team:s.team,t:_t,boss:!!s.bo,r:18*(s.bo?2.2:1),alive:true,melee:_t.range<60,bob:(s.x*.7+s.y*.3)%6.28,attackAnim:0,castAnim:0,flash:0,stunned:0,fearT:0,deathT:0,energy:s.e,laneX:s.x};OL.byId[s.id]=u;units.push(u);buildFigure(u);}
     u.x=s.x;u.y=s.y;u.hp=s.hp;u.maxHp=s.mh;u.energy=s.e;u.attackAnim=s.aa;u.castAnim=s.ca;u.flash=s.fl?0.12:0;
     if(!s.al&&u.alive){u.alive=false;u.deathT=0;}});
-  units.filter(u=>!seen.has(u.id)).forEach(u=>{if(u.mesh){scene.remove(u.mesh);disposeObj(u.mesh);}delete OL.byId[u.id];u._gone=true;});
+  units.filter(u=>!seen.has(u.id)).forEach(u=>{if(u.mesh&&!deathCorpse(u)){scene.remove(u.mesh);disposeObj(u.mesh);}delete OL.byId[u.id];u._gone=true;});
   units=units.filter(u=>!u._gone);
   buildGuestPortraits();updateCounts();
 }
@@ -29396,7 +29474,7 @@ function loop(now){let dt=(now-last)/1000;last=now;
     if(!_edCarBlank){ _edCarBlank=true; try{ if(octx&&overlay) octx.clearRect(0,0,overlay.width,overlay.height); }catch(e){} try{ renderer.render(scene,camera); }catch(e){} }
     requestAnimationFrame(loop); return; }
   _edCarBlank=false;
-  if(scene){units.forEach(u=>syncMesh(u,dt*(state==='battle'?gameSpeed:1)));shots.forEach(s=>{const k=Math.min(1,s.t/s.dur);
+  if(scene){units.forEach(u=>syncMesh(u,dt*(state==='battle'?gameSpeed:1))); corpseTick(dt*(state==='battle'?gameSpeed:1));shots.forEach(s=>{const k=Math.min(1,s.t/s.dur);
     let yy=s.orb?(1.4+Math.sin(k*Math.PI)*3.2):(s.h!=null?(s.h+(1-s.h)*k):1);   // v472: plain tracers leave from the hand/weapon height and settle to 1 at the target
     if(s.arc) yy=1+Math.sin(k*Math.PI)*s.arc;                                  // heavy rounds lob, darts fly flat
     s.mesh.position.set(wx(s.sx+(s.tx-s.sx)*k),yy,wz(s.sy+(s.ty-s.sy)*k));

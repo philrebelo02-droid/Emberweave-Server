@@ -27,6 +27,7 @@ const OLD = path.join(BD, 'emberweave-heroes.html');
 const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); const r = src => vm.runInContext(src, h.ctx); require('./helpers/anim-hobb-kharos-1175.js').undoHK1175(r); return r; };   // v1175: Hobb / Kharos as v1173 on every page - tests/test_hobb_kharos_1175.js checks them
 const UMR = require('./helpers/anim-meridian-rafe-1173.js');
 const run = load(HTML), R0 = baseOk ? load(OLD) : null;
+require('./helpers/death-1182.js').undoDeath1182(run);   // v1182: the four new death states go back out (tests/test_death_state.js checks them)
 require('./helpers/mirelle-fx-1174.js').undoMirelleFx1174(run);   // v1174: Mirelle's FX entries + ownFx tags go back to v1173's (tests/test_mirelle_fx_1174.js checks them)
 let pass = 0, fail = 0;
 const ck = (name, ok, detail) => { if (ok) { pass++; console.log('  ok  ' + name); } else { fail++; console.log('  FAIL ' + name + (detail ? ' - ' + String(detail).slice(0, 700) : '')); } };

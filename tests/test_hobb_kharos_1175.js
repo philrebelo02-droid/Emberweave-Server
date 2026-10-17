@@ -24,6 +24,7 @@ const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).loa
 const UHK = require('./helpers/anim-hobb-kharos-1175.js');
 const run = load(HTML), R0 = baseOk ? load(OLD) : null;
 require('./helpers/plumage-1181.js').undoPlumage1181(run);   // v1181: Imperial Plumage's badgeH (a later release) comes back off before the FX2_DEF comparison
+require('./helpers/death-1182.js').undoDeath1182(run);   // v1182: the four new death states go back out (tests/test_death_state.js checks them)
 let pass = 0, fail = 0;
 const ck = (name, ok, detail) => { if (ok) { pass++; console.log('  ok  ' + name); } else { fail++; console.log('  FAIL ' + name + (detail ? ' - ' + String(detail).slice(0, 700) : '')); } };
 const chunks = b => { const o = []; let i = 12; while (i + 8 <= b.length) { const t = b.toString('ascii', i, i + 4), n = b.readUInt32LE(i + 4); o.push(t); i += 8 + n + (n & 1); } return o; };

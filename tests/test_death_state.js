@@ -1,0 +1,302 @@
+'use strict';
+// v1182 - DEATH, a NEW animation type (Phil 16 Oct 2026 via ChatGPT, AI channel 17:32: "a separate death state/type, not hit or any attack/ability/passive
+//   slot. Play once when dead, then remain dead/hidden; never loop, return to idle or revive"; then Phil: full size, "make the deaths 6 seconds", "do 48").
+//   First four: Vael (magenta plate), Sylthaine, Vex (final 567611634823962632), Vireo (final 567612665947455488) - the Phil PASS SILENT files (96 frames):
+//   every 2nd frame = 48 cells over 6.0 s (8 fps), drawn at each hero's own scale (idle figH on the death's frame-0 figure), split over sheets <= 2048 px
+//   with a tight cell per sheet; lazy (loaded under 30% hp, on a phone only inside the GPU gate), released when the death ends.
+// HEADLESS: sources (sha256), entries and parts, sheets (size / q95 / no plate colour / the ash ending), the same size and foot as the hero's idle
+//   (CONTROL), not a skill preview, nothing in the fight reads it, whole fights tick-identical to BASE (CONTROL: the 0.9 s removal moved to 1.5 s).
+// BROWSER (phone 844x390 @2x, Android UA, swiftshader, muted): lazy (nothing in the loading screen / warm-up, one request per sheet once under 30% hp),
+//   the death plays ONCE (cells 0..47 in order across its sheets, 6.0 s, never loops / idles / revives; CONTROL: a looping variant fails), its sheets are
+//   released when it ends, an enemy's body outlives its 0.9 s removal on screen only, a fight that ends mid-death plays it out and nothing freezes, the
+//   fallback fade (no clip, not loaded yet, switch off, the phone GPU gate) is today's curve exactly, a rendered fight tick-identical with the clips on and
+//   off (CONTROL: the harness sees a logic change), the phone GPU peak of the heaviest fight with all four deaths overlapping, and the hub holds nothing.
+(async function main() {
+const path = require('path'), vm = require('vm'), fs = require('fs'), cp = require('child_process'), crypto = require('crypto'), os = require('os'), net = require('net');
+const ROOT = path.resolve(__dirname, '..');
+const HTML = process.env.EW_HTML || path.join(ROOT, 'emberweave-heroes.html');
+const BASE_SHA = process.env.EW_BASE || 'bb2876d9';   // live v1181 (Imperial Plumage, on v1180 Rim Breaker), the build this change sits on
+const VER = process.env.EW_DEATH_VER || '1182';
+const HEROES = ['vael', 'sylthaine', 'vex', 'vireo'];
+const GPU_BUDGET_MB = 2048;
+const SRC = {   // ChatGPT 17:32 handoff + each folder's clean-source-manifest.json
+  vael: { dir: 'Vael', sha: '158609ac6a582db899bafc671b6e4c6b669a51cc8846ed57a13ae51dd1f20bed', id: '567599086061998081', bg: 'magenta' },
+  sylthaine: { dir: 'Sylthaine', sha: '3b3cce9bfaafd87ad0f75c507e842fd914628c0a4265013c0f939d53afb8893f', id: '567599290899206145', bg: 'green' },
+  vex: { dir: 'Vex', sha: '49afd1f9392a7a7582367d4f4aaf90fb7f635111d7c1bdd2a0f4814fdc0f8d40', id: '567611634823962632', bg: 'green', not: '567599447451594761' },
+  vireo: { dir: 'Vireo', sha: 'b3497e1f0d5d65afa0b0c9956e30a916dcffa05fc854db77e63174671c65487b', id: '567612665947455488', bg: 'green', not: '567599574320906249' } };
+const BD = fs.mkdtempSync(path.join(os.tmpdir(), 'death-base-'));
+process.on('exit', () => { try { fs.rmSync(BD, { recursive: true, force: true }); } catch (e) {} });
+let baseOk = true;
+try { fs.mkdirSync(path.join(BD, 'server')); for (const f of ['emberweave-heroes.html', 'hero-profiles.js', 'hero-paths.js', 'server/temple-of-ash.js', 'server/patron-benefits.js', 'server/temple-effects.js'])
+  fs.writeFileSync(path.join(BD, f), cp.execSync('git show ' + BASE_SHA + ':' + f, { cwd: ROOT, maxBuffer: 64 << 20 })); } catch (e) { baseOk = false; }
+const OLD = path.join(BD, 'emberweave-heroes.html');
+const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); return src => vm.runInContext(src, h.ctx); };
+const run = load(HTML), R0 = baseOk ? load(OLD) : null;
+let pass = 0, fail = 0;
+const ck = (name, ok, detail) => { if (ok) { pass++; console.log('  ok  ' + name); } else { fail++; console.log('  FAIL ' + name + (detail ? ' - ' + String(detail).slice(0, 700) : '')); } };
+const J = s => JSON.parse(run('JSON.stringify(' + s + ')'));
+// a seeded 45 s fight, headless (the server's replay path): hp / x / y / alive / energy / swing timer every tick, hashed
+const FIGHT = (seed, a, f) => `(()=>{ window._p2guard=true; const svA=autoUlt; autoUlt=true;
+  try{ ended=false; state='battle'; CUR={mode:'replay',seed:${seed}}; battleTime=0; gameSpeed=1; groundHazards.length=0; seedBattle(${seed});
+    units=[]; ${JSON.stringify(a)}.forEach((k,i)=>units.push(makeUnit(k,'ally',300+i*40,600+i*90,30,{owned:false,rank:3})));
+    ${JSON.stringify(f)}.forEach((k,i)=>units.push(makeUnit(k,'enemy',900+i*40,600+i*90,30,{owned:false,rank:3})));
+    units.forEach(u=>buildFigure(u)); let deaths=0;
+    const tr=[]; for(let i=0;i<Math.round(45/SIM_STEP)&&!ended;i++){ const al=units.filter(u=>u.alive).length; updateBattle(SIM_STEP); deaths+=Math.max(0,al-units.filter(u=>u.alive).length);
+      tr.push(units.map(u=>[u.key,u.team[0],Math.round(u.hp*100),Math.round(u.x*10),Math.round(u.y*10),u.alive?1:0,Math.round((u.energy||0)*10),+(u.atkCd||0).toFixed(3)].join(':')).join('|')); }
+    let h=2166136261>>>0; const s=tr.length+'@'+tr.join('#'); for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619)>>>0; }
+    return JSON.stringify({h:s.length+':'+h.toString(16),deaths,ticks:tr.length,ended}); } finally{ autoUlt=svA; window._p2guard=false; } })()`;
+const fight = (f, s, a, e, pre) => { const r = load(f); if (pre) r(pre); return JSON.parse(r(FIGHT(s, a, e))); };
+const LATE = `(()=>{ const s=String(updateBattle).replace("u.deathT>.9).forEach","u.deathT>1.5).forEach"); if(s===String(updateBattle)) return 0; updateBattle=eval('('+s+')'); return 1; })()`;   // CONTROL: the removal moved
+try {
+  // ------------------------------------------------------------------ 1. the page and the sources
+  { const html = fs.readFileSync(HTML, 'utf8'); let n = 0, bad = [];
+    for (const m of html.matchAll(/<script>([\s\S]*?)<\/script>/g)) { n++; try { new vm.Script(m[1]); } catch (e) { bad.push(n + ': ' + e.message); } }
+    ck('every inline <script> block of the page parses (' + n + ' blocks)', n > 0 && bad.length === 0, bad.join('; ')); }
+  ck('control file (BASE page + its own external scripts from git ' + BASE_SHA + ') loaded', !!R0, 'git show failed');
+  { const ARCH = process.env.EW_ARCHIVE || 'C:\\Users\\Home\\OneDrive\\Desktop\\Emberweave Archive';
+    const dir = h => path.join(ARCH, 'Game Art', 'Heroes', SRC[h].dir, 'clips', 'DEATH REVIEW 16OCT2026');
+    if (fs.existsSync(dir('vael'))) {
+      const bad = [];
+      for (const h of HEROES) { const S = SRC[h]; let m = null; try { m = JSON.parse(fs.readFileSync(path.join(dir(h), 'clean-source-manifest.json'), 'utf8')); } catch (e) {}
+        const f = path.join(dir(h), S.dir + ' - 90 death - 4 seconds SILENT Phil PASS.mp4');
+        const sha = fs.existsSync(f) ? crypto.createHash('sha256').update(fs.readFileSync(f)).digest('hex') : 'missing';
+        if (!m) { bad.push(h + ' no manifest'); continue; }
+        if (sha !== S.sha || m.sha256 !== S.sha) bad.push(h + ' sha ' + sha.slice(0, 12));
+        if (m.creationId !== S.id || (S.not && JSON.stringify(m).includes(S.not))) bad.push(h + ' take ' + m.creationId);
+        if (!/Phil PASS/.test(m.status) || m.animationType !== 'death' || m.frames !== 96 || m.sourceBackground !== S.bg) bad.push(h + ' manifest ' + JSON.stringify([m.status, m.frames, m.sourceBackground])); }
+      ck('sources: the four Phil PASS SILENT files (96 frames), sha256 = the handoff and the manifests; Vex 567611634823962632 / Vireo 567612665947455488 (the first zooming takes 567599447451594761 / 567599574320906249 nowhere); Vael magenta, the others green', bad.length === 0, bad.join('; ')); }
+    else console.log('  info the Archive is not reachable here - the source files were not re-hashed'); }
+
+  // ------------------------------------------------------------------ 2. the entries, the parts and the sheets
+  const ALLD = J(`Object.keys(BATTLE_ANIM).filter(k=>BATTLE_ANIM[k]&&BATTLE_ANIM[k].death)`);
+  ck('exactly the four heroes have a death state (the other 56 are still being made): ' + ALLD.join(','), JSON.stringify(ALLD.slice().sort()) === JSON.stringify(HEROES.slice().sort()));
+  const D = {}, I = {}, PT = {}; HEROES.forEach(k => { D[k] = J('BATTLE_ANIM.' + k + '.death'); I[k] = J('BATTLE_ANIM.' + k + '.idle'); PT[k] = D[k].parts.map(s => Object.assign({ st: s }, J('BATTLE_ANIM.' + k + '.' + s))); });
+  ck('each death is 48 cells over exactly 6.0 s (8 fps), lazy, ends hidden (all four end in ash), its own states (death, death2 ..; never hit / attack / an ability / a passive)',
+    HEROES.every(k => D[k].dn === 48 && D[k].fps === 8 && D[k].dn / D[k].fps === 6 && D[k].end === 'hide' && PT[k].every(p => p.lazy === true && p.fps === 8) &&
+      PT[k].every(p => !['hit', 'attack', 'crit', 'green', 'blue', 'ult', 'passive'].some(s => J('(BATTLE_ANIM.' + k + '.' + s + '&&BATTLE_ANIM.' + k + '.' + s + '.u)||null') === p.u))));
+  ck('the parts tile cells 0..47 in order with no gap or overlap: ' + HEROES.map(k => k + ' ' + PT[k].map(p => p.first + '-' + (p.first + p.n - 1)).join('/')).join(', '),
+    HEROES.every(k => { let c = 0; for (const p of PT[k]) { if (p.first !== c) return false; c += p.n; } return c === 48; }));
+  ck('facing: heroes face right; Vex\'s clip faces left like her idle (flip:true), the other three flip:false like theirs', HEROES.every(k => PT[k].every(p => p.flip === I[k].flip)) && D.vex.flip === true);
+  ck('every sheet is new: /assets/anim/<hero>/<hero>_<death|deathN>_' + VER + '.webp?v=' + VER + ' (RULE 24)', HEROES.every(k => PT[k].every(p => p.u === '/assets/anim/' + k + '/' + k + '_' + p.st + '_' + VER + '.webp?v=' + VER)));
+  const PX = JSON.parse(cp.execFileSync(process.env.PYTHON || 'python', ['-I', path.join(__dirname, 'helpers', 'death_1182_check.py'), ROOT, JSON.stringify(HEROES.map(k => ({ k, parts: PT[k], idle: I[k] })))], { maxBuffer: 1 << 24 }).toString());
+  ck('sheets: each file is exactly its grid, <= 2048 px a side, <= 4 MB, q95 (VP8 + ALPH, v1158 recipe); decoded per hero ' + HEROES.map(k => k + ' ' + PX[k].decoded_mb + ' MB').join(', '),
+    HEROES.every(k => PX[k].sheets.every((S, i) => { const A = PT[k][i]; return S.size[0] === A.fw * A.cols && S.size[1] === A.fh * A.rows && Math.max(...S.size) <= 2048 && S.bytes <= 4e6 && S.kind.includes('VP8 ') && S.kind.includes('ALPH'); })));
+  ck('no plate colour is left: the ash Hailuo drew in the plate colour (green flecks / Vael\'s magenta) is unmixed - visible key-lean pixels <= 0.01%',
+    HEROES.every(k => PX[k].green_pct <= 0.01 && (SRC[k].bg !== 'magenta' || PX[k].magenta_pct <= 0.01)), HEROES.map(k => k + ' g' + PX[k].green_pct + ' m' + PX[k].magenta_pct).join(', '));
+  ck('the ash ending: each clip\'s last two cells hold < 1% of cell 0\'s pixels (so "end: hide" - the body is gone, nothing to hold)', HEROES.every(k => { const c = PX[k].cellpx; return c.length === 48 && c[46] + c[47] < 0.01 * c[0]; }),
+    HEROES.map(k => k + ' ' + PX[k].cellpx[0] + '>' + PX[k].cellpx.slice(44).join('/')).join(', '));
+  // full size: the standing figure is drawn as tall as the hero's idle cell 0, on the same foot line (the engine draws figH = sprH), every part at that one scale
+  const sizeAt = (k, F) => { const d = PX[k].death_fig0, i = PX[k].idle_fig0, A = PT[k][0], B = I[k];
+    return { h: ((d[1] - d[0]) / (A.figH * F)) / ((i[1] - i[0]) / B.figH), foot: (d[1] - A.feet) / (A.figH * F) - (i[1] - B.feet) / B.figH }; };
+  const SZ = HEROES.map(k => [k, sizeAt(k, 1)]);
+  ck('FULL SIZE: death cell 0 stands as tall as idle cell 0 as drawn (within 3%) on the same foot line (within 2%), at the idle\'s own texel scale (figH = idle figH, every part)', SZ.every(([k, s]) => Math.abs(s.h - 1) <= 0.03 && Math.abs(s.foot) <= 0.02) &&
+    HEROES.every(k => PT[k].every(p => p.figH === I[k].figH)), SZ.map(([k, s]) => k + ' x' + s.h.toFixed(3) + ' foot ' + s.foot.toFixed(3) + ' figH ' + PT[k][0].figH + '/' + I[k].figH).join(', '));
+  ck('CONTROL: a death figH 10% off fails the size check', HEROES.every(k => Math.abs(sizeAt(k, 1.1).h - 1) > 0.03));
+
+  // ------------------------------------------------------------------ 3. display only
+  const src = fs.readFileSync(HTML, 'utf8');
+  const uses = [...src.matchAll(/^.*\.death\d*\b(?![_T]).*$/gm)].map(m => m[0].trim().slice(0, 70));
+  ck('nothing in the fight reads a death state: every .death access is the table, deathClip, deathRelease, or the render\'s load trigger (' + uses.length + ' lines)',
+    uses.every(l => /^BATTLE_ANIM\.(vael|sylthaine|vex|vireo)\.death\d*=|^function deathClip|^function deathRelease|^if\(DEATH_CLIPS\.on&&u\.anim\.death/.test(l)) && uses.length === HEROES.reduce((s, k) => s + PT[k].length, 0) + 3, uses.join(' | '));
+  const ub = run('String(updateBattle)');
+  ck('updateBattle is BASE\'s but for the mesh hand-over in the 0.9 s removal (deathCorpse only behind u.mesh, which the headless replay never has)',
+    !!R0 && ub.replace('if(u.mesh&&!deathCorpse(u)){', 'if(u.mesh){').replace('   /* v' + VER + ': a body mid death clip moves to _corpses (display) */', '').split('\r').join('') === R0('String(updateBattle)').split('\r').join('') && (ub.match(/death(Corpse|Draw|Clip|Preload|Release)/g) || []).length === 1);
+  ck('not a skill preview: no slot of the four ever previews a death state; none is in a load tier (loading screen / warm-up) and loadAnimSet skips lazy clips',
+    J(`(()=>{ const o=[]; for(const k of ${JSON.stringify(HEROES)}) for(const sl of ['attack','crit',0,1,2,3]) o.push(...skillPreviewStates(k,sl)); return o.filter(s=>/^death/.test(s)); })()`).length === 0 &&
+    J(`ANIM_TIERS.every(t=>!t||!t.some(s=>/^death/.test(s)))`) && /if\(set\[st\]&&set\[st\]\.lazy\)continue;/.test(run('String(loadAnimSet)')));
+  { const all = J(`allAssetUrls()`).map(u => u.split('?')[0]); ck('Update all lists every death sheet (allAssetUrls)', HEROES.every(k => PT[k].every(p => all.includes(p.u.split('?')[0])))); }
+  const FS = [[11, HEROES, ['askel', 'korvux', 'hobb', 'oakmir']], [12, ['askel', 'korvux', 'hobb', 'oakmir'], HEROES], [13, ['vael', 'vex', 'umbris'], ['sylthaine', 'vireo', 'tick']], [14, HEROES.concat(['askel']), HEROES.concat(['askel'])]];
+  if (R0) {
+    const rows = FS.map(([s, a, e]) => [fight(HTML, s, a, e), fight(OLD, s, a, e)]);
+    ck('REPLAYS: whole seeded fights (the four as allies, as enemies, a mirror match; deaths on both sides; results, deaths, targets, wave end) are tick-for-tick live ' + BASE_SHA + ' (' + rows.map(r => r[0].deaths + ' deaths' + (r[0].ended ? ' ended' : '')).join(', ') + ')',
+      rows.every(([n, o]) => n.h === o.h && n.ended === o.ended) && rows.reduce((s, r) => s + r[0].deaths, 0) >= 6, rows.map(r => r[0].h + ' vs ' + r[1].h).join('; '));
+    ck('CONTROL: the same fight with the 0.9 s removal moved to 1.5 s is NOT live (the check sees the removal)', fight(HTML, FS[0][0], FS[0][1], FS[0][2], LATE).h !== rows[0][1].h);
+  }
+
+  // ------------------------------------------------------------------ 4. BROWSER
+  let chromium = null; try { chromium = require('playwright').chromium; } catch (e) {}
+  if (process.env.EW_NO_BROWSER) console.log('  info EW_NO_BROWSER: the browser half was skipped');
+  else if (!chromium) { ck('playwright is available for the browser half', false); }
+  else {
+    const freePort = () => new Promise((res, rej) => { const s = net.createServer(); s.once('error', rej); s.listen(0, '127.0.0.1', () => { const p = s.address().port; s.close(() => res(p)); }); });
+    const port = await freePort(), base = 'http://127.0.0.1:' + port;
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ew-death-'));
+    const srv = cp.spawn(process.execPath, ['server.js'], { cwd: ROOT, env: { ...process.env, PORT: String(port), DB_FILE: path.join(tmp, 'db.json') }, stdio: 'ignore', windowsHide: true });
+    const INIT = (fs.readFileSync(path.join(__dirname, 'test_memory_budget_1140.js'), 'utf8').match(/const INIT = `([\s\S]*?)`;/) || [])[1];   // the budget test's own GPU tally (texImage2D / mipmaps / deletes)
+    let browser;
+    try {
+      for (let i = 0; i < 120; i++) { try { if ((await fetch(base + '/api/health')).ok) break; } catch (_) {} await new Promise(r => setTimeout(r, 200)); }
+      browser = await chromium.launch({ headless: true, args: ['--mute-audio', '--use-gl=swiftshader', '--enable-unsafe-swiftshader'] });
+      const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, serviceWorkers: 'block',
+        userAgent: 'Mozilla/5.0 (Linux; Android 14; SM-S918B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Mobile Safari/537.36' });
+      await ctx.addInitScript(() => { window.AudioContext = undefined; window.webkitAudioContext = undefined; });
+      if (INIT) await ctx.addInitScript(INIT);
+      const pg = await ctx.newPage(); const errs = [], dreq = [];
+      pg.on('pageerror', e => errs.push(String(e.message))); pg.on('request', r => { if (/_death\d*_/.test(r.url())) dreq.push(r.url().split('/').pop()); });
+      await pg.goto(base + '/play', { waitUntil: 'domcontentloaded' }); await pg.waitForTimeout(2500);
+      await pg.evaluate(() => { const p = document.querySelector('.splashPlay'); if (p) p.click(); }); await pg.waitForTimeout(1200);
+      await pg.evaluate(async () => { const reg = await api('/api/register', 'POST', { name: 'dth' + Date.now().toString(36), pass: 'password1' }); ACC.token = reg.token; ACC.id = reg.profile.id;
+        G.tutStarted = true; G.tutDone = true; document.body.classList.remove('gated'); show('home'); try { if (SND && SND.out) SND.out.gain.value = 0; } catch (e) {} });
+      await pg.waitForTimeout(600);
+      await pg.evaluate(() => { const b = [...document.querySelectorAll('button')].find(x => /Skip Tutorial/i.test(x.textContent) && x.offsetParent); if (b) b.click(); });
+      const T = HEROES.concat(['askel']);
+      const start = async (seed, frozen, A, E) => { A = A || T; E = E || T;
+        await pg.evaluate(([A, E, seed]) => { try { A.concat(E).forEach(k => G.unlocked[k] = true); } catch (e) {} G.team = A.slice(); CUR = { mode: 'arena', seed };
+          window.requestAnimationFrame = window.__raf0 || window.requestAnimationFrame; startVersus(E.map(k => ({ key: k, level: 30 })), true, A.slice()); }, [A, E, seed]);
+        for (let i = 0; i < 240; i++) { if (await pg.evaluate(() => state === 'battle' && units.length >= 10 && units.every(u => u.mesh))) break; await pg.waitForTimeout(250); }
+        await pg.evaluate((frozen) => { window.__raf0 = window.__raf0 || window.requestAnimationFrame; window.requestAnimationFrame = () => 0; window.__t = performance.now(); last = window.__t;
+          if (frozen) units.forEach(u => { u.greenCd = 999; u.blueCd = 999; u.energy = 0; u.maxHp = u.hp = 1e7; u.speed = 0; u.atkCd = 99; });
+          const a = units.filter(u => u.team === 'ally'), e = units.filter(u => u.team === 'enemy');
+          if (frozen) { a.forEach((u, i) => { u.x = u._ax = 260 + (i % 3) * 120; u.y = u._ay = 500 + i * 200; }); e.forEach((u, i) => { u.x = u._ax = 1240 + (i % 3) * 120; u.y = u._ay = 500 + i * 200; }); } }, frozen);
+        await pg.waitForTimeout(frozen ? 12000 : 9000); };   // the fight's own sheets load
+      const HOLD = `units.forEach(u=>{ if(u.alive){ u.greenCd=999; u.blueCd=999; u.energy=0; u.atkCd=Math.max(u.atkCd||0,9); u.speed=0; } });`;
+      // the cell DRAWN: which death sheet is on the sprite, and its cell from the UV window, + that sheet's first cell
+      const frame = () => pg.evaluate((H) => { window.__t += 1000 / 60; loop(window.__t); eval(H); const u = window.__dying; if (!u) return null;
+        const s = u.sprite, set = u.anim || BATTLE_ANIM[u.key], A = set && set.death, v = s && s._uv; let cell = null, P = null;
+        if (A && A.parts) for (const st of A.parts) { const c = set[st]; if (c && c.tex && s && s.material.map === c.tex) P = c; }
+        if (v && P) { const c = P._lay ? P._lay.c : P.cols, r = P._lay ? P._lay.r : P.rows, x0 = Math.min(v[2], v[2] + v[0]); cell = (P.first || 0) + Math.round(r * (1 - v[3]) - 1) * c + Math.round(x0 * c - 0.0001 * c); }
+        return { cell, mirror: v ? v[0] < 0 : null, op: s ? +s.material.opacity.toFixed(4) : null, dT: +(u.deathT || 0).toFixed(4), alive: u.alive, inUnits: units.includes(u), corpse: _corpses.includes(u), inScene: !!(u.mesh && u.mesh.parent),
+          mapDeath: !!P, idle: !!(set && set.idle && set.idle.tex && s.material.map === set.idle.tex), held: A && A.parts ? A.parts.filter(st => set[st] && set[st].tex).length : 0 }; }, HOLD);
+      const pick = (k, team) => pg.evaluate(([k, team]) => { const u = units.find(x => x.key === k && x.team === team && x.alive); window.__dying = u; u._faceDir = team === 'ally' ? 1 : -1; u.target = units.find(x => x.team !== team && x.alive); return !!u; }, [k, team]);
+      const kill = () => pg.evaluate(() => { const u = window.__dying; damage(u, u.maxHp * 100, 0xffffff, true); return u.alive; });
+      const ready = k => pg.evaluate(k => deathReady({ anim: BATTLE_ANIM[k] }), k);
+      const lowAndWait = async (k, team) => { await pick(k, team); await pg.evaluate(() => { window.__dying.hp = window.__dying.maxHp * 0.2; });
+        for (let i = 0; i < 200; i++) { await frame(); if (await ready(k)) break; await pg.waitForTimeout(50); } for (let i = 0; i < 10; i++) await frame(); };
+      const watch = async (n) => { const rows = []; for (let i = 0; i < n; i++) rows.push(await frame()); return rows; };
+      const SECS = 6.0;
+      const once = rows => { const d = rows.filter(r => r.cell != null), c = d.map(r => r.cell); let mono = true; for (let i = 1; i < c.length; i++) if (c[i] < c[i - 1]) mono = false;
+        const last = rows.map(r => r.cell != null && r.op > 0).lastIndexOf(true);
+        return { mono, distinct: new Set(c).size, first: c[0], lastCell: c[c.length - 1], sec: (last + 1) / 60, hiddenAfter: rows.slice(last + 1).length >= 60 && rows.slice(last + 1).every(r => r.op === 0 || !r.inScene),
+          neverIdle: rows.slice(0, last + 1).every(r => r.mapDeath && !r.idle), neverAlive: rows.every(r => !r.alive), releasedAfter: rows.slice(last + 2).every(r => r.held === 0) };
+      };
+      const okOnce = o => o.mono && o.distinct === 48 && o.first === 0 && o.lastCell === 47 && Math.abs(o.sec - SECS) <= 2 / 60 && o.hiddenAfter && o.neverIdle && o.neverAlive;
+      const fade = rows => rows.slice(0, 60).every(r => Math.abs(r.op - Math.max(0, 1 - r.dT / 0.9)) < 2e-3);
+      const LONG = Math.round(60 * (SECS + 1.5));
+
+      await start(7, true);
+      ck('lazy: no death sheet was requested by the loading screen, the tiered preload or the GPU warm-up, and none is resident before anyone is hurt', dreq.length === 0 &&
+        (await pg.evaluate((H) => H.every(k => BATTLE_ANIM[k].death.parts.every(st => !BATTLE_ANIM[k][st].tex)), HEROES)), dreq.join(','));
+      // both Vaels (ally + enemy, one key) under 30% hp: each of his sheets requested ONCE
+      await pg.evaluate(() => { units.filter(u => u.key === 'vael').forEach(u => { u.hp = u.maxHp * 0.25; }); units.filter(u => u.key === 'vex' && u.team === 'ally').forEach(u => { u.hp = u.maxHp * 0.31; }); });
+      for (let i = 0; i < 200; i++) { await frame(); if (await ready('vael')) break; await pg.waitForTimeout(50); }
+      for (let i = 0; i < 20; i++) await frame();
+      ck('lazy: under 30% hp the death sheets load - each sheet once for one key however many units (two Vaels: ' + D.vael.parts.length + ' sheets), nothing for a hero at 31%',
+        dreq.length === D.vael.parts.length && D.vael.parts.every(st => dreq.filter(x => x.startsWith('vael_' + st + '_')).length === 1), dreq.join(','));
+      ck('each sheet is decoded at its own full size on the phone tier (' + (await pg.evaluate(() => BATTLE_ANIM.vael.death.parts.map(st => { const im = BATTLE_ANIM.vael[st].tex.image; return im.width + 'x' + im.height; }).join(', '))) + ')',
+        await pg.evaluate(() => texPhone() && BATTLE_ANIM.vael.death.parts.every(st => { const A = BATTLE_ANIM.vael[st], im = A.tex.image; return im.width === A.fw * A.cols && im.height === A.fh * A.rows; })));
+      // ALLY Vael (facing right) dies - the enemy Vael is still alive at 25%, so his sheets stay until HE is done too
+      await pick('vael', 'ally'); await kill(); const ra = await watch(LONG); const oa = once(ra);
+      ck('the death plays ONCE: cells 0..47 in order across its sheets, all 48, ' + oa.sec.toFixed(3) + ' s (6.0 s at game speed 1), then hidden; never loops, never an idle cell, never alive again (ally Vael)', okOnce(oa), JSON.stringify(oa));
+      ck('a dead ALLY stays in the fight as before (units), drawn by its own clip, never the fade', ra.every(r => r.inUnits) && !fade(ra));
+      ck('released when the death ends: Vael\'s sheets go once no Vael body is still dying (the other Vael alive under 30% loads them again on his next frame)', ra.slice(Math.round(60 * SECS) + 3).some(r => r.held === 0) || ra[ra.length - 1].held === D.vael.parts.length, JSON.stringify(ra.slice(-3).map(r => r.held)));
+      // CONTROL: a looping variant fails the same check
+      await pg.evaluate(() => { window.__dd0 = deathDraw; deathDraw = eval('(' + String(deathDraw).replace('Math.min(n-1,Math.floor(D.t*f))', 'Math.floor(D.t*f)%n').replace("const fin=D.t>=dur;", "const fin=false;") + ')'); });
+      await lowAndWait('sylthaine', 'ally'); await kill(); const oc = once(await watch(LONG));
+      await pg.evaluate(() => { deathDraw = window.__dd0; });
+      ck('CONTROL: a death that loops (cell = t x fps mod 48, never ends) FAILS the plays-once check', !okOnce(oc), JSON.stringify(oc));
+      // ENEMY Vex (facing left): the fight removes her at 0.9 s; her body stays on screen for the clip, then is disposed, and her sheets released
+      await lowAndWait('vex', 'enemy'); await kill(); const re = await watch(LONG); const oe = once(re);
+      const left = re.findIndex(r => !r.inUnits), gone = re.findIndex(r => !r.inScene);
+      ck('facing: ally Vael (facing right, source right) draws unmirrored; enemy Vex (facing left, her source faces left) unmirrored too - the engine\'s own rule mirror = (facing right) != (source right)',
+        ra.filter(r => r.cell != null).every(r => r.mirror === false) && re.filter(r => r.cell != null).every(r => r.mirror === false));
+      ck('an ENEMY plays it too (Vex, facing left) ' + oe.sec.toFixed(3) + ' s, once, and her sheets are released right after (no other Vex is dying)', okOnce(oe) && oe.releasedAfter, JSON.stringify(oe));
+      ck('the fight removes the enemy exactly as before, on the tick its deathT (battle time) passes 0.9 (render frame ' + left + '); only its mesh stays (_corpses) until the clip ends, then it leaves the scene (frame ' + gone + ') and _corpses is empty',
+        left > 0 && re[left - 1].dT <= 0.9 && re[left].dT > 0.9 && re.slice(left, gone).every(r => r.corpse && r.inScene) && Math.abs(gone - 60 * SECS) <= 4 && !re[re.length - 1].corpse, JSON.stringify({ left, gone, dT: [re[left - 1] && re[left - 1].dT, re[left] && re[left].dT] }));
+      // FALLBACK 1: a hero with no death clip (Askel)
+      await pick('askel', 'ally'); await kill(); const rk = await watch(80);
+      ck('FALLBACK: a hero without a death clip (Askel) fades exactly as before (opacity = 1 - deathT/0.9 every frame)', fade(rk) && rk.every(r => r.cell == null), JSON.stringify(rk.slice(0, 4)));
+      // FALLBACK 2: Vireo dies at FULL hp (her sheets never asked for) -> the fade, and it never pops in mid-fade
+      await pick('vireo', 'ally'); await kill(); const rv = await watch(80);
+      ck('FALLBACK: a death-clip hero killed before her sheets arrived (Vireo, one blow from full hp) fades as before and the clip never pops in', fade(rv) && rv.every(r => r.cell == null) && !dreq.some(x => /vireo_death/.test(x)), JSON.stringify(rv.slice(0, 3)));
+      // FALLBACK 3: the switch off (enemy Vael, his sheets loaded)
+      await pg.evaluate(() => { DEATH_CLIPS.on = false; }); await pick('vael', 'enemy'); await kill(); const rs = await watch(80); await pg.evaluate(() => { DEATH_CLIPS.on = true; });
+      ck('FALLBACK: with DEATH_CLIPS off a hero whose sheets ARE loaded (enemy Vael) fades exactly as before', fade(rs) && rs.every(r => r.cell == null));
+      // FALLBACK 4: the phone GPU gate (the tally + the sheets past gpuMB -> no request, the fade)
+      const n0 = dreq.length;
+      await pg.evaluate(() => { DEATH_CLIPS.gpuMB = texTallyMB() + 1; const v = units.find(u => u.alive && u.key === 'vireo'); v.hp = v.maxHp * 0.2; window.__dying = v; BATTLE_ANIM.vireo.death._gateAt = 0; });
+      for (let i = 0; i < 40; i++) await frame(); await pg.waitForTimeout(800); for (let i = 0; i < 10; i++) await frame();
+      await kill(); const rq = await watch(80); const gated = await pg.evaluate(() => BATTLE_ANIM.vireo.death._gated || 0);
+      ck('FALLBACK: the phone GPU gate - with the tally + Vireo\'s sheets over DEATH_CLIPS.gpuMB she requests nothing and fades as before (live gate 1990 of 2048 MB)', gated > 0 && dreq.length === n0 && fade(rq) && rq.every(r => r.cell == null), dreq.slice(n0).join(',') + ' gated ' + gated);
+      await pg.evaluate(() => { DEATH_CLIPS.gpuMB = 1990; });
+      // a FIGHT THAT ENDS mid-death: the body plays out on the result screen (no frozen half-dead body), then the sheets go
+      await lowAndWait('sylthaine', 'enemy'); await kill(); const rf1 = await watch(90);
+      await pg.evaluate(() => { endBattle(true); }); const rf2 = await watch(LONG); const of = once(rf1.concat(rf2));
+      ck('a fight that ENDS mid-death (2 s in): the death plays on to its last cell behind the result screen and is hidden - no frozen half-dead body - then its sheets are released', okOnce(of) && of.releasedAfter && rf2.slice(-30).every(r => r.op === 0 || !r.inScene), JSON.stringify(of));
+      await pg.evaluate(() => { window.requestAnimationFrame = window.__raf0; requestAnimationFrame(loop); }); await pg.waitForTimeout(1200);
+      await pg.evaluate(() => { try { document.getElementById('resultBtn').click(); } catch (e) {} }); await pg.waitForTimeout(800);
+      await pg.evaluate(() => show('home')); await pg.waitForTimeout(2500);
+      const heldAll = () => pg.evaluate((H) => H.reduce((s, k) => s + BATTLE_ANIM[k].death.parts.filter(st => BATTLE_ANIM[k][st].tex).length, 0), HEROES);
+      const hub = { held: await heldAll(), corpses: await pg.evaluate(() => _corpses.length) };
+      ck('back on the hub no death sheet is held and _corpses is empty', hub.held === 0 && hub.corpses === 0, JSON.stringify(hub));
+
+      // a WAVE that turns mid-death: the body fades in 0.25 s and ends cleanly (sheets released), never left on the field
+      await start(9, true);
+      await lowAndWait('vireo', 'ally'); await kill(); const rw1 = await watch(60);
+      await pg.evaluate(() => { waveXfer = { phase: 'exit', t: 0 }; }); const rw2 = await watch(40); await pg.evaluate(() => { waveXfer = null; }); const rw3 = await watch(30);
+      ck('a WAVE transfer mid-death: the body fades out over 0.25 s and ends there (hidden, sheets released) - never frozen half-dead, never walked through', rw1.every(r => r.cell != null && r.op === 1) &&
+        rw2.slice(16).every(r => r.op === 0) && rw2.some(r => r.op > 0 && r.op < 1) && rw3.every(r => r.op === 0 && r.held === 0), JSON.stringify(rw2.slice(0, 18).map(r => r.op)));
+      await pg.evaluate(() => { try { endBattle(true); } catch (e) {} });
+
+      // RENDERED fights: clips on (sheets loaded up front so they play) vs off - the fight underneath is the same tick for tick
+      /* one battle scene; each run clears it (clearBattle) and rebuilds the fight from tick 0 (seedBattle: RNG, accumulator, inputs, unit ids), then
+         renders one 60 fps frame at a time (syncMesh, deathDraw, _corpses, deathRelease all run) inside ONE synchronous evaluate, so no real-time timer of the
+         page can interleave with the synthetic clock. The trace is per SIM TICK (after every updateBattle), the unit of "tick-identical": the client loop
+         has wall-clock gates of its own (the action stream, the net gate) that can move which render frame a tick falls on, never what the tick computes. */
+      await start(21, true);
+      await pg.evaluate(() => { window.__upd0 = updateBattle; });
+      const loadAll = async () => { await pg.evaluate((H) => H.forEach(k => BATTLE_ANIM[k].death.parts.forEach(st => { if (!BATTLE_ANIM[k][st].tex) _loadClip(BATTLE_ANIM[k][st]); })), HEROES);
+        for (let i = 0; i < 100; i++) { if (await pg.evaluate((H) => H.every(k => deathReady({ anim: BATTLE_ANIM[k] })), HEROES)) break; await pg.waitForTimeout(100); } };
+      const TRACE = async (seed, on, pre) => { if (on) await loadAll(); return pg.evaluate(([T, seed, on, pre]) => { updateBattle = window.__upd0; if (pre) eval(pre); DEATH_CLIPS.on = on;
+        clearBattle(); ended = false; paused = false; waveXfer = null; battleTime = 0; gameSpeed = 1; seedBattle(seed); last = window.__t;   /* the first frame's dt is 1/60 too */
+        ultCoachArmed = () => false; ultCoachReset(); actHold = () => false; _actWait = 0;   /* the first-fight ult lesson and the action-stream ack wait are wall-clock gates, not part of this check */
+        T.forEach((k, i) => units.push(makeUnit(k, 'ally', 300 + i * 40, 600 + i * 90, 30, { owned: false, rank: 3 }))); T.forEach((k, i) => units.push(makeUnit(k, 'enemy', 900 + i * 40, 600 + i * 90, 30, { owned: false, rank: 3 })));
+        units.forEach(u => buildFigure(u));
+        const tr = []; let clips = 0; const seen = new Set(); const U = updateBattle;
+        updateBattle = function () { const r = U.apply(this, arguments);
+          tr.push(battleTime.toFixed(3) + '/' + units.map(u => u.key + u.team[0] + ':' + Math.round(u.hp * 100) + ':' + Math.round(u.x * 10) + ':' + Math.round(u.y * 10) + ':' + (u.alive ? 1 : 0) + ':' + Math.round((u.energy || 0) * 10)).join('|')); return r; };
+        for (let j = 0; j < 60 * 60 && !ended && tr.length < 900; j++) { window.__t += 1000 / 60; loop(window.__t); units.concat(_corpses).forEach(u => { if (u._die && !seen.has(u)) { seen.add(u); clips++; } }); }
+        tr.length = Math.min(tr.length, 900);
+        let h = 2166136261 >>> 0; const s = tr.join('#'); for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
+        DEATH_CLIPS.on = true; updateBattle = window.__upd0; return { h: tr.length + ':' + h.toString(16), clips, n: tr.length, tr }; }, [T, seed, on, pre || '']); };
+      const firstDiff = (a, b) => { const i = a.tr.findIndex((x, j) => x !== b.tr[j]); if (i < 0) return 'none'; const A = a.tr[i].split('|'), B = (b.tr[i] || '').split('|');
+        return 'tick ' + i + ': ' + A.map((x, j) => x !== B[j] ? x + ' vs ' + B[j] : null).filter(Boolean).slice(0, 3).join('; '); };
+      const tOn = await TRACE(21, true), tOn2 = await TRACE(21, true), tOff = await TRACE(21, false);
+      ck('CONTROL: the rendered harness is deterministic (the same seed with clips on twice gives the same trace)', tOn.h === tOn2.h, tOn.h + ' vs ' + tOn2.h + ' first diff ' + firstDiff(tOn, tOn2));
+      ck('a rendered seeded fight with death clips ON (' + tOn.clips + ' bodies played their clip) is tick-identical to the same fight with them OFF (hp / x / y / alive / energy after every one of ' + tOn.n + ' sim ticks)', tOn.h === tOff.h && tOn.clips >= 1, tOn.h + ' vs ' + tOff.h + ' ' + firstDiff(tOn, tOff));
+      const tLate = await TRACE(21, true, LATE);
+      ck('CONTROL: the same rendered harness sees a logic change (the removal at 1.5 s) - non-death control', tLate.h !== tOn.h);
+      await pg.evaluate(() => { try { endBattle(true); } catch (e) {} }); await pg.waitForTimeout(600);
+
+      // PHONE GPU PEAK: the heaviest fight that holds all four (the four + Askel vs the five heaviest others), every unit's art loaded, all four deaths at once
+      if (INIT) {
+        const HEAVY = ['rivet', 'hollow', 'aureth', 'rafe', 'tharl'];
+        /* from the hub, as a player comes to a fight: the last fight's art (and the death sheets the trace runs preloaded) is freed there first */
+        await pg.evaluate(() => { window.requestAnimationFrame = window.__raf0; requestAnimationFrame(loop); }); await pg.waitForTimeout(1200);
+        await pg.evaluate(() => { try { document.getElementById('resultBtn').click(); } catch (e) {} }); await pg.waitForTimeout(800);
+        await pg.evaluate(() => show('home')); await pg.waitForTimeout(2500);
+        const hubMB = await pg.evaluate(() => +__gpuMB().toFixed(1));
+        await start(31, true, HEROES.concat(['kharos']), HEAVY);
+        const base0 = await pg.evaluate(() => +__gpuMB().toFixed(1));
+        await pg.evaluate((H) => { H.forEach(k => { const u = units.find(x => x.key === k); u.hp = u.maxHp * 0.2; BATTLE_ANIM[k].death._gateAt = 0; }); }, HEROES);
+        for (let i = 0; i < 300; i++) { await pg.evaluate(() => { window.__t += 1000 / 60; loop(window.__t); });
+          if (await pg.evaluate((H) => H.every(k => deathReady({ anim: BATTLE_ANIM[k] })), HEROES)) break; await pg.waitForTimeout(50); }
+        const loaded = await pg.evaluate((H) => H.filter(k => deathReady({ anim: BATTLE_ANIM[k] })), HEROES);
+        for (let i = 0; i < 20; i++) await pg.evaluate(() => { window.__t += 1000 / 60; loop(window.__t); });
+        const preDeath = await pg.evaluate(() => +__gpuMB().toFixed(1));
+        await pg.evaluate((H) => { H.forEach(k => { const u = units.find(x => x.key === k); damage(u, u.maxHp * 100, 0xffffff, true); }); }, HEROES);
+        let peak = preDeath, played = 0;
+        for (let i = 0; i < 60 * 7; i++) { const r = await pg.evaluate(() => { window.__t += 1000 / 60; loop(window.__t); return { g: __gpuMB(), p: units.filter(u => u._die).length }; }); peak = Math.max(peak, r.g); played = Math.max(played, r.p); }
+        const after = await pg.evaluate(() => +__gpuMB().toFixed(1));
+        console.log('  info PHONE GPU (four + Kharos vs Rivet, Hollow, Aureth, Rafe, Tharl): hub ' + hubMB + ' MB, fight art ' + base0 + ' MB, four death sets loaded ' + preDeath + ' MB (+' + (preDeath - base0).toFixed(1) + '), peak with all four dying ' + peak.toFixed(1) + ' MB, after the deaths ' + after + ' MB');
+        ck('PHONE BUDGET: the heaviest fight holding all four, every death loaded and all four dying at once (' + played + ' clips), peaks at ' + peak.toFixed(1) + ' MB <= ' + GPU_BUDGET_MB + ' MB, and the deaths give their memory back when they end (' + after + ' MB)',
+          peak <= GPU_BUDGET_MB && loaded.length === 4 && played === 4 && after <= base0 + 8, JSON.stringify({ base0, preDeath, peak, after, loaded }));
+        await pg.evaluate(() => { try { endBattle(true); } catch (e) {} });
+      } else ck('the budget test\'s GPU tally was found', false);
+      ck('no page error', errs.length === 0, errs.slice(0, 4).join(' | '));
+      await ctx.close();
+    } finally { try { await browser.close(); } catch (e) {} try { srv.kill(); } catch (e) {} }
+  }
+} catch (e) { console.log('  FAIL test crashed - ' + (e && e.stack || e)); fail++; }
+console.log((fail ? 'FAIL ' : 'PASS ') + (pass + fail) + ' checks' + (fail ? ', ' + fail + ' failed' : ''));
+process.exit(fail ? 1 : 0);
+})();
