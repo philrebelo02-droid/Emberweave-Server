@@ -172,6 +172,7 @@ function recover(file, opts) {
   db.idem = idem;
   out.players = Object.keys(db.users).length; out.realPlayers = realPlayerCount(db); out.npcs = Object.values(db.users).filter(u => u && u.isNpc).length;
   out.digest = worldDigest(db).all; out.gen = man.gen;
+  if (opts.returnWorld) Object.defineProperty(out, 'world', { value: db, enumerable: false });   // checks only; never printed
   if (!opts.write) return out;
   // write: the current world file (if any) is kept beside it, the manifest is written atomically, unused shard files are MOVED
   // aside (never deleted) so the next boot's sweep cannot remove them
