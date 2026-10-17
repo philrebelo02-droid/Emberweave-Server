@@ -13,7 +13,7 @@ const path = require('path'), vm = require('vm'), fs = require('fs'), cp = requi
 const ROOT = path.resolve(__dirname, '..');
 const HTML = process.env.EW_HTML || path.join(ROOT, 'emberweave-heroes.html');
 const VER = process.env.EW_VER || '1197';
-const BASE_SHA = process.env.EW_BASE || '625db3e7';   // live v1195 (on v1193 Hollow, v1190 deaths stream), before this change
+const BASE_SHA = process.env.EW_BASE || '0605c5a1';   // live v1196 (all 60 deaths; on v1195, v1193 Hollow), before this change
 const SRC = 'C:/Users/Home/OneDrive/Desktop/Emberweave Archive/Game Art/_fx2_accepted/';
 let OLD = process.env.EW_HTML_OLD;
 if (!OLD) { try { OLD = path.join(ROOT, '.test-tfx1197-base.html'); fs.writeFileSync(OLD, cp.execSync('git show ' + BASE_SHA + ':emberweave-heroes.html', { cwd: ROOT, maxBuffer: 64 << 20 }));
