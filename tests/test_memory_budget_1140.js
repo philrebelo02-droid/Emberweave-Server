@@ -89,14 +89,14 @@ try {
 
   // ------------------------------------------------------------------ 3. STATIC BUDGET
   const mb = x => x.w * x.h * 4 * 4 / 3 / 1048576;
-  /* v1189: a death STREAMS (its sheets of <= 4 cells; the one shown + the next on the GPU, the one behind freed - blueprint 18), so a hero's death
+  /* v1190: a death STREAMS (its sheets of <= 4 cells; the one shown + the next on the GPU, the one behind freed - blueprint 18), so a hero's death
      counts as its heaviest pair of neighbouring sheets, not all of them */
   const per = {}, dp = {}; up.forEach(x => { if (!x.c.s || !x.c.hero) return;
     if (/^death\d*$/.test(x.c.s)) { (dp[x.c.k] = dp[x.c.k] || [])[x.c.s === 'death' ? 0 : +x.c.s.slice(5) - 1] = mb(x); return; }
     per[x.c.k] = (per[x.c.k] || 0) + mb(x); });
   for (const k in dp) { const a = dp[k]; let m = a[0] || 0; for (let i = 0; i + 1 < a.length; i++) m = Math.max(m, (a[i] || 0) + (a[i + 1] || 0)); per[k] = (per[k] || 0) + m; }
   { const big = Object.keys(dp).filter(k => dp[k].length > 2 && dp[k].every(v => v > 0));
-    ck('v1189 streaming: every death is cut into sheets of at most 4 cells (' + Object.keys(dp).length + ' deaths), so it holds two sheets, not all',
+    ck('v1190 streaming: every death is cut into sheets of at most 4 cells (' + Object.keys(dp).length + ' deaths), so it holds two sheets, not all',
       CLIPS.filter(c => /^death\d*$/.test(c.s)).every(c => c.n >= 1 && c.n <= 4) && big.length === Object.keys(dp).length); }
   const heavy = Object.keys(per).sort((a, b) => per[b] - per[a]);
   const top10 = heavy.slice(0, 10), gpuStatic = top10.reduce((s, k) => s + per[k], 0);

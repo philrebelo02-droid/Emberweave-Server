@@ -4163,7 +4163,7 @@ function _texCaps(){
    2. ANISOTROPY WAS CAPPED AT 8, then never actually applied because of (1). It now takes the
       hardware maximum. Anisotropy is what keeps detail in a sprite drawn smaller than its native
       size - exactly the zoomed-out case - without the shimmer you get from disabling mipmaps. */
-/* v1189 THE REAL GPU TOTAL (blueprint 18 "Battle memory budget"). _texReg holds the battle sheets only; the phone gate used to count just those, and the
+/* v1190 THE REAL GPU TOTAL (blueprint 18 "Battle memory budget"). _texReg holds the battle sheets only; the phone gate used to count just those, and the
    real WebGL total ran ~20 MB above it (the map, the FX sheets, the canvases and every other texture the renderers hold). Every WebGL context's
    texture uploads are tallied here instead - the same count as test_memory_budget_1140's own tally (level 0 w x h x 4, x 4/3 once mipmapped,
    gone on deleteTexture), per texture unit - and texTallyMB() returns it. Bookkeeping only: every call goes straight through to WebGL. */
@@ -4252,17 +4252,17 @@ BATTLE_ANIM.aureth.attack=BATTLE_ANIM.aureth.attackLight;
    they have arrived fades exactly as before (the fallback). RELEASED as soon as that hero's last running death ends (deathRelease), and with the fight's art. */
 const DEATH_CLIPS={on:true, hp:0.30, gpuMB:1990, stall:3};   /* gpuMB: a phone starts a death only while the REAL GPU total (texTallyMB) + the most it will hold (two sheets) stays under this (budget 2048) */
 let _corpses=[];   /* render-owned: a dead ENEMY's body after the fight removed it at 0.9 s, while its death clip plays (updateBattle / applyState hand the mesh over) */
-/* v1189 STREAMING (blueprint 18): a death is cut into sheets of at most 4 cells (0.5 s each at 8 fps). Under 30% hp only the FIRST sheet is decoded and put
+/* v1190 STREAMING (blueprint 18): a death is cut into sheets of at most 4 cells (0.5 s each at 8 fps). Under 30% hp only the FIRST sheet is decoded and put
    on the GPU (the other sheets' compressed bytes are fetched into the browser cache - nothing decoded); while sheet k plays sheet k+1 decodes and uploads,
    and sheet k is freed the moment its last cell has shown. A playing death holds at most TWO sheets (a held body, end:'hold', only its last). A sheet that
    is late holds the last cell shown (display only; DEATH_CLIPS.stall s at most, then the body fades out) - never idle, never a skipped cell. */
 function deathClip(u){ const A=DEATH_CLIPS.on&&u&&u.anim&&u.anim.death; return (A&&A.u&&A.parts)?A:null; }
 function deathParts(set,A){ return (A&&A.parts||[]).map(s=>set&&set[s]).filter(Boolean); }
 function deathTexOk(c){ const im=c&&c.tex&&!c._err&&c.tex.image; if(!im) return false; return ('naturalWidth' in im)?(im.complete&&im.naturalWidth>0):((im.width|0)>0); }
-function deathReady(u){ const A=deathClip(u), ps=deathParts(u&&u.anim,A); return !!A && ps.length===A.parts.length && deathTexOk(ps[0]); }   /* v1189: the first sheet; the rest stream */
+function deathReady(u){ const A=deathClip(u), ps=deathParts(u&&u.anim,A); return !!A && ps.length===A.parts.length && deathTexOk(ps[0]); }   /* v1190: the first sheet; the rest stream */
 function deathSetMB(ps){ return ps.reduce((s,c)=>s+(c.cols*c.fw)*(c.rows*c.fh)*4*4/3,0)/1048576; }
 function deathPeakMB(ps){ let m=deathSetMB(ps.slice(0,1)); for(let i=0;i+1<ps.length;i++) m=Math.max(m,deathSetMB([ps[i],ps[i+1]])); return m; }   /* the most a playing death holds */
-function texTallyMB(){ if(_glTally.on) return _glTally.mb();   /* v1189: the real GPU total (every texture of every WebGL context) */
+function texTallyMB(){ if(_glTally.on) return _glTally.mb();   /* v1190: the real GPU total (every texture of every WebGL context) */
   let b=0; for(const t of _texReg){ const im=t&&t.image; if(im&&im.width) b+=im.width*im.height*4*(t.generateMipmaps?4/3:1); } return b/1048576; }
 function deathWarm(c){ if(c&&c.tex&&!c.tex._ewWarm&&deathTexOk(c)){ c.tex._ewWarm=1; try{ if(typeof renderer!=='undefined'&&renderer&&renderer.initTexture) renderer.initTexture(c.tex); }catch(e){} } }   /* uploaded before it is drawn */
 function deathFetchRest(ps){ for(let i=1;i<ps.length;i++){ const c=ps[i]; if(c._pf||c.tex) continue; c._pf=1;   /* bytes only, into the browser cache */
@@ -4292,7 +4292,7 @@ function deathCell(u,spr,A,fr,mirror){ const T=A.tex, _L=A._lay, _c=_L?_L.c:(A.c
   if(spr.center){ let _cxn=((A.cx!=null)?A.cx:A.fw*0.5)/A.fw, _cyn=1-(A.feet/A.fh); if(_tc){ _cxn=(_cxn-_tc[0])/_tc[2]; _cyn=1-((A.feet/A.fh)-_tc[1])/_tc[3]; } spr.center.set(mirror?1-_cxn:_cxn,_cyn); } }
 /* the dead branch of syncMesh: true = the death clip drew this frame (else the old fade runs). Decided ONCE, on the first dead frame (its first sheet
    ready): a clip that is not ready then never pops in mid-fade. Its clock is render time (u._die.t), never deathT. Plays cell 0 -> the last ONCE, never
-   loops or returns to idle; then hidden ('hide') and its sheets released, or held ('hold', its last sheet only). STREAMED (v1189): the clock steps onto a
+   loops or returns to idle; then hidden ('hide') and its sheets released, or held ('hold', its last sheet only). STREAMED (v1190): the clock steps onto a
    sheet only once it is ready (else it holds the last cell shown, at most DEATH_CLIPS.stall s); the next sheet loads while this one plays; the one behind
    is freed. A wave transfer fades a body still on the field in 0.25 s and ends it; a fight that ends mid-death plays it out on the result screen. */
 function deathDraw(u,spr,dt){

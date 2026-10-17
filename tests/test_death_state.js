@@ -15,12 +15,12 @@
 const path = require('path'), vm = require('vm'), fs = require('fs'), cp = require('child_process'), crypto = require('crypto'), os = require('os'), net = require('net');
 const ROOT = path.resolve(__dirname, '..');
 const HTML = process.env.EW_HTML || path.join(ROOT, 'emberweave-heroes.html');
-const BASE_SHA = process.env.EW_BASE || '68b7ffae';   // live v1188 (death batch 2), the build this change sits on
+const BASE_SHA = process.env.EW_BASE || '551eebd8';   // live v1184 (on v1186 + v1188 death batch 2), the build this change sits on
 const VER = process.env.EW_DEATH_VER || '1182';
 const HEROES = ['vael', 'sylthaine', 'vex', 'vireo'];   // the first four: the browser scenarios run on them
 const SRCS = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures', 'death_sources.json'), 'utf8'));   // every hero with a death (tools: death_batch.py adds each batch)
 const ALL = SRCS.map(r => r.key), SRC = Object.fromEntries(SRCS.map(r => [r.key, Object.assign({ dir: r.hero, sha: r.sha256, id: r.creationId, bg: r.plate }, r)]));
-const GPU_BUDGET_MB = 2048, PEAK_V1182 = 1918.7;   // v1182's measured phone worst-case peak (four deaths, every sheet held) - the v1189 streaming target
+const GPU_BUDGET_MB = 2048, PEAK_V1182 = 1918.7;   // v1182's measured phone worst-case peak (four deaths, every sheet held) - the v1190 streaming target
 const BD = fs.mkdtempSync(path.join(os.tmpdir(), 'death-base-'));
 process.on('exit', () => { try { fs.rmSync(BD, { recursive: true, force: true }); } catch (e) {} });
 let baseOk = true;
@@ -169,7 +169,7 @@ try {
           neverIdle: rows.slice(0, last + 1).every(r => r.mapDeath && !r.idle), neverAlive: rows.every(r => !r.alive), releasedAfter: rows.slice(last + 2).every(r => r.held === 0) };
       };
       const okOnce = o => o.mono && o.distinct === 48 && o.first === 0 && o.lastCell === 47 && Math.abs(o.sec - SECS) <= 2 / 60 && o.hiddenAfter && o.neverIdle && o.neverAlive;
-      /* v1189 STREAMING: while a death plays it holds at most two of its sheets (+ the first, kept for another body of the same hero still waiting
+      /* v1190 STREAMING: while a death plays it holds at most two of its sheets (+ the first, kept for another body of the same hero still waiting
          under 30% hp), every sheet it draws is decoded at full size, and none arrived late (no hold, so 6.0 s exactly) */
       const streamed = (rows, extra) => { const d = rows.filter(r => r.cell != null); return { maxHeld: Math.max(...d.map(r => r.held)), full: d.every(r => r.full === true), stall: Math.max(...d.map(r => r.st)), extra }; };
       const okStream = s => s.maxHeld <= 2 + (s.extra || 0) && s.full && s.stall === 0;
@@ -242,7 +242,7 @@ try {
       await pg.evaluate(() => { waveXfer = { phase: 'exit', t: 0 }; }); const rw2 = await watch(40); await pg.evaluate(() => { waveXfer = null; }); const rw3 = await watch(30);
       ck('a WAVE transfer mid-death: the body fades out over 0.25 s and ends there (hidden, sheets released) - never frozen half-dead, never walked through', rw1.every(r => r.cell != null && r.op === 1) &&
         rw2.slice(16).every(r => r.op === 0) && rw2.some(r => r.op > 0 && r.op < 1) && rw3.every(r => r.op === 0 && r.held === 0), JSON.stringify(rw2.slice(0, 18).map(r => r.op)));
-      // v1189 a LATE SHEET: Sylthaine's third sheet answers 2.5 s late (a slow phone / network) - the death holds the last cell shown (the end of her second
+      // v1190 a LATE SHEET: Sylthaine's third sheet answers 2.5 s late (a slow phone / network) - the death holds the last cell shown (the end of her second
       // sheet) for as long as it takes, then plays on: all 48 cells in order, never idle, never skipped; the rest of the fight is untouched (display only)
       { const S3 = PT.sylthaine[2].u.split('?')[0].split('/').pop(), last2 = PT.sylthaine[1].first + PT.sylthaine[1].n - 1;
         const parked = []; await pg.route('**/' + S3 + '*', r => { parked.push(r); });   /* its requests wait until 1.5 s of the death after the sheet was due */
@@ -265,7 +265,7 @@ try {
       await pg.evaluate(() => { BATTLE_ANIM.vex.death.end = 'hide'; });
       ck('end:hold - after its 6 s the enemy body stays on its last cell (drawn, in _corpses, sheets kept), never loops; going to the hub clears it (no corpse, no death sheet)',
         hEnd.length > 30 && hEnd.every(r => r.cell === 47 && r.op === 1 && r.corpse && r.inScene && r.held === 1) && hHub.corpses === 0 && hHub.held === 0, JSON.stringify({ last: hEnd.slice(-1), hHub }));
-      /* v1189: a held body keeps ONLY its last sheet (it was all of them) */
+      /* v1190: a held body keeps ONLY its last sheet (it was all of them) */
       ck('STREAMED end:hold - the held body keeps one sheet (its last), not all ' + D.vex.parts.length, hEnd.every(r => r.held === 1) && streamed(rh, 0).maxHeld <= 2);
 
       // RENDERED fights: clips on (sheets loaded up front so they play) vs off - the fight underneath is the same tick for tick
@@ -349,7 +349,7 @@ try {
         console.log('  info PHONE WORST CASE (the ten heaviest: ' + TOP.join(', ') + '; with a death: ' + WD.join(', ') + '): fight art ' + w0 + ' MB, deaths loaded ' + wLoaded + ' MB (' + wReady.length + ' of ' + WD.length + ' inside the gate), all dying at once peak ' + wPeak.toFixed(1) + ' MB (' + wPlayed + ' clips), after ' + wAfter + ' MB');
         ck('PHONE BUDGET, worst case: the ten heaviest heroes in one fight, every death among them overlapping, peaks at ' + wPeak.toFixed(1) + ' MB <= ' + GPU_BUDGET_MB + ' MB (' + wPlayed + ' of ' + WD.length + ' played their clip, the rest faded at the gate)',
           wPeak <= GPU_BUDGET_MB && wPlayed === wReady.length && WD.length >= 1, JSON.stringify({ w0, wLoaded, wPeak, wAfter, wReady, WD }));
-        /* v1189 STREAMING target (the coordinator, 17 Oct): with every death in, the worst case stays under v1182's measured peak (1918.7 MB, four deaths, sheets
+        /* v1190 STREAMING target (the coordinator, 17 Oct): with every death in, the worst case stays under v1182's measured peak (1918.7 MB, four deaths, sheets
            held whole), every death among the ten plays its clip (none faded at the gate), and the live gate's tally IS the real GPU total */
         const gateVsGl = await pg.evaluate(() => [+texTallyMB().toFixed(1), +__gpuMB().toFixed(1), _glTally.on]);
         ck('STREAMED worst case: peak ' + wPeak.toFixed(1) + ' MB < v1182\'s ' + PEAK_V1182 + ' MB with ' + ALL.length + ' deaths in, all ' + WD.length + ' deaths among the ten played (' + wPlayed + '), none gated',
