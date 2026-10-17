@@ -232,9 +232,12 @@ function _saveIdsFor(ids){ if(Array.isArray(ids)) return ids;
   const c=(typeof _reqCtx!=='undefined')?_reqCtx.getStore():null;
   return (c&&Array.isArray(c.saveIds))?c.saveIds:null; }
 function _saveScope(...ids){ const c=(typeof _reqCtx!=='undefined')?_reqCtx.getStore():null; if(c) c.saveIds=ids.filter(x=>typeof x==='string'&&x); }
+/* v1185 DB_STORE_TRACE_FULL=1: count who asks for a FULL save (an id-less writeDB() or an id-less group save - a whole new base in the journal layout, one syncfs) by the first caller outside the save code; /internal/save-stats fullCallers. Off by default (a stack per id-less call). */
+const FULL_TRACE=process.env.DB_STORE_TRACE_FULL==='1', FULL_CALLERS=Object.create(null);
+function _traceFull(){ const st=String(new Error().stack||'').split('\n').slice(3).map(s=>s.trim()).find(s=>!/writeDB|_traceFull|saveSoon|writeDBNow|_joinBatch|durableCommit|_holdReply|ledTx|creditGold|spendGems|creditGems|spendGold/.test(s))||'?'; const k=st.replace(/^at /,'').replace(/\(.*[\\/]/,'(').slice(0,120); FULL_CALLERS[k]=(FULL_CALLERS[k]|0)+1; }
 function writeDB(ids,pieces){ if(_worldSettlementPlanning||_durableIdemActive)return; if(PG_BOOT_PENDING){ _bootDirty=true; return; }   // v327: see bootFinish()
   const named=_saveIdsFor(ids);
-  if(named){ _pendingCore=true; for(const id of named) if(typeof id==='string'&&id) _pendingIds.add(id); _notePieces(pieces); } else _pendingFull=true;   /* v1127: pieces = the shared systems this change touched (none given = unknown, all compared) */
+  if(named){ _pendingCore=true; for(const id of named) if(typeof id==='string'&&id) _pendingIds.add(id); _notePieces(pieces); } else { _pendingFull=true; if(FULL_TRACE) _traceFull(); }   /* v1127: pieces = the shared systems this change touched (none given = unknown, all compared) */
   if(saveTimer)return; saveTimer=setTimeout(_timerSave,200); }
 function _timerSave(){ saveTimer=null;
   if(_batchOpen){ _batchOpen.actions++; if(_pendingFull) _batchOpen.all=true; return; }   // v1036: a group save is already queued - it writes this change too (v1124: _runBatch adds the pending ids)
@@ -298,7 +301,7 @@ const GROUP_SAVE_STATS = { batches:0, actions:0, failed:0, lastMs:0, maxMs:0, ma
 function _joinBatch(undo, ids, pieces){   // v1037: ids = the players this action changed (its receipts' owners too); none given = save everything (v1127: pieces = the shared systems it changed; none given = compare them all)
   if(!_batchOpen){ let resolve; const promise=new Promise(r=>{ resolve=r; }); _batchOpen={ promise, resolve, undos:[], actions:0, all:false, ids:new Set(), pieces:new Set(), piecesAll:false }; }
   if(undo) _batchOpen.undos.push(undo);
-  if(Array.isArray(ids)){ for(const id of ids) if(typeof id==='string'&&id) _batchOpen.ids.add(id); } else _batchOpen.all=true;
+  if(Array.isArray(ids)){ for(const id of ids) if(typeof id==='string'&&id) _batchOpen.ids.add(id); } else { _batchOpen.all=true; if(FULL_TRACE) _traceFull(); }
   if(Array.isArray(pieces)||pieces instanceof Set){ for(const k of pieces) if(typeof k==='string'&&k) _batchOpen.pieces.add(k); } else _batchOpen.piecesAll=true;
   _batchOpen.actions++;
   // SAVE GAP: after a save that took X ms the next one waits until X ms have passed, collecting every change meanwhile - under
@@ -3519,7 +3522,7 @@ function ensureLedger(u){
   led.stam.v=Math.max(0,Math.min(200,(sv.stamina|0)||60));
   if(!legacy){ led.gold=Math.max(led.gold, STARTER_GOLD); led.gems=Math.max(led.gems, STARTER_GEMS); }
   u.led=led;
-  ledTx(u, legacy?'migrate:legacy-save':'migrate:from-save', {gold:led.gold, gems:led.gems});
+  ledTx(u, legacy?'migrate:legacy-save':'migrate:from-save', {gold:led.gold, gems:led.gems}, true);   // v1185: a new ledger changes this player only
   // an implausible opening balance is REPORTED, not reversed — a human decides
   if(led.gems>SEED_REPORT_GEMS){
     devReport(u,'seed', led.gems, 'account seeded with '+led.gems+' diamonds from its uploaded save');
@@ -4110,9 +4113,12 @@ function campaignHeroSpec(u,key){
    becomes real. Before this, a crash inside the 200 ms debounce could drop a reward, a spend, or the
    idempotency receipt that stops a retry being paid twice. The cost is one synchronous write per
    transaction; correctness of the ledger is worth more than that. */
-function ledTx(u,src,delta){ const led=u.led; const id=uid();
+function ledTx(u,src,delta,only){ const led=u.led; const id=uid();
   led.txs.push({id,t:Date.now(),src,d:delta}); if(led.txs.length>LEDGER_TX_KEEP) led.txs=led.txs.slice(-LEDGER_TX_KEEP);
-  led.rev++; writeDBNow(); return id; }
+  /* v1185 (S1 copy, 17 Oct: 18.7 FULL saves a minute at 500 players - every new account's first ledger was a whole-world save, a
+     whole new base + syncfs in the journal layout): `only` = this transaction changed this player alone - the save names it (plus
+     the request's own scope), never the whole world. Every other caller keeps the full save it had. */
+  led.rev++; if(only){ const sc=_saveIdsFor(null); writeDBNow(sc?sc.concat([u.id]):[u.id]); } else writeDBNow(); return id; }
 function ledPlayerLevel(led){ return d_levelForXP(led.px||0, D_TROOP_CUM); }
 /* v928 (Claude): publish a committed draft INTO the live account object instead of swapping the object. A request of the
    same player (or the defender) that is still in flight holds the live object; a swap left it writing to an orphan, so its
@@ -9985,7 +9991,7 @@ const server=http.createServer((req,res)=>{
      through the tunnel, the same guard as /internal/strain; counters only, no player data. /api/dev/save-stats stays the dev view. */
   if(p==='/internal/save-stats'){ const ra=String(req.socket.remoteAddress||'');
     if(!(ra==='127.0.0.1'||ra==='::1'||ra==='::ffff:127.0.0.1')||req.headers['cf-ray']||req.headers['cf-connecting-ip']||req.headers['x-forwarded-for']) return send(res,404,{error:'not found'});
-    return send(res,200,Object.assign({},GROUP_SAVE_STATS,{store:Object.assign({split:_store.split,layout:_store.layout},_store.stats)},{shed:{on:SHED.on}})); }
+    return send(res,200,Object.assign({},GROUP_SAVE_STATS,{store:Object.assign({split:_store.split,layout:_store.layout},_store.stats)},{shed:{on:SHED.on}},FULL_TRACE?{fullCallers:FULL_CALLERS}:{})); }
   if(p==='/sw.js') return serveFile(res,'sw.js','application/javascript',null,req);
   if(p==='/hero-profiles.js') return serveFile(res,'hero-profiles.js','application/javascript',null,req);
   if(p==='/hero-paths.js') return serveFile(res,'hero-paths.js','application/javascript',null,req);
