@@ -1,6 +1,6 @@
 'use strict';
-// v1197 Tolley's three Grok spell FX (Phil approved 17 Oct 2026) - tests/fixtures/tolley_fx_1197_before.json. undoTolleyFx1197(run) puts what live v1195
-// (625db3e7) had back in a loaded page - FX2_DEF tolley_green / tolley_blue / tolley_ult (the old plates), no tolley_blue_boom, Forge Strike / Chain Quench /
+// v1197 Tolley's three Grok spell FX (Phil approved 17 Oct 2026) - tests/fixtures/tolley_fx_1197_before.json. undoTolleyFx1197(run) puts what live v1196
+// (0605c5a1) had back in a loaded page - FX2_DEF tolley_green / tolley_blue / tolley_ult (the old plates), no tolley_blue_boom, Forge Strike / Chain Quench /
 // HERO_ULT_ART.tolley without their ownFx, no FX1123_WARM.tolley, no SKP_OWNFX tforge / tquench / tlforge - so the older FX, kit and whole-fight tests keep
 // testing what they were written for. Safe on any page. tests/test_tolley_fx_1197.js checks v1197 itself.
 const fs = require('fs'), path = require('path');

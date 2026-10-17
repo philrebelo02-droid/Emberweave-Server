@@ -3,7 +3,7 @@
  "patches": [
   {
    "ver": "0.95",
-   "releases": "v1183, v1184, v1186, v1187, v1188, v1189, v1190, v1191, v1192, v1193, v1196",
+   "releases": "v1183, v1184, v1186, v1187, v1188, v1189, v1190, v1191, v1192, v1193, v1196, v1197",
    "items": [
     {
      "text": "Saving is much lighter with many players online: actions and fights answer faster, and new players joining no longer slow the server down.",
@@ -81,6 +81,12 @@
      "text": "All 60 heroes now have their own death animations: Korvux, Linnet, Lumi, Lysara Moonveil, Maren, Mellan, Meridian, Mirelle Velvetplum, Nerisse Bellglass, Nox Quillfinger, Oakmir, Orryn, Pellucid, Pyroclast, Quorrel, Rafe Marrow, Rhukk, Rivet, Seyla Silkcoil, Sloe, Sorrel, Tessit, Tharl Ironcoil, Tick, Tolley, Umbris, Vaelora Velvetclaw, Vesper, Veyr, Vulmar, Yenna Cacklefang and Zahri Sunhorn join today.",
      "sources": [
       "SHIPPED-v1196-hero-deaths-batches4-7-17-10-2026.md"
+     ]
+    },
+    {
+     "text": "New spell effects for Tolley's Forge Strike, Chain Quench and Living Forge: the molten hammer slams down on the target, his chains lash out to every enemy they pull before the quench bursts around him, and the Living Forge burns under his feet as he walks.",
+     "sources": [
+      "SHIPPED-v1197-tolley-spell-fx-17-10-2026.md"
      ]
     }
    ]
