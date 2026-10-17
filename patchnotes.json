@@ -1,7 +1,8 @@
 {
   "patches": [
     {"ver": "0.95", "date": "17 October 2026", "title": "Server safety", "items": [
-      "Server data safety improvements: a server that cannot read its saved world now stops safely instead of starting fresh, saves are fully written to disk before they count, and backups of real player progress are always kept."
+      "Server data safety improvements: a server that cannot read its saved world now stops safely instead of starting fresh, saves are fully written to disk before they count, and backups of real player progress are always kept.",
+      "Absalie, Aldren, Ambrel, Askel Greatbrow, Astra, Aureth, Bloatus and Brannus now have their own death animations."
     ]},
     {"ver": "0.94", "date": "16 October 2026", "title": "Pre-beta: music and the mute button", "items": [
       "The game now has music: ten songs each for the city, the maps, battles and Skyfall, shuffled with a soft crossfade.",

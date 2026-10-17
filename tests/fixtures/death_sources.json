@@ -45,7 +45,7 @@
   "plate": "magenta",
   "flip": false,
   "end": "hide",
-  "ver": "1199"
+  "ver": "1187"
  },
  {
   "key": "astra",
@@ -55,7 +55,7 @@
   "plate": "green",
   "flip": false,
   "end": "hide",
-  "ver": "1199"
+  "ver": "1187"
  },
  {
   "key": "aureth",
@@ -65,7 +65,7 @@
   "plate": "green",
   "flip": false,
   "end": "hide",
-  "ver": "1199"
+  "ver": "1187"
  },
  {
   "key": "bloatus",
@@ -75,7 +75,7 @@
   "plate": "magenta",
   "flip": false,
   "end": "hide",
-  "ver": "1199"
+  "ver": "1187"
  },
  {
   "key": "brannus",
@@ -85,7 +85,7 @@
   "plate": "green",
   "flip": false,
   "end": "hide",
-  "ver": "1199"
+  "ver": "1187"
  },
  {
   "key": "absalie",
@@ -95,7 +95,7 @@
   "plate": "green",
   "flip": false,
   "end": "hide",
-  "ver": "1199"
+  "ver": "1187"
  },
  {
   "key": "ambrel",
@@ -105,7 +105,7 @@
   "plate": "magenta",
   "flip": false,
   "end": "hold",
-  "ver": "1199"
+  "ver": "1187"
  },
  {
   "key": "askel",
@@ -115,6 +115,6 @@
   "plate": "magenta",
   "flip": true,
   "end": "hold",
-  "ver": "1199"
+  "ver": "1187"
  }
 ]
