@@ -190,7 +190,7 @@ try {
       /* v1154: the death wither on a trimmed sheet, forced (a dying unit is not always in the sample): half-way through the 0.9 s fade the quad
          grown by tc must be sprH*(1-0.45*0.5) tall, exactly the untrimmed quad (CONTROL: v1153's wither line, which ignores tc, fails it) */
       const wither = await P.pg.evaluate(() => { const u = units.find(x => { const A = x.anim && x.anim[x._animSt]; return x.alive && A && A._lay && A._lay.tc && A._lay.tc[3] < 0.999 && x._sprRef; }); if (!u) return null;
-        const A = u.anim[u._animSt], tc = A._lay.tc; u.alive = false; u.deathT = 0.45; syncMesh(u, 0); const spr = u._sprRef;
+        const A = u.anim[u._animSt], tc = A._lay.tc; const _dc = typeof DEATH_CLIPS !== 'undefined' ? DEATH_CLIPS.on : null; if (_dc !== null) DEATH_CLIPS.on = false; u._die = null; u.alive = false; u.deathT = 0.45; syncMesh(u, 0); if (_dc !== null) DEATH_CLIPS.on = _dc; const spr = u._sprRef;   /* v1187: the FADE is checked here - a hero's death clip (v1182) would draw instead */
         return { k: u.key, st: u._animSt, tc3: tc[3], dh: spr.scale.y / tc[3] - Math.max(.01, u.sprH * (1 - 0.5 * 0.45)) }; });
       ck('a dying unit on a trimmed sheet withers exactly like the untrimmed quad (' + (wither && (wither.k + ' ' + wither.st + ', tc h ' + wither.tc3.toFixed(3))) + ')', !!wither && Math.abs(wither.dh) < 1e-6, JSON.stringify(wither));
       ck('a trimmed sprite\'s quad, grown by tc, is exactly the logical cell the untrimmed sheet draws - same anchor, both facings (' + place.length + ' sprites)', place.length >= 2 && place.every(p => Math.abs(p.dl) < 1e-6 && Math.abs(p.db) < 1e-6 && Math.abs(p.dw) < 1e-6 && Math.abs(p.dh) < 1e-6), JSON.stringify(place.slice(0, 2)));
