@@ -233,6 +233,8 @@ note "test_world_load_guard_1183.js (v1183: a world that will not load never bec
 node tests/test_world_load_guard_1183.js || FAILED=1
 note "test_world_guard_layouts_1185.js (v1185: the v1183 guard in the pieces / journal layouts - flush before every manifest swap, journal lines fsynced, one .m copy, recover from .m and from the files alone with a folded journal left over; pre-guard control)"
 node tests/test_world_guard_layouts_1185.js || FAILED=1
+note "test_ledger_partial_1185.js (v1185: a new account's first ledger saves that player, not the whole world - 0 full saves for ten new accounts, all on disk after a hard kill; 18bdade2 control makes one full save each)"
+node tests/test_ledger_partial_1185.js || FAILED=1
 note "test_save_partial.js (v1124: campaign start+resolve and the other per-player routes save only their player's shard; an id-less writeDB stays full; two players + the shared world survive a hard kill; restart keeps progress; v1123 control)"
 node tests/test_save_partial.js || FAILED=1
 note "test_map_delta.js (v1124: world map deltas - no teams in the list, only changed castles since the client's rev, gone list, team on tap, new epoch after a restart; v1127: the whole-map list is refused, 59eaefba control)"
