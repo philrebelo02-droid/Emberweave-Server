@@ -113,10 +113,33 @@ function pgSave(){ if(PG_BOOT_PENDING) return;   // v327: never UPSERT the pre-r
 /* v1037 PER-PLAYER STORAGE (server/world-store.js). DB_STORE=split: the world file is a manifest + 512 player shard files and a
    save writes only the shards whose players changed; without it the one-file world is read and written exactly as before. */
 const _store=require('./server/world-store.js').create(DB_FILE,{split:process.env.DB_STORE==='split',verify:process.env.DB_STORE_VERIFY==='1'});
+const _safety=require('./server/world-safety.js');   // v1183: world-load guard, durable writes, pinned backup, push guard
 const STORE_SWEEP_MS=Math.max(1000,+process.env.DB_STORE_SWEEP_MS||30000);   // partial saves: a full save at least this often
-function readDB(){ try{ DB=_store.load(); }catch(e){
+/* v1183 WORLD-LOAD GUARD (16 Oct 2026). A world that does not load used to become an EMPTY world: a power cut left a NUL manifest,
+   the boot caught the parse error, seeded 5000 NPCs and saved them over the manifest, and the hourly backups rotated the good
+   world out. Now a load error is fatal unless this is a brand-new install (world-safety.js freshInstall: no world file, no shard
+   files, no manifest copies, no backups, no side files). Nothing is written before the exit; the shards stay for
+   `node server/world-store.js recover <DB_FILE>`. With DATABASE_URL the decision waits for PostgreSQL (bootFinish). */
+var _DB_LOAD_FAILED=null;
+function _worldLoadRefusal(e, ev){
+  console.error('==================== WORLD DID NOT LOAD - REFUSING TO START ====================');
+  console.error('world file: '+DB_FILE+(_store.split?' (split store)':' (one file)'));
+  console.error('load error: '+(e&&e.code?e.code+' ':'')+(e&&e.message||e));
+  for(const x of (ev||[])) console.error('existing world: '+x);
+  console.error('Nothing was written. An empty world will NOT be started over existing data.');
+  console.error('Recover: stop the service, then  node server/world-store.js recover '+DB_FILE+'   (dry run; add --write), or restore a backup from '+path.join(path.dirname(DB_FILE),'backups'));
+  console.error('================================================================================='); }
+function readDB(){ try{ DB=_store.load();
+    if(!_safety.isWorld(DB)){ const e=Error('the world file parsed but holds no players table'); e.code='NOT_A_WORLD'; throw e; } }
+  catch(e){
     if(e&&e.code==='SHARD_MISSING'){ console.error(''+e.message+' - refusing to start rather than run a world with players missing.'); process.exit(1); }
-    DB={users:{},byName:{},tokens:{},seeded:false}; }
+    const fi=_safety.freshInstall(DB_FILE);
+    DB={users:{},byName:{},tokens:{},seeded:false};
+    if(fi.fresh){ if(!(e&&e.code==='ENOENT')){ _DB_LOAD_FAILED=e; _worldLoadRefusal(e,['(no other trace of a world, but the world file could not be read: '+(e&&e.code)+')']); process.exit(1); }
+      console.log('world store: brand-new install (no world, no shards, no backups at '+path.dirname(DB_FILE)+') - starting a new world'); return; }
+    _DB_LOAD_FAILED=e; _worldLoadRefusal(e, fi.evidence);
+    if(!process.env.DATABASE_URL) process.exit(1);
+    console.error('DATABASE_URL is set: waiting for PostgreSQL - the boot continues ONLY if it holds a world.'); return; }
   if(_store.split){ const n=_store.sweepOrphans(); if(n) console.log('world store: removed '+n+' uncommitted shard file(s)'); } }
 /* HERO-ID RENAME (v926, Phil 01OCT2026; v929 audit extension): old concept keys -> in-game-name keys.
    tallow->gruel, vharn->korvux, fathom->maren, sprocket->rivet, sablewick->tessit,
@@ -175,8 +198,12 @@ function worldPlanningDB(){return _worldSettlementPlanning?.db||DB;}
 function saveDB(snapshot,suffix='.tmp'){
   // The sole local whole-snapshot writer. Callers own boot checks/error policy/PG.
   if(typeof suffix!=='string'||!/^\.[a-z0-9.-]+\.tmp$/.test(suffix)&&suffix!=='.tmp')throw Error('Invalid DB temporary suffix');   // '.group.tmp' (v1036) matches
+  if(typeof _DB_LOAD_FAILED!=='undefined'&&_DB_LOAD_FAILED) throw Error('the world did not load - refusing to save over it');   // v1183: belt and braces for the load guard
   if(typeof _store!=='undefined'&&_store.split){ _store.write(snapshot,null); _pendingFull=false; return; }   /* typeof: the span tests run saveDB alone */   // v1037: every shard + the manifest, one atomic swap
-  const tmp=DB_FILE+suffix;fs.writeFileSync(tmp,JSON.stringify(snapshot));fs.renameSync(tmp,DB_FILE);
+  const tmp=DB_FILE+suffix;fs.writeFileSync(tmp,JSON.stringify(snapshot));
+  if(typeof _safety!=='undefined'&&process.env.DB_FSYNC!=='0'){ _safety.fsyncFile(tmp); _safety.fsyncDir(path.dirname(DB_FILE)); }   // v1183: on the disk before the swap
+  fs.renameSync(tmp,DB_FILE);
+  if(typeof _safety!=='undefined'&&process.env.DB_FSYNC!=='0') _safety.fsyncDir(path.dirname(DB_FILE));   // v1183: ... and the swap itself
   _pendingFull=false;
 }
 var _pendingFull=false;   /* v1037: a generic writeDB() is waiting (or was absorbed into a group save) - its change names no players */
@@ -225,7 +252,7 @@ function _runBatch(){
   if(ms>GROUP_SAVE_STATS.maxMs) GROUP_SAVE_STATS.maxMs=ms;
   b.resolve(true); try{ pgSave(); }catch(e){}
   if(!all && Date.now()-_store.stats.lastFullAt>STORE_SWEEP_MS) writeDB(); }   // v1037: changes no action declared (presence) reach disk too
-function writeDBSync(){ try{ if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; } saveDB(DB); return true; }catch(e){ console.error('DB write failed:', e.message); return false; } }   // v1036: exit paths
+function writeDBSync(){ if(_DB_LOAD_FAILED) return false; try{ if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; } saveDB(DB); return true; }catch(e){ console.error('DB write failed:', e.message); return false; } }   // v1036: exit paths
 process.on('SIGTERM',()=>{ if(!PG_BOOT_PENDING && _booted) writeDBSync(); process.exit(0); });   // v1036: a restart keeps the last debounced changes
 
 /* ------------------------------- helpers ---------------------------------- */
@@ -719,9 +746,12 @@ function sanitizeSave(u, roster){
   }
   roster.__save=JSON.stringify(g); return roster; }
 // rotating hourly DB backups (kept alongside the db file)
-function backupDB(){ try{ const dir=path.join(path.dirname(DB_FILE),'backups'); fs.mkdirSync(dir,{recursive:true});
-  const stamp=new Date().toISOString().replace(/[:.]/g,'-'); fs.writeFileSync(path.join(dir,'db-'+stamp+'.json'), JSON.stringify(DB));
-  const files=fs.readdirSync(dir).filter(f=>f.startsWith('db-')).sort(); while(files.length>48){ try{ fs.unlinkSync(path.join(dir,files.shift())); }catch(e){} }
+/* v1183: written temp + fsync + rename; the newest 48 kept by MTIME (not by name); backups/pinned-last-real.json keeps the last
+   world with real players (no NPCs, guests or LT- test accounts) and is never rotated, never replaced by a world with 0 real
+   players or with less than half of the pinned count (world-safety.js backupWorld). */
+function backupDB(){ if(_DB_LOAD_FAILED) return; try{
+  const r=_safety.backupWorld(DB, DB_FILE, { keep:Math.max(2,+process.env.BACKUP_KEEP||48) });
+  if(!r.pinned) console.error('backup '+r.name+': NOT pinned - '+r.pinWhy+' (pinned backup keeps '+r.pinnedReal+' real players)');
 }catch(e){ console.error('backup failed:', e.message); } }
 
 // off-site backup: push the whole DB to a private GitHub repo.
@@ -729,6 +759,10 @@ function backupDB(){ try{ const dir=path.join(path.dirname(DB_FILE),'backups'); 
 async function pushBackupToGitHub(){
   const token=process.env.GITHUB_BACKUP_TOKEN, repo=process.env.GITHUB_BACKUP_REPO;
   if(!token || !repo) return;
+  if(typeof _DB_LOAD_FAILED!=='undefined'&&_DB_LOAD_FAILED) return;
+  /* v1183: never push an empty or gutted world over the off-site history - 0 real players, or less than half the pinned backup's */
+  const _pm=_safety.readPinMeta(path.join(path.dirname(DB_FILE),'backups')), _pv=_safety.pushVerdict(_safety.realPlayerCount(DB), _pm?_pm.real:0);
+  if(!_pv.push){ console.error('off-site backup SKIPPED: '+_pv.why); return; }
   try{
     const iso=new Date().toISOString();
     const ts=iso.slice(0,10)+'_'+iso.slice(11,13)+iso.slice(14,16); // YYYY-MM-DD_HHMM (UTC)
@@ -9575,7 +9609,9 @@ const BOOT_FILE_M=(function(){ try{ return fs.statSync(DB_FILE).mtimeMs; }catch(
    DB_FILE — got.mtime>fileM was never true, and that same write UPSERTed the empty seed over the saved
    world. Everything that persists is now suppressed until the restore decision lands, the mtime is
    sampled once up front, and seed()/backupDB()/listen happen exactly once, afterwards. */
-function bootFinish(){ if(_booted) return; _booted=true; PG_BOOT_PENDING=false;
+function bootFinish(){ if(_booted) return;
+  if(_DB_LOAD_FAILED){ _worldLoadRefusal(_DB_LOAD_FAILED,['PostgreSQL had no world to restore either']); process.exit(1); }   // v1183: never seed over a world that did not load
+  _booted=true; PG_BOOT_PENDING=false;
   seed(); migrateAdminRoles(); migrateTokenHashes(); migrateDeviceKeys(); migrateHeroKeys1023();   /* v1023: first, so every later migration sees the new keys */ migrateTankGlyphPath();   /* v1019 */ migrateGlyphPaths1022();   /* v1022 */ migrateGlyphDefenseAv2();   /* Academy v2 */   // stamp role:admin from ADMIN_IDS; hash any plaintext tokens (v241: the Vault, like the Campaign, refuses to boot without its authored table)
   migrateLegacyFeedback();
   migrateBlockedWorldCastles();
@@ -9585,13 +9621,13 @@ function bootFinish(){ if(_booted) return; _booted=true; PG_BOOT_PENDING=false;
     setTimeout(pushBackupToGitHub, 30000); setInterval(pushBackupToGitHub, 6*60*60*1000);   // off-site GitHub backup: ~30s after boot, then every 6h (no-op unless GITHUB_BACKUP_TOKEN + GITHUB_BACKUP_REPO are set)
   const realAccts=Object.values(DB.users).filter(u=>!u.isNpc).length;
   console.log('DB file: '+DB_FILE+'  '+(DB_PERSISTENT?'(persistent)':'(EPHEMERAL — accounts WILL be wiped on redeploy! Add a Railway Volume mounted at /data, or set DB_FILE to a volume path.)'));
-  console.log('Player accounts loaded: '+realAccts);
+  console.log('Player accounts loaded: '+realAccts+' (real players: '+_safety.realPlayerCount(DB)+')');
   server.listen(PORT,()=>{ setImmediate(()=>{ try{ simPool(); }catch(e){} try{ frontDecider(); }catch(e){ console.error('new-player placement off:', e.message); } });   // v1130: the placement polls from boot, so its first answer has every server's count   // v1036: battle workers load at boot, ready before the first fight
     console.log('Emberweave cloud server on http://localhost:'+PORT); console.log('   Seeded '+Object.keys(DB.users).filter(id=>DB.users[id].isNpc).length+' NPC cities · live PvP '+(WSS?'ON':'off')+'. Open the URL to play / install the app.'); });
 }
 if(PG){ PG_BOOT_PENDING=true;   // nothing writes to disk or PG, and the port stays closed, until this resolves
   (async()=>{ try{ await pgSetup(); const got=await pgLoad();
-    if(got && got.mtime>BOOT_FILE_M){ DB=got.db; console.log('World state loaded from PostgreSQL (newer than the file mirror).'); }
+    if(got && _safety.isWorld(got.db) && (_DB_LOAD_FAILED || got.mtime>BOOT_FILE_M)){ DB=got.db; if(_DB_LOAD_FAILED){ _DB_LOAD_FAILED=null; _bootDirty=true; console.error('World file did not load - the world was restored from PostgreSQL.'); } else console.log('World state loaded from PostgreSQL (newer than the file mirror).'); }
     else { _bootDirty=true; console.log(got===null?'PostgreSQL seeded from the current world state.':'File mirror is newer than PostgreSQL — keeping the file and re-publishing it.'); }
   }catch(e){ console.error('PG boot failed ('+e.message+') — continuing on the JSON file.'); }
     bootFinish(); })();

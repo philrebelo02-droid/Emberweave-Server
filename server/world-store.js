@@ -11,6 +11,7 @@
    Without DB_STORE=split the server reads and writes the one-file world exactly as before. Either mode reads either format, so
    switching back is one restart (the next save writes the other format). */
 const fs = require('fs'), path = require('path');
+const SAFE = require('./world-safety.js');   // v1183: fsync helpers + the recover tool
 const SHARDS = 512, FORMAT = 'split-v1';   // 512: a war batch touching ~40 players rewrites ~8% of the world, not a third
 
 function shardOf(id) {   // FNV-1a over the id - stable across restarts and Node versions
@@ -22,9 +23,10 @@ function ownerOf(key) { const i = String(key).indexOf(':'); return i > 0 ? key.s
 
 function create(file, opts) {
   opts = opts || {};
-  const dir = file + '.d';
-  const st = { split: !!opts.split, verify: !!opts.verify, gen: 0, names: null, last: null,
-    stats: { full: 0, partial: 0, shardsWritten: 0, lastMs: 0, lastShards: 0, lastFullAt: 0, undeclared: 0, undeclaredIds: [] } };
+  const dir = file + '.d', mdir = file + '.m';   // v1183: .m holds a hard link to the committed manifest (recover reads it)
+  const sync = opts.fsync !== false && process.env.DB_FSYNC !== '0';   // v1183: durable saves (DB_FSYNC=0 only for dev timing runs)
+  const st = { split: !!opts.split, verify: !!opts.verify, gen: 0, names: null, last: null, manCopy: null,
+    stats: { full: 0, partial: 0, shardsWritten: 0, lastMs: 0, lastShards: 0, lastFullAt: 0, undeclared: 0, undeclaredIds: [], lastSyncMs: 0, durable: sync } };
   const idShard = new Map();
   const sh = id => { let s = idShard.get(id); if (s === undefined) { s = shardOf(id); if (idShard.size > 500000) idShard.clear(); idShard.set(id, s); } return s; };
 
@@ -56,7 +58,7 @@ function create(file, opts) {
       catch (err) { const e = Error('world store: shard file ' + name + ' unreadable (' + err.message + ')'); e.code = 'SHARD_MISSING'; throw e; }
       Object.assign(db.users, p.users || {}); Object.assign(idem, p.idem || {});
     }
-    db.idem = idem; st.gen = raw.gen | 0; st.names = count === SHARDS ? Object.assign({}, raw.shards) : null;
+    db.idem = idem; st.gen = raw.gen | 0; st.manCopy = 'manifest-' + st.gen + '.json'; st.names = count === SHARDS ? Object.assign({}, raw.shards) : null;
     st.stats.lastFullAt = Date.now();   // what is on disk is the whole world: the sweep clock starts here
     return db;
   }
@@ -66,6 +68,7 @@ function create(file, opts) {
     if (!st.names) return 0; const keep = new Set(Object.values(st.names)); let n = 0;
     let files = []; try { files = fs.readdirSync(dir); } catch (e) { return 0; }
     for (const f of files) if (/^\d+-\d+\.json$/.test(f) && !keep.has(f)) { try { fs.unlinkSync(path.join(dir, f)); n++; } catch (e) {} }
+    try { for (const f of fs.readdirSync(mdir)) if (/^manifest-\d+\.json$/.test(f) && f !== st.manCopy) { try { fs.unlinkSync(path.join(mdir, f)); } catch (e) {} } } catch (e) {}   // v1183: copies of saves that never committed
     return n;
   }
 
@@ -78,21 +81,31 @@ function create(file, opts) {
     const { parts, core } = split(db, want);
     const gen = ++st.gen, names = Object.assign({}, st.names || {}), fresh = [], strs = st.verify ? new Map() : null;
     fs.mkdirSync(dir, { recursive: true });
+    const manCopy = 'manifest-' + gen + '.json'; let linked = false;
     try {
       for (const [s, p] of parts) {
-        const name = s + '-' + gen + '.json', str = JSON.stringify(p);
-        fs.writeFileSync(path.join(dir, name), str); fresh.push(name); names[s] = name;
+        const name = s + '-' + gen + '.json', str = JSON.stringify(p), fp = path.join(dir, name);
+        fs.writeFileSync(fp, str); fresh.push(name); names[s] = name;
         if (strs) strs.set(s, str);
       }
-      const tmp = file + '.store.tmp';
+      const tmp = file + '.store.tmp', parent = path.dirname(file);
       fs.writeFileSync(tmp, JSON.stringify({ __store: FORMAT, gen, count: SHARDS, shards: names, core }));
+      // v1183: a second name for this manifest in .m (a hard link: no extra bytes) - `recover` rebuilds from it if the world file is ever damaged
+      try { fs.mkdirSync(mdir, { recursive: true }); try { fs.unlinkSync(path.join(mdir, manCopy)); } catch (e) {} fs.linkSync(tmp, path.join(mdir, manCopy)); linked = true; } catch (e) {}
+      // v1183: every new shard, the new manifest and their names are on the disk BEFORE the swap - one filesystem flush (syncfs via
+      // `sync -f`, ~15-200 ms on the cluster SSDs) instead of one fsync per file (512 fsyncs = 5-20 s on the same disks, measured)
+      if (sync) { const s0 = Date.now(); SAFE.flushBatch(fresh.map(f => path.join(dir, f)).concat([tmp]), linked ? [dir, mdir, parent] : [dir, parent], dir); st.stats.lastSyncMs = Date.now() - s0; }
       fs.renameSync(tmp, file);
+      if (sync) SAFE.fsyncDir(parent);   // ... and the swap itself
     } catch (e) {
       for (const f of fresh) { try { fs.unlinkSync(path.join(dir, f)); } catch (e2) {} }
+      if (linked) { try { fs.unlinkSync(path.join(mdir, manCopy)); } catch (e2) {} }
       throw e;
     }
     const old = st.names || {};
     for (const s of Object.keys(names)) if (old[s] && old[s] !== names[s]) { try { fs.unlinkSync(path.join(dir, old[s])); } catch (e) {} }
+    if (st.manCopy && st.manCopy !== manCopy) { try { fs.unlinkSync(path.join(mdir, st.manCopy)); } catch (e) {} }
+    st.manCopy = linked ? manCopy : null;
     st.names = names;
     const ms = Date.now() - t0, S = st.stats;
     if (full) { S.full++; S.lastFullAt = Date.now(); } else S.partial++;
@@ -131,15 +144,26 @@ function create(file, opts) {
 function readWorld(file) { return create(file).load(); }
 function writeWorld(file, db) {
   let isSplit = false; try { isSplit = JSON.parse(fs.readFileSync(file, 'utf8')).__store === FORMAT; } catch (e) {}
-  if (!isSplit) { const tmp = file + '.tool.tmp'; fs.writeFileSync(tmp, JSON.stringify(db)); fs.renameSync(tmp, file); return; }
+  if (!isSplit) { SAFE.writeAtomic(file, JSON.stringify(db), '.tool.tmp'); return; }   // v1183: fsync + rename + fsync dir
   const s = create(file, { split: true }); s.load(); s.write(db, null);
 }
 
 module.exports = { create, readWorld, writeWorld, shardOf, ownerOf, SHARDS, FORMAT };
 
 // CLI: node server/world-store.js export <DB_FILE> <out.json>   - the whole world as one plain JSON file (either format)
+//      node server/world-store.js recover <DB_FILE> [--write] [--core <backup.json>]   - v1183: rebuild a damaged/missing manifest
+//        from <DB_FILE>.m (exact) or the shard files in <DB_FILE>.d (+ the shared world from the newest backup). DRY RUN without
+//        --write; with it the old world file and unused shard files are moved aside, never deleted. Stop the game first.
 if (require.main === module) {
-  const [cmd, a, b] = process.argv.slice(2);
+  const args = process.argv.slice(2), [cmd, a, b] = args;
   if (cmd === 'export' && a && b) { fs.writeFileSync(b, JSON.stringify(readWorld(a))); console.log('exported ' + a + ' -> ' + b); }
-  else { console.log('usage: node server/world-store.js export <DB_FILE> <out.json>'); process.exitCode = 1; }
+  else if (cmd === 'recover' && a) {
+    const ci = args.indexOf('--core'), r = SAFE.recover(a, { write: args.includes('--write'), core: ci > 0 ? args[ci + 1] : null });
+    console.log(JSON.stringify(r, null, 2));
+    if (r.error) { console.error('recover: ' + r.error); process.exitCode = 2; }
+    else if (!r.wrote) console.log('recover: DRY RUN - nothing written. Add --write (game stopped) to write this manifest.');
+    else if (!r.verified) { console.error('recover: the written world did not read back the same'); process.exitCode = 3; }
+    else console.log('recover: manifest written and verified (' + r.players + ' players, ' + r.realPlayers + ' real).');
+  }
+  else { console.log('usage: node server/world-store.js export <DB_FILE> <out.json> | recover <DB_FILE> [--write] [--core <backup.json>]'); process.exitCode = 1; }
 }

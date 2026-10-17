@@ -2,6 +2,18 @@
  "note": "Each draft item mapped to the SHIPPED note(s) in Emberweave Archive/Operating procedure/SHIPPED it came from.",
  "patches": [
   {
+   "ver": "0.95",
+   "releases": "v1183",
+   "items": [
+    {
+     "text": "Server data safety improvements: a server that cannot read its saved world now stops safely instead of starting fresh, saves are fully written to disk before they count, and backups of real player progress are always kept.",
+     "sources": [
+      "SHIPPED-v1183-world-load-guard-17-10-2026.md"
+     ]
+    }
+   ]
+  },
+  {
    "ver": "0.94",
    "releases": "v1159-v1166, v1169, v1171, v1173, v1174, v1175, v1176, v1178, v1180, v1181, v1182 (v1167 wall step and its v1170 undo left out: no net change)",
    "items": [
