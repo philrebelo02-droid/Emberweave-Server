@@ -4252,7 +4252,7 @@ BATTLE_ANIM.aureth.attack=BATTLE_ANIM.aureth.attackLight;
    they have arrived fades exactly as before (the fallback). RELEASED as soon as that hero's last running death ends (deathRelease), and with the fight's art. */
 const DEATH_CLIPS={on:true, hp:0.30, gpuMB:1990, stall:3};   /* gpuMB: a phone starts a death only while the REAL GPU total (texTallyMB) + the most it will hold (two sheets) stays under this (budget 2048) */
 let _corpses=[];   /* render-owned: a dead ENEMY's body after the fight removed it at 0.9 s, while its death clip plays (updateBattle / applyState hand the mesh over) */
-/* v1189 STREAMING (blueprint 18): a death is cut into sheets of at most 8 cells (1 s each at 8 fps). Under 30% hp only the FIRST sheet is decoded and put
+/* v1189 STREAMING (blueprint 18): a death is cut into sheets of at most 4 cells (0.5 s each at 8 fps). Under 30% hp only the FIRST sheet is decoded and put
    on the GPU (the other sheets' compressed bytes are fetched into the browser cache - nothing decoded); while sheet k plays sheet k+1 decodes and uploads,
    and sheet k is freed the moment its last cell has shown. A playing death holds at most TWO sheets (a held body, end:'hold', only its last). A sheet that
    is late holds the last cell shown (display only; DEATH_CLIPS.stall s at most, then the body fades out) - never idle, never a skipped cell. */

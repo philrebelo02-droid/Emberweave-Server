@@ -331,7 +331,7 @@ try {
             if (/^death\d*$/.test(st)) { (dp[k] = dp[k] || [])[st === 'death' ? 0 : +st.slice(5) - 1] = m; continue; }
             per[k] = (per[k] || 0) + m; } }
           for (const k in dp) { const a = dp[k]; let m = a[0] || 0; for (let i = 0; i + 1 < a.length; i++) m = Math.max(m, (a[i] || 0) + (a[i + 1] || 0)); per[k] = (per[k] || 0) + m; }
-          return Object.keys(per).sort((a, b) => per[b] - per[a]).slice(0, 10); });
+          return Object.keys(per).sort((a, b) => per[b] - per[a]).slice(0, 10); }).then(t => process.env.EW_WORST ? process.env.EW_WORST.split(',') : t);   /* EW_WORST=k1,..,k10: measure another ten */
         await pg.evaluate(() => { window.requestAnimationFrame = window.__raf0; requestAnimationFrame(loop); }); await pg.waitForTimeout(1200);
         await pg.evaluate(() => { try { document.getElementById('resultBtn').click(); } catch (e) {} }); await pg.waitForTimeout(800);
         await pg.evaluate(() => show('home')); await pg.waitForTimeout(2500);
