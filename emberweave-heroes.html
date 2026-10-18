@@ -10292,7 +10292,7 @@ function sndUnlock(){ try{
 function sndPrimeHero(key){ try{ if(typeof sfxPrimeHero==='function') sfxPrimeHero(key); }catch(e){} try{ if(!HERO_ULT_VOICES||!key||!SND.ctx||window._p2guard||!SND.cfg.voice.on) return;   /* v1127: ult lines off - nothing to prime */
   for(let i=1;i<=3;i++) (AUDIO_MAP['hero.'+key+'.ult.'+i]||[]).forEach(l=>sndLoad(l.f)); }catch(e){} }
 try{ if(typeof document!=='undefined'&&document.addEventListener) ['pointerdown','touchend','keydown'].forEach(ev=>document.addEventListener(ev,sndUnlock,{passive:true})); }catch(e){}
-function sndPlay(key,gapMs){ if(!sndCan()) return false; const ch=sndCh(key); if(!SND.cfg[ch].on) return false; const L=AUDIO_MAP[key]; if(!L||!L.length||!SND.ctx||SND.ctx.state!=='running') return false;
+function sndPlay(key,gapMs){ if(!sndCan()||splashOn()) return false;   /* v1197: the splash is silent */ const ch=sndCh(key); if(!SND.cfg[ch].on) return false; const L=AUDIO_MAP[key]; if(!L||!L.length||!SND.ctx||SND.ctx.state!=='running') return false;
   const now=performance.now(); if(SND.last[key]!=null && now-SND.last[key]<(gapMs||80)) return false; if(SND.live>=8) return false; SND.last[key]=now;
   L.forEach(l=>{ const go=b=>{ if(!b||!SND.ctx||performance.now()-now>400) return; try{ const src=SND.ctx.createBufferSource(), g=SND.ctx.createGain();
       src.buffer=b; g.gain.value=(l.vol!=null?l.vol:1); src.connect(g); g.connect(SND.bus[ch]||SND.out); SND.live++; src.onended=()=>{ SND.live=Math.max(0,SND.live-1); }; src.start(); }catch(e){} };
@@ -10407,7 +10407,7 @@ function sfxRelease(){ try{ const drop=new Set();
     let n=0; for(const f in SND.buf){ if(drop.has(f)){ delete SND.buf[f]; n++; } } SFX.want={}; return n; }catch(e){ return 0; } }
 /* play file `name` so its peak sounds at audio time peakAt (o.fromStart: the file starts at peakAt). Returns the source or null.
    Noise control: a basic attack yields first (no attack sound once SFX_ATK_LIVE sounds are running), a spell gets up to SFX_MAXLIVE. */
-function sfxPlay(name,peakAt,o){ o=o||{}; const F=SFX_DATA.files[name]; if(!F||!SND.ctx) return null; const f=F[0], pk=o.fromStart?0:(+F[1]||0);
+function sfxPlay(name,peakAt,o){ o=o||{}; const F=SFX_DATA.files[name]; if(!F||!SND.ctx||splashOn()) return null;   /* v1197: the splash is silent */ const f=F[0], pk=o.fromStart?0:(+F[1]||0);
   const b=SND.buf[f]; if(!b){ if(b!==null) sndLoad(f); sfxNote('miss',{name}); return null; }
   const ctx=SND.ctx, now=ctx.currentTime, rate=o.rate||1; let st=peakAt-pk/rate, off=0;   /* v1165: a fused swing played at `rate` reaches its peak in pk/rate */
   if(st<now){ off=(now-st)*rate; st=now; }   // its lead-in is already past: enter the file so the peak still lands on the moment (buffer seconds)
@@ -10545,6 +10545,11 @@ function loreToggle(key,btn){ try{
    FX, Music and Voices) goes to 0 and the lore narration element is muted. The FX/Music/Voices settings in SND.cfg are never touched, so
    unmuting gives back exactly what Settings had. Kept on this device (ew_mute) and read here, before any sound can play. Render only -
    never touches battle state or the seeded RNG. */
+/* v1197 (Phil 17 Oct: "Remove the mute button from load screen, make it no volume on this screen"): while the first splash (#rotateGate: the key art,
+   the logo, the studio + build bottom-left, Online bottom-right) shows, the game is SILENT - no music (musOK), no sound effect or voice (sndPlay, sfxPlay) -
+   and the mute button is hidden (muteBtnPlaceNow). The player's own mute / volume settings are never touched: the splash is simply quiet, and the
+   button and the music come back on the next screen (the gate's own style change re-places the button; the music tick starts the music). */
+function splashOn(){ try{ if(typeof HTMLElement==='undefined') return false; const g=document.getElementById('rotateGate'); if(!(g instanceof HTMLElement)||g.style.display==='none') return false;   /* a real page only (the server replay has no DOM) */ const cs=getComputedStyle(g); return cs.display!=='none'&&cs.visibility!=='hidden'; }catch(e){ return false; } }
 const SND_MUTE = { on:false };
 try{ SND_MUTE.on = localStorage.getItem('ew_mute')==='1'; }catch(e){}
 function sndMuteApply(){ const on=SND_MUTE.on;
@@ -10596,7 +10601,7 @@ function muteCloseX(){ const vw=window.innerWidth, vh=window.innerHeight; let be
 const MUTE_SIG = { s:'', verify:0, verify2:0, k:0 };
 function _muteSig(){ let pop=''; try{ pop=_popout||''; }catch(e){}
   let open=''; try{ for(const e of document.querySelectorAll('.active,.open,.popout')) open+=(e.id||e.className)+';'; }catch(e){}
-  return ((typeof state!=='undefined'&&state)||'')+'|'+pop+'|'+window.innerWidth+'x'+window.innerHeight+'|'+(document.body?document.body.childElementCount+'|'+document.body.className:'')+'|'+open; }
+  return ((typeof state!=='undefined'&&state)||'')+'|'+(splashOn()?'splash':'')+'|'+pop+'|'+window.innerWidth+'x'+window.innerHeight+'|'+(document.body?document.body.childElementCount+'|'+document.body.className:'')+'|'+open; }
 /* force: true = measure again (resize, fonts, the timed re-checks); 'dom' = content was added next to the button - at most 3 per window */
 function muteBtnPlace(force){ try{ const b=document.getElementById('muteBtn'), sig=_muteSig(), same=sig===MUTE_SIG.s&&b&&b.isConnected;
     if(same&&!force) return;   // nothing it depends on changed: no work at all
@@ -10626,6 +10631,8 @@ const MUTE_UNDER = { campaign:'#campGlossBtn', menu:'#glossaryBtn', wall:'#wall>
 const MUTE_LISTED = ['home','result','temple','wishing','forge','guild','arena','arenaShop','market','shadymarket','dungeon','elite','quest','signin','mail',
   'tech','world','skyisland','rankings','glossary','watchtower','account','online','heroesPanel','heroDetail','bag','settings','tutorial','campaign','menu','wall','skyfall','battle'];
 function muteBtnPlaceNow(){ try{ let b=document.getElementById('muteBtn'); if(!b){ muteBtnMake(); b=document.getElementById('muteBtn'); } if(!b) return;
+    if(splashOn()){ b.style.display='none'; b.dataset.why='splash'; MUTE_DBG.last={ why:'splash', x:0, y:0, s:0, ms:0, st:(typeof state!=='undefined'&&state)||'' }; return; }   /* v1197: no mute button on the splash */
+    if(b.style.display==='none'&&b.dataset.why==='splash') b.style.display='';
     const vw=window.innerWidth||document.documentElement.clientWidth, vh=window.innerHeight||document.documentElement.clientHeight; if(!vw||!vh) return;
     const t0=(window.performance&&performance.now())||0, st=(typeof state!=='undefined'&&state)||'';
     const done=(why,x,y,s)=>{ MUTE_DBG.last={ why, x:Math.round(x), y:Math.round(y), s, ms:Math.round((((window.performance&&performance.now())||0)-t0)*10)/10, st }; };
@@ -10804,7 +10811,7 @@ const MUS = { pool:[], lanes:{}, cur:null, timer:0, hidden:false, held:[], log:[
 function musLog(x){ MUS.log.push(x); if(MUS.log.length>200) MUS.log.splice(0,MUS.log.length-200); }   /* the last 200 music events (the v1159 test reads them) */
 function musRand(n){ try{ const a=new Uint32Array(1); crypto.getRandomValues(a); return a[0]%n; }catch(e){ MUS._x=((MUS._x||(Date.now()>>>0)||1)*1103515245+12345)>>>0; return MUS._x%n; } }
 function musLane(name){ return MUS.lanes[name]||(MUS.lanes[name]={ name, slot:null, next:null, song:null, bag:[], last:-1, xf:false, seamT:0 }); }
-function musOK(){ try{ return !!(SND.ctx&&SND.bus&&SND.bus.music&&SND.cfg.music.on&&!window._p2guard&&!MUS.hidden); }catch(e){ return false; } }
+function musOK(){ try{ return !!(SND.ctx&&SND.bus&&SND.bus.music&&SND.cfg.music.on&&!window._p2guard&&!MUS.hidden&&!splashOn()); }catch(e){ return false; } }   /* v1197: no music on the splash - the 250 ms tick starts it once the splash is gone */
 /* where the game is, as a music setting - one rule covering every mode, no list of modes */
 function musSkyLive(){ try{ if(SKYSIM&&SKYSIM.running) return true; const m=SKY&&SKY.st&&SKY.st.match; return !!(m&&m.state==='live'); }catch(e){ return false; } }
 function musWant(){ try{ if(window._p2guard) return null;
