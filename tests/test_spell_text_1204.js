@@ -1,4 +1,4 @@
-// v1202 SPELL TEXT (Kimi's two audit passes, 18 Oct 2026). No browser: the text tables, the control table and the helpers are read
+// v1204 SPELL TEXT (Kimi's two audit passes, 18 Oct 2026). No browser: the text tables, the control table and the helpers are read
 // out of the page and run in a sandbox. Checks:
 //  1. every sentence a player reads that quotes a control time (ult texts, kit texts, passives) says the time the FIGHT applies
 //     (CC_SECONDS x CC_NERF, single or area - ccSecFor - or ccDur for a time the fight code sets itself);
@@ -7,7 +7,7 @@
 //  3. every hero kit type with a damage or heal ratio has a KIT_SCALE entry (its card says what it grows from);
 //  4. the findings that were NOT real stay as they are: Oakmir's passive is Deep Roots, Askel's ult carries the ally shield and the
 //     knock-aside, Lumi's levelled Hush text reads 0.7 s.
-// CONTROL: SPELL_ROOT=<a pre-v1202 checkout> must FAIL 1-3.
+// CONTROL: SPELL_ROOT=<a pre-v1204 checkout> must FAIL 1-3.
 const fs=require('fs'), path=require('path'), vm=require('vm');
 const root=process.env.SPELL_ROOT?path.resolve(process.env.SPELL_ROOT):path.join(__dirname,'..');
 const L=fs.readFileSync(path.join(root,'emberweave-heroes.html'),'utf8').split(/\r?\n/);
@@ -24,7 +24,7 @@ const ou=L.findIndex(l=>l.startsWith('Object.assign(ULT_SCALE')); if(ou>=0) vm.r
 const kitsMore=block('Object.assign(KITS, {'); if(kitsMore){ for(let t=0;t<12;t++){ try{ vm.runInContext(kitsMore,ctx); break; }catch(e){ const m=/^(\w+) is not defined/.exec(e.message); if(m){ ctx[m[1]]=1; continue; } console.log('  (could not run the second KITS block: '+e.message.slice(0,80)+')'); break; } } }   /* numeric constants the kits name (only their text matters here) */
 const fixer=block('(function spellTextCC(){'); if(fixer){ vm.runInContext('var SPELL_TEXT_CC=[];\n'+fixer,ctx); }
 const C=ctx;
-console.log('spell text 1202 root='+root);
+console.log('spell text 1204 root='+root);
 // hero keys -> ult type
 const HT={}; { const re=/^\s+([a-z]+)\s*:\s*\{name:'([^']+)'.*?ability:'([a-zA-Z]+)'/; for(const l of L){ const m=re.exec(l); if(m&&!HT[m[1]]) HT[m[1]]={name:m[2],ability:m[3]}; } }
 const keys=Object.keys(HT).filter(k=>C.KITS&&C.KITS[k]);
@@ -101,5 +101,5 @@ const S=x=>+(+x).toFixed(2);
     ok(Math.abs(on.shieldPct-0.12)<1e-6,'an ally gets a shield of 12% of max HP ('+on.shieldPct+')');
     ok(!on.pathStunned&&on.farStunned,'the enemy on his path is knocked off the line (not caught at the impact); the far one is stunned');
     ok(off.shieldPct===0&&off.pathStunned,'CONTROL: with allyShield / knockAside 0 nobody is shielded and the path enemy is caught and stunned'); } }
-console.log(`spell text 1202: ${checks-fails}/${checks} checks passed, ${fails} failed`);
+console.log(`spell text 1204: ${checks-fails}/${checks} checks passed, ${fails} failed`);
 if(fails) process.exitCode=1;
