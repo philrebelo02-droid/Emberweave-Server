@@ -29,6 +29,7 @@ if (!OLD) { try { OLD = path.join(ROOT, '.test-aureth-anim-base.html'); fs.write
   const tmp = OLD; process.on('exit', () => { try { fs.unlinkSync(tmp); } catch (e) {} }); } catch (e) { OLD = null; } }
 const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); return src => vm.runInContext(src, h.ctx); };
 const run = load(HTML);
+require('./helpers/art-18oct-undo.js').undoArt18Oct(run);   // the 18 Oct art (Iver, Joss, Ambrel, seven Grok FX: a later release) goes back to v1199's - its own tests check it
 require('./helpers/anim-slim-1155.js').undoSlim1155(run);   // v1155 slim: this release's checks see the v1153 entries (tests/test_anim_slim_1155.js checks the slim)
 const R0 = OLD ? load(OLD) : null;
 let pass = 0, fail = 0;
