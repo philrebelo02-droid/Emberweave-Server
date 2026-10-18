@@ -586,7 +586,8 @@
       "st": "ult",
       "mode": "ring",
       "once": true,
-      "R": 120
+      "R": 120,
+      "ro": 995
     },
     "phaseNote": "Phil via Claude 13:17:18: full ult clip from press; deterministic porcelain-front damage/stun timing follows the art. No trim or speed-up."
   }
