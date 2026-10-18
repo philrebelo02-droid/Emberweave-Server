@@ -51,7 +51,7 @@ try {
     ck('every inline <script> block of the page parses (' + n + ' blocks)', n > 0 && bad.length === 0, bad.join('; ')); }
   ck('control file (BASE page + its own external scripts from git ' + BASE_SHA + ') loaded', !!R0, 'git show failed');
   { const ARCH = process.env.EW_ARCHIVE || 'C:\\Users\\Home\\OneDrive\\Desktop\\Emberweave Archive';
-    const dir = h => SRC[h].src ? path.dirname(path.join(ARCH, SRC[h].src)) : path.join(ARCH, 'Game Art', 'Heroes', SRC[h].dir, 'clips', 'DEATH REVIEW 16OCT2026');   // v1199: a retake names its own file (src)
+    const dir = h => SRC[h].src ? path.dirname(path.join(ARCH, SRC[h].src)) : path.join(ARCH, 'Game Art', 'Heroes', SRC[h].dir, 'clips', 'DEATH REVIEW 16OCT2026');   // v1299: a retake names its own file (src)
     if (fs.existsSync(dir('vael'))) {
       const bad = [];
       for (const h of ALL) { const S = SRC[h]; let m = null; try { m = JSON.parse(fs.readFileSync(path.join(dir(h), 'clean-source-manifest.json'), 'utf8')); } catch (e) {}
@@ -77,19 +77,19 @@ try {
   ck('sheets: each file is exactly its grid, <= 2048 px a side, <= 4 MB, q95 (VP8 + ALPH, v1158 recipe); decoded per hero ' + ALL.map(k => k + ' ' + PX[k].decoded_mb + ' MB').join(', '),
     ALL.every(k => PX[k].sheets.every((S, i) => { const A = PT[k][i]; return S.size[0] === A.fw * A.cols && S.size[1] === A.fh * A.rows && Math.max(...S.size) <= 2048 && S.bytes <= 4e6 && S.kind.includes('VP8 ') && S.kind.includes('ALPH'); })));
   /* v1196: a hero whose OWN art is the plate colour (Mirelle, a peacock on a green plate: 7.9% of her approved idle leans green) keeps those pixels - the
-     limit is max(0.01%, 25% (v1198; was 5%) of his own idle's share), so plate residue stays far under what the hero himself contains */
-  /* v1198: 25% (was 5%) - the plate key now keeps a hero's own plate-hued colours (protected from his idle): Aldren's purple robes, stripped to black by the
+     limit is max(0.01%, 25% (v1299; was 5%) of his own idle's share), so plate residue stays far under what the hero himself contains */
+  /* v1299: 25% (was 5%) - the plate key now keeps a hero's own plate-hued colours (protected from his idle): Aldren's purple robes, stripped to black by the
      old despill, are back at 0.75% against his idle's 4.0%; residue is measured by the PLATE RESIDUE checks below */
   const leanLim = k => Math.max(0.01, 0.25 * (SRC[k].bg === 'magenta' ? PX[k].idle_magenta_pct : PX[k].idle_green_pct)), leanOf = k => SRC[k].bg === 'magenta' ? PX[k].magenta_pct : PX[k].green_pct;
   ck('no plate colour is left: the ash Hailuo drew in the plate colour is unmixed - visible pixels leaning to the hero\'s OWN plate (green or magenta) <= 0.01% (or 25% of his own idle art\'s share of that colour)',
     ALL.every(k => leanOf(k) <= leanLim(k)), ALL.map(k => k + ' ' + SRC[k].bg + ' ' + leanOf(k) + (leanLim(k) > 0.01 ? ' (limit ' + leanLim(k).toFixed(3) + ')' : '')).join(', '));
   ck('CONTROL: plate residue the size of the hero\'s own art (his idle share) fails the plate-colour check for every hero', ALL.every(k => !(Math.max(0.011, SRC[k].bg === 'magenta' ? PX[k].idle_magenta_pct : PX[k].idle_green_pct) <= leanLim(k))));
-  /* v1198 PLATE RESIDUE (Phil 17 Oct: "magenta shows in a frame" - Hurne, then Maren, Mellan, Orryn, Rivet, Seyla, Sloe, Sorrel, Tharl, Tick, Tolley, Vael,
+  /* v1299 PLATE RESIDUE (Phil 17 Oct: "magenta shows in a frame" - Hurne, then Maren, Mellan, Orryn, Rivet, Seyla, Sloe, Sorrel, Tharl, Tick, Tolley, Vael,
      Vulmar, Yenna): the v1190/v1196 key left (a) one-frame PLATE FLICKERS as flat grey blotches (Hurne cell 6), (b) plate in the ash clamped to PINK (magenta
      plates) / olive (green), (c) mostly-plate rims drawn as opaque GREY - and the lean > 24 check above sees none of it (the clamp parks pink at a hero red's
      hue). Pipeline tools/death/residue_audit.py measures each hero's sheets against his SOURCE clip; death_batch.py writes the numbers and the sha256 of every
      sheet it measured into the fixture row, so a sheet passes only if it IS the audited sheet. GHOST measures the sheets themselves. Lumi and Oakmir keep
-     their v1196 cut: ChatGPT is redoing both. v1199: Lumi (retake02) and Oakmir (retake03), Phil PASS, are keyed with the new key; Ambrel keeps her
+     their v1196 cut: ChatGPT is redoing both. v1299: Lumi (retake02) and Oakmir (retake03), Phil PASS, are keyed with the new key; Ambrel keeps her
      v1190 cut - ChatGPT is wiring her new set, death included. */
   const RLIM = { flicker: 10, tint: 0.4, ghost: 1 }, RPEND = ['ambrel'], rOk = r => !!r && r.flicker <= RLIM.flicker && r.tint <= Math.max(RLIM.tint, r.tint_limit || 0) && r.ghost <= RLIM.ghost;
   // a clip the key cannot take fully clean is shipped improved, bound to its measured number, and listed for a ChatGPT redo (Absalie: her own translucent veil
@@ -108,7 +108,7 @@ try {
   ck('no PLATE GHOST: no cell of any death holds flat light-grey pixels over 1% of its cell 0, or 1.5x his own idle share (a plate shade the key turned grey; worst vs limit ' + ALL.slice().sort((a, b) => ghostW(b) / ghostL(b) - ghostW(a) / ghostL(a)).slice(0, 3).map(k => k + ' ' + (100 * ghostW(k)).toFixed(2) + '%/' + (100 * ghostL(k)).toFixed(2) + '%').join(', ') + ')',
     ALL.every(k => ghostW(k) <= ghostL(k)), ALL.filter(k => ghostW(k) > ghostL(k)).map(k => k + ' cell ' + PX[k].ghost.indexOf(Math.max(...PX[k].ghost)) + ' ' + (100 * ghostW(k)).toFixed(2) + '%').join(', '));
   ck('CONTROL: the v1190 Hurne flicker cell (the grey blotch Phil saw, kept as tests/fixtures/death_residue_control_hurne_1190_cell6.webp) fails the ghost check (his own limit ' + (100 * ghostL('hurne')).toFixed(2) + '%): ' + (100 * PX._ctl.ghost / PX._ctl.vis).toFixed(1) + '% of its pixels', PX._ctl.ghost > ghostL('hurne') * PX._ctl.vis);
-  const ASH46 = { nox: 0.25 };   // v1198: Umbris left the list - the plate key took his plate-shade specks off cell 46 (10.2% -> 1.6%)   // v1196: cell 46 of these two ash clips is wide scattered specks (measured 23.6% / 10.2% of cell 0), looked at cell by cell
+  const ASH46 = { nox: 0.25 };   // v1299: Umbris left the list - the plate key took his plate-shade specks off cell 46 (10.2% -> 1.6%)   // v1196: cell 46 of these two ash clips is wide scattered specks (measured 23.6% / 10.2% of cell 0), looked at cell by cell
   ck('CONTROL: the ash allowance names only measured ash clips that need it (each over 10% and under its limit) - a hero with no entry keeps 10%', Object.keys(ASH46).every(k => SRC[k] && SRC[k].end === 'hide' && PX[k].cellpx[46] >= 0.10 * PX[k].cellpx[0] && PX[k].cellpx[46] < ASH46[k] * PX[k].cellpx[0]), JSON.stringify(Object.keys(ASH46).map(k => SRC[k] ? [k, PX[k].cellpx[46], PX[k].cellpx[0]] : [k, 'no death'])));
   ck('the ending: an ash clip (end hide) ends on an empty cell (< 2% of cell 0\'s pixels) with only drifting ash before it (cell 46 < 10%: Kharos 4%, Lumi 6% - scattered specks, seen by eye; v1196 ASH46 names the two above it, seen by eye as specks only with the body gone by cell 44-45: Nox 23.6%, Umbris 10.2%) - the body is gone; a fallen body (end hold) keeps its last cell', ALL.every(k => { const c = PX[k].cellpx; return c.length === 48 && ((SRC[k].end || 'hide') === 'hide' ? c[47] < 0.02 * c[0] && c[46] < (ASH46[k] || 0.10) * c[0] : c[47] > 0.05 * c[0]); }),
     ALL.map(k => k + ' ' + (SRC[k].end || 'hide') + ' ' + PX[k].cellpx[0] + '>' + PX[k].cellpx.slice(44).join('/')).join(', '));
