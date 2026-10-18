@@ -22,7 +22,7 @@ try{
  const keys=fixture.map(x=>x.state),anim=now(`JSON.parse(JSON.stringify(BATTLE_ANIM.${hero}))`);
  ck('all approved remake states exist',keys.length===(hero==='iver'?8:9)&&keys.every(k=>anim[k]));
  for(const row of fixture){const a=anim[row.state],file=path.join(root,a.u.split('?')[0]);const bytes=fs.readFileSync(file),wh=size(bytes);
-  ck(row.state+' fresh file, grid, alpha budget and receipt',/18oct26\.webp\?v=18oct26$/.test(a.u)&&wh[0]===a.fw*a.cols&&wh[1]===a.fh*a.rows&&Math.max(...wh)<=2048&&bytes.length<=4e6&&hash(bytes)===row.sha256&&a.n<=a.cols*a.rows&&a.figH>=159&&a.feet>0&&a.feet<=a.fh&&a.top<a.feet);
+  ck(row.state+' fresh file, grid, alpha budget and receipt',/18oct26\.webp\?v=(18oct26|1204)$/.test(a.u)&&(hero!=='joss'||row.state==='green'||/\?v=1204$/.test(a.u))&&wh[0]===a.fw*a.cols&&wh[1]===a.fh*a.rows&&Math.max(...wh)<=2048&&bytes.length<=4e6&&hash(bytes)===row.sha256&&a.n<=a.cols*a.rows&&a.figH>=159&&a.feet>0&&a.feet<=a.fh&&a.top<a.feet);
   ck(row.state+' source has Phil PASS hash',!!row.sourceCreationId&&/^[a-f0-9]{64}$/.test(row.sourceSha256)&&(!fs.existsSync(row.source)||hash(fs.readFileSync(row.source))===row.sourceSha256));
   ck(row.state+' per-cell source map is monotonic',row.sourceFrames.length===a.n&&row.sourceFrames.every((x,i)=>i===0||x>=row.sourceFrames[i-1]));
  }

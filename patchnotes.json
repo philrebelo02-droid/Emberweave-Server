@@ -1,6 +1,7 @@
 {
   "patches": [
     {"ver": "0.96", "date": "18 October 2026", "title": "Hero screen fix", "items": [
+      "Iver, Joss and Ambrel have all-new battle animations, and Ambrel a new death. New spell effects for Aureth's Sunburst, Duality and Eclipse, Aldren's Chapter Rewrite, and Joss's Radiant Hammer, Sanctuary Guard and Daybreak Judgment; Sanctuary Guard is now half its size and stays behind the heroes.",
       "Fixed a freeze in the tutorial: leaving a hero's Skills or Glyphs and closing the Heroes window could leave a black screen with only the music playing. Closing any window now always returns you to a working screen.",
       "New spell effects for Tolley's Forge Strike, Chain Quench and Living Forge: the molten hammer slams down on the target, his chains lash out to every enemy they pull before the quench bursts around him, and the Living Forge burns under his feet as he walks. The opening screen is now silent and has no mute button; sound and the button start on the next screen. The victory and defeat screens now wait for the last death animation to finish. Switching servers no longer shows a false \"You've been logged out\" notice. Nerisse's Drifting Constellation effect is half its old size.",
       "Hero deaths look cleaner: the pink tint and grey patches left in the ash, and the grey flash in Hurne's death, are gone for 59 heroes; Lumi and Oakmir have new death animations.",
