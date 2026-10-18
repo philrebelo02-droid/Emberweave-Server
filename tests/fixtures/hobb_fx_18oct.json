@@ -193,7 +193,7 @@
       "mode": "wrap",
       "once": true
     },
-    "phaseNote": "Claude 13:13:19: ult A enters at 1.53s, B HOBB_FULL_FX=true plays whole source; Phil chooses at review. Green starts on press; blue starts cell16, chips on pot-crush contact18. Gameplay unchanged."
+    "phaseNote": "Phil via Claude 13:17:18: full ult clip from press; deterministic porcelain-front damage/stun timing follows the art. No trim or speed-up."
   },
   {
     "name": "hobb_green_glazebreaker_18oct",
@@ -390,7 +390,7 @@
       "mode": "onTgt",
       "once": true
     },
-    "phaseNote": "Claude 13:13:19: ult A enters at 1.53s, B HOBB_FULL_FX=true plays whole source; Phil chooses at review. Green starts on press; blue starts cell16, chips on pot-crush contact18. Gameplay unchanged."
+    "phaseNote": "Phil via Claude 13:17:18: full ult clip from press; deterministic porcelain-front damage/stun timing follows the art. No trim or speed-up."
   },
   {
     "name": "hobb_ult_grand_kiln_shape_18oct",
@@ -577,9 +577,7 @@
       ],
       "size": 1.5,
       "ro": 995,
-      "span": 0.9224806201550387,
-      "startSec": 1.53,
-      "reviewFullFlag": "HOBB_FULL_FX"
+      "span": 0.9224806201550387
     },
     "bytes": 565844,
     "sha256": "8ffd667bf2e206138a696915e4220c394a2990727ea388ed266ce1caa8eab861",
@@ -590,6 +588,6 @@
       "once": true,
       "R": 120
     },
-    "phaseNote": "Claude 13:13:19: ult A enters at 1.53s, B HOBB_FULL_FX=true plays whole source; Phil chooses at review. Green starts on press; blue starts cell16, chips on pot-crush contact18. Gameplay unchanged."
+    "phaseNote": "Phil via Claude 13:17:18: full ult clip from press; deterministic porcelain-front damage/stun timing follows the art. No trim or speed-up."
   }
 ]
