@@ -29,7 +29,7 @@ try{
  ck('action duration and release timing data preserved',['attack','crit','green','blue','ult'].every(st=>Math.abs(now(`clipDur(BATTLE_ANIM.${hero}.${st})`)-2)<1e-8&&anim[st].relFrac==null));
  if(hero==='joss')ck('shield wave is triggered only, never an idle filler',anim.passive.event===true&&now(`String(updateBattle).includes('if(u.anim&&u.anim.passive) firePassiveClip(u,clipDur(u.anim.passive)); else firePassiveFx(u);')`));
  ck('kit, hero stats and ult mechanics unchanged (ownFx is display routing)',now(`JSON.stringify([HERO_TYPES.${hero},KITS.${hero},HERO_ULT_ART.${hero}],(k,v)=>k==='ownFx'?undefined:v)`)===old(`JSON.stringify([HERO_TYPES.${hero},KITS.${hero},HERO_ULT_ART.${hero}],(k,v)=>k==='ownFx'?undefined:v)`));
- if(hero!=='ambrel')ck('existing streamed death unchanged',now(`JSON.stringify(Object.keys(BATTLE_ANIM.${hero}).filter(s=>/^death/.test(s)).map(s=>BATTLE_ANIM.${hero}[s]))`)===old(`JSON.stringify(Object.keys(BATTLE_ANIM.${hero}).filter(s=>/^death/.test(s)).map(s=>BATTLE_ANIM.${hero}[s]))`));
+ if(hero!=='ambrel')ck('existing streamed death unchanged',now(`JSON.stringify(Object.keys(BATTLE_ANIM.${hero}).filter(s=>/^death/.test(s)).map(s=>BATTLE_ANIM.${hero}[s]))`)===JSON.stringify(Object.entries(require('../fixtures/art_18oct_before.json').anim[hero]).filter(([s])=>/^death/.test(s)).map(([,a])=>a))) /* Compare to the v1203 integration fixture: its independent death re-key is already approved. */;
  ck('seeded full fights with crit zero tick-identical',[11,222,5,77].every(seed=>fight(now,seed,true)===fight(old,seed,true)));
  // v532: supplying a first crit clip moves the existing roll to wind-up. As in
  // test_aureth_anim_eleven, control with the OLD attack geometry/timing as crit.

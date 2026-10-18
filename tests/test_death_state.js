@@ -91,7 +91,7 @@ try {
      sheet it measured into the fixture row, so a sheet passes only if it IS the audited sheet. GHOST measures the sheets themselves. Lumi and Oakmir keep
      their v1196 cut: ChatGPT is redoing both. v1203: Lumi (retake02) and Oakmir (retake03), Phil PASS, are keyed with the new key; Ambrel keeps her
      v1190 cut - ChatGPT is wiring her new set, death included. */
-  const RLIM = { flicker: 10, tint: 0.4, ghost: 1 }, RPEND = ['ambrel'], rOk = r => !!r && r.flicker <= RLIM.flicker && r.tint <= Math.max(RLIM.tint, r.tint_limit || 0) && r.ghost <= RLIM.ghost;
+  const RLIM = { flicker: 10, tint: 0.4, ghost: 1 }, RPEND = [], rOk = r => !!r && r.flicker <= RLIM.flicker && r.tint <= Math.max(RLIM.tint, r.tint_limit || 0) && r.ghost <= RLIM.ghost;
   // a clip the key cannot take fully clean is shipped improved, bound to its measured number, and listed for a ChatGPT redo (Absalie: her own translucent veil
   // shows the green plate through it, cells 3-4; ghost 3.37% on v1196 -> 1.14%)
   const RKNOWN = { absalie: { ghost: 1.2, why: 'translucent veil over the green plate (cells 3-4) - ChatGPT redo' } }, rOkK = k => { const r = SRC[k].residue; return rOk(r) || (!!RKNOWN[k] && !!r && r.flicker <= RLIM.flicker && r.tint <= Math.max(RLIM.tint, r.tint_limit || 0) && r.ghost <= RKNOWN[k].ghost); };
@@ -103,7 +103,7 @@ try {
   ck('CONTROL: the residue limits fail every v1196 death Phil saw it on (measured ' + RCTL.measured + ': ' + RCTL.bad.map(k => k + ' ' + [RCTL.rows[k].flicker, RCTL.rows[k].tint, RCTL.rows[k].ghost].join('/')).join(', ') + ') and pass a clean one (' + RCTL.clean.join(', ') + ')',
     RCTL.bad.length > 0 && RCTL.bad.every(k => !rOk(RCTL.rows[k])) && RCTL.clean.length > 0 && RCTL.clean.every(k => rOk(RCTL.rows[k])) && RCTL.rows.hurne.flicker > 40);
   ck('CONTROL: the known-residue list (' + Object.keys(RKNOWN).map(k => k + ': ' + RKNOWN[k].why).join('; ') + ') holds only re-cut heroes that fail the plain limits and sit within their bound', Object.keys(RKNOWN).every(k => SRC[k] && SRC[k].residue && !rOk(SRC[k].residue) && rOkK(k)));
-  ck('CONTROL: the waiting list names only heroes still on an older cut with no residue row (Ambrel - ChatGPT is wiring her new set)', RPEND.every(k => SRC[k] && ['1190', '1196'].includes(SRC[k].ver) && !SRC[k].residue) && ALL.filter(k => !SRC[k].residue).every(k => RPEND.includes(k)));
+  ck('CONTROL: every newly wired death has a residue audit; only older unaudited cuts may wait', RPEND.every(k => SRC[k] && ['1190', '1196'].includes(SRC[k].ver) && !SRC[k].residue) && ALL.filter(k => !SRC[k].residue).every(k => RPEND.includes(k)));
   const ghostL = k => Math.max(0.01, 1.5 * PX[k].idle_ghost / Math.max(1, PX[k].idle_vis)), ghostW = k => Math.max(...PX[k].ghost) / Math.max(1, PX[k].cellpx[0]);   // a hero drawn in flat light grey (Umbris's white cloak) keeps 1.5x his idle's share
   ck('no PLATE GHOST: no cell of any death holds flat light-grey pixels over 1% of its cell 0, or 1.5x his own idle share (a plate shade the key turned grey; worst vs limit ' + ALL.slice().sort((a, b) => ghostW(b) / ghostL(b) - ghostW(a) / ghostL(a)).slice(0, 3).map(k => k + ' ' + (100 * ghostW(k)).toFixed(2) + '%/' + (100 * ghostL(k)).toFixed(2) + '%').join(', ') + ')',
     ALL.every(k => ghostW(k) <= ghostL(k)), ALL.filter(k => ghostW(k) > ghostL(k)).map(k => k + ' cell ' + PX[k].ghost.indexOf(Math.max(...PX[k].ghost)) + ' ' + (100 * ghostW(k)).toFixed(2) + '%').join(', '));
