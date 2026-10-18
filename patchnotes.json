@@ -7,7 +7,8 @@
       "The World Map screen always has a way back to your town, even before it unlocks or while your castle is still being found.",
       "Fixed a hidden graphics error that repeated in every battle after a hero's death animation ended.",
       "On a slow or dropped connection the game no longer waits forever: a screen that cannot load says so and offers Try again, and a claim or purchase that was slow to answer is never paid twice.",
-      "The game turns sideways on tall phones held upright, so it fills the screen; taps, drags, scrolling and typing follow the turned screen. Phones held sideways and the Galaxy Z Fold's inner screen are unchanged."
+      "The game turns sideways on tall phones held upright, so it fills the screen; taps, drags, scrolling and typing follow the turned screen. Phones held sideways and the Galaxy Z Fold's inner screen are unchanged.",
+      "On the Galaxy Z Fold's inner screen and other near-square screens the town, the World Map and every window now use the whole screen instead of a letterboxed strip; battles keep today's view."
     ]},
     {"ver": "0.95", "date": "17 October 2026", "title": "Server safety", "items": [
       "Server data safety improvements: a server that cannot read its saved world now stops safely instead of starting fresh, saves are fully written to disk before they count, and backups of real player progress are always kept.",
