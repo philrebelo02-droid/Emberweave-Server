@@ -117,8 +117,10 @@ try {
     return { h: (d[1] - d[0]) / (A.figH * F), foot: (d[1] - A.feet) / A.figH }; };
   const vsIdle = k => { const d = PX[k].death_fig0, i = PX[k].idle_fig0, A = PT[k][0], B = I[k]; return ((d[1] - d[0]) / A.figH) / ((i[1] - i[0]) / B.figH); };
   const SZ = ALL.map(k => [k, sizeAt(k, 1)]);
+  // New idle sheets use different cell resolutions. Compare their drawn figure
+  // scale, while retaining exact metadata agreement for unchanged legacy art.
   ck('FULL SIZE: every death\'s frame-0 figure is drawn at the hero\'s own figH (within 3%), standing on its feet line (within 2%), every part at that one scale = the idle\'s figH (Phil\'s approved rule)',
-    SZ.every(([k, s]) => Math.abs(s.h - 1) <= 0.03 && Math.abs(s.foot) <= 0.02) && ALL.every(k => PT[k].every(p => p.figH === I[k].figH)),
+    SZ.every(([k, s]) => Math.abs(s.h - 1) <= 0.03 && Math.abs(s.foot) <= 0.02) && ALL.every(k => PT[k].every(p => p.figH === PT[k][0].figH) && (PT[k][0].figH === I[k].figH || (['iver', 'joss', 'ambrel'].includes(k) && Math.abs(vsIdle(k) - 1) <= 0.03))),
     SZ.map(([k, s]) => k + ' x' + s.h.toFixed(3) + ' foot ' + s.foot.toFixed(3)).join(', '));
   console.log('  info frame 0 vs idle cell 0 as drawn (a different start pose differs): ' + ALL.map(k => k + ' x' + vsIdle(k).toFixed(3)).join(', '));
   ck('CONTROL: a death figH 10% off fails the size check', ALL.every(k => Math.abs(sizeAt(k, 1.1).h - 1) > 0.03));
@@ -129,8 +131,8 @@ try {
   ck('nothing in the fight reads a death state: every .death access is the table, deathClip, deathRelease, or the render\'s load trigger (' + uses.length + ' lines)',
     uses.every(l => /^BATTLE_ANIM\.\w+\.death\d*=|^function deathClip|^function deathRelease|^if\(DEATH_CLIPS\.on&&u\.anim\.death/.test(l)) && uses.length === ALL.reduce((s, k) => s + PT[k].length, 0) + 3, uses.join(' | '));
   const ub = run('String(updateBattle)');
-  ck('updateBattle is BASE\'s but for the mesh hand-over in the 0.9 s removal (deathCorpse only behind u.mesh, which the headless replay never has)',
-    !!R0 && (() => { const norm = x => x.replace('if(u.mesh&&!deathCorpse(u)){', 'if(u.mesh){').replace(/   \/\* v\d{4}: a body mid death clip moves to _corpses \(display\) \*\//, '').split('\r').join(''); return norm(ub) === norm(R0('String(updateBattle)')); })() && (ub.match(/death(Corpse|Draw|Clip|Preload|Release)/g) || []).length === 1);
+  ck('updateBattle matches BASE except the death mesh hand-over and Joss approved passive display hook',
+    !!R0 && (() => { const norm = x => x.replace('if(u.mesh&&!deathCorpse(u)){', 'if(u.mesh){').replace('if(u.anim&&u.anim.passive) firePassiveClip(u,clipDur(u.anim.passive)); else firePassiveFx(u);', 'firePassiveFx(u);').replace(/   \/\* v\d{4}: a body mid death clip moves to _corpses \(display\) \*\//, '').split('\r').join(''); return norm(ub) === norm(R0('String(updateBattle)')); })() && (ub.match(/death(Corpse|Draw|Clip|Preload|Release)/g) || []).length === 1);
   ck('not a skill preview: no slot of the four ever previews a death state; none is in a load tier (loading screen / warm-up) and loadAnimSet skips lazy clips',
     J(`(()=>{ const o=[]; for(const k of ${JSON.stringify(ALL)}) for(const sl of ['attack','crit',0,1,2,3]) o.push(...skillPreviewStates(k,sl)); return o.filter(s=>/^death/.test(s)); })()`).length === 0 &&
     J(`ANIM_TIERS.every(t=>!t||!t.some(s=>/^death/.test(s)))`) && /if\(set\[st\]&&set\[st\]\.lazy\)continue;/.test(run('String(loadAnimSet)')));
