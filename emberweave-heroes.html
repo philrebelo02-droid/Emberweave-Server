@@ -4914,7 +4914,7 @@ function _skpFx(hk,slot,st,T0,rel){ const out=[], add=(e)=>{ if(e&&FX2_DEF[e.k])
       case 'tquench': { const c=FX2_DEF.tolley_blue; add({k,kind:'disc22',at:'self',t0:rel+((c&&c.boomAt)||1.8),R:(o.radius||4.5*METER)}); break; }
       case 'tlforge': add({k,kind:'disc22',at:'self',t0:rel,R:(o.radius||6*METER)}); break;
       case 'dclaws': { const d=FX2_DEF[k]; add({k,kind:'fx16claws',at:'self',t0:T0+(d?d.spawn:0)/24,real:d?d.n/d.fps2:6}); break; }
-      case 'hobbgreen': case 'hobbblue': case 'hobbult': { const d=FX2_DEF[k], cps=(BATTLE_ANIM[hk][st].fps)||24, skip=0; add({k,kind:o.ownFx==='hobbult'?'fx16side':(o.ownFx==='hobbgreen'?'fx16over':'fx16puff'),at:o.ownFx==='hobbgreen'?'target':'self',t0:T0+d.spawn/cps,real:d.n/d.fps2-skip,startSec:skip,R:o.ownFx==='hobbult'?120:undefined}); break; }
+      case 'hobbgreen': case 'hobbblue': case 'hobbult': { const d=FX2_DEF[k], cps=(BATTLE_ANIM[hk][st].fps)||24; add({k,kind:o.ownFx==='hobbult'?'fx16side':(o.ownFx==='hobbgreen'?'fx16over':'fx16puff'),at:o.ownFx==='hobbgreen'?'target':'self',t0:T0+d.spawn/cps,real:d.n/d.fps2,R:o.ownFx==='hobbult'?120:undefined}); break; }
       case 'kgreen': case 'kult': { const d=FX2_DEF[k], cps=(BATTLE_ANIM[hk]&&BATTLE_ANIM[hk][st]&&BATTLE_ANIM[hk][st].fps)||24; add({k,kind:'fx16over',at:'target',t0:T0+(d?d.spawn:0)/cps,real:d?d.n/d.fps2:2}); break; }   /* v1186 Kharos: on the enemy, from his own clip's cell */
       case 'kblue': { const d=FX2_DEF[k], cps=(BATTLE_ANIM[hk]&&BATTLE_ANIM[hk][st]&&BATTLE_ANIM[hk][st].fps)||24; add({k,kind:'fx16puff',at:'self',t0:T0+(d?d.spawn:0)/cps,real:d?d.n/d.fps2:6}); break; }
       case 'bgreen': case 'bblue': case 'bult': { const d=FX2_DEF[k];
