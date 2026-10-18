@@ -18,7 +18,7 @@ const base=cp.execFileSync('git',['show','HEAD:emberweave-heroes.html'],{cwd:roo
 const file=path.join(root,'.hobb-fx-baseline-'+process.pid+'.html');fs.writeFileSync(file,base);
 try{const b=require('../server/sim-host.js').load(file),br=s=>vm.runInContext(s,b.ctx);
  const normalize=s=>JSON.stringify(JSON.parse(s),(k,v)=>k==='ownFx'?undefined:v);
- ck('hero stats and kit mechanics unchanged',normalize(run('JSON.stringify([HERO_TYPES.hobb,KITS.hobb,HERO_ULT_ART.hobb,ULT_DEF.aoeStun,BATTLE_ANIM.hobb])'))===normalize(br('JSON.stringify([HERO_TYPES.hobb,KITS.hobb,HERO_ULT_ART.hobb,ULT_DEF.aoeStun,BATTLE_ANIM.hobb])')));
+ ck('hero stats, kit amounts and statuses unchanged',normalize(run('JSON.stringify([HERO_TYPES.hobb,KITS.hobb,HERO_ULT_ART.hobb,ULT_DEF.aoeStun])'))===normalize(br('JSON.stringify([HERO_TYPES.hobb,KITS.hobb,HERO_ULT_ART.hobb,ULT_DEF.aoeStun])')));
 }finally{fs.unlinkSync(file)}
 run(`_fx22Spr=(key,order)=>({renderOrder:order});`);
 ck('ultimate renderer puts the porcelain in front of hero bodies',run(`fx16Show({u:{x:0,y:0},vk:'hobbult',d:FX2_DEF.hobb_ult,P:{x:10,y:0}}).renderOrder===995`));

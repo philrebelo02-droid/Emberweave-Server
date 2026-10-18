@@ -4868,9 +4868,9 @@ function skillPreviewStates(hk,slot){ try{ const an=BATTLE_ANIM[hk], T=HERO_TYPE
   return st?[st]:[]; }catch(e){ return []; } }
 /* the cell a one-shot draws `t` real seconds into its clip (syncMesh: _animAcc += dt x fps; one playthrough = ppPer cells, a non-pingpong
    clip holds its last cell, a pingpong runs out and back; `reverse` plays backwards) */
-function skillPreviewCell(A,t){ if(!A||!(A.n>0)) return 0; const per=ppPer(A); let p=Math.floor(Math.max(0,t)*(A.fps||10)+1e-9); if(p>=per) p=per-1;
+function skillPreviewCell(A,t){ if(!A||!(A.n>0)) return 0; if(A.impact) return impactClipCell(A,Math.max(0,t)); const per=ppPer(A); let p=Math.floor(Math.max(0,t)*(A.fps||10)+1e-9); if(p>=per) p=per-1;
   let fr=(A.pingpong&&A.n>1)?ppFrame(A,p):Math.min(A.n-1,p); if(A.reverse) fr=A.n-1-fr; return fr; }
-function skillPreviewClipDur(A){ return A?ppPer(A)/(A.fps||10):0; }
+function skillPreviewClipDur(A){ return A?ppPer(A)/(A.fps||10)+impactClipExtra(A):0; }
 /* how far the enemy a preview casts at stands (field units): touching for a melee hero, his range (up to 8 m) for a ranged one */
 function skillPreviewTargetDist(hk){ const T=HERO_TYPES[hk]||{}; return ((T.range||0)<60)?2.2*METER:Math.min(T.range||8*METER,8*METER); }
 function _skpCast(hk,bs){ try{ return castTimeFor({key:hk,t:HERO_TYPES[hk]},bs); }catch(e){ return bs==='ult'?0.8:0.5; } }
@@ -4914,7 +4914,7 @@ function _skpFx(hk,slot,st,T0,rel){ const out=[], add=(e)=>{ if(e&&FX2_DEF[e.k])
       case 'tquench': { const c=FX2_DEF.tolley_blue; add({k,kind:'disc22',at:'self',t0:rel+((c&&c.boomAt)||1.8),R:(o.radius||4.5*METER)}); break; }
       case 'tlforge': add({k,kind:'disc22',at:'self',t0:rel,R:(o.radius||6*METER)}); break;
       case 'dclaws': { const d=FX2_DEF[k]; add({k,kind:'fx16claws',at:'self',t0:T0+(d?d.spawn:0)/24,real:d?d.n/d.fps2:6}); break; }
-      case 'hobbgreen': case 'hobbblue': case 'hobbult': { const d=FX2_DEF[k], cps=(BATTLE_ANIM[hk][st].fps)||24; add({k,kind:o.ownFx==='hobbult'?'fx16side':(o.ownFx==='hobbgreen'?'fx16over':'fx16puff'),at:o.ownFx==='hobbgreen'?'target':'self',t0:T0+d.spawn/cps,real:d.n/d.fps2,R:o.ownFx==='hobbult'?120:undefined}); break; }
+      case 'hobbgreen': case 'hobbblue': case 'hobbult': { const d=FX2_DEF[k], cps=(BATTLE_ANIM[hk][st].fps)||24; add({k,kind:o.ownFx==='hobbult'?'fx16side':(o.ownFx==='hobbgreen'?'fx16over':'fx16puff'),at:o.ownFx==='hobbgreen'?'target':'self',t0:T0+(d.startReal!=null?d.startReal:d.spawn/cps),real:d.n/d.fps2,R:o.ownFx==='hobbult'?120:undefined}); break; }
       case 'kgreen': case 'kult': { const d=FX2_DEF[k], cps=(BATTLE_ANIM[hk]&&BATTLE_ANIM[hk][st]&&BATTLE_ANIM[hk][st].fps)||24; add({k,kind:'fx16over',at:'target',t0:T0+(d?d.spawn:0)/cps,real:d?d.n/d.fps2:2}); break; }   /* v1186 Kharos: on the enemy, from his own clip's cell */
       case 'kblue': { const d=FX2_DEF[k], cps=(BATTLE_ANIM[hk]&&BATTLE_ANIM[hk][st]&&BATTLE_ANIM[hk][st].fps)||24; add({k,kind:'fx16puff',at:'self',t0:T0+(d?d.spawn:0)/cps,real:d?d.n/d.fps2:6}); break; }
       case 'bgreen': case 'bblue': case 'bult': { const d=FX2_DEF[k];
@@ -5494,7 +5494,7 @@ const ULT_DEF={worldweight:{mul:2.0,radius:8*METER,lift:2.0,slamStun:1.0},finalc
 };
 // per-hero ability CAST times (s); a hero can't auto-attack while casting; effect visual ~2x cast.
 const ABILITY_CAST={ vael:{ult:0.3}, rhukk:{ult:0.5}, konwu:{ult:1,green:0.3,blue:1}, grosk:{ult:0.56,green:0.308,blue:0.6}, vulmar:{ult:1.5,green:1.5,blue:2}, tick:{ult:1,green:0.4,blue:0.6}, sylthaine:{ult:0.6,green:1,blue:0.8}, aureth:{ult:1.2,green:1,blue:0.5}, bloatus:{ult:1.2,green:0.9,blue:0.8}, vireo:{ult:1,green:0.6,blue:0.5}, fritz:{ult:0.8,green:0.5,blue:0.4}, umbris:{ult:0.364,green:0.476,blue:0.364} };   /* v1115 Umbris: the release cells of his approved clips (ult 26, green 17, blue 13 at 24 fps) x 0.6724 */
-function castTimeFor(u,slot){ const m=ABILITY_CAST[u.key]||((u.t&&u.t.monster)?ABILITY_CAST_MON[u.key]:null); return (m&&m[slot])||(slot==='ult'?0.8:0.5); }
+function castTimeFor(u,slot){ const A=u.key==='hobb'&&BATTLE_ANIM.hobb&&BATTLE_ANIM.hobb[slot]; if(slot!=='ult'&&A&&A.impact) return A.impact.at*SIM_STEP*SIM_HZ*BATTLE_PACE; const m=ABILITY_CAST[u.key]||((u.t&&u.t.monster)?ABILITY_CAST_MON[u.key]:null); return (m&&m[slot])||(slot==='ult'?0.8:0.5); }
 // a hover explanation of what each skill does
 /* v481 (audit): per-HERO ultimate text — the shared type text named the wrong hero or weapon (Nerisse's ult read "Oakmir calls the first bloom…", Carn's read "three cuts with both daggers"). */
 const HERO_ULT_DESC={"nerisse": "Ultimate — Nerisse rings the great bell: every ally is healed for half their health at once and keeps mending for 5 seconds.", "vaelora": "Ultimate — Vaelora spreads the Velvet Ward over the team: every ally is healed for half their health and keeps mending for 5 seconds.", "ceraline": "Player-aimed ultimate — a court of candles rises around the area and molten wax floods it: everything caught is damaged and rooted for 2.5 seconds.", "tolley": "Ultimate — the forge-hammer comes down like a meteor: damage on impact, and the ground burns for 5 seconds.", "mellan": "Ultimate \u2014 the Beekeeper King raises his arms and a hive of 30 bees forms above him, then the swarm splits evenly between EVERY ally and enemy on the field, at any range: each bee stings an enemy for ability damage or heals an ally. Fewer targets means more bees each \u2014 alone against one enemy it is 15 stings and 15 heals.", "joss": "Ultimate — a hammer of daylight strikes: sears every nearby enemy and heals the whole team in the same instant.", "ambrel": "Ultimate — the rose window shatters into daylight: sears every nearby enemy and heals the whole team in the same instant.", "carn": "Player-aimed ultimate — a reaping scythe-sweep that hits every enemy in a wide wedge and leaves them bleeding.", "yenna": "Player-aimed ultimate — a shrieking howl that hits every enemy in a wide wedge and leaves them bleeding.", "zahri": "Player-aimed ultimate — a brand of solar fire that hits every enemy in a wide wedge and leaves them bleeding.", "sorrel": "Player-aimed ultimate — the Ace stabs into the ground and a fan of cards blasts every enemy in the area.", "pyroclast": "Player-aimed ultimate — the ground erupts in a crown of lava that damages every enemy in the area.", "lysara": "Player-aimed ultimate — a crescent moon touches down and a veil of moonlight damages every enemy in the area.", "mirelle": "Player-aimed ultimate — a whirl of plume-blades bursts outward and damages every enemy in the area.", "kharos": "Player-aimed ultimate — a volley of five spinning flower-blades, each striking an enemy.", "seyla": "Player-aimed ultimate — five strands of silk shoot out and tighten into a web, striking several enemies.", "nox": "Player-aimed ultimate — five ink-quills whip across the enemy line, each one marking its target.", "calypsa": "Player-aimed ultimate — a tide rises and breaks into five water-blades that strike several enemies.", "linnet": "Player-aimed ultimate — the scissors snap and five taut threads lash out, striking several enemies.", "rivet": "Player-aimed ultimate — Rivet empties the whole arsenal at once: five shots, each striking an enemy.", "rafe": "Player-aimed ultimate — a fan of flintlock shots, each one striking an enemy.", "iver": "Player-aimed ultimate — a bolt of lightning smashes down: damages and stuns every enemy in the area for 2 seconds.", "tessit": "Player-aimed ultimate — the hourglass shatters over the area: damages every enemy inside and stops them for 2 seconds.", "brannus": "Player-aimed ultimate — the spiked wheel slams down: damages and stuns every enemy in the area for 2 seconds.", "quorrel": "Ultimate — a storm of writs and gavels down the enemy line, striking the nearest six foes.", "sloe": "Ultimate — an emerald volley down the enemy line, striking the nearest six foes.", "astra": "Player-aimed ultimate — a collapsing star drags every enemy in the area to its centre, damages and stuns them.", "deepcleft": "Ultimate — Deepcleft charges the farthest foe shoulder-first, goring and stunning everyone at the impact.", "askel": "Ultimate — Greatbrow lowers his antlers and charges the farthest foe, goring and stunning everyone at the impact.", "tharl": "Ultimate — the scales lock into a shield-dome: Ironcoil takes less than half damage for 5 seconds.", "pellucid": "Ultimate — the crystal tower rises: Pellucid takes less than half damage for 5 seconds.", "veyr": "Ultimate — Tidewing: a burst of icy tide around Veyr damages every nearby enemy and slows them.", "orryn": "Player-aimed ultimate — a spiral tide rises over the area: everything caught is damaged and rooted for 2.5 seconds.", "hobb": "Ultimate — the kiln cracks open where Kilnmask stands: fire on impact, and the ground burns for 5 seconds.", "vex": "Player-aimed ultimate — three sweeping cuts with both daggers, back to back.",
@@ -6757,7 +6757,13 @@ let resultWon=false,resultStars=0,resultSquadKeys=[];   // Victory-screen state 
    ppPer() is the clip's period in frames, ppFrame() the cell for step p. Rows without `rbk` are byte-for-byte unchanged. */
 function ppPer(A){ return (A.pingpong&&A.n>1)?(A.rbk?(A.n+Math.ceil((A.n-1)/A.rbk)):(2*A.n-2)):A.n; }
 function ppFrame(A,p){ if(!(A.pingpong&&A.n>1)) return p; if(p<A.n) return p; return A.rbk?Math.max(0,(A.n-1)-Math.round((p-A.n+1)*A.rbk)):(ppPer(A)-p); }
-function clipDur(A){ if(!A) return 0; const st=ppPer(A); return st/(A.fps||16); }
+function impactClipCell(A,t){ const I=A.impact, fps=A.fps||24;
+  const extra=impactClipExtra(A), hold=I.holdCell==null?I.cell-1:I.holdCell;
+  if(t+1e-9<I.at){ const clock=t<hold/fps?t:(t<hold/fps+extra?hold/fps:t-extra);
+    return Math.min(I.cell-1,Math.floor(Math.max(0,clock)*fps+1e-9)); }
+  return Math.min(A.n-1,I.cell+Math.floor((t-I.at)*fps+1e-9)); }
+function impactClipExtra(A){ return A&&A.impact?Math.max(0,A.impact.at-A.impact.cell/(A.fps||24)):0; }
+function clipDur(A){ if(!A) return 0; const st=ppPer(A); return st/(A.fps||16)+impactClipExtra(A); }
 /* v1127 SKILL HOLD - the CONTACT CELL of a clip: the sheet cell (in play order) where the hit visibly lands. Read from the clip's own
    measured data, first match wins: `contact` (cell; an array = several contacts, the first counts), `release` (cell the spell leaves
    the hands), `apex` (cell), `relFrac` (fraction of the clip - the same number fuseStrike lands a swing's blow on). With none of
@@ -11504,7 +11510,7 @@ function startAbilityClip(u,type){
        is render-only - its clip is simply skipped for the tail of the passive. The ult is exempt. */
     const _passHold=((u._abilPri|0)===2 && (u._abilHold||0)>0 && u._abilAnim==='passive' && u._castSlot!=='ult');
     if(st && u.anim && u.anim[st] && !_passHold){ const A=u.anim[st]; u._abilAnim=st; u._abilPri=4; u._abilStartAt=battleTime; if(typeof TIPFX!=='undefined'&&TIPFX[u.key]&&TIPFX[u.key][st]) spawnTipFx(u,st);   /* v1021: render-only clip clock (rush) */   // a kit clip; castKit/castAbility re-tag it 4 (skill) or 6 (ult) once they know which slot fired
-      const once=ppPer(A)/(A.fps||10);
+      const once=ppPer(A)/(A.fps||10)+impactClipExtra(A);
       u._abilHold=u._abilFallback?Math.max(once, 0.55):once;
       if(u._abilFallback) u._castFlash=0.42;   // the visual tell that this was an ability, not a swing
     } }  // trigger ability billboard clip — hold = exactly ONE playthrough (pingpong clips hold the full forward+back rubberband)
@@ -13987,7 +13993,7 @@ function _fx16Sleeper(u,o){ if(o&&o._tgtU&&o._tgtU.alive) return o._tgtU; let be
 function _fx16Aim(u){ const a=(u._aimWX!=null)?{x:u._aimWX,y:u._aimWY}:null, t=(u.target&&u.target.alive)?u.target:nearestEnemy(u); const c=a||t||u; return {x:c.x,y:c.y}; }
 function fx16Cast(u,vk,ct,pend,dur){ if(!TH||!scene||!camera||!u) return; const V=FX16_ART[vk], d=V&&FX2_DEF[V.k]; if(!d) return;
   for(let i=_fx1123.length-1;i>=0;i--){ const q=_fx1123[i]; if(q.kind==='fx16'&&q.vk===vk&&q.u===u&&!q.emerge){ _fx22Kill(q); _fx1123.splice(i,1); } }   /* a recast replaces it */
-  _fx1123.push({kind:'fx16',vk,d,u,st:V.st,t:0,pend,seq0:u._bloomJumpSeq|0,ok:!pend,ct:ct||0,dur:dur||0,relT:pend?null:0}); }
+  _fx1123.push({kind:'fx16',vk,d,u,st:V.st,t:0,began:battleTime,pend,seq0:u._bloomJumpSeq|0,ok:!pend,ct:ct||0,dur:dur||0,relT:pend?null:0}); }
 function fx16Release(u,vk,dur,at,R){ if(!TH||!scene||!camera||!u) return; if(FX16_ART[vk]&&FX16_ART[vk].once&&_fx1123.some(q=>q.kind==='fx16'&&q.vk===vk&&q.u===u&&q.ok&&q.cut==null)) return; let o=_fx1123.find(q=>q.kind==='fx16'&&q.vk===vk&&q.u===u&&!q.ok&&q.cut==null&&!q.emerge);
   if(o){ o.ok=true; o.relT=o.t; o.dur=dur||o.dur; }
   else { const V=FX16_ART[vk], d=V&&FX2_DEF[V.k]; if(!d) return;   /* no pending art (a repeated cast): it shows now */
@@ -14024,11 +14030,14 @@ function _fx22Fx16On(o){ const d=o.d, T=o.T, H=d.size*_fx22Head(T), W=H*d.fw/d.f
   if(o.pin){ o.s.position.set(wx(o.pin.x),0.05,wz(o.pin.y)); return; }   /* v1186 Bloomstep: the figure stays where he stood */
   o.s.position.copy(_fx22On(T,(d.mid||0)*_fx22Head(T))); }
 function _fx22Fx16Tick(o){ const d=o.d, u=o.u, V=FX16_ART[o.vk];
+  // A cast-created plate otherwise gains the creation tick before the body
+  // clock does. Hobb's measured impacts share the exact cast clock instead.
+  if(d.startReal!=null&&o.began!=null&&state==='battle'&&!ended) o.t=Math.max(0,battleTime-o.began);
   if(!o.ok&&o.cut==null&&u._pend!==o.pend) o.cut=o.t;   /* the cast was interrupted */
   if(!o.s){ if(o.cut!=null||(!u.alive&&!o.emerge)) return -1;
     const A=u.anim&&u.anim[o.st], live=!!(A&&u._animSt===o.st&&u._abilAnim===o.st), a=live?(u._fxFr!=null?u._fxFr:Math.floor(u._animAcc||0)):o.t/FX_RT*((A&&A.fps)||24);   /* the cell DRAWN (syncMesh's _fxFr: a one-shot fitted to a short hold is drawn ahead of _animAcc) */
-    if(!o.now&&a<((V.mode==='hand'&&live)?d.spawn-1:d.spawn)) return 0;
-    const s=fx16Show(o); if(!s) return -1; o.s=s; o.ts=o.t; o.cell0=a;
+    if(!o.now&&(d.startReal!=null?o.t/FX_RT+1e-9<d.startReal:a<((V.mode==='hand'&&live)?d.spawn-1:d.spawn))) return 0;
+    const s=fx16Show(o); if(!s) return -1; o.s=s; o.ts=(!o.now&&d.startReal!=null)?d.startReal*FX_RT:o.t; o.cell0=a;
     if(V.mode==='hand'&&live&&a<d.spawn){ o.vis=false; u._fxHand=o; } }   /* v1191 Fan of Knives: made a cell early, SHOWN by the render on the frame it draws the release cell (syncMesh), so the knives leave on that exact frame */
   const tl=o.t-o.ts, rt=tl/FX_RT; let fr, op=1; if(V.hideAt!=null&&!(o.u.alive)) o.u._fxHideA=null;
   if(V.mode==='ally'||V.mode==='over'||V.mode==='onTgt'||V.mode==='wrap'){ if(o.T&&!o.T.alive&&o.cut==null) o.cut=o.t; }   /* the unit fell: it fades */
@@ -16091,6 +16100,10 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
           const _ip=ppPer(A);
           const _iq=Math.max(0,Math.min(0.999,1-(u._idleHold/u._idleDur)));
           const _is=Math.floor(_iq*_ip); fr=ppFrame(A,_is); }
+        else if(A.impact && st===u._abilAnim && u._abilStartAt!=null){
+          // Hobb: natural wind-up, hold its measured preparation pose, then impact and recovery.
+          // One plain clock also drives the untrimmed spell sheet and deterministic release.
+          fr=impactClipCell(A,Math.max(0,(battleTime-u._abilStartAt)/(SIM_STEP*SIM_HZ*BATTLE_PACE))); }
         else if(_bCut) fr=Math.min(A.n-1,16+Math.floor(_bJ*(A.fps||24)));   /* v1186 Bloomstep's counter cut, pinned to the jump */
         else if(A.blink && st===u._abilAnim && u._abilStartAt!=null){
           /* v1044 PHANTOM STEP (KonWu blue): the clip runs on BATTLE time, pinned to the sim's two moments - frames 0..move-1 span cast start -> the
@@ -30977,6 +30990,20 @@ function hobbPorcelainFront(u,ctr,R,amount,stun){
   }});
  });
 }
+/* Phil 18 Oct impact review: full FX from their first cell, at native speed.
+   Burst cells are inspected on the final 73-cell sheets: green 11, blue 1,
+   ult 39. Blue starts as a small chip cluster; its shower expands one cell later.
+   Green/ult hold their wind-up pose; never accelerate the effect. */
+const HOBB_IMPACT={green:{cell:18,burst:11,start:0},blue:{cell:18,burst:1,start:18/24-1/FX2_DEF.hobb_blue.fps2},ult:{cell:40,holdCell:32,burst:39,start:0}};
+for(const st of ['green','blue','ult']){
+ const I=HOBB_IMPACT[st],D=FX2_DEF['hobb_'+st],A=BATTLE_ANIM.hobb[st];
+ D.startReal=I.start; D.burstCell=I.burst;
+ A.impact={cell:I.cell,at:I.start+I.burst/D.fps2}; if(I.holdCell!=null)A.impact.holdCell=I.holdCell;
+}
+BATTLE_ANIM.hobb.ult.root=clipDur(BATTLE_ANIM.hobb.ult)*FX_RT;
+// The front still determines each enemy's damage, but cannot arrive before
+// the first visible burst cell of the sampled sheet.
+for(const row of HOBB_EDGE) row[0]=Math.max(row[0],BATTLE_ANIM.hobb.ult.impact.at);
 /* CHATGPT HOBB FX 18OCT2026 END */
 </script>
 <script>
