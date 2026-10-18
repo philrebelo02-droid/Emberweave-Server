@@ -527,6 +527,14 @@ note "test_nerisse_half_1197.js (v1197 Phil: Drifting Constellation at half size
 node tests/test_nerisse_half_1197.js || FAILED=1
 note "test_fold_sweep_1200.js (v1200 Fold device sweep + request timeout, needs playwright, Fold inner 841x632 dpr 2.625: the World Map message screens have a Base button and a reply that never comes ends in unavailable + Try again (20 s read timeout); stalled Glyphs tab and stage popup reads end in could-not-be-loaded + Try again without re-asking; a sign-in claim held 50 s is given up at 45 s, not re-sent, and the second tap is paid from the receipt once; two campaign fights: no sprite keeps a freed death sheet, no failed texture upload; CONTROL SWEEP_ROOT=<pre-v1200 checkout> fails)"
 node tests/test_fold_sweep_1200.js || FAILED=1
+note "test_iver_art_18oct.js (18 Oct art, ChatGPT: Iver's approved remake - 8 states, fresh files within 2048 px, Phil PASS source hashes, per-cell source maps, timing kept, kit/stats unchanged, his death unchanged; fights tick-identical with crit zero and with the v532 crit-clip rule; CONTROL: a moved strike differs)"
+node tests/test_iver_art_18oct.js || FAILED=1
+note "test_joss_art_18oct.js (18 Oct art, ChatGPT: Joss's approved remake - 9 states incl. the triggered Unbroken passive clip, re-cut at ~92% for the phone memory gate; the same checks as Iver's)"
+node tests/test_joss_art_18oct.js || FAILED=1
+note "test_ambrel_art_18oct.js (18 Oct art, ChatGPT: Ambrel's approved remake - 9 states and her new death; the same checks)"
+node tests/test_ambrel_art_18oct.js || FAILED=1
+note "test_spell_fx_18oct.js (18 Oct art: Grok's seven FX for Aldren, Aureth and Joss - receipts, sheets, routing; Joss's Sanctuary Guard at half size behind the heroes (Phil); fights unchanged)"
+node tests/test_spell_fx_18oct.js || FAILED=1
 note "test_skill_previews_1164.js (v1164 SKILL PREVIEWS read from the fight: every slot of all 60 heroes - the clip startAbilityClip / real swings / crit / passive play (same BATTLE_ANIM object, the engine hold and cell clock; stand-ins show nothing), every FX sheet the cast draws recorded live at its moment, the fight's SFX rows with peaks on the contact cell; CONTROLS: an old Korvux sheet, a sound a cell off, a dropped FX fail; phone browser: silent on open, a tap plays through sfxPlay (swing 0.85), one at a time, FX off / master mute, only the open hero's tier sheets held and released; fights tick-identical to BASE)"
 node tests/test_skill_previews_1164.js || FAILED=1
 rm -f probe-db-*.json
