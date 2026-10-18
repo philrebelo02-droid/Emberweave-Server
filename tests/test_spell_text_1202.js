@@ -78,5 +78,28 @@ const S=x=>+(+x).toFixed(2);
   ok(C.KITS.oakmir&&C.KITS.oakmir.purple&&C.KITS.oakmir.purple.pass==='deeproots','Oakmir passive is Deep Roots (Kimi A: "Twin Fonts" - not real)');
   const aa=C.HERO_ULT_ART&&C.HERO_ULT_ART.askel; ok(aa&&aa.allyShield===0.12&&aa.knockAside===2*40,'Askel ult carries allyShield 0.12 + knockAside 2 m (Kimi A: "not in the code" - not real)');
   const hl=L.find(l=>/^\s*hush: lv=>/.test(l)); ok(!!hl&&/0\.7\*skillMul/.test(hl),'Lumi levelled Hush text reads 0.7 s (Kimi A - not real)'); }
+// 5. one entry per hero in HERO_ULT_DESC (the dead duplicates misled Kimi's live audit: Vaelora's, Zahri's, Veyr's old copies)
+{ console.log('-- HERO_ULT_DESC has one entry per hero');
+  const i=L.findIndex(l=>l.startsWith('const HERO_ULT_DESC=')); let blk=''; for(let j=i;j<L.length;j++){ blk+=L[j]+'\n'; if(/\};\s*$/.test(L[j])) break; }
+  const seen={}, dup=new Set(); for(const m of blk.matchAll(/"([a-z]+)": "/g)){ if(seen[m[1]]) dup.add(m[1]); seen[m[1]]=1; }
+  ok(dup.size===0,'no hero is written twice ('+[...dup].join(', ')+')'); }
+// 6. Askel's ult in the real engine (server/sim-host.js loads the page - the code the client and the server replay run): allies get the
+//    12% shield and the enemy on his path is knocked off the line (CONTROL in the same run: with the two values set to 0 that enemy is
+//    caught at the impact and stunned, and nobody is shielded)
+{ console.log('-- Askel ult in the engine');
+  let host=null; try{ host=require(path.join(root,'server/sim-host.js')).load(path.join(root,'emberweave-heroes.html')); }catch(e){ console.log('  (sim-host: '+e.message.slice(0,80)+')'); }
+  if(host){ const run=src=>vm.runInContext(src,host.ctx);
+    const trace=off=>run(`(()=>{ ${off?"HERO_ULT_ART.askel=Object.assign({},HERO_ULT_ART.askel,{allyShield:0,knockAside:0});":""}
+      units=[]; ended=false; paused=false; battleTime=0; groundHazards.length=0; seedBattle(7);
+      const a=makeUnit('askel','ally',300,700,30,{owned:false,rank:3}), m1=makeUnit('vael','ally',250,640,30,{owned:false,rank:3});
+      const p=makeUnit('grosk','enemy',700,705,30,{owned:false,rank:3}), f=makeUnit('vireo','enemy',1100,700,30,{owned:false,rank:3});
+      units=[a,m1,p,f]; units.forEach(u=>{ u.maxHp=u.hp=1e7; u.energy=0; u.atkInterval=99; u.atkCd=99; u.greenCd=u.blueCd=99; u.ctrlRes=0; u.shield=0; if(u!==a) u.speed=0; });
+      const st=[]; const _cc=ccApply; ccApply=function(s,t,k,d){ if(s===a&&k==='stunned') st.push(t.key); return _cc.apply(this,arguments); };
+      a.energy=a.maxEnergy||100; castAbility(a); let sh=0; for(let i=0;i<120;i++){ updateBattle(1/30); sh=Math.max(sh,m1.shield||0); }
+      ccApply=_cc; return {shieldPct:sh/m1.maxHp, pathStunned:st.includes('grosk'), farStunned:st.includes('vireo')}; })()`);
+    const on=trace(false), off=trace(true);
+    ok(Math.abs(on.shieldPct-0.12)<1e-6,'an ally gets a shield of 12% of max HP ('+on.shieldPct+')');
+    ok(!on.pathStunned&&on.farStunned,'the enemy on his path is knocked off the line (not caught at the impact); the far one is stunned');
+    ok(off.shieldPct===0&&off.pathStunned,'CONTROL: with allyShield / knockAside 0 nobody is shielded and the path enemy is caught and stunned'); } }
 console.log(`spell text 1202: ${checks-fails}/${checks} checks passed, ${fails} failed`);
 if(fails) process.exitCode=1;
