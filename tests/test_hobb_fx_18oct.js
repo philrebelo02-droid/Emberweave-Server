@@ -20,6 +20,8 @@ try{const b=require('../server/sim-host.js').load(file),br=s=>vm.runInContext(s,
  const normalize=s=>JSON.stringify(JSON.parse(s),(k,v)=>k==='ownFx'?undefined:v);
  ck('hero stats and kit mechanics unchanged',normalize(run('JSON.stringify([HERO_TYPES.hobb,KITS.hobb,HERO_ULT_ART.hobb,ULT_DEF.aoeStun,BATTLE_ANIM.hobb])'))===normalize(br('JSON.stringify([HERO_TYPES.hobb,KITS.hobb,HERO_ULT_ART.hobb,ULT_DEF.aoeStun,BATTLE_ANIM.hobb])')));
 }finally{fs.unlinkSync(file)}
+run(`TH={};scene={};camera={};_fx22Spr=(key,order)=>({renderOrder:order});`);
+ck('ultimate renderer puts the porcelain in front of hero bodies',run(`fx16Show({u:{x:0,y:0},vk:'hobbult',d:FX2_DEF.hobb_ult,P:{x:10,y:0}}).renderOrder===995`));
 run(`window.__frames=[];fx2SetFrame=(s,d,f)=>window.__frames.push(f);_fx22Fx16Side=()=>{};`);
 const playback=run(`(()=>{const o={d:FX2_DEF.hobb_ult,u:{alive:true},vk:'hobbult',ok:true,s:{material:{}},ts:0};let end=0;for(let i=0;i<500;i++){o.t=i/60*FX_RT;if(_fx22Fx16Tick(o)<0){end=i/60;break;}}return {first:window.__frames[0],last:window.__frames.at(-1),end};})()`);
 ck('whole ult plays first to final cell at full speed',playback.first===0&&playback.last===72&&Math.abs(playback.end-6.0416667)<1/30);
