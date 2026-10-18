@@ -44,7 +44,7 @@
 })();
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<script src="/assets/ui/fold-viewport.js?v=foldperf18oct26"></script>
+<script src="/assets/ui/fold-viewport.js?v=innerperf18oct26"></script>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0b0e14">
 <meta name="mobile-web-app-capable" content="yes">
@@ -2331,7 +2331,16 @@ body.ew-rotated .screen.popout{width:min(440px,94%);height:100%;max-height:100%;
 body.ew-rotated #app{max-width:none;max-height:none;}
 #stageModal .ew-stage-exit{position:sticky;top:-7px;display:flex;justify-content:flex-end;min-height:36px;z-index:50;background:#141b2b;}
 #stageModal .ew-stage-exit button{width:32px;height:32px;padding:0;font-size:22px;}
-body.ew-rotated.ew-home-notice #banner{animation:none;inset:auto 12px 12px auto;max-width:min(440px,70%);padding:9px 13px;font-size:14px;letter-spacing:0;line-height:1.3;border-radius:9px;background:#11172aee;border:1px solid #52627c;}
+body.ew-home-notice #banner{animation:none;inset:auto 12px 12px auto;max-width:min(440px,70%);padding:9px 13px;font-size:14px;letter-spacing:0;line-height:1.3;border-radius:9px;background:#11172aee;border:1px solid #52627c;}
+
+/* Open/folded tablet: real screen content owns the full viewport. */
+body.ew-inner #app{max-width:none;max-height:none;flex-shrink:0;}
+body.ew-inner #townWrap{overflow:auto;touch-action:pan-x pan-y;}
+body.ew-inner .screen.popout{inset:12px;left:50%;transform:translateX(-50%);width:min(740px,calc(100% - 24px));height:calc(100% - 24px);max-height:calc(100% - 24px);border:1px solid #3a4a6e;border-radius:16px;}
+body.ew-inner #heroDetailBody{width:100%;}
+body.ew-inner #profileBtn{width:clamp(56px,5.5859375vw,92px);margin-right:clamp(30px,2.625390625vw,46px);margin-bottom:clamp(20px,1.89921875vw,30px);}
+body.ew-inner #stageModal>.pm{max-height:calc(100% - 24px);width:min(740px,calc(100% - 24px));overflow:auto;}
+body.ew-inner .smStageScroll{max-height:calc(100vh - 150px);}
 </style>
 </head>
 <body>
@@ -24584,7 +24593,7 @@ function refreshTeleGhosts(){ const inner=document.getElementById('wzoneInner'),
 function queueTeleGhosts(){ if(_teleGhostRaf)return; _teleGhostRaf=requestAnimationFrame(()=>{ _teleGhostRaf=0; refreshTeleGhosts(); }); }
 function worldZoomBounds(zone){
   const cell=WORLD_W/GRID_COLS;
-  const min=zone.clientWidth/WORLD_W;
+  const min=window.EWViewport&&EWViewport.state.inner?Math.max(zone.clientWidth/WORLD_W,zone.clientHeight/WORLD_H):zone.clientWidth/WORLD_W;
   const max=Math.min(zone.clientWidth/(16*cell),zone.clientHeight/(9*cell));
   return {min,max:Math.max(min,max)};
 }
@@ -30225,8 +30234,7 @@ function sizeTownMap(){
   const wrap=document.getElementById('townWrap'), map=document.getElementById('townMap'), img=document.getElementById('townImg');
   if(!wrap||!map||!img) return;
   const W=wrap.clientWidth, H=wrap.clientHeight; if(!W||!H) return;
-  map.style.width=W+'px'; map.style.height=H+'px';
-  img.style.width=W+'px'; img.style.height=H+'px';
+  const inner=window.EWViewport&&EWViewport.state.inner,ratio=img.naturalWidth&&img.naturalHeight?img.naturalWidth/img.naturalHeight:1.5;const mw=inner?Math.max(W,H*ratio):W,mh=inner?mw/ratio:H;map.style.width=mw+'px';map.style.height=mh+'px';img.style.width=mw+'px';img.style.height=mh+'px';
 }
 window.addEventListener('resize',()=>{ const h=document.getElementById('home'); if(h&&h.classList.contains('active')) sizeTownMap(); });
 /* v350 (Phil: "when I open the game it is often zoomed in until I tab away"). The first layout can run
@@ -30249,9 +30257,9 @@ if(window.visualViewport){ let _vvH=window.visualViewport.height; window.visualV
    viewport meta) whenever it drifts with no text field focused. Also forced after any update reload. */
 function ewGameView(){ const v=window.EWViewport&&window.EWViewport.state;return v&&v.width&&v.height?{width:v.width,height:v.height}:{width:window.innerWidth,height:window.innerHeight}; }
 function _fitApp(){ try{ const app=document.getElementById('app');if(!app)return;EWViewport.state.screen=state;EWViewport.fit();const v=ewGameView(),vw=v.width,vh=v.height;if(!vw||!vh)return;
- const fillWide=EWViewport.state.rotated||((state==='campaign'||state==='home'||state==='skyisland'||state==='arena'||state==='skyfall')&&vw>vh&&vh<=700&&vw/vh>1.85);
+ const fillWide=EWViewport.state.rotated||(EWViewport.state.inner&&state!=='battle')||((state==='campaign'||state==='home'||state==='skyisland'||state==='arena'||state==='skyfall')&&vw>vh&&vh<=700&&vw/vh>1.85);
  const w=fillWide?vw:Math.min(vw,vh*1024/572),h=fillWide?vh:Math.min(vh,vw*572/1024);
- if(Math.abs(w-app.clientWidth)>1||Math.abs(h-app.clientHeight)>1){app.style.width=Math.floor(w)+'px';app.style.height=Math.floor(h)+'px';_refitAll();}}catch(e){} }
+ if(Math.abs(w-app.clientWidth)>1||Math.abs(h-app.clientHeight)>1){const zone=state==='world'&&EWViewport.state.inner&&document.getElementById('wzone'),center=zone?{x:(zone.scrollLeft+zone.clientWidth/2)/worldZoom,y:(zone.scrollTop+zone.clientHeight/2)/worldZoom}:null;app.style.width=Math.floor(w)+'px';app.style.height=Math.floor(h)+'px';_refitAll();if(center){const b=worldZoomBounds(zone);worldZoom=Math.max(b.min,Math.min(b.max,worldZoom));applyWorldZoom();zone.scrollLeft=center.x*worldZoom-zone.clientWidth/2;zone.scrollTop=center.y*worldZoom-zone.clientHeight/2;}}}catch(e){} }
 function _resetPageZoom(){ try{ const m=document.querySelector('meta[name=viewport]'); if(!m) return; const c=m.getAttribute('content');
     m.setAttribute('content', c.replace(/maximum-scale=[\d.]+/,'maximum-scale=1.0001')); setTimeout(()=>{ m.setAttribute('content',c); _fitApp(); },40); }catch(e){} }
 let _zoomBadSince=0;
