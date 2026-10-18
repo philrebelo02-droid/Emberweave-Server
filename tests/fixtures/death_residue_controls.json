@@ -1,0 +1,170 @@
+{
+ "measured": "17 Oct 2026, live v1190/v1196 sheets, Pipeline tools/death/residue_audit.py against each source clip",
+ "note": "Phil named 14 deaths (from a colorkey preview of the SOURCE clips). 13 fail these limits on their live sheets; Tolley passes (his live residue is grey smoke + a faint pink cast inside his own lava-red allowance: tint 0.836% of 1.870%, grey 0.895%) and is re-cut with the rest.",
+ "bad": [
+  "hurne",
+  "maren",
+  "mellan",
+  "orryn",
+  "rivet",
+  "seyla",
+  "sloe",
+  "sorrel",
+  "tharl",
+  "tick",
+  "vael",
+  "vulmar",
+  "yenna"
+ ],
+ "clean": [
+  "pellucid",
+  "deepcleft",
+  "vireo"
+ ],
+ "rows": {
+  "hurne": {
+   "flicker": 43.01,
+   "flicker_cell": 6,
+   "tint": 0.022,
+   "tint_limit": 0.4,
+   "ghost": 37.13,
+   "ghost_cell": 6,
+   "grey": 0.285
+  },
+  "maren": {
+   "flicker": 0.82,
+   "flicker_cell": 7,
+   "tint": 0.643,
+   "tint_limit": 0.4,
+   "ghost": 0.0,
+   "ghost_cell": 0,
+   "grey": 0.2
+  },
+  "mellan": {
+   "flicker": 0.72,
+   "flicker_cell": 10,
+   "tint": 2.144,
+   "tint_limit": 0.4,
+   "ghost": 0.0,
+   "ghost_cell": 0,
+   "grey": 0.765
+  },
+  "orryn": {
+   "flicker": 1.87,
+   "flicker_cell": 11,
+   "tint": 1.185,
+   "tint_limit": 0.656,
+   "ghost": 0.0,
+   "ghost_cell": 0,
+   "grey": 2.573
+  },
+  "rivet": {
+   "flicker": 0.44,
+   "flicker_cell": 14,
+   "tint": 0.865,
+   "tint_limit": 0.4,
+   "ghost": 0.0,
+   "ghost_cell": 0,
+   "grey": 1.06
+  },
+  "seyla": {
+   "flicker": 2.55,
+   "flicker_cell": 25,
+   "tint": 1.043,
+   "tint_limit": 1.633,
+   "ghost": 1.31,
+   "ghost_cell": 16,
+   "grey": 2.035
+  },
+  "sloe": {
+   "flicker": 1.62,
+   "flicker_cell": 2,
+   "tint": 1.362,
+   "tint_limit": 0.4,
+   "ghost": 0.0,
+   "ghost_cell": 0,
+   "grey": 1.042
+  },
+  "sorrel": {
+   "flicker": 0.92,
+   "flicker_cell": 3,
+   "tint": 1.235,
+   "tint_limit": 0.4,
+   "ghost": 0.0,
+   "ghost_cell": 0,
+   "grey": 0.77
+  },
+  "tharl": {
+   "flicker": 0.46,
+   "flicker_cell": 2,
+   "tint": 1.328,
+   "tint_limit": 0.444,
+   "ghost": 0.0,
+   "ghost_cell": 0,
+   "grey": 1.153
+  },
+  "tick": {
+   "flicker": 0.97,
+   "flicker_cell": 10,
+   "tint": 1.827,
+   "tint_limit": 1.584,
+   "ghost": 0.0,
+   "ghost_cell": 0,
+   "grey": 0.086
+  },
+  "vael": {
+   "flicker": 1.56,
+   "flicker_cell": 3,
+   "tint": 0.709,
+   "tint_limit": 0.624,
+   "ghost": 0.0,
+   "ghost_cell": 0,
+   "grey": 0.305
+  },
+  "vulmar": {
+   "flicker": 0.16,
+   "flicker_cell": 30,
+   "tint": 0.421,
+   "tint_limit": 0.4,
+   "ghost": 0.0,
+   "ghost_cell": 0,
+   "grey": 0.082
+  },
+  "yenna": {
+   "flicker": 1.24,
+   "flicker_cell": 21,
+   "tint": 1.652,
+   "tint_limit": 0.49,
+   "ghost": 0.0,
+   "ghost_cell": 0,
+   "grey": 2.545
+  },
+  "pellucid": {
+   "flicker": 0.21,
+   "flicker_cell": 5,
+   "tint": 0.076,
+   "tint_limit": 0.4,
+   "ghost": 0.0,
+   "ghost_cell": 0,
+   "grey": 0.206
+  },
+  "deepcleft": {
+   "flicker": 0.86,
+   "flicker_cell": 4,
+   "tint": 0.044,
+   "tint_limit": 0.4,
+   "ghost": 0.0,
+   "ghost_cell": 0,
+   "grey": 0.405
+  },
+  "vireo": {
+   "flicker": 1.01,
+   "flicker_cell": 2,
+   "tint": 0.031,
+   "tint_limit": 0.4,
+   "ghost": 0.0,
+   "ghost_cell": 0,
+   "grey": 0.559
+  }
+ }
+}
