@@ -5,7 +5,7 @@
      (3) only nerisse_blue carries fxMul; the Skills tab preview's art for the slot is 0.5 x BASE's
    CONTROL: a halved heal is NOT tick-identical; without fxMul the renderer measures the full size. */
 const fs = require('fs'), os = require('os'), path = require('path'), net = require('net'), vm = require('vm'), cp = require('child_process'), crypto = require('crypto');
-const ROOT = path.join(__dirname, '..'), BASE_SHA = process.env.EW_BASE || '8dc5fe8d';   // live v1192
+const ROOT = path.join(__dirname, '..'), BASE_SHA = process.env.EW_BASE || '0219c16c';   // live v1198
 let pass = 0, fail = 0; const ck = (c, m, d) => { if (c) { pass++; console.log('  ok   ' + m); } else { fail++; console.log('  FAIL ' + m + (d ? ' - ' + String(d).slice(0, 900) : '')); } };
 const delay = ms => new Promise(r => setTimeout(r, ms));
 const freePort = () => new Promise(r => { const s = net.createServer(); s.listen(0, '127.0.0.1', () => { const p = s.address().port; s.close(() => r(p)); }); });
