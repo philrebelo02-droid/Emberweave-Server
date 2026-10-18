@@ -37,6 +37,7 @@ const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).loa
 const DUMP = `JSON.stringify({c:Object.fromEntries(Object.keys(BATTLE_ANIM).map(k=>[k,BATTLE_ANIM[k]])), f:FX2_DEF})`;
 try {
   const run = load(HTML);
+  require('./helpers/tolley-fx-1197.js').undoTolleyFx1197(run);   // v1197: Tolley's FX entries (and Nerisse's fxMul) go back to the build before - tests/test_tolley_fx_1197.js checks them
   require('./helpers/vael-fx-1171.js').undoVaelFx1171(run);   // v1171: Vael's three FX entries go back to v1164's - the tier table still lists his two replaced plates (unreferenced, harmless; tests/test_vael_fx_1171.js)
   const T = JSON.parse(fs.readFileSync(path.join(ROOT, 'assets/anim/tiers_1141.json'), 'utf8')).sheets;
   const CL = JSON.parse(run(`JSON.stringify([].concat(...Object.keys(BATTLE_ANIM).map(k=>Object.keys(BATTLE_ANIM[k]).filter(s=>s[0]!=='_'&&BATTLE_ANIM[k][s]&&BATTLE_ANIM[k][s].u).map(s=>Object.assign({k,s},BATTLE_ANIM[k][s])))).concat(Object.keys(FX2_DEF).map(k=>Object.assign({k,s:'fx',fx:1},FX2_DEF[k]))))`));

@@ -18,4 +18,4 @@ const CODE = `(()=>{ const F=${JSON.stringify({ c: FIX.changes, s: FIX.skillClip
 /* v1162: Korvux's entries were replaced after the slim too - his v1159 entries go back first (tests/helpers/anim-korvux-1162.js) */
 /* v1171: Vael's and Deepcleft's three spell FX entries were replaced after the slim - their live entries go back first (tests/helpers/vael-fx-1171.js) */
 const U1160 = require('./anim-1160.js'), UK1162 = require('./anim-korvux-1162.js'), UNG1166 = require('./anim-noxgrim-1166.js'), UV1171 = require('./vael-fx-1171.js');   /* v1166: Nox's and Grimsby's entries replaced after the slim too */
-module.exports = { undoSlim1155: run => { UV1171.undoVaelFx1171(run); UNG1166.undoNoxGrim1166(run); UK1162.undoKorvux1162(run); U1160.undo1160(run); return run(CODE); }, SLIM_1155: FIX };
+module.exports = { undoSlim1155: run => { require('./tolley-fx-1197.js').undoTolleyFx1197(run);   /* v1197: Tolley's FX entries (and Nerisse's fxMul) were replaced after the slim too */ UV1171.undoVaelFx1171(run); UNG1166.undoNoxGrim1166(run); UK1162.undoKorvux1162(run); U1160.undo1160(run); return run(CODE); }, SLIM_1155: FIX };
