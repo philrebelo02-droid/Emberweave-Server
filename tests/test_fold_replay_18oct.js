@@ -1,8 +1,12 @@
 'use strict';
 const fs=require('fs'),path=require('path'),vm=require('vm'),cp=require('child_process'),assert=require('assert'),crypto=require('crypto');
 const root=path.resolve(__dirname,'..'),temp=path.join(root,'.fold-replay-baseline-'+process.pid+'.html');
+// Pin this layout-only branch's starting commit. A moving main may contain new
+// art/gameplay; integration runners can select their actual rebased base.
+const BASE=process.env.EW_BASE||'0dc64490c9e56ae33612e3ffed208b0aa32edafd';
 const load=f=>{const h=require('../server/sim-host.js').load(f);return s=>vm.runInContext(s,h.ctx)},now=load(path.join(root,'emberweave-heroes.html'));
-fs.writeFileSync(temp,cp.execFileSync('git',['show','origin/main:emberweave-heroes.html'],{cwd:root,maxBuffer:64<<20}));
+fs.writeFileSync(temp,cp.execFileSync('git',['show',BASE+':emberweave-heroes.html'],{cwd:root,maxBuffer:64<<20}));
+console.log('Fold replay baseline '+BASE);
 try{const old=load(temp),digest=s=>crypto.createHash('sha256').update(s).digest('hex');
  assert.equal(now('JSON.stringify([HERO_TYPES,KITS,ULT_DEF,BATTLE_ANIM])'),old('JSON.stringify([HERO_TYPES,KITS,ULT_DEF,BATTLE_ANIM])'),'layout must not change combat or animation data');
  console.log('ok gameplay and animation tables unchanged');
