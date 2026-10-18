@@ -16635,6 +16635,10 @@ function popoutRender(name){
   else if(name==='heroDetail') renderHeroDetail();
 }
 function popoutScreen(name){ const el=document.getElementById(name); if(!el){ show(name); return; }
+  /* v1198 (tester, Fold, 18 Oct: froze leaving Vael's skills / glyphs): the tutorial opens Heroes as the FULL screen; the hero window's
+     Back then popped Heroes out as a pop-out of itself, and its X took the screen's 'active' away with it - no screen left, a black page.
+     When the screen asked for is the one already under the pop-out, Back just closes the pop-out and redraws that screen. */
+  if(name===state&&el.classList.contains('active')&&!el.classList.contains('popout')){ closePopout(); try{ popoutRender(name); }catch(e){ console.error('popoutRender',name,e); } _ensureScreen(); return; }
   closePopout();
   _popout=name;
   let bd=document.getElementById('popoutBackdrop');
@@ -16647,10 +16651,21 @@ function popoutScreen(name){ const el=document.getElementById(name); if(!el){ sh
   const hm=document.getElementById('hubMenu'); if(hm) hm.classList.remove('open');
 }
 function closePopout(){ try{ loreStop(); }catch(e){} try{ if(window.EmberSkillStage) window.EmberSkillStage.stop(); }catch(e){}   /* v1164 */   /* v1124: closing a pop-out panel stops the lore narration */
-  const bd=document.getElementById('popoutBackdrop'); if(bd) bd.style.display='none';
-  document.querySelectorAll('.popoutClose').forEach(x=>x.remove());
-  if(_popout){ const el=document.getElementById(_popout); if(el) el.classList.remove('active','popout'); _popout=null; } }
-function show(name){
+  try{ const bd=document.getElementById('popoutBackdrop'); if(bd) bd.style.display='none'; }catch(e){}
+  try{ document.querySelectorAll('.popoutClose').forEach(x=>x.remove()); }catch(e){}
+  if(_popout){ const was=_popout; _popout=null; try{ const el=document.getElementById(was); if(el){ el.classList.remove('popout'); if(was!==state) el.classList.remove('active'); } }catch(e){} }   /* v1198: the screen the player is ON keeps showing */
+  _ensureScreen(); }
+/* v1198: whatever happens on a screen change or a window close (an error included), one screen is always left showing.
+   No active screen and no pop-out = the black page the Fold tester hit; put the current screen back (or the town). */
+function _ensureScreen(){ try{ if(typeof state==='undefined'||state==='battle'||_popout||(show._depth|0)>0) return;   /* (inside show() its own finally checks once the change is done) */
+    if(SCREENS.some(s=>{ const e=document.getElementById(s); return e&&e.classList.contains('active'); })) return;
+    const el=SCREENS.includes(state)&&document.getElementById(state);
+    _ensureScreen.n=(_ensureScreen.n|0)+1; console.warn('[ensureScreen] no screen was showing (state '+state+') - restored');
+    if(el){ el.classList.remove('popout'); el.classList.add('active'); try{ _fitApp(); }catch(e){} try{ muteBtnPlace(true); }catch(e){} }
+    else if(!_ensureScreen.busy){ _ensureScreen.busy=true; try{ show('home'); }finally{ _ensureScreen.busy=false; } }
+  }catch(e){} }
+function show(name){ show._depth=(show._depth|0)+1; try{ return _showScreen(name); } finally { show._depth--; if(!show._depth) _ensureScreen(); } }   /* v1198: an error in a screen change still leaves a screen up */
+function _showScreen(name){
   try{ if(name!==state) loreStop(); }catch(e){}
   try{ if(name!==state && window.EmberSkillStage) window.EmberSkillStage.stop(); }catch(e){}   /* v1164: leaving a screen lets the Skills-tab preview's sheets + sounds go */
   try{ if(typeof state!=='undefined'&&state==='result'&&name!=='result'&&typeof sfxTailsOut==='function') sfxTailsOut(); }catch(e){}   /* v1165: ability tails still ringing fade out as the result screen closes */
@@ -30447,7 +30462,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1792280603602';
+const BUILD_ID = '1792326713752';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

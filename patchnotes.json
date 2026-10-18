@@ -1,5 +1,8 @@
 {
   "patches": [
+    {"ver": "0.96", "date": "18 October 2026", "title": "Hero screen fix", "items": [
+      "Fixed a freeze in the tutorial: leaving a hero's Skills or Glyphs and closing the Heroes window could leave a black screen with only the music playing. Closing any window now always returns you to a working screen."
+    ]},
     {"ver": "0.95", "date": "17 October 2026", "title": "Server safety", "items": [
       "Server data safety improvements: a server that cannot read its saved world now stops safely instead of starting fresh, saves are fully written to disk before they count, and backups of real player progress are always kept.",
       "Absalie, Aldren, Ambrel, Askel Greatbrow, Astra, Aureth, Bloatus and Brannus now have their own death animations.",
