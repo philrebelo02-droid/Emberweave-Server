@@ -1,0 +1,474 @@
+{
+  "body": {
+    "idle": {
+      "u": "/assets/anim/hobb/hobb_idle_1175.webp?v=1175",
+      "n": 62,
+      "fw": 218,
+      "fh": 255,
+      "cols": 9,
+      "rows": 7,
+      "figH": 240,
+      "feet": 248,
+      "cx": 121.3,
+      "fps": 12,
+      "flip": false,
+      "top": 8
+    },
+    "walk": {
+      "u": "/assets/anim/hobb/hobb_walk_1175.webp?v=1175",
+      "n": 36,
+      "fw": 233,
+      "fh": 272,
+      "cols": 6,
+      "rows": 6,
+      "loop": [
+        0,
+        36
+      ],
+      "figH": 240,
+      "feet": 259,
+      "cx": 132.8,
+      "fps": 17.632653,
+      "stride": 0.088163,
+      "flip": false,
+      "top": 19
+    },
+    "attack": {
+      "u": "/assets/anim/hobb/hobb_attack_1175.webp?v=1175",
+      "n": 48,
+      "fw": 341,
+      "fh": 236,
+      "cols": 6,
+      "rows": 8,
+      "figH": 206,
+      "feet": 230,
+      "cx": 152.1,
+      "fps": 24,
+      "flip": false,
+      "top": 24,
+      "contact": 27
+    },
+    "crit": {
+      "u": "/assets/anim/hobb/hobb_crit_1175.webp?v=1175",
+      "n": 48,
+      "fw": 341,
+      "fh": 229,
+      "cols": 6,
+      "rows": 8,
+      "figH": 202,
+      "feet": 223,
+      "cx": 153,
+      "fps": 24,
+      "flip": false,
+      "top": 21,
+      "contact": 27
+    },
+    "hit": {
+      "u": "/assets/anim/hobb/hobb_hit_1175.webp?v=1175",
+      "n": 15,
+      "fw": 229,
+      "fh": 254,
+      "cols": 5,
+      "rows": 3,
+      "figH": 240,
+      "feet": 247,
+      "cx": 135,
+      "fps": 25,
+      "flip": false,
+      "top": 7
+    },
+    "green": {
+      "u": "/assets/anim/hobb/hobb_green_1175.webp?v=1175",
+      "n": 48,
+      "fw": 292,
+      "fh": 279,
+      "cols": 7,
+      "rows": 7,
+      "figH": 209,
+      "feet": 273,
+      "cx": 115,
+      "fps": 24,
+      "flip": false,
+      "top": 64,
+      "contact": 18
+    },
+    "blue": {
+      "u": "/assets/anim/hobb/hobb_blue_1175.webp?v=1175",
+      "n": 48,
+      "fw": 284,
+      "fh": 254,
+      "cols": 6,
+      "rows": 8,
+      "figH": 240,
+      "feet": 247,
+      "cx": 152.2,
+      "fps": 24,
+      "flip": false,
+      "top": 7,
+      "contact": 18
+    },
+    "ult": {
+      "u": "/assets/anim/hobb/hobb_ult_1175.webp?v=1175",
+      "n": 48,
+      "fw": 341,
+      "fh": 243,
+      "cols": 6,
+      "rows": 8,
+      "figH": 229,
+      "feet": 236,
+      "cx": 162.7,
+      "fps": 24,
+      "flip": false,
+      "top": 7,
+      "contact": 40
+    },
+    "death": {
+      "u": "/assets/anim/hobb/hobb_death_1190.webp?v=1190",
+      "n": 4,
+      "first": 0,
+      "fw": 215,
+      "fh": 253,
+      "cols": 1,
+      "rows": 4,
+      "figH": 240,
+      "feet": 246,
+      "top": 6,
+      "cx": 121.1,
+      "fps": 8,
+      "flip": false,
+      "lazy": true,
+      "dn": 48,
+      "parts": [
+        "death",
+        "death2",
+        "death3",
+        "death4",
+        "death5",
+        "death6",
+        "death7",
+        "death8",
+        "death9",
+        "death10",
+        "death11",
+        "death12"
+      ],
+      "end": "hide"
+    },
+    "death2": {
+      "u": "/assets/anim/hobb/hobb_death2_1190.webp?v=1190",
+      "n": 4,
+      "first": 4,
+      "fw": 223,
+      "fh": 243,
+      "cols": 1,
+      "rows": 4,
+      "figH": 240,
+      "feet": 236,
+      "top": -4,
+      "cx": 129.5,
+      "fps": 8,
+      "flip": false,
+      "lazy": true
+    },
+    "death3": {
+      "u": "/assets/anim/hobb/hobb_death3_1190.webp?v=1190",
+      "n": 4,
+      "first": 8,
+      "fw": 231,
+      "fh": 256,
+      "cols": 1,
+      "rows": 4,
+      "figH": 240,
+      "feet": 244,
+      "top": 4,
+      "cx": 136,
+      "fps": 8,
+      "flip": false,
+      "lazy": true
+    },
+    "death4": {
+      "u": "/assets/anim/hobb/hobb_death4_1190.webp?v=1190",
+      "n": 4,
+      "first": 12,
+      "fw": 245,
+      "fh": 219,
+      "cols": 1,
+      "rows": 4,
+      "figH": 240,
+      "feet": 195,
+      "top": -45,
+      "cx": 148.1,
+      "fps": 8,
+      "flip": false,
+      "lazy": true
+    },
+    "death5": {
+      "u": "/assets/anim/hobb/hobb_death5_1190.webp?v=1190",
+      "n": 4,
+      "first": 16,
+      "fw": 233,
+      "fh": 227,
+      "cols": 1,
+      "rows": 4,
+      "figH": 240,
+      "feet": 205,
+      "top": -35,
+      "cx": 148.1,
+      "fps": 8,
+      "flip": false,
+      "lazy": true
+    },
+    "death6": {
+      "u": "/assets/anim/hobb/hobb_death6_1190.webp?v=1190",
+      "n": 4,
+      "first": 20,
+      "fw": 232,
+      "fh": 226,
+      "cols": 1,
+      "rows": 4,
+      "figH": 240,
+      "feet": 204,
+      "top": -36,
+      "cx": 148.1,
+      "fps": 8,
+      "flip": false,
+      "lazy": true
+    },
+    "death7": {
+      "u": "/assets/anim/hobb/hobb_death7_1190.webp?v=1190",
+      "n": 4,
+      "first": 24,
+      "fw": 230,
+      "fh": 224,
+      "cols": 1,
+      "rows": 4,
+      "figH": 240,
+      "feet": 202,
+      "top": -38,
+      "cx": 148.1,
+      "fps": 8,
+      "flip": false,
+      "lazy": true
+    },
+    "death8": {
+      "u": "/assets/anim/hobb/hobb_death8_1190.webp?v=1190",
+      "n": 4,
+      "first": 28,
+      "fw": 280,
+      "fh": 215,
+      "cols": 1,
+      "rows": 4,
+      "figH": 240,
+      "feet": 193,
+      "top": -47,
+      "cx": 164.4,
+      "fps": 8,
+      "flip": false,
+      "lazy": true
+    },
+    "death9": {
+      "u": "/assets/anim/hobb/hobb_death9_1190.webp?v=1190",
+      "n": 4,
+      "first": 32,
+      "fw": 279,
+      "fh": 127,
+      "cols": 1,
+      "rows": 4,
+      "figH": 240,
+      "feet": 106,
+      "top": -134,
+      "cx": 162.7,
+      "fps": 8,
+      "flip": false,
+      "lazy": true
+    },
+    "death10": {
+      "u": "/assets/anim/hobb/hobb_death10_1190.webp?v=1190",
+      "n": 4,
+      "first": 36,
+      "fw": 278,
+      "fh": 126,
+      "cols": 1,
+      "rows": 4,
+      "figH": 240,
+      "feet": 105,
+      "top": -135,
+      "cx": 162.1,
+      "fps": 8,
+      "flip": false,
+      "lazy": true
+    },
+    "death11": {
+      "u": "/assets/anim/hobb/hobb_death11_1190.webp?v=1190",
+      "n": 4,
+      "first": 40,
+      "fw": 284,
+      "fh": 129,
+      "cols": 1,
+      "rows": 4,
+      "figH": 240,
+      "feet": 108,
+      "top": -132,
+      "cx": 167.2,
+      "fps": 8,
+      "flip": false,
+      "lazy": true
+    },
+    "death12": {
+      "u": "/assets/anim/hobb/hobb_death12_1190.webp?v=1190",
+      "n": 4,
+      "first": 44,
+      "fw": 175,
+      "fh": 103,
+      "cols": 1,
+      "rows": 4,
+      "figH": 240,
+      "feet": 96,
+      "top": -144,
+      "cx": 134,
+      "fps": 8,
+      "flip": false,
+      "lazy": true
+    }
+  },
+  "fx": {
+    "hobb_green": {
+      "u": "/assets/anim/fx/hobb_green_glazebreaker_18oct_wire18oct26.webp?v=18oct26",
+      "n": 73,
+      "fw": 210,
+      "fh": 140,
+      "cols": 7,
+      "rows": 11,
+      "dur": 6.041666666666667,
+      "fps2": 12.082758620689654,
+      "upExtent": 0.9619047619047619,
+      "spawn": 0,
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "size": 1.5,
+      "ro": 995,
+      "mid": 0.6
+    },
+    "hobb_blue": {
+      "u": "/assets/anim/fx/hobb_blue_sealed_vessel_18oct_wire18oct26.webp?v=18oct26",
+      "n": 73,
+      "fw": 210,
+      "fh": 205,
+      "cols": 9,
+      "rows": 9,
+      "dur": 6.041666666666667,
+      "fps2": 12.082758620689654,
+      "upExtent": 0.9414634146341463,
+      "spawn": 16,
+      "anchor": [
+        0.5,
+        0
+      ],
+      "size": 1.5,
+      "ro": 995
+    },
+    "hobb_ult": {
+      "u": "/assets/anim/fx/hobb_ult_grand_kiln_shape_18oct_wire18oct26.webp?v=18oct26",
+      "n": 73,
+      "fw": 210,
+      "fh": 129,
+      "cols": 7,
+      "rows": 11,
+      "dur": 6.041666666666667,
+      "fps2": 12.082758620689654,
+      "upExtent": 0.9224806201550387,
+      "spawn": 0,
+      "anchor": [
+        0.5,
+        0
+      ],
+      "size": 1.5,
+      "ro": 995,
+      "span": 0.9224806201550387
+    }
+  },
+  "edge": [
+    [
+      3.2,
+      0
+    ],
+    [
+      3.208333,
+      0.531286
+    ],
+    [
+      3.25,
+      0.592719
+    ],
+    [
+      3.333333,
+      0.667804
+    ],
+    [
+      3.416667,
+      0.69397
+    ],
+    [
+      3.5,
+      0.80091
+    ],
+    [
+      3.583333,
+      0.829352
+    ],
+    [
+      3.666667,
+      0.903299
+    ],
+    [
+      3.75,
+      0.916951
+    ],
+    [
+      3.833333,
+      0.971559
+    ],
+    [
+      3.916667,
+      0.98066
+    ],
+    [
+      4,
+      0.98066
+    ],
+    [
+      4.083333,
+      0.982935
+    ],
+    [
+      4.166667,
+      0.994312
+    ],
+    [
+      4.25,
+      0.994312
+    ],
+    [
+      4.333333,
+      0.994312
+    ],
+    [
+      4.416667,
+      0.996587
+    ],
+    [
+      4.5,
+      0.996587
+    ],
+    [
+      4.583333,
+      0.998862
+    ],
+    [
+      4.666667,
+      1
+    ]
+  ]
+}
