@@ -4004,7 +4004,8 @@ const ART_TIER=artTierPick();
 let ART_TIERS=null, _artTiersP=null;
 function artTiersLoad(){ if(_artTiersP) return _artTiersP;
   if(window._p2guard || typeof fetch!=='function'){ ART_TIERS={}; return (_artTiersP=Promise.resolve(ART_TIERS)); }
-  _artTiersP=fetch(ART_TIERS_URL).then(r=>r&&r.ok?r.json():null).then(j=>{ ART_TIERS=(j&&j.sheets)||{}; return ART_TIERS; },()=>{ ART_TIERS={}; return ART_TIERS; });
+  const net=fetch(ART_TIERS_URL).then(r=>r&&r.ok?r.json():null).then(j=>{ ART_TIERS=(j&&j.sheets)||{}; return ART_TIERS; },()=>{ ART_TIERS={}; return ART_TIERS; });
+  let cap; _artTiersP=Promise.race([net,new Promise(r=>{cap=setTimeout(()=>{ART_TIERS=ART_TIERS||{};r(ART_TIERS);},5000);})]).finally(()=>clearTimeout(cap));
   return _artTiersP; }
 /* the file a battle sheet loads on this device: {u, W, H, c, r, tc} - or null = its original file */
 function artFile(u){ const T=ART_TIERS&&ART_TIERS[String(u||'').split('?')[0]]; if(!T) return null;
@@ -4447,9 +4448,10 @@ function battleCodeWarm(){
 function preloadBattleArtFull(keys, bgUrl, onProgress, timeoutMs){
   try{ battleUiArt(); }catch(e){}   /* v1141: the status marks load with the battle */
   return new Promise(resolve=>{
-    let off=null, done=false, stall=null;
+    let off=null, done=false, stall=null, deadline=null;
     const arm=()=>{ if(done) return; clearTimeout(stall); stall=setTimeout(finish, timeoutMs||12000); };
-    const finish=()=>{ if(done) return; done=true; clearTimeout(stall); if(off) off(); battleCodeWarm(); gpuWarmKeys(keys).then(()=>fxWarmKeys(keys, 8000)).then(resolve, resolve); };
+    const finish=()=>{ if(done) return; done=true; clearTimeout(stall); clearTimeout(deadline); try{if(off) off(); battleCodeWarm();}catch(e){} Promise.race([Promise.resolve().then(()=>gpuWarmKeys(keys)).then(()=>fxWarmKeys(keys, 8000)),new Promise(r=>setTimeout(r,8000))]).then(resolve, resolve); };
+    deadline=setTimeout(finish,timeoutMs||12000);
     try{ fxSheetKeys(keys).forEach(fxSheetTex); }catch(e){}   // v944: spell sheets start downloading with everything else
     try{
       if(bgUrl && !_artWarmed['bg:'+bgUrl]){ _artWarmed['bg:'+bgUrl]=1; const im=new Image(); im.decoding='async'; im.src=bgUrl; }
@@ -4780,6 +4782,7 @@ async function downloadAllAssets(onProgress){
 }
 async function clearAssetCache(){
   let n=0;
+  if(window.FirstDownloadGame)await FirstDownloadGame.reset();
   try{ const keys=await caches.keys();
     for(const k of keys){ if(k.indexOf('ember-')===0){ await caches.delete(k); n++; } } }catch(e){}
   try{ for(const key in BATTLE_ANIM){ const set=BATTLE_ANIM[key]; delete set._loaded;
@@ -16747,8 +16750,8 @@ function _ensureScreen(){ try{ if(typeof state==='undefined'||state==='battle'||
     if(el){ el.classList.remove('popout'); el.classList.add('active'); try{ _fitApp(); }catch(e){} try{ muteBtnPlace(true); }catch(e){} }
     else if(!_ensureScreen.busy){ _ensureScreen.busy=true; try{ show('home'); }finally{ _ensureScreen.busy=false; } }
   }catch(e){} }
-function show(name){ show._depth=(show._depth|0)+1; try{ return _showScreen(name); } finally { show._depth--; if(!show._depth) _ensureScreen(); } }   /* v1198: an error in a screen change still leaves a screen up */
-function _showScreen(name){
+function show(name,options){ show._depth=(show._depth|0)+1; try{ return _showScreen(name,options); } finally { show._depth--; if(!show._depth) _ensureScreen(); } }   /* v1198: an error in a screen change still leaves a screen up */
+function _showScreen(name,options){
   try{ if(name!==state) loreStop(); }catch(e){}
   try{ if(name!==state && window.EmberSkillStage) window.EmberSkillStage.stop(); }catch(e){}   /* v1164: leaving a screen lets the Skills-tab preview's sheets + sounds go */
   try{ if(typeof state!=='undefined'&&state==='result'&&name!=='result'&&typeof sfxTailsOut==='function') sfxTailsOut(); }catch(e){}   /* v1165: ability tails still ringing fade out as the result screen closes */
@@ -16757,7 +16760,7 @@ function _showScreen(name){
   /* v1144: with no session nothing but the sign-in gate is reachable - any navigation lands on the (covered) town and opens the gate */
   if(!(ACC&&ACC.token)&&online()&&!window._p2guard&&name!=='home'){ name='home'; }
   try{ setTimeout(authGateRefresh,0); }catch(e){}
-  if(name==='home'&&G.tutStarted&&!G.tutDone&&ACC.token) name='tutorial';
+  if(name==='home'&&G.tutStarted&&!G.tutDone&&ACC.token&&!(options&&options.downloadSaved)) name='tutorial';
   const _leavingResult=(typeof state!=='undefined'&&state==='result'&&name!=='result');
   if(_popout) closePopout();   // any full navigation closes an open pop-out
   // remember where the town was scrolled when leaving it; ask to restore that spot when we come back
@@ -24484,9 +24487,9 @@ function paintWorldPictureTiles(layer,tiles,level){
     if(img) prior.delete(key);
     else {
       img=document.createElement('img'); img.dataset.tileKey=key; img.draggable=false;
-      img.style.visibility='hidden';
+      img.style.visibility='visible';
       img.onload=()=>{img.style.visibility='visible';};
-      img.onerror=()=>{img.style.visibility='hidden';};
+      img.onerror=()=>{img.style.visibility='visible';};
       img.src=WORLD_PICTURE_ROOT+worldPictureName(level,tile.row,tile.col)+'?v='+WORLD_PICTURE_V;
       layer.appendChild(img);
     }
@@ -27606,6 +27609,34 @@ function renderSignin(){ signinEnsure(); const b=document.getElementById('signin
   const img=b.querySelector('#siHeroImg'); if(img) setHead(img,hk);
   const btn=b.querySelector('#siClaim'); if(btn) btn.onclick=signinClaimToday; }
 
+
+/* First-launch downloads: local-device content, independent of account rewards. */
+let _firstDownloadModulesP=null;
+function firstDownloadModules(){
+  if(window.FirstDownloadGame)return Promise.resolve(window.FirstDownloadGame);
+  if(_firstDownloadModulesP)return _firstDownloadModulesP;
+  const script=(url,ready)=>new Promise((resolve,reject)=>{
+    if(ready()){resolve();return;}const tag=document.createElement('script');let finished=false;
+    const timer=setTimeout(()=>{if(!finished){finished=true;reject(Error('Download screen is still loading'));}},8000);
+    tag.async=true;tag.onload=()=>{clearTimeout(timer);if(!finished){finished=true;ready()?resolve():reject(Error('Download screen unavailable'));}};
+    tag.onerror=()=>{clearTimeout(timer);if(!finished){finished=true;reject(Error('Download screen unavailable'));}};
+    tag.src=url;document.head.appendChild(tag);
+  });
+  _firstDownloadModulesP=script('/assets/ui/first-download.js?v=first18oct',()=>!!window.EmberweaveFirstDownload)
+    .then(()=>script('/assets/ui/first-download-game.js?v=first18oct',()=>!!window.FirstDownloadGame))
+    .then(()=>window.FirstDownloadGame).catch(e=>{_firstDownloadModulesP=null;throw e;});
+  return _firstDownloadModulesP;
+}
+function firstDownloadOpen(){firstDownloadModules().then(d=>d.open(false),()=>bannerMsg('The download screen is still loading. Please try again.'));}
+function firstDownloadTutorial(b){
+  if(window._firstDownloadDeferred||G.tutDone||(G.campaignCleared||0)>0)return false;
+  if(window.FirstDownloadGame&&!FirstDownloadGame.needsEssentials())return false;
+  b.innerHTML='<div class="panel"><div style="font-weight:900">Step 1 · Get ready to play</div><p>Preparing your download…</p><button class="btn sm" id="firstDownloadRetry">Retry</button><button class="btn sm secondary" id="firstDownloadLater">Play while loading</button></div>';
+  const load=()=>firstDownloadModules().then(d=>{if(state==='tutorial'&&!window._firstDownloadDeferred){b.innerHTML='';d.mount(b,true);}},()=>{const note=b.querySelector('p');if(note)note.textContent='The download screen is still loading. Please try again.';});
+  b.querySelector('#firstDownloadRetry').onclick=load;b.querySelector('#firstDownloadLater').onclick=()=>{window._firstDownloadDeferred=true;renderTutorial();};load();return true;
+}
+function firstDownloadBoot(){if(!(ACC&&ACC.token))return;firstDownloadModules().then(d=>d.boot(),()=>{});}
+
 /* ============================ TUTORIAL (getting started) ============================ */
 function anyGlyphSocketed(){ if(HERO_KEYS.some(k=>glyphRank(k)>0)) return true;
   const st=(typeof RUNE2!=='undefined')&&RUNE2.st; if(!st||!st.boards) return false;
@@ -27717,6 +27748,7 @@ async function claimTutorialStep(id){ if(G.tutDone)return;
   }catch(e){ bannerMsg('That reward could not be claimed yet.'); if(typeof ledgerSync==='function')ledgerSync(); }
   finally{ IF[id]=0; } }
 function renderTutorial(){ checkTutorial(); const b=document.getElementById('tutorialBody'); if(!b)return;
+  if(firstDownloadTutorial(b))return;
   const doneCount=TUTORIAL_STEPS.filter(s=>G.tutRewarded&&G.tutRewarded[s.id]).length; const cur=tutCurrent();
   let html=`<div style="text-align:center;margin-bottom:10px"><div style="font-weight:800;font-size:15px">${G.tutDone||!cur?uiIcon('celebrate')+' All done!':G.tutSkipped?'Learn at your own pace':'Your journey begins'}</div>
     <div style="font-size:12px;color:#8b98a9;margin-top:2px">${doneCount} / ${TUTORIAL_STEPS.length} steps complete</div>
@@ -27739,6 +27771,7 @@ function renderTutorial(){ checkTutorial(); const b=document.getElementById('tut
           ${stepReady?`<button class="btn xs${id===next?.id?' tut-next-glow':''}" data-tut-claim="${id}">Claim ${uiIcon('gift')}</button>`:(isCur?`<button class="btn xs${id===next?.id?' tut-next-glow':''}" data-tut-go="${id}">Go →</button>`:'')}</div></div>`; }); });
   if(G.tutDone||!cur) html+=`<div style="text-align:center;color:#8b98a9;font-size:12px;margin-top:8px">You’ve got the basics — now go build the strongest region in the realm. ${statusIcon('burn')}</div>`;
   b.innerHTML=html;
+  if(window.FirstDownloadGame)FirstDownloadGame.mount(b,false);
   const toggle=b.querySelector('#tutGuideToggle'); if(toggle)toggle.onclick=()=>{
     if(G.tutSkipped){ resumeTutorialGuide(); }
     else skipTutorialGuide();
@@ -28525,7 +28558,7 @@ function renderSettings(){
      testing without signing in and out. */
   const assetCard = (ACC.token) ? `<div class="panel">
       <div style="font-weight:800;font-size:13px;margin-bottom:2px">\u{1F4E6} Offline Art</div>
-      <div style="font-size:11px;color:#8b98a9;margin-bottom:8px">Download every hero, monster and boss animation once and keep it on this device. Battles then load instantly, even on a bad connection.</div>
+      <div style="font-size:11px;color:#8b98a9;margin-bottom:8px">Download every hero, monster and boss animation once and keep it on this device. Saved content is ready on your next visit. Missing content loads as you play.</div>
       <div id="alBarWrap" style="display:none;margin-bottom:8px">
         <div style="height:8px;border-radius:999px;background:#0f1420;border:1px solid #2a3550;overflow:hidden"><div id="alBar" style="height:100%;width:0%;background:linear-gradient(90deg,#c9a35e,#f0c987)"></div></div>
         <div id="alTxt" style="font-size:11px;color:#8b98a9;margin-top:5px"></div></div>
@@ -28574,20 +28607,7 @@ function renderSettings(){
        button, so a cache that had been emptied looked identical to one that was full. It now reads
        the real state on open — how many of the files are on this device, how much space they take,
        and whether the browser has promised to keep them. */
-    (async()=>{ try{
-      const plan=await assetCachePlan();
-      /* v1154: the MB figure is the files this device saves (sizes from /api/asset-sizes), "saved of total" - not the origin's whole usage */
-      const sz=await assetSetBytes(plan);
-      if(sz){ rep(plan.cached+' of '+plan.urls.length+' files saved on this device \u00b7 '+fmtMB(sz.saved)+' of '+fmtMB(sz.total)); return; }
-      /* v583: the QUOTA matters as much as the usage. Chrome shrinks an origin's budget when the
-         DISK is filling up and evicts to fit, and it will do that even to storage it has marked
-         persistent. Showing both turns "my downloads vanished" into a number that explains it. */
-      let mb=''; try{ const e=await navigator.storage.estimate();
-        mb=' \u00b7 '+fmtMB(e.usage||0)+' of '+fmtMB(e.quota||0)+' allowed'; }catch(e){}
-      let keep=''; try{ if(navigator.storage&&navigator.storage.persisted && !(await navigator.storage.persisted()))
-        keep=' \u00b7 \u26a0 not guaranteed to be kept'; }catch(e){}
-      rep(plan.cached+' of '+plan.urls.length+' files saved on this device'+mb+keep);
-    }catch(e){} })();
+    firstDownloadModules().then(async d=>{await d.ensure(true);const st=d.snapshot();rep(st.percent+'% saved on this device');bar.wrap(true);bar.set(st.percent/100);},()=>rep('Download information is still loading.'));
   }
   const tosL=b.querySelector('#tosLink'); if(tosL) tosL.onclick=(e)=>{ e.preventDefault(); showTerms(); };
   const rpSend=b.querySelector('#rpSend'); if(rpSend) rpSend.onclick=()=>{ const t=(b.querySelector('#rpText').value||'').trim(), m=b.querySelector('#rpMsg');
@@ -28823,61 +28843,8 @@ function uiConfirm(title, body, okLabel, danger, anchor){
    requested halfway through a 740 MB download. */
 try{ if(navigator.storage&&navigator.storage.persist) setTimeout(()=>{ try{ askPersistentStorage(); }catch(e){} }, 3000); }catch(e){}
 let _alRunning=false;
-function runAssetDownload(report, bar){
-  if(_alRunning){ _dlAbort=true; report('Stopping\u2026'); return; }
-  /* v576: ask the cache what is actually missing BEFORE prompting. A player who is up to date is
-     told so and charged nothing; a player who needs 30 MB is asked about 30 MB, not 740. */
-  report('Checking what this device already has\u2026');
-  assetCachePlan().then(async plan=>{
-    const n=plan.missing.length, drop=plan.stale.length;
-    if(!n && !drop){
-      assetCacheSize().then(sz=>{
-        const mb = sz ? (' \u00b7 '+fmtMB(sz.usage)+' stored') : '';
-        report('\u2705 Up to date \u2014 all '+plan.urls.length+' files are on this device'+mb+'.');
-        // v577: if the browser has not promised to keep them, say so - this is exactly how "up to
-        // date" turns into a full re-download after a reload.
-        askPersistentStorage().then(st=>{ if(st!=='granted')
-          report('\u2705 All '+plan.urls.length+' files are on this device'+mb+', but your browser has NOT '
-                 +'guaranteed to keep them and may clear them at any time. Re-run this if battles start '
-                 +'loading slowly again.'); });
-      });
-      return; }
-    if(!n && drop){
-      const _card=(document.getElementById('alDl')&&document.getElementById('alDl').closest('.panel'))||null;
-      const okDrop=await uiConfirm('Nothing new to download',
-        [drop+' old file'+(drop===1?'':'s')+' left over from earlier art can be cleared.'],
-        'Clear them', false, _card);
-      if(!okDrop){ report('Up to date.'); return; }
-    } else {
-      const share=plan.urls.length?Math.round(n*100/plan.urls.length):100;
-      const lines=['<b style="color:#e7ecf5">'+n+' new file'+(n===1?'':'s')+'</b> of '+plan.urls.length+' \u00b7 '+share+'%'];
-      try{ const sz=await assetSetBytes(plan); if(sz) lines[0]+=' \u00b7 '+fmtMB(sz.missing); }catch(e){}   /* v1154 */
-      if(plan.cached) lines.push(plan.cached+' already saved \u2014 they will be skipped.');
-      if(drop) lines.push(drop+' replaced file'+(drop===1?'':'s')+' will be cleared.');
-      lines.push('Use Wi-Fi if this is a large update.');
-      const _card2=(document.getElementById('alDl')&&document.getElementById('alDl').closest('.panel'))||null;
-      if(!await uiConfirm('Download new art to this device?', lines, 'Download', false, _card2)) return;
-    }
-    _alRunning=true; if(bar) bar.wrap(true);
-    report(n?('Starting\u2026 0 / '+n):'Clearing replaced art\u2026');
-    downloadAllAssets((done,total,bytes,failed)=>{
-      if(bar) bar.set(total?done/total:1);
-      report('Downloading\u2026 '+done+' / '+total+'  ('+fmtMB(bytes)+(failed?(' \u00b7 '+failed+' failed'):'')+')');
-    }).then(r=>{
-      _alRunning=false;
-      const cleared=r.dropped?(' Cleared '+r.dropped+' replaced file'+(r.dropped===1?'':'s')+' ('+fmtMB(r.freed)+').'):'';
-      if(r.aborted) report('Stopped. '+r.done+' of '+r.total+' new files saved ('+fmtMB(r.bytes)+').'+cleared);
-      else if(r.failed) report('Done with problems: '+(r.done-r.failed)+' of '+r.total+' saved ('+fmtMB(r.bytes)+'). '+r.failed+' failed - your device may have run out of storage. Run it again to retry those.'+cleared);
-      else if(!r.total) report('\u2705 Up to date.'+cleared);
-      else {
-        const warn = (r.persist==='granted') ? '' :
-          ' \u26a0 Your browser would not guarantee to keep them, so it may clear them later.';
-        report('\u2705 '+r.total+' new file'+(r.total===1?'':'s')+' saved ('+fmtMB(r.bytes)+').'+cleared
-               +' Battles will load instantly on this device.'+warn);
-      }
-    }, ()=>{ _alRunning=false; report('Download failed.'); });
-  }, ()=>report('Could not read this device\u2019s cache.'));
-}
+function runAssetDownload(report, bar){ firstDownloadOpen(); }
+
 async function runAssetClear(report){
   if(!await uiConfirm('Clear all downloaded art from this device?',
       ['The game will re-download art as you play.',
@@ -30840,6 +30807,7 @@ function enterGame(){ if(_splashEntered)return; _splashEntered=true;
     setTimeout(()=>{ if(gate) gate.style.display='none'; }, 600);   // safety: never leave the gate stuck
     if(!ACC.token){ try{ authGateRefresh(); }catch(e){} }   // v1144: no session = the sign-in gate, first thing (2 Sep: a deliberate sign-out never lands on a guest's town)
     else if(G.tutStarted&&!G.tutDone){ try{ show('tutorial'); }catch(e){} }
+    firstDownloadBoot();
     try{ authGateRefresh(); }catch(e){}   // v1144: a guest session gets its one-time "keep your progress" step
   });
 }

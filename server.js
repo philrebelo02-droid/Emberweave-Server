@@ -5176,6 +5176,7 @@ async function api(req,res,url){
   /* v1154: bytes of every file under assets/ (path -> size), walked once per process. The Settings 'Update all features' card sums it
      over the files THIS device saves, so its MB figures are the files it really keeps, not the whole origin's storage. */
   if(p==='/api/asset-sizes' && req.method==='GET') return send(res,200,{ok:true,sizes:assetSizes1154()});
+  if(p==='/api/download-catalog' && req.method==='GET') return send(res,200,firstDownloadCatalog());
   /* v1130: this server's active-player count (cached, a few seconds old at most) and the new-player placement (server/front-door.js) */
   if(p==='/api/front/status' && req.method==='GET'){ const c=frontActive(); return send(res,200,{ ok:true, id:SERVER_ID, active:c.active, ageMs:Math.max(0,Date.now()-c.at) }); }
   if(p==='/api/front/assign' && req.method==='GET'){ const d=frontDecider();
@@ -9922,6 +9923,19 @@ function sendBody(req,res,buf,type,cacheCtl,key){
       if(z){ head['Content-Encoding']=enc; res.writeHead(200,head); res.end(z); return; } } }
   res.writeHead(200,head); res.end(buf); }
 let _assetSizes1154=null;
+let _firstDownloadCatalog=null;
+function firstDownloadCatalog(){
+  if(_firstDownloadCatalog)return _firstDownloadCatalog;
+  const files=Object.keys(assetSizes1154()),literal=new Set(),chapter1=new Set();
+  const scan=file=>{let text='';try{text=fs.readFileSync(file,'utf8');}catch(_){};
+    for(const m of text.matchAll(/["'`]((?:\/assets\/)[^"'`\s<>]+)["'`]/g))if(!m[1].includes('${'))literal.add(m[1]);};
+  scan(path.join(__dirname,'emberweave-heroes.html'));
+  for(const u of files)if(u.startsWith('/assets/ui/')&&u.endsWith('.js'))scan(path.join(__dirname,u.slice(1)));
+  // Read the authored encounters rather than maintaining a second monster list.
+  const encounters=JSON.parse(fs.readFileSync(path.join(__dirname,'server/campaign-encounters.json'),'utf8'));
+  for(const e of encounters)if(e.node>=1&&e.node<=10)for(const wave of e.waves||[])for(const unit of wave)chapter1.add(unit.key);
+  return (_firstDownloadCatalog={ok:true,files,literal:[...literal],chapter1:[...chapter1].sort()});
+}
 function assetSizes1154(){ if(_assetSizes1154) return _assetSizes1154; const out={};
   const walk=(rel)=>{ let ents=[]; try{ ents=fs.readdirSync(path.join(__dirname,rel),{withFileTypes:true}); }catch(e){ return; }
     for(const d of ents){ const r=rel+'/'+d.name; if(d.isDirectory()) walk(r); else if(d.isFile()){ try{ out['/'+r]=fs.statSync(path.join(__dirname,r)).size; }catch(e){} } } };

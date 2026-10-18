@@ -4,8 +4,8 @@
 //   1. a phone lists each tiered battle sheet as its PHONE file (assets/anim/tiers_1141.json), a desktop as its trimmed file; idle/walk and
 //      any sheet another screen paints from the original (Skills-tab previews) keep the original; no file removed in v1154 is listed and
 //      every listed URL answers 200;
-//   2. the card says "<saved> of <N> files saved on this device - <X> MB of <T> MB": N = the list, X/T = the bytes of those files
-//      (/api/asset-sizes), and after a real download X = T = the bytes the device's art cache really holds for the list;
+//   2. the card now shows the first-download feature's verified percentage only (Phil 18 Oct); the underlying byte-table and
+//      cached-file accounting remain checked here, while four-part download/resume behavior has dedicated tests;
 //   3. a device that saved the OLD (v1153) set keeps working: the plan finds it saved, fetches only the tier files, clears the originals this
 //      device no longer loads (the v583 guards: never over a quarter of the library), ends N of N, and a fight with Carn + Aureth then
 //      loads every sheet from the cache with no 404;
@@ -45,7 +45,7 @@ try {
     const clipU = new Set(), keepU = new Set(); for (const k in BATTLE_ANIM) { const set = BATTLE_ANIM[k]; for (const st in set) { if (st[0] === '_') continue; const c = set[st]; if (!c || !c.u) continue; (_keepsImage(c) ? keepU : clipU).add(c.u); } }
     const other = new Set(); try { for (const k in HERO_SKILL_CLIPS) { const g = HERO_SKILL_CLIPS[k]; for (const i in g) if (g[i] && g[i].u) other.add(g[i].u); } } catch (e) {}
     return { tier: typeof ART_TIER !== 'undefined' ? ART_TIER : null, urls: p.urls, cached: p.cached, missing: p.missing.length, stale: p.stale.length, bytes: s, clipU: [...clipU], keepU: [...keepU], other: [...other] }; });
-  const card = async pg => { await pg.evaluate(() => show('settings')); for (let i = 0; i < 40; i++) { const t = await pg.evaluate(() => (document.getElementById('alMsg') || {}).textContent || ''); if (/files saved/.test(t)) return t; await delay(250); } return ''; };
+  const card = async pg => { await pg.evaluate(() => show('settings')); for (let i = 0; i < 40; i++) { const t = await pg.evaluate(() => (document.getElementById('alMsg') || {}).textContent || ''); if (/files saved|% saved/.test(t)) return t; await delay(250); } return ''; };
   const fmt = b => (b / 1048576).toFixed(1) + ' MB';
   const OLD = [];
   for (const [rig, opts, tkey] of [['phone', PHONE, 'p'], ['desktop', DESK, 'h']]) {
@@ -60,7 +60,7 @@ try {
     ck(rig + ': every listed URL answers 200 and none is a file removed in v1154 (' + RET.length + ' retired)', st.every(s => s === 200) && !P.urls.some(u => RET.includes(u.split('?')[0].slice(1))), P.urls.filter((u, i) => st[i] !== 200).slice(0, 3).join(' '));
     const T0 = P.urls.reduce((a, u) => a + (sizes[u.split('?')[0]] || 0), 0);
     const c0 = await card(S.pg);
-    ck(rig + ': fresh card = "' + c0 + '" (the list: ' + P.urls.length + ' files, ' + fmt(T0) + ')', c0.indexOf(' of ' + P.urls.length + ' files saved') > 0 && c0.endsWith(' of ' + fmt(T0)));
+    ck(rig + ': fresh card shows only the verified four-part percentage', /^\d{1,3}% saved on this device$/.test(c0) && c0 === await S.pg.evaluate(() => FirstDownloadGame.snapshot().percent+'% saved on this device'));
     console.log('  info ' + rig + ': saves ' + P.urls.length + ' files, ' + fmt(T0));
     if (rig === 'phone') {
       // the old v1153 list, from the BASE page on this phone (CONTROL: it lists no tier file, and its card is the storage estimate)
@@ -85,7 +85,7 @@ try {
     const held = await S.pg.evaluate(async U => { const c = await caches.open(ASSET_CACHE_NAME); let b = 0, n = 0; for (const u of U) { const r = await c.match(new URL(u, location.origin).href); if (r) { b += (await r.blob()).size; n++; } } return { b, n }; }, P.urls);
     await S.pg.evaluate(() => show('home')); await delay(300); const c2 = await card(S.pg);
     ck(rig + ': after the download ' + R.done + ' fetched, ' + R.dropped + ' cleared; card "' + c2 + '" = ' + held.n + ' files, ' + fmt(held.b) + ' really in the cache',
-      R.failed === 0 && R.dropped === replaced && P2.missing === 0 && P2.stale === 0 && held.n === P.urls.length && held.b === T0 && c2.startsWith(P.urls.length + ' of ' + P.urls.length + ' files saved') && c2.endsWith(fmt(T0) + ' of ' + fmt(T0)));
+      R.failed === 0 && R.dropped === replaced && P2.missing === 0 && P2.stale === 0 && held.n === P.urls.length && held.b === T0 && /^\d{1,3}% saved on this device$/.test(c2) && c2 === await S.pg.evaluate(() => FirstDownloadGame.snapshot().percent+'% saved on this device'));
     const seen = []; S.pg.on('response', r => { if (/\/assets\/anim\//.test(r.url())) seen.push([r.status(), r.url()]); });
     await S.pg.evaluate(() => show('home'));
     S.bad.length = 0;   /* v1157: the fight's own requests - the old-set fill above fetched v1153 URLs, and files the slim retired answer 404 there by design */
