@@ -43,6 +43,30 @@
   };
 })();
 </script>
+<script>
+/* v1200 REQUEST TIMEOUT (Phil 18 Oct 2026: "add the request timeout everywhere"; Fold device sweep: a reply that never came held
+   "Locating your castle..." forever). Every fetch the page makes gets an AbortController deadline unless the caller brought its own
+   signal: reads (GET / HEAD) 20 s, writes (POST / PUT / DELETE ...) 45 s, art and sound downloads under /assets/ 120 s (a 10 MB
+   sheet on a 3G phone needs ~60 s; they keep their own retry). A request past its deadline rejects with a TimeoutError, so no await
+   in the game can wait forever. Not covered, on purpose: the chat and online-match WebSockets (long-lived streams, they keep their
+   own reconnect) and images loaded through <img> / TextureLoader (not fetch; their onerror paths already retry). Writes are never
+   re-sent because of this: only the existing requestId helpers (apiOnce, apiResultRetry, g2post) send a write again, with the SAME
+   requestId, and the server answers a repeated requestId from its receipt without applying it twice. */
+(function(){
+  var f=window.fetch; if(!f||f.__ewTimeout||typeof AbortController==='undefined') return;
+  var T=function(u,o){
+    o=o||{}; if(o.signal) return f.call(this,u,o);
+    var url=String((u&&u.url)||u||''), m=String(o.method||(u&&u.method)||'GET').toUpperCase();
+    var ms=/\/assets\//.test(url)?120000:((m==='GET'||m==='HEAD')?20000:45000);
+    var c=new AbortController(), timedOut=false;
+    var t=setTimeout(function(){ timedOut=true; try{ c.abort(); }catch(e){} },ms);
+    var o2={}; for(var k in o) o2[k]=o[k]; o2.signal=c.signal;
+    return f.call(this,u,o2).then(function(r){ return r; },function(e){ clearTimeout(t);
+      if(timedOut){ var x=new Error('Request timed out after '+(ms/1000)+' s'); x.name='TimeoutError'; x.timeout=ms; x.url=url; throw x; } throw e; });
+  };
+  T.__ewTimeout=1; window.fetch=T; window.EW_REQ_TIMEOUT={read:20000,write:45000,asset:120000};
+})();
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0b0e14">
@@ -4316,7 +4340,12 @@ function deathDraw(u,spr,dt){
   if(fin&&A.end==='hold'&&!D.held){ D.held=true; deathRelease(u.key); }   /* a held body keeps its last sheet only */
   const end=(fin&&A.end!=='hold')||op<=0; if(end&&!D.end){ D.end=true; deathRelease(u.key); }
   const idx=Math.min(n-1,Math.floor(D.t*f)), P=ps[D.pi];
-  if(!D.end&&P&&deathTexOk(P)) deathCell(u,spr,P,Math.min(P.n-1,idx-(P.first||0)),(D.face>0)!==!A.flip); else op=0;   /* ended, or its sheet freed under it: nothing is drawn */
+  if(!D.end&&P&&deathTexOk(P)) deathCell(u,spr,P,Math.min(P.n-1,idx-(P.first||0)),(D.face>0)!==!A.flip);
+  else { op=0;   /* ended, or its sheet freed under it: nothing is drawn */
+    /* v1200 (Fold device sweep, 18 Oct): the body's sprite still held the death sheet deathRelease had just freed, and three tried to
+       upload that freed sheet again every time it drew the (invisible) body - a WebGL error each fight, 'texImage2D: Overload
+       resolution failed', for every hero whose death had ended. Let go of it; a revive or a reloaded sheet sets the map again. */
+    const M=spr.material; if(M&&M.map&&(M.map._ewFreed||(M.map.image&&M.map.image._freed))){ M.map=null; M.needsUpdate=true; } }
   spr.material.opacity=op; spr.material.color.setRGB(1,1,1); spr.position.y=.05;
   if(u.ring) u.ring.material.opacity=Math.max(0,.85*(1-D.t/.9))*op;
   if(u.shadow) u.shadow.material.opacity=.5*Math.max(0,Math.min(1,(1-D.t/dur)/0.4))*op;
@@ -21135,7 +21164,9 @@ function openStageModal(i,mode){
     if(r.stars!=null){ G.portals=G.portals||{}; if(mode!=='normal'){ const c=G.portals[mode]||(G.portals[mode]={cleared:0,stars:{}}); c.stars=c.stars||{}; c.stars[i]=r.stars|0; c.cleared=Math.max(c.cleared|0,r.cleared|0); } }
     const el=document.getElementById('smFragTarget');
     if(window.SM_KEY===_smKey&&document.getElementById('stageModal').classList.contains('active')){ const de=document.getElementById('smDetails'); if(de)de.innerHTML=stageDetailHTML(r.stage,i); const dr=document.getElementById('smFragTarget'); if(dr)dr.innerHTML=stageDropsHTML(r.stage,i,mode); }
-    preloadStageArt(r.stage); } }).catch(()=>{}); }
+    preloadStageArt(r.stage); }
+    else if(window.SM_KEY===_smKey&&!STAGE_CACHE[mode+':'+i]){ const de=document.getElementById('smDetails');   /* v1200: a failed or timed-out stage request says so, with Try again */
+      if(de){ de.innerHTML='<div style="font-size:11px;color:#ff9a9a">Stage details could not be loaded. <button class="btn xs" id="smDetRetry">Try again</button></div>'; const b=document.getElementById('smDetRetry'); if(b) b.onclick=()=>openStageModal(i,mode); } } }).catch(()=>{}); }
   if(STAGE_CACHE[mode+':'+i]) preloadStageArt(STAGE_CACHE[mode+':'+i]);   // cached stage: warm the art immediately
   if(i>portalStages(mode)) return;
   const boss=isBossStage(i), cleared=i<=portalCleared(mode), elite=(mode==='normal')&&isEliteStage(i);
@@ -23648,7 +23679,7 @@ async function api(path,method,bodyObj){ try{ const h={'Content-Type':'applicati
      result screen ever paints a fight the server may have booked as a defeat. */
   if(j&&j.serverDown) return {error:'offline', serverDown:1, message:j.error};
   try{ if(String(path).indexOf('/api/')===0&&r.status<500) netGateOk(); }catch(e){}   /* v1164: the server answered a game request - it is up */
-  return j; }catch(e){ try{ NETGATE.apiFail=Date.now(); }catch(_){} return {error:'offline'}; } }
+  return j; }catch(e){ try{ NETGATE.apiFail=Date.now(); }catch(_){} return (e&&e.name==='TimeoutError')?{error:'offline',timeout:true}:{error:'offline'}; } }   /* v1200: a timeout is a lost reply - the requestId helpers re-send the SAME id, nothing else re-sends a write */
 /* v1151 (Phil 15 Oct, pre-beta: "Players trying 50 times and then seeing defeat, its bad"): the campaign's v1145/v1150 result retry,
    shared by every other battle result (Training Province, Tower of Trials, legacy dungeon, Elite screen, Vault). ONE body - so ONE
    requestId - is re-sent up to 7 times over ~30 s while the reply is lost: offline (incl. a front-door 503), an empty body, a refused
@@ -24317,7 +24348,7 @@ async function renderCauldron(body){
   const panel=document.createElement('div'); panel.className='panel'; panel.innerHTML='Loading cauldron…'; body.appendChild(panel);
   const w=await api('/api/witch/state');
   if(!panel.isConnected || WALL_TAB!=='cauldron') return;
-  if(!w){ panel.textContent='The cauldron could not be reached. Please try again.'; return; }
+  if(!w||w.error){ panel.textContent='The cauldron could not be reached. Please try again.'; return; }   /* v1200: api() answers {error} on a lost or timed-out reply, never null */
   if(w.locked){ panel.textContent='The Witches Hut opens at player level '+WALL_UNLOCK_LEVEL+'.'; return; }
   const pct=Math.max(0,Math.min(100,w.capacity?100*w.brew/w.capacity:0));
   const brewScene=pct<=0?'brew-4-empty.mp4':pct<50?'brew-3-half.mp4':pct<100?'brew-2-near-full.mp4':'brew-1-full-overflow.mp4';
@@ -24710,16 +24741,27 @@ function dropTelePin(x,y,ok){ const inner=document.getElementById('wzoneInner');
   const old=inner.querySelector('#telePin'); if(old)old.remove();
   const pin=document.createElement('div'); pin.id='telePin'; pin.style.cssText='position:absolute;left:'+x+'%;top:'+y+'%;transform:translate(-50%,-50%);z-index:8;pointer-events:none;font-size:26px;filter:drop-shadow(0 2px 4px #000)';
   pin.innerHTML=ok?uiIcon('map-pin'):uiIcon('blocked'); inner.appendChild(pin); }
+/* v1200 (Fold device sweep, 18 Oct): the World Map's message screens (signed out, locating, unavailable, below its level) had no way
+   out - #world has no back button of its own (the map draws its own Base button), so a player there could only close the game.
+   Every message now carries the Base button, and Try again where a retry can help. */
+function worldMsg(body,text,retry){ if(!body) return;
+  body.innerHTML='<div class="panel" style="text-align:center"><div>'+escapeHTML(text)+'</div><div style="display:flex;gap:8px;justify-content:center;margin-top:12px">'
+    +(retry?'<button class="btn sm" id="worldRetry">Try again</button>':'')+'<button class="btn sm secondary" id="worldMsgBack">◀ Base</button></div></div>';
+  const b=body.querySelector('#worldMsgBack'); if(b) b.onclick=()=>{ try{ closeCityMenu(); }catch(e){} show('home'); };
+  const r=body.querySelector('#worldRetry'); if(r) r.onclick=()=>{ _worldServerPending=null; renderWorldMap(); };
+  try{ muteBtnPlace(true); }catch(e){} }
 function renderWorldMap(keepView){
   const body=document.getElementById('worldBody'); if(!body)return;
-  if(!ACC.token){ body.innerHTML='<div class="panel">Sign in to enter the World Map.</div>'; return; }
+  if(!ACC.token){ worldMsg(body,'Sign in to enter the World Map.'); return; }
   if(_worldServerAccount!==ACC.token){
-    body.innerHTML='<div class="panel">Locating your castle…</div>';
+    worldMsg(body,'Locating your castle…');
+    /* v1200 (Fold device sweep, 18 Oct): a reply that never comes no longer holds this screen - the request timeout (20 s) ends it and Try again is offered */
     if(!_worldServerPending) _worldServerPending=api('/api/world/state').then(loc=>{
-      if(!loc||loc.error){ body.innerHTML='<div class="panel">Castle location unavailable. Try the World Map again.</div>'; return; }
-      if(loc.locked){ body.innerHTML='<div class="panel">The World Map opens at level '+(loc.needLevel||20)+'.</div>'; return; }
+      if(state!=='world') return;
+      if(!loc||loc.error){ worldMsg(body,'Castle location unavailable. Try the World Map again.',true); return; }
+      if(loc.locked){ worldMsg(body,'The World Map opens at level '+(loc.needLevel||20)+'.'); return; }
       if(adoptWorldLocation(loc)) renderWorldMap();
-    }).catch(()=>{ body.innerHTML='<div class="panel">Castle location unavailable. Try the World Map again.</div>'; })
+    }).catch(()=>{ if(state==='world') worldMsg(body,'Castle location unavailable. Try the World Map again.',true); })
       .finally(()=>{ _worldServerPending=null; });
     return;
   }
@@ -26571,11 +26613,12 @@ let RUNE2={ enabled:null, cat:null, st:null, busy:false, pick:null, view:'board'
 const G2_COL={'Grey':'#9aa2b1','Green':'#5ee89b','Green +1':'#4fd07f','Blue':'#5aa4ff','Blue +1':'#4f8fe8','Blue +2':'#3f7ad0','Purple':'#c9a2ff','Purple +1':'#b98fe8','Purple +2':'#a97cd8','Purple +3':'#9a6ac9','Gold':'#ffd45e','Gold +1':'#f2c84a','Gold +2':'#e8bc38','Gold +3':'#dcb028','Gold +4':'#d0a418','Orange':'#ff8a3c'};
 function g2col(q){ return G2_COL[q]||'#9aa2b1'; }
 async function glyphV2Sync(){ if(!ACC.token){ RUNE2.enabled=false; return; }
-  const st=await api('/api/glyphs/state'); if(st&&st.error){ RUNE2.enabled=(RUNE2.enabled===true); return; }
+  const st=await api('/api/glyphs/state'); if(st&&st.error){ RUNE2.syncErr=true; return; }   /* v1200: a lost reply is an error, not 'glyphs are off' (it showed the sign-in note to a signed-in player) */
+  RUNE2.syncErr=false;
   RUNE2.enabled=!!(st&&st.enabled); if(!RUNE2.enabled){ RUNE2.st=null; return; }
   RUNE2.st=st;
   try{ if(!G.glyphRank)G.glyphRank={}; HERO_KEYS.forEach(k=>{ const b=st.boards&&st.boards[k]; G.glyphRank[k]=Math.max(0,Math.min(GMAX_RANK,(b&&b.ascensionIndex)||0)); }); }catch(e){}   // offline cache of the server rank
-  if(!RUNE2.cat){ const c=await api('/api/glyphs/catalog'); if(c&&c.defs){ c.byId={}; c.defs.forEach(d=>c.byId[d.id]=d); RUNE2.cat=c; } } }
+  if(!RUNE2.cat){ const c=await api('/api/glyphs/catalog'); if(c&&c.defs){ c.byId={}; c.defs.forEach(d=>c.byId[d.id]=d); RUNE2.cat=c; } else RUNE2.syncErr=true; } }   /* v1200: a missing catalog re-synced in a loop */
 function g2def(id){ return RUNE2.cat&&RUNE2.cat.byId[id]; }
 function g2board(key){ const b=RUNE2.st&&RUNE2.st.boards&&RUNE2.st.boards[key]; return b||{slots:[null,null,null,null,null,null],ascensionIndex:0,ascended:{}}; }
 // legacy-stat bridge: v2 stats feed the SAME battle fields the old glyphs did, so combat keeps working
@@ -26808,7 +26851,9 @@ function g2CanSlotAll(hero){ const rv=(RUNE2.st&&RUNE2.st.revision)||0; const k=
 function glyphV2Tab(key){
   if(RUNE2.enabled===false){ return `<div class="panel" style="text-align:center;color:#8b98a9;padding:18px">🔮 Glyphs live on your account.<br><span style="font-size:11px">Sign in (Account screen) to build and ascend glyphs.</span></div>`; }
   if(RUNE2.enabled===null||!RUNE2.cat||!RUNE2.st){
-    glyphV2Sync().then(()=>{ if(heroTab==='glyphs') renderHeroDetail(); });
+    /* v1200: a failed sync shows that it failed, with Try again - it used to show Loading and sync again straight away, forever */
+    if(RUNE2.syncErr) return `<div class="panel" style="text-align:center;color:#ff9a9a;padding:18px">Glyphs could not be loaded.<br><button class="btn sm" style="margin-top:10px" onclick="RUNE2.syncErr=false;renderHeroDetail()">Try again</button></div>`;
+    if(!RUNE2._syncing){ RUNE2._syncing=true; glyphV2Sync().catch(()=>{ RUNE2.syncErr=true; }).finally(()=>{ RUNE2._syncing=false; if(heroTab==='glyphs') renderHeroDetail(); }); }
     return `<div class="panel" style="text-align:center;color:#8b98a9;padding:18px">Loading glyphs…</div>`; }
   const cat=RUNE2.cat, st=RUNE2.st, b=g2board(key);
   const idx=b.ascensionIndex, maxed=idx>=cat.ladder.length;
@@ -30558,7 +30603,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1792347391118';
+const BUILD_ID = '1792354184423';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

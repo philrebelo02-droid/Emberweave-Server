@@ -3,7 +3,10 @@
     {"ver": "0.96", "date": "18 October 2026", "title": "Hero screen fix", "items": [
       "Fixed a freeze in the tutorial: leaving a hero's Skills or Glyphs and closing the Heroes window could leave a black screen with only the music playing. Closing any window now always returns you to a working screen.",
       "New spell effects for Tolley's Forge Strike, Chain Quench and Living Forge: the molten hammer slams down on the target, his chains lash out to every enemy they pull before the quench bursts around him, and the Living Forge burns under his feet as he walks. The opening screen is now silent and has no mute button; sound and the button start on the next screen. The victory and defeat screens now wait for the last death animation to finish. Switching servers no longer shows a false \"You've been logged out\" notice. Nerisse's Drifting Constellation effect is half its old size.",
-      "Hero deaths look cleaner: the pink tint and grey patches left in the ash, and the grey flash in Hurne's death, are gone for 59 heroes; Lumi and Oakmir have new death animations."
+      "Hero deaths look cleaner: the pink tint and grey patches left in the ash, and the grey flash in Hurne's death, are gone for 59 heroes; Lumi and Oakmir have new death animations.",
+      "The World Map screen always has a way back to your town, even before it unlocks or while your castle is still being found.",
+      "Fixed a hidden graphics error that repeated in every battle after a hero's death animation ended.",
+      "On a slow or dropped connection the game no longer waits forever: a screen that cannot load says so and offers Try again, and a claim or purchase that was slow to answer is never paid twice."
     ]},
     {"ver": "0.95", "date": "17 October 2026", "title": "Server safety", "items": [
       "Server data safety improvements: a server that cannot read its saved world now stops safely instead of starting fresh, saves are fully written to disk before they count, and backups of real player progress are always kept.",
