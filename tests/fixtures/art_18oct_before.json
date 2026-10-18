@@ -1,5 +1,5 @@
 {
- "note": "ChatGPT art 18 Oct 2026 (Iver, Joss, Ambrel remakes + seven Grok FX): what live v1199 (0dc64490) had, for tests/helpers/art-18oct-undo.js",
+ "note": "ChatGPT art 18 Oct 2026 (Iver, Joss, Ambrel remakes + seven Grok FX): what live v1203 (ece913af) had, for tests/helpers/art-18oct-undo.js",
  "anim": {
   "iver": {
    "idle": {
@@ -292,17 +292,17 @@
     ]
    },
    "death": {
-    "u": "/assets/anim/iver/iver_death_1190.webp?v=1190",
+    "u": "/assets/anim/iver/iver_death_1203.webp?v=1203",
     "n": 4,
     "first": 0,
-    "fw": 313,
+    "fw": 307,
     "fh": 493,
     "cols": 1,
     "rows": 4,
     "figH": 365,
     "feet": 486,
     "top": 121,
-    "cx": 150.2,
+    "cx": 148.9,
     "fps": 8,
     "flip": true,
     "lazy": true,
@@ -324,23 +324,23 @@
     "end": "hide"
    },
    "death2": {
-    "u": "/assets/anim/iver/iver_death2_1190.webp?v=1190",
+    "u": "/assets/anim/iver/iver_death2_1203.webp?v=1203",
     "n": 4,
     "first": 4,
-    "fw": 330,
-    "fh": 448,
+    "fw": 326,
+    "fh": 445,
     "cols": 1,
     "rows": 4,
     "figH": 365,
-    "feet": 437,
-    "top": 72,
-    "cx": 169.4,
+    "feet": 434,
+    "top": 69,
+    "cx": 167.2,
     "fps": 8,
     "flip": true,
     "lazy": true
    },
    "death3": {
-    "u": "/assets/anim/iver/iver_death3_1190.webp?v=1190",
+    "u": "/assets/anim/iver/iver_death3_1203.webp?v=1203",
     "n": 4,
     "first": 8,
     "fw": 308,
@@ -356,23 +356,23 @@
     "lazy": true
    },
    "death4": {
-    "u": "/assets/anim/iver/iver_death4_1190.webp?v=1190",
+    "u": "/assets/anim/iver/iver_death4_1203.webp?v=1203",
     "n": 4,
     "first": 12,
     "fw": 305,
-    "fh": 421,
+    "fh": 420,
     "cols": 1,
     "rows": 4,
     "figH": 365,
-    "feet": 410,
-    "top": 45,
+    "feet": 409,
+    "top": 44,
     "cx": 130.1,
     "fps": 8,
     "flip": true,
     "lazy": true
    },
    "death5": {
-    "u": "/assets/anim/iver/iver_death5_1190.webp?v=1190",
+    "u": "/assets/anim/iver/iver_death5_1203.webp?v=1203",
     "n": 4,
     "first": 16,
     "fw": 293,
@@ -388,7 +388,7 @@
     "lazy": true
    },
    "death6": {
-    "u": "/assets/anim/iver/iver_death6_1190.webp?v=1190",
+    "u": "/assets/anim/iver/iver_death6_1203.webp?v=1203",
     "n": 4,
     "first": 20,
     "fw": 343,
@@ -404,26 +404,26 @@
     "lazy": true
    },
    "death7": {
-    "u": "/assets/anim/iver/iver_death7_1190.webp?v=1190",
+    "u": "/assets/anim/iver/iver_death7_1203.webp?v=1203",
     "n": 4,
     "first": 24,
-    "fw": 493,
-    "fh": 331,
+    "fw": 489,
+    "fh": 326,
     "cols": 1,
     "rows": 4,
     "figH": 365,
-    "feet": 310,
-    "top": -55,
+    "feet": 305,
+    "top": -60,
     "cx": 316.5,
     "fps": 8,
     "flip": true,
     "lazy": true
    },
    "death8": {
-    "u": "/assets/anim/iver/iver_death8_1190.webp?v=1190",
+    "u": "/assets/anim/iver/iver_death8_1203.webp?v=1203",
     "n": 4,
     "first": 28,
-    "fw": 494,
+    "fw": 493,
     "fh": 162,
     "cols": 1,
     "rows": 4,
@@ -436,10 +436,10 @@
     "lazy": true
    },
    "death9": {
-    "u": "/assets/anim/iver/iver_death9_1190.webp?v=1190",
+    "u": "/assets/anim/iver/iver_death9_1203.webp?v=1203",
     "n": 4,
     "first": 32,
-    "fw": 496,
+    "fw": 490,
     "fh": 124,
     "cols": 1,
     "rows": 4,
@@ -452,7 +452,7 @@
     "lazy": true
    },
    "death10": {
-    "u": "/assets/anim/iver/iver_death10_1190.webp?v=1190",
+    "u": "/assets/anim/iver/iver_death10_1203.webp?v=1203",
     "n": 4,
     "first": 36,
     "fw": 470,
@@ -468,7 +468,7 @@
     "lazy": true
    },
    "death11": {
-    "u": "/assets/anim/iver/iver_death11_1190.webp?v=1190",
+    "u": "/assets/anim/iver/iver_death11_1203.webp?v=1203",
     "n": 4,
     "first": 40,
     "fw": 365,
@@ -484,7 +484,7 @@
     "lazy": true
    },
    "death12": {
-    "u": "/assets/anim/iver/iver_death12_1190.webp?v=1190",
+    "u": "/assets/anim/iver/iver_death12_1203.webp?v=1203",
     "n": 4,
     "first": 44,
     "fw": 14,
@@ -855,7 +855,7 @@
     ]
    },
    "death": {
-    "u": "/assets/anim/joss/joss_death_1190.webp?v=1190",
+    "u": "/assets/anim/joss/joss_death_1203.webp?v=1203",
     "n": 4,
     "first": 0,
     "fw": 344,
@@ -887,23 +887,23 @@
     "end": "hide"
    },
    "death2": {
-    "u": "/assets/anim/joss/joss_death2_1190.webp?v=1190",
+    "u": "/assets/anim/joss/joss_death2_1203.webp?v=1203",
     "n": 4,
     "first": 4,
-    "fw": 412,
-    "fh": 379,
+    "fw": 411,
+    "fh": 378,
     "cols": 1,
     "rows": 4,
     "figH": 386,
     "feet": 361,
     "top": -25,
-    "cx": 223.2,
+    "cx": 222.8,
     "fps": 8,
     "flip": true,
     "lazy": true
    },
    "death3": {
-    "u": "/assets/anim/joss/joss_death3_1190.webp?v=1190",
+    "u": "/assets/anim/joss/joss_death3_1203.webp?v=1203",
     "n": 4,
     "first": 8,
     "fw": 410,
@@ -913,13 +913,13 @@
     "figH": 386,
     "feet": 239,
     "top": -147,
-    "cx": 223.2,
+    "cx": 222.8,
     "fps": 8,
     "flip": true,
     "lazy": true
    },
    "death4": {
-    "u": "/assets/anim/joss/joss_death4_1190.webp?v=1190",
+    "u": "/assets/anim/joss/joss_death4_1203.webp?v=1203",
     "n": 4,
     "first": 12,
     "fw": 411,
@@ -929,13 +929,13 @@
     "figH": 386,
     "feet": 289,
     "top": -97,
-    "cx": 223.2,
+    "cx": 222.8,
     "fps": 8,
     "flip": true,
     "lazy": true
    },
    "death5": {
-    "u": "/assets/anim/joss/joss_death5_1190.webp?v=1190",
+    "u": "/assets/anim/joss/joss_death5_1203.webp?v=1203",
     "n": 4,
     "first": 16,
     "fw": 404,
@@ -951,7 +951,7 @@
     "lazy": true
    },
    "death6": {
-    "u": "/assets/anim/joss/joss_death6_1190.webp?v=1190",
+    "u": "/assets/anim/joss/joss_death6_1203.webp?v=1203",
     "n": 4,
     "first": 20,
     "fw": 404,
@@ -967,7 +967,7 @@
     "lazy": true
    },
    "death7": {
-    "u": "/assets/anim/joss/joss_death7_1190.webp?v=1190",
+    "u": "/assets/anim/joss/joss_death7_1203.webp?v=1203",
     "n": 4,
     "first": 24,
     "fw": 402,
@@ -983,7 +983,7 @@
     "lazy": true
    },
    "death8": {
-    "u": "/assets/anim/joss/joss_death8_1190.webp?v=1190",
+    "u": "/assets/anim/joss/joss_death8_1203.webp?v=1203",
     "n": 4,
     "first": 28,
     "fw": 402,
@@ -999,11 +999,11 @@
     "lazy": true
    },
    "death9": {
-    "u": "/assets/anim/joss/joss_death9_1190.webp?v=1190",
+    "u": "/assets/anim/joss/joss_death9_1203.webp?v=1203",
     "n": 4,
     "first": 32,
     "fw": 356,
-    "fh": 240,
+    "fh": 239,
     "cols": 1,
     "rows": 4,
     "figH": 386,
@@ -1015,7 +1015,7 @@
     "lazy": true
    },
    "death10": {
-    "u": "/assets/anim/joss/joss_death10_1190.webp?v=1190",
+    "u": "/assets/anim/joss/joss_death10_1203.webp?v=1203",
     "n": 4,
     "first": 36,
     "fw": 263,
@@ -1031,7 +1031,7 @@
     "lazy": true
    },
    "death11": {
-    "u": "/assets/anim/joss/joss_death11_1190.webp?v=1190",
+    "u": "/assets/anim/joss/joss_death11_1203.webp?v=1203",
     "n": 4,
     "first": 40,
     "fw": 220,
@@ -1047,17 +1047,17 @@
     "lazy": true
    },
    "death12": {
-    "u": "/assets/anim/joss/joss_death12_1190.webp?v=1190",
+    "u": "/assets/anim/joss/joss_death12_1203.webp?v=1203",
     "n": 4,
     "first": 44,
-    "fw": 252,
+    "fw": 251,
     "fh": 180,
     "cols": 1,
     "rows": 4,
     "figH": 386,
     "feet": 173,
     "top": -213,
-    "cx": 245.4,
+    "cx": 244,
     "fps": 8,
     "flip": true,
     "lazy": true
