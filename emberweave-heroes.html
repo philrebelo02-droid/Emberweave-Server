@@ -68,6 +68,7 @@
 })();
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<script src="/assets/ui/fold-viewport.js?v=18oct26"></script>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0b0e14">
 <meta name="mobile-web-app-capable" content="yes">
@@ -2344,6 +2345,15 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
   .wpsStage.tall .wpsCards{flex-direction:column;gap:calc(var(--u)*50)}
   .wpsStage.tall .wpsCard{display:grid;grid-template-columns:calc(var(--u)*300) 1fr;grid-auto-rows:min-content;column-gap:calc(var(--u)*40);align-content:center;text-align:left;align-items:center}
   .wpsStage.tall .wpsOrb{grid-row:1/span 7;width:calc(var(--u)*280);height:calc(var(--u)*280)} .wpsStage.tall .wpsCard>*:not(.wpsOrb){grid-column:2} .wpsStage.tall .wpsCard .btn,.wpsStage.tall .wpsCard .btn:first-of-type{margin-top:calc(var(--u)*16);height:calc(var(--u)*120)}
+/* Fold layout: whole-root rotation, native hit testing and explicit game-space adapters. */
+body{position:fixed;left:0;top:0;transform-origin:0 0;isolation:isolate;}
+body::before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;background:var(--ew-stage-background,url('/assets/img/ui/screen-bg.webp?v=1')) center/cover no-repeat;}
+.screen.popout{width:min(440px,94%);height:100%;max-height:100%;}
+.screen.popout > .ew-pinned-exits{position:sticky;top:-18px;min-height:44px;z-index:40;display:flex;align-items:center;justify-content:flex-end;gap:10px;background:#11172a;}
+.screen.popout > .ew-pinned-exits .backbtn{position:relative!important;top:auto!important;left:auto!important;right:auto!important;margin-right:auto;}
+.screen.popout > .ew-pinned-exits .popoutClose{position:relative!important;top:auto!important;right:auto!important;flex-shrink:0;}
+.screen:not(.popout) > .ew-pinned-exits{display:none;}
+body.ew-rotated #app{max-width:none;max-height:none;}
 </style>
 </head>
 <body>
@@ -4020,7 +4030,7 @@ function texImgFree(tx){ try{ const im=tx&&tx.image; if(im && typeof im.close===
 const ART_PHONE_SIDE=500, ART_PHONE_MEM=4, ART_TIERS_URL='/assets/anim/tiers_1141.json?v=1158';
 function artTierPick(){ try{ const o=localStorage.getItem('ew_art_tier'); if(o==='high'||o==='phone') return o; }catch(e){}
   try{ const sw=(typeof screen!=='undefined'&&screen&&screen.width)|0, sh=(typeof screen!=='undefined'&&screen&&screen.height)|0;
-    const side=(sw>0&&sh>0)?Math.min(sw,sh):Math.min(window.innerWidth|0, window.innerHeight|0), mem=navigator.deviceMemory;
+    const side=(sw>0&&sh>0)?Math.min(sw,sh):Math.min(ewGameView().width|0, ewGameView().height|0), mem=navigator.deviceMemory;
     if(side>0 && side<=ART_PHONE_SIDE) return 'phone';
     if(typeof mem==='number' && mem>0 && mem<=ART_PHONE_MEM) return 'phone'; }catch(e){}
   return 'high'; }
@@ -6933,7 +6943,7 @@ function zoomPR(){
   return Math.min(4.5, DPR*Math.max(ZOOM_PR_MAX, z)); }
 function clampPan(){
   const app=document.getElementById('app');
-  const w=(app?app.clientWidth:0)||window.innerWidth, h=(app?app.clientHeight:0)||window.innerHeight;
+  const w=(app?app.clientWidth:0)||ewGameView().width, h=(app?app.clientHeight:0)||ewGameView().height;
   const mx=Math.max(0, w*(battleZoom-1)/2), my=Math.max(0, h*(battleZoom-1)/2);
   battlePanX=Math.max(-mx, Math.min(mx, battlePanX));
   battlePanY=Math.max(-my, Math.min(my, battlePanY));
@@ -6945,7 +6955,7 @@ function setBattleZoom(z, fx, fy){ if(document.body.classList.contains('ed-plan'
   // zoom the WHOLE battle as one: scale the map, the 3D units, and the health-bar overlay by the same factor
   if(battleZoom<=1){ battlePanX=0; battlePanY=0; }   // pan only when zoomed IN
   let origin='50% 50%';   // default: zoom around screen centre
-  if(battleZoom<1.0 && fx!=null){ const app=document.getElementById('app'); const r=app?app.getBoundingClientRect():{left:0,top:0}; origin=(fx-r.left)+'px '+(fy-r.top)+'px'; }   // below 1x: zoom toward the cursor/pinch point
+  if(battleZoom<1.0 && fx!=null){ const app=document.getElementById('app'); const r=app?app.ewGameRect():{left:0,top:0}; origin=(fx-r.left)+'px '+(fy-r.top)+'px'; }   // below 1x: zoom toward the cursor/pinch point
   ['battleBg','edFloor','three','overlay'].forEach(id=>{ const el=document.getElementById(id); if(el){ el.style.transformOrigin=origin; } }); applyBattleView();
   /* v586: keep the render buffer in step with the view. Cheap now that the ratio is constant —
      this only redoes work if QUAL has since changed the resolution under us. */
@@ -8151,7 +8161,7 @@ function gsplitWindowEl(){
        is chosen by the finger's HEIGHT against the road bands, whatever is drawn on top. */
     el.addEventListener('pointerdown',e=>{const b=e.target.closest&&e.target.closest('[data-gw="hero"]');const W=GSPLIT.window;
       if(!b||!W||b.disabled)return;
-      W.dragHero=b.dataset.unit; W._drag={x:e.clientX,y:e.clientY,on:false,src:(b.querySelector('img')||{}).src||''};
+      W.dragHero=b.dataset.unit; W._drag={x:e.ewGameX,y:e.ewGameY,on:false,src:(b.querySelector('img')||{}).src||''};
       try{b.setPointerCapture(e.pointerId);}catch(_){}});
     el.addEventListener('wheel',e=>{const r=e.target.closest&&e.target.closest('.gw-roster');if(r&&Math.abs(e.deltaY)>Math.abs(e.deltaX)){r.scrollLeft+=e.deltaY;e.preventDefault();}},{passive:false});
     // on window: a redraw can replace the captured card mid-drag, and the release must still land
@@ -8163,20 +8173,20 @@ function gsplitWindowEl(){
 }
 function gsplitLaneAtY(y){
   for(const z of document.querySelectorAll('#gwLaneOverlays .gw-lane-zone[data-active]')){
-    const r=z.getBoundingClientRect(); if(y>=r.top&&y<=r.bottom) return +z.dataset.lane; }
+    const r=z.ewGameRect(); if(y>=r.top&&y<=r.bottom) return +z.dataset.lane; }
   return -1;
 }
 function gsplitWindowPointerMove(e){
   const W=GSPLIT.window, d=W&&W._drag; if(!d) return;
   if(!d.on){
-    if(Math.hypot(e.clientX-d.x,e.clientY-d.y)<10) return;
+    if(Math.hypot(e.ewGameX-d.x,e.ewGameY-d.y)<10) return;
     d.on=true;
     const g=document.createElement('img'); g.className='gw-ghost'; g.alt=''; if(d.src) g.src=d.src;
     document.body.appendChild(g); d.ghost=g;
     const el=document.getElementById(GSPLIT_WIN_ID); if(el) el.classList.add('gw-dragging');
   }
-  d.ghost.style.left=e.clientX+'px'; d.ghost.style.top=e.clientY+'px';
-  const lane=gsplitLaneAtY(e.clientY);
+  d.ghost.style.left=e.ewGameX+'px'; d.ghost.style.top=e.ewGameY+'px';
+  const lane=gsplitLaneAtY(e.ewGameY);
   document.querySelectorAll('#gwLaneOverlays .gw-lane-zone').forEach(z=>z.classList.toggle('gw-dz-over', +z.dataset.lane===lane));
 }
 function gsplitDragEnd(drop, e){
@@ -8187,7 +8197,7 @@ function gsplitDragEnd(drop, e){
   const d=W._drag, id=W.dragHero; W._drag=null; W.dragHero=null;
   if(!drop || !d || !d.on || !id || !e) return;
   W._suppressClick=Date.now();   // the release of a drag also fires a click on the card - not a selection
-  const lane=gsplitLaneAtY(e.clientY);
+  const lane=gsplitLaneAtY(e.ewGameY);
   if(lane<0) return;
   const f=gsplitFindHero(id);
   if(!gsplitAssignHero(id,lane) && f && f.L.i!==lane && !gsplitCanMove(f.L.i,lane)){
@@ -8370,8 +8380,8 @@ function gsplitDrawLaneOverlays(){
   /* v585: a road label the panel covers (the Bottom Road's, on a phone) shows through a disabled START and
      reads as clutter - hide it; the same count is on the road button a tap brings up */
   const panel=document.getElementById(GSPLIT_WIN_ID);
-  if(panel){ const pt=panel.getBoundingClientRect().top;
-    overlays.querySelectorAll('.gw-lane-chip').forEach(c=>{ if(c.getBoundingClientRect().bottom>pt-2) c.style.visibility='hidden'; }); }
+  if(panel){ const pt=panel.ewGameRect().top;
+    overlays.querySelectorAll('.gw-lane-chip').forEach(c=>{ if(c.ewGameRect().bottom>pt-2) c.style.visibility='hidden'; }); }
 }
 
 
@@ -8656,21 +8666,21 @@ function gsplitPickerRender(){
        measured from the top-left corner of the viewport, cleared 6px instantly and picked the hero
        up with no click at all. Touch has no hover, which is why it survived since v581. */
     const k=c.dataset.k, placed=c.classList.contains('placed'); let ghost=null, moved=false, sx=0, sy=0, downId=null;
-    c.addEventListener('pointerdown',ev=>{ if(placed) return; ev.preventDefault(); moved=false; downId=ev.pointerId; sx=ev.clientX; sy=ev.clientY;
+    c.addEventListener('pointerdown',ev=>{ if(placed) return; ev.preventDefault(); moved=false; downId=ev.pointerId; sx=ev.ewGameX; sy=ev.ewGameY;
       try{ c.setPointerCapture(ev.pointerId); }catch(e){} });
     c.addEventListener('pointermove',ev=>{ if(placed) return;
       if(downId===null || ev.pointerId!==downId) return;        /* v783 - only while it is held */
-      if(!moved && Math.hypot(ev.clientX-sx,ev.clientY-sy)<6) return;
+      if(!moved && Math.hypot(ev.ewGameX-sx,ev.ewGameY-sy)<6) return;
       if(!ghost){ moved=true; ghost=c.cloneNode(true); ghost.style.cssText+=';position:fixed;pointer-events:none;z-index:9999;opacity:.9;transform:translate(-50%,-50%);margin:0'; document.body.appendChild(ghost); c.style.opacity='.35'; }
-      ghost.style.left=ev.clientX+'px'; ghost.style.top=ev.clientY+'px';
+      ghost.style.left=ev.ewGameX+'px'; ghost.style.top=ev.ewGameY+'px';
       el.querySelectorAll('.gsplitRoad').forEach(r=>r.style.background='rgba(201,163,94,.10)');
-      const t=document.elementFromPoint(ev.clientX,ev.clientY), r=t&&t.closest&&t.closest('.gsplitRoad'); if(r) r.style.background='rgba(201,163,94,.32)'; });
+      const t=ewGameElementFromPoint(ev.ewGameX,ev.ewGameY), r=t&&t.closest&&t.closest('.gsplitRoad'); if(r) r.style.background='rgba(201,163,94,.32)'; });
     const finish=ev=>{ if(placed){ unplace(k); return; }
       /* v783 - a pointerup this chip never saw the press for selects nothing */
       if(downId===null) return;
       downId=null;
       if(ghost){ ghost.remove(); ghost=null; c.style.opacity='';
-        const t=document.elementFromPoint(ev.clientX,ev.clientY), r=t&&t.closest&&t.closest('.gsplitRoad');
+        const t=ewGameElementFromPoint(ev.ewGameX,ev.ewGameY), r=t&&t.closest&&t.closest('.gsplitRoad');
         if(r) place(k,+r.dataset.road); else gsplitPickerRender(); }
       else { E._sel = (E._sel===k)?null:k; el.querySelectorAll('.gsplitChip:not(.placed)').forEach(x=>x.style.boxShadow=(x.dataset.k===E._sel)?'0 0 0 2px #ffd36b':''); } };
     const tidy=()=>{ downId=null; if(ghost){ ghost.remove(); ghost=null; } c.style.opacity=''; };   // v581: idempotent — a no-op once finish() has already run
@@ -9487,21 +9497,21 @@ function initThree(){
       try{ location.reload(); }catch(_){} },false); }
   // battle zoom input: mouse-wheel steps through levels; two-finger pinch scales then snaps to the nearest
   { const dom=window; let pd=0, pz=1;    // window so a UI overlay canvas can't swallow the gesture
-    const pdist=(e)=>Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
+    const pdist=(e)=>Math.hypot(e.touches[0].ewGameX-e.touches[1].ewGameX, e.touches[0].ewGameY-e.touches[1].ewGameY);
     // v584 (Phil, 17 Sep: swiping the firebreak hero tray "pans the map instead"): these listeners sit on
     // window, so a gesture that STARTS on the firebreak panel belongs to the panel, never the camera.
     const onPanel=(e)=>!!(e.target&&e.target.closest&&e.target.closest('#gsplitWindow'));
-    dom.addEventListener('wheel',(e)=>{ if(state!=='battle'||onPanel(e))return; e.preventDefault(); stepBattleZoom(e.deltaY<0?1:-1, e.clientX, e.clientY); },{passive:false});
+    dom.addEventListener('wheel',(e)=>{ if(state!=='battle'||onPanel(e))return; e.preventDefault(); stepBattleZoom(e.deltaY<0?1:-1, e.ewGameX, e.ewGameY); },{passive:false});
     dom.addEventListener('touchstart',(e)=>{ if(state==='battle'&&e.touches.length===2){ pd=pdist(e); pz=battleZoom; } },{passive:true});
-    dom.addEventListener('touchmove',(e)=>{ if(state==='battle'&&e.touches.length===2&&pd>0){ e.preventDefault(); const mx=(e.touches[0].clientX+e.touches[1].clientX)/2, my=(e.touches[0].clientY+e.touches[1].clientY)/2; setBattleZoom(pz*(pdist(e)/pd), mx, my); } },{passive:false});
+    dom.addEventListener('touchmove',(e)=>{ if(state==='battle'&&e.touches.length===2&&pd>0){ e.preventDefault(); const mx=(e.touches[0].ewGameX+e.touches[1].ewGameX)/2, my=(e.touches[0].ewGameY+e.touches[1].ewGameY)/2; setBattleZoom(pz*(pdist(e)/pd), mx, my); } },{passive:false});
     dom.addEventListener('touchend',(e)=>{ if(pd>0&&e.touches.length<2){ pd=0; } },{passive:true});
     // click/touch DRAG pans the battlefield while zoomed IN (>1x)
     let bdx=0,bdy=0,bpx=0,bpy=0,bdrag=false;
-    dom.addEventListener('mousedown',(e)=>{ if(state==='battle'&&battleZoom>1&&!aiming&&!onPanel(e)){ bdrag=true; bdx=e.clientX; bdy=e.clientY; bpx=battlePanX; bpy=battlePanY; } },{passive:true});
-    dom.addEventListener('mousemove',(e)=>{ if(bdrag){ battlePanX=bpx+(e.clientX-bdx); battlePanY=bpy+(e.clientY-bdy); applyBattleView(); } },{passive:true});
+    dom.addEventListener('mousedown',(e)=>{ if(state==='battle'&&battleZoom>1&&!aiming&&!onPanel(e)){ bdrag=true; bdx=e.ewGameX; bdy=e.ewGameY; bpx=battlePanX; bpy=battlePanY; } },{passive:true});
+    dom.addEventListener('mousemove',(e)=>{ if(bdrag){ battlePanX=bpx+(e.ewGameX-bdx); battlePanY=bpy+(e.ewGameY-bdy); applyBattleView(); } },{passive:true});
     dom.addEventListener('mouseup',()=>{ bdrag=false; },{passive:true});
-    dom.addEventListener('touchstart',(e)=>{ if(state==='battle'&&battleZoom>1&&!aiming&&e.touches.length===1&&!onPanel(e)){ bdrag=true; bdx=e.touches[0].clientX; bdy=e.touches[0].clientY; bpx=battlePanX; bpy=battlePanY; } },{passive:true});
-    dom.addEventListener('touchmove',(e)=>{ if(bdrag&&battleZoom>1&&e.touches.length===1){ battlePanX=bpx+(e.touches[0].clientX-bdx); battlePanY=bpy+(e.touches[0].clientY-bdy); applyBattleView(); } },{passive:true});
+    dom.addEventListener('touchstart',(e)=>{ if(state==='battle'&&battleZoom>1&&!aiming&&e.touches.length===1&&!onPanel(e)){ bdrag=true; bdx=e.touches[0].ewGameX; bdy=e.touches[0].ewGameY; bpx=battlePanX; bpy=battlePanY; } },{passive:true});
+    dom.addEventListener('touchmove',(e)=>{ if(bdrag&&battleZoom>1&&e.touches.length===1){ battlePanX=bpx+(e.touches[0].ewGameX-bdx); battlePanY=bpy+(e.touches[0].ewGameY-bdy); applyBattleView(); } },{passive:true});
     dom.addEventListener('touchend',()=>{ bdrag=false; },{passive:true});
   }
   scene=new TH.Scene();   // no fog: units read cleanly over the painted map
@@ -9596,7 +9606,7 @@ function qualityTick(frameMs){
 }
 function qualityApply(){ try{ localStorage.setItem('ew_dpr2',String(QUAL.dpr)); }catch(e){}
   CW=0; resize3D(); }                                          // force a real resize at the new resolution
-function resize3D(){ if(!renderer)return; if(!QUAL.dpr) qualityInit(); DPR=Math.min(window.devicePixelRatio||1,QUAL.dpr); const app=document.getElementById('app'); CW=app.clientWidth||window.innerWidth; CH=app.clientHeight||window.innerHeight;
+function resize3D(){ if(!renderer)return; if(!QUAL.dpr) qualityInit(); DPR=Math.min(window.devicePixelRatio||1,QUAL.dpr); const app=document.getElementById('app'); CW=app.clientWidth||ewGameView().width; CH=app.clientHeight||ewGameView().height;
   const PR=zoomPR();
   renderer.setPixelRatio(PR); renderer.setSize(CW,CH,false); camera.aspect=CW/CH; camera.updateProjectionMatrix();
   renderer.domElement.style.width='100%'; renderer.domElement.style.height='100%';   // always fill #app (buffer aspect already matches)
@@ -9604,8 +9614,8 @@ function resize3D(){ if(!renderer)return; if(!QUAL.dpr) qualityInit(); DPR=Math.
 // Only rebuild the 3D/overlay buffers when the WIDTH changes. The mobile soft keyboard changes only the
 // viewport HEIGHT (open on input focus, close on tap) and would otherwise fire this expensive realloc
 // repeatedly → multi-second freezes (e.g. opening the dev fragment tool / tapping a hero row).
-let _lastResizeW=window.innerWidth, _lastResizeH=window.innerHeight;
-window.addEventListener('resize',()=>{ if(!renderer)return; const w=window.innerWidth,h=window.innerHeight; if(w!==_lastResizeW){ _lastResizeW=w; _lastResizeH=h; resize3D(); return; } const foc=document.activeElement&&/^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName); if(state==='battle'&&!foc&&Math.abs(h-_lastResizeH)>60){ _lastResizeH=h; resize3D(); } });
+let _lastResizeW=ewGameView().width, _lastResizeH=ewGameView().height;
+window.addEventListener('resize',()=>{ if(!renderer)return; const w=ewGameView().width,h=ewGameView().height; if(w!==_lastResizeW){ _lastResizeW=w; _lastResizeH=h; resize3D(); return; } const foc=document.activeElement&&/^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName); if(state==='battle'&&!foc&&Math.abs(h-_lastResizeH)>60){ _lastResizeH=h; resize3D(); } });
 window.addEventListener('orientationchange',()=>{ for(const d of [60,250,600,1000]) setTimeout(()=>{if(renderer)resize3D();},d); });
 document.addEventListener('fullscreenchange',()=>{ for(const d of [60,300,700]) setTimeout(()=>{if(renderer)resize3D();},d); });
 document.addEventListener('webkitfullscreenchange',()=>{ for(const d of [60,300,700]) setTimeout(()=>{if(renderer)resize3D();},d); });
@@ -10628,19 +10638,19 @@ function _mHit(a,b){ return a.r>b.l&&a.l<b.r&&a.b>b.t&&a.t<b.b; }
    window) are background the button may sit on - a panel, card, plate or banner never is, however big. */
 function _mWinLevel(e){ if(!e||e===document.documentElement||e===document.body||e.id==='app'||(e.classList&&e.classList.contains('screen'))) return !!e;
   const p=getComputedStyle(e).position; if(p!=='fixed'&&p!=='absolute') return false;
-  const g=e.getBoundingClientRect(), vw=window.innerWidth, vh=window.innerHeight, w=Math.min(g.right,vw)-Math.max(g.left,0), h=Math.min(g.bottom,vh)-Math.max(g.top,0);
+  const g=e.ewGameRect(), vw=ewGameView().width, vh=ewGameView().height, w=Math.min(g.right,vw)-Math.max(g.left,0), h=Math.min(g.bottom,vh)-Math.max(g.top,0);
   return w>0&&h>0&&w*h>=0.4*vw*vh; }
 /* the open window's close X: a visible, uncovered close control near the top right of a floating box (fixed/absolute, or held in a
    fixed overlay). The last one in the page wins (windows opened later sit on top). */
-function muteCloseX(){ const vw=window.innerWidth, vh=window.innerHeight; let best=null;
+function muteCloseX(){ const vw=ewGameView().width, vh=ewGameView().height; let best=null;
   for(const x of document.querySelectorAll('button,[role=button],.popoutClose,.glClose')){
-    const g=x.getBoundingClientRect(); if(g.width<16||g.height<16||g.width>64||g.height>64||g.right<=0||g.bottom<=0||g.left>=vw||g.top>=vh) continue;
+    const g=x.ewGameRect(); if(g.width<16||g.height<16||g.width>64||g.height>64||g.right<=0||g.bottom<=0||g.left>=vw||g.top>=vh) continue;
     const lab=(x.getAttribute('aria-label')||'').trim(), im=x.querySelector('img'), tx=(x.textContent||'').trim();
     if(!(x.classList.contains('popoutClose')||x.classList.contains('glClose')||/^close$/i.test(lab)||(im&&/\/icons\/ui\/close-v1/.test(im.getAttribute('src')||'')&&tx.length<=2)||/^[×✕✖]$/.test(tx))) continue;
-    const top=document.elementFromPoint(g.left+g.width/2,g.top+g.height/2); if(!top||!(top===x||x.contains(top))) continue;
-    let win=null; for(let e=x.parentElement,d=0;e&&d<10&&e!==document.body;e=e.parentElement,d++){ const cs=getComputedStyle(e), w=e.getBoundingClientRect();
+    const top=ewGameElementFromPoint(g.left+g.width/2,g.top+g.height/2); if(!top||!(top===x||x.contains(top))) continue;
+    let win=null; for(let e=x.parentElement,d=0;e&&d<10&&e!==document.body;e=e.parentElement,d++){ const cs=getComputedStyle(e), w=e.ewGameRect();
       if((_mAlpha(cs.backgroundColor)>0.3||cs.backgroundImage!=='none'||(cs.borderImageSource&&cs.borderImageSource!=='none'))&&w.width>=3*g.width&&w.height>=3*g.height){ win=e; break; } }
-    if(!win) continue; const w=win.getBoundingClientRect();
+    if(!win) continue; const w=win.ewGameRect();
     let fl=false; for(let e=win,d=0;e&&d<4&&e!==document.body;e=e.parentElement,d++){ const p=getComputedStyle(e).position; if(p==='fixed'||p==='absolute'){ fl=true; break; } }
     if(!fl||g.top-w.top>Math.max(0.3*w.height,24)+8||w.right-g.right>Math.max(0.3*w.width,24)+8) continue;
     best={ x, g, win }; }
@@ -10654,7 +10664,7 @@ function muteCloseX(){ const vw=window.innerWidth, vh=window.innerHeight; let be
 const MUTE_SIG = { s:'', verify:0, verify2:0, k:0 };
 function _muteSig(){ let pop=''; try{ pop=_popout||''; }catch(e){}
   let open=''; try{ for(const e of document.querySelectorAll('.active,.open,.popout')) open+=(e.id||e.className)+';'; }catch(e){}
-  return ((typeof state!=='undefined'&&state)||'')+'|'+(splashOn()?'splash':'')+'|'+pop+'|'+window.innerWidth+'x'+window.innerHeight+'|'+(document.body?document.body.childElementCount+'|'+document.body.className:'')+'|'+open; }
+  return ((typeof state!=='undefined'&&state)||'')+'|'+(splashOn()?'splash':'')+'|'+pop+'|'+ewGameView().width+'x'+ewGameView().height+'|'+(document.body?document.body.childElementCount+'|'+document.body.className:'')+'|'+open; }
 /* force: true = measure again (resize, fonts, the timed re-checks); 'dom' = content was added next to the button - at most 3 per window */
 function muteBtnPlace(force){ try{ const b=document.getElementById('muteBtn'), sig=_muteSig(), same=sig===MUTE_SIG.s&&b&&b.isConnected;
     if(same&&!force) return;   // nothing it depends on changed: no work at all
@@ -10686,7 +10696,7 @@ const MUTE_LISTED = ['home','result','temple','wishing','forge','guild','arena',
 function muteBtnPlaceNow(){ try{ let b=document.getElementById('muteBtn'); if(!b){ muteBtnMake(); b=document.getElementById('muteBtn'); } if(!b) return;
     if(splashOn()){ b.style.display='none'; b.dataset.why='splash'; MUTE_DBG.last={ why:'splash', x:0, y:0, s:0, ms:0, st:(typeof state!=='undefined'&&state)||'' }; return; }   /* v1197: no mute button on the splash */
     if(b.style.display==='none'&&b.dataset.why==='splash') b.style.display='';
-    const vw=window.innerWidth||document.documentElement.clientWidth, vh=window.innerHeight||document.documentElement.clientHeight; if(!vw||!vh) return;
+    const vw=ewGameView().width||document.documentElement.clientWidth, vh=ewGameView().height||document.documentElement.clientHeight; if(!vw||!vh) return;
     const t0=(window.performance&&performance.now())||0, st=(typeof state!=='undefined'&&state)||'';
     const done=(why,x,y,s)=>{ MUTE_DBG.last={ why, x:Math.round(x), y:Math.round(y), s, ms:Math.round((((window.performance&&performance.now())||0)-t0)*10)/10, st }; };
     const unhost=()=>{ const h=MUTE_DOCK.relHost; if(h&&h!==b.parentNode){ h.style.position=MUTE_DOCK.relWas||''; MUTE_DOCK.relHost=null; } };
@@ -10695,10 +10705,10 @@ function muteBtnPlaceNow(){ try{ let b=document.getElementById('muteBtn'); if(!b
     /* docked: a child of `host`, placed in its own coordinates, so it moves (scrolls) with it */
     const dock=(x,y,s,why,host)=>{ if(getComputedStyle(host).position==='static'){ if(MUTE_DOCK.relHost!==host){ unhost(); MUTE_DOCK.relHost=host; MUTE_DOCK.relWas=host.style.position; } host.style.position='relative'; }
       if(b.parentNode!==host) host.appendChild(b); b.classList.add('dock'); if(MUTE_DOCK.relHost&&MUTE_DOCK.relHost!==host) unhost();
-      const hr=host.getBoundingClientRect(), k=(host.offsetWidth?hr.width/host.offsetWidth:1)||1;
+      const hr=host.ewGameRect(), k=(host.offsetWidth?hr.width/host.offsetWidth:1)||1;
       b.style.setProperty('--ms',(s/k)+'px'); b.style.setProperty('--mx',((x-hr.left)/k-host.clientLeft+host.scrollLeft)+'px'); b.style.setProperty('--my',((y-hr.top)/k-host.clientTop+host.scrollTop)+'px');
       b.dataset.spot=Math.round(x)+','+Math.round(y); b.dataset.why=why; done(why,x,y,s); };
-    const R=sel=>{ const e=typeof sel==='string'?document.querySelector(sel):sel; if(!e) return null; const g=e.getBoundingClientRect(); return (g.width>0&&g.height>0)?g:null; };
+    const R=sel=>{ const e=typeof sel==='string'?document.querySelector(sel):sel; if(!e) return null; const g=e.ewGameRect(); return (g.width>0&&g.height>0)?g:null; };
     MUTE_DBG.unlisted='';
     /* the battle loading screen (any mode): top-right, level with the title */
     const ldr=document.getElementById('battleLoader');
@@ -10714,12 +10724,12 @@ function muteBtnPlaceNow(){ try{ let b=document.getElementById('muteBtn'); if(!b
     b.style.pointerEvents='none'; let X=null; try{ X=muteCloseX(); } finally { b.style.pointerEvents=''; }
     /* still docked under an X the player has scrolled out of view (its window is open): it stays with the X */
     if(!X&&MUTE_DOCK.x&&MUTE_DOCK.x.isConnected&&MUTE_DOCK.x.getClientRects().length&&b.classList.contains('dock')&&b.parentNode===MUTE_DOCK.x.parentElement){
-      const g=MUTE_DOCK.x.getBoundingClientRect(); return void done('win-scrolled',g.left,g.bottom,parseFloat(b.style.getPropertyValue('--ms'))||MUTE_SZ); }
+      const g=MUTE_DOCK.x.ewGameRect(); return void done('win-scrolled',g.left,g.bottom,parseFloat(b.style.getPropertyValue('--ms'))||MUTE_SZ); }
     if(X){ const g=X.g, s=Math.round(Math.max(30,Math.min(44,Math.min(g.width,g.height)))), cx=g.left+g.width/2, cy=g.top+g.height/2, w=X.win;
       const host=X.x.parentElement;
       MUTE_DOCK.x=X.x;
       if(w.id==='heroDetail'||(w.closest&&w.closest('#heroDetail'))) return void dock(g.left-MUTE_GAP-s,g.top+8,s,'win-left-x',host);   // (its tabs are under the X; 8 px down clears the window's top frame)
-      if(w.id==='glCardBig'){ MUTE_DOCK.x=null; const wr=w.getBoundingClientRect(); return void fix(wr.right+8,cy-s/2,s,'win-beside'); }
+      if(w.id==='glCardBig'){ MUTE_DOCK.x=null; const wr=w.ewGameRect(); return void fix(wr.right+8,cy-s/2,s,'win-beside'); }
       return void dock(cx-s/2,g.bottom+MUTE_GAP,s,'win-under-x',host); }
     MUTE_DOCK.x=null;
     /* the hub */
@@ -10774,8 +10784,8 @@ function muteBtnMake(){ try{ if(document.getElementById('muteBtn')||!document.bo
       try{ new MutationObserver(ms=>{ if(typeof state!=='undefined'&&state==='battle'&&document.getElementById('muteBtn')) return;   // a fight's HUD changes every frame: the timer covers it
           const bb=document.getElementById('muteBtn'), el=n=>n.nodeType===1&&n!==bb;
           /* only a change that can matter: near the button (240 px), a whole window/screen opening or closing, or a page-level node */
-          const br=bb&&bb.getBoundingClientRect(), Z=br?{ l:br.left-240, t:br.top-240, r:br.right+240, b:br.bottom+240 }:null;
-          const near=e=>{ if(!Z||!e||e.nodeType!==1) return true; if(e===document.body||e.parentNode===document.body) return true; const g=e.getBoundingClientRect();
+          const br=bb&&bb.ewGameRect(), Z=br?{ l:br.left-240, t:br.top-240, r:br.right+240, b:br.bottom+240 }:null;
+          const near=e=>{ if(!Z||!e||e.nodeType!==1) return true; if(e===document.body||e.parentNode===document.body) return true; const g=e.ewGameRect();
             if(!g.width&&!g.height) return true; return _mHit({ l:g.left, t:g.top, r:g.right, b:g.bottom },Z)||_mWinLevel(e); };
           for(const m of ms){ const t=m.target; if(bb&&(t===bb||bb.contains(t))) continue; let added=false;
             if(m.type==='childList'){ const ad=Array.prototype.filter.call(m.addedNodes,el), rm=Array.prototype.filter.call(m.removedNodes,el);
@@ -16432,7 +16442,7 @@ function edDrawInsignia(c, cx, by, rank, k){
 let _edRenderGen=0, _edOvRect=null;   /* v646: a badge lookup happens once per edRender (heroes with no items have none); the overlay rect once per frame */
 function edBadgeAt(u, x, y){ let el=u._badgeEl;
   if(!el||!el.isConnected){ if(u._badgeGen===_edRenderGen) return; u._badgeGen=_edRenderGen; el=u._badgeEl=document.querySelector('#edRoot .badge[data-uid="'+u._edId+'"]'); u._bx=null; if(!el) return; }
-  const r=_edOvRect||(_edOvRect=overlay.getBoundingClientRect()), vx=r.left+x*(r.width/(CW||1)), vy=r.top+y*(r.height/(CH||1));
+  const r=_edOvRect||(_edOvRect=overlay.ewGameRect()), vx=r.left+x*(r.width/(CW||1)), vy=r.top+y*(r.height/(CH||1));
   if(u._bx!=null && Math.abs(u._bx-vx)<0.5 && Math.abs(u._by-vy)<0.5) return;
   u._bx=vx; u._by=vy; el.style.left=vx.toFixed(1)+'px'; el.style.top=vy.toFixed(1)+'px'; }
 /* v645 (Phil: "slow down the FPS on their idle please"): Emberdraft heroes play their idle clip at this fraction of its frame rate */
@@ -16909,7 +16919,7 @@ function updateHubChrome(){
    over its padlock, so a building at the map's edge pushes it past the visible map. When a tip shows, slide it sideways just enough
    to sit inside #townWrap (6 px margin). One delegated listener covers every building. */
 function clampLockTip(w){ const tip=w&&w.querySelector('.locktip'), box=document.getElementById('townWrap'); if(!tip||!box) return;
-  tip.style.marginLeft='0px'; const r=tip.getBoundingClientRect(), b=box.getBoundingClientRect(); if(!r.width) return;
+  tip.style.marginLeft='0px'; const r=tip.ewGameRect(), b=box.ewGameRect(); if(!r.width) return;
   let dx=0; if(r.right>b.right-6) dx=(b.right-6)-r.right; if(r.left+dx<b.left+6) dx=(b.left+6)-r.left;
   tip.style.marginLeft=dx+'px'; }
 ['touchstart','mouseover'].forEach(ev=>document.addEventListener(ev,e=>{ const w=e.target&&e.target.closest&&e.target.closest('.townlbl .lockwrap');
@@ -19447,7 +19457,7 @@ function skyTowerFall(stage, tw, lane){
     tw.style.setProperty('--thudDur', thud+'ms');
     tw.classList.add('landed');
     setTimeout(()=>{ try{ tw.classList.remove('landed'); }catch(e){} }, thud+40);
-    const r=tw.getBoundingClientRect(), sr=stage.getBoundingClientRect();
+    const r=tw.ewGameRect(), sr=stage.ewGameRect();
     const d=document.createElement('div');
     d.className='skyDust';
     const dd=Math.max(180, Math.round(520/sp));
@@ -19465,7 +19475,7 @@ function skyTowerFall(stage, tw, lane){
 function skyGarFit(el){ if(!el) return;
   const stage=el.closest('.skyStage'); if(!stage) return;
   el.style.marginLeft='0px';
-  const sr=stage.getBoundingClientRect(), r=el.getBoundingClientRect();
+  const sr=stage.ewGameRect(), r=el.ewGameRect();
   if(!r.width) return;
   const over=(sr.left+3)-r.left;
   if(over>0) el.style.marginLeft=over+'px';
@@ -20463,7 +20473,7 @@ const TP2_TIER_ART={free:'prayer-daily-free',gold:'prayer-gold-ritual',kindled:'
 function tp2Box(x,y,w,h){ return `left:${(x/25.6).toFixed(3)}%;top:${(y/14.4).toFixed(3)}%;width:${(w/25.6).toFixed(3)}%;height:${(h/14.4).toFixed(3)}%`; }
 function tp2Num(v){ v=Math.round((+v||0)*10)/10; return (Math.abs(v)>=1000?Math.round(v).toLocaleString():String(v)); }
 function tp2Fit(){ const st=document.getElementById('tp2Stage'); if(!st) return; const host=st.parentElement;
-  const W=host.clientWidth||window.innerWidth, H=host.clientHeight||window.innerHeight;
+  const W=host.clientWidth||ewGameView().width, H=host.clientHeight||ewGameView().height;
   const w=Math.min(W, H*16/9); st.style.width=w+'px'; st.style.height=(w*9/16)+'px'; st.style.setProperty('--u',(w/2560)+'px'); }
 window.addEventListener('resize',()=>{ if(document.getElementById('tp2Stage')) tp2Fit(); });
 function renderTemple(){
@@ -21033,7 +21043,7 @@ function renderRoadmap(){
   if(cur){ const _center=()=>{ const scr=document.getElementById('cmapScroll'); if(!scr) return;
       /* the node's position is a % of the map IMAGE, which has no height until it has loaded — so
          centre now, and again when the image lands (2 Sep) */
-      const r=cur.getBoundingClientRect(), sr=scr.getBoundingClientRect();
+      const r=cur.ewGameRect(), sr=scr.ewGameRect();
       scr.scrollLeft=Math.max(0, scr.scrollLeft+(r.left+r.width/2)-(sr.left+sr.width/2)); };
     requestAnimationFrame(_center); const _im=map.querySelector('img'); if(_im&&!_im.complete) _im.addEventListener('load',()=>requestAnimationFrame(_center),{once:true}); setTimeout(_center,400); }
 }
@@ -23178,9 +23188,9 @@ function wireTap(el, fn){
   if(!el || el._tapWired) return; el._tapWired=1;
   let down=null, last=0;
   const fire=()=>{ const now=Date.now(); if(now-last<400) return; last=now; try{ fn(); }catch(e){ console&&console.error&&console.error(e); } };
-  el.addEventListener('pointerdown',(e)=>{ down={x:e.clientX,y:e.clientY,t:Date.now()}; },{passive:true});
+  el.addEventListener('pointerdown',(e)=>{ down={x:e.ewGameX,y:e.ewGameY,t:Date.now()}; },{passive:true});
   el.addEventListener('pointerup',(e)=>{ const d=down; down=null; if(!d)return;
-    if(Math.abs(e.clientX-d.x)>16 || Math.abs(e.clientY-d.y)>16) return;   // that was a scroll, not a tap
+    if(Math.abs(e.ewGameX-d.x)>16 || Math.abs(e.ewGameY-d.y)>16) return;   // that was a scroll, not a tap
     if(Date.now()-d.t>900) return;                                         // that was a long press
     swallowNextClick(); fire(); },{passive:true});
   el.addEventListener('pointercancel',()=>{ down=null; },{passive:true});
@@ -23195,10 +23205,10 @@ function wireRosterTaps(r){
     const now=Date.now(); if(card===lastCard && now-lastAt<400) return; lastCard=card; lastAt=now;
     try{ card._pick(); }catch(e){ if(r&&r.id==='roster'){ try{ reRenderRoster(); }catch(_){} } } };
   r.addEventListener('pointerdown',(e)=>{ const c=e.target&&e.target.closest&&e.target.closest('.hero-card');
-    down = c ? {c, x:e.clientX, y:e.clientY, t:Date.now()} : null; }, {passive:true});
+    down = c ? {c, x:e.ewGameX, y:e.ewGameY, t:Date.now()} : null; }, {passive:true});
   r.addEventListener('pointerup',(e)=>{ const d=down; down=null; if(!d)return;
     const c=e.target&&e.target.closest&&e.target.closest('.hero-card'); if(c!==d.c)return;
-    if(Math.abs(e.clientX-d.x)>16 || Math.abs(e.clientY-d.y)>16) return;   // that was a scroll, not a tap
+    if(Math.abs(e.ewGameX-d.x)>16 || Math.abs(e.ewGameY-d.y)>16) return;   // that was a scroll, not a tap
     if(Date.now()-d.t>900) return;                                        // that was a long press
     swallowNextClick(); fire(d.c); }, {passive:true});
   r.addEventListener('pointercancel',()=>{ down=null; }, {passive:true});
@@ -24642,7 +24652,7 @@ function worldZoomTo(nz, clientX, clientY){ const zone=document.getElementById('
   const bounds=worldZoomBounds(zone);
   nz=Math.max(bounds.min,Math.min(bounds.max,+nz));
   if(nz===worldZoom){ applyWorldZoom(); return; }
-  const r=zone.getBoundingClientRect(), cx=(clientX!=null?clientX-r.left:r.width/2), cy=(clientY!=null?clientY-r.top:r.height/2);
+  const r=zone.ewGameRect(), cx=(clientX!=null?clientX-r.left:r.width/2), cy=(clientY!=null?clientY-r.top:r.height/2);
   const px=(zone.scrollLeft+cx)/worldZoom, py=(zone.scrollTop+cy)/worldZoom;
   worldZoom=nz; applyWorldZoom();
   zone.scrollLeft=Math.max(0,Math.min(WORLD_W*worldZoom-zone.clientWidth,px*worldZoom-cx));
@@ -24650,7 +24660,7 @@ function worldZoomTo(nz, clientX, clientY){ const zone=document.getElementById('
 window.addEventListener('resize',()=>{ const zone=document.getElementById('wzone'); if(zone)worldZoomTo(worldZoom); });
 // desktop click-drag panning (added once; operates on the current world-map zone)
 let curWorldZone=null,_wdrag=false,_wsx=0,_wsy=0,_wsl=0,_wst=0,_wMoved=false;
-document.addEventListener('mousemove',(e)=>{ if(!_wdrag||!curWorldZone)return; if(Math.abs(e.clientX-_wsx)+Math.abs(e.clientY-_wsy)>6)_wMoved=true; curWorldZone.scrollLeft=_wsl-(e.clientX-_wsx); curWorldZone.scrollTop=_wst-(e.clientY-_wsy); });
+document.addEventListener('mousemove',(e)=>{ if(!_wdrag||!curWorldZone)return; if(Math.abs(e.ewGameX-_wsx)+Math.abs(e.ewGameY-_wsy)>6)_wMoved=true; curWorldZone.scrollLeft=_wsl-(e.ewGameX-_wsx); curWorldZone.scrollTop=_wst-(e.ewGameY-_wsy); });
 document.addEventListener('mouseup',()=>{ if(_wdrag){ _wdrag=false; if(curWorldZone)curWorldZone.style.cursor='grab'; } });
 // At level 20 the server balances the four home regions and places the castle.
 // A browser save cannot choose its starting region or world coordinates.
@@ -24740,7 +24750,7 @@ function doWildTeleport(){ const free=wildTeleFreeReady();
   performWildTele();
 }
 // convert a screen tap to a snapped world %-coordinate {x,y}
-function tapToWorldPct(zone, clientX, clientY){ const r=zone.getBoundingClientRect();
+function tapToWorldPct(zone, clientX, clientY){ const r=zone.ewGameRect();
   const ux=(zone.scrollLeft+(clientX-r.left))/worldZoom, uy=(zone.scrollTop+(clientY-r.top))/worldZoom;
   return {x:snapToGrid(Math.max(0,Math.min(100,ux/WORLD_W*100))), y:snapToGrid(Math.max(0,Math.min(100,uy/WORLD_H*100)))}; }
 function teleportPlace(x,y){
@@ -24850,15 +24860,15 @@ function renderWorldMap(keepView){
   if(window.EmberweaveWorldTreeArt) window.EmberweaveWorldTreeArt.mount(inner);
   if(window.EmberweaveWorldTreeCountdown) window.EmberweaveWorldTreeCountdown.mount(inner);
   zone.addEventListener('click',(e)=>{ closeCityMenu();
-    if(_teleMode && !_wMoved){ const p=tapToWorldPct(zone, e.clientX, e.clientY); teleportPlace(p.x,p.y); } });
-  zone.addEventListener('wheel',(e)=>{ e.preventDefault(); closeCityMenu(); worldZoomTo(worldZoom*(e.deltaY<0?1.12:1/1.12), e.clientX, e.clientY); },{passive:false});
-  let _pd=0,_pz=1; const tdist=(e)=>Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
+    if(_teleMode && !_wMoved){ const p=tapToWorldPct(zone, e.ewGameX, e.ewGameY); teleportPlace(p.x,p.y); } });
+  zone.addEventListener('wheel',(e)=>{ e.preventDefault(); closeCityMenu(); worldZoomTo(worldZoom*(e.deltaY<0?1.12:1/1.12), e.ewGameX, e.ewGameY); },{passive:false});
+  let _pd=0,_pz=1; const tdist=(e)=>Math.hypot(e.touches[0].ewGameX-e.touches[1].ewGameX, e.touches[0].ewGameY-e.touches[1].ewGameY);
   zone.addEventListener('touchstart',(e)=>{ if(e.touches.length===2){ _pd=tdist(e); _pz=worldZoom; closeCityMenu(); } },{passive:true});
-  zone.addEventListener('touchmove',(e)=>{ if(e.touches.length===2 && _pd>0){ e.preventDefault(); const d=tdist(e), mx=(e.touches[0].clientX+e.touches[1].clientX)/2, my=(e.touches[0].clientY+e.touches[1].clientY)/2; worldZoomTo(_pz*(d/_pd), mx, my); } },{passive:false});
+  zone.addEventListener('touchmove',(e)=>{ if(e.touches.length===2 && _pd>0){ e.preventDefault(); const d=tdist(e), mx=(e.touches[0].ewGameX+e.touches[1].ewGameX)/2, my=(e.touches[0].ewGameY+e.touches[1].ewGameY)/2; worldZoomTo(_pz*(d/_pd), mx, my); } },{passive:false});
   zone.addEventListener('touchend',(e)=>{ if(e.touches.length<2)_pd=0; },{passive:true});
   zone.addEventListener('scroll',()=>{ applyMapLOD(); mapViewChangedSoon(); },{passive:true});   /* v1124: a pan loads the castles of the new tiles */   // picture scale and ghosts follow the viewport as you pan
   curWorldZone=zone;
-  zone.addEventListener('mousedown',(e)=>{ if(e.button!==0)return; _wdrag=true; _wMoved=false; _wsx=e.clientX; _wsy=e.clientY; _wsl=zone.scrollLeft; _wst=zone.scrollTop; zone.style.cursor='grabbing'; });
+  zone.addEventListener('mousedown',(e)=>{ if(e.button!==0)return; _wdrag=true; _wMoved=false; _wsx=e.ewGameX; _wsy=e.ewGameY; _wsl=zone.scrollLeft; _wst=zone.scrollTop; zone.style.cursor='grabbing'; });
   { const bounds=worldZoomBounds(zone); worldZoom=Math.max(bounds.min,Math.min(bounds.max,worldZoom)); applyWorldZoom(); }
   // ---- bottom-right control cluster: resources · coordinate readout · search · zoom ----
   const ctl=document.createElement('div'); ctl.id='mapCtl';
@@ -26157,10 +26167,10 @@ function openGuildBanner(seed){
     k=base*zoom; ox=(F-im.width*k)/2; oy=(F-im.height*k)/2; apply();
 
     let id=null, px=0, py=0;
-    box.addEventListener('pointerdown', e=>{ id=e.pointerId; px=e.clientX; py=e.clientY;
+    box.addEventListener('pointerdown', e=>{ id=e.pointerId; px=e.ewGameX; py=e.ewGameY;
       box.classList.add('drag'); try{ box.setPointerCapture(id); }catch(err){} });
     box.addEventListener('pointermove', e=>{ if(id===null||e.pointerId!==id) return;
-      ox+=e.clientX-px; oy+=e.clientY-py; px=e.clientX; py=e.clientY; apply(); e.preventDefault(); });
+      ox+=e.ewGameX-px; oy+=e.ewGameY-py; px=e.ewGameX; py=e.ewGameY; apply(); e.preventDefault(); });
     const up=e=>{ if(id===null) return; box.classList.remove('drag');
       try{ box.releasePointerCapture(id); }catch(err){} id=null; };
     box.addEventListener('pointerup', up); box.addEventListener('pointercancel', up);
@@ -26740,13 +26750,13 @@ function g2NodeArt(n,px){ if(n.kind==='fragment') return g2artKey('fragment',n.k
    child-top as cubic curves, green when that subtree is ready, dim slate when materials are missing. */
 function g2DrawTree(){ document.querySelectorAll('.g2treeBox').forEach((box,bi)=>{
   const svg=box.querySelector('svg.g2svg'); if(!svg) return;
-  const bR=box.getBoundingClientRect(); if(bR.width<10) return;
+  const bR=box.ewGameRect(); if(bR.width<10) return;
   svg.setAttribute('viewBox','0 0 '+bR.width+' '+bR.height);
   // filterUnits=userSpaceOnUse: a perfectly vertical connector has a ZERO-WIDTH bbox, and a
   // percentage (objectBoundingBox) filter region collapses to nothing — the line vanishes.
   let out=`<defs><filter id="g2glow${bi}" filterUnits="userSpaceOnUse" x="-20" y="-20" width="${Math.ceil(bR.width)+40}" height="${Math.ceil(bR.height)+40}"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>`;
   box.querySelectorAll('[data-g2p]').forEach(el=>{ const par=document.getElementById(el.getAttribute('data-g2p')); if(!par) return;
-    const pr=par.getBoundingClientRect(), cr=el.getBoundingClientRect();
+    const pr=par.ewGameRect(), cr=el.ewGameRect();
     // 27 Aug (Phil): clearance at both ends so connectors never touch labels or badges
     const x1=pr.left+pr.width/2-bR.left, y1=pr.bottom-bR.top+1;
     const x2=cr.left+cr.width/2-bR.left, y2=cr.top-bR.top-2;
@@ -27116,7 +27126,7 @@ function renderHeroDetail(){
   if(nx){ nx.disabled=!many; nx.onclick=()=>heroCycle(1); }
   // vertically center the arrows on the hero portrait
   const port=document.getElementById('hdPortrait'), scr=document.getElementById('heroDetail');
-  if(port&&scr){ const cy=port.getBoundingClientRect().top - scr.getBoundingClientRect().top + port.offsetHeight/2;
+  if(port&&scr){ const cy=port.ewGameRect().top - scr.ewGameRect().top + port.offsetHeight/2;
     if(pv) pv.style.top=cy+'px'; if(nx) nx.style.top=cy+'px'; }
 }
 async function useHeroXpPotion(key,tier){
@@ -27456,7 +27466,7 @@ function wpsMorph(a,n){   /* v1099: make node a match node n without replacing t
   nc.forEach((c,i)=>{ if(i<ac.length) wpsMorph(ac[i],c); else a.appendChild(c.cloneNode(true)); });
   for(let i=ac.length-1;i>=nc.length;i--) ac[i].remove(); }
 function wpsFit(){ const st=document.getElementById('wpsStage'); if(!st) return; const host=st.parentElement;   /* v1098: the Wishing Pool stage, sized like tp2Fit */
-  const W=host.clientWidth||window.innerWidth, H=host.clientHeight||window.innerHeight, tall=H>W;   // portrait: a 9:16 stage with the pools stacked
+  const W=host.clientWidth||ewGameView().width, H=host.clientHeight||ewGameView().height, tall=H>W;   // portrait: a 9:16 stage with the pools stacked
   const pw=tall?1440:2560, ph=tall?2560:1440, w=Math.min(W, H*pw/ph);
   st.classList.toggle('tall',tall); st.style.width=w+'px'; st.style.height=(w*ph/pw)+'px'; st.style.setProperty('--u',(w/pw)+'px'); }
 window.addEventListener('resize',()=>{ if(document.getElementById('wpsStage')) wpsFit(); });
@@ -28856,7 +28866,7 @@ function uiConfirm(title, body, okLabel, danger, anchor){
        its seemless when you click it"). Given an anchor element, the card is drawn AT that
        element's rect - same left, same top, same width, at least the same height - so pressing the
        button turns that card into the question rather than throwing a dialog over the screen. */
-    const r = anchor && anchor.getBoundingClientRect ? anchor.getBoundingClientRect() : null;
+    const r = anchor && anchor.getBoundingClientRect ? anchor.ewGameRect() : null;
     ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.8);z-index:20001;'
       +(r?'':'display:flex;align-items:center;justify-content:flex-end;padding:18px');
     const lines=(body||[]).map(l=>'<div style="font-size:12px;color:#cdd6e4;line-height:1.5;margin-bottom:6px">'+l+'</div>').join('');
@@ -29636,9 +29646,9 @@ function showSkillDesc(key,idx,anchorEl){ hideSkillDesc();
   pop.appendChild(head); pop.appendChild(bodyd);
   if(!on){ const u=document.createElement('div'); u.style.cssText='margin-top:6px;font-size:11px;color:#c99'; u.innerHTML=hudIcon('lock')+' Unlocks at higher quality.'; pop.appendChild(u); }
   document.body.appendChild(pop);
-  try{ const ab=anchorEl.getBoundingClientRect(), pw=pop.offsetWidth, ph=pop.offsetHeight;
-    let left=Math.min(window.innerWidth-pw-8, Math.max(8, ab.left));
-    let top=ab.top-ph-8; if(top<8) top=Math.min(window.innerHeight-ph-8, ab.bottom+8);
+  try{ const ab=anchorEl.ewGameRect(), pw=pop.offsetWidth, ph=pop.offsetHeight;
+    let left=Math.min(ewGameView().width-pw-8, Math.max(8, ab.left));
+    let top=ab.top-ph-8; if(top<8) top=Math.min(ewGameView().height-ph-8, ab.bottom+8);
     pop.style.left=left+'px'; pop.style.top=top+'px'; }catch(e){}
   setTimeout(()=>{ const h=(e)=>{ if(!pop.contains(e.target)){ hideSkillDesc(); document.removeEventListener('pointerdown',h,true); } }; document.addEventListener('pointerdown',h,true); },0);
 }
@@ -29805,9 +29815,9 @@ const AIM_HINT='';   // persistent ult hint removed (redundant, Phil); the brief
    At 1.5x zoom every aim landed 1.5x too far from the transform origin, and at 0.5x half as far.
    Dividing by the zoom converts back to layout space, and it holds for any transform-origin because
    r.left already moves with the transform. */
-function evXY(e){ const r=overlay.getBoundingClientRect();
+function evXY(e){ const r=overlay.ewGameRect();
   const z=(typeof battleZoom==='number'&&battleZoom>0)?battleZoom:1;
-  return {x:((e.clientX)-r.left)/z, y:((e.clientY)-r.top)/z}; }
+  return {x:((e.ewGameX)-r.left)/z, y:((e.ewGameY)-r.top)/z}; }
 function aimTargetTeam(){ return (OL.active&&!OL.host)?'ally':'enemy'; }
 /* v538 - the units an aimed ult may be released on, per mode, and the nearest of them to the pointer. */
 function aimPool(u,mode){ const ab=u.abilityOverride||u.t.ability;
@@ -29880,7 +29890,7 @@ function setAimDefault(u){
   if(b){const p=project(b.x,b.y,1);aimTX=p.x;aimTY=p.y;} else {const ap=project(u.x,u.y,1);aimTX=ap.x;aimTY=ap.y-140;} }
 function enterAim(u){ if(isAutoBattle())return; aiming=u; setAimDefault(u); document.getElementById('ultHint').innerHTML=statusIcon('mark')+' Drag to aim '+escapeHTML(u.t.abilityName)+' · release to fire · drag to '+uiIcon('close')+' Cancel to abort'; }
 function ultCancelEl(){ return document.getElementById('ultCancel'); }
-function overCancel(cx,cy){ const c=ultCancelEl(); if(!c||!c.classList.contains('active'))return false; const r=c.getBoundingClientRect(); return cx>=r.left&&cx<=r.right&&cy>=r.top&&cy<=r.bottom; }
+function overCancel(cx,cy){ const c=ultCancelEl(); if(!c||!c.classList.contains('active'))return false; const r=c.ewGameRect(); return cx>=r.left&&cx<=r.right&&cy>=r.top&&cy<=r.bottom; }
 function cancelAim(){ aiming=null; const c=ultCancelEl(); if(c)c.classList.remove('hot'); document.getElementById('ultHint').textContent=AIM_HINT; }
 function fireAimed(){ if(isAutoBattle()){ aiming=null; return; } const u=aiming; aiming=null; const c=ultCancelEl(); if(c)c.classList.remove('hot'); document.getElementById('ultHint').textContent=AIM_HINT; if(!u||!u.alive||u.energy<100||u.stunned>0||(u.fearT||0)>0||(u.silencedT||0)>0)return;
   const mode=ultAimMode(u.abilityOverride||u.t.ability);
@@ -29908,8 +29918,8 @@ function fireAimed(){ if(isAutoBattle()){ aiming=null; return; } const u=aiming;
 function onDown(e){ if(state!=='battle')return; const p=evXY(e);
   if(aiming){ aimTX=p.x; aimTY=p.y; return; }              // during aim: set direction (fire on release)
   let hit=null,hd=44; units.forEach(u=>{if(!u.alive||u.team!=='ally')return;const q=project(u.x,u.y,1);const d=Math.hypot(q.x-p.x,q.y-p.y);if(d<hd){hd=d;hit=u;}}); selected=hit; }
-function onMove(e){ if(aiming){ const p=evXY(e); aimTX=p.x; aimTY=p.y; const c=ultCancelEl(); if(c)c.classList.toggle('hot',overCancel(e.clientX,e.clientY)); } }
-function onUp(e){ if(aiming){ if(overCancel(e.clientX,e.clientY)){ cancelAim(); return; } const p=evXY(e); aimTX=p.x; aimTY=p.y; fireAimed(); } }
+function onMove(e){ if(aiming){ const p=evXY(e); aimTX=p.x; aimTY=p.y; const c=ultCancelEl(); if(c)c.classList.toggle('hot',overCancel(e.ewGameX,e.ewGameY)); } }
+function onUp(e){ if(aiming){ if(overCancel(e.ewGameX,e.ewGameY)){ cancelAim(); return; } const p=evXY(e); aimTX=p.x; aimTY=p.y; fireAimed(); } }
 overlay.addEventListener('pointerdown',onDown);
 overlay.addEventListener('pointermove',onMove);
 overlay.addEventListener('pointerup',onUp);
@@ -29929,17 +29939,17 @@ function attachUltPress(el,u,relayMode){
     if(!(u.alive&&u.energy>=100)||u.stunned>0||(u.fearT||0)>0||(u.silencedT||0)>0){ notReady(); return; }
     const ab=u.abilityOverride||u.t.ability;
     { const why=ultBlockedReason(u); if(why){ try{ floatTexts.push({x:u.x,y:u.y-18,txt:why.toUpperCase(),t:1.2,color:'#ffb347',vy:1,sz:11}); }catch(_){} notReady(); return; } }   // v538: Feed Them with no pack etc.
-    if(ULT_AIMED.includes(ab)){ enterAim(u); holdAim=true; sx=e.clientX; sy=e.clientY; moved=false; hideAbilityTip(); try{el.setPointerCapture(e.pointerId);}catch(_){} }
+    if(ULT_AIMED.includes(ab)){ enterAim(u); holdAim=true; sx=e.ewGameX; sy=e.ewGameY; moved=false; hideAbilityTip(); try{el.setPointerCapture(e.pointerId);}catch(_){} }
     else { pending=false; hideAbilityTip();   /* v897 (Phil): a no-aim ult fires on the PRESS, not the release */
       if(relayMode) relay({k:'ult',id:u.id,tid:-1}); else queueInput({k:'ult', uid:u.uid, tid:((u.target&&u.target.alive)?u.target.uid:null), wx:null, wy:null}); }
   });
   el.addEventListener('pointermove',(e)=>{ if(!holdAim)return; e.preventDefault();
-    if(!moved && Math.hypot(e.clientX-sx,e.clientY-sy)>8) moved=true;
+    if(!moved && Math.hypot(e.ewGameX-sx,e.ewGameY-sy)>8) moved=true;
     if(moved){ const p=evXY(e); aimTX=p.x; aimTY=p.y; }
-    const c=ultCancelEl(); if(c)c.classList.toggle('hot',overCancel(e.clientX,e.clientY)); });
+    const c=ultCancelEl(); if(c)c.classList.toggle('hot',overCancel(e.ewGameX,e.ewGameY)); });
   const finish=(e)=>{
     if(holdAim){ holdAim=false; try{el.releasePointerCapture(e.pointerId);}catch(_){}
-      if(overCancel(e.clientX,e.clientY)){ cancelAim(); return; }
+      if(overCancel(e.ewGameX,e.ewGameY)){ cancelAim(); return; }
       if(ULTCOACH.u===u&&ULTCOACH.ring){ const q=evXY(e); if(!(moved&&ultCoachOnRing(q.x,q.y))){ cancelAim(); return; } }   /* v1141: the lesson is the drag - let go on the ring */
       if(moved){ const p=evXY(e); aimTX=p.x; aimTY=p.y; u._autoAimUse=false; } else { u._autoAimUse=true; }   // tap fires the solved optimum, drag fires where you pointed
       /* Phil 14 Sep 2026: click-release without a drag always casts. It uses optimalAimField's
@@ -29974,8 +29984,8 @@ bindNav(document);
 function kbTyping(e){ if(e.isComposing||e.keyCode===229) return true;
   for(const el of [e.target, document.activeElement]) if(el&&el.nodeType===1&&(el.isContentEditable||/^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName))) return true;
   return false; }
-function kbVisible(el){ if(!el||!el.getClientRects().length) return false; const g=el.getBoundingClientRect(); if(g.width<2||g.height<2) return false;
-  const t=document.elementFromPoint(g.left+g.width/2,g.top+g.height/2); return !!t&&(t===el||el.contains(t)); }
+function kbVisible(el){ if(!el||!el.getClientRects().length) return false; const g=el.ewGameRect(); if(g.width<2||g.height<2) return false;
+  const t=ewGameElementFromPoint(g.left+g.width/2,g.top+g.height/2); return !!t&&(t===el||el.contains(t)); }
 /* v1177: a layer's own dismiss control, best first: a confirm's Cancel, the window's back button (the hero window -> Heroes), its X, then
    the dismiss words. Action buttons (Fight Again, Sweep, Buy, Confirm, Claim...) are never pressed. */
 const KB_DISMISS=[/^back to map$/i,/^cancel$/i,/^(back|◀\s*.*)$/i,/^close$/i,/^(no|not now|later|maybe later)$/i,/^(ok|okay|got it|done|continue)\b/i];
@@ -29989,11 +29999,11 @@ function kbDismissIn(root){ const bs=[...root.querySelectorAll('button,[role=but
   return null; }
 function kbZ(e){ let z=0; for(let x=e;x&&x!==document.body;x=x.parentElement){ const v=parseInt(getComputedStyle(x).zIndex,10); if(v>z) z=v; } return z; }
 /* every open overlay, top first: [{root, t:{el|fn}}] */
-function kbOverlays(){ const vw=window.innerWidth, vh=window.innerHeight, roots=new Set();
+function kbOverlays(){ const vw=ewGameView().width, vh=ewGameView().height, roots=new Set();
   const shown=e=>{ if(!e||!e.getClientRects().length) return false; const cs=getComputedStyle(e); return cs.display!=='none'&&cs.visibility!=='hidden'&&parseFloat(cs.opacity)>0.04; };
   for(const e of document.querySelectorAll('#stageModal.active,#profileModal.active,#hudShop.active,#glModal.open,#uiConfirmWrap,.gmodal-ov')) if(shown(e)) roots.add(e);
   for(const e of document.body.children){ if(/^(muteBtn|chatWidget|netGate|app|battleLoader|rotateGate|authGate|popoutBackdrop|banner)$/.test(e.id)||/^(SCRIPT|STYLE|LINK)$/.test(e.tagName)) continue;
-    const cs=getComputedStyle(e); if(cs.position!=='fixed'||!shown(e)) continue; const g=e.getBoundingClientRect();
+    const cs=getComputedStyle(e); if(cs.position!=='fixed'||!shown(e)) continue; const g=e.ewGameRect();
     if(g.width*g.height>=0.4*vw*vh&&(parseInt(cs.zIndex,10)||0)>=1000&&cs.pointerEvents!=='none') roots.add(e); }
   let X=null; try{ X=muteCloseX(); }catch(e){}
   const out=[...roots].map(r=>{ const d=kbDismissIn(r); return { root:r, t:d?{el:d}:{el:r, backdrop:true} }; });
@@ -30286,7 +30296,7 @@ window.addEventListener('resize',()=>{ const h=document.getElementById('home'); 
    the 3D buffers on a short schedule after load, whenever the tab becomes visible again, and whenever
    the visual viewport height changes by more than 15% with no text field focused. */
 function _refitAll(){ try{ const h=document.getElementById('home'); if(h&&h.classList.contains('active')) sizeTownMap(); }catch(e){}
-  try{ if(renderer){ const w=window.innerWidth,hh=window.innerHeight; _lastResizeW=w; _lastResizeH=hh; resize3D(); } }catch(e){} }
+  try{ if(renderer){ const w=ewGameView().width,hh=ewGameView().height; _lastResizeW=w; _lastResizeH=hh; resize3D(); } }catch(e){} }
 for(const d of [250,800,1600,3200]) setTimeout(_refitAll,d);
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') for(const d of [50,400]) setTimeout(_refitAll,d); });
 window.addEventListener('pageshow',()=>{ for(const d of [50,400]) setTimeout(_refitAll,d); });
@@ -30298,16 +30308,10 @@ if(window.visualViewport){ let _vvH=window.visualViewport.height; window.visualV
    off-screen; (b) the vw/dvh-based #app size can be computed against a stale layout viewport. Fix: size #app from the
    real layout viewport in px, and run a zoom watchdog that snaps visualViewport.scale back to 1 (by re-applying the
    viewport meta) whenever it drifts with no text field focused. Also forced after any update reload. */
-function _fitApp(){ try{ const app=document.getElementById('app'); if(!app) return; const de=document.documentElement;
-    /* v438: right after an update reload the LAYOUT viewport can still be ~18% taller than the screen (Phil's two
-       screenshots), and every vw/dvh/clientHeight number inherits that. The VISUAL viewport is what is actually on
-       screen, so size the stage from the smaller of the two, in CSS px (visual size × scale undoes any page zoom). */
-    let vw=de.clientWidth||window.innerWidth, vh=de.clientHeight||window.innerHeight;
-    const vv=window.visualViewport; if(vv&&vv.width&&vv.height){ const sc=vv.scale||1; vw=Math.min(vw, Math.round(vv.width*sc)); vh=Math.min(vh, Math.round(vv.height*sc)); }
-    if(!vw||!vh) return;
-    const fillWide=(state==='campaign'||state==='home'||state==='skyisland'||state==='arena'||state==='skyfall') && vw>vh && vh<=700 && vw/vh>1.85;   /* v658: + the Floating Isle. v683: + the Arena — Phil, 20 Sep: "you also have more space to work with than you thought... not sure why you have black boarders on the sides" / "make the art stretch the screen so the arena has more room". The 1024:572 lock was letterboxing his 780x360 phone down to 644px and painting the remaining 68px a side black. */
-    const w=fillWide?vw:Math.min(vw, vh*1024/572), h=fillWide?vh:Math.min(vh, vw*572/1024);
-    if(Math.abs(w-app.clientWidth)>1||Math.abs(h-app.clientHeight)>1){ app.style.width=Math.floor(w)+'px'; app.style.height=Math.floor(h)+'px'; _refitAll(); } }catch(e){} }
+function _fitApp(){ try{ const app=document.getElementById('app');if(!app)return;EWViewport.fit();const v=ewGameView(),vw=v.width,vh=v.height;if(!vw||!vh)return;
+ const fillWide=EWViewport.state.rotated||((state==='campaign'||state==='home'||state==='skyisland'||state==='arena'||state==='skyfall')&&vw>vh&&vh<=700&&vw/vh>1.85);
+ const w=fillWide?vw:Math.min(vw,vh*1024/572),h=fillWide?vh:Math.min(vh,vw*572/1024);
+ if(Math.abs(w-app.clientWidth)>1||Math.abs(h-app.clientHeight)>1){app.style.width=Math.floor(w)+'px';app.style.height=Math.floor(h)+'px';_refitAll();}}catch(e){} }
 function _resetPageZoom(){ try{ const m=document.querySelector('meta[name=viewport]'); if(!m) return; const c=m.getAttribute('content');
     m.setAttribute('content', c.replace(/maximum-scale=[\d.]+/,'maximum-scale=1.0001')); setTimeout(()=>{ m.setAttribute('content',c); _fitApp(); },40); }catch(e){} }
 let _zoomBadSince=0;
@@ -30325,8 +30329,8 @@ document.addEventListener('focusout',()=>{ setTimeout(_zoomWatch,700); });
 (function initTownPan(){
   const wrap=document.getElementById('townWrap'); if(!wrap) return;
   let down=false, moved=false, sx=0, sl=0;
-  wrap.addEventListener('pointerdown',e=>{ if(e.pointerType==='touch') return; down=true; moved=false; sx=e.clientX; sl=wrap.scrollLeft; wrap.classList.add('dragging'); });
-  wrap.addEventListener('pointermove',e=>{ if(!down) return; const dx=e.clientX-sx; if(Math.abs(dx)>4){ moved=true; try{wrap.setPointerCapture(e.pointerId);}catch(_){}} wrap.scrollLeft=sl-dx; });
+  wrap.addEventListener('pointerdown',e=>{ if(e.pointerType==='touch') return; down=true; moved=false; sx=e.ewGameX; sl=wrap.scrollLeft; wrap.classList.add('dragging'); });
+  wrap.addEventListener('pointermove',e=>{ if(!down) return; const dx=e.ewGameX-sx; if(Math.abs(dx)>4){ moved=true; try{wrap.setPointerCapture(e.pointerId);}catch(_){}} wrap.scrollLeft=sl-dx; });
   const endDrag=()=>{ down=false; wrap.classList.remove('dragging'); };
   window.addEventListener('pointerup',endDrag); window.addEventListener('pointercancel',endDrag);
   // if the pointer was dragged, swallow the click so a pan doesn't open a building
@@ -30766,8 +30770,8 @@ function wireChat(w){
    player's lines and whispers stop reaching you); Report sends the line (looked up on the server by its id) to the report inbox. */
 function chatLineMenu(el){ closeChatLineMenu(); const who=el.dataset.w, mid=el.dataset.mid||''; if(!who) return;
   const pop=document.createElement('div'); pop.className='citymenu'; pop.id='chmPop';
-  const r=el.getBoundingClientRect();
-  pop.style.cssText='position:fixed;transform:none;z-index:100001;left:'+Math.max(8,Math.min(window.innerWidth-150,r.left))+'px;top:'+Math.max(8,Math.min(window.innerHeight-140,r.bottom+4))+'px';
+  const r=el.ewGameRect();
+  pop.style.cssText='position:fixed;transform:none;z-index:100001;left:'+Math.max(8,Math.min(ewGameView().width-150,r.left))+'px;top:'+Math.max(8,Math.min(ewGameView().height-140,r.bottom+4))+'px';
   pop.innerHTML=`<div class="cm-t">${escapeHTML(who)}</div><button class="cm-b" data-a="whisper">Whisper</button><button class="cm-b" data-a="block">Block</button>${mid?'<button class="cm-b" data-a="report">Report</button>':''}`;
   document.body.appendChild(pop);
   pop.addEventListener('click',e=>e.stopPropagation());
@@ -30777,8 +30781,8 @@ function chatLineMenu(el){ closeChatLineMenu(); const who=el.dataset.w, mid=el.d
 /* Phil 9 Oct: racism and sexual-harassment reports go to his moderation queue; Other goes to the feedback inbox */
 function chatReportMenu(el,who,mid){ closeChatLineMenu(); if(!mid) return;
   const pop=document.createElement('div'); pop.className='citymenu'; pop.id='chmPop';
-  const r=el.getBoundingClientRect();
-  pop.style.cssText='position:fixed;transform:none;z-index:100001;left:'+Math.max(8,Math.min(window.innerWidth-170,r.left))+'px;top:'+Math.max(8,Math.min(window.innerHeight-160,r.bottom+4))+'px';
+  const r=el.ewGameRect();
+  pop.style.cssText='position:fixed;transform:none;z-index:100001;left:'+Math.max(8,Math.min(ewGameView().width-170,r.left))+'px;top:'+Math.max(8,Math.min(ewGameView().height-160,r.bottom+4))+'px';
   pop.innerHTML=`<div class="cm-t">Report ${escapeHTML(who)}</div><button class="cm-b" data-r="racism">Racism</button><button class="cm-b" data-r="harassment">Sexual harassment</button><button class="cm-b" data-r="other">Other</button>`;
   document.body.appendChild(pop);
   pop.addEventListener('click',e=>e.stopPropagation());
@@ -30833,10 +30837,10 @@ function postReplayChip(channel, meta){
 function uiWindowOpen(){ try{ if(typeof _popout!=='undefined'&&_popout) return true; }catch(e){}
   try{ if(document.querySelector('#stageModal.active,#profileModal.active,#hudShop.active,#glModal.open,#battleLoader,#uiConfirmWrap,.gmodal-ov')) return true; }catch(e){}
   try{ const b=document.getElementById('muteBtn'), pe=b&&b.style.pointerEvents; if(b) b.style.pointerEvents='none'; let x=null; try{ x=muteCloseX(); } finally { if(b) b.style.pointerEvents=pe||''; } if(x) return true; }catch(e){}
-  try{ const vw=window.innerWidth, vh=window.innerHeight;   // any other full-screen overlay put on the page (confirms, pickers)
+  try{ const vw=ewGameView().width, vh=ewGameView().height;   // any other full-screen overlay put on the page (confirms, pickers)
     for(const e of document.body.children){ if(e.id==='muteBtn'||e.id==='chatWidget'||e.id==='netGate'||e.id==='app'||e.tagName==='SCRIPT'||e.tagName==='STYLE') continue;
       const cs=getComputedStyle(e); if(cs.position!=='fixed'||cs.display==='none'||cs.visibility==='hidden') continue;
-      const g=e.getBoundingClientRect(); if(g.width*g.height>=0.4*vw*vh&&(parseInt(cs.zIndex,10)||0)>=1000) return true; } }catch(e){}
+      const g=e.ewGameRect(); if(g.width*g.height>=0.4*vw*vh&&(parseInt(cs.zIndex,10)||0)>=1000) return true; } }catch(e){}
   return false; }
 function updateChatVisibility(){ const w=document.getElementById('chatWidget'); if(!w)return;
   const vis=_splashEntered && !document.body.classList.contains('gated') && (state==='home'||state==='world') && !uiWindowOpen();
@@ -31467,8 +31471,8 @@ function openEmberdraft(){
   strip.querySelectorAll('button').forEach(b=>b.onclick=()=>setAvatar(b.dataset.av));
   const step=d=>{ const i=ED_AV_PICK.findIndex(a=>a.id===edMyAvatarId()); setAvatar(ED_AV_PICK[(i+d+ED_AV_PICK.length)%ED_AV_PICK.length].id); };
   ov.querySelector('#edAvPrev').onclick=()=>step(-1); ov.querySelector('#edAvNext').onclick=()=>step(1);
-  hit.addEventListener('pointerdown',e=>{ S.drag={ x:e.clientX, yaw:S.yaw }; try{ hit.setPointerCapture(e.pointerId); }catch(_){} });
-  hit.addEventListener('pointermove',e=>{ if(S.drag) S.yaw=S.drag.yaw+(e.clientX-S.drag.x)*0.012; });
+  hit.addEventListener('pointerdown',e=>{ S.drag={ x:e.ewGameX, yaw:S.yaw }; try{ hit.setPointerCapture(e.pointerId); }catch(_){} });
+  hit.addEventListener('pointermove',e=>{ if(S.drag) S.yaw=S.drag.yaw+(e.ewGameX-S.drag.x)*0.012; });
   const endDrag=()=>{ S.drag=null; }; hit.addEventListener('pointerup',endDrag); hit.addEventListener('pointercancel',endDrag);
   if(S.rr){ const loop=now=>{ if(!alive()){ try{ if(S.cur) S.cur.mixer.stopAllAction(); S.rr.dispose(); if(S.rr.forceContextLoss) S.rr.forceContextLoss(); }catch(e){} return; }
       const dt=Math.min(0.05,(now-S.t)/1000); S.t=now;
@@ -31717,8 +31721,8 @@ function edCarOfferPos(C,i){ const T=ED_CAR.track, a=C.spin0+C.t*ED_CAR.spin+i*(
    from its edges - no more pulling a tap back onto the inner floor oval */
 function edCarClamp(x,y){ return { x:Math.min(0.97,Math.max(0.03,x)), y:Math.min(0.95,Math.max(0.08,y)) }; }
 /* screen <-> image fraction, over the battle view */
-function edCarRect(){ const cv=(typeof renderer!=='undefined'&&renderer&&renderer.domElement)?renderer.domElement.getBoundingClientRect():null;
-  return (cv&&cv.width>0)?cv:{left:0,top:0,width:innerWidth,height:innerHeight}; }
+function edCarRect(){ const cv=(typeof renderer!=='undefined'&&renderer&&renderer.domElement)?renderer.domElement.ewGameRect():null;
+  return (cv&&cv.width>0)?cv:{left:0,top:0,width:ewGameView().width,height:ewGameView().height}; }
 function edCarTap(sx,sy){ const C=ED.car; if(!C||C.done) return; const R=edCarRect(), me=C.av.find(a=>!a.p.ai); if(!me) return;
   const q=edCarClamp((sx-R.left)/R.width,(sy-R.top)/R.height); me.tx=q.x; me.ty=q.y;
   const root=document.getElementById('edRoot'); if(root){ const fx=document.createElement('div'); fx.className='carTapFx';   /* where you'll run to */
@@ -31958,10 +31962,10 @@ function edAvFrame(dt){
   if(ED.avF && ED.opp && ED.opp.p && ED.phase==='fight') edAvTag(ED.avF, ED.opp.p.name||'Rival', '#ff9a8a'); }
 /* fights: a tap on the field (not a button) sends the avatar there; a drag (pan / pinch) doesn't */
 if(!window._edAvTapWired){ window._edAvTapWired=true; let _d=null;
-  window.addEventListener('pointerdown',e=>{ _d=(window.ED&&ED.active&&ED.fighting&&CUR&&CUR.mode==='emberdraft')?{x:e.clientX,y:e.clientY,id:e.pointerId}:null; },true);
-  window.addEventListener('pointerup',e=>{ const d=_d; _d=null; if(!d||d.id!==e.pointerId||!(window.ED&&ED.active&&ED.fighting)) return; if(Math.hypot(e.clientX-d.x,e.clientY-d.y)>10) return;
+  window.addEventListener('pointerdown',e=>{ _d=(window.ED&&ED.active&&ED.fighting&&CUR&&CUR.mode==='emberdraft')?{x:e.ewGameX,y:e.ewGameY,id:e.pointerId}:null; },true);
+  window.addEventListener('pointerup',e=>{ const d=_d; _d=null; if(!d||d.id!==e.pointerId||!(window.ED&&ED.active&&ED.fighting)) return; if(Math.hypot(e.ewGameX-d.x,e.ewGameY-d.y)>10) return;
     if(e.target&&e.target.closest&&e.target.closest('button,.ctrlBtn,#battleCtrls,#hud')) return;
-    const ob=edOrbAtScreen(e.clientX,e.clientY), f=ob?{x:ob.x,y:ob.y}:edScreenToField(e.clientX,e.clientY); if(f) edAvGo(f.x,f.y); },true); }
+    const ob=edOrbAtScreen(e.ewGameX,e.ewGameY), f=ob?{x:ob.x,y:ob.y}:edScreenToField(e.ewGameX,e.ewGameY); if(f) edAvGo(f.x,f.y); },true); }
 
 /* ------------------------------------------------------------------------------------------ shop actions (you) */
 function edBuy(ix){ if(ED.phase!=='plan') return; const p=edYou(), k=p.shop[ix]; if(!k) return; const c=edCost(k);
@@ -32508,7 +32512,7 @@ function edQuit(){ try{ if(ED.car){ ED.car.done=true; ED.car=null; } edCarGfxSto
 function edToast(t){ ED.msg=t; edRender(); }
 function edFloorSet(html){ const f=document.getElementById('edFloor'); if(f) f.innerHTML=html||''; }
 /* v633: window point -> the floor's own (untransformed) coordinates, so a square belongs to the battle frame and moves with it */
-function edFloorXY(x,y){ const f=document.getElementById('edFloor'); if(!f) return {x,y}; const r=f.getBoundingClientRect(), k=(typeof battleZoom==='number'&&battleZoom>0)?battleZoom:1;
+function edFloorXY(x,y){ const f=document.getElementById('edFloor'); if(!f) return {x,y}; const r=f.ewGameRect(), k=(typeof battleZoom==='number'&&battleZoom>0)?battleZoom:1;
   return { x:(x-r.left)/k, y:(y-r.top)/k }; }
 function edHideUi(){ const r=document.getElementById('edRoot'); if(r) r.style.display='none'; document.body.classList.remove('ed-plan'); edFloorSet(''); }
 function edBenchPos(i){ return edLayout().benchA[i]; }          // v605: your ledge's pads
@@ -32636,7 +32640,7 @@ setInterval(function edSprTick(){ const root=document.getElementById('edRoot'); 
   root.querySelectorAll('.spr[data-n]').forEach(el=>{ const n=+el.dataset.n, cols=+el.dataset.cols, rows=+el.dataset.rows, i=Math.floor(now*(+el.dataset.fps||14)*ED_IDLE_FPS_MUL/1000)%n, c=i%cols, r=Math.floor(i/cols);   /* v646: the idle pace (was a fixed 70 ms) */
     el.style.backgroundPosition=(cols>1?c/(cols-1)*100:0)+'% '+(rows>1?r/(rows-1)*100:0)+'%'; }); }, 40);
 /* field ↔ screen: project() works in canvas pixels; the canvas may be letterboxed inside the window */
-function edScreen(x,y,h){ const p=project(x,y,h||0.001), cv=(renderer&&renderer.domElement); const r=cv?cv.getBoundingClientRect():{left:0,top:0,width:CW,height:CH};
+function edScreen(x,y,h){ const p=project(x,y,h||0.001), cv=(renderer&&renderer.domElement); const r=cv?cv.ewGameRect():{left:0,top:0,width:CW,height:CH};
   return { x:r.left+p.x*(r.width/CW), y:r.top+p.y*(r.height/CH) }; }
 function edSlots(){ const out=[], grid=[];
   for(let r=0;r<ED_ROWS;r++){ grid.push([]); for(let c=0;c<ED_COLS;c++){ const f=edCellPos('ally',r,c), s=edScreen(f.x,f.y); grid[r].push({f,s}); } }
@@ -32669,7 +32673,7 @@ function edShowField(){
    edLayout uses for its centre (plaza midY..nearY in ED_ROWS bands, the plaza edges inset 5% in ED_COLS columns), mapped through
    the canvas rect - the arena image is stretched over exactly that rect - so the tiles meet edge to edge in true perspective. */
 function edBoardQuads(){ const a=edArena(), P=a&&a.plaza; if(!P) return [];
-  const cv=(renderer&&renderer.domElement); const R=cv?cv.getBoundingClientRect():{left:0,top:0,width:CW,height:CH};
+  const cv=(renderer&&renderer.domElement); const R=cv?cv.ewGameRect():{left:0,top:0,width:CW,height:CH};
   const lerp=(u,v,t)=>u+(v-u)*t, edges=(y)=>{ const t=(y-P.farY)/(P.nearY-P.farY); return [lerp(P.farL,P.nearL,t), lerp(P.farR,P.nearR,t)]; };
   const pt=(k,j)=>{ const iy=P.midY+(P.nearY-P.midY)*k/ED_ROWS, e=edges(iy), w=e[1]-e[0], l=e[0]+w*0.05, r=e[1]-w*0.05, ix=l+(r-l)*j/ED_COLS;
     return { x:R.left+ix*R.width, y:R.top+iy*R.height }; };
@@ -32711,7 +32715,7 @@ function edRender(){
    +`<button class="btnx" data-a="quit">Quit</button><button class="btnx ready" data-a="ready">Fight ${uiIcon('play')}</button></div>`;   /* v653 (Phil: "Make the leave button say quit") */
   { /* v640 (Phil chose "Left side, 10 slots"): the item bench is a 10-slot column down the left edge, like TFT. Empty slots show
        as sockets; items waiting for a free slot are counted underneath. */
-    const top=40, bot=Math.max(top+160, innerHeight-70), slot=Math.max(20,Math.min(32,Math.floor((bot-top)/ED_ITEM_BENCH)-3));
+    const top=40, bot=Math.max(top+160, ewGameView().height-70), slot=Math.max(20,Math.min(32,Math.floor((bot-top)/ED_ITEM_BENCH)-3));
     h+=`<div class="itemBench" style="top:${top}px;left:max(4px,env(safe-area-inset-left));width:${slot+8}px">`;
     h+=`<button class="ibBook" data-a="book" title="Recipe book" style="width:${slot}px;height:${slot}px">${uiIcon('lore-book')}</button>`;   /* v650: the recipe book */
     for(let ix=0; ix<ED_ITEM_BENCH; ix++){ const it=you.items[ix];
@@ -32722,7 +32726,7 @@ function edRender(){
   if(ED.book) h+=edBookHtml();
   if(ED.anvil) h+=edAnvilHtml();   /* v657: an open anvil's pick-1-of-3 card, over everything else */
   const selH=(ED.sel&&ED.sel.hero)?edUnits(you).find(u=>u.id===ED.sel.hero):null, selI=(ED.sel&&ED.sel.item!=null)?you.items[ED.sel.item]:null;
-  if(ED.sideMin==null) ED.sideMin = innerHeight<450;   /* v654 (Phil: collapsible side panels): starts folded on a short (phone) screen */
+  if(ED.sideMin==null) ED.sideMin = ewGameView().height<450;   /* v654 (Phil: collapsible side panels): starts folded on a short (phone) screen */
   if(selH||selI){ h+=edInfoPanel(selH,selI); } else if(ED.sideMin){ h+='<button class="sideTab" data-a="side" title="Players and synergies">'+uiIcon('players')+' ◂</button>'; } else {   // v612: a tapped hero (or ledge item) shows its stats on the right
   h+='<div class="bar sidep"><button class="sideFold" data-a="side" title="Fold away">▸</button><div class="panel">';
   const plist=ED.players.slice().sort((a,b)=>(b.alive-a.alive)||(b.hp-a.hp));
@@ -32809,17 +32813,17 @@ function edWireRoot(root){
     return { g, W, H, feet:H*((A.feet!=null?A.feet:A.fh*0.9)/A.fh), figPx }; };
   const markHot=(slot)=>{ const fl=document.getElementById('edFloor')||root; fl.querySelectorAll('.hot').forEach(m=>m.classList.remove('hot')); /* v644: board tiles are .tile, not .mark - they stayed gold */ if(slot){ const m=fl.querySelector(`[data-mark="${slot}"]`); if(m) m.classList.add('hot'); } };
   root.addEventListener('pointerdown',e=>{
-    if(ED.phase==='carousel'){ edCarTap(e.clientX,e.clientY); return; }   // v609: tap to run
+    if(ED.phase==='carousel'){ edCarTap(e.ewGameX,e.ewGameY); return; }   // v609: tap to run
     if(ED.phase!=='plan') return;
     if(drag){ if(e.pointerId!==drag.pid && Date.now()-(drag.t||0)<4000) return; if(drag.ghost) drag.ghost.remove(); if(drag.hid) drag.hid.visible=true; drag=null; markHot(null); }   /* v644: one drag at a time; v646: a drag whose release was lost (same pointer again, or 4 s idle) is dropped, never completed */
     const buyEl=e.target.closest('[data-buy]');
-    if(buyEl){ drag={ buy:+buyEl.dataset.buy, x:e.clientX, y:e.clientY, moved:false, pid:e.pointerId, t:Date.now() }; return; }   /* v657: drag a shop card to place its hero (a tap still buys) */
+    if(buyEl){ drag={ buy:+buyEl.dataset.buy, x:e.ewGameX, y:e.ewGameY, moved:false, pid:e.pointerId, t:Date.now() }; return; }   /* v657: drag a shop card to place its hero (a tap still buys) */
     const itEl=e.target.closest('[data-item]');
-    if(itEl){ drag={ item:+itEl.dataset.item, x:e.clientX, y:e.clientY, moved:false, pid:e.pointerId, t:Date.now() }; return; }
-    if(e.target.closest('[data-field]')){ const u=edUnitAtScreen(e.clientX,e.clientY); if(u) drag={ hero:u._edId, x:e.clientX, y:e.clientY, moved:false, pid:e.pointerId, t:Date.now() }; }
+    if(itEl){ drag={ item:+itEl.dataset.item, x:e.ewGameX, y:e.ewGameY, moved:false, pid:e.pointerId, t:Date.now() }; return; }
+    if(e.target.closest('[data-field]')){ const u=edUnitAtScreen(e.ewGameX,e.ewGameY); if(u) drag={ hero:u._edId, x:e.ewGameX, y:e.ewGameY, moved:false, pid:e.pointerId, t:Date.now() }; }
   });
   root.addEventListener('pointermove',e=>{ if(!drag || e.pointerId!==drag.pid) return; drag.t=Date.now();
-    if(!drag.moved && Math.hypot(e.clientX-drag.x,e.clientY-drag.y)<8) return;
+    if(!drag.moved && Math.hypot(e.ewGameX-drag.x,e.ewGameY-drag.y)<8) return;
     if(!drag.moved){ drag.moved=true; let g=document.createElement('div'); g.id='edDrag'; const you=edYou();
       const lift=(key,bu)=>{ const G=idleGhost(key,bu); if(G){ g=G.g; drag.gw=G.W; drag.feet=G.feet; drag.figPx=G.figPx; } else { g.setAttribute('style', edSprCss(key)); g.className='spr'; } };
       if(drag.buy!=null){ const k=you.shop[drag.buy]; if(k) lift(k,null); }
@@ -32828,22 +32832,22 @@ function edWireRoot(root){
         const shop=root.querySelector('.shopb'); if(shop) shop.classList.add('selling'); }
       else { const it=you.items[drag.item]; if(it){ g.innerHTML=edItemImg(it,40); g.style.border='none'; g.style.background='transparent'; } }
       (drag.gw?root:document.body).appendChild(g); drag.ghost=g; if(drag.gw) try{ _edCarSprT=0; edCarSprPaint(); }catch(e){} }
-    if(drag.gw){ drag.ghost.style.left=(e.clientX-drag.gw/2)+'px'; drag.ghost.style.top=(e.clientY+drag.figPx*0.3-drag.feet)+'px'; }   /* v657: the finger holds the figure at its waist */
-    else { drag.ghost.style.left=(e.clientX-22)+'px'; drag.ghost.style.top=(e.clientY-40)+'px'; }
-    if(drag.hero||drag.buy!=null){ const s=edSlotAtScreen(e.clientX,e.clientY); markHot(s&&s.slot); } });
+    if(drag.gw){ drag.ghost.style.left=(e.ewGameX-drag.gw/2)+'px'; drag.ghost.style.top=(e.ewGameY+drag.figPx*0.3-drag.feet)+'px'; }   /* v657: the finger holds the figure at its waist */
+    else { drag.ghost.style.left=(e.ewGameX-22)+'px'; drag.ghost.style.top=(e.ewGameY-40)+'px'; }
+    if(drag.hero||drag.buy!=null){ const s=edSlotAtScreen(e.ewGameX,e.ewGameY); markHot(s&&s.slot); } });
   const finish=e=>{ if(!drag || e.pointerId!==drag.pid) return; const d=drag; drag=null; if(d.ghost) d.ghost.remove(); if(d.hid) d.hid.visible=true; markHot(null);   // v644: only the finger that started the drag ends it (a lifted thumb over the shop sold the hero)
     const shop=root.querySelector('.shopb'); if(shop) shop.classList.remove('selling');
     if(!d.moved) return;   // a tap: the click handler takes it
-    const el=document.elementFromPoint(e.clientX,e.clientY);
+    const el=ewGameElementFromPoint(e.ewGameX,e.ewGameY);
     if(d.buy!=null){ ED._suppress=Date.now(); if(el&&el.closest('.shopb')) return;   /* v657: a shop card dropped back on the shop does nothing */
-      const you=edYou(), k=you.shop[d.buy], s=edSlotAtScreen(e.clientX,e.clientY), before=new Set(edUnits(you).map(u=>u.id));
+      const you=edYou(), k=you.shop[d.buy], s=edSlotAtScreen(e.ewGameX,e.ewGameY), before=new Set(edUnits(you).map(u=>u.id));
       edBuy(d.buy); if(!k || you.shop[d.buy]===k) return;   /* not bought (gold, full bench): edBuy said why */
       const h=edUnits(you).find(u=>!before.has(u.id) && u.key===k && u.rank===1);   /* absent when it merged straight into a star-up */
       if(h && s && s.slot && (s.slot[0]==='b'||s.slot[0]==='n')){ edPutHero(you,h,s.slot); edRender(); }
       return; }
     const at={ sell: !!(el&&el.closest('[data-sell]')) };
-    const s=edSlotAtScreen(e.clientX,e.clientY); if(s) at.slot=s.slot;
-    const u=edUnitAtScreen(e.clientX,e.clientY); if(u) at.hero=u._edId;
+    const s=edSlotAtScreen(e.ewGameX,e.ewGameY); if(s) at.slot=s.slot;
+    const u=edUnitAtScreen(e.ewGameX,e.ewGameY); if(u) at.hero=u._edId;
     edDrop(d,at); ED._suppress=Date.now(); };
   root.addEventListener('pointerup',finish); root.addEventListener('pointercancel',e=>{ if(!drag || e.pointerId!==drag.pid) return; if(drag.ghost) drag.ghost.remove(); if(drag.hid) drag.hid.visible=true; drag=null; markHot(null); const shop=root.querySelector('.shopb'); if(shop) shop.classList.remove('selling'); });
   root.addEventListener('click',e=>{
@@ -32855,11 +32859,11 @@ function edWireRoot(root){
     const it=e.target.closest('[data-item]'); if(it){ const ix=+it.dataset.item, x=edYou().items[ix]; if(x && x.anv) return edAnvilOpen(x);   /* v657: tap an anvil to open it */
       ED.sel=(ED.sel&&ED.sel.item===ix)?null:{item:ix}; ED.msg=''; return edRender(); }
     if(e.target.closest('[data-field]')){
-      const ob=edOrbAtScreen(e.clientX,e.clientY); if(ob){ edAvGo(ob.x,ob.y); edTapFx(e.clientX,e.clientY); return; }   /* v648: tap loot -> your avatar goes for it */
-      const u=edUnitAtScreen(e.clientX,e.clientY), s=edSlotAtScreen(e.clientX,e.clientY);
+      const ob=edOrbAtScreen(e.ewGameX,e.ewGameY); if(ob){ edAvGo(ob.x,ob.y); edTapFx(e.ewGameX,e.ewGameY); return; }   /* v648: tap loot -> your avatar goes for it */
+      const u=edUnitAtScreen(e.ewGameX,e.ewGameY), s=edSlotAtScreen(e.ewGameX,e.ewGameY);
       if(ED.sel){ return edDrop(ED.sel, { slot: s&&s.slot, hero: u&&u._edId }); }
       if(u){ ED.sel={hero:u._edId}; ED.msg=''; return edRender(); }
-      const f=edScreenToField(e.clientX,e.clientY); if(f){ edAvGo(f.x,f.y); edTapFx(e.clientX,e.clientY); }   /* v648: empty ground -> walk there */
+      const f=edScreenToField(e.ewGameX,e.ewGameY); if(f){ edAvGo(f.x,f.y); edTapFx(e.ewGameX,e.ewGameY); }   /* v648: empty ground -> walk there */
     }
   });
   if(!window._edResizeWired){ window._edResizeWired=true; window.addEventListener('resize',()=>{ clearTimeout(window._edRszT); window._edRszT=setTimeout(()=>{ if(ED.active && ED.phase==='plan'){ ED._fieldSig=null; edRender(); } },150); });   /* v646: rebuild the figures too */ }   // v644: once, not once per match
