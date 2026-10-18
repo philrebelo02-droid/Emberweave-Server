@@ -4305,7 +4305,7 @@ function deathDraw(u,spr,dt){
   if(u._die==null){ const A=deathClip(u); u._die=(A&&deathReady(u)&&u.sprH>0)?{A:A,ps:deathParts(u.anim,A),t:0,pi:0,st:0,face:(u._faceDir||(u.team==='ally'?1:-1))}:false; }
   const D=u._die; if(!D) return false;
   const A=D.A, ps=D.ps, f=A.fps||8, n=A.dn||A.n, dur=n/f;
-  let op=1; if(waveXfer||D.xf!=null){ D.xf=(D.xf||0)+dt; op=Math.max(0,1-D.xf/0.25); }
+  let op=1; if((waveXfer&&waveXfer.phase!=='win')||D.xf!=null){ D.xf=(D.xf||0)+dt; op=Math.max(0,1-D.xf/0.25); }   /* v1197: the final win's idle (phase 'win') lets the last death play out */
   if(!D.end){ let t=Math.min(dur,D.t+dt), pi=deathPart(ps,Math.min(n-1,Math.floor(t*f)));
     for(let j=D.pi+1;j<=pi;j++){ if(!deathTexOk(ps[j])){ if(!ps[j].tex){ try{ _loadClip(ps[j]); }catch(e){} } t=Math.max(D.t,(ps[j].first||0)/f-1e-6); pi=j-1; D.st+=dt; break; } }   /* late: hold */
     D.t=t; if(pi!==D.pi){ D.pi=pi; deathRelease(u.key); }
@@ -4322,8 +4322,8 @@ function deathDraw(u,spr,dt){
   if(u.shadow) u.shadow.material.opacity=.5*Math.max(0,Math.min(1,(1-D.t/dur)/0.4))*op;
   return true; }
 /* a dead enemy leaves the fight at 0.9 s (logic, unchanged); its mesh stays on screen until its death clip ends. false = dispose it as before */
-function deathCorpse(u){ if(!u||!u.mesh||!u._die||u._die.end) return false; if(_corpses.indexOf(u)<0) _corpses.push(u); return true; }
-function corpseTick(dt){ if(!_corpses.length) return; _corpses=_corpses.filter(u=>{ try{ if(u.mesh&&u._die&&!u._die.end) syncMesh(u,dt); }catch(e){}
+function deathCorpse(u){ if(!u||!u.mesh) return false; if(u._die==null&&!(deathClip(u)&&deathReady(u)&&u.sprH>0)) return false; if(u._die!=null&&(!u._die||u._die.end)) return false;   /* v1197: also a body that died this tick, its clip ready (the final win purges at once) */ if(_corpses.indexOf(u)<0) _corpses.push(u); return true; }
+function corpseTick(dt){ if(!_corpses.length) return; _corpses=_corpses.filter(u=>{ try{ if(u.mesh&&(u._die==null||(u._die&&!u._die.end))) syncMesh(u,dt); }catch(e){}
   if(u._die&&!u._die.end) return true; try{ if(u.mesh){ scene.remove(u.mesh); disposeObj(u.mesh); } }catch(e){} return false; }); }
 function corpseClear(){ _corpses.forEach(u=>{ try{ if(u.mesh){ u.mesh.traverse(x=>{ if(x.isSprite&&x.material){ try{ x.material.dispose(); }catch(_){} } }); scene.remove(u.mesh); disposeObj(u.mesh); } }catch(e){} }); _corpses=[]; }
 const ANIM_TIERS=[['idle','walk'],['attack','hit','attackDark'],null];   /* v1153: Aureth's dark swing loads with his light one (no other hero has the slot) */
@@ -4880,7 +4880,7 @@ function _skpOpts(hk,slot){ const kit=KITS[hk]||{}, T=HERO_TYPES[hk]||{};
 /* the spell art of a skill slot (1 green, 2 blue, 0 ult) the way the fight places it. Times are REAL seconds from the press. */
 const SKP_OWNFX={bell:'bellring',horizon:'astrahorizon',chop:'korvuxcleave',quake:'tharlquake',digin:'rhukkroar',puncture:'vesperpuncture',tempest:'vextempest',
   mantle:'veyrmantle',undertow:'veyrundertow',crescent:'veyrcrescent',ruyi:'konwuruyi',wound:'bleedopen',cards:'sorrelcard',reap:'carnreap',hook:'hookreel',vwarcry:'vael_green',vblood:'vael_blue',vstand:'vael_ult',dclaws:'deepcleft_green',dburrow:'deepcleft_blue',dquarry:'deepcleft_ult',mcourage:'mirelle_green',bgreen:'brannus_green',bblue:'brannus_blue',bult:'brannus_ult',kgreen:'kharos_green',kblue:'kharos_blue',kult:'kharos_ult',msleep:'mirelle_blue',hfan:'hollow_green',hlacer:'hollow_blue',hvoid:'hollow_ult',tforge:'tolley_green',tquench:'tolley_blue_boom',tlforge:'tolley_ult'};
-function _skpFx(hk,slot,st,T0,rel){ const out=[], add=(e)=>{ if(e&&FX2_DEF[e.k]) out.push(Object.assign({d:FX2_DEF[e.k]},e)); };
+function _skpFx(hk,slot,st,T0,rel){ const out=[], add=(e)=>{ if(e&&FX2_DEF[e.k]){ const m=FX2_DEF[e.k].fxMul; if(m){ if(e.R) e.R*=m; if(e.scale) e.scale*=m; } out.push(Object.assign({d:FX2_DEF[e.k]},e)); } };   /* v1197 fxMul: the preview draws the sheet at the same fraction */
   const tip=(typeof TIPFX!=='undefined')&&TIPFX[hk]&&TIPFX[hk][st]; if(tip) add({k:tip.fx,kind:'tip',t0:T0,track:tip.track,st});   // spawnTipFx (startAbilityClip): rides the clip
   if(+slot===3){ const k=hk+'_passive', d=FX2_DEF[k]; if(d) add({k,kind:d.upright?'up':(d.disc?'disc':'flat'),at:'self',t0:T0,life:(d.dur||1.6),R:2.4*METER}); return out; }   // firePassiveFx: on him, the sheet's own length
   const {type,o}=_skpOpts(hk,slot); if(!o) return out;   /* noArt: no abilArt plate - the case's own art (below) still draws */
@@ -6541,10 +6541,24 @@ let _resultTimer=null;
 let _resultBusy=false, _resultBusyUntil=0;   /* v327: a result is queued, or its /resolve POST is still in flight. An auto-update reload in this window eats the whole stage attempt (attemptId + INPUT_LOG are memory-only), so updates must wait it out. */
 let _resultEpoch=0;   /* v328: every scheduled result gets an epoch; cancelResult()/resultLater() bump it, so an async continuation that resumes after a NEW fight started sees itself stale */
 function resultStale(ep){ return ep!==_resultEpoch; }
+/* v1197 (Phil 18 Oct: "the fights end too fast when winning or losing, please let the death animation finish fully before ending. whoever died last
+   to cause the end"): the result screen waits until every death clip still playing on the field - the last one is the death that ended the fight - has
+   played its last cell (deathDraw's own clock, the hero's BATTLE_ANIM death entry: 48 cells at 8 fps). DISPLAY ONLY: the verdict, the rewards and the
+   server's replay are decided before this and never read it. A dead unit with no death clip (it fades) is not waited for, a death clip that never starts
+   (its sheet not ready) is not waited for, and the wait is capped (RESULT_DEATH_CAP ms after the result's own delay), so nothing can hang. */
+const RESULT_DEATH_CAP=8000;
+function deathPlaying(){ try{ if(typeof state!=='undefined'&&state!=='battle') return false;
+    for(const x of (units||[]).concat(_corpses||[])){ if(!x||x.alive) continue; const D=x._die;
+      if(D&&!D.end) return true;   /* its clip is playing */
+      if(D==null&&x.mesh&&deathClip(x)&&deathReady(x)) return true; }   /* it died this frame: its clip starts on the next render */
+  }catch(e){} return false; }
+function afterDeaths(fn,ok){ const t0=Date.now(); const tick=()=>{ if(ok&&!ok()) return; if(deathPlaying()&&Date.now()-t0<RESULT_DEATH_CAP){ _resultTimer=setTimeout(tick,100); return; } fn(); }; tick(); }
 function resultLater(fn,ms){ if(_resultTimer)clearTimeout(_resultTimer); var ep=++_resultEpoch;
-  _resultBusy=true; _resultBusyUntil=Date.now()+(ms||0)+20000;   // hard ceiling: a hung request must never block updates forever
+  _resultBusy=true; _resultBusyUntil=Date.now()+(ms||0)+RESULT_DEATH_CAP+20000;   // hard ceiling: a hung request must never block updates forever
   _resultTimer=setTimeout(function(){ _resultTimer=null;
     if(ep!==_resultEpoch) return;   // v328: superseded before it fired
+    if(deathPlaying()){ afterDeaths(function(){ _resultTimer=null; if(ep!==_resultEpoch) return; var p=null; try{ p=fn(ep); }catch(e){ console&&console.error&&console.error(e); }
+        if(p&&typeof p.then==='function'){ p.then(function(){ _resultBusy=false; },function(e){ console&&console.error&&console.error(e); _resultBusy=false; }); } else { _resultBusy=false; } },function(){ return ep===_resultEpoch; }); return; }   /* v1197: the last death plays out first */
     var p=null; try{ p=fn(ep); }catch(e){ console&&console.error&&console.error(e); }
     if(p&&typeof p.then==='function'){ p.then(function(){ _resultBusy=false; },function(e){ console&&console.error&&console.error(e); _resultBusy=false; }); }   // async result paths stay "busy" until their POST settles
     else { _resultBusy=false; }
@@ -9059,7 +9073,8 @@ function gsplitFinishFailed(won, data, err, attempt){
   bannerMsg('◆ ' + ((err || resultReplyLost(data)) ? RESULT_LOST_MSG : ('This result is not confirmed - ' + resultNotCountedText(data))) + ' Tap RETRY RESULT.');
 }
 
-function gsplitShowResult(won, data){
+function gsplitShowResult(won, data, _afterDeath){
+  if(!_afterDeath&&deathPlaying()){ const st0=GSPLIT.stage; return afterDeaths(()=>gsplitShowResult(won,data,true),()=>GSPLIT.stage===st0); }   /* v1197: the last death plays out first (display only) */
   const stageId = GSPLIT.stage;
   if(data && typeof data.won === 'boolean') won = data.won;   // v1151: the receipt's verdict (a re-sent run answers with its stored receipt)
   const stars = (data && typeof data.stars === 'number') ? data.stars : 0;
@@ -12994,7 +13009,7 @@ const FX2_DEF={
   lysara_blue:{u:'/assets/anim/fx/lysara_blue.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,upright:true,upSize:1.25,upExtent:1.0,upAnchor:[0.5,0.0],ro:1},
   lysara_green:{u:'/assets/anim/fx/lysara_green.webp?v=1',n:18,fw:200,fh:200,cols:6,rows:3,dur:1.5,cone:true,coneFoot:0.05},
   dandra_blue:{u:'/assets/anim/fx/dandra_blue.webp?v=33',n:48,fw:440,fh:512,cols:6,rows:8,dur:1.6,upright:true,upSize:1.25,upExtent:0.978,upAnchor:[0.5,0.0],ro:1},
-  nerisse_blue:{u:'/assets/anim/fx/nerisse_blue.webp?v=2',n:48,fw:210,fh:187,cols:6,rows:8,dur:6.04},   // v860 Grok: Drifting Constellation - the star orb that drifts ally to ally (projectile, see orbheal)
+  nerisse_blue:{u:'/assets/anim/fx/nerisse_blue.webp?v=2',n:48,fw:210,fh:187,cols:6,rows:8,dur:6.04,fxMul:0.5},   /* v1197 (Phil 18 Oct): Drifting Constellation at HALF its size - the orb on every hop and the plate under her (spawnProjFx / spawnGroundFx fxMul); hops, heals and timing unchanged */   // v860 Grok: Drifting Constellation - the star orb that drifts ally to ally (projectile, see orbheal)
   nerisse_green:{u:'/assets/anim/fx/nerisse_green.webp?v=2',n:48,fw:210,fh:108,cols:6,rows:8,dur:5.79,cone:true,coneFoot:0.29},   // v859 Grok: Resonant Star; fork tip 0.29 in from the back edge
   orryn_blue:{u:'/assets/anim/fx/orryn_blue.webp?v=30',n:48,fw:320,fh:291,cols:6,rows:8,dur:3.79,disc:{cy:0.498,dh:0.907,dw:0.863}},   // v1044 Grok fx2 11 Spiral Current
   pellucid_blue:{u:'/assets/anim/fx/pellucid_blue.webp?v=30',n:48,fw:320,fh:154,cols:6,rows:8,dur:6.04,upright:true,upSize:1.3,upExtent:0.92,upAnchor:[0.5,0.27],ro:1},   // v1044 Grok fx2 14 Infernal Clinch
@@ -13284,7 +13299,7 @@ function _holdsUnit(type,o){ return !!(_HOLD_TYPES[type] || (o&&o.gfx&&/prison|f
 function holdUnder(fx,t){ if(!fx||!fx.m||!(fx.life>0)||!t||!t.sprite||fx.grip===t) return;
   fx.holds=fx.holds||[]; if(fx.holds.indexOf(t)<0) fx.holds.push(t); t.sprite.renderOrder=fx.m.renderOrder-0.5; }
 let _ownFxCast=false,_fxAllow=false;   /* v451 FX-OWNERSHIP  a hero with their own gfx suppresses the shared type plate */
-function spawnGroundFx(key,cx,cy,radius,life){ try{ _fxCheck('plate',arguments[0],arguments[1],arguments[2],window._fxCaster); }catch(e){} if(_ownFxCast&&!_fxAllow)return null; let d=FX2_DEF[key]; if(!TH||!scene||!d)return null; const base=fx2Tex(key); if(!base)return null; sndPlay('fx.'+key);   /* v1048 spell sound */
+function spawnGroundFx(key,cx,cy,radius,life){ try{ _fxCheck('plate',arguments[0],arguments[1],arguments[2],window._fxCaster); }catch(e){} if(_ownFxCast&&!_fxAllow)return null; let d=FX2_DEF[key]; if(!TH||!scene||!d)return null; const base=fx2Tex(key); if(!base)return null; sndPlay('fx.'+key); if(d.fxMul) radius*=d.fxMul;   /* v1197 fxMul: this sheet drawn at a fraction of its size (display only) */   /* v1048 spell sound */
   /* v498: a buff/heal marker is drawn as an upright badge whose BOTTOM sits just over the target's health bar,
      no matter how its sheet is declared -- a flat ground disc for a shield would still lie across the body. */
   /* v1141 (Phil, 15 Oct: debuffs "should be under their feet"): a DEBUFF badge (_fxBelowFeet - the v595 badge of a bleed, poison, curse,
@@ -13524,7 +13539,7 @@ function _fxCheck(kind,key,x,y,caster){
     }
   }catch(e){}
 }
-function spawnProjFx(key,fromx,fromy,tox,toy,scale,dur,onHit,fromH){ _fxCheck('projectile',key,tox,toy,window._fxCaster); const PH=(fromH!=null?fromH:1.2*gsplitFxMul()); const d=FX2_DEF[key]; if(!TH||!scene||!d){ if(onHit)onHit(); return; } const base=fx2Tex(key); if(!base){ if(onHit)onHit(); return; }
+function spawnProjFx(key,fromx,fromy,tox,toy,scale,dur,onHit,fromH){ _fxCheck('projectile',key,tox,toy,window._fxCaster); const PH=(fromH!=null?fromH:1.2*gsplitFxMul()); const d=FX2_DEF[key]; if(d&&d.fxMul&&scale) scale*=d.fxMul;   /* v1197 fxMul (display only) */ if(!TH||!scene||!d){ if(onHit)onHit(); return; } const base=fx2Tex(key); if(!base){ if(onHit)onHit(); return; }
   sndPlay('fx.'+key+'.travel'); { const _oh=onHit; onHit=function(){ sndPlay('fx.'+key+'.impact'); if(_oh) return _oh.apply(this,arguments); }; }   /* v1048 spell sound: launch + landing */
   const tex=base;
   const asp=d.fw/d.fh, spr=new TH.Sprite(new TH.SpriteMaterial({map:tex,transparent:true,depthWrite:false,depthTest:false}));
@@ -14953,7 +14968,7 @@ function heroOffscreenStart(hx,hy){ return {x:hx - XFER_DIR.x*XFER_OFFSCREEN, y:
 // into their slots while the heroes walk up into theirs, so a wave opens with both sides marching in.
 function monsterOffscreenStart(hx,hy){ return {x:hx + XFER_DIR.x*XFER_OFFSCREEN, y:hy + XFER_DIR.y*XFER_OFFSCREEN}; }
 // snap surviving heroes to their home slots (heal/reset), then shove them down the line off the bottom-left to walk back in
-function purgeDead(){ for(let i=units.length-1;i>=0;i--){ const u=units[i]; if(!u.alive && u.team==='enemy'){ if(u.mesh){scene.remove(u.mesh);disposeObj(u.mesh);} units.splice(i,1); } } }   // clear dead-monster corpses so they don't linger through the run-off/run-on
+function purgeDead(keepDying){ for(let i=units.length-1;i>=0;i--){ const u=units[i]; if(!u.alive && u.team==='enemy'){ if(u.mesh&&!(keepDying&&deathCorpse(u))){scene.remove(u.mesh);disposeObj(u.mesh);} units.splice(i,1); } } }   /* v1197 keepDying (the final wave's win): a body whose death clip plays (or is about to start) moves to _corpses and plays it out */   // clear dead-monster corpses so they don't linger through the run-off/run-on
 // stop any in-flight ability clip + cast pose AND dispose transient battle FX, so an ability cast right as the wave/stage ends doesn't keep animating through the clear/run-off. (Phil: "some animations stay through stage clear if cast when the round ends.")
 function purgeTransientFx(){
   units.forEach(u=>{ u._fuse=null; u._abilHold=0; u._ultRootT=0; u._abilAnim=null; u.castAnim=0; u._airT=0; u._blinkT=0; u._blinkO=null; u._kickT=0; u._kickTg=null; u._kickHoldT=0; u._chaseT=0; u._chaseTg=null; u.attackAnim=0; u._boltT=0; u._boltTgt=null; u._voidT=0; u._voidLandT=0; u._voidCast=null; u._horizon=null;
@@ -15015,7 +15030,7 @@ function bringBackHiddenAllies(){
       u.x=(h&&h.x!=null)?h.x:FW/2; u.y=(h&&h.y!=null)?h.y:FD/2; u._ax=u.x; u._ay=u.y; }
   });
 }
-function beginWaveWin(){ purgeDead(); purgeTransientFx(); bringBackHiddenAllies(); waveXfer={phase:'win',t:0}; bannerMsg('STAGE CLEARED'); }   // FINAL wave: heroes DON'T run off — they idle in place, then the victory screen
+function beginWaveWin(){ purgeDead(true); purgeTransientFx(); bringBackHiddenAllies(); waveXfer={phase:'win',t:0}; bannerMsg('STAGE CLEARED'); }   // FINAL wave: heroes DON'T run off — they idle in place, then the victory screen
 function updateWaveXfer(dt){
   waveXfer.t+=dt;
   /* v561 (Phil: "make sure if a summon is in the middle of a summon when the wave ends they finish the summon
@@ -23624,10 +23639,10 @@ function updateGuestMarks(){ const g=!!(ACC&&ACC.token&&ACC.guest), last=g?lastA
       e.onclick=ev=>{ ev.stopPropagation(); if(!(ACC&&ACC.guest)) return; AUTHG.mode=other?'signin':'guest'; AUTHG.ask=true; authGateRefresh(true); }; } }); }
 // stable-ish per-device id used to cap account creation (3 per device)
 function deviceId(){ try{ let d=localStorage.getItem('ew_device'); if(!d){ d='d'+Date.now().toString(36)+(function(){ try{ const a=new Uint8Array(16); crypto.getRandomValues(a); return Array.from(a,x=>x.toString(16).padStart(2,'0')).join(''); }catch(e){ return Math.random().toString(36).slice(2,10)+Math.random().toString(36).slice(2,10); } })();   /* v1005 (Account audit #11): 128 random bits for NEW device ids (existing ids are kept) */ localStorage.setItem('ew_device',d); } return d; }catch(e){ return ''; } }
-async function api(path,method,bodyObj){ try{ const h={'Content-Type':'application/json'}; if(ACC.token)h['x-token']=ACC.token;
+async function api(path,method,bodyObj){ try{ const h={'Content-Type':'application/json'}; const _tok=ACC.token; if(_tok)h['x-token']=_tok;
   const r=await fetch(path,{method:method||'GET',headers:h,body:bodyObj?JSON.stringify(bodyObj):undefined}); const j=await r.json();
   // single-session: if our token was invalidated (signed in elsewhere / reset / deleted), drop the local session gracefully
-  if(j&&j.error==='auth'&&ACC.token){ handleSignedOutElsewhere(); }
+  if(j&&j.error==='auth'&&ACC.token&&_tok===ACC.token){ authConfirmKick(_tok); }   /* v1197: only the CURRENT token, confirmed by the current server (authConfirmKick) */
   /* v1144 (15 Oct, Soul Eater beat 1-10 and saw DEFEAT "Server 1 is down"): a front-door 503 means the reply never arrived - it is a lost
      reply, not an answer. Report it as offline so every requestId retry loop re-sends the SAME request and gets the receipt, and no
      result screen ever paints a fight the server may have booked as a defeat. */
@@ -23663,6 +23678,19 @@ async function apiOnce(lane,path,bodyObj){ if(_apiOnceBusy[lane]) return {busy:t
   finally{ _apiOnceBusy[lane]=false; }
   return r; }
 let _kickedNotified=false;
+/* v1197 (Phil switched servers, got "Someone just logged into your account on another device", yet stayed signed in): an {error:'auth'} reply is a
+   kick only when the CURRENT server rejects the CURRENT token. A reply that carried an older token (the session changed since it was sent) is
+   ignored; while a server switch runs (svrGo -> the page leaves; svrRedeem signing in on arrival) the check waits for it to finish; then the
+   current server is asked once more with the current token (/api/profile) - only a second 'auth' signs the device out with the notice. A real
+   login elsewhere still kicks (the second ask answers 'auth' too). */
+let _svrSwitchT=0, _authChk=false;
+function svrSwitching(){ return !!(window._svrHandoff||window._svrSigningIn||(_svrSwitchT&&Date.now()-_svrSwitchT<30000)); }
+async function authConfirmKick(tok){ if(_authChk) return; _authChk=true;
+  try{ for(let i=0;i<120&&svrSwitching();i++) await new Promise(z=>setTimeout(z,500));
+    if(!ACC.token||ACC.token!==tok) return;   /* the session changed meanwhile (the switch signed in again): nothing to do */
+    let j=null; try{ const r=await fetch('/api/profile',{headers:{'Content-Type':'application/json','x-token':tok}}); j=await r.json(); }catch(e){ return; }   /* no answer: not a verdict */
+    if(j&&j.error==='auth'&&ACC.token===tok) handleSignedOutElsewhere(); }
+  finally{ _authChk=false; } }
 function handleSignedOutElsewhere(){ if(_kickedNotified)return; _kickedNotified=true;
   try{ const _wasGuest=!!(ACC&&ACC.guest); ACC={token:null,name:null,rank:null,coins:0,id:null}; if(_wasGuest) ACC.guest=true; DEV.on=false; DEV.god=false; saveAcc(); clearServerCaches(); }catch(e){}
   if(typeof updateHubChrome==='function') updateHubChrome();
@@ -29337,7 +29365,7 @@ function svrHomeLogin(d,name,pass,onErr){ if(!(d&&d.homeServer===1&&svrFront()&&
 function svrHandoffCode(){
   if(!(ACC && ACC.token && !ACC.guest)) return Promise.resolve(null);
   return api('/api/handoff','POST',{}).then(d=>(d&&d.code)||null).catch(()=>null); }
-async function svrGo(id){
+async function svrGo(id){ _svrSwitchT=Date.now();   /* v1197: a switch is under way - a stray 'auth' reply waits for it (authConfirmKick) */
   const code=await svrHandoffCode(), h=code?('#handoff='+code):'';
   try{ localStorage.removeItem('ew_auto'); }catch(e){}   // v1130: the player chose a server - no longer a placed device
   // v1107: the front door never leaves its own address - it records the server and reloads itself (the head script then talks to it)
@@ -29355,7 +29383,7 @@ function svrRedeem(code){
            created:(d.profile.created||0),admin:!!d.profile.admin,guest:false};
       try{ clearServerCaches(); }catch(e){} saveAcc(); } else msg=(d&&d.error)||''; })
     .catch(()=>{}).then(()=>{
-      window._svrHandoff=false; window._svrSigningIn=false;
+      window._svrHandoff=false; window._svrSigningIn=false; _svrSwitchT=Date.now();   /* v1197: replies still in flight with the old token get a grace window */
       if(ACC && ACC.token){ try{ DEV.on=isDevAcct(); }catch(e){} const pb=window.bootSignedIn ? window.bootSignedIn() : null;
         _ledgerBoot=Promise.resolve(pb).catch(()=>null).then(()=>ledgerSync()); try{ updateHubChrome(); }catch(e){} }
       else { if(msg){ try{ bannerMsg(msg); }catch(e){} } try{ ensureGuest(()=>netGateUpdate()); }catch(e){} }

@@ -519,6 +519,12 @@ note "test_tolley_fx_1197.js (v1197 Tolley: Grok's Forge Strike / Chain Quench c
 node tests/test_tolley_fx_1197.js || FAILED=1
 note "test_splash_silent_1197.js (v1197 Phil: no mute button and no sound on the first splash: hidden button, no music lane, sndPlay / sfxPlay refused after the unlocking tap, settings untouched; the next screen has the button and the music; CONTROL: splashOn forced false plays and shows on the same held splash)"
 node tests/test_splash_silent_1197.js || FAILED=1
+note "test_death_before_result_1197.js (v1197 Phil: the result screen waits for the last death clip - win and loss; a unit with no clip does not hold it; capped; the verdict set before the wait; CONTROL: the wait off shows the result mid-death)"
+node tests/test_death_before_result_1197.js || FAILED=1
+note "test_switch_no_false_kick_1197.js (v1197 Phil: no false logged-out notice on a server switch: S1->S2->S1 with stray auth replies stays signed in; a stray reply with no switch too; a real login elsewhere still kicks; CONTROL: v1196 rule shows the false notice)"
+node tests/test_switch_no_false_kick_1197.js || FAILED=1
+note "test_nerisse_half_1197.js (v1197 Phil: Drifting Constellation at half size - plate and orb 0.5 x in the real renderer and the preview; hops, heals tick-identical to BASE; CONTROL: halved heal differs)"
+node tests/test_nerisse_half_1197.js || FAILED=1
 note "test_skill_previews_1164.js (v1164 SKILL PREVIEWS read from the fight: every slot of all 60 heroes - the clip startAbilityClip / real swings / crit / passive play (same BATTLE_ANIM object, the engine hold and cell clock; stand-ins show nothing), every FX sheet the cast draws recorded live at its moment, the fight's SFX rows with peaks on the contact cell; CONTROLS: an old Korvux sheet, a sound a cell off, a dropped FX fail; phone browser: silent on open, a tap plays through sfxPlay (swing 0.85), one at a time, FX off / master mute, only the open hero's tier sheets held and released; fights tick-identical to BASE)"
 node tests/test_skill_previews_1164.js || FAILED=1
 rm -f probe-db-*.json

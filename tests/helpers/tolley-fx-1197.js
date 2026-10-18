@@ -11,5 +11,6 @@ const CODE = `(()=>{ const B=${JSON.stringify(FIX)}, J=o=>JSON.parse(JSON.string
   KITS.tolley.green=J(B.green); KITS.tolley.blue=J(B.blue); HERO_ULT_ART.tolley=J(B.ultArt);
   if(typeof FX1123_WARM!=='undefined') delete FX1123_WARM.tolley;
   if(typeof SKP_OWNFX!=='undefined'){ delete SKP_OWNFX.tforge; delete SKP_OWNFX.tquench; delete SKP_OWNFX.tlforge; }
+  try{ delete FX2_DEF.nerisse_blue.fxMul; }catch(e){}   /* the same release halves Nerisse's Drifting Constellation (tests/test_nerisse_half_1197.js) */
   return 1; })()`;
 module.exports = { undoTolleyFx1197: run => run(CODE), FIX_TOLLEY_FX_1197: FIX };

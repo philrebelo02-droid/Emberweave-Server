@@ -84,7 +84,7 @@
      ]
     },
     {
-     "text": "New spell effects for Tolley's Forge Strike, Chain Quench and Living Forge: the molten hammer slams down on the target, his chains lash out to every enemy they pull before the quench bursts around him, and the Living Forge burns under his feet as he walks. The opening screen is now silent and has no mute button; sound and the button start on the next screen.",
+     "text": "New spell effects for Tolley's Forge Strike, Chain Quench and Living Forge: the molten hammer slams down on the target, his chains lash out to every enemy they pull before the quench bursts around him, and the Living Forge burns under his feet as he walks. The opening screen is now silent and has no mute button; sound and the button start on the next screen. The victory and defeat screens now wait for the last death animation to finish. Switching servers no longer shows a false \"You've been logged out\" notice. Nerisse's Drifting Constellation effect is half its old size.",
      "sources": [
       "SHIPPED-v1197-tolley-spell-fx-17-10-2026.md"
      ]

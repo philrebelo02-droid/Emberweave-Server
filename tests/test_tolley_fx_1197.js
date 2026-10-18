@@ -13,7 +13,7 @@ const path = require('path'), vm = require('vm'), fs = require('fs'), cp = requi
 const ROOT = path.resolve(__dirname, '..');
 const HTML = process.env.EW_HTML || path.join(ROOT, 'emberweave-heroes.html');
 const VER = process.env.EW_VER || '1197';
-const BASE_SHA = process.env.EW_BASE || '0605c5a1';   // live v1196 (all 60 deaths; on v1195, v1193 Hollow), before this change
+const BASE_SHA = process.env.EW_BASE || '8dc5fe8d';   // live v1192 (on v1196 all 60 deaths, v1193 Hollow), before this change
 const SRC = 'C:/Users/Home/OneDrive/Desktop/Emberweave Archive/Game Art/_fx2_accepted/';
 let OLD = process.env.EW_HTML_OLD;
 if (!OLD) { try { OLD = path.join(ROOT, '.test-tfx1197-base.html'); fs.writeFileSync(OLD, cp.execSync('git show ' + BASE_SHA + ':emberweave-heroes.html', { cwd: ROOT, maxBuffer: 64 << 20 }));
@@ -118,8 +118,8 @@ try {
   ck('kit, hero stats, cast times, ult numbers and battle clips identical to BASE apart from the ownFx display tags (Forge Strike: tforge, Chain Quench: tquench)',
     kit(run) === kit(R0) && run("KITS.tolley.green.ownFx+'/'+KITS.tolley.blue.ownFx") === 'tforge/tquench' && R0('KITS.tolley.green.ownFx||KITS.tolley.blue.ownFx||null') === null);
   ck('the ult art: BASE\'s plate (gfx tolley_ult) becomes the ring under his feet (ownFx tlforge)', run('JSON.stringify(HERO_ULT_ART.tolley)') === '{"ownFx":"tlforge"}' && R0('JSON.stringify(HERO_ULT_ART.tolley)') === '{"gfx":"tolley_ult","gdur":2.4}');
-  const others = r => r("JSON.stringify(Object.keys(FX2_DEF).filter(k=>!/^tolley_(green|blue|blue_boom|ult)$/.test(k)).map(k=>[k,FX2_DEF[k]]))");
-  ck('every other FX2_DEF entry is byte-for-byte BASE', H(others(run)) === H(others(R0)));
+  const others = r => r("JSON.stringify(Object.keys(FX2_DEF).filter(k=>!/^tolley_(green|blue|blue_boom|ult)$/.test(k)&&k!=='nerisse_blue').map(k=>[k,FX2_DEF[k]]))");
+  ck('every other FX2_DEF entry is byte-for-byte BASE (nerisse_blue: its v1197 fxMul, tests/test_nerisse_half_1197.js)', H(others(run)) === H(others(R0)));
   ck('his four sheets load with his figure (FX1123_WARM.tolley)', run('JSON.stringify(FX1123_WARM.tolley)') === '["tolley_green","tolley_blue","tolley_blue_boom","tolley_ult"]' && R0('typeof FX1123_WARM.tolley') === 'undefined');
   // 3. tick-identical
   const C = { FX_RT: F.FX_RT, step: +run('SIM_STEP') }, casts = {};
