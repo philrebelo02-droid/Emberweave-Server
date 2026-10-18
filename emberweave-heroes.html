@@ -13299,7 +13299,7 @@ function _holdsUnit(type,o){ return !!(_HOLD_TYPES[type] || (o&&o.gfx&&/prison|f
 function holdUnder(fx,t){ if(!fx||!fx.m||!(fx.life>0)||!t||!t.sprite||fx.grip===t) return;
   fx.holds=fx.holds||[]; if(fx.holds.indexOf(t)<0) fx.holds.push(t); t.sprite.renderOrder=fx.m.renderOrder-0.5; }
 let _ownFxCast=false,_fxAllow=false;   /* v451 FX-OWNERSHIP  a hero with their own gfx suppresses the shared type plate */
-function spawnGroundFx(key,cx,cy,radius,life){ try{ _fxCheck('plate',arguments[0],arguments[1],arguments[2],window._fxCaster); }catch(e){} if(_ownFxCast&&!_fxAllow)return null; let d=FX2_DEF[key]; if(!TH||!scene||!d)return null; const base=fx2Tex(key); if(!base)return null; sndPlay('fx.'+key); if(d.fxMul) radius*=d.fxMul;   /* v1197 fxMul: this sheet drawn at a fraction of its size (display only) */   /* v1048 spell sound */
+function spawnGroundFx(key,cx,cy,radius,life){ try{ _fxCheck('plate',arguments[0],arguments[1],arguments[2],window._fxCaster); }catch(e){} if(_ownFxCast&&!_fxAllow)return null; let d=FX2_DEF[key]; if(!TH||!scene||!d)return null; const base=fx2Tex(key); if(!base)return null; if(d.fxMul) radius*=d.fxMul; sndPlay('fx.'+key);   /* v1048 spell sound */
   /* v498: a buff/heal marker is drawn as an upright badge whose BOTTOM sits just over the target's health bar,
      no matter how its sheet is declared -- a flat ground disc for a shield would still lie across the body. */
   /* v1141 (Phil, 15 Oct: debuffs "should be under their feet"): a DEBUFF badge (_fxBelowFeet - the v595 badge of a bleed, poison, curse,
