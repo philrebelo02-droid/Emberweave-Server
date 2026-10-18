@@ -30312,7 +30312,7 @@ if(window.visualViewport){ let _vvH=window.visualViewport.height; window.visualV
    real layout viewport in px, and run a zoom watchdog that snaps visualViewport.scale back to 1 (by re-applying the
    viewport meta) whenever it drifts with no text field focused. Also forced after any update reload. */
 function ewGameView(){ const v=window.EWViewport&&window.EWViewport.state;return v&&v.width&&v.height?{width:v.width,height:v.height}:{width:window.innerWidth,height:window.innerHeight}; }
-function _fitApp(){ try{ const app=document.getElementById('app');if(!app)return;EWViewport.fit();const v=ewGameView(),vw=v.width,vh=v.height;if(!vw||!vh)return;
+function _fitApp(){ try{ const app=document.getElementById('app');if(!app)return;EWViewport.state.screen=state;EWViewport.fit();const v=ewGameView(),vw=v.width,vh=v.height;if(!vw||!vh)return;
  const fillWide=EWViewport.state.rotated||((state==='campaign'||state==='home'||state==='skyisland'||state==='arena'||state==='skyfall')&&vw>vh&&vh<=700&&vw/vh>1.85);
  const w=fillWide?vw:Math.min(vw,vh*1024/572),h=fillWide?vh:Math.min(vh,vw*572/1024);
  if(Math.abs(w-app.clientWidth)>1||Math.abs(h-app.clientHeight)>1){app.style.width=Math.floor(w)+'px';app.style.height=Math.floor(h)+'px';_refitAll();}}catch(e){} }
