@@ -114,7 +114,11 @@ try {
     ck('CONTROL: the plate mixed back into the edges reads as visible green (' + M.map(m => m.control_green_edge).join(', ') + '%)', M.every(m => m.control_green_edge > 20)); }
   // 2. data = BASE
   const strip = o => JSON.parse(JSON.stringify(o, (k, v) => k === 'ownFx' ? undefined : v));
-  const kit = r => JSON.stringify(strip(JSON.parse(r('JSON.stringify([KITS.tolley,HERO_TYPES.tolley,ABILITY_CAST.tolley||null,ULT_DEF.ashfall,BATTLE_ANIM.tolley])'))));
+  // v1203: his death states were re-keyed (the plate key, tests/test_death_state.js) - they leave the comparison (nodeath), as in the other per-hero tables
+  const nodeath = a => { a[4] = Object.fromEntries(Object.entries(a[4]).filter(([k]) => !/^death\d*$/.test(k))); return a; };
+  const kit = r => JSON.stringify(strip(nodeath(JSON.parse(r('JSON.stringify([KITS.tolley,HERO_TYPES.tolley,ABILITY_CAST.tolley||null,ULT_DEF.ashfall,BATTLE_ANIM.tolley])')))));
+  const kitD = r => JSON.stringify(strip(JSON.parse(r('JSON.stringify([KITS.tolley,HERO_TYPES.tolley,ABILITY_CAST.tolley||null,ULT_DEF.ashfall,BATTLE_ANIM.tolley])'))));
+  ck('CONTROL: with his death states in, the data differs from BASE (they are the v1203 re-key) - 12 death states', kitD(run) !== kitD(R0) && run("Object.keys(BATTLE_ANIM.tolley).filter(k=>/^death\\d*$/.test(k)).length") === 12);
   ck('kit, hero stats, cast times, ult numbers and battle clips identical to BASE apart from the ownFx display tags (Forge Strike: tforge, Chain Quench: tquench)',
     kit(run) === kit(R0) && run("KITS.tolley.green.ownFx+'/'+KITS.tolley.blue.ownFx") === 'tforge/tquench' && R0('KITS.tolley.green.ownFx||KITS.tolley.blue.ownFx||null') === null);
   ck('the ult art: BASE\'s plate (gfx tolley_ult) becomes the ring under his feet (ownFx tlforge)', run('JSON.stringify(HERO_ULT_ART.tolley)') === '{"ownFx":"tlforge"}' && R0('JSON.stringify(HERO_ULT_ART.tolley)') === '{"gfx":"tolley_ult","gdur":2.4}');

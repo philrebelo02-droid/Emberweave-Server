@@ -109,7 +109,10 @@ try {
     const s = py(anim), bad = JSON.parse(JSON.stringify(anim)); bad.green.figH = 208; bad.green.feet = 217; bad.green.cx = 130; const c = py(bad);
     ck(`his new green clip is drawn at his idle's size and spot: frame 0 against idle's frame 0 (figH 300 each) - IoU ${s.iou}, best scale ${s.k} and shift ${s.dx} / ${s.dy} px`, s.iou >= 0.93 && s.k === 1 && Math.abs(s.dx) <= 2 && Math.abs(s.dy) <= 2, JSON.stringify(s));
     ck(`CONTROL: the first cut's anchors (figH 208, feet 217, cx 130) read as off: best scale ${c.k}, shift ${c.dx} / ${c.dy}`, c.k !== 1 || Math.abs(c.dx) > 0 || Math.abs(c.dy) > 0); }
-  ck('his other battle clips are byte-for-byte BASE', run("JSON.stringify(Object.keys(BATTLE_ANIM.hollow).filter(k=>k!=='green').map(k=>[k,BATTLE_ANIM.hollow[k]]))") === R0("JSON.stringify(Object.keys(BATTLE_ANIM.hollow).filter(k=>k!=='green').map(k=>[k,BATTLE_ANIM.hollow[k]]))"));
+  // v1203: his death states were re-keyed (the plate key, tests/test_death_state.js) - they leave the comparison, as in the other per-hero tables
+  const hcl = (r, d) => r("JSON.stringify(Object.keys(BATTLE_ANIM.hollow).filter(k=>k!=='green'" + (d ? "&&!/^death\\d*$/.test(k)" : '') + ").map(k=>[k,BATTLE_ANIM.hollow[k]]))");
+  ck('his other battle clips are byte-for-byte BASE (his death states aside: re-keyed in v1203)', hcl(run, 1) === hcl(R0, 1));
+  ck('CONTROL: with the death states in, the clips differ from BASE - and only by his death states (death .. death12)', hcl(run, 0) !== hcl(R0, 0) && run("Object.keys(BATTLE_ANIM.hollow).filter(k=>/^death\\d*$/.test(k)).length") === 12);
   { const ctl = JSON.parse(JSON.stringify(F)); ctl.hollow_blue.fw = 900; ctl.hollow_ult.u = '/assets/anim/fx/hollow_missing.webp?v=1';
     ck('CONTROL: the sheet check catches an oversized grid and a missing file', sheetProblems(ctl).length >= 2); }
   { const PY = cp.execFileSync(process.env.PYTHON || 'python', ['-I', path.join(__dirname, 'helpers', 'hollow_fx_1191_check.py')].concat(KEYS.map(k => fileOf(F[k].u))), { maxBuffer: 1 << 24 }).toString();
