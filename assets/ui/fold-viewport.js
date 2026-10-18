@@ -40,6 +40,8 @@
     let header=pop.querySelector(':scope > .ew-pinned-exits');if(!header){header=d.createElement('div');header.className='ew-pinned-exits';pop.prepend(header)}
     if(back&&back.parentElement!==header)header.append(back);if(close&&close.parentElement!==header)header.append(close);
    }
+   const modal=d.querySelector('#stageModal.active > .pm');
+   if(modal&&!modal.querySelector(':scope > .ew-stage-exit')){const header=d.createElement('div');header.className='ew-stage-exit';const close=d.createElement('button');close.className='btn secondary sm';close.setAttribute('aria-label','Close stage');close.textContent='×';close.onclick=()=>{if(typeof w.closeStageModal==='function')w.closeStageModal()};header.append(close);modal.prepend(header)}
   }
   let scheduled=false;function refresh(){if(scheduled)return;scheduled=true;w.requestAnimationFrame(()=>{scheduled=false;fit();background()})}
   // Chromium's native touch scroll axes stay physical after a CSS root rotation.
