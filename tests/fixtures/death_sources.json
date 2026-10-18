@@ -63,12 +63,37 @@
  {
   "key": "ambrel",
   "hero": "Ambrel",
-  "sha256": "594ea2f0f010c236018ca88e45e0a8b136a4f0ba4c4972f78619763f0dd300c9",
-  "creationId": "567618829212950533",
-  "plate": "magenta",
+  "sha256": "1e35fb32cfcddad945fa78e6f5d30d1c08d19eeda889d329b01b56ce3ffbd515",
+  "creationId": "568071317665861634",
+  "plate": "green",
   "flip": false,
-  "end": "hold",
-  "ver": "1190"
+  "end": "hide",
+  "ver": "18oct26",
+  "src": "Game Art/Heroes/Ambrel/clips/APPROVED REMAKE 18OCT2026/Ambrel - 10 death - CLEAN SILENT Phil PASS.mp4",
+  "residue": {
+   "flicker": 0.04,
+   "flicker_cell": 3,
+   "tint": 0.029,
+   "tint_limit": 0.4,
+   "ghost": 0.0,
+   "ghost_cell": 0,
+   "grey": 0.001,
+   "opaque": 0.0,
+   "sheets": {
+    "ambrel_death10_18oct26.webp": "344c7fa58014091efc96e7854df4bc6643a1689b046e950aedaf9c8ea7996bc7",
+    "ambrel_death11_18oct26.webp": "d9048cbc10f6aea1af49963eeb73a4608bc9f8368fc622807946477d8a08acab",
+    "ambrel_death12_18oct26.webp": "ff8d3678108c046986617f5257e054d9ab9b708df3ce5614183c74b1b14cd1b2",
+    "ambrel_death2_18oct26.webp": "999de76f2fefbc185b7646f4738c86b84e4bc3c139c77f7a00a1e5d3f370ad30",
+    "ambrel_death3_18oct26.webp": "26360c85a798436c9e1721944f5043fe11d7ba9fbf43b8c487ad1907df138adf",
+    "ambrel_death4_18oct26.webp": "8437a793d37e83c87e6381aca332da025ec967204bd1af5b0659be3dc3328129",
+    "ambrel_death5_18oct26.webp": "7e8b27ec79c6c11630eb958dc39b0f6582431b0ea10d758d08221e987f1639a5",
+    "ambrel_death6_18oct26.webp": "37c70bdc2647e3355e5fdc3000e8c480c15daf44512bc6615ca0027acc65bbec",
+    "ambrel_death7_18oct26.webp": "6798b949314954c58373231ca3343a146bb695baf2146f60309955693db08124",
+    "ambrel_death8_18oct26.webp": "74f561f53037ecf1b520fb7d52ac6f2f644b84b40dadf450761b8810356b0e14",
+    "ambrel_death9_18oct26.webp": "a00e1edde9129c5d0e083bc1cc661e0d67622929d16b231628c45102c873931d",
+    "ambrel_death_18oct26.webp": "6a32dbf35de436dba30662beb5ad0d0238bf6720dd7f9c32f0518796974b89bb"
+   }
+  }
  },
  {
   "key": "askel",
