@@ -2,7 +2,7 @@
 # argv: <root> <json list of {k, parts:[{u,fw,fh,cols,rows,n,first}], idle:{u,fw,fh,cols,rows}}>
 # per hero: each sheet's decoded size and file kind, the visible key lean over all its sheets, the pixels left in every cell (the ash ending), and the
 # standing figure in death cell 0 and idle cell 0 (rows of alpha > 100, in each clip's own logical cell px) for the size + foot check;
-# v1299: the plate-ghost pixels of every cell and each sheet's sha256 (the plate-residue checks).
+# v1203: the plate-ghost pixels of every cell and each sheet's sha256 (the plate-residue checks).
 import hashlib, json, os, struct, sys
 import numpy as np
 from PIL import Image
@@ -12,7 +12,7 @@ def kind(p):
     while i + 8 <= len(d):
         t = d[i:i + 4]; n = struct.unpack('<I', d[i + 4:i + 8])[0]; out.append(t.decode('ascii', 'replace')); i += 8 + n + (n & 1)
     return out
-# v1299 PLATE GHOST: a plate flicker the old key could not explain came out as a FLAT light grey blotch (Hurne v1190 cell 6: 18.7% of cell 0).
+# v1203 PLATE GHOST: a plate flicker the old key could not explain came out as a FLAT light grey blotch (Hurne v1190 cell 6: 18.7% of cell 0).
 # ghost px = drawn (alpha >= 128), neutral (max-min <= 10), mid-light (80 <= Y <= 170), flat (7x7 std of Y <= 4), opened twice (3x3) - numpy only
 def _box(x, r):
     c = np.pad(x, ((r + 1, r), (r + 1, r)), mode='edge').cumsum(0).cumsum(1); n = 2 * r + 1
@@ -34,7 +34,7 @@ def fig(a):
     return [int(ys.min()), int(ys.max()) + 1, float(xs.mean())] if len(xs) else None
 res = {}
 for it in items:
-    if it.get('cell'):   # v1299 CONTROL: one stored cell (the v1190 Hurne flicker cell)
+    if it.get('cell'):   # v1203 CONTROL: one stored cell (the v1190 Hurne flicker cell)
         c = np.asarray(Image.open(os.path.join(root, it['cell'])).convert('RGBA')); res[it['k']] = dict(ghost=ghost_px(c), vis=int((c[..., 3] >= 8).sum())); continue
     I = it['idle']; ghosts = []; shas = {}; sheets = []; cellpx = []; vis_n = 0; g_n = 0; m_n = 0; fig0 = None
     for P in it['parts']:
