@@ -1,25 +1,5 @@
 [
  {
-  "key": "lumi",
-  "hero": "Lumi",
-  "sha256": "b43d4606aae1c0966cbe50110c1fb92e5d42cef06a49a7dad552abcc80e64956",
-  "creationId": "567905104247578633",
-  "plate": "magenta",
-  "flip": true,
-  "end": "hide",
-  "ver": "1196"
- },
- {
-  "key": "oakmir",
-  "hero": "Oakmir",
-  "sha256": "6741f9c90c1fe932afd08689a3f032b6712f2850d534a5202d4ab6b1131c93bd",
-  "creationId": "567905588794601473",
-  "plate": "magenta",
-  "flip": false,
-  "end": "hold",
-  "ver": "1196"
- },
- {
   "key": "vael",
   "hero": "Vael",
   "sha256": "158609ac6a582db899bafc671b6e4c6b669a51cc8846ed57a13ae51dd1f20bed",
@@ -232,31 +212,7 @@
   "plate": "magenta",
   "flip": false,
   "end": "hold",
-  "ver": "1299",
-  "residue": {
-   "flicker": 0.06,
-   "flicker_cell": 4,
-   "tint": 0.13,
-   "tint_limit": 1.292,
-   "ghost": 0.0,
-   "ghost_cell": 0,
-   "grey": 0.034,
-   "opaque": 0.002,
-   "sheets": {
-    "ambrel_death_1299.webp": "486970b79931ca1f1f90d70b3af27a619c74e5bea0d376a8c3613f072a0d155c",
-    "ambrel_death2_1299.webp": "248585f2cd3c62a300e0908fcfb3b7c3ac733d5a62d33c775597f6fd376a440b",
-    "ambrel_death3_1299.webp": "c46ec330a5dc462793a973b5d1c8926331a4f3b377feb525e713d424ebbc92bb",
-    "ambrel_death4_1299.webp": "41f3b9755b2da6041fb497f35a913246a899c337fd269760754e59db44d7aea6",
-    "ambrel_death5_1299.webp": "ed7bf034be89792c523ae8d103de7d94fea8425c5b1d41b174050edf52b69d17",
-    "ambrel_death6_1299.webp": "89568805fa9bfb9adf72de9fdabb75f066adc1ecc1a1aec4a331ce9668bf0fda",
-    "ambrel_death7_1299.webp": "4f84a69bb123c934357853c7ba0afa1c1d3e0b0ed5e3967ab85cc1dd0d617fca",
-    "ambrel_death8_1299.webp": "c9b6b3c7c83cb7ff43f2c51dfb63b8c34d5ac742ab06182d7b7065f53e571e7c",
-    "ambrel_death9_1299.webp": "4380ddb4acbcd32c232f557fd9e25a14ef4aa10103e528f8668f478baa062cfb",
-    "ambrel_death10_1299.webp": "1487070b4af156035b3fa2310f9d37c996f8b23641378e1ed8ac080ead1ceea5",
-    "ambrel_death11_1299.webp": "420b1ba566c597764c00039850d3f2a7a8407289212ebac105ce5508bb16725d",
-    "ambrel_death12_1299.webp": "f0d5c4c897cf625916f8ab65b13ee9421a07844df3f022d4ec1a7c12edf42e87"
-   }
-  }
+  "ver": "1190"
  },
  {
   "key": "askel",
@@ -1989,6 +1945,76 @@
     "zahri_death10_1299.webp": "f84b248bf9e1185893cb04eec23fc41bd36fc190002d073c7afff5971c723f79",
     "zahri_death11_1299.webp": "a35d63f4a30543cc929be9bfa79f1ccfa71c1a9240bca32a4883b2d18b851a03",
     "zahri_death12_1299.webp": "9ab458e96043b754bd982dfcd908ca798a104f7b6cbab579e65e9e9157ffa060"
+   }
+  }
+ },
+ {
+  "key": "lumi",
+  "hero": "Lumi",
+  "sha256": "907cd1e39255b31dba9abd1518aca83fcb3498b5def63cb2199f5be895be6497",
+  "src": "Game Art/Heroes/Lumi/clips/DEATH CORRECTIONS 17OCT2026/Lumi - 90 death - 4 seconds SILENT Phil PASS retake02.mp4",
+  "creationId": "567977723760128008",
+  "plate": "magenta",
+  "flip": true,
+  "end": "hide",
+  "ver": "1299",
+  "residue": {
+   "flicker": 0.02,
+   "flicker_cell": 23,
+   "tint": 0.022,
+   "tint_limit": 0.641,
+   "ghost": 0.0,
+   "ghost_cell": 0,
+   "grey": 0.0,
+   "opaque": 0.001,
+   "sheets": {
+    "lumi_death_1299.webp": "5bec164e9c8024c8d717227de1b2d0d52cb03fb24833591be658f4613f0a9684",
+    "lumi_death2_1299.webp": "d077488d06123fe76a9e9189c97cb71f6275c63ef2856b037aac89d79adf79dd",
+    "lumi_death3_1299.webp": "60d7c6662bd0f456f3f90d5a5b7a7185c4c64880e5375bad0a11615352f5cc25",
+    "lumi_death4_1299.webp": "762a44681c360a75e698a5bda1d866613362a7d51a062f45ef80458ecfc0d772",
+    "lumi_death5_1299.webp": "80433f0ae32551759bd8c844471be16cffd85e8ffc19e3e9b51368d856a8a169",
+    "lumi_death6_1299.webp": "8b4380d46e8df1716252e7ab6ef4e357a94e734c76a6d3ae43323e4089fe4038",
+    "lumi_death7_1299.webp": "c22beeeed5885b09236c872d90f58e3d747b6bd73fc99a968cba0e3fd8c006c3",
+    "lumi_death8_1299.webp": "8d183ba8db9d2f8c3369809ce06092f19b6f29b398c724a4516347d53089bf47",
+    "lumi_death9_1299.webp": "060f6836d7fe3b19e0d8b6543a014763e5b8dde41f8f0dcaf8f17a34fb291eb5",
+    "lumi_death10_1299.webp": "4d0ea51bb10ae87a92734acd5aaccf645227fb9bcaa25832f02fcfe4a4baaae6",
+    "lumi_death11_1299.webp": "e32565e0552a9df3e265bc3258a2a85469be7c3ae7b84120fc95fa416966339d",
+    "lumi_death12_1299.webp": "e40c97fdaedf5d746e851c0b9f7d240506bc660b224fc74bb7b443e9e3537dce"
+   }
+  }
+ },
+ {
+  "key": "oakmir",
+  "hero": "Oakmir",
+  "sha256": "9eafdade7e1d86b1546ece762e14f17167e72ff85021853077206e8553decfeb",
+  "src": "Game Art/Heroes/Oakmir/clips/DEATH CORRECTIONS 17OCT2026/Oakmir - 90 death - 4 seconds SILENT Phil PASS retake03.mp4",
+  "creationId": "568018796003954693",
+  "plate": "magenta",
+  "flip": false,
+  "end": "hide",
+  "ver": "1299",
+  "residue": {
+   "flicker": 0.03,
+   "flicker_cell": 7,
+   "tint": 0.292,
+   "tint_limit": 0.4,
+   "ghost": 0.0,
+   "ghost_cell": 0,
+   "grey": 1.721,
+   "opaque": 0.0,
+   "sheets": {
+    "oakmir_death_1299.webp": "9dbf321971f3c97976a7672959387b5d0b2ba40939b08905ca44943adda4f8c5",
+    "oakmir_death2_1299.webp": "4fe76d50b749d9457078a503ce04a772f3ae2aa9304e24903bcdde3cb4ee3c1e",
+    "oakmir_death3_1299.webp": "6aa496da835ae304cd15580fff0d3dab819f8c00b19839735d437abfeedab767",
+    "oakmir_death4_1299.webp": "2592753349fdaaeeb91f1e1dc1464919677953fac919bcadab72e8a11febce12",
+    "oakmir_death5_1299.webp": "213b0026c72a8811e494c6670d03dba470dff7a55c2dc63567660aaed368ee22",
+    "oakmir_death6_1299.webp": "c7ae307a1d1e13904b6a825c3f8b9d4a584097f8361593f469d3845119ceb3e3",
+    "oakmir_death7_1299.webp": "a1270f9ff698348c4cfa2ad956ffc201eba8c3766554c91ccd7997f66cdfaadc",
+    "oakmir_death8_1299.webp": "c0d428b508c558b33009a1dc1812372c4523a345cad84606ffaf1516bce49d66",
+    "oakmir_death9_1299.webp": "b8f247c330476c4ffc2ec993a8f288cd0dc8ce5bd3097fa3929977b4b1d929f6",
+    "oakmir_death10_1299.webp": "5662a80dd32fe4e0f82d3a1359741da5412a5c818b3c81dc82304aee521899e1",
+    "oakmir_death11_1299.webp": "a4d3a2a0195bbd56bc7440dbd430f10b6dc390d48d0b840395cd438a82413855",
+    "oakmir_death12_1299.webp": "9ab458e96043b754bd982dfcd908ca798a104f7b6cbab579e65e9e9157ffa060"
    }
   }
  }
