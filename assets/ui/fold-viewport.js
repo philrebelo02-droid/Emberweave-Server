@@ -2,29 +2,30 @@
    stay unchanged; game handlers explicitly read ewGameX/Y and ewGameRect(). */
 (function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;else{root.EWViewport=api;api.install(root);}})(typeof window==='object'?window:globalThis,function(){
  'use strict';
- const state={rotated:false,width:0,height:0,physicalWidth:0,physicalHeight:0};
+ const state={rotated:false,width:0,height:0,physicalWidth:0,physicalHeight:0,inner:false};
  function point(x,y,view=state){return view.rotated?{x:y,y:view.physicalWidth-x}:{x,y};}
  function screenPoint(x,y,view=state){return view.rotated?{x:view.physicalWidth-y,y:x}:{x,y};}
  function rect(r,view=state){const a=point(r.left,r.top,view),b=point(r.right,r.bottom,view),left=Math.min(a.x,b.x),top=Math.min(a.y,b.y),right=Math.max(a.x,b.x),bottom=Math.max(a.y,b.y);return {x:left,y:top,left,top,right,bottom,width:right-left,height:bottom-top};}
+ function innerView(width,height){return Math.min(width,height)>=500&&width/height<1.6;}
  function install(w){
   const d=w.document,nativeRect=w.Element.prototype.getBoundingClientRect,nativeHit=d.elementFromPoint.bind(d);
   Object.defineProperty(w.Element.prototype,'ewGameRect',{configurable:true,value:function(){return rect(nativeRect.call(this));}});
   for(const Type of [w.MouseEvent,w.Touch])if(Type)for(const axis of ['X','Y'])Object.defineProperty(Type.prototype,'ewGame'+axis,{configurable:true,get:function(){return point(this.clientX,this.clientY)[axis.toLowerCase()];}});
   w.ewGameElementFromPoint=(x,y)=>{const p=screenPoint(x,y);return nativeHit(p.x,p.y)};
   w.ewGameView=()=>({width:state.width||w.innerWidth,height:state.height||w.innerHeight});
-  let focusRotation=null;const moved=[];let observing=false,lastScreen=null;const observer=new w.MutationObserver(()=>{if(state.rotated)refresh(false)});
+  let focusRotation=null,focusInner=null;const moved=[];let observing=false,lastScreen=null;const observer=new w.MutationObserver(()=>{if(state.rotated||state.inner)refresh(false)});
   function observe(on){if(on===observing)return;observing=on;if(on)observer.observe(d.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','src']});else observer.disconnect();}
   function fit(){if(!d.body)return;const de=d.documentElement,vv=w.visualViewport;
    const layoutW=de.clientWidth||w.innerWidth,layoutH=de.clientHeight||w.innerHeight;
    const input=d.activeElement&&/^(INPUT|TEXTAREA|SELECT)$/.test(d.activeElement.tagName);
-   if(!input)focusRotation=null;
-   const rotate=input&&focusRotation!=null?focusRotation:layoutW/layoutH<.8;
-   if(input&&focusRotation==null)focusRotation=rotate;
+   if(!input){focusRotation=null;focusInner=null;}
+   const inner=input&&focusInner!=null?focusInner:innerView(layoutW,layoutH);const rotate=input&&focusRotation!=null?focusRotation:!inner&&layoutW/layoutH<.8;
+   if(input&&focusRotation==null){focusRotation=rotate;focusInner=inner;}
    const width=Math.min(layoutW,vv&&vv.width?Math.round(vv.width*(vv.scale||1)):layoutW),height=Math.min(layoutH,vv&&vv.height?Math.round(vv.height*(vv.scale||1)):layoutH);
-   const wasRotated=state.rotated,wasActive=state.rotated,active=rotate,changed=wasRotated!==rotate||state.width!==(rotate?height:width)||state.height!==(rotate?width:height)||lastScreen!==state.screen;
-   Object.assign(state,{rotated:rotate,physicalWidth:width,physicalHeight:height,width:rotate?height:width,height:rotate?width:height});
+   const wasRotated=state.rotated,wasActive=state.rotated||state.inner,active=rotate||inner,changed=wasRotated!==rotate||state.width!==(rotate?height:width)||state.height!==(rotate?width:height)||lastScreen!==state.screen||state.inner!==inner;
+   Object.assign(state,{rotated:rotate,inner,physicalWidth:width,physicalHeight:height,width:rotate?height:width,height:rotate?width:height});
    lastScreen=state.screen;observe(active);if(!active&&!wasActive)return;
-   const b=d.body;
+   const b=d.body;if(b.classList.contains('ew-inner')!==inner)b.classList.toggle('ew-inner',inner);
    if(b.classList.contains('ew-rotated')!==rotate)b.classList.toggle('ew-rotated',rotate);
 
    if(rotate){for(const [k,v]of [['width',state.width+'px'],['height',state.height+'px'],['transform','translateX('+width+'px) rotate(90deg)']])if(b.style[k]!==v)b.style[k]=v;
@@ -33,8 +34,8 @@
    if(changed||wasActive&&!active)background();
   }
   function background(){if(!d.body)return;
-   const notice=state.rotated&&state.screen!=='battle';if(d.body.classList.contains('ew-home-notice')!==notice)d.body.classList.toggle('ew-home-notice',notice);
-   if(!state.rotated){for(const {node,anchor}of moved.splice(0)){if(anchor.parentNode){anchor.replaceWith(node)}}for(const e of d.querySelectorAll('.ew-pinned-exits,.ew-stage-exit')){const mute=e.querySelector('#muteBtn');if(mute)d.body.append(mute);e.remove()}return}
+   const notice=(state.rotated||state.inner)&&state.screen!=='battle';if(d.body.classList.contains('ew-home-notice')!==notice)d.body.classList.toggle('ew-home-notice',notice);
+   if(!state.rotated&&!state.inner){for(const {node,anchor}of moved.splice(0)){if(anchor.parentNode){anchor.replaceWith(node)}}for(const e of d.querySelectorAll('.ew-pinned-exits,.ew-stage-exit')){const mute=e.querySelector('#muteBtn');if(mute)d.body.append(mute);e.remove()}return}
    const move=(node,host)=>{const anchor=d.createComment('original exit');node.before(anchor);moved.push({node,anchor});host.append(node)};
    for(const pop of d.querySelectorAll('.screen.popout')){
     const close=pop.querySelector('.popoutClose'),back=pop.id==='heroDetail'?pop.querySelector('.backbtn'):null;if(!close&&!back)continue;
@@ -44,7 +45,7 @@
    const modal=d.querySelector('#stageModal.active > .pm');
    if(modal&&!modal.querySelector(':scope > .ew-stage-exit')){const header=d.createElement('div');header.className='ew-stage-exit';const close=d.createElement('button');close.className='btn secondary sm';close.setAttribute('aria-label','Close stage');close.textContent='×';close.onclick=()=>{if(typeof w.closeStageModal==='function')w.closeStageModal()};header.append(close);modal.prepend(header)}
   }
-  let scheduled=false,needsLayout=false;function refresh(layout){if(layout!==true&&!(state.rotated))return;needsLayout=needsLayout||layout===true;if(scheduled)return;scheduled=true;w.requestAnimationFrame(()=>{scheduled=false;const doLayout=needsLayout;needsLayout=false;if(doLayout)fit();else background()})}
+  let scheduled=false,needsLayout=false;function refresh(layout){if(layout!==true&&!(state.rotated||state.inner))return;needsLayout=needsLayout||layout===true;if(scheduled)return;scheduled=true;w.requestAnimationFrame(()=>{scheduled=false;const doLayout=needsLayout;needsLayout=false;if(doLayout)fit();else background()})}
   // Chromium's native touch scroll axes stay physical after a CSS root rotation.
   // Scroll ordinary lists in their own axes; leave controls and game drags alone.
   let drag=null;
@@ -54,9 +55,9 @@
   for(const ev of ['touchend','touchcancel'])d.addEventListener(ev,()=>{drag=null},{passive:true,capture:true});
   d.addEventListener('DOMContentLoaded',fit);
   for(const ev of ['resize','orientationchange'])w.addEventListener(ev,()=>refresh(true));if(w.visualViewport)w.visualViewport.addEventListener('resize',()=>refresh(true));
-  d.addEventListener('focusin',()=>{if(state.rotated)refresh(true)});d.addEventListener('focusout',()=>{if(state.rotated)w.setTimeout(()=>refresh(true),50)});
-  d.addEventListener('fullscreenchange',()=>{if(d.fullscreenElement&&state.rotated&&w.screen.orientation&&w.screen.orientation.lock)Promise.resolve().then(()=>w.screen.orientation.lock('landscape')).catch(()=>{});if(state.rotated)refresh(true)});
+  d.addEventListener('focusin',()=>{if(state.rotated||state.inner)refresh(true)});d.addEventListener('focusout',()=>{if(state.rotated||state.inner)w.setTimeout(()=>refresh(true),50)});
+  d.addEventListener('fullscreenchange',()=>{if(d.fullscreenElement&&state.rotated&&w.screen.orientation&&w.screen.orientation.lock)Promise.resolve().then(()=>w.screen.orientation.lock('landscape')).catch(()=>{});if(state.rotated||state.inner)refresh(true)});
   api.fit=fit;fit();
  }
- const api={state,point,screenPoint,rect,install};return api;
+ const api={state,point,screenPoint,rect,innerView,install};return api;
 });
