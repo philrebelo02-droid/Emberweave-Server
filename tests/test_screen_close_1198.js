@@ -39,6 +39,9 @@ const ok=(c,msg)=>{ checks++; if(c) console.log('  ✓ '+msg); else { fails++; c
     await page.waitForFunction(()=>ACC.token&&_cloudReady,null,{timeout:20000});
     await page.waitForTimeout(500);
     if(await page.locator('#tutStart').count()){ await page.locator('#tutStart').click(); await page.waitForTimeout(300); }
+    // Download-step coverage has its own real cache/browser test. Exercise the
+    // existing skill/glyph lessons here using the supported play-while-loading path.
+    await page.evaluate(()=>{ window._firstDownloadDeferred=true; if(state==='tutorial')renderTutorial(); });
     return {page,ctx};
   };
   /* one screen showing, filling the view, and a tap at its middle lands inside it; the mute button answers its own tap */
