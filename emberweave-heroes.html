@@ -4914,7 +4914,7 @@ function _skpFx(hk,slot,st,T0,rel){ const out=[], add=(e)=>{ if(e&&FX2_DEF[e.k])
       case 'tquench': { const c=FX2_DEF.tolley_blue; add({k,kind:'disc22',at:'self',t0:rel+((c&&c.boomAt)||1.8),R:(o.radius||4.5*METER)}); break; }
       case 'tlforge': add({k,kind:'disc22',at:'self',t0:rel,R:(o.radius||6*METER)}); break;
       case 'dclaws': { const d=FX2_DEF[k]; add({k,kind:'fx16claws',at:'self',t0:T0+(d?d.spawn:0)/24,real:d?d.n/d.fps2:6}); break; }
-      case 'hobbgreen': case 'hobbblue': case 'hobbult': { const d=FX2_DEF[k], cps=(BATTLE_ANIM[hk][st].fps)||24, skip=d.reviewFullFlag&&!window[d.reviewFullFlag]?(d.startSec||0):0; add({k,kind:o.ownFx==='hobbult'?'fx16side':(o.ownFx==='hobbgreen'?'fx16over':'fx16puff'),at:o.ownFx==='hobbgreen'?'target':'self',t0:T0+d.spawn/cps,real:d.n/d.fps2-skip,startSec:skip,R:o.ownFx==='hobbult'?120:undefined}); break; }
+      case 'hobbgreen': case 'hobbblue': case 'hobbult': { const d=FX2_DEF[k], cps=(BATTLE_ANIM[hk][st].fps)||24, skip=0; add({k,kind:o.ownFx==='hobbult'?'fx16side':(o.ownFx==='hobbgreen'?'fx16over':'fx16puff'),at:o.ownFx==='hobbgreen'?'target':'self',t0:T0+d.spawn/cps,real:d.n/d.fps2-skip,startSec:skip,R:o.ownFx==='hobbult'?120:undefined}); break; }
       case 'kgreen': case 'kult': { const d=FX2_DEF[k], cps=(BATTLE_ANIM[hk]&&BATTLE_ANIM[hk][st]&&BATTLE_ANIM[hk][st].fps)||24; add({k,kind:'fx16over',at:'target',t0:T0+(d?d.spawn:0)/cps,real:d?d.n/d.fps2:2}); break; }   /* v1186 Kharos: on the enemy, from his own clip's cell */
       case 'kblue': { const d=FX2_DEF[k], cps=(BATTLE_ANIM[hk]&&BATTLE_ANIM[hk][st]&&BATTLE_ANIM[hk][st].fps)||24; add({k,kind:'fx16puff',at:'self',t0:T0+(d?d.spawn:0)/cps,real:d?d.n/d.fps2:6}); break; }
       case 'bgreen': case 'bblue': case 'bult': { const d=FX2_DEF[k];
@@ -5510,7 +5510,7 @@ const HERO_ULT_DESC={"nerisse": "Ultimate — Nerisse rings the great bell: ever
   "askel": "Ultimate — Raises the standard and leads a battlefield-wide charge that shields allies and knocks enemies aside.",
   "tharl": "Ultimate — Rolls through the enemy formation, striking every enemy before uncoiling in the backline.",
   "kharos": "Ultimate — Unfurls his petal wings and delivers a rapid execution sequence.",
-  "hobb": "Ultimate — Molds a massive ceramic strike that knocks the frontline backward.",
+  "hobb": "Ultimate — Shapes a ceramic boar that bursts into flying porcelain, damaging and stunning enemies as the shards reach them.",
   "tolley": "Ultimate — Become a walking furnace that releases repeated waves of molten metal.",
   "aldren": "Ultimate — Summon an Elder Ink Horror that attacks enemies and uses Ink Spin around itself.",
   "lysara": "Ultimate — Unfurls her wings, putting enemies to sleep while empowering allies.",
@@ -11191,7 +11191,7 @@ function abilArt(u,o,tgt,aimCtr,type){ window._fxCaster=u; if(o&&o.noArt) return
     else if(o.ownFx==='tlforge'){ try{ tolleyLivingForgeFx(u,o.radius||6*METER); }catch(_e){} }   /* v1197 Living Forge: under his feet from the release, following him */
     else if(o.ownFx==='tforge'){}   /* v1197 Forge Strike: drawn from the press (tolleyForgeCastFx), pinned by the land delivery */
     else if(FX16_ART[o.ownFx]&&FX16_ART[o.ownFx].strike){}   /* v1191 Vanishing Point: drawn by hollowStrike on each enemy struck */
-    else if(FX16_ART[o.ownFx]&&!FX16_ART[o.ownFx].atLaunch){ try{ const c=(o.ownFx==='dquarry')?(aimCtr||((tgt&&tgt.alive)?tgt:u)):(o.ownFx==='mcourage')?_fx16Weakest(u):(o.ownFx==='msleep')?_fx16Sleeper(u,o):(o.ownFx==='hlacer')?((tgt&&tgt.alive)?tgt:null):null;   /* hfan: the release confirms, nothing to pin */ fx16Release(u,o.ownFx,o.dur||(o.ownFx==='vstand'?5:6),c,c?(o.radius||110)*_fx22Area():0); }catch(_e){} }
+    else if(FX16_ART[o.ownFx]&&!FX16_ART[o.ownFx].atLaunch){ try{ const c=(o.ownFx==='dquarry'||o.ownFx==='hobbult')?(aimCtr||((tgt&&tgt.alive)?tgt:u)):(o.ownFx==='mcourage')?_fx16Weakest(u):(o.ownFx==='msleep')?_fx16Sleeper(u,o):(o.ownFx==='hlacer')?((tgt&&tgt.alive)?tgt:null):null;   /* hfan: the release confirms, nothing to pin */ fx16Release(u,o.ownFx,o.dur||(o.ownFx==='vstand'?5:6),c,c?(o.radius||110)*_fx22Area():0); }catch(_e){} }
     else if(o.ownFx==='undertow'){ try{ const c=aimCtr||((tgt&&tgt.alive)?tgt:u); veyrUndertowFx(Math.max(60,Math.min(FW-60,c.x)),Math.max(80,Math.min(FD-60,c.y)),(o.radius||7*METER)*_fx22Area(),(o.pull||1.2)*BATTLE_PACE); }catch(_e){} }
     return; }
   if(!o||!u||typeof spawnGroundFx!=='function') return;
@@ -11634,7 +11634,7 @@ function _doEffectCore(u,type,o){ if(o&&o.deliver&&!o._arrived&&deliverLaunch(u,
         silence:o.silence||5,choir:(o.choirHeal||0.30)*sm,color:o.color||'#8fd8ff'});
       floatTexts.push({x:C.x,y:C.y-14,txt:'CHOIR OF THE DEEP SKY',t:1.2,color:'#8fd8ff',vy:1,sz:13});
       ringBurst(C.x,C.y,0x4aa8d8,22); break; }
-    case 'aoeStun':{const ctr=aimCtr||((tgt&&tgt.alive)?tgt:u);enemiesOf(u).forEach(e=>{if(dist(ctr,e)<(o.radius||110)){dealDamage(u,e,dB*(o.mul||1.2)*rm,'#6ea8ff');ccApply(u,e,'stunned',o.stun||2);
+    case 'aoeStun':{const ctr=aimCtr||((tgt&&tgt.alive)?tgt:u); if(u.key==='hobb'&&u._castSlot==='ult'){ hobbPorcelainFront(u,ctr,o.radius||110,dB*(o.mul||1.2)*rm,o.stun||2); break; } enemiesOf(u).forEach(e=>{if(dist(ctr,e)<(o.radius||110)){dealDamage(u,e,dB*(o.mul||1.2)*rm,'#6ea8ff');ccApply(u,e,'stunned',o.stun||2);
       /* v529 - an aoeStun may also SILENCE. The Magistrant's "Gag Order" was a plain stun: the name
          promised a silencing and the panel just said "slams an area". */
       if(o.silence){ ccApply(u,e,'silencedT',o.silence); e._castT=0; e.castAnim=0; }}});
@@ -12776,6 +12776,7 @@ function ultClipDur(u){ const set=BATTLE_ANIM[u.key]; if(!set||!heroHasAnim(u.ke
   const A=set[st], once=(A.root!=null)?A.root:ppPer(A)/(A.fps||10);   /* Pellucid redo1: `root` pins the rooted time when the art runs longer than the old clip (his redo1 ult plays 4 s to show all three slams; root stays the 2.0 fight s the old 48@24 clip gave) */
   return fb?Math.max(once,0.55):once; }
 function castAbility(u){ const ab=u.abilityOverride||u.t.ability;
+  if(u.key==='hobb') u._hobbUltAt=battleTime;   /* plain sim clock, shared with server replay */
   try{ waxOnCaster(u); }catch(e){}
   u._animLockT=0;   // the ult outranks everything: it is the one action allowed to cut a clip short
   u._castSM=skillMul((u.skillLv&&u.skillLv[0])||1); u._castLv=((u.skillLv&&u.skillLv[0])|0)||1;   /* v787 */ const _ct=castTimeFor(u,'ult'); u._castNow=_ct;
@@ -14007,7 +14008,7 @@ function fx16Show(o){ const u=o.u, V=FX16_ART[o.vk], x=u.rx==null?u.x:u.rx, y=u.
   if(V.mode==='puff'){ if(!o.P) o.P={x,y}; return _fx22Spr(V.k,-1); }
   if(V.mode==='onTgt'||V.mode==='wrap'){ if(!o.T) o.T=(V.mode==='wrap')?u:((u.target&&u.target.alive)?u.target:nearestEnemy(u)); if(!o.T) return null; if(o.seq0==null) o.seq0=u._bloomJumpSeq|0;   /* v1186 Kharos: the enemy he strikes (his target at the show), or himself */
     o.mir=(V.mode==='wrap')?!!u._fxMirror:(((o.T.rx==null?o.T.x:o.T.rx)-x)<0); return _fx22Spr(V.k,V.ro!=null?V.ro:995); }
-  if(V.mode==='side'||V.mode==='ring'){ o.P={x,y}; o.mir=!!u._fxMirror; if(V.mode==='ring') o.R=(V.R||3*METER)*_fx22Area(); return _fx22Spr(V.k,V.ro!=null?V.ro:-1); }   /* v1178 Brannus: pinned where he stood, his facing at the show */
+  if(V.mode==='side'||V.mode==='ring'){ if(V.atTarget){ if(!o.P)o.P=_fx16Aim(u); }else o.P={x,y}; o.mir=!!u._fxMirror; if(V.mode==='ring') o.R=(V.R||3*METER)*_fx22Area(); return _fx22Spr(V.k,V.ro!=null?V.ro:-1); }   /* v1178 Brannus: pinned where he stood, his facing at the show */
   if(V.mode==='ally'){ if(!o.T) return null; return _fx22Spr(V.k,-1); }   /* v1174 Scent of Courage: behind the ally it heals (v498) */
   if(V.mode==='over'){ if(!o.T) return null; const T=o.T; o.mir=!((T.x-(u.x))>=0); return _fx22Spr(V.k,995); }
   if(V.mode==='hand'){ o.mir=!!u._fxMirror; return _fx22Spr(V.k,995); }   /* v1191 Fan of Knives: from his throwing hand (placed once, _fx22Fx16Hand) */
@@ -14029,7 +14030,7 @@ function _fx22Fx16Tick(o){ const d=o.d, u=o.u, V=FX16_ART[o.vk];
     if(!o.now&&a<((V.mode==='hand'&&live)?d.spawn-1:d.spawn)) return 0;
     const s=fx16Show(o); if(!s) return -1; o.s=s; o.ts=o.t; o.cell0=a;
     if(V.mode==='hand'&&live&&a<d.spawn){ o.vis=false; u._fxHand=o; } }   /* v1191 Fan of Knives: made a cell early, SHOWN by the render on the frame it draws the release cell (syncMesh), so the knives leave on that exact frame */
-  const tl=o.t-o.ts, rt=tl/FX_RT+(d.reviewFullFlag&&!window[d.reviewFullFlag]?(d.startSec||0):0); let fr, op=1; if(V.hideAt!=null&&!(o.u.alive)) o.u._fxHideA=null;
+  const tl=o.t-o.ts, rt=tl/FX_RT; let fr, op=1; if(V.hideAt!=null&&!(o.u.alive)) o.u._fxHideA=null;
   if(V.mode==='ally'||V.mode==='over'||V.mode==='onTgt'||V.mode==='wrap'){ if(o.T&&!o.T.alive&&o.cut==null) o.cut=o.t; }   /* the unit fell: it fades */
   if(V.mode==='plate'||V.mode==='disc'||V.mode==='claws'||V.mode==='aim'||V.mode==='puff'||V.mode==='ally'||V.mode==='over'||V.mode==='side'||V.mode==='ring'||V.mode==='onTgt'||V.mode==='wrap'||V.mode==='cut'||V.mode==='hand'){ fr=Math.floor(rt*d.fps2); if(fr>=d.n){ if(V.hideAt!=null&&o.u) o.u._fxHideA=null; return -1; }   /* real time, once */
     if(d.fadeR) op=Math.max(0,Math.min(1,(d.n/d.fps2-rt)/d.fadeR)); }
@@ -30954,10 +30955,28 @@ HERO_ULT_ART.joss.ownFx='jdaybreak';
 /* Claude QA 18 Oct (Phil, on the capture: "Reduce its size by 2x and keep it behind heroes"): Joss's Sanctuary Guard at half its size (size 2 -> 1 x his height, still on his feet, same timing, full length) and drawn behind every hero and health bar (renderOrder -2, the layer of the other behind-the-units spell art) */
 /* CHATGPT APPROVED SPELL FX 18OCT2026 END */
 /* CHATGPT HOBB FX 18OCT2026 START */
-Object.assign(FX2_DEF,{"hobb_blue":{"u":"/assets/anim/fx/hobb_blue_sealed_vessel_18oct_wire18oct26.webp?v=18oct26","n":73,"fw":210,"fh":205,"cols":9,"rows":9,"dur":6.041666666666667,"fps2":12.082758620689654,"upExtent":0.9414634146341463,"spawn":16,"anchor":[0.5,0],"size":1.5,"ro":995},"hobb_green":{"u":"/assets/anim/fx/hobb_green_glazebreaker_18oct_wire18oct26.webp?v=18oct26","n":73,"fw":210,"fh":140,"cols":7,"rows":11,"dur":6.041666666666667,"fps2":12.082758620689654,"upExtent":0.9619047619047619,"spawn":0,"anchor":[0.5,0.5],"size":1.5,"ro":995,"mid":0.6},"hobb_ult":{"u":"/assets/anim/fx/hobb_ult_grand_kiln_shape_18oct_wire18oct26.webp?v=18oct26","n":73,"fw":210,"fh":129,"cols":7,"rows":11,"dur":6.041666666666667,"fps2":12.082758620689654,"upExtent":0.9224806201550387,"spawn":0,"anchor":[0.5,0],"size":1.5,"ro":995,"span":0.9224806201550387,"startSec":1.53,"reviewFullFlag":"HOBB_FULL_FX"}});
-Object.assign(FX16_ART,{"hobbblue":{"k":"hobb_blue","st":"blue","mode":"wrap","once":true},"hobbgreen":{"k":"hobb_green","st":"green","mode":"onTgt","once":true},"hobbult":{"k":"hobb_ult","st":"ult","mode":"ring","once":true,"R":120}});
+Object.assign(FX2_DEF,{"hobb_blue":{"u":"/assets/anim/fx/hobb_blue_sealed_vessel_18oct_wire18oct26.webp?v=18oct26","n":73,"fw":210,"fh":205,"cols":9,"rows":9,"dur":6.041666666666667,"fps2":12.082758620689654,"upExtent":0.9414634146341463,"spawn":16,"anchor":[0.5,0],"size":1.5,"ro":995},"hobb_green":{"u":"/assets/anim/fx/hobb_green_glazebreaker_18oct_wire18oct26.webp?v=18oct26","n":73,"fw":210,"fh":140,"cols":7,"rows":11,"dur":6.041666666666667,"fps2":12.082758620689654,"upExtent":0.9619047619047619,"spawn":0,"anchor":[0.5,0.5],"size":1.5,"ro":995,"mid":0.6},"hobb_ult":{"u":"/assets/anim/fx/hobb_ult_grand_kiln_shape_18oct_wire18oct26.webp?v=18oct26","n":73,"fw":210,"fh":129,"cols":7,"rows":11,"dur":6.041666666666667,"fps2":12.082758620689654,"upExtent":0.9224806201550387,"spawn":0,"anchor":[0.5,0],"size":1.5,"ro":995,"span":0.9224806201550387}});
+Object.assign(FX16_ART,{"hobbblue":{"k":"hobb_blue","st":"blue","mode":"wrap","once":true},"hobbgreen":{"k":"hobb_green","st":"green","mode":"onTgt","once":true},"hobbult":{"k":"hobb_ult","st":"ult","mode":"ring","once":true,"R":120,"atTarget":true}});
 Object.assign(SKP_OWNFX,{hobbgreen:'hobb_green',hobbblue:'hobb_blue',hobbult:'hobb_ult'});
 KITS.hobb.green.ownFx='hobbgreen';KITS.hobb.blue.ownFx='hobbblue';HERO_ULT_ART.hobb.ownFx='hobbult';
+/* Phil 18 Oct: the FULL porcelain clip, damage and stun as its front passes.
+   Measured source 24fps, f77 burst; 99th-percentile foreground leading x, held
+   monotonic. Times are REAL clip seconds; convert once to the sim FX clock.
+   No texture, browser or render state is read by these replay rules. */
+const HOBB_EDGE=[[3.2,0],[3.208333,0.531286],[3.25,0.592719],[3.333333,0.667804],[3.416667,0.69397],[3.5,0.80091],[3.583333,0.829352],[3.666667,0.903299],[3.75,0.916951],[3.833333,0.971559],[3.916667,0.98066],[4.0,0.98066],[4.083333,0.982935],[4.166667,0.994312],[4.25,0.994312],[4.333333,0.994312],[4.416667,0.996587],[4.5,0.996587],[4.583333,0.998862],[4.666667,1]];
+function hobbEdgeT(f){ f=Math.max(0,Math.min(1,f));for(let i=1;i<HOBB_EDGE.length;i++){const a=HOBB_EDGE[i-1],b=HOBB_EDGE[i];if(f<=b[1])return a[0]+(b[0]-a[0])*(f-a[1])/Math.max(1e-9,b[1]-a[1]);}return HOBB_EDGE[HOBB_EDGE.length-1][0]; }
+function hobbPorcelainFront(u,ctr,R,amount,stun){
+ const C={x:ctr.x,y:ctr.y},face=C.x===u.x?(u.team==='ally'?1:-1):(C.x>u.x?1:-1);
+ const began=Number.isFinite(u._hobbUltAt)?u._hobbUltAt:battleTime;
+ const elapsed=Math.max(0,battleTime-began);
+ enemiesOf(u).filter(e=>e.alive&&dist(C,e)<R).forEach(e=>{
+  const fraction=Math.max(0,Math.min(1,((e.x-C.x)*face+R)/(2*R)));
+  groundHazards.push({arrival:true,owner:u,delay:Math.max(.01,hobbEdgeT(fraction)*FX_RT-elapsed),run:function(){
+   if(!e.alive||dist(C,e)>=R)return;
+   dealDamage(u,e,amount,'#6ea8ff');ccApply(u,e,'stunned',stun);
+  }});
+ });
+}
 /* CHATGPT HOBB FX 18OCT2026 END */
 </script>
 <script>
