@@ -3,17 +3,27 @@
 # 1. SCALE + ANCHOR as the engine draws a state: the cell that shows source frame 0 (the hero's standing reference pose) scaled so figH = 300 px,
 #    its (cx, feet) on one point - against idle's: IoU as drawn, and the best scale (0.97-1.03) / x / y shift around it. Same size, same
 #    spot = best scale 1.00 (within 0.01) and a best shift within 2 px. Each state's anchors come from the page (argument 'anim').
+# 18 Oct 2026: the same numbers, ~50x less work - each sheet is decoded once and each (state, cell, scale) mask resized once; a dx/dy
+# shift only moves the mask's placement (the search used to decode the full sheet 343 times per state). Output byte-identical.
 import json, math, os, sys
+from functools import lru_cache
 import numpy as np
 from PIL import Image
 ROOT = sys.argv[1]; A = json.loads(sys.argv[2])
 out = {}
+@lru_cache(maxsize=None)
 def sheet(u): return Image.open(os.path.join(ROOT, u.split('?')[0].lstrip('/'))).convert('RGBA')
-def drawn(st, c, k=1.0, dx=0, dy=0, H=300):
+@lru_cache(maxsize=None)
+def mask(st, c, k=1.0, H=300):
+    """the cell's alpha > 100 pixels at scale k (row, col arrays) and its placement origin before any shift"""
     r = A['anim'][st]; q, p = divmod(c, r['cols']); im = sheet(r['u']).crop((p * r['fw'], q * r['fh'], (p + 1) * r['fw'], (q + 1) * r['fh']))
     s = H / r['figH'] * k; a = np.asarray(im.resize((max(1, round(r['fw'] * s)), max(1, round(r['fh'] * s))), Image.BILINEAR))[..., 3] > 100
-    C = np.zeros((520, 960), bool); ox = round(480 - r['cx'] * s) + dx; oy = round(440 - r['feet'] * s) + dy
-    ys, xs = np.where(a); ys = ys + oy; xs = xs + ox; ok = (ys >= 0) & (ys < 520) & (xs >= 0) & (xs < 960); C[ys[ok], xs[ok]] = True; return C
+    ys, xs = np.where(a)
+    return ys, xs, round(480 - r['cx'] * s), round(440 - r['feet'] * s)
+def drawn(st, c, k=1.0, dx=0, dy=0, H=300):
+    ys, xs, ox, oy = mask(st, c, k, H)
+    C = np.zeros((520, 960), bool); ys = ys + (oy + dy); xs = xs + (ox + dx)
+    ok = (ys >= 0) & (ys < 520) & (xs >= 0) & (xs < 960); C[ys[ok], xs[ok]] = True; return C
 iou = lambda a, b: float((a & b).sum() / max(1, (a | b).sum()))
 if 'cells0' in A:
     ref = drawn('idle', A['cells0']['idle']); out['scale'] = {}
