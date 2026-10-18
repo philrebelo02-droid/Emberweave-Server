@@ -26,10 +26,11 @@
    if(b.classList.contains('ew-square')!==square)b.classList.toggle('ew-square',square);
    b.style.width=state.width+'px';b.style.height=state.height+'px';b.style.transform=rotate?'translateX('+width+'px) rotate(90deg)':'none';
    d.documentElement.style.setProperty('--ew-game-width',state.width+'px');d.documentElement.style.setProperty('--ew-game-height',state.height+'px');
+   background();
   }
   function background(){if(!d.body)return;const active=d.querySelector('.screen.active:not(.popout)'),town=d.getElementById('townImg'),battle=d.getElementById('battleBg');let image='';
-   if(active&&active.id==='home'&&town&&town.getAttribute('src'))image='url("'+town.getAttribute('src').replace(/"/g,'%22')+'")';
-   else if(active&&active.id==='battle'&&battle)image=w.getComputedStyle(battle).backgroundImage;
+   if(state.screen==='battle'&&battle)image=w.getComputedStyle(battle).backgroundImage;
+   else if(active&&active.id==='home'&&town&&town.getAttribute('src'))image='url("'+town.getAttribute('src').replace(/"/g,'%22')+'")';
    else if(active&&active.id==='world'){const map=d.getElementById('worldPictureMaster');if(map&&map.getAttribute('src'))image='url("'+map.getAttribute('src').replace(/"/g,'%22')+'")'}
    else if(active&&active.id==='campaign')image=w.getComputedStyle(active).getPropertyValue('--campbg');
    if(!image||image==='none')image=active?w.getComputedStyle(active).backgroundImage:'';
