@@ -38,7 +38,7 @@ try { OLD = path.join(ROOT, '.test-sfx-base-control.html'); fs.writeFileSync(OLD
   const t = OLD; process.on('exit', () => { try { fs.unlinkSync(t); } catch (e) {} }); } catch (e) { OLD = null; }
 const tmpFiles = [];
 process.on('exit', () => tmpFiles.forEach(f => { try { fs.unlinkSync(f); } catch (e) {} }));
-const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); const r = src => vm.runInContext(src, h.ctx); require('./helpers/anim-noxgrim-1166.js').undoNoxGrim1166(r); return r; };   // v1166: every page (this one and the BASE read from this checkout) gets Nox's and Grimsby's v1164 entries and Nox's melee Attack line back - tests/test_nox_grimsby_anims.js / test_nox_ranged_1166.js check v1166
+const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); const r = src => vm.runInContext(src, h.ctx); require('./helpers/art-18oct-undo.js').undoArt18Oct(r); require('./helpers/anim-noxgrim-1166.js').undoNoxGrim1166(r); return r; };   // Keep newer authored crit clips out of this older sound-only control; the art batch has its own replay checks.
 
 try {
   // ---------------------------------------------------------------- 1. FILES

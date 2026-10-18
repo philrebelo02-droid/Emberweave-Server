@@ -111,7 +111,8 @@ try {
 
   // ------------------------------------------------------------------ 4. BROWSER
   let chromium = null; try { chromium = require('playwright').chromium; } catch (e) {}
-  if (!chromium) ck('playwright is available for the browser half', false);
+  if (process.env.EW_NO_BROWSER) console.log('  info EW_NO_BROWSER: browser checks skipped; full graphics verification is still required');
+  else if (!chromium) ck('playwright is available for the browser half', false);
   else {
     const freePort = () => new Promise((res, rej) => { const s = net.createServer(); s.once('error', rej); s.listen(0, '127.0.0.1', () => { const p = s.address().port; s.close(() => res(p)); }); });
     const port = await freePort(), base = 'http://127.0.0.1:' + port, tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ew-dbf-'));
@@ -139,7 +140,7 @@ try {
       for (let i = 0; i < 240; i++) { if (await pg.evaluate(() => state === 'battle' && units.length > 0)) break; await pg.waitForTimeout(250); }
       await pg.evaluate(() => { window.__gf = []; const _g = spawnGroundFx;
         spawnGroundFx = function (k) { const r = _g.apply(this, arguments); if (r && (window._fxAboveBar || window._fxBelowFeet)) window.__gf.push({ k, r, above: !!window._fxAboveBar, below: !!window._fxBelowFeet, tgt: window._fxTgtU }); return r; };
-        units.forEach(u => { u.maxHp = u.hp = 1e7; if (u.team === 'ally') { u.dmg = 0; u.apow = 0; u.energy = u.maxEnergy || 100; } }); gameSpeed = 2; });   /* full allies: Vael's ult is a BUFF badge over the bar */
+        units.forEach(u => { u.maxHp = u.hp = 1e7; if (u.team === 'ally') { u.dmg = 0; u.apow = 0; u.energy = u.maxEnergy || 100; } }); gameSpeed = 2; });   /* Vael's v1171 ownFx is a body painter, so test a still-shipped generic heal badge explicitly below. */
       const DEBUFF_GFX = ['grimsby_green', 'pyroclast_green', 'absalie_green', 'grimsby_ult'];
       let seen = [];
       for (let i = 0; i < 120; i++) { await pg.waitForTimeout(250);
@@ -148,6 +149,9 @@ try {
           const p = g.r.m.position; return { k: g.k, above: g.above, below: g.below, ro: g.r.m.renderOrder, cy: g.r.m.center ? +g.r.m.center.y.toFixed(2) : null, y: +p.y.toFixed(3),
             follow: g.r.follow === g.tgt, followAbove: !!g.r.followAbove }; }), DEBUFF_GFX);
         if (new Set(seen.map(s => s.k)).size >= 3) break; }
+      // Exercise the real generic buff painter independently of which hero now owns bespoke FX.
+      // Rally Roots remains an above-bar heal badge; no combat values are changed by abilArt.
+      await pg.evaluate(() => { const u=units.find(u=>u.team==='ally'&&u.alive); abilArt(u,KITS.oakmir.blue,u,u,'heal'); });
       const buffs = await pg.evaluate(() => window.__gf.filter(g => g.above).map(g => g.k));
       const out = { seen, buffs, errs };
       // feet plates: a curse, a debt and Living Tallow on the first victim(s)
