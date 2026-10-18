@@ -537,6 +537,8 @@ note "test_fold_dynamic_viewport_18oct.js (v1201: the dvh / dvw fallbacks are ke
 node tests/test_fold_dynamic_viewport_18oct.js || FAILED=1
 note "test_fold_inner_18oct.js (v1202 Fold inner screen, needs playwright: near-square screens (min side >= 500, ratio < 1.6) use the whole viewport for the city, World Map and windows; battles keep today's fit; exits in reach)"
 node tests/test_fold_inner_18oct.js || FAILED=1
+note "test_spell_text_1204.js (v1204 spell text from Kimi's audits, no browser: every quoted control time in ult / kit / passive text = the fight's (ccSecFor / ccDur, ccFixed respected), the effects the texts left out are named, every hero kit type with a ratio has a KIT_SCALE entry, one HERO_ULT_DESC entry per hero, Askel's shield + knock-aside traced in the engine with a CONTROL, the not-real findings stay; CONTROL SPELL_ROOT=<pre-v1204 checkout> fails)"
+node tests/test_spell_text_1204.js || FAILED=1
 note "test_skill_previews_1164.js (v1164 SKILL PREVIEWS read from the fight: every slot of all 60 heroes - the clip startAbilityClip / real swings / crit / passive play (same BATTLE_ANIM object, the engine hold and cell clock; stand-ins show nothing), every FX sheet the cast draws recorded live at its moment, the fight's SFX rows with peaks on the contact cell; CONTROLS: an old Korvux sheet, a sound a cell off, a dropped FX fail; phone browser: silent on open, a tap plays through sfxPlay (swing 0.85), one at a time, FX off / master mute, only the open hero's tier sheets held and released; fights tick-identical to BASE)"
 node tests/test_skill_previews_1164.js || FAILED=1
 rm -f probe-db-*.json

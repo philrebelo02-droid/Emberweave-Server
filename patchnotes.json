@@ -8,7 +8,8 @@
       "Fixed a hidden graphics error that repeated in every battle after a hero's death animation ended.",
       "On a slow or dropped connection the game no longer waits forever: a screen that cannot load says so and offers Try again, and a claim or purchase that was slow to answer is never paid twice.",
       "The game turns sideways on tall phones held upright, so it fills the screen; taps, drags, scrolling and typing follow the turned screen. Phones held sideways and the Galaxy Z Fold's inner screen are unchanged.",
-      "On the Galaxy Z Fold's inner screen and other near-square screens the town, the World Map and every window now use the whole screen instead of a letterboxed strip; battles keep today's view."
+      "On the Galaxy Z Fold's inner screen and other near-square screens the town, the World Map and every window now use the whole screen instead of a letterboxed strip; battles keep today's view.",
+      "Skill descriptions now give the real control times used in battle (KonWu, Tessit, Vesper, Bloatus, Rivet, Lumi) and name the effects they left out: Grosk's taunt, Maren's and Orryn's slows, the stuns of Korvux, Zahri, Pellucid and Joss, Vaelora's freeze chance and Mirelle's slow. Vaelora's Featherfang now says it passes through every enemy in its path, and more skill cards show what their numbers grow from (Attack or Ability Power)."
     ]},
     {"ver": "0.95", "date": "17 October 2026", "title": "Server safety", "items": [
       "Server data safety improvements: a server that cannot read its saved world now stops safely instead of starting fresh, saves are fully written to disk before they count, and backups of real player progress are always kept.",
