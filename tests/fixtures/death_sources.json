@@ -1054,8 +1054,8 @@
    "flicker_cell": 4,
    "tint": 0.003,
    "tint_limit": 0.4,
-   "ghost": 0.04,
-   "ghost_cell": 2,
+   "ghost": 0.0,
+   "ghost_cell": 0,
    "grey": 0.513,
    "opaque": 0.029,
    "sheets": {
@@ -1190,8 +1190,8 @@
    "flicker_cell": 5,
    "tint": 0.811,
    "tint_limit": 1.22,
-   "ghost": 0.64,
-   "ghost_cell": 21,
+   "ghost": 0.0,
+   "ghost_cell": 0,
    "grey": 0.334,
    "opaque": 0.138,
    "sheets": {

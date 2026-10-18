@@ -23,148 +23,164 @@
  ],
  "rows": {
   "hurne": {
-   "flicker": 43.01,
+   "flicker": 42.44,
    "flicker_cell": 6,
-   "tint": 0.022,
+   "tint": 0.024,
    "tint_limit": 0.4,
    "ghost": 37.13,
    "ghost_cell": 6,
-   "grey": 0.285
+   "grey": 0.329,
+   "pass": false
   },
   "maren": {
-   "flicker": 0.82,
+   "flicker": 0.84,
    "flicker_cell": 7,
-   "tint": 0.643,
+   "tint": 0.668,
    "tint_limit": 0.4,
    "ghost": 0.0,
    "ghost_cell": 0,
-   "grey": 0.2
+   "grey": 0.199,
+   "pass": false
   },
   "mellan": {
-   "flicker": 0.72,
+   "flicker": 0.69,
    "flicker_cell": 10,
-   "tint": 2.144,
+   "tint": 2.17,
    "tint_limit": 0.4,
    "ghost": 0.0,
    "ghost_cell": 0,
-   "grey": 0.765
+   "grey": 0.754,
+   "pass": false
   },
   "orryn": {
-   "flicker": 1.87,
+   "flicker": 1.82,
    "flicker_cell": 11,
-   "tint": 1.185,
+   "tint": 1.194,
    "tint_limit": 0.656,
    "ghost": 0.0,
    "ghost_cell": 0,
-   "grey": 2.573
+   "grey": 2.538,
+   "pass": false
   },
   "rivet": {
    "flicker": 0.44,
    "flicker_cell": 14,
-   "tint": 0.865,
+   "tint": 0.889,
    "tint_limit": 0.4,
    "ghost": 0.0,
    "ghost_cell": 0,
-   "grey": 1.06
+   "grey": 1.055,
+   "pass": false
   },
   "seyla": {
-   "flicker": 2.55,
+   "flicker": 2.54,
    "flicker_cell": 25,
-   "tint": 1.043,
+   "tint": 1.084,
    "tint_limit": 1.633,
-   "ghost": 1.31,
+   "ghost": 1.29,
    "ghost_cell": 16,
-   "grey": 2.035
+   "grey": 2.021,
+   "pass": false
   },
   "sloe": {
-   "flicker": 1.62,
+   "flicker": 1.55,
    "flicker_cell": 2,
-   "tint": 1.362,
+   "tint": 1.427,
    "tint_limit": 0.4,
    "ghost": 0.0,
    "ghost_cell": 0,
-   "grey": 1.042
+   "grey": 0.984,
+   "pass": false
   },
   "sorrel": {
-   "flicker": 0.92,
-   "flicker_cell": 3,
-   "tint": 1.235,
+   "flicker": 0.86,
+   "flicker_cell": 4,
+   "tint": 1.253,
    "tint_limit": 0.4,
    "ghost": 0.0,
    "ghost_cell": 0,
-   "grey": 0.77
+   "grey": 0.766,
+   "pass": false
   },
   "tharl": {
-   "flicker": 0.46,
+   "flicker": 0.45,
    "flicker_cell": 2,
-   "tint": 1.328,
+   "tint": 1.445,
    "tint_limit": 0.444,
    "ghost": 0.0,
    "ghost_cell": 0,
-   "grey": 1.153
+   "grey": 1.227,
+   "pass": false
   },
   "tick": {
-   "flicker": 0.97,
-   "flicker_cell": 10,
-   "tint": 1.827,
+   "flicker": 0.94,
+   "flicker_cell": 12,
+   "tint": 1.889,
    "tint_limit": 1.584,
    "ghost": 0.0,
    "ghost_cell": 0,
-   "grey": 0.086
+   "grey": 0.085,
+   "pass": false
   },
   "vael": {
-   "flicker": 1.56,
+   "flicker": 1.49,
    "flicker_cell": 3,
-   "tint": 0.709,
+   "tint": 0.73,
    "tint_limit": 0.624,
    "ghost": 0.0,
    "ghost_cell": 0,
-   "grey": 0.305
+   "grey": 0.311,
+   "pass": false
   },
   "vulmar": {
-   "flicker": 0.16,
+   "flicker": 0.17,
    "flicker_cell": 30,
-   "tint": 0.421,
+   "tint": 0.43,
    "tint_limit": 0.4,
    "ghost": 0.0,
    "ghost_cell": 0,
-   "grey": 0.082
+   "grey": 0.085,
+   "pass": false
   },
   "yenna": {
-   "flicker": 1.24,
+   "flicker": 1.26,
    "flicker_cell": 21,
-   "tint": 1.652,
+   "tint": 1.685,
    "tint_limit": 0.49,
    "ghost": 0.0,
    "ghost_cell": 0,
-   "grey": 2.545
+   "grey": 2.535,
+   "pass": false
   },
   "pellucid": {
-   "flicker": 0.21,
+   "flicker": 0.15,
    "flicker_cell": 5,
-   "tint": 0.076,
+   "tint": 0.077,
    "tint_limit": 0.4,
    "ghost": 0.0,
    "ghost_cell": 0,
-   "grey": 0.206
+   "grey": 0.2,
+   "pass": true
   },
   "deepcleft": {
-   "flicker": 0.86,
+   "flicker": 0.79,
    "flicker_cell": 4,
-   "tint": 0.044,
+   "tint": 0.043,
    "tint_limit": 0.4,
    "ghost": 0.0,
    "ghost_cell": 0,
-   "grey": 0.405
+   "grey": 0.336,
+   "pass": true
   },
   "vireo": {
-   "flicker": 1.01,
+   "flicker": 0.89,
    "flicker_cell": 2,
    "tint": 0.031,
    "tint_limit": 0.4,
    "ghost": 0.0,
    "ghost_cell": 0,
-   "grey": 0.559
+   "grey": 0.553,
+   "pass": true
   }
  }
 }
