@@ -14,11 +14,11 @@ from .common import load_json, sha256, slot_state, log, die
 def approved_status(status):
     """Accept explicit approval with historical notes, excluding unsettled approval."""
     label = ' '.join(str(status).split()).casefold()
-    match = re.fullmatch(r'(?:phil\s+)?pass(?:\s+-\s+(.+))?', label)
+    match = re.fullmatch(r'(?:phil\s+)?pass(?:\s+-\s+(.+)|\s+\d{1,2}[a-z]{3}\d{4})?', label)
     if not match:
         return False
     note = match.group(1) or ''
-    return not re.search(r'\b(?:pending|not|revoked|superseded|rejected|unapproved|fail|awaiting|withdrawn|unverified)\b', note)
+    return not re.search(r'\b(?:pending|not|revoked|superseded|rejected|unapproved|fail\w*|awaiting|withdrawn|unverified|hold|redo)\b', note)
 
 
 def _resolve(review_dir, p):

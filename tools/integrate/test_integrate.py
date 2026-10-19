@@ -32,7 +32,8 @@ from types import SimpleNamespace
 with tempfile.TemporaryDirectory() as approval_dir:
     labels = ['NOT PASS', 'BYPASS', 'Phil PASS pending', 'FAIL; previously PASS',
               'Phil PASS - pending', 'Phil PASS - not approved',
-              'Phil PASS - revoked', 'Phil PASS - superseded']
+              'Phil PASS - revoked', 'Phil PASS - superseded',
+              'Phil PASS - failed', 'Phil PASS - on hold', 'Phil PASS - redo']
     with open(os.path.join(approval_dir, 'clean-source-manifest.json'), 'w') as f:
         json.dump([dict(slot='idle', status=s) for s in labels], f)
     cfg = SimpleNamespace(review_dir=approval_dir, work=approval_dir, d={}, st=lambda _: {})
@@ -51,11 +52,13 @@ with tempfile.TemporaryDirectory() as approval_dir:
         'Kharos Bloomknife': 'Phil PASS - final set approved for Claude handoff',
     }
     with open(os.path.join(approval_dir, 'clean-source-manifest.json'), 'w') as f:
-        json.dump([dict(slot='idle', status=s) for s in real_labels.values()], f)
+        # Supplying the required export type isolates approval from export-format errors.
+        json.dump([dict(slot='idle', status=s, export='Without Watermark') for s in real_labels.values()] +
+                  [dict(slot='idle', status='Phil PASS 16OCT2026', export='Without Watermark')], f)
     cfg = SimpleNamespace(review_dir=approval_dir, work=approval_dir, d={}, st=lambda _: {})
     accepted = V.verify(cfg, check_streams=False)
-    ck('six real annotated approval labels reach media checks rather than rejection',
-       not accepted['rejected'] and len(accepted['problems']) == 6 and
+    ck('six annotated approval labels and the death-review date label reach media checks',
+       not accepted['rejected'] and len(accepted['problems']) == 7 and
        all('silent twin missing' in p for p in accepted['problems']))
 
 # frame maps: the v1162 Korvux maps (specs_korvux.py) from the pipeline's rules
