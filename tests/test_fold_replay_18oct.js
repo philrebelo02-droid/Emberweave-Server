@@ -2,7 +2,8 @@
 const fs=require('fs'),path=require('path'),vm=require('vm'),cp=require('child_process'),assert=require('assert'),crypto=require('crypto');
 const root=path.resolve(__dirname,'..'),temp=path.join(root,'.fold-replay-baseline-'+process.pid+'.html');
 const load=f=>{const h=require('../server/sim-host.js').load(f);return s=>vm.runInContext(s,h.ctx)},now=load(path.join(root,'emberweave-heroes.html'));
-fs.writeFileSync(temp,cp.execFileSync('git',['show','origin/main:emberweave-heroes.html'],{cwd:root,maxBuffer:64<<20}));
+const BASE='d0e944c0a87cfa335c46b2efa47cb97dd771cc9a'; // v1206 before this layout-only integration; remote main can advance during cluster QA.
+fs.writeFileSync(temp,cp.execFileSync('git',['show',BASE+':emberweave-heroes.html'],{cwd:root,maxBuffer:64<<20}));
 try{const old=load(temp),digest=s=>crypto.createHash('sha256').update(s).digest('hex');
  assert.equal(now('JSON.stringify([HERO_TYPES,KITS,ULT_DEF,BATTLE_ANIM])'),old('JSON.stringify([HERO_TYPES,KITS,ULT_DEF,BATTLE_ANIM])'),'layout must not change combat or animation data');
  console.log('ok gameplay and animation tables unchanged');

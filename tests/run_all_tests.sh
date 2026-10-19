@@ -542,6 +542,10 @@ note "test_ambrel_art_18oct.js (18 Oct art, ChatGPT: Ambrel's approved remake - 
 node tests/test_ambrel_art_18oct.js || FAILED=1
 note "test_spell_fx_18oct.js (18 Oct art: Grok's seven FX for Aldren, Aureth and Joss - receipts, sheets, routing; Joss's Sanctuary Guard at half size behind the heroes (Phil); fights unchanged)"
 node tests/test_spell_fx_18oct.js || FAILED=1
+note "test_fold_coordinates_18oct.js (Fold portrait layout: inverse pointer mapping and native controls at phone and Fold sizes)"
+node tests/test_fold_coordinates_18oct.js || FAILED=1
+note "test_fold_replay_18oct.js (Fold layout integration: gameplay tables and three full fights match pinned v1206 BASE)"
+node tests/test_fold_replay_18oct.js || FAILED=1
 note "test_integrate_tool.js (tools/integrate_hero.py + integrate_fx.py: frame maps = the v1162 / v1175 maps, the Korvux scale fit, BATTLE_ANIM line format, the page patch, fringe, FX key + placement - each with a CONTROL)"
 node tests/test_integrate_tool.js || FAILED=1
 note "test_skill_previews_1164.js (v1164 SKILL PREVIEWS read from the fight: every slot of all 60 heroes - the clip startAbilityClip / real swings / crit / passive play (same BATTLE_ANIM object, the engine hold and cell clock; stand-ins show nothing), every FX sheet the cast draws recorded live at its moment, the fight's SFX rows with peaks on the contact cell; CONTROLS: an old Korvux sheet, a sound a cell off, a dropped FX fail; phone browser: silent on open, a tap plays through sfxPlay (swing 0.85), one at a time, FX off / master mute, only the open hero's tier sheets held and released; fights tick-identical to BASE)"
