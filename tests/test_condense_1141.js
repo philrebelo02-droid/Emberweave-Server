@@ -197,7 +197,8 @@ try {
       ck('a trimmed sprite\'s quad, grown by tc, is exactly the logical cell the untrimmed sheet draws - same anchor, both facings (' + place.length + ' sprites)', place.length >= 2 && place.every(p => Math.abs(p.dl) < 1e-6 && Math.abs(p.db) < 1e-6 && Math.abs(p.dw) < 1e-6 && Math.abs(p.dh) < 1e-6), JSON.stringify(place.slice(0, 2)));
       // 4b. release on the hub
       const held = pg => pg.evaluate(() => { let n = 0; for (const k in BATTLE_ANIM) { const s = BATTLE_ANIM[k]; for (const st in s) if (st[0] !== '_' && s[st] && s[st].tex) n++; } return n; });
-      const h0 = await held(P.pg); await P.pg.evaluate(() => { ended = true; show('home'); }); await P.pg.waitForTimeout(1500); const h1 = await held(P.pg);
+      const h0 = await held(P.pg); await P.pg.evaluate(() => { ended = true; show('home'); }); await P.pg.waitForTimeout(1500); let h1 = await held(P.pg);
+      for (let i = 0; i < 17 && h1 > 0; i++) { await P.pg.waitForTimeout(500); h1 = await held(P.pg); }   // 18 Oct: a slow CT frees later than 1.5 s
       ck('going home frees every battle sheet, tier files included (' + h0 + ' -> ' + h1 + ')', h0 > 20 && h1 === 0);
       ck('no page error on either tier', P.errs.length === 0 && D.errs.length === 0, P.errs.concat(D.errs).slice(0, 3).join(' | '));
       await P.ctx.close(); await D.ctx.close();

@@ -29,7 +29,8 @@ try {
   const sizes = (await (await fetch(base + '/api/asset-sizes')).json()).sizes;
   ck('/api/asset-sizes gives the byte size of every file under assets/', sizes && Object.keys(sizes).length > 2000 && sizes['/assets/anim/tiers_1141.json'] === fs.statSync(path.join(ROOT, 'assets/anim/tiers_1141.json')).size);
   const retired = path.join(ROOT, 'tests/fixtures/retired_assets_1154.txt'), RET = fs.existsSync(retired) ? fs.readFileSync(retired, 'utf8').split(/\r?\n/).filter(Boolean) : [];
-  browser = await chromium.launch({ channel: 'chrome', headless: true, args: ['--mute-audio'] });
+  browser = await chromium.launch({ channel: 'chrome', headless: true, args: ['--mute-audio'] })
+    .catch(() => chromium.launch({ headless: true, args: ['--mute-audio'] }));   // 18 Oct: no Google Chrome on the cluster CTs -> bundled Chromium
   const PHONE = { viewport: { width: 844, height: 390 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true, userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1' };
   const DESK = { viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 };
   const open = async (opts, html) => { const ctx = await browser.newContext(Object.assign({ serviceWorkers: 'allow' }, opts));

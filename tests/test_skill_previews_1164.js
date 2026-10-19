@@ -153,7 +153,8 @@ else {
   let browser;
   try {
     for (let i = 0; i < 200; i++) { try { if ((await fetch(base + '/health')).ok) break; } catch (_) {} await delay(150); }
-    browser = await chromium.launch({ channel: 'chrome', headless: true, args: ['--mute-audio'] });
+    browser = await chromium.launch({ channel: 'chrome', headless: true, args: ['--mute-audio'] })
+      .catch(() => chromium.launch({ headless: true, args: ['--mute-audio'] }));   // 18 Oct: no Google Chrome on the cluster CTs -> bundled Chromium
     const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true,
       userAgent: 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Mobile Safari/537.36' });
     await ctx.addInitScript(() => { const oc = AudioNode.prototype.connect;   // every path to the speakers goes through a gain of 0
