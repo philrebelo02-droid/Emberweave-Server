@@ -78,7 +78,7 @@ function unit(WSX, journal, check, opts) {
     const t0 = process.hrtime.bigint(); st.write(db, ['p20', 'p21']); const ms = Number(process.hrtime.bigint() - t0) / 1e6;
     let rb = WSX.readWorld(file);
     check((st.stats.receiptScans | 0) === sc0 && rb.idem['p20:new:1'] && rb.users.p21.gold === 2121 && !rb.idem['p21:new:1'] && ms < 50,
-      tag + 'a save of 2 players on 32,000 receipts walked none of them (' + ms.toFixed(1) + ' ms): the noted receipt is on disk, an unnoted one waits');
+      tag + 'a save of 2 players on 32,000 receipts walked none of them (' + ms.toFixed(1) + ' ms): the noted receipt is on disk, an unnoted one waits; diagnostic=' + JSON.stringify({receiptScansBefore:sc0,receiptScansAfter:st.stats.receiptScans|0,notedReceiptOnDisk:!!rb.idem['p20:new:1'],player21Gold:rb.users.p21.gold,unnotedReceiptOnDisk:!!rb.idem['p21:new:1'],ms,limitMs:50}));
     st.write(db, [], null, { slice: 0, of: 16 }); rb = WSX.readWorld(file);
     check(!rb.idem['p21:new:1'] && (st.stats.receiptScans | 0) === sc0 + 1, tag + 'slice 0 walks the table again (the unnoted receipt of a player nobody saved still waits for its player)');
     db.users.p21.gold = 2122; st.write(db, ['p21']); rb = WSX.readWorld(file);
