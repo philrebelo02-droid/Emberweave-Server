@@ -92,7 +92,7 @@ try {
   const others = r => r("JSON.stringify(Object.keys(FX2_DEF).filter(k=>k!=='mirelle_ult').map(k=>[k,FX2_DEF[k]]))");
   ck('every other FX2_DEF entry is byte-for-byte BASE', H(others(run)) === H(others(R0)));
   { const stage = fs.readFileSync(path.join(ROOT, 'assets/ui/skill-preview-stage.js'), 'utf8');
-    ck('the Skills-tab preview sizes the badges the same way (badgeH) and the page loads the stage at a new ?v= (sp1181)', (stage.match(/d\.badgeH>0\?d\.badgeH\*0\.95/g) || []).length === 2 && /skill-preview-stage\.js\?v=sp11(8[1-9]|9\d)/.test(src)); }
+    ck('the Skills-tab preview sizes the badges the same way (badgeH) and the page loads the stage at a new ?v= (sp1181)', (stage.match(/d\.badgeH>0\?d\.badgeH\*0\.95/g) || []).length === 2 && /skill-preview-stage\.js\?v=sp1(1(8[1-9]|9\d)|2\d\d)/.test(src)); }   /* v1206: a later release may bump the stage again */
   // 3. display only
   for (const [K, kind] of [['mirelle', 'ult'], ['deepcleft', 'green'], ['vael', 'blue']]) ck(`${K} ${kind}: a cast is tick-identical to BASE for 6 s`, H(run(CAST(K, kind))) === H(R0(CAST(K, kind))));
   { const T = [[11, ['mirelle', 'vael', 'tick', 'lumi', 'korvux'], ['grosk', 'vireo', 'sylthaine', 'carn', 'hollow']], [5, ['deepcleft', 'mirelle'], ['vael', 'umbris', 'nox']]];
