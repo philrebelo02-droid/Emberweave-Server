@@ -6635,7 +6635,7 @@ async function api(req,res,url){
       if(snaps.some(s=>!s)) return send(res,400,{error:'Unknown hero in the team.'});
       const floor=prog.currentFloor;
       const attempt={ id:uid(), floor, heroIds:ids, teamSnapshot:snaps, power:{ fighters:ids.slice(0,5).map(k=>vaultHeroPowerRow(me,k)), backups:ids.slice(5).map(k=>vaultHeroPowerRow(me,k)) }, enemyWaves:buildDungeonWaves(floor), startedAt:Date.now() };
-      prog.lastTeamHeroIds=ids; prog.activeAttempt=attempt; prog.version++; writeDB([me.id]);   // v1124: the climb (DB.dungeonProgress) is shared world - the manifest always writes it
+      prog.lastTeamHeroIds=ids; prog.activeAttempt=attempt; prog.version++; writeDBNow([me.id]);   // Wait for the Vault attempt's shared-world save before acknowledging; a debounced worker write can still be pending at a hard kill.
       return send(res,200,{ ok:true, attemptId:attempt.id, floor, bossRule:bossRuleForFloor(floor),
         waves:attempt.enemyWaves });   // fixed monster lineup for this floor — the fight happens in the client
     }
