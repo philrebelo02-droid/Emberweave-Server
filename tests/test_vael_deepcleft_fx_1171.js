@@ -217,7 +217,7 @@ try {
       du && du.length === 1 && du[0].kind === 'disc22' && du[0].at === 'target' && du[0].R === 120 && du[0].t0 === +(9 / 22).toFixed(4), JSON.stringify(D));
     const stage = fs.readFileSync(path.join(ROOT, 'assets/ui/skill-preview-stage.js'), 'utf8');
     ck('the preview stage draws the fx16up / fx16puff / fx16claws kinds (fxBox + drawFx) and the page loads it at a new ?v= (sp1171; BASE sp1164)', /case 'fx16up': case 'fx16puff': \{ const H=d\.size\*h/.test(stage) && /case 'fx16up': \{ const life=e\.life\|\|5;/.test(stage) && /case 'fx16puff': case 'fx16claws': \{ const L=e\.real\|\|5;/.test(stage) &&
-      /skill-preview-stage\.js\?v=sp11(7[1-9]|[89]\d)/.test(src) && baseSrc.includes('skill-preview-stage.js?v=sp1164')); }   /* v1174: a later release may bump the stage again */
+      /skill-preview-stage\.js\?v=sp1(1(7[1-9]|[89]\d)|2\d\d)/.test(src) && baseSrc.includes('skill-preview-stage.js?v=sp1164')); }   /* v1174: a later release may bump the stage again */
   { const T = JSON.parse(fs.readFileSync(path.join(ROOT, 'assets/anim/tiers_1141.json'), 'utf8')).sheets, t0 = cp.execSync('git show ' + BASE_SHA + ':assets/anim/tiers_1141.json', { cwd: ROOT }).toString();
     const live = JSON.parse(run(`JSON.stringify(['vael_green','vael_blue','vael_ult','deepcleft_green','deepcleft_blue','deepcleft_ult'].map(k=>typeof artFile==='function'?artFile(FX2_DEF[k].u):null))`));
     ck('the tier table is BASE byte for byte (no ?v= change): its entries for the replaced plates are left unreferenced, and the new sheets have no tier file (each is <= 2048 px: the phone loads it and v1140 sizes it, as the v1160 Veyr FX)',

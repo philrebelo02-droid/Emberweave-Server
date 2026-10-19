@@ -201,7 +201,7 @@ try {
   { const P = JSON.parse(run(`JSON.stringify([1].map(sl=>{ const p=skillPreviewPlan('hollow',sl); return p?{rel:p.rel,fx:p.fx.map(e=>({k:e.k,kind:e.kind,at:e.at||null,t0:+e.t0.toFixed(4),hx:e.hx,hy:e.hy,hw:e.hw}))}:null; }))`))[0];
     ck('Skills tab preview of Fan of Knives: Grok\'s knives (fx16hand) from the release cell at his hand: ' + JSON.stringify(P), P && P.fx.length === 1 && P.fx[0].k === 'hollow_green' && P.fx[0].kind === 'fx16hand' && P.fx[0].hx > 0.5 && P.fx[0].hy > 0.5);
     const stage = fs.readFileSync(path.join(ROOT, 'assets/ui/skill-preview-stage.js'), 'utf8');
-    ck('the preview stage draws fx16hand (box + draw, in front) and the page loads it at a new ?v= (sp' + VER + ')', (stage.match(/case 'fx16hand'/g) || []).length === 2 && /e\.kind==='fx16hand'\);/.test(stage) && src.includes('skill-preview-stage.js?v=sp' + VER) && !baseSrc.includes('skill-preview-stage.js?v=sp' + VER)); }
+    ck('the preview stage draws fx16hand (box + draw, in front) and the page loads it at a new ?v= (sp' + VER + ')', (stage.match(/case 'fx16hand'/g) || []).length === 2 && /e\.kind==='fx16hand'\);/.test(stage) && (src.includes('skill-preview-stage.js?v=sp' + VER) || /skill-preview-stage\.js\?v=sp12\d\d/.test(src)) && !baseSrc.includes('skill-preview-stage.js?v=sp' + VER)); }
   { const P = JSON.parse(run(`JSON.stringify([0,2].map(sl=>{ const p=skillPreviewPlan('hollow',sl); return p?{rel:p.rel,T0:p.T0!=null?p.T0:null,fx:p.fx.map(e=>({k:e.k,kind:e.kind,at:e.at||null,t0:+e.t0.toFixed(4),real:e.real!=null?+e.real.toFixed(3):null}))}:null; }))`));
     const [u, b] = P;
     ck('Skills tab previews show the new art on the target (fx16over): Lacerate from cell 16, Vanishing Point after he is gone (the ult\'s gone): ' + JSON.stringify(P),
