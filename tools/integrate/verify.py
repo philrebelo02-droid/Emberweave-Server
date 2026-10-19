@@ -10,7 +10,9 @@ import subprocess
 
 from .common import load_json, sha256, slot_state, log, die
 
-PASS_RE = 'PASS'
+def approved_status(status):
+    """Accept explicit approval labels; phrases such as NOT PASS are not approval."""
+    return ' '.join(str(status).split()).casefold() in ('pass', 'phil pass')
 
 
 def _resolve(review_dir, p):
@@ -41,7 +43,7 @@ def verify(cfg, check_streams=True):
         st = (cfg.d.get('slots') or {}).get(slot) or slot_state(slot)
         cid = str(e.get('creationId') or e.get('creation') or '')
         status = str(e.get('status', ''))
-        if PASS_RE not in status:
+        if not approved_status(status):
             rejected.append(dict(slot=slot, status=status, creation=cid))
             continue
         if st is None:

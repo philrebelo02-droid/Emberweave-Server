@@ -11,7 +11,7 @@ import numpy as np
 from PIL import Image
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
-from integrate import frames as FR, normalise as N, cut as CU, wire as W, compare as CP, fx as FX  # noqa: E402
+from integrate import frames as FR, normalise as N, cut as CU, wire as W, compare as CP, fx as FX, verify as V  # noqa: E402
 from integrate.common import parse_spec, lin, num  # noqa: E402
 
 P = F = 0
@@ -26,6 +26,18 @@ def ck(name, ok, detail=''):
         F += 1
         print('  FAIL ' + name + (' - ' + str(detail)[:400] if detail else ''))
 
+
+# The source gate must reject negative labels before it resolves any media.
+from types import SimpleNamespace
+with tempfile.TemporaryDirectory() as approval_dir:
+    labels = ['NOT PASS', 'BYPASS', 'Phil PASS pending', 'FAIL; previously PASS']
+    with open(os.path.join(approval_dir, 'clean-source-manifest.json'), 'w') as f:
+        json.dump([dict(slot='idle', status=s) for s in labels], f)
+    cfg = SimpleNamespace(review_dir=approval_dir, work=approval_dir, d={}, st=lambda _: {})
+    rejected = V.verify(cfg, check_streams=False)
+    ck('negative and pending PASS phrases never enter source verification',
+       len(rejected['rejected']) == len(labels) and not rejected['states'] and not rejected['problems'])
+ck('explicit Phil PASS and PASS labels remain accepted', V.approved_status('Phil PASS') and V.approved_status('PASS'))
 
 # frame maps: the v1162 Korvux maps (specs_korvux.py) from the pipeline's rules
 KORVUX = json.load(open(os.path.join(os.path.dirname(__file__), 'heroes', 'korvux_1162.json')))
