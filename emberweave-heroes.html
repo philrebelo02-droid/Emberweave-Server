@@ -10724,9 +10724,9 @@ function muteBtnPlaceNow(){ try{ let b=document.getElementById('muteBtn'); if(!b
     const ag=document.getElementById('authGate'); if(ag&&R(ag)&&(typeof authGateOpen!=='function'||authGateOpen())) return void fix(vw-MUTE_SZ-12,6,MUTE_SZ,'gate');
     const pinnedWindow=document.querySelector('.screen.popout.active > .ew-pinned-exits'), pinnedX=pinnedWindow&&pinnedWindow.querySelector('.popoutClose'), pinnedRect=pinnedX&&R(pinnedX);
     /* a window with its own close X */
-    b.style.pointerEvents='none'; let X=null; try{ X=muteCloseX(); } finally { b.style.pointerEvents=''; }
-    // A foreground dialog's own X takes priority over the pinned exits of the screen behind it.
-    if(pinnedRect&&(!X||pinnedWindow.contains(X.x))) return void dock(pinnedRect.left-MUTE_GAP-32,pinnedRect.top,32,'window-pinned',pinnedWindow);
+    b.style.pointerEvents='none'; let X=null, pinnedTop=null; try{ X=muteCloseX(); if(pinnedRect)pinnedTop=ewGameElementFromPoint(pinnedRect.left+pinnedRect.width/2,pinnedRect.top+pinnedRect.height/2); } finally { b.style.pointerEvents=''; }
+    // Keep visible pinned exits in charge unless a foreground dialog covers their X.
+    if(pinnedRect&&pinnedTop&&(pinnedTop===pinnedX||pinnedX.contains(pinnedTop))) return void dock(pinnedRect.left-MUTE_GAP-32,pinnedRect.top,32,'window-pinned',pinnedWindow);
     /* still docked under an X the player has scrolled out of view (its window is open): it stays with the X */
     if(!X&&MUTE_DOCK.x&&MUTE_DOCK.x.isConnected&&MUTE_DOCK.x.getClientRects().length&&b.classList.contains('dock')&&b.parentNode===MUTE_DOCK.x.parentElement){
       const g=MUTE_DOCK.x.ewGameRect(); return void done('win-scrolled',g.left,g.bottom,parseFloat(b.style.getPropertyValue('--ms'))||MUTE_SZ); }
