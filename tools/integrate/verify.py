@@ -6,13 +6,19 @@ PASS row names (the rejected takes), are listed and never used. One PASS row per
 creation id (`states.<st>.creation`).
 """
 import os
+import re
 import subprocess
 
 from .common import load_json, sha256, slot_state, log, die
 
 def approved_status(status):
-    """Accept explicit approval labels; phrases such as NOT PASS are not approval."""
-    return ' '.join(str(status).split()).casefold() in ('pass', 'phil pass')
+    """Accept explicit approval with historical notes, excluding unsettled approval."""
+    label = ' '.join(str(status).split()).casefold()
+    match = re.fullmatch(r'(?:phil\s+)?pass(?:\s+-\s+(.+))?', label)
+    if not match:
+        return False
+    note = match.group(1) or ''
+    return not re.search(r'\b(?:pending|not|revoked|superseded|rejected|unapproved|fail|awaiting|withdrawn|unverified)\b', note)
 
 
 def _resolve(review_dir, p):

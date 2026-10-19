@@ -30,7 +30,9 @@ def ck(name, ok, detail=''):
 # The source gate must reject negative labels before it resolves any media.
 from types import SimpleNamespace
 with tempfile.TemporaryDirectory() as approval_dir:
-    labels = ['NOT PASS', 'BYPASS', 'Phil PASS pending', 'FAIL; previously PASS']
+    labels = ['NOT PASS', 'BYPASS', 'Phil PASS pending', 'FAIL; previously PASS',
+              'Phil PASS - pending', 'Phil PASS - not approved',
+              'Phil PASS - revoked', 'Phil PASS - superseded']
     with open(os.path.join(approval_dir, 'clean-source-manifest.json'), 'w') as f:
         json.dump([dict(slot='idle', status=s) for s in labels], f)
     cfg = SimpleNamespace(review_dir=approval_dir, work=approval_dir, d={}, st=lambda _: {})
@@ -38,6 +40,23 @@ with tempfile.TemporaryDirectory() as approval_dir:
     ck('negative and pending PASS phrases never enter source verification',
        len(rejected['rejected']) == len(labels) and not rejected['states'] and not rejected['problems'])
 ck('explicit Phil PASS and PASS labels remain accepted', V.approved_status('Phil PASS') and V.approved_status('PASS'))
+with tempfile.TemporaryDirectory() as approval_dir:
+    # Actual labels in the six manifests identified by Grok's compatibility review.
+    real_labels = {
+        'Brannus': 'Phil PASS - approved 16OCT2026',
+        'Quorrel': 'Phil PASS - approved 16OCT2026',
+        'Meridian': 'Phil PASS - corrected set approved 16OCT2026',
+        'Rafe Marrow': 'Phil PASS - corrected set approved 16OCT2026',
+        'Hobb Kilnmask': 'Phil PASS - final set approved for Claude handoff',
+        'Kharos Bloomknife': 'Phil PASS - final set approved for Claude handoff',
+    }
+    with open(os.path.join(approval_dir, 'clean-source-manifest.json'), 'w') as f:
+        json.dump([dict(slot='idle', status=s) for s in real_labels.values()], f)
+    cfg = SimpleNamespace(review_dir=approval_dir, work=approval_dir, d={}, st=lambda _: {})
+    accepted = V.verify(cfg, check_streams=False)
+    ck('six real annotated approval labels reach media checks rather than rejection',
+       not accepted['rejected'] and len(accepted['problems']) == 6 and
+       all('silent twin missing' in p for p in accepted['problems']))
 
 # frame maps: the v1162 Korvux maps (specs_korvux.py) from the pipeline's rules
 KORVUX = json.load(open(os.path.join(os.path.dirname(__file__), 'heroes', 'korvux_1162.json')))
