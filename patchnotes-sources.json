@@ -3,8 +3,9 @@
  "patches": [
   {
    "ver": "0.96",
-   "releases": "v1198, v1199, v1203",
+   "releases": "v1198, v1199, v1203, v1207",
    "items": [
+    {"text": "Tall phone screens now keep the game, touch controls and popup exits aligned in landscape, with battlefield art filling the margins. The mute button respects the window in front. Starting a Vault fight now waits for the attempt to be saved before confirming it.", "sources": ["SHIPPED-v1207-fold-vault-19-10-2026.md"]},
     {
      "text": "New spell effects for Tolley's Forge Strike, Chain Quench and Living Forge: the molten hammer slams down on the target, his chains lash out to every enemy they pull before the quench bursts around him, and the Living Forge burns under his feet as he walks. The opening screen is now silent and has no mute button; sound and the button start on the next screen. The victory and defeat screens now wait for the last death animation to finish. Switching servers no longer shows a false \"You've been logged out\" notice. Nerisse's Drifting Constellation effect is half its old size.",
      "sources": [
