@@ -2347,7 +2347,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
   .wpsStage.tall .wpsOrb{grid-row:1/span 7;width:calc(var(--u)*280);height:calc(var(--u)*280)} .wpsStage.tall .wpsCard>*:not(.wpsOrb){grid-column:2} .wpsStage.tall .wpsCard .btn,.wpsStage.tall .wpsCard .btn:first-of-type{margin-top:calc(var(--u)*16);height:calc(var(--u)*120)}
 /* Fold layout: whole-root rotation, native hit testing and explicit game-space adapters. */
 body{position:fixed;left:0;top:0;transform-origin:0 0;isolation:isolate;}
-body::before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;background:var(--ew-stage-background,url('/assets/img/ui/screen-bg.webp?v=1')) center/cover no-repeat;}
+body::before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;background:#000;}body.ew-rotated::before{background:var(--ew-stage-background,url('/assets/img/ui/screen-bg.webp?v=1')) center/cover no-repeat;}  /* 20 Oct hotfix (Phil: "desktop version is bugged"): the 18 Oct art fill of the margins is for TALL PHONES (the rotated root) only. On a wide desktop window the same fill showed a second, broken copy of the town map beside the real one, so everywhere else the bars are plain black again, as before 18 Oct. */
 .screen.popout{width:min(440px,94%);height:100%;max-height:100%;}
 .screen.popout > .ew-pinned-exits{position:sticky;top:-18px;min-height:44px;width:100%;flex-shrink:0;align-self:stretch;z-index:40;display:flex;align-items:center;justify-content:flex-end;gap:10px;background:#11172a;}
 .screen.popout > .ew-pinned-exits .backbtn{position:relative!important;top:auto!important;left:auto!important;right:auto!important;margin-right:auto;}
@@ -30632,7 +30632,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1792454955097';
+const BUILD_ID = '1792526164731';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

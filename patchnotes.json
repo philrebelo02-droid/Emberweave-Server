@@ -1,5 +1,8 @@
 {
   "patches": [
+    {"ver": "0.96.1", "date": "20 October 2026", "title": "Desktop fix", "items": [
+      "On desktop, the bars beside the game are plain black again; they no longer show a second copy of the town map. Tall phones keep the art in their margins."
+    ]},
     {"ver": "0.96", "date": "18 October 2026", "title": "Hero screen fix", "items": [
       "Tall phone screens now keep the game, touch controls and popup exits aligned in landscape, with battlefield art filling the margins. The mute button respects the window in front. Starting a Vault fight now waits for the attempt to be saved before confirming it.",
       "Iver, Joss and Ambrel have all-new battle animations, and Ambrel a new death. New spell effects for Aureth's Sunburst, Duality and Eclipse, Aldren's Chapter Rewrite, and Joss's Radiant Hammer, Sanctuary Guard and Daybreak Judgment; Sanctuary Guard is now half its size and stays behind the heroes.",
