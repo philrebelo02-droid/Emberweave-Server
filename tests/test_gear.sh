@@ -1,6 +1,6 @@
 #!/bin/bash
 # Forge (Gear v2) endpoint suite — crafting tree, temper math, bound rule, extraction, resonance
-B=http://localhost:8871
+B=http://localhost:${PORT:-8871}
 PASS=0; FAIL=0
 ck(){ if [[ "$3" == *"$2"* ]]; then PASS=$((PASS+1)); echo "  ✓ $1"; else FAIL=$((FAIL+1)); echo "  ✗ $1 — wanted '$2' in: ${3:0:180}"; fi }
 jv(){ python3 -c "import sys,json;d=json.load(sys.stdin);print(d$1)" 2>/dev/null; }

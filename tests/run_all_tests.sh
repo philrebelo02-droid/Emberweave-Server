@@ -10,7 +10,7 @@
 set -u
 cd "$(dirname "$0")/.."   # v559: the runner cd-ed INTO tests/ and then called tests/... so every path resolved to tests/tests/... and the suite never ran
 SRV=../server.js; [ -f ./server.js ] && SRV=./server.js
-PORT=${PORT:-8871}
+PORT=${PORT:-8871}; export PORT   # v1183: every suite follows PORT (the shell suites hard-coded 8871 - two suites on one PC collided)
 DBDIR=$(mktemp -d); DB="$DBDIR/db.json"
 FLAGS="ALLOW_NEW_GUESTS=1 VAULT_MIN_BATTLE_MS=0 DUNGEON_V2_ENABLED=true GEAR_V2_ENABLED=true GUILD_WAR_V2_ENABLED=true REG_PER_MIN=200 REG_ACCOUNTS_PER_IP=200 GLYPH_RL_PER_MIN=1000"
 FAILED=0; SRV_PID=""
