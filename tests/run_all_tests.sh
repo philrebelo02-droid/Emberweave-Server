@@ -8,6 +8,8 @@
 # Register caps are raised via env for fixtures only (REG_PER_MIN/REG_ACCOUNTS_PER_IP) — the
 # production defaults are untouched. Cleanup signals ONLY the PID this runner started.
 set -u
+# Every temp folder of this run (tests, servers, browsers, mktemp) lives under one folder that the EXIT trap removes - see tests/lib_tmp_scope.sh.
+. "$(dirname "$0")/lib_tmp_scope.sh"; ew_tmp_scope_begin || { echo "FATAL: cannot make the run temp folder"; exit 1; }
 # Windows: the WindowsApps python3 is a Store stub (prints "Python was not found", exits non-zero), so the phase-1 admin bootstrap and every
 # child test_*.sh that calls python3 fail. Put a working python3 shim first on PATH (a shell function would not reach the child scripts).
 if ! python3 -c 1 >/dev/null 2>&1; then
@@ -25,7 +27,7 @@ cleanup(){ if [ -n "$SRV_PID" ] && kill -0 "$SRV_PID" 2>/dev/null; then
   kill "$SRV_PID" 2>/dev/null
   for i in 1 2 3 4 5; do kill -0 "$SRV_PID" 2>/dev/null || break; sleep 0.4; done
   kill -0 "$SRV_PID" 2>/dev/null && kill -9 "$SRV_PID" 2>/dev/null; fi; SRV_PID=""; }
-trap cleanup EXIT
+trap 'cleanup; ew_tmp_scope_rm' EXIT; trap 'exit 130' INT TERM
 note(){ echo; echo "== $1 =="; }
 
 note "dependency check (npm ci covers these)"
@@ -35,6 +37,9 @@ BROWSER_OK=0
 if node -e "const p=require('playwright');if(!require('fs').existsSync(p.chromium.executablePath()))process.exit(1)" 2>/dev/null; then BROWSER_OK=1; echo "  playwright chromium ✓"; else
   if [ "${SKIP_BROWSER_PARITY:-0}" = "1" ]; then echo "  (browser parity skipped by SKIP_BROWSER_PARITY=1)"; else
     echo "  ✗ Playwright Chromium missing — run: npm ci && npx playwright install chromium (or set SKIP_BROWSER_PARITY=1)"; exit 1; fi; fi
+
+note "test_tmp_cleanup.sh (the run leaves no temp folders behind; control: unscoped leaks)"
+bash tests/test_tmp_cleanup.sh || FAILED=1
 
 note "phase 1: boot + create admin account"
 env $FLAGS DB_FILE="$DB" PORT=$PORT node "$SRV" > "$DBDIR/srv1.log" 2>&1 & SRV_PID=$!
