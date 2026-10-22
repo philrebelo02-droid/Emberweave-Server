@@ -4747,6 +4747,21 @@ const TUTORIAL_GROUPS=Object.freeze([
   Object.freeze(['win11','quest11','skill']), Object.freeze(['win12','quest12','rune']),
   Object.freeze(['win13','quest13','wish']), Object.freeze(['win14','quest14','vexxp']),
   Object.freeze(['win15','gemwish'])]);
+/* 22 Oct 2026 (ChatGPT's overnight audit, verified by Claude): a claim was checked only against the earlier claims in its
+   lesson, so POST win15 then gemwish paid 140 diamonds to a fresh account with nothing cleared. Each step now needs the
+   same progress its client card waits for (TUTORIAL_STEPS done() in emberweave-heroes.html), read from the server's own
+   ledger. signin and name have no card any more: only an account that claimed them before keeps them. */
+function tutorialStepMet(u,led,step){ const c=((led.camp||{}).cleared)|0, q=((led.quests||{}).chainStep)|0, pool=led.pool||{};
+  const win={win11:1,win12:2,win13:3,win14:4,win15:5}, quest={quest11:1,quest12:2,quest13:3};
+  if(win[step]) return c>=win[step];
+  if(quest[step]) return q>=quest[step];
+  if(step==='skill') return Object.values(led.skill||{}).some(a=>Array.isArray(a)&&a.some(v=>(v|0)>1));
+  if(step==='rune') return Object.values(((u.glyphs||{}).boards)||{}).some(b=>b&&((b.ascensionIndex|0)>0||(b.slots||[]).some(Boolean)));
+  if(step==='wish') return Array.isArray(pool.history)&&pool.history.length>0;
+  if(step==='quest14') return !!(led.unlocked&&led.unlocked.vex);
+  if(step==='vexxp') return true;   // the route's own potion check below decides it
+  if(step==='gemwish') return !!pool.gemFirstDone;
+  return false; }
 
 /* ==================== WISHING POOL (server-owned, audit Phase C) ====================
    Banner table, published odds, pity, transaction history, currency debit, duplicate conversion,
@@ -7494,6 +7509,7 @@ async function api(req,res,url){
     const led=ensureLedger(me); led.tut=led.tut||{};
     if(step==='vexxp'&&((led.xpPotionUsed||{}).vexMinor|0)<=(led.tutVexXpBase|0))return send(res,400,{error:'Use a Minor XP Potion on Vex after claiming the lesson potion.'});
     if(led.tut[step]) return send(res,200,{ok:true, already:true, ledger:ledgerView(me)});
+    if(!tutorialStepMet(me,led,step)) return send(res,409,{error:'Finish this lesson first.'});
     const group=TUTORIAL_GROUPS.find(ids=>ids.includes(step)), pos=group?group.indexOf(step):-1;
     if(pos>0 && group.slice(0,pos).some(id=>!led.tut[id])) return send(res,409,{error:'Claim the previous reward in this Stage lesson first.'});
     led.tut[step]=Date.now();

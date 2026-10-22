@@ -1,5 +1,8 @@
 {
   "patches": [
+    {"ver": "0.96.2", "date": "22 October 2026", "title": "Getting Started fix", "items": [
+      "Getting Started rewards now check that the lesson is really done before paying out. Players who play the lessons get exactly the same rewards as before."
+    ]},
     {"ver": "0.96.1", "date": "20 October 2026", "title": "Desktop fix", "items": [
       "On desktop, the bars beside the game are plain black again; they no longer show a second copy of the town map. Tall phones keep the art in their margins."
     ]},
