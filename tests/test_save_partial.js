@@ -92,7 +92,9 @@ async function campaignPair(S, p, node, rid) {
 
     // the other converted routes: tutorial claims (gold / stamina / diamonds), and the reads that save a day roll or migration
     const sR0 = await B.stat(), mR0 = manifest(S.db), codes = [];
-    for (const step of ['win11', 'signin', 'name']) codes.push((await S.req('POST', '/api/tutorial/claim', { step }, B.p1.token, B.p1.ip)).status);
+    // 22 Oct 2026: signin and name have no Getting Started card any more and pay only accounts that claimed them before
+    // (tests/test_tutorial_authority_22oct.js); win11 stays, earned by the stage clear above.
+    for (const step of ['win11']) codes.push((await S.req('POST', '/api/tutorial/claim', { step }, B.p1.token, B.p1.ip)).status);
     for (const route of ['/api/pool/state', '/api/glyphs/state', '/api/province/state', '/api/ledger', '/api/market/offers']) codes.push((await S.req('GET', route, null, B.p1.token, B.p1.ip)).status);
     codes.push((await S.req('POST', '/api/pvp/reports-ack', { ids: [] }, B.p1.token, B.p1.ip)).status);
     await sleep(400);

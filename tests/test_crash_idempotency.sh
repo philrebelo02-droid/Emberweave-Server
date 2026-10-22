@@ -15,9 +15,17 @@ trap 'kill -9 $SRV 2>/dev/null' EXIT
 
 echo "== v273: a reward cannot be paid twice across a crash =="
 boot
-TOK=$(curl -s -X POST localhost:$PORT/api/register -H 'content-type: application/json' \
-  -d '{"name":"crash1","pass":"password1"}' | python3 -c "import sys,json;print(json.load(sys.stdin)['token'])")
+REG=$(curl -s -X POST localhost:$PORT/api/register -H 'content-type: application/json' \
+  -d '{"name":"crash1","pass":"password1"}')
+TOK=$(echo "$REG" | python3 -c "import sys,json;print(json.load(sys.stdin)['token'])")
 [ -n "$TOK" ] && ck "account registered" 1 || ck "account registered" 0
+# 22 Oct 2026: a lesson reward now needs the lesson done (test_tutorial_authority_22oct.js). Give crash1 its Stage 1-1
+# clear the legitimate way: restart with crash1 as an admin and use the dev fixture grant on its own ledger.
+CID=$(echo "$REG" | python3 -c "import sys,json;print(json.load(sys.stdin)['profile']['id'])")
+sleep 1; kill $SRV 2>/dev/null; wait $SRV 2>/dev/null; sleep 0.4
+FLAGS="$FLAGS ADMIN_IDS=$CID"; boot
+curl -s -X POST localhost:$PORT/api/admin/led-grant -H 'content-type: application/json' -H "x-token: $TOK" \
+  -d "{\"userId\":\"$CID\",\"campCleared\":1}" > /dev/null
 
 RID="fixed-crash-req"
 # a tutorial claim is a small, server-owned, idempotent grant — ideal for this
