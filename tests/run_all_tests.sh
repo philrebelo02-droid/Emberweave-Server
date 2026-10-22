@@ -550,6 +550,20 @@ note "test_integrate_tool.js (tools/integrate_hero.py + integrate_fx.py: frame m
 node tests/test_integrate_tool.js || FAILED=1
 note "test_skill_previews_1164.js (v1164 SKILL PREVIEWS read from the fight: every slot of all 60 heroes - the clip startAbilityClip / real swings / crit / passive play (same BATTLE_ANIM object, the engine hold and cell clock; stand-ins show nothing), every FX sheet the cast draws recorded live at its moment, the fight's SFX rows with peaks on the contact cell; CONTROLS: an old Korvux sheet, a sound a cell off, a dropped FX fail; phone browser: silent on open, a tap plays through sfxPlay (swing 0.85), one at a time, FX off / master mute, only the open hero's tier sheets held and released; fights tick-identical to BASE)"
 node tests/test_skill_previews_1164.js || FAILED=1
+note "test_tutorial_authority_22oct.js (v1209: tutorial lesson rewards need the lesson done; signin/name closed to new claims)"
+node tests/test_tutorial_authority_22oct.js || FAILED=1
+note "test_embassy_perks_22oct.js (v1210: Embassy perks match the server; no stamina perk; mine haul uncapped)"
+node tests/test_embassy_perks_22oct.js || FAILED=1
+note "test_display_fixes_22oct.js (v1211: Watchtower hides own defenders, Campaign mode stars, no unpaid +80 gold)"
+node tests/test_display_fixes_22oct.js || FAILED=1
+note "test_skyfall_kills_shield_22oct.js (v1212: Skyfall line kills out of 5, Peace Shield price = server charge)"
+node tests/test_skyfall_kills_shield_22oct.js || FAILED=1
+note "test_arena_defense_team_22oct.js (v1213: the Arena defense team is saved, stored and used to defend)"
+node tests/test_arena_defense_team_22oct.js || FAILED=1
+note "test_mail_ack_after_save_22oct.js (v1213: war mail saved before the ack, once per report)"
+node tests/test_mail_ack_after_save_22oct.js || FAILED=1
+note "test_well_carry_bounds_22oct.js (v1214: Starless Well carried HP is a finite 0.01..1 fraction, energy 0..100)"
+node tests/test_well_carry_bounds_22oct.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi
