@@ -1,5 +1,8 @@
 {
   "patches": [
+    {"ver": "0.96.5", "date": "22 October 2026", "title": "Skyfall and Market display fixes", "items": [
+      "Skyfall: each of your lines on the war board now shows its kills out of 5, replacing an old 'orders' counter that could go below zero. Market: the Peace Shield always shows the price you will actually pay, even if you level up within the hour."
+    ]},
     {"ver": "0.96.4", "date": "22 October 2026", "title": "Display fixes", "items": [
       "Display fixes: the Watchtower no longer lists your own stationed city defenders as incoming attacks; a Campaign stage's details now show sweepability, stamina and runs for the mode you picked (Veteran no longer says 'sweepable' from your Normal stars)."
     ]},

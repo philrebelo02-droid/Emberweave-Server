@@ -18065,7 +18065,7 @@ function skyMatchHTML(m, canOfficer){
   const lanes=m.lanes||[];
   const laneRow=(i)=>{
     const you=m.you&&m.you.citadels[i], foe=m.foe&&m.foe.citadels[i];
-    const defHTML=(c,mine)=>c?skyByPower(c.defenders).map(d=>`<div style="font-size:9px;color:${d.alive?(mine?'#5ee89b':'#ff8b8b'):'#555'}">${d.alive?statusIcon('shield'):statusIcon('death')} ${escapeHTML(d.name||'')} ${d.alive?d.hpPct+'%':''}${mine&&d.memberId===ACC.id&&m.state==='live'?' <span style="color:#ffd45e">('+d.assaultsLeft+' orders)</span>':''}</div>`).join('')||'<div style="font-size:9px;color:#555">— empty —</div>':'';
+    const defHTML=(c,mine)=>c?skyByPower(c.defenders).map(d=>`<div style="font-size:9px;color:${d.alive?(mine?'#5ee89b':'#ff8b8b'):'#555'}">${d.alive?statusIcon('shield'):statusIcon('death')} ${escapeHTML(d.name||'')} ${d.alive?d.hpPct+'%':''}${mine&&d.memberId===ACC.id&&m.state==='live'?' <span style="color:#ffd45e">('+(d.kills|0)+'/'+((d.kills|0)+(d.killsLeft|0))+' kills)</span>':''}</div>`).join('')||'<div style="font-size:9px;color:#555">— empty —</div>':'';
     const mineHere=you&&you.defenders.some(d=>d.memberId===ACC.id&&d.alive);
     return `<div style="display:flex;gap:6px;align-items:stretch;margin-bottom:6px">
       <div style="flex:1;background:${you&&you.destroyed?'#1a0f0f':'#0f1a14'};border:1px solid ${you&&you.destroyed?'#5a2b2b':'#2b7a55'};border-radius:8px;padding:5px 7px;${you&&you.destroyed?'opacity:.55':''}">${you&&you.destroyed?statusIcon('crit-burst')+' ':''}${defHTML(you,true)}</div>
@@ -20796,6 +20796,9 @@ function shopRidDone(k,r){ if(!(r&&(r.error==='offline'||r.storageFailed))) dele
 async function shopOnce(fn){ if(SHOP_BUSY) return; SHOP_BUSY=true; try{ await fn(); } finally{ SHOP_BUSY=false; } }
 function renderMarket(){
   const b=document.getElementById('marketBody'); ensureMarket();
+  /* v1212 (ChatGPT's run-ahead pass): the shield row's price was frozen at restock; a same-hour level-up showed 95 and charged 98.
+     Signed in, it is the server's own formula at the CURRENT level (server.js what==='shield_market'). */
+  if(ACC.token) for(const o of (G.market.offers||[])) if(o.kind==='shield') o.cost={gems:Math.round(70*(1+(playerLevel()-1)*0.04))};
   const left=MARKET_REFRESH_MS-(Date.now()-G.market.ts);
   b.innerHTML=`<div style="display:flex;justify-content:space-between;font-size:12px;color:#8b98a9;margin-bottom:8px"><span>${hudIcon('gold')} ${G.gold}  ·  ${hudIcon('gem')} ${G.gems}${(ACC.token&&G.marketToday)?`  ·  Fragments ${G.marketToday.used|0}/${G.marketToday.max|0} today`:''}</span><span>⟳ restock ${fmtDur(left)}</span></div>`+
     G.market.offers.map((o,i)=>{ const c=o.cost.gold?(hudIcon('gold')+' '+o.cost.gold):(hudIcon('gem')+' '+o.cost.gems), afford=o.cost.gold?G.gold>=o.cost.gold:G.gems>=o.cost.gems;
@@ -30629,7 +30632,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1792675838267';
+const BUILD_ID = '1792680087464';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
