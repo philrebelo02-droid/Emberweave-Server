@@ -1,7 +1,7 @@
 {
   "patches": [
     {"ver": "0.96.6", "date": "22 October 2026", "title": "Arena defense team", "items": [
-      "Arena: the defense team you pick under Defenders - Adjust now really defends you. Attackers see it in their opponent preview and fight it; before, your main team always defended. With no defense team picked, your main team defends as before."
+      "Arena: the defense team you pick under Defenders - Adjust now really defends you. Attackers see it in their opponent preview and fight it; before, your main team always defended. With no defense team picked, your main team defends as before. War mail: attack and defense reports are now saved on your account before the server lets go of them, so a crash or reload can no longer lose them, and a report never arrives twice."
     ]},
     {"ver": "0.96.5", "date": "22 October 2026", "title": "Skyfall and Market display fixes", "items": [
       "Skyfall: each of your lines on the war board now shows its kills out of 5, replacing an old 'orders' counter that could go below zero. Market: the Peace Shield always shows the price you will actually pay, even if you level up within the hour."

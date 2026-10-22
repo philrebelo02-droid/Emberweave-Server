@@ -25321,7 +25321,10 @@ function resolveMarch(m){
 let _pvpPollN=0;
 function pollPvpReports(){ if(!ACC.token||!online())return;
   api('/api/pvp/reports').then(d=>{ if(!d||!Array.isArray(d.reports)||!d.reports.length)return;
-    d.reports.forEach(r=>{ const when=r.t?new Date(r.t).toLocaleTimeString():'';
+    /* v1213 (ChatGPT's run-ahead audit): each report is imported once, by its server id, so a retried import never doubles mail */
+    G.pvpSeen=G.pvpSeen||{};
+    d.reports.forEach(r=>{ if(r.id&&G.pvpSeen[r.id]) return; if(r.id) G.pvpSeen[r.id]=Date.now();
+      const when=r.t?new Date(r.t).toLocaleTimeString():'';
       if(r.kind==='attack-report'){   /* v1042: the server's copy of YOUR attack - kept in war mail even if the reply was lost */
         if(hasWarMail(r.marchId)) return;
         if(r.shielded){ addMail('war',{from:r.to||'?',subj:'Army home - '+(r.to||'?'),body:(r.to||'?')+' raised a protection shield before your army arrived. It came home with nothing.',marchId:r.marchId,t:r.t}); return; }   /* v1097 (sweep #11) */
@@ -25339,8 +25342,13 @@ function pollPvpReports(){ if(!ACC.token||!online())return;
       else addMail('war',{from:r.from,subj:'{i:s:shield} Wall held vs '+r.from,body:r.from+' attacked your castle'+(when?' at '+when:'')+' — your wall drove them off.',battle:r.battle||undefined}); });
     updateMailBadges(); bannerMsg(statusIcon('attack')+' '+d.reports.length+' attack report'+(d.reports.length===1?'':'s')+' — check War mail.');
     // RE-AUDIT: acknowledge only AFTER the mail is stored locally — a dropped response no longer loses reports
+    /* v1213 (ChatGPT's run-ahead audit): the mail is SAVED before the server is told to delete its copy. Before, the ack went out
+       with the mail only in memory - a crash or reload before an unrelated save lost the player's war reports. Now: save, and ack
+       only once the cloud save answers ok; otherwise the server keeps them and the next poll brings them back (deduped above). */
+    { const ks=Object.keys(G.pvpSeen); if(ks.length>300) ks.sort((x,y)=>G.pvpSeen[x]-G.pvpSeen[y]).slice(0,ks.length-300).forEach(k=>{ delete G.pvpSeen[k]; }); }
+    saveG();
     const ids=d.reports.map(r=>r.id).filter(Boolean);
-    if(ids.length) api('/api/pvp/reports-ack','POST',{ids}).catch(()=>{});
+    if(ids.length) Promise.resolve(typeof pushSave==='function'?pushSave():null).then(sv=>{ if(sv&&sv.ok) return api('/api/pvp/reports-ack','POST',{ids}); }).catch(()=>{});
   }).catch(()=>{});
 }
 const STATION_HOME=3153600000000;   // ~100 years — defenders garrison "forever" until retreat
