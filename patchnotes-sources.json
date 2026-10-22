@@ -1,6 +1,7 @@
 {
  "note": "Each draft item mapped to the SHIPPED note(s) in Emberweave Archive/Operating procedure/SHIPPED it came from.",
  "patches": [
+ {"ver": "0.96.2", "releases": "v1209", "items": [{"text": "Getting Started rewards now check that the lesson is really done before paying out. Players who play the lessons get exactly the same rewards as before.", "sources": ["SHIPPED-v1209-tutorial-authority-22-10-2026.md"]}]},
  {"ver": "0.96.1", "releases": "v1208", "items": [{"text": "On desktop, the bars beside the game are plain black again; they no longer show a second copy of the town map. Tall phones keep the art in their margins.", "sources": ["SHIPPED-v1208-desktop-letterbox-20-10-2026.md"]}]},
   {
    "ver": "0.96",
