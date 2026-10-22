@@ -34,5 +34,24 @@ for (let P = 1; P <= 120 && clientMax; P++) {
   const c = Function('playerLevel', 'embassyStamBonus', 'return ' + clientMax)(() => P, () => 2 * 10);
   if (c !== base + P) { check(false, 'player level ' + P + ': client max ' + c + ' vs server ' + (base + P)); break; }
 }
+// 3) mines (Phil 22 Oct: "Remove the cap"): a won haul pays the designed yield x Miner's Charter, exactly what the client shows
+const sMul = (srv.match(/const minerMul=mineGuild\?(1\+\(\(mineGuild\.level\|\|1\)\*[\d.]+\)):1;/) || [])[1];
+const sGrant = (srv.match(/granted=(Math\.round\(\(40\+mineLv\*55\)\*\(1\+\(mineLv-1\)\*0\.18\)\*minerMul\));/) || [])[1];
+const cYield = (html.match(/function mineYield\(res,level\)\{ return (Math\.round\([^;]+\)); \}/) || [])[1];
+const cMul = (html.match(/function embassyMineMul\(\)\{ return G\.guild \? (1\+guildLevel\(\)\*[\d.]+) : 1; \}/) || [])[1];
+check(!!sMul && !!sGrant, 'server mine grant is not the designed yield x Miner\'s Charter (still a flat cap?)');
+check(!!cYield && !!cMul, 'client mineYield / embassyMineMul not found');
+check(!/MINE_SRV_MAX/.test(html), 'the client still clamps the shown haul to MINE_SRV_MAX');
+if (sMul && sGrant && cYield && cMul) {
+  let bad = null;
+  for (let L = 1; L <= 10; L++) for (const G of [0, 1, 5, 10]) {
+    const minerMul = G ? Function('mineGuild', 'return ' + sMul)({ level: G }) : 1;
+    const server = Function('mineLv', 'minerMul', 'return ' + sGrant)(L, minerMul);
+    const embassyMineMul = () => (G ? Function('guildLevel', 'return ' + cMul)(() => G) : 1);
+    const client = Function('level', 'embassyMineMul', 'return ' + cYield)(L, embassyMineMul);
+    if (server !== client && !bad) bad = 'mine level ' + L + ', guild level ' + G + ': server pays ' + server + ', client shows ' + client;
+  }
+  check(!bad, 'mine haul mismatch - ' + bad);
+}
 console.log(fail ? 'FAIL ' + fail + ' of ' + n : 'PASS ' + n + ' checks (Embassy perks match the server)');
 process.exit(fail ? 1 : 0);

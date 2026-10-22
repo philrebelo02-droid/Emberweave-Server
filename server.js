@@ -7096,8 +7096,15 @@ async function api(req,res,url){
       let granted=0,capLeft=null;
       if(battle.won){
         const used=A.mineDay[march.node.res]|0;
-        // Every authored mine yields at least 95; retain the server-owned 15 per-haul ceiling.
-        granted=15;
+        /* v1210 (22 Oct 2026, Phil: "Remove the cap" / "I dont even know why there is a cap"): a haul pays the DESIGNED yield,
+           computed here from the mine's own level - (40+55*level) x (1+0.18*(level-1)), the client's mineYield - times Miner's
+           Charter (+3% per guild level, the Embassy's promise). The 15 ceiling dates from v327, when the client still SENT the
+           amount; a march is now a server battle on a server node, so nothing here comes from the client. The legacy
+           /api/world/mine route (client-sent amount, unused by the client) keeps its 15 clamp. */
+        const mineLv=Math.max(1,Math.min(10,march.node.level|0));
+        const mineGuild=me.guildId&&DB.guilds?.[me.guildId];
+        const minerMul=mineGuild?1+((mineGuild.level||1)*0.03):1;
+        granted=Math.round((40+mineLv*55)*(1+(mineLv-1)*0.18)*minerMul);
         A.mineDay[march.node.res]=used+granted;
         A.res[march.node.res]=(A.res[march.node.res]|0)+granted;
       }

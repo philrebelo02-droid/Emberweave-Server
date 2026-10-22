@@ -1,7 +1,7 @@
 {
   "patches": [
     {"ver": "0.96.3", "date": "22 October 2026", "title": "Embassy fixes", "items": [
-      "Embassy fixes: Envoy's Favor now really adds +5% guild contribution exp per guild level, and the Contribute button shows the boosted amount. The Embassy no longer lists a max-stamina perk; your stamina bar now shows the true maximum."
+      "Embassy fixes: Envoy's Favor now really adds +5% guild contribution exp per guild level, and the Contribute button shows the boosted amount. The Embassy no longer lists a max-stamina perk; your stamina bar now shows the true maximum. Mines now pay their full designed yield per haul (no more flat 15), and Miner's Charter really adds +3% per guild level."
     ]},
     {"ver": "0.96.2", "date": "22 October 2026", "title": "Getting Started fix", "items": [
       "Getting Started rewards now check that the lesson is really done before paying out. Players who play the lessons get exactly the same rewards as before."
