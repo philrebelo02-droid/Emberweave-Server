@@ -15170,8 +15170,8 @@ function grantRewards(){
     msg=`<span class="coins">${hudIcon('gold')} +${gold}</span> · +${xp} XP · heroes +${hxp} XP${glyphStr}${eliteStr}${lvlStr}<br>${unlockMsg||(firstClear?'Stage cleared for the first time!':'Stage farmed.')}`;
   } else {
     G.trophies+=12; grantTeamXP(60);
-    if(ACC.token) api('/api/trial/resolve','POST',{kind:'tower',floor:(function(){ try{ return Math.max(1,towerState().floor|0); }catch(e){ return 1; } })(),heroIds:(G.team||[]).filter(Boolean),requestId:uid8()}).then(r=>{ if(r&&r.ok&&r.reward){ adoptLedger(r.ledger); } }).catch(()=>{});   // v250: the SERVER resolves + rewards the trial
-    msg=`${uiIcon('trophy')} +12 trophies · <span class="coins">${hudIcon('gold')} +80</span>`;
+    if(false) api('/api/trial/resolve','POST',{kind:'tower',floor:(function(){ try{ return Math.max(1,towerState().floor|0); }catch(e){ return 1; } })(),heroIds:(G.team||[]).filter(Boolean),requestId:uid8()}).then(r=>{ if(r&&r.ok&&r.reward){ adoptLedger(r.ledger); } }).catch(()=>{});   // v250: the SERVER resolves + rewards the trial
+    msg=`${uiIcon('trophy')} +12 trophies`;   /* v1211: no '+80 gold' - nothing pays it (this offline path never reaches the server; the old kind:'tower' ladder is retired, server 8531) */
   }
   saveG(); return msg;
 }
@@ -21116,7 +21116,7 @@ function stageDropsHTML(stg,node,mode){
 function toggleLinePanel(btn){ const d=btn.parentNode.querySelector('.lineDetail'); if(!d) return;
   const open=d.style.display!=='none'; d.style.display=open?'none':'block';
   const lbl=btn.lastElementChild; if(lbl) lbl.textContent=open?'More info ▾':'Hide ▴'; }
-function stageDetailHTML(stg,node){
+function stageDetailHTML(stg,node,mode){ mode=mode||PORTAL||'normal';   /* v1211: the details read the selected mode (Veteran showed Normal's 3 stars as 'sweepable') */
   if(!stg) return '<div style="font-size:11px;color:#6f7d90">Loading stage details…</div>';
   // v257: BOTH numbers come from the server on the same scale (see /api/campaign/stage) — the
   // player's power and the stage's recommendation can never be measured differently.
@@ -21169,7 +21169,7 @@ function stageDetailHTML(stg,node){
     ${fragBonus?`<div class="smFragSummary" style="margin-top:4px;font-size:11px"><span style="color:#8b98a9">Bonus:</span><br>${fragBonus}</div>`:''}
     <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:5px">
       <span style="font-size:11px;color:#8b98a9">Stamina · sweep</span>
-      <span style="font-size:11px;color:#c3ccd8">⧗ ${stageStamCost(node)} · ${((G.stageStars&&G.stageStars[node])|0)>=3?((isEliteStage(node)||isBossStage(node))?'sweepable, '+stageRunsLeft(node)+' rewarded runs left today':'sweepable'):'sweep unlocks at '+uiIcon('star-filled').repeat(3)}</span></div>
+      <span style="font-size:11px;color:#c3ccd8">⧗ ${stageStamCost(node,mode)} · ${portalStars(mode,node)>=3?((mode==='elite'||mode==='veteran'||isEliteStage(node)||isBossStage(node))?'sweepable, '+stageRunsLeft(node,mode)+' rewarded runs left today':'sweepable'):'sweep unlocks at '+uiIcon('star-filled').repeat(3)}</span></div>
     <div style="margin-top:6px;font-size:10.5px;color:#8b98a9">${uiIcon('star-filled')}${uiIcon('star-filled')}${uiIcon('star-filled')} = clear with your whole squad alive · ${uiIcon('star-filled')}${uiIcon('star-filled')} = at least half survive · ${uiIcon('star-filled')} = win</div>
   </div>${(typeof preBattleLineHTML==='function')?preBattleLineHTML('campaign'):''}`;
 }
@@ -21188,7 +21188,7 @@ function openStageModal(i,mode){
     if(r.runsLeft!=null){ try{ const sd=stageDaily(); sd.n[mode+':'+i]=Math.max(0,ELITE_BOSS_DAILY-(r.runsLeft|0)); }catch(e){} }   /* v1015 (re-audit Arena N7): the server's count of today's rewarded runs wins */
     if(r.stars!=null){ G.portals=G.portals||{}; if(mode!=='normal'){ const c=G.portals[mode]||(G.portals[mode]={cleared:0,stars:{}}); c.stars=c.stars||{}; c.stars[i]=r.stars|0; c.cleared=Math.max(c.cleared|0,r.cleared|0); } }
     const el=document.getElementById('smFragTarget');
-    if(window.SM_KEY===_smKey&&document.getElementById('stageModal').classList.contains('active')){ const de=document.getElementById('smDetails'); if(de)de.innerHTML=stageDetailHTML(r.stage,i); const dr=document.getElementById('smFragTarget'); if(dr)dr.innerHTML=stageDropsHTML(r.stage,i,mode); }
+    if(window.SM_KEY===_smKey&&document.getElementById('stageModal').classList.contains('active')){ const de=document.getElementById('smDetails'); if(de)de.innerHTML=stageDetailHTML(r.stage,i,mode); const dr=document.getElementById('smFragTarget'); if(dr)dr.innerHTML=stageDropsHTML(r.stage,i,mode); }
     preloadStageArt(r.stage); }
     else if(window.SM_KEY===_smKey&&!STAGE_CACHE[mode+':'+i]){ const de=document.getElementById('smDetails');   /* v1200: a failed or timed-out stage request says so, with Try again */
       if(de){ de.innerHTML='<div style="font-size:11px;color:#ff9a9a">Stage details could not be loaded. <button class="btn xs" id="smDetRetry">Try again</button></div>'; const b=document.getElementById('smDetRetry'); if(b) b.onclick=()=>openStageModal(i,mode); } } }).catch(()=>{}); }
@@ -21209,7 +21209,7 @@ function openStageModal(i,mode){
   body.innerHTML=`<div class="smStageCard"><div class="smStageScroll">
     <div class="smStageHead"><div><div class="smStageSub">${PORTAL_META[mode].icon} ${PORTAL_META[mode].label.toUpperCase()} · CHAPTER ${chapterOf(i)}</div><div class="smStageTitle">${_title}</div></div><div class="smStars">${_starsHTML}</div></div>
     <div class="smMeta"><div><span>Stamina</span><b>⧗ ${stageStamCost(i,mode)}</b></div><div><span>${_eb?'Chances':'Status'}</span><b>${_eb?_left+'/'+ELITE_BOSS_DAILY:(cleared?'Cleared':'New')}</b></div><div><span>Reward XP</span><b>${campaignPlayerXP(i,!cleared,mode)}</b></div></div>
-    <div id="smDetails">${stageDetailHTML(_stg,i)}</div>
+    <div id="smDetails">${stageDetailHTML(_stg,i,mode)}</div>
     <div id="smFragTarget" style="margin-top:8px">${stageDropsHTML(_stg,i,mode)}</div>
     <div style="font-size:11px;color:#c9a0ff;margin-top:6px;text-align:center">${uiIcon('res-xp-potion')} One ${xpPotionStageText(i,mode)} Hero XP Potion per rewarded run</div>
     ${canPay?'':'<div style="font-size:11px;color:#ff9a9a;margin-top:8px;text-align:center">Not enough stamina.</div>'}
@@ -30629,7 +30629,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1792671522566';
+const BUILD_ID = '1792675838267';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

@@ -22,7 +22,7 @@ function snapshot(db,me,now=Date.now()){
       if(m.kind==='mine'){row.mineId=m.mineId;row.resource=m.resource;row.level=m.level;}
       // Target identifier was already shared by own-march route. Never include
       // target account data, hero IDs, combat snapshots, receipts or currency.
-      if(m.kind==='city')row.defId=m.defId;
+      if(m.kind==='city'){row.defId=m.defId;row.defend=m.defend===true;}   // v1211: a stationed defender is not an attack (the client filters on it)
       return row;
     });
     if(id!==me.id&&!marches.length)continue;
