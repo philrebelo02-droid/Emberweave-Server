@@ -5127,6 +5127,8 @@ function mutationLimited(req){
   return rateLimited(req,'mut|'+who, MUT_PER_MIN, 60000);
 }
 /* v1078 (exploit scan 9 Oct): arena opponents are the ones the server offered. */
+/* v1213: a player's Arena defenders are the defense team they picked; with none set (or an empty one) their main team, as before. */
+function arenaDefTeam(u){ return (!u.isNpc && Array.isArray(u.arenaDef) && u.arenaDef.length) ? u.arenaDef : (u.team||[]); }
 function arenaOffered(me,ids){ const now=Date.now(); me._arenaOffer=(Array.isArray(me._arenaOffer)?me._arenaOffer:[]).filter(x=>x&&now-x.t<2*3600000);
   for(const id of ids){ if(id) me._arenaOffer.push({id:String(id),t:now}); } if(me._arenaOffer.length>30) me._arenaOffer=me._arenaOffer.slice(-30); }
 function arenaWasOffered(me,id){ const now=Date.now(); return !!id&&Array.isArray(me._arenaOffer)&&me._arenaOffer.some(x=>x&&x.id===id&&now-x.t<2*3600000); }
@@ -7125,6 +7127,9 @@ async function api(req,res,url){
        reward formula. Store the keys only, capped, and let the ledger supply every stat. */
     if(Array.isArray(b.team)) me.team=sanitizeRoster(b.team);
     if(Array.isArray(b.wall)) me.wall=sanitizeRoster(b.wall);
+    /* v1213 (22 Oct 2026, Phil: "Make it real"): the Arena defense team the player picked under Defenders -> Adjust. Before, it
+       lived only on the device and every defense fought with me.team (ChatGPT's run-ahead audit, confirmed by Claude + Grok). */
+    if(Array.isArray(b.arenaDef)) me.arenaDef=sanitizeRoster(b.arenaDef);
     const sv=saveShape(b.roster);   /* v999 (Account audit #8) + v1007 (re-audit N6): one string, at most 1 MB */
     if(sv===false) return send(res,400,{error:'Bad save.'});
     if(sv==='big') return send(res,413,{error:'Save too large.'});
@@ -9205,7 +9210,7 @@ async function api(req,res,url){
       return {ok:true, gems:led.gems, arena:arenaAttView(led), ledger:ledgerView(me)}; });
     return send(res,out.storageFailed?503:(out.ok?200:400),out); }
   if(p==='/api/arena/opponent'){ if(!me)return send(res,401,{error:'auth'}); const o=pickOpponent(me); arenaOffered(me,[o.id]);
-    return send(res,200,{ opponent:{ id:o.id, name:o.name, rank:o.rank, team:hydrateRoster(o,o.team), isNpc:!!o.isNpc }, arena:arenaAttView(ensureLedger(me)) }); }
+    return send(res,200,{ opponent:{ id:o.id, name:o.name, rank:o.rank, team:hydrateRoster(o,arenaDefTeam(o)), isNpc:!!o.isNpc }, arena:arenaAttView(ensureLedger(me)) }); }
 
   if(p==='/api/arena/opponents'){ if(!me)return send(res,401,{error:'auth'}); if(rateLimited(req,'arenaopp:'+me.id,60,60000)) return send(res,429,{error:'Slow down.'});   /* v1011 (re-audit Arena N10 / Market #15 / Guild #12): per-account throttle on a heavy read */
     // SPREAD opponents across %-better rank bands (mirrors client arenaTargetRanks) so you can see JUMP targets,
@@ -9230,7 +9235,7 @@ async function api(req,res,url){
     // "diamonds +N" row can never promise more than the server pays.
     const mBest=(me.bestRank!=null)?me.bestRank:5000, mFrac=(me._gemFrac||0);
     function prevGems(rk){ if(rk>=mBest) return 0; let d=0; for(let rr=rk; rr<mBest; rr++) d+= rr<=10?12:(rr<=50?8:(rr<=100?5:(rr<=500?2:1))); return Math.floor(mFrac+d); }
-    const out=opps.slice(0,5).map(u=>({ id:u.id, name:u.name, rank:u.rank, isNpc:!!u.isNpc, team:hydrateRoster(u,u.team||[]), gems:prevGems(u.rank) }));
+    const out=opps.slice(0,5).map(u=>({ id:u.id, name:u.name, rank:u.rank, isNpc:!!u.isNpc, team:hydrateRoster(u,arenaDefTeam(u)), gems:prevGems(u.rank) }));   /* v1213: the opponent's DEFENSE team */
     arenaOffered(me,out.map(o=>o.id));
     return send(res,200,{ rank:me.rank, opponents:out, arena:arenaAttView(ensureLedger(me)) }); }
 
@@ -9276,7 +9281,7 @@ async function api(req,res,url){
       const opLed=opp.isNpc?null:ensureLedger(opp);
       let opSnaps;
       if(opp.isNpc){ opSnaps=(Array.isArray(opp.team)?opp.team:[]).filter(Boolean).slice(0,5).map(function(e){ return snapshotNpcHero(e); }).filter(Boolean); }
-      else { opSnaps=rosterKeys(opp.team).filter(k=>opLed&&ownsHeroK(opLed,k)).slice(0,5).map(k=>snapshotHeroFromServer(opp,k)).filter(Boolean);
+      else { opSnaps=rosterKeys(arenaDefTeam(opp)).filter(k=>opLed&&ownsHeroK(opLed,k)).slice(0,5).map(k=>snapshotHeroFromServer(opp,k)).filter(Boolean);   /* v1213: their DEFENSE team fights */
         if(!opSnaps.length&&opLed) opSnaps=Object.keys(opLed.unlocked||{}).filter(k=>ownsHeroK(opLed,k)&&SIM.HERO_BASE[k]).slice(0,5).map(k=>snapshotHeroFromServer(opp,k)).filter(Boolean); }
       if(mySnaps.length&&opSnaps.length){ const r0=SIM.resolveLineBattle(SIM.makeLine(mySnaps),SIM.makeLine(opSnaps),seed); won=r0.won;
         simRes={rounds:r0.rounds, log:(r0.log||[]).slice(0,200)}; }   // v255 (§7): the arena returns its combat-core event log for the result recap

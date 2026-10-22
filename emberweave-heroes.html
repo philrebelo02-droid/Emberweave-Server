@@ -23799,7 +23799,7 @@ function pushSave(){ if(!ACC.token||!_cloudReady)return; const r=rosterPayload()
                 power:myTeamPower((G.wall&&G.wall.length?G.wall:G.team).filter(Boolean)) };
   /* v1014 (release review #6): a save the server refuses as too large (over 1 MB) used to fail silently on every push, forever -
      the player is told once per session; a later accepted save clears it */
-  return api('/api/save','POST',{team:teamPayload(G.team),wall:teamPayload(G.wall),roster:r,world}).then(d=>{
+  return api('/api/save','POST',{team:teamPayload(G.team),wall:teamPayload(G.wall),arenaDef:teamPayload((G.arenaDef||[]).filter(Boolean)),roster:r,world}).then(d=>{   /* v1213: the Arena defense team reaches the server */
     if(d&&d.error==='Save too large.'){ if(!pushSave._big){ pushSave._big=1; bannerMsg(uiIcon('warning')+' Cloud save refused - this save is over 1 MB, so progress on this device is not backed up.'); } }
     else if(d&&d.ok) pushSave._big=0;
     return d; }); }
@@ -30632,7 +30632,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1792680087464';
+const BUILD_ID = '1792681132631';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
