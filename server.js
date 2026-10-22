@@ -9725,7 +9725,10 @@ async function api(req,res,url){
         if((led.gold|0)<GUILD_CONTRIB_GOLD) return {ok:false,error:'Contributing costs '+GUILD_CONTRIB_GOLD+' gold.'};
         led.gold-=GUILD_CONTRIB_GOLD; ledTx(du,'guild-contribute',{gold:-GUILD_CONTRIB_GOLD});
         du.guildContrib.n++;
-        gg.exp=(gg.exp||0)+GUILD_CONTRIB_EXP;
+        /* v1210 (22 Oct 2026, Phil: "Yes make it"): Envoy's Favor is real. The Embassy promised +5% contribution exp per guild
+           level (client embassyContribMul) but the server always added a flat 100 (ChatGPT's second-pass audit). Same formula
+           and level as the client shows; like War Spoils (server 8699) it counts from guild level 1. */
+        gg.exp=(gg.exp||0)+Math.round(GUILD_CONTRIB_EXP*(1+(gg.level||1)*0.05));
         while((gg.level||1)<GMAXLVL && gg.exp>=gExpNeed(gg.level||1)){ gg.exp-=gExpNeed(gg.level||1); gg.level=(gg.level||1)+1;
           gg.log=gg.log||[]; gg.log.push({sys:1,tx:'The guild reached Level '+gg.level+'!',t:Date.now()}); guildLogCap(gg); }
         if((gg.level||1)>=GMAXLVL) gg.exp=0;

@@ -6257,7 +6257,7 @@ function levelForXP(xp,cum){ let L=1; while(L<MAX_LEVEL && xp>=cum[L+1]) L++; re
 // stamina: max = 59 + level (60 at Lv1 ... 119 at Lv60); spend 6 per cleared stage; +1 every 6 min; refills to full on level-up
 const STAM_REGEN_MS=6*60*1000, STAM_STAGE_COST=6, BOSS_STAM_COST=12;
 function stageStamCost(g,mode){ return ((mode||PORTAL)==='elite'||(mode||PORTAL)==='veteran'||(typeof isBossStage==='function'&&isBossStage(g))) ? BOSS_STAM_COST : STAM_STAGE_COST; }   // every Elite stage and all bosses cost 12 stamina
-function maxStamina(){ return 59 + playerLevel() + (typeof embassyStamBonus==='function'?embassyStamBonus():0); }
+function maxStamina(){ return 59 + playerLevel(); }   /* v1210 (Phil 22 Oct: "Embassy shouldnt raise stamina"): the server's own max (ledStamMax) - the Embassy bonus it never granted is gone */
 function regenStamina(){ if(!G.staminaTS)G.staminaTS=Date.now(); const now=Date.now(); const mx=maxStamina();
   if(G.stamina<mx){ const gained=Math.floor((now-G.staminaTS)/STAM_REGEN_MS);
     if(gained>0){ G.stamina=Math.min(mx,G.stamina+gained); G.staminaTS+=gained*STAM_REGEN_MS; if(G.stamina>=mx)G.staminaTS=now; saveG(); } }
@@ -25966,12 +25966,10 @@ function renderGuildShopInto(el){
 function embassyMineMul(){ return G.guild ? 1+guildLevel()*0.03 : 1; }      // +3% world-mine yield per guild level
 function embassyContribMul(){ return G.guild ? 1+guildLevel()*0.05 : 1; }   // +5% contribution exp per level
 function embassyRaidMul(){ return G.guild ? 1+guildLevel()*0.04 : 1; }      // +4% raid gold per level
-function embassyStamBonus(){ return G.guild ? guildLevel()*2 : 0; }         // +2 max stamina per level
 const EMBASSY_PERKS=[
   [uiIcon('mode-mine'),'Miner’s Charter','world-mine yield', ()=>Math.round((embassyMineMul()-1)*100)],
   [uiIcon('gift'),'Envoy’s Favor','guild contribution exp', ()=>Math.round((embassyContribMul()-1)*100)],
   [statusIcon('attack'),'War Spoils','gold looted from raids', ()=>Math.round((embassyRaidMul()-1)*100)],
-  ['⧗','Rallying Call','max stamina (flat)', ()=>embassyStamBonus(), true],
 ];
 function bestTeamPower(){ const t=(G.team&&G.team.filter(k=>G.unlocked[k]))||[]; return marchPower(t.length?t:HERO_KEYS.filter(k=>G.unlocked[k]).slice(0,5))||1; }
 function guildMemberCount(){ return (typeof GUILD_MEMBERS!=='undefined'?GUILD_MEMBERS.length:9)+1; }
@@ -26424,7 +26422,7 @@ function renderGuildContribute(el){
   const list=el.querySelector('#gContribList');
   if(G.guild&&G.guild.type==='real'){ const gold=G.gold|0, afford=gold>=GUILD_CONTRIB.gold && !guildMaxed();
     list.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;background:#0f1420;border-radius:8px;padding:8px 10px;margin-bottom:6px">
-      <div><b>${hudIcon('gold')} Gold</b> <span style="font-size:10px;color:#8b98a9">(you have ${gold})</span><div style="font-size:11px;color:#5ee89b">+${GUILD_CONTRIB.exp} guild exp</div></div>
+      <div><b>${hudIcon('gold')} Gold</b> <span style="font-size:10px;color:#8b98a9">(you have ${gold})</span><div style="font-size:11px;color:#5ee89b">+${Math.round(GUILD_CONTRIB.exp*embassyContribMul())} guild exp</div></div>
       <button class="btn sm" id="gContribGold" ${afford?'':'disabled'}>Give ${GUILD_CONTRIB.gold} ${hudIcon('gold')}</button></div>`;
     const btn=list.querySelector('#gContribGold'); btn.onclick=()=>{ if(btn.disabled)return; if(doContributeGold()) btn.disabled=true; };
     return; }
@@ -30632,7 +30630,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1792645059048';
+const BUILD_ID = '1792671522566';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
