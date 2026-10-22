@@ -48,7 +48,7 @@ async function run() {
     assert.ok(admin.token && admin.profile.id);
     await new Promise(resolve=>setTimeout(resolve,700));
     await stop();
-    await start(admin.profile.id);
+    await start(admin.profile.id,'20','20','1500');   /* 22 Oct 2026 (v1213 suite): a 1.5 s war prep so the early-march refusal below is checked while prep is surely running - at 200 ms a loaded suite host sent the march after prep ended */
     const foe=await request('POST','/api/register',{name:'witchFoe',pass:'password1'});
     assert.ok(foe.token && foe.profile.id);
     const grant=await request('POST','/api/admin/led-grant',{
@@ -120,7 +120,7 @@ async function run() {
       defId:foe.profile.id,heroIds:['vael','sylthaine','vireo'],requestId:'witch-early-city'
     },admin.token);
     assert.equal(earlyMarch.ok,false,'war preparation is enforced by the server');
-    await new Promise(resolve=>setTimeout(resolve,250));
+    await new Promise(resolve=>setTimeout(resolve,1600));
     const cityMarch=await request('POST','/api/world/city/start',{
       defId:foe.profile.id,heroIds:['vael','sylthaine','vireo'],requestId:'witch-city-start'
     },admin.token);
@@ -265,7 +265,7 @@ async function run() {
     },admin.token);
     assert.equal(mined.ok,true,JSON.stringify(mined));
     assert.equal(mined.won,true,'high-level squad should clear a level-one mine');
-    assert.equal(mined.granted,15);
+    assert.equal(mined.granted,95);   /* v1210 (Phil 22 Oct: "Remove the cap"): a level-1 mine pays (40+55*1)*1*1 = 95 with no guild, no 15 clamp */
     assert.equal(mined.garrison.length,5);
     assert.ok(mined.injuries.length>0,'mine fight records hero injuries');
     assert.ok(mined.replay&&mined.replay.snaps.length===3,'mine returns the real battle snapshot');
