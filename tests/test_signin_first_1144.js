@@ -92,6 +92,9 @@ const AUDIO_STUB = () => { const node = () => ({ connect() {}, disconnect() {}, 
     const gateOpen = page => page.evaluate(() => { const g = document.getElementById('authGate'); return !!(g && getComputedStyle(g).display !== 'none' && g.getBoundingClientRect().width > 0); });
     const visible = (page, sel) => page.evaluate(s => { const e = document.querySelector(s); if (!e || e.hidden) return false; const r = e.getBoundingClientRect(), cs = getComputedStyle(e); return r.width > 0 && r.height > 0 && cs.display !== 'none' && cs.visibility !== 'hidden'; }, sel);
     const acceptTos = async page => { await page.waitForTimeout(300); const b = await page.$('#tosAccept'); if (b) { await b.click(); await page.waitForTimeout(300); } };
+    /* 22 Oct 2026 (v1213 suite): a fixed 2.5 s wait after the account step raced a loaded suite host (the checks ran before the gate
+       closed). Wait until the session is a real account and the gate is gone, up to 20 s; the checks below still decide pass/fail. */
+    const waitSignedIn = page => page.waitForFunction(() => { const g = document.getElementById('authGate'); const open = !!(g && getComputedStyle(g).display !== 'none' && g.getBoundingClientRect().width > 0); return typeof ACC !== 'undefined' && !!(ACC && ACC.token && !ACC.guest) && !open; }, null, { timeout: 20000 }).catch(() => {});
 
     /* ---- (1) + (2) a fresh page: the sign-in gate, no /api/guest, nothing behind it reachable ---- */
     { const { ctx, page, calls, errors } = await open(null);
@@ -113,7 +116,7 @@ const AUDIO_STUB = () => { const node = () => ({ connect() {}, disconnect() {}, 
       if (await page.$('#agName')) { await page.fill('#agName', nm); await page.fill('#agPass', 'password1144'); await page.fill('#agPass2', 'password1144'); }
       await shot(page, '2-register.png');
       if (await page.$('#agGo')) await page.click('#agGo');
-      await acceptTos(page); await page.waitForTimeout(2500);
+      await acceptTos(page); await waitSignedIn(page); await page.waitForTimeout(500);
       const st = await page.evaluate(() => ({ tok: !!(ACC && ACC.token), guest: !!(ACC && ACC.guest), name: ACC && ACC.name, state }));
       ok(st.tok && !st.guest && st.name === nm, 'Create account signs in as the new account (' + JSON.stringify(st) + ')');
       ok(!(await gateOpen(page)) && (st.state === 'home' || st.state === 'tutorial'), 'after Create account the gate is gone and the game is on screen (state ' + st.state + ')');
@@ -146,7 +149,7 @@ const AUDIO_STUB = () => { const node = () => ({ connect() {}, disconnect() {}, 
       await shot(page, '4-guest-upgrade-step.png');
       const nm = 'Upg' + Date.now().toString(36).slice(-7);
       if (await page.$('#agName')) { await page.fill('#agName', nm); await page.fill('#agPass', 'password1144'); await page.fill('#agPass2', 'password1144'); await page.click('#agGo'); }
-      await acceptTos(page); await page.waitForTimeout(2500);
+      await acceptTos(page); await waitSignedIn(page); await page.waitForTimeout(500);
       const st = await page.evaluate(() => ({ id: ACC && ACC.id, guest: !!(ACC && ACC.guest), name: ACC && ACC.name, tok: ACC && ACC.token }));
       ok(st.id === gA.profile.id && !st.guest && st.name === nm, 'upgrading keeps the SAME account id and makes it a real account (' + JSON.stringify({ id: st.id === gA.profile.id, guest: st.guest, name: st.name }) + ')');
       const led = st.tok ? (await call(P1, '/api/ledger', null, st.tok)).j : {}, L = led.ledger || led;

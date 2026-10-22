@@ -1,5 +1,8 @@
 {
   "patches": [
+    {"ver": "0.96.7", "date": "22 October 2026", "title": "Starless Well carry", "items": [
+      "Starless Well: the HP and energy your heroes carry to the next fight are now always kept in range (HP between 1% and full, energy between empty and a full bar), even when the result you watched differs from the server's replay."
+    ]},
     {"ver": "0.96.6", "date": "22 October 2026", "title": "Arena defense team", "items": [
       "Arena: the defense team you pick under Defenders - Adjust now really defends you. Attackers see it in their opponent preview and fight it; before, your main team always defended. With no defense team picked, your main team defends as before. War mail: attack and defense reports are now saved on your account before the server lets go of them, so a crash or reload can no longer lose them, and a report never arrives twice."
     ]},
