@@ -192,6 +192,8 @@ note "test_world_mine_sync_levels.js (v1131: the signed-in map client accepts ev
 node tests/test_world_mine_sync_levels.js || FAILED=1
 note "test_market_harden.js (3 Oct Market audit: never-sold hero fragments refused; meal at full stamina refused; spend/earn durable)"
 node tests/test_market_harden.js || FAILED=1
+note "test_earn_closed_1216.js (v1216, Ember sweep 24: /api/tx/earn pays nothing for any reason - EARN_RULES empty; 119 reason x currency pairs refused, wallet unchanged)"
+node tests/test_earn_closed_1216.js || FAILED=1
 note "test_pool_forge_harden.js (3 Oct Pool/Forge audit: gear only on owned heroes; free diamond wish countdown = New York midnight)"
 node tests/test_pool_forge_harden.js || FAILED=1
 note "test_star_track.js (3 Oct Market audit #1: the campaign star track is server-owned; tx/earn stars removed)"
