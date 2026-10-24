@@ -1,7 +1,7 @@
 /* Hero Survivors - the simulation core (server/survivors-core.js). Claude, 24 Oct 2026.
    Proves: determinism (same seed + inputs = same run), replay from the input log, the level-up pick pauses the clock,
    every one of the 60 auras deals damage at level 1 AND level 10, a 30-minute Story run reaches its boss in bounded time,
-   and Survive scores. Run: node tests/test_survivors_core.js */
+   Survive scores, and the hero's own skill BUTTONS (cooldowns, heal, ward, replay of presses). Run: node tests/test_survivors_core.js */
 'use strict';
 const path = require('path');
 const C = require(path.join(__dirname, '..', 'server', 'survivors-core.js'));
@@ -124,6 +124,55 @@ ok('survive has no boss', !sv.bossSpawned);
 
 // 9. stage scaling: stage 10 monsters are much tougher than stage 1
 ok('stage 10 >> stage 1', C.stageScale(10) > 50 * C.stageScale(1), C.stageScale(10));
+
+// 10. the hero's own skills are buttons (Phil 24 Oct: "like a rogue likes, the player can use their skills")
+const KIT = [{ key: 'mending_stitch', name: 'Mending Stitch', kind: 'heal', cd: 12, power: 0.3 },
+             { key: 'reinforced_seam', name: 'Reinforced Seam', kind: 'ward', cd: 20, dur: 12 },
+             { key: 'nova_t', kind: 'nova', cd: 6, power: 2 }, { key: 'bolt_t', kind: 'bolt', cd: 5, power: 3 }, { key: 'dash_t', kind: 'dash', cd: 8, power: 4 }];
+const KH = Object.assign({}, HERO, { skills: KIT });
+{
+  const S = C.create(KH, { seed: 5, auras: AURAS });
+  ok('kit has 5 slots', S.hero.kit.length === 5);
+  S.hero.hp = 1000; C.step(S, { skill: 0 });
+  ok('heal restores 30% max HP', Math.abs(S.hero.hp - 2200) < 1, S.hero.hp);
+  ok('heal goes on cooldown', S.hero.kit[0].cdLeft > 11.9, S.hero.kit[0].cdLeft);
+  S.hero.hp = 500; C.step(S, { skill: 0 });
+  ok('a skill on cooldown does nothing', S.hero.hp === 500, S.hero.hp);
+  const t0 = S.t; for (let i = 0; i < 30 * 40 && S.t - t0 < 12.05; i++) { S.hero.hp = 500; C.step(S, S.choice ? { pick: 0 } : {}); }   // 12 s of run time; HP held so the horde can't end it
+  ok('the run is still going', !S.ended);
+  const clear = () => { while (S.choice) C.step(S, { pick: 0 }); };   // a level-up pick pauses the run (and the buttons)
+  clear();   ok('cooldown runs out with time', S.hero.kit[0].cdLeft === 0, S.hero.kit[0].cdLeft);
+  C.step(S, { skill: 0 }); ok('usable again after the cooldown', S.hero.hp > 500);
+  clear(); const x0 = S.hero.x; C.step(S, { skill: 4 }); ok('dash moves the hero', Math.abs(S.hero.x - x0 - 4) < 0.01, S.hero.x - x0);
+  clear(); C.step(S, { skill: 3 }); ok('bolt fires a shot', S.shots.some(s => s.key === 'bolt_t'));
+  ok('a press is recorded in the input log', S.inputs.some(e => e[1] === 's' && e[2] === 0));
+  ok('an empty slot does nothing', C.useSkill(S, 7) === false);
+}
+{ // ward: the hero cannot drop below 1 HP while it lasts; a control without the ward dies
+  function wardRun(press) {
+    const S = C.create(Object.assign({}, KH, { maxHp: 40, armor: 0 }), { seed: 9, stage: 10, auras: AURAS });
+    for (let i = 0; i < 30 * 10 && !S.ended; i++) C.step(S, { mx: 0, my: 0, skill: press && i === 0 ? 1 : undefined });
+    return S;
+  }
+  const w = wardRun(true), nw = wardRun(false);
+  ok('control: without the ward a 40 HP hero falls in 10 s on stage 10', nw.ended && !nw.won, nw.hero.hp);
+  ok('ward (12 s): alive at 1+ HP after 10 s', !w.ended && w.hero.hp >= 1, w.hero.hp);
+}
+{ // replay with skill presses == live; a tampered press does not reproduce it
+  function kitBot(seed, ticks) {
+    const S = C.create(KH, { seed, mode: 'story', stage: 2, auras: AURAS });
+    for (let i = 0; i < ticks && !S.ended; i++) { const a = S.tick * 0.004;
+      if (S.choice) { C.step(S, { mx: Math.cos(a), my: Math.sin(a), pick: 0 }); continue; }
+      const ready = S.hero.kit.findIndex(k => k.cdLeft === 0);
+      C.step(S, { mx: Math.cos(a), my: Math.sin(a), skill: ready >= 0 && i % 7 === 0 ? ready : undefined }); }
+    return S;
+  }
+  const L = kitBot(77, 30 * 120), R = C.replay(KH, { seed: 77, mode: 'story', stage: 2, auras: AURAS }, L.inputs, L.tick);
+  ok('replay with skill presses == live run', C.digest(R) === C.digest(L), C.digest(R) + ' vs ' + C.digest(L));
+  ok('the bot really pressed skills', L.inputs.filter(e => e[1] === 's').length > 10, L.inputs.filter(e => e[1] === 's').length);
+  const bad2 = L.inputs.map(e => e.slice()), si = bad2.findIndex(e => e[1] === 's' && e[2] === 2); if (si >= 0) bad2[si][2] = 4;
+  ok('control: a tampered skill press does not reproduce the run', si >= 0 && C.digest(C.replay(KH, { seed: 77, mode: 'story', stage: 2, auras: AURAS }, bad2, L.tick)) !== C.digest(L));
+}
 
 console.log(fail ? `test_survivors_core: ${pass} passed, ${fail} FAILED` : `test_survivors_core: ${pass} checks passed`);
 process.exit(fail ? 1 : 0);

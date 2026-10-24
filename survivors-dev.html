@@ -18,6 +18,11 @@
   #ult { position:fixed; right:22px; bottom:calc(22px + env(safe-area-inset-bottom,0)); width:84px; height:84px; border-radius:50%;
          border:3px solid var(--gold); background:radial-gradient(#3a2414,#1a100a); color:var(--gold); font-weight:800; font-size:16px; }
   #ult.ready { box-shadow:0 0 22px var(--ember); background:radial-gradient(#ff8a3a,#7a2a10); color:#fff; }
+  /* the hero's own skills: buttons in an arc round the ULT, bottom right (Phil 24 Oct) */
+  .sk { position:fixed; width:62px; height:62px; border-radius:50%; border:2px solid var(--gold); color:var(--ink); font-size:11px; font-weight:700; line-height:1.05;
+        background:conic-gradient(#000b calc(var(--cd,0) * 1turn), #3a2414 0); padding:4px; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .sk.cool { border-color:#ffffff33; color:var(--dim); } .sk small { font-size:13px; font-variant-numeric:tabular-nums; color:#fff; }
+  .sk .k { position:absolute; top:-6px; right:-4px; font-size:10px; background:var(--panel); border-radius:6px; padding:1px 4px; color:var(--dim); }
   #stick { position:fixed; left:30px; bottom:calc(30px + env(safe-area-inset-bottom,0)); width:120px; height:120px; border-radius:50%; background:#ffffff10; border:2px solid #ffffff22; }
   #knob { position:absolute; left:40px; top:40px; width:40px; height:40px; border-radius:50%; background:#ffffff40; }
   #pick { position:fixed; inset:0; display:none; background:#000a; align-items:center; justify-content:center; flex-direction:column; gap:12px; padding:16px; }
@@ -36,6 +41,7 @@
 <div id="hud"><span id="time">0:00</span><div class="bar" id="hp"><i></i></div><div class="bar" id="xp"><i></i></div><span id="lvl">Lv 1</span><span id="kills">0</span></div>
 <div id="stick"><div id="knob"></div></div>
 <button id="ult">ULT</button>
+<div id="skills"></div>
 <div id="pick"><h2>LEVEL UP</h2></div>
 <div id="end"><h2 id="endT"></h2><div id="endS"></div><button onclick="location.reload()">Again</button></div>
 <div id="start">
@@ -46,22 +52,43 @@
   <label><input type="checkbox" id="use3d" checked> 3D hero pilot: Linnet (Meshy, 1K textures)</label>
   <button id="go">PLAY</button>
   <div id="mem" style="color:var(--dim)"></div>
-  <div style="color:var(--dim);max-width:340px;text-align:center">Move with the joystick or WASD. You aim the way you move. ULT (or Space) when the ring is full.</div>
+  <div style="color:var(--dim);max-width:340px;text-align:center">Move with the joystick or WASD. You aim the way you move. Auras fire on their own; your skills are the buttons (or 1-5). ULT (or Space) when the ring is full.</div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="/assets/js/three-r128-GLTFLoader.js"></script>
-<script src="/server/survivors-core.js?v=dev1"></script>
+<script src="/server/survivors-core.js?v=dev2"></script>
 <script>
 (async function () {
   const C = window.SurvivorsCore, AURAS = await (await fetch('/server/survivors-auras.json?v=dev1')).json();
   const byKey = {}; AURAS.forEach(a => byKey[a.key] = a);
   const st = document.getElementById('stage'); for (let i = 1; i <= C.STAGES; i++) st.add(new Option('Stage ' + i, i));
   const cv = document.getElementById('cv'), g = cv.getContext('2d');
-  let S = null, input = { mx: 0, my: 0 }, ultReq = false, pickReq = null, acc = 0, last = 0;
+  let S = null, input = { mx: 0, my: 0 }, ultReq = false, skillReq = null, pickReq = null, acc = 0, last = 0;
+  /* hero kits: the hero's OWN skills as buttons. Linnet = her real kit (Mending Stitch heals, Reinforced Seam = can't drop below
+     1 HP; Golden Thread is her passive). Numbers are first-pass dev values. anim = the Meshy cast clip on her 3D model. */
+  const KITS = {
+    linnet: [{ key: 'mending_stitch', name: 'Mending Stitch', kind: 'heal', cd: 12, power: 0.3, anim: 'mage_soell_cast' },
+             { key: 'reinforced_seam', name: 'Reinforced Seam', kind: 'ward', cd: 20, dur: 4, anim: 'Charged_Spell_Cast' }],
+    Tank: [{ key: 't_ward', name: 'Bulwark', kind: 'ward', cd: 18, dur: 3 }, { key: 't_nova', name: 'Slam', kind: 'nova', cd: 7, power: 2.5 }],
+    Bruiser: [{ key: 'b_dash', name: 'Charge', kind: 'dash', cd: 6, power: 4 }, { key: 'b_nova', name: 'Cleave', kind: 'nova', cd: 6, power: 3 }],
+    Mage: [{ key: 'm_bolt', name: 'Bolt', kind: 'bolt', cd: 4, power: 4 }, { key: 'm_nova', name: 'Flare', kind: 'nova', cd: 9, power: 4 }],
+    Support: [{ key: 's_heal', name: 'Mend', kind: 'heal', cd: 12, power: 0.3 }, { key: 's_ward', name: 'Aegis', kind: 'ward', cd: 20, dur: 4 }],
+    Assassin: [{ key: 'a_dash', name: 'Blink', kind: 'dash', cd: 4, power: 5 }, { key: 'a_bolt', name: 'Knives', kind: 'bolt', cd: 3, power: 3 }],
+    Marksman: [{ key: 'k_bolt', name: 'Pierce', kind: 'bolt', cd: 3, power: 4 }, { key: 'k_dash', name: 'Roll', kind: 'dash', cd: 7, power: 3.5 }],
+  };
+  const SKPOS = [[118, 26], [104, 104], [30, 118], [190, 22], [176, 98]];   // [right, bottom] px: an arc round the ULT
+  let KIT = [];
+  function buildSkillButtons() {
+    const box = document.getElementById('skills'); box.innerHTML = '';
+    KIT.forEach((k, i) => { const b = document.createElement('button'); b.className = 'sk'; b.id = 'sk' + i;
+      b.style.right = SKPOS[i][0] + 'px'; b.style.bottom = 'calc(' + SKPOS[i][1] + 'px + env(safe-area-inset-bottom,0px))';
+      b.innerHTML = '<span class="k">' + (i + 1) + '</span><span>' + k.name.replace(' ', '<br>') + '</span><small></small>';
+      b.addEventListener('pointerdown', e => { e.preventDefault(); skillReq = i; }); box.appendChild(b); });
+  }
   function resize() { cv.width = innerWidth * devicePixelRatio; cv.height = innerHeight * devicePixelRatio; }
   addEventListener('resize', resize); resize();
   // keyboard
-  const keys = {}; addEventListener('keydown', e => { keys[e.key.toLowerCase()] = 1; if (e.code === 'Space') ultReq = true; }); addEventListener('keyup', e => keys[e.key.toLowerCase()] = 0);
+  const keys = {}; addEventListener('keydown', e => { keys[e.key.toLowerCase()] = 1; if (e.code === 'Space') ultReq = true; const n = +e.key; if (n >= 1 && n <= KIT.length) skillReq = n - 1; }); addEventListener('keyup', e => keys[e.key.toLowerCase()] = 0);
   // touch joystick
   const stick = document.getElementById('stick'), knob = document.getElementById('knob'); let sid = null, scx = 0, scy = 0, smx = 0, smy = 0;
   stick.addEventListener('pointerdown', e => { sid = e.pointerId; const r = stick.getBoundingClientRect(); scx = r.left + r.width / 2; scy = r.top + r.height / 2; stick.setPointerCapture(sid); move(e); });
@@ -82,15 +109,20 @@
     const model = gltf.scene, box = new THREE.Box3().setFromObject(model), h = box.max.y - box.min.y;
     model.scale.setScalar(1.6 / h); scene.add(model);
     const mixer = new THREE.AnimationMixer(model), clips = {}; gltf.animations.forEach(c => clips[c.name] = mixer.clipAction(c));
-    let cur = null; function play(n) { if (!clips[n] || cur === n) return; if (cur) clips[cur].fadeOut(0.15); clips[n].reset().fadeIn(0.15).play(); cur = n; }
+    let cur = null, casting = false; function play(n) { if (casting || !clips[n] || cur === n) return; if (cur) clips[cur].fadeOut(0.15); clips[n].reset().fadeIn(0.15).play(); cur = n; }
+    // a skill press plays its cast clip once (sped to fit ~1.2 s so she keeps up with the fight), then she walks again
+    function cast(n) { const a = clips[n]; if (!a) return; if (cur && cur !== n) clips[cur].fadeOut(0.1); a.reset(); a.setLoop(THREE.LoopOnce, 1); a.clampWhenFinished = false;
+      a.timeScale = Math.max(1, a.getClip().duration / 1.2); a.fadeIn(0.1).play(); cur = n; casting = true; }
+    mixer.addEventListener('finished', e => { if (e.action === clips[cur]) { casting = false; cur = null; play('Walking'); } });
     play('Walking');
     addEventListener('resize', () => { r.setSize(innerWidth, innerHeight, false); cam.aspect = innerWidth / innerHeight; cam.updateProjectionMatrix(); });
-    const info = r.info; H3 = { r, scene, cam, model, mixer, play, clips, clock: new THREE.Clock(), info, names: Object.keys(clips) };
+    const info = r.info; H3 = { r, scene, cam, model, mixer, play, cast, clips, isCasting: () => casting, clock: new THREE.Clock(), info, names: Object.keys(clips) };
     document.getElementById('mem').textContent = '3D loaded: ' + H3.names.join(', ');
   }
   document.getElementById('go').onclick = () => {
     const cls = document.getElementById('cls').value;
-    S = C.create({ key: 'dev', cls, maxHp: 3000, atk: 260, armor: 300, crit: 0.1, critDmg: 0.6 },
+    KIT = document.getElementById('use3d').checked ? KITS.linnet : KITS[cls]; buildSkillButtons();
+    S = C.create({ key: 'dev', cls, maxHp: 3000, atk: 260, armor: 300, crit: 0.1, critDmg: 0.6, skills: KIT },
                  { mode: document.getElementById('mode').value, stage: +st.value, seed: (Math.random() * 4e9) >>> 0, auras: AURAS });
     document.getElementById('start').style.display = 'none'; last = performance.now(); requestAnimationFrame(frame);
     if (document.getElementById('use3d').checked) load3d().catch(e => console.error('3D load failed', e));
@@ -113,7 +145,7 @@
     while (acc >= C.TICK && !S.ended) {
       acc -= C.TICK;
       if (S.choice) { if (pickReq == null) { if (document.getElementById('pick').style.display !== 'flex') showPick(); acc = 0; break; } C.step(S, { mx: input.mx, my: input.my, pick: pickReq }); pickReq = null; continue; }
-      C.step(S, { mx: input.mx, my: input.my, ult: ultReq }); ultReq = false;
+      C.step(S, { mx: input.mx, my: input.my, ult: ultReq, skill: skillReq == null ? undefined : skillReq }); ultReq = false; skillReq = null;
     }
     draw();
     if (S.ended) { const e = document.getElementById('end'); e.style.display = 'flex'; document.getElementById('endT').textContent = S.won ? 'STAGE CLEARED' : (S.mode === 'survive' ? 'SURVIVED' : 'FALLEN');
@@ -121,6 +153,7 @@
     requestAnimationFrame(frame);
   }
   function fmt(t) { t = Math.floor(t); return Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0'); }
+  let seenFx = 0;
   const COL = { swarmer: '#7a8a4a', runner: '#a0703a', brute: '#6a4a8a', elite: '#c23a3a', boss: '#ff2a6a' };
   function draw() {
     const W = cv.width, H = cv.height, sc = Math.min(W, H) / 22, h = S.hero;
@@ -142,7 +175,7 @@
     if (!H3) { g.fillStyle = h.iframes > 0 ? '#fff' : '#f2c14e'; g.beginPath(); g.arc(W / 2, H / 2, 0.5 * sc, 0, 7); g.fill(); }
     else {
       const moving = Math.abs(h.mvx) + Math.abs(h.mvy) > 0.01;
-      H3.play('Walking'); H3.clips.Walking.timeScale = moving ? 1 : 0;
+      if (!H3.isCasting()) { H3.play('Walking'); H3.clips.Walking.timeScale = moving ? 1 : 0; }
       H3.model.rotation.y = Math.atan2(h.dirx, h.diry);
       window._dbg = { dirx: h.dirx, diry: h.diry, roty: H3.model.rotation.y, paused: !!S.choice };   // dev probe
       H3.mixer.update(Math.min(0.05, H3.clock.getDelta())); H3.r.render(H3.scene, H3.cam);
@@ -154,6 +187,13 @@
     document.querySelector('#xp i').style.width = (100 * h.xp / h.xpNext) + '%';
     document.getElementById('lvl').textContent = 'Lv ' + h.level; document.getElementById('kills').textContent = S.kills;
     document.getElementById('ult').classList.toggle('ready', h.ult >= h.ultMax);
+    h.kit.forEach((k, i) => { const b = document.getElementById('sk' + i); if (!b) return; const f = k.cdLeft / (k.cd || 1);
+      b.style.setProperty('--cd', f.toFixed(3)); b.classList.toggle('cool', k.cdLeft > 0); b.querySelector('small').textContent = k.cdLeft > 0 ? Math.ceil(k.cdLeft) : ''; });
+    // skill + ult feedback: placeholder rings until the spell art is wired; the 3D model plays the cast clip
+    S.fx.forEach(f => { if (f.seq && f.seq > seenFx) { seenFx = f.seq; if (H3) H3.cast(f.kind === 'ult' ? 'mage_soell_cast_2' : (KIT[f.slot] || {}).anim); }
+      if (f.kind !== 'cast') return; g.globalAlpha = 1 - f.t / f.life; g.strokeStyle = (KIT[f.slot] || {}).kind === 'heal' ? '#7dffa0' : '#ffd27a'; g.lineWidth = 6;
+      g.beginPath(); g.arc(W / 2, H / 2, (1 + 3 * f.t / f.life) * sc, 0, 7); g.stroke(); g.globalAlpha = 1; });
+    if (h.wardT > 0) { g.strokeStyle = '#f2c14e'; g.lineWidth = 3; g.setLineDash([6, 6]); g.beginPath(); g.arc(W / 2, H / 2, 1.1 * sc, 0, 7); g.stroke(); g.setLineDash([]); }
   }
 })();
 </script>

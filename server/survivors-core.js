@@ -4,10 +4,11 @@
  * hordes"), design: 1. Emberweave Brain/taskings/TOWER ROUND 2 - 20 IDEAS 24OCT2026/TOWER - HERO SURVIVORS - DESIGN v1.
  * -----------------------------------------------------------------------------
  *   - ONE hero, its REAL card (the frozen snapshot's maxHp / dmg / armour / crit / lifesteal), steered with a joystick.
- *   - Everything fires on its own; directional things aim the way the hero moves (Phil: "aim your abilities the direction of
- *     movement"). The ULT is the one button.
+ *   - Auras and the base shot fire on their own; directional things aim the way the hero moves (Phil: "aim your abilities the
+ *     direction of movement"). The hero's OWN skills are buttons, roguelike style, bottom right beside the ULT (Phil 24 Oct:
+ *     "like a rogue likes, the player can use their skills" / "On the bottom right of the screen"), each on its own cooldown.
  *   - Monster hordes from every side, growing with time and stage. Kills drop XP gems; a level-up offers 3 picks.
- *   - Loadout: 5 own skills (later) + 5 auras from the hero's CLASS pool of 10 + 5 passives. Auras have 10 levels; level 10 is
+ *   - Loadout: up to 5 own skills (buttons) + 5 auras from the hero's CLASS pool of 10 + 5 passives. Auras have 10 levels; level 10 is
  *     the special form (its own art).
  *   - STORY: 30 minutes, then the stage boss; SURVIVE: endless.
  *   - DETERMINISTIC: a seed + the recorded inputs reproduce the run exactly, with no rendering, so the server can replay it
@@ -119,6 +120,11 @@
         critDmg: Math.max(0.5, +hero.critDmg || 0.6), lifesteal: Math.max(0, +hero.lifesteal || 0), speed: 4.0 * (+hero.speedMul || 1),
         level: 1, xp: 0, xpNext: 5, iframes: 0, ult: 0, ultMax: 100,
         auras: {}, passives: {}, skills: {},
+        kit: (hero.skills || []).slice(0, SLOTS.skill).map(function (k) {
+          return { key: String(k.key), name: String(k.name || k.key), kind: SKILL_KINDS[k.kind] ? k.kind : "nova",
+                   cd: Math.max(1, +k.cd || 10), power: Math.max(0, +k.power || 1), dur: Math.max(0, +k.dur || 0), cdLeft: 0 };
+        }),
+        wardT: 0,
       },
       monsters: [], nextId: 1, gems: [], shots: [], zones: [], fx: [],
       spawnAcc: 0, bossSpawned: false, boss: null,
@@ -262,7 +268,28 @@
     h.ult = 0;
     var R = 7 * areaMul(S), cosHalf = Math.cos(Math.PI / 3), d = heroDmg(S, 6);
     near(S, h.x, h.y, R, function (m, dx, dy) { var l = Math.sqrt(dx * dx + dy * dy) || 1; if ((dx * h.dirx + dy * h.diry) / l >= cosHalf) hit(S, m, d, "knock", 2); });
-    S.fx.push({ kind: "ult", x: h.x, y: h.y, dx: h.dirx, dy: h.diry, t: 0, life: 0.6 });
+    S.fx.push({ kind: "ult", x: h.x, y: h.y, dx: h.dirx, dy: h.diry, t: 0, life: 0.6, seq: S.fxN = (S.fxN | 0) + 1 });
+    return true;
+  }
+
+  /* ---- the hero's own skills: buttons, each on its own cooldown ----------------------------------------------------------------
+   * kit row: { key, name, kind, cd (s), power, dur (s) }. The kind says what the press does; the hero's own spell art plays on top.
+   *   heal  - restore power x max HP          (Linnet: Mending Stitch)
+   *   ward  - for dur s her HP cannot drop below 1   (Linnet: Reinforced Seam - "can't drop below 1 HP")
+   *   nova  - power x attack to everything within 4 m, knocked back
+   *   bolt  - a piercing bolt the way you move, power x attack
+   *   dash  - power metres the way you move, untouchable for 0.3 s */
+  var SKILL_KINDS = {
+    heal: function (S, k, h) { h.hp = Math.min(h.maxHp, h.hp + h.maxHp * k.power); },
+    ward: function (S, k, h) { h.wardT = Math.max(h.wardT, k.dur || 4); },
+    nova: function (S, k, h) { var d = heroDmg(S, k.power); near(S, h.x, h.y, 4 * areaMul(S), function (m) { hit(S, m, d, "knock", 1.5); }); },
+    bolt: function (S, k, h) { S.shots.push({ key: k.key, x: h.x, y: h.y, vx: h.dirx * 18, vy: h.diry * 18, r: 0.6, life: 1.0, pierce: 99, dmg: heroDmg(S, k.power), fk: "none", hit: {}, bounce: 0 }); },
+    dash: function (S, k, h) { h.x += h.dirx * k.power; h.y += h.diry * k.power; h.iframes = Math.max(h.iframes, 0.3); },
+  };
+  function useSkill(S, i) {
+    var h = S.hero, k = h.kit[i | 0]; if (!k || k.cdLeft > 0) return false;
+    SKILL_KINDS[k.kind](S, k, h); k.cdLeft = k.cd * cdMul(S);
+    S.fx.push({ kind: "cast", key: k.key, slot: i | 0, x: h.x, y: h.y, t: 0, life: 0.5, seq: S.fxN = (S.fxN | 0) + 1 });
     return true;
   }
 
@@ -315,13 +342,15 @@
   }
 
   /* ---- one fixed tick -------------------------------------------------------------------------------------------------------------
-   * input: { mx, my } joystick (-1..1), ult: true on the tick it is pressed, pick: index when a level-up is open.
+   * input: { mx, my } joystick (-1..1), ult: true on the tick it is pressed, skill: kit slot pressed this tick,
+   * pick: index when a level-up is open.
    * Every call is recorded in S.inputs as compact changes, so a replay feeds the same values on the same ticks. */
   function record(S, input) {
     var last = S._lastIn || { mx: 0, my: 0 };
     var qx = Math.round(clamp(+input.mx || 0, -1, 1) * 100), qy = Math.round(clamp(+input.my || 0, -1, 1) * 100);
     if (qx !== last.mx || qy !== last.my) { S.inputs.push([S.tick, "m", qx, qy]); S._lastIn = { mx: qx, my: qy }; }
     if (input.ult) S.inputs.push([S.tick, "u"]);
+    if (input.skill != null && !S.choice) S.inputs.push([S.tick, "s", input.skill | 0]);
     if (input.pick != null && S.choice) S.inputs.push([S.tick, "c", input.pick | 0]);
     return { mx: qx / 100, my: qy / 100 };
   }
@@ -340,6 +369,9 @@
     }
     if (h.haste > 0) h.haste -= dt;
     if (input.ult) ult(S);
+    for (var ki = 0; ki < h.kit.length; ki++) if (h.kit[ki].cdLeft > 0) h.kit[ki].cdLeft = Math.max(0, h.kit[ki].cdLeft - dt);
+    if (input.skill != null) useSkill(S, input.skill);
+    if (h.wardT > 0) h.wardT -= dt;
     spawnStep(S, dt);
     buildGrid(S);
     // auras
@@ -384,7 +416,7 @@
       m.x += dx / d * sp3 * dt; m.y += dy / d * sp3 * dt;
       if (d <= m.r + 0.45 && h.iframes <= 0) {
         if (h.guard > 0) { h.guard--; h.iframes = 0.4; }
-        else { var dmg = m.dmg * taken; h.hp -= dmg; S.taken += dmg; h.iframes = 0.5; if (h.thorns) hit(S, m, h.atk * h.thorns, "dot", 1); }
+        else { var dmg = m.dmg * taken; h.hp -= dmg; S.taken += dmg; h.iframes = 0.5; if (h.wardT > 0 && h.hp < 1) h.hp = 1; if (h.thorns) hit(S, m, h.atk * h.thorns, "dot", 1); }
       }
     }
     if (h.iframes > 0) h.iframes -= dt;
@@ -412,7 +444,7 @@
     var cur = { mx: 0, my: 0 }, limit = maxTicks || Math.ceil((STORY_SECONDS + 600) / TICK);
     while (!S.ended && S.tick < limit) {
       var evs = byTick[S.tick], inp = { mx: cur.mx, my: cur.my };
-      if (evs) evs.forEach(function (e) { if (e[1] === "m") { cur = { mx: e[2] / 100, my: e[3] / 100 }; inp.mx = cur.mx; inp.my = cur.my; } else if (e[1] === "u") inp.ult = true; else if (e[1] === "c") inp.pick = e[2]; });
+      if (evs) evs.forEach(function (e) { if (e[1] === "m") { cur = { mx: e[2] / 100, my: e[3] / 100 }; inp.mx = cur.mx; inp.my = cur.my; } else if (e[1] === "u") inp.ult = true; else if (e[1] === "s") inp.skill = e[2]; else if (e[1] === "c") inp.pick = e[2]; });
       if (S.choice && inp.pick == null && !evs) break;                                              // a log that stops at an open pick ends there
       step(S, inp);
     }
@@ -421,12 +453,13 @@
   function digest(S) {
     var h = S.hero;
     return JSON.stringify({ t: r4(S.t), tick: S.tick, won: S.won, ended: S.ended, kills: S.kills, level: h.level, hp: Math.round(h.hp),
-      dealt: Math.round(S.dealt), x: r4(h.x), y: r4(h.y), auras: h.auras, passives: h.passives, mode: S.mode, stage: S.stage });
+      dealt: Math.round(S.dealt), cds: h.kit.map(function (k) { return r4(k.cdLeft); }), x: r4(h.x), y: r4(h.y), auras: h.auras, passives: h.passives, mode: S.mode, stage: S.stage });
   }
 
   global.SurvivorsCore = {
     TICK: TICK, STORY_SECONDS: STORY_SECONDS, STAGES: STAGES, SLOTS: SLOTS, AURA_MAX: AURA_MAX, PASSIVE_MAX: PASSIVE_MAX,
     PASSIVES: PASSIVES, LADDER: LADDER, MONSTERS: MONSTERS, fxKind: fxKind,
+    SKILL_KINDS: Object.keys(SKILL_KINDS), useSkill: useSkill,
     create: create, step: step, choose: choose, offers: offers, replay: replay, digest: digest, stageScale: stageScale,
   };
   if (typeof module !== "undefined" && module.exports) module.exports = global.SurvivorsCore;
