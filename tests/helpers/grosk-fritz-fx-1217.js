@@ -13,4 +13,4 @@ const CODE = `(()=>{ const B=${JSON.stringify(FIX)}, J=o=>JSON.parse(JSON.string
   if(typeof FX1123_WARM!=='undefined'){ delete FX1123_WARM.grosk; delete FX1123_WARM.fritz; delete FX1123_WARM.hobb; }
   if(typeof SKP_OWNFX!=='undefined'){ delete SKP_OWNFX.gfist; delete SKP_OWNFX.fstrike; delete SKP_OWNFX.fchain; delete SKP_OWNFX.fstorm; delete SKP_OWNFX.hglaze; }
   return 1; })()`;
-module.exports = { undoGroskFritzFx1217: run => run(CODE), FIX_GROSK_FRITZ_FX_1217: FIX };
+module.exports = { undoGroskFritzFx1217: run => { require('./grosk-gravemaw-1218.js').undoGroskGravemaw1218(run); return run(CODE); }, FIX_GROSK_FRITZ_FX_1217: FIX };   /* v1218 Gravemaw Pull (a later release) goes back off first */
