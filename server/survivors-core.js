@@ -25,8 +25,9 @@
   var MAX_MONSTERS = 300;                         // waves stop topping up at 300 alive (as Vampire Survivors does)
   var HARD_MAX = 360;                             // phone budget: bosses + map events may go over 300, never over this
   // the VIEW, in metres, the same for every player (a bigger phone must not see more of the horde). Landscape (the game is
-  // landscape); Phil 24 Oct "Zoom out more the game is too zoomed in": 22 m high -> 30 m. Spawns land just outside it.
-  var VIEW = { w: 64, h: 30 };
+  // landscape); Phil 24 Oct "Zoom out more the game is too zoomed in": 22 m high -> 30 m, then "just slightly more": 34 m.
+  // Spawns land just outside it.
+  var VIEW = { w: 72, h: 34 };
   var CELL = 2.5;                                 // spatial-hash cell (world units ~ metres)
 
   function mulberry32(a) { return function () { var t = a += 0x6D2B79F5; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
