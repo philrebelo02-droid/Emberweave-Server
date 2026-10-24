@@ -55,9 +55,10 @@ function guardianWaves(f, req, nodes, season) {
   return { node: node.id, waves: node.waves.map(w => w.map(m => Object.assign({}, m, { hpMul: +((m.hpMul || 1) * hm).toFixed(4), dmgMul: +((m.dmgMul || 1) * dm).toFixed(4) }))) };
 }
 /* ECHO floors: ONE wave of the recorded five at their recorded levels, scaled to the floor's requirement (Grok QA #2) - HP by m,
-   damage by m^0.7 (the Starless Well's hero-foe convention), m = requirement / the lineup's power when it was recorded, never below 1 */
+   damage by m^0.7 (the Starless Well's hero-foe convention), m = requirement / the lineup's power when it was recorded - up OR down, so an
+   echo is as strong as the floor asks, never a free copy and never a wall (calibration 24 Oct: an unscaled echo of a team 40x the floor was 0/4) */
 function echoWaves(rec, req) {
-  const m = Math.max(1, Math.min(50, req / Math.max(1, rec.pow | 0))), dd = Math.pow(m, 0.7);
+  const m = Math.max(0.02, Math.min(50, req / Math.max(1, rec.pow | 0))), dd = Math.pow(m, 0.7);   /* both ways: TO the floor's requirement (Grok QA #2) */
   return [rec.keys.slice(0, 5).map((key, i) => ({ key, lvl: Math.max(1, (rec.lv && rec.lv[i]) | 0 || 1), hpMul: +m.toFixed(4), dmgMul: +dd.toFixed(4), isHero: true, rank: ECHO_RANK, echo: true }))];
 }
 function floorPlan(ctx, T, f) {

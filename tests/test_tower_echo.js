@@ -25,7 +25,7 @@ const rec = { keys: ['a', 'b', 'c', 'd', 'e'], lv: [40, 41, 42, 43, 44], pow: 50
 const ew = T2.echoWaves(rec, 20000);
 ok(ew.length === 1 && ew[0].length === 5 && ew[0].every(m => m.isHero && m.echo), 'an echo is ONE wave of the recorded five as hero foes');
 ok(ew[0].every((m, i) => m.lvl === rec.lv[i]) && ew[0][0].hpMul === 4, 'at their recorded levels, scaled to the floor (20000 / 5000 = x4 HP) - Grok QA #2');
-ok(T2.echoWaves(rec, 2000)[0][0].hpMul === 1, 'an echo is never scaled DOWN below its own power');
+ok(T2.echoWaves(rec, 2500)[0][0].hpMul === 0.5, 'an echo is scaled DOWN too when the floor asks less (2500 / 5000 = x0.5) - to the requirement, both ways');
 
 // ---------- B. HTTP ----------
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ew-tower-echo-')), dbFile = path.join(dir, 'db.json');
@@ -66,7 +66,8 @@ const editTower = async (id, fn) => { await delay(300); await stop(); const db =
   ok(st.data.next.pay.gold === 0 && st.data.next.pay.echoBonus > 0, 'a re-climbed floor pays no floor gold, only the echo bonus (control)');
   ok(JSON.stringify(st.data.echoes) === '[1,2,3]', 'floors 1-3 are haunted (' + st.data.echoes + ')');
   const gb = await gold(); const { s: es, r: er } = await fight(keys);
-  ok(es.data.type === 'echo' && es.data.waves[0].every(m => m.isHero && m.hpMul >= 1), 'the echo fight is the scaled hero wave');
+  { const want = +(Math.max(0.02, Math.min(50, es.data.pay && st.data.next.req / Math.max(1, st.data.power))).toFixed(4));
+  ok(es.data.type === 'echo' && es.data.waves[0].every(m => m.isHero && m.hpMul > 0), 'the echo fight is the scaled hero wave (hpMul ' + es.data.waves[0][0].hpMul + ')'); }
   ok(er.data.won && er.data.rested && er.data.echoBonus === st.data.next.pay.echoBonus && er.data.gold === 0 && (await gold()) - gb === er.data.echoBonus, 'echo laid to rest: paid exactly the bonus (' + er.data.echoBonus + ')');
   st = await post('/api/tower/state', {}); ok(st.data.floor === 1 && JSON.stringify(st.data.rested) === '[1]' && st.data.next.type === 'echo' && st.data.next.floor === 2, 'floor 1 rested; floor 2 is the next echo');
   // tribute follows the season floor (1), not the best (3)
