@@ -44,6 +44,40 @@
   #quit { position:fixed; top:calc(34px + env(safe-area-inset-top,0px)); right:calc(12px + env(safe-area-inset-right,0px)); padding:6px 12px; border-radius:8px; border:1px solid #ffffff33; background:#0008; color:var(--ink); font-size:12px; }
   #end button, #start .leave { font-size:16px; padding:10px 14px; border-radius:8px; border:1px solid #ffffff33; background:var(--panel); color:var(--ink); }
   body.ingame .devonly { display:none !important; }
+  body.ingame #start { display:none !important; }
+  /* the lobby: the Island of Trials art behind, the picked hero's card on the left, 20 heroes on the right */
+  #lobby { position:fixed; inset:0; z-index:5; display:flex; flex-direction:column; gap:1.6vh; padding:calc(1.8vh + env(safe-area-inset-top,0px)) calc(2.4vw + env(safe-area-inset-right,0px)) calc(2vh + env(safe-area-inset-bottom,0px)) calc(2.4vw + env(safe-area-inset-left,0px));
+           background:linear-gradient(180deg,#0a0d14cc,#0a0d14ee 60%,#06080cf5), url('/assets/img/world-map/trials.webp') center/cover; font-family:Georgia,'Times New Roman',serif; }
+  #lobby[hidden] { display:none; }
+  .lbTop { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  .lbTitle { color:var(--gold); font-weight:700; font-size:min(4.6vh,26px); letter-spacing:.08em; text-transform:uppercase; text-shadow:0 2px 10px #000, 0 0 18px #ff7a2a55; }
+  .lbBtn { font:600 min(3vh,14px) Georgia,serif; color:#ffe9b8; background:linear-gradient(#1b2338,#0f1422); border:1px solid #8a6b2e; border-radius:8px; padding:.9vh 1.4vw; box-shadow:inset 0 1px 0 #ffffff18,0 2px 8px #0008; }
+  .lbMain { flex:1; min-height:0; display:flex; gap:2.4vw; }
+  .lbHero { flex:0 0 34%; display:flex; flex-direction:column; align-items:center; gap:1vh; min-width:0; }
+  .lbCard { flex:1; min-height:0; aspect-ratio:3/4; max-width:100%; border-radius:12px; overflow:hidden; border:2px solid #c99a3e;
+            box-shadow:0 0 0 1px #000, 0 6px 26px #000c, 0 0 34px #ff7a2a33; background:#120d0a; animation:lbGlow 3.2s ease-in-out infinite; }
+  .lbCard img { width:100%; height:100%; object-fit:cover; display:block; }
+  @keyframes lbGlow { 50% { box-shadow:0 0 0 1px #000, 0 6px 26px #000c, 0 0 46px #ff7a2a66; } }
+  @media (prefers-reduced-motion: reduce) { .lbCard { animation:none; } }
+  .lbInfo { text-align:center; }
+  .lbName { color:#fff3dc; font-size:min(4.2vh,22px); font-weight:700; text-shadow:0 2px 6px #000; }
+  .lbSub { color:var(--gold); font-style:italic; font-size:min(2.8vh,13px); }
+  .lbMeta { color:#b9a88c; font:600 min(2.6vh,12px) system-ui,sans-serif; letter-spacing:.04em; margin-top:.4vh; font-variant-numeric:tabular-nums; }
+  .lbRight { flex:1; min-width:0; display:flex; flex-direction:column; gap:1.6vh; }
+  .lbGrid { flex:1; min-height:0; display:grid; grid-template-columns:repeat(5,1fr); grid-auto-rows:1fr; gap:min(1.4vh,1vw); }
+  .lbT { position:relative; border-radius:9px; overflow:hidden; border:2px solid #3a4c72; background:#0e1420; padding:0; cursor:pointer; min-height:0; box-shadow:0 2px 8px #0009; }
+  .lbT img { width:100%; height:100%; object-fit:cover; object-position:50% 18%; display:block; }
+  .lbT span { position:absolute; left:0; right:0; bottom:0; padding:.3vh .3vw; font:600 min(2.2vh,11px) Georgia,serif; color:#fff3dc; text-align:center;
+              background:linear-gradient(transparent,#000d); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .lbT.on { border-color:#ffd45e; box-shadow:0 0 0 1px #000, 0 0 16px #ffb84d99; }
+  .lbT.off { filter:grayscale(1) brightness(.45); cursor:default; border-color:#242c3e; }
+  .lbGo { display:flex; align-items:center; justify-content:flex-end; gap:1.4vw; }
+  .lbSeg { display:flex; border:1px solid #8a6b2e; border-radius:8px; overflow:hidden; }
+  .lbSeg button { font:600 min(3vh,14px) Georgia,serif; color:#b9a88c; background:#0f1422; border:0; padding:1vh 1.6vw; }
+  .lbSeg button.on { color:#1a0d05; background:linear-gradient(#ffd977,#d9a23a); }
+  #lbStage { font:600 min(3vh,14px) Georgia,serif; color:#ffe9b8; background:#0f1422; border:1px solid #8a6b2e; border-radius:8px; padding:1vh 1vw; }
+  #lbPlay { font:800 min(4vh,20px) Georgia,serif; letter-spacing:.12em; color:#1a0d05; background:linear-gradient(#ffb15a,#ff7a2a 55%,#c2481a); border:1px solid #ffd9a0;
+            border-radius:10px; padding:1.2vh 3.4vw; box-shadow:0 0 22px #ff7a2a88, inset 0 1px 0 #fff6; }
   #end { position:fixed; inset:0; display:none; align-items:center; justify-content:center; flex-direction:column; gap:8px; background:#000c; }
 </style>
 </head>
@@ -57,6 +91,17 @@
 <div id="pick"><h2>LEVEL UP</h2></div>
 <div id="end"><h2 id="endT"></h2><div id="endS"></div><button onclick="location.reload()">Again</button><button class="leave" hidden>Leave</button></div>
 <button id="quit" class="leave" hidden>Leave</button>
+<!-- v1220 the lobby (in the game): a hero to pick from 20 (only those with a 3D model can play for now), the mode, the stage, PLAY -->
+<div id="lobby" hidden>
+  <div class="lbTop"><button class="lbBtn" id="lbLeave">Leave</button><div class="lbTitle" id="lbTitle">Hero Survivors</div><button class="lbBtn" id="lbSpire">Ascendant Spire</button></div>
+  <div class="lbMain">
+    <div class="lbHero"><div class="lbCard"><img id="lbArt" alt=""></div>
+      <div class="lbInfo"><div class="lbName" id="lbName"></div><div class="lbSub" id="lbSub"></div><div class="lbMeta" id="lbMeta"></div></div></div>
+    <div class="lbRight"><div class="lbGrid" id="lbGrid"></div>
+      <div class="lbGo"><div class="lbSeg" id="lbMode"><button data-m="story" class="on">Story</button><button data-m="survive">Survive</button></div>
+        <select id="lbStage"></select><button id="lbPlay">PLAY</button></div></div>
+  </div>
+</div>
 <div id="start">
   <h1 style="color:var(--gold);margin:0">HERO SURVIVORS</h1><div style="color:var(--dim)">Story · Stage 1 · Emberfall Vale</div>
   <label class="devonly">Class <select id="cls"><option>Tank</option><option>Bruiser</option><option>Mage</option><option>Support</option><option>Assassin</option><option>Marksman</option></select></label>
@@ -147,7 +192,29 @@
   // in the game: Linnet in 3D, no dev pickers; Leave tells the game to close the frame
   if (new URLSearchParams(location.search).get('game') === '1') { document.body.classList.add('ingame'); document.getElementById('use3d').checked = true; document.title = 'Hero Survivors';
     document.querySelectorAll('.leave').forEach(b => { b.hidden = false; b.onclick = () => { try { parent.postMessage('survivors-close', location.origin); } catch (e) {} }; });
-    document.getElementById('quit').hidden = true; }
+    document.getElementById('quit').hidden = true; lobby(); }
+  // the lobby: 20 heroes from the game (Linnet only, outside the game); only the playable ones can be picked
+  function lobby() {
+    const L = document.getElementById('lobby'); L.hidden = false; let heroes = [], pick = 'linnet', mode = 'story';
+    const stS = document.getElementById('stage'), lbS = document.getElementById('lbStage'); lbS.innerHTML = stS.innerHTML;
+    const show = () => { const h = heroes.find(x => x.key === pick) || heroes[0]; if (!h) return;
+      document.getElementById('lbArt').src = h.img; document.getElementById('lbName').textContent = h.name; document.getElementById('lbSub').textContent = h.sub;
+      document.getElementById('lbMeta').textContent = [h.cls, h.lv ? 'Lv ' + h.lv : '', h.stars ? h.stars + '★' : '', h.power ? 'Power ' + h.power.toLocaleString() : ''].filter(Boolean).join('  ·  ');
+      document.querySelectorAll('.lbT').forEach(t => t.classList.toggle('on', t.dataset.k === h.key)); };
+    const build = list => { heroes = list; const g = document.getElementById('lbGrid'); g.innerHTML = '';
+      list.forEach(h => { const b = document.createElement('button'); b.className = 'lbT' + (h.playable ? '' : ' off'); b.dataset.k = h.key; b.disabled = !h.playable;
+        b.innerHTML = '<img alt="" loading="lazy"><span></span>'; b.querySelector('img').src = h.img; b.querySelector('span').textContent = h.name;
+        if (h.playable) b.onclick = () => { pick = h.key; show(); }; g.appendChild(b); }); show(); };
+    build([{ key: 'linnet', name: 'Linnet', sub: 'Threadseer', cls: 'Support', img: '/assets/img/hero-cards/card-linnet.webp', playable: true }]);
+    addEventListener('message', e => { if (e.origin === location.origin && e.data && e.data.type === 'survivors-roster' && Array.isArray(e.data.heroes)) build(e.data.heroes); });
+    try { parent.postMessage('survivors-ready', location.origin); } catch (e) {}
+    document.querySelectorAll('#lbMode button').forEach(b => b.onclick = () => { mode = b.dataset.m; document.querySelectorAll('#lbMode button').forEach(x => x.classList.toggle('on', x === b)); lbS.disabled = mode === 'survive'; });
+    const post = m => { try { parent.postMessage(m, location.origin); } catch (e) {} };
+    document.getElementById('lbLeave').onclick = () => post('survivors-close');
+    document.getElementById('lbSpire').onclick = () => post('survivors-spire');
+    document.getElementById('lbPlay').onclick = () => { document.getElementById('mode').value = mode; stS.value = lbS.value; document.getElementById('use3d').checked = pick === 'linnet';
+      L.hidden = true; document.getElementById('go').click(); };
+  }
   document.getElementById('go').onclick = () => {
     if (document.body.classList.contains('ingame')) document.getElementById('quit').hidden = false;
     const cls = document.getElementById('use3d').checked ? 'Support' : document.getElementById('cls').value;   // Linnet is a Support
