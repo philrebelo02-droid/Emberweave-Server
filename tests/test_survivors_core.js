@@ -95,7 +95,7 @@ UTIL.forEach(a => {
     for (let q = 0; q < 12; q++) S.monsters.push({ id: S.nextId++, type: 'swarmer', x: 1 + q * 0.3, y: 0, hp: 1, maxHp: 1, dmg: 1, spd: 0, r: 0.35 });
     let best = 0;
     for (let i = 0; i < 30 * 6; i++) { C.step(S, { mx: 0, my: 0 }); const m = S.monsters.reduce((b, x) => Math.max(b, x.vuln || 0), 0);
-      best = Math.max(best, a.key === 'bastion-dome' ? (S.hero.domeDR || 0) : k === 'guard' ? (S.hero.guard || 0) : k === 'vuln' ? m : (S.hero.hp - 5e5) + (S.hero.haste || 0) * 1000); }
+      best = Math.max(best, a.key === 'bastion-dome' ? (S.hero.domeDR || 0) : a.key === 'blessed-shield' ? (S.hero.bubble || 0) : k === 'guard' ? (S.hero.guard || 0) : k === 'vuln' ? m : (S.hero.hp - 5e5) + (S.hero.haste || 0) * 1000); }
     return best;
   });
   if (!(res[0] > 0 && res[1] > res[0])) noEffect.push(a.key + ' (' + res.map(x => Math.round(x * 100) / 100).join(' -> ') + ')');
@@ -252,6 +252,32 @@ ok('the rhythm breathes: a lull straight after a spike', C.WAVES[11].min === 300
   { const crowd = []; for (let i = 0; i < 12; i++) crowd.push([8 + (i % 4) * 0.3, -3 + Math.floor(i / 4) * 0.3]); crowd.push([-6, 4]);
     const S = run(field('avalanche-fall', 1, crowd), 9); const drops = S.zones.filter(z => z.kind === 'drop');
     ok('avalanche-fall: rocks fall on the thickest crowd', drops.length > 0 && drops.every(z => z.x > 5), drops.map(z => z.x.toFixed(1)).join(',')); }
+}
+
+// 14. the 10 SUPPORT spells each do their OWN thing (Linnet's class)
+{
+  const SH = Object.assign({}, HERO, { cls: 'Support' });
+  function field(key, lv, mons) { const S = C.create(SH, { seed: 9, auras: AURAS }); S.noSpawn = true; S._baseT = 1e9; S.hero.maxHp = 1e6; S.hero.hp = 5e5;
+    if (key) S.hero.auras[key] = lv; (mons || []).forEach(([x, y, o]) => S.monsters.push(Object.assign({ id: S.nextId++, type: 'brute', x, y, hp: 1e6, maxHp: 1e6, dmg: 1, spd: 0, r: 0.6 }, o || {}))); return S; }
+  const run = (S, n, inp) => { for (let i = 0; i < n; i++) C.step(S, typeof inp === 'function' ? inp(i) : (inp || {})); return S; };
+  { const S = run(field('halo-of-light', 1, [[2, 0], [9, 0]]), 30 * 2); ok('halo-of-light: heals you and purifies monsters in the light, not outside it', S.hero.hp > 5e5 && S.monsters[0].hp < 1e6 && S.monsters[1].hp === 1e6); }
+  { const S = run(field('song-notes', 1, [[3, 0], [4, 0]]), 30 * 1.5, { mx: 1, my: 0 }); ok('song-notes: a note charms a monster', S.monsters.some(m => m.charmT > 0)); }
+  { const S = field('song-notes', 1, [[2, 0, { charmT: 5, dmg: 50, spd: 3 }], [3, 0]]); S.hero.auras = {}; run(S, 30 * 2);
+    ok('charm: a charmed monster attacks the horde', S.monsters[1].hp < 1e6, S.monsters[1].hp); }
+  { const S = run(field('sanctuary', 1), 30 * 0.3); const c = S._state['sanctuary'].c; run(S, 30 * 2, { mx: 1, my: 0 });
+    ok('sanctuary: the circle stays where it was laid', c && S._state['sanctuary'].c && S._state['sanctuary'].c.x === c.x && S.hero.x > 3); }
+  { const S = run(field('prism-beam', 1, [[0, 4], [0, -4], [4, 0], [-4, 0]]), 30 * 4); ok('prism-beam: the sweeping beam hits all round, and blinds', S.monsters.every(m => m.hp < 1e6) && S.monsters.some(m => m.blindT > 0)); }
+  { const S = field('blessed-shield', 1, [[0.5, 0, { dmg: 30000 }]]); run(S, 30 * 0.2); const hp0 = S.hero.hp, b = S.hero.bubble; run(S, 30 * 0.6);
+    ok('blessed-shield: the bubble soaks the hit first, then pops', b > 0 && S.hero.bubble < b, b + ' -> ' + S.hero.bubble); }
+  { const S = field('spirit-lantern', 1); S.gems.push({ x: 5, y: 0, v: 3 }); run(S, 30 * 1.5); ok('spirit-lantern: the lantern carries a far gem home', S.hero.xp > 0 || S.gems.length === 0, S.hero.xp); }
+  { const S = field('bloom-path', 1); let early = 0, late = 0;
+    for (let i = 0; i < 30 * 1.5; i++) { C.step(S, { mx: 1, my: 0 }); early += S.fx.filter(f => f.kind === 'pollen').length; }   // out: flowers are planted, none burst
+    for (let i = 0; i < 30 * 2.2; i++) C.step(S, {});                                                                         // wait: they ripen (2 s)
+    for (let i = 0; i < 30 * 1.6; i++) { C.step(S, { mx: -1, my: 0 }); late += S.fx.filter(f => f.kind === 'pollen').length; } // back over them: they burst
+    ok('bloom-path: flowers burst only when you walk back over them (control: not on the way out)', early === 0 && late > 0, early + ' / ' + late); }
+  { const S = run(field('chime-pulse', 1, [[3, 0]]), 30 * 1.2); ok('chime-pulse: echo rings roll out, the last one stuns', S.dealt > 0 && S.monsters[0].stunT > 0, S.monsters[0].stunT); }
+  { const S = run(field('guardian-spirits', 1, [[1.7, 1.7]]), 30 * 0.5); ok('guardian-spirits: a spirit at its corner pushes a monster away', Math.hypot(S.monsters[0].x, S.monsters[0].y) > 2.6, Math.hypot(S.monsters[0].x, S.monsters[0].y)); }
+  { const S = run(field('sunburst', 1, [[10, 5], [-12, -4]]), 3); ok('sunburst: a flash blinds every monster on screen', S.monsters.every(m => m.blindT > 0)); }
 }
 
 console.log(fail ? `test_survivors_core: ${pass} passed, ${fail} FAILED` : `test_survivors_core: ${pass} checks passed`);

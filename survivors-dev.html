@@ -64,7 +64,7 @@
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="/assets/js/three-r128-GLTFLoader.js"></script>
-<script src="/server/survivors-core.js?v=dev9"></script>
+<script src="/server/survivors-core.js?v=dev10"></script>
 <script>
 (async function () {
   const C = window.SurvivorsCore, AURAS = await (await fetch('/server/survivors-auras.json?v=dev1')).json();
@@ -179,7 +179,7 @@
        scale   - the element IS the ring / dome / pool: scale it
        wreath  - copies circling the hero slowly (vines, plates)
        dome    - shown over the hero while its block is up                                                                    */
-  const V3_DRAWN = { 'spike-ring': 1, 'iron-bulwark': 1, 'quake-step': 1, 'thorn-hide': 1, 'taunting-roar': 1, 'boulder-roll': 1, 'molten-ground': 1, 'bastion-dome': 1 };
+  const V3_DRAWN = { 'halo-of-light': 1, 'song-notes': 1, 'sanctuary': 1, 'prism-beam': 1, 'blessed-shield': 1, 'spirit-lantern': 1, 'bloom-path': 1, 'chime-pulse': 1, 'guardian-spirits': 1, 'sunburst': 1, 'spike-ring': 1, 'iron-bulwark': 1, 'quake-step': 1, 'thorn-hide': 1, 'taunting-roar': 1, 'boulder-roll': 1, 'molten-ground': 1, 'bastion-dome': 1 };
   const ART = {}, USE = { 'spike-ring': 'ring', 'taunting-roar': 'scale', 'thorn-hide': 'wreath', 'bastion-dome': 'dome' };
   function artFor(key) {
     if (!key || key === '_base') return null; if (ART[key] !== undefined) return ART[key];
@@ -198,6 +198,35 @@
     g.save(); g.globalAlpha = alpha == null ? 1 : alpha; g.translate(x, y); if (rot) g.rotate(rot); if (sx) g.scale(sx, 1);
     g.drawImage(im, -im.width * k / 2, -im.height * k / 2, im.width * k, im.height * k); g.restore(); }
   function pick(rec, k) { return rec && (lvOf(k) >= 10 && rec.lv10 ? rec.lv10 : rec.unit); }
+  // SUPPORT spells: the art element when it has landed, a plain shape until then (same motion either way)
+  function sym(k, x, y, size, rot, alpha, col, shape) { const rec = artFor(k), im = rec && pick(rec, k);
+    if (im) return el(im, x, y, size, rot, alpha);
+    g.save(); g.globalAlpha = alpha == null ? 1 : alpha; g.translate(x, y); if (rot) g.rotate(rot); g.strokeStyle = col; g.fillStyle = col; g.lineWidth = Math.max(2, size * 0.08);
+    if (shape === 'ring') { g.beginPath(); g.arc(0, 0, size / 2, 0, 7); g.stroke(); } else if (shape === 'beam') { g.fillRect(-size * 0.04, -size / 2, size * 0.08, size); }
+    else { g.beginPath(); g.arc(0, 0, size / 2, 0, 7); g.fill(); } g.restore(); }
+  function drawSupport(X, Y, sc, cx, cy, t, am) { const h = S.hero, A = h.auras;
+    const st = k => S._state[k] || {};
+    if (A['sanctuary'] && st('sanctuary').c) { const c = st('sanctuary').c; sym('sanctuary', X(c.x), Y(c.y), c.r * 2 * sc, t * 0.2, 0.45, '#ffe9a8', 'ring'); }
+    if (A['halo-of-light']) { const r = st('halo-of-light').r || 3; g.save(); g.globalAlpha = 0.12 + 0.04 * Math.sin(t * 2); g.fillStyle = '#fff3c4'; g.beginPath(); g.arc(cx, cy, r * sc, 0, 7); g.fill(); g.restore();
+      sym('halo-of-light', cx, cy - 2.4 * sc, 1.6 * sc, 0, 0.95, '#ffe680', 'ring'); }
+    (st('bloom-path').fl || []).forEach((f, i) => { if (!A['bloom-path']) return; const grow = Math.min(1, f.age / 2); sym('bloom-path', X(f.x), Y(f.y), (0.5 + 0.6 * grow) * sc, i, 0.9, f.age > 2 ? '#ff9ad5' : '#7ad67a'); });
+    if (A['prism-beam']) { const p = st('prism-beam'), cols = ['#ff6a6a', '#ffd36a', '#7aff8a', '#6ad0ff', '#a07aff', '#ff7ae0'];
+      for (let i = 0; i < (p.n || 1); i++) { const a = (p.a || 0) + i * Math.PI * 2 / (p.n || 1), L = (p.len || 6) * sc;
+        sym('prism-beam', cx + Math.cos(a) * L / 2, cy + Math.sin(a) * L / 2, L, a + Math.PI / 2, 0.75, lvOf('prism-beam') >= 10 ? cols[i % 6] : '#fff7c4', 'beam'); } }
+    S.notes.forEach(n => sym(n.key, X(n.x), Y(n.y), 0.9 * sc, Math.sin(n.t * 8) * 0.4, 1 - n.t / n.life * 0.5, '#c9a6ff'));
+    if (A['spirit-lantern']) { const p = st('spirit-lantern'); if (p.lx != null) sym('spirit-lantern', X(p.lx), Y(p.ly) - Math.sin(t * 3) * 0.2 * sc, 1.3 * sc * (p.call > 0 ? 1.6 : 1), Math.sin(t * 2) * 0.15, 1, '#ffcc66'); }
+    (st('guardian-spirits').sp || []).forEach((p, i) => { if (A['guardian-spirits']) sym('guardian-spirits', X(p[0]), Y(p[1]) - Math.abs(Math.sin(t * 2 + i)) * 0.2 * sc, 1.5 * sc, 0, 0.9, '#a8e6ff'); });
+    if (A['blessed-shield'] && h.bubble > 0) sym('blessed-shield', cx, cy - 0.3 * sc, 3.0 * sc * (1 + Math.sin(t * 4) * 0.02), 0, 0.3 + 0.4 * h.bubble / (h.bubbleMax || 1), '#bfe4ff', 'ring');
+    if (h.wings > 0) { const rec = artFor('blessed-shield'); if (rec && rec.lv10) el(rec.lv10, cx, cy - 0.6 * sc, 5 * sc, 0, Math.min(1, h.wings)); }
+    if (A['sunburst']) { const p = st('sunburst'); if (p.flash > 0) { p.flash -= 1 / 60; g.save(); g.globalAlpha = Math.max(0, p.flash) * 1.6; g.fillStyle = '#fff6d8'; g.fillRect(0, 0, g.canvas.width, g.canvas.height); g.restore(); sym('sunburst', cx, cy, 6 * sc, t, Math.max(0, p.flash) * 2, '#fff2a0'); }
+      if (p.sun > 0) { p.sun -= 1 / 60; const rec = artFor('sunburst'); if (rec && rec.lv10) el(rec.lv10, cx, cy - 6 * sc * (1 - p.sun / 1.2), 9 * sc, 0, Math.min(1, p.sun * 2)); } }
+    S.fx.forEach(f => { if (f.kind === 'pollen') { const u = f.t / f.life; sym('bloom-path', X(f.x), Y(f.y), f.r * 2 * sc * (0.4 + u), u * 2, 1 - u, '#ffd6f0', 'ring'); } });
+    S.zones.forEach(z => { if (z.delay > 0 && z.kind !== 'drop') return;
+      if (z.kind === 'ripple' && (z.key === 'chime-pulse' || z.key === 'blessed-shield')) { const u = Math.min(1, z.t / z.life), rr = (z.r0 + (z.r1 - z.r0) * u);
+        sym(z.key, cx, cy, rr * 2 * sc, 0, 1 - u, z.key === 'chime-pulse' ? '#e8f4ff' : '#bfe4ff', 'ring'); }
+      if (z.kind === 'drop' && z.key === 'chime-pulse') { const u = z.delay > 0 ? 1 - z.delay / 0.8 : 1; const rec = artFor('chime-pulse'), im = rec && (rec.lv10 || rec.unit);
+        if (im) el(im, X(z.x), Y(z.y) - (1 - u) * 10 * sc, 5 * sc, 0, 1); else sym('chime-pulse', X(z.x), Y(z.y) - (1 - u) * 10 * sc, 4 * sc, 0, 1, '#e8c56a'); } });
+  }
   function drawGroundSpells(X, Y, sc, t) {
     // v3 TANK ground pieces
     S.zones.forEach(z => { if (z.kind !== 'crack') return; const rec = artFor(z.key), im = rec && pick(rec, z.key); if (!im) return;
@@ -241,6 +270,7 @@
       el(im, X(s.x), Y(s.y), s.r * 2.6 * sc, round ? t * 8 : hd + Math.PI / 2, 1); });
     // ---- v3 TANK: each spell drawn its own way ----
     S.zones.forEach((z, zi) => { const rec = artFor(z.key), im = rec && pick(rec, z.key); if (!im || z.delay > 0) return;
+      if (z.kind === 'ripple' && z.key !== 'spike-ring') return;
       if (z.kind === 'ripple') { const u = Math.min(1, z.t / z.life), rr = (z.r0 + (z.r1 - z.r0) * u) * sc;    // spikes erupt along the wavefront
         for (let i = 0; i < z.n; i++) { const an = i / z.n * Math.PI * 2 + zi * 0.41, pop = Math.sin(Math.min(1, u * 1.4) * Math.PI);
           el(im, cx + Math.cos(an) * rr, cy + Math.sin(an) * rr, (0.6 + 1.1 * pop) * sc * 1.3, an + Math.PI / 2, 1 - u * u); } }
@@ -261,6 +291,7 @@
         for (let i = 0; i < n; i++) { const an = i / n * Math.PI * 2; el(rec.lv10, cx + Math.cos(an) * R, cy + Math.sin(an) * R, 1.2 * sc * (1 + Math.sin(t * 2 + i) * 0.06), an + Math.PI / 2, 1); } }
       else if (k === 'bastion-dome' && st.dome) { const dm = st.dome, im = lv >= 10 && rec.lv10 ? rec.lv10 : rec.unit, fade = dm.follow ? 1 : Math.min(1, dm.life * 2, (dm.max - dm.life + 0.01) * 4);   // a travelling dome never fades
         el(im, X(dm.x), Y(dm.y) - dm.r * 0.15 * sc, dm.r * 2.15 * sc * (1 + Math.sin(t * 3) * 0.015), 0, 0.5 * fade); } });
+    drawSupport(X, Y, sc, cx, cy, t, am);
     Object.keys(h.auras).forEach(k => { const a = byKey[k], rec = artFor(k); if (!a) return; const lv = lvOf(k), st = S._state[k] || {}, L = Lof(k, a.fam);
       if (V3_DRAWN[k]) return;                                         // drawn above
       if (!rec) { if (a.fam === 'orbit') { const R = 2 * L.rad * am * sc; for (let i = 0; i < L.n; i++) { const an = (st.a || 0) + i * Math.PI * 2 / L.n; g.fillStyle = '#ff7a2a'; g.beginPath(); g.arc(cx + Math.cos(an) * R, cy + Math.sin(an) * R, 0.45 * L.size * sc, 0, 7); g.fill(); } }
@@ -315,7 +346,7 @@
     const tp = TILE_M * sc, md = (v, m) => ((v % m) + m) % m, gx0 = md(W / 2 - h.x * sc, tp) - tp, gy0 = md(H / 2 - h.y * sc, tp) - tp;
     if (groundPat) { for (let x = gx0; x < W; x += tp) for (let y = gy0; y < H; y += tp) g.drawImage(groundPat, x, y, tp + 1, tp + 1); }   // the same tile, edge to edge
     else { g.fillStyle = '#3d6a2e'; g.fillRect(0, 0, W, H); }
-    S.zones.forEach(z => { if (z.delay > 0 || artFor(z.key)) return; g.globalAlpha = 0.35; g.fillStyle = z.kind === 'puddle' ? '#ff6a2a' : '#ffd27a';
+    S.zones.forEach(z => { if (z.delay > 0 || artFor(z.key) || z.kind === 'ripple' || z.kind === 'crack' || z.kind === 'roar') return; g.globalAlpha = 0.35; g.fillStyle = z.kind === 'puddle' ? '#ff6a2a' : '#ffd27a';
       const r = z.kind === 'ring' ? z.r0 + (z.r1 - z.r0) * Math.min(1, z.t / z.life) : (z.r || z.r1); g.beginPath(); g.arc(X(z.x), Y(z.y), r * sc, 0, 7); z.kind === 'ring' ? (g.strokeStyle = '#ffd27a', g.lineWidth = 4, g.stroke()) : g.fill(); g.globalAlpha = 1; });
     S.gems.forEach(m => { if (m.heal) { g.fillStyle = '#ff5a6a'; g.beginPath(); g.arc(X(m.x), Y(m.y), 0.45 * sc, 0, 7); g.fill(); g.strokeStyle = '#fff'; g.lineWidth = 2; g.stroke(); return; }
       g.fillStyle = m.v > 3 ? '#ff6a9a' : '#5fb8ff'; g.fillRect(X(m.x) - 3, Y(m.y) - 3, 6, 6); });
