@@ -15086,7 +15086,7 @@ function bringBackHiddenAllies(){
       u.x=(h&&h.x!=null)?h.x:FW/2; u.y=(h&&h.y!=null)?h.y:FD/2; u._ax=u.x; u._ay=u.y; }
   });
 }
-function beginWaveWin(){ purgeDead(true); purgeTransientFx(); bringBackHiddenAllies(); waveXfer={phase:'win',t:0}; bannerMsg('STAGE CLEARED'); }   // FINAL wave: heroes DON'T run off — they idle in place, then the victory screen
+function beginWaveWin(){ purgeDead(true); purgeTransientFx(); bringBackHiddenAllies(); waveXfer={phase:'win',t:0}; if(CUR.mode==='tower'){ const b=document.getElementById('banner');if(b)b.classList.remove('show'); }else bannerMsg('STAGE CLEARED'); }   // FINAL wave: heroes DON'T run off — they idle in place, then the victory screen
 function updateWaveXfer(dt){
   waveXfer.t+=dt;
   /* v561 (Phil: "make sure if a summon is in the middle of a summon when the wave ends they finish the summon
@@ -15419,9 +15419,10 @@ function endBattle(won){
     const acct=ACC.id, token=ACC.token; towerPendingSave(body);
     resultLater(async ep=>{let r=null;try{r=await apiResultRetry('/api/tower/resolve',body);}catch(e){}
       if(ACC.id!==acct)return;towerPendingSettle(acct,r,body.requestId);if(r&&r.ledger&&ACC.token===token)adoptLedger(r.ledger);if(resultStale(ep)||ACC.token!==token)return;
+      const b=document.getElementById('banner');if(b)b.classList.remove('show');
       const ok=!!(r&&r.ok),pending=!pendingDefinite(r),win=ok&&!!r.won;setResultVerdict(win,win?(body.stars||null):null);
       document.getElementById('resultTitle').textContent=!ok?(pending?'RESULT PENDING':'NOT COUNTED'):win?'FLOOR '+floor+' CLEARED':'DEFEAT';document.getElementById('resultTitle').className='result-big '+(win?'win':'lose');
-      document.getElementById('resultReward').innerHTML=ok?(win?towerRewardText(r.gold,r.gems)+(r.echoBonus?' · Echo bonus '+Number(r.echoBonus).toLocaleString()+' gold':''):'Your climb remains at its current floor.'):(pending?'Your result is saved on this device and will be recovered when you reopen the Spire.':escapeHTML(resultNotCountedText(r)));
+      document.getElementById('resultReward').innerHTML=ok?(win?towerRewardText(r.gold,r.gems)+(r.echoBonus?((r.gold||r.gems)?' · ':'')+'Echo bonus '+Number(r.echoBonus).toLocaleString()+' gold':''):'Your climb remains at its current floor.'):(pending?'Your result is saved on this device and will be recovered when you reopen the Spire.':escapeHTML(resultNotCountedText(r)));
       document.getElementById('resultHint').textContent='';updateHubChrome();gameSpeed=1;show('result');},800);return;}
   if(CUR.mode==='well'){ const att=CUR.attemptId, Wl=CUR.well||{}; CUR.attemptId=null;   /* v825 Starless Well */
     const _log=(INPUT_LOG||[]).slice(0,400), _dg=(window._p2lastDigest||null), _wn=(window._p2lastWon===true), _st=(window._p2lastStars|0);
@@ -15841,6 +15842,11 @@ function updateBattle(dt){
 }
 
 /* ------------------------------- 3D sync ----------------------------------- */
+/* Echo Wardens are a render treatment only: no unit fields, stats or simulation inputs change. */
+function towerEchoRender(u,spr){if(!spr||!spr.material||!CUR||CUR.mode!=='tower'||!CUR.tower||CUR.tower.type!=='echo'||u.team!=='enemy'||u._summon)return;
+  if(!(CUR.cwaves||[]).some(w=>w.some(m=>m.isHero&&m.key===u.key)))return;
+  spr.material.color.setRGB(u.flash>0?.65:.4,.95,1);spr.material.opacity*=.66;
+}
 function syncMesh(u,dt){const g=u.mesh;if(!g)return;
   if(u.sprite){ // 2D billboard sprite unit
     g.position.set(wx(u.rx==null?u.x:u.rx),0,wz(u.ry==null?u.y:u.ry)); const spr=u.sprite;   // v268: interpolated between sim ticks
@@ -16343,6 +16349,7 @@ function syncMesh(u,dt){const g=u.mesh;if(!g)return;
       spr.material.opacity=Math.max(0,1-k); spr.position.y=.05-k*.25;
       { const _dA=u.anim&&u.anim[u._animSt], _dtc=_dA&&_dA._lay&&_dA._lay.tc; spr.scale.y=Math.max(.01,u.sprH*(1-k*0.45))*(_dtc?_dtc[3]:1); }   // death: wither downward as it fades (v1154: a trimmed cell's quad is tc[3] of the logical cell, so it withers exactly like the untrimmed one)
       if(u.ring)u.ring.material.opacity=Math.max(0,.85*(1-k)); if(u.shadow)u.shadow.material.opacity=Math.max(0,.5*(1-k)); } }
+    towerEchoRender(u,spr);
     return; }
   g.position.x=wx(u.rx==null?u.x:u.rx);g.position.z=wz(u.ry==null?u.y:u.ry);g.rotation.y=(u.team==='ally')?Math.PI:0;   // v268: interpolated
   if(u.alive){u.bob+=dt*6;const bobY=Math.sin(u.bob)*.05;g.position.y=Math.max(0,bobY);
@@ -28278,7 +28285,7 @@ function openGauntlet(){ gauntRestore(); const ov=isleOverlay();
 let TOWER_SRV=null, TOWER_ACCT=null;
 function towerState(){if(!G.tower)G.tower={floor:0,trib:''};return G.tower;}
 function towerReq(floor){let r=Math.round(560*Math.pow(1.185,floor-1)*POWER_SCALE);return floor%5===0?Math.round(r*1.3):r;}
-function towerRewardText(gold,gems){return hudIcon('gold')+' '+Number(gold||0).toLocaleString()+(gems?' · '+hudIcon('gem')+' '+gems:'');}
+function towerRewardText(gold,gems){return (gold?hudIcon('gold')+' '+Number(gold).toLocaleString():'')+(gems?(gold?' · ':'')+hudIcon('gem')+' '+gems:'');}
 function towerPendingKey(acct){return 'ew_towerPending_'+acct;}
 function towerPendingRead(acct){let job=null;try{job=JSON.parse(localStorage.getItem(towerPendingKey(acct))||'null');}catch(e){}return job||PENDING_MEM['tower:'+acct]||null;}
 function towerPendingSave(body){const acct=ACC.id,job=Object.assign({acct},body);let stored=false;try{const text=JSON.stringify(job);localStorage.setItem(towerPendingKey(acct),text);stored=localStorage.getItem(towerPendingKey(acct))===text;}catch(e){}PENDING_MEM['tower:'+acct]=stored?null:job;}

@@ -36,3 +36,9 @@ Claude server commit `ada9b5f5` is merged locally. Additional validation:
 - New Echo tests are registered in `tests/run_all_tests.sh`.
 
 These are focused local checks, not a complete release-suite pass. Claude owns release coordination. No deployment performed.
+
+## In-game review follow-up (24 Oct)
+
+Claude's real-client review found ordinary hero-looking Echo foes, a generic STAGE CLEARED banner overlapping the Tower result, and a leading zero on bonus-only rewards. Echo floor hero foes now receive cyan tint and 0.66 opacity in `syncMesh`, after normal animation/death opacity. Allies, summons, Guardians and other modes remain unchanged. Only sprite material properties change; no unit fields or sim inputs change. Tower victories suppress and clear the generic banner, and bonus-only results display just the Echo bonus.
+
+`test_echo_spire_render.js` checks scope and frozen-unit nonmutation, and is registered in the release test list. The local SwiftShader screenshot rig confirms five ghost materials, real FLOOR 7 CLEARED settlement, no pending result, no visible generic banner and the exact reward text `Echo bonus 480 gold`. Screenshots and the adapted review rig are in `outputs/overnight-claude-plan-23oct/echo-ghost-review/` in the parent workspace. Grok's visual review of the ghost treatment remains pending.
