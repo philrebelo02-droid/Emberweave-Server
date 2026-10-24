@@ -15845,7 +15845,12 @@ function updateBattle(dt){
 /* Echo Wardens are a render treatment only: no unit fields, stats or simulation inputs change. */
 function towerEchoRender(u,spr){if(!spr||!spr.material||!CUR||CUR.mode!=='tower'||!CUR.tower||CUR.tower.type!=='echo'||u.team!=='enemy'||u._summon)return;
   if(!(CUR.cwaves||[]).some(w=>w.some(m=>m.isHero&&m.key===u.key)))return;
-  spr.material.color.setRGB(u.flash>0?.65:.4,.95,1);spr.material.opacity*=.66;
+  const mat=spr.material;mat.userData=mat.userData||{};
+  if(!mat.userData.ewEchoHit){mat.userData.ewEchoHit={value:0};const prior=mat.onBeforeCompile;
+    mat.onBeforeCompile=function(shader,...rest){if(prior)prior.call(this,shader,...rest);shader.uniforms.ewEchoHit=mat.userData.ewEchoHit;
+      shader.fragmentShader='uniform float ewEchoHit;\n'+shader.fragmentShader.replace('#include <map_fragment>','#include <map_fragment>\nfloat echoLuma=dot(diffuseColor.rgb,vec3(0.299,0.587,0.114)); diffuseColor.rgb=vec3(0.3,0.95,1.0)*(0.35+0.65*echoLuma)*(1.0+ewEchoHit);');};
+    mat.customProgramCacheKey=()=> 'tower-echo-cyan-v1';mat.needsUpdate=true;}
+  mat.userData.ewEchoHit.value=u.flash>0?.18:0;mat.color.setRGB(1,1,1);mat.opacity*=.66;
 }
 function syncMesh(u,dt){const g=u.mesh;if(!g)return;
   if(u.sprite){ // 2D billboard sprite unit
