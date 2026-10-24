@@ -2357,6 +2357,8 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 #stageModal .ew-stage-exit{position:sticky;top:-7px;display:flex;justify-content:flex-end;min-height:36px;z-index:50;background:#141b2b;}
 #stageModal .ew-stage-exit button{width:32px;height:32px;padding:0;font-size:22px;}
 </style>
+<link rel="stylesheet" href="assets/echo-spire-ui.css?v=echo1">
+<script src="assets/echo-spire-ui.js?v=echo1"></script>
 </head>
 <body>
 <div id="rotateGate"><div class="splashWrap"><img class="splashImg" id="splashImg" alt="Emberweave Heroes" draggable="false"><video class="splashImg" id="splashVid" autoplay muted loop playsinline></video><button class="splashPlay" id="splashPlay" aria-label="Click to Play"></button><div class="splashStatus check" id="splashStatus">Checking…</div><div class="splashStudio" id="splashStudio"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M8 5 L16 13 L24 5 L27 8 L19 16 L27 24 L24 27 L16 19 L8 27 L5 24 L13 16 L5 8 Z" fill="#d8b877"/></svg>Xanthyr Games</div><div class="splashVer" id="splashVer"></div></div></div>
@@ -10185,7 +10187,7 @@ function buildEnemyWave(){
       units.push(u); buildFigure(u); });
     return;
   }
-  if((CUR.mode==='campaign'||CUR.mode==='province'||CUR.mode==='well'||CUR.mode==='graid')&&Array.isArray(CUR.cwaves)&&CUR.cwaves.length){   /* v663: the Training Province spawns its authored waves the same way. v666: so does the guild raid */
+  if((CUR.mode==='campaign'||CUR.mode==='province'||CUR.mode==='well'||CUR.mode==='tower'||CUR.mode==='graid')&&Array.isArray(CUR.cwaves)&&CUR.cwaves.length){   /* v663: the Training Province spawns its authored waves the same way. v666: so does the guild raid */
     // AUTHORED ENCOUNTER (audit C2): every attempt at this stage spawns exactly these units.
     const specs=CUR.cwaves[Math.min(waveIdx,CUR.cwaves.length-1)]||[];
     const _keys=specs.map(x=>x.key);
@@ -14803,7 +14805,7 @@ function battleKeysForMatch(){
     if(CUR.mode!=='emberdraft') (G.team||[]).forEach(x=>_k.push(x));   // v644: Emberdraft fields only the drafted boards - the campaign squad's full sheets were loaded, uploaded and evicted every round
     if(CUR.mode==='campaign'&&STAGE_CACHE[(CUR.portal||'normal')+':'+CUR.node]) ((STAGE_CACHE[(CUR.portal||'normal')+':'+CUR.node].waves)||[]).forEach(w=>w.forEach(m=>_k.push(m.key)));
     if(CUR.mode==='vault') (CUR.vwaves||[]).forEach(w=>w.forEach(m=>_k.push(m.key)));
-    if(CUR.mode==='province'||CUR.mode==='well') (CUR.cwaves||[]).forEach(w=>w.forEach(m=>_k.push(m.key)));   /* v663 */
+    if(CUR.mode==='province'||CUR.mode==='well'||CUR.mode==='tower') (CUR.cwaves||[]).forEach(w=>w.forEach(m=>_k.push(m.key)));   /* v663 */
     if(CUR.mode==='graid') (CUR.cwaves||[]).forEach(w=>w.forEach(m=>_k.push(m.key)));   /* v666 */
     (CUR.opp||[]).forEach(e=>e&&_k.push(e.key));
     (CUR.waves||[]).forEach(w=>(w||[]).forEach(m=>m&&_k.push(m.key)));
@@ -14857,11 +14859,11 @@ function _startBattleNow(){
   try{ const _k=(CUR.mode==='emberdraft')?[]:(G.team||[]).slice();   // v644
     if(CUR.mode==='campaign'&&STAGE_CACHE[(CUR.portal||'normal')+':'+CUR.node]) ((STAGE_CACHE[(CUR.portal||'normal')+':'+CUR.node].waves)||[]).forEach(w=>w.forEach(m=>_k.push(m.key)));
     if(CUR.mode==='vault') (CUR.vwaves||[]).forEach(w=>w.forEach(m=>_k.push(m.key)));
-    if(CUR.mode==='province'||CUR.mode==='well') (CUR.cwaves||[]).forEach(w=>w.forEach(m=>_k.push(m.key)));   /* v663 */
+    if(CUR.mode==='province'||CUR.mode==='well'||CUR.mode==='tower') (CUR.cwaves||[]).forEach(w=>w.forEach(m=>_k.push(m.key)));   /* v663 */
     if(CUR.mode==='graid') (CUR.cwaves||[]).forEach(w=>w.forEach(m=>_k.push(m.key)));   /* v666 */
     (CUR.opp||[]).forEach(e=>e&&_k.push(e.key));
     preloadBattleArt(_k,(CUR&&BATTLE_MAPS[CUR.mode])||BATTLE_BG); }catch(e){}
-  clearBattle(); _battleHalted=false; _blLoading=false; selected=null;aiming=null;battleTime=0;ended=false;screenFlash=0; cancelResult(); gameSpeed=1; setBattleZoom(1); seedBattle((CUR&&CUR.seed!=null&&(CUR.mode==='replay'||CUR.mode==='campaign'||CUR.mode==='province'||CUR.mode==='well'))?CUR.seed:null);   // v270: the campaign fights on the SERVER's seed   // default 1x standard; pinch/wheel 0.5x..1.5x
+  clearBattle(); _battleHalted=false; _blLoading=false; selected=null;aiming=null;battleTime=0;ended=false;screenFlash=0; cancelResult(); gameSpeed=1; setBattleZoom(1); seedBattle((CUR&&CUR.seed!=null&&(CUR.mode==='replay'||CUR.mode==='campaign'||CUR.mode==='province'||CUR.mode==='well'||CUR.mode==='tower'))?CUR.seed:null);   // v270: the campaign fights on the SERVER's seed   // default 1x standard; pinch/wheel 0.5x..1.5x
   if(isAutoBattle()) autoUlt=true;   // deterministic fight: ultimates are on rails from the first frame
   try{ preloadAimArt(); }catch(e){}   // v537: painted aim indicators
   if(CUR.mode==='campaign'){ autoUlt=false; chapterWaves=(Array.isArray(CUR.cwaves)&&CUR.cwaves.length)?CUR.cwaves.length:wavesForChapter(CUR.node); waveIdx=0;
@@ -14869,11 +14871,11 @@ function _startBattleNow(){
     buildEnemyWave();
     actBegin();   // v275: tell the server the battle is running, so its clock starts with ours
     bannerMsg('STAGE '+CUR.node+'\nWAVE 1'); beginWaveEnter(); }
-  else if(CUR.mode==='province'||CUR.mode==='well'){ autoUlt=false; chapterWaves=(Array.isArray(CUR.cwaves)&&CUR.cwaves.length)?CUR.cwaves.length:3; waveIdx=0;   /* v663: mirrors the campaign branch step for step - the server replays it with simCampaignReplay */
+  else if(CUR.mode==='province'||CUR.mode==='well'||CUR.mode==='tower'){ autoUlt=false; chapterWaves=(Array.isArray(CUR.cwaves)&&CUR.cwaves.length)?CUR.cwaves.length:3; waveIdx=0;   /* v663: mirrors the campaign branch step for step - the server replays it with simCampaignReplay */
     if(Array.isArray(CUR.serverSnaps)&&CUR.serverSnaps.length) spawnTeamFromSnaps(CUR.serverSnaps); else spawnTeam(G.team,'ally');
     buildEnemyWave();
     actBegin();   /* resets the action stream; province fights resolve from the submitted transcript (no live stream) */
-    bannerMsg(CUR.mode==='well'?('THE STARLESS WELL — MAP '+((CUR.well&&CUR.well.map)|0)+'\nWAVE 1'):(((PROV_META[CUR.prov&&CUR.prov.t]||PROV_META.gold).nm).toUpperCase()+' — STAGE '+((CUR.prov&&CUR.prov.stage)|0)+'\nWAVE 1')); beginWaveEnter(); }
+    bannerMsg(CUR.mode==='tower'?('ECHO SPIRE — FLOOR '+((CUR.tower&&CUR.tower.floor)|0)+'\nWAVE 1'):CUR.mode==='well'?('THE STARLESS WELL — MAP '+((CUR.well&&CUR.well.map)|0)+'\nWAVE 1'):(((PROV_META[CUR.prov&&CUR.prov.t]||PROV_META.gold).nm).toUpperCase()+' — STAGE '+((CUR.prov&&CUR.prov.stage)|0)+'\nWAVE 1')); beginWaveEnter(); }
   else if(CUR.mode==='vault'){ autoUlt=false; chapterWaves=(CUR.vwaves||[]).length||2; waveIdx=0; spawnTeam(G.team.slice(0,TEAM_SIZE),'ally');
     units.forEach(u=>{ if(u.team==='ally') u._vaultFighter=true; });   // only these (and chosen backups) can trigger the backup picker — never summons
     if(CUR.devWave2) waveIdx=chapterWaves-1;   // v362: God Mode dev jump — open straight on the final (boss) wave
@@ -15412,6 +15414,15 @@ function endBattle(won){
         : `<div style="color:#ffd45e;font-weight:700;margin-bottom:4px">This run was not counted.</div><span style="color:#ff8b8b">${escapeHTML(String((r&&r.error)||'Could not reach the realm.'))}</span>`;
       document.getElementById('resultHint').textContent='';
       updateHubChrome(); gameSpeed=1; show('result'); },800); return; }
+  if(CUR.mode==='tower'){ const att=CUR.attemptId, floor=(CUR.tower&&CUR.tower.floor)|0; CUR.attemptId=null;
+    const body={attemptId:att,requestId:uid8(),inputLog:(INPUT_LOG||[]).slice(0,400),digest:window._p2lastDigest||null,won:window._p2lastWon===true,stars:window._p2lastStars|0};
+    const acct=ACC.id, token=ACC.token; towerPendingSave(body);
+    resultLater(async ep=>{let r=null;try{r=await apiResultRetry('/api/tower/resolve',body);}catch(e){}
+      if(ACC.id!==acct)return;towerPendingSettle(acct,r,body.requestId);if(r&&r.ledger&&ACC.token===token)adoptLedger(r.ledger);if(resultStale(ep)||ACC.token!==token)return;
+      const ok=!!(r&&r.ok),win=ok&&!!r.won;setResultVerdict(win,win?(body.stars||null):null);
+      document.getElementById('resultTitle').textContent=!ok?'RESULT PENDING':win?'FLOOR '+floor+' CLEARED':'DEFEAT';document.getElementById('resultTitle').className='result-big '+(win?'win':'lose');
+      document.getElementById('resultReward').innerHTML=ok?(win?towerRewardText(r.gold,r.gems)+(r.echoBonus?' · Echo bonus '+Number(r.echoBonus).toLocaleString()+' gold':''):'Your climb remains at its current floor.'):'Your result is saved on this device and will be recovered when you reopen the Spire.';
+      document.getElementById('resultHint').textContent='';updateHubChrome();gameSpeed=1;show('result');},800);return;}
   if(CUR.mode==='well'){ const att=CUR.attemptId, Wl=CUR.well||{}; CUR.attemptId=null;   /* v825 Starless Well */
     const _log=(INPUT_LOG||[]).slice(0,400), _dg=(window._p2lastDigest||null), _wn=(window._p2lastWon===true), _st=(window._p2lastStars|0);
     resultLater(async(ep)=>{ let r=null;
@@ -16875,7 +16886,7 @@ function _showScreen(name){
   if(name==='temple') renderTemple();
   if(name==='guild'){ renderGuild(); if(ACC&&ACC.token){ startGuildPoll(); guildRefresh(); } } else { if(typeof stopGuildPoll==='function') stopGuildPoll(); }
   // pause button only in campaign/dungeon battles
-  document.getElementById('pauseBtn').classList.toggle('active', name==='battle' && (CUR.mode==='campaign'||CUR.mode==='dungeon'||CUR.mode==='vault'||CUR.mode==='province'||CUR.mode==='well'));
+  document.getElementById('pauseBtn').classList.toggle('active', name==='battle' && (CUR.mode==='campaign'||CUR.mode==='dungeon'||CUR.mode==='vault'||CUR.mode==='province'||CUR.mode==='well'||CUR.mode==='tower'));
   if(name!=='battle'){ paused=false; document.getElementById('pauseModal').classList.remove('active'); const vm=document.getElementById('vaultSubModal'); if(vm) vm.remove(); VAULT_PICK_OPEN=false; }
   if(name==='heroesPanel') renderHeroList();
   if(name==='heroDetail') renderHeroDetail();
@@ -23255,6 +23266,7 @@ function renderRoster(){
     if(!isWall && teamCtx==='campaign' && CUR.mode==='province' && CUR.prov){ const _P=CUR.prov;   /* v663 */
       document.getElementById('menuTitle').textContent=((PROV_META[_P.t]||PROV_META.gold).nm).toUpperCase()+' — STAGE '+(_P.stage|0);
       _sub.textContent='Boss: '+provBossName(_P.boss||provBossKey(_P.t,_P.stage),true)+' · 3 waves · reward '+provRewardStr(_P.t,_P.stage)+' · a loss costs nothing'; _sub.style.display=''; } }
+  if(!isWall && teamCtx==='campaign' && CUR.mode==='tower'){ document.getElementById('menuTitle').textContent='ECHO SPIRE — FLOOR '+((CUR.tower&&CUR.tower.floor)|0); }
   if(!isWall && teamCtx==='campaign' && CUR.mode==='well' && CUR.well){ document.getElementById('menuTitle').textContent='THE STARLESS WELL — MAP '+(CUR.well.map|0)+(CUR.well.type==='boss'?' · BOSS':'');   /* v825 */
     const _f=(CUR.well.foes||[]).map(k=>HERO_TYPES[k]?HERO_TYPES[k].name:k); const _s=document.getElementById('menuSub'); if(_f.length){ _s.textContent='vs '+_f.join(' · '); _s.style.display=''; } }
   document.getElementById('startBtn').style.display = setDef?'none':'block';
@@ -23815,7 +23827,7 @@ try{ addEventListener('pagehide',()=>{ try{ flushCloud(); }catch(e){} });
             normally sends that, and it stops running while hidden). Live PvP rooms are left alone —
             the other player is still fighting. */
          try{ if(state==='battle' && !ended && !paused && CUR.mode!=='online' && !(typeof OL!=='undefined'&&OL.active)
-                 && (CUR.mode==='campaign'||CUR.mode==='dungeon'||CUR.mode==='vault'||CUR.mode==='arena'||CUR.mode==='province'||CUR.mode==='well')){
+                 && (CUR.mode==='campaign'||CUR.mode==='dungeon'||CUR.mode==='vault'||CUR.mode==='arena'||CUR.mode==='province'||CUR.mode==='well'||CUR.mode==='tower')){
            paused=true; document.getElementById('pauseModal').classList.add('active'); try{ streamStall(true); }catch(e){} } }catch(e){} } }); }catch(e){}
 // load this account's cloud save into G. CLOUD-AUTHORITATIVE (Phil 26 Aug: "nothing should be local"):
 // the cloud copy always wins when adopted (sign-in and session start). localStorage exists only so the
@@ -28261,59 +28273,38 @@ function openGauntlet(){ gauntRestore(); const ov=isleOverlay();
   render();
 }
 
-/* ---- TOWER OF TRIALS (the Ascendant Spire): a permanent power ladder. Beat a floor to advance; best floor is
-        recorded forever. Elite floors (every 5th) are tougher Wardens; every 10th pays diamonds. Once-daily tribute. ---- */
-function towerState(){ if(!G.tower)G.tower={floor:0,trib:''}; return G.tower; }
-function towerReq(floor){ let r=Math.round(560*Math.pow(1.185,floor-1)*POWER_SCALE); if(floor%5===0)r=Math.round(r*1.3); return r; }   /* v809 - on the card's scale */
-/* 3 Oct 2026 audit (P0): signed in, the SERVER owns the Tower - /api/tower/state|ascend|tribute check power and pay the
-   same numbers below (server.js towerReqS/towerFloorPay/towerTribPay); /api/tx/earn no longer accepts 'tower'. Offline
-   play keeps the local ladder. towerSync() also hands a pre-v949 local floor to the server once (capped by power). */
-function towerRewardText(gold,gems){ let s=hudIcon('gold')+' '+(gold|0).toLocaleString(); if(gems) s+=' · '+hudIcon('gem')+' '+gems; return s; }
-function towerSync(){ if(!ACC.token) return Promise.resolve(null); const st=towerState();
-  return api('/api/tower/state','POST',{legacyFloor:st.floor|0,legacyTrib:st.trib||''}).then(r=>{ if(r&&r.ok){ st.floor=r.floor|0; st.trib=r.trib||''; saveG(); } return r; }).catch(()=>null); }
-async function towerFloorReward(floor){ let gold=Math.round(400*floor*Math.pow(1.08,floor)); if(gold>190000)gold=190000; let s=hudIcon('gold')+' '+gold.toLocaleString(); let gg=gold;
-  if(floor%2===0){ const bg=200+floor*25; gg+=bg; s+=' · '+hudIcon('gold')+' +'+bg+' bonus'; }
-  if(gg>200000)gg=200000; G.gold=(G.gold||0)+gg;
-  if(floor%10===0){ const gm=Math.round(floor*1.5); G.gems=(G.gems||0)+gm; s+=' · '+hudIcon('gem')+' '+gm; } updateHubChrome(); return s; }
-async function towerAscend(){ const st=towerState(), next=st.floor+1, req=towerReq(next);
-  /* v1151: the floor's requestId is the floor itself and is re-sent (apiResultRetry) while the reply is lost - a booked climb answers with its receipt */
-  if(ACC.token){ const r=await apiResultRetry('/api/tower/ascend',{requestId:'tower:floor:'+next});
-    if(r&&r.ok){ adoptLedger(r.ledger); st.floor=r.floor|0; saveG(); updateHubChrome(); return {win:true,floor:r.floor,reward:towerRewardText(r.gold,r.gems),elite:!!r.elite}; }
-    if(r&&r.wall) return {wall:true,req:r.req};
-    if(r&&/Open the Tower/.test(r.error||'')){ await towerSync(); }
-    return {pending:true,msg:resultNotCountedText(r)}; }
-  if(battlePow()<req) return {wall:true,req};
-  const rw=await towerFloorReward(next); if(rw===null)return {pending:true}; st.floor=next; saveG(); return {win:true,floor:next,reward:rw,elite:next%5===0}; }
-function towerTribReady(){ return towerState().trib!==arenaDayKey() && towerState().floor>0; }
-async function towerTribute(){ const st=towerState(); if(!towerTribReady()) return {none:true}; const day=arenaDayKey();
-  if(ACC.token){ const r=await apiResultRetry('/api/tower/tribute',{requestId:'tower:tribute:'+day});   /* v1151: re-sent while the reply is lost */
-    if(r&&r.ok){ adoptLedger(r.ledger); st.trib=r.trib||day; saveG(); updateHubChrome(); return {gold:r.gold}; }
-    if(r&&r.already){ st.trib=day; saveG(); return {none:true}; }
-    return {pending:true,msg:resultNotCountedText(r)}; }
-  const bonus=250*(1+Math.floor(st.floor/4)); let gold=Math.round(500*st.floor)+bonus; if(gold>200000)gold=200000;
-  G.gold=(G.gold||0)+gold;
-  st.trib=day; updateHubChrome(); saveG(); return {gold}; }
-function openTower(){ const ov=isleOverlay();
-  function render(msg,mc){ const st=towerState(), next=st.floor+1, req=towerReq(next), pow=battlePow(), canGo=pow>=req, trib=towerTribReady();
-    ov.innerHTML=isleCard(`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-weight:800;font-size:15px">🗼 Tower of Trials</div><button class="btn sm secondary" id="twX">${uiIcon('close')}</button></div>
-      <div style="text-align:center;margin-bottom:12px"><div style="font-size:11px;color:#8b98a9">The Ascendant Spire · your record</div><div style="font-weight:800;font-size:30px;color:#ffd45e">Floor ${st.floor}</div><div style="font-size:11px;color:#8b98a9">Your power ${statusIcon('attack')} ${pow.toLocaleString()}</div></div>
-      <div style="background:#0f1420;border-radius:10px;padding:11px;margin-bottom:8px">
-        <div style="font-weight:800;font-size:12px">${next%5===0?uiIcon('crown')+' Warden of Floor '+next:'Guardian of Floor '+next}</div>
-        <div style="font-size:11px;color:#8b98a9;margin:3px 0 8px">Requires power ${statusIcon('attack')} <b style="color:${canGo?'#5ee89b':'#ff8b8b'}">${req.toLocaleString()}</b>${next%5===0?' <span style="color:#c9a35e">(Elite — reinforced)</span>':''} · Reward ${next%10===0?hudIcon('gold')+'+'+hudIcon('gem'):hudIcon('gold')}</div>
-        <button class="btn" id="twGo" style="width:100%" ${canGo?'':'disabled'}>${canGo?statusIcon('attack')+' Ascend to Floor '+next:'Squad too weak — grow stronger'}</button></div>
-      <div style="background:#0f1420;border-radius:10px;padding:11px">
-        <div style="font-weight:800;font-size:12px;margin-bottom:3px">${uiIcon('medal')} Spire Tribute <span style="font-size:10px;color:#8b98a9">(once daily)</span></div>
-        <div style="font-size:11px;color:#8b98a9;margin-bottom:8px">${st.floor>0?'Claim a daily reward scaled to your record: '+hudIcon('gold')+' '+(Math.round(500*st.floor)+250*(1+Math.floor(st.floor/4))).toLocaleString():'Reach Floor 1 to unlock the tribute.'}</div>
-        <button class="btn secondary" id="twTrib" style="width:100%" ${trib?'':'disabled'}>${trib?uiIcon('medal')+' Claim tribute':(st.floor>0?uiIcon('check')+' Claimed today':'Locked')}</button></div>
-      <div id="twMsg" style="font-size:12px;text-align:center;min-height:18px;margin-top:8px">${msg?`<span style="color:${mc}">${msg}</span>`:''}</div>`);
-    ov.querySelector('#twX').onclick=()=>ov.remove();
-    ov.querySelector('#twGo').onclick=async()=>{ const bt=ov.querySelector('#twGo'); if(bt.dataset.busy) return; bt.dataset.busy='1'; bt.disabled=true;   /* v1151: one climb in flight */
-      const r=await towerAscend(); render(r.win?((r.elite?uiIcon('crown')+' Warden felled! ':statusIcon('attack')+' ')+'Floor '+r.floor+' conquered! '+r.reward):(r.pending?escapeHTML(r.msg||RESULT_LOST_MSG):'Squad too weak for this floor.'), r.win?'#5ee89b':'#ff8b8b'); };
-    ov.querySelector('#twTrib').onclick=async()=>{ const bt=ov.querySelector('#twTrib'); if(bt.dataset.busy) return; bt.dataset.busy='1'; bt.disabled=true;
-      const r=await towerTribute(); render(r.none?'Already claimed today.':(r.pending?escapeHTML(r.msg||RESULT_LOST_MSG):uiIcon('medal')+' Tribute claimed! '+hudIcon('gold')+' '+r.gold.toLocaleString()), (r.none||r.pending)?'#ff8b8b':'#5ee89b'); };
-  }
-  render(); towerSync().then(r=>{ if(r&&r.ok&&document.body.contains(ov)) render(); });
+/* ---- TOWER OF TRIALS: Echo Spire. Weekly climb with server-frozen Guardian/Echo encounters. ---- */
+/* ECHO SPIRE: server facts, the existing squad picker, and witnessed battle results. */
+let TOWER_SRV=null, TOWER_ACCT=null;
+function towerState(){if(!G.tower)G.tower={floor:0,trib:''};return G.tower;}
+function towerReq(floor){let r=Math.round(560*Math.pow(1.185,floor-1)*POWER_SCALE);return floor%5===0?Math.round(r*1.3):r;}
+function towerRewardText(gold,gems){return hudIcon('gold')+' '+Number(gold||0).toLocaleString()+(gems?' · '+hudIcon('gem')+' '+gems:'');}
+function towerPendingKey(acct){return 'ew_towerPending_'+acct;}
+function towerPendingRead(acct){let job=null;try{job=JSON.parse(localStorage.getItem(towerPendingKey(acct))||'null');}catch(e){}return job||PENDING_MEM['tower:'+acct]||null;}
+function towerPendingSave(body){const acct=ACC.id,job=Object.assign({acct},body);let stored=false;try{const text=JSON.stringify(job);localStorage.setItem(towerPendingKey(acct),text);stored=localStorage.getItem(towerPendingKey(acct))===text;}catch(e){}PENDING_MEM['tower:'+acct]=stored?null:job;}
+function towerPendingSettle(acct,r,id){if(!pendingDefinite(r))return;const job=towerPendingRead(acct);if(!job||job.requestId!==id)return;PENDING_MEM['tower:'+acct]=null;try{localStorage.removeItem(towerPendingKey(acct));}catch(e){}}
+async function towerResendPending(){const acct=ACC.id,token=ACC.token,job=towerPendingRead(acct);if(!token||!job||job.acct!==acct)return;const body=Object.assign({},job);delete body.acct;const r=await api('/api/tower/resolve','POST',body);if(ACC.id!==acct)return;towerPendingSettle(acct,r,body.requestId);if(r&&r.ledger&&ACC.token===token)adoptLedger(r.ledger);}
+async function towerSync(){if(TOWER_ACCT!==ACC.id){TOWER_SRV=null;TOWER_ACCT=ACC.id;}if(!ACC.token)return null;const acct=ACC.id,token=ACC.token;await towerResendPending();const r=await apiResultRetry('/api/tower/state',{requestId:uid8()});if(ACC.id!==acct||ACC.token!==token)return null;if(r&&r.ok){TOWER_SRV=r;Object.assign(towerState(),{floor:r.floor|0,trib:r.trib||''});saveG();}return r;}
+function towerTribReady(){return !!(TOWER_SRV&&TOWER_SRV.floor>0&&TOWER_SRV.trib!==TOWER_SRV.today);}
+async function towerTribute(){const acct=ACC.id,token=ACC.token;if(!towerTribReady())return {none:true};const r=await apiResultRetry('/api/tower/tribute',{requestId:'tower:tribute:'+TOWER_SRV.today});if(ACC.id!==acct||ACC.token!==token)return {pending:true,msg:'Account changed.'};if(r&&r.ledger)adoptLedger(r.ledger);if(r&&r.ok){await towerSync();updateHubChrome();return {gold:r.gold};}return {pending:true,msg:resultNotCountedText(r)};}
+function towerBackToCard(){show('skyisland');setTimeout(()=>openTower(),0);}
+function towerChooseLineup(){document.querySelectorAll('.echoSpireOverlay').forEach(n=>n.remove());CUR={mode:'tower',tower:{floor:TOWER_SRV&&TOWER_SRV.next&&TOWER_SRV.next.floor}};teamCtx='campaign';menuReturn='skyisland';show('menu');}
+async function towerLaunch(ctx){if(!ACC.token){bannerMsg('Connect to enter Echo Spire.');return;}const acct=ACC.id,token=ACC.token,cur=CUR;await towerResendPending();if(ACC.id!==acct||ACC.token!==token||CUR!==cur)return;if(towerPendingRead(acct)){bannerMsg('Your previous Tower result is still being recovered.');return;}
+  const ids=(G.team||[]).filter(Boolean).slice(0,5);if(!ids.length)return;
+  const r=await apiResultRetry('/api/tower/start',{requestId:uid8(),heroIds:ids});
+  if(ACC.id!==acct||ACC.token!==token||CUR!==cur||state!=='menu'||ctx!==_startCtx())return;
+  if(!r||!r.ok||!r.attemptId||!Array.isArray(r.waves)||!r.waves.length){bannerMsg((r&&r.error)||'Could not open this floor.');return;}
+  CUR.attemptId=r.attemptId;CUR.cwaves=r.waves;CUR.serverSnaps=Array.isArray(r.snaps)?r.snaps:null;CUR.seed=r.seed==null?null:r.seed>>>0;CUR.engine=r.engine||null;CUR.tower={floor:r.floor,type:r.type,pay:r.pay};startBattle();
 }
+function towerViewState(S,message){const next=S&&S.next,selected=(G.team||[]).filter(Boolean).slice(0,5).map(key=>({key,name:(HERO_TYPES[key]||{}).name||key}));const names=(next&&next.foes||[]).map(f=>({key:f.key,name:((f.isHero?HERO_TYPES:MONSTER_TYPES)[f.key]||{}).name||f.key,isHero:f.isHero,boss:f.boss}));
+  const e=next?{floor:next.floor,kind:next.type,name:next.type==='echo'?'Your Floor '+(next.echo&&next.echo.recordedFloor||next.floor)+' lineup':'Warden of Floor '+next.floor,recordedFloor:next.echo&&next.echo.recordedFloor,recordedSeason:next.echo&&next.echo.season,heroes:names,power:next.req,elite:next.elite,rewardText:'Gold '+Number(next.pay&&next.pay.gold||0).toLocaleString()+(next.pay&&next.pay.gems?' · Gems '+next.pay.gems:'')}:null;
+  return {floor:S&&S.floor||0,bestFloor:S&&S.best||0,nextFloor:next&&next.floor,season:S&&S.season,seasonEnds:S&&S.seasonEnds,checkpoint:S&&S.start||0,restedCount:(S&&S.rested||[]).length,hasHistory:!!(S&&S.records),selectedHeroes:selected,encounter:e,message:message||'',floors:next?Array.from({length:Math.min(25,Math.max(1,next.floor-(S.start||0)+3))},(_,i)=>{const f=(S.start||0)+i+1;return {floor:f,kind:f===next.floor?next.type:'unrevealed',cleared:f<=S.floor,rested:(S.rested||[]).includes(f)};}):[],tribute:{ready:towerTribReady(),claimed:!!(S&&S.trib===S.today),description:S&&S.floor?'Daily tribute follows this season’s floor.':'Clear your first floor to unlock daily tribute.'}};
+}
+async function openTower(){if(TOWER_ACCT!==ACC.id){TOWER_SRV=null;TOWER_ACCT=ACC.id;}const ov=isleOverlay();ov.classList.add('echoSpireOverlay');ov.innerHTML='<div class="echo-spire" role="status">Opening Echo Spire…</div>';let view=null;
+  function paint(message){if(!document.body.contains(ov))return;const vs=towerViewState(TOWER_SRV,message);if(!TOWER_SRV){vs.error=ACC.token?'Could not reach the Spire.':'Connect to enter Echo Spire.';}const opts={portrait:(key,h)=>h&&h.isHero===false?(GLOSSARY_ART[(h.boss?'bosses/':'monsters/')+key]||''):(HERO_PORTRAITS[key]||''),actions:{close:()=>{ov.remove();return null;},retry:async()=>{await towerSync();return towerViewState(TOWER_SRV);},lineup:()=>{towerChooseLineup();return null;},ascend:()=>{towerChooseLineup();return null;},tribute:async()=>{const r=await towerTribute();return towerViewState(TOWER_SRV,r.pending?r.msg:r.none?'Already claimed today.':'Tribute claimed: '+Number(r.gold||0).toLocaleString()+' gold.');}}};if(view)view.update(vs);else view=EchoSpireUI.mount(ov,vs,opts);}
+  paint();try{await towerSync();}catch(e){}paint();
+}
+
 
 /* ============================ MAIL ============================ */
 let mailTab='inbox';
@@ -29738,7 +29729,7 @@ function _updateWaveTag(){const isBoss=(waveIdx===chapterWaves-1);const el=docum
     const modeNm=CUR.mode==='arena'?statusIcon('attack')+' Arena Duel':'🏰 City Skirmish';
     el.innerHTML=`${modeNm} · <b style="color:#8fe3ff">${(mine||0).toLocaleString()}</b> vs <b style="color:#ff9a8b">${theirs?theirs.toLocaleString():'?'}</b>${CUR.oppName?(' · '+escapeHTML(String(CUR.oppName||''))):''} · 1/1`;
     return; }
-  el.innerHTML=`${CUR&&CUR.mode==='well'?('Starless Well · Map '+((CUR.well&&CUR.well.map)|0)):CUR&&CUR.mode==='province'?(((PROV_META[CUR.prov&&CUR.prov.t]||PROV_META.gold).nm)+' '+((CUR.prov&&CUR.prov.stage)|0)):CUR&&CUR.mode==='vault'?(uiIcon('mode-vault')+' Floor '+CUR.floor):stageCode(CUR.node)} · ${isBoss?uiIcon('crown')+' BOSS':'Wave '+(waveIdx+1)+'/'+chapterWaves}`;}   // v362: Vault shows its floor, not a NaN stage code
+  el.innerHTML=`${CUR&&CUR.mode==='tower'?('Echo Spire · Floor '+((CUR.tower&&CUR.tower.floor)|0)):CUR&&CUR.mode==='well'?('Starless Well · Map '+((CUR.well&&CUR.well.map)|0)):CUR&&CUR.mode==='province'?(((PROV_META[CUR.prov&&CUR.prov.t]||PROV_META.gold).nm)+' '+((CUR.prov&&CUR.prov.stage)|0)):CUR&&CUR.mode==='vault'?(uiIcon('mode-vault')+' Floor '+CUR.floor):stageCode(CUR.node)} · ${isBoss?uiIcon('crown')+' BOSS':'Wave '+(waveIdx+1)+'/'+chapterWaves}`;}   // v362: Vault shows its floor, not a NaN stage code
 // Top banner: Time countdown + Progress (current wave / total waves)
 function updateBattleBanner(){ const bb=document.getElementById('battleBanner'); if(!bb)return;
   const on=(state==='battle'); bb.classList.toggle('active',on); if(!on)return;
@@ -30356,7 +30347,7 @@ document.addEventListener('focusout',()=>{ setTimeout(_zoomWatch,700); });
 { const _hmi=document.getElementById('heroesMenuIcon'); if(_hmi) setHead(_hmi,'konwu'); }   // v657: the Heroes entry is a painted medallion now
 document.getElementById('menuBtn').onclick=(e)=>{ e.stopPropagation(); document.getElementById('hubMenu').classList.toggle('open'); };
 document.addEventListener('click',(e)=>{ const hm=document.getElementById('hubMenu'); if(hm.classList.contains('open') && !hm.contains(e.target)) hm.classList.remove('open'); });
-document.getElementById('menuBack').onclick=()=>{ if(CUR&&CUR.mode==='well'&&teamCtx==='campaign'){ wellBackToMap(); return; } if(CUR&&CUR.mode==='province'&&CUR.prov&&teamCtx==='campaign'){ provBackToCard(CUR.prov.t); return; } show(menuReturn); };   /* v663: Back from the province squad screen reopens its card */
+document.getElementById('menuBack').onclick=()=>{ if(CUR&&CUR.mode==='tower'&&teamCtx==='campaign'){ towerBackToCard(); return; } if(CUR&&CUR.mode==='well'&&teamCtx==='campaign'){ wellBackToMap(); return; } if(CUR&&CUR.mode==='province'&&CUR.prov&&teamCtx==='campaign'){ provBackToCard(CUR.prov.t); return; } show(menuReturn); };   /* v663: Back from the province squad screen reopens its card */
 let _startBusy=false;
 function _startCtx(){ return CUR.mode+':'+(CUR.portal||'normal')+':'+(CUR.node|0)+':'+teamCtx; }
 document.getElementById('startBtn').onclick=async()=>{
@@ -30388,6 +30379,7 @@ async function _startBtnGo(_ctx){
   if(CUR.mode==='arena' && teamCtx==='arenaAtk'){ const sq=squadFor('arenaAtk'); if(!sq.length)return; G.team=sq.slice(); const o=G.pendingArenaOpp; G.pendingArenaOpp=null; if(o)startArena(o); return; }   // arena: fight the chosen opponent with the chosen composition
   if(CUR.mode==='vault'){ if(!squadFor('vault').length)return; vaultLaunch(); return; }
   if(CUR.mode==='graid'){ if(!squadFor('graid').length)return; await raidLaunch(); return; }   /* v666: the guild raid boss */
+  if(CUR.mode==='tower'){ if(!G.team.length)return; await towerLaunch(_ctx); return; }
   if(CUR.mode==='well'){ if(!G.team.length)return; await wellLaunch(_ctx); return; }   /* Starless Well */
   if(CUR.mode==='province'){ if(!G.team.length)return; await provLaunch(_ctx); return; }   /* v663: Training Province - server-frozen squad + seed + authored waves */
   if(!G.team.length)return; if(CUR.mode==='dungeon'){ startDungeon(); return; }
@@ -30424,6 +30416,7 @@ document.getElementById('exitBtn').onclick=()=>{ paused=false; ended=true; docum
   try{ if(_actStreamOn){ _actSeq++; actSend({seq:_actSeq, kind:'abandon'}); } }catch(e){}
   _actStreamOn=false;
   const _wasCamp=(CUR&&CUR.mode==='campaign'), _portal=(CUR&&CUR.portal)||'normal';
+  if(CUR&&CUR.mode==='tower'){ CUR.attemptId=null; clearBattle(); towerBackToCard(); return; }
   if(CUR&&CUR.mode==='well'){ CUR.attemptId=null; clearBattle(); wellBackToMap(); return; }   /* Starless Well: quitting spends nothing (carried HP unchanged) */
   if(CUR&&CUR.mode==='province'){ const _pt=(CUR.prov&&CUR.prov.t)||'gold'; CUR.attemptId=null; clearBattle(); provBackToCard(_pt); return; }   /* v663: quitting a province fight spends nothing and lands back on its card */
   /* v758 - QUIT leaves a replay the same way CONTINUE does. resultBtn routes mode 'replay' through
@@ -30435,6 +30428,7 @@ document.getElementById('exitBtn').onclick=()=>{ paused=false; ended=true; docum
   if(_wasCamp){ try{ PORTAL=_portal; }catch(e){} show('campaign'); } else show('home');
   try{ evictUnusedArt(G.team); }catch(e){} };   /* v1140: quitting frees the foes' sheets and the fight's sounds, as CONTINUE does */
 document.getElementById('resultBtn').onclick=()=>{ const m=CUR.mode;
+  if(m==='tower'){ towerBackToCard(); try{ evictUnusedArt(G.team); }catch(e){} return; }
   if(m==='well'){ wellBackToMap(); try{ evictUnusedArt(G.team); }catch(e){} return; }   /* v825: back to the Well's map */
   if(m==='province'){ provBackToCard((CUR.prov&&CUR.prov.t)||'gold'); try{ evictUnusedArt(G.team); }catch(e){} return; }   /* v663: back to the province card */
   if(m==='graid'){ guildTab='raid'; show('guild'); try{ evictUnusedArt(G.team); }catch(e){} return; }   /* v666: back to the guild raid tab */
