@@ -32,6 +32,13 @@
   #start { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:10px; background:var(--bg); padding:16px; }
   #start select,#start button { font-size:16px; padding:10px 14px; border-radius:8px; background:var(--panel); color:var(--ink); border:1px solid #ffffff33; }
   #start button { background:var(--ember); color:#1a0d05; font-weight:800; border:0; }
+  /* the game is landscape (Phil 24 Oct): on a short landscape phone the controls shrink so the skill arc fits under the HUD */
+  @media (orientation:landscape) and (max-height:500px) {
+    #ult { width:72px; height:72px; right:calc(18px + env(safe-area-inset-right,0px)); bottom:14px; font-size:14px; }
+    .sk { width:54px; height:54px; font-size:10px; }
+    #stick { left:calc(24px + env(safe-area-inset-left,0px)); bottom:16px; width:104px; height:104px; } #knob { left:32px; top:32px; }
+    #hud { padding:6px calc(12px + env(safe-area-inset-right,0px)) 6px calc(12px + env(safe-area-inset-left,0px)); }
+  }
   #end { position:fixed; inset:0; display:none; align-items:center; justify-content:center; flex-direction:column; gap:8px; background:#000c; }
 </style>
 </head>
@@ -76,7 +83,11 @@
     Assassin: [{ key: 'a_dash', name: 'Blink', kind: 'dash', cd: 4, power: 5 }, { key: 'a_bolt', name: 'Knives', kind: 'bolt', cd: 3, power: 3 }],
     Marksman: [{ key: 'k_bolt', name: 'Pierce', kind: 'bolt', cd: 3, power: 4 }, { key: 'k_dash', name: 'Roll', kind: 'dash', cd: 7, power: 3.5 }],
   };
-  const SKPOS = [[118, 26], [104, 104], [30, 118], [190, 22], [176, 98]];   // [right, bottom] px: an arc round the ULT
+  const SKPOS_TALL = [[118, 26], [104, 104], [30, 118], [190, 22], [176, 98]];   // [right, bottom] px: an arc round the ULT
+  const SKPOS_SHORT = [[100, 12], [88, 78], [24, 96], [164, 10], [152, 72]];     // the same arc, for a short landscape phone
+  const short = () => innerHeight <= 500 && innerWidth > innerHeight;
+  let SKPOS = short() ? SKPOS_SHORT : SKPOS_TALL;
+  addEventListener('resize', () => { const n = short() ? SKPOS_SHORT : SKPOS_TALL; if (n !== SKPOS) { SKPOS = n; if (KIT.length) buildSkillButtons(); } });
   let KIT = [];
   function buildSkillButtons() {
     const box = document.getElementById('skills'); box.innerHTML = '';
