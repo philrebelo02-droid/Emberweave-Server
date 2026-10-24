@@ -10071,6 +10071,11 @@ const server=http.createServer((req,res)=>{
       remoteAsset('/'+rel).then(r=>{ if(!r){res.writeHead(404);res.end();return;} sendBody(req,res,r.buf,type||r.ct,CC,rel); });
     });
   }
+  /* v1219 HERO SURVIVORS (Phil 24 Oct: "first put this in the game so i can test threadseer"): the Tower of Trials opens the survivors
+     page in a frame over the game, so it may be framed by its own origin only; its engine + spell table are the only server/ files served. */
+  if(p==='/survivors'){ res.setHeader('Content-Security-Policy',"frame-ancestors 'self'"); return serveFile(res,'survivors-dev.html','text/html; charset=utf-8',null,req); }
+  if(p==='/server/survivors-core.js') return serveFile(res,'server/survivors-core.js','application/javascript',null,req);
+  if(p==='/server/survivors-auras.json') return serveFile(res,'server/survivors-auras.json','application/json',null,req);
   // marketing site at the bare root; the game lives at /play and on deep links (/?room=..., etc.)
   if(p==='/' && !url.search) return serveFile(res,'emberweave-site.html','text/html; charset=utf-8',null,req);
   /* v1034 (Phil 5 Oct: "it reloads twice instead of once"): a server switch made on s2-s5 passes through the front door so its

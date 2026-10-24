@@ -27944,7 +27944,7 @@ function maybeOfferTutorial(){ if(G.tutDone||G.tutStarted||G.tutSkipped) return;
 const ISLE_FEATURES=[
   {id:'training', ic:'🌀', name:'Training Province', lvl:10, desc:'Daily training grounds — twelve boss fights each for gold and glyph fragments.', open:()=>openTrainingProvince()},
   {id:'emberdraft', ic:'♟', name:'Emberdraft',        lvl:25, desc:'Draft heroes, forge equipment, outlast seven rivals.', open:()=>openEmberdraft()},   // v604 (Phil, 18 Sep: the Gauntlet was a dead system - replaced; its code stays for banking an old run)
-  {id:'tower',    ic:uiIcon('mode-tower-of-trials'), name:'Tower of Trials',   lvl:40, desc:'Climb the endless Ascendant Spire — how high can you go?', open:()=>openTower()},
+  {id:'tower',    ic:uiIcon('mode-tower-of-trials'), name:'Tower of Trials',   lvl:40, desc:'Climb the endless Ascendant Spire — how high can you go?', open:()=>openTowerChoice()},   // v1219: Hero Survivors or the Spire
 ];
 function renderSkyIsland(){ const b=document.getElementById('skyIslandBody'); if(!b)return; const lv=playerLevel();
   const ISLE_POS={training:[22,55],tower:[49,74],emberdraft:[78,55]};
@@ -28387,6 +28387,21 @@ async function towerTribute(){ const st=towerState(); if(!towerTribReady()) retu
   const bonus=250*(1+Math.floor(st.floor/4)); let gold=Math.round(500*st.floor)+bonus; if(gold>200000)gold=200000;
   G.gold=(G.gold||0)+gold;
   st.trib=day; updateHubChrome(); saveG(); return {gold}; }
+/* v1219 HERO SURVIVORS (Phil 24 Oct: "first put this in the game so i can test threadseer"): the Tower of Trials asks which climb -
+   Hero Survivors (Linnet in 3D against the hordes) or the Ascendant Spire. Survivors runs in a frame over the game; its Leave button
+   posts 'survivors-close' and the frame goes. */
+function openTowerChoice(){ const ov=isleOverlay();
+  ov.innerHTML=isleCard(`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><div style="font-weight:800;font-size:15px">Tower of Trials</div><button class="btn sm secondary" id="tcX">${uiIcon('close')}</button></div>
+    <button class="btn" id="tcSurv" style="width:100%;margin-bottom:8px">Hero Survivors · Linnet</button>
+    <button class="btn secondary" id="tcSpire" style="width:100%">Ascendant Spire</button>`);
+  ov.querySelector('#tcX').onclick=()=>ov.remove();
+  ov.querySelector('#tcSurv').onclick=()=>{ ov.remove(); openSurvivors(); };
+  ov.querySelector('#tcSpire').onclick=()=>{ ov.remove(); openTower(); }; }
+function openSurvivors(){ if(document.getElementById('survFrame')) return;
+  const f=document.createElement('iframe'); f.id='survFrame'; f.src='/survivors?game=1&b='+encodeURIComponent(typeof BUILD_ID!=='undefined'?BUILD_ID:'');
+  f.setAttribute('allow','fullscreen'); f.style.cssText='position:fixed;inset:0;width:100%;height:100%;border:0;z-index:20000;background:#120d0a';
+  const onMsg=e=>{ if(e.origin===location.origin && e.data==='survivors-close'){ f.remove(); removeEventListener('message',onMsg); } };
+  addEventListener('message',onMsg); document.body.appendChild(f); }
 function openTower(){ const ov=isleOverlay();
   function render(msg,mc){ const st=towerState(), next=st.floor+1, req=towerReq(next), pow=battlePow(), canGo=pow>=req, trib=towerTribReady();
     ov.innerHTML=isleCard(`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-weight:800;font-size:15px">🗼 Tower of Trials</div><button class="btn sm secondary" id="twX">${uiIcon('close')}</button></div>
@@ -30734,7 +30749,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1792818131529';
+const BUILD_ID = '1792877383492';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

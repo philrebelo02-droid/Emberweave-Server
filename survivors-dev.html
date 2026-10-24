@@ -40,6 +40,10 @@
     #stick { left:calc(24px + env(safe-area-inset-left,0px)); bottom:16px; width:104px; height:104px; } #knob { left:32px; top:32px; }
     #hud { padding:6px calc(12px + env(safe-area-inset-right,0px)) 6px calc(12px + env(safe-area-inset-left,0px)); }
   }
+  /* in the game (?game=1): Leave closes the frame; the dev pickers and the help text go */
+  #quit { position:fixed; top:calc(34px + env(safe-area-inset-top,0px)); right:calc(12px + env(safe-area-inset-right,0px)); padding:6px 12px; border-radius:8px; border:1px solid #ffffff33; background:#0008; color:var(--ink); font-size:12px; }
+  #end button, #start .leave { font-size:16px; padding:10px 14px; border-radius:8px; border:1px solid #ffffff33; background:var(--panel); color:var(--ink); }
+  body.ingame .devonly { display:none !important; }
   #end { position:fixed; inset:0; display:none; align-items:center; justify-content:center; flex-direction:column; gap:8px; background:#000c; }
 </style>
 </head>
@@ -51,16 +55,17 @@
 <button id="ult">ULT</button>
 <div id="skills"></div>
 <div id="pick"><h2>LEVEL UP</h2></div>
-<div id="end"><h2 id="endT"></h2><div id="endS"></div><button onclick="location.reload()">Again</button></div>
+<div id="end"><h2 id="endT"></h2><div id="endS"></div><button onclick="location.reload()">Again</button><button class="leave" hidden>Leave</button></div>
+<button id="quit" class="leave" hidden>Leave</button>
 <div id="start">
   <h1 style="color:var(--gold);margin:0">HERO SURVIVORS</h1><div style="color:var(--dim)">Story · Stage 1 · Emberfall Vale</div>
-  <label>Class <select id="cls"><option>Tank</option><option>Bruiser</option><option>Mage</option><option>Support</option><option>Assassin</option><option>Marksman</option></select></label>
+  <label class="devonly">Class <select id="cls"><option>Tank</option><option>Bruiser</option><option>Mage</option><option>Support</option><option>Assassin</option><option>Marksman</option></select></label>
   <label>Mode <select id="mode"><option value="story">Story (30:00, then the boss)</option><option value="survive">Survive (endless)</option></select></label>
   <label>Stage <select id="stage"></select></label>
-  <label><input type="checkbox" id="use3d" checked> 3D hero pilot: Linnet (Meshy, 1K textures)</label>
-  <button id="go">PLAY</button>
-  <div id="mem" style="color:var(--dim)"></div>
-  <div style="color:var(--dim);max-width:340px;text-align:center">Move with the joystick or WASD. You aim the way you move. Auras fire on their own; your skills are the buttons (or 1-5). ULT (or Space) when the ring is full.</div>
+  <label class="devonly"><input type="checkbox" id="use3d" checked> 3D hero pilot: Linnet (Meshy, 1K textures)</label>
+  <button id="go">PLAY</button><button class="leave" hidden>Leave</button>
+  <div id="mem" class="devonly" style="color:var(--dim)"></div>
+  <div class="devonly" style="color:var(--dim);max-width:340px;text-align:center">Move with the joystick or WASD. You aim the way you move. Auras fire on their own; your skills are the buttons (or 1-5). ULT (or Space) when the ring is full.</div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="/assets/js/three-r128-GLTFLoader.js"></script>
@@ -139,7 +144,12 @@
     const info = r.info; H3 = { r, scene, cam, model, mixer, play, cast, clips, isCasting: () => casting, clock: new THREE.Clock(), info, names: Object.keys(clips) };
     document.getElementById('mem').textContent = '3D loaded: ' + H3.names.join(', ');
   }
+  // in the game: Linnet in 3D, no dev pickers; Leave tells the game to close the frame
+  if (new URLSearchParams(location.search).get('game') === '1') { document.body.classList.add('ingame'); document.getElementById('use3d').checked = true; document.title = 'Hero Survivors';
+    document.querySelectorAll('.leave').forEach(b => { b.hidden = false; b.onclick = () => { try { parent.postMessage('survivors-close', location.origin); } catch (e) {} }; });
+    document.getElementById('quit').hidden = true; }
   document.getElementById('go').onclick = () => {
+    if (document.body.classList.contains('ingame')) document.getElementById('quit').hidden = false;
     const cls = document.getElementById('use3d').checked ? 'Support' : document.getElementById('cls').value;   // Linnet is a Support
     KIT = document.getElementById('use3d').checked ? KITS.linnet : KITS[cls]; buildSkillButtons();
     const LAB = new URLSearchParams(location.search), labCls = LAB.get('lab');

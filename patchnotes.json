@@ -1,5 +1,8 @@
 {
   "patches": [
+    {"ver": "0.97.0", "date": "24 October 2026", "title": "Hero Survivors preview", "items": [
+      "Tower of Trials: a first look at Hero Survivors. Linnet takes on the endless hordes of Emberfall Vale in 3D - move with the joystick, her spells fire on their own, and her skills and ult are the buttons on the right."
+    ]},
     {"ver": "0.96.9", "date": "24 October 2026", "title": "Gravemaw Pull spell effect", "items": [
       "Grosk's Gravemaw Pull has a new spell effect: a violent rush of air and dust streams into Grosk from the enemies around him as he drags them in."
     ]},
