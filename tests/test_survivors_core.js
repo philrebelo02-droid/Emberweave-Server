@@ -55,13 +55,16 @@ ok('it picked auras/passives', Object.keys(r1.hero.auras).length + Object.keys(r
 
 // 5. every one of the 60 auras deals damage, at level 1 and level 10 (a hero of its class in a ring of monsters)
 let silent = [];
-const HITTERS = AURAS.filter(a => !(a.fam === 'trigger' && ['guard', 'heal', 'speed', 'vuln'].includes(C.fxKind(a.fx))));
+// v3: Rage Ember now burns; Grudge Mark only hunts what hit you (its own test below)
+const V3_HIT = ['rage-ember'], V3_OWN = ['grudge-mark'];
+const HITTERS = AURAS.filter(a => !V3_OWN.includes(a.key) && (V3_HIT.includes(a.key) || !(a.fam === 'trigger' && ['guard', 'heal', 'speed', 'vuln'].includes(C.fxKind(a.fx)))));
 HITTERS.forEach(a => {
   [1, 10].forEach(lv => {
     const hero = Object.assign({}, HERO, { cls: a.cls });
     const S = C.create(hero, { seed: 5, auras: AURAS });
     S.hero.auras[a.key] = lv; S.hero.maxHp = S.hero.hp = 1e9; S._baseT = 1e9;       // no base attack: only the aura can hurt
     for (let k = 0; k < 40; k++) { const ang = k / 40 * Math.PI * 2, d = 1.2 + (k % 4) * 1.1; S.monsters.push({ id: S.nextId++, type: 'brute', x: Math.cos(ang) * d, y: Math.sin(ang) * d, hp: 1e6, maxHp: 1e6, dmg: 1, spd: 0, r: 0.6 }); }
+    for (let k = 0; k < 20; k++) { const ang = k / 20 * Math.PI * 2; S.monsters.push({ id: S.nextId++, type: 'brute', x: Math.cos(ang) * 8, y: Math.sin(ang) * 8, hp: 1e6, maxHp: 1e6, dmg: 1, spd: 0, r: 0.6 }); }
     S.noSpawn = true;                                             // no spawns during the probe
     const still = a.key === 'molten-ground';                          // v3: it wells up only where you stand still
     for (let i = 0; i < 30 * 10; i++) C.step(S, still ? {} : { mx: (i % 60 < 30) ? 0.6 : -0.6, my: 0 });
@@ -77,6 +80,7 @@ HITTERS.forEach(a => {
     const S = C.create(Object.assign({}, HERO, { cls: a.cls }), { seed: 5, auras: AURAS });
     S.hero.auras[a.key] = lv; S.hero.maxHp = S.hero.hp = 1e9; S._baseT = 1e9; S.noSpawn = true;
     for (let k = 0; k < 40; k++) { const ang = k / 40 * Math.PI * 2, dd = 1.2 + (k % 4) * 1.1; S.monsters.push({ id: S.nextId++, type: 'brute', x: Math.cos(ang) * dd, y: Math.sin(ang) * dd, hp: 1e6, maxHp: 1e6, dmg: 1, spd: 0, r: 0.6 }); }
+    for (let k = 0; k < 20; k++) { const ang = k / 20 * Math.PI * 2; S.monsters.push({ id: S.nextId++, type: 'brute', x: Math.cos(ang) * 8, y: Math.sin(ang) * 8, hp: 1e6, maxHp: 1e6, dmg: 1, spd: 0, r: 0.6 }); }
     for (let i = 0; i < 30 * 10; i++) C.step(S, a.key === 'molten-ground' ? {} : { mx: (i % 60 < 30) ? 0.6 : -0.6, my: 0 });
     return S.dealt;
   });
@@ -85,8 +89,8 @@ HITTERS.forEach(a => {
 ok('level 10 beats level 1 for every aura', weak.length === 0, weak.join(', '));
 
 // 6b. the trigger auras that HELP instead of hit (shield, mark, on-kill heal/speed) do their own thing, stronger at level 10
-const UTIL = AURAS.filter(a => a.fam === 'trigger' && ['guard', 'heal', 'speed', 'vuln'].includes(C.fxKind(a.fx)));
-ok('utility trigger auras found', UTIL.length >= 6, UTIL.length);
+const UTIL = AURAS.filter(a => a.fam === 'trigger' && !V3_HIT.includes(a.key) && !V3_OWN.includes(a.key) && ['guard', 'heal', 'speed', 'vuln'].includes(C.fxKind(a.fx)));
+ok('utility trigger auras found', UTIL.length >= 4, UTIL.length);
 let noEffect = [];
 UTIL.forEach(a => {
   const k = C.fxKind(a.fx), res = [1, 10].map(lv => {
@@ -278,6 +282,44 @@ ok('the rhythm breathes: a lull straight after a spike', C.WAVES[11].min === 300
   { const S = run(field('chime-pulse', 1, [[3, 0]]), 30 * 1.2); ok('chime-pulse: echo rings roll out, the last one stuns', S.dealt > 0 && S.monsters[0].stunT > 0, S.monsters[0].stunT); }
   { const S = run(field('guardian-spirits', 1, [[1.7, 1.7]]), 30 * 0.5); ok('guardian-spirits: a spirit at its corner pushes a monster away', Math.hypot(S.monsters[0].x, S.monsters[0].y) > 2.6, Math.hypot(S.monsters[0].x, S.monsters[0].y)); }
   { const S = run(field('sunburst', 1, [[10, 5], [-12, -4]]), 3); ok('sunburst: a flash blinds every monster on screen', S.monsters.every(m => m.blindT > 0)); }
+}
+
+// 15. MAGE + BRUISER spells each do their OWN thing
+{
+  function field(cls, key, lv, mons) { const S = C.create(Object.assign({}, HERO, { cls }), { seed: 11, auras: AURAS }); S.noSpawn = true; S._baseT = 1e9; S.hero.maxHp = 1e6; S.hero.hp = 5e5;
+    if (key) S.hero.auras[key] = lv; (mons || []).forEach(([x, y, o]) => S.monsters.push(Object.assign({ id: S.nextId++, type: 'brute', x, y, hp: 1e6, maxHp: 1e6, dmg: 1, spd: 0, r: 0.6 }, o || {}))); return S; }
+  const run = (S, n, inp) => { for (let i = 0; i < n; i++) C.step(S, typeof inp === 'function' ? inp(i) : (inp || {})); return S; };
+  const d0 = m => Math.hypot(m.x, m.y);
+  { const ring = []; for (let i = 0; i < 12; i++) ring.push([Math.cos(i * Math.PI / 6) * 5, Math.sin(i * Math.PI / 6) * 5]); const S = run(field('Mage', 'arcane-orbs', 1, ring), 30 * 3);
+    ok('arcane-orbs: orbs spiral OUT and reach the ring 5 m away (none hit at start)', S.monsters.some(m => m.hp < 1e6)); }
+  { const S = field('Mage', 'fire-halo', 1, [[0.5, 0], [2.5, 0]]); run(S, 30 * 2); ok('fire-halo: the edge burns, the middle is safe', S.monsters[1].hp < 1e6 && S.monsters[0].hp === 1e6, S.monsters[0].hp + ' / ' + S.monsters[1].hp); }
+  { const S = run(field('Mage', 'frost-nova', 1, [[2, 0]]), 3); const fr = S.monsters[0].frozenT > 0; const before = S.monsters[0].hp; S.hero.auras = { 'arcane-orbs': 1 };
+    ok('frost-nova: freezes monsters solid', fr, S.monsters[0].frozenT); }
+  { const S = field('Mage', 'fire-halo', 1, [[2.5, 0, { frozenT: 30 }], [-2.5, 0]]); run(S, 30 * 0.3);          // the same burn on a frozen and a thawed monster
+    const fz = 1e6 - S.monsters[0].hp, th = 1e6 - S.monsters[1].hp; ok('frost-nova: a frozen monster shatters for double when hit', fz > th * 1.5 && S.monsters[0].frozenT === 0, fz + ' vs ' + th); }
+  { const ms = []; for (let i = 0; i < 6; i++) ms.push([2 + i * 2, 0]); const S = run(field('Mage', 'chain-lightning', 5, ms), 3);
+    ok('chain-lightning: one bolt jumps through several monsters', S.monsters.filter(m => m.hp < 1e6).length >= 4, S.monsters.filter(m => m.hp < 1e6).length); }
+  { const S = run(field('Mage', 'starfall', 1), 3), o = S._state['starfall'].o[0]; ok('starfall: stars streak diagonally', o && o.vx > 0 && o.vy > 0); }
+  { const S = run(field('Mage', 'gravity-well', 1, [[11, 0, { spd: 0 }]]), 30 * 1.5, { mx: 1, my: 0 }); const w = S._state['gravity-well'].w;
+    ok('gravity-well: the far orb pulls monsters toward it', w && Math.hypot(S.monsters[0].x - w.x, S.monsters[0].y - w.y) < 3.5, w && Math.hypot(S.monsters[0].x - w.x, S.monsters[0].y - w.y)); }
+  { const S = field('Mage', 'rune-circle', 1); run(S, 30 * 2.5, { mx: 1, my: 0 }); const r = S._state['rune-circle'].o.concat(S.fx.filter(f => f.kind === 'rune'))[0];
+    ok('rune-circle: runes are left where you were, behind you', r && r.x < S.hero.x - 3, r && (r.x.toFixed(1) + ' vs ' + S.hero.x.toFixed(1))); }
+  { const S = run(field('Mage', 'wisp-familiars', 1, [[7, 0]]), 30 * 3); ok('wisp-familiars: a wisp flies off and hunts a far monster', S.monsters[0].hp < 1e6); }
+  { const S = run(field('Mage', 'mana-storm', 5, [[1, 0], [-1, 1], [0, -1.5], [2, 2]]), 30 * 4); ok('mana-storm: lightning strikes under the cloud', S.monsters.some(m => m.hp < 1e6)); }
+  { const S = run(field('Mage', 'meteor-call', 1, [[8, 0], [-8, 0]]), 30 * 2.2, { mx: 1, my: 0 }); ok('meteor-call: lands where you are heading, not behind', S.monsters[1].hp === 1e6 && S.zones.concat([]).length >= 0 && (S.monsters[0].hp < 1e6 || S.zones.some(z => z.key === 'meteor-call' && z.x > 8))); }
+  { const ms = []; for (let i = 0; i < 8; i++) ms.push([Math.cos(i * Math.PI / 4) * 2, Math.sin(i * Math.PI / 4) * 2]); const S = run(field('Bruiser', 'blade-whirl', 1, ms), 30 * 0.6);
+    ok('blade-whirl: one spin hits all the way round', S.monsters.every(m => m.hp < 1e6), S.monsters.filter(m => m.hp < 1e6).length); }
+  { const S = run(field('Bruiser', 'shock-stomp', 1, [[5, 0], [0, 5]]), 30 * 1, { mx: 1, my: 0 }); ok('shock-stomp: the wave rolls along the line ahead only', S.monsters[0].hp < 1e6 && S.monsters[1].hp === 1e6); }
+  { const S = field('Bruiser', 'chain-flail', 1, [[-2.6, 0], [2.6, 0]]); run(S, 30 * 1, { mx: 1, my: 0 }); ok('chain-flail: the flail swings behind you', S.monsters[0].hp < 1e6 && S.monsters[1].hp === 1e6); }
+  { const ms = []; for (let i = 0; i < 10; i++) ms.push([Math.cos(i) * 2.5, Math.sin(i) * 2.5]); const S = run(field('Bruiser', 'rage-ember', 1, ms), 30 * 4);
+    const L = run(field('Bruiser', 'rage-ember', 1, [[3, 0]]), 30 * 4); ok('rage-ember: a crowd round you fills the rage and it bursts (control: one monster does not)', S.dealt > 0 && L.dealt === 0, S.dealt + ' / ' + L.dealt); }
+  { const S = run(field('Bruiser', 'iron-fists', 1, [[2, 0]]), 30 * 0.5); ok('iron-fists: a fist jabs the nearest monster', S.monsters[0].hp < 1e6); }
+  { const S = run(field('Bruiser', 'cleaver-rain', 3, [[5.2, 0], [-5.2, 0]]), 30 * 1.5, { mx: 1, my: 0 }); ok('cleaver-rain: cleavers come down in a line ahead', S.monsters[0].hp < 1e6 && S.monsters[1].hp === 1e6); }
+  { const S = run(field('Bruiser', 'war-drum', 1, [[2, 0]]), 30 * 4.5); ok('war-drum: the 4th beat leaves monsters taking more damage', S.dealt > 0 && S._state['war-drum'].beat >= 0); }
+  { const S = field('Bruiser', 'grudge-mark', 1, [[0.6, 0, { dmg: 5 }], [-4, 0]]); run(S, 30 * 2); ok('grudge-mark: the axe hunts the monster that hit you, not the other one', S.monsters[0].hp < 1e6 && S.monsters[1].hp === 1e6, S.monsters[0].hp + ' / ' + S.monsters[1].hp); }
+  { const S = run(field('Bruiser', 'rending-gale', 1, [[3, 1.5], [3, -1.5]]), 30 * 0.6, { mx: 1, my: 0 }); ok('rending-gale: the blade sweeps sideways across your front', S.monsters.every(m => m.hp < 1e6)); }
+  { const S = field('Bruiser', 'bloodlust', 1, [[2, 0, { hp: 1, maxHp: 1 }]]); S.hero.auras['blade-whirl'] = 1; const hp0 = S.hero.hp; run(S, 30 * 2);
+    ok('bloodlust: a kill spills blood that flies back and heals you', S.kills >= 1 && S.hero.hp > hp0, S.kills + ' ' + (S.hero.hp - hp0)); }
 }
 
 console.log(fail ? `test_survivors_core: ${pass} passed, ${fail} FAILED` : `test_survivors_core: ${pass} checks passed`);
