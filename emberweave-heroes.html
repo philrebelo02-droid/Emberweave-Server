@@ -28408,6 +28408,7 @@ function openSurvivors(){ if(document.getElementById('survFrame')) return;
     if(e.data==='survivors-ready'){ try{ f.contentWindow.postMessage({ type:'survivors-roster', heroes:survivorsRoster() }, location.origin); }catch(_){} }
     else if(e.data==='survivors-close') shut();
     else if(e.data==='survivors-spire'){ shut(); openTower(); } };
+  f.addEventListener('load',()=>{ try{ f.focus(); f.contentWindow.focus(); }catch(_){} });   /* WASD goes to the run without a click first */
   addEventListener('message',onMsg); document.body.appendChild(f); try{ muteBtnPlace(true); }catch(_){} }
 function openTower(){ const ov=isleOverlay();
   function render(msg,mc){ const st=towerState(), next=st.floor+1, req=towerReq(next), pow=battlePow(), canGo=pow>=req, trib=towerTribReady();

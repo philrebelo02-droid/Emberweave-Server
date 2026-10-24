@@ -44,6 +44,8 @@
   #quit { position:fixed; top:calc(34px + env(safe-area-inset-top,0px)); right:calc(12px + env(safe-area-inset-right,0px)); padding:6px 12px; border-radius:8px; border:1px solid #ffffff33; background:#0008; color:var(--ink); font-size:12px; }
   #end button, #start .leave { font-size:16px; padding:10px 14px; border-radius:8px; border:1px solid #ffffff33; background:var(--panel); color:var(--ink); }
   body.ingame .devonly { display:none !important; }
+  html.nostick #stick { display:none; }
+  body { -webkit-touch-callout:none; } img, canvas { -webkit-user-drag:none; }
   body.ingame #start { display:none !important; }
   /* the lobby: the Island of Trials art behind, the picked hero's card on the left, 20 heroes on the right */
   #lobby { position:fixed; inset:0; z-index:5; display:flex; flex-direction:column; gap:1.6vh; padding:calc(1.8vh + env(safe-area-inset-top,0px)) calc(2.4vw + env(safe-area-inset-right,0px)) calc(2vh + env(safe-area-inset-bottom,0px)) calc(2.4vw + env(safe-area-inset-left,0px));
@@ -153,17 +155,25 @@
     KIT.forEach((k, i) => { const b = document.createElement('button'); b.className = 'sk'; b.id = 'sk' + i;
       b.style.right = SKPOS[i][0] + 'px'; b.style.bottom = 'calc(' + SKPOS[i][1] + 'px + env(safe-area-inset-bottom,0px))';
       b.innerHTML = '<span class="k">' + (i + 1) + '</span><span>' + k.name.replace(' ', '<br>') + '</span><small></small>';
-      b.addEventListener('pointerdown', e => { e.preventDefault(); skillReq = i; }); box.appendChild(b); });
+      b.addEventListener('pointerdown', e => { e.preventDefault(); if (e.button === 0) skillReq = i; }); box.appendChild(b); });
   }
   function resize() { cv.width = innerWidth * devicePixelRatio; cv.height = innerHeight * devicePixelRatio; }
   addEventListener('resize', resize); resize();
   // keyboard
-  const keys = {}; addEventListener('keydown', e => { keys[e.key.toLowerCase()] = 1; if (e.code === 'Space') ultReq = true; const n = +e.key; if (n >= 1 && n <= KIT.length) skillReq = n - 1; }); addEventListener('keyup', e => keys[e.key.toLowerCase()] = 0);
+  /* desktop (Phil 24 Oct): move with WASD / arrows only - the joystick is for touch screens; no right-click menu, no image drag; only the left
+     button acts (skills, ULT, boons, Leave); the page takes the keyboard as soon as it opens (and again on any click) */
+  addEventListener('contextmenu', e => e.preventDefault()); addEventListener('dragstart', e => e.preventDefault());
+  addEventListener('pointerdown', e => { if (e.button !== 0) { e.preventDefault(); e.stopPropagation(); } else window.focus(); }, true);
+  addEventListener('click', e => { if (e.button !== 0) { e.preventDefault(); e.stopPropagation(); } }, true);
+  try { window.focus(); } catch (e) {}
+  if (!matchMedia('(pointer:coarse)').matches && !(navigator.maxTouchPoints > 0)) document.documentElement.classList.add('nostick');
+  const keys = {}; addEventListener('keydown', e => { if (/^(arrow|space)/i.test(e.code) || e.key === ' ') e.preventDefault(); keys[e.key.toLowerCase()] = 1; if (e.code === 'Space') ultReq = true; const n = +e.key; if (n >= 1 && n <= KIT.length) skillReq = n - 1; }); addEventListener('keyup', e => keys[e.key.toLowerCase()] = 0);
   // touch joystick
   const stick = document.getElementById('stick'), knob = document.getElementById('knob'); let sid = null, scx = 0, scy = 0, smx = 0, smy = 0;
   stick.addEventListener('pointerdown', e => { sid = e.pointerId; const r = stick.getBoundingClientRect(); scx = r.left + r.width / 2; scy = r.top + r.height / 2; stick.setPointerCapture(sid); move(e); });
   stick.addEventListener('pointermove', e => { if (e.pointerId === sid) move(e); });
-  stick.addEventListener('pointerup', () => { sid = null; smx = smy = 0; knob.style.transform = ''; });
+  const letGo = () => { sid = null; smx = smy = 0; knob.style.transform = ''; };   // a lost press lets go too: the stick never keeps following the pointer
+  ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(ev => stick.addEventListener(ev, letGo)); addEventListener('blur', letGo);
   function move(e) { let dx = e.clientX - scx, dy = e.clientY - scy; const d = Math.hypot(dx, dy), m = 50; if (d > m) { dx *= m / d; dy *= m / d; } smx = dx / m; smy = dy / m; knob.style.transform = `translate(${dx}px,${dy}px)`; }
   document.getElementById('ult').onclick = () => ultReq = true;
   /* LINNET 3D PILOT (Phil 24 Oct: "set up the threadseer pilot"). One rigged Meshy model, 1024 px textures (92 MB -> 5 MB).
@@ -222,6 +232,7 @@
     const LAB = new URLSearchParams(location.search), labCls = LAB.get('lab');
     S = C.create({ key: 'dev', cls: labCls || cls, maxHp: 3000, atk: 260, armor: 300, crit: 0.1, critDmg: 0.6, skills: KIT },
                  { mode: document.getElementById('mode').value, stage: +st.value, seed: (Math.random() * 4e9) >>> 0, auras: AURAS });
+    window._S = S;   // read by the rig tests (controls, lobby) - never written from outside
     if (labCls) { const set = +(LAB.get('set') || 0), lv = +(LAB.get('lv') || 1);   // spell lab: five spells of a class at one level
       const only = LAB.get('only'); (only ? AURAS.filter(a => a.key === only) : AURAS.filter(a => a.cls === labCls).slice(set * 5, set * 5 + 5)).forEach(a => S.hero.auras[a.key] = lv); window._lab = true; window._labEcho = LAB.get('echo') === '1'; S._baseT = 1e9; }
     document.getElementById('start').style.display = 'none'; last = performance.now(); requestAnimationFrame(frame);
