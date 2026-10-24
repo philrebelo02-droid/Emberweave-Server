@@ -64,7 +64,7 @@
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="/assets/js/three-r128-GLTFLoader.js"></script>
-<script src="/server/survivors-core.js?v=dev18"></script>
+<script src="/server/survivors-core.js?v=dev19"></script>
 <script>
 (async function () {
   const C = window.SurvivorsCore, AURAS = await (await fetch('/server/survivors-auras.json?v=dev1')).json();
@@ -217,18 +217,58 @@
     else { g.beginPath(); g.arc(0, 0, size / 2, 0, 7); g.fill(); } g.restore(); }
   function drawSupport(X, Y, sc, cx, cy, t, am) { const h = S.hero, A = h.auras;
     const st = k => S._state[k] || {};
-    if (A['sanctuary'] && st('sanctuary').c) { const c = st('sanctuary').c; sym('sanctuary', X(c.x), Y(c.y), c.r * 2 * sc, t * 0.2, 0.45, '#ffe9a8', 'ring'); }
-    if (A['halo-of-light']) { const r = st('halo-of-light').r || 3; g.save(); g.globalAlpha = 0.12 + 0.04 * Math.sin(t * 2); g.fillStyle = '#fff3c4'; g.beginPath(); g.arc(cx, cy, r * sc, 0, 7); g.fill(); g.restore();
-      sym('halo-of-light', cx, cy - 2.4 * sc, 1.6 * sc, 0, 0.95, '#ffe680', 'ring'); }
-    (st('bloom-path').fl || []).forEach((f, i) => { if (!A['bloom-path']) return; const grow = Math.min(1, f.age / 2); sym('bloom-path', X(f.x), Y(f.y), (0.5 + 0.6 * grow) * sc, i, 0.9, f.age > 2 ? '#ff9ad5' : '#7ad67a'); });
-    if (A['prism-beam']) { const p = st('prism-beam'), cols = ['#ff6a6a', '#ffd36a', '#7aff8a', '#6ad0ff', '#a07aff', '#ff7ae0'];
-      for (let i = 0; i < (p.n || 1); i++) { const a = (p.a || 0) + i * Math.PI * 2 / (p.n || 1), L = (p.len || 6) * sc;
-        sym('prism-beam', cx + Math.cos(a) * L / 2, cy + Math.sin(a) * L / 2, L, a + Math.PI / 2, 0.75, lvOf('prism-beam') >= 10 ? cols[i % 6] : '#fff7c4', 'beam'); } }
-    S.notes.forEach(n => sym(n.key, X(n.x), Y(n.y), 0.9 * sc, Math.sin(n.t * 8) * 0.4, 1 - n.t / n.life * 0.5, '#c9a6ff'));
-    if (A['spirit-lantern']) { const p = st('spirit-lantern'); if (p.lx != null) sym('spirit-lantern', X(p.lx), Y(p.ly) - Math.sin(t * 3) * 0.2 * sc, 1.3 * sc * (p.call > 0 ? 1.6 : 1), Math.sin(t * 2) * 0.15, 1, '#ffcc66'); }
-    (st('guardian-spirits').sp || []).forEach((p, i) => { if (A['guardian-spirits']) sym('guardian-spirits', X(p[0]), Y(p[1]) - Math.abs(Math.sin(t * 2 + i)) * 0.2 * sc, 1.5 * sc, 0, 0.9, '#a8e6ff'); });
-    if (A['blessed-shield'] && h.bubble > 0) sym('blessed-shield', cx, cy - 0.3 * sc, 3.0 * sc * (1 + Math.sin(t * 4) * 0.02), 0, 0.3 + 0.4 * h.bubble / (h.bubbleMax || 1), '#bfe4ff', 'ring');
-    if (h.wings > 0) { const rec = artFor('blessed-shield'); if (rec && rec.lv10) el(rec.lv10, cx, cy - 0.6 * sc, 5 * sc, 0, Math.min(1, h.wings)); }
+    // ---- SUPPORT motion pass (Phil 24 Oct: "all the support spells have like no animation") ----
+    const mote = (x, y, r, i, col, rise) => { const ph = (t * 0.5 + i * 0.173) % 1, an = i * 2.399, rr = r * ((i * 0.618) % 1);
+      g.save(); g.globalAlpha = Math.sin(ph * Math.PI) * 0.9; g.fillStyle = col; g.beginPath(); g.arc(x + Math.cos(an) * rr, y + Math.sin(an) * rr * 0.8 - ph * rise, 2.2, 0, 7); g.fill(); g.restore(); };
+    // SANCTUARY: the circle turns slowly with a counter-turning inner copy, its rim pulses, light pillars rise round the rim, motes drift up
+    if (A['sanctuary'] && st('sanctuary').c) { const c = st('sanctuary').c, x = X(c.x), y = Y(c.y), R = c.r * sc, k = c.follow ? 1 : Math.min(1, c.life * 1.5, (c.max - c.life) * 4 + 0.1);
+      sym('sanctuary', x, y, R * 2, t * 0.25, 0.5 * k, '#ffe9a8', 'ring'); sym('sanctuary', x, y, R * 1.25, -t * 0.4, 0.35 * k, '#ffe9a8', 'ring');
+      g.save(); g.globalAlpha = (0.35 + 0.25 * Math.sin(t * 3)) * k; g.strokeStyle = '#fff3c4'; g.lineWidth = 3; g.beginPath(); g.arc(x, y, R, 0, 7); g.stroke(); g.restore();
+      for (let i = 0; i < 8; i++) { const an = t * 0.25 + i * Math.PI / 4, ph = (t * 0.8 + i * 0.13) % 1; line(x + Math.cos(an) * R, y + Math.sin(an) * R, x + Math.cos(an) * R, y + Math.sin(an) * R - (0.8 + ph * 1.6) * sc, '#fff3c4', 3, (1 - ph) * 0.6 * k); }
+      for (let i = 0; i < 18; i++) mote(x, y, R, i, '#fff6d0', 1.6 * sc); }
+    // HALO OF LIGHT: the halo spins and bobs over her head, light shafts sweep down round her, the light breathes, motes rise in it,
+    // and each heal tick sparkles on her; L10 the golden arch stands behind her and the light fills the screen
+    if (A['halo-of-light']) { const r = st('halo-of-light').r || 3, lv = lvOf('halo-of-light'), rec = artFor('halo-of-light'), bob = Math.sin(t * 2.2) * 0.12 * sc;
+      g.save(); g.globalAlpha = 0.1 + 0.05 * Math.sin(t * 2); g.fillStyle = '#fff3c4'; g.beginPath(); g.arc(cx, cy, r * sc * (1 + Math.sin(t * 1.5) * 0.03), 0, 7); g.fill(); g.restore();
+      for (let i = 0; i < 6; i++) { const an = t * 0.6 + i * Math.PI / 3; g.save(); g.globalAlpha = 0.12 + 0.06 * Math.sin(t * 3 + i); g.fillStyle = '#fff8dc'; g.beginPath();
+        g.moveTo(cx, cy - 2.4 * sc); g.lineTo(cx + Math.cos(an) * r * sc - 0.4 * sc, cy + Math.sin(an) * r * sc * 0.8); g.lineTo(cx + Math.cos(an) * r * sc + 0.4 * sc, cy + Math.sin(an) * r * sc * 0.8); g.closePath(); g.fill(); g.restore(); }
+      for (let i = 0; i < 14; i++) mote(cx, cy, r * sc, i, '#fff0b0', 1.8 * sc);
+      if (lv >= 10 && rec && rec.lv10) el(rec.lv10, cx, cy - 1.6 * sc, 3.6 * sc * (1 + Math.sin(t * 2) * 0.02), 0, 0.55);
+      if (rec && rec.unit) { g.save(); g.translate(cx, cy - 2.5 * sc + bob); g.scale(1, 0.45); g.rotate(t * 1.5); el(rec.unit, 0, 0, 1.7 * sc, 0, 0.95); g.restore(); }
+      const hp = (t * 2) % 1; g.save(); g.globalAlpha = 1 - hp; g.fillStyle = '#9dff9d'; g.font = 'bold ' + Math.round(0.7 * sc) + 'px sans-serif'; g.fillText('+', cx + 0.5 * sc, cy - 1.2 * sc - hp * sc); g.restore(); }
+    // BLOOM PATH: each flower grows out of the ground, sways in the breeze and glows when it is ripe (ready to burst under you)
+    (st('bloom-path').fl || []).forEach((f, i) => { if (!A['bloom-path']) return; const grow = Math.min(1, f.age / 1.2), ripe = f.age > 2, x = X(f.x), y = Y(f.y);
+      if (ripe) { g.save(); g.globalAlpha = 0.25 + 0.2 * Math.sin(t * 5 + i); g.fillStyle = '#ffd6f0'; g.beginPath(); g.arc(x, y, 0.8 * sc, 0, 7); g.fill(); g.restore(); }
+      sym('bloom-path', x, y, (0.3 + 0.75 * grow) * sc * (ripe ? 1 + Math.sin(t * 5 + i) * 0.06 : 1), Math.sin(t * 2 + i) * 0.18, 0.95, ripe ? '#ff9ad5' : '#7ad67a'); });
+    // PRISM BEAM: the beam shimmers (width pulse), leaves a fading after-glow of where it just was, and sparkles at its tip
+    if (A['prism-beam']) { const p = st('prism-beam'), cols = ['#ff6a6a', '#ffd36a', '#7aff8a', '#6ad0ff', '#a07aff', '#ff7ae0'], lv = lvOf('prism-beam'), spd = 1.6 + lv * 0.11;
+      for (let i = 0; i < (p.n || 1); i++) { const L = (p.len || 6) * sc;
+        for (let gh = (lv >= 10 ? 1 : 2); gh >= 0; gh--) { const a = (p.a || 0) - gh * 0.06 * spd + i * Math.PI * 2 / (p.n || 1);
+          sym('prism-beam', cx + Math.cos(a) * L / 2, cy + Math.sin(a) * L / 2, L * (1 + (gh ? 0 : Math.sin(t * 14) * 0.03)), a + Math.PI / 2, gh ? (lv >= 10 ? 0.05 : 0.1) : 0.85, lv >= 10 ? cols[i % 6] : '#fff7c4', 'beam'); }
+        const a = (p.a || 0) + i * Math.PI * 2 / (p.n || 1), tx = cx + Math.cos(a) * L, ty = cy + Math.sin(a) * L;
+        g.save(); g.globalAlpha = 0.6 + 0.4 * Math.sin(t * 20 + i); g.fillStyle = '#ffffff'; g.beginPath(); g.arc(tx, ty, 0.25 * sc, 0, 7); g.fill(); g.restore(); } }
+    // SONG NOTES: each note spins and pulses on its wavy line, a faint staff trail follows it; a charmed monster shows a heart over it
+    S.notes.forEach(n => { const u = n.t / n.life; sym(n.key, X(n.x), Y(n.y) - Math.sin(n.t * 10) * 0.15 * sc, 1.0 * sc * (1 + Math.sin(n.t * 12) * 0.12), Math.sin(n.t * 8) * 0.5, 1 - u * 0.5, '#c9a6ff');
+      for (let k = 1; k <= 3; k++) { g.save(); g.globalAlpha = (1 - u) * 0.18; g.fillStyle = '#e8d8ff'; g.beginPath(); g.arc(X(n.x - Math.cos(n.ang) * k * 0.5), Y(n.y - Math.sin(n.ang) * k * 0.5), 0.12 * sc, 0, 7); g.fill(); g.restore(); } });
+    if (A['song-notes']) S.monsters.forEach(m => { if (!(m.charmT > 0)) return; const mx = X(m.x), my = Y(m.y) - (m.r * 2 + 0.8) * sc - Math.abs(Math.sin(t * 4 + m.id)) * 0.2 * sc;
+      g.save(); g.fillStyle = '#ff7ac0'; g.beginPath(); const z = 0.22 * sc; g.moveTo(mx, my + z); g.bezierCurveTo(mx - 2 * z, my - z, mx - z, my - 2 * z, mx, my - z * 0.6); g.bezierCurveTo(mx + z, my - 2 * z, mx + 2 * z, my - z, mx, my + z); g.fill(); g.restore(); });
+    // SPIRIT LANTERN: the lantern sways on its float, its glow breathes, a light trail follows it, and gems it is carrying sparkle on a thread to it
+    if (A['spirit-lantern']) { const p = st('spirit-lantern'); if (p.lx != null) { const x = X(p.lx), y = Y(p.ly) - Math.sin(t * 3) * 0.25 * sc, big = p.call > 0 ? 1.6 : 1;
+      g.save(); g.globalAlpha = 0.22 + 0.12 * Math.sin(t * 4); const gr = g.createRadialGradient(x, y, 0, x, y, 2.2 * sc * big); gr.addColorStop(0, 'rgba(140,255,200,0.9)'); gr.addColorStop(1, 'rgba(140,255,200,0)');
+      g.fillStyle = gr; g.beginPath(); g.arc(x, y, 2.2 * sc * big, 0, 7); g.fill(); g.restore();
+      S.gems.forEach(gm => { const dx = gm.x - p.lx, dy = gm.y - p.ly; if (dx * dx + dy * dy < 9) line(x, y, X(gm.x), Y(gm.y), '#bfffe0', 1.5, 0.5 + 0.3 * Math.sin(t * 9)); });
+      sym('spirit-lantern', x, y, 1.4 * sc * big, Math.sin(t * 2) * 0.18, 1, '#ffcc66'); } }
+    // GUARDIAN SPIRITS: each spirit floats on its own rhythm, sways, and its glow pulses
+    (st('guardian-spirits').sp || []).forEach((p, i) => { if (!A['guardian-spirits']) return; const x = X(p[0]), y = Y(p[1]) - (0.3 + Math.sin(t * 2.4 + i * 1.7) * 0.25) * sc;
+      g.save(); g.globalAlpha = 0.2 + 0.12 * Math.sin(t * 3 + i); g.fillStyle = '#bff0ff'; g.beginPath(); g.ellipse(X(p[0]), Y(p[1]) + 0.3 * sc, 0.9 * sc, 0.32 * sc, 0, 0, 7); g.fill(); g.restore();
+      sym('guardian-spirits', x, y, 1.7 * sc, Math.sin(t * 1.6 + i) * 0.1, 0.92, '#a8e6ff'); });
+    // BLESSED SHIELD: the bubble wobbles, its highlight turns, it flashes as a hit cracks it; ANGEL WINGS beat when they flare
+    if (A['blessed-shield'] && h.bubble > 0) { const p = st('blessed-shield'), f = h.bubble / (h.bubbleMax || 1), was = p._b == null ? h.bubble : p._b;
+      if (h.bubble < was - 1) p._flash = 0.25; p._b = h.bubble; if (p._flash > 0) p._flash -= 1 / 60;
+      g.save(); g.translate(cx, cy - 0.3 * sc); g.scale(1 + Math.sin(t * 5) * 0.03, 1 - Math.sin(t * 5) * 0.03); sym('blessed-shield', 0, 0, 3.0 * sc, t * 0.8, 0.3 + 0.45 * f + (p._flash > 0 ? 0.3 : 0), '#bfe4ff', 'ring'); g.restore(); }
+    if (h.wings > 0) { const rec = artFor('blessed-shield'); if (rec && rec.lv10) { const flap = 0.75 + 0.25 * Math.sin(t * 9);
+      g.save(); g.translate(cx - 1.2 * sc, cy - 0.8 * sc); g.scale(-flap, 1); el(rec.lv10, 0, 0, 3.4 * sc, -0.2, Math.min(1, h.wings)); g.restore();
+      g.save(); g.translate(cx + 1.2 * sc, cy - 0.8 * sc); g.scale(flap, 1); el(rec.lv10, 0, 0, 3.4 * sc, -0.2, Math.min(1, h.wings)); g.restore(); } }
     // SUNBURST v2: each ray is the star element flying outward with a light streak behind it; a soft flash at the burst;
     // L10 the sun itself hangs over you, slowly turning, and the rays come out of it
     if (A['sunburst']) { const p = st('sunburst'), rec = artFor('sunburst'), lv = lvOf('sunburst'), sy = lv >= 10 ? cy - 3.2 * sc : cy;
@@ -290,7 +330,7 @@
         if (im) el(im, X(f.x), Y(f.y) + bob, (f.s === 1 ? 1.6 : 1.3) * sc, a, f.s === 0 ? 0.85 : 1); else sym('iron-fists', X(f.x), Y(f.y) + bob, 1.3 * sc, a, 1, '#a8c8ff'); });
       (p.hands || []).forEach(hd => { const im = rec && (rec.lv10 || rec.unit), a = Math.atan2(-(hd[1] - h.y - h.diry * 3), -(hd[0] - h.x - h.dirx * 3));
         g.fillStyle = 'rgba(0,0,0,0.25)'; g.beginPath(); g.ellipse(X(hd[0]), Y(hd[1]) + 1.2 * sc, 1.4 * sc, 0.45 * sc, 0, 0, 7); g.fill();
-        if (im) el(im, X(hd[0]), Y(hd[1]) - 0.4 * sc, 3.2 * sc, a, 1, hd[2] < 0 ? 1 : 0); }); }
+        if (im) el(im, X(hd[0]), Y(hd[1]) - 0.6 * sc, 4.4 * sc, a, 1, hd[2] < 0 ? 1 : 0); }); }
     // WAR DRUM: one drum beside you that jumps on every beat (bigger on the 4th); the shockwave is a ring (in the one-shot moments)
     if (A['war-drum']) { const im = pick(artFor('war-drum'), 'war-drum'), lb = S.fx.filter(f => f.kind === 'beat').pop(), hop = lb ? Math.sin(Math.min(1, lb.t / lb.life) * Math.PI) * (lb.big ? 0.9 : 0.4) : 0;
       if (im) el(im, cx + 1.6 * sc, cy - (0.4 + hop) * sc, (1.3 + (lb && lb.big ? hop * 0.4 : 0)) * sc, 0, 1); }
