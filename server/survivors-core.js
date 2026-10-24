@@ -22,7 +22,8 @@
   var STAGES = 10;                                // Phil: "10 stages for now"
   var SLOTS = { aura: 5, passive: 5, skill: 5 };  // Phil: "5 skill / 5 possible aura skills / 5 possible passives"
   var AURA_MAX = 10, PASSIVE_MAX = 5;
-  var MAX_MONSTERS = 420;                         // phone budget: the spawner never holds more than this
+  var MAX_MONSTERS = 300;                         // waves stop topping up at 300 alive (as Vampire Survivors does)
+  var HARD_MAX = 360;                             // phone budget: bosses + map events may go over 300, never over this
   // the VIEW, in metres, the same for every player (a bigger phone must not see more of the horde). Landscape (the game is
   // landscape); Phil 24 Oct "Zoom out more the game is too zoomed in": 22 m high -> 30 m. Spawns land just outside it.
   var VIEW = { w: 64, h: 30 };
@@ -102,7 +103,52 @@
     runner:  { hp: 22,  dmg: 5,  spd: 4.2, r: 0.30, xp: 1 },
     elite:   { hp: 900, dmg: 26, spd: 1.8, r: 0.90, xp: 25 },
     boss:    { hp: 24000, dmg: 45, spd: 1.6, r: 1.6, xp: 0 },
+    wall:    { hp: 260, dmg: 12, spd: 0.9, r: 0.70, xp: 3 },     // slow and tanky: wall waves + the encircling wall event
   };
+
+  /* ---- WAVES, the Vampire Survivors way (studied 24 Oct 2026 from its first stage's wave table; notes in the design folder:
+   * "HERO SURVIVORS - WAVES STUDY (Claude 24 Oct).md"). One wave per minute. Each wave has:
+   *   min  - the horde it keeps alive: every interval, if fewer than min are alive it tops up to min at once
+   *   iv   - the interval in seconds; at or above min it adds ONE of each type in the wave per interval
+   *   ty   - the monster types of that minute
+   *   boss - an elite at the start of the minute ("big" = a 3x elite)
+   *   ev   - a map event: swarm = a pack that sweeps straight across, wall = a ring that closes in; n repeats, p chance each
+   * The count is NOT a rising line: it breathes - lulls (min 10-20) right after spikes (min 300 at 0.1 s), so a run has rhythm.
+   * Waves stop topping up at 300 alive. The stage multiplies HP (stageScale) and a little of the min; time multiplies HP (clockScale).
+   * Row i is minute i of a 30-minute stage; after 30:00 Story has its boss, Survive loops minutes 20-29. */
+  var WAVES = [
+    { min: 15,  iv: 1.0,  ty: ["swarmer"] },
+    { min: 30,  iv: 1.0,  ty: ["swarmer", "runner"], boss: "elite" },
+    { min: 50,  iv: 0.5,  ty: ["swarmer", "runner", "runner"], ev: { k: "swarm", n: 3, p: 1 } },
+    { min: 40,  iv: 0.25, ty: ["swarmer"], boss: "elite", ev: { k: "swarm", n: 2, p: 0.1 } },
+    { min: 30,  iv: 1.0,  ty: ["swarmer", "runner"], ev: { k: "swarm", n: 2, p: 0.1 } },
+    { min: 10,  iv: 1.0,  ty: ["brute"], boss: "big", ev: { k: "wall", n: 1, p: 1, dur: 30 } },
+    { min: 20,  iv: 0.5,  ty: ["swarmer", "brute"], ev: { k: "swarm", n: 2, p: 0.1 } },
+    { min: 80,  iv: 0.5,  ty: ["runner", "runner", "brute"], boss: "elite", ev: { k: "swarm", n: 6, p: 0.8 } },
+    { min: 100, iv: 1.5,  ty: ["swarmer"], boss: "elite", ev: { k: "swarm", n: 3, p: 0.8 } },
+    { min: 30,  iv: 0.5,  ty: ["brute", "swarmer"], boss: "elite", ev: { k: "swarm", n: 3, p: 0.7 } },
+    { min: 10,  iv: 0.5,  ty: ["brute", "brute"], boss: "big", ev: { k: "wall", n: 1, p: 1, dur: 60 } },
+    { min: 300, iv: 0.1,  ty: ["swarmer"], boss: "elite", ev: { k: "swarm", n: 2, p: 0.1 } },
+    { min: 20,  iv: 0.25, ty: ["runner", "swarmer", "swarmer"], boss: "elite", ev: { k: "swarm", n: 2, p: 0.1 } },
+    { min: 150, iv: 0.5,  ty: ["runner", "swarmer"], ev: { k: "swarm", n: 6, p: 0.7 } },
+    { min: 20,  iv: 0.1,  ty: ["brute", "runner"], boss: "elite" },
+    { min: 100, iv: 0.1,  ty: ["runner", "brute", "brute"], boss: "big", ev: { k: "wall", n: 1, p: 0.8, dur: 60 } },
+    { min: 100, iv: 0.1,  ty: ["runner", "brute", "brute"], boss: "elite" },
+    { min: 20,  iv: 1.0,  ty: ["brute"] },
+    { min: 60,  iv: 0.5,  ty: ["brute", "brute"], boss: "elite" },
+    { min: 100, iv: 0.5,  ty: ["brute", "brute"] },
+    { min: 100, iv: 0.1,  ty: ["brute", "brute", "runner"], boss: "big", ev: { k: "swarm", n: 6, p: 0.7 } },
+    { min: 300, iv: 0.1,  ty: ["wall"], boss: "elite" },
+    { min: 200, iv: 0.1,  ty: ["wall", "brute"], boss: "elite" },
+    { min: 300, iv: 0.1,  ty: ["wall", "brute"], boss: "elite" },
+    { min: 300, iv: 0.1,  ty: ["wall", "brute"], boss: "elite" },
+    { min: 100, iv: 0.1,  ty: ["brute"], boss: "big", ev: { k: "wall", n: 6, p: 1, dur: 10 } },
+    { min: 150, iv: 0.1,  ty: ["brute", "wall"] },
+    { min: 300, iv: 0.1,  ty: ["brute", "brute", "brute"], boss: "elite", ev: { k: "swarm", n: 6, p: 1 } },
+    { min: 300, iv: 0.1,  ty: ["runner", "runner"] },
+    { min: 300, iv: 0.1,  ty: ["runner", "runner"], boss: "elite", ev: { k: "swarm", n: 20, p: 1 } },
+  ];
+  function waveIndex(t) { var w = Math.floor(t / 60); return w < WAVES.length ? w : 20 + (w - WAVES.length) % 10; }
   function stageScale(stage) { return Math.pow(1.6, (stage | 0) - 1); }        // each stage ~1.6x the last
   function clockScale(t) { return 1 + t / 300; }                               // +100% every 5 minutes inside a run
 
@@ -130,7 +176,7 @@
         wardT: 0,
       },
       monsters: [], nextId: 1, gems: [], shots: [], zones: [], fx: [],
-      spawnAcc: 0, bossSpawned: false, boss: null,
+      bossSpawned: false, boss: null, noSpawn: false,
       choice: null, kills: 0, dealt: 0, taken: 0, ended: false, won: false, score: 0,
       inputs: [],                                   // the run's input log - replayed by the server
       _state: {},                                   // per-aura timers
@@ -322,30 +368,60 @@
   }
 
   /* ---- spawning ------------------------------------------------------------------------------------------------------------------ */
-  function spawn(S, type) {
-    if (S.monsters.length >= MAX_MONSTERS && type !== "boss") return;
-    var base = MONSTERS[type], sc = stageScale(S.stage) * (type === "boss" ? 1 : clockScale(S.t));
+  function spawn(S, type, o) {
+    o = o || {};
+    if (S.monsters.length >= HARD_MAX && type !== "boss") return null;
+    var base = MONSTERS[type], sc = stageScale(S.stage) * (type === "boss" ? 1 : clockScale(S.t)) * (o.hpMul || 1);
     // a point on a frame 1-4 m outside the view, edges picked by length so the horde comes evenly from all round
     var hx = VIEW.w / 2 + 1 + S.rng() * 3, hy = VIEW.h / 2 + 1 + S.rng() * 3, u = S.rng() * 2 * (hx + hy), ox, oy;
     if (u < hx) { ox = -hx + 2 * u; oy = -hy; } else if (u < 2 * hx) { ox = -hx + 2 * (u - hx); oy = hy; }
     else if (u < 2 * hx + hy) { ox = -hx; oy = -hy + 2 * (u - 2 * hx); } else { ox = hx; oy = -hy + 2 * (u - 2 * hx - hy); }
     // AHEAD: while the hero moves, 2 in 3 spawns come from the side it is heading to, so the horde meets it instead of trailing
     var h = S.hero; if ((h.mvx || h.mvy) && S.rng() < 0.67 && ox * h.dirx + oy * h.diry < 0) { ox = -ox; oy = -oy; }
+    if (o.x != null) { ox = o.x - S.hero.x; oy = o.y - S.hero.y; }
     var m = { id: S.nextId++, type: type, x: S.hero.x + ox, y: S.hero.y + oy, hp: base.hp * sc, maxHp: base.hp * sc,
-              dmg: base.dmg * Math.sqrt(sc), spd: base.spd, r: base.r };
+              dmg: base.dmg * Math.sqrt(sc), spd: base.spd, r: base.r * (o.rMul || 1) };
+    if (o.vx != null) { m.vx = o.vx; m.vy = o.vy; m.life = o.life; }      // a swarm member: flies straight, then leaves
+    else if (o.life != null) m.life = o.life;                          // a wall member: chases, then fades when the event ends
+    if (o.ev) m.ev = 1;
+    if (o.wb) m.wb = 1;
     S.monsters.push(m);
     if (type === "boss") S.boss = m;
+    return m;
+  }
+  // map events (outside the wave count, may go past 300)
+  function swarm(S) {        // a tight pack of 14 runners that sweeps straight across the screen, aimed at where the hero is now
+    var h = S.hero, a = S.rng() * Math.PI * 2, R = VIEW.w / 2 + 3, sx = h.x + Math.cos(a) * R, sy = h.y + Math.sin(a) * R * VIEW.h / VIEW.w;
+    var dx = h.x - sx, dy = h.y - sy, dl = Math.sqrt(dx * dx + dy * dy) || 1, px = -dy / dl, py = dx / dl;
+    for (var i = 0; i < 14; i++) { var k = (i % 7) - 3, row = Math.floor(i / 7);
+      spawn(S, "runner", { x: sx + px * k * 0.9 - dx / dl * row * 0.9, y: sy + py * k * 0.9 - dy / dl * row * 0.9, vx: dx / dl * 7, vy: dy / dl * 7, life: (2 * R) / 7 + 1, ev: 1 }); }
+  }
+  function wallRing(S, dur) {  // a ring of 36 walls round the hero, on screen, closing in; gone when the event ends
+    var h = S.hero, R = VIEW.h / 2 - 2;
+    for (var i = 0; i < 36; i++) { var a = i / 36 * Math.PI * 2; spawn(S, "wall", { x: h.x + Math.cos(a) * R, y: h.y + Math.sin(a) * R, life: dur, ev: 1 }); }
   }
   function spawnStep(S, dt) {
-    var mins = S.t / 60, rate = (1.2 + mins * 0.55) * (1 + (S.stage - 1) * 0.12);          // monsters per second
-    S.spawnAcc += rate * dt;
-    while (S.spawnAcc >= 1) {
-      S.spawnAcc -= 1;
-      var r = S.rng();
-      spawn(S, r < 0.12 + Math.min(0.2, mins * 0.01) ? "brute" : r < 0.35 ? "runner" : "swarmer");
+    if (S.noSpawn) return;                                                                    // tests: a quiet field
+    var wi = waveIndex(S.t), W = WAVES[wi], w0 = Math.floor(S.t / 60) * 60;
+    if (wi !== S._wave || w0 !== S._waveAt) {                                                  // a new minute: its boss, its events
+      S._wave = wi; S._waveAt = w0; S._evDone = 0; S._waveT = 0;
+      if (W.boss === "elite") spawn(S, "elite", { wb: 1 });                                     // wave bosses sit outside the 300
+      else if (W.boss === "big") spawn(S, "elite", { hpMul: 3, rMul: 1.35, wb: 1 });
     }
-    var e = Math.floor(S.t / 120), es = S._elites || 0;                                       // an elite every 2 minutes
-    if (e > es) { S._elites = e; spawn(S, "elite"); }
+    // the wave: every iv seconds, top up to min, or add one of each type
+    S._waveT -= dt;
+    if (S._waveT <= 0) {
+      S._waveT += W.iv;
+      var min = Math.min(MAX_MONSTERS, Math.round(W.min * (1 + (S.stage - 1) * 0.05))), alive = 0;
+      for (var i = 0; i < S.monsters.length; i++) if (!S.monsters[i].ev && !S.monsters[i].wb && S.monsters[i].type !== "boss") alive++;
+      if (alive < MAX_MONSTERS) {
+        if (alive < min) for (var n = alive; n < min; n++) spawn(S, W.ty[n % W.ty.length]);
+        else for (var j = 0; j < W.ty.length && alive + j < MAX_MONSTERS; j++) spawn(S, W.ty[j]);
+      }
+    }
+    // map events: n repeats spread over the minute (from :05), each with chance p
+    if (W.ev) { var due = 5 + S._evDone * (50 / W.ev.n);
+      if (S._evDone < W.ev.n && S.t - w0 >= due) { S._evDone++; if (S.rng() < W.ev.p) { if (W.ev.k === "swarm") swarm(S); else wallRing(S, W.ev.dur || 20); } } }
     if (S.mode === "story" && !S.bossSpawned && S.t >= STORY_SECONDS) { S.bossSpawned = true; spawn(S, "boss"); }
   }
 
@@ -418,10 +494,13 @@
       if (m.dotT > 0) { m.dotT -= dt; m.hp -= m.dot * dt; S.dealt += m.dot * dt; if (m.hp <= 0) { kill(S, m); S.monsters.splice(mi, 1); continue; } }
       if (m.vuln > 0) m.vuln -= dt;
       if (m.stunT > 0) { m.stunT -= dt; continue; }
+      if (m.life != null) { m.life -= dt; if (m.life <= 0) { S.monsters.splice(mi, 1); continue; } }   // an event member leaves
       var dx = h.x - m.x, dy = h.y - m.y, d = Math.sqrt(dx * dx + dy * dy) || 1, sp3 = m.spd * (m.slowT > 0 ? 0.5 : 1);
       if (m.slowT > 0) m.slowT -= dt;
-      if (d > VIEW.w * 0.75 && m.type !== "boss") { S.monsters.splice(mi, 1); continue; }         // far behind: recycled
-      m.x += dx / d * sp3 * dt; m.y += dy / d * sp3 * dt;
+      // left behind: a wave monster 8 m past the view's edge is recycled (the wave refills near the hero). Bosses and wave elites never are.
+      if (!m.ev && !m.wb && m.type !== "boss" && (Math.abs(dx) > VIEW.w / 2 + 8 || Math.abs(dy) > VIEW.h / 2 + 8)) { S.monsters.splice(mi, 1); continue; }
+      if (m.vx != null) { m.x += m.vx * (m.slowT > 0 ? 0.5 : 1) * dt; m.y += m.vy * (m.slowT > 0 ? 0.5 : 1) * dt; }   // swarm: straight on
+      else { m.x += dx / d * sp3 * dt; m.y += dy / d * sp3 * dt; }
       if (d <= m.r + 0.45 && h.iframes <= 0) {
         if (h.guard > 0) { h.guard--; h.iframes = 0.4; }
         else { var dmg = m.dmg * taken; h.hp -= dmg; S.taken += dmg; h.iframes = 0.5; if (h.wardT > 0 && h.hp < 1) h.hp = 1; if (h.thorns) hit(S, m, h.atk * h.thorns, "dot", 1); }
@@ -465,7 +544,7 @@
   }
 
   global.SurvivorsCore = {
-    TICK: TICK, VIEW: VIEW, STORY_SECONDS: STORY_SECONDS, STAGES: STAGES, SLOTS: SLOTS, AURA_MAX: AURA_MAX, PASSIVE_MAX: PASSIVE_MAX,
+    TICK: TICK, VIEW: VIEW, WAVES: WAVES, MAX_MONSTERS: MAX_MONSTERS, HARD_MAX: HARD_MAX, waveIndex: waveIndex, STORY_SECONDS: STORY_SECONDS, STAGES: STAGES, SLOTS: SLOTS, AURA_MAX: AURA_MAX, PASSIVE_MAX: PASSIVE_MAX,
     PASSIVES: PASSIVES, LADDER: LADDER, MONSTERS: MONSTERS, fxKind: fxKind,
     SKILL_KINDS: Object.keys(SKILL_KINDS), useSkill: useSkill,
     create: create, step: step, choose: choose, offers: offers, replay: replay, digest: digest, stageScale: stageScale,

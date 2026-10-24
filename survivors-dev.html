@@ -63,7 +63,7 @@
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="/assets/js/three-r128-GLTFLoader.js"></script>
-<script src="/server/survivors-core.js?v=dev3"></script>
+<script src="/server/survivors-core.js?v=dev4"></script>
 <script>
 (async function () {
   const C = window.SurvivorsCore, AURAS = await (await fetch('/server/survivors-auras.json?v=dev1')).json();
@@ -166,7 +166,7 @@
   function fmt(t) { t = Math.floor(t); return Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0'); }
   let seenFx = 0;
   const HERO_M = 3.0;   // the hero's 3D model height in world metres (bigger than life so she reads on a phone at the 30 m view)
-  const COL = { swarmer: '#7a8a4a', runner: '#a0703a', brute: '#6a4a8a', elite: '#c23a3a', boss: '#ff2a6a' };
+  const COL = { swarmer: '#7a8a4a', runner: '#a0703a', brute: '#6a4a8a', elite: '#c23a3a', boss: '#ff2a6a', wall: '#3a7a5a' };
   function draw() {
     const W = cv.width, H = cv.height, sc = Math.min(W / C.VIEW.w, H / C.VIEW.h), h = S.hero;   // px per metre: the core's fixed view
     const X = x => W / 2 + (x - h.x) * sc, Y = y => H / 2 + (y - h.y) * sc;

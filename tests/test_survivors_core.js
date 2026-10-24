@@ -62,7 +62,7 @@ HITTERS.forEach(a => {
     const S = C.create(hero, { seed: 5, auras: AURAS });
     S.hero.auras[a.key] = lv; S.hero.maxHp = S.hero.hp = 1e9; S._baseT = 1e9;       // no base attack: only the aura can hurt
     for (let k = 0; k < 40; k++) { const ang = k / 40 * Math.PI * 2, d = 1.2 + (k % 4) * 1.1; S.monsters.push({ id: S.nextId++, type: 'brute', x: Math.cos(ang) * d, y: Math.sin(ang) * d, hp: 1e6, maxHp: 1e6, dmg: 1, spd: 0, r: 0.6 }); }
-    S.spawnAcc = -1e9; S._elites = 1e9;                                             // no spawns during the probe
+    S.noSpawn = true;                                             // no spawns during the probe
     for (let i = 0; i < 30 * 10; i++) C.step(S, { mx: (i % 60 < 30) ? 0.6 : -0.6, my: 0 });
     if (!(S.dealt > 0)) silent.push(a.key + '@' + lv);
   });
@@ -74,7 +74,7 @@ let weak = [];
 HITTERS.forEach(a => {
   const d = [1, 10].map(lv => {
     const S = C.create(Object.assign({}, HERO, { cls: a.cls }), { seed: 5, auras: AURAS });
-    S.hero.auras[a.key] = lv; S.hero.maxHp = S.hero.hp = 1e9; S._baseT = 1e9; S.spawnAcc = -1e9; S._elites = 1e9;
+    S.hero.auras[a.key] = lv; S.hero.maxHp = S.hero.hp = 1e9; S._baseT = 1e9; S.noSpawn = true;
     for (let k = 0; k < 40; k++) { const ang = k / 40 * Math.PI * 2, dd = 1.2 + (k % 4) * 1.1; S.monsters.push({ id: S.nextId++, type: 'brute', x: Math.cos(ang) * dd, y: Math.sin(ang) * dd, hp: 1e6, maxHp: 1e6, dmg: 1, spd: 0, r: 0.6 }); }
     for (let i = 0; i < 30 * 10; i++) C.step(S, { mx: (i % 60 < 30) ? 0.6 : -0.6, my: 0 });
     return S.dealt;
@@ -90,7 +90,7 @@ let noEffect = [];
 UTIL.forEach(a => {
   const k = C.fxKind(a.fx), res = [1, 10].map(lv => {
     const S = C.create(Object.assign({}, HERO, { cls: a.cls }), { seed: 5, auras: AURAS });
-    S.hero.auras[a.key] = lv; S.hero.maxHp = 1e6; S.hero.hp = 5e5; S.spawnAcc = -1e9; S._elites = 1e9;
+    S.hero.auras[a.key] = lv; S.hero.maxHp = 1e6; S.hero.hp = 5e5; S.noSpawn = true;
     for (let q = 0; q < 12; q++) S.monsters.push({ id: S.nextId++, type: 'swarmer', x: 1 + q * 0.3, y: 0, hp: 1, maxHp: 1, dmg: 1, spd: 0, r: 0.35 });
     let best = 0;
     for (let i = 0; i < 30 * 6; i++) { C.step(S, { mx: 0, my: 0 }); const m = S.monsters.reduce((b, x) => Math.max(b, x.vuln || 0), 0);
@@ -112,7 +112,7 @@ ok('utility auras take effect and grow to level 10', noEffect.length === 0, noEf
   }
   const ms = Date.now() - t0;
   ok('the boss spawns at 30:00', S.bossSpawned && Math.abs(S.t - C.STORY_SECONDS) < 1, S.t);
-  ok('monsters never exceed the phone cap', maxMon <= 421, maxMon);
+  ok('monsters never exceed the phone cap', maxMon <= C.HARD_MAX, maxMon);
   ok('the horde reaches the hero: 3000+ kills in 30 min (a far-spawn bug once gave 165)', S.kills >= 3000, S.kills);
   ok('30 simulated minutes cost under 60 s of CPU', ms < 60000, ms + ' ms');
   console.log('  30-min story sim:', ms, 'ms, peak monsters', maxMon, ', kills', S.kills, ', level', S.hero.level);
@@ -173,6 +173,26 @@ const KH = Object.assign({}, HERO, { skills: KIT });
   ok('the bot really pressed skills', L.inputs.filter(e => e[1] === 's').length > 10, L.inputs.filter(e => e[1] === 's').length);
   const bad2 = L.inputs.map(e => e.slice()), si = bad2.findIndex(e => e[1] === 's' && e[2] === 2); if (si >= 0) bad2[si][2] = 4;
   ok('control: a tampered skill press does not reproduce the run', si >= 0 && C.digest(C.replay(KH, { seed: 77, mode: 'story', stage: 2, auras: AURAS }, bad2, L.tick)) !== C.digest(L));
+}
+
+// 11. waves, the Vampire Survivors way: 30 one-minute rows, top-up to min, one-of-each above it, 300 cap, events
+ok('30 waves, one per minute', C.WAVES.length === 30 && C.waveIndex(59.9) === 0 && C.waveIndex(60) === 1 && C.waveIndex(1799) === 29);
+ok('survive loops minutes 20-29 after 30:00', C.waveIndex(1800) === 20 && C.waveIndex(2399) === 29 && C.waveIndex(2400) === 20);
+ok('the rhythm breathes: a lull straight after a spike', C.WAVES[11].min === 300 && C.WAVES[12].min === 20);
+{
+  const S = C.create(HERO, { seed: 3, stage: 1, auras: AURAS }); S.hero.maxHp = S.hero.hp = 1e9; S._baseT = 1e9;
+  C.step(S, {}); ok('minute 0 tops up to its min (15) on the first tick', S.monsters.length === 15, S.monsters.length);
+  for (let i = 0; i < 30; i++) C.step(S, {});
+  ok('above min it adds one of each type per interval (1 s, 1 type -> 16)', S.monsters.length === 16, S.monsters.length);
+  const T = C.create(HERO, { seed: 3, stage: 1, auras: AURAS }); T.hero.maxHp = T.hero.hp = 1e9; T._baseT = 1e9;
+  for (let i = 0; i < 30 * 60 * 12 && T.t < 11 * 60 + 5; i++) C.step(T, T.choice ? { pick: 0 } : {});
+  const alive = T.monsters.filter(m => !m.ev && !m.wb && m.type !== 'boss').length;
+  ok('minute 11 fills to the 300 cap and holds it', alive >= 290 && alive <= C.MAX_MONSTERS, alive);
+  ok('never past the hard phone cap', T.monsters.length <= C.HARD_MAX, T.monsters.length);
+  const U = C.create(HERO, { seed: 4, stage: 1, auras: AURAS }); U.hero.maxHp = U.hero.hp = 1e9; U._baseT = 1e9; let sw = 0, wl = 0;
+  for (let i = 0; i < 30 * 60 * 12 && U.t < 10 * 60 + 20; i++) { C.step(U, U.choice ? { pick: 0 } : {}); sw = Math.max(sw, U.monsters.filter(m => m.vx != null).length); wl = Math.max(wl, U.monsters.filter(m => m.ev && m.type === 'wall').length); }
+  ok('the 2:00 swarm sweeps in (straight-line runners)', sw >= 14, sw);
+  ok('the 5:00 / 10:00 wall closes in round the hero', wl >= 30, wl);
 }
 
 console.log(fail ? `test_survivors_core: ${pass} passed, ${fail} FAILED` : `test_survivors_core: ${pass} checks passed`);
