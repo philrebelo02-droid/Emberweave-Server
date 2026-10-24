@@ -70,7 +70,7 @@
   function move(e) { let dx = e.clientX - scx, dy = e.clientY - scy; const d = Math.hypot(dx, dy), m = 50; if (d > m) { dx *= m / d; dy *= m / d; } smx = dx / m; smy = dy / m; knob.style.transform = `translate(${dx}px,${dy}px)`; }
   document.getElementById('ult').onclick = () => ultReq = true;
   /* LINNET 3D PILOT (Phil 24 Oct: "set up the threadseer pilot"). One rigged Meshy model, 1024 px textures (92 MB -> 5 MB).
-     The camera looks down at the field; the model turns to face the way the hero moves and plays Walking / Running / idle. */
+     The camera looks down at the field; the model turns to face the way the hero moves and always walks (Phil 24 Oct: "her run, turn it into a walk"); standing still holds the walk's first frame. */
   let H3 = null;
   async function load3d() {
     const cv3 = document.getElementById('cv3'), r = new THREE.WebGLRenderer({ canvas: cv3, alpha: true, antialias: true });
@@ -82,11 +82,10 @@
     const model = gltf.scene, box = new THREE.Box3().setFromObject(model), h = box.max.y - box.min.y;
     model.scale.setScalar(1.6 / h); scene.add(model);
     const mixer = new THREE.AnimationMixer(model), clips = {}; gltf.animations.forEach(c => clips[c.name] = mixer.clipAction(c));
-    const idleName = Object.keys(clips).find(n => !/walk|run/i.test(n));
     let cur = null; function play(n) { if (!clips[n] || cur === n) return; if (cur) clips[cur].fadeOut(0.15); clips[n].reset().fadeIn(0.15).play(); cur = n; }
-    play(idleName || 'Walking');
+    play('Walking');
     addEventListener('resize', () => { r.setSize(innerWidth, innerHeight, false); cam.aspect = innerWidth / innerHeight; cam.updateProjectionMatrix(); });
-    const info = r.info; H3 = { r, scene, cam, model, mixer, play, idleName, clock: new THREE.Clock(), info, names: Object.keys(clips) };
+    const info = r.info; H3 = { r, scene, cam, model, mixer, play, clips, clock: new THREE.Clock(), info, names: Object.keys(clips) };
     document.getElementById('mem').textContent = '3D loaded: ' + H3.names.join(', ');
   }
   document.getElementById('go').onclick = () => {
@@ -143,7 +142,7 @@
     if (!H3) { g.fillStyle = h.iframes > 0 ? '#fff' : '#f2c14e'; g.beginPath(); g.arc(W / 2, H / 2, 0.5 * sc, 0, 7); g.fill(); }
     else {
       const moving = Math.abs(h.mvx) + Math.abs(h.mvy) > 0.01;
-      H3.play(moving ? (Math.hypot(input.mx, input.my) > 0.85 ? 'Running' : 'Walking') : (H3.idleName || 'Walking'));
+      H3.play('Walking'); H3.clips.Walking.timeScale = moving ? 1 : 0;
       H3.model.rotation.y = Math.atan2(h.dirx, h.diry);
       window._dbg = { dirx: h.dirx, diry: h.diry, roty: H3.model.rotation.y, paused: !!S.choice };   // dev probe
       H3.mixer.update(Math.min(0.05, H3.clock.getDelta())); H3.r.render(H3.scene, H3.cam);
