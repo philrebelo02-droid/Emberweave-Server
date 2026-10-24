@@ -64,7 +64,7 @@
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="/assets/js/three-r128-GLTFLoader.js"></script>
-<script src="/server/survivors-core.js?v=dev12"></script>
+<script src="/server/survivors-core.js?v=dev13"></script>
 <script>
 (async function () {
   const C = window.SurvivorsCore, AURAS = await (await fetch('/server/survivors-auras.json?v=dev1')).json();
@@ -229,14 +229,24 @@
     (st('guardian-spirits').sp || []).forEach((p, i) => { if (A['guardian-spirits']) sym('guardian-spirits', X(p[0]), Y(p[1]) - Math.abs(Math.sin(t * 2 + i)) * 0.2 * sc, 1.5 * sc, 0, 0.9, '#a8e6ff'); });
     if (A['blessed-shield'] && h.bubble > 0) sym('blessed-shield', cx, cy - 0.3 * sc, 3.0 * sc * (1 + Math.sin(t * 4) * 0.02), 0, 0.3 + 0.4 * h.bubble / (h.bubbleMax || 1), '#bfe4ff', 'ring');
     if (h.wings > 0) { const rec = artFor('blessed-shield'); if (rec && rec.lv10) el(rec.lv10, cx, cy - 0.6 * sc, 5 * sc, 0, Math.min(1, h.wings)); }
-    if (A['sunburst']) { const p = st('sunburst'); if (p.flash > 0) { p.flash -= 1 / 60; g.save(); g.globalAlpha = Math.max(0, p.flash) * 1.6; g.fillStyle = '#fff6d8'; g.fillRect(0, 0, g.canvas.width, g.canvas.height); g.restore(); sym('sunburst', cx, cy, 6 * sc, t, Math.max(0, p.flash) * 2, '#fff2a0'); }
-      if (p.sun > 0) { p.sun -= 1 / 60; const rec = artFor('sunburst'); if (rec && rec.lv10) el(rec.lv10, cx, cy - 6 * sc * (1 - p.sun / 1.2), 9 * sc, 0, Math.min(1, p.sun * 2)); } }
+    // SUNBURST v2: each ray is the star element flying outward with a light streak behind it; a soft flash at the burst;
+    // L10 the sun itself hangs over you, slowly turning, and the rays come out of it
+    if (A['sunburst']) { const p = st('sunburst'), rec = artFor('sunburst'), lv = lvOf('sunburst'), sy = lv >= 10 ? cy - 3.2 * sc : cy;
+      if (p.flash > 0) { p.flash -= 1 / 60; g.save(); g.globalAlpha = Math.max(0, p.flash) * 0.9; g.fillStyle = '#fff6d8'; g.beginPath(); g.arc(cx, sy, 6 * sc, 0, 7); g.fill(); g.restore(); }
+      if (lv >= 10 && rec && rec.lv10) el(rec.lv10, cx, sy, 3.4 * sc * (1 + Math.sin(t * 3) * 0.04), t * 0.3, 1);
+      (p.o || []).forEach(r => { if (r.x == null) return; const x0 = cx + Math.cos(r.a) * Math.max(0.5, r.d - 2.5) * sc, y0 = sy + Math.sin(r.a) * Math.max(0.5, r.d - 2.5) * sc,
+          x1 = cx + Math.cos(r.a) * r.d * sc, y1 = sy + Math.sin(r.a) * r.d * sc, f = 1 - r.d / r.R;
+        line(x0, y0, x1, y1, '#fff1a8', 0.45 * sc, 0.55 * f); sym('sunburst', x1, y1, 1.1 * sc, t * 6 + r.a, Math.min(1, f * 1.5), '#fff2a0'); }); }
     S.fx.forEach(f => { if (f.kind === 'pollen') { const u = f.t / f.life; sym('bloom-path', X(f.x), Y(f.y), f.r * 2 * sc * (0.4 + u), u * 2, 1 - u, '#ffd6f0', 'ring'); } });
     S.zones.forEach(z => { if (z.delay > 0 && z.kind !== 'drop') return;
       if (z.kind === 'ripple' && (z.key === 'chime-pulse' || z.key === 'blessed-shield')) { const u = Math.min(1, z.t / z.life), rr = (z.r0 + (z.r1 - z.r0) * u);
         sym(z.key, cx, cy, rr * 2 * sc, 0, 1 - u, z.key === 'chime-pulse' ? '#e8f4ff' : '#bfe4ff', 'ring'); }
-      if (z.kind === 'drop' && z.key === 'chime-pulse') { const u = z.delay > 0 ? 1 - z.delay / 0.8 : 1; const rec = artFor('chime-pulse'), im = rec && (rec.lv10 || rec.unit);
-        if (im) el(im, X(z.x), Y(z.y) - (1 - u) * 10 * sc, 5 * sc, 0, 1); else sym('chime-pulse', X(z.x), Y(z.y) - (1 - u) * 10 * sc, 4 * sc, 0, 1, '#e8c56a'); } });
+      // GRAND BELL (Phil 24 Oct: "grand bell is way too big"): one bell ~3 m drops onto you; the 8 m stun shows as a ring when it lands
+      if (z.kind === 'drop' && z.key === 'chime-pulse') { const u = z.delay > 0 ? Math.max(0, 1 - z.delay / 0.8) : 1, rec = artFor('chime-pulse'), im = rec && (rec.lv10 || rec.unit);
+        if (z.delay > 0) { g.fillStyle = 'rgba(0,0,0,' + (0.1 + 0.25 * u) + ')'; g.beginPath(); g.ellipse(X(z.x), Y(z.y), 1.4 * sc * (0.5 + 0.5 * u), 0.5 * sc * (0.5 + 0.5 * u), 0, 0, 7); g.fill(); }
+        const by = Y(z.y) - 1.2 * sc - (1 - u) * 10 * sc;
+        if (im) el(im, X(z.x), by, 2.1 * sc, 0, z.delay > 0 ? 1 : Math.max(0, 1 - z.t / z.life)); else sym('chime-pulse', X(z.x), by, 3 * sc, 0, 1, '#e8c56a');
+        if (z.delay <= 0) { const k = Math.min(1, z.t / z.life); g.save(); g.globalAlpha = 1 - k; g.strokeStyle = '#ffe9a8'; g.lineWidth = 4; g.beginPath(); g.arc(X(z.x), Y(z.y), z.r1 * sc * (0.3 + 0.7 * k), 0, 7); g.stroke(); g.restore(); } } });
   }
   // MAGE / BRUISER / ASSASSIN / MARKSMAN spells, each drawn the way it moves (art when it lands, a plain shape until then)
   function line(x1, y1, x2, y2, col, w, a) { g.save(); g.globalAlpha = a == null ? 1 : a; g.strokeStyle = col; g.lineWidth = w; g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2, y2); g.stroke(); g.restore(); }
@@ -335,7 +345,7 @@
       if (z.kind === 'puddle') {                                    // TRAIL: the strip laid along the path, swelling in, flickering, fading out
         const u = z.t / z.life, a = Math.min(1, u * 6) * Math.min(1, (1 - u) * 3), fl = 1 + Math.sin(t * 9 + zi) * 0.04;
         el(im, X(z.x), Y(z.y), z.r * 2.6 * sc * fl * (0.8 + 0.2 * Math.min(1, u * 6)), (z.ang || 0) + Math.PI / 2, a * 0.95);
-      } else if (z.kind === 'drop' && z.delay > 0) {                  // RAIN: the shadow grows under where it will land
+      } else if (z.kind === 'drop' && z.delay > 0 && z.key !== 'chime-pulse') {   // RAIN: the shadow grows under where it will land
         const u = Math.max(0, Math.min(1, 1 - z.delay / (z.d0 || (z.d0 = Math.max(0.6, z.delay))))); g.fillStyle = 'rgba(0,0,0,' + (0.15 + 0.3 * u) + ')'; g.beginPath();
         g.ellipse(X(z.x), Y(z.y), z.r1 * sc * (0.4 + 0.6 * u), z.r1 * sc * (0.25 + 0.35 * u), 0, 0, 7); g.fill();
       } });
@@ -350,7 +360,7 @@
           for (let i = 0; i < n; i++) { const an = i / n * Math.PI * 2 + zi * 0.37, pop = Math.sin(Math.min(1, u * 1.6) * Math.PI);
             el(im, cx + Math.cos(an) * rr, cy + Math.sin(an) * rr * 0.8, (0.9 + 0.5 * pop) * sc * (lvOf(z.key) >= 10 ? 1.6 : 1.1), an + Math.PI / 2, fade); } }
         else el(im, cx, cy, rr * 2.2, t * 0.6, fade * 0.9);               // the element IS the wave: it grows out and fades
-      } else if (z.kind === 'drop') {                                 // RAIN: falls from the sky, lands with a pop
+      } else if (z.kind === 'drop' && z.key !== 'chime-pulse') {      // RAIN: falls from the sky, lands with a pop (the Grand Bell is drawn on its own)
         if (z.delay > 0) { const u = Math.max(0, Math.min(1, 1 - z.delay / (z.d0 || (z.d0 = Math.max(0.6, z.delay))))), hgt = (1 - u) * 9 * sc;
           el(im, X(z.x), Y(z.y) - hgt, z.r1 * (z.big ? 2.2 : 1.8) * sc, (1 - u) * 2.5, Math.min(1, u * 3)); }
         else { const u = Math.min(1, z.t / Math.max(0.15, z.life)); el(im, X(z.x), Y(z.y), z.r1 * 2 * sc * (1 + u * 0.5), 0, 1 - u); }

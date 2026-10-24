@@ -281,7 +281,9 @@ ok('the rhythm breathes: a lull straight after a spike', C.WAVES[11].min === 300
     ok('bloom-path: flowers burst only when you walk back over them (control: not on the way out)', early === 0 && late > 0, early + ' / ' + late); }
   { const S = run(field('chime-pulse', 1, [[3, 0]]), 30 * 1.2); ok('chime-pulse: echo rings roll out, the last one stuns', S.dealt > 0 && S.monsters[0].stunT > 0, S.monsters[0].stunT); }
   { const S = run(field('guardian-spirits', 1, [[1.7, 1.7]]), 30 * 0.5); ok('guardian-spirits: a spirit at its corner pushes a monster away', Math.hypot(S.monsters[0].x, S.monsters[0].y) > 2.6, Math.hypot(S.monsters[0].x, S.monsters[0].y)); }
-  { const S = run(field('sunburst', 1, [[10, 5], [-12, -4]]), 3); ok('sunburst: a flash blinds every monster on screen', S.monsters.every(m => m.blindT > 0)); }
+  { const ring = []; for (let i = 0; i < 24; i++) ring.push([Math.cos(i * Math.PI / 12) * 4, Math.sin(i * Math.PI / 12) * 4]); ring.push([30, 0]);
+    const S = run(field('sunburst', 1, ring), 30 * 0.6), got = S.monsters.slice(0, 24).filter(m => m.blindT > 0 && m.hp < 1e6).length;
+    ok('sunburst v2: rays burst out all round and blind what they pass (control: a monster beyond their reach is untouched)', got >= 6 && S.monsters[24].hp === 1e6, got); }
 }
 
 // 15. MAGE + BRUISER spells each do their OWN thing

@@ -423,12 +423,17 @@
         for (var e = S.eshots.length - 1; e >= 0; e--) { var es = S.eshots[e], ex = es.x - p[0], ey = es.y - p[1]; if (ex * ex + ey * ey < 1.0) S.eshots.splice(e, 1); }
         if (tick) near(S, p[0], p[1], 0.9 * am, function (m) { hit(S, m, heroDmg(S, lin(lv, 0.5, 1.0)), "none"); var dx = m.x - h.x, dy = m.y - h.y, d = Math.sqrt(dx * dx + dy * dy) || 1; m.x += dx / d * lin(lv, 1.2, 2.2); m.y += dy / d * lin(lv, 1.2, 2.2); }); });
     },
-    // 40. a FLASH blinds every monster on screen for a moment; L10 a sun rises and burns the horde
+    // 40. (v2, Phil 24 Oct: "sunburst is lame") the star BURSTS OUT as a ring of sun rays flying outward, burning and blinding each
+    // monster they pass; L10 DAWNBREAK: a sun hangs over you, firing a turning wheel of 12 rays every 0.8 s and scorching what is near
     "sunburst": function (S, st, lv, dt, h, am) {
-      st.t -= dt; if (st.t > 0) return; st.t = lin(lv, 9, 6) * cdMul(S); st.flash = 0.35;
-      var blind = lin(lv, 1.0, 2.5) * (lv >= 10 ? 1.4 : 1), d = heroDmg(S, lv >= 10 ? 3 : lin(lv, 0.3, 0.6));
-      for (var i = 0; i < S.monsters.length; i++) { var m = S.monsters[i]; if (Math.abs(m.x - h.x) < VIEW.w / 2 && Math.abs(m.y - h.y) < VIEW.h / 2) { m.blindT = Math.max(m.blindT || 0, blind); hit(S, m, d, "none"); } }
-      if (lv >= 10) st.sun = 1.2;
+      st.o = st.o || []; st.t -= dt;
+      var big = lv >= 10, n = big ? 12 : Math.round(lin(lv, 8, 16)), range = (big ? 14 : lin(lv, 7, 11)) * am;
+      if (st.t <= 0) { st.t = big ? 0.8 : lin(lv, 6, 3.5) * cdMul(S); st.flash = big ? 0.12 : 0.25; st.wheel = (st.wheel || 0) + (big ? 0.26 : 0.4);
+        for (var i = 0; i < n; i++) st.o.push({ a: st.wheel + i * Math.PI * 2 / n, d: 0.6, R: range, hit: {} }); }
+      for (var k = st.o.length - 1; k >= 0; k--) { var r = st.o[k]; r.d += dt * 15; if (r.d >= r.R) { st.o.splice(k, 1); continue; }
+        r.x = h.x + Math.cos(r.a) * r.d; r.y = h.y + Math.sin(r.a) * r.d;
+        near(S, r.x, r.y, 0.8 * am, function (m) { if (r.hit[m.id]) return; r.hit[m.id] = 1; hit(S, m, heroDmg(S, big ? 1.3 : lin(lv, 0.8, 1.4)), "dot", 1); m.blindT = Math.max(m.blindT || 0, lin(lv, 1.0, 2.5)); }); }
+      if (big) { st.sun = 1; st.k = (st.k || 0) - dt; if (st.k <= 0) { st.k = 0.5; near(S, h.x, h.y, 3 * am, function (m) { hit(S, m, heroDmg(S, 0.8), "dot", 1); }); } }
     },
     // ===== MAGE =====
     // 21. orbs SPIRAL OUTWARD from you; L10 the orrery: big orbs orbit you and small ones orbit them
