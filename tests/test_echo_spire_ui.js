@@ -14,3 +14,6 @@ assert.match(ui.render({...base,hasHistory:false,encounter:{floor:1,kind:'guardi
 assert.match(ui.render({...base,tribute:{claimed:true}}),/Claimed today/);
 assert.match(ui.render({...base,encounter:{...base.encounter,recordedAt:'bad'}}),/Date unavailable/);
 console.log('Echo Spire view: state gates, provenance, escaping and new-player checks passed.');
+
+assert.doesNotMatch(html,/YOUR PAST IS WAITING|Climb beyond/);
+assert.match(ui.render({...base,encounter:{...base.encounter,rewardLabel:'Echo bonus',rewardText:'Gold 480'}}),/Echo bonus/);
