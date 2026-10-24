@@ -190,7 +190,8 @@
   function draw() {
     const W = cv.width, H = cv.height, sc = Math.min(W / C.VIEW.w, H / C.VIEW.h), h = S.hero;   // px per metre: the core's fixed view
     const X = x => W / 2 + (x - h.x) * sc, Y = y => H / 2 + (y - h.y) * sc;
-    const tp = TILE_M * sc, gx0 = W / 2 - (((h.x % TILE_M) + TILE_M) % TILE_M) * sc - tp, gy0 = H / 2 - (((h.y % TILE_M) + TILE_M) % TILE_M) * sc - tp;
+    // first tile column/row at or left of / above the screen edge, so the tiles cover the whole screen
+    const tp = TILE_M * sc, md = (v, m) => ((v % m) + m) % m, gx0 = md(W / 2 - h.x * sc, tp) - tp, gy0 = md(H / 2 - h.y * sc, tp) - tp;
     if (groundPat) { for (let x = gx0; x < W; x += tp) for (let y = gy0; y < H; y += tp) g.drawImage(groundPat, x, y, tp + 1, tp + 1); }   // the same tile, edge to edge
     else { g.fillStyle = '#3d6a2e'; g.fillRect(0, 0, W, H); }
     S.zones.forEach(z => { if (z.delay > 0) return; g.globalAlpha = 0.35; g.fillStyle = z.kind === 'puddle' ? '#ff6a2a' : '#ffd27a';
