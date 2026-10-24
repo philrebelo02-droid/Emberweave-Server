@@ -64,7 +64,7 @@
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="/assets/js/three-r128-GLTFLoader.js"></script>
-<script src="/server/survivors-core.js?v=dev16"></script>
+<script src="/server/survivors-core.js?v=dev18"></script>
 <script>
 (async function () {
   const C = window.SurvivorsCore, AURAS = await (await fetch('/server/survivors-auras.json?v=dev1')).json();
@@ -282,14 +282,43 @@
       else if (p.sp > 0) sym('blade-whirl', cx + Math.cos(p.sw) * R * 0.7 * sc, cy + Math.sin(p.sw) * R * 0.7 * sc, R * 1.1 * sc, p.sw + Math.PI / 2, 1, '#d8d8e8', 'beam'); }
     if (A['shock-stomp']) (st('shock-stomp').o || []).forEach(o => { if (o.fx != null) sym('shock-stomp', X(o.fx), Y(o.fy), o.w * 2.2 * sc, o.a + Math.PI / 2, 1 - o.d / o.len * 0.6, '#d8b070', 'ring'); });
     if (A['chain-flail']) { const p = st('chain-flail'); if (p.fx != null) { line(cx, cy, X(p.fx), Y(p.fy), '#8a8a9a', 2, 0.9); sym('chain-flail', X(p.fx), Y(p.fy), (lvOf('chain-flail') >= 10 ? 3 : 1.4) * sc, t * 6, 1, '#6a6a7a'); } }
+    // IRON FISTS v2: the two fists hover at your shoulders, bob, and turn along each punch (a faint streak behind a flying fist);
+    // L10 the two giant hands face each other and swing in for the clap
+    if (A['iron-fists']) { const p = st('iron-fists'), rec = artFor('iron-fists'), dir = Math.atan2(h.diry, h.dirx);
+      (p.f || []).forEach((f, i) => { if (f.x == null) return; const im = rec && rec.unit, a = f.s === 1 ? f.a : dir, bob = f.s === 0 ? Math.sin(t * 3 + i * 2) * 0.12 * sc : 0;
+        if (f.s === 1) line(X(f.ox), Y(f.oy), X(f.x), Y(f.y), '#9ad0ff', 0.5 * sc, 0.25);
+        if (im) el(im, X(f.x), Y(f.y) + bob, (f.s === 1 ? 1.6 : 1.3) * sc, a, f.s === 0 ? 0.85 : 1); else sym('iron-fists', X(f.x), Y(f.y) + bob, 1.3 * sc, a, 1, '#a8c8ff'); });
+      (p.hands || []).forEach(hd => { const im = rec && (rec.lv10 || rec.unit), a = Math.atan2(-(hd[1] - h.y - h.diry * 3), -(hd[0] - h.x - h.dirx * 3));
+        g.fillStyle = 'rgba(0,0,0,0.25)'; g.beginPath(); g.ellipse(X(hd[0]), Y(hd[1]) + 1.2 * sc, 1.4 * sc, 0.45 * sc, 0, 0, 7); g.fill();
+        if (im) el(im, X(hd[0]), Y(hd[1]) - 0.4 * sc, 3.2 * sc, a, 1, hd[2] < 0 ? 1 : 0); }); }
     // WAR DRUM: one drum beside you that jumps on every beat (bigger on the 4th); the shockwave is a ring (in the one-shot moments)
     if (A['war-drum']) { const im = pick(artFor('war-drum'), 'war-drum'), lb = S.fx.filter(f => f.kind === 'beat').pop(), hop = lb ? Math.sin(Math.min(1, lb.t / lb.life) * Math.PI) * (lb.big ? 0.9 : 0.4) : 0;
       if (im) el(im, cx + 1.6 * sc, cy - (0.4 + hop) * sc, (1.3 + (lb && lb.big ? hop * 0.4 : 0)) * sc, 0, 1); }
-    if (A['rage-ember']) { const r = (st('rage-ember').rage || 0) / 100; sym('rage-ember', cx, cy - 0.5 * sc, (1.2 + r * 1.6) * sc * (1 + Math.sin(t * 12) * 0.06), 0, 0.25 + r * 0.7, '#ff4a1a'); }
-    if (A['grudge-mark']) (st('grudge-mark').o || []).forEach(ax => sym('grudge-mark', X(ax.x), Y(ax.y), 1.3 * sc, ax.rot || 0, 1, '#c0c0d0'));
+    // RAGE EMBER v2 (Phil 24 Oct: "rage ember is low quality"): a CROWN of flame tongues round her that grows with the rage - more
+    // tongues, taller, brighter, each flickering on its own - a heat glow under her and embers rising; L10 the level-10 flames swirl
+    // round her all the time on top of the crown
+    if (A['rage-ember']) { const r = (st('rage-ember').rage || 0) / 100, rec = artFor('rage-ember'), lv = lvOf('rage-ember'), fl = rec && rec.unit;
+      g.save(); g.globalAlpha = 0.15 + 0.35 * r; const gr = g.createRadialGradient(cx, cy, 0, cx, cy, (1.4 + r * 1.4) * sc);
+      gr.addColorStop(0, 'rgba(255,140,40,0.9)'); gr.addColorStop(1, 'rgba(255,60,0,0)'); g.fillStyle = gr; g.beginPath(); g.arc(cx, cy, (1.4 + r * 1.4) * sc, 0, 7); g.fill(); g.restore();
+      const n = 3 + Math.round(r * 6);
+      for (let i = 0; i < n; i++) { const an = -Math.PI / 2 + (i - (n - 1) / 2) * (Math.PI * 1.5 / Math.max(1, n)), rr = 0.75 * sc,
+          fk = 1 + Math.sin(t * (9 + i * 1.7) + i * 2.1) * 0.12, hgt = (1.1 + r * 1.9) * sc * fk;
+        const x = cx + Math.cos(an) * rr * 1.5, y = cy + 0.3 * sc + Math.sin(an) * rr * 0.8 - hgt * 0.5;
+        if (fl) el(fl, x, y, hgt, Math.cos(an) * 0.35 + Math.sin(t * 6 + i) * 0.08, 0.55 + 0.45 * r); else sym('rage-ember', x, y, hgt, 0, 0.6, '#ff5a1a'); }
+      for (let i = 0; i < 6 + Math.round(r * 10); i++) { const ph = (t * 0.9 + i * 0.29) % 1, ex = cx + Math.sin(i * 2.3 + t) * 0.9 * sc;
+        g.save(); g.globalAlpha = (1 - ph) * (0.4 + 0.6 * r); g.fillStyle = ph < 0.5 ? '#ffe27a' : '#ff7a2a'; g.fillRect(ex, cy - ph * (1.6 + r * 1.4) * sc, 3, 3); g.restore(); }
+      if (lv >= 10 && rec && rec.lv10) for (let i = 0; i < 3; i++) { const an = t * 2.2 + i * Math.PI * 2 / 3; el(rec.lv10, cx + Math.cos(an) * 1.5 * sc, cy + Math.sin(an) * 1.1 * sc - 0.3 * sc, 1.9 * sc, an + Math.PI / 2, 0.85); } }
+    // GRUDGE MARK v2: axes arc through the air spinning; a marked monster carries a red mark that deepens with each axe (1-3)
+    if (A['grudge-mark']) { (st('grudge-mark').o || []).forEach(ax => sym('grudge-mark', X(ax.x), Y(ax.y), (lvOf('grudge-mark') >= 10 ? 1.7 : 1.4) * sc, ax.rot || 0, 1, '#c0c0d0'));
+      S.monsters.forEach(m => { if (!m.grudge) return; const mx = X(m.x), my = Y(m.y) - (m.r * 2 + 0.9) * sc;
+        g.save(); g.globalAlpha = 0.8 + Math.sin(t * 6) * 0.15; g.fillStyle = '#d0202a'; g.strokeStyle = '#ffcfcf'; g.lineWidth = 1.5;
+        for (let i = 0; i < m.grudge; i++) { g.beginPath(); g.moveTo(mx + (i - (m.grudge - 1) / 2) * 0.55 * sc, my - 0.3 * sc); g.lineTo(mx + (i - (m.grudge - 1) / 2) * 0.55 * sc + 0.22 * sc, my); g.lineTo(mx + (i - (m.grudge - 1) / 2) * 0.55 * sc, my + 0.3 * sc); g.lineTo(mx + (i - (m.grudge - 1) / 2) * 0.55 * sc - 0.22 * sc, my); g.closePath(); g.fill(); g.stroke(); }
+        g.restore(); }); }
     if (A['rending-gale']) { const p = st('rending-gale'), lv = lvOf('rending-gale');
       if (lv >= 10 && p.tw) sym('rending-gale', X(p.tw.x), Y(p.tw.y), 5 * sc, t * 6, 0.8, '#cfe8ff');
-      else if (p.sp > 0) { const L = (5 + lv * 0.25) * am * sc; sym('rending-gale', cx + Math.cos(p.cur) * L / 2, cy + Math.sin(p.cur) * L / 2, L, p.cur + Math.PI / 2, 0.85, '#cfe8ff', 'beam'); } }
+      // RENDING GALE v2: each crescent is the wind-crescent element, facing the way it flies, widening as it goes, with a pale wake
+      (p.o || []).forEach(c => { const a = Math.atan2(c.vy, c.vx); line(X(c.x - c.vx * 0.08), Y(c.y - c.vy * 0.08), X(c.x), Y(c.y), '#e8f6ff', c.w * 1.2 * sc, 0.18);
+        sym('rending-gale', X(c.x), Y(c.y), c.w * 2.1 * sc, a, Math.min(1, c.life * 2), '#cfe8ff'); }); }
     if (A['bloodlust']) (st('bloodlust').o || []).forEach(o => sym('bloodlust', X(o.x), Y(o.y), 0.6 * sc, 0, 1, '#d01a2a'));
     // --- ASSASSIN
     if (A['poison-cloud']) (st('poison-cloud').o || []).forEach(c => sym('poison-cloud', X(c.x), Y(c.y), c.r * 2.2 * sc, t * 0.2, 0.5 * Math.min(1, c.life), '#7adf6a'));
@@ -319,7 +348,13 @@
     S.fx.forEach(f => { const u = Math.max(0, f.t) / f.life; if (f.t < 0) return;
       if (f.kind === 'implode') sym('gravity-well', X(f.x), Y(f.y), f.r * 2 * sc * (1 - u), 0, 1 - u, '#7a4aff', 'ring');
       else if (f.kind === 'rune') sym('rune-circle', X(f.x), Y(f.y), f.r * 2 * sc * (1 + u * 0.4), 0, 1 - u, '#ff6a2a');
-      else if (f.kind === 'burst') { g.save(); g.globalAlpha = 1 - u; g.strokeStyle = '#ff5a1a'; g.lineWidth = 0.6 * sc * (1 - u) + 2; g.beginPath(); g.arc(X(f.x), Y(f.y), f.r * sc * (0.3 + 0.7 * u), 0, 7); g.stroke(); g.restore(); }
+      else if (f.kind === 'burst') { const rec = artFor(f.key), fl = rec && rec.unit, R = f.r * sc * (0.25 + 0.75 * u);    // the rage BURSTS: flames fly out every way
+        g.save(); g.globalAlpha = (1 - u) * 0.8; g.strokeStyle = '#ffb24a'; g.lineWidth = 0.5 * sc * (1 - u) + 2; g.beginPath(); g.arc(X(f.x), Y(f.y), R, 0, 7); g.stroke(); g.restore();
+        for (let i = 0; i < 14; i++) { const an = i / 14 * Math.PI * 2; if (fl) el(fl, X(f.x) + Math.cos(an) * R, Y(f.y) + Math.sin(an) * R, 1.3 * sc * (1 - u * 0.5), an + Math.PI / 2, 1 - u); } }
+      else if (f.kind === 'grudgeblast') { g.save(); g.globalAlpha = 1 - u; g.fillStyle = 'rgba(208,32,42,0.35)'; g.strokeStyle = '#ff5a5a'; g.lineWidth = 4;
+        g.beginPath(); g.arc(X(f.x), Y(f.y), f.r * sc * (0.3 + 0.7 * u), 0, 7); g.fill(); g.stroke(); g.restore(); }
+      else if (f.kind === 'clap') { g.save(); g.globalAlpha = 1 - u; g.fillStyle = 'rgba(255,230,160,0.35)'; g.strokeStyle = '#ffe2a0'; g.lineWidth = 4;
+        g.beginPath(); g.arc(X(f.x), Y(f.y), f.r * sc * (0.4 + 0.6 * u), 0, 7); g.fill(); g.stroke(); g.restore(); }
       else if (f.kind === 'jab') { const k2 = Math.sin(u * Math.PI), fa = Math.atan2(f.ty - f.y, f.tx - f.x), fim = pick(artFor('iron-fists'), 'iron-fists');   // the fist art points RIGHT: it turns along the punch
         if (fim) el(fim, X(f.x + (f.tx - f.x) * k2), Y(f.y + (f.ty - f.y) * k2), 1.2 * sc, fa, 1, Math.cos(fa) < 0 ? 1 : 0); else sym('iron-fists', X(f.x + (f.tx - f.x) * k2), Y(f.y + (f.ty - f.y) * k2), 1.2 * sc, fa + Math.PI / 2, 1, '#a8c8ff'); }
       else if (f.kind === 'slam') sym('iron-fists', X(f.x), Y(f.y) - (1 - u) * 3 * sc, f.r * 1.6 * sc, 0, 1 - u * 0.5, '#a8c8ff');

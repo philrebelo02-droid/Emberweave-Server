@@ -233,6 +233,7 @@
     if (m.vuln > 0) amount *= 1.25;
     if (m.frozenT > 0 && amount > 0) { amount *= 2; m.frozenT = 0; m.shatter = 0.3; }        // Frost Nova: a frozen monster shatters
     if (m.marked) amount *= 2;                                                                 // Death Mark: double damage
+    if (m.grudge) amount *= 1 + 0.25 * m.grudge;                                               // Grudge Mark: +25% per mark
     m.hp -= amount; S.dealt += amount; S.hero.ult = Math.min(S.hero.ultMax, S.hero.ult + amount * 0.002);
     var ls = S.hero.lifesteal + pas(S, "leech"); if (ls > 0) S.hero.hp = Math.min(S.hero.maxHp, S.hero.hp + amount * ls * 0.1);
     power = power || 1;
@@ -247,7 +248,7 @@
     if (m.hp <= 0) kill(S, m);
   }
   function kill(S, m) {
-    S.kills++; (S._kills || (S._kills = [])).push([m.x, m.y]);
+    S.kills++; (S._kills || (S._kills = [])).push([m.x, m.y, m.grudge || 0]);
     if (m.type === "boss") { S.won = true; S.ended = true; }
     if (m.type === "elite") S.gems.push({ x: m.x, y: m.y, v: 0, heal: 0.25 });   // an elite drops a heal orb (25% max HP), as Vampire Survivors' floor food
     if (MONSTERS[m.type].xp) {
@@ -579,13 +580,40 @@
       if (lv >= 10) { st.k = (st.k || 0) - dt; if (st.k <= 0) { st.k = 0.3; near(S, h.x, h.y, 1.8 * am, function (m) { hit(S, m, heroDmg(S, 0.7), "dot", 1); }); } }
       if (st.rage >= 100) { st.rage = 0; var R = lin(lv, 3, 5) * am * (lv >= 10 ? 1.3 : 1); near(S, h.x, h.y, R, function (m) { hit(S, m, heroDmg(S, lin(lv, 2.5, 4.5)), "knock", 1.5); }); S.fx.push({ kind: "burst", key: "rage-ember", x: h.x, y: h.y, r: R, t: 0, life: 0.45 }); }
     },
-    // 15. fists JAB out one-two at the nearest monsters, then snap back; L10 two giant hands slam the ground either side
+    // 15. (v2, Phil 24 Oct: "iron fist and titan hands needs a redo") two big spectral FISTS float at your shoulders and PUNCH one-two:
+    // a fist rockets out at the nearest monster, ploughs through everything in its line (knocked back), then flies home; from level 5
+    // both punch together. L10 TITAN'S HANDS: two giant stone hands hover either side of you and CLAP together in front of you,
+    // crushing and stunning everything between them, then pull apart.
     "iron-fists": function (S, st, lv, dt, h, am) {
-      st.t -= dt; if (st.t > 0) return; st.t = lin(lv, 1.6, 0.9) * cdMul(S);
-      if (lv >= 10) { var px = -h.diry, py = h.dirx; [1, -1].forEach(function (sd) { var x = h.x + px * 3.5 * sd, y = h.y + py * 3.5 * sd; near(S, x, y, 3 * am, function (m) { hit(S, m, heroDmg(S, 3), "stun", 2); }); S.fx.push({ kind: "slam", key: "iron-fists", x: x, y: y, r: 3 * am, t: 0, life: 0.4 }); }); st.t = 2.5; return; }
-      var n = Math.round(lin(lv, 1, 4)), reach = lin(lv, 3, 5) * am, got = [];
-      near(S, h.x, h.y, reach, function (m, dx, dy) { got.push([dx * dx + dy * dy, m]); }); got.sort(function (a, b) { return a[0] - b[0] || a[1].id - b[1].id; });
-      got.slice(0, n).forEach(function (g, i) { var m = g[1]; hit(S, m, heroDmg(S, lin(lv, 1.0, 1.8)), "knock", 1.2); S.fx.push({ kind: "jab", key: "iron-fists", x: h.x, y: h.y, tx: m.x, ty: m.y, t: -i * 0.08, life: 0.25 }); });
+      var px = -h.diry, py = h.dirx;
+      if (lv >= 10) {
+        var T = st.ti || (st.ti = { ph: 0, t: 0, cd: 1 }); T.cd -= dt;
+        var cx0 = h.x + h.dirx * 3, cy0 = h.y + h.diry * 3, open = 4.2 * am, k;
+        if (T.ph === 0 && T.cd <= 0) { T.ph = 1; T.t = 0; T.hit = {}; }
+        if (T.ph === 1) { T.t += dt; k = Math.min(1, T.t / 0.28); if (k >= 1) { T.ph = 2; T.t = 0;
+            near(S, cx0, cy0, 3.5 * am, function (m) { hit(S, m, heroDmg(S, 3.2), "stun", 2); }); S.fx.push({ kind: "clap", key: "iron-fists", x: cx0, y: cy0, r: 3.5 * am, t: 0, life: 0.45 }); } }
+        else if (T.ph === 2) { T.t += dt; k = 1 - Math.min(1, T.t / 0.6); if (T.t >= 0.6) { T.ph = 0; T.cd = 2.2 * cdMul(S); } }
+        else k = 0;
+        var gap = open * (1 - k) + 0.9 * k;
+        st.hands = [[cx0 + px * gap, cy0 + py * gap, -1], [cx0 - px * gap, cy0 - py * gap, 1]];
+        if (T.ph === 1) st.hands.forEach(function (hd) { near(S, hd[0], hd[1], 1.6 * am, function (m) { if (!T.hit[m.id]) { T.hit[m.id] = 1; m.x += (cx0 - m.x) * 0.6; m.y += (cy0 - m.y) * 0.6; } }); });
+        st.f = null; return;
+      }
+      st.hands = null;
+      if (!st.f) st.f = [{ side: 1, s: 0 }, { side: -1, s: 0 }];
+      var reach = lin(lv, 4.5, 7.5) * am, both = lv >= 5;
+      st.f.forEach(function (f) { var hx = h.x + px * f.side * 1.3 - h.dirx * 0.2, hy = h.y + py * f.side * 1.3 - h.diry * 0.2;
+        if (f.s === 0) { f.x = hx; f.y = hy; return; }
+        if (f.s === 1) { f.d += dt * 20; f.x = f.ox + Math.cos(f.a) * f.d; f.y = f.oy + Math.sin(f.a) * f.d;
+          near(S, f.x, f.y, (both ? 1.0 : 0.85) * am, function (m) { if (f.hit[m.id]) return; f.hit[m.id] = 1; hit(S, m, heroDmg(S, lin(lv, 1.0, 1.8)), "stun", 0.5);
+            if (m.type !== "boss") { m.x += Math.cos(f.a) * 1.4; m.y += Math.sin(f.a) * 1.4; } });
+          if (f.d >= reach) f.s = 2; return; }
+        var dx = hx - f.x, dy = hy - f.y, d = Math.sqrt(dx * dx + dy * dy) || 1, sp = dt * 16;          // flying home
+        if (d <= sp) { f.s = 0; f.x = hx; f.y = hy; } else { f.x += dx / d * sp; f.y += dy / d * sp; } });
+      st.t -= dt; if (st.t > 0) return; var tg = nearest(S, h.x, h.y, reach); if (!tg) return;
+      st.t = lin(lv, 1.3, 0.7) * cdMul(S); st.turn = ((st.turn || 0) + 1) % 2;
+      st.f.forEach(function (f, i) { if (f.s !== 0 || (!both && i !== st.turn)) return;
+        f.s = 1; f.d = 0; f.ox = f.x; f.oy = f.y; f.a = Math.atan2(tg.y - f.oy, tg.x - f.ox); f.hit = {}; });
     },
     // 16. cleavers are hurled UP in an ARC and come down in a line ahead; L10 they whirl down all round you
     "cleaver-rain": function (S, st, lv, dt, h, am) {
@@ -601,27 +629,40 @@
       S.fx.push({ kind: "beat", key: "war-drum", x: h.x, y: h.y, r: R, big: big ? 1 : 0, t: 0, life: 0.35 });
       if (big && lv >= 10) for (var i = 0; i < 5 && S.monsters.length; i++) { var m = S.monsters[(S.rng() * S.monsters.length) | 0]; if (Math.abs(m.x - h.x) < VIEW.w / 2 && Math.abs(m.y - h.y) < VIEW.h / 2) { hit(S, m, heroDmg(S, 3), "stun", 1); S.fx.push({ kind: "bolt", key: "war-drum", x: m.x, y: m.y, t: 0, life: 0.25 }); } }
     },
-    // 18. an axe HUNTS the last monster that hit you, then returns; L10 it chains through everyone who hurt you
+    // 18. (v2, Phil 24 Oct: "18 needs a remake") GRUDGE MARK: every couple of seconds you HURL a heavy axe at whoever hit you last (or
+    // the strongest monster near you); it sticks in and MARKS it - each mark (up to 3) makes it take +25%; a marked monster that dies
+    // BLOWS UP in a grudge blast that hits its neighbours, bigger with more marks. L10 VENDETTA: axes fly at up to 5 marks at once.
     "grudge-mark": function (S, st, lv, dt, h, am) {
       st.foes = (st.foes || []).filter(function (f) { return f.m.hp > 0 && S.t - f.at < 6; });
       (S._hurtPrev || []).forEach(function (m) { st.foes = st.foes.filter(function (f) { return f.m !== m; }); st.foes.push({ m: m, at: S.t }); });
-      var n = lv >= 6 ? 2 : 1; st.o = st.o || []; while (st.o.length < n) st.o.push({ x: h.x, y: h.y, tg: null, back: false, chain: 0 });
-      st.o.forEach(function (ax, i) {
-        if (!ax.tg && !ax.back) { var f = st.foes[st.foes.length - 1 - i]; if (f) { ax.tg = f.m; ax.chain = lv >= 10 ? st.foes.length : 1; } else { ax.x += (h.x - ax.x) * Math.min(1, dt * 6); ax.y += (h.y - ax.y) * Math.min(1, dt * 6); return; } }
-        var tx = ax.back ? h.x : ax.tg.x, ty = ax.back ? h.y : ax.tg.y, dx = tx - ax.x, dy = ty - ax.y, d = Math.sqrt(dx * dx + dy * dy) || 1, sp = lin(lv, 10, 15) * dt;
-        if (d <= sp + 0.5) { if (ax.back) { ax.back = false; return; } hit(S, ax.tg, heroDmg(S, lin(lv, 2.0, 3.5)), "vuln", 1); ax.chain--;
-          var nx = ax.chain > 0 ? st.foes.filter(function (f) { return f.m !== ax.tg && f.m.hp > 0; })[0] : null; if (nx) ax.tg = nx.m; else { ax.tg = null; ax.back = true; } }
-        else { ax.x += dx / d * sp; ax.y += dy / d * sp; ax.rot = (ax.rot || 0) + dt * 14; } });
+      (S._killsPrev || []).forEach(function (k) { if (!k[2]) return; var R = (1.8 + k[2] * 0.6) * am;          // a marked monster died: grudge blast
+        near(S, k[0], k[1], R, function (m) { hit(S, m, heroDmg(S, lin(lv, 0.9, 1.5) * k[2]), "knock", 1.2); }); S.fx.push({ kind: "grudgeblast", key: "grudge-mark", x: k[0], y: k[1], r: R, t: 0, life: 0.4 }); });
+      st.o = st.o || [];
+      for (var i = st.o.length - 1; i >= 0; i--) { var ax = st.o[i], tg = ax.tg; if (!tg || tg.hp <= 0) { st.o.splice(i, 1); continue; }
+        ax.t += dt; var u = Math.min(1, ax.t / ax.T); ax.x = ax.x0 + (tg.x - ax.x0) * u; ax.y = ax.y0 + (tg.y - ax.y0) * u - Math.sin(u * Math.PI) * 1.5; ax.rot = (ax.rot || 0) + dt * 16;
+        if (u >= 1) { tg.grudge = Math.min(3, (tg.grudge || 0) + 1); hit(S, tg, heroDmg(S, lin(lv, 1.6, 2.8)), "none"); st.o.splice(i, 1); } }
+      st.t -= dt; if (st.t > 0) return; st.t = (lv >= 10 ? 1.5 : lin(lv, 2.2, 1.2)) * cdMul(S);
+      var picks = [], add = function (m) { if (m && m.hp > 0 && picks.indexOf(m) < 0) picks.push(m); };
+      for (var f = st.foes.length - 1; f >= 0; f--) add(st.foes[f].m);
+      if (!picks.length || lv >= 10) { var strong = []; near(S, h.x, h.y, 9 * am, function (m) { strong.push(m); }); strong.sort(function (p, q) { return q.hp - p.hp || p.id - q.id; }); strong.forEach(add); }
+      picks.slice(0, lv >= 10 ? 5 : 1).forEach(function (m) { var dx = m.x - h.x, dy = m.y - h.y; st.o.push({ x0: h.x, y0: h.y, x: h.x, y: h.y, tg: m, t: 0, T: Math.max(0.2, Math.sqrt(dx * dx + dy * dy) / 14) }); });
     },
-    // 19. a wind blade SWEEPS SIDEWAYS across your front, left to right; L10 a tornado wanders the field
+    // 19. (v2, Phil 24 Oct: "19 makes no sense") RENDING GALE: you fling a CRESCENT of wind forward; it spins out, WIDENING as it flies,
+    // slicing everything it passes and throwing them aside - it splits the horde down the middle. Two crescents from level 6.
+    // L10 HURRICANE: a tornado wanders the field, pulling monsters round it.
     "rending-gale": function (S, st, lv, dt, h, am) {
       if (lv >= 10) { if (!st.tw) st.tw = { x: h.x + 6, y: h.y }; var tw = st.tw, wa = S.t * 0.7; tw.x += (Math.cos(wa) * 3 + (h.x - tw.x) * 0.25) * dt; tw.y += (Math.sin(wa * 1.3) * 3 + (h.y - tw.y) * 0.25) * dt;
         near(S, tw.x, tw.y, 3.5 * am, function (m, ex, ey) { var d = Math.sqrt(ex * ex + ey * ey) || 1; m.x -= ey / d * 4 * dt + ex / d * 2 * dt; m.y += ex / d * 4 * dt - ey / d * 2 * dt; });
         st.k = (st.k || 0) - dt; if (st.k <= 0) { st.k = 0.3; near(S, tw.x, tw.y, 3.5 * am, function (m) { hit(S, m, heroDmg(S, 0.9), "none"); }); } return; }
-      if (st.sp > 0) { var prog = 1 - st.sp / 0.35, a = st.a0 - 1.2 + 2.4 * prog, r0 = 1.5, r1 = lin(lv, 5, 7) * am; st.cur = a; st.sp -= dt;
-        near(S, h.x + Math.cos(a) * r1 / 2, h.y + Math.sin(a) * r1 / 2, r1 / 2 + 1, function (m) { if (!st.hit[m.id] && segDist(m.x, m.y, h.x, h.y, a, r1) <= 0.9 + m.r) { st.hit[m.id] = 1; hit(S, m, heroDmg(S, lin(lv, 1.2, 2.0)), "knock", 1.5); } }); return; }
-      st.t -= dt; if (st.t <= 0) { st.t = lin(lv, 2.5, 1.4) * cdMul(S); st.sp = 0.35; st.a0 = Math.atan2(h.diry, h.dirx); st.hit = {}; if (lv >= 6) st.again = 1; }
-      else if (st.again && st.t < lin(lv, 2.5, 1.4) * cdMul(S) - 0.4) { st.again = 0; st.sp = 0.35; st.a0 = Math.atan2(h.diry, h.dirx); st.hit = {}; }
+      st.o = st.o || [];
+      for (var i = st.o.length - 1; i >= 0; i--) { var c = st.o[i]; c.x += c.vx * dt; c.y += c.vy * dt; c.life -= dt; c.w = Math.min(c.wmax, c.w + dt * 3.2); c.spin = (c.spin || 0) + dt * 10;
+        if (c.life <= 0) { st.o.splice(i, 1); continue; }
+        var ux = c.vx / c.sp, uy = c.vy / c.sp, px = -uy, py = ux;
+        near(S, c.x, c.y, c.w + 1, function (m, ex, ey) { var along = ex * ux + ey * uy, side = ex * px + ey * py; if (c.hit[m.id] || Math.abs(along) > 0.9 + m.r || Math.abs(side) > c.w + m.r) return;
+          c.hit[m.id] = 1; hit(S, m, heroDmg(S, lin(lv, 1.2, 2.0)), "none"); if (m.type === "boss") return; var sd = side >= 0 ? 1 : -1; m.x += px * sd * 2.4; m.y += py * sd * 2.4; }); }
+      st.t -= dt; if (st.t > 0) return; st.t = lin(lv, 2.2, 1.2) * cdMul(S);
+      var a0 = Math.atan2(h.diry, h.dirx), dirs = lv >= 6 ? [a0 - 0.4, a0 + 0.4] : [a0];
+      dirs.forEach(function (a) { st.o.push({ x: h.x, y: h.y, vx: Math.cos(a) * 13, vy: Math.sin(a) * 13, sp: 13, w: 1.0, wmax: lin(lv, 3, 5) * am, life: 1.1, hit: {} }); });
     },
     // 20. kills spill blood that FLIES BACK into you, healing and speeding you; L10 a wave of blood rolls outward
     "bloodlust": function (S, st, lv, dt, h, am) {

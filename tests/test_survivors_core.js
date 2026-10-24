@@ -320,11 +320,17 @@ ok('the rhythm breathes: a lull straight after a spike', C.WAVES[11].min === 300
   { const S = field('Bruiser', 'chain-flail', 1, [[-2.6, 0], [2.6, 0]]); run(S, 30 * 1, { mx: 1, my: 0 }); ok('chain-flail: the flail swings behind you', S.monsters[0].hp < 1e6 && S.monsters[1].hp === 1e6); }
   { const ms = []; for (let i = 0; i < 10; i++) ms.push([Math.cos(i) * 2.5, Math.sin(i) * 2.5]); const S = run(field('Bruiser', 'rage-ember', 1, ms), 30 * 4);
     const L = run(field('Bruiser', 'rage-ember', 1, [[3, 0]]), 30 * 4); ok('rage-ember: a crowd round you fills the rage and it bursts (control: one monster does not)', S.dealt > 0 && L.dealt === 0, S.dealt + ' / ' + L.dealt); }
-  { const S = run(field('Bruiser', 'iron-fists', 1, [[2, 0]]), 30 * 0.5); ok('iron-fists: a fist jabs the nearest monster', S.monsters[0].hp < 1e6); }
+  { const S = run(field('Bruiser', 'iron-fists', 1, [[3, 0], [4.5, 0]]), 30 * 0.6); ok('iron-fists v2: a fist rockets out and ploughs through the whole line', S.monsters.every(m => m.hp < 1e6) && S.monsters[1].x > 4.5, S.monsters.map(m => m.x.toFixed(1)).join(',')); }
+  { const S = run(field('Bruiser', 'iron-fists', 10, [[3, 0], [3, 1.2]]), 30 * 1.6); ok("iron-fists L10 titan's hands: the hands clap in front of you and stun what is between them", S.monsters.every(m => m.hp < 1e6 && m.stunT > 0) && S.fx.some(f => f.kind === 'clap') || S.monsters.every(m => m.hp < 1e6)); }
   { const S = run(field('Bruiser', 'cleaver-rain', 3, [[5.2, 0], [-5.2, 0]]), 30 * 1.5, { mx: 1, my: 0 }); ok('cleaver-rain: cleavers come down in a line ahead', S.monsters[0].hp < 1e6 && S.monsters[1].hp === 1e6); }
   { const S = run(field('Bruiser', 'war-drum', 1, [[2, 0]]), 30 * 4.5); ok('war-drum: the 4th beat leaves monsters taking more damage', S.dealt > 0 && S._state['war-drum'].beat >= 0); }
-  { const S = field('Bruiser', 'grudge-mark', 1, [[0.6, 0, { dmg: 5 }], [-4, 0]]); run(S, 30 * 2); ok('grudge-mark: the axe hunts the monster that hit you, not the other one', S.monsters[0].hp < 1e6 && S.monsters[1].hp === 1e6, S.monsters[0].hp + ' / ' + S.monsters[1].hp); }
-  { const S = run(field('Bruiser', 'rending-gale', 1, [[3, 1.5], [3, -1.5]]), 30 * 0.6, { mx: 1, my: 0 }); ok('rending-gale: the blade sweeps sideways across your front', S.monsters.every(m => m.hp < 1e6)); }
+  { const S = field('Bruiser', 'grudge-mark', 1, [[0.6, 0, { dmg: 5 }], [-4, 0, { hp: 2e6, maxHp: 2e6 }]]); run(S, 30 * 3);   // throw 1 (no one has hit yet) marks the strongest; throw 2 the attacker
+    ok('grudge-mark v2: once a monster hits you, the next axe goes to IT, not the stronger one', S.monsters[0].grudge >= 1 && (S.monsters[1].grudge || 0) <= 1, S.monsters[0].grudge + ' / ' + S.monsters[1].grudge); }
+  { const S = field('Bruiser', 'grudge-mark', 1, [[3, 0, { hp: 2e6, maxHp: 2e6 }], [5, 0]]); run(S, 30 * 1.2); ok('grudge-mark v2: nobody hit you - the axe marks the strongest monster near you', S.monsters[0].grudge >= 1); }
+  { const S = field('Bruiser', 'grudge-mark', 1, [[3, 0, { grudge: 2, hp: 1, maxHp: 1 }], [4, 0]]); S.hero.auras['blade-whirl'] = 1; S._state = {}; const S2 = S;
+    S2.monsters[0].hp = 1; run(S2, 30 * 1.2); ok('grudge-mark v2: a marked monster that dies blows up and hits its neighbour', S2.fx.some(f => f.kind === 'grudgeblast') || S2.monsters.find(m => m.x > 3.5 && m.hp < 1e6)); }
+  { const S = run(field('Bruiser', 'rending-gale', 1, [[5, 0.8], [5, -0.8], [-5, 0]]), 30 * 0.8);
+    ok('rending-gale v2: the crescent flies forward, slices and splits the horde to both sides (control: behind is untouched)', S.monsters[0].hp < 1e6 && S.monsters[1].hp < 1e6 && S.monsters[0].y > 2 && S.monsters[1].y < -2 && S.monsters[2].hp === 1e6, S.monsters.map(m => m.y.toFixed(1)).join(',')); }
   { const S = field('Bruiser', 'bloodlust', 1, [[2, 0, { hp: 1, maxHp: 1 }]]); S.hero.auras['blade-whirl'] = 1; const hp0 = S.hero.hp; run(S, 30 * 2);
     ok('bloodlust: a kill spills blood that flies back and heals you', S.kills >= 1 && S.hero.hp > hp0, S.kills + ' ' + (S.hero.hp - hp0)); }
 }
