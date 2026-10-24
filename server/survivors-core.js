@@ -23,6 +23,9 @@
   var SLOTS = { aura: 5, passive: 5, skill: 5 };  // Phil: "5 skill / 5 possible aura skills / 5 possible passives"
   var AURA_MAX = 10, PASSIVE_MAX = 5;
   var MAX_MONSTERS = 420;                         // phone budget: the spawner never holds more than this
+  // the VIEW, in metres, the same for every player (a bigger phone must not see more of the horde). Landscape (the game is
+  // landscape); Phil 24 Oct "Zoom out more the game is too zoomed in": 22 m high -> 30 m. Spawns land just outside it.
+  var VIEW = { w: 64, h: 30 };
   var CELL = 2.5;                                 // spatial-hash cell (world units ~ metres)
 
   function mulberry32(a) { return function () { var t = a += 0x6D2B79F5; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
@@ -322,8 +325,13 @@
   function spawn(S, type) {
     if (S.monsters.length >= MAX_MONSTERS && type !== "boss") return;
     var base = MONSTERS[type], sc = stageScale(S.stage) * (type === "boss" ? 1 : clockScale(S.t));
-    var a = S.rng() * Math.PI * 2, d = 13 + S.rng() * 3;
-    var m = { id: S.nextId++, type: type, x: S.hero.x + Math.cos(a) * d, y: S.hero.y + Math.sin(a) * d, hp: base.hp * sc, maxHp: base.hp * sc,
+    // a point on a frame 1-4 m outside the view, edges picked by length so the horde comes evenly from all round
+    var hx = VIEW.w / 2 + 1 + S.rng() * 3, hy = VIEW.h / 2 + 1 + S.rng() * 3, u = S.rng() * 2 * (hx + hy), ox, oy;
+    if (u < hx) { ox = -hx + 2 * u; oy = -hy; } else if (u < 2 * hx) { ox = -hx + 2 * (u - hx); oy = hy; }
+    else if (u < 2 * hx + hy) { ox = -hx; oy = -hy + 2 * (u - 2 * hx); } else { ox = hx; oy = -hy + 2 * (u - 2 * hx - hy); }
+    // AHEAD: while the hero moves, 2 in 3 spawns come from the side it is heading to, so the horde meets it instead of trailing
+    var h = S.hero; if ((h.mvx || h.mvy) && S.rng() < 0.67 && ox * h.dirx + oy * h.diry < 0) { ox = -ox; oy = -oy; }
+    var m = { id: S.nextId++, type: type, x: S.hero.x + ox, y: S.hero.y + oy, hp: base.hp * sc, maxHp: base.hp * sc,
               dmg: base.dmg * Math.sqrt(sc), spd: base.spd, r: base.r };
     S.monsters.push(m);
     if (type === "boss") S.boss = m;
@@ -412,7 +420,7 @@
       if (m.stunT > 0) { m.stunT -= dt; continue; }
       var dx = h.x - m.x, dy = h.y - m.y, d = Math.sqrt(dx * dx + dy * dy) || 1, sp3 = m.spd * (m.slowT > 0 ? 0.5 : 1);
       if (m.slowT > 0) m.slowT -= dt;
-      if (d > 30 && m.type !== "boss") { S.monsters.splice(mi, 1); continue; }                    // far behind: recycled
+      if (d > VIEW.w * 0.75 && m.type !== "boss") { S.monsters.splice(mi, 1); continue; }         // far behind: recycled
       m.x += dx / d * sp3 * dt; m.y += dy / d * sp3 * dt;
       if (d <= m.r + 0.45 && h.iframes <= 0) {
         if (h.guard > 0) { h.guard--; h.iframes = 0.4; }
@@ -457,7 +465,7 @@
   }
 
   global.SurvivorsCore = {
-    TICK: TICK, STORY_SECONDS: STORY_SECONDS, STAGES: STAGES, SLOTS: SLOTS, AURA_MAX: AURA_MAX, PASSIVE_MAX: PASSIVE_MAX,
+    TICK: TICK, VIEW: VIEW, STORY_SECONDS: STORY_SECONDS, STAGES: STAGES, SLOTS: SLOTS, AURA_MAX: AURA_MAX, PASSIVE_MAX: PASSIVE_MAX,
     PASSIVES: PASSIVES, LADDER: LADDER, MONSTERS: MONSTERS, fxKind: fxKind,
     SKILL_KINDS: Object.keys(SKILL_KINDS), useSkill: useSkill,
     create: create, step: step, choose: choose, offers: offers, replay: replay, digest: digest, stageScale: stageScale,

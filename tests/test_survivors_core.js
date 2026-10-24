@@ -113,6 +113,7 @@ ok('utility auras take effect and grow to level 10', noEffect.length === 0, noEf
   const ms = Date.now() - t0;
   ok('the boss spawns at 30:00', S.bossSpawned && Math.abs(S.t - C.STORY_SECONDS) < 1, S.t);
   ok('monsters never exceed the phone cap', maxMon <= 421, maxMon);
+  ok('the horde reaches the hero: 3000+ kills in 30 min (a far-spawn bug once gave 165)', S.kills >= 3000, S.kills);
   ok('30 simulated minutes cost under 60 s of CPU', ms < 60000, ms + ' ms');
   console.log('  30-min story sim:', ms, 'ms, peak monsters', maxMon, ', kills', S.kills, ', level', S.hero.level);
 }

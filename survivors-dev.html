@@ -63,7 +63,7 @@
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="/assets/js/three-r128-GLTFLoader.js"></script>
-<script src="/server/survivors-core.js?v=dev2"></script>
+<script src="/server/survivors-core.js?v=dev3"></script>
 <script>
 (async function () {
   const C = window.SurvivorsCore, AURAS = await (await fetch('/server/survivors-auras.json?v=dev1')).json();
@@ -118,7 +118,7 @@
     scene.add(new THREE.HemisphereLight(0xfff2e0, 0x504030, 1.7)); const dl = new THREE.DirectionalLight(0xffffff, 1.5); dl.position.set(2, 8, 6); scene.add(dl); scene.add(new THREE.AmbientLight(0xffffff, 0.35));
     const gltf = await new Promise((ok, no) => new THREE.GLTFLoader().load('/assets/survivors/linnet-1k.glb', ok, undefined, no));
     const model = gltf.scene, box = new THREE.Box3().setFromObject(model), h = box.max.y - box.min.y;
-    model.scale.setScalar(1.6 / h); scene.add(model);
+    model.scale.setScalar(HERO_M / h); scene.add(model);
     const mixer = new THREE.AnimationMixer(model), clips = {}; gltf.animations.forEach(c => clips[c.name] = mixer.clipAction(c));
     let cur = null, casting = false; function play(n) { if (casting || !clips[n] || cur === n) return; if (cur) clips[cur].fadeOut(0.15); clips[n].reset().fadeIn(0.15).play(); cur = n; }
     // a skill press plays its cast clip once (sped to fit ~1.2 s so she keeps up with the fight), then she walks again
@@ -165,9 +165,10 @@
   }
   function fmt(t) { t = Math.floor(t); return Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0'); }
   let seenFx = 0;
+  const HERO_M = 3.0;   // the hero's 3D model height in world metres (bigger than life so she reads on a phone at the 30 m view)
   const COL = { swarmer: '#7a8a4a', runner: '#a0703a', brute: '#6a4a8a', elite: '#c23a3a', boss: '#ff2a6a' };
   function draw() {
-    const W = cv.width, H = cv.height, sc = Math.min(W, H) / 22, h = S.hero;
+    const W = cv.width, H = cv.height, sc = Math.min(W / C.VIEW.w, H / C.VIEW.h), h = S.hero;   // px per metre: the core's fixed view
     const X = x => W / 2 + (x - h.x) * sc, Y = y => H / 2 + (y - h.y) * sc;
     g.fillStyle = '#120d0a'; g.fillRect(0, 0, W, H);
     g.strokeStyle = '#ffffff08'; g.lineWidth = 1; const gs = 2 * sc, ox = ((-h.x * sc) % gs + gs) % gs, oy = ((-h.y * sc) % gs + gs) % gs;
@@ -188,6 +189,8 @@
       const moving = Math.abs(h.mvx) + Math.abs(h.mvy) > 0.01;
       if (!H3.isCasting()) { H3.play('Walking'); H3.clips.Walking.timeScale = moving ? 1 : 0; }
       H3.model.rotation.y = Math.atan2(h.dirx, h.diry);
+      // the 3D camera sees exactly the 2D world's metres: visible height H/sc m at the hero, along the same tilt
+      const vis = (H / sc), D = vis / (2 * Math.tan(15 * Math.PI / 180)); H3.cam.position.set(0, D * 0.789, D * 0.614); H3.cam.lookAt(0, 0.6, 0);
       window._dbg = { dirx: h.dirx, diry: h.diry, roty: H3.model.rotation.y, paused: !!S.choice };   // dev probe
       H3.mixer.update(Math.min(0.05, H3.clock.getDelta())); H3.r.render(H3.scene, H3.cam);
     }
