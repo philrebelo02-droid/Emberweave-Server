@@ -282,8 +282,8 @@
       case "trail": {
         st.t -= dt; if (st.t > 0) break; st.t = 0.25;
         if (h.mvx || h.mvy) {
-          S.zones.push({ kind: "puddle", key: key, x: h.x, y: h.y, r: L.w * am, t: 0, life: L.life, tick: 0, dmg: heroDmg(S, L.dmg), fk: L.fx ? fk : "none", fp: L.fx || 1 });
-          if (L.split) S.zones.push({ kind: "puddle", key: key, x: h.x - h.diry * 1.2, y: h.y + h.dirx * 1.2, r: L.w * am, t: 0, life: L.life, tick: 0, dmg: heroDmg(S, L.dmg), fk: L.fx ? fk : "none", fp: L.fx || 1 });
+          S.zones.push({ kind: "puddle", key: key, x: h.x, y: h.y, r: L.w * am, t: 0, life: L.life, tick: 0, dmg: heroDmg(S, L.dmg), fk: L.fx ? fk : "none", fp: L.fx || 1, ang: Math.atan2(h.diry, h.dirx) });
+          if (L.split) S.zones.push({ kind: "puddle", key: key, x: h.x - h.diry * 1.2, y: h.y + h.dirx * 1.2, r: L.w * am, t: 0, life: L.life, tick: 0, dmg: heroDmg(S, L.dmg), fk: L.fx ? fk : "none", fp: L.fx || 1, ang: Math.atan2(h.diry, h.dirx) });
         }
         break;
       }

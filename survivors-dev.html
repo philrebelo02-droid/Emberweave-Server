@@ -4,7 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <title>Hero Survivors (dev)</title>
-<!-- Hero Survivors DEV PROTOTYPE (Claude, 24 Oct 2026). Placeholder shapes only - ChatGPT's aura art replaces them.
+<!-- Hero Survivors DEV PROTOTYPE (Claude, 24 Oct 2026). Class spells use ChatGPT's single-element art, moved by code; a class
+     without art yet falls back to placeholder shapes.
      Drives server/survivors-core.js exactly as the game will: joystick = move AND aim, ULT button, level-up picks. -->
 <style>
   :root { --bg:#120d0a; --panel:#1e1612; --ink:#f4e7d4; --dim:#a8937a; --ember:#ff7a2a; --gold:#f2c14e; --hp:#e2433a; --xp:#5fb8ff; }
@@ -63,7 +64,7 @@
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="/assets/js/three-r128-GLTFLoader.js"></script>
-<script src="/server/survivors-core.js?v=dev7"></script>
+<script src="/server/survivors-core.js?v=dev8"></script>
 <script>
 (async function () {
   const C = window.SurvivorsCore, AURAS = await (await fetch('/server/survivors-auras.json?v=dev1')).json();
@@ -133,13 +134,16 @@
   document.getElementById('go').onclick = () => {
     const cls = document.getElementById('use3d').checked ? 'Support' : document.getElementById('cls').value;   // Linnet is a Support
     KIT = document.getElementById('use3d').checked ? KITS.linnet : KITS[cls]; buildSkillButtons();
-    S = C.create({ key: 'dev', cls, maxHp: 3000, atk: 260, armor: 300, crit: 0.1, critDmg: 0.6, skills: KIT },
+    const LAB = new URLSearchParams(location.search), labCls = LAB.get('lab');
+    S = C.create({ key: 'dev', cls: labCls || cls, maxHp: 3000, atk: 260, armor: 300, crit: 0.1, critDmg: 0.6, skills: KIT },
                  { mode: document.getElementById('mode').value, stage: +st.value, seed: (Math.random() * 4e9) >>> 0, auras: AURAS });
+    if (labCls) { const set = +(LAB.get('set') || 0), lv = +(LAB.get('lv') || 1);   // spell lab: five spells of a class at one level
+      AURAS.filter(a => a.cls === labCls).slice(set * 5, set * 5 + 5).forEach(a => S.hero.auras[a.key] = lv); window._lab = true; }
     document.getElementById('start').style.display = 'none'; last = performance.now(); requestAnimationFrame(frame);
     if (document.getElementById('use3d').checked) load3d().catch(e => console.error('3D load failed', e));
   };
   function label(o) {
-    if (o.t === 'aura') { const a = byKey[o.key]; return `<b>${a.name}</b> ${o.to === 1 ? 'NEW' : 'Lv ' + o.to}${o.to === 10 ? ' - ' + a.l10 : ''}<small>${a.fam} aura · ${a.fx}</small>`; }
+    if (o.t === 'aura') { const a = byKey[o.key]; return `<b>${a.name}</b> ${o.to === 1 ? 'NEW' : 'Lv ' + o.to}${o.to === 10 ? ' - ' + a.l10 : ''}<small>${a.fam} spell · ${a.fx}</small>`; }
     if (o.t === 'passive') { const p = C.PASSIVES[o.key]; return `<b>${p.name}</b> ${o.to === 1 ? 'NEW' : 'Lv ' + o.to}<small>${p.what}</small>`; }
     return '<b>Heal</b><small>restore all health</small>';
   }
@@ -156,6 +160,7 @@
     while (acc >= C.TICK && !S.ended) {
       acc -= C.TICK;
       if (S.choice) { if (pickReq == null) { if (document.getElementById('pick').style.display !== 'flex') showPick(); acc = 0; break; } C.step(S, { mx: input.mx, my: input.my, pick: pickReq }); pickReq = null; continue; }
+      if (window._lab) { S.hero.hp = S.hero.maxHp; S.hero.xp = 0; }                    // lab: never dies, never levels (the set stays)
       C.step(S, { mx: input.mx, my: input.my, ult: ultReq, skill: skillReq == null ? undefined : skillReq }); ultReq = false; skillReq = null;
     }
     draw();
@@ -165,6 +170,81 @@
   }
   function fmt(t) { t = Math.floor(t); return Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0'); }
   let seenFx = 0;
+  /* ===== CLASS SPELLS: ChatGPT's single-element art, animated by code (Phil 24 Oct) ===========================================
+     Each spell ships TWO images: <key>_unit (levels 1-9) and <key>_lv10 (the final form). Code does the rest: copies, spins,
+     throws, drops, scales, fades. Levels change behaviour (more copies, bigger, faster) through the core's LADDER; the look follows
+     the same numbers, so what you see is what hits. Art loads only for spells you own (phone memory). No art yet = placeholders.
+     USE says how a spell's element becomes its formation, where the family alone does not decide it:
+       ring    - copies placed round the ring's edge, pointing out (a burst of spikes)
+       scale   - the element IS the ring / dome / pool: scale it
+       wreath  - copies circling the hero slowly (vines, plates)
+       dome    - shown over the hero while its block is up                                                                    */
+  const ART = {}, USE = { 'spike-ring': 'ring', 'taunting-roar': 'scale', 'thorn-hide': 'wreath', 'bastion-dome': 'dome' };
+  function artFor(key) {
+    if (!key || key === '_base') return null; if (ART[key] !== undefined) return ART[key];
+    const a = byKey[key]; if (!a) return (ART[key] = null);
+    const base = '/assets/survivors/auras/' + a.cls.toLowerCase() + '/' + key, rec = { unit: null, lv10: null };
+    ART[key] = rec; let missing = 0;
+    ['unit', 'lv10'].forEach(v => { const im = new Image(); im.onload = () => { rec[v] = im; }; im.onerror = () => { if (++missing === 2) ART[key] = null; }; im.src = base + '_' + v + '.webp?v=1'; });
+    return rec;
+  }
+  const lvOf = k => S.hero.auras[k] | 0, Lof = (k, fam) => C.LADDER[fam][Math.max(1, Math.min(10, lvOf(k))) - 1];
+  const amul = () => 1 + (S.hero.passives.reach | 0) * C.PASSIVES.reach.per;
+  const plentyN = () => { const l = S.hero.passives.plenty | 0; return l >= 4 ? 2 : l >= 2 ? 1 : 0; };
+  // draw one element: centred at (x,y), size in px (longest side), rotation, alpha
+  function el(im, x, y, size, rot, alpha, sx) { if (!im) return; const k = size / Math.max(im.width, im.height);
+    g.save(); g.globalAlpha = alpha == null ? 1 : alpha; g.translate(x, y); if (rot) g.rotate(rot); if (sx) g.scale(sx, 1);
+    g.drawImage(im, -im.width * k / 2, -im.height * k / 2, im.width * k, im.height * k); g.restore(); }
+  function pick(rec, k) { return rec && (lvOf(k) >= 10 && rec.lv10 ? rec.lv10 : rec.unit); }
+  function drawGroundSpells(X, Y, sc, t) {
+    S.zones.forEach((z, zi) => { const rec = artFor(z.key); if (!rec) return; const im = pick(rec, z.key); if (!im) return;
+      if (z.kind === 'puddle') {                                    // TRAIL: the strip laid along the path, swelling in, flickering, fading out
+        const u = z.t / z.life, a = Math.min(1, u * 6) * Math.min(1, (1 - u) * 3), fl = 1 + Math.sin(t * 9 + zi) * 0.04;
+        el(im, X(z.x), Y(z.y), z.r * 2.6 * sc * fl * (0.8 + 0.2 * Math.min(1, u * 6)), (z.ang || 0) + Math.PI / 2, a * 0.95);
+      } else if (z.kind === 'drop' && z.delay > 0) {                  // RAIN: the shadow grows under where it will land
+        const u = 1 - z.delay / 0.6; g.fillStyle = 'rgba(0,0,0,' + (0.15 + 0.3 * u) + ')'; g.beginPath();
+        g.ellipse(X(z.x), Y(z.y), z.r1 * sc * (0.4 + 0.6 * u), z.r1 * sc * (0.25 + 0.35 * u), 0, 0, 7); g.fill();
+      } });
+  }
+  function drawSpells(X, Y, sc, W, H, t) {
+    const h = S.hero, cx = W / 2, cy = H / 2, am = amul();
+    // ring / drop zones: bursts, roars, falling rocks
+    S.zones.forEach((z, zi) => { const rec = artFor(z.key); if (!rec || z.delay > 0 && z.kind !== 'drop') return; const im = pick(rec, z.key); if (!im) return;
+      if (z.kind === 'ring') {                                        // PULSE
+        const u = Math.min(1, z.t / z.life), rr = (z.r0 + (z.r1 - z.r0) * u) * sc, fade = 1 - u * u;
+        if (USE[z.key] === 'ring') { const n = 10 + lvOf(z.key) * 2;    // copies burst out round the edge, popping up then sinking
+          for (let i = 0; i < n; i++) { const an = i / n * Math.PI * 2 + zi * 0.37, pop = Math.sin(Math.min(1, u * 1.6) * Math.PI);
+            el(im, cx + Math.cos(an) * rr, cy + Math.sin(an) * rr * 0.8, (0.9 + 0.5 * pop) * sc * (lvOf(z.key) >= 10 ? 1.6 : 1.1), an + Math.PI / 2, fade); } }
+        else el(im, cx, cy, rr * 2.2, t * 0.6, fade * 0.9);               // the element IS the wave: it grows out and fades
+      } else if (z.kind === 'drop') {                                 // RAIN: falls from the sky, lands with a pop
+        if (z.delay > 0) { const u = 1 - z.delay / 0.6, hgt = (1 - u) * 9 * sc;
+          el(im, X(z.x), Y(z.y) - hgt, z.r1 * 1.8 * sc, (1 - u) * 2.5, Math.min(1, u * 3)); }
+        else { const u = Math.min(1, z.t / Math.max(0.15, z.life)); el(im, X(z.x), Y(z.y), z.r1 * 2 * sc * (1 + u * 0.5), 0, 1 - u); }
+      } });
+    // thrown spells: the element flies, turned to its heading; round things roll
+    S.shots.forEach(s => { const rec = artFor(s.key); if (!rec) return; const im = pick(rec, s.key); if (!im) return;
+      const hd = Math.atan2(s.vy, s.vx), round = im.width === im.height && /orb|ball|boulder|rock|stone/.test((byKey[s.key] || {}).unit || '');
+      el(im, X(s.x - s.vx * 0.03), Y(s.y - s.vy * 0.03), s.r * 2.4 * sc, round ? t * 8 : hd + Math.PI / 2, 0.3);   // a faint after-image
+      el(im, X(s.x), Y(s.y), s.r * 2.6 * sc, round ? t * 8 : hd + Math.PI / 2, 1); });
+    Object.keys(h.auras).forEach(k => { const a = byKey[k], rec = artFor(k); if (!a) return; const lv = lvOf(k), st = S._state[k] || {}, L = Lof(k, a.fam);
+      if (!rec) { if (a.fam === 'orbit') { const R = 2 * L.rad * am * sc; for (let i = 0; i < L.n; i++) { const an = (st.a || 0) + i * Math.PI * 2 / L.n; g.fillStyle = '#ff7a2a'; g.beginPath(); g.arc(cx + Math.cos(an) * R, cy + Math.sin(an) * R, 0.45 * L.size * sc, 0, 7); g.fill(); } }
+        else if (a.fam === 'zone') { g.strokeStyle = '#ffd27a55'; g.lineWidth = 3; g.beginPath(); g.arc(cx, cy, L.rad * sc, 0, 7); g.stroke(); } return; }
+      const im = pick(rec, k); if (!im) return;
+      if (a.fam === 'orbit') {                                        // ORBIT: copies circle the hero, each spinning, with after-images
+        const R = 2 * L.rad * am * sc, n = L.special ? 10 : L.n + plentyN(), sz = 0.9 * L.size * am * sc * (L.special ? 1.5 : 1);
+        for (let i = 0; i < n; i++) { const an = (st.a || 0) + i * Math.PI * 2 / n;
+          for (let gh = 2; gh >= 0; gh--) { const ag = an - gh * 0.12; el(im, cx + Math.cos(ag) * R, cy + Math.sin(ag) * R * 0.85, sz, t * 4 + i, gh ? 0.18 : 1); } }
+      } else if (a.fam === 'zone') {                                  // ZONE: the element lies under the hero at the zone's size, breathing
+        el(im, cx, cy, L.rad * am * 2.1 * sc * (1 + Math.sin(t * 2) * 0.03), t * 0.3, 0.55);
+      } else if (a.fam === 'buddy') {                                 // BUDDY: copies bob along beside the hero
+        for (let i = 0; i < L.n; i++) { const an = t * 0.8 + i * Math.PI * 2 / L.n; el(im, cx + Math.cos(an) * 1.8 * sc, cy + Math.sin(an) * 1.2 * sc - Math.abs(Math.sin(t * 5 + i)) * 0.4 * sc, 1.1 * sc * (lv >= 10 ? 1.5 : 1), 0, 1); }
+      } else if (a.fam === 'trigger') {
+        if (USE[k] === 'wreath') { const n = 3 + Math.floor(lv / 3), R = (1.4 + lv * 0.05) * sc;   // vines turn slowly round the hero
+          for (let i = 0; i < n; i++) { const an = t * 0.5 + i * Math.PI * 2 / n; el(im, cx + Math.cos(an) * R, cy + Math.sin(an) * R * 0.85, (1.3 + lv * 0.06) * sc * (lv >= 10 ? 1.4 : 1), an + Math.PI / 2, 0.9); } }
+        else if (USE[k] === 'dome') { if ((h.guard | 0) > 0) el(im, cx, cy - 0.4 * sc, (2.6 + lv * 0.05) * sc * (1 + Math.sin(t * 6) * 0.03), 0, 0.55 + 0.15 * Math.sin(t * 4)); }
+        else el(im, cx, cy, 1.6 * sc, t, 0.35 + 0.2 * Math.sin(t * 3));
+      } });
+  }
   /* OUR MONSTERS (Story Stage 1 = Emberfall Vale, the campaign's Chapter 1 cast). Each walk sheet is the game's own (6 x 2, 12
      frames, art faces RIGHT - the game's flip:false), copied into a small canvas on load (frame height ~110 px) so the phone
      holds ~10 small sheets, not 10 full ones. Sheet numbers = the game's ANIM table. hM = drawn height in metres by role. */
@@ -199,12 +279,13 @@
     const tp = TILE_M * sc, md = (v, m) => ((v % m) + m) % m, gx0 = md(W / 2 - h.x * sc, tp) - tp, gy0 = md(H / 2 - h.y * sc, tp) - tp;
     if (groundPat) { for (let x = gx0; x < W; x += tp) for (let y = gy0; y < H; y += tp) g.drawImage(groundPat, x, y, tp + 1, tp + 1); }   // the same tile, edge to edge
     else { g.fillStyle = '#3d6a2e'; g.fillRect(0, 0, W, H); }
-    S.zones.forEach(z => { if (z.delay > 0) return; g.globalAlpha = 0.35; g.fillStyle = z.kind === 'puddle' ? '#ff6a2a' : '#ffd27a';
+    S.zones.forEach(z => { if (z.delay > 0 || artFor(z.key)) return; g.globalAlpha = 0.35; g.fillStyle = z.kind === 'puddle' ? '#ff6a2a' : '#ffd27a';
       const r = z.kind === 'ring' ? z.r0 + (z.r1 - z.r0) * Math.min(1, z.t / z.life) : (z.r || z.r1); g.beginPath(); g.arc(X(z.x), Y(z.y), r * sc, 0, 7); z.kind === 'ring' ? (g.strokeStyle = '#ffd27a', g.lineWidth = 4, g.stroke()) : g.fill(); g.globalAlpha = 1; });
     S.gems.forEach(m => { if (m.heal) { g.fillStyle = '#ff5a6a'; g.beginPath(); g.arc(X(m.x), Y(m.y), 0.45 * sc, 0, 7); g.fill(); g.strokeStyle = '#fff'; g.lineWidth = 2; g.stroke(); return; }
       g.fillStyle = m.v > 3 ? '#ff6a9a' : '#5fb8ff'; g.fillRect(X(m.x) - 3, Y(m.y) - 3, 6, 6); });
     // monsters: their own walk sheets, feet on the body's spot, drawn back to front; facing = the way they move
     g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+    drawGroundSpells(X, Y, sc, performance.now() / 1000);
     const tnow = performance.now() / 1000, ord = S.monsters.slice().sort((a, b) => a.y - b.y);
     ord.forEach(m => { const sp = SPR[m.skin];
       if (!sp) { g.fillStyle = COL[m.type] || '#888'; g.beginPath(); g.arc(X(m.x), Y(m.y), m.r * sc, 0, 7); g.fill(); return; }
@@ -218,13 +299,8 @@
     S.eshots.forEach(b => { const x = X(b.x), y = Y(b.y), r = Math.max(4, b.r * sc);
       g.strokeStyle = '#ff8a3a66'; g.lineWidth = r; g.beginPath(); g.moveTo(x, y); g.lineTo(x - b.vx * 0.06 * sc, y - b.vy * 0.06 * sc); g.stroke();
       g.fillStyle = '#ffd27a'; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); g.strokeStyle = '#ff5a1a'; g.lineWidth = 2; g.stroke(); });
-    S.shots.forEach(s => { g.fillStyle = s.key === '_base' ? '#fff' : '#ffb24a'; g.beginPath(); g.arc(X(s.x), Y(s.y), Math.max(3, s.r * sc), 0, 7); g.fill(); });
-    // orbit auras drawn from the core's own state
-    Object.keys(h.auras).forEach(k => { const a = byKey[k]; if (!a || a.fam !== 'orbit') return; const L = C.LADDER.orbit[h.auras[k] - 1], st2 = S._state[k]; if (!st2) return;
-      const R = 2.0 * L.rad * sc; if (L.special) { g.strokeStyle = '#2a0a0a'; g.lineWidth = 10; g.beginPath(); g.arc(W / 2, H / 2, R, 0, 7); g.stroke(); g.strokeStyle = '#ff5a1a'; g.lineWidth = 4; g.stroke(); return; }
-      for (let i = 0; i < L.n; i++) { const an = st2.a + i * Math.PI * 2 / L.n; g.fillStyle = '#ff7a2a'; g.beginPath(); g.arc(W / 2 + Math.cos(an) * R, H / 2 + Math.sin(an) * R, 0.45 * L.size * sc, 0, 7); g.fill(); } });
-    // zone auras as a faint ring
-    Object.keys(h.auras).forEach(k => { const a = byKey[k]; if (!a || a.fam !== 'zone') return; const L = C.LADDER.zone[h.auras[k] - 1]; g.strokeStyle = '#ffd27a55'; g.lineWidth = 3; g.beginPath(); g.arc(W / 2, H / 2, L.rad * sc, 0, 7); g.stroke(); });
+    S.shots.forEach(s => { if (artFor(s.key)) return; g.fillStyle = s.key === '_base' ? '#fff' : '#ffb24a'; g.beginPath(); g.arc(X(s.x), Y(s.y), Math.max(3, s.r * sc), 0, 7); g.fill(); });
+    drawSpells(X, Y, sc, W, H, tnow);
     if (!H3) { g.fillStyle = h.iframes > 0 ? '#fff' : '#f2c14e'; g.beginPath(); g.arc(W / 2, H / 2, 0.5 * sc, 0, 7); g.fill(); }
     else {
       const moving = Math.abs(h.mvx) + Math.abs(h.mvy) > 0.01;
