@@ -16,7 +16,7 @@
       <section class="es-encounter"><div class="es-row"><span class="es-eyebrow">NEXT · FLOOR ${number(floor)}</span><span class="es-badge${echo?' es-badge-echo':''}">${echo?'ECHO WARDEN':e&&e.elite?'ELITE GUARDIAN':'GUARDIAN'}</span></div>
       <h2>${esc(e&&e.name||(echo?'Your past lineup':'The next Warden'))}</h2>
       ${echo?`<p class="es-origin">Your F${number(e.recordedFloor)} run${e.recordedSeason!=null?' · Season '+number(e.recordedSeason):''}${e.recordedAt?' · '+esc(date(e.recordedAt)):''}</p><div class="es-heroes">${heroes(e.heroes,portrait,true)}</div>`:`<div class="es-heroes">${heroes(e&&e.heroes,portrait,false)}</div>`}
-      ${e&&e.power!=null?`<div class="es-facts"><span>Warden power <b>${number(e.power)}</b></span>${e.rewardText?`<span>${esc(e.rewardText)}</span>`:''}</div>`:''}</section>
+      ${e&&e.power!=null?`<div class="es-facts"><span>Warden power <b>${number(e.power)}</b></span>${e.rewardText?`<span>Reward · ${esc(e.rewardText)}</span>`:''}</div>`:''}</section>
       <section class="es-squad"><div class="es-row"><h2>Your lineup</h2><span>${selected.length}/5 heroes</span></div><div class="es-heroes">${heroes(selected,portrait,false)}${Array.from({length:Math.max(0,5-selected.length)},()=>'<div class="es-empty-slot" aria-hidden="true">+</div>').join('')}</div><button class="es-link" type="button" data-es="lineup" ${s.busy?'disabled':''}>${selected.length?'Change lineup':'Choose heroes'}</button></section>
       <button type="button" class="es-ascend" data-es="ascend" ${ready?'':'disabled'}>${s.busy?'Resolving your climb…':'Fight · Floor '+number(floor)}</button>
       <p class="es-feedback" role="status" aria-live="polite">${esc(s.message||(!selected.length?'Choose your lineup.':''))}</p>
