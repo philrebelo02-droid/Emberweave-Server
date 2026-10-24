@@ -231,8 +231,10 @@ ok('the rhythm breathes: a lull straight after a spike', C.WAVES[11].min === 300
   { const S = run(field('spike-ring', 1, [[3, 0]]), 30 * 1.2); ok('spike-ring: a ripple rolls out and hits the ring of ground it passes', S.dealt > 0 && S.zones.every(z => z.kind !== 'ring'), S.dealt); }
   { const S = run(field('spike-ring', 10, [[4.5, 0]]), 30 * 1); ok('spike-ring L10: the hedge roots what touches it', S.monsters[0].stunT > 0, S.monsters[0].stunT); }
   // Iron Bulwark: a monster AHEAD is shoved further ahead; one BEHIND is untouched
-  { const S = run(field('iron-bulwark', 3, [[1.9, 0], [-1.9, 0]]), 30 * 1, { mx: 1, my: 0 });
-    ok('iron-bulwark: plates in front shove the horde ahead, behind is untouched', S.monsters[0].x > 4 && S.monsters[1].hp === 1e6, S.monsters[0].x.toFixed(1) + ' / ' + S.monsters[1].hp); }
+  { const S = run(field('iron-bulwark', 3, [[3, 0], [-3, 0]]), 20);
+    ok('iron-bulwark v2: the shield wall charges out and bulldozes the monster ahead; behind is untouched', S.monsters[0].x > 5 && S.monsters[0].hp < 1e6 && S.monsters[1].hp === 1e6, S.monsters[0].x.toFixed(1) + ' / ' + S.monsters[1].hp); }
+  { const S = run(field('iron-bulwark', 10, [[3, 0], [-3, 0], [0, 3], [0, -3]]), 30 * 1.5);
+    ok('iron-bulwark L10 citadel: four walls slam out every way and hold monsters outside', S.monsters.every(m => Math.hypot(m.x, m.y) > 4.5 && m.hp < 1e6) && S._state['iron-bulwark'].b && S._state['iron-bulwark'].b.ph === 1); }
   // Quake Step: cracks only while walking (control: standing makes none)
   { const W = run(field('quake-step', 3), 30 * 2, { mx: 1, my: 0 }), N = run(field('quake-step', 3), 30 * 2);
     ok('quake-step: walking opens forward cracks, standing does not (control)', W.zones.some(z => z.kind === 'crack') && !N.zones.some(z => z.kind === 'crack')); }

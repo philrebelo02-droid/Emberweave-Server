@@ -275,16 +275,28 @@
       var waves = lv >= 9 ? 3 : lv >= 5 ? 2 : 1, R = lin(lv, 4, 7) * am;
       for (var k = 0; k < waves; k++) S.zones.push({ kind: "ripple", key: "spike-ring", x: h.x, y: h.y, r0: 0.6, r1: R, t: 0, life: 0.55, delay: k * 0.35, n: Math.round(lin(lv, 10, 22)), dmg: heroDmg(S, lin(lv, 0.8, 1.6)), fk: "stun", fp: 1.5, hit: {} });
     },
-    // 3. plates hover IN FRONT and shove the horde ahead (and stop bolts); L10 a full turning wall round you
+    // 3. (v2, Phil 24 Oct: "iron bulwark is bad") a SHIELD BASH: the plates form a wall in front of you and CHARGE out, bulldozing
+    // the horde ahead and blocking bolts, then swing back; L10 CITADEL: four walls slam out every way and hold as a square fort
     "iron-bulwark": function (S, st, lv, dt, h, am) {
-      st.t = (st.t || 0) - dt; var tick = st.t <= 0; if (tick) st.t = 0.3;
-      if (lv >= 10) { st.a = (st.a || 0) + dt * 0.8; var R = 2.6 * am; st.plates = null;
-        for (var e = S.eshots.length - 1; e >= 0; e--) { var es = S.eshots[e], ex = es.x - h.x, ey = es.y - h.y; if (Math.abs(Math.sqrt(ex * ex + ey * ey) - R) < 0.6) S.eshots.splice(e, 1); }
-        if (tick) near(S, h.x, h.y, R + 0.9, function (m, dx, dy) { if (Math.abs(Math.sqrt(dx * dx + dy * dy) - R) <= m.r + 0.6) hit(S, m, heroDmg(S, 1.2), "knock", 2.5); }); return; }
-      var n = lv >= 7 ? 4 : lv >= 5 ? 3 : lv >= 3 ? 2 : 1, D = 1.9 * am, px = -h.diry, py = h.dirx, push = lin(lv, 1.0, 2.0); st.plates = [];
-      for (var i = 0; i < n; i++) { var off = (i - (n - 1) / 2) * 1.15 * am, x = h.x + h.dirx * D + px * off, y = h.y + h.diry * D + py * off; st.plates.push([x, y]);
-        for (var e2 = S.eshots.length - 1; e2 >= 0; e2--) { var b = S.eshots[e2], bx = b.x - x, by = b.y - y; if (bx * bx + by * by < 0.8) S.eshots.splice(e2, 1); }
-        if (tick) near(S, x, y, 0.8 * am, function (m) { hit(S, m, heroDmg(S, lin(lv, 0.5, 1.0)), "none"); m.x += h.dirx * push; m.y += h.diry * push; }); }
+      var big = lv >= 10;
+      if (!st.b) { st.t -= dt; st.walls = null; if (st.t > 0) return;
+        st.t = (big ? 7 : lin(lv, 4.5, 2.5)) * cdMul(S);
+        var a0 = Math.atan2(h.diry, h.dirx), dirs = big ? [a0, a0 + Math.PI / 2, a0 + Math.PI, a0 - Math.PI / 2] : [a0];
+        st.b = { dirs: dirs, d: 1.2, ph: 0, reach: (big ? 5 : lin(lv, 5, 7.5)) * am, hold: big ? 4 : 0.15, n: big ? 6 : (lv >= 7 ? 4 : lv >= 5 ? 3 : lv >= 3 ? 2 : 1), hit: {} }; }
+      var b = st.b, sp = 16 * dt;
+      if (b.ph === 0) { b.d = Math.min(b.reach, b.d + sp); if (b.d >= b.reach) b.ph = 1; }          // charge out
+      else if (b.ph === 1) { b.hold -= dt; if (b.hold <= 0) b.ph = 2; }                              // hold (the fort)
+      else { b.d -= sp * 0.8; if (b.d <= 1.2) { st.b = null; st.walls = null; return; } }           // swing back
+      var half = (big ? b.d : (b.n * 1.25 * am) / 2), push = b.ph === 0;
+      st.walls = b.dirs.map(function (a) { return { x: h.x + Math.cos(a) * b.d, y: h.y + Math.sin(a) * b.d, a: a, half: half }; });
+      st.walls.forEach(function (w) { var ux = Math.cos(w.a), uy = Math.sin(w.a), px = -uy, py = ux;
+        for (var e = S.eshots.length - 1; e >= 0; e--) { var es = S.eshots[e], ex = es.x - w.x, ey = es.y - w.y; if (Math.abs(ex * ux + ey * uy) < 0.7 && Math.abs(ex * px + ey * py) <= w.half) S.eshots.splice(e, 1); }
+        near(S, w.x, w.y, w.half + 1.2, function (m, ex, ey) { var along = ex * ux + ey * uy, side = ex * px + ey * py;
+          if (Math.abs(side) > w.half + m.r || along < -0.6 - m.r || along > 0.9 + m.r) return;
+          if (!b.hit[m.id]) { b.hit[m.id] = 1; hit(S, m, heroDmg(S, big ? 2.2 : lin(lv, 1.2, 2.2)), "stun", big ? 1.5 : 0.8); }
+          if (m.type === "boss") return;
+          var to = 0.9 + m.r; if (push || along < to) { m.x += ux * (to - along); m.y += uy * (to - along); } });   // carried in front of the wall
+      });
     },
     // 4. every few steps a crack shoots FORWARD and forks; L10 one fissure across the screen
     "quake-step": function (S, st, lv, dt, h, am) {
