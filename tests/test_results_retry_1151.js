@@ -3,10 +3,10 @@
    proof sweep found the Island of Trials (Training Province, Tower of Trials), the legacy dungeon trial, the Elite screen and the
    Gauntlet bonus stages still sent their result once (Gauntlet with no requestId at all), and showed the raw word "offline".
    A. LIVE HTTP (throwaway server): per mode, the SAME requestId sent twice answers the same receipt and pays ONCE
-      (Tower ascend, Training Province resolve, dungeon trial resolve, Gauntlet /api/bonus/resolve, retired Elite route).
+      (Echo Spire start/resolve, Training Province resolve, dungeon trial resolve, Gauntlet /api/bonus/resolve, retired Elite route).
       Gauntlet also: an old client without a requestId still resolves; a bad requestId is refused.
    B. REAL PAGE (Chromium, muted, timers >=1 s shortened): per mode, the result route answers with scripted replies -
-      a lost first reply then the receipt shows the mode's VICTORY title; an error on a WIN shows NOT COUNTED (never DEFEAT,
+      a lost first reply then the receipt shows the mode's VICTORY title; an error on a WIN shows NOT COUNTED (Tower: RESULT PENDING for unknown replies; never DEFEAT,
       never the word "offline"); a real loss still shows DEFEAT; every send of one fight carries ONE requestId.
    C. CONTROL: the same test run against v1150 (9f4d79aa, a temporary worktree) must FAIL.
    Asserts (non-zero exit). EW_ROOT=<tree> runs A+B against another tree (used by C). */
