@@ -52,7 +52,7 @@
 <div id="pick"><h2>LEVEL UP</h2></div>
 <div id="end"><h2 id="endT"></h2><div id="endS"></div><button onclick="location.reload()">Again</button></div>
 <div id="start">
-  <h1 style="color:var(--gold);margin:0">HERO SURVIVORS</h1><div style="color:var(--dim)">dev prototype - placeholder art</div>
+  <h1 style="color:var(--gold);margin:0">HERO SURVIVORS</h1><div style="color:var(--dim)">Story · Stage 1 · Emberfall Vale</div>
   <label>Class <select id="cls"><option>Tank</option><option>Bruiser</option><option>Mage</option><option>Support</option><option>Assassin</option><option>Marksman</option></select></label>
   <label>Mode <select id="mode"><option value="story">Story (30:00, then the boss)</option><option value="survive">Survive (endless)</option></select></label>
   <label>Stage <select id="stage"></select></label>
@@ -63,7 +63,7 @@
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="/assets/js/three-r128-GLTFLoader.js"></script>
-<script src="/server/survivors-core.js?v=dev4"></script>
+<script src="/server/survivors-core.js?v=dev5"></script>
 <script>
 (async function () {
   const C = window.SurvivorsCore, AURAS = await (await fetch('/server/survivors-auras.json?v=dev1')).json();
@@ -131,7 +131,7 @@
     document.getElementById('mem').textContent = '3D loaded: ' + H3.names.join(', ');
   }
   document.getElementById('go').onclick = () => {
-    const cls = document.getElementById('cls').value;
+    const cls = document.getElementById('use3d').checked ? 'Support' : document.getElementById('cls').value;   // Linnet is a Support
     KIT = document.getElementById('use3d').checked ? KITS.linnet : KITS[cls]; buildSkillButtons();
     S = C.create({ key: 'dev', cls, maxHp: 3000, atk: 260, armor: 300, crit: 0.1, critDmg: 0.6, skills: KIT },
                  { mode: document.getElementById('mode').value, stage: +st.value, seed: (Math.random() * 4e9) >>> 0, auras: AURAS });
@@ -165,18 +165,52 @@
   }
   function fmt(t) { t = Math.floor(t); return Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0'); }
   let seenFx = 0;
+  /* OUR MONSTERS (Story Stage 1 = Emberfall Vale, the campaign's Chapter 1 cast). Each walk sheet is the game's own (6 x 2, 12
+     frames, art faces RIGHT - the game's flip:false), copied into a small canvas on load (frame height ~110 px) so the phone
+     holds ~10 small sheets, not 10 full ones. Sheet numbers = the game's ANIM table. hM = drawn height in metres by role. */
+  const SKIN = {
+    'ooznik': { f: 'ooznik_walk_hd', fw: 300, fh: 242 }, 'skulk': { f: 'skulk_walk_hd', fw: 251, fh: 300 },
+    'cinder skulk': { f: 'cinderskulk_walk_hd', fw: 300, fh: 248 }, 'sootwing imp': { f: 'sootwingimp_walk_hd', fw: 257, fh: 300 },
+    'vexmite': { f: 'vexmite_walk_hd', fw: 259, fh: 300 }, 'skarrn': { f: 'skarrn_walk_hd', fw: 220, fh: 300 },
+    'grushak': { f: 'grushak_walk_hd', fw: 212, fh: 300 }, 'cindertusk': { f: 'cindertusk_walk_hd', fw: 300, fh: 253 },
+    'shellwark': { f: 'shellwark_walk_hd', fw: 300, fh: 250 }, 'brukk': { f: 'brukkblackkiln_walk_2k', fw: 717, fh: 900, px: 220 },
+  };
+  const HM = { swarmer: 1.7, runner: 1.5, caster: 1.8, brute: 2.6, wall: 2.2, elite: 3.4, boss: 6.5 };
+  const SPR = {};
+  Object.keys(SKIN).forEach(k => { const d = SKIN[k], im = new Image(); im.onload = () => {
+    const sc2 = (d.px || 110) / d.fh, c = document.createElement('canvas'); c.width = Math.round(d.fw * 6 * sc2); c.height = Math.round(d.fh * 2 * sc2);
+    c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); SPR[k] = { c, fw: c.width / 6, fh: c.height / 2 }; im.src = ''; };
+    im.src = '/assets/anim/mon/' + d.f + '.webp?v=1'; });
+  /* THE GROUND: one seamless tile repeated forever (Phil 24 Oct: "a very basic green grassy area, seamless so that you can loop
+     it"). The tile is ChatGPT's (tasking in the Hero Survivors art folder); until it lands, a flat grass green stands in. */
+  const TILE_M = 8;                                          // one tile = 8 x 8 m of ground
+  let groundPat = null; { const gi = new Image(); gi.onload = () => { groundPat = gi; }; gi.src = '/assets/survivors/maps/stage1-grass.webp?v=1'; }
   const HERO_M = 3.0;   // the hero's 3D model height in world metres (bigger than life so she reads on a phone at the 30 m view)
   const COL = { swarmer: '#7a8a4a', runner: '#a0703a', brute: '#6a4a8a', elite: '#c23a3a', boss: '#ff2a6a', wall: '#3a7a5a' };
   function draw() {
     const W = cv.width, H = cv.height, sc = Math.min(W / C.VIEW.w, H / C.VIEW.h), h = S.hero;   // px per metre: the core's fixed view
     const X = x => W / 2 + (x - h.x) * sc, Y = y => H / 2 + (y - h.y) * sc;
-    g.fillStyle = '#120d0a'; g.fillRect(0, 0, W, H);
-    g.strokeStyle = '#ffffff08'; g.lineWidth = 1; const gs = 2 * sc, ox = ((-h.x * sc) % gs + gs) % gs, oy = ((-h.y * sc) % gs + gs) % gs;
-    for (let x = ox; x < W; x += gs) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, H); g.stroke(); } for (let y = oy; y < H; y += gs) { g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke(); }
+    const tp = TILE_M * sc, gx0 = W / 2 - (((h.x % TILE_M) + TILE_M) % TILE_M) * sc - tp, gy0 = H / 2 - (((h.y % TILE_M) + TILE_M) % TILE_M) * sc - tp;
+    if (groundPat) { for (let x = gx0; x < W; x += tp) for (let y = gy0; y < H; y += tp) g.drawImage(groundPat, x, y, tp + 1, tp + 1); }   // the same tile, edge to edge
+    else { g.fillStyle = '#3d6a2e'; g.fillRect(0, 0, W, H); }
     S.zones.forEach(z => { if (z.delay > 0) return; g.globalAlpha = 0.35; g.fillStyle = z.kind === 'puddle' ? '#ff6a2a' : '#ffd27a';
       const r = z.kind === 'ring' ? z.r0 + (z.r1 - z.r0) * Math.min(1, z.t / z.life) : (z.r || z.r1); g.beginPath(); g.arc(X(z.x), Y(z.y), r * sc, 0, 7); z.kind === 'ring' ? (g.strokeStyle = '#ffd27a', g.lineWidth = 4, g.stroke()) : g.fill(); g.globalAlpha = 1; });
-    S.gems.forEach(m => { g.fillStyle = '#5fb8ff'; g.fillRect(X(m.x) - 3, Y(m.y) - 3, 6, 6); });
-    S.monsters.forEach(m => { g.fillStyle = COL[m.type] || '#888'; g.beginPath(); g.arc(X(m.x), Y(m.y), m.r * sc, 0, 7); g.fill(); });
+    S.gems.forEach(m => { if (m.heal) { g.fillStyle = '#ff5a6a'; g.beginPath(); g.arc(X(m.x), Y(m.y), 0.45 * sc, 0, 7); g.fill(); g.strokeStyle = '#fff'; g.lineWidth = 2; g.stroke(); return; }
+      g.fillStyle = m.v > 3 ? '#ff6a9a' : '#5fb8ff'; g.fillRect(X(m.x) - 3, Y(m.y) - 3, 6, 6); });
+    // monsters: their own walk sheets, feet on the body's spot, drawn back to front; facing = the way they move
+    const tnow = performance.now() / 1000, ord = S.monsters.slice().sort((a, b) => a.y - b.y);
+    ord.forEach(m => { const sp = SPR[m.skin];
+      if (!sp) { g.fillStyle = COL[m.type] || '#888'; g.beginPath(); g.arc(X(m.x), Y(m.y), m.r * sc, 0, 7); g.fill(); return; }
+      const fr = Math.floor(tnow * 10 + m.id * 0.37) % 12, hpx = HM[m.type] * sc * (m.r / C.MONSTERS[m.type].r), wpx = hpx * sp.fw / sp.fh;
+      const left = m.vx != null ? m.vx < 0 : h.x < m.x, x = X(m.x), y = Y(m.y) + m.r * sc * 0.6;
+      g.save(); g.translate(x, y); if (left) g.scale(-1, 1);
+      if (m.stunT > 0 || m.vuln > 0) g.filter = 'brightness(1.6)';
+      g.drawImage(sp.c, (fr % 6) * sp.fw, Math.floor(fr / 6) * sp.fh, sp.fw, sp.fh, -wpx / 2, -hpx, wpx, hpx); g.restore();
+      if (m.type === 'elite' || m.type === 'boss') { const bw = Math.max(30, hpx * 0.7); g.fillStyle = '#0008'; g.fillRect(x - bw / 2, y - hpx - 8, bw, 5); g.fillStyle = '#e2433a'; g.fillRect(x - bw / 2, y - hpx - 8, bw * Math.max(0, m.hp / m.maxHp), 5); } });
+    // enemy bolts: dodge them (Phil 24 Oct)
+    S.eshots.forEach(b => { const x = X(b.x), y = Y(b.y), r = Math.max(4, b.r * sc);
+      g.strokeStyle = '#ff8a3a66'; g.lineWidth = r; g.beginPath(); g.moveTo(x, y); g.lineTo(x - b.vx * 0.06 * sc, y - b.vy * 0.06 * sc); g.stroke();
+      g.fillStyle = '#ffd27a'; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); g.strokeStyle = '#ff5a1a'; g.lineWidth = 2; g.stroke(); });
     S.shots.forEach(s => { g.fillStyle = s.key === '_base' ? '#fff' : '#ffb24a'; g.beginPath(); g.arc(X(s.x), Y(s.y), Math.max(3, s.r * sc), 0, 7); g.fill(); });
     // orbit auras drawn from the core's own state
     Object.keys(h.auras).forEach(k => { const a = byKey[k]; if (!a || a.fam !== 'orbit') return; const L = C.LADDER.orbit[h.auras[k] - 1], st2 = S._state[k]; if (!st2) return;

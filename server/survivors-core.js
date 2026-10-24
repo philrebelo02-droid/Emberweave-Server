@@ -97,14 +97,30 @@
   }
 
   /* ---- monsters: archetypes; the stage + clock scale them ------------------------------------------------------------------ */
+  // r = body radius in metres (sized to the real monster art at the 30 m view, 24 Oct: the art reads at ~1.4-6 m tall)
   var MONSTERS = {
-    swarmer: { hp: 30,  dmg: 6,  spd: 2.6, r: 0.35, xp: 1 },
-    brute:   { hp: 140, dmg: 14, spd: 1.5, r: 0.60, xp: 4 },
-    runner:  { hp: 22,  dmg: 5,  spd: 4.2, r: 0.30, xp: 1 },
-    elite:   { hp: 900, dmg: 26, spd: 1.8, r: 0.90, xp: 25 },
-    boss:    { hp: 24000, dmg: 45, spd: 1.6, r: 1.6, xp: 0 },
-    wall:    { hp: 260, dmg: 12, spd: 0.9, r: 0.70, xp: 3 },     // slow and tanky: wall waves + the encircling wall event
+    swarmer: { hp: 30,  dmg: 6,  spd: 2.6, r: 0.55, xp: 1 },
+    brute:   { hp: 140, dmg: 14, spd: 1.5, r: 0.85, xp: 4 },
+    runner:  { hp: 22,  dmg: 5,  spd: 4.2, r: 0.45, xp: 1 },
+    elite:   { hp: 900, dmg: 26, spd: 1.8, r: 1.20, xp: 25 },
+    boss:    { hp: 24000, dmg: 45, spd: 1.6, r: 2.20, xp: 0 },
+    wall:    { hp: 260, dmg: 12, spd: 0.9, r: 0.90, xp: 3 },     // slow and tanky: wall waves + the encircling wall event
+    caster:  { hp: 26,  dmg: 4,  spd: 2.8, r: 0.50, xp: 2 },      // keeps its distance and shoots a slow bolt you can dodge
   };
+  // CASTERS (Phil 24 Oct: "projectiles you can dodge if they are casters"): a caster holds ~8 m off and, every 3-4.5 s, fires one
+  // slow bolt at where the hero IS - keep moving and it misses. The stage boss fires a 5-bolt fan every 4 s.
+  var CAST = { range: 8, cd: 3.2, cdRand: 1.3, speed: 7, r: 0.35, life: 2.6, dmgMul: 1.1, maxShots: 60 };
+  /* ROSTERS: which of OUR monsters wear each role on a stage (in-game keys, as in MONSTER_TYPES). Stage 1 = Emberfall Vale, the
+   * campaign's Chapter 1 cast: fodder = Ooznik / Skulk, fast = Cinder Skulk, casters (the Mage-role flyers) = Sootwing Imp /
+   * Vexmite / Skarrn, heavies =
+   * Grushak / Cindertusk, the slow wall = Shellwark, elites = Grushak (Cindertusk for the 3x "big" one), the stage boss = Brukk,
+   * Master of the Black Kiln (Chapter 1's own x-10 boss). Stages without a roster yet borrow Stage 1's. The skin is cosmetic:
+   * the role's numbers drive the fight. */
+  var ROSTERS = {
+    1: { name: "Emberfall Vale", swarmer: ["ooznik", "skulk"], runner: ["cinder skulk"], caster: ["sootwing imp", "vexmite", "skarrn"],
+         brute: ["grushak", "cindertusk"], wall: ["shellwark"], elite: ["grushak"], big: ["cindertusk"], boss: ["brukk"] },
+  };
+  function roster(stage) { return ROSTERS[stage] || ROSTERS[1]; }
 
   /* ---- WAVES, the Vampire Survivors way (studied 24 Oct 2026 from its first stage's wave table; notes in the design folder:
    * "HERO SURVIVORS - WAVES STUDY (Claude 24 Oct).md"). One wave per minute. Each wave has:
@@ -119,21 +135,21 @@
   var WAVES = [
     { min: 15,  iv: 1.0,  ty: ["swarmer"] },
     { min: 30,  iv: 1.0,  ty: ["swarmer", "runner"], boss: "elite" },
-    { min: 50,  iv: 0.5,  ty: ["swarmer", "runner", "runner"], ev: { k: "swarm", n: 3, p: 1 } },
+    { min: 50,  iv: 0.5,  ty: ["swarmer", "runner", "caster"], ev: { k: "swarm", n: 3, p: 1 } },
     { min: 40,  iv: 0.25, ty: ["swarmer"], boss: "elite", ev: { k: "swarm", n: 2, p: 0.1 } },
     { min: 30,  iv: 1.0,  ty: ["swarmer", "runner"], ev: { k: "swarm", n: 2, p: 0.1 } },
     { min: 10,  iv: 1.0,  ty: ["brute"], boss: "big", ev: { k: "wall", n: 1, p: 1, dur: 30 } },
     { min: 20,  iv: 0.5,  ty: ["swarmer", "brute"], ev: { k: "swarm", n: 2, p: 0.1 } },
-    { min: 80,  iv: 0.5,  ty: ["runner", "runner", "brute"], boss: "elite", ev: { k: "swarm", n: 6, p: 0.8 } },
+    { min: 80,  iv: 0.5,  ty: ["runner", "caster", "brute"], boss: "elite", ev: { k: "swarm", n: 6, p: 0.8 } },
     { min: 100, iv: 1.5,  ty: ["swarmer"], boss: "elite", ev: { k: "swarm", n: 3, p: 0.8 } },
     { min: 30,  iv: 0.5,  ty: ["brute", "swarmer"], boss: "elite", ev: { k: "swarm", n: 3, p: 0.7 } },
     { min: 10,  iv: 0.5,  ty: ["brute", "brute"], boss: "big", ev: { k: "wall", n: 1, p: 1, dur: 60 } },
     { min: 300, iv: 0.1,  ty: ["swarmer"], boss: "elite", ev: { k: "swarm", n: 2, p: 0.1 } },
-    { min: 20,  iv: 0.25, ty: ["runner", "swarmer", "swarmer"], boss: "elite", ev: { k: "swarm", n: 2, p: 0.1 } },
+    { min: 20,  iv: 0.25, ty: ["caster", "swarmer", "swarmer"], boss: "elite", ev: { k: "swarm", n: 2, p: 0.1 } },
     { min: 150, iv: 0.5,  ty: ["runner", "swarmer"], ev: { k: "swarm", n: 6, p: 0.7 } },
     { min: 20,  iv: 0.1,  ty: ["brute", "runner"], boss: "elite" },
     { min: 100, iv: 0.1,  ty: ["runner", "brute", "brute"], boss: "big", ev: { k: "wall", n: 1, p: 0.8, dur: 60 } },
-    { min: 100, iv: 0.1,  ty: ["runner", "brute", "brute"], boss: "elite" },
+    { min: 100, iv: 0.1,  ty: ["caster", "brute", "brute"], boss: "elite" },
     { min: 20,  iv: 1.0,  ty: ["brute"] },
     { min: 60,  iv: 0.5,  ty: ["brute", "brute"], boss: "elite" },
     { min: 100, iv: 0.5,  ty: ["brute", "brute"] },
@@ -145,8 +161,8 @@
     { min: 100, iv: 0.1,  ty: ["brute"], boss: "big", ev: { k: "wall", n: 6, p: 1, dur: 10 } },
     { min: 150, iv: 0.1,  ty: ["brute", "wall"] },
     { min: 300, iv: 0.1,  ty: ["brute", "brute", "brute"], boss: "elite", ev: { k: "swarm", n: 6, p: 1 } },
-    { min: 300, iv: 0.1,  ty: ["runner", "runner"] },
-    { min: 300, iv: 0.1,  ty: ["runner", "runner"], boss: "elite", ev: { k: "swarm", n: 20, p: 1 } },
+    { min: 300, iv: 0.1,  ty: ["runner", "runner", "caster"] },
+    { min: 300, iv: 0.1,  ty: ["runner", "runner", "caster"], boss: "elite", ev: { k: "swarm", n: 20, p: 1 } },
   ];
   function waveIndex(t) { var w = Math.floor(t / 60); return w < WAVES.length ? w : 20 + (w - WAVES.length) % 10; }
   function stageScale(stage) { return Math.pow(1.6, (stage | 0) - 1); }        // each stage ~1.6x the last
@@ -176,7 +192,7 @@
         wardT: 0,
       },
       monsters: [], nextId: 1, gems: [], shots: [], zones: [], fx: [],
-      bossSpawned: false, boss: null, noSpawn: false,
+      bossSpawned: false, boss: null, noSpawn: false, eshots: [],
       choice: null, kills: 0, dealt: 0, taken: 0, ended: false, won: false, score: 0,
       inputs: [],                                   // the run's input log - replayed by the server
       _state: {},                                   // per-aura timers
@@ -229,7 +245,11 @@
   function kill(S, m) {
     S.kills++;
     if (m.type === "boss") { S.won = true; S.ended = true; }
-    if (MONSTERS[m.type].xp) S.gems.push({ x: m.x, y: m.y, v: MONSTERS[m.type].xp });
+    if (m.type === "elite") S.gems.push({ x: m.x, y: m.y, v: 0, heal: 0.25 });   // an elite drops a heal orb (25% max HP), as Vampire Survivors' floor food
+    if (MONSTERS[m.type].xp) {
+      if (S.gems.length < 400) S.gems.push({ x: m.x, y: m.y, v: MONSTERS[m.type].xp });
+      else { var gk = S.gems[S.tick % 400]; if (!gk.heal) gk.v += MONSTERS[m.type].xp; }                 // phone budget: past 400 gems, XP folds into an old one
+    }
     var trig = S.hero._onKill; if (trig) trig(m);
   }
 
@@ -379,12 +399,14 @@
     // AHEAD: while the hero moves, 2 in 3 spawns come from the side it is heading to, so the horde meets it instead of trailing
     var h = S.hero; if ((h.mvx || h.mvy) && S.rng() < 0.67 && ox * h.dirx + oy * h.diry < 0) { ox = -ox; oy = -oy; }
     if (o.x != null) { ox = o.x - S.hero.x; oy = o.y - S.hero.y; }
+    var ro = roster(S.stage), pool = ro[o.big ? "big" : type] || ro.swarmer;
     var m = { id: S.nextId++, type: type, x: S.hero.x + ox, y: S.hero.y + oy, hp: base.hp * sc, maxHp: base.hp * sc,
-              dmg: base.dmg * Math.sqrt(sc), spd: base.spd, r: base.r * (o.rMul || 1) };
+              dmg: base.dmg * Math.sqrt(sc), spd: base.spd, r: base.r * (o.rMul || 1), skin: pool[Math.floor(S.rng() * pool.length)] };
     if (o.vx != null) { m.vx = o.vx; m.vy = o.vy; m.life = o.life; }      // a swarm member: flies straight, then leaves
     else if (o.life != null) m.life = o.life;                          // a wall member: chases, then fades when the event ends
     if (o.ev) m.ev = 1;
     if (o.wb) m.wb = 1;
+    if (type === "caster" || type === "boss") m.cdT = 1.5 + S.rng() * 2;
     S.monsters.push(m);
     if (type === "boss") S.boss = m;
     return m;
@@ -405,8 +427,12 @@
     var wi = waveIndex(S.t), W = WAVES[wi], w0 = Math.floor(S.t / 60) * 60;
     if (wi !== S._wave || w0 !== S._waveAt) {                                                  // a new minute: its boss, its events
       S._wave = wi; S._waveAt = w0; S._evDone = 0; S._waveT = 0;
+      if (S.t < TICK) {                                   // the opening batch ON screen (Vampire Survivors spawns one on entry): no dead first 12 s
+        for (var ib = 0; ib < W.min; ib++) { var ab = ib / W.min * Math.PI * 2 + S.rng() * 0.3; spawn(S, W.ty[ib % W.ty.length], { x: S.hero.x + Math.cos(ab) * 12, y: S.hero.y + Math.sin(ab) * 12 * 0.8 }); }
+        S._waveT = W.iv;                                  // the batch IS this interval's top-up
+      }
       if (W.boss === "elite") spawn(S, "elite", { wb: 1 });                                     // wave bosses sit outside the 300
-      else if (W.boss === "big") spawn(S, "elite", { hpMul: 3, rMul: 1.35, wb: 1 });
+      else if (W.boss === "big") spawn(S, "elite", { hpMul: 3, rMul: 1.35, wb: 1, big: 1 });
     }
     // the wave: every iv seconds, top up to min, or add one of each type
     S._waveT -= dt;
@@ -500,11 +526,38 @@
       // left behind: a wave monster 8 m past the view's edge is recycled (the wave refills near the hero). Bosses and wave elites never are.
       if (!m.ev && !m.wb && m.type !== "boss" && (Math.abs(dx) > VIEW.w / 2 + 8 || Math.abs(dy) > VIEW.h / 2 + 8)) { S.monsters.splice(mi, 1); continue; }
       if (m.vx != null) { m.x += m.vx * (m.slowT > 0 ? 0.5 : 1) * dt; m.y += m.vy * (m.slowT > 0 ? 0.5 : 1) * dt; }   // swarm: straight on
+      else if (m.type === "caster") {                      // hold the range: close in, back off, or drift sideways
+        var dir = d > CAST.range ? 1 : d < CAST.range - 2.5 ? -0.6 : 0, side = (m.id & 1) ? 0.35 : -0.35;
+        m.x += (dx / d * dir - dy / d * side) * sp3 * dt; m.y += (dy / d * dir + dx / d * side) * sp3 * dt;
+      }
       else { m.x += dx / d * sp3 * dt; m.y += dy / d * sp3 * dt; }
+      if (m.cdT != null) { m.cdT -= dt;
+        if (m.cdT <= 0 && S.eshots.length < CAST.maxShots && d <= (m.type === "boss" ? 16 : CAST.range + 1.5)) {
+          var n = m.type === "boss" ? 5 : 1, a0 = Math.atan2(dy, dx);
+          for (var q = 0; q < n; q++) { var aq = a0 + (q - (n - 1) / 2) * 0.32;
+            S.eshots.push({ x: m.x, y: m.y, vx: Math.cos(aq) * CAST.speed, vy: Math.sin(aq) * CAST.speed, r: CAST.r * (m.type === "boss" ? 1.6 : 1),
+                            life: CAST.life * (m.type === "boss" ? 1.6 : 1), dmg: m.dmg * CAST.dmgMul, skin: m.skin }); }
+          m.cdT = m.type === "boss" ? 4 : CAST.cd + S.rng() * CAST.cdRand;
+        } }
+      if ((mi & 1) === (S.tick & 1)) {                     // half the horde per tick: a light push away from overlapping neighbours
+        var px = 0, py = 0; near(S, m.x, m.y, m.r * 2, function (o, ex, ey) { if (o === m) return; var dd = ex * ex + ey * ey, rr = m.r + o.r;
+          if (dd > 1e-6 && dd < rr * rr) { var l = Math.sqrt(dd), f = (rr - l) / rr; px -= ex / l * f; py -= ey / l * f; } });
+        m.x += clamp(px, -1, 1) * 2.4 * dt * 2; m.y += clamp(py, -1, 1) * 2.4 * dt * 2;
+      }
       if (d <= m.r + 0.45 && h.iframes <= 0) {
         if (h.guard > 0) { h.guard--; h.iframes = 0.4; }
         else { var dmg = m.dmg * taken; h.hp -= dmg; S.taken += dmg; h.iframes = 0.5; if (h.wardT > 0 && h.hp < 1) h.hp = 1; if (h.thorns) hit(S, m, h.atk * h.thorns, "dot", 1); }
       }
+    }
+    for (var ei = S.eshots.length - 1; ei >= 0; ei--) {
+      var es = S.eshots[ei]; es.x += es.vx * dt; es.y += es.vy * dt; es.life -= dt;
+      var ex = h.x - es.x, ey = h.y - es.y;
+      if (ex * ex + ey * ey <= (es.r + 0.45) * (es.r + 0.45)) {
+        if (h.iframes <= 0) { if (h.guard > 0) { h.guard--; h.iframes = 0.4; }
+          else { var ed = es.dmg * taken; h.hp -= ed; S.taken += ed; S.shotTaken = (S.shotTaken || 0) + ed; h.iframes = 0.3; if (h.wardT > 0 && h.hp < 1) h.hp = 1; } }
+        S.eshots.splice(ei, 1); continue;
+      }
+      if (es.life <= 0) S.eshots.splice(ei, 1);
     }
     if (h.iframes > 0) h.iframes -= dt;
     if (pas(S, "renewal")) h.hp = Math.min(h.maxHp, h.hp + h.maxHp * pas(S, "renewal") * dt);
@@ -512,7 +565,7 @@
     var pick = 1.6 * (1 + pas(S, "magnet"));
     for (var gi = S.gems.length - 1; gi >= 0; gi--) {
       var gm = S.gems[gi], gx = h.x - gm.x, gy = h.y - gm.y, gd = Math.sqrt(gx * gx + gy * gy);
-      if (gd <= pick) { h.xp += gm.v * (1 + pas(S, "growth")); S.gems.splice(gi, 1); }
+      if (gd <= pick) { h.xp += gm.v * (1 + pas(S, "growth")); if (gm.heal) h.hp = Math.min(h.maxHp, h.hp + h.maxHp * gm.heal); S.gems.splice(gi, 1); }
       else if (gd <= pick * 2.2) { gm.x += gx / gd * 9 * dt; gm.y += gy / gd * 9 * dt; }
     }
     if (h.xp >= h.xpNext) { h.xp -= h.xpNext; h.level++; h.xpNext = Math.round(5 + h.level * 4 + h.level * h.level * 0.35); S.choice = offers(S); }
@@ -544,7 +597,7 @@
   }
 
   global.SurvivorsCore = {
-    TICK: TICK, VIEW: VIEW, WAVES: WAVES, MAX_MONSTERS: MAX_MONSTERS, HARD_MAX: HARD_MAX, waveIndex: waveIndex, STORY_SECONDS: STORY_SECONDS, STAGES: STAGES, SLOTS: SLOTS, AURA_MAX: AURA_MAX, PASSIVE_MAX: PASSIVE_MAX,
+    TICK: TICK, VIEW: VIEW, WAVES: WAVES, CAST: CAST, ROSTERS: ROSTERS, roster: roster, MAX_MONSTERS: MAX_MONSTERS, HARD_MAX: HARD_MAX, waveIndex: waveIndex, STORY_SECONDS: STORY_SECONDS, STAGES: STAGES, SLOTS: SLOTS, AURA_MAX: AURA_MAX, PASSIVE_MAX: PASSIVE_MAX,
     PASSIVES: PASSIVES, LADDER: LADDER, MONSTERS: MONSTERS, fxKind: fxKind,
     SKILL_KINDS: Object.keys(SKILL_KINDS), useSkill: useSkill,
     create: create, step: step, choose: choose, offers: offers, replay: replay, digest: digest, stageScale: stageScale,

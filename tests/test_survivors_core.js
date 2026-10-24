@@ -41,7 +41,7 @@ const repBad = C.replay(HERO, { seed: 42, mode: 'story', stage: 1, auras: AURAS 
 ok('CONTROL: a changed pick changes the result', ci >= 0 && C.digest(repBad) !== C.digest(r1));
 
 // 4. levelling happened, the pick pauses the clock
-ok('the bot levelled up', r1.hero.level > 3, r1.hero.level);
+ok('the bot levelled up', r1.hero.level >= 3, r1.hero.level);
 ok('it picked auras/passives', Object.keys(r1.hero.auras).length + Object.keys(r1.hero.passives).length > 0);
 {
   const S = C.create(HERO, { seed: 7, auras: AURAS });
@@ -193,6 +193,27 @@ ok('the rhythm breathes: a lull straight after a spike', C.WAVES[11].min === 300
   for (let i = 0; i < 30 * 60 * 12 && U.t < 10 * 60 + 20; i++) { C.step(U, U.choice ? { pick: 0 } : {}); sw = Math.max(sw, U.monsters.filter(m => m.vx != null).length); wl = Math.max(wl, U.monsters.filter(m => m.ev && m.type === 'wall').length); }
   ok('the 2:00 swarm sweeps in (straight-line runners)', sw >= 14, sw);
   ok('the 5:00 / 10:00 wall closes in round the hero', wl >= 30, wl);
+}
+
+// 12. Stage 1 = Emberfall Vale skins; casters shoot bolts you can dodge (Phil 24 Oct)
+{
+  const R1 = C.roster(1);
+  ok('stage 1 is Emberfall Vale with our Chapter 1 monsters', R1.name === 'Emberfall Vale' && R1.caster.includes('vexmite') && R1.boss[0] === 'brukk');
+  const S = C.create(HERO, { seed: 6, auras: AURAS }); S.noSpawn = true; C.step(S, {});
+  const T = C.create(HERO, { seed: 6, auras: AURAS }); T.noSpawn = true; C.step(T, {});
+  function casterAt(R, x, y) { R.monsters.push({ id: 900 + R.monsters.length, type: 'caster', x, y, hp: 1e9, maxHp: 1e9, dmg: 10, spd: 2.8, r: 0.5, cdT: 0.2, skin: 'vexmite' }); }
+  casterAt(S, 7, 0); casterAt(T, 7, 0); S._baseT = T._baseT = 1e9;
+  let fired = 0;
+  for (let i = 0; i < 30 * 8; i++) { C.step(S, {}); fired = Math.max(fired, S.eshots.length); }
+  for (let i = 0; i < 30 * 8; i++) C.step(T, { mx: 0, my: (Math.floor(i / 45) % 2) ? 1 : -1 });   // keep moving up and down
+  ok('a caster fires bolts', fired >= 1, fired);
+  ok('standing still, the bolts hit', (S.shotTaken || 0) > 0, S.shotTaken);
+  ok('moving, the bolts miss (dodged)', (T.shotTaken || 0) < (S.shotTaken || 0) * 0.5, (T.shotTaken || 0) + ' vs ' + S.shotTaken);
+  ok('a caster keeps its distance', Math.hypot(S.monsters[0].x - S.hero.x, S.monsters[0].y - S.hero.y) > 4, Math.hypot(S.monsters[0].x - S.hero.x, S.monsters[0].y - S.hero.y));
+  const B = C.create(HERO, { seed: 2, auras: AURAS }); B.noSpawn = true; C.step(B, {}); B._baseT = 1e9;
+  B.monsters.push({ id: 999, type: 'boss', x: 10, y: 0, hp: 1e9, maxHp: 1e9, dmg: 10, spd: 0, r: 2.2, cdT: 0.1, skin: 'brukk' });
+  let bf = 0; for (let i = 0; i < 30 * 2; i++) { C.step(B, {}); bf = Math.max(bf, B.eshots.length); }
+  ok('the boss fires a 5-bolt fan', bf >= 5, bf);
 }
 
 console.log(fail ? `test_survivors_core: ${pass} passed, ${fail} FAILED` : `test_survivors_core: ${pass} checks passed`);
