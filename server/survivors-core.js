@@ -773,15 +773,17 @@
       st.c.push({ x: h.x, y: h.y, life: life, max: life });
     },
     // 49. when you CHANGE DIRECTION you DASH-SLASH through what's in the way; L10 after-images keep slashing
+    // (v2, Phil 24 Oct: "swift strike is a bit weak"): smaller turns trigger it, faster reset, longer + wider cut, harder hits, a knock)
     "swift-strikes": function (S, st, lv, dt, h, am) {
       st.cd = (st.cd || 0) - dt; st.ai = (st.ai || []).filter(function (a) { a.t -= dt; return a.t > 0; });
       if (lv >= 10) { st.k = (st.k || 0) - dt; if (st.k <= 0) { st.k = 0.3; st.ai.forEach(function (a) { near(S, a.x, a.y, 1.5, function (m) { hit(S, m, heroDmg(S, 0.8), "dot", 1); }); }); } }
       var moving = h.mvx || h.mvy; if (!moving) return; var a = Math.atan2(h.mvy, h.mvx);
       if (st.pa == null) { st.pa = a; return; } var turn = Math.abs(((a - st.pa) % (Math.PI * 2) + Math.PI * 3) % (Math.PI * 2) - Math.PI); st.pa = a;
-      if (turn < 1.0 || st.cd > 0) return; st.cd = lin(lv, 1.0, 0.5);
-      var L = lin(lv, 2.5, 4.5) * am, x0 = h.x, y0 = h.y; h.x += Math.cos(a) * L; h.y += Math.sin(a) * L; h.iframes = Math.max(h.iframes, 0.25);
-      near(S, x0 + Math.cos(a) * L / 2, y0 + Math.sin(a) * L / 2, L / 2 + 1, function (m) { if (segDist(m.x, m.y, x0, y0, a, L) <= 1 + m.r) { hit(S, m, heroDmg(S, lin(lv, 1.6, 2.8)), "dot", 1); if (lv >= 5) hit(S, m, heroDmg(S, 0.6), "none"); } });
-      S.fx.push({ kind: "dash", key: "swift-strikes", x: x0, y: y0, tx: h.x, ty: h.y, t: 0, life: 0.3 }); if (lv >= 10) st.ai.push({ x: x0 + Math.cos(a) * L / 2, y: y0 + Math.sin(a) * L / 2, t: 1.5 });
+      if (turn < 0.7 || st.cd > 0) return; st.cd = lin(lv, 0.8, 0.35);
+      var L = lin(lv, 3.2, 5.5) * am, x0 = h.x, y0 = h.y; h.x += Math.cos(a) * L; h.y += Math.sin(a) * L; h.iframes = Math.max(h.iframes, 0.25);
+      near(S, x0 + Math.cos(a) * L / 2, y0 + Math.sin(a) * L / 2, L / 2 + 1, function (m) { if (segDist(m.x, m.y, x0, y0, a, L) <= 1.5 + m.r) { hit(S, m, heroDmg(S, lin(lv, 2.4, 4.0)), "knock", 0.6); if (lv >= 5) hit(S, m, heroDmg(S, 1.0), "dot", 1); } });
+      near(S, h.x, h.y, 2.2 * am, function (m) { hit(S, m, heroDmg(S, lin(lv, 1.2, 2.0)), "knock", 1); });   // the X-cut where you land
+      S.fx.push({ kind: "dash", key: "swift-strikes", x: x0, y: y0, tx: h.x, ty: h.y, t: 0, life: 0.35 }); if (lv >= 10) st.ai.push({ x: x0 + Math.cos(a) * L / 2, y: y0 + Math.sin(a) * L / 2, t: 1.5 });
     },
     // 50. sickles fly a WIDE FIGURE-8 round you; L10 a crescent moon sweeps the field
     "night-sickles": function (S, st, lv, dt, h, am) {
