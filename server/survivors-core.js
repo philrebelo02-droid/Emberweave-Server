@@ -331,6 +331,21 @@
     },
     // 8. lava wells up where you STAND STILL and widens the longer you hold; walk off and it cools
     "molten-ground": function (S, st, lv, dt, h, am) {
+      // L10 MAGMA SEA (v2, Phil 24 Oct: "magma sea pretty much needs a rework"): standing still, a LAVA TIDE rolls out from you every
+      // 2 s to ~9 m, burning and slowing what it crosses, and leaves burning pools scattered behind it (3 s). Moving starts no new
+      // tide; the ones rolling finish.
+      if (lv >= 10) {
+        st.tides = st.tides || []; st.pools = st.pools || [];
+        if (!(h.mvx || h.mvy)) { st.tt = (st.tt || 0) - dt; if (st.tt <= 0) { st.tt = 2; st.tides.push({ x: h.x, y: h.y, r: 0.8, R: 9 * am, hit: {}, drop: 0 }); } }
+        for (var ti = st.tides.length - 1; ti >= 0; ti--) { var td = st.tides[ti]; td.r += dt * 7; td.drop -= dt;
+          if (td.r >= td.R) { st.tides.splice(ti, 1); continue; }
+          near(S, td.x, td.y, td.r + 0.9, function (m, dx, dy) { if (!td.hit[m.id] && Math.abs(Math.sqrt(dx * dx + dy * dy) - td.r) <= 0.9 + m.r) { td.hit[m.id] = 1; hit(S, m, heroDmg(S, 1.6), "dot", 1.5); m.slowT = Math.max(m.slowT || 0, 1.5); } });
+          if (td.drop <= 0 && st.pools.length < 24) { td.drop = 0.18; var pa = S.rng() * Math.PI * 2; st.pools.push({ x: td.x + Math.cos(pa) * td.r, y: td.y + Math.sin(pa) * td.r, life: 3, a: pa }); } }
+        st.k = (st.k || 0) - dt; var tk = st.k <= 0; if (tk) st.k = 0.5;
+        for (var pi = st.pools.length - 1; pi >= 0; pi--) { var pl = st.pools[pi]; pl.life -= dt; if (pl.life <= 0) { st.pools.splice(pi, 1); continue; }
+          if (tk) near(S, pl.x, pl.y, 1.3 * am, function (m) { hit(S, m, heroDmg(S, 0.5), "slow", 1); }); }
+        st.pool = null; return;
+      }
       var still = !(h.mvx || h.mvy), max = (lv >= 10 ? 9 : lin(lv, 2.5, 4.5)) * am, p = st.pool;
       if (still) { if (!p || p.cool) p = st.pool = { x: h.x, y: h.y, r: 0.6, cool: false, heat: 1 }; p.r = Math.min(max, p.r + dt * lin(lv, 0.8, 1.6) * (lv >= 10 ? 2 : 1)); p.heat = 1; }
       else if (p && !p.cool) { var dx = h.x - p.x, dy = h.y - p.y; if (dx * dx + dy * dy > (p.r * 0.5 + 0.5) * (p.r * 0.5 + 0.5)) p.cool = true; }

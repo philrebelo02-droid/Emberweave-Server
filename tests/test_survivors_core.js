@@ -248,6 +248,9 @@ ok('the rhythm breathes: a lull straight after a spike', C.WAVES[11].min === 300
   // Boulder Roll: a boulder rolls forward and grows
   { const S = run(field('boulder-roll', 5), 30 * 1.2, { mx: 1, my: 0 }), r = S.rollers[0];
     ok('boulder-roll: a boulder rolls forward and grows as it goes', r && r.x > 3 && r.r > 0.7 * (1), r && (r.x.toFixed(1) + ' r' + r.r.toFixed(2))); }
+  // Magma Sea (L10 v2): standing sends a lava tide rolling out that hits a monster 6 m away and leaves burning pools
+  { const S = run(field('molten-ground', 10, [[6, 0]]), 30 * 1.5), p = S._state['molten-ground'];
+    ok('molten-ground L10 magma sea: a lava tide rolls out to 6 m and leaves burning pools', S.monsters[0].hp < 1e6 && (p.pools || []).length > 0, (p.pools || []).length); }
   // Molten Ground: standing burns, walking does not (control)
   { const St = run(field('molten-ground', 3, [[0.8, 0]]), 30 * 3), Wk = field('molten-ground', 3, [[0.8, 0]]); run(Wk, 30 * 3, { mx: 1, my: 0 });
     ok('molten-ground: lava wells up only where you stand still (control: walking)', St.dealt > 0 && Wk.dealt === 0, St.dealt + ' / ' + Wk.dealt); }
