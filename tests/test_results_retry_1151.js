@@ -95,6 +95,11 @@ async function httpLayer() {
 const LOST = [503, { error: 'Server 1 is down right now - your other servers are still open.', serverDown: 1 }];
 const E500 = [500, { error: 'server error' }];
 const MODES = {
+  tower: { route: '/api/tower/resolve', win: 'FLOOR 1 CLEARED',
+    receipt: { ok: true, won: true, fought: 1, floor: 1, gold: 500, gems: 0 },
+    loss: { ok: true, won: false, fought: 1, floor: 0, gold: 0, gems: 0 },
+    refuse: [400, { ok: false, error: 'No matching Tower battle.' }],
+    setup: () => { ACC.id = ACC.id || 'rr1151-acct'; CUR = { mode: 'tower', attemptId: 'att-t', tower: { floor: 1, type: 'guardian' } }; } },
   province: { route: '/api/province/resolve', win: 'STAGE 1 CLEARED',
     receipt: { ok: true, type: 'gold', won: true, stage: 1, stars: 3, cleared: 1, reward: null, playsLeft: 1 },
     loss: { ok: true, type: 'gold', won: false, stage: 1, stars: 0, cleared: 0, reward: null },
@@ -150,7 +155,7 @@ async function pageLayer() {
       for (let i = 0; i < 300 && !(document.getElementById('result').classList.contains('active') && el.textContent); i++) await new Promise(r => window.__rr.st.call(window, r, 50));
       await new Promise(r => window.__rr.st.call(window, r, 200)); mo.disconnect();
       const out = { title: el.textContent, titles, calls: S.n, rids: S.rids, reward: (document.getElementById('resultReward').textContent || '').slice(0, 200) };
-      window.__rrDisarm(); try { localStorage.removeItem('ew_vaultPending_' + ACC.id); } catch (_) {} try { show('home'); } catch (_) {} return out;
+      window.__rrDisarm(); try { localStorage.removeItem('ew_vaultPending_' + ACC.id); localStorage.removeItem('ew_towerPending_' + ACC.id); PENDING_MEM['tower:'+ACC.id]=null; } catch (_) {} try { show('home'); } catch (_) {} return out;
     }, { mode, won, replies, setupSrc: '(' + MODES[mode].setup.toString() + ')()' });
     await pg.evaluate(t => { window.__rrTok = t; }, token);   // the guest from layer A: a real session, so a real call never signs the page out mid-case
     await pg.evaluate(m => { window.MODEROUTE = m; }, Object.fromEntries(Object.entries(MODES).map(([k, v]) => [k, v.route])));
@@ -161,10 +166,10 @@ async function pageLayer() {
       if (M.receipt) { const g = await runBattle(mode, true, [LOST, [200, M.receipt]]);
         ck(mode + ': won + lost first reply, then the receipt -> ' + M.win + ' (one requestId)', g.title === M.win && oneRid(g) && g.calls >= 2 && noDefeat(g), JSON.stringify(g).slice(0, 260)); }
       { const g = await runBattle(mode, true, [LOST]);
-        const want = mode === 'vault' ? M.win : 'NOT COUNTED';
-        ck(mode + ': won + every reply lost -> ' + want + ', plain words, never DEFEAT / "offline"', g.title === want && oneRid(g) && g.calls >= 7 && noDefeat(g) && noOffline(g) && (mode === 'vault' ? /Victory saved/.test(g.reward) : /Connection lost before the server answered/.test(g.reward)), JSON.stringify(g).slice(0, 260)); }
+        const want = mode === 'vault' ? M.win : mode === 'tower' ? 'RESULT PENDING' : 'NOT COUNTED';
+        ck(mode + ': won + every reply lost -> ' + want + ', plain words, never DEFEAT / "offline"', g.title === want && oneRid(g) && g.calls >= 7 && noDefeat(g) && noOffline(g) && (mode === 'vault' ? /Victory saved/.test(g.reward) : mode === 'tower' ? /saved on this device/.test(g.reward) : /Connection lost before the server answered/.test(g.reward)), JSON.stringify(g).slice(0, 260)); }
       { const g = await runBattle(mode, true, [E500]);
-        const want = mode === 'vault' ? M.win : 'NOT COUNTED';
+        const want = mode === 'vault' ? M.win : mode === 'tower' ? 'RESULT PENDING' : 'NOT COUNTED';
         ck(mode + ': won + 500 -> ' + want + ', never DEFEAT', g.title === want && noDefeat(g) && noOffline(g), JSON.stringify(g).slice(0, 220)); }
       { const g = await runBattle(mode, true, [M.refuse]);
         ck(mode + ': won + the server refuses -> NOT COUNTED, never DEFEAT', g.title === 'NOT COUNTED' && noDefeat(g) && noOffline(g), JSON.stringify(g).slice(0, 220)); }
@@ -172,16 +177,6 @@ async function pageLayer() {
         const want = mode === 'vault' ? 'THE VAULT HOLDS' : 'DEFEAT';
         ck(mode + ': a real loss -> ' + want, g.title === want, JSON.stringify(g).slice(0, 200)); }
     }
-    // Tower of Trials climb (a power ladder, no battle screen): a lost reply is re-sent and the receipt books the floor
-    { const t = await pg.evaluate(async () => { const out = {};
-        const rec = { ok: true, floor: 1, gold: 500, gems: 0, elite: false, nextReq: 1 };
-        let S = window.__rrArm('/api/tower/ascend', [[503, { error: 'down', serverDown: 1 }], [200, rec]]);
-        ACC.token = window.__rrTok; G.tower = { floor: 0, trib: '' };
-        const a = await towerAscend(); out.a = { win: !!a.win, floor: a.floor, calls: S.n, rids: S.rids }; window.__rrDisarm();
-        S = window.__rrArm('/api/tower/ascend', [[503, { error: 'down', serverDown: 1 }]]); G.tower = { floor: 0, trib: '' };
-        const b2 = await towerAscend(); out.b = { pending: !!b2.pending, msg: String(b2.msg || ''), calls: S.n }; window.__rrDisarm(); return out; });
-      ck('Tower: lost first reply, then the receipt -> the floor is conquered (same requestId)', t.a.win && t.a.floor === 1 && t.a.calls === 2 && t.a.rids[0] === t.a.rids[1], JSON.stringify(t.a));
-      ck('Tower: every reply lost -> 7 sends, then the plain not-confirmed words', t.b.pending && t.b.calls === 7 && /Connection lost before the server answered/.test(t.b.msg), JSON.stringify(t.b)); }
     // Gauntlet (bonus stage): gsplitFinish -> /api/bonus/resolve
     const gauntlet = (verdict, replies) => pg.evaluate(async ({ verdict, replies }) => {
       const S = window.__rrArm('/api/bonus/resolve', replies); const banners = [];

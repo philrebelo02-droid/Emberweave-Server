@@ -146,6 +146,12 @@ node tests/test_watch_privacy.js || FAILED=1
 node tests/test_world_city_recall.js || FAILED=1
 note "test_tower_server.js (3 Oct audit P0: the Tower of Trials is server-owned; v948 numbers floor by floor)"
 node tests/test_tower_server.js || FAILED=1
+note "Echo Spire: seasons, client receipts, tribute and real Guardian/Echo fights"
+node tests/test_tower_echo.js || FAILED=1
+node tests/test_echo_spire_ui.js || FAILED=1
+node tests/test_echo_spire_client.js || FAILED=1
+node tests/test_wallet_tower_claim.js || FAILED=1
+node tests/test_echo_spire_battle.js || FAILED=1
 note "test_durable_buildings.js (3 Oct audit: Vault/Hut/Emberdraft/trial/Well answer 503 on a failed save, nothing moves)"
 node tests/test_durable_buildings.js || FAILED=1
 note "test_well_audit.js (3 Oct audit: Starless Well held-fight double pay + forged sweep path)"
