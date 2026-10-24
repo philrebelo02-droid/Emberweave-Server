@@ -15,4 +15,4 @@ const CODE = `(()=>{ const B=${JSON.stringify(FIX)}, J=o=>JSON.parse(JSON.string
   for(const k in B.ult) HERO_ULT_ART[k]=J(B.ult[k]);
   B.fx16new.forEach(k=>{ delete FX16_ART[k]; });
   return 1; })()`;
-module.exports = { undoArt18Oct: run => run(CODE), FIX_ART_18OCT: FIX };
+module.exports = { undoArt18Oct: run => { require('./grosk-fritz-fx-1217.js').undoGroskFritzFx1217(run); return run(CODE); }, FIX_ART_18OCT: FIX };   /* v1217 Grosk / Fritz FX (a later release) go back off first */

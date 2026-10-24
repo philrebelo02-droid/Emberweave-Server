@@ -551,6 +551,8 @@ note "test_ambrel_art_18oct.js (18 Oct art, ChatGPT: Ambrel's approved remake - 
 node tests/test_ambrel_art_18oct.js || FAILED=1
 note "test_spell_fx_18oct.js (18 Oct art: Grok's seven FX for Aldren, Aureth and Joss - receipts, sheets, routing; Joss's Sanctuary Guard at half size behind the heroes (Phil); fights unchanged)"
 node tests/test_spell_fx_18oct.js || FAILED=1
+note "test_grosk_fritz_fx_1217.js (v1217: Grosk's Hammer Fists burst on his fist at each punch tick, mirrored with his facing; Fritz's Storm Surge strike per bolt (land cell on its damage tick), Chain Lightning bolt per jump (base on the unit it leaves, stretched to the one it hits), Thunder Shower from the press (first bolts on the first tick), faded on a cancel; sources md5, q95 sheets within 2048 px, no fringe - CONTROL: the plate mixed back; kits / clips / other FX2_DEF = BASE; casts and whole fights tick-identical, CONTROL: halved Chain Lightning differs)"
+node tests/test_grosk_fritz_fx_1217.js || FAILED=1
 note "test_fold_coordinates_18oct.js (Fold portrait layout: inverse pointer mapping and native controls at phone and Fold sizes)"
 node tests/test_fold_coordinates_18oct.js || FAILED=1
 note "test_fold_replay_18oct.js (Fold layout integration: gameplay tables and three full fights match pinned v1206 BASE)"
