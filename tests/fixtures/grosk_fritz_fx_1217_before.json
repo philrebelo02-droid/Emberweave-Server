@@ -61,6 +61,23 @@
     0.2
    ],
    "solid": 2
+  },
+  "hobb_green": {
+   "u": "/assets/anim/fx/hobb_green.webp?v=20",
+   "n": 30,
+   "fw": 320,
+   "fh": 320,
+   "cols": 6,
+   "rows": 5,
+   "dur": 3.96,
+   "upright": true,
+   "upSize": 1.3,
+   "upExtent": 0.9,
+   "upAnchor": [
+    0.5,
+    0
+   ],
+   "ro": 1
   }
  },
  "groskBlue": {
@@ -110,5 +127,16 @@
   "gdur": 3,
   "previewAt": "self"
  },
- "note": "live v1216 d1930405: what tests/helpers/grosk-fritz-fx-1217.js puts back"
+ "note": "live v1216 d1930405: what tests/helpers/grosk-fritz-fx-1217.js puts back",
+ "hobbGreen": {
+  "name": "Glazebreaker",
+  "type": "shred",
+  "mul": 1.55,
+  "shred": 0.3,
+  "dur": 5,
+  "cd": 6,
+  "desc": "Smashes with the pottery paddle and reduces enemy armor.",
+  "gfx": "hobb_green",
+  "gdur": 3.96
+ }
 }

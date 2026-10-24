@@ -1,7 +1,7 @@
 {
   "patches": [
-    {"ver": "0.96.8", "date": "23 October 2026", "title": "Grosk and Fritz spell effects", "items": [
-      "New spell effects for Grosk and Fritz. Grosk's Hammer Fists: each of his three punches now lands with a grey shockwave burst from his fist, in place of the old stone-fist badge. Fritz: Storm Surge brings a lightning strike down on each enemy it hits, Chain Lightning arcs a crackling bolt from target to target, and Thunder Shower gathers a storm cloud over him that rains lightning around him for the whole channel."
+    {"ver": "0.96.8", "date": "23 October 2026", "title": "Grosk, Fritz and Hobb spell effects", "items": [
+      "New spell effects for Grosk, Fritz and Hobb. Grosk's Hammer Fists: each of his three punches now lands with a grey shockwave burst from his fist, in place of the old stone-fist badge. Fritz: Storm Surge brings a lightning strike down on each enemy it hits, Chain Lightning arcs a crackling bolt from target to target, and Thunder Shower gathers a storm cloud over him that rains lightning around him for the whole channel. Hobb's Glazebreaker: his paddle now shatters a glazed jar on the enemy into a spray of blue-and-white shards."
     ]},
     {"ver": "0.96.7", "date": "22 October 2026", "title": "Starless Well carry", "items": [
       "Starless Well: the HP and energy your heroes carry to the next fight are now always kept in range (HP between 1% and full, energy between empty and a full bar), even when the result you watched differs from the server's replay."

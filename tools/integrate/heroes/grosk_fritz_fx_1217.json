@@ -1,5 +1,5 @@
 {
- "note": "v1217 Grosk Hammer Fists impact burst (Phil 23 Oct 22:36) + Fritz's three 18 Oct remakes (Phil OK 23 Oct 23:07). Cut by integrate_fx.py; wired by hand (new painters: per-punch burst, per-bolt strike, per-jump stretched bolt, storm over him).",
+ "note": "v1217 Grosk Hammer Fists impact burst (Phil 23 Oct 22:36) + Fritz's three 18 Oct remakes (Phil OK 23 Oct 23:07). Cut by integrate_fx.py; wired by hand (new painters: per-punch burst, per-bolt strike, per-jump stretched bolt, storm over him). + Hobb Glazebreaker (18 Oct remake, Phil approved; Grok 23:09).",
  "hero": "grosk_fritz",
  "version": "1217",
  "work": "C:/Users/Home/AppData/Local/Temp/claude/C--Users-Home-Downloads-Emberweave-Server/9fc48f70-c7ae-47ca-b256-f56da6c288d4/scratchpad/work",
@@ -49,6 +49,17 @@
    "title": "Thunder Shower",
    "plate": "green",
    "frames": "0:142:2",
+   "placement": "upright"
+  },
+  {
+   "name": "glazebreaker",
+   "src": "hobb_green_glazebreaker_18oct.mp4",
+   "md5": "384ae974",
+   "key": "hobb_green",
+   "file": "hobb_glazebreaker_18oct",
+   "title": "Glazebreaker",
+   "plate": "green",
+   "frames": "0:90:2",
    "placement": "upright"
   }
  ]

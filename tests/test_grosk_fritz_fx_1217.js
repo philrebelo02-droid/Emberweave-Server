@@ -7,6 +7,8 @@
 //   CHAIN LIGHTNING  fritz_blue_chain_lightning_18oct.mp4: one bolt per jump, its base on the unit it leaves, stretched to the unit it hits; once
 //   THUNDER SHOWER   fritz_ult_thunder_shower_18oct.mp4: over Fritz from the ult press (its first bolts reach the ground with the channel's first
 //                    tick), pinned on the storm centre at the release, faded on a cancelled cast; once. The old 1 Oct plates stay on disk.
+//   GLAZEBREAKER     hobb_green_glazebreaker_18oct.mp4 (Hobb, Grok 23 Oct 23:09): the jar on the enemy from the press, shattering (cell `smash`) on the
+//                    damage tick; held through a stun, faded on a cancel; once.
 // CONTROL against the live build (git show BASE): casts and whole fights with Grosk and Fritz are tick-identical (FX never move game logic).
 (function main() {
 const path = require('path'), vm = require('vm'), fs = require('fs'), cp = require('child_process'), crypto = require('crypto');
@@ -29,10 +31,10 @@ function webpSize(file) { const b = fs.readFileSync(file), tag = b.toString('asc
   if (tag === 'VP8X') return [1 + b.readUIntLE(24, 3), 1 + b.readUIntLE(27, 3)];
   if (tag === 'VP8 ') return [b.readUInt16LE(26) & 0x3fff, b.readUInt16LE(28) & 0x3fff]; return null; }
 const fileOf = u => path.join(ROOT, String(u).split('?')[0].replace(/^\//, ''));
-const KEYS = ['grosk_blue', 'fritz_green', 'fritz_blue', 'fritz_ult'];
-const FILES = { grosk_blue: 'grosk_hammer_fists_23oct', fritz_green: 'fritz_storm_surge_18oct', fritz_blue: 'fritz_chain_lightning_18oct', fritz_ult: 'fritz_thunder_shower_18oct' };
+const KEYS = ['grosk_blue', 'fritz_green', 'fritz_blue', 'fritz_ult', 'hobb_green'];
+const FILES = { grosk_blue: 'grosk_hammer_fists_23oct', fritz_green: 'fritz_storm_surge_18oct', fritz_blue: 'fritz_chain_lightning_18oct', fritz_ult: 'fritz_thunder_shower_18oct', hobb_green: 'hobb_glazebreaker_18oct' };
 const MP4 = { grosk_blue: ['grosk_hammer_fists_burst_single.mp4', 'e279aea3'], fritz_green: ['fritz_green_storm_surge_18oct.mp4', '45326727'],
-  fritz_blue: ['fritz_blue_chain_lightning_18oct.mp4', '357af741'], fritz_ult: ['fritz_ult_thunder_shower_18oct.mp4', '9ae7d8f1'] };
+  fritz_blue: ['fritz_blue_chain_lightning_18oct.mp4', '357af741'], fritz_ult: ['fritz_ult_thunder_shower_18oct.mp4', '9ae7d8f1'], hobb_green: ['hobb_green_glazebreaker_18oct.mp4', '384ae974'] };
 function sheetProblems(F) { const bad = [];
   for (const k of KEYS) { const d = F[k]; if (!d) { bad.push(k + ' missing'); continue; } const f = fileOf(d.u);
     if (!fs.existsSync(f)) { bad.push(k + ' missing file'); continue; }
@@ -59,21 +61,23 @@ const CAST = (hero, kind, opt) => `(()=>{ units=[]; ended=false; paused=false; b
   let plates=[], fplates=[], bolts=0; const _sg=spawnGroundFx; spawnGroundFx=function(k){ if(/^(grosk|fritz)_/.test(k)) plates.push(k); return _sg.apply(this,arguments); };
   const _sf=spawnFxPlate; spawnFxPlate=function(k){ if(/^fritz_/.test(k)) fplates.push(k); return _sf.apply(this,arguments); };
   const _sb=spawnBoltFx; spawnBoltFx=function(){ bolts++; return _sb.apply(this,arguments); };
+  const texs=[]; const _ft=fx2Tex; fx2Tex=function(k){ if(/^(grosk|fritz|hobb)_/.test(k)&&FX2_DEF[k]) texs.push(FX2_DEF[k].u); return _ft.apply(this,arguments); };   /* every sheet a painter fetches during the cast */
   g._castSM=1; g._castLv=1; const press=battleTime;
   try{
     if('${kind}'==='ult'){ g.energy=100; castAbility(g); } else castKit(g,'${kind}'==='blue'?(g.blueAb||KITS['${hero}'].blue):(g.greenAb||KITS['${hero}'].green));
     const hold=+(g._abilHold||0).toFixed(4), anim=g._abilAnim; const seen=new Map(), arts=[];
     const tr=[]; for(let i=0;i<Math.round(10/SIM_STEP);i++){ if(OPT.cancel&&i===3){ castCancel(g); }
+      if(OPT.stun&&i===3){ g.stunned=1.0; }
       updateBattle(SIM_STEP); park(); if('${kind}'!=='ult') g.energy=0;
-      const live=(typeof _fx1123!=='undefined')?_fx1123.filter(o=>/^(gfist|fstrike|fchain|fstorm)$/.test(o.kind)):[];
+      const live=(typeof _fx1123!=='undefined')?_fx1123.filter(o=>/^(gfist|fstrike|fchain|fstorm|hglaze)$/.test(o.kind)):[];
       for(const o of live){ if(!seen.has(o)){ const r={kind:o.kind,made:+battleTime.toFixed(4),shown:null,from:o.u?o.u.key:null,on:o.T?o.T.key:null,frs:[],lastFr:-1,gone:null,mir:o.mir,P:null,land:null,bolts:null,cut:false}; seen.set(o,r); arts.push(r); } const r=seen.get(o);
         const fr=o.fr; if(fr!=null&&r.shown==null) r.shown=+battleTime.toFixed(4);   /* o.fr = the cell the painter drew (the sim host's sprites are stubs) */
-        if(fr!=null&&fr!==r.lastFr){ r.frs.push(fr); r.lastFr=fr; if(fr>=(o.d.land||1e9)&&r.land==null) r.land=+battleTime.toFixed(4); if(fr>=(o.d.bolts||1e9)&&r.bolts==null) r.bolts=+battleTime.toFixed(4); }
+        if(fr!=null&&fr!==r.lastFr){ r.frs.push(fr); r.lastFr=fr; if(fr>=(o.d.land||1e9)&&r.land==null) r.land=+battleTime.toFixed(4); if(fr>=(o.d.bolts||1e9)&&r.bolts==null) r.bolts=+battleTime.toFixed(4); if(fr>=(o.d.smash||1e9)&&r.smash==null) r.smash=+battleTime.toFixed(4); }
         if(o.P) r.P=[+o.P.x.toFixed(2),+o.P.y.toFixed(2)]; if(o.cut!=null) r.cut=true; }
       for(const [o,r] of seen) if(r.gone==null&&!live.includes(o)) r.gone=+battleTime.toFixed(4);
       tr.push(units.map(u=>[u.key,Math.round(u.hp),Math.round(u.x*10),Math.round(u.y*10),u.alive?1:0,+(u.stunned||0).toFixed(2),+(u.silencedT||0).toFixed(2),u.forcedTarget?u.forcedTarget.key:'-'].join(':')).join('|')); }
-    return JSON.stringify({press,hold,anim,fx,hits,trace:crypto_like(tr.join('#')),plates,fplates,bolts,arts,storm:[g._stormX,g._stormY]});
-  } finally { doEffect=_de; dealDamage=_dd; spawnGroundFx=_sg; spawnFxPlate=_sf; spawnBoltFx=_sb; } })()`;
+    return JSON.stringify({press,hold,anim,fx,hits,trace:crypto_like(tr.join('#')),plates,fplates,bolts,texs:[...new Set(texs)],arts,storm:[g._stormX,g._stormY]});
+  } finally { doEffect=_de; dealDamage=_dd; spawnGroundFx=_sg; spawnFxPlate=_sf; spawnBoltFx=_sb; fx2Tex=_ft; } })()`;
 const fight = (r, seed, a, f) => crypto.createHash('sha256').update(r(`(()=>{ window._p2guard=true; const svA=autoUlt; autoUlt=true;
     try{ ended=false; state='battle'; CUR={mode:'replay',seed:${seed}}; battleTime=0; gameSpeed=1; groundHazards.length=0; seedBattle(${seed});
       units=[]; ${JSON.stringify(a)}.forEach((k,i)=>units.push(makeUnit(k,'ally',300+i*40,600+i*90,30,{owned:false,rank:3})));
@@ -92,10 +96,10 @@ try {
   const src = fs.readFileSync(HTML, 'utf8'), baseSrc = fs.readFileSync(OLD, 'utf8');
   // 1. sources + sheets
   { const got = KEYS.map(k => { const f = SRC + MP4[k][0]; return fs.existsSync(f) ? crypto.createHash('md5').update(fs.readFileSync(f)).digest('hex').slice(0, 8) : null; });
-    ck('the four sources are the Phil-approved clips in _fx2_accepted (md5 ' + got.join(' ') + ')', KEYS.every((k, i) => got[i] === MP4[k][1])); }
+    ck('the five sources are the Phil-approved clips in _fx2_accepted (md5 ' + got.join(' ') + ')', KEYS.every((k, i) => got[i] === MP4[k][1])); }
   const FXQ = 'JSON.stringify(Object.assign({FX_RT,METER,SC,STEP:SIM_STEP},Object.fromEntries(' + JSON.stringify(KEYS) + '.map(k=>[k,FX2_DEF[k]]))))', F = JSON.parse(run(FXQ)), F0 = JSON.parse(R0(FXQ));
   const bad = sheetProblems(F);
-  ck('the four sheets exist, file = declared grid, within 2048 px per side and 4 MB, q95 lossy + alpha, real time with dur = n / fps2', bad.length === 0, bad.join('; '));
+  ck('the five sheets exist, file = declared grid, within 2048 px per side and 4 MB, q95 lossy + alpha, real time with dur = n / fps2', bad.length === 0, bad.join('; '));
   { const sz = KEYS.map(k => { const d = F[k]; return k + ' ' + d.fw * d.cols + 'x' + d.fh * d.rows + ' ' + (fs.statSync(fileOf(d.u)).size / 1e6).toFixed(2) + ' MB file'; }); console.log('  info sheets: ' + sz.join('; ')); }
   ck('new files at ?v=' + VER + ' that BASE never referenced; the old sheets stay on disk (rollback needs nothing)',
     KEYS.every(k => F[k].u === '/assets/anim/fx/' + FILES[k] + '.webp?v=' + VER && !baseSrc.includes(FILES[k]) && fs.existsSync(fileOf(F0[k].u))));
@@ -109,23 +113,23 @@ try {
   // 2. data = BASE apart from the display tags
   const strip = o => JSON.parse(JSON.stringify(o, (k, v) => k === 'ownFx' ? undefined : v));
   const kit = (r, h) => JSON.stringify(strip(JSON.parse(r(`JSON.stringify([KITS.${h},HERO_TYPES.${h},ABILITY_CAST.${h}||null,ULT_DEF[HERO_TYPES.${h}.ability]||null,BATTLE_ANIM.${h}])`))));
-  ck('Grosk and Fritz: kits, hero stats, cast times, ult numbers and battle clips identical to BASE apart from the ownFx display tags (gfist / fstrike / fchain)',
-    kit(run, 'grosk') === kit(R0, 'grosk') && kit(run, 'fritz') === kit(R0, 'fritz') && run("[KITS.grosk.blue.ownFx,KITS.fritz.green.ownFx,KITS.fritz.blue.ownFx].join('/')") === 'gfist/fstrike/fchain' && R0('KITS.grosk.blue.ownFx||KITS.fritz.green.ownFx||KITS.fritz.blue.ownFx||null') === null);
+  ck('Grosk, Fritz and Hobb: kits, hero stats, cast times, ult numbers and battle clips identical to BASE apart from the ownFx display tags (gfist / fstrike / fchain / hglaze)',
+    kit(run, 'grosk') === kit(R0, 'grosk') && kit(run, 'fritz') === kit(R0, 'fritz') && kit(run, 'hobb') === kit(R0, 'hobb') && run("[KITS.grosk.blue.ownFx,KITS.fritz.green.ownFx,KITS.fritz.blue.ownFx,KITS.hobb.green.ownFx].join('/')") === 'gfist/fstrike/fchain/hglaze' && R0('KITS.grosk.blue.ownFx||KITS.fritz.green.ownFx||KITS.fritz.blue.ownFx||KITS.hobb.green.ownFx||null') === null);
   ck('CONTROL: the kit comparison sees a changed number', (() => { run('globalThis.__m=KITS.grosk.blue.mul; KITS.grosk.blue.mul=0.61; 1'); const d = kit(run, 'grosk') !== kit(R0, 'grosk'); run('KITS.grosk.blue.mul=globalThis.__m; 1'); return d; })());
   ck('the ult art: BASE\'s plate (gfx fritz_ult) becomes the storm painter (ownFx fstorm)', run('JSON.stringify(HERO_ULT_ART.fritz)') === '{"ownFx":"fstorm","previewAt":"self"}' && R0('JSON.stringify(HERO_ULT_ART.fritz)') === '{"gfx":"fritz_ult","gdur":3,"previewAt":"self"}');
-  const others = r => r("JSON.stringify(Object.keys(FX2_DEF).filter(k=>!/^(grosk_blue|fritz_green|fritz_blue|fritz_ult)$/.test(k)).map(k=>[k,FX2_DEF[k]]))");
+  const others = r => r("JSON.stringify(Object.keys(FX2_DEF).filter(k=>!/^(grosk_blue|fritz_green|fritz_blue|fritz_ult|hobb_green)$/.test(k)).map(k=>[k,FX2_DEF[k]]))");
   ck('every other FX2_DEF entry is byte-for-byte BASE', H(others(run)) === H(others(R0)));
-  ck('their sheets load with their figures (FX1123_WARM)', run('JSON.stringify([FX1123_WARM.grosk,FX1123_WARM.fritz])') === '[["grosk_blue"],["fritz_green","fritz_blue","fritz_ult"]]' && R0('typeof FX1123_WARM.grosk+typeof FX1123_WARM.fritz') === 'undefinedundefined');
+  ck('their sheets load with their figures (FX1123_WARM)', run('JSON.stringify([FX1123_WARM.grosk,FX1123_WARM.fritz,FX1123_WARM.hobb])') === '[["grosk_blue"],["fritz_green","fritz_blue","fritz_ult"],["hobb_green"]]' && R0('typeof FX1123_WARM.grosk+typeof FX1123_WARM.fritz+typeof FX1123_WARM.hobb') === 'undefinedundefinedundefined');
   // 3. tick-identical
   const STEP = F.STEP, RT = F.FX_RT, casts = {};
-  for (const [hero, kind, opt] of [['grosk', 'blue', {}], ['grosk', 'blue', { left: true }], ['fritz', 'green', {}], ['fritz', 'blue', {}], ['fritz', 'ult', {}], ['fritz', 'ult', { cancel: true }]]) {
-    const tag = hero + '-' + kind + (opt.left ? 'L' : opt.cancel ? 'C' : ''), x = JSON.parse(run(CAST(hero, kind, opt))), y = JSON.parse(R0(CAST(hero, kind, opt))); casts[tag] = x; casts[tag + '0'] = y;
+  for (const [hero, kind, opt] of [['grosk', 'blue', {}], ['grosk', 'blue', { left: true }], ['fritz', 'green', {}], ['fritz', 'blue', {}], ['fritz', 'ult', {}], ['fritz', 'ult', { cancel: true }], ['hobb', 'green', {}], ['hobb', 'green', { stun: true }], ['hobb', 'green', { cancel: true }]]) {
+    const tag = hero + '-' + kind + (opt.left ? 'L' : opt.cancel ? 'C' : opt.stun ? 'S' : ''), x = JSON.parse(run(CAST(hero, kind, opt))), y = JSON.parse(R0(CAST(hero, kind, opt))); casts[tag] = x; casts[tag + '0'] = y;
     const pick = o => JSON.stringify([o.hold, o.anim, o.fx, o.hits, o.trace]);
     ck(`${tag}: the effects and every hit land on the same ticks (${x.fx.join(' ')}; ${x.hits.slice(0, 6).join(' ')}) and every unit (hp, position, stun, silence, taunt) = BASE for 10 s`, pick(x) === pick(y), JSON.stringify({ now: pick(x), base: pick(y) }));
   }
-  { const T = [[11, ['grosk', 'fritz', 'vael'], ['tick', 'sylthaine', 'korvux']], [23, ['fritz', 'veyr', 'grosk', 'lumi', 'vex'], ['mirelle', 'aureth', 'carn', 'oakmir', 'grosk']], [5, ['fritz', 'deepcleft'], ['umbris', 'nox', 'fritz']]];
+  { const T = [[11, ['grosk', 'fritz', 'vael'], ['tick', 'sylthaine', 'korvux']], [23, ['fritz', 'veyr', 'grosk', 'lumi', 'vex'], ['mirelle', 'aureth', 'carn', 'oakmir', 'grosk']], [5, ['fritz', 'deepcleft', 'hobb'], ['umbris', 'nox', 'fritz', 'hobb']]];
     const a = T.map(([s, x, y]) => fight(run, s, x, y)), b = T.map(([s, x, y]) => fight(R0, s, x, y));
-    ck('whole fights (3 seeds, Grosk and Fritz on both sides, their auto-cast spells and ults) are tick-identical to BASE', JSON.stringify(a) === JSON.stringify(b), JSON.stringify({ a, b }));
+    ck('whole fights (3 seeds, Grosk, Fritz and Hobb on both sides, their auto-cast spells and ults) are tick-identical to BASE', JSON.stringify(a) === JSON.stringify(b), JSON.stringify({ a, b }));
     run('globalThis.__s=KITS.fritz.blue.mul; KITS.fritz.blue.mul*=0.5; 1'); const c = fight(run, T[1][0], T[1][1], T[1][2]); run('KITS.fritz.blue.mul=globalThis.__s; 1');
     ck('CONTROL: the seed-23 fight with Chain Lightning\'s damage halved is NOT identical (the instrument sees game logic)', c !== b[1]); }
   // 4. the moments
@@ -162,6 +166,18 @@ try {
       Ca.length === 1 && C.fx.length === 0 && Ca[0].cut && Ca[0].lastFr < d.bolts && Ca[0].gone != null && Ca[0].gone < 0.6, JSON.stringify(C));
     const y = casts['fritz-ult0'];
     ck('CONTROL: BASE drew the old plates (' + JSON.stringify(y.plates.concat(y.fplates)) + ') and no storm', (y.plates.includes('fritz_ult') || y.fplates.includes('fritz_showerfx')) && y.arts.length === 0); }
+  { const x = casts['hobb-green'], d = F.hobb_green, A = x.arts.filter(r => r.kind === 'hglaze'), hit = x.hits.length ? +x.hits[0].split('@')[1] : null;
+    ck(`Glazebreaker: one jar on the enemy it hits (${A.length ? A[0].on : '-'} = ${x.hits.length ? x.hits[0].split('@')[0] : '-'}), made at the press (${x.press}; made ${A.length ? A[0].made : '-'}), its shatter cell ${d.smash} drawn on the damage tick (shatter ${A.length ? A[0].smash : '-'}, hit ${hit}), no old plate`,
+      A.length === 1 && hit != null && A[0].on === x.hits[0].split('@')[0] && Math.abs(A[0].made - x.press - STEP) <= STEP + 1e-6 && Math.abs(A[0].smash - hit) <= STEP + 1e-6 && x.plates.length === 0, JSON.stringify(x));
+    ck(`... cells in order to its last (${d.n - 1}), once`, A.length === 1 && A[0].frs[0] === 0 && A[0].frs.every((v, i, a) => i === 0 || v >= a[i - 1]) && A[0].lastFr === d.n - 1, JSON.stringify(A));
+    const S = casts['hobb-greenS'], Sa = S.arts.filter(r => r.kind === 'hglaze'), sh = S.hits.length ? +S.hits[0].split('@')[1] : null;
+    ck(`... a cast held by a stun (hit ${sh}): the jar hangs before the shatter, never runs backwards, and still shatters on the (later) damage tick (${Sa.length ? Sa[0].smash : '-'})`,
+      Sa.length === 1 && sh != null && sh > hit && Math.abs(Sa[0].smash - sh) <= STEP + 1e-6 && Sa[0].frs.every((v, i, a) => i === 0 || v >= a[i - 1]), JSON.stringify(S));
+    const C = casts['hobb-greenC'], Ca = C.arts.filter(r => r.kind === 'hglaze');
+    ck(`... a cancelled cast (no hit: ${C.hits.length}) fades the jar before it shatters (last cell ${Ca.length ? Ca[0].lastFr : '-'} < ${d.smash})`, Ca.length === 1 && C.hits.length === 0 && Ca[0].cut && Ca[0].lastFr < d.smash && Ca[0].gone != null, JSON.stringify(C));
+    const y = casts['hobb-green0'];
+    ck('... the old v20 plate is never fetched (sheets used: ' + JSON.stringify(x.texs) + ')', !x.texs.some(u => /hobb_green\.webp/.test(u)) && x.texs.some(u => /hobb_glazebreaker_18oct/.test(u)));
+    ck('CONTROL: BASE drew its old plate (sheets used: ' + JSON.stringify(y.texs) + ') and no jar', y.texs.some(u => /hobb_green\.webp\?v=20/.test(u)) && y.arts.length === 0); }
   // 5. the painters (a fake sprite): the burst's origin on his fist, the chain's base on the unit it leaves, stretched to the unit it hits, mirrored to its left
   { const P = JSON.parse(run(`(()=>{ const out={}; const fake=()=>({center:{x:0,y:0,set(x,y){this.x=x;this.y=y;}},scale:{x:0,y:0,set(x,y){this.x=x;this.y=y;}},position:{x:0,y:0,z:0,set(x,y,z){this.x=x;this.y=y;this.z=z;},copy(p){this.x=p.x;this.y=p.y;this.z=p.z;}},rotation:{},_uv:[0.2,0.1,0.2,0.1],material:{}});
       const V3=(x,y,z)=>({x,y,z,clone(){return V3(this.x,this.y,this.z);},applyMatrix4(){ return V3(this.x,this.y,-10-this.z); }});
@@ -180,11 +196,11 @@ try {
     ck(`the burst's origin = his fist on the punch cells (hand ${gb.hand} in his blue sheet: ${((gb.hand[0] - A.cx) / A.figH).toFixed(3)} of his height ahead, ${((A.feet - gb.hand[1]) / A.figH).toFixed(3)} up), the cell ${(gb.heroPx / A.figH).toFixed(2)} of his height wide`,
       gb.hand[0] > A.cx && gb.hand[1] < A.feet && gb.heroPx > 0); }
   // 6. previews
-  { const P = JSON.parse(run(`JSON.stringify(['grosk','fritz'].map(h=>[2,1,0].map(sl=>{ const p=skillPreviewPlan(h,sl); return p?{rel:+p.rel.toFixed(4),fx:p.fx.map(e=>({k:e.k,kind:e.kind,at:e.at||null,t0:+e.t0.toFixed(4)}))}:null; })))`));
-    const gb = P[0][0], fg = P[1][1], fb = P[1][0], fu = P[1][2];
+  { const P = JSON.parse(run(`JSON.stringify(['grosk','fritz','hobb'].map(h=>[2,1,0].map(sl=>{ const p=skillPreviewPlan(h,sl); return p?{rel:+p.rel.toFixed(4),fx:p.fx.map(e=>({k:e.k,kind:e.kind,at:e.at||null,t0:+e.t0.toFixed(4)}))}:null; })))`));
+    const gb = P[0][0], fg = P[1][1], fb = P[1][0], fu = P[1][2], hg = P[2][1];
     ck('Skills tab previews: Grosk three bursts on his fist at the punch times (fx16hand), Fritz\'s strike on the target (fx16puff), the storm over him from the press (fx16puff), no chain in a one-enemy preview: ' + JSON.stringify(P),
       gb && gb.fx.filter(e => e.k === 'grosk_blue' && e.kind === 'fx16hand').length === 3 && fg && fg.fx.length === 1 && fg.fx[0].k === 'fritz_green' && fg.fx[0].at === 'target' &&
-      fu && fu.fx.length === 1 && fu.fx[0].k === 'fritz_ult' && fu.fx[0].at === 'self' && fb && fb.fx.every(e => e.k !== 'fritz_blue'), JSON.stringify(P)); }
+      fu && fu.fx.length === 1 && fu.fx[0].k === 'fritz_ult' && fu.fx[0].at === 'self' && fb && fb.fx.every(e => e.k !== 'fritz_blue') && hg && hg.fx.length === 1 && hg.fx[0].k === 'hobb_green' && hg.fx[0].kind === 'fx16over' && hg.fx[0].at === 'target', JSON.stringify(P)); }
   { const s = src.slice(src.indexOf('function _fx22Rt(o)'), src.indexOf('function _fx22Kill(o){'));
     ck('the painters only read the fight: no RNG, no damage, no unit state written', s.length > 1000 && !/brnd\(|rng\(|Math\.random|dealDamage|healFrom|ccApply|\.hp\s*=|\b(u|T|e|a|b)\.(x|y|target|forcedTarget)\s*=[^=]/.test(s));
     ck('no emoji added', !/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u.test(s)); }
