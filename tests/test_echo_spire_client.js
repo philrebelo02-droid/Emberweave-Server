@@ -9,6 +9,7 @@ const box={ACC:account,G:{team:['grosk'],tower:{floor:0}},PENDING_MEM:{},localSt
   response=null;await box.towerResendPending();assert(box.towerPendingRead('a'),'Lost response must retain result');assert.equal(calls[0].body.requestId,'stable-result');
   box.towerPendingSettle('a',{ok:true},'wrong-request');assert(box.towerPendingRead('a'),'Older response cannot clear newer result');
   response={ok:true};await box.towerResendPending();assert.equal(box.towerPendingRead('a'),null);
+  assert.match(box.towerViewState(null).error,/Could not reach/,'A failed retry keeps the retry control available');
   const mock={floor:6,best:12,start:0,season:4,seasonEnds:Date.now()+1000,trib:'old',today:'today',rested:[3],records:2,next:{floor:7,type:'echo',req:4200,foes:[{key:'grosk',isHero:true}],echo:{recordedFloor:7,season:3},pay:{gold:0,gems:0,echoBonus:400}}};
   const view=box.towerViewState(mock);assert.equal(view.encounter.recordedSeason,3);assert.equal(view.encounter.heroes[0].name,'Grosk');assert.equal(view.encounter.kind,'echo');assert.equal(view.bestFloor,12);assert.equal(view.encounter.rewardText,'Gold 0 · Echo bonus 400 gold');
   assert.equal(box.towerSeasonEnd('2026-10-26'),Date.parse('2026-10-26T13:00:00Z'));assert.equal(box.towerSeasonEnd('2026-11-09'),Date.parse('2026-11-09T14:00:00Z'));
