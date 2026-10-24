@@ -1,5 +1,11 @@
 {
   "patches": [
+    {"ver": "0.96.9", "date": "24 October 2026", "title": "The Echo Spire", "items": [
+      "The Tower of Trials is now the Echo Spire. Every floor is a real fight: pick your five and battle the floor's Warden instead of a power check.",
+      "Weekly seasons: each season you climb again from a checkpoint 20 floors below your best (your best floor is kept forever). Floors you have climbed before pay nothing again; new floors pay as before.",
+      "Echo Wardens: the five heroes who cleared a floor are remembered, and next season they come back on that floor as ghostly Echo Wardens, matched to the floor's strength. Beat your own past team to lay the echo to rest for a bonus of 10% of that floor's gold.",
+      "The daily Spire Tribute now follows the floor you have reached this season."
+    ]},
     {"ver": "0.96.8", "date": "23 October 2026", "title": "Grosk, Fritz and Hobb spell effects", "items": [
       "New spell effects for Grosk, Fritz and Hobb. Grosk's Hammer Fists: each of his three punches now lands with a grey shockwave burst from his fist, in place of the old stone-fist badge. Fritz: Storm Surge brings a lightning strike down on each enemy it hits, Chain Lightning arcs a crackling bolt from target to target, and Thunder Shower gathers a storm cloud over him that rains lightning around him for the whole channel. Hobb's Glazebreaker: his paddle now shatters a glazed jar on the enemy into a spray of blue-and-white shards."
     ]},
