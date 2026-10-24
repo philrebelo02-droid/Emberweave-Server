@@ -56,7 +56,7 @@ ok('it picked auras/passives', Object.keys(r1.hero.auras).length + Object.keys(r
 // 5. every one of the 60 auras deals damage, at level 1 and level 10 (a hero of its class in a ring of monsters)
 let silent = [];
 // v3: Rage Ember now burns; Grudge Mark only hunts what hit you (its own test below)
-const V3_HIT = ['rage-ember'], V3_OWN = ['grudge-mark', 'smoke-veil', 'death-mark', 'eagle-eye'];   // these have their own tests below
+const V3_HIT = ['rage-ember'], V3_OWN = ['grudge-mark', 'smoke-veil', 'death-mark', 'eagle-eye', 'shadow-clone'];   // these have their own tests below
 const HITTERS = AURAS.filter(a => !V3_OWN.includes(a.key) && (V3_HIT.includes(a.key) || !(a.fam === 'trigger' && ['guard', 'heal', 'speed', 'vuln'].includes(C.fxKind(a.fx)))));
 HITTERS.forEach(a => {
   [1, 10].forEach(lv => {
@@ -341,7 +341,10 @@ ok('the rhythm breathes: a lull straight after a spike', C.WAVES[11].min === 300
     if (key) S.hero.auras[key] = lv; (mons || []).forEach(([x, y, o]) => S.monsters.push(Object.assign({ id: S.nextId++, type: 'brute', x, y, hp: 1e6, maxHp: 1e6, dmg: 1, spd: 0, r: 0.6 }, o || {}))); return S; }
   const run = (S, n, inp) => { for (let i = 0; i < n; i++) C.step(S, typeof inp === 'function' ? inp(i) : (inp || {})); return S; };
   { const S = run(field('Assassin', 'shadow-knives', 1, [[-4, 0], [4, 0]]), 30 * 1, { mx: 1, my: 0 }); ok('shadow-knives: thrown BEHIND you, not ahead', S.monsters[0].hp < 1e6 && S.monsters[1].hp === 1e6); }
-  { const S = run(field('Assassin', 'poison-cloud', 1), 30 * 2); const c = S._state['poison-cloud'].o[0]; ok('poison-cloud: the cloud drifts with the wind', c && c.x > 0.8, c && c.x); }
+  { const pack = []; for (let i = 0; i < 8; i++) pack.push([6 + (i % 3) * 0.6, -1 + Math.floor(i / 3) * 0.6]); const S = run(field('Assassin', 'poison-cloud', 1, pack), 30 * 1.5), c = S._state['poison-cloud'].o[0];
+    ok('poison-cloud v2: a flask is lobbed into the pack and bursts into a cloud there that poisons it', c && c.x > 4 && S.monsters.some(m => m.hp < 1e6 && m.plague > 0), c && c.x.toFixed(1)); }
+  { const S = field('Assassin', 'poison-cloud', 1, [[3, 0, { hp: 1, maxHp: 1, plague: 1 }], [3.5, 0]]); S.hero.auras['shadow-knives'] = 1; S.hero.dirx = -1; run(S, 30 * 1);
+    ok('poison-cloud v2: a monster that dies poisoned bursts into a fresh cloud (the plague spreads)', S._state['poison-cloud'].o.some(c => Math.abs(c.x - 3) < 1.5)); }
   { const S = field('Assassin', 'phantom-blades', 1, [[3, 0]]); run(S, 30 * 1.4, { mx: 1, my: 0 }); const hp1 = S.monsters[0].hp; ok('phantom-blades: blades go out AND come back (two cuts)', hp1 < 1e6 && S.dealt >= 2 * (1e6 - hp1) * 0.4); }
   { const S = field('Assassin', 'smoke-veil', 1, [[3, 0, { spd: 2.6 }]]); run(S, 2); const dx0 = S.hero.decoyX; run(S, 30 * 1, { mx: -1, my: 0 });
     ok('smoke-veil: you vanish and the monster walks to where you were', S.hero.hidden > 0 && Math.abs(S.monsters[0].x - dx0) < 1.5, S.monsters[0].x.toFixed(2)); }
@@ -351,7 +354,25 @@ ok('the rhythm breathes: a lull straight after a spike', C.WAVES[11].min === 300
     const m = S.monsters[0]; m.hp = 0.2 * m.maxHp + 200; run(S, 30 * 1); ok('death-mark: a marked monster under 20% is executed', S.kills === 1 || m.hp <= 0); }
   { const S = run(field('Assassin', 'shuriken-storm', 1, [[5, 0]]), 30 * 2, { mx: 1, my: 0 }); ok('shuriken-storm: shurikens stick in the ground and spin as saws', S._state['shuriken-storm'].o.some(o => !(o.fly > 0)) || S.monsters[0].hp < 1e6); }
   { const S = run(field('Assassin', 'venom-trail', 1, [[6, 0]]), 30 * 2.5); ok('venom-trail: the snake slithers to the monster and bites', S.monsters[0].hp < 1e6); }
-  { const S = run(field('Assassin', 'shadow-clone', 1, [[-2, 0]]), 30 * 1); ok('shadow-clone: the clone on the other side of you cuts', S.monsters[0].hp < 1e6); }
+  { // Shadow Clone v2: a clone is left where you stood; your nova goes off again at the clone at 20% (control: nothing near the clone
+    // before the cast, and the far monster near nobody is untouched)
+    const S = C.create(Object.assign({}, KH, { cls: 'Assassin', crit: 0 }), { seed: 11, auras: AURAS }); S.noSpawn = true; S._baseT = 1e9; S.hero.maxHp = S.hero.hp = 1e9; S.hero.auras['shadow-clone'] = 1;
+    run(S, 30 * 0.5); const cl = S._state['shadow-clone'].c[0]; run(S, 30 * 2, { mx: 1, my: 0 }); run(S, 2);
+    [[cl.x + 1, cl.y], [S.hero.x + 1, S.hero.y], [cl.x - 20, cl.y + 12]].forEach(([x, y]) => S.monsters.push({ id: S.nextId++, type: 'brute', x, y, hp: 1e6, maxHp: 1e6, dmg: 1, spd: 0, r: 0.6 }));
+    run(S, 1); const before = S.monsters[0].hp; run(S, 1, { skill: 2 }); const atC = 1e6 - S.monsters[0].hp, atH = 1e6 - S.monsters[1].hp;
+    ok('shadow-clone v2: the clone stays where it was left and repeats your skill there at 20% damage', Math.hypot(cl.x, cl.y) < 0.5 && S.hero.x > 6 && before === 1e6 && atH > 0 && Math.abs(atC / atH - 0.2) < 0.02 && S.monsters[2].hp === 1e6, (atC / atH).toFixed(3)); }
+  { // a leap: the clone leaps to the enemy nearest IT and strikes there (control: a monster far from both is untouched)
+    const S = C.create(Object.assign({}, KH, { cls: 'Assassin', crit: 0 }), { seed: 11, auras: AURAS }); S.noSpawn = true; S._baseT = 1e9; S.hero.maxHp = S.hero.hp = 1e9; S.hero.auras['shadow-clone'] = 1;
+    run(S, 30 * 0.5); run(S, 30 * 2, { mx: 0, my: 1 });
+    [[-6, 0], [30, 30]].forEach(([x, y]) => S.monsters.push({ id: S.nextId++, type: 'brute', x, y, hp: 1e6, maxHp: 1e6, dmg: 1, spd: 0, r: 0.6 })); run(S, 1); run(S, 1, { skill: 4 });
+    const c = S._state['shadow-clone'].c[0];
+    ok('shadow-clone: a leap skill sends the clone leaping onto the enemy nearest it', Math.hypot(c.x + 6, c.y) < 0.1 && S.monsters[0].hp < 1e6 && S.monsters[1].hp === 1e6, c.x.toFixed(1)); }
+  { // levels: L10 keeps more clones echoing your basic attack than L1 does (damage over a no-clone baseline)
+    const echoDmg = lv => { const S = C.create(Object.assign({}, HERO, { cls: 'Assassin', crit: 0 }), { seed: 5, auras: AURAS }); S.noSpawn = true; S.hero.maxHp = S.hero.hp = 1e9; if (lv) S.hero.auras['shadow-clone'] = lv;
+      for (let k = 0; k < 40; k++) { const ang = k / 40 * Math.PI * 2, d = 1.2 + (k % 4) * 1.1; S.monsters.push({ id: S.nextId++, type: 'brute', x: Math.cos(ang) * d, y: Math.sin(ang) * d, hp: 1e6, maxHp: 1e6, dmg: 1, spd: 0, r: 0.6 }); }
+      run(S, 30 * 12, i => ({ mx: (i % 60 < 30) ? 0.6 : -0.6, my: 0 })); return S.dealt; };
+    const b = echoDmg(0), d1 = echoDmg(1) - b, d10 = echoDmg(10) - b;
+    ok('shadow-clone: clones echo your basic attack, and L10 echoes more than L1', d1 > 0 && d10 > d1, Math.round(d1) + ' -> ' + Math.round(d10)); }
   { const S = field('Assassin', 'swift-strikes', 1, [[2, 3]]); run(S, 30 * 0.5, { mx: 1, my: 0 }); const x0 = S.hero.x; run(S, 3, { mx: 0, my: 1 });
     const N = field('Assassin', 'swift-strikes', 1); run(N, 30 * 1, { mx: 1, my: 0 });
     ok('swift-strikes: turning dashes you forward (control: walking straight never dashes)', S.hero.y > 2 && !N.fx.some(f => f.kind === 'dash'), S.hero.y.toFixed(2)); }
@@ -367,7 +388,17 @@ ok('the rhythm breathes: a lull straight after a spike', C.WAVES[11].min === 300
   { const S = run(field('Marksman', 'ricochet-shots', 1), 30 * 4, { mx: 1, my: 0 }); const o = S._state['ricochet-shots'].o; ok('ricochet-shots: shots bounce off the screen edge and come back', o.some(q => q.vx < 0) || S._state['ricochet-shots'].o.length === 0); }
   { const S = run(field('Marksman', 'rain-of-arrows', 1, [[3.5, 0], [0.5, 0]]), 30 * 6); ok('rain-of-arrows: the rain falls in a ring round you, not on you', S.monsters[0].hp < 1e6 && S.monsters[1].hp === 1e6); }
   { const S = run(field('Marksman', 'wind-shot', 1, [[3, 0]]), 30 * 0.8, { mx: 1, my: 0 }); ok('wind-shot: the gust blows the monster back', S.monsters[0].x > 4, S.monsters[0].x.toFixed(2)); }
-  { const S = run(field('Marksman', 'flare-trail', 1), 30 * 1.2); ok('flare-trail: flares land round you', S._state['flare-trail'].o.some(o => o.fly <= 0)); }
+  { const S = run(field('Marksman', 'flare-trail', 1, [[5, 0], [0, 5]]), 30 * 1.5), o = S._state['flare-trail'].o;
+    ok('flare-trail v2: a skidding flare leaves a line of burning flares ahead that burns what is on it (control: off the line, untouched)', o.length >= 5 && o.every(f => Math.abs(f.y) < 0.2 && f.x > 0) && S.monsters[0].hp < 1e6 && S.monsters[1].hp === 1e6, o.length); }
+}
+
+{ // Sky Volley v2: the rain lands across the cone AHEAD, not behind (control)
+  const S = C.create(Object.assign({}, HERO, { cls: 'Marksman' }), { seed: 13, auras: AURAS }); S.noSpawn = true; S._baseT = 1e9; S.hero.maxHp = S.hero.hp = 1e9; S.hero.auras['arrow-volley'] = 10;
+  const ahead = [], behind = []; for (let i = 0; i < 12; i++) { ahead.push([6 + (i % 4) * 2, (Math.floor(i / 4) - 1) * 2]); behind.push([-6 - (i % 4) * 2, (Math.floor(i / 4) - 1) * 2]); }
+  ahead.concat(behind).forEach(([x, y]) => S.monsters.push({ id: S.nextId++, type: 'brute', x, y, hp: 1e6, maxHp: 1e6, dmg: 1, spd: 0, r: 0.6 }));
+  for (let i = 0; i < 30 * 2.5; i++) C.step(S, {});
+  const hitA = S.monsters.slice(0, 12).filter(m => m.hp < 1e6).length, hitB = S.monsters.slice(12).filter(m => m.hp < 1e6).length;
+  ok('arrow-volley L10 sky volley: a rain of arrows lands across the cone ahead (control: none behind)', hitA >= 4 && hitB === 0, hitA + ' / ' + hitB);
 }
 
 console.log(fail ? `test_survivors_core: ${pass} passed, ${fail} FAILED` : `test_survivors_core: ${pass} checks passed`);

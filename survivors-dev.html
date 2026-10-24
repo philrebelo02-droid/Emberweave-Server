@@ -64,13 +64,21 @@
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="/assets/js/three-r128-GLTFLoader.js"></script>
-<script src="/server/survivors-core.js?v=dev21"></script>
+<script src="/server/survivors-core.js?v=dev29"></script>
 <script>
 (async function () {
   const C = window.SurvivorsCore, AURAS = await (await fetch('/server/survivors-auras.json?v=dev1')).json();
   const byKey = {}; AURAS.forEach(a => byKey[a.key] = a);
   const st = document.getElementById('stage'); for (let i = 1; i <= C.STAGES; i++) st.add(new Option('Stage ' + i, i));
-  const cv = document.getElementById('cv'), g = cv.getContext('2d');
+  const cv = document.getElementById('cv'), G0 = cv.getContext('2d');
+  let g = G0;
+  /* SPELL FX = ART ONLY (Phil 24 Oct: "there should be no spell fx made by code, only effects adjusted by code"). While the spells
+     draw, the canvas only takes IMAGES - ChatGPT's elements, moved / copied / scaled / turned / faded by code. Every code-drawn fill,
+     stroke, filled shape or text is dropped. Monsters, the hero, enemy bolts and the HUD draw on the real canvas as before.
+     CODE_FX = true brings the old code shapes back (debug only). */
+  const CODE_FX = false, NOOP = () => {}, ART_BLOCK = new Set(['fill', 'stroke', 'fillRect', 'strokeRect', 'fillText', 'strokeText']);
+  const G_ART = new Proxy(G0, { get(t, k) { if (!CODE_FX && ART_BLOCK.has(k)) return NOOP; const v = t[k]; return typeof v === 'function' ? v.bind(t) : v; },
+                                 set(t, k, v) { t[k] = v; return true; } });
   let S = null, input = { mx: 0, my: 0 }, ultReq = false, skillReq = null, pickReq = null, acc = 0, last = 0;
   /* hero kits: the hero's OWN skills as buttons. Linnet = her real kit (Mending Stitch heals, Reinforced Seam = can't drop below
      1 HP; Golden Thread is her passive). Numbers are first-pass dev values. anim = the Meshy cast clip on her 3D model. */
@@ -138,7 +146,7 @@
     S = C.create({ key: 'dev', cls: labCls || cls, maxHp: 3000, atk: 260, armor: 300, crit: 0.1, critDmg: 0.6, skills: KIT },
                  { mode: document.getElementById('mode').value, stage: +st.value, seed: (Math.random() * 4e9) >>> 0, auras: AURAS });
     if (labCls) { const set = +(LAB.get('set') || 0), lv = +(LAB.get('lv') || 1);   // spell lab: five spells of a class at one level
-      const only = LAB.get('only'); (only ? AURAS.filter(a => a.key === only) : AURAS.filter(a => a.cls === labCls).slice(set * 5, set * 5 + 5)).forEach(a => S.hero.auras[a.key] = lv); window._lab = true; S._baseT = 1e9; }
+      const only = LAB.get('only'); (only ? AURAS.filter(a => a.key === only) : AURAS.filter(a => a.cls === labCls).slice(set * 5, set * 5 + 5)).forEach(a => S.hero.auras[a.key] = lv); window._lab = true; window._labEcho = LAB.get('echo') === '1'; S._baseT = 1e9; }
     document.getElementById('start').style.display = 'none'; last = performance.now(); requestAnimationFrame(frame);
     if (document.getElementById('use3d').checked) load3d().catch(e => console.error('3D load failed', e));
   };
@@ -160,7 +168,7 @@
     while (acc >= C.TICK && !S.ended) {
       acc -= C.TICK;
       if (S.choice) { if (pickReq == null) { if (document.getElementById('pick').style.display !== 'flex') showPick(); acc = 0; break; } C.step(S, { mx: input.mx, my: input.my, pick: pickReq }); pickReq = null; continue; }
-      if (window._lab) { S.hero.hp = S.hero.maxHp; S.hero.xp = 0; S.hero.xpNext = 1e12; S.choice = null; S._baseT = 1e9; }   // lab: only the spell under test fires, no level-ups                    // lab: never dies, never levels (the set stays)
+      if (window._lab) { S.hero.hp = S.hero.maxHp; S.hero.xp = 0; S.hero.xpNext = 1e12; S.choice = null; if (!window._labEcho) S._baseT = 1e9; else { if (S.tick % 120 === 0) S.hero.ult = S.hero.ultMax; const rk = S.hero.kit.findIndex(k => k.cdLeft === 0 && k.kind !== 'heal' && k.kind !== 'ward'); if (rk >= 0 && S.tick % 45 === 0) skillReq = rk; if (S.hero.ult >= S.hero.ultMax && S.tick % 120 === 60) ultReq = true; } }   // lab: only the spell under test fires (echo=1: your attacks + skills + ult too, for Shadow Clone), no level-ups                    // lab: never dies, never levels (the set stays)
       C.step(S, { mx: input.mx, my: input.my, ult: ultReq, skill: skillReq == null ? undefined : skillReq }); ultReq = false; skillReq = null;
     }
     draw();
@@ -207,6 +215,18 @@
   function el(im, x, y, size, rot, alpha, sx) { if (!im) return; const k = size * ART_SCALE / Math.max(im.width, im.height);
     g.save(); g.globalAlpha = alpha == null ? 1 : alpha; g.translate(x, y); if (rot) g.rotate(rot); if (sx) g.scale(sx, 1);
     g.drawImage(im, -im.width * k / 2, -im.height * k / 2, im.width * k, im.height * k); g.restore(); }
+  // unwarp a snake element along its spine: for every column of the painted snake, find its centre line and shift the column so
+  // the centre sits on the strip's middle - a straight strip, head on the right as painted. Cached per image.
+  function snakeStrip(im) { if (im._strip !== undefined) return im._strip; im._strip = null;
+    try { const W = im.width, H = im.height, c = document.createElement('canvas'); c.width = W; c.height = H; const x = c.getContext('2d'); x.drawImage(im, 0, 0);
+      const d = x.getImageData(0, 0, W, H).data, cen = [], th = []; let x0 = W, x1 = -1;
+      for (let i = 0; i < W; i++) { let s1 = 0, sy = 0, lo = H, hi = -1; for (let j = 0; j < H; j++) { const a = d[(j * W + i) * 4 + 3]; if (a > 60) { s1 += a; sy += a * j; if (j < lo) lo = j; if (j > hi) hi = j; } }
+        cen.push(s1 ? sy / s1 : -1); th.push(s1 ? hi - lo : 0); if (s1) { if (i < x0) x0 = i; if (i > x1) x1 = i; } }
+      if (x1 <= x0) return null; const half = Math.ceil(Math.max(...th.slice(x0, x1 + 1)) * 0.7) + 4, sc2 = document.createElement('canvas');
+      sc2.width = x1 - x0 + 1; sc2.height = half * 2; const sx = sc2.getContext('2d');
+      for (let i = x0; i <= x1; i++) if (cen[i] >= 0) sx.drawImage(c, i, Math.round(cen[i]) - half, 1, half * 2, i - x0, 0, 1, half * 2);
+      im._strip = { c: sc2, w: sc2.width, h: sc2.height }; } catch (e) {}
+    return im._strip; }
   function pick(rec, k) { return rec && (lvOf(k) >= 10 && rec.lv10 ? rec.lv10 : rec.unit); }
   // SUPPORT spells: the art element when it has landed, a plain shape until then (same motion either way)
   // rot is for an element drawn UPRIGHT; a WIDE element (a horizontal beam) lies along the direction instead (Prism Beam, 24 Oct)
@@ -361,19 +381,28 @@
         sym('rending-gale', X(c.x), Y(c.y), c.w * 2.1 * sc, a, Math.min(1, c.life * 2), '#cfe8ff'); }); }
     if (A['bloodlust']) (st('bloodlust').o || []).forEach(o => sym('bloodlust', X(o.x), Y(o.y), 0.6 * sc, 0, 1, '#d01a2a'));
     // --- ASSASSIN
-    if (A['poison-cloud']) (st('poison-cloud').o || []).forEach(c => sym('poison-cloud', X(c.x), Y(c.y), c.r * 2.2 * sc, t * 0.2, 0.5 * Math.min(1, c.life), '#7adf6a'));
+    // POISON CLOUD v2: the flask (the cloud element, small) arcs through the air spinning; each cloud is two copies of the element turning
+    // against each other, swelling in and thinning out as it fades - L10 the fog element
+    if (A['poison-cloud']) { const p = st('poison-cloud'), rec = artFor('poison-cloud'), big = lvOf('poison-cloud') >= 10, im = rec && (big && rec.lv10 ? rec.lv10 : rec.unit);
+      (p.v || []).forEach(v => { if (rec && rec.unit) el(rec.unit, X(v.x), Y(v.y), 0.8 * sc, v.spin || 0, 1); });
+      (p.o || []).forEach((c, i) => { if (!im) return; const f = Math.min(1, c.life * 1.5, (c.max - c.life) * 3 + 0.2), sw = c.r * 2.2 * sc * (0.75 + 0.25 * f);
+        el(im, X(c.x), Y(c.y), sw, c.a, 0.55 * f); el(im, X(c.x), Y(c.y), sw * 0.8, -c.a * 1.3 + i, 0.4 * f); }); }
     if (A['phantom-blades']) (st('phantom-blades').o || []).forEach(o => { if (o.x != null) sym('phantom-blades', X(o.x), Y(o.y), 1.2 * sc, o.spin || 0, 0.9, '#b8b0ff'); });
     if (A['smoke-veil'] && h.hidden > 0) { sym('smoke-veil', X(h.decoyX), Y(h.decoyY), 1.2 * sc, 0, 0.35, '#888', 'ring'); }
     if (A['death-mark']) S.monsters.forEach(m => { if (m.marked) sym('death-mark', X(m.x), Y(m.y) - 2.2 * sc, 1.1 * sc, 0, 0.9 + Math.sin(t * 6) * 0.1, '#ff2a3a'); });
     if (A['shuriken-storm']) (st('shuriken-storm').o || []).forEach(o => sym('shuriken-storm', X(o.x), Y(o.y), (o.r || 1) * 1.6 * sc, o.spin || t * 10, 1, '#c8c8d8'));
-    // VENOM TRAIL: the body is a tapering venom-green line through its segments (code), the snake element is the head, turned along
-    // its slither; L10 the cobra element rears at the head of a thick serpent
-    if (A['venom-trail']) { const p = st('venom-trail'); if (p.body && p.body.length > 1) { const big = lvOf('venom-trail') >= 10, w = (big ? 1.2 : 0.6) * sc, B = p.body;
-        for (let i = B.length - 1; i > 0; i--) { const f = 1 - i / B.length; g.save(); g.strokeStyle = i % 4 < 2 ? '#3f9a2f' : '#58c040'; g.lineCap = 'round'; g.lineWidth = Math.max(2, w * (0.35 + 0.65 * f));
-          g.beginPath(); g.moveTo(X(B[i][0]), Y(B[i][1])); g.lineTo(X(B[i - 1][0]), Y(B[i - 1][1])); g.stroke(); g.restore(); }
-        const rec = artFor('venom-trail'), im = rec && (big && rec.lv10 ? rec.lv10 : rec.unit), ha = Math.atan2(B[0][1] - B[1][1], B[0][0] - B[1][0]);
-        if (im) el(im, X(B[0][0]), Y(B[0][1]), (big ? 3.2 : 1.6) * sc, im._wide ? ha : ha + Math.PI / 2, 1); else sym('venom-trail', X(B[0][0]), Y(B[0][1]), w * 2.6, 0, 1, '#2a7a2a'); } }
-    if (A['shadow-clone']) (st('shadow-clone').c || []).forEach(c => sym('shadow-clone', X(c[0]), Y(c[1]), 2.2 * sc, 0, 0.6, '#3a2a4a'));
+    // VENOM TRAIL v2: ChatGPT's snake is UNWARPED along its own spine into one straight strip (once, on load), then cut into slices
+    // laid on the bones head to tail, each turned to its bone and tapering - the art bends with the skeleton. L10 the cobra the same way.
+    if (A['venom-trail']) { const p = st('venom-trail'), J = p.J, rec = artFor('venom-trail'), big = lvOf('venom-trail') >= 10, im = rec && (big && rec.lv10 ? rec.lv10 : rec.unit);
+      if (J && im) { const sn = snakeStrip(im); if (sn) { const n = J.length, thick = (big ? 1.5 : 1.3) * sc;
+        for (let k = n - 2; k >= 0; k--) { const a = J[k], b = J[k + 1], mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2, ang = Math.atan2(a[1] - b[1], a[0] - b[0]),
+            L = Math.hypot(a[0] - b[0], a[1] - b[1]) * sc * 1.25, sw = sn.w / (n - 1), sx = sn.w - (k + 1) * sw, taper = k < 2 ? 1.1 : 1 - Math.max(0, (k - n * 0.55) / n) * 1.2;
+          g.save(); g.translate(X(mx), Y(my)); g.rotate(ang); g.drawImage(sn.c, sx, 0, sw, sn.h, -L / 2, -thick * taper / 2, L, thick * taper); g.restore(); } } } }
+    // SHADOW CLONE v2: each clone is the clone element standing where it was left - it breathes (a slow scale), flares bigger for a
+    // moment each time it repeats your move, and thins away over its last second; L10 the legion element
+    if (A['shadow-clone']) { const rec = artFor('shadow-clone'), big = lvOf('shadow-clone') >= 10, im = rec && (big && rec.lv10 ? rec.lv10 : rec.unit);
+      (st('shadow-clone').c || []).forEach((c, i) => { if (!im) return; c.cast = Math.max(0, (c.cast || 0) - 1 / 60); const f = Math.min(1, c.life, (c.max - c.life) * 3);
+        el(im, X(c.x), Y(c.y) - 0.6 * sc, (big ? 2.4 : 3) * sc * (1 + Math.sin(t * 2.4 + i) * 0.03 + c.cast * 0.5), 0, f); }); }
     if (A['swift-strikes']) (st('swift-strikes').ai || []).forEach(a => sym('swift-strikes', X(a.x), Y(a.y), 2 * sc, 0, a.t / 1.5 * 0.6, '#c0a0ff'));
     if (A['night-sickles']) (st('night-sickles').p || []).forEach(p2 => sym('night-sickles', X(p2[0]), Y(p2[1]), (lvOf('night-sickles') >= 10 ? 5 : 1.4) * sc, p2[2] * 3, 1, '#d8d8ff'));
     // --- MARKSMAN
@@ -391,9 +420,13 @@
     if (A['ricochet-shots']) (st('ricochet-shots').o || []).forEach(o => sym('ricochet-shots', X(o.x), Y(o.y), 0.9 * sc, Math.atan2(o.vy, o.vx) + Math.PI / 2, 1, '#ffb24a'));
     if (A['wind-shot']) (st('wind-shot').o || []).forEach(o => { const im = pick(artFor('wind-shot'), 'wind-shot'), a = Math.atan2(o.vy, o.vx);   // the gust points along its flight
       if (im) el(im, X(o.x), Y(o.y), o.w * 2.4 * sc, a, 0.9); else sym('wind-shot', X(o.x), Y(o.y), o.w * 2 * sc, a + Math.PI / 2, 0.8, '#d0f0ff', 'ring'); });
-    if (A['flare-trail']) { const p = st('flare-trail'); (p.o || []).forEach(o => { if (o.fly > 0) { const u = 1 - o.fly / o.fly0; sym('flare-trail', X(o.x + (o.tx - o.x) * u), Y(o.y + (o.ty - o.y) * u) - Math.sin(u * Math.PI) * 4 * sc, 0.6 * sc, 0, 1, '#ff5a2a'); }
-        else sym('flare-trail', X(o.tx), Y(o.ty), o.r * 2 * sc * (1 + Math.sin(t * 9) * 0.05), t, 0.7, '#ff7a2a'); });
-      if (p.col > 0) { const rec = artFor('flare-trail'); if (rec && rec.lv10) el(rec.lv10, cx, cy - 3.2 * sc, 7 * sc * (1 + Math.sin(t * 9) * 0.04), 0, Math.min(1, p.col * 1.5)); else line(cx, cy, cx, cy - 20 * sc, '#ff9a4a', 1.4 * sc, Math.min(1, p.col)); } }
+    // FLARE TRAIL v2: the skidding flare lies along its path; the planted flares stand in the ground, each flickering (scale) and
+    // burning down (fade) - all the flare element; L10 the fire column is the level-10 element
+    if (A['flare-trail']) { const p = st('flare-trail'), rec = artFor('flare-trail'), im = rec && rec.unit;
+      (p.sk || []).forEach(sk => { if (im) el(im, X(sk.x), Y(sk.y), 1.3 * sc, Math.atan2(sk.vy, sk.vx) + Math.PI / 2, 1); });
+      (p.o || []).forEach((o, i) => { if (!im) return; const fk = 1 + Math.sin(t * 11 + i * 1.7) * 0.08, f = Math.min(1, o.life / o.max * 1.4);
+        el(im, X(o.x), Y(o.y) - 0.45 * sc, 1.1 * sc * fk * (0.6 + 0.4 * f), Math.sin(t * 3 + i) * 0.06, f); });
+      if (p.col > 0 && rec && rec.lv10) el(rec.lv10, cx, cy - 3.2 * sc, 7 * sc * (1 + Math.sin(t * 9) * 0.04), 0, Math.min(1, p.col * 1.5)); }
     // one-shot moments
     S.fx.forEach(f => { const u = Math.max(0, f.t) / f.life; if (f.t < 0) return;
       if (f.kind === 'implode') sym('gravity-well', X(f.x), Y(f.y), f.r * 2 * sc * (1 - u), 0, 1 - u, '#7a4aff', 'ring');
@@ -403,6 +436,9 @@
         for (let i = 0; i < 14; i++) { const an = i / 14 * Math.PI * 2; if (fl) el(fl, X(f.x) + Math.cos(an) * R, Y(f.y) + Math.sin(an) * R, 1.3 * sc * (1 - u * 0.5), an + Math.PI / 2, 1 - u); } }
       else if (f.kind === 'grudgeblast') { g.save(); g.globalAlpha = 1 - u; g.fillStyle = 'rgba(208,32,42,0.35)'; g.strokeStyle = '#ff5a5a'; g.lineWidth = 4;
         g.beginPath(); g.arc(X(f.x), Y(f.y), f.r * sc * (0.3 + 0.7 * u), 0, 7); g.fill(); g.stroke(); g.restore(); }
+      else if (f.kind === 'volleyup') { const rec = artFor('arrow-volley'), im = rec && (rec.lv10 || rec.unit);   // the burst loosed into the sky
+        if (im) for (let i = 0; i < 10; i++) { const sx = X(f.x) + (i - 4.5) * 0.35 * sc, sy = Y(f.y) - (0.5 + u * 9 + (i % 3) * 0.6) * sc; el(im, sx, sy, 1.6 * sc, -Math.PI / 2 + (i - 4.5) * 0.04, 1 - u); } }
+      else if (f.kind === 'cloneburst') { const rec = artFor('shadow-clone'), im = rec && (rec.lv10 || rec.unit); if (im) el(im, X(f.x), Y(f.y), (2.4 + u * 4) * sc, u * 2, 1 - u); }
       else if (f.kind === 'clap') { g.save(); g.globalAlpha = 1 - u; g.fillStyle = 'rgba(255,230,160,0.35)'; g.strokeStyle = '#ffe2a0'; g.lineWidth = 4;
         g.beginPath(); g.arc(X(f.x), Y(f.y), f.r * sc * (0.4 + 0.6 * u), 0, 7); g.fill(); g.stroke(); g.restore(); }
       else if (f.kind === 'jab') { const k2 = Math.sin(u * Math.PI), fa = Math.atan2(f.ty - f.y, f.tx - f.x), fim = pick(artFor('iron-fists'), 'iron-fists');   // the fist art points RIGHT: it turns along the punch
@@ -416,7 +452,20 @@
       else if (f.kind === 'rail') { const rec = artFor('piercing-bolt'); line(X(f.x), Y(f.y), X(f.x + Math.cos(f.a) * f.len), Y(f.y + Math.sin(f.a) * f.len), '#bfe8ff', 1.4 * sc * (1 - u), 0.6 * (1 - u));
         if (rec && rec.lv10) for (let i = 0; i < 4; i++) { const d0 = (i + 0.5) * f.len / 4; el(rec.lv10, X(f.x + Math.cos(f.a) * d0), Y(f.y + Math.sin(f.a) * d0), f.len / 4 * sc / 1.3, f.a, 1 - u); } }
       else if (f.kind === 'snipe') line(X(f.x), Y(f.y), X(f.tx), Y(f.ty), '#fff', 2, 1 - u);
-      else if (f.kind === 'boom') { g.save(); g.globalAlpha = 1 - u; g.fillStyle = 'rgba(255,226,122,0.35)'; g.strokeStyle = '#ffe27a'; g.lineWidth = 3; g.beginPath(); g.arc(X(f.x), Y(f.y), f.r * sc * (0.4 + 0.6 * u), 0, 7); g.fill(); g.stroke(); g.restore(); } });
+      else if (f.kind === 'boom') { const x = X(f.x), y = Y(f.y), R = f.r * sc, lv = lvOf('spark-mines'), blue = lv >= 10, rec = artFor('spark-mines'), im = rec && (blue && rec.lv10 ? rec.lv10 : rec.unit);
+        // SPARK MINE BLAST (Phil 24 Oct: "mines explosions is basic"): a white-hot flash, jagged arcs crackling out, a shock ring,
+        // flying sparks, mine shards flung out, and a scorch left on the ground; the L10 crystal mines blast in blue lightning
+        const hot = blue ? '#9ad8ff' : '#ffe27a', core = blue ? '#e8f8ff' : '#fff8e0', arc = blue ? '#bfe8ff' : '#ffd24a', sd = f.x * 7 + f.y * 13;
+        g.save(); g.globalAlpha = Math.max(0, 0.5 - u * 0.4); g.fillStyle = 'rgba(30,20,10,0.55)'; g.beginPath(); g.ellipse(x, y, R * 0.55, R * 0.3, 0, 0, 7); g.fill(); g.restore();
+        if (u < 0.35) { const k = 1 - u / 0.35; g.save(); g.globalAlpha = k; const gr = g.createRadialGradient(x, y, 0, x, y, R * (0.4 + 0.5 * (1 - k))); gr.addColorStop(0, core); gr.addColorStop(0.5, hot); gr.addColorStop(1, 'rgba(255,200,80,0)');
+          g.fillStyle = gr; g.beginPath(); g.arc(x, y, R * (0.4 + 0.5 * (1 - k)), 0, 7); g.fill(); g.restore(); }
+        g.save(); g.globalAlpha = (1 - u) * 0.9; g.strokeStyle = hot; g.lineWidth = Math.max(2, 0.25 * sc * (1 - u)); g.beginPath(); g.arc(x, y, R * (0.2 + 0.85 * u), 0, 7); g.stroke(); g.restore();
+        for (let i = 0; i < 7; i++) { const a0 = i / 7 * Math.PI * 2 + sd, L = R * (0.4 + 0.7 * Math.min(1, u * 2.5)), pts = [[x, y]];
+          for (let k = 1; k <= 4; k++) { const d = L * k / 4, j = Math.sin(sd + i * 3.1 + k * 2.3 + u * 20) * 0.35 * sc; pts.push([x + Math.cos(a0) * d - Math.sin(a0) * j, y + Math.sin(a0) * d + Math.cos(a0) * j]); }
+          zig(pts, arc, 2.2, (1 - u) * 0.95); }
+        for (let i = 0; i < 14; i++) { const a = i * 2.4 + sd, d = R * (0.2 + u * (0.9 + (i % 3) * 0.25)); g.save(); g.globalAlpha = 1 - u; g.fillStyle = i % 2 ? core : hot;
+          g.fillRect(x + Math.cos(a) * d, y + Math.sin(a) * d - u * (1 - u) * 1.5 * sc, 3, 3); g.restore(); }
+        if (im) for (let i = 0; i < 5; i++) { const a = i / 5 * Math.PI * 2 + sd * 0.3, d = R * u * 1.1; el(im, x + Math.cos(a) * d, y + Math.sin(a) * d - Math.sin(u * Math.PI) * 0.8 * sc, 0.45 * sc * (1 - u * 0.6), u * 9 + i, 1 - u); } } });
     // frozen monsters glint blue
     if (A['frost-nova']) S.monsters.forEach(m => { if (m.frozenT > 0) { g.save(); g.globalAlpha = 0.45; g.fillStyle = '#bfeaff'; g.beginPath(); g.arc(X(m.x), Y(m.y) - m.r * sc, m.r * 1.4 * sc, 0, 7); g.fill(); g.restore(); } });
   }
@@ -470,7 +519,7 @@
         else el(im, cx, cy, rr * 2.2, t * 0.6, fade * 0.9);               // the element IS the wave: it grows out and fades
       } else if (z.kind === 'drop' && z.key !== 'chime-pulse') {      // RAIN: falls from the sky, lands with a pop (the Grand Bell is drawn on its own)
         if (z.delay > 0) { const u = Math.max(0, Math.min(1, 1 - z.delay / (z.d0 || (z.d0 = Math.max(0.6, z.delay))))), hgt = (1 - u) * 9 * sc;
-          el(im, X(z.x), Y(z.y) - hgt, z.r1 * (z.big ? 1.45 : 1.8) * sc, /arrow|flare/.test(z.key) ? 0 : (1 - u) * 2.5, Math.min(1, u * 3)); }   // arrows fall point-down, rocks tumble
+          el(im, X(z.x) + (z.sky ? (1 - u) * 2.5 * sc : 0), Y(z.y) - hgt, z.r1 * (z.sky ? 1.6 : z.big ? 1.45 : 1.8) * sc, z.sky ? Math.PI / 2 + 0.35 : /arrow|flare/.test(z.key) ? 0 : (1 - u) * 2.5, Math.min(1, u * 3)); }   // arrows fall point-down, rocks tumble
         else { const u = Math.min(1, z.t / Math.max(0.15, z.life)); el(im, X(z.x), Y(z.y), z.r1 * (z.big ? 1.45 : 2) * sc * (1 + u * 0.5), 0, 1 - u); }
       } });
     // thrown spells: the element flies, turned to its heading; round things roll
@@ -566,7 +615,7 @@
       g.fillStyle = m.v > 3 ? '#ff6a9a' : '#5fb8ff'; g.fillRect(X(m.x) - 3, Y(m.y) - 3, 6, 6); });
     // monsters: their own walk sheets, feet on the body's spot, drawn back to front; facing = the way they move
     g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
-    drawGroundSpells(X, Y, sc, performance.now() / 1000);
+    g = G_ART; drawGroundSpells(X, Y, sc, performance.now() / 1000); g = G0;
     const tnow = performance.now() / 1000, ord = S.monsters.slice().sort((a, b) => a.y - b.y);
     ord.forEach(m => { const sp = SPR[m.skin];
       if (!sp) { g.fillStyle = COL[m.type] || '#888'; g.beginPath(); g.arc(X(m.x), Y(m.y), m.r * sc, 0, 7); g.fill(); return; }
@@ -581,7 +630,7 @@
       g.strokeStyle = '#ff8a3a66'; g.lineWidth = r; g.beginPath(); g.moveTo(x, y); g.lineTo(x - b.vx * 0.06 * sc, y - b.vy * 0.06 * sc); g.stroke();
       g.fillStyle = '#ffd27a'; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); g.strokeStyle = '#ff5a1a'; g.lineWidth = 2; g.stroke(); });
     S.shots.forEach(s => { if (artFor(s.key)) return; g.fillStyle = s.key === '_base' ? '#fff' : '#ffb24a'; g.beginPath(); g.arc(X(s.x), Y(s.y), Math.max(3, s.r * sc), 0, 7); g.fill(); });
-    drawSpells(X, Y, sc, W, H, tnow);
+    g = G_ART; drawSpells(X, Y, sc, W, H, tnow); g = G0;
     if (!H3) { g.fillStyle = h.iframes > 0 ? '#fff' : '#f2c14e'; g.beginPath(); g.arc(W / 2, H / 2, 0.5 * sc, 0, 7); g.fill(); }
     else {
       const moving = Math.abs(h.mvx) + Math.abs(h.mvy) > 0.01;

@@ -206,7 +206,15 @@
   function heroDmg(S, mul) {
     var h = S.hero, d = h.atk * mul * (1 + pas(S, "might"));
     if (S.rng() < h.crit + pas(S, "keen")) d *= 1 + h.critDmg;
-    return d;
+    return S._echo ? d * S._echo : d;
+  }
+  // Shadow Clone: each living clone repeats what the hero just did from its own spot, the way the hero faces, at 20% damage.
+  // The hero is moved onto the clone for the call and put back; a clone's hits charge no ult.
+  function echo(S, fn) {
+    var st = S._state["shadow-clone"], cl = st && st.c; if (!cl || !cl.length || S._echo || !(S.hero.auras["shadow-clone"] | 0)) return;
+    var h = S.hero, hx = h.x, hy = h.y, hi = h.iframes;
+    for (var i = 0; i < cl.length; i++) { h.x = cl[i].x; h.y = cl[i].y; S._echo = 0.2; fn(cl[i]); cl[i].cast = 0.35; }
+    S._echo = 0; h.x = hx; h.y = hy; h.iframes = hi;
   }
   function areaMul(S) { return 1 + pas(S, "reach"); }
   function cdMul(S) { return Math.max(0.35, 1 - pas(S, "haste")); }
@@ -219,6 +227,7 @@
     S._grid = g;
   }
   function near(S, x, y, rad, fn) {
+    if (!S._grid) buildGrid(S);                                                               // a skill on the very first tick
     var g = S._grid, c0 = Math.floor((x - rad) / CELL), c1 = Math.floor((x + rad) / CELL), r0 = Math.floor((y - rad) / CELL), r1 = Math.floor((y + rad) / CELL), rr = rad * rad;
     for (var cx = c0; cx <= c1; cx++) for (var cy = r0; cy <= r1; cy++) {
       var b = g[cx + "," + cy]; if (!b) continue;
@@ -234,7 +243,7 @@
     if (m.frozenT > 0 && amount > 0) { amount *= 2; m.frozenT = 0; m.shatter = 0.3; }        // Frost Nova: a frozen monster shatters
     if (m.marked) amount *= 2;                                                                 // Death Mark: double damage
     if (m.grudge) amount *= 1 + 0.25 * m.grudge;                                               // Grudge Mark: +25% per mark
-    m.hp -= amount; S.dealt += amount; S.hero.ult = Math.min(S.hero.ultMax, S.hero.ult + amount * 0.002);
+    m.hp -= amount; S.dealt += amount; if (!S._echo) S.hero.ult = Math.min(S.hero.ultMax, S.hero.ult + amount * 0.002);
     var ls = S.hero.lifesteal + pas(S, "leech"); if (ls > 0) S.hero.hp = Math.min(S.hero.maxHp, S.hero.hp + amount * ls * 0.1);
     power = power || 1;
     if (kind === "dot") m.dot = Math.max(m.dot || 0, amount * 0.15 * power), m.dotT = 2.0;
@@ -248,7 +257,7 @@
     if (m.hp <= 0) kill(S, m);
   }
   function kill(S, m) {
-    S.kills++; (S._kills || (S._kills = [])).push([m.x, m.y, m.grudge || 0]);
+    S.kills++; (S._kills || (S._kills = [])).push([m.x, m.y, m.grudge || 0, m.plague > 0 ? 1 : 0]);
     if (m.type === "boss") { S.won = true; S.ended = true; }
     if (m.type === "elite") S.gems.push({ x: m.x, y: m.y, v: 0, heal: 0.25 });   // an elite drops a heal orb (25% max HP), as Vampire Survivors' floor food
     if (MONSTERS[m.type].xp) {
@@ -679,13 +688,25 @@
       for (var i = 0; i < n; i++) { var a = lv >= 10 ? i * Math.PI * 2 / n : back + (i - (n - 1) / 2) * 0.18;
         S.shots.push({ key: "shadow-knives", x: h.x, y: h.y, vx: Math.cos(a) * 16, vy: Math.sin(a) * 16, r: 0.35 * am, life: 0.8, pierce: 1, dmg: heroDmg(S, lin(lv, 0.8, 1.3)), fk: "dot", hit: {}, bounce: 0 }); }
     },
-    // 42. a cloud is released and DRIFTS slowly with the wind; L10 three great fogs creep over the field
+    // 42. (v2, Phil 24 Oct: "poison cloud entire ability is bad") POISON CLOUD: you LOB a poison flask into the thickest pack near you;
+    // it bursts into a lingering toxic cloud that poisons and slows. A monster that dies POISONED bursts into a fresh cloud - the plague
+    // spreads through the horde. Levels: bigger, longer clouds, more flasks. L10 PLAGUE FOG: the spread runs further (more clouds alive).
     "poison-cloud": function (S, st, lv, dt, h, am) {
-      st.o = st.o || []; st.t -= dt;
-      if (st.t <= 0) { st.t = (lv >= 10 ? 4 : lin(lv, 4, 2.5)) * cdMul(S); var big = lv >= 10; if (!big || st.o.length < 3) st.o.push({ x: h.x, y: h.y, r: (big ? 5 : lin(lv, 1.8, 3)) * am, life: big ? 14 : lin(lv, 4, 7), max: big ? 14 : lin(lv, 4, 7) }); }
-      st.k = (st.k || 0) - dt; var tick = st.k <= 0; if (tick) st.k = 0.5;
-      for (var i = st.o.length - 1; i >= 0; i--) { var c = st.o[i]; c.x += 0.9 * dt; c.y += 0.35 * dt; c.life -= dt; c.r += dt * 0.15; if (c.life <= 0) { st.o.splice(i, 1); continue; }
-        if (tick) near(S, c.x, c.y, c.r, function (m) { hit(S, m, heroDmg(S, lin(lv, 0.3, 0.6)), "slow", 1); }); }
+      st.o = st.o || []; st.v = st.v || []; var big = lv >= 10, cap = big ? 18 : 8;
+      var cloud = function (x, y, r, life) { if (st.o.length < cap) st.o.push({ x: x, y: y, r: r, life: life, max: life, a: S.rng() * 6.3 }); };
+      (S._killsPrev || []).forEach(function (k) { if (k[3]) cloud(k[0], k[1], (big ? 2.4 : 1.6) * am, big ? 4 : 2.5); });   // the plague spreads
+      for (var i = st.v.length - 1; i >= 0; i--) { var v = st.v[i]; v.t += dt; var u = Math.min(1, v.t / v.T); v.x = v.x0 + (v.tx - v.x0) * u; v.y = v.y0 + (v.ty - v.y0) * u - Math.sin(u * Math.PI) * 2; v.spin = (v.spin || 0) + dt * 10;
+        if (u >= 1) { cloud(v.tx, v.ty, lin(lv, 2.4, 3.6) * am * (big ? 1.3 : 1), lin(lv, 4, 6)); st.v.splice(i, 1); } }
+      st.k = (st.k || 0) - dt; var tick = st.k <= 0; if (tick) st.k = 0.45;
+      for (var c = st.o.length - 1; c >= 0; c--) { var cl = st.o[c]; cl.life -= dt; cl.a += dt * 0.4; if (cl.life <= 0) { st.o.splice(c, 1); continue; }
+        if (tick) near(S, cl.x, cl.y, cl.r, function (m) { hit(S, m, heroDmg(S, lin(lv, 0.35, 0.65)), "slow", 1); m.plague = 1.5; }); }
+      S.monsters.forEach(function (m) { if (m.plague > 0) m.plague -= dt; });
+      st.t -= dt; if (st.t > 0) return; st.t = lin(lv, 3.2, 1.8) * cdMul(S);
+      var n = big ? 3 : Math.round(lin(lv, 1, 2)), best = [];
+      for (var kk in S._grid) { var b = S._grid[kk]; if (b.length && Math.abs(b[0].x - h.x) < 11 && Math.abs(b[0].y - h.y) < 9) best.push([b.length, b[0]]); }
+      best.sort(function (p, q) { return q[0] - p[0] || p[1].id - q[1].id; });
+      for (var j = 0; j < n; j++) { var tg = best[j] ? best[j][1] : { x: h.x + h.dirx * 5, y: h.y + h.diry * 5 }, dx = tg.x - h.x, dy = tg.y - h.y;
+        st.v.push({ x0: h.x, y0: h.y, x: h.x, y: h.y, tx: tg.x, ty: tg.y, t: 0, T: Math.max(0.3, Math.sqrt(dx * dx + dy * dy) / 12) }); }
     },
     // 43. blades fly out and come BACK like boomerangs, cutting both ways; L10 a blossom of 12 all round
     "phantom-blades": function (S, st, lv, dt, h, am) {
@@ -721,29 +742,35 @@
         o.life -= dt; o.spin = (o.spin || 0) + dt * 18; if (o.life <= 0) { st.o.splice(k, 1); continue; }
         if (tick) near(S, o.x, o.y, o.r, function (m) { hit(S, m, heroDmg(S, lin(lv, 0.5, 0.9)), "dot", 1); }); }
     },
-    // 47. venom drips into a SNAKE that SLITHERS after monsters; L10 a giant serpent
+    // 47. (v2, Phil 24 Oct: "skeleton made, like a snake that moves realistically") VENOM TRAIL: a snake on a SPINE of joints with a
+    // fixed bone length. Its head steers toward prey at a limited turn rate and SLITHERS (a lateral wave); every joint follows the one
+    // ahead at bone length, so the whole body undulates. The head bites, the body poisons + slows what it crosses. L10 a giant cobra.
     "venom-trail": function (S, st, lv, dt, h, am) {
-      var len = lv >= 10 ? 24 : Math.round(lin(lv, 5, 12)), big = lv >= 10;
-      if (!st.body) { st.body = []; for (var i = 0; i < len; i++) st.body.push([h.x, h.y]); st.hx = h.x; st.hy = h.y; }
-      while (st.body.length < len) st.body.push(st.body[st.body.length - 1].slice());
-      var tg = nearest(S, st.hx, st.hy, 12) || { x: h.x + h.dirx * 3, y: h.y + h.diry * 3 }, dx = tg.x - st.hx, dy = tg.y - st.hy, d = Math.sqrt(dx * dx + dy * dy) || 1, sp = lin(lv, 5, 7.5) * dt;
-      var wig = Math.sin(S.t * 8) * 0.6; st.hx += (dx / d + -dy / d * wig) * sp; st.hy += (dy / d + dx / d * wig) * sp;
-      var ex = h.x - st.hx, ey = h.y - st.hy; if (ex * ex + ey * ey > 225) { st.hx = h.x; st.hy = h.y; }   // too far: it slips back to you
-      st.body.unshift([st.hx, st.hy]); st.body.length = len;
-      st.k = (st.k || 0) - dt; if (st.k > 0) return; st.k = 0.35; var w = (big ? 1.2 : 0.6) * am;
-      for (var j = 0; j < st.body.length; j += 3) near(S, st.body[j][0], st.body[j][1], w, function (m) { hit(S, m, heroDmg(S, (j ? 0.35 : 1.0) * lin(lv, 1, 1.6) * (big ? 1.5 : 1)), "slow", 1); });
+      var big = lv >= 10, n = big ? 22 : Math.round(lin(lv, 9, 16)), bone = (big ? 0.62 : 0.42) * am, sp = lin(lv, 4.6, 6.6) * (big ? 1.1 : 1);
+      if (!st.J || st.J.length !== n) { st.J = []; for (var i = 0; i < n; i++) st.J.push([h.x - i * bone, h.y]); st.ha = 0; st.ph = 0; }
+      var J = st.J, hd = J[0], tg = nearest(S, hd[0], hd[1], 12) || { x: h.x + h.dirx * 3, y: h.y + h.diry * 3 };
+      var want = Math.atan2(tg.y - hd[1], tg.x - hd[0]), da = ((want - st.ha) % (Math.PI * 2) + Math.PI * 3) % (Math.PI * 2) - Math.PI;
+      st.ha += clamp(da, -2.6 * dt, 2.6 * dt); st.ph += dt * 7.5;
+      var mv = st.ha + Math.sin(st.ph) * 0.55;                                        // the slither: the head swings side to side
+      hd[0] += Math.cos(mv) * sp * dt; hd[1] += Math.sin(mv) * sp * dt;
+      for (var j = 1; j < n; j++) { var a = J[j - 1], b = J[j], dx = a[0] - b[0], dy = a[1] - b[1], d = Math.sqrt(dx * dx + dy * dy) || 1;
+        if (d > bone) { b[0] = a[0] - dx / d * bone; b[1] = a[1] - dy / d * bone; } }   // each bone keeps its length: the body follows
+      var ex = h.x - hd[0], ey = h.y - hd[1]; if (ex * ex + ey * ey > 400) { st.J = null; return; }                // left far behind: back to you
+      st.k = (st.k || 0) - dt; if (st.k > 0) return; st.k = 0.35; var w = (big ? 1.1 : 0.6) * am;
+      near(S, hd[0], hd[1], w * 1.3, function (m) { hit(S, m, heroDmg(S, lin(lv, 1.0, 1.6) * (big ? 1.5 : 1)), "slow", 1.2); });
+      for (var q = 2; q < n; q += 3) near(S, J[q][0], J[q][1], w, function (m) { hit(S, m, heroDmg(S, 0.35 * lin(lv, 1, 1.6)), "slow", 1); });
     },
-    // 48. a clone MIRRORS your moves on the other side of you, cutting what it meets; L10 a legion of six round you
+    // 48. (v2, Phil 24 Oct: "left in a spot and mimic any hero abilities done but at 20% damage") SHADOW CLONE: a shadow of you is LEFT
+    // where you stand and stays there; while it lasts, every skill, ult and basic attack you use, it uses too - from its own spot, the
+    // way you face, at 20% damage (see echo()). Levels: more clones at once, lasting longer. L10 SHADOW LEGION: up to 6, and each one
+    // bursts when it fades.
     "shadow-clone": function (S, st, lv, dt, h, am) {
-      st.c = st.c || [];
-      if (lv >= 10) { st.a = (st.a || 0) + dt * 0.9; st.c = []; for (var i = 0; i < 6; i++) { var a = st.a + i * Math.PI / 3; st.c.push([h.x + Math.cos(a) * 3.2, h.y + Math.sin(a) * 3.2]); } }
-      else { if (!st.o) st.o = [[-2, 0], [0, 2]]; var n = lv >= 6 ? 2 : 1; st.c = [];
-        for (var q = 0; q < n; q++) { var o = st.o[q]; o[0] -= h.mvx * h.speed * dt * (q ? 0 : 1) + (q ? h.mvx * 0 : 0); o[1] -= h.mvy * h.speed * dt * (q ? -1 : 1) * (q ? -1 : 1);
-          if (q) { o[0] += h.mvx * h.speed * dt; o[1] -= h.mvy * h.speed * dt * 2; }
-          var ol = Math.sqrt(o[0] * o[0] + o[1] * o[1]) || 1; if (ol > 4) { o[0] *= 4 / ol; o[1] *= 4 / ol; } if (ol < 1.5) { o[0] *= 1.5 / ol; o[1] *= 1.5 / ol; }
-          st.c.push([h.x + o[0], h.y + o[1]]); } }
-      st.k = (st.k || 0) - dt; if (st.k > 0) return; st.k = lin(lv, 0.6, 0.35);
-      st.c.forEach(function (p) { near(S, p[0], p[1], 1.6 * am, function (m) { hit(S, m, heroDmg(S, lin(lv, 0.8, 1.4)), "dot", 1); }); });
+      st.c = st.c || []; var big = lv >= 10, max = big ? 6 : Math.round(lin(lv, 1, 3)), life = big ? 12 : lin(lv, 6, 9);
+      for (var i = st.c.length - 1; i >= 0; i--) { var c = st.c[i]; c.life -= dt; if (c.life > 0) continue; st.c.splice(i, 1);
+        if (big) { S.fx.push({ kind: "cloneburst", key: "shadow-clone", x: c.x, y: c.y, t: 0, life: 0.5 }); near(S, c.x, c.y, 3 * am, function (m) { hit(S, m, heroDmg(S, 2), "knock", 1); }); } }
+      st.t -= dt; if (st.t > 0) return; st.t = (big ? 2 : lin(lv, 6, 3.5)) * cdMul(S);
+      if (st.c.length >= max) st.c.shift();
+      st.c.push({ x: h.x, y: h.y, life: life, max: life });
     },
     // 49. when you CHANGE DIRECTION you DASH-SLASH through what's in the way; L10 after-images keep slashing
     "swift-strikes": function (S, st, lv, dt, h, am) {
@@ -765,10 +792,15 @@
     },
 
     // ===== MARKSMAN =====
-    // 51. a FAN of arrows forward; L10 arrows rain from the sky across your front
+    // 51. a FAN of arrows forward; L10 SKY VOLLEY (v2, Phil 24 Oct: "sky volley is bad"): you loose a burst of arrows straight UP,
+    // and a beat later ~30 big arrows slam down across a wide cone in front of you, landings staggered, each with its own shadow
     "arrow-volley": function (S, st, lv, dt, h, am) {
       st.t -= dt; if (st.t > 0) return; st.t = lin(lv, 1.6, 1.0) * cdMul(S);
-      if (lv >= 10) { var px = -h.diry, py = h.dirx; for (var j = 0; j < 20; j++) { var o = (j - 9.5) * 0.9; S.zones.push({ kind: "drop", key: "arrow-volley", x: h.x + h.dirx * 7 + px * o, y: h.y + h.diry * 7 + py * o, r1: 0.9, t: 0, life: 0.12, delay: 0.3 + (j % 5) * 0.06, dmg: heroDmg(S, 1.4), fk: "none", fp: 1, hit: {} }); } return; }
+      if (lv >= 10) { st.t = 2.0 * cdMul(S); var a0 = Math.atan2(h.diry, h.dirx);
+        S.fx.push({ kind: "volleyup", key: "arrow-volley", x: h.x, y: h.y, t: 0, life: 0.6 });
+        for (var j = 0; j < 30; j++) { var a = a0 + (S.rng() - 0.5) * 1.1, d = 4.5 + S.rng() * 9;
+          S.zones.push({ kind: "drop", key: "arrow-volley", x: h.x + Math.cos(a) * d, y: h.y + Math.sin(a) * d, r1: 1.1 * am, t: 0, life: 0.12, delay: 0.65 + S.rng() * 0.55, dmg: heroDmg(S, 1.6), fk: "none", fp: 1, hit: {}, sky: 1 }); }
+        return; }
       var n = Math.round(lin(lv, 3, 7)), a0 = Math.atan2(h.diry, h.dirx), spread = lin(lv, 0.5, 0.9);
       for (var i = 0; i < n; i++) { var a = a0 + (n > 1 ? (i / (n - 1) - 0.5) * spread : 0); S.shots.push({ key: "arrow-volley", x: h.x, y: h.y, vx: Math.cos(a) * 18, vy: Math.sin(a) * 18, r: 0.3 * am, life: 0.9, pierce: 0, dmg: heroDmg(S, lin(lv, 0.8, 1.3)), fk: "none", hit: {}, bounce: 0 }); }
     },
@@ -841,16 +873,22 @@
         near(S, o.x, o.y, o.w, function (m) { if (m.type === "boss") return; if (o.big) { m.x += (o.x - m.x) * Math.min(1, dt * 8) + o.vx * dt; m.y += (o.y - m.y) * Math.min(1, dt * 8) + o.vy * dt; } else { m.x += o.vx / vl * lin(lv, 3, 5) * dt * 4; m.y += o.vy / vl * lin(lv, 3, 5) * dt * 4; }
           if (!o.hit[m.id]) { o.hit[m.id] = 1; hit(S, m, heroDmg(S, lin(lv, 0.8, 1.4) * (o.big ? 2 : 1)), "none"); } }); }
     },
-    // 60. flares are shot UP and land round you, leaving fire that blinds; L10 a signal column calls a barrage
+    // 60. (v2, Phil 24 Oct: "60 is no good") FLARE TRAIL: a flare SKIDS along the ground the way you face, leaving a LINE of burning
+    // flares stuck in the ground behind it; anything that crosses the line burns and is blinded - wall off a lane. Levels: a longer line
+    // that lasts longer, more often. L10 SIGNAL FIRE: a column of fire on you calls a barrage down across the screen.
     "flare-trail": function (S, st, lv, dt, h, am) {
-      st.o = st.o || []; st.t -= dt;
-      if (st.t <= 0) { st.t = lin(lv, 3.5, 2.2) * cdMul(S);
-        if (lv >= 10) { st.col = 1.2; for (var j = 0; j < 12; j++) S.zones.push({ kind: "drop", key: "flare-trail", x: h.x + (S.rng() - 0.5) * VIEW.w * 0.8, y: h.y + (S.rng() - 0.5) * VIEW.h * 0.8, r1: 2.2, t: 0, life: 0.2, delay: 1 + j * 0.12, dmg: heroDmg(S, 2.5), fk: "dot", fp: 1.5, hit: {}, big: 1 }); }
-        else for (var n = Math.round(lin(lv, 2, 5)), i = 0; i < n; i++) { var a = S.rng() * Math.PI * 2, r = 3 + S.rng() * 3; st.o.push({ x: h.x, y: h.y, tx: h.x + Math.cos(a) * r, ty: h.y + Math.sin(a) * r, fly: 0.8, fly0: 0.8, life: lin(lv, 3, 5), r: lin(lv, 1.2, 1.8) * am }); } }
+      st.o = st.o || []; st.sk = st.sk || []; st.t -= dt;
+      if (st.t <= 0) { st.t = (lv >= 10 ? 3.5 : lin(lv, 3.2, 1.8)) * cdMul(S);
+        if (lv >= 10) { var fa = Math.atan2(h.diry, h.dirx); [-0.8, 0, 0.8].forEach(function (da) { st.sk.push({ x: h.x, y: h.y, vx: Math.cos(fa + da) * 14, vy: Math.sin(fa + da) * 14, d: 0, L: 16 * am, drop: 0 }); });
+          st.col = 1.2; for (var j = 0; j < 12; j++) S.zones.push({ kind: "drop", key: "flare-trail", x: h.x + (S.rng() - 0.5) * VIEW.w * 0.8, y: h.y + (S.rng() - 0.5) * VIEW.h * 0.8, r1: 2.2, t: 0, life: 0.2, delay: 1 + j * 0.12, dmg: heroDmg(S, 2.5), fk: "dot", fp: 1.5, hit: {}, big: 1 }); }
+        else st.sk.push({ x: h.x, y: h.y, vx: h.dirx * 14, vy: h.diry * 14, d: 0, L: lin(lv, 8, 14) * am, drop: 0 }); }
+      for (var q = st.sk.length - 1; q >= 0; q--) { var sk = st.sk[q], step = 14 * dt; sk.x += sk.vx * dt; sk.y += sk.vy * dt; sk.d += step; sk.drop -= step;
+        if (sk.drop <= 0) { sk.drop = 0.9; st.o.push({ x: sk.x, y: sk.y, life: lin(lv, 3, 5), max: lin(lv, 3, 5), r: 0.9 * am }); }
+        if (sk.d >= sk.L) st.sk.splice(q, 1); }
       if (st.col > 0) st.col -= dt;
       st.k = (st.k || 0) - dt; var tick = st.k <= 0; if (tick) st.k = 0.4;
-      for (var k = st.o.length - 1; k >= 0; k--) { var o = st.o[k]; if (o.fly > 0) { o.fly -= dt; continue; } o.life -= dt; if (o.life <= 0) { st.o.splice(k, 1); continue; }
-        if (tick) near(S, o.tx, o.ty, o.r, function (m) { hit(S, m, heroDmg(S, lin(lv, 0.4, 0.7)), "dot", 1); m.blindT = Math.max(m.blindT || 0, 0.8); }); }
+      for (var k = st.o.length - 1; k >= 0; k--) { var o = st.o[k]; o.life -= dt; if (o.life <= 0) { st.o.splice(k, 1); continue; }
+        if (tick) near(S, o.x, o.y, o.r, function (m) { hit(S, m, heroDmg(S, lin(lv, 0.5, 0.9)), "dot", 1); m.blindT = Math.max(m.blindT || 0, 0.8); }); }
     },
   };
 
@@ -940,6 +978,8 @@
     var R = 7 * areaMul(S), cosHalf = Math.cos(Math.PI / 3), d = heroDmg(S, 6);
     near(S, h.x, h.y, R, function (m, dx, dy) { var l = Math.sqrt(dx * dx + dy * dy) || 1; if ((dx * h.dirx + dy * h.diry) / l >= cosHalf) hit(S, m, d, "knock", 2); });
     S.fx.push({ kind: "ult", x: h.x, y: h.y, dx: h.dirx, dy: h.diry, t: 0, life: 0.6, seq: S.fxN = (S.fxN | 0) + 1 });
+    echo(S, function () { var dd = heroDmg(S, 6); near(S, h.x, h.y, R, function (m, dx, dy) { var l = Math.sqrt(dx * dx + dy * dy) || 1; if ((dx * h.dirx + dy * h.diry) / l >= cosHalf) hit(S, m, dd, "knock", 2); });
+      S.fx.push({ kind: "ult", x: h.x, y: h.y, dx: h.dirx, dy: h.diry, t: 0, life: 0.6, echo: 1 }); });
     return true;
   }
 
@@ -960,6 +1000,10 @@
   function useSkill(S, i) {
     var h = S.hero, k = h.kit[i | 0]; if (!k || k.cdLeft > 0) return false;
     SKILL_KINDS[k.kind](S, k, h); k.cdLeft = k.cd * cdMul(S);
+    // a leap/jump (dash): each clone leaps to the enemy nearest IT and lands a strike there (Phil 24 Oct)
+    if (k.kind === "dash") echo(S, function (c) { var m = nearest(S, c.x, c.y, 10); if (!m) return; S.fx.push({ kind: "dash", key: "shadow-clone", x: c.x, y: c.y, tx: m.x, ty: m.y, t: 0, life: 0.3, echo: 1 });
+      c.x = m.x; c.y = m.y; var d = heroDmg(S, 2); near(S, c.x, c.y, 1.8 * areaMul(S), function (q) { hit(S, q, d, "knock", 1); }); });
+    if (k.kind === "nova" || k.kind === "bolt") echo(S, function () { SKILL_KINDS[k.kind](S, k, h); S.fx.push({ kind: "cast", key: k.key, slot: i | 0, x: h.x, y: h.y, t: 0, life: 0.5, echo: 1 }); });
     S.fx.push({ kind: "cast", key: k.key, slot: i | 0, x: h.x, y: h.y, t: 0, life: 0.5, seq: S.fxN = (S.fxN | 0) + 1 });
     return true;
   }
@@ -1101,7 +1145,8 @@
       if (ro.life <= 0) { S.fx.push({ kind: "crumble", key: ro.key, x: ro.x, y: ro.y, r: ro.r, t: 0, life: 0.5 }); S.rollers.splice(ri, 1); } }
     // a base attack so a fresh hero is never helpless: a shot the way you move every 1.1 s
     S._baseT = (S._baseT || 0) - dt;
-    if (S._baseT <= 0) { S._baseT = 1.1 * cdMul(S); S.shots.push({ key: "_base", x: h.x, y: h.y, vx: h.dirx * 13, vy: h.diry * 13, r: 0.3, life: 1.2, pierce: 0, dmg: heroDmg(S, 1.0), fk: "none", hit: {}, bounce: 0 }); }
+    if (S._baseT <= 0) { S._baseT = 1.1 * cdMul(S); var base = function () { S.shots.push({ key: "_base", x: h.x, y: h.y, vx: h.dirx * 13, vy: h.diry * 13, r: 0.3, life: 1.2, pierce: 0, dmg: heroDmg(S, 1.0), fk: "none", hit: {}, bounce: 0 }); };
+      base(); echo(S, base); }
     // shots
     for (var s = S.shots.length - 1; s >= 0; s--) {
       var sh = S.shots[s]; sh.x += sh.vx * dt; sh.y += sh.vy * dt; sh.life -= dt;
