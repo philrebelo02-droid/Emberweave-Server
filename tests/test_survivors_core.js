@@ -376,7 +376,10 @@ ok('the rhythm breathes: a lull straight after a spike', C.WAVES[11].min === 300
   { const S = field('Assassin', 'swift-strikes', 1, [[2, 3]]); run(S, 30 * 0.5, { mx: 1, my: 0 }); const x0 = S.hero.x; run(S, 3, { mx: 0, my: 1 });
     const N = field('Assassin', 'swift-strikes', 1); run(N, 30 * 1, { mx: 1, my: 0 });
     ok('swift-strikes: turning dashes you forward (control: walking straight never dashes)', S.hero.y > 2 && !N.fx.some(f => f.kind === 'dash'), S.hero.y.toFixed(2)); }
-  { const S = run(field('Assassin', 'night-sickles', 1, [[4, 0], [-4, 0]]), 30 * 5); ok('night-sickles: the figure-8 sweeps both sides', S.monsters.every(m => m.hp < 1e6)); }
+  { const S = field('Assassin', 'night-sickles', 1, [[3, 0, { hp: 400, maxHp: 400 }], [6, 1], [40, 0]]); run(S, 30 * 3); const k = S._state['night-sickles'].s[0];
+    ok('night-sickles v2: the sickle kills the one it is buried in, springs to the next nearest and buries in it (control: one far off untouched)', S.monsters.find(m => m.x === 6) && S.monsters.find(m => m.x === 6).hp < 1e6 && k.m && k.m.x === 6 && k.lodged && S.monsters.find(m => m.x === 40).hp === 1e6); }
+  { const S = field('Assassin', 'night-sickles', 1, [[3, 0], [5, 0]]); run(S, 30 * 4.5);
+    ok('night-sickles v2: after 3 s in a monster that will not die, the sickle springs to another', S.monsters.every(m => m.hp < 1e6)); }
   { const S = run(field('Marksman', 'arrow-volley', 1, [[5, -1], [5, 1], [-5, 0]]), 30 * 0.6, { mx: 1, my: 0 }); ok('arrow-volley: a fan forward', S.monsters[0].hp < 1e6 && S.monsters[1].hp < 1e6 && S.monsters[2].hp === 1e6); }
   { const S = field('Marksman', 'hunter-s-turret', 1, [[6, 0]]); run(S, 3); run(S, 30 * 2, { mx: -1, my: 0 }); ok('hunters-turret: the planted turret keeps shooting after you leave', S.monsters[0].hp < 1e6 && S._state['hunter-s-turret'].o.length === 1); }
   { const ms = []; for (let i = 0; i < 6; i++) ms.push([3 + i * 2, 0]); const S = run(field('Marksman', 'piercing-bolt', 1, ms), 30 * 2.5); ok('piercing-bolt: charges, then one bolt goes through the whole line', S.monsters.filter(m => m.hp < 1e6).length >= 5); }

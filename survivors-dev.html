@@ -64,7 +64,7 @@
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="/assets/js/three-r128-GLTFLoader.js"></script>
-<script src="/server/survivors-core.js?v=dev30"></script>
+<script src="/server/survivors-core.js?v=dev31"></script>
 <script>
 (async function () {
   const C = window.SurvivorsCore, AURAS = await (await fetch('/server/survivors-auras.json?v=dev1')).json();
@@ -404,7 +404,11 @@
       (st('shadow-clone').c || []).forEach((c, i) => { if (!im) return; c.cast = Math.max(0, (c.cast || 0) - 1 / 60); const f = Math.min(1, c.life, (c.max - c.life) * 3);
         el(im, X(c.x), Y(c.y) - 0.6 * sc, (big ? 2.4 : 3) * sc * (1 + Math.sin(t * 2.4 + i) * 0.03 + c.cast * 0.5), 0, f); }); }
     if (A['swift-strikes']) (st('swift-strikes').ai || []).forEach(a => sym('swift-strikes', X(a.x), Y(a.y), 2 * sc, 0, a.t / 1.5 * 0.6, '#c0a0ff'));
-    if (A['night-sickles']) (st('night-sickles').p || []).forEach(p2 => sym('night-sickles', X(p2[0]), Y(p2[1]), (lvOf('night-sickles') >= 10 ? 5 : 1.4) * sc, p2[2] * 3, 1, '#d8d8ff'));
+    // NIGHT SICKLES v2: the sickle element spins while it flies; buried in a monster it stands stuck in its back at a slant, rocking as
+    // it cuts. L10: each spring draws the moon element along the path (see 'reap')
+    if (A['night-sickles']) { const rec = artFor('night-sickles'), im = rec && rec.unit;
+      (st('night-sickles').s || []).forEach((k, i) => { if (!im) return; if (k.lodged) el(im, X(k.x) + 0.25 * sc, Y(k.y) - 0.55 * sc, 1.3 * sc, -0.6 + Math.sin(t * 9 + i) * 0.18, 1);
+        else el(im, X(k.x), Y(k.y), 1.4 * sc, k.spin, 1); }); }
     // --- MARKSMAN
     if (A['hunter-s-turret']) (st('hunter-s-turret').o || []).forEach(tu => { const im = pick(artFor('hunter-s-turret'), 'hunter-s-turret'), a = tu.aim || 0, left = Math.cos(a) < 0;
       if (im) { g.save(); g.translate(X(tu.x), Y(tu.y)); g.rotate(a); if (left) g.scale(1, -1); el(im, 0, 0, (lvOf('hunter-s-turret') >= 10 ? 2.8 : 1.8) * sc, 0, 1); g.restore(); }   // the crossbow aims at its target
@@ -439,6 +443,8 @@
       else if (f.kind === 'volleyup') { const rec = artFor('arrow-volley'), im = rec && (rec.lv10 || rec.unit);   // the burst loosed into the sky
         if (im) for (let i = 0; i < 10; i++) { const sx = X(f.x) + (i - 4.5) * 0.35 * sc, sy = Y(f.y) - (0.5 + u * 9 + (i % 3) * 0.6) * sc; el(im, sx, sy, 1.6 * sc, -Math.PI / 2 + (i - 4.5) * 0.04, 1 - u); } }
       else if (f.kind === 'cloneburst') { const rec = artFor('shadow-clone'), im = rec && (rec.lv10 || rec.unit); if (im) el(im, X(f.x), Y(f.y), (2.4 + u * 4) * sc, u * 2, 1 - u); }
+      else if (f.kind === 'reap') { const rec = artFor('night-sickles'), im = rec && (rec.lv10 || rec.unit), a = Math.atan2(f.ty - f.y, f.tx - f.x), L = Math.hypot(f.tx - f.x, f.ty - f.y);
+        if (im) el(im, X((f.x + f.tx) / 2), Y((f.y + f.ty) / 2), Math.max(2.5, L) * sc * (0.9 + u * 0.2), a, 1 - u); }
       else if (f.kind === 'clap') { g.save(); g.globalAlpha = 1 - u; g.fillStyle = 'rgba(255,230,160,0.35)'; g.strokeStyle = '#ffe2a0'; g.lineWidth = 4;
         g.beginPath(); g.arc(X(f.x), Y(f.y), f.r * sc * (0.4 + 0.6 * u), 0, 7); g.fill(); g.stroke(); g.restore(); }
       else if (f.kind === 'jab') { const k2 = Math.sin(u * Math.PI), fa = Math.atan2(f.ty - f.y, f.tx - f.x), fim = pick(artFor('iron-fists'), 'iron-fists');   // the fist art points RIGHT: it turns along the punch

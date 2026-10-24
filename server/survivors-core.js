@@ -785,12 +785,30 @@
       near(S, h.x, h.y, 2.2 * am, function (m) { hit(S, m, heroDmg(S, lin(lv, 1.2, 2.0)), "knock", 1); });   // the X-cut where you land
       S.fx.push({ kind: "dash", key: "swift-strikes", x: x0, y: y0, tx: h.x, ty: h.y, t: 0, life: 0.35 }); if (lv >= 10) st.ai.push({ x: x0 + Math.cos(a) * L / 2, y: y0 + Math.sin(a) * L / 2, t: 1.5 });
     },
-    // 50. sickles fly a WIDE FIGURE-8 round you; L10 a crescent moon sweeps the field
+    // 50. (v2, Phil 24 Oct: "night sickles needs a change") NIGHT SICKLES: a sickle flies out and BURIES itself in a monster, cutting it
+    // while it is stuck; when that monster dies (or after 3 s) it SPRINGS to the next nearest one - the sickles work their own way
+    // through the horde. Levels: more sickles, deeper cuts. L10 REAPING MOON: each spring cuts a crescent through all on its path.
     "night-sickles": function (S, st, lv, dt, h, am) {
-      st.a = (st.a || 0) + dt * lin(lv, 1.4, 2.2); var n = lv >= 10 ? 1 : Math.round(lin(lv, 1, 3)), R = (lv >= 10 ? 9 : lin(lv, 4, 6)) * am; st.p = [];
-      for (var i = 0; i < n; i++) { var t = (lv >= 10 ? st.a * 0.4 : st.a) + i * Math.PI * 2 / n; st.p.push(lv >= 10 ? [h.x + Math.cos(t) * R, h.y + Math.sin(t) * R * 0.6, t] : [h.x + Math.sin(t) * R, h.y + Math.sin(t) * Math.cos(t) * R, t]); }
-      st.k = (st.k || 0) - dt; if (st.k > 0) return; st.k = 0.2;
-      st.p.forEach(function (p) { near(S, p[0], p[1], (lv >= 10 ? 2.6 : 0.9) * am, function (m) { hit(S, m, heroDmg(S, lin(lv, 0.6, 1.0) * (lv >= 10 ? 1.6 : 1)), "dot", 1); }); });
+      var big = lv >= 10, n = big ? 6 : Math.round(lin(lv, 1, 4)), sp = 20; st.s = st.s || [];
+      while (st.s.length < n) st.s.push({ x: h.x, y: h.y, m: null, t: 0, fx: h.x, fy: h.y, spin: 0 });
+      st.s.length = n;
+      var taken = function (m, me) { return st.s.some(function (o) { return o !== me && o.m === m; }); };
+      st.s.forEach(function (k) {
+        k.spin += dt * 14;
+        if (k.m && k.lodged) { k.x = k.m.x; k.y = k.m.y; k.t += dt; if (k.m.hp > 0 && k.t < 3) return;      // stuck in: ride it
+          var prev = k.m; k.m = null; k.lodged = 0; k.fx = k.x; k.fy = k.y; k.skip = prev; }
+        if (!k.m) { var best = null, bd = 1e18; near(S, k.x, k.y, 9 * am, function (m, dx, dy) { if (m === k.skip || taken(m, k)) return; var d = dx * dx + dy * dy; if (d < bd) { bd = d; best = m; } });
+          if (!best) { var ex = h.x - k.x, ey = h.y - k.y, el = Math.sqrt(ex * ex + ey * ey); if (el > 0.5) { k.x += ex / el * Math.min(el, sp * dt); k.y += ey / el * Math.min(el, sp * dt); } return; }   // none near: back to you
+          k.m = best; k.fx = k.x; k.fy = k.y; }
+        var dx = k.m.x - k.x, dy = k.m.y - k.y, d = Math.sqrt(dx * dx + dy * dy), s = sp * dt;
+        if (d > s) { k.x += dx / d * s; k.y += dy / d * s; return; }
+        k.x = k.m.x; k.y = k.m.y; k.lodged = 1; k.t = 0; k.skip = null; hit(S, k.m, heroDmg(S, lin(lv, 1.0, 1.6)), "dot", 1);   // it bites in
+        if (big) { var ax = k.fx, ay = k.fy, a = Math.atan2(k.y - ay, k.x - ax), L = Math.sqrt((k.x - ax) * (k.x - ax) + (k.y - ay) * (k.y - ay));
+          S.fx.push({ kind: "reap", key: "night-sickles", x: ax, y: ay, tx: k.x, ty: k.y, t: 0, life: 0.4 });
+          near(S, (ax + k.x) / 2, (ay + k.y) / 2, L / 2 + 1.5, function (m) { if (segDist(m.x, m.y, ax, ay, a, L) <= 1.5 + m.r) hit(S, m, heroDmg(S, 1.4), "dot", 1); }); }
+      });
+      st.k = (st.k || 0) - dt; if (st.k > 0) return; st.k = 0.3;
+      st.s.forEach(function (k) { if (k.m && k.lodged && k.m.hp > 0) hit(S, k.m, heroDmg(S, lin(lv, 0.5, 0.9) * (big ? 1.4 : 1)), "dot", 1); });
     },
 
     // ===== MARKSMAN =====
