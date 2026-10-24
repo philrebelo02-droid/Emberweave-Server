@@ -1,0 +1,542 @@
+[
+{
+"key": "ember-orbit",
+"name": "Ember Orbit",
+"cls": "Tank",
+"fam": "orbit",
+"fx": "burn",
+"unit": "flame",
+"l10": "BLACK WHEEL OF FIRE"
+},
+{
+"key": "spike-ring",
+"name": "Spike Ring",
+"cls": "Tank",
+"fam": "pulse",
+"fx": "stun",
+"unit": "spike burst",
+"l10": "THE IRON GARDEN"
+},
+{
+"key": "iron-bulwark",
+"name": "Iron Bulwark",
+"cls": "Tank",
+"fam": "orbit",
+"fx": "knockback",
+"unit": "shield plate",
+"l10": "THE CITADEL"
+},
+{
+"key": "quake-step",
+"name": "Quake Step",
+"cls": "Tank",
+"fam": "trail",
+"fx": "a slow",
+"unit": "crack in the ground",
+"l10": "FAULT LINE"
+},
+{
+"key": "thorn-hide",
+"name": "Thorn Hide",
+"cls": "Tank",
+"fam": "trigger",
+"fx": "bleed",
+"unit": "melee hits on you return thorn damage",
+"l10": "BRIAR KING"
+},
+{
+"key": "taunting-roar",
+"name": "Taunting Roar",
+"cls": "Tank",
+"fam": "pulse",
+"fx": "pull",
+"unit": "roar",
+"l10": "WAR CRY OF THE MOUNTAIN"
+},
+{
+"key": "boulder-roll",
+"name": "Boulder Roll",
+"cls": "Tank",
+"fam": "orbit",
+"fx": "knockback",
+"unit": "boulder",
+"l10": "LANDSLIDE"
+},
+{
+"key": "molten-ground",
+"name": "Molten Ground",
+"cls": "Tank",
+"fam": "trail",
+"fx": "a slow",
+"unit": "lava trail",
+"l10": "MAGMA SEA"
+},
+{
+"key": "bastion-dome",
+"name": "Bastion Dome",
+"cls": "Tank",
+"fam": "trigger",
+"fx": "reflect",
+"unit": "a dome flashes on and blocks the next hit",
+"l10": "AEGIS"
+},
+{
+"key": "avalanche-fall",
+"name": "Avalanche Fall",
+"cls": "Tank",
+"fam": "rain",
+"fx": "stun",
+"unit": "rock",
+"l10": "MOUNTAIN FALL"
+},
+{
+"key": "blade-whirl",
+"name": "Blade Whirl",
+"cls": "Bruiser",
+"fam": "orbit",
+"fx": "bleed",
+"unit": "axe",
+"l10": "STEEL CYCLONE"
+},
+{
+"key": "shock-stomp",
+"name": "Shock Stomp",
+"cls": "Bruiser",
+"fam": "pulse",
+"fx": "knockback",
+"unit": "shockwave ring",
+"l10": "EARTHBREAKER"
+},
+{
+"key": "chain-flail",
+"name": "Chain Flail",
+"cls": "Bruiser",
+"fam": "orbit",
+"fx": "knockback",
+"unit": "flail",
+"l10": "WRECKING STAR"
+},
+{
+"key": "rage-ember",
+"name": "Rage Ember",
+"cls": "Bruiser",
+"fam": "trigger",
+"fx": "speed",
+"unit": "more enemies near you = faster cooldowns",
+"l10": "BERSERK FLAME"
+},
+{
+"key": "iron-fists",
+"name": "Iron Fists",
+"cls": "Bruiser",
+"fam": "buddy",
+"fx": "knockback",
+"unit": "spectral fist",
+"l10": "TITAN'S HANDS"
+},
+{
+"key": "cleaver-rain",
+"name": "Cleaver Rain",
+"cls": "Bruiser",
+"fam": "rain",
+"fx": "bleed",
+"unit": "cleaver",
+"l10": "BUTCHER'S STORM"
+},
+{
+"key": "war-drum",
+"name": "War Drum",
+"cls": "Bruiser",
+"fam": "pulse",
+"fx": "vulnerability (they take more damage)",
+"unit": "drum beat",
+"l10": "THUNDER DRUM"
+},
+{
+"key": "grudge-mark",
+"name": "Grudge Mark",
+"cls": "Bruiser",
+"fam": "trigger",
+"fx": "bonus damage",
+"unit": "the last enemy that hit you is marked and your skills home to it",
+"l10": "VENDETTA"
+},
+{
+"key": "rending-gale",
+"name": "Rending Gale",
+"cls": "Bruiser",
+"fam": "pulse",
+"fx": "knockback",
+"unit": "wind ring",
+"l10": "HURRICANE"
+},
+{
+"key": "bloodlust",
+"name": "Bloodlust",
+"cls": "Bruiser",
+"fam": "trigger",
+"fx": "lifesteal",
+"unit": "each kill heals a sliver and gives a burst of speed",
+"l10": "CRIMSON TIDE"
+},
+{
+"key": "arcane-orbs",
+"name": "Arcane Orbs",
+"cls": "Mage",
+"fam": "orbit",
+"fx": "pierce",
+"unit": "orb",
+"l10": "ASTRAL ORRERY"
+},
+{
+"key": "fire-halo",
+"name": "Fire Halo",
+"cls": "Mage",
+"fam": "zone",
+"fx": "burn",
+"unit": "ring of fire",
+"l10": "SOLAR CROWN"
+},
+{
+"key": "frost-nova",
+"name": "Frost Nova",
+"cls": "Mage",
+"fam": "pulse",
+"fx": "freeze",
+"unit": "ice burst",
+"l10": "WINTER'S HEART"
+},
+{
+"key": "chain-lightning",
+"name": "Chain Lightning",
+"cls": "Mage",
+"fam": "shot",
+"fx": "chain",
+"unit": "lightning bolt",
+"l10": "STORM CROWN"
+},
+{
+"key": "starfall",
+"name": "Starfall",
+"cls": "Mage",
+"fam": "rain",
+"fx": "burn",
+"unit": "star",
+"l10": "COMET"
+},
+{
+"key": "gravity-well",
+"name": "Gravity Well",
+"cls": "Mage",
+"fam": "buddy",
+"fx": "pull",
+"unit": "black orb",
+"l10": "EVENT HORIZON"
+},
+{
+"key": "rune-circle",
+"name": "Rune Circle",
+"cls": "Mage",
+"fam": "zone",
+"fx": "burn",
+"unit": "rune circle",
+"l10": "SIGIL OF ASH"
+},
+{
+"key": "wisp-familiars",
+"name": "Wisp Familiars",
+"cls": "Mage",
+"fam": "buddy",
+"fx": "burn",
+"unit": "wisp",
+"l10": "WILL-O'-THE-WISP CHOIR"
+},
+{
+"key": "mana-storm",
+"name": "Mana Storm",
+"cls": "Mage",
+"fam": "zone",
+"fx": "shock",
+"unit": "storm cloud",
+"l10": "TEMPEST EYE"
+},
+{
+"key": "meteor-call",
+"name": "Meteor Call",
+"cls": "Mage",
+"fam": "rain",
+"fx": "burn",
+"unit": "meteor",
+"l10": "CATACLYSM"
+},
+{
+"key": "halo-of-light",
+"name": "Halo of Light",
+"cls": "Support",
+"fam": "zone",
+"fx": "healing",
+"unit": "halo",
+"l10": "DIVINE AURA"
+},
+{
+"key": "song-notes",
+"name": "Song Notes",
+"cls": "Support",
+"fam": "orbit",
+"fx": "charm",
+"unit": "note",
+"l10": "SYMPHONY"
+},
+{
+"key": "sanctuary",
+"name": "Sanctuary",
+"cls": "Support",
+"fam": "zone",
+"fx": "a slow",
+"unit": "holy circle",
+"l10": "HALLOWED GROUND"
+},
+{
+"key": "prism-beam",
+"name": "Prism Beam",
+"cls": "Support",
+"fam": "orbit",
+"fx": "blind",
+"unit": "light beam",
+"l10": "RAINBOW LIGHTHOUSE"
+},
+{
+"key": "blessed-shield",
+"name": "Blessed Shield",
+"cls": "Support",
+"fam": "trigger",
+"fx": "reflect",
+"unit": "a shield bubble regrows on you",
+"l10": "ANGEL WINGS"
+},
+{
+"key": "spirit-lantern",
+"name": "Spirit Lantern",
+"cls": "Support",
+"fam": "buddy",
+"fx": "XP pull",
+"unit": "lantern",
+"l10": "THE GREAT LANTERN"
+},
+{
+"key": "bloom-path",
+"name": "Bloom Path",
+"cls": "Support",
+"fam": "trail",
+"fx": "healing pollen",
+"unit": "trail of flowers",
+"l10": "WORLD GARDEN"
+},
+{
+"key": "chime-pulse",
+"name": "Chime Pulse",
+"cls": "Support",
+"fam": "pulse",
+"fx": "stun",
+"unit": "chime",
+"l10": "GRAND BELL"
+},
+{
+"key": "guardian-spirits",
+"name": "Guardian Spirits",
+"cls": "Support",
+"fam": "orbit",
+"fx": "block",
+"unit": "spirit",
+"l10": "ANCESTORS' RING"
+},
+{
+"key": "sunburst",
+"name": "Sunburst",
+"cls": "Support",
+"fam": "pulse",
+"fx": "blind",
+"unit": "burst of sunlight",
+"l10": "DAWNBREAK"
+},
+{
+"key": "shadow-knives",
+"name": "Shadow Knives",
+"cls": "Assassin",
+"fam": "shot",
+"fx": "bleed",
+"unit": "knife",
+"l10": "THOUSAND CUTS"
+},
+{
+"key": "poison-cloud",
+"name": "Poison Cloud",
+"cls": "Assassin",
+"fam": "trail",
+"fx": "a slow",
+"unit": "poison mist",
+"l10": "PLAGUE FOG"
+},
+{
+"key": "phantom-blades",
+"name": "Phantom Blades",
+"cls": "Assassin",
+"fam": "orbit",
+"fx": "bleed",
+"unit": "ghost blade",
+"l10": "DEATH BLOSSOM"
+},
+{
+"key": "smoke-veil",
+"name": "Smoke Veil",
+"cls": "Assassin",
+"fam": "trigger",
+"fx": "dodge",
+"unit": "you vanish in smoke and the horde loses you",
+"l10": "NIGHTWALKER"
+},
+{
+"key": "death-mark",
+"name": "Death Mark",
+"cls": "Assassin",
+"fam": "trigger",
+"fx": "execute",
+"unit": "the strongest nearby monster is marked to take double damage",
+"l10": "REAPER'S LIST"
+},
+{
+"key": "shuriken-storm",
+"name": "Shuriken Storm",
+"cls": "Assassin",
+"fam": "shot",
+"fx": "bounce",
+"unit": "shuriken",
+"l10": "STAR STORM"
+},
+{
+"key": "venom-trail",
+"name": "Venom Trail",
+"cls": "Assassin",
+"fam": "trail",
+"fx": "a slow",
+"unit": "venom trail",
+"l10": "SERPENT PATH"
+},
+{
+"key": "shadow-clone",
+"name": "Shadow Clone",
+"cls": "Assassin",
+"fam": "buddy",
+"fx": "bleed",
+"unit": "shadow clone",
+"l10": "SHADOW LEGION"
+},
+{
+"key": "swift-strikes",
+"name": "Swift Strikes",
+"cls": "Assassin",
+"fam": "trigger",
+"fx": "bleed",
+"unit": "after you change direction your next hit cuts twice",
+"l10": "BLUR"
+},
+{
+"key": "night-sickles",
+"name": "Night Sickles",
+"cls": "Assassin",
+"fam": "orbit",
+"fx": "bleed",
+"unit": "sickle",
+"l10": "HARVEST MOON"
+},
+{
+"key": "arrow-volley",
+"name": "Arrow Volley",
+"cls": "Marksman",
+"fam": "shot",
+"fx": "pierce",
+"unit": "arrow",
+"l10": "SKY VOLLEY"
+},
+{
+"key": "hunter-s-turret",
+"name": "Hunter's Turret",
+"cls": "Marksman",
+"fam": "buddy",
+"fx": "knockback",
+"unit": "turret",
+"l10": "SIEGE BALLISTA"
+},
+{
+"key": "piercing-bolt",
+"name": "Piercing Bolt",
+"cls": "Marksman",
+"fam": "shot",
+"fx": "pierce",
+"unit": "bolt",
+"l10": "RAILSHOT"
+},
+{
+"key": "falcon-companion",
+"name": "Falcon Companion",
+"cls": "Marksman",
+"fam": "buddy",
+"fx": "bleed",
+"unit": "falcon",
+"l10": "THE STORMHAWK"
+},
+{
+"key": "spark-mines",
+"name": "Spark Mines",
+"cls": "Marksman",
+"fam": "trail",
+"fx": "stun",
+"unit": "spark mine",
+"l10": "MINEFIELD"
+},
+{
+"key": "eagle-eye",
+"name": "Eagle Eye",
+"cls": "Marksman",
+"fam": "trigger",
+"fx": "crit",
+"unit": "a far enemy is marked and your next shot crits it",
+"l10": "DEADEYE"
+},
+{
+"key": "ricochet-shots",
+"name": "Ricochet Shots",
+"cls": "Marksman",
+"fam": "shot",
+"fx": "bounce",
+"unit": "ricochet shot",
+"l10": "PINBALL"
+},
+{
+"key": "rain-of-arrows",
+"name": "Rain of Arrows",
+"cls": "Marksman",
+"fam": "rain",
+"fx": "pierce",
+"unit": "arrow volley",
+"l10": "ARROWSTORM"
+},
+{
+"key": "wind-shot",
+"name": "Wind Shot",
+"cls": "Marksman",
+"fam": "shot",
+"fx": "knockback",
+"unit": "gust shot",
+"l10": "CYCLONE ARROW"
+},
+{
+"key": "flare-trail",
+"name": "Flare Trail",
+"cls": "Marksman",
+"fam": "trail",
+"fx": "blind",
+"unit": "flare trail",
+"l10": "SIGNAL FIRE"
+}
+]
