@@ -63,7 +63,8 @@ HITTERS.forEach(a => {
     S.hero.auras[a.key] = lv; S.hero.maxHp = S.hero.hp = 1e9; S._baseT = 1e9;       // no base attack: only the aura can hurt
     for (let k = 0; k < 40; k++) { const ang = k / 40 * Math.PI * 2, d = 1.2 + (k % 4) * 1.1; S.monsters.push({ id: S.nextId++, type: 'brute', x: Math.cos(ang) * d, y: Math.sin(ang) * d, hp: 1e6, maxHp: 1e6, dmg: 1, spd: 0, r: 0.6 }); }
     S.noSpawn = true;                                             // no spawns during the probe
-    for (let i = 0; i < 30 * 10; i++) C.step(S, { mx: (i % 60 < 30) ? 0.6 : -0.6, my: 0 });
+    const still = a.key === 'molten-ground';                          // v3: it wells up only where you stand still
+    for (let i = 0; i < 30 * 10; i++) C.step(S, still ? {} : { mx: (i % 60 < 30) ? 0.6 : -0.6, my: 0 });
     if (!(S.dealt > 0)) silent.push(a.key + '@' + lv);
   });
 });
@@ -76,7 +77,7 @@ HITTERS.forEach(a => {
     const S = C.create(Object.assign({}, HERO, { cls: a.cls }), { seed: 5, auras: AURAS });
     S.hero.auras[a.key] = lv; S.hero.maxHp = S.hero.hp = 1e9; S._baseT = 1e9; S.noSpawn = true;
     for (let k = 0; k < 40; k++) { const ang = k / 40 * Math.PI * 2, dd = 1.2 + (k % 4) * 1.1; S.monsters.push({ id: S.nextId++, type: 'brute', x: Math.cos(ang) * dd, y: Math.sin(ang) * dd, hp: 1e6, maxHp: 1e6, dmg: 1, spd: 0, r: 0.6 }); }
-    for (let i = 0; i < 30 * 10; i++) C.step(S, { mx: (i % 60 < 30) ? 0.6 : -0.6, my: 0 });
+    for (let i = 0; i < 30 * 10; i++) C.step(S, a.key === 'molten-ground' ? {} : { mx: (i % 60 < 30) ? 0.6 : -0.6, my: 0 });
     return S.dealt;
   });
   if (!(d[1] > d[0])) weak.push(a.key + ' (' + Math.round(d[0]) + ' -> ' + Math.round(d[1]) + ')');
@@ -94,7 +95,7 @@ UTIL.forEach(a => {
     for (let q = 0; q < 12; q++) S.monsters.push({ id: S.nextId++, type: 'swarmer', x: 1 + q * 0.3, y: 0, hp: 1, maxHp: 1, dmg: 1, spd: 0, r: 0.35 });
     let best = 0;
     for (let i = 0; i < 30 * 6; i++) { C.step(S, { mx: 0, my: 0 }); const m = S.monsters.reduce((b, x) => Math.max(b, x.vuln || 0), 0);
-      best = Math.max(best, k === 'guard' ? (S.hero.guard || 0) : k === 'vuln' ? m : (S.hero.hp - 5e5) + (S.hero.haste || 0) * 1000); }
+      best = Math.max(best, a.key === 'bastion-dome' ? (S.hero.domeDR || 0) : k === 'guard' ? (S.hero.guard || 0) : k === 'vuln' ? m : (S.hero.hp - 5e5) + (S.hero.haste || 0) * 1000); }
     return best;
   });
   if (!(res[0] > 0 && res[1] > res[0])) noEffect.push(a.key + ' (' + res.map(x => Math.round(x * 100) / 100).join(' -> ') + ')');
@@ -214,6 +215,43 @@ ok('the rhythm breathes: a lull straight after a spike', C.WAVES[11].min === 300
   B.monsters.push({ id: 999, type: 'boss', x: 10, y: 0, hp: 1e9, maxHp: 1e9, dmg: 10, spd: 0, r: 2.2, cdT: 0.1, skin: 'brukk' });
   let bf = 0; for (let i = 0; i < 30 * 2; i++) { C.step(B, {}); bf = Math.max(bf, B.eshots.length); }
   ok('the boss fires a 5-bolt fan', bf >= 5, bf);
+}
+
+// 13. the 10 TANK spells each do their OWN thing (Phil 24 Oct: "All of them should be different in nature" / "Not repeating")
+{
+  const TH = Object.assign({}, HERO, { cls: 'Tank' });
+  function field(key, lv, mons) { const S = C.create(TH, { seed: 8, auras: AURAS }); S.noSpawn = true; S._baseT = 1e9; S.hero.maxHp = S.hero.hp = 1e9;
+    if (key) S.hero.auras[key] = lv; (mons || []).forEach(([x, y, o]) => S.monsters.push(Object.assign({ id: S.nextId++, type: 'brute', x, y, hp: 1e6, maxHp: 1e6, dmg: 1, spd: 0, r: 0.6 }, o || {}))); return S; }
+  const run = (S, n, inp) => { for (let i = 0; i < n; i++) C.step(S, typeof inp === 'function' ? inp(i) : (inp || {})); return S; };
+  // Spike Ring: the ripple hits a monster at its wavefront, and only once per ripple
+  { const S = run(field('spike-ring', 1, [[3, 0]]), 30 * 1.2); ok('spike-ring: a ripple rolls out and hits the ring of ground it passes', S.dealt > 0 && S.zones.every(z => z.kind !== 'ring'), S.dealt); }
+  { const S = run(field('spike-ring', 10, [[4.5, 0]]), 30 * 1); ok('spike-ring L10: the hedge roots what touches it', S.monsters[0].stunT > 0, S.monsters[0].stunT); }
+  // Iron Bulwark: a monster AHEAD is shoved further ahead; one BEHIND is untouched
+  { const S = run(field('iron-bulwark', 3, [[1.9, 0], [-1.9, 0]]), 30 * 1, { mx: 1, my: 0 });
+    ok('iron-bulwark: plates in front shove the horde ahead, behind is untouched', S.monsters[0].x > 4 && S.monsters[1].hp === 1e6, S.monsters[0].x.toFixed(1) + ' / ' + S.monsters[1].hp); }
+  // Quake Step: cracks only while walking (control: standing makes none)
+  { const W = run(field('quake-step', 3), 30 * 2, { mx: 1, my: 0 }), N = run(field('quake-step', 3), 30 * 2);
+    ok('quake-step: walking opens forward cracks, standing does not (control)', W.zones.some(z => z.kind === 'crack') && !N.zones.some(z => z.kind === 'crack')); }
+  // Thorn Hide: no damage until a monster hits you, then that monster is lashed
+  { const S = field('thorn-hide', 1, [[0.6, 0, { dmg: 5 }]]); S.monsters[0].spd = 0; run(S, 30 * 1);
+    const quiet = field('thorn-hide', 1, [[5, 0]]); run(quiet, 30 * 1);
+    ok('thorn-hide: the monster that hits you is lashed; untouched, nothing (control)', S.dealt > 0 && quiet.dealt === 0, S.dealt + ' / ' + quiet.dealt); }
+  // Taunting Roar: monsters 5 m out are sucked in, then stunned
+  { const S = run(field('taunting-roar', 1, [[5, 0, { spd: 0 }]]), 30 * 0.6), d = Math.hypot(S.monsters[0].x, S.monsters[0].y);
+    ok('taunting-roar: pulls monsters in, then stuns them', d < 3 && S.monsters[0].stunT > 0, d.toFixed(2)); }
+  // Boulder Roll: a boulder rolls forward and grows
+  { const S = run(field('boulder-roll', 5), 30 * 1.2, { mx: 1, my: 0 }), r = S.rollers[0];
+    ok('boulder-roll: a boulder rolls forward and grows as it goes', r && r.x > 3 && r.r > 0.7 * (1), r && (r.x.toFixed(1) + ' r' + r.r.toFixed(2))); }
+  // Molten Ground: standing burns, walking does not (control)
+  { const St = run(field('molten-ground', 3, [[0.8, 0]]), 30 * 3), Wk = field('molten-ground', 3, [[0.8, 0]]); run(Wk, 30 * 3, { mx: 1, my: 0 });
+    ok('molten-ground: lava wells up only where you stand still (control: walking)', St.dealt > 0 && Wk.dealt === 0, St.dealt + ' / ' + Wk.dealt); }
+  // Bastion Dome: inside it you take less; walk out and the cut is gone
+  { const S = run(field('bastion-dome', 1), 30 * 0.5); const inside = S.hero.domeDR; run(S, 30 * 3, { mx: 1, my: 0 });
+    ok('bastion-dome: a placed dome cuts damage inside, not outside', inside > 0.3 && S.hero.domeDR === 0, inside + ' / ' + S.hero.domeDR); }
+  // Avalanche Fall: the rocks land on the thickest crowd, not the lone monster
+  { const crowd = []; for (let i = 0; i < 12; i++) crowd.push([8 + (i % 4) * 0.3, -3 + Math.floor(i / 4) * 0.3]); crowd.push([-6, 4]);
+    const S = run(field('avalanche-fall', 1, crowd), 9); const drops = S.zones.filter(z => z.kind === 'drop');
+    ok('avalanche-fall: rocks fall on the thickest crowd', drops.length > 0 && drops.every(z => z.x > 5), drops.map(z => z.x.toFixed(1)).join(',')); }
 }
 
 console.log(fail ? `test_survivors_core: ${pass} passed, ${fail} FAILED` : `test_survivors_core: ${pass} checks passed`);

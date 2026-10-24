@@ -192,7 +192,7 @@
         }),
         wardT: 0,
       },
-      monsters: [], nextId: 1, gems: [], shots: [], zones: [], fx: [],
+      monsters: [], nextId: 1, gems: [], shots: [], zones: [], fx: [], rollers: [],
       bossSpawned: false, boss: null, noSpawn: false, eshots: [],
       choice: null, kills: 0, dealt: 0, taken: 0, ended: false, won: false, score: 0,
       inputs: [],                                   // the run's input log - replayed by the server
@@ -254,11 +254,101 @@
     var trig = S.hero._onKill; if (trig) trig(m);
   }
 
+  /* ===== SPELLS v3: one behaviour per spell (Phil 24 Oct: "All of them should be different in nature" / "Not repeating").
+   * Design table: taskings/.../HERO SURVIVORS - 60 SPELLS v3 - EACH UNIQUE (Claude 24 Oct).md. A spell with an entry here runs
+   * ITS function; the rest still use the v2 shared family until their turn. lin(lv, a, b) = a at level 1 .. b at level 9;
+   * level 10 is each spell's final form. Everything is deterministic (S.rng only), so the server replay matches.          */
+  function lin(lv, a, b) { return a + (b - a) * (Math.min(lv, 9) - 1) / 8; }
+  function segDist(px, py, x, y, ang, len) { var ux = Math.cos(ang), uy = Math.sin(ang), t = clamp((px - x) * ux + (py - y) * uy, 0, len), qx = x + ux * t - px, qy = y + uy * t - py; return Math.sqrt(qx * qx + qy * qy); }
+  function crack(S, key, x, y, ang, len, w, dmg, life, fk) { S.zones.push({ kind: "crack", key: key, x: x, y: y, ang: ang, len: len, w: w, t: 0, life: life, grow: 0.25, dmg: dmg, fk: fk, hit: {}, tick: 0 }); }
+  var SPELL = {
+    // 2. ripples of spikes roll OUTWARD; L10 the hedge stays up round you and roots what touches it
+    "spike-ring": function (S, st, lv, dt, h, am) {
+      if (lv >= 10) { st.hedge = 4.5 * am; st.t -= dt; if (st.t > 0) return; st.t = 0.4;
+        near(S, h.x, h.y, st.hedge + 0.9, function (m, dx, dy) { if (Math.abs(Math.sqrt(dx * dx + dy * dy) - st.hedge) <= m.r + 0.6) { m.stunT = Math.max(m.stunT || 0, 0.7); hit(S, m, heroDmg(S, 0.9), "none"); } }); return; }
+      st.t -= dt; if (st.t > 0) return; st.t = lin(lv, 4, 2) * cdMul(S);
+      var waves = lv >= 9 ? 3 : lv >= 5 ? 2 : 1, R = lin(lv, 4, 7) * am;
+      for (var k = 0; k < waves; k++) S.zones.push({ kind: "ripple", key: "spike-ring", x: h.x, y: h.y, r0: 0.6, r1: R, t: 0, life: 0.55, delay: k * 0.35, n: Math.round(lin(lv, 10, 22)), dmg: heroDmg(S, lin(lv, 0.8, 1.6)), fk: "stun", fp: 1.5, hit: {} });
+    },
+    // 3. plates hover IN FRONT and shove the horde ahead (and stop bolts); L10 a full turning wall round you
+    "iron-bulwark": function (S, st, lv, dt, h, am) {
+      st.t = (st.t || 0) - dt; var tick = st.t <= 0; if (tick) st.t = 0.3;
+      if (lv >= 10) { st.a = (st.a || 0) + dt * 0.8; var R = 2.6 * am; st.plates = null;
+        for (var e = S.eshots.length - 1; e >= 0; e--) { var es = S.eshots[e], ex = es.x - h.x, ey = es.y - h.y; if (Math.abs(Math.sqrt(ex * ex + ey * ey) - R) < 0.6) S.eshots.splice(e, 1); }
+        if (tick) near(S, h.x, h.y, R + 0.9, function (m, dx, dy) { if (Math.abs(Math.sqrt(dx * dx + dy * dy) - R) <= m.r + 0.6) hit(S, m, heroDmg(S, 1.2), "knock", 2.5); }); return; }
+      var n = lv >= 7 ? 4 : lv >= 5 ? 3 : lv >= 3 ? 2 : 1, D = 1.9 * am, px = -h.diry, py = h.dirx, push = lin(lv, 1.0, 2.0); st.plates = [];
+      for (var i = 0; i < n; i++) { var off = (i - (n - 1) / 2) * 1.15 * am, x = h.x + h.dirx * D + px * off, y = h.y + h.diry * D + py * off; st.plates.push([x, y]);
+        for (var e2 = S.eshots.length - 1; e2 >= 0; e2--) { var b = S.eshots[e2], bx = b.x - x, by = b.y - y; if (bx * bx + by * by < 0.8) S.eshots.splice(e2, 1); }
+        if (tick) near(S, x, y, 0.8 * am, function (m) { hit(S, m, heroDmg(S, lin(lv, 0.5, 1.0)), "none"); m.x += h.dirx * push; m.y += h.diry * push; }); }
+    },
+    // 4. every few steps a crack shoots FORWARD and forks; L10 one fissure across the screen
+    "quake-step": function (S, st, lv, dt, h, am) {
+      if (h.mvx || h.mvy) st.walk = (st.walk || 0) + h.speed * dt;
+      if ((st.walk || 0) < (lv >= 10 ? 6 : lin(lv, 3.0, 1.8))) return; st.walk = 0;
+      var a0 = Math.atan2(h.diry, h.dirx), d = heroDmg(S, lin(lv, 0.9, 1.8));
+      if (lv >= 10) { crack(S, "quake-step", h.x, h.y, a0, VIEW.w / 2 * am, 1.6, heroDmg(S, 2.5), 3.3, "slow"); return; }
+      var len = lin(lv, 4, 8) * am, forks = lv >= 7 ? 2 : lv >= 3 ? 1 : 0; crack(S, "quake-step", h.x, h.y, a0, len, 0.7, d, 0.8, "slow");
+      for (var f = 1; f <= forks; f++) crack(S, "quake-step", h.x + Math.cos(a0) * len * 0.5, h.y + Math.sin(a0) * len * 0.5, a0 + (f % 2 ? 0.5 : -0.5), len * 0.55, 0.6, d, 0.8, "slow");
+    },
+    // 5. a monster that hits you gets LASHED by a vine (and, higher, its neighbours); L10 a thicket grows out in 8 directions
+    "thorn-hide": function (S, st, lv, dt, h, am) {
+      var extra = Math.floor(lin(lv, 0, 3)), reach = lin(lv, 3, 6) * am;
+      function lash(m) { hit(S, m, heroDmg(S, lin(lv, 1.2, 2.6)), "dot", 1.5); S.fx.push({ kind: "lash", key: "thorn-hide", x: h.x, y: h.y, tx: m.x, ty: m.y, t: 0, life: 0.3 }); }
+      (S._hurtPrev || []).forEach(function (m) { if (m.hp <= 0) return; lash(m); var c = 0; if (extra) near(S, h.x, h.y, reach, function (o) { if (o !== m && c < extra) { c++; lash(o); } }); });
+      if (lv >= 10) { st.t -= dt; if (st.t <= 0) { st.t = 3; for (var i = 0; i < 8; i++) crack(S, "thorn-hide", h.x, h.y, i * Math.PI / 4 + S.t * 0.7, 6 * am, 0.8, heroDmg(S, 2), 1.2, "dot"); } }
+    },
+    // 6. the roar SUCKS monsters in, then stuns them in a heap; L10 the whole screen
+    "taunting-roar": function (S, st, lv, dt, h, am) {
+      st.t -= dt; if (st.t > 0) return; st.t = lin(lv, 7, 4) * cdMul(S);
+      var R = lv >= 10 ? VIEW.w / 2 : lin(lv, 6, 9) * am, stun = lin(lv, 1.0, 2.0), d = heroDmg(S, lin(lv, 0.6, 1.2));
+      near(S, h.x, h.y, R, function (m) { if (m.type === "boss") return; m.pullT = 0.45; m.pullStun = stun; m.pullDmg = d; });
+      S.zones.push({ kind: "roar", key: "taunting-roar", x: h.x, y: h.y, r0: R, r1: 0.5, t: 0, life: 0.45, delay: 0, hit: {} });
+    },
+    // 7. a boulder ROLLS forward, GROWING as it goes, then crumbles; L10 a mountain rolls the screen
+    "boulder-roll": function (S, st, lv, dt, h, am) {
+      st.t -= dt; if (st.t > 0) return; st.t = lin(lv, 4, 2.5) * cdMul(S);
+      var big = lv >= 10, n = !big && lv >= 7 ? 2 : 1, a0 = Math.atan2(h.diry, h.dirx);
+      for (var i = 0; i < n; i++) { var a = a0 + (n > 1 ? (i ? 0.35 : -0.35) : 0), sp = big ? 7 : 6;
+        S.rollers.push({ key: "boulder-roll", x: h.x, y: h.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, r: (big ? 3 : lin(lv, 0.6, 1.0)) * am, grow: big ? 0 : lin(lv, 0.25, 0.45) * am,
+                         rmax: (big ? 3 : lin(lv, 1.6, 2.6)) * am, life: big ? 6 : lin(lv, 3, 5), dmg: heroDmg(S, big ? 6 : lin(lv, 1.2, 2.4)), hit: {}, big: big ? 1 : 0 }); }
+    },
+    // 8. lava wells up where you STAND STILL and widens the longer you hold; walk off and it cools
+    "molten-ground": function (S, st, lv, dt, h, am) {
+      var still = !(h.mvx || h.mvy), max = (lv >= 10 ? 9 : lin(lv, 2.5, 4.5)) * am, p = st.pool;
+      if (still) { if (!p || p.cool) p = st.pool = { x: h.x, y: h.y, r: 0.6, cool: false, heat: 1 }; p.r = Math.min(max, p.r + dt * lin(lv, 0.8, 1.6) * (lv >= 10 ? 2 : 1)); p.heat = 1; }
+      else if (p && !p.cool) { var dx = h.x - p.x, dy = h.y - p.y; if (dx * dx + dy * dy > (p.r * 0.5 + 0.5) * (p.r * 0.5 + 0.5)) p.cool = true; }
+      if (p && p.cool) { p.heat -= dt / 1.5; if (p.heat <= 0) { st.pool = null; return; } }
+      if (!p) return; st.t -= dt; if (st.t > 0) return; st.t = 0.5;
+      near(S, p.x, p.y, p.r, function (m) { hit(S, m, heroDmg(S, lin(lv, 0.5, 1.0) * p.heat), "slow", 1.5); });
+    },
+    // 9. a dome DROPS where you are and stays: monsters inside crawl, you take less inside; L10 a golden sphere that travels with you
+    "bastion-dome": function (S, st, lv, dt, h, am) {
+      h.domeDR = 0;
+      if (lv >= 10) st.dome = { x: h.x, y: h.y, r: 3.5 * am, life: 1, max: 1, follow: 1 };
+      else { st.t -= dt; if (st.t <= 0) { st.t = lin(lv, 12, 7) * cdMul(S); var L = lin(lv, 5, 8); st.dome = { x: h.x, y: h.y, r: lin(lv, 3, 4.5) * am, life: L, max: L }; }
+        if (st.dome) { st.dome.life -= dt; if (st.dome.life <= 0) st.dome = null; } }
+      var dm = st.dome; if (!dm) return;
+      near(S, dm.x, dm.y, dm.r, function (m) { m.slowT = Math.max(m.slowT || 0, 0.3); });
+      var dx = h.x - dm.x, dy = h.y - dm.y; if (dx * dx + dy * dy <= dm.r * dm.r) h.domeDR = lv >= 10 ? 0.5 : lin(lv, 0.4, 0.6);
+      if (lv >= 10) for (var e = S.eshots.length - 1; e >= 0; e--) { var es = S.eshots[e], ex = es.x - dm.x, ey = es.y - dm.y; if (ex * ex + ey * ey <= dm.r * dm.r) S.eshots.splice(e, 1); }
+    },
+    // 10. rocks fall on the THICKEST crowd on screen; L10 one colossal rock
+    "avalanche-fall": function (S, st, lv, dt, h, am) {
+      st.t -= dt; if (st.t > 0) return; st.t = (lv >= 10 ? 5 : lin(lv, 3, 2)) * cdMul(S);
+      var best = null, bc = 0;
+      for (var k in S._grid) { var b = S._grid[k]; if (b.length > bc && Math.abs(b[0].x - h.x) < VIEW.w / 2 && Math.abs(b[0].y - h.y) < VIEW.h / 2) { bc = b.length; best = b[0]; } }
+      var tx = best ? best.x : h.x + h.dirx * 6, ty = best ? best.y : h.y + h.diry * 6;
+      if (lv >= 10) { S.zones.push({ kind: "drop", key: "avalanche-fall", x: tx, y: ty, r1: 5 * am, t: 0, life: 0.3, delay: 0.9, dmg: heroDmg(S, 8), fk: "stun", fp: 3, hit: {}, big: 1 }); return; }
+      for (var j = 0, n = Math.round(lin(lv, 1, 4)); j < n; j++) S.zones.push({ kind: "drop", key: "avalanche-fall", x: tx + (S.rng() - 0.5) * 3, y: ty + (S.rng() - 0.5) * 3, r1: lin(lv, 1.4, 2.2) * am, t: 0, life: 0.15, delay: 0.6 + j * 0.1, dmg: heroDmg(S, lin(lv, 1.4, 2.6)), fk: "stun", fp: 1.5, hit: {} });
+    },
+  };
+
   /* ---- auras ------------------------------------------------------------------------------------------------------------------- */
   function auraRow(S, key) { for (var i = 0; i < S.aurasTable.length; i++) if (S.aurasTable[i].key === key) return S.aurasTable[i]; return null; }
   function runAura(S, key, lvl, dt) {
     var row = auraRow(S, key); if (!row) return;
     var L = LADDER[row.fam][clamp(lvl, 1, AURA_MAX) - 1], st = S._state[key] || (S._state[key] = { t: 0, a: 0, trail: [] });
+    if (SPELL[key]) { SPELL[key](S, st, clamp(lvl, 1, AURA_MAX), dt, S.hero, areaMul(S)); return; }   // v3: its own behaviour
     var h = S.hero, fk = fxKind(row.fx), am = areaMul(S), cm = cdMul(S);
     switch (row.fam) {
       case "orbit": {                               // units circle the hero and hit what they touch (0.5 s per-monster re-hit)
@@ -487,7 +577,12 @@
     buildGrid(S);
     // auras
     var keys = Object.keys(h.auras).sort();
+    S._hurtPrev = S._hurt || []; S._hurt = [];                // who hit the hero last tick (Thorn Hide lashes them)
     for (var i = 0; i < keys.length; i++) runAura(S, keys[i], h.auras[keys[i]], dt);
+    // rolling things (Boulder Roll): roll, grow, flatten each monster once, crumble at the end
+    for (var ri = S.rollers.length - 1; ri >= 0; ri--) { var ro = S.rollers[ri]; ro.x += ro.vx * dt; ro.y += ro.vy * dt; ro.life -= dt; ro.r = Math.min(ro.rmax, ro.r + ro.grow * dt);
+      near(S, ro.x, ro.y, ro.r, function (m) { if (ro.hit[m.id]) return; ro.hit[m.id] = 1; hit(S, m, ro.dmg, "none"); var vl = Math.sqrt(ro.vx * ro.vx + ro.vy * ro.vy) || 1; m.x += ro.vx / vl * 2.2; m.y += ro.vy / vl * 2.2; m.stunT = Math.max(m.stunT || 0, 0.3); });
+      if (ro.life <= 0) { S.fx.push({ kind: "crumble", key: ro.key, x: ro.x, y: ro.y, r: ro.r, t: 0, life: 0.5 }); S.rollers.splice(ri, 1); } }
     // a base attack so a fresh hero is never helpless: a shot the way you move every 1.1 s
     S._baseT = (S._baseT || 0) - dt;
     if (S._baseT <= 0) { S._baseT = 1.1 * cdMul(S); S.shots.push({ key: "_base", x: h.x, y: h.y, vx: h.dirx * 13, vy: h.diry * 13, r: 0.3, life: 1.2, pierce: 0, dmg: heroDmg(S, 1.0), fk: "none", hit: {}, bounce: 0 }); }
@@ -508,7 +603,11 @@
       var zn = S.zones[z];
       if (zn.delay > 0) { zn.delay -= dt; continue; }
       zn.t += dt;
-      if (zn.kind === "ring") { var rr = zn.r0 + (zn.r1 - zn.r0) * Math.min(1, zn.t / zn.life); near(S, zn.x, zn.y, rr, function (m) { if (!zn.hit[m.id]) { zn.hit[m.id] = 1; hit(S, m, zn.dmg, zn.fk, zn.fp); } }); }
+      if (zn.kind === "ripple") { var rq = zn.r0 + (zn.r1 - zn.r0) * Math.min(1, zn.t / zn.life); near(S, zn.x, zn.y, rq + 0.9, function (m, dx, dy) { if (!zn.hit[m.id] && Math.abs(Math.sqrt(dx * dx + dy * dy) - rq) <= m.r + 0.8) { zn.hit[m.id] = 1; hit(S, m, zn.dmg, zn.fk, zn.fp); } }); }
+      else if (zn.kind === "crack") { var cl = zn.len * Math.min(1, zn.t / zn.grow); zn.tick -= dt; if (zn.tick <= 0 && zn.life > 1.5) { zn.tick = 0.5; zn.hit = {}; }
+        near(S, zn.x + Math.cos(zn.ang) * cl / 2, zn.y + Math.sin(zn.ang) * cl / 2, cl / 2 + zn.w, function (m) { if (!zn.hit[m.id] && segDist(m.x, m.y, zn.x, zn.y, zn.ang, cl) <= zn.w + m.r) { zn.hit[m.id] = 1; hit(S, m, zn.dmg, zn.fk, 1.5); } }); }
+      else if (zn.kind === "roar") { }
+      else if (zn.kind === "ring") { var rr = zn.r0 + (zn.r1 - zn.r0) * Math.min(1, zn.t / zn.life); near(S, zn.x, zn.y, rr, function (m) { if (!zn.hit[m.id]) { zn.hit[m.id] = 1; hit(S, m, zn.dmg, zn.fk, zn.fp); } }); }
       else if (zn.kind === "drop") { if (!zn.done) { zn.done = true; near(S, zn.x, zn.y, zn.r1, function (m) { hit(S, m, zn.dmg, zn.fk, zn.fp); }); } }
       else if (zn.kind === "puddle") { zn.tick -= dt; if (zn.tick <= 0) { zn.tick = 0.5; near(S, zn.x, zn.y, zn.r, function (m) { hit(S, m, zn.dmg, zn.fk, zn.fp); }); } }
       if (zn.t >= zn.life) S.zones.splice(z, 1);
@@ -520,6 +619,10 @@
       if (m.hp <= 0) { S.monsters.splice(mi, 1); continue; }
       if (m.dotT > 0) { m.dotT -= dt; m.hp -= m.dot * dt; S.dealt += m.dot * dt; if (m.hp <= 0) { kill(S, m); S.monsters.splice(mi, 1); continue; } }
       if (m.vuln > 0) m.vuln -= dt;
+      if (m.pullT > 0) { m.pullT -= dt; var px0 = h.x - m.x, py0 = h.y - m.y, pd = Math.sqrt(px0 * px0 + py0 * py0) || 1;
+        if (pd > 1.4 + m.r) { var pv = Math.min(pd - 1.4 - m.r, 16 * dt); m.x += px0 / pd * pv; m.y += py0 / pd * pv; }
+        if (m.pullT <= 0) { m.stunT = m.pullStun || 1; hit(S, m, m.pullDmg || 0, "none"); }
+        continue; }
       if (m.stunT > 0) { m.stunT -= dt; continue; }
       if (m.life != null) { m.life -= dt; if (m.life <= 0) { S.monsters.splice(mi, 1); continue; } }   // an event member leaves
       var dx = h.x - m.x, dy = h.y - m.y, d = Math.sqrt(dx * dx + dy * dy) || 1, sp3 = m.spd * (m.slowT > 0 ? 0.5 : 1);
@@ -547,7 +650,7 @@
       }
       if (d <= m.r + 0.45 && h.iframes <= 0) {
         if (h.guard > 0) { h.guard--; h.iframes = 0.4; }
-        else { var dmg = m.dmg * taken; h.hp -= dmg; S.taken += dmg; h.iframes = 0.5; if (h.wardT > 0 && h.hp < 1) h.hp = 1; if (h.thorns) hit(S, m, h.atk * h.thorns, "dot", 1); }
+        else { var dmg = m.dmg * taken * (1 - (h.domeDR || 0)); h.hp -= dmg; S.taken += dmg; h.iframes = 0.5; S._hurt.push(m); if (h.wardT > 0 && h.hp < 1) h.hp = 1; if (h.thorns) hit(S, m, h.atk * h.thorns, "dot", 1); }
       }
     }
     for (var ei = S.eshots.length - 1; ei >= 0; ei--) {
@@ -555,7 +658,7 @@
       var ex = h.x - es.x, ey = h.y - es.y;
       if (ex * ex + ey * ey <= (es.r + 0.45) * (es.r + 0.45)) {
         if (h.iframes <= 0) { if (h.guard > 0) { h.guard--; h.iframes = 0.4; }
-          else { var ed = es.dmg * taken; h.hp -= ed; S.taken += ed; S.shotTaken = (S.shotTaken || 0) + ed; h.iframes = 0.3; if (h.wardT > 0 && h.hp < 1) h.hp = 1; } }
+          else { var ed = es.dmg * taken * (1 - (h.domeDR || 0)); h.hp -= ed; S.taken += ed; S.shotTaken = (S.shotTaken || 0) + ed; h.iframes = 0.3; if (h.wardT > 0 && h.hp < 1) h.hp = 1; } }
         S.eshots.splice(ei, 1); continue;
       }
       if (es.life <= 0) S.eshots.splice(ei, 1);
