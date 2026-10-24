@@ -56,7 +56,7 @@ ok('it picked auras/passives', Object.keys(r1.hero.auras).length + Object.keys(r
 // 5. every one of the 60 auras deals damage, at level 1 and level 10 (a hero of its class in a ring of monsters)
 let silent = [];
 // v3: Rage Ember now burns; Grudge Mark only hunts what hit you (its own test below)
-const V3_HIT = ['rage-ember'], V3_OWN = ['grudge-mark'];
+const V3_HIT = ['rage-ember'], V3_OWN = ['grudge-mark', 'smoke-veil', 'death-mark', 'eagle-eye'];   // these have their own tests below
 const HITTERS = AURAS.filter(a => !V3_OWN.includes(a.key) && (V3_HIT.includes(a.key) || !(a.fam === 'trigger' && ['guard', 'heal', 'speed', 'vuln'].includes(C.fxKind(a.fx)))));
 HITTERS.forEach(a => {
   [1, 10].forEach(lv => {
@@ -90,7 +90,7 @@ ok('level 10 beats level 1 for every aura', weak.length === 0, weak.join(', '));
 
 // 6b. the trigger auras that HELP instead of hit (shield, mark, on-kill heal/speed) do their own thing, stronger at level 10
 const UTIL = AURAS.filter(a => a.fam === 'trigger' && !V3_HIT.includes(a.key) && !V3_OWN.includes(a.key) && ['guard', 'heal', 'speed', 'vuln'].includes(C.fxKind(a.fx)));
-ok('utility trigger auras found', UTIL.length >= 4, UTIL.length);
+ok('utility trigger auras found', UTIL.length >= 3, UTIL.length);
 let noEffect = [];
 UTIL.forEach(a => {
   const k = C.fxKind(a.fx), res = [1, 10].map(lv => {
@@ -320,6 +320,41 @@ ok('the rhythm breathes: a lull straight after a spike', C.WAVES[11].min === 300
   { const S = run(field('Bruiser', 'rending-gale', 1, [[3, 1.5], [3, -1.5]]), 30 * 0.6, { mx: 1, my: 0 }); ok('rending-gale: the blade sweeps sideways across your front', S.monsters.every(m => m.hp < 1e6)); }
   { const S = field('Bruiser', 'bloodlust', 1, [[2, 0, { hp: 1, maxHp: 1 }]]); S.hero.auras['blade-whirl'] = 1; const hp0 = S.hero.hp; run(S, 30 * 2);
     ok('bloodlust: a kill spills blood that flies back and heals you', S.kills >= 1 && S.hero.hp > hp0, S.kills + ' ' + (S.hero.hp - hp0)); }
+}
+
+// 16. ASSASSIN + MARKSMAN spells each do their OWN thing
+{
+  function field(cls, key, lv, mons) { const S = C.create(Object.assign({}, HERO, { cls }), { seed: 12, auras: AURAS }); S.noSpawn = true; S._baseT = 1e9; S.hero.maxHp = 1e6; S.hero.hp = 5e5;
+    if (key) S.hero.auras[key] = lv; (mons || []).forEach(([x, y, o]) => S.monsters.push(Object.assign({ id: S.nextId++, type: 'brute', x, y, hp: 1e6, maxHp: 1e6, dmg: 1, spd: 0, r: 0.6 }, o || {}))); return S; }
+  const run = (S, n, inp) => { for (let i = 0; i < n; i++) C.step(S, typeof inp === 'function' ? inp(i) : (inp || {})); return S; };
+  { const S = run(field('Assassin', 'shadow-knives', 1, [[-4, 0], [4, 0]]), 30 * 1, { mx: 1, my: 0 }); ok('shadow-knives: thrown BEHIND you, not ahead', S.monsters[0].hp < 1e6 && S.monsters[1].hp === 1e6); }
+  { const S = run(field('Assassin', 'poison-cloud', 1), 30 * 2); const c = S._state['poison-cloud'].o[0]; ok('poison-cloud: the cloud drifts with the wind', c && c.x > 0.8, c && c.x); }
+  { const S = field('Assassin', 'phantom-blades', 1, [[3, 0]]); run(S, 30 * 1.4, { mx: 1, my: 0 }); const hp1 = S.monsters[0].hp; ok('phantom-blades: blades go out AND come back (two cuts)', hp1 < 1e6 && S.dealt >= 2 * (1e6 - hp1) * 0.4); }
+  { const S = field('Assassin', 'smoke-veil', 1, [[3, 0, { spd: 2.6 }]]); run(S, 2); const dx0 = S.hero.decoyX; run(S, 30 * 1, { mx: -1, my: 0 });
+    ok('smoke-veil: you vanish and the monster walks to where you were', S.hero.hidden > 0 && Math.abs(S.monsters[0].x - dx0) < 1.5, S.monsters[0].x.toFixed(2)); }
+  { const S = run(field('Assassin', 'death-mark', 1, [[3, 0, { hp: 100, maxHp: 1e6 }], [4, 0, { hp: 2e6, maxHp: 2e6 }]]), 3);
+    ok('death-mark: marks the strongest monster on screen', S.monsters[1].marked === 1 && !S.monsters[0].marked); }
+  { const S = field('Assassin', null, 1, [[3, 0, { marked: 1, exec: 0.2, hp: 1e6, maxHp: 1e6 }]]); S.hero.auras = { 'shadow-knives': 1 }; S.hero.dirx = -1;
+    const m = S.monsters[0]; m.hp = 0.2 * m.maxHp + 200; run(S, 30 * 1); ok('death-mark: a marked monster under 20% is executed', S.kills === 1 || m.hp <= 0); }
+  { const S = run(field('Assassin', 'shuriken-storm', 1, [[5, 0]]), 30 * 2, { mx: 1, my: 0 }); ok('shuriken-storm: shurikens stick in the ground and spin as saws', S._state['shuriken-storm'].o.some(o => !(o.fly > 0)) || S.monsters[0].hp < 1e6); }
+  { const S = run(field('Assassin', 'venom-trail', 1, [[6, 0]]), 30 * 2.5); ok('venom-trail: the snake slithers to the monster and bites', S.monsters[0].hp < 1e6); }
+  { const S = run(field('Assassin', 'shadow-clone', 1, [[-2, 0]]), 30 * 1); ok('shadow-clone: the clone on the other side of you cuts', S.monsters[0].hp < 1e6); }
+  { const S = field('Assassin', 'swift-strikes', 1, [[2, 3]]); run(S, 30 * 0.5, { mx: 1, my: 0 }); const x0 = S.hero.x; run(S, 3, { mx: 0, my: 1 });
+    const N = field('Assassin', 'swift-strikes', 1); run(N, 30 * 1, { mx: 1, my: 0 });
+    ok('swift-strikes: turning dashes you forward (control: walking straight never dashes)', S.hero.y > 2 && !N.fx.some(f => f.kind === 'dash'), S.hero.y.toFixed(2)); }
+  { const S = run(field('Assassin', 'night-sickles', 1, [[4, 0], [-4, 0]]), 30 * 5); ok('night-sickles: the figure-8 sweeps both sides', S.monsters.every(m => m.hp < 1e6)); }
+  { const S = run(field('Marksman', 'arrow-volley', 1, [[5, -1], [5, 1], [-5, 0]]), 30 * 0.6, { mx: 1, my: 0 }); ok('arrow-volley: a fan forward', S.monsters[0].hp < 1e6 && S.monsters[1].hp < 1e6 && S.monsters[2].hp === 1e6); }
+  { const S = field('Marksman', 'hunter-s-turret', 1, [[6, 0]]); run(S, 3); run(S, 30 * 2, { mx: -1, my: 0 }); ok('hunters-turret: the planted turret keeps shooting after you leave', S.monsters[0].hp < 1e6 && S._state['hunter-s-turret'].o.length === 1); }
+  { const ms = []; for (let i = 0; i < 6; i++) ms.push([3 + i * 2, 0]); const S = run(field('Marksman', 'piercing-bolt', 1, ms), 30 * 2.5); ok('piercing-bolt: charges, then one bolt goes through the whole line', S.monsters.filter(m => m.hp < 1e6).length >= 5); }
+  { const S = run(field('Marksman', 'falcon-companion', 1, [[8, 0]]), 30 * 2); ok('falcon-companion: the falcon dives on a far monster', S.monsters[0].hp < 1e6); }
+  { const S = field('Marksman', 'spark-mines', 1); run(S, 30 * 1.5, { mx: 1, my: 0 }); const mine = S._state['spark-mines'].o[0];
+    ok('spark-mines: mines are dropped behind you', mine && mine.x < S.hero.x); S.monsters.push({ id: 999, type: 'brute', x: mine.x, y: mine.y, hp: 1e6, maxHp: 1e6, dmg: 1, spd: 0, r: 0.6 }); run(S, 30 * 0.8);
+    ok('spark-mines: a mine blows when a monster steps on it', S.monsters.find(m => m.id === 999).hp < 1e6); }
+  { const S = run(field('Marksman', 'eagle-eye', 1, [[14, 0], [3, 0]]), 30 * 2); ok('eagle-eye: the crosshair snipes the FAR monster, not the near one', S.monsters[0].hp < 1e6 && S.monsters[1].hp === 1e6); }
+  { const S = run(field('Marksman', 'ricochet-shots', 1), 30 * 4, { mx: 1, my: 0 }); const o = S._state['ricochet-shots'].o; ok('ricochet-shots: shots bounce off the screen edge and come back', o.some(q => q.vx < 0) || S._state['ricochet-shots'].o.length === 0); }
+  { const S = run(field('Marksman', 'rain-of-arrows', 1, [[3.5, 0], [0.5, 0]]), 30 * 6); ok('rain-of-arrows: the rain falls in a ring round you, not on you', S.monsters[0].hp < 1e6 && S.monsters[1].hp === 1e6); }
+  { const S = run(field('Marksman', 'wind-shot', 1, [[3, 0]]), 30 * 0.8, { mx: 1, my: 0 }); ok('wind-shot: the gust blows the monster back', S.monsters[0].x > 4, S.monsters[0].x.toFixed(2)); }
+  { const S = run(field('Marksman', 'flare-trail', 1), 30 * 1.2); ok('flare-trail: flares land round you', S._state['flare-trail'].o.some(o => o.fly <= 0)); }
 }
 
 console.log(fail ? `test_survivors_core: ${pass} passed, ${fail} FAILED` : `test_survivors_core: ${pass} checks passed`);

@@ -232,6 +232,7 @@
     if (!m || m.hp <= 0) return;
     if (m.vuln > 0) amount *= 1.25;
     if (m.frozenT > 0 && amount > 0) { amount *= 2; m.frozenT = 0; m.shatter = 0.3; }        // Frost Nova: a frozen monster shatters
+    if (m.marked) amount *= 2;                                                                 // Death Mark: double damage
     m.hp -= amount; S.dealt += amount; S.hero.ult = Math.min(S.hero.ultMax, S.hero.ult + amount * 0.002);
     var ls = S.hero.lifesteal + pas(S, "leech"); if (ls > 0) S.hero.hp = Math.min(S.hero.maxHp, S.hero.hp + amount * ls * 0.1);
     power = power || 1;
@@ -242,6 +243,7 @@
       var dx = m.x - S.hero.x, dy = m.y - S.hero.y, d = Math.sqrt(dx * dx + dy * dy) || 1, s = (kind === "knock" ? 0.9 : -0.6) * power;
       m.x += dx / d * s; m.y += dy / d * s;
     } else if (kind === "vuln") m.vuln = Math.max(m.vuln || 0, 2.0 * power);
+    if (m.marked && m.hp > 0 && m.type !== "boss" && m.hp < m.maxHp * (m.exec || 0.2)) { m.hp = 0; m.executed = 1; }   // ...and executed under the line
     if (m.hp <= 0) kill(S, m);
   }
   function kill(S, m) {
@@ -596,6 +598,187 @@
         if (d <= sp + 0.4) { h.hp = Math.min(h.maxHp, h.hp + h.maxHp * lin(lv, 0.002, 0.005)); h.haste = Math.max(h.haste || 0, lin(lv, 0.5, 1.2)); st.o.splice(i, 1); } else { o.x += dx / d * sp; o.y += dy / d * sp; } }
       if (lv >= 10) { st.t -= dt; if (st.t <= 0) { st.t = 6; S.zones.push({ kind: "ripple", key: "bloodlust", x: h.x, y: h.y, r0: 0.5, r1: 8 * am, t: 0, life: 0.7, delay: 0, n: 0, dmg: heroDmg(S, 2), fk: "knock", fp: 1.5, hit: {} }); } }
     },
+    // ===== ASSASSIN =====
+    // 41. knives are thrown BEHIND you, at whatever is chasing; L10 knives in every direction
+    "shadow-knives": function (S, st, lv, dt, h, am) {
+      st.t -= dt; if (st.t > 0) return; st.t = lin(lv, 1.4, 0.8) * cdMul(S);
+      var n = lv >= 10 ? 16 : Math.round(lin(lv, 2, 5)), back = Math.atan2(-h.diry, -h.dirx);
+      for (var i = 0; i < n; i++) { var a = lv >= 10 ? i * Math.PI * 2 / n : back + (i - (n - 1) / 2) * 0.18;
+        S.shots.push({ key: "shadow-knives", x: h.x, y: h.y, vx: Math.cos(a) * 16, vy: Math.sin(a) * 16, r: 0.35 * am, life: 0.8, pierce: 1, dmg: heroDmg(S, lin(lv, 0.8, 1.3)), fk: "dot", hit: {}, bounce: 0 }); }
+    },
+    // 42. a cloud is released and DRIFTS slowly with the wind; L10 three great fogs creep over the field
+    "poison-cloud": function (S, st, lv, dt, h, am) {
+      st.o = st.o || []; st.t -= dt;
+      if (st.t <= 0) { st.t = (lv >= 10 ? 4 : lin(lv, 4, 2.5)) * cdMul(S); var big = lv >= 10; if (!big || st.o.length < 3) st.o.push({ x: h.x, y: h.y, r: (big ? 5 : lin(lv, 1.8, 3)) * am, life: big ? 14 : lin(lv, 4, 7), max: big ? 14 : lin(lv, 4, 7) }); }
+      st.k = (st.k || 0) - dt; var tick = st.k <= 0; if (tick) st.k = 0.5;
+      for (var i = st.o.length - 1; i >= 0; i--) { var c = st.o[i]; c.x += 0.9 * dt; c.y += 0.35 * dt; c.life -= dt; c.r += dt * 0.15; if (c.life <= 0) { st.o.splice(i, 1); continue; }
+        if (tick) near(S, c.x, c.y, c.r, function (m) { hit(S, m, heroDmg(S, lin(lv, 0.3, 0.6)), "slow", 1); }); }
+    },
+    // 43. blades fly out and come BACK like boomerangs, cutting both ways; L10 a blossom of 12 all round
+    "phantom-blades": function (S, st, lv, dt, h, am) {
+      st.o = st.o || []; st.t -= dt;
+      if (st.t <= 0) { st.t = lin(lv, 2.4, 1.4) * cdMul(S); var n = lv >= 10 ? 12 : Math.round(lin(lv, 1, 4)), a0 = Math.atan2(h.diry, h.dirx);
+        for (var i = 0; i < n; i++) st.o.push({ a: lv >= 10 ? i * Math.PI * 2 / n : a0 + (i - (n - 1) / 2) * 0.4, d: 0, out: 1, R: (lv >= 10 ? 7 : lin(lv, 5, 8)) * am, hit: {} }); }
+      for (var k = st.o.length - 1; k >= 0; k--) { var o = st.o[k]; o.d += (o.out ? 1 : -1) * dt * 11; if (o.out && o.d >= o.R) { o.out = 0; o.hit = {}; } if (!o.out && o.d <= 0) { st.o.splice(k, 1); continue; }
+        o.x = h.x + Math.cos(o.a) * o.d; o.y = h.y + Math.sin(o.a) * o.d; o.spin = (o.spin || 0) + dt * 16;
+        near(S, o.x, o.y, 0.7 * am, function (m) { if (!o.hit[m.id]) { o.hit[m.id] = 1; hit(S, m, heroDmg(S, lin(lv, 0.9, 1.6)), "dot", 1); } }); }
+    },
+    // 44. a smoke puff, and you VANISH: the horde runs to where you were; L10 you walk unseen
+    "smoke-veil": function (S, st, lv, dt, h, am) {
+      if (lv >= 10) { if (h.mvx || h.mvy) { if (!(h.hidden > 0)) { h.decoyX = h.x; h.decoyY = h.y; } h.hidden = 0.3; } else if (h.hidden > 0) h.hidden -= dt; return; }
+      if (h.hidden > 0) { h.hidden -= dt; return; }
+      st.t -= dt; if (st.t > 0) return; st.t = lin(lv, 10, 6) * cdMul(S); h.hidden = lin(lv, 2, 4); h.decoyX = h.x; h.decoyY = h.y;
+      S.fx.push({ kind: "puff", key: "smoke-veil", x: h.x, y: h.y, r: lin(lv, 2, 3.5) * am, t: 0, life: 0.8 });
+    },
+    // 45. the strongest monster is MARKED to take double damage; under 20% it is EXECUTED; L10 a scythe falls on five marks
+    "death-mark": function (S, st, lv, dt, h, am) {
+      st.t -= dt; if (st.t > 0) return; st.t = (lv >= 10 ? 3 : lin(lv, 4, 2.5)) * cdMul(S);
+      var cands = S.monsters.filter(function (m) { return !m.marked && m.hp > 0 && Math.abs(m.x - h.x) < VIEW.w / 2 && Math.abs(m.y - h.y) < VIEW.h / 2; }).sort(function (a, b) { return b.hp - a.hp || a.id - b.id; });
+      cands.slice(0, lv >= 10 ? 5 : 1).forEach(function (m) { m.marked = 1; m.exec = lin(lv, 0.2, 0.35);
+        if (lv >= 10) S.zones.push({ kind: "drop", key: "death-mark", x: m.x, y: m.y, r1: 1.4, t: 0, life: 0.2, delay: 0.7, dmg: heroDmg(S, 4), fk: "none", fp: 1, hit: {} }); });
+    },
+    // 46. shurikens are thrown ahead and STICK IN THE GROUND, spinning there as saw traps; L10 a field of 8 spinning stars
+    "shuriken-storm": function (S, st, lv, dt, h, am) {
+      st.o = st.o || []; st.t -= dt;
+      if (st.t <= 0) { st.t = lin(lv, 3, 1.8) * cdMul(S);
+        if (lv >= 10) { st.o = []; for (var i = 0; i < 8; i++) { var a = i * Math.PI / 4; st.o.push({ x: h.x + Math.cos(a) * 5, y: h.y + Math.sin(a) * 5, life: 3, fly: 0, r: 1.4 * am }); } }
+        else for (var n = Math.round(lin(lv, 1, 3)), q = 0; q < n; q++) { var a2 = Math.atan2(h.diry, h.dirx) + (q - (n - 1) / 2) * 0.5; st.o.push({ x: h.x, y: h.y, tx: h.x + Math.cos(a2) * 5, ty: h.y + Math.sin(a2) * 5, fly: 0.3, life: lin(lv, 3, 6), r: 1.0 * am }); } }
+      st.k = (st.k || 0) - dt; var tick = st.k <= 0; if (tick) st.k = 0.3;
+      for (var k = st.o.length - 1; k >= 0; k--) { var o = st.o[k]; if (o.fly > 0) { var f = Math.min(1, dt / o.fly); o.x += (o.tx - o.x) * f; o.y += (o.ty - o.y) * f; o.fly -= dt; continue; }
+        o.life -= dt; o.spin = (o.spin || 0) + dt * 18; if (o.life <= 0) { st.o.splice(k, 1); continue; }
+        if (tick) near(S, o.x, o.y, o.r, function (m) { hit(S, m, heroDmg(S, lin(lv, 0.5, 0.9)), "dot", 1); }); }
+    },
+    // 47. venom drips into a SNAKE that SLITHERS after monsters; L10 a giant serpent
+    "venom-trail": function (S, st, lv, dt, h, am) {
+      var len = lv >= 10 ? 24 : Math.round(lin(lv, 5, 12)), big = lv >= 10;
+      if (!st.body) { st.body = []; for (var i = 0; i < len; i++) st.body.push([h.x, h.y]); st.hx = h.x; st.hy = h.y; }
+      while (st.body.length < len) st.body.push(st.body[st.body.length - 1].slice());
+      var tg = nearest(S, st.hx, st.hy, 12) || { x: h.x + h.dirx * 3, y: h.y + h.diry * 3 }, dx = tg.x - st.hx, dy = tg.y - st.hy, d = Math.sqrt(dx * dx + dy * dy) || 1, sp = lin(lv, 5, 7.5) * dt;
+      var wig = Math.sin(S.t * 8) * 0.6; st.hx += (dx / d + -dy / d * wig) * sp; st.hy += (dy / d + dx / d * wig) * sp;
+      var ex = h.x - st.hx, ey = h.y - st.hy; if (ex * ex + ey * ey > 225) { st.hx = h.x; st.hy = h.y; }   // too far: it slips back to you
+      st.body.unshift([st.hx, st.hy]); st.body.length = len;
+      st.k = (st.k || 0) - dt; if (st.k > 0) return; st.k = 0.35; var w = (big ? 1.2 : 0.6) * am;
+      for (var j = 0; j < st.body.length; j += 3) near(S, st.body[j][0], st.body[j][1], w, function (m) { hit(S, m, heroDmg(S, (j ? 0.35 : 1.0) * lin(lv, 1, 1.6) * (big ? 1.5 : 1)), "slow", 1); });
+    },
+    // 48. a clone MIRRORS your moves on the other side of you, cutting what it meets; L10 a legion of six round you
+    "shadow-clone": function (S, st, lv, dt, h, am) {
+      st.c = st.c || [];
+      if (lv >= 10) { st.a = (st.a || 0) + dt * 0.9; st.c = []; for (var i = 0; i < 6; i++) { var a = st.a + i * Math.PI / 3; st.c.push([h.x + Math.cos(a) * 3.2, h.y + Math.sin(a) * 3.2]); } }
+      else { if (!st.o) st.o = [[-2, 0], [0, 2]]; var n = lv >= 6 ? 2 : 1; st.c = [];
+        for (var q = 0; q < n; q++) { var o = st.o[q]; o[0] -= h.mvx * h.speed * dt * (q ? 0 : 1) + (q ? h.mvx * 0 : 0); o[1] -= h.mvy * h.speed * dt * (q ? -1 : 1) * (q ? -1 : 1);
+          if (q) { o[0] += h.mvx * h.speed * dt; o[1] -= h.mvy * h.speed * dt * 2; }
+          var ol = Math.sqrt(o[0] * o[0] + o[1] * o[1]) || 1; if (ol > 4) { o[0] *= 4 / ol; o[1] *= 4 / ol; } if (ol < 1.5) { o[0] *= 1.5 / ol; o[1] *= 1.5 / ol; }
+          st.c.push([h.x + o[0], h.y + o[1]]); } }
+      st.k = (st.k || 0) - dt; if (st.k > 0) return; st.k = lin(lv, 0.6, 0.35);
+      st.c.forEach(function (p) { near(S, p[0], p[1], 1.6 * am, function (m) { hit(S, m, heroDmg(S, lin(lv, 0.8, 1.4)), "dot", 1); }); });
+    },
+    // 49. when you CHANGE DIRECTION you DASH-SLASH through what's in the way; L10 after-images keep slashing
+    "swift-strikes": function (S, st, lv, dt, h, am) {
+      st.cd = (st.cd || 0) - dt; st.ai = (st.ai || []).filter(function (a) { a.t -= dt; return a.t > 0; });
+      if (lv >= 10) { st.k = (st.k || 0) - dt; if (st.k <= 0) { st.k = 0.3; st.ai.forEach(function (a) { near(S, a.x, a.y, 1.5, function (m) { hit(S, m, heroDmg(S, 0.8), "dot", 1); }); }); } }
+      var moving = h.mvx || h.mvy; if (!moving) return; var a = Math.atan2(h.mvy, h.mvx);
+      if (st.pa == null) { st.pa = a; return; } var turn = Math.abs(((a - st.pa) % (Math.PI * 2) + Math.PI * 3) % (Math.PI * 2) - Math.PI); st.pa = a;
+      if (turn < 1.0 || st.cd > 0) return; st.cd = lin(lv, 1.0, 0.5);
+      var L = lin(lv, 2.5, 4.5) * am, x0 = h.x, y0 = h.y; h.x += Math.cos(a) * L; h.y += Math.sin(a) * L; h.iframes = Math.max(h.iframes, 0.25);
+      near(S, x0 + Math.cos(a) * L / 2, y0 + Math.sin(a) * L / 2, L / 2 + 1, function (m) { if (segDist(m.x, m.y, x0, y0, a, L) <= 1 + m.r) { hit(S, m, heroDmg(S, lin(lv, 1.6, 2.8)), "dot", 1); if (lv >= 5) hit(S, m, heroDmg(S, 0.6), "none"); } });
+      S.fx.push({ kind: "dash", key: "swift-strikes", x: x0, y: y0, tx: h.x, ty: h.y, t: 0, life: 0.3 }); if (lv >= 10) st.ai.push({ x: x0 + Math.cos(a) * L / 2, y: y0 + Math.sin(a) * L / 2, t: 1.5 });
+    },
+    // 50. sickles fly a WIDE FIGURE-8 round you; L10 a crescent moon sweeps the field
+    "night-sickles": function (S, st, lv, dt, h, am) {
+      st.a = (st.a || 0) + dt * lin(lv, 1.4, 2.2); var n = lv >= 10 ? 1 : Math.round(lin(lv, 1, 3)), R = (lv >= 10 ? 9 : lin(lv, 4, 6)) * am; st.p = [];
+      for (var i = 0; i < n; i++) { var t = (lv >= 10 ? st.a * 0.4 : st.a) + i * Math.PI * 2 / n; st.p.push(lv >= 10 ? [h.x + Math.cos(t) * R, h.y + Math.sin(t) * R * 0.6, t] : [h.x + Math.sin(t) * R, h.y + Math.sin(t) * Math.cos(t) * R, t]); }
+      st.k = (st.k || 0) - dt; if (st.k > 0) return; st.k = 0.2;
+      st.p.forEach(function (p) { near(S, p[0], p[1], (lv >= 10 ? 2.6 : 0.9) * am, function (m) { hit(S, m, heroDmg(S, lin(lv, 0.6, 1.0) * (lv >= 10 ? 1.6 : 1)), "dot", 1); }); });
+    },
+
+    // ===== MARKSMAN =====
+    // 51. a FAN of arrows forward; L10 arrows rain from the sky across your front
+    "arrow-volley": function (S, st, lv, dt, h, am) {
+      st.t -= dt; if (st.t > 0) return; st.t = lin(lv, 1.6, 1.0) * cdMul(S);
+      if (lv >= 10) { var px = -h.diry, py = h.dirx; for (var j = 0; j < 20; j++) { var o = (j - 9.5) * 0.9; S.zones.push({ kind: "drop", key: "arrow-volley", x: h.x + h.dirx * 7 + px * o, y: h.y + h.diry * 7 + py * o, r1: 0.9, t: 0, life: 0.12, delay: 0.3 + (j % 5) * 0.06, dmg: heroDmg(S, 1.4), fk: "none", fp: 1, hit: {} }); } return; }
+      var n = Math.round(lin(lv, 3, 7)), a0 = Math.atan2(h.diry, h.dirx), spread = lin(lv, 0.5, 0.9);
+      for (var i = 0; i < n; i++) { var a = a0 + (n > 1 ? (i / (n - 1) - 0.5) * spread : 0); S.shots.push({ key: "arrow-volley", x: h.x, y: h.y, vx: Math.cos(a) * 18, vy: Math.sin(a) * 18, r: 0.3 * am, life: 0.9, pierce: 0, dmg: heroDmg(S, lin(lv, 0.8, 1.3)), fk: "none", hit: {}, bounce: 0 }); }
+    },
+    // 52. a turret is PLANTED and shoots the nearest monster; L10 one siege ballista whose bolts pierce everything
+    "hunter-s-turret": function (S, st, lv, dt, h, am) {
+      st.o = st.o || []; st.t -= dt; var max = lv >= 10 ? 1 : Math.round(lin(lv, 1, 3));
+      if (st.t <= 0) { st.t = lin(lv, 6, 4) * cdMul(S); st.o.push({ x: h.x, y: h.y, life: lv >= 10 ? 1e9 : 12, cd: 0, aim: 0 }); while (st.o.length > max) st.o.shift(); }
+      if (lv >= 10 && st.o[0]) { var b = st.o[0], bx = h.x - b.x, by = h.y - b.y; if (bx * bx + by * by > 100) { b.x = h.x; b.y = h.y; } }   // the ballista keeps up
+      for (var i = st.o.length - 1; i >= 0; i--) { var tu = st.o[i]; tu.life -= dt; if (tu.life <= 0) { st.o.splice(i, 1); continue; } tu.cd -= dt; if (tu.cd > 0) continue;
+        var tg = nearest(S, tu.x, tu.y, lv >= 10 ? 16 : 9); if (!tg) continue; tu.cd = lv >= 10 ? 1 : lin(lv, 0.7, 0.4); var dx = tg.x - tu.x, dy = tg.y - tu.y, d = Math.sqrt(dx * dx + dy * dy) || 1; tu.aim = Math.atan2(dy, dx);
+        S.shots.push({ key: "hunter-s-turret", x: tu.x, y: tu.y, vx: dx / d * 20, vy: dy / d * 20, r: (lv >= 10 ? 0.6 : 0.3) * am, life: 1, pierce: lv >= 10 ? 99 : 0, dmg: heroDmg(S, lv >= 10 ? 3 : lin(lv, 0.7, 1.2)), fk: "knock", hit: {}, bounce: 0 }); }
+    },
+    // 53. a bolt CHARGES up, then fires through a long line; L10 a beam across the whole screen
+    "piercing-bolt": function (S, st, lv, dt, h, am) {
+      st.ch = (st.ch || 0) + dt; var need = lin(lv, 2.0, 1.2) * cdMul(S); st.need = need; if (st.ch < need) return; st.ch = 0;
+      if (lv >= 10) { var a = Math.atan2(h.diry, h.dirx), L = VIEW.w; near(S, h.x + h.dirx * L / 2, h.y + h.diry * L / 2, L / 2 + 1.5, function (m) { if (segDist(m.x, m.y, h.x, h.y, a, L) <= 1.2 + m.r) hit(S, m, heroDmg(S, 6), "none"); });
+        S.fx.push({ kind: "rail", key: "piercing-bolt", x: h.x, y: h.y, a: a, len: L, t: 0, life: 0.35 }); return; }
+      S.shots.push({ key: "piercing-bolt", x: h.x, y: h.y, vx: h.dirx * 30, vy: h.diry * 30, r: 0.5 * am, life: lin(lv, 0.6, 0.9), pierce: 99, dmg: heroDmg(S, lin(lv, 2.4, 4)), fk: "none", hit: {}, bounce: 0 });
+    },
+    // 54. a falcon DIVES on monsters from above, then climbs; L10 the stormhawk: each dive throws lightning to 3 more
+    "falcon-companion": function (S, st, lv, dt, h, am) {
+      var f = st.f || (st.f = { x: h.x, y: h.y, alt: 1, tg: null, cd: 0 }); f.cd -= dt;
+      if (!f.tg) { var a = S.t * 1.2; f.x += (h.x + Math.cos(a) * 3 - f.x) * Math.min(1, dt * 3); f.y += (h.y + Math.sin(a) * 2 - f.y) * Math.min(1, dt * 3); f.alt = Math.min(1, f.alt + dt * 2);
+        if (f.cd <= 0) { f.tg = nearest(S, h.x, h.y, 11); } return; }
+      if (f.tg.hp <= 0) { f.tg = null; return; }
+      var dx = f.tg.x - f.x, dy = f.tg.y - f.y, d = Math.sqrt(dx * dx + dy * dy) || 1, sp = 18 * dt; f.alt = Math.max(0, f.alt - dt * 3);
+      if (d <= sp + f.tg.r) { hit(S, f.tg, heroDmg(S, lin(lv, 1.6, 2.8) * (lv >= 10 ? 1.4 : 1)), "dot", 1.5);
+        if (lv >= 10) { var tg0 = f.tg, c = 0; near(S, tg0.x, tg0.y, 5, function (m) { if (m !== tg0 && c < 3) { c++; hit(S, m, heroDmg(S, 1.5), "stun", 0.6); S.fx.push({ kind: "bolt2", key: "falcon-companion", x: tg0.x, y: tg0.y, tx: m.x, ty: m.y, t: 0, life: 0.2 }); } }); }
+        f.tg = null; f.cd = lin(lv, 1.6, 0.8); } else { f.x += dx / d * sp; f.y += dy / d * sp; }
+    },
+    // 55. mines are dropped BEHIND you as you walk and blow when stepped on; L10 a minefield
+    "spark-mines": function (S, st, lv, dt, h, am) {
+      st.o = st.o || []; var max = lv >= 10 ? 30 : Math.round(lin(lv, 3, 8));
+      if (h.mvx || h.mvy) { st.walk = (st.walk || 0) + h.speed * dt; if (st.walk >= (lv >= 10 ? 1.2 : 2)) { st.walk = 0; st.o.push({ x: h.x - h.dirx * 0.8, y: h.y - h.diry * 0.8, arm: 0.5 }); if (st.o.length > max) st.o.shift(); } }
+      for (var i = st.o.length - 1; i >= 0; i--) { var mn = st.o[i]; if (mn.arm > 0) { mn.arm -= dt; continue; } var trip = false; near(S, mn.x, mn.y, 0.9, function () { trip = true; });
+        if (trip) { var R = lin(lv, 1.8, 2.6) * am * (lv >= 10 ? 1.2 : 1); near(S, mn.x, mn.y, R, function (m) { hit(S, m, heroDmg(S, lin(lv, 1.6, 2.6)), "stun", 1); }); S.fx.push({ kind: "boom", key: "spark-mines", x: mn.x, y: mn.y, r: R, t: 0, life: 0.35 }); st.o.splice(i, 1); } }
+    },
+    // 56. a CROSSHAIR settles on a FAR monster, then a sniper shot crits it; L10 every far monster is marked
+    "eagle-eye": function (S, st, lv, dt, h, am) {
+      st.aims = st.aims || [];
+      if (!st.aims.length) { st.t -= dt; if (st.t > 0) return; var far = S.monsters.filter(function (m) { var dx = m.x - h.x, dy = m.y - h.y; return m.hp > 0 && dx * dx + dy * dy > 64 && Math.abs(dx) < VIEW.w / 2 && Math.abs(dy) < VIEW.h / 2; });
+        far.sort(function (a, b) { return Math.hypot(b.x - h.x, b.y - h.y) - Math.hypot(a.x - h.x, a.y - h.y) || a.id - b.id; });
+        st.aims = far.slice(0, lv >= 10 ? 6 : 1).map(function (m) { return { m: m, t: lin(lv, 1.2, 0.6) }; }); st.t = lin(lv, 3, 1.8) * cdMul(S); return; }
+      for (var i = st.aims.length - 1; i >= 0; i--) { var a = st.aims[i]; a.t -= dt; if (a.m.hp <= 0) { st.aims.splice(i, 1); continue; }
+        if (a.t <= 0) { hit(S, a.m, heroDmg(S, lin(lv, 5, 9)) * (1 + h.critDmg), "none"); S.fx.push({ kind: "snipe", key: "eagle-eye", x: h.x, y: h.y, tx: a.m.x, ty: a.m.y, t: 0, life: 0.2 }); st.aims.splice(i, 1); } }
+    },
+    // 57. shots BOUNCE OFF THE SCREEN EDGES like pinballs; L10 they never stop
+    "ricochet-shots": function (S, st, lv, dt, h, am) {
+      st.o = st.o || []; st.t -= dt;
+      if (st.t <= 0) { st.t = lin(lv, 2.4, 1.4) * cdMul(S); if (lv < 10 || st.o.length < 4) for (var n = lv >= 10 ? 4 : Math.round(lin(lv, 1, 3)), i = 0; i < n; i++) { var a = Math.atan2(h.diry, h.dirx) + (i - (n - 1) / 2) * 0.5;
+          st.o.push({ x: h.x, y: h.y, vx: Math.cos(a) * 15, vy: Math.sin(a) * 15, b: lv >= 10 ? 1e9 : Math.round(lin(lv, 2, 6)), life: lv >= 10 ? 1e9 : 6, hit: {}, rh: 0 }); } }
+      var hx = VIEW.w / 2 - 0.5, hy = VIEW.h / 2 - 0.5;
+      for (var k = st.o.length - 1; k >= 0; k--) { var o = st.o[k]; o.x += o.vx * dt; o.y += o.vy * dt; o.life -= dt; o.rh -= dt; if (o.rh <= 0) { o.rh = 0.4; o.hit = {}; }
+        if (o.x < h.x - hx || o.x > h.x + hx) { o.vx = -o.vx; o.x = clamp(o.x, h.x - hx, h.x + hx); o.b--; } if (o.y < h.y - hy || o.y > h.y + hy) { o.vy = -o.vy; o.y = clamp(o.y, h.y - hy, h.y + hy); o.b--; }
+        if (o.b < 0 || o.life <= 0) { st.o.splice(k, 1); continue; }
+        near(S, o.x, o.y, 0.5 * am, function (m) { if (!o.hit[m.id]) { o.hit[m.id] = 1; hit(S, m, heroDmg(S, lin(lv, 0.9, 1.5)), "none"); } }); }
+    },
+    // 58. arrows rain in a RING round you, hitting what comes close; L10 rain over the whole screen
+    "rain-of-arrows": function (S, st, lv, dt, h, am) {
+      st.t -= dt; if (st.t > 0) return; st.t = lin(lv, 0.35, 0.18);
+      for (var i = 0, n = lv >= 10 ? 6 : 1; i < n; i++) { var a = S.rng() * Math.PI * 2, r = lv >= 10 ? Math.sqrt(S.rng()) * VIEW.h / 2 : lin(lv, 3, 4.5) * am * (0.85 + S.rng() * 0.3);
+        S.zones.push({ kind: "drop", key: "rain-of-arrows", x: h.x + Math.cos(a) * r * (lv >= 10 ? VIEW.w / VIEW.h : 1), y: h.y + Math.sin(a) * r, r1: 0.9, t: 0, life: 0.1, delay: 0.25, dmg: heroDmg(S, lin(lv, 0.7, 1.1)), fk: "none", fp: 1, hit: {} }); }
+    },
+    // 59. a gust shot BLOWS a corridor clear ahead; L10 an arrow carrying a tornado that drags monsters along
+    "wind-shot": function (S, st, lv, dt, h, am) {
+      st.o = st.o || []; st.t -= dt;
+      if (st.t <= 0) { st.t = lin(lv, 2.6, 1.6) * cdMul(S); st.o.push({ x: h.x, y: h.y, vx: h.dirx * 12, vy: h.diry * 12, w: (lv >= 10 ? 2.4 : lin(lv, 1.2, 2)) * am, life: lin(lv, 1.0, 1.5), hit: {}, big: lv >= 10 ? 1 : 0 }); }
+      for (var k = st.o.length - 1; k >= 0; k--) { var o = st.o[k]; o.x += o.vx * dt; o.y += o.vy * dt; o.life -= dt; if (o.life <= 0) { st.o.splice(k, 1); continue; }
+        var vl = Math.sqrt(o.vx * o.vx + o.vy * o.vy) || 1;
+        near(S, o.x, o.y, o.w, function (m) { if (m.type === "boss") return; if (o.big) { m.x += (o.x - m.x) * Math.min(1, dt * 8) + o.vx * dt; m.y += (o.y - m.y) * Math.min(1, dt * 8) + o.vy * dt; } else { m.x += o.vx / vl * lin(lv, 3, 5) * dt * 4; m.y += o.vy / vl * lin(lv, 3, 5) * dt * 4; }
+          if (!o.hit[m.id]) { o.hit[m.id] = 1; hit(S, m, heroDmg(S, lin(lv, 0.8, 1.4) * (o.big ? 2 : 1)), "none"); } }); }
+    },
+    // 60. flares are shot UP and land round you, leaving fire that blinds; L10 a signal column calls a barrage
+    "flare-trail": function (S, st, lv, dt, h, am) {
+      st.o = st.o || []; st.t -= dt;
+      if (st.t <= 0) { st.t = lin(lv, 3.5, 2.2) * cdMul(S);
+        if (lv >= 10) { st.col = 1.2; for (var j = 0; j < 12; j++) S.zones.push({ kind: "drop", key: "flare-trail", x: h.x + (S.rng() - 0.5) * VIEW.w * 0.8, y: h.y + (S.rng() - 0.5) * VIEW.h * 0.8, r1: 2.2, t: 0, life: 0.2, delay: 1 + j * 0.12, dmg: heroDmg(S, 2.5), fk: "dot", fp: 1.5, hit: {}, big: 1 }); }
+        else for (var n = Math.round(lin(lv, 2, 5)), i = 0; i < n; i++) { var a = S.rng() * Math.PI * 2, r = 3 + S.rng() * 3; st.o.push({ x: h.x, y: h.y, tx: h.x + Math.cos(a) * r, ty: h.y + Math.sin(a) * r, fly: 0.8, fly0: 0.8, life: lin(lv, 3, 5), r: lin(lv, 1.2, 1.8) * am }); } }
+      if (st.col > 0) st.col -= dt;
+      st.k = (st.k || 0) - dt; var tick = st.k <= 0; if (tick) st.k = 0.4;
+      for (var k = st.o.length - 1; k >= 0; k--) { var o = st.o[k]; if (o.fly > 0) { o.fly -= dt; continue; } o.life -= dt; if (o.life <= 0) { st.o.splice(k, 1); continue; }
+        if (tick) near(S, o.tx, o.ty, o.r, function (m) { hit(S, m, heroDmg(S, lin(lv, 0.4, 0.7)), "dot", 1); m.blindT = Math.max(m.blindT || 0, 0.8); }); }
+    },
   };
 
   /* ---- auras ------------------------------------------------------------------------------------------------------------------- */
@@ -893,6 +1076,9 @@
       if (m.blindT > 0) { m.blindT -= dt; var wa = m.id * 1.7 + S.t * 0.6; m.x += Math.cos(wa) * m.spd * 0.4 * dt; m.y += Math.sin(wa) * m.spd * 0.4 * dt; continue; }   // BLIND: wanders
       if (m.life != null) { m.life -= dt; if (m.life <= 0) { S.monsters.splice(mi, 1); continue; } }   // an event member leaves
       var dx = h.x - m.x, dy = h.y - m.y, d = Math.sqrt(dx * dx + dy * dy) || 1, sp3 = m.spd * (m.slowT > 0 ? 0.5 : 1);
+      if (h.hidden > 0 && m.type !== "boss") { var qx = h.decoyX - m.x, qy = h.decoyY - m.y, qd = Math.sqrt(qx * qx + qy * qy) || 1;   // Smoke Veil: they lost you
+        if (Math.abs(dx) > VIEW.w / 2 + 8 || Math.abs(dy) > VIEW.h / 2 + 8) { if (!m.ev && !m.wb) { S.monsters.splice(mi, 1); continue; } }
+        if (qd > 0.8) { m.x += qx / qd * sp3 * dt; m.y += qy / qd * sp3 * dt; } continue; }
       if (m.slowT > 0) m.slowT -= dt;
       // left behind: a wave monster 8 m past the view's edge is recycled (the wave refills near the hero). Bosses and wave elites never are.
       if (!m.ev && !m.wb && m.type !== "boss" && (Math.abs(dx) > VIEW.w / 2 + 8 || Math.abs(dy) > VIEW.h / 2 + 8)) { S.monsters.splice(mi, 1); continue; }

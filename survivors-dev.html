@@ -64,7 +64,7 @@
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="/assets/js/three-r128-GLTFLoader.js"></script>
-<script src="/server/survivors-core.js?v=dev10"></script>
+<script src="/server/survivors-core.js?v=dev11"></script>
 <script>
 (async function () {
   const C = window.SurvivorsCore, AURAS = await (await fetch('/server/survivors-auras.json?v=dev1')).json();
@@ -179,7 +179,11 @@
        scale   - the element IS the ring / dome / pool: scale it
        wreath  - copies circling the hero slowly (vines, plates)
        dome    - shown over the hero while its block is up                                                                    */
-  const V3_DRAWN = { 'halo-of-light': 1, 'song-notes': 1, 'sanctuary': 1, 'prism-beam': 1, 'blessed-shield': 1, 'spirit-lantern': 1, 'bloom-path': 1, 'chime-pulse': 1, 'guardian-spirits': 1, 'sunburst': 1, 'spike-ring': 1, 'iron-bulwark': 1, 'quake-step': 1, 'thorn-hide': 1, 'taunting-roar': 1, 'boulder-roll': 1, 'molten-ground': 1, 'bastion-dome': 1 };
+  const V3_DRAWN = { 'arcane-orbs': 1, 'fire-halo': 1, 'frost-nova': 1, 'chain-lightning': 1, 'starfall': 1, 'gravity-well': 1, 'rune-circle': 1, 'wisp-familiars': 1, 'mana-storm': 1, 'meteor-call': 1,
+    'blade-whirl': 1, 'shock-stomp': 1, 'chain-flail': 1, 'rage-ember': 1, 'iron-fists': 1, 'cleaver-rain': 1, 'war-drum': 1, 'grudge-mark': 1, 'rending-gale': 1, 'bloodlust': 1,
+    'shadow-knives': 1, 'poison-cloud': 1, 'phantom-blades': 1, 'smoke-veil': 1, 'death-mark': 1, 'shuriken-storm': 1, 'venom-trail': 1, 'shadow-clone': 1, 'swift-strikes': 1, 'night-sickles': 1,
+    'arrow-volley': 1, 'hunter-s-turret': 1, 'piercing-bolt': 1, 'falcon-companion': 1, 'spark-mines': 1, 'eagle-eye': 1, 'ricochet-shots': 1, 'rain-of-arrows': 1, 'wind-shot': 1, 'flare-trail': 1,
+    'halo-of-light': 1, 'song-notes': 1, 'sanctuary': 1, 'prism-beam': 1, 'blessed-shield': 1, 'spirit-lantern': 1, 'bloom-path': 1, 'chime-pulse': 1, 'guardian-spirits': 1, 'sunburst': 1, 'spike-ring': 1, 'iron-bulwark': 1, 'quake-step': 1, 'thorn-hide': 1, 'taunting-roar': 1, 'boulder-roll': 1, 'molten-ground': 1, 'bastion-dome': 1 };
   const ART = {}, USE = { 'spike-ring': 'ring', 'taunting-roar': 'scale', 'thorn-hide': 'wreath', 'bastion-dome': 'dome' };
   function artFor(key) {
     if (!key || key === '_base') return null; if (ART[key] !== undefined) return ART[key];
@@ -226,6 +230,73 @@
         sym(z.key, cx, cy, rr * 2 * sc, 0, 1 - u, z.key === 'chime-pulse' ? '#e8f4ff' : '#bfe4ff', 'ring'); }
       if (z.kind === 'drop' && z.key === 'chime-pulse') { const u = z.delay > 0 ? 1 - z.delay / 0.8 : 1; const rec = artFor('chime-pulse'), im = rec && (rec.lv10 || rec.unit);
         if (im) el(im, X(z.x), Y(z.y) - (1 - u) * 10 * sc, 5 * sc, 0, 1); else sym('chime-pulse', X(z.x), Y(z.y) - (1 - u) * 10 * sc, 4 * sc, 0, 1, '#e8c56a'); } });
+  }
+  // MAGE / BRUISER / ASSASSIN / MARKSMAN spells, each drawn the way it moves (art when it lands, a plain shape until then)
+  function line(x1, y1, x2, y2, col, w, a) { g.save(); g.globalAlpha = a == null ? 1 : a; g.strokeStyle = col; g.lineWidth = w; g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2, y2); g.stroke(); g.restore(); }
+  function zig(pts, col, w, a) { g.save(); g.globalAlpha = a; g.strokeStyle = col; g.lineWidth = w; g.beginPath(); pts.forEach((p, i) => { const jx = i && i < pts.length - 1 ? (Math.random() - 0.5) * 6 : 0; i ? g.lineTo(p[0] + jx, p[1] + jx) : g.moveTo(p[0], p[1]); }); g.stroke(); g.restore(); }
+  function drawOthers(X, Y, sc, cx, cy, t, am) { const h = S.hero, A = h.auras, st = k => S._state[k] || {}, dir = Math.atan2(h.diry, h.dirx);
+    // --- MAGE
+    if (A['arcane-orbs']) (st('arcane-orbs').o || []).forEach((o, i) => sym('arcane-orbs', X(o.x), Y(o.y), (o.big ? 2 : 1.1) * sc, t * 3 + i, 1, '#9a7aff'));
+    if (A['fire-halo']) { const p = st('fire-halo'); if (p.cx != null) { const n = 16; for (let i = 0; i < n; i++) { const a = i / n * Math.PI * 2 + t; sym('fire-halo', X(p.cx + Math.cos(a) * p.r), Y(p.cy + Math.sin(a) * p.r), 1.1 * sc, a, 0.9, '#ff7a2a'); } } }
+    if (A['frost-nova'] && st('frost-nova').burst > 0) { const p = st('frost-nova'); p.burst -= 1 / 60; sym('frost-nova', cx, cy, 10 * sc * (1 - p.burst), 0, p.burst * 2, '#bfeaff', 'ring'); }
+    if (A['chain-lightning']) (st('chain-lightning').paths || []).forEach(pt => { pt.t -= 1 / 60; if (pt.t > 0) zig(pt.pts.map(q => [X(q[0]), Y(q[1])]), '#d8f0ff', 3, pt.t * 4); });
+    if (A['starfall']) (st('starfall').o || []).forEach(o => { line(X(o.x), Y(o.y), X(o.x - o.vx * 0.12), Y(o.y - o.vy * 0.12), '#fff3b0', o.r * sc * 0.8, 0.5); sym('starfall', X(o.x), Y(o.y), o.r * 2.2 * sc, t * 5, 1, '#ffe680'); });
+    if (A['gravity-well'] && st('gravity-well').w) { const w = st('gravity-well').w; sym('gravity-well', X(w.x), Y(w.y), 2.4 * sc * (1 + Math.sin(t * 6) * 0.08), -t * 4, 1, '#20103a'); sym('gravity-well', X(w.x), Y(w.y), 7 * sc, t, 0.15, '#7a4aff', 'ring'); }
+    if (A['rune-circle']) (st('rune-circle').o || []).forEach(o => sym('rune-circle', X(o.x), Y(o.y), o.r * 2 * sc, t * 0.8, 0.4 + 0.6 * (1 - o.fuse / o.max), '#ff9a4a', 'ring'));
+    if (A['wisp-familiars']) (st('wisp-familiars').o || []).forEach((w, i) => sym('wisp-familiars', X(w.x), Y(w.y) - Math.sin(t * 4 + i) * 0.2 * sc, 0.9 * sc, 0, 1, '#9affea'));
+    if (A['mana-storm']) { const p = st('mana-storm'); if (p.cx != null) { sym('mana-storm', X(p.cx), Y(p.cy) - 2.5 * sc, p.r * 2.2 * sc, 0, 0.55, '#5a6a8a'); (p.strikes || []).forEach(s2 => line(X(s2.x), Y(s2.y) - 2.5 * sc, X(s2.x), Y(s2.y), '#e8f4ff', 3, s2.t * 5)); } }
+    // --- BRUISER
+    if (A['blade-whirl']) { const p = st('blade-whirl'), lv = lvOf('blade-whirl'), R = (lv >= 10 ? 3 : 2.4 + lv * 0.13) * am;
+      if (lv >= 10) for (let i = 0; i < 6; i++) { const a = (p.sw || 0) + i * Math.PI / 3; sym('blade-whirl', cx + Math.cos(a) * R * sc, cy + Math.sin(a) * R * sc, 1.5 * sc, a + Math.PI / 2, 0.9, '#d8d8e8'); }
+      else if (p.sp > 0) sym('blade-whirl', cx + Math.cos(p.sw) * R * 0.7 * sc, cy + Math.sin(p.sw) * R * 0.7 * sc, R * 1.1 * sc, p.sw + Math.PI / 2, 1, '#d8d8e8', 'beam'); }
+    if (A['shock-stomp']) (st('shock-stomp').o || []).forEach(o => { if (o.fx != null) sym('shock-stomp', X(o.fx), Y(o.fy), o.w * 2.2 * sc, o.a + Math.PI / 2, 1 - o.d / o.len * 0.6, '#d8b070', 'ring'); });
+    if (A['chain-flail']) { const p = st('chain-flail'); if (p.fx != null) { line(cx, cy, X(p.fx), Y(p.fy), '#8a8a9a', 2, 0.9); sym('chain-flail', X(p.fx), Y(p.fy), (lvOf('chain-flail') >= 10 ? 3 : 1.4) * sc, t * 6, 1, '#6a6a7a'); } }
+    if (A['rage-ember']) { const r = (st('rage-ember').rage || 0) / 100; sym('rage-ember', cx, cy - 0.5 * sc, (1.2 + r * 1.6) * sc * (1 + Math.sin(t * 12) * 0.06), 0, 0.25 + r * 0.7, '#ff4a1a'); }
+    if (A['grudge-mark']) (st('grudge-mark').o || []).forEach(ax => sym('grudge-mark', X(ax.x), Y(ax.y), 1.3 * sc, ax.rot || 0, 1, '#c0c0d0'));
+    if (A['rending-gale']) { const p = st('rending-gale'), lv = lvOf('rending-gale');
+      if (lv >= 10 && p.tw) sym('rending-gale', X(p.tw.x), Y(p.tw.y), 5 * sc, t * 6, 0.8, '#cfe8ff');
+      else if (p.sp > 0) { const L = (5 + lv * 0.25) * am * sc; sym('rending-gale', cx + Math.cos(p.cur) * L / 2, cy + Math.sin(p.cur) * L / 2, L, p.cur + Math.PI / 2, 0.85, '#cfe8ff', 'beam'); } }
+    if (A['bloodlust']) (st('bloodlust').o || []).forEach(o => sym('bloodlust', X(o.x), Y(o.y), 0.6 * sc, 0, 1, '#d01a2a'));
+    // --- ASSASSIN
+    if (A['poison-cloud']) (st('poison-cloud').o || []).forEach(c => sym('poison-cloud', X(c.x), Y(c.y), c.r * 2.2 * sc, t * 0.2, 0.5 * Math.min(1, c.life), '#7adf6a'));
+    if (A['phantom-blades']) (st('phantom-blades').o || []).forEach(o => { if (o.x != null) sym('phantom-blades', X(o.x), Y(o.y), 1.2 * sc, o.spin || 0, 0.9, '#b8b0ff'); });
+    if (A['smoke-veil'] && h.hidden > 0) { sym('smoke-veil', X(h.decoyX), Y(h.decoyY), 1.2 * sc, 0, 0.35, '#888', 'ring'); }
+    if (A['death-mark']) S.monsters.forEach(m => { if (m.marked) sym('death-mark', X(m.x), Y(m.y) - 2.2 * sc, 1.1 * sc, 0, 0.9 + Math.sin(t * 6) * 0.1, '#ff2a3a'); });
+    if (A['shuriken-storm']) (st('shuriken-storm').o || []).forEach(o => sym('shuriken-storm', X(o.x), Y(o.y), (o.r || 1) * 1.6 * sc, o.spin || t * 10, 1, '#c8c8d8'));
+    if (A['venom-trail']) { const p = st('venom-trail'); if (p.body) { const w = (lvOf('venom-trail') >= 10 ? 1.2 : 0.6) * sc;
+        for (let i = p.body.length - 1; i >= 0; i -= 1) sym('venom-trail', X(p.body[i][0]), Y(p.body[i][1]), w * 2 * (i ? 1 - i / p.body.length * 0.5 : 1.3), 0, 1, i ? '#4aa83a' : '#2a7a2a'); } }
+    if (A['shadow-clone']) (st('shadow-clone').c || []).forEach(c => sym('shadow-clone', X(c[0]), Y(c[1]), 2.2 * sc, 0, 0.6, '#3a2a4a'));
+    if (A['swift-strikes']) (st('swift-strikes').ai || []).forEach(a => sym('swift-strikes', X(a.x), Y(a.y), 2 * sc, 0, a.t / 1.5 * 0.6, '#c0a0ff'));
+    if (A['night-sickles']) (st('night-sickles').p || []).forEach(p2 => sym('night-sickles', X(p2[0]), Y(p2[1]), (lvOf('night-sickles') >= 10 ? 5 : 1.4) * sc, p2[2] * 3, 1, '#d8d8ff'));
+    // --- MARKSMAN
+    if (A['hunter-s-turret']) (st('hunter-s-turret').o || []).forEach(tu => sym('hunter-s-turret', X(tu.x), Y(tu.y), (lvOf('hunter-s-turret') >= 10 ? 2.6 : 1.6) * sc, tu.aim + Math.PI / 2, 1, '#8a6a3a'));
+    if (A['piercing-bolt']) { const p = st('piercing-bolt'); if (p.need) { const f = Math.min(1, (p.ch || 0) / p.need); sym('piercing-bolt', cx + h.dirx * 1.2 * sc, cy + h.diry * 1.2 * sc, (0.3 + f) * sc, 0, 0.4 + f * 0.6, '#9ad8ff', 'ring'); } }
+    if (A['falcon-companion']) { const f = st('falcon-companion').f; if (f) { g.fillStyle = 'rgba(0,0,0,0.25)'; g.beginPath(); g.ellipse(X(f.x), Y(f.y), 0.6 * sc, 0.25 * sc, 0, 0, 7); g.fill();
+        sym('falcon-companion', X(f.x), Y(f.y) - f.alt * 3 * sc, (1.2 + (1 - f.alt) * 0.4) * sc, 0, 1, '#a07a4a'); } }
+    if (A['spark-mines']) (st('spark-mines').o || []).forEach(mn => sym('spark-mines', X(mn.x), Y(mn.y), 0.8 * sc, 0, mn.arm > 0 ? 0.5 : 0.8 + Math.sin(t * 8) * 0.2, '#ffd23a'));
+    if (A['eagle-eye']) (st('eagle-eye').aims || []).forEach(a => { const m = a.m; if (m.hp > 0) { const r = (0.8 + a.t * 1.5) * sc; g.save(); g.strokeStyle = '#ff3a3a'; g.lineWidth = 2; g.beginPath(); g.arc(X(m.x), Y(m.y), r, 0, 7);
+        g.moveTo(X(m.x) - r * 1.3, Y(m.y)); g.lineTo(X(m.x) + r * 1.3, Y(m.y)); g.moveTo(X(m.x), Y(m.y) - r * 1.3); g.lineTo(X(m.x), Y(m.y) + r * 1.3); g.stroke(); g.restore(); } });
+    if (A['ricochet-shots']) (st('ricochet-shots').o || []).forEach(o => sym('ricochet-shots', X(o.x), Y(o.y), 0.9 * sc, Math.atan2(o.vy, o.vx) + Math.PI / 2, 1, '#ffb24a'));
+    if (A['wind-shot']) (st('wind-shot').o || []).forEach(o => sym('wind-shot', X(o.x), Y(o.y), o.w * 2 * sc, o.big ? t * 8 : Math.atan2(o.vy, o.vx) + Math.PI / 2, 0.8, '#d0f0ff', o.big ? null : 'ring'));
+    if (A['flare-trail']) { const p = st('flare-trail'); (p.o || []).forEach(o => { if (o.fly > 0) { const u = 1 - o.fly / o.fly0; sym('flare-trail', X(o.x + (o.tx - o.x) * u), Y(o.y + (o.ty - o.y) * u) - Math.sin(u * Math.PI) * 4 * sc, 0.6 * sc, 0, 1, '#ff5a2a'); }
+        else sym('flare-trail', X(o.tx), Y(o.ty), o.r * 2 * sc * (1 + Math.sin(t * 9) * 0.05), t, 0.7, '#ff7a2a'); });
+      if (p.col > 0) line(cx, cy, cx, cy - 20 * sc, '#ff9a4a', 1.4 * sc, Math.min(1, p.col)); }
+    // one-shot moments
+    S.fx.forEach(f => { const u = Math.max(0, f.t) / f.life; if (f.t < 0) return;
+      if (f.kind === 'implode') sym('gravity-well', X(f.x), Y(f.y), f.r * 2 * sc * (1 - u), 0, 1 - u, '#7a4aff', 'ring');
+      else if (f.kind === 'rune') sym('rune-circle', X(f.x), Y(f.y), f.r * 2 * sc * (1 + u * 0.4), 0, 1 - u, '#ff6a2a');
+      else if (f.kind === 'burst') sym('rage-ember', X(f.x), Y(f.y), f.r * 2 * sc * (0.5 + u), 0, 1 - u, '#ff4a1a', 'ring');
+      else if (f.kind === 'jab') { const k2 = Math.sin(u * Math.PI); sym('iron-fists', X(f.x + (f.tx - f.x) * k2), Y(f.y + (f.ty - f.y) * k2), 1.2 * sc, Math.atan2(f.ty - f.y, f.tx - f.x) + Math.PI / 2, 1, '#a8c8ff'); }
+      else if (f.kind === 'slam') sym('iron-fists', X(f.x), Y(f.y) - (1 - u) * 3 * sc, f.r * 1.6 * sc, 0, 1 - u * 0.5, '#a8c8ff');
+      else if (f.kind === 'beat') sym('war-drum', X(f.x), Y(f.y), f.r * 2 * sc * u, 0, 1 - u, f.big ? '#ffb24a' : '#c89a6a', 'ring');
+      else if (f.kind === 'bolt' || f.kind === 'bolt2') line(X(f.kind === 'bolt' ? f.x : f.x), Y(f.kind === 'bolt' ? f.y - 8 : f.y), X(f.tx != null ? f.tx : f.x), Y(f.ty != null ? f.ty : f.y), '#e8f4ff', 3, 1 - u);
+      else if (f.kind === 'puff') sym('smoke-veil', X(f.x), Y(f.y), f.r * 2 * sc * (0.6 + u), u, 1 - u, '#9a9aa0');
+      else if (f.kind === 'dash') line(X(f.x), Y(f.y), X(f.tx), Y(f.ty), '#c0a0ff', 0.8 * sc, 1 - u);
+      else if (f.kind === 'rail') line(X(f.x), Y(f.y), X(f.x + Math.cos(f.a) * f.len), Y(f.y + Math.sin(f.a) * f.len), '#bfe8ff', 1.4 * sc * (1 - u), 1 - u);
+      else if (f.kind === 'snipe') line(X(f.x), Y(f.y), X(f.tx), Y(f.ty), '#fff', 2, 1 - u);
+      else if (f.kind === 'boom') sym('spark-mines', X(f.x), Y(f.y), f.r * 2 * sc * (0.5 + u), 0, 1 - u, '#ffe27a', 'ring'); });
+    // frozen monsters glint blue
+    if (A['frost-nova']) S.monsters.forEach(m => { if (m.frozenT > 0) { g.save(); g.globalAlpha = 0.45; g.fillStyle = '#bfeaff'; g.beginPath(); g.arc(X(m.x), Y(m.y) - m.r * sc, m.r * 1.4 * sc, 0, 7); g.fill(); g.restore(); } });
   }
   function drawGroundSpells(X, Y, sc, t) {
     // v3 TANK ground pieces
@@ -291,7 +362,7 @@
         for (let i = 0; i < n; i++) { const an = i / n * Math.PI * 2; el(rec.lv10, cx + Math.cos(an) * R, cy + Math.sin(an) * R, 1.2 * sc * (1 + Math.sin(t * 2 + i) * 0.06), an + Math.PI / 2, 1); } }
       else if (k === 'bastion-dome' && st.dome) { const dm = st.dome, im = lv >= 10 && rec.lv10 ? rec.lv10 : rec.unit, fade = dm.follow ? 1 : Math.min(1, dm.life * 2, (dm.max - dm.life + 0.01) * 4);   // a travelling dome never fades
         el(im, X(dm.x), Y(dm.y) - dm.r * 0.15 * sc, dm.r * 2.15 * sc * (1 + Math.sin(t * 3) * 0.015), 0, 0.5 * fade); } });
-    drawSupport(X, Y, sc, cx, cy, t, am);
+    drawSupport(X, Y, sc, cx, cy, t, am); drawOthers(X, Y, sc, cx, cy, t, am);
     Object.keys(h.auras).forEach(k => { const a = byKey[k], rec = artFor(k); if (!a) return; const lv = lvOf(k), st = S._state[k] || {}, L = Lof(k, a.fam);
       if (V3_DRAWN[k]) return;                                         // drawn above
       if (!rec) { if (a.fam === 'orbit') { const R = 2 * L.rad * am * sc; for (let i = 0; i < L.n; i++) { const an = (st.a || 0) + i * Math.PI * 2 / L.n; g.fillStyle = '#ff7a2a'; g.beginPath(); g.arc(cx + Math.cos(an) * R, cy + Math.sin(an) * R, 0.45 * L.size * sc, 0, 7); g.fill(); } }
