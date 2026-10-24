@@ -46,8 +46,10 @@ async function httpLayer() {
   await start();
 
   // Tower of Trials
-  { const g0 = await gold(); const a = await call('/api/tower/ascend', { requestId: 'tower:floor:1' }); const g1 = await gold();
-    const b = await call('/api/tower/ascend', { requestId: 'tower:floor:1' }); const g2 = await gold();
+  { const ts = await call('/api/tower/start', { requestId: 'tower:start:1', heroIds: keys });   /* v1218: a floor is a fight - start, then resolve the win */
+    const tbody = { requestId: 'tower:floor:1', attemptId: ts.data && ts.data.attemptId, won: true, stars: 3, digest: JSON.stringify({ won: true, t: 30, u: keys.map(k => [k, 'ally', 1, 999, 50]) }), inputLog: [] };
+    const g0 = await gold(); const a = await call('/api/tower/resolve', tbody); const g1 = await gold();
+    const b = await call('/api/tower/resolve', tbody); const g2 = await gold();
     ck('Tower: the floor-1 climb is booked', a.data && a.data.ok === true && a.data.floor === 1, JSON.stringify(a.data).slice(0, 120));
     ck('Tower: same requestId answers the same receipt and pays once', b.data && strip(b.data) === strip(a.data) && g1 > g0 && g2 === g1, g0 + ' -> ' + g1 + ' -> ' + g2); }
 

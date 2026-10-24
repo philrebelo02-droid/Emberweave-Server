@@ -1619,7 +1619,9 @@ function glyphHeroPower(u, heroKey){
    covered by the suite, so it ships ON BY DEFAULT — no Railway variable required. Set
    DUNGEON_V2_ENABLED=false to force it off. */
 const DUNGEON_V2_ENABLED = String(process.env.DUNGEON_V2_ENABLED||'true')!=='false';
-let WELL2=null; try{ WELL2=require('./server/starless-well.js'); }catch(e){ console.error('THE STARLESS WELL module failed to load - /api/well/* will 404:', e&&e.message); }
+let WELL2=null; try{ WELL2=require('./server/starless-well.js'); }catch(e){ console.error('THE STARLESS WELL module failed to load - /api/well/* will 404:', e&&e.message); }
+/* v1218 (Claude, 24 Oct; Phil 23 Oct night: make the best of Ember's Tower ideas real): THE ECHO SPIRE - every floor a real fight, weekly seasons, your past lineups come back as Echo Wardens */
+let TOWER2=null; try{ TOWER2=require('./server/tower-of-trials.js'); }catch(e){ console.error('THE ECHO SPIRE module failed to load - the Tower is closed:', e&&e.message); }
 let BONUS=null; try{ BONUS=require('./server/bonus-stages.js'); }catch(e){ console.error('BONUS STAGES module failed to load — the 60 bonus stages will 404:', e&&e.message); }
 let SIM=null; try{ SIM=require('./server/sim.js'); }catch(e){ console.error('DUNGEON DISABLED — server/sim.js missing ('+e.message+')'); }
 function dungeonEnabledFor(u){ return !!SIM && !!GLYPHS && (DUNGEON_V2_ENABLED || isDev(u)); }
@@ -4730,6 +4732,15 @@ function towerFloorPay(f){ let gold=Math.round(400*f*Math.pow(1.08,f)); if(gold>
 function towerTribPay(floor){ let gold=Math.round(500*floor)+250*(1+Math.floor(floor/4)); if(gold>200000)gold=200000; return gold; }
 function towerDayKey(){ return nyDayKey(); }   // v1065: nyDayKey is the 09:00 day itself
 function towerLed(led){ if(!led.tower||typeof led.tower!=='object'||Array.isArray(led.tower)) led.tower={floor:0,trib:'',mig:0,srv:0}; return led.tower; }
+/* v1218: what the Echo Spire module is handed (server/tower-of-trials.js) - the economy numbers stay here, beside towerReqS */
+let _towerNodes=null; function towerNodes(){ if(!_towerNodes&&CAMP_ENC&&CAMP_ENC.byNode) _towerNodes=Object.values(CAMP_ENC.byNode); return _towerNodes||[]; }
+function towerCtx(me){ return { me, led:(u)=>ensureLedger(u), T:(l)=>towerLed(l), dayKey:towerDayKey, teamPower:()=>ledgerTeamPower(me), playerLevel:(l)=>ledPlayerLevel(l),
+  towerReqS, towerFloorPay, towerTribPay, campaignNodes:towerNodes, campaignHeroSpec, heroDisplayName, ownsHero:(l,k)=>!!SIM.HERO_BASE[k]&&ownsHeroK(l,k),
+  cardPower:(u,k)=>cardPower(u,k), simHost, sanitizeInputLog, sha256hex, uid, crypto, isDev, ledTx, feedbackCheatSignal,
+  paidBefore:(f,part)=>towerOldReceipt(me,'tower:floor:'+f+':'+part),
+  commit:(key,fn)=>durableCommit(me,me.id+':tower:'+(ensureLedger(me).migratedAt||0)+':'+key,fn),
+  credit:(u,l,gold,gems,why)=>{ const g0=l.gold; l.gold=Math.min(ECON_CAP.gold,l.gold+(gold|0)); if(l.gold>g0) resourceGain(u,'gold',l.gold-g0,why);
+    const e0=l.gems; l.gems=Math.min(ECON_CAP.gems,l.gems+(gems|0)); if(l.gems>e0) resourceGain(u,'gems',l.gems-e0,why); return {gold:l.gold-g0, gems:l.gems-e0}; } }; }
 function towerMaxForPower(pow){ let f=0; while(f<5000&&towerReqS(f+1)<=pow) f++; return f; }
 /* ChatGPT review 3 Oct: EXACT receipts only. Until v949 the client paid itself through /api/tx/earn with requestIds
    'tower:floor:<n>:gold', 'tower:floor:<n>:gems' and 'tower:tribute:<day>' (receipt key <id>:earn:<epoch>:<requestId>,
@@ -7310,7 +7321,8 @@ async function api(req,res,url){
        must not collapse into one receipt). */
     const towerRid=v=>(typeof v==='string'&&v.length>=1&&v.length<=48)?v:null;
     if(p==='/api/tower/state'){ const led=ensureLedger(me), T=towerLed(led);
-      const view=t=>({ok:true,floor:t.floor,trib:t.trib,today:towerDayKey(),power:ledgerTeamPower(me),nextReq:towerReqS(t.floor+1)});
+      /* v1218: the view is the Echo Spire's (season floor, best, the next floor's plan) - TOWER2.view; the migration below is unchanged */
+      const view=t=>(TOWER2?TOWER2.view(towerCtx(me),TOWER2.towerState(t,towerDayKey())):{ok:false,error:'The Tower is closed.'});
       /* Cross-device: until the first SERVER climb, the highest local floor any of the player's devices reports counts
          (capped by the power floor, paying nothing - every floor up to it is one a climb would reach and be PAID for, so
          the claim can only cost the player those floor rewards, never gain). A tribute a device says it took today stays
@@ -7324,8 +7336,12 @@ async function api(req,res,url){
           const out=durableCommit(me,me.id+':tower:mig:'+uid(),(me)=>{ const T2=towerLed(ensureLedger(me)); if(f>T2.floor) T2.floor=f; if(wantTrib) T2.trib=day; T2.mig=1; return view(T2); });
           return send(res,out.storageFailed?503:200,out); } }
       return send(res,200,view(T)); }
+    if((p==='/api/tower/start'||p==='/api/tower/resolve') && TOWER2){ if(rateLimited(req,'towerFight:'+me.id,Math.round(20*RL_MUL),60000)) return send(res,429,{error:'Slow down.'});   /* a resolve replays on the main thread */
+      _saveScope(me.id); const out=await TOWER2.handle(p,'POST',Object.assign(towerCtx(me),{ body:()=>Promise.resolve(b) })); return send(res,out.status,out.body); }
+    /* v1218: the old power check is gone - every floor is a fight now */
+    if(p==='/api/tower/ascend') return send(res,410,{ok:false,error:'The Tower is a fight now - pick your five and fight the floor.'});
     const reqId=towerRid(b.requestId); if(!reqId) return send(res,400,{error:'requestId must be a string of 1-48 characters'});
-    if(p==='/api/tower/ascend'){ const out=durableCommit(me,me.id+':tower:'+(ensureLedger(me).migratedAt||0)+':ascend:'+reqId,   /* v1011 (re-audit Arena N9): the ledger epoch in the key - after Reset all progress an old receipt replayed */
+    if(p==='/api/tower/ascend-v1'){ const out=durableCommit(me,me.id+':tower:'+(ensureLedger(me).migratedAt||0)+':ascend:'+reqId,   /* v1011 (re-audit Arena N9): the ledger epoch in the key - after Reset all progress an old receipt replayed */
       (me)=>{ const led=ensureLedger(me), T=towerLed(led);
         if(!T.mig) return {ok:false,error:'Open the Tower of Trials first.'};
         if(ledPlayerLevel(led)<40) return {ok:false,error:'The Tower of Trials opens at level 40.'};
@@ -7342,9 +7358,11 @@ async function api(req,res,url){
     if(p==='/api/tower/tribute'){ const out=durableCommit(me,me.id+':tower:'+(ensureLedger(me).migratedAt||0)+':trib:'+reqId,(me)=>{ const led=ensureLedger(me), T=towerLed(led);
         if(!T.mig) return {ok:false,error:'Open the Tower of Trials first.'};
         if(ledPlayerLevel(led)<40) return {ok:false,error:'The Tower of Trials opens at level 40.'};
-        if(T.floor<1) return {ok:false,error:'Reach Floor 1 to unlock the tribute.'};
+        if(TOWER2) TOWER2.towerState(T,towerDayKey());   /* v1218: the tribute follows THIS season's floor (T.sf) - the reason to re-climb */
+        const tf=TOWER2?(T.sf|0):T.floor;
+        if(tf<1) return {ok:false,error:'Climb Floor '+((T.sf|0)+1)+' this season to unlock the tribute.'};
         const day=towerDayKey(); if(T.trib===day) return {ok:false,already:true,error:'Tribute already claimed today.'};
-        const gold=towerTribPay(T.floor), g0=led.gold; led.gold=Math.min(ECON_CAP.gold,led.gold+gold); resourceGain(me,'gold',led.gold-g0,'tower');
+        const gold=towerTribPay(tf), g0=led.gold; led.gold=Math.min(ECON_CAP.gold,led.gold+gold); resourceGain(me,'gold',led.gold-g0,'tower');
         T.trib=day; ledTx(me,'tower:tribute:'+day,{gold});
         return {ok:true,gold,trib:day,ledger:ledgerView(me)}; });
       return send(res,out.storageFailed?503:(out.ok===false?400:200),out); }
