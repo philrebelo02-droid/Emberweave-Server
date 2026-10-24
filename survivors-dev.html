@@ -63,7 +63,7 @@
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="/assets/js/three-r128-GLTFLoader.js"></script>
-<script src="/server/survivors-core.js?v=dev5"></script>
+<script src="/server/survivors-core.js?v=dev6"></script>
 <script>
 (async function () {
   const C = window.SurvivorsCore, AURAS = await (await fetch('/server/survivors-auras.json?v=dev1')).json();
@@ -177,15 +177,20 @@
   };
   const HM = { swarmer: 1.7, runner: 1.5, caster: 1.8, brute: 2.6, wall: 2.2, elite: 3.4, boss: 6.5 };
   const SPR = {};
+  // each sheet keeps the detail it is DRAWN at on this screen (1.25x headroom), never more than the source: the largest
+  // size a skin can appear at (elite / big elite / boss) x this screen's pixels per metre. Phil 24 Oct: "the detail on the
+  // monsters ... is low" - a fixed 110 px cache was being drawn bigger than itself.
+  const MAXM = { 'grushak': 3.4 * 1.35, 'cindertusk': 3.4 * 1.35, 'brukk': 6.5 };
   Object.keys(SKIN).forEach(k => { const d = SKIN[k], im = new Image(); im.onload = () => {
-    const sc2 = (d.px || 110) / d.fh, c = document.createElement('canvas'); c.width = Math.round(d.fw * 6 * sc2); c.height = Math.round(d.fh * 2 * sc2);
-    c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); SPR[k] = { c, fw: c.width / 6, fh: c.height / 2 }; im.src = ''; };
+    const want = Math.ceil((MAXM[k] || 2.6) * Math.min(innerWidth * devicePixelRatio / C.VIEW.w, innerHeight * devicePixelRatio / C.VIEW.h) * 1.25);
+    const sc2 = Math.min(1, Math.max(64, want) / d.fh), c = document.createElement('canvas'); c.width = Math.round(d.fw * 6 * sc2); c.height = Math.round(d.fh * 2 * sc2);
+    const cx2 = c.getContext('2d'); cx2.imageSmoothingQuality = 'high'; cx2.drawImage(im, 0, 0, c.width, c.height); SPR[k] = { c, fw: c.width / 6, fh: c.height / 2 }; im.src = ''; };
     im.src = '/assets/anim/mon/' + d.f + '.webp?v=1'; });
   /* THE GROUND: one seamless tile repeated forever (Phil 24 Oct: "a very basic green grassy area, seamless so that you can loop
      it"). The tile is ChatGPT's (tasking in the Hero Survivors art folder); until it lands, a flat grass green stands in. */
   const TILE_M = 8;                                          // one tile = 8 x 8 m of ground
   let groundPat = null; { const gi = new Image(); gi.onload = () => { groundPat = gi; }; gi.src = '/assets/survivors/maps/stage1-grass.webp?v=1'; }
-  const HERO_M = 3.0;   // the hero's 3D model height in world metres (bigger than life so she reads on a phone at the 30 m view)
+  const HERO_M = 4.2;   // the hero's 3D model height in world metres: bigger than life and than the fodder, so the hero reads first
   const COL = { swarmer: '#7a8a4a', runner: '#a0703a', brute: '#6a4a8a', elite: '#c23a3a', boss: '#ff2a6a', wall: '#3a7a5a' };
   function draw() {
     const W = cv.width, H = cv.height, sc = Math.min(W / C.VIEW.w, H / C.VIEW.h), h = S.hero;   // px per metre: the core's fixed view
@@ -199,6 +204,7 @@
     S.gems.forEach(m => { if (m.heal) { g.fillStyle = '#ff5a6a'; g.beginPath(); g.arc(X(m.x), Y(m.y), 0.45 * sc, 0, 7); g.fill(); g.strokeStyle = '#fff'; g.lineWidth = 2; g.stroke(); return; }
       g.fillStyle = m.v > 3 ? '#ff6a9a' : '#5fb8ff'; g.fillRect(X(m.x) - 3, Y(m.y) - 3, 6, 6); });
     // monsters: their own walk sheets, feet on the body's spot, drawn back to front; facing = the way they move
+    g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
     const tnow = performance.now() / 1000, ord = S.monsters.slice().sort((a, b) => a.y - b.y);
     ord.forEach(m => { const sp = SPR[m.skin];
       if (!sp) { g.fillStyle = COL[m.type] || '#888'; g.beginPath(); g.arc(X(m.x), Y(m.y), m.r * sc, 0, 7); g.fill(); return; }
@@ -225,7 +231,7 @@
       if (!H3.isCasting()) { H3.play('Walking'); H3.clips.Walking.timeScale = moving ? 1 : 0; }
       H3.model.rotation.y = Math.atan2(h.dirx, h.diry);
       // the 3D camera sees exactly the 2D world's metres: visible height H/sc m at the hero, along the same tilt
-      const vis = (H / sc), D = vis / (2 * Math.tan(15 * Math.PI / 180)); H3.cam.position.set(0, D * 0.789, D * 0.614); H3.cam.lookAt(0, 0.6, 0);
+      const vis = (H / sc), D = vis / (2 * Math.tan(15 * Math.PI / 180)); H3.cam.position.set(0, D * 0.64, D * 0.77);   /* ~40 deg down: shows her body, not the top of her head */ H3.cam.lookAt(0, 0.6, 0);
       window._dbg = { dirx: h.dirx, diry: h.diry, roty: H3.model.rotation.y, paused: !!S.choice };   // dev probe
       H3.mixer.update(Math.min(0.05, H3.clock.getDelta())); H3.r.render(H3.scene, H3.cam);
     }

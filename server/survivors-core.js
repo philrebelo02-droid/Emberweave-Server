@@ -542,7 +542,7 @@
       if ((mi & 1) === (S.tick & 1)) {                     // half the horde per tick: a light push away from overlapping neighbours
         var px = 0, py = 0; near(S, m.x, m.y, m.r * 2, function (o, ex, ey) { if (o === m) return; var dd = ex * ex + ey * ey, rr = m.r + o.r;
           if (dd > 1e-6 && dd < rr * rr) { var l = Math.sqrt(dd), f = (rr - l) / rr; px -= ex / l * f; py -= ey / l * f; } });
-        m.x += clamp(px, -1, 1) * 2.4 * dt * 2; m.y += clamp(py, -1, 1) * 2.4 * dt * 2;
+        m.x += clamp(px, -1, 1) * 6 * dt * 2; m.y += clamp(py, -1, 1) * 6 * dt * 2;            // strong enough to beat the chase
       }
       if (d <= m.r + 0.45 && h.iframes <= 0) {
         if (h.guard > 0) { h.guard--; h.iframes = 0.4; }
