@@ -1,0 +1,20 @@
+{
+ "note": "v1218 Grosk Gravemaw Pull air pull (Phil approved 23 Oct 16:01, take07). Cut by integrate_fx.py; wired by hand (painter groskPullCastFx: from the press, the convergence point on Grosk, the streams reaching the 5 m pull radius on the side he faces).",
+ "hero": "grosk",
+ "version": "1218",
+ "work": "(scratchpad, wiped) - masters + fx_run.json in Game Art/Spell FX/wired v1218 24OCT2026 (Grosk Gravemaw masters)",
+ "fx": [
+  {
+   "name": "gravemaw",
+   "src": "grosk_gravemaw_pull_airpull_take07.mp4",
+   "md5": "2a20e890",
+   "key": "grosk_green",
+   "file": "grosk_gravemaw_pull_23oct",
+   "title": "Gravemaw Pull",
+   "plate": "magenta",
+   "frames": "0:134:2",
+   "placement": "upright",
+   "post": "after cut: soft-edge despill for the magenta plate (alpha < 200: G capped at max(R,B)) - the 4:2:0 chroma smear left 5% visible-green edge px (25705 px in the master) -> 0.0015%; q95 re-encoded alpha bit-exact (scratchpad despill_mag.py; the rule is in the v1218 SHIPPED note)"
+  }
+ ]
+}

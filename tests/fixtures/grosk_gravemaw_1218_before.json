@@ -1,0 +1,35 @@
+{
+ "fx": {
+  "grosk_green": {
+   "u": "/assets/anim/fx/grosk_green.webp?v=33",
+   "n": 48,
+   "fw": 524,
+   "fh": 512,
+   "cols": 6,
+   "rows": 8,
+   "dur": 4.38,
+   "upright": true,
+   "upSize": 1.3,
+   "upExtent": 0.986,
+   "upAnchor": [
+    0.5,
+    0
+   ],
+   "ro": 1
+  }
+ },
+ "groskGreen": {
+  "deliver": "form",
+  "name": "Gravemaw Pull",
+  "type": "pullsilence",
+  "radius": 141,
+  "dur": 2,
+  "cd": 10,
+  "gfx": "grosk_green",
+  "gdur": 4.38
+ },
+ "warm": [
+  "grosk_blue"
+ ],
+ "note": "live v1217 09c717c7: what tests/helpers/grosk-gravemaw-1218.js puts back"
+}
