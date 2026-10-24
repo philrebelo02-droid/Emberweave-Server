@@ -1,0 +1,55 @@
+{
+ "note": "v1217 Grosk Hammer Fists impact burst (Phil 23 Oct 22:36) + Fritz's three 18 Oct remakes (Phil OK 23 Oct 23:07). Cut by integrate_fx.py; wired by hand (new painters: per-punch burst, per-bolt strike, per-jump stretched bolt, storm over him).",
+ "hero": "grosk_fritz",
+ "version": "1217",
+ "work": "C:/Users/Home/AppData/Local/Temp/claude/C--Users-Home-Downloads-Emberweave-Server/9fc48f70-c7ae-47ca-b256-f56da6c288d4/scratchpad/work",
+ "fx": [
+  {
+   "name": "hammerfists",
+   "src": "grosk_hammer_fists_burst_single.mp4",
+   "md5": "e279aea3",
+   "key": "grosk_blue",
+   "file": "grosk_hammer_fists_23oct",
+   "title": "Hammer Fists",
+   "plate": "green",
+   "border": 4,
+   "frames": "1:28:1",
+   "placement": "upright",
+   "ext": 0.0,
+   "deviol": true
+  },
+  {
+   "name": "stormsurge",
+   "src": "fritz_green_storm_surge_18oct.mp4",
+   "md5": "45326727",
+   "key": "fritz_green",
+   "file": "fritz_storm_surge_18oct",
+   "title": "Storm Surge",
+   "plate": "green",
+   "frames": "0:126:2",
+   "placement": "upright"
+  },
+  {
+   "name": "chainlight",
+   "src": "fritz_blue_chain_lightning_18oct.mp4",
+   "md5": "357af741",
+   "key": "fritz_blue",
+   "file": "fritz_chain_lightning_18oct",
+   "title": "Chain Lightning",
+   "plate": "green",
+   "frames": "0:136:2",
+   "placement": "upright"
+  },
+  {
+   "name": "thundershower",
+   "src": "fritz_ult_thunder_shower_18oct.mp4",
+   "md5": "9ae7d8f1",
+   "key": "fritz_ult",
+   "file": "fritz_thunder_shower_18oct",
+   "title": "Thunder Shower",
+   "plate": "green",
+   "frames": "0:142:2",
+   "placement": "upright"
+  }
+ ]
+}
