@@ -25,7 +25,7 @@ const rec = { keys: ['a', 'b', 'c', 'd', 'e'], lv: [40, 41, 42, 43, 44], pow: 50
 const ew = T2.echoWaves(rec, 20000);
 ok(ew.length === 1 && ew[0].length === 5 && ew[0].every(m => m.isHero && m.echo), 'an echo is ONE wave of the recorded five as hero foes');
 ok(ew[0].every((m, i) => m.lvl === rec.lv[i]) && ew[0][0].hpMul === 4, 'at their recorded levels, scaled to the floor (20000 / 5000 = x4 HP) - Grok QA #2');
-ok(T2.echoWaves(rec, 2000)[0][0].hpMul === 1, 'an echo is never scaled DOWN below its own power');
+ok(T2.echoWaves(rec, 2500)[0][0].hpMul === 0.5, 'an echo is scaled DOWN too when the floor asks less (2500 / 5000 = x0.5) - to the requirement, both ways');
 
 // ---------- B. HTTP ----------
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ew-tower-echo-')), dbFile = path.join(dir, 'db.json');
