@@ -149,6 +149,7 @@ node tests/test_tower_server.js || FAILED=1
 note "Echo Spire: seasons, client receipts, tribute and real Guardian/Echo fights"
 node tests/test_tower_echo.js || FAILED=1
 node tests/test_echo_spire_ui.js || FAILED=1
+node tests/test_echo_spire_render.js || FAILED=1
 node tests/test_echo_spire_client.js || FAILED=1
 node tests/test_wallet_tower_claim.js || FAILED=1
 node tests/test_echo_spire_battle.js || FAILED=1
