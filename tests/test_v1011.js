@@ -24,7 +24,7 @@ async function burst(route,n){ const st=[]; for(let i=0;i<n;i++) st.push((await 
   ok(!opp.slice(0,60).includes(429)&&opp[60]===429,'arena opponents: the 61st read in a minute is throttled ('+opp.slice(58).join(',')+')');
   const well=await burst('/api/well/state',121);
   ok(!well.slice(0,120).includes(429)&&well[120]===429,'Starless Well: the 121st call in a minute is throttled ('+well.slice(118).join(',')+')');
-  const tw=await call('/api/tower/ascend',{requestId:'tw-lv1'});
+  const tw=await call('/api/tower/start',{requestId:'tw-lv1',heroIds:['x']});   /* v1218: ascend is gone (410); a fight start below level 40 is the refusal */
   ok(tw.status===400&&tw.data.ok===false,'a Tower refusal answers 400 ('+tw.status+' '+(tw.data.error||'')+')');
   await call('/api/province/state'); await delay(800);
   const before=fs.readFileSync(dbFile,'utf8'); await call('/api/province/state'); await delay(800);

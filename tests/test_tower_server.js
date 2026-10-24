@@ -4,6 +4,8 @@
 //  B. LIVE HTTP - a throwaway server: forged 'tower'/'gauntlet' earns refused, migration capped and paying nothing,
 //     level gate, ascend/tribute pay once per request and once per floor/day, cross-device rule, failed save -> 503
 //     with no grant, restart keeps the floor.
+// v1218 (24 Oct, the Echo Spire): /api/tower/ascend is gone (410) - every floor is a fight: /api/tower/start {heroIds} + /api/tower/resolve
+//     {attemptId, won, stars, digest, inputLog}. state.floor is THIS season's floor, state.best the best ever (the old 'floor').
 // Must-fail controls: the old earn path (expected refused), a forged legacy floor (expected capped), a replayed
 // requestId (expected the same reply, no second grant), a save failure (expected 503, gold unchanged).
 const assert=require('assert');
@@ -75,11 +77,14 @@ const dbFile=path.join(temp,'db.json');
 let port,base,child,token='';
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
 const freePort=()=>new Promise((res,rej)=>{const s=net.createServer();s.once('error',rej);s.listen(0,'127.0.0.1',()=>{const p=s.address().port;s.close(()=>res(p));});});
-async function start(){ child=spawn(process.execPath,['server.js'],{cwd:root,env:{...process.env,ALLOW_NEW_GUESTS:'1',PORT:String(port),DB_FILE:dbFile,DATABASE_URL:''},stdio:'ignore',windowsHide:true});
+async function start(){ child=spawn(process.execPath,['server.js'],{cwd:root,env:{...process.env,ALLOW_NEW_GUESTS:'1',PORT:String(port),DB_FILE:dbFile,DATABASE_URL:'',TOWER_MIN_BATTLE_MS:'0'},stdio:'ignore',windowsHide:true});
   for(let i=0;i<150;i++){ if(child.exitCode!==null)throw new Error('throwaway server exited'); try{ if((await fetch(base+'/health')).ok)return; }catch(_){} await delay(100);} throw new Error('server did not start'); }
 async function stop(){ if(!child)return; child.kill(); for(let i=0;i<40&&child.exitCode===null;i++)await delay(50); child=null; }
 async function call(route,method='GET',data){ const r=await fetch(base+route,{method,headers:{'Content-Type':'application/json','x-token':token},body:data?JSON.stringify(data):undefined}); return {status:r.status,data:await r.json().catch(()=>({}))}; }
 const post=(r,d)=>call(r,'POST',d);
+/* v1218: one floor = start a fight with the five, then resolve the witnessed win */
+async function fight(rid,keys){ const s=await post('/api/tower/start',{requestId:rid+':s',heroIds:keys}); if(!s.data.ok) return s;
+  return post('/api/tower/resolve',{requestId:rid,attemptId:s.data.attemptId,won:true,stars:3,digest:JSON.stringify({won:true,t:30,u:keys.map(k=>[k,'ally',1,999,50])}),inputLog:[]}); }
 (async()=>{ try{
   port=await freePort(); base='http://127.0.0.1:'+port; await start();
   const guest=await post('/api/guest',{deviceId:'tower-qa-'+Date.now()}); assert.strictEqual(guest.status,200); token=guest.data.token; const id=guest.data.profile.id;
@@ -87,16 +92,17 @@ const post=(r,d)=>call(r,'POST',d);
   for(const [what,reason,amount] of [['gold','tower',200000],['gems','tower',500],['gold','gauntlet',200000],['gems','gauntlet',500]]){
     const r=await post('/api/tx/earn',{what,amount,reason,requestId:'forge-'+what+reason});
     ok(r.data.ok!==true&&/No earn rule/.test(r.data.error||''),'forged '+what+'/'+reason+' earn refused'); }
-  ok((await post('/api/tower/ascend',{requestId:'a0'})).data.error==='Open the Tower of Trials first.','ascend refused before state');
-  ok((await post('/api/tower/ascend',{})).status===400,'ascend without requestId refused');
+  ok((await post('/api/tower/start',{requestId:'a0',heroIds:['x']})).data.error==='Open the Tower of Trials first.','a fight refused before state');
+  ok((await post('/api/tower/start',{})).status===400,'start without requestId refused');
+  ok((await post('/api/tower/ascend',{requestId:'old'})).status===410,'the old power-check ascend is gone (410)');
   // ChatGPT review: request ids are exact strings of 1-48 characters - no coercion, no truncation
-  ok((await post('/api/tower/ascend',{requestId:12345})).status===400,'numeric requestId refused');
-  ok((await post('/api/tower/ascend',{requestId:{a:1}})).status===400,'object requestId refused');
+  ok((await post('/api/tower/start',{requestId:12345})).status===400,'numeric requestId refused');
+  ok((await post('/api/tower/resolve',{requestId:{a:1}})).status===400,'object requestId refused');
   ok((await post('/api/tower/tribute',{requestId:'x'.repeat(49)})).status===400,'49-character requestId refused (no truncation collision)');
   ok((await post('/api/tower/tribute',{requestId:''})).status===400,'empty requestId refused');
   // low level: the gate
   await post('/api/tower/state',{legacyFloor:0});
-  ok(/level 40/.test((await post('/api/tower/ascend',{requestId:'lv'})).data.error||''),'level-40 gate');
+  ok(/level 40/.test((await post('/api/tower/start',{requestId:'lv',heroIds:['x']})).data.error||''),'level-40 gate');
   await delay(400); await stop();
   let db=JSON.parse(fs.readFileSync(dbFile,'utf8')); const u=db.users[id];
   u.led.px=99000000; const keys=Object.keys(require('../server/sim.js').HERO_BASE).slice(0,5);
@@ -116,9 +122,10 @@ const post=(r,d)=>call(r,'POST',d);
   const gold0=(await call('/api/ledger')).data; const g0=(gold0.ledger||gold0).gold;
   const st=await post('/api/tower/state',{legacyFloor:4999});
   ok(st.data.trib!==st.data.today,'an earn:tower tx alone does not fence the tribute (no exact receipt)');
-  const capF=st.data.floor, teamCap=sctx.towerMaxForPower(st.data.power);
+  const capF=st.data.best, teamCap=sctx.towerMaxForPower(st.data.power);
   ok(capF<4999&&capF>teamCap,'forged legacy floor capped by the five-hero BENCH ('+capF+'), not the weaker one-hero team ('+teamCap+')');
-  ok(st.data.nextReq===cctx.towerReq(capF+1),'next requirement = client towerReq');
+  ok(st.data.next&&st.data.next.req===cctx.towerReq(st.data.floor+1),'next requirement = client towerReq (the season floor + 1)');
+  ok(st.data.floor===Math.max(0,Math.floor((capF-20)/5)*5),'the season starts at the checkpoint (best - 20, down to 5): '+st.data.floor+' of best '+capF);
   // exact old tribute receipt fences today's tribute
   await delay(400); await stop(); { const d=JSON.parse(fs.readFileSync(dbFile,'utf8')); d.users[id].led.tower={floor:capF,trib:'',mig:1,srv:0};
     d.idem=d.idem||{}; d.idem[id+':earn:'+epoch+':tower:tribute:'+st.data.today]={t:Date.now(),resp:{ok:true}}; d.users[id].team=keys.map(k=>({key:k})); fs.writeFileSync(dbFile,JSON.stringify(d)); } await start();
@@ -126,24 +133,21 @@ const post=(r,d)=>call(r,'POST',d);
   const teamCap5=sctx.towerMaxForPower(stF.data.power);   /* the five-hero team climbs this far; the bench (incl. starter heroes) may be stronger */
   const after=(await call('/api/ledger')).data; ok((after.ledger||after).gold===g0,'migration paid nothing');
   // cross-device: a lower report never lowers it
-  ok((await post('/api/tower/state',{legacyFloor:0})).data.floor===capF,'lower device report does not lower the floor');
-  // at the power wall: refused with the client's requirement
-  const wall=await post('/api/tower/ascend',{requestId:'w1'});
-  ok(wall.data.wall===true&&wall.data.req===cctx.towerReq(capF+1),'wall refusal carries the client requirement');
+  ok((await post('/api/tower/state',{legacyFloor:0})).data.best===capF,'lower device report does not lower the best floor');
   // drop the floor so ascends are affordable, then climb with exact authored pay
   // the old client already received floor 1's gold (its exact receipt): the first server climb must not pay it again
   await delay(400); await stop(); db=JSON.parse(fs.readFileSync(dbFile,'utf8')); db.users[id].led.tower={floor:0,trib:'',mig:1,srv:0}; db.users[id].team=keys.map(k=>({key:k}));
   db.idem=db.idem||{}; db.idem[id+':earn:'+epoch+':tower:floor:1:gold']={t:Date.now(),resp:{ok:true}}; fs.writeFileSync(dbFile,JSON.stringify(db)); await start();
   const gS=(await call('/api/ledger')).data; const gStart=(gS.ledger||gS).gold;
   const climb=Math.min(teamCap5,12); let gPrev=null;
-  for(let f=1;f<=climb;f++){ const r=await post('/api/tower/ascend',{requestId:'tower:floor:'+f});
-    ok(r.data.ok===true&&r.data.floor===f,'ascend to floor '+f);
+  for(let f=1;f<=climb;f++){ const r=await fight('tower:floor:'+f,keys);
+    ok(r.data.ok===true&&r.data.floor===f&&r.data.won===true,'floor '+f+' fought and won ('+JSON.stringify(r.data).slice(0,90)+')');
     const want=f===1?{gold:0,gems:goldenFloor(1).gems}:goldenFloor(f);
     assert.strictEqual(JSON.stringify({gold:r.data.gold,gems:r.data.gems}),JSON.stringify(want),'floor '+f+' pay'); pass++;
-    if(f===1){ const again=await post('/api/tower/ascend',{requestId:'tower:floor:1'}); ok(again.data.floor===1&&again.data.ok===true,'replayed requestId returns the same reply');
+    if(f===1){ const again=await post('/api/tower/resolve',{requestId:'tower:floor:1'}); ok(again.data.floor===1&&again.data.ok===true&&again.data.gold===r.data.gold,'replayed requestId returns the same reply');
       const lg=(await call('/api/ledger')).data; gPrev=(lg.ledger||lg).gold; ok(gPrev===gStart,'floor 1 gold already received (exact receipt) is not paid again'); } }
   // after a server climb, a device report cannot raise the floor
-  ok((await post('/api/tower/state',{legacyFloor:4999})).data.floor===climb,'device report ignored after a server climb');
+  ok((await post('/api/tower/state',{legacyFloor:4999})).data.best===climb,'device report ignored after a server climb');
   // tribute: once per day, retry pays once
   const t1=await post('/api/tower/tribute',{requestId:'tower:tribute:x'}); ok(t1.data.ok===true&&t1.data.gold===goldenTrib(climb),'tribute = v948 amount');
   const t1b=await post('/api/tower/tribute',{requestId:'tower:tribute:x'}); ok(t1b.data.gold===t1.data.gold,'tribute replay same reply');
@@ -153,15 +157,16 @@ const post=(r,d)=>call(r,'POST',d);
   const s2=await post('/api/tower/state',{}); ok(s2.data.floor===climb&&s2.data.trib===s2.data.today,'restart keeps floor and tribute');
   // failed save -> 503, nothing granted (control)
   // put the floor one below the top so a real (affordable) climb is attempted while the disk refuses the write
-  await delay(400); await stop(); db=JSON.parse(fs.readFileSync(dbFile,'utf8')); db.users[id].led.tower.floor=climb-1; fs.writeFileSync(dbFile,JSON.stringify(db));
-  fs.chmodSync(dbFile,0o444); let fail,gA,lgB,s3;
-  try{ await start(); const lgA=(await call('/api/ledger')).data; gA=(lgA.ledger||lgA).gold;
-    fail=await post('/api/tower/ascend',{requestId:'fail-leg-'+climb});
+  await delay(400); await stop(); db=JSON.parse(fs.readFileSync(dbFile,'utf8')); db.users[id].led.tower.floor=climb-1; db.users[id].led.tower.sf=climb-1; fs.writeFileSync(dbFile,JSON.stringify(db));
+  await start(); const fs1=await post('/api/tower/start',{requestId:'fail-leg-s',heroIds:keys}); ok(fs1.data.ok===true&&fs1.data.floor===climb,'a fight for floor '+climb+' is open');
+  fs.chmodSync(dbFile,0o444); let fail,gA,lgB,s3; const res=()=>post('/api/tower/resolve',{requestId:'fail-leg-'+climb,attemptId:fs1.data.attemptId,won:true,stars:3,digest:JSON.stringify({won:true,t:30,u:keys.map(k=>[k,'ally',1,999,50])}),inputLog:[]});
+  try{ const lgA=(await call('/api/ledger')).data; gA=(lgA.ledger||lgA).gold;
+    fail=await res();
     lgB=(await call('/api/ledger')).data; s3=await post('/api/tower/state',{}); } finally { fs.chmodSync(dbFile,0o666); }
   ok(fail.status===503&&fail.data.storageFailed===true,'save failure -> 503 (got '+fail.status+' '+JSON.stringify(fail.data).slice(0,80)+')');
   ok((lgB.ledger||lgB).gold===gA,'no grant after 503');
   ok(s3.data.floor===climb-1,'floor unchanged after a failed save');
   // and the same request succeeds once the disk works again (retry with the same id)
-  const retry=await post('/api/tower/ascend',{requestId:'fail-leg-'+climb}); ok(retry.data.ok===true&&retry.data.floor===climb,'retry after the disk recovers pays once');
+  const retry=await res(); ok(retry.data.ok===true&&retry.data.floor===climb&&retry.data.won===true,'retry after the disk recovers pays once ('+JSON.stringify(retry.data).slice(0,80)+')');
   console.log('test_tower_server.js: '+pass+' checks passed');
 } catch(e){ console.error('FAIL',e&&e.message||e); process.exitCode=1; } finally { await stop(); } })();
