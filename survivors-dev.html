@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Hero Survivors (dev)</title>
+<!-- Hero Survivors DEV PROTOTYPE (Claude, 24 Oct 2026). Placeholder shapes only - ChatGPT's aura art replaces them.
+     Drives server/survivors-core.js exactly as the game will: joystick = move AND aim, ULT button, level-up picks. -->
+<style>
+  :root { --bg:#120d0a; --panel:#1e1612; --ink:#f4e7d4; --dim:#a8937a; --ember:#ff7a2a; --gold:#f2c14e; --hp:#e2433a; --xp:#5fb8ff; }
+  html,body { margin:0; height:100%; background:var(--bg); color:var(--ink); font:14px/1.3 system-ui,sans-serif; overflow:hidden; touch-action:none; user-select:none; }
+  canvas { display:block; width:100vw; height:100vh; }
+  #hud { position:fixed; left:0; right:0; top:env(safe-area-inset-top,0); padding:8px 12px; display:flex; gap:12px; align-items:center; pointer-events:none; }
+  #hud .bar { flex:1; height:8px; background:#0006; border-radius:4px; overflow:hidden; } #hud .bar i { display:block; height:100%; }
+  #xp i { background:var(--xp); } #hp i { background:var(--hp); }
+  #time { font-weight:700; font-variant-numeric:tabular-nums; min-width:56px; text-align:center; }
+  #lvl,#kills { font-variant-numeric:tabular-nums; color:var(--dim); }
+  #ult { position:fixed; right:22px; bottom:calc(22px + env(safe-area-inset-bottom,0)); width:84px; height:84px; border-radius:50%;
+         border:3px solid var(--gold); background:radial-gradient(#3a2414,#1a100a); color:var(--gold); font-weight:800; font-size:16px; }
+  #ult.ready { box-shadow:0 0 22px var(--ember); background:radial-gradient(#ff8a3a,#7a2a10); color:#fff; }
+  #stick { position:fixed; left:30px; bottom:calc(30px + env(safe-area-inset-bottom,0)); width:120px; height:120px; border-radius:50%; background:#ffffff10; border:2px solid #ffffff22; }
+  #knob { position:absolute; left:40px; top:40px; width:40px; height:40px; border-radius:50%; background:#ffffff40; }
+  #pick { position:fixed; inset:0; display:none; background:#000a; align-items:center; justify-content:center; flex-direction:column; gap:12px; padding:16px; }
+  #pick h2 { margin:0 0 6px; color:var(--gold); }
+  #pick button { width:min(420px,92vw); padding:14px; border-radius:10px; border:2px solid #ffffff22; background:var(--panel); color:var(--ink); text-align:left; font-size:15px; }
+  #pick button b { color:var(--gold); } #pick button small { display:block; color:var(--dim); margin-top:3px; }
+  #start { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:10px; background:var(--bg); padding:16px; }
+  #start select,#start button { font-size:16px; padding:10px 14px; border-radius:8px; background:var(--panel); color:var(--ink); border:1px solid #ffffff33; }
+  #start button { background:var(--ember); color:#1a0d05; font-weight:800; border:0; }
+  #end { position:fixed; inset:0; display:none; align-items:center; justify-content:center; flex-direction:column; gap:8px; background:#000c; }
+</style>
+</head>
+<body>
+<canvas id="cv"></canvas>
+<canvas id="cv3" style="position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none"></canvas>
+<div id="hud"><span id="time">0:00</span><div class="bar" id="hp"><i></i></div><div class="bar" id="xp"><i></i></div><span id="lvl">Lv 1</span><span id="kills">0</span></div>
+<div id="stick"><div id="knob"></div></div>
+<button id="ult">ULT</button>
+<div id="pick"><h2>LEVEL UP</h2></div>
+<div id="end"><h2 id="endT"></h2><div id="endS"></div><button onclick="location.reload()">Again</button></div>
+<div id="start">
+  <h1 style="color:var(--gold);margin:0">HERO SURVIVORS</h1><div style="color:var(--dim)">dev prototype - placeholder art</div>
+  <label>Class <select id="cls"><option>Tank</option><option>Bruiser</option><option>Mage</option><option>Support</option><option>Assassin</option><option>Marksman</option></select></label>
+  <label>Mode <select id="mode"><option value="story">Story (30:00, then the boss)</option><option value="survive">Survive (endless)</option></select></label>
+  <label>Stage <select id="stage"></select></label>
+  <label><input type="checkbox" id="use3d" checked> 3D hero pilot: Linnet (Meshy, 1K textures)</label>
+  <button id="go">PLAY</button>
+  <div id="mem" style="color:var(--dim)"></div>
+  <div style="color:var(--dim);max-width:340px;text-align:center">Move with the joystick or WASD. You aim the way you move. ULT (or Space) when the ring is full.</div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="/assets/js/three-r128-GLTFLoader.js"></script>
+<script src="/server/survivors-core.js?v=dev1"></script>
+<script>
+(async function () {
+  const C = window.SurvivorsCore, AURAS = await (await fetch('/server/survivors-auras.json?v=dev1')).json();
+  const byKey = {}; AURAS.forEach(a => byKey[a.key] = a);
+  const st = document.getElementById('stage'); for (let i = 1; i <= C.STAGES; i++) st.add(new Option('Stage ' + i, i));
+  const cv = document.getElementById('cv'), g = cv.getContext('2d');
+  let S = null, input = { mx: 0, my: 0 }, ultReq = false, pickReq = null, acc = 0, last = 0;
+  function resize() { cv.width = innerWidth * devicePixelRatio; cv.height = innerHeight * devicePixelRatio; }
+  addEventListener('resize', resize); resize();
+  // keyboard
+  const keys = {}; addEventListener('keydown', e => { keys[e.key.toLowerCase()] = 1; if (e.code === 'Space') ultReq = true; }); addEventListener('keyup', e => keys[e.key.toLowerCase()] = 0);
+  // touch joystick
+  const stick = document.getElementById('stick'), knob = document.getElementById('knob'); let sid = null, scx = 0, scy = 0, smx = 0, smy = 0;
+  stick.addEventListener('pointerdown', e => { sid = e.pointerId; const r = stick.getBoundingClientRect(); scx = r.left + r.width / 2; scy = r.top + r.height / 2; stick.setPointerCapture(sid); move(e); });
+  stick.addEventListener('pointermove', e => { if (e.pointerId === sid) move(e); });
+  stick.addEventListener('pointerup', () => { sid = null; smx = smy = 0; knob.style.transform = ''; });
+  function move(e) { let dx = e.clientX - scx, dy = e.clientY - scy; const d = Math.hypot(dx, dy), m = 50; if (d > m) { dx *= m / d; dy *= m / d; } smx = dx / m; smy = dy / m; knob.style.transform = `translate(${dx}px,${dy}px)`; }
+  document.getElementById('ult').onclick = () => ultReq = true;
+  /* LINNET 3D PILOT (Phil 24 Oct: "set up the threadseer pilot"). One rigged Meshy model, 1024 px textures (92 MB -> 5 MB).
+     The camera looks down at the field; the model turns to face the way the hero moves and plays Walking / Running / idle. */
+  let H3 = null;
+  async function load3d() {
+    const cv3 = document.getElementById('cv3'), r = new THREE.WebGLRenderer({ canvas: cv3, alpha: true, antialias: true });
+    r.setPixelRatio(devicePixelRatio); r.setSize(innerWidth, innerHeight, false); r.outputEncoding = THREE.sRGBEncoding;
+    const scene = new THREE.Scene(), cam = new THREE.PerspectiveCamera(30, innerWidth / innerHeight, 0.1, 100);
+    cam.position.set(0, 9, 7); cam.lookAt(0, 0.6, 0);
+    scene.add(new THREE.HemisphereLight(0xfff2e0, 0x504030, 1.7)); const dl = new THREE.DirectionalLight(0xffffff, 1.5); dl.position.set(2, 8, 6); scene.add(dl); scene.add(new THREE.AmbientLight(0xffffff, 0.35));
+    const gltf = await new Promise((ok, no) => new THREE.GLTFLoader().load('/assets/survivors/linnet-1k.glb', ok, undefined, no));
+    const model = gltf.scene, box = new THREE.Box3().setFromObject(model), h = box.max.y - box.min.y;
+    model.scale.setScalar(1.6 / h); scene.add(model);
+    const mixer = new THREE.AnimationMixer(model), clips = {}; gltf.animations.forEach(c => clips[c.name] = mixer.clipAction(c));
+    const idleName = Object.keys(clips).find(n => !/walk|run/i.test(n));
+    let cur = null; function play(n) { if (!clips[n] || cur === n) return; if (cur) clips[cur].fadeOut(0.15); clips[n].reset().fadeIn(0.15).play(); cur = n; }
+    play(idleName || 'Walking');
+    addEventListener('resize', () => { r.setSize(innerWidth, innerHeight, false); cam.aspect = innerWidth / innerHeight; cam.updateProjectionMatrix(); });
+    const info = r.info; H3 = { r, scene, cam, model, mixer, play, idleName, clock: new THREE.Clock(), info, names: Object.keys(clips) };
+    document.getElementById('mem').textContent = '3D loaded: ' + H3.names.join(', ');
+  }
+  document.getElementById('go').onclick = () => {
+    const cls = document.getElementById('cls').value;
+    S = C.create({ key: 'dev', cls, maxHp: 3000, atk: 260, armor: 300, crit: 0.1, critDmg: 0.6 },
+                 { mode: document.getElementById('mode').value, stage: +st.value, seed: (Math.random() * 4e9) >>> 0, auras: AURAS });
+    document.getElementById('start').style.display = 'none'; last = performance.now(); requestAnimationFrame(frame);
+    if (document.getElementById('use3d').checked) load3d().catch(e => console.error('3D load failed', e));
+  };
+  function label(o) {
+    if (o.t === 'aura') { const a = byKey[o.key]; return `<b>${a.name}</b> ${o.to === 1 ? 'NEW' : 'Lv ' + o.to}${o.to === 10 ? ' - ' + a.l10 : ''}<small>${a.fam} aura · ${a.fx}</small>`; }
+    if (o.t === 'passive') { const p = C.PASSIVES[o.key]; return `<b>${p.name}</b> ${o.to === 1 ? 'NEW' : 'Lv ' + o.to}<small>${p.what}</small>`; }
+    return '<b>Heal</b><small>restore all health</small>';
+  }
+  function showPick() {
+    const box = document.getElementById('pick'); box.querySelectorAll('button').forEach(b => b.remove());
+    S.choice.forEach((o, i) => { const b = document.createElement('button'); b.innerHTML = label(o); b.onclick = () => { pickReq = i; box.style.display = 'none'; }; box.appendChild(b); });
+    box.style.display = 'flex';
+  }
+  function frame(now) {
+    if (!S) return;
+    acc += Math.min(0.25, (now - last) / 1000); last = now;
+    let kx = (keys.d || keys.arrowright ? 1 : 0) - (keys.a || keys.arrowleft ? 1 : 0), ky = (keys.s || keys.arrowdown ? 1 : 0) - (keys.w || keys.arrowup ? 1 : 0);
+    input.mx = sid != null ? smx : kx; input.my = sid != null ? smy : ky;
+    while (acc >= C.TICK && !S.ended) {
+      acc -= C.TICK;
+      if (S.choice) { if (pickReq == null) { if (document.getElementById('pick').style.display !== 'flex') showPick(); acc = 0; break; } C.step(S, { mx: input.mx, my: input.my, pick: pickReq }); pickReq = null; continue; }
+      C.step(S, { mx: input.mx, my: input.my, ult: ultReq }); ultReq = false;
+    }
+    draw();
+    if (S.ended) { const e = document.getElementById('end'); e.style.display = 'flex'; document.getElementById('endT').textContent = S.won ? 'STAGE CLEARED' : (S.mode === 'survive' ? 'SURVIVED' : 'FALLEN');
+      document.getElementById('endS').textContent = `${fmt(S.t)} · ${S.kills} kills · level ${S.hero.level} · ${S.inputs.length} inputs recorded`; return; }
+    requestAnimationFrame(frame);
+  }
+  function fmt(t) { t = Math.floor(t); return Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0'); }
+  const COL = { swarmer: '#7a8a4a', runner: '#a0703a', brute: '#6a4a8a', elite: '#c23a3a', boss: '#ff2a6a' };
+  function draw() {
+    const W = cv.width, H = cv.height, sc = Math.min(W, H) / 22, h = S.hero;
+    const X = x => W / 2 + (x - h.x) * sc, Y = y => H / 2 + (y - h.y) * sc;
+    g.fillStyle = '#120d0a'; g.fillRect(0, 0, W, H);
+    g.strokeStyle = '#ffffff08'; g.lineWidth = 1; const gs = 2 * sc, ox = ((-h.x * sc) % gs + gs) % gs, oy = ((-h.y * sc) % gs + gs) % gs;
+    for (let x = ox; x < W; x += gs) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, H); g.stroke(); } for (let y = oy; y < H; y += gs) { g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke(); }
+    S.zones.forEach(z => { if (z.delay > 0) return; g.globalAlpha = 0.35; g.fillStyle = z.kind === 'puddle' ? '#ff6a2a' : '#ffd27a';
+      const r = z.kind === 'ring' ? z.r0 + (z.r1 - z.r0) * Math.min(1, z.t / z.life) : (z.r || z.r1); g.beginPath(); g.arc(X(z.x), Y(z.y), r * sc, 0, 7); z.kind === 'ring' ? (g.strokeStyle = '#ffd27a', g.lineWidth = 4, g.stroke()) : g.fill(); g.globalAlpha = 1; });
+    S.gems.forEach(m => { g.fillStyle = '#5fb8ff'; g.fillRect(X(m.x) - 3, Y(m.y) - 3, 6, 6); });
+    S.monsters.forEach(m => { g.fillStyle = COL[m.type] || '#888'; g.beginPath(); g.arc(X(m.x), Y(m.y), m.r * sc, 0, 7); g.fill(); });
+    S.shots.forEach(s => { g.fillStyle = s.key === '_base' ? '#fff' : '#ffb24a'; g.beginPath(); g.arc(X(s.x), Y(s.y), Math.max(3, s.r * sc), 0, 7); g.fill(); });
+    // orbit auras drawn from the core's own state
+    Object.keys(h.auras).forEach(k => { const a = byKey[k]; if (!a || a.fam !== 'orbit') return; const L = C.LADDER.orbit[h.auras[k] - 1], st2 = S._state[k]; if (!st2) return;
+      const R = 2.0 * L.rad * sc; if (L.special) { g.strokeStyle = '#2a0a0a'; g.lineWidth = 10; g.beginPath(); g.arc(W / 2, H / 2, R, 0, 7); g.stroke(); g.strokeStyle = '#ff5a1a'; g.lineWidth = 4; g.stroke(); return; }
+      for (let i = 0; i < L.n; i++) { const an = st2.a + i * Math.PI * 2 / L.n; g.fillStyle = '#ff7a2a'; g.beginPath(); g.arc(W / 2 + Math.cos(an) * R, H / 2 + Math.sin(an) * R, 0.45 * L.size * sc, 0, 7); g.fill(); } });
+    // zone auras as a faint ring
+    Object.keys(h.auras).forEach(k => { const a = byKey[k]; if (!a || a.fam !== 'zone') return; const L = C.LADDER.zone[h.auras[k] - 1]; g.strokeStyle = '#ffd27a55'; g.lineWidth = 3; g.beginPath(); g.arc(W / 2, H / 2, L.rad * sc, 0, 7); g.stroke(); });
+    if (!H3) { g.fillStyle = h.iframes > 0 ? '#fff' : '#f2c14e'; g.beginPath(); g.arc(W / 2, H / 2, 0.5 * sc, 0, 7); g.fill(); }
+    else {
+      const moving = Math.abs(h.mvx) + Math.abs(h.mvy) > 0.01;
+      H3.play(moving ? (Math.hypot(input.mx, input.my) > 0.85 ? 'Running' : 'Walking') : (H3.idleName || 'Walking'));
+      H3.model.rotation.y = Math.atan2(h.dirx, h.diry);
+      window._dbg = { dirx: h.dirx, diry: h.diry, roty: H3.model.rotation.y, paused: !!S.choice };   // dev probe
+      H3.mixer.update(Math.min(0.05, H3.clock.getDelta())); H3.r.render(H3.scene, H3.cam);
+    }
+    g.strokeStyle = '#fff'; g.lineWidth = 3; g.beginPath(); g.moveTo(W / 2, H / 2); g.lineTo(W / 2 + h.dirx * sc, H / 2 + h.diry * sc); g.stroke();
+    S.fx.forEach(f => { if (f.kind !== 'ult') return; g.globalAlpha = 1 - f.t / f.life; g.fillStyle = '#ff7a2a'; g.beginPath(); const a0 = Math.atan2(f.dy, f.dx); g.moveTo(W / 2, H / 2); g.arc(W / 2, H / 2, 7 * sc, a0 - Math.PI / 3, a0 + Math.PI / 3); g.fill(); g.globalAlpha = 1; });
+    document.getElementById('time').textContent = fmt(S.t);
+    document.querySelector('#hp i').style.width = (100 * h.hp / h.maxHp) + '%';
+    document.querySelector('#xp i').style.width = (100 * h.xp / h.xpNext) + '%';
+    document.getElementById('lvl').textContent = 'Lv ' + h.level; document.getElementById('kills').textContent = S.kills;
+    document.getElementById('ult').classList.toggle('ready', h.ult >= h.ultMax);
+  }
+})();
+</script>
+</body>
+</html>
