@@ -318,6 +318,7 @@
     document.getElementById('lbLeave').onclick = () => post('survivors-close');
     document.getElementById('lbSpire').onclick = () => post('survivors-spire');
     const begin = resume => { document.getElementById('mode').value = mode; stS.value = lbS.value; HERO_PICK = resume ? resume.hero : pick;
+      const hh = heroes.find(x => x.key === HERO_PICK); window._heroKit = hh && hh.kit && hh.kit.skills && hh.kit.skills.length ? hh.kit : null;
       document.getElementById('use3d').checked = HERO_PICK === 'linnet'; window._resume = resume ? resume.state : null; L.hidden = true; document.getElementById('go').click(); };
     const cont = document.getElementById('lbCont'), ask = document.getElementById('lbAsk');
     function offerContinue() { const sv = saveRead(); cont.hidden = !sv;
@@ -330,7 +331,9 @@
   document.getElementById('go').onclick = () => {
     if (document.body.classList.contains('ingame')) document.getElementById('quit').hidden = false;
     const cls = document.getElementById('use3d').checked ? 'Support' : document.getElementById('cls').value;   // Linnet is a Support
-    KIT = document.getElementById('use3d').checked ? KITS.linnet : KITS[cls]; buildSkillButtons();
+    KIT = document.getElementById('use3d').checked ? KITS.linnet : KITS[cls];
+    if (window._heroKit) { KIT = window._heroKit.skills.map((k, i) => Object.assign({ anim: (KITS.linnet[i] || {}).anim }, k)); preloadSheets(window._heroKit); }
+    buildSkillButtons();
     const LAB = new URLSearchParams(location.search), labCls = LAB.get('lab');
     S = window._resume ? C.restore(window._resume, AURAS)                                   // Continue: the saved run, exactly where it was left
       : C.create({ key: 'dev', cls: labCls || cls, maxHp: 3000, atk: 260, armor: 300, crit: 0.1, critDmg: 0.6, skills: KIT },
@@ -353,6 +356,33 @@
     S.choice.forEach((o, i) => { const b = document.createElement('button'); b.innerHTML = label(o); b.onclick = () => { pickReq = i; box.style.display = 'none'; }; box.appendChild(b); });
     box.style.display = 'flex';
   }
+  /* ---- the hero's real spell art (sheets from the game: /assets/anim/fx/...) ----
+     kinds: up / fx16* / tip / above = an upright plate standing on the spot; disc / disc22 / flat / reap / ring = flat on the ground at its
+     radius; proj / fx16glide = flies hero -> target; drop = falls onto the target. 'target' = the nearest monster in 9 m, else 4 m ahead. */
+  const SHEETS = {}, ART_NOW = [], FXS = 1.5;   // FXS: the Spire camera is far out (72 m across) - the game's plates read 1.5x bigger here
+  function sheetIm(d) { if (SHEETS[d.u] !== undefined) return SHEETS[d.u]; SHEETS[d.u] = null; const im = new Image(); im.onload = () => SHEETS[d.u] = im; im.src = d.u; return null; }
+  function preloadSheets(kit) { [].concat(...kit.skills.map(s => s.fx || []), kit.ult.fx || []).forEach(e => sheetIm(e.d)); if (kit.atk) sheetIm(kit.atk.d); }
+  // a heal / ward is on herself in the Spire (in a team fight it lands on an ally): it stays on her, unturned
+  function startSpellArt(list, f, kind) { if (!list || !S) return; const h = S.hero, now = S.t, onSelf = kind === 'heal' || kind === 'ward';
+    let tg = null, bd = 81; S.monsters.forEach(m => { const d = (m.x - h.x) ** 2 + (m.y - h.y) ** 2; if (d < bd && m.hp > 0) { bd = d; tg = m; } });
+    const tx = tg ? tg.x : h.x + h.dirx * 4, ty = tg ? tg.y : h.y + h.diry * 4;
+    list.forEach(e => ART_NOW.push({ e, t0: now + e.t0, sx: h.x, sy: h.y, tx, ty, a: onSelf ? 0 : Math.atan2(ty - h.y, tx - h.x), self: onSelf || e.at !== 'target', onSelf })); }
+  function drawSpellArt(X, Y, sc, W, H) { if (!S) return; const h = S.hero, now = S.t;
+    for (let i = ART_NOW.length - 1; i >= 0; i--) { const A = ART_NOW[i], e = A.e, d = e.d, u = (now - A.t0) / e.L; if (u < 0) continue; if (u >= 1) { ART_NOW.splice(i, 1); continue; }
+      const im = sheetIm(d); if (!im) continue; const n = d.n || 1, cols = d.cols || 1, fr = Math.min(n - 1, Math.floor(u * n)), fx0 = (fr % cols) * d.fw, fy0 = Math.floor(fr / cols) * d.fh;
+      const k = e.kind, follow = A.self && !/proj|glide|drop/.test(k), ox = follow ? h.x : A.sx, oy = follow ? h.y : A.sy;
+      let x = A.self ? ox : A.tx, y = A.self ? oy : A.ty, w, hh, rot = 0, flat = /disc|flat|reap|ring|undertow|crescent|tempest/.test(k) || d.disc;
+      if (/proj|glide/.test(k)) { const q = Math.min(1, u * 1.15); x = A.sx + (A.tx - A.sx) * q; y = A.sy + (A.ty - A.sy) * q; w = hh = Math.max(1, (e.scale || 2.6) * 0.5) * sc; rot = A.a; }
+      else if (k === 'drop') { x = A.tx; y = A.ty - (1 - Math.min(1, u * 1.4)) * 6; w = hh = Math.max(1.5, (e.scale || 3) * 0.6) * sc; }
+      else if (flat) { const r = Math.max(1.5, e.R || 2.4) * FXS; w = hh = r * 2 * sc; rot = d.cone ? A.a + Math.PI / 2 : 0; }
+      else if (d.cone && !A.onSelf) { const r = Math.max(2, e.R || 3) * FXS; w = hh = r * 2 * sc; rot = A.a + Math.PI / 2; x = ox + Math.cos(A.a) * r * 0.5; y = oy + Math.sin(A.a) * r * 0.5; }
+      else if (d.cone) { w = hh = 5.5 * FXS * sc; y -= 1.2; }   // a self-heal cone: the plate on her, centred on her body
+      else { hh = 4.6 * (d.upSize || 1) * FXS * sc; w = hh * d.fw / d.fh; if (k === 'above' || d.upAbove) y -= 2.4; }   // upright: hero-sized (its own upSize); an 'above' plate at her head
+      const fade = Math.min(1, (1 - u) * 6, u * 12 + 0.2), cx = X(x), cy = Y(y);
+      g.save(); g.globalAlpha = fade; g.translate(cx, cy); if (rot) g.rotate(rot);
+      if (flat && !rot) g.scale(1, 0.62);   // a ground plate lies in the camera's tilt
+      const anchorY = flat || /proj|glide|drop/.test(k) || d.cone || k === 'above' || d.upAbove ? 0.5 : 0.92;   // upright plates stand on their feet; head plates centre on her head
+      g.drawImage(im, fx0, fy0, d.fw, d.fh, -w / 2, -hh * anchorY, w, hh); g.restore(); } }
   function frame(now) {
     if (!S) return;
     if (paused) { last = now; requestAnimationFrame(frame); return; }        // paused: nothing steps, the picture holds
@@ -836,7 +866,9 @@
     S.eshots.forEach(b => { const x = X(b.x), y = Y(b.y), r = Math.max(0.35, b.r) * sc, a = Math.atan2(b.vy, b.vx);
       span('fx_wake', x - b.vx * 0.08 * sc, y - b.vy * 0.08 * sc, x, y, r * 1.6, 0.6); el(fx('fx_glow'), x, y, r * 2.2, 0, 0.7); el(fx('fx_spark'), x, y, r * 2, a + Math.PI / 2, 1); });
     // the basic attack and any shot without spell art (FX kit): a light mote with a short wake
-    S.shots.forEach(s => { if (artFor(s.key)) return; const x = X(s.x), y = Y(s.y), r = Math.max(0.3, s.r) * sc;
+    const AK = window._heroKit && window._heroKit.atk, aim = AK && sheetIm(AK.d);   // the hero's own attack art (Linnet: her needle and thread)
+    S.shots.forEach(s => { if (artFor(s.key)) return; const x = X(s.x), y = Y(s.y), r = Math.max(0.3, s.r) * sc, a = Math.atan2(s.vy, s.vx);
+      if (aim && s.key === '_base') { const d = AK.d, f = AK.fr | 0, w = 3.2 * sc; g.save(); g.translate(x, y); g.rotate(a); g.drawImage(aim, (f % d.cols) * d.fw, Math.floor(f / d.cols) * d.fh, d.fw, d.fh, -w / 2, -w / 2, w, w); g.restore(); return; }
       span('fx_wake', x - s.vx * 0.05 * sc, y - s.vy * 0.05 * sc, x, y, r * 1.4, 0.55); el(fx('fx_light_mote'), x, y, r * 2.2, 0, 1); });
     g = G_ART; drawSpells(X, Y, sc, W, H, tnow); g = G0;
     if (!H3) { g.fillStyle = h.iframes > 0 ? '#fff' : '#f2c14e'; g.beginPath(); g.arc(W / 2, H / 2, 0.5 * sc, 0, 7); g.fill(); }
@@ -861,11 +893,11 @@
     document.getElementById('ult').classList.toggle('ready', h.ult >= h.ultMax);
     h.kit.forEach((k, i) => { const b = document.getElementById('sk' + i); if (!b) return; const f = k.cdLeft / (k.cd || 1);
       b.style.setProperty('--cd', f.toFixed(3)); b.classList.toggle('cool', k.cdLeft > 0); b.querySelector('small').textContent = k.cdLeft > 0 ? Math.ceil(k.cdLeft) : ''; });
-    // skill + ult feedback: placeholder rings until the spell art is wired; the 3D model plays the cast clip
-    S.fx.forEach(f => { if (f.seq && f.seq > seenFx) { seenFx = f.seq; if (H3) H3.cast(f.kind === 'ult' ? 'mage_soell_cast_2' : (KIT[f.slot] || {}).anim); }
-      if (f.kind !== 'cast') return; g.globalAlpha = 1 - f.t / f.life; g.strokeStyle = (KIT[f.slot] || {}).kind === 'heal' ? '#7dffa0' : '#ffd27a'; g.lineWidth = 6;
-      g.beginPath(); g.arc(W / 2, H / 2, (1 + 3 * f.t / f.life) * sc, 0, 7); g.stroke(); g.globalAlpha = 1; });
-    if (h.wardT > 0) { g.strokeStyle = '#f2c14e'; g.lineWidth = 3; g.setLineDash([6, 6]); g.beginPath(); g.arc(W / 2, H / 2, 1.1 * sc, 0, 7); g.stroke(); g.setLineDash([]); }
+    // skill + ult: the 3D model plays the cast clip and the hero's REAL game spell art plays (Phil 24 Oct: "they should use their real game
+    // ability animation and FX") - each slot's skillPreviewPlan entries from the game, at their own time, place and size
+    S.fx.forEach(f => { if (f.seq && f.seq > seenFx) { seenFx = f.seq; if (H3) H3.cast(f.kind === 'ult' ? 'mage_soell_cast_2' : (KIT[f.slot] || {}).anim);
+        const hk = window._heroKit; if (hk) startSpellArt(f.kind === 'ult' ? hk.ult.fx : ((hk.skills[f.slot] || {}).fx || []), f, f.kind === 'ult' ? 'ult' : (KIT[f.slot] || {}).kind); } });
+    drawSpellArt(X, Y, sc, W, H);
   }
 })();
 </script>

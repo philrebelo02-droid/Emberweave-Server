@@ -28399,7 +28399,30 @@ function survivorsRoster(){ const all=Object.keys(HERO_TYPES), own=k=>heroOwned(
   const rest=all.filter(k=>SURV_PLAYABLE.indexOf(k)<0).sort((a,b)=>(own(b)-own(a))||(pw(b)-pw(a))||a.localeCompare(b));
   return SURV_PLAYABLE.concat(rest).slice(0,20).map(k=>{ const t=HERO_TYPES[k]||{};
     return { key:k, name:t.name||k, sub:(typeof HERO_SUBNAME!=='undefined'&&HERO_SUBNAME[k])||'', cls:t.role||'', img:HERO_PORTRAITS[k]||'',
-      owned:own(k), lv:own(k)?heroLevel(k):0, stars:own(k)?heroStars(k):0, power:own(k)?pw(k):0, playable:SURV_PLAYABLE.indexOf(k)>=0 }; }); }
+      owned:own(k), lv:own(k)?heroLevel(k):0, stars:own(k)?heroStars(k):0, power:own(k)?pw(k):0, playable:SURV_PLAYABLE.indexOf(k)>=0,
+      kit:SURV_PLAYABLE.indexOf(k)>=0?survivorsKit(k):null }; }); }
+/* the hero's real skills for the Spire: KITS rows -> {name, kind (heal / ward / dash / bolt / nova), cd, power, dur}, and each slot's spell
+   art from skillPreviewPlan (the Skills tab plan = how the fight places it): sheet + where (self / target / above / a projectile) + when + how
+   long + its radius in metres. Only plain fields cross to the frame. */
+const SURV_SHEET_KEYS=['u','n','fw','fh','cols','rows','dur','fps2','upright','disc','cone','upSize','upExtent','upAnchor','upAbove','upAboveM','fxMul'];
+function survKind(row){ const t=String((row&&row.type)||'').toLowerCase()+' '+String((row&&row.deliver)||'');
+  if(/heal|mend|regen|bloom|hot|courage|renew|restor|cleanse/.test(t)) return 'heal';
+  if(/shield|ward|guard|lastbreath|barrier|bubble|aegis|stand|mantle|shell|fortify|armor/.test(t)) return 'ward';
+  if(/leap|dash|blink|charge|lunge|hook|burrow|pounce|jump/.test(t)) return 'dash';
+  if(/shot|bolt|line|beam|spread|pierce|volley|snipe|lance|thrown|card/.test(t)) return 'bolt';
+  return 'nova'; }
+function survPlanFx(hk,slot){ try{ const P=skillPreviewPlan(hk,slot); if(!P) return [];
+    return (P.fx||[]).map(e=>{ const d=e.d||{}, L=(e.real!=null)?e.real:(e.life!=null)?(d.rt?e.life:e.life/FX_RT):(e.dur!=null?e.dur:d.dur||1), sh={};
+      SURV_SHEET_KEYS.forEach(k=>{ if(d[k]!=null&&typeof d[k]!=='function') sh[k]=d[k]; });
+      return { k:e.k, kind:e.kind||'', at:e.at||'', t0:+(e.t0||0), L:Math.min(8,+L||1), R:e.R?e.R/METER:0, scale:e.scale||0, d:sh }; }).filter(e=>e.d.u); }
+  catch(err){ return []; } }
+function survivorsKit(hk){ const K=KITS[hk]||{}, T=HERO_TYPES[hk]||{}, row=(r,slot)=>r?{ key:hk+'_'+slot, name:r.name||slot, kind:survKind(r), cd:Math.max(3,+r.cd||8),
+    power:survKind(r)==='heal'?0.3:survKind(r)==='dash'?5:2.5, dur:r.dur||4, fx:survPlanFx(hk,slot==='green'?1:2) }:null;
+  const at=SURV_ATK[hk], ad=at&&FX2_DEF[at.k], atk=ad?{ fr:at.fr, d:Object.fromEntries(SURV_SHEET_KEYS.filter(k=>ad[k]!=null&&typeof ad[k]!=='function').map(k=>[k,ad[k]])) }:null;
+  return { skills:[row(K.green,'green'),row(K.blue,'blue')].filter(Boolean), ult:{ name:T.abilityName||'Ultimate', fx:survPlanFx(hk,0) }, atk }; }
+/* the basic-attack projectile in the Spire: a frame of the hero's own sheet until each hero's attack projectile art exists (the fight draws a code tracer) -
+   Linnet: the needle and thread of her Reinforced Seam */
+const SURV_ATK={ linnet:{k:'linnet_blue',fr:13} };
 function openSurvivors(){ if(document.getElementById('survFrame')) return;
   const f=document.createElement('iframe'); f.id='survFrame'; f.src='/survivors?game=1&b='+encodeURIComponent(typeof BUILD_ID!=='undefined'?BUILD_ID:'');
   f.setAttribute('allow','fullscreen'); f.style.cssText='position:fixed;inset:0;width:100%;height:100%;border:0;z-index:20000;background:#120d0a';
