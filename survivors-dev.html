@@ -129,7 +129,7 @@
   <div class="pzBuild" id="pzBuild"></div></div></div>
 <!-- v1220 the lobby (in the game): a hero to pick from 20 (only those with a 3D model can play for now), the mode, the stage, PLAY -->
 <div id="lobby" hidden>
-  <div class="lbTop"><button class="lbBtn" id="lbLeave">Leave</button><div class="lbTitle" id="lbTitle">The Swarm Spire</div><button class="lbBtn" id="lbSpire">Ascendant Spire</button></div>
+  <div class="lbTop"><button class="lbBtn" id="lbLeave">Leave</button><div class="lbTitle" id="lbTitle">The Swarm Spire</div><span class="lbBtn" style="visibility:hidden" aria-hidden="true">Leave</span></div>
   <div class="lbMain">
     <div class="lbHero"><div class="lbCard"><img id="lbArt" alt=""></div>
       <div class="lbInfo"><div class="lbName" id="lbName"></div><div class="lbSub" id="lbSub"></div><div class="lbMeta" id="lbMeta"></div></div></div>
@@ -316,7 +316,7 @@
     document.querySelectorAll('#lbMode button').forEach(b => b.onclick = () => { mode = b.dataset.m; document.querySelectorAll('#lbMode button').forEach(x => x.classList.toggle('on', x === b)); lbS.disabled = mode === 'survive'; });
     const post = m => { try { parent.postMessage(m, location.origin); } catch (e) {} };
     document.getElementById('lbLeave').onclick = () => post('survivors-close');
-    document.getElementById('lbSpire').onclick = () => post('survivors-spire');
+    /* 25 Oct (Phil): the old Ascendant Spire button is gone - Hero Survivors replaces the old tower */
     const begin = resume => { document.getElementById('mode').value = mode; stS.value = lbS.value; HERO_PICK = resume ? resume.hero : pick;
       const hh = heroes.find(x => x.key === HERO_PICK); window._heroKit = hh && hh.kit && hh.kit.skills && hh.kit.skills.length ? hh.kit : null;
       document.getElementById('use3d').checked = HERO_PICK === 'linnet'; window._resume = resume ? resume.state : null; L.hidden = true; document.getElementById('go').click(); };
@@ -361,7 +361,7 @@
      radius; proj / fx16glide = flies hero -> target; drop = falls onto the target. 'target' = the nearest monster in 9 m, else 4 m ahead. */
   const SHEETS = {}, ART_NOW = [], FXS = 1.5;   // FXS: the Spire camera is far out (72 m across) - the game's plates read 1.5x bigger here
   function sheetIm(d) { if (SHEETS[d.u] !== undefined) return SHEETS[d.u]; SHEETS[d.u] = null; const im = new Image(); im.onload = () => SHEETS[d.u] = im; im.src = d.u; return null; }
-  function preloadSheets(kit) { [].concat(...kit.skills.map(s => s.fx || []), kit.ult.fx || []).forEach(e => sheetIm(e.d)); if (kit.atk) sheetIm(kit.atk.d); }
+  function preloadSheets(kit) { [].concat(...kit.skills.map(s => s.fx || []), kit.ult.fx || []).forEach(e => sheetIm(e.d)); if (kit.atk) sheetIm(kit.atk.img ? { u: kit.atk.img } : kit.atk.d); }
   // a heal / ward is on herself in the Spire (in a team fight it lands on an ally): it stays on her, unturned
   function startSpellArt(list, f, kind) { if (!list || !S) return; const h = S.hero, now = S.t, onSelf = kind === 'heal' || kind === 'ward';
     let tg = null, bd = 81; S.monsters.forEach(m => { const d = (m.x - h.x) ** 2 + (m.y - h.y) ** 2; if (d < bd && m.hp > 0) { bd = d; tg = m; } });
@@ -866,9 +866,10 @@
     S.eshots.forEach(b => { const x = X(b.x), y = Y(b.y), r = Math.max(0.35, b.r) * sc, a = Math.atan2(b.vy, b.vx);
       span('fx_wake', x - b.vx * 0.08 * sc, y - b.vy * 0.08 * sc, x, y, r * 1.6, 0.6); el(fx('fx_glow'), x, y, r * 2.2, 0, 0.7); el(fx('fx_spark'), x, y, r * 2, a + Math.PI / 2, 1); });
     // the basic attack and any shot without spell art (FX kit): a light mote with a short wake
-    const AK = window._heroKit && window._heroKit.atk, aim = AK && sheetIm(AK.d);   // the hero's own attack art (Linnet: her needle and thread)
+    const AK = window._heroKit && window._heroKit.atk, aim = AK && (AK.img ? sheetIm({ u: AK.img }) : sheetIm(AK.d));   // the hero's own attack art (Linnet: her needle bolt)
     S.shots.forEach(s => { if (artFor(s.key)) return; const x = X(s.x), y = Y(s.y), r = Math.max(0.3, s.r) * sc, a = Math.atan2(s.vy, s.vx);
-      if (aim && s.key === '_base') { const d = AK.d, f = AK.fr | 0, w = 3.2 * sc; g.save(); g.translate(x, y); g.rotate(a); g.drawImage(aim, (f % d.cols) * d.fw, Math.floor(f / d.cols) * d.fh, d.fw, d.fh, -w / 2, -w / 2, w, w); g.restore(); return; }
+      if (aim && s.key === '_base') { const w = 3.2 * sc; g.save(); g.translate(x, y); g.rotate(a);
+        if (AK.img) g.drawImage(aim, -w / 2, -w / 4, w, w / 2); else { const d = AK.d, f = AK.fr | 0; g.drawImage(aim, (f % d.cols) * d.fw, Math.floor(f / d.cols) * d.fh, d.fw, d.fh, -w / 2, -w / 2, w, w); } g.restore(); return; }
       span('fx_wake', x - s.vx * 0.05 * sc, y - s.vy * 0.05 * sc, x, y, r * 1.4, 0.55); el(fx('fx_light_mote'), x, y, r * 2.2, 0, 1); });
     g = G_ART; drawSpells(X, Y, sc, W, H, tnow); g = G0;
     if (!H3) { g.fillStyle = h.iframes > 0 ? '#fff' : '#f2c14e'; g.beginPath(); g.arc(W / 2, H / 2, 0.5 * sc, 0, 7); g.fill(); }

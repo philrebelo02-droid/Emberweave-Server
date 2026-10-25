@@ -28418,11 +28418,11 @@ function survPlanFx(hk,slot){ try{ const P=skillPreviewPlan(hk,slot); if(!P) ret
   catch(err){ return []; } }
 function survivorsKit(hk){ const K=KITS[hk]||{}, T=HERO_TYPES[hk]||{}, row=(r,slot)=>r?{ key:hk+'_'+slot, name:r.name||slot, kind:survKind(r), cd:Math.max(3,+r.cd||8),
     power:survKind(r)==='heal'?0.3:survKind(r)==='dash'?5:2.5, dur:r.dur||4, fx:survPlanFx(hk,slot==='green'?1:2) }:null;
-  const at=SURV_ATK[hk], ad=at&&FX2_DEF[at.k], atk=ad?{ fr:at.fr, d:Object.fromEntries(SURV_SHEET_KEYS.filter(k=>ad[k]!=null&&typeof ad[k]!=='function').map(k=>[k,ad[k]])) }:null;
+  const at=SURV_ATK[hk], ad=at&&at.k&&FX2_DEF[at.k], atk=at&&at.img?{ img:at.img }:ad?{ fr:at.fr, d:Object.fromEntries(SURV_SHEET_KEYS.filter(k=>ad[k]!=null&&typeof ad[k]!=='function').map(k=>[k,ad[k]])) }:null;
   return { skills:[row(K.green,'green'),row(K.blue,'blue')].filter(Boolean), ult:{ name:T.abilityName||'Ultimate', fx:survPlanFx(hk,0) }, atk }; }
-/* the basic-attack projectile in the Spire: a frame of the hero's own sheet until each hero's attack projectile art exists (the fight draws a code tracer) -
-   Linnet: the needle and thread of her Reinforced Seam */
-const SURV_ATK={ linnet:{k:'linnet_blue',fr:13} };
+/* the basic-attack projectile in the Spire: its own art ({img}, one element pointing RIGHT) or a frame of the hero's sheet ({k, fr}) - the fight still
+   draws a code tracer. Linnet: ChatGPT's needle bolt (24 Oct, Game Art/Hero Survivors/Projectiles, sha256 25df4fd3...) */
+const SURV_ATK={ linnet:{img:'/assets/survivors/projectiles/linnet_needle_bolt.webp?v=1'} };
 function openSurvivors(){ if(document.getElementById('survFrame')) return;
   const f=document.createElement('iframe'); f.id='survFrame'; f.src='/survivors?game=1&b='+encodeURIComponent(typeof BUILD_ID!=='undefined'?BUILD_ID:'');
   f.setAttribute('allow','fullscreen'); f.style.cssText='position:fixed;inset:0;width:100%;height:100%;border:0;z-index:20000;background:#120d0a';

@@ -463,7 +463,7 @@
 "fx": "block",
 "unit": "spirit",
 "l10": "ANCESTORS' RING",
-"desc": "Spirits stand guard at the corners of a square around you. They shove back and hurt monsters that come close, and destroy enemy bolts that fly into them.",
+"desc": "Spirits stand guard around you, circling slowly. They strike and shove back the monsters they meet, and destroy enemy bolts that fly into them.",
 "up": "More spirits (3 at level 4, 4 at level 7), harder shoves.",
 "ten": "Ancestors' Ring: a full ring of 8 ancestor spirits guards you."
 },

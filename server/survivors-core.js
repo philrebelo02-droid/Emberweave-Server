@@ -430,7 +430,7 @@
       var tx = tgt ? tgt.x : h.x + 1.5, ty = tgt ? tgt.y : h.y - 1.5, dx = tx - st.lx, dy = ty - st.ly, d = Math.sqrt(dx * dx + dy * dy) || 1, sp = lin(lv, 8, 12) * dt;
       st.lx += dx / d * Math.min(d, sp); st.ly += dy / d * Math.min(d, sp);
       S.gems.forEach(function (gm) { var ex = gm.x - st.lx, ey = gm.y - st.ly; if (ex * ex + ey * ey < 1.2) { gm.x = h.x; gm.y = h.y; } });   // carried home
-      st.k = (st.k || 0) - dt; if (st.k <= 0) { st.k = 0.4; near(S, st.lx, st.ly, 1.4, function (m) { hit(S, m, heroDmg(S, lin(lv, 0.3, 0.6)), "none"); }); }
+      st.k = (st.k || 0) - dt; if (st.k <= 0) { st.k = 0.4; near(S, st.lx, st.ly, 1.4 * am, function (m) { hit(S, m, heroDmg(S, lin(lv, 0.3, 0.6)), "none"); }); }
       if (lv >= 10) { st.t -= dt; if (st.t <= 0) { st.t = 10; st.call = 1.2; S.gems.forEach(function (gm) { if (Math.abs(gm.x - h.x) < VIEW.w / 2 && Math.abs(gm.y - h.y) < VIEW.h / 2) { gm.x = h.x; gm.y = h.y; } }); } if (st.call > 0) st.call -= dt; }
     },
     // 37. flowers bloom where you walk; walk back OVER one and it bursts in healing pollen; L10 they burst on their own
@@ -451,14 +451,15 @@
       var k = Math.round(lin(lv, 2, 5)), R = lin(lv, 4, 6) * am;
       for (var i = 0; i < k; i++) S.zones.push({ kind: "ripple", key: "chime-pulse", x: h.x, y: h.y, r0: 0.5, r1: R, t: 0, life: 0.5, delay: i * 0.22, n: 0, dmg: heroDmg(S, lin(lv, 0.4, 0.7)), fk: i === k - 1 ? "stun" : "none", fp: 3, hit: {} });
     },
-    // 39. spirits STAND GUARD at the corners of a square round you: they block what comes (and bolts); L10 a ring of 8 ancestors
+    // 39. spirits STAND GUARD round you, their square turning slowly so they sweep the horde (v2, Phil 25 Oct: "guardian spirits do nothing"):
+    // they block what comes (and bolts), strike and shove it back; L10 a ring of 8 ancestors
     "guardian-spirits": function (S, st, lv, dt, h, am) {
-      var n = lv >= 10 ? 8 : lv >= 7 ? 4 : lv >= 4 ? 3 : 2, R = (lv >= 10 ? 3 : 2.4) * am; st.sp = [];
-      for (var i = 0; i < n; i++) { var a = (lv >= 10 ? i / n : (i / 4 + 0.125)) * Math.PI * 2; st.sp.push([h.x + Math.cos(a) * R, h.y + Math.sin(a) * R]); }
-      st.k = (st.k || 0) - dt; var tick = st.k <= 0; if (tick) st.k = 0.35;
+      var n = lv >= 10 ? 8 : lv >= 7 ? 4 : lv >= 4 ? 3 : 2, R = (lv >= 10 ? 3.2 : 2.6) * am; st.sp = []; st.rot = (st.rot || 0) + dt * 0.9;
+      for (var i = 0; i < n; i++) { var a = st.rot + i / n * Math.PI * 2; st.sp.push([h.x + Math.cos(a) * R, h.y + Math.sin(a) * R]); }
+      st.k = (st.k || 0) - dt; var tick = st.k <= 0; if (tick) st.k = 0.3;
       st.sp.forEach(function (p) {
         for (var e = S.eshots.length - 1; e >= 0; e--) { var es = S.eshots[e], ex = es.x - p[0], ey = es.y - p[1]; if (ex * ex + ey * ey < 1.0) S.eshots.splice(e, 1); }
-        if (tick) near(S, p[0], p[1], 0.9 * am, function (m) { hit(S, m, heroDmg(S, lin(lv, 0.5, 1.0)), "none"); var dx = m.x - h.x, dy = m.y - h.y, d = Math.sqrt(dx * dx + dy * dy) || 1; m.x += dx / d * lin(lv, 1.2, 2.2); m.y += dy / d * lin(lv, 1.2, 2.2); }); });
+        if (tick) near(S, p[0], p[1], 1.4 * am, function (m) { hit(S, m, heroDmg(S, lin(lv, 1.0, 1.9)), "none"); var dx = m.x - h.x, dy = m.y - h.y, d = Math.sqrt(dx * dx + dy * dy) || 1; m.x += dx / d * lin(lv, 1.6, 2.6); m.y += dy / d * lin(lv, 1.6, 2.6); }); });
     },
     // 40. (v2, Phil 24 Oct: "sunburst is lame") the star BURSTS OUT as a ring of sun rays flying outward, burning and blinding each
     // monster they pass; L10 DAWNBREAK: a sun hangs over you, firing a turning wheel of 12 rays every 0.8 s and scorching what is near
@@ -500,9 +501,9 @@
     // 24. a bolt JUMPS monster to monster; L10 three chains from a crown over your head every second
     "chain-lightning": function (S, st, lv, dt, h, am) {
       st.t -= dt; if (st.t > 0) return; st.t = (lv >= 10 ? 1 : lin(lv, 2.4, 1.3)) * cdMul(S); st.paths = [];
-      for (var c = 0; c < (lv >= 10 ? 3 : 1); c++) { var from = { x: h.x, y: h.y - (lv >= 10 ? 2 : 0) }, seen = {}, path = [[from.x, from.y]], jumps = lv >= 10 ? 8 : Math.round(lin(lv, 3, 8)), rad = 8;
+      for (var c = 0; c < (lv >= 10 ? 3 : 1); c++) { var from = { x: h.x, y: h.y - (lv >= 10 ? 2 : 0) }, seen = {}, path = [[from.x, from.y]], jumps = lv >= 10 ? 8 : Math.round(lin(lv, 3, 8)), rad = 8 * am;
         for (var j = 0; j < jumps; j++) { var best = null, bd = rad * rad; near(S, from.x, from.y, rad, function (m, dx, dy) { var d = dx * dx + dy * dy; if (!seen[m.id] && d < bd && !(st.paths.some(function (p) { return p.ids && p.ids[m.id]; }))) { bd = d; best = m; } });
-          if (!best) break; seen[best.id] = 1; hit(S, best, heroDmg(S, lin(lv, 1.0, 1.6)), "stun", 0.6); path.push([best.x, best.y]); from = best; rad = 4.5; }
+          if (!best) break; seen[best.id] = 1; hit(S, best, heroDmg(S, lin(lv, 1.0, 1.6)), "stun", 0.6); path.push([best.x, best.y]); from = best; rad = 4.5 * am; }
         st.paths.push({ pts: path, ids: seen, t: 0.25 }); }
     },
     // 25. shooting stars STREAK DIAGONALLY across the screen; L10 one comet sweeps it all
@@ -836,7 +837,7 @@
     // 53. a bolt CHARGES up, then fires through a long line; L10 a beam across the whole screen
     "piercing-bolt": function (S, st, lv, dt, h, am) {
       st.ch = (st.ch || 0) + dt; var need = lin(lv, 2.0, 1.2) * cdMul(S); st.need = need; if (st.ch < need) return; st.ch = 0;
-      if (lv >= 10) { var a = Math.atan2(h.diry, h.dirx), L = VIEW.w; near(S, h.x + h.dirx * L / 2, h.y + h.diry * L / 2, L / 2 + 1.5, function (m) { if (segDist(m.x, m.y, h.x, h.y, a, L) <= 1.2 + m.r) hit(S, m, heroDmg(S, 6), "none"); });
+      if (lv >= 10) { var a = Math.atan2(h.diry, h.dirx), L = VIEW.w; near(S, h.x + h.dirx * L / 2, h.y + h.diry * L / 2, L / 2 + 1.5, function (m) { if (segDist(m.x, m.y, h.x, h.y, a, L) <= 1.2 * am + m.r) hit(S, m, heroDmg(S, 6), "none"); });
         S.fx.push({ kind: "rail", key: "piercing-bolt", x: h.x, y: h.y, a: a, len: L, t: 0, life: 0.35 }); return; }
       S.shots.push({ key: "piercing-bolt", x: h.x, y: h.y, vx: h.dirx * 30, vy: h.diry * 30, r: 0.5 * am, life: lin(lv, 0.6, 0.9), pierce: 99, dmg: heroDmg(S, lin(lv, 2.4, 4)), fk: "none", hit: {}, bounce: 0 });
     },
@@ -848,7 +849,7 @@
       if (f.tg.hp <= 0) { f.tg = null; return; }
       var dx = f.tg.x - f.x, dy = f.tg.y - f.y, d = Math.sqrt(dx * dx + dy * dy) || 1, sp = 18 * dt; f.alt = Math.max(0, f.alt - dt * 3);
       if (d <= sp + f.tg.r) { hit(S, f.tg, heroDmg(S, lin(lv, 1.6, 2.8) * (lv >= 10 ? 1.4 : 1)), "dot", 1.5);
-        if (lv >= 10) { var tg0 = f.tg, c = 0; near(S, tg0.x, tg0.y, 5, function (m) { if (m !== tg0 && c < 3) { c++; hit(S, m, heroDmg(S, 1.5), "stun", 0.6); S.fx.push({ kind: "bolt2", key: "falcon-companion", x: tg0.x, y: tg0.y, tx: m.x, ty: m.y, t: 0, life: 0.2 }); } }); }
+        if (lv >= 10) { var tg0 = f.tg, c = 0; near(S, tg0.x, tg0.y, 5 * am, function (m) { if (m !== tg0 && c < 3) { c++; hit(S, m, heroDmg(S, 1.5), "stun", 0.6); S.fx.push({ kind: "bolt2", key: "falcon-companion", x: tg0.x, y: tg0.y, tx: m.x, ty: m.y, t: 0, life: 0.2 }); } }); }
         f.tg = null; f.cd = lin(lv, 1.6, 0.8); } else { f.x += dx / d * sp; f.y += dy / d * sp; }
     },
     // 55. mines are dropped BEHIND you as you walk and blow when stepped on; L10 a minefield
@@ -1014,7 +1015,7 @@
     heal: function (S, k, h) { h.hp = Math.min(h.maxHp, h.hp + h.maxHp * k.power); },
     ward: function (S, k, h) { h.wardT = Math.max(h.wardT, k.dur || 4); },
     nova: function (S, k, h) { var d = heroDmg(S, k.power); near(S, h.x, h.y, 4 * areaMul(S), function (m) { hit(S, m, d, "knock", 1.5); }); },
-    bolt: function (S, k, h) { S.shots.push({ key: k.key, x: h.x, y: h.y, vx: h.dirx * 18, vy: h.diry * 18, r: 0.6, life: 1.0, pierce: 99, dmg: heroDmg(S, k.power), fk: "none", hit: {}, bounce: 0 }); },
+    bolt: function (S, k, h) { S.shots.push({ key: k.key, x: h.x, y: h.y, vx: h.dirx * 18, vy: h.diry * 18, r: 0.6 * areaMul(S), life: 1.0, pierce: 99, dmg: heroDmg(S, k.power), fk: "none", hit: {}, bounce: 0 }); },
     dash: function (S, k, h) { h.x += h.dirx * k.power; h.y += h.diry * k.power; h.iframes = Math.max(h.iframes, 0.3); },
   };
   function useSkill(S, i) {
@@ -1165,7 +1166,7 @@
       if (ro.life <= 0) { S.fx.push({ kind: "crumble", key: ro.key, x: ro.x, y: ro.y, r: ro.r, t: 0, life: 0.5 }); S.rollers.splice(ri, 1); } }
     // a base attack so a fresh hero is never helpless: a shot the way you move every 1.1 s
     S._baseT = (S._baseT || 0) - dt;
-    if (S._baseT <= 0) { S._baseT = 1.1 * cdMul(S); var base = function () { S.shots.push({ key: "_base", x: h.x, y: h.y, vx: h.dirx * 13, vy: h.diry * 13, r: 0.3, life: 1.2, pierce: 0, dmg: heroDmg(S, 1.0), fk: "none", hit: {}, bounce: 0 }); };
+    if (S._baseT <= 0) { S._baseT = 1.1 * cdMul(S); var base = function () { S.shots.push({ key: "_base", x: h.x, y: h.y, vx: h.dirx * 13, vy: h.diry * 13, r: 0.3 * areaMul(S), life: 1.2, pierce: 0, dmg: heroDmg(S, 1.0), fk: "none", hit: {}, bounce: 0 }); };
       base(); echo(S, base); }
     // shots
     for (var s = S.shots.length - 1; s >= 0; s--) {
