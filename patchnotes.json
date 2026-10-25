@@ -1,5 +1,8 @@
 {
   "patches": [
+    {"ver": "0.97.2", "date": "25 October 2026", "title": "Real skills in the Swarm Spire", "items": [
+      "The Swarm Spire: your hero now fights with their real skills - each skill button and the ult plays the hero's own spell art, and Linnet's basic attack flies her needle. Pause to see your full build. Guardian Spirits now circle you and strike much harder, and the Reach passive now widens every ability. The old tower can no longer be opened from the Spire screen."
+    ]},
     {"ver": "0.97.1", "date": "24 October 2026", "title": "The Swarm Spire", "items": [
       "The Tower of Trials is now The Swarm Spire, with a new hero select screen: pick your hero from twenty, choose Story or Survive and the stage, then play. Linnet is ready now; more heroes join as they are brought to life in 3D. Pause any time to see your skills, spells and passives, and Save and quit to carry on later from the exact same spot. The Ascendant Spire is one tap away on the same screen."
     ]},
