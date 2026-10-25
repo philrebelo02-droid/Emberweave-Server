@@ -27946,7 +27946,7 @@ function maybeOfferTutorial(){ if(G.tutDone||G.tutStarted||G.tutSkipped) return;
 const ISLE_FEATURES=[
   {id:'training', ic:'🌀', name:'Training Province', lvl:10, desc:'Daily training grounds — twelve boss fights each for gold and glyph fragments.', open:()=>openTrainingProvince()},
   {id:'emberdraft', ic:'♟', name:'Emberdraft',        lvl:25, desc:'Draft heroes, forge equipment, outlast seven rivals.', open:()=>openEmberdraft()},   // v604 (Phil, 18 Sep: the Gauntlet was a dead system - replaced; its code stays for banking an old run)
-  {id:'tower',    ic:uiIcon('mode-tower-of-trials'), name:'Tower of Trials',   lvl:40, desc:'Climb the endless Ascendant Spire — how high can you go?', open:()=>openSurvivors()},   // v1220: the Hero Survivors lobby (its Ascendant Spire button opens the old tower)
+  {id:'tower',    ic:uiIcon('mode-tower-of-trials'), name:'The Swarm Spire',   lvl:40, desc:'Your hero against the endless swarm — how long can you last?', open:()=>openSurvivors()},   /* v1220 (Phil 24 Oct): Tower of Trials renamed The Swarm Spire */   // v1220: the Hero Survivors lobby (its Ascendant Spire button opens the old tower)
 ];
 function renderSkyIsland(){ const b=document.getElementById('skyIslandBody'); if(!b)return; const lv=playerLevel();
   const ISLE_POS={training:[22,55],tower:[49,74],emberdraft:[78,55]};
@@ -28412,7 +28412,7 @@ function openSurvivors(){ if(document.getElementById('survFrame')) return;
   addEventListener('message',onMsg); document.body.appendChild(f); try{ muteBtnPlace(true); }catch(_){} }
 function openTower(){ const ov=isleOverlay();
   function render(msg,mc){ const st=towerState(), next=st.floor+1, req=towerReq(next), pow=battlePow(), canGo=pow>=req, trib=towerTribReady();
-    ov.innerHTML=isleCard(`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-weight:800;font-size:15px">🗼 Tower of Trials</div><button class="btn sm secondary" id="twX">${uiIcon('close')}</button></div>
+    ov.innerHTML=isleCard(`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-weight:800;font-size:15px">Ascendant Spire</div><button class="btn sm secondary" id="twX">${uiIcon('close')}</button></div>
       <div style="text-align:center;margin-bottom:12px"><div style="font-size:11px;color:#8b98a9">The Ascendant Spire · your record</div><div style="font-weight:800;font-size:30px;color:#ffd45e">Floor ${st.floor}</div><div style="font-size:11px;color:#8b98a9">Your power ${statusIcon('attack')} ${pow.toLocaleString()}</div></div>
       <div style="background:#0f1420;border-radius:10px;padding:11px;margin-bottom:8px">
         <div style="font-weight:800;font-size:12px">${next%5===0?uiIcon('crown')+' Warden of Floor '+next:'Guardian of Floor '+next}</div>
@@ -29406,7 +29406,7 @@ function playerInfoFill(host, id){ if(!host||!id) return;
     else {
       S.push(sec('Progress',[row('Player level','Lv '+(G.level|0)+' · '+n(G.xp)+' XP'),row('Patron',pat),row('Normal',cp('normal')),row('Elite',cp('elite')),row('Veteran',cp('veteran')),
         row('Aether Vault','Floor '+(G.vaultFloor|0)+(G.vaultDone?' (cleared)':'')),row('Arena','#'+(G.arenaRank|0)+(G.bestArenaRank?' · best #'+G.bestArenaRank:'')),
-        row('Tower of Trials','Floor '+(G.towerFloor|0)),row('Training Province','Gold '+((G.province||{}).gold|0)+' · Rune '+((G.province||{}).rune|0)),
+        row('Ascendant Spire','Floor '+(G.towerFloor|0)),row('Training Province','Gold '+((G.province||{}).gold|0)+' · Rune '+((G.province||{}).rune|0)),
         row('Starless Well',well),row('Island of Trials today',((G.islandToday||{}).used|0)+' played'+(((G.islandToday||{}).bought|0)?' · '+G.islandToday.bought+' bought':'')),
         row('Guild',G.guild?G.guild.name+' ('+G.guild.role+')':'None')]));
       S.push(sec('Currencies',[row('Diamonds',n(C.gems)),row('Gold',n(C.gold)),row('Stamina',n(C.stamina)+' / '+n(C.staminaMax)),row('Ember Roasts',n(C.emberRoasts)),

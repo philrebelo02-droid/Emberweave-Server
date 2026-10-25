@@ -129,7 +129,7 @@
   <div class="pzBuild" id="pzBuild"></div></div></div>
 <!-- v1220 the lobby (in the game): a hero to pick from 20 (only those with a 3D model can play for now), the mode, the stage, PLAY -->
 <div id="lobby" hidden>
-  <div class="lbTop"><button class="lbBtn" id="lbLeave">Leave</button><div class="lbTitle" id="lbTitle">Hero Survivors</div><button class="lbBtn" id="lbSpire">Ascendant Spire</button></div>
+  <div class="lbTop"><button class="lbBtn" id="lbLeave">Leave</button><div class="lbTitle" id="lbTitle">The Swarm Spire</div><button class="lbBtn" id="lbSpire">Ascendant Spire</button></div>
   <div class="lbMain">
     <div class="lbHero"><div class="lbCard"><img id="lbArt" alt=""></div>
       <div class="lbInfo"><div class="lbName" id="lbName"></div><div class="lbSub" id="lbSub"></div><div class="lbMeta" id="lbMeta"></div></div></div>
@@ -140,7 +140,7 @@
   </div>
 </div>
 <div id="start">
-  <h1 style="color:var(--gold);margin:0">HERO SURVIVORS</h1><div style="color:var(--dim)">Story · Stage 1 · Emberfall Vale</div>
+  <h1 style="color:var(--gold);margin:0">THE SWARM SPIRE</h1><div style="color:var(--dim)">Story · Stage 1 · Emberfall Vale</div>
   <label class="devonly">Class <select id="cls"><option>Tank</option><option>Bruiser</option><option>Mage</option><option>Support</option><option>Assassin</option><option>Marksman</option></select></label>
   <label>Mode <select id="mode"><option value="story">Story (30:00, then the boss)</option><option value="survive">Survive (endless)</option></select></label>
   <label>Stage <select id="stage"></select></label>
@@ -235,7 +235,7 @@
     document.getElementById('mem').textContent = '3D loaded: ' + H3.names.join(', ');
   }
   // in the game: Linnet in 3D, no dev pickers; Leave tells the game to close the frame
-  if (new URLSearchParams(location.search).get('game') === '1') { document.body.classList.add('ingame'); document.getElementById('use3d').checked = true; document.title = 'Hero Survivors';
+  if (new URLSearchParams(location.search).get('game') === '1') { document.body.classList.add('ingame'); document.getElementById('use3d').checked = true; document.title = 'The Swarm Spire';
     document.querySelectorAll('.leave').forEach(b => { b.hidden = false; b.onclick = () => { try { parent.postMessage('survivors-close', location.origin); } catch (e) {} }; });
     document.getElementById('quit').hidden = true; }
   /* SAVE / CONTINUE (Phil 24 Oct: "save their game and return them to their exact spot on demand"): the whole run (C.snapshot) is kept on this
