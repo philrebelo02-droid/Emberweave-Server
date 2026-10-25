@@ -45,6 +45,19 @@
   #end button, #start .leave { font-size:16px; padding:10px 14px; border-radius:8px; border:1px solid #ffffff33; background:var(--panel); color:var(--ink); }
   body.ingame .devonly { display:none !important; }
   html.nostick #stick { display:none; }
+  #pause { position:fixed; inset:0; z-index:9; display:flex; align-items:center; justify-content:center; background:#06080cc8; font-family:Georgia,'Times New Roman',serif; }
+  #pause[hidden] { display:none; }
+  .pzBox { display:flex; flex-direction:column; gap:1.4vh; align-items:stretch; min-width:min(300px,70vw); padding:3vh 2.4vw; border-radius:12px; border:2px solid #c99a3e;
+           background:linear-gradient(#141b2c,#0b0f18); box-shadow:0 10px 40px #000c, 0 0 30px #ff7a2a33; }
+  .pzT { color:var(--gold); font-size:min(5vh,26px); font-weight:700; text-align:center; letter-spacing:.1em; text-transform:uppercase; }
+  .pzS { color:#b9a88c; text-align:center; font:600 min(2.6vh,12px) system-ui,sans-serif; font-variant-numeric:tabular-nums; }
+  .pzBox button { font:700 min(3.4vh,16px) Georgia,serif; color:#ffe9b8; background:linear-gradient(#1b2338,#0f1422); border:1px solid #8a6b2e; border-radius:9px; padding:1.4vh 1vw; }
+  .pzBox .pzMain { color:#1a0d05; background:linear-gradient(#ffb15a,#ff7a2a 55%,#c2481a); border-color:#ffd9a0; }
+  #lbCont { font:800 min(3.4vh,17px) Georgia,serif; color:#1a0d05; background:linear-gradient(#ffd977,#d9a23a); border:1px solid #ffe9b8; border-radius:10px; padding:.8vh 2vw;
+            display:flex; flex-direction:column; align-items:center; line-height:1.1; }
+  #lbCont[hidden] { display:none; } #lbCont small { font:600 min(2.2vh,11px) system-ui,sans-serif; color:#3a2410; font-variant-numeric:tabular-nums; }
+  .lbAsk { display:flex; align-items:center; justify-content:flex-end; gap:1vw; color:#ffe9b8; font:600 min(2.8vh,13px) Georgia,serif; }
+  .lbAsk[hidden] { display:none; } .lbAsk button { font:700 min(2.8vh,13px) Georgia,serif; color:#ffe9b8; background:#0f1422; border:1px solid #8a6b2e; border-radius:8px; padding:.8vh 1.2vw; }
   body { -webkit-touch-callout:none; } img, canvas { -webkit-user-drag:none; }
   body.ingame #start { display:none !important; }
   /* the lobby: the Island of Trials art behind, the picked hero's card on the left, 20 heroes on the right */
@@ -92,7 +105,10 @@
 <div id="skills"></div>
 <div id="pick"><h2>LEVEL UP</h2></div>
 <div id="end"><h2 id="endT"></h2><div id="endS"></div><button onclick="location.reload()">Again</button><button class="leave" hidden>Leave</button></div>
-<button id="quit" class="leave" hidden>Leave</button>
+<button id="quit" hidden>Pause</button>
+<!-- the pause (in the game): Resume, Save and quit (the run is kept on this device; Continue in the lobby brings it back), Quit (the run is lost) -->
+<div id="pause" hidden><div class="pzBox"><div class="pzT">Paused</div><div class="pzS" id="pzInfo"></div>
+  <button id="pzResume" class="pzMain">Resume</button><button id="pzSave">Save and quit</button><button id="pzQuit">Quit</button></div></div>
 <!-- v1220 the lobby (in the game): a hero to pick from 20 (only those with a 3D model can play for now), the mode, the stage, PLAY -->
 <div id="lobby" hidden>
   <div class="lbTop"><button class="lbBtn" id="lbLeave">Leave</button><div class="lbTitle" id="lbTitle">Hero Survivors</div><button class="lbBtn" id="lbSpire">Ascendant Spire</button></div>
@@ -101,7 +117,8 @@
       <div class="lbInfo"><div class="lbName" id="lbName"></div><div class="lbSub" id="lbSub"></div><div class="lbMeta" id="lbMeta"></div></div></div>
     <div class="lbRight"><div class="lbGrid" id="lbGrid"></div>
       <div class="lbGo"><div class="lbSeg" id="lbMode"><button data-m="story" class="on">Story</button><button data-m="survive">Survive</button></div>
-        <select id="lbStage"></select><button id="lbPlay">PLAY</button></div></div>
+        <select id="lbStage"></select><button id="lbCont" hidden>Continue<small id="lbContInfo"></small></button><button id="lbPlay">PLAY</button></div>
+      <div class="lbAsk" id="lbAsk" hidden>Start a new run? Your saved run will be lost.<button id="lbAskYes">New run</button><button id="lbAskNo">Back</button></div></div>
   </div>
 </div>
 <div id="start">
@@ -202,7 +219,30 @@
   // in the game: Linnet in 3D, no dev pickers; Leave tells the game to close the frame
   if (new URLSearchParams(location.search).get('game') === '1') { document.body.classList.add('ingame'); document.getElementById('use3d').checked = true; document.title = 'Hero Survivors';
     document.querySelectorAll('.leave').forEach(b => { b.hidden = false; b.onclick = () => { try { parent.postMessage('survivors-close', location.origin); } catch (e) {} }; });
-    document.getElementById('quit').hidden = true; lobby(); }
+    document.getElementById('quit').hidden = true; }
+  /* SAVE / CONTINUE (Phil 24 Oct: "save their game and return them to their exact spot on demand"): the whole run (C.snapshot) is kept on this
+     device under one key; Continue (C.restore) puts it back exactly. Saved by Save and quit, and when the page is hidden or closed mid-run
+     (a phone closes background tabs); cleared by Quit and when the run ends. */
+  const SAVE_KEY = 'ew_surv_save_v1';
+  const saveRead = () => { try { const j = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); return j && j.state ? j : null; } catch (e) { return null; } };
+  const saveDrop = () => { try { localStorage.removeItem(SAVE_KEY); } catch (e) {} };
+  let HERO_PICK = 'linnet', paused = false, leaving = false;   // leaving: Quit / Save and quit chose - the page-close autosave stands down
+  function saveRun() { if (!S || S.ended || leaving || !document.body.classList.contains('ingame')) return false;
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify({ v: 1, hero: HERO_PICK, at: Date.now(), t: S.t, level: S.hero.level, kills: S.kills, mode: S.mode, stage: S.stage, state: C.snapshot(S) })); return true; }
+    catch (e) { return false; } }
+  const fmtT = t => { t = Math.floor(t); return Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0'); };
+  function setPause(on) { if (!S || S.ended) return; paused = on; document.getElementById('pause').hidden = !on;
+    if (on) document.getElementById('pzInfo').textContent = fmtT(S.t) + '  ·  Lv ' + S.hero.level + '  ·  ' + S.kills + ' kills';
+    if (!on) { last = performance.now(); if (H3) H3.clock.getDelta(); } }
+  const toGame = m => { try { parent.postMessage(m, location.origin); } catch (e) {} };
+  document.getElementById('quit').onclick = () => setPause(true);
+  document.getElementById('pzResume').onclick = () => setPause(false);
+  document.getElementById('pzSave').onclick = () => { if (saveRun()) { leaving = true; toGame('survivors-close'); } };
+  document.getElementById('pzQuit').onclick = () => { leaving = true; saveDrop(); toGame('survivors-close'); };
+  addEventListener('keydown', e => { if ((e.key === 'Escape' || e.key === 'p' || e.key === 'P') && S && !S.ended && document.body.classList.contains('ingame')) setPause(!paused); });
+  document.addEventListener('visibilitychange', () => { if (document.hidden && S && !S.ended && document.body.classList.contains('ingame')) { setPause(true); saveRun(); } });
+  addEventListener('pagehide', () => { if (S && !S.ended && document.body.classList.contains('ingame')) saveRun(); });
+  if (document.body.classList.contains('ingame')) setTimeout(lobby, 0);   // after the save code above, so the lobby can offer Continue
   // the lobby: 20 heroes from the game (Linnet only, outside the game); only the playable ones can be picked
   function lobby() {
     const L = document.getElementById('lobby'); L.hidden = false; let heroes = [], pick = 'linnet', mode = 'story';
@@ -222,16 +262,24 @@
     const post = m => { try { parent.postMessage(m, location.origin); } catch (e) {} };
     document.getElementById('lbLeave').onclick = () => post('survivors-close');
     document.getElementById('lbSpire').onclick = () => post('survivors-spire');
-    document.getElementById('lbPlay').onclick = () => { document.getElementById('mode').value = mode; stS.value = lbS.value; document.getElementById('use3d').checked = pick === 'linnet';
-      L.hidden = true; document.getElementById('go').click(); };
+    const begin = resume => { document.getElementById('mode').value = mode; stS.value = lbS.value; HERO_PICK = resume ? resume.hero : pick;
+      document.getElementById('use3d').checked = HERO_PICK === 'linnet'; window._resume = resume ? resume.state : null; L.hidden = true; document.getElementById('go').click(); };
+    const sv = saveRead(), cont = document.getElementById('lbCont'), ask = document.getElementById('lbAsk');
+    if (sv) { cont.hidden = false; document.getElementById('lbContInfo').textContent = fmtT(sv.t) + '  ·  Lv ' + sv.level + '  ·  ' + (sv.mode === 'survive' ? 'Survive' : 'Stage ' + sv.stage); }
+    cont.onclick = () => { const s2 = saveRead(); if (s2) begin(s2); };
+    document.getElementById('lbPlay').onclick = () => { if (saveRead()) { ask.hidden = false; return; } begin(null); };
+    document.getElementById('lbAskYes').onclick = () => { saveDrop(); ask.hidden = true; begin(null); };
+    document.getElementById('lbAskNo').onclick = () => { ask.hidden = true; };
   }
   document.getElementById('go').onclick = () => {
     if (document.body.classList.contains('ingame')) document.getElementById('quit').hidden = false;
     const cls = document.getElementById('use3d').checked ? 'Support' : document.getElementById('cls').value;   // Linnet is a Support
     KIT = document.getElementById('use3d').checked ? KITS.linnet : KITS[cls]; buildSkillButtons();
     const LAB = new URLSearchParams(location.search), labCls = LAB.get('lab');
-    S = C.create({ key: 'dev', cls: labCls || cls, maxHp: 3000, atk: 260, armor: 300, crit: 0.1, critDmg: 0.6, skills: KIT },
+    S = window._resume ? C.restore(window._resume, AURAS)                                   // Continue: the saved run, exactly where it was left
+      : C.create({ key: 'dev', cls: labCls || cls, maxHp: 3000, atk: 260, armor: 300, crit: 0.1, critDmg: 0.6, skills: KIT },
                  { mode: document.getElementById('mode').value, stage: +st.value, seed: (Math.random() * 4e9) >>> 0, auras: AURAS });
+    window._resume = null;
     window._S = S;   // read by the rig tests (controls, lobby) - never written from outside
     if (labCls) { const set = +(LAB.get('set') || 0), lv = +(LAB.get('lv') || 1);   // spell lab: five spells of a class at one level
       const only = LAB.get('only'); (only ? AURAS.filter(a => a.key === only) : AURAS.filter(a => a.cls === labCls).slice(set * 5, set * 5 + 5)).forEach(a => S.hero.auras[a.key] = lv); window._lab = true; window._labEcho = LAB.get('echo') === '1'; S._baseT = 1e9; }
@@ -250,6 +298,7 @@
   }
   function frame(now) {
     if (!S) return;
+    if (paused) { last = now; requestAnimationFrame(frame); return; }        // paused: nothing steps, the picture holds
     acc += Math.min(0.25, (now - last) / 1000); last = now;
     let kx = (keys.d || keys.arrowright ? 1 : 0) - (keys.a || keys.arrowleft ? 1 : 0), ky = (keys.s || keys.arrowdown ? 1 : 0) - (keys.w || keys.arrowup ? 1 : 0);
     input.mx = sid != null ? smx : kx; input.my = sid != null ? smy : ky;
@@ -260,7 +309,7 @@
       C.step(S, { mx: input.mx, my: input.my, ult: ultReq, skill: skillReq == null ? undefined : skillReq }); ultReq = false; skillReq = null;
     }
     draw();
-    if (S.ended) { const e = document.getElementById('end'); e.style.display = 'flex'; document.getElementById('endT').textContent = S.won ? 'STAGE CLEARED' : (S.mode === 'survive' ? 'SURVIVED' : 'FALLEN');
+    if (S.ended) { saveDrop(); document.getElementById('quit').hidden = true; const e = document.getElementById('end'); e.style.display = 'flex'; document.getElementById('endT').textContent = S.won ? 'STAGE CLEARED' : (S.mode === 'survive' ? 'SURVIVED' : 'FALLEN');
       document.getElementById('endS').textContent = `${fmt(S.t)} · ${S.kills} kills · level ${S.hero.level} · ${S.inputs.length} inputs recorded`; return; }
     requestAnimationFrame(frame);
   }

@@ -1285,6 +1285,36 @@
     }
     return S;
   }
+  /* ---- save / continue (Phil 24 Oct: "save their game and return them to their exact spot on demand") ------------------------------
+   * snapshot(S): the whole run as text - hero, monsters, spells, shots, timers, picks. A monster held by anything other than the monster list
+   * (the boss, a buried sickle, a hunted target) is written as its id and joined back to the same monster on restore; one already gone is
+   * written as a dead stub. The random rolls are not saved: a restored run rolls fresh (it is a 1-player mode). restore(text, auras) gives a
+   * run that steps on from the same spot. */
+  function snapshot(S) {
+    var live = {}; S.monsters.forEach(function (m) { live[m.id] = m; });
+    return JSON.stringify(S, function (k, v) {
+      if (k === "rng" || k === "_grid" || k === "aurasTable") return undefined;
+      if (v && typeof v === "object" && !Array.isArray(v) && typeof v.id === "number" && typeof v.type === "string" && "hp" in v && this !== S.monsters)
+        return live[v.id] === v ? { $mon: v.id } : { $dead: 1, x: v.x, y: v.y };       // held elsewhere: by id (or a dead stub)
+      return v;
+    });
+  }
+  function restore(text, auras) {
+    var S = JSON.parse(text);
+    var byId = {}; (S.monsters || []).forEach(function (m) { byId[m.id] = m; });
+    (function join(o) {
+      for (var k in o) { var v = o[k]; if (!v || typeof v !== "object") continue;
+        if (v.$mon != null) o[k] = byId[v.$mon] || { id: -1, type: "brute", hp: 0, x: 0, y: 0, r: 0.5 };
+        else if (v.$dead) o[k] = { id: -1, type: "brute", hp: 0, x: v.x || 0, y: v.y || 0, r: 0.5 };
+        else join(v); }
+    })(S);
+    S.monsters = (S.monsters || []).map(function (m) { return byId[m.id]; });
+    S.aurasTable = (auras || []).filter(function (a) { return a && a.cls === S.hero.cls; });
+    S.rng = mulberry32(((Date.now() ^ (S.tick * 2654435761)) >>> 0) || 1);
+    S.restored = (S.restored | 0) + 1;
+    buildGrid(S);
+    return S;
+  }
   function digest(S) {
     var h = S.hero;
     return JSON.stringify({ t: r4(S.t), tick: S.tick, won: S.won, ended: S.ended, kills: S.kills, level: h.level, hp: Math.round(h.hp),
@@ -1295,7 +1325,7 @@
     TICK: TICK, VIEW: VIEW, WAVES: WAVES, CAST: CAST, ROSTERS: ROSTERS, roster: roster, MAX_MONSTERS: MAX_MONSTERS, HARD_MAX: HARD_MAX, waveIndex: waveIndex, STORY_SECONDS: STORY_SECONDS, STAGES: STAGES, SLOTS: SLOTS, AURA_MAX: AURA_MAX, PASSIVE_MAX: PASSIVE_MAX,
     PASSIVES: PASSIVES, LADDER: LADDER, MONSTERS: MONSTERS, fxKind: fxKind,
     SKILL_KINDS: Object.keys(SKILL_KINDS), useSkill: useSkill,
-    create: create, step: step, choose: choose, offers: offers, replay: replay, digest: digest, stageScale: stageScale,
+    create: create, step: step, choose: choose, offers: offers, replay: replay, digest: digest, stageScale: stageScale, snapshot: snapshot, restore: restore,
   };
   if (typeof module !== "undefined" && module.exports) module.exports = global.SurvivorsCore;
 })(typeof window !== "undefined" ? window : globalThis);

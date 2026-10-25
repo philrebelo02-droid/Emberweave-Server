@@ -404,5 +404,14 @@ ok('the rhythm breathes: a lull straight after a spike', C.WAVES[11].min === 300
   ok('arrow-volley L10 sky volley: a rain of arrows lands across the cone ahead (control: none behind)', hitA >= 4 && hitB === 0, hitA + ' / ' + hitB);
 }
 
+{ // save / continue (Phil 24 Oct: "return them to their exact spot on demand"): the restored run is the same run, joined to its own monsters
+  const S = C.create(Object.assign({}, HERO, { cls: 'Assassin' }), { seed: 21, auras: AURAS }); AURAS.filter(a => a.cls === 'Assassin').forEach(a => S.hero.auras[a.key] = 10);
+  for (let i = 0; i < 30 * 90; i++) { S.hero.hp = S.hero.maxHp; S.choice = null; C.step(S, { mx: Math.sin(i / 60), my: Math.cos(i / 90) }); }
+  const txt = C.snapshot(S), T = C.restore(txt, AURAS); delete T.restored;
+  const sk = (T._state['night-sickles'] || {}).s || [], stuck = sk.filter(k => k.m && k.m.id >= 0);
+  ok('save/continue: a restored run is the exact same run (whole state) and its spells hold the restored monsters', C.snapshot(T) === txt && stuck.every(k => T.monsters.indexOf(k.m) >= 0 || k.m.hp <= 0), stuck.length + ' sickles stuck');
+  let err = null; try { for (let i = 0; i < 30 * 30; i++) C.step(T, {}); } catch (e) { err = e.message; } ok('save/continue: the restored run plays on', !err && T.tick > S.tick, err);
+}
+
 console.log(fail ? `test_survivors_core: ${pass} passed, ${fail} FAILED` : `test_survivors_core: ${pass} checks passed`);
 process.exit(fail ? 1 : 0);
