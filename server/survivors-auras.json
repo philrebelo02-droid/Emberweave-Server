@@ -6,7 +6,10 @@
 "fam": "orbit",
 "fx": "burn",
 "unit": "flame",
-"l10": "BLACK WHEEL OF FIRE"
+"l10": "BLACK WHEEL OF FIRE",
+"desc": "Embers circle close around you and burn any monster they touch.",
+"up": "More embers, faster and hotter.",
+"ten": "Black Wheel of Fire: one solid ring of fire spins round you and burns all it touches."
 },
 {
 "key": "spike-ring",
@@ -15,7 +18,10 @@
 "fam": "pulse",
 "fx": "stun",
 "unit": "spike burst",
-"l10": "THE IRON GARDEN"
+"l10": "THE IRON GARDEN",
+"desc": "Rings of spikes ripple out from you along the ground, hitting each monster once as they pass.",
+"up": "Wider, harder ripples.",
+"ten": "The Iron Garden: a spiked hedge stays up round you and roots anything that touches it."
 },
 {
 "key": "iron-bulwark",
@@ -24,7 +30,10 @@
 "fam": "orbit",
 "fx": "knockback",
 "unit": "shield plate",
-"l10": "THE CITADEL"
+"l10": "THE CITADEL",
+"desc": "Your shield plates form a wall in front of you, charge out to bulldoze the monsters ahead and block enemy bolts, then swing back.",
+"up": "Harder, further charges, more often.",
+"ten": "The Citadel: four walls slam out in every direction and hold as a square fort round you."
 },
 {
 "key": "quake-step",
@@ -33,7 +42,10 @@
 "fam": "trail",
 "fx": "a slow",
 "unit": "crack in the ground",
-"l10": "FAULT LINE"
+"l10": "FAULT LINE",
+"desc": "Every few steps a crack shoots forward along the ground and forks, hitting what is in its path.",
+"up": "Longer cracks that fork more.",
+"ten": "Fault Line: one fissure tears right across the screen."
 },
 {
 "key": "thorn-hide",
@@ -42,7 +54,10 @@
 "fam": "trigger",
 "fx": "bleed",
 "unit": "melee hits on you return thorn damage",
-"l10": "BRIAR KING"
+"l10": "BRIAR KING",
+"desc": "When a monster hits you, a thorny vine lashes back at it.",
+"up": "Harder lashes that also hit the monsters next to it.",
+"ten": "Briar King: a thicket grows out from you in 8 directions."
 },
 {
 "key": "taunting-roar",
@@ -51,7 +66,10 @@
 "fam": "pulse",
 "fx": "pull",
 "unit": "roar",
-"l10": "WAR CRY OF THE MOUNTAIN"
+"l10": "WAR CRY OF THE MOUNTAIN",
+"desc": "You roar: nearby monsters are dragged in towards you, then stunned in a heap.",
+"up": "A wider, longer stun, more often.",
+"ten": "War Cry of the Mountain: the roar pulls and stuns the whole screen."
 },
 {
 "key": "boulder-roll",
@@ -60,7 +78,10 @@
 "fam": "orbit",
 "fx": "knockback",
 "unit": "boulder",
-"l10": "LANDSLIDE"
+"l10": "LANDSLIDE",
+"desc": "A boulder rolls forward the way you face, growing bigger and flattening monsters as it goes, then crumbles.",
+"up": "Bigger boulders, more often.",
+"ten": "Landslide: a mountain rolls across the whole screen."
 },
 {
 "key": "molten-ground",
@@ -69,7 +90,10 @@
 "fam": "trail",
 "fx": "a slow",
 "unit": "lava trail",
-"l10": "MAGMA SEA"
+"l10": "MAGMA SEA",
+"desc": "Stand still and lava wells up around you, spreading wider the longer you hold; walk off and it cools.",
+"up": "Faster, wider, hotter lava.",
+"ten": "Magma Sea: a thick lava tide wall rolls out from you and leaves burning pools."
 },
 {
 "key": "bastion-dome",
@@ -78,7 +102,10 @@
 "fam": "trigger",
 "fx": "reflect",
 "unit": "a dome flashes on and blocks the next hit",
-"l10": "AEGIS"
+"l10": "AEGIS",
+"desc": "A dome drops where you stand and stays there: monsters inside it crawl, and you take less damage inside.",
+"up": "A bigger, stronger dome that lasts longer.",
+"ten": "Aegis: a golden sphere that travels with you."
 },
 {
 "key": "avalanche-fall",
@@ -87,7 +114,10 @@
 "fam": "rain",
 "fx": "stun",
 "unit": "rock",
-"l10": "MOUNTAIN FALL"
+"l10": "MOUNTAIN FALL",
+"desc": "Rocks fall from above onto the thickest crowd on screen.",
+"up": "More rocks, more often.",
+"ten": "Mountain Fall: one colossal rock crushes the biggest crowd."
 },
 {
 "key": "blade-whirl",
@@ -96,7 +126,10 @@
 "fam": "orbit",
 "fx": "bleed",
 "unit": "axe",
-"l10": "STEEL CYCLONE"
+"l10": "STEEL CYCLONE",
+"desc": "You spin: your axe sweeps one full circle round you, then rests.",
+"up": "Wider, harder spins, more often.",
+"ten": "Steel Cyclone: a blade cyclone spins with you as you move."
 },
 {
 "key": "shock-stomp",
@@ -105,7 +138,10 @@
 "fam": "pulse",
 "fx": "knockback",
 "unit": "shockwave ring",
-"l10": "EARTHBREAKER"
+"l10": "EARTHBREAKER",
+"desc": "You stomp and a shockwave rolls along the ground in a straight line ahead of you.",
+"up": "Longer, harder shockwaves.",
+"ten": "Earthbreaker: four shockwaves roll out in a cross."
 },
 {
 "key": "chain-flail",
@@ -114,7 +150,10 @@
 "fam": "orbit",
 "fx": "knockback",
 "unit": "flail",
-"l10": "WRECKING STAR"
+"l10": "WRECKING STAR",
+"desc": "A flail on a chain swings behind you like a pendulum and whips out wide whenever you turn.",
+"up": "A heavier flail on a longer chain.",
+"ten": "Wrecking Star: a giant spiked star on the chain."
 },
 {
 "key": "rage-ember",
@@ -123,7 +162,10 @@
 "fam": "trigger",
 "fx": "speed",
 "unit": "more enemies near you = faster cooldowns",
-"l10": "BERSERK FLAME"
+"l10": "BERSERK FLAME",
+"desc": "Flames build on your body for every monster near you; when they are full they burst out around you.",
+"up": "Faster build-up, bigger bursts.",
+"ten": "Berserk Flame: you stay ablaze, burning everything close."
 },
 {
 "key": "iron-fists",
@@ -132,7 +174,10 @@
 "fam": "buddy",
 "fx": "knockback",
 "unit": "spectral fist",
-"l10": "TITAN'S HANDS"
+"l10": "TITAN'S HANDS",
+"desc": "Two spectral fists float at your shoulders and punch one-two: each rockets at the nearest monster, ploughs through the line, knocks back and flies home.",
+"up": "Harder punches; from level 5 both fists punch together.",
+"ten": "Titan's Hands: two giant stone hands clap together in front of you, crushing and stunning all between."
 },
 {
 "key": "cleaver-rain",
@@ -141,7 +186,10 @@
 "fam": "rain",
 "fx": "bleed",
 "unit": "cleaver",
-"l10": "BUTCHER'S STORM"
+"l10": "BUTCHER'S STORM",
+"desc": "Cleavers are hurled up in an arc and come crashing down in a line ahead of you.",
+"up": "More cleavers, landing further.",
+"ten": "Butcher's Storm: cleavers whirl down all round you."
 },
 {
 "key": "war-drum",
@@ -150,7 +198,10 @@
 "fam": "pulse",
 "fx": "vulnerability (they take more damage)",
 "unit": "drum beat",
-"l10": "THUNDER DRUM"
+"l10": "THUNDER DRUM",
+"desc": "A war drum beats in rhythm; every 4th beat is a big one, and monsters it hits take extra damage for a while.",
+"up": "A faster beat and a bigger 4th beat.",
+"ten": "Thunder Drum: lightning strikes on every big beat."
 },
 {
 "key": "grudge-mark",
@@ -159,7 +210,10 @@
 "fam": "trigger",
 "fx": "bonus damage",
 "unit": "the last enemy that hit you is marked and your skills home to it",
-"l10": "VENDETTA"
+"l10": "VENDETTA",
+"desc": "You hurl a heavy axe at whoever hit you last; it marks them (+25% damage taken per mark, up to 3). A marked monster that dies explodes.",
+"up": "Faster throws, bigger blasts.",
+"ten": "Vendetta: axes fly at up to 5 marked monsters at once."
 },
 {
 "key": "rending-gale",
@@ -168,7 +222,10 @@
 "fam": "pulse",
 "fx": "knockback",
 "unit": "wind ring",
-"l10": "HURRICANE"
+"l10": "HURRICANE",
+"desc": "You fling a crescent of wind forward; it widens as it flies, slicing through and throwing monsters aside to split the horde.",
+"up": "Wider crescents; two at once from level 6.",
+"ten": "Hurricane: a tornado wanders the field, pulling monsters round it."
 },
 {
 "key": "bloodlust",
@@ -177,7 +234,10 @@
 "fam": "trigger",
 "fx": "lifesteal",
 "unit": "each kill heals a sliver and gives a burst of speed",
-"l10": "CRIMSON TIDE"
+"l10": "CRIMSON TIDE",
+"desc": "Monsters you kill spill blood that flies back into you, healing you and speeding you up.",
+"up": "More healing and speed.",
+"ten": "Crimson Tide: a wave of blood rolls outward from you."
 },
 {
 "key": "arcane-orbs",
@@ -186,7 +246,10 @@
 "fam": "orbit",
 "fx": "pierce",
 "unit": "orb",
-"l10": "ASTRAL ORRERY"
+"l10": "ASTRAL ORRERY",
+"desc": "Magic orbs spiral outward from you, hitting what they pass.",
+"up": "More orbs, wider spirals.",
+"ten": "Astral Orrery: big orbs orbit you and small ones orbit them."
 },
 {
 "key": "fire-halo",
@@ -195,7 +258,10 @@
 "fam": "zone",
 "fx": "burn",
 "unit": "ring of fire",
-"l10": "SOLAR CROWN"
+"l10": "SOLAR CROWN",
+"desc": "A ring of fire follows a second behind you: its edge burns monsters, its middle is safe.",
+"up": "A bigger, hotter ring.",
+"ten": "Solar Crown: the crown of fire flares out in pulses."
 },
 {
 "key": "frost-nova",
@@ -204,7 +270,10 @@
 "fam": "pulse",
 "fx": "freeze",
 "unit": "ice burst",
-"l10": "WINTER'S HEART"
+"l10": "WINTER'S HEART",
+"desc": "A blast of frost hits and freezes monsters around you; a frozen monster shatters for double damage when hit again.",
+"up": "A wider blast and longer freeze, more often.",
+"ten": "Winter's Heart: a blizzard follows you, freezing and shattering."
 },
 {
 "key": "chain-lightning",
@@ -213,7 +282,10 @@
 "fam": "shot",
 "fx": "chain",
 "unit": "lightning bolt",
-"l10": "STORM CROWN"
+"l10": "STORM CROWN",
+"desc": "A bolt of lightning jumps from monster to monster.",
+"up": "More jumps, harder bolts.",
+"ten": "Storm Crown: a crown over your head throws three chains every second."
 },
 {
 "key": "starfall",
@@ -222,7 +294,10 @@
 "fam": "rain",
 "fx": "burn",
 "unit": "star",
-"l10": "COMET"
+"l10": "COMET",
+"desc": "Shooting stars streak diagonally across the screen, hitting all they cross.",
+"up": "More stars, more often.",
+"ten": "Comet: one comet sweeps the whole screen."
 },
 {
 "key": "gravity-well",
@@ -231,7 +306,10 @@
 "fam": "buddy",
 "fx": "pull",
 "unit": "black orb",
-"l10": "EVENT HORIZON"
+"l10": "EVENT HORIZON",
+"desc": "An orb is placed far ahead: it pulls monsters into it, then implodes.",
+"up": "A stronger pull and a bigger implosion.",
+"ten": "Event Horizon: a black hole drifts across the field."
 },
 {
 "key": "rune-circle",
@@ -240,7 +318,10 @@
 "fam": "zone",
 "fx": "burn",
 "unit": "rune circle",
-"l10": "SIGIL OF ASH"
+"l10": "SIGIL OF ASH",
+"desc": "Runes appear where you stood 2 seconds ago, then explode under whatever followed you.",
+"up": "Bigger runes, more often.",
+"ten": "Sigil of Ash: a huge sigil burns under the biggest crowd."
 },
 {
 "key": "wisp-familiars",
@@ -249,7 +330,10 @@
 "fam": "buddy",
 "fx": "burn",
 "unit": "wisp",
-"l10": "WILL-O'-THE-WISP CHOIR"
+"l10": "WILL-O'-THE-WISP CHOIR",
+"desc": "Wisps fly off on their own to hunt single monsters, then come back to you.",
+"up": "More wisps, harder hits.",
+"ten": "Will-o'-the-Wisp Choir: a choir of 10 wisps."
 },
 {
 "key": "mana-storm",
@@ -258,7 +342,10 @@
 "fam": "zone",
 "fx": "shock",
 "unit": "storm cloud",
-"l10": "TEMPEST EYE"
+"l10": "TEMPEST EYE",
+"desc": "A storm cloud floats above you, striking random lightning on the ground beneath it.",
+"up": "More strikes, a wider cloud.",
+"ten": "Tempest Eye: a full storm centred on you."
 },
 {
 "key": "meteor-call",
@@ -267,7 +354,10 @@
 "fam": "rain",
 "fx": "burn",
 "unit": "meteor",
-"l10": "CATACLYSM"
+"l10": "CATACLYSM",
+"desc": "One big meteor lands where you are heading, after a warning shadow.",
+"up": "A bigger blast, more often.",
+"ten": "Cataclysm: a rain of six meteors."
 },
 {
 "key": "halo-of-light",
@@ -276,7 +366,10 @@
 "fam": "zone",
 "fx": "healing",
 "unit": "halo",
-"l10": "DIVINE AURA"
+"l10": "DIVINE AURA",
+"desc": "A halo over your head heals you over time, and its light slowly burns monsters standing in it.",
+"up": "More healing, a wider light.",
+"ten": "Divine Aura: the light fills the screen."
 },
 {
 "key": "song-notes",
@@ -285,7 +378,10 @@
 "fam": "orbit",
 "fx": "charm",
 "unit": "note",
-"l10": "SYMPHONY"
+"l10": "SYMPHONY",
+"desc": "Musical notes float out on a wavy line; a monster they hit is charmed and fights the horde for a while.",
+"up": "More notes, longer charm.",
+"ten": "Symphony: notes spiral out in every direction."
 },
 {
 "key": "sanctuary",
@@ -294,7 +390,10 @@
 "fam": "zone",
 "fx": "a slow",
 "unit": "holy circle",
-"l10": "HALLOWED GROUND"
+"l10": "HALLOWED GROUND",
+"desc": "A holy circle is laid where you stand and stays there; monsters inside it crawl.",
+"up": "A bigger circle that lasts longer.",
+"ten": "Hallowed Ground: the circle follows you."
 },
 {
 "key": "prism-beam",
@@ -303,7 +402,10 @@
 "fam": "orbit",
 "fx": "blind",
 "unit": "light beam",
-"l10": "RAINBOW LIGHTHOUSE"
+"l10": "RAINBOW LIGHTHOUSE",
+"desc": "A beam of light sweeps round you like a lighthouse, burning and blinding what it crosses.",
+"up": "A longer, faster beam.",
+"ten": "Rainbow Lighthouse: six coloured beams sweep at once."
 },
 {
 "key": "blessed-shield",
@@ -312,7 +414,10 @@
 "fam": "trigger",
 "fx": "reflect",
 "unit": "a shield bubble regrows on you",
-"l10": "ANGEL WINGS"
+"l10": "ANGEL WINGS",
+"desc": "A bubble shield soaks up damage for you; when it breaks it bursts outward, then grows back.",
+"up": "A stronger shield that regrows faster.",
+"ten": "Angel Wings: the burst flares angel wings - you are untouchable for a moment and feathers fly out."
 },
 {
 "key": "spirit-lantern",
@@ -321,7 +426,10 @@
 "fam": "buddy",
 "fx": "XP pull",
 "unit": "lantern",
-"l10": "THE GREAT LANTERN"
+"l10": "THE GREAT LANTERN",
+"desc": "A lantern floats out to gather XP gems for you, lighting up monsters as it passes.",
+"up": "Faster, wider gathering.",
+"ten": "The Great Lantern: every 10 seconds it pulls in every gem on screen."
 },
 {
 "key": "bloom-path",
@@ -330,7 +438,10 @@
 "fam": "trail",
 "fx": "healing pollen",
 "unit": "trail of flowers",
-"l10": "WORLD GARDEN"
+"l10": "WORLD GARDEN",
+"desc": "Flowers bloom where you walk; walk back over one and it bursts in healing pollen.",
+"up": "More flowers, bigger heals.",
+"ten": "World Garden: the flowers burst on their own."
 },
 {
 "key": "chime-pulse",
@@ -339,7 +450,10 @@
 "fam": "pulse",
 "fx": "stun",
 "unit": "chime",
-"l10": "GRAND BELL"
+"l10": "GRAND BELL",
+"desc": "A chime rings: thin echo rings roll out one after another, and the last one stuns.",
+"up": "More rings, wider.",
+"ten": "Grand Bell: a giant bell drops from the sky and stuns a wide area."
 },
 {
 "key": "guardian-spirits",
@@ -348,7 +462,10 @@
 "fam": "orbit",
 "fx": "block",
 "unit": "spirit",
-"l10": "ANCESTORS' RING"
+"l10": "ANCESTORS' RING",
+"desc": "Spirits stand guard at the corners of a square around you. They shove back and hurt monsters that come close, and destroy enemy bolts that fly into them.",
+"up": "More spirits (3 at level 4, 4 at level 7), harder shoves.",
+"ten": "Ancestors' Ring: a full ring of 8 ancestor spirits guards you."
 },
 {
 "key": "sunburst",
@@ -357,7 +474,10 @@
 "fam": "pulse",
 "fx": "blind",
 "unit": "burst of sunlight",
-"l10": "DAWNBREAK"
+"l10": "DAWNBREAK",
+"desc": "A ring of sun rays bursts out from you, burning and blinding each monster they pass.",
+"up": "More rays reaching further, more often.",
+"ten": "Dawnbreak: a sun hangs over you, firing a turning wheel of 12 rays and scorching what is near."
 },
 {
 "key": "shadow-knives",
@@ -366,7 +486,10 @@
 "fam": "shot",
 "fx": "bleed",
 "unit": "knife",
-"l10": "THOUSAND CUTS"
+"l10": "THOUSAND CUTS",
+"desc": "Knives are thrown behind you at whatever is chasing you.",
+"up": "More knives, faster.",
+"ten": "Thousand Cuts: knives fly in every direction."
 },
 {
 "key": "poison-cloud",
@@ -375,7 +498,10 @@
 "fam": "trail",
 "fx": "a slow",
 "unit": "poison mist",
-"l10": "PLAGUE FOG"
+"l10": "PLAGUE FOG",
+"desc": "You lob a poison flask into the thickest pack near you; it bursts into a toxic cloud that poisons and slows. Poisoned monsters that die burst into new clouds.",
+"up": "Bigger, longer clouds; more flasks.",
+"ten": "Plague Fog: the plague spreads much further."
 },
 {
 "key": "phantom-blades",
@@ -384,7 +510,10 @@
 "fam": "orbit",
 "fx": "bleed",
 "unit": "ghost blade",
-"l10": "DEATH BLOSSOM"
+"l10": "DEATH BLOSSOM",
+"desc": "Blades fly out and come back like boomerangs, cutting on the way out and the way back.",
+"up": "More blades, further.",
+"ten": "Death Blossom: a blossom of 12 blades all round."
 },
 {
 "key": "smoke-veil",
@@ -393,7 +522,10 @@
 "fam": "trigger",
 "fx": "dodge",
 "unit": "you vanish in smoke and the horde loses you",
-"l10": "NIGHTWALKER"
+"l10": "NIGHTWALKER",
+"desc": "A puff of smoke and you vanish: the horde runs to where you were.",
+"up": "Longer vanish, more often.",
+"ten": "Nightwalker: you walk unseen."
 },
 {
 "key": "death-mark",
@@ -402,7 +534,10 @@
 "fam": "trigger",
 "fx": "execute",
 "unit": "the strongest nearby monster is marked to take double damage",
-"l10": "REAPER'S LIST"
+"l10": "REAPER'S LIST",
+"desc": "The strongest monster near you is marked to take double damage; once it drops under 20% health it is executed.",
+"up": "Faster marks.",
+"ten": "Reaper's List: a scythe falls on five marks at once."
 },
 {
 "key": "shuriken-storm",
@@ -411,7 +546,10 @@
 "fam": "shot",
 "fx": "bounce",
 "unit": "shuriken",
-"l10": "STAR STORM"
+"l10": "STAR STORM",
+"desc": "Shurikens are thrown ahead and stick in the ground, spinning there as saw traps.",
+"up": "More traps that last longer.",
+"ten": "Star Storm: a field of 8 spinning stars."
 },
 {
 "key": "venom-trail",
@@ -420,7 +558,10 @@
 "fam": "trail",
 "fx": "a slow",
 "unit": "venom trail",
-"l10": "SERPENT PATH"
+"l10": "SERPENT PATH",
+"desc": "A venom snake slithers after the nearest monsters; its bite hurts and its body poisons and slows what it crosses.",
+"up": "A longer, faster snake.",
+"ten": "Serpent Path: a giant cobra."
 },
 {
 "key": "shadow-clone",
@@ -429,7 +570,10 @@
 "fam": "buddy",
 "fx": "bleed",
 "unit": "shadow clone",
-"l10": "SHADOW LEGION"
+"l10": "SHADOW LEGION",
+"desc": "A shadow of you is left where you stand. It copies every skill, ult and basic attack you use at 20% damage, and leaps onto the nearest enemy when you leap.",
+"up": "More clones at once, lasting longer (up to 3).",
+"ten": "Shadow Legion: up to 6 clones, each bursting when it fades."
 },
 {
 "key": "swift-strikes",
@@ -438,7 +582,10 @@
 "fam": "trigger",
 "fx": "bleed",
 "unit": "after you change direction your next hit cuts twice",
-"l10": "BLUR"
+"l10": "BLUR",
+"desc": "Every time you change direction you dash-slash through what is in the way and land with an X-cut.",
+"up": "Longer dashes, faster reset; a second cut from level 5.",
+"ten": "Blur: after-images stay behind and keep slashing."
 },
 {
 "key": "night-sickles",
@@ -447,7 +594,10 @@
 "fam": "orbit",
 "fx": "bleed",
 "unit": "sickle",
-"l10": "HARVEST MOON"
+"l10": "HARVEST MOON",
+"desc": "A sickle buries itself in a monster and keeps cutting it; when that monster dies (or after 3 seconds) it springs to the next nearest one.",
+"up": "More sickles, deeper cuts.",
+"ten": "Harvest Moon: each spring cuts a crescent through everything on its path."
 },
 {
 "key": "arrow-volley",
@@ -456,7 +606,10 @@
 "fam": "shot",
 "fx": "pierce",
 "unit": "arrow",
-"l10": "SKY VOLLEY"
+"l10": "SKY VOLLEY",
+"desc": "A fan of arrows shoots forward the way you face.",
+"up": "More arrows, a wider fan.",
+"ten": "Sky Volley: you loose arrows into the sky and about 30 slam down across a wide cone ahead."
 },
 {
 "key": "hunter-s-turret",
@@ -465,7 +618,10 @@
 "fam": "buddy",
 "fx": "knockback",
 "unit": "turret",
-"l10": "SIEGE BALLISTA"
+"l10": "SIEGE BALLISTA",
+"desc": "A crossbow turret is planted and shoots the nearest monster, even after you walk away.",
+"up": "More turrets, faster shots.",
+"ten": "Siege Ballista: one ballista that keeps up with you; its bolts pierce everything."
 },
 {
 "key": "piercing-bolt",
@@ -474,7 +630,10 @@
 "fam": "shot",
 "fx": "pierce",
 "unit": "bolt",
-"l10": "RAILSHOT"
+"l10": "RAILSHOT",
+"desc": "A bolt charges up, then fires through a long line of monsters.",
+"up": "Faster charge, longer reach.",
+"ten": "Railshot: a beam across the whole screen."
 },
 {
 "key": "falcon-companion",
@@ -483,7 +642,10 @@
 "fam": "buddy",
 "fx": "bleed",
 "unit": "falcon",
-"l10": "THE STORMHAWK"
+"l10": "THE STORMHAWK",
+"desc": "A falcon circles above and dives on monsters, then climbs again.",
+"up": "More dives, harder.",
+"ten": "The Stormhawk: each dive throws lightning to 3 more monsters."
 },
 {
 "key": "spark-mines",
@@ -492,7 +654,10 @@
 "fam": "trail",
 "fx": "stun",
 "unit": "spark mine",
-"l10": "MINEFIELD"
+"l10": "MINEFIELD",
+"desc": "Mines are dropped behind you as you walk and blow up when a monster steps on them.",
+"up": "More mines, bigger blasts.",
+"ten": "Minefield: a field of up to 30 mines."
 },
 {
 "key": "eagle-eye",
@@ -501,7 +666,10 @@
 "fam": "trigger",
 "fx": "crit",
 "unit": "a far enemy is marked and your next shot crits it",
-"l10": "DEADEYE"
+"l10": "DEADEYE",
+"desc": "A crosshair settles on a far monster, then a sniper shot hits it for a guaranteed critical.",
+"up": "Faster aim, more damage.",
+"ten": "Deadeye: every far monster is marked and shot."
 },
 {
 "key": "ricochet-shots",
@@ -510,7 +678,10 @@
 "fam": "shot",
 "fx": "bounce",
 "unit": "ricochet shot",
-"l10": "PINBALL"
+"l10": "PINBALL",
+"desc": "Shots bounce off the edges of the screen like pinballs, hitting what they cross.",
+"up": "More bounces, more shots.",
+"ten": "Pinball: shots that never stop."
 },
 {
 "key": "rain-of-arrows",
@@ -519,7 +690,10 @@
 "fam": "rain",
 "fx": "pierce",
 "unit": "arrow volley",
-"l10": "ARROWSTORM"
+"l10": "ARROWSTORM",
+"desc": "Arrows rain down in a ring around you, hitting what comes close.",
+"up": "Thicker rain, a wider ring.",
+"ten": "Arrowstorm: rain over the whole screen."
 },
 {
 "key": "wind-shot",
@@ -528,7 +702,10 @@
 "fam": "shot",
 "fx": "knockback",
 "unit": "gust shot",
-"l10": "CYCLONE ARROW"
+"l10": "CYCLONE ARROW",
+"desc": "A gust shot blows a corridor clear ahead of you, pushing monsters aside.",
+"up": "A wider gust, a further push.",
+"ten": "Cyclone Arrow: an arrow carrying a tornado that drags monsters along."
 },
 {
 "key": "flare-trail",
@@ -537,6 +714,9 @@
 "fam": "trail",
 "fx": "blind",
 "unit": "flare trail",
-"l10": "SIGNAL FIRE"
+"l10": "SIGNAL FIRE",
+"desc": "A flare skids along the ground the way you face, leaving a line of burning flares; anything that crosses it burns and is blinded.",
+"up": "A longer line that lasts longer, more often.",
+"ten": "Signal Fire: a column of fire on you calls down a barrage across the screen."
 }
 ]
