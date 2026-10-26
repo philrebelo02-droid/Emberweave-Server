@@ -28394,12 +28394,15 @@ async function towerTribute(){ const st=towerState(); if(!towerTribReady()) retu
    over the game. The lobby asks for its heroes ('survivors-ready'); the game sends 20 - Linnet (the one hero with a 3D model, PLAYABLE)
    then the player's strongest owned heroes, then the rest - each with card art, name, sub name, class, level, stars, power. Its Leave posts
    'survivors-close'; its Ascendant Spire button posts 'survivors-spire' (the frame goes, the old tower opens). */
-const SURV_PLAYABLE=['linnet'];
+/* 26 Oct (Phil: "you finish meshy and adding all heroes into spire"): every hero with a rigged Meshy model is playable in 3D. SURV_MODELS
+   = hero key -> phone GLB (1024 px textures; clips Walking, Running, Attack, Cast, Ult). Linnet keeps her pilot file. */
+const SURV_MODELS={ linnet:'/assets/survivors/linnet-1k.glb', zahri:'/assets/survivors/models/zahri-1k.glb?v=1' };
+const SURV_PLAYABLE=Object.keys(SURV_MODELS);
 function survivorsRoster(){ const all=Object.keys(HERO_TYPES), own=k=>heroOwned(k), pw=k=>{ try{ return heroPower(k)||0; }catch(e){ return 0; } };
   const rest=all.filter(k=>SURV_PLAYABLE.indexOf(k)<0).sort((a,b)=>(own(b)-own(a))||(pw(b)-pw(a))||a.localeCompare(b));
-  return SURV_PLAYABLE.concat(rest).slice(0,20).map(k=>{ const t=HERO_TYPES[k]||{};
+  return SURV_PLAYABLE.concat(rest).map(k=>{ const t=HERO_TYPES[k]||{};   /* all heroes listed (was the first 20) */
     return { key:k, name:t.name||k, sub:(typeof HERO_SUBNAME!=='undefined'&&HERO_SUBNAME[k])||'', cls:t.role||'', img:HERO_PORTRAITS[k]||'',
-      owned:own(k), lv:own(k)?heroLevel(k):0, stars:own(k)?heroStars(k):0, power:own(k)?pw(k):0, playable:SURV_PLAYABLE.indexOf(k)>=0,
+      owned:own(k), lv:own(k)?heroLevel(k):0, stars:own(k)?heroStars(k):0, power:own(k)?pw(k):0, playable:SURV_PLAYABLE.indexOf(k)>=0, model:SURV_MODELS[k]||null,
       kit:SURV_PLAYABLE.indexOf(k)>=0?survivorsKit(k):null }; }); }
 /* the hero's real skills for the Spire: KITS rows -> {name, kind (heal / ward / dash / bolt / nova), cd, power, dur}, and each slot's spell
    art from skillPreviewPlan (the Skills tab plan = how the fight places it): sheet + where (self / target / above / a projectile) + when + how

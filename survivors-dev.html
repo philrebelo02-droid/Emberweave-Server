@@ -213,14 +213,16 @@
   document.getElementById('ult').onclick = () => ultReq = true;
   /* LINNET 3D PILOT (Phil 24 Oct: "set up the threadseer pilot"). One rigged Meshy model, 1024 px textures (92 MB -> 5 MB).
      The camera looks down at the field; the model turns to face the way the hero moves and always walks (Phil 24 Oct: "her run, turn it into a walk"); standing still holds the walk's first frame. */
-  let H3 = null;
-  async function load3d() {
+  let H3 = null; const seenShot = new WeakSet();
+  /* 26 Oct (Phil: "adding all heroes into spire"): every hero with a Meshy model plays in 3D. The roster sends the model url; each model
+     carries the same clip names (Walking, Running, Attack, Cast, Ult - renamed at export), Linnet keeps her own cast clips. */
+  async function load3d(url) {
     const cv3 = document.getElementById('cv3'), r = new THREE.WebGLRenderer({ canvas: cv3, alpha: true, antialias: true });
     r.setPixelRatio(devicePixelRatio); r.setSize(innerWidth, innerHeight, false); r.outputEncoding = THREE.sRGBEncoding;
     const scene = new THREE.Scene(), cam = new THREE.PerspectiveCamera(30, innerWidth / innerHeight, 0.1, 100);
     cam.position.set(0, 9, 7); cam.lookAt(0, 0.6, 0);
     scene.add(new THREE.HemisphereLight(0xfff2e0, 0x504030, 1.7)); const dl = new THREE.DirectionalLight(0xffffff, 1.5); dl.position.set(2, 8, 6); scene.add(dl); scene.add(new THREE.AmbientLight(0xffffff, 0.35));
-    const gltf = await new Promise((ok, no) => new THREE.GLTFLoader().load('/assets/survivors/linnet-1k.glb', ok, undefined, no));
+    const gltf = await new Promise((ok, no) => new THREE.GLTFLoader().load(url || '/assets/survivors/linnet-1k.glb', ok, undefined, no));
     const model = gltf.scene, box = new THREE.Box3().setFromObject(model), h = box.max.y - box.min.y;
     model.scale.setScalar(HERO_M / h); scene.add(model);
     const mixer = new THREE.AnimationMixer(model), clips = {}; gltf.animations.forEach(c => clips[c.name] = mixer.clipAction(c));
@@ -319,7 +321,8 @@
     /* 25 Oct (Phil): the old Ascendant Spire button is gone - Hero Survivors replaces the old tower */
     const begin = resume => { document.getElementById('mode').value = mode; stS.value = lbS.value; HERO_PICK = resume ? resume.hero : pick;
       const hh = heroes.find(x => x.key === HERO_PICK); window._heroKit = hh && hh.kit && hh.kit.skills && hh.kit.skills.length ? hh.kit : null;
-      document.getElementById('use3d').checked = HERO_PICK === 'linnet'; window._resume = resume ? resume.state : null; L.hidden = true; document.getElementById('go').click(); };
+      window._heroModel = (hh && hh.model) || (HERO_PICK === 'linnet' ? '/assets/survivors/linnet-1k.glb' : null);
+      document.getElementById('use3d').checked = !!window._heroModel; window._resume = resume ? resume.state : null; L.hidden = true; document.getElementById('go').click(); };
     const cont = document.getElementById('lbCont'), ask = document.getElementById('lbAsk');
     function offerContinue() { const sv = saveRead(); cont.hidden = !sv;
       if (sv) document.getElementById('lbContInfo').textContent = fmtT(sv.t) + '  ·  Lv ' + sv.level + '  ·  ' + (sv.mode === 'survive' ? 'Survive' : 'Stage ' + sv.stage); }
@@ -332,7 +335,8 @@
     if (document.body.classList.contains('ingame')) document.getElementById('quit').hidden = false;
     const cls = document.getElementById('use3d').checked ? 'Support' : document.getElementById('cls').value;   // Linnet is a Support
     KIT = document.getElementById('use3d').checked ? KITS.linnet : KITS[cls];
-    if (window._heroKit) { KIT = window._heroKit.skills.map((k, i) => Object.assign({ anim: (KITS.linnet[i] || {}).anim }, k)); preloadSheets(window._heroKit); }
+    if (window._heroKit) { const own = HERO_PICK === 'linnet';   // other heroes' models share one Cast clip for both skills
+      KIT = window._heroKit.skills.map((k, i) => Object.assign({ anim: own ? (KITS.linnet[i] || {}).anim : 'Cast' }, k)); preloadSheets(window._heroKit); }
     buildSkillButtons();
     const LAB = new URLSearchParams(location.search), labCls = LAB.get('lab');
     S = window._resume ? C.restore(window._resume, AURAS)                                   // Continue: the saved run, exactly where it was left
@@ -343,7 +347,7 @@
     if (labCls) { const set = +(LAB.get('set') || 0), lv = +(LAB.get('lv') || 1);   // spell lab: five spells of a class at one level
       const only = LAB.get('only'); (only ? AURAS.filter(a => a.key === only) : AURAS.filter(a => a.cls === labCls).slice(set * 5, set * 5 + 5)).forEach(a => S.hero.auras[a.key] = lv); window._lab = true; window._labEcho = LAB.get('echo') === '1'; S._baseT = 1e9; }
     document.getElementById('start').style.display = 'none'; last = performance.now(); requestAnimationFrame(frame);
-    if (document.getElementById('use3d').checked) load3d().catch(e => console.error('3D load failed', e));
+    if (document.getElementById('use3d').checked) load3d(window._heroModel).catch(e => console.error('3D load failed', e));
   };
   function label(o) {
     if (o.t === 'aura') { const a = byKey[o.key], what = o.to === 1 ? (a.desc || '') : o.to === 10 ? (a.ten || a.l10) : (a.up || '');   // the descriptions (Phil 24 Oct: "do a better job of explaining them")
@@ -875,6 +879,8 @@
     if (!H3) { g.fillStyle = h.iframes > 0 ? '#fff' : '#f2c14e'; g.beginPath(); g.arc(W / 2, H / 2, 0.5 * sc, 0, 7); g.fill(); }
     else {
       const moving = Math.abs(h.mvx) + Math.abs(h.mvy) > 0.01;
+      if (H3.clips.Attack && !moving && !H3.isCasting()) S.shots.forEach(s => { if (s.key === '_base' && !seenShot.has(s)) { seenShot.add(s); H3.cast('Attack'); } });   // Phil 25 Oct: "They all need an attack animation also"
+      else S.shots.forEach(s => seenShot.add(s));
       if (!H3.isCasting()) { H3.play('Walking'); H3.clips.Walking.timeScale = moving ? 1 : 0; }
       H3.model.rotation.y = Math.atan2(h.dirx, h.diry);
       // the 3D camera sees exactly the 2D world's metres: visible height H/sc m at the hero, along the same tilt
@@ -896,7 +902,7 @@
       b.style.setProperty('--cd', f.toFixed(3)); b.classList.toggle('cool', k.cdLeft > 0); b.querySelector('small').textContent = k.cdLeft > 0 ? Math.ceil(k.cdLeft) : ''; });
     // skill + ult: the 3D model plays the cast clip and the hero's REAL game spell art plays (Phil 24 Oct: "they should use their real game
     // ability animation and FX") - each slot's skillPreviewPlan entries from the game, at their own time, place and size
-    S.fx.forEach(f => { if (f.seq && f.seq > seenFx) { seenFx = f.seq; if (H3) H3.cast(f.kind === 'ult' ? 'mage_soell_cast_2' : (KIT[f.slot] || {}).anim);
+    S.fx.forEach(f => { if (f.seq && f.seq > seenFx) { seenFx = f.seq; if (H3) H3.cast(f.kind === 'ult' ? (H3.clips.Ult ? 'Ult' : 'mage_soell_cast_2') : (KIT[f.slot] || {}).anim);
         const hk = window._heroKit; if (hk) startSpellArt(f.kind === 'ult' ? hk.ult.fx : ((hk.skills[f.slot] || {}).fx || []), f, f.kind === 'ult' ? 'ult' : (KIT[f.slot] || {}).kind); } });
     drawSpellArt(X, Y, sc, W, H);
   }
