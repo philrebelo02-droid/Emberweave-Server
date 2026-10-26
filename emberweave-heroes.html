@@ -28399,7 +28399,19 @@ async function towerTribute(){ const st=towerState(); if(!towerTribReady()) retu
    'survivors-close'; its Ascendant Spire button posts 'survivors-spire' (the frame goes, the old tower opens). */
 /* 26 Oct (Phil: "you finish meshy and adding all heroes into spire"): every hero with a rigged Meshy model is playable in 3D. SURV_MODELS
    = hero key -> phone GLB (1024 px textures; clips Walking, Running, Attack, Cast, Ult). Linnet keeps her pilot file. */
-const SURV_MODELS={ linnet:'/assets/survivors/linnet-1k.glb', zahri:'/assets/survivors/models/zahri-1k.glb?v=1' };
+const SURV_MODELS={ linnet:'/assets/survivors/linnet-1k.glb', absalie:'/assets/survivors/models/absalie-1k.glb?v=1', aldren:'/assets/survivors/models/aldren-1k.glb?v=1', ambrel:'/assets/survivors/models/ambrel-1k.glb?v=1',
+  askel:'/assets/survivors/models/askel-1k.glb?v=1', astra:'/assets/survivors/models/astra-1k.glb?v=1', bloatus:'/assets/survivors/models/bloatus-1k.glb?v=1', brannus:'/assets/survivors/models/brannus-1k.glb?v=1',
+  calypsa:'/assets/survivors/models/calypsa-1k.glb?v=1', ceraline:'/assets/survivors/models/ceraline-1k.glb?v=1', dandra:'/assets/survivors/models/dandra-1k.glb?v=1', deepcleft:'/assets/survivors/models/deepcleft-1k.glb?v=1',
+  fritz:'/assets/survivors/models/fritz-1k.glb?v=1', grimsby:'/assets/survivors/models/grimsby-1k.glb?v=1', grosk:'/assets/survivors/models/grosk-1k.glb?v=1', gruel:'/assets/survivors/models/gruel-1k.glb?v=1',
+  hobb:'/assets/survivors/models/hobb-1k.glb?v=1', hollow:'/assets/survivors/models/hollow-1k.glb?v=1', hurne:'/assets/survivors/models/hurne-1k.glb?v=1', iver:'/assets/survivors/models/iver-1k.glb?v=1',
+  joss:'/assets/survivors/models/joss-1k.glb?v=1', kharos:'/assets/survivors/models/kharos-1k.glb?v=1', konwu:'/assets/survivors/models/konwu-1k.glb?v=1', korvux:'/assets/survivors/models/korvux-1k.glb?v=1',
+  lumi:'/assets/survivors/models/lumi-1k.glb?v=1', lysara:'/assets/survivors/models/lysara-1k.glb?v=1', mellan:'/assets/survivors/models/mellan-1k.glb?v=1', meridian:'/assets/survivors/models/meridian-1k.glb?v=1',
+  mirelle:'/assets/survivors/models/mirelle-1k.glb?v=1', nerisse:'/assets/survivors/models/nerisse-1k.glb?v=1', nox:'/assets/survivors/models/nox-1k.glb?v=1', oakmir:'/assets/survivors/models/oakmir-1k.glb?v=1',
+  orryn:'/assets/survivors/models/orryn-1k.glb?v=1', pellucid:'/assets/survivors/models/pellucid-1k.glb?v=1', pyroclast:'/assets/survivors/models/pyroclast-1k.glb?v=1', rafe:'/assets/survivors/models/rafe-1k.glb?v=1',
+  seyla:'/assets/survivors/models/seyla-1k.glb?v=1', sloe:'/assets/survivors/models/sloe-1k.glb?v=1', sorrel:'/assets/survivors/models/sorrel-1k.glb?v=1', sylthaine:'/assets/survivors/models/sylthaine-1k.glb?v=1',
+  tharl:'/assets/survivors/models/tharl-1k.glb?v=1', tick:'/assets/survivors/models/tick-1k.glb?v=1', umbris:'/assets/survivors/models/umbris-1k.glb?v=1', vael:'/assets/survivors/models/vael-1k.glb?v=1',
+  vaelora:'/assets/survivors/models/vaelora-1k.glb?v=1', vesper:'/assets/survivors/models/vesper-1k.glb?v=1', vex:'/assets/survivors/models/vex-1k.glb?v=1', veyr:'/assets/survivors/models/veyr-1k.glb?v=1',
+  yenna:'/assets/survivors/models/yenna-1k.glb?v=1', zahri:'/assets/survivors/models/zahri-1k.glb?v=1' };
 const SURV_PLAYABLE=Object.keys(SURV_MODELS);
 function survivorsRoster(){ const all=Object.keys(HERO_TYPES), own=k=>heroOwned(k), pw=k=>{ try{ return heroPower(k)||0; }catch(e){ return 0; } };
   const rest=all.filter(k=>SURV_PLAYABLE.indexOf(k)<0).sort((a,b)=>(own(b)-own(a))||(pw(b)-pw(a))||a.localeCompare(b));
