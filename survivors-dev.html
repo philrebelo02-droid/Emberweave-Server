@@ -376,7 +376,8 @@
       const im = sheetIm(d); if (!im) continue; const n = d.n || 1, cols = d.cols || 1, fr = Math.min(n - 1, Math.floor(u * n)), fx0 = (fr % cols) * d.fw, fy0 = Math.floor(fr / cols) * d.fh;
       const k = e.kind, follow = A.self && !/proj|glide|drop/.test(k), ox = follow ? h.x : A.sx, oy = follow ? h.y : A.sy;
       let x = A.self ? ox : A.tx, y = A.self ? oy : A.ty, w, hh, rot = 0, flat = /disc|flat|reap|ring|undertow|crescent|tempest/.test(k) || d.disc;
-      if (/proj|glide/.test(k)) { const q = Math.min(1, u * 1.15); x = A.sx + (A.tx - A.sx) * q; y = A.sy + (A.ty - A.sy) * q; w = Math.max(1, (e.scale || 2.6) * 0.5) * sc; hh = w * d.fh / d.fw; rot = A.a; }   // a long trail keeps its own shape
+      if (/proj|glide/.test(k)) { const q = Math.min(1, u * 1.15), inw = k === 'projin';   // projin (26 Oct, Grosk's wisp): flies from the target in to the hero
+        x = inw ? A.tx + (h.x - A.tx) * q : A.sx + (A.tx - A.sx) * q; y = inw ? A.ty + (h.y - A.ty) * q : A.sy + (A.ty - A.sy) * q; w = Math.max(1, (e.scale || 2.6) * 0.5) * sc; hh = w * d.fh / d.fw; rot = inw ? A.a + Math.PI : A.a; }   // a long trail keeps its own shape
       else if (k === 'orbit') { const ang = u * Math.PI * 2 * (e.turns || 4), r = (e.R || 2.5) * FXS; x = h.x + Math.cos(ang) * r; y = h.y + Math.sin(ang) * r * 0.62; w = hh = Math.max(1, e.scale || 2) * sc; rot = ang * 2; }   // circles the hero (Seyla's serpent star, 26 Oct)
       else if (k === 'drop') { x = A.tx; y = A.ty - (1 - Math.min(1, u * 1.4)) * 6; w = hh = Math.max(1.5, (e.scale || 3) * 0.6) * sc; }
       else if (flat) { const r = Math.max(1.5, e.R || 2.4) * FXS; w = hh = r * 2 * sc; rot = d.cone ? A.a + Math.PI / 2 : 0; }

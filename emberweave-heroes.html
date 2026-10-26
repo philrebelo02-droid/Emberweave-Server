@@ -28463,7 +28463,8 @@ const SURV_FX_ART={
               { k:'', kind:'flat', at:'target', t0:0.9, L:1.5, R:1.5, scale:0, d:SURV_FX_SQ('ceraline_sealing_wax_shell') }],
   ceraline_0:[{ k:'', kind:'flat', at:'target', t0:0, L:2.2, R:4, scale:0, d:SURV_FX_SQ('ceraline_final_candle_pool') },
               { k:'', kind:'flat', at:'target', t0:1.9, L:0.7, R:4, scale:0, d:SURV_FX_SQ('ceraline_final_candle_shatter') }],
-  grosk_1:[{ k:'', kind:'flat', at:'self', t0:0, L:1.6, R:4.5, scale:0, d:SURV_FX_SQ('grosk_gravemaw_pull_vortex') }],
+  grosk_1:[{ k:'', kind:'flat', at:'self', t0:0, L:1.6, R:4.5, scale:0, d:SURV_FX_SQ('grosk_gravemaw_pull_vortex') },
+           { k:'', kind:'projin', at:'target', t0:0.1, L:0.7, R:0, scale:9, d:{ u:SURV_FX_SRC+'grosk_gravemaw_pull_wisp.webp?v=1', n:1, fw:640, fh:320, cols:1, rows:1 } }],
   seyla_0:[{ k:'', kind:'orbit', at:'self', t0:0, L:2.4, R:3, scale:3.2, turns:4, d:SURV_FX_SQ('seyla_last_dance_serpent_star') }],
   nerisse_0:[{ k:'', kind:'flat', at:'self', t0:0, L:1.3, R:4.5, scale:0, d:SURV_FX_SQ('nerisse_deep_sky_choir_burst') },
              { k:'', kind:'proj', at:'target', t0:0.2, L:0.5, R:0, scale:3, d:SURV_FX_SQ('nerisse_deep_sky_star_mote') }]   /* the wisp (target -> Grosk) waits for an inward-flying kind */
