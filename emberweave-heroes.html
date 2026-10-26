@@ -28455,7 +28455,12 @@ const SURV_FX_ART={
   vulmar_0:[{ k:'', kind:'flat', at:'target', t0:0, L:2.0, R:3.6, scale:0, d:SURV_FX_SQ('vulmar_weight_world_gravity_circle') },
             { k:'', kind:'flat', at:'target', t0:1.7, L:0.6, R:4, scale:0, d:SURV_FX_SQ('vulmar_weight_world_slam_ring') }],
   zahri_0:[{ k:'', kind:'proj', at:'target', t0:0, L:0.55, R:0, scale:18, d:{ u:SURV_FX_SRC+'zahri_noonday_stampede_trail.webp?v=1', n:1, fw:640, fh:320, cols:1, rows:1 } },
-           { k:'', kind:'flat', at:'target', t0:0.45, L:0.6, R:2.4, scale:0, d:SURV_FX_SQ('zahri_noonday_stampede_hit') }]
+           { k:'', kind:'flat', at:'target', t0:0.45, L:0.6, R:2.4, scale:0, d:SURV_FX_SQ('zahri_noonday_stampede_hit') }],
+  ceraline_1:[{ k:'', kind:'flat', at:'target', t0:0, L:1.1, R:1.9, scale:0, d:{ u:SURV_FX_SRC+'ceraline_sealing_wax_pour.webp?v=1', n:1, fw:626, fh:640, cols:1, rows:1 } },
+              { k:'', kind:'flat', at:'target', t0:0.9, L:1.5, R:1.5, scale:0, d:SURV_FX_SQ('ceraline_sealing_wax_shell') }],
+  ceraline_0:[{ k:'', kind:'flat', at:'target', t0:0, L:2.2, R:4, scale:0, d:SURV_FX_SQ('ceraline_final_candle_pool') },
+              { k:'', kind:'flat', at:'target', t0:1.9, L:0.7, R:4, scale:0, d:SURV_FX_SQ('ceraline_final_candle_shatter') }],
+  grosk_1:[{ k:'', kind:'flat', at:'self', t0:0, L:1.6, R:4.5, scale:0, d:SURV_FX_SQ('grosk_gravemaw_pull_vortex') }]   /* the wisp (target -> Grosk) waits for an inward-flying kind */
 };
 function survArt(hk,slot){ const f=survPlanFx(hk,slot); return f.length?f:(SURV_FX_ART[hk+'_'+slot]||[]); }
 const SURV_ATK={ linnet:{img:'/assets/survivors/projectiles/linnet_needle_bolt.webp?v=1'} };
