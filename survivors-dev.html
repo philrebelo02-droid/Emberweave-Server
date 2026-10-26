@@ -154,7 +154,7 @@
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="/assets/js/three-r128-GLTFLoader.js"></script>
-<script src="/server/survivors-core.js?v=dev33"></script>
+<script src="/server/survivors-core.js?v=dev35"></script>
 <script>
 (async function () {
   const C = window.SurvivorsCore, AURAS = await (await fetch('/server/survivors-auras.json?v=dev2')).json();
@@ -228,11 +228,15 @@
     const gltf = await new Promise((ok, no) => new THREE.GLTFLoader().load(url || '/assets/survivors/linnet-1k.glb', ok, undefined, no));
     const model = gltf.scene, box = new THREE.Box3().setFromObject(model), h = box.max.y - box.min.y;
     model.scale.setScalar(HERO_M / h); scene.add(model);
+    // a clip that ends away from where it started (Vex's combo steps 0.7 body heights) would snap the hero back at its end:
+    // take the hips' net ground drift out, spread over the clip - the lunge mid-swing stays, start and end meet (26 Oct)
+    gltf.animations.forEach(c => c.tracks.forEach(t => { if (!/hips\.position$/i.test(t.name)) return; const v = t.values, n = v.length / 3; if (n < 2) return;
+      const dx = v[(n - 1) * 3] - v[0], dz = v[(n - 1) * 3 + 2] - v[2]; for (let i = 0; i < n; i++) { const f = i / (n - 1); v[i * 3] -= dx * f; v[i * 3 + 2] -= dz * f; } }));
     const mixer = new THREE.AnimationMixer(model), clips = {}; gltf.animations.forEach(c => clips[c.name] = mixer.clipAction(c));
     let cur = null, casting = false; function play(n) { if (casting || !clips[n] || cur === n) return; if (cur) clips[cur].fadeOut(0.15); clips[n].reset().fadeIn(0.15).play(); cur = n; }
     // a skill press plays its cast clip once (sped to fit ~1.2 s so she keeps up with the fight), then she walks again
-    function cast(n) { const a = clips[n]; if (!a) return; if (cur && cur !== n) clips[cur].fadeOut(0.1); a.reset(); a.setLoop(THREE.LoopOnce, 1); a.clampWhenFinished = false;
-      a.timeScale = Math.max(1, a.getClip().duration / 1.2); a.fadeIn(0.1).play(); cur = n; casting = true; }
+    function cast(n, fit) { const a = clips[n]; if (!a) return; if (cur && cur !== n) clips[cur].fadeOut(0.1); a.reset(); a.setLoop(THREE.LoopOnce, 1); a.clampWhenFinished = false;
+      a.timeScale = Math.max(1, a.getClip().duration / (fit || 1.2)); a.fadeIn(0.1).play(); cur = n; casting = true; }
     mixer.addEventListener('finished', e => { if (e.action === clips[cur]) { casting = false; cur = null; play('Walking'); } });
     play('Walking');
     addEventListener('resize', () => { r.setSize(innerWidth, innerHeight, false); cam.aspect = innerWidth / innerHeight; cam.updateProjectionMatrix(); });
@@ -323,7 +327,7 @@
     document.getElementById('lbLeave').onclick = () => post('survivors-close');
     /* 25 Oct (Phil): the old Ascendant Spire button is gone - Hero Survivors replaces the old tower */
     const begin = resume => { document.getElementById('mode').value = mode; stS.value = lbS.value; HERO_PICK = resume ? resume.hero : pick;
-      const hh = heroes.find(x => x.key === HERO_PICK); window._heroKit = hh && hh.kit && hh.kit.skills && hh.kit.skills.length ? hh.kit : null;
+      const hh = heroes.find(x => x.key === HERO_PICK); window._heroKit = hh && hh.kit && hh.kit.skills && hh.kit.skills.length ? hh.kit : null; window._heroCls = hh && hh.cls;
       window._heroModel = (hh && hh.model) || (HERO_PICK === 'linnet' ? '/assets/survivors/linnet-1k.glb' : null);
       document.getElementById('use3d').checked = !!window._heroModel; window._resume = resume ? resume.state : null; L.hidden = true; document.getElementById('go').click(); };
     const cont = document.getElementById('lbCont'), ask = document.getElementById('lbAsk');
@@ -336,14 +340,15 @@
   }
   document.getElementById('go').onclick = () => {
     if (document.body.classList.contains('ingame')) document.getElementById('quit').hidden = false;
-    const cls = document.getElementById('use3d').checked ? 'Support' : document.getElementById('cls').value;   // Linnet is a Support
+    const CLS6 = ['Tank', 'Bruiser', 'Mage', 'Support', 'Assassin', 'Marksman'];   // Phil 26 Oct: "These spells should be class specific" - the level-up passives are the hero's own class (was Support for every 3D hero: Linnet's)
+    const cls = CLS6.indexOf(window._heroCls) >= 0 ? window._heroCls : document.getElementById('use3d').checked ? 'Support' : document.getElementById('cls').value;
     KIT = document.getElementById('use3d').checked ? KITS.linnet : KITS[cls];
     if (window._heroKit) { const own = HERO_PICK === 'linnet';   // other heroes' models share one Cast clip for both skills
       KIT = window._heroKit.skills.map((k, i) => Object.assign({ anim: own ? (KITS.linnet[i] || {}).anim : 'Cast' }, k)); preloadSheets(window._heroKit); }
     buildSkillButtons();
     const LAB = new URLSearchParams(location.search), labCls = LAB.get('lab');
     S = window._resume ? C.restore(window._resume, AURAS)                                   // Continue: the saved run, exactly where it was left
-      : C.create({ key: 'dev', cls: labCls || cls, maxHp: 3000, atk: 260, armor: 300, crit: 0.1, critDmg: 0.6, skills: KIT },
+      : C.create({ key: 'dev', cls: labCls || cls, maxHp: 3000, atk: 260, armor: 300, crit: 0.1, critDmg: 0.6, skills: KIT, melee: !!(window._heroKit && window._heroKit.melee), reach: window._heroKit && window._heroKit.reach },
                  { mode: document.getElementById('mode').value, stage: +st.value, seed: (Math.random() * 4e9) >>> 0, auras: AURAS });
     window._resume = null;
     window._S = S;   // read by the rig tests (controls, lobby) - never written from outside
@@ -893,13 +898,15 @@
     if (!H3) { g.fillStyle = h.iframes > 0 ? '#fff' : '#f2c14e'; g.beginPath(); g.arc(W / 2, H / 2, 0.5 * sc, 0, 7); g.fill(); }
     else {
       const moving = Math.abs(h.mvx) + Math.abs(h.mvy) > 0.01;
-      if (H3.clips.Attack && !moving && !H3.isCasting()) S.shots.forEach(s => { if (s.key === '_base' && !seenShot.has(s)) { seenShot.add(s); H3.cast('Attack'); } });   // Phil 25 Oct: "They all need an attack animation also"
+      const swg = S.fx.find(f => f.kind === 'swing' && !seenShot.has(f));   // a melee swing plays the Attack clip even on the move - the blow lands at its contact (0.25 s)
+      if (swg) { S.fx.forEach(f => f.kind === 'swing' && seenShot.add(f)); if (H3.clips.Attack) H3.cast('Attack', 1.0); }   // the whole clip in 1.0 s: its contact (~45%) meets the core's blow at 0.45 s
+      else if (H3.clips.Attack && !moving && !H3.isCasting()) S.shots.forEach(s => { if (s.key === '_base' && !seenShot.has(s)) { seenShot.add(s); H3.cast('Attack'); } });   // Phil 25 Oct: "They all need an attack animation also"
       else S.shots.forEach(s => seenShot.add(s));
       if (!H3.isCasting()) { H3.play('Walking'); H3.clips.Walking.timeScale = moving ? 1 : 0; }
-      H3.model.rotation.y = Math.atan2(h.dirx, h.diry);
+      H3.model.rotation.y = h.swing ? Math.atan2(Math.cos(h.swing.a), Math.sin(h.swing.a)) : Math.atan2(h.dirx, h.diry);   // a swing faces its target
       // the 3D camera sees exactly the 2D world's metres: visible height H/sc m at the hero, along the same tilt
       const vis = (H / sc), D = vis / (2 * Math.tan(15 * Math.PI / 180)); H3.cam.position.set(0, D * 0.64, D * 0.77);   /* ~40 deg down: shows her body, not the top of her head */ H3.cam.lookAt(0, 0.6, 0);
-      window._dbg = { dirx: h.dirx, diry: h.diry, roty: H3.model.rotation.y, paused: !!S.choice };   // dev probe
+      window._dbg = { dirx: h.dirx, diry: h.diry, roty: H3.model.rotation.y, paused: !!S.choice, atk: !!(H3.clips.Attack && H3.clips.Attack.isRunning()) };   // dev probe
       H3.mixer.update(Math.min(0.05, H3.clock.getDelta())); H3.r.render(H3.scene, H3.cam);
     }
     if (!H3) { g.strokeStyle = '#fff'; g.lineWidth = 3; g.beginPath(); g.moveTo(W / 2, H / 2); g.lineTo(W / 2 + h.dirx * sc, H / 2 + h.diry * sc); g.stroke(); }   // facing tick only for the dev dot (the 3D hero faces her way)

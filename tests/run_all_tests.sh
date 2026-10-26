@@ -574,6 +574,8 @@ note "test_survivors_core.js (v1221 Swarm Spire core: determinism, replay, the 6
 node tests/test_survivors_core.js || FAILED=1
 note "test_survivors_kinds_26oct.js (Spire spells work mechanically: own effect per hit, chain jumps, summons rise/chase/strike/expire; control nova)"
 node tests/test_survivors_kinds_26oct.js || FAILED=1
+note "test_survivors_melee_26oct.js (Phil 26 Oct: melee heroes swing in a front arc at 0.45 s - no shots; ranged still shoot; level-up passives are the hero class)"
+node tests/test_survivors_melee_26oct.js || FAILED=1
 note "test_camp_chapter_sync_26oct.js (Kimi A1: a ledger repaint keeps the chapter the player turned to; an untouched map still follows the ledger)"
 node tests/test_camp_chapter_sync_26oct.js || FAILED=1
 rm -f probe-db-*.json
