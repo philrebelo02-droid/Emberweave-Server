@@ -570,6 +570,10 @@ note "test_mail_ack_after_save_22oct.js (v1213: war mail saved before the ack, o
 node tests/test_mail_ack_after_save_22oct.js || FAILED=1
 note "test_well_carry_bounds_22oct.js (v1214: Starless Well carried HP is a finite 0.01..1 fraction, energy 0..100)"
 node tests/test_well_carry_bounds_22oct.js || FAILED=1
+note "test_survivors_core.js (v1221 Swarm Spire core: determinism, replay, the 60 auras at L1/L10, 30-min Story run, skill buttons)"
+node tests/test_survivors_core.js || FAILED=1
+note "test_survivors_kinds_26oct.js (Spire spells work mechanically: own effect per hit, chain jumps, summons rise/chase/strike/expire; control nova)"
+node tests/test_survivors_kinds_26oct.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi
