@@ -1,7 +1,10 @@
 {
   "patches": [
     {"ver": "0.97.3", "date": "26 October 2026", "title": "Spells that work in the Swarm Spire", "items": [
-      "The Swarm Spire: Zahri joins Linnet as a playable hero, in full 3D, and every hero now appears in the Spire roster - more become playable as their 3D models arrive. Skills now do what they say - stuns, slows, pulls, bleeds and armor breaks land on every enemy they hit. Zahri's Mirage Herd calls up her mirage to fight beside you, and her Noonday Stampede has new spell art."
+      "The Swarm Spire: Zahri joins Linnet as a playable hero, in full 3D, and every hero now appears in the Spire roster - more become playable as their 3D models arrive. Skills now do what they say - stuns, slows, pulls, bleeds and armor breaks land on every enemy they hit. Zahri's Mirage Herd calls up her mirage to fight beside you, and her Noonday Stampede has new spell art.",
+      "The Swarm Spire hero list now scrolls, so every hero shows at full size on a phone.",
+      "In the Swarm Spire, Zahri's basic attack now flies as her own golden lance crescent.",
+      "Fixed: on the campaign map, a background sync could flip the chapter back while you were looking at the next one, so tapping a stage opened the wrong one."
     ]},
     {"ver": "0.97.2", "date": "25 October 2026", "title": "Real skills in the Swarm Spire", "items": [
       "The Swarm Spire: your hero now fights with their real skills - each skill button and the ult plays the hero's own spell art, and Linnet's basic attack flies her needle. Pause to see your full build. Guardian Spirits now circle you and strike much harder, and the Reach passive now widens every ability. The old tower can no longer be opened from the Spire screen."

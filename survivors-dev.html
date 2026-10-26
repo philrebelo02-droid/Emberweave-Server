@@ -94,7 +94,10 @@
   .lbSub { color:var(--gold); font-style:italic; font-size:min(2.8vh,13px); }
   .lbMeta { color:#b9a88c; font:600 min(2.6vh,12px) system-ui,sans-serif; letter-spacing:.04em; margin-top:.4vh; font-variant-numeric:tabular-nums; }
   .lbRight { flex:1; min-width:0; display:flex; flex-direction:column; gap:1.6vh; }
-  .lbGrid { flex:1; min-height:0; display:grid; grid-template-columns:repeat(5,1fr); grid-template-rows:repeat(4,1fr); gap:min(1.4vh,1vw); }
+  /* 26 Oct: 60 heroes = 12 rows. The grid was sized for 4 rows (20 heroes); with 60 the extra rows squeezed the first ones (Linnet and
+     Zahri, the playable heroes) to slivers on a phone. Now each row keeps the old 4-row height and the grid scrolls. */
+  .lbGrid { flex:1; min-height:0; display:grid; grid-template-columns:repeat(5,1fr); grid-auto-rows:calc((100% - 3 * min(1.4vh,1vw)) / 4);
+    gap:min(1.4vh,1vw); overflow-y:auto; overscroll-behavior:contain; scrollbar-width:thin; scrollbar-color:#3a4c72 transparent; padding-right:2px; }
   #lobby.wait { opacity:0; } #lobby { transition:opacity .18s ease-out; }   /* invisible until the game's 20 heroes arrive: no first frame with one stretched tile */
   .lbT { position:relative; border-radius:9px; overflow:hidden; border:2px solid #3a4c72; background:#0e1420; padding:0; cursor:pointer; min-height:0; box-shadow:0 2px 8px #0009; }
   .lbT img { width:100%; height:100%; object-fit:cover; object-position:50% 18%; display:block; }
@@ -884,7 +887,7 @@
     const AK = window._heroKit && window._heroKit.atk, aim = AK && (AK.img ? sheetIm({ u: AK.img }) : sheetIm(AK.d));   // the hero's own attack art (Linnet: her needle bolt)
     S.shots.forEach(s => { if (artFor(s.key)) return; const x = X(s.x), y = Y(s.y), r = Math.max(0.3, s.r) * sc, a = Math.atan2(s.vy, s.vx);
       if (aim && s.key === '_base') { const w = 3.2 * sc; g.save(); g.translate(x, y); g.rotate(a);
-        if (AK.img) g.drawImage(aim, -w / 2, -w / 4, w, w / 2); else { const d = AK.d, f = AK.fr | 0; g.drawImage(aim, (f % d.cols) * d.fw, Math.floor(f / d.cols) * d.fh, d.fw, d.fh, -w / 2, -w / 2, w, w); } g.restore(); return; }
+        if (AK.img) { const hh = w * aim.height / aim.width; g.drawImage(aim, -w / 2, -hh / 2, w, hh); /* its own shape (26 Oct: 2:1 and 3:1 art) */ } else { const d = AK.d, f = AK.fr | 0; g.drawImage(aim, (f % d.cols) * d.fw, Math.floor(f / d.cols) * d.fh, d.fw, d.fh, -w / 2, -w / 2, w, w); } g.restore(); return; }
       span('fx_wake', x - s.vx * 0.05 * sc, y - s.vy * 0.05 * sc, x, y, r * 1.4, 0.55); el(fx('fx_light_mote'), x, y, r * 2.2, 0, 1); });
     g = G_ART; drawSpells(X, Y, sc, W, H, tnow); g = G0;
     if (!H3) { g.fillStyle = h.iframes > 0 ? '#fff' : '#f2c14e'; g.beginPath(); g.arc(W / 2, H / 2, 0.5 * sc, 0, 7); g.fill(); }
