@@ -188,7 +188,9 @@
         auras: {}, passives: {}, skills: {},
         kit: (hero.skills || []).slice(0, SLOTS.skill).map(function (k) {
           return { key: String(k.key), name: String(k.name || k.key), kind: SKILL_KINDS[k.kind] ? k.kind : "nova",
-                   cd: Math.max(1, +k.cd || 10), power: Math.max(0, +k.power || 1), dur: Math.max(0, +k.dur || 0), cdLeft: 0 };
+                   cd: Math.max(1, +k.cd || 10), power: Math.max(0, +k.power || 1), dur: Math.max(0, +k.dur || 0), cdLeft: 0,
+                   fk: FKS[k.fk] ? k.fk : "", fp: clamp(+k.fp || 0, 0, 5), n: clamp(k.n | 0 || 1, 1, 6), jumps: clamp(k.jumps | 0 || 4, 1, 8),
+                   unit: String(k.unit || "") };
         }),
         wardT: 0,
       },
@@ -1010,14 +1012,51 @@
    *   ward  - for dur s her HP cannot drop below 1   (Linnet: Reinforced Seam - "can't drop below 1 HP")
    *   nova  - power x attack to everything within 4 m, knocked back
    *   bolt  - a piercing bolt the way you move, power x attack
-   *   dash  - power metres the way you move, untouchable for 0.3 s */
+   *   dash  - power metres the way you move, untouchable for 0.3 s
+   *   chain - (26 Oct, Fritz's Chain Lightning) strikes the nearest enemy within 10 m, then jumps `jumps` times to the next nearest
+   *           within 5 m, 20% less each jump
+   *   summon- (26 Oct, Hurne / Aldren / Zahri) `n` allies (`unit` = their sheet) for dur s: they chase the nearest enemy and strike it
+   *           for power x attack every 0.8 s, and follow you when nothing is near
+   * fk / fp: what each hit does besides damage (the spell's own effect from the game: stun, slow, pull, dot, vuln, knock) and how hard */
+  var FKS = { none: 1, knock: 1, pull: 1, stun: 1, slow: 1, dot: 1, vuln: 1 };
   var SKILL_KINDS = {
     heal: function (S, k, h) { h.hp = Math.min(h.maxHp, h.hp + h.maxHp * k.power); },
     ward: function (S, k, h) { h.wardT = Math.max(h.wardT, k.dur || 4); },
-    nova: function (S, k, h) { var d = heroDmg(S, k.power); near(S, h.x, h.y, 4 * areaMul(S), function (m) { hit(S, m, d, "knock", 1.5); }); },
-    bolt: function (S, k, h) { S.shots.push({ key: k.key, x: h.x, y: h.y, vx: h.dirx * 18, vy: h.diry * 18, r: 0.6 * areaMul(S), life: 1.0, pierce: 99, dmg: heroDmg(S, k.power), fk: "none", hit: {}, bounce: 0 }); },
+    nova: function (S, k, h) { var d = heroDmg(S, k.power); near(S, h.x, h.y, 4 * areaMul(S), function (m) { hit(S, m, d, k.fk || "knock", k.fp || 1.5); }); },
+    bolt: function (S, k, h) { S.shots.push({ key: k.key, x: h.x, y: h.y, vx: h.dirx * 18, vy: h.diry * 18, r: 0.6 * areaMul(S), life: 1.0, pierce: 99, dmg: heroDmg(S, k.power), fk: k.fk || "none", fp: k.fp || 1, hit: {}, bounce: 0 }); },
     dash: function (S, k, h) { h.x += h.dirx * k.power; h.y += h.diry * k.power; h.iframes = Math.max(h.iframes, 0.3); },
+    chain: function (S, k, h) {
+      var d = heroDmg(S, k.power), fx = h.x, fy = h.y, m = nearest(S, h.x, h.y, 10), seen = {};
+      for (var j = 0; m && j <= (k.jumps || 4); j++) {
+        seen[m.id] = 1; hit(S, m, d, k.fk || "stun", k.fp || 0.8);
+        S.fx.push({ kind: "bolt2", key: k.key, x: fx, y: fy, tx: m.x, ty: m.y, t: 0, life: 0.25 });
+        fx = m.x; fy = m.y; d *= 0.8; var nx = null, bd = 1e18;
+        near(S, m.x, m.y, 5 * areaMul(S), function (q, dx, dy) { if (seen[q.id]) return; var dd = dx * dx + dy * dy; if (dd < bd) { bd = dd; nx = q; } });
+        m = nx;
+      }
+    },
+    summon: function (S, k, h) {
+      S.allies = S.allies || []; var n = k.n || 1, L = k.dur || 12;
+      for (var i = 0; i < n; i++) { var a = i * 2 * Math.PI / n + 0.4;
+        S.allies.push({ id: S.allyN = (S.allyN | 0) + 1, unit: k.unit, x: h.x + Math.cos(a) * 1.4, y: h.y + Math.sin(a) * 1.4, life: L, max: L, rise: 0.5, atkT: 0.6, hitT: 0, mul: k.power, vx: 0 }); }
+      while (S.allies.length > 8) S.allies.shift();
+    },
   };
+  // summoned allies (see summon above): rise, then chase + strike, or follow the hero
+  function allyStep(S, dt) {
+    var A = S.allies, h = S.hero; if (!A || !A.length) return;
+    for (var i = A.length - 1; i >= 0; i--) { var al = A[i]; al.life -= dt; if (al.life <= 0) { A.splice(i, 1); continue; }
+      if (al.rise > 0) { al.rise -= dt; continue; }
+      al.atkT -= dt; if (al.hitT > 0) al.hitT -= dt;
+      var hx = h.x - al.x, hy = h.y - al.y, hd = Math.sqrt(hx * hx + hy * hy) || 1;
+      if (hd > 20) { al.x = h.x - h.dirx * 1.4; al.y = h.y - h.diry * 1.4; continue; }       // left far behind: back at your side
+      var tg = nearest(S, al.x, al.y, 12);
+      if (!tg) { if (hd > 2.5) { al.x += hx / hd * 5 * dt; al.y += hy / hd * 5 * dt; al.vx = hx; } else al.vx = 0; continue; }
+      var ex = tg.x - al.x, ey = tg.y - al.y, ed = Math.sqrt(ex * ex + ey * ey) || 1, reach = (tg.r || 0.5) + 0.9;
+      if (ed > reach) { al.x += ex / ed * 5.5 * dt; al.y += ey / ed * 5.5 * dt; al.vx = ex; }
+      else { al.vx = 0; al.face = ex; if (al.atkT <= 0) { al.atkT = 0.8; al.hitT = 0.4; hit(S, tg, heroDmg(S, al.mul), "none"); } }
+    }
+  }
   function useSkill(S, i) {
     var h = S.hero, k = h.kit[i | 0]; if (!k || k.cdLeft > 0) return false;
     SKILL_KINDS[k.kind](S, k, h); k.cdLeft = k.cd * cdMul(S);
@@ -1151,6 +1190,7 @@
     if (h.wardT > 0) h.wardT -= dt;
     spawnStep(S, dt);
     buildGrid(S);
+    allyStep(S, dt);
     // auras
     var keys = Object.keys(h.auras).sort();
     S._hurtPrev = S._hurt || []; S._hurt = []; S._killsPrev = S._kills || []; S._kills = [];                // who hit the hero last tick (Thorn Hide lashes them)
@@ -1173,7 +1213,7 @@
       var sh = S.shots[s]; sh.x += sh.vx * dt; sh.y += sh.vy * dt; sh.life -= dt;
       var spent = false;
       near(S, sh.x, sh.y, sh.r, function (m) {
-        if (spent || sh.hit[m.id]) return; sh.hit[m.id] = 1; hit(S, m, sh.dmg, sh.fk, 1);
+        if (spent || sh.hit[m.id]) return; sh.hit[m.id] = 1; hit(S, m, sh.dmg, sh.fk, sh.fp || 1);
         if (sh.bounce > 0) { var nb = null, bd = 1e9; near(S, m.x, m.y, 5, function (o, dx, dy) { if (!sh.hit[o.id]) { var dd = dx * dx + dy * dy; if (dd < bd) { bd = dd; nb = o; } } });
           if (nb) { var bx = nb.x - sh.x, by = nb.y - sh.y, bl = Math.sqrt(bx * bx + by * by) || 1, sp2 = Math.sqrt(sh.vx * sh.vx + sh.vy * sh.vy); sh.vx = bx / bl * sp2; sh.vy = by / bl * sp2; sh.bounce--; return; } }
         if (sh.pierce-- <= 0) spent = true;

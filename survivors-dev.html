@@ -151,7 +151,7 @@
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="/assets/js/three-r128-GLTFLoader.js"></script>
-<script src="/server/survivors-core.js?v=dev32"></script>
+<script src="/server/survivors-core.js?v=dev33"></script>
 <script>
 (async function () {
   const C = window.SurvivorsCore, AURAS = await (await fetch('/server/survivors-auras.json?v=dev2')).json();
@@ -865,6 +865,15 @@
       if (m.stunT > 0 || m.vuln > 0) g.filter = 'brightness(1.6)';
       g.drawImage(sp.c, (fr % 6) * sp.fw, Math.floor(fr / 6) * sp.fh, sp.fw, sp.fh, -wpx / 2, -hpx, wpx, hpx); g.restore();
       if (m.type === 'elite' || m.type === 'boss') { const bw = Math.max(30, hpx * 0.7); g.fillStyle = '#0008'; g.fillRect(x - bw / 2, y - hpx - 8, bw, 5); g.fillStyle = '#e2433a'; g.fillRect(x - bw / 2, y - hpx - 8, bw * Math.max(0, m.hp / m.maxHp), 5); } });
+    // summoned allies (26 Oct): their own game sheets - rise out of the ground, then walk, strike when they hit; feet on their spot
+    if (S.allies && S.allies.length && window._heroKit) { const UA = {}; window._heroKit.skills.forEach(k => { if (k.unit && k.unitArt) UA[k.unit] = k.unitArt; });
+      S.allies.slice().sort((a, b) => a.y - b.y).forEach(al => { const art = UA[al.unit]; if (!art) return;
+        const st = al.rise > 0 && art.rise ? 'rise' : al.hitT > 0 && art.attack ? 'attack' : 'walk', d = art[st], im = sheetIm(d); if (!im) return;
+        const n = d.n || 1, tt = st === 'rise' ? (0.5 - al.rise) : st === 'attack' ? (0.4 - al.hitT) : tnow + al.id * 0.31, fps = d.fps || 12;
+        const fr = st === 'walk' ? Math.floor(tt * fps) % n : Math.min(n - 1, Math.floor(tt / (st === 'rise' ? 0.5 : 0.4) * n));
+        const pxm = 1.9 * sc / (d.figH || d.fh), w = d.fw * pxm, hh = d.fh * pxm, faceL = (al.vx || al.face || 0) < 0, mir = d.flip ? !faceL : faceL;
+        g.save(); g.globalAlpha = Math.min(1, al.life / 0.5) * (al.unit === 'zahri mirage' ? 0.72 : 1); g.translate(X(al.x), Y(al.y)); if (mir) g.scale(-1, 1);
+        g.drawImage(im, (fr % d.cols) * d.fw, Math.floor(fr / d.cols) * d.fh, d.fw, d.fh, -(d.cx != null ? d.cx : d.fw / 2) * pxm, -(d.feet != null ? d.feet : d.fh) * pxm, w, hh); g.restore(); }); }
     // enemy bolts: dodge them (Phil 24 Oct)
     // enemy bolts (FX kit, no code shapes): a spark pointing along its flight in a glow, a wake behind it
     S.eshots.forEach(b => { const x = X(b.x), y = Y(b.y), r = Math.max(0.35, b.r) * sc, a = Math.atan2(b.vy, b.vx);

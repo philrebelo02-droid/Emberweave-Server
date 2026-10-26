@@ -28409,18 +28409,38 @@ function survivorsRoster(){ const all=Object.keys(HERO_TYPES), own=k=>heroOwned(
    long + its radius in metres. Only plain fields cross to the frame. */
 const SURV_SHEET_KEYS=['u','n','fw','fh','cols','rows','dur','fps2','upright','disc','cone','upSize','upExtent','upAnchor','upAbove','upAboveM','fxMul'];
 function survKind(row){ const t=String((row&&row.type)||'').toLowerCase()+' '+String((row&&row.deliver)||'');
+  if(/^summon/.test(t)) return 'summon';
+  if(/chainlight/.test(t)||(row&&row.jumps)) return 'chain';   /* jumping chains only (Fritz) - Tolley's Chain Quench is a pull */
   if(/heal|mend|regen|bloom|hot|courage|renew|restor|cleanse/.test(t)) return 'heal';
   if(/shield|ward|guard|lastbreath|barrier|bubble|aegis|stand|mantle|shell|fortify|armor/.test(t)) return 'ward';
   if(/leap|dash|blink|charge|lunge|hook|burrow|pounce|jump/.test(t)) return 'dash';
   if(/shot|bolt|line|beam|spread|pierce|volley|snipe|lance|thrown|card/.test(t)) return 'bolt';
   return 'nova'; }
+/* 26 Oct (Phil: "make all spells work mechanically"): what each hit of a Spire skill does besides damage, read from the spell's own
+   game row - [effect, strength] for the core's hit(): stun 0.35 s per point, slow 1 s, pull/knock 0.6/0.9 m, dot 2 s, vuln 2 s */
+function survFk(r){ const t=String(r.type||'').toLowerCase();
+  if(/pull|vortex|gravity|drag|grav/.test(t)&&!/grapple/.test(t)) return ['pull',2.5];   /* a drag spell drags (Vulmar, Veyr, Grosk, Absalie) */
+  if(r.stun||r.sleep||r.fear||r.root||r.stop||/stun|seal|sleep|fear|root|freez|petrif|stop|hourglass|grapple/.test(t)) return ['stun',3];
+  if(r.pull) return ['pull',2.5];
+  if(r.slow||r.frost||r.nrgSlow||/slow|frost|chill|ice/.test(t)) return ['slow',2];
+  if(r.bleed||r.burn||r.dps||r.rupture||/bleed|burn|poison|venom|dot|scorch/.test(t)) return ['dot',1.5];
+  if(r.shred||r.mark||/shred|curse|mark|vuln|rewrite/.test(t)) return ['vuln',1.5];
+  if(r.push||r.knock||r.kick) return ['knock',2];
+  return ['',0]; }
+/* the unit a summon spell calls up (its BATTLE_ANIM key) and its walk / attack / rise sheets for the Spire */
+function survUnit(r){ const t=String(r.type||''); return r.key||(t==='summonshaman'?'boar shaman':t==='summonmirage'?'zahri mirage':'boar warrior'); }
+function survUnitArt(u){ const A=BATTLE_ANIM[u]; if(!A) return null; const o={};
+  ['walk','attack','rise'].forEach(st=>{ const d=A[st]; if(d) o[st]=Object.fromEntries(['u','n','fw','fh','cols','rows','figH','feet','cx','fps','flip','loop','hold','top'].filter(k=>d[k]!=null&&typeof d[k]!=='function').map(k=>[k,d[k]])); });
+  return o.walk?o:null; }
 function survPlanFx(hk,slot){ try{ const P=skillPreviewPlan(hk,slot); if(!P) return [];
     return (P.fx||[]).map(e=>{ const d=e.d||{}, L=(e.real!=null)?e.real:(e.life!=null)?(d.rt?e.life:e.life/FX_RT):(e.dur!=null?e.dur:d.dur||1), sh={};
       SURV_SHEET_KEYS.forEach(k=>{ if(d[k]!=null&&typeof d[k]!=='function') sh[k]=d[k]; });
       return { k:e.k, kind:e.kind||'', at:e.at||'', t0:+(e.t0||0), L:Math.min(8,+L||1), R:e.R?e.R/METER:0, scale:e.scale||0, d:sh }; }).filter(e=>e.d.u); }
   catch(err){ return []; } }
-function survivorsKit(hk){ const K=KITS[hk]||{}, T=HERO_TYPES[hk]||{}, row=(r,slot)=>r?{ key:hk+'_'+slot, name:r.name||slot, kind:survKind(r), cd:Math.max(3,+r.cd||8),
-    power:survKind(r)==='heal'?0.3:survKind(r)==='dash'?5:2.5, dur:r.dur||4, fx:survPlanFx(hk,slot==='green'?1:2) }:null;
+function survivorsKit(hk){ const K=KITS[hk]||{}, T=HERO_TYPES[hk]||{}, row=(r,slot)=>{ if(!r) return null; const kd=survKind(r), fe=survFk(r), u=kd==='summon'?survUnit(r):'';
+    return { key:hk+'_'+slot, name:r.name||slot, kind:kd, cd:Math.max(3,+r.cd||8),
+    power:kd==='heal'?0.3:kd==='dash'?5:kd==='summon'?((r.n|0)>1?0.4:0.6):kd==='chain'?2:2.5, dur:kd==='summon'?(+r.dur||12):(r.dur||4), fx:survPlanFx(hk,slot==='green'?1:2),
+    fk:fe[0], fp:fe[1], n:r.n|0||1, jumps:r.jumps|0||4, unit:u, unitArt:u?survUnitArt(u):null }; };
   const at=SURV_ATK[hk], ad=at&&at.k&&FX2_DEF[at.k], atk=at&&at.img?{ img:at.img }:ad?{ fr:at.fr, d:Object.fromEntries(SURV_SHEET_KEYS.filter(k=>ad[k]!=null&&typeof ad[k]!=='function').map(k=>[k,ad[k]])) }:null;
   return { skills:[row(K.green,'green'),row(K.blue,'blue')].filter(Boolean), ult:{ name:T.abilityName||'Ultimate', fx:survPlanFx(hk,0) }, atk }; }
 /* the basic-attack projectile in the Spire: its own art ({img}, one element pointing RIGHT) or a frame of the hero's sheet ({k, fr}) - the fight still
