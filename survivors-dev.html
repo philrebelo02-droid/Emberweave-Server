@@ -376,7 +376,7 @@
       const im = sheetIm(d); if (!im) continue; const n = d.n || 1, cols = d.cols || 1, fr = Math.min(n - 1, Math.floor(u * n)), fx0 = (fr % cols) * d.fw, fy0 = Math.floor(fr / cols) * d.fh;
       const k = e.kind, follow = A.self && !/proj|glide|drop/.test(k), ox = follow ? h.x : A.sx, oy = follow ? h.y : A.sy;
       let x = A.self ? ox : A.tx, y = A.self ? oy : A.ty, w, hh, rot = 0, flat = /disc|flat|reap|ring|undertow|crescent|tempest/.test(k) || d.disc;
-      if (/proj|glide/.test(k)) { const q = Math.min(1, u * 1.15); x = A.sx + (A.tx - A.sx) * q; y = A.sy + (A.ty - A.sy) * q; w = hh = Math.max(1, (e.scale || 2.6) * 0.5) * sc; rot = A.a; }
+      if (/proj|glide/.test(k)) { const q = Math.min(1, u * 1.15); x = A.sx + (A.tx - A.sx) * q; y = A.sy + (A.ty - A.sy) * q; w = Math.max(1, (e.scale || 2.6) * 0.5) * sc; hh = w * d.fh / d.fw; rot = A.a; }   // a long trail keeps its own shape
       else if (k === 'drop') { x = A.tx; y = A.ty - (1 - Math.min(1, u * 1.4)) * 6; w = hh = Math.max(1.5, (e.scale || 3) * 0.6) * sc; }
       else if (flat) { const r = Math.max(1.5, e.R || 2.4) * FXS; w = hh = r * 2 * sc; rot = d.cone ? A.a + Math.PI / 2 : 0; }
       else if (d.cone && !A.onSelf) { const r = Math.max(2, e.R || 3) * FXS; w = hh = r * 2 * sc; rot = A.a + Math.PI / 2; x = ox + Math.cos(A.a) * r * 0.5; y = oy + Math.sin(A.a) * r * 0.5; }
@@ -899,7 +899,8 @@
     }
     if (!H3) { g.strokeStyle = '#fff'; g.lineWidth = 3; g.beginPath(); g.moveTo(W / 2, H / 2); g.lineTo(W / 2 + h.dirx * sc, H / 2 + h.diry * sc); g.stroke(); }   // facing tick only for the dev dot (the 3D hero faces her way)
     // the ULT (kit, no code fill): a fan of light shafts sweeps out over the 120-degree cone it hits, with a flash on the hero
-    S.fx.forEach(f => { if (f.kind !== 'ult') return; const u = f.t / f.life, a0 = Math.atan2(f.dy, f.dx), ox = f.echo ? X(f.x) : W / 2, oy = f.echo ? Y(f.y) : H / 2;
+    const ownUlt = window._heroKit && window._heroKit.ult && (window._heroKit.ult.fx || []).length;   // the hero's own ult art replaces the fan (26 Oct)
+    S.fx.forEach(f => { if (f.kind !== 'ult' || ownUlt) return; const u = f.t / f.life, a0 = Math.atan2(f.dy, f.dx), ox = f.echo ? X(f.x) : W / 2, oy = f.echo ? Y(f.y) : H / 2;
       el(fx('fx_flash'), ox, oy, (2.5 + u * 3) * sc, 0, (1 - u) * 0.9);
       for (let i = 0; i < 7; i++) { const a = a0 + (i - 3) * (Math.PI / 9), d = (1.5 + u * 5) * sc; el(fx('fx_light_shaft'), ox + Math.cos(a) * d, oy + Math.sin(a) * d, (3 + u * 3) * sc, a - Math.PI / 2, (1 - u)); } });
     document.getElementById('time').textContent = fmt(S.t);

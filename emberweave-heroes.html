@@ -28439,12 +28439,25 @@ function survPlanFx(hk,slot){ try{ const P=skillPreviewPlan(hk,slot); if(!P) ret
   catch(err){ return []; } }
 function survivorsKit(hk){ const K=KITS[hk]||{}, T=HERO_TYPES[hk]||{}, row=(r,slot)=>{ if(!r) return null; const kd=survKind(r), fe=survFk(r), u=kd==='summon'?survUnit(r):'';
     return { key:hk+'_'+slot, name:r.name||slot, kind:kd, cd:Math.max(3,+r.cd||8),
-    power:kd==='heal'?0.3:kd==='dash'?5:kd==='summon'?((r.n|0)>1?0.4:0.6):kd==='chain'?2:2.5, dur:kd==='summon'?(+r.dur||12):(r.dur||4), fx:survPlanFx(hk,slot==='green'?1:2),
+    power:kd==='heal'?0.3:kd==='dash'?5:kd==='summon'?((r.n|0)>1?0.4:0.6):kd==='chain'?2:2.5, dur:kd==='summon'?(+r.dur||12):(r.dur||4), fx:survArt(hk,slot==='green'?1:2),
     fk:fe[0], fp:fe[1], n:r.n|0||1, jumps:r.jumps|0||4, unit:u, unitArt:u?survUnitArt(u):null }; };
   const at=SURV_ATK[hk], ad=at&&at.k&&FX2_DEF[at.k], atk=at&&at.img?{ img:at.img }:ad?{ fr:at.fr, d:Object.fromEntries(SURV_SHEET_KEYS.filter(k=>ad[k]!=null&&typeof ad[k]!=='function').map(k=>[k,ad[k]])) }:null;
-  return { skills:[row(K.green,'green'),row(K.blue,'blue')].filter(Boolean), ult:{ name:T.abilityName||'Ultimate', fx:survPlanFx(hk,0) }, atk }; }
+  return { skills:[row(K.green,'green'),row(K.blue,'blue')].filter(Boolean), ult:{ name:T.abilityName||'Ultimate', fx:survArt(hk,0) }, atk }; }
 /* the basic-attack projectile in the Spire: its own art ({img}, one element pointing RIGHT) or a frame of the hero's sheet ({k, fr}) - the fight still
    draws a code tracer. Linnet: ChatGPT's needle bolt (24 Oct, Game Art/Hero Survivors/Projectiles, sha256 25df4fd3...) */
+/* 26 Oct: spell art for the Spire where the game's own art plan is empty (in battle these spells are drawn by spell code; Phil: no
+   code-drawn FX). ChatGPT's elements, Game Art/Hero Survivors/Spell FX/<Hero> - <Spell>/ (PNG, 640 px webp here). Key = hero_slot
+   (0 ult, 1 green, 2 blue); rows are survPlanFx rows: kind flat = a ground plate, proj = flies hero -> target; at target / self. */
+const SURV_FX_SRC='/assets/survivors/spellfx/', SURV_FX_SQ=n=>({ u:SURV_FX_SRC+n+'.webp?v=1', n:1, fw:640, fh:640, cols:1, rows:1 });
+const SURV_FX_ART={
+  tessit_0:[{ k:'', kind:'flat', at:'target', t0:0, L:0.7, R:3, scale:0, d:SURV_FX_SQ('tessit_hourglass_shatter') },
+            { k:'', kind:'flat', at:'target', t0:0.35, L:1.6, R:3.6, scale:0, d:SURV_FX_SQ('tessit_hourglass_sand_ring') }],
+  vulmar_0:[{ k:'', kind:'flat', at:'target', t0:0, L:2.0, R:3.6, scale:0, d:SURV_FX_SQ('vulmar_weight_world_gravity_circle') },
+            { k:'', kind:'flat', at:'target', t0:1.7, L:0.6, R:4, scale:0, d:SURV_FX_SQ('vulmar_weight_world_slam_ring') }],
+  zahri_0:[{ k:'', kind:'proj', at:'target', t0:0, L:0.55, R:0, scale:18, d:{ u:SURV_FX_SRC+'zahri_noonday_stampede_trail.webp?v=1', n:1, fw:640, fh:320, cols:1, rows:1 } },
+           { k:'', kind:'flat', at:'target', t0:0.45, L:0.6, R:2.4, scale:0, d:SURV_FX_SQ('zahri_noonday_stampede_hit') }]
+};
+function survArt(hk,slot){ const f=survPlanFx(hk,slot); return f.length?f:(SURV_FX_ART[hk+'_'+slot]||[]); }
 const SURV_ATK={ linnet:{img:'/assets/survivors/projectiles/linnet_needle_bolt.webp?v=1'} };
 function openSurvivors(){ if(document.getElementById('survFrame')) return;
   const f=document.createElement('iframe'); f.id='survFrame'; f.src='/survivors?game=1&b='+encodeURIComponent(typeof BUILD_ID!=='undefined'?BUILD_ID:'');
