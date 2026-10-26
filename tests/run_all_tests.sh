@@ -574,6 +574,8 @@ note "test_survivors_core.js (v1221 Swarm Spire core: determinism, replay, the 6
 node tests/test_survivors_core.js || FAILED=1
 note "test_survivors_kinds_26oct.js (Spire spells work mechanically: own effect per hit, chain jumps, summons rise/chase/strike/expire; control nova)"
 node tests/test_survivors_kinds_26oct.js || FAILED=1
+note "test_camp_chapter_sync_26oct.js (Kimi A1: a ledger repaint keeps the chapter the player turned to; an untouched map still follows the ledger)"
+node tests/test_camp_chapter_sync_26oct.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi

@@ -16931,7 +16931,7 @@ function _showScreen(name){
   if(name==='campaign'){
     // 27 Aug (Phil): clearing a stage returns you to THAT stage, not to your furthest one.
     if(G.lastPortal && PORTAL_META[G.lastPortal] && !portalLockMsg(G.lastPortal)) PORTAL=G.lastPortal;
-    campViewCh = G.lastStage ? Math.min(chapterOf(G.lastStage), portalChapters(PORTAL)) : 0;
+    campViewCh = G.lastStage ? Math.min(chapterOf(G.lastStage), portalChapters(PORTAL)) : 0; campViewUser=false;
     renderRoadmap(); }
   if(name==='menu'){
     const mb=document.getElementById('menuBack');
@@ -17976,7 +17976,9 @@ function adoptLedger(st){ if(!st||typeof st!=='object') return; summonTableSync(
   try{ if(typeof state!=='undefined'){
     if(state==='campaign' && typeof renderRoadmap==='function'){
       const _seed=G.lastStage||Math.max(1,(G.campaignCleared|0)+1);
-      if(typeof campViewCh!=='undefined') campViewCh=Math.min(chapterOf(_seed), portalChapters(PORTAL));
+      /* 26 Oct (Kimi A1: "chapter-next shows Chapter 2 but tapping 2-1 opens 1-1"): a sync landing after the player turned the chapter
+         put Chapter 1 back under the finger. A chapter the player chose stays; an untouched map still follows the ledger. */
+      if(typeof campViewCh!=='undefined' && !(typeof campViewUser!=='undefined' && campViewUser)) campViewCh=Math.min(chapterOf(_seed), portalChapters(PORTAL));
       renderRoadmap();
     } else if(state==='home' && typeof renderHome==='function') renderHome();
   } }catch(e){}
@@ -20928,6 +20930,7 @@ function renderMarket(){
   }));
 }
 let campViewCh=0;   // which chapter the roadmap is showing (0 = auto = the chapter you're on)
+let campViewUser=false;   // 26 Oct (Kimi A1): the player turned the chapter with the arrows - a ledger repaint keeps it
 /* v266 — Exact Glyph Fragment Farm Map v1: three fixed portals, each with its own progress and its
    own 160/160/160 fragment sources (v1148: Veteran 1-16 like Normal and Elite). PORTAL is which one the roadmap is showing. */
 const PORTAL_META={ normal:{label:'Normal', stages:160, icon:uiIcon('map')},
@@ -20946,7 +20949,7 @@ const PORTAL_HERO_FRAG_MUL={normal:1, elite:1, veteran:2};   // v1149: hero frag
 function portalChapterLockMsg(m,ch){ const prev=PORTAL_PREV[m]; if(!prev) return null; const need=Math.max(1,ch|0)*10;
   return portalCleared(prev)<need ? ('Complete '+PORTAL_META[prev].label+' '+ch+'-10 to unlock '+PORTAL_META[m].label+' Chapter '+ch+'.') : null; }
 function portalChapters(m){ return Math.ceil(portalStages(m)/STAGES_PER_CH); }
-function setPortal(m){ if(!PORTAL_META[m]) return; PORTAL=m; campViewCh=0; renderRoadmap(); }
+function setPortal(m){ if(!PORTAL_META[m]) return; PORTAL=m; campViewCh=0; campViewUser=false; renderRoadmap(); }
 /* ===== TOTAL CAMPAIGN STARS reward track (Phil 26 Aug: milestones every 15 stars) ===== */
 function totalCampaignStars(){ let t=0; const ss=G.stageStars||{}; for(const k in ss)t+=(ss[k]|0); return t; }
 function starMilestoneReward(idx){   // idx 0 => 15 stars, 1 => 30, ...
@@ -21048,8 +21051,8 @@ function renderRoadmap(){
     <div style="text-align:center;line-height:1.2"><div style="font-weight:800;font-size:14px">${MODE==='normal'?'':PORTAL_META[MODE].icon+' '} Chapter ${ch}${locked?' '+hudIcon('lock'):''}</div><div style="font-size:11px;color:#c9a35e">${CHAPTER_NAMES[ch-1]||''}</div></div>
     <button class="btn xs secondary" id="chNext" ${ch>=TOTAL_CH?'disabled':''}>${uiIcon('play')}</button>`;
     const pv=hdr.querySelector('#chPrev'), nx=hdr.querySelector('#chNext');
-    if(pv) pv.onclick=()=>{ campViewCh=ch-1; renderRoadmap(); };
-    if(nx) nx.onclick=()=>{ campViewCh=ch+1; renderRoadmap(); }; }
+    if(pv) pv.onclick=()=>{ campViewCh=ch-1; campViewUser=true; renderRoadmap(); };
+    if(nx) nx.onclick=()=>{ campViewCh=ch+1; campViewUser=true; renderRoadmap(); }; }
   if(locked){ map.style.height='auto'; map.innerHTML=`<div style="text-align:center;color:#8b98a9;padding:60px 20px">
       <div style="font-size:44px">${hudIcon('lock')}</div><div style="font-weight:800;font-size:16px;margin-top:8px;color:#e6edf3">Chapter ${ch} — ${CHAPTER_NAMES[ch-1]||''}</div>
       <div style="font-size:12px;margin-top:6px">${escapeHTML(chapterLock||('Not open yet — Chapter '+MAX_CH+' is this portal\'s summit.'))}</div></div>`; return; }
@@ -26847,7 +26850,7 @@ function g2SrcGo(stageId, mode){ const m=/^(\d+)-(\d+)$/.exec(String(stageId||''
   const node=(+m[1]-1)*10 + (+m[2]); mode=mode||'normal';
   const lock=portalLockMsg(mode); if(lock){ bannerMsg(hudIcon('lock')+' '+lock); return; }
   const chLock=portalChapterLockMsg(mode,+m[1]); if(chLock){ bannerMsg(hudIcon('lock')+' '+chLock); return; }
-  RUNE2.build=null; g2RenderOverlays(); PORTAL=mode; campViewCh=0; show('campaign'); openStageModal(node, mode); }
+  RUNE2.build=null; g2RenderOverlays(); PORTAL=mode; campViewCh=0; campViewUser=false; show('campaign'); openStageModal(node, mode); }
 function g2NodeArtSrc(n){ if(n.kind==='fragment'){ const p=g2parseKey(n.key); return `/assets/img/glyphs-v2/${g2qdir(p.q)}/fragment-${g2slotOfFam(p.fam)}.png?v=4`; }
   if(n.kind==='subGlyph'){ const p=g2parseKey(n.key); return `/assets/img/glyphs-v2/${g2qdir(p.q)}/sub-${g2slotOfFam(p.fam)}.png?v=4`; }
   return `/assets/img/glyphs-v2/${g2qdir(n.quality)}/finished-${g2slotOfFam(n.family)}.png?v=4`; }
