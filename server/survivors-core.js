@@ -206,9 +206,10 @@
 
   /* ---- derived stats from passives -------------------------------------------------------------------------------------------- */
   function pas(S, k) { return (S.hero.passives[k] | 0) * PASSIVES[k].per; }
-  function heroDmg(S, mul) {
+  function heroDmg(S, mul, forceCrit) {
     var h = S.hero, d = h.atk * mul * (1 + pas(S, "might"));
-    if (S.rng() < h.crit + pas(S, "keen")) d *= 1 + h.critDmg;
+    var c = forceCrit != null ? !!forceCrit : S.rng() < h.crit + pas(S, "keen"); S._crit = c;   // forceCrit: a swing rolled its crit when it began
+    if (c) d *= 1 + h.critDmg;
     return S._echo ? d * S._echo : d;
   }
   // Shadow Clone: each living clone repeats what the hero just did from its own spot, the way the hero faces, at 20% damage.
@@ -1215,13 +1216,13 @@
     if (h.melee || h.swing || mixNear) {
       var sw = h.swing; if (sw) { sw.t += dt;
         if (!sw.done && sw.t >= 0.45) { sw.done = true; var R = h.reach * areaMul(S), ca = Math.cos(sw.a), sa = Math.sin(sw.a);
-          near(S, h.x, h.y, R + 0.5, function (m, dx, dy) { var d = Math.sqrt(dx * dx + dy * dy) || 1; if (d > 0.9 && (dx * ca + dy * sa) / d < 0.5) return; hit(S, m, heroDmg(S, 1.3), "none"); }); }
+          near(S, h.x, h.y, R + 0.5, function (m, dx, dy) { var d = Math.sqrt(dx * dx + dy * dy) || 1; if (d > 0.9 && (dx * ca + dy * sa) / d < 0.5) return; hit(S, m, heroDmg(S, 1.3, sw.crit), "none"); }); }
         if (sw.t >= 1.0) h.swing = null; }
       if (S._baseT <= 0 && !h.swing) { var tg = nearest(S, h.x, h.y, h.reach * areaMul(S) + 0.6);
-        if (!tg) S._baseT = 0.1; else { S._baseT = 1.1 * cdMul(S); var ga = Math.atan2(tg.y - h.y, tg.x - h.x); h.swing = { a: ga, t: 0, done: false };
-          S.fx.push({ kind: "swing", key: "_swing", x: h.x, y: h.y, dx: Math.cos(ga), dy: Math.sin(ga), t: 0, life: 1.0 }); } }
+        if (!tg) S._baseT = 0.1; else { S._baseT = 1.1 * cdMul(S); var ga = Math.atan2(tg.y - h.y, tg.x - h.x), cr = S.rng() < h.crit + pas(S, "keen"); h.swing = { a: ga, t: 0, done: false, crit: cr };
+          S.fx.push({ kind: "swing", key: "_swing", x: h.x, y: h.y, dx: Math.cos(ga), dy: Math.sin(ga), t: 0, life: 1.0, crit: cr }); } }
     } else
-    if (S._baseT <= 0) { S._baseT = 1.1 * cdMul(S); var base = function () { S.shots.push({ key: "_base", x: h.x, y: h.y, vx: h.dirx * 13, vy: h.diry * 13, r: 0.3 * areaMul(S), life: 1.2, pierce: 0, dmg: heroDmg(S, 1.0), fk: "none", hit: {}, bounce: 0 }); };
+    if (S._baseT <= 0) { S._baseT = 1.1 * cdMul(S); var base = function () { S.shots.push({ key: "_base", x: h.x, y: h.y, vx: h.dirx * 13, vy: h.diry * 13, r: 0.3 * areaMul(S), life: 1.2, pierce: 0, dmg: heroDmg(S, 1.0), crit: !!S._crit, fk: "none", hit: {}, bounce: 0 }); };
       base(); echo(S, base); }
     // shots
     for (var s = S.shots.length - 1; s >= 0; s--) {

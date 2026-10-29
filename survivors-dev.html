@@ -154,7 +154,7 @@
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="/assets/js/three-r128-GLTFLoader.js"></script>
-<script src="/server/survivors-core.js?v=dev36"></script>
+<script src="/server/survivors-core.js?v=dev37"></script>
 <script>
 (async function () {
   const C = window.SurvivorsCore, AURAS = await (await fetch('/server/survivors-auras.json?v=dev2')).json();
@@ -906,10 +906,13 @@
     else {
       const moving = Math.abs(h.mvx) + Math.abs(h.mvy) > 0.01;
       const swg = S.fx.find(f => f.kind === 'swing' && !seenShot.has(f));   // a melee swing plays the Attack clip even on the move - the blow lands at its contact (0.25 s)
-      if (swg) { S.fx.forEach(f => f.kind === 'swing' && seenShot.add(f)); if (H3.hasAtk) H3.cast(H3.nextAtk('melee'), 1.0); }   // the whole clip in 1.0 s: its contact (~45%) meets the core's blow at 0.45 s
-      else if (H3.hasAtk && !moving && !H3.isCasting()) S.shots.forEach(s => { if (s.key === '_base' && !seenShot.has(s)) { seenShot.add(s); H3.cast(H3.nextAtk('ranged')); } });   // Phil 25 Oct: "They all need an attack animation also"
+      if (S.ended && !S.won && H3.clips.Death) { if (!H3._dead) { H3._dead = true; H3.cast('Death', H3.clips.Death.getClip().duration); H3.clips.Death.clampWhenFinished = true; } }   /* Phil 28 Oct: Death, held on its last frame */
+      else if (swg) { S.fx.forEach(f => f.kind === 'swing' && seenShot.add(f)); if (H3.hasAtk) H3.cast(swg.crit && H3.clips.Crit ? 'Crit' : H3.nextAtk('melee'), 1.0); }   // the whole clip in 1.0 s: its contact (~45%) meets the core's blow at 0.45 s
+      else if (H3.hasAtk && !moving && !H3.isCasting()) S.shots.forEach(s => { if (s.key === '_base' && !seenShot.has(s)) { seenShot.add(s); H3.cast(s.crit && H3.clips.Crit ? 'Crit' : H3.nextAtk('ranged')); } });   // Phil 25 Oct: "They all need an attack animation also"
       else S.shots.forEach(s => seenShot.add(s));
-      if (!H3.isCasting()) { H3.play('Walking'); H3.clips.Walking.timeScale = moving ? 1 : 0; }
+      if (!H3._dead && (S.taken || 0) > (H3._taken || 0) + 0.5 && H3.clips.Hit && !H3.isCasting()) H3.cast('Hit', 0.5);   /* Phil 28 Oct: Hit when struck (not over an attack or spell) */
+      H3._taken = S.taken || 0;
+      if (!H3.isCasting() && !H3._dead) { if (!moving && H3.clips.Idle) H3.play('Idle'); else { H3.play('Walking'); H3.clips.Walking.timeScale = moving ? 1 : 0; } }
       H3.model.rotation.y = h.swing ? Math.atan2(Math.cos(h.swing.a), Math.sin(h.swing.a)) : Math.atan2(h.dirx, h.diry);   // a swing faces its target
       // the 3D camera sees exactly the 2D world's metres: visible height H/sc m at the hero, along the same tilt
       const vis = (H / sc), D = vis / (2 * Math.tan(15 * Math.PI / 180)); H3.cam.position.set(0, D * 0.64, D * 0.77);   /* ~40 deg down: shows her body, not the top of her head */ H3.cam.lookAt(0, 0.6, 0);
