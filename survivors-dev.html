@@ -154,7 +154,7 @@
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="/assets/js/three-r128-GLTFLoader.js"></script>
-<script src="/server/survivors-core.js?v=dev35"></script>
+<script src="/server/survivors-core.js?v=dev36"></script>
 <script>
 (async function () {
   const C = window.SurvivorsCore, AURAS = await (await fetch('/server/survivors-auras.json?v=dev2')).json();
@@ -240,7 +240,14 @@
     mixer.addEventListener('finished', e => { if (e.action === clips[cur]) { casting = false; cur = null; play('Walking'); } });
     play('Walking');
     addEventListener('resize', () => { r.setSize(innerWidth, innerHeight, false); cam.aspect = innerWidth / innerHeight; cam.updateProjectionMatrix(); });
-    const info = r.info; H3 = { r, scene, cam, model, mixer, play, cast, clips, isCasting: () => casting, clock: new THREE.Clock(), info, names: Object.keys(clips) };
+    // Phil 28 Oct ("rivets attacks should be 1 auto per arms"): a model with numbered attack clips (Attack_1, Attack_2, ...) plays the next one on
+    // each auto, in order - Rivet swings a different arm each time; every other hero keeps its one Attack clip
+    const atkSet = Object.keys(clips).filter(n => /^Attack_\d+$/.test(n)).sort((x, y) => parseInt(x.slice(7)) - parseInt(y.slice(7))); 
+    // a mixed hero (Rivet) names his ranged clips (kit.mixed.ranged): a swing plays the next melee arm, a shot the next ranged one
+    const mix = window._heroKit && window._heroKit.mixed, rSet = mix ? atkSet.filter(n => mix.ranged.indexOf(parseInt(n.slice(7))) >= 0) : [], mSet = atkSet.filter(n => rSet.indexOf(n) < 0), ix = {};
+    const nextAtk = kind => { const L = !rSet.length ? atkSet : kind === 'ranged' ? rSet : mSet; if (!L.length) return 'Attack'; const k = L === atkSet ? 'a' : kind; ix[k] = (ix[k] || 0) + 1; return L[(ix[k] - 1) % L.length]; };
+    const info = r.info; H3 = { r, scene, cam, model, mixer, play, cast, clips, isCasting: () => casting, clock: new THREE.Clock(), info, names: Object.keys(clips),
+      hasAtk: !!(clips.Attack || atkSet.length), nextAtk };
     document.getElementById('mem').textContent = '3D loaded: ' + H3.names.join(', ');
   }
   // in the game: Linnet in 3D, no dev pickers; Leave tells the game to close the frame
@@ -348,7 +355,7 @@
     buildSkillButtons();
     const LAB = new URLSearchParams(location.search), labCls = LAB.get('lab');
     S = window._resume ? C.restore(window._resume, AURAS)                                   // Continue: the saved run, exactly where it was left
-      : C.create({ key: 'dev', cls: labCls || cls, maxHp: 3000, atk: 260, armor: 300, crit: 0.1, critDmg: 0.6, skills: KIT, melee: !!(window._heroKit && window._heroKit.melee), reach: window._heroKit && window._heroKit.reach },
+      : C.create({ key: 'dev', cls: labCls || cls, maxHp: 3000, atk: 260, armor: 300, crit: 0.1, critDmg: 0.6, skills: KIT, melee: !!(window._heroKit && window._heroKit.melee), mixed: !!(window._heroKit && window._heroKit.mixed), reach: window._heroKit && window._heroKit.reach },
                  { mode: document.getElementById('mode').value, stage: +st.value, seed: (Math.random() * 4e9) >>> 0, auras: AURAS });
     window._resume = null;
     window._S = S;   // read by the rig tests (controls, lobby) - never written from outside
@@ -899,8 +906,8 @@
     else {
       const moving = Math.abs(h.mvx) + Math.abs(h.mvy) > 0.01;
       const swg = S.fx.find(f => f.kind === 'swing' && !seenShot.has(f));   // a melee swing plays the Attack clip even on the move - the blow lands at its contact (0.25 s)
-      if (swg) { S.fx.forEach(f => f.kind === 'swing' && seenShot.add(f)); if (H3.clips.Attack) H3.cast('Attack', 1.0); }   // the whole clip in 1.0 s: its contact (~45%) meets the core's blow at 0.45 s
-      else if (H3.clips.Attack && !moving && !H3.isCasting()) S.shots.forEach(s => { if (s.key === '_base' && !seenShot.has(s)) { seenShot.add(s); H3.cast('Attack'); } });   // Phil 25 Oct: "They all need an attack animation also"
+      if (swg) { S.fx.forEach(f => f.kind === 'swing' && seenShot.add(f)); if (H3.hasAtk) H3.cast(H3.nextAtk('melee'), 1.0); }   // the whole clip in 1.0 s: its contact (~45%) meets the core's blow at 0.45 s
+      else if (H3.hasAtk && !moving && !H3.isCasting()) S.shots.forEach(s => { if (s.key === '_base' && !seenShot.has(s)) { seenShot.add(s); H3.cast(H3.nextAtk('ranged')); } });   // Phil 25 Oct: "They all need an attack animation also"
       else S.shots.forEach(s => seenShot.add(s));
       if (!H3.isCasting()) { H3.play('Walking'); H3.clips.Walking.timeScale = moving ? 1 : 0; }
       H3.model.rotation.y = h.swing ? Math.atan2(Math.cos(h.swing.a), Math.sin(h.swing.a)) : Math.atan2(h.dirx, h.diry);   // a swing faces its target

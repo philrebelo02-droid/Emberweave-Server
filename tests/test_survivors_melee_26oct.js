@@ -33,4 +33,14 @@ function run(hero, steps, each) { const S = C.create(Object.assign({ key: 't', m
 for (const cls of ['Tank', 'Bruiser', 'Mage', 'Support', 'Assassin', 'Marksman']) {
   const S = C.create({ key: 't', cls, maxHp: 500, atk: 40, skills: [] }, { seed: 1, auras: rows });
   ok(S.aurasTable.length === 10 && S.aurasTable.every(a => a.cls === cls), cls + ': the level-up passives are its own 10'); }
+// Phil 28 Oct (Rivet): "melee attacks when near enemy and ranged when far" - a mixed hero swings only with a monster inside its reach,
+// and shoots only when none is
+{ let shots = 0, swings = 0, shotNear = 0, swingFar = 0; const seen = new Set();
+  // judged on the monsters as they stood when the tick began or end it (one moved in, killed or knocked back in that tick still counted for its swing)
+  let prev = []; const within = (L, S, tol) => L.some(m => Math.hypot(m.x - S.hero.x, m.y - S.hero.y) <= S.hero.reach + 0.6 + (m.r || 0) + tol);   // to the monster's edge, as nearest() does
+  const inReach = S => within(prev.concat(S.monsters), S, 0.3), surelyInReach = S => within(prev, S, -0.3);
+  run({ cls: 'Bruiser', mixed: true, reach: 2.2 }, 2400, S => { S.shots.forEach(s => { if (s.key === '_base' && !seen.has(s)) { seen.add(s); shots++; if (surelyInReach(S)) shotNear++; } });
+    S.fx.forEach(f => { if (f.kind === 'swing' && !seen.has(f)) { seen.add(f); swings++; if (!inReach(S)) swingFar++; } }); prev = S.monsters.map(m => ({ x: m.x, y: m.y, r: m.r })); });
+  ok(shots > 0 && swings > 0, 'a mixed hero both shoots and swings (' + shots + ' shots, ' + swings + ' swings)');
+  ok(shotNear === 0 && swingFar === 0, 'it swings only when a monster is in reach and shoots only when none is (' + shotNear + ' near shots, ' + swingFar + ' far swings)'); }
 console.log('PASS', n);

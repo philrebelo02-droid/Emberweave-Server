@@ -28411,7 +28411,7 @@ const SURV_MODELS={ linnet:'/assets/survivors/linnet-1k.glb', absalie:'/assets/s
   seyla:'/assets/survivors/models/seyla-1k.glb?v=3', sloe:'/assets/survivors/models/sloe-1k.glb?v=1', sorrel:'/assets/survivors/models/sorrel-1k.glb?v=2', sylthaine:'/assets/survivors/models/sylthaine-1k.glb?v=1',
   tharl:'/assets/survivors/models/tharl-1k.glb?v=1', tick:'/assets/survivors/models/tick-1k.glb?v=1', umbris:'/assets/survivors/models/umbris-1k.glb?v=1', vael:'/assets/survivors/models/vael-1k.glb?v=2',
   vaelora:'/assets/survivors/models/vaelora-1k.glb?v=1', vesper:'/assets/survivors/models/vesper-1k.glb?v=1', vex:'/assets/survivors/models/vex-1k.glb?v=2', veyr:'/assets/survivors/models/veyr-1k.glb?v=2',
-  yenna:'/assets/survivors/models/yenna-1k.glb?v=2', tolley:'/assets/survivors/models/tolley-1k.glb?v=1', quorrel:'/assets/survivors/models/quorrel-1k.glb?v=1', vulmar:'/assets/survivors/models/vulmar-1k.glb?v=1', rhukk:'/assets/survivors/models/rhukk-1k.glb?v=1', tessit:'/assets/survivors/models/tessit-1k.glb?v=1', carn:'/assets/survivors/models/carn-1k.glb?v=1', zahri:'/assets/survivors/models/zahri-1k.glb?v=2' };
+  yenna:'/assets/survivors/models/yenna-1k.glb?v=2', tolley:'/assets/survivors/models/tolley-1k.glb?v=1', quorrel:'/assets/survivors/models/quorrel-1k.glb?v=1', vulmar:'/assets/survivors/models/vulmar-1k.glb?v=1', rhukk:'/assets/survivors/models/rhukk-1k.glb?v=1', tessit:'/assets/survivors/models/tessit-1k.glb?v=2', rivet:'/assets/survivors/models/rivet-1k.glb?v=2', carn:'/assets/survivors/models/carn-1k.glb?v=1', zahri:'/assets/survivors/models/zahri-1k.glb?v=2' };
 const SURV_PLAYABLE=Object.keys(SURV_MODELS);
 function survivorsRoster(){ const all=Object.keys(HERO_TYPES), own=k=>heroOwned(k), pw=k=>{ try{ return heroPower(k)||0; }catch(e){ return 0; } };
   const rest=all.filter(k=>SURV_PLAYABLE.indexOf(k)<0).sort((a,b)=>(own(b)-own(a))||(pw(b)-pw(a))||a.localeCompare(b));
@@ -28458,7 +28458,7 @@ function survivorsKit(hk){ const K=KITS[hk]||{}, T=HERO_TYPES[hk]||{}, row=(r,sl
     fk:fe[0], fp:fe[1], n:r.n|0||1, jumps:r.jumps|0||4, unit:u, unitArt:u?survUnitArt(u):null }; };
   const at=SURV_ATK[hk], ad=at&&at.k&&FX2_DEF[at.k], atk=at&&at.img?{ img:at.img }:ad?{ fr:at.fr, d:Object.fromEntries(SURV_SHEET_KEYS.filter(k=>ad[k]!=null&&typeof ad[k]!=='function').map(k=>[k,ad[k]])) }:null;
   return { skills:[row(K.green,'green'),row(K.blue,'blue')].filter(Boolean), ult:{ name:T.abilityName||'Ultimate', fx:survArt(hk,0) }, atk,
-    melee:(T.range||0)<60, reach:Math.max(2.2,Math.max(T.reach||0,(T.minimumReachMeters||0)*METER)/METER*0.6) }; }   /* Phil 26 Oct: melee heroes swing, punch or stab (the game's range under 60); reach in Spire metres (a long melee like Zahri's 7 m lance -> 4.2) */
+    melee:(T.range||0)<60, mixed:(K.purple||{}).pass==='arsenal'?{ ranged:[1,5,7] }:null, reach:Math.max(2.2,Math.max(T.reach||0,(T.minimumReachMeters||0)*METER)/METER*0.6) }; }   /* Phil 26 Oct: melee heroes swing, punch or stab (the game's range under 60); reach in Spire metres (a long melee like Zahri's 7 m lance -> 4.2) */
 /* the basic-attack projectile in the Spire: its own art ({img}, one element pointing RIGHT) or a frame of the hero's sheet ({k, fr}) - the fight still
    draws a code tracer. Linnet: ChatGPT's needle bolt (24 Oct, Game Art/Hero Survivors/Projectiles, sha256 25df4fd3...) */
 /* 26 Oct: spell art for the Spire where the game's own art plan is empty (in battle these spells are drawn by spell code; Phil: no

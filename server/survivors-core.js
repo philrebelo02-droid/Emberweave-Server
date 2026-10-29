@@ -192,7 +192,7 @@
                    fk: FKS[k.fk] ? k.fk : "", fp: clamp(+k.fp || 0, 0, 5), n: clamp(k.n | 0 || 1, 1, 6), jumps: clamp(k.jumps | 0 || 4, 1, 8),
                    unit: String(k.unit || "") };
         }),
-        melee: !!hero.melee, reach: clamp(+hero.reach || 2.2, 1.6, 4.5), swing: null,
+        melee: !!hero.melee, mixed: !!hero.mixed, reach: clamp(+hero.reach || 2.2, 1.6, 4.5), swing: null,
         wardT: 0,
       },
       monsters: [], nextId: 1, gems: [], shots: [], zones: [], fx: [], rollers: [], notes: [],
@@ -1210,7 +1210,9 @@
     // a melee hero (the game's range under 60) swings instead (Phil 26 Oct: "Melee heroes in game should swing their weapon, punch, or stab"):
     // it waits for a monster inside its reach, faces it, and the blow lands 0.45 s into the 1.0 s swing (the Attack clip's contact) on every
     // monster in a 120-degree arc in front - 1.3x a shot's damage, as it has to stand in the horde to land it
-    if (h.melee) {
+    // a MIXED hero (Rivet, Phil 28 Oct: "melee attacks when near enemy and ranged when far") swings when a monster is inside his reach, else shoots
+    var mixNear = h.mixed && !h.swing && S._baseT <= 0 && nearest(S, h.x, h.y, h.reach * areaMul(S) + 0.6);
+    if (h.melee || h.swing || mixNear) {
       var sw = h.swing; if (sw) { sw.t += dt;
         if (!sw.done && sw.t >= 0.45) { sw.done = true; var R = h.reach * areaMul(S), ca = Math.cos(sw.a), sa = Math.sin(sw.a);
           near(S, h.x, h.y, R + 0.5, function (m, dx, dy) { var d = Math.sqrt(dx * dx + dy * dy) || 1; if (d > 0.9 && (dx * ca + dy * sa) / d < 0.5) return; hit(S, m, heroDmg(S, 1.3), "none"); }); }
