@@ -918,6 +918,12 @@
       // the 3D camera sees exactly the 2D world's metres: visible height H/sc m at the hero, along the same tilt
       const vis = (H / sc), D = vis / (2 * Math.tan(15 * Math.PI / 180)); H3.cam.position.set(0, D * 0.64, D * 0.77);   /* ~40 deg down: shows her body, not the top of her head */ H3.cam.lookAt(0, 0.6, 0);
       window._dbg = { dirx: h.dirx, diry: h.diry, roty: H3.model.rotation.y, paused: !!S.choice, atk: !!(H3.clips.Attack && H3.clips.Attack.isRunning()) };   // dev probe
+      if (H3._dead && H3.clips.Death) {   /* the death sprites grey and crumble to dust at the end (Dandra, Tick, Lumi): over the clip's last 40% the hero greys, then fades out */
+        const A = H3.clips.Death, d = A.getClip().duration, f = Math.min(1, Math.max(0, (A.time / d - 0.6) / 0.4));
+        if (!H3._mats) { H3._mats = []; H3.model.traverse(o => { if (o.isMesh) [].concat(o.material).forEach(m => { m = m.clone(); H3._mats.push({ m, c: m.color ? m.color.clone() : null }); }); });
+          let k = 0; H3.model.traverse(o => { if (o.isMesh) { const ms = [].concat(o.material).map(() => H3._mats[k++].m); o.material = Array.isArray(o.material) ? ms : ms[0]; } }); }
+        H3._mats.forEach(({ m, c }) => { if (c) m.color.copy(c).lerp(new THREE.Color(0x6b6b6b), Math.min(1, f * 2)); if (m.emissive) m.emissiveIntensity = 1 - Math.min(1, f * 2);
+          m.transparent = f > 0.5; m.opacity = f > 0.5 ? Math.max(0, 1 - (f - 0.5) * 2) : 1; }); }
       H3.mixer.update(Math.min(0.05, H3.clock.getDelta())); H3.r.render(H3.scene, H3.cam);
     }
     if (!H3) { g.strokeStyle = '#fff'; g.lineWidth = 3; g.beginPath(); g.moveTo(W / 2, H / 2); g.lineTo(W / 2 + h.dirx * sc, H / 2 + h.diry * sc); g.stroke(); }   // facing tick only for the dev dot (the 3D hero faces her way)
