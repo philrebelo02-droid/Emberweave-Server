@@ -222,6 +222,39 @@
   /* 29 Oct 2026 (Phil: "deaths universally need to end in them perishing into ash"): every 3D hero, the same way. From 80% of its Death clip
      the body burns away top-down along ChatGPT's dissolve-noise art (a glowing ember edge, the colour going to ash), and ChatGPT's ash
      flakes, embers and dust puffs (one 4x4 sheet) peel off the burning edge and drift up. Code only moves, turns, scales and fades the art. */
+  /* 29 Oct 2026 (Phil: "summons need a 3d model" - "Hurne boar warrior and shaman. Address ink demon and greater demon. Zahris mirage"):
+     a summon with a 3D model is drawn in the 3D scene, at its spot relative to the hero (world x -> 3D x, world y -> 3D z), facing where
+     it goes, playing rise / Walking / Attack / Idle from its own clips. Each ally parses its own copy of the model (its own skeleton). The
+     Mirage of Zahri is Zahri's own model as a blurry pale-gold mirage (her SPEC, 9 Sep: "a blurry version of her"), walk and attack only.
+     A unit without a 3D model yet stays on its 2D sheet. */
+  const ALLY3D = { 'zahri mirage': { self: true, h: 0, mirage: true } }   // h 0 = the hero's own height;   // the boars and ink demons join as their models are filed
+  const ALLY_GLB = {};
+  function ally3dUrl(unit) { const d = ALLY3D[unit]; if (!d) return null; if (d.self) return /zahri/i.test(window._heroModel || '') ? window._heroModel : null; return d.url; }
+  function allyBuf(url) { return ALLY_GLB[url] || (ALLY_GLB[url] = fetch(url).then(r => r.arrayBuffer())); }
+  function allies3d(H, S, h, dt) {
+    H._al = H._al || {}; const live = {};
+    (S.allies || []).forEach(al => { const url = ally3dUrl(al.unit); if (!url) return; live[al.id] = 1; let A = H._al[al.id];
+      if (!A) { A = H._al[al.id] = { ready: false, t: 0 }; const d = ALLY3D[al.unit];
+        allyBuf(url).then(buf => new THREE.GLTFLoader().parse(buf.slice(0), '', g => { if (!H._al[al.id]) return;
+          const m = g.scene, bx = new THREE.Box3().setFromObject(m); m.scale.setScalar((d.h || HERO_M) / (bx.max.y - bx.min.y));
+          if (d.mirage) m.traverse(o => { if (!o.isMesh) return; o.material = [].concat(o.material).map(m0 => { const q = m0.clone();
+            q.transparent = true; q.opacity = 0.55; q.depthWrite = false; if (q.color) q.color.lerp(new THREE.Color(0xf3dfa0), 0.55);
+            if (q.emissive) { q.emissive.set(0xd9b25a); q.emissiveIntensity = 0.45; } return q; }); if (o.material.length === 1) o.material = o.material[0]; });
+          const mix = new THREE.AnimationMixer(m), cl = {}; g.animations.forEach(c => cl[c.name] = mix.clipAction(c));
+          Object.assign(A, { m, mix, cl, cur: null, ready: true, mirage: !!d.mirage, base: m.scale.x }); H.scene.add(m); })); }
+      if (!A.ready) return; A.t += dt;
+      const px = al.x - h.x, pz = al.y - h.y, mx = px - (A.px == null ? px : A.px), mz = pz - (A.pz == null ? pz : A.pz); A.px = px; A.pz = pz;
+      A.m.position.set(px, 0, pz); if (mx * mx + mz * mz > 1e-6) A.m.rotation.y = Math.atan2(mx, mz); else if (al.face) A.m.rotation.y = Math.atan2(al.face, 0.0001);   // faces where it goes
+      const want = al.rise > 0 && A.cl.rise ? 'rise' : al.hitT > 0 && A.cl.Attack ? 'Attack' : (al.vx ? 'Walking' : (A.cl.Idle && !A.mirage ? 'Idle' : 'Walking'));
+      if (A.cur !== want && A.cl[want]) { if (A.cur) A.cl[A.cur].fadeOut(0.12); const c = A.cl[want].reset().fadeIn(0.12); if (want === 'Attack' || want === 'rise') { c.setLoop(THREE.LoopOnce, 1); c.clampWhenFinished = true; } c.play(); A.cur = want; }
+      if (A.cl.Walking) A.cl.Walking.timeScale = al.vx ? 1 : 0;
+      // the Mirage has no rise clip: it builds out of a seed (grows from nothing) and shimmers; every summon fades as its time runs out
+      const grow = A.cl.rise ? 1 : Math.min(1, Math.max(0.02, A.t / 0.5)), sh = A.mirage ? 1 + Math.sin(A.t * 9 + al.id) * 0.015 : 1;
+      A.m.scale.setScalar(A.base * grow * sh);
+      const fade = Math.min(1, al.life / 0.5); A.m.traverse(o => { if (o.isMesh) [].concat(o.material).forEach(q => { q.transparent = true; q.opacity = (A.mirage ? 0.55 : 1) * fade; }); });
+      A.mix.update(dt); });
+    Object.keys(H._al).forEach(id => { if (live[id]) return; const A = H._al[id]; if (A.m) H.scene.remove(A.m); delete H._al[id]; });   // gone in the core: gone here
+  }
   const ASH_T = 1.8, ASH_N = 46;
   let ASHTEX = null;   // loaded with the 3D hero, so the art is in memory before any death
   function ashTex() { if (ASHTEX) return ASHTEX; const L = new THREE.TextureLoader();
@@ -932,7 +965,7 @@
       if (m.type === 'elite' || m.type === 'boss') { const bw = Math.max(30, hpx * 0.7); g.fillStyle = '#0008'; g.fillRect(x - bw / 2, y - hpx - 8, bw, 5); g.fillStyle = '#e2433a'; g.fillRect(x - bw / 2, y - hpx - 8, bw * Math.max(0, m.hp / m.maxHp), 5); } });
     // summoned allies (26 Oct): their own game sheets - rise out of the ground, then walk, strike when they hit; feet on their spot
     if (S.allies && S.allies.length && window._heroKit) { const UA = {}; window._heroKit.skills.forEach(k => { if (k.unit && k.unitArt) UA[k.unit] = k.unitArt; });
-      S.allies.slice().sort((a, b) => a.y - b.y).forEach(al => { const art = UA[al.unit]; if (!art) return;
+      S.allies.slice().sort((a, b) => a.y - b.y).forEach(al => { const art = UA[al.unit]; if (!art || (H3 && ally3dUrl(al.unit))) return;   // a 3D summon is drawn by the 3D scene
         const st = al.rise > 0 && art.rise ? 'rise' : al.hitT > 0 && art.attack ? 'attack' : 'walk', d = art[st], im = sheetIm(d); if (!im) return;
         const n = d.n || 1, tt = st === 'rise' ? (0.5 - al.rise) : st === 'attack' ? (0.4 - al.hitT) : tnow + al.id * 0.31, fps = d.fps || 12;
         const fr = st === 'walk' ? Math.floor(tt * fps) % n : Math.min(n - 1, Math.floor(tt / (st === 'rise' ? 0.5 : 0.4) * n));
@@ -966,7 +999,8 @@
       const vis = (H / sc), D = vis / (2 * Math.tan(15 * Math.PI / 180)); H3.cam.position.set(0, D * 0.64, D * 0.77);   /* ~40 deg down: shows her body, not the top of her head */ H3.cam.lookAt(0, 0.6, 0);
       window._dbg = { dirx: h.dirx, diry: h.diry, roty: H3.model.rotation.y, paused: !!S.choice, atk: !!(H3.clips.Attack && H3.clips.Attack.isRunning()) };   // dev probe
       if (H3._dead && H3.clips.Death) ashDeath(H3);   /* Phil 29 Oct: "deaths universally need to end in them perishing into ash" */
-      H3.mixer.update(Math.min(0.05, H3.clock.getDelta())); H3.r.render(H3.scene, H3.cam);
+      const _dt3 = Math.min(0.05, H3.clock.getDelta()); allies3d(H3, S, h, _dt3);
+      H3.mixer.update(_dt3); H3.r.render(H3.scene, H3.cam);
     }
     if (!H3) { g.strokeStyle = '#fff'; g.lineWidth = 3; g.beginPath(); g.moveTo(W / 2, H / 2); g.lineTo(W / 2 + h.dirx * sc, H / 2 + h.diry * sc); g.stroke(); }   // facing tick only for the dev dot (the 3D hero faces her way)
     // the ULT (kit, no code fill): a fan of light shafts sweeps out over the 120-degree cone it hits, with a flash on the hero
