@@ -305,7 +305,7 @@
     cam.position.set(0, 9, 7); cam.lookAt(0, 0.6, 0);
     scene.add(new THREE.HemisphereLight(0xfff2e0, 0x504030, 1.7)); const dl = new THREE.DirectionalLight(0xffffff, 1.5); dl.position.set(2, 8, 6); scene.add(dl); scene.add(new THREE.AmbientLight(0xffffff, 0.35));
     ashTex();   // the ash art, ready before any death (29 Oct)
-    const gltf = await new Promise((ok, no) => new THREE.GLTFLoader().load(url || '/assets/survivors/linnet-1k.glb', ok, undefined, no));
+    const gltf = await new Promise((ok, no) => new THREE.GLTFLoader().load(url || '/assets/survivors/models/linnet-1k.glb?v=1', ok, undefined, no));
     const model = gltf.scene, box = new THREE.Box3().setFromObject(model), h = box.max.y - box.min.y;
     model.scale.setScalar(HERO_M / h); scene.add(model);
     // a clip that ends away from where it started (Vex's combo steps 0.7 body heights) would snap the hero back at its end:
@@ -416,7 +416,7 @@
     /* 25 Oct (Phil): the old Ascendant Spire button is gone - Hero Survivors replaces the old tower */
     const begin = resume => { document.getElementById('mode').value = mode; stS.value = lbS.value; HERO_PICK = resume ? resume.hero : pick;
       const hh = heroes.find(x => x.key === HERO_PICK); window._heroKit = hh && hh.kit && hh.kit.skills && hh.kit.skills.length ? hh.kit : null; window._heroCls = hh && hh.cls;
-      window._heroModel = (hh && hh.model) || (HERO_PICK === 'linnet' ? '/assets/survivors/linnet-1k.glb' : null);
+      window._heroModel = (hh && hh.model) || (HERO_PICK === 'linnet' ? '/assets/survivors/models/linnet-1k.glb?v=1' : null);
       document.getElementById('use3d').checked = !!window._heroModel; window._resume = resume ? resume.state : null; L.hidden = true; document.getElementById('go').click(); };
     const cont = document.getElementById('lbCont'), ask = document.getElementById('lbAsk');
     function offerContinue() { const sv = saveRead(); cont.hidden = !sv;
