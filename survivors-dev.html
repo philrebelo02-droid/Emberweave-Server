@@ -931,7 +931,7 @@
       b.style.setProperty('--cd', f.toFixed(3)); b.classList.toggle('cool', k.cdLeft > 0); b.querySelector('small').textContent = k.cdLeft > 0 ? Math.ceil(k.cdLeft) : ''; });
     // skill + ult: the 3D model plays the cast clip and the hero's REAL game spell art plays (Phil 24 Oct: "they should use their real game
     // ability animation and FX") - each slot's skillPreviewPlan entries from the game, at their own time, place and size
-    S.fx.forEach(f => { if (f.seq && f.seq > seenFx) { seenFx = f.seq; if (H3) H3.cast(f.kind === 'ult' ? (H3.clips.Ult ? 'Ult' : 'mage_soell_cast_2') : (KIT[f.slot] || {}).anim);
+    S.fx.forEach(f => { if (f.seq && f.seq > seenFx) { seenFx = f.seq; if (H3) H3.cast(f.kind === 'ult' ? (H3.clips.Ult ? 'Ult' : 'mage_soell_cast_2') : (H3.clips['Cast_' + ((f.slot | 0) + 1)] ? 'Cast_' + ((f.slot | 0) + 1) : (KIT[f.slot] || {}).anim));   /* Phil 28 Oct: the green skill plays Cast_1, the blue Cast_2 when the model has them (its own spell sprites); plain Cast stays for her support spells */
         const hk = window._heroKit; if (hk) startSpellArt(f.kind === 'ult' ? hk.ult.fx : ((hk.skills[f.slot] || {}).fx || []), f, f.kind === 'ult' ? 'ult' : (KIT[f.slot] || {}).kind); } });
     drawSpellArt(X, Y, sc, W, H);
   }
