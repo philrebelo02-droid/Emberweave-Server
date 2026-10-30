@@ -13,14 +13,16 @@ const COLS=R.META.cols,ROWS=R.META.rows,CORE=R.META.tree.core;
 // the castle square nearest the middle of a region's land list that is wholly the region's open land
 const at=home=>{const c=R.zoneCells(home),n=c.length;for(let i=0;i<n;i++){const [x,y]=c[(Math.floor(n/2)+i)%n];if(L.regionSquare(home,x,y,new Set()))return {x:L.cornerX(x),y:L.cornerY(y)};}};
 const inCore=(x,y)=>x>=CORE[0]&&x<=CORE[2]&&y>=CORE[1]&&y<=CORE[3];
-test('THE GRID is one pair of numbers (v1227: 1000 x 596): world-realm.js META, the server, the mines, the tree sites and the client all read it',()=>{
-  assert.equal(COLS,1000);assert.equal(ROWS,596);assert.equal(L.GRID_COLS,COLS);assert.equal(L.GRID_ROWS,ROWS);
+test('THE GRID is one pair of numbers (GRID_COLS / GRID_ROWS in the build; 800 x 477 since v1229): META, the server, the mines, the tree sites and the client all read it',()=>{
+  const bsrc=fs.readFileSync(path.join(root,'tools','realm','build_realm.py'),'utf8'),BC=+/^GRID_COLS = (\d+)\r?$/m.exec(bsrc)[1],BR=+/^GRID_ROWS = (\d+)\r?$/m.exec(bsrc)[1];
+  assert.equal(COLS,BC);assert.equal(ROWS,BR);assert.equal(ROWS,Math.ceil(COLS*20400/34229.48-1e-6),'rows = the art height at the grid width');
+  assert.equal(L.GRID_COLS,COLS);assert.equal(L.GRID_ROWS,ROWS);
   assert.equal(M.GRID_COLS,COLS);assert.equal(M.GRID_ROWS,ROWS);
   const snap=S.snapshot({configured:false,serverNow:Date.now()});assert.equal(snap.gridColumns,COLS);assert.equal(snap.gridRows,ROWS);
   const html=fs.readFileSync(path.join(root,'emberweave-heroes.html'),'utf8');
   assert.match(html,/const GEO=REALM_MAP\.GEO, GRID_COLS=GEO\.COLS, GRID_ROWS=GEO\.ROWS, GRID_CELL=GEO\.CELL;/,'the client reads the grid from world-realm.js');
   const build=fs.readFileSync(path.join(root,'tools','realm','build_realm.py'),'utf8');
-  assert.match(build,/^GRID_COLS = 1000\r?$/m);assert.match(build,/^GRID_ROWS = 596\r?$/m);
+  assert.match(build,/^GRID_COLS = 800\r?$/m);assert.match(build,/^GRID_ROWS = 477\r?$/m);
   // no world file types the grid again
   const hits=[];
   for(const f of ['server/world-location.js','server/world-mines.js','server/world-tree-sites.js','assets/ui/world-mine-sync.js','assets/ui/world-oasis-markers.js','assets/ui/world-tree-control-ui.js'])
@@ -46,12 +48,12 @@ test('pieces are one square (Phil 30 Oct 2026: a castle "in 1 square", "The mine
   // every castle the server places or relocates is at a cell centre
   let roll=3;const rnd=max=>(roll=(roll*1103515245+12345)>>>0)%max;
   for(let i=0;i<50;i++){const p=L.place([],rnd);const fx=p.x/L.CELL,fy=(p.y-L.GEO.Y0)/L.CELL;assert.ok(Math.abs(fx%1-0.5)<0.01&&Math.abs(fy%1-0.5)<0.01,'placed castle at a cell centre');}
-  assert.ok(Math.abs(18*L.CELL-4*OLD)<=L.CELL,'the tree core is 4x4 220-grid squares');assert.equal(CORE[2]-CORE[0]+1,18);assert.equal(CORE[3]-CORE[1]+1,18);
+  const CN=R.META.tree.coreCells;assert.ok(Math.abs(CN*L.CELL-4*OLD)<=L.CELL,'the tree core is 4x4 220-grid squares');assert.equal(CORE[2]-CORE[0]+1,CN);assert.equal(CORE[3]-CORE[1]+1,CN);
   assert.ok(Math.abs(R.META.tree.sideCells*L.CELL-12.3457*OLD)<1e-3,'the tree picture keeps its world size');
   // the world keeps its 11000 px: the tree, the cities and the oases are drawn at the same world size
   assert.match(html,/const WORLD_W=11000, WORLD_H=11000;/);
-  // cities: the same overlay shapes, about (1000/220)^2 = 20.7x the cells of the 220 grid (694 then)
-  const cells=R.META.cities.reduce((n,c)=>n+c.cells.length,0);assert.ok(cells>694*17&&cells<694*23,'city cells '+cells);
+  // cities: the same overlay shapes, about (COLS/220)^2 times the cells of the 220 grid (694 then)
+  const k2=(COLS/220)**2,cells=R.META.cities.reduce((n,c)=>n+c.cells.length,0);assert.ok(cells>694*k2*0.85&&cells<694*k2*1.12,'city cells '+cells);
   // v1228 (Phil: "does the tree seem off center?"): the World Tree stands in the middle of the four painted ponds (nearest grid corner)
   const ox=oases.reduce((s,o)=>s+o.cx,0)/4,oy=oases.reduce((s,o)=>s+o.cy,0)/4;
   assert.ok(Math.abs(R.META.tree.cx-ox)<=0.5&&Math.abs(R.META.tree.cy-oy)<=0.5,'tree '+R.META.tree.cx+','+R.META.tree.cy+' vs ponds '+ox.toFixed(2)+','+oy.toFixed(2));
@@ -72,7 +74,7 @@ test('cities (Phil 30 Oct 2026: "the city should not be able to be teleported on
   for(const name of ['Corran Reach','Durrakh','Oriel'])assert.ok(cities.some(c=>c.name===name),name);
   const a=new Set(blocked.cells);
   for(const c of cities){
-    assert.ok(c.cells.length>=200,c.name+' covers '+c.cells.length+' squares');
+    assert.ok(c.cells.length>=200*(COLS/1000)**2,c.name+' covers '+c.cells.length+' squares');
     assert.ok(c.cells.some(([x,y])=>R.isLand(x,y)),c.name+' stands on some land');
     for(const [x,y] of c.cells){assert.ok(a.has(x+','+y),c.name+' '+x+','+y+' blocked');assert.ok(R.isCity(x,y)&&!R.isOpen(x,y));assert.equal(R.cityAt(x,y),c.name);}
     // the cells hug the overlay: within its pixel box
@@ -89,10 +91,10 @@ test('cities (Phil 30 Oct 2026: "the city should not be able to be teleported on
   for(let e=62270;e<62280;e++)for(const n of M.field(e))assert.ok(!L.isCity(n.x,n.y),'mine on a city '+n.id);
 });
 test('every region has land, in its own quadrant; the tree stands on its island',()=>{
-  for(const k of REGIONS){const c=R.zoneCells(k);assert.ok(c.length>=20000,k+' has '+c.length+' land cells');
+  for(const k of REGIONS){const c=R.zoneCells(k);assert.ok(c.length>=20000*(COLS/1000)**2,k+' has '+c.length+' land cells');
     const mx=c.reduce((s,p)=>s+p[0],0)/c.length,my=c.reduce((s,p)=>s+p[1],0)/c.length,q=L.REGIONS[k];
     assert.equal(mx<COLS/2,q.col===0,k+' west/east');assert.equal(my<R.META.tree.cy,q.row===0,k+' north/south');}
-  assert.ok(R.zoneCells('worldtree').length>=4000);
+  assert.ok(R.zoneCells('worldtree').length>=4000*(COLS/1000)**2);
   for(let x=CORE[0];x<=CORE[2];x++)for(let y=CORE[1];y<=CORE[3];y++)assert.equal(R.landZone(x,y),'worldtree','tree core '+x+','+y+' is island land');
   assert.ok(Math.abs(R.META.tree.artCx-COLS/2)<1e-9,'the art crop is still centred on where Grok painted the tree');
 });
@@ -100,11 +102,12 @@ test('oases (v1228, Phil 30 Oct 2026: "There of 2 of each oasis"): the 4 ponds G
   const snap=S.snapshot({configured:false,serverNow:Date.now()});
   assert.deepEqual(oases.map(o=>o.id),['oasis-nw','oasis-ne','oasis-sw','oasis-se']);
   // measured from the art (tools/realm/build_realm.py, PREVIEW ponds v25.jpg): each pond's pixel centre, in cells, to half a cell
-  const MEASURED={'oasis-nw':[445.03,263.72],'oasis-ne':[552.98,258.30],'oasis-sw':[451.33,317.55],'oasis-se':[547.72,319.33]};
+  // measured on the 1000 grid in v1228 (cells), compared in world-percent (the ponds do not move with the grid)
+  const MEASURED={'oasis-nw':[445.03,263.72],'oasis-ne':[552.98,258.30],'oasis-sw':[451.33,317.55],'oasis-se':[547.72,319.33]},Y0_1000=20.3080519;
   const T=R.META.tree;
   for(const o of oases){
-    const [mx,my]=MEASURED[o.id];assert.ok(Math.abs(o.cx-mx)<0.5&&Math.abs(o.cy-my)<0.5,o.id+' at the painted pond '+o.cx+','+o.cy);
-    assert.ok(o.cells.length>=100&&o.cells.length<=300,o.id+' sized to the painted pond: '+o.cells.length+' cells');
+    const [mx,my]=MEASURED[o.id],px=o.cx*L.CELL,py=L.GEO.Y0+o.cy*L.CELL;assert.ok(Math.abs(px-mx*0.1)<0.06&&Math.abs(py-(Y0_1000+my*0.1))<0.06,o.id+' at the painted pond '+px.toFixed(3)+','+py.toFixed(3));
+    const s2=(COLS/1000)**2;assert.ok(o.cells.length>=100*s2&&o.cells.length<=300*s2,o.id+' sized to the painted pond: '+o.cells.length+' cells');
     assert.equal(o.kind,'oasis');assert.equal(o.garrison,true,'a garrison site like the cities');
     for(const [x,y] of o.cells){assert.equal(R.landZone(x,y),'worldtree',o.id+' cell '+x+','+y+' is island');assert.ok(!inCore(x,y));
       assert.ok(R.isSite(x,y)&&R.isOasis(x,y)&&!R.isOpen(x,y),'pond cell blocked');assert.ok(blocked.cells.includes(x+','+y)||new Set(blocked.cells).has(x+','+y));

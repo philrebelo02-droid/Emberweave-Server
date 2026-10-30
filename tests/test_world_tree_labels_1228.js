@@ -18,6 +18,6 @@ ok(a.y>rootTips&&a.y-rootTips<=1*G.CELL,'the timer sits just under the root tips
 ok(/onTree=key==='worldtree'/.test(html)&&/\(TT\.cy-TT\.sideCells\/2\)\*GRID_CELL/.test(html)&&/translate\(-50%,\$\{onTree\?'-100%':'-50%'\}\)/.test(html),'the World Tree name sits above the frame top');
 const ponds=require('../server/world-oasis-layout.json'),mx=ponds.reduce((s,o)=>s+o.cx,0)/4,my=ponds.reduce((s,o)=>s+o.cy,0)/4;
 ok(Math.abs(T.cx-mx)<=0.5&&Math.abs(T.cy-my)<=0.5,'the tree is in the middle of the four ponds');
-const [x0,y0,x1,y1]=T.core;ok(x1-x0+1===18&&y1-y0+1===18,'the core is 18 x 18');
+const [x0,y0,x1,y1]=T.core;ok(x1-x0+1===T.coreCells&&y1-y0+1===T.coreCells,'the core is '+T.coreCells+' x '+T.coreCells);
 for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){if(R.landZone(x,y)!=='worldtree'||R.isOasis(x,y))assert.fail('core cell '+x+','+y+' off the island or on a pond');}pass++;
 console.log('test_world_tree_labels_1228.js: '+pass+' checks passed');

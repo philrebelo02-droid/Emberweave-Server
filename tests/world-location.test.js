@@ -1,6 +1,6 @@
 'use strict';
 // v1226 realm map (Phil 30 Oct 2026): regions are the realm's continents, not 90x90 squares. Balance and grid rules on Grok's realm.
-// v1227: the grid is META.cols x META.rows (1000 x 596); a castle is one cell (Phil 30 Oct 2026: "in 1 square") at its centre.
+// v1227: the grid is META.cols x META.rows (800 x 477 since v1229); a castle is one cell (Phil 30 Oct 2026: "in 1 square") at its centre.
 const assert=require('node:assert/strict');
 const L=require('../server/world-location.js');
 const R=require('../world-realm.js');
@@ -24,7 +24,7 @@ assert.equal(L.place(almostEqual,max=>max-1).region,'alumron','100/100/100/99 st
 for(const region of L.REGION_KEYS) assert.ok(L.valid(at(region,0)));
 // THE GRID: one pair of numbers, from the realm build, everywhere
 assert.equal(L.GRID_COLS,R.META.cols);assert.equal(L.GRID_ROWS,R.META.rows);
-assert.equal(L.GRID_COLS,1000);assert.equal(L.GRID_ROWS,596);
+assert.equal(L.GRID_COLS,800);assert.equal(L.GRID_ROWS,477);
 assert.equal(L.FOOT,1,'a castle fits one square');
 assert.equal(L.zoneOf(50,50),'worldtree','the tree stands on the worldtree island');
 assert.ok(L.treeCore(50,50),'the world centre is the tree core');

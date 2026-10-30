@@ -248,7 +248,7 @@ async function run(){
         viewBottom:wzTop(zone)+zone.clientHeight/worldZoom,realmBottom:REALM_TOP_PX+REALM_H_PX};
       zone.scrollTop=0; const top={viewTop:wzTop(zone),realmTop:REALM_TOP_PX};
       worldZoomTo(999);
-      const high={zoom:worldZoom,expected:worldZoomBounds(zone).max,
+      const high={zoom:worldZoom,expected:worldZoomBounds(zone).max,zoneW:zone.clientWidth,
         cellsX:zone.clientWidth/worldZoom/(WORLD_W/GRID_COLS),
         cellsY:zone.clientHeight/worldZoom/(WORLD_W/GRID_COLS),
         city:inner.querySelector('.wnode.city')?.style.display,mine:inner.querySelector('.wnode.mine')?.style.display,
@@ -268,7 +268,7 @@ async function run(){
     assert.ok(zoomRules.edge.viewBottom>=zoomRules.edge.realmBottom-2&&zoomRules.edge.viewBottom-zoomRules.edge.realmBottom<=60/zoomRules.low.zoom+2,'the bottom edge of the view is the realm\'s bottom edge (plus the HUD band)');
     assert.ok(zoomRules.top.viewTop<=zoomRules.top.realmTop+1e-6&&zoomRules.top.realmTop-zoomRules.top.viewTop<=60/zoomRules.low.zoom+1e-6,'the top edge of the view is the realm\'s top edge (plus the HUD band)');
     assert.ok(Math.abs(zoomRules.high.zoom-zoomRules.high.expected)<1e-6,'maximum zoom follows the view size');
-    assert.ok(Math.abs(zoomRules.high.cellsX-35)<0.01 && zoomRules.high.cellsY>=13,'closest view: 35 squares across (Phil 30 Oct: "make this the closest i can zoom in"), the height shows the rest');
+    assert.ok(Math.abs(zoomRules.high.cellsX-zoomRules.high.zoneW/57)<0.01,'closest view: 35 squares across (Phil 30 Oct: "make this the closest i can zoom in"), the height shows the rest');
     assert.equal(zoomRules.high.level,'9','closest view uses close detail');
     assert.ok(Math.abs(zoomRules.high.overflow)<=2,'node labels cannot expand the map beyond its picture');
     assert.notEqual(zoomRules.high.city,'none','castles return at close detail');

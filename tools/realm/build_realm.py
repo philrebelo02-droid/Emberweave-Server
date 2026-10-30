@@ -43,8 +43,10 @@ TO_DELETE = r'C:\Emberweave\_to_delete'
 # v1227 (Phil 30 Oct 2026: "The tiles need to be roughly 2x smaller. Basically cut these tiles in 1/4. Then fix the zoom to that
 # level." then "about 1000 wide by about 600 tall", the realm's own shape): 1000 columns; 596 rows = the art's height at that width
 # (20400 / (34229.5 / 1000)). --rows 0 derives the rows from --cols.
-GRID_COLS = 1000
-GRID_ROWS = 596
+# v1229 (Phil 30 Oct 2026: "Tiles are too small, please make the map like 800x 500 instead"): 800 columns; 477 rows = the art's height
+# at that width (20400 / (34229.5 / 800) = 476.8, rounded up so the rows cover the art).
+GRID_COLS = 800
+GRID_ROWS = 477
 COLS, ROWS = GRID_COLS, GRID_ROWS
 OLD_COLS = 220             # the grid the castle, the World Tree core, the oases and the mine bands were first sized on: their world
                            # size never changes, so each is measured in 220-grid squares (sq() grid squares each)
@@ -707,6 +709,8 @@ def main():
             mx, my = xs.mean(), ys.mean(); j = int(np.argmin((xs - mx) ** 2 + (ys - my) ** 2))
             labels[k] = [int(xs[j]), int(ys[j])]
     tree_side_cells = tl['side'] / cpx
+    # v1229: a speck of land inside a painted pond became part of that pond (island T): it is no islet of the wild any more
+    islets_kept = [o for o in islets if (zone[o['box'][1]:o['box'][1] + o['box'][3], o['box'][0]:o['box'][0] + o['box'][2]] == ZONE_CODE[o['zone']]).any()]
     realm = {
         'version': v, 'dev': master.dev, 'built': time.strftime('%Y-%m-%d %H:%M'), 'cols': COLS, 'rows': ROWS,
         'gridTop': round(grid_top, 6), 'foot': FOOT, 'oldSquareCells': round(SQ, 6),
@@ -717,7 +721,7 @@ def main():
         'tile': TILE, 'levels': levels,
         'tree': {'cx': TCX, 'cy': TCY, 'artCx': C, 'artCy': round(TR, 4), 'coreCells': CORE, 'core': core_box, 'sideCells': round(tree_side_cells, 4), 'frames': TREE_FRAMES,
                  'matchRms': tl['rms'], 'patchRealmPx': patch_box},
-        'islets': [dict(o, id='isle-%02d' % (k + 1), rewards=[]) for k, o in enumerate(sorted(islets, key=lambda o: (-o['cells'], o['cy'], o['cx'])))],
+        'islets': [dict(o, id='isle-%02d' % (k + 1), rewards=[]) for k, o in enumerate(sorted(islets_kept, key=lambda o: (-o['cells'], o['cy'], o['cx'])))],
         'oases': oases, 'labels': labels, 'zoneCells': counts, 'landFraction': a.land_frac,
         'cities': [dict(c, cx=round((c['cxPx'] - X0) / cpx, 3), cy=round(c['cyPx'] / cpx - off, 3)) for c in cities],
     }

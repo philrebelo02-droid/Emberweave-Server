@@ -2756,7 +2756,7 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 <script src="/assets/ui/world-march-sync.js?v=wm1"></script>
 <script src="/assets/ui/world-march-visual.js?v=wv3-g1000"></script>
 <script src="/assets/ui/skill-preview-stage.js?v=sp1206"></script>
-<script src="/world-realm.js?v=realm-v25-ponds-tree-pad-1228"></script>
+<script src="/world-realm.js?v=realm-v25-g800x477-1229"></script>
 <script src="/assets/ui/world-tree-cycle.js?v=wt5"></script>
 <script src="/assets/ui/world-tree-art.js?v=wt-noflash-1228b"></script>
 <script src="/assets/ui/world-oasis-markers.js?v=om-ponds-1228"></script>
@@ -24233,7 +24233,10 @@ function mapViewChangedSoon(){ clearTimeout(_rcViewT); _rcViewT=setTimeout(()=>{
 /* v1228 (Phil 30 Oct 2026, two screenshots: 'please dont make mines and castles appear this far zoomed out' - the view about 400 squares wide -
    'this is a better zoom level to be able to start to see castles' - about 150 wide): castles and mines show only when at most
    WM_PIECES_MAX_SQ squares fit across the screen, measured in squares so a phone and a PC agree */
-const WM_PIECES_MAX_SQ=160;
+// v1229 (Phil 30 Oct 2026: "Tiles are too small ... 800x 500" / "Basically the tiles need to be larger"): the view gates are fixed ON THE
+// MAP (a fraction of the realm's width - v1228's 160 / 64 / 52 squares of the 1000 grid), so a grid change only resizes the squares
+const WM_PIECES_MAX_SQ=0.160*wmRealmCols();   // 160 of the 1000 grid = 128 on the 800 grid
+function wmRealmCols(){ return globalThis.EmberweaveRealm.META.cols; }   // (GRID_COLS is declared further down)
 /* v1228 (Phil 30 Oct 2026: "please make cities have no grid squares on them"): the grid overlay is masked by one VECTOR picture (an SVG
    in grid units: the whole band minus every city square, row runs joined) - crisp at every zoom, so the lines stop exactly at the city's
    edge (a GRID_COLS x GRID_ROWS bitmap stretched 24x at max zoom blurred a whole cell). Built once, from the isCity the server blocks with. */
@@ -24641,9 +24644,9 @@ function worldNodes(){
   return nodes;
 }
 let worldZoom=1.6;   // v1227: opens where a castle (one square of the 1000-grid) is ~18 px and its name shows (~38 squares across a phone)
-const WM_LABEL_MAX_SQ=64;   // v1228: castle / mine names show only when at most 64 squares fit across the screen - the same on a phone and a PC (was a zoom of 1.2, which on a 2000 px PC showed names at 150 across, crowded)
+const WM_LABEL_MAX_SQ=0.064*wmRealmCols();   // v1229: 64 squares of the 1000 grid (51 on the 800 grid) -   // v1228: castle / mine names show only when at most 64 squares fit across the screen - the same on a phone and a PC (was a zoom of 1.2, which on a 2000 px PC showed names at 150 across, crowded)
 // ---- world-map level of detail: cull markers by how many grid squares the viewport currently shows ----
-const GHOST_MAX_SQ=52;      // v1227: teleport ghosts (one per open square) only render when the view spans <= 52 squares (the full-bleed phone view at the opening zoom; 1300 ghosts at most)
+const GHOST_MAX_SQ=0.052*wmRealmCols();   // v1229: 52 squares of the 1000 grid -      // v1227: teleport ghosts (one per open square) only render when the view spans <= 52 squares (the full-bleed phone view at the opening zoom; 1300 ghosts at most)
 // Picture hierarchy is one continuous world: 1 cover, 3×3 middle pieces, 9×9 close pieces.
 // A piece fills the map view at its own zoom, but keeps its original world coordinates.
 function worldPictureTile(divisions,col,row){
@@ -24799,10 +24802,11 @@ function refreshTeleGhosts(){ const inner=document.getElementById('wzoneInner'),
     count++; }
   layer.innerHTML=html; }
 function queueTeleGhosts(){ if(_teleGhostRaf)return; _teleGhostRaf=requestAnimationFrame(()=>{ _teleGhostRaf=0; refreshTeleGhosts(); }); }
+const WM_MAX_SQ_PX=57;
 function worldZoomBounds(zone){
   const cell=WORLD_W/GRID_COLS;
   const min=Math.min(zone.clientWidth/WORLD_W,zone.clientHeight/REALM_H_PX);   // v1226 (Phil: "Max zoom out should be able to see the full map"): the whole realm fits; open sea fills the rest
-  const max=zone.clientWidth/(35*cell);   /* v1228 (Phil 30 Oct 2026, screenshots ~31 then ~35 squares across: "make this the closest i can zoom in" / "this much"): max zoom = 35 squares across (was 16) */   /* v1226 (Phil 30 Oct 2026: "Final zoom in I should be able to see the tiles covering my screen. So I think 16 by 9 tiles?"): 16 squares across; a phone landscape shows ~8 down. v1227: of the GRID_COLS grid (1000), so 4.5x closer than the 220 grid */
+  const max=WM_MAX_SQ_PX/cell;   /* v1229 (Phil 30 Oct 2026, on his phone: "There should not be this many tiles in my smallest zoom in"; his PC ask "this much" was ~57 css px a square): at max zoom ONE SQUARE IS WM_MAX_SQ_PX css px on any screen (phone 844 -> ~15 across, PC 2000 -> ~35) */   /* v1228 (Phil 30 Oct 2026, screenshots ~31 then ~35 squares across: "make this the closest i can zoom in" / "this much"): max zoom = 35 squares across (was 16) */   /* v1226 (Phil 30 Oct 2026: "Final zoom in I should be able to see the tiles covering my screen. So I think 16 by 9 tiles?"): 16 squares across; a phone landscape shows ~8 down. v1227: of the GRID_COLS grid (1000), so 4.5x closer than the 220 grid */
   return {min,max:Math.max(min,max)};
 }
 function applyWorldZoom(){ const inner=document.getElementById('wzoneInner'), zone=document.getElementById('wzone'); if(typeof mapViewChangedSoon==='function') mapViewChangedSoon();   /* v1124: zooming out loads the new tiles */
@@ -30946,7 +30950,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1793400592052';
+const BUILD_ID = '1793402852911';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
