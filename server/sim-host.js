@@ -135,9 +135,10 @@ function load(htmlPath){
       G=Object.assign({},G,{playerXP:_worldBotInput.playerXP,region:_worldBotInput.homeRegion,
         castleX:_worldBotInput.castleX,castleY:_worldBotInput.castleY,guild:null});
       REAL_CITIES=_worldBotInput.realCities;
+      globalThis._worldBotMineKeys=_worldBotInput.mineKeys;   // v1229: this epoch's mine cells (bots keep off them)
       _botCache={};
       return JSON.stringify(regionBotRoster(_worldBotInput.regionKey));
-    } finally { G=priorG; REAL_CITIES=priorCities; _botCache=priorCache; }
+    } finally { G=priorG; REAL_CITIES=priorCities; _botCache=priorCache; delete globalThis._worldBotMineKeys; }
   })()`);
   return {
     ctx, sandbox,
@@ -145,7 +146,7 @@ function load(htmlPath){
     botRoster(input){
       sandbox._worldBotInput={regionKey:String(input.regionKey),homeRegion:String(input.homeRegion),
         playerXP:Math.max(0,+input.playerXP||0),castleX:+input.castleX,castleY:+input.castleY,
-        realCities:JSON.parse(JSON.stringify(input.realCities||[]))};
+        realCities:JSON.parse(JSON.stringify(input.realCities||[])),mineKeys:Array.isArray(input.mineKeys)?input.mineKeys.map(String):[]};
       try{ return JSON.parse(botRosterScript.runInContext(ctx,{timeout:10000})); }
       finally{ delete sandbox._worldBotInput; }
     },

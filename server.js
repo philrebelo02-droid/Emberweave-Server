@@ -4537,16 +4537,19 @@ function worldBotRoster(u,regionKey){
   if(typeof worldCityRowsRefresh!=='function'){   // span tests run this function alone: the original live scan
     const realCities=Object.values(DB.users).filter(v=>v.id!==u.id&&WORLD_LOCATION.valid(v.worldLocation))
       .map(v=>({id:v.id,region:v.worldLocation.region,x:v.worldLocation.x,y:v.worldLocation.y}));
-    return host.botRoster({regionKey,homeRegion:loc.region,playerXP:ensureLedger(u).px||0,castleX:loc.x,castleY:loc.y,realCities}); }
+    return host.botRoster({regionKey,homeRegion:loc.region,playerXP:ensureLedger(u).px||0,castleX:loc.x,castleY:loc.y,realCities,mineKeys:worldBotMineKeys()}); }
   worldCityRowsRefresh();   /* v1124: real castles come from the row index (refreshed every WORLD_CITIES_REFRESH_MS), the roster from a cache */
   const px=ensureLedger(u).px||0, home=loc.region===regionKey;
-  const key=regionKey+'|'+ledPlayerLevel(u.led)+'|'+(home?u.id+'@'+loc.x+','+loc.y:'-')+'|'+(_regionVer[regionKey]|0);
+  const key=regionKey+'|'+ledPlayerLevel(u.led)+'|'+(home?u.id+'@'+loc.x+','+loc.y:'-')+'|'+(_regionVer[regionKey]|0)+'|'+WORLD_MINES.epochAt(Date.now());   /* v1229: the mine field is in the roster */
   const hit=_botRosterCache.get(key); if(hit) return hit;
   const realCities=[]; for(const [id,e] of _cityRows) if(id!==u.id&&e.row.region===regionKey) realCities.push({id,region:e.row.region,x:e.row.x,y:e.row.y});
-  const list=host.botRoster({regionKey,homeRegion:loc.region,playerXP:px,castleX:loc.x,castleY:loc.y,realCities});
+  const list=host.botRoster({regionKey,homeRegion:loc.region,playerXP:px,castleX:loc.x,castleY:loc.y,realCities,mineKeys:worldBotMineKeys()});
   if(_botRosterCache.size>20000) _botRosterCache.delete(_botRosterCache.keys().next().value);
   _botRosterCache.set(key,list); return list;
 }
+// v1229: bots keep off this epoch's mine cells (the 4 around each mine's intersection)
+let _botMineEpoch=-1,_botMineKeyList=[];
+function worldBotMineKeys(){ const e=WORLD_MINES.epochAt(Date.now()); if(e!==_botMineEpoch){ _botMineEpoch=e; _botMineKeyList=WORLD_MINES.field(e).flatMap(n=>WORLD_LOCATION.GEO.mineKeys(n.x,n.y)); } return _botMineKeyList; }
 function worldBotTarget(u,id){
   const match=/^bot_([a-z]+)_(\d{1,3})$/.exec(String(id||''));
   if(!match) return null;

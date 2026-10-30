@@ -24177,10 +24177,14 @@ const BOTS_PER_REGION=100;
 function worldPlayersJoined(){ return Math.max(0, G.worldPlayers||0); }   // real accounts in your region (server-fed); each drops the weakest bot
 let _botCache={};
 let _lastPin=null;   // last coord-search pin {cx,cy,until} so a keepView rebuild can re-drop it
+// the cells of this epoch's mines (the server passes its own field to the roster; the browser uses the field it was sent)
+function botMineKeys(){ if(Array.isArray(globalThis._worldBotMineKeys)) return globalThis._worldBotMineKeys;
+  try{ return worldMines().filter(m=>m&&Number.isFinite(m.x)&&Number.isFinite(m.y)).flatMap(m=>REALM_MAP.GEO.mineKeys(m.x,m.y)); }catch(e){ return []; } }
 function regionBotRoster(regionKey){
   const realN = (typeof REAL_CITIES!=='undefined'&&REAL_CITIES)
     ? realCitiesIn(regionKey).length+(regionKey===myRegion()?1:0) : worldPlayersJoined();
-  const cacheKey=regionKey+'|'+playerLevel()+'|'+(!!G.guild)+'|'+realN+'|'+Math.round((G.castleX||0))+'|'+Math.round((G.castleY||0));
+  const mineKeys=botMineKeys();   // v1229: bots keep off every mine's cells too (a mine moves every 8 h, so the roster follows the field)
+  const cacheKey=regionKey+'|'+playerLevel()+'|'+(!!G.guild)+'|'+realN+'|'+Math.round((G.castleX||0))+'|'+Math.round((G.castleY||0))+'|'+mineKeys.length+':'+(mineKeys[0]||'');
   if(_botCache[cacheKey]) return _botCache[cacheKey];
   const rIdx=Math.max(0,REGION_KEYS.indexOf(regionKey)), base=(rIdx+1)*100003;
   let list=[];
@@ -24196,7 +24200,11 @@ function regionBotRoster(regionKey){
   const GE=REALM_MAP.GEO, foot=(x,y)=>GE.footKeys(x,y).forEach(k=>used.add(k));   // v1227: a castle covers FOOT x FOOT cells
   if(regionKey===myRegion()){ const c=myCastlePos(); foot(c.x,c.y); }   // don't overlap your castle
   realCitiesIn(regionKey).forEach(rc=>foot(rc.x,rc.y));                 // don't overlap real players' castles
-  const fits=(ax,ay)=>GE.footCells(ax,ay).every(([cx,cy])=>REALM_MAP.landZone(cx,cy)===regionKey&&!REALM_MAP.isSite(cx,cy)&&!used.has(cx+','+cy));
+  mineKeys.forEach(k=>used.add(k));
+  /* v1229 (Phil 30 Oct 2026: a bot castle "in the sea" by the Alumron coast): a bot takes an open square of its own region that is no
+     mine's, no castle's and not on the coast line (a cell beside the sea can be half water in the art); the same isOpen rule as players */
+  const coast=(cx,cy)=>!REALM_MAP.isLand(cx+1,cy)||!REALM_MAP.isLand(cx-1,cy)||!REALM_MAP.isLand(cx,cy+1)||!REALM_MAP.isLand(cx,cy-1);
+  const fits=(ax,ay)=>GE.footCells(ax,ay).every(([cx,cy])=>REALM_MAP.landZone(cx,cy)===regionKey&&REALM_MAP.isOpen(cx,cy)&&!GE.coreCell(cx,cy)&&!used.has(cx+','+cy)&&!coast(cx,cy));
   list.forEach((bt,i)=>{ let s=(i*7919+(bt.power%ZN))%ZN, guard=0;
     while(!fits(RC[s][0],RC[s][1])&&guard++<ZN){ s=(s+7)%ZN; }
     const ci=RC[s][0], cj=RC[s][1]; bt.x=GE.cornerX(ci); bt.y=GE.cornerY(cj); foot(bt.x,bt.y);
@@ -30950,7 +30958,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1793402852911';
+const BUILD_ID = '1793403457748';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
