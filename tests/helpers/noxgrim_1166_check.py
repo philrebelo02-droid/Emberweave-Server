@@ -8,10 +8,20 @@ import numpy as np
 from PIL import Image
 ROOT = sys.argv[1]; A = json.loads(sys.argv[2])
 out = {}
-def sheet(u): return Image.open(os.path.join(ROOT, u.split('?')[0].lstrip('/'))).convert('RGBA')
+# 30 Oct 2026 (suite speed, test-only): each sheet is decoded once and each (state, cell, scale) mask resized once, instead of once per
+#   tried shift (the 7 x 7 x 7 search re-decoded the whole sheet 343 times per state: ~150 s per call on PC 2). Same pixels, same numbers.
+_SHEET, _MASK = {}, {}
+def sheet(u):
+    if u not in _SHEET: _SHEET[u] = Image.open(os.path.join(ROOT, u.split('?')[0].lstrip('/'))).convert('RGBA')
+    return _SHEET[u]
+def _mask(st, c, k, H):
+    key = (st, c, k, H)
+    if key not in _MASK:
+        r = A['anim'][st]; q, p = divmod(c, r['cols']); im = sheet(r['u']).crop((p * r['fw'], q * r['fh'], (p + 1) * r['fw'], (q + 1) * r['fh']))
+        s = H / r['figH'] * k; _MASK[key] = np.asarray(im.resize((max(1, round(r['fw'] * s)), max(1, round(r['fh'] * s))), Image.BILINEAR))[..., 3] > 100
+    return _MASK[key]
 def drawn(st, c, k=1.0, dx=0, dy=0, H=300):
-    r = A['anim'][st]; q, p = divmod(c, r['cols']); im = sheet(r['u']).crop((p * r['fw'], q * r['fh'], (p + 1) * r['fw'], (q + 1) * r['fh']))
-    s = H / r['figH'] * k; a = np.asarray(im.resize((max(1, round(r['fw'] * s)), max(1, round(r['fh'] * s))), Image.BILINEAR))[..., 3] > 100
+    r = A['anim'][st]; s = H / r['figH'] * k; a = _mask(st, c, k, H)
     C = np.zeros((520, 960), bool); ox = round(480 - r['cx'] * s) + dx; oy = round(440 - r['feet'] * s) + dy
     ys, xs = np.where(a); ys = ys + oy; xs = xs + ox; ok = (ys >= 0) & (ys < 520) & (xs >= 0) & (xs < 960); C[ys[ok], xs[ok]] = True; return C
 iou = lambda a, b: float((a & b).sum() / max(1, (a | b).sum()))
