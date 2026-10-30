@@ -25,9 +25,12 @@ let TABLE = null; try { TABLE = require('./starless-well-heroes.json'); } catch 
 let HERO_BASE = {}; try { HERO_BASE = require('./sim.js').HERO_BASE; } catch (e) {}
 
 /* ---- buffs: 1 of 3 after every win (class = the hero's role family) ---- */
-const CLASS_OF = { Tank: 'Tank', Bruiser: 'Tank', Brute: 'Tank', Warrior: 'Warrior', Assassin: 'Warrior', Marksman: 'Marksman', Mage: 'Mage', Support: 'Support' };
+/* v1228 (Phil 30 Oct 2026: "in starless well, there is warrior buffs but we dont have warriors, thats meant to be bruisers"): the classes are the
+   game's own six roles - Bruisers had shared the Tank buffs and Assassins sat under 'Warrior'. 'Warrior:*' ids saved in a running Well
+   read as the Bruiser buffs (BUFF alias below). */
+const CLASS_OF = { Tank: 'Tank', Bruiser: 'Bruiser', Brute: 'Bruiser', Warrior: 'Bruiser', Assassin: 'Assassin', Marksman: 'Marksman', Mage: 'Mage', Support: 'Support' };
 const BUFFS = [];
-for (const c of ['Tank', 'Warrior', 'Marksman', 'Mage', 'Support']) {
+for (const c of ['Tank', 'Bruiser', 'Assassin', 'Marksman', 'Mage', 'Support']) {
   BUFFS.push({ id: c + ':hp', cls: c, hp: 0.06, label: c + ' heroes +6% HP' });
   BUFFS.push({ id: c + ':atk', cls: c, atk: 0.05, label: c + ' heroes +5% attack' });
   BUFFS.push({ id: c + ':def', cls: c, def: 0.08, label: c + ' heroes +8% armor and magic resist' });
@@ -35,6 +38,7 @@ for (const c of ['Tank', 'Warrior', 'Marksman', 'Mage', 'Support']) {
 BUFFS.push({ id: 'All:hp', cls: 'All', hp: 0.03, label: 'All heroes +3% HP' }, { id: 'All:atk', cls: 'All', atk: 0.025, label: 'All heroes +2.5% attack' },
   { id: 'All:def', cls: 'All', def: 0.04, label: 'All heroes +4% armor and magic resist' });
 const BUFF = Object.fromEntries(BUFFS.map(b => [b.id, b]));
+for (const k of ['hp', 'atk', 'def']) BUFF['Warrior:' + k] = BUFF['Bruiser:' + k];   // v1228: buffs picked before the rename keep working, as Bruiser buffs
 
 function rng(seed) { let s = seed >>> 0; return () => { s = (s + 0x6D2B79F5) >>> 0; let t = s; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
 function cycleOf(t) { return Math.max(0, Math.floor(((t || Date.now()) - WELL_EPOCH) / CYCLE_MS)); }
@@ -132,7 +136,7 @@ function loanSpec(ctx, key) {   // "tent heroes are loaned maxed for your level"
   const base = ctx.SIM.HERO_BASE[key]; if (!base || !best) return null;
   return Object.assign({}, best, { key, level: lvl, stars: 5, pips: 0, skillLv: [lvl, lvl, lvl, lvl], gearSkill: null }); }
 function applyRun(ctx, R, snaps) {
-  for (const s of snaps) { const cls = CLASS_OF[(ctx.SIM.HERO_BASE[s.key] || {}).role] || 'Warrior';
+  for (const s of snaps) { const cls = CLASS_OF[(ctx.SIM.HERO_BASE[s.key] || {}).role] || 'Bruiser';
     let hp = 0, atk = 0, def = 0;
     for (const id of R.buffs) { const b = BUFF[id]; if (b && (b.cls === 'All' || b.cls === cls)) { hp += b.hp || 0; atk += b.atk || 0; def += b.def || 0; } }
     if (hp) s.maxHp = Math.round(s.maxHp * (1 + hp));
