@@ -17,6 +17,9 @@ const ROOT = path.resolve(__dirname, '..');
 const HTML = process.env.EW_HTML || path.join(ROOT, 'emberweave-heroes.html');
 const BASE_SHA = process.env.EW_BASE || '625db3e7';   // live v1195 (on v1190 streamed deaths + Batch 3), the build this change sits on
 const VER = process.env.EW_DEATH_VER || '1182';
+/* suite speed 30 Oct 2026 (Phil: "all machines take 1 long job"): EW_PART=headless runs sections 1-3 only, EW_PART=browser section 4 only; the two
+   parts together are the whole test's checks (unset = both, as before). The browser half needs only the cheap table reads (D / PT) from section 2. */
+const PART = process.env.EW_PART || '', HEADLESS = PART !== 'browser';
 const HEROES = ['vael', 'sylthaine', 'vex', 'vireo'];   // the first four: the browser scenarios run on them
 const SRCS = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures', 'death_sources.json'), 'utf8'));   // every hero with a death (tools: death_batch.py adds each batch)
 const ALL = SRCS.map(r => r.key), SRC = Object.fromEntries(SRCS.map(r => [r.key, Object.assign({ dir: r.hero, sha: r.sha256, id: r.creationId, bg: r.plate }, r)]));
@@ -24,11 +27,11 @@ const GPU_BUDGET_MB = 2048, PEAK_V1182 = 1918.7;   // v1182's measured phone wor
 const BD = fs.mkdtempSync(path.join(os.tmpdir(), 'death-base-'));
 process.on('exit', () => { try { fs.rmSync(BD, { recursive: true, force: true }); } catch (e) {} });
 let baseOk = true;
-try { fs.mkdirSync(path.join(BD, 'server')); for (const f of ['emberweave-heroes.html', 'hero-profiles.js', 'hero-paths.js', 'server/temple-of-ash.js', 'server/patron-benefits.js', 'server/temple-effects.js'])
+if (HEADLESS) try { fs.mkdirSync(path.join(BD, 'server')); for (const f of ['emberweave-heroes.html', 'hero-profiles.js', 'hero-paths.js', 'server/temple-of-ash.js', 'server/patron-benefits.js', 'server/temple-effects.js'])
   fs.writeFileSync(path.join(BD, f), cp.execSync('git show ' + BASE_SHA + ':' + f, { cwd: ROOT, maxBuffer: 64 << 20 })); } catch (e) { baseOk = false; }
 const OLD = path.join(BD, 'emberweave-heroes.html');
 const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); return src => vm.runInContext(src, h.ctx); };
-const run = load(HTML), R0 = baseOk ? load(OLD) : null;
+const run = load(HTML), R0 = baseOk && HEADLESS ? load(OLD) : null;
 let pass = 0, fail = 0;
 const ck = (name, ok, detail) => { if (ok) { pass++; console.log('  ok  ' + name); } else { fail++; console.log('  FAIL ' + name + (detail ? ' - ' + String(detail).slice(0, 700) : '')); } };
 const J = s => JSON.parse(run('JSON.stringify(' + s + ')'));
@@ -46,6 +49,7 @@ const fight = (f, s, a, e, pre) => { const r = load(f); if (pre) r(pre); return 
 const LATE = `(()=>{ const s=String(updateBattle).replace("u.deathT>.9).forEach","u.deathT>1.5).forEach"); if(s===String(updateBattle)) return 0; updateBattle=eval('('+s+')'); return 1; })()`;   // CONTROL: the removal moved
 try {
   // ------------------------------------------------------------------ 1. the page and the sources
+  if (HEADLESS) {
   { const html = fs.readFileSync(HTML, 'utf8'); let n = 0, bad = [];
     for (const m of html.matchAll(/<script>([\s\S]*?)<\/script>/g)) { n++; try { new vm.Script(m[1]); } catch (e) { bad.push(n + ': ' + e.message); } }
     ck('every inline <script> block of the page parses (' + n + ' blocks)', n > 0 && bad.length === 0, bad.join('; ')); }
@@ -61,11 +65,13 @@ try {
         if (m && (m.sha256 !== S.sha || m.creationId !== S.id || (S.not && JSON.stringify(m).includes(S.not)) || !/Phil PASS/.test(m.status) || m.frames !== 96 || m.sourceBackground !== S.bg)) bad.push(h + ' manifest ' + JSON.stringify([m.status, m.frames, m.sourceBackground])); }
       ck('sources: every death (' + ALL.length + ') is its Phil PASS SILENT file, sha256 = the fixture (the handoff / batch manifest) and, where the folder has one, its clean-source-manifest.json (Vex 567611634823962632 / Vireo 567612665947455488 finals)', bad.length === 0, bad.join('; ')); }
     else console.log('  info the Archive is not reachable here - the source files were not re-hashed'); }
+  }
 
   // ------------------------------------------------------------------ 2. the entries, the parts and the sheets
   const ALLD = J(`Object.keys(BATTLE_ANIM).filter(k=>BATTLE_ANIM[k]&&BATTLE_ANIM[k].death)`);
-  ck('the heroes with a death state are exactly the fixture\'s ' + ALL.length + ' (the rest are still being made): ' + ALLD.join(','), JSON.stringify(ALLD.slice().sort()) === JSON.stringify(ALL.slice().sort()));
+  if (HEADLESS) ck('the heroes with a death state are exactly the fixture\'s ' + ALL.length + ' (the rest are still being made): ' + ALLD.join(','), JSON.stringify(ALLD.slice().sort()) === JSON.stringify(ALL.slice().sort()));
   const D = {}, I = {}, PT = {}; ALL.forEach(k => { D[k] = J('BATTLE_ANIM.' + k + '.death'); I[k] = J('BATTLE_ANIM.' + k + '.idle'); PT[k] = D[k].parts.map(s => Object.assign({ st: s }, J('BATTLE_ANIM.' + k + '.' + s))); });
+  if (HEADLESS) {
   ck('each death is 48 cells over exactly 6.0 s (8 fps), lazy, ends as its clip does (ash -> hide, a fallen body -> hold), its own states (death, death2 ..; never hit / attack / an ability / a passive)',
     ALL.every(k => D[k].dn === 48 && D[k].fps === 8 && D[k].dn / D[k].fps === 6 && D[k].end === (SRC[k].end || 'hide') && PT[k].every(p => p.lazy === true && p.fps === 8) &&
       PT[k].every(p => !['hit', 'attack', 'crit', 'green', 'blue', 'ult', 'passive'].some(s => J('(BATTLE_ANIM.' + k + '.' + s + '&&BATTLE_ANIM.' + k + '.' + s + '.u)||null') === p.u))));
@@ -144,10 +150,12 @@ try {
       rows.every(([n, o]) => n.h === o.h && n.ended === o.ended) && rows.reduce((s, r) => s + r[0].deaths, 0) >= 6, rows.map(r => r[0].h + ' vs ' + r[1].h).join('; '));
     ck('CONTROL: the same fight with the 0.9 s removal moved to 1.5 s is NOT live (the check sees the removal)', fight(HTML, FS[0][0], FS[0][1], FS[0][2], LATE).h !== rows[0][1].h);
   }
+  }
 
   // ------------------------------------------------------------------ 4. BROWSER
   let chromium = null; try { chromium = require('playwright').chromium; } catch (e) {}
-  if (process.env.EW_NO_BROWSER) console.log('  info EW_NO_BROWSER: the browser half was skipped');
+  if (PART === 'headless') console.log('  info EW_PART=headless: the browser half runs as its own part');
+  else if (process.env.EW_NO_BROWSER) console.log('  info EW_NO_BROWSER: the browser half was skipped');
   else if (!chromium) { ck('playwright is available for the browser half', false); }
   else {
     const freePort = () => new Promise((res, rej) => { const s = net.createServer(); s.once('error', rej); s.listen(0, '127.0.0.1', () => { const p = s.address().port; s.close(() => res(p)); }); });

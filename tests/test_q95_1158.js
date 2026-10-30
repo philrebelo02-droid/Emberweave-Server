@@ -17,6 +17,11 @@ const PY = process.env.PYTHON || 'python';
    release that adds files (v1159 music) or changes the page must not fail them. A flat bundle without git history uses the tree as before. */
 const REL = process.env.EW_REL || '102a8bfefd5e7d03f0938f172fb178e921427038';
 let pass = 0, fail = 0;
+/* suite speed 30 Oct 2026 (Phil: "all machines take 1 long job"): the test was 355 s on one core (about 78% the python pixel pass, the rest `git show`).
+   EW_PART=meta runs sections 1, 2 and 4; EW_PART=px:K/N runs section 3 on every N-th sheet from sheet K-1 (the alpha CONTROL in part 1, the Kon-Wu
+   check in the part holding her sheet). All parts together check every sheet once; unset = the whole test, as before. */
+const PART = process.env.EW_PART || '', PXM = /^px:(\d+)\/(\d+)$/.exec(PART), PXK = PXM ? +PXM[1] : 0, PXN = PXM ? +PXM[2] : 0;
+const META = !PART || PART === 'meta', DO_PX = !PART || (PXN > 0 && PXK >= 1 && PXK <= PXN);
 const ck = (name, ok, detail) => { if (ok) { pass++; console.log('  ok  ' + name); } else { fail++; console.log('  FAIL ' + name + (detail ? ' - ' + String(detail).slice(0, 600) : '')); } };
 const git = (...a) => cp.execFileSync('git', a, { cwd: ROOT, maxBuffer: 512 << 20 });
 const chunks = b => { const o = []; let i = 12; while (i + 8 <= b.length) { const t = b.toString('ascii', i, i + 4), n = b.readUInt32LE(i + 4); o.push(t); i += 8 + n + (n & 1); } return o; };
@@ -28,8 +33,11 @@ const dims = b => { const t = b.toString('ascii', 12, 16);
 const sha = b => require('crypto').createHash('sha256').update(b).digest('hex');
 const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'ew-q95t-')); process.on('exit', () => { try { fs.rmSync(TMP, { recursive: true, force: true }); } catch (e) {} });
 try {
+  if (!META && !DO_PX) throw new Error('EW_PART must be meta or px:K/N, got ' + PART);
   const page = fs.readFileSync(path.join(ROOT, 'emberweave-heroes.html'), 'utf8'), tiers = fs.readFileSync(path.join(ROOT, 'assets/anim/tiers_1141.json'), 'utf8');
   const bPage = git('show', BASE + ':emberweave-heroes.html').toString(), bTiers = git('show', BASE + ':assets/anim/tiers_1141.json').toString();
+  let relPage = page, relTiers = tiers;
+  if (META) {
   // ------------------------------------------------ 1. COVERAGE
   const named = new Set(); for (const m of (bPage + bTiers).matchAll(/\/assets\/anim\/[A-Za-z0-9_\-/.]+?\.webp(?=\?v=)/g)) named.add(m[0]);
   const fx = new Set(FIX.sheets.map(e => e.path)), kept = new Set(FIX.kept_lossless.map(e => e.path));
@@ -39,7 +47,7 @@ try {
   ck('every lossless sheet BASE names (' + lossless.length + ') is re-encoded (' + fx.size + ') or kept because q95 was bigger (' + kept.size + '); nothing else is in the fixture',
     lossless.every(p => fx.has(p) || kept.has(p)) && [...fx, ...kept].every(p => lossless.includes(p)) && fx.size + kept.size === lossless.length);
   let relOk = false; try { git('cat-file', '-e', REL + '^{commit}'); relOk = true; } catch (e) {}
-  const relPage = relOk ? git('show', REL + ':emberweave-heroes.html').toString() : page, relTiers = relOk ? git('show', REL + ':assets/anim/tiers_1141.json').toString() : tiers;
+  if (relOk) { relPage = git('show', REL + ':emberweave-heroes.html').toString(); relTiers = git('show', REL + ':assets/anim/tiers_1141.json').toString(); }
   const changed = git(...['diff', '--name-only', '--no-renames', BASE].concat(relOk ? [REL] : []).concat(['--', 'assets'])).toString().split(/\r?\n/).filter(Boolean).map(x => '/' + x);
   const extra = changed.filter(p => !fx.has(p) && p !== '/assets/anim/tiers_1141.json');
   ck('the only asset files that differ from BASE are the ' + fx.size + ' q95 sheets and the tier table (' + changed.length + ' changed)', extra.length === 0 && fx.size + 1 === changed.length && FIX.sheets.every(e => changed.includes(e.path)), extra.slice(0, 5).join(','));
@@ -53,8 +61,11 @@ try {
   for (const e of FIX.kept_lossless) { const n = fs.readFileSync(path.join(ROOT, e.path.slice(1))), o = git('show', BASE + ':' + e.path.slice(1)); if (!n.equals(o) || e.q95_bytes <= e.old_bytes) bad.push(e.path + ' kept file changed / q95 was not bigger'); }
   const ob = FIX.sheets.reduce((a, e) => a + e.old_bytes, 0), nb = FIX.sheets.reduce((a, e) => a + e.new_bytes, 0);
   ck('every q95 file: fixture sha, lossy WebP with alpha, same W x H as BASE, smaller (' + (ob / 1e6).toFixed(1) + ' -> ' + (nb / 1e6).toFixed(1) + ' MB); kept files = BASE', bad.length === 0, bad.slice(0, 6).join('; '));
+  }
   // ------------------------------------------------ 3. PIXELS
-  const jobs = FIX.sheets.map((e, i) => { const bf = path.join(TMP, i + '.webp'); fs.writeFileSync(bf, git('show', BASE + ':' + e.path.slice(1))); return { p: e.path, b: bf, n: path.join(ROOT, e.path.slice(1)), z: FIX.zero_hidden.includes(e.path) }; });
+  if (DO_PX) {
+  const SHEETS = PXN ? FIX.sheets.filter((e, i) => i % PXN === PXK - 1) : FIX.sheets, PXL = PXN ? ', part ' + PXK + ' of ' + PXN : '';
+  const jobs = SHEETS.map((e, i) => { const bf = path.join(TMP, i + '.webp'); fs.writeFileSync(bf, git('show', BASE + ':' + e.path.slice(1))); return { p: e.path, b: bf, n: path.join(ROOT, e.path.slice(1)), z: FIX.zero_hidden.includes(e.path) }; });
   const PYS = [
     'import sys, json',
     'import numpy as np',
@@ -76,17 +87,20 @@ try {
   fs.writeFileSync(path.join(TMP, 'px.py'), PYS); fs.writeFileSync(path.join(TMP, 'jobs.json'), JSON.stringify(jobs));
   const R = JSON.parse(cp.execFileSync(PY, ['-I', path.join(TMP, 'px.py'), path.join(TMP, 'jobs.json')], { maxBuffer: 64 << 20 }).toString());
   const aBad = R.filter(r => !r[1]), lowQ = R.filter(r => r[2] < 29); R.sort((x, y) => x[2] - y[2]);
-  ck('ALPHA: every q95 sheet decodes to the BASE alpha bit for bit (' + R.length + ' sheets)', R.length === FIX.sheets.length && aBad.length === 0, aBad.slice(0, 5).map(r => r[0]).join(','));
-  ck('QUALITY: composited over the battle floor every sheet is >= 29 dB (worst ' + R[0][0] + ' ' + R[0][2] + ' dB, median ' + R[R.length >> 1][2] + ')', lowQ.length === 0, lowQ.slice(0, 5).map(r => r[0] + ' ' + r[2]).join(','));
+  ck('ALPHA: every q95 sheet decodes to the BASE alpha bit for bit (' + R.length + ' sheets' + PXL + ')', R.length === SHEETS.length && aBad.length === 0, aBad.slice(0, 5).map(r => r[0]).join(','));
+  ck('QUALITY: composited over the battle floor every sheet is >= 29 dB (worst ' + R[0][0] + ' ' + R[0][2] + ' dB, median ' + R[R.length >> 1][2] + PXL + ')', lowQ.length === 0, lowQ.slice(0, 5).map(r => r[0] + ' ' + r[2]).join(','));
   const kw = R.find(r => r[3] != null);
   /* the encoder may put any colour under alpha 0 (exact off; never drawn - the browser premultiplies), so the hidden count is not 0; what matters is
      that the green leak is gone from the data it encodes and no VISIBLE green is added */
+  if (!PXN || SHEETS.some(e => FIX.zero_hidden.includes(e.path)) || (PXK === 1 && !FIX.sheets.some(e => FIX.zero_hidden.includes(e.path))))
   ck('Kon-Wu blue: hidden green under alpha 0 cut >= 99.9% (BASE ' + (kw && kw[3]) + ' px -> ' + (kw && kw[4]) + '), visible green px within 1% of BASE (' + (kw && kw[5]) + ' -> ' + (kw && kw[6]) + ')',
     !!kw && kw[3] > 0 && kw[4] <= kw[3] * 0.001 && kw[6] <= kw[5] * 1.01);
-  { fs.writeFileSync(path.join(TMP, 'ctl.json'), JSON.stringify([Object.assign({}, jobs[0], { poke: 1 })]));
+  if (!PXN || PXK === 1) { fs.writeFileSync(path.join(TMP, 'ctl.json'), JSON.stringify([Object.assign({}, jobs[0], { poke: 1 })]));
     const c = JSON.parse(cp.execFileSync(PY, ['-I', path.join(TMP, 'px.py'), path.join(TMP, 'ctl.json')]).toString());
     ck('CONTROL: one alpha value nudged fails the alpha check', c[0][1] === false); }
+  }
   // ------------------------------------------------ 4. URLS
+  if (META) {
   const both = page + tiers, uBad = [];
   const esc = s => s.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&');
   const RETIRED = new Set(['/assets/anim/fx/vael_ult.webp', '/assets/anim/hollow/hollow_green_1126.webp']);   // v1171: replaced in place by vael_last_stand_16oct.webp (the file stays on disk; tests/test_vael_fx_1171.js); v1191: Hollow's green clip replaced by hollow_green_1191.webp (tests/test_hollow_fx_1191.js)
@@ -97,6 +111,7 @@ try {
   const norm = s => s.split(String.fromCharCode(13, 10)).join(String.fromCharCode(10)).replace(/const BUILD_ID = '\d+';/, "const BUILD_ID = 'X';").replace("tiers_1141.json?v=1158'", "tiers_1141.json?v=1141'");
   ck('with the q95 URLs put back the page is BASE byte for byte (apart from the build stamp) and the tier table is BASE\'s', norm(Q.undoText(relPage)) === norm(bPage) && norm(Q.undoText(relTiers)) === norm(bTiers));
   ck('CONTROL: one URL left at ?v=1158 breaks that equality', norm(Q.undoText(relPage).replace(FIX.sheets[0].path + FIX.sheets[0].old_v, FIX.sheets[0].path + '?v=1158')) !== norm(bPage));
+  }
 } catch (e) { fail++; console.log('  FAIL threw: ' + (e && e.stack || e)); }
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exitCode = fail ? 1 : 0;
