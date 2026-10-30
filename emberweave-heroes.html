@@ -24794,7 +24794,7 @@ function queueTeleGhosts(){ if(_teleGhostRaf)return; _teleGhostRaf=requestAnimat
 function worldZoomBounds(zone){
   const cell=WORLD_W/GRID_COLS;
   const min=Math.min(zone.clientWidth/WORLD_W,zone.clientHeight/REALM_H_PX);   // v1226 (Phil: "Max zoom out should be able to see the full map"): the whole realm fits; open sea fills the rest
-  const max=zone.clientWidth/(16*cell);   /* v1226 (Phil 30 Oct 2026: "Final zoom in I should be able to see the tiles covering my screen. So I think 16 by 9 tiles?"): 16 squares across; a phone landscape shows ~8 down. v1227: of the GRID_COLS grid (1000), so 4.5x closer than the 220 grid */
+  const max=zone.clientWidth/(32*cell);   /* v1228 (Phil 30 Oct 2026, a screenshot ~31 squares across: "make this the closest i can zoom in"): max zoom = 32 squares across (was 16) */   /* v1226 (Phil 30 Oct 2026: "Final zoom in I should be able to see the tiles covering my screen. So I think 16 by 9 tiles?"): 16 squares across; a phone landscape shows ~8 down. v1227: of the GRID_COLS grid (1000), so 4.5x closer than the 220 grid */
   return {min,max:Math.max(min,max)};
 }
 function applyWorldZoom(){ const inner=document.getElementById('wzoneInner'), zone=document.getElementById('wzone'); if(typeof mapViewChangedSoon==='function') mapViewChangedSoon();   /* v1124: zooming out loads the new tiles */
