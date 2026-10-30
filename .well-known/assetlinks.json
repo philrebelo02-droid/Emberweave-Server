@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.emberweave.heroes",
+      "sha256_cert_fingerprints": [
+        "17:56:1C:F7:05:C3:0A:C4:92:98:CF:1D:97:D0:71:29:2B:B0:A9:07:A7:9B:96:62:3D:F4:E7:E3:A7:FF:71:F7"
+      ]
+    }
+  }
+]
