@@ -599,6 +599,8 @@ note "test_city_siege_1235.js (v1235 city siege: hover sword, panel, 20-square g
 node tests/test_city_siege_1235.js || FAILED=1
 note "test_city_garrison_1237.js (v1237 city garrison: stays after a win, N/8 or N/10, Defense / View Garrison, guild-only)"
 node tests/test_city_garrison_1237.js || FAILED=1
+note "test_assetlinks_android.js (v1238 Google Play: /.well-known/assetlinks.json served as JSON for com.emberweave.heroes)"
+node tests/test_assetlinks_android.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi
