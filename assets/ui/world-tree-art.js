@@ -4,7 +4,7 @@
   const REALM=root.EmberweaveRealm||(typeof module==='object'&&module.exports?require('../../world-realm.js'):null);
   const BASE='/assets/img/world-map/realm-'+(REALM?REALM.META.version:'v12')+'/tree/';
   const V=root.EW_REALM_ASSET_V||'1';
-  let current=null;
+  let current=null,lastSrc=null,lastFrame=null;   // 30 Oct 2026: the stage last shown, so a redrawn map starts on it (never a flash of another frame)
   function frameFor(phase){
     // v1226 (Phil 30 Oct 2026): the stepped cycle (world-tree-cycle.js) names the frame - one per New York day while it decays,
     // one per hour in the event, all 28 frames (wt_01 = the last decay day and the first event hour)
@@ -15,12 +15,14 @@
     if(current)current.stop();
     const target=inner.querySelector('#worldTreeTerrain');if(!target)return null;
     let stopped=false,requested=null,pending=null,generation=0;
+    if(lastSrc){target.src=lastSrc;target.dataset.worldTreeFrame=String(lastFrame);target.style.visibility='';requested=lastFrame;}
+    else{target.style.visibility='hidden';const fb=setTimeout(()=>{if(!stopped&&!lastSrc&&target.isConnected){target.src=BASE+'wt_28.webp?v='+V;target.style.visibility='';}},4000);target._wtFallback=fb;}
     function update(event){
       const frame=frameFor(event.detail);if(frame===null||frame===requested||stopped)return;
       requested=frame;const ticket=++generation;
       if(pending){pending.onload=null;pending.onerror=null;}
       const image=new Image();pending=image;
-      image.onload=()=>{if(!stopped&&ticket===generation&&target.isConnected){target.src=image.src;target.dataset.worldTreeFrame=String(frame);pending=null;}};
+      image.onload=()=>{if(!stopped&&ticket===generation&&target.isConnected){target.src=image.src;target.dataset.worldTreeFrame=String(frame);target.style.visibility='';lastSrc=image.src;lastFrame=frame;if(target._wtFallback)clearTimeout(target._wtFallback);pending=null;}};
       image.onerror=()=>{if(ticket===generation){requested=null;pending=null;}};
       image.src=BASE+'wt_'+String(frame).padStart(2,'0')+'.webp?v='+V;
     }

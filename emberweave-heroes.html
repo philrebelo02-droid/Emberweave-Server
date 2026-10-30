@@ -2756,7 +2756,7 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 <script src="/assets/ui/skill-preview-stage.js?v=sp1206"></script>
 <script src="/world-realm.js?v=realm-v25-g1000x596-1227b"></script>
 <script src="/assets/ui/world-tree-cycle.js?v=wt5"></script>
-<script src="/assets/ui/world-tree-art.js?v=wt4"></script>
+<script src="/assets/ui/world-tree-art.js?v=wt-noflash-30oct"></script>
 <script src="/assets/ui/world-oasis-markers.js?v=om-g1000-v2"></script>
 <script src="/assets/ui/world-tree-countdown.js?v=wt4"></script>
 <script src="/assets/ui/world-tree-control-ui.js?v=wc6-g1000"></script>
@@ -25007,7 +25007,7 @@ function renderWorldMap(keepView){
     go.style.cssText=`inset:auto;left:0;width:100%;top:${REALM_MAP.GEO.Y0}%;height:${GRID_ROWS*GRID_CELL}%;background-size:${100/GRID_COLS}% ${100/GRID_ROWS}%`; inner.appendChild(go); }
   // The landmark is part of the terrain at the same world coordinates at every picture level.
   // Feather only its outer edge; the middle preserves the tree, rooted stone and contact shadow.
-  const treeTerrain=document.createElement('img'); treeTerrain.id='worldTreeTerrain'; treeTerrain.src=WORLDTREE_TERRAIN_IMG;
+  const treeTerrain=document.createElement('img'); treeTerrain.id='worldTreeTerrain';   // 30 Oct 2026 (Phil: 'sometimes a flash of the full tree appears'): no default frame - world-tree-art.js shows the current stage only (wt_28 only if no stage arrives)
   { const T=REALM_MAP.META.tree, side=T.sideCells*GRID_CELL;   // v1226: the transparent tree frame, centred on the trunk (v1227: grid corner T.cx, row T.cy)
     treeTerrain.draggable=false; treeTerrain.style.cssText=`position:absolute;left:${T.cx*GRID_CELL-side/2}%;top:${REALM_MAP.GEO.Y0+T.cy*GRID_CELL-side/2}%;width:${side}%;height:${side}%;z-index:1;pointer-events:none`; }
   inner.appendChild(treeTerrain);
