@@ -24973,7 +24973,7 @@ function renderWorldMap(keepView){
   const head=document.createElement('div'); head.className='wmhud-top';   // v1227: one slim translucent row over the full-bleed map
   head.innerHTML=`<button class="btn sm secondary" id="wmCity">🏰 City</button>`
     +`<button class="btn sm secondary" id="wmBack">${statusIcon('mark')} Base</button>`
-    +`<span class="pill" style="font-weight:800">${cz.type==='worldtree'?'🌳 ':''}${cz.name}${czone==='worldtree'?' · Void: half speed':''}</span>`
+    +`<span class="pill" style="font-weight:800">${cz.name}${czone==='worldtree'?' · Void: half speed':''}</span>`
     +`<button class="btn sm secondary" id="wbInfo">${uiIcon('info')}</button>`
     +`<button class="btn sm secondary" id="wbTele" style="${_teleMode?'color:#46e07a;border-color:#2f6b45':''}">${uiIcon('sparkle-new')} ${_teleMode?'Cancel':teleportTotal()+'('+teleportsLeft()+')'}</button>`
     +`<button class="btn sm secondary" id="wbGrid">▦</button>`
@@ -24995,7 +24995,7 @@ function renderWorldMap(keepView){
     const locked=(z.type==='region'&&key!==myRegion()), accessible=zoneAccessible(key);
     const pane=document.createElement('div'); pane.className='worldZonePane';
     pane.style.cssText=`position:absolute;left:${REALM_MAP.GEO.xOf(at[0])}%;top:${REALM_MAP.GEO.yOf(at[1])}%;width:0;height:0;background:transparent;pointer-events:none`;
-    pane.innerHTML=`<div class="worldZoneLabel" style="position:absolute;top:0;left:0;transform:translate(-50%,-50%);font-weight:900;font-size:15px;color:#fff;text-shadow:0 1px 4px #000,0 0 8px #000;white-space:nowrap;pointer-events:none;z-index:2">${z.type==='worldtree'?'🌳 ':''}${z.name}${_teleMode?(accessible?' '+uiIcon('check'):' '+uiIcon('blocked')):(key===myRegion()?' 🏰':locked?' '+hudIcon('lock'):'')}</div>`;
+    pane.innerHTML=`<div class="worldZoneLabel" style="position:absolute;top:0;left:0;transform:translate(-50%,-50%);font-weight:900;font-size:15px;color:#fff;text-shadow:0 1px 4px #000,0 0 8px #000;white-space:nowrap;pointer-events:none;z-index:2">${z.name}${_teleMode?(accessible?' '+uiIcon('check'):' '+uiIcon('blocked')):(key===myRegion()?' '+uiIcon('map-pin'):locked?' '+hudIcon('lock'):'')}</div>`;
     // teleport ghosts are drawn per-cell by refreshTeleGhosts() (skips cells that already have a real castle/mine)
     inner.appendChild(pane); }
   if(_teleMode){ /* v1226: closed regions keep the soft dark veil in teleport mode - drawn per land cell of the realm, smoothed by the browser */
@@ -25868,9 +25868,9 @@ function closeCityMenu(){ if(cityMenuEl){ cityMenuEl.remove(); cityMenuEl=null; 
 // The World Tree can be attacked — but that's locked behind a Coming Soon gate for now.
 function openWorldTreeMenu(){ closeCityMenu();const actions=worldTreeActionsUI();if(actions){actions.open('tree');return;} const inner=document.getElementById('wzoneInner'); if(!inner)return;
   const pop=document.createElement('div'); pop.className='citymenu'; pop.style.left='50%'; pop.style.top='50%'; pop.style.transform='translate(-50%,-140%)'; pop.style.zoom=(1/worldZoom);
-  pop.innerHTML=`<div class="cm-t">🌳 The World Tree</div><div style="font-size:10px;color:#8b98a9;padding:2px 4px 4px">The heart of the world — everyone can teleport around it, but not onto it.</div><button class="cm-b" data-a="wtattack">${statusIcon('attack')} Attack · ${hudIcon('lock')} Coming Soon</button>`;
+  pop.innerHTML=`<div class="cm-t">The World Tree</div><div style="font-size:10px;color:#8b98a9;padding:2px 4px 4px">The heart of the world — everyone can teleport around it, but not onto it.</div><button class="cm-b" data-a="wtattack">${statusIcon('attack')} Attack · ${hudIcon('lock')} Coming Soon</button>`;
   inner.appendChild(pop); cityMenuEl=pop; pop.addEventListener('click',e=>e.stopPropagation());
-  pop.querySelector('[data-a="wtattack"]').onclick=()=>{ closeCityMenu(); bannerMsg('🌳 Attacking the World Tree is coming soon.'); };
+  pop.querySelector('[data-a="wtattack"]').onclick=()=>{ closeCityMenu(); bannerMsg('Attacking the World Tree is coming soon.'); };
 }
 function openCityMenu(c){
   closeCityMenu(); const inner=document.getElementById('wzoneInner'); if(!inner)return;
