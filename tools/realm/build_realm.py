@@ -380,6 +380,13 @@ def sea_pad(cover, out, files):
     if water_mask(q).mean() < 0.98:
         sys.exit('sea pad: the cover corner is not open sea')
     t = np.concatenate([np.concatenate([q, q[:, ::-1]], 1), np.concatenate([q[::-1], q[::-1, ::-1]], 1)], 0)
+    # v1228 (Phil 30 Oct 2026: "the ingame ocean when you zoom out expanded isnt the same blue as the rest of the ocean"): the corner patch
+    # is a little darker than the sea along the realm's left and right edges, where the pad meets it - shift the pad's mean colour to
+    # the mean of the open-sea pixels in a 2 % strip at each side edge (texture kept)
+    s = max(4, int(cover.shape[1] * 0.02))
+    strips = np.concatenate([cover[:, :s].reshape(-1, 3), cover[:, -s:].reshape(-1, 3)], 0)
+    strips = strips[water_mask(strips.reshape(-1, 1, 3)).reshape(-1)]
+    t = np.clip(t.astype(np.float32) + (strips.astype(np.float32).mean(0) - t.reshape(-1, 3).astype(np.float32).mean(0)) + 0.5, 0, 255).astype(np.uint8)
     p = os.path.join(out, 'sea-pad.webp'); Image.fromarray(np.ascontiguousarray(t)).save(p, 'WEBP', quality=WEBP_Q, method=6); files['sea-pad.webp'] = p
 
 
