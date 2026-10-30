@@ -24230,8 +24230,13 @@ function mapViewChangedSoon(){ clearTimeout(_rcViewT); _rcViewT=setTimeout(()=>{
 /* v1127 ZOOM GATE (Phil 11 Oct 2026: "map shouldnt even render castles or mines until you are able to see the 3rd zoom in"): castles
    and mines exist on the map only at the third picture level (the close pieces, a view at most a third of the map wide and high).
    Further out nothing is requested and nothing is drawn - your castle and your war / march targets show as small markers. */
+/* v1228 (Phil 30 Oct 2026, two screenshots: 'please dont make mines and castles appear this far zoomed out' - the view about 400 squares wide -
+   'this is a better zoom level to be able to start to see castles' - about 150 wide): castles and mines show only when at most
+   WM_PIECES_MAX_SQ squares fit across the screen, measured in squares so a phone and a PC agree */
+const WM_PIECES_MAX_SQ=160;
+function wmSquaresAcross(zone){ return zone&&worldZoom?(zone.clientWidth/worldZoom)/(WORLD_W/GRID_COLS):Infinity; }
 function mapDetailsOn(){ const zone=document.getElementById('wzone'); if(!zone||!worldZoom||!zone.clientWidth||!zone.clientHeight) return false;
-  return worldPictureLevelForViewport(zone.clientWidth/worldZoom,zone.clientHeight/worldZoom)===9; }
+  return worldPictureLevelForViewport(zone.clientWidth/worldZoom,zone.clientHeight/worldZoom)===9 && wmSquaresAcross(zone)<=WM_PIECES_MAX_SQ; }
 function cityTeamFetch(c){
   if(!c||!c.real||!ACC.token||!online()||_rcTeams.has(c.id)) return Promise.resolve(c&&c.team);
   return api('/api/world/city?id='+encodeURIComponent(c.id)).then(d=>{
@@ -24721,7 +24726,7 @@ function applyMapLOD(){ const inner=document.getElementById('wzoneInner'); if(!i
   inner.dataset.pictureCol=String((closeTiles[0]||middleTiles[0]||{col:0}).col);
   inner.dataset.pictureRow=String((closeTiles[0]||middleTiles[0]||{row:0}).row);
   queueTeleGhosts();
-  const detailsOn=level===9;   /* v1127 zoom gate: castles + mines are built only at the close level and removed (not hidden) further out */
+  const detailsOn=level===9&&wmSquaresAcross(zone)<=WM_PIECES_MAX_SQ;   /* v1228: also at most WM_PIECES_MAX_SQ squares across */   /* v1127 zoom gate: castles + mines are built only at the close level and removed (not hidden) further out */
   if(detailsOn&&inner.dataset.details!=='1'){ inner.dataset.details='1'; drawMapDetails(inner); mapViewChangedSoon(); }
   else if(!detailsOn&&inner.dataset.details!=='0'){ inner.dataset.details='0'; inner.querySelectorAll('.wnode.city:not(.me),.wnode.mine').forEach(el=>el.remove()); }
   inner.classList.toggle('wfar',!detailsOn); mapFarMarks(inner,!detailsOn);
@@ -24744,7 +24749,7 @@ function mapFarTargets(){ const out=new Map();
   try{ worldVisualMarchRows(activeMarches()).forEach(m=>{ if(m&&m.ctype!=='mine'&&m.dir!=='in'&&Number.isFinite(+m.fx)&&Number.isFinite(+m.fy)) out.set((+m.fx).toFixed(2)+','+(+m.fy).toFixed(2),{x:+m.fx,y:+m.fy}); }); }catch(e){}
   return [...out.values()]; }
 function mapZoomCloseAt(px,py){ const zone=document.getElementById('wzone'); if(!zone)return; closeCityMenu();
-  const b=worldZoomBounds(zone), z9=Math.max(3*zone.clientWidth/WORLD_W,3*zone.clientHeight/WORLD_H)*1.05;
+  const b=worldZoomBounds(zone), z9=Math.max(3*zone.clientWidth/WORLD_W,3*zone.clientHeight/WORLD_H,zone.clientWidth/(WM_PIECES_MAX_SQ*WORLD_W/GRID_COLS))*1.05;   // v1228: close enough that castles + mines show (<= WM_PIECES_MAX_SQ across)
   worldZoom=Math.max(b.min,Math.min(b.max,z9)); applyWorldZoom();
   zone.scrollLeft=px/100*WORLD_W*worldZoom-zone.clientWidth/2; wzSetTop(zone,py/100*WORLD_H-zone.clientHeight/2/worldZoom); applyMapLOD(); }
 function mapFarMarks(inner,on){ let lay=inner.querySelector('#wFarMarks');
