@@ -1,10 +1,16 @@
 (function(root){
   'use strict';
   let current=null;
+  // v1228 (Phil 30 Oct 2026: "also the timer is gone"): the timer sits just under the drawn tree's root tips - the frame (side sideCells,
+  // centred on META.tree cx,cy) ends its roots at y ~845/1254 of its height (v899) - in world-percent, so it moves with the tree
+  const ROOT_TIPS=845/1254, GAP_CELLS=0.6;
+  function treeAnchor(){const R=root.EmberweaveRealm,T=R&&R.META&&R.META.tree,G=R&&R.GEO;
+    if(!T||!G)return {x:50,y:50};   // no realm module (never in the game): the world centre
+    return {x:T.cx*G.CELL,y:G.Y0+(T.cy-T.sideCells/2+T.sideCells*ROOT_TIPS+GAP_CELLS)*G.CELL};}
   function mount(inner){
     if(current)current.stop();
     const node=document.createElement('div');node.id='worldTreeCountdown';node.className='wnode';
-    node.style.cssText='left:50%;top:51.98%;transform:translate(-50%,0);z-index:6;pointer-events:none;cursor:default';   /* v899: the bottom of the roots (wt_02..28 root tips end at y~845/1254; overlay spans 44.444-55.556%) */
+    node.style.cssText='left:'+treeAnchor().x+'%;top:'+treeAnchor().y+'%;transform:translate(-50%,0);z-index:6;pointer-events:none;cursor:default';   /* v1228: just under the tree's root tips, from META.tree */
     const box=document.createElement('div');box.className='wlab';
     box.style.cssText='position:relative;left:auto;top:auto;transform:none;transform-origin:center top;background:none;border:0;padding:0;box-shadow:none;text-shadow:0 0 3px #000,0 1px 2px #000,0 0 6px #000c';   /* v899 (Phil): no box, just the text */
     const label=document.createElement('div');label.className='nl';label.textContent='World Tree';
@@ -46,5 +52,5 @@
     let ticks=0;interval=setInterval(()=>{draw();if(++ticks%30===0)sync();},1000);
     current={node,stop,setZoom:zoom=>{if(Number.isFinite(zoom)&&zoom>0){box.style.zoom=String(1/zoom);node.style.marginTop='0';}}};sync();return current;
   }
-  root.EmberweaveWorldTreeCountdown={mount,stop:()=>current?.stop(),setZoom:zoom=>current?.setZoom(zoom)};
+  root.EmberweaveWorldTreeCountdown={mount,stop:()=>current?.stop(),setZoom:zoom=>current?.setZoom(zoom),treeAnchor};
 })(window);

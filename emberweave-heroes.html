@@ -690,7 +690,7 @@
   #wzoneInner .wnode.city .castle-spr,#wzoneInner .wnode.mine .wm-mine-spr{height:var(--wm-sq,11px);width:var(--wm-sq,11px);object-fit:contain;margin:0;}
   #wzoneInner .wnode .wlab{top:calc(50% + var(--wm-sq,11px)/2);}
   #wzoneInner .wnode .wlab .nl{text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000,0 0 3px #000;}
-  #wzoneInner.wm-nolab .wnode .wlab{display:none;}
+  #wzoneInner.wm-nolab .wnode:not(#worldTreeCountdown) .wlab{display:none;}   /* v1228: the World Tree timer is a landmark, not a piece - it shows at every zoom */
   .wnode.cd .ic{opacity:.45;} .wnode.cd{cursor:default;}
   .wnode.city .ic{background:rgba(30,20,40,.75);border-color:#6a4a7a;}
   .wnode.me .ic{background:rgba(40,30,12,.85);border-color:#ffd45e;box-shadow:0 0 16px rgba(255,212,94,.55);}
@@ -2760,7 +2760,7 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 <script src="/assets/ui/world-tree-cycle.js?v=wt5"></script>
 <script src="/assets/ui/world-tree-art.js?v=wt-noflash-1228b"></script>
 <script src="/assets/ui/world-oasis-markers.js?v=om-ponds-1228"></script>
-<script src="/assets/ui/world-tree-countdown.js?v=wt4"></script>
+<script src="/assets/ui/world-tree-countdown.js?v=wt5-roots-1228"></script>
 <script src="/assets/ui/world-tree-control-ui.js?v=wc7-ponds"></script>
 <script src="/assets/ui/world-tree-actions-ui.js?v=wa3-ponds"></script>
 <script src="/assets/ui/guild-war-calendar.js?v=gw1"></script>
@@ -25014,8 +25014,11 @@ function renderWorldMap(keepView){
   for(const key of Object.keys(ZONES)){ const z=ZONES[key], at=REALM_MAP.META.labels[key]; if(!at) continue;
     const locked=(z.type==='region'&&key!==myRegion()), accessible=zoneAccessible(key);
     const pane=document.createElement('div'); pane.className='worldZonePane';
-    pane.style.cssText=`position:absolute;left:${REALM_MAP.GEO.xOf(at[0])}%;top:${REALM_MAP.GEO.yOf(at[1])}%;width:0;height:0;background:transparent;pointer-events:none`;
-    pane.innerHTML=`<div class="worldZoneLabel" style="position:absolute;top:0;left:0;transform:translate(-50%,-50%);font-weight:900;font-size:15px;color:#fff;text-shadow:0 1px 4px #000,0 0 8px #000;white-space:nowrap;pointer-events:none;z-index:2">${z.name}${_teleMode?(accessible?' '+uiIcon('check'):' '+uiIcon('blocked')):(key===myRegion()?' '+uiIcon('map-pin'):locked?' '+hudIcon('lock'):'')}</div>`;
+    /* v1228 (Phil 30 Oct 2026: "the world tree text needs to get off the tree"): the World Tree's name sits just ABOVE the tree's frame,
+       never on the canopy; every other zone name stays on its own land */
+    const TT=REALM_MAP.META.tree, onTree=key==='worldtree', px=onTree?TT.cx*GRID_CELL:REALM_MAP.GEO.xOf(at[0]), py=onTree?REALM_MAP.GEO.Y0+(TT.cy-TT.sideCells/2)*GRID_CELL:REALM_MAP.GEO.yOf(at[1]);
+    pane.style.cssText=`position:absolute;left:${px}%;top:${py}%;width:0;height:0;background:transparent;pointer-events:none`;
+    pane.innerHTML=`<div class="worldZoneLabel" style="position:absolute;top:0;left:0;transform:translate(-50%,${onTree?'-100%':'-50%'});font-weight:900;font-size:15px;color:#fff;text-shadow:0 1px 4px #000,0 0 8px #000;white-space:nowrap;pointer-events:none;z-index:2">${z.name}${_teleMode?(accessible?' '+uiIcon('check'):' '+uiIcon('blocked')):(key===myRegion()?' '+uiIcon('map-pin'):locked?' '+hudIcon('lock'):'')}</div>`;
     // teleport ghosts are drawn per-cell by refreshTeleGhosts() (skips cells that already have a real castle/mine)
     inner.appendChild(pane); }
   if(_teleMode){ /* v1226: closed regions keep the soft dark veil in teleport mode - drawn per land cell of the realm, smoothed by the browser */
@@ -30943,7 +30946,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1793400309445';
+const BUILD_ID = '1793400330579';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
