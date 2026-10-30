@@ -10,3 +10,6 @@ save1.json
 wsave.json
 tests/fixture-*/
 _to_delete/
+
+__pycache__/
+*.pyc
