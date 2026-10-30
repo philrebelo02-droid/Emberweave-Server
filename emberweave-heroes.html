@@ -24641,7 +24641,7 @@ function worldNodes(){
   return nodes;
 }
 let worldZoom=1.6;   // v1227: opens where a castle (one square of the 1000-grid) is ~18 px and its name shows (~38 squares across a phone)
-const WM_LABEL_MIN_ZOOM=1.2;   // v1227: below this zoom (a square < 13 screen px) castle / mine labels would overlap into mush: hidden
+const WM_LABEL_MAX_SQ=64;   // v1228: castle / mine names show only when at most 64 squares fit across the screen - the same on a phone and a PC (was a zoom of 1.2, which on a 2000 px PC showed names at 150 across, crowded)
 // ---- world-map level of detail: cull markers by how many grid squares the viewport currently shows ----
 const GHOST_MAX_SQ=52;      // v1227: teleport ghosts (one per open square) only render when the view spans <= 52 squares (the full-bleed phone view at the opening zoom; 1300 ghosts at most)
 // Picture hierarchy is one continuous world: 1 cover, 3×3 middle pieces, 9×9 close pieces.
@@ -24808,10 +24808,10 @@ function worldZoomBounds(zone){
 function applyWorldZoom(){ const inner=document.getElementById('wzoneInner'), zone=document.getElementById('wzone'); if(typeof mapViewChangedSoon==='function') mapViewChangedSoon();   /* v1124: zooming out loads the new tiles */
   if(inner){ inner.style.zoom=worldZoom;
     /* v1227: a piece = one square (--wm-sq world px); its tap box is never under 28 screen px; labels read at 10-13 screen px whatever
-       the zoom, and hide below WM_LABEL_MIN_ZOOM where neighbours' names would run together */
+       the zoom, and hide when more than WM_LABEL_MAX_SQ squares fit across (neighbours' names would run together) */
     { const sq=WORLD_W/GRID_COLS, fontPx=Math.max(10,Math.min(13,10*worldZoom));
       inner.style.setProperty('--wm-sq',sq+'px'); inner.style.setProperty('--wm-hit',Math.max(sq,28/worldZoom).toFixed(3)+'px');
-      inner.style.setProperty('--wm-lab',(fontPx/(10*worldZoom)).toFixed(4)); inner.classList.toggle('wm-nolab',worldZoom<WM_LABEL_MIN_ZOOM); }
+      inner.style.setProperty('--wm-lab',(fontPx/(10*worldZoom)).toFixed(4)); inner.classList.toggle('wm-nolab',!zone||wmSquaresAcross(zone)>WM_LABEL_MAX_SQ); }
     const clip=document.getElementById('wzoneClip'); if(clip){ clip.style.width=(WORLD_W*worldZoom)+'px'; clip.style.height=(REALM_H_PX*worldZoom)+'px';
       if(zone){ _wmPadX=Math.max(0,(zone.clientWidth-WORLD_W*worldZoom)/2);
         /* v1227: the HUD floats over the full-bleed map; the scroll range reaches past the realm's top and bottom by the HUD's own
