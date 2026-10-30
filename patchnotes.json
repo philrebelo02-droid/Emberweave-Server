@@ -1,5 +1,6 @@
 {
   "patches": [
+    {"ver": "0.97.7", "date": "30 October 2026", "title": "A finer world map", "items": ["The world map grid is finer: 1000 squares across. Each castle fits in one square, and mines sit where four squares meet.", "Zoom in much closer: the tightest view is 16 of the new squares across.", "The map now fills the whole screen, and the buttons are slimmer and see-through. The bottom bar folds away with the small arrow.", "Castle names show on two lines, and mines show just their level."]},
     {"ver": "0.97.6", "date": "30 October 2026", "title": "The realm map: the whole world in one picture", "items": [
       "The world map is now one painted realm: 4 continents around the World Tree island, with the wild islands out in the sea between them.",
       "12 cities sit on their own land, and the wild regions keep their own names.",
