@@ -91,17 +91,20 @@ async function run(){
     await page.evaluate(()=>show('world'));
     await page.waitForFunction(()=>_worldServerAccount===ACC.token&&G.regionChosen,null,{timeout:10000});
     assert.equal(await page.locator('#regionPicker').count(),0,'no player starting-region picker');
+    /* v1226 realm map (Phil 30 Oct 2026): Grok's realm replaces the v02 picture. The sea is blocked terrain, regions are the
+       continents, the picture is a zoom pyramid clamped to the realm's edges, the tree is drawn per cycle state on its island. */
+    const realmBlocked=require('../world-realm.js').blockedKeys().length;
     const teleportMap=await page.evaluate(async ()=>{
       let zone=document.getElementById('wzone');
       const settle=()=>new Promise(ok=>requestAnimationFrame(()=>requestAnimationFrame(ok)));
       const blocked=_worldTerrainBlocked;
-      const samples=[]; let paneBorders=0,veiledPanes=0;
+      const samples=[]; let paneBorders=0,veiled=0;
       for(const factor of [0,0.5,1]){
         const {min,max}=worldZoomBounds(zone);
         worldZoomTo(min+(max-min)*factor);
         const home=myCastlePos();
         zone.scrollLeft=Math.max(0,home.x/100*WORLD_W*worldZoom-zone.clientWidth/2);
-        zone.scrollTop=Math.max(0,home.y/100*WORLD_H*worldZoom-zone.clientHeight/2);
+        wzSetTop(zone,home.y/100*WORLD_H-zone.clientHeight/2/worldZoom);
         enterTeleMode(); await settle(); zone=document.getElementById('wzone'); refreshTeleGhosts();
         const ghosts=[...document.querySelectorAll('#teleGhostLayer img')].map(img=>{
           const x=Math.floor(parseFloat(img.style.left)/GRID_CELL);
@@ -110,12 +113,13 @@ async function run(){
         });
         const panes=[...document.querySelectorAll('#wzoneInner .worldZonePane')];
         paneBorders+=panes.filter(p=>p.style.boxShadow||p.style.border).length;
-        veiledPanes=Math.max(veiledPanes,panes.filter(p=>p.style.background==='rgba(0, 0, 0, 0.35)').length);
+        veiled=Math.max(veiled,+(document.getElementById('teleVeil')?.dataset.veiled||0));
         samples.push({zoom:worldZoom,count:ghosts.length,
           blockedGhosts:ghosts.filter(key=>blocked.has(key)).length,
+          seaGhosts:ghosts.filter(key=>{const [x,y]=key.split(',').map(Number);return !REALM_MAP.isLand(x,y);}).length,
           closedGhosts:ghosts.filter(key=>{
             const [x,y]=key.split(',').map(Number);
-            return !zoneAccessible(zoneAt(zoneIndexForCell(x),zoneIndexForCell(y)));
+            return !zoneAccessible(REALM_MAP.zoneOfCell(x,y));
           }).length});
         toggleTeleMode(); await settle(); zone=document.getElementById('wzone');
       }
@@ -133,21 +137,27 @@ async function run(){
       await settle(); const refused=snap();
       const confirmOpen=!!document.getElementById('_gcYes');
       toggleTeleMode(); await settle();
-      return {blockedCount:blocked.size,samples,before,entered,cancelled,refused,confirmOpen,
-        paneBorders,veiledPanes};
+      const veilOff=!document.getElementById('teleVeil');
+      return {blockedCount:blocked.size,samples,before,entered,cancelled,refused,confirmOpen,paneBorders,veiled,veilOff};
     });
-    assert.equal(teleportMap.blockedCount,995,'browser receives the server-owned terrain mask');
-    assert.ok(teleportMap.samples.every(s=>s.blockedGhosts===0&&s.closedGhosts===0),
-      'teleport ghosts never occupy blocked terrain or closed zones at any zoom');
-    assert.ok(teleportMap.samples.some(s=>s.count>0),'available floor still shows teleport ghosts at close zoom');
+    assert.equal(teleportMap.blockedCount,realmBlocked,'browser reads the realm\'s sea from world-realm.js');
+    assert.equal(teleportMap.blockedCount,require('../server/world-terrain-blocked.json').count,'and it is the server\'s blocked list');
+    assert.ok(teleportMap.samples.every(s=>s.blockedGhosts===0&&s.seaGhosts===0&&s.closedGhosts===0),
+      'teleport ghosts never occupy sea, blocked terrain or closed zones at any zoom');
+    assert.ok(teleportMap.samples.some(s=>s.count>0),'open land still shows teleport ghosts at close zoom');
     assert.deepEqual(teleportMap.entered,teleportMap.before,'entering teleport keeps scroll and zoom');
     assert.deepEqual(teleportMap.cancelled,teleportMap.before,'cancelling teleport keeps scroll and zoom');
-    assert.deepEqual(teleportMap.refused,teleportMap.before,'refused terrain tap keeps scroll and zoom');
-    assert.equal(teleportMap.confirmOpen,false,'blocked terrain never opens teleport confirmation');
+    assert.deepEqual(teleportMap.refused,teleportMap.before,'refused sea tap keeps scroll and zoom');
+    assert.equal(teleportMap.confirmOpen,false,'sea never opens teleport confirmation');
     assert.equal(teleportMap.paneBorders,0,'teleport zones have no bright boundary line');
-    assert.ok(teleportMap.veiledPanes>0,'closed teleport regions have the soft dark veil');
+    assert.ok(teleportMap.veiled>1000,'closed regions\' land has the soft dark veil in teleport mode');
+    assert.ok(teleportMap.veilOff,'the veil leaves with teleport mode');
     const terrainSamples=await page.evaluate(async ()=>{
-      const pairs=[['105,86','105,83'],['96,122','96,123'],['100,90','101,90'],['116,110','117,110']];
+      // four coast pairs of the player's own region: a sea square beside an open land square
+      const all=[],cells=REALM_MAP.zoneCells(myRegion()),occ=occupiedCells();
+      for(const [x,y] of cells){ if(occ.has(x+','+y)) continue;
+        for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]) if(!REALM_MAP.isLand(x+dx,y+dy)){all.push([(x+dx)+','+(y+dy),x+','+y]);break;}}
+      const pairs=[0,1,2,3].map(k=>all[Math.floor((k+0.5)*all.length/4)]);
       const settle=()=>new Promise(ok=>requestAnimationFrame(()=>requestAnimationFrame(ok)));
       const results=[];
       for(const fraction of [0,0.5,1]){
@@ -160,15 +170,14 @@ async function run(){
           const [bx,by]=blocked.split(',').map(Number);
           const [cx,cy]=control.split(',').map(Number);
           zone.scrollLeft=Math.max(0,(bx+0.5)/GRID_COLS*WORLD_W*worldZoom-zone.clientWidth/2);
-          zone.scrollTop=Math.max(0,(by+0.5)/GRID_COLS*WORLD_H*worldZoom-zone.clientHeight/2);
+          wzSetTop(zone,(by+0.5)/GRID_COLS*WORLD_H-zone.clientHeight/2/worldZoom);
           await settle(); refreshTeleGhosts();
           const ghosts=new Set([...document.querySelectorAll('#teleGhostLayer img')].map(img=>
             Math.floor(parseFloat(img.style.left)/GRID_CELL)+','+
             Math.floor(parseFloat(img.style.top)/GRID_CELL)));
           teleportPlace((bx+0.5)*GRID_CELL,(by+0.5)*GRID_CELL);
           const refused=!document.getElementById('_gcYes');
-          const floorOpen=!occupiedCells().has(control)&&
-            zoneAccessible(zoneAt(zoneIndexForCell(cx),zoneIndexForCell(cy)));
+          const floorOpen=!occupiedCells().has(control)&&zoneAccessible(REALM_MAP.zoneOfCell(cx,cy));
           let floorAccepted=null;
           if(fraction===1&&floorOpen){
             teleportPlace((cx+0.5)*GRID_CELL,(cy+0.5)*GRID_CELL);
@@ -183,128 +192,84 @@ async function run(){
       }
       return results;
     });
-    assert.equal(terrainSamples.length,12,'four Phil-approved terrain examples checked at three zooms');
+    assert.equal(terrainSamples.length,12,'four coast pairs of the home region checked at three zooms');
     assert.ok(terrainSamples.every(s=>s.maskBlocked&&s.maskFloorOpen&&!s.blockedGhost&&s.refused),
-      'crystal centre, rock edge, shard, and World Tree edge remain ghost-free and refused');
+      'the sea beside the coast is ghost-free and refused');
     assert.ok(terrainSamples.filter(s=>s.fraction===1).every(s=>s.floorOpen&&s.floorGhost&&s.floorAccepted),
-      'all four nearby floor controls show ghosts and open confirmation at close zoom');
-    const pictureGrid=await page.evaluate(()=>{
-      const sizes=[1,3,9].map(n=>worldPictureTile(n,Math.floor(n/2),Math.floor(n/2)));
-      const landmark={x:5500,y:5500};
-      const positions=sizes.map(tile=>({x:tile.left+(landmark.x-tile.left),y:tile.top+(landmark.y-tile.top)}));
-      const one=worldPictureForViewport(3600,4300,3700,4700);
-      const nine=worldPictureForViewport(5200,5200,5800,5800);
-      const three=worldPictureForViewport(4800,4300,5000,4700);
-      worldZoomTo(1.6);
-      const zone=document.getElementById('wzone');
-      zone.scrollLeft=5500*worldZoom-zone.clientWidth/2;
-      zone.scrollTop=5500*worldZoom-zone.clientHeight/2;
-      applyMapLOD();
-      const inner=document.getElementById('wzoneInner');
-      const zoneKeys=[[89,89],[90,89],[129,129],[130,130]].map(([cx,cy])=>zoneOfPos((cx+0.5)*GRID_CELL,(cy+0.5)*GRID_CELL));
-      const close=inner.querySelector('#worldPictureClose');
-      return {sizes,positions,one,three,nine,zoneKeys,closeSrc:close.querySelector('img')?.src,
-        live:{level:inner.dataset.pictureLevel,col:inner.dataset.pictureCol,row:inner.dataset.pictureRow}};
+      'the land beside it shows a ghost and opens confirmation at close zoom');
+    const pictureGrid=await page.evaluate(async ()=>{
+      const L=REALM_MAP.META.levels, zone=document.getElementById('wzone'), inner=document.getElementById('wzoneInner');
+      const lowest=realmLevelFor(worldZoomBounds(zone).min), deepest=realmLevelFor(worldZoomBounds(zone).max);
+      worldZoomTo(worldZoomBounds(zone).max);
+      zone.scrollLeft=5500*worldZoom-zone.clientWidth/2; wzSetTop(zone,5500-zone.clientHeight/2/worldZoom); applyMapLOD();
+      const tiles=[...inner.querySelectorAll('#realmTiles img')].map(i=>i.getAttribute('src'));
+      const zoneKeys=[[110,110],...['crystor','draymon','tefron','alumron'].map(k=>REALM_MAP.zoneCells(k)[0])].map(([cx,cy])=>zoneOfPos((cx+0.5)*GRID_CELL,(cy+0.5)*GRID_CELL));
+      return {levels:L.length,lowest:lowest.z,deepest:deepest.z,lastZ:L[L.length-1].z,tiles,zoneKeys,version:REALM_MAP.META.version,
+        live:{level:inner.dataset.pictureLevel,realm:inner.dataset.realmLevel},cover:inner.querySelector('#worldPictureMaster').getAttribute('src')};
     });
-    assert.deepEqual(pictureGrid.sizes.map(t=>t.cells),[220,220/3,220/9],'art thirds preserve the 220-cell gameplay world');
-    assert.deepEqual(pictureGrid.positions,[{x:5500,y:5500},{x:5500,y:5500},{x:5500,y:5500}],
-      'landmarks retain their world coordinates at all picture scales');
-    assert.deepEqual(pictureGrid.zoneKeys,['crystor','wildN','worldtree','alumron'],
-      'gameplay region boundaries follow 90/40/90, independently of art thirds');
-    assert.equal(pictureGrid.one.divisions,1,'crossing a middle-piece border selects the whole picture');
-    assert.equal(pictureGrid.three.divisions,3,'crossing a close-piece border selects a middle picture');
-    assert.equal(pictureGrid.nine.divisions,9,'a viewport inside one close piece selects that piece');
-    assert.deepEqual(pictureGrid.live,{level:'9',col:'4',row:'4'},'live map selects the close picture at its world position');
-    assert.match(pictureGrid.closeSrc,/world-v02-l2-r04-c04\.webp\?v=\d+$/,'close picture uses its exact indexed filename');
-    await page.waitForFunction(()=>document.querySelector('#worldPictureClose img')?.naturalWidth===1254,{timeout:10000});
-    await page.waitForFunction(()=>document.getElementById('worldTreeTerrain')?.naturalWidth===1254,{timeout:10000});
-    assert.equal(await page.locator('#worldTreeTarget img').count(),0,'World Tree is integrated terrain, not a floating sprite');
+    assert.equal(pictureGrid.lowest,pictureGrid.lastZ,'the whole-map view uses the cover level');
+    assert.ok(pictureGrid.deepest<pictureGrid.lowest,'the closest view uses a deeper level');
+    assert.ok(pictureGrid.tiles.length>0&&pictureGrid.tiles.every(src=>new RegExp('^/assets/img/world-map/realm-'+pictureGrid.version+'/tiles/z\\d+/r\\d\\dc\\d\\d\\.webp\\?v=').test(src)),'tiles stream per view, versioned');
+    assert.match(pictureGrid.cover,new RegExp('realm-'+pictureGrid.version+'/cover\\.webp\\?v='));
+    assert.deepEqual(pictureGrid.zoneKeys,['worldtree','crystor','draymon','tefron','alumron'],'zones are the realm\'s land masses');
+    assert.equal(pictureGrid.live.level,'9','castles and mines show at the close view');
+    await page.waitForFunction(()=>[...document.querySelectorAll('#realmTiles img')].every(i=>i.complete&&i.naturalWidth>0),{timeout:15000});
+    await page.waitForFunction(()=>document.getElementById('worldTreeTerrain')?.naturalWidth>0,{timeout:10000});
+    assert.equal(await page.locator('#worldTreeTarget img').count(),0,'World Tree is terrain on its island, not a floating sprite');
+    // the tree's tap target still opens the World Tree menu (its panel's own content is the World Tree UI's tests, unchanged)
+    await page.evaluate(()=>{window._wtOpened=0;const ui=worldTreeActionsUI();if(ui){const real=ui.open;ui.open=function(id){if(id==='tree')window._wtOpened++;return real.apply(this,arguments);};}
+      document.getElementById('worldTreeTarget').addEventListener('click',()=>{if(!worldTreeActionsUI())window._wtOpened++;},true);});
+    await page.addStyleTag({content:'#tutOffer{display:none!important}'});   // the tutorial offer card lies over the map in this fixture
     await page.locator('#worldTreeTarget').click({force:true});
-    assert.match(await page.locator('.citymenu .cm-t').textContent(),/World Tree/,'integrated landmark keeps its menu');
+    const wtDiag=await page.evaluate(()=>{const t=document.getElementById('worldTreeTarget').getBoundingClientRect();const top=document.elementFromPoint(t.left+t.width/2,t.top+t.height/2);return JSON.stringify({t:[t.left,t.top,t.width,t.height],top:top&&(top.id||top.className||top.tagName+' '+(top.parentElement&&(top.parentElement.id||top.parentElement.className))+' '+(top.getAttribute('src')||'').slice(0,60)),vw:innerWidth,vh:innerHeight,tele:_teleMode});});
+    assert.equal(await page.evaluate(()=>window._wtOpened),1,'tapping the tree on its island opens the World Tree menu '+wtDiag);
     await page.evaluate(()=>closeCityMenu());
     const boundaryTiles=await page.evaluate(()=>{
-      const zone=document.getElementById('wzone'),inner=document.getElementById('wzoneInner');
-      const inspect=x=>{
-        zone.scrollLeft=x*worldZoom-zone.clientWidth/2;
-        zone.scrollTop=5500*worldZoom-zone.clientHeight/2;
-        applyMapLOD();
-        return {level:inner.dataset.pictureLevel,
-          close:[...inner.querySelectorAll('#worldPictureClose img')].map(img=>img.dataset.tileKey),
-          middle:[...inner.querySelectorAll('#worldPictureMiddle img')].map(img=>img.dataset.tileKey)};
-      };
-      return {ninth:inspect(WORLD_W/9),third:inspect(WORLD_W/3)};
+      const zone=document.getElementById('wzone'),inner=document.getElementById('wzoneInner'),L=realmLevelFor(worldZoom),k=L.cellPx/50,T=REALM_MAP.META.tile;
+      zone.scrollLeft=(5*T/k)*worldZoom-zone.clientWidth/2; wzSetTop(zone,REALM_TOP_PX+4*T/k-zone.clientHeight/2/worldZoom); applyMapLOD();
+      return {level:inner.dataset.pictureLevel,tiles:[...inner.querySelectorAll('#realmTiles img')].map(img=>img.dataset.tileKey)};
     });
-    assert.equal(boundaryTiles.ninth.level,'9','crossing a ninth seam keeps close-detail art');
-    assert.ok(boundaryTiles.ninth.close.length>=2,'the viewport loads both neighboring ninths');
-    assert.equal(boundaryTiles.third.level,'9','crossing a third seam keeps close-detail art at this zoom');
-    assert.ok(boundaryTiles.third.close.length>=2 && boundaryTiles.third.middle.length>=2,
-      'the viewport loads close pieces and both middle placeholders across a third seam');
-    if(process.env.WORLD_MAP_QA_BOUNDARY_SCREENSHOT){
-      await page.waitForFunction(()=>[...document.querySelectorAll('#worldPictureClose img')]
-        .every(img=>img.complete&&img.naturalWidth===1254),{timeout:10000});
-      await page.locator('#wzone').screenshot({path:process.env.WORLD_MAP_QA_BOUNDARY_SCREENSHOT});
-    }
+    assert.equal(boundaryTiles.level,'9');
+    assert.ok(boundaryTiles.tiles.length>=4,'a view across a tile corner loads all four neighbours');
     if(process.env.WORLD_MAP_QA_SCREENSHOT){
-      const screenshotState=await page.evaluate(()=>{
-        worldZoomTo(1.6);
-        const zone=document.getElementById('wzone');
-        zone.scrollLeft=5500*worldZoom-zone.clientWidth/2;
-        zone.scrollTop=5500*worldZoom-zone.clientHeight/2;
-        applyMapLOD();
-        const inner=document.getElementById('wzoneInner');
-        return {level:inner.dataset.pictureLevel,col:inner.dataset.pictureCol,row:inner.dataset.pictureRow,
-          left:zone.scrollLeft,top:zone.scrollTop,closeDisplay:inner.querySelector('#worldPictureClose').style.display};
-      });
-      assert.deepEqual([screenshotState.level,screenshotState.col,screenshotState.row,screenshotState.closeDisplay],['9','4','4','']);
+      await page.waitForFunction(()=>[...document.querySelectorAll('#realmTiles img')].every(i=>i.complete),{timeout:15000});
       await page.locator('#wzone').screenshot({path:process.env.WORLD_MAP_QA_SCREENSHOT});
     }
-    const fallback=await page.evaluate(()=>{
-      const zone=document.getElementById('wzone');
-      zone.scrollLeft=600*worldZoom-zone.clientWidth/2;
-      zone.scrollTop=600*worldZoom-zone.clientHeight/2;
-      applyMapLOD();
-      const inner=document.getElementById('wzoneInner');
-      const local={level:inner.dataset.pictureLevel,closeSrc:inner.querySelector('#worldPictureClose img')?.src};
-      worldZoomTo(0.1); applyMapLOD();
-      return {local,overview:{level:inner.dataset.pictureLevel,master:inner.querySelector('#worldPictureMaster').style.display}};
-    });
-    assert.equal(fallback.local.level,'9','all completed close areas select their own detail picture');
-    assert.match(fallback.local.closeSrc,/world-v02-l2-r00-c00\.webp\?v=\d+$/);
-    assert.equal(fallback.overview.level,'1','crossing middle pictures selects the whole approved map');
-    assert.equal(fallback.overview.master,'block');
     const zoomRules=await page.evaluate(()=>{
       const zone=document.getElementById('wzone'),inner=document.getElementById('wzoneInner');
       worldZoomTo(0);
-      const low={zoom:worldZoom,expected:zone.clientWidth/WORLD_W,
-        horizontalRange:zone.scrollWidth-zone.clientWidth,city:inner.querySelector('.wnode.city:not(.me)')?'built':'none',
+      const low={zoom:worldZoom,expected:Math.min(zone.clientWidth/WORLD_W,zone.clientHeight/REALM_H_PX),padX:_wmPadX,padY:_wmPadY,pad:getComputedStyle(zone).backgroundImage,
+        horizontalRange:zone.scrollWidth-zone.clientWidth,verticalRange:zone.scrollHeight-zone.clientHeight,
+        city:inner.querySelector('.wnode.city:not(.me)')?'built':'none',
         mine:inner.querySelector('.wnode.mine')?'built':'none',   /* v1127 zoom gate: zoomed out, castles and mines are not built at all */
-        middle:inner.querySelector('#worldPictureMiddle')?.style.display,
-        close:inner.querySelector('#worldPictureClose')?.style.display,
-        zoneLabel:inner.querySelector('.worldZoneLabel')?.style.display,
-        regionBackground:[...inner.children].find(el=>el.style.width?.includes('%')&&el.style.height?.includes('%'))?.style.background};
+        tiles:inner.querySelectorAll('#realmTiles img').length,
+        zoneLabel:inner.querySelector('.worldZoneLabel')?.style.display};
       zone.scrollLeft=Number.MAX_SAFE_INTEGER;zone.scrollTop=Number.MAX_SAFE_INTEGER;
       const edge={right:zone.scrollLeft,bottom:zone.scrollTop,
-        maxRight:zone.scrollWidth-zone.clientWidth,maxBottom:zone.scrollHeight-zone.clientHeight};
+        maxRight:zone.scrollWidth-zone.clientWidth,maxBottom:zone.scrollHeight-zone.clientHeight,
+        viewBottom:wzTop(zone)+zone.clientHeight/worldZoom,realmBottom:REALM_TOP_PX+REALM_H_PX};
+      zone.scrollTop=0; const top={viewTop:wzTop(zone),realmTop:REALM_TOP_PX};
       worldZoomTo(999);
       const high={zoom:worldZoom,expected:worldZoomBounds(zone).max,
         cellsX:zone.clientWidth/worldZoom/(WORLD_W/GRID_COLS),
         cellsY:zone.clientHeight/worldZoom/(WORLD_H/GRID_COLS),
         city:inner.querySelector('.wnode.city')?.style.display,mine:inner.querySelector('.wnode.mine')?.style.display,
         level:inner.dataset.pictureLevel,overflow:zone.scrollWidth-WORLD_W*worldZoom};
-      return {low,edge,high,scrollbar:getComputedStyle(zone).scrollbarWidth};
+      return {low,edge,top,high,scrollbar:getComputedStyle(zone).scrollbarWidth};
     });
-    assert.ok(Math.abs(zoomRules.low.zoom-zoomRules.low.expected)<1e-6,'minimum zoom fits the full world width');
-    assert.ok(Math.abs(zoomRules.low.horizontalRange)<=2,'no sideways play past the whole picture');
+    assert.ok(Math.abs(zoomRules.low.zoom-zoomRules.low.expected)<1e-6,'minimum zoom shows the whole realm (Phil 30 Oct)');
+    assert.match(zoomRules.low.pad,/sea-pad\.webp/,"past the realm its own open sea fills the screen, never a bare background");
+    assert.ok(Math.abs(zoomRules.low.horizontalRange)<=2,'no sideways play past the realm');
     assert.equal(zoomRules.low.city,'none','castles hide at the overview scale');
     assert.equal(zoomRules.low.mine,'none','mines hide at the overview scale');
-    assert.equal(zoomRules.low.middle,'none','middle pictures hide at the whole-map scale');
-    assert.equal(zoomRules.low.close,'none','close pictures hide at the whole-map scale');
+    assert.equal(zoomRules.low.tiles,0,'the cover alone draws the whole-map view');
     assert.equal(zoomRules.low.zoneLabel,'none','tiny region captions do not mark the whole-map picture');
-    assert.equal(zoomRules.low.regionBackground,'transparent','region overlays do not darken the approved master picture');
     assert.ok(Math.abs(zoomRules.edge.right-zoomRules.edge.maxRight)<=2 &&
       Math.abs(zoomRules.edge.bottom-zoomRules.edge.maxBottom)<=2,'scrolling stops at the picture edges');
+    assert.ok(Math.abs(zoomRules.edge.viewBottom-zoomRules.edge.realmBottom)<=2,'the bottom edge of the view is the realm\'s bottom edge');
+    assert.ok(Math.abs(zoomRules.top.viewTop-zoomRules.top.realmTop)<1e-6,'the top edge of the view is the realm\'s top edge');
     assert.ok(Math.abs(zoomRules.high.zoom-zoomRules.high.expected)<1e-6,'maximum zoom follows the view size');
-    assert.ok(zoomRules.high.cellsX>=15.99 && zoomRules.high.cellsY>=8.99,'closest view shows at least 16 by 9 cells');
+    assert.ok(Math.abs(zoomRules.high.cellsX-16)<0.01 && zoomRules.high.cellsY>=6,'closest view: 16 squares across (Phil 30 Oct), the height shows the rest');
     assert.equal(zoomRules.high.level,'9','closest view uses close detail');
     assert.ok(Math.abs(zoomRules.high.overflow)<=2,'node labels cannot expand the map beyond its picture');
     assert.notEqual(zoomRules.high.city,'none','castles return at close detail');

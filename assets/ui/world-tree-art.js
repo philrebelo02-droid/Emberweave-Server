@@ -1,13 +1,15 @@
 (function(root){
   'use strict';
-  const BASE='/assets/img/world-map/world-v02/overlays/worldtree-cycle-v1/';
+  // v1226: the realm map's own transparent tree frames (the Phil-approved 05 World Tree/frames, sized by tools/realm/build_realm.py)
+  const REALM=root.EmberweaveRealm||(typeof module==='object'&&module.exports?require('../../world-realm.js'):null);
+  const BASE='/assets/img/world-map/realm-'+(REALM?REALM.META.version:'v12')+'/tree/';
+  const V=root.EW_REALM_ASSET_V||'1';
   let current=null;
   function frameFor(phase){
-    if(!phase||!Number.isFinite(phase.lifeFraction))return null;
-    // wt_01 is fully dead, reserved for previews. The live tree never reaches death.
-    const life=Math.max(0,Math.min(1,(phase.lifeFraction-1/28)/(27/28)));
-    // 27 frames (2..28) share the phase in EQUAL time slices: 13 d / 27 = 11 h 33 m each while decaying
-    return 2+Math.min(26,Math.floor(life*27));
+    // v1226 (Phil 30 Oct 2026): the stepped cycle (world-tree-cycle.js) names the frame - one per New York day while it decays,
+    // one per hour in the event, all 28 frames (wt_01 = the last decay day and the first event hour)
+    if(!phase||!Number.isInteger(phase.framePosition)||phase.framePosition<0||phase.framePosition>27)return null;
+    return phase.framePosition+1;
   }
   function mount(inner){
     if(current)current.stop();
@@ -20,7 +22,7 @@
       const image=new Image();pending=image;
       image.onload=()=>{if(!stopped&&ticket===generation&&target.isConnected){target.src=image.src;target.dataset.worldTreeFrame=String(frame);pending=null;}};
       image.onerror=()=>{if(ticket===generation){requested=null;pending=null;}};
-      image.src=BASE+'wt_'+String(frame).padStart(2,'0')+'.webp';
+      image.src=BASE+'wt_'+String(frame).padStart(2,'0')+'.webp?v='+V;
     }
     function stop(){stopped=true;generation++;inner.removeEventListener('world-tree-phase',update);if(pending){pending.onload=null;pending.onerror=null;}if(current?.stop===stop)current=null;}
     inner.addEventListener('world-tree-phase',update);

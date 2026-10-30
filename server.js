@@ -4320,8 +4320,12 @@ function worldLocation(u){
     &&!WORLD_TERRAIN_BLOCKED.has(WORLD_LOCATION.cellKey(u.worldLocation.x,u.worldLocation.y))) return u.worldLocation;
   const taken=Object.values(DB.users).filter(v=>v.id!==u.id).map(v=>v.worldLocation);
   const mines=WORLD_MINES.field(WORLD_MINES.epochAt(Date.now()));
-  const next=WORLD_LOCATION.place(taken,crypto.randomInt,
-    [...WORLD_TERRAIN_BLOCKED,...mines.map(n=>n.gx+','+n.gy)]);
+  const old=u.worldLocation;
+  /* v1226 realm map: a castle the new map puts in the sea (or on another region's land) moves to the nearest land of its OWN
+     region, never to a random region; only a castle with no home region yet is placed by the balancer */
+  const next=(old&&WORLD_LOCATION.REGIONS[old.region]&&Number.isFinite(old.x)&&Number.isFinite(old.y)
+    &&WORLD_LOCATION.nearestInRegion(old.region,old.x,old.y,worldBlockedKeys(u,Date.now())))
+    ||WORLD_LOCATION.place(taken,crypto.randomInt,[...WORLD_TERRAIN_BLOCKED,...mines.map(n=>n.gx+','+n.gy)]);
   // A staged move or mine account is committed by its outer transaction, never here.
   if(DB.users[u.id]!==u||_durableIdemActive){u.worldLocation=next;return next;}   /* v1017 (release review #8): inside an atomic section (durable idem, arena result) the section's own final save persists it - committing here saved the whole DB mid-route, a reward before its receipt */
   const draft=JSON.parse(JSON.stringify(u));draft.worldLocation=next;
@@ -4356,7 +4360,7 @@ function worldView(u,now){
   const t=worldTravelState(u),day=worldTravelDay(now);
   return {ok:true,locked:false,...loc,teleUsed:t.teleDay===day?t.teleUsed:0,
     teleScrolls:t.teleScrolls,wildScrolls:t.wildScrolls,wildLast:t.wildLast,
-    lastTransfer:t.lastTransfer,teleDay:day,terrainBlockedCells:[...WORLD_TERRAIN_BLOCKED]};
+    lastTransfer:t.lastTransfer,teleDay:day,realm:WORLD_LOCATION.REALM.META.version,terrainBlockedCells:[]};   /* v1226: the client reads the sea from world-realm.js (the same set, tests/world-realm.test.js); 36k keys are not resent on every view */
 }
 function worldBlockedKeys(u,now){
   const blocked=new Set(WORLD_TERRAIN_BLOCKED);
@@ -4372,8 +4376,11 @@ function migrateBlockedWorldCastles(){
   const now=Date.now(); let moved=0;
   for(const u of Object.values(DB.users)){
     const loc=u.worldLocation;
-    if(!WORLD_LOCATION.valid(loc)||!WORLD_TERRAIN_BLOCKED.has(WORLD_LOCATION.cellKey(loc.x,loc.y))) continue;
-    const next=WORLD_LOCATION.nearestOpen(loc.region,loc.x,loc.y,worldBlockedKeys(u,now));
+    /* v1226 realm map (Phil 30 Oct 2026): a castle the new map puts in the sea, or on another region's land, moves to the nearest
+       open land of its own home region (tests/world-realm.test.js proves it) */
+    if(!loc||!WORLD_LOCATION.REGIONS[loc.region]||!Number.isFinite(loc.x)||!Number.isFinite(loc.y)) continue;
+    if(WORLD_LOCATION.valid(loc)&&!WORLD_TERRAIN_BLOCKED.has(WORLD_LOCATION.cellKey(loc.x,loc.y))) continue;
+    const next=WORLD_LOCATION.nearestInRegion(loc.region,loc.x,loc.y,worldBlockedKeys(u,now));
     if(!next) throw Error('No open world square remains for a terrain-blocked castle.');
     u.worldLocation=next; moved++;
   }
@@ -9076,6 +9083,7 @@ async function api(req,res,url){
       if(kind==='targeted'){
         if(typeof b.x!=='number'||typeof b.y!=='number'||!Number.isFinite(b.x)||!Number.isFinite(b.y))
           return {ok:false,error:'Pick a world square.'};
+        if(!WORLD_LOCATION.isLand(b.x,b.y)) return {ok:false,error:'That square is sea - castles stand on land.'};   /* v1226 */
         if(!WORLD_LOCATION.targetAllowed(loc.region,b.x,b.y))
           return {ok:false,error:'That world square is not available for your castle.'};
         const x=WORLD_LOCATION.center(WORLD_LOCATION.cellIndex(b.x));
@@ -9101,7 +9109,7 @@ async function api(req,res,url){
         if(!WORLD_LOCATION.REGIONS[region]||region===loc.region)
           return {ok:false,error:'Choose a different home region.'};
         const blocked=worldBlockedKeys(me,now);
-        const next=WORLD_LOCATION.openInRegion(region,blocked,crypto.randomInt,30*WORLD_LOCATION.REGION_CELLS+30);
+        const next=WORLD_LOCATION.openInRegion(region,blocked,crypto.randomInt,WORLD_LOCATION.REALM.zoneCells(region).length>>1);   /* v1226: from the middle of the region's land */
         if(!next) return {ok:false,error:'No free square remains in that region.'};
         const paid=t.lastTransfer&&now-t.lastTransfer<30*24*3600000;
         if(paid){
@@ -10026,6 +10034,7 @@ const server=http.createServer((req,res)=>{
   if(p==='/sw.js') return serveFile(res,'sw.js','application/javascript',null,req);
   if(p==='/hero-profiles.js') return serveFile(res,'hero-profiles.js','application/javascript',null,req);
   if(p==='/hero-paths.js') return serveFile(res,'hero-paths.js','application/javascript',null,req);
+  if(p==='/world-realm.js') return serveFile(res,'world-realm.js','application/javascript',null,req);   /* v1226: the realm map's cells, shared with the server */
   if(p==='/server/temple-of-ash.js') return serveFile(res,'server/temple-of-ash.js','application/javascript',null,req);
   if(p==='/server/patron-benefits.js') return serveFile(res,'server/patron-benefits.js','application/javascript',null,req);   /* v1093: Phil's benefit chart, shared with the client */
   if(p==='/server/temple-effects.js') return serveFile(res,'server/temple-effects.js','application/javascript',null,req);

@@ -321,10 +321,11 @@ async function run() {
     const occupied=new Set(map.nodes.map(n=>n.gx+','+n.gy));
     const otherCities=await wholeMap(admin.token);
     for(const c of otherCities.cities||[]) occupied.add(L.cellKey(c.x,c.y));
-    const terrainKeys=new Set(castle.terrainBlockedCells);
-    /* 3 Oct audit: the outline is 705 cells since v902 (74f5e2b0); the count was hard-coded at 995 and failed the whole file,
-       so its later must-fail checks never ran. Read it from the approved outline itself. */
-    assert.equal(terrainKeys.size,require('../server/world-terrain-blocked.json').count,'world state gives the picker the approved terrain outline');
+    /* v1226 realm map: the picker reads the sea from world-realm.js (the same set as the server's list); the state names the realm */
+    assert.deepEqual(castle.terrainBlockedCells,[],'world state no longer resends the 36k sea keys');
+    assert.equal(castle.realm,require('../world-realm.js').META.version,'world state names the realm map version');
+    const terrainKeys=new Set(require('../world-realm.js').blockedKeys());
+    assert.equal(terrainKeys.size,require('../server/world-terrain-blocked.json').count,'the client realm module and the server list are the same squares');
     const _tc=require('../server/world-terrain-blocked.json').cells;   /* 3 Oct audit: four real outline cells (the old four stopped being terrain in v902) */
     for(const [i,key] of [_tc[0],_tc[Math.floor(_tc.length/3)],_tc[Math.floor(2*_tc.length/3)],_tc[_tc.length-1]].entries()){
       assert.ok(terrainKeys.has(key));
@@ -332,7 +333,7 @@ async function run() {
       const denied=await request('POST','/api/world/relocate',{
         kind:'targeted',x:L.center(cx),y:L.center(cy),requestId:'blocked-terrain-'+i
       },admin.token);
-      assert.equal(denied.ok,false,'server rejects a crystal or World Tree square');
+      assert.equal(denied.ok,false,'server rejects a sea square');
     }
     const afterBlocked=await request('GET','/api/world/state',null,admin.token);
     assert.equal(afterBlocked.teleUsed,0,'a blocked teleport does not consume the daily move');

@@ -1,12 +1,10 @@
 'use strict';
+// v1226 realm map (Phil 30 Oct 2026): regions are the realm's continents, not 90x90 squares. Balance and grid rules on Grok's realm.
 const assert=require('node:assert/strict');
 const L=require('../server/world-location.js');
+const R=require('../world-realm.js');
 const terrain=require('../server/world-terrain-blocked.json');
-const at=(region,n)=>{
-  const z=L.REGIONS[region],cx=L.regionStart(z.col)+n%L.REGION_CELLS;
-  const cy=L.regionStart(z.row)+Math.floor(n/L.REGION_CELLS);
-  return {region,x:L.center(cx),y:L.center(cy)};
-};
+const at=(region,n)=>{ const c=R.zoneCells(region)[n]; return {region,x:L.center(c[0]),y:L.center(c[1])}; };
 const existing=[];
 for(const region of ['crystor','draymon','tefron']) for(let n=0;n<100;n++) existing.push(at(region,n));
 for(let n=0;n<50;n++) existing.push(at('alumron',n));
@@ -14,38 +12,29 @@ let roll=0;
 const placed=L.place(existing,max=>roll++%max);
 assert.equal(placed.region,'alumron','new player goes to the least populated region');
 assert.ok(L.valid(placed));
+assert.ok(R.isLand(L.cellIndex(placed.x),L.cellIndex(placed.y)),'a new castle stands on land');
 assert.ok(!existing.some(loc=>L.cellIndex(loc.x)===L.cellIndex(placed.x)
   &&L.cellIndex(loc.y)===L.cellIndex(placed.y)),'new castle uses an open square');
 const almostEqual=existing.concat(Array.from({length:49},(_,i)=>at('alumron',50+i)));
-assert.equal(L.place(almostEqual,max=>max-1).region,'alumron',
-  '100/100/100/99 still fills the 99-player region');
+assert.equal(L.place(almostEqual,max=>max-1).region,'alumron','100/100/100/99 still fills the 99-player region');
 for(const region of L.REGION_KEYS) assert.ok(L.valid(at(region,0)));
-assert.deepEqual([L.GRID_COLS,L.REGION_CELLS,L.WILD_CELLS],[220,90,40]);
-assert.deepEqual([89,90,129,130].map(cx=>L.zoneOf(L.center(cx),L.center(45))),
-  ['crystor','wildN','wildN','draymon'],'horizontal region/wild edges');
-assert.deepEqual([89,90,129,130].map(cy=>L.zoneOf(L.center(45),L.center(cy))),
-  ['crystor','wildW','wildW','tefron'],'vertical region/wild edges');
-assert.equal(L.zoneOf(L.center(110),L.center(110)),'worldtree','center void is 40×40');
-assert.equal(L.valid({...at('crystor',0),region:'alumron'}),false);
-assert.equal(terrain.cells.length,705,'Phil 1 Oct hand-drawn crystal outlines (v901) plus the World Tree ring');
+assert.equal(L.GRID_COLS,220);
+assert.equal(L.zoneOf(L.center(110),L.center(110)),'worldtree','the tree stands on the worldtree island');
+assert.equal(L.valid({...at('crystor',0),region:'alumron'}),false,'another region\'s land is not yours');
 const terrainKeys=new Set(terrain.cells);
 assert.equal(terrainKeys.size,terrain.cells.length,'terrain-blocked cells are unique');
-assert.ok(terrainKeys.has('110,110')&&terrainKeys.has('115,110')&&terrainKeys.has('105,110'),
-  'World Tree centre and symmetrical protected ring are blocked');
-const from={x:L.center(89),y:L.center(96)};
-assert.ok(terrainKeys.has(L.cellKey(from.x,from.y)),'crystal footprint contains the fixture square');
-const nearest=L.nearestOpen('crystor',from.x,from.y,terrainKeys);
-assert.ok(nearest&&L.targetAllowed('crystor',nearest.x,nearest.y));
-assert.ok(!terrainKeys.has(L.cellKey(nearest.x,nearest.y)),
-  'migration picks an open square without leaving the home or wild zones');
+assert.equal(terrain.count,terrain.cells.length);
+// a sea square next to crystor: relocation finds the nearest open land of crystor itself
+let sea=null;
+for(const [cx,cy] of R.zoneCells('crystor')){ if(!R.isLand(cx+1,cy)){ sea=[cx+1,cy]; break; } }
+assert.ok(sea&&terrainKeys.has(sea.join(',')),'the fixture square is sea and blocked');
+const nearest=L.nearestInRegion('crystor',L.center(sea[0]),L.center(sea[1]),terrainKeys);
+assert.ok(nearest&&nearest.region==='crystor'&&L.zoneOf(nearest.x,nearest.y)==='crystor');
 let best=Infinity;
-for(let cy=0;cy<L.GRID_COLS;cy++) for(let cx=0;cx<L.GRID_COLS;cx++){
-  const x=L.center(cx),y=L.center(cy);
-  if(terrainKeys.has(cx+','+cy)||!L.targetAllowed('crystor',x,y)) continue;
-  best=Math.min(best,(cx-89)**2+(cy-96)**2);
-}
-assert.equal((L.cellIndex(nearest.x)-89)**2+(L.cellIndex(nearest.y)-96)**2,best,
-  'boot migration chooses the nearest permissible square');
+for(const [cx,cy] of R.zoneCells('crystor')) best=Math.min(best,(cx-sea[0])**2+(cy-sea[1])**2);
+assert.equal((L.cellIndex(nearest.x)-sea[0])**2+(L.cellIndex(nearest.y)-sea[1])**2,best,'relocation picks the nearest land of the own region');
 const tied=L.place([],max=>max-1);
 assert.ok(L.REGION_KEYS.includes(tied.region),'a tie picks an eligible region');
-console.log('World location balance and grid rules passed');
+// a transfer's preferred start index wraps on the region's land list
+for(const region of L.REGION_KEYS){ const t=L.openInRegion(region,terrainKeys,()=>0,R.zoneCells(region).length>>1); assert.ok(t&&L.valid(t)&&t.region===region); }
+console.log('World location balance and grid rules passed (realm '+R.META.version+')');

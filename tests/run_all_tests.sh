@@ -125,7 +125,7 @@ node tests/test_forged_state.js || FAILED=1
 cleanup
 note "Witches Hut and world-map mechanics (server-side checks)"
 node tests/mine-no-daily-cap-http.cjs || FAILED=1
-node --test tests/mine-no-daily-cap.test.js tests/durability-compatibility.test.js tests/durable-commit.test.js tests/durable-routes.test.js tests/pool-wish-durable.test.js tests/watch-report-durable.test.js tests/quest-chain-durable.test.js tests/witches-hut.test.js tests/witches-hut-api.test.js tests/world-location.test.js tests/world-mines.test.js tests/world-mine-realtime.test.js tests/world-pvp-realtime.test.js tests/world-war-current.test.js tests/world-bot-roster.test.js tests/world-tree-control.test.js || FAILED=1
+node --test tests/mine-no-daily-cap.test.js tests/durability-compatibility.test.js tests/durable-commit.test.js tests/durable-routes.test.js tests/pool-wish-durable.test.js tests/watch-report-durable.test.js tests/quest-chain-durable.test.js tests/witches-hut.test.js tests/witches-hut-api.test.js tests/world-location.test.js tests/world-mines.test.js tests/world-mine-realtime.test.js tests/world-pvp-realtime.test.js tests/world-war-current.test.js tests/world-bot-roster.test.js tests/world-tree-control.test.js tests/world-realm.test.js tests/world-tree-steps.test.js tests/world-tree-art.test.js tests/world-tree-calendar.test.js tests/world-tree-realm-event.test.js || FAILED=1
 note "test_crash_idempotency.sh (v273: a reward cannot be paid twice across a crash)"
 bash tests/test_crash_idempotency.sh || FAILED=1
 

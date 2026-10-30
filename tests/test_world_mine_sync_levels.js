@@ -10,7 +10,7 @@ const assert=require('assert'),fs=require('fs'),os=require('os'),path=require('p
 const root=path.join(__dirname,'..'); let pass=0; const ok=(c,m)=>{ assert(c,m); pass++; };
 (async()=>{try{
   const S=require(process.env.WMS_SYNC?path.resolve(process.env.WMS_SYNC):path.join(root,'assets','ui','world-mine-sync.js'));
-  const src=fs.readFileSync(path.join(root,'server','world-mines.js'),'utf8').replace("require('./world-terrain-blocked.json')","require("+JSON.stringify(path.join(root,'server','world-terrain-blocked.json'))+")");
+  const src=fs.readFileSync(path.join(root,'server','world-mines.js'),'utf8').replace(/require\('(\.{1,2}\/[^']+)'\)/g,(m,f)=>"require("+JSON.stringify(path.join(root,'server',f))+")")   /* v1226: every relative require (the v02 outlines, ../world-realm.js) */;
   const tmp=path.join(os.tmpdir(),'wms-'+process.pid+'.js'); fs.writeFileSync(tmp,src); const M=require(tmp);
   // the payload, shaped exactly like server.js GET /api/world/mines
   const payload=(now)=>{ const epoch=M.epochAt(now); return {ok:true,epoch,nodes:M.field(epoch),serverNow:now,epochEndsAt:(epoch+1)*M.EPOCH_MS}; };
