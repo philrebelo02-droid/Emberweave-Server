@@ -1,6 +1,6 @@
 'use strict';
 // Points derive only from settled server holder transitions; GET never awards.
-const SITES=['tree','oasis-north','oasis-south','oasis-east','oasis-west'];
+const SITES=['tree','oasis-nw','oasis-ne','oasis-sw','oasis-se'];   // v1228: the oases are Grok's 4 painted ponds
 const every=id=>id==='tree'?600000:300000;
 const ms=x=>Number.isSafeInteger(x)&&x>=0;
 const guild=x=>typeof x==='string'&&x.length>0&&x.length<=200&&!['__proto__','constructor','prototype'].includes(x);

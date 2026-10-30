@@ -37,15 +37,15 @@ test('a full World Tree event on the realm: oases taken, the tree captured, the 
     const r=LC.run(saved,{enabled:true,window:w,now,actorId:actor,guildId:actor?GUILD[actor]:null,action,payload},hooks,guilds);
     assert.equal(r.ok,true,(actor||'tick')+' '+action+': '+r.error);saved=r.state;return r;};
   const start=FIRST+60000;
-  run(start,'a1','start',{siteId:'oasis-north',heroIds:['a1h1']});
-  run(start+1,'a1','start',{siteId:'oasis-east',heroIds:['a1h2']});
-  run(start+2,'a2','start',{siteId:'oasis-south',heroIds:['a2h1']});
-  run(start+3,'a2','start',{siteId:'oasis-west',heroIds:['a2h2']});
+  run(start,'a1','start',{siteId:'oasis-nw',heroIds:['a1h1']});
+  run(start+1,'a1','start',{siteId:'oasis-ne',heroIds:['a1h2']});
+  run(start+2,'a2','start',{siteId:'oasis-sw',heroIds:['a2h1']});
+  run(start+3,'a2','start',{siteId:'oasis-se',heroIds:['a2h2']});
   run(start+4,'b1','start',{siteId:'tree',heroIds:['b1h1','b1h2']});
   const longest=Math.max(...routes.map(r=>r.travelMs));
   for(let t=start+60000;t<=start+longest+120000;t+=60000)run(t,null,'tick');
   const mid=saved.control.sites;
-  assert.deepEqual(['oasis-north','oasis-east','oasis-south','oasis-west'].map(id=>mid[id].holderGuildId),['G1','G1','G1','G1'],'G1 takes all four oases');
+  assert.deepEqual(['oasis-nw','oasis-ne','oasis-sw','oasis-se'].map(id=>mid[id].holderGuildId),['G1','G1','G1','G1'],'G1 takes all four oases');
   assert.equal(mid.tree.holderGuildId,'G2','G2 holds the tree first');
   // G1 captures the tree from G2
   const t2=start+longest+180000;run(t2,'a2','start',{siteId:'tree',heroIds:['a2h3','a2h4']});

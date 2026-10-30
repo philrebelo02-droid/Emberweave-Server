@@ -1,7 +1,8 @@
 (function(root){
   'use strict';
-  const IDS=['tree','oasis-north','oasis-south','oasis-east','oasis-west'];
-  const title=id=>id==='tree'?'World Tree':id.slice(6).replace(/^./,x=>x.toUpperCase())+' oasis';
+  const IDS=['tree','oasis-nw','oasis-ne','oasis-sw','oasis-se'];
+  const NAMES={tree:'World Tree','oasis-nw':'North-west Oasis','oasis-ne':'North-east Oasis','oasis-sw':'South-west Oasis','oasis-se':'South-east Oasis'};   // v1228: Grok's 4 painted ponds
+  const title=id=>NAMES[id]||'Oasis';
   function colour(id){if(!id)return '#97a3b5';let hash=0;for(const c of id)hash=(Math.imul(hash,31)+c.charCodeAt(0))>>>0;return 'hsl('+(hash%360)+',75%,72%)';}
   function read(control,score,layout){
     if(!control?.ok||!score?.ok||typeof control.enabled!=='boolean'||control.enabled!==score.enabled||!Array.isArray(control.sites)||!Array.isArray(score.scores)||layout?.coordinateSpace!=='world-percent'||!Number.isInteger(layout.gridColumns)||layout.gridColumns<220||!Array.isArray(layout.sites))throw Error('Unavailable');

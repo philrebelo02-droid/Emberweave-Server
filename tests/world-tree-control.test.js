@@ -28,13 +28,13 @@ function rig(){
 test('an attacker who lost a hero finishes its next fight; the fallen hero stays at 0 HP and is not refought',()=>{
   const R=rig();
   R.script.push(R.outcome(['b2','a3'],true),R.outcome(['a1','a2'],true),R.outcome(['b1'],true));
-  const A1=R.run(START,'a1','start',{siteId:'oasis-north',heroIds:['a1','a2']}).marchId;
-  const A2=R.run(START+1,'a2','start',{siteId:'oasis-north',heroIds:['a3']}).marchId;
-  const B=R.run(START+10,'b','start',{siteId:'oasis-north',heroIds:['b1','b2']}).marchId;
+  const A1=R.run(START,'a1','start',{siteId:'oasis-nw',heroIds:['a1','a2']}).marchId;
+  const A2=R.run(START+1,'a2','start',{siteId:'oasis-nw',heroIds:['a3']}).marchId;
+  const B=R.run(START+10,'b','start',{siteId:'oasis-nw',heroIds:['b1','b2']}).marchId;
   // Fight 1 (B v A2) kills b2; B goes straight on to fight 2 (B v A1). The old code threw here, every tick.
   for(let t=START+TRAVEL+10;t<=START+TRAVEL+10+2*FIGHT+5;t+=1000)R.run(t,null,'tick');
   assert.deepEqual(R.calls.map(c=>c.a),[['b1','b2'],['b1']],'fight 2 must be fought by the living hero only');
-  const b=R.state.marches[B],site=R.state.sites['oasis-north'];
+  const b=R.state.marches[B],site=R.state.sites['oasis-nw'];
   assert.equal(b.phase,'garrison');assert.equal(site.holderGuildId,'G2');assert.deepEqual(site.lines,[B]);
   assert.deepEqual(b.snaps.map(x=>[x.key,x.hp,x.worldEntryHpCap,x.energy]),[['b1',800,800,0],['b2',0,0,0]]);
   assert.equal(R.state.marches[A1].phase,'home');assert.equal(R.state.marches[A2].phase,'home');
@@ -46,14 +46,14 @@ test('an attacker who lost a hero finishes its next fight; the fallen hero stays
 test('a defending line whose last living hero dies, with a hero already at 0 HP, walks home instead of holding the site',()=>{
   const R=rig();
   R.script.push(R.outcome(['b2','a1'],true),R.outcome(['b1'],true));
-  R.run(START,'a1','start',{siteId:'oasis-north',heroIds:['a1']});
-  const B=R.run(START+10,'b','start',{siteId:'oasis-north',heroIds:['b1','b2']}).marchId;
+  R.run(START,'a1','start',{siteId:'oasis-nw',heroIds:['a1']});
+  const B=R.run(START+10,'b','start',{siteId:'oasis-nw',heroIds:['b1','b2']}).marchId;
   for(let t=START+TRAVEL+10;t<=START+TRAVEL+10+FIGHT+5;t+=1000)R.run(t,null,'tick');
   assert.equal(R.state.marches[B].phase,'garrison');
-  const Cm=R.run(START+20000,'c','start',{siteId:'oasis-north',heroIds:['c1']}).marchId;
+  const Cm=R.run(START+20000,'c','start',{siteId:'oasis-nw',heroIds:['c1']}).marchId;
   for(let t=START+20000+TRAVEL;t<=START+20000+TRAVEL+FIGHT+5;t+=1000)R.run(t,null,'tick');
   assert.deepEqual(R.calls[1],{a:['c1'],d:['b1']},'the fallen defender is not put back into the fight');
-  const b=R.state.marches[B],site=R.state.sites['oasis-north'];
+  const b=R.state.marches[B],site=R.state.sites['oasis-nw'];
   assert.equal(b.phase,'returning');assert.equal(b.returnReason,'killed');assert.deepEqual(b.heroIds,['b2']);
   assert.deepEqual(site.lines,[Cm]);assert.equal(site.holderGuildId,'G3');
   // Later ticks settle cleanly: nothing replays or throws.

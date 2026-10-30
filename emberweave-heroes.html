@@ -2754,13 +2754,13 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 <script src="/assets/ui/world-march-sync.js?v=wm1"></script>
 <script src="/assets/ui/world-march-visual.js?v=wv3-g1000"></script>
 <script src="/assets/ui/skill-preview-stage.js?v=sp1206"></script>
-<script src="/world-realm.js?v=realm-v25-g1000x596-1227b"></script>
+<script src="/world-realm.js?v=realm-v25-ponds-1228"></script>
 <script src="/assets/ui/world-tree-cycle.js?v=wt5"></script>
 <script src="/assets/ui/world-tree-art.js?v=wt-noflash-30oct"></script>
-<script src="/assets/ui/world-oasis-markers.js?v=om-g1000-v2"></script>
+<script src="/assets/ui/world-oasis-markers.js?v=om-ponds-1228"></script>
 <script src="/assets/ui/world-tree-countdown.js?v=wt4"></script>
-<script src="/assets/ui/world-tree-control-ui.js?v=wc6-g1000"></script>
-<script src="/assets/ui/world-tree-actions-ui.js?v=wa2"></script>
+<script src="/assets/ui/world-tree-control-ui.js?v=wc7-ponds"></script>
+<script src="/assets/ui/world-tree-actions-ui.js?v=wa3-ponds"></script>
 <script src="/assets/ui/guild-war-calendar.js?v=gw1"></script>
 <script>
 /* ==========================================================================
@@ -24190,7 +24190,7 @@ function regionBotRoster(regionKey){
   const GE=REALM_MAP.GEO, foot=(x,y)=>GE.footKeys(x,y).forEach(k=>used.add(k));   // v1227: a castle covers FOOT x FOOT cells
   if(regionKey===myRegion()){ const c=myCastlePos(); foot(c.x,c.y); }   // don't overlap your castle
   realCitiesIn(regionKey).forEach(rc=>foot(rc.x,rc.y));                 // don't overlap real players' castles
-  const fits=(ax,ay)=>GE.footCells(ax,ay).every(([cx,cy])=>REALM_MAP.landZone(cx,cy)===regionKey&&!REALM_MAP.isCity(cx,cy)&&!used.has(cx+','+cy));
+  const fits=(ax,ay)=>GE.footCells(ax,ay).every(([cx,cy])=>REALM_MAP.landZone(cx,cy)===regionKey&&!REALM_MAP.isSite(cx,cy)&&!used.has(cx+','+cy));
   list.forEach((bt,i)=>{ let s=(i*7919+(bt.power%ZN))%ZN, guard=0;
     while(!fits(RC[s][0],RC[s][1])&&guard++<ZN){ s=(s+7)%ZN; }
     const ci=RC[s][0], cj=RC[s][1]; bt.x=GE.cornerX(ci); bt.y=GE.cornerY(cj); foot(bt.x,bt.y);
@@ -24923,7 +24923,8 @@ function tapToWorldPct(zone, clientX, clientY){ const r=zone.ewGameRect();
 function teleportPlace(x,y){ x=snapX(x); y=snapY(y);   // v1227: the castle square (FOOT x FOOT cells) nearest the tap
   const cells=REALM_MAP.GEO.footprint(x,y);
   if(!cells.every(([cx,cy])=>REALM_MAP.isLand(cx,cy))){ dropTelePin(x,y,false); bannerMsg('That square is sea - castles stand on land.'); return; }
-  if(cells.some(([cx,cy])=>REALM_MAP.isCity(cx,cy))){ dropTelePin(x,y,false); bannerMsg('That square is a city - castles cannot stand on a city.'); return; }   // Phil 30 Oct 2026
+  if(cells.some(([cx,cy])=>REALM_MAP.isCity(cx,cy))){ dropTelePin(x,y,false); bannerMsg('That square is a city - castles cannot stand on a city.'); return; }
+  if(cells.some(([cx,cy])=>REALM_MAP.isOasis(cx,cy))){ dropTelePin(x,y,false); bannerMsg('That square is an oasis - castles cannot stand on an oasis.'); return; }   // v1228: the painted ponds   // Phil 30 Oct 2026
   if(!teleSquareFree(x,y)){
     dropTelePin(x,y,false); bannerMsg('That square is occupied.'); return; }
   const key=zoneOfPos(x,y);
@@ -25167,6 +25168,9 @@ function drawServerMarchInfo(body,local){
 }
 
 let _worldTreeControlUI=null;
+// v1228: tapping a painted pond (the oases) opens its World Tree site panel (the event is off: the panel says so)
+window.ewOpenOasis=id=>{ if(_teleMode)return; const a=worldTreeActionsUI(), o=(REALM_MAP.META.oases||[]).find(x=>x.id===id), nm=o?o.name:'Oasis';
+  Promise.resolve(a&&a.open(id)).catch(()=>{}).then(()=>{ if(!document.querySelector('.worldTreeActions')) bannerMsg(nm+' - a garrison site of the World Tree. It opens with the World Tree event.'); }); };
 function worldTreeControlUI(){if(!_worldTreeControlUI&&window.EmberweaveWorldTreeControlUI)_worldTreeControlUI=window.EmberweaveWorldTreeControlUI.create({
   identity:()=>ACC.token?ACC.id+':'+ACC.token:null,now:()=>Date.now(),zoom:()=>worldZoom,schedule:(fn,ms)=>setTimeout(fn,ms),cancel:id=>clearTimeout(id),
   openSite:id=>{const actions=worldTreeActionsUI();if(actions)actions.open(id);},canOpen:()=>!_teleMode,changed:()=>{if(_worldTreeActionsUI)_worldTreeActionsUI.render();},
@@ -30918,7 +30922,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1793391256172';
+const BUILD_ID = '1793396768142';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

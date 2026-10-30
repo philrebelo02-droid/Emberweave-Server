@@ -9,7 +9,7 @@ const root=path.join(__dirname,'..');
 const R=require('../world-realm.js'),L=require('../server/world-location.js'),M=require('../server/world-mines.js'),S=require('../server/world-tree-sites.js');
 const blocked=require('../server/world-terrain-blocked.json'),oases=require('../server/world-oasis-layout.json');
 const REGIONS=['crystor','draymon','tefron','alumron'];
-const COLS=R.META.cols,ROWS=R.META.rows,OAS=R.META.oasisCells,CORE=R.META.tree.core;
+const COLS=R.META.cols,ROWS=R.META.rows,CORE=R.META.tree.core;
 // the castle square nearest the middle of a region's land list that is wholly the region's open land
 const at=home=>{const c=R.zoneCells(home),n=c.length;for(let i=0;i<n;i++){const [x,y]=c[(Math.floor(n/2)+i)%n];if(L.regionSquare(home,x,y,new Set()))return {x:L.cornerX(x),y:L.cornerY(y)};}};
 const inCore=(x,y)=>x>=CORE[0]&&x<=CORE[2]&&y>=CORE[1]&&y<=CORE[3];
@@ -47,7 +47,6 @@ test('pieces are one square (Phil 30 Oct 2026: a castle "in 1 square", "The mine
   let roll=3;const rnd=max=>(roll=(roll*1103515245+12345)>>>0)%max;
   for(let i=0;i<50;i++){const p=L.place([],rnd);const fx=p.x/L.CELL,fy=(p.y-L.GEO.Y0)/L.CELL;assert.ok(Math.abs(fx%1-0.5)<0.01&&Math.abs(fy%1-0.5)<0.01,'placed castle at a cell centre');}
   assert.ok(Math.abs(18*L.CELL-4*OLD)<=L.CELL,'the tree core is 4x4 220-grid squares');assert.equal(CORE[2]-CORE[0]+1,18);assert.equal(CORE[3]-CORE[1]+1,18);
-  assert.ok(Math.abs(OAS*L.CELL-2*OLD)<=L.CELL,'an oasis is 2x2 220-grid squares');
   assert.ok(Math.abs(R.META.tree.sideCells*L.CELL-12.3457*OLD)<1e-3,'the tree picture keeps its world size');
   // the world keeps its 11000 px: the tree, the cities and the oases are drawn at the same world size
   assert.match(html,/const WORLD_W=11000, WORLD_H=11000;/);
@@ -56,11 +55,11 @@ test('pieces are one square (Phil 30 Oct 2026: a castle "in 1 square", "The mine
   // the World Tree trunk is on the world centre
   assert.equal(R.META.tree.cx*L.CELL,50);assert.ok(Math.abs(R.GEO.Y0+R.META.tree.cy*L.CELL-50)<0.01);
 });
-test('the server list and the client module are the same blocked squares, and every one of them is sea, off the realm or a city',()=>{
+test('the server list and the client module are the same blocked squares, and every one of them is sea, off the realm or a garrison site (city / oasis)',()=>{
   const a=new Set(blocked.cells),b=new Set(R.blockedKeys());
   assert.equal(a.size,blocked.count);assert.equal(a.size,b.size);for(const k of a)assert.ok(b.has(k),k);
   for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++){
-    const k=x+','+y,land=R.isLand(x,y),city=R.isCity(x,y);
+    const k=x+','+y,land=R.isLand(x,y),city=R.isSite(x,y);   // v1228: a city or an oasis (garrison sites)
     assert.equal(a.has(k),!land||city,'cell '+k);
     if((!land||city)&&x<=COLS-4&&y<=ROWS-4&&(x+y)%7===0)for(const home of REGIONS)assert.equal(L.targetAllowed(home,L.cornerX(x),L.cornerY(y)),false,'no castle on sea or city '+k);
   }
@@ -77,7 +76,7 @@ test('cities (Phil 30 Oct 2026: "the city should not be able to be teleported on
     const bx=c.cells.map(p=>p[0]);assert.ok(Math.max(...bx)-Math.min(...bx)<=Math.ceil(c.sizePx[0]/R.META.levels[0].cellPx/R.META.levels[0].scale)+1,c.name+' width');
   }
   for(const k of [...REGIONS,'worldtree','wildN','wildS','wildE','wildW'])for(const [x,y] of R.zoneCells(k))assert.ok(!R.isCity(x,y),'zoneCells never lists a city square');
-  for(const o of oases)for(let dy=0;dy<OAS;dy++)for(let dx=0;dx<OAS;dx++)assert.ok(!R.isCity(o.x+dx,o.y+dy),'no oasis on a city');
+  for(const o of oases)for(const [x,y] of o.cells)assert.ok(!R.isCity(x,y),'no oasis on a city');
   // random placement (balancer, wild teleport, transfer) never lands on a city, with the server's own blocked list
   let roll=7;const rnd=max=>(roll=(roll*1103515245+12345)>>>0)%max,taken=[];
   for(let i=0;i<600;i++){const p=L.place(taken,rnd,blocked.cells);assert.ok(!L.isCity(p.x,p.y),'placed on a city');taken.push(p);}
@@ -94,17 +93,39 @@ test('every region has land, in its own quadrant; the tree stands on its island'
   for(let x=CORE[0];x<=CORE[2];x++)for(let y=CORE[1];y<=CORE[3];y++)assert.equal(R.landZone(x,y),'worldtree','tree core '+x+','+y+' is island land');
   assert.ok(R.META.tree.cx===COLS/2,'the trunk is on the world centre');
 });
-test('oases: four sites of 2x2 220-grid squares, every cell island land, outside the tree core, one per side',()=>{
+test('oases (v1228, Phil 30 Oct 2026: "There of 2 of each oasis"): the 4 ponds Grok painted on the island, garrison sites, blocked like a city',()=>{
   const snap=S.snapshot({configured:false,serverNow:Date.now()});
-  assert.equal(oases.length,4);
+  assert.deepEqual(oases.map(o=>o.id),['oasis-nw','oasis-ne','oasis-sw','oasis-se']);
+  // measured from the art (tools/realm/build_realm.py, PREVIEW ponds v25.jpg): each pond's pixel centre, in cells, to half a cell
+  const MEASURED={'oasis-nw':[445.03,263.72],'oasis-ne':[552.98,258.30],'oasis-sw':[451.33,317.55],'oasis-se':[547.72,319.33]};
+  const T=R.META.tree;
   for(const o of oases){
-    for(let dy=0;dy<OAS;dy++)for(let dx=0;dx<OAS;dx++){const x=o.x+dx,y=o.y+dy;assert.equal(R.landZone(x,y),'worldtree',o.direction+' oasis cell '+x+','+y);assert.ok(!inCore(x,y));}
-    const s=snap.sites.find(s=>s.id==='oasis-'+o.direction);assert.deepEqual(s.cellOrigin,{x:o.x,y:o.y});
-    assert.equal(s.widthCells,OAS);
-    assert.equal(L.col(s.centre.x),o.x+OAS/2);assert.equal(L.row(s.centre.y),o.y+OAS/2);
+    const [mx,my]=MEASURED[o.id];assert.ok(Math.abs(o.cx-mx)<0.5&&Math.abs(o.cy-my)<0.5,o.id+' at the painted pond '+o.cx+','+o.cy);
+    assert.ok(o.cells.length>=100&&o.cells.length<=300,o.id+' sized to the painted pond: '+o.cells.length+' cells');
+    assert.equal(o.kind,'oasis');assert.equal(o.garrison,true,'a garrison site like the cities');
+    for(const [x,y] of o.cells){assert.equal(R.landZone(x,y),'worldtree',o.id+' cell '+x+','+y+' is island');assert.ok(!inCore(x,y));
+      assert.ok(R.isSite(x,y)&&R.isOasis(x,y)&&!R.isOpen(x,y),'pond cell blocked');assert.ok(blocked.cells.includes(x+','+y)||new Set(blocked.cells).has(x+','+y));
+      for(const home of REGIONS)assert.equal(L.targetAllowed(home,L.cornerX(x),L.cornerY(y)),false,'no castle on '+o.id);}
+    const s=snap.sites.find(s=>s.id===o.id);assert.ok(s,o.id+' in the sites snapshot');assert.deepEqual(s.cellOrigin,{x:o.x,y:o.y});
+    assert.equal(s.widthCells,o.w);assert.equal(s.heightCells,o.h);assert.equal(s.garrison,true);assert.equal(s.name,o.name);
+    assert.ok(L.col(s.centre.x)>=o.x&&L.col(s.centre.x)<o.x+o.w&&L.row(s.centre.y)>=o.y&&L.row(s.centre.y)<o.y+o.h,o.id+' centre inside its box');
+    // on its diagonal of the tree
+    const dx=o.cx-T.cx,dy=o.cy-T.cy;assert.equal((dx<0?'w':'e'),o.direction[1]);assert.equal((dy<0?'n':'s'),o.direction[0]);
   }
-  const by=Object.fromEntries(oases.map(o=>[o.direction,o]));
-  assert.ok(by.north.y+OAS<=CORE[1]&&by.south.y>CORE[3]&&by.east.x>CORE[2]&&by.west.x+OAS<=CORE[0],'each oasis on its own side');
+  assert.deepEqual(snap.sites.map(s=>s.id),['tree','oasis-nw','oasis-ne','oasis-sw','oasis-se']);
+  // cities are garrison sites too (the future garrison feature reads kind + garrison)
+  for(const c of R.META.cities){assert.equal(c.kind,'city');assert.equal(c.garrison,true);}
+  // mines never on a pond
+  const pond=new Set(oases.flatMap(o=>o.cells.map(c=>c[0]+','+c[1])));
+  for(let e=62270;e<62280;e++)for(const n of M.field(e))for(const k of L.GEO.mineKeys(n.x,n.y))assert.ok(!pond.has(k),'mine on a pond');
+});
+test('the game draws no oasis picture of its own (v1228): the painted ponds are the oases; their names and tap targets stay',()=>{
+  const html=fs.readFileSync(path.join(root,'emberweave-heroes.html'),'utf8'),mk=fs.readFileSync(path.join(root,'assets','ui','world-oasis-markers.js'),'utf8');
+  for(const t of [html,mk,fs.readFileSync(path.join(root,'sw.js'),'utf8')])assert.ok(!/painted-01oct|world-map\/oases\//.test(t),'no oasis picture path');
+  assert.equal(fs.existsSync(path.join(root,'assets','img','world-map','oases')),false,'the pictures left the game');
+  assert.ok(!/<img|createElement\('img'\)/.test(mk),'the marker draws no image');
+  const Mk=require('../assets/ui/world-oasis-markers.js'),rows=Mk.read(JSON.parse(JSON.stringify(S.snapshot({configured:false,serverNow:Date.now()}))));
+  assert.ok(rows&&rows.length===4&&rows.every(r=>/Oasis$/.test(r.name)&&r.garrison),'four named pond sites for the tap targets');
 });
 test('the small islands are the wild (Phil 30 Oct 2026): reachable land for every region, wild mines, room for island rewards',()=>{
   const Route=require('../server/world-march-route.js'),V=require('../server/world-void-timing.js');

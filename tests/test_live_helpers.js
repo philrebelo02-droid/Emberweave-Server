@@ -20,7 +20,7 @@ const assert = require('node:assert/strict'), fs = require('node:fs'), os = requ
 const { spawn } = require('node:child_process');
 const R = require('./helpers/split-rig.cjs');
 const CONTROL = '6bfeb24d', KEY = 'live-helpers-key-' + 'l'.repeat(16), PROBE = path.join(__dirname, 'helpers', 'live-probe.cjs');
-const SIM_KEYS = Object.keys(require('../server/sim.js').HERO_BASE), HEROES = SIM_KEYS.slice(0, 15), SITES = ['tree', 'oasis-north', 'oasis-south', 'oasis-east', 'oasis-west'];
+const SIM_KEYS = Object.keys(require('../server/sim.js').HERO_BASE), HEROES = SIM_KEYS.slice(0, 15), SITES = ['tree', 'oasis-nw', 'oasis-ne', 'oasis-sw', 'oasis-se'];
 const sleep = R.sleep, pct = (a, p) => { const s = a.slice().sort((x, y) => x - y); return s.length ? s[Math.min(s.length - 1, Math.floor(p * s.length))] : 0; };
 
 async function helper(dir, workers) {

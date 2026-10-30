@@ -31,18 +31,21 @@ function zoneOf(x,y){ const [cx,cy]=footprint(x,y)[0]; return REALM.zoneOfCell(c
 function isLand(x,y){ return footprint(x,y).every(([cx,cy])=>REALM.isLand(cx,cy)); }
 // Phil 30 Oct 2026: "the city should not be able to be teleported onto" - a castle square touching a city cell is blocked like the sea
 function isCity(x,y){ return footprint(x,y).some(([cx,cy])=>REALM.isCity(cx,cy)); }
+// v1228: an oasis (Grok's painted pond) is a garrison site like a city - blocked the same way
+function isOasis(x,y){ return footprint(x,y).some(([cx,cy])=>REALM.isOasis(cx,cy)); }
+function isSite(x,y){ return footprint(x,y).some(([cx,cy])=>REALM.isSite(cx,cy)); }
 function cellKey(x,y){ return col(x)+','+row(y); }
 function treeCore(x,y){ return footprint(x,y).some(([cx,cy])=>coreCell(cx,cy)); }
 function targetAllowed(home,x,y){
   if(!REGIONS[home]||!Number.isFinite(x)||!Number.isFinite(y)||x<0||x>100||y<0||y>100) return false;
   return footprint(x,y).every(([cx,cy])=>{ const z=REALM.landZone(cx,cy);
-    return !!z&&!REALM.isCity(cx,cy)&&!coreCell(cx,cy)&&(!REGIONS[z]||z===home); });
+    return !!z&&!REALM.isSite(cx,cy)&&!coreCell(cx,cy)&&(!REGIONS[z]||z===home); });
 }
 // the castle square of `region` whose top-left cell is (ax,ay): every cell that region's open land, none blocked
 function regionSquare(region,ax,ay,occupied){
   if(ax<0||ay<0||ax>GRID_COLS-FOOT||ay>GRID_ROWS-FOOT) return false;
   for(let j=0;j<FOOT;j++) for(let i=0;i<FOOT;i++){ const cx=ax+i,cy=ay+j;
-    if(REALM.landZone(cx,cy)!==region||REALM.isCity(cx,cy)||occupied.has(cx+','+cy)) return false; }
+    if(REALM.landZone(cx,cy)!==region||REALM.isSite(cx,cy)||occupied.has(cx+','+cy)) return false; }
   return true;
 }
 const at=(region,cx,cy)=>({region,x:cornerX(cx),y:cornerY(cy)});
@@ -110,5 +113,5 @@ function place(existing,randomInt=crypto.randomInt,blocked=[]){
   throw Error('No free castle square remains in the home regions.');
 }
 module.exports={GRID_COLS,GRID_ROWS,CELL,FOOT,MARCH_SQUARE,REGIONS,REGION_KEYS,REALM,GEO,col,row,xOf,yOf,anchorX,anchorY,cornerX,cornerY,
-  footprint,footKeys,castleKey,footBlocked,coreCell,zoneOf,isLand,isCity,cellKey,treeCore,targetAllowed,regionSquare,openInRegion,
+  footprint,footKeys,castleKey,footBlocked,coreCell,zoneOf,isLand,isCity,isOasis,isSite,cellKey,treeCore,targetAllowed,regionSquare,openInRegion,
   nearestInRegion,nearestOpen,valid,snap,marchSquares,place};

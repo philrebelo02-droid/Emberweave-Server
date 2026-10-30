@@ -23,7 +23,8 @@ What it does, in order (every stage writes into --out, the Archive copy; --insta
   6. zones   the 4 largest land masses = the 4 home regions (by quadrant), the island under the tree = worldtree,
              every other islet = wild N/S/E/W by its direction from the tree; sea + off-realm cells are blocked,
              and so is every city square (> 30 % of it covered by the city overlay alpha)
-  7. oases   the 4 oasis sites (one 220-grid 2x2 in world size), nearest to their old offsets from the tree, all on island land
+  7. oases   the 4 ponds Grok painted on the World Tree island ARE the oases (v1228): each measured from the z2 pixels (flood fill
+             from a seed inside the pond), its cells island land, blocked like a city square, a garrison site like the cities
   8. data    world-realm.js (shared client/server module), world-terrain-blocked.json, world-oasis-layout.json,
              realm.json (manifest with sha256 of every file), previews for the look
 World Anvil: tools/realm/worldanvil_map.py.  Castle relocation check: node tools/realm/relocation_check.js.
@@ -53,7 +54,51 @@ TREE_FRAMES = 28
 REGION_BY_QUADRANT = {(-1, -1): 'crystor', (1, -1): 'draymon', (-1, 1): 'tefron', (1, 1): 'alumron'}
 ZONE_CODE = {'crystor': 'A', 'draymon': 'B', 'tefron': 'C', 'alumron': 'D', 'worldtree': 'T',
              'wildN': 'n', 'wildS': 's', 'wildE': 'e', 'wildW': 'w'}
-OLD_OASIS = {'north': (109, 97), 'south': (109, 121), 'east': (121, 109), 'west': (97, 109)}  # v878 layout on the 220 grid, tree core 108..111
+# v1228 (Phil 30 Oct 2026: "There of 2 of each oasis" / "The drawn one should be garrisonable like the cities"): the oases are the 4 ponds
+# Grok painted on the island (diagonals of the tree). A seed inside each pond in world-percent (grid-free) and the flood-fill colour range
+# that follows that pond's own water without leaking into the grass rim (checked on PREVIEW ponds <v>.jpg).
+POND_SEEDS = {'nw': (44.54, 46.72, 44), 'ne': (55.35, 46.19, 15), 'sw': (45.15, 52.06, 44), 'se': (54.83, 52.32, 44)}   # x %, y %, range
+POND_NAMES = {'nw': 'North-west Oasis', 'ne': 'North-east Oasis', 'sw': 'South-west Oasis', 'se': 'South-east Oasis'}
+
+
+def measure_ponds(files, level, X0_unused, grid_top, top_cells, cpx_unused, out, v):
+    """Each painted pond's cells (>= 50 % pond pixels) on the grid, from the level's own tiles around the island."""
+    cp = level['cellPx']; off = grid_top - top_cells
+    res = {}; sheet = []
+    for key, (sxp, syp, tol) in POND_SEEDS.items():
+        scx, scy = sxp / 100 * COLS, (syp / 100 * COLS) - grid_top          # seed in cells
+        bx0, by0, bx1, by1 = int(scx) - 30, int(scy) - 30, int(scx) + 30, int(scy) + 30
+        px0, py0 = int(round(bx0 * cp)), int(round((by0 + off) * cp)); px1, py1 = int(round(bx1 * cp)), int(round((by1 + off) * cp))
+        im = Image.new('RGB', (px1 - px0, py1 - py0))
+        for r in range(max(0, py0 // TILE), py1 // TILE + 1):
+            for c in range(max(0, px0 // TILE), px1 // TILE + 1):
+                k = 'tiles/z%d/r%02dc%02d.webp' % (level['z'], r, c)
+                if k in files and os.path.exists(files[k]):
+                    im.paste(Image.open(files[k]).convert('RGB'), (c * TILE - px0, r * TILE - py0))
+        a = cv2.GaussianBlur(np.asarray(im), (0, 0), 3)
+        sx, sy = int((scx - bx0) * cp), int((scy - by0) * cp)
+        m = np.zeros((a.shape[0] + 2, a.shape[1] + 2), np.uint8)
+        cv2.floodFill(a.copy(), m, (sx, sy), (0, 0, 0), (tol,) * 3, (tol,) * 3, 4 | cv2.FLOODFILL_MASK_ONLY | cv2.FLOODFILL_FIXED_RANGE | (255 << 8))
+        mk = m[1:-1, 1:-1] > 0
+        mk = cv2.morphologyEx(mk.astype(np.uint8), cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (15, 15))) > 0
+        inv = mk.astype(np.uint8) * 255; m2 = np.zeros((inv.shape[0] + 2, inv.shape[1] + 2), np.uint8); cv2.floodFill(inv, m2, (0, 0), 255); mk = mk | (inv == 0)
+        if mk[0].any() or mk[-1].any() or mk[:, 0].any() or mk[:, -1].any():
+            sys.exit('pond %s leaks out of its 60-cell window: lower its colour range' % key)
+        cells = []
+        for cy in range(by0, by1):
+            for cx in range(bx0, bx1):
+                ax0, ay0 = int(round((cx - bx0) * cp)), int(round((cy - by0) * cp)); ax1, ay1 = int(round((cx - bx0 + 1) * cp)), int(round((cy - by0 + 1) * cp))
+                if mk[ay0:ay1, ax0:ax1].mean() >= 0.5:
+                    cells.append([cx, cy])
+        ys, xs = np.nonzero(mk)
+        res[key] = {'cells': cells, 'cx': round(bx0 + xs.mean() / cp, 2), 'cy': round(by0 + ys.mean() / cp, 2)}
+        vis = np.asarray(im).copy(); vis[mk] = (vis[mk] * 0.45 + np.array([255, 0, 255]) * 0.55).astype(np.uint8)
+        sheet.append(Image.fromarray(vis).resize((360, 360)))
+    S = Image.new('RGB', (360 * len(sheet), 360))
+    for i, t in enumerate(sheet):
+        S.paste(t, (i * 360, 0))
+    S.save(os.path.join(out, 'PREVIEW ponds %s.jpg' % v), quality=86)
+    return res
 
 
 def sq():
@@ -588,39 +633,41 @@ def main():
         if counts[k] < 100:
             sys.exit('zone %s has only %d land cells' % (k, counts[k]))
 
-    # ---- 7. oases: one 220-grid 2x2 in world size (OAS x OAS squares), all on island land, outside the core and off any city,
-    # nearest to the old offset from the tree (OLD_OASIS converted to this grid)
-    OAS = even_round(2 * SQ)
+    # ---- 7. oases (v1228): Grok's 4 painted ponds, measured from the pixels; their cells are island land (zone T), blocked like a city
     core = {(x, y) for x in range(core_box[0], core_box[2] + 1) for y in range(core_box[1], core_box[3] + 1)}
     city_set = {(cx, cy) for c in cities for cx, cy in c['cells']}
     if city_set & core:
         sys.exit('a city overlay covers the World Tree core: %s' % sorted(city_set & core))
-    ok = (zone == 'T').astype(np.int32)
-    for (x, y) in core | city_set:
-        if 0 <= x < COLS and 0 <= y < ROWS:
-            ok[y, x] = 0
-    ii = np.pad(ok, ((1, 0), (1, 0))).cumsum(0).cumsum(1)     # integral image: a whole OAS x OAS block is island land
-    full = (ii[OAS:, OAS:] - ii[:-OAS, OAS:] - ii[OAS:, :-OAS] + ii[:-OAS, :-OAS]) == OAS * OAS
+    pl = [L for L in levels if L['z'] == 2][0] if len(levels) > 1 else levels[0]
+    ponds = measure_ponds(files, pl, X0, grid_top, top_cells, cpx, out, v)
+    # the water cells the grid mask already took out of the island (enclosed '.' holes) that touch a pond belong to that pond
+    sea_cc, sea_lab = cv2.connectedComponents((zone == '.').astype(np.uint8), connectivity=4)
+    border = set(np.unique(np.concatenate([sea_lab[0], sea_lab[-1], sea_lab[:, 0], sea_lab[:, -1]]))) - {0}
     oases = []
-    for d, (ox, oy) in OLD_OASIS.items():
-        ox, oy = ox * SQ, oy * SQ - grid_top
-        best = None
-        for y, x in zip(*np.nonzero(full)):
-            if True:
-                x, y = int(x), int(y)
-                # keep each oasis on its own side of the tree
-                ccx, ccy = x + OAS / 2 - C, y + OAS / 2 - TR
-                side = {'north': ccy < 0 and abs(ccy) >= abs(ccx), 'south': ccy > 0 and abs(ccy) >= abs(ccx),
-                        'east': ccx > 0 and abs(ccx) >= abs(ccy), 'west': ccx < 0 and abs(ccx) >= abs(ccy)}[d]
-                if not side:
-                    continue
-                dist = (x - ox) ** 2 + (y - oy) ** 2
-                if best is None or dist < best[0]:
-                    best = (dist, x, y)
-        if not best:
-            sys.exit('no %dx%d island land for the %s oasis' % (OAS, OAS, d))
-        oases.append({'direction': d, 'x': best[1], 'y': best[2]})
-    log('oases:', oases)
+    for key in ('nw', 'ne', 'sw', 'se'):
+        p = ponds[key]; pc = [list(c) for c in p['cells']]
+        touch = {int(sea_lab[y + dy, x + dx]) for x, y in pc for dx, dy in ((0, 0), (1, 0), (-1, 0), (0, 1), (0, -1))} - {0} - border
+        if touch:
+            have = {tuple(c) for c in pc}
+            for y, x in zip(*np.nonzero(np.isin(sea_lab, list(touch)))):
+                if (int(x), int(y)) not in have: pc.append([int(x), int(y)]); have.add((int(x), int(y)))
+            pc.sort(key=lambda c: (c[1], c[0]))
+        if any((x, y) in core or (x, y) in city_set for x, y in pc):
+            sys.exit('the %s pond overlaps the tree core or a city' % key)
+        ring = {(x + dx, y + dy) for x, y in pc for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))} - {tuple(c) for c in pc}
+        if not all(zone[y, x] == 'T' for x, y in ring):
+            sys.exit('the %s pond is not inside the World Tree island' % key)
+        for x, y in pc:
+            zone[y, x] = 'T'   # the pond is part of the island (a garrison site on it), never open sea
+        xs, ys = [c[0] for c in pc], [c[1] for c in pc]
+        oases.append({'id': 'oasis-' + key, 'direction': key, 'name': POND_NAMES[key], 'kind': 'oasis', 'garrison': True,
+                      'x': min(xs), 'y': min(ys), 'w': max(xs) - min(xs) + 1, 'h': max(ys) - min(ys) + 1,
+                      'cx': p['cx'], 'cy': p['cy'], 'cells': pc})
+    counts = {k: int((zone == c).sum()) for k, c in ZONE_CODE.items()}
+    pond_set = {(x, y) for o in oases for x, y in o['cells']}
+    for c in cities:
+        c['kind'] = 'city'; c['garrison'] = True   # v1228: cities and oases are the same kind of site (a guild garrison site)
+    log('oases (painted ponds):', [(o['id'], o['x'], o['y'], o['w'], o['h'], len(o['cells']), o['cx'], o['cy']) for o in oases])
 
     # ---- 8. data
     rows = [''.join(zone[y]) for y in range(ROWS)]
@@ -653,7 +700,7 @@ def main():
         'tree': {'cx': C, 'cy': round(TR, 4), 'coreCells': CORE, 'core': core_box, 'sideCells': round(tree_side_cells, 4), 'frames': TREE_FRAMES,
                  'matchRms': tl['rms'], 'patchRealmPx': patch_box},
         'islets': [dict(o, id='isle-%02d' % (k + 1), rewards=[]) for k, o in enumerate(sorted(islets, key=lambda o: (-o['cells'], o['cy'], o['cx'])))],
-        'oasisCells': OAS, 'oases': oases, 'labels': labels, 'zoneCells': counts, 'landFraction': a.land_frac,
+        'oases': oases, 'labels': labels, 'zoneCells': counts, 'landFraction': a.land_frac,
         'cities': [dict(c, cx=round((c['cxPx'] - X0) / cpx, 3), cy=round(c['cyPx'] / cpx - off, 3)) for c in cities],
     }
     # tree frames (RGBA) at z1 resolution, the same square box as the baked tree
@@ -663,8 +710,8 @@ def main():
     for i in range(1, TREE_FRAMES + 1):
         fr = Image.open(os.path.join(MAP_FINAL, '05 World Tree', 'frames', 'wt_%02d.png' % i)).convert('RGBA').resize((tpx, tpx), Image.LANCZOS)
         p = os.path.join(tdir, 'wt_%02d.webp' % i); fr.save(p, 'WEBP', quality=WEBP_Q, method=6); files['tree/wt_%02d.webp' % i] = p
-    blocked = sorted([(x, y) for y in range(ROWS) for x in range(COLS) if zone[y, x] == '.' or (x, y) in city_set], key=lambda t: (t[1], t[0]))
-    bj = {'about': 'Squares no castle, mine or teleport may use: every sea and off-realm cell of Grok\'s realm map %s, and every city square (generated by tools/realm/build_realm.py - never hand-edit; re-run it). Keys are cellKey "x,y" (col,row) on the %dx%d (cols x rows) grid.' % (v, COLS, ROWS),
+    blocked = sorted([(x, y) for y in range(ROWS) for x in range(COLS) if zone[y, x] == '.' or (x, y) in city_set or (x, y) in pond_set], key=lambda t: (t[1], t[0]))
+    bj = {'about': 'Squares no castle, mine or teleport may use: every sea and off-realm cell of Grok\'s realm map %s, and every garrison-site square: cities and oases (generated by tools/realm/build_realm.py - never hand-edit; re-run it). Keys are cellKey "x,y" (col,row) on the %dx%d (cols x rows) grid.' % (v, COLS, ROWS),
           'source': 'land/sea mask of the realm art (Grok landalpha water rule), a cell is land when >= %d%% of it is land; a cell is city when > %d%% of it is a city overlay\'s opaque pixels (alpha >= 128)' % (round(a.land_frac * 100), round(CITY_COVER * 100)),
           'version': v, 'count': len(blocked), 'cells': ['%d,%d' % t for t in blocked]}
     bp = os.path.join(out, 'world-terrain-blocked.json')
@@ -673,7 +720,7 @@ def main():
             json.dumps(bj['about']), json.dumps(bj['source']), json.dumps(v), len(blocked), ',\n'.join(json.dumps(c) for c in bj['cells'])))
     op = os.path.join(out, 'world-oasis-layout.json')
     with open(op, 'w', newline='\n') as f:
-        f.write('[\n' + ',\n'.join('  {"direction":"%s","x":%d,"y":%d}' % (o['direction'], o['x'], o['y']) for o in oases) + '\n]\n')
+        f.write('[\n' + ',\n'.join('  ' + json.dumps({k: o[k] for k in ('id', 'direction', 'name', 'kind', 'garrison', 'x', 'y', 'w', 'h', 'cx', 'cy', 'cells')}, separators=(',', ':')) for o in oases) + '\n]\n')
     js = render_module(realm, [rle(r) for r in rows])
     jp = os.path.join(out, 'world-realm.js')
     with open(jp, 'w', newline='\n') as f:
@@ -706,7 +753,7 @@ def main():
 
 def render_module(realm, rle_rows):
     """The shared client/server realm module. Pure data + lookups + the grid geometry; generated, never hand-edited."""
-    meta = {k: realm[k] for k in ('version', 'built', 'dev', 'cols', 'rows', 'gridTop', 'foot', 'oldSquareCells', 'realmTop', 'realmHeight', 'tile', 'levels', 'tree', 'oasisCells', 'oases', 'labels', 'islets', 'cities')}
+    meta = {k: realm[k] for k in ('version', 'built', 'dev', 'cols', 'rows', 'gridTop', 'foot', 'oldSquareCells', 'realmTop', 'realmHeight', 'tile', 'levels', 'tree', 'oases', 'labels', 'islets', 'cities')}
     return MODULE_JS.replace('%(v)s', realm['version']).replace('%(meta)s', json.dumps(meta, separators=(',', ':'))).replace(
         '%(rle)s', json.dumps(rle_rows, separators=(',', ':')).replace('","', '",\n"'))
 
@@ -733,15 +780,21 @@ function isLand(cx,cy){return code(cx,cy)!=='.';}
 const CITY=new Map();(META.cities||[]).forEach(c=>(c.cells||[]).forEach(([x,y])=>CITY.set(x+','+y,c.name)));
 function cityAt(cx,cy){return CITY.get(cx+','+cy)||null;}
 function isCity(cx,cy){return CITY.has(cx+','+cy);}
-// a square a castle, mine or teleport may use: land that is not a city
-function isOpen(cx,cy){return isLand(cx,cy)&&!isCity(cx,cy);}
+// v1228: garrison sites - the cities and the oases (Grok's painted ponds) are the same kind of site (garrison:true, kind city|oasis);
+// a site square is blocked for castles, mines and teleports
+const SITE=new Map();[...(META.cities||[]),...(META.oases||[])].forEach(s=>(s.cells||[]).forEach(([x,y])=>SITE.set(x+','+y,s)));
+function siteAt(cx,cy){const s=SITE.get(cx+','+cy);return s?{kind:s.kind||'city',name:s.name,id:s.id||null,garrison:s.garrison!==false}:null;}
+function isSite(cx,cy){return SITE.has(cx+','+cy);}
+function isOasis(cx,cy){const s=SITE.get(cx+','+cy);return !!s&&s.kind==='oasis';}
+// a square a castle, mine or teleport may use: land that is not a garrison site (city or oasis)
+function isOpen(cx,cy){return isLand(cx,cy)&&!isSite(cx,cy);}
 function landZone(cx,cy){return CODE_ZONE[code(cx,cy)]||null;}
 // a sea or off-realm cell belongs to the wild by its direction from the World Tree (it is blocked anyway)
 function zoneOfCell(cx,cy){const z=landZone(cx,cy);if(z)return z;const dx=cx+0.5-META.tree.cx,dy=cy+0.5-META.tree.cy;
   return Math.abs(dy)>=Math.abs(dx)?(dy>0?'wildS':'wildN'):(dx>0?'wildE':'wildW');}
 const _cells={};
-// every open (non-city) land cell of a zone, row by row (top to bottom, left to right) - the order placement walks
-function zoneCells(zone){if(_cells[zone])return _cells[zone];const out=[];for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++)if(landZone(x,y)===zone&&!isCity(x,y))out.push([x,y]);return _cells[zone]=out;}
+// every open (non-site) land cell of a zone, row by row (top to bottom, left to right) - the order placement walks
+function zoneCells(zone){if(_cells[zone])return _cells[zone];const out=[];for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++)if(landZone(x,y)===zone&&!isSite(x,y))out.push([x,y]);return _cells[zone]=out;}
 // sea, off-realm and city squares - the same set as the server's world-terrain-blocked.json
 function blockedKeys(){const out=[];for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++)if(!isOpen(x,y))out.push(x+','+y);return out;}
 // ---- GEO: world-percent <-> cells. A castle is FOOT x FOOT cells (META.foot = 1: one square, at its centre) - anchorX/anchorY give
@@ -772,7 +825,7 @@ function mineCellsAt(vx,vy){return [[vx-1,vy-1],[vx,vy-1],[vx-1,vy],[vx,vy]];}
 function mineKeys(x,y){return mineCellsAt(vertexX(x),vertexY(y)).map(c=>c[0]+','+c[1]);}
 const GEO={COLS,ROWS,CELL,Y0,FOOT,OLD_SQUARE,CORE,col,row,xOf,yOf,anchorX,anchorY,cornerX,cornerY,footCells,footprint,footKeys,coreCell,marchSquares,
   mineX,mineY,vertexX,vertexY,mineCellsAt,mineKeys};
-const api={META,GEO,code,isLand,isCity,cityAt,isOpen,landZone,zoneOfCell,zoneCells,blockedKeys,CODE_ZONE};
+const api={META,GEO,code,isLand,isCity,cityAt,isSite,isOasis,siteAt,isOpen,landZone,zoneOfCell,zoneCells,blockedKeys,CODE_ZONE};
 if(typeof module==='object'&&module.exports)module.exports=api;else root.EmberweaveRealm=api;
 })(typeof globalThis==='object'?globalThis:this);
 '''

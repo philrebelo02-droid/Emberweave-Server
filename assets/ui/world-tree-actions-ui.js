@@ -1,7 +1,8 @@
 (function(root){
   'use strict';
-  const IDS=['tree','oasis-north','oasis-south','oasis-east','oasis-west'];
-  const title=id=>id==='tree'?'World Tree':id.slice(6).replace(/^./,x=>x.toUpperCase())+' oasis';
+  const IDS=['tree','oasis-nw','oasis-ne','oasis-sw','oasis-se'];
+  const NAMES={tree:'World Tree','oasis-nw':'North-west Oasis','oasis-ne':'North-east Oasis','oasis-sw':'South-west Oasis','oasis-se':'South-east Oasis'};   // v1228: Grok's 4 painted ponds
+  const title=id=>NAMES[id]||'Oasis';
   function create(hooks){
     let overlay=null,identity=null,siteId=null,selected=null,error='',operation=null,inflight=false,checking=false,generation=0;
     const doc=hooks.document;

@@ -9084,6 +9084,7 @@ async function api(req,res,url){
         const {x,y}=WORLD_LOCATION.snap(b.x,b.y);   /* v1227: the castle square (FOOT x FOOT cells) nearest the tap */
         if(!WORLD_LOCATION.isLand(x,y)) return {ok:false,error:'That square is sea - castles stand on land.'};   /* v1226 */
         if(WORLD_LOCATION.isCity(x,y)) return {ok:false,error:'That square is a city - castles cannot stand on a city.'};   /* Phil 30 Oct 2026: no teleport onto a city */
+        if(WORLD_LOCATION.isOasis(x,y)) return {ok:false,error:'That square is an oasis - castles cannot stand on an oasis.'};   /* v1228: the painted ponds are garrison sites */
         if(!WORLD_LOCATION.targetAllowed(loc.region,x,y))
           return {ok:false,error:'That world square is not available for your castle.'};
         if(WORLD_LOCATION.castleKey(x,y)===WORLD_LOCATION.castleKey(loc.x,loc.y)) return {ok:false,error:'Your castle is already on that square.'};

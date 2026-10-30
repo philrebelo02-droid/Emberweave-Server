@@ -1,6 +1,6 @@
 'use strict';
 // Server-owned control draft. No score, reward or enable switch in this slice.
-const SITE_IDS=['tree','oasis-north','oasis-south','oasis-east','oasis-west'];
+const SITE_IDS=['tree','oasis-nw','oasis-ne','oasis-sw','oasis-se'];   // v1228: the oases are Grok's 4 painted ponds (diagonals of the tree)
 const clone=x=>JSON.parse(JSON.stringify(x));
 const safeId=x=>typeof x==='string'&&x.length>0&&x.length<=200&&!['__proto__','constructor','prototype'].includes(x);
 const ms=x=>Number.isSafeInteger(x)&&x>=0;
