@@ -175,6 +175,8 @@
   .townlbl .locktip{position:absolute;left:50%;bottom:130%;transform:translateX(-50%);display:none;background:#0e1626;border:1px solid #3a6df0;color:#ffe6a8;
     font-family:sans-serif;font-weight:800;font-size:11px;padding:2px 7px;border-radius:7px;white-space:nowrap;box-shadow:0 2px 8px #000a;}
   .townlbl .lockwrap:hover .locktip,.townlbl .lockwrap.show .locktip{display:block;}
+  /* 30 Oct 2026 (Phil): press and hold the NAME of a locked building to see its unlock level (no double tap on the small lock) */
+  .townlbl.tl-locked{pointer-events:auto;cursor:pointer;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;touch-action:manipulation;}
   /* zoom buttons overlay */
   .zoomctl{position:absolute;left:8px;bottom:10px;display:flex;flex-direction:column;gap:6px;z-index:8;}
   .zoomctl button{width:38px;height:38px;border-radius:10px;border:1px solid #33405e;background:rgba(16,21,31,.9);color:#e6edf3;font-size:20px;font-weight:800;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.5);}
@@ -17042,6 +17044,16 @@ function updateHubChrome(){
 /* Phil 27 Sep 13:10 (phone): "I cannot see the unlock level of starless because it goes off the screen". A town lock tip is centred
    over its padlock, so a building at the map's edge pushes it past the visible map. When a tip shows, slide it sideways just enough
    to sit inside #townWrap (6 px margin). One delegated listener covers every building. */
+// 30 Oct 2026 (Phil: 'click and hold the name of the building to see what level it unlocks'): the whole label of a locked building
+// is the target - hold ~0.3 s shows 'Unlocks at Lv N' above it, letting go hides it after 1.4 s (mouse and touch alike).
+function townLockHold(lab, w){ if(!lab||!w) return; lab.classList.add('tl-locked'); let hold=null, hide=null;
+  const show=()=>{ clearTimeout(hide); w.classList.add('show'); clampLockTip(w); };
+  let sx=0, sy=0;   // a drag across the label scrolls the town: moving past 8 px cancels the hold (nothing is prevented)
+  lab.addEventListener('pointerdown',e=>{ sx=e.clientX; sy=e.clientY; clearTimeout(hold); hold=setTimeout(show,300); });
+  lab.addEventListener('pointermove',e=>{ if(hold&&Math.hypot(e.clientX-sx,e.clientY-sy)>8){ clearTimeout(hold); hold=null; } });
+  const end=()=>{ clearTimeout(hold); clearTimeout(hide); hide=setTimeout(()=>w.classList.remove('show'),1400); };
+  ['pointerup','pointercancel','pointerleave'].forEach(ev=>lab.addEventListener(ev,end));
+  lab.addEventListener('contextmenu',e=>e.preventDefault()); }
 function clampLockTip(w){ const tip=w&&w.querySelector('.locktip'), box=document.getElementById('townWrap'); if(!tip||!box) return;
   tip.style.marginLeft='0px'; const r=tip.ewGameRect(), b=box.ewGameRect(); if(!r.width) return;
   let dx=0; if(r.right>b.right-6) dx=(b.right-6)-r.right; if(r.left+dx<b.left+6) dx=(b.left+6)-r.left;
@@ -17110,13 +17122,7 @@ function renderHome(){
     if(h.academy){ const nl=nextLearn(); if(nl) inner+='<span class="lockwrap acatimer" data-academy-timer="1">'+uiIcon('timer')+'<span class="locktip">Research: '+fmtDur(nl-Date.now())+'</span></span>'; }
     lab.innerHTML=inner;
     const wrapEl=lab.querySelector('.lockwrap');
-    if(wrapEl && !wrapEl.classList.contains('acatimer')){
-      // press-hold reveal for touch devices
-      let t=null;
-      wrapEl.addEventListener('touchstart',(e)=>{ e.preventDefault(); wrapEl.classList.add('show'); },{passive:false});
-      const hide=()=>{ clearTimeout(t); t=setTimeout(()=>wrapEl.classList.remove('show'),1400); };
-      wrapEl.addEventListener('touchend',hide); wrapEl.addEventListener('touchcancel',hide);
-    }
+    if(wrapEl && !wrapEl.classList.contains('acatimer')) townLockHold(lab, wrapEl);   // hold the name (not just the lock) to see the level
     box.appendChild(lab);
   });
   // ---- Island of Trials is now a static hotspot on the new town map (added to hots above) — old animated sprite disabled ----
@@ -17138,8 +17144,7 @@ function renderHome(){
     if(isleLocked) inner2+='<span class="lockwrap"><img class="lkIc" src="/assets/img/ui/hud-lock.webp?v=1" alt="Locked"><span class="locktip">Unlocks at Lv 10</span></span>';
     ilab.innerHTML=inner2;
     const w2=ilab.querySelector('.lockwrap');
-    if(w2){ let t2=null; w2.addEventListener('touchstart',(e)=>{ e.preventDefault(); w2.classList.add('show'); },{passive:false});
-      const hide2=()=>{ clearTimeout(t2); t2=setTimeout(()=>w2.classList.remove('show'),1400); }; w2.addEventListener('touchend',hide2); w2.addEventListener('touchcancel',hide2); }
+    if(w2) townLockHold(ilab, w2);
     box.appendChild(ilab);
   }
   applyHomeZoom(); sizeTownMap();
@@ -30922,7 +30927,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1793397434129';
+const BUILD_ID = '1793398529441';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
