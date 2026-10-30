@@ -24234,6 +24234,14 @@ function mapViewChangedSoon(){ clearTimeout(_rcViewT); _rcViewT=setTimeout(()=>{
    'this is a better zoom level to be able to start to see castles' - about 150 wide): castles and mines show only when at most
    WM_PIECES_MAX_SQ squares fit across the screen, measured in squares so a phone and a PC agree */
 const WM_PIECES_MAX_SQ=160;
+/* v1228 (Phil 30 Oct 2026: "please make cities have no grid squares on them"): the grid overlay is masked by one VECTOR picture (an SVG
+   in grid units: the whole band minus every city square, row runs joined) - crisp at every zoom, so the lines stop exactly at the city's
+   edge (a GRID_COLS x GRID_ROWS bitmap stretched 24x at max zoom blurred a whole cell). Built once, from the isCity the server blocks with. */
+let _wmGridMask=null;
+function wmGridCityMask(){ if(_wmGridMask!==null) return _wmGridMask; try{ const R=REALM_MAP; let d='M0 0H'+GRID_COLS+'V'+GRID_ROWS+'H0Z';
+  for(let y=0;y<GRID_ROWS;y++){ let x=0; while(x<GRID_COLS){ if(!R.isCity(x,y)){ x++; continue; } let e=x; while(e<GRID_COLS&&R.isCity(e,y)) e++; d+='M'+x+' '+y+'H'+e+'V'+(y+1)+'H'+x+'Z'; x=e; } }
+  const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+GRID_COLS+' '+GRID_ROWS+'" preserveAspectRatio="none" shape-rendering="crispEdges"><path fill="#fff" fill-rule="evenodd" d="'+d+'"/></svg>';
+  _wmGridMask='data:image/svg+xml,'+encodeURIComponent(svg); }catch(e){ _wmGridMask=''; } return _wmGridMask; }
 function wmSquaresAcross(zone){ return zone&&worldZoom?(zone.clientWidth/worldZoom)/(WORLD_W/GRID_COLS):Infinity; }
 function mapDetailsOn(){ const zone=document.getElementById('wzone'); if(!zone||!worldZoom||!zone.clientWidth||!zone.clientHeight) return false;
   return worldPictureLevelForViewport(zone.clientWidth/worldZoom,zone.clientHeight/worldZoom)===9 && wmSquaresAcross(zone)<=WM_PIECES_MAX_SQ; }
@@ -24794,7 +24802,7 @@ function queueTeleGhosts(){ if(_teleGhostRaf)return; _teleGhostRaf=requestAnimat
 function worldZoomBounds(zone){
   const cell=WORLD_W/GRID_COLS;
   const min=Math.min(zone.clientWidth/WORLD_W,zone.clientHeight/REALM_H_PX);   // v1226 (Phil: "Max zoom out should be able to see the full map"): the whole realm fits; open sea fills the rest
-  const max=zone.clientWidth/(32*cell);   /* v1228 (Phil 30 Oct 2026, a screenshot ~31 squares across: "make this the closest i can zoom in"): max zoom = 32 squares across (was 16) */   /* v1226 (Phil 30 Oct 2026: "Final zoom in I should be able to see the tiles covering my screen. So I think 16 by 9 tiles?"): 16 squares across; a phone landscape shows ~8 down. v1227: of the GRID_COLS grid (1000), so 4.5x closer than the 220 grid */
+  const max=zone.clientWidth/(35*cell);   /* v1228 (Phil 30 Oct 2026, screenshots ~31 then ~35 squares across: "make this the closest i can zoom in" / "this much"): max zoom = 35 squares across (was 16) */   /* v1226 (Phil 30 Oct 2026: "Final zoom in I should be able to see the tiles covering my screen. So I think 16 by 9 tiles?"): 16 squares across; a phone landscape shows ~8 down. v1227: of the GRID_COLS grid (1000), so 4.5x closer than the 220 grid */
   return {min,max:Math.max(min,max)};
 }
 function applyWorldZoom(){ const inner=document.getElementById('wzoneInner'), zone=document.getElementById('wzone'); if(typeof mapViewChangedSoon==='function') mapViewChangedSoon();   /* v1124: zooming out loads the new tiles */
@@ -25016,7 +25024,9 @@ function renderWorldMap(keepView){
     cv.dataset.veiled=String(veiled); cv.style.cssText=`position:absolute;left:0;top:${REALM_MAP.GEO.Y0}%;width:100%;height:${GRID_ROWS*GRID_CELL}%;z-index:1;pointer-events:none`; inner.appendChild(cv); }
   // optional grid overlay across the whole world
   if(G.showGrid!==false){ const go=document.createElement('div'); go.className='wmGridOverlay';   // v1227: over the grid's own band (GRID_COLS x GRID_ROWS)
-    go.style.cssText=`inset:auto;left:0;width:100%;top:${REALM_MAP.GEO.Y0}%;height:${GRID_ROWS*GRID_CELL}%;background-size:${100/GRID_COLS}% ${100/GRID_ROWS}%`; inner.appendChild(go); }
+    go.style.cssText=`inset:auto;left:0;width:100%;top:${REALM_MAP.GEO.Y0}%;height:${GRID_ROWS*GRID_CELL}%;background-size:${100/GRID_COLS}% ${100/GRID_ROWS}%`;
+    const gm=wmGridCityMask(); if(gm){ for(const p of ['webkitMaskImage','maskImage']) go.style[p]='url("'+gm+'")'; for(const p of ['webkitMaskSize','maskSize']) go.style[p]='100% 100%'; for(const p of ['webkitMaskRepeat','maskRepeat']) go.style[p]='no-repeat'; }
+    inner.appendChild(go); }
   // The landmark is part of the terrain at the same world coordinates at every picture level.
   // Feather only its outer edge; the middle preserves the tree, rooted stone and contact shadow.
   const treeTerrain=document.createElement('img'); treeTerrain.id='worldTreeTerrain';   // 30 Oct 2026 (Phil: 'sometimes a flash of the full tree appears'): no default frame - world-tree-art.js shows the current stage only (wt_28 only if no stage arrives)
@@ -30933,7 +30943,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1793398529441';
+const BUILD_ID = '1793399680220';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
