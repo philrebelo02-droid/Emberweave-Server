@@ -13,8 +13,9 @@ So every new Grok realm version is ONE re-run of this script plus a look, never 
 
 What it does, in order (every stage writes into --out, the Archive copy; --install then copies those exact bytes):
   1. reads   REALM layout <v> positions.json, REALM composite preview <v>.jpg, REALM <v> master tiles part*.zip
-  2. grid    the 220 x 220 game grid keeps its 0..100 % space; the realm (1.7:1) fills all 220 columns and the middle
-             rows, cropped left/right so the World Tree trunk lands exactly on the world centre (cell 110,110)
+  2. grid    GRID_COLS x GRID_ROWS square cells (1000 x 596 since v1227; 220 x 220 before) over the 0..100 % world space:
+             the columns span the realm's width, cropped left/right so the World Tree trunk lands exactly on the world
+             centre (x = 50 %), and the rows span the realm art's own height (not the sea margin above and below it)
   3. tree    the baked tree is replaced by the tree-free island (WorldTree A2 landsize oases tight.png), so the in-game
              tree can be drawn per cycle state from the Phil-approved frames (05 World Tree/frames/wt_NN.png)
   4. tiles   a zoom pyramid of 512 px WebP tiles (z1 = max-scale, z2 = half that, ...) + one cover picture
@@ -22,7 +23,7 @@ What it does, in order (every stage writes into --out, the Archive copy; --insta
   6. zones   the 4 largest land masses = the 4 home regions (by quadrant), the island under the tree = worldtree,
              every other islet = wild N/S/E/W by its direction from the tree; sea + off-realm cells are blocked,
              and so is every city square (> 30 % of it covered by the city overlay alpha)
-  7. oases   the 4 oasis 2x2 sites, nearest to their old offsets from the tree, all four cells on island land
+  7. oases   the 4 oasis sites (one 220-grid 2x2 in world size), nearest to their old offsets from the tree, all on island land
   8. data    world-realm.js (shared client/server module), world-terrain-blocked.json, world-oasis-layout.json,
              realm.json (manifest with sha256 of every file), previews for the look
 World Anvil: tools/realm/worldanvil_map.py.  Castle relocation check: node tools/realm/relocation_check.js.
@@ -36,14 +37,39 @@ Image.MAX_IMAGE_PIXELS = None
 ARCHIVE = r'C:\Users\Home\OneDrive\Desktop\Emberweave Archive'
 MAP_FINAL = os.path.join(ARCHIVE, 'Game Art', 'EMBERWEAVE MAP FINAL')
 TO_DELETE = r'C:\Emberweave\_to_delete'
-COLS = 220                 # the game grid (server/world-location.js GRID_COLS)
+# THE GRID: these two numbers are the whole grid of the game. The client and the server read them from world-realm.js META
+# (cols, rows), which this build writes; change them (or pass --cols / --rows) and re-run the build, nothing else.
+# v1227 (Phil 30 Oct 2026: "The tiles need to be roughly 2x smaller. Basically cut these tiles in 1/4. Then fix the zoom to that
+# level." then "about 1000 wide by about 600 tall", the realm's own shape): 1000 columns; 596 rows = the art's height at that width
+# (20400 / (34229.5 / 1000)). --rows 0 derives the rows from --cols.
+GRID_COLS = 1000
+GRID_ROWS = 596
+COLS, ROWS = GRID_COLS, GRID_ROWS
+OLD_COLS = 220             # the grid the castle, the World Tree core, the oases and the mine bands were first sized on: their world
+                           # size never changes, so each is measured in 220-grid squares (sq() grid squares each)
 TILE = 512
 WEBP_Q = 92
 TREE_FRAMES = 28
 REGION_BY_QUADRANT = {(-1, -1): 'crystor', (1, -1): 'draymon', (-1, 1): 'tefron', (1, 1): 'alumron'}
 ZONE_CODE = {'crystor': 'A', 'draymon': 'B', 'tefron': 'C', 'alumron': 'D', 'worldtree': 'T',
              'wildN': 'n', 'wildS': 's', 'wildE': 'e', 'wildW': 'w'}
-OLD_OASIS = {'north': (109, 97), 'south': (109, 121), 'east': (121, 109), 'west': (97, 109)}  # v878 layout, tree core 108..111
+OLD_OASIS = {'north': (109, 97), 'south': (109, 121), 'east': (121, 109), 'west': (97, 109)}  # v878 layout on the 220 grid, tree core 108..111
+
+
+def sq():
+    """Grid squares per side of one 220-grid square (4.545 at 1000 columns). Things that are not a grid square keep their size."""
+    return COLS / OLD_COLS
+
+
+def even_round(v):
+    return max(2, 2 * int(round(v / 2)))
+
+
+def foot():
+    """Castle / mine side in grid squares: the largest even count inside one 220-grid square (4 at 1000, 2 at 440, 1 at 220), so
+    castles that stood side by side on the 220 grid never overlap, and a castle's position is the corner its squares share."""
+    s = sq()
+    return 1 if s < 2 else 2 * int(math.floor(s / 2 + 1e-9))
 
 
 def log(*a):
@@ -273,15 +299,15 @@ def city_patches(master, src, v, pos):
 CITY_COVER = 0.30   # a grid square is city when more than 30 % of it is the overlay's opaque pixels (alpha, not the bounding box)
 
 
-def city_cells(c, X0, top_cells, cpx):
-    """The 220-grid squares a city overlay covers (Phil 30 Oct 2026: "the city should not be able to be teleported onto").
+def city_cells(c, X0, top_cells, cpx):   # top_cells: the grid row at realm y = 0
+    """The grid squares a city overlay covers (Phil 30 Oct 2026: "the city should not be able to be teleported onto").
     A square counts when more than CITY_COVER of its area is opaque overlay (alpha >= 128)."""
     al = c['_alpha'] >= 128
     x, y = c['topleftPx']; h, w = al.shape
     cells = []
     for cy in range(int(math.floor(top_cells + y / cpx)), int(math.ceil(top_cells + (y + h) / cpx))):
         for cx in range(int(math.floor((x - X0) / cpx)), int(math.ceil((x + w - X0) / cpx))):
-            if not (0 <= cx < COLS and 0 <= cy < COLS):
+            if not (0 <= cx < COLS and 0 <= cy < ROWS):
                 continue
             mx0, my0 = X0 + cx * cpx, (cy - top_cells) * cpx            # the square's box in master px
             ax0, ay0 = int(round(max(mx0, x) - x)), int(round(max(my0, y) - y))
@@ -355,16 +381,23 @@ def build_pyramid(master, levels, tiles_dir, files, X0, out):
 
 
 def main():
+    global COLS, ROWS
     ap = argparse.ArgumentParser()
     ap.add_argument('--src', required=True)
     ap.add_argument('--version', required=True)
     ap.add_argument('--out')
     ap.add_argument('--install')
     ap.add_argument('--allow-dev-fill', action='store_true')
-    ap.add_argument('--max-scale', type=float, default=0.5)
+    ap.add_argument('--max-scale', type=float, default=1.0)   # v1226 shipped z1 = the master (1.0)
     ap.add_argument('--land-frac', type=float, default=0.5)
     ap.add_argument('--reuse-tiles', action='store_true', help='keep the pyramid already in --out; rebuild only the data (mask, zones, oases, module)')
+    ap.add_argument('--cols', type=int, default=GRID_COLS, help='grid columns (GRID_COLS)')
+    ap.add_argument('--rows', type=int, default=GRID_ROWS, help='grid rows (GRID_ROWS); 0 = the art height at --cols')
     a = ap.parse_args()
+    if a.cols < OLD_COLS or a.cols % 2:
+        sys.exit('--cols must be even and at least %d' % OLD_COLS)
+    COLS = a.cols
+    SQ, FOOT = sq(), foot()
     v = a.version
     out = a.out or os.path.join(MAP_FINAL, 'IN GAME', 'realm-' + v)
     os.makedirs(out, exist_ok=True)
@@ -389,18 +422,24 @@ def main():
     patch_box = tree_patch(master, tl)
     cities = city_patches(master, a.src, v, pos)
 
-    # ---- 2. grid: 220 columns across, trunk on cell centre 110,110
+    # ---- 2. grid: COLS square cells across, trunk on the world centre (x = 50 %); ROWS rows over the art's own height
     half = min(tcx, RW - tcx)
     WW = 2 * half                     # world width in realm px
     cpx = WW / COLS                   # realm px per cell
     X0 = tcx - half                   # realm px at world x = 0
-    top_cells = COLS / 2 - tcy / cpx  # world cell row at realm y = 0
+    top_cells = COLS / 2 - tcy / cpx  # realm y = 0, in cells from the top of the square 0..100 % world (the client places the art by it)
     h_cells = RH / cpx
-    if top_cells < 0 or top_cells + h_cells > COLS:
-        sys.exit('realm is taller than the 220-cell world at this width (top %.2f, height %.2f cells): needs a grid change' % (top_cells, h_cells))
-    log('grid: %.3f realm px per cell, crop x %.1f..%.1f of %d, realm rows %.3f..%.3f' % (cpx, X0, X0 + WW, RW, top_cells, top_cells + h_cells))
+    ROWS = a.rows or int(math.ceil(h_cells - 1e-6))
+    if ROWS + 1e-6 < h_cells:
+        sys.exit('%d rows do not cover the art (%.2f rows of it at %d columns): raise GRID_ROWS' % (ROWS, h_cells, COLS))
+    grid_top = top_cells - (ROWS - h_cells) / 2   # grid row 0, in cells from the world top: the rows are centred on the art
+    if grid_top < 0 or grid_top + ROWS > COLS:
+        sys.exit('the grid leaves the square world (top %.2f, %d rows of %d)' % (grid_top, ROWS, COLS))
+    off = grid_top - top_cells        # realm y of grid row r = (r + off) * cpx
+    log('grid: %d x %d, %.3f realm px per cell, crop x %.1f..%.1f of %d, grid rows from %.3f (art %.3f..%.3f); castle %d squares, one 220-square = %.3f'
+        % (COLS, ROWS, cpx, X0, X0 + WW, RW, grid_top, top_cells, top_cells + h_cells, FOOT, SQ))
     for c in cities:
-        c['cells'] = city_cells(c, X0, top_cells, cpx); del c['_alpha']
+        c['cells'] = city_cells(c, X0, -off, cpx); del c['_alpha']
     log('city squares (blocked for castles and teleports): ' + ', '.join('%s %d' % (c['name'], len(c['cells'])) for c in cities))
 
     # ---- 4. pyramid. Level n has scale max_scale / 2**(n-1) of the master.
@@ -435,7 +474,7 @@ def main():
     # the mask is ALWAYS measured on the saved WebP tiles, so a full build and a --reuse-tiles run give the same zones
     small = {}
     for L in levels:
-        if L['width'] <= 5000:
+        if L['width'] <= 10000:
                 pic_ = Image.new('RGB', (L['width'], L['height']))
                 for r in range(L['rows']):
                     for c in range(L['cols']):
@@ -445,73 +484,131 @@ def main():
     log('pyramid: ' + ', '.join('z%d %dx%d (%d tiles, %.1f px/cell)' % (L['z'], L['width'], L['height'], L['cols'] * L['rows'], L['cellPx']) for L in levels))
 
     # ---- 5. land mask per cell from the second level (whole picture in memory) or z1 if there is only one
-    # the largest level that is at most 5000 px wide (~20 px per cell): enough to measure, small enough for memory
+    # the largest level that is at most 10000 px wide (8.6 px per cell at 1000 columns): enough to measure, small enough for memory
     bz = min(small) if small else levels[-1]["z"]
     base = [L for L in levels if L['z'] == bz][0]
     pic = small.get(bz, cover)
     wat = water_mask(pic)
     land_px = (~wat).astype(np.uint8)
     land_px = cv2.morphologyEx(land_px, cv2.MORPH_OPEN, np.ones((3, 3), np.uint8))
-    rows_lo, rows_hi = int(math.floor(top_cells)), int(math.ceil(top_cells + h_cells))
-    frac = np.zeros((COLS, COLS), np.float32)
+    frac = np.zeros((ROWS, COLS), np.float32)
     bc = base['cellPx']
-    for cy in range(max(0, rows_lo), min(COLS, rows_hi)):
-        py0 = (cy - top_cells) * bc; py1 = py0 + bc
-        if py0 < 0 or py1 > pic.shape[0]:
+    for cy in range(ROWS):
+        py0 = (cy + off) * bc; py1 = py0 + bc
+        if py0 < -1e-6 or py1 > pic.shape[0] + 0.5:
             continue   # a row only partly inside the realm is sea margin: blocked
+        py0 = max(0.0, py0)
         for cx in range(COLS):
             px0 = cx * bc; px1 = px0 + bc
             frac[cy, cx] = land_px[int(py0):int(math.ceil(py1)), int(px0):int(math.ceil(px1))].mean()
     land = frac >= a.land_frac
+    if FOOT > 1:
+        # v1227: a speck of land too small for one castle (no FOOT x FOOT block of land) is sea, as a sub-square speck was at 220
+        K = FOOT
+        blk = np.ones((ROWS - K + 1, COLS - K + 1), bool)
+        for j in range(K):
+            for i in range(K):
+                blk &= land[j:ROWS - K + 1 + j, i:COLS - K + 1 + i]
+        _, lab0 = cv2.connectedComponents(land.astype(np.uint8), connectivity=4)
+        keep = np.unique(lab0[:ROWS - K + 1, :COLS - K + 1][blk])
+        specks = int((land & ~np.isin(lab0, keep)).sum())
+        land &= np.isin(lab0, keep)
+        log('land specks smaller than one castle (no %dx%d land block) -> sea: %d cells' % (K, K, specks))
 
-    # ---- 6. zones
-    n_cc, lab, st, cen = cv2.connectedComponentsWithStats(land.astype(np.uint8), connectivity=4)
-    comps = sorted(range(1, n_cc), key=lambda i: -st[i, 4])
-    tree_cell = (COLS // 2 - 1, COLS // 2 - 1)   # cells 108..111 are the tree core; its centre is 110,110
-    tree_comp = lab[COLS // 2, COLS // 2] or lab[tree_cell[1], tree_cell[0]]
-    if not tree_comp:
+    # ---- 6. zones. v1227: WHICH land mass is which zone is decided on the 220 grid, exactly as v1226 did (the 4 largest masses =
+    # the home regions by quadrant, the tree's island, the rest wild by direction), so a finer grid never moves a coast cove or a
+    # thin channel's far side into another zone; each fine land cell takes the zone of the 220-square it lies in (a fine land mass
+    # whose 220-squares are all sea is a new islet: wild by its direction from the tree)
+    ob = bc * SQ; otop = top_cells / SQ             # 220-grid cell size in base px; realm y = 0 in 220-grid rows
+    ofrac = np.zeros((OLD_COLS, OLD_COLS), np.float32)
+    for cy in range(int(math.floor(otop)), min(OLD_COLS, int(math.ceil(otop + h_cells / SQ)))):
+        py0 = (cy - otop) * ob; py1 = py0 + ob
+        if py0 < 0 or py1 > pic.shape[0]:
+            continue
+        for cx in range(OLD_COLS):
+            px0 = cx * ob; px1 = px0 + ob
+            ofrac[cy, cx] = land_px[int(py0):int(math.ceil(py1)), int(px0):int(math.ceil(px1))].mean()
+    oland = ofrac >= a.land_frac
+    n_o, lab_o, st_o, cen_o = cv2.connectedComponentsWithStats(oland.astype(np.uint8), connectivity=4)
+    comps_o = sorted(range(1, n_o), key=lambda i: -st_o[i, 4])
+    OC = OLD_COLS // 2
+    tree_o = lab_o[OC, OC] or lab_o[OC - 1, OC - 1]
+    if not tree_o:
         sys.exit('the World Tree centre cell is not land - the tree must stand on its island')
-    zone = np.full((COLS, COLS), '.', dtype='<U1')
-    big = [i for i in comps if i != tree_comp][:4]
+    ozone = np.full((OLD_COLS, OLD_COLS), '.', dtype='<U1')
+    big = [i for i in comps_o if i != tree_o][:4]
     seen = set()
     for i in big:
-        qx = -1 if cen[i][0] < COLS / 2 else 1; qy = -1 if cen[i][1] < COLS / 2 else 1
+        qx = -1 if cen_o[i][0] < OC else 1; qy = -1 if cen_o[i][1] < OC else 1
         key = REGION_BY_QUADRANT[(qx, qy)]
         if key in seen:
             sys.exit('two of the four largest land masses sit in the same quadrant (%s): check the art' % key)
-        seen.add(key); zone[lab == i] = ZONE_CODE[key]
-    zone[lab == tree_comp] = 'T'
-    wild_cells = 0
-    islets = []   # Phil 30 Oct 2026: the small islands are the wild - players go there, good rewards there soon
-    for i in comps:
-        if i in big or i == tree_comp:
+        seen.add(key); ozone[lab_o == i] = ZONE_CODE[key]
+    ozone[lab_o == tree_o] = 'T'
+
+    def wild_dir(dx, dy):
+        return ('wildS' if dy > 0 else 'wildN') if abs(dy) >= abs(dx) else ('wildE' if dx > 0 else 'wildW')
+    for i in comps_o:
+        if i in big or i == tree_o:
             continue
-        dx, dy = cen[i][0] - COLS / 2, cen[i][1] - COLS / 2
-        key = ('wildS' if dy > 0 else 'wildN') if abs(dy) >= abs(dx) else ('wildE' if dx > 0 else 'wildW')
-        zone[lab == i] = ZONE_CODE[key]; wild_cells += st[i, 4]
-        islets.append({'zone': key, 'cells': int(st[i, 4]), 'cx': round(float(cen[i][0]), 2), 'cy': round(float(cen[i][1]), 2),
-                       'box': [int(st[i, 0]), int(st[i, 1]), int(st[i, 2]), int(st[i, 3])]})
+        ozone[lab_o == i] = ZONE_CODE[wild_dir(cen_o[i][0] - OC, cen_o[i][1] - OC)]
+    C = COLS // 2; TR = COLS / 2 - grid_top   # the trunk: x on the column corner C, y on grid row TR (296.9 at 1000 x 596)
+    CORE = even_round(4 * SQ)                 # the World Tree core: 4x4 squares of the 220 grid in world size (18x18 at 1000)
+    core_box = [C - CORE // 2, int(round(TR)) - CORE // 2, C + CORE // 2 - 1, int(round(TR)) + CORE // 2 - 1]   # inclusive
+    # every fine cell's 220-square
+    oxs = np.clip(((np.arange(COLS) + 0.5) / SQ).astype(int), 0, OLD_COLS - 1)
+    oys = np.clip(((np.arange(ROWS) + 0.5 + grid_top) / SQ).astype(int), 0, OLD_COLS - 1)
+    inherited = ozone[np.ix_(oys, oxs)]
+    n_cc, lab, st, cen = cv2.connectedComponentsWithStats(land.astype(np.uint8), connectivity=4)
+    zone = np.full((ROWS, COLS), '.', dtype='<U1')
+    zone[land] = inherited[land]
+    islets = []   # Phil 30 Oct 2026: the small islands are the wild - players go there, good rewards there soon
+    for i in range(1, n_cc):
+        m = lab == i
+        if (zone[m] == '.').all():   # a fine-only speck island: wild by its direction
+            zone[m] = ZONE_CODE[wild_dir(cen[i][0] - C, cen[i][1] - TR)]
+        else:                        # land whose own 220-square was sea takes its mass's majority zone
+            vals, cnt = np.unique(zone[m][zone[m] != '.'], return_counts=True)
+            zone[m & (zone == '.')] = vals[int(np.argmax(cnt))]
+    if zone[int(TR), C] != 'T' and zone[int(TR), C - 1] != 'T':
+        sys.exit('the World Tree trunk is not on the worldtree island')
+    # the islets: each wild land mass of this grid
+    wl = np.isin(zone, [ZONE_CODE[k] for k in ('wildN', 'wildS', 'wildE', 'wildW')])
+    n_w, lab_w, st_w, cen_w = cv2.connectedComponentsWithStats(wl.astype(np.uint8), connectivity=4)
+    for i in range(1, n_w):
+        ys, xs = np.nonzero(lab_w == i)
+        key = {v: k for k, v in ZONE_CODE.items()}[zone[ys[0], xs[0]]]
+        islets.append({'zone': key, 'cells': int(st_w[i, 4]), 'cx': round(float(cen_w[i][0]), 2), 'cy': round(float(cen_w[i][1]), 2),
+                       'box': [int(st_w[i, 0]), int(st_w[i, 1]), int(st_w[i, 2]), int(st_w[i, 3])]})
+    comps = list(range(1, n_w + 5))
     counts = {k: int((zone == c).sum()) for k, c in ZONE_CODE.items()}
     log('zones (land cells):', counts, 'islets', len(comps) - 5)
     for k in ('crystor', 'draymon', 'tefron', 'alumron', 'worldtree'):
         if counts[k] < 100:
             sys.exit('zone %s has only %d land cells' % (k, counts[k]))
 
-    # ---- 7. oases: 2x2, all on island land, outside the 4x4 core and off any city, nearest to the old offset from the tree
-    core = {(x, y) for x in range(108, 112) for y in range(108, 112)}
+    # ---- 7. oases: one 220-grid 2x2 in world size (OAS x OAS squares), all on island land, outside the core and off any city,
+    # nearest to the old offset from the tree (OLD_OASIS converted to this grid)
+    OAS = even_round(2 * SQ)
+    core = {(x, y) for x in range(core_box[0], core_box[2] + 1) for y in range(core_box[1], core_box[3] + 1)}
     city_set = {(cx, cy) for c in cities for cx, cy in c['cells']}
     if city_set & core:
         sys.exit('a city overlay covers the World Tree core: %s' % sorted(city_set & core))
+    ok = (zone == 'T').astype(np.int32)
+    for (x, y) in core | city_set:
+        if 0 <= x < COLS and 0 <= y < ROWS:
+            ok[y, x] = 0
+    ii = np.pad(ok, ((1, 0), (1, 0))).cumsum(0).cumsum(1)     # integral image: a whole OAS x OAS block is island land
+    full = (ii[OAS:, OAS:] - ii[:-OAS, OAS:] - ii[OAS:, :-OAS] + ii[:-OAS, :-OAS]) == OAS * OAS
     oases = []
     for d, (ox, oy) in OLD_OASIS.items():
+        ox, oy = ox * SQ, oy * SQ - grid_top
         best = None
-        for y in range(COLS - 1):
-            for x in range(COLS - 1):
-                cells = [(x, y), (x + 1, y), (x, y + 1), (x + 1, y + 1)]
-                if any(zone[cy, cx] != 'T' or (cx, cy) in core or (cx, cy) in city_set for cx, cy in cells):
-                    continue
+        for y, x in zip(*np.nonzero(full)):
+            if True:
+                x, y = int(x), int(y)
                 # keep each oasis on its own side of the tree
-                ccx, ccy = x + 1 - 110, y + 1 - 110
+                ccx, ccy = x + OAS / 2 - C, y + OAS / 2 - TR
                 side = {'north': ccy < 0 and abs(ccy) >= abs(ccx), 'south': ccy > 0 and abs(ccy) >= abs(ccx),
                         'east': ccx > 0 and abs(ccx) >= abs(ccy), 'west': ccx < 0 and abs(ccx) >= abs(ccy)}[d]
                 if not side:
@@ -520,12 +617,12 @@ def main():
                 if best is None or dist < best[0]:
                     best = (dist, x, y)
         if not best:
-            sys.exit('no 2x2 island land for the %s oasis' % d)
+            sys.exit('no %dx%d island land for the %s oasis' % (OAS, OAS, d))
         oases.append({'direction': d, 'x': best[1], 'y': best[2]})
     log('oases:', oases)
 
     # ---- 8. data
-    rows = [''.join(zone[y]) for y in range(COLS)]
+    rows = [''.join(zone[y]) for y in range(ROWS)]
 
     def rle(s):
         o = []; i = 0
@@ -545,17 +642,18 @@ def main():
             labels[k] = [int(xs[j]), int(ys[j])]
     tree_side_cells = tl['side'] / cpx
     realm = {
-        'version': v, 'dev': master.dev, 'built': time.strftime('%Y-%m-%d %H:%M'), 'cols': COLS, 'rows': COLS,
+        'version': v, 'dev': master.dev, 'built': time.strftime('%Y-%m-%d %H:%M'), 'cols': COLS, 'rows': ROWS,
+        'gridTop': round(grid_top, 6), 'foot': FOOT, 'oldSquareCells': round(SQ, 6),
         'source': {'positions': os.path.basename(pos_f), 'preview': os.path.basename(prev_f),
                    'zips': [os.path.basename(z) for z in master.zips], 'missingMasterTiles': master.missing,
                    'realmPx': [RW, RH], 'cropX': [round(X0, 2), round(X0 + WW, 2)], 'cellPxMaster': round(cpx, 4)},
         'realmTop': round(top_cells, 4), 'realmHeight': round(h_cells, 4),
         'tile': TILE, 'levels': levels,
-        'tree': {'cx': 110, 'cy': 110, 'sideCells': round(tree_side_cells, 4), 'frames': TREE_FRAMES,
+        'tree': {'cx': C, 'cy': round(TR, 4), 'coreCells': CORE, 'core': core_box, 'sideCells': round(tree_side_cells, 4), 'frames': TREE_FRAMES,
                  'matchRms': tl['rms'], 'patchRealmPx': patch_box},
         'islets': [dict(o, id='isle-%02d' % (k + 1), rewards=[]) for k, o in enumerate(sorted(islets, key=lambda o: (-o['cells'], o['cy'], o['cx'])))],
-        'oases': oases, 'labels': labels, 'zoneCells': counts, 'landFraction': a.land_frac,
-        'cities': [dict(c, cx=round((c['cxPx'] - X0) / cpx, 3), cy=round(top_cells + c['cyPx'] / cpx, 3)) for c in cities],
+        'oasisCells': OAS, 'oases': oases, 'labels': labels, 'zoneCells': counts, 'landFraction': a.land_frac,
+        'cities': [dict(c, cx=round((c['cxPx'] - X0) / cpx, 3), cy=round(c['cyPx'] / cpx - off, 3)) for c in cities],
     }
     # tree frames (RGBA) at z1 resolution, the same square box as the baked tree
     tdir = os.path.join(out, 'tree'); os.makedirs(tdir, exist_ok=True)
@@ -564,8 +662,8 @@ def main():
     for i in range(1, TREE_FRAMES + 1):
         fr = Image.open(os.path.join(MAP_FINAL, '05 World Tree', 'frames', 'wt_%02d.png' % i)).convert('RGBA').resize((tpx, tpx), Image.LANCZOS)
         p = os.path.join(tdir, 'wt_%02d.webp' % i); fr.save(p, 'WEBP', quality=WEBP_Q, method=6); files['tree/wt_%02d.webp' % i] = p
-    blocked = sorted([(x, y) for y in range(COLS) for x in range(COLS) if zone[y, x] == '.' or (x, y) in city_set], key=lambda t: (t[1], t[0]))
-    bj = {'about': 'Squares no castle, mine or teleport may use: every sea and off-realm cell of Grok\'s realm map %s, and every city square (generated by tools/realm/build_realm.py - never hand-edit; re-run it). Keys are cellKey "x,y" (col,row) on the 220x220 grid.' % v,
+    blocked = sorted([(x, y) for y in range(ROWS) for x in range(COLS) if zone[y, x] == '.' or (x, y) in city_set], key=lambda t: (t[1], t[0]))
+    bj = {'about': 'Squares no castle, mine or teleport may use: every sea and off-realm cell of Grok\'s realm map %s, and every city square (generated by tools/realm/build_realm.py - never hand-edit; re-run it). Keys are cellKey "x,y" (col,row) on the %dx%d (cols x rows) grid.' % (v, COLS, ROWS),
           'source': 'land/sea mask of the realm art (Grok landalpha water rule), a cell is land when >= %d%% of it is land; a cell is city when > %d%% of it is a city overlay\'s opaque pixels (alpha >= 128)' % (round(a.land_frac * 100), round(CITY_COVER * 100)),
           'version': v, 'count': len(blocked), 'cells': ['%d,%d' % t for t in blocked]}
     bp = os.path.join(out, 'world-terrain-blocked.json')
@@ -585,8 +683,8 @@ def main():
               'n': (255, 255, 255), 's': (255, 255, 255), 'e': (255, 255, 255), 'w': (255, 255, 255), '.': (255, 40, 40)}
     cc = levels[-1]['cellPx']
     over = np.zeros_like(zprev)
-    for y in range(max(0, rows_lo), min(COLS, rows_hi)):
-        y0 = int((y - top_cells) * cc); y1 = int((y + 1 - top_cells) * cc)
+    for y in range(ROWS):
+        y0 = int((y + off) * cc); y1 = int((y + 1 + off) * cc)
         if y1 <= 0 or y0 >= zprev.shape[0]:
             continue
         for x in range(COLS):
@@ -606,40 +704,68 @@ def main():
 
 
 def render_module(realm, rle_rows):
-    """The shared client/server realm module. Pure data + lookups; generated, never hand-edited."""
-    meta = {k: realm[k] for k in ('version', 'built', 'dev', 'cols', 'rows', 'realmTop', 'realmHeight', 'tile', 'levels', 'tree', 'oases', 'labels', 'islets', 'cities')}
-    return ("/* GENERATED by tools/realm/build_realm.py from Grok's realm %s - never hand-edit; re-run the build.\n"
-            "   The realm map in game (Phil 30 Oct 2026: \"put this map in game. Swap out the old one\"). Shared by the client\n"
-            "   (window.EmberweaveRealm) and the server (require). Zone codes per cell: A crystor, B draymon, C tefron, D alumron,\n"
-            "   T worldtree island, n/s/e/w wild islets, '.' sea or off-realm (blocked). A city square (META.cities[].cells; Phil\n"
-            "   30 Oct 2026: \"the city should not be able to be teleported onto\") keeps its zone but is blocked like the sea. */\n"
-            "(function(root){\n'use strict';\n"
-            "const META=%s;\n"
-            "const RLE=%s;\n"
-            "const CODE_ZONE={A:'crystor',B:'draymon',C:'tefron',D:'alumron',T:'worldtree',n:'wildN',s:'wildS',e:'wildE',w:'wildW'};\n"
-            "const COLS=META.cols, GRID=new Uint8Array(COLS*COLS);\n"
-            "const CODES='.ABCDTnsew';\n"
-            "RLE.forEach((row,y)=>{let x=0;const re=/([.A-Za-z])(\\d*)/g;let m;while((m=re.exec(row))){const n=m[2]?+m[2]:1,c=CODES.indexOf(m[1]);for(let i=0;i<n;i++)GRID[y*COLS+x++]=c;}if(x!==COLS)throw Error('world-realm row '+y+' has '+x+' cells');});\n"
-            "function code(cx,cy){return cx>=0&&cy>=0&&cx<COLS&&cy<COLS?CODES[GRID[cy*COLS+cx]]:'.';}\n"
-            "function isLand(cx,cy){return code(cx,cy)!=='.';}\n"
-            "const CITY=new Map();(META.cities||[]).forEach(c=>(c.cells||[]).forEach(([x,y])=>CITY.set(x+','+y,c.name)));\n"
-            "function cityAt(cx,cy){return CITY.get(cx+','+cy)||null;}\n"
-            "function isCity(cx,cy){return CITY.has(cx+','+cy);}\n"
-            "// a square a castle, mine or teleport may use: land that is not a city\n"
-            "function isOpen(cx,cy){return isLand(cx,cy)&&!isCity(cx,cy);}\n"
-            "function landZone(cx,cy){return CODE_ZONE[code(cx,cy)]||null;}\n"
-            "// a sea or off-realm cell belongs to the wild by its direction from the World Tree (it is blocked anyway)\n"
-            "function zoneOfCell(cx,cy){const z=landZone(cx,cy);if(z)return z;const dx=cx+0.5-META.tree.cx,dy=cy+0.5-META.tree.cy;\n"
-            "  return Math.abs(dy)>=Math.abs(dx)?(dy>0?'wildS':'wildN'):(dx>0?'wildE':'wildW');}\n"
-            "const _cells={};\n"
-            "// every open (non-city) land cell of a zone, row by row (top to bottom, left to right) - the order placement walks\n"
-            "function zoneCells(zone){if(_cells[zone])return _cells[zone];const out=[];for(let y=0;y<COLS;y++)for(let x=0;x<COLS;x++)if(landZone(x,y)===zone&&!isCity(x,y))out.push([x,y]);return _cells[zone]=out;}\n"
-            "// sea, off-realm and city squares - the same set as the server's world-terrain-blocked.json\n"
-            "function blockedKeys(){const out=[];for(let y=0;y<COLS;y++)for(let x=0;x<COLS;x++)if(!isOpen(x,y))out.push(x+','+y);return out;}\n"
-            "const api={META,code,isLand,isCity,cityAt,isOpen,landZone,zoneOfCell,zoneCells,blockedKeys,CODE_ZONE};\n"
-            "if(typeof module==='object'&&module.exports)module.exports=api;else root.EmberweaveRealm=api;\n"
-            "})(typeof globalThis==='object'?globalThis:this);\n") % (realm['version'], json.dumps(meta, separators=(',', ':')),
-                                                                        json.dumps(rle_rows, separators=(',', ':')).replace('","', '",\n"'))
+    """The shared client/server realm module. Pure data + lookups + the grid geometry; generated, never hand-edited."""
+    meta = {k: realm[k] for k in ('version', 'built', 'dev', 'cols', 'rows', 'gridTop', 'foot', 'oldSquareCells', 'realmTop', 'realmHeight', 'tile', 'levels', 'tree', 'oasisCells', 'oases', 'labels', 'islets', 'cities')}
+    return MODULE_JS.replace('%(v)s', realm['version']).replace('%(meta)s', json.dumps(meta, separators=(',', ':'))).replace(
+        '%(rle)s', json.dumps(rle_rows, separators=(',', ':')).replace('","', '",\n"'))
+
+
+MODULE_JS = r'''/* GENERATED by tools/realm/build_realm.py from Grok's realm %(v)s - never hand-edit; re-run the build.
+   The realm map in game (Phil 30 Oct 2026: "put this map in game. Swap out the old one"). Shared by the client
+   (window.EmberweaveRealm) and the server (require). Zone codes per cell: A crystor, B draymon, C tefron, D alumron,
+   T worldtree island, n/s/e/w wild islets, '.' sea or off-realm (blocked). A city square (META.cities[].cells; Phil
+   30 Oct 2026: "the city should not be able to be teleported onto") keeps its zone but is blocked like the sea.
+   THE GRID (v1227): META.cols x META.rows square cells - set by GRID_COLS / GRID_ROWS in the build, nothing else. Positions
+   are world-percent of the square 0..100 world (never migrated); the columns span x 0..100, the rows the art's own band
+   (grid row 0 starts META.gridTop cells below the world top). GEO turns positions into cells for every caller. */
+(function(root){
+'use strict';
+const META=%(meta)s;
+const RLE=%(rle)s;
+const CODE_ZONE={A:'crystor',B:'draymon',C:'tefron',D:'alumron',T:'worldtree',n:'wildN',s:'wildS',e:'wildE',w:'wildW'};
+const COLS=META.cols, ROWS=META.rows, GRID=new Uint8Array(COLS*ROWS);
+const CODES='.ABCDTnsew';
+if(RLE.length!==ROWS)throw Error('world-realm has '+RLE.length+' rows, META says '+ROWS);
+RLE.forEach((row,y)=>{let x=0;const re=/([.A-Za-z])(\d*)/g;let m;while((m=re.exec(row))){const n=m[2]?+m[2]:1,c=CODES.indexOf(m[1]);for(let i=0;i<n;i++)GRID[y*COLS+x++]=c;}if(x!==COLS)throw Error('world-realm row '+y+' has '+x+' cells');});
+function code(cx,cy){return cx>=0&&cy>=0&&cx<COLS&&cy<ROWS?CODES[GRID[cy*COLS+cx]]:'.';}
+function isLand(cx,cy){return code(cx,cy)!=='.';}
+const CITY=new Map();(META.cities||[]).forEach(c=>(c.cells||[]).forEach(([x,y])=>CITY.set(x+','+y,c.name)));
+function cityAt(cx,cy){return CITY.get(cx+','+cy)||null;}
+function isCity(cx,cy){return CITY.has(cx+','+cy);}
+// a square a castle, mine or teleport may use: land that is not a city
+function isOpen(cx,cy){return isLand(cx,cy)&&!isCity(cx,cy);}
+function landZone(cx,cy){return CODE_ZONE[code(cx,cy)]||null;}
+// a sea or off-realm cell belongs to the wild by its direction from the World Tree (it is blocked anyway)
+function zoneOfCell(cx,cy){const z=landZone(cx,cy);if(z)return z;const dx=cx+0.5-META.tree.cx,dy=cy+0.5-META.tree.cy;
+  return Math.abs(dy)>=Math.abs(dx)?(dy>0?'wildS':'wildN'):(dx>0?'wildE':'wildW');}
+const _cells={};
+// every open (non-city) land cell of a zone, row by row (top to bottom, left to right) - the order placement walks
+function zoneCells(zone){if(_cells[zone])return _cells[zone];const out=[];for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++)if(landZone(x,y)===zone&&!isCity(x,y))out.push([x,y]);return _cells[zone]=out;}
+// sea, off-realm and city squares - the same set as the server's world-terrain-blocked.json
+function blockedKeys(){const out=[];for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++)if(!isOpen(x,y))out.push(x+','+y);return out;}
+// ---- GEO: world-percent <-> cells. A castle (or a mine) keeps its world size: one 220-grid square, FOOT x FOOT cells, standing on
+// the corner of its cells (FOOT even) - anchorX/anchorY give its top-left cell, cornerX/cornerY the position of the one that starts there
+const CELL=100/COLS, Y0=META.gridTop*CELL, FOOT=META.foot, OLD_SQUARE=100/220, CORE=META.tree.core;
+const clamp=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));
+function col(x){return clamp(Math.round(x/CELL-0.5),0,COLS-1);}
+function row(y){return clamp(Math.round((y-Y0)/CELL-0.5),0,ROWS-1);}
+function xOf(c){return (c+0.5)*CELL;}
+function yOf(r){return Y0+(r+0.5)*CELL;}
+function anchorX(x){return clamp(Math.round(x/CELL-FOOT/2),0,COLS-FOOT);}
+function anchorY(y){return clamp(Math.round((y-Y0)/CELL-FOOT/2),0,ROWS-FOOT);}
+function cornerX(a){return (a+FOOT/2)*CELL;}
+function cornerY(a){return Y0+(a+FOOT/2)*CELL;}
+function footCells(ax,ay){const out=[];for(let j=0;j<FOOT;j++)for(let i=0;i<FOOT;i++)out.push([ax+i,ay+j]);return out;}
+function footprint(x,y){return footCells(anchorX(x),anchorY(y));}
+function footKeys(x,y){return footprint(x,y).map(c=>c[0]+','+c[1]);}
+function coreCell(cx,cy){return cx>=CORE[0]&&cx<=CORE[2]&&cy>=CORE[1]&&cy<=CORE[3];}
+// march distance in 220-grid squares (one castle side): march times never depend on the grid
+function marchSquares(a,b){return Math.max(1,Math.round(Math.hypot(b.x-a.x,b.y-a.y)/OLD_SQUARE));}
+const GEO={COLS,ROWS,CELL,Y0,FOOT,OLD_SQUARE,CORE,col,row,xOf,yOf,anchorX,anchorY,cornerX,cornerY,footCells,footprint,footKeys,coreCell,marchSquares};
+const api={META,GEO,code,isLand,isCity,cityAt,isOpen,landZone,zoneOfCell,zoneCells,blockedKeys,CODE_ZONE};
+if(typeof module==='object'&&module.exports)module.exports=api;else root.EmberweaveRealm=api;
+})(typeof globalThis==='object'?globalThis:this);
+'''
 
 
 def install(out, realm, repo):

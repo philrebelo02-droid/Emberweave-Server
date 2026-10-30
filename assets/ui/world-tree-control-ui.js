@@ -4,7 +4,7 @@
   const title=id=>id==='tree'?'World Tree':id.slice(6).replace(/^./,x=>x.toUpperCase())+' oasis';
   function colour(id){if(!id)return '#97a3b5';let hash=0;for(const c of id)hash=(Math.imul(hash,31)+c.charCodeAt(0))>>>0;return 'hsl('+(hash%360)+',75%,72%)';}
   function read(control,score,layout){
-    if(!control?.ok||!score?.ok||typeof control.enabled!=='boolean'||control.enabled!==score.enabled||!Array.isArray(control.sites)||!Array.isArray(score.scores)||layout?.coordinateSpace!=='world-percent'||layout.gridColumns!==220||!Array.isArray(layout.sites))throw Error('Unavailable');
+    if(!control?.ok||!score?.ok||typeof control.enabled!=='boolean'||control.enabled!==score.enabled||!Array.isArray(control.sites)||!Array.isArray(score.scores)||layout?.coordinateSpace!=='world-percent'||!Number.isInteger(layout.gridColumns)||layout.gridColumns<220||!Array.isArray(layout.sites))throw Error('Unavailable');
     if(control.eventId&&score.eventId&&control.eventId!==score.eventId)throw Error('Event mismatch');
     const sites=IDS.map(id=>{const rows=layout.sites.filter(x=>x.id===id),held=control.sites.filter(x=>x.id===id);if(rows.length!==1||held.length>1)throw Error('Site mismatch');
       const b=rows[0].bounds;if(!b||!['left','top','right','bottom'].every(k=>Number.isFinite(b[k])&&b[k]>=0&&b[k]<=100)||b.left>=b.right||b.top>=b.bottom)throw Error('Invalid bounds');

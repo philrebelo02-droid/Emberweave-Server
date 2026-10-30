@@ -16,13 +16,13 @@ for(const f of process.argv.slice(2)){
   for(const u of withLoc){
     const loc=u.worldLocation,key=L.cellKey(loc.x,loc.y);
     if(L.valid(loc)&&!BLOCKED.has(key)){out.staying++;continue;}
-    if(!R.isLand(L.cellIndex(loc.x),L.cellIndex(loc.y))) out.sea++; else out.otherRegion++;
+    if(!L.isLand(loc.x,loc.y)) out.sea++; else out.otherRegion++;
     const blocked=new Set([...BLOCKED,...mines,...[...taken].filter(k=>k!==key)]);
     const next=L.nearestInRegion(loc.region,loc.x,loc.y,blocked);
     if(!next){out.noRoom++;continue;}
     taken.delete(key);taken.add(L.cellKey(next.x,next.y));out.moved++;
     out.byRegion[loc.region]=(out.byRegion[loc.region]||0)+1;
-    out.maxMoveSquares=Math.max(out.maxMoveSquares,Math.round(Math.hypot(L.cellIndex(next.x)-L.cellIndex(loc.x),L.cellIndex(next.y)-L.cellIndex(loc.y))));
+    out.maxMoveSquares=Math.max(out.maxMoveSquares,Math.round(Math.hypot(L.col(next.x)-L.col(loc.x),L.row(next.y)-L.row(loc.y))));
   }
   console.log(JSON.stringify(out));
 }

@@ -1,5 +1,6 @@
 'use strict';
-// Immutable rule: cells90..129 occupy [90/220,130/220) of world-percent space.
+// Immutable rule: cells90..129 of the 220 grid occupy [90/220,130/220) of world-percent space (a world-percent band: it does not
+// move with the grid - v1227's 1000 x 596 grid leaves it where it was).
 const LOW=90*100/220,HIGH=130*100/220;
 function valid(p){return p&&Number.isFinite(p.x)&&Number.isFinite(p.y)&&p.x>=0&&p.x<100&&p.y>=0&&p.y<100;}
 function plan(from,to,normalTravelMs){

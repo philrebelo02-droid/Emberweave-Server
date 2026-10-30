@@ -1,6 +1,6 @@
 (function(root,factory){if(typeof module==='object'&&module.exports)module.exports=factory();else root.EmberweaveWorldMarchVisual=factory();})(typeof window!=='undefined'?window:globalThis,function(){
   'use strict';
-  const LOW=90*100/220,HIGH=130*100/220;
+  const LOW=90*100/220,HIGH=130*100/220;   // a world-percent band (server/world-void-timing.js): not tied to the grid
   function segment(from,to){
     if(![from,to].every(p=>p&&Number.isFinite(p.x)&&Number.isFinite(p.y)&&p.x>=0&&p.x<100&&p.y>=0&&p.y<100))return null;
     let a=0,b=1,hit=true;

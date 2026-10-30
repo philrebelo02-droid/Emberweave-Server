@@ -8,7 +8,7 @@ const [base,token,out,zoomArg]=process.argv.slice(2);fs.mkdirSync(out,{recursive
   const p=await ctx.newPage();await p.goto(base+'/play');await p.waitForTimeout(2500);
   for(const name of ['Skip Tutorial','Click to Play']){const x=p.getByRole('button',{name});if(await x.count())await x.first().click().catch(()=>{});await p.waitForTimeout(700);}
   await p.evaluate(()=>{document.body.classList.remove('gated');show('world');});await p.waitForSelector('#wzoneClip');await p.waitForTimeout(1500);
-  const cities=await p.evaluate(()=>REALM_MAP.META.cities.map(c=>({name:c.name,x:c.cx*100/220,y:c.cy*100/220})));
+  const cities=await p.evaluate(()=>REALM_MAP.META.cities.map(c=>({name:c.name,x:REALM_MAP.GEO.xOf(c.cx),y:REALM_MAP.GEO.yOf(c.cy)})));
   for(const c of cities){
     await p.evaluate(([x,y,z])=>{const zone=document.getElementById('wzone');const bd=worldZoomBounds(zone);worldZoom=Math.max(bd.min,Math.min(bd.max,z));applyWorldZoom();
       zone.scrollLeft=x/100*WORLD_W*worldZoom-zone.clientWidth/2;wzSetTop(zone,y/100*WORLD_H-zone.clientHeight/2/worldZoom);applyMapLOD();},[c.x,c.y,+(zoomArg||0.62)]);

@@ -1,15 +1,17 @@
 (function(root,factory){if(typeof module==='object'&&module.exports)module.exports=factory();else root.EmberweaveWorldMineSync=factory();})(typeof window!=='undefined'?window:globalThis,function(){
   'use strict';
-  const EPOCH_MS=8*3600000,COUNT=240,COLS=220,CELL=100/COLS,RES=['iron','crystal','silver','coal'],MAX_LEVEL=10;   // v1131: server/world-mines.js MAX_LEVEL (region 1-6, wild 7-10; legacy fields 1-8)
+  const EPOCH_MS=8*3600000,COUNT=240,RES=['iron','crystal','silver','coal'],MAX_LEVEL=10;   // v1131: server/world-mines.js MAX_LEVEL (region 1-6, wild 7-10; legacy fields 1-8)
+  // v1227: the grid comes from world-realm.js (GEO: META.cols x rows); a node's gx,gy is its top-left cell, x,y the corner of its cells
+  function geo(){const g=typeof window!=='undefined'?window:globalThis,R=g.EmberweaveRealm||(typeof require==='function'?require('../../world-realm.js'):null);if(!R||!R.GEO)throw Error('No realm grid');return R.GEO;}
   function validate(data){
     if(!data||!data.ok||data.locked||!Number.isSafeInteger(data.epoch)||data.epoch<0||!Number.isFinite(data.serverNow)||
       Math.floor(data.serverNow/EPOCH_MS)!==data.epoch||data.epochEndsAt!==(data.epoch+1)*EPOCH_MS||
       !Array.isArray(data.nodes)||data.nodes.length!==COUNT)throw Error('Unavailable field');
-    const positions=new Set();
+    const positions=new Set(),G=geo();
     const nodes=data.nodes.map((n,i)=>{
       if(!n||n.id!=='mn'+data.epoch+'_'+i||!RES.includes(n.res)||!Number.isInteger(n.level)||n.level<1||n.level>MAX_LEVEL||
-        !Number.isInteger(n.gx)||!Number.isInteger(n.gy)||n.gx<2||n.gy<2||n.gx>=COLS-1||n.gy>=COLS-1||
-        n.x!==n.gx*CELL||n.y!==n.gy*CELL||typeof n.region!=='string')throw Error('Invalid node');
+        !Number.isInteger(n.gx)||!Number.isInteger(n.gy)||n.gx<1||n.gy<1||n.gx>G.COLS-G.FOOT-1||n.gy>G.ROWS-G.FOOT-1||
+        n.x!==G.cornerX(n.gx)||n.y!==G.cornerY(n.gy)||typeof n.region!=='string')throw Error('Invalid node');
       const key=n.gx+','+n.gy;if(positions.has(key))throw Error('Duplicate node');positions.add(key);
       return {id:n.id,res:n.res,level:n.level,gx:n.gx,gy:n.gy,x:n.x,y:n.y,region:n.region};
     });

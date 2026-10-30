@@ -65,9 +65,9 @@ async function run() {
       'reaching level 20 assigns and saves the first castle before the player opens the map');
     assert.ok(locationRules.valid(assignedBeforeMap[foe.profile.id].worldLocation),
       'a second level-20 player is also placed without visiting the map');
-    assert.notEqual(locationRules.cellKey(assignedBeforeMap[admin.profile.id].worldLocation.x,
+    assert.notEqual(locationRules.castleKey(assignedBeforeMap[admin.profile.id].worldLocation.x,
       assignedBeforeMap[admin.profile.id].worldLocation.y),
-      locationRules.cellKey(assignedBeforeMap[foe.profile.id].worldLocation.x,
+      locationRules.castleKey(assignedBeforeMap[foe.profile.id].worldLocation.x,
         assignedBeforeMap[foe.profile.id].worldLocation.y),
       'automatic placement never puts two castles on the same square');
     await request('POST','/api/save',{wall:[{key:'vael'},{key:'sylthaine'},{key:'vireo'}]},foe.token);
@@ -308,8 +308,7 @@ async function run() {
     assert.equal(timed.gather,38*60000,'level-one gather uses the full production timer');
     assert.equal(timed.arriveAt,timed.depart+timed.travel+timed.gather);
     const L=require('../server/world-location.js');
-    const expectedDistance=Math.max(1,Math.round(Math.hypot(
-      secondNode.gx-L.cellIndex(castle.x),secondNode.gy-L.cellIndex(castle.y))));
+    const expectedDistance=L.marchSquares(castle,secondNode);   // v1227: 220-grid squares (march times never follow the grid)
     // v881 (Phil 1 Oct): the part of a march inside the Void takes twice as long, so a random castle can cross it
     const expectedTravel=require('../server/world-void-timing.js').plan(castle,secondNode,expectedDistance*60000).travelMs;
     assert.equal(timed.travel,expectedTravel,'real travel uses the server-assigned castle square');
@@ -318,9 +317,9 @@ async function run() {
     },admin.token);
     assert.equal(premature.ok,false,'mine cannot resolve before real arrival');
     assert.equal(premature.arriveAt,timed.arriveAt);
-    const occupied=new Set(map.nodes.map(n=>n.gx+','+n.gy));
+    const occupied=new Set(map.nodes.flatMap(n=>L.footKeys(n.x,n.y)));   // v1227: every cell of each mine / castle square
     const otherCities=await wholeMap(admin.token);
-    for(const c of otherCities.cities||[]) occupied.add(L.cellKey(c.x,c.y));
+    for(const c of otherCities.cities||[]) for(const k of L.footKeys(c.x,c.y)) occupied.add(k);
     /* v1226 realm map: the picker reads the sea from world-realm.js (the same set as the server's list); the state names the realm */
     assert.deepEqual(castle.terrainBlockedCells,[],'world state no longer resends the 36k sea keys');
     assert.equal(castle.realm,require('../world-realm.js').META.version,'world state names the realm map version');
@@ -331,40 +330,43 @@ async function run() {
       assert.ok(terrainKeys.has(key));
       const [cx,cy]=key.split(',').map(Number);
       const denied=await request('POST','/api/world/relocate',{
-        kind:'targeted',x:L.center(cx),y:L.center(cy),requestId:'blocked-terrain-'+i
+        kind:'targeted',x:L.cornerX(Math.min(cx,L.GRID_COLS-L.FOOT)),y:L.cornerY(Math.min(cy,L.GRID_ROWS-L.FOOT)),requestId:'blocked-terrain-'+i
       },admin.token);
       assert.equal(denied.ok,false,'server rejects a sea square');
     }
     /* Phil 30 Oct 2026: "the city should not be able to be teleported onto" - a city square of your OWN region (land, not sea) is refused */
     const R_=require('../world-realm.js');
-    const ownCity=R_.META.cities.flatMap(c=>c.cells).filter(([cx,cy])=>R_.isLand(cx,cy)&&R_.landZone(cx,cy)===castle.region);
+    const ownCity=R_.META.cities.flatMap(c=>c.cells).filter(([cx,cy])=>R_.landZone(cx,cy)===castle.region&&L.footprint(L.cornerX(cx),L.cornerY(cy)).every(([a,b])=>R_.isLand(a,b)));   // v1227: a castle square of land that touches the city
     assert.ok(ownCity.length>0,'the fixture region has city land squares');
     for(const [i,[cx,cy]] of [ownCity[0],ownCity[ownCity.length>>1],ownCity[ownCity.length-1]].entries()){
       assert.ok(terrainKeys.has(cx+','+cy),'a city square is in the blocked set');
-      const denied=await request('POST','/api/world/relocate',{kind:'targeted',x:L.center(cx),y:L.center(cy),requestId:'blocked-city-'+i},admin.token);
+      const denied=await request('POST','/api/world/relocate',{kind:'targeted',x:L.cornerX(cx),y:L.cornerY(cy),requestId:'blocked-city-'+i},admin.token);
       assert.equal(denied.ok,false,'server rejects a city square');
       assert.match(denied.error,/city/,'the refusal names the city');
     }
     const afterBlocked=await request('GET','/api/world/state',null,admin.token);
     assert.equal(afterBlocked.teleUsed,0,'a blocked teleport does not consume the daily move');
-    assert.equal(L.cellKey(afterBlocked.x,afterBlocked.y),L.cellKey(castle.x,castle.y));
+    assert.equal(L.castleKey(afterBlocked.x,afterBlocked.y),L.castleKey(castle.x,castle.y));
     for(const key of terrainKeys) occupied.add(key);
+    const own0=new Set(L.footKeys(castle.x,castle.y));
+    // v1227: a castle square = FOOT x FOOT cells starting at (cx,cy); free when no cell is taken and the rules allow it
     function freeTarget(home,except){
-      for(let cy=0;cy<L.GRID_COLS;cy++) for(let cx=0;cx<L.GRID_COLS;cx++){
-        const x=L.center(cx),y=L.center(cy),key=cx+','+cy;
-        if(key!==except&&!occupied.has(key)&&L.targetAllowed(home,x,y)) return {x,y};
+      for(let cy=0;cy<=L.GRID_ROWS-L.FOOT;cy++) for(let cx=0;cx<=L.GRID_COLS-L.FOOT;cx++){
+        const x=L.cornerX(cx),y=L.cornerY(cy);
+        if(L.castleKey(x,y)!==except&&!L.footKeys(x,y).some(k=>occupied.has(k)&&!own0.has(k))&&L.targetAllowed(home,x,y)) return {x,y};
       }
       throw Error('No free teleport target in the fixture');
     }
     let firstTarget=null;
+    const T=require('../world-realm.js').META.tree;
     for(const key of terrainKeys){
       const [cx,cy]=key.split(',').map(Number);
-      if(cx>=103&&cx<=117&&cy>=103&&cy<=117) continue; // use a crystal edge, not the tree
-      for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){
-        const nx=cx+dx,ny=cy+dy,neighbor=nx+','+ny;
-        if(nx<0||ny<0||nx>=L.GRID_COLS||ny>=L.GRID_COLS||occupied.has(neighbor)
-          ||neighbor===L.cellKey(castle.x,castle.y)) continue;
-        const x=L.center(nx),y=L.center(ny);
+      if(Math.abs(cx-T.cx)<=40&&Math.abs(cy-T.cy)<=40) continue; // use a crystal edge, not the tree
+      for(const [dx,dy] of [[1,0],[-L.FOOT,0],[0,1],[0,-L.FOOT]]){
+        const nx=cx+dx,ny=cy+dy;
+        if(nx<0||ny<0||nx>L.GRID_COLS-L.FOOT||ny>L.GRID_ROWS-L.FOOT) continue;
+        const x=L.cornerX(nx),y=L.cornerY(ny);
+        if(L.footKeys(x,y).some(k=>occupied.has(k))||L.footKeys(x,y).some(k=>own0.has(k))) continue;
         if(L.targetAllowed(castle.region,x,y)){ firstTarget={x,y}; break; }
       }
       if(firstTarget) break;
@@ -384,7 +386,7 @@ async function run() {
       kind:'targeted',...firstTarget,requestId:'world-free-teleport'
     },admin.token);
     assert.deepEqual(moveRetry,move,'teleport retry does not consume another use');
-    const secondTarget=freeTarget(castle.region,L.cellKey(move.x,move.y));
+    const secondTarget=freeTarget(castle.region,L.castleKey(move.x,move.y));
     const noScroll=await request('POST','/api/world/relocate',{
       kind:'targeted',...secondTarget,requestId:'world-no-scroll'
     },admin.token);
@@ -625,16 +627,16 @@ async function run() {
     const blockedDb=JSON.parse(fs.readFileSync(db,'utf8'));
     const priorRegion=blockedDb.users[warClock.profile.id].worldLocation.region;
     blockedDb.users[warClock.profile.id].worldLocation={region:priorRegion,
-      x:locationRules.center(85),y:locationRules.center(98)};
+      x:(85+0.5)*100/220,y:(98+0.5)*100/220};   // a 220-grid square centre, as stored before v1227
     fs.writeFileSync(db,JSON.stringify(blockedDb));
     await start(admin.profile.id,'20','0','0');
     const migrated=await request('GET','/api/world/state',null,warClock.token);
     assert.equal(migrated.region,priorRegion,'boot migration preserves the home region');
-    assert.ok(!new Set(migrated.terrainBlockedCells).has(locationRules.cellKey(migrated.x,migrated.y)),
+    assert.ok(!locationRules.footKeys(migrated.x,migrated.y).some(k=>new Set(migrated.terrainBlockedCells).has(k)),
       'boot migration moves a castle away from crystal terrain');
     assert.ok(locationRules.valid(migrated),'boot migration persists a valid nearby location');
     const persisted=JSON.parse(fs.readFileSync(db,'utf8')).users[warClock.profile.id].worldLocation;
-    assert.equal(locationRules.cellKey(persisted.x,persisted.y),locationRules.cellKey(migrated.x,migrated.y));
+    assert.equal(locationRules.castleKey(persisted.x,persisted.y),locationRules.castleKey(migrated.x,migrated.y));
     console.log('Witches Hut API integration passed');
   } finally { await stop(); fs.rmSync(dir,{recursive:true,force:true}); }
 }

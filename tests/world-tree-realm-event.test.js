@@ -15,7 +15,7 @@ test('a full World Tree event on the realm: oases taken, the tree captured, the 
   assert.equal(sites.eventWindow.active,true);// KNOWN (unchanged from live, reported 30 Oct): the control window is always 24 h (world-tree-sites + control initial()), so on the
   // DST night it closes at 07:00 EST while the countdown and the tree art run the event to 08:00 EST (25 h).
   assert.equal(sites.eventWindow.endsAt-sites.eventWindow.startsAt,24*HOUR);
-  for(const s of sites.sites){const cx=L.cellIndex(s.centre.x),cy=L.cellIndex(s.centre.y);assert.equal(R.landZone(cx,cy),'worldtree',s.id+' stands on the island');}
+  for(const s of sites.sites){const cx=L.col(s.centre.x),cy=L.row(s.centre.y);assert.equal(R.landZone(cx,cy),'worldtree',s.id+' stands on the island');}
   // four players, one castle per continent, placed by the server's own balancer; two guilds
   const users={},taken=[];let roll=0;
   for(const id of ['a1','a2','b1','b2']){const loc=L.place(taken,max=>(roll+=7919)%max);taken.push(loc);users[id]={id,loc};}
@@ -26,7 +26,7 @@ test('a full World Tree event on the realm: oases taken, the tree captured, the 
     squad:(owner,ids)=>ids.map(key=>({key,hp:1000,maxHp:1000,worldEntryHpCap:1000,energy:0})),
     route:(owner,siteId)=>{   // server.js worldTreeHooks.route, verbatim rules
       const from=users[owner].loc,to=sites.sites.find(s=>s.id===siteId).centre;
-      const distance=Math.max(1,Math.round(Math.hypot(to.x-from.x,to.y-from.y)/(100/220)));
+      const distance=L.marchSquares(from,to);
       const timing=V.plan(from,to,distance*60000);const route=Route.capture(from,to,siteId,timing.travelMs,0,timing.pacing);
       assert.ok(route,'a route from '+owner+' ('+users[owner].loc.region+') reaches '+siteId);routes.push({owner,siteId,travelMs:timing.travelMs});
       return {travelMs:timing.travelMs,route};},

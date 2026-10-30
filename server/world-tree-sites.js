@@ -1,10 +1,14 @@
 'use strict';
-const GRID_COLS=220,CELL=100/GRID_COLS;
+// v1227: the grid is world-realm.js META.cols x rows (1000 x 596); the tree and the oases keep their world size (the tree core = 4x4
+// squares of the 220 grid, an oasis 2x2 of them), so their cell counts come from the realm build (META.tree.coreCells, META.oasisCells)
+const REALM=require('../world-realm.js'),GEO=REALM.GEO;
+const GRID_COLS=GEO.COLS,GRID_ROWS=GEO.ROWS,CELL=GEO.CELL,CORE=REALM.META.tree.coreCells,OAS=REALM.META.oasisCells,SQ=REALM.META.oldSquareCells;
 const OASIS_LAYOUT=require('./world-oasis-layout.json');
-const DISTANCE_READINGS=Object.freeze({FIRST_TELEPORTABLE_TO_OASIS_CENTRE_TILES:6,FIRST_TELEPORTABLE_TO_OASIS_NEAR_EDGE_TILES:6,OASIS_HALF_EXTENT_TILES:1});
+// distances measured on the 220 grid (6, 6 and 1 squares), in this grid's squares
+const DISTANCE_READINGS=Object.freeze({FIRST_TELEPORTABLE_TO_OASIS_CENTRE_TILES:Math.round(6*SQ),FIRST_TELEPORTABLE_TO_OASIS_NEAR_EDGE_TILES:Math.round(6*SQ),OASIS_HALF_EXTENT_TILES:OAS/2});
 const DEFINITIONS=Object.freeze([
-  {id:'tree',kind:'tree',direction:null,widthCells:4,heightCells:4},
-  ...['north','south','east','west'].map(direction=>({id:'oasis-'+direction,kind:'oasis',direction,widthCells:2,heightCells:2}))
+  {id:'tree',kind:'tree',direction:null,widthCells:CORE,heightCells:CORE},
+  ...['north','south','east','west'].map(direction=>({id:'oasis-'+direction,kind:'oasis',direction,widthCells:OAS,heightCells:OAS}))
 ]);
 function bounds(centre,width,height){return {left:centre.x-width*CELL/2,top:centre.y-height*CELL/2,right:centre.x+width*CELL/2,bottom:centre.y+height*CELL/2};}
 function snapshot(calendar){
@@ -22,12 +26,12 @@ function snapshot(calendar){
     const rows=OASIS_LAYOUT.filter(row=>row.direction===d.direction);
     if(rows.length!==1)throw Error('Invalid oasis layout');
     const row=rows[0];
-    if(!Number.isInteger(row.x)||!Number.isInteger(row.y)||row.x<0||row.y<0||row.x>GRID_COLS-2||row.y>GRID_COLS-2)throw Error('Invalid oasis origin');
-    const centre={x:(row.x+1)*CELL,y:(row.y+1)*CELL};
+    if(!Number.isInteger(row.x)||!Number.isInteger(row.y)||row.x<0||row.y<0||row.x>GRID_COLS-OAS||row.y>GRID_ROWS-OAS)throw Error('Invalid oasis origin');
+    const centre={x:(row.x+OAS/2)*CELL,y:GEO.Y0+(row.y+OAS/2)*CELL};
     return {...d,cellOrigin:{x:row.x,y:row.y},centre,bounds:bounds(centre,d.widthCells,d.heightCells)};
   });
-  return {schemaVersion:1,enabled:false,layoutConfirmed:false,layoutPlaced:true,coordinateSpace:'world-percent',gridColumns:GRID_COLS,
+  return {schemaVersion:1,enabled:false,layoutConfirmed:false,layoutPlaced:true,coordinateSpace:'world-percent',gridColumns:GRID_COLS,gridRows:GRID_ROWS,gridTop:GEO.Y0,
     serverNow:calendar.serverNow,calendarConfigured:calendar.configured,eventWindow,
-    requestedOasisDistanceTiles:6,distanceReference:'first-tree-teleportable-square',distanceReadings:{...DISTANCE_READINGS},sites};
+    requestedOasisDistanceTiles:DISTANCE_READINGS.FIRST_TELEPORTABLE_TO_OASIS_CENTRE_TILES,distanceReference:'first-tree-teleportable-square',distanceReadings:{...DISTANCE_READINGS},sites};
 }
 module.exports={snapshot,DISTANCE_READINGS};

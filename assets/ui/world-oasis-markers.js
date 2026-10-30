@@ -1,14 +1,15 @@
 (function(root){
   'use strict';
   function read(receipt){
-    if(!receipt||receipt.enabled!==false||receipt.layoutPlaced!==true||receipt.coordinateSpace!=='world-percent'||receipt.gridColumns!==220||!Array.isArray(receipt.sites))return null;
+    const R=root.EmberweaveRealm||(typeof require==='function'?require('../../world-realm.js'):null),G=R&&R.GEO,OAS=R&&R.META.oasisCells;   // v1227: the realm's grid
+    if(!G||!receipt||receipt.enabled!==false||receipt.layoutPlaced!==true||receipt.coordinateSpace!=='world-percent'||receipt.gridColumns!==G.COLS||receipt.gridRows!==G.ROWS||!Array.isArray(receipt.sites))return null;
     const rows=[];
     for(const direction of ['north','south','east','west']){
       const matches=receipt.sites.filter(s=>s.id==='oasis-'+direction&&s.kind==='oasis'&&s.direction===direction);
       if(matches.length!==1)return null;
       const s=matches[0],b=s.bounds,c=s.cellOrigin;
-      if(s.widthCells!==2||s.heightCells!==2||!b||!c||!Number.isInteger(c.x)||!Number.isInteger(c.y)||c.x<0||c.y<0||c.x>218||c.y>218)return null;
-      const expected={left:c.x*100/220,top:c.y*100/220,right:(c.x+2)*100/220,bottom:(c.y+2)*100/220};
+      if(s.widthCells!==OAS||s.heightCells!==OAS||!b||!c||!Number.isInteger(c.x)||!Number.isInteger(c.y)||c.x<0||c.y<0||c.x>G.COLS-OAS||c.y>G.ROWS-OAS)return null;
+      const expected={left:c.x*G.CELL,top:G.Y0+c.y*G.CELL,right:(c.x+OAS)*G.CELL,bottom:G.Y0+(c.y+OAS)*G.CELL};
       if(!Object.keys(expected).every(k=>Number.isFinite(b[k])&&Math.abs(b[k]-expected[k])<1e-9))return null;
       rows.push({id:s.id,direction,bounds:expected});
     }

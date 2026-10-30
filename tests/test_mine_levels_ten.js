@@ -15,11 +15,14 @@ try{
   // v1226: the wild is the islets (~17 nodes a field), so all four wild levels are checked over ten fields
   const wild10=[...Array(10).keys()].flatMap(k=>M.field(ep+k).filter(n=>n.region.startsWith('wild')));
   ok(wild.length>0&&wild10.every(n=>n.level>=7&&n.level<=10)&&new Set(wild10.map(n=>n.level)).size===4,'wild (islet) nodes use levels 7-10, all present');
-  // v1226 realm map (Phil 30 Oct 2026): region edge = the coast (6 within 4 cells of the sea), wild = the islets (7 within 12 cells of a region)
-  const R=require(path.join(root,'world-realm.js'));
-  const toSea=(x,y)=>{for(let d=0;d<=4;d++)for(let dx=-d;dx<=d;dx++){const dy=d-Math.abs(dx);for(const yy of [y-dy,y+dy])if(!R.isLand(x+dx,yy))return true;}return false;};
-  ok(f.every(n=>R.isLand(n.gx,n.gy)&&R.landZone(n.gx,n.gy)===n.region&&n.region!=='worldtree'),'every node stands on land of its own zone, never the World Tree island');
-  ok(region.every(n=>toSea(n.gx,n.gy)===(n.level===6)),'region nodes are level 6 exactly on the 4-cell coast band');
+  // v1226 realm map (Phil 30 Oct 2026): region edge = the coast (6 within 4 squares of the sea), wild = the islets (7 within 8 squares of a region)
+  // v1227: those are 220-grid squares (M.COAST_BAND = 18 cells at 1000 columns), measured from any cell of the mine square
+  const R=require(path.join(root,'world-realm.js')), B=M.COAST_BAND;
+  ok(B===Math.round(4*R.META.oldSquareCells),'the coast band is 4 squares of the 220 grid: '+B+' cells');
+  const toSea=(x,y)=>{for(let d=0;d<=B;d++)for(let dx=-d;dx<=d;dx++){const dy=d-Math.abs(dx);for(const yy of [y-dy,y+dy])if(!R.isLand(x+dx,yy))return true;}return false;};
+  const cellsOf=n=>R.GEO.footCells(n.gx,n.gy);
+  ok(f.every(n=>cellsOf(n).every(([x,y])=>R.isLand(x,y)&&R.landZone(x,y)===n.region)&&n.region!=='worldtree'),'every node stands on land of its own zone, never the World Tree island');
+  ok(region.every(n=>cellsOf(n).some(([x,y])=>toSea(x,y))===(n.level===6)),'region nodes are level 6 exactly on the 4-square coast band');
   const srv=fs.readFileSync(path.join(root,'server.js'),'utf8'), html=fs.readFileSync(process.env.MLT_HTML||path.join(root,'emberweave-heroes.html'),'utf8');
   const sTab=JSON.parse(srv.match(/const needLevel=(\[[0-9,]+\])\[node\.level-1\]/)[1]);
   const ctx=vm.createContext({}); const i=html.indexOf('function mineReqLevel('); vm.runInContext(html.slice(i,html.indexOf('\n',i)),ctx);

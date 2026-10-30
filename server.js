@@ -4317,7 +4317,7 @@ function worldLocation(u){
   if(!u||u.isNpc) return null;   /* v1080 (scan 2 #4): an arena bot has no castle - asking used to give the bot a player ledger (ensureLedger) and drop its ladder power for good */
   if(ledPlayerLevel(ensureLedger(u))<WITCH.UNLOCK_LEVEL) return null;
   if(WORLD_LOCATION.valid(u.worldLocation)
-    &&!WORLD_TERRAIN_BLOCKED.has(WORLD_LOCATION.cellKey(u.worldLocation.x,u.worldLocation.y))) return u.worldLocation;
+    &&!WORLD_LOCATION.footBlocked(WORLD_TERRAIN_BLOCKED,u.worldLocation.x,u.worldLocation.y)) return u.worldLocation;   /* v1227: every cell of the castle square */
   const taken=Object.values(DB.users).filter(v=>v.id!==u.id).map(v=>v.worldLocation);
   const mines=WORLD_MINES.field(WORLD_MINES.epochAt(Date.now()));
   const old=u.worldLocation;
@@ -4325,7 +4325,7 @@ function worldLocation(u){
      region, never to a random region; only a castle with no home region yet is placed by the balancer */
   const next=(old&&WORLD_LOCATION.REGIONS[old.region]&&Number.isFinite(old.x)&&Number.isFinite(old.y)
     &&WORLD_LOCATION.nearestInRegion(old.region,old.x,old.y,worldBlockedKeys(u,Date.now())))
-    ||WORLD_LOCATION.place(taken,crypto.randomInt,[...WORLD_TERRAIN_BLOCKED,...mines.map(n=>n.gx+','+n.gy)]);
+    ||WORLD_LOCATION.place(taken,crypto.randomInt,mines.flatMap(n=>WORLD_LOCATION.footKeys(n.x,n.y)));   /* v1227: sea + city cells are refused by the realm itself (regionSquare) */
   // A staged move or mine account is committed by its outer transaction, never here.
   if(DB.users[u.id]!==u||_durableIdemActive){u.worldLocation=next;return next;}   /* v1017 (release review #8): inside an atomic section (durable idem, arena result) the section's own final save persists it - committing here saved the whole DB mid-route, a reward before its receipt */
   const draft=JSON.parse(JSON.stringify(u));draft.worldLocation=next;
@@ -4363,14 +4363,14 @@ function worldView(u,now){
     lastTransfer:t.lastTransfer,teleDay:day,realm:WORLD_LOCATION.REALM.META.version,terrainBlockedCells:[]};   /* v1226: the client reads the sea from world-realm.js (the same set, tests/world-realm.test.js); 36k keys are not resent on every view */
 }
 function worldBlockedKeys(u,now){
-  const blocked=new Set(WORLD_TERRAIN_BLOCKED);
+  const blocked=new Set();   /* v1227: castles + mines only - sea and city cells are refused by WORLD_LOCATION from the realm (600k terrain keys are not copied per call) */
   for(const key of Object.values(DB.users).filter(v=>v.id!==u.id&&WORLD_LOCATION.valid(v.worldLocation))
-    .map(v=>WORLD_LOCATION.cellKey(v.worldLocation.x,v.worldLocation.y))) blocked.add(key);
-  for(const n of WORLD_MINES.field(WORLD_MINES.epochAt(now))) blocked.add(n.gx+','+n.gy);
+    .flatMap(v=>WORLD_LOCATION.footKeys(v.worldLocation.x,v.worldLocation.y))) blocked.add(key);   /* v1227: a castle covers FOOT x FOOT cells */
+  for(const n of WORLD_MINES.field(WORLD_MINES.epochAt(now))) for(const key of WORLD_LOCATION.footKeys(n.x,n.y)) blocked.add(key);
   return blocked;
 }
 function worldSquareTaken(u,x,y,now){
-  return worldBlockedKeys(u,now).has(WORLD_LOCATION.cellKey(x,y));
+  return WORLD_LOCATION.footBlocked(worldBlockedKeys(u,now),x,y);
 }
 function migrateBlockedWorldCastles(){
   const now=Date.now(); let moved=0;
@@ -4379,7 +4379,7 @@ function migrateBlockedWorldCastles(){
     /* v1226 realm map (Phil 30 Oct 2026): a castle the new map puts in the sea, or on another region's land, moves to the nearest
        open land of its own home region (tests/world-realm.test.js proves it) */
     if(!loc||!WORLD_LOCATION.REGIONS[loc.region]||!Number.isFinite(loc.x)||!Number.isFinite(loc.y)) continue;
-    if(WORLD_LOCATION.valid(loc)&&!WORLD_TERRAIN_BLOCKED.has(WORLD_LOCATION.cellKey(loc.x,loc.y))) continue;
+    if(WORLD_LOCATION.valid(loc)&&!WORLD_LOCATION.footBlocked(WORLD_TERRAIN_BLOCKED,loc.x,loc.y)) continue;
     const next=WORLD_LOCATION.nearestInRegion(loc.region,loc.x,loc.y,worldBlockedKeys(u,now));
     if(!next) throw Error('No open world square remains for a terrain-blocked castle.');
     u.worldLocation=next; moved++;
@@ -4470,7 +4470,7 @@ function worldTreeHooks(now,sites,snapshots=null){
     route:(owner,siteId)=>{
       const from=worldLocation(DB.users[owner]),to=sites.sites.find(s=>s.id===siteId)?.centre;
       if(!from||!to)return null;
-      const distance=Math.max(1,Math.round(Math.hypot(to.x-from.x,to.y-from.y)/(100/220)));
+      const distance=WORLD_LOCATION.marchSquares(from,to);   // v1227: 220-grid squares - march times never follow the grid
       const fixtureMs=process.env.NODE_ENV==='test'?Math.max(0,+process.env.WORLD_TREE_TEST_MS||0):0;
       const timing=fixtureMs?null:WORLD_VOID_TIMING.plan(from,to,distance*60000),travelMs=fixtureMs||timing.travelMs;
       return {travelMs,route:WORLD_MARCH_ROUTE.capture(from,to,siteId,travelMs,0,timing?.pacing)};
@@ -7066,8 +7066,7 @@ async function api(req,res,url){
         // Phil: a 0%-HP hero cannot join a world fight until healed with brew.
         if(snaps.some(s=>s.hp<=0)) return {ok:false,error:'A selected hero has 0% HP. Heal them before this march.'};
         const wx=castle.x,wy=castle.y;
-        const cx=Math.round(wx/WORLD_MINES.GRID_CELL-0.5),cy=Math.round(wy/WORLD_MINES.GRID_CELL-0.5);
-        const distance=Math.max(1,Math.round(Math.hypot(node.gx-cx,node.gy-cy)));
+        const distance=WORLD_LOCATION.marchSquares({x:wx,y:wy},node);   // v1227: castle to mine in 220-grid squares (march times never follow the grid)
         const fixtureMs=process.env.NODE_ENV==='test'?Math.max(0,+process.env.WORLD_MINE_TEST_MS||0):0;
         const timing=fixtureMs?null:WORLD_VOID_TIMING.plan(castle,node,patronMarchMs(led,distance*60000));   /* v1093: EDP march speed */
         const travel=fixtureMs||timing.travelMs, gather=fixtureMs||(20+node.level*18)*60000;
@@ -8974,8 +8973,7 @@ async function api(req,res,url){
         return {ok:false,error:'A selected hero is already marching.'};
       if(patronOpenMarches(me,now)>=patronRow(led,'marches')) return {ok:false,error:'All your armies are out ('+patronRow(led,'marches')+' at your patron level).'};
       if(w&&ids.some(k=>WITCH.health(w.state,k)<=0)) return {ok:false,error:'A selected hero has 0% HP. Heal them before this march.'};
-      const fromX=WORLD_LOCATION.cellIndex(loc.x),fromY=WORLD_LOCATION.cellIndex(loc.y),toX=WORLD_LOCATION.cellIndex(d.worldLocation.x),toY=WORLD_LOCATION.cellIndex(d.worldLocation.y);
-      const distance=Math.max(1,Math.round(Math.hypot(toX-fromX,toY-fromY)));
+      const distance=WORLD_LOCATION.marchSquares(loc,d.worldLocation);   // v1227: 220-grid squares
       const fixtureMs=process.env.NODE_ENV==='test'?Math.max(0,+process.env.WORLD_CITY_TEST_MS||0):0;
       const timing=fixtureMs?null:WORLD_VOID_TIMING.plan(loc,d.worldLocation,patronMarchMs(led,distance*30000));   // defend = half the attack time per square
       const travel=fixtureMs||timing.travelMs;
@@ -9044,10 +9042,7 @@ async function api(req,res,url){
       snaps=snaps.map(s=>{const hp=WITCH.combatHp(w.state,s.key,s.maxHp);
         return {...s,hp,worldEntryHpCap:hp};});
       if(snaps.some(s=>s.hp<=0)) return {ok:false,error:'A selected hero has 0% HP. Heal them before this march.'};
-      const fromX=WORLD_LOCATION.cellIndex(loc.x),fromY=WORLD_LOCATION.cellIndex(loc.y);
-      const toX=WORLD_LOCATION.cellIndex(d?d.worldLocation.x:bot.x);
-      const toY=WORLD_LOCATION.cellIndex(d?d.worldLocation.y:bot.y);
-      const distance=Math.max(1,Math.round(Math.hypot(toX-fromX,toY-fromY)));
+      const distance=WORLD_LOCATION.marchSquares(loc,d?d.worldLocation:bot);   // v1227: 220-grid squares
       const fixtureMs=process.env.NODE_ENV==='test'?Math.max(0,+process.env.WORLD_CITY_TEST_MS||0):0;
       const timing=fixtureMs?null:WORLD_VOID_TIMING.plan(loc,d?d.worldLocation:bot,patronMarchMs(ensureLedger(me),distance*60000));   /* v1093: EDP march speed */
       const travel=fixtureMs||timing.travelMs;
@@ -9083,14 +9078,13 @@ async function api(req,res,url){
       if(kind==='targeted'){
         if(typeof b.x!=='number'||typeof b.y!=='number'||!Number.isFinite(b.x)||!Number.isFinite(b.y))
           return {ok:false,error:'Pick a world square.'};
-        if(!WORLD_LOCATION.isLand(b.x,b.y)) return {ok:false,error:'That square is sea - castles stand on land.'};   /* v1226 */
-        if(WORLD_LOCATION.isCity(b.x,b.y)) return {ok:false,error:'That square is a city - castles cannot stand on a city.'};   /* Phil 30 Oct 2026: no teleport onto a city */
-        if(!WORLD_LOCATION.targetAllowed(loc.region,b.x,b.y))
+        const {x,y}=WORLD_LOCATION.snap(b.x,b.y);   /* v1227: the castle square (FOOT x FOOT cells) nearest the tap */
+        if(!WORLD_LOCATION.isLand(x,y)) return {ok:false,error:'That square is sea - castles stand on land.'};   /* v1226 */
+        if(WORLD_LOCATION.isCity(x,y)) return {ok:false,error:'That square is a city - castles cannot stand on a city.'};   /* Phil 30 Oct 2026: no teleport onto a city */
+        if(!WORLD_LOCATION.targetAllowed(loc.region,x,y))
           return {ok:false,error:'That world square is not available for your castle.'};
-        const x=WORLD_LOCATION.center(WORLD_LOCATION.cellIndex(b.x));
-        const y=WORLD_LOCATION.center(WORLD_LOCATION.cellIndex(b.y));
-        if(worldSquareTaken(me,x,y,now)) return {ok:false,error:'That square is occupied.'};
-        if(WORLD_LOCATION.cellKey(x,y)===WORLD_LOCATION.cellKey(loc.x,loc.y)) return {ok:false,error:'Your castle is already on that square.'};   /* v1009 (re-audit World #4): it was accepted and charged */
+        if(WORLD_LOCATION.castleKey(x,y)===WORLD_LOCATION.castleKey(loc.x,loc.y)) return {ok:false,error:'Your castle is already on that square.'};
+        if(worldSquareTaken(me,x,y,now)) return {ok:false,error:'That square is occupied.'};   /* v1009 (re-audit World #4): it was accepted and charged */
         const day=worldTravelDay(now);
         if(t.teleDay!==day){t.teleDay=day;t.teleUsed=0;}
         if(t.teleUsed<1) t.teleUsed++;
@@ -9098,7 +9092,7 @@ async function api(req,res,url){
         else return {ok:false,error:'No free teleport or scroll remains.'};
         me.worldLocation={region:loc.region,x,y};
       }else if(kind==='wild'){
-        const blocked=worldBlockedKeys(me,now); blocked.add(WORLD_LOCATION.cellKey(loc.x,loc.y));   /* v1009: a wild teleport always moves you */
+        const blocked=worldBlockedKeys(me,now); for(const key of WORLD_LOCATION.footKeys(loc.x,loc.y)) blocked.add(key);   /* v1009: a wild teleport always moves you */
         const next=WORLD_LOCATION.openInRegion(loc.region,blocked);
         if(!next) return {ok:false,error:'No free square remains in your region.'};
         if(now-t.wildLast>=6*3600000) t.wildLast=now;

@@ -106,11 +106,8 @@ async function run(){
         zone.scrollLeft=Math.max(0,home.x/100*WORLD_W*worldZoom-zone.clientWidth/2);
         wzSetTop(zone,home.y/100*WORLD_H-zone.clientHeight/2/worldZoom);
         enterTeleMode(); await settle(); zone=document.getElementById('wzone'); refreshTeleGhosts();
-        const ghosts=[...document.querySelectorAll('#teleGhostLayer img')].map(img=>{
-          const x=Math.floor(parseFloat(img.style.left)/GRID_CELL);
-          const y=Math.floor(parseFloat(img.style.top)/GRID_CELL);
-          return x+','+y;
-        });
+        // v1227: a ghost is a castle square (GEO.FOOT x FOOT cells); every cell of it is checked
+        const ghosts=[...document.querySelectorAll('#teleGhostLayer img')].flatMap(img=>GEO.footKeys(parseFloat(img.style.left),parseFloat(img.style.top)));
         const panes=[...document.querySelectorAll('#wzoneInner .worldZonePane')];
         paneBorders+=panes.filter(p=>p.style.boxShadow||p.style.border).length;
         veiled=Math.max(veiled,+(document.getElementById('teleVeil')?.dataset.veiled||0));
@@ -133,7 +130,7 @@ async function run(){
       toggleTeleMode(); await settle(); const cancelled=snap();
       enterTeleMode(); await settle();
       const [bx,by]=[...blocked][0].split(',').map(Number);
-      teleportPlace((bx+0.5)*GRID_CELL,(by+0.5)*GRID_CELL);
+      teleportPlace(GEO.xOf(bx),GEO.yOf(by));
       await settle(); const refused=snap();
       const confirmOpen=!!document.getElementById('_gcYes');
       toggleTeleMode(); await settle();
@@ -153,10 +150,11 @@ async function run(){
     assert.ok(teleportMap.veiled>1000,'closed regions\' land has the soft dark veil in teleport mode');
     assert.ok(teleportMap.veilOff,'the veil leaves with teleport mode');
     const terrainSamples=await page.evaluate(async ()=>{
-      // four coast pairs of the player's own region: a sea square beside an open land square
-      const all=[],cells=REALM_MAP.zoneCells(myRegion()),occ=occupiedCells();
-      for(const [x,y] of cells){ if(occ.has(x+','+y)) continue;
-        for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]) if(!REALM_MAP.isLand(x+dx,y+dy)){all.push([(x+dx)+','+(y+dy),x+','+y]);break;}}
+      // four coast pairs of the player's own region: a sea cell beside an open castle square on the ghost lattice (v1227: a castle
+      // square is GEO.FOOT x FOOT cells; the pair's control is the square's top-left cell)
+      const all=[],cells=REALM_MAP.zoneCells(myRegion()),occ=occupiedCells(),F=GEO.FOOT;
+      for(const [x,y] of cells){ if(x%F||y%F||!teleSquareFree(GEO.cornerX(x),GEO.cornerY(y),occ)) continue;
+        for(const [dx,dy] of [[-1,0],[0,-1],[F,0],[0,F]]) if(!REALM_MAP.isLand(x+dx,y+dy)){all.push([(x+dx)+','+(y+dy),x+','+y]);break;}}
       const pairs=[0,1,2,3].map(k=>all[Math.floor((k+0.5)*all.length/4)]);
       const settle=()=>new Promise(ok=>requestAnimationFrame(()=>requestAnimationFrame(ok)));
       const results=[];
@@ -169,24 +167,24 @@ async function run(){
         for(const [blocked,control] of pairs){
           const [bx,by]=blocked.split(',').map(Number);
           const [cx,cy]=control.split(',').map(Number);
-          zone.scrollLeft=Math.max(0,(bx+0.5)/GRID_COLS*WORLD_W*worldZoom-zone.clientWidth/2);
-          wzSetTop(zone,(by+0.5)/GRID_COLS*WORLD_H-zone.clientHeight/2/worldZoom);
+          zone.scrollLeft=Math.max(0,GEO.xOf(bx)/100*WORLD_W*worldZoom-zone.clientWidth/2);
+          wzSetTop(zone,GEO.yOf(by)/100*WORLD_H-zone.clientHeight/2/worldZoom);
           await settle(); refreshTeleGhosts();
-          const ghosts=new Set([...document.querySelectorAll('#teleGhostLayer img')].map(img=>
-            Math.floor(parseFloat(img.style.left)/GRID_CELL)+','+
-            Math.floor(parseFloat(img.style.top)/GRID_CELL)));
-          teleportPlace((bx+0.5)*GRID_CELL,(by+0.5)*GRID_CELL);
+          const ghostImgs=[...document.querySelectorAll('#teleGhostLayer img')];
+          const ghosts=new Set(ghostImgs.flatMap(img=>GEO.footKeys(parseFloat(img.style.left),parseFloat(img.style.top))));
+          const ghostSquares=new Set(ghostImgs.map(img=>GEO.anchorX(parseFloat(img.style.left))+','+GEO.anchorY(parseFloat(img.style.top))));
+          teleportPlace(GEO.xOf(bx),GEO.yOf(by));
           const refused=!document.getElementById('_gcYes');
-          const floorOpen=!occupiedCells().has(control)&&zoneAccessible(REALM_MAP.zoneOfCell(cx,cy));
+          const floorOpen=teleSquareFree(GEO.cornerX(cx),GEO.cornerY(cy))&&zoneAccessible(REALM_MAP.zoneOfCell(cx,cy));
           let floorAccepted=null;
           if(fraction===1&&floorOpen){
-            teleportPlace((cx+0.5)*GRID_CELL,(cy+0.5)*GRID_CELL);
+            teleportPlace(GEO.cornerX(cx),GEO.cornerY(cy));
             floorAccepted=!!document.getElementById('_gcYes');
             document.getElementById('_gcNo')?.click();
           }
           results.push({fraction,blocked,control,maskBlocked:_worldTerrainBlocked.has(blocked),
             maskFloorOpen:!_worldTerrainBlocked.has(control),blockedGhost:ghosts.has(blocked),
-            floorGhost:ghosts.has(control),refused,floorOpen,floorAccepted});
+            floorGhost:ghostSquares.has(control),refused,floorOpen,floorAccepted});
         }
         toggleTeleMode(); await settle();
       }
@@ -203,7 +201,7 @@ async function run(){
       worldZoomTo(worldZoomBounds(zone).max);
       zone.scrollLeft=5500*worldZoom-zone.clientWidth/2; wzSetTop(zone,5500-zone.clientHeight/2/worldZoom); applyMapLOD();
       const tiles=[...inner.querySelectorAll('#realmTiles img')].map(i=>i.getAttribute('src'));
-      const zoneKeys=[[110,110],...['crystor','draymon','tefron','alumron'].map(k=>REALM_MAP.zoneCells(k)[0])].map(([cx,cy])=>zoneOfPos((cx+0.5)*GRID_CELL,(cy+0.5)*GRID_CELL));
+      const zoneKeys=[[REALM_MAP.META.tree.cx,Math.round(REALM_MAP.META.tree.cy)],...['crystor','draymon','tefron','alumron'].map(k=>REALM_MAP.zoneCells(k)[0])].map(([cx,cy])=>zoneOfPos(GEO.xOf(cx),GEO.yOf(cy)));
       return {levels:L.length,lowest:lowest.z,deepest:deepest.z,lastZ:L[L.length-1].z,tiles,zoneKeys,version:REALM_MAP.META.version,
         live:{level:inner.dataset.pictureLevel,realm:inner.dataset.realmLevel},cover:inner.querySelector('#worldPictureMaster').getAttribute('src')};
     });
@@ -225,7 +223,7 @@ async function run(){
     assert.equal(await page.evaluate(()=>window._wtOpened),1,'tapping the tree on its island opens the World Tree menu '+wtDiag);
     await page.evaluate(()=>closeCityMenu());
     const boundaryTiles=await page.evaluate(()=>{
-      const zone=document.getElementById('wzone'),inner=document.getElementById('wzoneInner'),L=realmLevelFor(worldZoom),k=L.cellPx/50,T=REALM_MAP.META.tile;
+      const zone=document.getElementById('wzone'),inner=document.getElementById('wzoneInner'),L=realmLevelFor(worldZoom),k=L.cellPx/(WORLD_W/GRID_COLS),T=REALM_MAP.META.tile;
       zone.scrollLeft=(5*T/k)*worldZoom-zone.clientWidth/2; wzSetTop(zone,REALM_TOP_PX+4*T/k-zone.clientHeight/2/worldZoom); applyMapLOD();
       return {level:inner.dataset.pictureLevel,tiles:[...inner.querySelectorAll('#realmTiles img')].map(img=>img.dataset.tileKey)};
     });
@@ -252,7 +250,7 @@ async function run(){
       worldZoomTo(999);
       const high={zoom:worldZoom,expected:worldZoomBounds(zone).max,
         cellsX:zone.clientWidth/worldZoom/(WORLD_W/GRID_COLS),
-        cellsY:zone.clientHeight/worldZoom/(WORLD_H/GRID_COLS),
+        cellsY:zone.clientHeight/worldZoom/(WORLD_W/GRID_COLS),
         city:inner.querySelector('.wnode.city')?.style.display,mine:inner.querySelector('.wnode.mine')?.style.display,
         level:inner.dataset.pictureLevel,overflow:zone.scrollWidth-WORLD_W*worldZoom};
       return {low,edge,top,high,scrollbar:getComputedStyle(zone).scrollbarWidth};
@@ -373,10 +371,10 @@ async function run(){
     await signedIn.locator('#wzone').waitFor({state:'visible',timeout:10000});
     const target=await signedIn.evaluate(()=>{
       const occupied=occupiedCells();
-      const home=myCastlePos(),homeKey=cellIndex(home.x)+','+cellIndex(home.y);
-      for(let cy=0;cy<GRID_COLS;cy++) for(let cx=0;cx<GRID_COLS;cx++){
-        const x=(cx+0.5)*GRID_CELL,y=(cy+0.5)*GRID_CELL,key=cx+','+cy;
-        if(key!==homeKey&&!occupied.has(key)&&zoneAccessible(zoneOfPos(x,y))&&!inWorldTreeCore(x,y)) return {x,y};
+      const home=myCastlePos(),homeCells=new Set(GEO.footKeys(home.x,home.y));
+      for(let cy=0;cy<=GRID_ROWS-GEO.FOOT;cy++) for(let cx=0;cx<=GRID_COLS-GEO.FOOT;cx++){
+        const x=GEO.cornerX(cx),y=GEO.cornerY(cy);   // v1227: a castle square (FOOT x FOOT cells) apart from the home one
+        if(!GEO.footKeys(x,y).some(k=>homeCells.has(k))&&teleSquareFree(x,y,occupied)&&zoneAccessible(zoneOfPos(x,y))&&!inWorldTreeCore(x,y)) return {x,y};
       }
       throw Error('No browser teleport square');
     });
