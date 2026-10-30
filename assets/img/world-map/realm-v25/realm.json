@@ -1,11 +1,11 @@
 {
  "version": "v25",
  "dev": false,
- "built": "2026-10-30 15:15",
+ "built": "2026-10-30 15:51",
  "cols": 1000,
  "rows": 596,
  "gridTop": 203.080519,
- "foot": 4,
+ "foot": 1,
  "oldSquareCells": 4.545455,
  "source": {
   "positions": "REALM layout v25 positions.json",
@@ -408,6 +408,20 @@
    "rewards": []
   },
   {
+   "zone": "wildW",
+   "cells": 132,
+   "cx": 370.36,
+   "cy": 364.47,
+   "box": [
+    359,
+    348,
+    20,
+    33
+   ],
+   "id": "isle-23",
+   "rewards": []
+  },
+  {
    "zone": "wildS",
    "cells": 125,
    "cx": 411.25,
@@ -418,7 +432,21 @@
     28,
     26
    ],
-   "id": "isle-23",
+   "id": "isle-24",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 102,
+   "cx": 24.36,
+   "cy": 485.75,
+   "box": [
+    19,
+    474,
+    14,
+    21
+   ],
+   "id": "isle-25",
    "rewards": []
   },
   {
@@ -432,7 +460,7 @@
     12,
     22
    ],
-   "id": "isle-24",
+   "id": "isle-26",
    "rewards": []
   },
   {
@@ -446,7 +474,7 @@
     14,
     17
    ],
-   "id": "isle-25",
+   "id": "isle-27",
    "rewards": []
   },
   {
@@ -460,7 +488,133 @@
     14,
     12
    ],
-   "id": "isle-26",
+   "id": "isle-28",
+   "rewards": []
+  },
+  {
+   "zone": "wildS",
+   "cells": 66,
+   "cx": 410.27,
+   "cy": 483.74,
+   "box": [
+    407,
+    473,
+    9,
+    21
+   ],
+   "id": "isle-29",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 63,
+   "cx": 342.25,
+   "cy": 340.59,
+   "box": [
+    331,
+    336,
+    24,
+    10
+   ],
+   "id": "isle-30",
+   "rewards": []
+  },
+  {
+   "zone": "wildS",
+   "cells": 49,
+   "cx": 341.82,
+   "cy": 530.24,
+   "box": [
+    330,
+    527,
+    23,
+    7
+   ],
+   "id": "isle-31",
+   "rewards": []
+  },
+  {
+   "zone": "wildS",
+   "cells": 44,
+   "cx": 318.3,
+   "cy": 530.66,
+   "box": [
+    311,
+    527,
+    19,
+    8
+   ],
+   "id": "isle-32",
+   "rewards": []
+  },
+  {
+   "zone": "wildS",
+   "cells": 42,
+   "cx": 424.38,
+   "cy": 464.6,
+   "box": [
+    420,
+    458,
+    10,
+    13
+   ],
+   "id": "isle-33",
+   "rewards": []
+  },
+  {
+   "zone": "wildS",
+   "cells": 38,
+   "cx": 294.13,
+   "cy": 537.76,
+   "box": [
+    287,
+    532,
+    14,
+    10
+   ],
+   "id": "isle-34",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 36,
+   "cx": 368.33,
+   "cy": 386.39,
+   "box": [
+    367,
+    379,
+    5,
+    15
+   ],
+   "id": "isle-35",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 34,
+   "cx": 34.88,
+   "cy": 496.56,
+   "box": [
+    29,
+    494,
+    13,
+    6
+   ],
+   "id": "isle-36",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 33,
+   "cx": 107.91,
+   "cy": 366.73,
+   "box": [
+    102,
+    364,
+    14,
+    6
+   ],
+   "id": "isle-37",
    "rewards": []
   },
   {
@@ -474,7 +628,343 @@
     9,
     7
    ],
-   "id": "isle-27",
+   "id": "isle-38",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 29,
+   "cx": 239.28,
+   "cy": 349.72,
+   "box": [
+    236,
+    346,
+    8,
+    7
+   ],
+   "id": "isle-39",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 29,
+   "cx": 40.07,
+   "cy": 440.9,
+   "box": [
+    38,
+    437,
+    6,
+    8
+   ],
+   "id": "isle-40",
+   "rewards": []
+  },
+  {
+   "zone": "wildN",
+   "cells": 27,
+   "cx": 472.3,
+   "cy": 94.85,
+   "box": [
+    469,
+    93,
+    8,
+    5
+   ],
+   "id": "isle-41",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 27,
+   "cx": 137.0,
+   "cy": 358.11,
+   "box": [
+    133,
+    356,
+    10,
+    6
+   ],
+   "id": "isle-42",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 27,
+   "cx": 57.11,
+   "cy": 393.59,
+   "box": [
+    52,
+    392,
+    10,
+    5
+   ],
+   "id": "isle-43",
+   "rewards": []
+  },
+  {
+   "zone": "wildS",
+   "cells": 25,
+   "cx": 418.24,
+   "cy": 493.36,
+   "box": [
+    416,
+    490,
+    6,
+    9
+   ],
+   "id": "isle-44",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 25,
+   "cx": 111.84,
+   "cy": 512.88,
+   "box": [
+    109,
+    510,
+    6,
+    6
+   ],
+   "id": "isle-45",
+   "rewards": []
+  },
+  {
+   "zone": "wildS",
+   "cells": 25,
+   "cx": 279.52,
+   "cy": 540.04,
+   "box": [
+    274,
+    535,
+    13,
+    9
+   ],
+   "id": "isle-46",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 25,
+   "cx": 211.4,
+   "cy": 558.4,
+   "box": [
+    207,
+    556,
+    9,
+    7
+   ],
+   "id": "isle-47",
+   "rewards": []
+  },
+  {
+   "zone": "wildS",
+   "cells": 23,
+   "cx": 410.22,
+   "cy": 498.74,
+   "box": [
+    407,
+    497,
+    8,
+    6
+   ],
+   "id": "isle-48",
+   "rewards": []
+  },
+  {
+   "zone": "wildS",
+   "cells": 21,
+   "cx": 363.95,
+   "cy": 521.48,
+   "box": [
+    360,
+    518,
+    8,
+    7
+   ],
+   "id": "isle-49",
+   "rewards": []
+  },
+  {
+   "zone": "wildS",
+   "cells": 19,
+   "cx": 369.68,
+   "cy": 485.89,
+   "box": [
+    365,
+    485,
+    12,
+    3
+   ],
+   "id": "isle-50",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 17,
+   "cx": 121.47,
+   "cy": 361.94,
+   "box": [
+    119,
+    361,
+    7,
+    4
+   ],
+   "id": "isle-51",
+   "rewards": []
+  },
+  {
+   "zone": "wildE",
+   "cells": 15,
+   "cx": 746.2,
+   "cy": 279.4,
+   "box": [
+    744,
+    278,
+    5,
+    4
+   ],
+   "id": "isle-52",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 15,
+   "cx": 60.07,
+   "cy": 514.8,
+   "box": [
+    59,
+    513,
+    4,
+    5
+   ],
+   "id": "isle-53",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 14,
+   "cx": 46.07,
+   "cy": 401.07,
+   "box": [
+    44,
+    399,
+    5,
+    5
+   ],
+   "id": "isle-54",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 13,
+   "cx": 40.69,
+   "cy": 478.0,
+   "box": [
+    39,
+    477,
+    5,
+    3
+   ],
+   "id": "isle-55",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 12,
+   "cx": 155.5,
+   "cy": 354.5,
+   "box": [
+    154,
+    353,
+    4,
+    4
+   ],
+   "id": "isle-56",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 12,
+   "cx": 102.5,
+   "cy": 518.0,
+   "box": [
+    101,
+    517,
+    4,
+    3
+   ],
+   "id": "isle-57",
+   "rewards": []
+  },
+  {
+   "zone": "wildS",
+   "cells": 12,
+   "cx": 356.58,
+   "cy": 526.75,
+   "box": [
+    355,
+    525,
+    4,
+    4
+   ],
+   "id": "isle-58",
+   "rewards": []
+  },
+  {
+   "zone": "wildN",
+   "cells": 11,
+   "cx": 464.36,
+   "cy": 27.82,
+   "box": [
+    463,
+    26,
+    4,
+    4
+   ],
+   "id": "isle-59",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 11,
+   "cx": 52.91,
+   "cy": 245.73,
+   "box": [
+    52,
+    243,
+    3,
+    6
+   ],
+   "id": "isle-60",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 11,
+   "cx": 285.73,
+   "cy": 362.64,
+   "box": [
+    285,
+    360,
+    3,
+    7
+   ],
+   "id": "isle-61",
+   "rewards": []
+  },
+  {
+   "zone": "wildS",
+   "cells": 11,
+   "cx": 369.64,
+   "cy": 515.91,
+   "box": [
+    366,
+    515,
+    8,
+    3
+   ],
+   "id": "isle-62",
    "rewards": []
   },
   {
@@ -488,7 +978,1519 @@
     5,
     3
    ],
-   "id": "isle-28",
+   "id": "isle-63",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 10,
+   "cx": 82.8,
+   "cy": 307.0,
+   "box": [
+    81,
+    306,
+    4,
+    3
+   ],
+   "id": "isle-64",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 9,
+   "cx": 274.44,
+   "cy": 319.33,
+   "box": [
+    273,
+    318,
+    4,
+    3
+   ],
+   "id": "isle-65",
+   "rewards": []
+  },
+  {
+   "zone": "wildS",
+   "cells": 9,
+   "cx": 450.89,
+   "cy": 465.67,
+   "box": [
+    450,
+    464,
+    3,
+    4
+   ],
+   "id": "isle-66",
+   "rewards": []
+  },
+  {
+   "zone": "wildS",
+   "cells": 9,
+   "cx": 304.67,
+   "cy": 529.22,
+   "box": [
+    302,
+    528,
+    6,
+    3
+   ],
+   "id": "isle-67",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 9,
+   "cx": 196.0,
+   "cy": 549.0,
+   "box": [
+    195,
+    548,
+    3,
+    3
+   ],
+   "id": "isle-68",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 9,
+   "cx": 200.33,
+   "cy": 557.0,
+   "box": [
+    200,
+    555,
+    2,
+    6
+   ],
+   "id": "isle-69",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 8,
+   "cx": 100.5,
+   "cy": 317.5,
+   "box": [
+    99,
+    316,
+    3,
+    5
+   ],
+   "id": "isle-70",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 8,
+   "cx": 233.25,
+   "cy": 346.12,
+   "box": [
+    231,
+    345,
+    5,
+    3
+   ],
+   "id": "isle-71",
+   "rewards": []
+  },
+  {
+   "zone": "wildE",
+   "cells": 8,
+   "cx": 955.12,
+   "cy": 356.88,
+   "box": [
+    954,
+    356,
+    3,
+    3
+   ],
+   "id": "isle-72",
+   "rewards": []
+  },
+  {
+   "zone": "wildS",
+   "cells": 8,
+   "cx": 468.38,
+   "cy": 537.88,
+   "box": [
+    467,
+    536,
+    3,
+    4
+   ],
+   "id": "isle-73",
+   "rewards": []
+  },
+  {
+   "zone": "wildN",
+   "cells": 7,
+   "cx": 448.29,
+   "cy": 31.0,
+   "box": [
+    447,
+    30,
+    4,
+    3
+   ],
+   "id": "isle-74",
+   "rewards": []
+  },
+  {
+   "zone": "wildE",
+   "cells": 7,
+   "cx": 601.0,
+   "cy": 206.0,
+   "box": [
+    600,
+    205,
+    3,
+    3
+   ],
+   "id": "isle-75",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 7,
+   "cx": 207.29,
+   "cy": 344.57,
+   "box": [
+    206,
+    344,
+    4,
+    2
+   ],
+   "id": "isle-76",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 7,
+   "cx": 190.86,
+   "cy": 348.86,
+   "box": [
+    189,
+    348,
+    4,
+    3
+   ],
+   "id": "isle-77",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 7,
+   "cx": 49.57,
+   "cy": 397.71,
+   "box": [
+    49,
+    396,
+    2,
+    4
+   ],
+   "id": "isle-78",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 6,
+   "cx": 66.33,
+   "cy": 335.83,
+   "box": [
+    65,
+    335,
+    3,
+    3
+   ],
+   "id": "isle-79",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 6,
+   "cx": 93.67,
+   "cy": 336.5,
+   "box": [
+    93,
+    335,
+    2,
+    4
+   ],
+   "id": "isle-80",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 6,
+   "cx": 80.0,
+   "cy": 380.0,
+   "box": [
+    79,
+    379,
+    3,
+    4
+   ],
+   "id": "isle-81",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 6,
+   "cx": 33.5,
+   "cy": 411.0,
+   "box": [
+    33,
+    410,
+    2,
+    3
+   ],
+   "id": "isle-82",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 6,
+   "cx": 216.33,
+   "cy": 496.83,
+   "box": [
+    216,
+    495,
+    2,
+    4
+   ],
+   "id": "isle-83",
+   "rewards": []
+  },
+  {
+   "zone": "wildS",
+   "cells": 6,
+   "cx": 384.0,
+   "cy": 517.5,
+   "box": [
+    383,
+    517,
+    3,
+    2
+   ],
+   "id": "isle-84",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 6,
+   "cx": 113.0,
+   "cy": 519.5,
+   "box": [
+    112,
+    519,
+    3,
+    2
+   ],
+   "id": "isle-85",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 6,
+   "cx": 87.5,
+   "cy": 530.67,
+   "box": [
+    86,
+    530,
+    4,
+    2
+   ],
+   "id": "isle-86",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 5,
+   "cx": 143.8,
+   "cy": 361.4,
+   "box": [
+    143,
+    361,
+    3,
+    2
+   ],
+   "id": "isle-87",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 5,
+   "cx": 186.0,
+   "cy": 494.0,
+   "box": [
+    185,
+    493,
+    3,
+    3
+   ],
+   "id": "isle-88",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 5,
+   "cx": 180.4,
+   "cy": 494.2,
+   "box": [
+    180,
+    493,
+    2,
+    3
+   ],
+   "id": "isle-89",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 5,
+   "cx": 61.6,
+   "cy": 519.4,
+   "box": [
+    61,
+    518,
+    2,
+    4
+   ],
+   "id": "isle-90",
+   "rewards": []
+  },
+  {
+   "zone": "wildS",
+   "cells": 5,
+   "cx": 449.4,
+   "cy": 579.8,
+   "box": [
+    449,
+    579,
+    2,
+    3
+   ],
+   "id": "isle-91",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 4,
+   "cx": 271.5,
+   "cy": 303.5,
+   "box": [
+    271,
+    303,
+    2,
+    2
+   ],
+   "id": "isle-92",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 4,
+   "cx": 37.25,
+   "cy": 409.75,
+   "box": [
+    37,
+    409,
+    2,
+    3
+   ],
+   "id": "isle-93",
+   "rewards": []
+  },
+  {
+   "zone": "wildS",
+   "cells": 4,
+   "cx": 378.75,
+   "cy": 514.25,
+   "box": [
+    378,
+    514,
+    3,
+    2
+   ],
+   "id": "isle-94",
+   "rewards": []
+  },
+  {
+   "zone": "wildS",
+   "cells": 4,
+   "cx": 309.0,
+   "cy": 527.5,
+   "box": [
+    308,
+    527,
+    3,
+    2
+   ],
+   "id": "isle-95",
+   "rewards": []
+  },
+  {
+   "zone": "wildS",
+   "cells": 4,
+   "cx": 446.0,
+   "cy": 579.5,
+   "box": [
+    445,
+    579,
+    3,
+    2
+   ],
+   "id": "isle-96",
+   "rewards": []
+  },
+  {
+   "zone": "wildN",
+   "cells": 3,
+   "cx": 447.67,
+   "cy": 23.67,
+   "box": [
+    447,
+    23,
+    2,
+    2
+   ],
+   "id": "isle-97",
+   "rewards": []
+  },
+  {
+   "zone": "wildN",
+   "cells": 3,
+   "cx": 449.0,
+   "cy": 34.0,
+   "box": [
+    448,
+    34,
+    3,
+    1
+   ],
+   "id": "isle-98",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 3,
+   "cx": 51.33,
+   "cy": 282.33,
+   "box": [
+    51,
+    282,
+    2,
+    2
+   ],
+   "id": "isle-99",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 3,
+   "cx": 398.67,
+   "cy": 293.33,
+   "box": [
+    398,
+    293,
+    2,
+    2
+   ],
+   "id": "isle-100",
+   "rewards": []
+  },
+  {
+   "zone": "wildS",
+   "cells": 3,
+   "cx": 421.67,
+   "cy": 433.33,
+   "box": [
+    421,
+    433,
+    2,
+    2
+   ],
+   "id": "isle-101",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 3,
+   "cx": 189.67,
+   "cy": 493.33,
+   "box": [
+    189,
+    493,
+    2,
+    2
+   ],
+   "id": "isle-102",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 3,
+   "cx": 212.33,
+   "cy": 496.33,
+   "box": [
+    212,
+    496,
+    2,
+    2
+   ],
+   "id": "isle-103",
+   "rewards": []
+  },
+  {
+   "zone": "wildS",
+   "cells": 3,
+   "cx": 381.67,
+   "cy": 515.67,
+   "box": [
+    381,
+    515,
+    2,
+    2
+   ],
+   "id": "isle-104",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 3,
+   "cx": 63.0,
+   "cy": 523.0,
+   "box": [
+    63,
+    522,
+    1,
+    3
+   ],
+   "id": "isle-105",
+   "rewards": []
+  },
+  {
+   "zone": "wildN",
+   "cells": 2,
+   "cx": 455.0,
+   "cy": 19.5,
+   "box": [
+    455,
+    19,
+    1,
+    2
+   ],
+   "id": "isle-106",
+   "rewards": []
+  },
+  {
+   "zone": "wildN",
+   "cells": 2,
+   "cx": 454.0,
+   "cy": 22.5,
+   "box": [
+    454,
+    22,
+    1,
+    2
+   ],
+   "id": "isle-107",
+   "rewards": []
+  },
+  {
+   "zone": "wildN",
+   "cells": 2,
+   "cx": 455.0,
+   "cy": 25.5,
+   "box": [
+    455,
+    25,
+    1,
+    2
+   ],
+   "id": "isle-108",
+   "rewards": []
+  },
+  {
+   "zone": "wildN",
+   "cells": 2,
+   "cx": 449.0,
+   "cy": 27.5,
+   "box": [
+    449,
+    27,
+    1,
+    2
+   ],
+   "id": "isle-109",
+   "rewards": []
+  },
+  {
+   "zone": "wildN",
+   "cells": 2,
+   "cx": 451.5,
+   "cy": 28.0,
+   "box": [
+    451,
+    28,
+    2,
+    1
+   ],
+   "id": "isle-110",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 2,
+   "cx": 62.0,
+   "cy": 265.5,
+   "box": [
+    62,
+    265,
+    1,
+    2
+   ],
+   "id": "isle-111",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 2,
+   "cx": 212.0,
+   "cy": 307.5,
+   "box": [
+    212,
+    307,
+    1,
+    2
+   ],
+   "id": "isle-112",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 2,
+   "cx": 66.5,
+   "cy": 346.0,
+   "box": [
+    66,
+    346,
+    2,
+    1
+   ],
+   "id": "isle-113",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 2,
+   "cx": 211.5,
+   "cy": 346.0,
+   "box": [
+    211,
+    346,
+    2,
+    1
+   ],
+   "id": "isle-114",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 2,
+   "cx": 284.0,
+   "cy": 367.5,
+   "box": [
+    284,
+    367,
+    1,
+    2
+   ],
+   "id": "isle-115",
+   "rewards": []
+  },
+  {
+   "zone": "wildS",
+   "cells": 2,
+   "cx": 467.0,
+   "cy": 469.5,
+   "box": [
+    467,
+    469,
+    1,
+    2
+   ],
+   "id": "isle-116",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 2,
+   "cx": 196.5,
+   "cy": 490.0,
+   "box": [
+    196,
+    490,
+    2,
+    1
+   ],
+   "id": "isle-117",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 2,
+   "cx": 202.0,
+   "cy": 492.5,
+   "box": [
+    202,
+    492,
+    1,
+    2
+   ],
+   "id": "isle-118",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 2,
+   "cx": 199.0,
+   "cy": 493.5,
+   "box": [
+    199,
+    493,
+    1,
+    2
+   ],
+   "id": "isle-119",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 2,
+   "cx": 193.0,
+   "cy": 494.5,
+   "box": [
+    193,
+    494,
+    1,
+    2
+   ],
+   "id": "isle-120",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 2,
+   "cx": 210.0,
+   "cy": 494.5,
+   "box": [
+    210,
+    494,
+    1,
+    2
+   ],
+   "id": "isle-121",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 2,
+   "cx": 27.0,
+   "cy": 497.5,
+   "box": [
+    27,
+    497,
+    1,
+    2
+   ],
+   "id": "isle-122",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 2,
+   "cx": 173.0,
+   "cy": 501.5,
+   "box": [
+    173,
+    501,
+    1,
+    2
+   ],
+   "id": "isle-123",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 2,
+   "cx": 158.5,
+   "cy": 555.0,
+   "box": [
+    158,
+    555,
+    2,
+    1
+   ],
+   "id": "isle-124",
+   "rewards": []
+  },
+  {
+   "zone": "wildN",
+   "cells": 1,
+   "cx": 462.0,
+   "cy": 22.0,
+   "box": [
+    462,
+    22,
+    1,
+    1
+   ],
+   "id": "isle-125",
+   "rewards": []
+  },
+  {
+   "zone": "wildN",
+   "cells": 1,
+   "cx": 451.0,
+   "cy": 23.0,
+   "box": [
+    451,
+    23,
+    1,
+    1
+   ],
+   "id": "isle-126",
+   "rewards": []
+  },
+  {
+   "zone": "wildN",
+   "cells": 1,
+   "cx": 450.0,
+   "cy": 24.0,
+   "box": [
+    450,
+    24,
+    1,
+    1
+   ],
+   "id": "isle-127",
+   "rewards": []
+  },
+  {
+   "zone": "wildN",
+   "cells": 1,
+   "cx": 454.0,
+   "cy": 27.0,
+   "box": [
+    454,
+    27,
+    1,
+    1
+   ],
+   "id": "isle-128",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 1,
+   "cx": 297.0,
+   "cy": 167.0,
+   "box": [
+    297,
+    167,
+    1,
+    1
+   ],
+   "id": "isle-129",
+   "rewards": []
+  },
+  {
+   "zone": "wildN",
+   "cells": 1,
+   "cx": 450.0,
+   "cy": 185.0,
+   "box": [
+    450,
+    185,
+    1,
+    1
+   ],
+   "id": "isle-130",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 1,
+   "cx": 49.0,
+   "cy": 242.0,
+   "box": [
+    49,
+    242,
+    1,
+    1
+   ],
+   "id": "isle-131",
+   "rewards": []
+  },
+  {
+   "zone": "wildE",
+   "cells": 1,
+   "cx": 793.0,
+   "cy": 268.0,
+   "box": [
+    793,
+    268,
+    1,
+    1
+   ],
+   "id": "isle-132",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 1,
+   "cx": 36.0,
+   "cy": 280.0,
+   "box": [
+    36,
+    280,
+    1,
+    1
+   ],
+   "id": "isle-133",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 1,
+   "cx": 225.0,
+   "cy": 288.0,
+   "box": [
+    225,
+    288,
+    1,
+    1
+   ],
+   "id": "isle-134",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 1,
+   "cx": 224.0,
+   "cy": 289.0,
+   "box": [
+    224,
+    289,
+    1,
+    1
+   ],
+   "id": "isle-135",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 1,
+   "cx": 376.0,
+   "cy": 308.0,
+   "box": [
+    376,
+    308,
+    1,
+    1
+   ],
+   "id": "isle-136",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 1,
+   "cx": 101.0,
+   "cy": 309.0,
+   "box": [
+    101,
+    309,
+    1,
+    1
+   ],
+   "id": "isle-137",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 1,
+   "cx": 95.0,
+   "cy": 332.0,
+   "box": [
+    95,
+    332,
+    1,
+    1
+   ],
+   "id": "isle-138",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 1,
+   "cx": 69.0,
+   "cy": 336.0,
+   "box": [
+    69,
+    336,
+    1,
+    1
+   ],
+   "id": "isle-139",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 1,
+   "cx": 269.0,
+   "cy": 358.0,
+   "box": [
+    269,
+    358,
+    1,
+    1
+   ],
+   "id": "isle-140",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 1,
+   "cx": 100.0,
+   "cy": 372.0,
+   "box": [
+    100,
+    372,
+    1,
+    1
+   ],
+   "id": "isle-141",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 1,
+   "cx": 85.0,
+   "cy": 383.0,
+   "box": [
+    85,
+    383,
+    1,
+    1
+   ],
+   "id": "isle-142",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 1,
+   "cx": 368.0,
+   "cy": 394.0,
+   "box": [
+    368,
+    394,
+    1,
+    1
+   ],
+   "id": "isle-143",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 1,
+   "cx": 51.0,
+   "cy": 395.0,
+   "box": [
+    51,
+    395,
+    1,
+    1
+   ],
+   "id": "isle-144",
+   "rewards": []
+  },
+  {
+   "zone": "wildS",
+   "cells": 1,
+   "cx": 416.0,
+   "cy": 429.0,
+   "box": [
+    416,
+    429,
+    1,
+    1
+   ],
+   "id": "isle-145",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 1,
+   "cx": 198.0,
+   "cy": 458.0,
+   "box": [
+    198,
+    458,
+    1,
+    1
+   ],
+   "id": "isle-146",
+   "rewards": []
+  },
+  {
+   "zone": "wildS",
+   "cells": 1,
+   "cx": 477.0,
+   "cy": 463.0,
+   "box": [
+    477,
+    463,
+    1,
+    1
+   ],
+   "id": "isle-147",
+   "rewards": []
+  },
+  {
+   "zone": "wildS",
+   "cells": 1,
+   "cx": 460.0,
+   "cy": 471.0,
+   "box": [
+    460,
+    471,
+    1,
+    1
+   ],
+   "id": "isle-148",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 1,
+   "cx": 197.0,
+   "cy": 492.0,
+   "box": [
+    197,
+    492,
+    1,
+    1
+   ],
+   "id": "isle-149",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 1,
+   "cx": 183.0,
+   "cy": 493.0,
+   "box": [
+    183,
+    493,
+    1,
+    1
+   ],
+   "id": "isle-150",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 1,
+   "cx": 212.0,
+   "cy": 494.0,
+   "box": [
+    212,
+    494,
+    1,
+    1
+   ],
+   "id": "isle-151",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 1,
+   "cx": 188.0,
+   "cy": 495.0,
+   "box": [
+    188,
+    495,
+    1,
+    1
+   ],
+   "id": "isle-152",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 1,
+   "cx": 201.0,
+   "cy": 495.0,
+   "box": [
+    201,
+    495,
+    1,
+    1
+   ],
+   "id": "isle-153",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 1,
+   "cx": 207.0,
+   "cy": 495.0,
+   "box": [
+    207,
+    495,
+    1,
+    1
+   ],
+   "id": "isle-154",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 1,
+   "cx": 194.0,
+   "cy": 496.0,
+   "box": [
+    194,
+    496,
+    1,
+    1
+   ],
+   "id": "isle-155",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 1,
+   "cx": 219.0,
+   "cy": 499.0,
+   "box": [
+    219,
+    499,
+    1,
+    1
+   ],
+   "id": "isle-156",
+   "rewards": []
+  },
+  {
+   "zone": "wildS",
+   "cells": 1,
+   "cx": 405.0,
+   "cy": 503.0,
+   "box": [
+    405,
+    503,
+    1,
+    1
+   ],
+   "id": "isle-157",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 1,
+   "cx": 174.0,
+   "cy": 514.0,
+   "box": [
+    174,
+    514,
+    1,
+    1
+   ],
+   "id": "isle-158",
+   "rewards": []
+  },
+  {
+   "zone": "wildS",
+   "cells": 1,
+   "cx": 379.0,
+   "cy": 516.0,
+   "box": [
+    379,
+    516,
+    1,
+    1
+   ],
+   "id": "isle-159",
+   "rewards": []
+  },
+  {
+   "zone": "wildS",
+   "cells": 1,
+   "cx": 380.0,
+   "cy": 517.0,
+   "box": [
+    380,
+    517,
+    1,
+    1
+   ],
+   "id": "isle-160",
+   "rewards": []
+  },
+  {
+   "zone": "wildS",
+   "cells": 1,
+   "cx": 381.0,
+   "cy": 518.0,
+   "box": [
+    381,
+    518,
+    1,
+    1
+   ],
+   "id": "isle-161",
+   "rewards": []
+  },
+  {
+   "zone": "wildS",
+   "cells": 1,
+   "cx": 385.0,
+   "cy": 520.0,
+   "box": [
+    385,
+    520,
+    1,
+    1
+   ],
+   "id": "isle-162",
+   "rewards": []
+  },
+  {
+   "zone": "wildS",
+   "cells": 1,
+   "cx": 387.0,
+   "cy": 520.0,
+   "box": [
+    387,
+    520,
+    1,
+    1
+   ],
+   "id": "isle-163",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 1,
+   "cx": 64.0,
+   "cy": 525.0,
+   "box": [
+    64,
+    525,
+    1,
+    1
+   ],
+   "id": "isle-164",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 1,
+   "cx": 220.0,
+   "cy": 526.0,
+   "box": [
+    220,
+    526,
+    1,
+    1
+   ],
+   "id": "isle-165",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 1,
+   "cx": 156.0,
+   "cy": 540.0,
+   "box": [
+    156,
+    540,
+    1,
+    1
+   ],
+   "id": "isle-166",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 1,
+   "cx": 157.0,
+   "cy": 541.0,
+   "box": [
+    157,
+    541,
+    1,
+    1
+   ],
+   "id": "isle-167",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 1,
+   "cx": 161.0,
+   "cy": 543.0,
+   "box": [
+    161,
+    543,
+    1,
+    1
+   ],
+   "id": "isle-168",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 1,
+   "cx": 173.0,
+   "cy": 545.0,
+   "box": [
+    173,
+    545,
+    1,
+    1
+   ],
+   "id": "isle-169",
+   "rewards": []
+  },
+  {
+   "zone": "wildW",
+   "cells": 1,
+   "cx": 157.0,
+   "cy": 552.0,
+   "box": [
+    157,
+    552,
+    1,
+    1
+   ],
+   "id": "isle-170",
+   "rewards": []
+  },
+  {
+   "zone": "wildS",
+   "cells": 1,
+   "cx": 448.0,
+   "cy": 576.0,
+   "box": [
+    448,
+    576,
+    1,
+    1
+   ],
+   "id": "isle-171",
    "rewards": []
   }
  ],
@@ -537,32 +2539,32 @@
    288
   ],
   "wildN": [
-   465,
-   183
+   469,
+   97
   ],
   "wildS": [
-   471,
-   469
+   460,
+   471
   ],
   "wildE": [
    837,
    310
   ],
   "wildW": [
-   126,
-   310
+   136,
+   320
   ]
  },
  "zoneCells": {
   "crystor": 55160,
-  "draymon": 53600,
-  "tefron": 50127,
+  "draymon": 53601,
+  "tefron": 50201,
   "alumron": 51893,
   "worldtree": 17636,
-  "wildN": 898,
-  "wildS": 1409,
-  "wildE": 8097,
-  "wildW": 4889
+  "wildN": 964,
+  "wildS": 1851,
+  "wildE": 8128,
+  "wildW": 5772
  },
  "landFraction": 0.5,
  "cities": [
@@ -57718,8 +59720,8 @@
   "tree/wt_26.webp": "794dfd45c69b5b897c97deae865e38b0c855957c69c1361d27acff4cbebe3b1a",
   "tree/wt_27.webp": "e7c61dca5fcf503a4538afc9dab195c68902c08ebc73b7154caf48068bbdb0a1",
   "tree/wt_28.webp": "8ec4ee2cfb68d5b24fcbeeacd5c00f425aff2a6d4b9d6d20aeaac19fe0bdc880",
-  "world-realm.js": "33246dd7f63cf3aa21579915acd1d1d1704caa92f7b76f410d673fce16e37e33",
-  "world-terrain-blocked.json": "36feea69b2eb481d084ca066633620fd46f2aa6e83e8cd85fc92ab7cfef9ef41",
+  "world-realm.js": "483ec0f0009ef22b75f85f0c6857d2d5bbf9fdde7e5f51fb50fa225cbeddd07a",
+  "world-terrain-blocked.json": "b41cd747c7be98aa3f24fbef504e338649e2e6a0e38e5ec9e86f91a332db9ce2",
   "world-oasis-layout.json": "304baa8ae2f4551d7414d9a3a526a1c25ecd1735064d38b72aa29b518db5b246"
  }
 }

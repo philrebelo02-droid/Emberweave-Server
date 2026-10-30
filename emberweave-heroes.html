@@ -657,6 +657,13 @@
   .wnode{position:absolute;transform:translate(-50%,-50%);min-width:58px;text-align:center;cursor:pointer;z-index:3;}
   .wnode .ic{width:46px;height:46px;margin:0 auto;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;background:rgba(10,18,14,.7);border:2px solid #3a5a48;box-shadow:0 3px 8px rgba(0,0,0,.4);}
   .wnode .nl{font-size:10px;font-weight:700;color:#cfe6d8;text-shadow:0 1px 2px #000;margin-top:2px;}
+  /* v1227 (Phil 30 Oct 2026): a castle fits ONE grid square, drawn inside it; a mine is one square in size, centred ON a grid intersection
+     ("The mines don't go in the squares"); the tap box is at least --wm-hit (28 screen px) so a small piece stays tappable */
+  #wzoneInner .wnode.city,#wzoneInner .wnode.mine{min-width:0;width:var(--wm-hit,11px);height:var(--wm-hit,11px);display:flex;align-items:center;justify-content:center;}
+  #wzoneInner .wnode.city .castle-spr,#wzoneInner .wnode.mine .wm-mine-spr{height:var(--wm-sq,11px);width:var(--wm-sq,11px);object-fit:contain;margin:0;}
+  #wzoneInner .wnode .wlab{top:calc(50% + var(--wm-sq,11px)/2);}
+  #wzoneInner .wnode .wlab .nl{text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000,0 0 3px #000;}
+  #wzoneInner.wm-nolab .wnode .wlab{display:none;}
   .wnode.cd .ic{opacity:.45;} .wnode.cd{cursor:default;}
   .wnode.city .ic{background:rgba(30,20,40,.75);border-color:#6a4a7a;}
   .wnode.me .ic{background:rgba(40,30,12,.85);border-color:#ffd45e;box-shadow:0 0 16px rgba(255,212,94,.55);}
@@ -2718,11 +2725,11 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 <script src="/server/temple-of-ash.js?v=r1123"></script>
 <script src="/server/patron-benefits.js?v=r1093"></script>
 <script src="/server/temple-effects.js?v=r1123"></script>
-<script src="/assets/ui/world-mine-sync.js?v=mi3-g1000"></script>
+<script src="/assets/ui/world-mine-sync.js?v=mi4-g1000v"></script>
 <script src="/assets/ui/world-march-sync.js?v=wm1"></script>
 <script src="/assets/ui/world-march-visual.js?v=wv3-g1000"></script>
 <script src="/assets/ui/skill-preview-stage.js?v=sp1206"></script>
-<script src="/world-realm.js?v=realm-v25-g1000x596-1227"></script>
+<script src="/world-realm.js?v=realm-v25-g1000x596-1227b"></script>
 <script src="/assets/ui/world-tree-cycle.js?v=wt5"></script>
 <script src="/assets/ui/world-tree-art.js?v=wt4"></script>
 <script src="/assets/ui/world-oasis-markers.js?v=om-g1000-v2"></script>
@@ -24589,9 +24596,10 @@ function worldNodes(){
   for(let i=0;i<34;i++){ const type=types[i%4]; const x=6+rand01(i+1)*88, y=5+rand01(i*3+7)*90; nodes.push({id:'n'+i,type,x,y,amt:8+Math.floor(rand01(i*5+2)*12)}); }
   return nodes;
 }
-let worldZoom=0.62;   // opens zoomed in enough that castles are visible (< 500 squares) on phone and desktop
+let worldZoom=1.6;   // v1227: opens where a castle (one square of the 1000-grid) is ~18 px and its name shows (~38 squares across a phone)
+const WM_LABEL_MIN_ZOOM=1.2;   // v1227: below this zoom (a square < 13 screen px) castle / mine labels would overlap into mush: hidden
 // ---- world-map level of detail: cull markers by how many grid squares the viewport currently shows ----
-const GHOST_MAX_SQ=Math.round(30*REALM_MAP.META.oldSquareCells);   // teleport ghosts only render when the view spans <= 30x30 squares of the 220 grid (136 at 1000)
+const GHOST_MAX_SQ=40;      // v1227: teleport ghosts (one per open square) only render when the view spans <= 40 squares (40 x 20 = 800 ghosts at most)
 // Picture hierarchy is one continuous world: 1 cover, 3×3 middle pieces, 9×9 close pieces.
 // A piece fills the map view at its own zoom, but keeps its original world coordinates.
 function worldPictureTile(divisions,col,row){
@@ -24693,9 +24701,9 @@ function wmNameLines(name){ const s=String(name||''), i=s.indexOf(' ');
 // v1127: the castles (real players + bot fill) and the mines - drawn only at the close picture level (applyMapLOD)
 function drawMapDetails(inner){ if(!inner)return;
   const cities=worldCities(); const npcCastle=CASTLE_IMGS.castle2||'';
-  cities.forEach((c)=>{ const el=document.createElement('div'); el.className='wnode city'+(c.ally?' ally':''); el.style.left=c.x+'%'; el.style.top=c.y+'%';
+  cities.forEach((c)=>{ const el=document.createElement('div'); el.className='wnode city'+(c.ally?' ally':''); el.style.left=pieceX(c.x)+'%'; el.style.top=pieceY(c.y)+'%';
     const cImg = (c.real && typeof c.academy==='number') ? castleImgAcad(c.academy) : npcCastle;   // v1099: a real player's castle shows their own Academy tier
-    const ic = cImg ? `<img class="castle-spr" src="${cImg}" style="height:44px" draggable="false">` : `<div class="ic">🏰</div>`;
+    const ic = cImg ? `<img class="castle-spr" src="${cImg}" draggable="false">` : `<div class="ic">🏰</div>`;   // v1227: one square (CSS --wm-sq)
     el.innerHTML=`${ic}<div class="wlab"><div class="nl" style="color:${cityNameColor(c)};font-weight:800">${c.real?'<span style="color:#5ee89b">●</span> ':''}${wmNameLines(c.name)}${c.ally?' '+uiIcon('ally'):''}</div><div class="nl" style="color:#ffd45e;font-size:9px">Lv ${c.level||1}</div></div>`;
     el.onclick=(e)=>{ e.stopPropagation(); if(_teleMode)return; openCityMenu(c); }; inner.appendChild(el); });
   drawMines(inner); }   // scatter the resource mines across the regions
@@ -24721,7 +24729,7 @@ function mapFarMarks(inner,on){ let lay=inner.querySelector('#wFarMarks');
 function occupiedCells(){ const s=new Set(); const add=(x,y)=>{ if(x!=null&&y!=null) for(const k of REALM_MAP.GEO.footKeys(x,y)) s.add(k); };
   const me=myCastlePos(); add(me.x,me.y);
   try{ worldCities().forEach(c=>add(c.x,c.y)); }catch(e){}
-  try{ worldMines().forEach(m=>{ if(mineAvailable(m)) add(m.x,m.y); }); }catch(e){}
+  try{ worldMines().forEach(m=>{ if(mineAvailable(m)) for(const k of REALM_MAP.GEO.mineKeys(m.x,m.y)) s.add(k); }); }catch(e){}   // v1227: a mine holds the 4 cells around its intersection
   const K=REALM_MAP.GEO.CORE; for(let i=K[0];i<=K[2];i++)for(let j=K[1];j<=K[3];j++) s.add(i+','+j);   // protected World Tree object footprint
   return s; }
 // a castle square (FOOT x FOOT cells) at x,y: all open land (no sea, no city), none occupied
@@ -24754,7 +24762,12 @@ function worldZoomBounds(zone){
   return {min,max:Math.max(min,max)};
 }
 function applyWorldZoom(){ const inner=document.getElementById('wzoneInner'), zone=document.getElementById('wzone'); if(typeof mapViewChangedSoon==='function') mapViewChangedSoon();   /* v1124: zooming out loads the new tiles */
-  if(inner){ inner.style.zoom=worldZoom; inner.style.setProperty('--wm-lab',Math.min(1,1.6/worldZoom).toFixed(4));   /* v1227: the 1000-grid zooms 3.6x closer; name labels stop growing past the old close zoom */
+  if(inner){ inner.style.zoom=worldZoom;
+    /* v1227: a piece = one square (--wm-sq world px); its tap box is never under 28 screen px; labels read at 10-13 screen px whatever
+       the zoom, and hide below WM_LABEL_MIN_ZOOM where neighbours' names would run together */
+    { const sq=WORLD_W/GRID_COLS, fontPx=Math.max(10,Math.min(13,10*worldZoom));
+      inner.style.setProperty('--wm-sq',sq+'px'); inner.style.setProperty('--wm-hit',Math.max(sq,28/worldZoom).toFixed(3)+'px');
+      inner.style.setProperty('--wm-lab',(fontPx/(10*worldZoom)).toFixed(4)); inner.classList.toggle('wm-nolab',worldZoom<WM_LABEL_MIN_ZOOM); }
     const clip=document.getElementById('wzoneClip'); if(clip){ clip.style.width=(WORLD_W*worldZoom)+'px'; clip.style.height=(REALM_H_PX*worldZoom)+'px';
       if(zone){ _wmPadX=Math.max(0,(zone.clientWidth-WORLD_W*worldZoom)/2); _wmPadY=Math.max(0,(zone.clientHeight-REALM_H_PX*worldZoom)/2);
         clip.style.marginLeft=_wmPadX+'px'; clip.style.marginTop=_wmPadY+'px';
@@ -24975,10 +24988,10 @@ function renderWorldMap(keepView){
   const now=Date.now();
   // all rival castles (bots) across every region + the mines: v1127 - drawn by applyMapLOD (drawMapDetails) at the close level only
   // your castle at its world position (fits a grid cell; grows a little with kingdom level)
-  const CASTLE_H=[0,46,52,58,64,70];
-  const cp=myCastlePos(); const meEl=document.createElement('div'); meEl.className='wnode city me'; meEl.style.left=cp.x+'%'; meEl.style.top=cp.y+'%';
-  const myImg=playerCastleImg(), myH=CASTLE_H[castleTierAcad(academyLevel())]||90;   // v1099: grows with the Academy level
-  const meIc = myImg ? `<img class="castle-spr" src="${myImg}" style="height:${myH}px" draggable="false">` : `<div class="ic">🏰</div>`;
+  // v1227: your castle fits its one square like every castle (the Academy tier shows in its art, castleImgAcad)
+  const cp=myCastlePos(); const meEl=document.createElement('div'); meEl.className='wnode city me'; meEl.style.left=pieceX(cp.x)+'%'; meEl.style.top=pieceY(cp.y)+'%';
+  const myImg=playerCastleImg();
+  const meIc = myImg ? `<img class="castle-spr" src="${myImg}" draggable="false">` : `<div class="ic">🏰</div>`;
   meEl.innerHTML=`${meIc}<div class="wlab"><div class="nl">${wmNameLines(G.playerName||'You')} · YOU</div><div class="nl" style="color:#ffd45e;font-size:9px">Lv ${playerLevel()}</div></div>`;
   meEl.onclick=(e)=>{ e.stopPropagation(); if(_teleMode)return; closeCityMenu(); show('home'); }; inner.appendChild(meEl);   // tap your own castle → back to your city
   // A transparent four-cell hit target retains the Tree menu without a floating sprite.
@@ -25012,7 +25025,9 @@ function renderWorldMap(keepView){
   { /* v1227 (Phil 30 Oct 2026): the bar slides down out of view and back; the handle stays. Remembered per viewer (localStorage). */
     let hid=false; try{ hid=localStorage.getItem('ew.wmCtlHidden')==='1'; }catch(e){}
     const hd=document.createElement('button'); hd.className='wmctl-handle'; hd.id='wmCtlHandle'; hd.type='button';
-    const set=(h)=>{ hid=h; ctl.classList.toggle('wmctl-hidden',h); hd.classList.toggle('wmctl-up',h); hd.setAttribute('aria-label',h?'Show map controls':'Hide map controls');
+    const set=(h)=>{ hid=h; ctl.classList.toggle('wmctl-hidden',h);
+      /* v1227: while the bar is open the map view stops above it (nothing - a castle or its label - hides under the bar) */
+      mapWrap.style.paddingBottom=h?'':(ctl.offsetHeight+14)+'px'; if(typeof worldZoomTo==='function') worldZoomTo(worldZoom); hd.classList.toggle('wmctl-up',h); hd.setAttribute('aria-label',h?'Show map controls':'Hide map controls');
       hd.style.setProperty('--wmctl-h',(ctl.offsetHeight||54)+'px'); try{ localStorage.setItem('ew.wmCtlHidden',h?'1':'0'); }catch(e){} };
     hd.onclick=(e)=>{ e.stopPropagation(); set(!hid); };
     mapWrap.appendChild(hd); requestAnimationFrame(()=>set(hid)); }
@@ -25064,8 +25079,12 @@ function raidCity(c){ CUR={mode:'raid',oppName:c.name,oppPower:c.power||0,tId:c.
 // GEO.Y0. A castle / mine keeps its world size (one 220-grid square = GEO.FOOT x FOOT cells, 4 x 4) and stands on its cells' corner.
 const GEO=REALM_MAP.GEO, GRID_COLS=GEO.COLS, GRID_ROWS=GEO.ROWS, GRID_CELL=GEO.CELL;
 const MARCH_MS_PER_SQUARE=60000;      // attack/scout: 1 min per 220-grid square (GEO.marchSquares); defend = half
-function snapX(x){ return GEO.cornerX(GEO.anchorX(x)); }   // a %-coord snapped to the nearest castle square (its corner)
+function snapX(x){ return GEO.cornerX(GEO.anchorX(x)); }   // a %-coord snapped to its castle square (one cell: its centre)
 function snapY(y){ return GEO.cornerY(GEO.anchorY(y)); }
+// a castle is DRAWN at its square's centre; stored positions are never rewritten (an old castle on a 220-grid centre is drawn at the
+// centre of the cell that holds it). Mines are drawn where they stand: on an intersection.
+function pieceX(x){ return GEO.xOf(GEO.anchorX(x)); }
+function pieceY(y){ return GEO.yOf(GEO.anchorY(y)); }
 // which zone a %-position falls in
 function zoneOfPos(x,y){ return REALM_MAP.zoneOfCell(GEO.col(x),GEO.row(y)); }   // v1226: the realm's land masses
 function zoneCenter(key){ const at=REALM_MAP.META.labels[key]||REALM_MAP.META.labels[myRegion()]; return {x:GEO.xOf(at[0]),y:GEO.yOf(at[1])}; }   // v1226: a land cell of the zone
@@ -25074,8 +25093,8 @@ function myCastlePos(){ if(G.castleX!=null&&G.castleY!=null) return {x:G.castleX
 function myCastleZone(){ const p=myCastlePos(); return zoneOfPos(p.x,p.y); }
 // ---- map grid coordinates: every %-position maps to a cell (X 0..GRID_COLS-1, Y 0..GRID_ROWS-1) ----
 function coordOf(x,y){ return {cx:GEO.col(x), cy:GEO.row(y)}; }
-// a castle's coordinate: the cell just below-right of the corner it stands on (stable, whatever the float)
-function castleCoord(x,y){ return {cx:GEO.anchorX(x)+GEO.FOOT/2, cy:GEO.anchorY(y)+GEO.FOOT/2}; }
+// a castle's coordinate: the cell it stands in (stable, whatever the float)
+function castleCoord(x,y){ return {cx:GEO.anchorX(x)+Math.floor(GEO.FOOT/2), cy:GEO.anchorY(y)+Math.floor(GEO.FOOT/2)}; }
 function coordStr(x,y){ const c=coordOf(x,y); return c.cx+':'+c.cy; }
 // scroll the map so a given grid coordinate is centred (used by search + city jumps)
 function centerOnCoord(cx,cy){ const zone=document.getElementById('wzone'); if(!zone)return;
@@ -25676,8 +25695,8 @@ function mineLabel(m){ return 'Lv '+m.level+' '+mnResName(m.res)+' Mine'; }
 // draw every available mine node onto the world map
 function drawMines(inner){ if(!inner)return;
   worldMines().forEach(m=>{ if(!mineAvailable(m))return;
-    const el=document.createElement('div'); el.className='wnode mine'; el.style.left=m.x+'%'; el.style.top=m.y+'%';
-    const img=MINE_IMGS[m.res]; const pic=img?`<img src="${img}" style="height:30px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.6))" draggable="false">`:`<div style="font-size:20px;filter:drop-shadow(0 1px 3px #000)">${mnResIcon(m.res)}${uiIcon('mode-mine')}</div>`;
+    const el=document.createElement('div'); el.className='wnode mine'; el.style.left=m.x+'%'; el.style.top=m.y+'%';   // v1227: ON its grid intersection (Phil: "The mines don't go in the squares")
+    const img=MINE_IMGS[m.res]; const pic=img?`<img class="wm-mine-spr" src="${img}" style="filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))" draggable="false">`:`<div style="font-size:20px;filter:drop-shadow(0 1px 3px #000)">${mnResIcon(m.res)}${uiIcon('mode-mine')}</div>`;
     el.innerHTML=`${pic}<div class="wlab"><div class="nl" style="color:${mnResColor(m.res)};font-weight:800">${mnResName(m.res)}</div><div class="nl" style="color:#ffd45e;font-size:9px">Lv ${m.level}</div></div>`;
     el.onclick=(e)=>{ e.stopPropagation(); if(_teleMode)return; closeCityMenu(); openMineInfo(m); };
     inner.appendChild(el); }); }
@@ -30869,7 +30888,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1793388313996';
+const BUILD_ID = '1793390115239';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

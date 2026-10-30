@@ -1,6 +1,6 @@
 'use strict';
 // v1226 realm map (Phil 30 Oct 2026): regions are the realm's continents, not 90x90 squares. Balance and grid rules on Grok's realm.
-// v1227: the grid is META.cols x META.rows (1000 x 596); a castle square is FOOT x FOOT cells and sits on their shared corner.
+// v1227: the grid is META.cols x META.rows (1000 x 596); a castle is one cell (Phil 30 Oct 2026: "in 1 square") at its centre.
 const assert=require('node:assert/strict');
 const L=require('../server/world-location.js');
 const R=require('../world-realm.js');
@@ -8,7 +8,7 @@ const terrain=require('../server/world-terrain-blocked.json');
 const terrainKeys=new Set(terrain.cells);
 // the n-th castle square of a region that is wholly the region's open land
 const squares=region=>R.zoneCells(region).filter(([cx,cy])=>L.regionSquare(region,cx,cy,new Set()));
-const at=(region,n)=>{ const c=squares(region)[n*L.FOOT*3]; return {region,x:L.cornerX(c[0]),y:L.cornerY(c[1])}; };
+const at=(region,n)=>{ const c=squares(region)[n*3]; return {region,x:L.cornerX(c[0]),y:L.cornerY(c[1])}; };
 const existing=[];
 for(const region of ['crystor','draymon','tefron']) for(let n=0;n<100;n++) existing.push(at(region,n));
 for(let n=0;n<50;n++) existing.push(at('alumron',n));
@@ -25,19 +25,17 @@ for(const region of L.REGION_KEYS) assert.ok(L.valid(at(region,0)));
 // THE GRID: one pair of numbers, from the realm build, everywhere
 assert.equal(L.GRID_COLS,R.META.cols);assert.equal(L.GRID_ROWS,R.META.rows);
 assert.equal(L.GRID_COLS,1000);assert.equal(L.GRID_ROWS,596);
-assert.equal(L.FOOT,4,'a castle (one 220-grid square, 4.55 cells) covers 4 x 4 cells');
+assert.equal(L.FOOT,1,'a castle fits one square');
 assert.equal(L.zoneOf(50,50),'worldtree','the tree stands on the worldtree island');
 assert.ok(L.treeCore(50,50),'the world centre is the tree core');
 assert.equal(L.valid({...at('crystor',0),region:'alumron'}),false,'another region\'s land is not yours');
 assert.equal(terrainKeys.size,terrain.cells.length,'terrain-blocked cells are unique');
 assert.equal(terrain.count,terrain.cells.length);
-// an old castle (on a 220-grid square centre) keeps its exact position; its castle square is the 4 x 4 cells around it
+// an old castle (on a 220-grid square centre) keeps its exact stored position; its square is the one cell that holds it
 const old={region:'crystor',x:(55+0.5)*100/220,y:(79+0.5)*100/220};
-assert.deepEqual(L.footprint(old.x,old.y).length,16);
-const fx=L.footprint(old.x,old.y).map(c=>L.GEO.xOf(c[0])),fy=L.footprint(old.x,old.y).map(c=>L.GEO.yOf(c[1]));
-assert.ok(Math.abs((Math.min(...fx)+Math.max(...fx))/2-old.x)<=L.CELL/2+1e-9&&Math.abs((Math.min(...fy)+Math.max(...fy))/2-old.y)<=L.CELL/2+1e-9,'the square is centred on the old castle');
-// two castles side by side on the 220 grid never overlap on this grid
-for(let i=0;i<219;i++){ const a=L.footKeys((i+0.5)*100/220,50.3),b=new Set(L.footKeys((i+1.5)*100/220,50.3)); assert.ok(!a.some(k=>b.has(k)),'220-grid neighbours '+i); }
+assert.deepEqual(L.footprint(old.x,old.y),[[L.col(old.x),L.row(old.y)]]);
+// two castles side by side on the 220 grid are in different cells
+for(let i=0;i<219;i++) assert.notEqual(L.castleKey((i+0.5)*100/220,50.3),L.castleKey((i+1.5)*100/220,50.3),'220-grid neighbours '+i);
 // marches still count 220-grid squares
 assert.equal(L.marchSquares({x:(10+0.5)*100/220,y:(10+0.5)*100/220},{x:(13+0.5)*100/220,y:(14+0.5)*100/220}),5);
 // a sea square next to crystor: relocation finds the nearest open land of crystor itself

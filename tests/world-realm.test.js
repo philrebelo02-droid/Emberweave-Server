@@ -31,15 +31,26 @@ test('THE GRID is one pair of numbers (v1227: 1000 x 596): world-realm.js META, 
   assert.ok(ROWS-R.META.realmHeight<1,'and not the empty margin');
   assert.ok(Math.abs(R.META.realmHeight/COLS-20400/34229.48)<1e-3,'rows/cols = the shape of the art the grid spans');
 });
-test('world sizes did not change with the grid: castle, mine, World Tree core, oases, cities',()=>{
+test('pieces are one square (Phil 30 Oct 2026: a castle "in 1 square", "The mines don\'t go in the squares"); map features keep their world size',()=>{
   const OLD=100/220;   // one 220-grid square in world-percent
-  assert.equal(R.META.foot,4);assert.ok(Math.abs(R.META.foot*L.CELL-OLD)<=L.CELL,'a castle square is one 220-grid square to a cell');
+  assert.equal(R.META.foot,1,'a castle is one cell');
+  const html=fs.readFileSync(path.join(root,'emberweave-heroes.html'),'utf8');
+  assert.match(html,/#wzoneInner \.wnode\.city \.castle-spr,#wzoneInner \.wnode\.mine \.wm-mine-spr\{height:var\(--wm-sq,11px\);width:var\(--wm-sq,11px\)/,'castle and mine sprites are drawn one square in size');
+  assert.match(html,/inner\.style\.setProperty\('--wm-sq',sq\+'px'\)/);
+  // castles at a cell centre, mines on an intersection (within 1 % of a cell)
+  for(const [cx,cy] of [[0,0],[499,296],[999,595],[123,456]]){const x=L.cornerX(cx),y=L.cornerY(cy);
+    assert.ok(Math.abs(x/L.CELL-(cx+0.5))<0.01&&Math.abs((y-L.GEO.Y0)/L.CELL-(cy+0.5))<0.01,'castle '+cx+','+cy+' at its cell centre');}
+  for(let e=62270;e<62275;e++)for(const n of M.field(e)){const fx=n.x/L.CELL,fy=(n.y-L.GEO.Y0)/L.CELL;
+    assert.ok(Math.abs(fx-Math.round(fx))<0.01&&Math.abs(fy-Math.round(fy))<0.01,'mine '+n.id+' on an intersection');
+    assert.deepEqual([Math.round(fx),Math.round(fy)],[n.gx,n.gy]);}
+  // every castle the server places or relocates is at a cell centre
+  let roll=3;const rnd=max=>(roll=(roll*1103515245+12345)>>>0)%max;
+  for(let i=0;i<50;i++){const p=L.place([],rnd);const fx=p.x/L.CELL,fy=(p.y-L.GEO.Y0)/L.CELL;assert.ok(Math.abs(fx%1-0.5)<0.01&&Math.abs(fy%1-0.5)<0.01,'placed castle at a cell centre');}
   assert.ok(Math.abs(18*L.CELL-4*OLD)<=L.CELL,'the tree core is 4x4 220-grid squares');assert.equal(CORE[2]-CORE[0]+1,18);assert.equal(CORE[3]-CORE[1]+1,18);
   assert.ok(Math.abs(OAS*L.CELL-2*OLD)<=L.CELL,'an oasis is 2x2 220-grid squares');
   assert.ok(Math.abs(R.META.tree.sideCells*L.CELL-12.3457*OLD)<1e-3,'the tree picture keeps its world size');
-  // the client draws a castle at 44 px in a world of the same 11000 px: unchanged
-  const html=fs.readFileSync(path.join(root,'emberweave-heroes.html'),'utf8');
-  assert.match(html,/const WORLD_W=11000, WORLD_H=11000;/);assert.match(html,/class="castle-spr" src="\$\{cImg\}" style="height:44px"/);
+  // the world keeps its 11000 px: the tree, the cities and the oases are drawn at the same world size
+  assert.match(html,/const WORLD_W=11000, WORLD_H=11000;/);
   // cities: the same overlay shapes, about (1000/220)^2 = 20.7x the cells of the 220 grid (694 then)
   const cells=R.META.cities.reduce((n,c)=>n+c.cells.length,0);assert.ok(cells>694*17&&cells<694*23,'city cells '+cells);
   // the World Tree trunk is on the world centre
@@ -102,7 +113,7 @@ test('the small islands are the wild (Phil 30 Oct 2026): reachable land for ever
   assert.ok(wildMines>0,'wild mines are dealt on the islets');
   let roomy=0;
   for(const isle of isles){
-    assert.match(isle.id,/^isle-\d\d$/);assert.ok(/^wild[NSEW]$/.test(isle.zone));assert.deepEqual(isle.rewards,[],'room for island rewards');
+    assert.match(isle.id,/^isle-\d{2,3}$/);assert.ok(/^wild[NSEW]$/.test(isle.zone));assert.deepEqual(isle.rewards,[],'room for island rewards');
     const cells=[];for(let y=isle.box[1];y<isle.box[1]+isle.box[3];y++)for(let x=isle.box[0];x<isle.box[0]+isle.box[2];x++)if(R.landZone(x,y)===isle.zone)cells.push([x,y]);
     assert.ok(cells.length>0,isle.id+' has wild land');
     // a castle square wholly on the islet
@@ -116,7 +127,7 @@ test('the small islands are the wild (Phil 30 Oct 2026): reachable land for ever
     }
   }
   assert.ok(roomy>=10,'islets that hold a castle: '+roomy);
-  const wild=['wildN','wildS','wildE','wildW'].reduce((n,k)=>n+R.zoneCells(k).length,0);
+  let wild=0;for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++)if(/^wild/.test(R.landZone(x,y)||''))wild++;   // city cells on an islet included
   assert.equal(wild,isles.reduce((n,i)=>n+i.cells,0),'every wild land cell belongs to a listed islet');
 });
 test('mines: every realm field is dealt on land only - never sea, never the World Tree island - with levels by region and wild',()=>{
@@ -125,11 +136,10 @@ test('mines: every realm field is dealt on land only - never sea, never the Worl
     const f=M.field(e);assert.equal(f.length,M.COUNT);
     const seen=new Set();
     for(const n of f){
-      const foot=L.footprint(n.x,n.y);
-      assert.deepEqual(foot[0],[n.gx,n.gy],'gx,gy is the top-left cell of the mine square');
+      const foot=L.GEO.mineCellsAt(n.gx,n.gy);   // the 4 cells around the mine's intersection
       for(const [x,y] of foot){assert.ok(R.isLand(x,y),'node on land '+n.id);assert.equal(R.landZone(x,y),n.region);assert.ok(!bl.has(x+','+y));
         assert.ok(!seen.has(x+','+y),'mines never overlap');seen.add(x+','+y);}
-      assert.notEqual(n.region,'worldtree');assert.ok(n.gx>=1&&n.gy>=1&&n.gx<=COLS-5&&n.gy<=ROWS-5);
+      assert.notEqual(n.region,'worldtree');assert.ok(n.gx>=2&&n.gy>=2&&n.gx<=COLS-2&&n.gy<=ROWS-2);
       if(REGIONS.includes(n.region))assert.ok(n.level>=1&&n.level<=6);else assert.ok(n.level>=7&&n.level<=10);
       assert.deepEqual(M.nodeById(n.id,e*M.EPOCH_MS),n);
     }
@@ -177,7 +187,7 @@ test('boot relocation: castles the realm puts in the sea or on another region mo
     for(let i=0;i<100;i++){try{await fetch('http://127.0.0.1:'+port+'/api/manifest');break;}catch{await new Promise(r=>setTimeout(r,50));}}
   }finally{child.kill();await new Promise(r=>child.once('exit',r));}
   const db=require('../server/world-store.js').readWorld(file);
-  const mineCells=M.field(M.epochAt(now)).flatMap(n=>L.footKeys(n.x,n.y));
+  const mineCells=M.field(M.epochAt(now)).flatMap(n=>L.GEO.mineKeys(n.x,n.y));
   const finalCells=new Map();let relocated=0,kept=0;
   for(const [id,loc] of Object.entries(start).map(([id])=>[id,db.users[id].worldLocation]))for(const k of L.footKeys(loc.x,loc.y)){
     assert.ok(!finalCells.has(k)||finalCells.get(k)===id,'two castles never share a cell: '+k);finalCells.set(k,id);}

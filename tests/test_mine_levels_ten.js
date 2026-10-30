@@ -20,7 +20,7 @@ try{
   const R=require(path.join(root,'world-realm.js')), B=M.COAST_BAND;
   ok(B===Math.round(4*R.META.oldSquareCells),'the coast band is 4 squares of the 220 grid: '+B+' cells');
   const toSea=(x,y)=>{for(let d=0;d<=B;d++)for(let dx=-d;dx<=d;dx++){const dy=d-Math.abs(dx);for(const yy of [y-dy,y+dy])if(!R.isLand(x+dx,yy))return true;}return false;};
-  const cellsOf=n=>R.GEO.footCells(n.gx,n.gy);
+  const cellsOf=n=>R.GEO.mineCellsAt(n.gx,n.gy);   // v1227: a mine on an intersection: the 4 cells around it
   ok(f.every(n=>cellsOf(n).every(([x,y])=>R.isLand(x,y)&&R.landZone(x,y)===n.region)&&n.region!=='worldtree'),'every node stands on land of its own zone, never the World Tree island');
   ok(region.every(n=>cellsOf(n).some(([x,y])=>toSea(x,y))===(n.level===6)),'region nodes are level 6 exactly on the 4-square coast band');
   const srv=fs.readFileSync(path.join(root,'server.js'),'utf8'), html=fs.readFileSync(process.env.MLT_HTML||path.join(root,'emberweave-heroes.html'),'utf8');

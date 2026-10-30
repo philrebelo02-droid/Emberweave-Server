@@ -4325,7 +4325,7 @@ function worldLocation(u){
      region, never to a random region; only a castle with no home region yet is placed by the balancer */
   const next=(old&&WORLD_LOCATION.REGIONS[old.region]&&Number.isFinite(old.x)&&Number.isFinite(old.y)
     &&WORLD_LOCATION.nearestInRegion(old.region,old.x,old.y,worldBlockedKeys(u,Date.now())))
-    ||WORLD_LOCATION.place(taken,crypto.randomInt,mines.flatMap(n=>WORLD_LOCATION.footKeys(n.x,n.y)));   /* v1227: sea + city cells are refused by the realm itself (regionSquare) */
+    ||WORLD_LOCATION.place(taken,crypto.randomInt,mines.flatMap(n=>WORLD_LOCATION.GEO.mineKeys(n.x,n.y)));   /* v1227: sea + city cells are refused by the realm itself (regionSquare) */
   // A staged move or mine account is committed by its outer transaction, never here.
   if(DB.users[u.id]!==u||_durableIdemActive){u.worldLocation=next;return next;}   /* v1017 (release review #8): inside an atomic section (durable idem, arena result) the section's own final save persists it - committing here saved the whole DB mid-route, a reward before its receipt */
   const draft=JSON.parse(JSON.stringify(u));draft.worldLocation=next;
@@ -4366,23 +4366,26 @@ function worldBlockedKeys(u,now){
   const blocked=new Set();   /* v1227: castles + mines only - sea and city cells are refused by WORLD_LOCATION from the realm (600k terrain keys are not copied per call) */
   for(const key of Object.values(DB.users).filter(v=>v.id!==u.id&&WORLD_LOCATION.valid(v.worldLocation))
     .flatMap(v=>WORLD_LOCATION.footKeys(v.worldLocation.x,v.worldLocation.y))) blocked.add(key);   /* v1227: a castle covers FOOT x FOOT cells */
-  for(const n of WORLD_MINES.field(WORLD_MINES.epochAt(now))) for(const key of WORLD_LOCATION.footKeys(n.x,n.y)) blocked.add(key);
+  for(const n of WORLD_MINES.field(WORLD_MINES.epochAt(now))) for(const key of WORLD_LOCATION.GEO.mineKeys(n.x,n.y)) blocked.add(key);   /* v1227: a mine on an intersection holds its 4 cells */
   return blocked;
 }
 function worldSquareTaken(u,x,y,now){
   return WORLD_LOCATION.footBlocked(worldBlockedKeys(u,now),x,y);
 }
 function migrateBlockedWorldCastles(){
-  const now=Date.now(); let moved=0;
+  const now=Date.now(); let moved=0; const held=new Set();   /* v1227: the square each castle that stays holds (first come keeps it) */
   for(const u of Object.values(DB.users)){
     const loc=u.worldLocation;
     /* v1226 realm map (Phil 30 Oct 2026): a castle the new map puts in the sea, or on another region's land, moves to the nearest
        open land of its own home region (tests/world-realm.test.js proves it) */
     if(!loc||!WORLD_LOCATION.REGIONS[loc.region]||!Number.isFinite(loc.x)||!Number.isFinite(loc.y)) continue;
-    if(WORLD_LOCATION.valid(loc)&&!WORLD_LOCATION.footBlocked(WORLD_TERRAIN_BLOCKED,loc.x,loc.y)) continue;
-    const next=WORLD_LOCATION.nearestInRegion(loc.region,loc.x,loc.y,worldBlockedKeys(u,now));
+    /* v1227: an existing castle stays unless its own square is sea or a city, or another castle already holds that square */
+    if(WORLD_LOCATION.valid(loc)&&!WORLD_LOCATION.footBlocked(WORLD_TERRAIN_BLOCKED,loc.x,loc.y)&&!WORLD_LOCATION.footBlocked(held,loc.x,loc.y)){
+      for(const key of WORLD_LOCATION.footKeys(loc.x,loc.y)) held.add(key); continue; }
+    const blocked=worldBlockedKeys(u,now); for(const key of held) blocked.add(key);
+    const next=WORLD_LOCATION.nearestInRegion(loc.region,loc.x,loc.y,blocked);
     if(!next) throw Error('No open world square remains for a terrain-blocked castle.');
-    u.worldLocation=next; moved++;
+    u.worldLocation=next; moved++; for(const key of WORLD_LOCATION.footKeys(next.x,next.y)) held.add(key);
   }
   if(moved) writeDBNow();
   console.log('Terrain-blocked castles moved at boot: '+moved);

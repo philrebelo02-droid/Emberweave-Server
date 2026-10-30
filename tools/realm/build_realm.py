@@ -65,11 +65,12 @@ def even_round(v):
     return max(2, 2 * int(round(v / 2)))
 
 
+CASTLE_CELLS = 1   # Phil 30 Oct 2026: a castle fits ONE square ("not 4"), drawn inside it (its centre); a mine sits ON an intersection
+
+
 def foot():
-    """Castle / mine side in grid squares: the largest even count inside one 220-grid square (4 at 1000, 2 at 440, 1 at 220), so
-    castles that stood side by side on the 220 grid never overlap, and a castle's position is the corner its squares share."""
-    s = sq()
-    return 1 if s < 2 else 2 * int(math.floor(s / 2 + 1e-9))
+    """Castle side in grid squares (META.foot): 1 - a castle fits one square and stands at the cell centre."""
+    return CASTLE_CELLS
 
 
 def log(*a):
@@ -743,8 +744,8 @@ const _cells={};
 function zoneCells(zone){if(_cells[zone])return _cells[zone];const out=[];for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++)if(landZone(x,y)===zone&&!isCity(x,y))out.push([x,y]);return _cells[zone]=out;}
 // sea, off-realm and city squares - the same set as the server's world-terrain-blocked.json
 function blockedKeys(){const out=[];for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++)if(!isOpen(x,y))out.push(x+','+y);return out;}
-// ---- GEO: world-percent <-> cells. A castle (or a mine) keeps its world size: one 220-grid square, FOOT x FOOT cells, standing on
-// the corner of its cells (FOOT even) - anchorX/anchorY give its top-left cell, cornerX/cornerY the position of the one that starts there
+// ---- GEO: world-percent <-> cells. A castle is FOOT x FOOT cells (META.foot = 1: one square, at its centre) - anchorX/anchorY give
+// its (top-left) cell, cornerX/cornerY the position of the castle that starts there (a cell centre when FOOT is 1)
 const CELL=100/COLS, Y0=META.gridTop*CELL, FOOT=META.foot, OLD_SQUARE=100/220, CORE=META.tree.core;
 const clamp=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));
 function col(x){return clamp(Math.round(x/CELL-0.5),0,COLS-1);}
@@ -761,7 +762,16 @@ function footKeys(x,y){return footprint(x,y).map(c=>c[0]+','+c[1]);}
 function coreCell(cx,cy){return cx>=CORE[0]&&cx<=CORE[2]&&cy>=CORE[1]&&cy<=CORE[3];}
 // march distance in 220-grid squares (one castle side): march times never depend on the grid
 function marchSquares(a,b){return Math.max(1,Math.round(Math.hypot(b.x-a.x,b.y-a.y)/OLD_SQUARE));}
-const GEO={COLS,ROWS,CELL,Y0,FOOT,OLD_SQUARE,CORE,col,row,xOf,yOf,anchorX,anchorY,cornerX,cornerY,footCells,footprint,footKeys,coreCell,marchSquares};
+// a mine stands ON a grid intersection (Phil 30 Oct 2026: "The mines don't go in the squares"): vertex (vx,vy), one square in size,
+// touching the four cells around it - those four are its cells for occupancy
+function mineX(vx){return vx*CELL;}
+function mineY(vy){return Y0+vy*CELL;}
+function vertexX(x){return clamp(Math.round(x/CELL),1,COLS-1);}
+function vertexY(y){return clamp(Math.round((y-Y0)/CELL),1,ROWS-1);}
+function mineCellsAt(vx,vy){return [[vx-1,vy-1],[vx,vy-1],[vx-1,vy],[vx,vy]];}
+function mineKeys(x,y){return mineCellsAt(vertexX(x),vertexY(y)).map(c=>c[0]+','+c[1]);}
+const GEO={COLS,ROWS,CELL,Y0,FOOT,OLD_SQUARE,CORE,col,row,xOf,yOf,anchorX,anchorY,cornerX,cornerY,footCells,footprint,footKeys,coreCell,marchSquares,
+  mineX,mineY,vertexX,vertexY,mineCellsAt,mineKeys};
 const api={META,GEO,code,isLand,isCity,cityAt,isOpen,landZone,zoneOfCell,zoneCells,blockedKeys,CODE_ZONE};
 if(typeof module==='object'&&module.exports)module.exports=api;else root.EmberweaveRealm=api;
 })(typeof globalThis==='object'?globalThis:this);

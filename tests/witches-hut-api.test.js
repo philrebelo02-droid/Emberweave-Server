@@ -317,7 +317,7 @@ async function run() {
     },admin.token);
     assert.equal(premature.ok,false,'mine cannot resolve before real arrival');
     assert.equal(premature.arriveAt,timed.arriveAt);
-    const occupied=new Set(map.nodes.flatMap(n=>L.footKeys(n.x,n.y)));   // v1227: every cell of each mine / castle square
+    const occupied=new Set(map.nodes.flatMap(n=>L.GEO.mineKeys(n.x,n.y)));   // v1227: a mine holds the 4 cells around its intersection
     const otherCities=await wholeMap(admin.token);
     for(const c of otherCities.cities||[]) for(const k of L.footKeys(c.x,c.y)) occupied.add(k);
     /* v1226 realm map: the picker reads the sea from world-realm.js (the same set as the server's list); the state names the realm */
