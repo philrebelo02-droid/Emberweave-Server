@@ -335,6 +335,16 @@ async function run() {
       },admin.token);
       assert.equal(denied.ok,false,'server rejects a sea square');
     }
+    /* Phil 30 Oct 2026: "the city should not be able to be teleported onto" - a city square of your OWN region (land, not sea) is refused */
+    const R_=require('../world-realm.js');
+    const ownCity=R_.META.cities.flatMap(c=>c.cells).filter(([cx,cy])=>R_.isLand(cx,cy)&&R_.landZone(cx,cy)===castle.region);
+    assert.ok(ownCity.length>0,'the fixture region has city land squares');
+    for(const [i,[cx,cy]] of [ownCity[0],ownCity[ownCity.length>>1],ownCity[ownCity.length-1]].entries()){
+      assert.ok(terrainKeys.has(cx+','+cy),'a city square is in the blocked set');
+      const denied=await request('POST','/api/world/relocate',{kind:'targeted',x:L.center(cx),y:L.center(cy),requestId:'blocked-city-'+i},admin.token);
+      assert.equal(denied.ok,false,'server rejects a city square');
+      assert.match(denied.error,/city/,'the refusal names the city');
+    }
     const afterBlocked=await request('GET','/api/world/state',null,admin.token);
     assert.equal(afterBlocked.teleUsed,0,'a blocked teleport does not consume the daily move');
     assert.equal(L.cellKey(afterBlocked.x,afterBlocked.y),L.cellKey(castle.x,castle.y));

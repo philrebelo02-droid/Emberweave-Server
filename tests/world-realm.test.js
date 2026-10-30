@@ -9,17 +9,39 @@ const R=require('../world-realm.js'),L=require('../server/world-location.js'),M=
 const blocked=require('../server/world-terrain-blocked.json'),oases=require('../server/world-oasis-layout.json');
 const REGIONS=['crystor','draymon','tefron','alumron'];
 const at=home=>{const c=R.zoneCells(home)[Math.floor(R.zoneCells(home).length/2)];return {x:L.center(c[0]),y:L.center(c[1])};};
-test('the server list and the client module are the same blocked squares, and every one of them is sea or off the realm',()=>{
+test('the server list and the client module are the same blocked squares, and every one of them is sea, off the realm or a city',()=>{
   const a=new Set(blocked.cells),b=new Set(R.blockedKeys());
   assert.equal(a.size,blocked.count);assert.equal(a.size,b.size);for(const k of a)assert.ok(b.has(k),k);
   for(let y=0;y<220;y++)for(let x=0;x<220;x++){
-    const k=x+','+y,land=R.isLand(x,y);
-    assert.equal(a.has(k),!land,'cell '+k);
-    if(!land)for(const home of REGIONS)assert.equal(L.targetAllowed(home,L.center(x),L.center(y)),false,'no castle on sea '+k);
+    const k=x+','+y,land=R.isLand(x,y),city=R.isCity(x,y);
+    assert.equal(a.has(k),!land||city,'cell '+k);
+    if(!land||city)for(const home of REGIONS)assert.equal(L.targetAllowed(home,L.center(x),L.center(y)),false,'no castle on sea or city '+k);
   }
   // rows outside the realm art are all blocked
   for(let y=0;y<Math.floor(R.META.realmTop);y++)for(let x=0;x<220;x++)assert.ok(a.has(x+','+y));
   for(let y=Math.ceil(R.META.realmTop+R.META.realmHeight);y<220;y++)for(let x=0;x<220;x++)assert.ok(a.has(x+','+y));
+});
+test('cities (Phil 30 Oct 2026: "the city should not be able to be teleported onto"): every one of the 12 covers squares, all blocked, never placed on',()=>{
+  const cities=R.META.cities;assert.equal(cities.length,12,'the original 10 + Corran Reach + Durrakh');
+  for(const name of ['Corran Reach','Durrakh','Oriel'])assert.ok(cities.some(c=>c.name===name),name);
+  const a=new Set(blocked.cells);
+  for(const c of cities){
+    assert.ok(c.cells.length>=10,c.name+' covers '+c.cells.length+' squares');
+    assert.ok(c.cells.some(([x,y])=>R.isLand(x,y)),c.name+' stands on some land');
+    const ccx=Math.floor(c.cx),ccy=Math.floor(c.cy);
+    for(const [x,y] of c.cells){assert.ok(a.has(x+','+y),c.name+' '+x+','+y+' blocked');assert.ok(R.isCity(x,y)&&!R.isOpen(x,y));assert.equal(R.cityAt(x,y),c.name);}
+    // the cells hug the overlay: within its pixel box
+    const bx=c.cells.map(p=>p[0]),by=c.cells.map(p=>p[1]);assert.ok(Math.max(...bx)-Math.min(...bx)<=Math.ceil(c.sizePx[0]/R.META.levels[0].cellPx/R.META.levels[0].scale)+1,c.name+' width');
+  }
+  for(const k of [...REGIONS,'worldtree','wildN','wildS','wildE','wildW'])for(const [x,y] of R.zoneCells(k))assert.ok(!R.isCity(x,y),'zoneCells never lists a city square');
+  for(const o of oases)for(const [dx,dy] of [[0,0],[1,0],[0,1],[1,1]])assert.ok(!R.isCity(o.x+dx,o.y+dy),'no oasis on a city');
+  // random placement (balancer, wild teleport, transfer) never lands on a city, with the server's own blocked list
+  let roll=7;const rnd=max=>(roll=(roll*1103515245+12345)>>>0)%max,taken=[];
+  for(let i=0;i<4000;i++){const p=L.place(taken,rnd,blocked.cells);assert.ok(!R.isCity(L.cellIndex(p.x),L.cellIndex(p.y)),'placed on a city');taken.push(p);}
+  for(const home of REGIONS)for(let i=0;i<500;i++){const p=L.openInRegion(home,blocked.cells,rnd);assert.ok(p&&!R.isCity(L.cellIndex(p.x),L.cellIndex(p.y)),home+' wild teleport onto a city');}
+  // even with no blocked list at all the walk skips cities
+  for(const home of REGIONS)for(let i=0;i<300;i++){const p=L.openInRegion(home,[],rnd);assert.ok(!R.isCity(L.cellIndex(p.x),L.cellIndex(p.y)));}
+  for(let e=62270;e<62300;e++)for(const n of M.field(e))assert.ok(!R.isCity(n.gx,n.gy),'mine on a city '+n.id);
 });
 test('every region has land, in its own quadrant; the tree stands on its island',()=>{
   for(const k of REGIONS){const c=R.zoneCells(k);assert.ok(c.length>=1000,k+' has '+c.length+' land cells');
@@ -94,6 +116,12 @@ test('boot relocation: castles the realm puts in the sea or on another region mo
     const id='c'+(n++),loc={region,x:L.center(ox+i),y:L.center(oy+j)};
     users[id]={id,name:'Castle '+id,created:now-1000,rank:1,coins:0,team:['vael'],wall:['vael'],roster:{},worldLocation:loc};start[id]=loc;
   }
+  // Phil 30 Oct 2026: a castle standing on a city square moves too (to its own region's nearest open land)
+  const cityIds=[];
+  for(const c of R.META.cities){const land=c.cells.filter(([x,y])=>REGIONS.includes(R.landZone(x,y)));
+    for(const [x,y] of [land[0],land[land.length>>1]].filter(Boolean)){const id='k'+(n++),loc={region:R.landZone(x,y),x:L.center(x),y:L.center(y)};
+      if(Object.values(start).some(l=>L.cellKey(l.x,l.y)===L.cellKey(loc.x,loc.y)))continue;
+      users[id]={id,name:'Castle '+id,created:now-1000,rank:1,coins:0,team:['vael'],wall:['vael'],roster:{},worldLocation:loc};start[id]=loc;cityIds.push(id);}}
   fs.writeFileSync(file,JSON.stringify({users,byName:{},tokens:{},seeded:true,seedVersion:3,heroIdV:3,guilds:{},idem:{},feedback:[],reports:[],meta:{rollSecret:'realm-test'}}));
   const s=net.createServer();await new Promise(r=>s.listen(0,'127.0.0.1',r));const port=s.address().port;await new Promise(r=>s.close(r));
   let log='';const child=cp.spawn(process.execPath,[path.join(root,'server.js')],{cwd:root,windowsHide:true,stdio:['ignore','pipe','pipe'],
@@ -123,6 +151,11 @@ test('boot relocation: castles the realm puts in the sea or on another region mo
       assert.ok((cx-fx)**2+(cy-fy)**2>=d,id+' could have moved nearer, to '+k);}
   }
   assert.equal(relocated,moved,'the boot log counts every move');
+  assert.ok(cityIds.length>=12,'a city castle per city: '+cityIds.length);
+  for(const id of cityIds){const loc=db.users[id].worldLocation,cx=L.cellIndex(loc.x),cy=L.cellIndex(loc.y);
+    assert.ok(!R.isCity(cx,cy),id+' left the city');assert.equal(R.landZone(cx,cy),start[id].region,id+' stays in its own region');
+    assert.ok(Math.hypot(cx-L.cellIndex(start[id].x),cy-L.cellIndex(start[id].y))<=20,id+' moved just outside the walls');}
+  for(const loc of Object.values(db.users).map(u=>u.worldLocation))assert.ok(!R.isCity(L.cellIndex(loc.x),L.cellIndex(loc.y)),'no castle on a city after boot');
   assert.ok(kept>0&&relocated>0);
   console.log('boot relocation: '+relocated+' moved to their own region\'s nearest land, '+kept+' already on legal land');
 });

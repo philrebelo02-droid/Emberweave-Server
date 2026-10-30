@@ -24724,7 +24724,7 @@ function refreshTeleGhosts(){ const inner=document.getElementById('wzoneInner'),
   const occ=occupiedCells(), cellPx=WORLD_W/GRID_COLS; let html='',count=0; const CAP=800;
   for(let ci=i0; ci<=i1 && count<CAP; ci++) for(let cj=j0; cj<=j1 && count<CAP; cj++){
     if(occ.has(ci+','+cj)) continue;
-    if(!REALM_MAP.isLand(ci,cj)) continue;
+    if(!REALM_MAP.isOpen(ci,cj)) continue;   // sea and city squares get no ghost castle
     const zkey=REALM_MAP.zoneOfCell(ci,cj); if(!zoneAccessible(zkey)) continue;
     const cx=(ci+0.5)*GRID_CELL, cy=(cj+0.5)*GRID_CELL;
     html+=`<img src="${GHOST_CASTLE}" style="position:absolute;left:${cx}%;top:${cy}%;width:${cellPx}px;height:${cellPx}px;transform:translate(-50%,-50%);opacity:.42" draggable="false">`;
@@ -24861,6 +24861,7 @@ function tapToWorldPct(zone, clientX, clientY){ const r=zone.ewGameRect();
   return {x:snapToGrid(Math.max(0,Math.min(100,ux/WORLD_W*100))), y:snapToGrid(Math.max(0,Math.min(100,uy/WORLD_H*100)))}; }
 function teleportPlace(x,y){
   if(!REALM_MAP.isLand(cellIndex(x),cellIndex(y))){ dropTelePin(x,y,false); bannerMsg('That square is sea - castles stand on land.'); return; }
+  if(REALM_MAP.isCity(cellIndex(x),cellIndex(y))){ dropTelePin(x,y,false); bannerMsg('That square is a city - castles cannot stand on a city.'); return; }   // Phil 30 Oct 2026
   if(occupiedCells().has(cellIndex(x)+','+cellIndex(y))){
     dropTelePin(x,y,false); bannerMsg('That square is occupied.'); return; }
   const key=zoneOfPos(x,y);

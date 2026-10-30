@@ -37,4 +37,8 @@ const tied=L.place([],max=>max-1);
 assert.ok(L.REGION_KEYS.includes(tied.region),'a tie picks an eligible region');
 // a transfer's preferred start index wraps on the region's land list
 for(const region of L.REGION_KEYS){ const t=L.openInRegion(region,terrainKeys,()=>0,R.zoneCells(region).length>>1); assert.ok(t&&L.valid(t)&&t.region===region); }
+// Phil 30 Oct 2026: a city square is never a legal castle square, and relocation off it lands on the own region's open land
+for(const c of R.META.cities){ const land=c.cells.find(([x,y])=>L.REGION_KEYS.includes(R.landZone(x,y))); if(!land) continue; const home=R.landZone(land[0],land[1]);
+  assert.ok(terrainKeys.has(land.join(',')),c.name+' is blocked'); for(const h of L.REGION_KEYS) assert.equal(L.targetAllowed(h,L.center(land[0]),L.center(land[1])),false,'no castle on '+c.name);
+  const off=L.nearestInRegion(home,L.center(land[0]),L.center(land[1]),terrainKeys); assert.ok(off&&off.region===home&&!R.isCity(L.cellIndex(off.x),L.cellIndex(off.y))&&R.landZone(L.cellIndex(off.x),L.cellIndex(off.y))===home,c.name+' relocation'); }
 console.log('World location balance and grid rules passed (realm '+R.META.version+')');

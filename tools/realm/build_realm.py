@@ -20,7 +20,8 @@ What it does, in order (every stage writes into --out, the Archive copy; --insta
   4. tiles   a zoom pyramid of 512 px WebP tiles (z1 = max-scale, z2 = half that, ...) + one cover picture
   5. mask    land/sea per cell from the pyramid itself (saturated blue/turquoise water, as Grok's landalpha)
   6. zones   the 4 largest land masses = the 4 home regions (by quadrant), the island under the tree = worldtree,
-             every other islet = wild N/S/E/W by its direction from the tree; sea + off-realm cells are blocked
+             every other islet = wild N/S/E/W by its direction from the tree; sea + off-realm cells are blocked,
+             and so is every city square (> 30 % of it covered by the city overlay alpha)
   7. oases   the 4 oasis 2x2 sites, nearest to their old offsets from the tree, all four cells on island land
   8. data    world-realm.js (shared client/server module), world-terrain-blocked.json, world-oasis-layout.json,
              realm.json (manifest with sha256 of every file), previews for the look
@@ -244,7 +245,7 @@ def city_patches(master, src, v, pos):
             x, y = c['topleft_px']
             master.patches.append((int(x), int(y), np.ascontiguousarray(arr[..., :3]), np.ascontiguousarray(arr[..., 3])))
             out.append({'name': name, 'version': c.get('version'), 'topleftPx': [x, y], 'sizePx': [w, h],
-                        'cxPx': x + w / 2, 'cyPx': y + h / 2})
+                        'cxPx': x + w / 2, 'cyPx': y + h / 2, '_alpha': np.ascontiguousarray(arr[..., 3])})
     # further zips in the same format ("REALM <v> new city overlays.zip": one '<City> placement.json' per city with topleft_v25,
     # size_v25, overlay_1x.file). A PROVISIONAL city (in its file name or status) is held back until Grok sends its final file.
     held = []
@@ -264,9 +265,32 @@ def city_patches(master, src, v, pos):
                 arr = np.asarray(im); x, y = c['topleft_v25']
                 master.patches.append((int(x), int(y), np.ascontiguousarray(arr[..., :3]), np.ascontiguousarray(arr[..., 3])))
                 out.append({'name': name, 'version': 'proposal', 'topleftPx': [x, y], 'sizePx': [w, h], 'cxPx': x + w / 2, 'cyPx': y + h / 2,
-                            'source': os.path.basename(extra)})
+                            'source': os.path.basename(extra), '_alpha': np.ascontiguousarray(arr[..., 3])})
     log('cities: %d overlays baked in (%s)%s' % (len(out), ', '.join(o['name'] for o in out), ('; held (provisional): ' + ', '.join(held)) if held else ''))
     return out
+
+
+CITY_COVER = 0.30   # a grid square is city when more than 30 % of it is the overlay's opaque pixels (alpha, not the bounding box)
+
+
+def city_cells(c, X0, top_cells, cpx):
+    """The 220-grid squares a city overlay covers (Phil 30 Oct 2026: "the city should not be able to be teleported onto").
+    A square counts when more than CITY_COVER of its area is opaque overlay (alpha >= 128)."""
+    al = c['_alpha'] >= 128
+    x, y = c['topleftPx']; h, w = al.shape
+    cells = []
+    for cy in range(int(math.floor(top_cells + y / cpx)), int(math.ceil(top_cells + (y + h) / cpx))):
+        for cx in range(int(math.floor((x - X0) / cpx)), int(math.ceil((x + w - X0) / cpx))):
+            if not (0 <= cx < COLS and 0 <= cy < COLS):
+                continue
+            mx0, my0 = X0 + cx * cpx, (cy - top_cells) * cpx            # the square's box in master px
+            ax0, ay0 = int(round(max(mx0, x) - x)), int(round(max(my0, y) - y))
+            ax1, ay1 = int(round(min(mx0 + cpx, x + w) - x)), int(round(min(my0 + cpx, y + h) - y))
+            if ax1 <= ax0 or ay1 <= ay0:
+                continue
+            if al[ay0:ay1, ax0:ax1].sum() > CITY_COVER * cpx * cpx:
+                cells.append([cx, cy])
+    return cells
 
 
 # ---------------------------------------------------------------- 5. land / sea
@@ -375,6 +399,9 @@ def main():
     if top_cells < 0 or top_cells + h_cells > COLS:
         sys.exit('realm is taller than the 220-cell world at this width (top %.2f, height %.2f cells): needs a grid change' % (top_cells, h_cells))
     log('grid: %.3f realm px per cell, crop x %.1f..%.1f of %d, realm rows %.3f..%.3f' % (cpx, X0, X0 + WW, RW, top_cells, top_cells + h_cells))
+    for c in cities:
+        c['cells'] = city_cells(c, X0, top_cells, cpx); del c['_alpha']
+    log('city squares (blocked for castles and teleports): ' + ', '.join('%s %d' % (c['name'], len(c['cells'])) for c in cities))
 
     # ---- 4. pyramid. Level n has scale max_scale / 2**(n-1) of the master.
     levels = []
@@ -470,15 +497,18 @@ def main():
         if counts[k] < 100:
             sys.exit('zone %s has only %d land cells' % (k, counts[k]))
 
-    # ---- 7. oases: 2x2, all on island land, outside the 4x4 core, nearest to the old offset from the tree
+    # ---- 7. oases: 2x2, all on island land, outside the 4x4 core and off any city, nearest to the old offset from the tree
     core = {(x, y) for x in range(108, 112) for y in range(108, 112)}
+    city_set = {(cx, cy) for c in cities for cx, cy in c['cells']}
+    if city_set & core:
+        sys.exit('a city overlay covers the World Tree core: %s' % sorted(city_set & core))
     oases = []
     for d, (ox, oy) in OLD_OASIS.items():
         best = None
         for y in range(COLS - 1):
             for x in range(COLS - 1):
                 cells = [(x, y), (x + 1, y), (x, y + 1), (x + 1, y + 1)]
-                if any(zone[cy, cx] != 'T' or (cx, cy) in core for cx, cy in cells):
+                if any(zone[cy, cx] != 'T' or (cx, cy) in core or (cx, cy) in city_set for cx, cy in cells):
                     continue
                 # keep each oasis on its own side of the tree
                 ccx, ccy = x + 1 - 110, y + 1 - 110
@@ -534,9 +564,9 @@ def main():
     for i in range(1, TREE_FRAMES + 1):
         fr = Image.open(os.path.join(MAP_FINAL, '05 World Tree', 'frames', 'wt_%02d.png' % i)).convert('RGBA').resize((tpx, tpx), Image.LANCZOS)
         p = os.path.join(tdir, 'wt_%02d.webp' % i); fr.save(p, 'WEBP', quality=WEBP_Q, method=6); files['tree/wt_%02d.webp' % i] = p
-    blocked = sorted([(x, y) for y in range(COLS) for x in range(COLS) if zone[y, x] == '.'], key=lambda t: (t[1], t[0]))
-    bj = {'about': 'Squares no castle, mine or teleport may use: every sea and off-realm cell of Grok\'s realm map %s (generated by tools/realm/build_realm.py - never hand-edit; re-run it). Keys are cellKey "x,y" (col,row) on the 220x220 grid.' % v,
-          'source': 'land/sea mask of the realm art (Grok landalpha water rule), a cell is land when >= %d%% of it is land' % round(a.land_frac * 100),
+    blocked = sorted([(x, y) for y in range(COLS) for x in range(COLS) if zone[y, x] == '.' or (x, y) in city_set], key=lambda t: (t[1], t[0]))
+    bj = {'about': 'Squares no castle, mine or teleport may use: every sea and off-realm cell of Grok\'s realm map %s, and every city square (generated by tools/realm/build_realm.py - never hand-edit; re-run it). Keys are cellKey "x,y" (col,row) on the 220x220 grid.' % v,
+          'source': 'land/sea mask of the realm art (Grok landalpha water rule), a cell is land when >= %d%% of it is land; a cell is city when > %d%% of it is a city overlay\'s opaque pixels (alpha >= 128)' % (round(a.land_frac * 100), round(CITY_COVER * 100)),
           'version': v, 'count': len(blocked), 'cells': ['%d,%d' % t for t in blocked]}
     bp = os.path.join(out, 'world-terrain-blocked.json')
     with open(bp, 'w', newline='\n') as f:
@@ -560,7 +590,7 @@ def main():
         if y1 <= 0 or y0 >= zprev.shape[0]:
             continue
         for x in range(COLS):
-            over[max(0, y0):y1, int(x * cc):int((x + 1) * cc)] = colors[zone[y, x]]
+            over[max(0, y0):y1, int(x * cc):int((x + 1) * cc)] = (0, 0, 0) if (x, y) in city_set else colors[zone[y, x]]
     mix = np.clip(zprev * 0.62 + over * 0.38, 0, 255).astype(np.uint8)
     pp = os.path.join(out, 'PREVIEW zones %s.jpg' % v); Image.fromarray(mix).save(pp, quality=88)
     realm['files'] = {k: sha(p) for k, p in sorted(files.items())}
@@ -581,7 +611,8 @@ def render_module(realm, rle_rows):
     return ("/* GENERATED by tools/realm/build_realm.py from Grok's realm %s - never hand-edit; re-run the build.\n"
             "   The realm map in game (Phil 30 Oct 2026: \"put this map in game. Swap out the old one\"). Shared by the client\n"
             "   (window.EmberweaveRealm) and the server (require). Zone codes per cell: A crystor, B draymon, C tefron, D alumron,\n"
-            "   T worldtree island, n/s/e/w wild islets, '.' sea or off-realm (blocked). */\n"
+            "   T worldtree island, n/s/e/w wild islets, '.' sea or off-realm (blocked). A city square (META.cities[].cells; Phil\n"
+            "   30 Oct 2026: \"the city should not be able to be teleported onto\") keeps its zone but is blocked like the sea. */\n"
             "(function(root){\n'use strict';\n"
             "const META=%s;\n"
             "const RLE=%s;\n"
@@ -591,15 +622,21 @@ def render_module(realm, rle_rows):
             "RLE.forEach((row,y)=>{let x=0;const re=/([.A-Za-z])(\\d*)/g;let m;while((m=re.exec(row))){const n=m[2]?+m[2]:1,c=CODES.indexOf(m[1]);for(let i=0;i<n;i++)GRID[y*COLS+x++]=c;}if(x!==COLS)throw Error('world-realm row '+y+' has '+x+' cells');});\n"
             "function code(cx,cy){return cx>=0&&cy>=0&&cx<COLS&&cy<COLS?CODES[GRID[cy*COLS+cx]]:'.';}\n"
             "function isLand(cx,cy){return code(cx,cy)!=='.';}\n"
+            "const CITY=new Map();(META.cities||[]).forEach(c=>(c.cells||[]).forEach(([x,y])=>CITY.set(x+','+y,c.name)));\n"
+            "function cityAt(cx,cy){return CITY.get(cx+','+cy)||null;}\n"
+            "function isCity(cx,cy){return CITY.has(cx+','+cy);}\n"
+            "// a square a castle, mine or teleport may use: land that is not a city\n"
+            "function isOpen(cx,cy){return isLand(cx,cy)&&!isCity(cx,cy);}\n"
             "function landZone(cx,cy){return CODE_ZONE[code(cx,cy)]||null;}\n"
             "// a sea or off-realm cell belongs to the wild by its direction from the World Tree (it is blocked anyway)\n"
             "function zoneOfCell(cx,cy){const z=landZone(cx,cy);if(z)return z;const dx=cx+0.5-META.tree.cx,dy=cy+0.5-META.tree.cy;\n"
             "  return Math.abs(dy)>=Math.abs(dx)?(dy>0?'wildS':'wildN'):(dx>0?'wildE':'wildW');}\n"
             "const _cells={};\n"
-            "// every land cell of a zone, row by row (top to bottom, left to right) - the order placement walks\n"
-            "function zoneCells(zone){if(_cells[zone])return _cells[zone];const out=[];for(let y=0;y<COLS;y++)for(let x=0;x<COLS;x++)if(landZone(x,y)===zone)out.push([x,y]);return _cells[zone]=out;}\n"
-            "function blockedKeys(){const out=[];for(let y=0;y<COLS;y++)for(let x=0;x<COLS;x++)if(!isLand(x,y))out.push(x+','+y);return out;}\n"
-            "const api={META,code,isLand,landZone,zoneOfCell,zoneCells,blockedKeys,CODE_ZONE};\n"
+            "// every open (non-city) land cell of a zone, row by row (top to bottom, left to right) - the order placement walks\n"
+            "function zoneCells(zone){if(_cells[zone])return _cells[zone];const out=[];for(let y=0;y<COLS;y++)for(let x=0;x<COLS;x++)if(landZone(x,y)===zone&&!isCity(x,y))out.push([x,y]);return _cells[zone]=out;}\n"
+            "// sea, off-realm and city squares - the same set as the server's world-terrain-blocked.json\n"
+            "function blockedKeys(){const out=[];for(let y=0;y<COLS;y++)for(let x=0;x<COLS;x++)if(!isOpen(x,y))out.push(x+','+y);return out;}\n"
+            "const api={META,code,isLand,isCity,cityAt,isOpen,landZone,zoneOfCell,zoneCells,blockedKeys,CODE_ZONE};\n"
             "if(typeof module==='object'&&module.exports)module.exports=api;else root.EmberweaveRealm=api;\n"
             "})(typeof globalThis==='object'?globalThis:this);\n") % (realm['version'], json.dumps(meta, separators=(',', ':')),
                                                                         json.dumps(rle_rows, separators=(',', ':')).replace('","', '",\n"'))

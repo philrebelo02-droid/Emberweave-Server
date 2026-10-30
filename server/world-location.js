@@ -20,6 +20,8 @@ function cellIndex(v){ return Math.max(0,Math.min(GRID_COLS-1,Math.round(v/CELL-
 function center(i){ return (i+0.5)*CELL; }
 function zoneOf(x,y){ return REALM.zoneOfCell(cellIndex(x),cellIndex(y)); }
 function isLand(x,y){ return REALM.isLand(cellIndex(x),cellIndex(y)); }
+// Phil 30 Oct 2026: "the city should not be able to be teleported onto" - a city square is blocked like the sea
+function isCity(x,y){ return REALM.isCity(cellIndex(x),cellIndex(y)); }
 function cellKey(x,y){ return cellIndex(x)+','+cellIndex(y); }
 function treeCore(x,y){
   const cx=cellIndex(x),cy=cellIndex(y),middle=GRID_COLS/2;
@@ -27,7 +29,7 @@ function treeCore(x,y){
 }
 function targetAllowed(home,x,y){
   return !!REGIONS[home]&&Number.isFinite(x)&&Number.isFinite(y)&&x>=0&&x<=100&&y>=0&&y<=100
-    &&isLand(x,y)&&!treeCore(x,y)&&(!REGIONS[zoneOf(x,y)]||zoneOf(x,y)===home);
+    &&isLand(x,y)&&!isCity(x,y)&&!treeCore(x,y)&&(!REGIONS[zoneOf(x,y)]||zoneOf(x,y)===home);
 }
 // a region's land cells, in row order; `preferred` is an index into that list (wraps)
 function openInRegion(region,blocked=[],randomInt=crypto.randomInt,preferred){
@@ -90,4 +92,4 @@ function place(existing,randomInt=crypto.randomInt,blocked=[]){
   throw Error('No free castle square remains in the home regions.');
 }
 module.exports={GRID_COLS,CELL,REGIONS,REGION_KEYS,REALM,cellIndex,center,zoneOf,
-  isLand,cellKey,treeCore,targetAllowed,openInRegion,nearestInRegion,nearestOpen,valid,place};
+  isLand,isCity,cellKey,treeCore,targetAllowed,openInRegion,nearestInRegion,nearestOpen,valid,place};

@@ -9084,6 +9084,7 @@ async function api(req,res,url){
         if(typeof b.x!=='number'||typeof b.y!=='number'||!Number.isFinite(b.x)||!Number.isFinite(b.y))
           return {ok:false,error:'Pick a world square.'};
         if(!WORLD_LOCATION.isLand(b.x,b.y)) return {ok:false,error:'That square is sea - castles stand on land.'};   /* v1226 */
+        if(WORLD_LOCATION.isCity(b.x,b.y)) return {ok:false,error:'That square is a city - castles cannot stand on a city.'};   /* Phil 30 Oct 2026: no teleport onto a city */
         if(!WORLD_LOCATION.targetAllowed(loc.region,b.x,b.y))
           return {ok:false,error:'That world square is not available for your castle.'};
         const x=WORLD_LOCATION.center(WORLD_LOCATION.cellIndex(b.x));
