@@ -26,7 +26,7 @@ function snapshot(calendar){
   }
   // One movable cell-origin row per oasis; placement does not enable the event.
   const sites=DEFINITIONS.map(d=>{
-    if(d.kind==='tree'){const centre={x:50,y:50};return {...d,centre,bounds:bounds(centre,d.widthCells,d.heightCells)};}
+    if(d.kind==='tree'){const T=REALM.META.tree,centre={x:T.cx*CELL,y:GEO.Y0+T.cy*CELL};return {...d,centre,bounds:bounds(centre,d.widthCells,d.heightCells)};}   // v1228: the tree stands between the four ponds (META.tree), not on the world centre
     const rows=OASIS_LAYOUT.filter(row=>row.direction===d.direction&&row.id===d.id);
     if(rows.length!==1)throw Error('Invalid oasis layout');
     const row=rows[0];

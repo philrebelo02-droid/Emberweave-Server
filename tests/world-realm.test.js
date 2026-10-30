@@ -52,8 +52,11 @@ test('pieces are one square (Phil 30 Oct 2026: a castle "in 1 square", "The mine
   assert.match(html,/const WORLD_W=11000, WORLD_H=11000;/);
   // cities: the same overlay shapes, about (1000/220)^2 = 20.7x the cells of the 220 grid (694 then)
   const cells=R.META.cities.reduce((n,c)=>n+c.cells.length,0);assert.ok(cells>694*17&&cells<694*23,'city cells '+cells);
-  // the World Tree trunk is on the world centre
-  assert.equal(R.META.tree.cx*L.CELL,50);assert.ok(Math.abs(R.GEO.Y0+R.META.tree.cy*L.CELL-50)<0.01);
+  // v1228 (Phil: "does the tree seem off center?"): the World Tree stands in the middle of the four painted ponds (nearest grid corner)
+  const ox=oases.reduce((s,o)=>s+o.cx,0)/4,oy=oases.reduce((s,o)=>s+o.cy,0)/4;
+  assert.ok(Math.abs(R.META.tree.cx-ox)<=0.5&&Math.abs(R.META.tree.cy-oy)<=0.5,'tree '+R.META.tree.cx+','+R.META.tree.cy+' vs ponds '+ox.toFixed(2)+','+oy.toFixed(2));
+  const snapT=S.snapshot({configured:false,serverNow:Date.now()}).sites.find(s=>s.id==='tree');
+  assert.ok(Math.abs(snapT.centre.x-R.META.tree.cx*L.CELL)<1e-9&&Math.abs(snapT.centre.y-(R.GEO.Y0+R.META.tree.cy*L.CELL))<1e-9,'the World Tree site is the drawn tree');
 });
 test('the server list and the client module are the same blocked squares, and every one of them is sea, off the realm or a garrison site (city / oasis)',()=>{
   const a=new Set(blocked.cells),b=new Set(R.blockedKeys());
@@ -91,7 +94,7 @@ test('every region has land, in its own quadrant; the tree stands on its island'
     assert.equal(mx<COLS/2,q.col===0,k+' west/east');assert.equal(my<R.META.tree.cy,q.row===0,k+' north/south');}
   assert.ok(R.zoneCells('worldtree').length>=4000);
   for(let x=CORE[0];x<=CORE[2];x++)for(let y=CORE[1];y<=CORE[3];y++)assert.equal(R.landZone(x,y),'worldtree','tree core '+x+','+y+' is island land');
-  assert.ok(R.META.tree.cx===COLS/2,'the trunk is on the world centre');
+  assert.ok(Math.abs(R.META.tree.artCx-COLS/2)<1e-9,'the art crop is still centred on where Grok painted the tree');
 });
 test('oases (v1228, Phil 30 Oct 2026: "There of 2 of each oasis"): the 4 ponds Grok painted on the island, garrison sites, blocked like a city',()=>{
   const snap=S.snapshot({configured:false,serverNow:Date.now()});

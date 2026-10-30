@@ -640,6 +640,17 @@ def main():
         sys.exit('a city overlay covers the World Tree core: %s' % sorted(city_set & core))
     pl = [L for L in levels if L['z'] == 2][0] if len(levels) > 1 else levels[0]
     ponds = measure_ponds(files, pl, X0, grid_top, top_cells, cpx, out, v)
+    # v1228 (Phil 30 Oct 2026: "does the tree seem off center?"): the drawn World Tree stands in the MIDDLE of the four painted ponds - the
+    # nearest grid corner to their average (the art's baked tree is painted out, so only the drawn frame and the core move; the crop
+    # and the tiles stay as they are, centred on where Grok's tree was)
+    TCX = int(round(sum(p['cx'] for p in ponds.values()) / len(ponds))); TCY = int(round(sum(p['cy'] for p in ponds.values()) / len(ponds)))
+    log('tree: moved from %.2f,%.2f to the middle of the ponds %d,%d (cells)' % (C, TR, TCX, TCY))
+    core_box = [TCX - CORE // 2, TCY - CORE // 2, TCX + CORE // 2 - 1, TCY + CORE // 2 - 1]
+    core = {(x, y) for x in range(core_box[0], core_box[2] + 1) for y in range(core_box[1], core_box[3] + 1)}
+    if not all(zone[y, x] == 'T' for x, y in core):
+        sys.exit('the World Tree core at %d,%d is not all island land' % (TCX, TCY))
+    if city_set & core:
+        sys.exit('a city overlay covers the World Tree core: %s' % sorted(city_set & core))
     # the water cells the grid mask already took out of the island (enclosed '.' holes) that touch a pond belong to that pond
     sea_cc, sea_lab = cv2.connectedComponents((zone == '.').astype(np.uint8), connectivity=4)
     border = set(np.unique(np.concatenate([sea_lab[0], sea_lab[-1], sea_lab[:, 0], sea_lab[:, -1]]))) - {0}
@@ -697,7 +708,7 @@ def main():
                    'realmPx': [RW, RH], 'cropX': [round(X0, 2), round(X0 + WW, 2)], 'cellPxMaster': round(cpx, 4)},
         'realmTop': round(top_cells, 4), 'realmHeight': round(h_cells, 4),
         'tile': TILE, 'levels': levels,
-        'tree': {'cx': C, 'cy': round(TR, 4), 'coreCells': CORE, 'core': core_box, 'sideCells': round(tree_side_cells, 4), 'frames': TREE_FRAMES,
+        'tree': {'cx': TCX, 'cy': TCY, 'artCx': C, 'artCy': round(TR, 4), 'coreCells': CORE, 'core': core_box, 'sideCells': round(tree_side_cells, 4), 'frames': TREE_FRAMES,
                  'matchRms': tl['rms'], 'patchRealmPx': patch_box},
         'islets': [dict(o, id='isle-%02d' % (k + 1), rewards=[]) for k, o in enumerate(sorted(islets, key=lambda o: (-o['cells'], o['cy'], o['cx'])))],
         'oases': oases, 'labels': labels, 'zoneCells': counts, 'landFraction': a.land_frac,

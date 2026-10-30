@@ -2756,7 +2756,7 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 <script src="/assets/ui/world-march-sync.js?v=wm1"></script>
 <script src="/assets/ui/world-march-visual.js?v=wv3-g1000"></script>
 <script src="/assets/ui/skill-preview-stage.js?v=sp1206"></script>
-<script src="/world-realm.js?v=realm-v25-ponds-1228"></script>
+<script src="/world-realm.js?v=realm-v25-ponds-tree-1228"></script>
 <script src="/assets/ui/world-tree-cycle.js?v=wt5"></script>
 <script src="/assets/ui/world-tree-art.js?v=wt-noflash-1228b"></script>
 <script src="/assets/ui/world-oasis-markers.js?v=om-ponds-1228"></script>
@@ -30943,7 +30943,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1793399680220';
+const BUILD_ID = '1793400309445';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
