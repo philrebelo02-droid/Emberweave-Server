@@ -1,5 +1,11 @@
 {
   "patches": [
+    {"ver": "0.97.6", "date": "30 October 2026", "title": "The realm map: the whole world in one picture", "items": [
+      "The world map is now one painted realm: 4 continents around the World Tree island, with the wild islands out in the sea between them.",
+      "12 cities sit on their own land, and the wild regions keep their own names.",
+      "Zoom out to see the whole realm at once, or in close: the tightest view is 16 squares across.",
+      "The World Tree changes by day and by hour, and the tree on the map now shows exactly that stage."
+    ]},
     {"ver": "0.97.5", "date": "27 October 2026", "title": "Five more Spire heroes", "items": [
       "The Swarm Spire: 5 more heroes are playable in full 3D - Tolley, Carn, Quorrel, Vulmar and Rhukk - 55 heroes in all. Ranged heroes now attack the way they do in battle: Rafe fires his pistol, Yenna, Meridian, Mellan, Oakmir and Sorrel throw, Fritz thrusts his palm and Calypsa lashes. Gruel and Seyla leap into their ults."
     ]},
