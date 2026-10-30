@@ -229,7 +229,8 @@
      A unit without a 3D model yet stays on its 2D sheet. */
   const ALLY3D = {   // h = the model's height in Spire metres (0 = the hero's own); the ink demons and the Shaman join as their models are filed
     'zahri mirage': { self: true, h: 0, mirage: true },
-    'boar warrior': { url: '/assets/survivors/models/summon-boar-warrior-1k.glb?v=1', h: 3.6 },   // 29 Oct: Hurne's Boar Warrior (the game draws boars at 3.1 against Vireo's 3.6)
+    'boar warrior': { url: '/assets/survivors/models/summon-boar-warrior-1k.glb?v=1', h: 3.6 },
+    'boar shaman': { url: '/assets/survivors/models/summon-boar-shaman-1k.glb?v=1', h: 3.6 },   // 29 Oct: Hurne's Boar Shaman   // 29 Oct: Hurne's Boar Warrior (the game draws boars at 3.1 against Vireo's 3.6)
   };
   const ALLY_GLB = {};
   function ally3dUrl(unit) { const d = ALLY3D[unit]; if (!d) return null; if (d.self) return /zahri/i.test(window._heroModel || '') ? window._heroModel : null; return d.url; }
