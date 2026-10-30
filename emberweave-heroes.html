@@ -645,6 +645,31 @@
   #mapCtl .coordRead{font-size:12px;font-weight:800;color:#9fc0d6;font-variant-numeric:tabular-nums;padding:0 4px;letter-spacing:.5px;white-space:nowrap;}
   #mapCtl .btn{padding:5px 10px;min-width:44px;min-height:44px;flex:0 0 auto;}
   #mapCtl{transition:transform .22s ease,opacity .22s ease;}
+  /* v1227 (Phil 30 Oct 2026: "the map doesn't fit to the entire screen" / "make the ui more presentable so it doesnt take up so much
+     space"): the world map is full-bleed - the screen escapes the 16:9 game frame and the map fills it edge to edge; the HUD floats over
+     it, slim and translucent (top row ~26 px, bottom strip ~30 px), safe-area insets only for the controls */
+  body:has(#world.active) #world{position:fixed;left:0;top:0;width:var(--ew-game-width,100vw);height:var(--ew-game-height,100vh);padding:0;z-index:5;background:#0b2a3c;}
+  body:has(#world.active) #worldBody{position:absolute;inset:0;}
+  body:has(#world.active) #wzone{border:none;border-radius:0;background-color:#0b2a3c;}
+  .wmhud-top{position:absolute;z-index:8000;top:max(4px,env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);display:flex;gap:4px;align-items:center;flex-wrap:nowrap;white-space:nowrap;margin:0;pointer-events:auto;}
+  .wmhud-top .btn,.wmhud-top .pill{height:26px;min-height:26px;min-width:0;padding:0 8px;font-size:12px;line-height:24px;box-sizing:border-box;position:relative;
+    background:rgba(8,12,22,.58)!important;background-image:none!important;border:1px solid rgba(201,162,78,.6)!important;box-shadow:none!important;border-radius:8px;}
+  .wmhud-top .btn::after{content:'';position:absolute;left:-2px;right:-2px;top:-7px;bottom:-7px;}   /* 40 px tap target behind the 26 px button */
+  .wmhud-top .btn img,.wmhud-top .pill img{max-height:16px;}
+  body:has(#world.active) #muteBtn{left:auto!important;right:max(8px,env(safe-area-inset-right,0px))!important;top:max(4px,env(safe-area-inset-top,0px))!important;
+    width:26px!important;height:26px!important;border-width:1px!important;background:rgba(8,12,22,.58)!important;box-shadow:none!important;}
+  body:has(#world.active) #mapCtl{bottom:max(6px,env(safe-area-inset-bottom,0px));right:max(6px,env(safe-area-inset-right,0px));padding:2px 6px;gap:4px;border-radius:9px;
+    background:rgba(8,12,22,.55);border:1px solid rgba(201,162,78,.45);box-shadow:none;}
+  body:has(#world.active) #mapCtl .btn{min-width:30px;min-height:26px;height:26px;padding:0 7px;position:relative;font-size:13px;}
+  body:has(#world.active) #mapCtl .btn::after{content:'';position:absolute;left:0;right:0;top:-7px;bottom:-7px;}
+  body:has(#world.active) #mapCtl .pill{padding:1px 6px;font-size:11px;font-variant-numeric:tabular-nums;background:rgba(0,0,0,.35);}
+  body:has(#world.active) #mapCtl .coordRead{font-size:11px;}
+  body:has(#world.active) .wmctl-handle{right:max(14px,env(safe-area-inset-right,0px));width:34px;height:16px;bottom:max(6px,env(safe-area-inset-bottom,0px));}
+  body:has(#world.active) .wmctl-handle:not(.wmctl-up){bottom:calc(max(6px,env(safe-area-inset-bottom,0px)) + var(--wmctl-h,30px));}
+  body:has(#world.active) .wmctl-handle::before{width:7px;height:7px;}
+  body:has(#world.active) #chatWidget{bottom:max(6px,env(safe-area-inset-bottom,0px));left:max(6px,env(safe-area-inset-left,0px));width:min(250px,calc(var(--ew-game-width,100vw) - var(--wmctl-w,480px) - 30px));}
+  body:has(#world.active) #chatWidget .cw-head{min-height:26px;padding-top:0;padding-bottom:0;font-size:11px;}
+  body:has(#world.active) #chatWidget .cwIc{width:26px;height:26px;left:-10px;}
   #mapCtl.wmctl-hidden{transform:translateY(calc(100% + 14px));opacity:0;pointer-events:none;}
   .wmctl-handle{position:fixed;right:18px;bottom:10px;z-index:8001;width:44px;height:26px;border-radius:10px 10px 0 0;cursor:pointer;
     background:linear-gradient(#1a2440,#0c1224);border:1.5px solid #c9a24e;border-bottom:none;box-shadow:0 -2px 8px rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:0;touch-action:manipulation;}
@@ -24589,7 +24614,7 @@ const REALM_TOP_PX=REALM_MAP.META.realmTop*WORLD_W/REALM_MAP.META.cols, REALM_H_
 let _wmPadX=0,_wmPadY=0;   // v1226: screen px of open sea left/above the realm when the whole map is smaller than the view (min zoom)
 function wzTop(zone){ return (zone.scrollTop-_wmPadY)/worldZoom+REALM_TOP_PX; }                // world px at the view's top edge
 function wzLeft(zone){ return (zone.scrollLeft-_wmPadX)/worldZoom; }                           // world px at the view's left edge
-function wzSetTop(zone,worldPx){ zone.scrollTop=Math.max(0,(worldPx-REALM_TOP_PX)*worldZoom); }
+function wzSetTop(zone,worldPx){ zone.scrollTop=Math.max(0,(worldPx-REALM_TOP_PX)*worldZoom+_wmPadY); }   // v1227: the inverse of wzTop (the HUD pad included)
 function rand01(seed){ const x=Math.sin(seed*127.1+311.7)*43758.5453; return x-Math.floor(x); }
 function worldNodes(){
   const nodes=[]; const types=['iron','crystal','silver','coal'];
@@ -24599,7 +24624,7 @@ function worldNodes(){
 let worldZoom=1.6;   // v1227: opens where a castle (one square of the 1000-grid) is ~18 px and its name shows (~38 squares across a phone)
 const WM_LABEL_MIN_ZOOM=1.2;   // v1227: below this zoom (a square < 13 screen px) castle / mine labels would overlap into mush: hidden
 // ---- world-map level of detail: cull markers by how many grid squares the viewport currently shows ----
-const GHOST_MAX_SQ=40;      // v1227: teleport ghosts (one per open square) only render when the view spans <= 40 squares (40 x 20 = 800 ghosts at most)
+const GHOST_MAX_SQ=52;      // v1227: teleport ghosts (one per open square) only render when the view spans <= 52 squares (the full-bleed phone view at the opening zoom; 1300 ghosts at most)
 // Picture hierarchy is one continuous world: 1 cover, 3×3 middle pieces, 9×9 close pieces.
 // A piece fills the map view at its own zoom, but keeps its original world coordinates.
 function worldPictureTile(divisions,col,row){
@@ -24746,7 +24771,7 @@ function refreshTeleGhosts(){ const inner=document.getElementById('wzoneInner'),
   const GE=REALM_MAP.GEO, F=GE.FOOT;   // v1227: one ghost per castle square, on a FOOT-cell lattice (castles cover FOOT x FOOT cells)
   const i0=Math.floor(GE.col(wzLeft(zone)/WORLD_W*100)/F)*F, i1=GE.col((wzLeft(zone)+zone.clientWidth/worldZoom)/WORLD_W*100);
   const j0=Math.floor(GE.row(top/WORLD_H*100)/F)*F, j1=GE.row((top+zone.clientHeight/worldZoom)/WORLD_H*100);
-  const occ=occupiedCells(), sidePx=F*WORLD_W/GRID_COLS; let html='',count=0; const CAP=800;
+  const occ=occupiedCells(), sidePx=F*WORLD_W/GRID_COLS; let html='',count=0; const CAP=1300;
   for(let ci=i0; ci<=i1 && count<CAP; ci+=F) for(let cj=j0; cj<=j1 && count<CAP; cj+=F){
     const cx=GE.cornerX(ci), cy=GE.cornerY(cj);
     if(!teleSquareFree(cx,cy,occ)) continue;   // sea, city and taken squares get no ghost castle
@@ -24769,8 +24794,13 @@ function applyWorldZoom(){ const inner=document.getElementById('wzoneInner'), zo
       inner.style.setProperty('--wm-sq',sq+'px'); inner.style.setProperty('--wm-hit',Math.max(sq,28/worldZoom).toFixed(3)+'px');
       inner.style.setProperty('--wm-lab',(fontPx/(10*worldZoom)).toFixed(4)); inner.classList.toggle('wm-nolab',worldZoom<WM_LABEL_MIN_ZOOM); }
     const clip=document.getElementById('wzoneClip'); if(clip){ clip.style.width=(WORLD_W*worldZoom)+'px'; clip.style.height=(REALM_H_PX*worldZoom)+'px';
-      if(zone){ _wmPadX=Math.max(0,(zone.clientWidth-WORLD_W*worldZoom)/2); _wmPadY=Math.max(0,(zone.clientHeight-REALM_H_PX*worldZoom)/2);
-        clip.style.marginLeft=_wmPadX+'px'; clip.style.marginTop=_wmPadY+'px';
+      if(zone){ _wmPadX=Math.max(0,(zone.clientWidth-WORLD_W*worldZoom)/2);
+        /* v1227: the HUD floats over the full-bleed map; the scroll range reaches past the realm's top and bottom by the HUD's own
+           height, so a castle on the edge (and its label) can always be pulled clear of the top row and the bottom strip */
+        const centred=Math.max(0,(zone.clientHeight-REALM_H_PX*worldZoom)/2), hd=document.querySelector('#worldBody .wmhud-top'), ctl=document.getElementById('mapCtl');
+        const hudT=hd?hd.offsetTop+hd.offsetHeight+6:0, hudB=ctl&&!ctl.classList.contains('wmctl-hidden')?ctl.offsetHeight+12:24;
+        _wmPadY=Math.max(centred,hudT);
+        clip.style.marginLeft=_wmPadX+'px'; clip.style.marginTop=_wmPadY+'px'; clip.style.marginBottom=Math.max(centred,hudB)+'px';
         const L=REALM_MAP.META.levels, tile=88*WORLD_W*worldZoom/L[L.length-1].width;   // the pad tile is 88 cover px: the same scale as the map
         zone.style.backgroundImage='url('+REALM_ROOT+'sea-pad.webp?v='+REALM_ASSET_V+')'; zone.style.backgroundSize=tile+'px '+tile+'px'; zone.style.backgroundRepeat='repeat'; } }
     if(window.EmberweaveWorldTreeCountdown) window.EmberweaveWorldTreeCountdown.setZoom(worldZoom);
@@ -24792,7 +24822,7 @@ function worldZoomTo(nz, clientX, clientY){ const zone=document.getElementById('
   const px=wzLeft(zone)+cx/worldZoom, py=wzTop(zone)+cy/worldZoom;
   worldZoom=nz; applyWorldZoom();
   zone.scrollLeft=Math.max(0,Math.min(WORLD_W*worldZoom-zone.clientWidth,px*worldZoom-cx));
-  zone.scrollTop=Math.max(0,Math.min(REALM_H_PX*worldZoom-zone.clientHeight,(py-REALM_TOP_PX)*worldZoom-cy)); applyMapLOD(); }
+  zone.scrollTop=Math.max(0,Math.min(zone.scrollHeight-zone.clientHeight,(py-REALM_TOP_PX)*worldZoom+_wmPadY-cy)); applyMapLOD(); }
 window.addEventListener('resize',()=>{ const zone=document.getElementById('wzone'); if(zone)worldZoomTo(worldZoom); });
 // desktop click-drag panning (added once; operates on the current world-map zone)
 let curWorldZone=null,_wdrag=false,_wsx=0,_wsy=0,_wsl=0,_wst=0,_wMoved=false;
@@ -24940,7 +24970,7 @@ function renderWorldMap(keepView){
   if(ACC.token){ startCityPoll(); syncWorldMarches(false); }   // real players' castles from the server (bots only fill) - v1127: fetched by applyMapLOD at the close level only
   maybeSpawnRaid();
   const czone=myCastleZone(), cz=ZONES[czone];
-  const head=document.createElement('div'); head.style='display:flex;align-items:center;gap:5px;flex-wrap:wrap;justify-content:center;margin:0 0 4px';
+  const head=document.createElement('div'); head.className='wmhud-top';   // v1227: one slim translucent row over the full-bleed map
   head.innerHTML=`<button class="btn sm secondary" id="wmCity">🏰 City</button>`
     +`<button class="btn sm secondary" id="wmBack">${statusIcon('mark')} Base</button>`
     +`<span class="pill" style="font-weight:800">${cz.type==='worldtree'?'🌳 ':''}${cz.name}${czone==='worldtree'?' · Void: half speed':''}</span>`
@@ -24983,7 +25013,7 @@ function renderWorldMap(keepView){
   inner.appendChild(treeTerrain);
   clip.appendChild(inner); zone.appendChild(clip);
   if(globalThis.EmberweaveWorldOasisMarkers)globalThis.EmberweaveWorldOasisMarkers.mount(inner);
-  const mapWrap=document.createElement('div'); mapWrap.style.cssText='position:relative;display:flex;flex-direction:column;min-height:0'; zone.style.cssText='flex:1 1 0;height:auto;min-height:0'; mapWrap.appendChild(zone); body.appendChild(mapWrap);
+  const mapWrap=document.createElement('div'); mapWrap.style.cssText='position:absolute;inset:0;display:flex;flex-direction:column;min-height:0'; zone.style.cssText='flex:1 1 0;height:auto;min-height:0';   /* v1227: full-bleed */ mapWrap.appendChild(zone); body.appendChild(mapWrap);
   const treeUI=worldTreeControlUI();if(treeUI)treeUI.mount(inner,mapWrap);
   const now=Date.now();
   // all rival castles (bots) across every region + the mines: v1127 - drawn by applyMapLOD (drawMapDetails) at the close level only
@@ -25026,8 +25056,8 @@ function renderWorldMap(keepView){
     let hid=false; try{ hid=localStorage.getItem('ew.wmCtlHidden')==='1'; }catch(e){}
     const hd=document.createElement('button'); hd.className='wmctl-handle'; hd.id='wmCtlHandle'; hd.type='button';
     const set=(h)=>{ hid=h; ctl.classList.toggle('wmctl-hidden',h);
-      /* v1227: while the bar is open the map view stops above it (nothing - a castle or its label - hides under the bar) */
-      mapWrap.style.paddingBottom=h?'':(ctl.offsetHeight+14)+'px'; if(typeof worldZoomTo==='function') worldZoomTo(worldZoom); hd.classList.toggle('wmctl-up',h); hd.setAttribute('aria-label',h?'Show map controls':'Hide map controls');
+      document.documentElement.style.setProperty('--wmctl-w',h?'40px':(ctl.offsetWidth+10)+'px');   // the chat bar never runs under the strip
+      if(typeof worldZoomTo==='function') worldZoomTo(worldZoom); hd.classList.toggle('wmctl-up',h); hd.setAttribute('aria-label',h?'Show map controls':'Hide map controls');
       hd.style.setProperty('--wmctl-h',(ctl.offsetHeight||54)+'px'); try{ localStorage.setItem('ew.wmCtlHidden',h?'1':'0'); }catch(e){} };
     hd.onclick=(e)=>{ e.stopPropagation(); set(!hid); };
     mapWrap.appendChild(hd); requestAnimationFrame(()=>set(hid)); }
@@ -30888,7 +30918,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1793390115239';
+const BUILD_ID = '1793391256172';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

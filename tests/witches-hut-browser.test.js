@@ -264,8 +264,9 @@ async function run(){
     assert.equal(zoomRules.low.zoneLabel,'none','tiny region captions do not mark the whole-map picture');
     assert.ok(Math.abs(zoomRules.edge.right-zoomRules.edge.maxRight)<=2 &&
       Math.abs(zoomRules.edge.bottom-zoomRules.edge.maxBottom)<=2,'scrolling stops at the picture edges');
-    assert.ok(Math.abs(zoomRules.edge.viewBottom-zoomRules.edge.realmBottom)<=2,'the bottom edge of the view is the realm\'s bottom edge');
-    assert.ok(Math.abs(zoomRules.top.viewTop-zoomRules.top.realmTop)<1e-6,'the top edge of the view is the realm\'s top edge');
+    // v1227 full-bleed: the HUD floats over the map, so the view may pass the realm's edge by the HUD's own height (60 screen px at most)
+    assert.ok(zoomRules.edge.viewBottom>=zoomRules.edge.realmBottom-2&&zoomRules.edge.viewBottom-zoomRules.edge.realmBottom<=60/zoomRules.low.zoom+2,'the bottom edge of the view is the realm\'s bottom edge (plus the HUD band)');
+    assert.ok(zoomRules.top.viewTop<=zoomRules.top.realmTop+1e-6&&zoomRules.top.realmTop-zoomRules.top.viewTop<=60/zoomRules.low.zoom+1e-6,'the top edge of the view is the realm\'s top edge (plus the HUD band)');
     assert.ok(Math.abs(zoomRules.high.zoom-zoomRules.high.expected)<1e-6,'maximum zoom follows the view size');
     assert.ok(Math.abs(zoomRules.high.cellsX-16)<0.01 && zoomRules.high.cellsY>=6,'closest view: 16 squares across (Phil 30 Oct), the height shows the rest');
     assert.equal(zoomRules.high.level,'9','closest view uses close detail');
