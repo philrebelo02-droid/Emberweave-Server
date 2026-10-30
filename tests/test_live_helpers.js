@@ -20,7 +20,10 @@ const assert = require('node:assert/strict'), fs = require('node:fs'), os = requ
 const { spawn } = require('node:child_process');
 const R = require('./helpers/split-rig.cjs');
 const CONTROL = '6bfeb24d', KEY = 'live-helpers-key-' + 'l'.repeat(16), PROBE = path.join(__dirname, 'helpers', 'live-probe.cjs');
-const SIM_KEYS = Object.keys(require('../server/sim.js').HERO_BASE), HEROES = SIM_KEYS.slice(0, 15), SITES = ['tree', 'oasis-nw', 'oasis-ne', 'oasis-sw', 'oasis-se'];
+const SIM_KEYS = Object.keys(require('../server/sim.js').HERO_BASE), HEROES = SIM_KEYS.slice(0, 15);
+// v1229: the World Tree site ids come from each server's own /api/world-tree/sites (v1228 renamed the oases to oasis-nw/ne/sw/se; the
+// control tree 6bfeb24d still has north/south/east/west) - so the control reaches its real check instead of failing on an unknown site
+async function siteIds(S) { const r = await S.req('GET', '/api/world-tree/sites', null); const ids = (r.body && r.body.sites || []).map(s => s.id); assert.equal(ids.length, 5, 'five World Tree sites: ' + JSON.stringify(ids)); return ids; }
 const sleep = R.sleep, pct = (a, p) => { const s = a.slice().sort((x, y) => x - y); return s.length ? s[Math.min(s.length - 1, Math.floor(p * s.length))] : 0; };
 
 async function helper(dir, workers) {
@@ -118,6 +121,7 @@ async function worldTree(dir, label, tag) {
     const cal = await S.req('GET', '/api/world-tree/status', null); assert.equal(cal.body.phase, 'event', JSON.stringify(cal.body).slice(0, 200));
     for (const p of B.players) { const w = await S.req('GET', '/api/witch/state', null, p.token, p.ip); assert.equal(w.body.locked, false, JSON.stringify(w.body).slice(0, 160)); }
     await waitHelperOk(S, A);
+    const SITES = await siteIds(S);   // this server's own site ids
     const start = (p, siteId, heroIds, id) => S.req('POST', '/api/world-tree/march/start', { siteId, heroIds, requestId: id }, p.token, p.ip);
     // garrison: every Alpha member sends two single-hero lines to each site (10 lines a site, the oasis limit)
     for (const p of G[0].members) for (let j = 0; j < 10; j++) { const r = await start(p, SITES[j % 5], [HEROES[j < 5 ? j : j + 5]], 'g-' + p.id + j); assert.equal(r.body.ok, true, 'garrison march: ' + JSON.stringify(r.body).slice(0, 200)); }
