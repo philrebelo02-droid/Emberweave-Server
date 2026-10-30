@@ -10046,6 +10046,9 @@ const server=http.createServer((req,res)=>{
     if(lb){ res.end(JSON.stringify({build:lb})); return; }
     return fs.readFile(path.join(__dirname,'version.json'),(e,b)=>{ if(!e){res.end(b);return;} remoteAsset('/version.json').then(r=>res.end(r?r.buf:'{}')); }); }
   if(p==='/manifest.webmanifest') return serveFile(res,'manifest.webmanifest','application/manifest+json',null,req);
+  /* ANDROID APP (30 Oct 2026): Digital Asset Links for the Play app (TWA com.emberweave.heroes) - Android fetches this exact path to
+     trust the app, so it opens the site full-screen with no browser bar. Without this route the path fell through to the game page. */
+  if(p==='/.well-known/assetlinks.json') return serveFile(res,'.well-known/assetlinks.json','application/json',null,req);
   // PWA icons live in assets/icons/ now (kept off the repo root); the public URLs stay the same.
   if(p==='/icon-192.png') return serveFile(res,'assets/icons/icon-192.png','image/png');
   if(p==='/icon-512.png') return serveFile(res,'assets/icons/icon-512.png','image/png');
