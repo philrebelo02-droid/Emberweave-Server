@@ -109,8 +109,8 @@ run('G.tech={academy:100}; G.playerXP=0;');
 ok(/castle5/.test(run('playerCastleImg()')), 'Academy 100 shows castle5 at player level 1');
 { const tw = html.slice(html.indexOf('function renderTech()'), html.indexOf('const rows=[13,38,62,87]'));
   const wm = html.slice(html.indexOf('const cities=worldCities(); const npcCastle'), html.indexOf('meEl.onclick'));
-  ok(/ctier=castleTierAcad\(academyLevel\(\)\)/.test(tw) && /castleTierAcad\(academyLevel\(\)\)/.test(wm) && /c\.real && typeof c\.academy==='number'\) \? castleImgAcad\(c\.academy\) : npcCastle/.test(wm)
-    && !/castleTier\(playerLevel\(\)\)/.test(html), 'the Academy centre, your world-map castle and real players\' castles use castleTierAcad; nothing reads castleTier(playerLevel())');
+  ok(/ctier=castleTierAcad\(academyLevel\(\)\)/.test(tw) && /castleTierAcad\(academyLevel\(\)\)|playerCastleImg\(\)/.test(wm) && /function playerCastleImg\(\)\{ return castleImgAcad\(academyLevel\(\)\); \}/.test(html) && /c\.real && typeof c\.academy==='number'\) \? castleImgAcad\(c\.academy\) : npcCastle/.test(wm)
+    && !/castleTier\(playerLevel\(\)\)/.test(html), 'the Academy centre, your world-map castle and real players\' castles use castleTierAcad; nothing reads castleTier(playerLevel())'); // v1227: castles are one square, so the world map no longer sizes yours by tier - its picture still comes from playerCastleImg() = castleImgAcad(academyLevel())
   ok(/academy:\(typeof c\.academy==='number'\?c\.academy:undefined\)/.test(html), 'fetchRealCities keeps the owner\'s academy level'); }
 
 /* live: the server's city view carries each owner's academy level */

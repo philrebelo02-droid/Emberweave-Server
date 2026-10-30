@@ -657,7 +657,7 @@
   .wmhud-top .btn::after{content:'';position:absolute;left:-2px;right:-2px;top:-7px;bottom:-7px;}   /* 40 px tap target behind the 26 px button */
   .wmhud-top .btn img,.wmhud-top .pill img{max-height:16px;}
   body:has(#world.active) #muteBtn{left:auto!important;right:max(8px,env(safe-area-inset-right,0px))!important;top:max(4px,env(safe-area-inset-top,0px))!important;
-    width:26px!important;height:26px!important;border-width:1px!important;background:rgba(8,12,22,.58)!important;box-shadow:none!important;}
+    width:40px!important;height:40px!important;border-width:1px!important;background:rgba(8,12,22,.58)!important;box-shadow:none!important;}   /* 40 px = the tap-target rule (test_mute_music_1159) */
   body:has(#world.active) #mapCtl{bottom:max(6px,env(safe-area-inset-bottom,0px));right:max(6px,env(safe-area-inset-right,0px));padding:2px 6px;gap:4px;border-radius:9px;
     background:rgba(8,12,22,.55);border:1px solid rgba(201,162,78,.45);box-shadow:none;}
   body:has(#world.active) #mapCtl .btn{min-width:30px;min-height:26px;height:26px;padding:0 7px;position:relative;font-size:13px;}
