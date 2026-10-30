@@ -10924,6 +10924,7 @@ function musWant(){ try{ if(window._p2guard) return null;
        its seam, until that screen is left (Continue, Retry, any navigation) */
     if(s==='battle') return (rep&&MUS.cur==='skyfall')?'skyfall':(ended?(MUS.cur==='battle'?'battle':null):'battle');
     if(s==='result') return (rep&&MUS.cur==='skyfall')?'skyfall':(MUS.cur==='battle'?'battle':null);
+    if(document.getElementById('survFrame')) return 'battle';   /* 30 Oct 2026 (Phil: "spire is meant to have combat music by the way when you enter"): the Swarm Spire (its own page in #survFrame) plays the battle songs, looping on their seams; leaving it brings the setting back */
     if(s==='skyfall'&&musSkyLive()) return 'skyfall';
     if(s==='campaign'||s==='world') return 'map';
     return 'city'; }catch(e){ return 'city'; } }
