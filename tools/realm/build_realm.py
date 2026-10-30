@@ -160,7 +160,16 @@ class Master:
         self.preview = preview
         self.allow_dev_fill = allow_dev_fill
         self.cache = {}
-        self.patches = []   # (x0, y0, rgb float32 HxWx3, alpha HxW)
+        self.patches = []   # (x0, y0, rgb float32 HxWx3, alpha HxW, kind)
+        self.override = None; self.override_tiles = set()
+
+    def use_master_png(self, path, tiles):
+        """v1229: Grok's full-size master PNG for the listed 4096 tiles only (the others are byte-identical to the zips)."""
+        log('master: %s for tiles %s' % (os.path.basename(path), ','.join('r%dc%d' % t for t in sorted(tiles))))
+        im = Image.open(path).convert('RGB')
+        if self.realm and im.size != self.realm:
+            sys.exit('%s is %s, the realm is %s' % (path, im.size, self.realm))
+        self.override = np.asarray(im); self.override_tiles = set(tiles); self.cache = {}
 
     def set_realm(self, w, h):
         self.realm = (w, h)
@@ -179,7 +188,9 @@ class Master:
             return self.cache[(r, c)]
         if len(self.cache) > 6:
             self.cache.pop(next(iter(self.cache)))
-        if (r, c) in self.tiles:
+        if (r, c) in self.override_tiles:
+            im = self.override[r * 4096:(r + 1) * 4096, c * 4096:(c + 1) * 4096]
+        elif (r, c) in self.tiles:
             im = np.asarray(Image.open(self.tiles[(r, c)][2]).convert('RGB'))
         else:
             W, H = self.realm; x0, y0 = c * 4096, r * 4096; w, h = min(4096, W - x0), min(4096, H - y0)
@@ -189,8 +200,9 @@ class Master:
         self.cache[(r, c)] = im
         return im
 
-    def read(self, x0, y0, x1, y1):
-        """RGB uint8 of master rect [x0,x1) x [y0,y1); outside the realm is black (never shown: the view is clamped)."""
+    def read(self, x0, y0, x1, y1, cities=True):
+        """RGB uint8 of master rect [x0,x1) x [y0,y1); outside the realm is black (never shown: the view is clamped).
+        cities=False: the base art under the city overlays (the tree patch still applies)."""
         W, H = self.realm
         out = np.zeros((y1 - y0, x1 - x0, 3), np.uint8)
         for r in range(max(0, y0 // 4096), min((H - 1) // 4096, (y1 - 1) // 4096) + 1):
@@ -201,7 +213,9 @@ class Master:
                 ax1, ay1 = min(x1, tx0 + t.shape[1]), min(y1, ty0 + t.shape[0])
                 if ax1 > ax0 and ay1 > ay0:
                     out[ay0 - y0:ay1 - y0, ax0 - x0:ax1 - x0] = t[ay0 - ty0:ay1 - ty0, ax0 - tx0:ax1 - tx0]
-        for px, py, rgb, al in self.patches:
+        for px, py, rgb, al, *kind in self.patches:
+            if not cities and kind and kind[0] == 'city':
+                continue
             ph, pw = al.shape
             ax0, ay0, ax1, ay1 = max(x0, px), max(y0, py), min(x1, px + pw), min(y1, py + ph)
             if ax1 > ax0 and ay1 > ay0:
@@ -296,6 +310,27 @@ def tree_patch(master, tl):
     return (rx0, ry0, rx1, ry1)
 
 
+CITY_FIX_DIRS = ['city overlays mask fix v2 30OCT2026']   # Grok's alpha-only fixes (same placement), newest last
+
+
+def city_mask_fix(src, name, topleft, size):
+    """v1229: the alpha of '<City> overlay 1x_v2.png' (Grok's mask fix: RGB untouched, same placement) when one exists, else None."""
+    for d in reversed(CITY_FIX_DIRS):
+        f = os.path.join(src, d, '%s overlay 1x_v2.png' % name); pj = os.path.join(src, d, '%s placement_v2.json' % name)
+        if not os.path.exists(f):
+            continue
+        if os.path.exists(pj):
+            p = json.load(open(pj))
+            if list(p.get('topleft_v25', topleft)) != list(topleft) or list(p.get('size_v25', size)) != list(size):
+                sys.exit('%s mask fix: placement %s/%s differs from %s/%s' % (name, p.get('topleft_v25'), p.get('size_v25'), topleft, size))
+        im = Image.open(f).convert('RGBA')
+        if im.size != tuple(size):
+            im = im.resize(tuple(size), Image.LANCZOS)
+        log('cities: %s alpha from %s/%s' % (name, d, os.path.basename(f)))
+        return np.ascontiguousarray(np.asarray(im)[..., 3])
+    return None
+
+
 def city_patches(master, src, v, pos):
     """Grok's city overlays (RGBA, separate from the master) baked into the in-game tiles at their placements.
     v25: positions.json 'cities_v25' {name: {topleft_px, size_px, overlay_1x, ...}} + 'REALM v25 city overlays.zip'."""
@@ -317,8 +352,11 @@ def city_patches(master, src, v, pos):
                 im = im.resize((w, h), Image.LANCZOS)
             arr = np.asarray(im)
             x, y = c['topleft_px']
-            master.patches.append((int(x), int(y), np.ascontiguousarray(arr[..., :3]), np.ascontiguousarray(arr[..., 3])))
-            out.append({'name': name, 'version': c.get('version'), 'topleftPx': [x, y], 'sizePx': [w, h],
+            fixed = city_mask_fix(src, name, (int(x), int(y)), (w, h))
+            if fixed is not None:
+                arr = np.dstack([arr[..., :3], fixed])
+            master.patches.append((int(x), int(y), np.ascontiguousarray(arr[..., :3]), np.ascontiguousarray(arr[..., 3]), 'city'))
+            out.append({'name': name, 'version': c.get('version') if fixed is None else 'mask v2', 'topleftPx': [x, y], 'sizePx': [w, h],
                         'cxPx': x + w / 2, 'cyPx': y + h / 2, '_alpha': np.ascontiguousarray(arr[..., 3])})
     # further zips in the same format ("REALM <v> new city overlays.zip": one '<City> placement.json' per city with topleft_v25,
     # size_v25, overlay_1x.file). A PROVISIONAL city (in its file name or status) is held back until Grok sends its final file.
@@ -337,21 +375,31 @@ def city_patches(master, src, v, pos):
                 if im.size != (w, h):
                     im = im.resize((w, h), Image.LANCZOS)
                 arr = np.asarray(im); x, y = c['topleft_v25']
-                master.patches.append((int(x), int(y), np.ascontiguousarray(arr[..., :3]), np.ascontiguousarray(arr[..., 3])))
+                fixed = city_mask_fix(src, name, (int(x), int(y)), (w, h))
+                if fixed is not None:
+                    arr = np.dstack([arr[..., :3], fixed])
+                master.patches.append((int(x), int(y), np.ascontiguousarray(arr[..., :3]), np.ascontiguousarray(arr[..., 3]), 'city'))
                 out.append({'name': name, 'version': 'proposal', 'topleftPx': [x, y], 'sizePx': [w, h], 'cxPx': x + w / 2, 'cyPx': y + h / 2,
                             'source': os.path.basename(extra), '_alpha': np.ascontiguousarray(arr[..., 3])})
     log('cities: %d overlays baked in (%s)%s' % (len(out), ', '.join(o['name'] for o in out), ('; held (provisional): ' + ', '.join(held)) if held else ''))
     return out
 
 
-CITY_COVER = 0.30   # a grid square is city when more than 30 % of it is the overlay's opaque pixels (alpha, not the bounding box)
+# v1229 (Phil 30 Oct 2026: "Some squares are sneaky and are next to the city"): a square is a city square only when at least half of it
+# is the city's SOLID footprint (alpha >= 200, not the soft feathered edge) AND it is not plain water in the base art under the overlay
+# (harbour water stays sea - blocked anyway, but with the grid on it like any sea)
+CITY_COVER = 0.50
+CITY_ALPHA = 200
 
 
-def city_cells(c, X0, top_cells, cpx):   # top_cells: the grid row at realm y = 0
+def city_cells(c, X0, top_cells, cpx, master=None):   # top_cells: the grid row at realm y = 0
     """The grid squares a city overlay covers (Phil 30 Oct 2026: "the city should not be able to be teleported onto").
-    A square counts when more than CITY_COVER of its area is opaque overlay (alpha >= 128)."""
-    al = c['_alpha'] >= 128
+    A square counts when at least CITY_COVER of it is solid overlay (alpha >= CITY_ALPHA) and the base art under it is not water."""
+    al = c['_alpha'] >= CITY_ALPHA
     x, y = c['topleftPx']; h, w = al.shape
+    base_water = None
+    if master is not None:
+        base_water = water_mask(master.read(int(x), int(y), int(x) + w, int(y) + h, cities=False))
     cells = []
     for cy in range(int(math.floor(top_cells + y / cpx)), int(math.ceil(top_cells + (y + h) / cpx))):
         for cx in range(int(math.floor((x - X0) / cpx)), int(math.ceil((x + w - X0) / cpx))):
@@ -362,7 +410,9 @@ def city_cells(c, X0, top_cells, cpx):   # top_cells: the grid row at realm y = 
             ax1, ay1 = int(round(min(mx0 + cpx, x + w) - x)), int(round(min(my0 + cpx, y + h) - y))
             if ax1 <= ax0 or ay1 <= ay0:
                 continue
-            if al[ay0:ay1, ax0:ax1].sum() > CITY_COVER * cpx * cpx:
+            if al[ay0:ay1, ax0:ax1].sum() >= CITY_COVER * cpx * cpx:
+                if base_water is not None and base_water[ay0:ay1, ax0:ax1].mean() >= 0.5:
+                    continue   # plain water under the overlay (a harbour): sea, not city
                 cells.append([cx, cy])
     return cells
 
@@ -390,6 +440,73 @@ def sea_pad(cover, out, files):
     strips = strips[water_mask(strips.reshape(-1, 1, 3)).reshape(-1)]
     t = np.clip(t.astype(np.float32) + (strips.astype(np.float32).mean(0) - t.reshape(-1, 3).astype(np.float32).mean(0)) + 0.5, 0, 255).astype(np.uint8)
     p = os.path.join(out, 'sea-pad.webp'); Image.fromarray(np.ascontiguousarray(t)).save(p, 'WEBP', quality=WEBP_Q, method=6); files['sea-pad.webp'] = p
+
+
+def rerender(master, levels, files, X0, out, rects):
+    """v1229: re-render only the pyramid tiles over the given realm-px rects (a city mask fix, Grok's floating island), the same way
+    build_pyramid makes them: z1 from the master, z2 from each z1 tile halved, z3.. from the level above (with a one-tile margin), cover."""
+    L1 = levels[0]; inv = 1 / L1['scale']; done = {}
+    def save(z, r, c, arr):
+        p = files['tiles/z%d/r%02dc%02d.webp' % (z, r, c)]; Image.fromarray(np.ascontiguousarray(arr)).save(p, 'WEBP', quality=WEBP_Q, method=6)
+    def load(z, r, c):
+        return np.asarray(Image.open(files['tiles/z%d/r%02dc%02d.webp' % (z, r, c)]).convert('RGB'))
+    # z1 tiles touching any rect (realm px -> z1 px)
+    want = set()
+    for (x0, y0, x1, y1) in rects:
+        lx0, ly0, lx1, ly1 = (x0 - X0) * L1['scale'], y0 * L1['scale'], (x1 - X0) * L1['scale'], y1 * L1['scale']
+        for r in range(max(0, int(ly0 // TILE)), min(L1['rows'] - 1, int(ly1 // TILE)) + 1):
+            for c in range(max(0, int(lx0 // TILE)), min(L1['cols'] - 1, int(lx1 // TILE)) + 1):
+                want.add((r, c))
+    for r, c in sorted(want):
+        lx0, ly0 = c * TILE, r * TILE
+        lx1, ly1 = min(L1['width'], lx0 + TILE), min(L1['height'], ly0 + TILE)
+        mx0, my0 = int(math.floor(X0 + lx0 * inv)), int(math.floor(ly0 * inv))
+        mx1, my1 = int(math.ceil(X0 + lx1 * inv)), int(math.ceil(ly1 * inv))
+        raw = Image.fromarray(master.read(mx0, my0, mx1, my1))
+        box = ((X0 + lx0 * inv) - mx0, ly0 * inv - my0, (X0 + lx1 * inv) - mx0, ly1 * inv - my0)
+        save(1, r, c, np.asarray(raw.resize((lx1 - lx0, ly1 - ly0), Image.LANCZOS, box=box)))
+    log('rerender: z1 %d tiles' % len(want))
+    prev = want
+    for i, L in enumerate(levels[1:], start=1):
+        P = levels[i - 1]; nxt = {(r // 2, c // 2) for r, c in prev}
+        if i >= 2:   # a margin: z3.. came from a whole-image resize, so neighbours feel each change a little
+            nxt = {(r + dr, c + dc) for r, c in nxt for dr in (-1, 0, 1) for dc in (-1, 0, 1) if 0 <= r + dr < L['rows'] and 0 <= c + dc < L['cols']}
+        for r, c in sorted(nxt):
+            if i == 1:   # z2 tile = four z1 tiles, each halved on its own (build_pyramid)
+                t = np.zeros((min(TILE, L['height'] - r * TILE), min(TILE, L['width'] - c * TILE), 3), np.uint8)
+                for dr in (0, 1):
+                    for dc in (0, 1):
+                        pr, pc = 2 * r + dr, 2 * c + dc
+                        if pr >= P['rows'] or pc >= P['cols']:
+                            continue
+                        src = load(P['z'], pr, pc); h2 = np.asarray(Image.fromarray(src).resize(((src.shape[1] + 1) // 2, (src.shape[0] + 1) // 2), Image.LANCZOS))
+                        oy, ox = dr * TILE // 2, dc * TILE // 2
+                        hh, ww = min(h2.shape[0], t.shape[0] - oy), min(h2.shape[1], t.shape[1] - ox)
+                        t[oy:oy + hh, ox:ox + ww] = h2[:hh, :ww]
+            else:        # the level above's 2x2 block plus a one-tile margin, resized, cropped
+                r0, c0, r1, c1 = max(0, 2 * r - 1), max(0, 2 * c - 1), min(P['rows'] - 1, 2 * r + 2), min(P['cols'] - 1, 2 * c + 2)
+                big = np.zeros(((r1 - r0 + 1) * TILE, (c1 - c0 + 1) * TILE, 3), np.uint8)
+                for pr in range(r0, r1 + 1):
+                    for pc in range(c0, c1 + 1):
+                        s = load(P['z'], pr, pc); big[(pr - r0) * TILE:(pr - r0) * TILE + s.shape[0], (pc - c0) * TILE:(pc - c0) * TILE + s.shape[1]] = s
+                hb = min(big.shape[0], P['height'] - r0 * TILE); wb = min(big.shape[1], P['width'] - c0 * TILE); big = big[:hb, :wb]
+                # the whole-level resize maps level-above px p to p * L.height / P.height
+                sy, sx = L['height'] / P['height'], L['width'] / P['width']
+                small = np.asarray(Image.fromarray(big).resize((max(1, int(round(wb * sx))), max(1, int(round(hb * sy)))), Image.LANCZOS))
+                oy, ox = int(round(r * TILE - r0 * TILE * sy)), int(round(c * TILE - c0 * TILE * sx))
+                th, tw = min(TILE, L['height'] - r * TILE), min(TILE, L['width'] - c * TILE)
+                t = small[oy:oy + th, ox:ox + tw]
+                if t.shape[0] != th or t.shape[1] != tw:
+                    t = np.asarray(Image.fromarray(t).resize((tw, th), Image.LANCZOS))
+            save(L['z'], r, c, t)
+        log('rerender: z%d %d tiles' % (L['z'], len(nxt)))
+        prev = nxt
+    # the cover is the last level, whole
+    Lz = levels[-1]; cov = Image.new('RGB', (Lz['width'], Lz['height']))
+    for r in range(Lz['rows']):
+        for c in range(Lz['cols']):
+            cov.paste(Image.open(files['tiles/z%d/r%02dc%02d.webp' % (Lz['z'], r, c)]).convert('RGB'), (c * TILE, r * TILE))
+    cov.save(files['cover.webp'], 'WEBP', quality=WEBP_Q, method=6)
 
 
 def build_pyramid(master, levels, tiles_dir, files, X0, out):
@@ -447,6 +564,9 @@ def main():
     ap.add_argument('--land-frac', type=float, default=0.5)
     ap.add_argument('--reuse-tiles', action='store_true', help='keep the pyramid already in --out; rebuild only the data (mask, zones, oases, module)')
     ap.add_argument('--cols', type=int, default=GRID_COLS, help='grid columns (GRID_COLS)')
+    ap.add_argument('--master-png', help='a full-size master PNG (Grok) for the tiles named by --master-png-tiles')
+    ap.add_argument('--master-png-tiles', default='', help='4096 master tiles taken from --master-png, e.g. r1c3,r1c4')
+    ap.add_argument('--rerender', default='', help='with --reuse-tiles: re-render the pyramid tiles over these realm-px rects x0,y0,x1,y1;...')
     ap.add_argument('--rows', type=int, default=GRID_ROWS, help='grid rows (GRID_ROWS); 0 = the art height at --cols')
     a = ap.parse_args()
     if a.cols < OLD_COLS or a.cols % 2:
@@ -475,6 +595,8 @@ def main():
     tcx, tcy = tl['centre']
     log('tree: centre %.1f,%.1f realm px, side %.0f px, frame scale %.3f, match rms %.1f' % (tcx, tcy, tl['side'], tl['scale_src'], tl['rms']))
     patch_box = tree_patch(master, tl)
+    if a.master_png:
+        master.use_master_png(a.master_png, [tuple(map(int, re.match(r'r(\d+)c(\d+)$', t).groups())) for t in a.master_png_tiles.split(',') if t])
     cities = city_patches(master, a.src, v, pos)
 
     # ---- 2. grid: COLS square cells across, trunk on the world centre (x = 50 %); ROWS rows over the art's own height
@@ -494,7 +616,7 @@ def main():
     log('grid: %d x %d, %.3f realm px per cell, crop x %.1f..%.1f of %d, grid rows from %.3f (art %.3f..%.3f); castle %d squares, one 220-square = %.3f'
         % (COLS, ROWS, cpx, X0, X0 + WW, RW, grid_top, top_cells, top_cells + h_cells, FOOT, SQ))
     for c in cities:
-        c['cells'] = city_cells(c, X0, -off, cpx); del c['_alpha']
+        c['cells'] = city_cells(c, X0, -off, cpx, master); del c['_alpha']
     log('city squares (blocked for castles and teleports): ' + ', '.join('%s %d' % (c['name'], len(c['cells'])) for c in cities))
 
     # ---- 4. pyramid. Level n has scale max_scale / 2**(n-1) of the master.
@@ -525,6 +647,8 @@ def main():
         log('previous tiles moved to', bak)
     if not a.reuse_tiles:
         build_pyramid(master, levels, tiles_dir, files, X0, out)
+    if a.reuse_tiles and a.rerender:
+        rerender(master, levels, files, X0, out, [tuple(map(int, r.split(','))) for r in a.rerender.split(';') if r])
     cover = np.asarray(Image.open(files['cover.webp']).convert('RGB'))   # decoded, the same bytes either way
     # the mask is ALWAYS measured on the saved WebP tiles, so a full build and a --reuse-tiles run give the same zones
     small = {}

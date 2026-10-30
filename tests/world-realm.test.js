@@ -52,8 +52,9 @@ test('pieces are one square (Phil 30 Oct 2026: a castle "in 1 square", "The mine
   assert.ok(Math.abs(R.META.tree.sideCells*L.CELL-12.3457*OLD)<1e-3,'the tree picture keeps its world size');
   // the world keeps its 11000 px: the tree, the cities and the oases are drawn at the same world size
   assert.match(html,/const WORLD_W=11000, WORLD_H=11000;/);
-  // cities: the same overlay shapes, about (COLS/220)^2 times the cells of the 220 grid (694 then)
-  const k2=(COLS/220)**2,cells=R.META.cities.reduce((n,c)=>n+c.cells.length,0);assert.ok(cells>694*k2*0.85&&cells<694*k2*1.12,'city cells '+cells);
+  // cities: the same overlay shapes; since v1229 a city square is >= 50 % SOLID footprint and not water under it (was > 30 % of
+  // alpha >= 128), so the cities hug their walls: about 0.8 x (COLS/220)^2 times the 220 grid's 694 cells
+  const k2=(COLS/220)**2,cells=R.META.cities.reduce((n,c)=>n+c.cells.length,0);assert.ok(cells>694*k2*0.7&&cells<694*k2*0.95,'city cells '+cells);
   // v1228 (Phil: "does the tree seem off center?"): the World Tree stands in the middle of the four painted ponds (nearest grid corner)
   const ox=oases.reduce((s,o)=>s+o.cx,0)/4,oy=oases.reduce((s,o)=>s+o.cy,0)/4;
   assert.ok(Math.abs(R.META.tree.cx-ox)<=0.5&&Math.abs(R.META.tree.cy-oy)<=0.5,'tree '+R.META.tree.cx+','+R.META.tree.cy+' vs ponds '+ox.toFixed(2)+','+oy.toFixed(2));
