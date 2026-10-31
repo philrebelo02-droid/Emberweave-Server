@@ -24775,6 +24775,14 @@ function wmDetailTiles(zone,RL,left,top,right,bottom){ const D=REALM_MAP.META.de
   if(!_wmDetailSet) _wmDetailSet=new Set(D.tiles);
   return realmTilesForView(D,left,top,right,bottom).filter(t=>_wmDetailSet.has(t.row+','+t.col)); }
 const WM_DETAIL_FROM=0.6;   // the detail level shows from 60 % of max zoom
+const WM_LOD_CAP=120;   // F1: at most this many prefetch tiles per neighbour level (so a zoom never asks for thousands)
+const WM_LOD_CAP_PHONE=48;   // F1 phone cap: on a phone (texPhone()) a neighbour level preloads at most this many tiles, so a zoom on a phone never asks for a full screen of tiles two levels deep
+/* F1 fix (ChatGPT QA on v1233, Claude 31 Oct 12:21): neighbour-level prefetch tiles must NOT be painted into the visible layer (they showed as half-loaded tiles of a level the player is not on). Load them as plain new Image() objects kept in a small cache (not in the DOM), so they are in the browser cache when the zoom crosses the boundary */
+const WM_PRELOAD_CACHE=new Map();
+function wmPreloadNeigh(tiles){ for(const t of tiles){ const k=t.z+':'+t.row+':'+t.col; if(WM_PRELOAD_CACHE.has(k)) continue;
+  const im=new Image(); im.src=REALM_ROOT+'tiles/z'+t.z+'/r'+String(t.row).padStart(2,'0')+'c'+String(t.col).padStart(2,'0')+'.webp?v='+REALM_ASSET_V;
+  WM_PRELOAD_CACHE.set(k,im); if(WM_PRELOAD_CACHE.size>WM_LOD_CAP*2){ const oldK=WM_PRELOAD_CACHE.keys().next().value; if(oldK!==k) WM_PRELOAD_CACHE.delete(oldK); } } }
+let _lodGen=0;   // C2: one generation id per LOD change (paintRealmTiles bumps it); stale callbacks compare against it
 function paintRealmTiles(layer,tiles){ if(!layer)return;
   const keys=tiles.map(t=>t.z+':'+t.row+':'+t.col).join(',');
   if(layer.dataset.tiles===keys)return;
@@ -24782,18 +24790,24 @@ function paintRealmTiles(layer,tiles){ if(!layer)return;
   for(const t of tiles){ const key=t.z+':'+t.row+':'+t.col; let img=prior.get(key);
     if(img) prior.delete(key);
     else { img=document.createElement('img'); img.dataset.tileKey=key; img.draggable=false; img.decoding='async';
-      img.onload=()=>{img.style.opacity='1'; layer._realmLoaded=(layer._realmLoaded||0)+1; if(layer._realmSweep) layer._realmSweep();}; img.onerror=()=>{img.style.opacity='0';};
+      img.onload=()=>{img.style.opacity='1'; layer._realmLoaded=(layer._realmLoaded||0)+1; if(layer._realmSweep) layer._realmSweep();}; img.onerror=()=>{img.style.opacity='0'; img._realmBad=true;};   // v1233 QA (Claude 31 Oct 12:36): a broken tile does NOT count as arrived - the old level stays under it, so a failed tile never leaves a blank
       img.src=REALM_ROOT+'tiles/z'+t.z+'/r'+String(t.row).padStart(2,'0')+'c'+String(t.col).padStart(2,'0')+'.webp?v='+REALM_ASSET_V;
       img.style.cssText='position:absolute;left:'+t.left+'px;top:'+t.top+'px;width:'+t.width+'px;height:'+t.height+'px;z-index:'+(10-t.z)+';opacity:0;transition:opacity .25s';
       layer.appendChild(img); } }
   // tiles of the level just left stay under the new ones for a moment, so a zoom never flashes the soft cover
-  const sweep=()=>{ const now=new Set((layer.dataset.tiles||'').split(','));
+  layer._realmGen=++_lodGen;   // v1235 fix (Ember 31 Oct 14:20): BUMP this LOD change's generation BEFORE the sweep closure is built, so the closure captures THIS change's id
+  const gen=layer._realmGen;   // v1235 fix (Ember 31 Oct 14:20): was `const gen=_lodGen;` ABOVE the bump - that captured the PREVIOUS change's id, so the guard below always returned and no swap ever completed (the old level never got removed)
+  const sweep=()=>{ if(layer._realmGen!==gen) return;   // generation guard: a callback from an earlier zoom cannot tear this one off
+    const now=new Set((layer.dataset.tiles||'').split(','));
     const wanted=[...layer.children].filter(img=>now.has(img.dataset.tileKey));
-    if(wanted.some(img=>!(img.complete&&img.naturalWidth))) return;   // the sharp level is still loading: keep the lower one under it
-    for(const img of [...layer.children]) if(!now.has(img.dataset.tileKey)) img.remove();
-    layer._realmSweep=null; };
-  layer._realmSweep=sweep; setTimeout(()=>{ if(layer._realmSweep===sweep){ for(const img of [...layer.children]) if(!new Set((layer.dataset.tiles||'').split(',')).has(img.dataset.tileKey)) img.remove(); layer._realmSweep=null; } },3000);   // never longer than 3 s
+    if(!wanted.length) return;   // v1234 fix (Claude 31 Oct 13:22): with NO new tile of this level in the layer yet, nothing has arrived - the old level stays on screen (the sweep must never tear it off over an empty swap)
+    if(wanted.some(img=>!(img.complete&&img.naturalWidth))) return;   // v1233 QA fix 1 (Claude 31 Oct 12:36): a broken tile is NOT arrived - the old level stays under it until the tile really loads
+    setTimeout(()=>{ if(layer._realmGen!==gen) return; for(const img of [...layer.children]) if(!now.has(img.dataset.tileKey)) img.remove(); layer._realmSweep=null; },250);   // v1235 (Claude 31 Oct 13:50): gen is CAPTURED in the sweep closure, not read live - A's cleanup firing during B sees a newer _realmGen and does nothing, so B's tiles and B's sweep survive
+  /* C2 fix (ChatGPT QA on v1233, Claude 31 Oct 12:21): NO timer at all - the old level is removed ONLY when every wanted tile of the new level is complete; onload/onerror drive the sweep, and each LOD change bumps _lodGen so a stale callback from an earlier zoom cannot remove anything */
+  };   // v1234 fix (Claude 31 Oct 13:01): CLOSE the sweep closure here - the missing } left the whole main script unparseable (node --check SyntaxError; ACC undefined at runtime)
+  layer._realmSweep=sweep;
   layer.dataset.tiles=keys;   // set BEFORE the sweep: it keeps exactly these tiles
+  // v1235 fix (Ember 31 Oct 14:20): the ++_lodGen bump moved UP to just above the closure (see the line above `const gen=`) so `gen` holds THIS change's generation; dataset.tiles stays set before sweep() runs
   sweep(); }
 function applyMapLOD(){ const inner=document.getElementById('wzoneInner'); if(!inner)return; const s=mapVisibleSquares(); if(!s)return;
   const zone=document.getElementById('wzone');
@@ -24805,10 +24819,19 @@ function applyMapLOD(){ const inner=document.getElementById('wzoneInner'); if(!i
   const RL=realmLevelFor(worldZoom), rl=REALM_MAP.META.levels;
   const ring=REALM_MAP.META.tile/(RL.cellPx/(WORLD_W/REALM_MAP.META.cols));   // prefetch one tile all round the view
   const base=RL===rl[rl.length-1]?[]:realmTilesForView(RL,left-ring,top-ring,right+ring,bottom+ring);
+  /* F1 (v1233 map zoom, Phil: "the game looks really blocky when you zoom"): also REQUEST the next finer and next coarser level's visible tiles, capped, so the level we are about to swap to is already loading BEFORE the swap - after the swap its tiles are ready and the zoom does not pop in one tile at a time */
+  const lodIdx=rl.indexOf(RL);
+  /* F1 (v1234): the ring on a NEIGHBOUR level is at most 1 tile of THAT level - the old code reused `ring` (1 tile of the CURRENT level), which is 3+ tiles of a finer level and asked for a whole extra screen. Phones also get the smaller cap (WM_LOD_CAP_PHONE via texPhone()). */
+  const lodCap=(lv)=>{ if(!lv)return []; const cap=texPhone()?WM_LOD_CAP_PHONE:WM_LOD_CAP; const ringL=Math.min(ring,REALM_MAP.META.tile/(lv.cellPx/(WORLD_W/REALM_MAP.META.cols))); const t=realmTilesForView(lv,left-ringL,top-ringL,right+ringL,bottom+ringL); return t.length>cap?t.slice(0,cap):t; };
+  const lodNeigh=(lodIdx>0?lodCap(rl[lodIdx-1]):[]).concat(lodIdx>=0&&lodIdx+1<rl.length?lodCap(rl[lodIdx+1]):[]);
   /* v1231 (Phil: "you didnt add groks art?"): Grok's detail2x (META.detail, a sparse z0 at 2x the master) is drawn OVER z1 where a z0 tile
      exists - z1 always stays underneath, so outside the detail (and while a z0 tile loads) nothing is missing; only near max zoom */
   const z0=wmDetailTiles(zone,RL,left,top,right,bottom);
+  /* F1 fix (v1234): the NEIGHBOUR levels are not painted into the visible layer - they are preloaded off-DOM by wmPreloadNeigh below.
+     v1234 fix (Claude 13:22): z1 (base) must ALWAYS stay drawn under the z0 detail - the paint list is base+z0 exactly as v1231 requires
+     (no gap while a z0 tile loads, none outside the detail). base and z0 never share a tile key (different z), so no dedupe is needed. */
   paintRealmTiles(inner.querySelector('#realmTiles'),z0.length?base.concat(z0):base);
+  wmPreloadNeigh(lodNeigh);   // F1 fix (ChatGPT QA, Claude 31 Oct 12:21): neighbour-level tiles load as plain Image() objects in a cache, not in the DOM
   inner.dataset.realmLevel=String(z0.length?0:RL.z);
   inner.dataset.pictureLevel=String(level);
   inner.dataset.pictureCol=String((closeTiles[0]||middleTiles[0]||{col:0}).col);
