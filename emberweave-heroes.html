@@ -26104,7 +26104,7 @@ function wmSiegeWire(zone,inner){ const S=siegeApi(); if(!S) return;
   inner.appendChild(mark);
   const hide=()=>{ if(mark.style.display!=='none'){ mark.style.display='none'; mark.dataset.siteId=''; if(!_wdrag) zone.style.cursor='grab'; } };
   zone.addEventListener('mousemove',e=>{ if(_wdrag||_teleMode){ hide(); return; } const s=siegeSiteAtEvent(zone,e); if(!s){ hide(); return; }
-    const p=siegePointAt(zone,e); mark.style.left=p.x+'%'; mark.style.top=p.y+'%'; mark.style.display='block'; mark.dataset.siteId=s.id; zone.style.cursor=SIEGE_CURSOR; },{passive:true});
+    mark.dataset.siteId=s.id; zone.style.cursor=SIEGE_CURSOR; },{passive:true});   /* v1236 (Phil: "hovering my mouse on a city shows two sword images instead of 1"): with a mouse the sword CURSOR alone marks the site - the floating icon stays hidden */
   zone.addEventListener('mouseleave',hide,{passive:true});
   zone.addEventListener('click',e=>{ if(_teleMode||_wMoved) return; const s=siegeSiteAtEvent(zone,e); if(s){ e.stopPropagation(); openSiegePanel(s.id); } });
   drawSiegeHolders(); siegeRefresh(); }
@@ -31199,7 +31199,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1793474142761';
+const BUILD_ID = '1793477403932';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

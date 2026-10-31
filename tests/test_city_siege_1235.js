@@ -171,7 +171,7 @@ async function clientChecks(info) {
       return { xy, ...(await page.evaluate(() => { const m = document.getElementById('siegeHover'), z = document.getElementById('wzone');
         return { shown: !!m && m.style.display === 'block', site: m && m.dataset.siteId, src: m && m.getAttribute('src'), cursor: z.style.cursor }; })) }; };
     for (const sid of [siteId, 'oasis-ne', 'tree']) { const h = await hoverAt(sid);
-      ok(h.shown && h.site === sid && /icons\/status\/attack-v1\.webp/.test(h.src) && /attack-cursor-32\.png/.test(h.cursor), 'hover over ' + sid + ': the attack-icon marker + sword cursor (' + h.site + ')'); }
+      ok(!h.shown && h.site === sid && /attack-cursor-32\.png/.test(h.cursor), 'hover over ' + sid + ': ONE sword - the sword cursor, no extra floating icon (v1236, Phil) (' + h.site + ')'); }
     const off = await page.evaluate(() => { const z = document.getElementById('wzone'), r = z.getBoundingClientRect(); return { x: r.left + 5, y: r.top + r.height / 2 }; });
     // click: the panel
     const h = await hoverAt(siteId); await page.mouse.click(h.xy.x, h.xy.y); await page.waitForTimeout(800);
