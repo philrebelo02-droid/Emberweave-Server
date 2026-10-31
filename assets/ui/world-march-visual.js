@@ -34,7 +34,7 @@
     if(!r||r.version!==1||r.coordinateSpace!=='world-percent'||!['city','mine'].includes(m.kind)
       ||typeof m.id!=='string'||![m.depart,m.arriveAt,m.homeAt,r.travelMs,r.gatherMs].every(Number.isFinite)
       ||r.travelMs<0||r.gatherMs<0||m.arriveAt!==m.depart+r.travelMs+r.gatherMs
-      ||m.homeAt!==m.arriveAt+r.travelMs)return false;
+      ||(m.stationed===true?m.homeAt<m.arriveAt:m.homeAt!==m.arriveAt+r.travelMs))return false;   // v1237: a stationed garrison line stays until recalled
     return validPacing(r)&&[r.from,r.to].every(p=>p&&Number.isFinite(p.x)&&Number.isFinite(p.y)&&p.x>=0&&p.x<100&&p.y>=0&&p.y<100);
   }
   // Renderer descriptors only: never insert these rows into persistent marches.
@@ -52,6 +52,7 @@
       if(now<reach)p=r.travelMs?(now-m.depart)/r.travelMs:1;
       else if(now<m.arriveAt){from=to=r.to;phase='gathering';etaMs=m.arriveAt-now;}
       else if(m.resultPending){from=to=r.to;phase='awaiting-resolution';etaMs=0;}
+      else if(m.stationed===true){from=to=r.to;phase='stationed';etaMs=0;}   // v1237 CITY GARRISON: the line stays in the site - no return line
       else{from=r.to;to=r.from;phase='returning';p=r.travelMs?(now-m.arriveAt)/r.travelMs:1;etaMs=Math.max(0,m.homeAt-now);}
       p=paced(r,p,phase==='returning');
       result.push({key,sourceId:m.id,localId:old?.id||null,kind:m.kind,phase,etaMs,progress:p,

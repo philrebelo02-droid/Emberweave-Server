@@ -2789,13 +2789,13 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 <script src="/server/temple-effects.js?v=r1123"></script>
 <script src="/assets/ui/world-mine-sync.js?v=mi4-g1000v"></script>
 <script src="/assets/ui/world-march-sync.js?v=wm1"></script>
-<script src="/assets/ui/world-march-visual.js?v=wv3-g1000"></script>
+<script src="/assets/ui/world-march-visual.js?v=wv4-g1237"></script>
 <script src="/assets/ui/skill-preview-stage.js?v=sp1206"></script>
 <script src="/world-realm.js?v=realm-v25-g800x477-detail2x-ne8-1232"></script>
 <script src="/assets/ui/world-tree-cycle.js?v=wt5"></script>
 <script src="/assets/ui/world-tree-art.js?v=wt-noflash-1228b"></script>
 <script src="/assets/ui/world-oasis-markers.js?v=om-ponds-1230"></script>
-<script src="/assets/ui/world-siege.js?v=siege-1235"></script>
+<script src="/assets/ui/world-siege.js?v=siege-1237"></script>
 <script src="/assets/ui/world-tree-countdown.js?v=wt5-roots-1228"></script>
 <script src="/assets/ui/world-tree-control-ui.js?v=wc8-ponds"></script>
 <script src="/assets/ui/world-tree-actions-ui.js?v=wa4-ponds"></script>
@@ -20937,7 +20937,7 @@ async function renderWatchTower(){
     if(trusted){
       const rows=[];
       recorded.mates.forEach(w=>(Array.isArray(w.marches)?w.marches:[]).forEach(m=>{
-        if((m.kind!=='city'&&m.kind!=='mine')||m.defend)return;   // v1097: stationed defenders are not attacks
+        if((m.kind!=='city'&&m.kind!=='mine')||m.defend||m.garrison)return;   // v1097: stationed defenders are not attacks (v1237: nor city garrison lines)
         const target=m.kind==='mine'?`Lv ${m.level??'?'} ${m.resource||'resource'} mine`:`City ${m.defId||'target'}`;
         const status=m.resolveReady?'Outcome awaiting resolution':m.phase==='returning'?'Returning · home in '+fmtDur(m.homeInMs):'Arrival in '+fmtDur(m.arriveInMs);
         rows.push(line(w.name||'Player',target,status,!!w.you));
@@ -25345,7 +25345,7 @@ function committedHeroes(){ const s=new Set(); const treeUI=worldTreeControlUI()
 function myHeroPower(k){ try{ return heroPower(k)|0; }catch(e){ return 0; } }
 function myTeamPower(keys){ let p=0; for(const k of (keys||[])){ if(k) p+=myHeroPower(k); } return p; }
 function marchPower(heroes){ return myTeamPower(heroes); }
-function marchVerb(ct){ return ct==='siege'?statusIcon('attack')+' Sieging':ct==='attack'?statusIcon('attack')+' Attacking':ct==='group'?statusIcon('attack')+' Group attacking':ct==='defend'?statusIcon('shield')+' Defending':uiIcon('scout-telescope')+' Scouting'; }
+function marchVerb(ct){ return ct==='garrison'?statusIcon('shield')+' Garrisoning':ct==='siege'?statusIcon('attack')+' Sieging':ct==='attack'?statusIcon('attack')+' Attacking':ct==='group'?statusIcon('attack')+' Group attacking':ct==='defend'?statusIcon('shield')+' Defending':uiIcon('scout-telescope')+' Scouting'; }
 let cityMarchStartPending=false;
 /* v1001 (World audit #3): a march start keeps ONE requestId for the same target + squad for 2 minutes and re-sends it on a lost reply
    or a refused save - a retap after a lost reply used to be refused ("hero already marching") and the client never learned the march. */
@@ -25365,6 +25365,16 @@ async function startMarch(ctype,c,heroes){
     finally{cityMarchStartPending=false;}
     if(!serverMarch||!serverMarch.ok){ bannerMsg((serverMarch&&serverMarch.error)||'The siege march could not be registered. Try again.'); return; }
     t=serverMarch.depart; out=serverMarch.travel; c=Object.assign({},c,{x:serverMarch.target.x,y:serverMarch.target.y});
+  }
+  if(ctype==='garrison'){   /* v1237 CITY GARRISON: Defense - a line to your guild's site; the server holds the slot (cap 8, a capital 10) */
+    if(!ACC.token){ bannerMsg('Sign in to garrison '+escapeHTML(c.name)+'.'); return; }
+    if(cityMarchStartPending)return;
+    cityMarchStartPending=true;
+    try{ const hs=(heroes||[]).slice(0,5); serverMarch=await marchStartPost('/api/world/siege/garrison','garrison:'+c.siteId+':'+hs.join(','),{siteId:c.siteId,heroIds:hs}); }catch(_e){serverMarch=null;}
+    finally{cityMarchStartPending=false;}
+    if(!serverMarch||!serverMarch.ok){ bannerMsg((serverMarch&&serverMarch.error)||'The garrison march could not be registered. Try again.'); return; }
+    t=serverMarch.depart; out=serverMarch.travel; c=Object.assign({},c,{x:serverMarch.target.x,y:serverMarch.target.y});
+    siegeRefresh();
   }
   if((ctype==='attack'||ctype==='group') && (c.real||c.bot) && ACC.token){
     if(cityMarchStartPending)return;
@@ -25388,12 +25398,12 @@ async function startMarch(ctype,c,heroes){
   if((ctype==='attack'||ctype==='group') && itemShieldActive()){ G.shieldUntil=0; bannerMsg(statusIcon('shield')+' Protection shield broke — you launched an attack.'); }
   activeMarches().push({ id:'m'+t+'_'+Math.floor(rand01(t)*999), dir:'out', ctype, tName:c.name, tId:c.id, real:!!c.real, fx:c.x, fy:c.y,
     serverCityId:serverMarch&&serverMarch.marchId,
-    siteId:ctype==='siege'?c.siteId:undefined, siege:ctype==='siege'?{seed:serverMarch.seed,snaps:serverMarch.snaps,foe:serverMarch.foe}:undefined,
+    siteId:(ctype==='siege'||ctype==='garrison')?c.siteId:undefined, siege:ctype==='siege'?{seed:serverMarch.seed,snaps:serverMarch.snaps,foe:serverMarch.foe}:undefined,
     tRank:c.rank, tPower:c.power||1, ally:!!c.ally,
     heroes:serverMarch?serverMarch.heroIds.slice():(heroes||[]).slice(),
     dTeam:(c.team||[]).slice(), depart:t,
     arrive:serverMarch?serverMarch.arriveAt:t+out,home:serverMarch?serverMarch.homeAt:t+out*2,out,resolved:false });
-  saveG(); bannerMsg(marchVerb(ctype)+' → '+escapeHTML(c.name)+'\nMarch time '+fmtDur(out)+' each way'+
+  saveG(); bannerMsg(marchVerb(ctype)+' → '+escapeHTML(c.name)+'\nMarch time '+fmtDur(out)+(ctype==='garrison'?' · stays until you Return it':' each way')+
     (serverMarch&&(heroes||[]).length>serverMarch.heroIds.length?'\nOnly the first '+serverMarch.heroIds.length+' wall heroes marched; the others stayed home.':''));
   if(document.getElementById('wzone')) drawMarches();
   if(typeof pushWatchReport==='function') pushWatchReport();   // publish live activity to guild watch tower
@@ -25517,6 +25527,8 @@ function resolveMarch(m){
     addMail('war',{from:m.tName,subj:'{i:u:warning} Raided your castle',body:m.tName+'’s army broke through your defense lines and looted {i:h:gold} '+loss+' gold. Raise a protection shield or strengthen your wall lines.',battle:meta});
     marchReport('{i:u:warning} Raided by '+m.tName,'An enemy raided your castle and stole {i:h:gold} '+loss+'. Consider a protection shield.'); updateMailBadges(); return;
   }
+  if(m.ctype==='garrison'){   /* v1237 CITY GARRISON: the line reaches the site and stays (marchTick parks it) */
+    marchReport(statusIcon('shield')+' Garrisoned '+m.tName,'Your heroes are stationed in '+m.tName+'. They defend it until you Return them.'); siegeRefresh(); return; }
   if(m.ctype==='siege'){   /* v1235 CITY SIEGE: fight the frozen fight here (the player's fight), report it; the server replays it as a check only */
     if(!ACC.token||!m.serverCityId||!m.siege){ m.resolved=true; marchReport(statusIcon('attack')+' Siege not resolved','This march was not registered by the server. Send a fresh squad.'); saveG(); return false; }
     if(m.resolving && Date.now()-(m.resolvingAt||0)<30000) return false;
@@ -25533,10 +25545,13 @@ function resolveMarch(m){
         m.resolved=true; const reason=r.error||'The siege was refused by the server.';
         addMail('war',{from:m.tName,subj:'{i:u:warning} Siege not resolved',body:reason}); marchReport('{i:u:warning} Siege not resolved',reason); updateMailBadges(); saveG(); return; }
       m.resolved=true;
+      if(r.garrisoned){ m.stationed=true; m.home=Date.now()+STATION_HOME; }   /* v1237 (Phil: "my troop should not return when i capture it"): the line stays in the site */
       if(r.witch&&r.witch.ledger) adoptLedger(r.witch.ledger);
       const replay=r.replay?{v:2,seed:r.replay.seed,mineSnap:r.replay.snaps,foe:r.replay.foe,won:!!r.won,oppName:m.tName}:null;
-      const body=r.won?(r.seized?('Your army broke the guards of '+m.tName+' and seized it'+(r.holder&&r.holder.type==='guild'?' for '+r.holder.name:'')+'.'):('Your army beat the guards of '+m.tName+'. '+(r.note||'')))
-        :('The guards of '+m.tName+' held. Your surviving heroes march home with their injuries.');
+      const foes=r.defenders==='garrison'?'garrison':'guards';
+      const body=r.won?(r.seized?('Your army broke the '+foes+' of '+m.tName+' and seized it'+(r.holder&&r.holder.type==='guild'?' for '+r.holder.name:'')+'.'):('Your army beat the '+foes+' of '+m.tName+'. '+(r.note||'')))
+          +(r.garrisoned?' Your heroes stay as its garrison ('+r.lines+'/'+r.cap+') until you Return them.':'')
+        :('The '+foes+' of '+m.tName+' held. Your surviving heroes march home with their injuries.');
       addMail('war',{from:m.tName,subj:(r.won?'{i:s:attack} Victory — ':'{i:s:attack} Defeat — ')+m.tName,body,battle:replay,marchId:m.serverCityId});
       marchReport((r.won?'{i:s:attack} Victory at ':'{i:s:attack} Defeat at ')+m.tName,body);
       updateMailBadges(); saveG(); siegeRefresh();
@@ -25707,6 +25722,7 @@ function pollPvpReports(){ if(!ACC.token||!online())return;
       if(r.kind==='war-declared'){ const fmt=x=>x?new Date(x).toLocaleTimeString():'?';   /* v999 (World audit #2): a declaration is not an attack */
         addMail('war',{from:r.from,subj:'{i:s:attack} '+r.from+' declared war on you',body:'War ready '+fmt(r.readyAt)+' · ends '+fmt(r.expireAt)}); return; }
       if(r.kind==='shield-blocked'){ addMail('war',{from:r.from,subj:'Shield held vs '+r.from,body:r.from+'\u2019s army reached your castle'+(when?' at '+when:'')+' but your protection shield turned it away. Nothing was lost.'}); return; }   /* v1097 (sweep #11) */
+      if(r.kind==='garrison-report'){ addMail('war',{from:r.from,subj:(r.held?'{i:s:shield} Garrison held - ':'{i:u:warning} Garrison lost - ')+(r.to||'?'),body:r.from+' attacked '+(r.to||'?')+(when?' at '+when:'')+'. '+(r.held?'Your guild\u2019s garrison held it.':'The siege broke the garrison; your stationed heroes are marching home.')}); return; }   /* v1237 */
       if(r.kind==='defend-report'){ addMail('war',{from:r.from,subj:'Your defenders fought at '+(r.to||'?'),body:r.from+' attacked '+(r.to||'?')+(when?' at '+when:'')+'. Your stationed heroes '+(r.won?'could not hold the wall':'helped hold the wall')+'. Wounds remain until healed at the Witches Hut.'}); return; }   /* v1097 (sweep #12) */
       if(r.unverified) addMail('war',{from:r.from,subj:'{i:u:warning} Unverified attack report — '+r.from,
         body:r.from+' submitted an old battle report'+(when?' at '+when:'')+'. The server did not verify a fight, outcome, injuries, or loot.'});
@@ -25743,7 +25759,7 @@ function marchTick(){
   if((state==='battle' || _resultTimer) && !window._p2guard) return;   // never run the headless sim over a live fight, nor while an ended fight's result/submit is still pending
   const now=Date.now(); let changed=false;
   activeMarches().forEach(m=>{ if(!m.resolved && now>=m.arrive){ const settled=resolveMarch(m); if(settled!==false)m.resolved=true;
-      if(m.dir==='out' && m.ctype==='defend' && !m.retreated){ m.stationed=true; m.home=now+STATION_HOME; }  // defenders stay until recalled
+      if(m.dir==='out' && (m.ctype==='defend'||m.ctype==='garrison') && !m.retreated){ m.stationed=true; m.home=now+STATION_HOME; }  // defenders (v1237: and garrison lines) stay until recalled
       changed=true; } });
   const before=activeMarches().length; G.marches=activeMarches().filter(m=> now<m.home || !m.resolved ); if(G.marches.length!==before) changed=true;
   if(changed) saveG();
@@ -25765,7 +25781,7 @@ async function recallServerCity(marchId){
     G.cityRecallBusy=G.cityRecallBusy||{};G.cityRecallBusy[marchId]={homeAt:reply.homeAt,heroIds:reply.heroIds};
     G.marches=activeMarches().filter(m=>m.serverCityId!==marchId);saveG();_worldMarchCache=null;
     await syncWorldMarches(true);if(ACC.token!==who)return false;
-    bannerMsg('Army returning home.');if(document.getElementById('wzone'))drawMarches();return true;
+    bannerMsg('Army returning home.');if(document.getElementById('wzone'))drawMarches();if(reply.siteId&&typeof siegeRefresh==='function')siegeRefresh();return true;
   }catch(_e){if(ACC.token===who)bannerMsg('Recall could not be confirmed. Retry the same march.');return false;}
   finally{_cityRecallPending.delete(stamp);}
 }
@@ -25777,9 +25793,18 @@ function retreatMarch(id){ const m=activeMarches().find(x=>x.id===id); if(m?.ser
   bannerMsg('↩ Retreating from '+escapeHTML(m.tName)+' — troops returning home.'); if(document.getElementById('wzone')) drawMarches(); return true;
 }
 // draw arrow paths + moving ship vehicles for every active march
+/* v1237 CITY GARRISON: a line parked in a site on THIS device learns from the server when it was sent home (another guild's siege
+   broke the garrison, or it was recalled elsewhere): the server row reads 'returning', or the row is gone long after arrival */
+function garrisonReconcile(s){ if(!s||!s.loaded||s.failed) return; let ch=false;
+  for(const m of activeMarches()){ if(!m.stationed||!m.serverCityId||(m.ctype!=='siege'&&m.ctype!=='garrison')) continue;
+    const r=s.rows.find(x=>x.id===m.serverCityId); if(r&&r.stationed) continue;
+    if(r&&r.phase==='returning'){ m.stationed=false; m.home=r.homeAt; ch=true; }
+    else if(!r&&s.now>(m.arrive||0)+900000){ m.stationed=false; m.home=Date.now(); ch=true; } }
+  if(ch) saveG(); }
 function worldVisualMarchRows(local){
   const cache=worldMarchCache(),s=cache&&cache.state();
   if(cache)syncWorldMarches(false);
+  garrisonReconcile(s);
   if(!s||!s.loaded||!window.EmberweaveWorldMarchVisual)return local;
   const views=window.EmberweaveWorldMarchVisual.views(s.rows,s.now,local);
   const replaced=new Set(views.map(v=>v.localId).filter(Boolean));
@@ -25815,6 +25840,7 @@ function drawMarches(){
       col=v.phase==='returning'?'#6ea8ff':v.kind==='mine'?'#ffd45e':'#6ea8ff';
       showLine=v.phase==='outbound'||v.phase==='returning';
       mining=v.kind==='mine'&&(v.phase==='gathering'||v.phase==='awaiting-resolution');
+      if(v.phase==='stationed'){ stationed=true; col='#5ee89b'; }   // v1237: a garrison line parked in its site - no line, no timer
     } else if(m.retreated){                          // recalled → sailing home from where it turned around
       legStart=m.retFrom||far; legEnd=home; p=(now-m.retStart)/m.retDur; col='#6ea8ff'; etaMs=(m.retStart+m.retDur)-now;
     } else if(m.ctype==='mine'){               // mining: travel out → gather at the node → travel home
@@ -26084,6 +26110,10 @@ function closeCityMenu(){ if(cityMenuEl){ cityMenuEl.remove(); cityMenuEl=null; 
 const SIEGE_CURSOR='url("/assets/img/icons/status/attack-cursor-32.png?v=1235") 16 16, pointer';
 let _siegeState={sites:{},armies:null,at:0}, _siegeLoading=null;
 function siegeApi(){ return window.EmberweaveWorldSiege||null; }
+/* v1237 CITY GARRISON (Phil 31 Oct 2026: "my troop should not return when i capture it, it should remain in the [city]. it should say
+   1/8 for non capitals and 1/10 for capitols"; "only guild players can attack a city"; on his guild's city "the option then have to
+   change to Defense, View Garrison"). The holder banner carries the garrison count for everyone; on a site your guild holds the panel
+   shows Defense (send a line, up to the cap) + View Garrison (the lines, Return on yours) instead of Attack. */
 function siegeRefresh(){ if(!ACC.token||!online()) return Promise.resolve(_siegeState);
   if(_siegeLoading) return _siegeLoading;
   _siegeLoading=api('/api/world/sieges','GET').then(r=>{ if(r&&r.ok) _siegeState={sites:r.sites||{},armies:r.armies||null,myId:r.myId||null,myGuildId:r.myGuildId||null,at:Date.now()}; drawSiegeHolders(); return _siegeState; })
@@ -26097,7 +26127,7 @@ function wmSiegeWire(zone,inner){ const S=siegeApi(); if(!S) return;
     st.textContent='#wzoneInner .worldOasisMarker,#wzoneInner #worldTreeTarget{cursor:'+SIEGE_CURSOR+'!important}'
       +'.wmSiegeHolder{position:absolute;transform:translate(-50%,-50%) scale(var(--wm-lab,1));z-index:6;pointer-events:none;display:flex;align-items:center;gap:3px;white-space:nowrap;'
       +'font-size:11px;font-weight:800;color:#ffe9a8;background:rgba(8,12,22,.66);border:1px solid rgba(201,162,78,.75);border-radius:7px;padding:1px 6px 1px 3px;text-shadow:0 1px 2px #000}'
-      +'.wmSiegeHolder img{width:16px;height:16px}#siegeHover{filter:drop-shadow(0 1px 2px #000) drop-shadow(0 0 4px rgba(255,120,60,.8))}';
+      +'.wmSiegeHolder img{width:16px;height:16px}.wmSiegeHolder .wmGarrison{color:#5ee89b;margin-left:3px}#siegeHover{filter:drop-shadow(0 1px 2px #000) drop-shadow(0 0 4px rgba(255,120,60,.8))}';
     document.head.appendChild(st); }
   const mark=document.createElement('img'); mark.id='siegeHover'; mark.src=ICON_SRC.s('attack'); mark.alt=''; mark.draggable=false;
   mark.style.cssText='position:absolute;display:none;width:26px;height:26px;z-index:9;pointer-events:none;transform:translate(-50%,-110%) scale(var(--wm-lab,1));transform-origin:50% 100%';
@@ -26113,7 +26143,8 @@ function drawSiegeHolders(){ const S=siegeApi(), inner=document.getElementById('
   inner.querySelectorAll('.wmSiegeHolder').forEach(el=>el.remove());
   for(const [id,h] of Object.entries(_siegeState.sites||{})){ const s=S.byId(id); if(!s||!h) continue;
     const el=document.createElement('div'); el.className='wmSiegeHolder'; el.dataset.siteId=id; el.style.left=s.x+'%'; el.style.top=s.y+'%';
-    el.innerHTML=uiIcon('rally-flag')+'<span></span>'; el.querySelector('span').textContent=h.name; inner.appendChild(el); } }
+    el.innerHTML=uiIcon('rally-flag')+'<span></span><b class="wmGarrison"></b>'; el.querySelector('span').textContent=h.name;
+    el.querySelector('.wmGarrison').textContent=S.garrisonLabel(s,h); inner.appendChild(el); } }   // v1237: N/8, a capital N/10
 function siegeArmiesFree(){ const a=_siegeState.armies; return !a||!Number.isFinite(a.cap)||(a.out|0)<a.cap; }
 async function openSiegePanel(siteId){ const S=siegeApi(); if(!S) return; const site=S.byId(siteId); if(!site) return;
   closeCityMenu(); document.querySelectorAll('#siegePanel').forEach(el=>el.remove());
@@ -26123,21 +26154,49 @@ async function openSiegePanel(siteId){ const S=siegeApi(); if(!S) return; const 
   const render=()=>{ if(!ov.isConnected) return;
     const castle=myCastlePos(), d=S.distance(castle,site), h=S.holderOf(_siegeState,site.id), me={id:_siegeState.myId||ACC.id,guildId:_siegeState.myGuildId||_rcMyGuild||null};
     const why=!ACC.token?'Sign in to attack.':S.refusal({site,castle,holder:h,me,now:Date.now(),freeMarch:siegeArmiesFree()});
-    const kind=site.kind==='city'?'City':site.kind==='oasis'?'Oasis':'World Tree';
+    const kind=(site.kind==='city'?(S.isCapital(site)?'Capital city':'City'):site.kind==='oasis'?'Oasis':'World Tree');
+    const ours=!!h&&!!ACC.token&&S.ownedBy(h,me), whyDef=ours?S.garrisonRefusal({site,holder:h,me,freeMarch:siegeArmiesFree()}):null;   // v1237
     ov.innerHTML=`<div style="background:#141b2b;border:1px solid #33405e;border-radius:14px;padding:16px;width:100%;max-width:280px;text-align:center;box-shadow:0 12px 40px #000b">
       <div id="spName" style="font-weight:800;font-size:16px"></div>
       <div style="font-size:11px;color:#8b98a9;margin-bottom:10px">${kind} · guards Lv ${site.guardLevel}</div>
       <div style="font-size:13px;line-height:1.9;text-align:left;display:inline-block">
         ${uiIcon('rally-flag')} Held by&nbsp; <b id="spHolder" style="color:#ffe9a8"></b><br>
-        ${uiIcon('map-pin')} Distance&nbsp; <b id="spDist" data-squares="${d}" style="color:#9fc0d6">${Number.isFinite(d)?d+' squares':'-'}</b></div>
+        ${uiIcon('map-pin')} Distance&nbsp; <b id="spDist" data-squares="${d}" style="color:#9fc0d6">${Number.isFinite(d)?d+' squares':'-'}</b>
+        ${h?`<br>${statusIcon('shield')} Garrison&nbsp; <b id="spGarrison" style="color:#5ee89b">${S.garrisonLabel(site,h)}</b>`:''}</div>
       <div id="spWhy" style="font-size:11px;color:#ff9a8b;min-height:14px;margin-top:8px"></div>
-      <div style="display:flex;gap:8px;margin-top:10px"><button class="btn secondary" style="flex:1" id="spClose">Close</button>
-        <button class="btn" style="flex:1" id="spAttack" ${why?'disabled':''}>${statusIcon('attack')} Attack</button></div></div>`;
+      ${ours?`<div style="display:flex;gap:8px;margin-top:10px"><button class="btn" style="flex:1" id="spDefense" ${whyDef?'disabled':''}>${statusIcon('shield')} Defense</button>
+        <button class="btn" style="flex:1" id="spView">${uiIcon('rally-flag')} View Garrison</button></div>
+        <div style="display:flex;gap:8px;margin-top:8px"><button class="btn secondary" style="flex:1" id="spClose">Close</button></div>`
+      :`<div style="display:flex;gap:8px;margin-top:10px"><button class="btn secondary" style="flex:1" id="spClose">Close</button>
+        <button class="btn" style="flex:1" id="spAttack" ${why?'disabled':''}>${statusIcon('attack')} Attack</button></div>`}</div>`;
     ov.querySelector('#spName').textContent=site.name;
     ov.querySelector('#spHolder').textContent=h?(h.name+(h.type==='guild'?' (guild)':'')):'None';
-    ov.querySelector('#spWhy').textContent=why||'';
+    ov.querySelector('#spWhy').textContent=(ours?whyDef:why)||'';
     ov.querySelector('#spClose').onclick=close;
-    ov.querySelector('#spAttack').onclick=()=>{ if(why) return; close(); openMarchSelect('siege',{id:site.id,siteId:site.id,name:site.name,x:site.x,y:site.y}); }; };
+    const go=(ct)=>{ close(); openMarchSelect(ct,{id:site.id,siteId:site.id,name:site.name,x:site.x,y:site.y}); };
+    if(ours){ ov.querySelector('#spDefense').onclick=()=>{ if(whyDef) return; go('garrison'); }; ov.querySelector('#spView').onclick=()=>viewGarrison(); }
+    else ov.querySelector('#spAttack').onclick=()=>{ if(why) return; go('siege'); }; };
+  /* v1237 View Garrison: every line in the site - owner, heroes, power; Return on your own lines (it marches home, the count drops) */
+  const viewGarrison=()=>{ if(!ov.isConnected) return; const h=S.holderOf(_siegeState,site.id), lines=(h&&Array.isArray(h.garrison))?h.garrison:[], now=Date.now();
+    const hn=k=>(HERO_TYPES[k]&&HERO_TYPES[k].name)||k;
+    ov.innerHTML=`<div style="background:#141b2b;border:1px solid #33405e;border-radius:14px;padding:16px;width:100%;max-width:340px;max-height:calc(var(--ew-game-height,100vh) * 0.86);overflow:auto;box-shadow:0 12px 40px #000b">
+      <div style="font-weight:800;font-size:15px;text-align:center"><span id="sgName"></span> · <span id="sgCount" style="color:#5ee89b">${S.garrisonLabel(site,h)}</span></div>
+      <div id="sgList" style="margin-top:10px"></div>
+      <div style="display:flex;gap:8px;margin-top:12px"><button class="btn secondary" style="flex:1" id="sgBack">Back</button></div></div>`;
+    ov.querySelector('#sgName').textContent=site.name;
+    const list=ov.querySelector('#sgList');
+    if(!lines.length){ const e=document.createElement('div'); e.style.cssText='font-size:12px;color:#8b98a9;text-align:center;padding:8px'; e.textContent='No lines stationed - the guards defend it.'; list.appendChild(e); }
+    for(const l of lines){ const row=document.createElement('div'); row.className='sgLine'; row.dataset.marchId=l.marchId;
+      row.style.cssText='display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #1c2434;font-size:12px';
+      row.innerHTML='<div style="flex:1;min-width:0"><b class="sgOwner"></b> <span class="sgPow" style="color:#ffd45e"></span><div class="sgHeroes" style="font-size:11px;color:#8b98a9"></div></div>';
+      row.querySelector('.sgOwner').textContent=l.name+(l.mine?' (you)':'');
+      row.querySelector('.sgPow').innerHTML=statusIcon('attack')+' '+((l.power|0).toLocaleString())+(l.arriveAt>now?' · arriving '+fmtDur(l.arriveAt-now):'');
+      row.querySelector('.sgHeroes').textContent=(l.heroIds||[]).map(hn).join(', ');
+      if(l.mine){ const b=document.createElement('button'); b.className='btn xs secondary'; b.dataset.return=l.marchId; b.textContent='Return';
+        b.onclick=async()=>{ b.disabled=true; await recallServerCity(l.marchId); await siegeRefresh(); viewGarrison(); }; row.appendChild(b); }
+      list.appendChild(row); }
+    ov.querySelector('#sgBack').onclick=()=>render(); };
+  ov._viewGarrison=viewGarrison;
   render(); await siegeRefresh(); render(); }
 function openWorldTreeMenu(){ closeCityMenu();const actions=worldTreeActionsUI();if(actions){actions.open('tree');return;} const inner=document.getElementById('wzoneInner'); if(!inner)return;
   const pop=document.createElement('div'); pop.className='citymenu'; pop.style.left='50%'; pop.style.top='50%'; pop.style.transform='translate(-50%,-140%)'; pop.style.zoom=(1/worldZoom);
@@ -26217,7 +26276,7 @@ function openMarchSelect(ctype,c){
   const fallen=k=>hp[k]!=null&&hp[k]<=0, blocked=k=>busy.has(k)||fallen(k);
   const sel=new Set(); G.team.forEach(k=>{ if(G.unlocked[k]&&!busy.has(k)&&sel.size<5) sel.add(k); });
   const ov=document.createElement('div'); ov.style.cssText='position:fixed;inset:0;background:rgba(4,6,10,.75);z-index:12000;display:flex;align-items:center;justify-content:center';
-  const verb=ctype==='defend'?'Defend':ctype==='group'?'Group Attack':'Attack';
+  const verb=ctype==='garrison'?'Defense':ctype==='defend'?'Defend':ctype==='group'?'Group Attack':'Attack';
   function render(){ ov.innerHTML=`<div style="background:#141b2b;border:1px solid #2a3550;border-radius:14px;padding:14px;width:94%;max-width:470px;max-height:calc(var(--ew-game-height,100vh) * 0.86);overflow:auto;max-width:600px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div style="font-weight:800">${verb} · ${escapeHTML(c.name)}</div><button class="btn sm secondary" id="mcX">${uiIcon('close')}</button></div>
       <div style="font-size:11px;color:#8b98a9;margin-bottom:10px">Choose up to 5 heroes to march. Distance <b>${gridDist(c.x,c.y)}</b> squares · march time <b style="color:#ffd45e">${fmtDur(marchOutMs(ctype,c.x,c.y))}</b> each way. Heroes on a march can't join another until they return.</div>
@@ -26260,7 +26319,7 @@ function openMarchInfo(){ const s=modalShell(), now=Date.now();
   const row=(m)=>{ let label,color,status,retreat='';
     if(m.dir==='in'){ const outb=now<m.arrive; status=(outb?'ETA ':'leaving ')+fmtDur((outb?m.arrive:m.home)-now);
       if(m.ctype==='defend'){label='{i:s:shield} '+m.tName+' reinforcing you';color='#5ee89b';} else {label='{i:s:attack} '+m.tName+' attacking you';color='#ff5555';} }
-    else { const v=m.ctype==='defend'?'{i:s:shield} Defending':m.ctype==='scout'?'{i:u:scout-telescope} Scouting':m.ctype==='group'?'{i:s:attack} Group attack':'{i:s:attack} Attacking'; label=v+' '+m.tName; color=m.ctype==='defend'?'#5ee89b':m.ctype==='scout'?'#8fe3ff':'#ffb347';
+    else { const v=m.ctype==='garrison'||(m.ctype==='siege'&&m.stationed)?'{i:s:shield} Garrison':m.ctype==='siege'?'{i:s:attack} Sieging':m.ctype==='defend'?'{i:s:shield} Defending':m.ctype==='scout'?'{i:u:scout-telescope} Scouting':m.ctype==='group'?'{i:s:attack} Group attack':'{i:s:attack} Attacking'; label=v+' '+m.tName; color=(m.ctype==='defend'||m.stationed)?'#5ee89b':m.ctype==='scout'?'#8fe3ff':'#ffb347';
       if(m.retreated){ status='returning '+fmtDur((m.retStart+m.retDur)-now); }
       else if(m.stationed){ status='stationed'; retreat=m.id; }
       else if(now<m.arrive){ status='ETA '+fmtDur(m.arrive-now); retreat=m.id; }
@@ -31199,7 +31258,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1793477403932';
+const BUILD_ID = '1793479443090';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

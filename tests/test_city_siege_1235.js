@@ -5,8 +5,9 @@
 // dissapear until its depleted".
 //   1. module: 16 cities + 4 oases + the World Tree are siege sites; the 20-square rule measures to the nearest site square.
 //   2. server (a real server, one-file world): 19 squares -> the march starts and goes to the site's CENTRE; 21 -> refused; the
-//      player's reported win seizes the site (guild-less player = holder), the result is idempotent, survives a restart and is in the
-//      world read for everyone; a reported loss changes nothing; the honest digest replays to a match (no flag).
+//      player's reported win seizes the site for the player's GUILD (v1237: only a guild member may attack; the winning line stays as
+//      the garrison - tests/test_city_garrison_1237.js), the result is idempotent, survives a restart and is in the world read for
+//      everyone; a reported loss changes nothing; the honest digest replays to a match (no flag).
 //   3. client (Chromium, phone landscape): the attack-icon marker + cursor over a city, an oasis and the Tree; the click panel with
 //      name, holder, distance; Attack enabled at 19 and disabled with the reason at 21; the holder banner on the map; the march ship
 //      ~1 castle and the trail dashes ~0.35 castle at two zooms; a mine being gathered stays drawn with its timer, a depleted one goes.
@@ -76,9 +77,10 @@ function moduleChecks() {
   const c = SG.byId('city-durrakh'); ok(c && c.guardLevel === 10 && SG.byId('city-hollin').guardLevel === 2 && SG.byId('oasis-nw').guardLevel === 1, 'guards scale with size (Durrakh 10, Hollin 2, an oasis 1)');
   ok(SG.RANGE_SQUARES === 20 && SG.PROTECT_MS === 3600000, 'defaults: 20 squares, 1 h protection');
   const s = SG.byId('oasis-nw'), near = { x: s.x, y: s.y + 0.5 }, now = Date.now(), held = { type: 'player', id: 'u1', name: 'A', protectedUntil: now + 600000 };
-  ok(/protected for 10 more min/.test(SG.refusal({ site: s, castle: near, holder: held, me: { id: 'u2' }, now })) && /already hold/.test(SG.refusal({ site: s, castle: near, holder: held, me: { id: 'u1' }, now }))
-    && /already hold/.test(SG.refusal({ site: s, castle: near, holder: { ...held, type: 'guild', id: 'g1' }, me: { id: 'u3', guildId: 'g1' }, now })) && SG.refusal({ site: s, castle: near, holder: { ...held, protectedUntil: now - 1 }, me: { id: 'u2' }, now }) === null
-    && /armies/.test(SG.refusal({ site: s, castle: near, holder: null, me: { id: 'u2' }, now, freeMarch: false })), 'rules: protection hour, your own / your guild site refused, open after the hour, no free army refused');
+  // v1237: every attacker below is in a guild (a guild-less player is refused first - test_city_garrison_1237)
+  ok(/protected for 10 more min/.test(SG.refusal({ site: s, castle: near, holder: held, me: { id: 'u2', guildId: 'g2' }, now })) && /already hold/.test(SG.refusal({ site: s, castle: near, holder: held, me: { id: 'u1', guildId: 'g9' }, now }))
+    && /already hold/.test(SG.refusal({ site: s, castle: near, holder: { ...held, type: 'guild', id: 'g1' }, me: { id: 'u3', guildId: 'g1' }, now })) && SG.refusal({ site: s, castle: near, holder: { ...held, protectedUntil: now - 1 }, me: { id: 'u2', guildId: 'g2' }, now }) === null
+    && /armies/.test(SG.refusal({ site: s, castle: near, holder: null, me: { id: 'u2', guildId: 'g2' }, now, freeMarch: false })), 'rules: protection hour, your own / your guild site refused, open after the hour, no free army refused');
 }
 
 // ---------- 2. the server ----------
@@ -88,6 +90,9 @@ async function serverChecks() {
     await S.start(''); const adm = await S.req('POST', '/api/register', { name: 'sgAdm', pass: 'password1' }); await S.stop(); await S.start(adm.body.profile.id);
     const A = (await S.req('POST', '/api/login', { name: 'sgAdm', pass: 'password1' })).body.token;
     const p1 = await player(S, A, 'sgOne', '10.71.1.1'), p2 = await player(S, A, 'sgTwo', '10.71.1.2');
+    // v1237 (Phil: "only guild players can attack a city"): each attacker leads a guild
+    const g1 = await S.req('POST', '/api/guild/create', { name: 'Ember Hold' }, p1.token, p1.ip), g2 = await S.req('POST', '/api/guild/create', { name: 'Ash Watch' }, p2.token, p2.ip);
+    assert.ok(g1.body.guild && g2.body.guild, 'guilds: ' + JSON.stringify([g1.body, g2.body]).slice(0, 200)); p1.guildId = g1.body.guild.id; p2.guildId = g2.body.guild.id;
     const pick = pickSite(p1.loc.region); assert.ok(pick, 'a city with open squares of ' + p1.loc.region + ' at 19 and 21');
     const { site } = pick; out.site = site.id; out.at19 = pick.at19.pos; out.at21 = pick.at21.pos;
     // 21 squares: refused (server)
@@ -119,7 +124,7 @@ async function serverChecks() {
     const dig = JSON.parse(fight.digest); dig.won = true;
     const claimDigest = fight.won ? fight.digest : JSON.stringify(dig);
     const win = await S.req('POST', '/api/world/siege/resolve', { marchId: r.body.marchId, requestId: 'r1', won: true, digest: claimDigest }, p1.token, p1.ip);
-    ok(win.body.ok === true && win.body.won === true && win.body.seized === true && win.body.holder && win.body.holder.name === 'sgOne' && win.body.holder.type === 'player', 'the reported win seizes ' + site.name + ' for the player (no guild)');
+    ok(win.body.ok === true && win.body.won === true && win.body.seized === true && win.body.holder && win.body.holder.name === 'Ember Hold' && win.body.holder.type === 'guild' && win.body.garrisoned === true, 'the reported win seizes ' + site.name + ' for the guild and the line stays (v1237)');
     ok(win.body.digestMatch === fight.won && win.body.replayIncident === !fight.won, 'replay: honest win matches (' + fight.won + '); a mismatch is a flag only');
     const w2 = await S.req('POST', '/api/world/siege/resolve', { marchId: r.body.marchId, requestId: 'r1', won: true, digest: claimDigest }, p1.token, p1.ip);
     const w3 = await S.req('POST', '/api/world/siege/resolve', { marchId: r.body.marchId, requestId: 'r2', won: false, digest: JSON.stringify({ ...dig, won: false }) }, p1.token, p1.ip);
@@ -139,9 +144,9 @@ async function serverChecks() {
     // restart: the holder survives, and every player reads it
     await S.stop(); await S.start(adm.body.profile.id);
     const st = await S.req('GET', '/api/world/state', null, p2.token, p2.ip);
-    ok(st.body.sieges && st.body.sieges.sites[site.id] && st.body.sieges.sites[site.id].name === 'sgOne', 'after a restart the world read shows ' + site.name + ' held by sgOne (to another player)');
+    ok(st.body.sieges && st.body.sieges.sites[site.id] && st.body.sieges.sites[site.id].name === 'Ember Hold', 'after a restart the world read shows ' + site.name + ' held by Ember Hold (to another player)');
     const disk = JSON.parse(fs.readFileSync(S.db, 'utf8'));
-    ok(disk.worldSieges && disk.worldSieges.sites[site.id] && disk.worldSieges.sites[site.id].id === p1.id, 'the holder is in the saved world file (backed up with the world)');
+    ok(disk.worldSieges && disk.worldSieges.sites[site.id] && disk.worldSieges.sites[site.id].id === p1.guildId, 'the holder is in the saved world file (backed up with the world)');
     out.p1 = p1; out.p2 = p2; out.S = S; out.A = A;
     return out;
   } catch (e) { await S.stop(); console.error(S.log().slice(-1500)); throw e; }
@@ -176,8 +181,8 @@ async function clientChecks(info) {
     // click: the panel
     const h = await hoverAt(siteId); await page.mouse.click(h.xy.x, h.xy.y); await page.waitForTimeout(800);
     const pan = await page.evaluate(() => { const p = document.getElementById('siegePanel'); return p && { id: p.dataset.siteId, name: p.querySelector('#spName').textContent, holder: p.querySelector('#spHolder').textContent,
-      dist: +p.querySelector('#spDist').dataset.squares, dis: p.querySelector('#spAttack').disabled, why: p.querySelector('#spWhy').textContent }; });
-    ok(pan && pan.id === siteId && pan.name === site.name && pan.holder === 'sgOne' && pan.dist === 19 && pan.dis === true && /already hold/.test(pan.why), 'left click opens the panel: ' + JSON.stringify(pan));
+      dist: +p.querySelector('#spDist').dataset.squares, attack: !!p.querySelector('#spAttack'), defense: !!p.querySelector('#spDefense'), view: !!p.querySelector('#spView') }; });
+    ok(pan && pan.id === siteId && pan.name === site.name && pan.holder === 'Ember Hold (guild)' && pan.dist === 19 && !pan.attack && pan.defense && pan.view, 'left click opens the panel (your guild\'s site: Defense + View Garrison, v1237): ' + JSON.stringify(pan));
     // the gate in the panel: an unheld site at 19 (enabled) and 21 (disabled + reason) - the castle moved on this page only
     const gate = await page.evaluate(async ([id, a, b]) => { const keep = siegeRefresh; siegeRefresh = () => Promise.resolve(_siegeState); _siegeState.sites = {}; const S = EmberweaveWorldSiege, s = S.byId(id), res = [];
       for (const pos of [a, b]) { G.castleX = pos.x; G.castleY = pos.y; await openSiegePanel(id); _siegeState.sites = {}; const p = document.getElementById('siegePanel');
@@ -185,8 +190,8 @@ async function clientChecks(info) {
       siegeRefresh = keep; return res; }, [siteId, info.at19, info.at21]);
     ok(gate[0].dist === 19 && gate[0].dis === false && gate[1].dist === 21 && gate[1].dis === true && /21 squares/.test(gate[1].why), 'client gate: 19 squares Attack enabled, 21 disabled with the reason (' + JSON.stringify(gate) + ')');
     await page.evaluate(() => { G.castleX = null; G.castleY = null; }); await page.evaluate(() => siegeRefresh());
-    const banner = await page.evaluate(id => { const b = document.querySelector('.wmSiegeHolder[data-site-id="' + id + '"]'); return b && b.textContent; }, siteId);
-    ok(banner === 'sgOne', 'the holder banner is on the map: ' + banner);
+    const banner = await page.evaluate(id => { const b = document.querySelector('.wmSiegeHolder[data-site-id="' + id + '"]'); return b && { name: b.querySelector('span').textContent, g: b.querySelector('.wmGarrison').textContent }; }, siteId);
+    ok(banner && banner.name === 'Ember Hold' && banner.g === '1/8', 'the holder banner is on the map with the garrison count: ' + JSON.stringify(banner));
     // march ship + trail in proportion to a castle, at two zooms
     const sizes = [];
     for (const zf of ['close', 'max']) {
@@ -230,7 +235,7 @@ async function clientChecks(info) {
     await page2.waitForTimeout(800);
     const mail = await page2.evaluate(name => ((G.mail && G.mail.war) || []).some(m => m && m.battle && String(m.subj || '').includes(name)), t2.name);
     ok(mail, 'the result is in War mail with its replay');
-    if (rr.won) { const h2 = (await S.req('GET', '/api/world/sieges', null, p1.token, p1.ip)).body.sites[t2.id]; ok(h2 && h2.name === 'sgTwo', 'the win of player two seized ' + t2.name + ' (seen by player one)'); }
+    if (rr.won) { const h2 = (await S.req('GET', '/api/world/sieges', null, p1.token, p1.ip)).body.sites[t2.id]; ok(h2 && h2.name === 'Ash Watch', 'the win of player two seized ' + t2.name + ' for Ash Watch (seen by player one)'); }
     ok(errors.length === 0, 'no page errors (' + errors.slice(0, 2).join(' | ') + ')');
   } finally { await browser.close(); }
 }

@@ -4180,7 +4180,7 @@ const DURABLE_USER_POLICIES=Object.freeze({
   'world-war':{related:true,fields:null},
   'academy-read':{related:false,fields:null},'witch-read':{related:false,fields:null},   // 3 Oct release review: reads that pay Academy income
   'world-city-settlement':{related:true,fields:['watch','feedback','reports','meta']},
-  'world-siege':{related:false,fields:['worldSieges']}   // v1235: a siege march / result; a seize writes the shared holder table
+  'world-siege':{related:true,fields:['worldSieges']}   // v1235: a siege march / result; a seize writes the shared holder table. v1237: related = the garrison owners a won siege sends home
 });
 function durableCommit(user,key,fn,opts={}){
   function finish(draft,receipts,extra,related,diagnostics,legacyTag){
@@ -4386,23 +4386,53 @@ function worldLocation(u){
    protectedUntil, by, byName, marchId}}} - a top-level piece of the world store (saved and backed up with the world). siegeDurable
    runs a siege route on a copy of the player AND of the table, and commits both in one save before the reply (tag world-siege). */
 function siegeState(){ const s=DB.worldSieges; return (s&&typeof s==='object'&&s.sites&&typeof s.sites==='object')?s:{version:1,rev:0,sites:{}}; }
-function siegePublic(now){ const s=siegeState(), out={};
-  for(const [id,h] of Object.entries(s.sites)){ if(!WORLD_SIEGE.byId(id)||!h||typeof h.name!=='string') continue;
-    out[id]={type:h.type==='guild'?'guild':'player',id:String(h.id||''),name:h.name,since:+h.since||0,protectedUntil:+h.protectedUntil||0}; }
+/* v1237 CITY GARRISON (blueprint 04 "CITY GARRISON v1237"): a holder record also keeps garrison:[{marchId, uid, name, heroIds, snaps,
+   power, arriveAt, since}] - one entry per stationed line (cap WORLD_SIEGE.garrisonCap: 8, a capital 10). Everyone reads the count
+   (lines/cap, the map's "N/8"); the holder's guild also reads the lines (owner, heroes, power) for View Garrison. */
+function siegePublic(now,me){ const s=siegeState(), out={};
+  for(const [id,h] of Object.entries(s.sites)){ const site=WORLD_SIEGE.byId(id); if(!site||!h||typeof h.name!=='string') continue;
+    const lines=Array.isArray(h.garrison)?h.garrison:[];
+    const row={type:h.type==='guild'?'guild':'player',id:String(h.id||''),name:h.name,since:+h.since||0,protectedUntil:+h.protectedUntil||0,
+      lines:lines.length,cap:WORLD_SIEGE.garrisonCap(site)};
+    if(me&&WORLD_SIEGE.ownedBy(h,me)) row.garrison=lines.map(l=>({marchId:String(l.marchId||''),uid:String(l.uid||''),name:String(l.name||'Player'),
+      heroIds:Array.isArray(l.heroIds)?l.heroIds.slice(0,5):[],power:l.power|0,arriveAt:+l.arriveAt||0,mine:l.uid===me.id}));
+    out[id]=row; }
   return {rev:s.rev|0,sites:out}; }
-function siegeDurable(user,key,fn,resolving){
+/* v1237: `other(id)` hands the planner a draft of another player (a garrison owner a won siege sends home); every draft it handed out
+   is committed in the SAME save as the attacker and the holder table (tag world-siege, related). */
+function siegeDurable(user,key,fn){
   const now=Date.now(), prior=DB.idem?.[key];
   if(prior&&now-prior.t<=3600000&&prior.resp?.ok===true) return prior.resp;
   if(PG_BOOT_PENDING) return {ok:false,storageFailed:true,error:'World storage restore pending.'};
-  const draft=JSON.parse(JSON.stringify(user)), before=JSON.stringify(siegeState()), sieges=JSON.parse(before);
-  const reply=fn(draft,sieges);
+  const draft=JSON.parse(JSON.stringify(user)), before=JSON.stringify(siegeState()), sieges=JSON.parse(before), related=new Map();
+  const other=id=>{ id=String(id||''); if(!id||id===user.id||!DB.users[id]) return null;
+    if(!related.has(id)) related.set(id,JSON.parse(JSON.stringify(DB.users[id]))); return related.get(id); };
+  const reply=fn(draft,sieges,other);
   if(!reply?.ok) return reply;
   const receipts=Object.assign(Object.create(DB.idem||{}),{[key]:{t:now,resp:reply}});
-  const extra=resolving&&JSON.stringify(sieges)!==before?{worldSieges:sieges}:null;
-  const committed=durableUserCommit(user,draft,receipts,'world-siege',[],extra);
+  const extra=JSON.stringify(sieges)!==before?{worldSieges:sieges}:null;
+  const committed=durableUserCommit(user,draft,receipts,'world-siege',[...related.values()],extra);
   if(!committed.ok) return committed;
   return reply;
 }
+/* v1237: a garrison line goes home - stationed: the full trip back from the site; still outbound: it turns round where it is (the
+   Defend recall rule, v1097). Returns the march fields to set (resolved, with its recall receipt - kept apart from a siege march's
+   own battle receipt, so a late retry of the siege result still gets the battle receipt). */
+function siegeLineHome(march,now,why){
+  const r0=march.route||{}, travel=Math.max(1,(+march.arriveAt)-(+march.depart)), f=now<march.arriveAt?Math.max(0,Math.min(1,(now-march.depart)/travel)):1;
+  const back=Math.max(1,Math.round(travel*f)), turn=(r0.from&&r0.to)?{x:r0.from.x+(r0.to.x-r0.from.x)*f,y:r0.from.y+(r0.to.y-r0.from.y)*f}:null;
+  const route=turn?WORLD_MARCH_ROUTE.capture(r0.from,turn,r0.targetName,back,0):null;
+  const fields={depart:now-back,arriveAt:now,homeAt:now+back,route,recall:{at:now,stationed:f>=1,returnMs:back,why},resolved:true,resolvedAt:now};
+  fields.recallReceipt={ok:true,recalled:true,marchId:march.id,heroIds:(march.heroIds||[]).slice(),depart:fields.depart,arriveAt:fields.arriveAt,homeAt:fields.homeAt,route,siteId:march.station||march.siteId||null,why};
+  return fields; }
+/* v1237: the defenders of a held site - the arrived garrison lines in the order they came, each hero once, up to five (the castle
+   Defend rule: the first lines fight, later lines fill the empty places); none = the NPC guards */
+function siegeDefenders(h,now){ const out=[], seen=new Set();
+  for(const l of (h&&Array.isArray(h.garrison)?h.garrison:[])){ if(!(+l.arriveAt<=now)||!Array.isArray(l.snaps)) continue;
+    for(const s of l.snaps){ if(out.length>=5) break; if(!s||!s.key||seen.has(s.key)||!(+s.hp>0)) continue; seen.add(s.key); out.push(JSON.parse(JSON.stringify(s))); }
+    if(out.length>=5) break; }
+  return out; }
+function siegeLinePower(u,ids){ let p=0; for(const k of ids){ try{ p+=heroCardPower(u,k)|0; }catch(e){} } return p; }
 function worldMoveDurable(user,key,fn){
   const now=Date.now(), prior=DB.idem?.[key];
   if(prior&&now-prior.t<=3600000&&prior.resp?.ok===true)return prior.resp;
@@ -8807,7 +8837,7 @@ async function api(req,res,url){
       const out=await simRun(()=>worldSettlementDurable(me,me.id+':pvpatk:'+reqId,String(b.defId||''),(me,DB)=>{   // v1036: battle on a worker
         const led=ensureLedger(me);acadCollect(ensureAcad(me));
         const march=worldCityMarches(me).find(m=>m.id===String(b.marchId||''));
-        if(!march||march.kind==='defend'||march.kind==='siege'||march.defId!==String(b.defId||'')) return {ok:false,error:'No registered city march.'};
+        if(!march||march.kind==='defend'||march.kind==='siege'||march.kind==='garrison'||march.defId!==String(b.defId||'')) return {ok:false,error:'No registered city march.'};
         if(march.resolved) return march.receipt;
         if(Date.now()<march.arriveAt)
           return {ok:false,error:'The army has not reached the city.',arriveAt:march.arriveAt};
@@ -9015,7 +9045,7 @@ async function api(req,res,url){
   }
   if(p==='/api/world/state' && req.method==='GET'){
     if(!me) return send(res,401,{error:'auth'});
-    return send(res,200,{...worldView(me,Date.now()),sieges:siegePublic(Date.now())});   /* v1235: every site's holder, for everyone */
+    return send(res,200,{...worldView(me,Date.now()),sieges:siegePublic(Date.now(),me)});   /* v1235: every site's holder, for everyone (v1237: + the garrison count) */
   }
   if(p==='/api/world/war/declare' && req.method==='POST'){
     if(!me) return send(res,401,{error:'auth'});
@@ -9061,7 +9091,16 @@ async function api(req,res,url){
     if(PG_BOOT_PENDING)return send(res,503,{ok:false,storageFailed:true,error:'World storage restore pending.'});
     const draft=JSON.parse(JSON.stringify(me)),march=worldCityMarches(draft,now).find(m=>m.id===b.marchId);
     if(!march)return send(res,400,{ok:false,error:'No owned city march.'});
-    if(march.recall)return send(res,200,march.receipt);
+    if(march.recall)return send(res,200,march.recallReceipt||march.receipt);   // v1237: a garrison line keeps its recall receipt apart
+    if(march.kind==='garrison'||march.station){   /* v1237 CITY GARRISON: a garrison line (outbound or stationed) leaves the site's garrison and marches home */
+      const sieges=JSON.parse(JSON.stringify(siegeState())), sid=String(march.station||march.siteId||''), h=sieges.sites[sid], site=WORLD_SIEGE.byId(sid);
+      if(h&&Array.isArray(h.garrison)){ const n=h.garrison.length; h.garrison=h.garrison.filter(l=>l.marchId!==march.id); if(h.garrison.length!==n) sieges.rev=(sieges.rev|0)+1; }
+      const fields=siegeLineHome(march,now,'recalled'), reply=Object.assign({},fields.recallReceipt,{lines:WORLD_SIEGE.garrisonCount(h),cap:site?WORLD_SIEGE.garrisonCap(site):null});
+      fields.recallReceipt=reply; Object.assign(march,fields);
+      const receipts=Object.assign(Object.create(DB.idem||{}),{[key]:{t:now,resp:reply}});
+      const out=durableUserCommit(me,draft,receipts,'world-siege',[],{worldSieges:sieges});
+      return send(res,out.ok?200:503,out.ok?reply:out);
+    }
     let planned;
     if(march.kind==='defend'){   /* v1097 (sweep #12): before arrival it turns round where it is; stationed, it makes the full trip home */
       const r0=march.route||{}, travel=Math.max(1,(+march.arriveAt)-(+march.depart)), f=now<march.arriveAt?Math.max(0,Math.min(1,(now-march.depart)/travel)):1;
@@ -9183,15 +9222,50 @@ async function api(req,res,url){
      the PLAYER's fight is the result (blueprint 24): the client fights the frozen fight and reports {won, digest}; the server replays
      it and a mismatch is a FLAG (battle incident + Ember cheat review), never a verdict. A win seizes the site for your guild (no
      guild: you) in DB.worldSieges - a shared piece of the world store, saved before the reply. Idempotent: one receipt per march. */
-  if((p==='/api/world/siege/start'||p==='/api/world/siege/resolve') && req.method==='POST'){
+  /* v1237 CITY GARRISON (blueprint 04 "CITY GARRISON v1237"): only a guild member may attack (WORLD_SIEGE.refusal); a won siege STAYS -
+     the attacking march is stationed in the site as its first garrison line (no return trip; an army out until recalled); the
+     holder's guild sends more lines with /api/world/siege/garrison up to the cap (8, a capital 10); Return (/api/world/city/recall)
+     takes a line out; a later siege fights the arrived lines' heroes (siegeDefenders) instead of the NPC guards, and its win sends
+     every old line home (their owners' marches, same save) and stations the attacker as the new garrison. */
+  if((p==='/api/world/siege/start'||p==='/api/world/siege/resolve'||p==='/api/world/siege/garrison') && req.method==='POST'){
     if(!me) return send(res,401,{error:'auth'});
     const b=await body(req), rid=String(b.requestId||'').slice(0,48);
     if(!rid) return send(res,400,{ok:false,error:'requestId required'});
     let flag=null;
-    const out=await simRun(()=>siegeDurable(me,me.id+':worldsiege:'+p+':'+rid,(me,sieges)=>{
+    const out=await simRun(()=>siegeDurable(me,me.id+':worldsiege:'+p+':'+rid,(me,sieges,other)=>{
       const now=Date.now(), w=witchState(me,now), led=ensureLedger(me);
       if(!w) return {ok:false,error:'The World Map opens at level '+WITCH.UNLOCK_LEVEL+'.'};
       const marches=worldCityMarches(me,now), mines=worldMineMarches(me,now);
+      if(p==='/api/world/siege/garrison'){   /* v1237: Defense - a guild member adds a line to the guild's site, up to the cap */
+        const loc=worldLocation(me), site=WORLD_SIEGE.byId(String(b.siteId||''));
+        if(!loc) return {ok:false,error:'The World Map opens at level '+WITCH.UNLOCK_LEVEL+'.'};
+        if(!site) return {ok:false,error:'No such site.'};
+        const holder=WORLD_SIEGE.holderOf(sieges,site.id);
+        const why=WORLD_SIEGE.garrisonRefusal({site,holder,me,freeMarch:!(patronOpenMarches(me,now)>=patronRow(led,'marches'))});
+        if(why) return {ok:false,error:why,lines:WORLD_SIEGE.garrisonCount(holder),cap:WORLD_SIEGE.garrisonCap(site)};
+        const ids=Array.isArray(b.heroIds)?[...new Set(b.heroIds.map(String))].slice(0,5):[];
+        if(!ids.length||ids.some(k=>!SIM.HERO_BASE[k]||!ownsHeroK(led,k))) return {ok:false,error:'Pick up to five heroes you own.'};
+        if([...mines,...marches].some(m=>m.homeAt>now&&m.heroIds?.some(k=>ids.includes(k)))||ids.some(k=>WORLD_TREE_CONTROL.busy(DB.worldTreeControl,me.id,k,now)))
+          return {ok:false,error:'A selected hero is already marching.'};
+        const host=simHost(); if(!host) return {ok:false,error:'Siege battle engine unavailable.'};
+        const specs=ids.map(k=>campaignHeroSpec(me,k)); if(specs.some(s=>!s)) return {ok:false,error:'Garrison squad could not be resolved.'};
+        let snaps; try{ snaps=host.snapFromSpecs(specs); }catch(e){ return {ok:false,error:'Garrison squad could not be resolved.'}; }
+        if(snaps.length!==ids.length) return {ok:false,error:'Garrison squad is incomplete.'};
+        snaps=snaps.map(s=>{ const hp=WITCH.combatHp(w.state,s.key,s.maxHp); return {...s,hp,worldEntryHpCap:hp}; });
+        if(snaps.some(s=>s.hp<=0)) return {ok:false,error:'A selected hero has 0% HP. Heal them before this march.'};
+        const target={x:site.x,y:site.y}, distance=WORLD_LOCATION.marchSquares(loc,target);
+        const fixtureMs=process.env.NODE_ENV==='test'?Math.max(0,+process.env.WORLD_CITY_TEST_MS||0):0;
+        const timing=fixtureMs?null:WORLD_VOID_TIMING.plan(loc,target,patronMarchMs(led,distance*60000));
+        const travel=fixtureMs||timing.travelMs;
+        const march={id:uid(),kind:'garrison',siteId:site.id,siteName:site.name,station:site.id,heroIds:ids,depart:now,arriveAt:now+travel,
+          homeAt:now+WORLD_DEFEND_STATION_MS,resolved:false,target,route:WORLD_MARCH_ROUTE.capture(loc,target,site.name,travel,0,timing?.pacing)};
+        marches.push(march);
+        const rec=sieges.sites[site.id]; rec.garrison=(Array.isArray(rec.garrison)?rec.garrison:[]).concat([{marchId:march.id,uid:me.id,name:String(me.name||'Player').slice(0,40),
+          heroIds:ids,snaps,power:siegeLinePower(me,ids),arriveAt:march.arriveAt,since:now}]);
+        sieges.rev=(sieges.rev|0)+1;
+        return {ok:true,marchId:march.id,siteId:site.id,siteName:site.name,target,depart:now,arriveAt:march.arriveAt,homeAt:march.homeAt,travel,heroIds:ids,
+          lines:rec.garrison.length,cap:WORLD_SIEGE.garrisonCap(site)};
+      }
       if(p==='/api/world/siege/start'){
         const loc=worldLocation(me), site=WORLD_SIEGE.byId(String(b.siteId||''));
         if(!loc) return {ok:false,error:'The World Map opens at level '+WITCH.UNLOCK_LEVEL+'.'};
@@ -9209,19 +9283,21 @@ async function api(req,res,url){
         if(snaps.length!==ids.length) return {ok:false,error:'Siege squad is incomplete.'};
         snaps=snaps.map(s=>{ const hp=WITCH.combatHp(w.state,s.key,s.maxHp); return {...s,hp,worldEntryHpCap:hp}; });
         if(snaps.some(s=>s.hp<=0)) return {ok:false,error:'A selected hero has 0% HP. Heal them before this march.'};
-        const foe=host.mineGarrison(WORLD_SIEGE.guardNode(site));
-        if(!Array.isArray(foe)||foe.length!==5) return {ok:false,error:'The site guards could not be resolved.'};
+        /* v1237: a garrisoned site is defended by its lines' heroes (frozen now, like the guards); no arrived line = the NPC guards */
+        const held=WORLD_SIEGE.holderOf(sieges,site.id), defenders=siegeDefenders(held,now);
+        const foe=defenders.length?defenders:host.mineGarrison(WORLD_SIEGE.guardNode(site));
+        if(!Array.isArray(foe)||!foe.length||(!defenders.length&&foe.length!==5)) return {ok:false,error:'The site guards could not be resolved.'};
         const target={x:site.x,y:site.y};   // Phil 30 Oct: "should march to the center of the city"
         const distance=WORLD_LOCATION.marchSquares(loc,target);   // march time in 220-grid squares, like every march
         const fixtureMs=process.env.NODE_ENV==='test'?Math.max(0,+process.env.WORLD_CITY_TEST_MS||0):0;
         const timing=fixtureMs?null:WORLD_VOID_TIMING.plan(loc,target,patronMarchMs(led,distance*60000));
         const travel=fixtureMs||timing.travelMs, seed=(crypto.randomBytes(4).readUInt32BE(0))>>>0;
-        const march={id:uid(),kind:'siege',siteId:site.id,siteName:site.name,heroIds:ids,snaps,foe,seed,engine:host.buildVersion||null,
+        const march={id:uid(),kind:'siege',siteId:site.id,siteName:site.name,heroIds:ids,snaps,foe,seed,engine:host.buildVersion||null,defenders:defenders.length?'garrison':'guards',
           depart:now,arriveAt:now+travel,homeAt:now+travel*2,resolved:false,target,
           route:WORLD_MARCH_ROUTE.capture(loc,target,site.name,travel,0,timing?.pacing)};
         marches.push(march);
         return {ok:true,marchId:march.id,siteId:site.id,siteName:site.name,target,distance:WORLD_SIEGE.distance(loc,site),
-          depart:now,arriveAt:march.arriveAt,homeAt:march.homeAt,travel,heroIds:ids,snaps,foe,seed,guardLevel:site.guardLevel};
+          depart:now,arriveAt:march.arriveAt,homeAt:march.homeAt,travel,heroIds:ids,snaps,foe,seed,guardLevel:site.guardLevel,defenders:march.defenders};
       }
       const march=marches.find(m=>m.id===String(b.marchId||'')&&m.kind==='siege');
       if(!march) return {ok:false,error:'No registered siege march.'};
@@ -9247,28 +9323,43 @@ async function api(req,res,url){
       const outcomes=march.snaps.map(s=>{ const row=d.u.find(u=>Array.isArray(u)&&u[0]===s.key&&u[1]==='ally');
         return {key:s.key,hp:row&&row[2]?Math.max(0,Math.min(s.worldEntryHpCap,+row[3]||0)):0,maxHp:s.maxHp}; });
       const injuries=WITCH.applyBattle(w.state,outcomes,march.heroIds);
-      let seized=false, note='';
-      const holder=WORLD_SIEGE.holderOf(sieges,site.id);
+      let seized=false, note='', garrisoned=false, sentHome=0;
+      const holder=WORLD_SIEGE.holderOf(sieges,site.id), g=me.guildId&&DB.guilds?.[me.guildId];
+      // v1237: the line that stays - the squad as the fight left it (a hero the fight killed does not defend)
+      const station=()=>{ const rec=sieges.sites[site.id], lines=Array.isArray(rec.garrison)?rec.garrison:[];
+        if(lines.length>=WORLD_SIEGE.garrisonCap(site)){ note=(note?note+' ':'')+'The garrison of '+site.name+' is full - your army marches home.'; return; }
+        const snaps=march.snaps.map(s=>{ const o=outcomes.find(x=>x.key===s.key); const hp=o?o.hp:0; return {...s,hp,worldEntryHpCap:hp}; }).filter(s=>s.hp>0);
+        rec.garrison=lines.concat([{marchId:march.id,uid:me.id,name:String(me.name||'Player').slice(0,40),heroIds:march.heroIds.slice(),snaps,power:siegeLinePower(me,march.heroIds),arriveAt:march.arriveAt,since:now}]);
+        sieges.rev=(sieges.rev|0)+1; march.station=site.id; march.homeAt=now+WORLD_DEFEND_STATION_MS; garrisoned=true; };
       if(won){
-        if(holder&&WORLD_SIEGE.ownedBy(holder,me)) note=(holder.type==='guild'?'Your guild':'You')+' already held '+site.name+'.';
+        if(holder&&WORLD_SIEGE.ownedBy(holder,me)){ note=(holder.type==='guild'?'Your guild':'You')+' already held '+site.name+'.'; station(); }
         else if(holder&&holder.protectedUntil>now) note=site.name+' was taken by '+holder.name+' first - it is protected for '+Math.ceil((holder.protectedUntil-now)/60000)+' more min.';
-        else { const g=me.guildId&&DB.guilds?.[me.guildId];
-          sieges.sites[site.id]=g?{type:'guild',id:String(me.guildId),name:String(g.name||'Guild').slice(0,40),since:now,protectedUntil:now+WORLD_SIEGE.PROTECT_MS,by:me.id,byName:me.name,marchId:march.id}
-            :{type:'player',id:me.id,name:String(me.name||'Player').slice(0,40),since:now,protectedUntil:now+WORLD_SIEGE.PROTECT_MS,by:me.id,byName:me.name,marchId:march.id};
-          sieges.rev=(sieges.rev|0)+1; seized=true; }
-      }
+        else if(!g) note='Join a guild to take '+site.name+'.';   // v1237: only a guild takes a site (left the guild while marching)
+        else {
+          /* v1237: the old garrison goes home - each line's march (its owner's account, committed in this same save) turns for home */
+          for(const l of (holder&&Array.isArray(holder.garrison)?holder.garrison:[])){ const owner=l.uid===me.id?me:other(l.uid); if(!owner) continue;
+            const m=worldCityMarches(owner,now).find(x=>x&&x.id===l.marchId); if(!m||m.recall) continue;
+            Object.assign(m,siegeLineHome(m,now,'displaced')); sentHome++;
+            if(owner!==me){ owner.pvpMail=owner.pvpMail||[]; owner.pvpMail.push({id:uid(),kind:'garrison-report',from:me.name,to:site.name,held:false,t:now,marchId:m.id}); if(owner.pvpMail.length>20) owner.pvpMail=owner.pvpMail.slice(-20); } }
+          sieges.sites[site.id]={type:'guild',id:String(me.guildId),name:String(g.name||'Guild').slice(0,40),since:now,protectedUntil:now+WORLD_SIEGE.PROTECT_MS,by:me.id,byName:me.name,marchId:march.id,garrison:[]};
+          sieges.rev=(sieges.rev|0)+1; seized=true; station(); }
+      } else if(march.defenders==='garrison'&&holder&&Array.isArray(holder.garrison)){   // v1237: the garrison held - its owners get a war mail line
+        for(const uidOf of new Set(holder.garrison.map(l=>l.uid))){ const owner=other(uidOf); if(!owner) continue;
+          owner.pvpMail=owner.pvpMail||[]; owner.pvpMail.push({id:uid(),kind:'garrison-report',from:me.name,to:site.name,held:true,t:now}); if(owner.pvpMail.length>20) owner.pvpMail=owner.pvpMail.slice(-20); } }
       march.resolved=true; march.resolvedAt=now;
-      march.receipt={ok:true,won,seized,note,siteId:site.id,siteName:site.name,holder:WORLD_SIEGE.holderOf(sieges,site.id),injuries,
+      const hr=sieges.sites[site.id];
+      march.receipt={ok:true,won,seized,garrisoned,sentHome,note,siteId:site.id,siteName:site.name,holder:WORLD_SIEGE.holderOf(sieges,site.id),
+        lines:WORLD_SIEGE.garrisonCount(hr),cap:WORLD_SIEGE.garrisonCap(site),homeAt:march.homeAt,defenders:march.defenders||'guards',injuries,
         digestMatch:match,replayIncident:!match,playerTruth:true,replay:{seed:march.seed>>>0,snaps:march.snaps,foe:march.foe,engine:march.engine||null},witch:witchView(me,now)};
       delete march.snaps;
       return march.receipt;
-    },p==='/api/world/siege/resolve'),'live');
+    }),'live');
     if(out&&out.ok&&flag) feedbackCheatSignal(me,flag.signal,flag.detail,'battle integrity');
     return send(res,out.storageFailed?503:out.ok?200:400,out);
   }
   if(p==='/api/world/sieges' && req.method==='GET'){
     if(!me) return send(res,401,{error:'auth'});
-    const now=Date.now(); return send(res,200,{ok:true,serverNow:now,...siegePublic(now),armies:{out:patronOpenMarches(me,now),cap:patronRow(ensureLedger(me),'marches')},myId:me.id,myGuildId:me.guildId||null});
+    const now=Date.now(); return send(res,200,{ok:true,serverNow:now,...siegePublic(now,me),armies:{out:patronOpenMarches(me,now),cap:patronRow(ensureLedger(me),'marches')},myId:me.id,myGuildId:me.guildId||null});
   }
   if((p==='/api/world/relocate'||p==='/api/world/buy-scrolls') && req.method==='POST'){
     if(!me) return send(res,401,{error:'auth'});
