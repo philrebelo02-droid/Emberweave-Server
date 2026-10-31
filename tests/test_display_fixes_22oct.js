@@ -25,7 +25,7 @@ const def = rows.find(r => r.id === 'd1'), atk = rows.find(r => r.id === 'a1');
 check(def && def.defend === true, 'the stationed defender lost its defend flag in the Watchtower projection');
 check(atk && !atk.defend, 'a real attack is marked as defend');
 // and the client's attack filter (html) drops exactly the defender
-const filt = /if\(\(m\.kind!=='city'&&m\.kind!=='mine'\)\|\|m\.defend\)return;/.test(html);
+const filt = /if\(\(m\.kind!=='city'&&m\.kind!=='mine'\)\|\|m\.defend(\|\|m\.garrison)?\)return;/.test(html);
 check(filt, 'the Watchtower attack filter on m.defend is missing');
 const shown = rows.filter(m => !((m.kind !== 'city' && m.kind !== 'mine') || m.defend)).map(m => m.id);
 check(shown.length === 1 && shown[0] === 'a1', 'the Watchtower would list ' + JSON.stringify(shown) + ' as attacks (want only a1)');

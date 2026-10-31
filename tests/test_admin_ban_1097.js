@@ -69,11 +69,12 @@ const login=(name)=>call('/api/login',{name,pass:'password1'});
   // ---- an admin cannot be banned ----
   ok((await call('/api/admin/ban',{playerId:admin,days:7,requestId:'a1'},D)).status===400,'an admin account cannot be banned');
   // ---- an expired ban lifts itself ----
+  let banEnds=0;   // v1237: 12 s window, wait until it really ends - a slow cluster restart outlived the old 2.5 s window
   r=await call('/api/admin/ban',{playerId:pid,days:7,reason:'short',requestId:'e1'},D);
   ok(r.status===200,'admin bans for 7 days');
-  await delay(400); await stop(); { const db=disk(); db.users[pid].bannedUntil=Date.now()+2500; if(db.users[pid].ban) db.users[pid].ban.until=db.users[pid].bannedUntil; fs.writeFileSync(dbFile,JSON.stringify(db)); } await start();
+  await delay(400); await stop(); { const db=disk(); db.users[pid].bannedUntil=banEnds=Date.now()+12000; if(db.users[pid].ban) db.users[pid].ban.until=db.users[pid].bannedUntil; fs.writeFileSync(dbFile,JSON.stringify(db)); } await start();
   ok((await login('banPia')).status===403,'banned while the time has not run out');
-  await delay(3000);
+  await delay(Math.max(0,banEnds-Date.now())+500);
   li=await login('banPia');
   ok(li.status===200&&!!li.data.token,'once the time runs out the ban lifts itself (no admin action)');
   try{ ws.close(); }catch(_){}
