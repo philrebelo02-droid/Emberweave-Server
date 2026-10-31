@@ -584,6 +584,21 @@ note "test_survivors_melee_26oct.js (Phil 26 Oct: melee heroes swing in a front 
 node tests/test_survivors_melee_26oct.js || FAILED=1
 note "test_camp_chapter_sync_26oct.js (Kimi A1: a ledger repaint keeps the chapter the player turned to; an untouched map still follows the ledger)"
 node tests/test_camp_chapter_sync_26oct.js || FAILED=1
+# 31 Oct 2026 (Claude): today's new feature tests were never registered here, so no suite ran them
+note "test_realm_1231.js (v1231 realm: 16 cities, water cities blocked, detail2x level)"
+node tests/test_realm_1231.js || FAILED=1
+note "test_map_no_jump.js (v1231 the world map view never jumps)"
+node tests/test_map_no_jump.js || FAILED=1
+note "test_vael_enemy_heal_1232.js (v1232 campaign-enemy Vael: Last Stand heal + stats)"
+node tests/test_vael_enemy_heal_1232.js || FAILED=1
+note "test_map_zoom_smooth_1234.js (v1234 smooth map zoom: old level kept until the new tiles load, generation guard)"
+node tests/test_map_zoom_smooth_1234.js || FAILED=1
+note "test_spire_abilities_all.js (v1233 every Swarm Spire ability has its effect (55 heroes))"
+node tests/test_spire_abilities_all.js || FAILED=1
+note "test_city_siege_1235.js (v1235 city siege: hover sword, panel, 20-square gate, march to centre, guild seize)"
+node tests/test_city_siege_1235.js || FAILED=1
+note "test_city_garrison_1237.js (v1237 city garrison: stays after a win, N/8 or N/10, Defense / View Garrison, guild-only)"
+node tests/test_city_garrison_1237.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi
