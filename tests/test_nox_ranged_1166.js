@@ -66,7 +66,9 @@ try {
     ck('HERO_TYPES.nox: only range, rangeHold, damageProfile, primaryScaling differ from BASE - hp 245 / dmg 40 / apow none / swing 1.8 / atkSpeed 1.2 / speed 92 unchanged', keep(T) === keep(T0) && T.rangeHold === true && T.dmg === 40 && T.swing === 1.8 && T.atkSpeed === 1.2, keep(T)); }
   const kits = r => r('JSON.stringify([KITS.nox,ULT_DEF.openeverydoor,ULT_SCALE.openeverydoor||null,HERO_ULT_ART.nox||null,ABILITY_CAST.nox||null])');
   ck('no new damage number or multiplier: his kit (Lockpick Soul, Forbidden Key, Skeleton-Key Savant), Open Every Door and their cast times are BASE\'s', kits(run) === kits(R0));
-  ck('every other hero\'s HERO_TYPES line is BASE\'s', run("JSON.stringify(Object.keys(HERO_TYPES).filter(k=>k!=='nox').map(k=>[k,HERO_TYPES[k]]))") === R0("JSON.stringify(Object.keys(HERO_TYPES).filter(k=>k!=='nox').map(k=>[k,HERO_TYPES[k]]))"));
+  // v1232: enemy-only campaign fields (Vael's enemyHpMul / enemyDmgMul, Phil 31 Oct) are not part of the hero's own line
+  const otherTypes = "JSON.stringify(Object.keys(HERO_TYPES).filter(k=>k!=='nox').map(k=>[k,Object.fromEntries(Object.entries(HERO_TYPES[k]).filter(([f])=>!/^enemy/.test(f)))]))";
+  ck('every other hero\'s HERO_TYPES line is BASE\'s (enemy-only fields aside)', run(otherTypes) === R0(otherTypes));
   // 2. the unit the engine builds
   const U = r => JSON.parse(r(`(()=>{ const u=makeUnit('nox','ally',300,600,30,{owned:false,rank:3}); const b=makeUnit('nox','enemy',300,600,30,{owned:false,rank:3,boss:true});
     return JSON.stringify({melee:!!u.melee,range:u.range,cd:u.combatDist,mode:heroScaleMode(u),row:heroFormationDepth('nox'),brange:b.range,bcd:b.combatDist}); })()`));
