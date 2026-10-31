@@ -28633,11 +28633,13 @@ function survivorsRoster(){ const all=Object.keys(HERO_TYPES), own=k=>heroOwned(
    art from skillPreviewPlan (the Skills tab plan = how the fight places it): sheet + where (self / target / above / a projectile) + when + how
    long + its radius in metres. Only plain fields cross to the frame. */
 const SURV_SHEET_KEYS=['u','n','fw','fh','cols','rows','dur','fps2','upright','disc','cone','upSize','upExtent','upAnchor','upAbove','upAboveM','fxMul'];
-function survKind(row){ const t=String((row&&row.type)||'').toLowerCase()+' '+String((row&&row.deliver)||'');
+function survKind(row){ const ty=String((row&&row.type)||'').toLowerCase(), t=ty+' '+String((row&&row.deliver)||'');
   if(/^summon/.test(t)) return 'summon';
   if(/chainlight/.test(t)||(row&&row.jumps)) return 'chain';   /* jumping chains only (Fritz) - Tolley's Chain Quench is a pull */
-  if(/heal|mend|regen|bloom|hot|courage|renew|restor|cleanse/.test(t)) return 'heal';
-  if(/shield|ward|guard|lastbreath|barrier|bubble|aegis|stand|mantle|shell|fortify|armor/.test(t)) return 'ward';
+  /* 31 Oct: heal / ward read the TYPE only, and 'hot' as the whole type - 'hot' matched the deliver 'shot', so 10 enemy shots (Absalie's
+     Abyssal Needle, Sloe's Thornshot, Rafe's Grappling Hook, Brannus, Dandra, Meridian, Mirelle, Nerisse, Nox, Pyroclast) healed the hero */
+  if(/heal|mend|regen|bloom|^hot$|courage|renew|restor|cleanse/.test(ty)) return 'heal';
+  if(/shield|ward|guard|lastbreath|barrier|bubble|aegis|stand|mantle|shell|fortify|armor/.test(ty)) return 'ward';
   if(/leap|dash|blink|charge|lunge|hook|burrow|pounce|jump/.test(t)) return 'dash';
   if(/shot|bolt|line|beam|spread|pierce|volley|snipe|lance|thrown|card/.test(t)) return 'bolt';
   return 'nova'; }
@@ -28667,7 +28669,9 @@ function survivorsKit(hk){ const K=KITS[hk]||{}, T=HERO_TYPES[hk]||{}, row=(r,sl
     power:kd==='heal'?0.3:kd==='dash'?5:kd==='summon'?((r.n|0)>1?0.4:0.6):kd==='chain'?2:2.5, dur:kd==='summon'?(+r.dur||12):(r.dur||4), fx:survArt(hk,slot==='green'?1:2),
     fk:fe[0], fp:fe[1], n:r.n|0||1, jumps:r.jumps|0||4, unit:u, unitArt:u?survUnitArt(u):null }; };
   const at=SURV_ATK[hk], ad=at&&at.k&&FX2_DEF[at.k], atk=at&&at.img?{ img:at.img }:ad?{ fr:at.fr, d:Object.fromEntries(SURV_SHEET_KEYS.filter(k=>ad[k]!=null&&typeof ad[k]!=='function').map(k=>[k,ad[k]])) }:null;
-  return { skills:[row(K.green,'green'),row(K.blue,'blue')].filter(Boolean), ult:{ name:T.abilityName||'Ultimate', fx:survArt(hk,0) }, atk,
+  const uS=/^summon/.test(T.ability||'')&&ULT_DEF[T.ability]&&ULT_DEF[T.ability].key, ult={ name:T.abilityName||'Ultimate', fx:survArt(hk,0) };   /* 29/31 Oct (Phil: "Aldrens doesnt"): a summon ult summons in the Spire too (Aldren's Final Volume = the Elder Ink Horror) */
+  if(uS) ult.summon={ unit:uS, n:1, dur:+ULT_DEF[T.ability].dur||20, power:0.8, unitArt:survUnitArt(uS) };
+  return { skills:[row(K.green,'green'),row(K.blue,'blue')].filter(Boolean), ult, atk,
     melee:(T.range||0)<60, reach:Math.max(2.2,Math.max(T.reach||0,(T.minimumReachMeters||0)*METER)/METER*0.6) }; }   /* Phil 26 Oct: melee heroes swing, punch or stab (the game's range under 60); reach in Spire metres (a long melee like Zahri's 7 m lance -> 4.2) */
 /* the basic-attack projectile in the Spire: its own art ({img}, one element pointing RIGHT) or a frame of the hero's sheet ({k, fr}) - the fight still
    draws a code tracer. Linnet: the needle bolt (24 Oct, Game Art/Hero Survivors/Projectiles, sha256 25df4fd3...) */
@@ -31075,7 +31079,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1793451984530';
+const BUILD_ID = '1793457784227';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
