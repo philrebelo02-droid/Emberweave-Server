@@ -647,10 +647,9 @@ def main():
         log('previous tiles moved to', bak)
     if not a.reuse_tiles:
         build_pyramid(master, levels, tiles_dir, files, X0, out)
-    if a.reuse_tiles and a.rerender:
-        rerender(master, levels, files, X0, out, [tuple(map(int, r.split(','))) for r in a.rerender.split(';') if r])
-    cover = np.asarray(Image.open(files['cover.webp']).convert('RGB'))   # decoded, the same bytes either way
-    # the mask is ALWAYS measured on the saved WebP tiles, so a full build and a --reuse-tiles run give the same zones
+    # the mask is ALWAYS measured on the saved WebP tiles, so a full build and a --reuse-tiles run give the same zones.
+    # v1229: with --rerender the mask is measured on the tiles as they were BEFORE the re-render, so a repaint that hangs art over the sea
+    # (Grok's floating World Tree island: its rock underside, falls and mist) never turns sea cells into land
     small = {}
     for L in levels:
         if L['width'] <= 10000:
@@ -659,6 +658,9 @@ def main():
                     for c in range(L['cols']):
                         pic_.paste(Image.open(files['tiles/z%d/r%02dc%02d.webp' % (L['z'], r, c)]).convert('RGB'), (c * TILE, r * TILE))
                 small[L['z']] = np.asarray(pic_)
+    if a.reuse_tiles and a.rerender:
+        rerender(master, levels, files, X0, out, [tuple(map(int, r.split(','))) for r in a.rerender.split(';') if r])
+    cover = np.asarray(Image.open(files['cover.webp']).convert('RGB'))   # decoded, the same bytes either way
     sea_pad(cover, out, files)
     log('pyramid: ' + ', '.join('z%d %dx%d (%d tiles, %.1f px/cell)' % (L['z'], L['width'], L['height'], L['cols'] * L['rows'], L['cellPx']) for L in levels))
 
