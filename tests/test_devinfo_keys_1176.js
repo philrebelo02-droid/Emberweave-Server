@@ -89,7 +89,7 @@ const SILENT = () => { const oc = AudioNode.prototype.connect;
     ck(/Lv \d+/.test(A.t) && /Forge Dust\s*512/.test(A.t) && /Ember Roasts\s*2/.test(A.t), 'player level, Forge Dust 512, Ember Roasts 2');
     ck(/Email on file\s*Yes/.test(A.t) && !/fixture@example\.com/.test(A.t), 'has email: Yes - the address itself is not shown');
     ck(A.btns, 'the existing buttons stay (+2000, -2000, Recover password, Ban)');
-    ck(A.docked && A.over.length === 0, 'the mute button is docked under the popup X and overlaps nothing', JSON.stringify({ why: A.why, mr: A.mr, xr: A.xr, over: A.over }));
+    ck(A.why === 'offmain' && A.over.length === 0, 'v1230 (Phil: mute only on the main screens): no mute button over this popup, nothing overlapped', JSON.stringify({ why: A.why, mr: A.mr, xr: A.xr, over: A.over }));
     ck(A.fits && A.wide, 'the popup fits 844x390 (no horizontal scroll)');
     { const em = (A.t.match(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{1F000}-\u{1F2FF}]/gu) || []).length; ck(em === 0, 'no emoji in the popup', em); }
     if (SHOTS) { await pg.screenshot({ path: path.join(SHOTS, 'devinfo-popup-844x390.png') });
