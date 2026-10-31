@@ -20,7 +20,7 @@ let pass=0;const ok=(c,m)=>{assert(c,m);pass++;};
     if(!D.sources.some(s=>mx0>=s.x0-1&&my0>=s.y0-1)||![[mx0,my0],[mx1-1,my0],[mx0,my1-1],[mx1-1,my1-1]].every(([x,y])=>D.sources.some(s=>x>=s.x0&&x<s.x0+4096&&y>=s.y0&&y<s.y0+4096)))outside++;}
   ok(missing===0,'every z0 tile exists ('+missing+' missing of '+D.tiles.length+')');ok(badHash===0,'every z0 tile matches realm.json ('+badHash+' differ)');
   ok(outside===0,'every z0 tile lies inside Grok\'s detail tiles ('+outside+' outside)');
-  ok(D.sources.length===3&&D.sources.every(s=>/^[0-9a-f]{64}$/.test(s.sha256)),'the three detail sources are recorded with their sha256');
+  ok(D.sources.length>=3&&new Set(D.sources.map(s=>s.r+','+s.c)).size===D.sources.length&&D.sources.every(s=>/^[0-9a-f]{64}$/.test(s.sha256)),'the '+D.sources.length+' detail sources are recorded with their sha256, one file per tile position (v1232: 7, the latest round each)');
   // a view outside the detail (the south-west) gets no z0 tile: the client filters by the same tile set
   const set=new Set(D.tiles);let hits=0;for(let r=60;r<70;r++)for(let c=20;c<30;c++)if(set.has(r+','+c))hits++;ok(hits===0,'no z0 tile outside the detail');
   const html=fs.readFileSync(path.join(root,'emberweave-heroes.html'),'utf8');

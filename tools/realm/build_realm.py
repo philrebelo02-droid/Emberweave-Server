@@ -450,21 +450,27 @@ def build_detail2x(folder, src, master, levels, files, X0, out, cities, RW, RH):
     det = []
     for f in sorted(glob.glob(os.path.join(folder, '*detail2x r*c* x* y*.png'))):
         m = pat.search(os.path.basename(f)); r_, c_, mx, my = map(int, m.groups())
-        det.append({'file': f, 'r': r_, 'c': c_, 'x0': mx, 'y0': my, 'x1': mx + 4096, 'y1': my + 4096, 'sha256': sha(f)})
+        if any(d['r'] == r_ and d['c'] == c_ for d in det):   # v1232: one file per tile position (the latest round), never two takes of one tile
+            sys.exit('--detail2x: two files for r%dc%d in %s - stage only the latest round' % (r_, c_, folder))
+        with Image.open(f) as im_:
+            dw, dh = im_.size   # v1232: an edge tile (c8: 3744 px) is narrower than 8192 - its extent is its own size at 2x
+        det.append({'file': f, 'r': r_, 'c': c_, 'x0': mx, 'y0': my, 'x1': mx + dw // 2, 'y1': my + dh // 2, 'sha256': sha(f)})
     if not det:
         sys.exit('--detail2x: no detail tiles in ' + folder)
-    def covered(x0, y0, x1, y1):   # master rect wholly inside the union of detail tiles (detail tiles are on the 4096 grid)
+    def covered(x0, y0, x1, y1):   # master rect (clipped to the realm) wholly inside the union of detail tiles (detail tiles are on the 4096 grid)
+        x1, y1 = min(x1, RW), min(y1, RH)
         for yy in range(int(y0 // 4096), int((y1 - 1e-6) // 4096) + 1):
             for xx in range(int(x0 // 4096), int((x1 - 1e-6) // 4096) + 1):
-                if not any(d['x0'] == xx * 4096 and d['y0'] == yy * 4096 for d in det):
+                if not any(d['x0'] == xx * 4096 and d['y0'] == yy * 4096 and d['x1'] >= min(x1, (xx + 1) * 4096) - 1e-6
+                           and d['y1'] >= min(y1, (yy + 1) * 4096) - 1e-6 for d in det):
                     return False
         return True
     W0, H0 = int(round((RW - X0) * s)), int(round(RH * s))
     cols0, rows0 = int(math.ceil(W0 / TILE)), int(math.ceil(H0 / TILE))
     want = []
     for d in det:
-        for r in range(int(d['y0'] * s // TILE), int(math.ceil(d['y1'] * s / TILE))):
-            for c in range(int((d['x0'] - X0) * s // TILE), int(math.ceil((d['x1'] - X0) * s / TILE))):
+        for r in range(int(d['y0'] * s // TILE), min(rows0, int(math.ceil(d['y1'] * s / TILE)))):
+            for c in range(int((d['x0'] - X0) * s // TILE), min(cols0, int(math.ceil((d['x1'] - X0) * s / TILE)))):
                 mx0, my0 = X0 + c * TILE / s, r * TILE / s
                 if covered(mx0, my0, mx0 + TILE / s, my0 + TILE / s) and (r, c) not in want:
                     want.append((r, c))
@@ -515,8 +521,9 @@ def build_detail2x(folder, src, master, levels, files, X0, out, cities, RW, RH):
                 continue
             o = ov[sy0:sy0 + hh, sx0:sx0 + ww]; al = o[..., 3:4] / 255.0
             tile[ty0:ty0 + hh, tx0:tx0 + ww] = tile[ty0:ty0 + hh, tx0:tx0 + ww] * (1 - al) + o[..., :3] * al
+        tile = tile[:min(TILE, H0 - r * TILE), :min(TILE, W0 - c * TILE)]   # v1232: an edge tile is cropped to the level, as z1's are
         p = os.path.join(out, 'tiles', 'z0', 'r%02dc%02d.webp' % (r, c))
-        Image.fromarray(np.clip(tile + 0.5, 0, 255).astype(np.uint8)).save(p, 'WEBP', quality=WEBP_Q, method=6)
+        Image.fromarray(np.ascontiguousarray(np.clip(tile + 0.5, 0, 255).astype(np.uint8))).save(p, 'WEBP', quality=WEBP_Q, method=6)
         files['tiles/z0/r%02dc%02d.webp' % (r, c)] = p
     want.sort()
     log('detail2x: z0 %d tiles (scale %.1f, %.1f px a square) from %s' % (len(want), s, L1['cellPx'] * 2, ', '.join('r%dc%d' % (d['r'], d['c']) for d in det)))
