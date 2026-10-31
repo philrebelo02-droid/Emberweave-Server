@@ -254,6 +254,40 @@
   .sf-tip-name{font-weight:800;font-size:12.5px;color:#ffe6a8;margin-bottom:3px;}
   .sf-tip-desc{font-size:11px;color:#cdd6e4;line-height:1.42;}
   .sf-tip-price{margin-top:5px;font-weight:900;font-size:13px;color:#7ee0a0;}
+  /* v1230 (Phil 30 Oct: "add ... chatgpts store art"; spec: "the frame of the store is art, inside the frame data"): the diamond shop in
+     ChatGPT's Store window frame, every offer in his pack card frame. Every box is a % of the frame PNG, measured from its alpha / plate
+     colour (Archive Game Art/Store/frames 30OCT2026, 1870x841 window, 1060x1484 card). Text and numbers are HTML over the art. */
+  #hudShop.framed.st2 .pm{width:auto;}
+  .st2-win{position:relative;width:min(calc(var(--ew-game-width,100vw) * 0.97),calc(var(--ew-game-height,100vh) * 0.95 * 1870 / 841));aspect-ratio:1870/841;container-type:size;
+    filter:drop-shadow(0 14px 40px rgba(0,0,0,.65));user-select:none;-webkit-user-select:none;}
+  .st2-back{position:absolute;left:4.92%;top:24.73%;width:90.27%;height:65.52%;background:radial-gradient(ellipse at 50% 30%,#16233f 0%,#0b1226 70%,#070b18 100%);border-radius:1.2% / 2.6%;}
+  .st2-frame{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2;}
+  .st2-tab{position:absolute;top:18.31%;height:7.25%;z-index:3;background:transparent;border:none;padding:0;cursor:pointer;font-family:Georgia,'Times New Roman',serif;font-weight:700;
+    font-size:14px;font-size:4.1cqh;letter-spacing:.03em;color:#b9a985;text-shadow:0 1px 2px #000,0 0 4px rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;white-space:nowrap;}
+  .st2-tab.on{color:#fff0c8;text-shadow:0 1px 2px #000,0 0 9px rgba(255,200,110,.55);}
+  .st2-tab.on::after{content:'';position:absolute;left:12%;right:12%;bottom:12%;height:2px;background:linear-gradient(90deg,transparent,#e7b866,transparent);}
+  .st2-close{position:absolute;left:92.83%;top:6.66%;width:4.22%;height:9.39%;z-index:3;background:transparent;border:none;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  .st2-close::after{content:'';position:absolute;inset:-30%;}   /* (a 40 px tap target round the small plate) */
+  .st2-close img{width:72%;height:72%;object-fit:contain;pointer-events:none;filter:drop-shadow(0 1px 2px #000);}
+  .st2-body{position:absolute;left:5.8%;top:27.6%;width:88.4%;height:61.4%;z-index:3;display:flex;align-items:stretch;gap:1.4%;overflow-x:auto;overflow-y:hidden;
+    scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
+  .st2-body::-webkit-scrollbar{display:none;}
+  .st2-soon{margin:auto;font-family:Georgia,'Times New Roman',serif;font-weight:700;font-size:18px;font-size:6cqh;color:#e9d6a4;text-shadow:0 1px 3px #000;text-align:center;}
+  .st2-soon small{display:block;margin-top:.4em;font-family:inherit;font-weight:400;font-size:.55em;color:#aab4c8;}
+  .st2-card{position:relative;flex:none;height:100%;aspect-ratio:1060/1484;container-type:size;cursor:pointer;transition:transform .12s;}
+  .st2-card:first-child{margin-left:auto}.st2-card:last-child{margin-right:auto}
+  .st2-card:hover{transform:translateY(-2px);}.st2-card:active{transform:scale(.96);}
+  .st2-cframe{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2;}
+  .st2-pic{position:absolute;left:7.64%;top:6.06%;width:84.81%;height:49.12%;background:radial-gradient(ellipse at 50% 55%,#2a3d68 0%,#121c36 62%,#0a1022 100%);display:flex;align-items:center;justify-content:center;}
+  .st2-pic img{width:82%;height:82%;object-fit:contain;pointer-events:none;filter:drop-shadow(0 4px 8px rgba(0,0,0,.7));}
+  .st2-cback{position:absolute;left:7.64%;top:65.63%;width:84.81%;height:18.6%;background:linear-gradient(180deg,#121a31,#0b1124);}
+  .st2-txt{position:absolute;z-index:3;display:flex;align-items:center;justify-content:center;text-align:center;overflow:hidden;line-height:1.12;pointer-events:none;}
+  .st2-badge{left:72.74%;top:3.37%;width:17.08%;height:4.51%;font-size:9px;font-size:3.9cqh;font-weight:800;color:#e9d6a4;text-shadow:0 1px 2px #000;white-space:nowrap;}
+  .st2-badge img{height:78%;width:auto;filter:drop-shadow(0 1px 1px #000);}
+  .st2-name{left:10.19%;top:56.33%;width:79.62%;height:8.02%;font-family:Georgia,'Times New Roman',serif;font-weight:700;font-size:12px;font-size:5.6cqh;color:#fff0c8;text-shadow:0 1px 2px #000;white-space:nowrap;}
+  .st2-what{left:10%;top:65.63%;width:80%;height:18.6%;font-size:10px;font-size:4.9cqh;font-weight:600;color:#d3dae8;text-shadow:0 1px 2px #000;padding:0 2%;box-sizing:border-box;}
+  .st2-price{left:11.13%;top:85.51%;width:77.92%;height:8.29%;font-weight:900;font-size:13px;font-size:6.2cqh;color:#ffe08a;text-shadow:0 1px 2px #000,0 0 6px rgba(0,0,0,.6);white-space:nowrap;}
+  .st2-price.free{color:#8ff0b0;}
   .avpick{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:6px;}
   .avpick .av{aspect-ratio:1;border-radius:10px;overflow:hidden;border:2px solid #2a3550;cursor:pointer;}
   .avpick .av.sel{border-color:#ffce6b;box-shadow:0 0 0 2px rgba(255,206,107,.5);}
@@ -5110,6 +5144,8 @@ const HERO_SPRITES = {"carn":"/assets/img/miscellaneous/hero-sprites-carn.webp?v
 const TOWN_BG = "/assets/img/world-map/townbg-wide-temple-of-ash-v1.webp";   /* v837: Temple of Ash city art (Phil 27 Sep: "ship the new temple background"); WebP q95 of the 3.2 MB PNG master kept in Game Art/Temple of Ash/Town backdrop */           // painted town-map background for the home base
 const SHOP_FRAME = "/assets/img/miscellaneous/shopframe.png";     // ornate stone frame for the diamond shop
 const SHOP_ICONS = {"cluster":"/assets/img/miscellaneous/shop-icons-cluster.png","burger":"/assets/img/miscellaneous/shop-icons-burger.png","d500":"/assets/img/miscellaneous/shop-icons-d500.png","d1200":"/assets/img/miscellaneous/shop-icons-d1200.png","d2800":"/assets/img/miscellaneous/shop-icons-d2800.png","d6000":"/assets/img/miscellaneous/shop-icons-d6000.png"};     // pack icons (cluster/burger/d500/d1200/d2800/d6000)
+const STORE2_WIN = "/assets/img/store/store-window-frame-v1.webp?v=1";   // v1230: ChatGPT's Store window frame (Archive Game Art/Store/frames 30OCT2026/IN GAME)
+const STORE2_CARD = "/assets/img/store/pack-card-frame-v1.webp?v=1";   // v1230: ChatGPT's pack card frame (same folder)
 const SHOP_SOON = "/assets/img/miscellaneous/soonimg.png";       // "no diamond packs yet — coming soon" popup art
 const SPLASH_BG = "/assets/img/miscellaneous/splash-v2.jpg";   // v624 (Phil): Aureth front, Lumi, Vex, Librarian, Pellucid; logo kept
 //         // boot splash / loading-screen artwork (static fallback)
@@ -30567,10 +30603,10 @@ function buyGemOffer(i){
   ov.querySelector('button').onclick=(e)=>{ e.stopPropagation(); close(); };   // OK button closes
 }
 // same defect as openProfile above — the HUD shop's + button threw on every press
-function openHudShop(kind){ if(rewardLocked()){ queueBehindReward(()=>openHudShop(kind)); return; }
+function openHudShop(kind){ if(rewardLocked()){ queueBehindReward(()=>openHudShop(kind)); return; } if(kind==='gem') st2Tab='diamonds';   /* v1230: the store opens on Diamonds */
   renderHudShop(kind); document.getElementById('hudShop').classList.add('active'); }
 function closeHudShop(){ document.getElementById('hudShop').classList.remove('active'); }
-function renderHudShop(kind){ const m=document.getElementById('hudShop'); m.dataset.kind=kind; m.classList.toggle('framed', kind==='gem');
+function renderHudShop(kind){ const m=document.getElementById('hudShop'); m.dataset.kind=kind; m.classList.toggle('framed', kind==='gem'); m.classList.toggle('st2', kind==='gem');
   if(kind==='food') renderFoodShop(); else if(kind==='gold') renderGoldShop(); else renderGemShop(); }
 function renderFoodShop(){ foodDayReset(); const c=foodNextCost(), gems=G.gems||0, n=G.foodBuys||0, out=(c==null);
   document.getElementById('hudShopTitle').innerHTML=hudIcon('food')+' Food · Restore Stamina';
@@ -30591,28 +30627,36 @@ function renderGoldShop(){ goldDayReset(); const c=goldNextCost(), gems=G.gems||
     <div class="costtrack">${Array.from({length:((shopSrv()&&shopSrv().goldMax)||GOLD_COSTS.length)},(_,i)=>GOLD_COSTS[Math.min(i,GOLD_COSTS.length-1)]).map((x,i)=>`<span class="${i<n?'used':i===n?'next':''}">${hudIcon('gem')}${x}</span>`).join(' ')}</div>
     <div class="shopbal">Balance: ${hudIcon('gem')} ${gems}</div>`;
   const b=document.getElementById('goldBuyBtn'); if(b) b.onclick=buyGold; }
+/* v1230 (Phil 30 Oct: "add ... chatgpts store art"): the diamond shop drawn in ChatGPT's Store window frame. Four tabs on the frame's
+   plates: Diamonds (the chests), Packs (the two plans), Limited and Patron (coming soon). Every offer in a pack card frame: its picture,
+   name, contents line and price (FREE while the pre-beta switch is on). Same GEM_OFFERS, same buyGemOffer - only the look changed.
+   The cards scroll sideways inside the frame when they do not fit. */
+let st2Tab='diamonds';
+const ST2_TABS=[['diamonds','Diamonds',8.72,18.50],['packs','Packs',29.89,18.77],['limited','Limited',51.50,18.61],['patron','Patron',72.83,18.45]];   // [id, label, left %, width %] - the frame's 4 plates
+function st2Offers(tab){ return GEM_OFFERS.map((o,i)=>[o,i]).filter(([o])=>{ const k=o.reward&&o.reward.kind;
+  return tab==='diamonds'?k==='gems':tab==='packs'?(k==='dailyGems'||k==='dailyStamina'):false; }); }
 function renderGemShop(){ document.getElementById('hudShopTitle').innerHTML='';
-  const body=document.getElementById('hudShopBody');
-  body.innerHTML=`
-    <div class="shopframe" style="background-image:url('${SHOP_FRAME}')">
-      <div class="sf-title">Diamond Shop</div>
-      <button class="sf-close" id="sfClose" aria-label="Close">${uiIcon('close')}</button>
-      <div class="sf-content">
-        ${GEM_OFFERS.map((o,i)=>`<div class="sf-item" data-i="${i}">
-          <img class="sf-ic" src="${SHOP_ICONS[o.img]||''}" alt="${o.name}" draggable="false">
-          <div class="sf-price">${freePacksOn()?'FREE':o.price}</div>
-          <div class="sf-tip"><div class="sf-tip-name">${o.name}</div><div class="sf-tip-desc">${o.detail}</div><div class="sf-tip-price">${freePacksOn()?'FREE':o.price}</div></div>
-        </div>`).join('')}
-      </div>
+  const m=document.getElementById('hudShop'); if(m) m.classList.add('st2');
+  const body=document.getElementById('hudShopBody'), free=freePacksOn();
+  const list=st2Offers(st2Tab);
+  const card=([o,i])=>{ const r=o.reward||{}, badge=r.days?escapeHTML(r.days+'d'):hudIcon('gem');   // (the small ribbon plate: a plan's days, or a diamond for a chest)
+    return `<div class="st2-card" data-i="${i}" role="button" tabindex="0" aria-label="${escAttr((o.name||'')+' - '+(free?'free':o.price))}">
+      <div class="st2-pic"><img src="${SHOP_ICONS[o.img]||''}" alt="" draggable="false"></div><div class="st2-cback"></div>
+      <img class="st2-cframe" src="${STORE2_CARD}" alt="" draggable="false">
+      <div class="st2-txt st2-badge">${badge}</div>
+      <div class="st2-txt st2-name">${escapeHTML(o.name||'')}</div>
+      <div class="st2-txt st2-what">${escapeHTML(o.desc||'')}</div>
+      <div class="st2-txt st2-price${free?' free':''}">${free?'FREE':escapeHTML(o.price||'')}</div></div>`; };
+  body.innerHTML=`<div class="st2-win">
+      <div class="st2-back"></div><img class="st2-frame" src="${STORE2_WIN}" alt="" draggable="false">
+      ${ST2_TABS.map(([id,lab,l,w])=>`<button class="st2-tab${id===st2Tab?' on':''}" data-tab="${id}" style="left:${l}%;width:${w}%" aria-pressed="${id===st2Tab}">${lab}</button>`).join('')}
+      <button class="st2-close" id="sfClose" aria-label="Close">${uiIcon('close')}</button>
+      <div class="st2-body">${list.length?list.map(card).join(''):`<div class="st2-soon">Coming soon<small>${st2Tab==='patron'?'Patron rewards':'Limited offers'} open later</small></div>`}</div>
     </div>`;
-  body.querySelectorAll('.sf-item').forEach(el=>{
-    el.addEventListener('click',()=>buyGemOffer(+el.dataset.i));
-    // touch: long-press reveals the pack details
-    let t=null;
-    el.addEventListener('touchstart',(e)=>{ clearTimeout(t); t=setTimeout(()=>{ body.querySelectorAll('.sf-item.show').forEach(x=>x.classList.remove('show')); el.classList.add('show'); }, 320); },{passive:true});
-    const clr=()=>{ clearTimeout(t); setTimeout(()=>el.classList.remove('show'),1600); };
-    el.addEventListener('touchend',clr); el.addEventListener('touchmove',()=>{clearTimeout(t);},{passive:true}); el.addEventListener('touchcancel',clr);
-  });
+  body.querySelectorAll('.st2-card').forEach(el=>{ el.addEventListener('click',()=>buyGemOffer(+el.dataset.i));
+    el.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); buyGemOffer(+el.dataset.i); } }); });
+  body.querySelectorAll('.st2-tab').forEach(t=>t.onclick=(e)=>{ e.stopPropagation(); if(st2Tab!==t.dataset.tab){ st2Tab=t.dataset.tab; renderGemShop(); } });
+  const sb=body.querySelector('.st2-body'); if(sb) sb.addEventListener('wheel',e=>{ if(sb.scrollWidth>sb.clientWidth&&Math.abs(e.deltaY)>Math.abs(e.deltaX)){ sb.scrollLeft+=e.deltaY; e.preventDefault(); } },{passive:false});
   const x=body.querySelector('#sfClose'); if(x) x.onclick=(e)=>{ e.stopPropagation(); closeHudShop(); }; }
 document.getElementById('staminaPlus').onclick=(e)=>{ e.stopPropagation(); openHudShop('food'); };
 document.getElementById('goldPlus').onclick=(e)=>{ e.stopPropagation(); openHudShop('gold'); };
@@ -30970,7 +31014,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1793410688881';
+const BUILD_ID = '1793411276865';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
