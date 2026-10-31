@@ -107,7 +107,7 @@ try {
   ck('CONTROL: 35% of the plate mixed back into the edges (the v1160 keyer\'s failure on these clips) reads as olive on every sheet (' + qs.map(([, m]) => m.control_olive_edge + '%').join(', ') + '), and the violet put back reads as violet (' + qs.map(([, m]) => m.control_violet_edge + '%').join(', ') + ')', qs.every(([, m]) => m.control_olive_edge > 20 && m.control_violet_edge > 10));
 
   // 2. the data the engine reads is BASE's
-  const strip = o => JSON.parse(JSON.stringify(o, (k, v) => k === 'ownFx' ? undefined : v));
+  const strip = o => JSON.parse(JSON.stringify(o, (k, v) => (k === 'ownFx' || k === 'enemyCd') ? undefined : v));   // v1229: enemyCd (campaign-enemy Bloodthirst cooldown, Phil 30 Oct) is a later balance field, not part of this art check
   const kit = r => JSON.stringify(strip(JSON.parse(r('JSON.stringify([KITS.vael,HERO_ULT_ART.vael,HERO_TYPES.vael,ABILITY_CAST.vael,ULT_DEF.laststand,BATTLE_ANIM.vael,KITS.deepcleft,HERO_ULT_ART.deepcleft,HERO_TYPES.deepcleft,ABILITY_CAST.deepcleft||null,ULT_DEF.aoeStun,BATTLE_ANIM.deepcleft])'))));
   ck('both kits, ult art, hero stats, cast times, ult numbers and battle clips identical to BASE apart from the six ownFx display tags (vwarcry / vblood / vstand, dclaws / dburrow / dquarry)', kit(run) === kit(R0) &&
     run("[KITS.vael.green.ownFx,KITS.vael.blue.ownFx,HERO_ULT_ART.vael.ownFx,KITS.deepcleft.green.ownFx,KITS.deepcleft.blue.ownFx,HERO_ULT_ART.deepcleft.ownFx].join('/')") === 'vwarcry/vblood/vstand/dclaws/dburrow/dquarry');

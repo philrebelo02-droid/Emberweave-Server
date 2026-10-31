@@ -10094,8 +10094,8 @@ function makeUnit(key,team,x,y,levelOverride,extra){
     combatDist:(t.range<60 ? Math.min(2*METER*(boss?1.5:1), t.range*(boss?1.4:1)-4) : (t.rangeHold ? t.range*(boss?1.4:1)-18 : ((heroFormationDepth(key)<=2?13*METER:25*METER)))),   /* v1169 rangeHold (Nox only): his hold = his 10 m range - 18 (the same slack as the widened row holds), so his range stays 10 m */
     attackAnim:0,castAnim:0,deathT:0,bob:(x*.7+y*.3)%6.28,
     abilityOverride:(t.monster?null:(boss?'cleave':null)),
-    greenAb:(rank>=1&&kit.green)?kit.green:null, blueAb:(rank>=2&&kit.blue)?((team==='enemy'&&!S&&!owned&&kit.blue.enemyCd)?Object.assign({},kit.blue,{cd:kit.blue.enemyCd}):kit.blue):null,   /* v1229 enemyCd: an AUTHORED enemy (campaign wave hero - no player snapshot) uses the kit's enemyCd */
-    greenCd:(rank>=1&&kit.green)?kit.green.cd*0.5:0, blueCd:(rank>=2&&kit.blue)?((team==='enemy'&&!S&&!owned&&kit.blue.enemyCd)||kit.blue.cd)*0.6:0, pass:null,
+    greenAb:(rank>=1&&kit.green)?kit.green:null, blueAb:(rank>=2&&kit.blue)?((extra&&extra.campaignHero&&kit.blue.enemyCd)?Object.assign({},kit.blue,{cd:kit.blue.enemyCd}):kit.blue):null,   /* v1229 enemyCd: ONLY a campaign wave hero (spawned from the stage's authored waves) uses the kit's enemyCd */
+    greenCd:(rank>=1&&kit.green)?kit.green.cd*0.5:0, blueCd:(rank>=2&&kit.blue)?((extra&&extra.campaignHero&&kit.blue.enemyCd)||kit.blue.cd)*0.6:0, pass:null,
     glyphDR:mul.dr||0, glyphRegen:mul.regen||0, glyphCrit:Math.min(0.6,(mul.crit||0)+((HERO_TYPES[key]&&!t.monster&&CLASS_BASE_CRIT[t.role])||0)), critRes:mul.critRes||0, energyReg:mul.energyReg||0,
     skillLv: S?((S.skillLv||[1,1,1,1]).slice()):(owned?skillLvArr(key).slice():[1,1,1,1]), passMul:1, _castSM:1, apMul: S?(S.apMul||1):(owned?abilityPowerMul():(t.ap||1)),
     apow: Math.round(BL.apow*sm*(S?(S.apMul||1):(owned?abilityPowerMul():1)))+(S?(S.fApow||0):(owned?heroFlatApow(key)+((BL.apow||0)>0?techFlat('ap'):0):0))+TBF.apFlat, healPowMul:1+(owned?(mul.healPow||0):0), hybrid:!!t.hybrid, _frozenT:0, _chillStacks:0, _chillT:0, _blizzT:0, _stormT:0, _darkStance:false,
@@ -10259,7 +10259,7 @@ function buildEnemyWave(){
     const specs=CUR.cwaves[Math.min(waveIdx,CUR.cwaves.length-1)]||[];
     const _keys=specs.map(x=>x.key);
     specs.forEach((m,i)=>{ const sl=laneSlot('enemy',m.key,i,specs.length,_keys);
-      const u=makeUnit(m.key,'enemy',sl.x,sl.y,m.lvl||1,{boss:!!m.boss,rank:m.isHero?(m.rank==null?0:m.rank):0});
+      const u=makeUnit(m.key,'enemy',sl.x,sl.y,m.lvl||1,{boss:!!m.boss,rank:m.isHero?(m.rank==null?0:m.rank):0,campaignHero:CUR.mode==='campaign'&&!!m.isHero});   /* v1229: a campaign wave hero (kits may carry enemyCd) */
       u.maxHp=Math.max(1,Math.round(u.maxHp*(m.hpMul||1))); u.hp=u.maxHp; u.dmg*=(m.dmgMul||1);
       if(m.boss){ u.maxHp=Math.round(u.maxHp*1.15); u.hp=u.maxHp; }
       /* v666: an ABSOLUTE hp on the spec wins over every multiplier — the guild raid boss walks in
