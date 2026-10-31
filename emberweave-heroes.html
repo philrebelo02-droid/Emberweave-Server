@@ -25029,8 +25029,27 @@ function worldMsg(body,text,retry){ if(!body) return;
   const b=body.querySelector('#worldMsgBack'); if(b) b.onclick=()=>{ try{ closeCityMenu(); }catch(e){} show('home'); };
   const r=body.querySelector('#worldRetry'); if(r) r.onclick=()=>{ _worldServerPending=null; renderWorldMap(); };
   try{ muteBtnPlace(true); }catch(e){} }
+/* v1231 (Phil 30 Oct 2026: "sometimes in map it will randomly bounce my screen to the middle of no where"): a rebuild (city refresh,
+   grid, march, shield) kept the view as raw scroll px read from the OLD zone - read while the map was hidden (a refresh landing after
+   you left for the city / a battle) they are 0,0, so the map came back on the open sea at its top-left corner. The view is now kept as
+   WORLD coordinates + zoom, saved only from a zone on screen; a rebuild never runs while the map is hidden (opening it rebuilds) or
+   mid-drag / mid-pinch (it waits for the gesture's end); a re-sign-in keeps the view - only the first open centres on your castle. */
+let _wmView=null,_wmTouches=0,_wmTouchAt=0,_wmRebuildPending=false,_wmRebuildT=0;
+function wmSaveView(zone){ if(!zone||!zone.isConnected||!zone.clientWidth||!zone.clientHeight||!worldZoom) return;
+  _wmView={x:wzLeft(zone)+zone.clientWidth/2/worldZoom,y:wzTop(zone)+zone.clientHeight/2/worldZoom,z:worldZoom,acc:ACC.id}; }
+function wmApplyView(zone,v){ if(!zone||!v) return; zone.scrollLeft=v.x*worldZoom-zone.clientWidth/2+_wmPadX; wzSetTop(zone,v.y-zone.clientHeight/2/worldZoom); }
+function wmGestureActive(){ return !!_wdrag||(_wmTouches>0&&Date.now()-_wmTouchAt<3000); }
+function wmFlushRebuild(){ clearTimeout(_wmRebuildT); _wmRebuildT=setTimeout(()=>{ if(!_wmRebuildPending) return;
+  if(wmGestureActive()){ wmFlushRebuild(); return; } _wmRebuildPending=false; if(document.getElementById('wzone')) renderWorldMap(true); },200); }
+for(const ev of ['touchstart','touchmove','touchend','touchcancel']) document.addEventListener(ev,e=>{ _wmTouches=e.touches?e.touches.length:0; _wmTouchAt=Date.now();
+  if(!_wmTouches&&_wmRebuildPending) wmFlushRebuild(); },{capture:true,passive:true});
+document.addEventListener('mouseup',()=>{ if(_wmRebuildPending) wmFlushRebuild(); },{capture:true,passive:true});
 function renderWorldMap(keepView){
   const body=document.getElementById('worldBody'); if(!body)return;
+  const _oldZone=document.getElementById('wzone');
+  if(keepView&&_oldZone){ if(!_oldZone.clientWidth) return;                         // hidden: opening the map rebuilds it with this view
+    if(wmGestureActive()){ _wmRebuildPending=true; return; } }                     // mid-drag / mid-pinch: rebuild when the finger lifts
+  wmSaveView(_oldZone);
   if(!ACC.token){ worldMsg(body,'Sign in to enter the World Map.'); return; }
   if(_worldServerAccount!==ACC.token){
     worldMsg(body,'Locating your castle…');
@@ -25039,14 +25058,13 @@ function renderWorldMap(keepView){
       if(state!=='world') return;
       if(!loc||loc.error){ worldMsg(body,'Castle location unavailable. Try the World Map again.',true); return; }
       if(loc.locked){ worldMsg(body,'The World Map opens at level '+(loc.needLevel||20)+'.'); return; }
-      if(adoptWorldLocation(loc)) renderWorldMap();
+      if(adoptWorldLocation(loc)) renderWorldMap(!!(_wmView&&_wmView.acc===ACC.id));   // v1231: a re-sign-in keeps the view; a first open centres on the castle
     }).catch(()=>{ if(state==='world') worldMsg(body,'Castle location unavailable. Try the World Map again.',true); })
       .finally(()=>{ _worldServerPending=null; });
     return;
   }
-  const _oldZone=document.getElementById('wzone');                              // keepView: poll/grid rebuilds must not yank the pan
-  const _keep=(keepView&&_oldZone)?{sl:_oldZone.scrollLeft,st:_oldZone.scrollTop}:null;
-  body.innerHTML='';
+  const _keep=(keepView&&_wmView)?_wmView:null;                                   // v1231: world coordinates + zoom, never raw scroll px
+  _wmRebuildPending=false; body.innerHTML='';
   if(ACC.token){ startCityPoll(); syncWorldMarches(false); }   // real players' castles from the server (bots only fill) - v1127: fetched by applyMapLOD at the close level only
   maybeSpawnRaid();
   const czone=myCastleZone(), cz=ZONES[czone];
@@ -25126,10 +25144,10 @@ function renderWorldMap(keepView){
   zone.addEventListener('touchstart',(e)=>{ if(e.touches.length===2){ _pd=tdist(e); _pz=worldZoom; closeCityMenu(); } },{passive:true});
   zone.addEventListener('touchmove',(e)=>{ if(e.touches.length===2 && _pd>0){ e.preventDefault(); const d=tdist(e), mx=(e.touches[0].ewGameX+e.touches[1].ewGameX)/2, my=(e.touches[0].ewGameY+e.touches[1].ewGameY)/2; worldZoomTo(_pz*(d/_pd), mx, my); } },{passive:false});
   zone.addEventListener('touchend',(e)=>{ if(e.touches.length<2)_pd=0; },{passive:true});
-  zone.addEventListener('scroll',()=>{ applyMapLOD(); mapViewChangedSoon(); },{passive:true});   /* v1124: a pan loads the castles of the new tiles */   // picture scale and ghosts follow the viewport as you pan
+  zone.addEventListener('scroll',()=>{ wmSaveView(zone); applyMapLOD(); mapViewChangedSoon(); },{passive:true});   /* v1124: a pan loads the castles of the new tiles */   // picture scale and ghosts follow the viewport as you pan
   curWorldZone=zone;
   zone.addEventListener('mousedown',(e)=>{ if(e.button!==0)return; _wdrag=true; _wMoved=false; _wsx=e.ewGameX; _wsy=e.ewGameY; _wsl=zone.scrollLeft; _wst=zone.scrollTop; zone.style.cursor='grabbing'; });
-  { const bounds=worldZoomBounds(zone); worldZoom=Math.max(bounds.min,Math.min(bounds.max,worldZoom)); applyWorldZoom(); }
+  { if(_keep) worldZoom=_keep.z; const bounds=worldZoomBounds(zone); worldZoom=Math.max(bounds.min,Math.min(bounds.max,worldZoom)); applyWorldZoom(); }
   // ---- bottom-right control cluster: resources · coordinate readout · search · zoom ----
   const ctl=document.createElement('div'); ctl.id='mapCtl';
   ctl.innerHTML=RES.map(([k,ic])=>`<span class="pill">${resIconHtml(k,15)} <b id="wm_${k}">${G.res[k]||0}</b></span>`).join('')
@@ -25155,11 +25173,14 @@ function renderWorldMap(keepView){
   head.querySelector('#wbGrid').onclick=()=>{ G.showGrid=(G.showGrid===false); saveG(); renderWorldMap(true); };
   head.querySelector('#wbShield').onclick=openShield;
   updateChatVisibility();
+  /* v1231: the view is put back at once (a touch arriving before the next frame zoomed around the new zone's 0,0) and once more after
+     the frame's layout (the control strip), unless something already moved it */
+  if(_keep) wmApplyView(zone,_keep); else centerOnCastle(zone);
+  const _setL=zone.scrollLeft,_setT=zone.scrollTop;
   requestAnimationFrame(()=>{
-    if(_keep){ zone.scrollLeft=_keep.sl; zone.scrollTop=_keep.st;
-      if(_lastPin && Date.now()<_lastPin.until) dropCoordPin(_lastPin.cx,_lastPin.cy,_lastPin.until-Date.now()); }   // re-drop a live search pin
-    else centerOnCastle(zone);
-    updateCoordReadout(); });
+    if(zone.isConnected&&zone.scrollLeft===_setL&&zone.scrollTop===_setT&&!wmGestureActive()){ if(_keep) wmApplyView(zone,_keep); else centerOnCastle(zone); }
+    if(_keep && _lastPin && Date.now()<_lastPin.until) dropCoordPin(_lastPin.cx,_lastPin.cy,_lastPin.until-Date.now());   // re-drop a live search pin
+    wmSaveView(zone); updateCoordReadout(); });
 }
 // ---- coordinate search: jump the map to any X/Y grid cell ----
 function dropCoordPin(cx,cy,ms){ ms=(ms>0)?ms:6000; _lastPin={cx:cx,cy:cy,until:Date.now()+ms}; const inner=document.getElementById('wzoneInner'); if(!inner)return; const old=inner.querySelector('#coordPin'); if(old)old.remove();
@@ -31015,7 +31036,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1793411276865';
+const BUILD_ID = '1793413022623';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
