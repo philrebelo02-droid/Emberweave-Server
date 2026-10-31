@@ -1016,7 +1016,7 @@
    *   ward  - for dur s her HP cannot drop below 1   (Linnet: Reinforced Seam - "can't drop below 1 HP")
    *   nova  - power x attack to everything within 4 m, knocked back
    *   bolt  - a piercing bolt the way you move, power x attack
-   *   dash  - power metres the way you move, untouchable for 0.3 s
+   *   dash  - power metres the way you move, untouchable for 0.3 s, then a 2.5x strike within 2.2 m of where you land (31 Oct)
    *   chain - (26 Oct, Fritz's Chain Lightning) strikes the nearest enemy within 10 m, then jumps `jumps` times to the next nearest
    *           within 5 m, 20% less each jump
    *   summon- (26 Oct, Hurne / Aldren / Zahri) `n` allies (`unit` = their sheet) for dur s: they chase the nearest enemy and strike it
@@ -1028,7 +1028,10 @@
     ward: function (S, k, h) { h.wardT = Math.max(h.wardT, k.dur || 4); },
     nova: function (S, k, h) { var d = heroDmg(S, k.power); near(S, h.x, h.y, 4 * areaMul(S), function (m) { hit(S, m, d, k.fk || "knock", k.fp || 1.5); }); },
     bolt: function (S, k, h) { S.shots.push({ key: k.key, x: h.x, y: h.y, vx: h.dirx * 18, vy: h.diry * 18, r: 0.6 * areaMul(S), life: 1.0, pierce: 99, dmg: heroDmg(S, k.power), fk: k.fk || "none", fp: k.fp || 1, hit: {}, bounce: 0 }); },
-    dash: function (S, k, h) { h.x += h.dirx * k.power; h.y += h.diry * k.power; h.iframes = Math.max(h.iframes, 0.3); },
+    // 31 Oct: a dash lands a strike - every game dash is an attack (Konwu Phantom Step, Korvux Comet Dash, Vex Hookline) and the
+    // Spire's only moved the hero: 2.5x attack to all within 2.2 m of the landing spot, with the spell's own effect (else a knock)
+    dash: function (S, k, h) { h.x += h.dirx * k.power; h.y += h.diry * k.power; h.iframes = Math.max(h.iframes, 0.3);
+      var d = heroDmg(S, 2.5); near(S, h.x, h.y, 2.2 * areaMul(S), function (m) { hit(S, m, d, k.fk || "knock", k.fp || 1); }); },
     chain: function (S, k, h) {
       var d = heroDmg(S, k.power), fx = h.x, fy = h.y, m = nearest(S, h.x, h.y, 10), seen = {};
       for (var j = 0; m && j <= (k.jumps || 4); j++) {
