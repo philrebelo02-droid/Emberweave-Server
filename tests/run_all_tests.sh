@@ -374,6 +374,8 @@ note "test_chat_safety_1097.js (v1097 sweep #18 + Phil 9 Oct: chat unmasked (18+
 node tests/test_chat_safety_1097.js || FAILED=1
 note "test_admin_ban_1097.js (v1097 Phil 9 Oct: admin Delete became Ban - 1/7/14/28 days or permanent, unban, 403 with the date on sign-in and every route, sockets closed, expired ban lifts itself)"
 node tests/test_admin_ban_1097.js || FAILED=1
+note "test_terms_1232.js (v1232 Google Play Terms + Privacy: /terms + /privacy served, TOS_UPDATED October 2026, account deletion = 7-day grace (locked, hidden, cancelled by signing in) then the server wipes it; Server 1 + satellite)"
+node tests/test_terms_1232.js || FAILED=1
 note "test_temple_v2_1094.js (v1094 Temple of Ash v2: four flat bars in steps, cap by Temple level, all four roll, cancel never refunds, power = 10 x steps, blessings, auto pray, discounts, migration, client/server unit parity)"
 node tests/test_temple_v2_1094.js || FAILED=1
 note "test_temple_blessings_1096.js (v1096 personal Temple blessings: 60 heroes x 4 own rewards, Oakmir = Phil's example, labels, class fallback, 5th dot +15% on blessings only, server applyCore = client applyClient)"

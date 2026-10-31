@@ -2,11 +2,12 @@
 // were checked, so a player who reset their password on Server 1 while holding no session here kept their OLD password hash here -
 // and the login fallback (Server 1 unreachable) accepted it. Accounts holding a local password copy are now checked too.
 // Runs the server's own acctStatusSync/applyAcctState against a stub account server. Control: AUD_SERVER=<pre-fix copy> must FAIL.
+// v1232: applyAcctState also follows a pending deletion (acctDelFollow), so that function is loaded too.
 const assert=require('assert'),fs=require('fs'),path=require('path'),vm=require('vm');
 const src=fs.readFileSync(path.join(__dirname,'..',process.env.AUD_SERVER||'server.js'),'utf8');
 let pass=0,missed=[]; const ok=(c,m)=>{ if(process.env.AUD_SERVER&&!c){ missed.push(m); return; } assert(c,m); pass++; console.log('  ✓ '+m); };
 const fnSrc=name=>{ const i=src.indexOf(name); if(i<0) return ''; let j=src.indexOf('{',i), d=0; for(;j<src.length;j++){ if(src[j]==='{')d++; else if(src[j]==='}'){ d--; if(!d) break; } } return src.slice(i,j+1); };
-const code=['function applyAcctState','async function acctStatusSync'].map(fnSrc).join('\n')+'\nthis.sync=acctStatusSync;';
+const code=['function applyAcctState','async function acctStatusSync','function acctDelFollow'].map(fnSrc).join('\n')+'\nthis.sync=acctStatusSync;';
 const asked=[], dropped=[];
 const ctx={ ACCOUNT_AUTHORITY:'http://s1', ACCOUNT_LINK_SECRET:'x', _acctSyncBusy:false, console:{log(){}}, Date, Object, Set, Array, String, Math,
   DB:{ tokens:{}, byGid:{ g1:'u1', g2:'u2' }, users:{

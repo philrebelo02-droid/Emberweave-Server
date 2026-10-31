@@ -1,6 +1,7 @@
 // v1097 (sweep #17): deleting an account on a satellite (Server 2-5) deletes the game-wide account on Server 1, and every other
 // satellite drops its linked player at its next status check. Real Server 1 + two satellites.
 // Asserts (non-zero exit). Control: AUD_SERVER=<pre-fix server copied into the repo root> must FAIL.
+// v1232: ACCOUNT_DELETE_GRACE_MS=0 - this test checks the wipe itself (as v1097 did); the 7-day grace before it is tests/test_terms_1232.js.
 const assert=require('assert'),fs=require('fs'),os=require('os'),path=require('path'),net=require('net'),{spawn}=require('child_process');
 const root=path.join(__dirname,'..'), srvFile=process.env.AUD_SERVER||'server.js', dir=fs.mkdtempSync(path.join(os.tmpdir(),'ew-dw1097-'));
 const SECRET='test-link-secret-1097', procs={}, ports={};
@@ -10,7 +11,7 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));
 const freePort=()=>new Promise(r=>{const s=net.createServer();s.listen(0,'127.0.0.1',()=>{const p=s.address().port;s.close(()=>r(p));});});
 const dbOf=n=>{ const d=path.join(dir,'s'+n); fs.mkdirSync(d,{recursive:true}); return path.join(d,n+'.json'); };   // v1183: one folder per server (load guard)
 async function start(n,env){ ports[n]=ports[n]||await freePort();
-  procs[n]=spawn(process.execPath,[srvFile],{cwd:root,env:{...process.env,DATABASE_URL:'',PORT:String(ports[n]),DB_FILE:dbOf(n),RL_MUL:'1000',REG_PER_MIN:'100',REG_ACCOUNTS_PER_IP:'100',ADMIN_IDS:'',ACCOUNT_LINK_SECRET:SECRET,...env},stdio:'ignore',windowsHide:true});
+  procs[n]=spawn(process.execPath,[srvFile],{cwd:root,env:{...process.env,DATABASE_URL:'',PORT:String(ports[n]),DB_FILE:dbOf(n),RL_MUL:'1000',REG_PER_MIN:'100',REG_ACCOUNTS_PER_IP:'100',ADMIN_IDS:'',ACCOUNT_LINK_SECRET:SECRET,ACCOUNT_DELETE_GRACE_MS:'0',...env},stdio:'ignore',windowsHide:true});
   for(let i=0;i<300;i++){ try{ if((await fetch('http://127.0.0.1:'+ports[n]+'/health')).ok)return; }catch(_){} await delay(100);} throw Error('no start '+n); }
 async function stopAll(){ for(const n of Object.keys(procs)){ const c=procs[n]; c.kill(); for(let i=0;i<60&&c.exitCode===null;i++)await delay(50); delete procs[n]; } }
 async function call(n,route,data,tok){ const r=await fetch('http://127.0.0.1:'+ports[n]+route,{method:data?'POST':'GET',headers:{'Content-Type':'application/json',...(tok?{'x-token':tok}:{})},body:data?JSON.stringify(data):undefined});

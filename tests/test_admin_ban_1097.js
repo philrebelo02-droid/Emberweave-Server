@@ -65,7 +65,7 @@ const login=(name)=>call('/api/login',{name,pass:'password1'});
   ok(li.status===403&&li.data.error==='Account banned permanently.'&&li.data.permanent===true,'sign-in answers "Account banned permanently."');
   ok((await call('/api/profile',null,Q.token)).data.error==='Account banned permanently.','routes answer "Account banned permanently."');
   r=await call('/api/account/delete',{confirm:'DELETE',pass:'password1',requestId:'qd'},Q.token);
-  ok(r.status===200&&r.data.deleted===true,'a banned player can still delete their own account');
+  ok(r.status===200&&(r.data.deleted===true||r.data.pending===true),'a banned player can still delete their own account (v1232: starts the 7-day grace)');
   // ---- an admin cannot be banned ----
   ok((await call('/api/admin/ban',{playerId:admin,days:7,requestId:'a1'},D)).status===400,'an admin account cannot be banned');
   // ---- an expired ban lifts itself ----
