@@ -117,7 +117,7 @@ ck('v1126: the five v1123 spells ship beside s07/s08 (sheets, helpers, kit flags
   && ['sorrel_card', 'carn_crimson_reap', 'tharl_scale_ram_quake', 'konwu_ruyi_slam', 'rhukk_dig_in_roar', 'rhukk_dig_in_shell'].every(f => fs.existsSync(path.join(ROOT, 'assets/anim/fx/' + f + '.webp'))));
 
 // CONTROL: the display helpers never touch the fight
-{ const i0 = H.indexOf('const FX1123_WARM='), i1 = H.indexOf('/* v1115 Grok spell FX 22-24');
+{ const i0 = H.indexOf('const FX1123_WARM='), i1 = H.indexOf('/* v1115 spell FX 22-24');
   const fx = i0 >= 0 && i1 > i0 ? H.slice(i0, i1) : 'dealDamage';
   ck('CONTROL the s07/s08 art code touches no damage, CC, hazards, HP, casts or positions', !/dealDamage|ccApply|groundHazards|\.hp\s*[-+]?=[^=]|stunned|_pend\s*=[^=]|\b(u|e|o\.u)\.(x|y|rx|ry)\s*=[^=]|brnd\(|_brng/.test(fx)); }
 

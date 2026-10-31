@@ -112,7 +112,7 @@ ck('Carn crescent front edge measured on all 64 cells', has('FX2_DEF') && run('!
 ck('cleared with the other FX (clearFx2) and ticked with them (updateWaxFx)', H.includes('function clearFx2(){ try{ clearFx1123(); }catch(_e){}') && H.includes('try{ updateFx1115(dt); }catch(_e){} try{ updateFx1123(dt); }catch(_e){}'));
 
 // CONTROL: the display helpers never touch the fight
-{ const i0 = H.indexOf('const _fx1123=[];'), i1 = H.indexOf('/* v1115 Grok spell FX 22-24');
+{ const i0 = H.indexOf('const _fx1123=[];'), i1 = H.indexOf('/* v1115 spell FX 22-24');
   const fx = i0 >= 0 && i1 > i0 ? H.slice(i0, i1) : 'dealDamage';
   ck('CONTROL the v1123 art code touches no damage, CC, hazards, HP, taunts, marks or positions', !/dealDamage|ccApply|groundHazards|\.hp\s*[-+]?=[^=]|stunned|forcedTarget|_markT|\b(u|e|o\.u)\.(x|y)\s*=[^=]|brnd\(|_brng/.test(fx)); }
 
