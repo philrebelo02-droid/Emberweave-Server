@@ -30442,10 +30442,11 @@ function goldPerBuy(){ return 1000 + (playerLevel()-1)*100; }   // scales with p
 const GEM_OFFERS=[
   {id:'cluster', price:'$4.99', img:'cluster', name:'Cluster Pack',   desc:'150 diamonds a day for 14 days',      detail:'A steady stream of diamonds — <b>150 '+hudIcon('gem')+' delivered every day for 14 days</b> (2,100 '+hudIcon('gem')+' total). Rewards land at the daily 09:00 reset.', reward:{kind:'dailyGems', amount:150, days:14}},
   {id:'burger', price:'$2.99', img:'burger',  name:'Burger Meal',    desc:'120 stamina a day for 30 days', detail:'Keep your armies marching — <b>120 stamina every day for 30 days</b> (3,600 total). Rewards land at the daily 09:00 reset.', reward:{kind:'dailyStamina', amount:120, days:30}},
-  {id:'d500', price:'$4.99', img:'d500',    name:'500 Diamonds',   desc:'One-time bundle',               detail:'A one-time chest of <b>500 '+hudIcon('gem')+' diamonds</b>, credited instantly.', reward:{kind:'gems', amount:500}},
+  {id:'d500', price:'$4.99', img:'d500',    name:'600 Diamonds',   desc:'One-time bundle',               detail:'A one-time chest of <b>600 '+hudIcon('gem')+' diamonds</b>, credited instantly.', reward:{kind:'gems', amount:600}},
   {id:'d1200', price:'$9.99', img:'d1200',   name:'1,200 Diamonds', desc:'One-time bundle',               detail:'A one-time chest of <b>1,200 '+hudIcon('gem')+' diamonds</b>, credited instantly.', reward:{kind:'gems', amount:1200}},
-  {id:'d2800', price:'$19.99',img:'d2800',   name:'2,800 Diamonds', desc:'One-time bundle',               detail:'A one-time hoard of <b>2,800 '+hudIcon('gem')+' diamonds</b>, credited instantly.', reward:{kind:'gems', amount:2800}},
-  {id:'d6000', price:'$50.00',img:'d6000',   name:'6,000 Diamonds', desc:'One-time bundle',               detail:'The grand vault — <b>6,000 '+hudIcon('gem')+' diamonds</b>, our best value, credited instantly.', reward:{kind:'gems', amount:6000}},
+  {id:'d2800', price:'$19.99',img:'d2800',   name:'2,300 Diamonds', desc:'One-time bundle',               detail:'A one-time hoard of <b>2,300 '+hudIcon('gem')+' diamonds</b>, credited instantly.', reward:{kind:'gems', amount:2300}},
+  {id:'d6000', price:'$50.00',img:'d6000',   name:'6,000 Diamonds', desc:'One-time bundle',               detail:'The grand vault — <b>6,000 '+hudIcon('gem')+' diamonds</b>, credited instantly.', reward:{kind:'gems', amount:6000}},
+  {id:'d12500', price:'$99.99',img:'d6000',   name:'12,500 Diamonds', desc:'One-time bundle',               detail:'The imperial vault — <b>12,500 '+hudIcon('gem')+' diamonds</b>, our best value, credited instantly.', reward:{kind:'gems', amount:12500}},
 ];
 // grant a pack's listed reward. Instant diamond packs credit immediately; daily packs (Cluster/Burger)
 // drop a claimable entry at the top of the Quest log that pays out once per day until its days run out.

@@ -27,7 +27,7 @@ let n=0; const buy=offerId=>call('/api/shop/purchase',{offerId,provider:'test',r
   const gems0=L.gems;
   const b1=await buy('d500'); L=await led();   // $4.99 -> 30 base
   ok(b1.status===200&&L.patron.base===30&&L.patron.egp===2,'a $4.99 pack gives 30 base diamonds = EGP 2 (Phil 9 Oct ladder: 6 / 36) (base '+(L.patron&&L.patron.base)+', EGP '+(L.patron&&L.patron.egp)+')');
-  ok(L.gems===gems0+500,'no rebate at EGP 0 (gems +'+(L.gems-gems0)+')');
+  ok(L.gems===gems0+600,'no rebate at EGP 0 (v1230: the $4.99 chest is 600) (gems +'+(L.gems-gems0)+')');
   const gems1=L.gems; await buy('d6000'); L=await led();   // $50 -> 300 base; rebate at EGP 2 = 7 % of 300 = 21
   ok(L.patron.base===330&&L.patron.egp===5,'a $50 pack adds 300 base -> 330 = EGP 5 (EGP '+L.patron.egp+')');
   ok(L.gems===gems1+6000+21,'the rebate is paid at the level held before the buy: 7 % of 300 base = 21 (gems +'+(L.gems-gems1)+')');

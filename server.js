@@ -4888,10 +4888,11 @@ function shopState(u){ const led=ensureLedger(u); if(!led.shop) led.shop={day:''
 const SHOP_OFFERS=[
   {id:'cluster', price:'$4.99',  usd:4.99,  name:'Cluster Pack',   kind:'plan', plan:'gems',    amount:150,  days:14},
   {id:'burger',  price:'$2.99',  usd:2.99,  name:'Burger Meal',    kind:'plan', plan:'stamina', amount:120,  days:30},
-  {id:'d500',    price:'$4.99',  usd:4.99,  name:'500 Diamonds',   kind:'gems', amount:500},
+  {id:'d500',    price:'$4.99',  usd:4.99,  name:'600 Diamonds',   kind:'gems', amount:600},   // v1230 (Phil 30 Oct: 'the 4.99 600'; the id stays for old records)
   {id:'d1200',   price:'$9.99',  usd:9.99,  name:'1,200 Diamonds', kind:'gems', amount:1200},
-  {id:'d2800',   price:'$19.99', usd:19.99, name:'2,800 Diamonds', kind:'gems', amount:2800},
-  {id:'d6000',   price:'$50.00', usd:50,    name:'6,000 Diamonds', kind:'gems', amount:6000}];
+  {id:'d2800',   price:'$19.99', usd:19.99, name:'2,300 Diamonds', kind:'gems', amount:2300},   // v1230 (Phil: 'make it 2300')
+  {id:'d6000',   price:'$50.00', usd:50,    name:'6,000 Diamonds', kind:'gems', amount:6000},
+  {id:'d12500',  price:'$99.99', usd:99.99, name:'12,500 Diamonds', kind:'gems', amount:12500}];   // v1230 (Phil: 'largest pack should be 99.99 for 12,500 diamonds')
 const SHOP_OFFER_BY_ID=Object.fromEntries(SHOP_OFFERS.map(o=>[o.id,o]));
 const SHOP_PLAN_KINDS=['gems','stamina'];
 function planDayKey(){ return nyDayKey(); }   // v1065: nyDayKey is the 09:00 day itself   // plans pay at the 09:00 ET reset (the shop's own promise)
