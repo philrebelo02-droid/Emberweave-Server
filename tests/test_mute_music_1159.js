@@ -6,7 +6,9 @@
    WebGL runs on SwiftShader (CPU) - no GPU work.
    Asserts (non-zero exit on any failure):
      (1) every inline script parses, and the check catches a broken one
-     (2) the button is on every screen and window (hub, buildings, map, battle, result, modals, the sign-in gate), is the topmost element
+     (2) v1230 (Phil 30 Oct: "only have the mute button on main screens like the city screen, world map, campaign map. every other screen
+         remove the mute"): the button shows ONLY on the town, the World map and the campaign map with nothing open over them - absent on
+         every building, panel, window, battle, the result screen and the sign-in gate. Where it shows it is the topmost element
          at its own centre, its tap target is >= 40 px, it covers no clickable control (elementFromPoint over a 5x5 grid with the button
          hidden), and on the hub it sits immediately left of the profile portrait, centred on it
      (3) a tap on it mutes: master gain 0, the FX/Music/Voices settings untouched; a second tap restores gain 1 with the same settings;
@@ -63,7 +65,7 @@ const SCREENS = ['home', 'campaign', 'menu', 'heroesPanel', 'bag', 'settings', '
     srv = spawn(process.execPath, ['server.js'], { cwd: ROOT, env: { ...process.env, DATABASE_URL: '', DB_STORE: '', PORT: String(port), DB_FILE: path.join(tmp, 'db.json'), RL_MUL: '1000', REG_PER_MIN: '200', REG_ACCOUNTS_PER_IP: '200', SIM_WORKERS: '0' }, stdio: ['ignore', log, log], windowsHide: true });
     let up = false; for (let i = 0; i < 300 && !up; i++) { try { up = (await fetch(base + '/api/health')).ok; } catch (_) {} if (!up) await delay(100); }
     if (!up) throw new Error('server did not start');
-    const { chromium } = require(path.join(ROOT, 'node_modules', 'playwright'));
+    let chromium; try { ({ chromium } = require(path.join(ROOT, 'node_modules', 'playwright'))); } catch (e) { ({ chromium } = require('playwright')); }   // (a worktree without node_modules: NODE_PATH)
     const args = ['--mute-audio', '--autoplay-policy=no-user-gesture-required', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu'];
     try { browser = await chromium.launch({ args }); } catch (e) { browser = await chromium.launch({ channel: 'chrome', args }); }
     const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, hasTouch: true, serviceWorkers: 'block' });
@@ -75,8 +77,10 @@ const SCREENS = ['home', 'campaign', 'menu', 'heroesPanel', 'bag', 'settings', '
     await pg.goto(base + '/play', { waitUntil: 'domcontentloaded' });
     await pg.waitForFunction(() => typeof show === 'function' && typeof api === 'function', null, { timeout: 90000 }); await delay(2500);
     await pg.evaluate(() => { const p = document.querySelector('.splashPlay'); if (p) p.click(); }); await delay(1500);
+    const MAIN = ['home', 'campaign', 'world'];
     const probe = () => pg.evaluate(() => { const b = document.getElementById('muteBtn'); if (!b) return { none: true };
-      try { muteBtnPlace(); } catch (e) {} const r = b.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+      try { muteBtnPlace(true); } catch (e) {} if (b.style.display === 'none' || !b.getClientRects().length || getComputedStyle(b).display === 'none') return { none: true, hidden: true, why: b.dataset.why, state: (typeof state !== 'undefined' ? state : '') };
+      const r = b.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
       const top = document.elementFromPoint(cx, cy); const onTop = !!(top && (top === b || b.contains(top)));
       const clk = el => { for (let e = el, d = 0; e && d < 6; e = e.parentElement, d++) { if (e === document.body || e === document.documentElement) return null;
           if (e.matches && e.matches('button,a[href],input,select,textarea,label,[onclick],[data-nav],[role=button],.btn,.mitem,.resplus')) return e;
@@ -87,7 +91,7 @@ const SCREENS = ['home', 'campaign', 'menu', 'heroesPanel', 'bag', 'settings', '
       b.style.visibility = sv;
       return { x: Math.round(r.left), y: Math.round(r.top), w: Math.round(r.width), h: Math.round(r.height), onTop, hits: [...hits], state: (typeof state !== 'undefined' ? state : '') }; });
     const g0 = await probe();
-    ck(!g0.none && g0.onTop && !g0.hits.length && g0.w >= 40 && g0.h >= 40, 'the button is on the sign-in gate, on top, covering nothing (' + JSON.stringify(g0) + ')');
+    ck(g0.none, 'v1230: no button on the sign-in gate (not a main screen)', JSON.stringify(g0));
     await shot('00-signin-gate');
 
     /* ---- sign in ---- */
@@ -106,8 +110,9 @@ const SCREENS = ['home', 'campaign', 'menu', 'heroesPanel', 'bag', 'settings', '
     for (const s of SCREENS) {
       await pg.evaluate(s => { try { show(s); } catch (e) {} }, s); await delay(1200);
       const r = await probe(); screens.push([s, r]);
-      ck(!r.none && r.onTop && !r.hits.length && r.w >= 40, 'screen ' + s + ': button on top, covers no control', JSON.stringify(r));
-      if (['home', 'campaign', 'temple', 'wishing', 'forge', 'guild', 'settings', 'heroesPanel', 'arena', 'skyfall', 'mail', 'quest'].includes(s)) await shot(String(n++).padStart(2, '0') + '-' + s);
+      if (MAIN.includes(s)) ck(!r.none && r.onTop && !r.hits.length && r.w >= 40, 'main screen ' + s + ': button shown, on top, covers no control', JSON.stringify(r));
+      else ck(r.none, 'screen ' + s + ': no button (only the town, World map and campaign map have it)', JSON.stringify(r));
+      if (['home', 'campaign', 'world', 'temple', 'wishing', 'forge', 'guild', 'settings', 'heroesPanel', 'arena', 'skyfall', 'mail', 'quest'].includes(s)) await shot(String(n++).padStart(2, '0') + '-' + s);
     }
     // modals and windows over the hub
     await pg.evaluate(() => show('home')); await delay(600);
@@ -116,15 +121,22 @@ const SCREENS = ['home', 'campaign', 'menu', 'heroesPanel', 'bag', 'settings', '
       ['profile window', () => { document.getElementById('profileBtn').click(); }, () => { try { document.getElementById('profClose').click(); } catch (e) {} }],
       ['food shop window', () => { document.getElementById('staminaPlus').click(); }, () => { try { document.getElementById('hudShopClose').click(); } catch (e) {} }] ]) {
       await pg.evaluate(open); await delay(700); const r = await probe();
-      ck(!r.none && r.onTop && !r.hits.length, 'window ' + name + ': button on top, covers no control', JSON.stringify(r)); await shot(String(n++).padStart(2, '0') + '-' + name.replace(/\W+/g, '-'));
+      if (name === 'hub menu (open)') ck(!r.none && r.onTop && !r.hits.length, 'the town MENU dropdown open: the button stays (part of the town screen), covers no control', JSON.stringify(r));
+      else ck(r.none, 'window ' + name + ' open over the town: no button', JSON.stringify(r)); await shot(String(n++).padStart(2, '0') + '-' + name.replace(/\W+/g, '-'));
       await pg.evaluate(close); await delay(300);
     }
+    // v1230: the Training Province panel (Phil's screenshot: the button sat on its top-right corner) - none
+    await pg.evaluate(() => { show('skyisland'); try { openTrainingProvince(); } catch (e) {} }); await delay(1500);
+    const tp = await probe(); ck(tp.none, 'v1230: no button on the Training Province panel', JSON.stringify(tp)); await shot(String(n++).padStart(2, '0') + '-training-province');
+    await pg.evaluate(() => { document.querySelectorAll('.provScene').forEach(e => e.remove()); show('home'); }); await delay(800);
+    const hb = await probe(); ck(!hb.none && hb.onTop, 'v1230: back on the town the button is shown again', JSON.stringify(hb));
 
     /* ---- desktop 1920x1080 and phone portrait 390x844 ---- */
-    for (const [w, h, list] of [[1920, 1080, ['home', 'campaign', 'menu', 'temple', 'wall', 'skyfall', 'settings', 'guild']], [390, 844, ['home', 'campaign', 'settings']]]) {
+    for (const [w, h, list] of [[1920, 1080, ['home', 'campaign', 'world', 'menu', 'temple', 'wall', 'skyfall', 'settings', 'guild']], [390, 844, ['home', 'campaign', 'settings']]]) {
       await pg.setViewportSize({ width: w, height: h }); await delay(900);
       for (const s of list) { await pg.evaluate(s => { try { show(s); } catch (e) {} }, s); await delay(1200); const r = await probe(); screens.push([s + '@' + w + 'x' + h, r]);
-        if (h > w) ck(!r.none && r.onTop && r.w >= 40, w + 'x' + h + ' ' + s + ': button shown (portrait is not a game layout - the game locks landscape; overlap not judged)', JSON.stringify(r));
+        if (!MAIN.includes(s)) ck(r.none, w + 'x' + h + ' ' + s + ': no button', JSON.stringify(r));
+        else if (h > w) ck(!r.none && r.onTop && r.w >= 40, w + 'x' + h + ' ' + s + ': button shown (portrait is not a game layout - the game locks landscape; overlap not judged)', JSON.stringify(r));
         else ck(!r.none && r.onTop && !r.hits.length && r.w >= 40, w + 'x' + h + ' ' + s + ': button on top, covers no control', JSON.stringify(r));
         if (s === 'home' || s === 'campaign') await shot(String(n++).padStart(2, '0') + '-' + s + '-' + w + 'x' + h); }
     }
@@ -146,9 +158,8 @@ const SCREENS = ['home', 'campaign', 'menu', 'heroesPanel', 'bag', 'settings', '
     ck(!m2.on && m2.gain === 1 && m2.cfg === cfgB && m2.bus === 0.42 && m2.ls === '0', 'a second tap unmutes and gives back exactly the Settings levels', JSON.stringify(m2));
     await pg.evaluate(() => sndSet('music', { vol: 0.6 }));
     // the Settings row shows the same flag
-    await pg.evaluate(() => show('settings')); await delay(600);
-    await tap(); const st1 = await pg.evaluate(() => { const c = document.getElementById('snd_mute'); return c ? c.checked : null; }); await tap();
-    const st2 = await pg.evaluate(() => { const c = document.getElementById('snd_mute'); return c ? c.checked : null; });
+    const chk = async () => { await pg.evaluate(() => show('settings')); await delay(600); const c = await pg.evaluate(() => { const c = document.getElementById('snd_mute'); return c ? c.checked : null; }); await pg.evaluate(() => show('home')); await delay(700); return c; };
+    await tap(); const st1 = await chk(); await tap(); const st2 = await chk();
     ck(st1 === true && st2 === false, 'Settings "Mute all" follows the button', st1 + '/' + st2);
 
     /* ---- (5)(6) music per screen; the city song plays straight through the buildings ---- */
@@ -181,12 +192,7 @@ const SCREENS = ['home', 'campaign', 'menu', 'heroesPanel', 'bag', 'settings', '
     const kExp = k0 == null ? 0 : (+k0 + 1) % list.length;
     ck(b1.cur === 'battle' && b1.f === list[kExp] && b1.t >= b1.start && b1.t < b1.start + 2.5 && b1.cityPaused, 'battle: the next song in the cycle (' + b1.f + ') starts at its start (' + b1.start + ' s)', JSON.stringify(b1));
     await shot(String(n++).padStart(2, '0') + '-battle');
-    const br = await probe(); ck(!br.none && br.onTop && !br.hits.length, 'battle: button on top, covers no control (speed/auto/skip)', JSON.stringify(br));
-    // a tap in battle: no input, no speed change
-    const bIn = await pg.evaluate(() => ({ q: (typeof inputQ !== 'undefined' && inputQ.length) || 0, sp: gameSpeed, sel: selected ? 1 : 0, aim: aiming ? 1 : 0 }));
-    await tap(); await tap();
-    const bOut = await pg.evaluate(() => ({ q: (typeof inputQ !== 'undefined' && inputQ.length) || 0, sp: gameSpeed, sel: selected ? 1 : 0, aim: aiming ? 1 : 0, mute: SND_MUTE.on }));
-    ck(JSON.stringify(bIn) === JSON.stringify({ q: bOut.q, sp: bOut.sp, sel: bOut.sel, aim: bOut.aim }) && bOut.mute === false, 'battle: two taps on the button change no battle input, speed or selection', JSON.stringify([bIn, bOut]));
+    const br = await probe(); ck(br.none, 'v1230: no button in a battle', JSON.stringify(br));
     // 2x: real time, rate 1
     const rt = await pg.evaluate(async () => { gameSpeed = 2; paused = false; const el = MUS.lanes.battle.slot.el, a = el.currentTime, w = performance.now(); await new Promise(r => setTimeout(r, 2000));
       const out = { rate: el.playbackRate, d: el.currentTime - a, wall: (performance.now() - w) / 1000 }; paused = true; gameSpeed = 1; return out; });
@@ -210,6 +216,7 @@ const SCREENS = ['home', 'campaign', 'menu', 'heroesPanel', 'bag', 'settings', '
     ck(r1.st === 'result' && r1.cur === 'battle' && r1.f === fBefore && r1.playing && r1.gain > 0.9 && r1.k === kBefore && r1.rate === 1,
       'result screen (a win): the same battle song plays on at full level, rate 1, the cycle index unchanged (' + r1.f + ')', JSON.stringify([r1, fBefore, kBefore]));
     await shot(String(n++).padStart(2, '0') + '-result-music');
+    const rr = await probe(); ck(rr.none, 'v1230: no button on the result screen', JSON.stringify(rr));
     const rseam = await pg.evaluate(async () => { const L = MUS.lanes.battle, s = L.slot, song = s.song; MUS.log.length = 0; s.el.currentTime = song.loopEnd - 2.2;
       for (let i = 0; i < 60 && L.slot === s; i++) await new Promise(r => setTimeout(r, 100));
       await new Promise(r => setTimeout(r, 400)); const nn = L.slot; return { st: state, cur: MUS.cur, moved: nn !== s, same: nn && nn.song === song, t: nn && nn.el.currentTime, loopStart: song.loopStart, loopEnd: song.loopEnd, seams: MUS.log.filter(x => x[0] === 'seam').length }; });

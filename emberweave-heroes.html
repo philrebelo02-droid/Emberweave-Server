@@ -10732,7 +10732,18 @@ function muteBtnPlaceNow(){ try{ let b=document.getElementById('muteBtn'); if(!b
     if(splashOn()){ b.style.display='none'; b.dataset.why='splash'; MUTE_DBG.last={ why:'splash', x:0, y:0, s:0, ms:0, st:(typeof state!=='undefined'&&state)||'' }; return; }   /* v1197: no mute button on the splash */
     /* v1220 (Phil 24 Oct: "remove the mute button from here"): none on the Tower of Trials chooser ([data-nomute]) or over Hero Survivors (#survFrame) */
     if(document.getElementById('survFrame')||document.querySelector('[data-nomute]')){ b.style.display='none'; b.dataset.why='nomute'; MUTE_DBG.last={ why:'nomute', x:0, y:0, s:0, ms:0, st:(typeof state!=='undefined'&&state)||'' }; return; }
-    if(b.style.display==='none'&&(b.dataset.why==='splash'||b.dataset.why==='nomute')) b.style.display='';
+    /* v1230 (Phil 30 Oct, on the Training Province panel: "remove the mute button its out of place, only have the mute button on main
+       screens like the city screen, world map, campaign map. every other screen remove the mute"): the button shows ONLY on the town (the
+       hub), the World map and the campaign map, and only while no window, panel, popup or overlay is open over them (uiWindowOpen - the
+       same rule the chat bar follows). Every building, panel, battle and the result screen: none. Settings keeps "Mute all".
+       Test: tests/test_mute_music_1159.js. */
+    { const st0=(typeof state!=='undefined'&&state)||'', gated=!!(document.body&&document.body.classList.contains('gated')),
+        scr=document.getElementById(st0), onMain=(st0==='home'||st0==='world'||st0==='campaign')&&!!(scr&&scr.classList.contains('active'));
+      let win=false; if(onMain&&!gated){ const pe=b.style.pointerEvents; b.style.pointerEvents='none'; try{ win=uiWindowOpen(); }catch(e){} finally { b.style.pointerEvents=pe; } }
+      const ag=document.getElementById('authGate'), gate=!!(ag&&ag.getClientRects().length&&(typeof authGateOpen!=='function'||authGateOpen()));
+      if(!onMain||gated||gate||win){ if(b.parentNode!==document.body){ document.body.appendChild(b); b.classList.remove('dock'); }   // (out of any window it was docked in, so closing that window cannot take it away)
+        if(MUTE_DOCK.relHost){ MUTE_DOCK.relHost.style.position=MUTE_DOCK.relWas||''; MUTE_DOCK.relHost=null; } MUTE_DOCK.x=null; b.style.display='none'; b.dataset.why='offmain'; MUTE_DBG.unlisted=''; MUTE_DBG.last={ why:'offmain', x:0, y:0, s:0, ms:0, st:st0 }; return; } }
+    if(b.style.display==='none'&&(b.dataset.why==='splash'||b.dataset.why==='nomute'||b.dataset.why==='offmain')) b.style.display='';
     const vw=ewGameView().width||document.documentElement.clientWidth, vh=ewGameView().height||document.documentElement.clientHeight; if(!vw||!vh) return;
     const t0=(window.performance&&performance.now())||0, st=(typeof state!=='undefined'&&state)||'';
     const done=(why,x,y,s)=>{ MUTE_DBG.last={ why, x:Math.round(x), y:Math.round(y), s, ms:Math.round((((window.performance&&performance.now())||0)-t0)*10)/10, st }; };
@@ -30959,7 +30970,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1793407030603';
+const BUILD_ID = '1793410688881';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
