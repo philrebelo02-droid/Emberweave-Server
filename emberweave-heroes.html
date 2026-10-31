@@ -2795,6 +2795,7 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 <script src="/assets/ui/world-tree-cycle.js?v=wt5"></script>
 <script src="/assets/ui/world-tree-art.js?v=wt-noflash-1228b"></script>
 <script src="/assets/ui/world-oasis-markers.js?v=om-ponds-1230"></script>
+<script src="/assets/ui/world-siege.js?v=siege-1235"></script>
 <script src="/assets/ui/world-tree-countdown.js?v=wt5-roots-1228"></script>
 <script src="/assets/ui/world-tree-control-ui.js?v=wc8-ponds"></script>
 <script src="/assets/ui/world-tree-actions-ui.js?v=wa4-ponds"></script>
@@ -25176,13 +25177,14 @@ function renderWorldMap(keepView){
   { const K=REALM_MAP.GEO.CORE, c0=REALM_MAP.GEO.xOf(K[0]-0.5), r0=REALM_MAP.GEO.yOf(K[1]-0.5), n=K[2]-K[0]+1;   // v1227: the core's own cells
     wt.style.cssText=`left:${c0+n*GRID_CELL/2}%;top:${r0+n*GRID_CELL/2}%;width:${n*WORLD_W/GRID_COLS}px;height:${n*WORLD_W/GRID_COLS}px;z-index:4;min-width:0;background:transparent`; }
   wt.title='World Tree'; wt.setAttribute('aria-label','World Tree'); wt.tabIndex=0;
-  wt.onclick=(e)=>{ e.stopPropagation(); if(_teleMode)return; openWorldTreeMenu(); };
+  wt.onclick=(e)=>{ e.stopPropagation(); if(_teleMode)return; if(window.EmberweaveWorldSiege){ openSiegePanel('tree'); return; } openWorldTreeMenu(); };   // v1235: the Tree is a siege site
   wt.onkeydown=(e)=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); wt.click(); } };
   inner.appendChild(wt);
   if(window.EmberweaveWorldTreeArt) window.EmberweaveWorldTreeArt.mount(inner);
   if(window.EmberweaveWorldTreeCountdown) window.EmberweaveWorldTreeCountdown.mount(inner);
   zone.addEventListener('click',(e)=>{ closeCityMenu();
     if(_teleMode && !_wMoved){ const p=tapToWorldPct(zone, e.ewGameX, e.ewGameY); teleportPlace(p.x,p.y); } });
+  wmSiegeWire(zone,inner);   // v1235: hover sword + click panel on every city, oasis and the World Tree
   zone.addEventListener('wheel',(e)=>{ e.preventDefault(); closeCityMenu(); worldZoomTo(worldZoom*(e.deltaY<0?1.12:1/1.12), e.ewGameX, e.ewGameY); },{passive:false});
   let _pd=0,_pz=1; const tdist=(e)=>Math.hypot(e.touches[0].ewGameX-e.touches[1].ewGameX, e.touches[0].ewGameY-e.touches[1].ewGameY);
   zone.addEventListener('touchstart',(e)=>{ if(e.touches.length===2){ _pd=tdist(e); _pz=worldZoom; closeCityMenu(); } },{passive:true});
@@ -25318,7 +25320,7 @@ function drawServerMarchInfo(body,local){
 
 let _worldTreeControlUI=null;
 // v1228: tapping a painted pond (the oases) opens its World Tree site panel (the event is off: the panel says so)
-window.ewOpenOasis=id=>{ if(_teleMode)return; const a=worldTreeActionsUI(), o=(REALM_MAP.META.oases||[]).find(x=>x.id===id), nm=o?o.name:'Oasis';
+window.ewOpenOasis=id=>{ if(_teleMode)return; if(window.EmberweaveWorldSiege){ openSiegePanel(id); return; } const a=worldTreeActionsUI(), o=(REALM_MAP.META.oases||[]).find(x=>x.id===id), nm=o?o.name:'Oasis';
   Promise.resolve(a&&a.open(id)).catch(()=>{}).then(()=>{ if(!document.querySelector('.worldTreeActions')) bannerMsg(nm+' - a garrison site of the World Tree. It opens with the World Tree event.'); }); };
 function worldTreeControlUI(){if(!_worldTreeControlUI&&window.EmberweaveWorldTreeControlUI)_worldTreeControlUI=window.EmberweaveWorldTreeControlUI.create({
   identity:()=>ACC.token?ACC.id+':'+ACC.token:null,now:()=>Date.now(),zoom:()=>worldZoom,schedule:(fn,ms)=>setTimeout(fn,ms),cancel:id=>clearTimeout(id),
@@ -25343,7 +25345,7 @@ function committedHeroes(){ const s=new Set(); const treeUI=worldTreeControlUI()
 function myHeroPower(k){ try{ return heroPower(k)|0; }catch(e){ return 0; } }
 function myTeamPower(keys){ let p=0; for(const k of (keys||[])){ if(k) p+=myHeroPower(k); } return p; }
 function marchPower(heroes){ return myTeamPower(heroes); }
-function marchVerb(ct){ return ct==='attack'?statusIcon('attack')+' Attacking':ct==='group'?statusIcon('attack')+' Group attacking':ct==='defend'?statusIcon('shield')+' Defending':uiIcon('scout-telescope')+' Scouting'; }
+function marchVerb(ct){ return ct==='siege'?statusIcon('attack')+' Sieging':ct==='attack'?statusIcon('attack')+' Attacking':ct==='group'?statusIcon('attack')+' Group attacking':ct==='defend'?statusIcon('shield')+' Defending':uiIcon('scout-telescope')+' Scouting'; }
 let cityMarchStartPending=false;
 /* v1001 (World audit #3): a march start keeps ONE requestId for the same target + squad for 2 minutes and re-sends it on a lost reply
    or a refused save - a retap after a lost reply used to be refused ("hero already marching") and the client never learned the march. */
@@ -25355,6 +25357,15 @@ async function marchStartPost(path,key,body){ const now=Date.now(); let pr=_marc
   return r; }
 async function startMarch(ctype,c,heroes){
   let out=marchOutMs(ctype,c.x,c.y), t=Date.now(), serverMarch=null;
+  if(ctype==='siege'){   /* v1235 CITY SIEGE: the server registers the march to the site's centre and freezes squad, guards and seed */
+    if(!ACC.token){ bannerMsg('Sign in to march on '+escapeHTML(c.name)+'.'); return; }
+    if(cityMarchStartPending)return;
+    cityMarchStartPending=true;
+    try{ const hs=(heroes||[]).slice(0,5); serverMarch=await marchStartPost('/api/world/siege/start','siege:'+c.siteId+':'+hs.join(','),{siteId:c.siteId,heroIds:hs}); }catch(_e){serverMarch=null;}
+    finally{cityMarchStartPending=false;}
+    if(!serverMarch||!serverMarch.ok){ bannerMsg((serverMarch&&serverMarch.error)||'The siege march could not be registered. Try again.'); return; }
+    t=serverMarch.depart; out=serverMarch.travel; c=Object.assign({},c,{x:serverMarch.target.x,y:serverMarch.target.y});
+  }
   if((ctype==='attack'||ctype==='group') && (c.real||c.bot) && ACC.token){
     if(cityMarchStartPending)return;
     cityMarchStartPending=true;
@@ -25377,6 +25388,7 @@ async function startMarch(ctype,c,heroes){
   if((ctype==='attack'||ctype==='group') && itemShieldActive()){ G.shieldUntil=0; bannerMsg(statusIcon('shield')+' Protection shield broke — you launched an attack.'); }
   activeMarches().push({ id:'m'+t+'_'+Math.floor(rand01(t)*999), dir:'out', ctype, tName:c.name, tId:c.id, real:!!c.real, fx:c.x, fy:c.y,
     serverCityId:serverMarch&&serverMarch.marchId,
+    siteId:ctype==='siege'?c.siteId:undefined, siege:ctype==='siege'?{seed:serverMarch.seed,snaps:serverMarch.snaps,foe:serverMarch.foe}:undefined,
     tRank:c.rank, tPower:c.power||1, ally:!!c.ally,
     heroes:serverMarch?serverMarch.heroIds.slice():(heroes||[]).slice(),
     dTeam:(c.team||[]).slice(), depart:t,
@@ -25505,6 +25517,31 @@ function resolveMarch(m){
     addMail('war',{from:m.tName,subj:'{i:u:warning} Raided your castle',body:m.tName+'’s army broke through your defense lines and looted {i:h:gold} '+loss+' gold. Raise a protection shield or strengthen your wall lines.',battle:meta});
     marchReport('{i:u:warning} Raided by '+m.tName,'An enemy raided your castle and stole {i:h:gold} '+loss+'. Consider a protection shield.'); updateMailBadges(); return;
   }
+  if(m.ctype==='siege'){   /* v1235 CITY SIEGE: fight the frozen fight here (the player's fight), report it; the server replays it as a check only */
+    if(!ACC.token||!m.serverCityId||!m.siege){ m.resolved=true; marchReport(statusIcon('attack')+' Siege not resolved','This march was not registered by the server. Send a fresh squad.'); saveG(); return false; }
+    if(m.resolving && Date.now()-(m.resolvingAt||0)<30000) return false;
+    m.resolving=true; m.resolvingAt=Date.now();
+    if(!m.siegeFight){ let won=false, digest=''; try{ won=!!simFightResult(JSON.parse(JSON.stringify(m.siege.snaps)),JSON.parse(JSON.stringify(m.siege.foe)),m.siege.seed>>>0); digest=window._p2digest||''; }catch(e){ digest=''; }
+      m.siegeFight={won,digest}; }
+    m.siegeRid=m.siegeRid||uid8();
+    api('/api/world/siege/resolve','POST',{marchId:m.serverCityId,requestId:m.siegeRid,won:m.siegeFight.won,digest:m.siegeFight.digest}).then(r=>{
+      m.resolving=false; m.resolvingAt=0;
+      if(!r||!r.ok){
+        if(r&&r.arriveAt){ m.arrive=Math.max(Date.now()+1000,r.arriveAt); m.siegeRid=null; saveG(); return; }
+        if(!r||r.error==='offline'||r.storageFailed){ m.arrive=Date.now()+30000; saveG(); return; }
+        if(r.unverified){ m.siegeFight=null; m.siegeRid=null; m.arrive=Date.now()+5000; saveG(); return; }
+        m.resolved=true; const reason=r.error||'The siege was refused by the server.';
+        addMail('war',{from:m.tName,subj:'{i:u:warning} Siege not resolved',body:reason}); marchReport('{i:u:warning} Siege not resolved',reason); updateMailBadges(); saveG(); return; }
+      m.resolved=true;
+      if(r.witch&&r.witch.ledger) adoptLedger(r.witch.ledger);
+      const replay=r.replay?{v:2,seed:r.replay.seed,mineSnap:r.replay.snaps,foe:r.replay.foe,won:!!r.won,oppName:m.tName}:null;
+      const body=r.won?(r.seized?('Your army broke the guards of '+m.tName+' and seized it'+(r.holder&&r.holder.type==='guild'?' for '+r.holder.name:'')+'.'):('Your army beat the guards of '+m.tName+'. '+(r.note||'')))
+        :('The guards of '+m.tName+' held. Your surviving heroes march home with their injuries.');
+      addMail('war',{from:m.tName,subj:(r.won?'{i:s:attack} Victory — ':'{i:s:attack} Defeat — ')+m.tName,body,battle:replay,marchId:m.serverCityId});
+      marchReport((r.won?'{i:s:attack} Victory at ':'{i:s:attack} Defeat at ')+m.tName,body);
+      updateMailBadges(); saveG(); siegeRefresh();
+    }).catch(()=>{ m.resolving=false; m.resolvingAt=0; m.arrive=Date.now()+5000; saveG(); });
+    return false; }
   if(m.ctype==='mine'){   // mining = fight the mine's 5 monster guardians on full auto; win → haul the resources
     if(ACC.token){
       if(!m.serverMineId){ marchReport('{i:u:mode-mine} Old mine trip','This trip predates verified mine battles and cannot pay a haul. Send a fresh squad.'); return; }
@@ -25752,6 +25789,9 @@ function worldVisualMarchRows(local){
   })));
 }
 
+/* v1235: march marker and trail sizes in GRID SQUARES (one castle = 1 square since v1227), so they keep a castle's proportion at every zoom */
+const MARCH_SHIP=Object.freeze({size:1.2, glow1:0.06, glow2:0.13, shadow:0.05});
+const MARCH_DASH=Object.freeze({dash:0.35, width:0.12, gap:0.35, arrow:0.22, arrowWidth:0.07, arrowStep:6});
 function drawMarches(){
   const inner=document.getElementById('wzoneInner'); if(!inner)return;
   let svg=document.getElementById('marchSvg');
@@ -25795,24 +25835,30 @@ function drawMarches(){
       // Keep the dotted trail legible close up while it thins naturally as the map zooms out.
       const ln=document.createElementNS(NS,'line');
       ln.setAttribute('x1',legStart.x);ln.setAttribute('y1',legStart.y);ln.setAttribute('x2',legEnd.x);ln.setAttribute('y2',legEnd.y);
-      ln.setAttribute('stroke',col);ln.setAttribute('stroke-width','0.07');ln.setAttribute('stroke-dasharray','0.07 0.2');
+      /* v1235 (Phil 31 Oct 2026: "ship and dotted lines are now too big in comparison to the castles"): since v1227 a castle is ONE grid
+         cell, so the trail is sized from the cell (MARCH_DASH): each dash ~0.35 of a square long, 0.12 thick, a 0.35 gap (round caps add
+         the width to each dash, so the pattern subtracts it). Was 0.07 % thick with ~1.1-square dashes (sized for 4-cell castles). */
+      const MC=100/GRID_COLS, MW=MARCH_DASH.width*MC;
+      ln.setAttribute('stroke',col);ln.setAttribute('stroke-width',String(MW));ln.setAttribute('stroke-dasharray',((MARCH_DASH.dash-MARCH_DASH.width)*MC)+' '+((MARCH_DASH.gap+MARCH_DASH.width)*MC));
       ln.setAttribute('stroke-linecap','round');ln.setAttribute('opacity','0.85'); g.appendChild(ln);
       // small chevron arrows every ~2 tiles of the 220 grid, pointing the way the ship is travelling
-      if(len>0.01){ const ang=Math.atan2(dy,dx)*180/Math.PI, step=2*GEO.OLD_SQUARE, a=0.06;
+      if(len>0.01){ const ang=Math.atan2(dy,dx)*180/Math.PI, step=MARCH_DASH.arrowStep*MC, a=MARCH_DASH.arrow*MC;   // v1235: chevrons from the cell too
         for(let d=step; d<len-a*0.6; d+=step){ const t=d/len, px=legStart.x+dx*t, py=legStart.y+dy*t;
           const ar=document.createElementNS(NS,'path');
           ar.setAttribute('d','M '+(-a)+' '+(-a)+' L 0 0 L '+(-a)+' '+a);
           ar.setAttribute('transform','translate('+px+' '+py+') rotate('+ang+')');
-          ar.setAttribute('fill','none');ar.setAttribute('stroke',col);ar.setAttribute('stroke-width','0.03');
+          ar.setAttribute('fill','none');ar.setAttribute('stroke',col);ar.setAttribute('stroke-width',String(MARCH_DASH.arrowWidth*MC));
           ar.setAttribute('stroke-linecap','round');ar.setAttribute('stroke-linejoin','round');ar.setAttribute('opacity','0.7');
           g.appendChild(ar); } }
     }
     const vx=legStart.x+(legEnd.x-legStart.x)*p, vy=legStart.y+(legEnd.y-legStart.y)*p;
     const dx=legEnd.x-legStart.x, dy=legEnd.y-legStart.y, moving=(Math.abs(dx)+Math.abs(dy))>0.01;
     const rot = !moving ? 'rotate(0deg)' : (dx>0 ? ('scaleX(-1) rotate('+(Math.atan2(-dy,dx)*180/Math.PI)+'deg)') : ('rotate('+(Math.atan2(-dy,-dx)*180/Math.PI)+'deg)'));
-    const wrap=document.createElement('div'); wrap.style.cssText='position:absolute;left:'+vx+'%;top:'+vy+'%;transform:translate(-50%,-50%);width:40px;height:40px';
+    // v1235: the ship is about one castle (MARCH_SHIP squares), its glow and shadow scale with it (was 40 px = ~3 castles + a 7 px glow)
+    const SQ=WORLD_W/GRID_COLS, shipPx=MARCH_SHIP.size*SQ, g1=(MARCH_SHIP.glow1*SQ).toFixed(2), g2=(MARCH_SHIP.glow2*SQ).toFixed(2), gs=(MARCH_SHIP.shadow*SQ).toFixed(2);
+    const wrap=document.createElement('div'); wrap.className='marchShipWrap'; wrap.style.cssText='position:absolute;left:'+vx+'%;top:'+vy+'%;transform:translate(-50%,-50%);width:'+shipPx+'px;height:'+shipPx+'px';
     // art is now solid & sharp — a light faction ring for spotting + a soft ground shadow (no brightness lift / haze)
-    const glow='contrast(1.03) saturate(1.05) drop-shadow(0 0 3px '+col+') drop-shadow(0 0 7px '+col+') drop-shadow(0 2px 3px rgba(0,0,0,.6))';
+    const glow='contrast(1.03) saturate(1.05) drop-shadow(0 0 '+g1+'px '+col+') drop-shadow(0 0 '+g2+'px '+col+') drop-shadow(0 '+gs+'px '+gs+'px rgba(0,0,0,.6))';
     if(!mining){   // while mining, show only the mine symbol on the node — no airship hovering the mine
       if(isAssetRef(AIRSHIP_SHEET)){
         const ship=document.createElement('div'); ship.className='marchShip';
@@ -25826,7 +25872,12 @@ function drawMarches(){
       veh.appendChild(wrap);
     }
     const t=document.createElement('div'); t.textContent=m.serverVisual?.phase==='awaiting-resolution'?'Pending result':mining?('Mining '+fmtDur(etaMs)):(stationed?'stationed':fmtDur(etaMs));
-    t.style.cssText='position:absolute;left:'+vx+'%;top:'+vy+'%;transform:translate(-50%,22px);font-size:9px;font-weight:800;color:'+col+';text-shadow:0 1px 2px #000;white-space:nowrap'; veh.appendChild(t);
+    /* v1235: the timer reads like a castle name (10 px at --wm-lab, the castle names' scale) just under the ship; while mining it sits
+       ABOVE the mine, which stays drawn on its intersection until the gather is done (Phil: "when im mining the mine dissapears") */
+    t.className='marchTimer'+(mining?' mining':'');
+    t.style.cssText='position:absolute;left:'+vx+'%;top:'+vy+'%;font-size:10px;font-weight:800;color:'+col+';text-shadow:0 1px 2px #000,0 0 3px #000;white-space:nowrap;pointer-events:none;'
+      +(mining?'transform:translate(-50%,-100%) translateY(calc(var(--wm-sq,11px) * -0.6)) scale(var(--wm-lab,1));transform-origin:50% 100%'
+              :'transform:translate(-50%,0) translateY('+(shipPx*0.55).toFixed(2)+'px) scale(var(--wm-lab,1));transform-origin:50% 0'); veh.appendChild(t);
   });
 }
 /* ============================== WORLD MINES (resource nodes) ==============================
@@ -25876,12 +25927,17 @@ function mineIsActive(id){ const now=Date.now(); return activeMarches().some(m=>
 function mineAvailable(m){ return !mineClaimedSet().includes(m.id) && !mineIsActive(m.id); }
 function mineLabel(m){ return 'Lv '+m.level+' '+mnResName(m.res)+' Mine'; }
 // draw every available mine node onto the world map
+/* v1235 (Phil 31 Oct 2026: "when im mining the mine dissapears, it should [not] dissapear until its depleted"): a mine your squad is
+   marching to or gathering stays on the map (same sprite and level, class 'mining'); it is DEPLETED - and gone until the next 8-h field -
+   once the gather is over (your march past its arrival / settled). Other players' marches never hide a mine (the client hides only by
+   your own claim). */
+function mineBeingMined(id){ const now=Date.now(); return activeMarches().some(m=>m.ctype==='mine'&&m.mineId===id&&!m.resolved&&!m.retreated&&now<m.arrive); }
 function drawMines(inner){ if(!inner)return;
-  worldMines().forEach(m=>{ if(!mineAvailable(m))return;
-    const el=document.createElement('div'); el.className='wnode mine'; el.style.left=m.x+'%'; el.style.top=m.y+'%';   // v1227: ON its grid intersection (Phil: "The mines don't go in the squares")
+  worldMines().forEach(m=>{ const busy=!mineAvailable(m); if(busy&&!(mineBeingMined(m.id)&&(!mineSignedIn()||worldMineFieldState().nodes.some(n=>n.id===m.id))))return;
+    const el=document.createElement('div'); el.className='wnode mine'+(busy?' mining':''); el.dataset.mineId=m.id; el.style.left=m.x+'%'; el.style.top=m.y+'%';   // v1227: ON its grid intersection (Phil: "The mines don't go in the squares")
     const img=MINE_IMGS[m.res]; const pic=img?`<img class="wm-mine-spr" src="${img}" style="filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))" draggable="false">`:`<div style="font-size:20px;filter:drop-shadow(0 1px 3px #000)">${mnResIcon(m.res)}${uiIcon('mode-mine')}</div>`;
     el.innerHTML=`${pic}<div class="wlab"><div class="nl" style="color:${mnResColor(m.res)};font-weight:800">${mnResName(m.res)}</div><div class="nl" style="color:#ffd45e;font-size:9px">Lv ${m.level}</div></div>`;
-    el.onclick=(e)=>{ e.stopPropagation(); if(_teleMode)return; closeCityMenu(); openMineInfo(m); };
+    el.onclick=(e)=>{ e.stopPropagation(); if(_teleMode)return; closeCityMenu(); if(busy){ bannerMsg(uiIcon('mode-mine')+' Your miners are working '+mineLabel(m)+'.'); return; } openMineInfo(m); };
     inner.appendChild(el); }); }
 // mine info popup
 function openMineInfo(m){ closeCityMenu(); const inner=document.getElementById('wzoneInner'); if(!inner)return;
@@ -26019,6 +26075,70 @@ function wallActiveTeamCount(){ return wallActiveTeams().length; }
 let cityMenuEl=null;
 function closeCityMenu(){ if(cityMenuEl){ cityMenuEl.remove(); cityMenuEl=null; } }
 // The World Tree can be attacked — but that's locked behind a Coming Soon gate for now.
+/* ============================== v1235 CITY SIEGE (first slice) ==============================
+   Phil 31 Oct 2026: "i still cannot left click to attack cities, it should have a Sword ... when i hover over a city, oasis, or world tree
+   for attack. when then i left click it gives me the option to attack". Hovering any city square, oasis square or the World Tree core
+   shows the game's attack icon (status/attack art - no emoji) at the pointer and as the cursor; a click opens the site panel: name,
+   holder, distance from your castle, Attack (disabled with the reason past 20 squares or with no free army). Attack = the march picker,
+   then /api/world/siege/start (march to the site's centre). Rules and defaults: assets/ui/world-siege.js, blueprint 04 CITY SIEGE v1235. */
+const SIEGE_CURSOR='url("/assets/img/icons/status/attack-cursor-32.png?v=1235") 16 16, pointer';
+let _siegeState={sites:{},armies:null,at:0}, _siegeLoading=null;
+function siegeApi(){ return window.EmberweaveWorldSiege||null; }
+function siegeRefresh(){ if(!ACC.token||!online()) return Promise.resolve(_siegeState);
+  if(_siegeLoading) return _siegeLoading;
+  _siegeLoading=api('/api/world/sieges','GET').then(r=>{ if(r&&r.ok) _siegeState={sites:r.sites||{},armies:r.armies||null,myId:r.myId||null,myGuildId:r.myGuildId||null,at:Date.now()}; drawSiegeHolders(); return _siegeState; })
+    .catch(()=>_siegeState).finally(()=>{ _siegeLoading=null; });
+  return _siegeLoading; }
+function siegePointAt(zone,e){ const r=zone.ewGameRect(), ux=wzLeft(zone)+(e.ewGameX-r.left)/worldZoom, uy=wzTop(zone)+(e.ewGameY-r.top)/worldZoom;
+  return {x:ux/WORLD_W*100,y:uy/WORLD_H*100}; }
+function siegeSiteAtEvent(zone,e){ const S=siegeApi(); if(!S) return null; const p=siegePointAt(zone,e); return S.atPoint(p.x,p.y); }
+function wmSiegeWire(zone,inner){ const S=siegeApi(); if(!S) return;
+  if(!document.getElementById('siegeCss')){ const st=document.createElement('style'); st.id='siegeCss';
+    st.textContent='#wzoneInner .worldOasisMarker,#wzoneInner #worldTreeTarget{cursor:'+SIEGE_CURSOR+'!important}'
+      +'.wmSiegeHolder{position:absolute;transform:translate(-50%,-50%) scale(var(--wm-lab,1));z-index:6;pointer-events:none;display:flex;align-items:center;gap:3px;white-space:nowrap;'
+      +'font-size:11px;font-weight:800;color:#ffe9a8;background:rgba(8,12,22,.66);border:1px solid rgba(201,162,78,.75);border-radius:7px;padding:1px 6px 1px 3px;text-shadow:0 1px 2px #000}'
+      +'.wmSiegeHolder img{width:16px;height:16px}#siegeHover{filter:drop-shadow(0 1px 2px #000) drop-shadow(0 0 4px rgba(255,120,60,.8))}';
+    document.head.appendChild(st); }
+  const mark=document.createElement('img'); mark.id='siegeHover'; mark.src=ICON_SRC.s('attack'); mark.alt=''; mark.draggable=false;
+  mark.style.cssText='position:absolute;display:none;width:26px;height:26px;z-index:9;pointer-events:none;transform:translate(-50%,-110%) scale(var(--wm-lab,1));transform-origin:50% 100%';
+  inner.appendChild(mark);
+  const hide=()=>{ if(mark.style.display!=='none'){ mark.style.display='none'; mark.dataset.siteId=''; if(!_wdrag) zone.style.cursor='grab'; } };
+  zone.addEventListener('mousemove',e=>{ if(_wdrag||_teleMode){ hide(); return; } const s=siegeSiteAtEvent(zone,e); if(!s){ hide(); return; }
+    const p=siegePointAt(zone,e); mark.style.left=p.x+'%'; mark.style.top=p.y+'%'; mark.style.display='block'; mark.dataset.siteId=s.id; zone.style.cursor=SIEGE_CURSOR; },{passive:true});
+  zone.addEventListener('mouseleave',hide,{passive:true});
+  zone.addEventListener('click',e=>{ if(_teleMode||_wMoved) return; const s=siegeSiteAtEvent(zone,e); if(s){ e.stopPropagation(); openSiegePanel(s.id); } });
+  drawSiegeHolders(); siegeRefresh(); }
+// every held site shows its holder on the map, for everyone (the rally-flag art + the guild or player name)
+function drawSiegeHolders(){ const S=siegeApi(), inner=document.getElementById('wzoneInner'); if(!S||!inner) return;
+  inner.querySelectorAll('.wmSiegeHolder').forEach(el=>el.remove());
+  for(const [id,h] of Object.entries(_siegeState.sites||{})){ const s=S.byId(id); if(!s||!h) continue;
+    const el=document.createElement('div'); el.className='wmSiegeHolder'; el.dataset.siteId=id; el.style.left=s.x+'%'; el.style.top=s.y+'%';
+    el.innerHTML=uiIcon('rally-flag')+'<span></span>'; el.querySelector('span').textContent=h.name; inner.appendChild(el); } }
+function siegeArmiesFree(){ const a=_siegeState.armies; return !a||!Number.isFinite(a.cap)||(a.out|0)<a.cap; }
+async function openSiegePanel(siteId){ const S=siegeApi(); if(!S) return; const site=S.byId(siteId); if(!site) return;
+  closeCityMenu(); document.querySelectorAll('#siegePanel').forEach(el=>el.remove());
+  const ov=document.createElement('div'); ov.id='siegePanel'; ov.dataset.siteId=site.id;
+  ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.72);display:flex;align-items:center;justify-content:center;z-index:20000;padding:16px';
+  document.body.appendChild(ov); const close=()=>ov.remove(); ov.addEventListener('click',e=>{ if(e.target===ov) close(); });
+  const render=()=>{ if(!ov.isConnected) return;
+    const castle=myCastlePos(), d=S.distance(castle,site), h=S.holderOf(_siegeState,site.id), me={id:_siegeState.myId||ACC.id,guildId:_siegeState.myGuildId||_rcMyGuild||null};
+    const why=!ACC.token?'Sign in to attack.':S.refusal({site,castle,holder:h,me,now:Date.now(),freeMarch:siegeArmiesFree()});
+    const kind=site.kind==='city'?'City':site.kind==='oasis'?'Oasis':'World Tree';
+    ov.innerHTML=`<div style="background:#141b2b;border:1px solid #33405e;border-radius:14px;padding:16px;width:100%;max-width:280px;text-align:center;box-shadow:0 12px 40px #000b">
+      <div id="spName" style="font-weight:800;font-size:16px"></div>
+      <div style="font-size:11px;color:#8b98a9;margin-bottom:10px">${kind} · guards Lv ${site.guardLevel}</div>
+      <div style="font-size:13px;line-height:1.9;text-align:left;display:inline-block">
+        ${uiIcon('rally-flag')} Held by&nbsp; <b id="spHolder" style="color:#ffe9a8"></b><br>
+        ${uiIcon('map-pin')} Distance&nbsp; <b id="spDist" data-squares="${d}" style="color:#9fc0d6">${Number.isFinite(d)?d+' squares':'-'}</b></div>
+      <div id="spWhy" style="font-size:11px;color:#ff9a8b;min-height:14px;margin-top:8px"></div>
+      <div style="display:flex;gap:8px;margin-top:10px"><button class="btn secondary" style="flex:1" id="spClose">Close</button>
+        <button class="btn" style="flex:1" id="spAttack" ${why?'disabled':''}>${statusIcon('attack')} Attack</button></div></div>`;
+    ov.querySelector('#spName').textContent=site.name;
+    ov.querySelector('#spHolder').textContent=h?(h.name+(h.type==='guild'?' (guild)':'')):'None';
+    ov.querySelector('#spWhy').textContent=why||'';
+    ov.querySelector('#spClose').onclick=close;
+    ov.querySelector('#spAttack').onclick=()=>{ if(why) return; close(); openMarchSelect('siege',{id:site.id,siteId:site.id,name:site.name,x:site.x,y:site.y}); }; };
+  render(); await siegeRefresh(); render(); }
 function openWorldTreeMenu(){ closeCityMenu();const actions=worldTreeActionsUI();if(actions){actions.open('tree');return;} const inner=document.getElementById('wzoneInner'); if(!inner)return;
   const pop=document.createElement('div'); pop.className='citymenu'; pop.style.left='50%'; pop.style.top='50%'; pop.style.transform='translate(-50%,-140%)'; pop.style.zoom=(1/worldZoom);
   pop.innerHTML=`<div class="cm-t">The World Tree</div><div style="font-size:10px;color:#8b98a9;padding:2px 4px 4px">The heart of the world — everyone can teleport around it, but not onto it.</div><button class="cm-b" data-a="wtattack">${statusIcon('attack')} Attack · ${hudIcon('lock')} Coming Soon</button>`;
@@ -31079,7 +31199,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1793472775588';
+const BUILD_ID = '1793474142761';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
