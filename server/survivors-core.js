@@ -193,6 +193,8 @@
                    unit: String(k.unit || "") };
         }),
         melee: !!hero.melee, reach: clamp(+hero.reach || 2.2, 1.6, 4.5), swing: null,
+        // 29/31 Oct (Phil: "Aldrens doesnt"): a hero whose game ult is a summon (Aldren's Final Volume = an Elder Ink Horror) summons it
+        ultSummon: hero.ultSummon && hero.ultSummon.unit ? { unit: String(hero.ultSummon.unit), n: Math.max(1, hero.ultSummon.n | 0 || 1), dur: Math.max(1, +hero.ultSummon.dur || 20), power: Math.max(0, +hero.ultSummon.power || 0.8) } : null,
         wardT: 0,
       },
       monsters: [], nextId: 1, gems: [], shots: [], zones: [], fx: [], rollers: [], notes: [],
@@ -999,6 +1001,7 @@
   function ult(S) {
     var h = S.hero; if (h.ult < h.ultMax) return false;
     h.ult = 0;
+    if (h.ultSummon) { SKILL_KINDS.summon(S, h.ultSummon, h); S.fx.push({ kind: "ult", x: h.x, y: h.y, dx: h.dirx, dy: h.diry, t: 0, life: 0.6, seq: S.fxN = (S.fxN | 0) + 1, summon: 1 }); return true; }
     var R = 7 * areaMul(S), cosHalf = Math.cos(Math.PI / 3), d = heroDmg(S, 6);
     near(S, h.x, h.y, R, function (m, dx, dy) { var l = Math.sqrt(dx * dx + dy * dy) || 1; if ((dx * h.dirx + dy * h.diry) / l >= cosHalf) hit(S, m, d, "knock", 2); });
     S.fx.push({ kind: "ult", x: h.x, y: h.y, dx: h.dirx, dy: h.diry, t: 0, life: 0.6, seq: S.fxN = (S.fxN | 0) + 1 });

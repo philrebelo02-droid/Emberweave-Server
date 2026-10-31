@@ -154,7 +154,7 @@
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="/assets/js/three-r128-GLTFLoader.js"></script>
-<script src="/server/survivors-core.js?v=dev36"></script>
+<script src="/server/survivors-core.js?v=dev37"></script>
 <script>
 (async function () {
   const C = window.SurvivorsCore, AURAS = await (await fetch('/server/survivors-auras.json?v=dev2')).json();
@@ -348,7 +348,7 @@
     buildSkillButtons();
     const LAB = new URLSearchParams(location.search), labCls = LAB.get('lab');
     S = window._resume ? C.restore(window._resume, AURAS)                                   // Continue: the saved run, exactly where it was left
-      : C.create({ key: 'dev', cls: labCls || cls, maxHp: 3000, atk: 260, armor: 300, crit: 0.1, critDmg: 0.6, skills: KIT, melee: !!(window._heroKit && window._heroKit.melee), reach: window._heroKit && window._heroKit.reach },
+      : C.create({ key: 'dev', cls: labCls || cls, maxHp: 3000, atk: 260, armor: 300, crit: 0.1, critDmg: 0.6, skills: KIT, ultSummon: window._heroKit && window._heroKit.ult && window._heroKit.ult.summon, melee: !!(window._heroKit && window._heroKit.melee), reach: window._heroKit && window._heroKit.reach },
                  { mode: document.getElementById('mode').value, stage: +st.value, seed: (Math.random() * 4e9) >>> 0, auras: AURAS });
     window._resume = null;
     window._S = S;   // read by the rig tests (controls, lobby) - never written from outside
@@ -876,7 +876,7 @@
       g.drawImage(sp.c, (fr % 6) * sp.fw, Math.floor(fr / 6) * sp.fh, sp.fw, sp.fh, -wpx / 2, -hpx, wpx, hpx); g.restore();
       if (m.type === 'elite' || m.type === 'boss') { const bw = Math.max(30, hpx * 0.7); g.fillStyle = '#0008'; g.fillRect(x - bw / 2, y - hpx - 8, bw, 5); g.fillStyle = '#e2433a'; g.fillRect(x - bw / 2, y - hpx - 8, bw * Math.max(0, m.hp / m.maxHp), 5); } });
     // summoned allies (26 Oct): their own game sheets - rise out of the ground, then walk, strike when they hit; feet on their spot
-    if (S.allies && S.allies.length && window._heroKit) { const UA = {}; window._heroKit.skills.forEach(k => { if (k.unit && k.unitArt) UA[k.unit] = k.unitArt; });
+    if (S.allies && S.allies.length && window._heroKit) { const UA = {}; window._heroKit.skills.concat(window._heroKit.ult && window._heroKit.ult.summon ? [window._heroKit.ult.summon] : []).forEach(k => { if (k.unit && k.unitArt) UA[k.unit] = k.unitArt; });
       S.allies.slice().sort((a, b) => a.y - b.y).forEach(al => { const art = UA[al.unit]; if (!art) return;
         const st = al.rise > 0 && art.rise ? 'rise' : al.hitT > 0 && art.attack ? 'attack' : 'walk', d = art[st], im = sheetIm(d); if (!im) return;
         const n = d.n || 1, tt = st === 'rise' ? (0.5 - al.rise) : st === 'attack' ? (0.4 - al.hitT) : tnow + al.id * 0.31, fps = d.fps || 12;
