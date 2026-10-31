@@ -6496,7 +6496,7 @@ async function api(req,res,url){
       const mine=Object.keys(SIM.HERO_BASE).filter(k=>ownsHeroK(rled,k)).map(k=>snapshotHeroFromServer(me,k,save)).filter(Boolean).sort((a,c)=>(c.maxHp/8+c.atk)-(a.maxHp/8+a.atk));
       const myLines=[]; for(let i=0;i<linesPer;i++){ const chunk=mine.slice(i*5,i*5+5); if(chunk.length===5) myLines.push(chunk); }
       const mkSide=(name,isMine)=>{ const side={ guildId:name, name, players:[], citadels:WAR_LANES.map((l,i)=>({lane:i,key:l.key,name:l.name,destroyed:false,defenders:[]})) };
-        for(let pi=0;pi<players;pi++){ const you=isMine&&pi===0; const pname=you?me.name:(isMine?'Ally bot '+pi:'Enemy bot '+(pi+1));
+        for(let pi=0;pi<players;pi++){ const you=isMine&&pi===0; const pname=you?me.name:(isMine?'Ally lord '+pi:'Rival lord '+(pi+1));
           const lines=you&&myLines.length?myLines:botLines(linesPer);
           side.players.push({ id:(isMine?'a':'b')+pi, name:pname, you, lines:lines.map(l=>({heroes:l, power:linePower(l)})) }); }
         /* v764d (Phil: "there is no splitting up a players lines in multiple towers") - a PLAYER
@@ -6507,7 +6507,7 @@ async function api(req,res,url){
         let lane=0; for(const pl of side.players){ for(let li=0;li<pl.lines.length;li++){ const L=pl.lines[li];
           side.citadels[lane%5].defenders.push({ memberId:pl.id, name:pl.name+' · line '+(li+1), you:pl.you, line:li, lineSnapshot:L.heroes, hpState:L.heroes.map(h=>({hp:h.maxHp,energy:0})), alive:true, orders:WAR_ASSAULTS_PER_LINE, fights:0, kills:0, power:L.power }); } lane++; }
         side.power=side.players.reduce((s,pl)=>s+pl.lines.reduce((x,l)=>x+l.power,0),0); return side; };
-      const A=mkSide('Your side',true), B=mkSide('Bot guild',false);
+      const A=mkSide('Your side',true), B=mkSide('Rival guild',false);
       const captureN=Math.max(0,parseInt(b.captureN,10)||0);   /* v675: watch one march */
       const m={ id:'gwsim_'+uid(), sides:{A,B}, log:[], winner:null, why:null, assaults:0 };
       const destroyedOf=side=>side.citadels.filter(c=>c.destroyed).length;
@@ -8700,15 +8700,15 @@ async function api(req,res,url){
         if(march.botTeam){
           const host=simHost(),ids=march.heroIds;
           if(!host||!Array.isArray(march.botTeam)||!march.botTeam.length||!ids?.length)
-            return {ok:false,error:'The bot battle could not be resolved.'};
+            return {ok:false,error:'The battle could not be resolved.'};
           if(!march.snaps?.some(s=>s.hp>0))
             return {ok:false,error:'Your squad is fallen. Heal a hero at the Witches Hut.'};
           const seed=srvSeed('worldbot',me.id,march.id);
           const fight=host.auto(march.snaps,march.botTeam,seed);
           let digest;
-          try{digest=JSON.parse(fight.digest);}catch(e){return {ok:false,error:'The bot battle result was incomplete.'};}
+          try{digest=JSON.parse(fight.digest);}catch(e){return {ok:false,error:'The battle result was incomplete.'};}
           if(!digest||!Array.isArray(digest.u)||digest.won!==fight.won)
-            return {ok:false,error:'The bot battle result was incomplete.'};
+            return {ok:false,error:'The battle result was incomplete.'};
           const outcomes=march.snaps.map(s=>{
             const row=digest.u.find(u=>u[0]===s.key&&u[1]==='ally');
             return {key:s.key,hp:row?Math.max(0,Math.min(s.worldEntryHpCap,+row[3]||0)):0,maxHp:s.maxHp};

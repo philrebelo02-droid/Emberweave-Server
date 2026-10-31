@@ -1,7 +1,7 @@
 (function(root){
   'use strict';
   const IDS=['tree','oasis-nw','oasis-ne','oasis-sw','oasis-se'];
-  const NAMES={tree:'World Tree','oasis-nw':'North-west Oasis','oasis-ne':'North-east Oasis','oasis-sw':'South-west Oasis','oasis-se':'South-east Oasis'};   // v1228: Grok's 4 painted ponds
+  const NAMES={tree:'World Tree','oasis-nw':'North-west Oasis','oasis-ne':'North-east Oasis','oasis-sw':'South-west Oasis','oasis-se':'South-east Oasis'};   // v1228: the 4 painted ponds
   const title=id=>NAMES[id]||'Oasis';
   function create(hooks){
     let overlay=null,identity=null,siteId=null,selected=null,error='',operation=null,inflight=false,checking=false,generation=0;

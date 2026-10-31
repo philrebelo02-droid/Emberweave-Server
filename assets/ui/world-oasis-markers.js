@@ -1,7 +1,7 @@
 (function(root){
   'use strict';
   // v1228 (Phil 30 Oct 2026: "There of 2 of each oasis" / "The drawn one should be garrisonable like the cities"): the oases ARE the 4
-  // ponds Grok painted on the World Tree island. The game draws no oasis picture of its own any more - only a tap target over each
+  // ponds painted on the World Tree island. The game draws no oasis picture of its own any more - only a tap target over each
   // painted pond and its name. The sites come from /api/world-tree/sites (server/world-tree-sites.js, from world-oasis-layout.json).
   const IDS=['oasis-nw','oasis-ne','oasis-sw','oasis-se'];
   function read(receipt){

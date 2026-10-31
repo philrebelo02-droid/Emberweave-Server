@@ -101,7 +101,7 @@ ARM_SOUNDS = {
     'aureth': {
         'attackLight': ('ATK-AURETH-LIGHT', [(_SHIMMER, 0.0, 0.85, 0.0)], 'Phil 15 Oct: LIGHT sword swing = 120.0 MagicShimmer_Cast01'),
         'attackDark': ('ATK-AURETH-DARK', [(_PLASMA, 0.25, 1.15, 0.0)], 'Phil 15 Oct: DARK sword swing = 218.1 PlasmaMagic_Debuff02 (its first 0.25 s of swell trimmed)'),
-        'crit': ('ATK-AURETH-XSLICE', [(_SHIMMER, 0.0, 0.85, 0.12), (_PLASMA, 0.25, 1.15, 0.0)], 'X slice = both swords: the light + dark cuts layered, peaks aligned (Claude, from Phil\'s two picks)'),
+        'crit': ('ATK-AURETH-XSLICE', [(_SHIMMER, 0.0, 0.85, 0.12), (_PLASMA, 0.25, 1.15, 0.0)], 'X slice = both swords: the light + dark cuts layered, peaks aligned (from Phil\'s two picks)'),
     },
 }
 
@@ -550,7 +550,7 @@ def build():
     # 3. attacks: every hero with a weapon type
     attack = {}
     for h, w in WEAPON.items():
-        attack[h] = {'lib': 'LIB-ATK-' + w.rstrip('*'), 'mapped_by_claude': w.endswith('*')}
+        attack[h] = {'lib': 'LIB-ATK-' + w.rstrip('*'), 'inferred': w.endswith('*')}
     attack['rafe']['melee'] = 'LIB-ATK-' + RAFE_MELEE
     for h, arm in arm_sounds(add).items():   # v1156: per-swing sounds (Aureth's light / dark / X slice)
         attack[h]['arm'] = arm

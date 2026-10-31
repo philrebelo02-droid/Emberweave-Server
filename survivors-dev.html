@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <title>Hero Survivors (dev)</title>
-<!-- Hero Survivors DEV PROTOTYPE (Claude, 24 Oct 2026). Class spells use ChatGPT's single-element art, moved by code; a class
+<!-- Hero Survivors DEV PROTOTYPE (24 Oct 2026). Class spells use the single-element art, moved by code; a class
      without art yet falls back to placeholder shapes.
      Drives server/survivors-core.js exactly as the game will: joystick = move AND aim, ULT button, level-up picks. -->
 <style>
@@ -147,14 +147,14 @@
   <label class="devonly">Class <select id="cls"><option>Tank</option><option>Bruiser</option><option>Mage</option><option>Support</option><option>Assassin</option><option>Marksman</option></select></label>
   <label>Mode <select id="mode"><option value="story">Story (30:00, then the boss)</option><option value="survive">Survive (endless)</option></select></label>
   <label>Stage <select id="stage"></select></label>
-  <label class="devonly"><input type="checkbox" id="use3d" checked> 3D hero pilot: Linnet (Meshy, 1K textures)</label>
+  <label class="devonly"><input type="checkbox" id="use3d" checked> 3D hero pilot: Linnet (1K textures)</label>
   <button id="go">PLAY</button><button class="leave" hidden>Leave</button>
   <div id="mem" class="devonly" style="color:var(--dim)"></div>
   <div class="devonly" style="color:var(--dim);max-width:340px;text-align:center">Move with the joystick or WASD. You aim the way you move. Auras fire on their own; your skills are the buttons (or 1-5). ULT (or Space) when the ring is full.</div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="/assets/js/three-r128-GLTFLoader.js"></script>
-<script src="/server/survivors-core.js?v=dev35"></script>
+<script src="/server/survivors-core.js?v=dev36"></script>
 <script>
 (async function () {
   const C = window.SurvivorsCore, AURAS = await (await fetch('/server/survivors-auras.json?v=dev2')).json();
@@ -163,7 +163,7 @@
   const cv = document.getElementById('cv'), G0 = cv.getContext('2d');
   let g = G0;
   /* SPELL FX = ART ONLY (Phil 24 Oct: "there should be no spell fx made by code, only effects adjusted by code"). While the spells
-     draw, the canvas only takes IMAGES - ChatGPT's elements, moved / copied / scaled / turned / faded by code. Every code-drawn fill,
+     draw, the canvas only takes IMAGES - the elements, moved / copied / scaled / turned / faded by code. Every code-drawn fill,
      stroke, filled shape or text is dropped. Monsters, the hero, enemy bolts and the HUD draw on the real canvas as before.
      CODE_FX = true brings the old code shapes back (debug only). */
   const CODE_FX = false, NOOP = () => {}, ART_BLOCK = new Set(['fill', 'stroke', 'fillRect', 'strokeRect', 'fillText', 'strokeText']);
@@ -171,7 +171,7 @@
                                  set(t, k, v) { t[k] = v; return true; } });
   let S = null, input = { mx: 0, my: 0 }, ultReq = false, skillReq = null, pickReq = null, acc = 0, last = 0;
   /* hero kits: the hero's OWN skills as buttons. Linnet = her real kit (Mending Stitch heals, Reinforced Seam = can't drop below
-     1 HP; Golden Thread is her passive). Numbers are first-pass dev values. anim = the Meshy cast clip on her 3D model. */
+     1 HP; Golden Thread is her passive). Numbers are first-pass dev values. anim = the cast clip on her 3D model. */
   const KITS = {
     linnet: [{ key: 'mending_stitch', name: 'Mending Stitch', kind: 'heal', cd: 12, power: 0.3, anim: 'mage_soell_cast' },
              { key: 'reinforced_seam', name: 'Reinforced Seam', kind: 'ward', cd: 20, dur: 4, anim: 'Charged_Spell_Cast' }],
@@ -214,10 +214,10 @@
   ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(ev => stick.addEventListener(ev, letGo)); addEventListener('blur', letGo);
   function move(e) { let dx = e.clientX - scx, dy = e.clientY - scy; const d = Math.hypot(dx, dy), m = 50; if (d > m) { dx *= m / d; dy *= m / d; } smx = dx / m; smy = dy / m; knob.style.transform = `translate(${dx}px,${dy}px)`; }
   document.getElementById('ult').onclick = () => ultReq = true;
-  /* LINNET 3D PILOT (Phil 24 Oct: "set up the threadseer pilot"). One rigged Meshy model, 1024 px textures (92 MB -> 5 MB).
+  /* LINNET 3D PILOT (Phil 24 Oct: "set up the threadseer pilot"). One rigged model, 1024 px textures (92 MB -> 5 MB).
      The camera looks down at the field; the model turns to face the way the hero moves and always walks (Phil 24 Oct: "her run, turn it into a walk"); standing still holds the walk's first frame. */
   let H3 = null; const seenShot = new WeakSet();
-  /* 26 Oct (Phil: "adding all heroes into spire"): every hero with a Meshy model plays in 3D. The roster sends the model url; each model
+  /* 26 Oct (Phil: "adding all heroes into spire"): every hero with a 3D model plays in 3D. The roster sends the model url; each model
      carries the same clip names (Walking, Running, Attack, Cast, Ult - renamed at export), Linnet keeps her own cast clips. */
   async function load3d(url) {
     const cv3 = document.getElementById('cv3'), r = new THREE.WebGLRenderer({ canvas: cv3, alpha: true, antialias: true });
@@ -416,7 +416,7 @@
   }
   function fmt(t) { t = Math.floor(t); return Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0'); }
   let seenFx = 0;
-  /* ===== CLASS SPELLS: ChatGPT's single-element art, animated by code (Phil 24 Oct) ===========================================
+  /* ===== CLASS SPELLS: the single-element art, animated by code (Phil 24 Oct) ===========================================
      Each spell ships TWO images: <key>_unit (levels 1-9) and <key>_lv10 (the final form). Code does the rest: copies, spins,
      throws, drops, scales, fades. Levels change behaviour (more copies, bigger, faster) through the core's LADDER; the look follows
      the same numbers, so what you see is what hits. Art loads only for spells you own (phone memory). No art yet = placeholders.
@@ -436,7 +436,7 @@
     const a = byKey[key]; if (!a) return (ART[key] = null);
     const base = '/assets/survivors/auras/' + a.cls.toLowerCase() + '/' + key, rec = { unit: null, lv10: null };
     ART[key] = rec; let missing = 0;
-    // on load, measure the VISIBLE art (alpha box on a 64 px copy): ChatGPT's elements sit on square canvases, so a horizontal
+    // on load, measure the VISIBLE art (alpha box on a 64 px copy): the elements sit on square canvases, so a horizontal
     // beam's file is as tall as it is wide - only its painted box says it is wide (Prism Beam, 24 Oct)
     const shape = im => { try { const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d'); x.drawImage(im, 0, 0, 64, 64);
       const d = x.getImageData(0, 0, 64, 64).data; let x0 = 64, x1 = -1, y0 = 64, y1 = -1;
@@ -449,8 +449,8 @@
   const amul = () => 1 + (S.hero.passives.reach | 0) * C.PASSIVES.reach.per;
   const plentyN = () => { const l = S.hero.passives.plenty | 0; return l >= 4 ? 2 : l >= 2 ? 1 : 0; };
   // draw one element: centred at (x,y), size in px (longest side), rotation, alpha
-  const ART_SCALE = 1.5;   // ChatGPT's elements sit inside 16 px of padding + soft edges: drawn 1.5x so the visible art matches what it hits
-  // ChatGPT's shared FX kit (24 Oct): one plain element each - rings, sparks, motes, shafts, flash, arcs, shadow, heal, heart, mark, wake, glow, scorch
+  const ART_SCALE = 1.5;   // the elements sit inside 16 px of padding + soft edges: drawn 1.5x so the visible art matches what it hits
+  // the shared FX kit (24 Oct): one plain element each - rings, sparks, motes, shafts, flash, arcs, shadow, heal, heart, mark, wake, glow, scorch
   const FXK = {}; function fx(n) { if (FXK[n] !== undefined) return FXK[n]; const im = new Image(); FXK[n] = null; im.onload = () => FXK[n] = im; im.src = '/assets/survivors/fx/' + n + '.webp?v=1'; return null; }
   ['fx_shock_ring', 'fx_spark', 'fx_spark_blue', 'fx_light_mote', 'fx_light_shaft', 'fx_flash', 'fx_lightning_arc', 'fx_shadow', 'fx_heal', 'fx_heart', 'fx_mark', 'fx_wake', 'fx_glow', 'fx_scorch'].forEach(fx);
   function span(name, x1, y1, x2, y2, thick, a) { const im = fx(name), L = Math.hypot(x2 - x1, y2 - y1); if (!im || L < 1) return;
@@ -634,7 +634,7 @@
     if (A['smoke-veil'] && h.hidden > 0) { sym('smoke-veil', X(h.decoyX), Y(h.decoyY), 1.2 * sc, 0, 0.35, '#888', 'ring'); }
     if (A['death-mark']) S.monsters.forEach(m => { if (m.marked) sym('death-mark', X(m.x), Y(m.y) - 2.2 * sc, 1.1 * sc, 0, 0.9 + Math.sin(t * 6) * 0.1, '#ff2a3a'); });
     if (A['shuriken-storm']) (st('shuriken-storm').o || []).forEach(o => sym('shuriken-storm', X(o.x), Y(o.y), (o.r || 1) * 1.6 * sc, o.spin || t * 10, 1, '#c8c8d8'));
-    // VENOM TRAIL v2: ChatGPT's snake is UNWARPED along its own spine into one straight strip (once, on load), then cut into slices
+    // VENOM TRAIL v2: the snake is UNWARPED along its own spine into one straight strip (once, on load), then cut into slices
     // laid on the bones head to tail, each turned to its bone and tapering - the art bends with the skeleton. L10 the cobra the same way.
     if (A['venom-trail']) { const p = st('venom-trail'), J = p.J, rec = artFor('venom-trail'), big = lvOf('venom-trail') >= 10, im = rec && (big && rec.lv10 ? rec.lv10 : rec.unit);
       if (J && im) { const sn = snakeStrip(im); if (sn) { const n = J.length, thick = (big ? 1.5 : 1.3) * sc;
@@ -721,7 +721,7 @@
     // frozen monsters glint blue
     if (A['frost-nova']) { const fr = artFor('frost-nova'), fi = fr && fr.unit; S.monsters.forEach(m => { if (m.frozenT > 0 && fi) el(fi, X(m.x), Y(m.y) - m.r * sc, m.r * 2.2 * sc, m.id, 0.75); }); }   // frozen: the frost element over it
   }
-  // MAGMA SEA v2 (Phil 24 Oct: "pretty much needs a rework"): each tide is a ring of ChatGPT's lava strips racing outward (with a
+  // MAGMA SEA v2 (Phil 24 Oct: "pretty much needs a rework"): each tide is a ring of the lava strips racing outward (with a
   // hot glow on the wavefront); the burning pools it leaves are its pool element, small and scattered, flickering as they cool
   function drawMagmaSea(X, Y, sc, t) { const mg = S._state['molten-ground']; if (!mg || lvOf('molten-ground') < 10) return; const rec = artFor('molten-ground'); if (!rec) return;
     (mg.pools || []).forEach((pl, i) => { if (rec.lv10) el(rec.lv10, X(pl.x), Y(pl.y), 1.5 * sc * (0.7 + 0.3 * Math.min(1, pl.life)) * (1 + Math.sin(t * 7 + i) * 0.04), pl.a, 0.8 * Math.min(1, pl.life * 0.8)); });
@@ -847,7 +847,7 @@
     const cx2 = c.getContext('2d'); cx2.imageSmoothingQuality = 'high'; cx2.drawImage(im, 0, 0, c.width, c.height); SPR[k] = { c, fw: c.width / 6, fh: c.height / 2 }; im.src = ''; };
     im.src = '/assets/anim/mon/' + d.f + '.webp?v=1'; });
   /* THE GROUND: one seamless tile repeated forever (Phil 24 Oct: "a very basic green grassy area, seamless so that you can loop
-     it"). The tile is ChatGPT's (tasking in the Hero Survivors art folder); until it lands, a flat grass green stands in. */
+     it"). The tile is tasked (in the Hero Survivors art folder); until it lands, a flat grass green stands in. */
   const TILE_M = 8;                                          // one tile = 8 x 8 m of ground
   let groundPat = null; { const gi = new Image(); gi.onload = () => { groundPat = gi; }; gi.src = '/assets/survivors/maps/stage1-grass.webp?v=1'; }
   const HERO_M = 4.2;   // the hero's 3D model height in world metres: bigger than life and than the fodder, so the hero reads first

@@ -1,7 +1,7 @@
 /* =============================================================================
- * HERO SURVIVORS - the simulation core (Claude, 24 Oct 2026). One module for both sides: the server require()s it, the browser
- * gets window.SurvivorsCore. The new Tower of Trials (Phil, 24 Oct 2026: "check vampire survivors" / "heroes against monster
- * hordes"), design: 1. Emberweave Brain/taskings/TOWER ROUND 2 - 20 IDEAS 24OCT2026/TOWER - HERO SURVIVORS - DESIGN v1.
+ * HERO SURVIVORS - the simulation core (24 Oct 2026). One module for both sides: the server require()s it, the browser
+ * gets window.SurvivorsCore. The new Tower of Trials (Phil, 24 Oct 2026: "heroes against monster
+ * hordes"), design: 1. taskings/TOWER ROUND 2 - 20 IDEAS 24OCT2026/TOWER - HERO SURVIVORS - DESIGN v1.
  * -----------------------------------------------------------------------------
  *   - ONE hero, its REAL card (the frozen snapshot's maxHp / dmg / armour / crit / lifesteal), steered with a joystick.
  *   - Auras and the base shot fire on their own; directional things aim the way the hero moves (Phil: "aim your abilities the
@@ -22,7 +22,7 @@
   var STAGES = 10;                                // Phil: "10 stages for now"
   var SLOTS = { aura: 5, passive: 5, skill: 5 };  // Phil: "5 skill / 5 possible aura skills / 5 possible passives"
   var AURA_MAX = 10, PASSIVE_MAX = 5;
-  var MAX_MONSTERS = 300;                         // waves stop topping up at 300 alive (as Vampire Survivors does)
+  var MAX_MONSTERS = 300;                         // waves stop topping up at 300 alive (as the genre does)
   var HARD_MAX = 360;                             // phone budget: bosses + map events may go over 300, never over this
   // the VIEW, in metres, the same for every player (a bigger phone must not see more of the horde). Landscape (the game is
   // landscape); Phil 24 Oct "Zoom out more the game is too zoomed in": 22 m high -> 30 m, then "just slightly more": 34 m.
@@ -123,8 +123,8 @@
   };
   function roster(stage) { return ROSTERS[stage] || ROSTERS[1]; }
 
-  /* ---- WAVES, the Vampire Survivors way (studied 24 Oct 2026 from its first stage's wave table; notes in the design folder:
-   * "HERO SURVIVORS - WAVES STUDY (Claude 24 Oct).md"). One wave per minute. Each wave has:
+  /* ---- WAVES, the survivors-genre way (studied 24 Oct 2026 from a reference first-stage wave table; notes in the design folder:
+   * "HERO SURVIVORS - WAVES STUDY.md"). One wave per minute. Each wave has:
    *   min  - the horde it keeps alive: every interval, if fewer than min are alive it tops up to min at once
    *   iv   - the interval in seconds; at or above min it adds ONE of each type in the wave per interval
    *   ty   - the monster types of that minute
@@ -262,7 +262,7 @@
   function kill(S, m) {
     S.kills++; (S._kills || (S._kills = [])).push([m.x, m.y, m.grudge || 0, m.plague > 0 ? 1 : 0]);
     if (m.type === "boss") { S.won = true; S.ended = true; }
-    if (m.type === "elite") S.gems.push({ x: m.x, y: m.y, v: 0, heal: 0.25 });   // an elite drops a heal orb (25% max HP), as Vampire Survivors' floor food
+    if (m.type === "elite") S.gems.push({ x: m.x, y: m.y, v: 0, heal: 0.25 });   // an elite drops a heal orb (25% max HP), as genre floor food
     if (MONSTERS[m.type].xp) {
       if (S.gems.length < 400) S.gems.push({ x: m.x, y: m.y, v: MONSTERS[m.type].xp });
       else { var gk = S.gems[S.tick % 400]; if (!gk.heal) gk.v += MONSTERS[m.type].xp; }                 // phone budget: past 400 gems, XP folds into an old one
@@ -271,7 +271,7 @@
   }
 
   /* ===== SPELLS v3: one behaviour per spell (Phil 24 Oct: "All of them should be different in nature" / "Not repeating").
-   * Design table: taskings/.../HERO SURVIVORS - 60 SPELLS v3 - EACH UNIQUE (Claude 24 Oct).md. A spell with an entry here runs
+   * Design table: taskings/.../HERO SURVIVORS - 60 SPELLS v3 - EACH UNIQUE.md. A spell with an entry here runs
    * ITS function; the rest still use the v2 shared family until their turn. lin(lv, a, b) = a at level 1 .. b at level 9;
    * level 10 is each spell's final form. Everything is deterministic (S.rng only), so the server replay matches.          */
   function lin(lv, a, b) { return a + (b - a) * (Math.min(lv, 9) - 1) / 8; }
@@ -1134,7 +1134,7 @@
     var wi = waveIndex(S.t), W = WAVES[wi], w0 = Math.floor(S.t / 60) * 60;
     if (wi !== S._wave || w0 !== S._waveAt) {                                                  // a new minute: its boss, its events
       S._wave = wi; S._waveAt = w0; S._evDone = 0; S._waveT = 0;
-      if (S.t < TICK) {                                   // the opening batch ON screen (Vampire Survivors spawns one on entry): no dead first 12 s
+      if (S.t < TICK) {                                   // the opening batch ON screen (the genre spawns one on entry): no dead first 12 s
         for (var ib = 0; ib < W.min; ib++) { var ab = ib / W.min * Math.PI * 2 + S.rng() * 0.3; spawn(S, W.ty[ib % W.ty.length], { x: S.hero.x + Math.cos(ab) * 12, y: S.hero.y + Math.sin(ab) * 12 * 0.8 }); }
         S._waveT = W.iv;                                  // the batch IS this interval's top-up
       }

@@ -1,4 +1,4 @@
-/* v1093 THE PATRON BENEFITS - generated 9 Oct 2026 from Phil's benefit chart (https://claude.ai/artifact/5d48PHE8pJY52ZjabSDDwe).
+/* v1093 THE PATRON BENEFITS - generated 9 Oct 2026 from Phil's benefit chart.
    Phil: "Make what we have so far the standard, and we will adjust." What each level ADDS, in Phil's words; the server's numbers
    for the same rows live in PATRON / PATRON_ROWS in server.js. Shared by the server (require) and the client (window.PATRON_BENEFITS). */
 (function(root){
