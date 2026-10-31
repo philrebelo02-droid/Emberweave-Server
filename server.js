@@ -632,10 +632,11 @@ async function linkedUser(gid, name, pass, opts){
    - a newer passAt signs the player out on this server and drops the local password copy, so the old password stops working even
      while Server 1 is down (the next good sign-in through Server 1 stores the new one).
    A ban made on Server 2-4 (/api/dev/ban) is made on the account at Server 1. Guests (no account) keep per-server bans. */
-function acctState(u){ return { until:((u.bannedUntil||0)>Date.now()?u.bannedUntil:0), reason:(u.banReason||''), passAt:(u.passAt||0), by:(u.ban&&u.ban.by)||'' }; }
+function acctState(u){ return { until:((u.bannedUntil||0)>Date.now()?u.bannedUntil:0), reason:(u.banReason||''), passAt:(u.passAt||0), by:(u.ban&&u.ban.by)||'', del:(u.delReq&&+u.delReq.wipeAt)||0 }; }   /* v1232: del = a pending deletion's wipe time (0 = none) */
 function applyAcctState(lu, st){
   if(!lu || !lu.gid || !st) return false; let changed=false; const now=Date.now();
   if(st.deleted){ deleteAccountData(lu); return true; }   /* v1097: the account was deleted on the account server - this server's player goes too */
+  if(acctDelFollow(lu, +st.del||0)) changed=true;   /* v1232: a deletion requested (or cancelled) on the account server locks (or unlocks) this server's player too */
   const until=(+st.until>now)?+st.until:0, was=isBanned(lu);
   if(until!==((lu.bannedUntil||0)>now?lu.bannedUntil:0)){ lu.bannedUntil=until; lu.banReason=until?String(st.reason||'').slice(0,200):''; changed=true;
     lu.ban=until?{until,permanent:until>=BAN_PERMA_UNTIL,by:String(st.by||'account server').slice(0,60),reason:lu.banReason,at:now}:null;   /* v1097 */
@@ -651,7 +652,7 @@ async function acctStatusSync(){
   if(!ACCOUNT_AUTHORITY || !ACCOUNT_LINK_SECRET || _acctSyncBusy || typeof DB==='undefined' || !DB || !DB.users) return;
   _acctSyncBusy=true;
   try{ const live=new Set(); for(const v of Object.values(DB.tokens||{})){ const o=tokOwner(v); if(o) live.add(o); }
-    const gids=[]; for(const u of Object.values(DB.users)){ if(u && u.gid && !u.isNpc && (live.has(u.id) || isBanned(u) || u.hash)) gids.push(u.gid); }   /* v1090 (scan 11 #1): an account that keeps a local password copy here is checked too - without a session here it was never synced, so its OLD password still signed in through the outage fallback after a reset on Server 1 */
+    const gids=[]; for(const u of Object.values(DB.users)){ if(u && u.gid && !u.isNpc && (live.has(u.id) || isBanned(u) || u.hash || u.delReq)) gids.push(u.gid); }   /* v1090 (scan 11 #1): an account that keeps a local password copy here is checked too - without a session here it was never synced, so its OLD password still signed in through the outage fallback after a reset on Server 1 */
     let changed=false;
     for(let i=0;i<gids.length;i+=500){ const r=await authorityCall('/api/internal/account/status',{ gids:gids.slice(i,i+500) });
       if(!r || r.status!==200 || !r.body || !r.body.states) break;   // account server unreachable: keep what we know
@@ -693,9 +694,10 @@ async function acctVerify(name, pass, ip, opts){
     const ks=Object.keys(lf.ip); if(ks.length>50) for(const k of ks.slice(0,ks.length-50)) delete lf.ip[k];
     u.loginFails=lf; return {status:401,error:'Wrong name or password',changed:true,id}; }
   let changed=!!u.loginFails; delete u.loginFails;
+  const delCancelled=!isBanned(u)&&acctDelCancel(u); if(delCancelled) changed=true;   /* v1232: signing in within the 7-day grace cancels a pending deletion (a banned account cannot sign in, so it cannot cancel) */
   if(!u.iters && pass!=null){ const hw=u.hash, c=await makeCredAsync(pass||'');   // transparent 60k→210k upgrade
     const u2=DB.users[id]; if(u2===u && u.hash===hw && !u.iters){ u.hash=c.hash; u.salt=c.salt; u.iters=c.iters; changed=true; } }
-  return {u, changed, id, trusted}; }
+  return {u, changed, id, trusted, delCancelled}; }
 async function acctCreate(rawName, pass, cred){
   const name=cleanCharName(rawName);   /* v1176: no silent stripping - a blocked character is refused with its reason */
   { const why=badCharName(name); if(why) return {status:400,error:why}; }
@@ -748,7 +750,8 @@ async function acctResetVerify(name, rawCode, newPass, ip, newCred){
   u=DB.users[id]; if(!u||u.isNpc||DB.byName[key]!==id||u.reset!==rs) return NONE;
   u.salt=c.salt; u.hash=c.hash; u.iters=c.iters; u.mustReset=false; delete u.reset;
   u.passAt=Date.now();   // v1035: Servers 2-5 sign the account out and drop their local password copy when this moves
-  dropTokens(id); writeDB(); return {u}; }
+  const delCancelled=!isBanned(u)&&acctDelCancel(u);   /* v1232: a password reset signs in - it cancels a pending deletion too */
+  dropTokens(id); writeDB(); return {u, delCancelled}; }
 // v947: one-time server-switch codes, held by the account server in memory only (a restart simply expires them).
 const HANDOFF=new Map();   // sha256(code) -> {gid, exp}
 function handoffIssue(gid){
@@ -3148,6 +3151,48 @@ function deleteAccountData(u){
   try{ if(typeof WSS!=='undefined'&&WSS) WSS.clients.forEach(c=>{ if(c._uid===tid){ c._uid=null; c._acctName=null; c._chatName=null; try{ c.close(4001,'account deleted'); }catch(e){} } }); }catch(e){}
   console.log('[account] deleted '+tid);
   return true; }
+/* v1232 ACCOUNT DELETION GRACE (Phil 30 Oct 2026, Google Play Terms + Privacy: "7 days grace on deleting, before we wipe it from our
+   database"). A deletion request (Settings > Delete account, or the web form on /privacy) no longer wipes at once: the account gets
+   u.delReq = {at, wipeAt, via} (saved with the player, so it survives a restart), every session is revoked and sockets close, and while it
+   is pending the account is LOCKED (an authenticated request answers 401 deletionPending, no chat socket identity) and HIDDEN (its castle
+   leaves the world map, it is left out of the arena ladder name search). Signing in (password or emailed reset code) within the grace
+   cancels it (acctVerify / acctResetVerify -> acctDelCancel). The server wipes it when wipeAt passes: acctDelSweep runs every
+   ACCOUNT_DELETE_SWEEP_MS (60 s) and at boot, and calls deleteAccountData - the same wipe as before (v1097). On Servers 2-5 a linked
+   account's request goes to Server 1 (/api/internal/account/delete-request); Server 1 holds the clock and wipes, the satellites follow
+   its state (acctState.del -> acctDelFollow) and its tombstone. A guest (no password, cannot sign back in) is still deleted at once.
+   ACCOUNT_DELETE_GRACE_MS (default 7 days; 0 = wipe at once, the v1097 behaviour) is for tests. Backups are not touched: they age out on
+   their own schedule (Privacy Policy section 5). */
+const ACCOUNT_DELETE_GRACE_MS=Math.max(0, +(process.env.ACCOUNT_DELETE_GRACE_MS!=null&&process.env.ACCOUNT_DELETE_GRACE_MS!==''?process.env.ACCOUNT_DELETE_GRACE_MS:7*86400000)||0);
+const ACCOUNT_DELETE_SWEEP_MS=Math.max(200, +(process.env.ACCOUNT_DELETE_SWEEP_MS||60000));
+function acctDelPending(u){ return !!(u && u.delReq && (+u.delReq.wipeAt||0)>0); }
+/* start the grace (or wipe at once for a guest / grace 0). Returns {deleted:true} or {pending:true, wipeAt}. The caller saves. */
+function acctDelRequest(u, via){ const now=Date.now();
+  if(u.guest || ACCOUNT_DELETE_GRACE_MS<=0){ deleteAccountData(u); return { deleted:true }; }
+  if(!acctDelPending(u)) u.delReq={ at:now, wipeAt:now+ACCOUNT_DELETE_GRACE_MS, via:String(via||'game').slice(0,12) };
+  dropTokens(u.id); closeUserSockets(u.id); _cityBuiltAt=0;
+  console.log('[account] deletion requested for '+u.id+' - wiped at '+new Date(u.delReq.wipeAt).toISOString()+' unless they sign in');
+  return { pending:true, wipeAt:u.delReq.wipeAt }; }
+function acctDelCancel(u){ if(!u || !u.delReq) return false; delete u.delReq; _cityBuiltAt=0;
+  console.log('[account] deletion cancelled for '+u.id+' (signed in within the grace)'); return true; }
+/* a satellite's linked player follows Server 1: wipeAt > 0 = pending there (lock here), 0 = none (unlock here). Returns changed. */
+function acctDelFollow(lu, wipeAt){ if(!lu) return false;
+  if(wipeAt>0){ if(lu.delReq && +lu.delReq.wipeAt===wipeAt) return false;
+    lu.delReq={ at:Date.now(), wipeAt, via:'s1' }; dropTokens(lu.id); closeUserSockets(lu.id); _cityBuiltAt=0; return true; }
+  if(lu.delReq){ delete lu.delReq; _cityBuiltAt=0; return true; }
+  return false; }
+/* the server-side wipe. A satellite never wipes a linked account itself (Server 1 does, and its tombstone deletes the player here). */
+function acctDelSweep(){ if(typeof DB==='undefined' || !DB || !DB.users || PG_BOOT_PENDING) return 0;
+  const now=Date.now(), due=[];
+  for(const u of Object.values(DB.users)){ if(u && u.delReq && !u.isNpc && (+u.delReq.wipeAt||0)>0 && +u.delReq.wipeAt<=now && !(ACCOUNT_AUTHORITY && u.gid)) due.push(u); }
+  for(const u of due){ console.log('[account] grace over - wiping '+u.id); deleteAccountData(u); }
+  if(due.length) writeDB();
+  return due.length; }
+/* a satellite after Server 1 answered a deletion request: wiped there = wipe the player here; pending there = lock it here */
+function acctDelLocalFollow(lu, body){ if(body && body.deleted){ if(lu && DB.users[lu.id]) deleteAccountData(lu); return { deleted:true }; }
+  const w=+(body&&body.wipeAt)||0; if(lu) acctDelFollow(lu, w); return { pending:true, wipeAt:w }; }
+{ const run=()=>{ try{ acctDelSweep(); }catch(e){ console.error('[account] deletion sweep failed: '+e.message); } };
+  const t=setInterval(run, ACCOUNT_DELETE_SWEEP_MS); if(t.unref) t.unref();
+  const t0=setTimeout(run, Math.min(5000, ACCOUNT_DELETE_SWEEP_MS)); if(t0.unref) t0.unref(); }   // and soon after boot: a wipe that fell due while the server was down
 /* v1097 CHAT SAFETY (sweep #18): a player's block list is led.blocked (account ids, at most 200). The server leaves blocked players'
    lines out of that player's chat history, live chat, whispers and guild chat. Whispers are not stored, so the last 500 are kept in
    memory for 'report message'. */
@@ -5176,7 +5221,7 @@ function _cityTileMove(id,from,to){ if(from===to) return;
 function _cityChanged(id){ _cityLog.push({rev:_cityRev,id}); if(_cityLog.length>CITY_LOG_MAX){ const cut=_cityLog.splice(0,_cityLog.length-CITY_LOG_MAX); _cityLogFloor=cut[cut.length-1].rev; } }
 function worldCityRowsRefresh(){ const now=Date.now(); if(_cityBuiltAt&&now-_cityBuiltAt<WORLD_CITIES_REFRESH_MS) return; _cityBuiltAt=now;
   const seen=new Set();
-  for(const u of Object.values(DB.users)){ if(!u||!WORLD_LOCATION.valid(u.worldLocation)) continue; seen.add(u.id);
+  for(const u of Object.values(DB.users)){ if(!u||u.delReq||!WORLD_LOCATION.valid(u.worldLocation)) continue; seen.add(u.id);   /* v1232: a pending deletion is hidden */
     const line=(Array.isArray(u.wall)&&u.wall.length?u.wall:(u.team||[]));
     const row={ id:u.id, name:u.name, rank:u.rank||null, level:ledPlayerLevel(ensureLedger(u)),
       academy:(u.led&&u.led.acad&&u.led.acad.lv)?(u.led.acad.lv.academy|0):undefined,
@@ -5394,14 +5439,14 @@ async function api(req,res,url){
     if(p==='/api/internal/account/verify'){ const trust=(b.gid&&b.tag)?{ gid:String(b.gid), tag:String(b.tag) }:null;
       const r=await acctVerify(b.name, b.pass, 'srv:'+String(b.ip||clientIP(req)), { trust });
       if(r.changed) saveSoon([r.id]);
-      return r.u ? send(res,200,{ ok:true, gid:r.u.id, name:r.u.name, st:acctState(r.u), s1:!!r.u.lastSeen, tag:credTag(r.u), trusted:!!r.trusted }) : send(res,r.status,{error:r.error}); }   /* v1130: s1 = the account has played on Server 1 */
+      return r.u ? send(res,200,{ ok:true, gid:r.u.id, name:r.u.name, st:acctState(r.u), s1:!!r.u.lastSeen, tag:credTag(r.u), trusted:!!r.trusted, delCancelled:!!r.delCancelled }) : send(res,r.status,{error:r.error}); }   /* v1130: s1 = the account has played on Server 1 */
     if(p==='/api/internal/account/register'){ const r=await acctCreate(b.name, b.pass, b.cred); if(r.error) return send(res,r.status,{error:r.error});
       if(saveSoon([r.u.id])===false) return send(res,503,{ok:false,storageFailed:true,error:'Save failed - try again.'});   /* v1013 (re-audit Account N13): the account is on disk before it is acknowledged (v1184: the group save, this player's shard) */
       return send(res,200,{ ok:true, gid:r.u.id, name:r.u.name, tag:credTag(r.u) }); }
     if(p==='/api/internal/account/reset-request'){ acctResetRequest(b.name, String(b.ip||clientIP(req))).catch(e=>console.error('[account] reset request failed: '+e.message)); return send(res,200,{ ok:true }); }
     if(p==='/api/internal/account/reset-verify'){ const r=await acctResetVerify(b.name, b.code, b.newPass, String(b.ip||clientIP(req)), b.newCred);
       if(r.u && writeDBNow()===false) return send(res,503,{ok:false,storageFailed:true,error:'Save failed - try again.'});   /* v1013 (N13): the new password is on disk before it is acknowledged */
-      return r.u ? send(res,200,{ ok:true, gid:r.u.id, name:r.u.name, st:acctState(r.u), tag:credTag(r.u) }) : send(res,r.status,{error:r.error}); }
+      return r.u ? send(res,200,{ ok:true, gid:r.u.id, name:r.u.name, st:acctState(r.u), tag:credTag(r.u), delCancelled:!!r.delCancelled }) : send(res,r.status,{error:r.error}); }
     if(p==='/api/internal/account/handoff-issue'){ const u=DB.users[String(b.gid||'')];
       if(!u || u.isNpc || u.guest) return send(res,404,{error:'No such account.'});
       if(isBanned(u)) return send(res,403,{error:'This account is suspended.'});   // v1035: a banned account cannot switch servers
@@ -5425,6 +5470,14 @@ async function api(req,res,url){
       deleteAccountData(u);
       if(writeDBNow()===false) return send(res,503,{ok:false,storageFailed:true,error:'Save failed - try again.'});
       return send(res,200,{ ok:true }); }
+    // v1232: a deletion request made on Server 2-5 starts the grace here (Server 1 holds the clock and wipes); the satellite checked the password
+    if(p==='/api/internal/account/delete-request'){ const g=String(b.gid||''), u=DB.users[g];
+      if(!u) return send(res,200,{ ok:true, deleted:true, gone:true });
+      if(u.isNpc || u.guest) return send(res,404,{error:'No such account.'});
+      if(isDev(u)) return send(res,400,{error:'That account is an admin.'});
+      const r=acctDelRequest(u, b.via||'game');
+      if(writeDBNow()===false) return send(res,503,{ok:false,storageFailed:true,error:'Save failed - try again.'});
+      return send(res,200,Object.assign({ ok:true }, r)); }
     // v1035: a ban made on Server 2-4 is made on the account here
     if(p==='/api/internal/account/ban'){ const u=DB.users[String(b.gid||'')];
       if(!u || u.isNpc || u.guest) return send(res,404,{error:'No such account.'});
@@ -5485,7 +5538,8 @@ async function api(req,res,url){
         const u=await linkedUser(r.body.gid, r.body.name, b.pass, keep?{ keepCopy:true, tag:r.body.tag, touched }:{ tag:r.body.tag, touched }); delete u.loginFails;
         if(r.body.st){ u.passSeenAt=+r.body.st.passAt||0; if(applyAcctState(u, r.body.st)) writeDB(); }   // v1035: the password was just checked - current (v1184: a state change saves everything, as before)
         if(isBanned(u)){ saveSoon([u.id].concat(touched)); return send(res,403,banResp(u)); }   /* v1097: a banned account does not sign in */
-        dropTokens(u.id); const tok=issueToken(u.id); saveSoon([u.id].concat(touched)); return send(res,200,{ token:tok, profile:profileFor(u) }); }
+        const _dc=!!r.body.delCancelled||acctDelCancel(u);   /* v1232 */
+        dropTokens(u.id); const tok=issueToken(u.id); saveSoon([u.id].concat(touched)); return send(res,200,{ token:tok, profile:profileFor(u), deletionCancelled:_dc||undefined }); }
       if(r) return send(res, r.status===429?429:401, {error:(r.body&&r.body.error)||'Wrong name or password'});
       // the account server did not answer: a player who has signed in here before can still get in with the local copy
       const lid=DB.byName[name.toLowerCase()], lu=lid&&DB.users[lid];
@@ -5496,7 +5550,7 @@ async function api(req,res,url){
     const u=r.u, id=u.id;
     if(isBanned(u)){ if(r.changed) saveSoon([id]); return send(res,403,banResp(u)); }   /* v1097: a banned account does not sign in */
     dropTokens(id);   // single session: signing in here kicks any other device
-    const tok=issueToken(id); saveSoon([id]); return send(res,200,{ token:tok, profile:profileFor(u) }); }
+    const tok=issueToken(id); saveSoon([id]); return send(res,200,{ token:tok, profile:profileFor(u), deletionCancelled:r.delCancelled||undefined }); }
 
   // email password reset — step 1: request a one-time 6-digit code sent to the account's linked email.
   // Always responds ok (never reveals whether an account or its email exists); only sends if a valid email is on file.
@@ -5517,13 +5571,14 @@ async function api(req,res,url){
       if(r.status!==200 || !r.body || !r.body.gid) return send(res,r.status||400,{error:(r.body&&r.body.error)||'Reset failed.'});
       const lu=await linkedUser(r.body.gid, r.body.name, b.newPass, { cred:newCred, tag:r.body.tag }); if(r.body.st){ lu.passSeenAt=+r.body.st.passAt||0; applyAcctState(lu, r.body.st); } dropTokens(lu.id);
       if(isBanned(lu)){ writeDB(); return send(res,403,banResp(lu)); }   /* v1097 */
+      const _dc=!!r.body.delCancelled||acctDelCancel(lu);   /* v1232 */
       const tok=issueToken(lu.id); writeDB();
-      return send(res,200,{ ok:true, token:tok, profile:profileFor(lu) }); }
+      return send(res,200,{ ok:true, token:tok, profile:profileFor(lu), deletionCancelled:_dc||undefined }); }
     const r=await acctResetVerify(b.name, b.code, b.newPass, clientIP(req));
     if(!r.u) return send(res,r.status,{error:r.error});
     if(isBanned(r.u)){ writeDB(); return send(res,403,banResp(r.u)); }   /* v1097: the new password is set; a banned account still does not sign in */
     const tok=issueToken(r.u.id); writeDB();   // invalidate other sessions (done in acctResetVerify), sign this one in
-    return send(res,200,{ ok:true, token:tok, profile:profileFor(r.u) }); }
+    return send(res,200,{ ok:true, token:tok, profile:profileFor(r.u), deletionCancelled:r.delCancelled||undefined }); }
 
   const me=authUser(req);
   if(me){ me.lastSeen=Date.now(); frontSeen(me); _touch(me.id); }   // presence, for the dev "players online" view; v1130: + the active count new players are placed by; v1128: marked dirty - the sweep writes it (no clean player is stringified)
@@ -5532,6 +5587,9 @@ async function api(req,res,url){
      Nothing is rolled back and nothing is deleted: the account simply cannot act until the ban
      expires, and it expires on its own. Reading who you are is still allowed so the client can show
      the player why they are locked out and until when. */
+  /* v1232: an account waiting out its deletion grace is LOCKED - its sessions were revoked; any that slipped through (a satellite before
+     its status check) get the same answer. Signing in again cancels the deletion. */
+  if(me && acctDelPending(me) && p!=='/api/logout') return send(res,401,{error:'This account is waiting to be deleted. Sign in again to cancel the deletion.',deletionPending:true,wipeAt:+me.delReq.wipeAt});
   if(me && isBanned(me) && !/^\/api\/(logout|account\/delete)$/.test(p)){   /* v1097 (Phil 9 Oct): every authenticated route answers "Account banned until <date>" / "permanently"; a banned player can still delete their account */
     return send(res,403,banResp(me));
   }
@@ -5695,18 +5753,50 @@ async function api(req,res,url){
     if(!(conf==='DELETE'||(me.name&&conf.toLowerCase()===String(me.name).toLowerCase()))) return send(res,400,{error:'Type DELETE or your account name to confirm.',needConfirm:true});
     const hasPass=!me.guest&&(!!me.hash||!!me.gid);
     if(hasPass&&!String(b.pass||'')) return send(res,400,{error:'Enter your password.',needPass:true});
+    let out=null;
     if(ACCOUNT_AUTHORITY&&me.gid){
       const r=await authorityCall('/api/internal/account/verify',{ name:me.name, pass:b.pass, ip:clientIP(req) });
       if(!r) return send(res,503,{error:'Accounts are unreachable right now - try again in a minute.'});
       if(r.status!==200||!r.body||r.body.gid!==me.gid) return send(res,r.status===429?429:403,{error:r.status===429?((r.body&&r.body.error)||'Too many attempts.'):'Wrong password.',needPass:true});
-      const d=await authorityCall('/api/internal/account/delete',{ gid:me.gid });
-      if(!d||d.status!==200) return send(res,503,{error:(d&&d.body&&d.body.error)||'Accounts are unreachable right now - try again in a minute.'});
+      const d=await authorityCall('/api/internal/account/delete-request',{ gid:me.gid, via:'game' });   /* v1232: Server 1 starts the grace */
+      if(!d||d.status!==200||!d.body) return send(res,503,{error:(d&&d.body&&d.body.error)||'Accounts are unreachable right now - try again in a minute.'});
+      out=acctDelLocalFollow(me, d.body);
     } else if(hasPass){
       const r=await acctVerify(me.name, b.pass, clientIP(req));
       if(!r.u||r.u.id!==me.id){ writeDB(); return send(res,r.status===429?429:403,{error:r.status===429?r.error:'Wrong password.',needPass:true}); }
     }
-    if(DB.users[me.id]) deleteAccountData(DB.users[me.id]);
-    const resp={ok:true,deleted:true}; DB.idem[rk]={t:Date.now(),resp}; _rkn(rk);
+    if(!out) out=DB.users[me.id]?acctDelRequest(DB.users[me.id],'game'):{deleted:true};   /* v1232: 7-day grace (a guest: at once) */
+    const resp=out.deleted?{ok:true,deleted:true}:{ok:true,pending:true,wipeAt:out.wipeAt}; DB.idem[rk]={t:Date.now(),resp}; _rkn(rk);
+    if(writeDBNow()===false) return send(res,503,{ok:false,storageFailed:true,error:'Save failed - try again.'});
+    return send(res,200,resp); }
+  /* v1232 WEB DELETION REQUEST (Google Play: a deletion request that works without the app). The form on /privacy sends the username,
+     password, the typed DELETE and a requestId; the same 7-day grace as Settings > Delete account. Same answer shape as the game's route.
+     On Servers 2-5 the password is checked and the grace started by Server 1. */
+  if(p==='/api/account/delete-request' && req.method==='POST'){ const b=await body(req);
+    const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
+    DB.idem=DB.idem||{}; const rk='acctdelweb:'+reqId, prev=DB.idem[rk];
+    if(prev&&Date.now()-prev.t<=3600000&&prev.resp&&prev.resp.ok) return send(res,200,prev.resp);
+    if(rateLimited(req,'acctdelweb',10,60000)) return send(res,429,{error:'Too many attempts - wait a minute and try again.'});
+    if(String(b.confirm||'').trim()!=='DELETE') return send(res,400,{error:'Type DELETE to confirm.',needConfirm:true});
+    const name=String(b.name||'').trim(), pass=String(b.pass||'');
+    if(name.length<2||!pass) return send(res,400,{error:'Enter your username and password.'});
+    let out=null;
+    if(ACCOUNT_AUTHORITY){
+      const r=await authorityCall('/api/internal/account/verify',{ name, pass, ip:clientIP(req) });
+      if(!r) return send(res,503,{error:'Accounts are unreachable right now - try again in a minute.'});
+      if(r.status!==200||!r.body||!r.body.gid) return send(res,r.status===429?429:401,{error:r.status===429?((r.body&&r.body.error)||'Too many attempts.'):'Wrong name or password'});
+      const d=await authorityCall('/api/internal/account/delete-request',{ gid:r.body.gid, via:'web' });
+      if(!d||d.status!==200||!d.body) return send(res,d&&d.status===400?400:503,{error:(d&&d.body&&d.body.error)||'Accounts are unreachable right now - try again in a minute.'});
+      const lid=DB.byGid&&DB.byGid[r.body.gid], lu=lid&&DB.users[lid];
+      out=lu?acctDelLocalFollow(lu, d.body):(d.body.deleted?{deleted:true}:{pending:true,wipeAt:+d.body.wipeAt||0});
+    } else {
+      const r=await acctVerify(name, pass, clientIP(req));
+      if(!r.u){ if(r.changed) saveSoon([r.id]); return send(res,r.status===429?429:401,{error:r.error||'Wrong name or password'}); }
+      if(r.u.isNpc) return send(res,401,{error:'Wrong name or password'});
+      if(isDev(r.u)) return send(res,400,{error:'A developer account cannot be deleted here.'});
+      out=acctDelRequest(r.u,'web');
+    }
+    const resp=out.deleted?{ok:true,deleted:true}:{ok:true,pending:true,wipeAt:out.wipeAt}; DB.idem[rk]={t:Date.now(),resp}; _rkn(rk);
     if(writeDBNow()===false) return send(res,503,{ok:false,storageFailed:true,error:'Save failed - try again.'});
     return send(res,200,resp); }
   /* v1097 (sweep #18): block / unblock a player (by name, or by a chat line's id) and 'report message' */
@@ -9344,7 +9434,7 @@ async function api(req,res,url){
     let offset=parseInt(url.searchParams.get('offset')||'0',10); if(!(offset>=0))offset=0;
     let limit=parseInt(url.searchParams.get('limit')||'100',10); if(!(limit>=1))limit=100; limit=Math.min(200,limit);
     if(q){ // name search across the WHOLE server
-      const hits=[]; for(let i=0;i<all.length && hits.length<60;i++){ const u=all[i]; if((u.name||'').toLowerCase().includes(q)) hits.push({ pos:i+1, rank:u.rank, name:u.name, isNpc:!!u.isNpc, power:serverTeamPower(u.team, u), you:u.id===me.id }); }
+      const hits=[]; for(let i=0;i<all.length && hits.length<60;i++){ const u=all[i]; if(!u.delReq&&(u.name||'').toLowerCase().includes(q)) hits.push({ pos:i+1, rank:u.rank, name:u.name, isNpc:!!u.isNpc, power:serverTeamPower(u.team, u), you:u.id===me.id }); }
       return send(res,200,{ entries:hits, total, youIndex, youRank:me.rank, search:true }); }
     const entries=all.slice(offset,offset+limit).map((u,i)=>({ pos:offset+i+1, rank:u.rank, name:u.name, isNpc:!!u.isNpc, power:serverTeamPower(u.team, u), you:u.id===me.id }));
     return send(res,200,{ entries, total, youIndex, youRank:me.rank, offset, limit }); }
@@ -10048,6 +10138,10 @@ const server=http.createServer((req,res)=>{
     if(lb){ res.end(JSON.stringify({build:lb})); return; }
     return fs.readFile(path.join(__dirname,'version.json'),(e,b)=>{ if(!e){res.end(b);return;} remoteAsset('/version.json').then(r=>res.end(r?r.buf:'{}')); }); }
   if(p==='/manifest.webmanifest') return serveFile(res,'manifest.webmanifest','application/manifest+json',null,req);
+  /* v1232 (Google Play): the public Terms of Service and Privacy Policy - readable without the app or a sign-in; /privacy#delete-account is
+     the deletion page for the Play Console (the web request form + the email route). Text: Archive Open Projects/Terms and Privacy 2026. */
+  if(p==='/terms'||p==='/terms/') return serveFile(res,'legal/terms.html','text/html; charset=utf-8',null,req);
+  if(p==='/privacy'||p==='/privacy/') return serveFile(res,'legal/privacy.html','text/html; charset=utf-8',null,req);
   /* ANDROID APP (30 Oct 2026): Digital Asset Links for the Play app (TWA com.emberweave.heroes) - Android fetches this exact path to
      trust the app, so it opens the site full-screen with no browser bar. Without this route the path fell through to the game page. */
   if(p==='/.well-known/assetlinks.json') return serveFile(res,'.well-known/assetlinks.json','application/json',null,req);
@@ -10143,7 +10237,7 @@ try{
   //      updated to send {token} on connect. The size/rate caps and name-from-token apply always. ----
   const WS_AUTH_REQUIRED = String(process.env.WS_AUTH_REQUIRED||'true')==='true';   // ON by default since 26 Aug — the client now sends its token on every WS frame; set env false only as an emergency rollback
   const WS_MSG_MAX = +(process.env.WS_MSG_MAX || 16384);   // per-frame byte cap (replay chips already capped at 8000)
-  function wsAccount(m){ const id=lookupToken(m&&m.token); const u=id?DB.users[id]:null; return (u&&!isBanned(u))?u:null; }   /* v999 (Account audit #4): a banned account has no socket identity (chat, whispers, rooms) */
+  function wsAccount(m){ const id=lookupToken(m&&m.token); const u=id?DB.users[id]:null; return (u&&!isBanned(u)&&!u.delReq)?u:null; }   /* v999 (Account audit #4): a banned account has no socket identity (chat, whispers, rooms) */
   function wsRateOk(ws, isAct){ if(isAct===2) return true; const now=Date.now(); ws._hits=(ws._hits||[]).filter(t=>now-t<10000); ws._hits.push(now); return ws._hits.length<=(isAct?160:40); }   // act frames: 16/s (> ACT_PER_SEC=8 + speed/stall); abandon is never dropped
   function wsNeedAuth(ws){ if(WS_AUTH_REQUIRED && !ws._uid){ wsend(ws,{t:'autherr',reason:'Sign in required.'}); return true; } return false; }
   // ---- live chat: world/region broadcast + name-addressed whispers ----

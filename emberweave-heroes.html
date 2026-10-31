@@ -23782,7 +23782,7 @@ function authGateNeed(){ if(window._p2guard||!online()) return ''; if(window._sv
   return ''; }
 function authGateRefresh(force){ let entered=false; try{ entered=_splashEntered; }catch(e){}
   const el=authGateEl(), need=entered?authGateNeed():'';
-  if(!need){ if(el.style.display!=='none'){ el.style.display='none'; el.innerHTML=''; AUTHG.shown=''; } updateGuestMarks(); return; }
+  if(!need){ if(el.style.display!=='none'){ el.style.display='none'; el.innerHTML=''; AUTHG.shown=''; } updateGuestMarks(); if(entered) tosRecheck(); return; }
   const okModes=need==='out'?['create','signin','forgot','reset']:['guest','signin'];
   if(okModes.indexOf(AUTHG.mode)<0) AUTHG.mode = need==='guest' ? 'guest' : (lastAcctGet()?'signin':'create');
   if(force || AUTHG.shown!==need+'/'+AUTHG.mode || el.style.display==='none') authGateRender();
@@ -23861,7 +23861,14 @@ function authGateRender(){ const el=authGateEl(), need=authGateNeed()||'out', m=
     $('#agSetPass').onclick=set; enter(['#agNew','#agNew2'],set); }
 }
 /* One finish for every gate path. kind: 'create' (new account, no session before), 'signin', 'upgrade' (this guest, same id). */
-function authGateDone(d,kind){ const prevId=ACC&&ACC.token?ACC.id:null, p=d.profile;
+/* v1232: a device already signed in when the Terms change (TOS_UPDATED) accepts the new version before it plays on; Decline signs out.
+   delCancelNote: the server cancelled a pending account deletion because the player signed in within the 7-day grace. */
+function tosRecheck(){ if(window._p2guard||window._tosRecheck||!(ACC&&ACC.token)||tosOK()) return;
+  let prev=null; try{ prev=localStorage.getItem('ew_tos_accepted'); }catch(e){} if(!prev) return;   // only a device that accepted an OLDER version (no record = it meets the gate at its next sign-in)
+  window._tosRecheck=true;
+  requireTos(()=>{ window._tosRecheck=false; }, ()=>{ window._tosRecheck=false; try{ signOutFully(); }catch(e){} try{ authGateRefresh(true); }catch(e){} }); }
+function delCancelNote(d){ if(d&&d.deletionCancelled) bannerMsg('Welcome back - your account deletion has been cancelled.'); }
+function authGateDone(d,kind){ const prevId=ACC&&ACC.token?ACC.id:null, p=d.profile; delCancelNote(d);
   const next={token:d.token,name:p.name,rank:p.rank,coins:p.coins,id:p.id,guest:!!p.guest,email:p.email||'',created:(p.created||0),admin:!!p.admin};
   if(kind==='create'){ clearServerCaches(); G=JSON.parse(JSON.stringify(DEFAULT_G)); saveGLocalOnly(); }   // a new account starts from the starter save, never a previous session's copy
   ACC=next; saveAcc(); DEV.on=isDevAcct(); AUTHG.mode=''; AUTHG.shown=''; AUTHG.ask=false;
@@ -28765,46 +28772,39 @@ function updateMailBadges(){ ensureMail(); pruneWars();
 }
 
 /* ============================ TERMS OF SERVICE / PRIVACY ============================ */
-const TOS_UPDATED='August 2026';   // ← change this whenever the Terms change; it re-prompts everyone to re-accept
+const TOS_UPDATED='October 2026';   /* v1232: Google Play Terms + Privacy (Phil 30 Oct) - everyone re-accepts */   // ← change this whenever the Terms change; it re-prompts everyone to re-accept
 // Device-level acceptance, keyed to the Terms version (TOS_UPDATED). On first sign-in the player must accept.
 // If the Terms are later updated (TOS_UPDATED changes), stored acceptance no longer matches and the player is
-// asked to re-confirm the new Terms on their next sign-in.
+// asked to re-confirm the new Terms on their next sign-in. v1232: a device that is ALREADY signed in is asked too (authGateRefresh ->
+// tosRecheck); declining signs it out. The full text is public at /terms and /privacy (server.js -> legal/*.html, Archive
+// Open Projects/Terms and Privacy 2026/*FINAL.md); this in-game page is the summary and links to both.
 function tosOK(){ try{ return localStorage.getItem('ew_tos_accepted')===TOS_UPDATED; }catch(e){ return false; } }
 function tosSetOK(){ try{ localStorage.setItem('ew_tos_accepted',TOS_UPDATED); }catch(e){} }
 function tosBodyHTML(){
   const s='margin:15px 0 5px;font-weight:800;color:#ffd45e;font-size:13px';
   const p='font-size:12px;color:#cdd6e4;line-height:1.55;margin:0 0 6px';
+  const a='color:#9ec3ff;font-weight:700';
+  const mail='<a href="mailto:emberweaveheroes@gmail.com" style="'+a+'">emberweaveheroes@gmail.com</a>';
   return `
-    <p style="${p}color:#8b98a9">Last updated: ${TOS_UPDATED}. These Terms of Service and Privacy Notice ("Terms") are an agreement between you and Xanthyr Games ("we", "us") covering Emberweave Heroes (the "Game"). By creating an account, signing in, or playing, you agree to them. If you don't agree, please don't use the Game.</p>
-    <div style="${s}">1. Who can play (age)</div>
-    <p style="${p}">You must be at least 13 years old to create an account. If you are under 18 (or the age of majority where you live), you may only play with the permission and supervision of a parent or legal guardian, who agrees to these Terms on your behalf. We do not knowingly collect data from children under 13; if we learn we have, we will delete it.</p>
-    <div style="${s}">2. Your account &amp; security</div>
-    <p style="${p}">You're responsible for your username, password, and everything that happens on your account. Keep your credentials safe. One account is intended for one person — don't share, sell, or transfer accounts, or use someone else's without permission. Tell us right away if you think your account has been compromised.</p>
-    <div style="${s}">3. Fair play</div>
-    <p style="${p}">Don't cheat, exploit bugs, use bots, macros, or unauthorized third-party tools, tamper with the Game or its network traffic, or interfere with other players or our servers. We may suspend or close accounts, adjust balances, or roll back progress gained through exploits or cheating.</p>
-    <div style="${s}">4. Purchases, virtual items &amp; refunds</div>
-    <p style="${p}">Diamonds, gold, heroes, and all other in-game items have no real-world monetary value, are licensed to you for use inside the Game only, and cannot be redeemed for cash. Items may change, expire, or be removed. If diamonds or other items are offered for sale, those purchases are final and non-refundable except where a refund is required by law or by the store you purchased through.</p>
-    <div style="${s}">5. AI-generated content</div>
-    <p style="${p}">Some artwork and animation in the Game were produced with the assistance of generative-AI tools and then edited, arranged, and integrated by us. The Game as a whole, its code, design, characters, and lore are our work. You may not scrape, extract, resell, or reuse the Game's assets outside the Game.</p>
-    <div style="${s}">6. Names, chat &amp; conduct</div>
-    <p style="${p}">Keep usernames, chat, and any content you submit respectful and lawful. Harassment, hate speech, threats, spam, impersonation, sexual content involving minors, and other illegal or abusive content are prohibited. We may hide, remove, or report content and restrict or remove accounts that break these rules.</p>
-    <div style="${s}">7. Your data &amp; privacy</div>
-    <p style="${p}">To run the Game we store the details you provide (username, a securely salted-and-hashed password, and — if you add one — your email) and your game progress, which we sync to our servers so you can play across devices. We may also process basic technical data (like a device identifier) to sign you in, keep the Game fair, and prevent abuse. We use this data only to operate and improve the Game. We do not sell your personal data. Passwords are stored only as a hash — we can never see your actual password.</p>
-    <div style="${s}">8. Suspension, termination &amp; deletion</div>
-    <p style="${p}">You can stop playing and request deletion of your account and its data at any time (some minimal records may be kept where required for security or legal reasons). We may suspend or terminate accounts that violate these Terms or that we reasonably believe create risk to other players or to the Game.</p>
-    <div style="${s}">9. Availability &amp; changes to the Game</div>
-    <p style="${p}">The Game is provided on an "as is" and "as available" basis. We may update, change, pause, or discontinue any part of it, including features and items, at any time, and we don't guarantee it will always be available, uninterrupted, or error-free.</p>
-    <div style="${s}">10. Disclaimers</div>
-    <p style="${p}">To the fullest extent allowed by law, the Game is provided without warranties of any kind, whether express or implied, including fitness for a particular purpose, and we don't warrant that it will be secure, error-free, or that progress and items will never be lost.</p>
-    <div style="${s}">11. Limitation of liability</div>
-    <p style="${p}">To the fullest extent allowed by law, we are not liable for indirect, incidental, special, or consequential damages, or for lost progress, items, data, or profits arising from your use of the Game. Where liability cannot be excluded, it is limited to the amount you paid us (if any) for the Game in the 12 months before the claim.</p>
-    <div style="${s}">12. Governing law &amp; disputes</div>
-    <p style="${p}">These Terms, and any dispute arising out of or relating to them or the Game, are governed by the laws of the State of North Carolina, United States, without regard to its conflict-of-laws rules, together with applicable United States federal law. Before starting any formal dispute, you agree to first contact us so we can try to resolve it informally. Any dispute that cannot be resolved informally shall be brought exclusively in the state or federal courts located in North Carolina, and you and Xanthyr Games consent to the personal jurisdiction and venue of those courts. If you reside outside the United States, this choice of law and venue does not remove any mandatory consumer-protection rights you have under the laws of your home country.</p>
-    <div style="${s}">13. Changes to these Terms</div>
-    <p style="${p}">We may update these Terms as the Game grows. If we make material changes, we'll update the "last updated" date, and continued play after an update means you accept the revised Terms.</p>
-    <div style="${s}">14. Contact</div>
-    <p style="${p}">Questions, privacy requests, or account issues? Use the "Report a problem" box in Settings, or the contact address published with the Game.</p>
-    <p style="${p}color:#6f7d90;margin-top:10px">This is a plain-language agreement written for players. It is a starting point and not legal advice — before a commercial or app-store launch, it's wise to have a lawyer review a full Terms of Service and Privacy Policy for your jurisdiction.</p>
+    <p style="${p}color:#8b98a9">Last updated: ${TOS_UPDATED}. Emberweave Heroes (the "Game") is provided by Xanthyr Games ("we", "us"). By accepting, you agree to our <a href="/terms" target="_blank" rel="noopener" style="${a}">Terms of Service</a>, and our <a href="/privacy" target="_blank" rel="noopener" style="${a}">Privacy Policy</a> explains how we handle your information. This page is a summary; the full text is at those two links.</p>
+    <div style="${s}">1. Age and parental permission</div>
+    <p style="${p}">You must be at least 13 (or older where your local law says so) to create an account. If you are under 18, or under the age of majority where you live, you need a parent or guardian's permission and supervision; they must agree to these Terms with you and authorize any purchases.</p>
+    <div style="${s}">2. Your account and fair play</div>
+    <p style="${p}">Keep your password private and do not share, sell or transfer accounts. Do not cheat, exploit bugs, use bots or unauthorized tools, or interfere with the Game or other players. We may restrict or suspend accounts that break the rules, and correct progress gained by cheating.</p>
+    <div style="${s}">3. Names, chat and conduct</div>
+    <p style="${p}">No harassment, threats, hate speech, sexual content involving minors, spam, impersonation or other illegal or abusive content. Report a message from chat, block players (your Blocked players list is in Settings), or email ${mail}. Do not put passwords, payment details or sensitive personal information in chat.</p>
+    <div style="${s}">4. Purchases and virtual items</div>
+    <p style="${p}">Purchases in the Google Play version use Google Play Billing; the purchase screen shows the price and what you get before you confirm, and Google processes the payment. Diamonds, gold, heroes and other items are licensed for use in the Game, have no cash value and cannot be sold outside the Game. Refunds follow the law and the store's policy (Google Play's refund process); your statutory consumer rights still apply.</p>
+    <div style="${s}">5. What we collect</div>
+    <p style="${p}">Your account details (username, a salted password hash, a recovery email if you add one), your game saves and activity, chat messages and reports you send, purchase records, and technical data: IP addresses, connection times, device and app information, and error and security logs. We use it to run the Game, keep accounts secure and play fair, moderate chat, deliver purchases and fix problems. We do not sell your personal information. Other players see your name, castle, game activity and the chat you send them.</p>
+    <div style="${s}">6. Storage, logs and backups</div>
+    <p style="${p}">Your account and saves are stored on our game servers and copied to backups for recovery. Routine technical, connection, IP and diagnostic logs are kept for <b>90 days</b>. Backups age out on their own rotation schedule.</p>
+    <div style="${s}">7. Deleting your account</div>
+    <p style="${p}">Use <b>Delete account</b> in Settings, or the request form at <a href="/privacy#delete-account" target="_blank" rel="noopener" style="${a}">/privacy#delete-account</a>, or email ${mail}. The account is locked and hidden for a <b>7-day grace period</b>; signing in within those 7 days cancels the deletion. After that our servers wipe it from our database. Backups are not erased at once - they age out on their own schedule. A guest profile with no password is deleted at once.</p>
+    <div style="${s}">8. The Game, liability and disputes</div>
+    <p style="${p}">The Game changes through updates and balancing and is provided "as is" to the extent the law allows. These Terms are governed by the laws of North Carolina, United States; mandatory consumer rights where you live are not affected. We update the date above when the Terms change and ask you to accept again.</p>
+    <div style="${s}">9. Contact</div>
+    <p style="${p}">Questions, reports, privacy and deletion requests: ${mail}.</p>
     <p style="${p}color:#7d8a9c;text-align:center;margin-top:12px;font-weight:700">© 2026 Xanthyr Games · Emberweave Heroes™ · All rights reserved.</p>`;
 }
 function showTerms(){
@@ -28891,11 +28891,11 @@ function renderSettings(){
       ? `<button class="btn sm secondary" id="acDel" style="width:100%;margin-top:8px;color:#ff8b8b;border-color:#ff6b6b66">Delete account</button>`
       : `<div style="background:#1a0f12;border:1px solid #ff6b6b88;border-radius:10px;padding:10px;margin-top:8px">
           <div style="font-weight:800;font-size:12px;color:#ff8b8b;margin-bottom:4px">Delete account</div>
-          <div style="font-size:11px;color:#c3ccd8;margin-bottom:8px">This permanently deletes <b>${escapeHTML(ACC.name||'')}</b>: progress, heroes, items, city, guild place and personal details. It cannot be undone.</div>
+          <div style="font-size:11px;color:#c3ccd8;margin-bottom:8px">${ACC.guest?`This permanently deletes guest <b>${escapeHTML(ACC.name||'')}</b> at once: progress, heroes, items and city. It cannot be undone.`:`This deletes <b>${escapeHTML(ACC.name||'')}</b>: progress, heroes, items, city, guild place and personal details. The account is locked and hidden for <b>7 days</b> - sign in again within 7 days to cancel. After that it is wiped from our database and cannot be restored (backups age out on their own schedule). <a href="/privacy#delete-account" target="_blank" rel="noopener" style="color:#9ab0d6">Privacy Policy</a>`}</div>
           <div style="display:flex;flex-direction:column;gap:6px">
             <input id="acDelConf" type="text" placeholder="Type DELETE" autocomplete="off" autocapitalize="characters" spellcheck="false" style="${inp}">
             ${ACC.guest?'':`<input id="acDelPass" type="password" placeholder="Password" autocomplete="current-password" style="${inp}">`}
-            <div style="display:flex;gap:6px"><button class="btn sm" id="acDelGo" style="flex:1;background:#ff6b6b">Delete permanently</button><button class="btn sm secondary" id="acDelCancel" style="flex:1">Cancel</button></div></div>
+            <div style="display:flex;gap:6px"><button class="btn sm" id="acDelGo" style="flex:1;background:#ff6b6b">${ACC.guest?'Delete permanently':'Delete account'}</button><button class="btn sm secondary" id="acDelCancel" style="flex:1">Cancel</button></div></div>
           <div id="acDelMsg" style="font-size:11px;color:#ff8b8b;margin-top:6px;min-height:14px"></div></div>`;
     const blockList = `<div style="margin-top:10px"><div style="font-weight:800;font-size:12px;margin-bottom:4px">Blocked players</div><div id="acBlocks" style="font-size:11px;color:#8b98a9">${_blocksHTML()}</div></div>`;
     account=`<div class="panel" style="border-color:#4aa3ff55">
@@ -29129,6 +29129,7 @@ function renderSettings(){
         if(d&&d.reset){ _resetName=name; acctMode='reset'; renderSettings(); return; }   // admin armed a password recovery
         if(!d||d.error){ msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error)||'Could not reach the server — try again.'; return; }
         if(!d.token||!d.profile){ msg.style.color='#ff8b8b'; msg.textContent='Unexpected server response.'; return; }
+        delCancelNote(d);   /* v1232 */
         const _prevId=ACC&&ACC.id;
         ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,email:d.profile.email||'',created:(d.profile.created||0),admin:!!d.profile.admin}; saveAcc();
         DEV.on=isDevAcct();
@@ -29189,7 +29190,7 @@ function renderSettings(){
       if(!(conf==='DELETE'||(ACC.name&&conf.toLowerCase()===String(ACC.name).toLowerCase()))){ msg.style.color='#ff8b8b'; msg.textContent='Type DELETE to confirm.'; return; }
       if(pe&&!pass){ msg.style.color='#ff8b8b'; msg.textContent='Enter your password.'; return; }
       if(window._delBusy) return; window._delBusy=true; rid=rid||uid8();
-      msg.style.color='#8b98a9'; msg.textContent='Deleting...';
+      msg.style.color='#8b98a9'; msg.textContent='Sending...';
       api('/api/account/delete','POST',{confirm:conf,pass,requestId:rid}).then(d=>{ window._delBusy=false;
         if(!d||!d.ok){ msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error==='offline')?'Connection lost - try again.':((d&&d.error)||'Could not delete the account.'); return; }
         delStep='idle'; _blocksCache=null;
@@ -29197,7 +29198,8 @@ function renderSettings(){
         try{ clearServerCaches(); }catch(e){}
         G=JSON.parse(JSON.stringify(DEFAULT_G)); saveGLocalOnly();
         try{ if(CHATNET.ws) CHATNET.ws.close(); }catch(e){}
-        try{ updateHubChrome(); }catch(e){} show('account'); bannerMsg('Your account has been deleted.'); }); }; }
+        try{ updateHubChrome(); }catch(e){} show('account');
+        bannerMsg(d.pending&&d.wipeAt?('Deletion requested. Your account is locked and will be wiped on '+new Date(d.wipeAt).toLocaleDateString()+' - sign in before then to cancel.'):'Your account has been deleted.'); }); }; }   /* v1232: the 7-day grace */
   /* v1097 (sweep #18): blocked players, read from the server; Unblock */
   const acBlocks=b.querySelector('#acBlocks');
   const wireBlocks=(el)=>{ el.querySelectorAll('[data-unblock]').forEach(bt=>bt.onclick=()=>{ bt.disabled=true;
