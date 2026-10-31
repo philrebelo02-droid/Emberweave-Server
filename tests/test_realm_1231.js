@@ -20,9 +20,15 @@ let pass=0;const ok=(c,m)=>{assert(c,m);pass++;};
     if(!D.sources.some(s=>mx0>=s.x0-1&&my0>=s.y0-1)||![[mx0,my0],[mx1-1,my0],[mx0,my1-1],[mx1-1,my1-1]].every(([x,y])=>D.sources.some(s=>x>=s.x0&&x<s.x0+4096&&y>=s.y0&&y<s.y0+4096)))outside++;}
   ok(missing===0,'every z0 tile exists ('+missing+' missing of '+D.tiles.length+')');ok(badHash===0,'every z0 tile matches realm.json ('+badHash+' differ)');
   ok(outside===0,'every z0 tile lies inside Grok\'s detail tiles ('+outside+' outside)');
-  ok(D.sources.length>=3&&new Set(D.sources.map(s=>s.r+','+s.c)).size===D.sources.length&&D.sources.every(s=>/^[0-9a-f]{64}$/.test(s.sha256)),'the '+D.sources.length+' detail sources are recorded with their sha256, one file per tile position (v1232: 7, the latest round each)');
-  // a view outside the detail (the south-west) gets no z0 tile: the client filters by the same tile set
-  const set=new Set(D.tiles);let hits=0;for(let r=60;r<70;r++)for(let c=20;c<30;c++)if(set.has(r+','+c))hits++;ok(hits===0,'no z0 tile outside the detail');
+  const offLevel=D.tiles.filter(t=>{const [r,c]=t.split(',').map(Number);return !(r>=0&&c>=0&&r<D.rows&&c<D.cols);});ok(offLevel.length===0,'every z0 tile is on the level, no negative row or column (v1238: the west-edge r1c0 made c=-1 tiles; '+offLevel.length+' off: '+offLevel.slice(0,3).join(' ')+')');
+  const DETAIL_SOURCES=17;   // v1238: every tile Grok has posted in detail2x NE, the latest round each (v1232: 8)
+  ok(D.sources.length===DETAIL_SOURCES&&new Set(D.sources.map(s=>s.r+','+s.c)).size===D.sources.length&&D.sources.every(s=>/^[0-9a-f]{64}$/.test(s.sha256)),'the '+D.sources.length+' detail sources (want '+DETAIL_SOURCES+') are recorded with their sha256, one file per tile position, the latest round each');
+  // a view outside the detail gets no z0 tile: the client filters by the same tile set. v1238: the probe is the inside of a 4096 cell
+  // no detail tile covers (r4c1 now covers the old fixed south-west probe)
+  const set=new Set(D.tiles);let hits=0,probe=null;for(let gr=0;gr<5&&!probe;gr++)for(let gc=0;gc<9&&!probe;gc++)if(!D.sources.some(s=>s.r===gr&&s.c===gc))probe=[gr,gc];
+  if(probe){const k=512/D.scale,r0=Math.ceil(probe[0]*4096/k),r1=Math.floor((probe[0]+1)*4096/k)-1,c0=Math.ceil((probe[1]*4096-X0)/k),c1=Math.floor(((probe[1]+1)*4096-X0)/k)-1;
+    for(let r=r0;r<r1;r++)for(let c=Math.max(0,c0);c<c1;c++)if(set.has(r+','+c))hits++;}
+  ok(probe&&hits===0,'no z0 tile outside the detail (probe 4096 cell '+(probe?'r'+probe[0]+'c'+probe[1]:'none')+')');
   const html=fs.readFileSync(path.join(root,'emberweave-heroes.html'),'utf8');
   ok(/paintRealmTiles\(inner\.querySelector\('#realmTiles'\),z0\.length\?base\.concat\(z0\):base\)/.test(html),'z1 stays drawn under the z0 tiles (no gap while a z0 tile loads, none outside)');
   ok(/filter\(t=>_wmDetailSet\.has\(t\.row\+','\+t\.col\)\)/.test(html)&&/const WM_DETAIL_FROM=0\.6;/.test(html),'z0 only where a tile exists, near max zoom');

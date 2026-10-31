@@ -469,8 +469,9 @@ def build_detail2x(folder, src, master, levels, files, X0, out, cities, RW, RH):
     cols0, rows0 = int(math.ceil(W0 / TILE)), int(math.ceil(H0 / TILE))
     want = []
     for d in det:
-        for r in range(int(d['y0'] * s // TILE), min(rows0, int(math.ceil(d['y1'] * s / TILE)))):
-            for c in range(int((d['x0'] - X0) * s // TILE), min(cols0, int(math.ceil((d['x1'] - X0) * s / TILE)))):
+        for r in range(max(0, int(d['y0'] * s // TILE)), min(rows0, int(math.ceil(d['y1'] * s / TILE)))):
+            # v1238: a west-edge tile (r1c0, x0) starts left of the crop X0: z0 starts at column 0 (no negative columns, no art left of X0)
+            for c in range(max(0, int((d['x0'] - X0) * s // TILE)), min(cols0, int(math.ceil((d['x1'] - X0) * s / TILE)))):
                 mx0, my0 = X0 + c * TILE / s, r * TILE / s
                 if covered(mx0, my0, mx0 + TILE / s, my0 + TILE / s) and (r, c) not in want:
                     want.append((r, c))
