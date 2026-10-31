@@ -28610,11 +28610,13 @@ function survivorsRoster(){ const all=Object.keys(HERO_TYPES), own=k=>heroOwned(
    art from skillPreviewPlan (the Skills tab plan = how the fight places it): sheet + where (self / target / above / a projectile) + when + how
    long + its radius in metres. Only plain fields cross to the frame. */
 const SURV_SHEET_KEYS=['u','n','fw','fh','cols','rows','dur','fps2','upright','disc','cone','upSize','upExtent','upAnchor','upAbove','upAboveM','fxMul'];
-function survKind(row){ const t=String((row&&row.type)||'').toLowerCase()+' '+String((row&&row.deliver)||'');
+function survKind(row){ const ty=String((row&&row.type)||'').toLowerCase(), t=ty+' '+String((row&&row.deliver)||'');
   if(/^summon/.test(t)) return 'summon';
   if(/chainlight/.test(t)||(row&&row.jumps)) return 'chain';   /* jumping chains only (Fritz) - Tolley's Chain Quench is a pull */
-  if(/heal|mend|regen|bloom|hot|courage|renew|restor|cleanse/.test(t)) return 'heal';
-  if(/shield|ward|guard|lastbreath|barrier|bubble|aegis|stand|mantle|shell|fortify|armor/.test(t)) return 'ward';
+  /* 31 Oct: heal / ward read the TYPE only, and 'hot' as the whole type - 'hot' matched the deliver 'shot', so 10 enemy shots (Absalie's
+     Abyssal Needle, Sloe's Thornshot, Rafe's Grappling Hook, Brannus, Dandra, Meridian, Mirelle, Nerisse, Nox, Pyroclast) healed the hero */
+  if(/heal|mend|regen|bloom|^hot$|courage|renew|restor|cleanse/.test(ty)) return 'heal';
+  if(/shield|ward|guard|lastbreath|barrier|bubble|aegis|stand|mantle|shell|fortify|armor/.test(ty)) return 'ward';
   if(/leap|dash|blink|charge|lunge|hook|burrow|pounce|jump/.test(t)) return 'dash';
   if(/shot|bolt|line|beam|spread|pierce|volley|snipe|lance|thrown|card/.test(t)) return 'bolt';
   return 'nova'; }
