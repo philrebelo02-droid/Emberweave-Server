@@ -77,7 +77,8 @@ function claimWin(host, start) { const f = host.auto(JSON.parse(JSON.stringify(s
 // ---------- 1. the module ----------
 function moduleChecks() {
   const cities = SG.sites().filter(s => s.kind === 'city').sort((a, b) => b.squares - a.squares), top4 = cities.slice(0, 4).map(s => s.id).sort();
-  ok(JSON.stringify(top4) === JSON.stringify(SG.CAPITALS.slice().sort()), 'CAPITALS default = the 4 largest cities by squares: ' + cities.slice(0, 5).map(s => s.name + ' ' + s.squares).join(', '));
+  const phil = ['city-durrakh', 'city-hallowrime', 'city-lanternmere', 'city-oriel'];   // Phil 31 Oct: "orriel, hallowrime, lanternmere, durrakh are capitols"
+  ok(JSON.stringify(phil) === JSON.stringify(SG.CAPITALS.slice().sort()) && phil.every(id => cities.some(s => s.id === id)), 'CAPITALS = Phil\'s four (Oriel, Hallowrime, Lanternmere, Durrakh), each a real city (top4 by size was ' + top4.join(',') + ')');
   const cap = SG.byId(SG.CAPITALS[0]), city = cities.find(s => !SG.isCapital(s));
   ok(SG.garrisonCap(cap) === 10 && SG.garrisonCap(city) === 8 && SG.garrisonCap(SG.byId('oasis-nw')) === 8 && SG.garrisonCap(SG.byId('tree')) === 8, 'caps: a capital 10, a city 8, an oasis 8, the World Tree 8');
   ok(SG.garrisonLabel(city, { garrison: [1] }) === '1/8' && SG.garrisonLabel(cap, { garrison: [1, 2, 3] }) === '3/10' && SG.garrisonLabel(cap, { lines: 4 }) === '4/10' && SG.garrisonLabel(city, null) === '0/8', 'label: 1/8, 3/10 on a capital (from lines too)');

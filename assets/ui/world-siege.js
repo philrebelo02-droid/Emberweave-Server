@@ -20,10 +20,10 @@
    guild members send more lines up to the cap; a later siege fights the garrison lines. Only a guild member may attack or garrison.
      GARRISON_CAP   8   lines in a non-capital site (cities, the oases and the World Tree)
      CAPITAL_CAP   10   lines in a capital
-     CAPITALS           PHIL HAS NOT NAMED THE CAPITALS YET - default = the 4 largest cities by squares in the realm data:
+     CAPITALS           PHIL NAMED THE CAPITALS (31 Oct 2026: "orriel, hallowrime, lanternmere, durrakh are capitols"):
                         Durrakh 1504, Oriel 1212, Hallowrime 983, Qasrim 849 (Ashford 781 is fifth) */
 const RANGE_SQUARES=20, CELLS_PER_GUARD_LV=150, PROTECT_MS=3600000, MAX_GUARD_LV=10;
-const GARRISON_CAP=8, CAPITAL_CAP=10, CAPITALS=Object.freeze(['city-durrakh','city-oriel','city-hallowrime','city-qasrim']);
+const GARRISON_CAP=8, CAPITAL_CAP=10, CAPITALS=Object.freeze(['city-oriel','city-hallowrime','city-lanternmere','city-durrakh']);
 function realm(){ return root.EmberweaveRealm||(typeof require==='function'?require('../../world-realm.js'):null); }
 function slug(s){ return String(s).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''); }
 let _sites=null, _byId=null, _byCell=null;
