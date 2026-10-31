@@ -6,8 +6,8 @@ require('./helpers/grosk-fritz-fx-1217.js').undoGroskFritzFx1217(now);   // v121
 const BASE='d0e944c0a87cfa335c46b2efa47cb97dd771cc9a'; // v1206 before this layout-only integration; remote main can advance during cluster QA.
 fs.writeFileSync(temp,cp.execFileSync('git',['show',BASE+':emberweave-heroes.html'],{cwd:root,maxBuffer:64<<20}));
 try{const old=load(temp),digest=s=>crypto.createHash('sha256').update(s).digest('hex');
- // v1229: enemyCd (Phil 30 Oct: 'nerf vael as an enemy') and v1232 enemyHeal (Phil 31 Oct: 'put the heal to 5%') are later balance fields, not part of this layout check
-const _noEnemyCd = "JSON.stringify([HERO_TYPES,KITS,ULT_DEF,BATTLE_ANIM],(k,v)=>(k==='enemyCd'||k==='enemyHeal')?undefined:v)";
+ // v1229: enemyCd (Phil 30 Oct: 'nerf vael as an enemy') and v1232 enemyHeal / enemyHpMul / enemyDmgMul (Phil 31 Oct: 'make it 10% heal but make him slightly weaker') are later balance fields, not part of this layout check
+const _noEnemyCd = "JSON.stringify([HERO_TYPES,KITS,ULT_DEF,BATTLE_ANIM],(k,v)=>(k==='enemyCd'||k==='enemyHeal'||k==='enemyHpMul'||k==='enemyDmgMul')?undefined:v)";
 assert.equal(now(_noEnemyCd),old(_noEnemyCd),'layout must not change combat or animation data');
  console.log('ok gameplay and animation tables unchanged');
  const fight=(run,seed)=>digest(run(`(()=>{window._p2guard=true;autoUlt=true;ended=false;state='battle';CUR={mode:'replay',seed:${seed}};battleTime=0;gameSpeed=1;groundHazards=[];seedBattle(${seed});units=[];['vael','fritz','hobb','sylthaine','vireo'].forEach((k,i)=>units.push(makeUnit(k,'ally',300+i*20,600+i*40,30,{owned:false,rank:3})));['grosk','tick','joss','iver','ambrel'].forEach((k,i)=>units.push(makeUnit(k,'enemy',800+i*20,600+i*40,30,{owned:false,rank:3})));units.forEach(u=>buildFigure(u));const trace=[];for(let i=0;i<Math.round(35/SIM_STEP)&&!ended;i++){updateBattle(SIM_STEP);trace.push(units.map(u=>[u.key,u.hp,u.x,u.y,u.alive,u.energy,u.stunned].join(':')).join('|'));}window._p2guard=false;return trace.join('#');})()`));
