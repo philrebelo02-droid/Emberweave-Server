@@ -357,11 +357,14 @@ def city_patches(master, src, v, pos):
                 arr = np.dstack([arr[..., :3], fixed])
             master.patches.append((int(x), int(y), np.ascontiguousarray(arr[..., :3]), np.ascontiguousarray(arr[..., 3]), 'city'))
             out.append({'name': name, 'version': c.get('version') if fixed is None else 'mask v2', 'topleftPx': [x, y], 'sizePx': [w, h],
-                        'cxPx': x + w / 2, 'cyPx': y + h / 2, '_alpha': np.ascontiguousarray(arr[..., 3])})
+                        'cxPx': x + w / 2, 'cyPx': y + h / 2, 'source': os.path.basename(czip), 'overlay3x': c.get('overlay_3x'),
+                        '_alpha': np.ascontiguousarray(arr[..., 3])})
     # further zips in the same format ("REALM <v> new city overlays.zip": one '<City> placement.json' per city with topleft_v25,
     # size_v25, overlay_1x.file). A PROVISIONAL city (in its file name or status) is held back until Grok sends its final file.
     held = []
-    for extra in sorted(glob.glob(os.path.join(src, 'REALM %s * city overlays.zip' % v))):
+    # v1231: also 'REALM <v> new city overlays part2.zip' / 'part3.zip' (Ochreth FINAL, Hallowrime, Lanternmere / Skarrow FINAL); sorted, the
+    # parts come before the first zip, so a FINAL city is taken before its held PROVISIONAL copy
+    for extra in sorted(glob.glob(os.path.join(src, 'REALM %s * city overlays*.zip' % v))):
         with zipfile.ZipFile(extra) as zf:
             for pj in [n for n in zf.namelist() if n.endswith('placement.json')]:
                 c = json.loads(zf.read(pj).decode('utf-8'))
@@ -380,26 +383,24 @@ def city_patches(master, src, v, pos):
                     arr = np.dstack([arr[..., :3], fixed])
                 master.patches.append((int(x), int(y), np.ascontiguousarray(arr[..., :3]), np.ascontiguousarray(arr[..., 3]), 'city'))
                 out.append({'name': name, 'version': 'proposal', 'topleftPx': [x, y], 'sizePx': [w, h], 'cxPx': x + w / 2, 'cyPx': y + h / 2,
-                            'source': os.path.basename(extra), '_alpha': np.ascontiguousarray(arr[..., 3])})
+                            'source': os.path.basename(extra), 'overlay3x': (c.get('overlay_3x') or {}).get('file'), '_alpha': np.ascontiguousarray(arr[..., 3])})
     log('cities: %d overlays baked in (%s)%s' % (len(out), ', '.join(o['name'] for o in out), ('; held (provisional): ' + ', '.join(held)) if held else ''))
     return out
 
 
 # v1229 (Phil 30 Oct 2026: "Some squares are sneaky and are next to the city"): a square is a city square only when at least half of it
-# is the city's SOLID footprint (alpha >= 200, not the soft feathered edge) AND it is not plain water in the base art under the overlay
-# (harbour water stays sea - blocked anyway, but with the grid on it like any sea)
+# is the city's SOLID footprint (alpha >= 200, not the soft feathered edge). v1231 (Phil: a lake / stilt-house city "seems this city is
+# able to be teleported on"): whatever the base art underneath - v1229's 'not water under it' test dropped every square of a city built
+# over water, and inland lake water is land in the zone mask, so those squares became open land.
 CITY_COVER = 0.50
 CITY_ALPHA = 200
 
 
 def city_cells(c, X0, top_cells, cpx, master=None):   # top_cells: the grid row at realm y = 0
     """The grid squares a city overlay covers (Phil 30 Oct 2026: "the city should not be able to be teleported onto").
-    A square counts when at least CITY_COVER of it is solid overlay (alpha >= CITY_ALPHA) and the base art under it is not water."""
+    A square counts when at least CITY_COVER of it is solid overlay (alpha >= CITY_ALPHA)."""
     al = c['_alpha'] >= CITY_ALPHA
     x, y = c['topleftPx']; h, w = al.shape
-    base_water = None
-    if master is not None:
-        base_water = water_mask(master.read(int(x), int(y), int(x) + w, int(y) + h, cities=False))
     cells = []
     for cy in range(int(math.floor(top_cells + y / cpx)), int(math.ceil(top_cells + (y + h) / cpx))):
         for cx in range(int(math.floor((x - X0) / cpx)), int(math.ceil((x + w - X0) / cpx))):
@@ -411,8 +412,6 @@ def city_cells(c, X0, top_cells, cpx, master=None):   # top_cells: the grid row 
             if ax1 <= ax0 or ay1 <= ay0:
                 continue
             if al[ay0:ay1, ax0:ax1].sum() >= CITY_COVER * cpx * cpx:
-                if base_water is not None and base_water[ay0:ay1, ax0:ax1].mean() >= 0.5:
-                    continue   # plain water under the overlay (a harbour): sea, not city
                 cells.append([cx, cy])
     return cells
 
@@ -440,6 +439,89 @@ def sea_pad(cover, out, files):
     strips = strips[water_mask(strips.reshape(-1, 1, 3)).reshape(-1)]
     t = np.clip(t.astype(np.float32) + (strips.astype(np.float32).mean(0) - t.reshape(-1, 3).astype(np.float32).mean(0)) + 0.5, 0, 255).astype(np.uint8)
     p = os.path.join(out, 'sea-pad.webp'); Image.fromarray(np.ascontiguousarray(t)).save(p, 'WEBP', quality=WEBP_Q, method=6); files['sea-pad.webp'] = p
+
+
+def build_detail2x(folder, src, master, levels, files, X0, out, cities, RW, RH):
+    """v1231 (Phil: "you didnt add groks art?"): a SPARSE z0 level at 2x the master (scale 2.0) from Grok's detail2x tiles, only where
+    a 512 px z0 tile lies wholly inside the detail. The city overlays are separate from Grok's tiles, so each z0 tile gets them baked in
+    from their 3x art (at 2x), the same overlays the other levels carry."""
+    L1 = levels[0]; s = 2.0 * L1['scale']   # z0 scale relative to the master (1.0 master -> 2.0)
+    pat = re.compile(r'r(\d+)c(\d+) x(\d+) y(\d+)')
+    det = []
+    for f in sorted(glob.glob(os.path.join(folder, '*detail2x r*c* x* y*.png'))):
+        m = pat.search(os.path.basename(f)); r_, c_, mx, my = map(int, m.groups())
+        det.append({'file': f, 'r': r_, 'c': c_, 'x0': mx, 'y0': my, 'x1': mx + 4096, 'y1': my + 4096, 'sha256': sha(f)})
+    if not det:
+        sys.exit('--detail2x: no detail tiles in ' + folder)
+    def covered(x0, y0, x1, y1):   # master rect wholly inside the union of detail tiles (detail tiles are on the 4096 grid)
+        for yy in range(int(y0 // 4096), int((y1 - 1e-6) // 4096) + 1):
+            for xx in range(int(x0 // 4096), int((x1 - 1e-6) // 4096) + 1):
+                if not any(d['x0'] == xx * 4096 and d['y0'] == yy * 4096 for d in det):
+                    return False
+        return True
+    W0, H0 = int(round((RW - X0) * s)), int(round(RH * s))
+    cols0, rows0 = int(math.ceil(W0 / TILE)), int(math.ceil(H0 / TILE))
+    want = []
+    for d in det:
+        for r in range(int(d['y0'] * s // TILE), int(math.ceil(d['y1'] * s / TILE))):
+            for c in range(int((d['x0'] - X0) * s // TILE), int(math.ceil((d['x1'] - X0) * s / TILE))):
+                mx0, my0 = X0 + c * TILE / s, r * TILE / s
+                if covered(mx0, my0, mx0 + TILE / s, my0 + TILE / s) and (r, c) not in want:
+                    want.append((r, c))
+    # the city overlays at 2x from their 3x art
+    zips = {}
+    def zip_of(name):
+        if name not in zips:
+            zips[name] = zipfile.ZipFile(os.path.join(src, name))
+        return zips[name]
+    cache = {}
+    def city2x(c):
+        if c['name'] in cache:
+            return cache[c['name']]
+        w, h = c['sizePx']; im = None
+        for d in reversed(CITY_FIX_DIRS):   # Grok's mask fix v2 3x art
+            f = os.path.join(src, d, '%s overlay 3x_v2.png' % c['name'])
+            if os.path.exists(f):
+                im = Image.open(f).convert('RGBA'); break
+        if im is None and c.get('overlay3x') and c.get('source'):
+            im = Image.open(io.BytesIO(zip_of(c['source']).read(c['overlay3x']))).convert('RGBA')
+        if im is None:
+            sys.exit('no 3x overlay for ' + c['name'])
+        im = np.asarray(im.resize((int(round(w * s)), int(round(h * s))), Image.LANCZOS)).astype(np.float32)
+        cache[c['name']] = im; return im
+    os.makedirs(os.path.join(out, 'tiles', 'z0'), exist_ok=True)
+    big = {}
+    for r, c in want:
+        mx0, my0 = X0 + c * TILE / s, r * TILE / s
+        tile = np.zeros((TILE, TILE, 3), np.float32)
+        for d in det:   # the tile may span two detail tiles
+            ax0, ay0 = max(mx0, d['x0']), max(my0, d['y0']); ax1, ay1 = min(mx0 + TILE / s, d['x1']), min(my0 + TILE / s, d['y1'])
+            if ax1 <= ax0 or ay1 <= ay0:
+                continue
+            if d['file'] not in big:
+                big[d['file']] = np.asarray(Image.open(d['file']).convert('RGB'))
+            D = big[d['file']]
+            dx0, dy0 = int(round((ax0 - d['x0']) * s)), int(round((ay0 - d['y0']) * s)); dx1, dy1 = int(round((ax1 - d['x0']) * s)), int(round((ay1 - d['y0']) * s))
+            tx0, ty0 = int(round((ax0 - mx0) * s)), int(round((ay0 - my0) * s))
+            tile[ty0:ty0 + dy1 - dy0, tx0:tx0 + dx1 - dx0] = D[dy0:dy1, dx0:dx1]
+        for cty in cities:
+            x, y = cty['topleftPx']; w, h = cty['sizePx']
+            if x >= mx0 + TILE / s or x + w <= mx0 or y >= my0 + TILE / s or y + h <= my0:
+                continue
+            ov = city2x(cty); ox0, oy0 = int(round((x - mx0) * s)), int(round((y - my0) * s))
+            sx0, sy0 = max(0, -ox0), max(0, -oy0); tx0, ty0 = max(0, ox0), max(0, oy0)
+            ww, hh = min(ov.shape[1] - sx0, TILE - tx0), min(ov.shape[0] - sy0, TILE - ty0)
+            if ww <= 0 or hh <= 0:
+                continue
+            o = ov[sy0:sy0 + hh, sx0:sx0 + ww]; al = o[..., 3:4] / 255.0
+            tile[ty0:ty0 + hh, tx0:tx0 + ww] = tile[ty0:ty0 + hh, tx0:tx0 + ww] * (1 - al) + o[..., :3] * al
+        p = os.path.join(out, 'tiles', 'z0', 'r%02dc%02d.webp' % (r, c))
+        Image.fromarray(np.clip(tile + 0.5, 0, 255).astype(np.uint8)).save(p, 'WEBP', quality=WEBP_Q, method=6)
+        files['tiles/z0/r%02dc%02d.webp' % (r, c)] = p
+    want.sort()
+    log('detail2x: z0 %d tiles (scale %.1f, %.1f px a square) from %s' % (len(want), s, L1['cellPx'] * 2, ', '.join('r%dc%d' % (d['r'], d['c']) for d in det)))
+    return {'z': 0, 'scale': s, 'cellPx': L1['cellPx'] * 2, 'width': W0, 'height': H0, 'cols': cols0, 'rows': rows0,
+            'tiles': ['%d,%d' % t for t in want], 'sources': [{k: d[k] for k in ('r', 'c', 'x0', 'y0', 'sha256')} | {'file': os.path.basename(d['file'])} for d in det]}
 
 
 def rerender(master, levels, files, X0, out, rects):
@@ -566,6 +648,9 @@ def main():
     ap.add_argument('--cols', type=int, default=GRID_COLS, help='grid columns (GRID_COLS)')
     ap.add_argument('--master-png', help='a full-size master PNG (Grok) for the tiles named by --master-png-tiles')
     ap.add_argument('--master-png-tiles', default='', help='4096 master tiles taken from --master-png, e.g. r1c3,r1c4')
+    ap.add_argument('--mask-from', help="v1231: take the land / zone mask and the islets from this world-realm.js (the live build), not from the tiles - a repaint (Grok's float, a city overlay) never moves the coast")
+    ap.add_argument('--ponds-from', help='v1231: keep the ponds of this world-oasis-layout.json (measured once; a re-encoded tile must not move them)')
+    ap.add_argument('--detail2x', help="v1231: a folder of Grok's detail2x tiles ('REALM <v> float detail2x rRcC xX yY ....png', 8192 px, master x2): build a sparse z0 level there")
     ap.add_argument('--rerender', default='', help='with --reuse-tiles: re-render the pyramid tiles over these realm-px rects x0,y0,x1,y1;...')
     ap.add_argument('--rows', type=int, default=GRID_ROWS, help='grid rows (GRID_ROWS); 0 = the art height at --cols')
     a = ap.parse_args()
@@ -660,6 +745,7 @@ def main():
                 small[L['z']] = np.asarray(pic_)
     if a.reuse_tiles and a.rerender:
         rerender(master, levels, files, X0, out, [tuple(map(int, r.split(','))) for r in a.rerender.split(';') if r])
+    detail = build_detail2x(a.detail2x, a.src, master, levels, files, X0, out, cities, RW, RH) if a.detail2x else None
     cover = np.asarray(Image.open(files['cover.webp']).convert('RGB'))   # decoded, the same bytes either way
     sea_pad(cover, out, files)
     log('pyramid: ' + ', '.join('z%d %dx%d (%d tiles, %.1f px/cell)' % (L['z'], L['width'], L['height'], L['cols'] * L['rows'], L['cellPx']) for L in levels))
@@ -768,6 +854,19 @@ def main():
         if counts[k] < 100:
             sys.exit('zone %s has only %d land cells' % (k, counts[k]))
 
+    if a.mask_from:
+        js = open(a.mask_from, encoding='utf-8').read()
+        pm = json.loads(re.search(r'const META=(\{.*?\});\n', js, re.S).group(1)); prle = json.loads(re.search(r'const RLE=(\[.*?\]);\n', js, re.S).group(1))
+        if pm['cols'] != COLS or pm['rows'] != ROWS:
+            sys.exit('--mask-from is a %dx%d realm, this build is %dx%d' % (pm['cols'], pm['rows'], COLS, ROWS))
+        for y, row in enumerate(prle):
+            xs = []
+            for ch, n in re.findall(r'([.A-Za-z])(\d*)', row):
+                xs.extend([ch] * (int(n) if n else 1))
+            zone[y, :] = xs
+        islets = [{k: o[k] for k in ('zone', 'cells', 'cx', 'cy', 'box')} for o in pm['islets']]
+        counts = {k: int((zone == c).sum()) for k, c in ZONE_CODE.items()}
+        log('mask: land / zones / islets kept from ' + a.mask_from)
     # ---- 7. oases (v1228): Grok's 4 painted ponds, measured from the pixels; their cells are island land (zone T), blocked like a city
     core = {(x, y) for x in range(core_box[0], core_box[2] + 1) for y in range(core_box[1], core_box[3] + 1)}
     city_set = {(cx, cy) for c in cities for cx, cy in c['cells']}
@@ -775,6 +874,10 @@ def main():
         sys.exit('a city overlay covers the World Tree core: %s' % sorted(city_set & core))
     pl = [L for L in levels if L['z'] == 2][0] if len(levels) > 1 else levels[0]
     ponds = measure_ponds(files, pl, X0, grid_top, top_cells, cpx, out, v)
+    if a.ponds_from:   # the measured ponds of the live build: same cells, same centres
+        for o in json.load(open(a.ponds_from)):
+            ponds[o['direction']] = {'cells': [list(c) for c in o['cells']], 'cx': o['cx'], 'cy': o['cy']}
+        log('ponds: kept from ' + a.ponds_from)
     # v1228 (Phil 30 Oct 2026: "does the tree seem off center?"): the drawn World Tree stands in the MIDDLE of the four painted ponds - the
     # nearest grid corner to their average (the art's baked tree is painted out, so only the drawn frame and the core move; the crop
     # and the tiles stay as they are, centred on where Grok's tree was)
@@ -811,6 +914,19 @@ def main():
                       'cx': p['cx'], 'cy': p['cy'], 'cells': pc})
     counts = {k: int((zone == c).sum()) for k, c in ZONE_CODE.items()}
     pond_set = {(x, y) for o in oases for x, y in o['cells']}
+    # v1231: a city's squares never overlap another city, a pond or the tree core, and most of them are land
+    seen_c = {}
+    for c in cities:
+        cs = {tuple(p) for p in c['cells']}
+        for o, ocs in seen_c.items():
+            if cs & ocs:
+                sys.exit('cities %s and %s share %d squares' % (c['name'], o, len(cs & ocs)))
+        if cs & pond_set or cs & core:
+            sys.exit('city %s touches a pond or the World Tree core' % c['name'])
+        land_share = sum(1 for x, y in cs if zone[y, x] != '.') / max(1, len(cs))
+        if land_share < 0.6:   # a city built over water (stilts, a harbour): its squares are blocked all the same - reported, not refused
+            log('city %s: %.0f %% of its squares are over sea (its overlay paints them solid)' % (c['name'], 100 * (1 - land_share)))
+        seen_c[c['name']] = cs
     for c in cities:
         c['kind'] = 'city'; c['garrison'] = True   # v1228: cities and oases are the same kind of site (a guild garrison site)
     log('oases (painted ponds):', [(o['id'], o['x'], o['y'], o['w'], o['h'], len(o['cells']), o['cx'], o['cy']) for o in oases])
@@ -844,7 +960,7 @@ def main():
                    'zips': [os.path.basename(z) for z in master.zips], 'missingMasterTiles': master.missing,
                    'realmPx': [RW, RH], 'cropX': [round(X0, 2), round(X0 + WW, 2)], 'cellPxMaster': round(cpx, 4)},
         'realmTop': round(top_cells, 4), 'realmHeight': round(h_cells, 4),
-        'tile': TILE, 'levels': levels,
+        'tile': TILE, 'levels': levels, 'detail': detail,
         'tree': {'cx': TCX, 'cy': TCY, 'artCx': C, 'artCy': round(TR, 4), 'coreCells': CORE, 'core': core_box, 'sideCells': round(tree_side_cells, 4), 'frames': TREE_FRAMES,
                  'matchRms': tl['rms'], 'patchRealmPx': patch_box},
         'islets': [dict(o, id='isle-%02d' % (k + 1), rewards=[]) for k, o in enumerate(sorted(islets_kept, key=lambda o: (-o['cells'], o['cy'], o['cx'])))],
@@ -901,7 +1017,8 @@ def main():
 
 def render_module(realm, rle_rows):
     """The shared client/server realm module. Pure data + lookups + the grid geometry; generated, never hand-edited."""
-    meta = {k: realm[k] for k in ('version', 'built', 'dev', 'cols', 'rows', 'gridTop', 'foot', 'oldSquareCells', 'realmTop', 'realmHeight', 'tile', 'levels', 'tree', 'oases', 'labels', 'islets', 'cities')}
+    meta = {k: realm[k] for k in ('version', 'built', 'dev', 'cols', 'rows', 'gridTop', 'foot', 'oldSquareCells', 'realmTop', 'realmHeight', 'tile', 'levels', 'detail', 'tree', 'oases', 'labels', 'islets', 'cities')}
+    meta['cities'] = [{k: v for k, v in c.items() if k not in ('overlay3x',)} for c in meta['cities']]
     return MODULE_JS.replace('%(v)s', realm['version']).replace('%(meta)s', json.dumps(meta, separators=(',', ':'))).replace(
         '%(rle)s', json.dumps(rle_rows, separators=(',', ':')).replace('","', '",\n"'))
 

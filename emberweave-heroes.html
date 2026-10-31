@@ -2791,7 +2791,7 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 <script src="/assets/ui/world-march-sync.js?v=wm1"></script>
 <script src="/assets/ui/world-march-visual.js?v=wv3-g1000"></script>
 <script src="/assets/ui/skill-preview-stage.js?v=sp1206"></script>
-<script src="/world-realm.js?v=realm-v25-g800x477-floating-1230"></script>
+<script src="/world-realm.js?v=realm-v25-g800x477-detail2x-16cities-1231"></script>
 <script src="/assets/ui/world-tree-cycle.js?v=wt5"></script>
 <script src="/assets/ui/world-tree-art.js?v=wt-noflash-1228b"></script>
 <script src="/assets/ui/world-oasis-markers.js?v=om-ponds-1230"></script>
@@ -24758,6 +24758,14 @@ function realmTilesForView(L,left,top,right,bottom){ const k=L.cellPx/(WORLD_W/R
     const w=Math.min(T,L.width-c*T), h=Math.min(T,L.height-r*T);
     out.push({z:L.z,row:r,col:c,left:c*T/k,top:REALM_TOP_PX+r*T/k,width:w/k,height:h/k}); }
   return out; }
+// v1231: the z0 detail tiles in view, when the view is near max zoom and the screen needs more pixels than z1 has
+let _wmDetailSet=null;
+function wmDetailTiles(zone,RL,left,top,right,bottom){ const D=REALM_MAP.META.detail, L=REALM_MAP.META.levels; if(!D||!zone||RL!==L[0]) return [];
+  const b=worldZoomBounds(zone), need=WORLD_W/REALM_MAP.META.cols*worldZoom*Math.max(1,globalThis.devicePixelRatio||1);
+  if(worldZoom<WM_DETAIL_FROM*b.max||need<=L[0].cellPx) return [];
+  if(!_wmDetailSet) _wmDetailSet=new Set(D.tiles);
+  return realmTilesForView(D,left,top,right,bottom).filter(t=>_wmDetailSet.has(t.row+','+t.col)); }
+const WM_DETAIL_FROM=0.6;   // the detail level shows from 60 % of max zoom
 function paintRealmTiles(layer,tiles){ if(!layer)return;
   const keys=tiles.map(t=>t.z+':'+t.row+':'+t.col).join(',');
   if(layer.dataset.tiles===keys)return;
@@ -24787,8 +24795,12 @@ function applyMapLOD(){ const inner=document.getElementById('wzoneInner'); if(!i
   const closeTiles=level===9?worldPictureTilesForViewport(left,top,right,bottom,9):[];
   const RL=realmLevelFor(worldZoom), rl=REALM_MAP.META.levels;
   const ring=REALM_MAP.META.tile/(RL.cellPx/(WORLD_W/REALM_MAP.META.cols));   // prefetch one tile all round the view
-  paintRealmTiles(inner.querySelector('#realmTiles'),RL===rl[rl.length-1]?[]:realmTilesForView(RL,left-ring,top-ring,right+ring,bottom+ring));
-  inner.dataset.realmLevel=String(RL.z);
+  const base=RL===rl[rl.length-1]?[]:realmTilesForView(RL,left-ring,top-ring,right+ring,bottom+ring);
+  /* v1231 (Phil: "you didnt add groks art?"): Grok's detail2x (META.detail, a sparse z0 at 2x the master) is drawn OVER z1 where a z0 tile
+     exists - z1 always stays underneath, so outside the detail (and while a z0 tile loads) nothing is missing; only near max zoom */
+  const z0=wmDetailTiles(zone,RL,left,top,right,bottom);
+  paintRealmTiles(inner.querySelector('#realmTiles'),z0.length?base.concat(z0):base);
+  inner.dataset.realmLevel=String(z0.length?0:RL.z);
   inner.dataset.pictureLevel=String(level);
   inner.dataset.pictureCol=String((closeTiles[0]||middleTiles[0]||{col:0}).col);
   inner.dataset.pictureRow=String((closeTiles[0]||middleTiles[0]||{row:0}).row);
@@ -31015,7 +31027,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1793411276865';
+const BUILD_ID = '1793412981874';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

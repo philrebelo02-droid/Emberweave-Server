@@ -54,7 +54,9 @@ test('pieces are one square (Phil 30 Oct 2026: a castle "in 1 square", "The mine
   assert.match(html,/const WORLD_W=11000, WORLD_H=11000;/);
   // cities: the same overlay shapes; since v1229 a city square is >= 50 % SOLID footprint and not water under it (was > 30 % of
   // alpha >= 128), so the cities hug their walls: about 0.8 x (COLS/220)^2 times the 220 grid's 694 cells
-  const k2=(COLS/220)**2,cells=R.META.cities.reduce((n,c)=>n+c.cells.length,0);assert.ok(cells>694*k2*0.7&&cells<694*k2*0.95,'city cells '+cells);
+  // (v1231: the solid footprint whatever is under it - a city over water keeps its squares; the 4 new cities are counted apart)
+  const NEW=['Ochreth','Hallowrime','Lanternmere','Skarrow'],k2=(COLS/220)**2,cells=R.META.cities.filter(c=>!NEW.includes(c.name)).reduce((n,c)=>n+c.cells.length,0);
+  assert.ok(cells>694*k2*0.75&&cells<694*k2*1.05,'city cells of the first 12: '+cells);
   // v1228 (Phil: "does the tree seem off center?"): the World Tree stands in the middle of the four painted ponds (nearest grid corner)
   const ox=oases.reduce((s,o)=>s+o.cx,0)/4,oy=oases.reduce((s,o)=>s+o.cy,0)/4;
   assert.ok(Math.abs(R.META.tree.cx-ox)<=0.5&&Math.abs(R.META.tree.cy-oy)<=0.5,'tree '+R.META.tree.cx+','+R.META.tree.cy+' vs ponds '+ox.toFixed(2)+','+oy.toFixed(2));
@@ -71,8 +73,8 @@ test('the server list and the client module are the same blocked squares, and ev
   }
 });
 test('cities (Phil 30 Oct 2026: "the city should not be able to be teleported onto"): every one of the 12 covers squares, all blocked, never placed on',()=>{
-  const cities=R.META.cities;assert.equal(cities.length,12,'the original 10 + Corran Reach + Durrakh');
-  for(const name of ['Corran Reach','Durrakh','Oriel'])assert.ok(cities.some(c=>c.name===name),name);
+  const cities=R.META.cities;assert.equal(cities.length,16,'the original 10 + Corran Reach + Durrakh + Ochreth, Hallowrime, Lanternmere, Skarrow (v1231)');
+  for(const name of ['Corran Reach','Durrakh','Oriel','Ochreth','Hallowrime','Lanternmere','Skarrow'])assert.ok(cities.some(c=>c.name===name),name);
   const a=new Set(blocked.cells);
   for(const c of cities){
     assert.ok(c.cells.length>=200*(COLS/1000)**2,c.name+' covers '+c.cells.length+' squares');
