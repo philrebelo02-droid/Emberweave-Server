@@ -10,6 +10,7 @@ ok(/updateUnsafe\(\)\) return false;/.test(gate) && gate.indexOf('updateUnsafe')
 ok(/function updateUnsafe\(\)\{ return state==='battle' \|\| state==='result'/.test(html),'updateUnsafe() covers the battle and result screens');
 const wait=html.slice(html.indexOf('async function resultWaitServer('), html.indexOf('async function resultWaitServer(')+1400);
 ok(wait.length>200 && /_netProbe\(\)\)==='ok'/.test(wait) && /15\*60000/.test(wait) && /await send\(\)/.test(wait),'resultWaitServer waits for /api/health up to 15 min, then re-sends');
+ok(/else if\(\+\+upTries>=3\) break;/.test(wait),'a server that answers health but still fails the result 3 times ends the wait (NOT COUNTED, test_results_retry_1151)');
 ok(/if\(resultReplyLost\(r\)\) r=await resultWaitServer\(\(\)=>api\(path,'POST',body\),r\);/.test(html),'apiResultRetry (Vault, Elite, Province, Tower, Trial) waits for the server');
 ok(/resultWaitServer\(\(\)=>api\('\/api\/campaign\/resolve','POST',\{attemptId:att, requestId:_rid/.test(html),'the campaign result waits for the server with the SAME requestId');
 const m=html.match(/const BATTLE_RESULT_ROUTES=(\/.*?\/);/); ok(!!m,'BATTLE_RESULT_ROUTES is defined');

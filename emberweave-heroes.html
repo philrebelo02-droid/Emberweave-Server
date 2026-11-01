@@ -23933,14 +23933,15 @@ async function apiResultRetry(path,body){ let r=null;
   return r; }
 /* v1249: the server is off after the quick retries - keep the player's fight, say so, and re-send the SAME request (same requestId, so a
    booked fight answers with its receipt, never twice) every few seconds once /api/health answers, for up to 15 minutes. */
-async function resultWaitServer(send,last){ const until=Date.now()+15*60000; let r=last, told=false;
+async function resultWaitServer(send,last){ const until=Date.now()+15*60000; let r=last, told=false, upTries=0;   /* the server answers health but the result still fails 3 times: stop (NOT COUNTED) */
   while(resultReplyLost(r)&&Date.now()<until){
     if(!told){ told=true; try{ bannerMsg('The server is offline - your fight is kept and will be saved when it is back.'); }catch(e){} }
     await new Promise(z=>setTimeout(z,5000));
     let up=false; try{ up=(await _netProbe())==='ok'; }catch(e){}
     if(!up) continue;
     try{ r=await send(); }catch(e){ r=null; }
-    if(!resultReplyLost(r)){ try{ netGateOk(); bannerMsg('Back online - your fight was saved.'); }catch(e){} } }
+    if(!resultReplyLost(r)){ try{ netGateOk(); bannerMsg('Back online - your fight was saved.'); }catch(e){} }
+    else if(++upTries>=3) break; }
   return r; }
 /* the plain words for a result the server did not confirm - never the raw 'offline' / 'auth' token */
 function resultNotCountedText(r){ if(r&&r.storageFailed) return 'The server could not save it - this result is not confirmed.';
