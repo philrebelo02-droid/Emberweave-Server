@@ -1,6 +1,7 @@
 {
  "note": "Each draft item mapped to the SHIPPED note(s) in Emberweave Archive/Operating procedure/SHIPPED it came from.",
  "patches": [
+ {"ver": "0.99.8", "releases": "v1245", "items": [{"text": "Hero cards in your roster are fully framed for every rarity, and each card shows the hero's class (Tank, Bruiser, Mage, Marksman, Assassin or Support).", "sources": ["Mechanics blueprints/26 - Servers and Cluster.md"]}]},
  {"ver": "0.99.7", "releases": "v1243", "items": [{"text": "On phones, swiping down for the status bar no longer shrinks the game.", "sources": ["Mechanics blueprints/26 - Servers and Cluster.md"]}]},
  {"ver": "0.99.6", "releases": "v1241", "items": [{"text": "The World Map shows the new Ashford and Lanternmere at every zoom (some browsers kept the old map data).", "sources": ["Mechanics blueprints/04 - City Wall.md"]}]},
  {"ver": "0.99.5", "releases": "v1240", "items": [{"text": "Cities, oases and the World Tree belong to guilds: leave your guild (or get removed) and your garrison marches home; a guild that disbands loses what it held.", "sources": ["Mechanics blueprints/04 - City Wall.md"]}]},

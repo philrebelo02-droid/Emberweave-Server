@@ -1,5 +1,6 @@
 {
   "patches": [
+    {"ver": "0.99.8", "date": "31 October 2026", "title": "Hero cards", "items": ["Hero cards in your roster are fully framed for every rarity, and each card shows the hero's class (Tank, Bruiser, Mage, Marksman, Assassin or Support)."]},
     {"ver": "0.99.7", "date": "31 October 2026", "title": "Full screen", "items": ["On phones, swiping down for the status bar no longer shrinks the game."]},
     {"ver": "0.99.6", "date": "31 October 2026", "title": "Map refresh", "items": ["The World Map shows the new Ashford and Lanternmere at every zoom (some browsers kept the old map data)."]},
     {"ver": "0.99.5", "date": "31 October 2026", "title": "Guild holdings", "items": ["Cities, oases and the World Tree belong to guilds: leave your guild (or get removed) and your garrison marches home; a guild that disbands loses what it held."]},

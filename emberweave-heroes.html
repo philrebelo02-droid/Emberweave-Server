@@ -540,6 +540,8 @@
   .hero-card .hc-name.hc-mythn{background:linear-gradient(180deg,#9b5cff,#5a1fae 55%,#3a0f78);border-radius:6px;box-shadow:0 0 0 1px #e6c56a,0 0 8px rgba(185,110,255,.7);color:#fff4d6;font-family:Georgia,serif;padding:0 4px;text-shadow:0 1px 2px #2a0a4a}   /* v612: a mythical hero's name sits on the purple plaque; the word Mythical is only in the detail view */
   .hero-card .hc-info{text-align:center;min-width:0;height:30px}
   .hero-card.hc-tile{padding:6px 6px 5px}
+.hero-card.hc-tile:not(.mythic){border:1px solid #8a6a2e !important;box-shadow:0 4px 10px rgba(0,0,0,.45)!important;}   /* v1245 (Phil 31 Oct: "the frame for normal heroes dont look full colored in"): the roster card is filled like a mythic - a thin bronze line instead of the thick hud-panel frame over its edges (mythics keep their gold line) */
+.hero-card .hc-role{font-size:10px;font-weight:800;letter-spacing:.4px;color:#e9c98a;line-height:1.15;margin:1px 0 0;text-transform:uppercase}   /* v1245 (Phil: put the class on the card) */
   .hero-card .hc-sub{font-size:10px;font-weight:800;color:#ffd45e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3}
   .hero-card.locked .hc-sub{color:#9aa7ba}
   .hero-card .hc-img{width:100%;height:100%;object-fit:cover;object-position:top center;display:block;}
@@ -27079,6 +27081,7 @@ function renderHeroList(){
     card.innerHTML=`<div class="hc-imgwrap${RARITY_READY?' rb':''}">${portImg}${ascFrameHtml(key,{stars:true,banner:RARITY_READY})}${unlocked?`<span class="hc-lv">Lv ${heroLevel(key)}</span>`:''}</div>
         <div class="hc-info">
           ${RARITY_READY?'':`<div class="hc-name${myth?' hc-mythn':''}">${t.name}</div>`}
+          ${t.role?`<div class="hc-role">${t.role}</div>`:''}
           <div class="hc-sub">${unlocked?`${statusIcon('attack')} ${heroPower(key).toLocaleString()}`:lockedLine}</div>
         </div>`;
     card._pick=()=>{ detailHero=key; popoutScreen('heroDetail'); };
@@ -31258,7 +31261,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1793498963390';
+const BUILD_ID = '1793504131997';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
