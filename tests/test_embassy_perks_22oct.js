@@ -36,7 +36,7 @@ for (let P = 1; P <= 120 && clientMax; P++) {
 }
 // 3) mines (Phil 22 Oct: "Remove the cap"): a won haul pays the designed yield x Miner's Charter, exactly what the client shows
 const sMul = (srv.match(/const minerMul=mineGuild\?(1\+\(\(mineGuild\.level\|\|1\)\*[\d.]+\)):1;/) || [])[1];
-const sGrant = (srv.match(/granted=(Math\.round\(\(40\+mineLv\*55\)\*\(1\+\(mineLv-1\)\*0\.18\)\*minerMul\));/) || [])[1];
+const sGrant = (srv.match(/granted=(?:\(take>=mineHaulBase\(mineLv\)\)\?)?(Math\.round\(\(40\+mineLv\*55\)\*\(1\+\(mineLv-1\)\*0\.18\)\*minerMul\))[;:]/) || [])[1];   // v1249: the full-haul branch (a part haul from a nearly empty mine pays less)
 const cYield = (html.match(/function mineYield\(res,level\)\{ return (Math\.round\([^;]+\)); \}/) || [])[1];
 const cMul = (html.match(/function embassyMineMul\(\)\{ return G\.guild \? (1\+guildLevel\(\)\*[\d.]+) : 1; \}/) || [])[1];
 check(!!sMul && !!sGrant, 'server mine grant is not the designed yield x Miner\'s Charter (still a flat cap?)');

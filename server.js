@@ -5520,6 +5520,18 @@ async function api(req,res,url){
     return send(res,200,{ token:tok, profile:profileFor(u) }); }
 
   /* v946: the account server's endpoints (Server 1 only: link secret, never through Cloudflare - see ACCOUNT_AUTHORITY). */
+  /* v1249 (Phil 1 Nov: Ember must receive the testers' reports from EVERY server): Servers 2-5 forward each player report here over the
+     LAN (link secret, never through Cloudflare); it joins Server 1's report inbox, which Ember pulls, tagged with its server. */
+  if(p==='/api/internal/account/feedback' && req.method==='POST'){
+    if(!linkSecretOk(req)) return send(res,404,{error:'not found'});
+    const b=await body(req), it=(b&&b.item)||{}, sv=String(b.server||'?').slice(0,8);
+    const id='S'+sv+'-'+String(it.id||uid()).slice(0,40);
+    if(!(Array.isArray(DB.feedback)&&DB.feedback.some(f=>f&&f.id===id))){
+      feedbackAppend({id,userId:'S'+sv+':'+String(it.userId||'').slice(0,40),name:String(it.name||'?').slice(0,40),kind:it.kind==='suggestion'?'suggestion':'bug',
+        text:'[Server '+sv+'] '+String(it.text||'').slice(0,2000),meta:String(it.meta||'').slice(0,400),t:+it.t||Date.now(),received:false,
+        build:String(it.build||'').slice(0,40),level:it.level|0,screen:String(it.screen||'').slice(0,60),device:String(it.device||'').slice(0,120),server:sv});
+      writeDB([],['feedback']); }
+    return send(res,200,{ok:true,id}); }
   if(p.startsWith('/api/internal/account/') && req.method==='POST'){
     if(!linkSecretOk(req)) return send(res,404,{error:'not found'});
     const b=await body(req);
@@ -5956,6 +5968,7 @@ async function api(req,res,url){
       item.device=String(req.headers['user-agent']||'').slice(0,120);
       me.feedbackDay={k:dk,n:feedbackDay.n+1};
       feedbackAppend(item);
+      if(ACCOUNT_AUTHORITY) authorityCall('/api/internal/account/feedback',{server:SERVER_ID||String(process.env.SERVER_NAME||''),item}).catch(()=>{});   /* v1249: Servers 2-5 send it on to Ember's inbox on Server 1 */
     }
     writeDB([me.id]); return send(res,200,{ok:true,id:item.id}); }
   if(p==='/api/ember/feedback' && req.method==='GET'){
@@ -7317,7 +7330,7 @@ async function api(req,res,url){
         const _ep=WORLD_MINES.epochAt(+march.depart||now), _st=mineStockState(WORLD_MINES.epochAt(now));
         const take=(_st.epoch===_ep)?Math.min(mineHaulBase(mineLv),mineLeft(march.node,_ep)):mineHaulBase(mineLv);   /* v1249: a haul takes from the mine's stock (an old cycle's mine pays its haul) */
         if(_st.epoch===_ep){ _st.used[march.node.id]=(_st.used[march.node.id]|0)+take; try{ typeof _dp==='function'&&_dp('mineStock'); }catch(e){} }
-        granted=Math.round(take*minerMul);
+        granted=(take>=mineHaulBase(mineLv))?Math.round((40+mineLv*55)*(1+(mineLv-1)*0.18)*minerMul):Math.round(take*minerMul);   /* a full haul = exactly what the client shows (round once) */
         A.mineDay[march.node.res]=used+granted;
         A.res[march.node.res]=(A.res[march.node.res]|0)+granted;
       }
@@ -9439,8 +9452,8 @@ async function api(req,res,url){
       }
       /* v1249 (Phil 1 Nov: "if your troops are marching, defending, attacking, garrison. You cannot teleport"): a castle with an army out
          (a march, a mine, an attack, a siege, a Defend line or a garrison) stays where it is until they are home or recalled */
-      { const out=[...worldCityMarches(me,now),...worldMineMarches(me,now)].filter(m=>m&&+m.homeAt>now&&!(m.recall&&+m.homeAt<=now));
-        if(out.length) return {ok:false,error:'Your troops are out ('+out.length+') - recall them or wait until they are home to teleport.'}; }
+      const _troopsOut=(()=>{ const out=[...worldCityMarches(me,now),...worldMineMarches(me,now)].filter(m=>m&&+m.homeAt>now&&!(m.recall&&+m.homeAt<=now));
+        return out.length?{ok:false,error:'Your troops are out ('+out.length+') - recall them or wait until they are home to teleport.'}:null; })();   /* checked after the target square, so a city/sea refusal names the square */
       const kind=String(b.kind||'');
       if(kind==='targeted'){
         if(typeof b.x!=='number'||typeof b.y!=='number'||!Number.isFinite(b.x)||!Number.isFinite(b.y))
@@ -9452,7 +9465,8 @@ async function api(req,res,url){
         if(!WORLD_LOCATION.targetAllowed(loc.region,x,y))
           return {ok:false,error:'That world square is not available for your castle.'};
         if(WORLD_LOCATION.castleKey(x,y)===WORLD_LOCATION.castleKey(loc.x,loc.y)) return {ok:false,error:'Your castle is already on that square.'};
-        if(worldSquareTaken(me,x,y,now)) return {ok:false,error:'That square is occupied.'};   /* v1009 (re-audit World #4): it was accepted and charged */
+        if(worldSquareTaken(me,x,y,now)) return {ok:false,error:'That square is occupied.'};   
+        if(_troopsOut) return _troopsOut;   /* v1009 (re-audit World #4): it was accepted and charged */
         const day=worldTravelDay(now);
         if(t.teleDay!==day){t.teleDay=day;t.teleUsed=0;}
         if(t.teleUsed<1) t.teleUsed++;
@@ -9460,6 +9474,7 @@ async function api(req,res,url){
         else return {ok:false,error:'No free teleport or scroll remains.'};
         me.worldLocation={region:loc.region,x,y};
       }else if(kind==='wild'){
+        if(_troopsOut) return _troopsOut;
         const blocked=worldBlockedKeys(me,now); for(const key of WORLD_LOCATION.footKeys(loc.x,loc.y)) blocked.add(key);   /* v1009: a wild teleport always moves you */
         const next=WORLD_LOCATION.openInRegion(loc.region,blocked);
         if(!next) return {ok:false,error:'No free square remains in your region.'};
@@ -9468,6 +9483,7 @@ async function api(req,res,url){
         else return {ok:false,error:'Wild teleport is on cooldown and no scroll remains.'};
         me.worldLocation=next;
       }else if(kind==='transfer'){
+        if(_troopsOut) return _troopsOut;
         const region=String(b.region||'');
         if(!WORLD_LOCATION.REGIONS[region]||region===loc.region)
           return {ok:false,error:'Choose a different home region.'};

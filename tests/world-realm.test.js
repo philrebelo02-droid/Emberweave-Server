@@ -56,7 +56,8 @@ test('pieces are one square (Phil 30 Oct 2026: a castle "in 1 square", "The mine
   // alpha >= 128), so the cities hug their walls: about 0.8 x (COLS/220)^2 times the 220 grid's 694 cells
   // (v1231: the solid footprint whatever is under it - a city over water keeps its squares; the 4 new cities are counted apart)
   const NEW=['Ochreth','Hallowrime','Lanternmere','Skarrow'],k2=(COLS/220)**2,cells=R.META.cities.filter(c=>!NEW.includes(c.name)).reduce((n,c)=>n+c.cells.length,0);
-  assert.ok(cells>694*k2*0.75&&cells<694*k2*1.05,'city cells of the first 12: '+cells);
+  // v1249 (Phil 1 Nov: "Check all Oasis and cities also"): a city square is >= 25 % of the drawn city plus 1 square of margin (as the tree), so about 1.2x
+  assert.ok(cells>694*k2*1.05&&cells<694*k2*1.5,'city cells of the first 12: '+cells);
   // v1228 (Phil: "does the tree seem off center?"): the World Tree stands in the middle of the four painted ponds (nearest grid corner)
   const ox=oases.reduce((s,o)=>s+o.cx,0)/4,oy=oases.reduce((s,o)=>s+o.cy,0)/4;
   assert.ok(Math.abs(R.META.tree.cx-ox)<=0.5&&Math.abs(R.META.tree.cy-oy)<=0.5,'tree '+R.META.tree.cx+','+R.META.tree.cy+' vs ponds '+ox.toFixed(2)+','+oy.toFixed(2));
@@ -67,7 +68,7 @@ test('the server list and the client module are the same blocked squares, and ev
   const a=new Set(blocked.cells),b=new Set(R.blockedKeys());
   assert.equal(a.size,blocked.count);assert.equal(a.size,b.size);for(const k of a)assert.ok(b.has(k),k);
   for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++){
-    const k=x+','+y,land=R.isLand(x,y),city=R.isSite(x,y);   // v1228: a city or an oasis (garrison sites)
+    const k=x+','+y,land=R.isLand(x,y),city=R.isSite(x,y)||R.isTree(x,y);   // v1248/v1249: + the World Tree squares and the pond margins   
     assert.equal(a.has(k),!land||city,'cell '+k);
     if((!land||city)&&x<=COLS-4&&y<=ROWS-4&&(x+y)%7===0)for(const home of REGIONS)assert.equal(L.targetAllowed(home,L.cornerX(x),L.cornerY(y)),false,'no castle on sea or city '+k);
   }
