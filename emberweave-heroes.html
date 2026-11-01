@@ -24940,7 +24940,7 @@ function queueTeleGhosts(){ if(_teleGhostRaf)return; _teleGhostRaf=requestAnimat
 const WM_MAX_SQ_PX=57;
 function worldZoomBounds(zone){
   const cell=WORLD_W/GRID_COLS;
-  const min=Math.min(zone.clientWidth/WORLD_W,zone.clientHeight/REALM_H_PX);   // v1226 (Phil: "Max zoom out should be able to see the full map"): the whole realm fits; open sea fills the rest
+  const min=Math.max(zone.clientWidth/WORLD_W,zone.clientHeight/REALM_H_PX);   /* v1250 (Phil 1 Nov 2026: "we need to reduce the zoom out of the map, do you see the blue outline box? that isnt our map"): the realm FILLS the view at max zoom out - no sea outside the map's edge (was Math.min = the whole realm fits, v1226) */
   const max=WM_MAX_SQ_PX/cell;   /* v1229 (Phil 30 Oct 2026, on his phone: "There should not be this many tiles in my smallest zoom in"; his PC ask "this much" was ~57 css px a square): at max zoom ONE SQUARE IS WM_MAX_SQ_PX css px on any screen (phone 844 -> ~15 across, PC 2000 -> ~35) */   /* v1228 (Phil 30 Oct 2026, screenshots ~31 then ~35 squares across: "make this the closest i can zoom in" / "this much"): max zoom = 35 squares across (was 16) */   /* v1226 (Phil 30 Oct 2026: "Final zoom in I should be able to see the tiles covering my screen. So I think 16 by 9 tiles?"): 16 squares across; a phone landscape shows ~8 down. v1227: of the GRID_COLS grid (1000), so 4.5x closer than the 220 grid */
   return {min,max:Math.max(min,max)};
 }
@@ -24957,8 +24957,8 @@ function applyWorldZoom(){ const inner=document.getElementById('wzoneInner'), zo
            height, so a castle on the edge (and its label) can always be pulled clear of the top row and the bottom strip */
         const centred=Math.max(0,(zone.clientHeight-REALM_H_PX*worldZoom)/2), hd=document.querySelector('#worldBody .wmhud-top'), ctl=document.getElementById('mapCtl');
         const hudT=hd?hd.offsetTop+hd.offsetHeight+6:0, hudB=ctl&&!ctl.classList.contains('wmctl-hidden')?ctl.offsetHeight+12:24;
-        _wmPadY=Math.max(centred,hudT);
-        clip.style.marginLeft=_wmPadX+'px'; clip.style.marginTop=_wmPadY+'px'; clip.style.marginBottom=Math.max(centred,hudB)+'px';
+        _wmPadX=0; _wmPadY=0;   /* v1250 (Phil 1 Nov: "remove the edge created by code" / "this doesnt look professional"): no code-drawn sea round the realm - the painted map fills the view edge to edge (the HUD floats over it) */
+        clip.style.marginLeft=_wmPadX+'px'; clip.style.marginTop=_wmPadY+'px'; clip.style.marginBottom='0px';
         const L=REALM_MAP.META.levels, tile=88*WORLD_W*worldZoom/L[L.length-1].width;   // the pad tile is 88 cover px: the same scale as the map
         zone.style.backgroundImage='url('+REALM_ROOT+'sea-pad.webp?v='+REALM_ASSET_V+')'; zone.style.backgroundSize=tile+'px '+tile+'px'; zone.style.backgroundRepeat='repeat'; } }
     if(window.EmberweaveWorldTreeCountdown) window.EmberweaveWorldTreeCountdown.setZoom(worldZoom);
@@ -31300,7 +31300,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1793540602451';
+const BUILD_ID = '1793551737419';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

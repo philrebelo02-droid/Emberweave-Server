@@ -140,6 +140,8 @@ class Master:
         self.realm = None
         self.tiles = {}
         self.tmp = tempfile.mkdtemp(prefix='realm-' + version + '-')
+        import atexit   # 1 Nov 2026: the unzipped master (1.1 GB) is scratch - it went with every build and 42 piled up in Temp (46 GB)
+        atexit.register(shutil.rmtree, self.tmp, True)
         zips = sorted(glob.glob(os.path.join(src, 'REALM %s master tiles part*.zip' % version)))
         if not zips:
             sys.exit('no "REALM %s master tiles part*.zip" in %s' % (version, src))

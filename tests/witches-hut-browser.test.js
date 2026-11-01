@@ -236,8 +236,8 @@ async function run(){
     const zoomRules=await page.evaluate(()=>{
       const zone=document.getElementById('wzone'),inner=document.getElementById('wzoneInner');
       worldZoomTo(0);
-      const low={zoom:worldZoom,expected:Math.min(zone.clientWidth/WORLD_W,zone.clientHeight/REALM_H_PX),padX:_wmPadX,padY:_wmPadY,pad:getComputedStyle(zone).backgroundImage,
-        horizontalRange:zone.scrollWidth-zone.clientWidth,verticalRange:zone.scrollHeight-zone.clientHeight,
+      const low={zoom:worldZoom,expected:Math.max(zone.clientWidth/WORLD_W,zone.clientHeight/REALM_H_PX),padX:_wmPadX,padY:_wmPadY,pad:getComputedStyle(zone).backgroundImage,
+        horizontalRange:zone.scrollWidth-zone.clientWidth,realmOverW:WORLD_W*worldZoom-zone.clientWidth,verticalRange:zone.scrollHeight-zone.clientHeight,
         city:inner.querySelector('.wnode.city:not(.me)')?'built':'none',
         mine:inner.querySelector('.wnode.mine')?'built':'none',   /* v1127 zoom gate: zoomed out, castles and mines are not built at all */
         tiles:inner.querySelectorAll('#realmTiles img').length,
@@ -255,9 +255,10 @@ async function run(){
         level:inner.dataset.pictureLevel,overflow:zone.scrollWidth-WORLD_W*worldZoom};
       return {low,edge,top,high,scrollbar:getComputedStyle(zone).scrollbarWidth};
     });
-    assert.ok(Math.abs(zoomRules.low.zoom-zoomRules.low.expected)<1e-6,'minimum zoom shows the whole realm (Phil 30 Oct)');
+    assert.ok(Math.abs(zoomRules.low.zoom-zoomRules.low.expected)<1e-6,'minimum zoom: the realm FILLS the view (v1250, Phil 1 Nov: "remove the edge created by code")');
+    assert.ok(zoomRules.low.padX===0&&zoomRules.low.padY===0,'no code-drawn sea pad round the realm at any zoom (v1250)');
     assert.match(zoomRules.low.pad,/sea-pad\.webp/,"past the realm its own open sea fills the screen, never a bare background");
-    assert.ok(Math.abs(zoomRules.low.horizontalRange)<=2,'no sideways play past the realm');
+    assert.ok(Math.abs(zoomRules.low.horizontalRange-Math.max(0,zoomRules.low.realmOverW))<=2,'sideways play only across the realm itself, never past it');
     assert.equal(zoomRules.low.city,'none','castles hide at the overview scale');
     assert.equal(zoomRules.low.mine,'none','mines hide at the overview scale');
     assert.equal(zoomRules.low.tiles,0,'the cover alone draws the whole-map view');
