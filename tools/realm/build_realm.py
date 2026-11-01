@@ -1158,6 +1158,13 @@ def install(out, realm, repo):
            if sha(os.path.join(dst_root, k) if k.startswith(('tiles/', 'tree/')) or k in ('cover.webp', 'sea-pad.webp') else os.path.join(repo, dict(plan)[k])) != h]
     if bad:
         sys.exit('install mismatch vs the Archive build: %s' % bad[:5])
+    # v1241 (SHIPPING RULE 24): the page loads world-realm.js with a ?v= tag; a rebuild that keeps the old tag leaves browsers and the CDN on the
+    # OLD map data (old tile key -> cached old tiles at every zoom but the fresh z0; Phil 31 Oct, Ashford/Lanternmere). Every install sets a new tag.
+    page = os.path.join(repo, 'emberweave-heroes.html'); tag = 'realm-%s-%s' % (v, re.sub(r'\D', '', str(realm.get('built', ''))))
+    html = open(page, encoding='utf-8', newline='').read(); new = re.sub(r'/world-realm\.js\?v=[^"\x27]*','/world-realm.js?v=' + tag, html)
+    if new.count('/world-realm.js?v=' + tag) != 1:
+        sys.exit('install: the page must load world-realm.js exactly once with a ?v= tag')
+    open(page, 'w', encoding='utf-8', newline='').write(new); log('page: world-realm.js?v=' + tag)
     log('installed %s into %s (%d files byte-identical to the Archive; replaced files backed up in %s)' % (v, repo, len(realm['files']), bak))
 
 

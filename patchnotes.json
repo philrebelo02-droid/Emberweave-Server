@@ -1,5 +1,6 @@
 {
   "patches": [
+    {"ver": "0.99.6", "date": "31 October 2026", "title": "Map refresh", "items": ["The World Map shows the new Ashford and Lanternmere at every zoom (some browsers kept the old map data)."]},
     {"ver": "0.99.5", "date": "31 October 2026", "title": "Guild holdings", "items": ["Cities, oases and the World Tree belong to guilds: leave your guild (or get removed) and your garrison marches home; a guild that disbands loses what it held."]},
     {"ver": "0.99.4", "date": "31 October 2026", "title": "A sharper realm, part 2", "items": ["More of the realm in fine detail, and two cities rebuilt: Ashford is now a moat fortress with a drawbridge, and the capital Lanternmere has a walled upper city and a busy lower town."]},
     {"ver": "0.99.3", "date": "31 October 2026", "title": "A sharper realm", "items": ["More of the realm in fine detail: zoom all the way in around Qasrim, Sayle, Hallowrime, Tellary, Groll, Coldharrow, Lanternmere and Hollin, and along the far west coast, to see the sharper art."]},
