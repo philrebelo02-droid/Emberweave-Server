@@ -28251,7 +28251,7 @@ async function setTutorialGuideMode(skip){
     document.querySelectorAll('.tut-target-glow').forEach(el=>el.classList.remove('tut-target-glow'));
     document.querySelectorAll('#tutOffer').forEach(el=>el.remove());
     updateHubChrome();
-    if(skip){show('home');bannerMsg('Guided tutorial skipped. Start Here remains available in the menu.');}
+    if(skip){show('home');bannerMsg('Tutorial skipped. You can start it any time from the menu.');}
     else {renderTutorial();bannerMsg('Guided tutorial resumed.');}
   }catch(e){
     G.tutSkipped=old.skipped; G.tutStarted=old.started; G.tutFocusStep=old.focus;
@@ -28331,7 +28331,7 @@ function maybeOfferTutorial(){ if(G.tutDone||G.tutStarted||G.tutSkipped) return;
   ov.innerHTML=`<div style="background:linear-gradient(160deg,#1c2334,#0c1420);border:1px solid #4a628f;border-radius:18px;padding:22px;width:100%;max-width:320px;text-align:center;box-shadow:0 12px 44px #000b">
     <div style="font-size:40px">${uiIcon('graduation')}</div><div style="font-weight:800;font-size:17px;margin:6px 0">Welcome, Commander!</div>
     <div style="font-size:12px;color:#cdd6e4;line-height:1.5;margin-bottom:16px">Start here to learn one essential system before each of the first five Campaign rounds.</div>
-    <button class="btn" style="width:100%" id="tutStart">Start Here</button>
+    <button class="btn" style="width:100%" id="tutStart">Start Tutorial</button>
     <button class="btn secondary" style="width:100%;margin-top:8px" id="tutSkip">Skip Tutorial</button></div>`;
   document.body.appendChild(ov); const close=()=>{ document.querySelectorAll('#tutOffer').forEach(n=>n.remove()); };
   ov.querySelector('#tutStart').onclick=()=>{ G.tutStarted=true; saveG(); close(); show('tutorial'); };
