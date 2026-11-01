@@ -313,6 +313,27 @@ def tree_patch(master, tl):
 CITY_FIX_DIRS = ['city overlays mask fix v2 30OCT2026']   # Grok's alpha-only fixes (same placement), newest last
 
 
+CITY_REPLACE_TAGS = ['v5']   # v1239 (Phil 31 Oct: "push ashford and lantern to claude"): Grok's full REPLACEMENT overlays, RGB + alpha, same placement
+
+
+def city_replace(src, name, topleft, size):
+    """v1239: '<City> overlay 1x_<tag>.png' in a CITY_FIX_DIRS folder is a full replacement (new art, RGB + alpha) at the SAME placement; newest tag wins."""
+    for d in reversed(CITY_FIX_DIRS):
+        for tag in reversed(CITY_REPLACE_TAGS):
+            f = os.path.join(src, d, '%s overlay 1x_%s.png' % (name, tag)); pj = os.path.join(src, d, '%s placement_%s.json' % (name, tag))
+            if not os.path.exists(f):
+                continue
+            p = json.load(open(pj))
+            if list(p['topleft_v25']) != list(topleft) or list(p['size_v25']) != list(size):
+                sys.exit('%s %s: placement %s/%s differs from %s/%s' % (name, tag, p['topleft_v25'], p['size_v25'], topleft, size))
+            im = Image.open(f).convert('RGBA')
+            if im.size != tuple(size):
+                sys.exit('%s %s: 1x is %s, placement says %s' % (name, tag, im.size, size))
+            log('cities: %s REPLACED by %s/%s' % (name, d, os.path.basename(f)))
+            return np.asarray(im), tag
+    return None, None
+
+
 def city_mask_fix(src, name, topleft, size):
     """v1229: the alpha of '<City> overlay 1x_v2.png' (Grok's mask fix: RGB untouched, same placement) when one exists, else None."""
     for d in reversed(CITY_FIX_DIRS):
@@ -355,8 +376,11 @@ def city_patches(master, src, v, pos):
             fixed = city_mask_fix(src, name, (int(x), int(y)), (w, h))
             if fixed is not None:
                 arr = np.dstack([arr[..., :3], fixed])
+            new, tag = city_replace(src, name, (int(x), int(y)), (w, h))
+            if new is not None:
+                arr = new
             master.patches.append((int(x), int(y), np.ascontiguousarray(arr[..., :3]), np.ascontiguousarray(arr[..., 3]), 'city'))
-            out.append({'name': name, 'version': c.get('version') if fixed is None else 'mask v2', 'topleftPx': [x, y], 'sizePx': [w, h],
+            out.append({'name': name, 'version': tag if new is not None else (c.get('version') if fixed is None else 'mask v2'), 'topleftPx': [x, y], 'sizePx': [w, h],
                         'cxPx': x + w / 2, 'cyPx': y + h / 2, 'source': os.path.basename(czip), 'overlay3x': c.get('overlay_3x'),
                         '_alpha': np.ascontiguousarray(arr[..., 3])})
     # further zips in the same format ("REALM <v> new city overlays.zip": one '<City> placement.json' per city with topleft_v25,
@@ -381,8 +405,11 @@ def city_patches(master, src, v, pos):
                 fixed = city_mask_fix(src, name, (int(x), int(y)), (w, h))
                 if fixed is not None:
                     arr = np.dstack([arr[..., :3], fixed])
+                new, tag = city_replace(src, name, (int(x), int(y)), (w, h))
+                if new is not None:
+                    arr = new
                 master.patches.append((int(x), int(y), np.ascontiguousarray(arr[..., :3]), np.ascontiguousarray(arr[..., 3]), 'city'))
-                out.append({'name': name, 'version': 'proposal', 'topleftPx': [x, y], 'sizePx': [w, h], 'cxPx': x + w / 2, 'cyPx': y + h / 2,
+                out.append({'name': name, 'version': tag if new is not None else 'proposal', 'topleftPx': [x, y], 'sizePx': [w, h], 'cxPx': x + w / 2, 'cyPx': y + h / 2,
                             'source': os.path.basename(extra), 'overlay3x': (c.get('overlay_3x') or {}).get('file'), '_alpha': np.ascontiguousarray(arr[..., 3])})
     log('cities: %d overlays baked in (%s)%s' % (len(out), ', '.join(o['name'] for o in out), ('; held (provisional): ' + ', '.join(held)) if held else ''))
     return out
@@ -486,7 +513,12 @@ def build_detail2x(folder, src, master, levels, files, X0, out, cities, RW, RH):
         if c['name'] in cache:
             return cache[c['name']]
         w, h = c['sizePx']; im = None
-        for d in reversed(CITY_FIX_DIRS):   # Grok's mask fix v2 3x art
+        for d in reversed(CITY_FIX_DIRS):   # v1239: a full replacement's 3x first
+            for tag in reversed(CITY_REPLACE_TAGS):
+                f = os.path.join(src, d, '%s overlay 3x_%s.png' % (c['name'], tag))
+                if im is None and os.path.exists(f):
+                    im = Image.open(f).convert('RGBA')
+        for d in reversed(CITY_FIX_DIRS) if im is None else []:   # Grok's mask fix v2 3x art
             f = os.path.join(src, d, '%s overlay 3x_v2.png' % c['name'])
             if os.path.exists(f):
                 im = Image.open(f).convert('RGBA'); break
