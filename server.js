@@ -4432,6 +4432,26 @@ function siegeDefenders(h,now){ const out=[], seen=new Set();
     for(const s of l.snaps){ if(out.length>=5) break; if(!s||!s.key||seen.has(s.key)||!(+s.hp>0)) continue; seen.add(s.key); out.push(JSON.parse(JSON.stringify(s))); }
     if(out.length>=5) break; }
   return out; }
+/* v1240 (Phil 31 Oct: "im not in a guild anymore, i should instantly not own this"): only a guild holds a site. After any guild change
+   (leave, kick, disband) - and once a minute on the World Map read, which also settles holders left over from before this rule - a
+   holder that is no longer valid lets the site go (a guild that no longer exists; a v1235 player holder who is in no guild), and every
+   garrison line whose owner is no longer in the holding guild marches home (the recall trip). Returns the touched owners, or null. */
+let _siegeSettledAt=0;
+function siegeSettleGuilds(now){
+  const s=DB.worldSieges; if(!s||!s.sites||typeof s.sites!=='object') return null;
+  const touched=new Set(); let changed=false;
+  for(const [sid,h] of Object.entries(s.sites)){ if(!h) continue;
+    const holderOk=h.type==='guild'?!!(DB.guilds&&DB.guilds[h.id]):!!(DB.users[h.id]&&DB.users[h.id].guildId);
+    const lines=Array.isArray(h.garrison)?h.garrison:[], keep=[];
+    for(const l of lines){ const u=DB.users[l.uid];
+      if(holderOk&&(h.type!=='guild'||(u&&u.guildId===h.id))){ keep.push(l); continue; }
+      if(u){ const m=worldCityMarches(u,now).find(x=>x&&x.id===l.marchId); if(m&&!m.recall) Object.assign(m,siegeLineHome(m,now,'guild')); touched.add(u.id); }
+      changed=true; }
+    if(keep.length!==lines.length) h.garrison=keep;
+    if(!holderOk){ delete s.sites[sid]; changed=true; } }
+  if(!changed) return null;
+  s.rev=(s.rev|0)+1; typeof _dp==='function'&&_dp('worldSieges'); writeDB([...touched],['worldSieges']);
+  return [...touched]; }
 function siegeLinePower(u,ids){ let p=0; for(const k of ids){ try{ p+=heroCardPower(u,k)|0; }catch(e){} } return p; }
 function worldMoveDurable(user,key,fn){
   const now=Date.now(), prior=DB.idem?.[key];
@@ -9045,6 +9065,7 @@ async function api(req,res,url){
   }
   if(p==='/api/world/state' && req.method==='GET'){
     if(!me) return send(res,401,{error:'auth'});
+    if(Date.now()-_siegeSettledAt>60000){ _siegeSettledAt=Date.now(); siegeSettleGuilds(Date.now()); }   /* v1240: guild-only holders */
     return send(res,200,{...worldView(me,Date.now()),sieges:siegePublic(Date.now(),me)});   /* v1235: every site's holder, for everyone (v1237: + the garrison count) */
   }
   if(p==='/api/world/war/declare' && req.method==='POST'){
@@ -9990,6 +10011,7 @@ async function api(req,res,url){
       if(!(g.members||[]).includes(b.id)) return send(res,400,{error:'Not a member.'});
       g.members=g.members.filter(x=>x!==b.id); const tu=DB.users[b.id]; if(tu&&tu.guildId===g.id) delete tu.guildId;
       g.log=g.log||[]; g.log.push({sys:1,tx:nameOf(b.id)+' was removed from the guild.',t:Date.now()}); guildLogCap(g);
+      siegeSettleGuilds(Date.now());   /* v1240: the removed member's garrison lines march home */
       writeDB([me.id,String(b.id)]);   /* v1124: the guild + the leader + the removed member */ return send(res,200,{ guild:guildView(g) }); }
     if(p==='/api/guild/transfer'){ if(!(g.members||[]).includes(b.id)) return send(res,400,{error:'Not a member.'});
       g.leader=b.id; g.log=g.log||[]; g.log.push({sys:1,tx:nameOf(b.id)+' is now the guild leader.',t:Date.now()}); guildLogCap(g);
@@ -10004,14 +10026,15 @@ async function api(req,res,url){
       g.log=g.log||[]; g.log.push({sys:1,tx:'The guild banner was changed.',t:Date.now()}); guildLogCap(g);
       writeDB([me.id]); return send(res,200,{ guild:guildView(g) }); }
     if(p==='/api/guild/disband'){ for(const mid of (g.members||[])){ const mu=DB.users[mid]; if(mu&&mu.guildId===g.id) delete mu.guildId; }
-      delete DB.guilds[g.id]; warDropDeletedGuild(g.id); writeDB([me.id,...(g.members||[])]); return send(res,200,{ ok:true, disbanded:true }); }   // v1124: every member's guildId
+      delete DB.guilds[g.id]; warDropDeletedGuild(g.id); siegeSettleGuilds(Date.now()); writeDB([me.id,...(g.members||[])]); return send(res,200,{ ok:true, disbanded:true }); }   /* v1240: its sites go */   // v1124: every member's guildId
 
     if(p==='/api/guild/leave'){ if(!g) return send(res,400,{error:'You are not in a guild.'});
       warPoolForget(g.id);
       if(g.leader===me.id && (g.members||[]).length>1) return send(res,400,{error:'Transfer leadership to another member before you leave.'});
       g.members=(g.members||[]).filter(x=>x!==me.id); delete me.guildId;
-      if((g.members||[]).length===0){ delete DB.guilds[g.id]; warDropDeletedGuild(g.id); writeDB([me.id]); return send(res,200,{ ok:true, disbanded:true }); }
+      if((g.members||[]).length===0){ delete DB.guilds[g.id]; warDropDeletedGuild(g.id); siegeSettleGuilds(Date.now()); writeDB([me.id]); return send(res,200,{ ok:true, disbanded:true }); }
       g.log=g.log||[]; g.log.push({sys:1,tx:me.name+' left the guild.',t:Date.now()}); guildLogCap(g);
+      siegeSettleGuilds(Date.now());   /* v1240 (Phil 31 Oct): leaving the guild = your lines march home; a site you held alone goes */
       writeDB([me.id]); return send(res,200,{ ok:true }); }
 
     if(p==='/api/guild/chat'){ if(!g) return send(res,400,{error:'You are not in a guild.'});
