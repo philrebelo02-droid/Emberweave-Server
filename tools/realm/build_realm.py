@@ -420,6 +420,7 @@ def city_patches(master, src, v, pos):
 # able to be teleported on"): whatever the base art underneath - v1229's 'not water under it' test dropped every square of a city built
 # over water, and inland lake water is land in the zone mask, so those squares became open land.
 CITY_COVER = 0.50
+SITE_EDGE_COVER = 0.25   # v1249: a quarter of the square is city art (walls, houses, edge) counts, then one square of margin
 CITY_ALPHA = 200
 
 
@@ -438,9 +439,17 @@ def city_cells(c, X0, top_cells, cpx, master=None):   # top_cells: the grid row 
             ax1, ay1 = int(round(min(mx0 + cpx, x + w) - x)), int(round(min(my0 + cpx, y + h) - y))
             if ax1 <= ax0 or ay1 <= ay0:
                 continue
-            if al[ay0:ay1, ax0:ax1].sum() >= CITY_COVER * cpx * cpx:
+            if al[ay0:ay1, ax0:ax1].sum() >= SITE_EDGE_COVER * cpx * cpx:
                 cells.append([cx, cy])
-    return cells
+    # v1249 (Phil 1 Nov: "Check all Oasis and cities also", after the World Tree roots): one square of margin round the city, so
+    # no castle stands on a city's edge art (same rule as the tree)
+    got = {(a, b) for a, b in cells}
+    for a, b in list(got):
+        for dx in (-1, 0, 1):
+            for dy in (-1, 0, 1):
+                if 0 <= a + dx < COLS and 0 <= b + dy < ROWS and (a + dx, b + dy) not in got:
+                    got.add((a + dx, b + dy)); cells.append([a + dx, b + dy])
+    return sorted(cells, key=lambda t: (t[1], t[0]))
 
 
 # ---------------------------------------------------------------- 5. land / sea
@@ -1007,6 +1016,9 @@ def main():
                 tree_set.add((_cx, _cy))
     tree_set |= {(x + dx, y + dy) for x, y in list(tree_set) for dx in (-1, 0, 1) for dy in (-1, 0, 1) if 0 <= x + dx < COLS and 0 <= y + dy < ROWS}   # one square of margin round the roots
     tree_set |= {(x, y) for y in range(core_box[1], core_box[3] + 1) for x in range(core_box[0], core_box[2] + 1)}
+    # v1249 (Phil: "Check all Oasis and cities also"): one square of margin round each painted pond is blocked too (the ponds sit on the
+    # tree island, so these squares join the island's blocked set; the oasis's own site cells are unchanged)
+    tree_set |= {(x + dx, y + dy) for x, y in pond_set for dx in (-1, 0, 1) for dy in (-1, 0, 1) if 0 <= x + dx < COLS and 0 <= y + dy < ROWS} - pond_set
     log('tree: %d squares blocked under the tree art (core %d)' % (len(tree_set), (core_box[2] - core_box[0] + 1) * (core_box[3] - core_box[1] + 1)))
     # v1229: a speck of land inside a painted pond became part of that pond (island T): it is no islet of the wild any more
     islets_kept = [o for o in islets if (zone[o['box'][1]:o['box'][1] + o['box'][3], o['box'][0]:o['box'][0] + o['box'][2]] == ZONE_CODE[o['zone']]).any()]

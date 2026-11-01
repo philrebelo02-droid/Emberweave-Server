@@ -13,7 +13,7 @@
         !Number.isInteger(n.gx)||!Number.isInteger(n.gy)||n.gx<2||n.gy<2||n.gx>G.COLS-2||n.gy>G.ROWS-2||
         n.x!==G.mineX(n.gx)||n.y!==G.mineY(n.gy)||typeof n.region!=='string')throw Error('Invalid node');   // v1227: a mine is ON an intersection
       const key=n.gx+','+n.gy;if(positions.has(key))throw Error('Duplicate node');positions.add(key);
-      return {id:n.id,res:n.res,level:n.level,gx:n.gx,gy:n.gy,x:n.x,y:n.y,region:n.region};
+      return {id:n.id,res:n.res,level:n.level,gx:n.gx,gy:n.gy,x:n.x,y:n.y,region:n.region,left:Number.isFinite(n.left)?n.left:null,total:Number.isFinite(n.total)?n.total:null};   // v1249: the mine's stock
     });
     return {epoch:data.epoch,serverNow:data.serverNow,epochEndsAt:data.epochEndsAt,nodes};
   }

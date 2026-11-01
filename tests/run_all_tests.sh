@@ -607,6 +607,10 @@ note "test_fullscreen_bars_1243.js (v1243 app: system bars shown by a swipe neve
 node tests/test_fullscreen_bars_1243.js || FAILED=1
 note "test_siege_speed_1248.js (v1248 city/oasis/World Tree attacks march at 2x speed)"
 node tests/test_siege_speed_1248.js || FAILED=1
+note "test_battle_offline_1249.js (v1249 a fight is never covered by the down screen; its result waits for the server)"
+node tests/test_battle_offline_1249.js || FAILED=1
+note "test_mine_stock_1249.js (v1249 mine stock: left shown, retreat takes nothing, mine stays until empty)"
+node tests/test_mine_stock_1249.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi

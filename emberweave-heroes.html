@@ -2789,11 +2789,11 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 <script src="/server/temple-of-ash.js?v=r1123"></script>
 <script src="/server/patron-benefits.js?v=r1230"></script>
 <script src="/server/temple-effects.js?v=r1123"></script>
-<script src="/assets/ui/world-mine-sync.js?v=mi4-g1000v"></script>
+<script src="/assets/ui/world-mine-sync.js?v=mi5-stock1249"></script>
 <script src="/assets/ui/world-march-sync.js?v=wm1"></script>
 <script src="/assets/ui/world-march-visual.js?v=wv4-g1237"></script>
 <script src="/assets/ui/skill-preview-stage.js?v=sp1206"></script>
-<script src="/world-realm.js?v=realm-v25-202611010748"></script>
+<script src="/world-realm.js?v=realm-v25-202611010838"></script>
 <script src="/assets/ui/world-tree-cycle.js?v=wt5"></script>
 <script src="/assets/ui/world-tree-art.js?v=wt-noflash-1228b"></script>
 <script src="/assets/ui/world-oasis-markers.js?v=om-ponds-1230"></script>
@@ -15640,6 +15640,7 @@ function endBattle(won){
         /* v1145 (15 Oct proof sweep): an empty reply, a 500 and a 429 are transient too - the SAME requestId is re-sent and a booked fight answers with its receipt */
         if(!(!r||r.error==='offline'||r.storageFailed||r.error==='server error'||/slow down/i.test(r.error||''))||_try===6) break;
         await new Promise(z=>setTimeout(z,1500*(_try+1))); }
+      if(resultReplyLost(r)) r=await resultWaitServer(()=>api('/api/campaign/resolve','POST',{attemptId:att, requestId:_rid, inputLog:_log, digest:_dg, won:_wn, stars:_st}),r);   /* v1249 */
       if(resultStale(ep)){ if(r&&r.ledger) adoptLedger(r.ledger); return; }   // v328: CUR.node now belongs to a NEWER fight — never bank stars/cleared on it or paint its screen
       const sWon=!!(r&&r.ok&&r.won);   // v412: the server now records and echoes back the PLAYER's own result
       setResultVerdict(sWon, (r&&r.stars)||null);
@@ -23696,7 +23697,12 @@ const NETGATE={down:0, bootAt:0, busy:false, timer:null, first:0, apiFail:0};
    network error (offline, fetch TypeError) is retried after 2 s before it counts; the gate needs 3 counted misses spanning >= 12 s
    (a real 503 "serverDown" from the front door still shows at once); any answer to a game request (/api/*) resets the count; a chat
    socket close is one check; and never during a battle's loading screen unless a real game request failed. */
-function netGateShown(){ if(NETGATE.serverDown&&NETGATE.down>=1) return true;
+/* v1249 (Phil 1 Nov: "if someone is in a battle ... it doesnt kick them out if the server is off. Instead it switches to their local fight, then
+   the server automatically reconnects their device when its back online"): the down screen never covers a fight (campaign, Vault, Spire, Well,
+   arena ...) or its result screen. The fight runs on the device anyway; its result waits for the server (resultWaitServer) and is sent the
+   moment the server is back. Once the player leaves the fight and the server is still down, the screen shows as before. */
+function netGateShown(){ try{ if(typeof updateUnsafe==='function'&&updateUnsafe()) return false; }catch(e){}
+  if(NETGATE.serverDown&&NETGATE.down>=1) return true;
   if(!(NETGATE.down>=3&&NETGATE.first&&Date.now()-NETGATE.first>=12000)) return false;
   try{ if(document.getElementById('battleLoader')&&!(NETGATE.apiFail&&Date.now()-NETGATE.apiFail<20000)) return false; }catch(e){}
   return true; }
@@ -23895,7 +23901,16 @@ function updateGuestMarks(){ const g=!!(ACC&&ACC.token&&ACC.guest), last=g?lastA
       e.onclick=ev=>{ ev.stopPropagation(); if(!(ACC&&ACC.guest)) return; AUTHG.mode=other?'signin':'guest'; AUTHG.ask=true; authGateRefresh(true); }; } }); }
 // stable-ish per-device id used to cap account creation (3 per device)
 function deviceId(){ try{ let d=localStorage.getItem('ew_device'); if(!d){ d='d'+Date.now().toString(36)+(function(){ try{ const a=new Uint8Array(16); crypto.getRandomValues(a); return Array.from(a,x=>x.toString(16).padStart(2,'0')).join(''); }catch(e){ return Math.random().toString(36).slice(2,10)+Math.random().toString(36).slice(2,10); } })();   /* v1005 (Account audit #11): 128 random bits for NEW device ids (existing ids are kept) */ localStorage.setItem('ew_device',d); } return d; }catch(e){ return ''; } }
-async function api(path,method,bodyObj){ try{ const h={'Content-Type':'application/json'}; const _tok=ACC.token; if(_tok)h['x-token']=_tok;
+/* v1249 (Phil 1 Nov: "This goes for any battle mode at all"): EVERY battle-result route - campaign, bonus, Vault, Elite, Province, Tower,
+   Trial, Well, arena, Emberdraft (every round), guild raid, guild war, world mine and siege, castle attacks; Normal/Elite/Veteran portals and
+   bonus stages go through campaign/bonus resolve - that loses its reply because the server is off
+   waits for the server (resultWaitServer) and re-sends the SAME request. Only a request with a requestId (receipt-safe) is ever re-sent. */
+const BATTLE_RESULT_ROUTES=/^\/api\/(campaign\/resolve|bonus\/resolve|dungeon\/resolve-battle|elite\/resolve|province\/resolve|tower\/(ascend|tribute)|trial\/resolve|well\/resolve|arena\/result|emberdraft\/(result|round)|guild\/raid\/resolve|guild\/war\/attack|world\/mine\/resolve|world\/siege\/resolve|pvp\/attack(-report)?)$/;
+async function api(path,method,bodyObj){ const r=await _apiRaw(path,method,bodyObj);
+  if(method==='POST'&&bodyObj&&bodyObj.requestId&&BATTLE_RESULT_ROUTES.test(String(path))&&resultReplyLost(r)&&r&&r.error==='offline'&&!api._waiting)
+    { api._waiting=true; try{ return await resultWaitServer(()=>_apiRaw(path,method,bodyObj),r); } finally{ api._waiting=false; } }
+  return r; }
+async function _apiRaw(path,method,bodyObj){ try{ const h={'Content-Type':'application/json'}; const _tok=ACC.token; if(_tok)h['x-token']=_tok;
   const r=await fetch(path,{method:method||'GET',headers:h,body:bodyObj?JSON.stringify(bodyObj):undefined}); const j=await r.json();
   // single-session: if our token was invalidated (signed in elsewhere / reset / deleted), drop the local session gracefully
   if(j&&j.error==='auth'&&ACC.token&&_tok===ACC.token){ authConfirmKick(_tok); }   /* v1197: only the CURRENT token, confirmed by the current server (authConfirmKick) */
@@ -23914,6 +23929,18 @@ function resultReplyLost(r){ return !r||typeof r!=='object'||r.error==='offline'
 async function apiResultRetry(path,body){ let r=null;
   for(let t=0;t<7;t++){ try{ r=await api(path,'POST',body); }catch(e){ r=null; }
     if(!resultReplyLost(r)||t===6) break; await new Promise(z=>setTimeout(z,1500*(t+1))); }
+  if(resultReplyLost(r)) r=await resultWaitServer(()=>api(path,'POST',body),r);
+  return r; }
+/* v1249: the server is off after the quick retries - keep the player's fight, say so, and re-send the SAME request (same requestId, so a
+   booked fight answers with its receipt, never twice) every few seconds once /api/health answers, for up to 15 minutes. */
+async function resultWaitServer(send,last){ const until=Date.now()+15*60000; let r=last, told=false;
+  while(resultReplyLost(r)&&Date.now()<until){
+    if(!told){ told=true; try{ bannerMsg('The server is offline - your fight is kept and will be saved when it is back.'); }catch(e){} }
+    await new Promise(z=>setTimeout(z,5000));
+    let up=false; try{ up=(await _netProbe())==='ok'; }catch(e){}
+    if(!up) continue;
+    try{ r=await send(); }catch(e){ r=null; }
+    if(!resultReplyLost(r)){ try{ netGateOk(); bannerMsg('Back online - your fight was saved.'); }catch(e){} } }
   return r; }
 /* the plain words for a result the server did not confirm - never the raw 'offline' / 'auth' token */
 function resultNotCountedText(r){ if(r&&r.storageFailed) return 'The server could not save it - this result is not confirmed.';
@@ -24940,7 +24967,7 @@ function centerOnCastle(zone){ zone=zone||document.getElementById('wzone'); if(!
   const p=myCastlePos(), fx=p.x/100, fy=p.y/100;
   zone.scrollLeft=WORLD_W*worldZoom*fx - zone.clientWidth/2; wzSetTop(zone,fy*WORLD_H-zone.clientHeight/2/worldZoom); }
 // zoom toward a screen point (mouse cursor / pinch centre) so that point stays put under the finger/cursor
-function worldZoomTo(nz, clientX, clientY){ const zone=document.getElementById('wzone'); if(!zone)return;
+function worldZoomTo(nz, clientX, clientY){ setTimeout(()=>{ try{ document.querySelectorAll('#telePin,#coordPin').forEach(el=>{ el.style.zoom=String(1/Math.max(0.05,worldZoom||1)); }); }catch(e){} },0);   /* v1249: the map pins keep their screen size while zooming */ const zone=document.getElementById('wzone'); if(!zone)return;
   const bounds=worldZoomBounds(zone);
   nz=Math.max(bounds.min,Math.min(bounds.max,+nz));
   if(nz===worldZoom){ applyWorldZoom(); return; }
@@ -25050,6 +25077,7 @@ function teleportPlace(x,y){ x=snapX(x); y=snapY(y);   // v1227: the castle squa
   const cells=REALM_MAP.GEO.footprint(x,y);
   if(!cells.every(([cx,cy])=>REALM_MAP.isLand(cx,cy))){ dropTelePin(x,y,false); bannerMsg('That square is sea - castles stand on land.'); return; }
   if(cells.some(([cx,cy])=>REALM_MAP.isCity(cx,cy))){ dropTelePin(x,y,false); bannerMsg('That square is a city - castles cannot stand on a city.'); return; }
+  if(REALM_MAP.isTree&&cells.some(([cx,cy])=>REALM_MAP.isTree(cx,cy))){ dropTelePin(x,y,false); bannerMsg('That square is the World Tree - castles cannot stand on it.'); return; }   /* v1248/v1249 */
   if(cells.some(([cx,cy])=>REALM_MAP.isOasis(cx,cy))){ dropTelePin(x,y,false); bannerMsg('That square is an oasis - castles cannot stand on an oasis.'); return; }   // v1228: the painted ponds   // Phil 30 Oct 2026
   if(!teleSquareFree(x,y)){
     dropTelePin(x,y,false); bannerMsg('That square is occupied.'); return; }
@@ -25065,8 +25093,8 @@ function teleportPlace(x,y){ x=snapX(x); y=snapY(y);   // v1227: the castle squa
 }
 function dropTelePin(x,y,ok){ const inner=document.getElementById('wzoneInner'); if(!inner)return;
   const old=inner.querySelector('#telePin'); if(old)old.remove();
-  const pin=document.createElement('div'); pin.id='telePin'; pin.style.cssText='position:absolute;left:'+x+'%;top:'+y+'%;transform:translate(-50%,-50%);z-index:8;pointer-events:none;font-size:26px;filter:drop-shadow(0 2px 4px #000)';
-  pin.innerHTML=ok?uiIcon('map-pin'):uiIcon('blocked'); inner.appendChild(pin); }
+  const pin=document.createElement('div'); pin.id='telePin'; pin.style.cssText='position:absolute;left:'+x+'%;top:'+y+'%;transform:translate(-50%,'+(ok?'-100%':'-50%')+');z-index:8;line-height:0;pointer-events:none;font-size:26px;filter:drop-shadow(0 2px 4px #000)';
+  pin.innerHTML=ok?uiIcon('map-pin'):uiIcon('blocked'); pin.style.zoom=String(1/Math.max(0.05,worldZoom||1)); inner.appendChild(pin); }   /* v1249 (Phil: "This marker is huge"): the teleport pin keeps one screen size at every zoom, like the menus */
 /* v1200 (Fold device sweep, 18 Oct): the World Map's message screens (signed out, locating, unavailable, below its level) had no way
    out - #world has no back button of its own (the map draws its own Base button), so a player there could only close the game.
    Every message now carries the Base button, and Try again where a retry can help. */
@@ -25233,7 +25261,7 @@ function renderWorldMap(keepView){
 // ---- coordinate search: jump the map to any X/Y grid cell ----
 function dropCoordPin(cx,cy,ms){ ms=(ms>0)?ms:6000; _lastPin={cx:cx,cy:cy,until:Date.now()+ms}; const inner=document.getElementById('wzoneInner'); if(!inner)return; const old=inner.querySelector('#coordPin'); if(old)old.remove();
   const px=REALM_MAP.GEO.xOf(cx), py=REALM_MAP.GEO.yOf(cy);
-  const pin=document.createElement('div'); pin.id='coordPin'; pin.style.cssText='position:absolute;left:'+px+'%;top:'+py+'%;transform:translate(-50%,-100%);z-index:8;pointer-events:none;font-size:26px;filter:drop-shadow(0 2px 4px #000)'; pin.innerHTML=uiIcon('map-pin'); inner.appendChild(pin);
+  const pin=document.createElement('div'); pin.id='coordPin'; pin.style.cssText='position:absolute;left:'+px+'%;top:'+py+'%;transform:translate(-50%,-100%);z-index:8;pointer-events:none;font-size:26px;filter:drop-shadow(0 2px 4px #000)'; pin.innerHTML=uiIcon('map-pin'); pin.style.zoom=String(1/Math.max(0.05,worldZoom||1)); inner.appendChild(pin);
   setTimeout(()=>{ if(pin.parentNode)pin.remove(); if(_lastPin&&_lastPin.cx===cx&&_lastPin.cy===cy&&Date.now()>=_lastPin.until-50)_lastPin=null; },ms); }
 function openCoordSearch(){ closeCityMenu(); const cur=viewCenterCoord();
   const ov=document.createElement('div'); ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.72);display:flex;align-items:center;justify-content:center;z-index:20000;padding:16px';
@@ -25788,10 +25816,11 @@ async function recallServerCity(marchId){
   finally{_cityRecallPending.delete(stamp);}
 }
 function retreatMarch(id){ const m=activeMarches().find(x=>x.id===id); if(m?.serverCityId)return recallServerCity(m.serverCityId); if(!m||m.dir!=='out'||m.retreated)return false; const now=Date.now();
-  if(now<m.arrive){ const h=myCastlePos(); const p=(now-m.depart)/m.out; m.retFrom={x:h.x+(m.fx-h.x)*p, y:h.y+(m.fy-h.y)*p}; m.retDur=Math.max(800, now-m.depart); m.resolved=true; }  // cancel the pending action
+  if(now<m.arrive){ const h=myCastlePos(); const p=Math.min(1,(now-m.depart)/m.out); m.retFrom={x:h.x+(m.fx-h.x)*p, y:h.y+(m.fy-h.y)*p}; m.retDur=Math.max(800, Math.min(m.out, now-m.depart)); m.resolved=true; }   /* v1249 (Phil: "my ship is returning from the wrong location"): a squad already at the mine (gathering) leaves FROM the mine, and the trip home is one leg, never more */  // cancel the pending action
   else if(m.stationed){ m.retFrom={x:m.fx, y:m.fy}; m.retDur=m.out; m.stationed=false; }   // recall a stationed defender: full march home
   else return false;                                                                        // already sailing home
   m.retreated=true; m.retStart=now; m.home=now+m.retDur; saveG();
+  if(m.ctype==='mine'&&m.serverMineId&&ACC.token){ api('/api/world/mine/recall','POST',{marchId:m.serverMineId,requestId:'rc'+m.serverMineId}).catch(()=>{}); }   /* v1249: the mine keeps its stock and can be mined again */
   bannerMsg('↩ Retreating from '+escapeHTML(m.tName)+' — troops returning home.'); if(document.getElementById('wzone')) drawMarches(); return true;
 }
 // draw arrow paths + moving ship vehicles for every active march
@@ -25817,8 +25846,8 @@ function worldVisualMarchRows(local){
 }
 
 /* v1235: march marker and trail sizes in GRID SQUARES (one castle = 1 square since v1227), so they keep a castle's proportion at every zoom */
-const MARCH_SHIP=Object.freeze({size:1.2, glow1:0.06, glow2:0.13, shadow:0.05});
-const MARCH_DASH=Object.freeze({dash:0.35, width:0.12, gap:0.35, arrow:0.22, arrowWidth:0.07, arrowStep:6});
+const MARCH_SHIP=Object.freeze({size:0.9, glow1:0.045, glow2:0.0975, shadow:0.0375});   /* v1249 (Phil 1 Nov: "Reduce ship size another 25%"): 1.2 -> 0.9 squares, glow and shadow scaled with it */
+const MARCH_DASH=Object.freeze({dash:0.2625, width:0.09, gap:0.2625, arrow:0.165, arrowWidth:0.0525, arrowStep:6});   /* v1249 (Phil: "And the dotted line"): 25% smaller with the ship */
 function drawMarches(){
   const inner=document.getElementById('wzoneInner'); if(!inner)return;
   let svg=document.getElementById('marchSvg');
@@ -25952,7 +25981,7 @@ function resIconHtml(k,px){ px=px||16; const img=MINE_ICONS[k]||MINE_IMGS[k];
   return img ? `<img src="${img}" style="width:${px}px;height:${px}px;object-fit:contain;vertical-align:middle;display:inline-block">` : mnResIcon(k); }
 function mineClaimedSet(){ if(G.mineEpoch!==mineEpoch()){ G.mineEpoch=mineEpoch(); G.mineClaimed=[]; } if(!Array.isArray(G.mineClaimed))G.mineClaimed=[]; return G.mineClaimed; }
 function mineIsActive(id){ const now=Date.now(); return activeMarches().some(m=>m.ctype==='mine'&&m.mineId===id&&now<m.home); }
-function mineAvailable(m){ return !mineClaimedSet().includes(m.id) && !mineIsActive(m.id); }
+function mineAvailable(m){ return !mineIsActive(m.id) && !(Number.isFinite(m.left)&&m.left<=0); }   /* v1249: a mine stays while its stock lasts (no once-a-cycle claim); hidden only while your own squad is on it or when it is empty */
 function mineLabel(m){ return 'Lv '+m.level+' '+mnResName(m.res)+' Mine'; }
 // draw every available mine node onto the world map
 /* v1235 (Phil 31 Oct 2026: "when im mining the mine dissapears, it should [not] dissapear until its depleted"): a mine your squad is
@@ -25961,11 +25990,12 @@ function mineLabel(m){ return 'Lv '+m.level+' '+mnResName(m.res)+' Mine'; }
    your own claim). */
 function mineBeingMined(id){ const now=Date.now(); return activeMarches().some(m=>m.ctype==='mine'&&m.mineId===id&&!m.resolved&&!m.retreated&&now<m.arrive); }
 function drawMines(inner){ if(!inner)return;
-  worldMines().forEach(m=>{ const busy=!mineAvailable(m); if(busy&&!(mineBeingMined(m.id)&&(!mineSignedIn()||worldMineFieldState().nodes.some(n=>n.id===m.id))))return;
+  worldMines().forEach(m=>{ if(Number.isFinite(m.left)&&m.left<=0) return;   /* v1249: an empty mine is gone until the next field */
+    const busy=mineIsActive(m.id);
     const el=document.createElement('div'); el.className='wnode mine'+(busy?' mining':''); el.dataset.mineId=m.id; el.style.left=m.x+'%'; el.style.top=m.y+'%';   // v1227: ON its grid intersection (Phil: "The mines don't go in the squares")
     const img=MINE_IMGS[m.res]; const pic=img?`<img class="wm-mine-spr" src="${img}" style="filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))" draggable="false">`:`<div style="font-size:20px;filter:drop-shadow(0 1px 3px #000)">${mnResIcon(m.res)}${uiIcon('mode-mine')}</div>`;
     el.innerHTML=`${pic}<div class="wlab"><div class="nl" style="color:${mnResColor(m.res)};font-weight:800">${mnResName(m.res)}</div><div class="nl" style="color:#ffd45e;font-size:9px">Lv ${m.level}</div></div>`;
-    el.onclick=(e)=>{ e.stopPropagation(); if(_teleMode)return; closeCityMenu(); if(busy){ bannerMsg(uiIcon('mode-mine')+' Your miners are working '+mineLabel(m)+'.'); return; } openMineInfo(m); };
+    el.onclick=(e)=>{ e.stopPropagation(); if(_teleMode)return; closeCityMenu(); openMineInfo(m); };   /* v1249 (Phil: "When I click a mine i should be able to see how much resources are left"): always the mine's info (with what is left and your miners' state) */
     inner.appendChild(el); }); }
 // mine info popup
 function openMineInfo(m){ closeCityMenu(); const inner=document.getElementById('wzoneInner'); if(!inner)return;
@@ -25974,6 +26004,8 @@ function openMineInfo(m){ closeCityMenu(); const inner=document.getElementById('
   pop.innerHTML=`<div class="cm-t">${resIconHtml(m.res,18)} Lv ${m.level} ${escapeHTML(mnResName(m.res))} Mine</div>
     <div style="font-size:10px;color:#cdd6e4;padding:3px 6px 5px;line-height:1.6">
       Yield <b style="color:#ffd45e">${resIconHtml(m.res,16)} ${y}</b>${mineSignedIn()?' <span style="color:#8b98a9">per haul</span>':''}<br>
+      ${Number.isFinite(m.left)?`Left in the mine <b style="color:#5ee89b">${resIconHtml(m.res,16)} ${m.left.toLocaleString()}</b>${Number.isFinite(m.total)?` <span style="color:#8b98a9">of ${m.total.toLocaleString()}</span>`:''}<br>`:''}
+      ${mineIsActive(m.id)?`${uiIcon('mode-mine')} <b style="color:#ffd45e">Your miners are working here</b><br>`:''}
       ${statusIcon('shield')} Guarded by <b style="color:#ff9a6b">5 monsters</b> — beat them to mine it<br>
       Needs squad ${statusIcon('attack')} <b style="color:#ff9a6b">${reqP}</b> · a hero Lv <b style="color:#ff9a6b">${reqL}+</b><br>
       ${uiIcon('mode-mine')} Mine ${fmtDur(gm)} · ${uiIcon('rally-flag')} travel ${fmtDur(travel)} each way<br>
@@ -26153,9 +26185,12 @@ async function openSiegePanel(siteId){ const S=siegeApi(); if(!S) return; const 
   const ov=document.createElement('div'); ov.id='siegePanel'; ov.dataset.siteId=site.id;
   ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.72);display:flex;align-items:center;justify-content:center;z-index:20000;padding:16px';
   document.body.appendChild(ov); const close=()=>ov.remove(); ov.addEventListener('click',e=>{ if(e.target===ov) close(); });
+  /* v1249 (Phil: the World Tree and the oases are taken only during the World Tree event): the panel says so and Attack stays off */
+  let _evOff=''; if(site.kind==='tree'||site.kind==='oasis'){ try{ const st=await (await fetch('/api/world-tree/status',{cache:'no-store'})).json();
+    if(st&&st.configured&&window.EmberweaveWorldTreeCycle){ const ph=window.EmberweaveWorldTreeCycle.phase(st.firstEventAt,st.serverNow); if(ph.phase!=='event') _evOff=(site.kind==='oasis'?'The oases':'The World Tree')+' can only be taken during the World Tree event (next in '+window.EmberweaveWorldTreeCycle.format(ph.remainingMs)+').'; } }catch(e){} }
   const render=()=>{ if(!ov.isConnected) return;
     const castle=myCastlePos(), d=S.distance(castle,site), h=S.holderOf(_siegeState,site.id), me={id:_siegeState.myId||ACC.id,guildId:_siegeState.myGuildId||_rcMyGuild||null};
-    const why=!ACC.token?'Sign in to attack.':S.refusal({site,castle,holder:h,me,now:Date.now(),freeMarch:siegeArmiesFree()});
+    const why=!ACC.token?'Sign in to attack.':(_evOff||S.refusal({site,castle,holder:h,me,now:Date.now(),freeMarch:siegeArmiesFree()}));
     const kind=(site.kind==='city'?(S.isCapital(site)?'Capital city':'City'):site.kind==='oasis'?'Oasis':'World Tree');
     const ours=!!h&&!!ACC.token&&S.ownedBy(h,me), whyDef=ours?S.garrisonRefusal({site,holder:h,me,freeMarch:siegeArmiesFree()}):null;   // v1237
     ov.innerHTML=`<div style="background:#141b2b;border:1px solid #33405e;border-radius:14px;padding:16px;width:100%;max-width:280px;text-align:center;box-shadow:0 12px 40px #000b">
@@ -31260,7 +31295,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1793537526058';
+const BUILD_ID = '1793540602451';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

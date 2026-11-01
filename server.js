@@ -4373,7 +4373,7 @@ function worldLocation(u){
   /* v1248 (Phil 1 Nov: "randomly teleport my city to my region"): a castle under the World Tree art moves to a RANDOM open square of
      its own region, not the nearest one */
   const onTree=!!(old&&Number.isFinite(old.x)&&Number.isFinite(old.y)&&WORLD_LOCATION.REALM.isTree
-    &&WORLD_LOCATION.footprint(old.x,old.y).some(([cx,cy])=>WORLD_LOCATION.REALM.isTree(cx,cy)));
+    &&WORLD_LOCATION.footprint(old.x,old.y).some(([cx,cy])=>WORLD_LOCATION.REALM.isTree(cx,cy)||WORLD_LOCATION.REALM.isSite(cx,cy)));   /* v1249: on a city or oasis square too */
   const next=(onTree&&WORLD_LOCATION.REGIONS[old.region]&&WORLD_LOCATION.openInRegion(old.region,worldBlockedKeys(u,Date.now())))
     ||(old&&WORLD_LOCATION.REGIONS[old.region]&&Number.isFinite(old.x)&&Number.isFinite(old.y)
     &&WORLD_LOCATION.nearestInRegion(old.region,old.x,old.y,worldBlockedKeys(u,Date.now())))
@@ -4445,8 +4445,11 @@ let _siegeSettledAt=0;
 function siegeSettleGuilds(now){
   const s=DB.worldSieges; if(!s||!s.sites||typeof s.sites!=='object') return null;
   const touched=new Set(); let changed=false;
+  /* v1249 (Phil 1 Nov: "Event is over i shouldnt own it still"): the World Tree is held only during its event - when the event ends its
+     holder lets it go and every garrison line there marches home */
+  let treeOpen=true; try{ const c=WORLD_TREE_CALENDAR.snapshot(DB,{now}); treeOpen=!!(c.configured&&c.phase==='event'); }catch(e){}
   for(const [sid,h] of Object.entries(s.sites)){ if(!h) continue;
-    const holderOk=h.type==='guild'?!!(DB.guilds&&DB.guilds[h.id]):!!(DB.users[h.id]&&DB.users[h.id].guildId);
+    const holderOk=((sid!=='tree'&&!String(sid).startsWith('oasis-'))||treeOpen)&&(h.type==='guild'?!!(DB.guilds&&DB.guilds[h.id]):!!(DB.users[h.id]&&DB.users[h.id].guildId));
     const lines=Array.isArray(h.garrison)?h.garrison:[], keep=[];
     for(const l of lines){ const u=DB.users[l.uid];
       if(holderOk&&(h.type!=='guild'||(u&&u.guildId===h.id))){ keep.push(l); continue; }
@@ -4478,6 +4481,14 @@ function worldTravelState(u){
   return t;
 }
 function worldTravelDay(now){ return nyDayKey(now); }   // v1065: nyDayKey is the 09:00 day itself
+/* v1249 MINE STOCK (Phil 1 Nov: "When I click a mine i should be able to see how much resources are left in it" / "When I retreated it depleted
+   the mine" / "The mine should remain if it still has resources to mine"): each mine of the 8-h field holds MINE_HAULS hauls of its level's
+   yield, shared by every player (DB.mineStock = {epoch, used:{nodeId:amount}}). A WON haul takes up to one yield from it; a retreat or a lost
+   fight takes nothing. The mine stays on the map until its stock is gone. */
+const MINE_HAULS=3;
+function mineHaulBase(level){ const L=Math.max(1,Math.min(10,level|0)); return Math.round((40+L*55)*(1+(L-1)*0.18)); }
+function mineStockState(epoch){ let s=DB.mineStock; if(!s||s.epoch!==epoch){ s=DB.mineStock={epoch,used:{}}; } if(!s.used||typeof s.used!=='object') s.used={}; return s; }
+function mineLeft(node,epoch){ const s=mineStockState(epoch); return Math.max(0,mineHaulBase(node.level)*MINE_HAULS-(s.used[node.id]|0)); }
 function worldView(u,now){
   const loc=worldLocation(u); if(!loc) return {ok:true,locked:true,needLevel:WITCH.UNLOCK_LEVEL};
   const t=worldTravelState(u),day=worldTravelDay(now);
@@ -7197,6 +7208,21 @@ async function api(req,res,url){
     return send(res,out.storageFailed?503:(out.ok?200:400),out);
   }
 
+  /* v1249 (Phil: "When I retreated it depleted the mine"): a retreat tells the server - the march is settled with nothing mined, the mine's
+     stock is untouched, and the player can march to it again at once */
+  if(p==='/api/world/mine/recall' && req.method==='POST'){
+    if(!me) return send(res,401,{error:'auth'});
+    const b=await body(req), rid=String(b.requestId||'').slice(0,48);
+    if(!rid) return send(res,400,{error:'requestId required'});
+    const out=worldMineDurable(me,me.id+':worldmine:recall:'+rid,(me)=>{ const now=Date.now(); worldMineMarches(me,now);
+      const march=(me.worldMineMarches||[]).find(m=>m.id===String(b.marchId||''));
+      if(!march) return {ok:false,error:'Unknown mine march.'};
+      if(march.resolved) return march.receipt||{ok:true,recalled:true};
+      { const travel=Math.max(0,(+march.homeAt)-(+march.arriveAt)), back=Math.max(1000,Math.min(travel,now-(+march.depart))); march.homeAt=now+back; }   // home after the trip back from where they are
+      march.resolved=true; march.resolvedAt=now; march.recalled=true; delete march.snaps;
+      march.receipt={ok:true,recalled:true,won:false,granted:0,marchId:march.id}; return march.receipt; });
+    return send(res,out.storageFailed?503:(out.ok?200:400),out);
+  }
   if((p==='/api/world/mine/start'||p==='/api/world/mine/resolve') && req.method==='POST'){
     if(!me) return send(res,401,{error:'auth'});
     const b=await body(req), rid=String(b.requestId||'').slice(0,48);
@@ -7212,7 +7238,8 @@ async function api(req,res,url){
         if(!node) return {ok:false,error:'That mine is not in the current field.'};
         const epoch=WORLD_MINES.epochAt(now);
         if(!me.mineClaims||me.mineClaims.epoch!==epoch) me.mineClaims={epoch,ids:[]};
-        if(me.mineClaims.ids.includes(node.id)) return {ok:false,error:'That mine was already claimed this cycle.'};
+        if(mineLeft(node,epoch)<=0) return {ok:false,error:'That mine is empty - a new field comes in the next cycle.'};   /* v1249: stock, not one claim a cycle */
+        if((me.worldMineMarches||[]).some(m=>m&&!m.resolved&&m.node&&m.node.id===node.id)) return {ok:false,error:'Your miners are already working that mine.'};
         const ids=Array.isArray(b.heroIds)?[...new Set(b.heroIds.map(String))].slice(0,5):[];
         if(!ids.length||ids.some(k=>!SIM.HERO_BASE[k]||!ownsHeroK(led,k)))
           return {ok:false,error:'Pick up to five heroes you own.'};
@@ -7287,7 +7314,10 @@ async function api(req,res,url){
         const mineLv=Math.max(1,Math.min(10,march.node.level|0));
         const mineGuild=me.guildId&&DB.guilds?.[me.guildId];
         const minerMul=mineGuild?1+((mineGuild.level||1)*0.03):1;
-        granted=Math.round((40+mineLv*55)*(1+(mineLv-1)*0.18)*minerMul);
+        const _ep=WORLD_MINES.epochAt(+march.depart||now), _st=mineStockState(WORLD_MINES.epochAt(now));
+        const take=(_st.epoch===_ep)?Math.min(mineHaulBase(mineLv),mineLeft(march.node,_ep)):mineHaulBase(mineLv);   /* v1249: a haul takes from the mine's stock (an old cycle's mine pays its haul) */
+        if(_st.epoch===_ep){ _st.used[march.node.id]=(_st.used[march.node.id]|0)+take; try{ typeof _dp==='function'&&_dp('mineStock'); }catch(e){} }
+        granted=Math.round(take*minerMul);
         A.mineDay[march.node.res]=used+granted;
         A.res[march.node.res]=(A.res[march.node.res]|0)+granted;
       }
@@ -9298,6 +9328,8 @@ async function api(req,res,url){
         if(!site) return {ok:false,error:'No such site.'};
         const why=WORLD_SIEGE.refusal({site,castle:loc,holder:WORLD_SIEGE.holderOf(sieges,site.id),me,now});
         if(why) return {ok:false,error:why,distance:WORLD_SIEGE.distance(loc,site)};
+        if(site.kind==='tree'||site.kind==='oasis'){ let open=false; try{ const c=WORLD_TREE_CALENDAR.snapshot(DB,{now}); open=!!(c.configured&&c.phase==='event'); }catch(e){}
+          if(!open) return {ok:false,error:(site.kind==='oasis'?'The oases':'The World Tree')+' can only be taken during the World Tree event.'}; }   /* v1249 (Phil: "Event is over i shouldnt own it" / "The oasis are still attackable also even the event is over") */
         const ids=Array.isArray(b.heroIds)?[...new Set(b.heroIds.map(String))].slice(0,5):[];
         if(!ids.length||ids.some(k=>!SIM.HERO_BASE[k]||!ownsHeroK(led,k))) return {ok:false,error:'Pick up to five heroes you own.'};
         if([...mines,...marches].some(m=>m.homeAt>now&&m.heroIds?.some(k=>ids.includes(k)))||ids.some(k=>WORLD_TREE_CONTROL.busy(DB.worldTreeControl,me.id,k,now)))
@@ -9405,6 +9437,10 @@ async function api(req,res,url){
         led.gems-=offer.gems; ledTx(me,'world:scrolls',{gems:-offer.gems});
         return {...worldView(me,now),ledger:ledgerView(me)};
       }
+      /* v1249 (Phil 1 Nov: "if your troops are marching, defending, attacking, garrison. You cannot teleport"): a castle with an army out
+         (a march, a mine, an attack, a siege, a Defend line or a garrison) stays where it is until they are home or recalled */
+      { const out=[...worldCityMarches(me,now),...worldMineMarches(me,now)].filter(m=>m&&+m.homeAt>now&&!(m.recall&&+m.homeAt<=now));
+        if(out.length) return {ok:false,error:'Your troops are out ('+out.length+') - recall them or wait until they are home to teleport.'}; }
       const kind=String(b.kind||'');
       if(kind==='targeted'){
         if(typeof b.x!=='number'||typeof b.y!=='number'||!Number.isFinite(b.x)||!Number.isFinite(b.y))
@@ -9530,7 +9566,7 @@ async function api(req,res,url){
     if(!me) return send(res,401,{error:'auth'});
     if(!worldLocation(me)) return send(res,200,{ok:false,locked:true,needLevel:WITCH.UNLOCK_LEVEL});
     const serverNow=Date.now(), epoch=WORLD_MINES.epochAt(serverNow);
-    return send(res,200,{ok:true,epoch,nodes:WORLD_MINES.field(epoch),
+    return send(res,200,{ok:true,epoch,nodes:WORLD_MINES.field(epoch).map(n=>({...n,left:mineLeft(n,epoch),total:mineHaulBase(n.level)*MINE_HAULS})),   /* v1249: stock */
       serverNow,epochEndsAt:(epoch+1)*WORLD_MINES.EPOCH_MS});
   }
 
