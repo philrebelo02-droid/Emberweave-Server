@@ -21,7 +21,7 @@ let pass=0;const ok=(c,m)=>{assert(c,m);pass++;};
   ok(missing===0,'every z0 tile exists ('+missing+' missing of '+D.tiles.length+')');ok(badHash===0,'every z0 tile matches realm.json ('+badHash+' differ)');
   ok(outside===0,'every z0 tile lies inside Grok\'s detail tiles ('+outside+' outside)');
   const offLevel=D.tiles.filter(t=>{const [r,c]=t.split(',').map(Number);return !(r>=0&&c>=0&&r<D.rows&&c<D.cols);});ok(offLevel.length===0,'every z0 tile is on the level, no negative row or column (v1238: the west-edge r1c0 made c=-1 tiles; '+offLevel.length+' off: '+offLevel.slice(0,3).join(' ')+')');
-  const DETAIL_SOURCES=17;   // v1238: every tile Grok has posted in detail2x NE, the latest round each (v1232: 8)
+  const DETAIL_SOURCES=21;   // v1239: every tile Grok has posted in detail2x NE, the latest round each (v1238: 17, v1232: 8)
   ok(D.sources.length===DETAIL_SOURCES&&new Set(D.sources.map(s=>s.r+','+s.c)).size===D.sources.length&&D.sources.every(s=>/^[0-9a-f]{64}$/.test(s.sha256)),'the '+D.sources.length+' detail sources (want '+DETAIL_SOURCES+') are recorded with their sha256, one file per tile position, the latest round each');
   // a view outside the detail gets no z0 tile: the client filters by the same tile set. v1238: the probe is the inside of a 4096 cell
   // no detail tile covers (r4c1 now covers the old fixed south-west probe)
