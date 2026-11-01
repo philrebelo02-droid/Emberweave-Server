@@ -29879,7 +29879,7 @@ function devAdminList(kind,b){ const out=b&&b.querySelector('#devAdmin'); if(!ou
   api(kind==='online'?'/api/admin/online':'/api/admin/accounts').then(d=>{
     if(!d||d.error){ out.innerHTML='<span style="color:#ff8b8b">'+escapeHTML((d&&d.error)||'Server unreachable')+'</span>'; return; }
     const rows=(kind==='online'?d.online:d.accounts)||[];
-    const ago=t=>{ if(!t)return '—'; const s=Math.floor((Date.now()-t)/1000); if(s<60)return s+'s ago'; const m=Math.floor(s/60); if(m<60)return m+'m ago'; const h=Math.floor(m/60); if(h<24)return h+'h ago'; return Math.floor(h/24)+'d ago'; };
+    const ago=t=>{ if(!t)return '—'; const s=Math.max(0,Math.floor((Date.now()-t)/1000));   /* v1251: a phone clock a second ahead read '-1s ago' */ if(s<60)return s+'s ago'; const m=Math.floor(s/60); if(m<60)return m+'m ago'; const h=Math.floor(m/60); if(h<24)return h+'h ago'; return Math.floor(h/24)+'d ago'; };
     const dt=t=>{ if(!t)return '—'; const x=new Date(t); return x.toLocaleDateString()+' '+x.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); };
     let html='<div style="font-weight:800;margin-bottom:4px">'+(kind==='online'?uiIcon('players')+' Online now: '+rows.length:uiIcon('folder')+' Total accounts: '+rows.length)+'</div>';
     if(!rows.length) html+='<span style="color:#8b98a9">None found.</span>';
