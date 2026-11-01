@@ -1,5 +1,6 @@
 {
   "patches": [
+    {"ver": "0.99.9", "date": "1 November 2026", "title": "Oriel", "items": ["Oriel, the capital, is rebuilt as a castle on its hill inside a walled ring, and more of the realm is in fine detail."]},
     {"ver": "0.99.8", "date": "31 October 2026", "title": "Hero cards", "items": ["Hero cards in your roster are fully framed for every rarity, and each card shows the hero's class (Tank, Bruiser, Mage, Marksman, Assassin or Support)."]},
     {"ver": "0.99.7", "date": "31 October 2026", "title": "Full screen", "items": ["On phones, swiping down for the status bar no longer shrinks the game."]},
     {"ver": "0.99.6", "date": "31 October 2026", "title": "Map refresh", "items": ["The World Map shows the new Ashford and Lanternmere at every zoom (some browsers kept the old map data)."]},
