@@ -4370,7 +4370,12 @@ function worldLocation(u){
   const old=u.worldLocation;
   /* v1226 realm map: a castle the new map puts in the sea (or on another region's land) moves to the nearest land of its OWN
      region, never to a random region; only a castle with no home region yet is placed by the balancer */
-  const next=(old&&WORLD_LOCATION.REGIONS[old.region]&&Number.isFinite(old.x)&&Number.isFinite(old.y)
+  /* v1248 (Phil 1 Nov: "randomly teleport my city to my region"): a castle under the World Tree art moves to a RANDOM open square of
+     its own region, not the nearest one */
+  const onTree=!!(old&&Number.isFinite(old.x)&&Number.isFinite(old.y)&&WORLD_LOCATION.REALM.isTree
+    &&WORLD_LOCATION.footprint(old.x,old.y).some(([cx,cy])=>WORLD_LOCATION.REALM.isTree(cx,cy)));
+  const next=(onTree&&WORLD_LOCATION.REGIONS[old.region]&&WORLD_LOCATION.openInRegion(old.region,worldBlockedKeys(u,Date.now())))
+    ||(old&&WORLD_LOCATION.REGIONS[old.region]&&Number.isFinite(old.x)&&Number.isFinite(old.y)
     &&WORLD_LOCATION.nearestInRegion(old.region,old.x,old.y,worldBlockedKeys(u,Date.now())))
     ||WORLD_LOCATION.place(taken,crypto.randomInt,mines.flatMap(n=>WORLD_LOCATION.GEO.mineKeys(n.x,n.y)));   /* v1227: sea + city cells are refused by the realm itself (regionSquare) */
   // A staged move or mine account is committed by its outer transaction, never here.
@@ -9311,7 +9316,7 @@ async function api(req,res,url){
         const target={x:site.x,y:site.y};   // Phil 30 Oct: "should march to the center of the city"
         const distance=WORLD_LOCATION.marchSquares(loc,target);   // march time in 220-grid squares, like every march
         const fixtureMs=process.env.NODE_ENV==='test'?Math.max(0,+process.env.WORLD_CITY_TEST_MS||0):0;
-        const timing=fixtureMs?null:WORLD_VOID_TIMING.plan(loc,target,patronMarchMs(led,distance*60000));
+        const timing=fixtureMs?null:WORLD_VOID_TIMING.plan(loc,target,patronMarchMs(led,distance*60000/WORLD_SIEGE.ATTACK_SPEED))   /* v1248 (Phil 1 Nov): an attack on a city, oasis or the World Tree marches at 2x speed - it goes to the site centre */;
         const travel=fixtureMs||timing.travelMs, seed=(crypto.randomBytes(4).readUInt32BE(0))>>>0;
         const march={id:uid(),kind:'siege',siteId:site.id,siteName:site.name,heroIds:ids,snaps,foe,seed,engine:host.buildVersion||null,defenders:defenders.length?'garrison':'guards',
           depart:now,arriveAt:now+travel,homeAt:now+travel*2,resolved:false,target,

@@ -2793,11 +2793,11 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 <script src="/assets/ui/world-march-sync.js?v=wm1"></script>
 <script src="/assets/ui/world-march-visual.js?v=wv4-g1237"></script>
 <script src="/assets/ui/skill-preview-stage.js?v=sp1206"></script>
-<script src="/world-realm.js?v=realm-v25-202611010336"></script>
+<script src="/world-realm.js?v=realm-v25-202611010748"></script>
 <script src="/assets/ui/world-tree-cycle.js?v=wt5"></script>
 <script src="/assets/ui/world-tree-art.js?v=wt-noflash-1228b"></script>
 <script src="/assets/ui/world-oasis-markers.js?v=om-ponds-1230"></script>
-<script src="/assets/ui/world-siege.js?v=siege-1237"></script>
+<script src="/assets/ui/world-siege.js?v=siege-1248"></script>
 <script src="/assets/ui/world-tree-countdown.js?v=wt5-roots-1228"></script>
 <script src="/assets/ui/world-tree-control-ui.js?v=wc8-ponds"></script>
 <script src="/assets/ui/world-tree-actions-ui.js?v=wa4-ponds"></script>
@@ -25294,7 +25294,7 @@ function viewCenterCoord(){ const zone=document.getElementById('wzone'); if(!zon
 function updateCoordReadout(){ const el=document.getElementById('coordRead'); if(!el)return; const p=castleCoord(myCastlePos().x,myCastlePos().y); el.textContent='🏰 X'+p.cx+' Y'+p.cy; }
 // distance shown to the player, in grid squares; the march TIME uses 220-grid squares (GEO.marchSquares, as the server) so it never changed
 function gridDist(tx,ty){ const c=myCastlePos(); return Math.max(1, Math.round(Math.hypot(tx-c.x,ty-c.y)/GRID_CELL)); }
-function marchOutMs(ctype,tx,ty){ const per=(ctype==='defend')?MARCH_MS_PER_SQUARE/2:MARCH_MS_PER_SQUARE;
+function marchOutMs(ctype,tx,ty){ const per=(ctype==='defend')?MARCH_MS_PER_SQUARE/2:(ctype==='siege')?MARCH_MS_PER_SQUARE/((window.EmberweaveWorldSiege&&window.EmberweaveWorldSiege.ATTACK_SPEED)||2):MARCH_MS_PER_SQUARE;   /* v1248: a siege (city, oasis, World Tree) marches at 2x speed */
   let ms=GEO.marchSquares(myCastlePos(),{x:tx,y:ty})*per*marchZoneMul(tx,ty); // half speed only along the Void segment
   if(ctype==='scout') ms/=10;                  // scouting is 10× faster than the resulting march time
   return Math.max(1000,Math.round(ms)); }
@@ -25899,7 +25899,7 @@ function drawMarches(){
       }
       veh.appendChild(wrap);
     }
-    const t=document.createElement('div'); t.textContent=m.serverVisual?.phase==='awaiting-resolution'?'Pending result':mining?('Mining '+fmtDur(etaMs)):(stationed?'stationed':fmtDur(etaMs));
+    const t=document.createElement('div'); t.textContent=m.serverVisual?.phase==='awaiting-resolution'?'Pending result':mining?('Mining '+fmtDur(etaMs)):(stationed?'':fmtDur(etaMs));
     /* v1235: the timer reads like a castle name (10 px at --wm-lab, the castle names' scale) just under the ship; while mining it sits
        ABOVE the mine, which stays drawn on its intersection until the gather is done (Phil: "when im mining the mine dissapears") */
     t.className='marchTimer'+(mining?' mining':'');
@@ -26145,7 +26145,7 @@ function drawSiegeHolders(){ const S=siegeApi(), inner=document.getElementById('
   inner.querySelectorAll('.wmSiegeHolder').forEach(el=>el.remove());
   for(const [id,h] of Object.entries(_siegeState.sites||{})){ const s=S.byId(id); if(!s||!h) continue;
     const el=document.createElement('div'); el.className='wmSiegeHolder'; el.dataset.siteId=id; el.style.left=s.x+'%'; el.style.top=s.y+'%';
-    el.innerHTML=uiIcon('rally-flag')+'<span></span><b class="wmGarrison"></b>'; el.querySelector('span').textContent=h.name;
+    el.innerHTML='<b class="wmGarrison"></b>'; el.title=h.name;   /* v1248 (Phil 1 Nov: "Just put 1/8, dont need the flag emoji and the random 111 number"): the map shows only N/8 (the holder's name is in the site panel) */
     el.querySelector('.wmGarrison').textContent=S.garrisonLabel(s,h); inner.appendChild(el); } }   // v1237: N/8, a capital N/10
 function siegeArmiesFree(){ const a=_siegeState.armies; return !a||!Number.isFinite(a.cap)||(a.out|0)<a.cap; }
 async function openSiegePanel(siteId){ const S=siegeApi(); if(!S) return; const site=S.byId(siteId); if(!site) return;
@@ -26281,11 +26281,10 @@ function openMarchSelect(ctype,c){
   const verb=ctype==='garrison'?'Defense':ctype==='defend'?'Defend':ctype==='group'?'Group Attack':'Attack';
   function render(){ ov.innerHTML=`<div style="background:#141b2b;border:1px solid #2a3550;border-radius:14px;padding:14px;width:94%;max-width:470px;max-height:calc(var(--ew-game-height,100vh) * 0.86);overflow:auto;max-width:600px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div style="font-weight:800">${verb} · ${escapeHTML(c.name)}</div><button class="btn sm secondary" id="mcX">${uiIcon('close')}</button></div>
-      <div style="font-size:11px;color:#8b98a9;margin-bottom:10px">Choose up to 5 heroes to march. Distance <b>${gridDist(c.x,c.y)}</b> squares · march time <b style="color:#ffd45e">${fmtDur(marchOutMs(ctype,c.x,c.y))}</b> each way. Heroes on a march can't join another until they return.</div>
-      ${rsPickerHTML(heroes,sel,blocked,k=>`<span style="color:${blocked(k)?'#ff8b8b':'#ffd45e'};font-weight:700">${busy.has(k)?'marching':fallen(k)?pickerHpLine(hp,k):statusIcon('attack')+' '+myHeroPower(k).toLocaleString()+pickerHpLine(hp,k)}</span>`)}
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
-        <div style="font-size:11px;color:#8b98a9">${sel.size}/5 · ${statusIcon('attack')} ${marchPower([...sel])||0}</div>
-        <button class="btn" id="mcGo" ${sel.size?'':'disabled'}>${verb} ${uiIcon('play')}</button></div></div>`;
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px">   <!-- v1248 (Phil 1 Nov: "put the march button at the top"): the march button sits beside the march time, no scrolling down -->
+        <div style="font-size:11px;color:#8b98a9">Distance <b>${gridDist(c.x,c.y)}</b> squares · march time <b style="color:#ffd45e">${fmtDur(marchOutMs(ctype,c.x,c.y))}</b> each way · ${sel.size}/5 · ${statusIcon('attack')} ${marchPower([...sel])||0}</div>
+        <button class="btn" id="mcGo" style="flex:none" ${sel.size?'':'disabled'}>${verb} ${uiIcon('play')}</button></div>
+      ${rsPickerHTML(heroes,sel,blocked,k=>`<span style="color:${blocked(k)?'#ff8b8b':'#ffd45e'};font-weight:700">${busy.has(k)?'marching':fallen(k)?pickerHpLine(hp,k):statusIcon('attack')+' '+myHeroPower(k).toLocaleString()+pickerHpLine(hp,k)}</span>`)}</div>`;
     ov.querySelector('#mcX').onclick=()=>ov.remove();
     ov.querySelectorAll('.mc-hero').forEach(el=>el.onclick=()=>{ const k=el.dataset.k; if(blocked(k))return; if(sel.has(k))sel.delete(k); else if(sel.size<5)sel.add(k); render(); });
     ov.querySelector('#mcGo').onclick=()=>{ if(!sel.size)return; startMarch(ctype,c,[...sel]); ov.remove(); }; rsPickerWire(ov,sel,render);
@@ -31261,7 +31260,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1793522450647';
+const BUILD_ID = '1793537526058';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

@@ -23,6 +23,7 @@
      CAPITALS           PHIL NAMED THE CAPITALS (31 Oct 2026: "orriel, hallowrime, lanternmere, durrakh are capitols"):
                         Durrakh 1504, Oriel 1212, Hallowrime 983, Qasrim 849 (Ashford 781 is fifth) */
 const RANGE_SQUARES=20, CELLS_PER_GUARD_LV=150, PROTECT_MS=3600000, MAX_GUARD_LV=10;
+const ATTACK_SPEED=2;   // v1248 (Phil 1 Nov: "attack times for buildings to be 2x the speed for the distance. Since you attack the center"): siege marches to a city, oasis or the World Tree
 const GARRISON_CAP=8, CAPITAL_CAP=10, CAPITALS=Object.freeze(['city-oriel','city-hallowrime','city-lanternmere','city-durrakh']);
 function realm(){ return root.EmberweaveRealm||(typeof require==='function'?require('../../world-realm.js'):null); }
 function slug(s){ return String(s).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''); }
@@ -58,7 +59,8 @@ function guardNode(site){ return {id:'siege:'+site.id, level:site.guardLevel}; }
 function holderOf(state,siteId){ const h=state&&state.sites&&state.sites[siteId]; return h&&typeof h.name==='string'?h:null; }
 function ownedBy(h,me){ if(!h||!me) return false; return h.type==='guild'?!!me.guildId&&h.id===me.guildId:h.id===me.id; }   // 'player' = a v1235 holder (before the guild rule)
 function isCapital(site){ return !!site&&CAPITALS.includes(site.id); }
-function garrisonCap(site){ return isCapital(site)?CAPITAL_CAP:GARRISON_CAP; }
+const TREE_CAP=15;   // v1248 (Phil 1 Nov: "tree should be able to garrison 15 lines")
+function garrisonCap(site){ return site&&site.kind==='tree'?TREE_CAP:isCapital(site)?CAPITAL_CAP:GARRISON_CAP; }
 function garrisonCount(h){ return h&&Array.isArray(h.garrison)?h.garrison.length:(h&&Number.isFinite(h.lines)?h.lines|0:0); }
 // the map / panel label: "N/8" (non-capital) or "N/10" (capital)
 function garrisonLabel(site,h){ return garrisonCount(h)+'/'+garrisonCap(site); }
@@ -84,6 +86,6 @@ function refusal(o){ const {site,castle,holder,me,now,freeMarch}=o||{};
   if(freeMarch===false) return 'All your armies are out.';
   return null; }
 const api={RANGE_SQUARES,CELLS_PER_GUARD_LV,PROTECT_MS,MAX_GUARD_LV,GARRISON_CAP,CAPITAL_CAP,CAPITALS,sites,byId,atCell,atPoint,distance,inRange,guardNode,
-  holderOf,ownedBy,refusal,slug,isCapital,garrisonCap,garrisonCount,garrisonLabel,garrisonRefusal};
+  ATTACK_SPEED,holderOf,ownedBy,refusal,slug,isCapital,garrisonCap,garrisonCount,garrisonLabel,garrisonRefusal};
 if(typeof module==='object'&&module.exports) module.exports=api; else root.EmberweaveWorldSiege=api;
 })(typeof globalThis==='object'?globalThis:this);

@@ -39,7 +39,7 @@ function treeCore(x,y){ return footprint(x,y).some(([cx,cy])=>coreCell(cx,cy)); 
 function targetAllowed(home,x,y){
   if(!REGIONS[home]||!Number.isFinite(x)||!Number.isFinite(y)||x<0||x>100||y<0||y>100) return false;
   return footprint(x,y).every(([cx,cy])=>{ const z=REALM.landZone(cx,cy);
-    return !!z&&!REALM.isSite(cx,cy)&&!coreCell(cx,cy)&&(!REGIONS[z]||z===home); });
+    return !!z&&!REALM.isSite(cx,cy)&&!coreCell(cx,cy)&&!(REALM.isTree&&REALM.isTree(cx,cy))&&(!REGIONS[z]||z===home); });   /* v1248: nor under the tree art */
 }
 // the castle square of `region` whose top-left cell is (ax,ay): every cell that region's open land, none blocked
 function regionSquare(region,ax,ay,occupied){

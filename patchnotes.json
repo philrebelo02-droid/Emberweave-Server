@@ -1,5 +1,6 @@
 {
   "patches": [
+    {"ver": "1.0.1", "date": "1 November 2026", "title": "The World Tree", "items": ["No more castles on the World Tree: its canopy and roots are blocked for teleports, and a castle already there moves to a random spot in its own region. Attacks on cities, oases and the World Tree march twice as fast. The World Tree holds 15 garrison lines. A held site shows just its garrison count, and the march button sits at the top of the march window."]},
     {"ver": "1.0.0", "date": "1 November 2026", "title": "A sharper realm, part 3", "items": ["More of the realm in fine detail, and four regions re-cut to line up exactly with the map underneath."]},
     {"ver": "0.99.9", "date": "1 November 2026", "title": "Oriel", "items": ["Oriel, the capital, is rebuilt as a castle on its hill inside a walled ring, and more of the realm is in fine detail."]},
     {"ver": "0.99.8", "date": "31 October 2026", "title": "Hero cards", "items": ["Hero cards in your roster are fully framed for every rarity, and each card shows the hero's class (Tank, Bruiser, Mage, Marksman, Assassin or Support)."]},

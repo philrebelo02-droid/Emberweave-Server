@@ -80,7 +80,7 @@ function moduleChecks() {
   const phil = ['city-durrakh', 'city-hallowrime', 'city-lanternmere', 'city-oriel'];   // Phil 31 Oct: "orriel, hallowrime, lanternmere, durrakh are capitols"
   ok(JSON.stringify(phil) === JSON.stringify(SG.CAPITALS.slice().sort()) && phil.every(id => cities.some(s => s.id === id)), 'CAPITALS = Phil\'s four (Oriel, Hallowrime, Lanternmere, Durrakh), each a real city (top4 by size was ' + top4.join(',') + ')');
   const cap = SG.byId(SG.CAPITALS[0]), city = cities.find(s => !SG.isCapital(s));
-  ok(SG.garrisonCap(cap) === 10 && SG.garrisonCap(city) === 8 && SG.garrisonCap(SG.byId('oasis-nw')) === 8 && SG.garrisonCap(SG.byId('tree')) === 8, 'caps: a capital 10, a city 8, an oasis 8, the World Tree 8');
+  ok(SG.garrisonCap(cap) === 10 && SG.garrisonCap(city) === 8 && SG.garrisonCap(SG.byId('oasis-nw')) === 8 && SG.garrisonCap(SG.byId('tree')) === 15, 'caps: a capital 10, a city 8, an oasis 8, the World Tree 15');
   ok(SG.garrisonLabel(city, { garrison: [1] }) === '1/8' && SG.garrisonLabel(cap, { garrison: [1, 2, 3] }) === '3/10' && SG.garrisonLabel(cap, { lines: 4 }) === '4/10' && SG.garrisonLabel(city, null) === '0/8', 'label: 1/8, 3/10 on a capital (from lines too)');
   const near = { x: city.x, y: city.y }, now = Date.now();
   ok(/^Join a guild to attack a city/.test(SG.refusal({ site: city, castle: near, holder: null, me: { id: 'u1' }, now })) && /^Join a guild to attack an oasis/.test(SG.refusal({ site: SG.byId('oasis-nw'), castle: near, holder: null, me: { id: 'u1' }, now }))
