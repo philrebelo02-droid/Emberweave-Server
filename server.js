@@ -5975,7 +5975,7 @@ async function api(req,res,url){
     if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
     feedbackSweep();
     const items=(Array.isArray(DB.feedback)?DB.feedback:[]).filter(x=>!x.received)
-      .sort((a,b)=>(a.t||0)-(b.t||0)).slice(0,100);
+      .sort((a,b)=>((a.kind==='cheat')-(b.kind==='cheat'))||((a.t||0)-(b.t||0))).slice(0,100);   /* v1251 (1 Nov: SoMalice's suggestion sat behind ~1,100 sim-bot cheat flags and never reached Ember): players' bugs and suggestions first, cheat flags after */
     return send(res,200,{items}); }
   if(p==='/api/ember/feedback/ack' && req.method==='POST'){
     if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
