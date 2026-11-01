@@ -317,6 +317,12 @@ async function run() {
     },admin.token);
     assert.equal(premature.ok,false,'mine cannot resolve before real arrival');
     assert.equal(premature.arriveAt,timed.arriveAt);
+    /* v1249 (Phil 1 Nov: "if your troops are marching ... You cannot teleport"): with this march out a teleport is refused; a recall brings them home (1 s here, they had barely left) and the castle may move again */
+    const outTele=await request('POST','/api/world/relocate',{kind:'wild',requestId:'tele-troops-out'},admin.token);
+    assert.equal(outTele.ok,false); assert.match(String(outTele.error||''),/troops are out/);
+    const recalled=await request('POST','/api/world/mine/recall',{marchId:timed.marchId,requestId:'mine-recall-home'},admin.token);
+    assert.equal(recalled.ok,true,JSON.stringify(recalled));
+    await new Promise(r=>setTimeout(r,1300));
     const occupied=new Set(map.nodes.flatMap(n=>L.GEO.mineKeys(n.x,n.y)));   // v1227: a mine holds the 4 cells around its intersection
     const otherCities=await wholeMap(admin.token);
     for(const c of otherCities.cities||[]) for(const k of L.footKeys(c.x,c.y)) occupied.add(k);
