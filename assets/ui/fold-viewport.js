@@ -12,14 +12,21 @@
   for(const Type of [w.MouseEvent,w.Touch])if(Type)for(const axis of ['X','Y'])Object.defineProperty(Type.prototype,'ewGame'+axis,{configurable:true,get:function(){return point(this.clientX,this.clientY)[axis.toLowerCase()];}});
   w.ewGameElementFromPoint=(x,y)=>{const p=screenPoint(x,y);return nativeHit(p.x,p.y)};
   w.ewGameView=()=>({width:state.width||w.innerWidth,height:state.height||w.innerHeight});
-  let focusRotation=null;
+  let focusRotation=null,big=null,since=0;
+  const fullApp=()=>{try{if(w.matchMedia('(display-mode: fullscreen)').matches||w.matchMedia('(display-mode: standalone)').matches)return true;if(String(d.referrer).startsWith('android-app://')){w.sessionStorage.setItem('ewApp','1');return true}return w.sessionStorage.getItem('ewApp')==='1'}catch(e){return false}};
   function fit(){if(!d.body)return;const de=d.documentElement,vv=w.visualViewport;
    const layoutW=de.clientWidth||w.innerWidth,layoutH=de.clientHeight||w.innerHeight;
    const input=d.activeElement&&/^(INPUT|TEXTAREA|SELECT)$/.test(d.activeElement.tagName);
    if(!input)focusRotation=null;
    const rotate=input&&focusRotation!=null?focusRotation:layoutW/layoutH<.8;
    if(input&&focusRotation==null)focusRotation=rotate;
-   const width=Math.min(layoutW,vv&&vv.width?Math.round(vv.width*(vv.scale||1)):layoutW),height=Math.min(layoutH,vv&&vv.height?Math.round(vv.height*(vv.scale||1)):layoutH);
+   let width=Math.min(layoutW,vv&&vv.width?Math.round(vv.width*(vv.scale||1)):layoutW),height=Math.min(layoutH,vv&&vv.height?Math.round(vv.height*(vv.scale||1)):layoutH);
+   // v1243 (Phil 31 Oct, Android app: "when I swipe down it reduces the size of the game until the screen goes back to normal"): in the installed
+   // full-screen app a swipe shows the system bars for a few seconds and the window shrinks under them. Keep the full size of this orientation
+   // while that lasts; a shrink that stays 4 s (a real change), a typing field (keyboard) or a turn of the phone is taken at once.
+   if(fullApp()&&!input){const land=layoutW>=layoutH,now=Date.now();
+    if(!big||big.land!==land||width>=big.w&&height>=big.h){big={land,w:width,h:height};since=0}
+    else if(width<=big.w&&height<=big.h&&(big.w-width>8||big.h-height>8)){if(!since)since=now;if(now-since<4000){width=big.w;height=big.h;w.setTimeout(refresh,4100)}else{big={land,w:width,h:height};since=0}}}
    Object.assign(state,{rotated:rotate,physicalWidth:width,physicalHeight:height,width:rotate?height:width,height:rotate?width:height});
    const b=d.body,square=!rotate&&layoutW/layoutH>=.8&&layoutW/layoutH<=1.25;
    if(b.classList.contains('ew-rotated')!==rotate)b.classList.toggle('ew-rotated',rotate);

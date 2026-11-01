@@ -1,6 +1,7 @@
 {
  "note": "Each draft item mapped to the SHIPPED note(s) in Emberweave Archive/Operating procedure/SHIPPED it came from.",
  "patches": [
+ {"ver": "0.99.7", "releases": "v1243", "items": [{"text": "On phones the title screen fills the whole screen, and swiping down for the status bar no longer shrinks the game.", "sources": ["Mechanics blueprints/26 - Servers and Cluster.md"]}]},
  {"ver": "0.99.6", "releases": "v1241", "items": [{"text": "The World Map shows the new Ashford and Lanternmere at every zoom (some browsers kept the old map data).", "sources": ["Mechanics blueprints/04 - City Wall.md"]}]},
  {"ver": "0.99.5", "releases": "v1240", "items": [{"text": "Cities, oases and the World Tree belong to guilds: leave your guild (or get removed) and your garrison marches home; a guild that disbands loses what it held.", "sources": ["Mechanics blueprints/04 - City Wall.md"]}]},
  {"ver": "0.99.4", "releases": "v1239", "items": [{"text": "More of the realm in fine detail, and two cities rebuilt: Ashford is now a moat fortress with a drawbridge, and the capital Lanternmere has a walled upper city and a busy lower town.", "sources": ["Mechanics blueprints/04 - City Wall.md"]}]},

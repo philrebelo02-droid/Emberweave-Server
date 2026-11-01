@@ -68,7 +68,7 @@
 })();
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<script src="/assets/ui/fold-viewport.js?v=18oct26"></script>
+<script src="/assets/ui/fold-viewport.js?v=1243"></script>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0b0e14">
 <meta name="mobile-web-app-capable" content="yes">
@@ -86,7 +86,8 @@
   #home{padding:0;}
   /* boot splash gate: shown for everyone until they tap the (invisible) logo Play button while online */
   #rotateGate{display:flex;align-items:center;justify-content:center;position:fixed;inset:0;z-index:9999;background:#0a0603;overflow:hidden;-webkit-tap-highlight-color:transparent;}
-  #rotateGate .splashWrap{position:relative;aspect-ratio:852/480;width:min(calc(var(--ew-game-width,100vw) * 0.94),calc(calc(var(--ew-game-height,100vh) * 0.94)*852/480));height:min(calc(var(--ew-game-height,100vh) * 0.94),calc(calc(var(--ew-game-width,100vw) * 0.94)*480/852));}
+  #rotateGate .splashWrap{position:relative;aspect-ratio:852/480;width:min(var(--ew-game-width,100vw),calc(var(--ew-game-height,100vh)*852/480));height:min(var(--ew-game-height,100vh),calc(var(--ew-game-width,100vw)*480/852));}   /* v1243 (Phil 31 Oct, phone: "the main screen isnt fit to frame"): full height, no 6% margin */
+  #rotateGate::before{content:'';position:absolute;inset:-40px;background:var(--ew-splash-bg,none) center/cover no-repeat;filter:blur(22px) brightness(.55);pointer-events:none;}   /* v1243: a wide phone's side bars filled with the same art, blurred */
   #rotateGate .splashImg{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block;-webkit-user-drag:none;}
   #rotateGate #splashVid{pointer-events:none;opacity:0;transition:opacity .5s ease;}   /* animated splash: fades in over the static image once it's playing */
   #rotateGate #splashVid.on{opacity:1;}
@@ -31258,7 +31259,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1793498204344';
+const BUILD_ID = '1793498591598';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
@@ -31544,7 +31545,7 @@ function enterGame(){ if(_splashEntered)return; _splashEntered=true;
   });
 }
 function setupLandscape(){
-  const img=document.getElementById('splashImg'); if(img&&SPLASH_BG) img.src=SPLASH_BG;
+  const img=document.getElementById('splashImg'); if(img&&SPLASH_BG){ img.src=SPLASH_BG; try{ document.documentElement.style.setProperty('--ew-splash-bg','url("'+String(SPLASH_BG).replace(/"/g,'%22')+'")'); }catch(e){} }
   const _ver=document.getElementById('splashVer'); if(_ver) _ver.textContent='v'+BUILD_ID;
   const vid=document.getElementById('splashVid');
   if(vid && isAssetRef(SPLASH_VID)){   // wire the animated splash loop (static image stays as fallback)
