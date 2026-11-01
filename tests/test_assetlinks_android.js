@@ -11,6 +11,7 @@ const fs = require('fs'), path = require('path'), os = require('os'), cp = requi
 const dir = path.resolve(process.argv[2] || path.join(__dirname, '..'));
 const PKG = 'com.emberweave.heroes';
 const FP = '17:56:1C:F7:05:C3:0A:C4:92:98:CF:1D:97:D0:71:29:2B:B0:A9:07:A7:9B:96:62:3D:F4:E7:E3:A7:FF:71:F7';
+const PLAY_FP = '98:CF:B0:BB:F1:0E:92:45:82:10:B4:93:64:C5:B9:A6:68:0C:7F:3A:3F:8B:2C:DD:A6:6F:12:F2:91:25:0D:B4';   // v1242: Google's Play app signing key (Play Console > App signing) - the key the installed app is signed with
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'assetlinks-'));
 const port = 8900 + Math.floor(Math.random() * 90);
 let pass = 0, fail = 0;
@@ -39,6 +40,7 @@ function get(p) {
     ok(!!st, 'a statement targets android_app ' + PKG);
     ok(!!st && Array.isArray(st.relation) && st.relation.includes('delegate_permission/common.handle_all_urls'), 'relation delegate_permission/common.handle_all_urls');
     ok(!!st && Array.isArray(st.target.sha256_cert_fingerprints) && st.target.sha256_cert_fingerprints.includes(FP), 'sha256_cert_fingerprints holds the upload key fingerprint');
+    ok(!!st && st.target.sha256_cert_fingerprints.includes(PLAY_FP), 'sha256_cert_fingerprints holds the Play app signing key fingerprint (v1242: without it the app shows an address bar)');
     const disk = (() => { try { return fs.readFileSync(path.join(dir, '.well-known', 'assetlinks.json')); } catch (e) { return null; } })();
     ok(!!disk && disk.equals(r.buf), 'served bytes are the repo file .well-known/assetlinks.json');
     // the other root static files are unchanged
