@@ -613,6 +613,8 @@ note "test_mine_stock_1249.js (v1249 mine stock: left shown, retreat takes nothi
 node tests/test_mine_stock_1249.js || FAILED=1
 note "test_feedback_order_1251.js (v1251: players' reports reach Ember before the sim-bot cheat flags)"
 node tests/test_feedback_order_1251.js || FAILED=1
+note "test_report_kind_1252.js (v1252: the report form has Bug / Suggestion)"
+node tests/test_report_kind_1252.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi
