@@ -23933,15 +23933,19 @@ async function apiResultRetry(path,body){ let r=null;
   return r; }
 /* v1249: the server is off after the quick retries - keep the player's fight, say so, and re-send the SAME request (same requestId, so a
    booked fight answers with its receipt, never twice) every few seconds once /api/health answers, for up to 15 minutes. */
-async function resultWaitServer(send,last){ const until=Date.now()+15*60000; let r=last, told=false, upTries=0;   /* the server answers health but the result still fails 3 times: stop (NOT COUNTED) */
+async function _resultHealthUp(){ try{ const o={cache:'no-store'}; try{ if(AbortSignal.timeout) o.signal=AbortSignal.timeout(10000); }catch(e){}
+  const h=await fetch('/api/health',o); return !!(h&&h.ok); }catch(e){ return false; } }   /* v1249: is the server up (its own 10 s limit, not a page timer) */
+async function resultWaitServer(send,last){ const until=Date.now()+15*60000; let r=last, told=false, upTries=0;
+  /* only a server that is really down is waited for: /api/health answers -> the quick retries already had their go, the caller shows
+     NOT COUNTED as before (a 429 / 500 / refused save is an answer, not an outage) */
+  if(await _resultHealthUp()) return r;
   while(resultReplyLost(r)&&Date.now()<until){
-    if(!told){ told=true; try{ bannerMsg('The server is offline - your fight is kept and will be saved when it is back.'); }catch(e){} }
+    if(!told){ told=true; try{ bannerMsg('The server is down - your fight is kept and will be saved when it is back.'); }catch(e){} }
     await new Promise(z=>setTimeout(z,5000));
-    let up=false; try{ up=(await _netProbe())==='ok'; }catch(e){}
-    if(!up) continue;
+    if(!(await _resultHealthUp())) continue;
     try{ r=await send(); }catch(e){ r=null; }
     if(!resultReplyLost(r)){ try{ netGateOk(); bannerMsg('Back online - your fight was saved.'); }catch(e){} }
-    else if(++upTries>=3) break; }
+    else if(++upTries>=3) break; }   /* back up but the result still fails 3 times: stop (NOT COUNTED) */
   return r; }
 /* the plain words for a result the server did not confirm - never the raw 'offline' / 'auth' token */
 function resultNotCountedText(r){ if(r&&r.storageFailed) return 'The server could not save it - this result is not confirmed.';

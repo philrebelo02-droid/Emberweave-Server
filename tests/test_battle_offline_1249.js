@@ -9,7 +9,8 @@ const gate=html.slice(html.indexOf('function netGateShown(){'), html.indexOf('fu
 ok(/updateUnsafe\(\)\) return false;/.test(gate) && gate.indexOf('updateUnsafe')<gate.indexOf('NETGATE.serverDown'),'netGateShown returns false during a fight / result screen, before any down check');
 ok(/function updateUnsafe\(\)\{ return state==='battle' \|\| state==='result'/.test(html),'updateUnsafe() covers the battle and result screens');
 const wait=html.slice(html.indexOf('async function resultWaitServer('), html.indexOf('async function resultWaitServer(')+1400);
-ok(wait.length>200 && /_netProbe\(\)\)==='ok'/.test(wait) && /15\*60000/.test(wait) && /await send\(\)/.test(wait),'resultWaitServer waits for /api/health up to 15 min, then re-sends');
+ok(wait.length>200 && /_resultHealthUp\(\)/.test(wait) && /15\*60000/.test(wait) && /await send\(\)/.test(wait),'resultWaitServer waits for /api/health up to 15 min, then re-sends');
+ok(/if\(await _resultHealthUp\(\)\) return r;/.test(wait),'a server that answers /api/health is not waited for (429/500/refused = NOT COUNTED at once, test_results_retry_1151)');
 ok(/else if\(\+\+upTries>=3\) break;/.test(wait),'a server that answers health but still fails the result 3 times ends the wait (NOT COUNTED, test_results_retry_1151)');
 ok(/if\(resultReplyLost\(r\)\) r=await resultWaitServer\(\(\)=>api\(path,'POST',body\),r\);/.test(html),'apiResultRetry (Vault, Elite, Province, Tower, Trial) waits for the server');
 ok(/resultWaitServer\(\(\)=>api\('\/api\/campaign\/resolve','POST',\{attemptId:att, requestId:_rid/.test(html),'the campaign result waits for the server with the SAME requestId');
