@@ -30485,7 +30485,9 @@ function ultCoachTick(){ const c=ULTCOACH;
   /* v1254 (Phil 2 Nov: 3 testers started 1-1 and never finished - the fight froze until they found the tap / press-hold-drag): after
      6 s the coach casts the ult for them (a normal recorded input, so the replay matches) and the fight goes on; the glow keeps teaching */
   if(c.hold&&aiming!==c.u&&c.since&&performance.now()-c.since>6000){ const u0=c.u; ewFunnel('coach-auto');
-    queueInput({k:'ult', uid:u0.uid, tid:null, wx:null, wy:null}); if(ULTCOACH.u===u0){ c.done[u0.uid]=1; ultCoachClear(); } return; }
+    let _a=null; try{ _a=optimalAimField(u0); }catch(e){}   /* aimed like AUTO does (an unaimed cast wasted the ult: a hands-off 1-1 was LOST on wave 2) */
+    const _t=(_a&&_a.tgt)||nearestEnemy(u0);
+    queueInput({k:'ult', uid:u0.uid, tid:(_t?_t.uid:null), wx:(_a&&_a.x!=null?+_a.x:null), wy:(_a&&_a.y!=null?+_a.y:null)}); if(ULTCOACH.u===u0){ c.done[u0.uid]=1; ultCoachClear(); } return; }
   const u=c.u, h=document.getElementById('ultHint'), nm=escapeHTML((HERO_TYPES[u.key]||{}).name||u.key), ab=escapeHTML(u.t.abilityName||'Ultimate');
   if(h) h.classList.add('ult-coach');
   if(aiming===u){ if(u._pEl) u._pEl.classList.remove('ult-coach-glow');

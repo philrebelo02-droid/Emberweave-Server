@@ -6,7 +6,7 @@ const dir = process.env.OB_DIR || path.join(__dirname, '..');
 const html = fs.readFileSync(process.env.OB_HTML || path.join(dir, 'emberweave-heroes.html'), 'utf8');
 let pass = 0; const ok = (c, m) => { assert(c, m); pass++; console.log('  ok   ' + m); };
 ok(/c\.hold&&aiming!==c\.u&&c\.since&&performance\.now\(\)-c\.since>6000/.test(html), 'the ult coach stops holding the first fight after 6 s');
-ok(/queueInput\(\{k:'ult', uid:u0\.uid, tid:null, wx:null, wy:null\}\)/.test(html), '...and casts the ult as a normal recorded input');
+ok(/_a=optimalAimField\(u0\)/.test(html) && /queueInput\(\{k:'ult', uid:u0\.uid, tid:\(_t\?_t\.uid:null\)/.test(html), '...and casts the ult AIMED like AUTO, as a normal recorded input');
 ok(/c\.hold=true; c\.since=performance\.now\(\)/.test(html), 'the wait is timed from when the coach starts holding');
 ok(/nb\.scrollIntoView\(\{block:'center'\}\)/.test(html), 'START HERE brings the current step\'s button on screen');
 ok(/#authGate\{justify-content:center\}/.test(html), 'the sign-in card is centred');
