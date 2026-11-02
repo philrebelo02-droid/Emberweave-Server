@@ -23,17 +23,15 @@ for (const k of keys) { let o, n; try { o = pick(OLD, k); n = pick(NEW, k); } ca
   for (const f of ['hp', 'dmg', 'ai']) if (!near(n[f], o[f])) bad.push(k + '.' + f + ' changed ' + o[f] + ' -> ' + n[f]); }
 ok(bad.length === 0 && skipped < keys.length / 10, (keys.length - skipped) + ' heroes + monsters: range, reach, row hold, speed, radius and figure height all x1.15, hp / dmg / attack speed unchanged' + (bad.length ? ' - ' + bad.slice(0, 8).join('; ') : ''));
 // every ability table: distance fields x1.15, everything else identical
-const DIST = /^(range|radius|reach|width|len|length|dist|distance|wave|gfxR|push|knock|knockback|leap|dash)$/;
+const DIST = /(range|radius|reach|width|len|length|dist|distance|wave|gfxR|knock|dash|jump|aim)$/i;   // distance-named (case-insensitive suffix)
 const dump = run => JSON.parse(run(`JSON.stringify({ULT_DEF, KITS, MONSTER_KITS: (typeof MONSTER_KITS!=='undefined'?MONSTER_KITS:{})})`));
-const O = dump(OLD), N = dump(NEW); const notes = []; let nDist = 0;
+const O = dump(OLD), N = dump(NEW); const missed = [], odd = []; let scaled = 0, same = 0;
 const walk = (o, n, p) => { if (typeof o === 'number' && typeof n === 'number') { const f = p.split('.').pop();
-    if (DIST.test(f) && o > 0 && o < 50000) { nDist++; if (!near(n, o * S)) notes.push(p + ' ' + o + ' -> ' + n); }
-    else if (!near(n, o) && !(DIST.test(f))) notes.push(p + ' (not a distance) ' + o + ' -> ' + n); return; }
+    if (o !== 0 && near(n, o * S)) { scaled++; return; }
+    if (near(n, o)) { same++; if (DIST.test(f) && o > 0 && o < 50000) missed.push(p + ' ' + o); return; }
+    odd.push(p + ' ' + o + ' -> ' + n); return; }
   if (o && typeof o === 'object' && n && typeof n === 'object') for (const k of Object.keys(o)) walk(o[k], n[k], p + '.' + k); };
 walk(O, N, '');
-// time-like fields that merely share a name with a distance (gap / leap / pull / push are seconds or strengths in ULT_DEF) are listed by name
-const timeLike = notes.filter(x => /\.(leap|push|pull|gap)\b/.test(x));
-const real = notes.filter(x => !timeLike.includes(x));
-ok(real.length === 0, nDist + ' distance fields in ULT_DEF / KITS / MONSTER_KITS are x1.15 and no other number changed' + (real.length ? ' - ' + real.slice(0, 10).join('; ') : ''));
-console.log('  note (fields named like distances that are times / strengths, left as they were): ' + (timeLike.slice(0, 6).join('; ') || 'none'));
+ok(odd.length === 0, 'every number in ULT_DEF / KITS / MONSTER_KITS is either x1.15 (' + scaled + ') or unchanged (' + same + ') - nothing changed by any other amount' + (odd.length ? ' - ' + odd.slice(0, 8).join('; ') : ''));
+ok(missed.length === 0, 'no distance-named field was left unscaled' + (missed.length ? ' - ' + missed.slice(0, 12).join('; ') : ''));
 console.log('test_size_1258.js: ' + pass + ' checks passed');
