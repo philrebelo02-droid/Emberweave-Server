@@ -619,6 +619,8 @@ note "test_username_1253.js (v1253: username fixed, nickname separate, dev role 
 node tests/test_username_1253.js || FAILED=1
 note "test_onboarding_1254.js (v1254: first fight never waits, START HERE button on screen, framed sign-in/terms/start, funnel)"
 node tests/test_onboarding_1254.js || FAILED=1
+note "test_intro_1255.js (v1255: scripted stage 1-1 - Vael alone, Vireo and Sylthaine join, 2/3/4 waves, server replay)"
+node tests/test_intro_1255.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi

@@ -43,68 +43,7 @@
       ],
       "fragmentRolls": 2
     },
-    "waves": [
-      [
-        {
-          "key": "ooznik",
-          "lvl": 1,
-          "hpMul": 1.0868,
-          "dmgMul": 1.1739
-        },
-        {
-          "key": "grushak",
-          "lvl": 1,
-          "hpMul": 1.0868,
-          "dmgMul": 1.1739
-        },
-        {
-          "key": "cindertusk",
-          "lvl": 1,
-          "hpMul": 1.0868,
-          "dmgMul": 1.1739
-        }
-      ],
-      [
-        {
-          "key": "cinder skulk",
-          "lvl": 1,
-          "hpMul": 1.0868,
-          "dmgMul": 1.1739
-        },
-        {
-          "key": "skulk",
-          "lvl": 1,
-          "hpMul": 1.0868,
-          "dmgMul": 1.1739
-        },
-        {
-          "key": "shellwark",
-          "lvl": 1,
-          "hpMul": 1.0868,
-          "dmgMul": 1.1739
-        }
-      ],
-      [
-        {
-          "key": "sootwing imp",
-          "lvl": 1,
-          "hpMul": 1.0868,
-          "dmgMul": 1.1739
-        },
-        {
-          "key": "ooznik",
-          "lvl": 1,
-          "hpMul": 1.0868,
-          "dmgMul": 1.1739
-        },
-        {
-          "key": "shellwark",
-          "lvl": 1,
-          "hpMul": 1.0868,
-          "dmgMul": 1.1739
-        }
-      ]
-    ],
+    "waves": [[{"key":"ooznik","lvl":1,"hpMul":0.76,"dmgMul":0.82,"intro":"1-1"},{"key":"grushak","lvl":1,"hpMul":0.76,"dmgMul":0.82}],[{"key":"cinder skulk","lvl":1,"hpMul":0.54,"dmgMul":0.5},{"key":"skulk","lvl":1,"hpMul":0.54,"dmgMul":0.5},{"key":"shellwark","lvl":1,"hpMul":0.54,"dmgMul":0.5}],[{"key":"sootwing imp","lvl":1,"hpMul":0.54,"dmgMul":0.5},{"key":"ooznik","lvl":1,"hpMul":0.54,"dmgMul":0.5},{"key":"shellwark","lvl":1,"hpMul":0.54,"dmgMul":0.5},{"key":"cindertusk","lvl":1,"hpMul":0.54,"dmgMul":0.5}]],
     "targetLevel": 1,
     "targetGlyph": "None",
     "recommendedQuality": "Grey",

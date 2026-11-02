@@ -958,6 +958,8 @@
   .tut-target-glow{outline:3px solid #ffd45e!important;outline-offset:3px;box-shadow:0 0 0 2px #fff1a5,0 0 24px #ffcf5e!important;animation:tutGoldPulse 1.25s ease-in-out infinite!important;position:relative;z-index:3;}
   .cnode.tut-target-glow{position:absolute!important;z-index:6!important;}
   .portrait.ult-coach-glow{outline:3px solid #ffd45e;outline-offset:2px;animation:tutGoldPulse 1.0s ease-in-out infinite;z-index:5;}
+  /* v1255 scripted 1-1: a SLOW flash on the coached portrait (Phil: "the ult glowing light flashes over and over slowly") */
+  body.intro11 .portrait.ult-coach-glow{animation-duration:2.2s}
   #ultHint.ult-coach{font-size:15px;font-weight:900;color:#ffe08a;text-shadow:0 1px 3px #000,0 0 10px #000;}
   .qcard .qt{letter-spacing:.12px;text-shadow:0 1px 3px #000;}.qcard .qd{color:#aab7c9;line-height:1.45;}.qrew{text-shadow:0 1px 5px rgba(255,212,94,.26);}
   .qbar{height:9px;background:#080d16;border-color:#2e3c57;box-shadow:inset 0 2px 4px rgba(0,0,0,.55);}
@@ -10015,6 +10017,7 @@ function simCampaignReplay(allySnaps, cwaves, seed, inputLog, manual){
   units=[];                                 // startBattle() clears the field first — so does this
   spawnTeamFromSnaps(allySnaps);
   buildEnemyWave();
+  introSetup();   /* v1255: the scripted 1-1 replays exactly as the player saw it */
   beginWaveEnter();
   REPLAY_IN=keep; _riIdx=0;
   for(let i=0;i<14400 && !ended;i++) updateBattle(SIM_STEP);
@@ -15056,6 +15059,7 @@ function _startBattleNow(){
   if(CUR.mode==='campaign'){ autoUlt=false; chapterWaves=(Array.isArray(CUR.cwaves)&&CUR.cwaves.length)?CUR.cwaves.length:wavesForChapter(CUR.node); waveIdx=0;
     if(Array.isArray(CUR.serverSnaps)&&CUR.serverSnaps.length) spawnTeamFromSnaps(CUR.serverSnaps); else spawnTeam(G.team,'ally');
     buildEnemyWave();
+    introSetup();   /* v1255 scripted 1-1 */
     actBegin();   // v275: tell the server the battle is running, so its clock starts with ours
     bannerMsg('STAGE '+CUR.node+'\nWAVE 1'); beginWaveEnter(); }
   else if(CUR.mode==='province'||CUR.mode==='well'){ autoUlt=false; chapterWaves=(Array.isArray(CUR.cwaves)&&CUR.cwaves.length)?CUR.cwaves.length:3; waveIdx=0;   /* v663: mirrors the campaign branch step for step - the server replays it with simCampaignReplay */
@@ -15724,7 +15728,10 @@ function battleFrameTail(dt){
   updateVoidZones(dt);   // Umbris Umbral Cataclysm void zones
   updateGroundFx(dt); updateProjFx(dt); try{ updateTipFx(dt); updateUnitFx(dt); }catch(e){} updateBees(dt); updateBeamFx(dt); try{ updateBoltFx(dt); }catch(e){} updatePendingDots(dt); updateStatusFx(dt); try{ updateWaxFx(dt); }catch(e){}   // batch FX: ground zones, projectiles, gas beams, delayed plague DoTs, DoT feet-FX
 }
-function updateBattle(dt){
+/* v1255: the scripted 1-1 steps AFTER the whole tick - energy is gained in ~16 places during a tick, so a cap applied before them
+   let Vael fill early (he froze at 79% HP in the first look). Every caller (live loop + all server replays) goes through here. */
+function updateBattle(dt){ _updateBattleCore(dt); if(CUR&&CUR._intro) introTick(dt); }
+function _updateBattleCore(dt){
   /* 29 Aug — SLINGSHOT/JITTER ON WAVE CHANGE. The px/py snapshot below used to sit AFTER this early
      return, so for the whole wave transition px/py stayed frozen at the last combat position while
      updateWaveXfer kept moving x/y. The renderer interpolates rx = px + (x-px)*alpha with alpha
@@ -16719,6 +16726,7 @@ function drawOverlay(){octx.clearRect(0,0,CW,CH); _edOvRect=null; if(state==='ba
      part of the text now takes BONUS_UNIT_SCALE, the factor the heroes and (v592) their spell areas take: font, outline,
      name plate padding/corners, and the rise. Zooming in still grows them with the units. */
   const _ftK=_ftBn?BONUS_UNIT_SCALE:1;
+  try{ introDrawBubble(); }catch(e){}   /* v1255 */
   floatTexts.forEach(f=>{const _fdb=ftIsDebuff(f); const p=project(f.x,f.y,(_fdb?FT_FEET_HZ:(f.hz||(f.label?3.1:1.8)))*(_ftBn?BONUS_UNIT_SCALE*1.4:1));   /* v1141: a debuff word is projected from the feet line */if(!p.vis)return; if(f._oy!=null) p.y+=f._oy;   // v942: a status word's place in its unit's column   // v253: ability NAMES float higher, clear of the melee cluster
     const life=Math.min(1,f.t*2.2), sz=(f.sz||16)*_ftK*((ftIsStatus(f)||_fdb)?FT_STATUS_SCALE:1), col=f.color||'#fff';
     octx.globalAlpha=life*(f._fade==null?1:f._fade);
@@ -30474,6 +30482,82 @@ function refreshCtrlBtns(){const sb=document.getElementById('speedBtn'),ab=docum
    pressed) a ring glows on the best target; the player drags onto it and lets go. Render and input only - the cast is the same
    queued input on the same tick, so the server's replay of the fight is unchanged. */
 const ULTCOACH={u:null,done:{},ring:null,hold:false};
+
+/* v1255 STAGE 1-1 SCRIPTED INTRO (Phil 2 Nov 2026: "Basically its a scripted fight, nearly animation, the fight starts out and just vael
+   runs in. Against 2 enemies. He reaches his ult when hes about 75% health" ... Vireo rushes in after his ult, Sylthaine at wave 2,
+   wave 3 = 4 enemies; full spec: Open Projects/STAGE 1-1 SCRIPTED INTRO FIGHT). ENGINE part - runs the same in the player's fight and
+   in the server's replay (simCampaignReplay): it is switched on by the authored waves (wave 1's first enemy carries intro:'1-1'), so
+   both sides always agree. Who stands on the field, Vael's energy and the entry times are all sim state on sim time. The words,
+   bubbles and slow-flashing portraits are UI only (introSay / introDrawBubble), shown on a player's first time through 1-1. */
+function introOn(){ return !!(CUR&&CUR.mode==='campaign'&&Array.isArray(CUR.cwaves)&&CUR.cwaves[0]&&CUR.cwaves[0][0]&&CUR.cwaves[0][0].intro==='1-1'); }
+function introSetup(){ if(!introOn()) return;
+  const al=units.filter(u=>u.team==='ally'), vael=al.find(u=>u.key==='vael'), vireo=al.find(u=>u.key==='vireo'), syl=al.find(u=>u.key==='sylthaine');
+  if(!(vael&&vireo&&syl&&al.length===3)) return;   // the script needs the starter trio - any other squad plays 1-1 as a normal stage
+  CUR._intro={vael:vael.uid, vireo, syl, t:0, wave:0};
+  units=units.filter(u=>u!==vireo&&u!==syl);       // benched off the field until their cue
+  [vireo,syl].forEach(u=>{ if(u.mesh) u.mesh.visible=false; });
+  vael.energy=Math.min(vael.energy,60);
+  CUR._introUI=!window._p2guard&&!CUR.headless&&(G.campaignCleared||0)<1;
+}
+function introEnter(u){ const I=CUR._intro; if(!u||units.indexOf(u)>=0) return;
+  const al=units.filter(x=>x.team==='ally'), keys=al.map(a=>a.key).concat([u.key]);
+  const sl=laneSlot('ally',u.key,keys.length-1,keys.length,keys); u.homeX=sl.x; u.homeY=sl.y; u.laneX=sl.x;
+  const st=heroOffscreenStart(sl.x,sl.y); u.x=st.x; u.y=st.y; u.px=u.x; u.py=u.y; u.target=null;   // runs in from off screen
+  units.push(u); if(u.mesh) u.mesh.visible=true;
+  (I.walk=I.walk||[]).push(u.uid);   // walks onto the field to its own spot (a back-row caster in range of everything never moved - Phil: "Sylthaines bubble isnt over head")
+  if(!window._p2guard){ try{ buildPortraitBar(); }catch(e){} }
+}
+function introTick(dt){ const I=CUR._intro, vael=unitByUid(I.vael);
+  if(vael&&vael.alive&&!I.vaelFull&&vael.hp>vael.maxHp*0.75) vael.energy=Math.min(vael.energy,99);   // his ult waits for ~75% HP
+  if(waveXfer||ended) return;   // entries and lines wait for the wave transition to finish
+  I.t+=dt;
+  if(I.walk&&I.walk.length) I.walk=I.walk.filter(uid=>{ const w=unitByUid(uid); if(!w||!w.alive||w.homeX==null) return false;
+    const dx=w.homeX-w.x, dy=w.homeY-w.y, d=Math.hypot(dx,dy); if(d<10) return false;
+    const st=Math.min(d,Math.max(90,(w.speed||70)*1.4)*dt); w.x+=dx/d*st; w.y+=dy/d*st; return true; });
+  if(waveIdx!==I.wave){ I.wave=waveIdx;
+    if(waveIdx===1){ if(!I.vireoIn){ I.vireoIn=I.t; introEnter(I.vireo); } I.sylIn=I.t; introEnter(I.syl); introSay('syl_in',I.syl); }
+    if(waveIdx===2) introSay('vael_kill',vael); }
+  if(vael&&vael.alive&&!I.vaelFull){   // his ult arrives at ~75% HP - held just under full until then
+    if(vael.hp<=vael.maxHp*0.75){ vael.energy=100; I.vaelFull=I.t; introSay('vael_ready',vael); } else vael.energy=Math.min(vael.energy,99); }
+  if(I.vaelFull&&!I.vaelCast&&vael&&vael.energy<100){ I.vaelCast=I.t; introSay('vael_after',vael); }
+  if(I.vaelCast&&!I.vireoIn&&I.t>=I.vaelCast+1.6){ I.vireoIn=I.t; introEnter(I.vireo); introSay('vireo_in',I.vireo); }
+  if(I.vireoIn&&!I.vaelReply&&waveIdx===0&&I.t>=I.vireoIn+2.6){ I.vaelReply=1; introSay('vael_reply',vael); }
+  if(I.vireoIn&&!I.vireoFull&&I.t>=I.vireoIn+4.8&&I.vireo.alive){ I.vireoFull=1; I.vireo.energy=100; introSay('vireo_ready',I.vireo); }
+  if(I.sylIn!=null&&!I.sylFull&&I.t>=I.sylIn+5&&I.syl.alive){ I.sylFull=1; I.syl.energy=100; introSay('syl_ready',I.syl); }
+}
+/* UI: a speech bubble over the speaker (Phil 2 Nov: bubble, no bottom box). Lines in each hero's voice (Phil: "The dialogue i said isnt set in stone just
+   an idea") - edit freely; voices come later (Phil: "We will add voices to the dialogue later"). */
+const INTRO_LINES={ vael_ready:["Vael","You won't strike me down. Not today!"], vael_after:["Vael","I've bled worse than this at Ashford!"],
+  vireo_in:["Vireo","Need a hand, Vael?"], vael_reply:["Vael","You'll only slow me down. Get behind me!"],
+  vireo_ready:["Vireo","Hush now... this one's my encore!"], syl_in:["Sylthaine","Step aside, boys. Winter's here."],
+  syl_ready:["Sylthaine","Hold still... and stay frozen!"], vael_kill:["Vael","KILL! KILL! KILL!"] };
+function introSay(k,u){ if(window._p2guard||!CUR||!CUR._introUI||!INTRO_LINES[k]) return;
+  const L=INTRO_LINES[k]; CUR._introSay={k,uid:u&&u.uid,t0:performance.now(),who:L[0],txt:L[1]}; }
+/* Phil 2 Nov: "Actually go back to the bubble, remove the bottom text box" - the line is a speech bubble over the speaker only. */
+function introDrawBubble(){ const S=CUR&&CUR._introSay, live=!!(S&&state==='battle'&&!ended);
+  try{ document.body.classList.toggle('intro11', !!(CUR&&CUR._introUI&&state==='battle')); }catch(e){}
+  const held=live&&ULTCOACH.hold&&ULTCOACH.u&&ULTCOACH.u.uid===S.uid, age=live?(performance.now()-S.t0)/1000:99;
+  if(!live||(age>3.8&&!held)) return;
+  const u=unitByUid(S.uid); if(!u||!u.alive) return;
+  /* Phil 2 Nov: "Make sure the bubble isnt covering anyone" - every live unit's on-screen box (feet to head, sprite height) is kept
+     clear: the bubble sits above the speaker's head and steps up / sideways until it touches nobody. */
+  const ux=v=>v.x, uy=v=>v.y,   /* the sim position: a hero who joined mid-fight kept a stale render position (Sylthaine's bubble sat at the off-screen corner) */ hz=v=>(v.sprH!=null?v.sprH:(v.boss?3.2:2.0)*(v.r/18));
+  const head=project(ux(u),uy(u),hz(u)+0.25); if(!head.vis) return;
+  const boxes=units.filter(v=>v.alive&&!v._dropHidden).map(v=>{ const t=project(ux(v),uy(v),hz(v)), f=project(ux(v),uy(v),0); const hgt=Math.max(20,f.y-t.y);
+    return {x0:t.x-hgt*0.32, x1:t.x+hgt*0.32, y0:t.y-4, y1:f.y}; });
+  octx.save(); octx.globalAlpha=Math.min(1,age*4); octx.font='800 15px Georgia,serif';
+  const w=Math.min(280,octx.measureText(S.txt).width+22), hh=28;
+  const hits=(x,y)=>boxes.some(b=>x<b.x1&&x+w>b.x0&&y<b.y1&&y+hh+10>b.y0);
+  let bx=head.x-w/2, by=head.y-hh-12, done=false;
+  for(let k=0;k<7&&!done;k++){ for(const dx of [0,-0.6,0.6]){ const x=head.x-w/2+dx*w, y=head.y-hh-12-k*22;
+    if(!hits(x,y)){ bx=x; by=y; done=true; break; } } }
+  if(!done){ bx=head.x-w/2; by=head.y-hh-12-7*22; }
+  bx=Math.max(4,Math.min(CW-w-4,bx)); by=Math.max(4,by);
+  const tx=Math.max(bx+12,Math.min(bx+w-12,head.x));   // the tail points back at the speaker
+  octx.fillStyle='rgba(250,242,222,.96)'; octx.strokeStyle='#b8913f'; octx.lineWidth=2;
+  octx.beginPath(); if(octx.roundRect) octx.roundRect(bx,by,w,hh,10); else octx.rect(bx,by,w,hh); octx.fill(); octx.stroke();
+  octx.beginPath(); octx.moveTo(tx-7,by+hh); octx.lineTo(tx,by+hh+10); octx.lineTo(tx+7,by+hh); octx.closePath(); octx.fill();
+  octx.fillStyle='#2a1a08'; octx.textAlign='center'; octx.textBaseline='middle'; octx.fillText(S.txt,bx+w/2,by+hh/2,w-12); octx.restore(); }
 function ultCoachReset(){ ultCoachClear(); ULTCOACH.done={}; }
 function ultCoachArmed(){ try{ return state==='battle'&&!ended&&CUR&&CUR.mode==='campaign'&&CUR.node===1&&(CUR.portal||'normal')==='normal'&&!CUR.headless&&!CUR.manualReplay
   &&!REPLAY_IN&&!autoUlt&&!isAutoBattle()&&(G.campaignCleared||0)<1; }catch(e){ return false; } }
@@ -31329,7 +31413,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1793617824860';
+const BUILD_ID = '1793623287329';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

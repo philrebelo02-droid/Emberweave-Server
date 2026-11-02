@@ -1,5 +1,6 @@
 {
   "patches": [
+    {"ver": "1.0.7", "date": "2 November 2026", "title": "Your first battle", "items": ["Stage 1-1 is now a story fight: Vael charges in alone, Vireo and Sylthaine join him, and they show you how to use each ultimate."]},
     {"ver": "1.0.6", "date": "2 November 2026", "title": "An easier start", "items": ["Every monster, boss and enemy in the campaign, Elite, provinces, the Starless Well, the Vault, dungeons and raids is 5% weaker (all stats). PvP is unchanged.", "The first tutorial step's button is always on screen on phones.", "The sign-in, Terms of Service and Start Here screens have new gold frames, and sign-in sits in the middle of the screen."]},
     {"ver": "1.0.5", "date": "1 November 2026", "title": "Username stays yours", "items": ["Your username (what you sign in with) never changes. Renaming changes only your nickname, the name other players see. Your profile shows both."]},
     {"ver": "1.0.4", "date": "1 November 2026", "title": "Bug or Suggestion", "items": ["Reports: choose Bug or Suggestion before you send, so your idea reaches the right list."]},
