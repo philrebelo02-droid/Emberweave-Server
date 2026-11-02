@@ -30529,26 +30529,26 @@ function introEnter(u){ const I=CUR._intro; if(!u||units.indexOf(u)>=0) return;
   const st=heroOffscreenStart(sl.x,sl.y); u.x=st.x; u.y=st.y; u.px=u.x; u.py=u.y; u.target=null;   // runs in from off screen
   units.push(u); if(u.mesh) u.mesh.visible=true;
   u._ax=u.x; u._ay=u.y;
-  if(!(waveXfer&&waveXfer.phase==='enter')) (I.walk=I.walk||[]).push(u.uid);   /* v1260: in a wave's walk-in the march itself brings her to her spot (and holds the fight) */   // walks onto the field to its own spot (a back-row caster in range of everything never moved - Phil: "Sylthaines bubble isnt over head")
+  (I.walk=I.walk||[]).push(u.uid);   // walks onto the field to its own spot (a back-row caster in range of everything never moved - Phil: "Sylthaines bubble isnt over head")   // walks onto the field to its own spot (a back-row caster in range of everything never moved - Phil: "Sylthaines bubble isnt over head")
   if(!window._p2guard){ try{ buildPortraitBar(); }catch(e){} }
 }
+const SYL_JOIN_DELAY=5;   // v1261: seconds into wave 2 before Sylthaine joins
 function introWave(I,vael){ I.wave=waveIdx;
-  if(waveIdx===1){ if(!I.vireoIn){ I.vireoIn=I.t; introEnter(I.vireo); } I.sylIn=I.t; introEnter(I.syl); introSay('syl_in',I.syl); }
+  /* v1261 (Phil 2 Nov: "No dont make 1-1 wave to wait for her" / "They start the fight then she joins after 5 seconds"): wave 2 starts
+     without Sylthaine; she runs in SYL_JOIN_DELAY seconds of fight time later (introTick). */
+  if(waveIdx===1){ if(!I.vireoIn){ I.vireoIn=I.t; introEnter(I.vireo); } I.sylDue=I.t+SYL_JOIN_DELAY; }
   if(waveIdx===2) introSay('vael_kill',vael); }
 function introTick(dt){ const I=CUR._intro, vael=unitByUid(I.vael);
   if(vael&&vael.alive&&!I.vaelFull&&vael.hp>vael.maxHp*0.75) vael.energy=Math.min(vael.energy,99);   // his ult waits for ~75% HP
-  /* v1260 (Phil 2 Nov: "Please make it so when heroes and monsters walk in, they dont start fighting until everyone is in their start
-     position" / "This should be for all nodes" / "Modes"). Every mode's wave start already holds the fight until every marcher is on its
-     slot (beginWaveEnter -> updateWaveXfer 'enter'). The 1-1 heroes who join at a wave (Sylthaine at wave 2) used to run in AFTER that
-     walk-in had ended, so the fight restarted without her. They now join the wave's walk-in itself: placed off screen down the line with
-     everyone else, and the wave starts only once they are on their spot too. */
-  if(ended) return;
-  if(waveXfer){ if(waveXfer.phase==='enter'&&waveIdx!==I.wave) introWave(I,vael); return; }
+  /* v1261 (Phil 2 Nov: "No dont make 1-1 wave to wait for her"): a hero who joins at a wave (Sylthaine at wave 2) runs in AFTER the wave's
+     walk-in, while the fight is already on - the wave does not wait for her (v1260 had her join the walk-in). */
+  if(waveXfer||ended) return;   // entries and lines wait for the wave transition to finish
   I.t+=dt;
   if(I.walk&&I.walk.length) I.walk=I.walk.filter(uid=>{ const w=unitByUid(uid); if(!w||!w.alive||w.homeX==null) return false;
     const dx=w.homeX-w.x, dy=w.homeY-w.y, d=Math.hypot(dx,dy); if(d<10) return false;
     const st=Math.min(d,Math.max(90,(w.speed||70)*1.4)*dt); w.x+=dx/d*st; w.y+=dy/d*st; return true; });
   if(waveIdx!==I.wave) introWave(I,vael);
+  if(I.sylDue!=null&&I.sylIn==null&&I.t>=I.sylDue){ I.sylIn=I.t; introEnter(I.syl); introSay('syl_in',I.syl); }
   if(vael&&vael.alive&&!I.vaelFull){   // his ult arrives at ~75% HP - held just under full until then
     if(vael.hp<=vael.maxHp*0.75){ vael.energy=100; I.vaelFull=I.t; introSay('vael_ready',vael); } else vael.energy=Math.min(vael.energy,99); }
   if(I.vaelFull&&!I.vaelCast&&vael&&vael.energy<100){ I.vaelCast=I.t; introSay('vael_after',vael); }
@@ -31485,7 +31485,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1793636514058';
+const BUILD_ID = '1793636744698';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

@@ -25,7 +25,7 @@ const r = JSON.parse(run(`(()=>{ CUR={mode:'campaign',node:5}; units=[];
 ok(r.inAt != null && r.inAt < 6, 'everyone reaches their start spot (at ' + (r.inAt || 0).toFixed(2) + ' s)');
 ok(r.endAt != null && r.endAt - r.inAt >= r.hold - 0.05, 'the fight starts only after everyone has stood on their spot for ' + r.hold + ' s (' + ((r.endAt || 0) - (r.inAt || 0)).toFixed(2) + ' s)');
 ok(!r.movedWhileStanding, 'nobody moves while they stand on their spots');
-ok(/\(waveXfer\.phase==='enter'&&waveIdx!==I\.wave\) introWave\(I,vael\)/.test(html), '1-1: a hero who joins at a wave (Sylthaine) joins that wave\'s walk-in, so the wave waits for her too');
+ok(/if\(waveXfer\|\|ended\) return;/.test(html) && /I\.sylDue=I\.t\+SYL_JOIN_DELAY;/.test(html) && /const SYL_JOIN_DELAY=5;/.test(html), 'v1261 (Phil: "No dont make 1-1 wave to wait for her" / "They start the fight then she joins after 5 seconds"): wave 2 starts without Sylthaine, she joins 5 s into it');
 ok(/<canvas id="introOv"><\/canvas>/.test(html) && /#introOv\{[^}]*z-index:16/.test(html) && /#battleBanner\{[^}]*z-index:15/.test(html), 'the speech bubble is drawn on its own layer above the wave timer');
 ok(/u\._barTop=\{x:_p0\.x, y:_p0\.y/.test(html) && /by=head\.y-hh-10;/.test(html), 'the bubble tail tip sits on the measured top of the head (the point the HP bar is placed from)');
 ok(!/hitsO\(bx,by\)\)? *by-=16/.test(html), 'the bubble is never raised above the speaker');
