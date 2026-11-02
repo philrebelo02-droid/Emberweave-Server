@@ -152,6 +152,72 @@
   footer{padding:34px 0 calc(34px + env(safe-area-inset-bottom,0px));color:var(--dim);font-size:14px}
   footer .wrap{display:flex;flex-wrap:wrap;gap:10px 24px;align-items:center;justify-content:space-between}
 
+
+  /* ===== v2 (Phil 2 Nov 2026: "Make it look much more appealing") =====
+     Featured-hero showcase, framed mode and hero cards, ornate dividers, medallion facts, a closing call to play,
+     sections that fade up as they scroll in. */
+  body{background:var(--bg) radial-gradient(120% 60% at 50% 0%,#24140b 0%,transparent 60%) no-repeat}
+  .sec-tex{background:linear-gradient(180deg,#0f0a07,#140d08 30%,#140d08 70%,#0f0a07)}
+  .divider{position:relative;height:40px;margin:0 auto;max-width:900px;padding-inline:16px;display:flex;align-items:center;justify-content:center}
+  .divider::before,.divider::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,transparent,#c9963f 40%,#ffe2a8)}
+  .divider::after{background:linear-gradient(270deg,transparent,#c9963f 40%,#ffe2a8)}
+  .divider i{width:14px;height:14px;margin:0 14px;transform:rotate(45deg);border:1px solid #ffe2a8;background:radial-gradient(#ff8a2a,#7a2e08);box-shadow:0 0 14px #ff8a2a99}
+  h2{text-shadow:0 2px 18px #ff8a2a33}
+  .kicker{display:inline-flex;align-items:center;gap:10px}
+  .kicker::before{content:"";width:22px;height:1px;background:var(--ember2)}
+  /* facts as medallions */
+  .facts{gap:14px}
+  .facts span{display:flex;flex-direction:column;align-items:center;min-width:120px;padding:12px 16px 10px;border-radius:14px;font-size:13px;letter-spacing:.06em;text-transform:uppercase;
+    background:linear-gradient(180deg,#24170d,#160e09);border:1px solid #5a3d1e;box-shadow:inset 0 1px 0 #ffe2a822,0 8px 22px #0007}
+  .facts b{font-size:26px;margin:0 0 2px;background:linear-gradient(180deg,#fff2cf,#f1c67a 55%,#c98a35);-webkit-background-clip:text;background-clip:text;color:transparent}
+  @media (max-width:420px){ .facts span{min-width:0;flex:1 1 40%} }
+  /* featured hero showcase */
+  .feat{position:relative;overflow:hidden;padding:72px 0;border-block:1px solid var(--line);
+    background:radial-gradient(60% 70% at 30% 50%,#5a230c66,transparent 70%),radial-gradient(50% 60% at 80% 40%,#2c160b,transparent 70%),#0d0805}
+  .feat .wrap{display:grid;grid-template-columns:minmax(260px,420px) 1fr;gap:48px;align-items:center}
+  .fcard{position:relative;aspect-ratio:1/1;border-radius:20px;padding:6px;background:linear-gradient(145deg,#ffe2a8,#b9822f 30%,#5a3410 55%,#f1c67a 80%,#7a4a17);
+    box-shadow:0 0 0 1px #000,0 30px 80px #000c,0 0 60px #ff8a2a40}
+  .fcard img{width:100%;height:100%;object-fit:cover;border-radius:15px;transition:opacity .45s,transform .6s}
+  .fcard img.out{opacity:0;transform:scale(1.03)}
+  .finfo .kicker{margin-bottom:6px}
+  .finfo .who{font:800 clamp(34px,5vw,56px)/1.05 Cinzel,serif;background:linear-gradient(180deg,#fff2cf,#f1c67a 60%,#c98a35);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .finfo .subn{font:700 18px/1.2 Cinzel,serif;color:var(--ember2);margin:6px 0 14px;letter-spacing:.04em}
+  .finfo .chips{display:flex;gap:8px;margin-bottom:18px}
+  .finfo .chips span{padding:4px 10px;border-radius:999px;border:1px solid #5a3d1e;background:#1d140e;color:var(--gold2);font-size:13px;font-weight:700}
+  .finfo blockquote{max-width:560px;padding-left:18px;border-left:2px solid var(--ember);color:#ecdfcb;font-size:18px;font-style:italic;min-height:96px}
+  .finfo .ltitle{display:block;font:700 13px/1 Cinzel,serif;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);font-style:normal;margin-bottom:8px}
+  .fthumbs{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+  .fthumbs button{width:58px;height:58px;padding:0;border-radius:12px;overflow:hidden;border:2px solid #3a2716;background:#140e0a;cursor:pointer;opacity:.6;transition:opacity .2s,border-color .2s,transform .2s}
+  .fthumbs button img{width:100%;height:100%;object-fit:cover}
+  .fthumbs button[aria-current="true"]{opacity:1;border-color:var(--gold);transform:translateY(-3px);box-shadow:0 6px 18px #ff8a2a55}
+  @media (max-width:760px){ .feat{padding:48px 0} .feat .wrap{grid-template-columns:1fr;gap:26px;justify-items:center;text-align:center} .fcard{width:min(78vw,340px)}
+    .finfo blockquote{border-left:0;padding-left:0;margin:0 auto} .finfo .chips,.fthumbs{justify-content:center} .fthumbs{gap:8px} .fthumbs button{width:40px;height:40px;border-radius:9px} }
+  /* modes: framed, the campaign card leads */
+  .mode{border:1px solid #5a3d1e;box-shadow:0 14px 40px #0009;transition:transform .25s,box-shadow .25s,border-color .25s}
+  .mode::before{content:"";position:absolute;inset:6px;z-index:2;border:1px solid #f1c67a33;border-radius:10px;pointer-events:none;transition:border-color .25s}
+  .mode:hover{transform:translateY(-4px);border-color:#c9963f;box-shadow:0 22px 50px #000b,0 0 40px #ff8a2a33}
+  .mode:hover::before{border-color:#f1c67a88}
+  @media (min-width:980px){ .modes{grid-template-columns:repeat(3,1fr)} .mode.lead{grid-column:span 2;grid-row:span 2;min-height:520px} .mode.lead h3{font-size:30px} .mode.lead p{font-size:17px;max-width:560px} }
+  .more div{display:flex;gap:14px;align-items:flex-start;transition:border-color .2s,background .2s}
+  .more div:hover{border-color:#8a5a26;background:#1b120c}
+  .more .ic{flex:none;width:42px;height:42px;border-radius:10px;display:grid;place-items:center;background:radial-gradient(#5a2a0e,#24150c);border:1px solid #6b4520;color:var(--ember2)}
+  .more .ic svg{width:22px;height:22px}
+  /* hero cards framed in gold */
+  .hero{padding:3px;border:0;background:linear-gradient(160deg,#c9963f,#3a2716 40%,#3a2716 60%,#8a5a26);transition:transform .2s,box-shadow .2s}
+  .hero>.pic{border-radius:9px 9px 0 0;overflow:hidden}
+  .hero>.meta{background:linear-gradient(180deg,#1d140e,#140d09);border-radius:0 0 9px 9px}
+  .hero:hover{transform:translateY(-4px);box-shadow:0 14px 34px #000a,0 0 26px #ff8a2a33}
+  .hero .pic img{transition:transform .5s} .hero:hover .pic img{transform:scale(1.05)}
+  /* final call to play */
+  .finale{position:relative;overflow:hidden;padding:110px 0;text-align:center;border-top:1px solid var(--line);
+    background:linear-gradient(180deg,#0f0a07 0%,#0f0a0799 35%,#0f0a07cc 100%),center 40%/cover no-repeat url('/assets/img/Campaign/ch16-wide-v1.webp')}
+  .finale .kicker{justify-content:center}
+  .finale h2{font-size:clamp(34px,5.5vw,62px);margin-bottom:14px}
+  .finale p{max-width:560px;margin:0 auto 28px;color:#ecdfcb;font-size:19px}
+  /* reveal on scroll */
+  .rv{opacity:0;transform:translateY(22px);transition:opacity .7s ease,transform .7s ease}
+  .rv.in{opacity:1;transform:none}
+  @media (prefers-reduced-motion:reduce){ .rv{opacity:1;transform:none;transition:none} .fcard img,.mode,.hero{transition:none} }
   @media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto} .mode img,.btn{transition:none} .splash video{display:none} }
 </style>
 </head>
@@ -164,7 +230,7 @@
       XANTHYR GAMES
     </a>
     <nav aria-label="Sections">
-      <a href="#modes">Game modes</a><a href="#heroes">Heroes</a><a href="#news">Patch notes</a><a href="#install">Install</a>
+      <a href="#featured">Featured</a><a href="#modes">Game modes</a><a href="#heroes">Heroes</a><a href="#news">Patch notes</a><a href="#install">Install</a>
     </nav>
     <a class="play" href="/play">Play now</a>
   </div>
@@ -172,6 +238,7 @@
 
 <main id="top">
   <div class="splash">
+    <canvas id="embers" aria-hidden="true"></canvas>
     <div class="art" role="img" aria-label="Emberweave Heroes - six heroes in an ember cave beneath the golden title">
       <div class="fade"></div>
     </div>
@@ -193,37 +260,54 @@
     </div>
   </div>
 
+
+  <section class="feat" id="featured" aria-label="Featured heroes">
+    <div class="wrap">
+      <div class="fcard rv"><img id="fImg" src="/assets/img/hero-cards/card-vael.webp" alt="Vael" width="512" height="512"></div>
+      <div class="finfo rv">
+        <div class="kicker">Featured hero</div>
+        <div class="who" id="fName">Vael</div>
+        <div class="subn" id="fSub">The Bloodknight</div>
+        <div class="chips" id="fChips"></div>
+        <blockquote><span class="ltitle" id="fTitle"></span><span id="fLine"></span></blockquote>
+        <div class="fthumbs" id="fThumbs" role="group" aria-label="Choose a featured hero"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider" aria-hidden="true"><i></i></div>
   <section id="modes">
     <div class="wrap">
       <div class="kicker">What you'll play</div>
       <h2>A whole world to fight through</h2>
       <p class="sub">Every battle is a real fight your heroes play out, from the first campaign stage to a weekly guild war in the sky.</p>
       <div class="modes">
-        <article class="mode"><img loading="lazy" src="/assets/img/Campaign/ch16-wide-v1.webp" alt="">
+        <article class="mode lead rv"><img loading="lazy" src="/assets/img/Campaign/ch16-wide-v1.webp" alt="">
           <div class="txt"><span class="pill">Story</span><h3>The Campaign</h3><p>Sixteen chapters and 160 hand-built stages, up to the World Tree, with Elite and Veteran portals for the brave and bonus stages along the way.</p></div></article>
-        <article class="mode"><img loading="lazy" src="/assets/img/battlefields/emberdraft/title.webp" alt="">
+        <article class="mode rv"><img loading="lazy" src="/assets/img/battlefields/emberdraft/title.webp" alt="">
           <div class="txt"><span class="pill">Draft</span><h3>Emberdraft</h3><p>Draft a team round by round on the Island of Trials, place your heroes, and watch them fight it out.</p></div></article>
-        <article class="mode"><img loading="lazy" src="/assets/img/battlefields/starless-well-01.webp" alt="">
+        <article class="mode rv"><img loading="lazy" src="/assets/img/battlefields/starless-well-01.webp" alt="">
           <div class="txt"><span class="pill">New</span><h3>The Starless Well</h3><p>A three-day descent of 5v5 fights toward the boss at the centre, with Normal and Hard portals.</p></div></article>
-        <article class="mode"><img loading="lazy" src="/assets/img/battlefields/guild-war-skybridge-01.webp" alt="">
+        <article class="mode rv"><img loading="lazy" src="/assets/img/battlefields/guild-war-skybridge-01.webp" alt="">
           <div class="txt"><span class="pill">Guild</span><h3>Skyfall</h3><p>The weekly guild war. Hold your towers, place your lines and climb the bracket to the cup.</p></div></article>
-        <article class="mode"><img loading="lazy" src="/assets/img/world-map/guildhall.webp" alt="">
+        <article class="mode rv"><img loading="lazy" src="/assets/img/world-map/guildhall.webp" alt="">
           <div class="txt"><span class="pill">Guild</span><h3>Guilds &amp; the Raid Boss</h3><p>Raise a guild under your own banner and take on the raid boss together in a real 90-second battle.</p></div></article>
-        <article class="mode"><img loading="lazy" src="/assets/img/world-map/townbg-wide-temple-of-ash-v1.webp" alt="" style="object-position:100% 50%">
+        <article class="mode rv"><img loading="lazy" src="/assets/img/world-map/townbg-wide-temple-of-ash-v1.webp" alt="" style="object-position:100% 50%">
           <div class="txt"><span class="pill">World</span><h3>Your Town &amp; the World Map</h3><p>Build your town, hold mines and raid cities across a hand-painted world map.</p></div></article>
       </div>
       <div class="more">
-        <div><b>The Temple of Ash</b><span>Perform the Temple's rituals, from Kindled to Inferno, and light the orbs on your hero cards.</span></div>
-        <div><b>The Vault &amp; the Forge</b><span>100 floors of authored fights, and gear to forge from what you bring back.</span></div>
-        <div><b>Glyphs</b><span>218 glyphs to farm and combine into your heroes' power.</span></div>
-        <div><b>The Arena</b><span>Climb the ladder against other players' teams.</span></div>
-        <div><b>Training Province</b><span>Drill and grow your heroes between battles.</span></div>
-        <div><b>The Gauntlet</b><span>Bonus stages that ask more of the heroes you hold.</span></div>
+        <div class="rv" data-tile="temple"><span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><path d="M12 2 4 7v2h16V7zM6 10v8M10 10v8M14 10v8M18 10v8M3 20h18"/></svg></span><p><b>The Temple of Ash</b><span>Perform the Temple's rituals, from Kindled to Inferno, and light the orbs on your hero cards.</span></p></div>
+        <div class="rv" data-tile="vault"><span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><path d="M4 4h16v16H4zM12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM12 4v4M12 16v4"/></svg></span><p><b>The Vault &amp; the Forge</b><span>100 floors of authored fights, and gear to forge from what you bring back.</span></p></div>
+        <div class="rv" data-tile="glyph"><span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z"/></svg></span><p><b>Glyphs</b><span>218 glyphs to farm and combine into your heroes' power.</span></p></div>
+        <div class="rv" data-tile="arena"><span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><path d="M4 20 20 4M14 4h6v6M4 4l7 7M20 20l-5-5"/></svg></span><p><b>The Arena</b><span>Climb the ladder against other players' teams.</span></p></div>
+        <div class="rv" data-tile="train"><span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><path d="M6 4v16M18 4v16M6 12h12M3 8h3M3 16h3M18 8h3M18 16h3"/></svg></span><p><b>Training Province</b><span>Drill and grow your heroes between battles.</span></p></div>
+        <div class="rv" data-tile="gaunt"><span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><path d="M4 18 9 6l4 8 3-5 4 9z"/></svg></span><p><b>The Gauntlet</b><span>Bonus stages that ask more of the heroes you hold.</span></p></div>
       </div>
     </div>
   </section>
 
-  <section id="heroes" style="padding-top:24px">
+  <div class="divider" aria-hidden="true"><i></i></div>
+  <section id="heroes" class="sec-tex" style="padding-top:24px">
     <div class="wrap">
       <div class="kicker">The roster</div>
       <h2>Sixty heroes, and counting</h2>
@@ -234,6 +318,7 @@
     </div>
   </section>
 
+  <div class="divider" aria-hidden="true"><i></i></div>
   <section id="news" style="padding-top:24px">
     <div class="wrap">
       <div class="kicker">Patch notes</div>
@@ -241,6 +326,15 @@
       <p class="sub">The game updates all the time. Your installed app picks up each update the next time you open it.</p>
       <div class="log" id="log"></div>
       <button class="btn ghost older" id="older" type="button" hidden>Older updates</button>
+    </div>
+  </section>
+
+  <section class="finale" id="playnow">
+    <div class="wrap rv">
+      <div class="kicker">Free to play</div>
+      <h2>Your legend starts in the ash</h2>
+      <p>Pick your first heroes, take the field in Stage 1-1, and fight your way to the World Tree.</p>
+      <div class="btns"><a class="btn primary" href="/play">Play now</a><a class="btn ghost" href="#install">Install the app</a></div>
     </div>
   </section>
 
@@ -391,6 +485,30 @@
   });
   showAll.onclick=function(){ all=true; draw(); };
   draw();
+
+  /* ---------- v2: featured hero showcase (in-game names, sub names and the first line of their own lore) ---------- */
+  var FEAT=[{"key": "vael", "sub": "The Bloodknight", "title": "After Ashford", "line": "They still tell it at every fire in the valley. It was cold that morning, mist on the river and frost on the wheat, when the horns sounded off."}, {"key": "sylthaine", "sub": "The Winter Seal", "title": "The Winter That Waited", "line": "They remember the Long Summer wrong, in the places that remember it at all, as a golden age, a season that would not end."}, {"key": "umbris", "sub": "The Hole in the Light", "title": "The Hole in the Light", "line": "No one remembers Umbris arriving - only the moment they understood that the shadow at the edge of the lamplight had been listening for some time."}, {"key": "hollow", "sub": "The Faceless", "title": "The Space He Isn't In", "line": "There is no story about where the face went, because there was never a face, and the people who insist there must have been one are making an assumption about how things get made."}, {"key": "aureth", "sub": "The Keeper of Two", "title": "The Balance Kept", "line": "There were two brothers once, and the world could not hold them both."}, {"key": "konwu", "sub": "The Sky-Thrown", "title": "KonWu, the Monkey God", "line": "Before the Emberweave had a name, there was the Storm-Peak - a mountain that touched the sky-realm - and at its summit lived a monkey born not of any troop but of the mountain's own stubborn stone."}, {"key": "bloatus", "sub": "King of the Swamp", "title": "The Drowned Crown", "line": "He was only King Groll then, and Groll was a green and living country, ringed by marsh his people had learned to farm instead of fear."}];
+  (function(){
+    var img=document.getElementById('fImg'), nm=document.getElementById('fName'), sb=document.getElementById('fSub'), ch=document.getElementById('fChips'),
+        tt=document.getElementById('fTitle'), ln=document.getElementById('fLine'), th=document.getElementById('fThumbs'); if(!img) return;
+    var cur=0, timer=null, reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+    function info(k){ for(var i=0;i<H.length;i++) if(H[i].key===k) return H[i]; return {name:k,role:'',stars:1}; }
+    function show(i){ cur=(i+FEAT.length)%FEAT.length; var f=FEAT[cur], h=info(f.key);
+      img.classList.add('out');
+      setTimeout(function(){ img.onload=function(){ img.classList.remove('out'); }; img.src='/assets/img/hero-cards/card-'+f.key+'.webp'; img.alt=h.name; }, reduce?0:220);
+      nm.textContent=h.name; sb.textContent=f.sub; tt.textContent=f.title; ln.textContent=f.line;
+      ch.innerHTML='<span>'+esc(h.role)+'</span><span aria-label="'+h.stars+' star">'+stars(h.stars)+'</span>';
+      th.querySelectorAll('button').forEach(function(b,j){ b.setAttribute('aria-current', j===cur?'true':'false'); }); }
+    FEAT.forEach(function(f,i){ var b=document.createElement('button'); b.type='button'; b.setAttribute('aria-label',info(f.key).name);
+      b.innerHTML='<img loading="lazy" src="/assets/img/hero-cards/card-'+f.key+'.webp" alt="">'; b.onclick=function(){ show(i); restart(); }; th.appendChild(b); });
+    function restart(){ if(timer) clearInterval(timer); if(!reduce) timer=setInterval(function(){ show(cur+1); }, 7000); }
+    show(0); restart();
+  })();
+
+  /* ---------- v2: sections fade up as they scroll in ---------- */
+  (function(){ var els=document.querySelectorAll('.rv'); if(!('IntersectionObserver' in window)){ els.forEach(function(e){ e.classList.add('in'); }); return; }
+    var io=new IntersectionObserver(function(es){ es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } }); },{rootMargin:'0px 0px -8% 0px'});
+    els.forEach(function(e){ io.observe(e); }); })();
 
   /* ---------- patch notes: read live from /patchnotes.json so the page can't go stale ---------- */
   var log=document.getElementById('log'), older=document.getElementById('older');

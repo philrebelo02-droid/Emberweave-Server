@@ -631,6 +631,8 @@ note "test_bubble_walkin_1260.js (v1260: bubble tail on the head above the HUD; 
 node tests/test_bubble_walkin_1260.js || FAILED=1
 note "test_energy_bars_1261.js (v1261: portrait energy bars follow the real energy after a rebuild; 1-1 ults fill steadily)"
 node tests/test_energy_bars_1261.js || FAILED=1
+note "test_site_v2_1262.js (v1262: website v2 - featured heroes, framed cards, dividers, closing call to play, embers canvas)"
+node tests/test_site_v2_1262.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi
