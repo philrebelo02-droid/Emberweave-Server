@@ -1,5 +1,6 @@
 {
   "patches": [
+    {"ver": "1.0.5", "date": "1 November 2026", "title": "Username stays yours", "items": ["Your username (what you sign in with) never changes. Renaming changes only your nickname, the name other players see. Your profile shows both."]},
     {"ver": "1.0.4", "date": "1 November 2026", "title": "Bug or Suggestion", "items": ["Reports: choose Bug or Suggestion before you send, so your idea reaches the right list."]},
     {"ver": "1.0.3", "date": "1 November 2026", "title": "Full-screen world map", "items": ["The world map fills the screen at full zoom out: no more plain sea box around the edge of the map."]},
     {"ver": "1.0.2", "date": "1 November 2026", "title": "Never kicked from a fight", "items": ["Battles are never interrupted when the server goes down: the fight finishes on your device and its result is saved when the server is back.", "Mines hold resources: tap a mine to see what is left. It stays on the map until it is empty, and retreating takes nothing from it.", "The World Tree and the oases can only be taken during the World Tree event; holders lose them when it ends.", "No teleporting while your troops are out. Castles can no longer stand on a city's or an oasis's edge.", "The teleport pin points at the square you chose and keeps one size at every zoom; marching ships and their lines are 25% smaller."]},

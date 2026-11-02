@@ -411,7 +411,32 @@ function _nameIdxSync(){ const t0=Date.now(); let d=0;
     if(!e||e.n!==u.name){ _nameIdxDel(u.id); _nameIdxAdd(u.id,u.name); d++; } }
   _nameIdx.lastSyncAt=Date.now(); _nameIdx.lastSyncMs=_nameIdx.lastSyncAt-t0;
   if(d){ _nameIdx.drift+=d; console.error('[names] '+d+' player name(s) reached the world without the name index - added (v1184 drift)'); } }
+/* v1253 (Phil 1 Nov 2026: "USERNAME is not the same as your NICKNAME" / "usernames should never be changeable"). A rename moved the
+   sign-in name with it (one field did both jobs), so Phil's "phil" became "Emberweave TEST". Now u.login = the USERNAME: set once when
+   the account is made, never changed; u.name = the NICKNAME (commander name) every screen shows, changed by a rename. Sign-in, password
+   reset and the account server look up the username (loginId); DB.byName stays the nickname index for everything else. An account
+   from before v1253 has no u.login - its username is its name (and migrateLogins1253 gives a renamed one back its first name).
+   Usernames and nicknames share one namespace (nameTaken checks both), so nobody can take another player's username as a nickname;
+   a player may set their own nickname back to their username. The index is memory only, rebuilt from DB.users. */
+let _loginIdx={ db:null, m:new Map() };
+function loginKeyOf(u){ return String((u&&(u.login||u.name))||'').toLowerCase(); }
+function usernameOf(u){ return String((u&&(u.login||u.name))||''); }
+function _loginIdxReady(){ if(_loginIdx.db===DB) return; _loginIdx={ db:DB, m:new Map() };
+  for(const u of Object.values(DB.users||{})){ if(u&&u.id&&!u.isNpc){ const k=loginKeyOf(u); if(k) _loginIdx.m.set(k,u.id); } } }
+function loginIdxPut(u){ if(!u||!u.id||u.isNpc) return; _loginIdxReady(); const k=loginKeyOf(u); if(k) _loginIdx.m.set(k,u.id); }
+function loginId(name){ const k=String(name||'').trim().toLowerCase(); if(!k) return null; _loginIdxReady();
+  const id=_loginIdx.m.get(k), u=id&&DB.users[id]; if(u&&!u.isNpc&&loginKeyOf(u)===k) return id;
+  for(const v of Object.values(DB.users||{})){ if(v&&v.id&&!v.isNpc&&loginKeyOf(v)===k){ _loginIdx.m.set(k,v.id); return v.id; } }   // a path that did not note it
+  if(id) _loginIdx.m.delete(k); return null; }
+function migrateLogins1253(){ let n=0;
+  for(const u of Object.values(DB.users||{})){ if(!u||u.isNpc||u.guest||u.login||!(u.renames>0)) continue;
+    const tx=((u.led&&Array.isArray(u.led.txs))?u.led.txs:[]).filter(t=>t&&t.src==='account:rename'&&t.d&&t.d.from).sort((a,b)=>(a.t||0)-(b.t||0))[0];
+    const first=tx?String(tx.d.from):''; if(!first||first.toLowerCase()===String(u.name||'').toLowerCase()) continue;
+    const other=loginId(first); if((other&&other!==u.id)||(DB.byName[first.toLowerCase()]&&DB.byName[first.toLowerCase()]!==u.id)) continue;
+    u.login=first; loginIdxPut(u); n++; console.log('[names] '+u.id+' username back to '+first+' (nickname stays '+u.name+') - v1253'); }
+  if(n) writeDB(); return n; }
 function nameTaken(name,exceptId){ const lid=DB.byName[String(name||'').toLowerCase()]; if(lid&&lid!==exceptId) return true;
+  { const gid=loginId(name); if(gid&&gid!==exceptId) return true; }   /* v1253: another player's username */
   const sk=nameSkeleton(name); if(!sk) return false;
   _nameIdxReady(); if(Date.now()-_nameIdx.lastSyncAt>=1000) _nameIdxSync();
   const ids=_nameIdx.bySk.get(sk); if(!ids) return false;
@@ -551,7 +576,7 @@ function body(req, max){ max = max || BODY_MAX; return new Promise((resolve,reje
 }); }
 function authUser(req){ const id=lookupToken(req.headers['x-token']); return id?DB.users[id]:null; }
 function pub(u){ return { id:u.id, name:u.name, rank:u.rank, coins:u.coins, team:u.team, roster:u.roster, wall:u.wall, isNpc:!!u.isNpc }; }
-function profileFor(u){ return { id:u.id, name:u.name, rank:u.rank, coins:u.coins, team:u.team, roster:u.roster, wall:u.wall, lastDaily:u.lastDaily||0, email:u.email||'', guest:!!u.guest, created:u.created||0, admin:isDev(u)||undefined }; }   // admin: server-confirmed role — the client's Developer Panel gates on THIS, never a name list
+function profileFor(u){ return { id:u.id, name:u.name, login:usernameOf(u), rank:u.rank, coins:u.coins, team:u.team, roster:u.roster, wall:u.wall, lastDaily:u.lastDaily||0, email:u.email||'', guest:!!u.guest, created:u.created||0, admin:isDev(u)||undefined }; }   // admin: server-confirmed role — the client's Developer Panel gates on THIS, never a name list
 // --- admin authority is an IMMUTABLE per-account ROLE, never a display name ---
 // A display name is not a permission boundary (audit crit #7): anyone who registered the name
 // 'phil' used to inherit admin + DB-backup download. Authority now lives in u.role==='admin'
@@ -620,7 +645,7 @@ async function linkedUser(gid, name, pass, opts){
         cityX:Math.round(Math.random()*1000), cityY:Math.round(Math.random()*1000), created:Date.now() };
     DB.users[id]=u; }
   if(u.name && u.name.toLowerCase()!==String(name).toLowerCase() && DB.byName[u.name.toLowerCase()]===u.id){ typeof _dp==='function'&&_dpk('byName',u.name.toLowerCase()); delete DB.byName[u.name.toLowerCase()]; }
-  u.gid=gid; u.name=name; DB.byName[String(name).toLowerCase()]=u.id; DB.byGid[gid]=u.id; nameIdxPut(u); typeof _dp==='function'&&_dpk('byName',String(name).toLowerCase());
+  u.gid=gid; u.name=name; if(opts.login) u.login=String(opts.login).slice(0,16); DB.byName[String(name).toLowerCase()]=u.id; DB.byGid[gid]=u.id; nameIdxPut(u); loginIdxPut(u); typeof _dp==='function'&&_dpk('byName',String(name).toLowerCase());
   if(c){ u.hash=c.hash; u.salt=c.salt; u.iters=c.iters; if(opts.tag) u.s1Tag=String(opts.tag).slice(0,64); else delete u.s1Tag; }   // local copy for sign-in while Server 1 is down (v1184: and for the local check)
   else if(opts.keepCopy && opts.tag && u.hash) u.s1Tag=String(opts.tag).slice(0,64);
   delete u.guest;
@@ -633,10 +658,16 @@ async function linkedUser(gid, name, pass, opts){
    - a newer passAt signs the player out on this server and drops the local password copy, so the old password stops working even
      while Server 1 is down (the next good sign-in through Server 1 stores the new one).
    A ban made on Server 2-4 (/api/dev/ban) is made on the account at Server 1. Guests (no account) keep per-server bans. */
-function acctState(u){ return { until:((u.bannedUntil||0)>Date.now()?u.bannedUntil:0), reason:(u.banReason||''), passAt:(u.passAt||0), by:(u.ban&&u.ban.by)||'', del:(u.delReq&&+u.delReq.wipeAt)||0 }; }   /* v1232: del = a pending deletion's wipe time (0 = none) */
+function acctState(u){ return { until:((u.bannedUntil||0)>Date.now()?u.bannedUntil:0), reason:(u.banReason||''), passAt:(u.passAt||0), by:(u.ban&&u.ban.by)||'', del:(u.delReq&&+u.delReq.wipeAt)||0,
+  login:usernameOf(u), admin:isDev(u)?1:0 }; }   /* v1253: the username and the dev role go to Servers 2-5 with the rest (Phil: "my log in for the other servers not devs") */   /* v1232: del = a pending deletion's wipe time (0 = none) */
 function applyAcctState(lu, st){
   if(!lu || !lu.gid || !st) return false; let changed=false; const now=Date.now();
-  if(st.deleted){ deleteAccountData(lu); return true; }   /* v1097: the account was deleted on the account server - this server's player goes too */
+  if(st.deleted){ deleteAccountData(lu); return true; }
+  /* v1253: the username is Server 1's; a dev on Server 1 is a dev here (roleS1 marks a role this server only copied, so it also goes
+     when Server 1 takes it away; a role stamped here from this server's own ADMIN_IDS is never removed by this) */
+  if(st.login && lu.login!==String(st.login).slice(0,16)){ lu.login=String(st.login).slice(0,16); loginIdxPut(lu); changed=true; }
+  if('admin' in st){ if(st.admin && lu.role!=='admin'){ lu.role='admin'; lu.roleS1=1; changed=true; }
+    else if(!st.admin && lu.roleS1){ if(lu.role==='admin') delete lu.role; delete lu.roleS1; changed=true; } }   /* v1097: the account was deleted on the account server - this server's player goes too */
   if(acctDelFollow(lu, +st.del||0)) changed=true;   /* v1232: a deletion requested (or cancelled) on the account server locks (or unlocks) this server's player too */
   const until=(+st.until>now)?+st.until:0, was=isBanned(lu);
   if(until!==((lu.bannedUntil||0)>now?lu.bannedUntil:0)){ lu.bannedUntil=until; lu.banReason=until?String(st.reason||'').slice(0,200):''; changed=true;
@@ -670,7 +701,7 @@ if(ACCOUNT_AUTHORITY) setInterval(acctStatusSync, ACCOUNT_STATUS_MS);
    nothing is hashed here (the lock still applies; a stale tag falls back to the full check with the password). Returns changed = the
    account was written (fail count, 60k -> 210k upgrade, fails cleared), id, trusted. */
 async function acctVerify(name, pass, ip, opts){
-  const key=String(name||'').trim().toLowerCase(), id=DB.byName[key];
+  const key=String(name||'').trim().toLowerCase(), id=loginId(key);   /* v1253: the username, never the nickname */
   let u=id&&DB.users[id]; if(!u){ try{ await hashPassAsync(String(pass||''),'00000000000000000000000000000000',PBKDF2_ITERS); }catch(e){} return {status:401,error:'Wrong name or password'}; }   /* v1000 (Account audit #19): the same work for an unknown name */
   /* v1000 (Account audit #5): 10 wrong passwords in an hour lock THIS account for 15 min from THAT IP only (was: from every IP - anyone
      could keep any account locked, names are public). A much higher account-wide cap (200/h) still locks for 5 min against a spread attack. IPs are stored hashed. */
@@ -686,7 +717,7 @@ async function acctVerify(name, pass, ip, opts){
   for(let k=0;k<2&&!settled;k++){ const hashWas=u.hash;
     trusted=!!(tr && tr.gid===u.id && u.hash && tr.tag && tr.tag===credTag(u));
     good=trusted || await checkPassAsync(u,pass);
-    u=DB.users[id]; if(!u || DB.byName[key]!==id) return {status:401,error:'Wrong name or password'};   // deleted or renamed while it was hashed
+    u=DB.users[id]; if(!u || loginId(key)!==id) return {status:401,error:'Wrong name or password'};   // deleted or renamed while it was hashed
     settled=(u.hash===hashWas); }   // the password changed while it was hashed: check once more against the new one
   if(!settled) return {status:401,error:'Wrong name or password'};
   const now=Date.now(), L=lockOf(u,now);
@@ -709,16 +740,16 @@ async function acctCreate(rawName, pass, cred){
   const c=pre || await makeCredAsync(pass);
   if(!pre && nameTaken(name)) return {status:409,error:'That Profile name is already taken'};   // v1184: again after the await - two sign-ups of one name at once
   const id=uid();
-  const u={ id, name, hash:c.hash, salt:c.salt, iters:c.iters, rank:nextJoinRank(), coins:0, team:defaultTeam(), wall:defaultTeam(),
+  const u={ id, name, login:name, hash:c.hash, salt:c.salt, iters:c.iters, rank:nextJoinRank(), coins:0, team:defaultTeam(), wall:defaultTeam(),
     roster:{}, lastDaily:0, cityX:Math.round(Math.random()*1000), cityY:Math.round(Math.random()*1000), created:Date.now() };
-  DB.users[id]=u; DB.byName[name.toLowerCase()]=id; nameIdxPut(u); typeof _dp==='function'&&_dpk('byName',name.toLowerCase()); return {u}; }
+  DB.users[id]=u; DB.byName[name.toLowerCase()]=id; nameIdxPut(u); loginIdxPut(u); typeof _dp==='function'&&_dpk('byName',name.toLowerCase()); return {u}; }
 /* v1017 (re-audit Account N7): the account-wide day caps (codes, wrong guesses) are a brute-force CEILING, but anyone could burn a
    player's whole allowance and lock them out of recovery for a day. Each requesting network now has its own share per account
    (2 codes, 5 wrong guesses a day) under a higher ceiling (8 codes, 20 wrong guesses: 20 guesses at a 6-digit code is ~1 in 50,000). */
 const RESET_CODES_MAX=8, RESET_BAD_MAX=20, RESET_CODES_PER_IP=2, RESET_BAD_PER_IP=5;
 function resetIpKey(ip){ return crypto.createHash('sha256').update(String(ip||'')).digest('hex').slice(0,16); }
 async function acctResetRequest(name, ip){   // v1184: async - the code hash runs on the thread pool
-  const id=DB.byName[String(name||'').trim().toLowerCase()]; const u=id&&DB.users[id];
+  const id=loginId(name); const u=id&&DB.users[id];   /* v1253: the username */
   // 30 Sep 2026 hardening: day caps per account, whatever the IP. v1017: plus a share per requesting network.
   const rl=u&&u.resetLog&&Date.now()-u.resetLog.t<86400000?u.resetLog:{t:Date.now(),codes:0,bad:0};
   rl.ip=rl.ip||{}; const ik=resetIpKey(ip), ir=rl.ip[ik]||(rl.ip[ik]={codes:0,bad:0});
@@ -730,7 +761,7 @@ async function acctResetRequest(name, ip){   // v1184: async - the code hash run
 /* v1184: async. The caps are checked before the code's hash and again after it (attempts that overlap count as one-at-a-time ones did);
    newCred = the new password already hashed by the satellite that asked (its length is still checked here). */
 async function acctResetVerify(name, rawCode, newPass, ip, newCred){
-  const key=String(name||'').trim().toLowerCase(), id=DB.byName[key]; let u=id&&DB.users[id];
+  const key=String(name||'').trim().toLowerCase(), id=loginId(key); let u=id&&DB.users[id];   /* v1253: the username */
   if(!u||u.isNpc||!u.reset) return {status:400,error:'No active reset — request a new code.'};
   const code=(rawCode||'').toString().replace(/\D/g,''), _ik=resetIpKey(ip);
   const gate=()=>{
@@ -743,12 +774,12 @@ async function acctResetVerify(name, rawCode, newPass, ip, newCred){
   const NONE={status:400,error:'No active reset — request a new code.'};
   let g=gate(); if(g) return g;
   const rs=u.reset, h=await hashPassAsync(code,rs.salt);
-  u=DB.users[id]; if(!u||u.isNpc||DB.byName[key]!==id||u.reset!==rs) return NONE;   // used, replaced or deleted while it was hashed
+  u=DB.users[id]; if(!u||u.isNpc||loginId(key)!==id||u.reset!==rs) return NONE;   // used, replaced or deleted while it was hashed
   g=gate(); if(g) return g;
   if(h!==rs.hash){ rs.tries=(rs.tries||0)+1; if(u.resetLog){ u.resetLog.bad=(u.resetLog.bad||0)+1; u.resetLog.ip=u.resetLog.ip||{}; const r2=u.resetLog.ip[_ik]||(u.resetLog.ip[_ik]={codes:0,bad:0}); r2.bad++; } writeDB(); return {status:400,error:'Incorrect code — check your email and try again.'}; }
   const np=(newPass||'').toString(); if(np.length<8) return {status:400,error:'New password must be at least 8 characters.'};
   const c=credOk(newCred) || await makeCredAsync(np);
-  u=DB.users[id]; if(!u||u.isNpc||DB.byName[key]!==id||u.reset!==rs) return NONE;
+  u=DB.users[id]; if(!u||u.isNpc||loginId(key)!==id||u.reset!==rs) return NONE;
   u.salt=c.salt; u.hash=c.hash; u.iters=c.iters; u.mustReset=false; delete u.reset;
   u.passAt=Date.now();   // v1035: Servers 2-5 sign the account out and drop their local password copy when this moves
   const delCancelled=!isBanned(u)&&acctDelCancel(u);   /* v1232: a password reset signs in - it cancels a pending deletion too */
@@ -5437,7 +5468,7 @@ async function api(req,res,url){
       const r=await authorityCall('/api/internal/account/register',{ name, pass:b.pass, cred });
       if(!r) return send(res,503,{error:'Accounts are unreachable right now - try again in a minute.'});
       if(r.status!==200 || !r.body || !r.body.gid) return send(res,r.status||400,{error:(r.body&&r.body.error)||'Could not create the account.'});
-      const touched=[], lopts={ cred, tag:r.body.tag, touched };
+      const touched=[], lopts={ cred, tag:r.body.tag, touched, login:r.body.login };
       const gu=authUser(req); let u;
       if(gu && gu.guest){
         _dpk('byName',(gu.name||'').toLowerCase()); delete DB.byName[(gu.name||'').toLowerCase()]; _dp('guestByDevice');
@@ -5460,11 +5491,11 @@ async function api(req,res,url){
     if(gu && gu.guest){
       if(nameTaken(name,gu.id)) return send(res,409,{error:'That Profile name is already taken'});   /* v1080: look-alikes too */
       const oldName=(gu.name||'').toLowerCase(), c=cred;
-      _dpk('byName',oldName); _dpk('byName',name.toLowerCase()); _dp('guestByDevice'); delete DB.byName[oldName]; gu.name=name; gu.hash=c.hash; gu.salt=c.salt; gu.iters=c.iters; delete gu.guest;
+      _dpk('byName',oldName); _dpk('byName',name.toLowerCase()); _dp('guestByDevice'); delete DB.byName[oldName]; gu.name=name; gu.login=name; gu.hash=c.hash; gu.salt=c.salt; gu.iters=c.iters; delete gu.guest;
       if(b.roster) gu.roster=sanitizeSave(gu, b.roster);
       // AUDIT (critical): registering a name NEVER grants a role. Admin comes only from the stored
       // role stamped by migrateAdminRoles() (env-driven) or ADMIN_IDS.
-      DB.byName[name.toLowerCase()]=gu.id; nameIdxPut(gu);
+      DB.byName[name.toLowerCase()]=gu.id; nameIdxPut(gu); loginIdxPut(gu);
       if(DB.guestByDevice){ for(const dk of Object.keys(DB.guestByDevice)){ if(DB.guestByDevice[dk]===gu.id) delete DB.guestByDevice[dk]; } }  // this device now needs a fresh guest next time, not this real account
       if(deviceId){ DB.devices[deviceId]=(DB.devices[deviceId]||0)+1; _dpk('devices',deviceId); }   // v328 — an upgrade IS an account creation for cap purposes
       DB.ipAccounts[ip]=(Array.isArray(DB.ipAccounts[ip])?DB.ipAccounts[ip]:[]).concat([Date.now()]).slice(-50); _dpk('ipAccounts',ip);
@@ -5478,7 +5509,7 @@ async function api(req,res,url){
       roster:{}, lastDaily:0, cityX:Math.round(Math.random()*1000), cityY:Math.round(Math.random()*1000), created:Date.now() };
     if(b.roster && typeof b.roster==='object') u.roster=sanitizeSave(u, b.roster);   // RE-AUDIT: imports go through the same clamps as /api/save
     // AUDIT (critical): registering a name NEVER grants a role — admin only via stored role/env.
-    DB.users[id]=u; DB.byName[name.toLowerCase()]=id; nameIdxPut(u); _dpk('byName',name.toLowerCase()); if(deviceId){ DB.devices[deviceId]=(DB.devices[deviceId]||0)+1; _dpk('devices',deviceId); }
+    u.login=name; DB.users[id]=u; DB.byName[name.toLowerCase()]=id; nameIdxPut(u); loginIdxPut(u); _dpk('byName',name.toLowerCase()); if(deviceId){ DB.devices[deviceId]=(DB.devices[deviceId]||0)+1; _dpk('devices',deviceId); }
     DB.ipAccounts[ip]=(Array.isArray(DB.ipAccounts[ip])?DB.ipAccounts[ip]:[]).concat([Date.now()]).slice(-50); _dpk('ipAccounts',ip);
     const tok=issueToken(id); saveSoon([id]);
     return send(res,200,{ token:tok, profile:profileFor(u) }); }
@@ -5540,14 +5571,14 @@ async function api(req,res,url){
     if(p==='/api/internal/account/verify'){ const trust=(b.gid&&b.tag)?{ gid:String(b.gid), tag:String(b.tag) }:null;
       const r=await acctVerify(b.name, b.pass, 'srv:'+String(b.ip||clientIP(req)), { trust });
       if(r.changed) saveSoon([r.id]);
-      return r.u ? send(res,200,{ ok:true, gid:r.u.id, name:r.u.name, st:acctState(r.u), s1:!!r.u.lastSeen, tag:credTag(r.u), trusted:!!r.trusted, delCancelled:!!r.delCancelled }) : send(res,r.status,{error:r.error}); }   /* v1130: s1 = the account has played on Server 1 */
+      return r.u ? send(res,200,{ ok:true, gid:r.u.id, name:r.u.name, login:usernameOf(r.u), st:acctState(r.u), s1:!!r.u.lastSeen, tag:credTag(r.u), trusted:!!r.trusted, delCancelled:!!r.delCancelled }) : send(res,r.status,{error:r.error}); }   /* v1130: s1 = the account has played on Server 1 */
     if(p==='/api/internal/account/register'){ const r=await acctCreate(b.name, b.pass, b.cred); if(r.error) return send(res,r.status,{error:r.error});
       if(saveSoon([r.u.id])===false) return send(res,503,{ok:false,storageFailed:true,error:'Save failed - try again.'});   /* v1013 (re-audit Account N13): the account is on disk before it is acknowledged (v1184: the group save, this player's shard) */
-      return send(res,200,{ ok:true, gid:r.u.id, name:r.u.name, tag:credTag(r.u) }); }
+      return send(res,200,{ ok:true, gid:r.u.id, name:r.u.name, login:usernameOf(r.u), tag:credTag(r.u) }); }
     if(p==='/api/internal/account/reset-request'){ acctResetRequest(b.name, String(b.ip||clientIP(req))).catch(e=>console.error('[account] reset request failed: '+e.message)); return send(res,200,{ ok:true }); }
     if(p==='/api/internal/account/reset-verify'){ const r=await acctResetVerify(b.name, b.code, b.newPass, String(b.ip||clientIP(req)), b.newCred);
       if(r.u && writeDBNow()===false) return send(res,503,{ok:false,storageFailed:true,error:'Save failed - try again.'});   /* v1013 (N13): the new password is on disk before it is acknowledged */
-      return r.u ? send(res,200,{ ok:true, gid:r.u.id, name:r.u.name, st:acctState(r.u), tag:credTag(r.u), delCancelled:!!r.delCancelled }) : send(res,r.status,{error:r.error}); }
+      return r.u ? send(res,200,{ ok:true, gid:r.u.id, name:r.u.name, login:usernameOf(r.u), st:acctState(r.u), tag:credTag(r.u), delCancelled:!!r.delCancelled }) : send(res,r.status,{error:r.error}); }
     if(p==='/api/internal/account/handoff-issue'){ const u=DB.users[String(b.gid||'')];
       if(!u || u.isNpc || u.guest) return send(res,404,{error:'No such account.'});
       if(isBanned(u)) return send(res,403,{error:'This account is suspended.'});   // v1035: a banned account cannot switch servers
@@ -5625,7 +5656,7 @@ async function api(req,res,url){
       /* v1184 SIGN-UP GATE: a player with a local copy tagged by Server 1 (made on a sign-in or sign-up here since v1184) is checked HERE
          first, on this server's thread pool; Server 1 is then asked with the tag instead of hashing (it still applies the lock, the ban
          and a changed password: a tag that is no longer current gets the full check). No tag or a wrong local check = the full check. */
-      const name=String(b.name||'').trim(), llid=DB.byName[name.toLowerCase()], llu=llid&&DB.users[llid];
+      const name=String(b.name||'').trim(), llid=loginId(name), llu=llid&&DB.users[llid];   /* v1253: the username */
       let tagOk=null;
       if(llu && llu.gid && llu.hash && llu.s1Tag && !llu.isNpc && !llu.guest && await checkPassAsync(llu,b.pass)) tagOk={ gid:llu.gid, tag:llu.s1Tag };
       const r=await authorityCall('/api/internal/account/verify',Object.assign({ name, pass:b.pass, ip:clientIP(req) }, tagOk||{}));   /* v1007 (re-audit Account N3): the player's IP, so the lockout is per player, not per satellite */
@@ -5636,14 +5667,14 @@ async function api(req,res,url){
         const lid=DB.byName[String(r.body.name||'').toLowerCase()], lu=lid&&DB.users[lid];
         if(!(lu && !lu.gid && !lu.guest && !lu.isNpc)) return send(res,409,{ error:'This account plays on Server 1.', homeServer:1 }); }
       if(r && r.status===200 && r.body && r.body.gid){ const touched=[], keep=!!(tagOk && r.body.trusted && tagOk.gid===r.body.gid);
-        const u=await linkedUser(r.body.gid, r.body.name, b.pass, keep?{ keepCopy:true, tag:r.body.tag, touched }:{ tag:r.body.tag, touched }); delete u.loginFails;
+        const u=await linkedUser(r.body.gid, r.body.name, b.pass, keep?{ keepCopy:true, tag:r.body.tag, touched, login:r.body.login }:{ tag:r.body.tag, touched, login:r.body.login }); delete u.loginFails;
         if(r.body.st){ u.passSeenAt=+r.body.st.passAt||0; if(applyAcctState(u, r.body.st)) writeDB(); }   // v1035: the password was just checked - current (v1184: a state change saves everything, as before)
         if(isBanned(u)){ saveSoon([u.id].concat(touched)); return send(res,403,banResp(u)); }   /* v1097: a banned account does not sign in */
         const _dc=!!r.body.delCancelled||acctDelCancel(u);   /* v1232 */
         dropTokens(u.id); const tok=issueToken(u.id); saveSoon([u.id].concat(touched)); return send(res,200,{ token:tok, profile:profileFor(u), deletionCancelled:_dc||undefined }); }
       if(r) return send(res, r.status===429?429:401, {error:(r.body&&r.body.error)||'Wrong name or password'});
       // the account server did not answer: a player who has signed in here before can still get in with the local copy
-      const lid=DB.byName[name.toLowerCase()], lu=lid&&DB.users[lid];
+      const lid=loginId(name), lu=lid&&DB.users[lid];   /* v1253 */
       if(!(lu && lu.gid && lu.hash)) return send(res,503,{error:'Accounts are unreachable right now - try again in a minute.'});
     }
     const r=await acctVerify(b.name, b.pass, clientIP(req));
@@ -5815,9 +5846,9 @@ async function api(req,res,url){
     const c=await makeCredAsync(b.pass);   // v1184: on the thread pool
     if(nameTaken(name)) return send(res,409,{error:'That Profile name is already taken'});   // v1184: again after the await
     const id=uid();
-    DB.users[id]={ id, name, hash:c.hash, salt:c.salt, iters:c.iters, rank:5000, coins:0, team:defaultTeam(), wall:defaultTeam(),
+    DB.users[id]={ id, name, login:name, hash:c.hash, salt:c.salt, iters:c.iters, rank:5000, coins:0, team:defaultTeam(), wall:defaultTeam(),
       roster:{}, lastDaily:0, cityX:Math.round(Math.random()*1000), cityY:Math.round(Math.random()*1000), created:Date.now() };
-    DB.byName[name.toLowerCase()]=id; nameIdxPut(DB.users[id]); _dpk('byName',name.toLowerCase()); writeDB(); return send(res,200,{ok:true, name}); }
+    DB.byName[name.toLowerCase()]=id; nameIdxPut(DB.users[id]); loginIdxPut(DB.users[id]); _dpk('byName',name.toLowerCase()); writeDB(); return send(res,200,{ok:true, name}); }
   // admin: delete an account
   if(p==='/api/admin/delete' && req.method==='POST'){ if(!me||!isDev(me)) return send(res,403,{error:'forbidden'});
     const b=await body(req); const tid=b.id||DB.byName[(b.name||'').trim().toLowerCase()]; const u=tid&&DB.users[tid];
@@ -5856,7 +5887,7 @@ async function api(req,res,url){
     if(hasPass&&!String(b.pass||'')) return send(res,400,{error:'Enter your password.',needPass:true});
     let out=null;
     if(ACCOUNT_AUTHORITY&&me.gid){
-      const r=await authorityCall('/api/internal/account/verify',{ name:me.name, pass:b.pass, ip:clientIP(req) });
+      const r=await authorityCall('/api/internal/account/verify',{ name:usernameOf(me), pass:b.pass, ip:clientIP(req) });
       if(!r) return send(res,503,{error:'Accounts are unreachable right now - try again in a minute.'});
       if(r.status!==200||!r.body||r.body.gid!==me.gid) return send(res,r.status===429?429:403,{error:r.status===429?((r.body&&r.body.error)||'Too many attempts.'):'Wrong password.',needPass:true});
       const d=await authorityCall('/api/internal/account/delete-request',{ gid:me.gid, via:'game' });   /* v1232: Server 1 starts the grace */
@@ -6019,7 +6050,7 @@ async function api(req,res,url){
       const COSTS=[0,50,100,200], n=me.renames|0, cost=n<COSTS.length?COSTS[n]:200, led=ensureLedger(me);
       if(cost>0&&(led.gems|0)<cost) return {ok:false,error:'You need '+cost+' diamonds for this rename.'};
       if(cost>0) led.gems-=cost;
-      const old=String(me.name||''); me.name=name; me.renames=n+1;   /* the shared name index moves only after the save succeeds (below) - a failed save restores me, not DB.byName (scan 4 #1) */
+      const old=String(me.name||''); if(!me.login) me.login=old; me.name=name; me.renames=n+1;   /* v1253: the username stays what it was */   /* the shared name index moves only after the save succeeds (below) - a failed save restores me, not DB.byName (scan 4 #1) */
       ledTx(me,'account:rename',{gems:-cost,from:old.slice(0,16),to:name});
       writeDB(); return {ok:true, name, from:old, renames:me.renames, cost, nextCost:(me.renames<COSTS.length?COSTS[me.renames]:200), ledger:ledgerView(me)};
     });
@@ -10651,7 +10682,7 @@ const BOOT_FILE_M=(function(){ try{ return fs.statSync(DB_FILE).mtimeMs; }catch(
 function bootFinish(){ if(_booted) return;
   if(_DB_LOAD_FAILED){ _worldLoadRefusal(_DB_LOAD_FAILED,['PostgreSQL had no world to restore either']); process.exit(1); }   // v1183: never seed over a world that did not load
   _booted=true; PG_BOOT_PENDING=false;
-  seed(); migrateAdminRoles(); migrateTokenHashes(); migrateDeviceKeys(); migrateHeroKeys1023();   /* v1023: first, so every later migration sees the new keys */ migrateTankGlyphPath();   /* v1019 */ migrateGlyphPaths1022();   /* v1022 */ migrateGlyphDefenseAv2();   /* Academy v2 */   // stamp role:admin from ADMIN_IDS; hash any plaintext tokens (v241: the Vault, like the Campaign, refuses to boot without its authored table)
+  seed(); migrateAdminRoles(); migrateLogins1253(); /* v1253 */ migrateTokenHashes(); migrateDeviceKeys(); migrateHeroKeys1023();   /* v1023: first, so every later migration sees the new keys */ migrateTankGlyphPath();   /* v1019 */ migrateGlyphPaths1022();   /* v1022 */ migrateGlyphDefenseAv2();   /* Academy v2 */   // stamp role:admin from ADMIN_IDS; hash any plaintext tokens (v241: the Vault, like the Campaign, refuses to boot without its authored table)
   migrateLegacyFeedback();
   migrateBlockedWorldCastles();
   migrateHeroIdsAll();   /* v926: rewrite old hero ids to in-game-name keys in every stored ledger/profile (once, stamped led.idv=2) */

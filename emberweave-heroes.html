@@ -17270,12 +17270,13 @@ function renderProfileModal(){
       <div style="width:64px;height:64px;border-radius:50%;overflow:hidden;border:2px solid #ffce6b;flex:none"><img id="pfHead" style="width:100%;height:100%;object-fit:cover" src="${HERO_PORTRAITS[curPortrait]||''}"></div>
       <div style="flex:1">
         <div style="font-weight:800;font-size:16px">${escapeHTML(G.playerName||'Commander')}</div>
+        ${(ACC&&ACC.token&&!ACC.guest)?`<div id="pfLogin" style="font-size:11px;color:#8b98a9">Username: <b style="color:#cdd8ea">${escapeHTML(ACC.login||ACC.name||'')}</b></div>`:''}
         <div style="font-size:11px;color:#8b98a9">Level ${lv} · ${xpText}</div>
         <div style="height:7px;background:#1a2030;border-radius:5px;overflow:hidden;margin-top:4px"><div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#6ea8ff,#8a7bff)"></div></div>
       </div>
     </div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px">
-      <div style="font-weight:700;font-size:13px">Name</div>
+      <div style="font-weight:700;font-size:13px">Nickname</div>
       <div style="font-size:11px;color:#c9b6ff">${hudIcon('gem')} ${rgems}</div>
     </div>
     <div style="display:flex;gap:6px;margin-top:4px">
@@ -23666,7 +23667,7 @@ function ensureGuest(cb){
   ensureGuest._busy=true;
   api('/api/guest','POST',{deviceId:deviceId(), resume:true}).then(d=>{ ensureGuest._busy=false;
     if(!(d&&d.token&&d.profile) && !(d&&d.error==='offline')){ ACC={token:null,name:null,rank:null,coins:0,id:null}; saveAcc(); }   // no guest to resume: Sign in (a dropped connection keeps the guest and tries again)
-    if(d&&d.token&&d.profile){ ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,guest:true,created:(d.profile.created||0),admin:!!d.profile.admin}; saveAcc(); clearServerCaches();   // 31 Aug: a pre-token /api/gear/state 401 may already have cached "Forge disabled" — drop it now that we have a token
+    if(d&&d.token&&d.profile){ ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,guest:true,created:(d.profile.created||0),admin:!!d.profile.admin,login:(d.profile.login||'')}; saveAcc(); clearServerCaches();   // 31 Aug: a pre-token /api/gear/state 401 may already have cached "Forge disabled" — drop it now that we have a token
       /* 30 Aug — RESUMING A GUEST WAS DESTROYING THAT GUEST'S SAVE.
          This comment was only ever true for a BRAND-NEW guest. /api/guest also RESUMES an existing
          guest by device id — and in that case the browser's G is whatever it currently holds, which
@@ -24055,7 +24056,7 @@ function renderAccount(){ const b=document.getElementById('accountBody');
     <input id="acPass" type="password" placeholder="Password" style="width:100%;padding:9px;margin-bottom:8px;border-radius:8px;border:1px solid #33405e;background:#0f1420;color:#e6edf3">
     <div style="display:flex;gap:8px"><button class="btn" id="loginBtn" style="flex:1">Log in</button><button class="btn secondary" id="regBtn" style="flex:1">Register</button></div>
     <div id="acMsg" style="font-size:12px;color:#ffd45e;margin-top:8px;text-align:center;min-height:16px"></div>`;   /* v1144: "Play as a guest instead" is gone - new guests are closed */
-  const finishAuth=(d,isReg)=>{ const _prevId=ACC&&ACC.id; clearServerCaches(); ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,guest:!!(d.profile&&d.profile.guest),created:(d.profile.created||0),admin:!!d.profile.admin};saveAcc(); DEV.on=isDevAcct();
+  const finishAuth=(d,isReg)=>{ const _prevId=ACC&&ACC.id; clearServerCaches(); ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,guest:!!(d.profile&&d.profile.guest),created:(d.profile.created||0),admin:!!d.profile.admin,login:(d.profile.login||'')};saveAcc(); DEV.on=isDevAcct();
       if(acctSwitchReload(_prevId, d.profile.id, isReg)) return;   // v401: switching account reboots the app (see acctSwitchReload)
       if(isReg){ _cloudReady=true; pushSave(); } else if(!(_cloudReady=true,applyCloudSave(d.profile,true))){ pushSave(); } else { loginReload(); return; }   /* v957 */
       updateHubChrome(); renderAccount(); };
@@ -24085,7 +24086,7 @@ function renderSetNewPass(name){ const b=document.getElementById('accountBody');
     if(np!==cf){ m.textContent='Passwords do not match.'; return; }
     api('/api/login','POST',{name, newPass:np, roster:rosterPayload()}).then(d=>{ if(d.error){ m.textContent=d.error; return; }
       if(!d.token){ m.textContent='Could not set password.'; return; }
-      ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,created:(d.profile.created||0),admin:!!d.profile.admin};saveAcc(); DEV.on=isDevAcct();
+      ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,created:(d.profile.created||0),admin:!!d.profile.admin,login:(d.profile.login||'')};saveAcc(); DEV.on=isDevAcct();
       if(!(_cloudReady=true,applyCloudSave(d.profile,true))) pushSave(); else { loginReload(); return; } updateHubChrome(); renderAccount(); }); };   /* v957 */
 }
 /* 4 Sep (Phil): "when I log into another account its stuck level 1 until I close the game ... best to
@@ -29361,7 +29362,7 @@ function renderSettings(){
       api('/api/reset-verify','POST',{name:_forgotName, code, newPass:np, roster:rosterPayload()}).then(d=>{
         if(!d||d.error){ msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error)||'Could not reset password.'; return; }
         if(!d.token||!d.profile){ msg.style.color='#ff8b8b'; msg.textContent='Unexpected server response.'; return; }
-        ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,email:d.profile.email||'',created:(d.profile.created||0),admin:!!d.profile.admin}; saveAcc(); DEV.on=isDevAcct();
+        ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,email:d.profile.email||'',created:(d.profile.created||0),admin:!!d.profile.admin,login:(d.profile.login||'')}; saveAcc(); DEV.on=isDevAcct();
         clearServerCaches();   // 31 Aug: this is an account SWITCH — or the reset player sees the previous account's Forge, Vault, glyphs and pool
         if(!(_cloudReady=true,applyCloudSave(d.profile,true))) pushSave(); else { loginReload(); return; }   /* v957 */
         _forgotName=''; _forgotStep='name'; acctMode='signin'; renderSettings(); updateHubChrome(); if(state==='home') renderHome();
@@ -29386,7 +29387,7 @@ function renderSettings(){
         if(!d.token||!d.profile){ msg.style.color='#ff8b8b'; msg.textContent='Unexpected server response.'; return; }
         delCancelNote(d);   /* v1232 */
         const _prevId=ACC&&ACC.id;
-        ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,email:d.profile.email||'',created:(d.profile.created||0),admin:!!d.profile.admin}; saveAcc();
+        ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,email:d.profile.email||'',created:(d.profile.created||0),admin:!!d.profile.admin,login:(d.profile.login||'')}; saveAcc();
         DEV.on=isDevAcct();
         clearServerCaches();   // 31 Aug: settings-screen sign-in is an account switch too — mirror finishAuth()
         if(acctSwitchReload(_prevId, d.profile.id, isCreate)) return;   // v401: a switch reboots the app (see acctSwitchReload)
@@ -29407,7 +29408,7 @@ function renderSettings(){
       api('/api/login','POST',{name:_resetName, newPass:np, roster:rosterPayload()}).then(d=>{
         if(!d||d.error){ msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error)||'Could not reach the server.'; return; }
         if(!d.token||!d.profile){ msg.style.color='#ff8b8b'; msg.textContent='Could not set password.'; return; }
-        ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,email:d.profile.email||'',created:(d.profile.created||0),admin:!!d.profile.admin}; saveAcc(); DEV.on=isDevAcct();
+        ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,email:d.profile.email||'',created:(d.profile.created||0),admin:!!d.profile.admin,login:(d.profile.login||'')}; saveAcc(); DEV.on=isDevAcct();
         clearServerCaches();   // 31 Aug: armed-recovery sign-in is an account switch too
         if(!(_cloudReady=true,applyCloudSave(d.profile,true))) pushSave(); else { loginReload(); return; }   /* v957 */
         _resetName=''; acctMode='signin'; renderSettings(); updateHubChrome(); if(state==='home') renderHome(); }); };
@@ -29431,7 +29432,7 @@ function renderSettings(){
       const keepId=ACC.id;
       api('/api/register','POST',{name,pass,roster:rosterPayload(),deviceId:deviceId()}).then(d=>{ window._authBusy=false;
         if(!d||d.error||!d.token||!d.profile){ msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error==='offline')?'Connection lost - try again.':((d&&d.error)||'Could not create the account.'); return; }
-        ACC=Object.assign({},ACC,{token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,guest:!!d.profile.guest,email:d.profile.email||'',created:(d.profile.created||0),admin:!!d.profile.admin});
+        ACC=Object.assign({},ACC,{token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,guest:!!d.profile.guest,email:d.profile.email||'',created:(d.profile.created||0),admin:!!d.profile.admin,login:(d.profile.login||'')});
         delete ACC.signedOut; saveAcc(); DEV.on=isDevAcct();
         if(d.profile.id!==keepId){ clearServerCaches(); if(acctSwitchReload(keepId, d.profile.id, true)) return; }
         _cloudReady=true; pushSave(); try{ chatUpdateName(); }catch(e){}
@@ -29496,7 +29497,7 @@ function renderSettings(){
       msg.style.color='#8b98a9'; msg.textContent='Changing password…';
       api('/api/reset-verify','POST',{name:ACC.name, code, newPass:np}).then(d=>{
         if(!d||d.error){ msg.style.color='#ff8b8b'; msg.textContent=(d&&d.error)||'Could not change password.'; return; }
-        if(d.token&&d.profile){ ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,email:d.profile.email||'',created:(d.profile.created||0),admin:!!d.profile.admin}; saveAcc(); }
+        if(d.token&&d.profile){ ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,email:d.profile.email||'',created:(d.profile.created||0),admin:!!d.profile.admin,login:(d.profile.login||'')}; saveAcc(); }
         pwStep='idle'; renderSettings(); bannerMsg(uiIcon('key')+' Password changed. Other devices have been signed out.'); }); };
     acRSubmit.onclick=doSubmit;
     ['#acRCode','#acRNew','#acRNew2'].map(s=>b.querySelector(s)).filter(Boolean).forEach(el=>el.onkeydown=(e)=>{ if(e.key==='Enter') doSubmit(); }); }
@@ -30100,7 +30101,7 @@ function svrHomeLogin(d,name,pass,onErr){ if(!(d&&d.homeServer===1&&svrFront()&&
       body:JSON.stringify({name,pass,roster:rosterPayload(),deviceId:deviceId()})}).then(r=>r.json()).then(j=>{
     if(!(j&&j.token&&j.profile)){ onErr((j&&j.error)||'Could not reach Server 1 - try again.'); return; }
     window.EW_LS_RAW.set('ew_acc',JSON.stringify({token:j.token,name:j.profile.name,rank:j.profile.rank,coins:j.profile.coins,id:j.profile.id,
-      email:j.profile.email||'',created:(j.profile.created||0),admin:!!j.profile.admin,guest:false}));
+      email:j.profile.email||'',created:(j.profile.created||0),admin:!!j.profile.admin,login:(j.profile.login||''),guest:false}));
     try{ localStorage.removeItem('ew_auto'); }catch(e){} svrRecentSet(1); location.replace('/play?server=1'); }).catch(()=>onErr('Could not reach Server 1 - try again.'));
   return true; }
 /* v947 (Phil: "it logs me as guest when i switch" / "the account needs to be consistent when switching servers"): a signed-in
@@ -30124,7 +30125,7 @@ function svrRedeem(code){
   fetch('/api/handoff-redeem',{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({code}) })
     .then(r=>r.json()).then(d=>{ if(d && d.token && d.profile){
       ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,email:d.profile.email||'',
-           created:(d.profile.created||0),admin:!!d.profile.admin,guest:false};
+           created:(d.profile.created||0),admin:!!d.profile.admin,login:(d.profile.login||''),guest:false};
       try{ clearServerCaches(); }catch(e){} saveAcc(); } else msg=(d&&d.error)||''; })
     .catch(()=>{}).then(()=>{
       window._svrHandoff=false; window._svrSigningIn=false; _svrSwitchT=Date.now();   /* v1197: replies still in flight with the old token get a grace window */
@@ -31306,7 +31307,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1793554158116';
+const BUILD_ID = '1793577783348';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
