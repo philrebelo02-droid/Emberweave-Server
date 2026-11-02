@@ -70,7 +70,7 @@ let pass=0,fail=0; const ck=(n,c,d)=>{ c?(pass++,console.log('  ✓ '+n)):(fail+
 
   if(r.error){ console.log('  ✗ could not start the stage — '+r.error); process.exit(1); }
   ck('the client fought on the SERVER\'s seed', typeof r.seedUsed==='number');
-  ck('the squad was built from the server snapshots', JSON.stringify(r.spawnedHp)===JSON.stringify(r.serverHp),
+  ck('the squad was built from the server snapshots', JSON.stringify(r.spawnedHp.slice().sort((a,b)=>a-b))===JSON.stringify(r.serverHp.slice().sort((a,b)=>a-b)),   /* v1255: any order (the intro's benched heroes come after the field) */
      'client '+JSON.stringify(r.spawnedHp)+' vs server '+JSON.stringify(r.serverHp));
   ck('turning AUTO on was recorded as a player action', r.log.some(e=>e[1]==='auto'), JSON.stringify(r.log).slice(0,120));
   ck('the recorded tick for it came from the SERVER, not the browser',

@@ -120,7 +120,7 @@ const ok=(c,msg)=>{ checks++; if(c) console.log('  ✓ '+msg); else { fails++; c
     const {page,ctx}=await open('death');
     let died=0;
     for(let b=1;b<=2;b++){
-      await page.evaluate(()=>{ G.stamina=Math.max(G.stamina||0,60); show('campaign'); openStageModal(1,'normal'); }); await page.waitForTimeout(400);
+      await page.evaluate(()=>{ window.introSetup=function(){}; /* v1255: no scripted intro in this display test */ G.stamina=Math.max(G.stamina||0,60); show('campaign'); openStageModal(1,'normal'); }); await page.waitForTimeout(400);
       await page.locator('#smBattle').click(); await page.waitForTimeout(600);
       await page.evaluate(()=>{ const s=document.getElementById('startBtn'); if(s) s.click(); });
       for(let i=0;i<160;i++){ if(await page.evaluate(()=>state==='battle'&&units.length>0)) break; await page.waitForTimeout(250); }

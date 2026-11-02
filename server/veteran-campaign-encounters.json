@@ -27,7 +27,7 @@
     }
    ]
   },
-  "waves": [[{"key":"ooznik","lvl":1,"hpMul":1.52,"dmgMul":1.64},{"key":"grushak","lvl":1,"hpMul":1.52,"dmgMul":1.64}],[{"key":"cinder skulk","lvl":1,"hpMul":1.08,"dmgMul":1.0},{"key":"skulk","lvl":1,"hpMul":1.08,"dmgMul":1.0},{"key":"shellwark","lvl":1,"hpMul":1.08,"dmgMul":1.0}],[{"key":"sootwing imp","lvl":1,"hpMul":1.08,"dmgMul":1.0},{"key":"ooznik","lvl":1,"hpMul":1.08,"dmgMul":1.0},{"key":"shellwark","lvl":1,"hpMul":1.08,"dmgMul":1.0},{"key":"cindertusk","lvl":1,"hpMul":1.08,"dmgMul":1.0},{"key":"tick","lvl":1,"hpMul":1.08,"dmgMul":1.0,"isHero":true,"rewardHero":true,"rank":0}]],
+  "waves": [[{"key":"ooznik","lvl":1,"hpMul":1.52,"dmgMul":1.64},{"key":"grushak","lvl":1,"hpMul":1.52,"dmgMul":1.64}],[{"key":"cinder skulk","lvl":1,"hpMul":1.08,"dmgMul":1.0},{"key":"skulk","lvl":1,"hpMul":1.08,"dmgMul":1.0},{"key":"shellwark","lvl":1,"hpMul":1.08,"dmgMul":1.0}],[{"key":"sootwing imp","lvl":1,"hpMul":1.08,"dmgMul":1.0},{"key":"ooznik","lvl":1,"hpMul":1.08,"dmgMul":1.0},{"key":"shellwark","lvl":1,"hpMul":1.08,"dmgMul":1.0},{"key":"tick","lvl":1,"hpMul":1.08,"dmgMul":1.0,"isHero":true,"rewardHero":true,"rank":0}]],
   "rewardHero": "tick",
   "veteranRebalance": {
    "v": "v1148",
