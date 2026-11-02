@@ -117,7 +117,7 @@ function nameIndexCheck() {
     await sleep(500); await stop('s1a');
     // two accounts with hashes made the OLD way (pbkdf2Sync): one 60k without iters (before 26 Aug), one 210k
     { const db = JSON.parse(fs.readFileSync(DB1, 'utf8')); const tpl = db.users[ADM];
-      const mk = (id, name, c) => { const u = JSON.parse(JSON.stringify(tpl)); delete u.role; u.id = id; u.name = name; delete u.iters; Object.assign(u, c); db.users[id] = u; db.byName[name.toLowerCase()] = id; };
+      const mk = (id, name, c) => { const u = JSON.parse(JSON.stringify(tpl)); delete u.role; delete u.login; delete u.roleS1; u.id = id; u.name = name; delete u.iters; Object.assign(u, c); db.users[id] = u; db.byName[name.toLowerCase()] = id; };
       mk('legacy60', 'OldTimer', cred(pw('oldpass99'), 60000)); mk('modern210', 'Modern', cred(pw('modernpass1'), 210000));
       fs.writeFileSync(DB1, JSON.stringify(db)); }
     start('s1', P1, S1env()); start('s2', P2, SATenv(DB2, 2)); start('s3', P3, SATenv(DB3, 3));

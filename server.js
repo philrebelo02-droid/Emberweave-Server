@@ -418,16 +418,19 @@ function _nameIdxSync(){ const t0=Date.now(); let d=0;
    from before v1253 has no u.login - its username is its name (and migrateLogins1253 gives a renamed one back its first name).
    Usernames and nicknames share one namespace (nameTaken checks both), so nobody can take another player's username as a nickname;
    a player may set their own nickname back to their username. The index is memory only, rebuilt from DB.users. */
-let _loginIdx={ db:null, m:new Map() };
+let _loginIdx={ db:null, m:new Map(), syncAt:0 };
 function loginKeyOf(u){ return String((u&&(u.login||u.name))||'').toLowerCase(); }
 function usernameOf(u){ return String((u&&(u.login||u.name))||''); }
-function _loginIdxReady(){ if(_loginIdx.db===DB) return; _loginIdx={ db:DB, m:new Map() };
+function _loginIdxReady(){ if(_loginIdx.db===DB) return; _loginIdx={ db:DB, m:new Map(), syncAt:Date.now() };
   for(const u of Object.values(DB.users||{})){ if(u&&u.id&&!u.isNpc){ const k=loginKeyOf(u); if(k) _loginIdx.m.set(k,u.id); } } }
 function loginIdxPut(u){ if(!u||!u.id||u.isNpc) return; _loginIdxReady(); const k=loginKeyOf(u); if(k) _loginIdx.m.set(k,u.id); }
 function loginId(name){ const k=String(name||'').trim().toLowerCase(); if(!k) return null; _loginIdxReady();
   const id=_loginIdx.m.get(k), u=id&&DB.users[id]; if(u&&!u.isNpc&&loginKeyOf(u)===k) return id;
-  for(const v of Object.values(DB.users||{})){ if(v&&v.id&&!v.isNpc&&loginKeyOf(v)===k){ _loginIdx.m.set(k,v.id); return v.id; } }   // a path that did not note it
-  if(id) _loginIdx.m.delete(k); return null; }
+  if(id) _loginIdx.m.delete(k);
+  if(Date.now()-_loginIdx.syncAt>=1000){ _loginIdx.syncAt=Date.now();   // a player added by a path that did not note it: one walk a second at most (a free name is the common miss)
+    for(const v of Object.values(DB.users||{})){ if(v&&v.id&&!v.isNpc){ const vk=loginKeyOf(v); if(vk&&!_loginIdx.m.has(vk)) _loginIdx.m.set(vk,v.id); } }
+    const id2=_loginIdx.m.get(k), u2=id2&&DB.users[id2]; if(u2&&!u2.isNpc&&loginKeyOf(u2)===k) return id2; }
+  return null; }
 function migrateLogins1253(){ let n=0;
   for(const u of Object.values(DB.users||{})){ if(!u||u.isNpc||u.guest||u.login||!(u.renames>0)) continue;
     const tx=((u.led&&Array.isArray(u.led.txs))?u.led.txs:[]).filter(t=>t&&t.src==='account:rename'&&t.d&&t.d.from).sort((a,b)=>(a.t||0)-(b.t||0))[0];

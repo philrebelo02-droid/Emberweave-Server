@@ -33,36 +33,36 @@ const login = (port, name, pw) => call(port, '/api/login', { name, pass: pw });
 (async () => {
   try {
     start('s1a', P1, { DB_FILE: DB1, ACCOUNT_LINK_SECRET: SECRET }); await up(P1);
-    const ph = await call(P1, '/api/register', { name: 'phil', pass: 'philpass123' }); const PHIL = ph.body.profile && ph.body.profile.id;
+    const ph = await call(P1, '/api/register', { name: 'aldrin', pass: 'alpass1234' }); const ALD = ph.body.profile && ph.body.profile.id;
     await call(P1, '/api/register', { name: 'bob', pass: 'bobpass123' });
     await call(P1, '/api/register', { name: 'carl', pass: 'carlpass123' });
     await stop('s1a');
-    // Server 1 makes phil a dev; Server 2 has NO admin list of its own - the role must come from Server 1
-    start('s1', P1, { DB_FILE: DB1, ACCOUNT_LINK_SECRET: SECRET, ADMIN_IDS: PHIL }); await up(P1);
+    // Server 1 makes aldrin a dev; Server 2 has NO admin list of its own - the role must come from Server 1
+    start('s1', P1, { DB_FILE: DB1, ACCOUNT_LINK_SECRET: SECRET, ADMIN_IDS: ALD }); await up(P1);
     start('s2', P2, { DB_FILE: DB2, ACCOUNT_LINK_SECRET: SECRET, ACCOUNT_AUTHORITY: 'http://127.0.0.1:' + P1, ACCOUNT_STATUS_MS: '1000', SERVER_NAME: 'Server 2' }); await up(P2);
-    ok(!!PHIL, 'setup: phil, bob, carl registered on Server 1');
+    ok(!!ALD, 'setup: aldrin, bob, carl registered on Server 1');
 
-    const t1 = (await login(P1, 'phil', 'philpass123')).body.token;
-    const rn = await call(P1, '/api/account/rename', { name: 'Emberweave TEST', requestId: 'r1253a' }, t1);
-    ok(rn.status === 200 && rn.body.ok, 'phil renames to "Emberweave TEST" (got ' + rn.status + ' ' + JSON.stringify(rn.body).slice(0, 80) + ')');
-    let a = await login(P1, 'phil', 'philpass123');
-    ok(a.status === 200 && a.body.profile && a.body.profile.name === 'Emberweave TEST' && a.body.profile.login === 'phil',
-      'Server 1: username "phil" still signs in; nickname is "Emberweave TEST" (got ' + a.status + ' ' + JSON.stringify(a.body.profile && { n: a.body.profile.name, l: a.body.profile.login }) + ')');
-    a = await login(P1, 'Emberweave TEST', 'philpass123');
+    const t1 = (await login(P1, 'aldrin', 'alpass1234')).body.token;
+    const rn = await call(P1, '/api/account/rename', { name: 'Ember Nick', requestId: 'r1253a' }, t1);
+    ok(rn.status === 200 && rn.body.ok, 'aldrin renames to "Ember Nick" (got ' + rn.status + ' ' + JSON.stringify(rn.body).slice(0, 80) + ')');
+    let a = await login(P1, 'aldrin', 'alpass1234');
+    ok(a.status === 200 && a.body.profile && a.body.profile.name === 'Ember Nick' && a.body.profile.login === 'aldrin',
+      'Server 1: username "aldrin" still signs in; nickname is "Ember Nick" (got ' + a.status + ' ' + JSON.stringify(a.body.profile && { n: a.body.profile.name, l: a.body.profile.login }) + ')');
+    a = await login(P1, 'Ember Nick', 'alpass1234');
     ok(a.status === 401 && !a.body.token, 'Server 1: the nickname is not a username (got ' + a.status + ')');
 
     const tb = (await login(P1, 'bob', 'bobpass123')).body.token;
-    a = await call(P1, '/api/account/rename', { name: 'phil', requestId: 'r1253b' }, tb);
-    ok(a.status === 400 && /taken/i.test(a.body.error || ''), 'bob cannot take "phil" as a nickname - it is phil\'s username (got ' + JSON.stringify(a.body).slice(0, 70) + ')');
-    a = await call(P1, '/api/register', { name: 'Phil', pass: 'otherpass123' });
-    ok(a.status === 409, 'nobody can sign up as "Phil" (got ' + a.status + ')');
-    a = await call(P1, '/api/account/rename', { name: 'phil', requestId: 'r1253c' }, (await login(P1, 'phil', 'philpass123')).body.token);
-    ok(!/taken/i.test(a.body.error || ''), 'phil may set his nickname back to his own username on purpose (got ' + JSON.stringify(a.body).slice(0, 70) + ')');
+    a = await call(P1, '/api/account/rename', { name: 'aldrin', requestId: 'r1253b' }, tb);
+    ok(a.status === 400 && /taken/i.test(a.body.error || ''), 'bob cannot take "aldrin" as a nickname - it is aldrin\'s username (got ' + JSON.stringify(a.body).slice(0, 70) + ')');
+    a = await call(P1, '/api/register', { name: 'Aldrin', pass: 'otherpass1234' });
+    ok(a.status === 409, 'nobody can sign up as "Aldrin" (got ' + a.status + ')');
+    a = await call(P1, '/api/account/rename', { name: 'aldrin', requestId: 'r1253c' }, (await login(P1, 'aldrin', 'alpass1234')).body.token);
+    ok(!/taken/i.test(a.body.error || ''), 'aldrin may set his nickname back to his own username on purpose (got ' + JSON.stringify(a.body).slice(0, 70) + ')');
 
-    a = await login(P2, 'phil', 'philpass123');
-    ok(a.status === 200 && a.body.profile && a.body.profile.login === 'phil', 'Server 2: username "phil" signs in (got ' + a.status + ')');
-    ok(!!(a.body.profile && a.body.profile.admin), 'Server 2: phil is a dev there too - the role comes from Server 1');
-    a = await login(P2, 'Emberweave TEST', 'philpass123');
+    a = await login(P2, 'aldrin', 'alpass1234');
+    ok(a.status === 200 && a.body.profile && a.body.profile.login === 'aldrin', 'Server 2: username "aldrin" signs in (got ' + a.status + ')');
+    ok(!!(a.body.profile && a.body.profile.admin), 'Server 2: aldrin is a dev there too - the role comes from Server 1');
+    a = await login(P2, 'Ember Nick', 'alpass1234');
     ok(a.status !== 200 && !a.body.token, 'Server 2: the nickname does not sign in (got ' + a.status + ')');
     a = await login(P2, 'bob', 'bobpass123');
     ok(a.status === 200 && !(a.body.profile && a.body.profile.admin), 'Server 2: bob is not a dev');
@@ -73,7 +73,7 @@ const login = (port, name, pw) => call(port, '/api/login', { name, pass: pw });
     delete cu.login; cu.name = 'Carlito'; cu.renames = 1; delete db.byName.carl; db.byName.carlito = C;
     cu.led = cu.led || {}; cu.led.txs = (cu.led.txs || []).concat([{ id: 'x1253', t: Date.now() - 60000, src: 'account:rename', d: { gems: 0, from: 'carl', to: 'Carlito' } }]);
     fs.writeFileSync(DB1, JSON.stringify(db));
-    start('s1', P1, { DB_FILE: DB1, ACCOUNT_LINK_SECRET: SECRET, ADMIN_IDS: PHIL }); await up(P1);
+    start('s1', P1, { DB_FILE: DB1, ACCOUNT_LINK_SECRET: SECRET, ADMIN_IDS: ALD }); await up(P1);
     a = await login(P1, 'carl', 'carlpass123');
     ok(a.status === 200 && a.body.profile && a.body.profile.name === 'Carlito', 'old rename: "carl" signs in again, nickname stays "Carlito" (got ' + a.status + ')');
     a = await login(P1, 'Carlito', 'carlpass123');
