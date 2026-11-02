@@ -56,7 +56,7 @@ async function seedWorld(dir) {
   const put = u => { const loc = WL.place(taken, n => Math.floor(Math.random() * n)); taken.push(loc); u.worldLocation = loc; };
   Object.assign(w.users[mover.profile.id].led, { px: 900000 }); put(w.users[mover.profile.id]);
   const clones = [];
-  for (let i = 0; i < 299; i++) { const u = JSON.parse(JSON.stringify(tpl)); u.id = 'mdc' + String(i).padStart(4, '0'); u.name = 'mdClone' + i; u.wall = tpl.wall || tpl.team; put(u); w.users[u.id] = u; w.byName[u.name.toLowerCase()] = u.id; clones.push(u.id); }
+  for (let i = 0; i < 299; i++) { const u = JSON.parse(JSON.stringify(tpl)); u.id = 'mdc' + String(i).padStart(4, '0'); u.name = 'mdClone' + i; delete u.login;   /* v1253: a clone is not mdMove's username */ u.wall = tpl.wall || tpl.team; put(u); w.users[u.id] = u; w.byName[u.name.toLowerCase()] = u.id; clones.push(u.id); }
   const vu = w.users[viewer.profile.id]; vu.led.px = 900000; put(vu);   // the viewer has a castle (bots are served) and one war far away
   const far = clones.map(id => w.users[id]).sort((p, q) => Math.hypot(q.worldLocation.x - vu.worldLocation.x, q.worldLocation.y - vu.worldLocation.y) - Math.hypot(p.worldLocation.x - vu.worldLocation.x, p.worldLocation.y - vu.worldLocation.y))[0];
   vu.worldWars = { [far.id]: { readyAt: Date.now(), expireAt: Date.now() + 86400000 } };
