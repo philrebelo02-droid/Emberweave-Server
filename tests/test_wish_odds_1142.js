@@ -91,7 +91,7 @@ const TABLE={full3:0.03,full2:0.10,frag3:0.17,frag2:0.23,glyphFull:0.20,glyphNex
   ok(u3.status===400&&u3.data.ok===false&&L.stamina.v===740&&L.stamItems===0,'at 0 roasts the use is refused and nothing changes ('+u3.status+' '+(u3.data.error||'')+')');
   await editDB(u=>{ u.led.stamItems=1; u.led.stam={v:999,ts:Date.now()}; });
   const u4=await call('/api/stamina/use-item',{requestId:R()}); L=await led();
-  ok(u4.data.ok===false&&L.stamItems===1,'at full stamina (999) the roast is kept, as a meal refuses ('+(u4.data.error||'')+')');
+  ok(u4.data.ok!==false&&L.stamItems===0&&L.stamina.v>999,'v1257 (no stamina cap): at 999 the roast is used and stamina goes past 999 ('+(L.stamina&&L.stamina.v)+')');
 
   if(missed.length){ missed.forEach(m=>console.error('FAIL',m)); process.exitCode=1; }
   console.log('test_wish_odds_1142.js: '+pass+' checks passed, '+missed.length+' failed (server '+srvFile+')');

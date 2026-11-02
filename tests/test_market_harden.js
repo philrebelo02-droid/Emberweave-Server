@@ -48,8 +48,9 @@ async function editDB(fn){ await delay(300); await stop(); const db=JSON.parse(f
   await editDB(u=>{ u.led.stam={v:999,t:Date.now()}; });
   const g1=(await led()).gems;
   const f1=await call('/api/shop/buy',{what:'food',requestId:'food-full'});
-  ok(f1.data.ok===false&&/Stamina is full/.test(f1.data.error||''),'a meal at full stamina is refused ('+(f1.data.error||JSON.stringify(f1.data).slice(0,80))+')');
-  ok((await led()).gems===g1,'no diamond taken by the refused meal');
+  /* v1257 (Phil 2 Nov 2026: "Also there shouldnt be a max to stamina"): 999 is no longer full - the meal sells and adds in full */
+  ok(f1.data.ok===true&&f1.data.stamina>999,'v1257: a meal at 999 stamina sells and stamina goes past 999 ('+(f1.data.stamina||f1.data.error)+')');
+  ok((await led()).gems<g1,'the meal is paid for');
   await editDB(u=>{ u.led.stam={v:100,t:Date.now()}; });
   const f2=await call('/api/shop/buy',{what:'food',requestId:'food-low'});
   ok(f2.data.ok===true,'CONTROL: a meal below full stamina sells ('+(f2.data.error||'ok')+')');

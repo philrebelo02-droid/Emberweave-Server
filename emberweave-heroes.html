@@ -30551,10 +30551,12 @@ function introDrawBubble(){ const S=CUR&&CUR._introSay, live=!!(S&&state==='batt
   octx.save(); octx.globalAlpha=Math.min(1,age*4); octx.font='800 15px Georgia,serif';
   const w=Math.min(280,octx.measureText(S.txt).width+22), hh=28;
   const hits=(x,y)=>boxes.some(b=>x<b.x1&&x+w>b.x0&&y<b.y1&&y+hh+10>b.y0);
-  let bx=head.x-w/2, by=head.y-hh-12, done=false;
-  for(let k=0;k<7&&!done;k++){ for(const dx of [0,-0.6,0.6]){ const x=head.x-w/2+dx*w, y=head.y-hh-12-k*22;
-    if(!hits(x,y)){ bx=x; by=y; done=true; break; } } }
-  if(!done){ bx=head.x-w/2; by=head.y-hh-12-7*22; }
+  /* Phil 2 Nov: "The bubbles arent above their head, fix that" - always centred straight above the speaker's head; to stay off
+     another unit it only RISES (at most 3 small steps), never slides sideways (that pulled it away from the speaker). */
+  const others=boxes.filter((b,bi)=>units.filter(v=>v.alive&&!v._dropHidden)[bi]!==u);
+  const hitsO=(x,y)=>others.some(b=>x<b.x1&&x+w>b.x0&&y<b.y1&&y+hh+10>b.y0);
+  let bx=head.x-w/2, by=head.y-hh-10;
+  for(let k=0;k<3&&hitsO(bx,by);k++) by-=16;
   bx=Math.max(4,Math.min(CW-w-4,bx)); by=Math.max(4,by);
   const tx=Math.max(bx+12,Math.min(bx+w-12,head.x));   // the tail points back at the speaker
   octx.fillStyle='rgba(250,242,222,.96)'; octx.strokeStyle='#b8913f'; octx.lineWidth=2;
