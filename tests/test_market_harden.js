@@ -51,7 +51,7 @@ async function editDB(fn){ await delay(300); await stop(); const db=JSON.parse(f
   /* v1257 (Phil 2 Nov 2026: "Also there shouldnt be a max to stamina"): 999 is no longer full - the meal sells and adds in full */
   ok(f1.data.ok===true&&f1.data.stamina>999,'v1257: a meal at 999 stamina sells and stamina goes past 999 ('+(f1.data.stamina||f1.data.error)+')');
   ok((await led()).gems<g1,'the meal is paid for');
-  await editDB(u=>{ u.led.stam={v:100,t:Date.now()}; });
+  await editDB(u=>{ u.led.stam={v:100,t:Date.now()}; if(u.led.shop) u.led.shop.food=0; });   /* v1257: the meal above now sells and used today's one meal - reset it for the control */
   const f2=await call('/api/shop/buy',{what:'food',requestId:'food-low'});
   ok(f2.data.ok===true,'CONTROL: a meal below full stamina sells ('+(f2.data.error||'ok')+')');
   // #1/#5 (v969): the War Chest is one server purchase; the legacy 'convert' earn is gone
