@@ -3433,7 +3433,7 @@ function creditFrags(u,led,heroKey,amount,reason,opts){
   resourceGain(u,'frags',led.frags[heroKey]-before,reason,opts);return led.frags[heroKey]-before;
 }
 function creditStamina(u,led,amount,reason,opts){
-  ledStamRegen(led);const before=led.stam.v;led.stam.v=Math.min(999,before+amount);
+  ledStamRegen(led);const before=led.stam.v;led.stam.v=Math.min(STAM_CEIL,before+amount);
   resourceGain(u,'stamina',led.stam.v-before,reason,opts);return led.stam.v-before;
 }
 
@@ -4745,7 +4745,7 @@ function ledAddPlayerXP(led,amount,u,opts){
   const gained=Math.max(0,ledPlayerLevel(led)-before);
   if(gained){
     const stamBefore=led.stam.v;
-    led.stam.v=Math.min(999,led.stam.v+STAMINA_PER_PLAYER_LEVEL*gained);
+    led.stam.v=Math.min(STAM_CEIL,led.stam.v+STAMINA_PER_PLAYER_LEVEL*gained);
     if(u) resourceGain(u,'stamina',led.stam.v-stamBefore,'player-level',opts);
     led.stam.ts=Date.now();
     if(led.temple){ led.temple.playerLevel=ledPlayerLevel(led); TEMPLE.grantLevelUps(led.temple); }
@@ -5043,6 +5043,9 @@ function poolRollGem(u, rigged){ const led=u.led, pool=poolState(u);
    /api/stamina/use-item: +120 stamina exactly as a meal gives it (creditStamina, the 999 ceiling, refused at full). */
 const GEM_ODDS=Object.freeze({full3:0.03,full2:0.10,frag3:0.17,frag2:0.23,glyphFull:0.20,glyphNext:0.10,stamItem:0.17});
 const STAM_ITEM_STAMINA=120, STAM_ITEM_MAX=9999, STAM_ITEM_NAME='Ember Roast';
+/* v1257 (Phil 2 Nov 2026: "Also there shouldnt be a max to stamina"): the old 999 ceiling on held stamina is gone - meals, Ember Roasts,
+   rewards, refunds and level-ups add in full. STAM_CEIL is only an overflow guard. Regeneration still stops at the normal max (59 + level). */
+const STAM_CEIL=1e9;
 /* ---- HUD shop (stamina meals + gold purchases, server-owned counts + prices) ---- */
 const SHOP_FOOD_COSTS=[50,50,100,100,200,200,400,400,600,600],   /* v1064 Phil 8 Oct: "It should be 50, 50, 100, 100, 200, 200, 400" / "There is 2 400s, then 600, 600 is last" - ten meals a day */ SHOP_GOLD_COSTS=[20,20,40,40,60,60,100,100], SHOP_FOOD_STAMINA=120;
 function shopState(u){ const led=ensureLedger(u); if(!led.shop) led.shop={day:'',food:0,gold:0};
@@ -7505,7 +7508,7 @@ async function api(req,res,url){
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
     const out=durableCommit(me,me.id+':stamitem:'+reqId,(me)=>{ const led=ensureLedger(me);
       if((led.stamItems|0)<1) return {ok:false,error:'You have no '+STAM_ITEM_NAME+'.'};
-      ledStamRegen(led); if(led.stam.v>=999) return {ok:false,error:'Stamina is full.'};   // as a meal: never spend the item for nothing
+      ledStamRegen(led); if(led.stam.v>=STAM_CEIL) return {ok:false,error:'Stamina is full.'};   // as a meal: never spend the item for nothing
       led.stamItems=(led.stamItems|0)-1; const got=creditStamina(me,led,STAM_ITEM_STAMINA,'item:stamina');
       ledTx(me,'item:stamina',{stamina:got}); return {ok:true, stamina:led.stam.v, gained:got, left:led.stamItems, ledger:ledgerView(me)}; });
     return send(res,out.storageFailed?503:(out.ok===false?400:200),out); }
@@ -7703,7 +7706,7 @@ async function api(req,res,url){
       const led=ensureLedger(me), sh=shopState(me); const what=String(b.what||'');
       if(what==='food'){ if(sh.food>=patronRow(led,'meals')) return {ok:false,error:'No more meals today.'};   /* v1092/v1093: the EGP chart sets the daily number (1 at EGP 0) */
         const c=SHOP_FOOD_COSTS[Math.min(sh.food,SHOP_FOOD_COSTS.length-1)]; if(led.gems<c) return {ok:false,error:'Not enough diamonds.'};
-        ledStamRegen(led); if(led.stam.v>=999) return {ok:false,error:'Stamina is full.'};   /* 3 Oct Market audit #8: a meal at full stamina took the diamonds and gave nothing */
+        ledStamRegen(led); if(led.stam.v>=STAM_CEIL) return {ok:false,error:'Stamina is full.'};   /* 3 Oct Market audit #8: a meal at full stamina took the diamonds and gave nothing */
         led.gems-=c; sh.food++; creditStamina(me,led,SHOP_FOOD_STAMINA,'shop:food');
         ledTx(me,'shop:food',{gems:-c,stamina:SHOP_FOOD_STAMINA});
         writeDB(); return {ok:true, stamina:led.stam.v, cost:c, ledger:ledgerView(me)}; }
@@ -7893,7 +7896,7 @@ async function api(req,res,url){
       resourceGain(tgt,'gems',led.gems-before,'admin:diamonds',{devPanel:true}); }
     if(b.px) ledAddPlayerXP(led,b.px|0,tgt,{devPanel:true});
     if(b.heroXp&&Array.isArray(b.heroKeys)) for(const k of b.heroKeys){ const h=led.hero[k]||(led.hero[k]={xp:0,stars:1,pips:0}); h.xp=Math.min(99000000,h.xp+(b.heroXp|0)); }
-    if(b.stamina){ ledStamRegen(led); const before=led.stam.v; led.stam.v=Math.min(999,led.stam.v+(b.stamina|0));
+    if(b.stamina){ ledStamRegen(led); const before=led.stam.v; led.stam.v=Math.min(STAM_CEIL,led.stam.v+(b.stamina|0));
       resourceGain(tgt,'stamina',led.stam.v-before,'admin:stamina',{devPanel:true}); }
     if(b.campCleared!=null) led.camp.cleared=Math.max(0,Math.min(CAMPAIGN_NODES,b.campCleared|0));   // dev-only fixture
     if(b.campStars&&typeof b.campStars==='object') for(const k in b.campStars){ const v=b.campStars[k]|0; if(v>=1&&v<=3) led.camp.stars[k]=v; }   // dev-only fixture
@@ -8128,7 +8131,7 @@ async function api(req,res,url){
       else if(what==='guildCoins') led.guildCoins=Math.min(ECON_CAP.guildCoins,(led.guildCoins|0)+amt);
       else if(what==='gems'){ const before=led.gems; led.gems=Math.min(ECON_CAP.gems,led.gems+amt);
         resourceGain(me,'gems',led.gems-before,reason); }
-      else if(what==='stamina'){ ledStamRegen(led); const before=led.stam.v; led.stam.v=Math.min(999,led.stam.v+amt);
+      else if(what==='stamina'){ ledStamRegen(led); const before=led.stam.v; led.stam.v=Math.min(STAM_CEIL,led.stam.v+amt);
         resourceGain(me,'stamina',led.stam.v-before,reason); }
       else if(what==='px') ledAddPlayerXP(led,amt,me);
       else if(what==='heroXp'){ const keys=(Array.isArray(b.heroKeys)?[...new Set(b.heroKeys.map(String))].slice(0,10):[]);   /* v559: the daily counter moved once per request but the loop paid once per ELEMENT, so ten copies of one key multiplied the award tenfold. */
@@ -8249,7 +8252,7 @@ async function api(req,res,url){
         && open.heroIds.every((k,i)=>k===ids[i]);
       campRecPrune();
       if(open && !sameSquad && (Date.now()-(open.startedAt||0) <= CAMP_SESSION_MS) && open.node===node){
-        led.stam.v=Math.min(999, led.stam.v+(open.stamPaid|0));   // refund: never below what they already hold
+        led.stam.v=Math.min(STAM_CEIL, led.stam.v+(open.stamPaid|0));   // refund: never below what they already hold
         ledTx(me,mode+':resquad:'+(open.node|0),{stamina:(open.stamPaid|0)});
         campRecDrop(open); prog.att=null;
       }
@@ -8263,11 +8266,11 @@ async function api(req,res,url){
           return send(res,200,{ ok:true, resumed:true, attemptId:open.id, mode, stage:st0, seed:rec.seed,
             snaps:rec.snaps, engine:open.engine, stamina:{v:led.stam.v,max:ledStamMax(led)} });
         }
-        led.stam.v=Math.min(999, led.stam.v+(open.stamPaid|0));   // refund: never below what they already hold
+        led.stam.v=Math.min(STAM_CEIL, led.stam.v+(open.stamPaid|0));   // refund: never below what they already hold
         ledTx(me,mode+':abandoned:'+(open.node|0),{stamina:(open.stamPaid|0)});
         campRecDrop(open); prog.att=null;
       } else if(prog.att){ const open=prog.att;
-        led.stam.v=Math.min(999, led.stam.v+(open.stamPaid|0));   // refund: never below what they already hold
+        led.stam.v=Math.min(STAM_CEIL, led.stam.v+(open.stamPaid|0));   // refund: never below what they already hold
         ledTx(me,mode+':expired:'+(open.node|0),{stamina:(open.stamPaid|0)});
         campRecDrop(open); prog.att=null;
       } }
@@ -8305,7 +8308,7 @@ async function api(req,res,url){
          resolvable hours later or silently consumed. */
       if(Date.now()-(a.startedAt||0) > CAMP_SESSION_MS){
         prog.att=null; campRecDrop(a);
-        led.stam.v=Math.min(999, led.stam.v+(a.stamPaid|0));   // refund: never below what they already hold
+        led.stam.v=Math.min(STAM_CEIL, led.stam.v+(a.stamPaid|0));   // refund: never below what they already hold
         ledTx(me,mode+':expired:'+(a.node|0),{stamina:(a.stamPaid|0)});
         writeDB([me.id]);
         return {ok:false, expired:true, error:'That battle expired — your stamina was returned. Start the stage again.', ledger:ledgerView(me)};
@@ -8313,7 +8316,7 @@ async function api(req,res,url){
       campRecPrune(); const rec=campRec(a);
       if(!rec){   /* v1124: the recording was lost (a server restart mid-fight) - the fight cannot be checked, so it is an interrupted attempt: stamina back */
         prog.att=null;
-        led.stam.v=Math.min(999, led.stam.v+(a.stamPaid|0));
+        led.stam.v=Math.min(STAM_CEIL, led.stam.v+(a.stamPaid|0));
         ledTx(me,mode+':interrupted:'+(a.node|0),{stamina:(a.stamPaid|0)});
         writeDB([me.id]);
         return {ok:false, expired:true, interrupted:true, error:'That battle was interrupted by a server restart — your stamina was returned. Start the stage again.', ledger:ledgerView(me)};
@@ -8365,7 +8368,7 @@ async function api(req,res,url){
         }
       }catch(e){}
       if(!witnessed){
-        led.stam.v=Math.min(999,led.stam.v+(a.stamPaid|0));
+        led.stam.v=Math.min(STAM_CEIL,led.stam.v+(a.stamPaid|0));
         ledTx(me,mode+':invalid-verdict:'+st.id,{stamina:(a.stamPaid|0)});
         writeDB([me.id]);
         return {ok:false,unverified:true,error:'Battle result was incomplete — your stamina was returned.',ledger:ledgerView(me)};
@@ -8636,7 +8639,7 @@ async function api(req,res,url){
       const got=creditStamina(me,led,stam,'emberdraft:place');   // v646: report and record what was really added (the 999 cap)
       ledTx(me,'emberdraft:place'+place,{stamina:got});
       writeDB();
-      return { ok:true, stamina:got, note:got<stam ? 'Your stamina is full (999) - only '+got+' of '+stam+' fit.' : '', edraft:view(), ledger:ledgerView(me) }; });
+      return { ok:true, stamina:got, note:'', edraft:view(), ledger:ledgerView(me) }; });
     return send(res, out.storageFailed?503:(out.ok===false?400:200), out); }
   /* =================== v663: TRAINING PROVINCE (Gold / Drill) — real battles, server-paid ===================
      state  GET  → the stage table (gates, bosses, rewards) + today's plays

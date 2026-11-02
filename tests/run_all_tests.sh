@@ -623,6 +623,8 @@ note "test_intro_1255.js (v1255: scripted stage 1-1 - Vael alone, Vireo and Sylt
 node tests/test_intro_1255.js || FAILED=1
 note "test_speed_auto_1256.js (v1256: x2 from 1-3, x0.5 only in replays, AUTO at EGP 1 or level 30)"
 node tests/test_speed_auto_1256.js || FAILED=1
+note "test_stamina_uncapped_1257.js (v1257: no 999 stamina cap)"
+node tests/test_stamina_uncapped_1257.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi
