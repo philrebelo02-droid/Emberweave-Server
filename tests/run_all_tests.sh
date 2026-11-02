@@ -629,6 +629,8 @@ note "test_size_1258.js (v1258: every fighter 15% bigger, every battle distance 
 node tests/test_size_1258.js || FAILED=1
 note "test_bubble_walkin_1260.js (v1260: bubble tail on the head above the HUD; everyone stands on their spot before a wave)"
 node tests/test_bubble_walkin_1260.js || FAILED=1
+note "test_energy_bars_1261.js (v1261: portrait energy bars follow the real energy after a rebuild; 1-1 ults fill steadily)"
+node tests/test_energy_bars_1261.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi

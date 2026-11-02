@@ -30396,6 +30396,11 @@ function buildPortraitBar(side){side=side||'ally';const bar=document.getElementB
       gb.addEventListener('click',fire); gb.addEventListener('touchstart',fire,{passive:false});
       u.gearBtnEl=gb; slot.appendChild(gb);
     }
+    /* v1261 (Phil 2 Nov: "Something is wrong with energy bars. Its not accurate. It shows they have ult with zero energy and doesn't show
+       them gaining"): updatePortraits caches each bar's fill element and last value on the unit. A rebuild of this bar mid-fight (a hero
+       joining in 1-1, the gear fetch at battle start, a Vault backup) made NEW elements, but the cache kept pointing at the old, detached
+       ones - so the bars on screen stopped moving. Every rebuild drops the cache, and the next frame writes the new bars. */
+    u._hpFill=undefined; u._enFill=undefined; u._hpW=undefined; u._enW=undefined; u._hpLow=undefined; u._slotCN=undefined;
     u.portraitEl=el; u.hpEl=hp; u.enEl=en; u.slotEl=slot; slot.appendChild(el); slot.appendChild(hp); slot.appendChild(en); bar.appendChild(slot);});
   buildEnemyBar();
 }
@@ -30549,6 +30554,10 @@ function introTick(dt){ const I=CUR._intro, vael=unitByUid(I.vael);
   if(I.vaelFull&&!I.vaelCast&&vael&&vael.energy<100){ I.vaelCast=I.t; introSay('vael_after',vael); }
   if(I.vaelCast&&!I.vireoIn&&I.t>=I.vaelCast+1.6){ I.vireoIn=I.t; introEnter(I.vireo); introSay('vireo_in',I.vireo); }
   if(I.vireoIn&&!I.vaelReply&&waveIdx===0&&I.t>=I.vireoIn+2.6){ I.vaelReply=1; introSay('vael_reply',vael); }
+  /* v1261 (Phil 2 Nov: "doesn't show them gaining"): the scripted ults no longer jump from empty to full - Vireo's and Sylthaine's energy
+     fills steadily from their entry to the cue (never below what they earned themselves). Sim state, same in the server replay. */
+  if(I.vireoIn!=null&&!I.vireoFull&&I.vireo.alive) I.vireo.energy=Math.max(I.vireo.energy||0, Math.min(99,100*(I.t-I.vireoIn)/4.8));
+  if(I.sylIn!=null&&!I.sylFull&&I.syl.alive) I.syl.energy=Math.max(I.syl.energy||0, Math.min(99,100*(I.t-I.sylIn)/5));
   if(I.vireoIn&&!I.vireoFull&&I.t>=I.vireoIn+4.8&&I.vireo.alive){ I.vireoFull=1; I.vireo.energy=100; introSay('vireo_ready',I.vireo); }
   if(I.sylIn!=null&&!I.sylFull&&I.t>=I.sylIn+5&&I.syl.alive){ I.sylFull=1; I.syl.energy=100; introSay('syl_ready',I.syl); }
 }
@@ -31476,7 +31485,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1793635159231';
+const BUILD_ID = '1793636514058';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
