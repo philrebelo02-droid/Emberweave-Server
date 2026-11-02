@@ -12,6 +12,8 @@ ok(/<section class="feat" id="featured"/.test(site) && /<section class="finale" 
 ok((site.match(/<div class="divider" aria-hidden="true"><i><\/i><\/div>/g) || []).length >= 3, 'ornate dividers between the sections');
 ok(/<article class="mode lead rv">/.test(site) && (site.match(/<article class="mode rv">/g) || []).length === 5, 'six framed mode cards, the Campaign leading');
 ok((site.match(/data-tile="/g) || []).length === 6, 'the six feature tiles each carry an icon');
+const art = [...new Set((site.match(/\/assets\/img\/site\/[a-z0-9-]+\.webp/g) || []))];
+ok(art.length === 9 && art.every(a => fs.existsSync(path.join(ROOT, a.slice(1)))), 'the painted art (divider, showcase hall, six feature scenes, call-to-play charge) is wired and every file exists - ' + art.length);
 // featured heroes: real keys, in-game sub names, a line from their own lore
 const F = JSON.parse(site.match(/var FEAT=(\[.*?\]);/)[1]);
 const S = JSON.parse(game.match(/HERO_SUBNAME = (\{[^}]*\})/)[1]);
