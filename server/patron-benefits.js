@@ -10,7 +10,7 @@
    "cannot buy attacks"
   ],
   [
-   "Unlocks 2x battle speed & auto ultimates",
+   "Unlocks auto ultimates (everyone else at level 30)",
    "Unlocks a 2nd stamina & gold purchase",
    "5% rebate on purchases"
   ],

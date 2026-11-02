@@ -1,6 +1,7 @@
 {
  "note": "Each draft item mapped to the SHIPPED note(s) in Emberweave Archive/Operating procedure/SHIPPED it came from.",
  "patches": [
+ {"ver": "1.0.8", "releases": "v1256", "items": [{"text": "x2 speed from 1-3, x0.5 only in replays, AUTO at EGP 1 or level 30.", "sources": ["Mechanics blueprints/18 - Battle Engine.md", "Mechanics blueprints/25 - EGP (Ember Gold Patron).md"]}]},
  {"ver": "1.0.7", "releases": "v1255", "items": [{"text": "Stage 1-1 is a scripted story fight with Vael, Vireo and Sylthaine.", "sources": ["Mechanics blueprints/18 - Battle Engine.md"]}]},
  {"ver": "1.0.6", "releases": "v1254", "items": [{"text": "PvE enemies 5% weaker; tutorial button on screen; framed sign-in, terms and Start Here.", "sources": ["Mechanics blueprints/17 - Account, Settings, Glossary, Chat.md"]}]},
  {"ver": "1.0.5", "releases": "v1253", "items": [{"text": "Your username (what you sign in with) never changes. Renaming changes only your nickname, the name other players see. Your profile shows both.", "sources": ["Mechanics blueprints/17 - Account, Settings, Glossary, Chat.md"]}]},
