@@ -21633,7 +21633,7 @@ Object.assign(MONSTER_KITS,{
   'riftling spider':{green:{name:'Phase Web',type:'stun',mul:0.6,stun:1.5,cd:9,gfx:'voidzone',gfxR:1.4*METER,gdur:1.8},blue:{name:'Rift Bite',type:'blink',mul:1.8,range:20*METER,cd:10}},
   'crystalhorn grazer':{green:{name:'Shard Volley',type:'volley',mul:0.85,n:3,color:'#8fd0ff',cd:7,pfx:'crystalshard',pscale:2.2,pdur:0.26},blue:{name:'Prism Charge',type:'charge',mul:1.3,radius:2.0*METER,stun:0.6,cd:10,gfx:'frostnova',gfxR:2.0*METER,gdur:1.3}},
   'skyroot dryad':{green:{name:'Thorn Lash',type:'strike',mul:1.4,color:'#7fd06b',cd:6,gfx:'rallyroots',gfxR:1.2*METER,gdur:1.6},blue:{name:'Sap Renewal',type:'heal',mul:0.3,cd:9,gfx:'mendbloom',gfxAt:'self',gfxR:2.0*METER,gdur:2.2}},
-  'luminant orb':{green:{name:'Radiant Beam',type:'piercethrow',mul:1.5,width:30,cd:9,pfx:'prismbolt',pscale:3.0,pdur:0.3},blue:{name:'Flash Pulse',type:'aoeStun',mul:0.6,stun:0.8,radius:2.4*METER,cd:10,gfx:'firstspring',gfxAt:'self',gdur:1.6}},
+  'luminant orb':{green:{name:'Radiant Beam',type:'piercethrow',mul:1.5,width:30*UNIT_SIZE,cd:9,pfx:'prismbolt',pscale:3.0,pdur:0.3},blue:{name:'Flash Pulse',type:'aoeStun',mul:0.6,stun:0.8,radius:2.4*METER,cd:10,gfx:'firstspring',gfxAt:'self',gdur:1.6}},
   'zephyr harrier':{green:{name:'Gale Dart',type:'multiShot',mul:0.9,n:2,cd:7,pfx:'featherbolt',pscale:2.4,pdur:0.26},blue:{name:'Windstep',type:'nova',mul:0.7,radius:2.6*METER,cd:10,gfx:'featherstorm',gfxAt:'self',gfxR:2.6*METER,gdur:1.8}},
   'runic automaton':{green:{name:'Arc Bolt',type:'fireball',mul:1.4,radius:2.0*METER,cd:8,gfx:'voidzone',gfxR:2.0*METER,gdur:1.8},blue:{name:'Ward Field',type:'defensive',mul:0.5,dur:5,cd:11,gfx:'bonechant',gfxAt:'self',gfxR:2.2*METER,gdur:2.2}},
   'ironjaw raider':{green:{name:'Riveter Cleave',type:'cleavecone',mul:1.1,radius:2.6*METER,angle:90,cd:7,gfx:'cleave',gfxR:2.4*METER,gdur:1.2},blue:{name:'War Drum Kick',type:'haste',mul:1.4,dur:5,self:true,cd:10,gfx:'rallyroots',gfxAt:'self',gfxR:2.0*METER,gdur:1.6}},
@@ -21653,7 +21653,7 @@ Object.assign(MONSTER_KITS,{
   'sable vesper':{green:{name:'Dirge Crescendo',type:'crescendo',dur:4,cd:9,gfx:'voidzone',radius:2.8*METER},blue:{name:'Murder of One',type:'multiShot',mul:1.1,n:5,cd:9,pfx:'featherbolt',pscale:2.4,pdur:0.26},pass:'hush'},
   'orryx':{green:{name:'Labyrinth Charge',type:'charge',mul:1.8,radius:2.4*METER,stun:0.9,cd:10,gfx:'groundslam',gfxR:2.4*METER,gdur:1.5},blue:{name:'Prismatic Axe',type:'volley',mul:0.9,n:3,color:'#b98bff',cd:8,pfx:'crystalshard',pscale:2.4,pdur:0.26},pass:'unstepped'},
   'thorneveil':{green:{name:'Wildfire Roots',type:'aoedot',mul:0.6,dps:0.5,dur:4,radius:2.6*METER,cd:9,gfx:'firepatch',gdur:2.4},blue:{name:'Verdant Collapse',type:'aoeStun',mul:1.3,stun:1.2,radius:2.6*METER,cd:11,gfx:'rallyroots',gdur:1.6},pass:'regen'},
-  'nameless admiral':{green:{name:'Broadside of Souls',type:'piercethrow',mul:1.7,width:40,cd:9,pfx:'shadowball',pscale:3.2,pdur:0.3},blue:{name:'Anchor the Living',type:'tendrilpull',dur:1.6,cd:10},pass:'packstats'}
+  'nameless admiral':{green:{name:'Broadside of Souls',type:'piercethrow',mul:1.7,width:40*UNIT_SIZE,cd:9,pfx:'shadowball',pscale:3.2,pdur:0.3},blue:{name:'Anchor the Living',type:'tendrilpull',dur:1.6,cd:10},pass:'packstats'}
 });
 Object.assign(ABILITY_CAST_MON,{
   'cinder skulk':{green:0.5,blue:0.5},
