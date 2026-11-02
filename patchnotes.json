@@ -1,5 +1,6 @@
 {
   "patches": [
+    {"ver": "1.0.6", "date": "2 November 2026", "title": "A smoother first battle", "items": ["Your first battle never waits on you: if you do not use a hero's ultimate within a few seconds, it is cast for you while the glowing portrait keeps showing how.", "The first tutorial step's button is always on screen on phones.", "The sign-in, Terms of Service and Start Here screens have new gold frames, and sign-in sits in the middle of the screen."]},
     {"ver": "1.0.5", "date": "1 November 2026", "title": "Username stays yours", "items": ["Your username (what you sign in with) never changes. Renaming changes only your nickname, the name other players see. Your profile shows both."]},
     {"ver": "1.0.4", "date": "1 November 2026", "title": "Bug or Suggestion", "items": ["Reports: choose Bug or Suggestion before you send, so your idea reaches the right list."]},
     {"ver": "1.0.3", "date": "1 November 2026", "title": "Full-screen world map", "items": ["The world map fills the screen at full zoom out: no more plain sea box around the edge of the map."]},

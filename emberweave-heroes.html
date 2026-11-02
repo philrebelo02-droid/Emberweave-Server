@@ -2366,6 +2366,15 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 #authGate .agLink{font:11px system-ui,sans-serif;color:#d8c08a;text-align:center;text-decoration:none}
 #authGate .agNote{font:12px/1.4 system-ui,sans-serif;color:#cdb98a;text-align:center}
 #authGate .agGuest{align-self:center;font:800 12px system-ui,sans-serif;letter-spacing:.04em;color:#ffd45e;border:1px solid #c9a35e;border-radius:8px;padding:2px 9px;background:#20160a}
+/* v1254 (Phil 2 Nov 2026: "center the sign in better, give the sign in, terms of service, and start here a better art frame they look bland"):
+   the sign-in card sits in the middle, and the three first-run screens wear the game's own gold-rimmed enamel frame (hud-panel.webp,
+   the chat window's and menus' frame) instead of a plain 1 px border */
+#authGate{justify-content:center}
+#authGate .agCard,.ewFrame{background:none!important;border:18px solid transparent!important;border-radius:0!important;
+  border-image:url(/assets/img/ui/hud-panel.webp?v=1) 96 fill / 18px stretch!important;box-shadow:none!important;filter:drop-shadow(0 12px 28px rgba(0,0,0,.75))}
+#authGate .agCard{padding:6px 8px}
+#tutorial #tutorialBody{background:none!important;border:18px solid transparent!important;border-radius:0!important;
+  border-image:url(/assets/img/ui/hud-panel.webp?v=1) 96 fill / 18px stretch!important;box-shadow:none!important;filter:drop-shadow(0 10px 24px rgba(0,0,0,.7))}
 #authGate .agWarn{font:12px/1.4 system-ui,sans-serif;color:#ffd0a0;background:#3a1a10;border:1px solid #c0703a;border-radius:8px;padding:6px 8px;text-align:center}
 #authGate .agMsg{font:12px system-ui,sans-serif;min-height:15px;text-align:center}
 #guestMark{position:absolute;right:calc(100% + 10px);top:50%;transform:translateY(-50%);z-index:9}
@@ -28361,9 +28370,17 @@ function renderTutorial(){ checkTutorial(); const b=document.getElementById('tut
     if(G.tutSkipped){ resumeTutorialGuide(); }
     else skipTutorialGuide();
   };
-  b.querySelectorAll('[data-tut-go]').forEach(btn=>btn.onclick=()=>{ const s=TUTORIAL_STEPS.find(x=>x.id===btn.dataset.tutGo); if(s&&s.go){ G.tutFocusStep=s.id; s.go(); setTimeout(highlightTutorialTarget,0); } });
+  b.querySelectorAll('[data-tut-go]').forEach(btn=>btn.onclick=()=>{ const s=TUTORIAL_STEPS.find(x=>x.id===btn.dataset.tutGo); if(s&&s.go){ ewFunnel('go:'+s.id); G.tutFocusStep=s.id; s.go(); setTimeout(highlightTutorialTarget,0); } });
   b.querySelectorAll('[data-tut-claim]').forEach(btn=>btn.onclick=()=>claimTutorialStep(btn.dataset.tutClaim));
+  /* v1254 (Phil 2 Nov: testers never reached 1 XP): on a landscape phone the first step's Go button sat below the bottom edge (y 370 of
+     375) and nothing said the list scrolls - bring the current step's button into view */
+  try{ const nb=b.querySelector('.tut-next-glow')||b.querySelector('[data-tut-go]');
+    if(nb) setTimeout(()=>{ try{ const r=nb.getBoundingClientRect(); if(r.bottom>innerHeight-8||r.top<0) nb.scrollIntoView({block:'center'}); }catch(e){} },60); }catch(e){}
+  ewFunnel('tut-open');
 }
+/* v1254: first-session funnel - where new players stop (the server keeps each event once per account; staff read it in the dev panel) */
+function ewFunnel(ev){ try{ if(!(ACC&&ACC.token)||ACC.guest) return; window._ewf=window._ewf||{}; if(window._ewf[ev]) return; window._ewf[ev]=1;
+  api('/api/funnel','POST',{ev}).catch(()=>{}); }catch(e){} }
 // first-run prompt for brand-new accounts
 function maybeOfferTutorial(){ if(G.tutDone||G.tutStarted||G.tutSkipped) return; if(!(ACC&&ACC.token)) return;   /* v1144: never before sign-in */ if((G.campaignCleared||0)>0) return;
   if(document.getElementById('tutOffer')) return;   // 2 Sep: renderHome runs more than once at boot — each call stacked another full-screen overlay, and every extra layer swallowed a tap
@@ -29060,7 +29077,7 @@ function tosBodyHTML(){
 function showTerms(){
   const ov=document.createElement('div');
   ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.85);display:flex;align-items:center;justify-content:center;z-index:2147482000;padding:16px';   /* v1144: over the sign-in gate */
-  ov.innerHTML=`<div style="background:linear-gradient(160deg,#161d2c,#0b1220);border:1px solid #38507c;border-radius:16px;width:100%;max-width:440px;max-height:calc(var(--ew-game-height,100vh) * 0.86);display:flex;flex-direction:column;box-shadow:0 14px 48px #000c">
+  ov.innerHTML=`<div class="ewFrame" style="background:linear-gradient(160deg,#161d2c,#0b1220);border:1px solid #38507c;border-radius:16px;width:100%;max-width:440px;max-height:calc(var(--ew-game-height,100vh) * 0.86);display:flex;flex-direction:column;box-shadow:0 14px 48px #000c">
     <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px;border-bottom:1px solid #223052">
       <div style="font-weight:800;font-size:15px">${uiIcon('quest-scroll')} Terms of Service &amp; Privacy</div>
       <button id="tosClose" class="btn xs secondary" style="padding:4px 10px">${uiIcon('close')}</button></div>
@@ -29075,7 +29092,7 @@ function requireTos(onAccept,onDecline){
   if(tosOK()){ onAccept&&onAccept(); return; }
   const ov=document.createElement('div');
   ov.style.cssText='position:fixed;inset:0;background:rgba(6,9,14,.92);display:flex;align-items:center;justify-content:center;z-index:2147482100;padding:16px';   /* v1144: over the sign-in gate */
-  ov.innerHTML=`<div style="background:linear-gradient(160deg,#161d2c,#0b1220);border:1px solid #38507c;border-radius:16px;width:100%;max-width:440px;max-height:calc(var(--ew-game-height,100vh) * 0.88);display:flex;flex-direction:column;box-shadow:0 14px 48px #000c">
+  ov.innerHTML=`<div class="ewFrame" style="background:linear-gradient(160deg,#161d2c,#0b1220);border:1px solid #38507c;border-radius:16px;width:100%;max-width:440px;max-height:calc(var(--ew-game-height,100vh) * 0.88);display:flex;flex-direction:column;box-shadow:0 14px 48px #000c">
     <div style="padding:14px 16px 8px;border-bottom:1px solid #223052"><div style="font-weight:800;font-size:15px">${uiIcon('quest-scroll')} Terms of Service &amp; Privacy</div>
       <div style="font-size:11px;color:#8b98a9;margin-top:3px">Please review and accept to continue signing in.</div></div>
     <div style="overflow-y:auto;padding:6px 16px 12px">${tosBodyHTML()}</div>
@@ -30461,10 +30478,14 @@ function ultCoachReady(x){ return x&&x.team==='ally'&&x.alive&&HERO_TYPES[x.key]
 function ultCoachTick(){ const c=ULTCOACH;
   if(!ultCoachArmed()){ if(c.u||c.hold) ultCoachClear(); units.forEach(x=>{ if(x._pEl) x._pEl.classList.remove('ult-coach-glow'); }); return; }
   if(c.u&&!ultCoachReady(c.u)){ c.done[c.u.uid]=1; ultCoachClear(); }
-  if(!c.u){ const u=units.find(x=>ultCoachReady(x)&&!c.done[x.uid]); if(u){ c.u=u; c.hold=true; } }
+  if(!c.u){ const u=units.find(x=>ultCoachReady(x)&&!c.done[x.uid]); if(u){ c.u=u; c.hold=true; c.since=performance.now(); ewFunnel('coach-wait'); } }
   /* after each hero's lesson, a ready portrait keeps glowing for the rest of this first fight (no freeze) */
   units.forEach(x=>{ if(x._pEl&&x!==c.u) x._pEl.classList.toggle('ult-coach-glow', !!(c.done[x.uid]&&ultCoachReady(x)&&aiming!==x)); });
   if(!c.u) return;
+  /* v1254 (Phil 2 Nov: 3 testers started 1-1 and never finished - the fight froze until they found the tap / press-hold-drag): after
+     6 s the coach casts the ult for them (a normal recorded input, so the replay matches) and the fight goes on; the glow keeps teaching */
+  if(c.hold&&aiming!==c.u&&c.since&&performance.now()-c.since>6000){ const u0=c.u; ewFunnel('coach-auto');
+    queueInput({k:'ult', uid:u0.uid, tid:null, wx:null, wy:null}); if(ULTCOACH.u===u0){ c.done[u0.uid]=1; ultCoachClear(); } return; }
   const u=c.u, h=document.getElementById('ultHint'), nm=escapeHTML((HERO_TYPES[u.key]||{}).name||u.key), ab=escapeHTML(u.t.abilityName||'Ultimate');
   if(h) h.classList.add('ult-coach');
   if(aiming===u){ if(u._pEl) u._pEl.classList.remove('ult-coach-glow');
@@ -31307,7 +31328,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1793577783348';
+const BUILD_ID = '1793617824860';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

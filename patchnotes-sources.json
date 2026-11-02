@@ -1,6 +1,7 @@
 {
  "note": "Each draft item mapped to the SHIPPED note(s) in Emberweave Archive/Operating procedure/SHIPPED it came from.",
  "patches": [
+ {"ver": "1.0.6", "releases": "v1254", "items": [{"text": "First battle never waits; tutorial button on screen; framed sign-in, terms and Start Here.", "sources": ["Mechanics blueprints/17 - Account, Settings, Glossary, Chat.md"]}]},
  {"ver": "1.0.5", "releases": "v1253", "items": [{"text": "Your username (what you sign in with) never changes. Renaming changes only your nickname, the name other players see. Your profile shows both.", "sources": ["Mechanics blueprints/17 - Account, Settings, Glossary, Chat.md"]}]},
  {"ver": "1.0.4", "releases": "v1252", "items": [{"text": "Reports: choose Bug or Suggestion before you send, so your idea reaches the right list.", "sources": ["Mechanics blueprints/24 - Player Feedback (Bugs and Suggestions).md"]}]},
  {"ver": "1.0.3", "releases": "v1250", "items": [{"text": "The world map fills the screen at full zoom out: no more plain sea box around the edge of the map.", "sources": ["Mechanics blueprints/04 - City Wall.md"]}]},

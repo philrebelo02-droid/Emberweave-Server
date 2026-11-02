@@ -617,6 +617,8 @@ note "test_report_kind_1252.js (v1252: the report form has Bug / Suggestion)"
 node tests/test_report_kind_1252.js || FAILED=1
 note "test_username_1253.js (v1253: username fixed, nickname separate, dev role from Server 1)"
 node tests/test_username_1253.js || FAILED=1
+note "test_onboarding_1254.js (v1254: first fight never waits, START HERE button on screen, framed sign-in/terms/start, funnel)"
+node tests/test_onboarding_1254.js || FAILED=1
 rm -f probe-db-*.json
 echo
 if [ $FAILED -eq 0 ]; then echo "ALL SUITES GREEN ✅"; else echo "FAILURES — see $DBDIR"; fi

@@ -5983,6 +5983,13 @@ async function api(req,res,url){
     if(writeDBNow([me.id])===false) return send(res,503,{ok:false,storageFailed:true,error:'Save failed - try again.'});
     return send(res,200,{ok:true,id:item.id,queue:'feedback'}); }
   // Player feedback has its own durable inbox; balance-bot reports stay in the admin report list.
+  /* v1254 (Phil 2 Nov 2026: "Not a single one of the testers made it to 1 exp"): the first-session funnel - where new players stop.
+     Whitelisted events, each kept once per account with its time, at most 40 (me.funnel); the dev panel and Ember read it. */
+  if(p==='/api/funnel' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'}); const b=await body(req); const ev=String(b.ev||'').slice(0,40);
+    if(!/^(tut-open|coach-wait|coach-auto|go:[A-Za-z0-9_-]{1,30})$/.test(ev)) return send(res,400,{error:'bad event'});
+    me.funnel=Array.isArray(me.funnel)?me.funnel:[];
+    if(me.funnel.length<40 && !me.funnel.some(x=>x&&x.e===ev)){ me.funnel.push({e:ev,t:Date.now()}); saveSoon([me.id]); }
+    return send(res,200,{ok:true}); }
   if(p==='/api/report' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     if(rateLimited(req,'report',12,60000)) return send(res,429,{error:'Too many reports — wait a minute.'});
     if(!isDev(me)&&rateLimited(req,'reportDay',100,86400000)) return send(res,429,{error:'Too many reports today.'});   /* v1085 (scan 6 #7): 100 - many players share one mobile IP */   /* v1083 (scan 5 #12): per IP - guests made 300 a day and pushed real bug reports out */
