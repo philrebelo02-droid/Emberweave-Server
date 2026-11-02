@@ -1,6 +1,7 @@
 {
  "note": "Each draft item mapped to the SHIPPED note(s) in Emberweave Archive/Operating procedure/SHIPPED it came from.",
  "patches": [
+ {"ver": "1.1.2", "releases": "v1260", "items": [{"text": "Everyone stands on their spot 0.7 s before each wave; the 1-1 bubble tail on the head, above the HUD.", "sources": ["Mechanics blueprints/18 - Battle Engine.md"]}]},
  {"ver": "1.1.1", "releases": "v1259", "items": [{"text": "Vael's battle cry as four bubbles, one at a time.", "sources": ["Mechanics blueprints/18 - Battle Engine.md"]}]},
  {"ver": "1.1.0", "releases": "v1258", "items": [{"text": "Heroes and monsters 15% bigger, every battle distance x1.15.", "sources": ["Mechanics blueprints/18 - Battle Engine.md"]}]},
  {"ver": "1.0.9", "releases": "v1257", "items": [{"text": "No 999 stamina cap.", "sources": ["Mechanics blueprints/17 - Account, Settings, Glossary, Chat.md"]}]},

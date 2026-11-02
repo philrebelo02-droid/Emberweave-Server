@@ -1,5 +1,6 @@
 {
   "patches": [
+    {"ver": "1.1.2", "date": "2 November 2026", "title": "Ready, then fight", "items": ["At the start of every wave in every mode, heroes and monsters walk to their spots and stand ready for a moment before the fight begins.", "Speech bubbles in the first battle point right at the speaker's head and show over the wave timer."]},
     {"ver": "1.1.1", "date": "2 November 2026", "title": "Battle cries", "items": ["In the first battle, Vael's battle cry now pops up one shout at a time."]},
     {"ver": "1.1.0", "date": "2 November 2026", "title": "Bigger heroes", "items": ["Every hero and monster is 15% bigger in battle, and every range, reach and ability area grows with them, so fights keep their feel.", "Speech bubbles in the first battle sit right above the speaker's head."]},
     {"ver": "1.0.9", "date": "2 November 2026", "title": "No stamina cap", "items": ["There is no longer a 999 limit on stamina you hold: meals, Ember Roasts and rewards always add in full."]},
