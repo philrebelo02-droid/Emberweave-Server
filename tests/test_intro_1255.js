@@ -12,6 +12,7 @@ ok(W.length === 3 && W[0].length === 2 && W[1].length === 3 && W[2].length === 4
 ok(W[0][0].intro === '1-1', 'wave 1 carries the intro marker (the server replay switches the script on from the same data)');
 ok(/const INTRO_LINES=\{/.test(html) && /function introDrawBubble\(\)/.test(html) && !/id='introDlg'|#introDlg\{/.test(html), 'the lines are speech bubbles over the speaker - no bottom text box (Phil: "go back to the bubble, remove the bottom text box")');
 ok(/body\.intro11 \.portrait\.ult-coach-glow\{animation-duration:2\.2s\}/.test(html), 'the coached portrait flashes slowly in the intro');
+ok(/vael_kill:\["Vael",\[\["Kill\.\.\.\.",[\d.]+\],\["Kill everything!!",[\d.]+\],\["KILL!!!",[\d.]+\],\["RAHHHH!!!",[\d.]+\]\]\]/.test(html) && /S\.segs\.find\(g=>age>=g\.a&&age<g\.b\)/.test(html), 'v1259: the Vael KILL line is four bubbles shown one at a time (Phil: "the bubbles should show up one at a time")');
 
 const host = require(path.join(ROOT, 'server/sim-host.js')).load(process.env.INTRO_HTML || path.join(ROOT, 'emberweave-heroes.html')); const run = s => vm.runInContext(s, host.ctx);   // load() takes the page's PATH
 // wrap introTick to watch the beats (sim time) - the same function the live fight and the server replay call
