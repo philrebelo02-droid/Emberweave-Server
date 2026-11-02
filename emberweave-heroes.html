@@ -10065,6 +10065,7 @@ function simFightResult(allySnaps, foeTeam, seed, manualReplay){
   return won;
 }
 function defToDR(flatDef,lvl){ const K=defK(lvl==null?1:lvl); return flatDef>0 ? flatDef/(flatDef+K) : 0; }   // flat Armor/Magic-Resist rating → diminishing damage-reduction fraction (caps well under 100%)
+const ENEMY_NERF=0.95, ENEMY_NERF_MODES=new Set(['campaign','elite','province','well','vault','dungeon','graid','raid']);   // v1254: see makeUnit
 function makeUnit(key,team,x,y,levelOverride,extra){
   // (uid is assigned at the end of this function — see `u.uid=_uidSeq++`)
   const t=HERO_TYPES[key]||MONSTER_TYPES[key]||HERO_TYPES.grosk,lvl=levelOverride||heroLevel(key),scale=lvlScale(lvl);   // leveling raises all stats slightly (applies to allies & enemies alike). ||grosk = safety net so a stale/unknown hero key (e.g. an old arena/NPC team from before the roster cull) can never crash the spawn.
@@ -10092,9 +10093,13 @@ function makeUnit(key,team,x,y,levelOverride,extra){
      display-only lie: the card said one thing and the battle used another. Heroes now grow through
      baseAtLevel(); MONSTERS deliberately stay on lvlScale, because their bases are an order of
      magnitude larger and flat per-level growth would make them weaker every level. */
-  const BL=(HERO_TYPES[key]&&!t.monster&&ROLE_GROWTH[t.role])
+  let BL=(HERO_TYPES[key]&&!t.monster&&ROLE_GROWTH[t.role])
     ? baseAtLevel(t,lvl)
     : {hp:t.hp*scale*monHpComp(t,lvl), dmg:t.dmg*scale, apow:(t.apow||0)*scale, armor:(t.armor||0)*scale, mr:(t.mr||0)*scale};
+  /* v1254 (Phil 2 Nov 2026: "Lets nerf all enemies by 5% stats game wide" / "Lets see how that helps"): every PvE enemy's base stats
+     (HP, attack, ability power, armor, magic resist) x ENEMY_NERF. PvE modes only - other players' heroes (arena, online, Emberdraft,
+     world marches) are untouched. Keyed on the fight's mode, which the server's replays set the same way (campaign / graid). */
+  if(team==='enemy'&&typeof CUR!=='undefined'&&CUR&&ENEMY_NERF_MODES.has(CUR.mode)) BL=Object.assign({},BL,{hp:BL.hp*ENEMY_NERF, dmg:BL.dmg*ENEMY_NERF, apow:(BL.apow||0)*ENEMY_NERF, armor:(BL.armor||0)*ENEMY_NERF, mr:(BL.mr||0)*ENEMY_NERF});
   const _cw=(extra&&extra.campaignHero)?t:null;   /* v1232 (Phil 31 Oct 2026: "make it 10% heal but make him slightly weaker"): a campaign wave hero takes its type's enemyHpMul / enemyDmgMul (one stats step, enemy-only) */
   const uHp=(BL.hp*bhp*mul.hp*sm + fHp)*((_cw&&_cw.enemyHpMul)||1), uDmg=(BL.dmg*bdmg*mul.atk*sm + fAtk)*((_cw&&_cw.enemyDmgMul)||1);
   const u={key,team,t,x,y,level:lvl,boss:!!boss,rank,
@@ -30478,16 +30483,10 @@ function ultCoachReady(x){ return x&&x.team==='ally'&&x.alive&&HERO_TYPES[x.key]
 function ultCoachTick(){ const c=ULTCOACH;
   if(!ultCoachArmed()){ if(c.u||c.hold) ultCoachClear(); units.forEach(x=>{ if(x._pEl) x._pEl.classList.remove('ult-coach-glow'); }); return; }
   if(c.u&&!ultCoachReady(c.u)){ c.done[c.u.uid]=1; ultCoachClear(); }
-  if(!c.u){ const u=units.find(x=>ultCoachReady(x)&&!c.done[x.uid]); if(u){ c.u=u; c.hold=true; c.since=performance.now(); ewFunnel('coach-wait'); } }
+  if(!c.u){ const u=units.find(x=>ultCoachReady(x)&&!c.done[x.uid]); if(u){ c.u=u; c.hold=true; ewFunnel('coach-wait'); } }
   /* after each hero's lesson, a ready portrait keeps glowing for the rest of this first fight (no freeze) */
   units.forEach(x=>{ if(x._pEl&&x!==c.u) x._pEl.classList.toggle('ult-coach-glow', !!(c.done[x.uid]&&ultCoachReady(x)&&aiming!==x)); });
   if(!c.u) return;
-  /* v1254 (Phil 2 Nov: 3 testers started 1-1 and never finished - the fight froze until they found the tap / press-hold-drag): after
-     6 s the coach casts the ult for them (a normal recorded input, so the replay matches) and the fight goes on; the glow keeps teaching */
-  if(c.hold&&aiming!==c.u&&c.since&&performance.now()-c.since>6000){ const u0=c.u; ewFunnel('coach-auto');
-    let _a=null; try{ _a=optimalAimField(u0); }catch(e){}   /* aimed like AUTO does (an unaimed cast wasted the ult: a hands-off 1-1 was LOST on wave 2) */
-    const _t=(_a&&_a.tgt)||nearestEnemy(u0);
-    queueInput({k:'ult', uid:u0.uid, tid:(_t?_t.uid:null), wx:(_a&&_a.x!=null?+_a.x:null), wy:(_a&&_a.y!=null?+_a.y:null)}); if(ULTCOACH.u===u0){ c.done[u0.uid]=1; ultCoachClear(); } return; }
   const u=c.u, h=document.getElementById('ultHint'), nm=escapeHTML((HERO_TYPES[u.key]||{}).name||u.key), ab=escapeHTML(u.t.abilityName||'Ultimate');
   if(h) h.classList.add('ult-coach');
   if(aiming===u){ if(u._pEl) u._pEl.classList.remove('ult-coach-glow');

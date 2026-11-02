@@ -5,15 +5,15 @@ const fs = require('fs'), path = require('path'), os = require('os'), cp = requi
 const dir = process.env.OB_DIR || path.join(__dirname, '..');
 const html = fs.readFileSync(process.env.OB_HTML || path.join(dir, 'emberweave-heroes.html'), 'utf8');
 let pass = 0; const ok = (c, m) => { assert(c, m); pass++; console.log('  ok   ' + m); };
-ok(/c\.hold&&aiming!==c\.u&&c\.since&&performance\.now\(\)-c\.since>6000/.test(html), 'the ult coach stops holding the first fight after 6 s');
-ok(/_a=optimalAimField\(u0\)/.test(html) && /queueInput\(\{k:'ult', uid:u0\.uid, tid:\(_t\?_t\.uid:null\)/.test(html), '...and casts the ult AIMED like AUTO, as a normal recorded input');
-ok(/c\.hold=true; c\.since=performance\.now\(\)/.test(html), 'the wait is timed from when the coach starts holding');
+ok(!/c\.since/.test(html) && !/coach-auto/.test(html), 'the 1-1 ult coach does NOT auto-cast (Phil: "Dont make the ults in 1-1 auto active")');
 ok(/nb\.scrollIntoView\(\{block:'center'\}\)/.test(html), 'START HERE brings the current step\'s button on screen');
 ok(/#authGate\{justify-content:center\}/.test(html), 'the sign-in card is centred');
 ok((html.match(/class="ewFrame"/g) || []).length === 2, 'both Terms of Service windows wear the frame');
 ok(/#tutorial #tutorialBody\{[^}]*hud-panel\.webp/.test(html) && /#authGate \.agCard,\.ewFrame\{[^}]*hud-panel\.webp/.test(html), 'sign-in, terms and START HERE use the game\'s gold frame art');
 ok(/function ewFunnel\(ev\)/.test(html) && /ewFunnel\('go:'\+s\.id\)/.test(html), 'the client reports the first-session funnel');
 ok(fs.existsSync(path.join(dir, 'assets', 'img', 'ui', 'hud-panel.webp')), 'the frame art exists');
+ok(/const ENEMY_NERF=0\.95, ENEMY_NERF_MODES=new Set\(\['campaign','elite','province','well','vault','dungeon','graid','raid'\]\)/.test(html), 'PvE enemies are nerfed 5% (Phil: "nerf all enemies by 5% stats game wide"), PvP modes untouched');
+ok(/if\(team==='enemy'&&typeof CUR!=='undefined'&&CUR&&ENEMY_NERF_MODES\.has\(CUR\.mode\)\) BL=Object\.assign\(\{\},BL,\{hp:BL\.hp\*ENEMY_NERF, dmg:BL\.dmg\*ENEMY_NERF, apow:\(BL\.apow\|\|0\)\*ENEMY_NERF, armor:\(BL\.armor\|\|0\)\*ENEMY_NERF, mr:\(BL\.mr\|\|0\)\*ENEMY_NERF\}\)/.test(html), '...on every base stat, enemy team only');
 
 // the server keeps each funnel event once, refuses others
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'v1254-')); const DB = path.join(tmp, 's1', 'db.json'); fs.mkdirSync(path.dirname(DB));
