@@ -13,7 +13,7 @@ ok(W[0][0].intro === '1-1', 'wave 1 carries the intro marker (the server replay 
 ok(/const INTRO_LINES=\{/.test(html) && /function introDrawBubble\(\)/.test(html) && !/id='introDlg'|#introDlg\{/.test(html), 'the lines are speech bubbles over the speaker - no bottom text box (Phil: "go back to the bubble, remove the bottom text box")');
 ok(/body\.intro11 \.portrait\.ult-coach-glow\{animation-duration:2\.2s\}/.test(html), 'the coached portrait flashes slowly in the intro');
 
-const host = require(path.join(ROOT, 'server/sim-host.js')).load(html); const run = s => vm.runInContext(s, host.ctx);
+const host = require(path.join(ROOT, 'server/sim-host.js')).load(process.env.INTRO_HTML || path.join(ROOT, 'emberweave-heroes.html')); const run = s => vm.runInContext(s, host.ctx);   // load() takes the page's PATH
 // wrap introTick to watch the beats (sim time) - the same function the live fight and the server replay call
 run(`globalThis._ib=[]; (function(){ const o=introTick; introTick=function(dt){ o(dt); const I=CUR._intro;
   globalThis._ib.push({w:waveIdx, al:units.filter(u=>u.team==='ally').map(u=>u.key).join(','), full:I.vaelFull||0, vireo:I.vireoIn||0, syl:I.sylIn==null?0:1}); }; })(); 1`);

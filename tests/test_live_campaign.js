@@ -49,7 +49,8 @@ let pass=0,fail=0; const ck=(n,c,d)=>{ c?(pass++,console.log('  ✓ '+n)):(fail+
     // them. Driving updateBattle in a tight synchronous loop is not a player — it is a stopwatch.
     const step=async(n)=>{ for(let i=0;i<n && !ended && state==='battle'; i++){
       updateBattle(SIM_STEP); if(i%8===0) await new Promise(r=>setTimeout(r,4)); } };
-    const spawnedHp=units.filter(u=>u.team==='ally').map(u=>Math.round(u.maxHp));
+    const _bench=(CUR&&CUR._intro)?[CUR._intro.vireo,CUR._intro.syl].filter(u=>u&&units.indexOf(u)<0):[];   /* v1255: the scripted 1-1 benches Vireo + Sylthaine until their cue - they are still the server's squad */
+    const spawnedHp=units.filter(u=>u.team==='ally').concat(_bench).map(u=>Math.round(u.maxHp));
     const serverHp=(s.snaps||[]).map(x=>Math.round(x.maxHp));
     // play it: turn AUTO on a few ticks in (a recorded action), then run the fight to the end
     await step(40);
