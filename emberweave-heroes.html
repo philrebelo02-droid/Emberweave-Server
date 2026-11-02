@@ -108,6 +108,7 @@
   .hero-nav:disabled{opacity:.3;cursor:default;}
   #three,#overlay{position:absolute;inset:0;width:100%;height:100%;}
   #three{z-index:1;} #overlay{z-index:2;}
+  #introOv{position:absolute;inset:0;width:100%;height:100%;z-index:16;pointer-events:none;}   /* v1260: the 1-1 speech bubble, drawn over the HUD (Phil: "it should appear above the timer") */
   #three canvas{display:block;} #overlay{pointer-events:auto;touch-action:none;}
   /* painted battle map — sits behind the (transparent) 3D canvas; shown only during battle */
   #edFloor{position:absolute;inset:0;z-index:0;pointer-events:none}   /* v633: Emberdraft floor squares live UNDER the 3D heroes (Phil: heroes "should be opaque and solid. Top layer of everything") */
@@ -2454,6 +2455,7 @@ body.ew-rotated #app{max-width:none;max-height:none;}
   <div id="edFloor"></div>
   <div id="three"></div>
   <canvas id="overlay"></canvas>
+  <canvas id="introOv"></canvas>
 
   <!-- HOME BASE -->
   <div class="screen hub active" id="home">
@@ -15214,6 +15216,7 @@ function bossIntro(){ const b=units.find(u=>u.team==='enemy'&&u.alive&&u.boss)||
 // off-screen (down to the last hero); then the next wave loads and they run on again.
 // Runs as an early-return branch in updateBattle so normal combat is paused during the run.
 const XFER_SPD=880*MOVE_MUL;                        // run-on/run-off MOVEMENT speed — brisk (the run ANIMATION is time-based during xfer, so moving fast no longer spins the legs)
+const WAVE_READY_HOLD=0.7;                 // v1260: seconds everyone stands on their spot after the walk-in before the fight starts
 const XFER_IN_SPD=XFER_SPD;                // walk-in and walk-out use the same speed
 const XFER_DIR={x:0.70,y:-0.71};          // the invisible line: bottom-left → top-right (field +x, -y)
 const XFER_OFFSCREEN=880;                 // how far back down the line the off-screen staging point sits
@@ -15315,7 +15318,12 @@ function updateWaveXfer(dt){
       const _spd=_gs ? (u.team==='enemy' ? GSPLIT_MONSTER_IN_SPD : Math.max(40,(u.speed||55)*MOVE_MUL)) : XFER_IN_SPD;
       if(d>10){ allIn=false; const mv=Math.min(d, _spd*dt); u.x+=dx/(d||1)*mv; u.y+=dy/(d||1)*mv; u._walkT=0.25; } });
     /* v587: a walk from the road's start takes the slowest hero ~10 s; 25 s is the safety net, not the pace */
-    if(allIn || waveXfer.t>(_gs?25:6)){ marching.forEach(u=>{ u.x=u.homeX; u.y=u.homeY; u.px=u.x; u.py=u.y; }); waveXfer=null; }   // everyone in position → resume 1x combat
+    /* v1260 (Phil 2 Nov: "They all meet in the middle of the screen and fight. Please dont start the fight until everyone reaches their
+       point" / "This should be for all nodes" / "Modes"): the walk-in ran straight on into the advance, so it read as one walk to the
+       middle. Now everyone stops on their spot and stands there for WAVE_READY_HOLD seconds, then the fight starts. Sim time, every
+       mode, so the server's replay of the fight does the same. */
+    if(waveXfer.ready==null && (allIn || waveXfer.t>(_gs?25:6))){ marching.forEach(u=>{ u.x=u.homeX; u.y=u.homeY; u.px=u.x; u.py=u.y; u._walkT=0; u._moveT=0; }); waveXfer.ready=waveXfer.t; }
+    if(waveXfer.ready!=null && waveXfer.t>=waveXfer.ready+WAVE_READY_HOLD) waveXfer=null;   // everyone stood on their spot → resume 1x combat
     return;
   }
   // phase 'exit' → sprint UP the same line and off the top-right, down to the last hero
@@ -16663,7 +16671,7 @@ const BAR_FRAME={img:null,W:1088,H:64,T:14,R:31,B:13,L:30};
 function barFrameReady(){ if(!BAR_FRAME.img){ try{ BAR_FRAME.img=new Image(); BAR_FRAME.img.src='/assets/ui/bars/bar_overhead.png?v=1'; }catch(e){ return false; } } return BAR_FRAME.img.complete&&BAR_FRAME.img.naturalWidth>0; }
 function drawBarFrame(g,x,y,w,h){ const F=BAR_FRAME, im=F.img, s=h/(F.H-F.T-F.B), top=y-F.T*s, H=F.H*s, lw=F.L*s, rw=F.R*s;
   g.drawImage(im,0,0,F.L,F.H, x-lw,top,lw,H); g.drawImage(im,F.L,0,F.W-F.L-F.R,F.H, x,top,w,H); g.drawImage(im,F.W-F.R,0,F.R,F.H, x+w,top,rw,H); }
-function drawOverlay(){octx.clearRect(0,0,CW,CH); _edOvRect=null; if(state==='battle'){ try{ ultCoachDraw(); }catch(e){} }
+function drawOverlay(){octx.clearRect(0,0,CW,CH); _edOvRect=null; if(state!=='battle'){ try{ const ic=document.getElementById('introOv'); if(ic&&ic.width) ic.getContext('2d').clearRect(0,0,ic.width,ic.height); }catch(e){} }   /* v1260: no bubble left on screen after the fight */ if(state==='battle'){ try{ ultCoachDraw(); }catch(e){} }
   if(state==='battle' && typeof CUR!=='undefined' && CUR && CUR.mode==='emberdraft' && window.ED && ED.active){ try{ edAvFrame(_olDt); }catch(e){} }   /* v648: your avatar + loot orbs */
   { const _n=(typeof performance!=='undefined'?performance.now():Date.now())/1000; _olDt=_olPrev?Math.min(0.1,_n-_olPrev):0.016; _olPrev=_n; }
   { const uc=document.getElementById('ultCancel'); if(uc) uc.classList.toggle('active', state==='battle'&&!!aiming); }
@@ -16704,6 +16712,7 @@ function drawOverlay(){octx.clearRect(0,0,CW,CH); _edOvRect=null; if(state==='ba
       if(u._hpTrail==null||pct>u._hpTrail) u._hpTrail=pct; if(pct<u._hpTrailHold) u._hpTrailT=0.35; u._hpTrailHold=pct;
       if((u._hpTrailT||0)>0) u._hpTrailT-=_olDt; else u._hpTrail=Math.max(pct,u._hpTrail-_olDt*0.9);
       const _fr=!_bn&&barFrameReady();
+      u._barTop={x:_p0.x, y:_p0.y, t:performance.now()};   /* v1260: the measured top of the head (the point this bar sits over) - the 1-1 speech bubble's tail touches it */
       octx.fillStyle='rgba(8,10,16,.82)'; if(_fr) octx.fillRect(ex,ey,eb,eh); else octx.fillRect(ex-pad,ey-pad,eb+2*pad,eh+2*pad);
       if(u._hpTrail>pct){ octx.fillStyle='rgba(255,236,200,.85)'; octx.fillRect(ex+eb*pct,ey,eb*(u._hpTrail-pct),eh); }
       { const c0=(u.team==='ally')?'#7af0a4':(u.boss?'#ff6a74':'#ff9a76'), c1=(u.team==='ally')?'#2fae62':(u.boss?'#c8202e':'#d84a30'); const gr=octx.createLinearGradient(0,ey,0,ey+eh); gr.addColorStop(0,c0); gr.addColorStop(1,c1); octx.fillStyle=gr; octx.fillRect(ex,ey,eb*pct,eh); }
@@ -30514,19 +30523,27 @@ function introEnter(u){ const I=CUR._intro; if(!u||units.indexOf(u)>=0) return;
   const sl=laneSlot('ally',u.key,keys.length-1,keys.length,keys); u.homeX=sl.x; u.homeY=sl.y; u.laneX=sl.x;
   const st=heroOffscreenStart(sl.x,sl.y); u.x=st.x; u.y=st.y; u.px=u.x; u.py=u.y; u.target=null;   // runs in from off screen
   units.push(u); if(u.mesh) u.mesh.visible=true;
-  (I.walk=I.walk||[]).push(u.uid);   // walks onto the field to its own spot (a back-row caster in range of everything never moved - Phil: "Sylthaines bubble isnt over head")
+  u._ax=u.x; u._ay=u.y;
+  if(!(waveXfer&&waveXfer.phase==='enter')) (I.walk=I.walk||[]).push(u.uid);   /* v1260: in a wave's walk-in the march itself brings her to her spot (and holds the fight) */   // walks onto the field to its own spot (a back-row caster in range of everything never moved - Phil: "Sylthaines bubble isnt over head")
   if(!window._p2guard){ try{ buildPortraitBar(); }catch(e){} }
 }
+function introWave(I,vael){ I.wave=waveIdx;
+  if(waveIdx===1){ if(!I.vireoIn){ I.vireoIn=I.t; introEnter(I.vireo); } I.sylIn=I.t; introEnter(I.syl); introSay('syl_in',I.syl); }
+  if(waveIdx===2) introSay('vael_kill',vael); }
 function introTick(dt){ const I=CUR._intro, vael=unitByUid(I.vael);
   if(vael&&vael.alive&&!I.vaelFull&&vael.hp>vael.maxHp*0.75) vael.energy=Math.min(vael.energy,99);   // his ult waits for ~75% HP
-  if(waveXfer||ended) return;   // entries and lines wait for the wave transition to finish
+  /* v1260 (Phil 2 Nov: "Please make it so when heroes and monsters walk in, they dont start fighting until everyone is in their start
+     position" / "This should be for all nodes" / "Modes"). Every mode's wave start already holds the fight until every marcher is on its
+     slot (beginWaveEnter -> updateWaveXfer 'enter'). The 1-1 heroes who join at a wave (Sylthaine at wave 2) used to run in AFTER that
+     walk-in had ended, so the fight restarted without her. They now join the wave's walk-in itself: placed off screen down the line with
+     everyone else, and the wave starts only once they are on their spot too. */
+  if(ended) return;
+  if(waveXfer){ if(waveXfer.phase==='enter'&&waveIdx!==I.wave) introWave(I,vael); return; }
   I.t+=dt;
   if(I.walk&&I.walk.length) I.walk=I.walk.filter(uid=>{ const w=unitByUid(uid); if(!w||!w.alive||w.homeX==null) return false;
     const dx=w.homeX-w.x, dy=w.homeY-w.y, d=Math.hypot(dx,dy); if(d<10) return false;
     const st=Math.min(d,Math.max(90,(w.speed||70)*1.4)*dt); w.x+=dx/d*st; w.y+=dy/d*st; return true; });
-  if(waveIdx!==I.wave){ I.wave=waveIdx;
-    if(waveIdx===1){ if(!I.vireoIn){ I.vireoIn=I.t; introEnter(I.vireo); } I.sylIn=I.t; introEnter(I.syl); introSay('syl_in',I.syl); }
-    if(waveIdx===2) introSay('vael_kill',vael); }
+  if(waveIdx!==I.wave) introWave(I,vael);
   if(vael&&vael.alive&&!I.vaelFull){   // his ult arrives at ~75% HP - held just under full until then
     if(vael.hp<=vael.maxHp*0.75){ vael.energy=100; I.vaelFull=I.t; introSay('vael_ready',vael); } else vael.energy=Math.min(vael.energy,99); }
   if(I.vaelFull&&!I.vaelCast&&vael&&vael.energy<100){ I.vaelCast=I.t; introSay('vael_after',vael); }
@@ -30550,6 +30567,11 @@ function introSay(k,u){ if(window._p2guard||!CUR||!CUR._introUI||!INTRO_LINES[k]
   CUR._introSay={k,uid:u&&u.uid,t0:performance.now(),who:L[0],segs,end:at}; }
 /* Phil 2 Nov: "Actually go back to the bubble, remove the bottom text box" - the line is a speech bubble over the speaker only. */
 function introDrawBubble(){ const S=CUR&&CUR._introSay, live=!!(S&&state==='battle'&&!ended);
+  /* v1260 (Phil 2 Nov: "Also it should appear above the timer above"): the bubble is drawn on its own canvas over the HUD, so the wave
+     timer, pause, speed and AUTO never hide it. Same size and pixel ratio as the battle overlay; cleared every frame. */
+  const IC=document.getElementById('introOv'), octx=IC&&IC.getContext('2d'); if(!octx) return;
+  if(IC.width!==overlay.width||IC.height!==overlay.height){ IC.width=overlay.width; IC.height=overlay.height; }
+  octx.setTransform(overlay.width/Math.max(1,CW),0,0,overlay.height/Math.max(1,CH),0,0); octx.clearRect(0,0,CW,CH);
   try{ document.body.classList.toggle('intro11', !!(CUR&&CUR._introUI&&state==='battle')); }catch(e){}
   const held=live&&ULTCOACH.hold&&ULTCOACH.u&&ULTCOACH.u.uid===S.uid, age=live?(performance.now()-S.t0)/1000:99;
   if(!live||(age>S.end&&!held)) return;
@@ -30566,8 +30588,13 @@ function introDrawBubble(){ const S=CUR&&CUR._introSay, live=!!(S&&state==='batt
   const topOf=v=>{ try{ if(v.mesh&&v.mesh.visible!==false&&typeof TH!=='undefined'){ const b=new TH.Box3().setFromObject(v.mesh);
       if(isFinite(b.max.y)&&isFinite(b.min.x)){ const c=b.getCenter(new TH.Vector3()), q=new TH.Vector3(c.x,b.max.y,c.z).project(camera);
         return {x:(q.x*.5+.5)*CW, y:(-q.y*.5+.5)*CH, vis:q.z<1}; } } }catch(e){} return project(ux(v),uy(v),hz(v)+0.25); };
-  const head=topOf(u); if(!head.vis) return;
-  const boxes=units.filter(v=>v.alive&&!v._dropHidden).map(v=>{ const t=topOf(v), f=project(ux(v),uy(v),0); const hgt=Math.max(20,f.y-t.y);
+  /* Phil 2 Nov (4 screenshots): "The bubbles are wrong" / "The point of the bubble should be essentially touching the top of his head" -
+     the mesh box put the tail at the waist of a hero walking in (Sylthaine). The tail tip now sits on the same measured head top the
+     unit's HP bar is placed from (this frame's, drawn just before); the mesh box is only a fallback when no bar was drawn. The bubble is
+     on its own layer above the HUD and the bars. */
+  const barTop=v=>{ const b=v._barTop; return (b&&performance.now()-b.t<250)?{x:b.x,y:b.y,vis:true}:null; };
+  const head=barTop(u)||topOf(u); if(!head.vis) return;
+  const boxes=units.filter(v=>v.alive&&!v._dropHidden).map(v=>{ const t=barTop(v)||topOf(v), f=project(ux(v),uy(v),0); const hgt=Math.max(20,f.y-t.y);
     return {x0:t.x-hgt*0.32, x1:t.x+hgt*0.32, y0:t.y-4, y1:f.y}; });
   octx.save(); octx.globalAlpha=Math.min(1,sa*6)*fade; octx.font='800 15px Georgia,serif';
   const w=Math.min(280,octx.measureText(TXT).width+22), hh=28;
@@ -30576,8 +30603,7 @@ function introDrawBubble(){ const S=CUR&&CUR._introSay, live=!!(S&&state==='batt
      another unit it only RISES (at most 3 small steps), never slides sideways (that pulled it away from the speaker). */
   const others=boxes.filter((b,bi)=>units.filter(v=>v.alive&&!v._dropHidden)[bi]!==u);
   const hitsO=(x,y)=>others.some(b=>x<b.x1&&x+w>b.x0&&y<b.y1&&y+hh+10>b.y0);
-  let bx=head.x-w/2, by=head.y-hh-10;
-  for(let k=0;k<3&&hitsO(bx,by);k++) by-=16;
+  let bx=head.x-w/2, by=head.y-hh-10;   /* v1260 (Phil: "Thats too high"): the tail tip (10 px) on the top of the head, never raised */
   bx=Math.max(4,Math.min(CW-w-4,bx)); by=Math.max(4,by);
   const tx=Math.max(bx+12,Math.min(bx+w-12,head.x));   // the tail points back at the speaker
   octx.translate(tx,by+hh+10); octx.scale(pop,pop); octx.translate(-tx,-(by+hh+10));   // pops out of the speaker (scale from the tail tip)
@@ -31450,7 +31476,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1793633937997';
+const BUILD_ID = '1793635159231';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
