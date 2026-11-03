@@ -36,6 +36,7 @@ function resolveAccount({users,claims,current,create,isBanned=()=>false}){
   if(u&&isBanned(u)) throw Error('This account cannot sign in.');
   const created=!u;if(!u) u=create(claims.sub);
   if(!u.login)u.login=u.name; // Freeze the pre-existing username before a guest upgrade.
+  if(u.guest)u.googleOnly=true; // Guests have no password; linking must not enable unlinking their only login.
   u.google={sub:claims.sub,email:claims.email}; // Display-only email; never a password-reset identity.
   delete u.guest;
   return {u,created};

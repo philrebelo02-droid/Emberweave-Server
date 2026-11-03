@@ -5102,6 +5102,7 @@ function googleNewUser(sub){
 }
 async function googleResolve(credential,nonce,current,ip,rawDeviceId){
   const claims=await googleVerify(credential,nonce);
+  if(current&&DB.users[current.id]!==current)throw Error('Account changed. Sign in again.');
   const creating=!Object.values(DB.users).some(u=>u.google?.sub===claims.sub)&&(!current||current.guest);
   const device=devKey(String(rawDeviceId||'').slice(0,64));let times=[];
   if(creating){
@@ -5123,10 +5124,18 @@ async function googleResolve(credential,nonce,current,ip,rawDeviceId){
 const PLAY_BILLING=require('./server/play-billing').createPlayBilling();
 const PLAY_TOKENS=require('./server/play-billing');
 async function verifyPurchase(me,provider,receipt,offer){
-  if(provider==='play') return PLAY_BILLING.verify(receipt,offer);
+  if(provider==='play') return FREE_PACKS ? {ok:false,error:'Packs are free right now. Use the free pack option.'} : PLAY_BILLING.verify(receipt,offer);
   if(provider==='prebeta') return FREE_PACKS ? {ok:true,ref:'prebeta-free',free:true} : {ok:false,error:'Diamond packs are coming soon.'};
   if(provider==='test') return (isDev(me)||process.env.SHOP_TEST_PURCHASES==='1') ? {ok:true,ref:'test'} : {ok:false,error:'Diamond packs are coming soon.'};
   return {ok:false,error:'Diamond packs are coming soon.'};   // a store (App Store / Google Play / web checkout) verifies its receipt HERE
+}
+// durableCommit adopts into memory before the IO worker finishes. Never consume a
+// receipt until its credit is on disk, including a replay racing another request.
+async function playCreditSaved(){
+  const waits=new Set(typeof _reqCtx!=='undefined'?(_reqCtx.getStore()?.waits||[]):[]);
+  if(typeof _batchOpen!=='undefined'&&_batchOpen)waits.add(_batchOpen.promise);
+  if(typeof _inflight!=='undefined')for(const b of _inflight)waits.add(b.promise);
+  return (await Promise.all(waits)).every(ok=>ok===true);
 }
 /* ==================== CAMPAIGN (authored encounters, audit C2 — server-resolved) ==================== */
 const CAMPAIGN_NODES=160;   // v821 (Phil 25 Sep: "There should be 160 stages"): 16 chapters x 10 fixed stages
@@ -7645,6 +7654,7 @@ async function api(req,res,url){
     if(b.provider==='play'&&typeof b.purchaseToken==='string'){
       const hash=PLAY_TOKENS.tokenHash(b.purchaseToken);
       if(PLAY_TOKENS.usedToken(DB.users,hash)){
+        if(!await playCreditSaved())return send(res,503,{ok:false,storageFailed:true,error:'Save failed. Retry the same purchase.'});
         // Retry fulfilment notification for this account only; a replay never credits again.
         const own=me.led?.playTokens?.[hash];
         if(own&&own.sku===offer.id) try{await PLAY_BILLING.settle(b.purchaseToken,offer.id);}catch(_){}
@@ -7665,6 +7675,7 @@ async function api(req,res,url){
       ledTx(me,'shop:purchase:'+offer.id,Object.assign({usd},granted));
       writeDB(); return { ok:true, offer:offer.id, granted, plans:plansView(led), ledger:ledgerView(me) }; });
     if(b.provider==='play'&&out.ok){
+      if(!await playCreditSaved())return send(res,503,{ok:false,storageFailed:true,error:'Save failed. Retry the same purchase.'});
       try{ await PLAY_BILLING.settle(b.purchaseToken,offer.id); }catch(_){ out.settlementPending=true; }
     }
     return send(res,out.storageFailed?503:out.ok===false?403:200,out); } }

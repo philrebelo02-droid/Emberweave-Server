@@ -15,13 +15,16 @@ const stub=payload=>createGoogleVerifier({clientId:()=>clientId,verifySignature:
   assert.throws(()=>resolveAccount({users,current:existing,claims:safe,create}),/another commander/);
   const guest={id:'guest',guest:true,login:'guest-login',led:{gems:10}};users.guest=guest;
   r=resolveAccount({users,current:guest,claims:safe,create});assert.equal(r.u.id,'new');assert.equal(guest.guest,true);
-  r=resolveAccount({users,current:guest,claims:{sub:'fresh',email:''},create});assert.equal(r.u.id,'guest');assert.equal(r.u.login,'guest-login');assert.equal(r.u.guest,undefined);
+  r=resolveAccount({users,current:guest,claims:{sub:'fresh',email:''},create});assert.equal(r.u.id,'guest');assert.equal(r.u.login,'guest-login');assert.equal(r.u.guest,undefined);assert.equal(r.u.googleOnly,true);
   assert.throws(()=>resolveAccount({users,claims:safe,create,isBanned:()=>true}));
   const kp=crypto.generateKeyPairSync('rsa',{modulusLength:1024}),jwk=kp.publicKey.export({format:'jwk'});jwk.kid='kid';jwk.alg='RS256';
   const enc=v=>Buffer.from(JSON.stringify(v)).toString('base64url');const data=enc({alg:'RS256',kid:'kid'})+'.'+enc(claims),jwt=data+'.'+crypto.sign('RSA-SHA256',Buffer.from(data),kp.privateKey).toString('base64url');
   const real=createGoogleVerifier({clientId:()=>clientId,fetchImpl:async url=>{assert.equal(url,'https://www.googleapis.com/oauth2/v3/certs');return {ok:true,json:async()=>({keys:[jwk]})};}});
   assert.equal((await real(jwt,nonce)).sub,claims.sub);await assert.rejects(real(jwt.slice(0,-8)+'xxxxxxxx',nonce));
   const server=fs.readFileSync(require.resolve('../server.js'),'utf8'),html=fs.readFileSync(require.resolve('../emberweave-heroes.html'),'utf8');
+  const staleContext={DB:{users:{}},googleVerify:async()=>safe};vm.createContext(staleContext);
+  vm.runInContext(server.slice(server.indexOf('async function googleResolve('),server.indexOf("const PLAY_BILLING=require(")),staleContext);
+  await assert.rejects(staleContext.googleResolve('token',nonce,{id:'deleted'},'network','device'),/Account changed/);
   const authRoute=server.slice(server.indexOf("  if(p==='/api/auth/google/config'"),server.indexOf("  if(p==='/api/register'"));
   const nonces=new Map(),sessions=[],c={process:{env:{GOOGLE_OAUTH_CLIENT_ID:clientId}},googleNonces:nonces,Date,rateLimited:()=>false,body:async req=>req.input,
     authUser:req=>req.current||null,send:(_res,status,value)=>({status,value}),ACCOUNT_AUTHORITY:false,isBanned:()=>false,acctDelCancel:()=>{},dropTokens:()=>{},issueToken:id=>{sessions.push(id);return 'session-'+id;},saveSoon:()=>true,clientIP:()=> 'test-network',usernameOf:u=>u.login,profileFor:u=>({id:u.id,login:u.login}),
@@ -51,6 +54,13 @@ const stub=payload=>createGoogleVerifier({clientId:()=>clientId,verifySignature:
   assert.equal((await c.acctResetVerify(passwordUser.login,'123456',null,'password-network',null,'google-unlink')).status,400);
   const reset=await c.acctResetVerify(passwordUser.login,'123456','new-password','password-network');assert.equal(reset.u.id,'password');assert.equal(reset.u.hash,'h');assert.equal(reset.u.googleOnly,undefined);
   const only=await authRun('/api/auth/google/unlink',{method:'POST',current:users.new,input:{}},{});assert.equal(only.status,409);
+  guest.email='verified@example.invalid';
+  assert.equal((await authRun('/api/auth/google/unlink-request',{method:'POST',current:guest,input:{}},{})).status,409);
+  assert.equal((await authRun('/api/auth/google/unlink',{method:'POST',current:guest,input:{code:'123456'}},{})).status,409);assert(guest.google);
+  // Purpose tags also prohibit an unlink code from setting a password.
+  const isolated={id:'isolated',login:'isolated',email:'owner@example.invalid',google:{sub:'isolated-sub'},hash:'password'};users.isolated=isolated;
+  await c.acctResetRequest(isolated.login,'purpose-network','google-unlink');
+  assert.equal((await c.acctResetVerify(isolated.login,'123456','new-password','purpose-network')).status,400);assert.equal(isolated.hash,'password');
   assert(server.includes("linkSecretOk(req)"));assert(server.includes("googleNonces.delete(b.nonce)"));assert(server.includes("nonce.id!==(current?.id||null)"));assert(server.includes("/api/internal/account/google"));
   assert(html.includes('https://accounts.google.com/gsi/client'));assert(html.includes("text:'continue_with'"));assert(html.includes('Unlink Google account'));assert(html.includes("api(isCreate?'/api/register':'/api/login'"));
   // Compile every inline JavaScript block; no browser, network or game process is started.

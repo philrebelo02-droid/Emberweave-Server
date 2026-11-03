@@ -24,6 +24,7 @@ Claude reviews, runs the full account suites and deploys. Username/password sign
 - Satellites ask the existing account authority to resolve the Google subject, preserving the game-wide identity. They issue their normal local game session afterward.
 - Unlink first requests an emailed code, then requires that code. It reuses acctResetRequest/acctResetVerify, including their 15-minute expiry, per-code five wrong attempts, account/IP daily caps and HTTP rate-limit buckets. A purpose tag prevents a password-reset code from unlinking Google or an unlink code from resetting a password.
 - A Google-only account cannot unlink its only sign-in method. First verify a recovery email and use the existing password-reset flow to set a password; successful reset clears googleOnly. Normal password sign-in continues unchanged.
+- A guest upgraded through Google is also Google-only until a password is set; a verified recovery email alone does not enable unlinking. An account deleted/replaced while Google verification is awaiting the network cannot be linked through a stale account object.
 
 ## Validation and review
 

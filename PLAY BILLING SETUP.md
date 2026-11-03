@@ -25,9 +25,9 @@ Historical product IDs intentionally differ from some amounts. Set regional pric
 
 The inline playBilling module sends the SKU/token to /api/shop/buy and adopts only the returned server ledger. A narrow Play alias uses the existing /api/shop/purchase credit block; currency purchases retain their old route.
 
-The adapter uses fixed Google OAuth and products.get/consume endpoints. It requires purchaseState 0, an unconsumed single item and an order ID. All seven products are consumable; consumption also acknowledges them.
+The adapter uses fixed Google OAuth and products.get/consume endpoints. It requires purchaseState 0, consumptionState 0, a single item and an order ID. If returned, productId/purchaseToken must match the requested SKU/token and refundableQuantity must be one. The package is fixed server-side; caller-supplied package names are never used. All seven products are consumable; consumption also acknowledges them. While FREE_PACKS is on, the server rejects new paid receipts as well as hiding the paid client flow.
 
-Permanent SHA-256 token records in led.playTokens are separate from capped purchase history. Credit and token record commit together before consumption. Failed storage never consumes. Failed consumption returns settlementPending; the credited owner's token resubmission retries consumption while refusing another credit.
+Permanent SHA-256 token records in led.playTokens are separate from capped purchase history. Credit and token record commit together before consumption. The paid route waits for the request's grouped disk save and any pending/in-flight save before consumption, including replays which can see another request's provisional token. Failed storage never consumes. Failed consumption returns settlementPending; the credited owner's token resubmission retries consumption while refusing another credit.
 
 ## Validation and Claude finish checks
 

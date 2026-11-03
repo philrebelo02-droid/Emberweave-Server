@@ -28,7 +28,9 @@ function createPlayBilling({env=process.env,fetchImpl=globalThis.fetch,readKey=p
       if(typeof token!=='string'||!token||token.length>4096||!offer?.id) return {ok:false,error:'Invalid purchase receipt.'};
       try{
         const p=await call(offer.id,token);
-        if(p.purchaseState!==0||p.consumptionState===1||typeof p.orderId!=='string'||!p.orderId|| (p.quantity!==undefined&&p.quantity!==1))
+        if(p.purchaseState!==0||p.consumptionState!==0||typeof p.orderId!=='string'||!p.orderId|| (p.quantity!==undefined&&p.quantity!==1)||
+          (p.productId!==undefined&&p.productId!==offer.id)||(p.purchaseToken!==undefined&&p.purchaseToken!==token)||
+          (p.refundableQuantity!==undefined&&p.refundableQuantity!==1))
           return {ok:false,error:'Purchase is not an unconsumed completed order.'};
         return {ok:true,ref:p.orderId,tokenHash:tokenHash(token)};
       }catch(_){ return {ok:false,error:'Play verification unavailable. Please try again.'}; }
