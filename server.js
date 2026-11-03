@@ -4869,7 +4869,7 @@ function ledgerView(u){ const led=ensureLedger(u); ledStamRegen(led); if(ledPlay
     // used to keep its own 09:00-ET copy, so the quoted price drifted from the charged price.
     shop:(function(){ try{ const sh=shopState(u); return { food:sh.food|0, gold:sh.gold|0,
       foodCost:((sh.food|0)<patronRow(led,'meals')?SHOP_FOOD_COSTS[Math.min(sh.food|0,SHOP_FOOD_COSTS.length-1)]:null), foodMax:patronRow(led,'meals'),
-      goldCost:((sh.gold|0)<patronRow(led,'goldBuys')?SHOP_GOLD_COSTS[Math.min(sh.gold|0,SHOP_GOLD_COSTS.length-1)]:null), goldMax:patronRow(led,'goldBuys'), freePacks:FREE_PACKS }; }catch(e){ return null; } })() }; }
+      goldCost:((sh.gold|0)<patronRow(led,'goldBuys')?SHOP_GOLD_COSTS[Math.min(sh.gold|0,SHOP_GOLD_COSTS.length-1)]:null), goldMax:patronRow(led,'goldBuys'), freePacks:FREE_PACKS, playBilling:!FREE_PACKS&&PLAY_BILLING.enabled() }; }catch(e){ return null; } })() }; }
 // capped earn table for legacy client-resolved loops (each reason: per-grant max + per-day cap)
 /* v250 (audit P1): GENERIC tx/earn IS RETIRED for normal gameplay. Every loop now has its own
    server-verified route (elite/trial/quest/market/arena-daily/city-pvp/guild). Only a tiny 'misc'
@@ -5081,7 +5081,10 @@ function plansView(led){ const pls=shopPlans(led), dk=planDayKey(), o={};
    paid) - recorded with free:true so it can be told apart later.
    TURN OFF IN DECEMBER: set FREE_PACKS to false here (or start the server with SHOP_FREE_PACKS=0) - the shop then says "coming soon" again. */
 const FREE_PACKS = true && process.env.SHOP_FREE_PACKS!=='0';
-function verifyPurchase(me,provider,receipt,offer){
+const PLAY_BILLING=require('./server/play-billing').createPlayBilling();
+const PLAY_TOKENS=require('./server/play-billing');
+async function verifyPurchase(me,provider,receipt,offer){
+  if(provider==='play') return PLAY_BILLING.verify(receipt,offer);
   if(provider==='prebeta') return FREE_PACKS ? {ok:true,ref:'prebeta-free',free:true} : {ok:false,error:'Diamond packs are coming soon.'};
   if(provider==='test') return (isDev(me)||process.env.SHOP_TEST_PURCHASES==='1') ? {ok:true,ref:'test'} : {ok:false,error:'Diamond packs are coming soon.'};
   return {ok:false,error:'Diamond packs are coming soon.'};   // a store (App Store / Google Play / web checkout) verifies its receipt HERE
@@ -7533,13 +7536,26 @@ async function api(req,res,url){
     return send(res,200,{ok:true,hour:mk.h,restockAt:(mk.h+1)*MARKET_HOUR_MS,offers:marketOfferView(mk),
       today:{used:((led.marketDay&&led.marketDay.k===nyDayKey())?(led.marketDay.frags|0):0),max:12}}); }
   if(p==='/api/shop/offers'){ if(!me)return send(res,401,{error:'auth'}); const led=ensureLedger(me);
-    return send(res,200,{ ok:true, freePacks:FREE_PACKS, offers:SHOP_OFFERS.map(o=>({id:o.id,price:o.price,name:o.name,kind:o.kind,plan:o.plan||null,amount:o.amount,days:o.days||null})),
+    return send(res,200,{ ok:true, freePacks:FREE_PACKS, playBilling:!FREE_PACKS&&PLAY_BILLING.enabled(), offers:SHOP_OFFERS.map(o=>({id:o.id,price:o.price,name:o.name,kind:o.kind,plan:o.plan||null,amount:o.amount,days:o.days||null})),
       plans:plansView(led) }); }
-  if(p==='/api/shop/purchase' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
-    const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
-    const offer=SHOP_OFFER_BY_ID[String(b.offerId||'')]; if(!offer) return send(res,400,{error:'Unknown offer.'});
-    const v=verifyPurchase(me,String(b.provider||''),b.receipt,offer); if(!v.ok) return send(res,403,{error:v.error});
-    const out=durableCommit(me,me.id+':purchase:'+reqId,(me)=>{ const led=ensureLedger(me); const granted={};
+  if((p==='/api/shop/purchase'||p==='/api/shop/buy') && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
+    const b=await body(req); req._shopBody=b;
+    if(p==='/api/shop/purchase'||b.provider==='play'){
+    const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
+    const offer=SHOP_OFFER_BY_ID[String(b.provider==='play'?b.sku:b.offerId||'')]; if(!offer) return send(res,400,{error:'Unknown offer.'});
+    if(b.provider==='play'&&typeof b.purchaseToken==='string'){
+      const hash=PLAY_TOKENS.tokenHash(b.purchaseToken);
+      if(PLAY_TOKENS.usedToken(DB.users,hash)){
+        // Retry fulfilment notification for this account only; a replay never credits again.
+        const own=me.led?.playTokens?.[hash];
+        if(own&&own.sku===offer.id) try{await PLAY_BILLING.settle(b.purchaseToken,offer.id);}catch(_){}
+        return send(res,403,{ok:false,error:'Purchase token already used.'});
+      }
+    }
+    const v=await verifyPurchase(me,String(b.provider||''),b.provider==='play'?b.purchaseToken:b.receipt,offer); if(!v.ok) return send(res,403,{error:v.error});
+    if(b.provider==='play'&&PLAY_TOKENS.usedToken(DB.users,v.tokenHash)) return send(res,403,{ok:false,error:'Purchase token already used.'});
+    const out=durableCommit(me,me.id+':purchase:'+(b.provider==='play'?v.tokenHash:reqId),(me)=>{ const led=ensureLedger(me); const granted={};
+      if(b.provider==='play'&&!PLAY_TOKENS.recordToken(DB.users,led,v,offer.id)) return {ok:false,error:'Purchase token already used.'};
       if(offer.kind==='gems') granted.gems=creditGems(me,led,offer.amount,'purchase:'+offer.id);
       else { const pl=shopPlans(led)[offer.plan]; pl.daysLeft=(pl.daysLeft|0)+offer.days; granted.planDays=offer.days; }   // buying again adds the days
       led.purchases=Array.isArray(led.purchases)?led.purchases:[];
@@ -7549,7 +7565,10 @@ async function api(req,res,url){
       granted.patron=patronCreditPurchase(me,led,offer.usd,offer.id);   /* v1092: paid base diamonds raise EGP; the rebate is paid (v1139: free pre-beta packs too, Phil 15 Oct) */
       ledTx(me,'shop:purchase:'+offer.id,Object.assign({usd},granted));
       writeDB(); return { ok:true, offer:offer.id, granted, plans:plansView(led), ledger:ledgerView(me) }; });
-    return send(res,out.storageFailed?503:200,out); }
+    if(b.provider==='play'&&out.ok){
+      try{ await PLAY_BILLING.settle(b.purchaseToken,offer.id); }catch(_){ out.settlementPending=true; }
+    }
+    return send(res,out.storageFailed?503:out.ok===false?403:200,out); } }
   if(p==='/api/shop/plan-claim' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
     const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
     const out=durableCommit(me,me.id+':planclaim:'+reqId,(me)=>{ const led=ensureLedger(me), pls=shopPlans(led), dk=planDayKey(), paid={};
@@ -7701,7 +7720,7 @@ async function api(req,res,url){
     });
     return send(res,out.storageFailed?503:(out.ok===false?400:200),out); }
   if(p==='/api/shop/buy' && req.method==='POST'){ if(!me)return send(res,401,{error:'auth'});
-    const b=await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
+    const b=req._shopBody||await body(req); const reqId=String(b.requestId||'').slice(0,48); if(!reqId) return send(res,400,{error:'requestId required'});
     const out=durableCommit(me,me.id+':shop:'+reqId,(me)=>{
       const led=ensureLedger(me), sh=shopState(me); const what=String(b.what||'');
       if(what==='food'){ if(sh.food>=patronRow(led,'meals')) return {ok:false,error:'No more meals today.'};   /* v1092/v1093: the EGP chart sets the daily number (1 at EGP 0) */

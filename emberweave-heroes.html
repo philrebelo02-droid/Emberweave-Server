@@ -30918,6 +30918,33 @@ const GEM_OFFERS=[
 /* v1050 (Phil 7 Oct: "make the diamonds shop server side" / "so that people receive diamonds when they purchase"): a purchase is
    credited by the SERVER - diamonds at once, a plan as days on the ledger that the Quest log claims from the server. 'test' is the
    payment the server accepts for dev accounts today; a store receipt replaces it when a payment provider is connected. */
+/* Play billing shell: only server-confirmed ledgers may change balances. */
+const playBilling=(()=>{
+  const method='https://play.google.com/billing';
+  let service=null, pending=false;
+  if(typeof window.getDigitalGoodsService==='function')
+    window.getDigitalGoodsService(method).then(s=>{service=s;}).catch(()=>{});
+  async function buy(offer){
+    if(pending||!offer||!ACC.token) return;
+    if(!service||!shopSrv()?.playBilling){ bannerMsg('Diamond packs are coming soon.'); return; }
+    pending=true; let response;
+    try{
+      const request=new PaymentRequest([{supportedMethods:method,data:{sku:offer.id}}],
+        {total:{label:offer.name,amount:{currency:'USD',value:'0'}}});
+      response=await request.show();
+      const purchaseToken=response.details?.purchaseToken;
+      if(typeof purchaseToken!=='string'||!purchaseToken) throw Error('Purchase receipt missing.');
+      const r=await api('/api/shop/buy','POST',{provider:'play',purchaseToken,sku:offer.id,requestId:uid8()});
+      await response.complete(r?.ok?'success':'fail'); response=null;
+      if(!r?.ok){ bannerMsg(r?.error||'Purchase verification unavailable. Please try again.'); return; }
+      adoptLedger(r.ledger); saveG(); updateHubChrome();
+      bannerMsg('Purchase received: '+offer.name); if(typeof renderQuests==='function') renderQuests();
+    }catch(e){ if(response) try{await response.complete('fail');}catch(_){}
+      bannerMsg(e?.name==='AbortError'?'Purchase cancelled.':'Purchase could not be completed.');
+    }finally{pending=false;}
+  }
+  return {available:()=>!!service,buy};
+})();
 async function grantGemOffer(i,provider){ const o=GEM_OFFERS[i]; if(!o||!o.id) return;
   if(!ACC.token){ bannerMsg('Connect to the realm to buy.'); return; }
   if(grantGemOffer._busy) return; grantGemOffer._busy=true;
@@ -31025,6 +31052,7 @@ async function buyGoldNow(){ const c=goldNextCost(); if(c==null){ bannerMsg('No 
   if(!r||!r.ok){ bannerMsg((r&&r.error)||'Purchase failed.'); await ledgerSync(); renderHudShop('gold'); return; }
   adoptLedger(r.ledger); if(!(r.ledger&&r.ledger.shop)) G.goldBuys=(G.goldBuys||0)+1; saveG(); updateHubChrome(); renderHudShop('gold'); bannerMsg(hudIcon('gold')+' +'+r.gold+' gold!'); }
 function buyGemOffer(i){
+  if(!freePacksOn()&&playBilling.available()) return playBilling.buy(GEM_OFFERS[i]);
   // Devs get a test popup that actually grants the reward, so packs can be verified before purchases go live.
   if(isDevAcct()){
     const o=GEM_OFFERS[i]||{};
