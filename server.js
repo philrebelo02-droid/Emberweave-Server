@@ -751,7 +751,7 @@ async function acctCreate(rawName, pass, cred){
    (2 codes, 5 wrong guesses a day) under a higher ceiling (8 codes, 20 wrong guesses: 20 guesses at a 6-digit code is ~1 in 50,000). */
 const RESET_CODES_MAX=8, RESET_BAD_MAX=20, RESET_CODES_PER_IP=2, RESET_BAD_PER_IP=5;
 function resetIpKey(ip){ return crypto.createHash('sha256').update(String(ip||'')).digest('hex').slice(0,16); }
-async function acctResetRequest(name, ip){   // v1184: async - the code hash runs on the thread pool
+async function acctResetRequest(name, ip, purpose='password'){   // v1184: async - the code hash runs on the thread pool
   const id=loginId(name); const u=id&&DB.users[id];   /* v1253: the username */
   // 30 Sep 2026 hardening: day caps per account, whatever the IP. v1017: plus a share per requesting network.
   const rl=u&&u.resetLog&&Date.now()-u.resetLog.t<86400000?u.resetLog:{t:Date.now(),codes:0,bad:0};
@@ -759,13 +759,13 @@ async function acctResetRequest(name, ip){   // v1184: async - the code hash run
   if(u && !u.isNpc && u.email && rl.codes<RESET_CODES_MAX && rl.bad<RESET_BAD_MAX && ir.codes<RESET_CODES_PER_IP && ir.bad<RESET_BAD_PER_IP){ const code=gen6(), salt=crypto.randomBytes(8).toString('hex');
     rl.codes++; ir.codes++; u.resetLog=rl;
     const h=await hashPassAsync(code,salt); if(DB.users[id]!==u) return;   // deleted while it was hashed
-    u.reset={ hash:h, salt, exp:Date.now()+15*60000, tries:0 }; writeDB();
-    sendResetEmail(u.email, u.name, code); } }
+    u.reset={ hash:h, salt, exp:Date.now()+15*60000, tries:0, purpose }; writeDB();
+    sendResetEmail(u.email, u.name, code, purpose); } }
 /* v1184: async. The caps are checked before the code's hash and again after it (attempts that overlap count as one-at-a-time ones did);
    newCred = the new password already hashed by the satellite that asked (its length is still checked here). */
-async function acctResetVerify(name, rawCode, newPass, ip, newCred){
+async function acctResetVerify(name, rawCode, newPass, ip, newCred, purpose='password'){
   const key=String(name||'').trim().toLowerCase(), id=loginId(key); let u=id&&DB.users[id];   /* v1253: the username */
-  if(!u||u.isNpc||!u.reset) return {status:400,error:'No active reset — request a new code.'};
+  if(!u||u.isNpc||!u.reset||(u.reset.purpose||'password')!==purpose) return {status:400,error:'No active reset — request a new code.'};
   const code=(rawCode||'').toString().replace(/\D/g,''), _ik=resetIpKey(ip);
   const gate=()=>{
     if(Date.now()>u.reset.exp){ delete u.reset; writeDB(); return {status:400,error:'That code expired — request a new one.'}; }
@@ -780,10 +780,14 @@ async function acctResetVerify(name, rawCode, newPass, ip, newCred){
   u=DB.users[id]; if(!u||u.isNpc||loginId(key)!==id||u.reset!==rs) return NONE;   // used, replaced or deleted while it was hashed
   g=gate(); if(g) return g;
   if(h!==rs.hash){ rs.tries=(rs.tries||0)+1; if(u.resetLog){ u.resetLog.bad=(u.resetLog.bad||0)+1; u.resetLog.ip=u.resetLog.ip||{}; const r2=u.resetLog.ip[_ik]||(u.resetLog.ip[_ik]={codes:0,bad:0}); r2.bad++; } writeDB(); return {status:400,error:'Incorrect code — check your email and try again.'}; }
+  if(purpose==='google-unlink'){
+    if(u.googleOnly)return {status:409,error:'Set up a password sign-in method before unlinking.'};
+    delete u.google;delete u.reset;writeDB();return {u,unlinked:true};
+  }
   const np=(newPass||'').toString(); if(np.length<8) return {status:400,error:'New password must be at least 8 characters.'};
   const c=credOk(newCred) || await makeCredAsync(np);
   u=DB.users[id]; if(!u||u.isNpc||loginId(key)!==id||u.reset!==rs) return NONE;
-  u.salt=c.salt; u.hash=c.hash; u.iters=c.iters; u.mustReset=false; delete u.reset;
+  u.salt=c.salt; u.hash=c.hash; u.iters=c.iters; u.mustReset=false; delete u.reset;delete u.googleOnly;
   u.passAt=Date.now();   // v1035: Servers 2-5 sign the account out and drop their local password copy when this moves
   const delCancelled=!isBanned(u)&&acctDelCancel(u);   /* v1232: a password reset signs in - it cancels a pending deletion too */
   dropTokens(id); writeDB(); return {u, delCancelled}; }
@@ -1077,7 +1081,12 @@ function mailCode(to, name, subject, text, label, code, html){
   if(!m){ console.log('[DEV] '+label+' for '+name+' <'+maskEmail(to)+'> (no mailer - code NOT logged)'); return; }   /* v1007 (re-audit Account N5): codes never reach the log */
   const msg={ from, to, replyTo:addr, subject, text }; if(html) msg.html=html;
   m.sendMail(msg).then(()=>console.log(''+label+' emailed to '+maskEmail(to))).catch(e=>console.log('send failed ('+e.message+') — '+label+' for '+name+' (code not logged)')); }
-function sendResetEmail(to, name, code){
+function sendResetEmail(to, name, code, purpose='password'){
+  if(purpose==='google-unlink'){
+    mailCode(to,name,'Confirm unlinking Google from Emberweave Heroes',
+      'Your one-time Google unlink code is: '+code+'. It expires in 15 minutes. Ignore this if you did not request it.',
+      'Google unlink code',code,codeHtml(name,'Your one-time Google unlink code is:',code,'Enter it in the game to unlink Google. Expires in 15 minutes. Ignore this if you did not request it.'));return;
+  }
   mailCode(to, name, 'Your Emberweave Heroes password reset code',
     `Hi ${name},\n\nYour one-time password reset code is: ${code}\n\nEnter it in the game to set a new password. This code expires in 15 minutes and can only be used once.\n\nIf you didn't request this, you can safely ignore this email — your password will stay the same.\n\n— Emberweave Heroes`,
     'reset code', code,
@@ -5081,6 +5090,36 @@ function plansView(led){ const pls=shopPlans(led), dk=planDayKey(), o={};
    paid) - recorded with free:true so it can be told apart later.
    TURN OFF IN DECEMBER: set FREE_PACKS to false here (or start the server with SHOP_FREE_PACKS=0) - the shop then says "coming soon" again. */
 const FREE_PACKS = true && process.env.SHOP_FREE_PACKS!=='0';
+const GOOGLE_AUTH=require('./server/google-signin');
+const googleVerify=GOOGLE_AUTH.createGoogleVerifier();
+const googleNonces=new Map();
+function googleNewUser(sub){
+  let login='g'+crypto.createHash('sha256').update(sub).digest('hex').slice(0,15);
+  while(loginId(login)||nameTaken(login)) login='g'+crypto.randomBytes(8).toString('hex').slice(0,15);
+  const u={id:uid(),login,name:login,googleOnly:true,hash:crypto.randomBytes(64).toString('hex'),salt:crypto.randomBytes(16).toString('hex'),iters:120000,
+    rank:nextJoinRank(),coins:0,team:defaultTeam(),wall:defaultTeam(),roster:{},lastDaily:0,cityX:Math.round(Math.random()*1000),cityY:Math.round(Math.random()*1000),created:Date.now()};
+  DB.users[u.id]=u; DB.byName[login]=u.id; nameIdxPut(u);loginIdxPut(u);_dpk('byName',login); return u;
+}
+async function googleResolve(credential,nonce,current,ip,rawDeviceId){
+  const claims=await googleVerify(credential,nonce);
+  const creating=!Object.values(DB.users).some(u=>u.google?.sub===claims.sub)&&(!current||current.guest);
+  const device=devKey(String(rawDeviceId||'').slice(0,64));let times=[];
+  if(creating){
+    DB.devices=DB.devices||{};DB.ipAccounts=DB.ipAccounts||{};
+    if(device&&(DB.devices[device]||0)>=3)throw Error('Account creation limit reached.');
+    times=(Array.isArray(DB.ipAccounts[ip])?DB.ipAccounts[ip]:[]).filter(t=>Date.now()-t<86400000);
+    if(times.length>=REG_ACCOUNTS_PER_IP)throw Error('Account creation limit reached.');
+  }
+  const r=GOOGLE_AUTH.resolveAccount({users:DB.users,claims,current,create:googleNewUser,isBanned});
+  nameIdxPut(r.u);loginIdxPut(r.u);
+  if(creating){
+    if(device){DB.devices[device]=(DB.devices[device]||0)+1;_dpk('devices',device);}
+    DB.ipAccounts[ip]=times.concat([Date.now()]).slice(-50);_dpk('ipAccounts',ip);
+    if(DB.guestByDevice){for(const key of Object.keys(DB.guestByDevice))if(DB.guestByDevice[key]===r.u.id)delete DB.guestByDevice[key];_dp('guestByDevice');}
+  }
+  if(saveSoon([r.u.id])===false) throw Error('Account save failed. Please try again.');
+  return r;
+}
 const PLAY_BILLING=require('./server/play-billing').createPlayBilling();
 const PLAY_TOKENS=require('./server/play-billing');
 async function verifyPurchase(me,provider,receipt,offer){
@@ -5447,6 +5486,52 @@ async function api(req,res,url){
       ],
       dailyCaps:{ cityAttacks:20, vaultSweeps:2, trainingProvincePlays:PROV_PLAYS, eliteBossStageRuns:3, mining:60, marketFragments:12, guildContributions:20 }
     }); }
+  if(p==='/api/auth/google/config' && req.method==='GET'){
+    const clientId=process.env.GOOGLE_OAUTH_CLIENT_ID||'';res.setHeader('Cache-Control','no-store');
+    if(!clientId) return send(res,200,{enabled:false});
+    if(rateLimited(req,'googlecfg',30,60000))return send(res,429,{error:'Please wait before trying again.'});
+    for(const [n,v] of googleNonces)if(v.until<Date.now())googleNonces.delete(n);
+    if(googleNonces.size>=10000)return send(res,503,{error:'Sign-in busy. Please try again.'});
+    const nonce=uid()+uid(),current=authUser(req);googleNonces.set(nonce,{until:Date.now()+10*60000,id:current?.id||null});
+    return send(res,200,{enabled:true,clientId,nonce,linked:!!current?.google,email:current?.google?.email||''});
+  }
+  if(p==='/api/auth/google'&&req.method==='POST'){
+    if(!process.env.GOOGLE_OAUTH_CLIENT_ID)return send(res,503,{error:'Google sign-in is not configured.'});
+    if(rateLimited(req,'googleauth',15,60000))return send(res,429,{error:'Too many attempts. Please wait.'});
+    const b=await body(req),current=authUser(req),nonce=googleNonces.get(b.nonce);googleNonces.delete(b.nonce);
+    if(!nonce||nonce.until<Date.now()||nonce.id!==(current?.id||null))return send(res,403,{error:'Sign-in expired. Please try again.'});
+    try{
+      let u,created=false;
+      if(ACCOUNT_AUTHORITY){
+        if(current&&!current.guest&&!current.gid)return send(res,409,{error:'Sign in with your game-wide account before linking Google.'});
+        const r=await authorityCall('/api/internal/account/google',{credential:b.credential,nonce:b.nonce,linkGid:current&&!current.guest?current.gid:null,ip:clientIP(req),deviceId:b.deviceId});
+        if(!r||r.status!==200||!r.body?.gid)return send(res,r?.status||503,{error:r?.body?.error||'Accounts are unreachable.'});
+        const data=r.body;created=!!data.created;
+        if(current?.guest&&created){DB.byGid=DB.byGid||{};DB.byGid[data.gid]=current.id;}
+        u=await linkedUser(data.gid,data.name,null,{login:data.login});u.google=data.google;u.googleOnly=!!data.googleOnly;applyAcctState(u,data.st);
+      }else{const r=await googleResolve(b.credential,b.nonce,current,clientIP(req),b.deviceId);u=r.u;created=r.created;}
+      if(isBanned(u))return send(res,403,banResp(u));
+      acctDelCancel(u);dropTokens(u.id);const token=issueToken(u.id);
+      if(saveSoon([u.id])===false)return send(res,503,{error:'Account save failed. Please try again.'});
+      return send(res,200,{token,profile:profileFor(u),created});
+    }catch(_){return send(res,403,{error:'Google sign-in or linking failed. Check the Google account and try again.'});}
+  }
+  if((p==='/api/auth/google/unlink-request'||p==='/api/auth/google/unlink')&&req.method==='POST'){
+    const current=authUser(req);if(!current||current.guest)return send(res,401,{error:'Sign in first.'});
+    const request=p.endsWith('request');
+    if(rateLimited(req,request?'resetreq':'resetver',request?5:12,10*60000))return send(res,429,{error:'Too many attempts. Please wait.'});
+    const b=await body(req);
+    if(ACCOUNT_AUTHORITY){
+      const r=await authorityCall('/api/internal/account/google-unlink'+(request?'-request':''),{gid:current.gid,code:b.code,ip:clientIP(req)});
+      if(!r||r.status!==200)return send(res,r?.status||503,{error:r?.body?.error||'Accounts are unreachable.'});
+      if(!request){delete current.google;saveSoon([current.id]);}return send(res,200,r.body);
+    }
+    if(current.googleOnly)return send(res,409,{error:'Set up a password sign-in method before unlinking.'});
+    if(!current.google||!current.email)return send(res,400,{error:'Link and verify a recovery email in account settings first.'});
+    if(request){await acctResetRequest(usernameOf(current),clientIP(req),'google-unlink');return send(res,200,{ok:true});}
+    const r=await acctResetVerify(usernameOf(current),b.code,null,clientIP(req),null,'google-unlink');
+    return r.u?send(res,200,{ok:true}):send(res,r.status,{error:r.error});
+  }
   if(p==='/api/register' && req.method==='POST'){ const b=await body(req); const name=cleanCharName(b.name);
     { const why=badCharName(name); if(why) return send(res,400,{error:why}); }
     if(rateLimited(req,'reg',REG_PER_MIN,60000)) return send(res,429,{error:'Too many attempts — wait a minute and try again.'});
@@ -5577,6 +5662,20 @@ async function api(req,res,url){
     const b=await body(req);
     /* v1184 SIGN-UP GATE: gid + tag = the satellite checked the password against its local copy of this account; a current tag means
        nothing is hashed here (lock, ban and state still come from here). Saved only when something changed, with the group save. */
+    if(p==='/api/internal/account/google'){
+      try{const current=b.linkGid?DB.users[String(b.linkGid)]:null;
+        if(b.linkGid&&!current)return send(res,404,{error:'Account not found.'});
+        const r=await googleResolve(b.credential,b.nonce,current,String(b.ip||clientIP(req)),b.deviceId),u=r.u;
+        return send(res,200,{gid:u.id,name:u.name,login:usernameOf(u),google:u.google,googleOnly:!!u.googleOnly,created:r.created,st:acctState(u)});
+      }catch(_){return send(res,403,{error:'Google sign-in or linking failed.'});}
+    }
+    if(p==='/api/internal/account/google-unlink'||p==='/api/internal/account/google-unlink-request'){
+      const u=DB.users[String(b.gid||'')];if(!u||u.googleOnly)return send(res,409,{error:'Set up a password sign-in method before unlinking.'});
+      if(!u.google||!u.email)return send(res,400,{error:'Link and verify a recovery email first.'});
+      if(p.endsWith('request')){await acctResetRequest(usernameOf(u),String(b.ip||clientIP(req)),'google-unlink');return send(res,200,{ok:true});}
+      const r=await acctResetVerify(usernameOf(u),b.code,null,String(b.ip||clientIP(req)),null,'google-unlink');
+      return r.u?send(res,200,{ok:true}):send(res,r.status,{error:r.error});
+    }
     if(p==='/api/internal/account/verify'){ const trust=(b.gid&&b.tag)?{ gid:String(b.gid), tag:String(b.tag) }:null;
       const r=await acctVerify(b.name, b.pass, 'srv:'+String(b.ip||clientIP(req)), { trust });
       if(r.changed) saveSoon([r.id]);

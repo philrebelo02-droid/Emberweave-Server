@@ -24086,10 +24086,55 @@ function applyCloudSave(profile,forceLoad){ try{ const blob=profile&&profile.ros
     return true;
   }catch(e){ return false; } }
 
+let googleIdentityScript=null;
+function loadGoogleIdentity(){
+  if(window.google?.accounts?.id)return Promise.resolve();
+  if(!googleIdentityScript)googleIdentityScript=new Promise((resolve,reject)=>{
+    const script=document.createElement('script');script.src='https://accounts.google.com/gsi/client';script.async=true;
+    script.onload=resolve;script.onerror=()=>{googleIdentityScript=null;reject(Error('Google unavailable'));};document.head.appendChild(script);
+  });return googleIdentityScript;
+}
+async function mountGoogleSignin(root){
+  if(!root)return; const box=document.createElement('div');box.hidden=true;box.style.cssText='margin-top:12px;text-align:center';root.appendChild(box);
+  try{
+    const config=await api('/api/auth/google/config');if(!config?.enabled||!box.isConnected)return;
+    box.hidden=false;root.hidden=false;
+    if(config.linked){
+      const label=document.createElement('div');label.textContent='Google account linked'+(config.email?' · '+config.email:'');box.appendChild(label);
+      const unlink=document.createElement('button');unlink.className='btn secondary';unlink.textContent='Unlink Google account';box.appendChild(unlink);
+      unlink.onclick=async()=>{
+        unlink.disabled=true;const requested=await api('/api/auth/google/unlink-request','POST',{});unlink.disabled=false;
+        if(!requested?.ok){bannerMsg(requested?.error||'Could not send unlink code.');return;}
+        unlink.textContent='Send another code';let code=box.querySelector('input');
+        if(!code){code=document.createElement('input');code.inputMode='numeric';code.maxLength=6;code.placeholder='Code from your recovery email';box.appendChild(code);
+          const confirm=document.createElement('button');confirm.className='btn';confirm.textContent='Confirm unlink';box.appendChild(confirm);
+          confirm.onclick=async()=>{confirm.disabled=true;const r=await api('/api/auth/google/unlink','POST',{code:code.value});confirm.disabled=false;bannerMsg(r?.ok?'Google account unlinked.':r?.error||'Could not unlink.');if(r?.ok){box.remove();mountGoogleSignin(root);}};
+        }bannerMsg('Enter the code sent to your recovery email.');
+      };return;
+    }
+    if(ACC.token&&!ACC.guest){const label=document.createElement('div');label.textContent='Link Google account';box.appendChild(label);}
+    const button=document.createElement('div');box.appendChild(button);await loadGoogleIdentity();if(!box.isConnected)return;
+    window.google.accounts.id.initialize({client_id:config.clientId,nonce:config.nonce,auto_select:false,callback:async response=>{
+      const submit=async()=>{
+        if(window._authBusy)return;window._authBusy=true;
+        try{
+          const d=await api('/api/auth/google','POST',{credential:response.credential,nonce:config.nonce,deviceId:deviceId()});
+          if(!d?.token||!d.profile){bannerMsg(d?.error||'Google sign-in failed.');box.remove();mountGoogleSignin(root);return;}
+          const previous=ACC?.id;clearServerCaches();
+          ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,email:d.profile.email||'',guest:!!d.profile.guest,created:d.profile.created||0,admin:!!d.profile.admin,login:d.profile.login||''};saveAcc();DEV.on=isDevAcct();
+          if(acctSwitchReload(previous,d.profile.id,!!d.created))return;
+          _cloudReady=true;if(applyCloudSave(d.profile,true)){loginReload();return;}pushSave();updateHubChrome();renderSettings();
+        }finally{window._authBusy=false;}
+      };
+      if(!tosOK()){requireTos(submit,()=>bannerMsg('Accept the Terms to sign in.'));return;}await submit();
+    }});
+    window.google.accounts.id.renderButton(button,{type:'standard',theme:'outline',size:'large',text:'continue_with'});
+  }catch(_){box.hidden=true;}
+}
 function renderAccount(){ const b=document.getElementById('accountBody');
   if(!online()){ b.innerHTML='<div>'+uiIcon('world-online')+' Online accounts need the game opened through the host server (not the local file). See the README.</div>'; return; }
   if(ACC.token && !ACC.guest){ b.innerHTML=`<div style="text-align:center"><div style="font-size:15px">Signed in as <b>${escapeHTML(ACC.name||'')}</b></div><div style="font-size:12px;color:#8b98a9;margin:6px 0">Arena rank #${ACC.rank||'—'} · ${hudIcon('gold')} ${ACC.coins||0}</div><button class="btn sm secondary" id="logout">Log out</button></div>`;
-    b.querySelector('#logout').onclick=()=>{ signOutFully(); renderAccount(); }; return; }
+    b.querySelector('#logout').onclick=()=>{ signOutFully(); renderAccount(); }; mountGoogleSignin(b); return; }
   b.innerHTML=`${(ACC&&ACC.guest)?`<div style="background:#132033;border:1px solid #24406b;border-radius:10px;padding:9px 11px;margin-bottom:10px;font-size:12px;color:#cdd8ea;line-height:1.5">${uiIcon('guest')} <b>Playing as a guest</b> (${escapeHTML(ACC.name||'')}). Your progress is being saved. <b>Create an account</b> below to keep it safe across devices, or <b>Sign in</b> to your main account.</div>`:''}<input id="acName" placeholder="Name" maxlength="16" style="width:100%;padding:9px;margin-bottom:6px;border-radius:8px;border:1px solid #33405e;background:#0f1420;color:#e6edf3">
     <input id="acPass" type="password" placeholder="Password" style="width:100%;padding:9px;margin-bottom:8px;border-radius:8px;border:1px solid #33405e;background:#0f1420;color:#e6edf3">
     <div style="display:flex;gap:8px"><button class="btn" id="loginBtn" style="flex:1">Log in</button><button class="btn secondary" id="regBtn" style="flex:1">Register</button></div>
@@ -24107,7 +24152,7 @@ function renderAccount(){ const b=document.getElementById('accountBody');
       if(d.reset){ renderSetNewPass(name); return; }             // admin armed a password recovery for this account
       if(d.error){b.querySelector('#acMsg').textContent=d.error;return;}
       finishAuth(d,isReg); }); };
-  b.querySelector('#loginBtn').onclick=()=>go('/api/login'); b.querySelector('#regBtn').onclick=()=>go('/api/register');
+  b.querySelector('#loginBtn').onclick=()=>go('/api/login'); b.querySelector('#regBtn').onclick=()=>go('/api/register'); mountGoogleSignin(b);
 }
 // shown when an account was flagged for password recovery — the owner sets a fresh password
 function renderSetNewPass(name){ const b=document.getElementById('accountBody'); if(!b)return;
@@ -29331,7 +29376,7 @@ function renderSettings(){
   b.innerHTML=`<div style="display:flex;flex-direction:column;gap:10px">
     <div style="font-size:10px;color:#8b98a9;font-weight:700;letter-spacing:.08em">XANTHYR GAMES</div>
     <div style="font-size:13px;color:#c3ccd8">Emberweave Heroes — ${BUILD_VERSION}</div>
-    ${account}
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px">${account}<div class="panel" id="googleAuthPanel" hidden></div></div>
     ${soundCard}
     ${assetCard}
     ${reportCard}
@@ -29415,6 +29460,7 @@ function renderSettings(){
         bannerMsg(uiIcon('key')+' Password reset — you\'re signed in.'); }); };
     fgSubmit.onclick=doSubmit;
     ['#fgCode','#fgNew','#fgNew2'].map(s=>b.querySelector(s)).filter(Boolean).forEach(el=>el.onkeydown=(e)=>{ if(e.key==='Enter') doSubmit(); }); }
+  mountGoogleSignin(b.querySelector('#googleAuthPanel'));
   const acGo=b.querySelector('#acGo');
   if(acGo){ const go=()=>{ const msg=b.querySelector('#acMsg');
       const name=(b.querySelector('#acUser').value||'').trim(), pass=(b.querySelector('#acPass').value||'');
