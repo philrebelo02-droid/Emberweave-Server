@@ -945,6 +945,39 @@
   button:focus-visible,.hero-card:focus-visible,.tab:focus-visible{outline:2px solid #9fc1ff;outline-offset:2px;}
   .tabrow .tab{background:linear-gradient(180deg,#1b2539,#111827);border-color:#3b4c6b;box-shadow:inset 0 1px rgba(255,255,255,.045),0 3px 8px rgba(0,0,0,.22);}
   .tabrow .tab.on{background:linear-gradient(180deg,#315d96,#203d66);border-color:#76a7ec;color:#fff;box-shadow:0 0 0 1px rgba(118,167,236,.2),0 5px 14px rgba(0,0,0,.28),inset 0 1px rgba(255,255,255,.14);}
+  /* v1267 SETTINGS CLEANUP (Phil 4 Nov 2026: "sloppy ... unorganized and spread out"): one panel, a tab row, tight aligned rows. set- prefix. */
+  #settings.popout > .ew-pinned-exits{background:transparent;margin-bottom:-44px;pointer-events:none;}
+  #settings.popout > .ew-pinned-exits > *{pointer-events:auto;}
+  #settings > .titlebar{margin:2px 0 6px;}
+  #settingsBody{padding:10px;}
+  .set-wrap{display:flex;flex-direction:column;gap:8px;}
+  .set-wrap [hidden]{display:none!important;}
+  .tabrow.set-tabs{flex-wrap:nowrap;gap:4px;margin:0;}
+  .tabrow.set-tabs .tab{flex:1 1 0;min-width:0;padding:7px 3px;font-size:12px;line-height:1.2;white-space:nowrap;overflow:hidden;}
+  .set-pane{display:none;flex-direction:column;gap:8px;}
+  .set-pane.on{display:flex;}
+  .set-sec{display:flex;flex-direction:column;gap:6px;background:#0f1522;border:1px solid #26324a;border-radius:10px;padding:8px 10px;}
+  .set-h{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#c9a35e;}
+  .set-row{display:flex;align-items:center;gap:8px;min-height:30px;font-size:12px;flex-wrap:wrap;}
+  .set-row + .set-row{border-top:1px solid #1d2638;padding-top:6px;}
+  .set-lbl{font-weight:700;color:#cdd6e4;min-width:0;overflow-wrap:anywhere;}
+  .set-val{flex:1 1 auto;min-width:0;color:#8b98a9;text-align:right;overflow-wrap:anywhere;}
+  .set-act{flex:0 0 auto;margin-left:auto;}
+  .set-warn{color:#c9a35e;}
+  .set-in{background:#0f1420;border:1px solid #2a3550;border-radius:8px;color:#e6edf3;padding:8px 10px;font-size:13px;width:100%;box-sizing:border-box;}
+  .set-sel{flex:1 1 160px;width:auto;min-width:0;cursor:pointer;}
+  .set-row.set-snd{display:grid;grid-template-columns:minmax(84px,auto) minmax(60px,1fr) 38px;}
+  .set-chk{display:flex;align-items:center;gap:6px;font-weight:700;color:#cdd6e4;}
+  .set-pct{text-align:right;color:#8b98a9;font-variant-numeric:tabular-nums;}
+  .set-btns{display:flex;gap:6px;flex-wrap:wrap;}
+  .set-btns > .btn{flex:1 1 120px;}
+  .set-dz{border-color:#ff6b6b44;background:#170f14;}
+  .set-h-dz{color:#ff8b8b;}
+  .set-danger{width:100%;color:#ff8b8b;border-color:#ff6b6b66;}
+  .set-data{font-size:11px;color:#8b98a9;min-height:13px;}
+  .set-legal{align-items:center;text-align:center;font-size:11px;color:#6f7d90;gap:4px;padding:4px;}
+  .set-legal a{color:#9ab0d6;text-decoration:none;}
+  .set-ver{font-size:10px;color:#55617a;}
   .qcard{background:
     linear-gradient(120deg,rgba(255,255,255,.035),transparent 38%),
     linear-gradient(180deg,#182237,#101725);border-color:#354766;
@@ -2835,8 +2868,8 @@ body.ew-rotated #app{max-width:none;max-height:none;}
    (Settings > Language, saved in the save G.lang - synced with the cloud save, so it survives a reinstall - and in ew_lang on the
    device), else the phone's languages (navigator.languages), else English. Hero, monster and boss names and "Emberweave" are never
    translated (Phil's in-game-names rule). */
-const EW_LANG_EN={"bld.academy":"Academy","bld.arena":"Arena","bld.bulletin_board":"Bulletin Board","bld.campaign":"Campaign","bld.city_wall":"City Wall","bld.forge":"Forge","bld.guild_hall":"Guild Hall","bld.island_trials":"Island of Trials","bld.market":"Market","bld.shady_market":"Shady Market","bld.starless_well":"The Starless Well","bld.temple":"Temple","bld.vault":"The Vault","bld.watch_tower":"Watch Tower","bld.wishing_pool":"Wishing Pool","bld.witches_hut":"Witches Hut","common.back":"Back","common.battle":"Battle","common.buy":"Buy","common.cancel":"Cancel","common.claim":"Claim","common.claimed":"Claimed","common.close":"Close","common.collect":"Collect","common.confirm":"Confirm","common.continue":"Continue","common.done":"Done","common.fight":"Fight","common.free":"Free","common.go":"Go","common.in_progress":"In progress","common.loading":"Loading…","common.locked":"Locked","common.next":"Next","common.no":"No","common.ok":"OK","common.reset":"Reset","common.retry":"Retry","common.save":"Save","common.send":"Send","common.start":"Start","common.upgrade":"Upgrade","common.yes":"Yes","hub.research":"Research: {t}","hub.unlocks_at":"Unlocks at Lv {n}","menu.bag":"Bag","menu.heroes":"Heroes","menu.mail":"Mail","menu.menu":"Menu","menu.quests":"Quests","menu.server":"Server","menu.settings":"Settings","menu.sign_in":"Sign-In","menu.start_here":"Start Here","nav.base":"Base","nav.glossary":"Glossary","nav.guild":"Guild","nav.vault":"Vault","nav.wall":"Wall","nav.world":"World","set.add_email":"add email","set.add_email_first":"(add an email first)","set.arena_rank":"Arena rank #{n}","set.audio":"Audio","set.blocked_players":"Blocked players","set.bug":"Bug","set.change":"change","set.clear_cache":"Clear cache","set.cloud_account":"Cloud Account","set.confirm_password":"Confirm password","set.create_account":"Create Account","set.create_hint":"Pick a username & password to make a cloud account you can sign into on any device.","set.delete_account":"Delete account","set.forgot":"Forgot your password?","set.fx":"FX","set.lang_auto":"Device language","set.language":"Language","set.log_out":"Log out","set.music":"Music","set.mute_all":"Mute all","set.no_email":"No recovery email linked — add one so you can reset your password if you forget it.","set.offline_art":"Offline Art","set.offline_art_desc":"Download every hero, monster and boss animation once and keep it on this device. Battles then load instantly, even on a bad connection.","set.open_online":"Open the game through your online link to sign in.","set.password":"Password","set.recovery_email":"Recovery email:","set.report_desc":"Spotted something broken or have an idea? Send it straight to the devs.","set.report_ph":"Describe the bug or suggestion…","set.report_sent":"Thanks! Report sent.","set.report_short":"Please add a little detail.","set.report_title":"Report a bug / feedback","set.reset_by_email":"Reset password by email","set.rights":"All rights reserved.","set.send_failed":"Failed to send.","set.send_report":"Send report","set.sending":"Sending…","set.sign_in":"Sign In","set.signed_in_as":"Signed in as {name}","set.signin_hint":"Sign in to load your account and sync your progress here.","set.stop_download":"Stop download","set.suggestion":"Suggestion","set.sync_note":"your progress syncs to any device you sign in on.","set.terms":"Terms of Service & Privacy","set.update_all":"Update all features","set.username":"Username","set.voices":"Voices","title.account":"Account","title.arena_shop":"Arena Shop","title.daily_signin":"Daily Sign-In","title.elite_stages":"Elite Stages","title.forge":"The Forge","title.online_arena":"Online Arena","title.technology":"Technology"};
-const EW_LANG_V={"en":"1b0402a4","es":"d53c82a7","pt-BR":"1d30eb27","fr":"0036681f","de":"8772f8ff","it":"1dad9d32","nl":"60ff0b6c","ru":"a14f00bc","tr":"dec96b7e","ja":"10f34e15","ko":"f4ddd9ca","zh-Hans":"fc03ef10","zh-Hant":"fd288b6f","th":"eeedf952","id":"f09e2fa3","hi":"4e4fe505"};
+const EW_LANG_EN={"bld.academy":"Academy","bld.arena":"Arena","bld.bulletin_board":"Bulletin Board","bld.campaign":"Campaign","bld.city_wall":"City Wall","bld.forge":"Forge","bld.guild_hall":"Guild Hall","bld.island_trials":"Island of Trials","bld.market":"Market","bld.shady_market":"Shady Market","bld.starless_well":"The Starless Well","bld.temple":"Temple","bld.vault":"The Vault","bld.watch_tower":"Watch Tower","bld.wishing_pool":"Wishing Pool","bld.witches_hut":"Witches Hut","common.back":"Back","common.battle":"Battle","common.buy":"Buy","common.cancel":"Cancel","common.claim":"Claim","common.claimed":"Claimed","common.close":"Close","common.collect":"Collect","common.confirm":"Confirm","common.continue":"Continue","common.done":"Done","common.fight":"Fight","common.free":"Free","common.go":"Go","common.in_progress":"In progress","common.loading":"Loading…","common.locked":"Locked","common.next":"Next","common.no":"No","common.ok":"OK","common.reset":"Reset","common.retry":"Retry","common.save":"Save","common.send":"Send","common.start":"Start","common.upgrade":"Upgrade","common.yes":"Yes","hub.research":"Research: {t}","hub.unlocks_at":"Unlocks at Lv {n}","menu.bag":"Bag","menu.heroes":"Heroes","menu.mail":"Mail","menu.menu":"Menu","menu.quests":"Quests","menu.server":"Server","menu.settings":"Settings","menu.sign_in":"Sign-In","menu.start_here":"Start Here","nav.base":"Base","nav.glossary":"Glossary","nav.guild":"Guild","nav.vault":"Vault","nav.wall":"Wall","nav.world":"World","set.add_email":"add email","set.add_email_first":"(add an email first)","set.arena_rank":"Arena rank #{n}","set.audio":"Audio","set.blocked_players":"Blocked players","set.bug":"Bug","set.build":"Build","set.change":"change","set.clear_cache":"Clear cache","set.cloud_account":"Cloud Account","set.confirm_password":"Confirm password","set.create_account":"Create Account","set.create_hint":"Pick a username & password to make a cloud account you can sign into on any device.","set.danger_zone":"Danger zone","set.delete_account":"Delete account","set.dev_accounts":"Accounts & players","set.dev_battles":"Battles & sims","set.dev_debug":"Debug views","set.dev_economy":"Economy & grants","set.dev_servers":"Servers & deploys","set.email_add":"Add","set.email_change":"Change","set.email_none":"Not linked","set.forgot":"Forgot your password?","set.fx":"FX","set.lang_auto":"Device language","set.language":"Language","set.log_out":"Log out","set.music":"Music","set.mute_all":"Mute all","set.no_email":"No recovery email linked — add one so you can reset your password if you forget it.","set.none":"None","set.offline_art":"Offline Art","set.offline_art_desc":"Download every hero, monster and boss animation once and keep it on this device. Battles then load instantly, even on a bad connection.","set.open_online":"Open the game through your online link to sign in.","set.password":"Password","set.pw_reset":"Reset by email","set.recovery":"Recovery email","set.recovery_email":"Recovery email:","set.report_desc":"Spotted something broken or have an idea? Send it straight to the devs.","set.report_ph":"Describe the bug or suggestion…","set.report_sent":"Thanks! Report sent.","set.report_short":"Please add a little detail.","set.report_title":"Report a bug / feedback","set.reset_by_email":"Reset password by email","set.reset_progress":"Reset all progress","set.rights":"All rights reserved.","set.save_code":"Show save code","set.send_failed":"Failed to send.","set.send_report":"Send report","set.sending":"Sending…","set.sign_in":"Sign In","set.signed_in_as":"Signed in as {name}","set.signin_hint":"Sign in to load your account and sync your progress here.","set.stop_download":"Stop download","set.suggestion":"Suggestion","set.sync_note":"your progress syncs to any device you sign in on.","set.tab_account":"Account","set.tab_dev":"Dev","set.tab_general":"General","set.tab_storage":"Storage","set.tab_support":"Support","set.terms":"Terms of Service & Privacy","set.update_all":"Update all features","set.username":"Username","set.voices":"Voices","title.account":"Account","title.arena_shop":"Arena Shop","title.daily_signin":"Daily Sign-In","title.elite_stages":"Elite Stages","title.forge":"The Forge","title.online_arena":"Online Arena","title.technology":"Technology"};
+const EW_LANG_V={"en":"ba58818d","es":"4a50a7c5","pt-BR":"ce66f901","fr":"6c54d945","de":"f63a0faa","it":"7e37c9f1","nl":"45d6651f","ru":"810998e7","tr":"5780796c","ja":"5ba0adbe","ko":"31511f59","zh-Hans":"ef18b2f9","zh-Hant":"421ef601","th":"822e4cff","id":"e651d033","hi":"0d60fd12"};
 const EW_LANGS=[['en','English'],['es','Español'],['pt-BR','Português (Brasil)'],['fr','Français'],['de','Deutsch'],['it','Italiano'],['nl','Nederlands'],
   ['ru','Русский'],['tr','Türkçe'],['ja','日本語'],['ko','한국어'],['zh-Hans','简体中文'],['zh-Hant','繁體中文'],['th','ไทย'],['id','Bahasa Indonesia'],['hi','हिन्दी']];
 const EW_LANG_FONT={th:'Noto Sans Thai',ja:'Noto Sans JP',ko:'Noto Sans KR','zh-Hans':'Noto Sans SC','zh-Hant':'Noto Sans TC',hi:'Noto Sans Devanagari'};
@@ -17147,9 +17180,14 @@ let _forgotName='', _forgotStep='name';   // signed-out "forgot password" recove
 let emStep='idle', _emPending='', _emSentTo='', _emToCurrent=false;   // change-recovery-email flow: 'idle' → 'code'
 let _resetName='';       // account whose password is being reset (set when the server returns {reset:true})
 let delStep='idle', _blocksCache=null, _blocksLoading=false;   /* v1097: Delete account step ('idle' | 'confirm'); the block list as last read from the server */
-function _blocksHTML(){ if(_blocksCache===null) return 'Loading...'; if(!_blocksCache.length) return 'None';
+function _blocksHTML(){ if(_blocksCache===null) return t('common.loading'); if(!_blocksCache.length) return t('set.none');
   return _blocksCache.map(x=>`<div style="display:flex;align-items:center;gap:6px;margin:3px 0"><span style="flex:1;color:#cdd6e4">${escapeHTML(x.name||'')}</span><button class="btn xs secondary" data-unblock="${escAttr(x.id)}">Unblock</button></div>`).join(''); }
-let devTab='cheats';     // developer panel tab: 'cheats' | 'accounts' | 'qa'
+let devTab='economy';     // developer panel group: 'accounts' | 'economy' | 'battles' | 'servers' | 'debug' (v1267; old 'cheats'/'qa'/'integrity' map in)
+/* v1267 Settings tabs: the open tab is kept per device (ew_set_tab). Code that opens Settings on a dev group (devTab=...) lands on Dev. */
+let setTab='', _devTabSeen='economy';
+function setFitTabs(root){ if(!root) return; root.querySelectorAll('.set-tabs .tab,.dvp-tab').forEach(el=>{ if(!el.clientWidth) return; el.style.fontSize='';
+    let fs=parseFloat(getComputedStyle(el).fontSize)||12; while((el.scrollWidth>el.clientWidth+0.5||el.scrollHeight>el.clientHeight+0.5)&&fs>8){ fs-=0.5; el.style.fontSize=fs+'px'; } }); }
+try{ window.addEventListener('resize',()=>setFitTabs(document.getElementById('settingsBody'))); }catch(e){}
 // ---- POP-OUT screens: menu items (Heroes, Bag, Quests, …) open as a modal overlay over home, not a full-page swap ----
 let _popout=null;
 function popoutRender(name){
@@ -29360,20 +29398,18 @@ function requireTos(onAccept,onDecline){
 function renderSettings(){
   const b=document.getElementById('settingsBody');
   DEV.on = isDevAcct();   // dev tools are unlocked purely by which cloud account is signed in
+  devTab=({cheats:'economy',qa:'debug',integrity:'accounts'})[devTab]||devTab; if(!['accounts','economy','battles','servers','debug'].includes(devTab)) devTab='economy';
   const inp='background:#0f1420;border:1px solid #2a3550;border-radius:8px;color:#e6edf3;padding:9px 10px;font-size:13px;width:100%';
   // ---- ACCOUNT: sign in / create a cloud account (syncs progress across devices) ----
   let account;
   if(!online()){
-    account=`<div class="panel"><div style="font-weight:800;font-size:13px;margin-bottom:2px">${uiIcon('cloud-sync')} ${t('set.cloud_account')}</div><div style="font-size:12px;color:#8b98a9">${t('set.open_online')}</div></div>`;
+    account=`<div class="set-sec"><div class="set-h">${t('set.tab_account')}</div><div class="set-data">${t('set.open_online')}</div></div>`;
   } else if(ACC.token){
     const em=ACC.email||'';
-    const emailRow = em
-      ? `<div style="font-size:11px;color:#8b98a9;margin-bottom:6px">${uiIcon('mail')} ${t('set.recovery_email')} <b style="color:#cdd6e4">${escapeHTML(em)}</b> <a href="#" id="acEditEmail" style="color:#9ab0d6;margin-left:4px">${t('set.change')}</a></div>`
-      : `<div style="font-size:11px;color:#c9a35e;margin-bottom:6px">${uiIcon('mail')} ${t('set.no_email')} <a href="#" id="acEditEmail" style="color:#9ab0d6">${t('set.add_email')}</a></div>`;
+    const emailRow = `<div class="set-row"><span class="set-lbl">${uiIcon('mail')} ${t('set.recovery')}</span><span class="set-val${em?'':' set-warn'}">${em?escapeHTML(em):t('set.email_none')}</span><a href="#" id="acEditEmail" class="btn xs secondary set-act">${em?t('set.email_change'):t('set.email_add')}</a></div>`;
     const emailForm = (emStep!=='code')
-      ? `<div id="acEmailForm" style="display:none;margin:4px 0 8px">
+      ? `<div id="acEmailForm" style="display:none;margin:0 0 4px">
           <input id="acEmailIn" type="email" placeholder="you@example.com" autocomplete="email" style="${inp}" value="">
-          <div style="font-size:11px;color:#8b98a9;margin-top:4px">${em?'For security, we\'ll email a 6-digit code to your <b>current</b> recovery email to confirm the change.':'We\'ll email a 6-digit code to this address to confirm you own it.'}</div>
           <div style="display:flex;gap:6px;margin-top:6px"><button class="btn xs" id="acEmailSend" style="flex:1">Send code</button><button class="btn xs secondary" id="acEmailCancel">${t('common.cancel')}</button></div>
           <div id="acEmailMsg" style="font-size:11px;margin-top:4px;min-height:13px"></div></div>`
       : `<div id="acEmailForm" style="display:block;margin:4px 0 8px;background:#0f1420;border:1px solid #33405e;border-radius:10px;padding:10px">
@@ -29383,7 +29419,7 @@ function renderSettings(){
           <div style="display:flex;gap:6px;margin-top:6px"><button class="btn xs" id="acEmailConfirm" style="flex:1">${t('common.confirm')}</button><button class="btn xs secondary" id="acEmailResend">Resend</button><button class="btn xs secondary" id="acEmailCancel">${t('common.cancel')}</button></div>
           <div id="acEmailMsg" style="font-size:11px;margin-top:4px;min-height:13px"></div></div>`;
     const resetBlock = (pwStep==='idle')
-      ? `<button class="btn sm secondary" id="acPwReset" style="width:100%;margin-bottom:6px" ${em?'':'disabled'}>${uiIcon('key')} ${t('set.reset_by_email')}${em?'':' '+t('set.add_email_first')}</button>`
+      ? `<div class="set-row"><span class="set-lbl">${uiIcon('key')} ${t('set.password')}</span><button class="btn xs secondary set-act" id="acPwReset" ${em?'':'disabled'}>${t('set.pw_reset')}</button></div>`
       : `<div style="background:#0f1420;border:1px solid #33405e;border-radius:10px;padding:10px;margin-bottom:8px">
           <div style="font-weight:800;font-size:12px;margin-bottom:4px">${uiIcon('key')} Reset your password</div>
           <div style="font-size:11px;color:#8b98a9;margin-bottom:8px">We sent a 6-digit code to <b>${escapeHTML(em)}</b>. Enter it below with your new password. The code expires in 15 minutes.</div>
@@ -29397,7 +29433,7 @@ function renderSettings(){
           <div id="acRMsg" style="font-size:11px;margin-top:6px;min-height:14px"></div></div>`;
     /* v1097 (sweep #16): a signed-in guest makes an account here and KEEPS this progress (same account id, same ledger) -
        before, the only way was Log out + Register, which made a new level-1 account. */
-    const guestUp = ACC.guest ? `<div style="background:#0f1420;border:1px solid #33405e;border-radius:10px;padding:10px;margin-bottom:8px">
+    const guestUp = ACC.guest ? `<div style="padding:4px 0">
           <div style="font-weight:800;font-size:12px;margin-bottom:6px">Create account</div>
           <div style="display:flex;flex-direction:column;gap:6px">
             <input id="acgName" type="text" placeholder="${t('set.username')}" maxlength="16" autocomplete="off" autocapitalize="off" spellcheck="false" style="${inp}">
@@ -29407,8 +29443,8 @@ function renderSettings(){
           <div id="acgMsg" style="font-size:11px;margin-top:6px;min-height:14px"></div></div>` : '';
     /* v1097 (sweep #17, App Store): Delete account - the confirmation is typed on the page (no confirm() dialog) */
     const delBlock = (delStep!=='confirm')
-      ? `<button class="btn sm secondary" id="acDel" style="width:100%;margin-top:8px;color:#ff8b8b;border-color:#ff6b6b66">${t('set.delete_account')}</button>`
-      : `<div style="background:#1a0f12;border:1px solid #ff6b6b88;border-radius:10px;padding:10px;margin-top:8px">
+      ? `<button class="btn sm secondary set-danger" id="acDel">${t('set.delete_account')}</button>`
+      : `<div style="background:#1a0f12;border:1px solid #ff6b6b88;border-radius:10px;padding:10px">
           <div style="font-weight:800;font-size:12px;color:#ff8b8b;margin-bottom:4px">Delete account</div>
           <div style="font-size:11px;color:#c3ccd8;margin-bottom:8px">${ACC.guest?`This permanently deletes guest <b>${escapeHTML(ACC.name||'')}</b> at once: progress, heroes, items and city. It cannot be undone.`:`This deletes <b>${escapeHTML(ACC.name||'')}</b>: progress, heroes, items, city, guild place and personal details. The account is locked and hidden for <b>7 days</b> - sign in again within 7 days to cancel. After that it is wiped from our database and cannot be restored (backups age out on their own schedule). <a href="/privacy#delete-account" target="_blank" rel="noopener" style="color:#9ab0d6">Privacy Policy</a>`}</div>
           <div style="display:flex;flex-direction:column;gap:6px">
@@ -29416,15 +29452,15 @@ function renderSettings(){
             ${ACC.guest?'':`<input id="acDelPass" type="password" placeholder="Password" autocomplete="current-password" style="${inp}">`}
             <div style="display:flex;gap:6px"><button class="btn sm" id="acDelGo" style="flex:1;background:#ff6b6b">${ACC.guest?'Delete permanently':'Delete account'}</button><button class="btn sm secondary" id="acDelCancel" style="flex:1">${t('common.cancel')}</button></div></div>
           <div id="acDelMsg" style="font-size:11px;color:#ff8b8b;margin-top:6px;min-height:14px"></div></div>`;
-    const blockList = `<div style="margin-top:10px"><div style="font-weight:800;font-size:12px;margin-bottom:4px">${t('set.blocked_players')}</div><div id="acBlocks" style="font-size:11px;color:#8b98a9">${_blocksHTML()}</div></div>`;
-    account=`<div class="panel" style="border-color:#4aa3ff55">
-      <div style="font-weight:800;font-size:13px;margin-bottom:4px">${uiIcon('cloud-sync')} ${t('set.cloud_account')}</div>
-      <div style="font-size:13px">${t('set.signed_in_as',{name:'<b>'+escapeHTML(ACC.name||'')+'</b>'})}</div>
-      <div style="font-size:11px;color:#8b98a9;margin:4px 0 6px">${t('set.arena_rank',{n:ACC.rank||'—'})} · ${hudIcon('gold')} ${ACC.coins||0} · ${t('set.sync_note')}</div>
+    const blockList = `<div class="set-row"><span class="set-lbl">${t('set.blocked_players')}</span><div id="acBlocks" class="set-val">${_blocksHTML()}</div></div>`;
+    /* v1267: one data line (name + rank, Log out beside it), then email / password / blocked; the danger area sits apart at the bottom */
+    account=`<div class="set-sec">
+      <div class="set-row"><span class="set-lbl">${uiIcon('cloud-sync')} ${escapeHTML(ACC.name||'')}</span><span class="set-val">${t('set.arena_rank',{n:ACC.rank||'—'})}</span><button class="btn xs secondary set-act" id="acLogout">${t('set.log_out')}</button></div>
       ${ACC.guest?guestUp:(emailRow+emailForm+resetBlock)}
-      <button class="btn sm secondary" id="acLogout">${t('set.log_out')}</button>${blockList}${delBlock}</div>`;
+      ${blockList}</div>
+      <div class="set-sec set-dz"><div class="set-h set-h-dz">${t('set.danger_zone')}</div>${DEV.on?`<button class="btn sm set-danger" id="resetBtn" style="background:#ff6b6b;color:#1a0f12">${t('set.reset_progress')}</button>`:''}${delBlock}</div>`;
   } else if(acctMode==='reset'){
-    account=`<div class="panel" style="border-color:#c9a24a66">
+    account=`<div class="set-sec">
       <div style="font-weight:800;font-size:13px;margin-bottom:4px">${uiIcon('key')} Your password has been reset</div>
       <div style="font-size:11px;color:#8b98a9;margin-bottom:8px">Please type and confirm a new password for <b>${escapeHTML(_resetName||'')}</b> to regain access.</div>
       <div style="display:flex;flex-direction:column;gap:6px">
@@ -29436,7 +29472,7 @@ function renderSettings(){
       <div id="acMsg" style="font-size:11px;color:#ff8b8b;margin-top:6px;min-height:14px"></div></div>`;
   } else if(acctMode==='forgot'){
     account = (_forgotStep==='name')
-      ? `<div class="panel" style="border-color:#c9a24a66">
+      ? `<div class="set-sec">
           <div style="font-weight:800;font-size:13px;margin-bottom:4px">${uiIcon('key')} Forgot password</div>
           <div style="font-size:11px;color:#8b98a9;margin-bottom:8px">Enter your username. If it has a recovery email linked, we'll send a one-time 6-digit code to reset your password.</div>
           <div style="display:flex;flex-direction:column;gap:6px">
@@ -29445,7 +29481,7 @@ function renderSettings(){
             <button class="btn xs secondary" id="fgBack">Back to sign in</button>
           </div>
           <div id="fgMsg" style="font-size:11px;margin-top:6px;min-height:14px"></div></div>`
-      : `<div class="panel" style="border-color:#c9a24a66">
+      : `<div class="set-sec">
           <div style="font-weight:800;font-size:13px;margin-bottom:4px">${uiIcon('key')} Enter your code</div>
           <div style="font-size:11px;color:#8b98a9;margin-bottom:8px">If <b>${escapeHTML(_forgotName)}</b> has a linked email, a 6-digit code is on its way. Enter it with your new password. The code expires in 15 minutes.</div>
           <div style="display:flex;flex-direction:column;gap:6px">
@@ -29458,13 +29494,11 @@ function renderSettings(){
           <div id="fgMsg" style="font-size:11px;margin-top:6px;min-height:14px"></div></div>`;
   } else {
     const create = acctMode==='create';
-    account=`<div class="panel">
-      <div style="font-weight:800;font-size:13px;margin-bottom:6px">${uiIcon('cloud-sync')} ${t('set.cloud_account')}</div>
+    account=`<div class="set-sec">
       <div style="display:flex;gap:6px;margin-bottom:8px">
         <button class="btn xs${create?' secondary':''}" id="acTabIn" style="flex:1">${t('set.sign_in')}</button>
         <button class="btn xs${create?'':' secondary'}" id="acTabNew" style="flex:1">${t('set.create_account')}</button>
       </div>
-      <div style="font-size:11px;color:#8b98a9;margin-bottom:8px">${create?t('set.create_hint'):t('set.signin_hint')}</div>
       <div style="display:flex;flex-direction:column;gap:6px">
         <input id="acUser" type="text" placeholder="${t('set.username')}" maxlength="16" autocomplete="off" autocapitalize="off" spellcheck="false" style="${inp}">
         <input id="acPass" type="password" placeholder="${t('set.password')}" autocomplete="off" style="${inp}">
@@ -29478,99 +29512,105 @@ function renderSettings(){
   let dev='';
   if(DEV.on){
     const act=(id,ic,label)=>`<button class="dvp-cell" data-dev="${id}"><span class="ic">${ic}</span>${label}</button>`;
-    const TABS=[['cheats','\ud83e\uddea Cheats'],['accounts','\ud83d\udef0 Accounts'],['qa','\ud83e\udd16 QA & Reports'],['integrity','\ud83d\udea9 Integrity']];
-    const dt=(['cheats','accounts','qa','integrity'].includes(devTab)?devTab:'cheats');
+    /* v1267 (Phil 3 Nov: "Dev panel is even more messy"): five groups - every tool kept, each in one place */
+    const TABS=[['accounts',t('set.dev_accounts')],['economy',t('set.dev_economy')],['battles',t('set.dev_battles')],['servers',t('set.dev_servers')],['debug',t('set.dev_debug')]];
+    const dt=devTab;
     const tabBar=`<div class="dvp-tabs">`+TABS.map(([k,l])=>`<div class="dvp-tab${dt===k?' on':''}" data-devtab="${k}">${l}</div>`).join('')+`</div>`;
     const _n=(v)=>{ v=Math.round(v||0); return v>=1000000?(v/1000000).toFixed(1)+'M':(v>=1000?(v/1000).toFixed(v>=100000?0:1)+'k':(''+v)); };
     const statRow=`<div class="dvp-stats"><span class="dvp-chip">Lv ${playerLevel()}</span><span class="dvp-chip">\ud83e\ude99 ${_n(G.gold)}</span><span class="dvp-chip">\ud83d\udc8e ${_n(G.gems)}</span></div>`;
-    const cheatsTab = dt!=='cheats'?'':`
-      <div class="dvp-god"><b>\u2694 God Mode <span class="sub">\u2014 no damage taken + every building open regardless of level</span></b><div class="dvp-sw${DEV.god?' on':''}" id="devGod"></div></div>
-      <input class="dvp-filter" id="devFilter" placeholder="Filter cheats\u2026" autocomplete="off">
+    const battlesTab = dt!=='battles'?'':`
+      <div class="dvp-god"><b>\u2694 God Mode <span class="sub">\u2014 no damage + all buildings open</span></b><div class="dvp-sw${DEV.god?' on':''}" id="devGod"></div></div>
+      <div class="dvp-grid">${act('bots','\ud83e\udd16','Run test bots')}</div>`;
+    const serversTab = dt!=='servers'?'':`
+      <div class="dvp-grid">${act('backup','\ud83d\udcbe','Download backup')}</div>
+      <button class="dvp-update" data-dev="update">\ud83d\udd04 Check for update (reload newest)</button>`;
+    const debugTab = dt!=='debug'?'':`
+      <div class="dvp-grid">${act('perf','\ud83d\udcc9','Performance HUD on/off')}${act('fxmiss','\ud83c\udfaf','FX misses')}${act('cachelog','\ud83d\udcdc','Cache log')}${act('orbs','\ud83d\udd25','Temple orbs preview ('+(DEV.orbPreview|0)+'/5)')}${act('dlart','\ud83d\udce6','Update all features')}${act('clrart','\ud83e\uddf9','Clear cache')}</div>
+      <div class="dvp-sec">Save</div>
+      <div class="dvp-grid"><button class="dvp-cell" id="expBtn"><span class="ic">\ud83d\udcc4</span>${t('set.save_code')}</button></div>
+      <div id="saveOut" style="font-size:10px;color:#55617a;word-break:break-all;margin-top:6px"></div>`;
+    const cheatsTab = dt!=='economy'?'':`
+      <input class="dvp-filter" id="devFilter" placeholder="Filter\u2026" autocomplete="off">
       <div class="dvp-sec">Currency</div>
       <div class="dvp-grid">${act('gold','\ud83e\ude99','+100k Gold')}${act('gems','\ud83d\udc8e','+2000 Diamonds')}${act('shards','\ud83d\udca0','+500 hero fragments each')}${act('pieces','\ud83e\uddf5','+200 each piece')}${act('arenacoin','\ud83c\udf9f','+5000 arena coins')}${act('guildcoins','\ud83c\udf96','+5000 guild coins')}</div>
       <div class="dvp-sec">Progression</div>
       <div class="dvp-grid">${act('stam','\u29d7','Refill stamina')}${act('stam30','\u29d7','+30 stamina')}${act('level','\u2b06','Player +5 levels')}${act('squadlvl','\ud83d\udcc8','Squad +5 levels')}${act('campstage','\ud83d\uddfa','Campaign +5 stages')}${act('arena','\ud83c\udfc6','Arena \u2192 #1')}${act('shielditem','\ud83d\udee1','+3 shields')}</div>
-      <div class="dvp-sec">Diagnostics</div>
-      <div class="dvp-grid">${act('perf','\ud83d\udcc9','Performance HUD on/off')}</div>
       <div class="dvp-sec">Roster</div>
-      <div class="dvp-grid">${act('heroes','\ud83e\uddb8','Unlock all heroes')}${act('lv100','\ud83d\udd1f','ALL heroes \u2192 level '+MAX_LEVEL)}${act('maxteam','\u2728','Max ALL heroes glyph+star')}${act('orbs','\ud83d\udd25','Temple orbs +1 (all heroes, '+(DEV.orbPreview|0)+'/5)')}${act('givefrags','\ud83e\udde9','Give 100 fragments\u2026')}</div>
-      <button class="dvp-update" data-dev="update">\ud83d\udd04 Check for update (reload newest)</button>`;
+      <div class="dvp-grid">${act('heroes','\ud83e\uddb8','Unlock all heroes')}${act('lv100','\ud83d\udd1f','ALL heroes \u2192 level '+MAX_LEVEL)}${act('maxteam','\u2728','Max ALL heroes glyph+star')}${act('givefrags','\ud83e\udde9','Give 100 fragments\u2026')}</div>`;
     const accountsTab = dt!=='accounts'?'':`
-      <div class="dvp-grid">${act('online','\ud83d\udc65','Players online')}${act('accounts','\ud83d\uddc2','All accounts')}${act('newacct','\u2795','Create account')}${act('backup','\ud83d\udcbe','Download backup')}</div>`;
-    const qaTab = dt!=='qa'?'':`
-      <div class="dvp-grid">${act('dlart','\ud83d\udce6','Update all features')}${act('clrart','\ud83e\uddf9','Clear cache')}${act('fxmiss','\ud83c\udfaf','FX misses')}${act('cachelog','\ud83d\udcdc','Cache log')}${act('reports','\ud83d\udc1e','Bug reports')}${act('bots','\ud83e\udd16','Run test bots')}${act('refresh','\ud83d\udd04','Refresh log')}${act('clearlog','\ud83e\uddf9','Clear resolved')}</div>`;
-    /* 30 Aug (Phil) — THE INTEGRITY DESK.
-       "no roll backs just the option to ban the player for 1, 7 or 30 days if they are found guilty."
-       So this screen only ever reads and bans. There is deliberately no button here that takes
-       diamonds off anyone: a detector's guess must never cost a legitimate player their progress. */
-    const integrityTab = dt!=='integrity'?'':`
-      <div style="font-size:11px;color:#8b98a9;margin:2px 0 8px;line-height:1.45">Accounts that gained more than <b>2,000 diamonds in under a minute</b> are reported here. Nothing has been taken from them &mdash; open one to read a week of where their diamonds came from, then clear it or ban.</div>
+      <div class="dvp-grid">${act('online','\ud83d\udc65','Players online')}${act('accounts','\ud83d\uddc2','All accounts')}${act('newacct','\u2795','Create account')}</div>
+      <div class="dvp-sec">Reports</div>
+      <div class="dvp-grid">${act('reports','\ud83d\udc1e','Bug reports')}${act('refresh','\ud83d\udd04','Refresh log')}${act('clearlog','\ud83e\uddf9','Clear resolved')}</div>
+      <div class="dvp-sec">Integrity \u00b7 +2,000 \ud83d\udc8e &lt; 1 min</div>
       <div class="dvp-grid">${act('intrefresh','\ud83d\udd04','Refresh reports')}${act('intall','\ud83d\uddc2','Show resolved too')}</div>
       <div id="devIntegrity" style="margin-top:8px"></div>`;
-    dev=`<style>.dvp{border:1px solid #2b7a55;background:linear-gradient(180deg,#12211b,#141b2b 70%)}.dvp-hd{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}.dvp-badge{font-size:11px;font-weight:800;letter-spacing:.5px;color:#0a140f;background:#5ee89b;border-radius:6px;padding:2px 7px}.dvp-title{font-weight:800;font-size:14px;color:#e6edf3}.dvp-who{font-size:11px;color:#8b98a9;font-weight:600}.dvp-stats{margin-left:auto;display:flex;gap:5px}.dvp-chip{font-size:11px;font-weight:700;background:#0f1622;border:1px solid #26324a;border-radius:999px;padding:3px 9px;color:#cdd8ea;white-space:nowrap}.dvp-tabs{display:flex;gap:4px;background:#0d1320;border:1px solid #24304a;border-radius:11px;padding:3px;margin-bottom:10px}.dvp-tab{flex:1;text-align:center;font-size:11px;font-weight:700;padding:6px 4px;border-radius:8px;cursor:pointer;color:#93a1b8;user-select:none}.dvp-tab.on{background:#5ee89b;color:#0a140f}.dvp-god{display:flex;align-items:center;gap:10px;background:#0f1622;border:1px solid #26324a;border-radius:11px;padding:9px 11px;margin-bottom:10px}.dvp-god b{font-size:12px;flex:1}.dvp-god .sub{color:#8b98a9;font-weight:500}.dvp-sw{width:44px;height:24px;border-radius:999px;background:#33405e;position:relative;cursor:pointer;flex:0 0 auto;transition:background .15s}.dvp-sw.on{background:#5ee89b}.dvp-sw::after{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .15s}.dvp-sw.on::after{left:22px}.dvp-filter{width:100%;box-sizing:border-box;background:#0f1622;border:1px solid #26324a;border-radius:9px;padding:8px 10px;color:#e6edf3;font-size:12px;margin-bottom:10px}.dvp-filter::placeholder{color:#63708a}.dvp-sec{font-size:10px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:#6bbf95;margin:10px 2px 6px}.dvp-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}.dvp-cell{display:flex;align-items:center;gap:8px;background:#1b2334;border:1px solid #2b3852;border-radius:10px;padding:8px 10px;cursor:pointer;font-size:11.5px;font-weight:600;color:#e6edf3;text-align:left;transition:border-color .12s,background .12s}.dvp-cell:hover{background:#222c42;border-color:#3d5488}.dvp-cell:active{transform:translateY(1px)}.dvp-cell .ic{font-size:15px;flex:0 0 auto}.dvp-update{width:100%;box-sizing:border-box;margin-top:10px;padding:10px;border:0;border-radius:11px;background:linear-gradient(90deg,#3a6df0,#5a86ff);color:#fff;font-weight:800;font-size:12px;cursor:pointer}.dvp-out{font-size:11px;color:#5ee89b;margin-top:8px;min-height:14px}</style><div class="panel dvp">
+    dev=`<style>.dvp{border:1px solid #2b7a55;background:linear-gradient(180deg,#12211b,#141b2b 70%)}.dvp-hd{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}.dvp-badge{font-size:11px;font-weight:800;letter-spacing:.5px;color:#0a140f;background:#5ee89b;border-radius:6px;padding:2px 7px}.dvp-title{font-weight:800;font-size:14px;color:#e6edf3}.dvp-who{font-size:11px;color:#8b98a9;font-weight:600}.dvp-stats{margin-left:auto;display:flex;gap:5px}.dvp-chip{font-size:11px;font-weight:700;background:#0f1622;border:1px solid #26324a;border-radius:999px;padding:3px 9px;color:#cdd8ea;white-space:nowrap}.dvp-tabs{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:4px;background:#0d1320;border:1px solid #24304a;border-radius:11px;padding:3px;margin-bottom:10px}.dvp-tab{display:flex;align-items:center;justify-content:center;min-width:0;min-height:30px;overflow:hidden;text-align:center;font-size:11px;line-height:1.15;font-weight:700;padding:5px 4px;border-radius:8px;cursor:pointer;color:#93a1b8;user-select:none}.dvp-tab.on{background:#5ee89b;color:#0a140f}.dvp-god{display:flex;align-items:center;gap:10px;background:#0f1622;border:1px solid #26324a;border-radius:11px;padding:9px 11px;margin-bottom:10px}.dvp-god b{font-size:12px;flex:1}.dvp-god .sub{color:#8b98a9;font-weight:500}.dvp-sw{width:44px;height:24px;border-radius:999px;background:#33405e;position:relative;cursor:pointer;flex:0 0 auto;transition:background .15s}.dvp-sw.on{background:#5ee89b}.dvp-sw::after{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .15s}.dvp-sw.on::after{left:22px}.dvp-filter{width:100%;box-sizing:border-box;background:#0f1622;border:1px solid #26324a;border-radius:9px;padding:8px 10px;color:#e6edf3;font-size:12px;margin-bottom:10px}.dvp-filter::placeholder{color:#63708a}.dvp-sec{font-size:10px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:#6bbf95;margin:10px 2px 6px}.dvp-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}.dvp-cell{display:flex;align-items:center;gap:8px;background:#1b2334;border:1px solid #2b3852;border-radius:10px;padding:8px 10px;cursor:pointer;font-size:11.5px;font-weight:600;color:#e6edf3;text-align:left;transition:border-color .12s,background .12s}.dvp-cell:hover{background:#222c42;border-color:#3d5488}.dvp-cell:active{transform:translateY(1px)}.dvp-cell .ic{font-size:15px;flex:0 0 auto}.dvp-update{width:100%;box-sizing:border-box;margin-top:10px;padding:10px;border:0;border-radius:11px;background:linear-gradient(90deg,#3a6df0,#5a86ff);color:#fff;font-weight:800;font-size:12px;cursor:pointer}.dvp-out{font-size:11px;color:#5ee89b;margin-top:8px;min-height:14px}</style><div class="set-sec dvp">
       <div class="dvp-hd"><span class="dvp-badge">DEV</span><span class="dvp-title">Developer Panel</span><span class="dvp-who">${escapeHTML(ACC.name||'')}</span>${statRow}</div>
-      ${tabBar}${cheatsTab}${accountsTab}${qaTab}${integrityTab}
+      ${tabBar}${accountsTab}${cheatsTab}${battlesTab}${serversTab}${debugTab}
       <div id="devDone" class="dvp-out"></div>
       <div id="devAdmin" style="font-size:11px;color:#c3ccd8;margin-top:8px;max-height:300px;overflow:auto"></div>
     </div>`;
   }
-  // save-management tools (Show save code / Reset all progress) are DEV-only
-  const saveTools = DEV.on ? `
-    <button class="btn sm secondary" id="expBtn">Show save code</button>
-    <button class="btn sm" id="resetBtn" style="background:#ff6b6b">Reset all progress</button>
-    <div id="saveOut" style="font-size:10px;color:#55617a;word-break:break-all"></div>` : '';
-  const reportCard = (online()&&ACC.token) ? `<div class="panel">
-    <div style="font-weight:800;font-size:13px;margin-bottom:4px">${uiIcon('bug')} ${t('set.report_title')}</div>
-    <div style="font-size:11px;color:#8b98a9;margin-bottom:6px">${t('set.report_desc')}</div>
-    <div id="rpKind" style="display:flex;gap:6px;margin-bottom:6px"><button class="btn sm" data-k="bug" style="flex:1">${t('set.bug')}</button><button class="btn sm" data-k="suggestion" style="flex:1">${t('set.suggestion')}</button></div>
-    <textarea id="rpText" rows="3" placeholder="${t('set.report_ph')}" style="${inp};resize:vertical"></textarea>
-    <button class="btn sm" id="rpSend" style="width:100%;margin-top:6px">${t('set.send_report')}</button>
-    <div id="rpMsg" style="font-size:11px;color:#5ee89b;margin-top:6px;min-height:14px"></div></div>` : '';
+  // save-management tools stay DEV-only (v1267: Reset all progress -> Account danger area, Show save code -> Dev > Debug views)
+  const reportCard = (online()&&ACC.token) ? `<div class="set-sec">
+    <div class="set-h">${uiIcon('bug')} ${t('set.report_title')}</div>
+    <div id="rpKind" class="set-btns"><button class="btn xs" data-k="bug">${t('set.bug')}</button><button class="btn xs" data-k="suggestion">${t('set.suggestion')}</button></div>
+    <textarea id="rpText" rows="3" placeholder="${t('set.report_ph')}" class="set-in" style="resize:vertical"></textarea>
+    <button class="btn sm" id="rpSend" style="width:100%">${t('set.send_report')}</button>
+    <div id="rpMsg" class="set-data" style="color:#5ee89b"></div></div>` : '';
   /* v564 - OFFLINE ART (Phil): pre-download every sheet into the persistent service-worker cache so
      battles load with no network at all, plus a way to throw that cache away. Shown to any SIGNED-IN
      player; the dev panel gets the same two controls (see `dev` below) so they are reachable while
      testing without signing in and out. */
-  const assetCard = (ACC.token) ? `<div class="panel">
-      <div style="font-weight:800;font-size:13px;margin-bottom:2px">\u{1F4E6} ${t('set.offline_art')}</div>
-      <div style="font-size:11px;color:#8b98a9;margin-bottom:8px">${t('set.offline_art_desc')}</div>
-      <div id="alBarWrap" style="display:none;margin-bottom:8px">
+  const assetCard = (ACC.token) ? `<div class="set-sec">
+      <div class="set-h">\u{1F4E6} ${t('set.offline_art')}</div>
+      <div id="alBarWrap" style="display:none">
         <div style="height:8px;border-radius:999px;background:#0f1420;border:1px solid #2a3550;overflow:hidden"><div id="alBar" style="height:100%;width:0%;background:linear-gradient(90deg,#c9a35e,#f0c987)"></div></div>
         <div id="alTxt" style="font-size:11px;color:#8b98a9;margin-top:5px"></div></div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <button class="btn xs" id="alDl" style="flex:1;min-width:150px">${t('set.update_all')}</button>
-        <button class="btn xs secondary" id="alClear" style="flex:1;min-width:110px">${t('set.clear_cache')}</button></div>
-      <div id="alMsg" style="font-size:11px;color:#8b98a9;margin-top:6px;min-height:13px"></div>
+      <div class="set-btns">
+        <button class="btn xs" id="alDl">${t('set.update_all')}</button>
+        <button class="btn xs secondary" id="alClear">${t('set.clear_cache')}</button></div>
+      <div id="alMsg" class="set-data"></div>
     </div>` : '';
   /* v1049 (Phil 6 Oct): Audio - FX, Music and Voices, each with on/off and a volume scale, kept on this device. Always shown. */
-  const _sndRow=(ch,name)=>`<div style="display:flex;align-items:center;gap:8px;font-size:12px;margin-top:6px">
-        <label style="display:flex;align-items:center;gap:6px;min-width:84px"><input type="checkbox" id="snd_${ch}_on" ${SND.cfg[ch].on?'checked':''}> ${name}</label>
-        <input type="range" id="snd_${ch}_vol" min="0" max="100" value="${Math.round(SND.cfg[ch].vol*100)}" aria-label="${name} volume" style="flex:1;min-width:0" ${SND.cfg[ch].on?'':'disabled'}>
-        <span id="snd_${ch}_pct" style="width:34px;text-align:right;color:#8b98a9;font-variant-numeric:tabular-nums">${Math.round(SND.cfg[ch].vol*100)}%</span></div>`;
+  const _sndRow=(ch,name)=>`<div class="set-row set-snd">
+        <label class="set-chk"><input type="checkbox" id="snd_${ch}_on" ${SND.cfg[ch].on?'checked':''}> ${name}</label>
+        <input type="range" id="snd_${ch}_vol" min="0" max="100" value="${Math.round(SND.cfg[ch].vol*100)}" aria-label="${name}" style="width:100%;min-width:0" ${SND.cfg[ch].on?'':'disabled'}>
+        <span id="snd_${ch}_pct" class="set-pct">${Math.round(SND.cfg[ch].vol*100)}%</span></div>`;
   /* v1265 LANGUAGES step 1: the language list in each language's own name; "Device language" follows the phone (navigator.languages) */
-  const langCard = `<div class="panel">
-      <div style="font-weight:800;font-size:13px">\u{1F310} ${t('set.language')}</div>
-      <select id="setLangSel" aria-label="${t('set.language')}" style="${inp};margin-top:6px;cursor:pointer">${langOptionsHTML()}</select>
+  const langCard = `<div class="set-sec">
+      <div class="set-row"><span class="set-lbl">\u{1F310} ${t('set.language')}</span><select id="setLangSel" class="set-in set-sel" aria-label="${t('set.language')}">${langOptionsHTML()}</select></div>
     </div>`;
-  const soundCard = `<div class="panel">
-      <div style="font-weight:800;font-size:13px">${uiIcon('audio-on')} ${t('set.audio')}</div>
-      <div style="display:flex;align-items:center;gap:8px;font-size:12px;margin-top:6px"><label style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="snd_mute" ${SND_MUTE.on?'checked':''}> ${t('set.mute_all')}</label></div>
+  const soundCard = `<div class="set-sec">
+      <div class="set-h">${uiIcon('audio-on')} ${t('set.audio')}</div>
+      <div class="set-row"><label class="set-chk"><input type="checkbox" id="snd_mute" ${SND_MUTE.on?'checked':''}> ${t('set.mute_all')}</label></div>
       ${_sndRow('fx',t('set.fx'))}${_sndRow('music',t('set.music'))}${_sndRow('voice',t('set.voices'))}
     </div>`;
-  b.innerHTML=`<div style="display:flex;flex-direction:column;gap:10px">
-    <div style="font-size:10px;color:#8b98a9;font-weight:700;letter-spacing:.08em">XANTHYR GAMES</div>
-    <div style="font-size:13px;color:#c3ccd8">Emberweave Heroes — ${BUILD_VERSION}</div>
-    ${langCard}
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px">${account}<div class="panel" id="googleAuthPanel" hidden></div></div>
-    ${soundCard}
-    ${assetCard}
-    ${reportCard}
-    ${saveTools}
-    ${dev}
-    <div style="text-align:center;margin-top:6px;font-size:11px;color:#6f7d90">
-      <a href="#" id="tosLink" style="color:#9ab0d6;text-decoration:none">${t('set.terms')}</a>
-      <div style="margin-top:6px;color:#6f7d90">© 2026 Xanthyr Games · Emberweave Heroes™ · ${t('set.rights')}</div>
-    </div>
+  /* v1267 SETTINGS CLEANUP (Phil 4 Nov 2026): General / Account / Storage / Support / Dev (dev accounts only); the open tab is kept per device */
+  const TABS=[['general',t('set.tab_general')],['account',t('set.tab_account')]].concat(ACC.token?[['storage',t('set.tab_storage')]]:[]).concat([['support',t('set.tab_support')]]).concat(DEV.on?[['dev',t('set.tab_dev')]]:[]);
+  if(DEV.on&&devTab!==_devTabSeen) setTab='dev';   // e.g. devTab='accounts'; show('settings') opens the Dev tab on that group
+  _devTabSeen=devTab;
+  if(!setTab){ try{ setTab=localStorage.getItem('ew_set_tab')||''; }catch(e){} }
+  if(!TABS.some(x=>x[0]===setTab)) setTab='general';
+  const pane=(k,html)=>`<div class="set-pane${setTab===k?' on':''}" data-pane="${k}">${html}</div>`;
+  const _bid=(typeof BUILD_ID!=='undefined'?BUILD_ID:'');
+  b.innerHTML=`<div class="set-wrap">
+    <div class="tabrow set-tabs" role="tablist">${TABS.map(([k,l])=>`<div class="tab${setTab===k?' on':''}" role="tab" data-settab="${k}">${l}</div>`).join('')}</div>
+    ${pane('general',langCard+soundCard)}
+    ${pane('account',account+'<div class="set-sec" id="googleAuthPanel" hidden></div>')}
+    ${ACC.token?pane('storage',assetCard):''}
+    ${pane('support',reportCard+`<div class="set-legal set-sec">
+      <a href="#" id="tosLink">${t('set.terms')}</a>
+      <div>© 2026 Xanthyr Games · Emberweave Heroes™ · ${t('set.rights')}</div>
+      <div class="set-ver">Emberweave Heroes ${BUILD_VERSION}${_bid?' · '+t('set.build')+' '+_bid:''}</div></div>`)}
+    ${DEV.on?pane('dev',dev):''}
   </div>`;
+  b.querySelectorAll('[data-settab]').forEach(el=>el.onclick=()=>{ setTab=el.dataset.settab; try{ localStorage.setItem('ew_set_tab',setTab); }catch(e){}
+    b.querySelectorAll('[data-settab]').forEach(x=>x.classList.toggle('on',x===el)); b.querySelectorAll('[data-pane]').forEach(x=>x.classList.toggle('on',x.dataset.pane===setTab));
+    try{ const sc=document.getElementById('settings'); if(sc) sc.scrollTop=0; }catch(e){}
+    setFitTabs(b); if(setTab==='dev'&&devTab==='accounts') loadIntegrity(); });
+  setFitTabs(b); setTimeout(()=>setFitTabs(b),400);
+  try{ if(DEV.on&&devTab==='accounts'&&INTEG.reports&&INTEG.reports.length) renderIntegrity(); }catch(e){}
   { const ls=b.querySelector('#setLangSel'); if(ls) ls.onchange=()=>{ langSet(ls.value,{save:true}); }; }   // v1265 languages
   { const sm=b.querySelector('#snd_mute'); if(sm) sm.onchange=()=>{ sndMuteSet(sm.checked); sndUnlock(); }; }   // v1159 master mute (same flag as the top-right button)
   SND_CH.forEach(ch=>{ const so=b.querySelector('#snd_'+ch+'_on'), sv=b.querySelector('#snd_'+ch+'_vol'), sp=b.querySelector('#snd_'+ch+'_pct');   // v1049 audio settings
@@ -29797,7 +29837,7 @@ function renderSettings(){
       updateHubChrome(); show('home');
     }); };
   const dGod=b.querySelector('#devGod'); if(dGod) dGod.onclick=()=>{ DEV.god=!DEV.god; renderSettings(); };
-  b.querySelectorAll('[data-devtab]').forEach(el=>el.onclick=()=>{ devTab=el.dataset.devtab; renderSettings(); if(devTab==='integrity') loadIntegrity(); });
+  b.querySelectorAll('[data-devtab]').forEach(el=>el.onclick=()=>{ devTab=el.dataset.devtab; renderSettings(); if(devTab==='accounts') loadIntegrity(); });
   b.querySelectorAll('[data-dev]').forEach(el=>el.onclick=()=>{ devAction(el.dataset.dev, b); }); const _flt=b.querySelector('#devFilter'); if(_flt){ _flt.oninput=()=>{ const q=_flt.value.trim().toLowerCase(); b.querySelectorAll('.dvp-cell').forEach(c=>{ c.style.display=(!q||(c.textContent||'').toLowerCase().includes(q))?'':'none'; }); b.querySelectorAll('.dvp-sec').forEach(sec=>{ const nx=sec.nextElementSibling; const any=nx&&[...nx.querySelectorAll('.dvp-cell')].some(c=>c.style.display!=='none'); sec.style.display=any?'':'none'; }); }; }
 }
 /* v564 - ONE implementation behind both entry points: the player-facing Offline Art card in
@@ -29865,7 +29905,7 @@ function runAssetDownload(report, bar){
       });
       return; }
     if(!n && drop){
-      const _card=(document.getElementById('alDl')&&document.getElementById('alDl').closest('.panel'))||null;
+      const _card=(document.getElementById('alDl')&&document.getElementById('alDl').closest('.set-sec,.panel'))||null;
       const okDrop=await uiConfirm('Nothing new to download',
         [drop+' old file'+(drop===1?'':'s')+' left over from earlier art can be cleared.'],
         'Clear them', false, _card);
@@ -29877,7 +29917,7 @@ function runAssetDownload(report, bar){
       if(plan.cached) lines.push(plan.cached+' already saved \u2014 they will be skipped.');
       if(drop) lines.push(drop+' replaced file'+(drop===1?'':'s')+' will be cleared.');
       lines.push('Use Wi-Fi if this is a large update.');
-      const _card2=(document.getElementById('alDl')&&document.getElementById('alDl').closest('.panel'))||null;
+      const _card2=(document.getElementById('alDl')&&document.getElementById('alDl').closest('.set-sec,.panel'))||null;
       if(!await uiConfirm('Download new art to this device?', lines, 'Download', false, _card2)) return;
     }
     _alRunning=true; if(bar) bar.wrap(true);
@@ -29905,7 +29945,7 @@ async function runAssetClear(report){
       ['The game will re-download art as you play.',
        'Nothing in your account or your progress is touched.'],
       'Clear cache', true,
-      (document.getElementById('alClear')&&document.getElementById('alClear').closest('.panel'))||null)) return;
+      (document.getElementById('alClear')&&document.getElementById('alClear').closest('.set-sec,.panel'))||null)) return;
   report('Clearing\u2026');
   clearAssetCache().then(n=>{ report('\u2705 Cleared '+n+' cache'+(n===1?'':'s')+'. Art will re-download as you play.'); },
                         ()=>report('Could not clear the cache.'));
@@ -30129,7 +30169,7 @@ function runBalanceBots(b){ const out=b.querySelector('#devAdmin'); if(out)out.i
   ];
   const texts=log.map(([n,m])=>n+' bot — '+m);
   // return to the QA tab and write the log to a fresh element (the smoke test navigated away)
-  devTab='qa'; show('settings'); const out2=document.getElementById('devAdmin');
+  devTab='battles'; show('settings'); const out2=document.getElementById('devAdmin');
   api('/api/admin/reports').then(d=>{ const existing=new Set(((d&&d.reports)||[]).filter(r=>r.kind==='balance').map(r=>r.text));
     const fresh=texts.filter(t=>!existing.has(t));
     if(out2){ out2.innerHTML='<div style="font-weight:800;margin-bottom:4px">'+uiIcon('npc')+' Test-bot log — '+fresh.length+' new / '+texts.length+' checked</div>'+
