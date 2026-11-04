@@ -56,7 +56,7 @@ let rq=0; const R=()=>'a97-'+(rq++);
     const html=fs.readFileSync(path.join(root,'emberweave-heroes.html'),'utf8');
     ok(/if\(d\.arena\) ARENA\.att=d\.arena;/.test(html),'the Arena screen keeps the server\'s attempts view');
     ok(/id="arenaAttLeft"[^\n]*\$\{att\.attemptsLeft\|0\}/.test(html),'the Arena screen shows the attempts left');
-    ok(/apiOnce\('arenabuy','\/api\/arena\/buy-attempt'/.test(html)&&/Buy \+1 &middot; \$\{att\.extraCostGems\|0\} diamonds/.test(html),'a buy button calls /api/arena/buy-attempt and shows its cost');
+    ok(/apiOnce\('arenabuy','\/api\/arena\/buy-attempt'/.test(html)&&/\$\{t\('arena\.buy_attempt',\{n:att\.extraCostGems\|0\}\)\}/.test(html)&&JSON.parse(fs.readFileSync(path.join(root,'lang/en.json'),'utf8'))['arena.buy_attempt']==='Buy +1 \u00b7 {n} diamonds','a buy button calls /api/arena/buy-attempt and shows its cost');
     ok(/data-opp="\$\{i\}" \$\{noAtt\?'disabled':''\}/.test(html)&&/function startArena\(o\)\{ if\(arenaNoAttempts\(\)\)/.test(html),'Challenge is disabled and a fight never starts with 0 attempts');
     ok(/if\(!paid\) G\.arenaCoins=/.test(html)&&/_finish\(r\.reward,true\)/.test(html),'the client no longer adds the daily coins on top of the server\'s');
   }

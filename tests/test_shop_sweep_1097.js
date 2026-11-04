@@ -57,7 +57,8 @@ const led=async()=>{ const l=(await call('/api/ledger')).data; return l.ledger||
   // ---- static: the client
   if(!process.env.AUD_SERVER){
     const html=fs.readFileSync(path.join(root,'emberweave-heroes.html'),'utf8');
-    ok(/api\('\/api\/hero\/summon-table','GET'\)/.test(html)&&/function summonCost\(key\)\{ const s=SUMMON_SRV&&SUMMON_SRV\[key\]; if\(s&&s\.cost>0\) return s\.cost\|0;/.test(html)&&/summoned at '\+summonStars\(key\)/.test(html),
+    ok(/api\('\/api\/hero\/summon-table','GET'\)/.test(html)&&/function summonCost\(key\)\{ const s=SUMMON_SRV&&SUMMON_SRV\[key\]; if\(s&&s\.cost>0\) return s\.cost\|0;/.test(html)&&/ewT\('hero\.summoned_at',\{hero:t\.name,stars:summonStars\(key\)\+uiIcon\('star-filled'\)\}\)/.test(html)
+      &&JSON.parse(fs.readFileSync(path.join(root,'lang','en.json'),'utf8'))['hero.summoned_at']==='{hero} summoned at {stars}!',
       'the client reads the summon cost and stars from the server\'s table');
     ok(/marketSync\(\)/.test(html)&&/api\('\/api\/market\/offers','GET'\)/.test(html)&&/api\('\/api\/market\/frag','POST',\{offer:o\.srv,/.test(html),'the client shows the server\'s offers and buys by offer');
     ok(/apiOnce\('bonusclaim','\/api\/bonus\/claim',\{\}\)/.test(html)&&/CLAIM HOURLY FRAGMENTS/.test(html)&&/onclick="bonusHourlyClaim\(\)"/.test(html),'the client claims the hourly bonus fragments (result card + bonus picker)');

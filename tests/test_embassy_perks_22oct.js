@@ -22,7 +22,9 @@ for (let L = 1; L <= 20 && clientMul && line; L++) {
   if (got !== promised && !worst) worst = 'guild level ' + L + ': server adds ' + got + ', the Embassy promises ' + promised;
 }
 check(!worst, 'contribution exp mismatch - ' + worst);
-check(/\+\$\{Math\.round\(GUILD_CONTRIB\.exp\*embassyContribMul\(\)\)\} guild exp/.test(html), 'the Contribute button does not show the Embassy-boosted exp');
+const EN = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'lang', 'en.json'), 'utf8'));   // v1271 LANGUAGES step 2: t('guild.plus_exp',{n}) = "+{n} guild exp"
+check(/\+\$\{Math\.round\(GUILD_CONTRIB\.exp\*embassyContribMul\(\)\)\} guild exp/.test(html)
+  || (/t\('guild\.plus_exp',\{n:Math\.round\(GUILD_CONTRIB\.exp\*embassyContribMul\(\)\)\}\)/.test(html) && EN['guild.plus_exp'] === '+{n} guild exp'), 'the Contribute button does not show the Embassy-boosted exp');
 
 // 2) max stamina: the client shows the server's own max (59 + player level) for a guild member at every level
 check(!/embassyStamBonus/.test(html), 'embassyStamBonus still in the client');

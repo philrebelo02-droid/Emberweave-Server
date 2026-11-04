@@ -7,9 +7,10 @@ const html=fs.readFileSync(process.env.ED_HTML||path.join(__dirname,'..','emberw
 const a=html.indexOf('  buy.onclick=()=>gameConfirm('); assert(a>0,'buy handler found');
 const b=html.indexOf('\n  solo.onclick=',a); assert(b>a,'end of buy handler found');
 const _pd=html.indexOf('function pendingDefinite('), holder=((html.match(/const ED_BUY_RID=\{[^}]*\};/)||[''])[0])+(_pd>0?'\n'+html.slice(_pd,html.indexOf('\n',_pd)):'');
+const _EN=JSON.parse(fs.readFileSync(path.join(__dirname,'..','lang','en.json'),'utf8')), _t=(k,v)=>(_EN[k]==null?k:_EN[k]).replace(/\{(\w+)\}/g,(m,x)=>v&&v[x]!=null?String(v[x]):''), LANG={t:_t,ewT:_t,langMsg:s=>s,langDesc:s=>s,langMeta:s=>s};   // v1271 LANGUAGES step 2: the page's English t()/ewT() from lang/en.json
 const sent=[], script=[]; let n=0;
 const buy={dataset:{pack:3,cost:150},disabled:false};
-const ctx={...require('./helpers/page-icons.js')(html), ACC:{token:'t',id:'A'}, buy, sent, gameConfirm:(msg,cb)=>cb(), uid8:()=>'id'+(++n), adoptLedger(){}, updateHubChrome(){}, show(){}, edNiceErr:(e,d)=>e||d,
+const ctx={...require('./helpers/page-icons.js')(html), ...LANG, ACC:{token:'t',id:'A'}, buy, sent, gameConfirm:(msg,cb)=>cb(), uid8:()=>'id'+(++n), adoptLedger(){}, updateHubChrome(){}, show(){}, edNiceErr:(e,d)=>e||d,
   api:(p,m,body)=>{ sent.push(body.requestId); return Promise.resolve(script.shift()); } };
 vm.createContext(ctx); vm.runInContext(holder+'\n'+html.slice(a,b),ctx);
 (async()=>{ let pass=0; const ok=(c,m)=>{ assert(c,m); pass++; };

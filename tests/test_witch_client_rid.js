@@ -10,10 +10,12 @@ let pre=html.lastIndexOf('\n',start); const preBlock=html.slice(html.lastIndexOf
 let depth=0,i=html.indexOf('{',start); for(;i<html.length;i++){ const c=html[i]; if(c==='{')depth++; else if(c==='}'){ depth--; if(!depth)break; } }
 const src=preBlock+';WALL_TAB="cauldron";'+html.slice(start,i+1);
 let n=0, sent=[], script=[];
+/* v1270+ LANGUAGES: the page's words go through t()/ewT() (English in lang/en.json) and server errors through langMsg() - give the vm the English rule */
+const EN=JSON.parse(fs.readFileSync(path.join(__dirname,'..','lang','en.json'),'utf8')), tEn=(k,v)=>String(EN[k]!=null?EN[k]:k).replace(/\{(\w+)\}/g,(m,x)=>v&&v[x]!=null?String(v[x]):'');
 function el(){ const e={isConnected:true,innerHTML:'',className:'',disabled:false,dataset:{},style:{},children:[],
   appendChild(c){this.children.push(c);}, remove(){}, querySelectorAll(sel){ if(sel==='[data-witch-heal]')return []; if(sel==='.panel')return []; return []; },
   querySelector(sel){ if(sel==='[data-witch-buy]'){ const b=this._buy||(this._buy=el()); b.dataset.witchBuy='first'; return b; } return null; } }; return e; }
-const ctx={ ...require('./helpers/page-icons.js')(html), ACC:{token:'t'}, document:{createElement:()=>el(), getElementById:()=>({textContent:''})}, bindNav(){}, bannerMsg(){}, adoptLedger(){},
+const ctx={ ...require('./helpers/page-icons.js')(html), ACC:{token:'t'}, document:{createElement:()=>el(), getElementById:()=>({textContent:''})}, bindNav(){}, bannerMsg(){}, t:tEn, ewT:tEn, langMsg:s=>s, langDesc:s=>s, langMeta:s=>s, adoptLedger(){},
   uid8:()=>'id'+(++n), HERO_TYPES:{}, heroIcon:()=>'', fmtDur:()=>'', WALL_UNLOCK_LEVEL:20, Math, JSON, Object, console,
   setInterval:()=>0, clearInterval:()=>{},   /* v965's live panel ticker (Hut #8) needs these; without them the test stopped running (caught 3 Oct 23:0x) */
   api:async(p,m,b)=>{ if(p==='/api/witch/state') return {ok:true,brew:10,capacity:100,heroes:[],offer:{tier:'first',gems:200},injured:[]}; sent.push(b.requestId); return script.shift(); } };

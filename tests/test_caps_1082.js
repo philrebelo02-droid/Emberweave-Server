@@ -27,7 +27,9 @@ async function editDB(fn){ await delay(400); await stop(); const db=disk(); fn(d
   const fr=await call('/api/arena/shop',{item:'groskfrag',requestId:'c-fr'});
   ok(fr.data.ok===false&&(await L()).arenaCoins===c0,'5 Grosk fragments at 9998 are refused and no coins taken ('+(fr.data.error||'')+')');
   const html=fs.readFileSync(path.join(root,'emberweave-heroes.html'),'utf8');
-  ok(html.includes("if(ACC.token&&ACC.guest){ msg.textContent='Make an account first - guests keep their guest name.'; return; }"),'F2 a guest gets "make an account first" instead of a screen-only rename');
+  const EN=JSON.parse(fs.readFileSync(path.join(root,'lang','en.json'),'utf8'));   // v1271 LANGUAGES step 2: the words live in lang/en.json, the page calls t('profile.name_guest')
+  ok((html.includes("if(ACC.token&&ACC.guest){ msg.textContent='Make an account first - guests keep their guest name.'; return; }")
+      ||(html.includes("if(ACC.token&&ACC.guest){ msg.textContent=t('profile.name_guest'); return; }")&&EN['profile.name_guest']==='Make an account first - guests keep their guest name.')),'F2 a guest gets "make an account first" instead of a screen-only rename');
   ok(html.includes("if(ACC.token&&o.kind!=='res') return false;"),'F4 a signed-in player never spends diamonds on a local guild');
   if(missed.length){ missed.forEach(m=>console.error('FAIL',m)); process.exitCode=1; }
   console.log('test_caps_1082.js: '+pass+' checks passed, '+missed.length+' failed (server '+srvFile+')');

@@ -17,8 +17,10 @@ r = run(3, false, 6, 'replay'); ok(JSON.stringify(r.ch) === '[0.5,1,2]', 'x0.5 e
 r = run(0, false, 29, 'campaign'); ok(r.auto === false, 'AUTO is locked at level 29 without EGP');
 r = run(0, false, 30, 'campaign'); ok(r.auto === true, 'AUTO opens at player level 30');
 r = run(0, true, 1, 'campaign'); ok(r.auto === true, 'AUTO opens at EGP 1');
-ok(/bannerMsg\('x2 speed unlocks at stage 1-3'\)/.test(html), 'tapping the locked speed says it unlocks at 1-3');
-ok(/bannerMsg\('Requires EGP 1 or level 30'\)/.test(html), 'tapping the locked AUTO says EGP 1 or level 30');
+// v1270+ LANGUAGES: the banners go through ewT(key,vars); en.json + the same vars must still give the old English words
+const EN = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'lang', 'en.json'), 'utf8')), enT = (k, v) => String(EN[k]).replace(/\{(\w+)\}/g, (m, x) => v && v[x] != null ? String(v[x]) : '');
+ok(/bannerMsg\(ewT\('battle\.x2_unlock',\{stage:'1-3'\}\)\)/.test(html) && enT('battle.x2_unlock', { stage: '1-3' }) === 'x2 speed unlocks at stage 1-3', 'tapping the locked speed says it unlocks at 1-3');
+ok(/bannerMsg\(ewT\('battle\.auto_requires',\{egp:'EGP 1',n:30\}\)\)/.test(html) && enT('battle.auto_requires', { egp: 'EGP 1', n: 30 }) === 'Requires EGP 1 or level 30', 'tapping the locked AUTO says EGP 1 or level 30');
 ok(/!G\.spdTaught&&state==='battle'\)\?' tut-next-glow'/.test(html) && /if\(!G\.spdTaught\)\{ G\.spdTaught=1;/.test(html), 'the speed button flashes until the first tap (tutorial)');
 const pb = fs.readFileSync(path.join(__dirname, '..', 'server', 'patron-benefits.js'), 'utf8');
 ok(/Unlocks auto ultimates \(everyone else at level 30\)/.test(pb) && !/2x battle speed/.test(pb), 'the EGP 1 perk text follows (x2 is no longer an EGP perk)');

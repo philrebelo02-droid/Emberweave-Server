@@ -72,7 +72,8 @@ try {
   ck('lore button: a tap while the story plays stops it; closing a pop-out panel stops it',
     /if\(_lore\.a&&_lore\.key===key&&!_lore\.a\.ended&&!_lore\.a\.paused\)\{ loreStop\(\); loreBtnSync\(btn\); return; \}/.test(src) && /function closePopout\(\)\{ try\{ loreStop\(\); \}catch\(e\)\{\}/.test(src));
   ck('lore button is icon art with a label (uiIcon play / pause, aria-label), never an emoji',
-    /btn\.innerHTML=on\?uiIcon\('pause'\):uiIcon\('play'\); btn\.setAttribute\('aria-label',on\?'Stop the story':'Play the story'\);/.test(src));
+    /btn\.innerHTML=on\?uiIcon\('pause'\):uiIcon\('play'\); btn\.setAttribute\('aria-label',on\?ewT\('loreaudio\.stop'\):ewT\('loreaudio\.play'\)\);/.test(src)
+    && (() => { const en = JSON.parse(fs.readFileSync(path.join(ROOT, 'lang', 'en.json'), 'utf8')); return en['loreaudio.stop'] === 'Stop the story' && en['loreaudio.play'] === 'Play the story'; })());
   // v1124 (Phil 11 Oct: "make sure the lore is re-written to match the new lore"): the screen lore is the third-person telling of the
   // narration, beat for beat (Archive vael_screen_lore_v7.txt; v1133: vael_screen_lore_v9.txt, Phil 12 Oct); both HERO_LORE copies in the page carry it, and the live one shows it
   const LO = run(`(()=>{ const L=HERO_LORE.vael||{}; return {title:L.title, text:L.text}; })()`);

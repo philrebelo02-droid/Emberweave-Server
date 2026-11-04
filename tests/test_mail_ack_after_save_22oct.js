@@ -11,11 +11,15 @@ const i = html.indexOf('function pollPvpReports(){');
 let d = 0, j = html.indexOf('{', i); for (; j < html.length; j++) { if (html[j] === '{') d++; else if (html[j] === '}' && --d === 0) break; }
 const src = html.slice(i, j + 1);
 check(i > 0 && src.length > 200, 'pollPvpReports not found');
+// v1265 languages: the page routes its words through t/ewT (English from lang/en.json) - the sandbox gets the same English lookup
+const EN = JSON.parse(fs.readFileSync(path.join(root, 'lang', 'en.json'), 'utf8'));
+const tEn = (k, v) => { const s = EN[k]; if (s == null) throw new Error('missing English for ' + k); return s.replace(/\{(\w+)\}/g, (m, x) => v && v[x] != null ? String(v[x]) : ''); };
 
 async function run(saveOk, G, reports) {
   const log = [], mail = [];
   const env = {
     ACC: { token: 't' }, online: () => true, G,
+    t: tEn, ewT: tEn, langMsg: s => s, langDesc: s => s, langMeta: s => s,
     api: (route, method, body) => { log.push('api ' + route); if (route === '/api/pvp/reports') return Promise.resolve({ reports }); if (route === '/api/pvp/reports-ack') { log.push('ACK ' + JSON.stringify(body.ids)); return Promise.resolve({ ok: true }); } return Promise.resolve({}); },
     addMail: (box, m) => { mail.push(m.subj); log.push('addMail'); }, hasWarMail: () => false,
     updateMailBadges: () => {}, bannerMsg: () => {}, statusIcon: () => '',
