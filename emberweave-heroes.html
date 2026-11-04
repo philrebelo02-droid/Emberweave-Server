@@ -2453,83 +2453,6 @@ body.ew-rotated #app{max-width:none;max-height:none;}
   html.ew-lang-noto body, html.ew-lang-noto body *{font-family:var(--ew-lang-font),-apple-system,"Segoe UI",Roboto,sans-serif!important;}
   html:not([lang="en"]) .mitem .ml{white-space:normal;max-width:64px;overflow-wrap:normal;}
 </style>
-<script>
-/* v1265 LANGUAGES step 1 (Phil 3 Nov 2026: "One very very big thing we missed - Languages"; plan: Archive Open Projects/LANGUAGES -
-   LOCALIZATION PLAN). One file per language in /lang/<code>.json; English is inline here (EW_LANG_EN, the same text as lang/en.json -
-   tests/test_lang_step1.js holds them equal), so English never waits on a fetch. Only the chosen language's file is fetched, at
-   ?v=<hash of its text> (a changed file is a new URL - SHIPPING RULE 2.5), and kept in localStorage so the next open is instant.
-   t(key, vars) falls back to English for any key a language lacks and never shows a raw key. The choice: the player's own pick
-   (Settings > Language, saved in the save G.lang - synced with the cloud save, so it survives a reinstall - and in ew_lang on the
-   device), else the phone's languages (navigator.languages), else English. Hero, monster and boss names and "Emberweave" are never
-   translated (Phil's in-game-names rule). */
-const EW_LANG_EN={"bld.academy":"Academy","bld.arena":"Arena","bld.bulletin_board":"Bulletin Board","bld.campaign":"Campaign","bld.city_wall":"City Wall","bld.forge":"Forge","bld.guild_hall":"Guild Hall","bld.island_trials":"Island of Trials","bld.market":"Market","bld.shady_market":"Shady Market","bld.starless_well":"The Starless Well","bld.temple":"Temple","bld.vault":"The Vault","bld.watch_tower":"Watch Tower","bld.wishing_pool":"Wishing Pool","bld.witches_hut":"Witches Hut","common.back":"Back","common.battle":"Battle","common.buy":"Buy","common.cancel":"Cancel","common.claim":"Claim","common.claimed":"Claimed","common.close":"Close","common.collect":"Collect","common.confirm":"Confirm","common.continue":"Continue","common.done":"Done","common.fight":"Fight","common.free":"Free","common.go":"Go","common.in_progress":"In progress","common.loading":"Loading…","common.locked":"Locked","common.next":"Next","common.no":"No","common.ok":"OK","common.reset":"Reset","common.retry":"Retry","common.save":"Save","common.send":"Send","common.start":"Start","common.upgrade":"Upgrade","common.yes":"Yes","hub.research":"Research: {t}","hub.unlocks_at":"Unlocks at Lv {n}","menu.bag":"Bag","menu.heroes":"Heroes","menu.mail":"Mail","menu.menu":"Menu","menu.quests":"Quests","menu.server":"Server","menu.settings":"Settings","menu.sign_in":"Sign-In","menu.start_here":"Start Here","nav.base":"Base","nav.glossary":"Glossary","nav.guild":"Guild","nav.vault":"Vault","nav.wall":"Wall","nav.world":"World","set.arena_rank":"Arena rank #{n}","set.audio":"Audio","set.blocked_players":"Blocked players","set.bug":"Bug","set.clear_cache":"Clear cache","set.cloud_account":"Cloud Account","set.confirm_password":"Confirm password","set.create_account":"Create Account","set.create_hint":"Pick a username & password to make a cloud account you can sign into on any device.","set.delete_account":"Delete account","set.forgot":"Forgot your password?","set.fx":"FX","set.lang_auto":"Device language","set.language":"Language","set.log_out":"Log out","set.music":"Music","set.mute_all":"Mute all","set.offline_art":"Offline Art","set.offline_art_desc":"Download every hero, monster and boss animation once and keep it on this device. Battles then load instantly, even on a bad connection.","set.open_online":"Open the game through your online link to sign in.","set.password":"Password","set.report_desc":"Spotted something broken or have an idea? Send it straight to the devs.","set.report_ph":"Describe the bug or suggestion…","set.report_sent":"Thanks! Report sent.","set.report_short":"Please add a little detail.","set.report_title":"Report a bug / feedback","set.rights":"All rights reserved.","set.send_failed":"Failed to send.","set.send_report":"Send report","set.sending":"Sending…","set.sign_in":"Sign In","set.signed_in_as":"Signed in as {name}","set.signin_hint":"Sign in to load your account and sync your progress here.","set.stop_download":"Stop download","set.suggestion":"Suggestion","set.sync_note":"your progress syncs to any device you sign in on.","set.terms":"Terms of Service & Privacy","set.update_all":"Update all features","set.username":"Username","set.voices":"Voices","title.account":"Account","title.arena_shop":"Arena Shop","title.daily_signin":"Daily Sign-In","title.elite_stages":"Elite Stages","title.forge":"The Forge","title.online_arena":"Online Arena","title.technology":"Technology"};
-const EW_LANG_V={"en":"48ab615e","es":"6a3a8c60","pt-BR":"982d3fe6","fr":"ddaf8ba3","de":"492e32a9","it":"590a88e7","nl":"db2e89b5","ru":"1ed36fef","tr":"363dacfc","ja":"a316035d","ko":"4c5985a4","zh-Hans":"1e58215a","zh-Hant":"c832c2dc","th":"6d1ff83f","id":"409e39bb","hi":"e17f4f24"};
-const EW_LANGS=[['en','English'],['es','Español'],['pt-BR','Português (Brasil)'],['fr','Français'],['de','Deutsch'],['it','Italiano'],['nl','Nederlands'],
-  ['ru','Русский'],['tr','Türkçe'],['ja','日本語'],['ko','한국어'],['zh-Hans','简体中文'],['zh-Hant','繁體中文'],['th','ไทย'],['id','Bahasa Indonesia'],['hi','हिन्दी']];
-const EW_LANG_FONT={th:'Noto Sans Thai',ja:'Noto Sans JP',ko:'Noto Sans KR','zh-Hans':'Noto Sans SC','zh-Hant':'Noto Sans TC',hi:'Noto Sans Devanagari'};
-const LANG={cur:'en',pref:'',dict:null,miss:{}};
-function langCodeOf(tag){ const l=String(tag||'').trim().toLowerCase().replace(/_/g,'-'); if(!l) return '';
-  if(l==='zh'||l.startsWith('zh-')) return /^zh-(hant|tw|hk|mo)\b/.test(l)?'zh-Hant':'zh-Hans';
-  if(l==='pt'||l.startsWith('pt-')) return 'pt-BR';
-  const b=l.split('-')[0]; if(b==='in') return 'id';   // old Android tag for Indonesian
-  return EW_LANG_V[b]?b:''; }
-function langDetect(list){ for(const tag of (list||[])){ const c=langCodeOf(tag); if(c) return c; } return 'en'; }
-function langNavList(){ try{ return (navigator.languages&&navigator.languages.length)?navigator.languages:[navigator.language||'en']; }catch(e){ return ['en']; } }
-function langSavedPref(){ let p=''; try{ p=localStorage.getItem('ew_lang')||''; }catch(e){}
-  if(!p){ try{ const s=JSON.parse(localStorage.getItem('emberweave_save_v08')||'null'); if(s&&typeof s.lang==='string') p=s.lang; }catch(e){} }
-  return EW_LANG_V[p]?p:''; }
-function t(key,vars){ let s=LANG.dict&&LANG.dict[key];
-  if(typeof s!=='string'||!s) s=EW_LANG_EN[key];
-  if(typeof s!=='string'){ if(!LANG.miss[key]){ LANG.miss[key]=1; try{ console.warn('[lang] no text for',key); }catch(e){} } return ''; }   // never the raw key
-  return vars?s.replace(/\{(\w+)\}/g,(m,k)=>vars[k]!=null?String(vars[k]):''):s; }
-function langFont(code){ const fam=EW_LANG_FONT[code], root=document.documentElement; let l=document.getElementById('ewLangFont');
-  root.classList.toggle('ew-lang-noto',!!fam);
-  if(!fam){ if(l) l.remove(); root.style.removeProperty('--ew-lang-font'); return; }
-  const href='https://fonts.googleapis.com/css2?family='+fam.replace(/ /g,'+')+':wght@400;700;800&display=swap';
-  if(!l){ l=document.createElement('link'); l.id='ewLangFont'; l.rel='stylesheet'; (document.head||root).appendChild(l); }
-  if(l.getAttribute('href')!==href) l.setAttribute('href',href);
-  root.style.setProperty('--ew-lang-font','"'+fam+'"'); }
-/* a [data-i18n-fit="<px>"] label: its widest WORD must fit <px> (it may wrap between words); a longer one is set smaller, never cut.
-   Measured from the text and the computed font size, so it works while the hub menu is still closed (display:none). */
-function langWordEm(w){ let u=0; for(const ch of w){ const c=ch.codePointAt(0);
-    if((c>=0x0300&&c<=0x036F)||(c>=0x0E31&&c<=0x0E4E&&c!==0x0E32&&c!==0x0E33)||(c>=0x0900&&c<=0x0903)||(c>=0x093A&&c<=0x094F)||(c>=0x0951&&c<=0x0957)||(c>=0x0962&&c<=0x0963)) continue;   // marks take no width
-    u+=(c>=0x1100&&c<=0xFFDC)?1:(c>=0x0900&&c<=0x0E7F)?0.7:0.62; } return u; }
-function langFit(el){ const max=+el.getAttribute('data-i18n-fit')||0; el.style.fontSize=''; if(!max) return;
-  let fs=12; try{ fs=parseFloat(getComputedStyle(el).fontSize)||12; }catch(e){}
-  const em=Math.max(0,...String(el.textContent||'').split(/\s+/).map(langWordEm));
-  if(em*fs>max) el.style.fontSize=Math.max(7,max/em).toFixed(2)+'px'; }
-function langApply(root){ root=root||document;
-  root.querySelectorAll('[data-i18n]').forEach(el=>{ let s=t(el.getAttribute('data-i18n')); if(!s) return;
-    if(el.hasAttribute('data-i18n-upper')) s=s.toLocaleUpperCase(LANG.cur);
-    if(el.textContent!==s) el.textContent=s; });
-  root.querySelectorAll('[data-i18n-fit]').forEach(langFit); }
-/* redraw what is on screen in the new language: the static labels always; the town and Settings only once the game has drawn them */
-function langRefresh(rerender){ if(document.readyState==='loading') return; langApply(document);
-  try{ const hots=document.getElementById('townHots'); if(typeof renderHome==='function'&&hots&&hots.childElementCount) renderHome(); }catch(e){}
-  try{ const s=document.getElementById('settings'); if(s&&s.classList.contains('active')&&typeof renderSettings==='function') renderSettings(); }catch(e){} }
-function langLoad(code,rerender){ if(!EW_LANG_V[code]) code='en'; LANG.cur=code; document.documentElement.lang=code; langFont(code);
-  if(code==='en'){ LANG.dict=null; langRefresh(rerender); return Promise.resolve(true); }
-  const v=EW_LANG_V[code];
-  try{ const c=JSON.parse(localStorage.getItem('ew_lang_dict')||'null'); if(c&&c.code===code&&c.v===v&&c.d&&typeof c.d==='object'){ LANG.dict=c.d; langRefresh(rerender); return Promise.resolve(true); } }catch(e){}
-  LANG.dict=null; langRefresh(rerender);   // English until the file arrives
-  return fetch('/lang/'+code+'.json?v='+v).then(r=>r.ok?r.json():null).then(d=>{ if(!d||typeof d!=='object'||LANG.cur!==code) return false;
-    LANG.dict=d; try{ localStorage.setItem('ew_lang_dict',JSON.stringify({code,v,d})); }catch(e){} langRefresh(rerender); return true; }).catch(()=>false); }
-/* the player's pick ('' = follow the device). save: kept on the device and in the save (G.lang -> the cloud save on the next sync) */
-function langSet(code,opts){ opts=opts||{}; code=EW_LANG_V[code]?code:''; LANG.pref=code;
-  if(opts.save){ try{ if(code) localStorage.setItem('ew_lang',code); else localStorage.removeItem('ew_lang'); }catch(e){}
-    try{ if(typeof G!=='undefined'&&G){ if(code) G.lang=code; else delete G.lang; if(typeof saveG==='function') saveG(); } }catch(e){} }
-  return langLoad(code||langDetect(langNavList()),true); }
-/* after a cloud save replaces G (applyCloudSave): the account's pick wins; a pick made on this device before signing in is kept and
-   goes up with the next save */
-function langAdoptSave(){ if(typeof G==='undefined'||!G) return; const g=EW_LANG_V[G.lang]?G.lang:'';
-  if(g){ try{ localStorage.setItem('ew_lang',g); }catch(e){} if(g!==LANG.pref){ LANG.pref=g; langLoad(g,true); } return; }
-  if(LANG.pref) G.lang=LANG.pref; }
-function langOptionsHTML(){ const dev=langDetect(langNavList()), nm=c=>(EW_LANGS.find(x=>x[0]===c)||['',c])[1];
-  return '<option value=""'+(LANG.pref?'':' selected')+'>'+t('set.lang_auto')+' ('+nm(dev)+')</option>'
-    +EW_LANGS.map(([c,n])=>'<option value="'+c+'"'+(LANG.pref===c?' selected':'')+'>'+n+'</option>').join(''); }
-LANG.pref=langSavedPref(); langLoad(LANG.pref||langDetect(langNavList()));
-document.addEventListener('DOMContentLoaded',()=>langApply(document));
-</script>
 </head>
 <body>
 <div id="rotateGate"><div class="splashWrap"><img class="splashImg" id="splashImg" alt="Emberweave Heroes" draggable="false"><video class="splashImg" id="splashVid" autoplay muted loop playsinline></video><button class="splashPlay" id="splashPlay" aria-label="Click to Play"></button><div class="splashStatus check" id="splashStatus">Checking…</div><div class="splashStudio" id="splashStudio"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M8 5 L16 13 L24 5 L27 8 L19 16 L27 24 L24 27 L16 19 L8 27 L5 24 L13 16 L5 8 Z" fill="#d8b877"/></svg>Xanthyr Games</div><div class="splashVer" id="splashVer"></div></div></div>
@@ -2904,6 +2827,82 @@ document.addEventListener('DOMContentLoaded',()=>langApply(document));
    EMBERWEAVE HEROES v0.5 — hub + campaign + runes + tech + PvP + 3D battles
    Single self-contained file (Three.js inlined). Progress saved locally.
    ========================================================================== */
+/* v1265 LANGUAGES step 1 (Phil 3 Nov 2026: "One very very big thing we missed - Languages"; plan: Archive Open Projects/LANGUAGES -
+   LOCALIZATION PLAN). One file per language in /lang/<code>.json; English is inline here (EW_LANG_EN, the same text as lang/en.json -
+   tests/test_lang_step1.js holds them equal), so English never waits on a fetch. Only the chosen language's file is fetched, at
+   ?v=<hash of its text> (a changed file is a new URL - SHIPPING RULE 2.5), and kept in localStorage so the next open is instant.
+   t(key, vars) falls back to English for any key a language lacks and never shows a raw key. The choice: the player's own pick
+   (Settings > Language, saved in the save G.lang - synced with the cloud save, so it survives a reinstall - and in ew_lang on the
+   device), else the phone's languages (navigator.languages), else English. Hero, monster and boss names and "Emberweave" are never
+   translated (Phil's in-game-names rule). */
+const EW_LANG_EN={"bld.academy":"Academy","bld.arena":"Arena","bld.bulletin_board":"Bulletin Board","bld.campaign":"Campaign","bld.city_wall":"City Wall","bld.forge":"Forge","bld.guild_hall":"Guild Hall","bld.island_trials":"Island of Trials","bld.market":"Market","bld.shady_market":"Shady Market","bld.starless_well":"The Starless Well","bld.temple":"Temple","bld.vault":"The Vault","bld.watch_tower":"Watch Tower","bld.wishing_pool":"Wishing Pool","bld.witches_hut":"Witches Hut","common.back":"Back","common.battle":"Battle","common.buy":"Buy","common.cancel":"Cancel","common.claim":"Claim","common.claimed":"Claimed","common.close":"Close","common.collect":"Collect","common.confirm":"Confirm","common.continue":"Continue","common.done":"Done","common.fight":"Fight","common.free":"Free","common.go":"Go","common.in_progress":"In progress","common.loading":"Loading…","common.locked":"Locked","common.next":"Next","common.no":"No","common.ok":"OK","common.reset":"Reset","common.retry":"Retry","common.save":"Save","common.send":"Send","common.start":"Start","common.upgrade":"Upgrade","common.yes":"Yes","hub.research":"Research: {t}","hub.unlocks_at":"Unlocks at Lv {n}","menu.bag":"Bag","menu.heroes":"Heroes","menu.mail":"Mail","menu.menu":"Menu","menu.quests":"Quests","menu.server":"Server","menu.settings":"Settings","menu.sign_in":"Sign-In","menu.start_here":"Start Here","nav.base":"Base","nav.glossary":"Glossary","nav.guild":"Guild","nav.vault":"Vault","nav.wall":"Wall","nav.world":"World","set.add_email":"add email","set.add_email_first":"(add an email first)","set.arena_rank":"Arena rank #{n}","set.audio":"Audio","set.blocked_players":"Blocked players","set.bug":"Bug","set.change":"change","set.clear_cache":"Clear cache","set.cloud_account":"Cloud Account","set.confirm_password":"Confirm password","set.create_account":"Create Account","set.create_hint":"Pick a username & password to make a cloud account you can sign into on any device.","set.delete_account":"Delete account","set.forgot":"Forgot your password?","set.fx":"FX","set.lang_auto":"Device language","set.language":"Language","set.log_out":"Log out","set.music":"Music","set.mute_all":"Mute all","set.no_email":"No recovery email linked — add one so you can reset your password if you forget it.","set.offline_art":"Offline Art","set.offline_art_desc":"Download every hero, monster and boss animation once and keep it on this device. Battles then load instantly, even on a bad connection.","set.open_online":"Open the game through your online link to sign in.","set.password":"Password","set.recovery_email":"Recovery email:","set.report_desc":"Spotted something broken or have an idea? Send it straight to the devs.","set.report_ph":"Describe the bug or suggestion…","set.report_sent":"Thanks! Report sent.","set.report_short":"Please add a little detail.","set.report_title":"Report a bug / feedback","set.reset_by_email":"Reset password by email","set.rights":"All rights reserved.","set.send_failed":"Failed to send.","set.send_report":"Send report","set.sending":"Sending…","set.sign_in":"Sign In","set.signed_in_as":"Signed in as {name}","set.signin_hint":"Sign in to load your account and sync your progress here.","set.stop_download":"Stop download","set.suggestion":"Suggestion","set.sync_note":"your progress syncs to any device you sign in on.","set.terms":"Terms of Service & Privacy","set.update_all":"Update all features","set.username":"Username","set.voices":"Voices","title.account":"Account","title.arena_shop":"Arena Shop","title.daily_signin":"Daily Sign-In","title.elite_stages":"Elite Stages","title.forge":"The Forge","title.online_arena":"Online Arena","title.technology":"Technology"};
+const EW_LANG_V={"en":"1b0402a4","es":"d53c82a7","pt-BR":"1d30eb27","fr":"0036681f","de":"8772f8ff","it":"1dad9d32","nl":"60ff0b6c","ru":"a14f00bc","tr":"dec96b7e","ja":"10f34e15","ko":"f4ddd9ca","zh-Hans":"fc03ef10","zh-Hant":"fd288b6f","th":"eeedf952","id":"f09e2fa3","hi":"4e4fe505"};
+const EW_LANGS=[['en','English'],['es','Español'],['pt-BR','Português (Brasil)'],['fr','Français'],['de','Deutsch'],['it','Italiano'],['nl','Nederlands'],
+  ['ru','Русский'],['tr','Türkçe'],['ja','日本語'],['ko','한국어'],['zh-Hans','简体中文'],['zh-Hant','繁體中文'],['th','ไทย'],['id','Bahasa Indonesia'],['hi','हिन्दी']];
+const EW_LANG_FONT={th:'Noto Sans Thai',ja:'Noto Sans JP',ko:'Noto Sans KR','zh-Hans':'Noto Sans SC','zh-Hant':'Noto Sans TC',hi:'Noto Sans Devanagari'};
+const LANG={cur:'en',pref:'',dict:null,miss:{}};
+function langCodeOf(tag){ const l=String(tag||'').trim().toLowerCase().replace(/_/g,'-'); if(!l) return '';
+  if(l==='zh'||l.startsWith('zh-')) return /^zh-(hant|tw|hk|mo)\b/.test(l)?'zh-Hant':'zh-Hans';
+  if(l==='pt'||l.startsWith('pt-')) return 'pt-BR';
+  const b=l.split('-')[0]; if(b==='in') return 'id';   // old Android tag for Indonesian
+  return EW_LANG_V[b]?b:''; }
+function langDetect(list){ for(const tag of (list||[])){ const c=langCodeOf(tag); if(c) return c; } return 'en'; }
+function langNavList(){ try{ return (navigator.languages&&navigator.languages.length)?navigator.languages:[navigator.language||'en']; }catch(e){ return ['en']; } }
+function langSavedPref(){ let p=''; try{ p=localStorage.getItem('ew_lang')||''; }catch(e){}
+  if(!p){ try{ const s=JSON.parse(localStorage.getItem('emberweave_save_v08')||'null'); if(s&&typeof s.lang==='string') p=s.lang; }catch(e){} }
+  return EW_LANG_V[p]?p:''; }
+function t(key,vars){ let s=LANG.dict&&LANG.dict[key];
+  if(typeof s!=='string'||!s) s=EW_LANG_EN[key];
+  if(typeof s!=='string'){ if(!LANG.miss[key]){ LANG.miss[key]=1; try{ console.warn('[lang] no text for',key); }catch(e){} } return ''; }   // never the raw key
+  return s.indexOf('{')<0?s:s.replace(/\{(\w+)\}/g,(m,k)=>vars&&vars[k]!=null?String(vars[k]):''); }   // an unfilled {var} is never shown
+function langFont(code){ const fam=EW_LANG_FONT[code], root=document.documentElement; let l=document.getElementById('ewLangFont');
+  root.classList.toggle('ew-lang-noto',!!fam);
+  if(!fam){ if(l) l.remove(); root.style.removeProperty('--ew-lang-font'); return; }
+  const href='https://fonts.googleapis.com/css2?family='+fam.replace(/ /g,'+')+':wght@400;700;800&display=swap';
+  if(!l){ l=document.createElement('link'); l.id='ewLangFont'; l.rel='stylesheet'; (document.head||root).appendChild(l); }
+  if(l.getAttribute('href')!==href) l.setAttribute('href',href);
+  root.style.setProperty('--ew-lang-font','"'+fam+'"'); }
+/* a [data-i18n-fit="<px>"] label: its widest WORD must fit <px> (it may wrap between words); a longer one is set smaller, never cut.
+   Measured from the text and the computed font size, so it works while the hub menu is still closed (display:none). */
+function langWordEm(w){ let u=0; for(const ch of w){ const c=ch.codePointAt(0);
+    if((c>=0x0300&&c<=0x036F)||(c>=0x0E31&&c<=0x0E4E&&c!==0x0E32&&c!==0x0E33)||(c>=0x0900&&c<=0x0903)||(c>=0x093A&&c<=0x094F)||(c>=0x0951&&c<=0x0957)||(c>=0x0962&&c<=0x0963)) continue;   // marks take no width
+    u+=(c>=0x1100&&c<=0xFFDC)?1:(c>=0x0900&&c<=0x0E7F)?0.7:0.62; } return u; }
+function langFit(el){ const max=+el.getAttribute('data-i18n-fit')||0; el.style.fontSize=''; if(!max) return;
+  let fs=12; try{ fs=parseFloat(getComputedStyle(el).fontSize)||12; }catch(e){}
+  const em=Math.max(0,...String(el.textContent||'').split(/\s+/).map(langWordEm));
+  if(em*fs>max) el.style.fontSize=Math.max(7,max/em).toFixed(2)+'px'; }
+function langApply(root){ root=root||document;
+  root.querySelectorAll('[data-i18n]').forEach(el=>{ let s=t(el.getAttribute('data-i18n')); if(!s) return;
+    if(el.hasAttribute('data-i18n-upper')) s=s.toLocaleUpperCase(LANG.cur);
+    if(el.textContent!==s) el.textContent=s; });
+  root.querySelectorAll('[data-i18n-fit]').forEach(langFit); }
+/* redraw what is on screen in the new language: the static labels always; the town and Settings only once the game has drawn them */
+function langRefresh(rerender){ if(document.readyState==='loading') return; langApply(document);
+  try{ const hots=document.getElementById('townHots'); if(typeof renderHome==='function'&&hots&&hots.childElementCount) renderHome(); }catch(e){}
+  try{ const s=document.getElementById('settings'); if(s&&s.classList.contains('active')&&typeof renderSettings==='function') renderSettings(); }catch(e){} }
+function langLoad(code,rerender){ if(!EW_LANG_V[code]) code='en'; LANG.cur=code; document.documentElement.lang=code; langFont(code);
+  if(code==='en'){ LANG.dict=null; langRefresh(rerender); return Promise.resolve(true); }
+  const v=EW_LANG_V[code];
+  try{ const c=JSON.parse(localStorage.getItem('ew_lang_dict')||'null'); if(c&&c.code===code&&c.v===v&&c.d&&typeof c.d==='object'){ LANG.dict=c.d; langRefresh(rerender); return Promise.resolve(true); } }catch(e){}
+  LANG.dict=null; langRefresh(rerender);   // English until the file arrives
+  return fetch('/lang/'+code+'.json?v='+v).then(r=>r.ok?r.json():null).then(d=>{ if(!d||typeof d!=='object'||LANG.cur!==code) return false;
+    LANG.dict=d; try{ localStorage.setItem('ew_lang_dict',JSON.stringify({code,v,d})); }catch(e){} langRefresh(rerender); return true; }).catch(()=>false); }
+/* the player's pick ('' = follow the device). save: kept on the device and in the save (G.lang -> the cloud save on the next sync) */
+function langSet(code,opts){ opts=opts||{}; code=EW_LANG_V[code]?code:''; LANG.pref=code;
+  if(opts.save){ try{ if(code) localStorage.setItem('ew_lang',code); else localStorage.removeItem('ew_lang'); }catch(e){}
+    try{ if(typeof G!=='undefined'&&G){ if(code) G.lang=code; else delete G.lang; if(typeof saveG==='function') saveG(); } }catch(e){} }
+  return langLoad(code||langDetect(langNavList()),true); }
+/* after a cloud save replaces G (applyCloudSave): the account's pick wins; a pick made on this device before signing in is kept and
+   goes up with the next save */
+function langAdoptSave(){ if(typeof G==='undefined'||!G) return; const g=EW_LANG_V[G.lang]?G.lang:'';
+  if(g){ try{ localStorage.setItem('ew_lang',g); }catch(e){} if(g!==LANG.pref){ LANG.pref=g; langLoad(g,true); } return; }
+  if(LANG.pref) G.lang=LANG.pref; }
+function langOptionsHTML(){ const dev=langDetect(langNavList()), nm=c=>(EW_LANGS.find(x=>x[0]===c)||['',c])[1];
+  return '<option value=""'+(LANG.pref?'':' selected')+'>'+t('set.lang_auto')+' ('+nm(dev)+')</option>'
+    +EW_LANGS.map(([c,n])=>'<option value="'+c+'"'+(LANG.pref===c?' selected':'')+'>'+n+'</option>').join(''); }
+try{ LANG.pref=langSavedPref(); langLoad(LANG.pref||langDetect(langNavList())); }catch(e){}   // never stops the game (the server's sim host has no real page)
+try{ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>langApply(document)); else langApply(document); }catch(e){}
+/* /v1265 LANGUAGES step 1 */
 const TH = window.THREE;
 
 /* ============================ WORLD REGIONS ============================ */
@@ -29369,8 +29368,8 @@ function renderSettings(){
   } else if(ACC.token){
     const em=ACC.email||'';
     const emailRow = em
-      ? `<div style="font-size:11px;color:#8b98a9;margin-bottom:6px">${uiIcon('mail')} Recovery email: <b style="color:#cdd6e4">${escapeHTML(em)}</b> <a href="#" id="acEditEmail" style="color:#9ab0d6;margin-left:4px">change</a></div>`
-      : `<div style="font-size:11px;color:#c9a35e;margin-bottom:6px">${uiIcon('mail')} No recovery email linked — add one so you can reset your password if you forget it. <a href="#" id="acEditEmail" style="color:#9ab0d6">add email</a></div>`;
+      ? `<div style="font-size:11px;color:#8b98a9;margin-bottom:6px">${uiIcon('mail')} ${t('set.recovery_email')} <b style="color:#cdd6e4">${escapeHTML(em)}</b> <a href="#" id="acEditEmail" style="color:#9ab0d6;margin-left:4px">${t('set.change')}</a></div>`
+      : `<div style="font-size:11px;color:#c9a35e;margin-bottom:6px">${uiIcon('mail')} ${t('set.no_email')} <a href="#" id="acEditEmail" style="color:#9ab0d6">${t('set.add_email')}</a></div>`;
     const emailForm = (emStep!=='code')
       ? `<div id="acEmailForm" style="display:none;margin:4px 0 8px">
           <input id="acEmailIn" type="email" placeholder="you@example.com" autocomplete="email" style="${inp}" value="">
@@ -29384,7 +29383,7 @@ function renderSettings(){
           <div style="display:flex;gap:6px;margin-top:6px"><button class="btn xs" id="acEmailConfirm" style="flex:1">${t('common.confirm')}</button><button class="btn xs secondary" id="acEmailResend">Resend</button><button class="btn xs secondary" id="acEmailCancel">${t('common.cancel')}</button></div>
           <div id="acEmailMsg" style="font-size:11px;margin-top:4px;min-height:13px"></div></div>`;
     const resetBlock = (pwStep==='idle')
-      ? `<button class="btn sm secondary" id="acPwReset" style="width:100%;margin-bottom:6px" ${em?'':'disabled'}>${uiIcon('key')} Reset password by email${em?'':' (add an email first)'}</button>`
+      ? `<button class="btn sm secondary" id="acPwReset" style="width:100%;margin-bottom:6px" ${em?'':'disabled'}>${uiIcon('key')} ${t('set.reset_by_email')}${em?'':' '+t('set.add_email_first')}</button>`
       : `<div style="background:#0f1420;border:1px solid #33405e;border-radius:10px;padding:10px;margin-bottom:8px">
           <div style="font-weight:800;font-size:12px;margin-bottom:4px">${uiIcon('key')} Reset your password</div>
           <div style="font-size:11px;color:#8b98a9;margin-bottom:8px">We sent a 6-digit code to <b>${escapeHTML(em)}</b>. Enter it below with your new password. The code expires in 15 minutes.</div>
@@ -29560,8 +29559,8 @@ function renderSettings(){
   b.innerHTML=`<div style="display:flex;flex-direction:column;gap:10px">
     <div style="font-size:10px;color:#8b98a9;font-weight:700;letter-spacing:.08em">XANTHYR GAMES</div>
     <div style="font-size:13px;color:#c3ccd8">Emberweave Heroes — ${BUILD_VERSION}</div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px">${account}<div class="panel" id="googleAuthPanel" hidden></div></div>
     ${langCard}
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px">${account}<div class="panel" id="googleAuthPanel" hidden></div></div>
     ${soundCard}
     ${assetCard}
     ${reportCard}
