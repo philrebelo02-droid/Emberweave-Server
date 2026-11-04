@@ -196,9 +196,9 @@ async function clientRetry(dir, uiFile) {
 }
 
 // ---- 5: byte-identical ----
-function mainThreadOf(dir) {
+function mainThreadOf(dir, html) {
   const HOST = require(path.join(dir, 'server/sim-host.js')), SIM = require(path.join(dir, 'server/sim.js')), WTB = require(path.join(dir, 'server/world-tree-battle.js'));
-  const host = HOST.load(path.join(dir, 'emberweave-heroes.html')), wt = WTB.create(host);
+  const host = HOST.load(html || path.join(dir, 'emberweave-heroes.html')), wt = WTB.create(host);
   return { worldtree: (a, d, seed) => wt(a, d, seed), line: (a, ac, b, bc, seed, cap) => SIM.resolveLineBattle(SIM.makeLine(a, ac, cap), SIM.makeLine(b, bc, cap), seed), engine: host.buildVersion };
 }
 
@@ -253,7 +253,12 @@ function mainThreadOf(dir) {
     /* v1181: the engine itself moved after 6bfeb24d (v1135-v1180 hero changes), so the identity that matters for shipping is with
        the LIVE engine this branch sits on (LIVE_BASE, default v1180 15ddba3f): every helper result = live's main-thread functions. */
     const LIVE_BASE = process.env.LIVE_BASE || '15ddba3f', base = mainThreadOf(R.controlTree(LIVE_BASE));
-    const sameBase = all.filter(x => { const a = here[x.m](...x.args), c = base[x.m](...x.args); if (x.m === 'worldtree') { delete a.engine; delete c.engine; } return JSON.stringify(a) === JSON.stringify(c); }).length;
+    /* 4 Nov 2026: this tree's side runs on the page with the 2 Nov global engine changes undone (v1254 enemy nerf, v1258 resize, v1260 wave hold;
+       tests/helpers/global-1254-1260.js) and on the inputs without the v1258 snapshot stamp sz (v1180 has none and reads the stats raw), so the
+       World Tree fights still compare with v1180's; test_size_1258 checks the resize */
+    const hereU = mainThreadOf(R.root, require('./helpers/global-1254-1260.js').page(path.join(R.root, 'emberweave-heroes.html')));
+    const noSz = args => JSON.parse(JSON.stringify(args, (k, v) => k === 'sz' ? undefined : v));
+    const sameBase = all.filter(x => { const a = hereU[x.m](...noSz(x.args)), c = base[x.m](...x.args); if (x.m === 'worldtree') { delete a.engine; delete c.engine; } return JSON.stringify(a) === JSON.stringify(c); }).length;
     try { R.removeControlTree(LIVE_BASE); } catch (e) {}
     check(sameBase === all.length, 'and equal the main-thread functions of the live engine (' + LIVE_BASE + ') on the same inputs (' + sameBase + '/' + all.length + '; 6bfeb24d, before the v1135-v1180 engine changes: ' + sameOld + '/' + all.length + ')');
     const csky = await skyfall(ctl, 'control ' + CONTROL, 'c');
