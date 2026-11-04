@@ -24081,7 +24081,7 @@ function authGateRender(){ const el=authGateEl(), need=authGateNeed()||'out', m=
       ${inp('agName','text','Username','off',' maxlength="16"')}${inp('agPass','password','Password (8+ characters)','new-password')}${inp('agPass2','password','Confirm password','new-password')}
       <button class="btn" id="agGo">Create account</button>
       <div class="agRow"><button class="btn xs secondary" id="agToIn">${last&&last.name&&last.id!==ACC.id?'Sign in to '+escapeHTML(last.name):'Sign in to an account'}</button></div>`;
-  el.innerHTML=`<div class="agCard">${tabs}${body}<div id="agMsg" class="agMsg"></div></div>`;
+  el.innerHTML=`<div class="agCard">${tabs}${body}<div id="agMsg" class="agMsg"></div></div>`; if(m==='create'||m==='signin'||m==='guest'){ try{ mountGoogleSignin(el.querySelector('.agCard')); }catch(e){} }   /* v1269 (Phil 4 Nov: "sign in now"): Continue with Google on the first sign-in screen too, not only in Settings */
   const $=s=>el.querySelector(s), msg=(t,good)=>{ const e=$('#agMsg'); if(e){ e.style.color=good?'#8b98a9':'#ff8b8b'; e.textContent=t; } };
   const to=(mode)=>{ AUTHG.mode=mode; authGateRender(); };
   if($('#agTabNew')) $('#agTabNew').onclick=()=>to('create');
@@ -31785,7 +31785,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1793795944233';
+const BUILD_ID = '1793796939789';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
