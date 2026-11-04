@@ -41,7 +41,13 @@ Only Phil's seven approved take-3 clips are wired: Idle, Walk, Attack, Hit, Gree
 
 The death uses the established lazy streaming schema, at most four cells per part and two parts resident together, finishing on settled ash. This rendering clock never changes death, targeting, damage, rewards or wave timing.
 
-**Blue remains withheld.** Phil rejected take 4 because its effect flooded the frame. Take 5 was delivered for review, with its earlier local-pulse timing and 20-pixel left-margin fringe explicitly flagged. No pass is inferred. No Blue sprite or separate spell-effect video is wired. The three separate spell-effect stills await Phil's approval before any further FX video generation.
+**Blue battle sprite:** Claude relayed Phil's approval of take 5 at 20:37 on 3 November. Its sprite conversion remains separate from this FX follow-up; the current battle sheets still contain the original seven approved states.
+
+**Approved spell FX follow-up (3 November):** Phil rejected the foot-flame rings and old dome, supplied healing-radiance and spherical-shield references, then approved the two new dark-purple stills and their Hailuo animations. He explicitly preferred the earlier dissolving bubble (result `574205397756338177`) over the sustained second take, then requested these effects in game. The healing source is result `574205223013298179`. Exact source and atlas hashes are recorded in `tests/fixtures/hero61-approved-fx.json`.
+
+Both heals now show the vertical aura on the actual recipient at successful release; Blue uses a slightly larger version of the same approved art. The ult bubble follows the selected ally. The intact portion of the preferred source is slowed to span the four-second protection, followed by its original dissolve over 0.6 seconds. This visual tail grants no extra immunity. Interrupted casts show no effect; recipient death cleans up the visual. Repeated heals replace their aura without removing protection.
+
+Black backgrounds are converted to alpha without recolouring the purple: RGB multiplied by alpha reconstructs the original over black. The existing premultiplied atlas cutter produces two shared sheets within 2048 pixels and 4 MB each. The sheets preload with Hero61, join offline downloads, and use the existing battle cleanup. The Skills renderer uses the same frame mapping. The second bubble take is not used.
 
 ## Validation and review handoff
 
@@ -51,4 +57,6 @@ The existing roster/path and Temple tests cover the new 61st hero and 15th path.
 
 The full suite runs in an isolated temporary database on port 8994, using this branch's test server and one test battle worker. It does not pause, retarget or stop Ember's jobs. Final results and the actual review commit must be recorded in the delivery evidence; a running suite is not a pass.
 
-Review/release gates: Claude resolves the coarse-resolver route, reviews the commit and actual suite results, and handles any eventual merge/deploy. Phil chooses the final name/balance and approves Blue and the separate FX stills. No user approval is inferred from files, tests or scores.
+FX validation: `tests/test_hero61_fx.js` passes release/recipient/follow/cleanup checks, interruption controls, four-second protection art, previews, source hashes, atlas limits, preloading/offline inclusion and identical seeded combat with FX enabled/disabled. Hero61 combat/art checks pass, as do 36 pipeline checks including black-to-alpha colour preservation. The actual Skills renderer was visually checked on the recipient sprite. This follow-up is on `chatgpt/hero61-approved-fx-03nov`, based on `10373830`, so the earlier full-suite checkout stays untouched. The full suite was not rerun for this visual-only follow-up.
+
+Review/release gates: Claude resolves the coarse-resolver route, reviews the commit and actual suite results, and handles any eventual merge/deploy. Phil's approval of these FX and Blue take 5 is explicit; final name/balance remain separate. This branch is not merged or live.

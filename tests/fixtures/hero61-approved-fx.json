@@ -1,0 +1,255 @@
+{
+  "entries": {
+    "hero61_heal": {
+      "u": "/assets/anim/fx/hero61_healing_1263.webp?v=1263fx",
+      "n": 30,
+      "fw": 243,
+      "fh": 512,
+      "cols": 8,
+      "rows": 4,
+      "dur": 2.5,
+      "fps2": 12,
+      "anchor": [
+        0.5,
+        0.06
+      ],
+      "size": 1.35,
+      "mid": 0,
+      "spawn": 0,
+      "hero61Life": 2.5
+    },
+    "hero61_bubble": {
+      "u": "/assets/anim/fx/hero61_bubble_1263.webp?v=1263fx",
+      "n": 62,
+      "fw": 255,
+      "fh": 256,
+      "cols": 8,
+      "rows": 8,
+      "dur": 5.166666666666667,
+      "fps2": 12,
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "size": 1.65,
+      "mid": 0.5,
+      "spawn": 0,
+      "hero61Life": 4.6
+    }
+  },
+  "provenance": {
+    "hero61_heal": {
+      "source": "C:\\Users\\Home\\Documents\\Codex\\2026-10-07\\hu\\outputs\\hero61-spell-fx-reference-revision-03nov\\hero61-dark-purple-healing-take1.mp4",
+      "source_sha256": "b7b552a557e1242d8025a779dda724ffc952e8b66d395b09ce38e7c69e111bf9",
+      "source_frames": "0:59:2",
+      "sheet_sha256": "3ef1a3638d9c102afa310d5bb843c86519178df0219e3f81b16f461b0d9ebbb0",
+      "master_sha256": "30346d33e289e38aa4b67dc89eaa5cab47304c99640be0843de96ee1881baee5",
+      "cut": {
+        "n": 30,
+        "frames": [
+          0,
+          2,
+          4,
+          6,
+          8,
+          10,
+          12,
+          14,
+          16,
+          18,
+          20,
+          22,
+          24,
+          26,
+          28,
+          30,
+          32,
+          34,
+          36,
+          38,
+          40,
+          42,
+          44,
+          46,
+          48,
+          50,
+          52,
+          54,
+          56,
+          58
+        ],
+        "box": [
+          212,
+          6,
+          560,
+          738
+        ],
+        "src": [
+          768,
+          768
+        ],
+        "fw": 243,
+        "fh": 512,
+        "cols": 8,
+        "rows": 4,
+        "sheet": [
+          1944,
+          2048
+        ],
+        "scale": 0.69828,
+        "bytes": 1321190,
+        "master_bytes": 2317040,
+        "min_margin": 0,
+        "empty_cells": [],
+        "plate0": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "fringe_master": {
+          "edge_px": 2083395,
+          "green_edge": 0.0,
+          "green_body": 0.0,
+          "olive_edge": 0.0,
+          "olive_body": 0.0,
+          "violet_edge": 99.829,
+          "violet_body": 100.0
+        },
+        "fringe_q95": {
+          "edge_px": 2083395,
+          "green_edge": 0.0,
+          "green_body": 0.0,
+          "olive_edge": 0.0,
+          "olive_body": 0.0,
+          "violet_edge": 99.862,
+          "violet_body": 100.0
+        }
+      }
+    },
+    "hero61_bubble": {
+      "source": "C:\\Users\\Home\\Documents\\Codex\\2026-10-07\\hu\\outputs\\hero61-spell-fx-reference-revision-03nov\\hero61-dark-purple-bubble-take1.mp4",
+      "source_sha256": "b1a5ef6df169d74b983471dd249c4d9217845d0ae3a583b32c1cc0aa48290400",
+      "source_frames": "0:123:2",
+      "sheet_sha256": "32fcfa519e41f15a6c40e74b5e110ba0e1e2dc57cc86c6b4dab79a7c553b36f3",
+      "master_sha256": "42c4a3d2a1094e975fb93cdc2f5b273599e16404a62a2d2e512dd8ef5261b085",
+      "cut": {
+        "n": 62,
+        "frames": [
+          0,
+          2,
+          4,
+          6,
+          8,
+          10,
+          12,
+          14,
+          16,
+          18,
+          20,
+          22,
+          24,
+          26,
+          28,
+          30,
+          32,
+          34,
+          36,
+          38,
+          40,
+          42,
+          44,
+          46,
+          48,
+          50,
+          52,
+          54,
+          56,
+          58,
+          60,
+          62,
+          64,
+          66,
+          68,
+          70,
+          72,
+          74,
+          76,
+          78,
+          80,
+          82,
+          84,
+          86,
+          88,
+          90,
+          92,
+          94,
+          96,
+          98,
+          100,
+          102,
+          104,
+          106,
+          108,
+          110,
+          112,
+          114,
+          116,
+          118,
+          120,
+          122
+        ],
+        "box": [
+          66,
+          33,
+          696,
+          664
+        ],
+        "src": [
+          768,
+          768
+        ],
+        "fw": 255,
+        "fh": 256,
+        "cols": 8,
+        "rows": 8,
+        "sheet": [
+          2040,
+          2048
+        ],
+        "scale": 0.40476,
+        "bytes": 1728982,
+        "master_bytes": 2984384,
+        "min_margin": 0,
+        "empty_cells": [
+          58,
+          59,
+          60,
+          61
+        ],
+        "plate0": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "fringe_master": {
+          "edge_px": 1519250,
+          "green_edge": 0.0,
+          "green_body": 0.0,
+          "olive_edge": 0.0,
+          "olive_body": 0.0,
+          "violet_edge": 99.9714,
+          "violet_body": 99.9854
+        },
+        "fringe_q95": {
+          "edge_px": 1519250,
+          "green_edge": 0.0,
+          "green_body": 0.0,
+          "olive_edge": 0.0,
+          "olive_body": 0.0,
+          "violet_edge": 99.9837,
+          "violet_body": 99.9982
+        }
+      }
+    }
+  }
+}

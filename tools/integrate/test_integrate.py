@@ -188,5 +188,14 @@ if m0 and m1:
         ck('CONTROL: a page edit for a row the page does not hold is refused', True)
 else:
     print('  info no git objects for 1debe711 / 31e692b9 here: the byte checks against v1162 are skipped')
+with tempfile.TemporaryDirectory() as black_dir:
+    sample=np.zeros((16,16,3),dtype=np.uint8)
+    sample[4:12,4:12]=[52,8,96]
+    sample[7,7]=[190,30,220]  # violet that the magenta-key repair must not recolour
+    Image.fromarray(sample).save(os.path.join(black_dir,'f001.png'))
+    rgba,_=FX.key_frame(black_dir,0,dict(plate='black'))
+    restored=rgba[...,:3]*rgba[...,3:4]/255
+    ck('black luminous FX preserves purple when recomposited; background fully transparent',
+       np.abs(restored-sample).max()<1 and rgba[0,0,3]==0)
 print(('FAIL ' if F else 'PASS ') + '%d checks' % P + (', %d failed' % F if F else ''))
 sys.exit(1 if F else 0)

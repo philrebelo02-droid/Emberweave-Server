@@ -1,5 +1,5 @@
-"""SPELL FX: a Phil-approved Grok Imagine render (_fx2_accepted/<hero>_<slot>_<name>_<date>.mp4, effect only, 1168x768, 24 fps, plate green or
-magenta) -> a game sheet + its FX2_DEF / FX16_ART entries. The v1171 / v1174 route (fx16_cut.py), every knob recorded in the report.
+"""SPELL FX: an approved effect-only render -> a game sheet + its FX2_DEF / FX16_ART entries.
+Green/magenta plates use the v1171 / v1174 route; luminous black plates preserve their original composited colour.
 
 KEY  (per frame, the plate = the median of the four 32x32 corners: Imagine plates drift)
   green   : alpha from the green the pixel LACKS against an art that owns no green: alpha = (kx - ex - 25) / (kx - 25 - EXT), ex = G - max(R,B),
@@ -81,6 +81,16 @@ def key_frame(raw, f, o):
     a = np.asarray(Image.open(os.path.join(raw, 'f%03d.png' % (f + 1))).convert('RGB')).astype(np.float64)
     P = np.median(np.concatenate([a[:32, :32].reshape(-1, 3), a[:32, -32:].reshape(-1, 3), a[-32:, :32].reshape(-1, 3), a[-32:, -32:].reshape(-1, 3)]), 0)
     d = np.sqrt(((a - P) ** 2).sum(-1))
+    if o['plate'] == 'black':
+        # Luminous black-background plates: preserve the observed purple exactly
+        # when composited over black. Do not run the magenta-key colour repair.
+        al = np.max(a, axis=2) / 255.0
+        fg = np.clip(a / np.maximum(al[..., None], 1e-6), 0, 255)
+        a8 = np.round(al * 255)
+        a8[a8 < 4] = 0
+        out = np.dstack([fg, a8])
+        out[a8 == 0, :3] = 0
+        return out, P
     al = np.clip((d - o['d0']) / (o['d1'] - o['d0']), 0, 1)
     if o['plate'] == 'green':
         ex = a[..., 1] - np.maximum(a[..., 0], a[..., 2])
@@ -194,7 +204,8 @@ def cut_fx(raw, out, master, o):
             px[a8 == 0, :3] = 0
             if o['plate'] == 'green':
                 px[..., 1] = np.minimum(px[..., 1], np.maximum(px[..., 0], px[..., 2]))
-            px[..., :3] = np.clip(np.round(_deviol(_demag(px[..., :3])) if o.get('deviol') else _demag(px[..., :3])), 0, 255).astype(np.uint8)
+            if o['plate'] != 'black':
+                px[..., :3] = np.clip(np.round(_deviol(_demag(px[..., :3])) if o.get('deviol') else _demag(px[..., :3])), 0, 255).astype(np.uint8)
             px[px[..., 3] == 0, :3] = 0
             cache[f] = px
         r, c = divmod(i, C)

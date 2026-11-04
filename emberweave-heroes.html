@@ -2806,7 +2806,7 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 <script src="/assets/ui/world-mine-sync.js?v=mi5-stock1249"></script>
 <script src="/assets/ui/world-march-sync.js?v=wm1"></script>
 <script src="/assets/ui/world-march-visual.js?v=wv4-g1237"></script>
-<script src="/assets/ui/skill-preview-stage.js?v=sp1206"></script>
+<script src="/assets/ui/skill-preview-stage.js?v=sp1263fx"></script>
 <script src="/world-realm.js?v=realm-v25-202611010838"></script>
 <script src="/assets/ui/world-tree-cycle.js?v=wt5"></script>
 <script src="/assets/ui/world-tree-art.js?v=wt-noflash-1228b"></script>
@@ -4783,6 +4783,7 @@ function allAssetUrls(){
   try{ if(typeof BATTLE_BG!=='undefined') add(BATTLE_BG); }catch(e){}
   try{ if(typeof AIM_ART!=='undefined') for(const k in AIM_ART) add(AIM_ART[k]); }catch(e){}
   try{ if(typeof FX_ANIM!=='undefined') for(const k in FX_ANIM){ const c=FX_ANIM[k]; if(c&&c.u) add(c.u); } }catch(e){}
+  try{ for(const k of ['hero61_heal','hero61_bubble']) if(FX2_DEF[k]) add(FX2_DEF[k].u); }catch(e){}
   try{ if(typeof MUSIC_LISTS!=='undefined') for(const k in MUSIC_LISTS) (MUSIC_LISTS[k]||[]).forEach(m=>m&&m.f&&add('/assets/audio/'+m.f)); }catch(e){}   /* v1159: the music, whole files (sw.js answers the player's Range reads from them) */
   return [...out];
 }
@@ -5004,6 +5005,7 @@ function _skpOpts(hk,slot){ const kit=KITS[hk]||{}, T=HERO_TYPES[hk]||{};
 const SKP_OWNFX={bell:'bellring',horizon:'astrahorizon',chop:'korvuxcleave',quake:'tharlquake',digin:'rhukkroar',puncture:'vesperpuncture',tempest:'vextempest',
   mantle:'veyrmantle',undertow:'veyrundertow',crescent:'veyrcrescent',ruyi:'konwuruyi',wound:'bleedopen',cards:'sorrelcard',reap:'carnreap',hook:'hookreel',vwarcry:'vael_green',vblood:'vael_blue',vstand:'vael_ult',dclaws:'deepcleft_green',dburrow:'deepcleft_blue',dquarry:'deepcleft_ult',mcourage:'mirelle_green',bgreen:'brannus_green',bblue:'brannus_blue',bult:'brannus_ult',kgreen:'kharos_green',kblue:'kharos_blue',kult:'kharos_ult',msleep:'mirelle_blue',hfan:'hollow_green',hlacer:'hollow_blue',hvoid:'hollow_ult',tforge:'tolley_green',tquench:'tolley_blue_boom',tlforge:'tolley_ult',gfist:'grosk_blue',fstrike:'fritz_green',fchain:'fritz_blue',fstorm:'fritz_ult',hglaze:'hobb_green',gpull:'grosk_green'};
 function _skpFx(hk,slot,st,T0,rel){ const out=[], add=(e)=>{ if(e&&FX2_DEF[e.k]){ const m=FX2_DEF[e.k].fxMul; if(m){ if(e.R) e.R*=m; if(e.scale) e.scale*=m; } out.push(Object.assign({d:FX2_DEF[e.k]},e)); } };   /* v1197 fxMul: the preview draws the sheet at the same fraction */
+  if(hk===HERO61.KEY&&[0,1,2].includes(+slot)){const k=+slot===0?'hero61_bubble':'hero61_heal',d=FX2_DEF[k];add({k,kind:'fx16over',at:'target',t0:rel,real:d.hero61Life/FX_RT,ro:-1,hero61:true,d:Object.assign({},d,{size:+slot===2?1.6:d.size})});return out;}
   const tip=(typeof TIPFX!=='undefined')&&TIPFX[hk]&&TIPFX[hk][st]; if(tip) add({k:tip.fx,kind:'tip',t0:T0,track:tip.track,st});   // spawnTipFx (startAbilityClip): rides the clip
   if(+slot===3){ const k=hk+'_passive', d=FX2_DEF[k]; if(d) add({k,kind:d.upright?'up':(d.disc?'disc':'flat'),at:'self',t0:T0,life:(d.dur||1.6),R:2.4*METER}); return out; }   // firePassiveFx: on him, the sheet's own length
   const {type,o}=_skpOpts(hk,slot); if(!o) return out;   /* noArt: no abilArt plate - the case's own art (below) still draws */
@@ -12793,6 +12795,24 @@ const _KIT_ANYWHERE={defensive:1,lifestealbuff:1,warcry:1,selfheal:1,harmonyshie
 const AUTO_GROUND_AOE={aoeStun:1,fireball:1,gravcrush:1,worldweight:1,eventhorizon:1,blizzard:1,umbralcata:1,swamproot:1,ashfall:1,shadeburst:1,hornetswarm:1};
 
 // Hero 61 runs on the fixed battle clock, including in sim-host replay. No FX drives an effect.
+// Approved dark-purple Hailuo plates. Visual clocks never drive combat.
+function hero61FxFrame(d,t){
+  if(t>=d.hero61Life)return -1;
+  // Preserve the preferred take's dissolve after the four-second protection.
+  const cell=d.hero61Life>4?(t<4?t*6:24+(t-4)/.6*(d.n-25)):t*12;
+  return Math.max(0,Math.min(d.n-1,Math.floor(cell)));
+}
+function hero61Effect(u,target,slot){
+  if(!TH||!scene||!camera||!target||!target.alive)return;
+  const vk=slot==='ult'?'h61ult':slot==='blue'?'h61blue':'h61green';
+  // Repeated heals replace this king's prior aura on this ally; protection uses
+  // a separate track and is never removed by a heal.
+  for(let i=_fx1123.length-1;i>=0;i--){const q=_fx1123[i];
+    if(q.kind==='fx16'&&q.u===u&&q.T===target&&((slot==='ult'&&q.vk==='h61ult')||(slot!=='ult'&&/^h61(green|blue)$/.test(q.vk)))){_fx22Kill(q);_fx1123.splice(i,1);}}
+  fx16Release(u,vk,0,target);
+  const q=_fx1123[_fx1123.length-1];
+  if(q&&q.vk===vk&&q.u===u){q.d=Object.assign({},q.d,{size:slot==='blue'?1.6:q.d.size});q.mir=false;}
+}
 function hero61Controlled(u){return !u.alive||(u.stunned||0)>0||(u.fearT||0)>0||(u.silencedT||0)>0||(u._sleepT||0)>0;}
 function hero61Cast(u,slot,target){
   if(hero61Controlled(u))return false;
@@ -12804,10 +12824,10 @@ function hero61Cast(u,slot,target){
   u._castSlot=slot;startAbilityClip(u,slot==='ult'?'noneShallFall':slot==='blue'?'crownShelter':'kingsMercy');u._castSlot=null;
   u._pend={t:ct,sm:1,lv,hero61Slot:slot,fire:()=>{
     if(slot==='ult'){
-      if(target.alive&&target.team===u.team)target._openGateImmuneUntil=battleTime+4;
+      if(target.alive&&target.team===u.team){target._openGateImmuneUntil=battleTime+4;try{hero61Effect(u,target,'ult');}catch(_e){}}
     }else{
       const ally=HERO61.weakest(u,units);
-      if(ally)healFrom(u,ally,HERO61.healAmount(slot,lv,ally,u));
+      if(ally){healFrom(u,ally,HERO61.healAmount(slot,lv,ally,u));try{hero61Effect(u,ally,slot);}catch(_e){}}
       if(slot==='blue')u.blueCd=8; // successful release, never at press or interrupted cast
     }
   }};
@@ -13228,6 +13248,9 @@ function updateVoidZones(dt){ for(let i=voidZones.length-1;i>=0;i--){ const z=vo
   if(z.life<=0){ [z.disc,z.ring,z.ring2].forEach(m=>{ if(m){ scene.remove(m); if(m.geometry)m.geometry.dispose(); m.material.dispose(); } }); voidZones.splice(i,1); } } }
 // ===== Animated FX sheets (batch effects): looping ground zones + traveling projectiles that face their target =====
 const FX2_DEF={
+  hero61_heal:{"u":"/assets/anim/fx/hero61_healing_1263.webp?v=1263fx","n":30,"fw":243,"fh":512,"cols":8,"rows":4,"dur":2.5,"fps2":12,"anchor":[0.5,0.06],"size":1.35,"mid":0,"spawn":0,"hero61Life":2.5},
+  hero61_bubble:{"u":"/assets/anim/fx/hero61_bubble_1263.webp?v=1263fx","n":62,"fw":255,"fh":256,"cols":8,"rows":8,"dur":5.166666666666667,"fps2":12,"anchor":[0.5,0.5],"size":1.65,"mid":0.5,"spawn":0,"hero61Life":4.6},
+
   astra_ult:{u:'/assets/anim/fx/astra_ult.webp?v=32',n:48,fw:386,fh:381,cols:6,rows:8,dur:5.83,upright:true,upSize:2.0,upExtent:0.966,upAnchor:[0.5,0.0],ro:1},
   aureth_ult:{u:'/assets/anim/fx/aureth_ult.webp?v=32',n:48,fw:299,fh:292,cols:6,rows:8,dur:5.88,upright:true,upSize:2.0,upExtent:0.959,upAnchor:[0.5,0.0],ro:1},
   carn_ult:{u:'/assets/anim/fx/carn_ult.webp?v=33',n:48,fw:319,fh:512,cols:6,rows:8,dur:2.6,upright:true,upSize:1.7,upExtent:0.984,upAnchor:[0.18,0.08],upFlip:true,ro:2},
@@ -14030,7 +14053,7 @@ function updateWaxFx(dt){ try{ updateCandleFx(dt); }catch(_e){} try{ updateFx111
    flat on the aimed 8 m circle, Korvux's Ember Cleave riding his axe swing. REAL TIME like v1115 (a clip second = FX_RT fight
    seconds). Display only: these helpers read units and the camera and never touch damage, CC, pulls, hazards, positions or the
    fight state. The plumbing keeps the v1123 fx-branch names (_fx1123, FX1123_WARM, _fx22*) so that branch's spells can join it. */
-const FX1123_WARM={sorrel:['sorrelcard','sorrelspark','sorrelflare'],carn:['carnreap'],tharl:['tharlquake'],konwu:['konwuruyi'],rhukk:['rhukkroar','rhukkshell'],astra:['astrahorizon'],korvux:['korvuxcleave'],vesper:['vesperpuncture'],vex:['vextempest'],veyr:['veyrcrescent','veyrmantle','veyrundertow'],vael:['vael_green','vael_blue','vael_ult'],deepcleft:['deepcleft_green','deepcleft_blue','deepcleft_ult'],brannus:['brannus_green','brannus_blue','brannus_ult'],kharos:['kharos_green','kharos_blue','kharos_ult'],tessit:['tessithourglass'],hollow:['hollow_green','hollow_blue','hollow_ult'],tolley:['tolley_green','tolley_blue','tolley_blue_boom','tolley_ult'],grosk:['grosk_blue','grosk_green'],fritz:['fritz_green','fritz_blue','fritz_ult'],hobb:['hobb_green']};   /* v1191: Hollow's knives, cut and void load with his figure (the rig: the first void of a chain drew before its sheet had loaded) */
+const FX1123_WARM={hero61:['hero61_heal','hero61_bubble'],sorrel:['sorrelcard','sorrelspark','sorrelflare'],carn:['carnreap'],tharl:['tharlquake'],konwu:['konwuruyi'],rhukk:['rhukkroar','rhukkshell'],astra:['astrahorizon'],korvux:['korvuxcleave'],vesper:['vesperpuncture'],vex:['vextempest'],veyr:['veyrcrescent','veyrmantle','veyrundertow'],vael:['vael_green','vael_blue','vael_ult'],deepcleft:['deepcleft_green','deepcleft_blue','deepcleft_ult'],brannus:['brannus_green','brannus_blue','brannus_ult'],kharos:['kharos_green','kharos_blue','kharos_ult'],tessit:['tessithourglass'],hollow:['hollow_green','hollow_blue','hollow_ult'],tolley:['tolley_green','tolley_blue','tolley_blue_boom','tolley_ult'],grosk:['grosk_blue','grosk_green'],fritz:['fritz_green','fritz_blue','fritz_ult'],hobb:['hobb_green']};   /* v1191: Hollow's knives, cut and void load with his figure (the rig: the first void of a chain drew before its sheet had loaded) */
 const _fx1123=[];
 function _fx22Area(){ return (typeof GSPLIT!=='undefined'&&GSPLIT&&GSPLIT.active)?BONUS_UNIT_SCALE:1; }   /* a bonus run's units are shrunk: so are the metric discs */
 function _fx22Spr(key,ro){ const d=FX2_DEF[key], t=fx2Tex(key); if(!d||!t) return null;
@@ -14208,7 +14231,7 @@ function _fx22VeyrTick(o){ const d=o.d;
                           clip); again where he pops up, on the engine's own emerge (deepcleftEmergeFx from the burrow timer)
               Quarry Collapse ult cell 9 (the first slam)        flat on the aimed point (re-pinned to the case's own centre at the form launch),
                           the rim = the kit radius (120 units), real time, once */
-const FX16_ART={vwarcry:{k:'vael_green',st:'green',mode:'disc'},vblood:{k:'vael_blue',st:'blue',mode:'fit'},vstand:{k:'vael_ult',st:'ult',mode:'hold'},
+const FX16_ART={h61green:{k:'hero61_heal',st:'green',mode:'ally',hero61:true},h61blue:{k:'hero61_heal',st:'blue',mode:'ally',hero61:true},h61ult:{k:'hero61_bubble',st:'ult',mode:'ally',hero61:true},vwarcry:{k:'vael_green',st:'green',mode:'disc'},vblood:{k:'vael_blue',st:'blue',mode:'fit'},vstand:{k:'vael_ult',st:'ult',mode:'hold'},
   dclaws:{k:'deepcleft_green',st:'green',mode:'claws'},dburrow:{k:'deepcleft_blue',st:'blue',mode:'puff'},dquarry:{k:'deepcleft_ult',st:'ult',mode:'aim'},
   mcourage:{k:'mirelle_green',st:'green',mode:'ally',atRelease:true},msleep:{k:'mirelle_blue',st:'blue',mode:'over',atRelease:true,noFly:true},
   bgreen:{k:'brannus_green',st:'green',mode:'glide',ro:994,noFly:true,atLaunch:true,atRelease:true},
@@ -14267,7 +14290,8 @@ function _fx22Fx16Tick(o){ const d=o.d, u=o.u, V=FX16_ART[o.vk];
     if(V.mode==='hand'&&live&&a<d.spawn){ o.vis=false; u._fxHand=o; } }   /* v1191 Fan of Knives: made a cell early, SHOWN by the render on the frame it draws the release cell (syncMesh), so the knives leave on that exact frame */
   const tl=o.t-o.ts, rt=tl/FX_RT; let fr, op=1; if(V.hideAt!=null&&!(o.u.alive)) o.u._fxHideA=null;
   if(V.mode==='ally'||V.mode==='over'||V.mode==='onTgt'||V.mode==='wrap'){ if(o.T&&!o.T.alive&&o.cut==null) o.cut=o.t; }   /* the unit fell: it fades */
-  if(V.mode==='plate'||V.mode==='disc'||V.mode==='claws'||V.mode==='aim'||V.mode==='puff'||V.mode==='ally'||V.mode==='over'||V.mode==='side'||V.mode==='ring'||V.mode==='onTgt'||V.mode==='wrap'||V.mode==='cut'||V.mode==='hand'){ fr=Math.floor(rt*d.fps2); if(fr>=d.n){ if(V.hideAt!=null&&o.u) o.u._fxHideA=null; return -1; }   /* real time, once */
+  if(V.hero61){fr=hero61FxFrame(d,tl);if(fr<0)return -1;}
+  else if(V.mode==='plate'||V.mode==='disc'||V.mode==='claws'||V.mode==='aim'||V.mode==='puff'||V.mode==='ally'||V.mode==='over'||V.mode==='side'||V.mode==='ring'||V.mode==='onTgt'||V.mode==='wrap'||V.mode==='cut'||V.mode==='hand'){ fr=Math.floor(rt*d.fps2); if(fr>=d.n){ if(V.hideAt!=null&&o.u) o.u._fxHideA=null; return -1; }   /* real time, once */
     if(d.fadeR) op=Math.max(0,Math.min(1,(d.n/d.fps2-rt)/d.fadeR)); }
   else { const L=Math.max(0.2,((o.relT!=null?o.relT:o.ct)-o.ts)+o.dur);   /* from the show to the buff's end */
     if(!u.alive&&o.cut==null) o.cut=o.t;
