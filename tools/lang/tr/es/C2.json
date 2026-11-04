@@ -1,0 +1,13 @@
+{
+ "err.placement_closed_this_week": "La colocación está cerrada esta semana.",
+ "err.oases_only_world_tree_event": "Los oasis solo se pueden tomar durante el evento del Árbol del Mundo.",
+ "err.world_tree_only_world_tree_event": "El Árbol del Mundo solo se puede tomar durante su evento.",
+ "err.lines_locked_reopen_next_prep": "Empezó la lucha: líneas bloqueadas a las 18:00 ET. Se reabren en la próxima preparación.",
+ "err.bracket_not_set_rounds_begin": "El cuadro aún no está listo: la colocación de líneas abre cuando empiecen las rondas.",
+ "err.towers_lock_open_again": "Las torres se bloquean a las 18:00; vuelven a abrir {when}.",
+ "err.lines_locked_reopen_at": "Empezó la lucha: líneas bloqueadas a las 18:00 ET. Se reabren {when}.",
+ "err.bracket_not_set_opens": "El cuadro aún no está listo: la colocación de líneas abre {when}.",
+ "err.gold_province_stage_gate": "La fase {stage} de la Provincia del Oro abre en el nivel de cuenta {level} (tienes {lvl}).",
+ "err.drill_province_stage_gate": "La fase {stage} de la Provincia de Instrucción abre en el nivel de cuenta {level} (tienes {lvl}).",
+ "err.old_raid_assault_retired": "El antiguo asalto de incursión se retiró: lucha contra el jefe de incursión (Gremio → Incursión)."
+}

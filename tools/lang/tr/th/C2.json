@@ -1,0 +1,13 @@
+{
+ "err.placement_closed_this_week": "การจัดวางปิดแล้วสำหรับสัปดาห์นี้",
+ "err.oases_only_world_tree_event": "ยึดโอเอซิสได้เฉพาะช่วงกิจกรรมต้นไม้โลก",
+ "err.world_tree_only_world_tree_event": "ยึดต้นไม้โลกได้เฉพาะช่วงกิจกรรม",
+ "err.lines_locked_reopen_next_prep": "การต่อสู้เริ่มแล้ว — แนวรบล็อกเวลา 18:00 ET จะเปิดอีกครั้งในช่วงเตรียมตัวครั้งถัดไป",
+ "err.bracket_not_set_rounds_begin": "ยังไม่จัดสาย — การจัดวางแนวรบจะเปิดเมื่อเริ่มรอบ",
+ "err.towers_lock_open_again": "หอคอยล็อกเวลา 18:00 — เปิดอีกครั้ง {when}",
+ "err.lines_locked_reopen_at": "การต่อสู้เริ่มแล้ว — แนวรบล็อกเวลา 18:00 ET เปิดอีกครั้ง {when}",
+ "err.bracket_not_set_opens": "ยังไม่จัดสาย — การจัดวางแนวรบเปิด {when}",
+ "err.gold_province_stage_gate": "ด่าน {stage} ของจังหวัดทองคำเปิดที่เลเวลบัญชี {level} (คุณอยู่ที่ {lvl})",
+ "err.drill_province_stage_gate": "ด่าน {stage} ของจังหวัดฝึกซ้อมเปิดที่เลเวลบัญชี {level} (คุณอยู่ที่ {lvl})",
+ "err.old_raid_assault_retired": "การจู่โจมเรดแบบเก่าถูกยกเลิกแล้ว — สู้กับบอสเรด (กิลด์ → เรด)"
+}

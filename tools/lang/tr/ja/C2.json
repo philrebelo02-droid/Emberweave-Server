@@ -1,0 +1,13 @@
+{
+ "err.placement_closed_this_week": "今週の配置は締め切られました。",
+ "err.oases_only_world_tree_event": "オアシスは世界樹イベント中にのみ占領できます。",
+ "err.world_tree_only_world_tree_event": "世界樹はイベント中にのみ占領できます。",
+ "err.lines_locked_reopen_next_prep": "戦闘開始 — ラインは18:00 ETにロックされました。次の準備期間に再開します。",
+ "err.bracket_not_set_rounds_begin": "組み合わせはまだ未確定です — ラウンド開始時に配置が開きます。",
+ "err.towers_lock_open_again": "タワーは18:00にロックされます — 再開：{when}",
+ "err.lines_locked_reopen_at": "戦闘開始 — ラインは18:00 ETにロックされました。再開：{when}",
+ "err.bracket_not_set_opens": "組み合わせはまだ未確定です — 配置開始：{when}",
+ "err.gold_province_stage_gate": "黄金州のステージ{stage}はアカウントLv{level}で開放（現在Lv{lvl}）。",
+ "err.drill_province_stage_gate": "訓練州のステージ{stage}はアカウントLv{level}で開放（現在Lv{lvl}）。",
+ "err.old_raid_assault_retired": "旧レイド襲撃は終了しました — レイドボスと戦ってください（ギルド → レイド）。"
+}

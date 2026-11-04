@@ -1,0 +1,13 @@
+{
+ "err.placement_closed_this_week": "Die Aufstellung ist diese Woche geschlossen.",
+ "err.oases_only_world_tree_event": "Oasen können nur während des Weltenbaum-Events eingenommen werden.",
+ "err.world_tree_only_world_tree_event": "Der Weltenbaum kann nur während seines Events eingenommen werden.",
+ "err.lines_locked_reopen_next_prep": "Der Kampf hat begonnen – Linien um 18:00 ET gesperrt. Sie öffnen bei der nächsten Vorbereitung.",
+ "err.bracket_not_set_rounds_begin": "Die Paarungen stehen noch nicht – die Aufstellung öffnet, sobald die Runden beginnen.",
+ "err.towers_lock_open_again": "Türme sperren um 18:00 – sie öffnen wieder {when}.",
+ "err.lines_locked_reopen_at": "Der Kampf hat begonnen – Linien um 18:00 ET gesperrt. Sie öffnen wieder {when}.",
+ "err.bracket_not_set_opens": "Die Paarungen stehen noch nicht – die Aufstellung öffnet {when}.",
+ "err.gold_province_stage_gate": "Stufe {stage} der Goldprovinz öffnet ab Kontostufe {level} (du hast {lvl}).",
+ "err.drill_province_stage_gate": "Stufe {stage} der Übungsprovinz öffnet ab Kontostufe {level} (du hast {lvl}).",
+ "err.old_raid_assault_retired": "Der alte Raid-Angriff ist eingestellt – kämpfe gegen den Raid-Boss (Gilde → Raid)."
+}

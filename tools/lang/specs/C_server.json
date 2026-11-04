@@ -550,7 +550,18 @@
   "err.you_have_no": "You have no {stam_item_name}.",
   "err.has_fallen": "{name} has fallen.",
   "err.not_enough": "Not enough {r}.",
-  "err.need": "Need {subFragCost} × {frag}."
+  "err.need": "Need {subFragCost} × {frag}.",
+  "err.placement_closed_this_week": "Placement is closed for this week.",
+  "err.oases_only_world_tree_event": "The oases can only be taken during the World Tree event.",
+  "err.world_tree_only_world_tree_event": "The World Tree can only be taken during the World Tree event.",
+  "err.lines_locked_reopen_next_prep": "The fighting has started — lines locked at 18:00 ET. They reopen at the next prep.",
+  "err.bracket_not_set_rounds_begin": "The bracket is not set yet — line placement opens once the rounds begin.",
+  "err.towers_lock_open_again": "Towers lock at 18:00 — they open again {when}.",
+  "err.lines_locked_reopen_at": "The fighting has started — lines locked at 18:00 ET. They reopen at {when}.",
+  "err.bracket_not_set_opens": "The bracket is not set yet — line placement opens {when}.",
+  "err.gold_province_stage_gate": "Gold Province Stage {stage} opens at account level {level} (you are {lvl}).",
+  "err.drill_province_stage_gate": "Drill Province Stage {stage} opens at account level {level} (you are {lvl}).",
+  "err.old_raid_assault_retired": "The old raid assault is retired - fight the raid boss (Guild → Raid)."
  },
  "edits": []
 }

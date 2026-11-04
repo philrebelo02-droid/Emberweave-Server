@@ -1,0 +1,13 @@
+{
+ "err.placement_closed_this_week": "इस हफ़्ते तैनाती बंद है।",
+ "err.oases_only_world_tree_event": "नखलिस्तान सिर्फ़ विश्व वृक्ष इवेंट के दौरान जीते जा सकते हैं।",
+ "err.world_tree_only_world_tree_event": "विश्व वृक्ष सिर्फ़ उसके इवेंट के दौरान जीता जा सकता है।",
+ "err.lines_locked_reopen_next_prep": "लड़ाई शुरू हो गई — पंक्तियाँ 18:00 ET पर बंद हुईं। अगली तैयारी में फिर खुलेंगी।",
+ "err.bracket_not_set_rounds_begin": "ब्रैकेट अभी तय नहीं — राउंड शुरू होने पर पंक्ति तैनाती खुलेगी।",
+ "err.towers_lock_open_again": "टावर 18:00 पर बंद होते हैं — फिर खुलेंगे {when}।",
+ "err.lines_locked_reopen_at": "लड़ाई शुरू हो गई — पंक्तियाँ 18:00 ET पर बंद हुईं। फिर खुलेंगी {when}।",
+ "err.bracket_not_set_opens": "ब्रैकेट अभी तय नहीं — पंक्ति तैनाती खुलेगी {when}।",
+ "err.gold_province_stage_gate": "स्वर्ण प्रांत का चरण {stage} खाता स्तर {level} पर खुलता है (आप {lvl} पर हैं)।",
+ "err.drill_province_stage_gate": "अभ्यास प्रांत का चरण {stage} खाता स्तर {level} पर खुलता है (आप {lvl} पर हैं)।",
+ "err.old_raid_assault_retired": "पुराना रेड हमला बंद कर दिया गया — रेड बॉस से लड़ें (गिल्ड → रेड)।"
+}

@@ -1,0 +1,13 @@
+{
+ "err.placement_closed_this_week": "Penempatan ditutup untuk minggu ini.",
+ "err.oases_only_world_tree_event": "Oasis hanya bisa direbut saat event Pohon Dunia.",
+ "err.world_tree_only_world_tree_event": "Pohon Dunia hanya bisa direbut saat event-nya.",
+ "err.lines_locked_reopen_next_prep": "Pertempuran sudah dimulai — barisan terkunci pukul 18:00 ET. Dibuka lagi pada persiapan berikutnya.",
+ "err.bracket_not_set_rounds_begin": "Bagan belum ditentukan — penempatan barisan dibuka saat ronde dimulai.",
+ "err.towers_lock_open_again": "Menara terkunci pukul 18:00 — dibuka lagi {when}.",
+ "err.lines_locked_reopen_at": "Pertempuran sudah dimulai — barisan terkunci pukul 18:00 ET. Dibuka lagi {when}.",
+ "err.bracket_not_set_opens": "Bagan belum ditentukan — penempatan barisan dibuka {when}.",
+ "err.gold_province_stage_gate": "Tahap {stage} Provinsi Emas terbuka di level akun {level} (kamu level {lvl}).",
+ "err.drill_province_stage_gate": "Tahap {stage} Provinsi Latihan terbuka di level akun {level} (kamu level {lvl}).",
+ "err.old_raid_assault_retired": "Serangan raid lama sudah dihentikan — lawan bos raid (Guild → Raid)."
+}

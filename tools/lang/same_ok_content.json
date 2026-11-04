@@ -1,0 +1,37 @@
+{
+ "_why": "LANGUAGES step 2: content templates reviewed as legitimately identical to English in that language (abbreviation chips: DoT, tick, the French word poison).",
+ "es": [],
+ "pt-BR": [],
+ "fr": [
+  "{i:s:poison} {0} + poison"
+ ],
+ "de": [
+  "{i:s:attack} {0} + DoT {1}/s",
+  "{i:s:poison} DoT {0}/s · {1}s",
+  "{i:s:poison} {0} + DoT {1}/s",
+  "{i:t:apow} {0} + DoT {1}/s"
+ ],
+ "it": [
+  "{i:s:attack} {0} + DoT {1}/s",
+  "{i:s:energy} {0}/tick · {1}s",
+  "{i:s:poison} DoT {0}/s · {1}s",
+  "{i:s:poison} {0} + DoT {1}/s",
+  "{i:s:slow} {0}/tick · {1}s",
+  "{i:t:apow} {0} + DoT {1}/s"
+ ],
+ "nl": [
+  "{i:s:attack} {0} + DoT {1}/s",
+  "{i:s:poison} DoT {0}/s · {1}s",
+  "{i:s:poison} {0} + DoT {1}/s",
+  "{i:t:apow} {0} + DoT {1}/s"
+ ],
+ "ru": [],
+ "tr": [],
+ "ja": [],
+ "ko": [],
+ "zh-Hans": [],
+ "zh-Hant": [],
+ "th": [],
+ "id": [],
+ "hi": []
+}

@@ -482,6 +482,11 @@ const EXACT=[
   ["own_march_required","Own march required"],
   ["a_fighting_line_cannot_retreat","A fighting line cannot retreat"],
   ["unknown_control_action","Unknown control action"],
+  ["placement_closed_this_week","Placement is closed for this week."],
+  ["oases_only_world_tree_event","The oases can only be taken during the World Tree event."],
+  ["world_tree_only_world_tree_event","The World Tree can only be taken during the World Tree event."],
+  ["lines_locked_reopen_next_prep","The fighting has started — lines locked at 18:00 ET. They reopen at the next prep."],
+  ["bracket_not_set_rounds_begin","The bracket is not set yet — line placement opens once the rounds begin."],
 ];
 const PATTERNS=[
   ["names_cannot_use_letters_numbers_spaces","Names cannot use {bad} - letters, numbers, spaces and _ - . ! ? # @ $ % * + = ~ ( ) [ ] : , ^ only.","^Names cannot use ([\\s\\S]*?) - letters, numbers, spaces and _ - \\. ! \\? # @ \\$ % \\* \\+ = ~ \\( \\) \\[ \\] : , \\^ only\\.$",["bad"]],
@@ -560,6 +565,12 @@ const PATTERNS=[
   ["has_fallen","{name} has fallen.","^([\\s\\S]*?) has fallen\\.$",["name"]],
   ["not_enough","Not enough {r}.","^Not enough ([\\s\\S]*?)\\.$",["r"]],
   ["need","Need {subFragCost} × {frag}.","^Need ([\\s\\S]*?) × ([\\s\\S]*?)\\.$",["subFragCost","frag"]],
+  ["towers_lock_open_again","Towers lock at 18:00 — they open again {when}.","^Towers lock at 18:00 — they open again ([\\s\\S]*?)\\.$",["when"]],
+  ["lines_locked_reopen_at","The fighting has started — lines locked at 18:00 ET. They reopen at {when}.","^The fighting has started — lines locked at 18:00 ET\\. They reopen at ([\\s\\S]*?)\\.$",["when"]],
+  ["bracket_not_set_opens","The bracket is not set yet — line placement opens {when}.","^The bracket is not set yet — line placement opens ([\\s\\S]*?)\\.$",["when"]],
+  ["gold_province_stage_gate","Gold Province Stage {stage} opens at account level {level} (you are {lvl}).","^Gold Province Stage ([\\s\\S]*?) opens at account level ([\\s\\S]*?) \\(you are ([\\s\\S]*?)\\)\\.$",["stage","level","lvl"]],
+  ["drill_province_stage_gate","Drill Province Stage {stage} opens at account level {level} (you are {lvl}).","^Drill Province Stage ([\\s\\S]*?) opens at account level ([\\s\\S]*?) \\(you are ([\\s\\S]*?)\\)\\.$",["stage","level","lvl"]],
+  ["old_raid_assault_retired","The old raid assault is retired - fight the raid boss (Guild → Raid).","^The old raid assault is retired - fight the raid boss \\(Guild (?:->|→) Raid\\)\\.$",[]],
 ];
 const BY_TEXT=new Map(EXACT.map(([code,en])=>[en,code]));
 const PATS=PATTERNS.map(([code,en,re,vars])=>({code,en,re:new RegExp(re),vars}));
