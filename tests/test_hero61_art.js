@@ -10,7 +10,15 @@ for(const [slot,e] of Object.entries(F.entries)){
  assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'),F.files[relative]);
  assert.ok(bytes.length<=4e6);assert.ok(a.fw*a.cols<=2048&&a.fh*a.rows<=2048);
 }
-assert.equal(actual.blue,undefined,'unapproved Blue must not be wired');
+assert.equal(actual.blue.n,116,'approved Blue take5 has its own cast clip');
+assert.equal(actual.blue.contact,89);
+assert.equal(F.blueProvenance.sourceSHA256,'d268d383dd8d50e09a17364f9c18573b4ce6578dbb96ebd50c1058bd949adbf8');
+assert.equal(F.cut.blue.frames[89],54,'source release pose retained at the engine contact');
+run(`globalThis.blueCaster=makeUnit('hero61','ally',300,300,1,{rank:3});
+ globalThis.blueFriend=makeUnit('vael','ally',320,300,1,{rank:3});
+ units=[blueCaster,blueFriend];blueCaster.anim=BATTLE_ANIM.hero61;blueFriend.hp=blueFriend.maxHp*.2;hero61Cast(blueCaster,'blue');`);
+assert.equal(run('blueCaster._pend.t'),2.5,'art leaves authoritative cast delay intact');
+assert.equal(run('blueCaster._abilAnim'),'blue','runtime selects Blue instead of attack fallback');
 assert.equal(actual.death.parts.length,14);assert.equal(actual.death.dn,53);assert.equal(actual.death.end,'hold');
 for(const k of actual.death.parts){assert.ok(actual[k].lazy);assert.ok(actual[k].n<=4);}
 assert.ok(run('deathPeakMB(deathParts(BATTLE_ANIM.hero61,BATTLE_ANIM.hero61.death))')<10,'streaming deaths hold only two small sheets');
@@ -33,4 +41,4 @@ const missing=require('../server/sim-host').load(path.join(ROOT,'emberweave-hero
 vm.runInContext('Object.entries(BATTLE_ANIM.hero61).forEach(([slot,a])=>{a.u="/assets/anim/hero61/missing-render-only-"+slot+".webp";delete a.tex;});',missing.ctx);
 const noTextures=missing.auto(missing.snapFromSpecs(specs),foes,61003);
 assert.deepEqual(noTextures,withArt,'pixels and texture availability cannot change combat');
-console.log('Hero61 art PASS: 7 approved sources, phone bounds/alpha/fringe, streaming ash death, offline assets, no-Blue gate, texture-independent combat');
+console.log('Hero61 art PASS: 8 approved sources, phone bounds/alpha/fringe, streaming ash death, offline assets, approved Blue5 contact, texture-independent combat');

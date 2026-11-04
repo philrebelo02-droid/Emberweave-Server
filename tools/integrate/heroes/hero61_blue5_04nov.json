@@ -1,0 +1,32 @@
+{
+  "hero": "hero61",
+  "name": "Hero61 Blue take5",
+  "version": "1264blue5",
+  "reviewDir": "C:\\Users\\Home\\Documents\\Codex\\2026-10-07\\hu\\outputs\\hero61-blue5-integration-04nov\\approved-sources",
+  "work": "C:\\Users\\Home\\Documents\\Codex\\2026-10-07\\hu\\outputs\\hero61-blue5-integration-04nov",
+  "expectedSourceFrames": 158,
+  "expectStates": [
+    "blue"
+  ],
+  "key": {
+    "unmixSoft": false,
+    "pad": 16,
+    "maxFig": 239,
+    "cellGuard": 2
+  },
+  "states": {
+    "blue": {
+      "creation": "take5-blue",
+      "n": 116,
+      "contact": 89,
+      "contactFrame": 54,
+      "end": 157,
+      "hold": 0,
+      "framing": "fit"
+    }
+  },
+  "sound": {},
+  "order": [
+    "blue"
+  ]
+}
