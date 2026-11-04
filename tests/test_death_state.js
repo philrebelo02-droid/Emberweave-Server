@@ -14,7 +14,7 @@
 (async function main() {
 const path = require('path'), vm = require('vm'), fs = require('fs'), cp = require('child_process'), crypto = require('crypto'), os = require('os'), net = require('net');
 const ROOT = path.resolve(__dirname, '..');
-const HTML = process.env.EW_HTML || path.join(ROOT, 'emberweave-heroes.html');
+const HTML = require('./helpers/global-1254-1260.js').page(process.env.EW_HTML || path.join(ROOT, 'emberweave-heroes.html'));   // 4 Nov 2026: the 2 Nov global engine changes (v1254 enemy nerf, v1258 resize, v1260 wave hold) undone on the live page so the older BASE still compares (tests/helpers/global-1254-1260.js; test_size_1258 checks the resize)
 const BASE_SHA = process.env.EW_BASE || '625db3e7';   // live v1195 (on v1190 streamed deaths + Batch 3), the build this change sits on
 const VER = process.env.EW_DEATH_VER || '1182';
 /* suite speed 30 Oct 2026 (Phil: "all machines take 1 long job"): EW_PART=headless runs sections 1-3 only, EW_PART=browser section 4 only; the two
@@ -46,7 +46,7 @@ const FIGHT = (seed, a, f) => `(()=>{ window._p2guard=true; const svA=autoUlt; a
     let h=2166136261>>>0; const s=tr.length+'@'+tr.join('#'); for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619)>>>0; }
     return JSON.stringify({h:s.length+':'+h.toString(16),deaths,ticks:tr.length,ended}); } finally{ autoUlt=svA; window._p2guard=false; } })()`;
 const fight = (f, s, a, e, pre) => { const r = load(f); if (pre) r(pre); return JSON.parse(r(FIGHT(s, a, e))); };
-const LATE = `(()=>{ const s=String(updateBattle).replace("u.deathT>.9).forEach","u.deathT>1.5).forEach"); if(s===String(updateBattle)) return 0; updateBattle=eval('('+s+')'); return 1; })()`;   // CONTROL: the removal moved
+const LATE = `(()=>{ const F=(typeof _updateBattleCore==='function')?'_updateBattleCore':'updateBattle', f0=eval(F); const s=String(f0).replace("u.deathT>.9).forEach","u.deathT>1.5).forEach"); if(s===String(f0)) return 0; eval(F+'=('+s+')'); return 1; })()`;   // 4 Nov 2026: since v1255 the tick body is _updateBattleCore (updateBattle wraps it + the 1-1 intro) - the control edits the body, wherever it is   // CONTROL: the removal moved
 try {
   // ------------------------------------------------------------------ 1. the page and the sources
   if (HEADLESS) {

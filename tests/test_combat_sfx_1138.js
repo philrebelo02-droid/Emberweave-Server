@@ -18,7 +18,7 @@
 (function main() {
 const path = require('path'), vm = require('vm'), fs = require('fs'), cp = require('child_process'), crypto = require('crypto');
 const ROOT = path.resolve(__dirname, '..');
-const HTML = process.env.EW_HTML || path.join(ROOT, 'emberweave-heroes.html');
+const HTML = require('./helpers/global-1254-1260.js').page(process.env.EW_HTML || path.join(ROOT, 'emberweave-heroes.html'));   // 4 Nov 2026: the 2 Nov global engine changes (v1254 enemy nerf, v1258 resize, v1260 wave hold) undone on the live page so the older BASE still compares (tests/helpers/global-1254-1260.js; test_size_1258 checks the resize)
 const BASE_SHA = process.env.EW_BASE || 'c78e5525';   // the branch point: live v1137 (Maren/Orryn, Veyr 2 s, Sylthaine, Rivet) after the rebase - no sound before this
 const LOG_DIR = process.env.EW_SFX_LOG || '';          // when set, the timing log of the fights is written there (the rig log)
 const MAN = JSON.parse(fs.readFileSync(path.join(ROOT, 'assets/audio/sfx/sfx_manifest.json'), 'utf8'));
@@ -70,7 +70,7 @@ try {
   const PY = process.env.PYTHON || 'python';
   const measure = list => JSON.parse(cp.execFileSync(PY, ['-I', '-c',
     'import json,sys; sys.path.insert(0, sys.argv[1]); import sfx_loudness as L; print(json.dumps([L.measure(p) for p in sys.argv[2:]]))',
-    path.join(ROOT, 'tools'), ...list], { maxBuffer: 16 << 20 }).toString());
+    path.join(ROOT, 'tools'), ...list.map(p => path.relative(ROOT, p))], { cwd: ROOT, maxBuffer: 16 << 20 }).toString());   // 4 Nov 2026: paths relative to ROOT - from a deep checkout (a worktree) the absolute list passed the Windows command-line limit (spawnSync ENAMETOOLONG)
   const names = Object.keys(files).sort();
   const meas = measure(names.map(n => path.join(ROOT, 'assets/audio', files[n].f.split('?')[0])));
   const tbl = names.map((n, i) => ({ n, m: meas[i].lufs_m, tp: meas[i].tp_db, want: files[n].target, d: +(meas[i].lufs_m - files[n].target).toFixed(2) }));

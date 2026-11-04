@@ -17,7 +17,7 @@
 const path = require('path'), vm = require('vm'), fs = require('fs'), os = require('os'), crypto = require('crypto');
 const ROOT = path.resolve(__dirname, '..');
 const Q95 = require('./helpers/q95-1158.js');   // v1158: q95 sheets are checked as the v1157 lossless originals they were (tests/test_q95_1158.js checks the q95 files)
-const HTML = Q95.page(path.join(ROOT, 'emberweave-heroes.html'));
+const HTML = require('./helpers/global-1254-1260.js').page(Q95.page(path.join(ROOT, 'emberweave-heroes.html')));   // 4 Nov 2026: the 2 Nov global engine changes (v1254 enemy nerf, v1258 resize, v1260 wave hold) undone on the live page so the older BASE still compares (tests/helpers/global-1254-1260.js; test_size_1258 checks the resize)
 const SRC = fs.readFileSync(HTML, 'utf8');
 const NL = SRC.includes('\r\n') ? '\r\n' : '\n';
 let pass = 0, fail = 0;

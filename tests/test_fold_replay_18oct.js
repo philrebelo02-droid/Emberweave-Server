@@ -1,7 +1,9 @@
 'use strict';
 const fs=require('fs'),path=require('path'),vm=require('vm'),cp=require('child_process'),assert=require('assert'),crypto=require('crypto');
 const root=path.resolve(__dirname,'..'),temp=path.join(root,'.fold-replay-baseline-'+process.pid+'.html');
-const load=f=>{const h=require('../server/sim-host.js').load(f);return s=>vm.runInContext(s,h.ctx)},now=load(path.join(root,'emberweave-heroes.html'));
+const load=f=>{const h=require('../server/sim-host.js').load(f);return s=>vm.runInContext(s,h.ctx)},now=load(require('./helpers/global-1254-1260.js').page(path.join(root,'emberweave-heroes.html')));
+// 4 Nov 2026: the 2 Nov global engine changes (v1254 enemy nerf, v1258 resize, v1260 wave hold) undone above and v1263 Hero 61 taken back out, so BASE (v1206) still compares - test_size_1258 checks the resize
+require('./helpers/hero61-1263.js').undoHero61_1263(now);
 require('./helpers/grosk-fritz-fx-1217.js').undoGroskFritzFx1217(now);   // v1217 Grosk / Fritz / Hobb FX display tags (a later, display-only release) go back to v1216's; test_grosk_fritz_fx_1217 checks them
 const BASE='d0e944c0a87cfa335c46b2efa47cb97dd771cc9a'; // v1206 before this layout-only integration; remote main can advance during cluster QA.
 fs.writeFileSync(temp,cp.execFileSync('git',['show',BASE+':emberweave-heroes.html'],{cwd:root,maxBuffer:64<<20}));

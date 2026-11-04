@@ -15,7 +15,7 @@ const R = require('./helpers/split-rig.cjs');
 const WS = require('../server/world-store.js');
 const SQUADS = [['vael', 'sylthaine', 'vireo'], ['brannus', 'yenna', 'seyla'], ['kharos', 'tharl', 'orryn'], ['hobb', 'askel', 'calypsa']];
 const CLOCK = /^(t|ts|at|now|iat|exp|created|lastSeen|depart|arrive|home|reachAt|readyAt|expireAt|startedAt|landedAt|resolvedAt|sentAt|serverNow|mtime|day|dayKey|skillImported)$|At$|Ms$/;
-const IDS = /^(id|marchId|mid|requestId|rid|key|engine)$/;   // v1129: engine = the client BUILD_ID, which every release bumps (not part of the fight)
+const IDS = /^(id|marchId|mid|requestId|rid|key|engine|sz)$/;   // v1129: engine = the client BUILD_ID, which every release bumps (not part of the fight); 4 Nov 2026: sz = the v1258 snapshot's UNIT_SIZE stamp (59eaefba's snapshots have none)
 function norm(v, k) {
   if (Array.isArray(v)) return v.map(x => norm(x));
   if (v && typeof v === 'object') { const o = {}; for (const kk of Object.keys(v).sort()) { if (CLOCK.test(kk) || IDS.test(kk)) continue; o[kk] = norm(v[kk], kk); } return o; }
@@ -83,12 +83,16 @@ function compare(a, b) {
 }
 
 // a deliberately broken copy for the control: the staged ledger hides the hero levels the fight reads
-function brokenTree() {
-  const dir = path.join(R.root, '.ctl-broken-copy'); fs.rmSync(dir, { recursive: true, force: true }); fs.mkdirSync(dir);
+// 4 Nov 2026: this tree runs as a copy too (unbroken for the comparison), its game page with the 2 Nov global engine changes undone (v1254 enemy
+// nerf, v1258 resize, v1260 wave hold - tests/helpers/global-1254-1260.js), so the fights still compare with 59eaefba; test_size_1258 checks the resize
+function brokenTree(name, intact) {
+  const dir = path.join(R.root, name || '.ctl-broken-copy'); fs.rmSync(dir, { recursive: true, force: true }); fs.mkdirSync(dir);
   const tar = execFileSync('git', ['archive', '--format=tar', 'HEAD', '--', '.', ':!assets'], { cwd: R.root, maxBuffer: 1 << 30 });
   execFileSync('tar', ['-x', '-C', dir.split(path.sep).join('/')], { input: tar, maxBuffer: 1 << 30 });
   for (const f of ['server.js', ...fs.readdirSync(path.join(R.root, 'server')).filter(n => /\.js$/.test(n)).map(n => 'server/' + n)]) fs.copyFileSync(path.join(R.root, f), path.join(dir, f));   // this tree's code, whatever is committed (v1128: every server module - store-io.js is new)
   fs.symlinkSync(path.join(R.root, 'assets'), path.join(dir, 'assets'), 'junction');
+  { const g = path.join(dir, 'emberweave-heroes.html'); fs.writeFileSync(g, require('./helpers/global-1254-1260.js').undoText(fs.readFileSync(path.join(R.root, 'emberweave-heroes.html'), 'utf8'))); }
+  if (intact) return dir;
   const f = path.join(dir, 'server.js'); let s = fs.readFileSync(f, 'utf8');
   const marker = "function _stageAccount(live,depth){\r\n  const out={}, copied=new Map(), touched=new Set();";
   assert.ok(s.includes(marker) || s.includes(marker.replace(/\r\n/g, '\n')), 'broken-tree marker present');
@@ -97,10 +101,11 @@ function brokenTree() {
 }
 
 (async () => {
-  let failed = false, broken = null;
+  let failed = false, broken = null, mineDir = null;
   try {
     const seed = await seedWorld();
-    const mine = await runOn(R.root, seed), ctl = await runOn(R.controlTree(), seed);
+    mineDir = brokenTree('.ctl-this-tree', true);
+    const mine = await runOn(mineDir, seed), ctl = await runOn(R.controlTree(), seed);
     const diffs = compare(mine, ctl);
     R.ok(mine.replies.length === 16 && ctl.replies.length === 16, '16 attacks ran on both trees (8 pairs x 2 rounds)');
     R.ok(diffs.length === 0, 'every attack reply (result + replay: seed, snapshots, foe, duration in ticks, units) and every account after is identical to ' + R.CONTROL_SHA + ' (whole copies) - ' + (diffs.length ? 'DIFF: ' + diffs.join(', ') : '0 differences'));
@@ -112,7 +117,7 @@ function brokenTree() {
     const bad = await runOn(broken, seed), badDiffs = compare(bad, ctl);
     R.ok(badDiffs.length > 0, 'CONTROL: a copy that hides the hero ledger from the fight is caught by the same comparison (' + badDiffs.length + ' differences)');
   } catch (e) { failed = true; console.error('FAIL ' + (e && e.stack || e)); }
-  finally { R.removeControlTree(); if (broken) { try { fs.unlinkSync(path.join(broken, 'assets')); } catch (_) {} fs.rmSync(broken, { recursive: true, force: true }); } }
+  finally { R.removeControlTree(); if (mineDir) { try { fs.unlinkSync(path.join(mineDir, 'assets')); } catch (_) {} fs.rmSync(mineDir, { recursive: true, force: true }); } if (broken) { try { fs.unlinkSync(path.join(broken, 'assets')); } catch (_) {} fs.rmSync(broken, { recursive: true, force: true }); } }
   console.log('test_attack_copy.js: ' + R.passed() + ' checks passed, ' + (failed ? 1 : 0) + ' failed');
   process.exit(failed ? 1 : 0);
 })();
