@@ -12,15 +12,19 @@ const check = (ok, what) => { n++; if (!ok) { fail++; console.log('FAIL: ' + wha
 
 // 1) Skyfall label: run the client's own label expression on the server's view fields, at every kill count
 check(!/\('\+d\.assaultsLeft\+' orders\)/.test(html), 'the board still shows the dead "(N orders)" countdown');
-const lab = (html.match(/' <span style="color:#ffd45e">\('(\+\(d\.kills\|0\)\+'\/'\+\(\(d\.kills\|0\)\+\(d\.killsLeft\|0\)\)\+)' kills\)<\/span>'/) || [])[1];
+// v1265 languages: the label is t('skyfall.kills',{n,m}) with the English "{n}/{m} kills" in lang/en.json - run it with that English
+const EN = JSON.parse(fs.readFileSync(path.join(root, 'lang', 'en.json'), 'utf8'));
+const tEn = (k, v) => { const s = EN[k]; if (s == null) throw new Error('missing English for ' + k); return s.replace(/\{(\w+)\}/g, (m, x) => v && v[x] != null ? String(v[x]) : ''); };
+check(EN['skyfall.kills'] === '{n}/{m} kills', 'the English Skyfall kills label changed in lang/en.json');
+const lab = (html.match(/' <span style="color:#ffd45e">\('(\+t\('skyfall\.kills',\{n:d\.kills\|0,m:\(d\.kills\|0\)\+\(d\.killsLeft\|0\)\}\)\+)'\)<\/span>'/) || [])[1];
 check(!!lab, 'the board does not show kills out of the cap');
 const cap = +(srv.match(/const WAR_KILL_CAP=(\d+)/) || [])[1];
 check(cap === 5, 'WAR_KILL_CAP not found (want 5)');
 check(/killsLeft:Math\.max\(0,WAR_KILL_CAP-\(d\.kills\|0\)\)/.test(srv) && /kills:d\.kills\|0/.test(srv), 'the server view no longer sends kills / killsLeft');
 if (lab && cap) for (let k = 0; k <= cap; k++) {
   const d = { kills: k, killsLeft: Math.max(0, cap - k) };
-  const shown = Function('d', "return ''" + lab + "''")(d);
-  if (shown !== k + '/' + cap) { check(false, 'line with ' + k + ' kills shows "' + shown + '", want "' + k + '/' + cap + '"'); break; }
+  const shown = Function('d', 't', "return ''" + lab + "''")(d, tEn);
+  if (shown !== k + '/' + cap + ' kills') { check(false, 'line with ' + k + ' kills shows "' + shown + '", want "' + k + '/' + cap + ' kills"'); break; }
 }
 
 // 2) Peace Shield: the shown price equals the server's charge at the CURRENT level, for every level 1-120

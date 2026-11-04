@@ -4,9 +4,10 @@
 const assert=require('assert'),fs=require('fs'),path=require('path'),vm=require('vm');
 const page=process.env.AUD_PAGE||path.join(__dirname,'..','emberweave-heroes.html'), src=fs.readFileSync(page,'utf8');
 const a=src.indexOf('async function gearPlanRun'), b=src.indexOf('\nfunction gearConfirmQuick',a); assert(a>0&&b>a,'gearPlanRun found');
+const _EN=JSON.parse(fs.readFileSync(path.join(__dirname,'..','lang','en.json'),'utf8')), _t=(k,v)=>(_EN[k]==null?k:_EN[k]).replace(/\{(\w+)\}/g,(m,x)=>v&&v[x]!=null?String(v[x]):''), LANG={t:_t,ewT:_t,langMsg:s=>s,langDesc:s=>s,langMeta:s=>s};   // v1271 LANGUAGES step 2: the page's English t()/ewT() from lang/en.json
 let pass=0, missed=[]; const ok=(c,m)=>{ if(process.env.AUD_PAGE&&!c){ missed.push(m); return; } assert(c,m); pass++; };
 async function run(failAt){ const calls=[], msgs=[]; let i=0;
-  const ctx={...require('./helpers/page-icons.js')(src), FORGE:{busy:false,st:{revision:1}}, forgeSync:async()=>{}, renderHeroDetail:()=>{}, bannerMsg:m=>msgs.push(m),
+  const ctx={...require('./helpers/page-icons.js')(src), ...LANG, FORGE:{busy:false,st:{revision:1}}, forgeSync:async()=>{}, renderHeroDetail:()=>{}, bannerMsg:m=>msgs.push(m),
     api:async(p)=>{ calls.push(p); if(p.includes('equip')) return {ok:true}; i++; return i===failAt?{error:'Not enough materials.'}:{crafted:'it'+i,name:'Piece'+i}; }};
   vm.createContext(ctx); vm.runInContext(src.slice(a,b)+';this.g=gearPlanRun;',ctx);
   await ctx.g({steps:[{kind:'sub'},{},{}]},'vael'); return {equip:calls.filter(c=>c.includes('equip')).length, msgs:msgs.join(' | ')}; }

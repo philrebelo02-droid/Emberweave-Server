@@ -1,0 +1,13 @@
+{
+ "err.placement_closed_this_week": "Opstellen is deze week gesloten.",
+ "err.oases_only_world_tree_event": "Oases kun je alleen tijdens het Wereldboom-evenement innemen.",
+ "err.world_tree_only_world_tree_event": "De Wereldboom kun je alleen tijdens zijn evenement innemen.",
+ "err.lines_locked_reopen_next_prep": "Het gevecht is begonnen: linies om 18:00 ET vergrendeld. Ze openen bij de volgende voorbereiding.",
+ "err.bracket_not_set_rounds_begin": "Het schema staat nog niet: opstellen opent zodra de rondes beginnen.",
+ "err.towers_lock_open_again": "Torens vergrendelen om 18:00; ze openen weer {when}.",
+ "err.lines_locked_reopen_at": "Het gevecht is begonnen: linies om 18:00 ET vergrendeld. Ze openen weer {when}.",
+ "err.bracket_not_set_opens": "Het schema staat nog niet: opstellen opent {when}.",
+ "err.gold_province_stage_gate": "Fase {stage} van de Goudprovincie opent op accountniveau {level} (jij bent {lvl}).",
+ "err.drill_province_stage_gate": "Fase {stage} van de Oefenprovincie opent op accountniveau {level} (jij bent {lvl}).",
+ "err.old_raid_assault_retired": "De oude raidaanval is gestopt: vecht tegen de raidbaas (Gilde → Raid)."
+}

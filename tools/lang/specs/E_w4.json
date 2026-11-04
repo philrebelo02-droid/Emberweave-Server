@@ -1,0 +1,10 @@
+{
+ "keys": {
+  "draft2.god_mode": "God Mode — unlimited attempts"
+ },
+ "edits": [
+  { "line": 32665, "find": "' God Mode — unlimited attempts'", "replace": "' '+ewT('draft2.god_mode')" },
+  { "line": 32430, "find": "(A.effect?': '+A.effect:'')", "replace": "(A.effect?': '+langDesc(A.effect):'')" },
+  { "line": 33941, "find": "ds=A&&(A.effect||A.desc);", "replace": "ds=A&&langDesc(A.effect||A.desc);" }
+ ]
+}

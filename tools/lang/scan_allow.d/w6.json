@@ -1,0 +1,13 @@
+{
+ "_why": "W6 game content tables (lore, glossary, hero / monster data). Proper names stay English (Phil's rule); every text field is shown through langDesc or a t() lookup at the display sites named.",
+ "tables": {
+  "HERO_LORE": "content: its text fields title, text are shown through langDesc at openGlossaryCard (glossary hero lore) and the hero screen Lore tab (heroDetail, heroTab==='lore'); registered in content_tables.d/w6.json",
+  "GLOSSARY_INFO": "names stay (name = monster / boss / summon names); its text field lore is shown through langDesc at openGlossaryCard; registered in content_tables.d/w6.json",
+  "GLOSSARY_DATA": "names: glossary entry ids and monster / boss names only (no text fields)",
+  "KITS": "names stay (green/blue/purple .name = skill names); its text field desc is shown through langDesc at skillDesc / passDescAt (hero detail, heroKitHtml glossary) and abilityTipHTML (battle tooltip); registered in content_tables.d/w6.json",
+  "HERO_TYPES": "names stay (name, abilityName = hero and ultimate names); its role words are shown through rosterClassName / herolist.role_* / edRoleTxt (roster card, hero detail, glossary, Skyfall skyTeamWhoHTML, Emberdraft); other strings are code ids (ability, source)",
+  "MONSTER_TYPES": "names stay (name = monster / boss / summon names); its role words are shown through rosterClassName (openGlossaryCard, glStatsHtml)",
+  "MONSTER_KITS": "names: monster skill names only (green/blue .name); the skill text shown is abilW (gloss.abil_* keys)",
+  "HERO_SUBNAME": "names: hero epithets (The Sky-Thrown ...) are part of the hero's name and stay English"
+ }
+}

@@ -1,0 +1,60 @@
+{
+ "keys": {
+  "battle.aim_drag_hint": "Drag to aim {name} · release to fire · drag to {x} Cancel to abort",
+  "battle.pick_target": "pick a target",
+  "battle.start_failed": "Could not start the fight — {why}",
+  "battle.unknown_error": "unknown error",
+  "battle.game_updated": "The game just updated — restarting…",
+  "battle.realm_unreachable": "Could not reach the realm — check your connection.",
+  "battle.connect_campaign": "Connect to play the campaign — this game is fully synced online.",
+  "battle.x2_unlock": "x2 speed unlocks at stage {stage}",
+  "battle.auto_requires": "Requires {egp} or level {n}"
+ },
+ "edits": [
+  {
+   "line": 31017,
+   "find": "' Drag to aim '+escapeHTML(u.t.abilityName)+' · release to fire · drag to '+uiIcon('close')+' Cancel to abort'",
+   "replace": "' '+ewT('battle.aim_drag_hint',{name:escapeHTML(u.t.abilityName),x:uiIcon('close')})"
+  },
+  {
+   "line": 31029,
+   "find": "||'pick a target'",
+   "replace": "||ewT('battle.pick_target')"
+  },
+  {
+   "line": 31521,
+   "find": "'Could not start the fight — '+((e&&e.message)||'unknown error')",
+   "replace": "ewT('battle.start_failed',{why:((e&&e.message)||ewT('battle.unknown_error'))})"
+  },
+  {
+   "line": 31551,
+   "find": "'The game just updated — restarting…'",
+   "replace": "ewT('battle.game_updated')"
+  },
+  {
+   "line": 31553,
+   "find": "'Could not reach the realm — check your connection.'",
+   "replace": "ewT('battle.realm_unreachable')"
+  },
+  {
+   "line": 31558,
+   "find": "'Connect to play the campaign — this game is fully synced online.'",
+   "replace": "ewT('battle.connect_campaign')"
+  },
+  {
+   "line": 31604,
+   "find": "'x2 speed unlocks at stage 1-3'",
+   "replace": "ewT('battle.x2_unlock',{stage:'1-3'})"
+  },
+  {
+   "line": 31627,
+   "find": "'Requires EGP 1 or level 30'",
+   "replace": "ewT('battle.auto_requires',{egp:'EGP 1',n:30})"
+  }
+ ],
+ "notes": [
+  "tests/test_speed_auto_1256.js line 20 asserts /bannerMsg\\('x2 speed unlocks at stage 1-3'\\)/ in the page source (base 31604 now ewT('battle.x2_unlock',{stage:'1-3'}))",
+  "tests/test_speed_auto_1256.js line 21 asserts /bannerMsg\\('Requires EGP 1 or level 30'\\)/ in the page source (base 31627 now ewT('battle.auto_requires',...))",
+  "battle keys use ewT everywhere (battle code; safe whatever the scope). Left English: perf HUD 31640-31657 (dev), ?diag= overlay ewDiag 31755-31800 (debug)."
+ ]
+}

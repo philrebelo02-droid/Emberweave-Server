@@ -1,0 +1,1263 @@
+{
+ "keys": {
+  "skyhub.the_bridge": "THE BRIDGE",
+  "skyhub.lane": "Lane {n}",
+  "skyhub.victory": "Victory",
+  "skyhub.defeat": "Defeat",
+  "skyhub.watch": "Watch",
+  "skyhub.undefended": "undefended",
+  "skyhub.walks_open": "{name} walks into an open tower",
+  "skyhub.won": "won",
+  "skyhub.held": "held",
+  "skyhub.overrun": "the tower had no kills left — overrun where it stood",
+  "skyhub.rounds_hp": "{n} rounds · HP left {a} / {d}",
+  "skyhub.kills": "kills {a} vs {d}",
+  "skyhub.retires": "a line takes its fifth and retires",
+  "skyhub.nothing_defended": "Nothing defended it — there is no fight to watch.",
+  "skyhub.play_fight": "Play this fight",
+  "skyhub.your_side": "Your side",
+  "skyhub.rival_guild": "Rival guild",
+  "skyhub.lines_left": "Lines left: {n}",
+  "skyhub.no_lineup": "no line-up recorded",
+  "skyhub.in_battle_caps": "IN BATTLE",
+  "skyhub.last_fight": "LAST FIGHT",
+  "skyhub.fighting": "fighting…",
+  "skyhub.not_marched": "The towers have not marched yet.",
+  "skyhub.next": "NEXT",
+  "skyhub.nothing_waiting": "Nothing waiting.",
+  "skyhub.waiting_troops": "WAITING TROOPS",
+  "skyhub.no_fights": "No fights yet.",
+  "skyhub.in_battle": "in battle",
+  "skyhub.lane_report": "lane report",
+  "skyhub.close": "close",
+  "skyhub.live": "Live",
+  "skyhub.records": "Records",
+  "skyhub.loading_march": "Loading march #{n}…",
+  "skyhub.fight_load_failed": "That fight could not be loaded.",
+  "skyhub.no_lines": "That fight has no lines to play.",
+  "skyhub.enemy_line": "the enemy line",
+  "skytour.title": "{name} Tournament",
+  "skytour.registration_open": "Registration open",
+  "skytour.round": "Round {n}",
+  "skytour.finished": "Finished",
+  "skytour.desc": "Every-other-week guild knockout — sign-ups opposite {wt} weekends, Sat 02:00–Mon 00:00 server time. Fight Tue–Fri 6–8 PM ET across five citadels.",
+  "skytour.enter": "Enter the {name}",
+  "skytour.locks_at": "Locks at {when}",
+  "skytour.registered_n": "Guilds registered: {n}",
+  "skytour.registered": "Your guild is registered — Power Pool {n}",
+  "skytour.register": "Register Guild",
+  "skytour.ask_leader": "Ask your guild leader to register.",
+  "skytour.claim_reward": "Claim reward",
+  "skytour.plus_coins": "(+{n} coins)",
+  "skytour.champion": "Champion: {name}",
+  "skytour.unclaimed": "{n} unclaimed guild coins from the last tournament.",
+  "dungeon.entering": "Entering the Vault…",
+  "dungeon.unreachable": "COULD NOT REACH THE VAULT",
+  "dungeon.sealed": "THE VAULT IS SEALED",
+  "dungeon.opens_at": "Opens at player level {n}. You are level {lv}.",
+  "dungeon.floor1": "Floor 1 is built for a level-{n} line — bring your best five.",
+  "dungeon.alt": "Dungeon",
+  "dungeon.choose_your_squad": "Choose Your Squad",
+  "dungeon.challenge": "Challenge Dungeon",
+  "dungeon.desc": "Fight a scaled enemy squad with your team. Win for gold + glyph shards.",
+  "dungeon.choose_squad": "Choose squad",
+  "temple.keeper_lv": "Lv.{n} Flame Keeper",
+  "temple.max": "MAX",
+  "temple.purple_can_pray": "Purple heroes and above can pray.",
+  "temple.opens_at_lv": "The Temple opens at player level {n}.",
+  "temple.no_purple": "No Purple heroes yet.",
+  "temple.points": "Temple points",
+  "temple.bonus_prayers": "bonus prayers",
+  "temple.free_today": "1 free prayer available today.",
+  "temple.choose_hero": "Choose a hero to pray.",
+  "temple.opens_at_temple": "Opens at Temple {n}",
+  "temple.max_val": "Max {v}",
+  "temple.needs_temple": "Needs Temple {n}",
+  "temple.needs_hero_lv": "Needs hero Lv {n}",
+  "temple.bless_done": "({bar} {have}/{need} Unlock)",
+  "temple.bless_progress": "({bar} {have}/{need} to unlock)",
+  "temple.fifth_dot": "5th dot: blessings +{n}",
+  "temple.earned": "Earned",
+  "temple.free_prayer": "Free prayer",
+  "temple.used_today": "Used today",
+  "temple.temple_n": "Temple {n}",
+  "temple.flame": "Flame",
+  "temple.diamonds": "Diamonds",
+  "temple.switch": "Switch",
+  "temple.auto_pray": "Auto pray",
+  "temple.attributes": "Attributes",
+  "temple.blessings": "Blessings",
+  "temple.breakout": "Breakout x{n}!",
+  "temple.power": "Power {n}",
+  "temple.save_or_cancel": "Save or cancel?",
+  "temple.no_refund": "(Gold or diamonds are not refunded for cancelling.)",
+  "temple.pray": "Pray",
+  "temple.purple_required": "Purple ascension required",
+  "temple.pray_failed": "Prayer failed.",
+  "temple.auto_result": "{ran} prayers · {saved} saved · {cancelled} cancelled",
+  "temple.n_gold": "{n} gold",
+  "temple.n_diamonds": "{n} diamonds",
+  "temple.stopped": "stopped: {why}",
+  "temple.auto_save": "Auto save if power goes up!",
+  "temple.prev_tier": "Previous tier",
+  "temple.next_tier": "Next tier",
+  "temple.fewer": "Fewer",
+  "temple.more": "More",
+  "temple.pray_n": "Pray ×{n}",
+  "elite.stamina": "Stamina ⧗ {n} · resets daily",
+  "elite.fragments": "Fragments {n}",
+  "elite.next": "next {n}",
+  "elite.max": "MAX",
+  "elite.attempts": "attempts left {n}",
+  "elite.locked_stage": "locked — clear campaign stage {stage}",
+  "elite.use_portal": "Elite stages are played from the Campaign map - open the Elite portal there.",
+  "elite.clear_reward": "Clear {hero}'s campaign reward stage first.",
+  "elite.guard": "{hero}'s Guard",
+  "market.frags_today": "Fragments {n} today",
+  "market.restock": "⟳ restock {t}",
+  "market.peace_shield": "Peace Shield",
+  "market.hero_frags": "{n}× {hero} fragments",
+  "market.shield_desc": "12h world-map attack immunity",
+  "market.to_unlock": "{n} to unlock",
+  "market.owned": "owned",
+  "market.sold": "Sold",
+  "market.restocking": "The Market is restocking. Try again in a moment.",
+  "market.purchase_failed": "Purchase failed.",
+  "market.plus_shield": "+1 Peace Shield",
+  "shady.war_chest": "War Chest — {n} Gold",
+  "shady.war_chest_desc": "+{n} gold",
+  "shady.shields": "Protection Shields ×{n}",
+  "shady.shields_desc": "{n}× 12-hour attack immunity",
+  "shady.scrolls": "Teleport Scrolls ×{n}",
+  "shady.scrolls_desc": "{n}× targeted teleports",
+  "shady.arena_coins": "Arena Coins ×{n}",
+  "shady.arena_coins_desc": "+{n} arena coins",
+  "shady.diamonds_only": "Diamonds only",
+  "shady.scroll_failed": "Teleport scroll purchase failed.",
+  "shady.bought": "Bought {item}",
+  "shady.nothing_to_sell": "The dealer had nothing to sell.",
+  "rank.loading": "Loading rankings…",
+  "rank.your_standings": "Your Standings",
+  "rank.arena_rank": "Arena rank",
+  "rank.stage": "Stage {code}",
+  "rank.dungeon": "Dungeon",
+  "rank.cleared": "{n}× cleared",
+  "rank.arena_top": "Arena — Top Players",
+  "rank.you": "(you)",
+  "rank.no_arena": "No arena data.",
+  "rank.top_guilds": "Top Guilds",
+  "rank.sign_in": "Sign in to see live guild & arena rankings.",
+  "watch.sign_in": "Sign in to share live activity with your guild.",
+  "watch.you": "(you)",
+  "watch.returning_reported": "Returning (reported)",
+  "watch.reported_eta": "Reported ETA {t}",
+  "watch.reported": "Reported",
+  "watch.mine": "Lv {lv} {res} mine",
+  "watch.city": "City {id}",
+  "watch.awaiting": "Outcome awaiting resolution",
+  "watch.returning_home": "Returning · home in {t}",
+  "watch.arrival": "Arrival in {t}",
+  "watch.player": "Player",
+  "watch.recorded_title": "Server-recorded attacks and mine trips",
+  "watch.no_recorded": "No active server-recorded trips.",
+  "watch.join_guild": "Join a guild to see your guildmates’ server-recorded trips.",
+  "watch.unlock_lv": "Server-recorded trips unlock at Lv {n}.",
+  "watch.you_name": "You",
+  "watch.reported_stale": "Reported (stale)",
+  "watch.no_attacks": "No reported attacks.",
+  "watch.reported_defenses": "Reported defenses",
+  "watch.no_defenses": "No reported defenses.",
+  "watch.unavailable": "Guild reports unavailable.",
+  "watch.scouting_you": "Scouting you",
+  "watch.your_scouts": "Your reported scouts",
+  "watch.no_scouts": "No scouts out.",
+  "watch.incoming": "Incoming reports",
+  "watch.no_incoming": "No incoming reports.",
+  "watch.refresh": "Refresh",
+  "portal.normal": "Normal",
+  "portal.elite": "Elite",
+  "portal.veteran": "Veteran",
+  "portal.chapter_lock": "Complete {prev} {ch}-10 to unlock {mode} Chapter {ch}.",
+  "portal.n_gold": "{n} gold",
+  "portal.n_stamina": "{n} stamina",
+  "portal.n_diamonds": "{n} diamonds",
+  "portal.n_random_frags": "{n} random hero fragments",
+  "portal.n_hero_frags": "{n} hero fragments",
+  "portal.reward_failed": "That reward could not be granted just now.",
+  "portal.star_reward": "{n}-star reward!",
+  "portal.reward_waiting": "That reward could not be granted just now — the milestone is still waiting for you. Try again in a moment.",
+  "portal.total_stars": "{n} total stars",
+  "portal.next_at": "next at {n}: {reward}",
+  "portal.portal_name": "{mode} Portal",
+  "portal.chapter": "Chapter {n}",
+  "portal.summit": "Not open yet — Chapter {n} is this portal's summit.",
+  "portal.bonus": "BONUS {code}",
+  "portal.bonus_locked_aria": "BONUS {code} locked — clear Normal {code} first",
+  "portal.bonus_clear": "Clear Normal {code} to unlock Bonus {code}",
+  "portal.bonus_unavailable": "Bonus {code} is not available yet.",
+  "portal.bonus_failed": "Bonus {code} could not open. Please try again.",
+  "portal.st_cleared": "cleared",
+  "portal.st_available": "available",
+  "portal.st_locked": "locked",
+  "portal.boss": "BOSS",
+  "portal.hero_frags_lbl": "HERO FRAGMENTS",
+  "portal.stage_lbl": "STAGE"
+ },
+ "edits": [
+  {
+   "line": 20226,
+   "find": "LANE===null?'THE BRIDGE':('Lane '+((LANE|0)+1))",
+   "replace": "LANE===null?ewT('skyhub.the_bridge'):ewT('skyhub.lane',{n:(LANE|0)+1})"
+  },
+  {
+   "line": 20258,
+   "find": "(youWon?'Victory':'Defeat')",
+   "replace": "(youWon?ewT('skyhub.victory'):ewT('skyhub.defeat'))"
+  },
+  {
+   "line": 20259,
+   "find": "\\u25b6 Watch</button>'",
+   "replace": "\\u25b6 '+ewT('skyhub.watch')+'</button>'"
+  },
+  {
+   "line": 20260,
+   "find": "'<span class=\"skyBoutNo\">undefended</span>'",
+   "replace": "'<span class=\"skyBoutNo\">'+ewT('skyhub.undefended')+'</span>'"
+  },
+  {
+   "line": 20267,
+   "find": "'<span style=\"flex:1;min-width:0\"><span class=\"'+side(e)+'\">'+escapeHTML(e.a||'')+'</span>'",
+   "replace": "'<span style=\"flex:1;min-width:0\">'+(e.captured?'<span style=\"color:#ffd45e\">'+ewT('skyhub.walks_open',{name:'<span class=\"'+side(e)+'\">'+escapeHTML(e.a||'')+'</span>'})+'</span>':'<span class=\"'+side(e)+'\">'+escapeHTML(e.a||'')+'</span>')"
+  },
+  {
+   "line": 20268,
+   "find": "' <span style=\"color:#ffd45e\">walks into an open tower</span>'",
+   "replace": "''"
+  },
+  {
+   "line": 20270,
+   "find": "(e.won?'won':'held')",
+   "replace": "(e.won?ewT('skyhub.won'):ewT('skyhub.held'))"
+  },
+  {
+   "line": 20276,
+   "find": ">the tower had no kills left \\u2014 overrun where it stood<",
+   "replace": ">'+ewT('skyhub.overrun')+'<"
+  },
+  {
+   "line": 20277,
+   "find": "(e.rounds||0)+' rounds \\u00b7 HP left '+(e.aHp|0)+'% / '+(e.dHp|0)+'%'",
+   "replace": "ewT('skyhub.rounds_hp',{n:e.rounds||0,a:(e.aHp|0)+'%',d:(e.dHp|0)+'%'})"
+  },
+  {
+   "line": 20278,
+   "find": "' \\u00b7 kills '+(e.aKills|0)+'/'+MAXF+' vs '+(e.dKills|0)+'/'+MAXF",
+   "replace": "' \\u00b7 '+ewT('skyhub.kills',{a:(e.aKills|0)+'/'+MAXF,d:(e.dKills|0)+'/'+MAXF})"
+  },
+  {
+   "line": 20279,
+   "find": ">a line takes its fifth and retires<",
+   "replace": ">'+ewT('skyhub.retires')+'<"
+  },
+  {
+   "line": 20280,
+   "find": ">Nothing defended it \\u2014 there is no fight to watch.<",
+   "replace": ">'+ewT('skyhub.nothing_defended')+'<"
+  },
+  {
+   "line": 20281,
+   "find": "\\u25b6 Play this fight</button>'",
+   "replace": "\\u25b6 '+ewT('skyhub.play_fight')+'</button>'"
+  },
+  {
+   "line": 20339,
+   "find": "gName(r.you,'Your side')",
+   "replace": "gName(r.you,ewT('skyhub.your_side'))"
+  },
+  {
+   "line": 20340,
+   "find": "Lines left: <b>'+mineAll.length+'</b>",
+   "replace": "'+ewT('skyhub.lines_left',{n:'<b>'+mineAll.length+'</b>'})+'"
+  },
+  {
+   "line": 20343,
+   "find": "gName(r.foe,'Rival guild')",
+   "replace": "gName(r.foe,ewT('skyhub.rival_guild'))"
+  },
+  {
+   "line": 20344,
+   "find": "Lines left: <b>'+foeAll.length+'</b>",
+   "replace": "'+ewT('skyhub.lines_left',{n:'<b>'+foeAll.length+'</b>'})+'"
+  },
+  {
+   "line": 20351,
+   "find": ">no line-up recorded<",
+   "replace": ">'+ewT('skyhub.no_lineup')+'<"
+  },
+  {
+   "line": 20372,
+   "find": "(fighting?'IN BATTLE':'LAST FIGHT')",
+   "replace": "(fighting?ewT('skyhub.in_battle_caps'):ewT('skyhub.last_fight'))"
+  },
+  {
+   "line": 20379,
+   "find": "'<span class=\"sub\">undefended</span>'",
+   "replace": "'<span class=\"sub\">'+ewT('skyhub.undefended')+'</span>'"
+  },
+  {
+   "line": 20381,
+   "find": ">fighting\\u2026</span>'",
+   "replace": ">'+ewT('skyhub.fighting')+'</span>'"
+  },
+  {
+   "line": 20382,
+   "find": "(youWon?'Victory':'Defeat')",
+   "replace": "(youWon?ewT('skyhub.victory'):ewT('skyhub.defeat'))"
+  },
+  {
+   "line": 20387,
+   "find": "\\u25b6 Watch</button>'",
+   "replace": "\\u25b6 '+ewT('skyhub.watch')+'</button>'"
+  },
+  {
+   "line": 20392,
+   "find": ">The towers have not marched yet.<",
+   "replace": ">'+ewT('skyhub.not_marched')+'<"
+  },
+  {
+   "line": 20423,
+   "find": "'<span class=\"nx\">NEXT</span>'",
+   "replace": "'<span class=\"nx\">'+ewT('skyhub.next')+'</span>'"
+  },
+  {
+   "line": 20427,
+   "find": ">Nothing waiting.<",
+   "replace": ">'+ewT('skyhub.nothing_waiting')+'<"
+  },
+  {
+   "line": 20429,
+   "find": ">WAITING TROOPS<",
+   "replace": ">'+ewT('skyhub.waiting_troops')+'<"
+  },
+  {
+   "line": 20438,
+   "find": ">No fights yet.<",
+   "replace": ">'+ewT('skyhub.no_fights')+'<"
+  },
+  {
+   "line": 20470,
+   "find": "(live?' \\u2014 in battle':' \\u2014 lane report')",
+   "replace": "(live?' \\u2014 '+ewT('skyhub.in_battle'):' \\u2014 '+ewT('skyhub.lane_report'))"
+  },
+  {
+   "line": 20471,
+   "find": ">close</button>",
+   "replace": ">'+ewT('skyhub.close')+'</button>"
+  },
+  {
+   "line": 20472,
+   "find": ">Live</button>'",
+   "replace": ">'+ewT('skyhub.live')+'</button>'"
+  },
+  {
+   "line": 20473,
+   "find": ">Records</button>",
+   "replace": ">'+ewT('skyhub.records')+'</button>"
+  },
+  {
+   "line": 20487,
+   "find": "'\\u25b6 Loading march #'+n+'\\u2026'",
+   "replace": "'\\u25b6 '+ewT('skyhub.loading_march',{n})"
+  },
+  {
+   "line": 20489,
+   "find": "(q&&q.error)||'That fight could not be loaded.'",
+   "replace": "langMsg(q&&q.error)||ewT('skyhub.fight_load_failed')"
+  },
+  {
+   "line": 20503,
+   "find": "'That fight has no lines to play.'",
+   "replace": "ewT('skyhub.no_lines')"
+  },
+  {
+   "line": 20504,
+   "find": "'That fight has no lines to play.'",
+   "replace": "ewT('skyhub.no_lines')"
+  },
+  {
+   "line": 20520,
+   "find": "f.d.name||'the enemy line'",
+   "replace": "f.d.name||ewT('skyhub.enemy_line')"
+  },
+  {
+   "line": 20846,
+   "find": "} Skyfall Tournament</b>",
+   "replace": "} ${ewT('skytour.title',{name:'Skyfall'})}</b>"
+  },
+  {
+   "line": 20846,
+   "find": "+' Registration open'",
+   "replace": "+' '+ewT('skytour.registration_open')"
+  },
+  {
+   "line": 20846,
+   "find": "+' Round '+((t.roundIndex||0)+1)",
+   "replace": "+' '+ewT('skytour.round',{n:(t.roundIndex||0)+1})"
+  },
+  {
+   "line": 20846,
+   "find": "+' Finished'",
+   "replace": "+' '+ewT('skytour.finished')"
+  },
+  {
+   "line": 20847,
+   "find": "Every-other-week guild knockout — sign-ups opposite World Tree weekends, Sat 02:00–Mon 00:00 server time. Fight Tue–Fri 6–8 PM ET across five citadels.",
+   "replace": "${ewT('skytour.desc',{wt:'World Tree'})}"
+  },
+  {
+   "line": 20848,
+   "find": "} Enter the Skyfall</button>",
+   "replace": "} ${ewT('skytour.enter',{name:'Skyfall'})}</button>"
+  },
+  {
+   "line": 20850,
+   "find": "Locks at <b>${skyWhen(t.registrationLocksAt)}</b> · ${t.entrants.length} guild${t.entrants.length===1?'':'s'} registered",
+   "replace": "${ewT('skytour.locks_at',{when:'<b>'+skyWhen(t.registrationLocksAt)+'</b>'})} · ${ewT('skytour.registered_n',{n:t.entrants.length})}"
+  },
+  {
+   "line": 20851,
+   "find": "} Your guild is registered — Power Pool <b>${s.yourPowerPool}</b>",
+   "replace": "} ${ewT('skytour.registered',{n:'<b>'+s.yourPowerPool+'</b>'})}"
+  },
+  {
+   "line": 20852,
+   "find": "} Register Guild<",
+   "replace": "} ${ewT('skytour.register')}<"
+  },
+  {
+   "line": 20853,
+   "find": ">Ask your guild leader to register.<",
+   "replace": ">${ewT('skytour.ask_leader')}<"
+  },
+  {
+   "line": 20859,
+   "find": "} Claim reward${skyPend>0?' (+'+skyPend+' coins)':''}",
+   "replace": "} ${ewT('skytour.claim_reward')}${skyPend>0?' '+ewT('skytour.plus_coins',{n:skyPend}):''}"
+  },
+  {
+   "line": 20862,
+   "find": "} Champion: ${escapeHTML(champ?champ.name:'—')}",
+   "replace": "} ${ewT('skytour.champion',{name:escapeHTML(champ?champ.name:'—')})}"
+  },
+  {
+   "line": 20866,
+   "find": "<b>${skyPend}</b> unclaimed guild coins from the last tournament.",
+   "replace": "${ewT('skytour.unclaimed',{n:'<b>'+skyPend+'</b>'})}"
+  },
+  {
+   "line": 20877,
+   "find": ">Entering the Vault…<",
+   "replace": ">'+t('dungeon.entering')+'<"
+  },
+  {
+   "line": 20880,
+   "find": ">COULD NOT REACH THE VAULT<",
+   "replace": ">${t('dungeon.unreachable')}<"
+  },
+  {
+   "line": 20881,
+   "find": "id=\"vaultRetry\">Retry<",
+   "replace": "id=\"vaultRetry\">${t('common.retry')}<"
+  },
+  {
+   "line": 20886,
+   "find": ">THE VAULT IS SEALED<",
+   "replace": ">${t('dungeon.sealed')}<"
+  },
+  {
+   "line": 20887,
+   "find": "Opens at player level ${VAULT.st.unlockLevel||10}. You are level ${VAULT.st.playerLevel||playerLevel()}.",
+   "replace": "${t('dungeon.opens_at',{n:VAULT.st.unlockLevel||10,lv:VAULT.st.playerLevel||playerLevel()})}"
+  },
+  {
+   "line": 20887,
+   "find": "Floor 1 is built for a level-${VAULT.st.unlockLevel||10} line — bring your best five.",
+   "replace": "${t('dungeon.floor1',{n:VAULT.st.unlockLevel||10})}"
+  },
+  {
+   "line": 20898,
+   "find": "alt=\"Dungeon\"",
+   "replace": "alt=\"${t('dungeon.alt')}\""
+  },
+  {
+   "line": 20899,
+   "find": "} Choose Your Squad<",
+   "replace": "} ${t('dungeon.choose_your_squad')}<"
+  },
+  {
+   "line": 20903,
+   "find": ">Challenge Dungeon<",
+   "replace": ">${t('dungeon.challenge')}<"
+  },
+  {
+   "line": 20904,
+   "find": ">Fight a scaled enemy squad with your team. Win for gold + glyph shards.<",
+   "replace": ">${t('dungeon.desc')}<"
+  },
+  {
+   "line": 20905,
+   "find": ">Choose squad ${",
+   "replace": ">${t('dungeon.choose_squad')} ${"
+  },
+  {
+   "line": 20938,
+   "find": ">Lv.${level} Flame Keeper<",
+   "replace": ">${ewT('temple.keeper_lv',{n:level})}<"
+  },
+  {
+   "line": 20939,
+   "find": "${kp.max?'MAX':",
+   "replace": "${kp.max?ewT('temple.max'):"
+  },
+  {
+   "line": 20947,
+   "find": "${unlocked?'Purple heroes and above can pray.':'The Temple opens at player level '+T.CONFIG.UNLOCK_PLAYER_LEVEL+'.'}",
+   "replace": "${unlocked?ewT('temple.purple_can_pray'):ewT('temple.opens_at_lv',{n:T.CONFIG.UNLOCK_PLAYER_LEVEL})}"
+  },
+  {
+   "line": 20948,
+   "find": ">No Purple heroes yet.<",
+   "replace": ">'+ewT('temple.no_purple')+'<"
+  },
+  {
+   "line": 20950,
+   "find": "<span>Temple points</span>",
+   "replace": "<span>${ewT('temple.points')}</span>"
+  },
+  {
+   "line": 20950,
+   "find": "<span>bonus prayers</span>",
+   "replace": "<span>${ewT('temple.bonus_prayers')}</span>"
+  },
+  {
+   "line": 20952,
+   "find": "${T.freeRitualAvailable(st)?'1 free prayer available today.':'Choose a hero to pray.'}",
+   "replace": "${T.freeRitualAvailable(st)?ewT('temple.free_today'):ewT('temple.choose_hero')}"
+  },
+  {
+   "line": 20960,
+   "find": "${B.locked?'Opens at Temple '+B.unlock:'Max '+(B.capText||T.barText(bar,T.barValue(prof,bar,cap)))}",
+   "replace": "${B.locked?ewT('temple.opens_at_temple',{n:B.unlock}):ewT('temple.max_val',{v:B.capText||T.barText(bar,T.barValue(prof,bar,cap))})}"
+  },
+  {
+   "line": 20966,
+   "find": "`Needs Temple ${x.keeperGate}`",
+   "replace": "ewT('temple.needs_temple',{n:x.keeperGate})"
+  },
+  {
+   "line": 20966,
+   "find": "`Needs hero Lv ${x.heroGate}`",
+   "replace": "ewT('temple.needs_hero_lv',{n:x.heroGate})"
+  },
+  {
+   "line": 20966,
+   "find": "`(${escapeHTML(x.barName||T.barName(x.bar))} ${val(Math.min(x.have,x.need))}/${val(x.need)}${x.earned?' Unlock':' to unlock'})`",
+   "replace": "(x.earned?ewT('temple.bless_done',{bar:escapeHTML(x.barName||T.barName(x.bar)),have:val(Math.min(x.have,x.need)),need:val(x.need)}):ewT('temple.bless_progress',{bar:escapeHTML(x.barName||T.barName(x.bar)),have:val(Math.min(x.have,x.need)),need:val(x.need)}))"
+  },
+  {
+   "line": 20968,
+   "find": "<b>5th dot: blessings +${Math.round((f.bonus||0.15)*100)}%</b>",
+   "replace": "<b>${ewT('temple.fifth_dot',{n:Math.round((f.bonus||0.15)*100)+'%'})}</b>"
+  },
+  {
+   "line": 20968,
+   "find": "${f.earned?'Earned':f.locked?'Needs Temple '+f.templeLevel:'Needs hero Lv '+f.heroLevel}",
+   "replace": "${f.earned?ewT('temple.earned'):f.locked?ewT('temple.needs_temple',{n:f.templeLevel}):ewT('temple.needs_hero_lv',{n:f.heroLevel})}"
+  },
+  {
+   "line": 20974,
+   "find": "name:'Free prayer'+",
+   "replace": "name:ewT('temple.free_prayer')+"
+  },
+  {
+   "line": 20974,
+   "find": "cost:freeN?'Free':'Used today'",
+   "replace": "cost:freeN?ewT('common.free'):ewT('temple.used_today')"
+  },
+  {
+   "line": 20976,
+   "find": "cost:t.locked?'Temple '+t.unlockKeeper:",
+   "replace": "cost:t.locked?ewT('temple.temple_n',{n:t.unlockKeeper}):"
+  },
+  {
+   "line": 20984,
+   "find": "<i class=\"tp2Check\"></i>Flame</button>",
+   "replace": "<i class=\"tp2Check\"></i>${ewT('temple.flame')}</button>"
+  },
+  {
+   "line": 20985,
+   "find": "<i class=\"tp2Check\"></i>Diamonds</button>",
+   "replace": "<i class=\"tp2Check\"></i>${ewT('temple.diamonds')}</button>"
+  },
+  {
+   "line": 20991,
+   "find": "alt=\"\">Switch</button>",
+   "replace": "alt=\"\">${ewT('temple.switch')}</button>"
+  },
+  {
+   "line": 20992,
+   "find": "alt=\"\">Auto pray</button>",
+   "replace": "alt=\"\">${ewT('temple.auto_pray')}</button>"
+  },
+  {
+   "line": 20993,
+   "find": "\">Attributes</div>",
+   "replace": "\">${ewT('temple.attributes')}</div>"
+  },
+  {
+   "line": 20994,
+   "find": "text-align:center\">Blessings</div>",
+   "replace": "text-align:center\">${ewT('temple.blessings')}</div>"
+  },
+  {
+   "line": 20995,
+   "find": "\">Breakout x${window._tp2Break}!</div>",
+   "replace": "\">${ewT('temple.breakout',{n:window._tp2Break})}</div>"
+  },
+  {
+   "line": 20995,
+   "find": "alt=\"\">Power ${power>0?'+':''}${power}</div>",
+   "replace": "alt=\"\">${ewT('temple.power',{n:(power>0?'+':'')+power})}</div>"
+  },
+  {
+   "line": 20997,
+   "find": ">Cancel</button>",
+   "replace": ">${ewT('common.cancel')}</button>"
+  },
+  {
+   "line": 20998,
+   "find": ">Save</button>",
+   "replace": ">${ewT('common.save')}</button>"
+  },
+  {
+   "line": 20999,
+   "find": ">Save or cancel?<small>(Gold or diamonds are not refunded for cancelling.)</small>",
+   "replace": ">${ewT('temple.save_or_cancel')}<small>${ewT('temple.no_refund')}</small>"
+  },
+  {
+   "line": 21001,
+   "find": ">Pray</button>",
+   "replace": ">${ewT('temple.pray')}</button>"
+  },
+  {
+   "line": 21002,
+   "find": ">Purple ascension required</div>",
+   "replace": ">${ewT('temple.purple_required')}</div>"
+  },
+  {
+   "line": 21005,
+   "find": "Power ${templeFx>0?'+':''}${templeFx}",
+   "replace": "${ewT('temple.power',{n:(templeFx>0?'+':'')+templeFx})}"
+  },
+  {
+   "line": 21014,
+   "find": "'Connection lost.'",
+   "replace": "ewT('net.connection_lost')"
+  },
+  {
+   "line": 21014,
+   "find": "((r&&r.error)||'Prayer failed.')",
+   "replace": "(langMsg(r&&r.error)||ewT('temple.pray_failed'))"
+  },
+  {
+   "line": 21026,
+   "find": "<h3>Auto pray</h3>",
+   "replace": "<h3>${ewT('temple.auto_pray')}</h3>"
+  },
+  {
+   "line": 21027,
+   "find": "<p>${r.ran} prayers · ${r.saved} saved · ${r.cancelled} cancelled</p>",
+   "replace": "<p>${ewT('temple.auto_result',{ran:r.ran,saved:r.saved,cancelled:r.cancelled})}</p>"
+  },
+  {
+   "line": 21027,
+   "find": "Power ${r.power>0?'+':''}${r.power}",
+   "replace": "${ewT('temple.power',{n:(r.power>0?'+':'')+r.power})}"
+  },
+  {
+   "line": 21028,
+   "find": "${r.cost&&r.cost.gold?r.cost.gold.toLocaleString()+' gold ':''}${r.cost&&r.cost.gems?r.cost.gems+' diamonds':''}${r.stopped?' · stopped: '+escapeHTML(String(r.stopped)):''}",
+   "replace": "${r.cost&&r.cost.gold?ewT('temple.n_gold',{n:r.cost.gold.toLocaleString()})+' ':''}${r.cost&&r.cost.gems?ewT('temple.n_diamonds',{n:r.cost.gems}):''}${r.stopped?' · '+ewT('temple.stopped',{why:escapeHTML(String(r.stopped))}):''}"
+  },
+  {
+   "line": 21029,
+   "find": ">OK</button>",
+   "replace": ">${ewT('common.ok')}</button>"
+  },
+  {
+   "line": 21030,
+   "find": "<h3>Auto pray</h3>",
+   "replace": "<h3>${ewT('temple.auto_pray')}</h3>"
+  },
+  {
+   "line": 21030,
+   "find": "<p>Auto save if power goes up!</p>",
+   "replace": "<p>${ewT('temple.auto_save')}</p>"
+  },
+  {
+   "line": 21031,
+   "find": "aria-label=\"Previous tier\"",
+   "replace": "aria-label=\"${ewT('temple.prev_tier')}\""
+  },
+  {
+   "line": 21031,
+   "find": "aria-label=\"Next tier\"",
+   "replace": "aria-label=\"${ewT('temple.next_tier')}\""
+  },
+  {
+   "line": 21032,
+   "find": "aria-label=\"Fewer\"",
+   "replace": "aria-label=\"${ewT('temple.fewer')}\""
+  },
+  {
+   "line": 21032,
+   "find": "aria-label=\"More\"",
+   "replace": "aria-label=\"${ewT('temple.more')}\""
+  },
+  {
+   "line": 21033,
+   "find": ">Cancel</button>",
+   "replace": ">${ewT('common.cancel')}</button>"
+  },
+  {
+   "line": 21033,
+   "find": ">Pray ×${a.n}</button>",
+   "replace": ">${ewT('temple.pray_n',{n:a.n})}</button>"
+  },
+  {
+   "line": 21056,
+   "find": "Stamina ⧗ ${G.stamina}/${maxStamina()} · resets daily",
+   "replace": "${ewT('elite.stamina',{n:G.stamina+'/'+maxStamina()})}"
+  },
+  {
+   "line": 21061,
+   "find": "Fragments ${frags}${st<MAX_STARS?' · next '+ncost:' · MAX'} · attempts left ${left}/${ELITE_DAILY}${_locked?' · locked — clear campaign stage '+(_any?stageCode(_any):'?'):''}",
+   "replace": "${ewT('elite.fragments',{n:frags})}${st<MAX_STARS?' · '+ewT('elite.next',{n:ncost}):' · '+ewT('elite.max')} · ${ewT('elite.attempts',{n:left+'/'+ELITE_DAILY})}${_locked?' · '+ewT('elite.locked_stage',{stage:_any?stageCode(_any):'?'}):''}"
+  },
+  {
+   "line": 21069,
+   "find": "'Elite stages are played from the Campaign map - open the Elite portal there.'",
+   "replace": "ewT('elite.use_portal')"
+  },
+  {
+   "line": 21070,
+   "find": "'Clear '+HERO_TYPES[key].name+\"'s campaign reward stage first.\"",
+   "replace": "ewT('elite.clear_reward',{hero:HERO_TYPES[key].name})"
+  },
+  {
+   "line": 21074,
+   "find": "oppName:HERO_TYPES[key].name+\"'s Guard\"",
+   "replace": "oppName:ewT('elite.guard',{hero:HERO_TYPES[key].name})"
+  },
+  {
+   "line": 21107,
+   "find": "name:'War Chest — 80,000 Gold',",
+   "replace": "get name(){ return t('shady.war_chest',{n:'80,000'}); },"
+  },
+  {
+   "line": 21107,
+   "find": "desc:'+80,000 gold'",
+   "replace": "get desc(){ return t('shady.war_chest_desc',{n:'80,000'}); }"
+  },
+  {
+   "line": 21108,
+   "find": "name:'Protection Shields ×3',",
+   "replace": "get name(){ return t('shady.shields',{n:3}); },"
+  },
+  {
+   "line": 21108,
+   "find": "desc:'3× 12-hour attack immunity'",
+   "replace": "get desc(){ return t('shady.shields_desc',{n:3}); }"
+  },
+  {
+   "line": 21109,
+   "find": "name:'Teleport Scrolls ×5',",
+   "replace": "get name(){ return t('shady.scrolls',{n:5}); },"
+  },
+  {
+   "line": 21109,
+   "find": "desc:'5× targeted teleports'",
+   "replace": "get desc(){ return t('shady.scrolls_desc',{n:5}); }"
+  },
+  {
+   "line": 21110,
+   "find": "name:'Arena Coins ×3,000',",
+   "replace": "get name(){ return t('shady.arena_coins',{n:'3,000'}); },"
+  },
+  {
+   "line": 21110,
+   "find": "desc:'+3,000 arena coins'",
+   "replace": "get desc(){ return t('shady.arena_coins_desc',{n:'3,000'}); }"
+  },
+  {
+   "line": 21115,
+   "find": ">Diamonds only<",
+   "replace": ">${t('shady.diamonds_only')}<"
+  },
+  {
+   "line": 21123,
+   "find": "(r&&r.error)||'Teleport scroll purchase failed.'",
+   "replace": "langMsg(r&&r.error)||t('shady.scroll_failed')"
+  },
+  {
+   "line": 21125,
+   "find": "' Bought '+it.name",
+   "replace": "' '+t('shady.bought',{item:it.name})"
+  },
+  {
+   "line": 21128,
+   "find": "(r&&r.error)||'The dealer had nothing to sell.'",
+   "replace": "langMsg(r&&r.error)||t('shady.nothing_to_sell')"
+  },
+  {
+   "line": 21129,
+   "find": "' Bought '+it.name",
+   "replace": "' '+t('shady.bought',{item:it.name})"
+  },
+  {
+   "line": 21131,
+   "find": "' Bought '+it.name",
+   "replace": "' '+t('shady.bought',{item:it.name})"
+  },
+  {
+   "line": 21135,
+   "find": ">Loading rankings…<",
+   "replace": ">'+t('rank.loading')+'<"
+  },
+  {
+   "line": 21139,
+   "find": "} Your Standings<",
+   "replace": "} ${t('rank.your_standings')}<"
+  },
+  {
+   "line": 21141,
+   "find": "} Arena rank<br>",
+   "replace": "} ${t('rank.arena_rank')}<br>"
+  },
+  {
+   "line": 21142,
+   "find": "} Guild<br>",
+   "replace": "} ${t('nav.guild')}<br>"
+  },
+  {
+   "line": 21143,
+   "find": "} Campaign<br>",
+   "replace": "} ${t('bld.campaign')}<br>"
+  },
+  {
+   "line": 21143,
+   "find": "('Stage '+stageCode(G.campaignCleared))",
+   "replace": "t('rank.stage',{code:stageCode(G.campaignCleared)})"
+  },
+  {
+   "line": 21144,
+   "find": "🐲 Dungeon<br>",
+   "replace": "🐲 ${t('rank.dungeon')}<br>"
+  },
+  {
+   "line": 21144,
+   "find": "(G.dungeonBest+'× cleared')",
+   "replace": "t('rank.cleared',{n:G.dungeonBest})"
+  },
+  {
+   "line": 21146,
+   "find": "} Arena — Top Players<",
+   "replace": "} ${t('rank.arena_top')}<"
+  },
+  {
+   "line": 21148,
+   "find": "${e.me?' (you)':''}",
+   "replace": "${e.me?' '+t('rank.you'):''}"
+  },
+  {
+   "line": 21149,
+   "find": ">No arena data.<",
+   "replace": ">'+t('rank.no_arena')+'<"
+  },
+  {
+   "line": 21150,
+   "find": "} Top Guilds<",
+   "replace": "} ${t('rank.top_guilds')}<"
+  },
+  {
+   "line": 21153,
+   "find": ">Sign in to see live guild & arena rankings.<",
+   "replace": ">${t('rank.sign_in')}<"
+  },
+  {
+   "line": 21185,
+   "find": "empty('Sign in to share live activity with your guild.')",
+   "replace": "empty(t('watch.sign_in'))"
+  },
+  {
+   "line": 21186,
+   "find": "empty('Loading…')",
+   "replace": "empty(t('common.loading'))"
+  },
+  {
+   "line": 21195,
+   "find": "${you?' (you)':''}",
+   "replace": "${you?' '+t('watch.you'):''}"
+  },
+  {
+   "line": 21196,
+   "find": "a.ret?'Returning (reported)':a.eta!=null?'Reported ETA '+fmtDur(a.eta):'Reported'",
+   "replace": "a.ret?t('watch.returning_reported'):a.eta!=null?t('watch.reported_eta',{t:fmtDur(a.eta)}):t('watch.reported')"
+  },
+  {
+   "line": 21204,
+   "find": "`Lv ${m.level??'?'} ${m.resource||'resource'} mine`",
+   "replace": "t('watch.mine',{lv:m.level??'?',res:m.resource||'resource'})"
+  },
+  {
+   "line": 21204,
+   "find": "`City ${m.defId||'target'}`",
+   "replace": "t('watch.city',{id:m.defId||'target'})"
+  },
+  {
+   "line": 21205,
+   "find": "'Outcome awaiting resolution'",
+   "replace": "t('watch.awaiting')"
+  },
+  {
+   "line": 21205,
+   "find": "'Returning · home in '+fmtDur(m.homeInMs)",
+   "replace": "t('watch.returning_home',{t:fmtDur(m.homeInMs)})"
+  },
+  {
+   "line": 21205,
+   "find": "'Arrival in '+fmtDur(m.arriveInMs)",
+   "replace": "t('watch.arrival',{t:fmtDur(m.arriveInMs)})"
+  },
+  {
+   "line": 21206,
+   "find": "w.name||'Player'",
+   "replace": "w.name||t('watch.player')"
+  },
+  {
+   "line": 21208,
+   "find": ">Server-recorded attacks and mine trips<",
+   "replace": ">'+t('watch.recorded_title')+'<"
+  },
+  {
+   "line": 21208,
+   "find": "'<div>No active server-recorded trips.</div>'",
+   "replace": "'<div>'+t('watch.no_recorded')+'</div>'"
+  },
+  {
+   "line": 21209,
+   "find": "empty('Join a guild to see your guildmates’ server-recorded trips.')",
+   "replace": "empty(t('watch.join_guild'))"
+  },
+  {
+   "line": 21211,
+   "find": "empty('Server-recorded trips unlock at Lv '+(recorded.needLevel||20)+'.')",
+   "replace": "empty(t('watch.unlock_lv',{n:recorded.needLevel||20}))"
+  },
+  {
+   "line": 21213,
+   "find": "ACC.name||'You'",
+   "replace": "ACC.name||t('watch.you_name')"
+  },
+  {
+   "line": 21215,
+   "find": "<b>Reported (stale)</b>",
+   "replace": "<b>'+t('watch.reported_stale')+'</b>"
+  },
+  {
+   "line": 21215,
+   "find": "'<div>No reported attacks.</div>'",
+   "replace": "'<div>'+t('watch.no_attacks')+'</div>'"
+  },
+  {
+   "line": 21218,
+   "find": "ACC.name||'You'",
+   "replace": "ACC.name||t('watch.you_name')"
+  },
+  {
+   "line": 21220,
+   "find": "<b>Reported defenses</b>",
+   "replace": "<b>'+t('watch.reported_defenses')+'</b>"
+  },
+  {
+   "line": 21220,
+   "find": "'<div>No reported defenses.</div>'",
+   "replace": "'<div>'+t('watch.no_defenses')+'</div>'"
+  },
+  {
+   "line": 21221,
+   "find": "empty('Guild reports unavailable.')",
+   "replace": "empty(t('watch.unavailable'))"
+  },
+  {
+   "line": 21223,
+   "find": "ACC.name||'You'",
+   "replace": "ACC.name||t('watch.you_name')"
+  },
+  {
+   "line": 21224,
+   "find": "s.by||'Player','Scouting you',s.eta!=null?'Reported ETA '+fmtDur(s.eta):'Reported'",
+   "replace": "s.by||t('watch.player'),t('watch.scouting_you'),s.eta!=null?t('watch.reported_eta',{t:fmtDur(s.eta)}):t('watch.reported')"
+  },
+  {
+   "line": 21225,
+   "find": "<b>Your reported scouts</b>",
+   "replace": "<b>'+t('watch.your_scouts')+'</b>"
+  },
+  {
+   "line": 21225,
+   "find": "'<div>No scouts out.</div>'",
+   "replace": "'<div>'+t('watch.no_scouts')+'</div>'"
+  },
+  {
+   "line": 21225,
+   "find": "<b>Incoming reports</b>",
+   "replace": "<b>'+t('watch.incoming')+'</b>"
+  },
+  {
+   "line": 21225,
+   "find": "'<div>No incoming reports.</div>'",
+   "replace": "'<div>'+t('watch.no_incoming')+'</div>'"
+  },
+  {
+   "line": 21226,
+   "find": "empty('Guild reports unavailable.')",
+   "replace": "empty(t('watch.unavailable'))"
+  },
+  {
+   "line": 21228,
+   "find": "data-watch-refresh>Refresh</button>",
+   "replace": "data-watch-refresh>'+t('watch.refresh')+'</button>"
+  },
+  {
+   "line": 21244,
+   "find": "Fragments ${G.marketToday.used|0}/${G.marketToday.max|0} today",
+   "replace": "${t('market.frags_today',{n:(G.marketToday.used|0)+'/'+(G.marketToday.max|0)})}"
+  },
+  {
+   "line": 21244,
+   "find": "<span>⟳ restock ${fmtDur(left)}</span>",
+   "replace": "<span>${t('market.restock',{t:fmtDur(left)})}</span>"
+  },
+  {
+   "line": 21247,
+   "find": "const nm=frag?(o.qty+'× '+HERO_TYPES[o.hero].name+' fragments'):o.name;",
+   "replace": "const nm=frag?t('market.hero_frags',{n:o.qty,hero:HERO_TYPES[o.hero].name}):(o.kind==='shield'?t('market.peace_shield'):o.name);"
+  },
+  {
+   "line": 21248,
+   "find": "'12h world-map attack immunity'",
+   "replace": "t('market.shield_desc')"
+  },
+  {
+   "line": 21248,
+   "find": "heroFrag(o.hero)+'/'+summonCost(o.hero)+' to unlock'",
+   "replace": "t('market.to_unlock',{n:heroFrag(o.hero)+'/'+summonCost(o.hero)})"
+  },
+  {
+   "line": 21248,
+   "find": "uiIcon('check')+' owned'",
+   "replace": "uiIcon('check')+' '+t('market.owned')"
+  },
+  {
+   "line": 21251,
+   "find": "?'Sold':c",
+   "replace": "?t('market.sold'):c"
+  },
+  {
+   "line": 21257,
+   "find": "'The Market is restocking. Try again in a moment.'",
+   "replace": "t('market.restocking')"
+  },
+  {
+   "line": 21260,
+   "find": "(r&&r.error)||'Purchase failed.'",
+   "replace": "langMsg(r&&r.error)||t('market.purchase_failed')"
+  },
+  {
+   "line": 21264,
+   "find": "(r&&r.error)||'Purchase failed.'",
+   "replace": "langMsg(r&&r.error)||t('market.purchase_failed')"
+  },
+  {
+   "line": 21265,
+   "find": "' +1 Peace Shield'",
+   "replace": "' '+t('market.plus_shield')"
+  },
+  {
+   "line": 21281,
+   "find": "let PORTAL='normal';",
+   "replace": "let PORTAL='normal'; function portalLabel(m){ return m==='elite'?t('portal.elite'):m==='veteran'?t('portal.veteran'):t('portal.normal'); }   /* v1271: a portal's name on screen - PORTAL_META.label stays English */"
+  },
+  {
+   "line": 21293,
+   "find": "('Complete '+PORTAL_META[prev].label+' '+ch+'-10 to unlock '+PORTAL_META[m].label+' Chapter '+ch+'.')",
+   "replace": "t('portal.chapter_lock',{prev:portalLabel(prev),ch,mode:portalLabel(m)})"
+  },
+  {
+   "line": 21301,
+   "find": "{desc:hudIcon('gold')+' '+(2000*tier).toLocaleString()+' gold',",
+   "replace": "{get desc(){ return hudIcon('gold')+' '+t('portal.n_gold',{n:(2000*tier).toLocaleString()}); },"
+  },
+  {
+   "line": 21302,
+   "find": "{desc:'⧗ '+(60*tier)+' stamina',",
+   "replace": "{get desc(){ return '⧗ '+t('portal.n_stamina',{n:60*tier}); },"
+  },
+  {
+   "line": 21303,
+   "find": "{desc:hudIcon('gem')+' '+(100*tier)+' diamonds',",
+   "replace": "{get desc(){ return hudIcon('gem')+' '+t('portal.n_diamonds',{n:100*tier}); },"
+  },
+  {
+   "line": 21304,
+   "find": "{desc:(5*tier)+' random hero fragments',",
+   "replace": "{get desc(){ return t('portal.n_random_frags',{n:5*tier}); },"
+  },
+  {
+   "line": 21324,
+   "find": "(res&&res.error)||'That reward could not be granted just now.'",
+   "replace": "langMsg(res&&res.error)||t('portal.reward_failed')"
+  },
+  {
+   "line": 21327,
+   "find": "(hudIcon('gold')+' '+g.gold.toLocaleString()+' gold')",
+   "replace": "(hudIcon('gold')+' '+t('portal.n_gold',{n:g.gold.toLocaleString()}))"
+  },
+  {
+   "line": 21327,
+   "find": "('⧗ '+g.stamina+' stamina')",
+   "replace": "('⧗ '+t('portal.n_stamina',{n:g.stamina}))"
+  },
+  {
+   "line": 21327,
+   "find": "(hudIcon('gem')+' '+g.gems+' diamonds')",
+   "replace": "(hudIcon('gem')+' '+t('portal.n_diamonds',{n:g.gems}))"
+  },
+  {
+   "line": 21327,
+   "find": "(fr+' hero fragments')",
+   "replace": "t('portal.n_hero_frags',{n:fr})"
+  },
+  {
+   "line": 21328,
+   "find": "((res.idx+1)*15)+'-star reward!\\n'",
+   "replace": "t('portal.star_reward',{n:(res.idx+1)*15})+'\\n'"
+  },
+  {
+   "line": 21333,
+   "find": "' That reward could not be granted just now — the milestone is still waiting for you. Try again in a moment.'",
+   "replace": "' '+t('portal.reward_waiting')"
+  },
+  {
+   "line": 21335,
+   "find": "((idx+1)*15)+'-star reward!\\n'",
+   "replace": "t('portal.star_reward',{n:(idx+1)*15})+'\\n'"
+  },
+  {
+   "line": 21346,
+   "find": "${t} total stars",
+   "replace": "${ewT('portal.total_stars',{n:t})}"
+  },
+  {
+   "line": 21346,
+   "find": "next at <b>${next}</b>: ${r.desc}",
+   "replace": "${ewT('portal.next_at',{n:'<b>'+next+'</b>',reward:r.desc})}"
+  },
+  {
+   "line": 21349,
+   "find": "${ready?'Claim':'Locked'}",
+   "replace": "${ready?ewT('common.claim'):ewT('common.locked')}"
+  },
+  {
+   "line": 21359,
+   "find": "${meta.label}</button>",
+   "replace": "${portalLabel(m)}</button>"
+  },
+  {
+   "line": 21382,
+   "find": "${PORTAL_META[MODE].label} Portal</div>",
+   "replace": "${t('portal.portal_name',{mode:portalLabel(MODE)})}</div>"
+  },
+  {
+   "line": 21394,
+   "find": " Chapter ${ch}${locked?",
+   "replace": " ${t('portal.chapter',{n:ch})}${locked?"
+  },
+  {
+   "line": 21400,
+   "find": ">Chapter ${ch} — ${",
+   "replace": ">${t('portal.chapter',{n:ch})} — ${"
+  },
+  {
+   "line": 21401,
+   "find": "('Not open yet — Chapter '+MAX_CH+' is this portal\\'s summit.')",
+   "replace": "t('portal.summit',{n:MAX_CH})"
+  },
+  {
+   "line": 21431,
+   "find": "bonusLocked?`BONUS ${code} locked — clear Normal ${code} first`:`BONUS ${code}`",
+   "replace": "bonusLocked?t('portal.bonus_locked_aria',{code}):t('portal.bonus',{code})"
+  },
+  {
+   "line": 21432,
+   "find": "bonusLocked?`Clear Normal ${code} to unlock Bonus ${code}`:`BONUS ${code}`",
+   "replace": "bonusLocked?t('portal.bonus_clear',{code}):t('portal.bonus',{code})"
+  },
+  {
+   "line": 21433,
+   "find": "<span>BONUS ${code}${",
+   "replace": "<span>${t('portal.bonus',{code})}${"
+  },
+  {
+   "line": 21435,
+   "find": "`◆ Bonus ${code} is not available yet.`",
+   "replace": "'◆ '+t('portal.bonus_unavailable',{code})"
+  },
+  {
+   "line": 21437,
+   "find": "`◆ Bonus ${code} could not open. Please try again.`",
+   "replace": "'◆ '+t('portal.bonus_failed',{code})"
+  },
+  {
+   "line": 21445,
+   "find": "${cleared?'cleared':current?'available':'locked'}",
+   "replace": "${cleared?t('portal.st_cleared'):current?t('portal.st_available'):t('portal.st_locked')}"
+  },
+  {
+   "line": 21478,
+   "find": "${cleared?'cleared':current?'available':'locked'}",
+   "replace": "${cleared?t('portal.st_cleared'):current?t('portal.st_available'):t('portal.st_locked')}"
+  },
+  {
+   "line": 21454,
+   "find": "${boss?'BOSS':((MODE==='normal'?elite:[1,4,7].includes(stageInChapter(g)))?'HERO FRAGMENTS':'STAGE')}",
+   "replace": "${boss?t('portal.boss'):((MODE==='normal'?elite:[1,4,7].includes(stageInChapter(g)))?t('portal.hero_frags_lbl'):t('portal.stage_lbl'))}"
+  }
+ ],
+ "notes": [
+  "tests/test_temple_screen_1094.js line 11 asserts renderTemple source contains 'Purple heroes and above can pray.' (now ewT('temple.purple_can_pray'))",
+  "tests/test_temple_screen_1094.js line 17 asserts renderTemple source contains 'Blessings', '5th dot: blessings +' and 'Needs Temple ${x.keeperGate}' (now temple.blessings / temple.fifth_dot / temple.needs_temple)",
+  "tests/test_temple_screen_1094.js line 18 asserts 'Lv.${level} Flame Keeper' in renderTemple (now temple.keeper_lv)",
+  "tests/test_temple_screen_1094.js line 19 asserts 'Save or cancel?' and 'not refunded for cancelling' in renderTemple (now temple.save_or_cancel / temple.no_refund)",
+  "tests/test_temple_screen_1094.js line 20 asserts 'Auto save if power goes up!' anywhere in the page - still passes via the inline EW_LANG_EN",
+  "tests/test_temple_ui.js line 88 reads the Free prayer tile's innerText /Free prayer/ at runtime - passes in English",
+  "tests/test_wallet_star_milestone.js runs starMilestoneReward in a vm with no t(): the reward desc is now a lazy getter (get desc()) so t() only runs when the desc is shown; give() is unchanged",
+  "tests/test_vault_status_client.js only checks 'vaultRetry' / 'VAULT.st.locked' positions in renderDungeon - unaffected",
+  "new global helper portalLabel(m) (base line 21281) = the portal name on screen; PORTAL_META.label stays English for code. Other ranges still show PORTAL_META[...].label: base line 21655 (stage modal 'NORMAL · CHAPTER n') and 27647 - those agents can use portalLabel()",
+  "SHADY_SHOP name/desc are now getters (translated when read); ids/server keys unchanged",
+  "Market: G.market offer name 'Peace Shield' is saved data - left English in rollMarket, translated at display in renderMarket",
+  "Skyfall hub (skyhub.*) and tournament panel (skytour.*) used their own prefixes - no area prefix was assigned for Skyfall; 'Skyfall' and 'World Tree' passed as {vars}",
+  "Left English on purpose: skySimRender + skySimReplay (base 20548-20842, God Mode war simulator, AUDIT_MODE dev-only: ~45 strings); skySimTower (dead code, 3 strings); hero/guild/line names; 'Lv'+n badges, 'VS', 'vs', '#n', 'r' round suffix; temple prayer tier names (templePrayerTiers data); image alt text in the temple stage"
+ ]
+}

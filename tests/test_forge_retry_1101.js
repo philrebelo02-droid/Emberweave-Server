@@ -20,7 +20,8 @@ async function run(responses) {
   ok(c && c.enabled === true && c.dust === 5, 'a normal load opens the Forge');
   const d = await run({ '/api/gear/catalog': null, '/api/gear/sources': null, '/api/gear/state': { enabled: true } });
   ok(d && d.offline === true, 'state loaded but the catalog failed: offline too (Retry)');
-  ok(/if\(FORGE\.st\.offline\)\{[^\n]*Could not reach the Forge[^\n]*forgeRetry/.test(page) && /rt\.onclick=\(\)=>\{ FORGE\.st=null; renderForge\(\); \}/.test(page), 'the offline screen has a Retry that loads again');
+  const EN = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'lang', 'en.json'), 'utf8'));   // v1271 LANGUAGES step 2: the title is t('forge.unreachable_title')
+  ok((/if\(FORGE\.st\.offline\)\{[^\n]*Could not reach the Forge[^\n]*forgeRetry/.test(page) || (/if\(FORGE\.st\.offline\)\{[^\n]*t\('forge\.unreachable_title'\)[^\n]*forgeRetry/.test(page) && EN['forge.unreachable_title'] === 'Could not reach the Forge')) && /rt\.onclick=\(\)=>\{ FORGE\.st=null; renderForge\(\); \}/.test(page), 'the offline screen has a Retry that loads again');
   ok(page.indexOf('⚒') < 0, 'no anvil emoji left on the page');
   console.log('test_forge_retry_1101.js: ' + pass + ' checks passed' + (fail ? ', ' + fail + ' FAILED' : ''));
   process.exit(fail ? 1 : 0);

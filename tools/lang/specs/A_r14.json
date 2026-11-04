@@ -1,0 +1,747 @@
+{
+ "keys": {
+  "draft.role_tank": "Tank",
+  "draft.role_bruiser": "Bruiser",
+  "draft.role_assassin": "Assassin",
+  "draft.role_mage": "Mage",
+  "draft.role_marksman": "Marksman",
+  "draft.role_support": "Support",
+  "draft.role_warrior": "Warrior",
+  "draft.comp_weapon": "Weapon",
+  "draft.comp_helm": "Helm",
+  "draft.comp_boots": "Boots",
+  "draft.comp_armor": "Armor",
+  "draft.comp_gloves": "Gloves",
+  "draft.comp_belt": "Belt",
+  "draft.comp_ring": "Ring",
+  "draft.comp_amulet": "Amulet",
+  "draft.comp_relic": "Relic",
+  "draft.stat_weapon": "+{n}% damage",
+  "draft.stat_helm": "+{n} magic resist",
+  "draft.stat_boots": "+{n}% attack speed",
+  "draft.stat_armor": "+{n} armor",
+  "draft.stat_gloves": "+{n}% crit chance",
+  "draft.stat_belt": "+{n}% health",
+  "draft.stat_ring": "+{n}% ability power (ability-power heroes only)",
+  "draft.stat_amulet": "+{n} starting energy",
+  "draft.stat_relic": "+{n}% health and damage",
+  "draft.tier_green": "Green",
+  "draft.tier_blue": "Blue",
+  "draft.tier_purple": "Purple",
+  "draft.tier_gold": "Gold",
+  "draft.tier_orange": "Orange",
+  "draft.rank_star": "{n} star",
+  "draft.kit_1": "Ultimate + Green",
+  "draft.kit_2": "Ultimate + Green + Blue",
+  "draft.kit_3": "Ultimate + Green + Blue + Purple",
+  "draft.kit_4": "every ability · wields Gold and Orange",
+  "draft.syn_tank_2": "Tanks +{a}% health",
+  "draft.syn_tank_4": "Tanks +{a}% health, the team +{b}%",
+  "draft.syn_bruiser_2": "Bruisers {a}% lifesteal, +{b}% damage",
+  "draft.syn_bruiser_4": "Bruisers {a}% lifesteal, +{b}% damage, {c}% stun on hit",
+  "draft.syn_mage": "Mages +{a}% ability power",
+  "draft.syn_marksman": "Marksmen +{a}% attack speed",
+  "draft.syn_assassin_2": "Assassins +{a}% crit chance",
+  "draft.syn_assassin_4": "Assassins +{a}% crit, leap to the back line",
+  "draft.syn_support": "Team shield: {a}% health",
+  "draft.ord_1": "1st",
+  "draft.ord_2": "2nd",
+  "draft.ord_3": "3rd",
+  "draft.ord_4": "4th",
+  "draft.ord_5": "5th",
+  "draft.ord_6": "6th",
+  "draft.ord_7": "7th",
+  "draft.ord_8": "8th",
+  "draft.star4_unlocked": "{n} star! It can now carry a {ord} item.",
+  "draft.remover": "Remover",
+  "draft.reforger": "Reforger",
+  "draft.anvil_finished": "Finished Anvil",
+  "draft.anvil_component": "Component Anvil",
+  "draft.crest_name": "{role} Crest",
+  "draft.radiant_name": "Radiant {name}",
+  "draft.tier_tool": "Tool",
+  "draft.tier_orange_unique": "Orange · unique",
+  "draft.tier_blue_crest": "Blue · Crest",
+  "draft.tier_class_item": "{tier} · {cls} item",
+  "draft.put_with": "Put this with, on the same hero:",
+  "draft.recipe_book": "Recipe book",
+  "draft.book_own_both": "you own both parts",
+  "draft.book_gold": "Two Purples make a Gold",
+  "draft.book_purple": "Two Blues make a Purple",
+  "draft.book_blue": "Two Greens (components) make a Blue",
+  "draft.book_orange": "Orange — unique",
+  "draft.book_orange_note": "Orange items are never crafted and never used in a recipe. Only bosses (from stage {n}) and the late carousels drop them: an Orange item is a Blue item at double strength, stats and active.",
+  "draft.book_hint": "Tap an item to see its stats (hover on a computer).",
+  "draft.why_remover": "Drop the remover on a hero to take its items off.",
+  "draft.why_reforger": "Drop the reforger on a hero to reroll its items.",
+  "draft.why_anvil": "Tap the anvil on your item bench to open it.",
+  "draft.crest_useless_full": "{hero} is already a {role} - that crest would do nothing, and all three slots are full.",
+  "draft.crest_useless": "{hero} is already a {role} - that crest would do nothing.",
+  "draft.hero_full": "That hero already carries {n} items.",
+  "draft.star4_carry": "A {n} star can carry {n}.",
+  "draft.bench_room": "Make room on the item bench first ({n} slots needed).",
+  "draft.later": "Later",
+  "draft.anvil_sub": "Take one - the other two are gone. {later} keeps the anvil (the same three stay inside).",
+  "draft.counts_as": "counts as a {role}",
+  "draft.island": "Island",
+  "draft.tagline": "Draft. Merge. Outlast.",
+  "draft.chip_shop": "Buy heroes from a {b}shared shop{eb}",
+  "draft.chip_merge": "{b}Merge three{eb} to rank them up",
+  "draft.chip_race": "Race to the {b}{name}{eb}",
+  "draft.chip_outlast": "{b}Outlast seven{eb} rivals",
+  "draft.prev_avatar": "Previous avatar",
+  "draft.next_avatar": "Next avatar",
+  "draft.your_avatar": "YOUR AVATAR",
+  "draft.play_npcs": "PLAY VS NPCS",
+  "draft.buy_more": "Buy {n} more attempts",
+  "draft.multi_soon": "Multiplayer — soon",
+  "draft.fine_place": "Place {b}{ord} or better{eb} for stamina",
+  "draft.fine_daily": "{n} attempts a day — starting a match uses one",
+  "draft.attempts_left": "Attempts left today: {n}",
+  "draft.no_attempts": "No attempts left today",
+  "draft.more_attempts": "{n} more attempts",
+  "draft.err_server": "Could not reach the server.",
+  "draft.err_buy": "Could not buy attempts.",
+  "draft.err_start": "Could not start a match.",
+  "draft.practice": "Practice match — sign in to earn stamina",
+  "draft.buy_confirm": "Buy {b}{n} more {name} attempts{eb} for {cost}?",
+  "draft.you": "You",
+  "draft.rival": "Rival",
+  "draft.not_enough_gold": "Not enough gold.",
+  "draft.bench_full": "Your bench is full — sell or place a hero.",
+  "draft.reroll_cost": "Refreshing costs {n} gold.",
+  "draft.top_level": "Already at the top level.",
+  "draft.xp_cost": "{xp} XP costs {n} gold.",
+  "draft.board_full": "Board full ({n}) — buy XP to field more.",
+  "draft.err_offline": "No connection — check your signal and try again.",
+  "draft.err_auth": "Please sign in again.",
+  "draft.quit": "Quit",
+  "draft.leave": "Leave",
+  "draft.xp_plus": "+{n} XP",
+  "draft.round_n": "Round {n}",
+  "draft.next": "next: {what}",
+  "draft.next_boss": "a boss",
+  "draft.next_wave": "monster wave",
+  "draft.next_rival": "a rival",
+  "draft.lv": "Lv {n}",
+  "draft.fielded": "{n}/{max} fielded",
+  "draft.players_syn": "Players and synergies",
+  "draft.fold_away": "Fold away",
+  "draft.syn_hint": "Field {a} or {b} heroes of one role for a bonus.",
+  "draft.radiant_x2": "×2 stats and active",
+  "draft.info_remover": "Drop it on a hero to take all its items off, intact, back to the item bench.",
+  "draft.info_reforger": "Drop it on a hero: each of its items becomes a different random item of the same tier (a component, Blue, crest, Purple, Gold or Orange). They stay on the hero.",
+  "draft.info_anvil_f": "Tap it on your item bench to open it and take {n} of {m} Blue (finished) items.",
+  "draft.info_anvil_c": "Tap it on your item bench to open it and take {n} of {m} components.",
+  "draft.forge_hint": "Put a second component on the same hero to forge:",
+  "draft.seed_plus": "{name} (+{n} hero)",
+  "draft.made_from": "Made from {parts} — their stats ×{x}.",
+  "draft.counts_as_syn": "Counts as a {role} for synergies.",
+  "draft.seed_info": "+{n} hero on the board while its holder is fielded.",
+  "draft.active": "Active",
+  "draft.st_armor": "{n} armor",
+  "draft.st_resist": "{n} resist",
+  "draft.st_crit": "{n} crit",
+  "draft.st_power": "{n} power",
+  "draft.st_range": "{n} range",
+  "draft.tap_item": "Tap an item to see its stats.",
+  "draft.no_equipment": "No equipment yet — drag an item onto this hero.",
+  "draft.equipment": "Equipment",
+  "draft.tap_hero_equip": "tap a hero to equip",
+  "draft.sel_hint": "Drag heroes on the field to place them · drag onto the shop to sell · drag equipment onto a hero.",
+  "draft.tap_spot_move": "tap a spot to move",
+  "draft.drop_remove": "drop on a hero to take its items off",
+  "draft.drop_reroll": "drop on a hero to reroll its items",
+  "draft.two_comp_make": "two components make a finished item",
+  "draft.finished": "finished",
+  "draft.tap_a_hero": "tap a hero",
+  "draft.the_name": "The {name}",
+  "draft.lowest_first": "Lowest health picks first",
+  "draft.your_pick": "Your pick — each hero carries a piece of equipment.",
+  "draft.waiting": "Waiting…",
+  "draft.taken_by": "taken by {name}",
+  "draft.reforged": "Reforged {hero}: {items}.",
+  "draft.no_reforge": "{hero} has no items to reforge.",
+  "draft.ring_attack": "{ring} boosts ability power - {hero}'s abilities scale on attack damage, so it does little here.",
+  "draft.you_took": "You took {item} - drag it onto a hero.",
+  "draft.quit_attempt": "You will lose your chance for today: this match ends now, and the attempt it used is gone (quitting does not give it back).",
+  "draft.quit_loss": "The match counts as a loss.",
+  "draft.quit_practice": "This practice match ends now. Nothing is lost.",
+  "draft.quit_title": "Quit {name}?",
+  "exit.leave_title": "Leave {name}?",
+  "exit.saved": "Your progress is saved."
+ },
+ "edits": [
+  {
+   "line": 32268,
+   "find": "const ED_FIN_BONUS = 1.25, ED_RADIANT_MUL = 2, ED_ITEM_BENCH = 10;",
+   "replace": "const ED_FIN_BONUS = 1.25, ED_RADIANT_MUL = 2, ED_ITEM_BENCH = 10;\n/* v1271 LANGUAGES step 2: the data keeps its English words (roles, item slots, tiers and ranks - the code compares them); these give the\n   player's language only where they are shown */\nfunction edRoleTxt(r){ switch(r){ case 'Tank': return ewT('draft.role_tank'); case 'Bruiser': return ewT('draft.role_bruiser'); case 'Assassin': return ewT('draft.role_assassin'); case 'Mage': return ewT('draft.role_mage'); case 'Marksman': return ewT('draft.role_marksman'); case 'Support': return ewT('draft.role_support'); case 'Warrior': return ewT('draft.role_warrior'); } return r||''; }\nfunction edCompTxt(c){ switch(c){ case 'Weapon': return ewT('draft.comp_weapon'); case 'Helm': return ewT('draft.comp_helm'); case 'Boots': return ewT('draft.comp_boots'); case 'Armor': return ewT('draft.comp_armor'); case 'Gloves': return ewT('draft.comp_gloves'); case 'Belt': return ewT('draft.comp_belt'); case 'Ring': return ewT('draft.comp_ring'); case 'Amulet': return ewT('draft.comp_amulet'); case 'Relic': return ewT('draft.comp_relic'); } return c||''; }\nfunction edCompStat(c,k){ const m=String(ED_COMP_TXT[c]||'').match(/\\d+/), n=m?Math.round(+m[0]*(k==null?1:k)):0;   /* the number of ED_COMP_TXT x k, as edItemStatLines did */\n  switch(c){ case 'Weapon': return ewT('draft.stat_weapon',{n}); case 'Helm': return ewT('draft.stat_helm',{n}); case 'Boots': return ewT('draft.stat_boots',{n}); case 'Armor': return ewT('draft.stat_armor',{n}); case 'Gloves': return ewT('draft.stat_gloves',{n}); case 'Belt': return ewT('draft.stat_belt',{n}); case 'Ring': return ewT('draft.stat_ring',{n}); case 'Amulet': return ewT('draft.stat_amulet',{n}); case 'Relic': return ewT('draft.stat_relic',{n}); } return c||''; }\nfunction edTierTxt(id){ switch(id){ case 'green': return ewT('draft.tier_green'); case 'blue': return ewT('draft.tier_blue'); case 'purple': return ewT('draft.tier_purple'); case 'gold': return ewT('draft.tier_gold'); case 'orange': return ewT('draft.tier_orange'); } return ''; }\nfunction edRankLbl(r){ return (r>=1&&r<=4)?ewT('draft.rank_star',{n:r}):''; }\nfunction edRankKit(r){ switch(r){ case 1: return ewT('draft.kit_1'); case 2: return ewT('draft.kit_2'); case 3: return ewT('draft.kit_3'); case 4: return ewT('draft.kit_4'); } return ''; }\nfunction edSynTxt(k,i){ const hi=i>=1; switch(k){   /* ED_SYN[k].d[i] in the player's language */\n    case 'Tank': return hi?ewT('draft.syn_tank_4',{a:40,b:10}):ewT('draft.syn_tank_2',{a:20});\n    case 'Bruiser': return hi?ewT('draft.syn_bruiser_4',{a:25,b:25,c:10}):ewT('draft.syn_bruiser_2',{a:10,b:10});\n    case 'Mage': return hi?ewT('draft.syn_mage',{a:50}):ewT('draft.syn_mage',{a:20});\n    case 'Marksman': return hi?ewT('draft.syn_marksman',{a:45}):ewT('draft.syn_marksman',{a:20});\n    case 'Assassin': return hi?ewT('draft.syn_assassin_4',{a:35}):ewT('draft.syn_assassin_2',{a:15});\n    case 'Support': return hi?ewT('draft.syn_support',{a:25}):ewT('draft.syn_support',{a:10}); }\n  return (ED_SYN[k]&&ED_SYN[k].d[i])||''; }\nfunction edOrd(n){ switch(n){ case 1: return ewT('draft.ord_1'); case 2: return ewT('draft.ord_2'); case 3: return ewT('draft.ord_3'); case 4: return ewT('draft.ord_4'); case 5: return ewT('draft.ord_5'); case 6: return ewT('draft.ord_6'); case 7: return ewT('draft.ord_7'); case 8: return ewT('draft.ord_8'); } return ''; }\n/* /v1271 */"
+  },
+  {
+   "line": 32342,
+   "find": "name: i===0 ? 'You' :",
+   "replace": "name: i===0 ? ewT('draft.you') :"
+  },
+  {
+   "line": 32369,
+   "find": "edToast('{i:u:star-filled} 4 star! It can now carry a 4th item.')",
+   "replace": "edToast('{i:u:star-filled} '+ewT('draft.star4_unlocked',{n:4,ord:edOrd(4)}))"
+  },
+  {
+   "line": 32380,
+   "find": "if(it.rm) return 'Remover'; if(it.rf) return 'Reforger'; if(it.anv) return it.anv==='f'?'Finished Anvil':'Component Anvil'; const cr=edCrestRole(it); if(cr) return cr+' Crest'; return (it.r?'Radiant ':'')+(it.f ? it.f : it.c); }",
+   "replace": "if(it.rm) return ewT('draft.remover'); if(it.rf) return ewT('draft.reforger'); if(it.anv) return it.anv==='f'?ewT('draft.anvil_finished'):ewT('draft.anvil_component'); const cr=edCrestRole(it); if(cr) return ewT('draft.crest_name',{role:edRoleTxt(cr)}); const nm=it.f ? it.f : edCompTxt(it.c); return it.r?ewT('draft.radiant_name',{name:nm}):nm; }"
+  },
+  {
+   "line": 32410,
+   "find": "if(edIsTool(it)) return 'Tool'; if(it.r) return 'Orange · unique'; if(edCrestRole(it)) return 'Blue · Crest';",
+   "replace": "if(edIsTool(it)) return ewT('draft.tier_tool'); if(it.r) return ewT('draft.tier_orange_unique'); if(edCrestRole(it)) return ewT('draft.tier_blue_crest');"
+  },
+  {
+   "line": 32411,
+   "find": "const t={green:'Green',blue:'Blue',purple:'Purple',gold:'Gold'}[edTierOf(it)]||'', c=ED_ITEM_CLS[it.f]; return c ? t+' · '+c+' item' : t; }",
+   "replace": "const t=edTierTxt(edTierOf(it)), c=ED_ITEM_CLS[it.f]; return c ? ewT('draft.tier_class_item',{tier:t,cls:edRoleTxt(c)}) : t; }"
+  },
+  {
+   "line": 32415,
+   "find": "Put this with, on the same hero:",
+   "replace": "'+ewT('draft.put_with')+'"
+  },
+  {
+   "line": 32429,
+   "find": "(ED_COMP_TXT[c]||c).replace(/(\\d+)/,n=>String(Math.round(+n*k)))",
+   "replace": "edCompStat(c,k)"
+  },
+  {
+   "line": 32442,
+   "find": "edEsc(big?edItemName(it):(it.f||it.c))",
+   "replace": "edEsc(big?edItemName(it):(it.f||edCompTxt(it.c)))"
+  },
+  {
+   "line": 32444,
+   "find": "['gold','Gold','#ffd45e'],['purple','Purple','#b57bff'],['blue','Blue','#58a6ff'],['orange','Orange','#ff9a3c']",
+   "replace": "['gold',ewT('draft.tier_gold'),'#ffd45e'],['purple',ewT('draft.tier_purple'),'#b57bff'],['blue',ewT('draft.tier_blue'),'#58a6ff'],['orange',ewT('draft.tier_orange'),'#ff9a3c']"
+  },
+  {
+   "line": 32445,
+   "find": "+' Recipe book</b>",
+   "replace": "+' '+ewT('draft.recipe_book')+'</b>"
+  },
+  {
+   "line": 32447,
+   "find": "</span> you own both parts</div>",
+   "replace": "</span> '+ewT('draft.book_own_both')+'</div>"
+  },
+  {
+   "line": 32448,
+   "find": "'<div class=\"bkC\">Two Purples make a Gold</div>'",
+   "replace": "'<div class=\"bkC\">'+ewT('draft.book_gold')+'</div>'"
+  },
+  {
+   "line": 32449,
+   "find": "<div class=\"bkG\">${cls}</div>",
+   "replace": "<div class=\"bkG\">${edRoleTxt(cls)}</div>"
+  },
+  {
+   "line": 32451,
+   "find": "'<div class=\"bkC\">Two Blues make a Purple</div>'",
+   "replace": "'<div class=\"bkC\">'+ewT('draft.book_purple')+'</div>'"
+  },
+  {
+   "line": 32452,
+   "find": "<div class=\"bkG\">${cls}</div>",
+   "replace": "<div class=\"bkG\">${edRoleTxt(cls)}</div>"
+  },
+  {
+   "line": 32454,
+   "find": "'<div class=\"bkC\">Two Greens (components) make a Blue</div>'",
+   "replace": "'<div class=\"bkC\">'+ewT('draft.book_blue')+'</div>'"
+  },
+  {
+   "line": 32455,
+   "find": "${edEsc(c0)}",
+   "replace": "${edEsc(edCompTxt(c0))}"
+  },
+  {
+   "line": 32457,
+   "find": "'<div class=\"bkC\">Orange — unique</div><div class=\"bkNote\">Orange items are never crafted and never used in a recipe. Only bosses (from stage 4) and the late carousels drop them: an Orange item is a Blue item at double strength, stats and active.</div>'",
+   "replace": "'<div class=\"bkC\">'+ewT('draft.book_orange')+'</div><div class=\"bkNote\">'+ewT('draft.book_orange_note',{n:4})+'</div>'"
+  },
+  {
+   "line": 32460,
+   "find": "'<div class=\"bkHint\">Tap an item to see its stats (hover on a computer).</div>'",
+   "replace": "'<div class=\"bkHint\">'+ewT('draft.book_hint')+'</div>'"
+  },
+  {
+   "line": 32474,
+   "find": "'Drop the remover on a hero to take its items off.'",
+   "replace": "ewT('draft.why_remover')"
+  },
+  {
+   "line": 32475,
+   "find": "'Drop the reforger on a hero to reroll its items.'",
+   "replace": "ewT('draft.why_reforger')"
+  },
+  {
+   "line": 32475,
+   "find": "'Tap the anvil on your item bench to open it.'",
+   "replace": "ewT('draft.why_anvil')"
+  },
+  {
+   "line": 32479,
+   "find": "edName(h.key)+' is already a '+lastCr+' - that crest would do nothing, and all three slots are full.'",
+   "replace": "ewT('draft.crest_useless_full',{hero:edName(h.key),role:edRoleTxt(lastCr)})"
+  },
+  {
+   "line": 32480,
+   "find": "edName(h.key)+' is already a '+cr+' - that crest would do nothing.'",
+   "replace": "ewT('draft.crest_useless',{hero:edName(h.key),role:edRoleTxt(cr)})"
+  },
+  {
+   "line": 32481,
+   "find": "'That hero already carries '+edItemCap(h)+' items.'+(edItemCap(h)<4?' A 4 star can carry 4.':'')",
+   "replace": "ewT('draft.hero_full',{n:edItemCap(h)})+(edItemCap(h)<4?' '+ewT('draft.star4_carry',{n:4}):'')"
+  },
+  {
+   "line": 32485,
+   "find": "'Make room on the item bench first ('+h.items.length+' slots needed).'",
+   "replace": "ewT('draft.bench_room',{n:h.items.length})"
+  },
+  {
+   "line": 32511,
+   "find": "data-a=\"anvx\">Later</button>",
+   "replace": "data-a=\"anvx\">${ewT('draft.later')}</button>"
+  },
+  {
+   "line": 32511,
+   "find": "Take one - the other two are gone. \"Later\" keeps the anvil (the same three stay inside).",
+   "replace": "${ewT('draft.anvil_sub',{later:'\"'+ewT('draft.later')+'\"'})}"
+  },
+  {
+   "line": 32514,
+   "find": "✦ counts as a ${edEsc(cr)}",
+   "replace": "✦ ${edEsc(ewT('draft.counts_as',{role:edRoleTxt(cr)}))}"
+  },
+  {
+   "line": 32579,
+   "find": ">◀ Island</button>",
+   "replace": ">◀ ${ewT('draft.island')}</button>"
+  },
+  {
+   "line": 32583,
+   "find": "Draft. Merge. Outlast.",
+   "replace": "${ewT('draft.tagline')}"
+  },
+  {
+   "line": 32585,
+   "find": "<span>Buy heroes from a <b>shared shop</b></span>",
+   "replace": "<span>${ewT('draft.chip_shop',{b:'<b>',eb:'</b>'})}</span>"
+  },
+  {
+   "line": 32586,
+   "find": "<span><b>Merge three</b> to rank them up</span>",
+   "replace": "<span>${ewT('draft.chip_merge',{b:'<b>',eb:'</b>'})}</span>"
+  },
+  {
+   "line": 32587,
+   "find": "<span>Race to the <b>Ember Carousel</b></span>",
+   "replace": "<span>${ewT('draft.chip_race',{b:'<b>',eb:'</b>',name:'Ember Carousel'})}</span>"
+  },
+  {
+   "line": 32588,
+   "find": "<span><b>Outlast seven</b> rivals</span>",
+   "replace": "<span>${ewT('draft.chip_outlast',{b:'<b>',eb:'</b>'})}</span>"
+  },
+  {
+   "line": 32593,
+   "find": "aria-label=\"Previous avatar\"",
+   "replace": "aria-label=\"${ewT('draft.prev_avatar')}\""
+  },
+  {
+   "line": 32594,
+   "find": "<small>YOUR AVATAR</small>",
+   "replace": "<small>${ewT('draft.your_avatar')}</small>"
+  },
+  {
+   "line": 32595,
+   "find": "aria-label=\"Next avatar\"",
+   "replace": "aria-label=\"${ewT('draft.next_avatar')}\""
+  },
+  {
+   "line": 32600,
+   "find": "${statusIcon('attack')} PLAY VS NPCS",
+   "replace": "${statusIcon('attack')} ${ewT('draft.play_npcs')}"
+  },
+  {
+   "line": 32601,
+   "find": "${hudIcon('gem')} Buy 3 more attempts",
+   "replace": "${hudIcon('gem')} ${ewT('draft.buy_more',{n:3})}"
+  },
+  {
+   "line": 32602,
+   "find": "${uiIcon('players')} Multiplayer — soon",
+   "replace": "${uiIcon('players')} ${ewT('draft.multi_soon')}"
+  },
+  {
+   "line": 32603,
+   "find": "Place <b>6th or better</b> for stamina<br>1st 36 · 2nd 30 · 3rd 24 · 4th 18 · 5th 12 · 6th 6<br>3 attempts a day — starting a match uses one",
+   "replace": "${ewT('draft.fine_place',{b:'<b>',eb:'</b>',ord:edOrd(6)})}<br>${[36,30,24,18,12,6].map((n,i)=>edOrd(i+1)+' '+n).join(' · ')}<br>${ewT('draft.fine_daily',{n:3})}"
+  },
+  {
+   "line": 32666,
+   "find": "<span style=\"margin-left:4px\">${v.left} attempt${v.left===1?'':'s'} left today</span>",
+   "replace": "<span style=\"margin-left:4px\">${ewT('draft.attempts_left',{n:v.left})}</span>"
+  },
+  {
+   "line": 32667,
+   "find": "<span style=\"margin-left:4px\">No attempts left today</span>",
+   "replace": "<span style=\"margin-left:4px\">${ewT('draft.no_attempts')}</span>"
+  },
+  {
+   "line": 32669,
+   "find": "${v.nextCost} — ${v.pack} more attempts",
+   "replace": "${v.nextCost} — ${ewT('draft.more_attempts',{n:v.pack})}"
+  },
+  {
+   "line": 32672,
+   "find": "'Could not reach the server.'",
+   "replace": "ewT('draft.err_server')"
+  },
+  {
+   "line": 32673,
+   "find": "attEl.textContent='Practice match — sign in to earn stamina';",
+   "replace": "attEl.textContent=ewT('draft.practice');"
+  },
+  {
+   "line": 32674,
+   "find": "gameConfirm(`Buy <b>${buy.dataset.pack||3} more Emberdraft attempts</b> for <b style=\"color:#c9b6ff\">${hudIcon('gem')}${buy.dataset.cost||''}</b>?`,",
+   "replace": "gameConfirm(ewT('draft.buy_confirm',{b:'<b>',eb:'</b>',n:buy.dataset.pack||3,name:'Emberdraft',cost:`<b style=\"color:#c9b6ff\">${hudIcon('gem')}${buy.dataset.cost||''}</b>`}),"
+  },
+  {
+   "line": 32678,
+   "find": "'Could not buy attempts.'",
+   "replace": "ewT('draft.err_buy')"
+  },
+  {
+   "line": 32682,
+   "find": "'Could not start a match.'",
+   "replace": "ewT('draft.err_start')"
+  },
+  {
+   "line": 32712,
+   "find": "name:p.ai?p.name:'You'",
+   "replace": "name:p.ai?p.name:ewT('draft.you')"
+  },
+  {
+   "line": 33134,
+   "find": "edAvTag(ED.av,'You','#ffd45e');",
+   "replace": "edAvTag(ED.av,ewT('draft.you'),'#ffd45e');"
+  },
+  {
+   "line": 33135,
+   "find": "ED.opp.p.name||'Rival'",
+   "replace": "ED.opp.p.name||ewT('draft.rival')"
+  },
+  {
+   "line": 33145,
+   "find": "edToast('Not enough gold.')",
+   "replace": "edToast(ewT('draft.not_enough_gold'))"
+  },
+  {
+   "line": 33148,
+   "find": "edToast('Your bench is full — sell or place a hero.')",
+   "replace": "edToast(ewT('draft.bench_full'))"
+  },
+  {
+   "line": 33153,
+   "find": "edToast('Refreshing costs 2 gold.')",
+   "replace": "edToast(ewT('draft.reroll_cost',{n:2}))"
+  },
+  {
+   "line": 33154,
+   "find": "edToast('Already at the top level.')",
+   "replace": "edToast(ewT('draft.top_level'))"
+  },
+  {
+   "line": 33154,
+   "find": "edToast('4 XP costs 4 gold.')",
+   "replace": "edToast(ewT('draft.xp_cost',{xp:4,n:4}))"
+  },
+  {
+   "line": 33165,
+   "find": "edToast('Board full ('+edFieldCap(p)+') — buy XP to field more.')",
+   "replace": "edToast(ewT('draft.board_full',{n:edFieldCap(p)}))"
+  },
+  {
+   "line": 33641,
+   "find": "return 'No connection — check your signal and try again.'; if(e==='auth') return 'Please sign in again.'; return e; }",
+   "replace": "return ewT('draft.err_offline'); if(e==='auth') return ewT('draft.err_auth'); return langMsg(e); }"
+  },
+  {
+   "line": 33885,
+   "find": "`<span class=\"pill\">Round <b>${r}</b> <span style=\"color:#9fb0c2\">${edStageTag(r)}</span> · next: ${edIsBoss(r)?uiIcon('crown')+' a boss':(edIsPve(r)?'monster wave':'a rival')}</span>",
+   "replace": "`<span class=\"pill\">${ewT('draft.round_n',{n:'<b>'+r+'</b>'})} <span style=\"color:#9fb0c2\">${edStageTag(r)}</span> · ${ewT('draft.next',{what:edIsBoss(r)?uiIcon('crown')+' '+ewT('draft.next_boss'):(edIsPve(r)?ewT('draft.next_wave'):ewT('draft.next_rival'))})}</span>"
+  },
+  {
+   "line": 33886,
+   "find": "`<span class=\"pill\">Lv <b>${you.level}</b>${you.level<9?` · ${you.xp}/${need}`:''} · ${edBoardCount(you)}/${edFieldCap(you)} fielded</span>`",
+   "replace": "`<span class=\"pill\">${ewT('draft.lv',{n:'<b>'+you.level+'</b>'})}${you.level<9?` · ${you.xp}/${need}`:''} · ${ewT('draft.fielded',{n:edBoardCount(you),max:edFieldCap(you)})}</span>`"
+  },
+  {
+   "line": 33887,
+   "find": ">+4 XP · ${hudIcon('gold')}4</button>",
+   "replace": ">${ewT('draft.xp_plus',{n:4})} · ${hudIcon('gold')}4</button>"
+  },
+  {
+   "line": 33888,
+   "find": "data-a=\"quit\">Quit</button>",
+   "replace": "data-a=\"quit\">${ewT('draft.quit')}</button>"
+  },
+  {
+   "line": 33888,
+   "find": "data-a=\"ready\">Fight ${uiIcon('play')}",
+   "replace": "data-a=\"ready\">${ewT('common.fight')} ${uiIcon('play')}"
+  },
+  {
+   "line": 33893,
+   "find": "title=\"Recipe book\"",
+   "replace": "title=\"${ewT('draft.recipe_book')}\""
+  },
+  {
+   "line": 33903,
+   "find": "title=\"Players and synergies\"",
+   "replace": "title=\"'+ewT('draft.players_syn')+'\""
+  },
+  {
+   "line": 33904,
+   "find": "title=\"Fold away\"",
+   "replace": "title=\"'+ewT('draft.fold_away')+'\""
+  },
+  {
+   "line": 33909,
+   "find": "'<div class=\"syn\">Field 2 or 4 heroes of one role for a bonus.</div>'",
+   "replace": "'<div class=\"syn\">'+ewT('draft.syn_hint',{a:2,b:4})+'</div>'"
+  },
+  {
+   "line": 33910,
+   "find": "${S.ic} ${k} ${s.n}/${s.n>=2?4:2}${s.tier?' · '+S.d[s.tier-1]:''}",
+   "replace": "${S.ic} ${edRoleTxt(k)} ${s.n}/${s.n>=2?4:2}${s.tier?' · '+edSynTxt(k,s.tier-1):''}"
+  },
+  {
+   "line": 33915,
+   "find": "<div class=\"rl\">${edRole(k)} ·",
+   "replace": "<div class=\"rl\">${edRoleTxt(edRole(k))} ·"
+  },
+  {
+   "line": 33926,
+   "find": "const line=c=>(ED_COMP_TXT[c]||c).replace(/(\\d+)/,n=>String(Math.round(+n*k)));",
+   "replace": "const line=c=>edCompStat(c,k);"
+  },
+  {
+   "line": 33927,
+   "find": "${it.r?' · ×2 stats and active':''}",
+   "replace": "${it.r?' · '+ewT('draft.radiant_x2'):''}"
+  },
+  {
+   "line": 33928,
+   "find": "Drop it on a hero to take all its items off, intact, back to the item bench.",
+   "replace": "${ewT('draft.info_remover')}"
+  },
+  {
+   "line": 33929,
+   "find": "Drop it on a hero: each of its items becomes a different random item of the same tier (a component, Blue, crest, Purple, Gold or Orange). They stay on the hero.",
+   "replace": "${ewT('draft.info_reforger')}"
+  },
+  {
+   "line": 33930,
+   "find": "Tap it on your item bench to open it and take 1 of 3 ${it.anv==='f'?'Blue (finished) items':'components'}.",
+   "replace": "${it.anv==='f'?ewT('draft.info_anvil_f',{n:1,m:3}):ewT('draft.info_anvil_c',{n:1,m:3})}"
+  },
+  {
+   "line": 33931,
+   "find": "Put a second component on the same hero to forge:",
+   "replace": "${ewT('draft.forge_hint')}"
+  },
+  {
+   "line": 33935,
+   "find": "+ ${edEsc(c)}</span>",
+   "replace": "+ ${edEsc(edCompTxt(c))}</span>"
+  },
+  {
+   "line": 33935,
+   "find": "${edEsc(cr?cr+' Crest':(it.c==='Relic'&&c==='Relic'?'Worldroot Seed (+1 hero)':f))}",
+   "replace": "${edEsc(cr?ewT('draft.crest_name',{role:edRoleTxt(cr)}):(it.c==='Relic'&&c==='Relic'?ewT('draft.seed_plus',{name:'Worldroot Seed',n:1}):f))}"
+  },
+  {
+   "line": 33937,
+   "find": "Made from ${edEsc(it.parts.map(edItemName).join(' + '))} — their stats ×${ED_TIER_BONUS[it.t]}.",
+   "replace": "${ewT('draft.made_from',{parts:edEsc(it.parts.map(edItemName).join(' + ')),x:ED_TIER_BONUS[it.t]})}"
+  },
+  {
+   "line": 33939,
+   "find": "✦ Counts as a ${edEsc(cr)} for synergies.",
+   "replace": "✦ ${ewT('draft.counts_as_syn',{role:edEsc(edRoleTxt(cr))})}"
+  },
+  {
+   "line": 33940,
+   "find": "✦ +1 hero on the board while its holder is fielded.",
+   "replace": "✦ ${ewT('draft.seed_info',{n:1})}"
+  },
+  {
+   "line": 33941,
+   "find": "edEsc(A.name||'Active')",
+   "replace": "edEsc(A.name||ewT('draft.active'))"
+  },
+  {
+   "line": 33946,
+   "find": "<small>${edEsc(edRole(hero.key))} · ${ED_RANK_LBL[hero.rank]||'1 star'}</small>",
+   "replace": "<small>${edEsc(edRoleTxt(edRole(hero.key)))} · ${edRankLbl(hero.rank)||edRankLbl(1)}</small>"
+  },
+  {
+   "line": 33946,
+   "find": "aria-label=\"Close\"",
+   "replace": "aria-label=\"${ewT('common.close')}\""
+  },
+  {
+   "line": 33947,
+   "find": "<b>${f(u.armorRating||u.armor)}</b> armor</span>",
+   "replace": "${ewT('draft.st_armor',{n:'<b>'+f(u.armorRating||u.armor)+'</b>'})}</span>"
+  },
+  {
+   "line": 33948,
+   "find": "<b>${f(u.mrRating||u.mr)}</b> resist</span>",
+   "replace": "${ewT('draft.st_resist',{n:'<b>'+f(u.mrRating||u.mr)+'</b>'})}</span>"
+  },
+  {
+   "line": 33948,
+   "find": "<b>${Math.round((u.glyphCrit||u.crit||0)*100)}%</b> crit</span>",
+   "replace": "${ewT('draft.st_crit',{n:'<b>'+Math.round((u.glyphCrit||u.crit||0)*100)+'%</b>'})}</span>"
+  },
+  {
+   "line": 33948,
+   "find": "<b>${f(u.apow)}</b> power</span>",
+   "replace": "${ewT('draft.st_power',{n:'<b>'+f(u.apow)+'</b>'})}</span>"
+  },
+  {
+   "line": 33948,
+   "find": "<b>${f(u.range)}</b> range</span>",
+   "replace": "${ewT('draft.st_range',{n:'<b>'+f(u.range)+'</b>'})}</span>"
+  },
+  {
+   "line": 33952,
+   "find": "'Tap an item to see its stats.':'No equipment yet — drag an item onto this hero.'",
+   "replace": "ewT('draft.tap_item'):ewT('draft.no_equipment')"
+  },
+  {
+   "line": 33953,
+   "find": "<b>Equipment</b><small>tap a hero to equip</small>",
+   "replace": "<b>${ewT('draft.equipment')}</b><small>${ewT('draft.tap_hero_equip')}</small>"
+  },
+  {
+   "line": 33953,
+   "find": "aria-label=\"Close\"",
+   "replace": "aria-label=\"${ewT('common.close')}\""
+  },
+  {
+   "line": 33955,
+   "find": "return 'Drag heroes on the field to place them · drag onto the shop to sell · drag equipment onto a hero.';",
+   "replace": "return ewT('draft.sel_hint');"
+  },
+  {
+   "line": 33956,
+   "find": "edRole(h.key)+' · '+ED_RANK_LBL[h.rank]+' ('+ED_RANK_KIT[h.rank]+')'",
+   "replace": "edRoleTxt(edRole(h.key))+' · '+edRankLbl(h.rank)+' ('+edRankKit(h.rank)+')'"
+  },
+  {
+   "line": 33956,
+   "find": "+' — tap a spot to move';",
+   "replace": "+' — '+ewT('draft.tap_spot_move');"
+  },
+  {
+   "line": 33957,
+   "find": "(it.rm?'drop on a hero to take its items off':(it.rf?'drop on a hero to reroll its items':(it.c?ED_COMP_TXT[it.c]+' — two components make a finished item':'finished')))+' · tap a hero';",
+   "replace": "(it.rm?ewT('draft.drop_remove'):(it.rf?ewT('draft.drop_reroll'):(it.c?edCompStat(it.c,1)+' — '+ewT('draft.two_comp_make'):ewT('draft.finished'))))+' · '+ewT('draft.tap_a_hero');"
+  },
+  {
+   "line": 33960,
+   "find": "<span class=\"pill\">Round <b>${ED.round}</b> · The Ember Draft</span><span class=\"pill\">Lowest health picks first</span>",
+   "replace": "<span class=\"pill\">${ewT('draft.round_n',{n:'<b>'+ED.round+'</b>'})} · ${ewT('draft.the_name',{name:'Ember Draft'})}</span><span class=\"pill\">${ewT('draft.lowest_first')}</span>"
+  },
+  {
+   "line": 33960,
+   "find": "data-a=\"quit\">Leave</button>",
+   "replace": "data-a=\"quit\">${ewT('draft.leave')}</button>"
+  },
+  {
+   "line": 33961,
+   "find": "'Your pick — each hero carries a piece of equipment.':'Waiting…'",
+   "replace": "ewT('draft.your_pick'):ewT('draft.waiting')"
+  },
+  {
+   "line": 33963,
+   "find": "<div class=\"rl\">${edRole(o.key)} ·",
+   "replace": "<div class=\"rl\">${edRoleTxt(edRole(o.key))} ·"
+  },
+  {
+   "line": 33963,
+   "find": "${o.item.c} (${edItemTier(o.item)})",
+   "replace": "${edCompTxt(o.item.c)} (${edItemTier(o.item)})"
+  },
+  {
+   "line": 33963,
+   "find": "taken by ${edEsc(taker)}",
+   "replace": "${ewT('draft.taken_by',{name:edEsc(taker)})}"
+  },
+  {
+   "line": 34051,
+   "find": "ED.msg='{i:u:dice} Reforged '+edName(h.key)+': '+h.items.map(edItemName).join(', ')+'.';",
+   "replace": "ED.msg='{i:u:dice} '+ewT('draft.reforged',{hero:edName(h.key),items:h.items.map(edItemName).join(', ')});"
+  },
+  {
+   "line": 34051,
+   "find": "ED.msg=edName(h.key)+' has no items to reforge.';",
+   "replace": "ED.msg=ewT('draft.no_reforge',{hero:edName(h.key)});"
+  },
+  {
+   "line": 34052,
+   "find": "edToast('Ring boosts ability power - '+edName(h.key)+\"'s abilities scale on attack damage, so it does little here.\");",
+   "replace": "edToast(ewT('draft.ring_attack',{ring:edCompTxt('Ring'),hero:edName(h.key)}));"
+  },
+  {
+   "line": 34052,
+   "find": "edToast(_edEquipWhy||'That hero already carries three items.');",
+   "replace": "edToast(_edEquipWhy||ewT('draft.hero_full',{n:3}));"
+  },
+  {
+   "line": 34067,
+   "find": "ED.msg='{i:u:mode-forge} You took '+edItemName(got)+' - drag it onto a hero.';",
+   "replace": "ED.msg='{i:u:mode-forge} '+ewT('draft.you_took',{item:edItemName(got)});"
+  },
+  {
+   "line": 34079,
+   "find": "['You will lose your chance for today: this match ends now, and the attempt it used is gone (quitting does not give it back).','The match counts as a loss.']",
+   "replace": "[ewT('draft.quit_attempt'),ewT('draft.quit_loss')]"
+  },
+  {
+   "line": 34080,
+   "find": "['This practice match ends now. Nothing is lost.']",
+   "replace": "[ewT('draft.quit_practice')]"
+  },
+  {
+   "line": 34081,
+   "find": "uiConfirm('Quit Emberdraft?', lines, 'Quit', true)",
+   "replace": "uiConfirm(ewT('draft.quit_title',{name:'Emberdraft'}), lines, ewT('draft.quit'), true)"
+  },
+  {
+   "line": 34091,
+   "find": "uiConfirm('Leave Emberweave?', ['Your progress is saved.'], 'Leave', true)",
+   "replace": "uiConfirm(ewT('exit.leave_title',{name:'Emberweave'}), [ewT('exit.saved')], ewT('draft.leave'), true)"
+  }
+ ],
+ "notes": [
+  "TEST BREAK: tests/test_ed_buy_rid.js (lines 7-15) and tests/test_pending_ownership.js (lines 88-95) run the page's buy.onclick (base 32674-32678) in a vm whose context has no ewT/t - the translated gameConfirm text and edNiceErr fallback now call ewT, so both tests throw ReferenceError until ewT (and t) are added to their ctx (or to tests/helpers/page-icons.js). No test asserts any converted English literal.",
+  "helpers edRoleTxt/edCompTxt/edCompStat/edTierTxt/edRankLbl/edRankKit/edSynTxt/edOrd are defined here (base line 32268) and used by B_r14.json too",
+  "edNiceErr now returns langMsg(e) for a server error (langMsg from 00_infra.json)",
+  "left English on purpose: God Mode line (dev only, 1); proper names: 7 AI rival names, 4 arena names, 10 avatar names + Placeholder, the 81 item names (ED_FINISHED/ED_PURPLE/ED_GOLD), Emberdraft / Ember Carousel / Ember Draft / Ember Cache / Worldroot Seed / Emberweave (passed as {name}); EMBER DRAFT logo; server text (gear catalog active names/effects, reward note); ED_TIERS and edPveRewardOld (never shown)"
+ ]
+}

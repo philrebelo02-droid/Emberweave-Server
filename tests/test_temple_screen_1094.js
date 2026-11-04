@@ -7,17 +7,19 @@ const assert=require('assert'),fs=require('fs'),path=require('path');
 const root=path.join(__dirname,'..'), page=fs.readFileSync(path.join(root,process.env.AUD_PAGE||'emberweave-heroes.html'),'utf8');
 let pass=0,missed=[]; const ok=(c,m)=>{ if(process.env.AUD_PAGE&&!c){ missed.push(m); return; } assert(c,m); pass++; console.log('  ✓ '+m); };
 const fn=page.slice(page.indexOf('function renderTemple(){'),page.indexOf('function startDungeon(){'));
+// v1270+ LANGUAGES: the words go through ewT('temple.*',vars); lang/en.json with the same vars must still give the old English
+const EN=JSON.parse(fs.readFileSync(path.join(root,'lang','en.json'),'utf8')), enT=(k,v)=>String(EN[k]).replace(/\{(\w+)\}/g,(m,x)=>v&&v[x]!=null?String(v[x]):'');
 ok(/class="tp2Stage" id="tp2Stage"/.test(fn)&&/plate-v1\.webp/.test(fn),'the screen is one stage on the Temple plate');
-ok(/templeView==='grid'/.test(fn)&&/Purple heroes and above can pray\./.test(fn)&&/sort\(\(a,b\)=>b\.s\.pct-a\.s\.pct/.test(fn),'the hero grid: Purple heroes and above, sorted by %');
+ok(/templeView==='grid'/.test(fn)&&/ewT\('temple\.purple_can_pray'\)/.test(fn)&&EN['temple.purple_can_pray']==='Purple heroes and above can pray.'&&/sort\(\(a,b\)=>b\.s\.pct-a\.s\.pct/.test(fn),'the hero grid: Purple heroes and above, sorted by %');
 ok(!/'All'/.test(fn)&&!/templeClassTabs/.test(fn),'no class tabs and no All button');
 ok(/heroes\/\$\{key\}-v2\.webp/.test(fn)&&/hero-window-v1\.webp/.test(fn),'the selected hero stands in the Temple window');
 ok(/tp2Delta \$\{up\?'up':'down'\}/.test(fn)&&/\.tp2Bar \.tp2Delta\.up\{background:rgba\(70,230,100/.test(page)&&/\.tp2Bar \.tp2Delta\.down\{background:rgba\(240,60,60/.test(page),'the pending change is shaded on the bar: green gain, red loss');
 ok(/Math\.round\(1000\*\(to-from\)\/cap\)\/10\)\+'%'/.test(fn),'the bar carries the change as a % of the cap');
 ok(/class="tp2Power \$\{power>0\?'up':power<0\?'down':''\}"/.test(fn)&&/\.tp2Bar s\.up,\.tp2Power\.up/.test(page),'Power +N green / -N red');
-ok(/Blessings/.test(fn)&&/5th dot: blessings \+/.test(fn)&&/Needs Temple \$\{x\.keeperGate\}/.test(fn),'Blessings 1-4 with their Temple gates, plus the 5th dot');
-ok(/Lv\.\$\{level\} Flame Keeper/.test(fn)&&/tp2Exp/.test(fn),'the Flame Keeper with level and exp bar');
-ok(/Save or cancel\?/.test(fn)&&/not refunded for cancelling/.test(fn)&&/id="templeSave"/.test(fn)&&/id="templeDiscard"/.test(fn),'Save / Cancel with the no-refund line');
-ok(/\/api\/temple\/auto/.test(page)&&/Auto save if power goes up!/.test(page),'Auto pray dialog calls /api/temple/auto');
+ok(/ewT\('temple\.blessings'\)/.test(fn)&&EN['temple.blessings']==='Blessings'&&/ewT\('temple\.fifth_dot',\{n:/.test(fn)&&enT('temple.fifth_dot',{n:15})==='5th dot: blessings +15'&&/ewT\('temple\.needs_temple',\{n:x\.keeperGate\}\)/.test(fn)&&enT('temple.needs_temple',{n:4})==='Needs Temple 4','Blessings 1-4 with their Temple gates, plus the 5th dot');
+ok(/ewT\('temple\.keeper_lv',\{n:level\}\)/.test(fn)&&enT('temple.keeper_lv',{n:7})==='Lv.7 Flame Keeper'&&/tp2Exp/.test(fn),'the Flame Keeper with level and exp bar');
+ok(/ewT\('temple\.save_or_cancel'\)/.test(fn)&&EN['temple.save_or_cancel']==='Save or cancel?'&&/ewT\('temple\.no_refund'\)/.test(fn)&&/not refunded for cancelling/.test(EN['temple.no_refund'])&&/id="templeSave"/.test(fn)&&/id="templeDiscard"/.test(fn),'Save / Cancel with the no-refund line');
+ok(/\/api\/temple\/auto/.test(page)&&/ewT\('temple\.auto_save'\)/.test(page)&&EN['temple.auto_save']==='Auto save if power goes up!','Auto pray dialog calls /api/temple/auto');
 ok(!/priest|dragon prayer|magic rush/i.test(fn+page.slice(page.indexOf('/* v1094 TEMPLE OF ASH v2 SCREEN'),page.indexOf('/* v1094 TEMPLE OF ASH v2 SCREEN')+400)),'our names only (no reference names)');
 const A=path.join(root,'assets/img/temple/v2');
 const need=['plate-v1.webp','hero-window-v1.webp','flame-keeper-v1.webp','bar-fill-v1.webp','lock-v1.webp','flare-v1.webp','button-navy-v1.webp','button-red-v1.webp','button-gold-v1.webp',

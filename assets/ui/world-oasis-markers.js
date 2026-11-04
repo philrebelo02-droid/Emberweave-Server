@@ -32,9 +32,9 @@
       inner.querySelectorAll('.worldOasisMarker').forEach(el=>el.remove());
       for(const s of rows){
         const doc=inner.ownerDocument,b=s.bounds,el=doc.createElement('button');
-        el.type='button';el.className='worldOasisMarker';el.dataset.siteId=s.id;el.setAttribute('aria-label',s.name);
+        el.type='button';el.className='worldOasisMarker';el.dataset.siteId=s.id;const shown=(typeof t==='function'&&s.id&&t('world2.oasis_'+String(s.id).replace(/^oasis-/,'')))||s.name;   /* v1271 LANGUAGES step 2: the oasis name in the player's language */el.setAttribute('aria-label',shown);
         el.style.cssText='position:absolute;left:'+b.left+'%;top:'+b.top+'%;width:'+(b.right-b.left)+'%;height:'+(b.bottom-b.top)+'%;z-index:3;background:transparent;border:0;padding:0;margin:0;cursor:pointer';
-        const name=doc.createElement('div');name.className='worldOasisName';name.textContent=s.name;
+        const name=doc.createElement('div');name.className='worldOasisName';name.textContent=shown;
         name.style.cssText='position:absolute;left:50%;top:100%;transform:translateX(-50%) scale(var(--wm-lab,1));transform-origin:50% 0;white-space:nowrap;pointer-events:none;font-size:10px;font-weight:800;color:#bff3ff;text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000,0 0 3px #000';
         el.appendChild(name);
         el.onclick=e=>{e.stopPropagation();if(typeof root.ewOpenOasis==='function')root.ewOpenOasis(s.id);};

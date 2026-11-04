@@ -1,0 +1,13 @@
+{
+ "err.placement_closed_this_week": "本周布阵已关闭。",
+ "err.oases_only_world_tree_event": "绿洲只能在世界之树活动期间占领。",
+ "err.world_tree_only_world_tree_event": "世界之树只能在其活动期间占领。",
+ "err.lines_locked_reopen_next_prep": "战斗已开始——阵线已于18:00 ET锁定。下一次准备阶段重新开放。",
+ "err.bracket_not_set_rounds_begin": "对阵尚未确定——轮次开始后开放布阵。",
+ "err.towers_lock_open_again": "塔楼于18:00锁定——重新开放：{when}",
+ "err.lines_locked_reopen_at": "战斗已开始——阵线已于18:00 ET锁定。重新开放：{when}",
+ "err.bracket_not_set_opens": "对阵尚未确定——布阵开放：{when}",
+ "err.gold_province_stage_gate": "黄金行省第{stage}关在账号等级{level}开放（你当前{lvl}级）。",
+ "err.drill_province_stage_gate": "训练行省第{stage}关在账号等级{level}开放（你当前{lvl}级）。",
+ "err.old_raid_assault_retired": "旧的突袭进攻已停用——请挑战突袭首领（公会 → 突袭）。"
+}

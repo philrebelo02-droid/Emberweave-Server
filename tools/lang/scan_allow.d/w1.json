@@ -1,0 +1,32 @@
+{
+ "_why": "W1 (sign-in gate, Settings > Account, net gate, servers, patron header, static HTML): English kept on purpose, each with its reason.",
+ "tables": {
+  "EW_LANG_FONT": "font family names (Noto Sans ...), not text",
+  "TOS_UPDATED": "Terms version stamp: the value is stored as the acceptance record (localStorage ew_tos_accepted), so it must not change per language; shown as the date inside setx.tos_intro",
+  "SVR_LIST": "server identity data (tests/test_servers_1051.js evals it); every display site shows t('svr.server_n',{n:id})"
+ },
+ "functions": {},
+ "text": {
+  "names": [
+   "© 2026 Xanthyr Games · Emberweave Heroes™ ·",
+   "North Carolina, United States",
+   "/privacy#delete-account",
+   "Ember Diamond Patron",
+   "Ember Gold Patron",
+   "Commander",
+   "Checking…",
+   "SELECT SQUAD",
+   "The heroes and creatures of Emberweave",
+   "Set your defenders and raid rival strongholds",
+   "Wave 1",
+   "AUTO: OFF"
+  ]
+ },
+ "patterns": [
+  {
+   "re": "^E[DG]P \\d+$",
+   "why": "patron level badge: EGP/EDP abbreviation + number (tier names)"
+  }
+ ],
+ "_why_names": "copyright line (company + game + trademark names; 'All rights reserved.' is set.rights); governing-law jurisdiction in the Terms (a real place name, A_r11 owns that line); a URL shown as link text; patron tier names (EGP/EDP titles, like the EGP/EDP badges); 'Commander' = the default player name stored in the save (DEFAULT_G.playerName); the rest are static placeholders in the page HTML that JS overwrites with t() text before they are seen (splashStatus via setSplashStatus, menuTitle, glSub, wallSub, waveTag, autoBtn via refreshCtrlBtns) - a data-i18n there would overwrite live text on a language switch"
+}

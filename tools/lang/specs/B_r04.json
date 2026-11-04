@@ -1,0 +1,13 @@
+{
+ "keys": {
+  "battle.drag_onto_target": "drag onto a target"
+ },
+ "edits": [
+  {
+   "line": 17006,
+   "find": "'drag onto a target'",
+   "replace": "t('battle.drag_onto_target')"
+  }
+ ],
+ "notes": []
+}

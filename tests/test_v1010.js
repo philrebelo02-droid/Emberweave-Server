@@ -19,15 +19,19 @@ async function call(route,data,hdr){ const r=await fetch(base+route,{method:data
 const disk=()=>JSON.parse(fs.readFileSync(dbFile,'utf8'));
 async function editDB(fn){ await delay(400); await stop(); const db=disk(); fn(db); fs.writeFileSync(dbFile,JSON.stringify(db)); await start(); }
 const src=fs.readFileSync(page,'utf8');
+/* v1270+ LANGUAGES: the page's banners go through t(key,vars) (English in lang/en.json). The vm used to export txSpend as ctx.t, so the
+   page's own t('net.connection_lost') re-entered txSpend forever (heap out of memory) - the export is now ctx.txSpendFn and t is the English rule */
+const EN=JSON.parse(fs.readFileSync(path.join(root,'lang','en.json'),'utf8')), tEn=(k,v)=>String(EN[k]!=null?EN[k]:k).replace(/\{(\w+)\}/g,(m,x)=>v&&v[x]!=null?String(v[x]):'');
+const LANG_STUBS={t:tEn,ewT:tEn,langMsg:s=>s,langDesc:s=>s,langMeta:s=>s};
 const fnSrc=(name,end)=>{ const a=src.indexOf(name), b=src.indexOf(end,a); assert(a>=0&&b>a,name+' found'); return src.slice(a,b); };
 (async()=>{ try{
   /* ---- client: tx spend requestId per offer ---- */
   { const sent=[]; const replies=[{error:'offline'},{ok:true,ledger:{}},{ok:true,ledger:{}}];
-    const ctx={ACC:{token:'t'}, SHOP_RID:{}, uid8:(()=>{ let n=0; return ()=>'rid'+(++n); })(), adoptLedger:()=>{}, bannerMsg:()=>{}, ledgerSync:async()=>{},
+    const ctx={...LANG_STUBS, ACC:{token:'t'}, SHOP_RID:{}, uid8:(()=>{ let n=0; return ()=>'rid'+(++n); })(), adoptLedger:()=>{}, bannerMsg:()=>{}, ledgerSync:async()=>{},
       api:async(p,m,b)=>{ sent.push(b.requestId); return replies.shift(); }};
     vm.createContext(ctx);
-    vm.runInContext(fnSrc('function shopRid(k)','\nasync function shopOnce')+fnSrc('async function txSpend(','\n/* v267')+';this.t=txSpend;',ctx);
-    await ctx.t('gems',50,'market','mtx:1:0'); await ctx.t('gems',50,'market','mtx:1:0'); await ctx.t('gems',50,'market','mtx:1:0');
+    vm.runInContext(fnSrc('function shopRid(k)','\nasync function shopOnce')+fnSrc('async function txSpend(','\n/* v267')+';this.txSpendFn=txSpend;',ctx);
+    await ctx.txSpendFn('gems',50,'market','mtx:1:0'); await ctx.txSpendFn('gems',50,'market','mtx:1:0'); await ctx.txSpendFn('gems',50,'market','mtx:1:0');
     ok(sent[0]===sent[1],'a retap after a lost reply re-sends the SAME requestId ('+sent.join(',')+')');
     ok(sent[2]!==sent[1],'after the server answered, the next purchase gets a new requestId ('+sent.join(',')+')'); }
   /* ---- client: Emberdraft claim kept on a failed save ---- */

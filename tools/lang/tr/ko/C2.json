@@ -1,0 +1,13 @@
+{
+ "err.placement_closed_this_week": "이번 주 배치는 마감되었습니다.",
+ "err.oases_only_world_tree_event": "오아시스는 세계수 이벤트 중에만 점령할 수 있습니다.",
+ "err.world_tree_only_world_tree_event": "세계수는 이벤트 중에만 점령할 수 있습니다.",
+ "err.lines_locked_reopen_next_prep": "전투가 시작되었습니다 — 라인이 18:00 ET에 잠겼습니다. 다음 준비 시간에 다시 열립니다.",
+ "err.bracket_not_set_rounds_begin": "대진표가 아직 정해지지 않았습니다 — 라운드가 시작되면 배치가 열립니다.",
+ "err.towers_lock_open_again": "타워는 18:00에 잠깁니다 — 다시 열림: {when}",
+ "err.lines_locked_reopen_at": "전투가 시작되었습니다 — 라인이 18:00 ET에 잠겼습니다. 다시 열림: {when}",
+ "err.bracket_not_set_opens": "대진표가 아직 정해지지 않았습니다 — 배치 열림: {when}",
+ "err.gold_province_stage_gate": "황금 지방 스테이지 {stage}는 계정 레벨 {level}에 열립니다 (현재 {lvl}).",
+ "err.drill_province_stage_gate": "훈련 지방 스테이지 {stage}는 계정 레벨 {level}에 열립니다 (현재 {lvl}).",
+ "err.old_raid_assault_retired": "예전 레이드 습격은 종료되었습니다 — 레이드 보스와 싸우세요 (길드 → 레이드)."
+}

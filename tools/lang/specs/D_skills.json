@@ -1,0 +1,87 @@
+{
+ "keys": {
+  "skdesc.passive_tag": "(Passive)"
+ },
+ "edits": [
+  {
+   "line": 2879,
+   "find": "const EW_LANGS=[",
+   "replace": "const EW_LANG_CV={};   /* v1271: ?v= of lang/<code>.content.json (written by tools/lang/build.js) */\nconst EW_LANGS=["
+  },
+  {
+   "line": 2922,
+   "find": "LANG.cur=code; document.documentElement.lang=code; langFont(code);",
+   "replace": "LANG.cur=code; document.documentElement.lang=code; langFont(code); langContentLoad(code);"
+  },
+  {
+   "line": 2928,
+   "find": "langRefresh(rerender); return true; }).catch(()=>false); }",
+   "replace": "langRefresh(rerender); return true; }).catch(()=>false); }\n/* v1271 LANGUAGES step 2 (tester 4 Nov: \"the skill descriptions still are English only\") - game CONTENT (skill, passive, ultimate text ...)\n   lives in lang/<code>.content.json, fetched only for that language at ?v=<its hash> (EW_LANG_CV). It maps an English sentence with its\n   numbers taken out ({0}, {1} ... in order) to the translation, so one entry serves every skill level; icon tokens {i:..}, tags and\n   entities stay as written. langDesc(s) returns the player's language, or s itself when no entry exists - English is never lost.\n   LANG.collect (a Set, set by tools/lang/collect_content.js) gathers every template the game produces. */\nconst LANG_TPL_RE=/\\{[^{}]*\\}|<[^>]*>|&#?\\w+;|\\d+(?:\\.\\d+)?/g;\nfunction langTpl(s){ const nums=[]; const k=String(s).replace(LANG_TPL_RE,m=>{ if(m[0]==='{'||m[0]==='<'||m[0]==='&') return m; nums.push(m); return '{'+(nums.length-1)+'}'; }); return {k,nums}; }\nfunction langDesc(s){ if(s==null||s==='') return s; s=String(s); if(LANG.collect) LANG.collect.add(langTpl(s).k);\n  if(LANG.cur==='en'||!LANG.content) return s; const p=langTpl(s), v=LANG.content[p.k]; if(LANG.cur==='qps') return v?'⟦'+s+'⟧':s;\n  return (typeof v==='string'&&v)?v.replace(/\\{(\\d+)\\}/g,(m,i)=>p.nums[i]!=null?p.nums[i]:m):s; }\nfunction langMeta(m){ if(!m) return m; const pre=' — '; if(m.indexOf(pre)!==0) return langDesc(m); return pre+m.slice(pre.length).split(' · ').map(langDesc).join(' · '); }\nfunction langContentLoad(code){ LANG.content=null; const v=EW_LANG_CV[code]; if(code==='en'||!v) return;   // kept like the dictionary (ew_lang_content): the next open needs no fetch\n  try{ const c=JSON.parse(localStorage.getItem('ew_lang_content')||'null'); if(c&&c.code===code&&c.v===v&&c.d&&typeof c.d==='object'){ LANG.content=c.d; return; } }catch(e){}\n  try{ fetch('/lang/'+(code==='qps'?'en-XA':code)+'.content.json?v='+v).then(r=>r.ok?r.json():null).then(d=>{ if(!d||typeof d!=='object'||LANG.cur!==code) return; LANG.content=d;\n    try{ localStorage.setItem('ew_lang_content',JSON.stringify({code,v,d})); }catch(e){} langRefresh(true); }).catch(()=>{}); }catch(e){} }"
+  },
+  {
+   "line": 5936,
+   "find": "function skillDesc(key,idx){",
+   "replace": "function skillDesc(key,idx,noMeta){   /* v1271: noMeta = the sentence alone (was a regex cut of the English meta line) */"
+  },
+  {
+   "line": 5939,
+   "find": "if(idx===0)return 'Cast for 1.2",
+   "replace": "if(idx===0)return langDesc('Cast for 1.2"
+  },
+  {
+   "line": 5939,
+   "find": "Duration stays 4 seconds at every skill level.';",
+   "replace": "Duration stays 4 seconds at every skill level.');"
+  },
+  {
+   "line": 5940,
+   "find": "if(idx===3)return 'While alive, grants all living allies '+(20+2*(_lv-1))+' flat Armor, including himself. Only the strongest copy applies. (Passive)';",
+   "replace": "if(idx===3)return langDesc('While alive, grants all living allies '+(20+2*(_lv-1))+' flat Armor, including himself. Only the strongest copy applies. (Passive)');"
+  },
+  {
+   "line": 5942,
+   "find": "    return 'Cast for '+(blue?'2.5':'1.5')",
+   "replace": "    return langDesc('Cast for '+(blue?'2.5':'1.5')"
+  },
+  {
+   "line": 5942,
+   "find": "' Stuns and silences interrupt; Ult outranks Blue, and Blue outranks Green.';",
+   "replace": "' Stuns and silences interrupt; Ult outranks Blue, and Blue outranks Green.');"
+  },
+  {
+   "line": 5945,
+   "find": "return stripIcons(passDescAt(ab,_lv)||'Always-on passive.')+' (Passive)'; }",
+   "replace": "return langDesc(stripIcons(passDescAt(ab,_lv)||'Always-on passive.'))+' '+ewT('skdesc.passive_tag'); }"
+  },
+  {
+   "line": 5949,
+   "find": "  return desc + abilityMeta(key,idx);",
+   "replace": "  { const _m=abilityMeta(key,idx); return langDesc(desc)+(noMeta&&/^\\s+—\\s+[0-9]/.test(_m)?'':langMeta(_m)); }"
+  },
+  {
+   "line": 21775,
+   "find": "skillDesc(key,idx).replace(/\\s+—\\s+[0-9].*$/,'')",
+   "replace": "skillDesc(key,idx,true)"
+  },
+  {
+   "line": 30630,
+   "find": "${HERO_ULT_DESC[u.key]||ULT_DESC[ab]||''}",
+   "replace": "${langDesc(HERO_ULT_DESC[u.key]||ULT_DESC[ab]||'')}"
+  },
+  {
+   "line": 30631,
+   "find": "${kit.green.desc||KIT_DESC[kit.green.type]||''}",
+   "replace": "${langDesc(kit.green.desc||KIT_DESC[kit.green.type]||'')}"
+  },
+  {
+   "line": 30632,
+   "find": "${kit.blue.desc||KIT_DESC[kit.blue.type]||''}",
+   "replace": "${langDesc(kit.blue.desc||KIT_DESC[kit.blue.type]||'')}"
+  },
+  {
+   "line": 30633,
+   "find": "${iconize(passDescAt(kit.purple,passLv(u)))}",
+   "replace": "${iconize(langDesc(passDescAt(kit.purple,passLv(u))))}"
+  }
+ ]
+}

@@ -1,0 +1,16 @@
+{
+ "xp2.minor": "Малое",
+ "xp2.greater": "Большое",
+ "xp2.major": "Крупное",
+ "xp2.superior": "Высшее",
+ "sky2.phase_march": "МАРШ",
+ "sky2.phase_done": "ГОТОВО",
+ "world2.world_tree": "Мировое древо",
+ "world2.oasis": "Оазис",
+ "world2.oasis_nw": "Северо-западный оазис",
+ "world2.oasis_ne": "Северо-восточный оазис",
+ "world2.oasis_sw": "Юго-западный оазис",
+ "world2.oasis_se": "Юго-восточный оазис",
+ "world2.event_pending": "Расписание события ещё не готово",
+ "stage2.close_aria": "Закрыть этап"
+}

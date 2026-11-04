@@ -24,6 +24,7 @@ const HERO_PROFILES=require('./hero-profiles.js');
 const HERO_PATHS=require('./hero-paths.js');
 const HERO_PERSONAL_GLYPH_PATHS=require('./server/hero-personal-glyph-paths.json');
 const HERO_ASCENSION_BONUSES=require('./server/hero-ascension-bonuses.json');
+const errorCodes=require('./server/error-codes.js');   /* v1271 LANGUAGES step 2: stable codes for player-facing error text */
 const WITCH=require('./server/witches-hut.js');
 const CHATF=require('./server/chat-filter.js');   /* v1097: slurs and hate terms in player / guild names (Phil 9 Oct: 18+, cursing is ok - chat is not masked) */
 const ACADEMY_ECON=require('./server/academy-economy.js');   // Phil 3 Oct 2026: Academy level costs, hourly income, Hut upgrade cost
@@ -524,7 +525,8 @@ let _corsReqOrigin='';   // set per-request in the server handler
 function corsHeaders(){ const h={'Content-Type':'application/json'};
   if(_corsReqOrigin && CORS_ORIGINS.has(_corsReqOrigin)){ h['Access-Control-Allow-Origin']=_corsReqOrigin; h['Vary']='Origin'; h['Access-Control-Allow-Headers']='content-type,x-token'; }
   return h; }
-function _sendNow(res, code, obj){ const b=JSON.stringify(obj), h=corsHeaders();
+function _sendNow(res, code, obj){ obj=errorCodes.attach(obj);   // v1271 LANGUAGES step 2: {error} gains {code, vars} for the client's translation (error stays English)
+  const b=JSON.stringify(obj), h=corsHeaders();
   /* v1141 (Phil 15 Oct, item 7 "smaller code download"): an API reply over 2 KB (the ledger, rankings, world views) goes out
      compressed when the client accepts it - brotli at quality 4 (fast; a 200 KB ledger costs ~2 ms) or gzip. res._ae is the request's
      Accept-Encoding, set by the request handler (a global would race between interleaved requests, like _corsReqOrigin does). */
@@ -10594,7 +10596,7 @@ const server=http.createServer((req,res)=>{
   if(p==='/hero-paths.js') return serveFile(res,'hero-paths.js','application/javascript',null,req);
   /* v1265 LANGUAGES step 1: one small file per language (lang/<code>.json, e.g. es, pt-BR, zh-Hant); the client fetches only the chosen one,
      at ?v=<hash of its text>. The pattern admits a language code and nothing else (no path can leave lang/). */
-  if(/^\/lang\/[a-z]{2}(?:-[A-Za-z]{2,4})?\.json$/.test(p)) return serveFile(res,p.slice(1),'application/json; charset=utf-8',null,req);
+  if(/^\/lang\/[a-z]{2}(?:-[A-Za-z]{2,4})?(?:\.content)?\.json$/.test(p))   /* v1271: + lang/<code>.content.json */ return serveFile(res,p.slice(1),'application/json; charset=utf-8',null,req);
   if(p==='/world-realm.js') return serveFile(res,'world-realm.js','application/javascript',null,req);   /* v1226: the realm map's cells, shared with the server */
   if(p==='/server/temple-of-ash.js') return serveFile(res,'server/temple-of-ash.js','application/javascript',null,req);
   if(p==='/server/patron-benefits.js') return serveFile(res,'server/patron-benefits.js','application/javascript',null,req);   /* v1093: Phil's benefit chart, shared with the client */

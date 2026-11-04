@@ -1,5 +1,6 @@
 {
   "patches": [
+    {"ver": "1.2.3", "date": "4 November 2026", "title": "The whole game in your language", "items": ["Every screen, tab, popup and battle panel now follows your language setting, not only the first screens.", "Skill descriptions, passives, ultimates, hero lore and the bestiary are translated into all 15 languages.", "Server messages (errors and warnings) now appear in your language. Hero, skill, item and place names stay in English."]},
     {"ver": "1.2.2", "date": "4 November 2026", "title": "Heroes list, four across", "items": ["The Heroes list is now four cards across and sits in the middle of the screen, so it is easy to reach with either hand.", "Settings: the Danger zone is now the last section of Account, below Google linking."]},
     {"ver": "1.2.1", "date": "4 November 2026", "title": "Two ways to sign in", "items": ["The sign-in screen now has two buttons at the top: Emberweave sign in with your username and password, or Google sign in with your Google account."]},
     {"ver": "1.2.0", "date": "4 November 2026", "title": "A sharper world map", "items": ["Much more of the world map now has fine painted detail when you zoom all the way in: coasts, seas and lands across the realm.", "Sign in with Google: continue with your Google account on the first screen, or link it to your account in Settings."]},

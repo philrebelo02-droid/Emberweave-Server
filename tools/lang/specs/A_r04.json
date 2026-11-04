@@ -1,0 +1,2197 @@
+{
+ "keys": {
+  "profile.name_bad_char": "Names cannot use {c}.",
+  "profile.name_no_emoji": "Names cannot use emoji.",
+  "profile.name_chars_only": "Letters, numbers, spaces and _ - . ! ? # @ $ % * + = ~ ( ) [ ] : , ^ only.",
+  "profile.name_needs_alnum": "A name needs at least one letter or number.",
+  "profile.unblock": "Unblock",
+  "profile.commander": "Commander",
+  "econ.gold": "Gold",
+  "econ.diamonds": "Diamonds",
+  "econ.stamina": "Stamina",
+  "econ.forge_dust": "Forge Dust",
+  "econ.glyph_fragments": "Glyph Fragments",
+  "econ.gear_fragments": "Gear Fragments",
+  "econ.city_resources": "City Resources",
+  "econ.guild_coins": "Guild Coins",
+  "econ.hero_fragments": "Hero Fragments",
+  "econ.title": "Economy",
+  "econ.loading": "Loading the live currency manifest…",
+  "econ.load_failed": "Could not reach the server manifest. Sign in and try again.",
+  "econ.your_time": "Your time:",
+  "econ.in_hm": "(in {h}h {m}m)",
+  "econ.cap": "cap",
+  "econ.earn": "Earn:",
+  "econ.spend": "Spend:",
+  "econ.intro": "Where every currency comes from, what it is for, and what is capped. Served live by the server.",
+  "econ.daily_reset": "DAILY RESET",
+  "econ.server_time": "server time",
+  "econ.footer": "Every figure above is the server's own — build {b}.",
+  "profile.max_level": "MAX LEVEL",
+  "profile.xp_to_next": "{a} / {b} XP to next",
+  "profile.username": "Username:",
+  "profile.level_line": "Level {n} · {xp}",
+  "profile.nickname": "Nickname",
+  "profile.save_free": "Save · Free",
+  "profile.rename_cost": "Rename · {c}",
+  "profile.free_rename": "You have {b}1 free rename{e} available. After that: 2nd {g}50 · 3rd {g}100 · 4th+ {g}200.",
+  "profile.next_rename": "Next rename costs {c}.",
+  "profile.not_enough_diamonds": "Not enough diamonds.",
+  "profile.economy_btn": "Economy — sources, sinks & daily resets",
+  "profile.portrait": "Portrait",
+  "profile.choose_owned": "(choose an owned hero)",
+  "profile.name_too_short": "Name needs at least 2 characters.",
+  "profile.name_same": "That is already your name.",
+  "profile.name_guest": "Make an account first - guests keep their guest name.",
+  "profile.rename_failed": "The rename did not go through - nothing was charged.",
+  "profile.rename_need": "You need {n} diamonds for this rename.",
+  "profile.rename_confirm": "Rename to {name} for {c} diamonds?",
+  "profile.unlock_portrait": "Unlock {hero} first (clear its campaign stage).",
+  "vault.gatekeeper": "GATEKEEPER",
+  "vault.ascended": "Ascended",
+  "vault.empty_slot": "empty",
+  "vault.fighters": "FIGHTERS",
+  "vault.backup": "BACKUP · steps in when a fighter falls",
+  "vault.select_heroes": "Select Heroes",
+  "vault.battle_floor": "BATTLE — Floor {n}",
+  "raid.sign_in": "Sign in to raid with your guild.",
+  "raid.unreachable": "Could not reach the realm.",
+  "raid.none_left": "No assaults left today — back tomorrow.",
+  "vault.pending_send": "Your last Vault result is still being sent - try again in a moment.",
+  "vault.unavailable": "Vault unavailable.",
+  "vault.wave_result": "Wave {n} — {r}",
+  "vault.cleared": "cleared",
+  "vault.defeated": "defeated",
+  "vault.your_squad": "YOUR SQUAD",
+  "vault.guard": "VAULT GUARD",
+  "vault.plus_dust": "+{n} Forge Dust",
+  "vault.hero_xp_each": "+{n} hero XP each",
+  "vault.first_clear_doubled": "First clear — package doubled!",
+  "vault.floor_cleared": "FLOOR CLEARED",
+  "vault.holds": "THE VAULT HOLDS",
+  "vault.retry_floor": "Retry Floor",
+  "vault.sweep_no_gems": "Not enough diamonds — this Sweep costs {c}.",
+  "vault.sweep_confirm": "Sweep all {n} cleared floors again for {c}?",
+  "vault.sweep_have": "You have {c}. Your 2 free sweeps are used.",
+  "vault.sweep_unavailable": "Sweep unavailable.",
+  "vault.floor_n": "Floor {n}",
+  "vault.swept_n": "Swept {n} floors",
+  "vault.hero_xp_each_lbl": "hero XP each",
+  "vault.glyph_fragments": "Glyph fragments",
+  "vault.gear_fragments": "Gear fragments",
+  "vault.each_floor": "Each floor",
+  "vault.salvage_failed": "Salvage failed.",
+  "vault.fragment_salvage": "Fragment Salvage",
+  "vault.all": "All",
+  "vault.no_fragments": "No fragments yet — clear boss floors.",
+  "vault.title_upper": "THE VAULT",
+  "vault.floor_of": "Floor {n} / {m}",
+  "vault.conquered": "AETHER VAULT — CONQUERED",
+  "vault.all_cleared": "All 100 floors cleared. The Vault Extension is coming soon.",
+  "vault.sweep_free_today": "Sweep ({n} free today)",
+  "vault.highest_cleared": "Highest cleared",
+  "vault.fragment_band": "Fragment band",
+  "vault.floor_reward": "Floor reward",
+  "vault.plus2_glyph": "+2 glyph fragments",
+  "vault.floor_drops": "THIS FLOOR DROPS",
+  "vault.frag_name": "{k} Fragment",
+  "vault.glyph_fragment": "Glyph Fragment",
+  "vault.gear_fragment": "Gear Fragment",
+  "vault.boss_floor_note": "Boss floor — first clear pays the package twice.",
+  "vault.sweep_x": "Sweep ×{n}",
+  "vault.sweep_paid": "Sweep · {c} ({n} left)",
+  "vault.no_sweeps": "No sweeps left today",
+  "vault.salvage": "Salvage",
+  "vault.footer": "Two waves per floor — HP & Energy carry over. Every attempt faces the {b}same{e} monsters:{br}learn the floor, then beat it. Progress and rewards are saved to your account.",
+  "forge.cold": "The Forge is cold.",
+  "gear.stat_hp": "Health",
+  "gear.stat_atk": "Attack",
+  "gear.stat_apow": "Ability Power",
+  "gear.stat_armor": "Armor",
+  "gear.stat_mr": "Magic Resist",
+  "gear.stat_crit": "Crit",
+  "gear.stat_crit_dmg": "Crit Dmg",
+  "gear.stat_crit_res": "Crit Resist",
+  "gear.stat_defense": "Defense",
+  "gear.stat_energy": "Energy Regen",
+  "gear.stat_regen": "HP Regen",
+  "gear.stat_ctrl_res": "Tenacity",
+  "gear.stat_ctrl_hit": "Control Hit",
+  "gear.stat_start_energy": "Start Energy",
+  "gear.stat_heal_pow": "Healing",
+  "gear.stat_lifesteal": "Lifesteal",
+  "gear.stat_atk_spd": "Attack Speed",
+  "gear.stat_haste": "Haste",
+  "gear.stat_eva": "Evasion",
+  "gear.stat_acc": "Accuracy",
+  "gear.stat_block": "Block",
+  "gear.stat_dmg_bonus": "Damage Bonus",
+  "gear.stat_dmg_red": "Damage Reduction",
+  "gear.stat_shield_str": "Shield Strength",
+  "gear.stat_armor_pen": "Armor Pen",
+  "gear.stat_magic_pen": "Magic Pen",
+  "gear.stat_heal": "Heal",
+  "gear.bill_sub_stock": "{x} (in stock)",
+  "gear.bill_fresh_stock": "{x} in stock",
+  "gear.fresh_item_one": "{n} fresh item",
+  "gear.fresh_item_many": "{n} fresh items",
+  "gear.nothing": "nothing",
+  "gear.bill_steps": "{c}{s}, built bottom-up in one go.",
+  "gear.craft_1": "{n} craft",
+  "gear.crafts_n": "{n} crafts",
+  "gear.sub_1": "{n} sub-component",
+  "gear.subs_n": "{n} sub-components",
+  "gear.stopped_at": "Stopped at step {n} of {m}:",
+  "gear.built_steps": "Built {name} (steps: {n})",
+  "gear.equipped_name": "{name} equipped",
+  "gear.equip_failed": "Could not equip.",
+  "gear.missing_frag": "Missing: {n} × {frag} (have {h})",
+  "gear.missing_materials_msg": "Missing: materials",
+  "gear.quick_build_q": "Quick Build {name}?",
+  "gear.quick_build_equip_q": "Quick Build {name} and equip it?",
+  "gear.this_spends": "This spends {x}",
+  "gear.cost_sub_items": "{sub} and {items} (the two least-tempered unbound {q} pieces you own are consumed)",
+  "gear.two_fresh": "2 fresh {q} items",
+  "gear.build_q": "Build {name}?",
+  "gear.build_equip_q": "Build {name} and equip it?",
+  "gear.this_spends_dot": "This spends {x}.",
+  "gear.make_q": "Make {name}?",
+  "gear.sub_made": "{name} made!",
+  "gear.build_this": "Build this piece",
+  "gear.missing_materials": "Missing materials",
+  "gear.built_ready": "Built — ready to equip",
+  "gear.ready_build": "Ready to Build",
+  "gear.from_fragments": "(from fragments)",
+  "gear.tap_to_make": "tap to make",
+  "gear.fresh_copy_ready": "fresh copy ready",
+  "gear.tap_to_open": "Tap to open",
+  "gear.equipment": "Equipment",
+  "gear.build_tree": "Build Tree",
+  "gear.ingredient": "ingredient",
+  "gear.equipped_slot": "Equipped — {slot}",
+  "gear.equip": "Equip",
+  "gear.quick_build": "Quick Build",
+  "forge.stoking": "Stoking the Forge…",
+  "forge.unreachable": "Could not reach the Forge - open it again to retry.",
+  "forge.being_built": "The Forge is being built.",
+  "gear.other_on": "{name} on",
+  "gear.temper_pct": "+{n}% temper",
+  "gear.active_upper": "ACTIVE",
+  "gear.temper_of": "Temper {n}/{m}",
+  "gear.raise_in_forge": "raise it in the Forge",
+  "gear.active_set": "Active: {name}",
+  "gear.set_active": "Set Active",
+  "gear.bound_to": "bound to {hero} — build a higher piece to replace it",
+  "gear.loadout_built": "{role} loadout · built {n}",
+  "gear.resonance": "Resonance",
+  "gear.dust": "Dust",
+  "forge.n_more": "+{n} more",
+  "forge.farm_in_vault": "Farm in The Vault — {floors}",
+  "forge.tap_for_all": "(tap for all)",
+  "forge.band_used_for": "{q} band · used to craft:",
+  "forge.frag_source_info": "Every clear {b}or sweep{e} of these Aether Vault floors grants this fragment. The floors are fixed and authored — the same floor always gives the same two gear fragments.",
+  "forge.vault_n": "Vault {n}",
+  "forge.need_two": "Need 2 fresh unbound {q} items.",
+  "forge.forge_item": "Forge {name}",
+  "forge.destroy_warn": "These 2 items are {b}destroyed forever{e}. Forge Dust spent tempering them is {b}NOT refunded{e}.",
+  "forge.temper_n": "Temper {n}",
+  "forge.n_spent": "{n} spent",
+  "forge.destroy_forge": "Destroy 2 & Forge",
+  "forge.pick_two": "Pick exactly 2 ingredients.",
+  "forge.forged": "Forged {name}!",
+  "forge.no_gear": "No gear yet — build it on a hero's card (Heroes › Equipment) from fragments that drop in The Vault. The Forge raises its Temper.",
+  "forge.bound": "bound",
+  "forge.fresh": "fresh",
+  "forge.pct_stats": "+{n}% stats",
+  "forge.max_temper": "MAX TEMPER",
+  "forge.temper_up": "+1 Temper! (−{d} Dust)",
+  "forge.temper_progress": "+progress (−{d} Dust)",
+  "forge.tempered_x": "Tempered ×{n} (−{d} Dust)",
+  "forge.dust_refunded": "+{n} Dust refunded",
+  "forge.extract": "Extract",
+  "forge.no_hero_gear": "No hero has gear equipped yet.",
+  "forge.active_lower": "active",
+  "forge.unreachable_title": "Could not reach the Forge",
+  "forge.being_built_title": "The Forge is being built",
+  "forge.opening_soon": "Opening soon.",
+  "forge.n_dust": "{n} Forge Dust",
+  "forge.resonance_line": "Forge Resonance {r} (+{n}% all gear stats) · total Temper {total}",
+  "forge.rank_n": "Rank {n}",
+  "forge.next_rank_at": "next rank at {n}",
+  "forge.tab_temper": "Temper",
+  "ledger.connect_to_spend": "Connect to spend — this game is fully synced online.",
+  "ledger.purchase_failed": "Purchase failed.",
+  "skyfall.fallen": "FALLEN",
+  "skyfall.your_lane": "YOUR {lane}",
+  "skyfall.enemy_lane": "ENEMY {lane}",
+  "skyfall.undefended": "undefended",
+  "skyfall.march_bridge": "MARCH THE BRIDGE",
+  "skyfall.bridge_opens": "The bridge opens when the war goes LIVE.",
+  "skyfall.your_citadel_fell": "Your citadel has fallen.",
+  "skyfall.enemy_citadel_fell": "The enemy citadel has fallen!",
+  "skyfall.line_not_here": "Your line is not deployed on this bridge.",
+  "skyfall.close_bridge": "close bridge",
+  "skyfall.registered": "Registered! Power Pool: {n}",
+  "skyfall.lines_moved": "{n} line(s) move to {lane}.",
+  "skyfall.lane_n": "lane {n}",
+  "skyfall.march_failed": "March failed.",
+  "skyfall.captured": "Citadel captured — no defenders!",
+  "skyfall.bridge_victory": "Victory on the bridge!",
+  "skyfall.citadel_falls": "The citadel falls!",
+  "skyfall.driven_back": "Your line was driven back.",
+  "skyfall.guild_wins": "YOUR GUILD WINS THE MATCH!",
+  "skyfall.claim_coins": "+{n} coins ({tier})",
+  "skyfall.claim_failed": "Claim failed.",
+  "skyfall.a_defender": "a defender",
+  "skyfall.a_commander": "a commander",
+  "skyfall.lane_cap_n": "Lane {n}",
+  "skyfall.lane_fell_to": "{lane} fell to {who}",
+  "skyfall.lane_captured": "{lane} was captured undefended",
+  "skyfall.decided_over": "decided over {n} min",
+  "skyfall.how_won": "HOW THE WAR WAS WON",
+  "skyfall.how_lost": "HOW THE WAR WAS LOST",
+  "skyfall.citadels_destroyed": "{n} citadel(s) destroyed",
+  "skyfall.assaults_won": "{n}/{m} assaults won",
+  "skyfall.tiebreak": "No citadel fell — the war was decided on the tie-break.",
+  "skyfall.kills": "{n}/{m} kills",
+  "skyfall.empty": "empty",
+  "skyfall.bridge": "bridge",
+  "skyfall.reveal_at": "Opponent revealed at {t} — planning opens then.",
+  "skyfall.plan_officer": "Planning until {t} — tap a citadel to place each member:",
+  "skyfall.unplaced": "unplaced",
+  "skyfall.plan_member": "Planning until {t} — your leader/officers arrange the citadels.",
+  "skyfall.vs": "vs",
+  "skyfall.planning": "Planning",
+  "skyfall.live_until": "LIVE until {t}",
+  "skyfall.finished": "Finished",
+  "skyfall.rules_line": "Destroy 3 enemy citadels to win. Lines march only across their own bridge.",
+  "skyfall.your_citadels": "YOUR CITADELS",
+  "skyfall.enemy_citadels": "ENEMY CITADELS",
+  "skyfall.victory": "VICTORY",
+  "skyfall.defeat": "DEFEAT",
+  "skyfall.war_menu": "War",
+  "skyfall.bracket": "Bracket",
+  "skyfall.schedule": "Schedule",
+  "skyfall.rank": "Rank",
+  "skyfall.war_title": "Skyfall War",
+  "skyfall.stage": "Stage",
+  "skyfall.n_marches": "{n} marches",
+  "skyfall.edit_team": "Edit Team",
+  "skyfall.not_open_yet": "{what} — not open yet.",
+  "skyfall.not_placed": "not placed",
+  "skyfall.line_n": "line {n}",
+  "skyfall.here": "here",
+  "skyfall.your_n_lines": "YOUR LINES: {n}",
+  "skyfall.all_here": "ALL HERE",
+  "skyfall.towers_open": "Towers open {t}",
+  "skyfall.placement_closed": "Placement is closed",
+  "skyfall.lines_here": "Your lines are here",
+  "skyfall.place_here": "Place Lines Here",
+  "skyfall.total_power_tip": "total power of all their lines",
+  "skyfall.no_lineup": "no line-up recorded",
+  "skyfall.lv_n": "Lv{n}",
+  "skyfall.move_player": "Move player",
+  "skyfall.tower_empty": "Nothing holds this tower.",
+  "skyfall.move_lane": "Move lane",
+  "skyfall.place_failed": "Could not place that line.",
+  "skyfall.tower_set": "Your tower is set.",
+  "skyfall.lines_placed": "{n} line(s) placed.",
+  "skyfall.nothing_to_place": "There was nothing of yours to place.",
+  "skyfall.nothing_theirs": "There was nothing of theirs left in that tower.",
+  "skyfall.battle_bracket": "Battle Bracket",
+  "skyfall.history": "History",
+  "skyfall.no_history": "No tournament has finished yet.",
+  "skyfall.beat": "beat {name}",
+  "skyfall.tournament_history": "Tournament History",
+  "skyfall.rank_no_guild": "You are not in a guild — join one to see its ranking.",
+  "skyfall.rank_no_members": "This guild has no members yet.",
+  "skyfall.col_member": "MEMBER",
+  "skyfall.col_lines": "LINES",
+  "skyfall.col_power": "POWER",
+  "skyfall.leader": "LEADER",
+  "skyfall.n_members": "{n} member(s)",
+  "skyfall.guild_power": "guild power {n}",
+  "skyfall.guild_ranking": "Guild Ranking",
+  "skyfall.now": "NOW",
+  "skyfall.col_round": "ROUND",
+  "skyfall.col_day": "DAY",
+  "skyfall.col_prep": "PREP",
+  "skyfall.col_lock": "LOCK",
+  "skyfall.col_bell": "BELL",
+  "skyfall.col_reports_until": "REPORTS UNTIL",
+  "skyfall.sched_foot": "Prep opens the board for line placement and reveals your opponent. Lines lock at the LOCK time; the last bell ends the fighting; the lane reports stand until the next prep.",
+  "skyfall.sch_prep_opens": "Prep opens",
+  "skyfall.sch_prep_opens_d": "the board reopens — place your lines, your opponent is revealed",
+  "skyfall.sch_lines_lock": "Lines lock",
+  "skyfall.sch_lines_lock_d": "no more placement; the towers stand as they are",
+  "skyfall.sch_last_bell": "Last bell",
+  "skyfall.sch_last_bell_d": "the fighting ends",
+  "skyfall.sch_reports_close": "Reports close",
+  "skyfall.sch_reports_close_d": "the lane reports come down and the board resets",
+  "skyfall.col_time": "TIME",
+  "skyfall.col_what": "WHAT",
+  "skyfall.col_means": "MEANS",
+  "skyfall.sched_foot2": "Guild Wars run every other week. Sign-ups Sat 02:00 → Mon 00:00 server time, on weekends opposite World Tree. Battles Tue–Fri 18:00–20:00 ET.",
+  "skyfall.next_four_weeks": "NEXT FOUR WEEKS",
+  "skyfall.key_war_day": "war day",
+  "skyfall.key_registration": "registration",
+  "skyfall.key_today": "today is ringed",
+  "skyfall.all_times_et": "all times ET",
+  "skyfall.team_sim_board": "This is the simulator’s board — your real lines are edited in a live war.",
+  "skyfall.team_disbanded": "Line disbanded — not saved yet.",
+  "skyfall.team_max": "You can field at most {n} lines.",
+  "skyfall.team_need5": "You need 5 heroes off a line to make another — you have {n}.",
+  "skyfall.team_added": "Line added — not saved yet.",
+  "skyfall.team_saving": "Saving…",
+  "skyfall.team_saved": "Saved.",
+  "skyfall.team_save_failed": "Could not save — nothing was changed.",
+  "skyfall.empty_slot": "empty slot",
+  "skyfall.lv_upper": "LV {n}",
+  "skyfall.tap_to_swap": "tap a hero below to swap",
+  "skyfall.loading_lines": "Loading your lines…",
+  "skyfall.adjust_line": "Adjust line {n}",
+  "skyfall.power_n": "power {n}",
+  "skyfall.bench_all_used": "Every hero you own is already on a line.",
+  "skyfall.bench_no_class": "No free {c} heroes.",
+  "skyfall.adjust": "Adjust",
+  "skyfall.disband": "Disband",
+  "skyfall.team_unsaved": "Unsaved changes — press Save to commit them.",
+  "skyfall.team_help": "Adjust swaps heroes on a line. A hero can only stand on one line, so the bench is what is left.",
+  "skyfall.team_no_lines": "You have no lines yet — press Add Line.",
+  "skyfall.lines_label": "Lines:",
+  "skyfall.bench_label": "bench:",
+  "skyfall.add_line": "Add Line",
+  "gear.built_name": "Built {name}!"
+ },
+ "edits": [
+  {
+   "line": 17178,
+   "find": "return 'Names cannot use '+b[0]+'.';",
+   "replace": "return t('profile.name_bad_char',{c:b[0]});"
+  },
+  {
+   "line": 17179,
+   "find": "'Names cannot use emoji.'",
+   "replace": "t('profile.name_no_emoji')"
+  },
+  {
+   "line": 17180,
+   "find": "'Letters, numbers, spaces and _ - . ! ? # @ $ % * + = ~ ( ) [ ] : , ^ only.'",
+   "replace": "t('profile.name_chars_only')"
+  },
+  {
+   "line": 17181,
+   "find": "'A name needs at least one letter or number.'",
+   "replace": "t('profile.name_needs_alnum')"
+  },
+  {
+   "line": 17190,
+   "find": ">Unblock</button>",
+   "replace": ">${t('profile.unblock')}</button>"
+  },
+  {
+   "line": 17347,
+   "find": "G.playerName||'Commander'",
+   "replace": "G.playerName||t('profile.commander')"
+  },
+  {
+   "line": 17484,
+   "find": "'Gold']",
+   "replace": "'Gold','econ.gold']"
+  },
+  {
+   "line": 17484,
+   "find": "'Diamonds']",
+   "replace": "'Diamonds','econ.diamonds']"
+  },
+  {
+   "line": 17484,
+   "find": "'Stamina']",
+   "replace": "'Stamina','econ.stamina']"
+  },
+  {
+   "line": 17485,
+   "find": "'Forge Dust']",
+   "replace": "'Forge Dust','econ.forge_dust']"
+  },
+  {
+   "line": 17485,
+   "find": "'Glyph Fragments']",
+   "replace": "'Glyph Fragments','econ.glyph_fragments']"
+  },
+  {
+   "line": 17485,
+   "find": "'Gear Fragments']",
+   "replace": "'Gear Fragments','econ.gear_fragments']"
+  },
+  {
+   "line": 17486,
+   "find": "'City Resources']",
+   "replace": "'City Resources','econ.city_resources']"
+  },
+  {
+   "line": 17486,
+   "find": "'Guild Coins']",
+   "replace": "'Guild Coins','econ.guild_coins']"
+  },
+  {
+   "line": 17486,
+   "find": "'Hero Fragments']",
+   "replace": "'Hero Fragments','econ.hero_fragments']"
+  },
+  {
+   "line": 17489,
+   "find": "+' Economy</div>",
+   "replace": "+' '+t('econ.title')+'</div>"
+  },
+  {
+   "line": 17489,
+   "find": "Loading the live currency manifest…",
+   "replace": "'+t('econ.loading')+'"
+  },
+  {
+   "line": 17491,
+   "find": "+' Economy</div>",
+   "replace": "+' '+t('econ.title')+'</div>"
+  },
+  {
+   "line": 17491,
+   "find": "Could not reach the server manifest. Sign in and try again.",
+   "replace": "'+t('econ.load_failed')+'"
+  },
+  {
+   "line": 17497,
+   "find": "Your time: <b>",
+   "replace": "${t('econ.your_time')} <b>"
+  },
+  {
+   "line": 17497,
+   "find": "(in ${hh}h ${mm}m)",
+   "replace": "${t('econ.in_hm',{h:hh,m:mm})}"
+  },
+  {
+   "line": 17504,
+   "find": "${escapeHTML(meta[1])}",
+   "replace": "${escapeHTML(meta[2]?t(meta[2]):meta[1])}"
+  },
+  {
+   "line": 17505,
+   "find": ">cap · ${",
+   "replace": ">${t('econ.cap')} · ${"
+  },
+  {
+   "line": 17506,
+   "find": "Earn: <span",
+   "replace": "${t('econ.earn')} <span"
+  },
+  {
+   "line": 17507,
+   "find": "Spend: <span",
+   "replace": "${t('econ.spend')} <span"
+  },
+  {
+   "line": 17509,
+   "find": " Economy</div>",
+   "replace": " ${t('econ.title')}</div>"
+  },
+  {
+   "line": 17510,
+   "find": "Where every currency comes from, what it is for, and what is capped. Served live by the server.",
+   "replace": "${t('econ.intro')}"
+  },
+  {
+   "line": 17512,
+   "find": ">DAILY RESET<",
+   "replace": ">${t('econ.daily_reset')}<"
+  },
+  {
+   "line": 17513,
+   "find": ">server time</span>",
+   "replace": ">${t('econ.server_time')}</span>"
+  },
+  {
+   "line": 17518,
+   "find": "Every figure above is the server's own — build ${escapeHTML(String(m.build||'—'))}.",
+   "replace": "${t('econ.footer',{b:escapeHTML(String(m.build||'—'))})}"
+  },
+  {
+   "line": 17524,
+   "find": "'MAX LEVEL'",
+   "replace": "t('profile.max_level')"
+  },
+  {
+   "line": 17524,
+   "find": "playerXPInto()+' / '+playerXPSpan()+' XP to next'",
+   "replace": "t('profile.xp_to_next',{a:playerXPInto(),b:playerXPSpan()})"
+  },
+  {
+   "line": 17531,
+   "find": "G.playerName||'Commander'",
+   "replace": "G.playerName||t('profile.commander')"
+  },
+  {
+   "line": 17532,
+   "find": ">Username: <b",
+   "replace": ">${t('profile.username')} <b"
+  },
+  {
+   "line": 17533,
+   "find": "Level ${lv} · ${xpText}",
+   "replace": "${t('profile.level_line',{n:lv,xp:xpText})}"
+  },
+  {
+   "line": 17538,
+   "find": ">Nickname</div>",
+   "replace": ">${t('profile.nickname')}</div>"
+  },
+  {
+   "line": 17543,
+   "find": "${rfree?'Save · Free':'Rename · '+hudIcon('gem')+rcost}",
+   "replace": "${rfree?t('profile.save_free'):t('profile.rename_cost',{c:hudIcon('gem')+rcost})}"
+  },
+  {
+   "line": 17545,
+   "find": "'You have <b style=\"color:#ffd45e\">1 free rename</b> available. After that: 2nd '+hudIcon('gem')+'50 · 3rd '+hudIcon('gem')+'100 · 4th+ '+hudIcon('gem')+'200.'",
+   "replace": "t('profile.free_rename',{b:'<b style=\"color:#ffd45e\">',e:'</b>',g:hudIcon('gem')})"
+  },
+  {
+   "line": 17545,
+   "find": "Next rename costs <b style=\"color:#c9b6ff\">${hudIcon('gem')}${rcost}</b>.",
+   "replace": "${t('profile.next_rename',{c:'<b style=\"color:#c9b6ff\">'+hudIcon('gem')+rcost+'</b>'})}"
+  },
+  {
+   "line": 17545,
+   "find": "Not enough diamonds.</span>'",
+   "replace": "'+t('profile.not_enough_diamonds')+'</span>'"
+  },
+  {
+   "line": 17547,
+   "find": "Economy — sources, sinks &amp; daily resets",
+   "replace": "${t('profile.economy_btn')}"
+  },
+  {
+   "line": 17548,
+   "find": ">Portrait <span",
+   "replace": ">${t('profile.portrait')} <span"
+  },
+  {
+   "line": 17548,
+   "find": "(choose an owned hero)",
+   "replace": "${t('profile.choose_owned')}"
+  },
+  {
+   "line": 17554,
+   "find": "'Name needs at least 2 characters.'",
+   "replace": "t('profile.name_too_short')"
+  },
+  {
+   "line": 17556,
+   "find": "'That is already your name.'",
+   "replace": "t('profile.name_same')"
+  },
+  {
+   "line": 17557,
+   "find": "'Make an account first - guests keep their guest name.'",
+   "replace": "t('profile.name_guest')"
+  },
+  {
+   "line": 17564,
+   "find": "'The rename did not go through - nothing was charged.'",
+   "replace": "t('profile.rename_failed')"
+  },
+  {
+   "line": 17569,
+   "find": "'You need '+cost+' diamonds for this rename.'",
+   "replace": "t('profile.rename_need',{n:cost})"
+  },
+  {
+   "line": 17570,
+   "find": "`Rename to <b>${escapeHTML(v)}</b> for <b style=\"color:#c9b6ff\">${hudIcon('gem')}${cost}</b> diamonds?`",
+   "replace": "t('profile.rename_confirm',{name:'<b>'+escapeHTML(v)+'</b>',c:'<b style=\"color:#c9b6ff\">'+hudIcon('gem')+cost+'</b>'})"
+  },
+  {
+   "line": 17577,
+   "find": "'Unlock '+HERO_TYPES[k].name+' first (clear its campaign stage).'",
+   "replace": "t('profile.unlock_portrait',{hero:HERO_TYPES[k].name})"
+  },
+  {
+   "line": 17623,
+   "find": "'⛩ GATEKEEPER — '",
+   "replace": "'⛩ '+t('vault.gatekeeper')+' — '"
+  },
+  {
+   "line": 17623,
+   "find": "' (Ascended)'",
+   "replace": "' ('+t('vault.ascended')+')'"
+  },
+  {
+   "line": 17631,
+   "find": ">empty</span>",
+   "replace": ">${t('vault.empty_slot')}</span>"
+  },
+  {
+   "line": 17637,
+   "find": "'FIGHTERS'",
+   "replace": "t('vault.fighters')"
+  },
+  {
+   "line": 17639,
+   "find": "'BACKUP · steps in when a fighter falls'",
+   "replace": "t('vault.backup')"
+  },
+  {
+   "line": 17642,
+   "find": " Select Heroes</button>",
+   "replace": " ${t('vault.select_heroes')}</button>"
+  },
+  {
+   "line": 17643,
+   "find": "BATTLE — Floor ${VAULT.st.currentFloor}",
+   "replace": "${t('vault.battle_floor',{n:VAULT.st.currentFloor})}"
+  },
+  {
+   "line": 17654,
+   "find": "'Sign in to raid with your guild.'",
+   "replace": "t('raid.sign_in')"
+  },
+  {
+   "line": 17657,
+   "find": "'Connection lost.'",
+   "replace": "t('net.connection_lost')"
+  },
+  {
+   "line": 17657,
+   "find": "'Could not reach the realm.'",
+   "replace": "t('raid.unreachable')"
+  },
+  {
+   "line": 17659,
+   "find": "'No assaults left today — back tomorrow.'",
+   "replace": "t('raid.none_left')"
+  },
+  {
+   "line": 17692,
+   "find": "'Your last Vault result is still being sent - try again in a moment.'",
+   "replace": "t('vault.pending_send')"
+  },
+  {
+   "line": 17696,
+   "find": "'Vault unavailable.'",
+   "replace": "t('vault.unavailable')"
+  },
+  {
+   "line": 17707,
+   "find": "Wave ${w.wave} — ${w.won?'<span style=\"color:#5ee89b\">cleared</span>':'<span style=\"color:#e86a6a\">defeated</span>'}",
+   "replace": "${t('vault.wave_result',{n:w.wave,r:w.won?'<span style=\"color:#5ee89b\">'+t('vault.cleared')+'</span>':'<span style=\"color:#e86a6a\">'+t('vault.defeated')+'</span>'})}"
+  },
+  {
+   "line": 17708,
+   "find": ">YOUR SQUAD<",
+   "replace": ">${t('vault.your_squad')}<"
+  },
+  {
+   "line": 17709,
+   "find": ">VAULT GUARD<",
+   "replace": ">${t('vault.guard')}<"
+  },
+  {
+   "line": 17714,
+   "find": "+${r.reward.dust} Forge Dust",
+   "replace": "${t('vault.plus_dust',{n:r.reward.dust})}"
+  },
+  {
+   "line": 17714,
+   "find": "' +'+r.reward.heroXp+' hero XP each</span>'",
+   "replace": "' '+t('vault.hero_xp_each',{n:r.reward.heroXp})+'</span>'"
+  },
+  {
+   "line": 17714,
+   "find": "First clear — package doubled!",
+   "replace": "'+t('vault.first_clear_doubled')+'"
+  },
+  {
+   "line": 17716,
+   "find": "' FLOOR CLEARED'",
+   "replace": "' '+t('vault.floor_cleared')"
+  },
+  {
+   "line": 17716,
+   "find": "' THE VAULT HOLDS'",
+   "replace": "' '+t('vault.holds')"
+  },
+  {
+   "line": 17718,
+   "find": "'Continue '+uiIcon('play')",
+   "replace": "t('common.continue')+' '+uiIcon('play')"
+  },
+  {
+   "line": 17718,
+   "find": "'↻ Retry Floor'",
+   "replace": "'↻ '+t('vault.retry_floor')"
+  },
+  {
+   "line": 17721,
+   "find": "'Your last Vault result is still being sent - try again in a moment.'",
+   "replace": "t('vault.pending_send')"
+  },
+  {
+   "line": 17723,
+   "find": "'Not enough diamonds — this Sweep costs '+hudIcon('gem')+' '+cost+'.'",
+   "replace": "t('vault.sweep_no_gems',{c:hudIcon('gem')+' '+cost})"
+  },
+  {
+   "line": 17724,
+   "find": "'Sweep all <b>'+VAULT.st.highestClearedFloor+'</b> cleared floors again for <b style=\"color:#8fe3ff\">'+hudIcon('gem')+' '+cost+'</b>?<br><span style=\"font-size:12px;color:#8b98a9\">You have '+hudIcon('gem')+' '+(G.gems||0)+'. Your 2 free sweeps are used.</span>'",
+   "replace": "t('vault.sweep_confirm',{n:'<b>'+VAULT.st.highestClearedFloor+'</b>',c:'<b style=\"color:#8fe3ff\">'+hudIcon('gem')+' '+cost+'</b>'})+'<br><span style=\"font-size:12px;color:#8b98a9\">'+t('vault.sweep_have',{c:hudIcon('gem')+' '+(G.gems||0)})+'</span>'"
+  },
+  {
+   "line": 17728,
+   "find": "'Sweep unavailable.'",
+   "replace": "t('vault.sweep_unavailable')"
+  },
+  {
+   "line": 17744,
+   "find": "<b>Floor ${f.floor}</b>",
+   "replace": "<b>${t('vault.floor_n',{n:f.floor})}</b>"
+  },
+  {
+   "line": 17747,
+   "find": "Swept ${r.floors} floors",
+   "replace": "${t('vault.swept_n',{n:r.floors})}"
+  },
+  {
+   "line": 17748,
+   "find": "<span>Forge Dust</span>",
+   "replace": "<span>${t('econ.forge_dust')}</span>"
+  },
+  {
+   "line": 17749,
+   "find": "<span>hero XP each</span>",
+   "replace": "<span>${t('vault.hero_xp_each_lbl')}</span>"
+  },
+  {
+   "line": 17751,
+   "find": ">Glyph fragments <span>",
+   "replace": ">${t('vault.glyph_fragments')} <span>"
+  },
+  {
+   "line": 17752,
+   "find": ">Gear fragments <span>",
+   "replace": ">${t('vault.gear_fragments')} <span>"
+  },
+  {
+   "line": 17753,
+   "find": "<summary>Each floor</summary>",
+   "replace": "<summary>${t('vault.each_floor')}</summary>"
+  },
+  {
+   "line": 17755,
+   "find": ">Collect</button>",
+   "replace": ">${t('common.collect')}</button>"
+  },
+  {
+   "line": 17761,
+   "find": "'Connection lost.'",
+   "replace": "t('net.connection_lost')"
+  },
+  {
+   "line": 17761,
+   "find": "'Salvage failed.'",
+   "replace": "t('vault.salvage_failed')"
+  },
+  {
+   "line": 17761,
+   "find": "' +'+r.dustGained+' Forge Dust'",
+   "replace": "' '+t('vault.plus_dust',{n:r.dustGained})"
+  },
+  {
+   "line": 17768,
+   "find": " Fragment Salvage</b>",
+   "replace": " ${t('vault.fragment_salvage')}</b>"
+  },
+  {
+   "line": 17772,
+   "find": ">All →",
+   "replace": ">${t('vault.all')} →"
+  },
+  {
+   "line": 17772,
+   "find": "No fragments yet — clear boss floors.",
+   "replace": "'+t('vault.no_fragments')+'"
+  },
+  {
+   "line": 17778,
+   "find": " THE VAULT</div>",
+   "replace": " ${t('vault.title_upper')}</div>"
+  },
+  {
+   "line": 17779,
+   "find": "Floor ${s.currentFloor} / 100</span>",
+   "replace": "${t('vault.floor_of',{n:s.currentFloor,m:100})}</span>"
+  },
+  {
+   "line": 17781,
+   "find": "AETHER VAULT — CONQUERED",
+   "replace": "${t('vault.conquered')}"
+  },
+  {
+   "line": 17782,
+   "find": "All 100 floors cleared. The Vault Extension is coming soon.",
+   "replace": "${t('vault.all_cleared')}"
+  },
+  {
+   "line": 17783,
+   "find": "Sweep (${s.sweep.freeUsesRemaining} free today)",
+   "replace": "${t('vault.sweep_free_today',{n:s.sweep.freeUsesRemaining})}"
+  },
+  {
+   "line": 17789,
+   "find": "stat('Highest cleared',",
+   "replace": "stat(t('vault.highest_cleared'),"
+  },
+  {
+   "line": 17790,
+   "find": "stat('Fragment band',",
+   "replace": "stat(t('vault.fragment_band'),"
+  },
+  {
+   "line": 17791,
+   "find": "stat('Floor reward',",
+   "replace": "stat(t('vault.floor_reward'),"
+  },
+  {
+   "line": 17791,
+   "find": "+2 glyph fragments</span>'",
+   "replace": "'+t('vault.plus2_glyph')+'</span>'"
+  },
+  {
+   "line": 17795,
+   "find": ">THIS FLOOR DROPS</div>",
+   "replace": ">${t('vault.floor_drops')}</div>"
+  },
+  {
+   "line": 17796,
+   "find": "<b>${escapeHTML(k)} Fragment</b>",
+   "replace": "<b>${t('vault.frag_name',{k:escapeHTML(k)})}</b>"
+  },
+  {
+   "line": 17796,
+   "find": "· Glyph Fragment</span>",
+   "replace": "· ${t('vault.glyph_fragment')}</span>"
+  },
+  {
+   "line": 17797,
+   "find": "· Gear Fragment</span>",
+   "replace": "· ${t('vault.gear_fragment')}</span>"
+  },
+  {
+   "line": 17798,
+   "find": "Boss floor — first clear pays the package twice.",
+   "replace": "'+t('vault.boss_floor_note')+'"
+  },
+  {
+   "line": 17811,
+   "find": "' Sweep ×'+s.sweep.freeUsesRemaining",
+   "replace": "' '+t('vault.sweep_x',{n:s.sweep.freeUsesRemaining})"
+  },
+  {
+   "line": 17811,
+   "find": "' Sweep · '+hudIcon('gem')+' '+s.sweep.nextCost+' ('+s.sweep.paidLeft+' left)'",
+   "replace": "' '+t('vault.sweep_paid',{c:hudIcon('gem')+' '+s.sweep.nextCost,n:s.sweep.paidLeft})"
+  },
+  {
+   "line": 17811,
+   "find": "' No sweeps left today'",
+   "replace": "' '+t('vault.no_sweeps')"
+  },
+  {
+   "line": 17812,
+   "find": " Salvage</button>",
+   "replace": " ${t('vault.salvage')}</button>"
+  },
+  {
+   "line": 17814,
+   "find": "Two waves per floor — HP &amp; Energy carry over. Every attempt faces the <b>same</b> monsters:<br>learn the floor, then beat it. Progress and rewards are saved to your account.",
+   "replace": "${t('vault.footer',{b:'<b>',e:'</b>',br:'<br>'})}"
+  },
+  {
+   "line": 17915,
+   "find": "'The Forge is cold.'",
+   "replace": "t('forge.cold')"
+  },
+  {
+   "line": 17931,
+   "find": "(GEAR_STAT_LABEL[k]||k)",
+   "replace": "(GEAR_STAT_LABEL[k]?(t('gear.'+'stat_'+k.replace(/[A-Z]/g,c=>'_'+c.toLowerCase()))||GEAR_STAT_LABEL[k]):k)"
+  },
+  {
+   "line": 17938,
+   "find": "'The Forge is cold.'",
+   "replace": "t('forge.cold')"
+  },
+  {
+   "line": 17981,
+   "find": "`<b>${plan.used.subs[s]} × ${escapeHTML(s)}</b> (in stock)`",
+   "replace": "t('gear.bill_sub_stock',{x:'<b>'+plan.used.subs[s]+' × '+escapeHTML(s)+'</b>'})"
+  },
+  {
+   "line": 17982,
+   "find": "`<b>${plan.used.items.length} fresh item${plan.used.items.length>1?'s':''}</b> in stock`",
+   "replace": "t('gear.bill_fresh_stock',{x:'<b>'+(plan.used.items.length>1?t('gear.fresh_item_many',{n:plan.used.items.length}):t('gear.fresh_item_one',{n:plan.used.items.length}))+'</b>'})"
+  },
+  {
+   "line": 17984,
+   "find": "'nothing'",
+   "replace": "t('gear.nothing')"
+  },
+  {
+   "line": 17984,
+   "find": "${crafts} craft${crafts!==1?'s':''}${subs?' + '+subs+' sub-component'+(subs!==1?'s':''):''}, built bottom-up in one go.",
+   "replace": "${t('gear.bill_steps',{c:(crafts!==1?t('gear.crafts_n',{n:crafts}):t('gear.craft_1',{n:crafts})),s:subs?' + '+(subs!==1?t('gear.subs_n',{n:subs}):t('gear.sub_1',{n:subs})):''})}"
+  },
+  {
+   "line": 17989,
+   "find": "'Connection lost.'",
+   "replace": "t('net.connection_lost')"
+  },
+  {
+   "line": 17989,
+   "find": "'The Forge is cold.'",
+   "replace": "t('forge.cold')"
+  },
+  {
+   "line": 17995,
+   "find": "'Stopped at step '+n+' of '+plan.steps.length+': '",
+   "replace": "t('gear.stopped_at',{n:n,m:plan.steps.length})+' '"
+  },
+  {
+   "line": 17996,
+   "find": "' Built '+last.name+' ('+n+' step'+(n!==1?'s':'')+')'",
+   "replace": "' '+t('gear.built_steps',{name:last.name,n:n})"
+  },
+  {
+   "line": 17998,
+   "find": "' '+last.name+' equipped'",
+   "replace": "' '+t('gear.equipped_name',{name:last.name})"
+  },
+  {
+   "line": 17998,
+   "find": "'Connection lost.'",
+   "replace": "t('net.connection_lost')"
+  },
+  {
+   "line": 17998,
+   "find": "'Could not equip.'",
+   "replace": "t('gear.equip_failed')"
+  },
+  {
+   "line": 18000,
+   "find": "'Missing: '+(plan.missing?plan.missing.need+' × '+plan.missing.frag+' (have '+plan.missing.have+')':'materials')",
+   "replace": "(plan.missing?t('gear.missing_frag',{n:plan.missing.need,frag:plan.missing.frag,h:plan.missing.have}):t('gear.missing_materials_msg'))"
+  },
+  {
+   "line": 18001,
+   "find": "Quick Build <b style=\"color:${FORGE_QCOLOR[d.quality]||'#e6edf3'}\">${escapeHTML(d.name)}</b>${equipHero?' and equip it':''}?",
+   "replace": "${(n=>equipHero?t('gear.quick_build_equip_q',{name:n}):t('gear.quick_build_q',{name:n}))('<b style=\"color:'+(FORGE_QCOLOR[d.quality]||'#e6edf3')+'\">'+escapeHTML(d.name)+'</b>')}"
+  },
+  {
+   "line": 18001,
+   "find": "This spends ${gearPlanBillHTML(plan)}</span>",
+   "replace": "${t('gear.this_spends',{x:gearPlanBillHTML(plan)})}</span>"
+  },
+  {
+   "line": 18022,
+   "find": "`<b>1 × ${escapeHTML(d.sub)}</b> and <b>2 fresh ${prevQ} items</b> (the two least-tempered unbound ${prevQ} pieces you own are consumed)`",
+   "replace": "t('gear.cost_sub_items',{sub:'<b>1 × '+escapeHTML(d.sub)+'</b>',items:'<b>'+t('gear.two_fresh',{q:prevQ})+'</b>',q:prevQ})"
+  },
+  {
+   "line": 18024,
+   "find": "Build <b style=\"color:${FORGE_QCOLOR[d.quality]||'#e6edf3'}\">${escapeHTML(d.name)}</b>${equipHero?' and equip it':''}?",
+   "replace": "${(n=>equipHero?t('gear.build_equip_q',{name:n}):t('gear.build_q',{name:n}))('<b style=\"color:'+(FORGE_QCOLOR[d.quality]||'#e6edf3')+'\">'+escapeHTML(d.name)+'</b>')}"
+  },
+  {
+   "line": 18024,
+   "find": "This spends ${gearCostHTML(d)}.</span>",
+   "replace": "${t('gear.this_spends_dot',{x:gearCostHTML(d)})}</span>"
+  },
+  {
+   "line": 18026,
+   "find": "Build <b style=\"color:${FORGE_QCOLOR[d.quality]||'#e6edf3'}\">${escapeHTML(d.name)}</b>?",
+   "replace": "${t('gear.build_q',{name:'<b style=\"color:'+(FORGE_QCOLOR[d.quality]||'#e6edf3')+'\">'+escapeHTML(d.name)+'</b>'})}"
+  },
+  {
+   "line": 18026,
+   "find": "This spends ${gearCostHTML(d)}.</span>",
+   "replace": "${t('gear.this_spends_dot',{x:gearCostHTML(d)})}</span>"
+  },
+  {
+   "line": 18028,
+   "find": "Make <b>${escapeHTML(d.sub)}</b>?",
+   "replace": "${t('gear.make_q',{name:'<b>'+escapeHTML(d.sub)+'</b>'})}"
+  },
+  {
+   "line": 18028,
+   "find": "This spends <b>${d.subFragCost} × ${escapeHTML(d.frag)}</b>.",
+   "replace": "${t('gear.this_spends_dot',{x:'<b>'+d.subFragCost+' × '+escapeHTML(d.frag)+'</b>'})}"
+  },
+  {
+   "line": 18028,
+   "find": "'🔩 '+r.sub+' made!'",
+   "replace": "'🔩 '+t('gear.sub_made',{name:r.sub})"
+  },
+  {
+   "line": 18035,
+   "find": "${can?'Build this piece':'Missing materials'}",
+   "replace": "${can?t('gear.build_this'):t('gear.missing_materials')}"
+  },
+  {
+   "line": 18041,
+   "find": ">Built — ready to equip<",
+   "replace": ">${t('gear.built_ready')}<"
+  },
+  {
+   "line": 18042,
+   "find": ">Ready to Build${gearCanCraft(st,d)?'':' (from fragments)'}<",
+   "replace": ">${t('gear.ready_build')}${gearCanCraft(st,d)?'':' '+t('gear.from_fragments')}<"
+  },
+  {
+   "line": 18042,
+   "find": ">Missing materials${",
+   "replace": ">${t('gear.missing_materials')}${"
+  },
+  {
+   "line": 18056,
+   "find": "' · tap to make'",
+   "replace": "' · '+t('gear.tap_to_make')"
+  },
+  {
+   "line": 18063,
+   "find": "' fresh copy ready'",
+   "replace": "' '+t('gear.fresh_copy_ready')"
+  },
+  {
+   "line": 18063,
+   "find": "'Tap to open'",
+   "replace": "t('gear.tap_to_open')"
+  },
+  {
+   "line": 18084,
+   "find": "<b>Equipment</b>",
+   "replace": "<b>${t('gear.equipment')}</b>"
+  },
+  {
+   "line": 18084,
+   "find": ">Build Tree</b>",
+   "replace": ">${t('gear.build_tree')}</b>"
+  },
+  {
+   "line": 18084,
+   "find": ">ingredient</span>'",
+   "replace": ">'+t('gear.ingredient')+'</span>'"
+  },
+  {
+   "line": 18087,
+   "find": "'{i:s:shield} Equipped — '+r.slot",
+   "replace": "'{i:s:shield} '+t('gear.equipped_slot',{slot:r.slot})"
+  },
+  {
+   "line": 18087,
+   "find": " Equip</button>",
+   "replace": " ${t('gear.equip')}</button>"
+  },
+  {
+   "line": 18088,
+   "find": " Quick Build</button>",
+   "replace": " ${t('gear.quick_build')}</button>"
+  },
+  {
+   "line": 18089,
+   "find": " Quick Build</button>",
+   "replace": " ${t('gear.quick_build')}</button>"
+  },
+  {
+   "line": 18091,
+   "find": ">‹ Back</button>",
+   "replace": ">‹ ${t('common.back')}</button>"
+  },
+  {
+   "line": 18097,
+   "find": "Stoking the Forge…",
+   "replace": "'+t('forge.stoking')+'"
+  },
+  {
+   "line": 18098,
+   "find": "' Could not reach the Forge - open it again to retry.'",
+   "replace": "' '+t('forge.unreachable')"
+  },
+  {
+   "line": 18098,
+   "find": "' The Forge is being built.'",
+   "replace": "' '+t('forge.being_built')"
+  },
+  {
+   "line": 18116,
+   "find": "(${escapeHTML(other.name)} on)",
+   "replace": "(${t('gear.other_on',{name:escapeHTML(other.name)})})"
+  },
+  {
+   "line": 18125,
+   "find": "(+${tmul}% temper)",
+   "replace": "(${t('gear.temper_pct',{n:tmul})})"
+  },
+  {
+   "line": 18126,
+   "find": "· ACTIVE</b>'",
+   "replace": "· '+t('gear.active_upper')+'</b>'"
+  },
+  {
+   "line": 18127,
+   "find": ">Temper ${it.temper||0}/${T.max}</span>",
+   "replace": ">${t('gear.temper_of',{n:it.temper||0,m:T.max})}</span>"
+  },
+  {
+   "line": 18127,
+   "find": ">raise it in the Forge</span>",
+   "replace": ">${t('gear.raise_in_forge')}</span>"
+  },
+  {
+   "line": 18128,
+   "find": "'{i:u:sparkle-new} Active: '+r.active",
+   "replace": "'{i:u:sparkle-new} '+t('gear.active_set',{name:r.active})"
+  },
+  {
+   "line": 18128,
+   "find": ">Set Active</button>",
+   "replace": ">${t('gear.set_active')}</button>"
+  },
+  {
+   "line": 18128,
+   "find": "bound to ${escapeHTML((HERO_TYPES[key]||{}).name||key)} — build a higher piece to replace it",
+   "replace": "${t('gear.bound_to',{hero:escapeHTML((HERO_TYPES[key]||{}).name||key)})}"
+  },
+  {
+   "line": 18129,
+   "find": "${escapeHTML(role)} loadout · built <b style=\"color:#e6edf3\">${nEq}/9</b>",
+   "replace": "${t('gear.loadout_built',{role:escapeHTML(role),n:'<b style=\"color:#e6edf3\">'+nEq+'/9</b>'})}"
+  },
+  {
+   "line": 18129,
+   "find": ">Resonance <b",
+   "replace": ">${t('gear.resonance')} <b"
+  },
+  {
+   "line": 18129,
+   "find": " Dust <b",
+   "replace": " ${t('gear.dust')} <b"
+  },
+  {
+   "line": 18142,
+   "find": "'Floor '+n",
+   "replace": "t('vault.floor_n',{n:n})"
+  },
+  {
+   "line": 18142,
+   "find": "' +'+(f.length-6)+' more'",
+   "replace": "' '+t('forge.n_more',{n:f.length-6})"
+  },
+  {
+   "line": 18143,
+   "find": "Farm in The Vault — ${shown}",
+   "replace": "${t('forge.farm_in_vault',{floors:shown})}"
+  },
+  {
+   "line": 18143,
+   "find": "(tap for all)",
+   "replace": "${t('forge.tap_for_all')}"
+  },
+  {
+   "line": 18148,
+   "find": "${escapeHTML(src.quality||'')} band · used to craft: <b",
+   "replace": "${t('forge.band_used_for',{q:escapeHTML(src.quality||'')})} <b"
+  },
+  {
+   "line": 18149,
+   "find": "Every clear <b>or sweep</b> of these Aether Vault floors grants this fragment. The floors are fixed and authored — the same floor always gives the same two gear fragments.",
+   "replace": "${t('forge.frag_source_info',{b:'<b>',e:'</b>'})}"
+  },
+  {
+   "line": 18150,
+   "find": ">Vault ${n}</span>",
+   "replace": ">${t('forge.vault_n',{n:n})}</span>"
+  },
+  {
+   "line": 18159,
+   "find": "'Need 2 fresh unbound '+prevQ+' items.'",
+   "replace": "t('forge.need_two',{q:prevQ})"
+  },
+  {
+   "line": 18163,
+   "find": " Forge ${escapeHTML(d.name)}</div>",
+   "replace": " ${t('forge.forge_item',{name:escapeHTML(d.name)})}</div>"
+  },
+  {
+   "line": 18164,
+   "find": "These 2 items are <b>destroyed forever</b>. Forge Dust spent tempering them is <b>NOT refunded</b>.",
+   "replace": "${t('forge.destroy_warn',{b:'<b>',e:'</b>'})}"
+  },
+  {
+   "line": 18169,
+   "find": ">Temper ${it.temper||0} ·",
+   "replace": ">${t('forge.temper_n',{n:it.temper||0})} ·"
+  },
+  {
+   "line": 18169,
+   "find": "${it.dustSpent||0} spent</span>",
+   "replace": "${t('forge.n_spent',{n:it.dustSpent||0})}</span>"
+  },
+  {
+   "line": 18171,
+   "find": ">Cancel</button>",
+   "replace": ">${t('common.cancel')}</button>"
+  },
+  {
+   "line": 18172,
+   "find": "Destroy 2 &amp; Forge</button>",
+   "replace": "${t('forge.destroy_forge')}</button>"
+  },
+  {
+   "line": 18176,
+   "find": "'Pick exactly 2 ingredients.'",
+   "replace": "t('forge.pick_two')"
+  },
+  {
+   "line": 18177,
+   "find": "'{i:u:mode-forge} Forged '+r.name+'!'",
+   "replace": "'{i:u:mode-forge} '+t('forge.forged',{name:r.name})"
+  },
+  {
+   "line": 18187,
+   "find": "No gear yet — build it on a hero\\'s card (Heroes › Equipment) from fragments that drop in The Vault. The Forge raises its Temper.",
+   "replace": "'+t('forge.no_gear')+'"
+  },
+  {
+   "line": 18197,
+   "find": "+' bound'",
+   "replace": "+' '+t('forge.bound')"
+  },
+  {
+   "line": 18197,
+   "find": "+' fresh'",
+   "replace": "+' '+t('forge.fresh')"
+  },
+  {
+   "line": 18199,
+   "find": ">Temper ${it.temper||0}/${T.max}</span>",
+   "replace": ">${t('gear.temper_of',{n:it.temper||0,m:T.max})}</span>"
+  },
+  {
+   "line": 18202,
+   "find": ">+${tmul}% stats</span>",
+   "replace": ">${t('forge.pct_stats',{n:tmul})}</span>"
+  },
+  {
+   "line": 18204,
+   "find": "' MAX TEMPER</span>'",
+   "replace": "' '+t('forge.max_temper')+'</span>'"
+  },
+  {
+   "line": 18205,
+   "find": "'{i:s:burn} +'+(r.levelsGained?'1 Temper!':'progress')+' (−'+r.dustSpent+' Dust)'",
+   "replace": "'{i:s:burn} '+(r.levelsGained?t('forge.temper_up',{d:r.dustSpent}):t('forge.temper_progress',{d:r.dustSpent}))"
+  },
+  {
+   "line": 18206,
+   "find": "'{i:s:burn} Tempered ×'+(r.uses||10)+' (−'+r.dustSpent+' Dust)'",
+   "replace": "'{i:s:burn} '+t('forge.tempered_x',{n:r.uses||10,d:r.dustSpent})"
+  },
+  {
+   "line": 18207,
+   "find": "'{i:u:sparkle-new} Active: '+r.active",
+   "replace": "'{i:u:sparkle-new} '+t('gear.active_set',{name:r.active})"
+  },
+  {
+   "line": 18207,
+   "find": ">Set Active</button>",
+   "replace": ">${t('gear.set_active')}</button>"
+  },
+  {
+   "line": 18209,
+   "find": "'{i:s:shield} Equipped — '+r.slot",
+   "replace": "'{i:s:shield} '+t('gear.equipped_slot',{slot:r.slot})"
+  },
+  {
+   "line": 18209,
+   "find": ">Equip</button>",
+   "replace": ">${t('gear.equip')}</button>"
+  },
+  {
+   "line": 18210,
+   "find": "'{i:u:recycle} +'+r.refund+' Dust refunded'",
+   "replace": "'{i:u:recycle} '+t('forge.dust_refunded',{n:r.refund})"
+  },
+  {
+   "line": 18210,
+   "find": " Extract ${",
+   "replace": " ${t('forge.extract')} ${"
+  },
+  {
+   "line": 18216,
+   "find": "No hero has gear equipped yet.",
+   "replace": "'+t('forge.no_hero_gear')+'"
+  },
+  {
+   "line": 18222,
+   "find": "+' active</span>'",
+   "replace": "+' '+t('forge.active_lower')+'</span>'"
+  },
+  {
+   "line": 18233,
+   "find": "Stoking the Forge…",
+   "replace": "'+t('forge.stoking')+'"
+  },
+  {
+   "line": 18235,
+   "find": ">Could not reach the Forge</div>",
+   "replace": ">'+t('forge.unreachable_title')+'</div>"
+  },
+  {
+   "line": 18235,
+   "find": ">Retry</button>",
+   "replace": ">'+t('common.retry')+'</button>"
+  },
+  {
+   "line": 18237,
+   "find": ">The Forge is being built</div>",
+   "replace": ">'+t('forge.being_built_title')+'</div>"
+  },
+  {
+   "line": 18237,
+   "find": ">Opening soon.</div>",
+   "replace": ">'+t('forge.opening_soon')+'</div>"
+  },
+  {
+   "line": 18241,
+   "find": " The Forge</b>",
+   "replace": " ${t('title.forge')}</b>"
+  },
+  {
+   "line": 18242,
+   "find": "${st.dust||0} Forge Dust</span>",
+   "replace": "${t('forge.n_dust',{n:st.dust||0})}</span>"
+  },
+  {
+   "line": 18243,
+   "find": "Forge Resonance <b style=\"color:#c9a2ff\">Rank ${res.rank}</b> (+${res.rank}% all gear stats) · total Temper ${res.total}",
+   "replace": "${t('forge.resonance_line',{r:'<b style=\"color:#c9a2ff\">'+t('forge.rank_n',{n:res.rank})+'</b>',n:res.rank,total:res.total})}"
+  },
+  {
+   "line": 18243,
+   "find": "' · next rank at '+res.next",
+   "replace": "' · '+t('forge.next_rank_at',{n:res.next})"
+  },
+  {
+   "line": 18245,
+   "find": "statusIcon('burn')+' Temper'",
+   "replace": "statusIcon('burn')+' '+t('forge.tab_temper')"
+  },
+  {
+   "line": 18245,
+   "find": "statusIcon('shield')+' Heroes'",
+   "replace": "statusIcon('shield')+' '+t('menu.heroes')"
+  },
+  {
+   "line": 18330,
+   "find": "'Connect to spend — this game is fully synced online.'",
+   "replace": "t('ledger.connect_to_spend')"
+  },
+  {
+   "line": 18335,
+   "find": "'Connection lost.'",
+   "replace": "t('net.connection_lost')"
+  },
+  {
+   "line": 18335,
+   "find": "'Purchase failed.'",
+   "replace": "t('ledger.purchase_failed')"
+  },
+  {
+   "line": 18405,
+   "find": "${dead?'FALLEN — ':''}${mine?'YOUR':'ENEMY'} ${escapeHTML(lanes[i]?lanes[i].name:'')}",
+   "replace": "${dead?t('skyfall.fallen')+' — ':''}${(L=>mine?t('skyfall.your_lane',{lane:L}):t('skyfall.enemy_lane',{lane:L}))(escapeHTML(lanes[i]?lanes[i].name:''))}"
+  },
+  {
+   "line": 18406,
+   "find": "— undefended —",
+   "replace": "— '+t('skyfall.undefended')+' —"
+  },
+  {
+   "line": 18413,
+   "find": " MARCH THE BRIDGE</button>",
+   "replace": " ${t('skyfall.march_bridge')}</button>"
+  },
+  {
+   "line": 18414,
+   "find": "'The bridge opens when the war goes LIVE.'",
+   "replace": "t('skyfall.bridge_opens')"
+  },
+  {
+   "line": 18414,
+   "find": "'Your citadel has fallen.'",
+   "replace": "t('skyfall.your_citadel_fell')"
+  },
+  {
+   "line": 18414,
+   "find": "'The enemy citadel has fallen!'",
+   "replace": "t('skyfall.enemy_citadel_fell')"
+  },
+  {
+   "line": 18414,
+   "find": "'Your line is not deployed on this bridge.'",
+   "replace": "t('skyfall.line_not_here')"
+  },
+  {
+   "line": 18416,
+   "find": " close bridge</button>",
+   "replace": " ${t('skyfall.close_bridge')}</button>"
+  },
+  {
+   "line": 18442,
+   "find": "' Registered! Power Pool: '+(r.powerPool||0)",
+   "replace": "' '+t('skyfall.registered',{n:r.powerPool||0})"
+  },
+  {
+   "line": 18449,
+   "find": "n+' line'+(n===1?'':'s')+' move to '+(WAR_LANE_NAMES[to]||('lane '+(to+1)))+'.'",
+   "replace": "t('skyfall.lines_moved',{n:n,lane:(WAR_LANE_NAMES[to]||t('skyfall.lane_n',{n:to+1}))})"
+  },
+  {
+   "line": 18470,
+   "find": "'Connection lost.'",
+   "replace": "t('net.connection_lost')"
+  },
+  {
+   "line": 18470,
+   "find": "'March failed.'",
+   "replace": "t('skyfall.march_failed')"
+  },
+  {
+   "line": 18471,
+   "find": "' Citadel captured — no defenders!'",
+   "replace": "' '+t('skyfall.captured')"
+  },
+  {
+   "line": 18472,
+   "find": "' Victory on the bridge!'",
+   "replace": "' '+t('skyfall.bridge_victory')"
+  },
+  {
+   "line": 18472,
+   "find": "' The citadel falls!'",
+   "replace": "' '+t('skyfall.citadel_falls')"
+  },
+  {
+   "line": 18472,
+   "find": "' Your line was driven back.'",
+   "replace": "' '+t('skyfall.driven_back')"
+  },
+  {
+   "line": 18473,
+   "find": "' YOUR GUILD WINS THE MATCH!'",
+   "replace": "' '+t('skyfall.guild_wins')"
+  },
+  {
+   "line": 18477,
+   "find": "' +'+r.amount+' coins ('+r.tier+')'",
+   "replace": "' '+t('skyfall.claim_coins',{n:r.amount,tier:r.tier})"
+  },
+  {
+   "line": 18477,
+   "find": "'Connection lost.'",
+   "replace": "t('net.connection_lost')"
+  },
+  {
+   "line": 18477,
+   "find": "'Claim failed.'",
+   "replace": "t('skyfall.claim_failed')"
+  },
+  {
+   "line": 18488,
+   "find": "'a defender'",
+   "replace": "t('skyfall.a_defender')"
+  },
+  {
+   "line": 18489,
+   "find": "'a commander'",
+   "replace": "t('skyfall.a_commander')"
+  },
+  {
+   "line": 18490,
+   "find": "'Lane '+((e.lane|0)+1)",
+   "replace": "t('skyfall.lane_cap_n',{n:(e.lane|0)+1})"
+  },
+  {
+   "line": 18491,
+   "find": "`🏰 <b>${escapeHTML(String(lane))}</b> fell to ${escapeHTML(nameOf(e.by))}`",
+   "replace": "'🏰 '+t('skyfall.lane_fell_to',{lane:'<b>'+escapeHTML(String(lane))+'</b>',who:escapeHTML(nameOf(e.by))})"
+  },
+  {
+   "line": 18492,
+   "find": "`🏰 <b>${escapeHTML(String(lane))}</b> was captured undefended`",
+   "replace": "'🏰 '+t('skyfall.lane_captured',{lane:'<b>'+escapeHTML(String(lane))+'</b>'})"
+  },
+  {
+   "line": 18496,
+   "find": " · decided over ${mins} min</span>",
+   "replace": " · ${t('skyfall.decided_over',{n:mins})}</span>"
+  },
+  {
+   "line": 18498,
+   "find": "HOW THE WAR WAS ${iWon?'WON':'LOST'}",
+   "replace": "${iWon?t('skyfall.how_won'):t('skyfall.how_lost')}"
+  },
+  {
+   "line": 18500,
+   "find": "<b style=\"color:#ffd45e\">${fell.length}</b> citadel${fell.length===1?'':'s'} destroyed",
+   "replace": "${t('skyfall.citadels_destroyed',{n:'<b style=\"color:#ffd45e\">'+fell.length+'</b>'})}"
+  },
+  {
+   "line": 18501,
+   "find": "<b style=\"color:#8fe3ff\">${wonA}</b>/${assaults.length} assaults won",
+   "replace": "${t('skyfall.assaults_won',{n:'<b style=\"color:#8fe3ff\">'+wonA+'</b>',m:assaults.length})}"
+  },
+  {
+   "line": 18502,
+   "find": "No citadel fell — the war was decided on the tie-break.",
+   "replace": "'+t('skyfall.tiebreak')+'"
+  },
+  {
+   "line": 18509,
+   "find": "'+(d.kills|0)+'/'+((d.kills|0)+(d.killsLeft|0))+' kills)</span>'",
+   "replace": "'+t('skyfall.kills',{n:d.kills|0,m:(d.kills|0)+(d.killsLeft|0)})+')</span>'"
+  },
+  {
+   "line": 18509,
+   "find": "— empty —",
+   "replace": "— '+t('skyfall.empty')+' —"
+  },
+  {
+   "line": 18515,
+   "find": "'▲ bridge':'▼ bridge'",
+   "replace": "'▲ '+t('skyfall.bridge'):'▼ '+t('skyfall.bridge')"
+  },
+  {
+   "line": 18519,
+   "find": "Opponent revealed at <b style=\"color:#ffd45e\">${skyWhen(m.revealAt)}</b> — planning opens then.",
+   "replace": "${t('skyfall.reveal_at',{t:'<b style=\"color:#ffd45e\">'+skyWhen(m.revealAt)+'</b>'})}"
+  },
+  {
+   "line": 18524,
+   "find": "Planning until <b>${skyWhen(m.planningEndsAt)}</b> — tap a citadel to place each member:",
+   "replace": "${t('skyfall.plan_officer',{t:'<b>'+skyWhen(m.planningEndsAt)+'</b>'})}"
+  },
+  {
+   "line": 18527,
+   "find": "unplaced</span>'",
+   "replace": "'+t('skyfall.unplaced')+'</span>'"
+  },
+  {
+   "line": 18530,
+   "find": "Planning until <b>${skyWhen(m.planningEndsAt)}</b> — your leader/officers arrange the citadels.",
+   "replace": "${t('skyfall.plan_member',{t:'<b>'+skyWhen(m.planningEndsAt)+'</b>'})}"
+  },
+  {
+   "line": 18533,
+   "find": " vs ${m.preReveal",
+   "replace": " ${t('skyfall.vs')} ${m.preReveal"
+  },
+  {
+   "line": 18534,
+   "find": "' Planning'",
+   "replace": "' '+t('skyfall.planning')"
+  },
+  {
+   "line": 18534,
+   "find": "' LIVE until '+skyWhen(m.endsAt)",
+   "replace": "' '+t('skyfall.live_until',{t:skyWhen(m.endsAt)})"
+  },
+  {
+   "line": 18534,
+   "find": "'Finished'",
+   "replace": "t('skyfall.finished')"
+  },
+  {
+   "line": 18536,
+   "find": "Destroy 3 enemy citadels to win. Lines march only across their own bridge.",
+   "replace": "${t('skyfall.rules_line')}"
+  },
+  {
+   "line": 18538,
+   "find": ">YOUR CITADELS<",
+   "replace": ">${t('skyfall.your_citadels')}<"
+  },
+  {
+   "line": 18538,
+   "find": ">ENEMY CITADELS<",
+   "replace": ">${t('skyfall.enemy_citadels')}<"
+  },
+  {
+   "line": 18540,
+   "find": "' VICTORY'",
+   "replace": "' '+t('skyfall.victory')"
+  },
+  {
+   "line": 18540,
+   "find": "' DEFEAT'",
+   "replace": "' '+t('skyfall.defeat')"
+  },
+  {
+   "line": 18676,
+   "find": "\\u2630 War <span",
+   "replace": "\\u2630 '+t('skyfall.war_menu')+' <span"
+  },
+  {
+   "line": 18678,
+   "find": ">Bracket</button>",
+   "replace": ">'+t('skyfall.bracket')+'</button>"
+  },
+  {
+   "line": 18679,
+   "find": ">Schedule</button>",
+   "replace": ">'+t('skyfall.schedule')+'</button>"
+  },
+  {
+   "line": 18680,
+   "find": ">Rank</button>",
+   "replace": ">'+t('skyfall.rank')+'</button>"
+  },
+  {
+   "line": 18689,
+   "find": "('Lane '+(L.i+1))",
+   "replace": "t('skyfall.lane_cap_n',{n:L.i+1})"
+  },
+  {
+   "line": 18705,
+   "find": "('Lane '+(L.i+1))",
+   "replace": "t('skyfall.lane_cap_n',{n:L.i+1})"
+  },
+  {
+   "line": 18711,
+   "find": "('Lane '+(L.i+1))",
+   "replace": "t('skyfall.lane_cap_n',{n:L.i+1})"
+  },
+  {
+   "line": 18723,
+   "find": "<b>\\u2694 Skyfall War</b>",
+   "replace": "<b>\\u2694 ${t('skyfall.war_title')}</b>"
+  },
+  {
+   "line": 18724,
+   "find": "</span> Stage <span",
+   "replace": "</span> ${t('skyfall.stage')} <span"
+  },
+  {
+   "line": 18726,
+   "find": "${marches} marches",
+   "replace": "${t('skyfall.n_marches',{n:marches})}"
+  },
+  {
+   "line": 18732,
+   "find": "\\u2694 Edit Team</button>",
+   "replace": "\\u2694 ${t('skyfall.edit_team')}</button>"
+  },
+  {
+   "line": 18747,
+   "find": "bannerMsg(what+' \\u2014 not open yet.')",
+   "replace": "bannerMsg(t('skyfall.not_open_yet',{what:what}))"
+  },
+  {
+   "line": 18896,
+   "find": "('Lane '+((ci|0)+1))",
+   "replace": "t('skyfall.lane_cap_n',{n:(ci|0)+1})"
+  },
+  {
+   "line": 18905,
+   "find": "'not placed'",
+   "replace": "t('skyfall.not_placed')"
+  },
+  {
+   "line": 18910,
+   "find": "('Lane '+(ci+1))",
+   "replace": "t('skyfall.lane_cap_n',{n:ci+1})"
+  },
+  {
+   "line": 18924,
+   "find": "line '+(idx+1)",
+   "replace": "'+t('skyfall.line_n',{n:idx+1})"
+  },
+  {
+   "line": 18925,
+   "find": "(here?'here':",
+   "replace": "(here?t('skyfall.here'):"
+  },
+  {
+   "line": 18932,
+   "find": "YOUR '+mineLines.length+' LINE'+(mineLines.length===1?'':'S')",
+   "replace": "'+t('skyfall.your_n_lines',{n:mineLines.length})"
+  },
+  {
+   "line": 18933,
+   "find": ">ALL HERE</span>'",
+   "replace": ">'+t('skyfall.all_here')+'</span>'"
+  },
+  {
+   "line": 18955,
+   "find": "('\\u23F3 Towers open '+skyWhen(pl.opensAt))",
+   "replace": "('\\u23F3 '+t('skyfall.towers_open',{t:skyWhen(pl.opensAt)}))"
+  },
+  {
+   "line": 18955,
+   "find": "'\\u23F3 Placement is closed'",
+   "replace": "'\\u23F3 '+t('skyfall.placement_closed')"
+  },
+  {
+   "line": 18956,
+   "find": "'\\u2694 Your lines are here'",
+   "replace": "'\\u2694 '+t('skyfall.lines_here')"
+  },
+  {
+   "line": 18956,
+   "find": "'\\u2694 Place Lines Here'",
+   "replace": "'\\u2694 '+t('skyfall.place_here')"
+  },
+  {
+   "line": 18963,
+   "find": "title=\"total power of all their lines\"",
+   "replace": "title=\"'+ewT('skyfall.total_power_tip')+'\""
+  },
+  {
+   "line": 18985,
+   "find": ">no line-up recorded</span>'",
+   "replace": ">'+ewT('skyfall.no_lineup')+'</span>'"
+  },
+  {
+   "line": 18989,
+   "find": "+'line '+((typeof d.line==='number')?(d.line+1):(li+1))+'</span>'",
+   "replace": "+ewT('skyfall.line_n',{n:(typeof d.line==='number')?(d.line+1):(li+1)})+'</span>'"
+  },
+  {
+   "line": 18990,
+   "find": "'<span class=\"lv\">Lv'+topLv+'</span>'",
+   "replace": "'<span class=\"lv\">'+ewT('skyfall.lv_n',{n:topLv})+'</span>'"
+  },
+  {
+   "line": 18999,
+   "find": ">Move player</span>'",
+   "replace": ">'+ewT('skyfall.move_player')+'</span>'"
+  },
+  {
+   "line": 19005,
+   "find": ">Nothing holds this tower.</div>'",
+   "replace": ">'+t('skyfall.tower_empty')+'</div>'"
+  },
+  {
+   "line": 19009,
+   "find": ">Move lane</span>'",
+   "replace": ">'+ewT('skyfall.move_lane')+'</span>'"
+  },
+  {
+   "line": 19038,
+   "find": "('Lane '+(lane+1))",
+   "replace": "t('skyfall.lane_cap_n',{n:lane+1})"
+  },
+  {
+   "line": 19090,
+   "find": "'Could not place that line.'",
+   "replace": "t('skyfall.place_failed')"
+  },
+  {
+   "line": 19094,
+   "find": "'Your tower is set.'",
+   "replace": "t('skyfall.tower_set')"
+  },
+  {
+   "line": 19095,
+   "find": "q.moved+' line'+(q.moved===1?'':'s')+' placed.'",
+   "replace": "t('skyfall.lines_placed',{n:q.moved})"
+  },
+  {
+   "line": 19102,
+   "find": "'There was nothing of yours to place.'",
+   "replace": "t('skyfall.nothing_to_place')"
+  },
+  {
+   "line": 19103,
+   "find": "n+' line'+(n===1?'':'s')+' placed.'",
+   "replace": "t('skyfall.lines_placed',{n:n})"
+  },
+  {
+   "line": 19115,
+   "find": "'Nothing holds this tower.'",
+   "replace": "t('skyfall.tower_empty')"
+  },
+  {
+   "line": 19116,
+   "find": "('lane '+(to+1))",
+   "replace": "t('skyfall.lane_n',{n:to+1})"
+  },
+  {
+   "line": 19117,
+   "find": "n+' line'+(n===1?'':'s')+' move to '+nm+'.'",
+   "replace": "t('skyfall.lines_moved',{n:n,lane:nm})"
+  },
+  {
+   "line": 19130,
+   "find": "'There was nothing of theirs left in that tower.'",
+   "replace": "t('skyfall.nothing_theirs')"
+  },
+  {
+   "line": 19131,
+   "find": "('lane '+(to+1))",
+   "replace": "t('skyfall.lane_n',{n:to+1})"
+  },
+  {
+   "line": 19132,
+   "find": "n+' line'+(n===1?'':'s')+' move to '+nm+'.'",
+   "replace": "t('skyfall.lines_moved',{n:n,lane:nm})"
+  },
+  {
+   "line": 19281,
+   "find": "Battle Bracket</b>'",
+   "replace": "'+ewT('skyfall.battle_bracket')+'</b>'"
+  },
+  {
+   "line": 19282,
+   "find": " History</button>'",
+   "replace": " '+ewT('skyfall.history')+'</button>'"
+  },
+  {
+   "line": 19300,
+   "find": "+'No tournament has finished yet.</div></div>'",
+   "replace": "+t('skyfall.no_history')+'</div></div>'"
+  },
+  {
+   "line": 19314,
+   "find": "beat '+escapeHTML(runner.name)+(score?' '+score:'')",
+   "replace": "'+t('skyfall.beat',{name:escapeHTML(runner.name)})+(score?' '+score:'')"
+  },
+  {
+   "line": 19318,
+   "find": " Tournament History</b>'",
+   "replace": " '+t('skyfall.tournament_history')+'</b>'"
+  },
+  {
+   "line": 19367,
+   "find": "+'You are not in a guild \\u2014 join one to see its ranking.</div></div>'",
+   "replace": "+t('skyfall.rank_no_guild')+'</div></div>'"
+  },
+  {
+   "line": 19370,
+   "find": "+'This guild has no members yet.</div></div>'",
+   "replace": "+t('skyfall.rank_no_members')+'</div></div>'"
+  },
+  {
+   "line": 19374,
+   "find": "<th>MEMBER</th>",
+   "replace": "<th>'+t('skyfall.col_member')+'</th>"
+  },
+  {
+   "line": 19374,
+   "find": ">LINES</th>",
+   "replace": ">'+t('skyfall.col_lines')+'</th>"
+  },
+  {
+   "line": 19374,
+   "find": ">POWER</th>",
+   "replace": ">'+t('skyfall.col_power')+'</th>"
+  },
+  {
+   "line": 19378,
+   "find": "'LEADER'",
+   "replace": "t('skyfall.leader')"
+  },
+  {
+   "line": 19382,
+   "find": "rows.length+' member'+(rows.length===1?'':'s')",
+   "replace": "t('skyfall.n_members',{n:rows.length})"
+  },
+  {
+   "line": 19383,
+   "find": "' \\u00b7 guild power \\u2694'+tot.toLocaleString()",
+   "replace": "' \\u00b7 '+t('skyfall.guild_power',{n:'\\u2694'+tot.toLocaleString()})"
+  },
+  {
+   "line": 19386,
+   "find": " Guild Ranking</b>'",
+   "replace": " '+t('skyfall.guild_ranking')+'</b>'"
+  },
+  {
+   "line": 19415,
+   "find": "(live?'NOW':'')",
+   "replace": "(live?ewT('skyfall.now'):'')"
+  },
+  {
+   "line": 19416,
+   "find": "<th>ROUND</th><th>DAY</th><th>PREP</th><th>LOCK</th><th>BELL</th><th>REPORTS UNTIL</th>",
+   "replace": "<th>'+ewT('skyfall.col_round')+'</th><th>'+ewT('skyfall.col_day')+'</th><th>'+ewT('skyfall.col_prep')+'</th><th>'+ewT('skyfall.col_lock')+'</th><th>'+ewT('skyfall.col_bell')+'</th><th>'+ewT('skyfall.col_reports_until')+'</th>"
+  },
+  {
+   "line": 19417,
+   "find": "foot='Prep opens the board for line placement and reveals your opponent. Lines lock at the LOCK '",
+   "replace": "foot=ewT('skyfall.sched_foot')"
+  },
+  {
+   "line": 19418,
+   "find": "+'time; the last bell ends the fighting; the lane reports stand until the next prep.';",
+   "replace": ";"
+  },
+  {
+   "line": 19428,
+   "find": "n:'Prep opens', d:'the board reopens \\u2014 place your lines, your opponent is revealed'",
+   "replace": "n:'Prep opens', nk:'skyfall.sch_prep_opens', d:ewT('skyfall.sch_prep_opens_d')"
+  },
+  {
+   "line": 19429,
+   "find": "n:'Lines lock', d:'no more placement; the towers stand as they are'",
+   "replace": "n:'Lines lock', nk:'skyfall.sch_lines_lock', d:ewT('skyfall.sch_lines_lock_d')"
+  },
+  {
+   "line": 19430,
+   "find": "n:'Last bell',  d:'the fighting ends'",
+   "replace": "n:'Last bell', nk:'skyfall.sch_last_bell', d:ewT('skyfall.sch_last_bell_d')"
+  },
+  {
+   "line": 19431,
+   "find": "n:'Reports close', d:'the lane reports come down and the board resets'",
+   "replace": "n:'Reports close', nk:'skyfall.sch_reports_close', d:ewT('skyfall.sch_reports_close_d')"
+  },
+  {
+   "line": 19437,
+   "find": "+x.n+'</td>'",
+   "replace": "+ewT(x.nk)+'</td>'"
+  },
+  {
+   "line": 19439,
+   "find": "(live?'NOW':'')",
+   "replace": "(live?ewT('skyfall.now'):'')"
+  },
+  {
+   "line": 19440,
+   "find": "<th>TIME</th><th>WHAT</th><th>MEANS</th>",
+   "replace": "<th>'+ewT('skyfall.col_time')+'</th><th>'+ewT('skyfall.col_what')+'</th><th>'+ewT('skyfall.col_means')+'</th>"
+  },
+  {
+   "line": 19441,
+   "find": "foot='Guild Wars run every other week. Sign-ups Sat 02:00 \\u2192 Mon 00:00 server time, on weekends opposite World Tree. Battles Tue\\u2013Fri 18:00\\u201320:00 ET.';",
+   "replace": "foot=ewT('skyfall.sched_foot2');"
+  },
+  {
+   "line": 19470,
+   "find": ">NEXT FOUR WEEKS</div>'",
+   "replace": ">'+ewT('skyfall.next_four_weeks')+'</div>'"
+  },
+  {
+   "line": 19475,
+   "find": "</i>war day</span>'",
+   "replace": "</i>'+ewT('skyfall.key_war_day')+'</span>'"
+  },
+  {
+   "line": 19476,
+   "find": "</i>registration</span>'",
+   "replace": "</i>'+ewT('skyfall.key_registration')+'</span>'"
+  },
+  {
+   "line": 19477,
+   "find": ">today is ringed</span>",
+   "replace": ">'+ewT('skyfall.key_today')+'</span>"
+  },
+  {
+   "line": 19483,
+   "find": " Schedule</b><span class=\"sub\">all times ET</span>'",
+   "replace": " '+ewT('skyfall.schedule')+'</b><span class=\"sub\">'+ewT('skyfall.all_times_et')+'</span>'"
+  },
+  {
+   "line": 19535,
+   "find": "'This is the simulator\\u2019s board \\u2014 your real lines are edited in a live war.'",
+   "replace": "t('skyfall.team_sim_board')"
+  },
+  {
+   "line": 19557,
+   "find": "'Line disbanded \\u2014 not saved yet.'",
+   "replace": "t('skyfall.team_disbanded')"
+  },
+  {
+   "line": 19561,
+   "find": "'You can field at most '+SKYTEAM.cap+' lines.'",
+   "replace": "t('skyfall.team_max',{n:SKYTEAM.cap})"
+  },
+  {
+   "line": 19562,
+   "find": "'You need 5 heroes off a line to make another \\u2014 you have '+SKYTEAM.bench.length+'.'",
+   "replace": "t('skyfall.team_need5',{n:SKYTEAM.bench.length})"
+  },
+  {
+   "line": 19566,
+   "find": "'Line added \\u2014 not saved yet.'",
+   "replace": "t('skyfall.team_added')"
+  },
+  {
+   "line": 19584,
+   "find": "'Saving\\u2026'",
+   "replace": "t('skyfall.team_saving')"
+  },
+  {
+   "line": 19587,
+   "find": "'Saved.'",
+   "replace": "t('skyfall.team_saved')"
+  },
+  {
+   "line": 19588,
+   "find": "'Could not save \\u2014 nothing was changed.'",
+   "replace": "t('skyfall.team_save_failed')"
+  },
+  {
+   "line": 19607,
+   "find": ">empty slot</span></div>'",
+   "replace": ">'+ewT('skyfall.empty_slot')+'</span></div>'"
+  },
+  {
+   "line": 19612,
+   "find": "' \\u00b7 LV '+m.level",
+   "replace": "' \\u00b7 '+ewT('skyfall.lv_upper',{n:m.level})"
+  },
+  {
+   "line": 19614,
+   "find": ">tap a hero below to swap</span></div>'",
+   "replace": ">'+ewT('skyfall.tap_to_swap')+'</span></div>'"
+  },
+  {
+   "line": 19617,
+   "find": "Loading your lines\\u2026</div>",
+   "replace": "'+t('skyfall.loading_lines')+'</div>"
+  },
+  {
+   "line": 19628,
+   "find": "Adjust line '+(i+1)+'</b>'",
+   "replace": "'+t('skyfall.adjust_line',{n:i+1})+'</b>'"
+  },
+  {
+   "line": 19629,
+   "find": "power '+skyTeamPower(L).toLocaleString()",
+   "replace": "'+t('skyfall.power_n',{n:skyTeamPower(L).toLocaleString()})"
+  },
+  {
+   "line": 19631,
+   "find": ">Done</button>",
+   "replace": ">'+t('common.done')+'</button>"
+  },
+  {
+   "line": 19634,
+   "find": "'Every hero you own is already on a line.'",
+   "replace": "t('skyfall.bench_all_used')"
+  },
+  {
+   "line": 19634,
+   "find": "'No free '+rosterClassF+' heroes.'",
+   "replace": "t('skyfall.bench_no_class',{c:rosterClassF})"
+  },
+  {
+   "line": 19651,
+   "find": ">POWER</span>",
+   "replace": ">'+t('skyfall.col_power')+'</span>"
+  },
+  {
+   "line": 19655,
+   "find": ">Adjust</button>'",
+   "replace": ">'+t('skyfall.adjust')+'</button>'"
+  },
+  {
+   "line": 19656,
+   "find": ">Disband</button>'",
+   "replace": ">'+t('skyfall.disband')+'</button>'"
+  },
+  {
+   "line": 19662,
+   "find": "'Unsaved changes \\u2014 press Save to commit them.'",
+   "replace": "t('skyfall.team_unsaved')"
+  },
+  {
+   "line": 19663,
+   "find": "'Adjust swaps heroes on a line. A hero can only stand on one line, so the bench is what is left.'",
+   "replace": "t('skyfall.team_help')"
+  },
+  {
+   "line": 19666,
+   "find": "You have no lines yet \\u2014 press Add Line.",
+   "replace": "'+t('skyfall.team_no_lines')+'"
+  },
+  {
+   "line": 19669,
+   "find": "<span>Lines: <span",
+   "replace": "<span>'+t('skyfall.lines_label')+' <span"
+  },
+  {
+   "line": 19670,
+   "find": ">bench: <b>",
+   "replace": ">'+t('skyfall.bench_label')+' <b>"
+  },
+  {
+   "line": 19673,
+   "find": ">Add Line</button>'",
+   "replace": ">'+t('skyfall.add_line')+'</button>'"
+  },
+  {
+   "line": 19674,
+   "find": ">Save</button>'",
+   "replace": ">'+t('common.save')+'</button>'"
+  },
+  {
+   "line": 19678,
+   "find": "SKYTEAM.msg==='Saved.'",
+   "replace": "SKYTEAM.msg===t('skyfall.team_saved')"
+  },
+  {
+   "line": 19709,
+   "find": " Edit Team</b>'",
+   "replace": " '+t('skyfall.edit_team')+'</b>'"
+  },
+  {
+   "line": 18007,
+   "find": "'The Forge is cold.'",
+   "replace": "t('forge.cold')"
+  },
+  {
+   "line": 18008,
+   "find": "' Built '+r.name+'!'",
+   "replace": "' '+t('gear.built_name',{name:r.name})"
+  },
+  {
+   "line": 18010,
+   "find": "' '+r.name+' equipped'",
+   "replace": "' '+t('gear.equipped_name',{name:r.name})"
+  },
+  {
+   "line": 18010,
+   "find": "'Connection lost.'",
+   "replace": "t('net.connection_lost')"
+  },
+  {
+   "line": 18010,
+   "find": "'Could not equip.'",
+   "replace": "t('gear.equip_failed')"
+  }
+ ],
+ "notes": [
+  "Left English on purpose: Integrity Desk (dev-only, base 17097-17170, ~25 strings); Vault God Mode dev jump (17680-17689, 17801-17807, ~7 strings); Skyfall simulator speed bar / End (dev sim, 18673-18675); dead if(false) Island sprite block (17443-17463).",
+  "Names kept English: WAR_LANE_NAMES tower names (18818), gear/fragment/sub names, quality tiers (Grey/Green/Blue +2 ... used as data and compared), gear slot names (d.slot / eq.slot, compared via gearSlotSel), boss rule name (vaultBossLabel), guild/player names, hero roles in Skyfall picker (uppercased role data), roster class buttons (19626, compared).",
+  "Server-sent text left as-is (langMsg/err.* handle r.error): r.error, rule.warn, q.note, economy manifest sources/sinks/caps (server data), m.round, rd.name.",
+  "Not translated: skyStageNow() PREP/MARCH/DONE pill (18724) - the values are compared and line 20027 (outside this range) rewrites the pill; translate both together. Weekday initials S M T W T F S (19472) and date formats (skyWhen/hhmm use en-US + ET) left as is. 'EGP'/'EDP' patron badge abbreviations (17349) and 'T{n}' temper badge left.",
+  "CURRENCY_META entries gained a 3rd element (econ.* key), shown via t(meta[2]); GEAR_STAT_LABEL kept as-is, gearStatLabel() looks up gear.stat_<snake_key> and falls back to the English label.",
+  "Skyfall schedule band rows gained nk (key) - x.n stays English because 19437 compares x.n==='Last bell'; SKYTEAM.msg==='Saved.' compare now compares against t('skyfall.team_saved').",
+  "TEST tests/test_caps_1082.js:30 asserts the page source contains the exact line msg.textContent='Make an account first - guests keep their guest name.' (base 17557, now t('profile.name_guest')) - will fail.",
+  "TEST tests/test_forge_retry_1101.js:23 regex /if\\(FORGE\\.st\\.offline\\)\\{[^\\n]*Could not reach the Forge[^\\n]*forgeRetry/ on the page source (base 18235, now t('forge.unreachable_title')) - will fail.",
+  "TEST tests/test_gear_plan_run.js runs gearPlanRun in a vm with no t() (ctx = bannerMsg/api/page-icons) - gearPlanRun now calls t(...), so the ctx needs t; its /Stopped at step 1 of 3: Not enough materials/ check still matches the English.",
+  "TEST tests/test_v1010.js:29 runs txSpend in a vm and sets this.t=txSpend - txSpend's failure branch now calls t('net.connection_lost'), which in that ctx is txSpend itself (re-enters, consumes an api reply); the ctx needs its own t and must not name the function t.",
+  "TEST tests/test_pending_ownership.js:84-90 runs vaultLaunch in a vm with page-icons only - a held/failed launch now calls t('vault.pending_send'/'vault.unavailable'); ctx needs t.",
+  "TEST runtime English, should still pass: tests/test_results_retry_1151.js:170 expects 'THE VAULT HOLDS'; tests/test_banner_offline.js (bannerMsg, infra-owned)."
+ ]
+}

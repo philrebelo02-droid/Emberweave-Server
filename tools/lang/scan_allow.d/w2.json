@@ -1,0 +1,51 @@
+{
+ "_why": "W2 (guild / skyfall / world / chat / arena): names, code strings and dev-only or unreachable UI.",
+ "tables": {
+  "ZONES": "names: world region / wild / World Tree place names",
+  "GUILD_MEMBERS": "names: simulated guildmate player names",
+  "GUILD_BOSS_NAMES": "names: guild raid boss names",
+  "WAR_LANE_NAMES": "names: Skyfall tower names (Iron Gate, Storm Watch ...)",
+  "GUILD_MOTD": "unused constant (no reader in the page)",
+  "GUILD_SHOP": "content shown through GUILD_SHOP_TXT (ewT gshop.* keys) for all 12 entries; name/desc here are fallbacks only",
+  "EMBASSY_PERKS": "perk names are lookup values; the Embassy panel shows them via embassy2.* keys, descriptions via gshop.perk_*"
+ },
+ "functions": {
+  "playerInfoFill": "dev/admin tool: player info inside openPlayerAdmin (admin only)",
+  "devAdminList": "dev/admin tool: online / accounts list (dev panel)",
+  "skySimRender": "dev tool: God Mode war simulator (AUDIT_MODE = dev account + god)",
+  "skySimRun": "dev tool: God Mode war simulator run",
+  "skySimTower": "dev tool: God Mode war simulator tower panel",
+  "skySimReplay": "dev tool: God Mode war simulator replay (only called from skySimRun)",
+  "skySchedOpen": "remaining strings are code: n = row ids compared in code (shown via nk keys), Sun..Sat = en-US weekday parse for indexOf",
+  "renderGuildWar": "reachable part is all t(); the text after the early return is the retired legacy weekly war (audit C9), unreachable",
+  "guildWarAttackServer": "only called from the unreachable legacy war UI in renderGuildWar (retired, audit C9)",
+  "warResetLabel": "only called from the unreachable legacy war UI in renderGuildWar (retired, audit C9)",
+  "chatName": "sender identity fallback sent to the chat server; must stay one stable string"
+ },
+ "text": {
+  "names": [
+   "Skyfall",
+   "World Tree",
+   "The World Tree",
+   "Grosk"
+  ]
+ },
+ "patterns": [
+  {
+   "re": "^box-shadow:",
+   "why": "inline CSS value (skyMatchHTML)"
+  },
+  {
+   "re": "^data:image/svg[+]xml,$",
+   "why": "data URI prefix (wmGridCityMask)"
+  },
+  {
+   "re": "^wnode (city|mine)$",
+   "why": "className (drawMapDetails / drawMines)"
+  },
+  {
+   "re": "^server-visual:$",
+   "why": "row id prefix (worldVisualMarchRows)"
+  }
+ ]
+}

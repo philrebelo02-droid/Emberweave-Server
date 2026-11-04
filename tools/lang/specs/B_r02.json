@@ -1,0 +1,366 @@
+{
+ "keys": {
+  "combatnet.slow": "Connection slow — this battle is being recorded locally.",
+  "gsroad.top": "Top Road",
+  "gsroad.middle": "Middle Road",
+  "gsroad.bottom": "Bottom Road",
+  "gsroad.top_short": "Top",
+  "gsroad.middle_short": "Middle",
+  "gsroad.bottom_short": "Bottom",
+  "gsroad.home": "{road} — HOME",
+  "gsroad.fallen": "{road} — FALLEN",
+  "gsroad.has_fallen": "{road} has fallen.",
+  "gsroad.burning": "The Middle Road is burning — no way across to the {road}.",
+  "gsroad.full": "{road} is full — {n} heroes at most.",
+  "gswin.boon_head": "FIREBREAK {n} of {total} · choose one boon for each road",
+  "gswin.change_boon": "You can change any boon before confirming.",
+  "gswin.confirm_boons": "CONFIRM BOONS",
+  "gswin.waiting": "Waiting for heroes to cross…",
+  "gswin.tutorial_drag": "Drag the glowing hero to Middle Road.",
+  "gswin.drag_hint": "Drag a hero onto a road, or tap a hero.",
+  "gswin.send_to": "Send {hero} to",
+  "gswin.here_now": "here now",
+  "gswin.fallen": "fallen",
+  "gswin.cut_off": "cut off by fire",
+  "gswin.firebreak": "FIREBREAK {n}",
+  "gswin.start_wave": "START WAVE {n}",
+  "gswin.crossing": "crossing…",
+  "bonusclaim.sign_in": "Sign in to claim bonus stage fragments.",
+  "bonusclaim.unreachable": "The bonus stages could not be reached. Try again in a moment.",
+  "bonusclaim.nothing_yet": "Nothing has accrued yet. Fragments per hour: {n}.",
+  "bonusclaim.clear_first": "Clear a bonus stage to earn fragments every hour.",
+  "bonusclaim.claimed": "Glyph fragments claimed: {n} ({h} h of bonus stage rewards).",
+  "bonusclaim.not_confirmed": "The claim could not be confirmed. Try again in a moment.",
+  "bonusclaim.cant_open": "Could not open that bonus stage.",
+  "bonuspick.preset": "Preset {n}",
+  "bonuspick.save_to": "Save to {n}",
+  "bonuspick.n_heroes": "{n} heroes",
+  "bonuspick.empty": "empty",
+  "bonuspick.tap_slot": "Tap a slot to save this lineup.",
+  "bonuspick.preset_loaded": "Preset {n} loaded.",
+  "bonuspick.preset_loaded_lost": "Preset {n} loaded - heroes not available: {lost}.",
+  "bonuspick.choose_first": "Choose heroes first.",
+  "bonuspick.replace_title": "Replace Preset {n}?",
+  "bonuspick.replace_body": "It holds {n} heroes. The lineup on screen takes its place.",
+  "bonuspick.replace": "Replace",
+  "bonuspick.saved_to": "Saved to Preset {n}.",
+  "bonuspick.title": "BONUS {id}",
+  "bonuspick.claim_frags": "Claim fragments",
+  "bonuspick.pick_hint": "Tap to choose up to {n} heroes. You place them on the roads next.",
+  "bonuspick.tutorial": "Tutorial run — one monster per wave.",
+  "bonuspick.no_heroes": "No heroes unlocked yet.",
+  "bonuspick.selected": "Selected {n} / {cap}",
+  "bonuspick.best": "BEST {n}",
+  "bonuspick.next": "NEXT",
+  "bonuspick.cap_reached": "{n} heroes at most.",
+  "bonuspick.place_hint": "Drag a hero onto a road, or tap a hero then a road. Tap a placed hero to take them back. {n} per road.",
+  "bonuspick.all_placed": "Every chosen hero is on a road.",
+  "bonuspick.heroes_btn": "HEROES",
+  "bonuspick.auto": "AUTO",
+  "bonuspick.start": "START",
+  "bonuspick.road_cap": "At most {n} heroes on one road.",
+  "bonuspick.not_placed": "Chosen heroes not on a road yet: {n}.",
+  "bonuspick.need_one": "Every road needs at least one hero.",
+  "bonuspick.cant_start": "Could not start.",
+  "bonuspick.loader_title": "Bonus Round"
+ },
+ "edits": [
+  {
+   "line": 6983,
+   "find": "' Connection slow — this battle is being recorded locally.'",
+   "replace": "' '+t('combatnet.slow')"
+  },
+  {
+   "line": 7301,
+   "find": "const GSPLIT_ROAD_SHORT = ['Top','Middle','Bottom'];",
+   "replace": "const GSPLIT_ROAD_SHORT = ['Top','Middle','Bottom'];\n/* LANGUAGES: the road names on screen (GSPLIT_ROAD_NAME / GSPLIT_ROAD_SHORT / L.name stay the English data) */\nfunction gsplitRoadName(i){ return [t('gsroad.top'),t('gsroad.middle'),t('gsroad.bottom')][i]||''; }\nfunction gsplitRoadShort(i){ return [t('gsroad.top_short'),t('gsroad.middle_short'),t('gsroad.bottom_short')][i]||''; }"
+  },
+  {
+   "line": 7384,
+   "find": "bannerMsg('◆ '+L.name+' — HOME');",
+   "replace": "bannerMsg('◆ '+t('gsroad.home',{road:gsplitRoadName(L.i)}));"
+  },
+  {
+   "line": 7385,
+   "find": "bannerMsg('◆ '+L.name+' — FALLEN');",
+   "replace": "bannerMsg('◆ '+t('gsroad.fallen',{road:gsplitRoadName(L.i)}));"
+  },
+  {
+   "line": 8439,
+   "find": "bannerMsg('◆ '+GSPLIT_ROAD_NAME[lane]+' has fallen.');",
+   "replace": "bannerMsg('◆ '+t('gsroad.has_fallen',{road:gsplitRoadName(lane)}));"
+  },
+  {
+   "line": 8440,
+   "find": "bannerMsg('◆ The Middle Road is burning — no way across to the '+GSPLIT_ROAD_NAME[lane]+'.');",
+   "replace": "bannerMsg('◆ '+t('gsroad.burning',{road:gsplitRoadName(lane)}));"
+  },
+  {
+   "line": 8441,
+   "find": "bannerMsg('◆ '+GSPLIT_ROAD_NAME[lane]+' is full — 10 heroes at most.');",
+   "replace": "bannerMsg('◆ '+t('gsroad.full',{road:gsplitRoadName(lane),n:10}));"
+  },
+  {
+   "line": 8529,
+   "find": "'<div class=\"gw-head\">FIREBREAK '+station+' of 4 · choose one boon for each road</div>",
+   "replace": "'<div class=\"gw-head\">'+t('gswin.boon_head',{n:station,total:4})+'</div>"
+  },
+  {
+   "line": 8532,
+   "find": "gsplitEsc(L.name)",
+   "replace": "gsplitEsc(gsplitRoadName(L.i))"
+  },
+  {
+   "line": 8543,
+   "find": "You can change any boon before confirming.",
+   "replace": "'+t('gswin.change_boon')+'"
+  },
+  {
+   "line": 8543,
+   "find": ">CONFIRM BOONS</button>",
+   "replace": ">'+t('gswin.confirm_boons')+'</button>"
+  },
+  {
+   "line": 8552,
+   "find": "'Waiting for heroes to cross…'",
+   "replace": "t('gswin.waiting')"
+  },
+  {
+   "line": 8552,
+   "find": "'Drag the glowing hero to Middle Road.'",
+   "replace": "t('gswin.tutorial_drag')"
+  },
+  {
+   "line": 8552,
+   "find": "'Drag a hero onto a road, or tap a hero.'",
+   "replace": "t('gswin.drag_hint')"
+  },
+  {
+   "line": 8559,
+   "find": "'<div class=\"gw-dests\"><span>Send '+gsplitEsc((HERO_TYPES[sel.u.key]||{}).name||sel.u.key)+' to</span>'",
+   "replace": "'<div class=\"gw-dests\"><span>'+t('gswin.send_to',{hero:gsplitEsc((HERO_TYPES[sel.u.key]||{}).name||sel.u.key)})+'</span>'"
+  },
+  {
+   "line": 8564,
+   "find": "gsplitEsc(GSPLIT_ROAD_SHORT[L.i])",
+   "replace": "gsplitEsc(gsplitRoadShort(L.i))"
+  },
+  {
+   "line": 8564,
+   "find": "'here now'",
+   "replace": "t('gswin.here_now')"
+  },
+  {
+   "line": 8564,
+   "find": "'fallen'",
+   "replace": "t('gswin.fallen')"
+  },
+  {
+   "line": 8564,
+   "find": "'cut off by fire'",
+   "replace": "t('gswin.cut_off')"
+  },
+  {
+   "line": 8568,
+   "find": "<strong>FIREBREAK '+station+'</strong>",
+   "replace": "<strong>'+t('gswin.firebreak',{n:station})+'</strong>"
+  },
+  {
+   "line": 8568,
+   "find": ">START WAVE '+(station+1)+'</button>",
+   "replace": ">'+t('gswin.start_wave',{n:station+1})+'</button>"
+  },
+  {
+   "line": 8574,
+   "find": "'crossing…'",
+   "replace": "t('gswin.crossing')"
+  },
+  {
+   "line": 8574,
+   "find": "gsplitEsc(GSPLIT_ROAD_SHORT[L.i])",
+   "replace": "gsplitEsc(gsplitRoadShort(L.i))"
+  },
+  {
+   "line": 8605,
+   "find": "chip.textContent=L.name+' · '",
+   "replace": "chip.textContent=gsplitRoadName(L.i)+' · '"
+  },
+  {
+   "line": 8683,
+   "find": "bannerMsg('Sign in to claim bonus stage fragments.');",
+   "replace": "bannerMsg(t('bonusclaim.sign_in'));"
+  },
+  {
+   "line": 8686,
+   "find": "?st.error:'The bonus stages could not be reached. Try again in a moment.'",
+   "replace": "?langMsg(st.error):t('bonusclaim.unreachable')"
+  },
+  {
+   "line": 8688,
+   "find": "bannerMsg(ph>0?'Nothing has accrued yet. '+ph+' fragment'+(ph===1?'':'s')+' arrive every hour.':'Clear a bonus stage to earn fragments every hour.');",
+   "replace": "bannerMsg(ph>0?t('bonusclaim.nothing_yet',{n:ph}):t('bonusclaim.clear_first'));"
+  },
+  {
+   "line": 8690,
+   "find": "bannerMsg('Claimed '+(c.total|0)+' glyph fragment'+((c.total|0)===1?'':'s')+' ('+(r.hours|0)+' h of bonus stage rewards).');",
+   "replace": "bannerMsg(t('bonusclaim.claimed',{n:c.total|0,h:r.hours|0}));"
+  },
+  {
+   "line": 8691,
+   "find": "?r.error:'The claim could not be confirmed. Try again in a moment.'",
+   "replace": "?langMsg(r.error):t('bonusclaim.not_confirmed')"
+  },
+  {
+   "line": 8698,
+   "find": "bannerMsg((data&&data.error)||'Could not open that bonus stage.');",
+   "replace": "bannerMsg(langMsg(data&&data.error)||t('bonusclaim.cant_open'));"
+  },
+  {
+   "line": 8753,
+   "find": "+(saving?'Save to '+(i+1):'Preset '+(i+1))+'<small>'+(p?n+' heroes':'empty')+'</small></button>';",
+   "replace": "+(saving?t('bonuspick.save_to',{n:i+1}):t('bonuspick.preset',{n:i+1}))+'<small>'+(p?t('bonuspick.n_heroes',{n}):t('bonuspick.empty'))+'</small></button>';"
+  },
+  {
+   "line": 8754,
+   "find": "uiIcon('close')+' Cancel':uiIcon('save')+' Save'",
+   "replace": "uiIcon('close')+' '+t('common.cancel'):uiIcon('save')+' '+t('common.save')"
+  },
+  {
+   "line": 8760,
+   "find": "'Tap a slot to save this lineup.'",
+   "replace": "t('bonuspick.tap_slot')"
+  },
+  {
+   "line": 8770,
+   "find": "E._presetNote='Preset '+(i+1)+' loaded'+(lost>0?' - '+lost+' hero'+(lost>1?'es':'')+' not available':'')+'.';",
+   "replace": "E._presetNote=lost>0?t('bonuspick.preset_loaded_lost',{n:i+1,lost}):t('bonuspick.preset_loaded',{n:i+1});"
+  },
+  {
+   "line": 8775,
+   "find": "E._presetNote='Choose heroes first.';",
+   "replace": "E._presetNote=t('bonuspick.choose_first');"
+  },
+  {
+   "line": 8777,
+   "find": "uiConfirm('Replace Preset '+(i+1)+'?', ['It holds '+cur.picked.length+' heroes. The lineup on screen takes its place.'], 'Replace')",
+   "replace": "uiConfirm(t('bonuspick.replace_title',{n:i+1}), [t('bonuspick.replace_body',{n:cur.picked.length})], t('bonuspick.replace'))"
+  },
+  {
+   "line": 8783,
+   "find": "E._presetNote='Saved to Preset '+(i+1)+'.';",
+   "replace": "E._presetNote=t('bonuspick.saved_to',{n:i+1});"
+  },
+  {
+   "line": 8808,
+   "find": ">BONUS ${E.id}${",
+   "replace": ">${t('bonuspick.title',{id:E.id})}${"
+  },
+  {
+   "line": 8809,
+   "find": "onclick=\"bonusHourlyClaim()\">Claim fragments</button>",
+   "replace": "onclick=\"bonusHourlyClaim()\">${t('bonuspick.claim_frags')}</button>"
+  },
+  {
+   "line": 8823,
+   "find": "margin-bottom:8px\">Tap to choose up to <b style=\"color:#e6edf3\">${CAP}</b> heroes. You place them on the roads next.${info.tutorial?' Tutorial run — one monster per wave.':''}</div>",
+   "replace": "margin-bottom:8px\">${t('bonuspick.pick_hint',{n:'<b style=\"color:#e6edf3\">'+CAP+'</b>'})}${info.tutorial?' '+t('bonuspick.tutorial'):''}</div>"
+  },
+  {
+   "line": 8825,
+   "find": "No heroes unlocked yet.",
+   "replace": "'+t('bonuspick.no_heroes')+'"
+  },
+  {
+   "line": 8826,
+   "find": "class=\"gsplitCount\">Selected <b>${E.picked.length}</b> / ${CAP}<div",
+   "replace": "class=\"gsplitCount\">${t('bonuspick.selected',{n:'<b>'+E.picked.length+'</b>',cap:CAP})}<div"
+  },
+  {
+   "line": 8827,
+   "find": ">BEST ${Math.min(CAP,owned.length)}</button>",
+   "replace": ">${t('bonuspick.best',{n:Math.min(CAP,owned.length)})}</button>"
+  },
+  {
+   "line": 8828,
+   "find": ">NEXT ${uiIcon('play')}</button>",
+   "replace": ">${t('bonuspick.next')} ${uiIcon('play')}</button>"
+  },
+  {
+   "line": 8835,
+   "find": "er.textContent=CAP+' heroes at most.';",
+   "replace": "er.textContent=t('bonuspick.cap_reached',{n:CAP});"
+  },
+  {
+   "line": 8845,
+   "find": "{L:1,name:'Top',",
+   "replace": "{L:1,name:gsplitRoadShort(0),"
+  },
+  {
+   "line": 8845,
+   "find": "{L:2,name:'Middle',",
+   "replace": "{L:2,name:gsplitRoadShort(1),"
+  },
+  {
+   "line": 8845,
+   "find": "{L:3,name:'Bottom',",
+   "replace": "{L:3,name:gsplitRoadShort(2),"
+  },
+  {
+   "line": 8863,
+   "find": "margin-bottom:6px\">Drag a hero onto a road, or tap a hero then a road. Tap a placed hero to take them back. <b style=\"color:#e6edf3\">${PER}</b> per road.</div>",
+   "replace": "margin-bottom:6px\">${t('bonuspick.place_hint',{n:'<b style=\"color:#e6edf3\">'+PER+'</b>'})}</div>"
+  },
+  {
+   "line": 8868,
+   "find": "Every chosen hero is on a road.",
+   "replace": "'+t('bonuspick.all_placed')+'"
+  },
+  {
+   "line": 8870,
+   "find": ">◀ HEROES</button>",
+   "replace": ">◀ ${t('bonuspick.heroes_btn')}</button>"
+  },
+  {
+   "line": 8871,
+   "find": ">AUTO</button>",
+   "replace": ">${t('bonuspick.auto')}</button>"
+  },
+  {
+   "line": 8872,
+   "find": ">START</button>",
+   "replace": ">${t('bonuspick.start')}</button>"
+  },
+  {
+   "line": 8886,
+   "find": "err('At most '+PER+' heroes on one road.');",
+   "replace": "err(t('bonuspick.road_cap',{n:PER}));"
+  },
+  {
+   "line": 8932,
+   "find": "errEl.textContent=left+' chosen hero'+(left>1?'es are':' is')+' not on a road yet.';",
+   "replace": "errEl.textContent=t('bonuspick.not_placed',{n:left});"
+  },
+  {
+   "line": 8934,
+   "find": "errEl.textContent='Every road needs at least one hero.';",
+   "replace": "errEl.textContent=t('bonuspick.need_one');"
+  },
+  {
+   "line": 8936,
+   "find": "errEl.textContent=(data&&data.error)||'Could not start.';",
+   "replace": "errEl.textContent=langMsg(data&&data.error)||t('bonuspick.cant_start');"
+  },
+  {
+   "line": 8945,
+   "find": "title:'Bonus Round'",
+   "replace": "title:t('bonuspick.loader_title')"
+  }
+ ],
+ "notes": [
+  "Floating combat text 'MASTER-UNLOCKED' (7066) LEFT English on purpose: ftIsStatus (6793) and ftIsDebuff/FT_DEBUFF_RE (6799-6801) classify a float text by its English capitals/words to stack it over the head or under the feet. Translating txt at the push breaks that stacking in caseless scripts (ja/zh/ko/th/hi) and Cyrillic; whoever owns the float-text DRAW site should translate there and keep f.txt English. tests/test_debuff_feet_1141.js:64 asserts ftIsStatus({txt:'STUN'}) etc.",
+  "Boon names/blurbs (b.name, b.blurb, W.preview), info.tier and server r.error texts come from the server - left (errors wrapped in langMsg where shown).",
+  "GSPLIT_ROAD_NAME / GSPLIT_ROAD_SHORT / L.name kept as English data; display goes through the new gsplitRoadName(i)/gsplitRoadShort(i) helpers (added at 7301).",
+  "tests/test_shop_sweep_1097.js:63 asserts /onclick=\"bonusHourlyClaim\\(\\)\"/ in the page source - the onclick attribute is unchanged (its 'CLAIM HOURLY FRAGMENTS' literal is outside this range).",
+  "tests/test_results_retry_1151.js:183-200 asserts gsplitFinish banners 'BONUS 1-3 CLEARED' / 'RUN LOST' / 'RETRY RESULT' - gsplitFinish is past line 8999, not touched here."
+ ]
+}

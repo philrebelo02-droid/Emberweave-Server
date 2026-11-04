@@ -1,0 +1,846 @@
+{
+ "keys": {
+  "gauntlet.three_roads": "BONUS {id} — THREE ROADS",
+  "gauntlet.road_top": "Top Road",
+  "gauntlet.road_mid": "Middle Road",
+  "gauntlet.road_bottom": "Bottom Road",
+  "gauntlet.road_home": "{road} — HOME",
+  "gauntlet.road_fallen": "{road} — FALLEN",
+  "gauntlet.road_fell_march": "{road} fell - its monsters march on the other roads",
+  "gauntlet.reason_lost": "connection lost before the server answered",
+  "gauntlet.not_confirmed_retrying": "Result not confirmed ({reason}) — retrying…",
+  "gauntlet.not_confirmed": "This result is not confirmed - {reason}",
+  "gauntlet.tap_retry": "Tap RETRY RESULT.",
+  "gauntlet.two_roads_home": "Two roads must come home - a second fallen road ends the run.",
+  "gauntlet.retreat_run": "Retreat from run",
+  "gauntlet.retreat_q": "Retreat from this run?",
+  "gauntlet.retreat_body": "Any road still fighting counts as lost.",
+  "gauntlet.retreat": "Retreat",
+  "gauntlet.retry_result": "RETRY RESULT",
+  "gauntlet.retrying": "Retrying your result…",
+  "gauntlet.tut_follow": "Follow the glowing heroes to place your squad on all three roads. The first firebreak will teach boons and moving lanes.",
+  "gauntlet.tut_place": "Place {hero} on the {road}. Tap the glowing hero.",
+  "gauntlet.tut_all_placed": "All roads are placed. Start the teaching run.",
+  "gauntlet.tut_move_mid": "Move the glowing Top Road hero to Middle before starting Wave 2.",
+  "bonusrun.cleared": "BONUS {id} CLEARED",
+  "bonusrun.run_lost": "BONUS {id} — RUN LOST",
+  "bonusrun.result_aria": "Bonus stage result",
+  "bonusrun.clear_confirmed": "Stage clear confirmed.",
+  "bonusrun.two_roads_survive": "Two roads must survive to win.",
+  "bonusrun.first_clear_frags": "First clear: glyph fragment rewards: {n}. Fragments per hour now available: {ph}.",
+  "bonusrun.continue": "CONTINUE",
+  "bonusrun.claim_hourly": "CLAIM HOURLY FRAGMENTS",
+  "battle.gfx_restart_mode": "Graphics restarting — this {mode} match can't be resumed.",
+  "battle.gfx_restart": "Graphics restarting — your battle is saved.",
+  "battleload.you": "You",
+  "battleload.rival": "Rival",
+  "battleload.stage": "Stage {n}",
+  "battleload.enemy": "Enemy",
+  "battle.place_map": "{place} — MAP {n}",
+  "battle.stage_caps": "STAGE {n}",
+  "battle.wave_n": "WAVE {n}",
+  "battle.place_floor": "{place} — FLOOR {n}",
+  "battle.guild_raid": "GUILD RAID",
+  "battle.the_boss": "The boss",
+  "battle.raid_bang": "RAID!",
+  "battle.raid_defeat_squad": "Defeat the rival squad",
+  "battle.steps_in": "{hero} steps in!",
+  "vaultpick.has_fallen": "{hero} has fallen!",
+  "vaultpick.choose_backup": "Choose a backup to step in ({n} left):",
+  "vaultpick.fight_on": "Fight on without a replacement",
+  "bosscue.wintercrag": "Freezes the frontline — spread your ultimates",
+  "bosscue.magmourn": "Hurls fire at the back row — move your caster",
+  "bosscue.voraxis": "Hits harder as it loses health",
+  "bosscue.grommash": "Heavy cleaves — keep your Tank in front",
+  "bosscue.leviath": "Drenches the field — sustained damage wins",
+  "bosscue.sylphice": "Strikes the weakest hero first",
+  "bosscue.ch1": "{boss} drops the anvil on your tank and chains a hero back to him — stun-break, then burst",
+  "bosscue.ch2": "{boss} charges through the line and gores whoever he lands on — keep the tank square in front",
+  "bosscue.ch3": "{boss} freezes whoever stands closest and stops a heart in your backline — spread out, keep a cleanse",
+  "bosscue.ch4": "{boss}'s undertow hits everyone near the front and her sentence stuns one — sustain and cleanse",
+  "bosscue.ch5": "{boss} hushes your casters and fires five shots at once — kill her before the second volley",
+  "bosscue.ch6": "{boss} burns everything beside him and locks your line in cinder — only the tank in reach",
+  "bosscue.ch7": "{boss} claws in threes and drops a cyclone that slows the field — do not stand still in it",
+  "bosscue.ch8": "{boss} charges and hurls three glass axes down the line — spread out, he cannot be moved",
+  "bosscue.ch9": "{boss}'s broadside pierces the whole line and his anchor drags a hero in — burst him early",
+  "bosscue.ch10": "{boss} breathes a burning grave-cone and rushes the line with a stunning charge — spread out, keep the tank in front",
+  "bosscue.ch11": "{boss} throws a lance down the whole line and hides behind a shard guard — save your burst for when it drops",
+  "bosscue.ch12": "{boss}'s pollen slows and poisons the field and she heals herself — step out of the cloud and bring burst",
+  "bosscue.ch13": "{boss} sweeps a half-circle cleave in front of him and locks one hero in place for two seconds, and every few seconds he cleanses an ally of its controls — spread out of the cleave and burst him while the lock is down",
+  "bosscue.ch14": "{boss} sets the ground alight with wildfire roots, then collapses it to stun — spread out and keep a cleanse",
+  "bosscue.ch15": "{boss} hurls fireballs into your group and sets every hero burning at once — spread out and bring healing",
+  "bosscue.ch16": "{boss} rains meteors on four heroes and eclipses one — bring healing, then a burst for the finish",
+  "bosscue.default": "A stage guardian — bring your ultimates ready",
+  "battle.the_guardian": "The Guardian",
+  "battle.boss": "BOSS",
+  "battle.boss_incoming": "BOSS INCOMING",
+  "battle.wave_cleared": "WAVE CLEARED",
+  "battle.stage_cleared": "STAGE CLEARED",
+  "result.banked_by_server": "Rewards are banked to your account by the server.",
+  "result.n_hero_frags": "{n} {hero} fragments",
+  "result.level_up_stamina": "Level up! +{n} stamina",
+  "result.xp_heroes": "+{xp} XP · heroes +{hxp} XP",
+  "result.stage_first_clear": "Stage cleared for the first time!",
+  "result.stage_farmed": "Stage farmed.",
+  "result.trophies": "+{n} trophies",
+  "result.battle_won": "BATTLE WON",
+  "result.battle_lost": "BATTLE LOST",
+  "result.reenact_vs": "Re-enactment of your battle vs {name}.",
+  "result.the_enemy": "the enemy",
+  "result.replay_no_rewards": "A replay of the recorded fight — no rewards are given.",
+  "result.not_counted": "NOT COUNTED",
+  "result.arena_win": "ARENA WIN",
+  "result.arena_loss": "ARENA LOSS",
+  "result.rank_move": "Rank {a} → {b} ({d})",
+  "result.rank_same": "Rank unchanged — #{n}",
+  "result.took_spot": "Took {name}'s spot",
+  "result.beat": "Beat {name}",
+  "result.lost_to": "Lost to {name}.",
+  "result.floor_cleared": "FLOOR {n} CLEARED",
+  "result.vault_holds": "THE VAULT HOLDS",
+  "result.frag_name": "{name} Fragment",
+  "result.place_floor": "{place} — floor {n}",
+  "result.hero_xp_all": "+{n} hero XP to every hero on the line",
+  "result.first_clear_bonus": "FIRST-CLEAR BONUS",
+  "result.boss_floor_twice": "Boss floor — package and {dust} paid twice, once only.",
+  "result.victory_saved_disk": "Victory saved - it will be sent when you reconnect.",
+  "result.victory_saved_session": "Victory saved for this session - keep the game open and it will be sent when you reconnect.",
+  "result.floor_not_confirmed": "The server did not confirm this floor.",
+  "result.victory_recorded": "Victory recorded.",
+  "result.squad_fell": "Your squad fell.",
+  "result.mats_by_server": "(materials awarded by the server)",
+  "result.mats_left": "{n} material drops left today",
+  "result.mats_capped": "Material drops are limited to {n} per day — none this run.",
+  "result.dungeon_cleared": "DUNGEON CLEARED",
+  "result.defeat": "DEFEAT",
+  "result.victory": "VICTORY",
+  "result.hero_xp": "+{n} hero XP",
+  "result.equipment_pieces": "equipment pieces",
+  "result.level_up_to": "Level up! → {n}",
+  "result.check_not_confirmed": "The server's check did not confirm this win - nothing was paid.",
+  "result.squad_fell_dungeon": "Your squad fell in the dungeon.",
+  "result.hint_gear": "Craft & equip gear on Heroes → hero → Equipment tab.",
+  "result.elite_cleared": "ELITE CLEARED",
+  "result.guard_held": "The Guard held - the server scored this run as a loss, so nothing was paid.",
+  "result.squad_fell_attempt": "Your squad fell. The attempt was still used.",
+  "result.hint_frags": "Fragments summon a hero, then raise its stars (Heroes → hero → Star Up).",
+  "result.city_won": "CITY SKIRMISH WON",
+  "result.defence_held": "DEFENCE HELD",
+  "result.server_verified": "SERVER-VERIFIED RESULT",
+  "result.loot_cap": "(capped at {a} per attack · {b}/day)",
+  "result.loot_cap_reached": "Daily loot cap reached — rank and reports still count.",
+  "result.city_attacks_left": "{n} city attacks left today",
+  "result.rival_city": "Rival city",
+  "result.they": "They",
+  "result.held_wall": "{name} held their wall.",
+  "result.boss_felled": "BOSS FELLED",
+  "result.damage_dealt": "DAMAGE DEALT",
+  "result.no_damage": "NO DAMAGE",
+  "result.raid_boss": "RAID BOSS",
+  "result.tier_caps": "TIER {n}",
+  "result.damage_n": "{n} damage",
+  "result.killing_blow": "Killing blow — Tier {n} down!",
+  "result.guild_coins": "{n} guild coins",
+  "result.raid_boss_hp": "Boss at {hp} / {max} HP · {n} assaults left today",
+  "result.run_not_counted": "This run was not counted.",
+  "result.no_realm": "Could not reach the realm.",
+  "result.well_cleared": "THE WELL IS CLEARED",
+  "result.boss_defeated": "BOSS DEFEATED",
+  "result.gold_n": "{n} gold",
+  "result.stage_cleared_n": "STAGE {n} CLEARED",
+  "result.prov_daily_capped": "Stage cleared — today's two plays were already used, so it pays nothing today.",
+  "result.replay_incident": "(Your result stands — the server logged a replay difference for review.)",
+  "result.fight_not_counted": "This fight was not counted — nothing was spent.",
+  "result.prov_fell": "Your squad fell to {place} Stage {n}. A loss costs nothing — your plays are untouched.",
+  "result.portal_n": "Portal {n}",
+  "result.daily_limit": "Daily limit reached for this stage (3 rewarded runs/day) — no rewards this run.",
+  "result.first_clear": "First clear!",
+  "result.unv_won_save": "You won this one — but the server could not save it, so it was not counted.",
+  "result.unv_won_lost": "You won this one — but the connection was lost before the server answered, so it is not counted here.",
+  "result.unv_won_verify": "You won this one — but the server could not verify it, so nothing was recorded and your stamina is back.",
+  "result.unv_won_confirm": "You won this one — but the server did not confirm it, so it is not counted here.",
+  "result.unv_fought_save": "You fought this one — but the server could not save it, so it was not counted.",
+  "result.unv_fought_lost": "You fought this one — but the connection was lost before the server answered, so it is not counted here.",
+  "result.unv_fought_verify": "You fought this one — but the server could not verify it, so nothing was recorded and your stamina is back.",
+  "result.unv_fought_confirm": "You fought this one — but the server did not confirm it, so it is not counted here.",
+  "result.game_updated": "the game updated during this fight",
+  "result.raid_won": "RAID WON"
+ },
+ "edits": [
+  {
+   "line": 9018,
+   "find": "'◆ BONUS '+id+' — THREE ROADS'",
+   "replace": "'◆ '+ewT('gauntlet.three_roads',{id})"
+  },
+  {
+   "line": 9055,
+   "find": "'◆ '+L.name+' — HOME'",
+   "replace": "'◆ '+ewT('gauntlet.road_home',{road:(ewT(['gauntlet.road_top','gauntlet.road_mid','gauntlet.road_bottom'][L.i]||'gauntlet.road_top')||L.name)})"
+  },
+  {
+   "line": 9060,
+   "find": "'◆ '+L.name+' — FALLEN'",
+   "replace": "'◆ '+ewT('gauntlet.road_fallen',{road:(ewT(['gauntlet.road_top','gauntlet.road_mid','gauntlet.road_bottom'][L.i]||'gauntlet.road_top')||L.name)})"
+  },
+  {
+   "line": 9194,
+   "find": "'◆ '+F.name+' fell - its monsters march on the other roads'",
+   "replace": "'◆ '+ewT('gauntlet.road_fell_march',{road:(ewT(['gauntlet.road_top','gauntlet.road_mid','gauntlet.road_bottom'][F.i]||'gauntlet.road_top')||F.name)})"
+  },
+  {
+   "line": 9330,
+   "find": "'connection lost before the server answered'",
+   "replace": "ewT('gauntlet.reason_lost')"
+  },
+  {
+   "line": 9331,
+   "find": "'◆ Result not confirmed (' + reason + ') — retrying…'",
+   "replace": "'◆ '+ewT('gauntlet.not_confirmed_retrying',{reason})"
+  },
+  {
+   "line": 9355,
+   "find": "('This result is not confirmed - ' + resultNotCountedText(data))",
+   "replace": "ewT('gauntlet.not_confirmed',{reason:resultNotCountedText(data)})"
+  },
+  {
+   "line": 9355,
+   "find": "+ ' Tap RETRY RESULT.'",
+   "replace": "+ ' ' + ewT('gauntlet.tap_retry')"
+  },
+  {
+   "line": 9363,
+   "find": "'Two roads must come home - a second fallen road ends the run.'",
+   "replace": "ewT('gauntlet.two_roads_home')"
+  },
+  {
+   "line": 9368,
+   "find": "'◆ BONUS '+stageId+' CLEARED'+starStr",
+   "replace": "'◆ '+ewT('bonusrun.cleared',{id:stageId})+starStr"
+  },
+  {
+   "line": 9368,
+   "find": "'◆ BONUS '+stageId+' — RUN LOST'",
+   "replace": "'◆ '+ewT('bonusrun.run_lost',{id:stageId})"
+  },
+  {
+   "line": 9395,
+   "find": "'↩ Retreat from run'",
+   "replace": "'↩ '+ewT('gauntlet.retreat_run')"
+  },
+  {
+   "line": 9396,
+   "find": "uiConfirm('Retreat from this run?', ['Any road still fighting counts as lost.'], 'Retreat', true)",
+   "replace": "uiConfirm(ewT('gauntlet.retreat_q'), [ewT('gauntlet.retreat_body')], ewT('gauntlet.retreat'), true)"
+  },
+  {
+   "line": 9406,
+   "find": "'↻ RETRY RESULT'",
+   "replace": "'↻ '+ewT('gauntlet.retry_result')"
+  },
+  {
+   "line": 9417,
+   "find": "'◆ Retrying your result…'",
+   "replace": "'◆ '+ewT('gauntlet.retrying')"
+  },
+  {
+   "line": 9421,
+   "find": "uiConfirm('Retreat from this run?', ['Any road still fighting counts as lost.'], 'Retreat', true)",
+   "replace": "uiConfirm(ewT('gauntlet.retreat_q'), [ewT('gauntlet.retreat_body')], ewT('gauntlet.retreat'), true)"
+  },
+  {
+   "line": 9426,
+   "find": "'↻ RETRY RESULT'",
+   "replace": "'↻ '+ewT('gauntlet.retry_result')"
+  },
+  {
+   "line": 9561,
+   "find": "'Follow the glowing heroes to place your squad on all three roads. The first firebreak will teach boons and moving lanes.'",
+   "replace": "ewT('gauntlet.tut_follow')"
+  },
+  {
+   "line": 9565,
+   "find": "'Place '+((HERO_TYPES[step.key]||{}).name||step.key)+' on the '+(['','Top','Middle','Bottom'][step.lane])+' Road. Tap the glowing hero.'",
+   "replace": "ewT('gauntlet.tut_place',{hero:((HERO_TYPES[step.key]||{}).name||step.key),road:ewT(['','gauntlet.road_top','gauntlet.road_mid','gauntlet.road_bottom'][step.lane]||'gauntlet.road_top')})"
+  },
+  {
+   "line": 9565,
+   "find": "'All roads are placed. Start the teaching run.'",
+   "replace": "ewT('gauntlet.tut_all_placed')"
+  },
+  {
+   "line": 9660,
+   "find": "'Move the glowing Top Road hero to Middle before starting Wave 2.'",
+   "replace": "ewT('gauntlet.tut_move_mid')"
+  },
+  {
+   "line": 9673,
+   "find": "'Bonus stage result'",
+   "replace": "ewT('bonusrun.result_aria')"
+  },
+  {
+   "line": 9678,
+   "find": "'BONUS '+stage+(won?' CLEARED':' — RUN LOST')",
+   "replace": "(won?ewT('bonusrun.cleared',{id:stage}):ewT('bonusrun.run_lost',{id:stage}))"
+  },
+  {
+   "line": 9689,
+   "find": "'Stage clear confirmed.'",
+   "replace": "ewT('bonusrun.clear_confirmed')"
+  },
+  {
+   "line": 9689,
+   "find": "'Two roads must survive to win.'",
+   "replace": "ewT('bonusrun.two_roads_survive')"
+  },
+  {
+   "line": 9695,
+   "find": "'First clear: '+_n+' glyph fragment reward'+(_n===1?'':'s')+'. '+_ph+' fragment'+(_ph===1?'':'s')+' per hour now available.'",
+   "replace": "ewT('bonusrun.first_clear_frags',{n:_n,ph:_ph})"
+  },
+  {
+   "line": 9700,
+   "find": "'CONTINUE'",
+   "replace": "ewT('bonusrun.continue')"
+  },
+  {
+   "line": 9703,
+   "find": "'CLAIM HOURLY FRAGMENTS'",
+   "replace": "ewT('bonusrun.claim_hourly')"
+  },
+  {
+   "line": 9725,
+   "find": "\" Graphics restarting — this Emberdraft match can't be resumed.\"",
+   "replace": "' '+ewT('battle.gfx_restart_mode',{mode:'Emberdraft'})"
+  },
+  {
+   "line": 9725,
+   "find": "' Graphics restarting — your battle is saved.'",
+   "replace": "' '+ewT('battle.gfx_restart')"
+  },
+  {
+   "line": 15242,
+   "find": "mineName:'You'",
+   "replace": "mineName:ewT('battleload.you')"
+  },
+  {
+   "line": 15242,
+   "find": "CUR.oppName||'Rival'",
+   "replace": "CUR.oppName||ewT('battleload.rival')"
+  },
+  {
+   "line": 15245,
+   "find": "ACC.name)||'You'",
+   "replace": "ACC.name)||ewT('battleload.you')"
+  },
+  {
+   "line": 15245,
+   "find": "foeName:'Stage '+((CUR.prov&&CUR.prov.stage)|0)",
+   "replace": "foeName:ewT('battleload.stage',{n:((CUR.prov&&CUR.prov.stage)|0)})"
+  },
+  {
+   "line": 15247,
+   "find": "ACC.name)||'You'",
+   "replace": "ACC.name)||ewT('battleload.you')"
+  },
+  {
+   "line": 15247,
+   "find": "CUR.oppName)||'Enemy'",
+   "replace": "CUR.oppName)||ewT('battleload.enemy')"
+  },
+  {
+   "line": 15294,
+   "find": "('THE STARLESS WELL — MAP '+((CUR.well&&CUR.well.map)|0)+'\\nWAVE 1')",
+   "replace": "(ewT('battle.place_map',{place:'THE STARLESS WELL',n:((CUR.well&&CUR.well.map)|0)})+'\\n'+ewT('battle.wave_n',{n:1}))"
+  },
+  {
+   "line": 15294,
+   "find": "+' — STAGE '+((CUR.prov&&CUR.prov.stage)|0)+'\\nWAVE 1'",
+   "replace": "+' — '+ewT('battle.stage_caps',{n:((CUR.prov&&CUR.prov.stage)|0)})+'\\n'+ewT('battle.wave_n',{n:1})"
+  },
+  {
+   "line": 15299,
+   "find": "' THE VAULT — FLOOR '+CUR.floor+'\\nWAVE '+(waveIdx+1)",
+   "replace": "' '+ewT('battle.place_floor',{place:'THE VAULT',n:CUR.floor})+'\\n'+ewT('battle.wave_n',{n:waveIdx+1})"
+  },
+  {
+   "line": 15306,
+   "find": "'GUILD RAID\\n'+((CUR.raid&&CUR.raid.name)||'The boss')",
+   "replace": "ewT('battle.guild_raid')+'\\n'+((CUR.raid&&CUR.raid.name)||ewT('battle.the_boss'))"
+  },
+  {
+   "line": 15311,
+   "find": "'RAID!\\nDefeat the rival squad'",
+   "replace": "ewT('battle.raid_bang')+'\\n'+ewT('battle.raid_defeat_squad')"
+  },
+  {
+   "line": 15346,
+   "find": "txt:((HERO_TYPES[key]||{}).name||key)+' steps in!'",
+   "replace": "txt:ewT('battle.steps_in',{hero:((HERO_TYPES[key]||{}).name||key)})"
+  },
+  {
+   "line": 15356,
+   "find": "${(HERO_TYPES[dead.key]||{}).name||dead.key} has fallen!",
+   "replace": "${ewT('vaultpick.has_fallen',{hero:(HERO_TYPES[dead.key]||{}).name||dead.key})}"
+  },
+  {
+   "line": 15357,
+   "find": "Choose a backup to step in (${CUR.backups.length} left):",
+   "replace": "${ewT('vaultpick.choose_backup',{n:CUR.backups.length})}"
+  },
+  {
+   "line": 15359,
+   "find": ">Fight on without a replacement<",
+   "replace": ">${ewT('vaultpick.fight_on')}<"
+  },
+  {
+   "line": 15376,
+   "find": "txt:((HERO_TYPES[k]||{}).name||k)+' steps in!'",
+   "replace": "txt:ewT('battle.steps_in',{hero:((HERO_TYPES[k]||{}).name||k)})"
+  },
+  {
+   "line": 15414,
+   "find": "return CHAPTER_BOSS_CUE[chapterOf(CUR.node)-1]||null;",
+   "replace": "{ const _ch=chapterOf(CUR.node), _c=CHAPTER_BOSS_CUE[_ch-1]; return _c?(ewT(('bosscue.ch'+_ch),{boss:['Brukk','Miregor','Wintercrag','Nerissa','Sable Vesper','Vharok','Maelvara','Orryx','The Admiral','Barrowmaw','Asterion','Nymira','Kharos','Thorneveil','Magmourn','Irix'][_ch-1]})||_c):null; }"
+  },
+  {
+   "line": 15417,
+   "find": "return (u&&BOSS_CUES[u.key])||null;",
+   "replace": "return (u&&BOSS_CUES[u.key])?(ewT(('bosscue.'+u.key))||BOSS_CUES[u.key]):null;"
+  },
+  {
+   "line": 15420,
+   "find": "'The Guardian'",
+   "replace": "ewT('battle.the_guardian')"
+  },
+  {
+   "line": 15421,
+   "find": "'A stage guardian — bring your ultimates ready'",
+   "replace": "ewT('bosscue.default')"
+  },
+  {
+   "line": 15422,
+   "find": "' BOSS'); return;",
+   "replace": "' '+ewT('battle.boss')); return;"
+  },
+  {
+   "line": 15423,
+   "find": "' BOSS INCOMING</div>'",
+   "replace": "' '+ewT('battle.boss_incoming')+'</div>'"
+  },
+  {
+   "line": 15489,
+   "find": "bannerMsg('WAVE CLEARED')",
+   "replace": "bannerMsg(ewT('battle.wave_cleared'))"
+  },
+  {
+   "line": 15506,
+   "find": "bannerMsg('STAGE CLEARED')",
+   "replace": "bannerMsg(ewT('battle.stage_cleared'))"
+  },
+  {
+   "line": 15571,
+   "find": "'Rewards are banked to your account by the server.'",
+   "replace": "ewT('result.banked_by_server')"
+  },
+  {
+   "line": 15592,
+   "find": "+${amt} ${_pi} ${fh.name} fragment${amt===1?'':'s'}",
+   "replace": "${ewT('result.n_hero_frags',{n:'+'+amt,hero:_pi+' '+fh.name})}"
+  },
+  {
+   "line": 15593,
+   "find": "Level up! +${30*lvlGain} stamina",
+   "replace": "${ewT('result.level_up_stamina',{n:30*lvlGain})}"
+  },
+  {
+   "line": 15594,
+   "find": "+${xp} XP · heroes +${hxp} XP",
+   "replace": "${ewT('result.xp_heroes',{xp,hxp})}"
+  },
+  {
+   "line": 15594,
+   "find": "'Stage cleared for the first time!':'Stage farmed.'",
+   "replace": "ewT('result.stage_first_clear'):ewT('result.stage_farmed')"
+  },
+  {
+   "line": 15598,
+   "find": "+12 trophies",
+   "replace": "${ewT('result.trophies',{n:12})}"
+  },
+  {
+   "line": 15644,
+   "find": "rw?'BATTLE WON':'BATTLE LOST'",
+   "replace": "rw?ewT('result.battle_won'):ewT('result.battle_lost')"
+  },
+  {
+   "line": 15645,
+   "find": "'Re-enactment of your battle vs <b>'+escapeHTML(CUR.oppName||'the enemy')+'</b>.'",
+   "replace": "ewT('result.reenact_vs',{name:'<b>'+escapeHTML(CUR.oppName||ewT('result.the_enemy'))+'</b>'})"
+  },
+  {
+   "line": 15646,
+   "find": "'A replay of the recorded fight — no rewards are given.'",
+   "replace": "ewT('result.replay_no_rewards')"
+  },
+  {
+   "line": 15675,
+   "find": "'NOT COUNTED'",
+   "replace": "ewT('result.not_counted')"
+  },
+  {
+   "line": 15676,
+   "find": "?d.error:'Connection lost.'",
+   "replace": "?langMsg(d.error):ewT('net.connection_lost')"
+  },
+  {
+   "line": 15698,
+   "find": "won?'ARENA WIN':'ARENA LOSS'",
+   "replace": "won?ewT('result.arena_win'):ewT('result.arena_loss')"
+  },
+  {
+   "line": 15701,
+   "find": "Rank ${oldRank} → <b style=\"color:#ffd45e\">${G.arenaRank}</b> (${oldRank-G.arenaRank>0?'+':''}${oldRank-G.arenaRank})",
+   "replace": "${ewT('result.rank_move',{a:oldRank,b:'<b style=\"color:#ffd45e\">'+G.arenaRank+'</b>',d:(oldRank-G.arenaRank>0?'+':'')+(oldRank-G.arenaRank)})}"
+  },
+  {
+   "line": 15701,
+   "find": "Rank unchanged — #${G.arenaRank}",
+   "replace": "${ewT('result.rank_same',{n:G.arenaRank})}"
+  },
+  {
+   "line": 15704,
+   "find": "Took <b>${escapeHTML(String(CUR.oppName||''))}</b>'s spot",
+   "replace": "${ewT('result.took_spot',{name:'<b>'+escapeHTML(String(CUR.oppName||''))+'</b>'})}"
+  },
+  {
+   "line": 15705,
+   "find": "Beat <b>${escapeHTML(String(CUR.oppName||''))}</b>",
+   "replace": "${ewT('result.beat',{name:'<b>'+escapeHTML(String(CUR.oppName||''))+'</b>'})}"
+  },
+  {
+   "line": 15706,
+   "find": "Lost to <b>${escapeHTML(String(CUR.oppName||''))}</b>.",
+   "replace": "${ewT('result.lost_to',{name:'<b>'+escapeHTML(String(CUR.oppName||''))+'</b>'})}"
+  },
+  {
+   "line": 15723,
+   "find": "_vRefused?'NOT COUNTED':(won?'FLOOR '+CUR.floor+' CLEARED':'THE VAULT HOLDS')",
+   "replace": "_vRefused?ewT('result.not_counted'):(won?ewT('result.floor_cleared',{n:CUR.floor}):ewT('result.vault_holds'))"
+  },
+  {
+   "line": 15730,
+   "find": "displayName:k+' Fragment'",
+   "replace": "displayName:ewT('result.frag_name',{name:k})"
+  },
+  {
+   "line": 15733,
+   "find": "'Aether Vault — floor '+CUR.floor",
+   "replace": "ewT('result.place_floor',{place:'Aether Vault',n:CUR.floor})"
+  },
+  {
+   "line": 15734,
+   "find": "' +'+r.reward.heroXp+' hero XP to every hero on the line</div>'",
+   "replace": "' '+ewT('result.hero_xp_all',{n:r.reward.heroXp})+'</div>'"
+  },
+  {
+   "line": 15735,
+   "find": "FIRST-CLEAR BONUS",
+   "replace": "'+ewT('result.first_clear_bonus')+'"
+  },
+  {
+   "line": 15735,
+   "find": "Boss floor — package and Dust paid twice, once only.",
+   "replace": "'+ewT('result.boss_floor_twice',{dust:ewT('gear.dust')})+'"
+  },
+  {
+   "line": 15737,
+   "find": "_disk?'Victory saved - it will be sent when you reconnect.':'Victory saved for this session - keep the game open and it will be sent when you reconnect.'",
+   "replace": "_disk?ewT('result.victory_saved_disk'):ewT('result.victory_saved_session')"
+  },
+  {
+   "line": 15738,
+   "find": "The server did not confirm this floor.",
+   "replace": "'+ewT('result.floor_not_confirmed')+'"
+  },
+  {
+   "line": 15738,
+   "find": "'Victory recorded.'",
+   "replace": "ewT('result.victory_recorded')"
+  },
+  {
+   "line": 15739,
+   "find": "msg='Your squad fell.';",
+   "replace": "msg=ewT('result.squad_fell');"
+  },
+  {
+   "line": 15761,
+   "find": "'(materials awarded by the server)'",
+   "replace": "ewT('result.mats_by_server')"
+  },
+  {
+   "line": 15774,
+   "find": "('+r.matsLeft+' material drops left today)",
+   "replace": "('+ewT('result.mats_left',{n:r.matsLeft})+')"
+  },
+  {
+   "line": 15775,
+   "find": "Material drops are limited to '+((r.matsCap|0)||10)+' per day — none this run.",
+   "replace": "'+ewT('result.mats_capped',{n:((r.matsCap|0)||10)})+'"
+  },
+  {
+   "line": 15776,
+   "find": "sWon?'DUNGEON CLEARED':(won?'NOT COUNTED':'DEFEAT')",
+   "replace": "sWon?ewT('result.dungeon_cleared'):(won?ewT('result.not_counted'):ewT('result.defeat'))"
+  },
+  {
+   "line": 15777,
+   "find": "+${hxp} hero XP",
+   "replace": "${ewT('result.hero_xp',{n:hxp})}"
+  },
+  {
+   "line": 15777,
+   "find": "${dropLog} equipment pieces",
+   "replace": "${dropLog} ${ewT('result.equipment_pieces')}"
+  },
+  {
+   "line": 15777,
+   "find": "Level up! → ${playerLevel()}",
+   "replace": "${ewT('result.level_up_to',{n:playerLevel()})}"
+  },
+  {
+   "line": 15778,
+   "find": "'The server\\'s check did not confirm this win - nothing was paid.'",
+   "replace": "ewT('result.check_not_confirmed')"
+  },
+  {
+   "line": 15778,
+   "find": "'Your squad fell in the dungeon.'",
+   "replace": "ewT('result.squad_fell_dungeon')"
+  },
+  {
+   "line": 15779,
+   "find": "'Craft & equip gear on Heroes → hero → Equipment tab.'",
+   "replace": "ewT('result.hint_gear')"
+  },
+  {
+   "line": 15790,
+   "find": "sWon?'ELITE CLEARED':(won?'NOT COUNTED':'DEFEAT')",
+   "replace": "sWon?ewT('result.elite_cleared'):(won?ewT('result.not_counted'):ewT('result.defeat'))"
+  },
+  {
+   "line": 15791,
+   "find": "+${_srv?(_srv.n|0):frags} ${escapeHTML((HERO_TYPES[_srv?_srv.hk:key]||{}).name||(_srv?_srv.hk:key))} fragments",
+   "replace": "${ewT('result.n_hero_frags',{n:'+'+(_srv?(_srv.n|0):frags),hero:escapeHTML((HERO_TYPES[_srv?_srv.hk:key]||{}).name||(_srv?_srv.hk:key))})}"
+  },
+  {
+   "line": 15792,
+   "find": "'The Guard held - the server scored this run as a loss, so nothing was paid.'",
+   "replace": "ewT('result.guard_held')"
+  },
+  {
+   "line": 15792,
+   "find": "'Your squad fell. The attempt was still used.'",
+   "replace": "ewT('result.squad_fell_attempt')"
+  },
+  {
+   "line": 15793,
+   "find": "'Fragments summon a hero, then raise its stars (Heroes → hero → Star Up).'",
+   "replace": "ewT('result.hint_frags')"
+  },
+  {
+   "line": 15808,
+   "find": "sWon?'CITY SKIRMISH WON':'DEFENCE HELD'",
+   "replace": "sWon?ewT('result.city_won'):ewT('result.defence_held')"
+  },
+  {
+   "line": 15809,
+   "find": "SERVER-VERIFIED RESULT",
+   "replace": "'+ewT('result.server_verified')+'"
+  },
+  {
+   "line": 15810,
+   "find": "(capped at 400 per attack · 8,000/day)",
+   "replace": "${ewT('result.loot_cap',{a:400,b:'8,000'})}"
+  },
+  {
+   "line": 15811,
+   "find": "Daily loot cap reached — rank and reports still count.",
+   "replace": "${ewT('result.loot_cap_reached')}"
+  },
+  {
+   "line": 15813,
+   "find": "${V.attacksLeft} city attacks left today",
+   "replace": "${ewT('result.city_attacks_left',{n:V.attacksLeft})}"
+  },
+  {
+   "line": 15814,
+   "find": "CUR.oppName||'Rival city'",
+   "replace": "CUR.oppName||ewT('result.rival_city')"
+  },
+  {
+   "line": 15814,
+   "find": "${escapeHTML(CUR.oppName||'They')} held their wall.",
+   "replace": "${ewT('result.held_wall',{name:escapeHTML(CUR.oppName||ewT('result.they'))})}"
+  },
+  {
+   "line": 15827,
+   "find": "!ok?'NOT COUNTED':(fell?'BOSS FELLED':(dealt>0?'DAMAGE DEALT':'NO DAMAGE'))",
+   "replace": "!ok?ewT('result.not_counted'):(fell?ewT('result.boss_felled'):(dealt>0?ewT('result.damage_dealt'):ewT('result.no_damage')))"
+  },
+  {
+   "line": 15830,
+   "find": "${escapeHTML(RB.name||'RAID BOSS')} · TIER ${RB.tier|0}",
+   "replace": "${escapeHTML(RB.name||ewT('result.raid_boss'))} · ${ewT('result.tier_caps',{n:RB.tier|0})}"
+  },
+  {
+   "line": 15831,
+   "find": "${dealt.toLocaleString()} damage",
+   "replace": "${ewT('result.damage_n',{n:dealt.toLocaleString()})}"
+  },
+  {
+   "line": 15832,
+   "find": "Killing blow — Tier ${(r.reward&&r.reward.tier)|0} down!",
+   "replace": "${ewT('result.killing_blow',{n:(r.reward&&r.reward.tier)|0})}"
+  },
+  {
+   "line": 15834,
+   "find": "${((r.reward&&r.reward.guildCoins)|0)} guild coins",
+   "replace": "${ewT('result.guild_coins',{n:((r.reward&&r.reward.guildCoins)|0)})}"
+  },
+  {
+   "line": 15835,
+   "find": "Boss at ${(r.raid.hp|0).toLocaleString()} / ${(r.raid.max|0).toLocaleString()} HP · ${(r.raid.attemptsLeft|0)} assaults left today",
+   "replace": "${ewT('result.raid_boss_hp',{hp:(r.raid.hp|0).toLocaleString(),max:(r.raid.max|0).toLocaleString(),n:(r.raid.attemptsLeft|0)})}"
+  },
+  {
+   "line": 15836,
+   "find": "This run was not counted.",
+   "replace": "${ewT('result.run_not_counted')}"
+  },
+  {
+   "line": 15836,
+   "find": "escapeHTML(String((r&&r.error)||'Could not reach the realm.'))",
+   "replace": "escapeHTML(String((r&&r.error&&langMsg(r.error))||ewT('result.no_realm')))"
+  },
+  {
+   "line": 15847,
+   "find": "sWon?(r.done?'THE WELL IS CLEARED':(Wl.type==='boss'?'BOSS DEFEATED':'VICTORY')):(_unv?'NOT COUNTED':'DEFEAT')",
+   "replace": "sWon?(r.done?ewT('result.well_cleared'):(Wl.type==='boss'?ewT('result.boss_defeated'):ewT('result.victory'))):(_unv?ewT('result.not_counted'):ewT('result.defeat'))"
+  },
+  {
+   "line": 15850,
+   "find": "+${(rw.gold|0).toLocaleString()} gold",
+   "replace": "${ewT('result.gold_n',{n:'+'+(rw.gold|0).toLocaleString()})}"
+  },
+  {
+   "line": 15851,
+   "find": "escapeHTML(String((r&&r.error)||'Could not reach the realm.'))",
+   "replace": "escapeHTML(String((r&&r.error&&langMsg(r.error))||ewT('result.no_realm')))"
+  },
+  {
+   "line": 15866,
+   "find": "sWon?('STAGE '+(P.stage|0)+' CLEARED'):(_unv?'NOT COUNTED':'DEFEAT')",
+   "replace": "sWon?ewT('result.stage_cleared_n',{n:P.stage|0}):(_unv?ewT('result.not_counted'):ewT('result.defeat'))"
+  },
+  {
+   "line": 15869,
+   "find": "STAGE ${P.stage|0} CLEARED",
+   "replace": "${ewT('result.stage_cleared_n',{n:P.stage|0})}"
+  },
+  {
+   "line": 15871,
+   "find": "Stage cleared — today\\'s two plays were already used, so it pays nothing today.",
+   "replace": "'+ewT('result.prov_daily_capped')+'"
+  },
+  {
+   "line": 15872,
+   "find": "(Your result stands — the server logged a replay difference for review.)",
+   "replace": "'+ewT('result.replay_incident')+'"
+  },
+  {
+   "line": 15873,
+   "find": "'This fight was not counted — nothing was spent.'",
+   "replace": "ewT('result.fight_not_counted')"
+  },
+  {
+   "line": 15874,
+   "find": "Your squad fell to ${escapeHTML(nm)} Stage ${P.stage|0}. A loss costs nothing — your plays are untouched.",
+   "replace": "${ewT('result.prov_fell',{place:escapeHTML(nm),n:P.stage|0})}"
+  },
+  {
+   "line": 15921,
+   "find": "sWon?'VICTORY':(_unvAny?'NOT COUNTED':'DEFEAT')",
+   "replace": "sWon?ewT('result.victory'):(_unvAny?ewT('result.not_counted'):ewT('result.defeat'))"
+  },
+  {
+   "line": 15927,
+   "find": "'Portal '+stageCode(CUR.node)",
+   "replace": "ewT('result.portal_n',{n:stageCode(CUR.node)})"
+  },
+  {
+   "line": 15929,
+   "find": "+${r.reward.eliteFrag.qty|0} ${escapeHTML((HERO_TYPES[r.reward.eliteFrag.heroKey]||{}).name||r.reward.eliteFrag.heroKey)} fragment${(r.reward.eliteFrag.qty|0)===1?'':'s'}",
+   "replace": "${ewT('result.n_hero_frags',{n:'+'+(r.reward.eliteFrag.qty|0),hero:escapeHTML((HERO_TYPES[r.reward.eliteFrag.heroKey]||{}).name||r.reward.eliteFrag.heroKey)})}"
+  },
+  {
+   "line": 15930,
+   "find": "Daily limit reached for this stage (3 rewarded runs/day) — no rewards this run.",
+   "replace": "'+ewT('result.daily_limit')+'"
+  },
+  {
+   "line": 15931,
+   "find": "First clear!",
+   "replace": "'+ewT('result.first_clear')+'"
+  },
+  {
+   "line": 15932,
+   "find": "You '+(/\"won\":true/.test(window._p2lastDigest||'')?'won':'fought')+' this one — '+((!r||r.error==='offline'||r.storageFailed)?((r&&r.storageFailed)?'but the server could not save it, so it was not counted.':'but the connection was lost before the server answered, so it is not counted here.'):(_unv?'but the server could not verify it, so nothing was recorded and your stamina is back.':'but the server did not confirm it, so it is not counted here.'))+'",
+   "replace": "'+ewT(('result.unv_'+(/\"won\":true/.test(window._p2lastDigest||'')?'won':'fought')+'_'+((!r||r.error==='offline'||r.storageFailed)?((r&&r.storageFailed)?'save':'lost'):(_unv?'verify':'confirm'))))+'"
+  },
+  {
+   "line": 15932,
+   "find": "escapeHTML((r&&r.error&&r.error!=='offline')?r.error:'')",
+   "replace": "escapeHTML((r&&r.error&&r.error!=='offline')?langMsg(r.error):'')"
+  },
+  {
+   "line": 15932,
+   "find": "' · the game updated during this fight'",
+   "replace": "' · '+ewT('result.game_updated')"
+  },
+  {
+   "line": 15933,
+   "find": "escapeHTML(r.error)",
+   "replace": "escapeHTML(langMsg(r.error))"
+  },
+  {
+   "line": 15933,
+   "find": "'Your squad fell.'",
+   "replace": "ewT('result.squad_fell')"
+  },
+  {
+   "line": 15939,
+   "find": "CUR.mode==='pvp'?'RAID WON':'VICTORY'",
+   "replace": "CUR.mode==='pvp'?ewT('result.raid_won'):ewT('result.victory')"
+  },
+  {
+   "line": 15943,
+   "find": "textContent='DEFEAT'",
+   "replace": "textContent=ewT('result.defeat')"
+  },
+  {
+   "line": 15944,
+   "find": "innerHTML='Your squad fell.'",
+   "replace": "innerHTML=ewT('result.squad_fell')"
+  }
+ ],
+ "notes": [
+  "Range 9000-16999. Left English on purpose: ~150 battle floatTexts callouts (STUN, SILENCED, FEAR!, WAX, OVERDUE x3, spell names...) - ftIsStatus (base 6793) and FT_DEBUFF_RE (base 6799) classify a float by its English text (all-caps = status column, debuff words = under the feet), so translating them changes the layout; they need a status/debuff flag on the float first (another range). Also left: music track titles + Pixabay credits (11091-11133), role/damageProfile compares (Tank/Mage/Magic...), summon keys, console/Error text (window evidence rejected, FX MISS), item names Superior XP Potion / Hero XP Potion (15850, 15928), PROV_META names, RESULT_LOST_MSG + resultNotCountedText (base 24197/24221, outside range), the God Mode ' (DEV)' tag (15299, dev only).",
+  "Road names in Gauntlet banners use new keys gauntlet.road_top/mid/bottom (indexed by lane .i) with GSPLIT_ROAD_NAME (base 7300, outside this range) as the fallback - whoever converts 7300/8439-8441 can reuse those keys.",
+  "Boss cues: CHAPTER_BOSS_CUE / BOSS_CUES arrays are kept as the English fallback; bossCueFor translates at the display site with bosscue.ch1..ch16 (boss name passed as {boss}) and bosscue.<monster key>.",
+  "Server error text on result screens (d.error / r.error) now goes through langMsg() at the display site only.",
+  "tests/test_shop_sweep_1097.js line 63 asserts /CLAIM HOURLY FRAGMENTS/ in the page html - still true only because the build writes the English into the inline EW_LANG_EN.",
+  "tests/test_results_retry_1151.js lines 101-203 (puppeteer) assert English result titles DUNGEON CLEARED / ELITE CLEARED / NOT COUNTED / THE VAULT HOLDS / DEFEAT and Gauntlet banners /BONUS 1-3 CLEARED/, /RUN LOST/, /RETRY RESULT/, /not confirmed/i and reward text /Victory saved/ - they pass in English (t() falls back to English); would fail if the test browser's language were not English.",
+  "tests/test_won_never_defeat_1145.js lines 20-33 (puppeteer) assert the campaign result title NOT COUNTED / VICTORY / DEFEAT - same: English-only runtime check.",
+  "tests/test_display_fixes_22oct.js line 45 asserts the ABSENCE of '+12 trophies · <span class=\"coins\">...+80' - still absent after this spec (the +12 trophies text is now ${ewT('result.trophies',{n:12})})."
+ ]
+}

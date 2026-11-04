@@ -2,12 +2,14 @@
 const assert = require('assert');
 const fs = require('fs');
 const vm = require('vm');
+const path = require('path');
+const _EN=JSON.parse(fs.readFileSync(path.join(__dirname,'..','lang','en.json'),'utf8')), _t=(k,v)=>(_EN[k]==null?k:_EN[k]).replace(/\{(\w+)\}/g,(m,x)=>v&&v[x]!=null?String(v[x]):''), LANG={t:_t,ewT:_t,langMsg:s=>s,langDesc:s=>s,langMeta:s=>s};   // v1271 LANGUAGES step 2: the page's English t()/ewT() from lang/en.json
 const html = fs.readFileSync(require('path').join(__dirname, '..', 'emberweave-heroes.html'), 'utf8');
 const start = html.indexOf('function claimQuest(q)');
 const end = html.indexOf('/* 30 Aug', start);
 assert(start >= 0 && end > start, 'claimQuest source found');
 const calls = { claim: 0, capture: 0, adopt: 0, messages: [] };
-const ctx = { ...require('./helpers/page-icons.js')(html), 
+const ctx = { ...require('./helpers/page-icons.js')(html), ...LANG,
   G: { questClaimed: {} }, ACC: { token: 'test' }, uid8: () => 'req-1',
   api: async () => ({ ok: true, ledger: { gems: 20 } }),
   apiOnce: async () => ({ ok: true, ledger: { gems: 20 } }),   // v989: claimQuest goes through apiOnce (one in flight, one requestId)

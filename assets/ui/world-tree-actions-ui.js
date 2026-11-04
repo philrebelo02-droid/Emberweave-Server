@@ -1,8 +1,9 @@
 (function(root){
   'use strict';
   const IDS=['tree','oasis-nw','oasis-ne','oasis-sw','oasis-se'];
-  const NAMES={tree:'World Tree','oasis-nw':'North-west Oasis','oasis-ne':'North-east Oasis','oasis-sw':'South-west Oasis','oasis-se':'South-east Oasis'};   // v1228: the 4 painted ponds
-  const title=id=>NAMES[id]||'Oasis';
+  const _t=(k,en)=>(typeof t==='function'&&t(k))||en;   /* v1271 LANGUAGES step 2: names through the page's t() */
+  const NAMES={get tree(){return _t('world2.world_tree','World Tree');},get 'oasis-nw'(){return _t('world2.oasis_nw','North-west Oasis');},get 'oasis-ne'(){return _t('world2.oasis_ne','North-east Oasis');},get 'oasis-sw'(){return _t('world2.oasis_sw','South-west Oasis');},get 'oasis-se'(){return _t('world2.oasis_se','South-east Oasis');}};   // v1228: the 4 painted ponds
+  const title=id=>NAMES[id]||_t('world2.oasis','Oasis');
   function create(hooks){
     let overlay=null,identity=null,siteId=null,selected=null,error='',operation=null,inflight=false,checking=false,generation=0;
     const doc=hooks.document;

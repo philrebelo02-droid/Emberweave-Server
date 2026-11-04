@@ -3,6 +3,8 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('nod
 const {createPlayBilling,recordToken,usedToken}=require('../server/play-billing');
 const source=fs.readFileSync(require.resolve('../server.js'),'utf8');
 const html=fs.readFileSync(require.resolve('../emberweave-heroes.html'),'utf8');
+const path=require('node:path');
+const _EN=JSON.parse(fs.readFileSync(path.join(__dirname,'..','lang','en.json'),'utf8')), _t=(k,v)=>(_EN[k]==null?k:_EN[k]).replace(/\{(\w+)\}/g,(m,x)=>v&&v[x]!=null?String(v[x]):''), LANG={t:_t,ewT:_t,langMsg:s=>s,langDesc:s=>s,langMeta:s=>s};   // v1271 LANGUAGES step 2: the page's English t()/ewT() from lang/en.json
 const route=source.slice(source.indexOf("  if((p==='/api/shop/purchase'||p==='/api/shop/buy')"),source.indexOf("  if(p==='/api/shop/plan-claim'"));
 const private_key=crypto.generateKeyPairSync('rsa',{modulusLength:1024}).privateKey.export({format:'pem',type:'pkcs8'});
 let state=0,consumed=0,failConsume=false,quantity=1,failSave=false,receiptExtra={},googleReject=false;
@@ -71,7 +73,7 @@ const buy=(token,user='a',sku='d500')=>run('/api/shop/buy',{method:'POST',input:
   assert(calls.some(c=>c.url.includes('/applications/com.emberweave.heroes/purchases/products/d500/tokens/')));
   const module=html.slice(html.indexOf('const playBilling=(()=>{'),html.indexOf('async function grantGemOffer'));
   let paidCalls=0,ledgerAdopts=0;const sent=[];
-  const client={window:{},shopSrv:()=>({playBilling:true}),ACC:{token:'signed-in'},GEM_OFFERS:[offers.d500],api:async(...args)=>{sent.push(args);return {ok:true,ledger:{gems:600}};},uid8:()=> 'client-request',adoptLedger:()=>ledgerAdopts++,saveG:()=>{},updateHubChrome:()=>{},bannerMsg:()=>{}};
+  const client={...LANG,window:{},shopSrv:()=>({playBilling:true}),ACC:{token:'signed-in'},GEM_OFFERS:[offers.d500],api:async(...args)=>{sent.push(args);return {ok:true,ledger:{gems:600}};},uid8:()=> 'client-request',adoptLedger:()=>ledgerAdopts++,saveG:()=>{},updateHubChrome:()=>{},bannerMsg:()=>{}};
   vm.createContext(client);vm.runInContext(module+';globalThis.billing=playBilling;',client);assert.equal(client.billing.available(),false);await client.billing.buy(offers.d500);assert.equal(sent.length,0);
   client.window.getDigitalGoodsService=async method=>{assert.equal(method,'https://play.google.com/billing');return {};};
   client.PaymentRequest=class {constructor(methods){assert.equal(methods[0].data.sku,'d500');paidCalls++;}async show(){return {details:{purchaseToken:'paid'},complete:async status=>assert.equal(status,'success')};}};

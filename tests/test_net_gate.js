@@ -7,6 +7,7 @@
 const assert=require('assert'),fs=require('fs'),os=require('os'),path=require('path'),net=require('net'),vm=require('vm'),{spawn}=require('child_process');
 const root=path.join(__dirname,'..'), srvFile=process.env.AUD_SERVER||'server.js', page=process.env.AUD_PAGE||path.join(root,'emberweave-heroes.html');
 const control=!!(process.env.AUD_SERVER||process.env.AUD_PAGE);
+const _EN=JSON.parse(fs.readFileSync(path.join(__dirname,'..','lang','en.json'),'utf8')), _t=(k,v)=>(_EN[k]==null?k:_EN[k]).replace(/\{(\w+)\}/g,(m,x)=>v&&v[x]!=null?String(v[x]):''), LANG={t:_t,ewT:_t,langMsg:s=>s,langDesc:s=>s,langMeta:s=>s};   // v1271 LANGUAGES step 2: the page's English t()/ewT() from lang/en.json
 let pass=0, missed=[]; const ok=(c,m)=>{ if(control&&!c){ missed.push(m); return; } assert(c,m); pass++; };
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
 const freePort=()=>new Promise(r=>{const s=net.createServer();s.listen(0,'127.0.0.1',()=>{const p=s.address().port;s.close(()=>r(p));});});
@@ -16,7 +17,7 @@ const freePort=()=>new Promise(r=>{const s=net.createServer();s.listen(0,'127.0.
   if(a<0||b<0){ ok(false,'the page has a net gate'); }
   else {
     const el={style:{display:'none'},dataset:{},innerHTML:'',innerText:'',querySelector:()=>({}),querySelectorAll:()=>[]};
-    const ctx={window:{}, location:{protocol:'https:'}, document:{getElementById:id=>id==='battleLoader'?null:el, createElement:()=>el, body:{appendChild(){}}}, Date, setTimeout:()=>0, clearTimeout(){},
+    const ctx={...LANG, window:{}, location:{protocol:'https:'}, document:{getElementById:id=>id==='battleLoader'?null:el, createElement:()=>el, body:{appendChild(){}}}, Date, setTimeout:()=>0, clearTimeout(){},
       ACC:{token:'t'}, state:'home', show(){}};
     vm.createContext(ctx); vm.runInContext('function online(){ return true; }'+src.slice(a,b)+';this.NG=NETGATE;this.up=netGateUpdate;',ctx);
     ctx.NG.bootAt=Date.now()-10000;

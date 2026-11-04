@@ -1,0 +1,23 @@
+{
+ "keys": {
+  "loreaudio.stop": "Stop the story",
+  "loreaudio.play": "Play the story",
+  "soundbtn.off": "Sound off - turn sound on",
+  "soundbtn.on": "Sound on - mute all sound"
+ },
+ "edits": [
+  {
+   "line": 10844,
+   "find": "on?'Stop the story':'Play the story'",
+   "replace": "on?ewT('loreaudio.stop'):ewT('loreaudio.play')"
+  },
+  {
+   "line": 10867,
+   "find": "on?'Sound off - turn sound on':'Sound on - mute all sound'",
+   "replace": "on?ewT('soundbtn.off'):ewT('soundbtn.on')"
+  }
+ ],
+ "notes": [
+  "tests/test_hero_voices_1124.js line 75 asserts the literal source btn.setAttribute('aria-label',on?'Stop the story':'Play the story') in loreBtnSync (base 10844) - this spec changes it to ewT('loreaudio.stop')/ewT('loreaudio.play'), so that regex needs updating"
+ ]
+}

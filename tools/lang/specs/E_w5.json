@@ -1,0 +1,510 @@
+{
+ "keys": {
+  "quest2.arena_title": "First Blood",
+  "quest2.arena_desc": "Attack an opponent in the Arena.",
+  "quest2.name_title": "Make a Name",
+  "quest2.name_desc": "Set your commander name in your profile.",
+  "quest2.collect_title": "Gather Your Champions",
+  "quest2.collect_desc": "Collect {n} heroes in total.",
+  "quest2.rand_frags": "×{n} random hero fragments",
+  "quest2.plus_hero_frags": "+{n} hero fragments",
+  "quest2.vex_title": "Blade in the Dark",
+  "quest2.vex_desc": "Clear {n} campaign stages — someone has been following your company.",
+  "quest2.joins": "{hero} joins your company",
+  "quest2.wish_title": "Make a Wish",
+  "quest2.wish_desc": "Toss a coin at any Wishing Pool {n} times.",
+  "quest2.complete": "{title} complete!",
+  "quest2.not_yet": "That quest could not be claimed yet.",
+  "quest2.plus_hero_n_frags": "+{n} {hero} fragments",
+  "quest2.x_hero_frags": "×{n} {hero} fragments",
+  "quest2.reward_banked": "Reward banked",
+  "quest2.stage_complete": "Stage quest complete!",
+  "quest2.syncing": "Syncing quest progress…",
+  "quest2.group_daily": "Daily packs",
+  "quest2.n_stamina": "{n} stamina",
+  "quest2.per_day": "{v} / day",
+  "quest2.pack_days": "Daily reward pack — {n} days remaining.",
+  "quest2.pack_day1": "Daily reward pack — {n} day remaining.",
+  "quest2.ready_claim": "Ready to claim",
+  "quest2.claimed_today": "Claimed today · resets 09:00",
+  "quest2.group_starter": "Starter {hero} fragments",
+  "quest2.group_milestones": "Campaign milestones",
+  "quest2.recruit": "Recruit {hero}",
+  "quest2.rise_ranks": "Rise Through the Ranks",
+  "quest2.clear_stage": "Clear Stage {stage} of the campaign. ({step}/{of} steps done)",
+  "quest2.stage_progress": "Stage {a} / {b} cleared",
+  "quest2.group_other": "Other quests",
+  "quest2.rewards_ready": "Rewards ready",
+  "quest2.in_progress": "Quests in progress",
+  "quest2.all_done": "All quests complete.",
+  "home2.isle_unlock_lv": "Island of Trials unlocks at level {n}.",
+  "gear2.item": "Item",
+  "hero2.row_front": "Front",
+  "hero2.row_mid": "Mid",
+  "hero2.row_back": "Back",
+  "hero2.row_other": "Other",
+  "hero2.dmg_attack": "Attack",
+  "hero2.dmg_magic": "Magic",
+  "hero2.dmg_hybrid": "Hybrid",
+  "hero2.dmg_healer": "Healer",
+  "hero2.sc_attack": "Attack Damage",
+  "hero2.sc_ap": "Ability Power",
+  "hero2.sc_atk_ap": "Attack + Ability Power",
+  "hero2.sc_ap_heal": "Ability Power + Healing Power",
+  "hero2.sc_split": "{a}% Attack / {b}% Ability Power",
+  "stage2.more_info": "More info",
+  "stage2.hide": "Hide",
+  "misc2.save_too_big": "Cloud save refused - this save is over 1 MB, so progress on this device is not backed up.",
+  "signin2.n_gold": "{n} Gold",
+  "signin2.week_label": "{n}× {hero} frags",
+  "wish2.key_fragment": "{name} Fragment",
+  "wish2.myth_odds": "{pool} (EGP {egp}, {cost}) — mythical hero {a} · mythical frags {b} · glyph frags {c} · full glyph {d} · attack card {e} · shield {f} · teleport {g} · Kindled {h} · Stoked {i} · Blazing {j} · Inferno {k}",
+  "wish2.diamond_odds_title": "Diamond Pool odds",
+  "wish2.diamond_odds": "{pool} — full 3{star} {a} · full 2{star} {b} · 3{star} frags {c} · 2{star} frags {d} · full glyph (your level) {e} · full glyph (next level) {f} · {item} ({stam} stamina) {g}",
+  "wish2.gold_odds": "{pool} — full hero {a} · fragments {b}",
+  "wish2.pity_label": "Pity:",
+  "wish2.pity": "{pity} a full hero is GUARANTEED within {n} diamond wishes — you are at {c}.",
+  "wish2.info_aria": "Pool contents and odds",
+  "shop2.verify_unavail": "Purchase verification unavailable. Please try again.",
+  "shop2.received": "Purchase received: {item}",
+  "shop2.cancelled": "Purchase cancelled.",
+  "shop2.not_completed": "Purchase could not be completed."
+ },
+ "edits": [
+  {
+   "line": 28352,
+   "find": "title:'First Blood', desc:'Attack an opponent in the Arena.',",
+   "replace": "title:t('quest2.arena_title'), desc:t('quest2.arena_desc'),"
+  },
+  {
+   "line": 28353,
+   "find": "reward:hudIcon('gold')+' 50 gold',",
+   "replace": "reward:hudIcon('gold')+' '+t('draft.gold_n',{n:50}),"
+  },
+  {
+   "line": 28354,
+   "find": "return '+'+hudIcon('gold')+' 50 gold';",
+   "replace": "return '+'+hudIcon('gold')+' '+t('draft.gold_n',{n:50});"
+  },
+  {
+   "line": 28355,
+   "find": "title:'Make a Name', desc:'Set your commander name in your profile.',",
+   "replace": "title:t('quest2.name_title'), desc:t('quest2.name_desc'),"
+  },
+  {
+   "line": 28356,
+   "find": "reward:hudIcon('gem')+' 20 diamonds',",
+   "replace": "reward:hudIcon('gem')+' '+t('portal.n_diamonds',{n:20}),"
+  },
+  {
+   "line": 28357,
+   "find": "return '+'+hudIcon('gem')+' 20 diamonds';",
+   "replace": "return '+'+hudIcon('gem')+' '+t('portal.n_diamonds',{n:20});"
+  },
+  {
+   "line": 28358,
+   "find": "title:'Gather Your Champions', desc:'Collect 5 heroes in total.',",
+   "replace": "title:t('quest2.collect_title'), desc:t('quest2.collect_desc',{n:5}),"
+  },
+  {
+   "line": 28359,
+   "find": "reward:'×5 random hero fragments',",
+   "replace": "reward:t('quest2.rand_frags',{n:5}),"
+  },
+  {
+   "line": 28360,
+   "find": "return msg||'+5 hero fragments';",
+   "replace": "return msg||t('quest2.plus_hero_frags',{n:5});"
+  },
+  {
+   "line": 28361,
+   "find": "title:'Blade in the Dark', desc:'Clear 6 campaign stages — someone has been following your company.',",
+   "replace": "title:t('quest2.vex_title'), desc:t('quest2.vex_desc',{n:6}),"
+  },
+  {
+   "line": 28362,
+   "find": "reward:'🗡️ Vex joins your company',",
+   "replace": "reward:'🗡️ '+t('quest2.joins',{hero:'Vex'}),"
+  },
+  {
+   "line": 28364,
+   "find": "title:'Make a Wish', desc:'Toss a coin at any Wishing Pool 3 times.',",
+   "replace": "title:t('quest2.wish_title'), desc:t('quest2.wish_desc',{n:3}),"
+  },
+  {
+   "line": 28365,
+   "find": "reward:hudIcon('gem')+' 20 diamonds',",
+   "replace": "reward:hudIcon('gem')+' '+t('portal.n_diamonds',{n:20}),"
+  },
+  {
+   "line": 28366,
+   "find": "return '+'+hudIcon('gem')+' 20 diamonds';",
+   "replace": "return '+'+hudIcon('gem')+' '+t('portal.n_diamonds',{n:20});"
+  },
+  {
+   "line": 28394,
+   "find": "bannerMsg(uiIcon('check')+' '+q.title+' complete!\\n'+r);",
+   "replace": "bannerMsg(uiIcon('check')+' '+t('quest2.complete',{title:q.title})+'\\n'+r);"
+  },
+  {
+   "line": 28395,
+   "find": "bannerMsg(sr.error==='offline'?'Connection lost.':sr.error);",
+   "replace": "bannerMsg(sr.error==='offline'?t('net.connection_lost'):(langMsg(sr.error)||sr.error));"
+  },
+  {
+   "line": 28396,
+   "find": "bannerMsg(uiIcon('check')+' '+q.title+' complete!\\n'+r);",
+   "replace": "bannerMsg(uiIcon('check')+' '+t('quest2.complete',{title:q.title})+'\\n'+r);"
+  },
+  {
+   "line": 28406,
+   "find": "bannerMsg((res&&res.error)||'That quest could not be claimed yet.');",
+   "replace": "bannerMsg((res&&res.error&&langMsg(res.error))||t('quest2.not_yet'));"
+  },
+  {
+   "line": 28410,
+   "find": "const r=g.gems?('+'+hudIcon('gem')+' '+g.gems+' diamonds'):(g.vexFrags?('+'+g.vexFrags+' '+HERO_TYPES[QUEST_CHAIN_HERO].name+' fragments'):'Reward banked');",
+   "replace": "const r=g.gems?('+'+hudIcon('gem')+' '+t('portal.n_diamonds',{n:g.gems})):(g.vexFrags?t('quest2.plus_hero_n_frags',{n:g.vexFrags,hero:HERO_TYPES[QUEST_CHAIN_HERO].name}):t('quest2.reward_banked'));"
+  },
+  {
+   "line": 28411,
+   "find": "bannerMsg(uiIcon('check')+' Stage quest complete!\\n'+r);",
+   "replace": "bannerMsg(uiIcon('check')+' '+t('quest2.stage_complete')+'\\n'+r);"
+  },
+  {
+   "line": 28414,
+   "find": "r='+'+hudIcon('gem')+' '+st.gems+' diamonds';",
+   "replace": "r='+'+hudIcon('gem')+' '+t('portal.n_diamonds',{n:st.gems});"
+  },
+  {
+   "line": 28415,
+   "find": "r=m||('+'+st.frags+' '+HERO_TYPES[QUEST_CHAIN_HERO].name+' fragments');",
+   "replace": "r=m||t('quest2.plus_hero_n_frags',{n:st.frags,hero:HERO_TYPES[QUEST_CHAIN_HERO].name});"
+  },
+  {
+   "line": 28417,
+   "find": "bannerMsg(uiIcon('check')+' Stage quest complete!\\n'+r);",
+   "replace": "bannerMsg(uiIcon('check')+' '+t('quest2.stage_complete')+'\\n'+r);"
+  },
+  {
+   "line": 28421,
+   "find": "padding:30px 12px\">Syncing quest progress…</div>';",
+   "replace": "padding:30px 12px\">'+t('quest2.syncing')+'</div>';"
+  },
+  {
+   "line": 28431,
+   "find": "const rew=(p.type==='gems')?(hudIcon('gem')+' '+p.amount+' diamonds'):('⧗ '+p.amount+' stamina');",
+   "replace": "const rew=(p.type==='gems')?(hudIcon('gem')+' '+t('portal.n_diamonds',{n:p.amount})):('⧗ '+t('quest2.n_stamina',{n:p.amount}));"
+  },
+  {
+   "line": 28432,
+   "find": "group:'Daily packs',",
+   "replace": "group:t('quest2.group_daily'),"
+  },
+  {
+   "line": 28433,
+   "find": "<div class=\"qrew\">${rew} / day</div>",
+   "replace": "<div class=\"qrew\">${t('quest2.per_day',{v:rew})}</div>"
+  },
+  {
+   "line": 28434,
+   "find": "<div class=\"qd\">Daily reward pack — <b style=\"color:#ffd45e\">${p.daysLeft}</b> day${p.daysLeft===1?'':'s'} remaining.</div>",
+   "replace": "<div class=\"qd\">${t(p.daysLeft===1?'quest2.pack_day1':'quest2.pack_days',{n:`<b style=\"color:#ffd45e\">${p.daysLeft}</b>`})}</div>"
+  },
+  {
+   "line": 28435,
+   "find": "<span>${ready?uiIcon('sparkle-new')+' Ready to claim':uiIcon('check')+' Claimed today · resets 09:00'}</span>",
+   "replace": "<span>${ready?uiIcon('sparkle-new')+' '+t('quest2.ready_claim'):uiIcon('check')+' '+t('quest2.claimed_today')}</span>"
+  },
+  {
+   "line": 28440,
+   "find": "const rewLbl=st.gems?(hudIcon('gem')+' '+st.gems+' diamonds'):('×'+st.frags+' '+HERO_TYPES[QUEST_CHAIN_HERO].name+' fragments');",
+   "replace": "const rewLbl=st.gems?(hudIcon('gem')+' '+t('portal.n_diamonds',{n:st.gems})):t('quest2.x_hero_frags',{n:st.frags,hero:HERO_TYPES[QUEST_CHAIN_HERO].name});"
+  },
+  {
+   "line": 28441,
+   "find": "group:step<4?'Starter Vex fragments':'Campaign milestones',",
+   "replace": "group:step<4?t('quest2.group_starter',{hero:'Vex'}):t('quest2.group_milestones'),"
+  },
+  {
+   "line": 28442,
+   "find": "${step<4?'Recruit Vex':'Rise Through the Ranks'}",
+   "replace": "${step<4?t('quest2.recruit',{hero:'Vex'}):t('quest2.rise_ranks')}"
+  },
+  {
+   "line": 28443,
+   "find": "<div class=\"qd\">Clear Stage ${stageCode(node)} of the campaign. (${step}/${chSteps.length} steps done)</div>",
+   "replace": "<div class=\"qd\">${t('quest2.clear_stage',{stage:stageCode(node),step:step,of:chSteps.length})}</div>"
+  },
+  {
+   "line": 28445,
+   "find": "<span>Stage ${chProg>=1?stageCode(chProg):'—'} / ${stageCode(node)} cleared</span>",
+   "replace": "<span>${t('quest2.stage_progress',{a:chProg>=1?stageCode(chProg):'—',b:stageCode(node)})}</span>"
+  },
+  {
+   "line": 28449,
+   "find": "group:'Other quests',",
+   "replace": "group:t('quest2.group_other'),"
+  },
+  {
+   "line": 28458,
+   "find": "${c.ready?uiIcon('gift')+' Rewards ready':uiIcon('map-pin')+' Quests in progress'}",
+   "replace": "${c.ready?uiIcon('gift')+' '+t('quest2.rewards_ready'):uiIcon('map-pin')+' '+t('quest2.in_progress')}"
+  },
+  {
+   "line": 28461,
+   "find": "padding:30px 12px\">All quests complete.</div>';",
+   "replace": "padding:30px 12px\">'+t('quest2.all_done')+'</div>';"
+  },
+  {
+   "line": 17446,
+   "find": "isle.title='Island of Trials';",
+   "replace": "isle.title=t('bld.island_trials');"
+  },
+  {
+   "line": 17450,
+   "find": "bannerMsg(hudIcon('lock')+' Island of Trials unlocks at level 10.');",
+   "replace": "bannerMsg(hudIcon('lock')+' '+t('home2.isle_unlock_lv',{n:10}));"
+  },
+  {
+   "line": 17457,
+   "find": "let inner2='<span>Island of Trials</span>';",
+   "replace": "let inner2='<span>'+t('bld.island_trials')+'</span>';"
+  },
+  {
+   "line": 17458,
+   "find": "alt=\"Locked\"><span class=\"locktip\">Unlocks at Lv 10</span></span>';",
+   "replace": "alt=\"'+t('common.locked')+'\"><span class=\"locktip\">'+t('hub.unlocks_at',{n:10})+'</span></span>';"
+  },
+  {
+   "line": 17435,
+   "find": "alt=\"Locked\"><span class=\"locktip\">'+t('hub.unlocks_at',{n:h.lockLv})",
+   "replace": "alt=\"'+t('common.locked')+'\"><span class=\"locktip\">'+t('hub.unlocks_at',{n:h.lockLv})"
+  },
+  {
+   "line": 6247,
+   "find": "bronze:{name:'Bronze',col:'#cd7f32',cost:50,chance:0.30}, silver:{name:'Silver',col:'#cfd3dc',cost:70,chance:0.20}, gold:{name:'Gold',col:'#ffcf40',cost:100,chance:0.10}",
+   "replace": "bronze:{get name(){ return ewT('arena.league_bronze'); },col:'#cd7f32',cost:50,chance:0.30}, silver:{get name(){ return ewT('arena.league_silver'); },col:'#cfd3dc',cost:70,chance:0.20}, gold:{get name(){ return ewT('arena.league_gold'); },col:'#ffcf40',cost:100,chance:0.10}"
+  },
+  {
+   "line": 6311,
+   "find": "EQ_NAMES[g][s][t])||'Item'; }",
+   "replace": "EQ_NAMES[g][s][t])||ewT('gear2.item'); }"
+  },
+  {
+   "line": 21530,
+   "find": "function roleMeta(role){",
+   "replace": "/* v1271 LANGUAGES: a hero profile word (combat row, damage profile, scaling) AS SHOWN - the English stays the value the code compares */ function heroProfWord(s){ const k={'Front':'hero2.row_front','Mid':'hero2.row_mid','Back':'hero2.row_back','Other':'hero2.row_other','Attack':'hero2.dmg_attack','Magic':'hero2.dmg_magic','Hybrid':'hero2.dmg_hybrid','Healer':'hero2.dmg_healer','Attack Damage':'hero2.sc_attack','Ability Power':'hero2.sc_ap','Attack + Ability Power':'hero2.sc_atk_ap','Ability Power + Healing Power':'hero2.sc_ap_heal'}[s]; if(k) return ewT(k); const m=/^(\\d+)% Attack \\/ (\\d+)% Ability Power$/.exec(String(s||'')); return m?ewT('hero2.sc_split',{a:m[1],b:m[2]}):s; } function roleMeta(role){"
+  },
+  {
+   "line": 21563,
+   "find": "lbl.textContent=open?'More info ▾':'Hide ▴';",
+   "replace": "lbl.textContent=open?t('stage2.more_info')+' ▾':t('stage2.hide')+' ▴';"
+  },
+  {
+   "line": 24293,
+   "find": "bannerMsg(uiIcon('warning')+' Cloud save refused - this save is over 1 MB, so progress on this device is not backed up.');",
+   "replace": "bannerMsg(uiIcon('warning')+' '+t('misc2.save_too_big'));"
+  },
+  {
+   "line": 26351,
+   "find": "<span>${c.toUpperCase()}</span>",
+   "replace": "<span>${rosterClassName(c).toLocaleUpperCase(LANG.cur)}</span>"
+  },
+  {
+   "line": 27388,
+   "find": "const ROLE_ORDER=['Tank','Bruiser','Assassin','Marksman','Mage','Support'], roles=",
+   "replace": "const ROLE_ORDER=HERO_ROLE_ORDER, roles="
+  },
+  {
+   "line": 23668,
+   "find": "let rosterClassF='All';",
+   "replace": "let rosterClassF='All'; const HERO_ROLE_ORDER=['Tank','Bruiser','Assassin','Marksman','Mage','Support'];   /* the hero list's class sort order (class ids the code compares) */"
+  },
+  {
+   "line": 27418,
+   "find": "alt=\"Mythical\" style=\"${_mbStyle};",
+   "replace": "alt=\"${ewT('herolist.rarity_mythical')}\" style=\"${_mbStyle};"
+  },
+  {
+   "line": 27431,
+   "find": "src=\"${MYTHICAL_BANNER}\" alt=\"Mythical\">`",
+   "replace": "src=\"${MYTHICAL_BANNER}\" alt=\"${ewT('herolist.rarity_mythical')}\">`"
+  },
+  {
+   "line": 27829,
+   "find": "? `<img src=\"${mythBannerSrc}\" alt=\"Mythical\">`",
+   "replace": "? `<img src=\"${mythBannerSrc}\" alt=\"${ewT('herolist.rarity_mythical')}\">`"
+  },
+  {
+   "line": 27849,
+   "find": "${t.combatRow} · ${t.damageProfile}</span>",
+   "replace": "${heroProfWord(t.combatRow)} · ${heroProfWord(t.damageProfile)}</span>"
+  },
+  {
+   "line": 27879,
+   "find": "<span style=\"color:#8b98a9\">${n}</span><b>${v}</b></div>",
+   "replace": "<span style=\"color:#8b98a9\">${n}</span><b>${heroProfWord(v)}</b></div>"
+  },
+  {
+   "line": 27884,
+   "find": "tier:'Grey',col:RANK_COLOR[0]}",
+   "replace": "tier:ewT('glyphrank.grey'),col:RANK_COLOR[0]}"
+  },
+  {
+   "line": 27885,
+   "find": "tier:'Green',col:RANK_COLOR[1]}",
+   "replace": "tier:ewT('glyphrank.green'),col:RANK_COLOR[1]}"
+  },
+  {
+   "line": 27886,
+   "find": "tier:'Blue',col:RANK_COLOR[2]}",
+   "replace": "tier:ewT('glyphrank.blue'),col:RANK_COLOR[2]}"
+  },
+  {
+   "line": 27887,
+   "find": "tier:'Purple',col:RANK_COLOR[3]}",
+   "replace": "tier:ewT('glyphrank.purple'),col:RANK_COLOR[3]}"
+  },
+  {
+   "line": 27927,
+   "find": "aria-label=\"Play the story\"",
+   "replace": "aria-label=\"${ewT('loreaudio.play')}\""
+  },
+  {
+   "line": 27747,
+   "find": "const q=maxed?'Orange':cat.ladder[idx], qc=g2col(q);",
+   "replace": "const q0=maxed?G2_LADDER16[15]:cat.ladder[idx], qc=g2col(q0), q=g2QualName(q0);   /* v1271: q = the quality AS SHOWN, q0 the English key */"
+  },
+  {
+   "line": 28777,
+   "find": "function provFragLowerQ(stage){",
+   "replace": "/* v1271 LANGUAGES: a quality as shown ('Purple +2' -> the colour word in the player's language + its step); the English stays the key the code compares */ function g2QualName(q){ const s=String(q==null?'':q), sp=s.indexOf(' '), w=sp<0?s:s.slice(0,sp), c={Grey:'grey',Green:'green',Blue:'blue',Purple:'purple',Gold:'gold',Orange:'orange'}[w]; return (c?ewT('glyphrank.'+c):w)+(sp<0?'':s.slice(sp)); } function provFragLowerQ(stage){"
+  },
+  {
+   "line": 28781,
+   "find": "(lq?' + 5 '+lq:'')",
+   "replace": "(lq?' + 5 '+g2QualName(lq):'')"
+  },
+  {
+   "line": 28784,
+   "find": "${escapeHTML(lq)}</span>",
+   "replace": "${escapeHTML(g2QualName(lq))}</span>"
+  },
+  {
+   "line": 28758,
+   "find": "gold:{nm:'Gold Province', col:'#ffd45e'}, rune:{nm:'Drill Province', col:'#8fd0ff'}",
+   "replace": "gold:{get nm(){ return ewT('loader.mode_gold'); }, col:'#ffd45e'}, rune:{get nm(){ return ewT('loader.mode_drill'); }, col:'#8fd0ff'}"
+  },
+  {
+   "line": 28704,
+   "find": "name:'Training Province', lvl:10,",
+   "replace": "get name(){ return ewT('well2.training_province'); }, lvl:10,"
+  },
+  {
+   "line": 28813,
+   "find": "bannerMsg('The game just updated — restarting…');",
+   "replace": "bannerMsg(ewT('battle.game_updated'));"
+  },
+  {
+   "line": 28957,
+   "find": "['gold','Gold Province',",
+   "replace": "['gold',ewT('loader.mode_gold'),"
+  },
+  {
+   "line": 28957,
+   "find": "['rune','Drill Province',",
+   "replace": "['rune',ewT('loader.mode_drill'),"
+  },
+  {
+   "line": 28976,
+   "find": "id=\"pvX\" aria-label=\"Close\">",
+   "replace": "id=\"pvX\" aria-label=\"${ewT('common.close')}\">"
+  },
+  {
+   "line": 28482,
+   "find": "label:'300 Gold',",
+   "replace": "get label(){ return t('signin2.n_gold',{n:300}); },"
+  },
+  {
+   "line": 28483,
+   "find": "label:'+60 Stamina',",
+   "replace": "get label(){ return t('shop.plus_stamina_cap',{n:60}); },"
+  },
+  {
+   "line": 28484,
+   "find": "label:'20 Diamonds',",
+   "replace": "get label(){ return t('shop.n_diamonds',{n:20}); },"
+  },
+  {
+   "line": 28485,
+   "find": "label:'400 Gold',",
+   "replace": "get label(){ return t('signin2.n_gold',{n:400}); },"
+  },
+  {
+   "line": 28486,
+   "find": "label:'600 Gold',",
+   "replace": "get label(){ return t('signin2.n_gold',{n:600}); },"
+  },
+  {
+   "line": 28487,
+   "find": "label:'30 Diamonds',",
+   "replace": "get label(){ return t('shop.n_diamonds',{n:30}); },"
+  },
+  {
+   "line": 28491,
+   "find": "label:n+'× '+HERO_TYPES[hk].name+' frags',",
+   "replace": "label:t('signin2.week_label',{n:n,hero:HERO_TYPES[hk].name}),"
+  },
+  {
+   "line": 28497,
+   "find": "text-transform:uppercase\">Daily Sign-In</div>",
+   "replace": "text-transform:uppercase\">${ewT('title.daily_signin')}</div>"
+  },
+  {
+   "line": 28167,
+   "find": "name:r.n+'× '+(r.displayName||r.key+' Fragment'),",
+   "replace": "name:r.n+'× '+(r.displayName||ewT('wish2.key_fragment',{name:r.key})),"
+  },
+  {
+   "line": 28247,
+   "find": "bannerMsg(uiIcon('mythical-star')+' <b>Mythical Pool</b> (EGP '+(st.mythUnlockEgp||11)+', '+hudIcon('gem')+(st.mythCost||400)+') — mythical hero '+pct(mo.mythHero)+' · mythical frags '+pct(mo.mythFrag)+' · glyph frags '+pct(mo.glyphFrag)+' · full glyph '+pct(mo.glyphFull)+' · attack card '+pct(mo.attackCard)+' · shield '+pct(mo.shield)+' · teleport '+pct(mo.teleport)+' · Kindled '+pct(mo.kindled)+' · Stoked '+pct(mo.stoked)+' · Blazing '+pct(mo.blazing)+' · Inferno '+pct(mo.inferno))",
+   "replace": "bannerMsg(uiIcon('mythical-star')+' '+t('wish2.myth_odds',{pool:'<b>'+t('wish.mythical_pool')+'</b>',egp:(st.mythUnlockEgp||11),cost:hudIcon('gem')+(st.mythCost||400),a:pct(mo.mythHero),b:pct(mo.mythFrag),c:pct(mo.glyphFrag),d:pct(mo.glyphFull),e:pct(mo.attackCard),f:pct(mo.shield),g:pct(mo.teleport),h:pct(mo.kindled),i:pct(mo.stoked),j:pct(mo.blazing),k:pct(mo.inferno)}))"
+  },
+  {
+   "line": 28248,
+   "find": "bannerMsg(uiIcon('chart')+' <b>Diamond Pool odds</b> — full 3'+uiIcon('star-filled')+' '+pct(o.full3||0)+' · full 2'+uiIcon('star-filled')+' '+pct(o.full2||0)+' · 3'+uiIcon('star-filled')+' frags '+pct(o.frag3||0)+' · 2'+uiIcon('star-filled')+' frags '+pct(o.frag2||0)+' · full glyph (your level) '+pct(o.glyphFull||0)+' · full glyph (next level) '+pct(o.glyphNext||0)+' · '+STAM_ITEM_NAME+' (120 stamina) '+pct(o.stamItem||0)+'<br>'+hudIcon('gold')+' <b>Gold Pool</b> — full hero '+pct(o.goldHero||0)+' · fragments '+pct(o.goldFrag||0)+'<br>'+statusIcon('mark')+' <b>Pity:</b> a full hero is GUARANTEED within '+((st.pity&&st.pity.at)||40)+' diamond wishes — you are at '+((st.pity&&st.pity.count)||0)+'.'); }",
+   "replace": "bannerMsg(uiIcon('chart')+' '+t('wish2.diamond_odds',{pool:'<b>'+t('wish2.diamond_odds_title')+'</b>',star:uiIcon('star-filled'),a:pct(o.full3||0),b:pct(o.full2||0),c:pct(o.frag3||0),d:pct(o.frag2||0),e:pct(o.glyphFull||0),f:pct(o.glyphNext||0),item:STAM_ITEM_NAME,stam:120,g:pct(o.stamItem||0)})+'<br>'+hudIcon('gold')+' '+t('wish2.gold_odds',{pool:'<b>'+t('wish.gold_pool')+'</b>',a:pct(o.goldHero||0),b:pct(o.goldFrag||0)})+'<br>'+statusIcon('mark')+' '+t('wish2.pity',{pity:'<b>'+t('wish2.pity_label')+'</b>',n:((st.pity&&st.pity.at)||40),c:((st.pity&&st.pity.count)||0)})); }"
+  },
+  {
+   "line": 28273,
+   "find": "aria-label=\"Pool contents and odds\"",
+   "replace": "aria-label=\"${t('wish2.info_aria')}\""
+  },
+  {
+   "line": 31216,
+   "find": "bannerMsg('Diamond packs are coming soon.');",
+   "replace": "bannerMsg(t('err.diamond_packs_are_coming_soon'));"
+  },
+  {
+   "line": 31226,
+   "find": "bannerMsg(r?.error||'Purchase verification unavailable. Please try again.');",
+   "replace": "bannerMsg((r?.error&&langMsg(r.error))||t('shop2.verify_unavail'));"
+  },
+  {
+   "line": 31228,
+   "find": "bannerMsg('Purchase received: '+offer.name);",
+   "replace": "bannerMsg(t('shop2.received',{item:offer.name}));"
+  },
+  {
+   "line": 31230,
+   "find": "bannerMsg(e?.name==='AbortError'?'Purchase cancelled.':'Purchase could not be completed.');",
+   "replace": "bannerMsg(e?.name==='AbortError'?t('shop2.cancelled'):t('shop2.not_completed'));"
+  },
+  {
+   "line": 31429,
+   "find": "id=\"sfClose\" aria-label=\"Close\">",
+   "replace": "id=\"sfClose\" aria-label=\"${t('common.close')}\">"
+  }
+ ]
+}

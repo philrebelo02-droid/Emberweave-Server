@@ -1,0 +1,27 @@
+{
+ "keys": {
+  "net.connection_lost": "Connection lost."
+ },
+ "edits": [
+  {
+   "line": 2944,
+   "find": "/* /v1265 LANGUAGES step 1 */",
+   "replace": "/* v1271 LANGUAGES step 2 (Phil 4 Nov 2026: \"I need everything thats translatable to be translated\"): ewT() is t() for code whose\n   function has its own local `t`; langMsg(s) turns an English server error (r.error stays English for the code's own checks) into the\n   player's language: the server sends {error, code, vars} (server/error-codes.js) and _apiRaw notes the translation of each error it sees. */\nfunction ewT(key,vars){ return t(key,vars); }\nconst LANG_ERR=new Map();\nfunction langErrNote(j){ if(!j||typeof j!=='object'||typeof j.error!=='string'||!j.code) return;\n  const k='err.'+j.code; if(!(k in EW_LANG_EN)) return; LANG_ERR.set(j.error,{k,vars:j.vars||null}); }\nfunction langMsg(s){ if(s==null||LANG.cur==='en') return s; const e=LANG_ERR.get(String(s)); return e?(t(e.k,e.vars)||s):s; }\n/* /v1265 LANGUAGES step 1 */"
+  },
+  {
+   "line": 2917,
+   "find": "  root.querySelectorAll('[data-i18n-fit]').forEach(langFit); }",
+   "replace": "  for(const a of ['ph','title','aria']) root.querySelectorAll('[data-i18n-'+a+']').forEach(el=>{ const s=t(el.getAttribute('data-i18n-'+a)); if(s) el.setAttribute(a==='ph'?'placeholder':a==='aria'?'aria-label':'title',s); });   // v1271: placeholders, tooltips, screen-reader labels\n  root.querySelectorAll('[data-i18n-fit]').forEach(langFit); }"
+  },
+  {
+   "line": 17339,
+   "find": "t=String(t==null?'':t).replace(/^((?:&#9888;|⚠)\\s*)?offline$/,'$1Connection lost.');",
+   "replace": "t=String(langMsg(t==null?'':t)).replace(/^((?:&#9888;|⚠)\\s*)?offline$/,(m,p)=>(p||'')+ewT('net.connection_lost'));"
+  },
+  {
+   "line": 24184,
+   "find": "const j=await r.json();",
+   "replace": "const j=await r.json(); try{ langErrNote(j); }catch(_){}"
+  }
+ ]
+}

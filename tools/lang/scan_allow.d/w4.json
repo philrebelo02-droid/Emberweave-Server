@@ -1,0 +1,39 @@
+{
+ "_why": "W4 Emberdraft (languages step 2). Emberdraft data keeps English ids the code compares (roles, slots, tiers); the player sees them through edRoleTxt / edCompTxt / edCompStat / edTierTxt / edRankKit / edSynTxt (draft.* keys).",
+ "tables": {
+  "ED_FINISHED": "names: finished item proper names (component pair -> item name)",
+  "ED_PURPLE": "names: purple item proper names",
+  "ED_GOLD": "names: gold item proper names",
+  "ED_ITEM_CLS": "code: item name -> role id; shown via edRoleTxt",
+  "ED_SYN": "code: role ids + synergy text fallback; shown via edSynTxt (draft.syn_*)",
+  "ED_COMP": "code: slot ids; shown via edCompTxt (draft.comp_*)",
+  "ED_COMP_TXT": "code: only the number is read (edCompStat -> draft.stat_*)",
+  "ED_TIERS": "code: legacy tier ids (v640 no tiers); shown via edTierTxt",
+  "ED_RANK_KIT": "legacy: shown via edRankKit (draft.kit_1..4)",
+  "ED_CREST": "code: slot -> role id; shown via edRoleTxt",
+  "ED_AI_NAMES": "names: AI opponent player names",
+  "ED_AVATARS": "names: avatar creature names; idle/walk = GLB animation clip names",
+  "ED_ARENAS": "names: Emberdraft arena place names",
+  "ED_UPRIGHT_BONES": "code: skeleton bone names"
+ },
+ "functions": {
+  "edRole": "code: 'Warrior' is a role id (shown via edRoleTxt)",
+  "edBookHtml": "code: role id loop arrays; headings shown via edRoleTxt",
+  "edApplySynergy": "code: role ids compared",
+  "edReforgeOne": "code: 'Relic' slot id",
+  "edPveRewardOld": "dead code: pre-v648, not called",
+  "edPveSpec": "code: monster keys",
+  "edSprCss": "code: CSS string",
+  "edCarGfxStart": "code: GLB animation clip name",
+  "edAvGfxMake": "code: GLB animation clip name",
+  "edFitComp": "code: damageProfile id",
+  "edAiPlan": "code: 'Ring' slot id",
+  "edDrop": "code: 'Ring' slot id (shown via edCompTxt)"
+ },
+ "text": {
+  "names": ["Emberdraft", "Ember Draft", "Ember Carousel", "Ember Cache", "Worldroot Seed"]
+ },
+ "patterns": [
+  { "re": "^Emberdraft ·$", "why": "mode name + separator; the rest of the line is draft.round_lc" }
+ ]
+}

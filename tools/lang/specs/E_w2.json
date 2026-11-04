@@ -1,0 +1,72 @@
+{
+ "keys": {
+  "sky2.end": "End",
+  "guild2.simulate": "Simulate",
+  "arena2.you": "You",
+  "chat2.you": "You",
+  "chat2.shared_battle": "shared a battle",
+  "chat2.shared_battle_vs": "shared a battle vs {opp}",
+  "embassy2.miners_charter": "Miner’s Charter",
+  "embassy2.envoys_favor": "Envoy’s Favor",
+  "embassy2.war_spoils": "War Spoils"
+ },
+ "edits": [
+  {
+   "line": 18675,
+   "find": "skySimEnd()\">\\u23f9 End</button>'",
+   "replace": "skySimEnd()\">\\u23f9 '+t('sky2.end')+'</button>'"
+  },
+  {
+   "line": 18725,
+   "find": "${new Date().toLocaleTimeString()}",
+   "replace": "${new Date().toLocaleTimeString(LANG.cur==='qps'?'en':LANG.cur)}"
+  },
+  {
+   "line": 18765,
+   "find": "e.textContent=new Date().toLocaleTimeString();",
+   "replace": "e.textContent=new Date().toLocaleTimeString(LANG.cur==='qps'?'en':LANG.cur);"
+  },
+  {
+   "line": 24515,
+   "find": "name:(G.playerName||'You')",
+   "replace": "name:(G.playerName||t('arena2.you'))"
+  },
+  {
+   "line": 25423,
+   "find": "<span data-i18n=\"nav.base\">Base</span>",
+   "replace": "<span data-i18n=\"nav.base\">'+t('nav.base')+'</span>"
+  },
+  {
+   "line": 27089,
+   "find": "} Simulate</button>",
+   "replace": "} ${t('guild2.simulate')}</button>"
+  },
+  {
+   "line": 31892,
+   "find": "name===(G.playerName||'You')",
+   "replace": "name===(G.playerName||ewT('chat2.you'))"
+  },
+  {
+   "line": 31925,
+   "find": "who:G.playerName||'You'",
+   "nth": 0,
+   "replace": "who:G.playerName||ewT('chat2.you')"
+  },
+  {
+   "line": 31925,
+   "find": "who:G.playerName||'You'",
+   "nth": 1,
+   "replace": "who:G.playerName||ewT('chat2.you')"
+  },
+  {
+   "line": 31994,
+   "find": "const txt='\\u{1F4FD} shared a battle'+(chip.oppName?(' vs '+chip.oppName):'');",
+   "replace": "const txt='\\u{1F4FD} '+(chip.oppName?t('chat2.shared_battle_vs',{opp:chip.oppName}):t('chat2.shared_battle'));"
+  },
+  {
+   "line": 27160,
+   "find": "<div style=\"font-weight:800;font-size:13px\">${name}</div>",
+   "replace": "<div style=\"font-weight:800;font-size:13px\">${(k=>k?ewT(k):name)({'Miner’s Charter':'embassy2.miners_charter','Envoy’s Favor':'embassy2.envoys_favor','War Spoils':'embassy2.war_spoils'}[name])}</div>"
+  }
+ ]
+}

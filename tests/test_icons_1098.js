@@ -48,13 +48,15 @@ const a = html.indexOf('function renderWishing('), b = html.indexOf('\nfunction 
 const rw = html.slice(a, b);
 ok(a > 0 && /class="wpsStage" id="wpsStage"/.test(rw) && /\bwpsFit\(\);/.test(rw), 'renderWishing builds the wpsStage and fits it (wpsFit)');
 ok(!/class="wishpools"/.test(rw), 'the old flowing three-column layout is gone');
-ok(/class="wpsTitle">WISHING POOL <button[^>]*class="wpsHelp"[^>]*onclick="wishShowInfo\(\)"/.test(rw), 'the title banner and the ? help button are inside the stage');
+const EN = JSON.parse(fs.readFileSync(path.join(ROOT, 'lang', 'en.json'), 'utf8'));   /* v1265 languages: page text is t('key'); English lives in lang/en.json */
+ok(EN['wish.title_caps'] === 'WISHING POOL' && EN['wish.mythical_only'] === 'Mythical heroes only' && EN['wish.opens_at'] === 'Opens at EGP {n}', 'the English wish-pool words are unchanged in lang/en.json');
+ok(/class="wpsTitle">\$\{t\('wish\.title_caps'\)\} <button[^>]*class="wpsHelp"[^>]*onclick="wishShowInfo\(\)"/.test(rw), 'the title banner and the ? help button are inside the stage');
 ok(['wpGold', 'wpGold10', 'wpGem', 'wpGem10', 'wpMyth', 'wpMyth10'].every(id => rw.includes('id="' + id + '"')), 'all six wish buttons keep their ids');
 const fit = html.slice(html.indexOf('function wpsFit('), html.indexOf('\n', html.indexOf('function wpsFit(') + 400));
 ok(/Math\.min\(W, H\*pw\/ph\)/.test(fit) && /setProperty\('--u',\(w\/pw\)\+'px'\)/.test(fit), 'wpsFit sizes the stage to the host (min of width and height) and sets --u');
 ok(/window\.addEventListener\('resize',\(\)=>\{ if\(document\.getElementById\('wpsStage'\)\) wpsFit\(\); \}\)/.test(html), 'the stage refits on resize');
 const css = (html.match(/\.wpsCard \.btn\{[^}]*\}/) || [''])[0];
 ok(/height:calc\(var\(--u\)\*\d+\)/.test(css) && /font-size:calc\(var\(--u\)\*\d+\)/.test(css), 'the wish buttons are sized in --u, not fixed px');
-ok(/mythPoolOpen\(\)\?uiIcon\('lock-open'\)\+' Mythical heroes only':hudIcon\('lock'\)\+' Opens at EGP '/.test(rw), 'Mythical Pool: closed lock while locked, lock-open only when open');
+ok(/mythPoolOpen\(\)\?uiIcon\('lock-open'\)\+' '\+t\('wish\.mythical_only'\):hudIcon\('lock'\)\+' '\+t\('wish\.opens_at',\{n:MYTH_UNLOCK_EGP\}\)/.test(rw), 'Mythical Pool: closed lock while locked, lock-open only when open');
 
 console.log('test_icons_1098.js: ' + pass + ' checks passed (page ' + path.basename(page) + ')');

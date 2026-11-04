@@ -34,7 +34,8 @@ for(const c of CODES){ const p=keyProblems(c,dict[c]); ok(p.length===0,'lang/'+c
 { // CONTROL: one key gone -> the check must fail and name it
   const broken=Object.assign({},dict.es); delete broken['set.language'];
   const p=keyProblems('es',broken); ok(p.length===1&&/missing set\.language/.test(p[0]),'CONTROL: a deliberately missing key is caught ('+p.join('; ')+')'); }
-for(const c of CODES.slice(1)){ const same=KEYS.filter(k=>dict[c][k]===EN[k]&&/[a-z]{3}/.test(EN[k])&&!/^(OK|Arena|Audio|Menu|Server|Bug|Start|Reset|Guild|Gratis|Base|Temple|Forge|Glossary)$/.test(EN[k]));
+const SAME_OK=JSON.parse(fs.readFileSync(path.join(ROOT,'tools','lang','same_ok.json'),'utf8'));   // v1271: cells reviewed as the same word in that language (cognates, loanwords, abbreviations)
+for(const c of CODES.slice(1)){ const same=KEYS.filter(k=>!(SAME_OK[c]||[]).includes(k)&&dict[c][k]===EN[k]&&/[a-z]{3}/.test(EN[k])&&!/^(OK|Arena|Audio|Menu|Server|Bug|Start|Reset|Guild|Gratis|Base|Temple|Forge|Glossary)$/.test(EN[k]));
   ok(same.length<=8,'lang/'+c+'.json is a translation, not English copied across ('+same.length+' identical: '+same.slice(0,8).join(', ')+')'); }
 
 // ---- 2. inline English + versions ----
@@ -87,18 +88,14 @@ ok(/ls\.onchange=\(\)=>\{ langSet\(ls\.value,\{save:true\}\); \}/.test(html),'th
 ok(/pushSave\(\); try\{ langAdoptSave\(\); \}catch\(e\)\{\}/.test(html),'a loaded cloud save adopts its language');
 
 // ---- 4. no local `t` in a function that calls t() ----
-{ const endOf=st=>{ let d=0,j=html.indexOf('{',st); for(;j<html.length;j++){ if(html[j]==='{')d++; else if(html[j]==='}'&&--d===0)break; } return j; };
-  // the module's own functions are left out: t() itself holds '{' in a string and a regex, which this simple brace count cannot read
-  const m0=modM.index, m1=m0+modM[0].length;
-  const heads=[...html.matchAll(/\n(?:async\s+)?function\s+([\w$]+)\(/g)].filter(h=>h.index<m0||h.index>m1);
-  const SHADOW=[/\b(?:const|let|var)\s+t\s*=/,/\b(?:const|let|var)\s[^;\n]*?,\s*t\s*=(?!=)/,/(?<![\w$.])t\s*=>/,/\(\s*(?:[\w$]+\s*,\s*)*t\s*(?:,[^)]*)?\)\s*=>/,/function\s*[\w$]*\(\s*(?:[\w$]+\s*,\s*)*t\s*[,)]/];
-  const seen=new Set();
-  for(const c of html.matchAll(/(?<![\w$.])t\('[a-z]+\.[a-z_]+'|(?<![\w$.])t\(\(\{campaign/g)){
-    for(let i=heads.length-1;i>=0;i--){ const h=heads[i]; if(h.index>c.index) continue; const end=endOf(h.index+1); if(end<c.index) continue;
-      if(seen.has(h[1])) break; seen.add(h[1]); const body=html.slice(h.index,end+1);
-      const hit=SHADOW.map(r=>body.match(r)).filter(Boolean).map(m=>m[0]);
-      ok(hit.length===0,h[1]+'() calls t() and must not declare its own t: '+hit.join(' | ')); break; } }
-  ok(seen.size>=8,'shadow check covered '+seen.size+' functions'); }
+// v1271: the scope is read by a real parser (Babel, bundled in playwright - tools/lang/shadow.js): each t('key') call must bind the global t.
+// The step-1 regex scan flagged any `t` declared anywhere in a function body, even in a nested callback that never calls t() (14 false
+// alarms once step 2 put t() in every screen); the parser checks the binding each call really resolves to.
+{ const shadowCheck=require(path.join(ROOT,'tools','lang','shadow.js'));
+  const r=shadowCheck(html); ok(r.hits===0,'no t() call binds a local t ('+r.list.slice(0,8).join(', ')+')'); ok(r.calls>=100,'shadow check read '+r.calls+' t() calls');
+  // CONTROL: a function with its own local t that calls t('x.y') must be caught
+  const c=shadowCheck(['<script>',"function t(k){ return k; }","function bad(){ const t=1; return t('set.language'); }","function good(){ return t('set.language'); }",'</script>'].join('\n'));
+  ok(c.hits===1&&c.calls===2,'CONTROL: a shadowed t() call is caught ('+c.hits+' of '+c.calls+')'); }
 
 // ---- 5. the module at run time ----
 function sandbox(opts){ opts=opts||{};
@@ -116,7 +113,9 @@ function sandbox(opts){ opts=opts||{};
     navigator:{ languages:opts.langs||['en-US'], language:(opts.langs||['en-US'])[0] },
     localStorage:{ getItem:k=>k in store?store[k]:null, setItem:(k,v)=>{ store[k]=String(v); }, removeItem:k=>{ delete store[k]; } },
     getComputedStyle:e=>({ fontSize:(e._cs)+'px' }),
-    fetch:u=>{ fetched.push(u); const m=/^\/lang\/([\w-]+)\.json\?v=(\w+)$/.exec(u); const d=m&&dict[m[1]];
+    fetch:u=>{ fetched.push(u); const mc=/^\/lang\/([\w-]+)\.content\.json\?v=(\w+)$/.exec(u);   // v1271: a language's content file
+      if(mc){ const cf=path.join(ROOT,'lang',mc[1]+'.content.json'); const ok2=fs.existsSync(cf); return Promise.resolve({ ok:ok2, json:()=>Promise.resolve(ok2?JSON.parse(fs.readFileSync(cf,'utf8')):null) }); }
+      const m=/^\/lang\/([\w-]+)\.json\?v=(\w+)$/.exec(u); const d=m&&dict[m[1]];
       return Promise.resolve({ ok:!!d, json:()=>Promise.resolve(opts.dictOverride&&m&&opts.dictOverride[m[1]]||JSON.parse(JSON.stringify(d))) }); } });
   if(opts.G) ctx.G=opts.G, ctx.saveG=()=>{ ctx._saved=(ctx._saved|0)+1; };
   vm.runInContext(MOD+'\n;this.__L={LANG,t,langSet,langApply,langFit,langAdoptSave,langDetect,langOptionsHTML,EW_LANG_V};',ctx);
@@ -127,7 +126,11 @@ const flush=()=>new Promise(r=>setImmediate(r));
   // first run on a Thai phone: Thai picked, ONLY th.json fetched, Noto Sans Thai linked, html lang set
   { const S=sandbox({ langs:['th-TH','en-US'] }); await flush(); await flush();
     ok(S.L.LANG.cur==='th'&&S.L.LANG.pref==='','a Thai phone opens in Thai (auto, not a saved pick)');
-    ok(S.fetched.length===1&&S.fetched[0]==='/lang/th.json?v='+V.th,'only the chosen language file is fetched: '+S.fetched.join(','));
+    // v1271: plus that language's content file (skill text ...) at its own hash, and nothing else
+    const CV=JSON.parse((html.match(/\nconst EW_LANG_CV=(\{.*?\});/)||[,'{}'])[1]);
+    ok(S.fetched.slice().sort().join(',')===['/lang/th.json?v='+V.th].concat(CV.th?['/lang/th.content.json?v='+CV.th]:[]).sort().join(','),'only the chosen language files are fetched: '+S.fetched.join(','));
+    ok(!CV.th||(S.L.LANG.content&&JSON.parse(S.store.ew_lang_content).code==='th'),'the content file is in and kept on the device');
+    for(const c of CODES.slice(1)) if(CV[c]) ok(crypto.createHash('sha1').update(fs.readFileSync(path.join(ROOT,'lang',c+'.content.json'),'utf8')).digest('hex').slice(0,8)===CV[c],'lang/'+c+'.content.json ?v= is the hash of its text');
     ok(S.root.lang==='th'&&S.root.classList.contains('ew-lang-noto')&&S.link.length===1&&/family=Noto\+Sans\+Thai/.test(S.link[0].getAttribute('href')),'Thai loads Noto Sans Thai only');
     ok(S.L.t('menu.settings')===dict.th['menu.settings'],'t() gives the Thai text once the file is in');
     ok(JSON.parse(S.store.ew_lang_dict).code==='th','the file is kept on the device for the next open');
