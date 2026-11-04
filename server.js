@@ -10592,6 +10592,9 @@ const server=http.createServer((req,res)=>{
   if(p==='/hero61.js') return serveFile(res,'hero61.js','application/javascript',null,req);
   if(p==='/hero-profiles.js') return serveFile(res,'hero-profiles.js','application/javascript',null,req);
   if(p==='/hero-paths.js') return serveFile(res,'hero-paths.js','application/javascript',null,req);
+  /* v1265 LANGUAGES step 1: one small file per language (lang/<code>.json, e.g. es, pt-BR, zh-Hant); the client fetches only the chosen one,
+     at ?v=<hash of its text>. The pattern admits a language code and nothing else (no path can leave lang/). */
+  if(/^\/lang\/[a-z]{2}(?:-[A-Za-z]{2,4})?\.json$/.test(p)) return serveFile(res,p.slice(1),'application/json; charset=utf-8',null,req);
   if(p==='/world-realm.js') return serveFile(res,'world-realm.js','application/javascript',null,req);   /* v1226: the realm map's cells, shared with the server */
   if(p==='/server/temple-of-ash.js') return serveFile(res,'server/temple-of-ash.js','application/javascript',null,req);
   if(p==='/server/patron-benefits.js') return serveFile(res,'server/patron-benefits.js','application/javascript',null,req);   /* v1093: Phil's benefit chart, shared with the client */

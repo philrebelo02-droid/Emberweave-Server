@@ -39,7 +39,8 @@ self.addEventListener('fetch', (e) => {
     return;
   }
   const isDoc = req.mode === 'navigate' || (req.destination === '' && url.pathname === '/') || req.destination === 'document';
-  const isOwnAsset = url.origin === location.origin && url.pathname.startsWith('/assets/');
+  /* v1265: a language file (/lang/<code>.json?v=<hash>) is versioned like art - kept in the persistent cache, never re-fetched for the same ?v= */
+  const isOwnAsset = url.origin === location.origin && (url.pathname.startsWith('/assets/') || url.pathname.startsWith('/lang/'));
 
   // ART: stale-while-revalidate out of the persistent cache. A hit returns with no network round
   // trip at all (this is what stops sprite sheets popping in on a slow phone); the refresh happens
