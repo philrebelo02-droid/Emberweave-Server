@@ -1,5 +1,6 @@
 {
   "patches": [
+    {"ver": "1.2.1", "date": "4 November 2026", "title": "Two ways to sign in", "items": ["The sign-in screen now has two buttons at the top: Emberweave sign in with your username and password, or Google sign in with your Google account."]},
     {"ver": "1.2.0", "date": "4 November 2026", "title": "A sharper world map", "items": ["Much more of the world map now has fine painted detail when you zoom all the way in: coasts, seas and lands across the realm.", "Sign in with Google: continue with your Google account on the first screen, or link it to your account in Settings."]},
     {"ver": "1.1.9", "date": "4 November 2026", "title": "A tidier Settings", "items": ["Settings is now one tidy panel with tabs: General (language and sound), Account, Storage, and Support."]},
     {"ver": "1.1.8", "date": "4 November 2026", "title": "Morvayne", "items": ["The Mythical Support hero now has his name: Morvayne, The Open Gate."]},

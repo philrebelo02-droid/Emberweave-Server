@@ -2393,6 +2393,12 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 #authGate .agCard{width:100%;max-width:340px;max-height:100%;overflow-y:auto;background:linear-gradient(160deg,rgba(43,29,13,.96),rgba(18,12,6,.97));border:1.5px solid #d8b25a;
   border-radius:14px;padding:12px 14px;box-shadow:0 12px 40px #000c,inset 0 1px 0 rgba(255,235,190,.2);display:flex;flex-direction:column;gap:7px}
 #authGate .agTabs{display:flex;gap:6px}
+#authGate .agMethods{display:flex;gap:8px;margin-bottom:10px}
+#authGate .agMethod{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-height:74px;padding:8px 6px;border-radius:11px;border:1.5px solid #6d5a33;background:linear-gradient(180deg,#1f2b48,#0c1326);color:#cdb98a;font:800 12px Georgia,serif;cursor:pointer}
+#authGate .agMethod img{max-width:100%;height:34px;object-fit:contain}
+#authGate .agMethod .agG{width:30px;height:30px;background:#fff;border-radius:50%;padding:4px}
+#authGate .agMethod.on{border-color:#ffd27a;box-shadow:0 0 0 2px rgba(255,179,71,.55);color:#ffe4a8}
+#authGate #agGoogle{display:flex;justify-content:center;min-height:48px}
 #authGate .agTab{flex:1;font:800 13px Georgia,serif;padding:7px 6px;border-radius:9px;border:1px solid #b8913f;background:linear-gradient(180deg,#1f2b48,#0c1326);color:#cdb98a;cursor:pointer}
 #authGate .agTab.on{background:linear-gradient(90deg,#ffb347,#ff8a5b);color:#0b0e14;border-color:#ffd27a}
 #authGate .agTitle{font-weight:800;font-size:15px;color:#ffe6a8;text-shadow:0 1px 2px #000;text-align:center}
@@ -24033,7 +24039,7 @@ function netGateStart(){ if(window._p2guard||!online()||NETGATE.bootAt) return; 
    guest is upgraded in place by /api/register - same id, same ledger) that cannot be dismissed without a choice, and for as long as
    it stays a guest it wears a GUEST marker on the hub and on the battle result screen. A device that was signed in to a real account
    and is now on a guest says so and offers that account's sign-in. Servers 2-5 run the same calls through the account server. */
-const AUTHG={mode:'', shown:'', fgStep:'name', fgName:'', resetName:'', ask:false};   // ask = the guest tapped its GUEST marker
+const AUTHG={mode:'', method:'ew', shown:'', fgStep:'name', fgName:'', resetName:'', ask:false};   // ask = the guest tapped its GUEST marker
 function lastAcctGet(){ try{ const v=JSON.parse(localStorage.getItem('ew_last_acct')||'null'); return (v&&v.name)?v:null; }catch(e){ return null; } }
 function lastAcctSet(){ try{ if(ACC&&ACC.token&&!ACC.guest&&ACC.name) localStorage.setItem('ew_last_acct',JSON.stringify({name:String(ACC.name),id:ACC.id||''})); }catch(e){} }
 function guestStepSeen(){ try{ return !!(ACC&&ACC.id&&localStorage.getItem('ew_guest_step_'+ACC.id)); }catch(e){ return false; } }
@@ -24053,7 +24059,8 @@ function authGateRefresh(force){ let entered=false; try{ entered=_splashEntered;
   if(force || AUTHG.shown!==need+'/'+AUTHG.mode || el.style.display==='none') authGateRender();
   el.style.display='flex'; updateGuestMarks();
   try{ document.querySelectorAll('#tutOffer').forEach(n=>n.remove()); }catch(e){} }
-function authGateRender(){ const el=authGateEl(), need=authGateNeed()||'out', m=AUTHG.mode, last=lastAcctGet();
+function _googleAuthProbe(){ if(window._googleAuthProbed) return; window._googleAuthProbed=true; try{ api('/api/auth/google/config').then(c=>{ window._googleAuthOn=!!(c&&c.enabled); if(window._googleAuthOn&&authGateOpen()) authGateRender(); }).catch(()=>{}); }catch(e){} }
+function authGateRender(){ _googleAuthProbe(); const el=authGateEl(), need=authGateNeed()||'out', m=AUTHG.mode, last=lastAcctGet();
   AUTHG.shown=need+'/'+m;
   const inp=(id,type,ph,ac,extra)=>`<input id="${id}" type="${type}" placeholder="${ph}" autocomplete="${ac}" autocapitalize="off" spellcheck="false"${extra||''}>`;
   const tabs=need==='out'&&(m==='create'||m==='signin')?`<div class="agTabs"><button class="agTab${m==='create'?' on':''}" id="agTabNew">Create account</button><button class="agTab${m==='signin'?' on':''}" id="agTabIn">Sign in</button></div>`:'';
@@ -24081,7 +24088,15 @@ function authGateRender(){ const el=authGateEl(), need=authGateNeed()||'out', m=
       ${inp('agName','text','Username','off',' maxlength="16"')}${inp('agPass','password','Password (8+ characters)','new-password')}${inp('agPass2','password','Confirm password','new-password')}
       <button class="btn" id="agGo">Create account</button>
       <div class="agRow"><button class="btn xs secondary" id="agToIn">${last&&last.name&&last.id!==ACC.id?'Sign in to '+escapeHTML(last.name):'Sign in to an account'}</button></div>`;
-  el.innerHTML=`<div class="agCard">${tabs}${body}<div id="agMsg" class="agMsg"></div></div>`; if(m==='create'||m==='signin'||m==='guest'){ try{ mountGoogleSignin(el.querySelector('.agCard')); }catch(e){} }   /* v1269 (Phil 4 Nov: "sign in now"): Continue with Google on the first sign-in screen too, not only in Settings */
+  /* v1270 (Phil 4 Nov: "there needs to be a quick log in with google" / "Like two sign in options, like a toggle switch" / "EMBERWEAVE SIGN IN, GOOGLE SIGN IN" / "Can use emberweave trademark logo" / "And Google trademark logo" / "As buttons"): two method buttons on top; Google shows Google's own official button (its brand rules) */
+  const _gOn=!!window._googleAuthOn, _pick=(m==='create'||m==='signin'||m==='guest');
+  const _gSvg='<svg class="agG" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>';
+  const methods=(_pick&&_gOn)?`<div class="agMethods"><button class="agMethod${AUTHG.method!=='google'?' on':''}" id="agMEw"><img src="/assets/img/miscellaneous/ew-logo-signin-v1.webp?v=1270" alt="Emberweave"><span>Emberweave sign in</span></button><button class="agMethod${AUTHG.method==='google'?' on':''}" id="agMG">${_gSvg}<span>Google sign in</span></button></div>`:'';
+  const gMode=_pick&&_gOn&&AUTHG.method==='google';
+  el.innerHTML=`<div class="agCard">${methods}${gMode?'<div class="agTitle">Sign in with Google</div><div id="agGoogle"></div>':tabs+body}<div id="agMsg" class="agMsg"></div></div>`;
+  if(gMode){ try{ mountGoogleSignin(el.querySelector('#agGoogle')); }catch(e){} }
+  if(el.querySelector('#agMEw')) el.querySelector('#agMEw').onclick=()=>{ AUTHG.method='ew'; authGateRender(); };
+  if(el.querySelector('#agMG')) el.querySelector('#agMG').onclick=()=>{ AUTHG.method='google'; authGateRender(); };
   const $=s=>el.querySelector(s), msg=(t,good)=>{ const e=$('#agMsg'); if(e){ e.style.color=good?'#8b98a9':'#ff8b8b'; e.textContent=t; } };
   const to=(mode)=>{ AUTHG.mode=mode; authGateRender(); };
   if($('#agTabNew')) $('#agTabNew').onclick=()=>to('create');
@@ -31785,7 +31800,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1793796939789';
+const BUILD_ID = '1793797671015';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
