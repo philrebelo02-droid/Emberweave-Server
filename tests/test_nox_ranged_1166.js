@@ -11,7 +11,7 @@
 (function main() {
 const path = require('path'), vm = require('vm'), fs = require('fs'), cp = require('child_process'), crypto = require('crypto'), os = require('os');
 const ROOT = path.resolve(__dirname, '..');
-const HTML = process.env.EW_HTML || path.join(ROOT, 'emberweave-heroes.html');
+const HTML = require('./helpers/global-1254-1260.js').page(process.env.EW_HTML || path.join(ROOT, 'emberweave-heroes.html'));   // 4 Nov 2026: the 2 Nov global engine changes (v1254 enemy nerf, v1258 resize, v1260 wave hold) undone on the live page so the older BASE still compares (tests/helpers/global-1254-1260.js; test_size_1258 checks the resize)
 const BASE_SHA = process.env.EW_BASE || 'fb3dca16';   // live v1166 (the hotfix; v1165 sound + v1167 walls under it), the build this change sits on
 // BASE tree: its own page AND its own hero-profiles.js / hero-paths.js (sim-host loads the page's external scripts from the page's folder)
 const BD = fs.mkdtempSync(path.join(os.tmpdir(), 'noxr-base-'));
@@ -20,6 +20,7 @@ let baseOk = true;
 try { fs.mkdirSync(path.join(BD, 'server')); for (const f of ['emberweave-heroes.html', 'hero-profiles.js', 'hero-paths.js', 'server/temple-of-ash.js', 'server/patron-benefits.js', 'server/temple-effects.js']) fs.writeFileSync(path.join(BD, f), cp.execSync('git show ' + BASE_SHA + ':' + f, { cwd: ROOT, maxBuffer: 64 << 20 })); } catch (e) { baseOk = false; }
 const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); const r = src => vm.runInContext(src, h.ctx); require('./helpers/anim-meridian-rafe-1173.js').undoMR1173(r); return r; };   // v1173: Meridian / Rafe as v1169 on every page - tests/test_meridian_rafe_1173.js checks them
 const run = load(HTML), R0 = baseOk ? load(path.join(BD, 'emberweave-heroes.html')) : null;
+require('./helpers/hero61-1263.js').undoHero61_1263(run);   // 4 Nov 2026: v1263 Hero 61 (a later release, after BASE) back out, so the every-other-hero BASE checks keep testing what they were written for
 const undone = load(HTML); require('./helpers/anim-noxgrim-1166.js').undoNoxGrim1166(undone);
 let pass = 0, fail = 0;
 const ck = (name, ok, detail) => { if (ok) { pass++; console.log('  ok  ' + name); } else { fail++; console.log('  FAIL ' + name + (detail ? ' - ' + String(detail).slice(0, 700) : '')); } };

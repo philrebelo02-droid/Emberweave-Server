@@ -23,13 +23,14 @@ function sfxFilesV1165(r, cur) { const o = JSON.parse(r('JSON.stringify(SFX_DATA
 (function main() {
 const path = require('path'), vm = require('vm'), fs = require('fs'), cp = require('child_process'), crypto = require('crypto');
 const ROOT = path.resolve(__dirname, '..');
-const HTML = process.env.EW_HTML || path.join(ROOT, 'emberweave-heroes.html');
+const HTML = require('./helpers/global-1254-1260.js').page(process.env.EW_HTML || path.join(ROOT, 'emberweave-heroes.html'));   // 4 Nov 2026: the 2 Nov global engine changes (v1254 enemy nerf, v1258 resize, v1260 wave hold) undone on the live page so the older BASE still compares (tests/helpers/global-1254-1260.js; test_size_1258 checks the resize)
 const BASE_SHA = process.env.EW_BASE || 'c6c0523e';   // live v1159, before this change (its Veyr / Deepcleft entries = v1158's)
 let OLD = process.env.EW_HTML_OLD;
 if (!OLD) { try { OLD = path.join(ROOT, '.test-vd1160-base.html'); fs.writeFileSync(OLD, cp.execSync('git show ' + BASE_SHA + ':emberweave-heroes.html', { cwd: ROOT, maxBuffer: 64 << 20 }));
   const tmp = OLD; process.on('exit', () => { try { fs.unlinkSync(tmp); } catch (e) {} }); } catch (e) { OLD = null; } }
 const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); return src => vm.runInContext(src, h.ctx); };
 const run = load(HTML);
+require('./helpers/hero61-1263.js').undoHero61_1263(run);   // 4 Nov 2026: v1263 Hero 61 (a later release, after BASE) back out, so the every-other-hero BASE checks keep testing what they were written for
 require('./helpers/tolley-fx-1197.js').undoTolleyFx1197(run);   // v1197: Tolley's FX entries, ownFx tags and his FX1123_WARM / SKP_OWNFX rows (a later release) go back to v1195's - tests/test_tolley_fx_1197.js checks them
 require('./helpers/vael-fx-1171.js').undoVaelFx1171(run);   // v1171: Vael's three FX entries + ownFx tags go back to v1163's (tests/test_vael_fx_1171.js checks them)
 require('./helpers/anim-korvux-1162.js').undoKorvux1162(run);   // v1162: Korvux's new entries go back to their v1159 state (tests/test_korvux_anim_eight.js checks them)

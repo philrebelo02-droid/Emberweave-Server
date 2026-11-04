@@ -13,13 +13,14 @@
 const path = require('path'), vm = require('vm'), fs = require('fs'), cp = require('child_process'), crypto = require('crypto');
 const ROOT = path.resolve(__dirname, '..');
 const Q95 = require('./helpers/q95-1158.js');   // v1158: q95 sheets are checked as the v1157 lossless originals they were (tests/test_q95_1158.js checks the q95 files)
-const HTML = process.env.EW_HTML || Q95.page(path.join(ROOT, 'emberweave-heroes.html'));
+const HTML = require('./helpers/global-1254-1260.js').page(process.env.EW_HTML || Q95.page(path.join(ROOT, 'emberweave-heroes.html')));   // 4 Nov 2026: the 2 Nov global engine changes (v1254 enemy nerf, v1258 resize, v1260 wave hold) undone on the live page so the older BASE still compares (tests/helpers/global-1254-1260.js; test_size_1258 checks the resize)
 const BASE_SHA = process.env.EW_BASE || '0734321d';   // origin/main this branch was cut from (v1136)
 let OLD = process.env.EW_HTML_OLD;
 if (!OLD) { try { OLD = path.join(ROOT, '.test-sylthaine-base-control.html'); fs.writeFileSync(OLD, cp.execSync('git show ' + BASE_SHA + ':emberweave-heroes.html', { cwd: ROOT, maxBuffer: 64 << 20 }));
   const tmp = OLD; process.on('exit', () => { try { fs.unlinkSync(tmp); } catch (e) {} }); } catch (e) { OLD = null; } }
 const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); return src => vm.runInContext(src, h.ctx); };
 const run = load(HTML);
+require('./helpers/hero61-1263.js').undoHero61_1263(run);   // 4 Nov 2026: v1263 Hero 61 (a later release, after BASE) back out, so the every-other-hero BASE checks keep testing what they were written for
 require('./helpers/anim-slim-1155.js').undoSlim1155(run);   // v1155 slim: this release's checks see the v1153 entries (tests/test_anim_slim_1155.js checks the slim)
 const R0 = OLD ? load(OLD) : null;
 /* v1161 re-baseline: one whole fight below (seed 5) runs Hurne, whose Feed Them Phil changed after BASE - v1144 (5121b055) it always casts

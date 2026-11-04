@@ -14,7 +14,7 @@
 (function main() {
 const path = require('path'), vm = require('vm'), fs = require('fs'), cp = require('child_process');
 const ROOT = path.resolve(__dirname, '..');
-const HTML = process.env.EW_HTML || path.join(ROOT, 'emberweave-heroes.html');
+const HTML = require('./helpers/global-1254-1260.js').page(process.env.EW_HTML || path.join(ROOT, 'emberweave-heroes.html'));   // 4 Nov 2026: the 2 Nov global engine changes (v1254 enemy nerf, v1258 resize, v1260 wave hold) undone on the live page so the older BASE still compares (tests/helpers/global-1254-1260.js; test_size_1258 checks the resize)
 const BASE_SHA = process.env.EW_BASE || '76c785c7';   // live v1149
 let pass = 0, fail = 0;
 const ck = (name, ok, detail) => { if (ok) { pass++; console.log('  ok  ' + name); } else { fail++; console.log('  FAIL ' + name + (detail ? ' - ' + detail : '')); } };
@@ -33,6 +33,7 @@ try {
     for (const m of html.matchAll(/<script>([\s\S]*?)<\/script>/g)) { n++; try { new vm.Script(m[1]); } catch (e) { bad.push(n + ': ' + e.message); } }
     ck('every inline <script> block of the page parses (' + n + ' blocks)', n > 0 && bad.length === 0, bad.join('; ')); }
   const runN = load(HTML);
+  require('./helpers/hero61-1263.js').undoHero61_1263(runN);   // 4 Nov 2026: v1263 Hero 61 (a later release, after BASE) back out, so the every-other-hero BASE checks keep testing what they were written for
   ck('control file (v1149 emberweave-heroes.html from git ' + BASE_SHA + ') loaded', !!OLD);
   const runB = load(OLD);
 

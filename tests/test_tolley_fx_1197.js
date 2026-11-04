@@ -11,7 +11,7 @@
 (function main() {
 const path = require('path'), vm = require('vm'), fs = require('fs'), cp = require('child_process'), crypto = require('crypto');
 const ROOT = path.resolve(__dirname, '..');
-const HTML = process.env.EW_HTML || path.join(ROOT, 'emberweave-heroes.html');
+const HTML = require('./helpers/global-1254-1260.js').page(process.env.EW_HTML || path.join(ROOT, 'emberweave-heroes.html'));   // 4 Nov 2026: the 2 Nov global engine changes (v1254 enemy nerf, v1258 resize, v1260 wave hold) undone on the live page so the older BASE still compares (tests/helpers/global-1254-1260.js; test_size_1258 checks the resize)
 const VER = process.env.EW_VER || '1197';
 const BASE_SHA = process.env.EW_BASE || '0219c16c';   // live v1198 (on v1192, v1196 all 60 deaths), before this change
 const SRC = 'C:/Users/Home/OneDrive/Desktop/Emberweave Archive/Game Art/_fx2_accepted/';
@@ -20,6 +20,7 @@ if (!OLD) { try { OLD = path.join(ROOT, '.test-tfx1197-base.html'); fs.writeFile
   const tmp = OLD; process.on('exit', () => { try { fs.unlinkSync(tmp); } catch (e) {} }); } catch (e) { OLD = null; } }
 const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); return src => vm.runInContext(src, h.ctx); };
 const run = load(HTML), R0 = OLD ? load(OLD) : null;
+require('./helpers/hero61-1263.js').undoHero61_1263(run);   // 4 Nov 2026: v1263 Hero 61 (a later release, after BASE) back out, so the every-other-hero BASE checks keep testing what they were written for
 require('./helpers/art-18oct-undo.js').undoArt18Oct(run);   // the 18 Oct art (Iver, Joss, Ambrel, seven Grok FX: a later release) goes back to v1199's - its own tests check it
 let pass = 0, fail = 0;
 const ck = (name, ok, detail) => { if (ok) { pass++; console.log('  ok  ' + name); } else { fail++; console.log('  FAIL ' + name + (detail ? ' - ' + String(detail).slice(0, 900) : '')); } };

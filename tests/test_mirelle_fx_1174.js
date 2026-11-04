@@ -10,7 +10,7 @@
 (function main() {
 const path = require('path'), vm = require('vm'), fs = require('fs'), cp = require('child_process'), crypto = require('crypto');
 const ROOT = path.resolve(__dirname, '..');
-const HTML = process.env.EW_HTML || path.join(ROOT, 'emberweave-heroes.html');
+const HTML = require('./helpers/global-1254-1260.js').page(process.env.EW_HTML || path.join(ROOT, 'emberweave-heroes.html'));   // 4 Nov 2026: the 2 Nov global engine changes (v1254 enemy nerf, v1258 resize, v1260 wave hold) undone on the live page so the older BASE still compares (tests/helpers/global-1254-1260.js; test_size_1258 checks the resize)
 const VER = process.env.EW_VER || '1174';
 const BASE_SHA = process.env.EW_BASE || '1fabc0e2';   // live v1173 (Meridian + Rafe, on v1172 / v1171), before this change
 let OLD = process.env.EW_HTML_OLD;
@@ -18,6 +18,7 @@ if (!OLD) { try { OLD = path.join(ROOT, '.test-mfx1174-base.html'); fs.writeFile
   const tmp = OLD; process.on('exit', () => { try { fs.unlinkSync(tmp); } catch (e) {} }); } catch (e) { OLD = null; } }
 const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); const r = src => vm.runInContext(src, h.ctx); require('./helpers/anim-brannus-quorrel-1178.js').undoBQ1178(r); require('./helpers/hollow-fx-1191.js').undoHollowFx1191(r); return r; };   // v1191: Hollow's entries too   // v1178: Brannus's three FX entries (and his / Quorrel's clips) back to v1175's (tests/test_brannus_quorrel_1178.js checks them)
 const run = load(HTML), R0 = OLD ? load(OLD) : null;
+require('./helpers/hero61-1263.js').undoHero61_1263(run);   // 4 Nov 2026: v1263 Hero 61 (a later release, after BASE) back out, so the every-other-hero BASE checks keep testing what they were written for
 require('./helpers/tolley-fx-1197.js').undoTolleyFx1197(run);   // v1197: Tolley's FX entries, ownFx tags and his FX1123_WARM / SKP_OWNFX rows (a later release) go back to v1195's - tests/test_tolley_fx_1197.js checks them
 let pass = 0, fail = 0;
 const ck = (name, ok, detail) => { if (ok) { pass++; console.log('  ok  ' + name); } else { fail++; console.log('  FAIL ' + name + (detail ? ' - ' + String(detail).slice(0, 900) : '')); } };
