@@ -55,7 +55,7 @@ try {
   ck('lore narration code is harmless on the server (loreStop / loreToggle run without a DOM)', run(`(()=>{ try{ loreStop(); loreToggle('veyr',null); return true; }catch(e){ return e.message; } })()`) === true);
   // v1049 (Phil 6 Oct: "an audio section, where there is a scale to reduce volume or turn off - FX, Music, Voices")
   ck('Settings always has the Audio card: FX, Music and Voices, each with on/off and a volume scale',
-    /const soundCard = `<div class="panel">/.test(src) && /\$\{_sndRow\('fx',(?:'FX'|t\('set\.fx'\))\)\}\$\{_sndRow\('music',(?:'Music'|t\('set\.music'\))\)\}\$\{_sndRow\('voice',(?:'Voices'|t\('set\.voices'\))\)\}/.test(src)   /* 4 Nov 2026 v1265: the labels may go through t() (languages step 1) */
+    /const soundCard = `<div class="(?:panel|set-sec)">/.test(src) && /pane\('general',langCard\+soundCard\)/.test(src) &&/\$\{_sndRow\('fx',(?:'FX'|t\('set\.fx'\))\)\}\$\{_sndRow\('music',(?:'Music'|t\('set\.music'\))\)\}\$\{_sndRow\('voice',(?:'Voices'|t\('set\.voices'\))\)\}/.test(src)   /* 4 Nov 2026 v1265: the labels may go through t() (languages step 1) */
     && /id="snd_\$\{ch\}_on"/.test(src) && /type="range" id="snd_\$\{ch\}_vol" min="0" max="100"/.test(src));
   const CH = run(`(()=>{ const keepCan=sndCan, keepCtx=SND.ctx, keepBus=SND.bus, keepCfg=JSON.stringify(SND.cfg), hit=[];
     const gain=n=>({n, gain:{value:1}, connect(t){ hit.push(this.n+'>'+(t&&t.n)); }});
