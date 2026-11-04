@@ -663,12 +663,13 @@ async function linkedUser(gid, name, pass, opts){
      while Server 1 is down (the next good sign-in through Server 1 stores the new one).
    A ban made on Server 2-4 (/api/dev/ban) is made on the account at Server 1. Guests (no account) keep per-server bans. */
 function acctState(u){ return { until:((u.bannedUntil||0)>Date.now()?u.bannedUntil:0), reason:(u.banReason||''), passAt:(u.passAt||0), by:(u.ban&&u.ban.by)||'', del:(u.delReq&&+u.delReq.wipeAt)||0,
-  login:usernameOf(u), admin:isDev(u)?1:0 }; }   /* v1253: the username and the dev role go to Servers 2-5 with the rest (Phil: "my log in for the other servers not devs") */   /* v1232: del = a pending deletion's wipe time (0 = none) */
+  login:usernameOf(u), admin:isDev(u)?1:0, fb:(u.facebook&&u.facebook.id)||'' }; }   /* v1253: the username and the dev role go to Servers 2-5 with the rest (Phil: "my log in for the other servers not devs") */   /* v1232: del = a pending deletion's wipe time (0 = none) */
 function applyAcctState(lu, st){
   if(!lu || !lu.gid || !st) return false; let changed=false; const now=Date.now();
   if(st.deleted){ deleteAccountData(lu); return true; }
   /* v1253: the username is Server 1's; a dev on Server 1 is a dev here (roleS1 marks a role this server only copied, so it also goes
      when Server 1 takes it away; a role stamped here from this server's own ADMIN_IDS is never removed by this) */
+  if('fb' in st && lu.facebook && lu.facebook.id!==st.fb){ delete lu.facebook; changed=true; }   /* v1271: Server 1's Facebook link wins (unlink / Meta data deletion) */
   if(st.login && lu.login!==String(st.login).slice(0,16)){ lu.login=String(st.login).slice(0,16); loginIdxPut(lu); changed=true; }
   if('admin' in st){ if(st.admin && lu.role!=='admin'){ lu.role='admin'; lu.roleS1=1; changed=true; }
     else if(!st.admin && lu.roleS1){ if(lu.role==='admin') delete lu.role; delete lu.roleS1; changed=true; } }   /* v1097: the account was deleted on the account server - this server's player goes too */
@@ -785,10 +786,14 @@ async function acctResetVerify(name, rawCode, newPass, ip, newCred, purpose='pas
     if(u.googleOnly)return {status:409,error:'Set up a password sign-in method before unlinking.'};
     delete u.google;delete u.reset;writeDB();return {u,unlinked:true};
   }
+  if(purpose==='facebook-unlink'){   /* v1271 FACEBOOK LOGIN: the same purpose-scoped code flow as Google */
+    if(u.facebookOnly)return {status:409,error:'Set up a password sign-in method before unlinking.'};
+    delete u.facebook;delete u.reset;writeDB();return {u,unlinked:true};
+  }
   const np=(newPass||'').toString(); if(np.length<8) return {status:400,error:'New password must be at least 8 characters.'};
   const c=credOk(newCred) || await makeCredAsync(np);
   u=DB.users[id]; if(!u||u.isNpc||loginId(key)!==id||u.reset!==rs) return NONE;
-  u.salt=c.salt; u.hash=c.hash; u.iters=c.iters; u.mustReset=false; delete u.reset;delete u.googleOnly;
+  u.salt=c.salt; u.hash=c.hash; u.iters=c.iters; u.mustReset=false; delete u.reset;delete u.googleOnly;delete u.facebookOnly;
   u.passAt=Date.now();   // v1035: Servers 2-5 sign the account out and drop their local password copy when this moves
   const delCancelled=!isBanned(u)&&acctDelCancel(u);   /* v1232: a password reset signs in - it cancels a pending deletion too */
   dropTokens(id); writeDB(); return {u, delCancelled}; }
@@ -1087,6 +1092,11 @@ function sendResetEmail(to, name, code, purpose='password'){
     mailCode(to,name,'Confirm unlinking Google from Emberweave Heroes',
       'Your one-time Google unlink code is: '+code+'. It expires in 15 minutes. Ignore this if you did not request it.',
       'Google unlink code',code,codeHtml(name,'Your one-time Google unlink code is:',code,'Enter it in the game to unlink Google. Expires in 15 minutes. Ignore this if you did not request it.'));return;
+  }
+  if(purpose==='facebook-unlink'){   /* v1271 */
+    mailCode(to,name,'Confirm unlinking Facebook from Emberweave Heroes',
+      'Your one-time Facebook unlink code is: '+code+'. It expires in 15 minutes. Ignore this if you did not request it.',
+      'Facebook unlink code',code,codeHtml(name,'Your one-time Facebook unlink code is:',code,'Enter it in the game to unlink Facebook. Expires in 15 minutes. Ignore this if you did not request it.'));return;
   }
   mailCode(to, name, 'Your Emberweave Heroes password reset code',
     `Hi ${name},\n\nYour one-time password reset code is: ${code}\n\nEnter it in the game to set a new password. This code expires in 15 minutes and can only be used once.\n\nIf you didn't request this, you can safely ignore this email — your password will stay the same.\n\n— Emberweave Heroes`,
@@ -5126,6 +5136,47 @@ async function googleResolve(credential,nonce,current,ip,rawDeviceId){
 }
 const PLAY_BILLING=require('./server/play-billing').createPlayBilling();
 const PLAY_TOKENS=require('./server/play-billing');
+/* v1271 FACEBOOK LOGIN (Phil 4 Nov 2026: "Can you make a Facebook link and log in also"): mirrors googleResolve - the same device and
+   network creation caps, ban check and save. Verification = server/facebook-signin.js (Graph debug_token with the app token, then /me
+   with appsecret_proof). OFF unless FACEBOOK_APP_ID and FACEBOOK_APP_SECRET are both set on the server. */
+const FACEBOOK_AUTH=require('./server/facebook-signin');
+const facebookVerify=FACEBOOK_AUTH.createFacebookVerifier();
+const facebookNonces=new Map();
+function facebookOn(){ return !!(process.env.FACEBOOK_APP_ID&&process.env.FACEBOOK_APP_SECRET); }
+function facebookNewUser(fbId){
+  let login='f'+crypto.createHash('sha256').update('fb:'+fbId).digest('hex').slice(0,15);
+  while(loginId(login)||nameTaken(login)) login='f'+crypto.randomBytes(8).toString('hex').slice(0,15);
+  const u={id:uid(),login,name:login,facebookOnly:true,hash:crypto.randomBytes(64).toString('hex'),salt:crypto.randomBytes(16).toString('hex'),iters:120000,
+    rank:nextJoinRank(),coins:0,team:defaultTeam(),wall:defaultTeam(),roster:{},lastDaily:0,cityX:Math.round(Math.random()*1000),cityY:Math.round(Math.random()*1000),created:Date.now()};
+  DB.users[u.id]=u; DB.byName[login]=u.id; nameIdxPut(u);loginIdxPut(u);_dpk('byName',login); return u;
+}
+async function facebookResolve(accessToken,current,ip,rawDeviceId){
+  const claims=await facebookVerify(accessToken);
+  if(current&&DB.users[current.id]!==current)throw Error('Account changed. Sign in again.');
+  const creating=!Object.values(DB.users).some(u=>u.facebook?.id===claims.id)&&(!current||current.guest);
+  const device=devKey(String(rawDeviceId||'').slice(0,64));let times=[];
+  if(creating){
+    DB.devices=DB.devices||{};DB.ipAccounts=DB.ipAccounts||{};
+    if(device&&(DB.devices[device]||0)>=3)throw FACEBOOK_AUTH.pubErr('Account creation limit reached.');
+    times=(Array.isArray(DB.ipAccounts[ip])?DB.ipAccounts[ip]:[]).filter(t=>Date.now()-t<86400000);
+    if(times.length>=REG_ACCOUNTS_PER_IP)throw FACEBOOK_AUTH.pubErr('Account creation limit reached.');
+  }
+  const r=FACEBOOK_AUTH.resolveAccount({users:DB.users,claims,current,create:facebookNewUser,isBanned});
+  nameIdxPut(r.u);loginIdxPut(r.u);
+  if(creating){
+    if(device){DB.devices[device]=(DB.devices[device]||0)+1;_dpk('devices',device);}
+    DB.ipAccounts[ip]=times.concat([Date.now()]).slice(-50);_dpk('ipAccounts',ip);
+    if(DB.guestByDevice){for(const key of Object.keys(DB.guestByDevice))if(DB.guestByDevice[key]===r.u.id)delete DB.guestByDevice[key];_dp('guestByDevice');}
+  }
+  if(saveSoon([r.u.id])===false) throw Error('Account save failed. Please try again.');
+  return r;
+}
+// Meta posts the deletion callback as a form (signed_request=...), not JSON - read the raw text with the same size cap as body().
+function facebookBodyText(req,max){ return new Promise((resolve,reject)=>{ let d='',len=0,done=false;
+  req.on('data',c=>{ if(done) return; len+=c.length; if(len>max){ done=true; try{req.pause();}catch(_){} const e=new Error('body too large'); e.code='BODY_TOO_LARGE'; reject(e); return; } d+=c; });
+  req.on('end',()=>{ if(!done){ done=true; resolve(d); } }); req.on('error',()=>{ if(!done){ done=true; resolve(''); } }); }); }
+function facebookPublicOrigin(req){ const h=String(req.headers.host||'').toLowerCase();   // only our own hosts (a forged Host header never picks the URL)
+  return 'https://'+(/^(?:s[1-5]\.)?emberweaveheroes\.com$/.test(h)?h:'emberweaveheroes.com'); }
 async function verifyPurchase(me,provider,receipt,offer){
   if(provider==='play') return FREE_PACKS ? {ok:false,error:'Packs are free right now. Use the free pack option.'} : PLAY_BILLING.verify(receipt,offer);
   if(provider==='prebeta') return FREE_PACKS ? {ok:true,ref:'prebeta-free',free:true} : {ok:false,error:'Diamond packs are coming soon.'};
@@ -5544,6 +5595,70 @@ async function api(req,res,url){
     const r=await acctResetVerify(usernameOf(current),b.code,null,clientIP(req),null,'google-unlink');
     return r.u?send(res,200,{ok:true}):send(res,r.status,{error:r.error});
   }
+  /* v1271 FACEBOOK LOGIN: the same routes as Google above. OFF ({enabled:false}) unless FACEBOOK_APP_ID and FACEBOOK_APP_SECRET are both
+     set; config gives the app id only (never the secret). Setup: FACEBOOK LOGIN SETUP.md. */
+  if(p==='/api/auth/facebook/config' && req.method==='GET'){
+    res.setHeader('Cache-Control','no-store');
+    if(!facebookOn()) return send(res,200,{enabled:false});
+    if(rateLimited(req,'fbcfg',30,60000))return send(res,429,{error:'Please wait before trying again.'});
+    for(const [n,v] of facebookNonces)if(v.until<Date.now())facebookNonces.delete(n);
+    if(facebookNonces.size>=10000)return send(res,503,{error:'Sign-in busy. Please try again.'});
+    const nonce=uid()+uid(),current=authUser(req);facebookNonces.set(nonce,{until:Date.now()+10*60000,id:current?.id||null});
+    return send(res,200,{enabled:true,appId:String(process.env.FACEBOOK_APP_ID),nonce,linked:!!current?.facebook,name:current?.facebook?.name||current?.facebook?.email||''});
+  }
+  if(p==='/api/auth/facebook'&&req.method==='POST'){
+    if(!facebookOn())return send(res,503,{error:'Facebook sign-in is not configured.'});
+    if(rateLimited(req,'fbauth',15,60000))return send(res,429,{error:'Too many attempts. Please wait.'});
+    const b=await body(req),current=authUser(req),nonce=facebookNonces.get(b.nonce);facebookNonces.delete(b.nonce);
+    if(!nonce||nonce.until<Date.now()||nonce.id!==(current?.id||null))return send(res,403,{error:'Sign-in expired. Please try again.'});
+    try{
+      let u,created=false;
+      if(ACCOUNT_AUTHORITY){
+        if(current&&!current.guest&&!current.gid)return send(res,409,{error:'Sign in with your game-wide account before linking Facebook.'});
+        const r=await authorityCall('/api/internal/account/facebook',{accessToken:b.accessToken,linkGid:current&&!current.guest?current.gid:null,ip:clientIP(req),deviceId:b.deviceId});
+        if(!r||r.status!==200||!r.body?.gid)return send(res,r?.status||503,{error:r?.body?.error||'Accounts are unreachable.'});
+        const data=r.body;created=!!data.created;
+        if(current?.guest&&created){DB.byGid=DB.byGid||{};DB.byGid[data.gid]=current.id;}
+        u=await linkedUser(data.gid,data.name,null,{login:data.login});u.facebook=data.facebook;u.facebookOnly=!!data.facebookOnly;applyAcctState(u,data.st);
+      }else{const r=await facebookResolve(b.accessToken,current,clientIP(req),b.deviceId);u=r.u;created=r.created;}
+      if(isBanned(u))return send(res,403,banResp(u));
+      acctDelCancel(u);dropTokens(u.id);const token=issueToken(u.id);
+      if(saveSoon([u.id])===false)return send(res,503,{error:'Account save failed. Please try again.'});
+      return send(res,200,{token,profile:profileFor(u),created});
+    }catch(e){return send(res,403,{error:e&&e.code==='FB_PUBLIC'?e.message:'Facebook sign-in or linking failed. Check the Facebook account and try again.'});}
+  }
+  if((p==='/api/auth/facebook/unlink-request'||p==='/api/auth/facebook/unlink')&&req.method==='POST'){
+    const current=authUser(req);if(!current||current.guest)return send(res,401,{error:'Sign in first.'});
+    const request=p.endsWith('request');
+    if(rateLimited(req,request?'resetreq':'resetver',request?5:12,10*60000))return send(res,429,{error:'Too many attempts. Please wait.'});
+    const b=await body(req);
+    if(ACCOUNT_AUTHORITY){
+      const r=await authorityCall('/api/internal/account/facebook-unlink'+(request?'-request':''),{gid:current.gid,code:b.code,ip:clientIP(req)});
+      if(!r||r.status!==200)return send(res,r?.status||503,{error:r?.body?.error||'Accounts are unreachable.'});
+      if(!request){delete current.facebook;saveSoon([current.id]);}return send(res,200,r.body);
+    }
+    if(current.facebookOnly)return send(res,409,{error:'Set up a password sign-in method before unlinking.'});
+    if(!current.facebook||!current.email)return send(res,400,{error:'Link and verify a recovery email in account settings first.'});
+    if(request){await acctResetRequest(usernameOf(current),clientIP(req),'facebook-unlink');return send(res,200,{ok:true});}
+    const r=await acctResetVerify(usernameOf(current),b.code,null,clientIP(req),null,'facebook-unlink');
+    return r.u?send(res,200,{ok:true}):send(res,r.status,{error:r.error});
+  }
+  /* Meta's data-deletion callback (App Dashboard > Data deletion callback URL): verify signed_request with the app secret, remove every
+     stored Facebook field for that Facebook user (Server 1 too, from a satellite), answer {url, confirmation_code}. The game account
+     itself is not deleted here - its owner deletes it in Settings (see /facebook-data-deletion). */
+  if(p==='/api/auth/facebook/data-deletion'&&req.method==='POST'){
+    if(!facebookOn())return send(res,503,{error:'Facebook is not configured.'});
+    if(rateLimited(req,'fbdel',60,60000))return send(res,429,{error:'Please wait before trying again.'});
+    const raw=await facebookBodyText(req,16384);let sr='';
+    try{ sr=new URLSearchParams(raw).get('signed_request')||''; if(!sr&&raw.trim().startsWith('{')) sr=String(JSON.parse(raw).signed_request||''); }catch(_){ sr=''; }
+    let payload;try{payload=FACEBOOK_AUTH.parseSignedRequest(sr,process.env.FACEBOOK_APP_SECRET);}catch(_){return send(res,400,{error:'Invalid signed request.'});}
+    const touched=FACEBOOK_AUTH.eraseFacebookData(DB.users,payload.user_id);
+    if(touched.length&&saveSoon(touched)===false)return send(res,503,{error:'Save failed. Please try again.'});
+    if(ACCOUNT_AUTHORITY){const r=await authorityCall('/api/internal/account/facebook-erase',{fbId:payload.user_id});if(!r||r.status!==200)return send(res,503,{error:'Accounts are unreachable.'});}
+    const code=crypto.randomBytes(8).toString('hex');
+    console.log('[facebook] data deletion request '+code+' done ('+touched.length+' account(s))');   // never the Facebook id
+    return send(res,200,{url:facebookPublicOrigin(req)+'/facebook-data-deletion?code='+code,confirmation_code:code});
+  }
   if(p==='/api/register' && req.method==='POST'){ const b=await body(req); const name=cleanCharName(b.name);
     { const why=badCharName(name); if(why) return send(res,400,{error:why}); }
     if(rateLimited(req,'reg',REG_PER_MIN,60000)) return send(res,429,{error:'Too many attempts — wait a minute and try again.'});
@@ -5687,6 +5802,26 @@ async function api(req,res,url){
       if(p.endsWith('request')){await acctResetRequest(usernameOf(u),String(b.ip||clientIP(req)),'google-unlink');return send(res,200,{ok:true});}
       const r=await acctResetVerify(usernameOf(u),b.code,null,String(b.ip||clientIP(req)),null,'google-unlink');
       return r.u?send(res,200,{ok:true}):send(res,r.status,{error:r.error});
+    }
+    /* v1271 FACEBOOK LOGIN: Server 1 resolves every Facebook id (one game-wide identity), as for Google above */
+    if(p==='/api/internal/account/facebook'){
+      try{const current=b.linkGid?DB.users[String(b.linkGid)]:null;
+        if(b.linkGid&&!current)return send(res,404,{error:'Account not found.'});
+        const r=await facebookResolve(b.accessToken,current,String(b.ip||clientIP(req)),b.deviceId),u=r.u;
+        return send(res,200,{gid:u.id,name:u.name,login:usernameOf(u),facebook:u.facebook,facebookOnly:!!u.facebookOnly,created:r.created,st:acctState(u)});
+      }catch(e){return send(res,403,{error:e&&e.code==='FB_PUBLIC'?e.message:'Facebook sign-in or linking failed.'});}
+    }
+    if(p==='/api/internal/account/facebook-unlink'||p==='/api/internal/account/facebook-unlink-request'){
+      const u=DB.users[String(b.gid||'')];if(!u||u.facebookOnly)return send(res,409,{error:'Set up a password sign-in method before unlinking.'});
+      if(!u.facebook||!u.email)return send(res,400,{error:'Link and verify a recovery email first.'});
+      if(p.endsWith('request')){await acctResetRequest(usernameOf(u),String(b.ip||clientIP(req)),'facebook-unlink');return send(res,200,{ok:true});}
+      const r=await acctResetVerify(usernameOf(u),b.code,null,String(b.ip||clientIP(req)),null,'facebook-unlink');
+      return r.u?send(res,200,{ok:true}):send(res,r.status,{error:r.error});
+    }
+    if(p==='/api/internal/account/facebook-erase'){
+      const touched=FACEBOOK_AUTH.eraseFacebookData(DB.users,String(b.fbId||''));
+      if(touched.length&&saveSoon(touched)===false)return send(res,503,{error:'Save failed. Please try again.'});
+      return send(res,200,{ok:true});
     }
     if(p==='/api/internal/account/verify'){ const trust=(b.gid&&b.tag)?{ gid:String(b.gid), tag:String(b.tag) }:null;
       const r=await acctVerify(b.name, b.pass, 'srv:'+String(b.ip||clientIP(req)), { trust });
@@ -10610,6 +10745,7 @@ const server=http.createServer((req,res)=>{
      the deletion page for the Play Console (the web request form + the email route). Text: Archive Open Projects/Terms and Privacy 2026. */
   if(p==='/terms'||p==='/terms/') return serveFile(res,'legal/terms.html','text/html; charset=utf-8',null,req);
   if(p==='/privacy'||p==='/privacy/') return serveFile(res,'legal/privacy.html','text/html; charset=utf-8',null,req);
+  if(p==='/facebook-data-deletion'||p==='/facebook-data-deletion/') return serveFile(res,'legal/facebook-data-deletion.html','text/html; charset=utf-8',null,req);   /* v1271: Meta's data deletion instructions URL */
   /* ANDROID APP (30 Oct 2026): Digital Asset Links for the Play app (TWA com.emberweave.heroes) - Android fetches this exact path to
      trust the app, so it opens the site full-screen with no browser bar. Without this route the path fell through to the game page. */
   if(p==='/.well-known/assetlinks.json') return serveFile(res,'.well-known/assetlinks.json','application/json',null,req);
