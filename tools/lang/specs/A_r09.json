@@ -1,0 +1,1672 @@
+{
+ "keys": {
+  "wmap.you": "You",
+  "wmap.you_tag": "YOU",
+  "wmap.lv": "Lv {n}",
+  "wmap.go_to_coord": "Go to coordinate",
+  "wmap.show_ctl": "Show map controls",
+  "wmap.hide_ctl": "Hide map controls",
+  "wmap.coord_range": "X runs 0–{x}, Y 0–{y}.",
+  "wmap.tree_heart": "The heart of the world — everyone can teleport around it, but not onto it.",
+  "wmap.coming_soon": "Coming Soon",
+  "wmap.tree_attack_soon": "Attacking the World Tree is coming soon.",
+  "march.server_trips": "Server-recorded trips",
+  "march.trips_failed": "Could not refresh trips. Try reopening Marches.",
+  "march.trips_loading": "Loading server trips…",
+  "march.no_extra_trips": "No additional server trips.",
+  "march.srv_mine": "Lv {n} {res} mine",
+  "march.city_march": "City march",
+  "march.awaiting_result": "Battle result awaiting resolution",
+  "march.ready_in": "Ready in {t}",
+  "march.returning_dot": "Returning · {t}",
+  "march.retreat": "Retreat",
+  "march.refresh_failed": "Refresh failed; showing the last server snapshot.",
+  "siege.oasis": "Oasis",
+  "siege.oasis_closed": "{name} - a garrison site of the World Tree. It opens with the World Tree event.",
+  "march.v_garrison": "Garrisoning",
+  "march.v_siege": "Sieging",
+  "march.v_attack": "Attacking",
+  "march.v_group": "Group attacking",
+  "march.v_defend": "Defending",
+  "march.v_scout": "Scouting",
+  "siege.signin_march": "Sign in to march on {name}.",
+  "siege.march_fail": "The siege march could not be registered. Try again.",
+  "siege.signin_garrison": "Sign in to garrison {name}.",
+  "siege.garrison_fail": "The garrison march could not be registered. Try again.",
+  "march.city_fail": "The city march could not be registered. Try again.",
+  "march.defend_fail": "The defence march could not be registered. Try again.",
+  "march.shield_broke": "Protection shield broke — you launched an attack.",
+  "march.time_stays": "March time {t} · stays until you Return it",
+  "march.time_each_way": "March time {t} each way",
+  "march.only_first": "Only the first {n} wall heroes marched; the others stayed home.",
+  "march.peace_lifted": "Beginner peace shield lifted.",
+  "march.war_fail": "War declaration could not be verified. Try again.",
+  "march.war_declared": "War declared",
+  "march.you_declared": "You declared war on {name}. Combat begins in 30 minutes — you cannot attack until then.",
+  "march.the_enemy": "the enemy",
+  "march.old_raid": "Old raid trip",
+  "march.old_raid_body": "This browser-only raid was not verified by the server. No fight or loot change was applied.",
+  "march.guild_ally": "Guild ally",
+  "march.ally_reinf": "Ally reinforced you",
+  "march.ally_reinf_body": "A guild ally reinforced your castle, then marched home.",
+  "march.attack_blocked": "Attack blocked!",
+  "march.shield_held_body": "Your protection shield held — {name} could not raid you.",
+  "march.raid_repelled": "Raid repelled",
+  "march.wall_held_1": "Your wall held! {name}’s raid was driven off across {n} defense line. No gold was lost.",
+  "march.wall_held_n": "Your wall held! {name}’s raid was driven off across {n} defense lines. No gold was lost.",
+  "march.wall_held": "Wall held!",
+  "march.repelled_1": "Your defenders repelled {name}’s raid ({n} line defending). No gold lost.",
+  "march.repelled_n": "Your defenders repelled {name}’s raid ({n} lines defending). No gold lost.",
+  "march.raided_castle": "Raided your castle",
+  "march.raided_body": "{name}’s army broke through your defense lines and looted {gold} gold. Raise a protection shield or strengthen your wall lines.",
+  "march.raided_by": "Raided by {name}",
+  "march.raided_stole": "An enemy raided your castle and stole {gold}. Consider a protection shield.",
+  "siege.garrisoned": "Garrisoned {name}",
+  "siege.garrisoned_body": "Your heroes are stationed in {name}. They defend it until you Return them.",
+  "siege.not_resolved": "Siege not resolved",
+  "siege.not_registered": "This march was not registered by the server. Send a fresh squad.",
+  "siege.refused": "The siege was refused by the server.",
+  "siege.seized_garrison": "Your army broke the garrison of {name} and seized it.",
+  "siege.seized_guards": "Your army broke the guards of {name} and seized it.",
+  "siege.seized_garrison_for": "Your army broke the garrison of {name} and seized it for {guild}.",
+  "siege.seized_guards_for": "Your army broke the guards of {name} and seized it for {guild}.",
+  "siege.beat_garrison": "Your army beat the garrison of {name}.",
+  "siege.beat_guards": "Your army beat the guards of {name}.",
+  "siege.stay_garrison": "Your heroes stay as its garrison ({n}/{cap}) until you Return them.",
+  "siege.held_garrison": "The garrison of {name} held. Your surviving heroes march home with their injuries.",
+  "siege.held_guards": "The guards of {name} held. Your surviving heroes march home with their injuries.",
+  "march.victory_vs": "Victory — {name}",
+  "march.defeat_vs": "Defeat — {name}",
+  "march.victory_at": "Victory at {name}",
+  "march.defeat_at": "Defeat at {name}",
+  "mine.old_trip": "Old mine trip",
+  "mine.old_trip_body": "This trip predates verified mine battles and cannot pay a haul. Send a fresh squad.",
+  "mine.unverified": "Mine result could not be verified.",
+  "mine.retrying": "{why} Retrying shortly.",
+  "mine.mine": "Mine",
+  "mine.trip_not_resolved": "Mine trip not resolved",
+  "mine.no_award": "{why} No outcome or resources were awarded.",
+  "mine.res_mine": "{res} Mine",
+  "mine.cleared": "Mine cleared — {res}",
+  "mine.cleared_body": "Your squad defeated five guardians and brought home {amt} {res}.",
+  "mine.complete": "Mining complete",
+  "mine.hauled": "The guardians fell. Your squad hauled {amt} {res}.",
+  "mine.guardians_held": "Guardians held — {res}",
+  "mine.drove_off": "The mine guardians drove your squad off. No resources were granted; surviving injuries remain until healed at the {hut}.",
+  "mine.failed": "Mining failed",
+  "mine.held_heal": "The mine guardians held. Heal your wounded heroes at the {hut}.",
+  "mine.off_hauled": "Your squad defeated the mine's 5 guardians and hauled {amt} {res} home.",
+  "mine.off_struck": "Your miners cleared the guardians and struck {amt} {res}.",
+  "mine.cleared_nohaul": "Mine cleared — no haul",
+  "mine.off_nohaul": "Your squad defeated the mine's 5 guardians, but no {res} made it home.",
+  "mine.nohaul_title": "Mining — no haul",
+  "mine.off_nohaul2": "Your miners cleared the guardians but hauled no {res} home.",
+  "mine.off_drove": "The mine's 5 guardians drove your squad off — no {res} gathered. Bring a stronger squad.",
+  "mine.off_drove2": "The mine's guardians drove your miners off — no resources gathered.",
+  "march.scout_noreach": "Your scouts could not reach the castle.",
+  "march.scouts": "Scouts",
+  "march.scout_failed": "Scout report failed - {name}",
+  "march.scout_hero": "{name} Lv {lv}, {stars} stars",
+  "march.scout_hp": "({n}% HP)",
+  "march.scout_body": "Rank #{rank} · defence power {power}. Defenders: {team}.",
+  "march.none_standing": "none standing",
+  "march.ally_squad_1": "{n} guild ally squad stationed there.",
+  "march.ally_squad_n": "{n} guild ally squads stationed there.",
+  "march.shield_up": "A protection shield is up.",
+  "march.scout_report": "Scout report — {name}",
+  "march.scouts_return": "Your scouts are returning home.",
+  "march.scout_heavy": "Rank #{rank} · defence power ~{power}. Their walls look heavily guarded.",
+  "march.scout_light": "Rank #{rank} · defence power ~{power}. Their walls look lightly held.",
+  "march.defending_name": "Defending {name}",
+  "march.stationed_member": "Your heroes are stationed at {name}, defending a guild member. They stay until you Retreat them from Info.",
+  "march.stationed_at": "Your heroes are stationed at {name}. They stay until you Retreat them from Info.",
+  "march.old_city": "Old city trip",
+  "march.old_city_body": "This trip predates verified city marches and cannot resolve a battle. Send a fresh squad.",
+  "march.city_unverified": "City attack could not be verified",
+  "march.no_heroes_marched": "No heroes marched with this army. No outcome or loot was awarded.",
+  "march.city_retrying": "City attack result not confirmed. Retrying shortly.",
+  "march.city_refused": "The city attack was refused by the server.",
+  "march.city_not_resolved": "City attack not resolved",
+  "march.no_loot_award": "{why} No outcome or loot was awarded.",
+  "march.army_home": "Army home - {name}",
+  "march.capped": "No city attacks left today - your army came home.",
+  "march.shielded_home": "{name} raised a protection shield before your army arrived. It came home with nothing.",
+  "march.shield_at": "Shield at {name}",
+  "march.came_home_empty": "Your army came home with nothing.",
+  "march.broke_wall_gold": "Your army broke {name}’s wall and brought home {gold}. Injuries remain until healed at the {hut}.",
+  "march.broke_wall_coins": "Your army broke {name}’s wall and brought home {gold} and {coins} guild coins. Injuries remain until healed at the {hut}.",
+  "march.defenders_held": "{name}’s defenders held. Your surviving heroes retreat with their injuries.",
+  "march.loot_counting": "Your army broke {name}’s wall. The loot is being counted…",
+  "march.looted": "Your army broke {name}’s wall and looted {gold}.",
+  "march.looted_coins": "Your army broke {name}’s wall and looted {gold} + {coins} guild coins.",
+  "march.no_loot": "Your army broke {name}’s wall and brought no loot home this time.",
+  "march.loot_from": "Loot from {name}: {loot}",
+  "march.n_guild_coins": "{n} guild coins",
+  "march.broke_their_wall": "Your army broke their wall. Troops are marching home with the loot.",
+  "march.defenders_held_home": "{name}’s defenders held. Your heroes retreat and march home.",
+  "march.their_defenders_held": "Their defenders held. Your heroes retreat and march home.",
+  "march.no_heroes_unverified": "No heroes marched with this army — the attack could not be verified.",
+  "march.declared_on_you": "{name} declared war on you",
+  "march.war_ready_ends": "War ready {a} · ends {b}",
+  "march.shield_held_vs": "Shield held vs {name}",
+  "march.shield_turned": "{name}’s army reached your castle but your protection shield turned it away. Nothing was lost.",
+  "march.shield_turned_at": "{name}’s army reached your castle at {t} but your protection shield turned it away. Nothing was lost.",
+  "siege.garrison_held": "Garrison held - {name}",
+  "siege.garrison_lost": "Garrison lost - {name}",
+  "march.attacked": "{a} attacked {b}.",
+  "march.attacked_at": "{a} attacked {b} at {t}.",
+  "siege.garrison_held_body": "Your guild’s garrison held it.",
+  "siege.garrison_broke_body": "The siege broke the garrison; your stationed heroes are marching home.",
+  "march.defenders_fought": "Your defenders fought at {name}",
+  "march.def_lost": "Your stationed heroes could not hold the wall. Wounds remain until healed at the {hut}.",
+  "march.def_helped": "Your stationed heroes helped hold the wall. Wounds remain until healed at the {hut}.",
+  "march.unverified_report": "Unverified attack report — {name}",
+  "march.old_report": "{name} submitted an old battle report. The server did not verify a fight, outcome, injuries, or loot.",
+  "march.old_report_at": "{name} submitted an old battle report at {t}. The server did not verify a fight, outcome, injuries, or loot.",
+  "march.raided_your_castle": "{name} raided your castle",
+  "march.broke_through": "{name} attacked your castle and broke through your wall.",
+  "march.broke_through_at": "{name} attacked your castle at {t} and broke through your wall.",
+  "march.wall_held_vs": "Wall held vs {name}",
+  "march.drove_off": "{name} attacked your castle — your wall drove them off.",
+  "march.drove_off_at": "{name} attacked your castle at {t} — your wall drove them off.",
+  "march.reports_1": "{n} attack report — check War mail.",
+  "march.reports_n": "{n} attack reports — check War mail.",
+  "march.recall_fail": "Recall failed. Try again.",
+  "march.army_returning": "Army returning home.",
+  "march.recall_unconfirmed": "Recall could not be confirmed. Retry the same march.",
+  "march.retreating": "Retreating from {name} — troops returning home.",
+  "march.pending": "Pending result",
+  "mine.mining_t": "Mining {t}",
+  "mine.lv_res_mine": "Lv {n} {res} Mine",
+  "mine.yield": "Yield {v}",
+  "mine.per_haul": "per haul",
+  "mine.left": "Left in the mine {v}",
+  "mine.of_total": "of {n}",
+  "mine.working": "Your miners are working here",
+  "mine.guarded": "Guarded by {b}5 monsters{eb} — beat them to mine it",
+  "mine.needs": "Needs squad {p} · a hero Lv {lv}",
+  "mine.mine_time": "Mine {t}",
+  "mine.travel_each": "travel {t} each way",
+  "mine.round_trip": "Total round trip {t}",
+  "mine.send_miners": "Send miners",
+  "march.empty": "empty",
+  "march.no_class": "No {cls} heroes.",
+  "mine.send_up": "Send up to 5 heroes to mine {res}. They can't defend or march again until they return. Requires squad power {p} and a hero of {lv}.",
+  "march.marching": "marching",
+  "mine.need_lv": "need Lv {n}",
+  "mine.march_fail": "The mine march could not be registered. Try again.",
+  "mine.mining_x": "Mining {name}",
+  "march.home_in": "Home in {t}",
+  "siege.ev_off_oasis": "The oases can only be taken during the World Tree event (next in {t}).",
+  "siege.ev_off_tree": "The World Tree can only be taken during the World Tree event (next in {t}).",
+  "siege.signin_attack": "Sign in to attack.",
+  "siege.capital": "Capital city",
+  "siege.city": "City",
+  "siege.guards_lv": "guards Lv {n}",
+  "siege.held_by": "Held by",
+  "siege.distance": "Distance",
+  "siege.n_squares": "{n} squares",
+  "siege.garrison": "Garrison",
+  "castle.defense": "Defense",
+  "siege.view_garrison": "View Garrison",
+  "castle.attack": "Attack",
+  "siege.guild_tag": "(guild)",
+  "siege.no_lines": "No lines stationed - the guards defend it.",
+  "siege.you_tag": "(you)",
+  "siege.arriving": "arriving {t}",
+  "siege.return": "Return",
+  "castle.another_region": "Another region",
+  "castle.cant_march": "{region} — you can't march here.",
+  "castle.transfer": "Transfer your region to operate here.",
+  "castle.info": "Info",
+  "castle.whisper": "Whisper",
+  "castle.block": "Block",
+  "castle.group_attack": "Group Attack",
+  "castle.defend": "Defend",
+  "castle.scout": "Scout",
+  "castle.declare_war": "Declare War",
+  "castle.player": "Player",
+  "castle.npc": "NPC",
+  "castle.stronghold_info": "Stronghold info",
+  "castle.level": "Level",
+  "castle.coordinates": "Coordinates",
+  "castle.arena_rank": "Arena rank",
+  "castle.power": "Power",
+  "castle.npc_whisper": "{name} is an NPC — nobody home to whisper.",
+  "castle.war_live": "War with {name} is already live — attack now!",
+  "castle.war_pending": "War already declared — combat begins in {t}",
+  "castle.no_wall_heroes": "No wall heroes available to attack — assign heroes to your wall lines first (and make sure they aren't mining or marching).",
+  "castle.cannot_yet": "Cannot attack yet — war with {name} begins in {t}",
+  "castle.not_at_war": "You are not at war with {name}. Declare war? Combat begins after a {b}30-minute{eb} countdown — you cannot attack until it ends.",
+  "march.dist_time": "Distance {d} squares · march time {t} each way",
+  "march.eta": "ETA {t}",
+  "march.leaving": "leaving {t}",
+  "march.reinforcing_you": "{name} reinforcing you",
+  "march.attacking_you": "{name} attacking you",
+  "march.l_garrison": "Garrison {name}",
+  "march.l_sieging": "Sieging {name}",
+  "march.l_defending": "Defending {name}",
+  "march.l_scouting": "Scouting {name}",
+  "march.l_group": "Group attack {name}",
+  "march.l_attacking": "Attacking {name}",
+  "march.returning": "returning {t}",
+  "march.stationed": "stationed",
+  "march.marches": "Marches",
+  "march.protected_left": "Protected — {t} left",
+  "march.incoming": "Incoming to your castle ({n})",
+  "march.no_incoming": "No incoming marches.",
+  "march.your_marches": "Your marches ({n})",
+  "march.no_active": "No active marches.",
+  "gshop.protection_shield": "Protection Shield",
+  "gshop.shield_desc": "Makes your castle immune to enemy attacks for 12 hours. It breaks instantly if {b}you{eb} attack someone.",
+  "gshop.active_left": "Active — {t} left",
+  "gshop.shields_owned": "Shields owned",
+  "gshop.activate_shield": "Activate 12-hour Shield",
+  "gshop.buy_in_shop": "Buy in Guild Shop",
+  "gshop.shield_fail": "The shield could not be raised.",
+  "gshop.shield_on": "Shield active for 12 hours.",
+  "gshop.title": "Guild Shop",
+  "gshop.daily_done": "Daily contributions done — come back tomorrow.",
+  "gshop.level_up": "Guild reached level {n}!",
+  "gshop.d_shield": "12h attack immunity",
+  "gshop.gold_cache": "Gold Cache",
+  "gshop.d_gold": "+{n} gold",
+  "gshop.diamond_pouch": "Diamond Pouch",
+  "gshop.d_diamonds": "+{n} diamonds",
+  "gshop.stamina_refill": "Stamina Refill",
+  "gshop.d_stamina": "Refill stamina to full",
+  "gshop.arena_coins": "Arena Coins ×{n}",
+  "gshop.d_arena": "+{n} arena coins",
+  "gshop.equip_pieces": "Equipment Pieces",
+  "gshop.d_pieces": "+100 of each equip piece",
+  "gshop.great_gold_cache": "Great Gold Cache",
+  "gshop.resource_crate": "Resource Crate",
+  "gshop.d_resources": "+100 of each map resource",
+  "gshop.diamond_chest": "Diamond Chest",
+  "gshop.shield_pack": "Shield Pack ×{n}",
+  "gshop.d_shields": "+{n} protection shields",
+  "gshop.treasure_vault": "Treasure Vault",
+  "gshop.join_first": "Join a guild to unlock the Guild Shop.",
+  "gshop.spend": "Spend {coins} guild coins · {n} items unlocked at guild Lv {lv}",
+  "gshop.no_stock": "The guild quartermaster had no stock.",
+  "gshop.refused": "The guild quartermaster refused that.",
+  "gshop.perk_mine": "world-mine yield",
+  "gshop.perk_contrib": "guild contribution exp",
+  "gshop.perk_raid": "gold looted from raids",
+  "gshop.plus_exp": "+{n} guild exp",
+  "gshop.leave_q": "Leave {name}?",
+  "gshop.make_leader": "Make Guild Leader",
+  "gshop.remove_member": "Remove from Guild",
+  "gshop.make_leader_q": "Make {name} the leader? You will step down as leader.",
+  "gshop.remove_q": "Remove {name} from the guild?",
+  "gshop.manage": "Manage {name}",
+  "gshop.motd": "Message of the day",
+  "gshop.guild_banner": "Guild banner",
+  "gshop.change_banner": "Change banner",
+  "gshop.disband": "Disband Guild",
+  "gshop.step_down_hint": "To step down and leave, first make another member the leader (tap their name in the roster).",
+  "gshop.motd_updated": "MOTD updated",
+  "gshop.disband_q": "Disband {name} permanently? Every member will be removed.",
+  "gshop.none": "none",
+  "gshop.shape": "SHAPE",
+  "gshop.emblem": "EMBLEM",
+  "gshop.colour": "COLOUR",
+  "gshop.import": "IMPORT",
+  "gshop.import_pic": "Import a picture",
+  "gshop.remove_pic": "Remove picture",
+  "gshop.save_banner": "Save banner",
+  "gshop.pic_format": "Use a PNG, JPEG, GIF or WebP picture.",
+  "gshop.pic_unreadable": "That picture could not be read."
+ },
+ "edits": [
+  {
+   "line": 25523,
+   "find": "${wmNameLines(G.playerName||'You')} · YOU</div><div class=\"nl\" style=\"color:#ffd45e;font-size:9px\">Lv ${playerLevel()}</div>",
+   "replace": "${wmNameLines(G.playerName||ewT('wmap.you'))} · ${ewT('wmap.you_tag')}</div><div class=\"nl\" style=\"color:#ffd45e;font-size:9px\">${ewT('wmap.lv',{n:playerLevel()})}</div>"
+  },
+  {
+   "line": 25551,
+   "find": "title=\"Go to coordinate\"",
+   "replace": "title=\"${ewT('wmap.go_to_coord')}\""
+  },
+  {
+   "line": 25559,
+   "find": "h?'Show map controls':'Hide map controls'",
+   "replace": "h?ewT('wmap.show_ctl'):ewT('wmap.hide_ctl')"
+  },
+  {
+   "line": 25590,
+   "find": "} Go to coordinate</div>",
+   "replace": "} ${ewT('wmap.go_to_coord')}</div>"
+  },
+  {
+   "line": 25591,
+   "find": "X runs 0–${GRID_COLS-1}, Y 0–${GRID_ROWS-1}.",
+   "replace": "${ewT('wmap.coord_range',{x:GRID_COLS-1,y:GRID_ROWS-1})}"
+  },
+  {
+   "line": 25596,
+   "find": "id=\"csCancel\">Cancel</button>",
+   "replace": "id=\"csCancel\">${ewT('common.cancel')}</button>"
+  },
+  {
+   "line": 25596,
+   "find": "id=\"csGo\">Go</button>",
+   "replace": "id=\"csGo\">${ewT('common.go')}</button>"
+  },
+  {
+   "line": 25660,
+   "find": "'Server-recorded trips'",
+   "replace": "ewT('march.server_trips')"
+  },
+  {
+   "line": 25661,
+   "find": "s&&s.failed?'Could not refresh trips. Try reopening Marches.':'Loading server trips…'",
+   "replace": "s&&s.failed?ewT('march.trips_failed'):ewT('march.trips_loading')"
+  },
+  {
+   "line": 25663,
+   "find": "'No additional server trips.'",
+   "replace": "ewT('march.no_extra_trips')"
+  },
+  {
+   "line": 25664,
+   "find": "'Lv '+m.level+' '+m.resource+' mine':'City march'",
+   "replace": "ewT('march.srv_mine',{n:m.level,res:m.resource}):ewT('march.city_march')"
+  },
+  {
+   "line": 25665,
+   "find": "'Battle result awaiting resolution'",
+   "replace": "ewT('march.awaiting_result')"
+  },
+  {
+   "line": 25665,
+   "find": "'Ready in '+fmtDur(m.arriveAt-s.now)",
+   "replace": "ewT('march.ready_in',{t:fmtDur(m.arriveAt-s.now)})"
+  },
+  {
+   "line": 25665,
+   "find": "'Returning · '+fmtDur(Math.max(0,m.homeAt-s.now))",
+   "replace": "ewT('march.returning_dot',{t:fmtDur(Math.max(0,m.homeAt-s.now))})"
+  },
+  {
+   "line": 25666,
+   "find": "btn.textContent='↩ Retreat'",
+   "replace": "btn.textContent='↩ '+ewT('march.retreat')"
+  },
+  {
+   "line": 25667,
+   "find": "'Refresh failed; showing the last server snapshot.'",
+   "replace": "ewT('march.refresh_failed')"
+  },
+  {
+   "line": 25673,
+   "find": "nm=o?o.name:'Oasis'",
+   "replace": "nm=o?o.name:ewT('siege.oasis')"
+  },
+  {
+   "line": 25674,
+   "find": "bannerMsg(nm+' - a garrison site of the World Tree. It opens with the World Tree event.')",
+   "replace": "bannerMsg(ewT('siege.oasis_closed',{name:nm}))"
+  },
+  {
+   "line": 25698,
+   "find": "+' Garrisoning'",
+   "replace": "+' '+ewT('march.v_garrison')"
+  },
+  {
+   "line": 25698,
+   "find": "+' Sieging'",
+   "replace": "+' '+ewT('march.v_siege')"
+  },
+  {
+   "line": 25698,
+   "find": "+' Attacking'",
+   "replace": "+' '+ewT('march.v_attack')"
+  },
+  {
+   "line": 25698,
+   "find": "+' Group attacking'",
+   "replace": "+' '+ewT('march.v_group')"
+  },
+  {
+   "line": 25698,
+   "find": "+' Defending'",
+   "replace": "+' '+ewT('march.v_defend')"
+  },
+  {
+   "line": 25698,
+   "find": "+' Scouting'",
+   "replace": "+' '+ewT('march.v_scout')"
+  },
+  {
+   "line": 25711,
+   "find": "bannerMsg('Sign in to march on '+escapeHTML(c.name)+'.')",
+   "replace": "bannerMsg(ewT('siege.signin_march',{name:escapeHTML(c.name)}))"
+  },
+  {
+   "line": 25716,
+   "find": "bannerMsg((serverMarch&&serverMarch.error)||'The siege march could not be registered. Try again.')",
+   "replace": "bannerMsg(langMsg(serverMarch&&serverMarch.error)||ewT('siege.march_fail'))"
+  },
+  {
+   "line": 25720,
+   "find": "bannerMsg('Sign in to garrison '+escapeHTML(c.name)+'.')",
+   "replace": "bannerMsg(ewT('siege.signin_garrison',{name:escapeHTML(c.name)}))"
+  },
+  {
+   "line": 25725,
+   "find": "bannerMsg((serverMarch&&serverMarch.error)||'The garrison march could not be registered. Try again.')",
+   "replace": "bannerMsg(langMsg(serverMarch&&serverMarch.error)||ewT('siege.garrison_fail'))"
+  },
+  {
+   "line": 25735,
+   "find": "bannerMsg((serverMarch&&serverMarch.error)||'The city march could not be registered. Try again.')",
+   "replace": "bannerMsg(langMsg(serverMarch&&serverMarch.error)||ewT('march.city_fail'))"
+  },
+  {
+   "line": 25744,
+   "find": "bannerMsg((serverMarch&&serverMarch.error)||'The defence march could not be registered. Try again.')",
+   "replace": "bannerMsg(langMsg(serverMarch&&serverMarch.error)||ewT('march.defend_fail'))"
+  },
+  {
+   "line": 25748,
+   "find": "+' Protection shield broke — you launched an attack.'",
+   "replace": "+' '+ewT('march.shield_broke')"
+  },
+  {
+   "line": 25756,
+   "find": "'\\nMarch time '+fmtDur(out)+(ctype==='garrison'?' · stays until you Return it':' each way')",
+   "replace": "'\\n'+(ctype==='garrison'?ewT('march.time_stays',{t:fmtDur(out)}):ewT('march.time_each_way',{t:fmtDur(out)}))"
+  },
+  {
+   "line": 25757,
+   "find": "'\\nOnly the first '+serverMarch.heroIds.length+' wall heroes marched; the others stayed home.'",
+   "replace": "'\\n'+ewT('march.only_first',{n:serverMarch.heroIds.length})"
+  },
+  {
+   "line": 25765,
+   "find": "+' Beginner peace shield lifted.'",
+   "replace": "+' '+ewT('march.peace_lifted')"
+  },
+  {
+   "line": 25815,
+   "find": "bannerMsg((r&&r.error)||'War declaration could not be verified. Try again.')",
+   "replace": "bannerMsg(langMsg(r&&r.error)||ewT('march.war_fail'))"
+  },
+  {
+   "line": 25818,
+   "find": "marchReport('{i:s:burn} War declared','You declared war on '+escapeHTML(String(c.name||''))+'. Combat begins in 30 minutes — you cannot attack until then.')",
+   "replace": "marchReport('{i:s:burn} '+ewT('march.war_declared'),ewT('march.you_declared',{name:escapeHTML(String(c.name||''))}))"
+  },
+  {
+   "line": 25855,
+   "find": "oppName:meta.oppName||'the enemy'",
+   "replace": "oppName:meta.oppName||ewT('march.the_enemy')"
+  },
+  {
+   "line": 25859,
+   "find": "oppName:meta.oppName||'the enemy'",
+   "replace": "oppName:meta.oppName||ewT('march.the_enemy')"
+  },
+  {
+   "line": 25864,
+   "find": "marchReport('{i:u:warning} Old raid trip','This browser-only raid was not verified by the server. No fight or loot change was applied.')",
+   "replace": "marchReport('{i:u:warning} '+ewT('march.old_raid'),ewT('march.old_raid_body'))"
+  },
+  {
+   "line": 25867,
+   "find": "from:m.tName||'Guild ally',subj:'{i:s:shield} Ally reinforced you',body:'A guild ally reinforced your castle, then marched home.'",
+   "replace": "from:m.tName||ewT('march.guild_ally'),subj:'{i:s:shield} '+ewT('march.ally_reinf'),body:ewT('march.ally_reinf_body')"
+  },
+  {
+   "line": 25867,
+   "find": "marchReport('{i:s:shield} Ally reinforced you','A guild ally reinforced your castle, then marched home.')",
+   "replace": "marchReport('{i:s:shield} '+ewT('march.ally_reinf'),ewT('march.ally_reinf_body'))"
+  },
+  {
+   "line": 25868,
+   "find": "marchReport('{i:s:shield} Attack blocked!','Your protection shield held — '+m.tName+' could not raid you.')",
+   "replace": "marchReport('{i:s:shield} '+ewT('march.attack_blocked'),ewT('march.shield_held_body',{name:m.tName}))"
+  },
+  {
+   "line": 25874,
+   "find": "subj:'{i:s:shield} Raid repelled',body:'Your wall held! '+m.tName+'’s raid was driven off across '+n+' defense line'+(n===1?'':'s')+'. No gold was lost.'",
+   "replace": "subj:'{i:s:shield} '+ewT('march.raid_repelled'),body:(n===1?ewT('march.wall_held_1',{name:m.tName,n}):ewT('march.wall_held_n',{name:m.tName,n}))"
+  },
+  {
+   "line": 25875,
+   "find": "marchReport('{i:s:shield} Wall held!','Your defenders repelled '+m.tName+'’s raid ('+n+' line'+(n===1?'':'s')+' defending). No gold lost.')",
+   "replace": "marchReport('{i:s:shield} '+ewT('march.wall_held'),(n===1?ewT('march.repelled_1',{name:m.tName,n}):ewT('march.repelled_n',{name:m.tName,n})))"
+  },
+  {
+   "line": 25877,
+   "find": "subj:'{i:u:warning} Raided your castle',body:m.tName+'’s army broke through your defense lines and looted {i:h:gold} '+loss+' gold. Raise a protection shield or strengthen your wall lines.'",
+   "replace": "subj:'{i:u:warning} '+ewT('march.raided_castle'),body:ewT('march.raided_body',{name:m.tName,gold:'{i:h:gold} '+loss})"
+  },
+  {
+   "line": 25878,
+   "find": "marchReport('{i:u:warning} Raided by '+m.tName,'An enemy raided your castle and stole {i:h:gold} '+loss+'. Consider a protection shield.')",
+   "replace": "marchReport('{i:u:warning} '+ewT('march.raided_by',{name:m.tName}),ewT('march.raided_stole',{gold:'{i:h:gold} '+loss}))"
+  },
+  {
+   "line": 25881,
+   "find": "marchReport(statusIcon('shield')+' Garrisoned '+m.tName,'Your heroes are stationed in '+m.tName+'. They defend it until you Return them.')",
+   "replace": "marchReport(statusIcon('shield')+' '+ewT('siege.garrisoned',{name:m.tName}),ewT('siege.garrisoned_body',{name:m.tName}))"
+  },
+  {
+   "line": 25883,
+   "find": "marchReport(statusIcon('attack')+' Siege not resolved','This march was not registered by the server. Send a fresh squad.')",
+   "replace": "marchReport(statusIcon('attack')+' '+ewT('siege.not_resolved'),ewT('siege.not_registered'))"
+  },
+  {
+   "line": 25895,
+   "find": "const reason=r.error||'The siege was refused by the server.'",
+   "replace": "const reason=langMsg(r.error)||ewT('siege.refused')"
+  },
+  {
+   "line": 25896,
+   "find": "subj:'{i:u:warning} Siege not resolved'",
+   "replace": "subj:'{i:u:warning} '+ewT('siege.not_resolved')"
+  },
+  {
+   "line": 25896,
+   "find": "marchReport('{i:u:warning} Siege not resolved',reason)",
+   "replace": "marchReport('{i:u:warning} '+ewT('siege.not_resolved'),reason)"
+  },
+  {
+   "line": 25902,
+   "find": "const body=r.won?(r.seized?('Your army broke the '+foes+' of '+m.tName+' and seized it'+(r.holder&&r.holder.type==='guild'?' for '+r.holder.name:'')+'.'):('Your army beat the '+foes+' of '+m.tName+'. '+(r.note||'')))",
+   "replace": "const gz=foes==='garrison', body=r.won?(r.seized?((r.holder&&r.holder.type==='guild')?(gz?ewT('siege.seized_garrison_for',{name:m.tName,guild:r.holder.name}):ewT('siege.seized_guards_for',{name:m.tName,guild:r.holder.name})):(gz?ewT('siege.seized_garrison',{name:m.tName}):ewT('siege.seized_guards',{name:m.tName}))):((gz?ewT('siege.beat_garrison',{name:m.tName}):ewT('siege.beat_guards',{name:m.tName}))+' '+(r.note||'')))"
+  },
+  {
+   "line": 25903,
+   "find": "' Your heroes stay as its garrison ('+r.lines+'/'+r.cap+') until you Return them.'",
+   "replace": "' '+ewT('siege.stay_garrison',{n:r.lines,cap:r.cap})"
+  },
+  {
+   "line": 25904,
+   "find": "('The '+foes+' of '+m.tName+' held. Your surviving heroes march home with their injuries.')",
+   "replace": "(gz?ewT('siege.held_garrison',{name:m.tName}):ewT('siege.held_guards',{name:m.tName}))"
+  },
+  {
+   "line": 25905,
+   "find": "subj:(r.won?'{i:s:attack} Victory — ':'{i:s:attack} Defeat — ')+m.tName",
+   "replace": "subj:'{i:s:attack} '+(r.won?ewT('march.victory_vs',{name:m.tName}):ewT('march.defeat_vs',{name:m.tName}))"
+  },
+  {
+   "line": 25906,
+   "find": "marchReport((r.won?'{i:s:attack} Victory at ':'{i:s:attack} Defeat at ')+m.tName,body)",
+   "replace": "marchReport('{i:s:attack} '+(r.won?ewT('march.victory_at',{name:m.tName}):ewT('march.defeat_at',{name:m.tName})),body)"
+  },
+  {
+   "line": 25912,
+   "find": "marchReport('{i:u:mode-mine} Old mine trip','This trip predates verified mine battles and cannot pay a haul. Send a fresh squad.')",
+   "replace": "marchReport('{i:u:mode-mine} '+ewT('mine.old_trip'),ewT('mine.old_trip_body'))"
+  },
+  {
+   "line": 25920,
+   "find": "'Mine result could not be verified.'",
+   "replace": "ewT('mine.unverified')"
+  },
+  {
+   "line": 25925,
+   "find": "bannerMsg(reason+' Retrying shortly.')",
+   "replace": "bannerMsg(ewT('mine.retrying',{why:langMsg(reason)}))"
+  },
+  {
+   "line": 25928,
+   "find": "from:'{i:u:mode-mine} Mine',subj:'{i:u:warning} Mine trip not resolved',",
+   "replace": "from:'{i:u:mode-mine} '+ewT('mine.mine'),subj:'{i:u:warning} '+ewT('mine.trip_not_resolved'),"
+  },
+  {
+   "line": 25929,
+   "find": "body:reason+' No outcome or resources were awarded.'",
+   "replace": "body:ewT('mine.no_award',{why:langMsg(reason)})"
+  },
+  {
+   "line": 25930,
+   "find": "marchReport('{i:u:warning} Mine trip not resolved',reason)",
+   "replace": "marchReport('{i:u:warning} '+ewT('mine.trip_not_resolved'),langMsg(reason))"
+  },
+  {
+   "line": 25940,
+   "find": "from:'{i:u:mode-mine} '+label+' Mine',subj:'{i:u:mode-mine} Mine cleared — '+label,",
+   "replace": "from:'{i:u:mode-mine} '+ewT('mine.res_mine',{res:label}),subj:'{i:u:mode-mine} '+ewT('mine.cleared',{res:label}),"
+  },
+  {
+   "line": 25941,
+   "find": "body:'Your squad defeated five guardians and brought home '+mnResIcon(m.res)+' '+got+' '+label+'.'",
+   "replace": "body:ewT('mine.cleared_body',{amt:mnResIcon(m.res)+' '+got,res:label})"
+  },
+  {
+   "line": 25942,
+   "find": "marchReport('{i:u:mode-mine} Mining complete','The guardians fell. Your squad hauled '+mnResIcon(m.res)+' '+got+' '+label+'.')",
+   "replace": "marchReport('{i:u:mode-mine} '+ewT('mine.complete'),ewT('mine.hauled',{amt:mnResIcon(m.res)+' '+got,res:label}))"
+  },
+  {
+   "line": 25944,
+   "find": "from:'{i:u:mode-mine} '+label+' Mine',subj:'{i:u:mode-mine} Guardians held — '+label,",
+   "replace": "from:'{i:u:mode-mine} '+ewT('mine.res_mine',{res:label}),subj:'{i:u:mode-mine} '+ewT('mine.guardians_held',{res:label}),"
+  },
+  {
+   "line": 25945,
+   "find": "body:'The mine guardians drove your squad off. No resources were granted; surviving injuries remain until healed at the Witches Hut.'",
+   "replace": "body:ewT('mine.drove_off',{hut:ewT('bld.witches_hut')})"
+  },
+  {
+   "line": 25946,
+   "find": "marchReport('{i:u:mode-mine} Mining failed','The mine guardians held. Heal your wounded heroes at the Witches Hut.')",
+   "replace": "marchReport('{i:u:mode-mine} '+ewT('mine.failed'),ewT('mine.held_heal',{hut:ewT('bld.witches_hut')}))"
+  },
+  {
+   "line": 25957,
+   "find": "from:'{i:u:mode-mine} '+rlabel+' Mine',subj:'{i:u:mode-mine} Mine cleared — '+rlabel,body:'Your squad defeated the mine\\'s 5 guardians and hauled '+mnResIcon(m.res)+' '+got+' '+rlabel+' home.'",
+   "replace": "from:'{i:u:mode-mine} '+ewT('mine.res_mine',{res:rlabel}),subj:'{i:u:mode-mine} '+ewT('mine.cleared',{res:rlabel}),body:ewT('mine.off_hauled',{amt:mnResIcon(m.res)+' '+got,res:rlabel})"
+  },
+  {
+   "line": 25958,
+   "find": "marchReport('{i:u:mode-mine} Mining complete','Your miners cleared the guardians and struck '+mnResIcon(m.res)+' '+got+' '+rlabel+'.'",
+   "replace": "marchReport('{i:u:mode-mine} '+ewT('mine.complete'),ewT('mine.off_struck',{amt:mnResIcon(m.res)+' '+got,res:rlabel})"
+  },
+  {
+   "line": 25959,
+   "find": "from:'{i:u:mode-mine} '+rlabel+' Mine',subj:'{i:u:mode-mine} Mine cleared — no haul',body:'Your squad defeated the mine\\'s 5 guardians, but no '+rlabel+' made it home.'",
+   "replace": "from:'{i:u:mode-mine} '+ewT('mine.res_mine',{res:rlabel}),subj:'{i:u:mode-mine} '+ewT('mine.cleared_nohaul'),body:ewT('mine.off_nohaul',{res:rlabel})"
+  },
+  {
+   "line": 25960,
+   "find": "marchReport('{i:u:mode-mine} Mining — no haul','Your miners cleared the guardians but hauled no '+rlabel+' home.'",
+   "replace": "marchReport('{i:u:mode-mine} '+ewT('mine.nohaul_title'),ewT('mine.off_nohaul2',{res:rlabel})"
+  },
+  {
+   "line": 25964,
+   "find": "from:'{i:u:mode-mine} '+rlabel+' Mine',subj:'{i:u:mode-mine} Guardians held — '+rlabel,body:'The mine\\'s 5 guardians drove your squad off — no '+rlabel+' gathered. Bring a stronger squad.'",
+   "replace": "from:'{i:u:mode-mine} '+ewT('mine.res_mine',{res:rlabel}),subj:'{i:u:mode-mine} '+ewT('mine.guardians_held',{res:rlabel}),body:ewT('mine.off_drove',{res:rlabel})"
+  },
+  {
+   "line": 25965,
+   "find": "marchReport('{i:u:mode-mine} Mining failed','The mine\\'s guardians drove your miners off — no resources gathered.')",
+   "replace": "marchReport('{i:u:mode-mine} '+ewT('mine.failed'),ewT('mine.off_drove2'))"
+  },
+  {
+   "line": 25973,
+   "find": "const why=r.error||'Your scouts could not reach the castle.'; addMail('scouts',{from:'Scouts',subj:'Scout report failed - '+m.tName,body:why}); marchReport('Scout report failed - '+m.tName,why);",
+   "replace": "const why=langMsg(r.error)||ewT('march.scout_noreach'); addMail('scouts',{from:ewT('march.scouts'),subj:ewT('march.scout_failed',{name:m.tName}),body:why}); marchReport(ewT('march.scout_failed',{name:m.tName}),why);"
+  },
+  {
+   "line": 25974,
+   "find": "((HERO_TYPES[h.key]&&HERO_TYPES[h.key].name)||h.key)+' Lv '+(h.level|0)+', '+(h.stars|0)+' stars'+((h.hp|0)<100?' ('+(h.hp|0)+'% HP)':'')",
+   "replace": "ewT('march.scout_hero',{name:((HERO_TYPES[h.key]&&HERO_TYPES[h.key].name)||h.key),lv:(h.level|0),stars:(h.stars|0)})+((h.hp|0)<100?' '+ewT('march.scout_hp',{n:(h.hp|0)}):'')"
+  },
+  {
+   "line": 25975,
+   "find": "const body='Rank #'+(r.rank||'?')+' \\u00b7 defence power '+(r.power|0).toLocaleString()+'. Defenders: '+(team||'none standing')+'.'",
+   "replace": "const body=ewT('march.scout_body',{rank:(r.rank||'?'),power:(r.power|0).toLocaleString(),team:(team||ewT('march.none_standing'))})"
+  },
+  {
+   "line": 25976,
+   "find": "+(r.allyDefenders?' '+r.allyDefenders+' guild ally squad'+(r.allyDefenders===1?'':'s')+' stationed there.':'')+((r.shieldedUntil|0)>Date.now()?' A protection shield is up.':'')",
+   "replace": "+(r.allyDefenders?' '+(r.allyDefenders===1?ewT('march.ally_squad_1',{n:r.allyDefenders}):ewT('march.ally_squad_n',{n:r.allyDefenders})):'')+((r.shieldedUntil|0)>Date.now()?' '+ewT('march.shield_up'):'')"
+  },
+  {
+   "line": 25977,
+   "find": "addMail('scouts',{from:'Scouts',subj:'Scout report \\u2014 '+m.tName,body}); marchReport('Scout report \\u2014 '+m.tName,body+' Your scouts are returning home.');",
+   "replace": "addMail('scouts',{from:ewT('march.scouts'),subj:ewT('march.scout_report',{name:m.tName}),body}); marchReport(ewT('march.scout_report',{name:m.tName}),body+' '+ewT('march.scouts_return'));"
+  },
+  {
+   "line": 25980,
+   "find": "const body='Rank #'+m.tRank+' · defence power ~'+(m.tPower||'?')+'. Their walls look '+(( m.tPower||300)>420?'heavily guarded':'lightly held')+'.';",
+   "replace": "const body=(( m.tPower||300)>420?ewT('march.scout_heavy',{rank:m.tRank,power:(m.tPower||'?')}):ewT('march.scout_light',{rank:m.tRank,power:(m.tPower||'?')}));"
+  },
+  {
+   "line": 25981,
+   "find": "addMail('scouts',{from:'Scouts',subj:'{i:u:scout-telescope} Scout report — '+m.tName,body}); marchReport('{i:u:scout-telescope} Scout report — '+m.tName,body+' Your scouts are returning home.');",
+   "replace": "addMail('scouts',{from:ewT('march.scouts'),subj:'{i:u:scout-telescope} '+ewT('march.scout_report',{name:m.tName}),body}); marchReport('{i:u:scout-telescope} '+ewT('march.scout_report',{name:m.tName}),body+' '+ewT('march.scouts_return'));"
+  },
+  {
+   "line": 25982,
+   "find": "addMail('war',{from:m.tName,subj:'{i:s:shield} Defending '+m.tName,body:'Your heroes are stationed at '+m.tName+', defending a guild member. They stay until you Retreat them from Info.'}); marchReport('{i:s:shield} Defending '+m.tName,'Your heroes are stationed at '+m.tName+'. They stay until you Retreat them from Info.');",
+   "replace": "addMail('war',{from:m.tName,subj:'{i:s:shield} '+ewT('march.defending_name',{name:m.tName}),body:ewT('march.stationed_member',{name:m.tName})}); marchReport('{i:s:shield} '+ewT('march.defending_name',{name:m.tName}),ewT('march.stationed_at',{name:m.tName}));"
+  },
+  {
+   "line": 25986,
+   "find": "marchReport('{i:u:warning} Old city trip','This trip predates verified city marches and cannot resolve a battle. Send a fresh squad.')",
+   "replace": "marchReport('{i:u:warning} '+ewT('march.old_city'),ewT('march.old_city_body'))"
+  },
+  {
+   "line": 25993,
+   "find": "marchReport('{i:u:warning} City attack could not be verified','No heroes marched with this army. No outcome or loot was awarded.')",
+   "replace": "marchReport('{i:u:warning} '+ewT('march.city_unverified'),ewT('march.no_heroes_marched'))"
+  },
+  {
+   "line": 26006,
+   "find": "bannerMsg('City attack result not confirmed. Retrying shortly.')",
+   "replace": "bannerMsg(ewT('march.city_retrying'))"
+  },
+  {
+   "line": 26008,
+   "find": "const reason=(r&&r.error)||'The city attack was refused by the server.'",
+   "replace": "const reason=langMsg(r&&r.error)||ewT('march.city_refused')"
+  },
+  {
+   "line": 26009,
+   "find": "subj:'{i:u:warning} City attack not resolved',body:reason+' No outcome or loot was awarded.'",
+   "replace": "subj:'{i:u:warning} '+ewT('march.city_not_resolved'),body:ewT('march.no_loot_award',{why:reason})"
+  },
+  {
+   "line": 26010,
+   "find": "marchReport('{i:u:warning} City attack not resolved',reason)",
+   "replace": "marchReport('{i:u:warning} '+ewT('march.city_not_resolved'),reason)"
+  },
+  {
+   "line": 26013,
+   "find": "subj:'{i:s:attack} Army home - '+m.tName,body:r.note||'No city attacks left today - your army came home.'",
+   "replace": "subj:'{i:s:attack} '+ewT('march.army_home',{name:m.tName}),body:langMsg(r.note)||ewT('march.capped')"
+  },
+  {
+   "line": 26014,
+   "find": "subj:'Army home - '+m.tName,body:r.note||(m.tName+' raised a protection shield before your army arrived. It came home with nothing.')",
+   "replace": "subj:ewT('march.army_home',{name:m.tName}),body:langMsg(r.note)||ewT('march.shielded_home',{name:m.tName})"
+  },
+  {
+   "line": 26014,
+   "find": "marchReport('Shield at '+m.tName,r.note||'Your army came home with nothing.')",
+   "replace": "marchReport(ewT('march.shield_at',{name:m.tName}),langMsg(r.note)||ewT('march.came_home_empty'))"
+  },
+  {
+   "line": 26018,
+   "find": "'Your army broke '+m.tName+'’s wall and brought home {i:h:gold} '+gold+",
+   "replace": "(coins>0?ewT('march.broke_wall_coins',{name:m.tName,gold:'{i:h:gold} '+gold,coins:'{i:u:medal} '+coins,hut:ewT('bld.witches_hut')}):ewT('march.broke_wall_gold',{name:m.tName,gold:'{i:h:gold} '+gold,hut:ewT('bld.witches_hut')}))"
+  },
+  {
+   "line": 26019,
+   "find": "(coins>0?' and {i:u:medal} '+coins+' guild coins':'')+'. Injuries remain until healed at the Witches Hut.'",
+   "replace": ""
+  },
+  {
+   "line": 26020,
+   "find": ":m.tName+'’s defenders held. Your surviving heroes retreat with their injuries.';",
+   "replace": ":ewT('march.defenders_held',{name:m.tName});"
+  },
+  {
+   "line": 26021,
+   "find": "subj:(r.won?'{i:s:attack} Victory — ':'{i:s:attack} Defeat — ')+m.tName",
+   "replace": "subj:'{i:s:attack} '+(r.won?ewT('march.victory_vs',{name:m.tName}):ewT('march.defeat_vs',{name:m.tName}))"
+  },
+  {
+   "line": 26022,
+   "find": "marchReport((r.won?'{i:s:attack} Victory at ':'{i:s:attack} Defeat at ')+m.tName,body)",
+   "replace": "marchReport('{i:s:attack} '+(r.won?ewT('march.victory_at',{name:m.tName}):ewT('march.defeat_at',{name:m.tName})),body)"
+  },
+  {
+   "line": 26035,
+   "find": "subj:'{i:s:attack} Victory — '+m.tName,body:'Your army broke '+m.tName+'’s wall. The loot is being counted…'",
+   "replace": "subj:'{i:s:attack} '+ewT('march.victory_vs',{name:m.tName}),body:ewT('march.loot_counting',{name:m.tName})"
+  },
+  {
+   "line": 26037,
+   "find": "mailV.body='Your army broke '+m.tName+'’s wall and '+((gg>0||cc>0)?('looted {i:h:gold} '+gg+(cc>0?(' + {i:u:medal} '+cc+' guild coins'):'')+'.'):'brought no loot home this time.');",
+   "replace": "mailV.body=(gg>0||cc>0)?(cc>0?ewT('march.looted_coins',{name:m.tName,gold:'{i:h:gold} '+gg,coins:'{i:u:medal} '+cc}):ewT('march.looted',{name:m.tName,gold:'{i:h:gold} '+gg})):ewT('march.no_loot',{name:m.tName});"
+  },
+  {
+   "line": 26038,
+   "find": "bannerMsg(statusIcon('attack')+' Loot from '+m.tName+': '+hudIcon('gold')+' '+gg+(cc>0?(' + '+uiIcon('medal')+' '+cc+' guild coins'):''));",
+   "replace": "bannerMsg(statusIcon('attack')+' '+ewT('march.loot_from',{name:m.tName,loot:hudIcon('gold')+' '+gg+(cc>0?(' + '+uiIcon('medal')+' '+ewT('march.n_guild_coins',{n:cc})):'')}));"
+  },
+  {
+   "line": 26041,
+   "find": "marchReport('{i:s:attack} Victory at '+m.tName,'Your army broke their wall. Troops are marching home with the loot.');",
+   "replace": "marchReport('{i:s:attack} '+ewT('march.victory_at',{name:m.tName}),ewT('march.broke_their_wall'));"
+  },
+  {
+   "line": 26044,
+   "find": "subj:'{i:s:attack} Defeat — '+m.tName,body:m.tName+'’s defenders held. Your heroes retreat and march home.'",
+   "replace": "subj:'{i:s:attack} '+ewT('march.defeat_vs',{name:m.tName}),body:ewT('march.defenders_held_home',{name:m.tName})"
+  },
+  {
+   "line": 26045,
+   "find": "marchReport('{i:s:attack} Defeat at '+m.tName,'Their defenders held. Your heroes retreat and march home.');",
+   "replace": "marchReport('{i:s:attack} '+ewT('march.defeat_at',{name:m.tName}),ewT('march.their_defenders_held'));"
+  },
+  {
+   "line": 26047,
+   "find": "bannerMsg(uiIcon('warning')+' No heroes marched with this army — the attack could not be verified.')",
+   "replace": "bannerMsg(uiIcon('warning')+' '+ewT('march.no_heroes_unverified'))"
+  },
+  {
+   "line": 26053,
+   "find": "bannerMsg(r.error)",
+   "replace": "bannerMsg(langMsg(r.error))"
+  },
+  {
+   "line": 26067,
+   "find": "subj:'Army home - '+(r.to||'?'),body:(r.to||'?')+' raised a protection shield before your army arrived. It came home with nothing.'",
+   "replace": "subj:ewT('march.army_home',{name:(r.to||'?')}),body:ewT('march.shielded_home',{name:(r.to||'?')})"
+  },
+  {
+   "line": 26069,
+   "find": "const body=r.won?'Your army broke '+tn+'’s wall and brought home {i:h:gold} '+gold+(coins>0?' and {i:u:medal} '+coins+' guild coins':'')+'. Injuries remain until healed at the Witches Hut.'",
+   "replace": "const body=r.won?(coins>0?ewT('march.broke_wall_coins',{name:tn,gold:'{i:h:gold} '+gold,coins:'{i:u:medal} '+coins,hut:ewT('bld.witches_hut')}):ewT('march.broke_wall_gold',{name:tn,gold:'{i:h:gold} '+gold,hut:ewT('bld.witches_hut')}))"
+  },
+  {
+   "line": 26070,
+   "find": ":tn+'’s defenders held. Your surviving heroes retreat with their injuries.';",
+   "replace": ":ewT('march.defenders_held',{name:tn});"
+  },
+  {
+   "line": 26071,
+   "find": "subj:(r.won?'{i:s:attack} Victory — ':'{i:s:attack} Defeat — ')+tn",
+   "replace": "subj:'{i:s:attack} '+(r.won?ewT('march.victory_vs',{name:tn}):ewT('march.defeat_vs',{name:tn}))"
+  },
+  {
+   "line": 26073,
+   "find": "subj:'{i:s:attack} '+r.from+' declared war on you',body:'War ready '+fmt(r.readyAt)+' · ends '+fmt(r.expireAt)",
+   "replace": "subj:'{i:s:attack} '+ewT('march.declared_on_you',{name:r.from}),body:ewT('march.war_ready_ends',{a:fmt(r.readyAt),b:fmt(r.expireAt)})"
+  },
+  {
+   "line": 26074,
+   "find": "subj:'Shield held vs '+r.from,body:r.from+'\\u2019s army reached your castle'+(when?' at '+when:'')+' but your protection shield turned it away. Nothing was lost.'",
+   "replace": "subj:ewT('march.shield_held_vs',{name:r.from}),body:(when?ewT('march.shield_turned_at',{name:r.from,t:when}):ewT('march.shield_turned',{name:r.from}))"
+  },
+  {
+   "line": 26075,
+   "find": "subj:(r.held?'{i:s:shield} Garrison held - ':'{i:u:warning} Garrison lost - ')+(r.to||'?'),body:r.from+' attacked '+(r.to||'?')+(when?' at '+when:'')+'. '+(r.held?'Your guild\\u2019s garrison held it.':'The siege broke the garrison; your stationed heroes are marching home.')",
+   "replace": "subj:(r.held?'{i:s:shield} '+ewT('siege.garrison_held',{name:(r.to||'?')}):'{i:u:warning} '+ewT('siege.garrison_lost',{name:(r.to||'?')})),body:(when?ewT('march.attacked_at',{a:r.from,b:(r.to||'?'),t:when}):ewT('march.attacked',{a:r.from,b:(r.to||'?')}))+' '+(r.held?ewT('siege.garrison_held_body'):ewT('siege.garrison_broke_body'))"
+  },
+  {
+   "line": 26076,
+   "find": "subj:'Your defenders fought at '+(r.to||'?'),body:r.from+' attacked '+(r.to||'?')+(when?' at '+when:'')+'. Your stationed heroes '+(r.won?'could not hold the wall':'helped hold the wall')+'. Wounds remain until healed at the Witches Hut.'",
+   "replace": "subj:ewT('march.defenders_fought',{name:(r.to||'?')}),body:(when?ewT('march.attacked_at',{a:r.from,b:(r.to||'?'),t:when}):ewT('march.attacked',{a:r.from,b:(r.to||'?')}))+' '+(r.won?ewT('march.def_lost',{hut:ewT('bld.witches_hut')}):ewT('march.def_helped',{hut:ewT('bld.witches_hut')}))"
+  },
+  {
+   "line": 26077,
+   "find": "subj:'{i:u:warning} Unverified attack report — '+r.from,",
+   "replace": "subj:'{i:u:warning} '+ewT('march.unverified_report',{name:r.from}),"
+  },
+  {
+   "line": 26078,
+   "find": "body:r.from+' submitted an old battle report'+(when?' at '+when:'')+'. The server did not verify a fight, outcome, injuries, or loot.'",
+   "replace": "body:(when?ewT('march.old_report_at',{name:r.from,t:when}):ewT('march.old_report',{name:r.from}))"
+  },
+  {
+   "line": 26079,
+   "find": "subj:'{i:u:warning} '+r.from+' raided your castle',body:r.from+' attacked your castle'+(when?' at '+when:'')+' and broke through your wall.'",
+   "replace": "subj:'{i:u:warning} '+ewT('march.raided_your_castle',{name:r.from}),body:(when?ewT('march.broke_through_at',{name:r.from,t:when}):ewT('march.broke_through',{name:r.from}))"
+  },
+  {
+   "line": 26080,
+   "find": "subj:'{i:s:shield} Wall held vs '+r.from,body:r.from+' attacked your castle'+(when?' at '+when:'')+' — your wall drove them off.'",
+   "replace": "subj:'{i:s:shield} '+ewT('march.wall_held_vs',{name:r.from}),body:(when?ewT('march.drove_off_at',{name:r.from,t:when}):ewT('march.drove_off',{name:r.from}))"
+  },
+  {
+   "line": 26081,
+   "find": "bannerMsg(statusIcon('attack')+' '+d.reports.length+' attack report'+(d.reports.length===1?'':'s')+' — check War mail.')",
+   "replace": "bannerMsg(statusIcon('attack')+' '+(d.reports.length===1?ewT('march.reports_1',{n:1}):ewT('march.reports_n',{n:d.reports.length})))"
+  },
+  {
+   "line": 26130,
+   "find": "bannerMsg(reply?.error||'Recall failed. Try again.')",
+   "replace": "bannerMsg(langMsg(reply?.error)||ewT('march.recall_fail'))"
+  },
+  {
+   "line": 26134,
+   "find": "bannerMsg('Army returning home.')",
+   "replace": "bannerMsg(ewT('march.army_returning'))"
+  },
+  {
+   "line": 26135,
+   "find": "bannerMsg('Recall could not be confirmed. Retry the same march.')",
+   "replace": "bannerMsg(ewT('march.recall_unconfirmed'))"
+  },
+  {
+   "line": 26144,
+   "find": "bannerMsg('↩ Retreating from '+escapeHTML(m.tName)+' — troops returning home.')",
+   "replace": "bannerMsg('↩ '+ewT('march.retreating',{name:escapeHTML(m.tName)}))"
+  },
+  {
+   "line": 26251,
+   "find": "'Pending result':mining?('Mining '+fmtDur(etaMs))",
+   "replace": "ewT('march.pending'):mining?ewT('mine.mining_t',{t:fmtDur(etaMs)})"
+  },
+  {
+   "line": 26305,
+   "find": "return 'Lv '+m.level+' '+mnResName(m.res)+' Mine';",
+   "replace": "return ewT('mine.lv_res_mine',{n:m.level,res:mnResName(m.res)});"
+  },
+  {
+   "line": 26317,
+   "find": "<div class=\"nl\" style=\"color:#ffd45e;font-size:9px\">Lv ${m.level}</div>",
+   "replace": "<div class=\"nl\" style=\"color:#ffd45e;font-size:9px\">${ewT('wmap.lv',{n:m.level})}</div>"
+  },
+  {
+   "line": 26324,
+   "find": "Lv ${m.level} ${escapeHTML(mnResName(m.res))} Mine</div>",
+   "replace": "${ewT('mine.lv_res_mine',{n:m.level,res:escapeHTML(mnResName(m.res))})}</div>"
+  },
+  {
+   "line": 26326,
+   "find": "Yield <b style=\"color:#ffd45e\">${resIconHtml(m.res,16)} ${y}</b>${mineSignedIn()?' <span style=\"color:#8b98a9\">per haul</span>':''}",
+   "replace": "${ewT('mine.yield',{v:'<b style=\"color:#ffd45e\">'+resIconHtml(m.res,16)+' '+y+'</b>'})}${mineSignedIn()?' <span style=\"color:#8b98a9\">'+ewT('mine.per_haul')+'</span>':''}"
+  },
+  {
+   "line": 26327,
+   "find": "Left in the mine <b style=\"color:#5ee89b\">${resIconHtml(m.res,16)} ${m.left.toLocaleString()}</b>",
+   "replace": "${ewT('mine.left',{v:'<b style=\"color:#5ee89b\">'+resIconHtml(m.res,16)+' '+m.left.toLocaleString()+'</b>'})}"
+  },
+  {
+   "line": 26327,
+   "find": "of ${m.total.toLocaleString()}",
+   "replace": "${ewT('mine.of_total',{n:m.total.toLocaleString()})}"
+  },
+  {
+   "line": 26328,
+   "find": "<b style=\"color:#ffd45e\">Your miners are working here</b>",
+   "replace": "<b style=\"color:#ffd45e\">${ewT('mine.working')}</b>"
+  },
+  {
+   "line": 26329,
+   "find": "Guarded by <b style=\"color:#ff9a6b\">5 monsters</b> — beat them to mine it",
+   "replace": "${ewT('mine.guarded',{b:'<b style=\"color:#ff9a6b\">',eb:'</b>'})}"
+  },
+  {
+   "line": 26330,
+   "find": "Needs squad ${statusIcon('attack')} <b style=\"color:#ff9a6b\">${reqP}</b> · a hero Lv <b style=\"color:#ff9a6b\">${reqL}+</b>",
+   "replace": "${ewT('mine.needs',{p:statusIcon('attack')+' <b style=\"color:#ff9a6b\">'+reqP+'</b>',lv:'<b style=\"color:#ff9a6b\">'+reqL+'+</b>'})}"
+  },
+  {
+   "line": 26331,
+   "find": "Mine ${fmtDur(gm)}",
+   "replace": "${ewT('mine.mine_time',{t:fmtDur(gm)})}"
+  },
+  {
+   "line": 26331,
+   "find": "travel ${fmtDur(travel)} each way",
+   "replace": "${ewT('mine.travel_each',{t:fmtDur(travel)})}"
+  },
+  {
+   "line": 26332,
+   "find": "Total round trip ${fmtDur(travel*2+gm)}",
+   "replace": "${ewT('mine.round_trip',{t:fmtDur(travel*2+gm)})}"
+  },
+  {
+   "line": 26333,
+   "find": "} Send miners</button>",
+   "replace": "} ${ewT('mine.send_miners')}</button>"
+  },
+  {
+   "line": 26347,
+   "find": "<span class=\"rsLv\">Lv ${heroLevel(k)}</span>",
+   "replace": "<span class=\"rsLv\">${ewT('wmap.lv',{n:heroLevel(k)})}</span>"
+  },
+  {
+   "line": 26350,
+   "find": "color:#4a5a7e\">empty</div>",
+   "replace": "color:#4a5a7e\">'+ewT('march.empty')+'</div>"
+  },
+  {
+   "line": 26355,
+   "find": "No '+rosterClassF+' heroes.",
+   "replace": "'+ewT('march.no_class',{cls:rosterClassF})+'"
+  },
+  {
+   "line": 26367,
+   "find": "} Mine · ${escapeHTML(mineLabel(m))}",
+   "replace": "} ${ewT('mine.mine')} · ${escapeHTML(mineLabel(m))}"
+  },
+  {
+   "line": 26368,
+   "find": "Send up to 5 heroes to mine <b style=\"color:${mnResColor(m.res)}\">${resIconHtml(m.res,15)} ${mineYieldShown(m.res,m.level)} ${escapeHTML(mnResName(m.res))}</b>. They can't defend or march again until they return. Requires squad power <b>${reqP}</b> and a hero of <b>Lv ${reqL}+</b>.",
+   "replace": "${ewT('mine.send_up',{res:'<b style=\"color:'+mnResColor(m.res)+'\">'+resIconHtml(m.res,15)+' '+mineYieldShown(m.res,m.level)+' '+escapeHTML(mnResName(m.res))+'</b>',p:'<b>'+reqP+'</b>',lv:'<b>'+ewT('wmap.lv',{n:reqL})+'+</b>'})}"
+  },
+  {
+   "line": 26369,
+   "find": "busy.has(k)?'marching':",
+   "replace": "busy.has(k)?ewT('march.marching'):"
+  },
+  {
+   "line": 26371,
+   "find": "'<span style=\"color:#5ee89b\">Lv '+uiIcon('check')+'</span>'",
+   "replace": "'<span style=\"color:#5ee89b\">'+ewT('wmap.lv',{n:uiIcon('check')})+'</span>'"
+  },
+  {
+   "line": 26371,
+   "find": "need Lv '+reqL+'",
+   "replace": "'+ewT('mine.need_lv',{n:reqL})+'"
+  },
+  {
+   "line": 26372,
+   "find": "} Send ${uiIcon('play')}",
+   "replace": "} ${ewT('common.send')} ${uiIcon('play')}"
+  },
+  {
+   "line": 26384,
+   "find": "bannerMsg((serverMarch&&serverMarch.error)||'The mine march could not be registered. Try again.')",
+   "replace": "bannerMsg(langMsg(serverMarch&&serverMarch.error)||ewT('mine.march_fail'))"
+  },
+  {
+   "line": 26393,
+   "find": "bannerMsg(uiIcon('mode-mine')+' Mining '+mineLabel(m)+'\\nHome in '+fmtDur(travel*2+gather))",
+   "replace": "bannerMsg(uiIcon('mode-mine')+' '+ewT('mine.mining_x',{name:mineLabel(m)})+'\\n'+ewT('march.home_in',{t:fmtDur(travel*2+gather)}))"
+  },
+  {
+   "line": 26510,
+   "find": "_evOff=(site.kind==='oasis'?'The oases':'The World Tree')+' can only be taken during the World Tree event (next in '+window.EmberweaveWorldTreeCycle.format(ph.remainingMs)+').';",
+   "replace": "_evOff=(site.kind==='oasis'?ewT('siege.ev_off_oasis',{t:window.EmberweaveWorldTreeCycle.format(ph.remainingMs)}):ewT('siege.ev_off_tree',{t:window.EmberweaveWorldTreeCycle.format(ph.remainingMs)}));"
+  },
+  {
+   "line": 26513,
+   "find": "'Sign in to attack.'",
+   "replace": "ewT('siege.signin_attack')"
+  },
+  {
+   "line": 26514,
+   "find": "(S.isCapital(site)?'Capital city':'City'):site.kind==='oasis'?'Oasis':'World Tree'",
+   "replace": "(S.isCapital(site)?ewT('siege.capital'):ewT('siege.city')):site.kind==='oasis'?ewT('siege.oasis'):'World Tree'"
+  },
+  {
+   "line": 26518,
+   "find": "${kind} · guards Lv ${site.guardLevel}",
+   "replace": "${kind} · ${ewT('siege.guards_lv',{n:site.guardLevel})}"
+  },
+  {
+   "line": 26520,
+   "find": "} Held by&nbsp;",
+   "replace": "} ${ewT('siege.held_by')}&nbsp;"
+  },
+  {
+   "line": 26521,
+   "find": "} Distance&nbsp;",
+   "replace": "} ${ewT('siege.distance')}&nbsp;"
+  },
+  {
+   "line": 26521,
+   "find": "d+' squares'",
+   "replace": "ewT('siege.n_squares',{n:d})"
+  },
+  {
+   "line": 26522,
+   "find": "} Garrison&nbsp;",
+   "replace": "} ${ewT('siege.garrison')}&nbsp;"
+  },
+  {
+   "line": 26524,
+   "find": "} Defense</button>",
+   "replace": "} ${ewT('castle.defense')}</button>"
+  },
+  {
+   "line": 26525,
+   "find": "} View Garrison</button>",
+   "replace": "} ${ewT('siege.view_garrison')}</button>"
+  },
+  {
+   "line": 26528,
+   "find": "} Attack</button>",
+   "replace": "} ${ewT('castle.attack')}</button>"
+  },
+  {
+   "line": 26530,
+   "find": "(h.type==='guild'?' (guild)':'')):'None'",
+   "replace": "(h.type==='guild'?' '+ewT('siege.guild_tag'):'')):ewT('set.none')"
+  },
+  {
+   "line": 26542,
+   "find": "id=\"sgBack\">Back</button>",
+   "replace": "id=\"sgBack\">${ewT('common.back')}</button>"
+  },
+  {
+   "line": 26545,
+   "find": "'No lines stationed - the guards defend it.'",
+   "replace": "ewT('siege.no_lines')"
+  },
+  {
+   "line": 26549,
+   "find": "(l.mine?' (you)':'')",
+   "replace": "(l.mine?' '+ewT('siege.you_tag'):'')"
+  },
+  {
+   "line": 26550,
+   "find": "' · arriving '+fmtDur(l.arriveAt-now)",
+   "replace": "' · '+ewT('siege.arriving',{t:fmtDur(l.arriveAt-now)})"
+  },
+  {
+   "line": 26552,
+   "find": "b.textContent='Return'",
+   "replace": "b.textContent=ewT('siege.return')"
+  },
+  {
+   "line": 26560,
+   "find": "The heart of the world — everyone can teleport around it, but not onto it.",
+   "replace": "${ewT('wmap.tree_heart')}"
+  },
+  {
+   "line": 26560,
+   "find": "} Attack · ${hudIcon('lock')} Coming Soon</button>",
+   "replace": "} ${ewT('castle.attack')} · ${hudIcon('lock')} ${ewT('wmap.coming_soon')}</button>"
+  },
+  {
+   "line": 26562,
+   "find": "bannerMsg('Attacking the World Tree is coming soon.')",
+   "replace": "bannerMsg(ewT('wmap.tree_attack_soon'))"
+  },
+  {
+   "line": 26572,
+   "find": "${escapeHTML(c.name)} · Lv ${c.level||1}</div>",
+   "replace": "${escapeHTML(c.name)} · ${ewT('wmap.lv',{n:c.level||1})}</div>"
+  },
+  {
+   "line": 26572,
+   "find": "${ZONES[c.region]?ZONES[c.region].name:'Another region'} — you can't march here.<br>Transfer your region to operate here.",
+   "replace": "${ewT('castle.cant_march',{region:ZONES[c.region]?ZONES[c.region].name:ewT('castle.another_region')})}<br>${ewT('castle.transfer')}"
+  },
+  {
+   "line": 26572,
+   "find": "} Info</button>",
+   "replace": "} ${ewT('castle.info')}</button>"
+  },
+  {
+   "line": 26572,
+   "find": "} Whisper</button>",
+   "replace": "} ${ewT('castle.whisper')}</button>"
+  },
+  {
+   "line": 26572,
+   "find": "'<button class=\"cm-b\" data-a=\"block\">Block</button>'",
+   "replace": "'<button class=\"cm-b\" data-a=\"block\">'+ewT('castle.block')+'</button>'"
+  },
+  {
+   "line": 26576,
+   "find": "uiIcon('info')+' Info'",
+   "replace": "uiIcon('info')+' '+ewT('castle.info')"
+  },
+  {
+   "line": 26577,
+   "find": "+' Attack']",
+   "replace": "+' '+ewT('castle.attack')]"
+  },
+  {
+   "line": 26577,
+   "find": "+' Group Attack']",
+   "replace": "+' '+ewT('castle.group_attack')]"
+  },
+  {
+   "line": 26578,
+   "find": "+' Defend']",
+   "replace": "+' '+ewT('castle.defend')]"
+  },
+  {
+   "line": 26579,
+   "find": "+' Scout']",
+   "replace": "+' '+ewT('castle.scout')]"
+  },
+  {
+   "line": 26579,
+   "find": "+' Whisper']",
+   "replace": "+' '+ewT('castle.whisper')]"
+  },
+  {
+   "line": 26580,
+   "find": "['block','Block']",
+   "replace": "['block',ewT('castle.block')]"
+  },
+  {
+   "line": 26581,
+   "find": "+' Declare War']",
+   "replace": "+' '+ewT('castle.declare_war')]"
+  },
+  {
+   "line": 26583,
+   "find": "Lv ${c.level||1}${c.ally?' · <span style=\"color:#5ee89b\">Guild</span>':''}",
+   "replace": "${ewT('wmap.lv',{n:c.level||1})}${c.ally?' · <span style=\"color:#5ee89b\">'+ewT('nav.guild')+'</span>':''}"
+  },
+  {
+   "line": 26592,
+   "find": "· Guild</span>'",
+   "replace": "· '+ewT('nav.guild')+'</span>'"
+  },
+  {
+   "line": 26593,
+   "find": "'<span style=\"color:#5ee89b\">● Player</span>'",
+   "replace": "'<span style=\"color:#5ee89b\">● '+ewT('castle.player')+'</span>'"
+  },
+  {
+   "line": 26593,
+   "find": "'<span style=\"color:#6f7d90\">NPC</span>'",
+   "replace": "'<span style=\"color:#6f7d90\">'+ewT('castle.npc')+'</span>'"
+  },
+  {
+   "line": 26593,
+   "find": "''} Stronghold info</div>",
+   "replace": "''} ${ewT('castle.stronghold_info')}</div>"
+  },
+  {
+   "line": 26595,
+   "find": "🏰 Level&nbsp;",
+   "replace": "🏰 ${ewT('castle.level')}&nbsp;"
+  },
+  {
+   "line": 26596,
+   "find": "} Coordinates&nbsp;",
+   "replace": "} ${ewT('castle.coordinates')}&nbsp;"
+  },
+  {
+   "line": 26597,
+   "find": "} Arena rank&nbsp;",
+   "replace": "} ${ewT('castle.arena_rank')}&nbsp;"
+  },
+  {
+   "line": 26597,
+   "find": "+' Power&nbsp; <b>'",
+   "replace": "+' '+ewT('castle.power')+'&nbsp; <b>'"
+  },
+  {
+   "line": 26609,
+   "find": "bannerMsg(uiIcon('npc')+' '+escapeHTML(c.name)+' is an NPC — nobody home to whisper.')",
+   "replace": "bannerMsg(uiIcon('npc')+' '+ewT('castle.npc_whisper',{name:escapeHTML(c.name)}))"
+  },
+  {
+   "line": 26614,
+   "find": "+' War with '+escapeHTML(String(c.name||''))+' is already live — attack now!'",
+   "replace": "+' '+ewT('castle.war_live',{name:escapeHTML(String(c.name||''))})"
+  },
+  {
+   "line": 26615,
+   "find": "+' War already declared — combat begins in '+uiIcon('timer')+' '+fmtDur(warPrepRemaining(c.name,false))",
+   "replace": "+' '+ewT('castle.war_pending',{t:uiIcon('timer')+' '+fmtDur(warPrepRemaining(c.name,false))})"
+  },
+  {
+   "line": 26622,
+   "find": "+' No wall heroes available to attack — assign heroes to your wall lines first (and make sure they aren\\'t mining or marching).'",
+   "replace": "+' '+ewT('castle.no_wall_heroes')"
+  },
+  {
+   "line": 26624,
+   "find": "+' Cannot attack yet — war with '+escapeHTML(String(c.name||''))+' begins in '+fmtDur(warPrepRemaining(c.name,false))",
+   "replace": "+' '+ewT('castle.cannot_yet',{name:escapeHTML(String(c.name||'')),t:fmtDur(warPrepRemaining(c.name,false))})"
+  },
+  {
+   "line": 26625,
+   "find": "'You are not at war with <b>'+escapeHTML(c.name)+'</b>. Declare war? Combat begins after a <b>30-minute</b> countdown — you cannot attack until it ends.'",
+   "replace": "ewT('castle.not_at_war',{name:'<b>'+escapeHTML(c.name)+'</b>',b:'<b>',eb:'</b>'})"
+  },
+  {
+   "line": 26636,
+   "find": "const verb=ctype==='garrison'?'Defense':ctype==='defend'?'Defend':ctype==='group'?'Group Attack':'Attack';",
+   "replace": "const verb=ctype==='garrison'?ewT('castle.defense'):ctype==='defend'?ewT('castle.defend'):ctype==='group'?ewT('castle.group_attack'):ewT('castle.attack');"
+  },
+  {
+   "line": 26640,
+   "find": "Distance <b>${gridDist(c.x,c.y)}</b> squares · march time <b style=\"color:#ffd45e\">${fmtDur(marchOutMs(ctype,c.x,c.y))}</b> each way",
+   "replace": "${ewT('march.dist_time',{d:'<b>'+gridDist(c.x,c.y)+'</b>',t:'<b style=\"color:#ffd45e\">'+fmtDur(marchOutMs(ctype,c.x,c.y))+'</b>'})}"
+  },
+  {
+   "line": 26642,
+   "find": "busy.has(k)?'marching':",
+   "replace": "busy.has(k)?ewT('march.marching'):"
+  },
+  {
+   "line": 26657,
+   "find": "id=\"gpX\">Cancel</button>",
+   "replace": "id=\"gpX\">${ewT('common.cancel')}</button>"
+  },
+  {
+   "line": 26657,
+   "find": "id=\"gpOk\">Send</button>",
+   "replace": "id=\"gpOk\">${ewT('common.send')}</button>"
+  },
+  {
+   "line": 26676,
+   "find": "status=(outb?'ETA ':'leaving ')+fmtDur((outb?m.arrive:m.home)-now);",
+   "replace": "status=outb?ewT('march.eta',{t:fmtDur(m.arrive-now)}):ewT('march.leaving',{t:fmtDur(m.home-now)});"
+  },
+  {
+   "line": 26677,
+   "find": "label='{i:s:shield} '+m.tName+' reinforcing you'",
+   "replace": "label='{i:s:shield} '+ewT('march.reinforcing_you',{name:m.tName})"
+  },
+  {
+   "line": 26677,
+   "find": "label='{i:s:attack} '+m.tName+' attacking you'",
+   "replace": "label='{i:s:attack} '+ewT('march.attacking_you',{name:m.tName})"
+  },
+  {
+   "line": 26678,
+   "find": "const v=m.ctype==='garrison'||(m.ctype==='siege'&&m.stationed)?'{i:s:shield} Garrison':m.ctype==='siege'?'{i:s:attack} Sieging':m.ctype==='defend'?'{i:s:shield} Defending':m.ctype==='scout'?'{i:u:scout-telescope} Scouting':m.ctype==='group'?'{i:s:attack} Group attack':'{i:s:attack} Attacking'; label=v+' '+m.tName;",
+   "replace": "const nm={name:m.tName}, v=m.ctype==='garrison'||(m.ctype==='siege'&&m.stationed)?'{i:s:shield} '+ewT('march.l_garrison',nm):m.ctype==='siege'?'{i:s:attack} '+ewT('march.l_sieging',nm):m.ctype==='defend'?'{i:s:shield} '+ewT('march.l_defending',nm):m.ctype==='scout'?'{i:u:scout-telescope} '+ewT('march.l_scouting',nm):m.ctype==='group'?'{i:s:attack} '+ewT('march.l_group',nm):'{i:s:attack} '+ewT('march.l_attacking',nm); label=v;"
+  },
+  {
+   "line": 26679,
+   "find": "status='returning '+fmtDur((m.retStart+m.retDur)-now);",
+   "replace": "status=ewT('march.returning',{t:fmtDur((m.retStart+m.retDur)-now)});"
+  },
+  {
+   "line": 26680,
+   "find": "status='stationed';",
+   "replace": "status=ewT('march.stationed');"
+  },
+  {
+   "line": 26681,
+   "find": "status='ETA '+fmtDur(m.arrive-now);",
+   "replace": "status=ewT('march.eta',{t:fmtDur(m.arrive-now)});"
+  },
+  {
+   "line": 26682,
+   "find": "status='returning '+fmtDur(m.home-now);",
+   "replace": "status=ewT('march.returning',{t:fmtDur(m.home-now)});"
+  },
+  {
+   "line": 26686,
+   "find": ">↩ Retreat</button>",
+   "replace": ">↩ ${ewT('march.retreat')}</button>"
+  },
+  {
+   "line": 26687,
+   "find": "} Marches</div>",
+   "replace": "} ${ewT('march.marches')}</div>"
+  },
+  {
+   "line": 26688,
+   "find": "} Protected — ${fmtDur(shieldLeft())} left</div>",
+   "replace": "} ${ewT('march.protected_left',{t:fmtDur(shieldLeft())})}</div>"
+  },
+  {
+   "line": 26689,
+   "find": "Incoming to your castle (${inc.length})",
+   "replace": "${ewT('march.incoming',{n:inc.length})}"
+  },
+  {
+   "line": 26690,
+   "find": ">No incoming marches.</div>'",
+   "replace": ">'+ewT('march.no_incoming')+'</div>'"
+  },
+  {
+   "line": 26691,
+   "find": "Your marches (${out.length})",
+   "replace": "${ewT('march.your_marches',{n:out.length})}"
+  },
+  {
+   "line": 26692,
+   "find": ">No active marches.</div>'",
+   "replace": ">'+ewT('march.no_active')+'</div>'"
+  },
+  {
+   "line": 26698,
+   "find": "} Protection Shield</div>",
+   "replace": "} ${ewT('gshop.protection_shield')}</div>"
+  },
+  {
+   "line": 26699,
+   "find": "Makes your castle immune to enemy attacks for 12 hours. It breaks instantly if <b>you</b> attack someone.",
+   "replace": "${ewT('gshop.shield_desc',{b:'<b>',eb:'</b>'})}"
+  },
+  {
+   "line": 26700,
+   "find": "Active — ${fmtDur(shieldLeft())} left",
+   "replace": "${ewT('gshop.active_left',{t:fmtDur(shieldLeft())})}"
+  },
+  {
+   "line": 26701,
+   "find": "<span>Shields owned</span>",
+   "replace": "<span>${ewT('gshop.shields_owned')}</span>"
+  },
+  {
+   "line": 26702,
+   "find": ">Activate 12-hour Shield</button>",
+   "replace": ">${ewT('gshop.activate_shield')}</button>"
+  },
+  {
+   "line": 26703,
+   "find": ">Buy in Guild Shop →</button>",
+   "replace": ">${ewT('gshop.buy_in_shop')} →</button>"
+  },
+  {
+   "line": 26706,
+   "find": "bannerMsg((r&&r.error)||'The shield could not be raised.')",
+   "replace": "bannerMsg(langMsg(r&&r.error)||ewT('gshop.shield_fail'))"
+  },
+  {
+   "line": 26707,
+   "find": "+' Shield active for 12 hours.'",
+   "replace": "+' '+ewT('gshop.shield_on')"
+  },
+  {
+   "line": 26708,
+   "find": "+' Shield active for 12 hours.'",
+   "replace": "+' '+ewT('gshop.shield_on')"
+  },
+  {
+   "line": 26712,
+   "find": "+' Guild Shop</div>'",
+   "replace": "+' '+ewT('gshop.title')+'</div>'"
+  },
+  {
+   "line": 26734,
+   "find": "if(d&&d.error){ bannerMsg(d.error);",
+   "replace": "if(d&&d.error){ bannerMsg(langMsg(d.error));"
+  },
+  {
+   "line": 26734,
+   "find": "bannerMsg('Daily contributions done — come back tomorrow.')",
+   "replace": "bannerMsg(ewT('gshop.daily_done'))"
+  },
+  {
+   "line": 26734,
+   "find": "bannerMsg('&#127881; Guild reached level '+GS.guild.level+'!')",
+   "replace": "bannerMsg('&#127881; '+ewT('gshop.level_up',{n:GS.guild.level}))"
+  },
+  {
+   "line": 26736,
+   "find": "bannerMsg('&#127881; Guild reached level '+G.guild.level+'!')",
+   "replace": "bannerMsg('&#127881; '+ewT('gshop.level_up',{n:G.guild.level}))"
+  },
+  {
+   "line": 26782,
+   "find": ">Join a guild to unlock the Guild Shop.</div>'",
+   "replace": ">'+ewT('gshop.join_first')+'</div>'"
+  },
+  {
+   "line": 26784,
+   "find": "Spend ${uiIcon('medal')} <b style=\"color:#ffd45e\">${coins}</b> guild coins · <b>${slots}</b> items unlocked at guild Lv ${guildLevel()}",
+   "replace": "${ewT('gshop.spend',{coins:uiIcon('medal')+' <b style=\"color:#ffd45e\">'+coins+'</b>',n:'<b>'+slots+'</b>',lv:guildLevel()})}"
+  },
+  {
+   "line": 26807,
+   "find": "bannerMsg((b2&&b2.error)||'The guild quartermaster had no stock.')",
+   "replace": "bannerMsg(langMsg(b2&&b2.error)||ewT('gshop.no_stock'))"
+  },
+  {
+   "line": 26811,
+   "find": "bannerMsg((r&&r.error)||'The guild quartermaster refused that.')",
+   "replace": "bannerMsg(langMsg(r&&r.error)||ewT('gshop.refused'))"
+  },
+  {
+   "line": 26824,
+   "find": "'world-mine yield'",
+   "replace": "{toString:()=>ewT('gshop.perk_mine')}"
+  },
+  {
+   "line": 26825,
+   "find": "'guild contribution exp'",
+   "replace": "{toString:()=>ewT('gshop.perk_contrib')}"
+  },
+  {
+   "line": 26826,
+   "find": "'gold looted from raids'",
+   "replace": "{toString:()=>ewT('gshop.perk_raid')}"
+  },
+  {
+   "line": 26848,
+   "find": "+${cExp} guild exp${extra}",
+   "replace": "${ewT('gshop.plus_exp',{n:cExp})}${extra}"
+  },
+  {
+   "line": 26890,
+   "find": "gameConfirm('Leave &lt;'+escapeHTML(g.name)+'&gt;?',",
+   "replace": "gameConfirm(ewT('gshop.leave_q',{name:'&lt;'+escapeHTML(g.name)+'&gt;'}),"
+  },
+  {
+   "line": 26890,
+   "find": "bannerMsg('&#9888; '+d.error)",
+   "replace": "bannerMsg('&#9888; '+langMsg(d.error))"
+  },
+  {
+   "line": 26893,
+   "find": "&#128081; Make Guild Leader</button>",
+   "replace": "&#128081; ${ewT('gshop.make_leader')}</button>"
+  },
+  {
+   "line": 26894,
+   "find": "&#128682; Remove from Guild</button>",
+   "replace": "&#128682; ${ewT('gshop.remove_member')}</button>"
+  },
+  {
+   "line": 26895,
+   "find": "gameConfirm('Make '+escapeHTML(name)+' the leader? You will step down as leader.',",
+   "replace": "gameConfirm(ewT('gshop.make_leader_q',{name:escapeHTML(name)}),"
+  },
+  {
+   "line": 26895,
+   "find": "bannerMsg('&#9888; '+d.error)",
+   "replace": "bannerMsg('&#9888; '+langMsg(d.error))"
+  },
+  {
+   "line": 26896,
+   "find": "gameConfirm('Remove '+escapeHTML(name)+' from the guild?',",
+   "replace": "gameConfirm(ewT('gshop.remove_q',{name:escapeHTML(name)}),"
+  },
+  {
+   "line": 26896,
+   "find": "bannerMsg('&#9888; '+d.error)",
+   "replace": "bannerMsg('&#9888; '+langMsg(d.error))"
+  },
+  {
+   "line": 26899,
+   "find": "&#128737; Manage &lt;${escapeHTML(g.name)}&gt;</div>",
+   "replace": "&#128737; ${ewT('gshop.manage',{name:'&lt;'+escapeHTML(g.name)+'&gt;'})}</div>"
+  },
+  {
+   "line": 26900,
+   "find": ">Message of the day</div>",
+   "replace": ">${ewT('gshop.motd')}</div>"
+  },
+  {
+   "line": 26901,
+   "find": "id=\"gmMotdSave\">Save</button>",
+   "replace": "id=\"gmMotdSave\">${ewT('common.save')}</button>"
+  },
+  {
+   "line": 26902,
+   "find": ">Guild banner</div>",
+   "replace": ">${ewT('gshop.guild_banner')}</div>"
+  },
+  {
+   "line": 26905,
+   "find": "&#127988; Change banner</button>",
+   "replace": "&#127988; ${ewT('gshop.change_banner')}</button>"
+  },
+  {
+   "line": 26906,
+   "find": "&#128165; Disband Guild</button>",
+   "replace": "&#128165; ${ewT('gshop.disband')}</button>"
+  },
+  {
+   "line": 26907,
+   "find": "To step down and leave, first make another member the leader (tap their name in the roster).",
+   "replace": "${ewT('gshop.step_down_hint')}"
+  },
+  {
+   "line": 26908,
+   "find": "bannerMsg('&#128220; MOTD updated')",
+   "replace": "bannerMsg('&#128220; '+ewT('gshop.motd_updated'))"
+  },
+  {
+   "line": 26910,
+   "find": "gameConfirm('Disband &lt;'+escapeHTML(g.name)+'&gt; permanently? Every member will be removed.',",
+   "replace": "gameConfirm(ewT('gshop.disband_q',{name:'&lt;'+escapeHTML(g.name)+'&gt;'}),"
+  },
+  {
+   "line": 26946,
+   "find": "color:#6f7d90\">none</span>'",
+   "replace": "color:#6f7d90\">'+ewT('gshop.none')+'</span>'"
+  },
+  {
+   "line": 26949,
+   "find": "\\uD83C\\uDFF4 Guild banner</div>'",
+   "replace": "\\uD83C\\uDFF4 '+ewT('gshop.guild_banner')+'</div>'"
+  },
+  {
+   "line": 26951,
+   "find": "'<div class=\"gbLbl\">SHAPE</div>'",
+   "replace": "'<div class=\"gbLbl\">'+ewT('gshop.shape')+'</div>'"
+  },
+  {
+   "line": 26952,
+   "find": "'<div class=\"gbLbl\">EMBLEM</div>'",
+   "replace": "'<div class=\"gbLbl\">'+ewT('gshop.emblem')+'</div>'"
+  },
+  {
+   "line": 26953,
+   "find": "'<div class=\"gbLbl\">COLOUR</div>'",
+   "replace": "'<div class=\"gbLbl\">'+ewT('gshop.colour')+'</div>'"
+  },
+  {
+   "line": 26955,
+   "find": "'<div class=\"gbLbl\">IMPORT</div>'",
+   "replace": "'<div class=\"gbLbl\">'+ewT('gshop.import')+'</div>'"
+  },
+  {
+   "line": 26960,
+   "find": "\\uD83D\\uDDBC Import a picture</button>'",
+   "replace": "\\uD83D\\uDDBC '+ewT('gshop.import_pic')+'</button>'"
+  },
+  {
+   "line": 26961,
+   "find": ">Remove picture</button>'",
+   "replace": ">'+ewT('gshop.remove_pic')+'</button>'"
+  },
+  {
+   "line": 26965,
+   "find": ">Save banner</button>'",
+   "replace": ">'+ewT('gshop.save_banner')+'</button>'"
+  },
+  {
+   "line": 26977,
+   "find": "bannerMsg('\\u26a0 Use a PNG, JPEG, GIF or WebP picture.')",
+   "replace": "bannerMsg('\\u26a0 '+ewT('gshop.pic_format'))"
+  },
+  {
+   "line": 26981,
+   "find": "bannerMsg('\\u26a0 That picture could not be read.')",
+   "replace": "bannerMsg('\\u26a0 '+ewT('gshop.pic_unreadable'))"
+  },
+  {
+   "line": 26983,
+   "find": "bannerMsg('\\u26a0 That picture could not be read.')",
+   "replace": "bannerMsg('\\u26a0 '+ewT('gshop.pic_unreadable'))"
+  },
+  {
+   "line": 26986,
+   "find": "bannerMsg('\\u26a0 That picture could not be read.')",
+   "replace": "bannerMsg('\\u26a0 '+ewT('gshop.pic_unreadable'))"
+  },
+  {
+   "line": 26780,
+   "find": "];",
+   "replace": "];\nconst GUILD_SHOP_TXT=[()=>[ewT('gshop.protection_shield'),ewT('gshop.d_shield')],()=>[ewT('gshop.gold_cache'),ewT('gshop.d_gold',{n:'5,000'})],()=>[ewT('gshop.diamond_pouch'),ewT('gshop.d_diamonds',{n:'50'})],()=>[ewT('gshop.stamina_refill'),ewT('gshop.d_stamina')],()=>[ewT('gshop.arena_coins',{n:'2000'}),ewT('gshop.d_arena',{n:'2,000'})],()=>[ewT('gshop.equip_pieces'),ewT('gshop.d_pieces')],()=>[ewT('gshop.great_gold_cache'),ewT('gshop.d_gold',{n:'15,000'})],()=>[ewT('gshop.resource_crate'),ewT('gshop.d_resources')],()=>[ewT('gshop.diamond_chest'),ewT('gshop.d_diamonds',{n:'150'})],()=>[ewT('gshop.shield_pack',{n:'3'}),ewT('gshop.d_shields',{n:'3'})],()=>[ewT('gshop.arena_coins',{n:'6000'}),ewT('gshop.d_arena',{n:'6,000'})],()=>[ewT('gshop.treasure_vault'),ewT('gshop.d_gold',{n:'50,000'})]];   // v1271 LANGUAGES: what the shop SHOWS for GUILD_SHOP[i] (the catalogue above stays English data - tests/test_guild_shop.js reads it)"
+  },
+  {
+   "line": 26786,
+   "find": "<div><b>${it.name}</b><div style=\"font-size:11px;color:#8b98a9\">${it.desc}</div></div>",
+   "replace": "<div><b>${GUILD_SHOP_TXT[i]?GUILD_SHOP_TXT[i]()[0]:it.name}</b><div style=\"font-size:11px;color:#8b98a9\">${GUILD_SHOP_TXT[i]?GUILD_SHOP_TXT[i]()[1]:it.desc}</div></div>"
+  }
+ ],
+ "notes": [
+  "tests/mine-no-daily-cap.test.js:18 asserts the page source includes 'per haul</span>' - now '+ewT('mine.per_haul')+'</span> (base 26326): FAILS until the assert is updated",
+  "tests/test_mail_ack_after_save_22oct.js runs the pollPvpReports source in Function() with a stubbed env that has no ewT (base 26059-26091 now call ewT): the ReferenceError is swallowed by .catch, so no mail/ack happens - FAILS until ewT (e.g. k=>k) is added to its env",
+  "tests/test_mine_stock_1249.js:14 regexes /Left in the mine/ and /Your miners are working here/ on the page: they now match only the inline EW_LANG_EN text (passes, but no longer proves the panel)",
+  "tests/test_guild_shop.js:22-26 parses GUILD_SHOP {name:'..',desc:'..'} from the page: the catalogue is left English on purpose; the shop shows GUILD_SHOP_TXT[i] (added right after it, base 26780) instead",
+  "tests/test_city_siege_1235.js:185 ('Ember Hold (guild)'), :220 (/^Mining /) and tests/test_city_garrison_1237.js:221 (/\\(you\\)$/) read runtime text in English - unchanged in English",
+  "Left English on purpose: World Tree (place name, 4 sites), resource names via RES (Emberite...), guild boss names (6), Embassy perk names (3; the Embassy tab at 27161 compares them with indexOf - their descriptions are translated via toString objects), GUILD_MOTD/GUILD_MEMBERS mock data (unused), roster class labels at 26351 (ROSTER_CLASSES, team-screen owner), 'HP' and X/Y coordinate readouts, Error('Sites unavailable'/'Busy roster unavailable') thrown into the world-tree modules, siege refusal text from assets/ui/world-siege.js (S.refusal/garrisonRefusal - not in the page). No dev/admin tools in this range.",
+  "Mail subjects/bodies and G.marchLog are written in the player's language when created (stored text, never compared - checked). Server errors shown in this range go through langMsg(); r.error is still compared in English (mine 'Mine battle engine unavailable.' etc. untouched)."
+ ]
+}

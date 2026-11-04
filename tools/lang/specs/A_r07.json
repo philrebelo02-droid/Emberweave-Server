@@ -1,0 +1,661 @@
+{
+ "keys": {
+  "gloss.abil_knockback": "Knocks nearest hero back 15 m, then drags the farthest other hero to the boss",
+  "gloss.abil_tendrilpull": "Drags a hero in close",
+  "gloss.abil_stun": "Strike that stuns",
+  "gloss.abil_cleavecone": "Cleaves a wide arc in front",
+  "gloss.abil_aoestun": "Slams an area, stunning all caught",
+  "gloss.abil_cleave": "Wide hit to nearby foes",
+  "gloss.abil_nova": "Bursts damage to everyone nearby",
+  "gloss.abil_taunt": "Forces foes to attack it + cuts damage taken",
+  "gloss.abil_dot": "Poison/bleed/burn over time",
+  "gloss.abil_aoedot": "A burning ground zone",
+  "gloss.abil_mortal": "Wound that cuts the target’s healing",
+  "gloss.abil_selfheal": "Heals itself",
+  "gloss.abil_defensive": "Braces — takes far less damage briefly",
+  "gloss.abil_haste": "Speeds up its own attacks",
+  "gloss.abil_lifestealbuff": "Heals itself on every hit for a while",
+  "gloss.abil_blink": "Teleports in, kicks the target 8 m away and stuns it",
+  "gloss.abil_punchflurry": "A flurry of rapid hits",
+  "gloss.abil_multishot": "Strikes several foes at once",
+  "gloss.abil_strike": "Heavy ranged strike",
+  "gloss.abil_piercethrow": "Skewers everyone in a line to the farthest hero",
+  "gloss.abil_charge": "Dashes to the farthest hero and slams",
+  "gloss.abil_warcry": "Roars — buffs itself, fears nearby heroes",
+  "gloss.abil_ashfall": "Drops a burning/icy patch on the ground",
+  "gloss.abil_fireball": "Hurls a fireball that bursts on impact",
+  "gloss.abil_volley": "Rapid shots at the nearest foes",
+  "gloss.passive": "Passive · {name}",
+  "gloss.front_line": "Front line",
+  "gloss.back_line": "Back line",
+  "gloss.stats": "Stats",
+  "gloss.hp": "HP",
+  "gloss.damage": "Damage",
+  "gloss.atk_speed": "Atk speed",
+  "gloss.seconds": "{n}s",
+  "gloss.range": "Range",
+  "gloss.melee": "Melee",
+  "gloss.position": "Position",
+  "gloss.shown_lv1": "Shown at Lv 1 · grows +5% per level",
+  "gloss.view_by_level": "View stats by level (1–60)",
+  "gloss.stats_by_level": "{name} — stats by level",
+  "gloss.boss_scaling": "boss scaling · ×2.4 HP / ×1.8 DMG, +5%/level",
+  "gloss.grows": "grows +5% per level",
+  "gloss.lv_col": "Lv",
+  "gloss.dmg": "DMG",
+  "gloss.sub_heroes": "Heroes of Emberweave — {n} catalogued",
+  "gloss.sub_bosses": "Bosses of Emberweave — {n} catalogued",
+  "gloss.sub_summons": "Summons of Emberweave — {n} catalogued",
+  "gloss.sub_monsters": "Monsters of Emberweave — {n} catalogued",
+  "gloss.kind_hero": "Hero",
+  "gloss.kind_boss": "Boss",
+  "gloss.kind_summon": "Summon",
+  "gloss.kind_monster": "Monster",
+  "gloss.abil_pending": "Abilities pending.",
+  "gloss.lore_pending": "Lore is written from the abilities you choose.",
+  "gloss.summoned_by": "summoned by {hero}",
+  "gloss.abilities": "Abilities",
+  "gloss.lore": "Lore",
+  "roster.class_all": "All",
+  "roster.class_tank": "Tank",
+  "roster.class_bruiser": "Bruiser",
+  "roster.class_assassin": "Assassin",
+  "roster.class_mage": "Mage",
+  "roster.class_support": "Support",
+  "roster.class_marksman": "Marksman",
+  "roster.class_warrior": "Warrior",
+  "roster.class_brute": "Brute",
+  "roster.set_wall": "SET WALL — LINE {n}",
+  "roster.set_arena_def": "SET ARENA DEFENSE",
+  "roster.arena_attackers": "ARENA — CHOOSE ATTACKERS",
+  "roster.raid_squad": "RAID SQUAD",
+  "roster.stage": "STAGE {n}",
+  "roster.vault_title": "THE VAULT — 5 FIGHT + 5 BACKUP",
+  "roster.graid_title": "GUILD RAID — 5 FIGHT + 5 BACKUP",
+  "roster.choose_squad": "CHOOSE YOUR SQUAD",
+  "roster.wall_sub_first": "Line {n} of 3 · fights first · up to {k} heroes",
+  "roster.wall_sub_second": "Line {n} of 3 · fights if line 1 falls · up to {k} heroes",
+  "roster.wall_sub_last": "Line {n} of 3 · fights last · up to {k} heroes",
+  "roster.vault_sub": "First {n} fight — the rest step in when a fighter falls (up to {m} total)",
+  "roster.raid_sub": "First {n} fight the boss — the rest step in as they fall · 90 seconds · all damage counts",
+  "roster.prov_title": "{name} — STAGE {n}",
+  "roster.prov_sub": "Boss: {boss} · 3 waves · reward {reward} · a loss costs nothing",
+  "roster.well_title": "THE STARLESS WELL — MAP {n}",
+  "roster.well_title_boss": "THE STARLESS WELL — MAP {n} · BOSS",
+  "roster.vs": "vs {names}",
+  "roster.no_heroes": "No heroes yet — summon one at the Wishing Pool.",
+  "roster.no_class_heroes": "No {cls} heroes yet.",
+  "roster.marching": "marching — not defending",
+  "roster.on_line": "on Line {n}",
+  "roster.lv": "Lv {n}",
+  "roster.chip_fight": "FIGHT",
+  "roster.chip_backup": "BACKUP",
+  "roster.empty": "empty",
+  "roster.fighters": "Fighters",
+  "roster.backup_lbl": "Backup - steps in when a fighter falls",
+  "roster.pick_fighters": "PICK {n} FIGHTERS ({have}/{n})",
+  "roster.pick_one": "PICK AT LEAST 1 HERO",
+  "roster.need_stamina": "NEED {n} STAMINA ({have}/{max})",
+  "roster.battle": "BATTLE",
+  "tech.atk_name": "Attack Power",
+  "tech.atk_desc": "Attack damage",
+  "tech.hp": "Health",
+  "tech.ap_name": "Ability Power",
+  "tech.ap_desc": "Ability power",
+  "tech.heal_name": "Healing & Shielding",
+  "tech.heal_desc": "Healing and shield strength",
+  "tech.armor": "Armor",
+  "tech.mr_name": "Magic Resist",
+  "tech.mr_desc": "Magic resist",
+  "tech.crit_name": "Crit",
+  "tech.crit_desc": "Crit rating",
+  "tech.critres_name": "Crit Resist",
+  "tech.critres_desc": "Reduces critical damage taken (subtracts from the attacker's crit damage)",
+  "tech.acad_desc": "for a Lv 30 research",
+  "tech.amount": "{n} {stat}",
+  "tech.critres_amount": "crit damage taken {n} pts",
+  "tech.next_now": "Next level: {next} · now {now}",
+  "tech.now": "now {now}",
+  "tech.max": "MAX",
+  "tech.max_lv": "MAX · Lv {n}",
+  "tech.upgrading": "{t} · upgrading to Lv {n}",
+  "tech.raise_academy": "Raise Academy to Lv {n} first",
+  "tech.busy_elsewhere": "Academy busy elsewhere",
+  "tech.upgrade_lv": "Upgrade Lv {n}",
+  "tech.learn_lv": "Learn Lv {n}",
+  "tech.income": "Income {n} each / h",
+  "tech.income_next": "Income {n} each / h · Lv {lv} {m} each / h",
+  "tech.fully_upgraded": "Fully upgraded.",
+  "tech.learn_time": "Learn time: {t}",
+  "tech.in_progress": "in progress…",
+  "tech.save_failed": "Save failed - try again."
+ },
+ "edits": [
+  {
+   "line": 23498,
+   "find": "'Knocks nearest hero back 15 m, then drags the farthest other hero to the boss'",
+   "replace": "t('gloss.abil_knockback')"
+  },
+  {
+   "line": 23498,
+   "find": "tendrilpull:'Drags a hero in close'",
+   "replace": "tendrilpull:t('gloss.abil_tendrilpull')"
+  },
+  {
+   "line": 23498,
+   "find": "stun:'Strike that stuns'",
+   "replace": "stun:t('gloss.abil_stun')"
+  },
+  {
+   "line": 23498,
+   "find": "cleavecone:'Cleaves a wide arc in front'",
+   "replace": "cleavecone:t('gloss.abil_cleavecone')"
+  },
+  {
+   "line": 23498,
+   "find": "aoeStun:'Slams an area, stunning all caught'",
+   "replace": "aoeStun:t('gloss.abil_aoestun')"
+  },
+  {
+   "line": 23498,
+   "find": "cleave:'Wide hit to nearby foes'",
+   "replace": "cleave:t('gloss.abil_cleave')"
+  },
+  {
+   "line": 23498,
+   "find": "nova:'Bursts damage to everyone nearby'",
+   "replace": "nova:t('gloss.abil_nova')"
+  },
+  {
+   "line": 23498,
+   "find": "taunt:'Forces foes to attack it + cuts damage taken'",
+   "replace": "taunt:t('gloss.abil_taunt')"
+  },
+  {
+   "line": 23498,
+   "find": "dot:'Poison/bleed/burn over time'",
+   "replace": "dot:t('gloss.abil_dot')"
+  },
+  {
+   "line": 23498,
+   "find": "aoedot:'A burning ground zone'",
+   "replace": "aoedot:t('gloss.abil_aoedot')"
+  },
+  {
+   "line": 23498,
+   "find": "mortal:'Wound that cuts the target’s healing'",
+   "replace": "mortal:t('gloss.abil_mortal')"
+  },
+  {
+   "line": 23498,
+   "find": "selfheal:'Heals itself'",
+   "replace": "selfheal:t('gloss.abil_selfheal')"
+  },
+  {
+   "line": 23498,
+   "find": "defensive:'Braces — takes far less damage briefly'",
+   "replace": "defensive:t('gloss.abil_defensive')"
+  },
+  {
+   "line": 23498,
+   "find": "haste:'Speeds up its own attacks'",
+   "replace": "haste:t('gloss.abil_haste')"
+  },
+  {
+   "line": 23498,
+   "find": "lifestealbuff:'Heals itself on every hit for a while'",
+   "replace": "lifestealbuff:t('gloss.abil_lifestealbuff')"
+  },
+  {
+   "line": 23498,
+   "find": "blink:'Teleports in, kicks the target 8 m away and stuns it'",
+   "replace": "blink:t('gloss.abil_blink')"
+  },
+  {
+   "line": 23498,
+   "find": "punchflurry:'A flurry of rapid hits'",
+   "replace": "punchflurry:t('gloss.abil_punchflurry')"
+  },
+  {
+   "line": 23498,
+   "find": "multiShot:'Strikes several foes at once'",
+   "replace": "multiShot:t('gloss.abil_multishot')"
+  },
+  {
+   "line": 23498,
+   "find": "strike:'Heavy ranged strike'",
+   "replace": "strike:t('gloss.abil_strike')"
+  },
+  {
+   "line": 23498,
+   "find": "piercethrow:'Skewers everyone in a line to the farthest hero'",
+   "replace": "piercethrow:t('gloss.abil_piercethrow')"
+  },
+  {
+   "line": 23498,
+   "find": "charge:'Dashes to the farthest hero and slams'",
+   "replace": "charge:t('gloss.abil_charge')"
+  },
+  {
+   "line": 23498,
+   "find": "warcry:'Roars — buffs itself, fears nearby heroes'",
+   "replace": "warcry:t('gloss.abil_warcry')"
+  },
+  {
+   "line": 23498,
+   "find": "ashfall:'Drops a burning/icy patch on the ground'",
+   "replace": "ashfall:t('gloss.abil_ashfall')"
+  },
+  {
+   "line": 23498,
+   "find": "fireball:'Hurls a fireball that bursts on impact'",
+   "replace": "fireball:t('gloss.abil_fireball')"
+  },
+  {
+   "line": 23498,
+   "find": "volley:'Rapid shots at the nearest foes'",
+   "replace": "volley:t('gloss.abil_volley')"
+  },
+  {
+   "line": 23499,
+   "find": "<b>Passive · '+String(k.pass).replace(/(^|_)([a-z])/g,function(m,a,b){return b.toUpperCase();})+'</b>",
+   "replace": "<b>'+t('gloss.passive',{name:String(k.pass).replace(/(^|_)([a-z])/g,function(m,a,b){return b.toUpperCase();})})+'</b>"
+  },
+  {
+   "line": 23501,
+   "find": "(t.range<60)?'Front line':'Back line'",
+   "replace": "(t.range<60)?ewT('gloss.front_line'):ewT('gloss.back_line')"
+  },
+  {
+   "line": 23501,
+   "find": "' Stats</b>",
+   "replace": "' '+ewT('gloss.stats')+'</b>"
+  },
+  {
+   "line": 23501,
+   "find": "' HP</span>",
+   "replace": "' '+ewT('gloss.hp')+'</span>"
+  },
+  {
+   "line": 23501,
+   "find": "' Damage</span>",
+   "replace": "' '+ewT('gloss.damage')+'</span>"
+  },
+  {
+   "line": 23501,
+   "find": "⏱️ Atk speed</span>",
+   "replace": "⏱️ '+ewT('gloss.atk_speed')+'</span>"
+  },
+  {
+   "line": 23501,
+   "find": "'+t.swing+'s</b>",
+   "replace": "'+ewT('gloss.seconds',{n:t.swing})+'</b>"
+  },
+  {
+   "line": 23501,
+   "find": "' Range</span>",
+   "replace": "' '+ewT('gloss.range')+'</span>"
+  },
+  {
+   "line": 23501,
+   "find": "'Melee'",
+   "replace": "ewT('gloss.melee')"
+  },
+  {
+   "line": 23501,
+   "find": "🧭 Position</span>",
+   "replace": "🧭 '+ewT('gloss.position')+'</span>"
+  },
+  {
+   "line": 23501,
+   "find": "(t.role||'—')",
+   "replace": "(t.role?rosterClassName(t.role):'—')"
+  },
+  {
+   "line": 23501,
+   "find": ">Shown at Lv 1 · grows +5% per level<",
+   "replace": ">'+ewT('gloss.shown_lv1')+'<"
+  },
+  {
+   "line": 23501,
+   "find": "' View stats by level (1–60)</button>",
+   "replace": "' '+ewT('gloss.view_by_level')+'</button>"
+  },
+  {
+   "line": 23502,
+   "find": "<h3>'+((gi&&gi.name)||t.name)+' — stats by level</h3>",
+   "replace": "<h3>'+ewT('gloss.stats_by_level',{name:((gi&&gi.name)||t.name)})+'</h3>"
+  },
+  {
+   "line": 23502,
+   "find": "'boss scaling · ×2.4 HP / ×1.8 DMG, +5%/level':'grows +5% per level'",
+   "replace": "ewT('gloss.boss_scaling'):ewT('gloss.grows')"
+  },
+  {
+   "line": 23502,
+   "find": "<th>Lv</th>",
+   "replace": "<th>'+ewT('gloss.lv_col')+'</th>"
+  },
+  {
+   "line": 23502,
+   "find": "' HP</th>",
+   "replace": "' '+ewT('gloss.hp')+'</th>"
+  },
+  {
+   "line": 23502,
+   "find": "' DMG</th>",
+   "replace": "' '+ewT('gloss.dmg')+'</th>"
+  },
+  {
+   "line": 23550,
+   "find": "(glTab==='heroes'?'Heroes':(isBoss?'Bosses':(glTab==='summons'?'Summons':'Monsters')))+' of Emberweave — '+list.length+' catalogued'",
+   "replace": "(glTab==='heroes'?t('gloss.sub_heroes',{n:list.length}):(isBoss?t('gloss.sub_bosses',{n:list.length}):(glTab==='summons'?t('gloss.sub_summons',{n:list.length}):t('gloss.sub_monsters',{n:list.length}))))"
+  },
+  {
+   "line": 23565,
+   "find": "cat==='heroes'?'Hero':(cat==='bosses'?'Boss':(cat==='summons'?'Summon':'Monster'))",
+   "replace": "cat==='heroes'?t('gloss.kind_hero'):(cat==='bosses'?t('gloss.kind_boss'):(cat==='summons'?t('gloss.kind_summon'):t('gloss.kind_monster')))"
+  },
+  {
+   "line": 23568,
+   "find": "<span class=\"glPend\">Abilities pending.</span>",
+   "replace": "<span class=\"glPend\">'+t('gloss.abil_pending')+'</span>"
+  },
+  {
+   "line": 23570,
+   "find": "<span class=\"glPend\">Abilities pending.</span>",
+   "replace": "<span class=\"glPend\">'+t('gloss.abil_pending')+'</span>"
+  },
+  {
+   "line": 23577,
+   "find": "'<span class=\"glPend\">Lore is written from the abilities you choose.</span>'",
+   "replace": "'<span class=\"glPend\">'+t('gloss.lore_pending')+'</span>'"
+  },
+  {
+   "line": 23579,
+   "find": "HERO_TYPES[hk].role+' · '",
+   "replace": "rosterClassName(HERO_TYPES[hk].role)+' · '"
+  },
+  {
+   "line": 23580,
+   "find": ":((typeof MONSTER_TYPES!=='undefined'&&MONSTER_TYPES[id]&&MONSTER_TYPES[id].role)||e.role||'');",
+   "replace": ":rosterClassName((typeof MONSTER_TYPES!=='undefined'&&MONSTER_TYPES[id]&&MONSTER_TYPES[id].role)||e.role||'');"
+  },
+  {
+   "line": 23581,
+   "find": "'summoned by '+by",
+   "replace": "t('gloss.summoned_by',{hero:by})"
+  },
+  {
+   "line": 23583,
+   "find": "aria-label=\"Close\">",
+   "replace": "aria-label=\"'+t('common.close')+'\">"
+  },
+  {
+   "line": 23583,
+   "find": "' Abilities</b>",
+   "replace": "' '+t('gloss.abilities')+'</b>"
+  },
+  {
+   "line": 23583,
+   "find": "' Lore</b>",
+   "replace": "' '+t('gloss.lore')+'</b>"
+  },
+  {
+   "line": 23598,
+   "find": "glOpenFrom('menu','Menu')",
+   "replace": "glOpenFrom('menu',ewT('menu.menu'))"
+  },
+  {
+   "line": 23599,
+   "find": "glOpenFrom('campaign','Campaign')",
+   "replace": "glOpenFrom('campaign',ewT('bld.campaign'))"
+  },
+  {
+   "line": 23669,
+   "find": "const ROSTER_CLASSES=['All','Tank','Bruiser','Assassin','Mage','Support','Marksman'];",
+   "replace": "const ROSTER_CLASSES=['All','Tank','Bruiser','Assassin','Mage','Support','Marksman'];\nfunction rosterClassName(c){ const M={All:t('roster.class_all'),Tank:t('roster.class_tank'),Bruiser:t('roster.class_bruiser'),Assassin:t('roster.class_assassin'),Mage:t('roster.class_mage'),Support:t('roster.class_support'),Marksman:t('roster.class_marksman'),Warrior:t('roster.class_warrior'),Brute:t('roster.class_brute')}; return M[c]||c; }   // v1271: a class / role AS SHOWN - the English name stays the value the code compares and saves"
+  },
+  {
+   "line": 23686,
+   "find": "('SET WALL — LINE '+WALL_NUM[teamCtx])",
+   "replace": "t('roster.set_wall',{n:WALL_NUM[teamCtx]})"
+  },
+  {
+   "line": 23689,
+   "find": "'SET ARENA DEFENSE'",
+   "replace": "t('roster.set_arena_def')"
+  },
+  {
+   "line": 23689,
+   "find": "'ARENA — CHOOSE ATTACKERS'",
+   "replace": "t('roster.arena_attackers')"
+  },
+  {
+   "line": 23689,
+   "find": "'RAID SQUAD'",
+   "replace": "t('roster.raid_squad')"
+  },
+  {
+   "line": 23689,
+   "find": "'STAGE '+stageCode(CUR.node)",
+   "replace": "t('roster.stage',{n:stageCode(CUR.node)})"
+  },
+  {
+   "line": 23689,
+   "find": "'THE VAULT — 5 FIGHT + 5 BACKUP'",
+   "replace": "t('roster.vault_title')"
+  },
+  {
+   "line": 23689,
+   "find": "'GUILD RAID — 5 FIGHT + 5 BACKUP'",
+   "replace": "t('roster.graid_title')"
+  },
+  {
+   "line": 23689,
+   "find": "'CHOOSE YOUR SQUAD'",
+   "replace": "t('roster.choose_squad')"
+  },
+  {
+   "line": 23694,
+   "find": "`Line ${WALL_NUM[teamCtx]} of 3 · fights ${WALL_NUM[teamCtx]===1?'first':WALL_NUM[teamCtx]===2?'if line 1 falls':'last'} · up to ${TEAM_SIZE} heroes`",
+   "replace": "(WALL_NUM[teamCtx]===1?t('roster.wall_sub_first',{n:WALL_NUM[teamCtx],k:TEAM_SIZE}):WALL_NUM[teamCtx]===2?t('roster.wall_sub_second',{n:WALL_NUM[teamCtx],k:TEAM_SIZE}):t('roster.wall_sub_last',{n:WALL_NUM[teamCtx],k:TEAM_SIZE}))"
+  },
+  {
+   "line": 23695,
+   "find": "`First ${TEAM_SIZE} fight — the rest step in when a fighter falls (up to ${TEAM_SIZE*2} total)`",
+   "replace": "t('roster.vault_sub',{n:TEAM_SIZE,m:TEAM_SIZE*2})"
+  },
+  {
+   "line": 23696,
+   "find": "`First ${TEAM_SIZE} fight the boss — the rest step in as they fall · 90 seconds · all damage counts`",
+   "replace": "t('roster.raid_sub',{n:TEAM_SIZE})"
+  },
+  {
+   "line": 23699,
+   "find": "((PROV_META[_P.t]||PROV_META.gold).nm).toUpperCase()+' — STAGE '+(_P.stage|0)",
+   "replace": "t('roster.prov_title',{name:((PROV_META[_P.t]||PROV_META.gold).nm).toUpperCase(),n:(_P.stage|0)})"
+  },
+  {
+   "line": 23700,
+   "find": "'Boss: '+provBossName(_P.boss||provBossKey(_P.t,_P.stage),true)+' · 3 waves · reward '+provRewardStr(_P.t,_P.stage)+' · a loss costs nothing'",
+   "replace": "t('roster.prov_sub',{boss:provBossName(_P.boss||provBossKey(_P.t,_P.stage),true),reward:provRewardStr(_P.t,_P.stage)})"
+  },
+  {
+   "line": 23701,
+   "find": "'THE STARLESS WELL — MAP '+(CUR.well.map|0)+(CUR.well.type==='boss'?' · BOSS':'')",
+   "replace": "(CUR.well.type==='boss'?t('roster.well_title_boss',{n:CUR.well.map|0}):t('roster.well_title',{n:CUR.well.map|0}))"
+  },
+  {
+   "line": 23702,
+   "find": "'vs '+_f.join(' · ')",
+   "replace": "t('roster.vs',{names:_f.join(' · ')})"
+  },
+  {
+   "line": 23717,
+   "find": "<span>${c.toUpperCase()}</span>",
+   "replace": "<span>${rosterClassName(c).toLocaleUpperCase(LANG.cur)}</span>"
+  },
+  {
+   "line": 23720,
+   "find": "No heroes yet — summon one at the Wishing Pool.",
+   "replace": "'+t('roster.no_heroes')+'"
+  },
+  {
+   "line": 23721,
+   "find": "No '+rosterClassF+' heroes yet.",
+   "replace": "'+t('roster.no_class_heroes',{cls:rosterClassName(rosterClassF)})+'"
+  },
+  {
+   "line": 23727,
+   "find": "⛓ marching — not defending",
+   "replace": "⛓ ${ewT('roster.marching')}"
+  },
+  {
+   "line": 23728,
+   "find": "on Line ${elsewhere}",
+   "replace": "${ewT('roster.on_line',{n:elsewhere})}"
+  },
+  {
+   "line": 23729,
+   "find": "Lv ${heroLevel(key)}",
+   "replace": "${ewT('roster.lv',{n:heroLevel(key)})}"
+  },
+  {
+   "line": 23752,
+   "find": "statusIcon('attack')+' FIGHT':statusIcon('shield')+' BACKUP'",
+   "replace": "statusIcon('attack')+' '+ewT('roster.chip_fight'):statusIcon('shield')+' '+ewT('roster.chip_backup')"
+  },
+  {
+   "line": 23757,
+   "find": "Lv ${heroLevel(k)}",
+   "replace": "${t('roster.lv',{n:heroLevel(k)})}"
+  },
+  {
+   "line": 23758,
+   "find": ">empty</div>",
+   "replace": ">${t('roster.empty')}</div>"
+  },
+  {
+   "line": 23760,
+   "find": "'<div class=\"rsSlotLbl\">Fighters</div>'",
+   "replace": "'<div class=\"rsSlotLbl\">'+t('roster.fighters')+'</div>'"
+  },
+  {
+   "line": 23762,
+   "find": "'<div class=\"rsSlotLbl\">Backup - steps in when a fighter falls</div>'",
+   "replace": "'<div class=\"rsSlotLbl\">'+t('roster.backup_lbl')+'</div>'"
+  },
+  {
+   "line": 23774,
+   "find": "PICK ${TEAM_SIZE} FIGHTERS (${teamArr.length}/${TEAM_SIZE})",
+   "replace": "${t('roster.pick_fighters',{n:TEAM_SIZE,have:teamArr.length})}"
+  },
+  {
+   "line": 23774,
+   "find": "`PICK AT LEAST 1 HERO`",
+   "replace": "t('roster.pick_one')"
+  },
+  {
+   "line": 23774,
+   "find": "NEED ${stageStamCost(CUR.node,CUR.portal)} STAMINA (${G.stamina}/${maxStamina()})",
+   "replace": "${t('roster.need_stamina',{n:stageStamCost(CUR.node,CUR.portal),have:G.stamina,max:maxStamina()})}"
+  },
+  {
+   "line": 23774,
+   "find": "`BATTLE ${uiIcon('play')}",
+   "replace": "`${t('roster.battle')} ${uiIcon('play')}"
+  },
+  {
+   "line": 23774,
+   "find": "'BATTLE '+uiIcon('play')",
+   "replace": "t('roster.battle')+' '+uiIcon('play')"
+  },
+  {
+   "line": 23799,
+   "find": "];",
+   "replace": "];\nfunction techText(k){ const N={atk:[t('tech.atk_name'),t('tech.atk_desc')],hp:[t('tech.hp'),t('tech.hp')],ap:[t('tech.ap_name'),t('tech.ap_desc')],heal:[t('tech.heal_name'),t('tech.heal_desc')],armor:[t('tech.armor'),t('tech.armor')],mr:[t('tech.mr_name'),t('tech.mr_desc')],crit:[t('tech.crit_name'),t('tech.crit_desc')],critres:[t('tech.critres_name'),t('tech.critres_desc')]}; return N[k]||null; }   // v1271: a track's [name, description] as shown"
+  },
+  {
+   "line": 23820,
+   "find": "🏛️ ACADEMY · ${acadLearning?uiIcon('timer'):('Lv '+acadLvl)}",
+   "replace": "🏛️ ${t('bld.academy').toLocaleUpperCase(LANG.cur)} · ${acadLearning?uiIcon('timer'):t('roster.lv',{n:acadLvl})}"
+  },
+  {
+   "line": 23831,
+   "find": "'Lv '+lvl",
+   "replace": "t('roster.lv',{n:lvl})"
+  },
+  {
+   "line": 23839,
+   "find": "'Academy','for a Lv 30 research'",
+   "replace": "ewT('bld.academy'),ewT('tech.acad_desc')"
+  },
+  {
+   "line": 23840,
+   "find": "const [k,ic,name,desc]=sel;",
+   "replace": "const [k,ic]=sel, [name,desc]=isAcad?[sel[2],sel[3]]:(techText(k)||[sel[2],sel[3]]);"
+  },
+  {
+   "line": 23851,
+   "find": "let preL='', postL=' '+desc; if(k==='critres'){ preL='crit damage taken '; postL=' pts';",
+   "replace": "const _amt=v=>{ const b='<b style=\"color:#5ee89b\">'+v+'</b>'; return k==='critres'?t('tech.critres_amount',{n:b}):t('tech.amount',{n:b,stat:desc}); }; if(k==='critres'){"
+  },
+  {
+   "line": 23853,
+   "find": "MAX · Lv ${tmax}",
+   "replace": "${t('tech.max_lv',{n:tmax})}"
+  },
+  {
+   "line": 23854,
+   "find": "${fmtDur(remain)} · upgrading to Lv ${lvl+1}",
+   "replace": "${t('tech.upgrading',{t:fmtDur(remain),n:lvl+1})}"
+  },
+  {
+   "line": 23855,
+   "find": "Raise Academy to Lv ${lvl+1} first",
+   "replace": "${t('tech.raise_academy',{n:lvl+1})}"
+  },
+  {
+   "line": 23856,
+   "find": ">Academy busy elsewhere<",
+   "replace": ">${t('tech.busy_elsewhere')}<"
+  },
+  {
+   "line": 23857,
+   "find": "${isAcad?'Upgrade':'Learn'} Lv ${lvl+1}",
+   "replace": "${isAcad?t('tech.upgrade_lv',{n:lvl+1}):t('tech.learn_lv',{n:lvl+1})}"
+  },
+  {
+   "line": 23861,
+   "find": "${name} · Lv ${lvl}${maxed?' <span style=\"color:#ffd45e\">MAX</span>':'/'+tmax}",
+   "replace": "${name} · ${t('roster.lv',{n:lvl+(maxed?'':'/'+tmax)})}${maxed?' <span style=\"color:#ffd45e\">'+t('tech.max')+'</span>':''}"
+  },
+  {
+   "line": 23862,
+   "find": "${isAcad?`${maxed?'':`Next level: <b style=\"color:#5ee89b\">${perStr}</b> ${desc} · `}now <b style=\"color:#5ee89b\">${nowStr}</b> ${desc}`:`${maxed?'':`Next level: ${preL}<b style=\"color:#5ee89b\">${perStr}</b>${postL} · `}now ${preL}<b style=\"color:#5ee89b\">${nowStr}</b>${postL}`}",
+   "replace": "${maxed?t('tech.now',{now:_amt(nowStr)}):t('tech.next_now',{next:_amt(perStr),now:_amt(nowStr)})}"
+  },
+  {
+   "line": 23863,
+   "find": "Income <b style=\"color:#5ee89b\">+${Math.floor(acadRatePerHour(lvl)).toLocaleString()}</b> each / h${maxed?'':` · Lv ${lvl+1} <b style=\"color:#5ee89b\">+${Math.floor(acadRatePerHour(lvl+1)).toLocaleString()}</b> each / h`}",
+   "replace": "${maxed?t('tech.income',{n:'<b style=\"color:#5ee89b\">+'+Math.floor(acadRatePerHour(lvl)).toLocaleString()+'</b>'}):t('tech.income_next',{n:'<b style=\"color:#5ee89b\">+'+Math.floor(acadRatePerHour(lvl)).toLocaleString()+'</b>',lv:lvl+1,m:'<b style=\"color:#5ee89b\">+'+Math.floor(acadRatePerHour(lvl+1)).toLocaleString()+'</b>'})}"
+  },
+  {
+   "line": 23864,
+   "find": "${maxed?'Fully upgraded.':`Learn time: ${fmtDur(learnDur(lvl))}${learning&&remain>0?` · <span style=\"color:#8fe3ff\">in progress…</span>`:''}`}",
+   "replace": "${maxed?t('tech.fully_upgraded'):t('tech.learn_time',{t:fmtDur(learnDur(lvl))})+(learning&&remain>0?' · <span style=\"color:#8fe3ff\">'+t('tech.in_progress')+'</span>':'')}"
+  },
+  {
+   "line": 23870,
+   "find": "(!r||r.error==='offline')?'Connection lost.':(r.error||'Save failed - try again.')",
+   "replace": "(!r||r.error==='offline')?t('net.connection_lost'):(langMsg(r.error)||t('tech.save_failed'))"
+  }
+ ],
+ "notes": [
+  "tests/test_academy_v2.js lines 63-66 regex-assert the old renderTech source (let preL='', postL=' '+desc ... and the 'Next level: ${preL}<b ...>${perStr}</b>${postL} · ' template); the line is now built by tech.next_now / tech.now / tech.amount / tech.critres_amount via _amt() (same English output) - that check needs updating to the new source.",
+  "tests/test_academy_v2.js lines 61-62 read TECH_TRACKS English text - TECH_TRACKS is unchanged (display goes through the new techText(k)), still passes.",
+  "New shared helpers for other agents: rosterClassName(c) (roster.class_* incl. Warrior/Brute; returns c for unknown) - lines 19626/19634 (Sky Island bench) and 26351/26355 (hero picker) still show c.toUpperCase()/rosterClassF raw and can reuse it; techText(k) -> [name, desc] of an Academy track.",
+  "Left English on purpose in 23000-23989: KITS name/desc additions (23187-23197), ULT_DESC (23250), HERO_LORE (23251-23325), GLOSSARY_INFO (23449-23497) = content agent; monster ability names and PROV_META province names (names / other owners); netGateUpdate messages 23977-23988 (is down right now / Lost ... reconnecting / Signing you in / Sign in to play) left for the agent owning 23990+ since the function and its buttons continue there and no net.* area is assigned to me."
+ ]
+}

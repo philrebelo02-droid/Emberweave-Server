@@ -1,0 +1,190 @@
+{
+ "keys": {
+  "draft.comeback_gold": "Comeback gold +{n} (you are behind on health).",
+  "draft.ember_cache": "{name}: a {item} because you are behind - tap it on your item bench.",
+  "draft.carousel_title": "The {name}",
+  "draft.car_got": "Got it - waiting for the others",
+  "draft.car_released": "You're released in {n}",
+  "draft.car_go": "Go! Tap where to run",
+  "draft.place_one": "Place at least one hero on the board.",
+  "draft.too_many": "Too many heroes on the board ({n}/{max}) - move one to the bench.",
+  "draft.monster_wave": "Monster wave",
+  "draft.monsters": "Monsters",
+  "draft.gold_plus": "+{n} gold",
+  "draft.gold_n": "{n} gold",
+  "draft.round_banner": "ROUND {n}",
+  "draft.vs": "vs {name}",
+  "draft.loot_nothing": "nothing",
+  "draft.wave_cleared": "Wave cleared",
+  "draft.wave_both_fell": "Both sides fell at once — the wave held",
+  "draft.wave_time_out": "Time ran out — the wave held",
+  "draft.wave_held": "The wave held",
+  "draft.wave_result": "{res} — loot: {loot}. Tap the orbs to send your avatar to collect them.",
+  "draft.minus_health": "−{n} health.",
+  "draft.you_beat": "You beat {name} — they lose {n} health.",
+  "draft.draw_both_fell": "Both sides fell at once — a draw. You lose {n}, {name} loses {m}.",
+  "draft.draw_time_out": "Time ran out with both sides standing — a draw. You lose {n}, {name} loses {m}.",
+  "draft.foe_won": "{name} won — you lose {n} health.",
+  "draft.claim_failed_match": "Reward could not be claimed for this match.",
+  "draft.claim_sign_in": "Sign in to earn stamina from {name}.",
+  "draft.claim_saved": "No connection — your reward is saved and will be claimed the next time you open {name}.",
+  "draft.claim_failed": "Reward could not be claimed.",
+  "draft.stamina_last": "+{n} stamina from your last {name} match",
+  "draft.claiming": "Claiming your reward…",
+  "draft.stamina_plus": "+{n} stamina",
+  "draft.no_reward": "No reward this time.",
+  "draft.round_lc": "round {n}",
+  "draft.place_ord": "{ord} place",
+  "draft.won_all": "Last one standing. The draft was yours.",
+  "draft.knocked_out": "Knocked out in round {n}.",
+  "draft.play_again": "Play again",
+  "draft.you": "You",
+  "draft.rival": "Rival",
+  "draft.quit": "Quit"
+ },
+ "edits": [
+  {
+   "line": 32746,
+   "find": "'Comeback gold +'+cu+' (you are behind on health).'",
+   "replace": "ewT('draft.comeback_gold',{n:cu})"
+  },
+  {
+   "line": 32750,
+   "find": "'Ember Cache: a '+edItemName(it)+' because you are behind - tap it on your item bench.'",
+   "replace": "ewT('draft.ember_cache',{name:'Ember Cache',item:edItemName(it)})"
+  },
+  {
+   "line": 32945,
+   "find": "+' The Ember Carousel</span>",
+   "replace": "+' '+ewT('draft.carousel_title',{name:'Ember Carousel'})+'</span>"
+  },
+  {
+   "line": 32948,
+   "find": "${a.p.ai?edEsc(a.p.name):'You'}",
+   "replace": "${a.p.ai?edEsc(a.p.name):ewT('draft.you')}"
+  },
+  {
+   "line": 32969,
+   "find": "C.done ? 'Done' : (me&&me.got!=null ? 'Got it - waiting for the others' : (left>0 ? `You're released in ${left}` : 'Go! Tap where to run'))",
+   "replace": "C.done ? ewT('common.done') : (me&&me.got!=null ? ewT('draft.car_got') : (left>0 ? ewT('draft.car_released',{n:left}) : ewT('draft.car_go')))"
+  },
+  {
+   "line": 33297,
+   "find": "edToast('Place at least one hero on the board.')",
+   "replace": "edToast(ewT('draft.place_one'))"
+  },
+  {
+   "line": 33298,
+   "find": "edToast('Too many heroes on the board ('+edBoardCount(you)+'/'+edFieldCap(you)+') - move one to the bench.')",
+   "replace": "edToast(ewT('draft.too_many',{n:edBoardCount(you),max:edFieldCap(you)}))"
+  },
+  {
+   "line": 33304,
+   "find": "name:'Monster wave'",
+   "replace": "name:ewT('draft.monster_wave')"
+  },
+  {
+   "line": 33337,
+   "find": "('+'+d.gold+' gold')",
+   "replace": "ewT('draft.gold_plus',{n:d.gold})"
+  },
+  {
+   "line": 33338,
+   "find": "its.push(g+' gold')",
+   "replace": "its.push(ewT('draft.gold_n',{n:g}))"
+  },
+  {
+   "line": 33469,
+   "find": "ED.opp.pve?'Monsters':((ED.opp.p&&ED.opp.p.name)||'Rival')",
+   "replace": "ED.opp.pve?ewT('draft.monsters'):((ED.opp.p&&ED.opp.p.name)||ewT('draft.rival'))"
+  },
+  {
+   "line": 33533,
+   "find": "bannerMsg('ROUND '+ED.round+'\\n'+(ED.opp.pve?'Monster wave':'vs '+ED.opp.name));",
+   "replace": "bannerMsg(ewT('draft.round_banner',{n:ED.round})+'\\n'+(ED.opp.pve?ewT('draft.monster_wave'):ewT('draft.vs',{name:ED.opp.name})));"
+  },
+  {
+   "line": 33620,
+   "find": "||'nothing';",
+   "replace": "||ewT('draft.loot_nothing');"
+  },
+  {
+   "line": 33620,
+   "find": "line = (won ? 'Wave cleared' : (draw ? (ED._mutual?'{i:s:attack} Both sides fell at once — the wave held':'⏱ Time ran out — the wave held') : 'The wave held'))+' — loot: '+loot+'. Tap the orbs to send your avatar to collect them.';",
+   "replace": "line = ewT('draft.wave_result',{res:(won ? ewT('draft.wave_cleared') : (draw ? (ED._mutual?'{i:s:attack} '+ewT('draft.wave_both_fell'):'⏱ '+ewT('draft.wave_time_out')) : ewT('draft.wave_held'))),loot});"
+  },
+  {
+   "line": 33620,
+   "find": "line+=' −'+d+' health.';",
+   "replace": "line+=' '+ewT('draft.minus_health',{n:d});"
+  },
+  {
+   "line": 33622,
+   "find": "line='You beat '+foe.name+' — they lose '+d+' health.';",
+   "replace": "line=ewT('draft.you_beat',{name:foe.name,n:d});"
+  },
+  {
+   "line": 33624,
+   "find": "line=(ED._mutual?'{i:s:attack} Both sides fell at once — a draw. You lose ':'⏱ Time ran out with both sides standing — a draw. You lose ')+d+', '+foe.name+' loses '+d2+'.';",
+   "replace": "line=ED._mutual?'{i:s:attack} '+ewT('draft.draw_both_fell',{n:d,name:foe.name,m:d2}):'⏱ '+ewT('draft.draw_time_out',{n:d,name:foe.name,m:d2});"
+  },
+  {
+   "line": 33625,
+   "find": "line=foe.name+' won — you lose '+d+' health.';",
+   "replace": "line=ewT('draft.foe_won',{name:foe.name,n:d});"
+  },
+  {
+   "line": 33645,
+   "find": "'Reward could not be claimed for this match.':'Sign in to earn stamina from Emberdraft.'",
+   "replace": "ewT('draft.claim_failed_match'):ewT('draft.claim_sign_in',{name:'Emberdraft'})"
+  },
+  {
+   "line": 33650,
+   "find": "'No connection — your reward is saved and will be claimed the next time you open Emberdraft.'",
+   "replace": "ewT('draft.claim_saved',{name:'Emberdraft'})"
+  },
+  {
+   "line": 33650,
+   "find": "'Reward could not be claimed.'",
+   "replace": "ewT('draft.claim_failed')"
+  },
+  {
+   "line": 33662,
+   "find": "edToast('+'+d.stamina+' stamina from your last Emberdraft match');",
+   "replace": "edToast(ewT('draft.stamina_last',{n:d.stamina,name:'Emberdraft'}));"
+  },
+  {
+   "line": 33965,
+   "find": "const ord=['','1st','2nd','3rd','4th','5th','6th','7th','8th'][you.place]||'';",
+   "replace": "const ord=edOrd(you.place);"
+  },
+  {
+   "line": 33966,
+   "find": "(rw.pending ? 'Claiming your reward…' : (rw.stamina>0 ? `+${rw.stamina} stamina {i:h:food}` : (rw.note||'No reward this time.')))",
+   "replace": "(rw.pending ? ewT('draft.claiming') : (rw.stamina>0 ? `${ewT('draft.stamina_plus',{n:rw.stamina})} {i:h:food}` : (rw.note||ewT('draft.no_reward'))))"
+  },
+  {
+   "line": 33967,
+   "find": "Emberdraft · round ${ED.round}</div>",
+   "replace": "Emberdraft · ${ewT('draft.round_lc',{n:ED.round})}</div>"
+  },
+  {
+   "line": 33968,
+   "find": "${ord} place</div>",
+   "replace": "${ewT('draft.place_ord',{ord})}</div>"
+  },
+  {
+   "line": 33969,
+   "find": "${you.place===1?'Last one standing. The draft was yours.':'Knocked out in round '+ED.round+'.'}",
+   "replace": "${you.place===1?ewT('draft.won_all'):ewT('draft.knocked_out',{n:ED.round})}"
+  },
+  {
+   "line": 33971,
+   "find": "data-a=\"again\">Play again</button><button class=\"btnx\" data-a=\"quit\">Quit</button>",
+   "replace": "data-a=\"again\">${ewT('draft.play_again')}</button><button class=\"btnx\" data-a=\"quit\">${ewT('draft.quit')}</button>"
+  }
+ ],
+ "notes": [
+  "uses edOrd/edRoleTxt helpers and keys draft.you/rival/quit from A_r14.json (same English); no test asserts these literals"
+ ]
+}

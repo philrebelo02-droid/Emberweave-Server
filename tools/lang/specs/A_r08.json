@@ -1,0 +1,995 @@
+{
+ "keys": {
+  "arena.rules_title": "Arena Rules",
+  "arena.rules_auto": "Every arena fight is {b}. Power comes from your heroes’ levels, their quality, their glyphs and your prayer — not from anything you do during the fight.",
+  "arena.rules_auto_b": "fully automatic",
+  "arena.rules_above": "Beat an opponent ranked {b} and you take their place. Lose and nothing is taken from you.",
+  "arena.rules_above_b": "above you",
+  "arena.rules_defenders": "Your {b} hold your rank while you are away. Set them with Adjust — they fight on their own.",
+  "arena.defenders": "Defenders",
+  "arena.rules_daily": "A {b} pays out on your rank each day, resetting at 09:00 ET.",
+  "arena.rules_daily_b": "daily reward",
+  "arena.rules_bounty": "{gem} on an opponent is the first-time diamond bounty for beating them.",
+  "arena.league_champion": "Champion",
+  "arena.league_master": "Master",
+  "arena.league_diamond": "Diamond",
+  "arena.league_gold": "Gold",
+  "arena.league_silver": "Silver",
+  "arena.league_bronze": "Bronze",
+  "arena.rank_gold": "Gold Rank",
+  "arena.rank_silver": "Silver Rank",
+  "arena.rank_bronze": "Bronze Rank",
+  "arena.you": "YOU",
+  "arena.npc": "NPC",
+  "arena.rankings_title": "Arena Rankings",
+  "arena.search_ph": "Search a player…",
+  "arena.search": "Search",
+  "arena.me": "Me",
+  "arena.offline_top": "offline (top {n})",
+  "arena.rank_load_fail": "Could not load the rankings.",
+  "arena.loading_more": "Loading more…",
+  "arena.no_players": "No players found.",
+  "arena.players_n": "{n} players",
+  "arena.matches_n": "Matches: {n}",
+  "arena.lv": "Lv{n}",
+  "arena.challenge": "Challenge",
+  "arena.my_rank": "My rank",
+  "arena.reward_ready": "Reward ready",
+  "arena.next_reward_in": "Next reward in",
+  "arena.rules": "Rules",
+  "arena.adjust": "Adjust",
+  "arena.top_pick": "Top Pick",
+  "arena.ranking": "Ranking",
+  "arena.record": "Record",
+  "arena.shop": "Shop",
+  "arena.today_refreshes": "Today’s refreshes",
+  "arena.refresh": "Refresh",
+  "arena.attempts_left": "Attempts left",
+  "arena.buy_attempt": "Buy +1 · {n} diamonds",
+  "arena.no_one_left": "No one left to challenge.",
+  "arena.top_pick_msg": "Top pick: {name} — rank #{n}",
+  "arena.all_outgun": "Every opponent outguns you — weakest is {name}",
+  "arena.no_refresh": "No free arena refreshes left today.",
+  "arena.claimed": "Claimed!",
+  "arena.daily_fail": "The daily could not be claimed — try again in a moment.",
+  "arena.attempt_bought": "+1 arena attempt",
+  "arena.attempt_fail": "The attempt could not be bought - try again in a moment.",
+  "arena.rank_one": "You’re Rank #1 — no one left to challenge!",
+  "arena.no_attempts": "No arena attempts left today. Buy one, or come back after the daily reset.",
+  "areport.vs": "vs {name}",
+  "areport.opponent": "Opponent",
+  "areport.victory": "Victory",
+  "areport.defeat": "Defeat",
+  "areport.defended": "Defended",
+  "areport.lost_rank": "Lost the rank",
+  "areport.watch": "Watch",
+  "areport.share": "Share",
+  "areport.no_attacks": "No arena attacks yet — challenge an opponent to climb.",
+  "areport.no_defenses": "No defenses recorded yet — they appear when other players challenge your arena defense.",
+  "areport.attacks": "Attacks",
+  "areport.defenses": "Defenses",
+  "areport.last10_attacks": "Your last 10 attacks.",
+  "areport.last10_defenses": "Your last 10 defenses.",
+  "areport.watch_hint": "{icon} Watch replays the exact fight.",
+  "ashop.frag_name": "{hero} Fragments ×{n}",
+  "ashop.frag_desc": "Arena-exclusive {star} Tank — {n} to summon",
+  "ashop.gold_cache": "Gold Cache",
+  "ashop.gold_desc": "+{n} gold",
+  "ashop.diamond_pouch": "Diamond Pouch",
+  "ashop.gems_desc": "+{n} diamonds",
+  "ashop.stamina_refill": "Stamina Refill",
+  "ashop.stamina_full": "Your stamina is already full.",
+  "ashop.stamina_desc": "Refill stamina to max",
+  "ashop.spend": "Spend {coins} arena coins — earned from daily rank rewards and wins.",
+  "ashop.nothing": "Nothing to claim right now.",
+  "ashop.deliver_fail": "The quartermaster could not deliver that right now — your coins were not spent.",
+  "ashop.purchased": "Purchased {item}!",
+  "ashop.buy_fail": "Purchase failed — your coins were not spent.",
+  "hut.sign_in_register": "Sign in / Register",
+  "hut.loading": "Loading cauldron…",
+  "hut.unreachable": "The cauldron could not be reached. Please try again.",
+  "hut.locked": "The {hut} opens at player level {n}.",
+  "hut.unknown_hero": "Unknown hero",
+  "hut.hp": "HP {n}%",
+  "hut.brew_n": "Brew {n}",
+  "hut.returns_in": "Returns in {t}",
+  "hut.marching": "Marching",
+  "hut.heal": "Heal",
+  "hut.lv_need_player": "Hut Lv {n} · player Lv {p}",
+  "hut.upgrade_lv": "Upgrade Hut Lv {n}",
+  "hut.cauldron_lv": "Cauldron · Hut Lv {n}",
+  "hut.aria": "Witches Hut cauldron at {n} percent brew",
+  "hut.brew_of": "Brew {n} / {cap}",
+  "hut.heal_all": "Heal All · strongest first",
+  "hut.buy_brew": "+{pct}% brew",
+  "hut.damaged": "Damaged heroes",
+  "hut.all_healthy": "All your heroes are healthy.",
+  "hut.action_fail": "The cauldron could not complete that action.",
+  "wall.locked": "The {wall} world opens at player level {n}.",
+  "wall.you_are_level": "You are level {n}. Clear campaign stages to level up.",
+  "wall.audit_view": "audit view",
+  "wall.sub": "Set defenders · then raid the world map",
+  "hut.cauldron": "Cauldron",
+  "wall.empty_line": "Empty — tap Edit to assign a line",
+  "wall.line": "Line {n}",
+  "wall.ready_n": "{n}/{of} ready",
+  "wall.edit": "Edit",
+  "wall.not_chosen": "— not chosen —",
+  "wall.region": "Region",
+  "wall.live_in": "You live in {home}. Transfer to another region — {cost}.",
+  "wall.free_monthly": "free (1/month)",
+  "wall.need_gems": "Need {n} diamonds — your free monthly transfer is used.",
+  "wall.transfer_fail": "Region transfer could not be verified.",
+  "wall.moved_to": "Region moved to {region}",
+  "wall.confirm_transfer": "Are you sure you want to transfer regions to {region}?",
+  "wall.free_after": "After this region transfer you will have {n} free region transfers.",
+  "wall.transfer_costs": "This transfer costs {cost} (monthly free already used).",
+  "wover.lv": "Lv {n}",
+  "wover.teleport": "Teleport",
+  "wover.tele_scroll": "Teleport Scroll",
+  "wover.tele_scroll_desc": "Your own lands only. Uses your free daily teleport first.",
+  "wover.free_n": "Free: {n}",
+  "wover.scrolls": "Scrolls: {n}",
+  "wover.choose": "Choose a location",
+  "wover.wild_tele": "Wild Teleport",
+  "wover.wild_desc": "Jump to a {random} square in your region. One free every {h}h.",
+  "wover.random": "random",
+  "wover.free_ready": "Free ready",
+  "wover.need_scroll": "Need a Teleport Scroll ({cost}) or your free daily teleport.",
+  "wover.buy_scroll_q": "Buy a {item} for {cost}?",
+  "wover.scroll_fail": "Scroll purchase failed.",
+  "wover.wild_fail": "Wild teleport could not be verified.",
+  "wover.wild_done": "Wild Teleport! Relocated within {region}",
+  "wover.wild_cooldown": "Wild relocation on cooldown — buy a Wild Scroll ({cost}) to jump now.",
+  "wover.buy_wild_q": "Buy a {item} for {cost} and jump now?",
+  "wover.wild_scroll": "Wild Teleport Scroll",
+  "wover.sq_sea": "That square is sea - castles stand on land.",
+  "wover.sq_city": "That square is a city - castles cannot stand on a city.",
+  "wover.sq_tree": "That square is the World Tree - castles cannot stand on it.",
+  "wover.sq_oasis": "That square is an oasis - castles cannot stand on an oasis.",
+  "wover.sq_taken": "That square is occupied.",
+  "wover.other_region": "{region} is another region — you can’t teleport there.",
+  "wover.tele_confirm": "Teleport your castle to this square in {region}?",
+  "wover.tele_fail": "Teleport could not be verified.",
+  "wover.teleported_to": "Teleported to {region}",
+  "wover.try_again": "Try again",
+  "wover.sign_in": "Sign in to enter the World Map.",
+  "wover.locating": "Locating your castle…",
+  "wover.loc_unavail": "Castle location unavailable. Try the World Map again.",
+  "wover.opens_at": "The World Map opens at level {n}.",
+  "wover.city": "City",
+  "wover.void_half": "Void: half speed"
+ },
+ "edits": [
+  {
+   "line": 24539,
+   "find": ">Arena Rules<",
+   "replace": ">'+t('arena.rules_title')+'<"
+  },
+  {
+   "line": 24542,
+   "find": "Every arena fight is <b style=\"color:#ffd45e\">fully automatic</b>. Power comes from your heroes\\u2019 levels, their quality, their glyphs and your prayer \\u2014 not from anything you do during the fight.",
+   "replace": "'+t('arena.rules_auto',{b:'<b style=\"color:#ffd45e\">'+t('arena.rules_auto_b')+'</b>'})+'"
+  },
+  {
+   "line": 24543,
+   "find": "Beat an opponent ranked <b style=\"color:#ffd45e\">above you</b> and you take their place. Lose and nothing is taken from you.",
+   "replace": "'+t('arena.rules_above',{b:'<b style=\"color:#ffd45e\">'+t('arena.rules_above_b')+'</b>'})+'"
+  },
+  {
+   "line": 24544,
+   "find": "Your <b style=\"color:#ffd45e\">Defenders</b> hold your rank while you are away. Set them with Adjust \\u2014 they fight on their own.",
+   "replace": "'+t('arena.rules_defenders',{b:'<b style=\"color:#ffd45e\">'+t('arena.defenders')+'</b>'})+'"
+  },
+  {
+   "line": 24545,
+   "find": "A <b style=\"color:#ffd45e\">daily reward</b> pays out on your rank each day, resetting at 09:00 ET.",
+   "replace": "'+t('arena.rules_daily',{b:'<b style=\"color:#ffd45e\">'+t('arena.rules_daily_b')+'</b>'})+'"
+  },
+  {
+   "line": 24546,
+   "find": "\\u{1F48E} on an opponent is the first-time diamond bounty for beating them.",
+   "replace": "'+t('arena.rules_bounty',{gem:'\\u{1F48E}'})+'"
+  },
+  {
+   "line": 24525,
+   "find": "{name:'Champion',",
+   "replace": "{name:t('arena.league_champion'),"
+  },
+  {
+   "line": 24526,
+   "find": "{name:'Master',",
+   "replace": "{name:t('arena.league_master'),"
+  },
+  {
+   "line": 24527,
+   "find": "{name:'Diamond',",
+   "replace": "{name:t('arena.league_diamond'),"
+  },
+  {
+   "line": 24528,
+   "find": "{name:'Gold',",
+   "replace": "{name:t('arena.league_gold'),"
+  },
+  {
+   "line": 24529,
+   "find": "{name:'Silver',",
+   "replace": "{name:t('arena.league_silver'),"
+  },
+  {
+   "line": 24530,
+   "find": "{name:'Bronze',",
+   "replace": "{name:t('arena.league_bronze'),"
+  },
+  {
+   "line": 24549,
+   "find": "{name:'Gold',",
+   "replace": "{name:t('arena.rank_gold'),"
+  },
+  {
+   "line": 24549,
+   "find": "{name:'Silver',",
+   "replace": "{name:t('arena.rank_silver'),"
+  },
+  {
+   "line": 24549,
+   "find": "{name:'Bronze',",
+   "replace": "{name:t('arena.rank_bronze'),"
+  },
+  {
+   "line": 24756,
+   "find": "${t.name} Rank",
+   "replace": "${t.name}"
+  },
+  {
+   "line": 24553,
+   "find": "${(e.me||e.you)?' · YOU':''}",
+   "replace": "${(e.me||e.you)?'<span data-rkme> · '+ewT('arena.you')+'</span>':''}"
+  },
+  {
+   "line": 24553,
+   "find": ">NPC</span>",
+   "replace": ">'+ewT('arena.npc')+'</span>"
+  },
+  {
+   "line": 24572,
+   "find": "/YOU/.test(c.textContent)",
+   "replace": "c.querySelector('[data-rkme]')"
+  },
+  {
+   "line": 24757,
+   "find": "' ·YOU'",
+   "replace": "' ·'+ewT('arena.you')"
+  },
+  {
+   "line": 24558,
+   "find": " Arena Rankings <span",
+   "replace": " ${t('arena.rankings_title')} <span"
+  },
+  {
+   "line": 24559,
+   "find": "placeholder=\"Search a player…\"",
+   "replace": "placeholder=\"${t('arena.search_ph')}\""
+  },
+  {
+   "line": 24559,
+   "find": ">Search</button>",
+   "replace": ">${t('arena.search')}</button>"
+  },
+  {
+   "line": 24559,
+   "find": ">Me</button>",
+   "replace": ">${t('arena.me')}</button>"
+  },
+  {
+   "line": 24563,
+   "find": "'· offline (top 100)'",
+   "replace": "'· '+t('arena.offline_top',{n:100})"
+  },
+  {
+   "line": 24566,
+   "find": ">Loading…<",
+   "replace": ">'+t('common.loading')+'<"
+  },
+  {
+   "line": 24567,
+   "find": "Could not load the rankings. <button class=\"btn sm\" id=\"rkRetry\">Retry</button>",
+   "replace": "'+t('arena.rank_load_fail')+' <button class=\"btn sm\" id=\"rkRetry\">'+t('common.retry')+'</button>"
+  },
+  {
+   "line": 24568,
+   "find": ">Loading…<",
+   "replace": ">'+t('common.loading')+'<"
+  },
+  {
+   "line": 24569,
+   "find": ">Loading more…<",
+   "replace": ">'+t('arena.loading_more')+'<"
+  },
+  {
+   "line": 24569,
+   "find": ">No players found.<",
+   "replace": ">'+t('arena.no_players')+'<"
+  },
+  {
+   "line": 24570,
+   "find": "'· '+total.toLocaleString()+' players'",
+   "replace": "'· '+t('arena.players_n',{n:total.toLocaleString()})"
+  },
+  {
+   "line": 24573,
+   "find": "'· '+(loaded.length)+' match'+(loaded.length===1?'':'es')",
+   "replace": "'· '+t('arena.matches_n',{n:loaded.length})"
+  },
+  {
+   "line": 24765,
+   "find": "Lv${heroLevel(k)}",
+   "replace": "${t('arena.lv',{n:heroLevel(k)})}"
+  },
+  {
+   "line": 24772,
+   "find": "Lv${lead.level}",
+   "replace": "${t('arena.lv',{n:lead.level})}"
+  },
+  {
+   "line": 24781,
+   "find": ">Challenge</button>",
+   "replace": ">${t('arena.challenge')}</button>"
+  },
+  {
+   "line": 24787,
+   "find": ">My rank<",
+   "replace": ">${t('arena.my_rank')}<"
+  },
+  {
+   "line": 24788,
+   "find": "${dready?'Reward ready':'Next reward in'}",
+   "replace": "${dready?t('arena.reward_ready'):t('arena.next_reward_in')}"
+  },
+  {
+   "line": 24793,
+   "find": ">Defenders<",
+   "replace": ">${t('arena.defenders')}<"
+  },
+  {
+   "line": 24794,
+   "find": ">Rules<",
+   "replace": ">${t('arena.rules')}<"
+  },
+  {
+   "line": 24797,
+   "find": ">Adjust<",
+   "replace": ">${t('arena.adjust')}<"
+  },
+  {
+   "line": 24802,
+   "find": ">Top Pick<",
+   "replace": ">${t('arena.top_pick')}<"
+  },
+  {
+   "line": 24803,
+   "find": ">Ranking<",
+   "replace": ">${t('arena.ranking')}<"
+  },
+  {
+   "line": 24804,
+   "find": ">Record<",
+   "replace": ">${t('arena.record')}<"
+  },
+  {
+   "line": 24805,
+   "find": ">Shop<",
+   "replace": ">${t('arena.shop')}<"
+  },
+  {
+   "line": 24811,
+   "find": ">Today\\u2019s refreshes<",
+   "replace": ">${t('arena.today_refreshes')}<"
+  },
+  {
+   "line": 24813,
+   "find": ">Refresh<",
+   "replace": ">${t('arena.refresh')}<"
+  },
+  {
+   "line": 24814,
+   "find": "\\u{1F381} Claim<",
+   "replace": "\\u{1F381} ${t('common.claim')}<"
+  },
+  {
+   "line": 24815,
+   "find": ">Attempts left<",
+   "replace": ">${t('arena.attempts_left')}<"
+  },
+  {
+   "line": 24816,
+   "find": "Buy +1 &middot; ${att.extraCostGems|0} diamonds",
+   "replace": "${t('arena.buy_attempt',{n:att.extraCostGems|0})}"
+  },
+  {
+   "line": 24829,
+   "find": "'No one left to challenge.'",
+   "replace": "t('arena.no_one_left')"
+  },
+  {
+   "line": 24836,
+   "find": "('Top pick: '+escapeHTML(String(pick.name||''))+' \\u2014 rank #'+pick.rank)",
+   "replace": "(t('arena.top_pick_msg',{name:escapeHTML(String(pick.name||'')),n:pick.rank}))"
+  },
+  {
+   "line": 24837,
+   "find": "('Every opponent outguns you \\u2014 weakest is '+pick.name)",
+   "replace": "(t('arena.all_outgun',{name:pick.name}))"
+  },
+  {
+   "line": 24839,
+   "find": "'No free arena refreshes left today.'",
+   "replace": "t('arena.no_refresh')"
+  },
+  {
+   "line": 24853,
+   "find": "`Claimed! ",
+   "replace": "`${t('arena.claimed')} "
+  },
+  {
+   "line": 24858,
+   "find": "'The daily could not be claimed — try again in a moment.'",
+   "replace": "t('arena.daily_fail')"
+  },
+  {
+   "line": 24864,
+   "find": "'+1 arena attempt'",
+   "replace": "t('arena.attempt_bought')"
+  },
+  {
+   "line": 24865,
+   "find": "'The attempt could not be bought - try again in a moment.'",
+   "replace": "t('arena.attempt_fail')"
+  },
+  {
+   "line": 24868,
+   "find": "You're Rank #1 \\u2014 no one left to challenge!",
+   "replace": "${t('arena.rank_one')}"
+  },
+  {
+   "line": 24873,
+   "find": "'No arena attempts left today. Buy one, or come back after the daily reset.'",
+   "replace": "t('arena.no_attempts')"
+  },
+  {
+   "line": 24883,
+   "find": "' vs ':statusIcon('shield')+' vs '}${escapeHTML(r.oppName||'Opponent')}",
+   "replace": "' ':statusIcon('shield')+' '}${t('areport.vs',{name:escapeHTML(r.oppName||t('areport.opponent'))})}"
+  },
+  {
+   "line": 24884,
+   "find": "(r.won?'Victory':'Defeat'):(!r.won?'Defended':'Lost the rank')",
+   "replace": "(r.won?t('areport.victory'):t('areport.defeat')):(!r.won?t('areport.defended'):t('areport.lost_rank'))"
+  },
+  {
+   "line": 24885,
+   "find": " Watch</button>",
+   "replace": " ${t('areport.watch')}</button>"
+  },
+  {
+   "line": 24885,
+   "find": " Share</button>",
+   "replace": " ${t('areport.share')}</button>"
+  },
+  {
+   "line": 24886,
+   "find": "'No arena attacks yet — challenge an opponent to climb.'",
+   "replace": "t('areport.no_attacks')"
+  },
+  {
+   "line": 24886,
+   "find": "'No defenses recorded yet — they appear when other players challenge your arena defense.'",
+   "replace": "t('areport.no_defenses')"
+  },
+  {
+   "line": 24889,
+   "find": " Attacks</button>",
+   "replace": " ${t('areport.attacks')}</button>"
+  },
+  {
+   "line": 24890,
+   "find": " Defenses</button>",
+   "replace": " ${t('areport.defenses')}</button>"
+  },
+  {
+   "line": 24891,
+   "find": ">← Back<",
+   "replace": ">← ${t('common.back')}<"
+  },
+  {
+   "line": 24892,
+   "find": "Your last 10 ${sub}. ${uiIcon('play')} Watch replays the exact fight.",
+   "replace": "${sub==='attacks'?t('areport.last10_attacks'):t('areport.last10_defenses')} ${t('areport.watch_hint',{icon:uiIcon('play')})}"
+  },
+  {
+   "line": 24901,
+   "find": "name:'Grosk Fragments ×5',",
+   "replace": "get name(){ return t('ashop.frag_name',{hero:'Grosk',n:5}); },"
+  },
+  {
+   "line": 24901,
+   "find": "desc:'Arena-exclusive 3'+uiIcon('star-filled')+' Tank — 80 to summon'",
+   "replace": "get desc(){ return t('ashop.frag_desc',{star:'3'+uiIcon('star-filled'),n:80}); }"
+  },
+  {
+   "line": 24902,
+   "find": "name:'Gold Cache',",
+   "replace": "get name(){ return t('ashop.gold_cache'); },"
+  },
+  {
+   "line": 24902,
+   "find": "desc:'+5,000 gold'",
+   "replace": "get desc(){ return t('ashop.gold_desc',{n:(5000).toLocaleString()}); }"
+  },
+  {
+   "line": 24903,
+   "find": "name:'Diamond Pouch',",
+   "replace": "get name(){ return t('ashop.diamond_pouch'); },"
+  },
+  {
+   "line": 24903,
+   "find": "desc:'+40 diamonds'",
+   "replace": "get desc(){ return t('ashop.gems_desc',{n:40}); }"
+  },
+  {
+   "line": 24904,
+   "find": "name:'Stamina Refill',",
+   "replace": "get name(){ return t('ashop.stamina_refill'); },"
+  },
+  {
+   "line": 24904,
+   "find": "empty:'Your stamina is already full.'",
+   "replace": "empty:t('ashop.stamina_full')"
+  },
+  {
+   "line": 24904,
+   "find": "desc:'Refill stamina to max'",
+   "replace": "get desc(){ return t('ashop.stamina_desc'); }"
+  },
+  {
+   "line": 24908,
+   "find": " Arena Shop</div>",
+   "replace": " ${t('title.arena_shop')}</div>"
+  },
+  {
+   "line": 24909,
+   "find": "Spend ${uiIcon('ticket')} <b style=\"color:#ffd45e\">${G.arenaCoins||0}</b> arena coins — earned from daily rank rewards and wins.",
+   "replace": "${t('ashop.spend',{coins:uiIcon('ticket')+' <b style=\"color:#ffd45e\">'+(G.arenaCoins||0)+'</b>'})}"
+  },
+  {
+   "line": 24926,
+   "find": "'Nothing to claim right now.'",
+   "replace": "t('ashop.nothing')"
+  },
+  {
+   "line": 24930,
+   "find": "(r&&r.error)||'The quartermaster could not deliver that right now — your coins were not spent.'",
+   "replace": "(r&&r.error&&langMsg(r.error))||t('ashop.deliver_fail')"
+  },
+  {
+   "line": 24934,
+   "find": "'Purchased '+it.name+'!'",
+   "replace": "t('ashop.purchased',{item:it.name})"
+  },
+  {
+   "line": 24935,
+   "find": "'Purchase failed — your coins were not spent.'",
+   "replace": "t('ashop.buy_fail')"
+  },
+  {
+   "line": 24945,
+   "find": ">Sign in / Register<",
+   "replace": ">'+t('hut.sign_in_register')+'<"
+  },
+  {
+   "line": 24946,
+   "find": "'Loading cauldron…'",
+   "replace": "t('hut.loading')"
+  },
+  {
+   "line": 24949,
+   "find": "'The cauldron could not be reached. Please try again.'",
+   "replace": "t('hut.unreachable')"
+  },
+  {
+   "line": 24950,
+   "find": "'The Witches Hut opens at player level '+WALL_UNLOCK_LEVEL+'.'",
+   "replace": "t('hut.locked',{hut:t('bld.witches_hut'),n:WALL_UNLOCK_LEVEL})"
+  },
+  {
+   "line": 24955,
+   "find": "'Unknown hero'",
+   "replace": "t('hut.unknown_hero')"
+  },
+  {
+   "line": 24958,
+   "find": "HP ${(h.hp/100).toFixed(1)}%",
+   "replace": "${t('hut.hp',{n:(h.hp/100).toFixed(1)})}"
+  },
+  {
+   "line": 24958,
+   "find": "Brew ${h.healCost}",
+   "replace": "${t('hut.brew_n',{n:h.healCost})}"
+  },
+  {
+   "line": 24958,
+   "find": "> · Returns in '+fmtDur(h.returnAt-now)+'",
+   "replace": "> · '+t('hut.returns_in',{t:fmtDur(h.returnAt-now)})+'"
+  },
+  {
+   "line": 24959,
+   "find": "${away?'Marching':'Heal'}",
+   "replace": "${away?t('hut.marching'):t('hut.heal')}"
+  },
+  {
+   "line": 24963,
+   "find": "Hut Lv ${up.level} · player Lv ${up.needPlayerLevel}",
+   "replace": "${t('hut.lv_need_player',{n:up.level,p:up.needPlayerLevel})}"
+  },
+  {
+   "line": 24964,
+   "find": "Upgrade Hut Lv ${up.level}",
+   "replace": "${t('hut.upgrade_lv',{n:up.level})}"
+  },
+  {
+   "line": 24965,
+   "find": "🫙 Cauldron · Hut Lv ${w.level}",
+   "replace": "🫙 ${t('hut.cauldron_lv',{n:w.level})}"
+  },
+  {
+   "line": 24966,
+   "find": "aria-label=\"Witches Hut cauldron at ${Math.round(pct)} percent brew\"",
+   "replace": "aria-label=\"${t('hut.aria',{n:Math.round(pct)})}\""
+  },
+  {
+   "line": 24967,
+   "find": "Brew ${Math.floor(w.brew).toLocaleString()} / ${w.capacity.toLocaleString()}",
+   "replace": "${t('hut.brew_of',{n:Math.floor(w.brew).toLocaleString(),cap:w.capacity.toLocaleString()})}"
+  },
+  {
+   "line": 24969,
+   "find": ">Heal All · strongest first<",
+   "replace": ">${t('hut.heal_all')}<"
+  },
+  {
+   "line": 24970,
+   "find": "+20% brew ·",
+   "replace": "${t('hut.buy_brew',{pct:20})} ·"
+  },
+  {
+   "line": 24971,
+   "find": ">Damaged heroes<",
+   "replace": ">${t('hut.damaged')}<"
+  },
+  {
+   "line": 24971,
+   "find": ">All your heroes are healthy.<",
+   "replace": ">'+t('hut.all_healthy')+'<"
+  },
+  {
+   "line": 24977,
+   "find": "'The cauldron could not complete that action.'",
+   "replace": "t('hut.action_fail')"
+  },
+  {
+   "line": 24982,
+   "find": "'Confirm · Upgrade Hut Lv '+up.level",
+   "replace": "t('common.confirm')+' · '+t('hut.upgrade_lv',{n:up.level})"
+  },
+  {
+   "line": 24991,
+   "find": "'Brew '+Math.floor(b).toLocaleString()+' / '+cap.toLocaleString()",
+   "replace": "ewT('hut.brew_of',{n:Math.floor(b).toLocaleString(),cap:cap.toLocaleString()})"
+  },
+  {
+   "line": 24993,
+   "find": "' · Returns in '+fmtDur(Math.max(0,+el.dataset.at-t))",
+   "replace": "' · '+ewT('hut.returns_in',{t:fmtDur(Math.max(0,+el.dataset.at-t))})"
+  },
+  {
+   "line": 25000,
+   "find": "The City Wall world opens at player level ${WALL_UNLOCK_LEVEL}.",
+   "replace": "${t('wall.locked',{wall:t('bld.city_wall'),n:WALL_UNLOCK_LEVEL})}"
+  },
+  {
+   "line": 25000,
+   "find": "You are level ${lv}. Clear campaign stages to level up.",
+   "replace": "${t('wall.you_are_level',{n:lv})}"
+  },
+  {
+   "line": 25001,
+   "find": "Unlocks at Lv ${WALL_UNLOCK_LEVEL} — audit view",
+   "replace": "${t('hub.unlocks_at',{n:WALL_UNLOCK_LEVEL})} — ${t('wall.audit_view')}"
+  },
+  {
+   "line": 25001,
+   "find": "'Set defenders · then raid the world map'",
+   "replace": "t('wall.sub')"
+  },
+  {
+   "line": 25003,
+   "find": ">City Wall<",
+   "replace": ">${t('bld.city_wall')}<"
+  },
+  {
+   "line": 25003,
+   "find": ">Cauldron<",
+   "replace": ">${t('hut.cauldron')}<"
+  },
+  {
+   "line": 25013,
+   "find": ">Empty — tap Edit to assign a line<",
+   "replace": ">${t('wall.empty_line')}<"
+  },
+  {
+   "line": 25016,
+   "find": ">Line ${i+1}<",
+   "replace": ">${t('wall.line',{n:i+1})}<"
+  },
+  {
+   "line": 25016,
+   "find": "${activeN}/${arr.length||0} ready",
+   "replace": "${t('wall.ready_n',{n:activeN,of:arr.length||0})}"
+  },
+  {
+   "line": 25016,
+   "find": ">Edit</button>",
+   "replace": ">${t('wall.edit')}</button>"
+  },
+  {
+   "line": 25024,
+   "find": "'— not chosen —'",
+   "replace": "t('wall.not_chosen')"
+  },
+  {
+   "line": 25027,
+   "find": "🏰 Region<",
+   "replace": "🏰 ${t('wall.region')}<"
+  },
+  {
+   "line": 25028,
+   "find": "You live in <b style=\"color:#ffd45e\">${home}</b>. Transfer to another region — <b>${free?'free (1/month)':hudIcon('gem')+' '+TRANSFER_COST}</b>.",
+   "replace": "${t('wall.live_in',{home:'<b style=\"color:#ffd45e\">'+home+'</b>',cost:'<b>'+(free?t('wall.free_monthly'):hudIcon('gem')+' '+TRANSFER_COST)+'</b>'})}"
+  },
+  {
+   "line": 25039,
+   "find": "'Need '+TRANSFER_COST+' diamonds — your free monthly transfer is used.'",
+   "replace": "t('wall.need_gems',{n:TRANSFER_COST})"
+  },
+  {
+   "line": 25041,
+   "find": "'Region transfer could not be verified.'",
+   "replace": "t('wall.transfer_fail')"
+  },
+  {
+   "line": 25043,
+   "find": "'🏰 Region moved to '+ZONES[rk].name",
+   "replace": "'🏰 '+t('wall.moved_to',{region:ZONES[rk].name})"
+  },
+  {
+   "line": 25045,
+   "find": "'Are you sure you want to transfer regions to <b>'+ZONES[rk].name+'</b>?<br>",
+   "replace": "t('wall.confirm_transfer',{region:'<b>'+ZONES[rk].name+'</b>'})+'<br>"
+  },
+  {
+   "line": 25045,
+   "find": "After this region transfer you will have <b>'+freeAfter+'</b> free region transfers.'",
+   "replace": "'+t('wall.free_after',{n:'<b>'+freeAfter+'</b>'})"
+  },
+  {
+   "line": 25045,
+   "find": "'<br>This transfer costs <b>'+hudIcon('gem')+TRANSFER_COST+'</b> (monthly free already used).'",
+   "replace": "'<br>'+t('wall.transfer_costs',{cost:'<b>'+hudIcon('gem')+TRANSFER_COST+'</b>'})"
+  },
+  {
+   "line": 25204,
+   "find": ">Lv ${c.level||1}<",
+   "replace": ">${t('wover.lv',{n:c.level||1})}<"
+  },
+  {
+   "line": 25340,
+   "find": " Teleport</div>",
+   "replace": " ${t('wover.teleport')}</div>"
+  },
+  {
+   "line": 25342,
+   "find": " Teleport Scroll</div>",
+   "replace": " ${t('wover.tele_scroll')}</div>"
+  },
+  {
+   "line": 25343,
+   "find": ">Your own lands only. Uses your free daily teleport first.<",
+   "replace": ">${t('wover.tele_scroll_desc')}<"
+  },
+  {
+   "line": 25344,
+   "find": "Free: <b>${teleportsLeft()}</b> · Scrolls: <b>${G.teleScrolls||0}</b>",
+   "replace": "${t('wover.free_n',{n:'<b>'+teleportsLeft()+'</b>'})} · ${t('wover.scrolls',{n:'<b>'+(G.teleScrolls||0)+'</b>'})}"
+  },
+  {
+   "line": 25345,
+   "find": "'Choose a location':'Buy · '",
+   "replace": "t('wover.choose'):t('common.buy')+' · '"
+  },
+  {
+   "line": 25348,
+   "find": "🌀 Wild Teleport<",
+   "replace": "🌀 ${t('wover.wild_tele')}<"
+  },
+  {
+   "line": 25349,
+   "find": "Jump to a <b>random</b> square in your region. One free every 6h.",
+   "replace": "${t('wover.wild_desc',{random:'<b>'+t('wover.random')+'</b>',h:6})}"
+  },
+  {
+   "line": 25350,
+   "find": "' Free ready</b>'",
+   "replace": "' '+t('wover.free_ready')+'</b>'"
+  },
+  {
+   "line": 25350,
+   "find": " · Scrolls: <b>${G.wildScrolls||0}</b>",
+   "replace": " · ${t('wover.scrolls',{n:'<b>'+(G.wildScrolls||0)+'</b>'})}"
+  },
+  {
+   "line": 25351,
+   "find": "'Wild Teleport':'Buy · '",
+   "replace": "t('wover.wild_tele'):t('common.buy')+' · '"
+  },
+  {
+   "line": 25359,
+   "find": "' Teleport'",
+   "replace": "' '+t('wover.teleport')"
+  },
+  {
+   "line": 25362,
+   "find": "'Need a Teleport Scroll ('+hudIcon('gem')+TELE_SCROLL_COST+') or your free daily teleport.'",
+   "replace": "t('wover.need_scroll',{cost:hudIcon('gem')+TELE_SCROLL_COST})"
+  },
+  {
+   "line": 25363,
+   "find": "'Buy a <b>Teleport Scroll</b> for <b>'+hudIcon('gem')+TELE_SCROLL_COST+'</b>?'",
+   "replace": "t('wover.buy_scroll_q',{item:'<b>'+t('wover.tele_scroll')+'</b>',cost:'<b>'+hudIcon('gem')+TELE_SCROLL_COST+'</b>'})"
+  },
+  {
+   "line": 25365,
+   "find": "'Scroll purchase failed.'",
+   "replace": "t('wover.scroll_fail')"
+  },
+  {
+   "line": 25386,
+   "find": "'Scroll purchase failed.'",
+   "replace": "t('wover.scroll_fail')"
+  },
+  {
+   "line": 25378,
+   "find": "'Wild teleport could not be verified.'",
+   "replace": "t('wover.wild_fail')"
+  },
+  {
+   "line": 25380,
+   "find": "'🌀 Wild Teleport! Relocated within '+ZONES[rk].name",
+   "replace": "'🌀 '+t('wover.wild_done',{region:ZONES[rk].name})"
+  },
+  {
+   "line": 25383,
+   "find": "'Wild relocation on cooldown — buy a Wild Scroll ('+hudIcon('gem')+WILD_SCROLL_COST+') to jump now.'",
+   "replace": "t('wover.wild_cooldown',{cost:hudIcon('gem')+WILD_SCROLL_COST})"
+  },
+  {
+   "line": 25384,
+   "find": "'Buy a <b>Wild Teleport Scroll</b> for <b>'+hudIcon('gem')+WILD_SCROLL_COST+'</b> and jump now?'",
+   "replace": "t('wover.buy_wild_q',{item:'<b>'+t('wover.wild_scroll')+'</b>',cost:'<b>'+hudIcon('gem')+WILD_SCROLL_COST+'</b>'})"
+  },
+  {
+   "line": 25398,
+   "find": "'That square is sea - castles stand on land.'",
+   "replace": "t('wover.sq_sea')"
+  },
+  {
+   "line": 25399,
+   "find": "'That square is a city - castles cannot stand on a city.'",
+   "replace": "t('wover.sq_city')"
+  },
+  {
+   "line": 25400,
+   "find": "'That square is the World Tree - castles cannot stand on it.'",
+   "replace": "t('wover.sq_tree')"
+  },
+  {
+   "line": 25401,
+   "find": "'That square is an oasis - castles cannot stand on an oasis.'",
+   "replace": "t('wover.sq_oasis')"
+  },
+  {
+   "line": 25403,
+   "find": "'That square is occupied.'",
+   "replace": "t('wover.sq_taken')"
+  },
+  {
+   "line": 25405,
+   "find": "' '+ZONES[key].name+' is another region — you can’t teleport there.'",
+   "replace": "' '+t('wover.other_region',{region:ZONES[key].name})"
+  },
+  {
+   "line": 25407,
+   "find": "'Teleport your castle to this square in <b>'+ZONES[key].name+'</b>?'",
+   "replace": "t('wover.tele_confirm',{region:'<b>'+ZONES[key].name+'</b>'})"
+  },
+  {
+   "line": 25409,
+   "find": "'Teleport could not be verified.'",
+   "replace": "t('wover.tele_fail')"
+  },
+  {
+   "line": 25411,
+   "find": "' Teleported to '+ZONES[key].name",
+   "replace": "' '+t('wover.teleported_to',{region:ZONES[key].name})"
+  },
+  {
+   "line": 25423,
+   "find": ">Try again<",
+   "replace": ">'+t('wover.try_again')+'<"
+  },
+  {
+   "line": 25448,
+   "find": "'Sign in to enter the World Map.'",
+   "replace": "ewT('wover.sign_in')"
+  },
+  {
+   "line": 25450,
+   "find": "'Locating your castle…'",
+   "replace": "ewT('wover.locating')"
+  },
+  {
+   "line": 25454,
+   "find": "'Castle location unavailable. Try the World Map again.'",
+   "replace": "ewT('wover.loc_unavail')"
+  },
+  {
+   "line": 25457,
+   "find": "'Castle location unavailable. Try the World Map again.'",
+   "replace": "ewT('wover.loc_unavail')"
+  },
+  {
+   "line": 25455,
+   "find": "'The World Map opens at level '+(loc.needLevel||20)+'.'",
+   "replace": "ewT('wover.opens_at',{n:loc.needLevel||20})"
+  },
+  {
+   "line": 25467,
+   "find": "🏰 City<",
+   "replace": "🏰 ${ewT('wover.city')}<"
+  },
+  {
+   "line": 25468,
+   "find": " Base</button>",
+   "replace": " ${ewT('nav.base')}</button>"
+  },
+  {
+   "line": 25469,
+   "find": "' · Void: half speed'",
+   "replace": "' · '+ewT('wover.void_half')"
+  },
+  {
+   "line": 25471,
+   "find": "_teleMode?'Cancel':",
+   "replace": "_teleMode?ewT('common.cancel'):"
+  }
+ ],
+ "notes": [
+  "Left English on purpose: NPC_NAMES (20) + ARENA_SURNAMES (12) bot/NPC names (24438, 24510); 'You' default player name (24515, used as a name); needLogin() 24434-24435 (dead code, no callers); acctSwitchReload/sign-in reload overlay 24421-24430 (bodies of functions that start in the off-limits sign-in range).",
+  "Rankings 'YOU' marker: jumpToMe found your row by /YOU/.test(textContent); now the row carries <span data-rkme> and the lookup uses querySelector('[data-rkme]') (24553, 24572).",
+  "rankTier() name is now the full 'Gold Rank' label (only shown in the arena podium; the ' Rank' suffix was dropped there).",
+  "ARENA_SHOP name/desc became getters so they read the language when the shop is drawn (the array is built at load).",
+  "tests/test_witch_client_rid.js runs renderCauldron in a vm whose context has no t/ewT - renderCauldron now calls t() (Loading cauldron, labels), so the test needs t:()=>'' and ewT in its ctx or it throws ReferenceError.",
+  "tests/test_arena_sweep_1097.js line 59 asserts the page source literal Buy +1 &middot; ${att.extraCostGems|0} diamonds (regex) - now t('arena.buy_attempt',{n:att.extraCostGems|0}); needs updating to the t() call.",
+  "tests/witches-hut-browser.test.js 83/85/86/339 assert rendered English text (Cauldron · Hut Lv, Heal All · strongest first) - still true in English.",
+  "No other tests/ hits for the converted literals."
+ ]
+}

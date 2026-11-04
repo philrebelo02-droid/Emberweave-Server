@@ -1,0 +1,1675 @@
+{
+ "keys": {
+  "guild.banner_crop_title": "Choose the part to use",
+  "guild.banner_use_this": "Use this",
+  "guild.banner_unreadable": "That picture could not be read.",
+  "guild.banner_too_detailed": "That picture is too detailed — try a simpler one.",
+  "guild.banner_set": "Banner set.",
+  "guild.multiplayer_title": "Guilds are multiplayer",
+  "guild.multiplayer_hint": "Sign in to create a real guild or join one with players on other devices.",
+  "guild.sign_in_register": "Sign In / Register",
+  "guild.chat": "Chat",
+  "guild.contribute": "Contribute",
+  "guild.embassy": "Embassy",
+  "guild.raid": "Raid",
+  "guild.level": "Level",
+  "guild.shop": "Shop",
+  "guild.requests": "Requests",
+  "hero.lv": "Lv {n}",
+  "guild.manage": "Manage",
+  "guild.leave": "Leave",
+  "guild.chat_title": "Guild Chat",
+  "guild.online_count": "{n}/{max} online",
+  "guild.chat_ph": "Message your guild…",
+  "guild.roster": "Roster",
+  "guild.motd": "MOTD:",
+  "guild.chat_empty": "No messages yet — say hello to your guild.",
+  "guild.watch": "Watch",
+  "guild.leader": "leader",
+  "guild.you_tag": "(you)",
+  "guild.no_requests": "No pending requests",
+  "guild.req_empty_hint": "When a player asks to join {guild}, they'll show up here for you to accept.",
+  "guild.join_requests": "Join requests ({n})",
+  "guild.rank": "Rank {n}",
+  "guild.accept": "Accept",
+  "guild.deny": "Deny",
+  "guild.embassy_locked": "Embassy — Locked",
+  "guild.embassy_unlock": "The Embassy unlocks at {lvl}. Your guild is currently Level {n}.",
+  "guild.guild_level": "Guild Level {n}",
+  "guild.embassy_locked_hint": "Level the guild up in the Contribute tab to unlock guild-wide perks.",
+  "guild.next_val": "next: {v}",
+  "guild.embassy_desc": "Guild-wide bonuses for every member. They grow automatically as your guild levels up.",
+  "guild.embassy_desc_maxed": "Guild-wide bonuses for every member. They grow automatically as your guild levels up — currently maxed.",
+  "guild.embassy_foot": "Level the guild up (Contribute tab) to strengthen every perk.",
+  "gwar.sign_in": "Sign in to fight guild wars.",
+  "gwar.scanning": "Scanning the skies…",
+  "gwar.moved_title": "Guild War has moved to the Skyfall Tournament",
+  "gwar.moved_desc1": "Five floating citadels · register Sat–Mon · plan Tuesday · battles 6–8 PM ET.",
+  "gwar.moved_desc2": "Opening for every guild soon — Guild Raid stays right here as co-op PvE.",
+  "graid.loading": "Loading the guild raid…",
+  "graid.load_failed": "Could not load the raid — try again.",
+  "graid.boss_tier": "Guild Raid Boss · Tier {n}",
+  "graid.hp_line": "{hp} / {max} HP · {pct}%",
+  "graid.your_damage": "Your damage",
+  "graid.guild_total": "Guild total",
+  "graid.bosses_felled": "Bosses felled",
+  "graid.boss_contribution": "BOSS CONTRIBUTION",
+  "graid.live": "live",
+  "graid.nobody_struck": "Nobody has struck this boss yet.",
+  "graid.desc": "Your whole guild chips this boss down together — same HP for everyone. The killing blow pays the most.",
+  "graid.fight_left": "Fight the boss  ·  {n} left today",
+  "graid.no_assaults": "No assaults left — back tomorrow",
+  "guild.max_level": "MAX LEVEL",
+  "guild.exp_progress": "{have} / {need} exp",
+  "guild.gold": "Gold",
+  "guild.diamonds": "Diamonds",
+  "guild.you_have": "(you have {n})",
+  "guild.plus_exp": "+{n} guild exp",
+  "guild.give": "Give {n} {icon}",
+  "guild.level_n": "Level {n}",
+  "guild.level_row": "{p} players · {s} shop items",
+  "guild.level_cap": "{n} / {max} players · {s} shop items",
+  "guild.max_reached": "Maximum guild level reached.",
+  "guild.exp_to_level": "{have} / {need} exp to Level {n}",
+  "guild.level_rewards": "Level rewards",
+  "guild.lobby_title": "You're not in a guild yet",
+  "guild.lobby_desc": "Create your own guild, or search for one and request to join — real players on other devices.",
+  "guild.new_name_ph": "New guild name…",
+  "guild.create": "Create",
+  "guild.find": "Find a Guild",
+  "guild.search_ph": "Search by name…",
+  "guild.search": "Search",
+  "guild.loading_guilds": "Loading guilds…",
+  "guild.name_short": "Guild name needs at least 2 characters.",
+  "guild.creating": "Creating…",
+  "guild.offline_retry": "Offline — try again.",
+  "guild.no_match": "No guilds match that search.",
+  "guild.none_yet": "No guilds exist yet — {b1}create one{b2} above.",
+  "guild.members_leader": "{n}/{max} members · leader {name}",
+  "guild.requested": "Requested",
+  "guild.full": "Full",
+  "guild.request": "Request",
+  "graid.loader_you": "You",
+  "graid.loader_enemy": "Enemy",
+  "graid.tag_arena": "ARENA",
+  "graid.tag_raid": "RAID",
+  "herolist.class": "Class",
+  "herolist.all_classes": "All classes",
+  "herolist.rarity": "Rarity",
+  "herolist.all_rarities": "All rarities",
+  "herolist.rarity_common": "Common",
+  "herolist.rarity_uncommon": "Uncommon",
+  "herolist.rarity_rare": "Rare",
+  "herolist.rarity_mythical": "Mythical",
+  "herolist.sort_owned_by": "Sort owned by",
+  "herolist.total_power_opt": "Total Power",
+  "herolist.level": "Level",
+  "herolist.stars": "Stars",
+  "herolist.role_tank": "Tank",
+  "herolist.role_bruiser": "Bruiser",
+  "herolist.role_assassin": "Assassin",
+  "herolist.role_marksman": "Marksman",
+  "herolist.role_mage": "Mage",
+  "herolist.role_support": "Support",
+  "herolist.your_heroes": "YOUR HEROES ({n})",
+  "herolist.no_match": "NO HEROES MATCH THESE FILTERS",
+  "herolist.ready": "READY TO SUMMON ({n})",
+  "herolist.collecting": "STILL COLLECTING ({n})",
+  "herolist.summon": "SUMMON",
+  "herolist.total_power": "Total Power: {n}",
+  "hero.star_up": "Star Up",
+  "hero.star_progress": "Star {s}/{max} · {p}/{pmax}",
+  "hero.star_progress_ready": "Star {s}/{max} · {p}/{pmax} — ready",
+  "hero.frag_next_confirm": "Fragments: {n} · next {b1}confirm{b2} costs {c}",
+  "hero.frag_next_pip": "Fragments: {n} · next pip costs {c}",
+  "hero.confirm_star_up": "Confirm Star Up ({n} frag)",
+  "hero.fill_pip": "Fill pip ({n} frag)",
+  "hero.stars_max": "5 STARS — MAX",
+  "hero.reach_5_stars": "Reach {icon} 5 stars to unlock Refine.",
+  "hero.fully_refined": "Fully Refined — Gold",
+  "hero.middle_star_maxed": "This hero's middle star is maxed.",
+  "hero.refinement": "{tier} Refinement",
+  "hero.cost_per_attempt": "Cost per attempt:",
+  "hero.n_hero_frags": "{n} {hero} fragments",
+  "hero.success_label": "Success:",
+  "hero.pct_fail": "{n}% fail",
+  "hero.you_have_frags": "You have {n} fragments.",
+  "hero.refine_cost": "Refine ({n} frags)",
+  "hero.name_stars": "{hero} · Stars",
+  "hero.frags_owned": "{n} {hero} fragments owned",
+  "hero.star_up_failed": "Star up failed.",
+  "hero.refine_failed": "Refine failed.",
+  "hero.refine_success": "Refine success! +1 progress",
+  "hero.refine_failed_lost": "Refine failed — fragments lost.",
+  "hero.refreshed_retry": "Refreshed — try again.",
+  "hero.ancestry_failed": "Could not load the glyph ancestry.",
+  "hero.could_not_build": "Could not build.",
+  "hero.glyphs_built": "Glyphs built into the board: {n}",
+  "hero.no_mats_any_slot": "Not enough materials for any slot yet.",
+  "hero.completed": "Completed",
+  "hero.ready_to_build": "Ready to Build",
+  "hero.missing_materials": "Missing materials",
+  "hero.normal": "Normal",
+  "hero.inherited": "Inherited",
+  "hero.inherited_tap": "Inherited · tap to inspect",
+  "hero.tap_to_open": "Tap to open",
+  "hero.no_components": "No components — built directly.",
+  "hero.build_failed": "Build failed.",
+  "hero.glyph": "Glyph",
+  "hero.glyph_locked": "{name} locked into the board!",
+  "hero.glyphs_on_account": "Glyphs live on your account.",
+  "hero.glyphs_sign_in": "Sign in (Account screen) to build and ascend glyphs.",
+  "hero.glyphs_load_failed": "Glyphs could not be loaded.",
+  "hero.try_again": "Try again",
+  "hero.loading_glyphs": "Loading glyphs…",
+  "hero.glyph_ascension": "Glyph Ascension",
+  "hero.glyph_ancestry": "Glyph Ancestry",
+  "hero.fully_ascended": "FULLY ASCENDED",
+  "hero.glyph_step": "{q} · step {n}/{max}",
+  "hero.all_ascended": "This hero has completed every ascension.",
+  "hero.tracing": "Tracing the ancestry…",
+  "hero.needs_level": "Needs {b1}hero level {n}{b2} — this hero is level {h}.",
+  "hero.quick_build": "Quick Build",
+  "hero.locked_tag": "(locked)",
+  "hero.glyphs_need_level": "{q} glyphs need {b1}hero level {n}{b2} — {hero} is level {h}. Level them up first.",
+  "hero.bonus": "Bonus +{n} {stat}",
+  "hero.quick_slot": "Quick Slot — build all six",
+  "hero.ascend_to": "ASCEND to {q}{bonus} — consumes all six",
+  "hero.max": "MAX",
+  "hero.ascended_bonuses": "Ascended bonuses:",
+  "hero.mythical_caps": "MYTHICAL",
+  "hero.tap_stars": "Tap the stars to manage / refine",
+  "hero.cap": "(cap {n})",
+  "hero.tab_stats": "Stats",
+  "hero.tab_skills": "Skills",
+  "hero.tab_glyphs": "Glyphs",
+  "hero.tab_equipment": "Equipment",
+  "hero.tab_lore": "Lore",
+  "hero.stat_health": "Health",
+  "hero.stat_hp_regen": "HP Regen",
+  "hero.stat_armor": "Armor",
+  "hero.stat_mr": "Magic Resistance",
+  "hero.stat_atk": "Attack Damage",
+  "hero.stat_apow": "Ability Power",
+  "hero.stat_crit": "Crit Chance",
+  "hero.stat_crit_res": "Crit Resistance",
+  "hero.stat_crit_res_tip": "Reduces critical damage taken (subtracts from the attacker's crit damage)",
+  "hero.stat_defense": "Defense",
+  "hero.stat_defense_tip": "Lowers the enemy's chance to crit you",
+  "hero.stat_atk_spd": "Attack Speed",
+  "hero.stat_energy": "Energy Regen",
+  "hero.stat_type": "Type",
+  "hero.ranged": "Ranged",
+  "hero.melee": "Melee",
+  "hero.stat_row": "Combat row",
+  "hero.stat_class": "Class",
+  "hero.stat_damage": "Damage",
+  "hero.stat_scaling": "Scaling",
+  "hero.totals_note": "Totals include level, quality, glyphs, equipment, stars, tech & prayer.",
+  "hero.level_with_potions": "Level {hero} with XP Potions",
+  "hero.attack": "Attack",
+  "hero.critical_strike": "Critical Strike",
+  "hero.n_damage": "{n} damage",
+  "hero.pct_chance": "{n}% chance",
+  "hero.clip": "clip",
+  "hero.unlocks_at_quality": "Unlocks at {q} quality",
+  "hero.lore_soon": "Lore coming soon.",
+  "hero.mythical_only_offers": "Mythical heroes are obtained only through special offers.",
+  "hero.power": "POWER",
+  "hero.summon_now": "SUMMON NOW",
+  "hero.summon_unlocks": "Unlocks {hero} at {stars} · spends {n} fragments",
+  "hero.frags_of": "{n} / {max} fragments",
+  "hero.diamond_wish": "1% Diamond wish",
+  "hero.summoned_at": "{hero} summoned at {stars}!",
+  "hero.potion_failed": "Potion could not be used.",
+  "hero.gained_xp": "{hero} gained {n} XP!",
+  "hero.gained_xp_level": "{hero} gained {n} XP and reached level {lv}!",
+  "bag.xp_potions": "Hero XP Potions",
+  "bag.potion_line": "{name} · {n} hero XP",
+  "bag.stamina": "Stamina",
+  "bag.stamina_item": "{name} · +{n} stamina",
+  "bag.use": "Use",
+  "bag.glyph_fragments": "Glyph Fragments",
+  "bag.no_glyph_frags": "No glyph fragments yet.",
+  "bag.sign_in_frags": "Sign in to see your glyph fragments.",
+  "bag.no_item": "You have no {name}.",
+  "bag.could_not_use": "Could not use it.",
+  "bag.plus_stamina": "+{n} stamina!",
+  "wish.again": "Wish Again",
+  "wish.mythical_wish": "Mythical Wish",
+  "wish.diamond_wish": "Diamond Wish",
+  "wish.gold_wish": "Gold Wish",
+  "wish.full_glyph": "A full {tier} glyph: {name}",
+  "wish.glyph_pieces_on": "Every piece to build it on {hero} is in your glyph materials",
+  "wish.glyph_pieces": "Every piece to build it is in your glyph materials",
+  "wish.stamina_paren": "({n} stamina)",
+  "wish.kept_in_bag": "Kept in your Bag",
+  "wish.attack_card": "Attack card",
+  "wish.attack_card_desc": "+10 city attacks today when used",
+  "wish.teleport_card": "Teleport card",
+  "wish.teleport_desc": "Added to your world map scrolls",
+  "wish.shield": "World map shield",
+  "wish.shield_desc": "Added to your shields",
+  "wish.n_prayer": "{n}× {name} prayer",
+  "wish.held_temple": "Held in the Temple",
+  "wish.new_hero": "A new hero joins your roster!",
+  "wish.owned": "{hero} (owned)",
+  "wish.frags_instead": "+{n} fragments instead",
+  "wish.plus_hero_frags": "+{n} {hero} fragments",
+  "wish.banked_glyph": "Banked to your glyph materials",
+  "wish.plus_gold": "+{n} gold",
+  "wish.plus_diamonds": "+{n} diamonds",
+  "wish.pool_quiet": "The pool is quiet…",
+  "wish.mythical_x10": "Mythical Wishes ×10",
+  "wish.diamond_x10": "Diamond Wishes ×10",
+  "wish.gold_x10": "Gold Wishes ×10",
+  "wish.collect_all": "Collect All",
+  "wish.gold_pool": "Gold Pool",
+  "wish.diamond_pool": "Diamond Pool",
+  "wish.mythical_pool": "Mythical Pool",
+  "wish.info_gold": "every 1{star} hero ({heroes}) · full hero {hero} · fragments {frag} · glyph fragments of the level below your highest 36.8% (2-4) · of your highest level 20.8% (1-2) · gold 17.6% · diamonds 4.8% · 3 free wishes a day, 1 an hour",
+  "wish.info_diamond": "The 2{star} and 3{star} ladders · full 3{star} hero {full3} · full 2{star} hero {full2} · 3{star} fragments {frag3} · 2{star} fragments {frag2} · full glyph of your level {gf} · full glyph of the next level {gn} · {item} ({stam} stamina) {si} · 1 free wish a day · a hero within {pity} wishes · first wish: a 2{star} hero",
+  "wish.info_myth": "Mythical hero {a} · mythical fragments {b} · glyph fragments {c} · full glyph {d} · attack card {e} · shield {f} · teleport card {g} · Kindled {h} · Stoked {i} · Blazing {j} · Inferno {k}",
+  "wish.only_mythical": "Only mythical heroes",
+  "wish.roll_history": "My roll history",
+  "wish.sign_in_rules": "Sign in to see the pool rules.",
+  "wish.label_new_hero": "{hero} (new hero)",
+  "wish.label_frags": "{hero} fragments",
+  "wish.glyph_fragments": "Glyph fragments",
+  "wish.no_history": "No recorded wishes yet.",
+  "wish.last_wishes": "Your last wishes (server-recorded)",
+  "wish.title_caps": "WISHING POOL",
+  "wish.per_wish": "{n} / wish",
+  "wish.free_ready": "Free wish ready",
+  "wish.next_free": "Next free {t}",
+  "wish.daily_used": "Daily free wishes used",
+  "wish.gold_free_sub": "Free: {n}/{max} today · 1 per hour",
+  "wish.gold_odds": "Hero 5% · Hero fragments 15% · Glyph fragments 57.6% · Gold 17.6% · Diamonds 4.8%",
+  "wish.wish": "Wish",
+  "wish.ten_wishes": "10 Wishes",
+  "wish.clear_to_unlock": "Clear Stage 1-5 to unlock",
+  "wish.free_first_ready": "Free first wish ready",
+  "wish.free_in": "Free wish in {t}",
+  "wish.first_guaranteed": "First wish: guaranteed 2{star} hero",
+  "wish.daily_reset": "1 free daily (09:00 ET reset)",
+  "wish.diamond_odds": "3{star} hero 3% · 2{star} hero 10% · 3{star} fragments 17% · 2{star} fragments 23% · Full glyph 20% · Next-level glyph 10% · Ember Roast 17% · hero by wish 40",
+  "wish.mythical_only": "Mythical heroes only",
+  "wish.opens_at": "Opens at EGP {n}",
+  "wish.myth_odds": "Mythical hero 1% · Mythical fragments 36% · Glyph fragments 27% · Full glyph 10% · Prayers 11% · Attack card 5% · Shield 5% · Teleport 5%",
+  "wish.already_owned": "{stars} {hero} — already owned",
+  "wish.new_star_hero": "{hero} — new {n}★ hero!",
+  "wish.full_hero_unlocked": "A full hero, unlocked at {n}★"
+ },
+ "edits": [
+  {
+   "line": 27007,
+   "find": "Choose the part to use",
+   "replace": "'+ewT('guild.banner_crop_title')+'"
+  },
+  {
+   "line": 27012,
+   "find": ">Cancel<",
+   "replace": ">'+ewT('common.cancel')+'<"
+  },
+  {
+   "line": 27013,
+   "find": ">Use this<",
+   "replace": ">'+ewT('guild.banner_use_this')+'<"
+  },
+  {
+   "line": 27048,
+   "find": "That picture could not be read.'",
+   "replace": "'+ewT('guild.banner_unreadable')"
+  },
+  {
+   "line": 27051,
+   "find": "That picture could not be read.'",
+   "replace": "'+ewT('guild.banner_unreadable')"
+  },
+  {
+   "line": 27053,
+   "find": "That picture is too detailed \\u2014 try a simpler one.'",
+   "replace": "'+ewT('guild.banner_too_detailed')"
+  },
+  {
+   "line": 27061,
+   "find": "Banner set.'",
+   "replace": "'+ewT('guild.banner_set')"
+  },
+  {
+   "line": 27071,
+   "find": ">Guilds are multiplayer<",
+   "replace": ">${t('guild.multiplayer_title')}<"
+  },
+  {
+   "line": 27071,
+   "find": ">Sign in to create a real guild or join one with players on other devices.<",
+   "replace": ">${t('guild.multiplayer_hint')}<"
+  },
+  {
+   "line": 27071,
+   "find": ">Sign In / Register<",
+   "replace": ">${t('guild.sign_in_register')}<"
+  },
+  {
+   "line": 27078,
+   "find": "'Chat']",
+   "replace": "t('guild.chat')]"
+  },
+  {
+   "line": 27078,
+   "find": "'Contribute']",
+   "replace": "t('guild.contribute')]"
+  },
+  {
+   "line": 27078,
+   "find": "'Embassy']",
+   "replace": "t('guild.embassy')]"
+  },
+  {
+   "line": 27078,
+   "find": "'Raid']",
+   "replace": "t('guild.raid')]"
+  },
+  {
+   "line": 27078,
+   "find": "'Level']",
+   "replace": "t('guild.level')]"
+  },
+  {
+   "line": 27078,
+   "find": "'Shop']",
+   "replace": "t('guild.shop')]"
+  },
+  {
+   "line": 27079,
+   "find": "'Requests']",
+   "replace": "t('guild.requests')]"
+  },
+  {
+   "line": 27088,
+   "find": ">Lv ${g.level}<",
+   "replace": ">${t('hero.lv',{n:g.level})}<"
+  },
+  {
+   "line": 27089,
+   "find": "'Manage':'Leave'",
+   "replace": "t('guild.manage'):t('guild.leave')"
+  },
+  {
+   "line": 27108,
+   "find": "&#128172; Guild Chat<",
+   "replace": "&#128172; ${t('guild.chat_title')}<"
+  },
+  {
+   "line": 27108,
+   "find": "${online}/${g.count} online",
+   "replace": "${t('guild.online_count',{n:online,max:g.count})}"
+  },
+  {
+   "line": 27110,
+   "find": "placeholder=\"Message your guild&#8230;\"",
+   "replace": "placeholder=\"${t('guild.chat_ph')}\""
+  },
+  {
+   "line": 27110,
+   "find": ">Send<",
+   "replace": ">${t('common.send')}<"
+  },
+  {
+   "line": 27113,
+   "find": "<span>Roster</span>",
+   "replace": "<span>${t('guild.roster')}</span>"
+  },
+  {
+   "line": 27118,
+   "find": "<b>MOTD:</b>",
+   "replace": "<b>${t('guild.motd')}</b>"
+  },
+  {
+   "line": 27119,
+   "find": "No messages yet &#8212; say hello to your guild.",
+   "replace": "${t('guild.chat_empty')}"
+  },
+  {
+   "line": 27123,
+   "find": "&#9654; Watch<",
+   "replace": "&#9654; ${t('guild.watch')}<"
+  },
+  {
+   "line": 27129,
+   "find": "' &#128081; leader'",
+   "replace": "' &#128081; '+t('guild.leader')"
+  },
+  {
+   "line": 27129,
+   "find": "' (you)'",
+   "replace": "' '+t('guild.you_tag')"
+  },
+  {
+   "line": 27140,
+   "find": ">No pending requests<",
+   "replace": ">${t('guild.no_requests')}<"
+  },
+  {
+   "line": 27140,
+   "find": "When a player asks to join &lt;${escapeHTML(g.name)}&gt;, they'll show up here for you to accept.",
+   "replace": "${t('guild.req_empty_hint',{guild:'&lt;'+escapeHTML(g.name)+'&gt;'})}"
+  },
+  {
+   "line": 27141,
+   "find": "Join requests (${g.requests.length})",
+   "replace": "${t('guild.join_requests',{n:g.requests.length})}"
+  },
+  {
+   "line": 27145,
+   "find": "Rank ${r.rank}",
+   "replace": "${t('guild.rank',{n:r.rank})}"
+  },
+  {
+   "line": 27146,
+   "find": ">Accept<",
+   "replace": ">${t('guild.accept')}<"
+  },
+  {
+   "line": 27146,
+   "find": ">Deny<",
+   "replace": ">${t('guild.deny')}<"
+  },
+  {
+   "line": 27154,
+   "find": "Embassy — Locked",
+   "replace": "${t('guild.embassy_locked')}"
+  },
+  {
+   "line": 27155,
+   "find": "The Embassy unlocks at <b style=\"color:#ffd45e\">Guild Level 4</b>. Your guild is currently Level ${lv}.",
+   "replace": "${t('guild.embassy_unlock',{lvl:'<b style=\"color:#ffd45e\">'+t('guild.guild_level',{n:4})+'</b>',n:lv})}"
+  },
+  {
+   "line": 27156,
+   "find": "Level the guild up in the Contribute tab to unlock guild-wide perks.",
+   "replace": "${t('guild.embassy_locked_hint')}"
+  },
+  {
+   "line": 27161,
+   "find": ">next: ${flat?'+'+(v+2):'+'+(v+ (name.indexOf('Miner')>=0?3:name.indexOf('Envoy')>=0?5:4))+'%'}<",
+   "replace": ">${t('guild.next_val',{v:flat?'+'+(v+2):'+'+(v+ (name.indexOf('Miner')>=0?3:name.indexOf('Envoy')>=0?5:4))+'%'})}<"
+  },
+  {
+   "line": 27163,
+   "find": "font-size:16px\">Embassy<",
+   "replace": "font-size:16px\">${t('guild.embassy')}<"
+  },
+  {
+   "line": 27164,
+   "find": "Guild-wide bonuses for every member. They grow automatically as your guild levels up${maxed?' — currently maxed':''}.",
+   "replace": "${maxed?t('guild.embassy_desc_maxed'):t('guild.embassy_desc')}"
+  },
+  {
+   "line": 27166,
+   "find": "Level the guild up (Contribute tab) to strengthen every perk.",
+   "replace": "${t('guild.embassy_foot')}"
+  },
+  {
+   "line": 27172,
+   "find": "Sign in to fight guild wars.",
+   "replace": "'+t('gwar.sign_in')+'"
+  },
+  {
+   "line": 27175,
+   "find": "Scanning the skies…",
+   "replace": "'+t('gwar.scanning')+'"
+  },
+  {
+   "line": 27178,
+   "find": "Guild War has moved to the Skyfall Tournament",
+   "replace": "'+t('gwar.moved_title')+'"
+  },
+  {
+   "line": 27178,
+   "find": "Five floating citadels · register Sat–Mon · plan Tuesday · battles 6–8 PM ET.",
+   "replace": "'+t('gwar.moved_desc1')+'"
+  },
+  {
+   "line": 27178,
+   "find": "Opening for every guild soon — Guild Raid stays right here as co-op PvE.",
+   "replace": "'+t('gwar.moved_desc2')+'"
+  },
+  {
+   "line": 27218,
+   "find": "Loading the guild raid…",
+   "replace": "'+t('graid.loading')+'"
+  },
+  {
+   "line": 27220,
+   "find": "Could not load the raid — try again.",
+   "replace": "'+t('graid.load_failed')+'"
+  },
+  {
+   "line": 27229,
+   "find": "Guild Raid Boss · Tier ${r.level}",
+   "replace": "${t('graid.boss_tier',{n:r.level})}"
+  },
+  {
+   "line": 27231,
+   "find": "${r.hp.toLocaleString()} / ${r.max.toLocaleString()} HP · ${pct}%",
+   "replace": "${t('graid.hp_line',{hp:r.hp.toLocaleString(),max:r.max.toLocaleString(),pct})}"
+  },
+  {
+   "line": 27233,
+   "find": ">Your damage<",
+   "replace": ">${t('graid.your_damage')}<"
+  },
+  {
+   "line": 27234,
+   "find": ">Guild total<",
+   "replace": ">${t('graid.guild_total')}<"
+  },
+  {
+   "line": 27235,
+   "find": ">Bosses felled<",
+   "replace": ">${t('graid.bosses_felled')}<"
+  },
+  {
+   "line": 27237,
+   "find": ">BOSS CONTRIBUTION<",
+   "replace": ">${t('graid.boss_contribution')}<"
+  },
+  {
+   "line": 27237,
+   "find": ">live<",
+   "replace": ">${t('graid.live')}<"
+  },
+  {
+   "line": 27238,
+   "find": "Nobody has struck this boss yet.",
+   "replace": "'+t('graid.nobody_struck')+'"
+  },
+  {
+   "line": 27240,
+   "find": "Your whole guild chips this boss down together — same HP for everyone. The killing blow pays the most.",
+   "replace": "${t('graid.desc')}"
+  },
+  {
+   "line": 27241,
+   "find": " Fight the boss  ·  ${r.attemptsLeft} left today`",
+   "replace": " ${t('graid.fight_left',{n:r.attemptsLeft})}`"
+  },
+  {
+   "line": 27241,
+   "find": "' No assaults left — back tomorrow'",
+   "replace": "' '+t('graid.no_assaults')"
+  },
+  {
+   "line": 27257,
+   "find": "q.hp.toLocaleString()+' / '+q.max.toLocaleString()+' HP · '+p2+'%'",
+   "replace": "t('graid.hp_line',{hp:q.hp.toLocaleString(),max:q.max.toLocaleString(),pct:p2})"
+  },
+  {
+   "line": 27260,
+   "find": "Nobody has struck this boss yet.",
+   "replace": "'+t('graid.nobody_struck')+'"
+  },
+  {
+   "line": 27273,
+   "find": "<b>Guild Level ${guildLevel()}</b>",
+   "replace": "<b>${t('guild.guild_level',{n:guildLevel()})}</b>"
+  },
+  {
+   "line": 27273,
+   "find": "'MAX LEVEL':have+' / '+need+' exp'",
+   "replace": "t('guild.max_level'):t('guild.exp_progress',{have,need})"
+  },
+  {
+   "line": 27279,
+   "find": "${hudIcon('gold')} Gold</b>",
+   "replace": "${hudIcon('gold')} ${t('guild.gold')}</b>"
+  },
+  {
+   "line": 27279,
+   "find": "(you have ${gold})",
+   "replace": "${t('guild.you_have',{n:gold})}"
+  },
+  {
+   "line": 27279,
+   "find": "+${Math.round(GUILD_CONTRIB.exp*embassyContribMul())} guild exp",
+   "replace": "${t('guild.plus_exp',{n:Math.round(GUILD_CONTRIB.exp*embassyContribMul())})}"
+  },
+  {
+   "line": 27280,
+   "find": "Give ${GUILD_CONTRIB.gold} ${hudIcon('gold')}",
+   "replace": "${t('guild.give',{n:GUILD_CONTRIB.gold,icon:hudIcon('gold')})}"
+  },
+  {
+   "line": 27283,
+   "find": "'Diamonds'",
+   "replace": "t('guild.diamonds')"
+  },
+  {
+   "line": 27286,
+   "find": "(you have ${rm[2]})",
+   "replace": "${t('guild.you_have',{n:rm[2]})}"
+  },
+  {
+   "line": 27286,
+   "find": "+${o.exp} guild exp",
+   "replace": "${t('guild.plus_exp',{n:o.exp})}"
+  },
+  {
+   "line": 27287,
+   "find": "Give ${o.cost} ${rm[0]}",
+   "replace": "${t('guild.give',{n:o.cost,icon:rm[0]})}"
+  },
+  {
+   "line": 27293,
+   "find": "Level ${L}</span>",
+   "replace": "${t('guild.level_n',{n:L})}</span>"
+  },
+  {
+   "line": 27293,
+   "find": "${cap} players · ${items} shop items",
+   "replace": "${t('guild.level_row',{p:cap,s:items})}"
+  },
+  {
+   "line": 27295,
+   "find": "Guild Level ${guildLevel()}",
+   "replace": "${t('guild.guild_level',{n:guildLevel()})}"
+  },
+  {
+   "line": 27296,
+   "find": "${total} / ${guildMaxPlayers()} players · ${guildShopSlots()} shop items",
+   "replace": "${t('guild.level_cap',{n:total,max:guildMaxPlayers(),s:guildShopSlots()})}"
+  },
+  {
+   "line": 27298,
+   "find": "'Maximum guild level reached.':have+' / '+need+' exp to Level '+(guildLevel()+1)",
+   "replace": "t('guild.max_reached'):t('guild.exp_to_level',{have,need,n:guildLevel()+1})"
+  },
+  {
+   "line": 27299,
+   "find": ">Level rewards<",
+   "replace": ">${t('guild.level_rewards')}<"
+  },
+  {
+   "line": 27304,
+   "find": "You're not in a guild yet",
+   "replace": "${t('guild.lobby_title')}"
+  },
+  {
+   "line": 27305,
+   "find": "Create your own guild, or search for one and request to join &#8212; real players on other devices.",
+   "replace": "${t('guild.lobby_desc')}"
+  },
+  {
+   "line": 27306,
+   "find": "placeholder=\"New guild name&#8230;\"",
+   "replace": "placeholder=\"${t('guild.new_name_ph')}\""
+  },
+  {
+   "line": 27306,
+   "find": ">Create<",
+   "replace": ">${t('guild.create')}<"
+  },
+  {
+   "line": 27310,
+   "find": "&#128269; Find a Guild",
+   "replace": "&#128269; ${t('guild.find')}"
+  },
+  {
+   "line": 27311,
+   "find": "placeholder=\"Search by name&#8230;\"",
+   "replace": "placeholder=\"${t('guild.search_ph')}\""
+  },
+  {
+   "line": 27311,
+   "find": ">Search<",
+   "replace": ">${t('guild.search')}<"
+  },
+  {
+   "line": 27312,
+   "find": "Loading guilds&#8230;",
+   "replace": "${t('guild.loading_guilds')}"
+  },
+  {
+   "line": 27315,
+   "find": "'Guild name needs at least 2 characters.'",
+   "replace": "t('guild.name_short')"
+  },
+  {
+   "line": 27315,
+   "find": "'Creating…'",
+   "replace": "t('guild.creating')"
+  },
+  {
+   "line": 27315,
+   "find": "msg.textContent=d.error;",
+   "replace": "msg.textContent=langMsg(d.error);"
+  },
+  {
+   "line": 27316,
+   "find": "Offline &#8212; try again.",
+   "replace": "'+t('guild.offline_retry')+'"
+  },
+  {
+   "line": 27317,
+   "find": "'No guilds match that search.':'No guilds exist yet &#8212; <b style=\"color:#e6edf3\">create one</b> above.'",
+   "replace": "t('guild.no_match'):t('guild.none_yet',{b1:'<b style=\"color:#e6edf3\">',b2:'</b>'})"
+  },
+  {
+   "line": 27319,
+   "find": ">Lv ${g.level}<",
+   "replace": ">${t('hero.lv',{n:g.level})}<"
+  },
+  {
+   "line": 27319,
+   "find": "${g.count}/${g.cap} members &#183; leader ${escapeHTML(g.leaderName)}",
+   "replace": "${t('guild.members_leader',{n:g.count,max:g.cap,name:escapeHTML(g.leaderName)})}"
+  },
+  {
+   "line": 27320,
+   "find": "'Requested &#10003;':(g.count>=g.cap?'Full':'Request')",
+   "replace": "t('guild.requested')+' &#10003;':(g.count>=g.cap?t('guild.full'):t('guild.request'))"
+  },
+  {
+   "line": 27321,
+   "find": "'Requested '+uiIcon('check')",
+   "replace": "t('guild.requested')+' '+uiIcon('check')"
+  },
+  {
+   "line": 27335,
+   "find": "'You'",
+   "replace": "t('graid.loader_you')"
+  },
+  {
+   "line": 27335,
+   "find": "'Enemy'",
+   "replace": "t('graid.loader_enemy')"
+  },
+  {
+   "line": 27357,
+   "find": "uiIcon('trophy')+' ARENA':uiIcon('map')+' RAID'",
+   "replace": "uiIcon('trophy')+' '+t('graid.tag_arena'):uiIcon('map')+' '+t('graid.tag_raid')"
+  },
+  {
+   "line": 27389,
+   "find": "ewDropdown('Class', [['all','All classes'], ...roles.map(x=>[x,x])]",
+   "replace": "ewDropdown(t('herolist.class'), [['all',t('herolist.all_classes')], ...roles.map(x=>[x,t(('herolist.role_'+String(x).toLowerCase()))||x])]"
+  },
+  {
+   "line": 27390,
+   "find": "ewDropdown('Rarity', [['all','All rarities'],['common','Common'],['uncommon','Uncommon'],['rare','Rare'],['mythical','Mythical']]",
+   "replace": "ewDropdown(t('herolist.rarity'), [['all',t('herolist.all_rarities')],['common',t('herolist.rarity_common')],['uncommon',t('herolist.rarity_uncommon')],['rare',t('herolist.rarity_rare')],['mythical',t('herolist.rarity_mythical')]]"
+  },
+  {
+   "line": 27391,
+   "find": "ewDropdown('Sort owned by', [['power','Total Power'],['level','Level'],['stars','Stars']]",
+   "replace": "ewDropdown(t('herolist.sort_owned_by'), [['power',t('herolist.total_power_opt')],['level',t('herolist.level')],['stars',t('herolist.stars')]]"
+  },
+  {
+   "line": 27404,
+   "find": "hdr('YOUR HEROES ('+owned.length+')'",
+   "replace": "hdr(t('herolist.your_heroes',{n:owned.length})"
+  },
+  {
+   "line": 27405,
+   "find": "hdr('NO HEROES MATCH THESE FILTERS'",
+   "replace": "hdr(t('herolist.no_match')"
+  },
+  {
+   "line": 27407,
+   "find": "hdr('READY TO SUMMON ('+ready.length+')'",
+   "replace": "hdr(ewT('herolist.ready',{n:ready.length})"
+  },
+  {
+   "line": 27408,
+   "find": "hdr('STILL COLLECTING ('+locked.length+')'",
+   "replace": "hdr(ewT('herolist.collecting',{n:locked.length})"
+  },
+  {
+   "line": 27412,
+   "find": "' SUMMON</span>'",
+   "replace": "' '+ewT('herolist.summon')+'</span>'"
+  },
+  {
+   "line": 27414,
+   "find": "Total Power: ${heroPower(key).toLocaleString()}",
+   "replace": "${ewT('herolist.total_power',{n:heroPower(key).toLocaleString()})}"
+  },
+  {
+   "line": 27435,
+   "find": ">Lv ${heroLevel(key)}<",
+   "replace": ">${ewT('hero.lv',{n:heroLevel(key)})}<"
+  },
+  {
+   "line": 27438,
+   "find": "<div class=\"hc-role\">${t.role}</div>",
+   "replace": "<div class=\"hc-role\">${ewT(('herolist.role_'+String(t.role).toLowerCase()))||t.role}</div>"
+  },
+  {
+   "line": 27458,
+   "find": "<b style=\"font-size:12px\">Star Up</b>",
+   "replace": "<b style=\"font-size:12px\">${ewT('hero.star_up')}</b>"
+  },
+  {
+   "line": 27458,
+   "find": "Star ${st}/${MAX_STARS} · ${pips}/${STAR_PIPS}${conf?' — ready':''}",
+   "replace": "${conf?ewT('hero.star_progress_ready',{s:st,max:MAX_STARS,p:pips,pmax:STAR_PIPS}):ewT('hero.star_progress',{s:st,max:MAX_STARS,p:pips,pmax:STAR_PIPS})}"
+  },
+  {
+   "line": 27459,
+   "find": "Fragments: <b style=\"color:#c9a2ff\">${frags}</b> · next ${conf?'<b style=\"color:#ffd45e\">confirm</b>':'pip'} costs <b>${ncost}</b>",
+   "replace": "${conf?ewT('hero.frag_next_confirm',{n:'<b style=\"color:#c9a2ff\">'+frags+'</b>',b1:'<b style=\"color:#ffd45e\">',b2:'</b>',c:'<b>'+ncost+'</b>'}):ewT('hero.frag_next_pip',{n:'<b style=\"color:#c9a2ff\">'+frags+'</b>',c:'<b>'+ncost+'</b>'})}"
+  },
+  {
+   "line": 27460,
+   "find": "' Confirm Star Up ('+ncost+' frag)':'Fill pip ('+ncost+' frag)'",
+   "replace": "' '+ewT('hero.confirm_star_up',{n:ncost}):ewT('hero.fill_pip',{n:ncost})"
+  },
+  {
+   "line": 27461,
+   "find": "5 STARS — MAX",
+   "replace": "${ewT('hero.stars_max')}"
+  },
+  {
+   "line": 27463,
+   "find": "Reach ${uiIcon('star-filled')} 5 stars to unlock Refine.",
+   "replace": "${ewT('hero.reach_5_stars',{icon:uiIcon('star-filled')})}"
+  },
+  {
+   "line": 27465,
+   "find": "Fully Refined — Gold",
+   "replace": "${ewT('hero.fully_refined')}"
+  },
+  {
+   "line": 27465,
+   "find": "This hero's middle star is maxed.",
+   "replace": "${ewT('hero.middle_star_maxed')}"
+  },
+  {
+   "line": 27468,
+   "find": "${T.name} Refinement",
+   "replace": "${ewT('hero.refinement',{tier:T.name})}"
+  },
+  {
+   "line": 27471,
+   "find": "Cost per attempt: <b style=\"color:#c9a2ff\">${fIcon} ${T.cost} ${escapeHTML(t.name)} fragments</b>",
+   "replace": "${ewT('hero.cost_per_attempt')} <b style=\"color:#c9a2ff\">${fIcon} ${ewT('hero.n_hero_frags',{n:T.cost,hero:escapeHTML(t.name)})}</b>"
+  },
+  {
+   "line": 27472,
+   "find": "Success: <b",
+   "replace": "${ewT('hero.success_label')} <b"
+  },
+  {
+   "line": 27472,
+   "find": "${failPct}% fail",
+   "replace": "${ewT('hero.pct_fail',{n:failPct})}"
+  },
+  {
+   "line": 27473,
+   "find": "You have ${fIcon} <b>${frags}</b> fragments.",
+   "replace": "${ewT('hero.you_have_frags',{n:fIcon+' <b>'+frags+'</b>'})}"
+  },
+  {
+   "line": 27474,
+   "find": "Refine (${T.cost} frags)",
+   "replace": "${ewT('hero.refine_cost',{n:T.cost})}"
+  },
+  {
+   "line": 27476,
+   "find": "${escapeHTML(t.name)} · Stars",
+   "replace": "${ewT('hero.name_stars',{hero:escapeHTML(t.name)})}"
+  },
+  {
+   "line": 27478,
+   "find": "<b>${frags}</b> ${escapeHTML(t.name)} fragments owned",
+   "replace": "${ewT('hero.frags_owned',{n:'<b>'+frags+'</b>',hero:escapeHTML(t.name)})}"
+  },
+  {
+   "line": 27485,
+   "find": "'Star up failed.'",
+   "replace": "ewT('hero.star_up_failed')"
+  },
+  {
+   "line": 27488,
+   "find": "'Refine failed.'",
+   "replace": "ewT('hero.refine_failed')"
+  },
+  {
+   "line": 27490,
+   "find": "' Refine success! +1 progress'",
+   "replace": "' '+ewT('hero.refine_success')"
+  },
+  {
+   "line": 27490,
+   "find": "' Refine failed — fragments lost.'",
+   "replace": "' '+ewT('hero.refine_failed_lost')"
+  },
+  {
+   "line": 27536,
+   "find": "bannerMsg('Refreshed — try again.')",
+   "replace": "bannerMsg(ewT('hero.refreshed_retry'))"
+  },
+  {
+   "line": 27546,
+   "find": "'Could not load the glyph ancestry.'",
+   "replace": "ewT('hero.ancestry_failed')"
+  },
+  {
+   "line": 27554,
+   "find": "'Could not build.'",
+   "replace": "ewT('hero.could_not_build')"
+  },
+  {
+   "line": 27557,
+   "find": "('🔮 Built '+n+' glyph'+(n>1?'s':'')+' into the board!'):'Not enough materials for any slot yet.'",
+   "replace": "('🔮 '+ewT('hero.glyphs_built',{n})):ewT('hero.no_mats_any_slot')"
+  },
+  {
+   "line": 27589,
+   "find": "‹ Back<",
+   "replace": "‹ ${ewT('common.back')}<"
+  },
+  {
+   "line": 27637,
+   "find": ">Completed<",
+   "replace": ">${ewT('hero.completed')}<"
+  },
+  {
+   "line": 27638,
+   "find": ">Ready to Build<",
+   "replace": ">${ewT('hero.ready_to_build')}<"
+  },
+  {
+   "line": 27639,
+   "find": ">Missing materials<",
+   "replace": ">${ewT('hero.missing_materials')}<"
+  },
+  {
+   "line": 27646,
+   "find": "label:'Normal '+",
+   "replace": "label:ewT('hero.normal')+' '+"
+  },
+  {
+   "line": 27647,
+   "find": "{label:'Normal'}",
+   "replace": "{label:ewT('hero.normal')}"
+  },
+  {
+   "line": 27654,
+   "find": "'Inherited':",
+   "replace": "ewT('hero.inherited'):"
+  },
+  {
+   "line": 27668,
+   "find": "Inherited · tap to inspect",
+   "replace": "${ewT('hero.inherited_tap')}"
+  },
+  {
+   "line": 27669,
+   "find": "Tap to open${",
+   "replace": "${ewT('hero.tap_to_open')}${"
+  },
+  {
+   "line": 27692,
+   "find": "No components — built directly.",
+   "replace": "'+ewT('hero.no_components')+'"
+  },
+  {
+   "line": 27701,
+   "find": "'Build failed.'",
+   "replace": "ewT('hero.build_failed')"
+  },
+  {
+   "line": 27702,
+   "find": "'🔮 '+(r.name||'Glyph')+' locked into the board!'",
+   "replace": "'🔮 '+ewT('hero.glyph_locked',{name:r.name||ewT('hero.glyph')})"
+  },
+  {
+   "line": 27739,
+   "find": "🔮 Glyphs live on your account.<br><span style=\"font-size:11px\">Sign in (Account screen) to build and ascend glyphs.</span>",
+   "replace": "🔮 ${ewT('hero.glyphs_on_account')}<br><span style=\"font-size:11px\">${ewT('hero.glyphs_sign_in')}</span>"
+  },
+  {
+   "line": 27742,
+   "find": "Glyphs could not be loaded.<br>",
+   "replace": "${ewT('hero.glyphs_load_failed')}<br>"
+  },
+  {
+   "line": 27742,
+   "find": ">Try again<",
+   "replace": ">${ewT('hero.try_again')}<"
+  },
+  {
+   "line": 27744,
+   "find": "Loading glyphs…",
+   "replace": "${ewT('hero.loading_glyphs')}"
+  },
+  {
+   "line": 27749,
+   "find": "<b>Glyph Ascension</b>",
+   "replace": "<b>${ewT('hero.glyph_ascension')}</b>"
+  },
+  {
+   "line": 27750,
+   "find": "uiIcon('star-filled')+' FULLY ASCENDED':q+' · step '+(idx+1)+'/'+cat.ladder.length",
+   "replace": "uiIcon('star-filled')+' '+ewT('hero.fully_ascended'):ewT('hero.glyph_step',{q,n:idx+1,max:cat.ladder.length})"
+  },
+  {
+   "line": 27751,
+   "find": " This hero has completed every ascension.",
+   "replace": " ${ewT('hero.all_ascended')}"
+  },
+  {
+   "line": 27757,
+   "find": "<b>Glyph Ascension</b>",
+   "replace": "<b>${ewT('hero.glyph_ascension')}</b>"
+  },
+  {
+   "line": 27757,
+   "find": ">Glyph Ancestry<",
+   "replace": ">${ewT('hero.glyph_ancestry')}<"
+  },
+  {
+   "line": 27758,
+   "find": "${q} · step ${idx+1}/${cat.ladder.length}",
+   "replace": "${ewT('hero.glyph_step',{q,n:idx+1,max:cat.ladder.length})}"
+  },
+  {
+   "line": 27759,
+   "find": "Tracing the ancestry…",
+   "replace": "${ewT('hero.tracing')}"
+  },
+  {
+   "line": 27763,
+   "find": "Needs <b>hero level ${D.levelRequired}</b> — this hero is level ${D.heroLevel}.",
+   "replace": "${ewT('hero.needs_level',{b1:'<b>',b2:'</b>',n:D.levelRequired,h:D.heroLevel})}"
+  },
+  {
+   "line": 27765,
+   "find": " Quick Build<",
+   "replace": " ${ewT('hero.quick_build')}<"
+  },
+  {
+   "line": 27770,
+   "find": "‹ Back<",
+   "replace": "‹ ${ewT('common.back')}<"
+  },
+  {
+   "line": 27779,
+   "find": " (locked)\"",
+   "replace": " ${ewT('hero.locked_tag')}\""
+  },
+  {
+   "line": 27793,
+   "find": "${q} glyphs need <b>hero level ${lvNeed}</b> — ${(HERO_TYPES[key]||{}).name||key} is level ${lvHave}. Level them up first.",
+   "replace": "${ewT('hero.glyphs_need_level',{q,b1:'<b>',b2:'</b>',n:lvNeed,hero:(HERO_TYPES[key]||{}).name||key,h:lvHave})}"
+  },
+  {
+   "line": 27796,
+   "find": "Bonus +${bonus.amount}${''} ${bonus.stat}",
+   "replace": "${ewT('hero.bonus',{n:bonus.amount,stat:bonus.stat})}"
+  },
+  {
+   "line": 27798,
+   "find": " Quick Slot — build all six<",
+   "replace": " ${ewT('hero.quick_slot')}<"
+  },
+  {
+   "line": 27799,
+   "find": "ASCEND to ${cat.ladder[idx+1]||'MAX'}${bonusText} — consumes all six",
+   "replace": "${ewT('hero.ascend_to',{q:cat.ladder[idx+1]||ewT('hero.max'),bonus:bonusText})}"
+  },
+  {
+   "line": 27803,
+   "find": ">Ascended bonuses:<",
+   "replace": ">${ewT('hero.ascended_bonuses')}<"
+  },
+  {
+   "line": 27830,
+   "find": "✦ MYTHICAL ✦",
+   "replace": "✦ ${ewT('hero.mythical_caps')} ✦"
+  },
+  {
+   "line": 27847,
+   "find": "'Tap the stars to manage / refine'",
+   "replace": "ewT('hero.tap_stars')"
+  },
+  {
+   "line": 27849,
+   "find": "'✦ Mythical'",
+   "replace": "'✦ '+ewT('herolist.rarity_mythical')"
+  },
+  {
+   "line": 27849,
+   "find": "${t.role} ·",
+   "replace": "${ewT(('herolist.role_'+String(t.role).toLowerCase()))||t.role} ·"
+  },
+  {
+   "line": 27850,
+   "find": "Level ${lvl}${",
+   "replace": "${ewT('guild.level_n',{n:lvl})}${"
+  },
+  {
+   "line": 27850,
+   "find": "' <span style=\"color:#ffd45e\">(cap '+playerLevel()+')</span>'",
+   "replace": "' <span style=\"color:#ffd45e\">'+ewT('hero.cap',{n:playerLevel()})+'</span>'"
+  },
+  {
+   "line": 27856,
+   "find": "uiIcon('chart')+' Stats'],['skills',statusIcon('attack')+' Skills'],['glyphs','💠 Glyphs'],['equip',uiIcon('mode-forge')+' Equipment'],['lore',uiIcon('quest-scroll')+' Lore']",
+   "replace": "uiIcon('chart')+' '+ewT('hero.tab_stats')],['skills',statusIcon('attack')+' '+ewT('hero.tab_skills')],['glyphs','💠 '+ewT('hero.tab_glyphs')],['equip',uiIcon('mode-forge')+' '+ewT('hero.tab_equipment')],['lore',uiIcon('quest-scroll')+' '+ewT('hero.tab_lore')]"
+  },
+  {
+   "line": 27857,
+   "find": "uiIcon('chart')+' Stats'],['skills',statusIcon('attack')+' Skills'],['lore',uiIcon('quest-scroll')+' Lore']",
+   "replace": "uiIcon('chart')+' '+ewT('hero.tab_stats')],['skills',statusIcon('attack')+' '+ewT('hero.tab_skills')],['lore',uiIcon('quest-scroll')+' '+ewT('hero.tab_lore')]"
+  },
+  {
+   "line": 27872,
+   "find": "statIcon('hp')+'Health'",
+   "replace": "statIcon('hp')+ewT('hero.stat_health')"
+  },
+  {
+   "line": 27872,
+   "find": "statIcon('regen')+'HP Regen'",
+   "replace": "statIcon('regen')+ewT('hero.stat_hp_regen')"
+  },
+  {
+   "line": 27873,
+   "find": "statIcon('armor')+'Armor'",
+   "replace": "statIcon('armor')+ewT('hero.stat_armor')"
+  },
+  {
+   "line": 27873,
+   "find": "statIcon('mr')+'Magic Resistance'",
+   "replace": "statIcon('mr')+ewT('hero.stat_mr')"
+  },
+  {
+   "line": 27874,
+   "find": "statIcon('atk')+'Attack Damage'",
+   "replace": "statIcon('atk')+ewT('hero.stat_atk')"
+  },
+  {
+   "line": 27874,
+   "find": "statIcon('apow')+'Ability Power'",
+   "replace": "statIcon('apow')+ewT('hero.stat_apow')"
+  },
+  {
+   "line": 27875,
+   "find": "statIcon('crit')+'Crit Chance'",
+   "replace": "statIcon('crit')+ewT('hero.stat_crit')"
+  },
+  {
+   "line": 27875,
+   "find": "'<span title=\"Reduces critical damage taken (subtracts from the attacker\\'s crit damage)\">'+statIcon('critRes')+'Crit Resistance</span>'",
+   "replace": "'<span title=\"'+ewT('hero.stat_crit_res_tip')+'\">'+statIcon('critRes')+ewT('hero.stat_crit_res')+'</span>'"
+  },
+  {
+   "line": 27876,
+   "find": "'<span title=\"Lowers the enemy\\'s chance to crit you\">'+statIcon('dmgRed')+'Defense</span>'",
+   "replace": "'<span title=\"'+ewT('hero.stat_defense_tip')+'\">'+statIcon('dmgRed')+ewT('hero.stat_defense')+'</span>'"
+  },
+  {
+   "line": 27877,
+   "find": "statIcon('atkSpd')+'Attack Speed'",
+   "replace": "statIcon('atkSpd')+ewT('hero.stat_atk_spd')"
+  },
+  {
+   "line": 27877,
+   "find": "statIcon('energy')+'Energy Regen'",
+   "replace": "statIcon('energy')+ewT('hero.stat_energy')"
+  },
+  {
+   "line": 27878,
+   "find": "statIcon('range')+'Type',t.range>=60?'Ranged':'Melee'],['Combat row',t.combatRow],['Class',t.role],['Damage',t.damageProfile],['Scaling',t.primaryScaling]",
+   "replace": "statIcon('range')+ewT('hero.stat_type'),t.range>=60?ewT('hero.ranged'):ewT('hero.melee')],[ewT('hero.stat_row'),t.combatRow],[ewT('hero.stat_class'),ewT(('herolist.role_'+String(t.role).toLowerCase()))||t.role],[ewT('hero.stat_damage'),t.damageProfile],[ewT('hero.stat_scaling'),t.primaryScaling]"
+  },
+  {
+   "line": 27880,
+   "find": "Totals include level, quality, glyphs, equipment, stars, tech &amp; prayer.",
+   "replace": "${ewT('hero.totals_note')}"
+  },
+  {
+   "line": 27881,
+   "find": "Level ${escapeHTML(t.name)} with XP Potions",
+   "replace": "${ewT('hero.level_with_potions',{hero:escapeHTML(t.name)})}"
+  },
+  {
+   "line": 27895,
+   "find": "['attack','Attack',S_ATK+' damage'],['crit','Critical Strike',Math.round(((mul&&mul.crit)||0)*100)+'% chance']",
+   "replace": "['attack',ewT('hero.attack'),ewT('hero.n_damage',{n:S_ATK})],['crit',ewT('hero.critical_strike'),ewT('hero.pct_chance',{n:Math.round(((mul&&mul.crit)||0)*100)})]"
+  },
+  {
+   "line": 27898,
+   "find": "${uiIcon('play')} clip</span>",
+   "replace": "${uiIcon('play')} ${ewT('hero.clip')}</span>"
+  },
+  {
+   "line": 27901,
+   "find": "' (Unlocks at '+s.tier+' quality)'",
+   "replace": "' ('+ewT('hero.unlocks_at_quality',{q:s.tier})+')'"
+  },
+  {
+   "line": 27905,
+   "find": "uiIcon('play')+' clip</span>'",
+   "replace": "uiIcon('play')+' '+ewT('hero.clip')+'</span>'"
+  },
+  {
+   "line": 27906,
+   "find": ":'Locked'}",
+   "replace": ":ewT('common.locked')}"
+  },
+  {
+   "line": 27909,
+   "find": ">Lv ${lv}<",
+   "replace": ">${ewT('hero.lv',{n:lv})}<"
+  },
+  {
+   "line": 27910,
+   "find": "font-weight:800\">MAX</span>",
+   "replace": "font-weight:800\">${ewT('hero.max')}</span>"
+  },
+  {
+   "line": 27913,
+   "find": "sl==='attack'?'Attack':sl==='crit'?'Critical Strike':",
+   "replace": "sl==='attack'?ewT('hero.attack'):sl==='crit'?ewT('hero.critical_strike'):"
+  },
+  {
+   "line": 27922,
+   "find": "text:'Lore coming soon.'",
+   "replace": "text:ewT('hero.lore_soon')"
+  },
+  {
+   "line": 27929,
+   "find": "✦ Mythical heroes are obtained only through special offers.",
+   "replace": "✦ ${ewT('hero.mythical_only_offers')}"
+  },
+  {
+   "line": 27932,
+   "find": " POWER <b>",
+   "replace": " ${ewT('hero.power')} <b>"
+  },
+  {
+   "line": 27937,
+   "find": " SUMMON NOW<",
+   "replace": " ${ewT('hero.summon_now')}<"
+  },
+  {
+   "line": 27938,
+   "find": "Unlocks ${escapeHTML(t.name)} at ${heroStartStars(key)}${uiIcon('star-filled')} · spends ${smNeed} fragments",
+   "replace": "${ewT('hero.summon_unlocks',{hero:escapeHTML(t.name),stars:heroStartStars(key)+uiIcon('star-filled'),n:smNeed})}"
+  },
+  {
+   "line": 27939,
+   "find": "${smFrags} / ${smNeed} fragments",
+   "replace": "${ewT('hero.frags_of',{n:smFrags,max:smNeed})}"
+  },
+  {
+   "line": 27941,
+   "find": "' · 1% Diamond wish'",
+   "replace": "' · '+ewT('hero.diamond_wish')"
+  },
+  {
+   "line": 27945,
+   "find": "' '+t.name+' summoned at '+summonStars(key)+uiIcon('star-filled')+'!'",
+   "replace": "' '+ewT('hero.summoned_at',{hero:t.name,stars:summonStars(key)+uiIcon('star-filled')})"
+  },
+  {
+   "line": 27965,
+   "find": "{attack:'Attack',crit:'Critical Strike',",
+   "replace": "{attack:ewT('hero.attack'),crit:ewT('hero.critical_strike'),"
+  },
+  {
+   "line": 27993,
+   "find": "'Potion could not be used.'",
+   "replace": "ewT('hero.potion_failed')"
+  },
+  {
+   "line": 27995,
+   "find": "' '+((HERO_TYPES[key]||{}).name||key)+' gained '+r.heroXp+' XP'+(r.levelAfter>r.levelBefore?' and reached level '+r.levelAfter:'')+'!'",
+   "replace": "' '+(r.levelAfter>r.levelBefore?ewT('hero.gained_xp_level',{hero:(HERO_TYPES[key]||{}).name||key,n:r.heroXp,lv:r.levelAfter}):ewT('hero.gained_xp',{hero:(HERO_TYPES[key]||{}).name||key,n:r.heroXp}))"
+  },
+  {
+   "line": 28010,
+   "find": " Hero XP Potions<",
+   "replace": " ${t('bag.xp_potions')}<"
+  },
+  {
+   "line": 28010,
+   "find": "<span>${name} · ${xp.toLocaleString()} hero XP</span>",
+   "replace": "<span>${t('bag.potion_line',{name,n:xp.toLocaleString()})}</span>"
+  },
+  {
+   "line": 28010,
+   "find": "${hudIcon('food')} Stamina<",
+   "replace": "${hudIcon('food')} ${t('bag.stamina')}<"
+  },
+  {
+   "line": 28010,
+   "find": "<span>${STAM_ITEM_NAME} · +${STAM_ITEM_STAMINA} stamina</span>",
+   "replace": "<span>${t('bag.stamina_item',{name:STAM_ITEM_NAME,n:STAM_ITEM_STAMINA})}</span>"
+  },
+  {
+   "line": 28010,
+   "find": "id=\"bagStamUse\">Use<",
+   "replace": "id=\"bagStamUse\">${t('bag.use')}<"
+  },
+  {
+   "line": 28010,
+   "find": "🔮 Glyph Fragments<",
+   "replace": "🔮 ${t('bag.glyph_fragments')}<"
+  },
+  {
+   "line": 28012,
+   "find": "No glyph fragments yet.",
+   "replace": "'+t('bag.no_glyph_frags')+'"
+  },
+  {
+   "line": 28013,
+   "find": "Sign in to see your glyph fragments.",
+   "replace": "'+t('bag.sign_in_frags')+'"
+  },
+  {
+   "line": 28038,
+   "find": "'You have no '+STAM_ITEM_NAME+'.'",
+   "replace": "t('bag.no_item',{name:STAM_ITEM_NAME})"
+  },
+  {
+   "line": 28041,
+   "find": "'Could not use it.'",
+   "replace": "t('bag.could_not_use')"
+  },
+  {
+   "line": 28042,
+   "find": "' +'+(r.gained|0)+' stamina!'",
+   "replace": "' '+t('bag.plus_stamina',{n:r.gained|0})"
+  },
+  {
+   "line": 28132,
+   "find": "label:'Wish Again'+",
+   "replace": "label:t('wish.again')+"
+  },
+  {
+   "line": 28134,
+   "find": "label:free?'Wish Again · Free':('Wish Again'+",
+   "replace": "label:free?t('wish.again')+' · '+t('common.free'):(t('wish.again')+"
+  },
+  {
+   "line": 28136,
+   "find": "label:free?'Wish Again · Free':('Wish Again'+",
+   "replace": "label:free?t('wish.again')+' · '+t('common.free'):(t('wish.again')+"
+  },
+  {
+   "line": 28142,
+   "find": "' Mythical Wish':pool==='gem'?iconImg('a','wish-diamond')+' Diamond Wish':iconImg('a','wish-gold')+' Gold Wish'",
+   "replace": "' '+t('wish.mythical_wish'):pool==='gem'?iconImg('a','wish-diamond')+' '+t('wish.diamond_wish'):iconImg('a','wish-gold')+' '+t('wish.gold_wish')"
+  },
+  {
+   "line": 28146,
+   "find": ">Collect<",
+   "replace": ">${t('common.collect')}<"
+  },
+  {
+   "line": 28158,
+   "find": "name:'A full '+(r.tier||'')+' glyph: '+(r.name||''), extra:'Every piece to build it'+(r.hero&&HERO_TYPES[r.hero]?' on '+HERO_TYPES[r.hero].name:'')+' is in your glyph materials'",
+   "replace": "name:ewT('wish.full_glyph',{tier:r.tier||'',name:r.name||''}), extra:(r.hero&&HERO_TYPES[r.hero]?ewT('wish.glyph_pieces_on',{hero:HERO_TYPES[r.hero].name}):ewT('wish.glyph_pieces'))"
+  },
+  {
+   "line": 28159,
+   "find": "name:STAM_ITEM_NAME+' ('+(r.stamina||STAM_ITEM_STAMINA)+' stamina)', extra:'Kept in your Bag'",
+   "replace": "name:STAM_ITEM_NAME+' '+ewT('wish.stamina_paren',{n:r.stamina||STAM_ITEM_STAMINA}), extra:ewT('wish.kept_in_bag')"
+  },
+  {
+   "line": 28160,
+   "find": "name:'Attack card', extra:'+10 city attacks today when used'",
+   "replace": "name:ewT('wish.attack_card'), extra:ewT('wish.attack_card_desc')"
+  },
+  {
+   "line": 28161,
+   "find": "name:'Teleport card', extra:'Added to your world map scrolls'",
+   "replace": "name:ewT('wish.teleport_card'), extra:ewT('wish.teleport_desc')"
+  },
+  {
+   "line": 28162,
+   "find": "name:'World map shield', extra:'Added to your shields'",
+   "replace": "name:ewT('wish.shield'), extra:ewT('wish.shield_desc')"
+  },
+  {
+   "line": 28163,
+   "find": "name:r.n+'× '+nm+' prayer', extra:'Held in the Temple'",
+   "replace": "name:ewT('wish.n_prayer',{n:r.n,name:nm}), extra:ewT('wish.held_temple')"
+  },
+  {
+   "line": 28164,
+   "find": "extra:'A new hero joins your roster!'",
+   "replace": "extra:ewT('wish.new_hero')"
+  },
+  {
+   "line": 28165,
+   "find": "name:(t.name||r.hero)+' (owned)', extra:'+'+r.frags+' fragments instead'",
+   "replace": "name:ewT('wish.owned',{hero:t.name||r.hero}), extra:ewT('wish.frags_instead',{n:r.frags})"
+  },
+  {
+   "line": 28166,
+   "find": "name:'+'+r.frags+' '+(t.name||r.hero)+' fragments'",
+   "replace": "name:ewT('wish.plus_hero_frags',{n:r.frags,hero:t.name||r.hero})"
+  },
+  {
+   "line": 28167,
+   "find": "extra:'Banked to your glyph materials'",
+   "replace": "extra:ewT('wish.banked_glyph')"
+  },
+  {
+   "line": 28168,
+   "find": "name:'+'+r.n+' gold'",
+   "replace": "name:ewT('wish.plus_gold',{n:r.n})"
+  },
+  {
+   "line": 28169,
+   "find": "name:'+'+r.n+' diamonds'",
+   "replace": "name:ewT('wish.plus_diamonds',{n:r.n})"
+  },
+  {
+   "line": 28180,
+   "find": "'The pool is quiet…'",
+   "replace": "t('wish.pool_quiet')"
+  },
+  {
+   "line": 28211,
+   "find": "'🌟 Mythical Wishes ×10':pool==='gem'?'🔮 Diamond Wishes ×10':'⛲ Gold Wishes ×10'",
+   "replace": "'🌟 '+t('wish.mythical_x10'):pool==='gem'?'🔮 '+t('wish.diamond_x10'):'⛲ '+t('wish.gold_x10')"
+  },
+  {
+   "line": 28219,
+   "find": ">Collect All<",
+   "replace": ">${t('wish.collect_all')}<"
+  },
+  {
+   "line": 28238,
+   "find": "<b>Wishing Pool</b>",
+   "replace": "<b>${t('bld.wishing_pool')}</b>"
+  },
+  {
+   "line": 28239,
+   "find": " Gold Pool ·",
+   "replace": " ${t('wish.gold_pool')} ·"
+  },
+  {
+   "line": 28239,
+   "find": "<div>every 1${uiIcon('star-filled')} hero (Vael, Vex, Sylthaine, Vireo, Tick, Dandra, Carn) · full hero ${pct(o.goldHero)} · fragments ${pct(o.goldFrag)} · glyph fragments of the level below your highest 36.8% (2-4) · of your highest level 20.8% (1-2) · gold 17.6% · diamonds 4.8% · 3 free wishes a day, 1 an hour</div>",
+   "replace": "<div>${t('wish.info_gold',{star:uiIcon('star-filled'),heroes:'Vael, Vex, Sylthaine, Vireo, Tick, Dandra, Carn',hero:pct(o.goldHero),frag:pct(o.goldFrag)})}</div>"
+  },
+  {
+   "line": 28240,
+   "find": "🔮 Diamond Pool ·",
+   "replace": "🔮 ${t('wish.diamond_pool')} ·"
+  },
+  {
+   "line": 28240,
+   "find": "<div>The 2${uiIcon('star-filled')} and 3${uiIcon('star-filled')} ladders · full 3${uiIcon('star-filled')} hero ${pct(o.full3)} · full 2${uiIcon('star-filled')} hero ${pct(o.full2)} · 3${uiIcon('star-filled')} fragments ${pct(o.frag3)} · 2${uiIcon('star-filled')} fragments ${pct(o.frag2)} · full glyph of your level ${pct(o.glyphFull)} · full glyph of the next level ${pct(o.glyphNext)} · ${STAM_ITEM_NAME} (${STAM_ITEM_STAMINA} stamina) ${pct(o.stamItem)} · 1 free wish a day · a hero within ${st&&st.pity?st.pity.at:40} wishes · first wish: a 2${uiIcon('star-filled')} hero</div>",
+   "replace": "<div>${t('wish.info_diamond',{star:uiIcon('star-filled'),full3:pct(o.full3),full2:pct(o.full2),frag3:pct(o.frag3),frag2:pct(o.frag2),gf:pct(o.glyphFull),gn:pct(o.glyphNext),item:STAM_ITEM_NAME,stam:STAM_ITEM_STAMINA,si:pct(o.stamItem),pity:st&&st.pity?st.pity.at:40})}</div>"
+  },
+  {
+   "line": 28241,
+   "find": " Mythical Pool ·",
+   "replace": " ${t('wish.mythical_pool')} ·"
+  },
+  {
+   "line": 28241,
+   "find": "mo?'Mythical hero '+pct(mo.mythHero)+' · mythical fragments '+pct(mo.mythFrag)+' · glyph fragments '+pct(mo.glyphFrag)+' · full glyph '+pct(mo.glyphFull)+' · attack card '+pct(mo.attackCard)+' · shield '+pct(mo.shield)+' · teleport card '+pct(mo.teleport)+' · Kindled '+pct(mo.kindled)+' · Stoked '+pct(mo.stoked)+' · Blazing '+pct(mo.blazing)+' · Inferno '+pct(mo.inferno):'Only mythical heroes'",
+   "replace": "mo?t('wish.info_myth',{a:pct(mo.mythHero),b:pct(mo.mythFrag),c:pct(mo.glyphFrag),d:pct(mo.glyphFull),e:pct(mo.attackCard),f:pct(mo.shield),g:pct(mo.teleport),h:pct(mo.kindled),i:pct(mo.stoked),j:pct(mo.blazing),k:pct(mo.inferno)}):t('wish.only_mythical')"
+  },
+  {
+   "line": 28242,
+   "find": " My roll history<",
+   "replace": " ${t('wish.roll_history')}<"
+  },
+  {
+   "line": 28245,
+   "find": "'Sign in to see the pool rules.'",
+   "replace": "t('wish.sign_in_rules')"
+  },
+  {
+   "line": 28250,
+   "find": "return nm+' (new hero)'; if(t==='frags') return nm+' fragments'; if(t==='glyphFrag') return 'Glyph fragments';",
+   "replace": "return ewT('wish.label_new_hero',{hero:nm}); if(t==='frags') return ewT('wish.label_frags',{hero:nm}); if(t==='glyphFrag') return ewT('wish.glyph_fragments');"
+  },
+  {
+   "line": 28251,
+   "find": "'No recorded wishes yet.'",
+   "replace": "t('wish.no_history')"
+  },
+  {
+   "line": 28254,
+   "find": "<b>Your last wishes (server-recorded)</b>",
+   "replace": "<b>'+t('wish.last_wishes')+'</b>"
+  },
+  {
+   "line": 28273,
+   "find": "WISHING POOL <button",
+   "replace": "${t('wish.title_caps')} <button"
+  },
+  {
+   "line": 28277,
+   "find": ">Gold Pool<",
+   "replace": ">${t('wish.gold_pool')}<"
+  },
+  {
+   "line": 28278,
+   "find": "${WISH_GOLD_COST} / wish",
+   "replace": "${t('wish.per_wish',{n:WISH_GOLD_COST})}"
+  },
+  {
+   "line": 28279,
+   "find": "uiIcon('sparkle-new')+' Free wish ready':(goldLeft>0?(uiIcon('timer')+' Next free '+fmtDur(goldNext||0)):'Daily free wishes used')",
+   "replace": "uiIcon('sparkle-new')+' '+t('wish.free_ready'):(goldLeft>0?(uiIcon('timer')+' '+t('wish.next_free',{t:fmtDur(goldNext||0)})):t('wish.daily_used'))"
+  },
+  {
+   "line": 28280,
+   "find": "Free: ${goldLeft}/${WISH_GOLD_FREE_MAX} today · 1 per hour",
+   "replace": "${t('wish.gold_free_sub',{n:goldLeft,max:WISH_GOLD_FREE_MAX})}"
+  },
+  {
+   "line": 28281,
+   "find": "Hero 5% · Hero fragments 15% · Glyph fragments 57.6% · Gold 17.6% · Diamonds 4.8%",
+   "replace": "${t('wish.gold_odds')}"
+  },
+  {
+   "line": 28282,
+   "find": "goldFree?'Wish · Free':'Wish · '+hudIcon('gold')+WISH_GOLD_COST",
+   "replace": "goldFree?t('wish.wish')+' · '+t('common.free'):t('wish.wish')+' · '+hudIcon('gold')+WISH_GOLD_COST"
+  },
+  {
+   "line": 28283,
+   "find": ">10 Wishes ·",
+   "replace": ">${t('wish.ten_wishes')} ·"
+  },
+  {
+   "line": 28287,
+   "find": ">Diamond Pool<",
+   "replace": ">${t('wish.diamond_pool')}<"
+  },
+  {
+   "line": 28288,
+   "find": "${WISH_GEM_COST} / wish",
+   "replace": "${t('wish.per_wish',{n:WISH_GEM_COST})}"
+  },
+  {
+   "line": 28289,
+   "find": "hudIcon('lock')+' Clear Stage 1-5 to unlock':(gemFree?(gemRigged?uiIcon('sparkle-new')+' Free first wish ready':uiIcon('sparkle-new')+' Free wish ready'):(uiIcon('timer')+' Free wish in '+fmtDur(gemNext||0)))",
+   "replace": "hudIcon('lock')+' '+t('wish.clear_to_unlock'):(gemFree?(gemRigged?uiIcon('sparkle-new')+' '+t('wish.free_first_ready'):uiIcon('sparkle-new')+' '+t('wish.free_ready')):(uiIcon('timer')+' '+t('wish.free_in',{t:fmtDur(gemNext||0)})))"
+  },
+  {
+   "line": 28290,
+   "find": "gemRigged?'First wish: guaranteed 2'+uiIcon('star-filled')+' hero':'1 free daily (09:00 ET reset)'",
+   "replace": "gemRigged?t('wish.first_guaranteed',{star:uiIcon('star-filled')}):t('wish.daily_reset')"
+  },
+  {
+   "line": 28291,
+   "find": "3${uiIcon('star-filled')} hero 3% · 2${uiIcon('star-filled')} hero 10% · 3${uiIcon('star-filled')} fragments 17% · 2${uiIcon('star-filled')} fragments 23% · Full glyph 20% · Next-level glyph 10% · Ember Roast 17% · hero by wish 40",
+   "replace": "${t('wish.diamond_odds',{star:uiIcon('star-filled')})}"
+  },
+  {
+   "line": 28292,
+   "find": "gemFree?'Wish · Free':'Wish · '+hudIcon('gem')+WISH_GEM_COST",
+   "replace": "gemFree?t('wish.wish')+' · '+t('common.free'):t('wish.wish')+' · '+hudIcon('gem')+WISH_GEM_COST"
+  },
+  {
+   "line": 28293,
+   "find": ">10 Wishes ·",
+   "replace": ">${t('wish.ten_wishes')} ·"
+  },
+  {
+   "line": 28297,
+   "find": ">Mythical Pool<",
+   "replace": ">${t('wish.mythical_pool')}<"
+  },
+  {
+   "line": 28298,
+   "find": "${WISH_MYTH_COST} / wish",
+   "replace": "${t('wish.per_wish',{n:WISH_MYTH_COST})}"
+  },
+  {
+   "line": 28299,
+   "find": "uiIcon('lock-open')+' Mythical heroes only':hudIcon('lock')+' Opens at EGP '+MYTH_UNLOCK_EGP",
+   "replace": "uiIcon('lock-open')+' '+t('wish.mythical_only'):hudIcon('lock')+' '+t('wish.opens_at',{n:MYTH_UNLOCK_EGP})"
+  },
+  {
+   "line": 28300,
+   "find": "Mythical hero 1% · Mythical fragments 36% · Glyph fragments 27% · Full glyph 10% · Prayers 11% · Attack card 5% · Shield 5% · Teleport 5%",
+   "replace": "${t('wish.myth_odds')}"
+  },
+  {
+   "line": 28301,
+   "find": ">Wish ·",
+   "replace": ">${t('wish.wish')} ·"
+  },
+  {
+   "line": 28302,
+   "find": ">10 Wishes ·",
+   "replace": ">${t('wish.ten_wishes')} ·"
+  },
+  {
+   "line": 28101,
+   "find": "name:stars+' '+t.name+' — already owned', extra:'+'+d+' '+t.name+' fragments'",
+   "replace": "name:ewT('wish.already_owned',{stars,hero:t.name}), extra:ewT('wish.plus_hero_frags',{n:d,hero:t.name})"
+  },
+  {
+   "line": 28103,
+   "find": "name:'🎉 '+t.name+' — new '+ss+'★ hero!', extra:'A full hero, unlocked at '+ss+' star'+(ss>1?'s':'')",
+   "replace": "name:'🎉 '+ewT('wish.new_star_hero',{hero:t.name,n:ss}), extra:ewT('wish.full_hero_unlocked',{n:ss})"
+  }
+ ],
+ "notes": [
+  "tests/test_embassy_perks_22oct.js:25 asserts the page source /\\+\\$\\{Math\\.round\\(GUILD_CONTRIB\\.exp\\*embassyContribMul\\(\\)\\)\\} guild exp/ - base 27279 now passes that expression as t('guild.plus_exp',{n:...})",
+  "tests/test_icons_1098.js:51 asserts /class=\"wpsTitle\">WISHING POOL <button/ - base 28273 is now ${t('wish.title_caps')} <button",
+  "tests/test_icons_1098.js:58 asserts /mythPoolOpen()?uiIcon('lock-open')+' Mythical heroes only':hudIcon('lock')+' Opens at EGP '/ - base 28299 is now t('wish.mythical_only') / t('wish.opens_at',{n})",
+  "tests/test_shop_sweep_1097.js:60 asserts /summoned at '\\+summonStars\\(key\\)/ - base 27945 is now ewT('hero.summoned_at',{hero,stars:summonStars(key)+...})",
+  "tests/test_fold_sweep_1200.js:80 checks rendered text /Loading glyphs/ - still true in English (hero.loading_glyphs)",
+  "left English on purpose: legacy weekly guild war UI 27180-27214 + warResetLabel (unreachable after the return at 27179, ~25 strings); dev-only Simulate button 27089 (AUDIT_MODE); Skyfall tab label (mode name); quality ladder names Grey/Green/Blue/Purple/Gold/Orange (G2_COL, skill tiers, glyph steps), glyph stat names (MAP 27519) and glyph/fragment names (content data); XP_POTION_LABELS Minor/Greater/Major/Superior and Ember Roast (item names); prayer tiers Kindled/Stoked/Blazing/Inferno (Temple names); REFINE tier names; combatRow/damageProfile/primaryScaling values (hero data); unused wishShowOdds 28245-28248 odds banners and dead local roll helpers wishFrags/wishGold/wishGems/doGoldRoll/doGemRoll; alt/aria-label text",
+  "not converted (outside the areas named for this range): QUESTS 28331-28465 and DAILY SIGN-IN 28467-28499 - their text is still English",
+  "herolist.role_* keys are looked up dynamically (t(('herolist.role_'+role))||role) so an unknown role shows its English name"
+ ]
+}

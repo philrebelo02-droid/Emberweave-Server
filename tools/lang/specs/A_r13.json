@@ -1,0 +1,843 @@
+{
+ "keys": {
+  "shop.cluster_desc": "{n} diamonds a day for {days} days",
+  "shop.cluster_detail": "A steady stream of diamonds — {b}{n} {gem} delivered every day for {days} days{eb} ({total} {gem} total).",
+  "shop.rewards_daily_reset": "Rewards land at the daily {time} reset.",
+  "shop.burger_desc": "{n} stamina a day for {days} days",
+  "shop.burger_detail": "Keep your armies marching — {b}{n} stamina every day for {days} days{eb} ({total} total).",
+  "shop.n_diamonds": "{n} Diamonds",
+  "shop.one_time_bundle": "One-time bundle",
+  "shop.chest_detail": "A one-time chest of {b}{n} {gem} diamonds{eb}, credited instantly.",
+  "shop.hoard_detail": "A one-time hoard of {b}{n} {gem} diamonds{eb}, credited instantly.",
+  "shop.grand_vault_detail": "The grand vault — {b}{n} {gem} diamonds{eb}, credited instantly.",
+  "shop.imperial_vault_detail": "The imperial vault — {b}{n} {gem} diamonds{eb}, our best value, credited instantly.",
+  "shop.connect_to_buy": "Connect to the realm to buy.",
+  "shop.realm_unreachable": "Could not reach the realm.",
+  "shop.got_diamonds": "{icon} +{n} diamonds!",
+  "shop.plan_granted": "{name} - +{n} days, claim it daily in Quests",
+  "shop.connect_to_claim": "Connect to the realm to claim.",
+  "shop.claim_failed": "Claim failed - try again in a moment.",
+  "shop.plus_diamonds": "{icon} +{n} diamonds",
+  "shop.plus_stamina": "{icon} +{n} stamina",
+  "shop.no_meals": "No more meals today — resets at {time}.",
+  "shop.no_gold": "No more gold today — resets at {time}.",
+  "shop.not_enough_diamonds": "Not enough {gem} diamonds.",
+  "shop.purchase_failed": "Purchase failed.",
+  "shop.got_stamina": "{icon} +{n} stamina!",
+  "shop.got_gold": "{icon} +{n} gold!",
+  "shop.prebeta_gift": "Pre-Beta Gift",
+  "shop.prebeta_free": "{name} is free during the pre-beta.",
+  "shop.claim_free": "Claim for free",
+  "shop.food_title": "Food · Restore Stamina",
+  "shop.per_meal": "{b}+{n} stamina{eb} per meal",
+  "shop.plus_stamina_cap": "+{n} Stamina",
+  "shop.you_have": "You have {n}",
+  "shop.use": "Use",
+  "shop.meal_line": "Meal · +{n} Stamina",
+  "shop.bought_today": "Bought today: {n}",
+  "shop.sold_out_until": "sold out until {time}",
+  "shop.back_at": "Back at {time}",
+  "shop.balance": "Balance: {amt}",
+  "shop.buy_gold": "Buy Gold",
+  "shop.per_purchase": "{b}+{n} gold{eb} per purchase",
+  "shop.plus_gold_cap": "+{n} Gold",
+  "shop.tab_diamonds": "Diamonds",
+  "shop.tab_packs": "Packs",
+  "shop.tab_limited": "Limited",
+  "shop.free_caps": "FREE",
+  "shop.coming_soon": "Coming soon",
+  "shop.patron_later": "Patron rewards open later",
+  "shop.limited_later": "Limited offers open later",
+  "patron.title": "Patron",
+  "patron.sign_in": "Sign in to see your patron level.",
+  "patron.city_attacks_today": "City attacks today",
+  "patron.attack_buys": "Attack buys a day",
+  "patron.n_for": "{n} for {cost}",
+  "patron.stamina_buys": "Stamina purchases a day",
+  "patron.gold_buys": "Gold purchases a day",
+  "patron.double_gold": "{pct} double",
+  "patron.elite_resets": "Elite stage resets a day",
+  "patron.arena_resets": "Arena resets a day",
+  "patron.vault_resets": "Vault resets a day",
+  "patron.armies_out": "Armies out at once",
+  "patron.march_speed": "March speed",
+  "patron.market_discount": "{market} discount",
+  "patron.off_items": "{pct} off {n} items today",
+  "patron.rebate": "Rebate on purchases",
+  "patron.soon": "soon",
+  "patron.base_progress": "{have} / {next} base {gem}",
+  "patron.buy_attacks": "+{n} attacks · {cost}",
+  "patron.use_card": "Use attack card ({n})",
+  "patron.reset_arena": "Reset Arena · {cost}",
+  "patron.prestige": "Prestige to {edp}",
+  "patron.your_benefits": "Your benefits",
+  "patron.level_adds": "{lv} adds",
+  "patron.top_level": "Top level reached",
+  "patron.plus_attacks": "+{n} attacks",
+  "patron.arena_reset_done": "Arena attempts reset",
+  "patron.server_unreachable": "Could not reach the server.",
+  "boot.updating": "Updating…",
+  "boot.updates_title": "Updates in progress",
+  "boot.updates_body": "There is currently updates being done — please be patient with restarts. Restarting in {n}.",
+  "boot.restart_now": "Restart now",
+  "boot.wrap_up": "Wrap up what you're doing — it restarts automatically.",
+  "boot.no_webgl": "This device can't run 3D (WebGL) — try another browser",
+  "boot.online": "Online",
+  "boot.offline": "Offline — connect to play",
+  "boot.syncing": "Syncing your account…",
+  "boot.checking": "Checking…",
+  "boot.engine_failed": "3D engine failed to load — reload the page, or try another browser",
+  "boot.engine_failed_short": "3D engine failed to load",
+  "chat.clock": "Server {server} · Local {local}",
+  "chat.title": "Chat",
+  "chat.server_time": "Server {time}",
+  "chat.say_something": "Say something…",
+  "chat.offline": "offline",
+  "chat.not_delivered": "Not delivered — reconnect to whisper.",
+  "chat.tab_region": "Region",
+  "chat.tab_whispers": "Whispers",
+  "chat.open_whispers": "Open whispers",
+  "chat.tap_to_open": "tap to open",
+  "chat.whisper_hint": "Tap any player name in World / Region / Guild to whisper them.",
+  "chat.no_whispers": "No whispers yet. Tap a player name in a channel to start one.",
+  "chat.join_guild": "Join a guild to use guild chat.",
+  "chat.watch": "Watch",
+  "chat.no_messages": "No messages yet — say hi!",
+  "chat.whisper": "Whisper",
+  "chat.block": "Block",
+  "chat.report": "Report",
+  "chat.report_who": "Report {name}",
+  "chat.racism": "Racism",
+  "chat.harassment": "Sexual harassment",
+  "chat.other": "Other",
+  "chat.sign_in_block": "Sign in to block players.",
+  "chat.block_failed": "Could not block.",
+  "chat.blocked": "Blocked {name}.",
+  "chat.report_sent": "Report sent.",
+  "chat.report_failed": "Could not send the report.",
+  "chat.cant_share": "This battle can’t be shared",
+  "chat.share_replay": "Share replay",
+  "chat.share_desc": "Post this battle as a watchable chip.",
+  "chat.world_chat": "World chat",
+  "chat.region_chat": "Region chat",
+  "chat.guild_chat": "Guild chat",
+  "chat.sign_in_share": "Sign in to share to guild",
+  "chat.shared_guild": "Shared to guild chat",
+  "chat.share_guild_join": "Could not share to guild — join a guild first",
+  "chat.share_guild_failed": "Could not share to guild",
+  "chat.shared_region": "Shared to region chat",
+  "chat.shared_world": "Shared to world chat",
+  "chat.whisper_from": "Whisper from {name}"
+ },
+ "edits": [
+  {
+   "line": 31190,
+   "find": "desc:'150 diamonds a day for 14 days',",
+   "replace": "get desc(){ return t('shop.cluster_desc',{n:150,days:14}); },"
+  },
+  {
+   "line": 31190,
+   "find": "detail:'A steady stream of diamonds — <b>150 '+hudIcon('gem')+' delivered every day for 14 days</b> (2,100 '+hudIcon('gem')+' total). Rewards land at the daily 09:00 reset.',",
+   "replace": "get detail(){ return t('shop.cluster_detail',{b:'<b>',eb:'</b>',n:150,gem:hudIcon('gem'),days:14,total:'2,100'})+' '+t('shop.rewards_daily_reset',{time:'09:00'}); },"
+  },
+  {
+   "line": 31191,
+   "find": "desc:'120 stamina a day for 30 days',",
+   "replace": "get desc(){ return t('shop.burger_desc',{n:120,days:30}); },"
+  },
+  {
+   "line": 31191,
+   "find": "detail:'Keep your armies marching — <b>120 stamina every day for 30 days</b> (3,600 total). Rewards land at the daily 09:00 reset.',",
+   "replace": "get detail(){ return t('shop.burger_detail',{b:'<b>',eb:'</b>',n:120,days:30,total:'3,600'})+' '+t('shop.rewards_daily_reset',{time:'09:00'}); },"
+  },
+  {
+   "line": 31192,
+   "find": "name:'600 Diamonds',",
+   "replace": "get name(){ return t('shop.n_diamonds',{n:'600'}); },"
+  },
+  {
+   "line": 31192,
+   "find": "desc:'One-time bundle',",
+   "replace": "get desc(){ return t('shop.one_time_bundle'); },"
+  },
+  {
+   "line": 31192,
+   "find": "detail:'A one-time chest of <b>600 '+hudIcon('gem')+' diamonds</b>, credited instantly.',",
+   "replace": "get detail(){ return t('shop.chest_detail',{b:'<b>',eb:'</b>',n:'600',gem:hudIcon('gem')}); },"
+  },
+  {
+   "line": 31193,
+   "find": "name:'1,200 Diamonds',",
+   "replace": "get name(){ return t('shop.n_diamonds',{n:'1,200'}); },"
+  },
+  {
+   "line": 31193,
+   "find": "desc:'One-time bundle',",
+   "replace": "get desc(){ return t('shop.one_time_bundle'); },"
+  },
+  {
+   "line": 31193,
+   "find": "detail:'A one-time chest of <b>1,200 '+hudIcon('gem')+' diamonds</b>, credited instantly.',",
+   "replace": "get detail(){ return t('shop.chest_detail',{b:'<b>',eb:'</b>',n:'1,200',gem:hudIcon('gem')}); },"
+  },
+  {
+   "line": 31194,
+   "find": "name:'2,300 Diamonds',",
+   "replace": "get name(){ return t('shop.n_diamonds',{n:'2,300'}); },"
+  },
+  {
+   "line": 31194,
+   "find": "desc:'One-time bundle',",
+   "replace": "get desc(){ return t('shop.one_time_bundle'); },"
+  },
+  {
+   "line": 31194,
+   "find": "detail:'A one-time hoard of <b>2,300 '+hudIcon('gem')+' diamonds</b>, credited instantly.',",
+   "replace": "get detail(){ return t('shop.hoard_detail',{b:'<b>',eb:'</b>',n:'2,300',gem:hudIcon('gem')}); },"
+  },
+  {
+   "line": 31195,
+   "find": "name:'6,000 Diamonds',",
+   "replace": "get name(){ return t('shop.n_diamonds',{n:'6,000'}); },"
+  },
+  {
+   "line": 31195,
+   "find": "desc:'One-time bundle',",
+   "replace": "get desc(){ return t('shop.one_time_bundle'); },"
+  },
+  {
+   "line": 31195,
+   "find": "detail:'The grand vault — <b>6,000 '+hudIcon('gem')+' diamonds</b>, credited instantly.',",
+   "replace": "get detail(){ return t('shop.grand_vault_detail',{b:'<b>',eb:'</b>',n:'6,000',gem:hudIcon('gem')}); },"
+  },
+  {
+   "line": 31196,
+   "find": "name:'12,500 Diamonds',",
+   "replace": "get name(){ return t('shop.n_diamonds',{n:'12,500'}); },"
+  },
+  {
+   "line": 31196,
+   "find": "desc:'One-time bundle',",
+   "replace": "get desc(){ return t('shop.one_time_bundle'); },"
+  },
+  {
+   "line": 31196,
+   "find": "detail:'The imperial vault — <b>12,500 '+hudIcon('gem')+' diamonds</b>, our best value, credited instantly.',",
+   "replace": "get detail(){ return t('shop.imperial_vault_detail',{b:'<b>',eb:'</b>',n:'12,500',gem:hudIcon('gem')}); },"
+  },
+  {
+   "line": 31236,
+   "find": "'Connect to the realm to buy.'",
+   "replace": "t('shop.connect_to_buy')"
+  },
+  {
+   "line": 31239,
+   "find": "'Could not reach the realm.'",
+   "replace": "t('shop.realm_unreachable')"
+  },
+  {
+   "line": 31241,
+   "find": "(hudIcon('gem')+' +'+r.granted.gems+' diamonds!')",
+   "replace": "t('shop.got_diamonds',{icon:hudIcon('gem'),n:r.granted.gems})"
+  },
+  {
+   "line": 31241,
+   "find": "' '+o.name+' - +'+((r.granted&&r.granted.planDays)||0)+' days, claim it daily in Quests'",
+   "replace": "' '+t('shop.plan_granted',{name:o.name,n:((r.granted&&r.granted.planDays)||0)})"
+  },
+  {
+   "line": 31261,
+   "find": "'Connect to the realm to claim.'",
+   "replace": "t('shop.connect_to_claim')"
+  },
+  {
+   "line": 31264,
+   "find": "'Claim failed - try again in a moment.'",
+   "replace": "t('shop.claim_failed')"
+  },
+  {
+   "line": 31266,
+   "find": "(hudIcon('gem')+' +'+pd.gems+' diamonds')",
+   "replace": "t('shop.plus_diamonds',{icon:hudIcon('gem'),n:pd.gems})"
+  },
+  {
+   "line": 31266,
+   "find": "('⧗ +'+pd.stamina+' stamina')",
+   "replace": "t('shop.plus_stamina',{icon:'⧗',n:pd.stamina})"
+  },
+  {
+   "line": 31330,
+   "find": "'No more meals today — resets at 09:00 ET.'",
+   "replace": "t('shop.no_meals',{time:'09:00 ET'})"
+  },
+  {
+   "line": 31331,
+   "find": "'Not enough '+hudIcon('gem')+' diamonds.'",
+   "replace": "t('shop.not_enough_diamonds',{gem:hudIcon('gem')})"
+  },
+  {
+   "line": 31333,
+   "find": "'Purchase failed.'",
+   "replace": "t('shop.purchase_failed')"
+  },
+  {
+   "line": 31334,
+   "find": "hudIcon('food')+' +'+FOOD_STAMINA+' stamina!'",
+   "replace": "t('shop.got_stamina',{icon:hudIcon('food'),n:FOOD_STAMINA})"
+  },
+  {
+   "line": 31336,
+   "find": "'No more gold today — resets at 09:00 ET.'",
+   "replace": "t('shop.no_gold',{time:'09:00 ET'})"
+  },
+  {
+   "line": 31337,
+   "find": "'Not enough '+hudIcon('gem')+' diamonds.'",
+   "replace": "t('shop.not_enough_diamonds',{gem:hudIcon('gem')})"
+  },
+  {
+   "line": 31339,
+   "find": "'Purchase failed.'",
+   "replace": "t('shop.purchase_failed')"
+  },
+  {
+   "line": 31340,
+   "find": "hudIcon('gold')+' +'+r.gold+' gold!'",
+   "replace": "t('shop.got_gold',{icon:hudIcon('gold'),n:r.gold})"
+  },
+  {
+   "line": 31363,
+   "find": ">Pre-Beta Gift<",
+   "replace": ">${t('shop.prebeta_gift')}<"
+  },
+  {
+   "line": 31364,
+   "find": "<b>${escapeHTML(o.name||'')}</b> is free during the pre-beta.",
+   "replace": "${t('shop.prebeta_free',{name:'<b>'+escapeHTML(o.name||'')+'</b>'})}"
+  },
+  {
+   "line": 31365,
+   "find": ">Claim for free<",
+   "replace": ">${t('shop.claim_free')}<"
+  },
+  {
+   "line": 31375,
+   "find": "aria-label=\"OK\"",
+   "replace": "aria-label=\"${t('common.ok')}\""
+  },
+  {
+   "line": 31388,
+   "find": "' Food · Restore Stamina'",
+   "replace": "' '+t('shop.food_title')"
+  },
+  {
+   "line": 31390,
+   "find": "<b style=\"color:#bff0a8\">+${FOOD_STAMINA} stamina</b> per meal",
+   "replace": "${t('shop.per_meal',{b:'<b style=\"color:#bff0a8\">',eb:'</b>',n:FOOD_STAMINA})}"
+  },
+  {
+   "line": 31391,
+   "find": "+${STAM_ITEM_STAMINA} Stamina</div>",
+   "replace": "${t('shop.plus_stamina_cap',{n:STAM_ITEM_STAMINA})}</div>"
+  },
+  {
+   "line": 31391,
+   "find": "You have ${stamItemCount()}",
+   "replace": "${t('shop.you_have',{n:stamItemCount()})}"
+  },
+  {
+   "line": 31391,
+   "find": ">Use</button>",
+   "replace": ">${t('shop.use')}</button>"
+  },
+  {
+   "line": 31392,
+   "find": "Meal · +${FOOD_STAMINA} Stamina",
+   "replace": "${t('shop.meal_line',{n:FOOD_STAMINA})}"
+  },
+  {
+   "line": 31392,
+   "find": "Bought today: ${n}${out?' · sold out until 09:00 ET':''}",
+   "replace": "${t('shop.bought_today',{n})}${out?' · '+t('shop.sold_out_until',{time:'09:00 ET'}):''}"
+  },
+  {
+   "line": 31393,
+   "find": "'<span class=\"bs\">Back at 09:00 ET</span>'",
+   "replace": "'<span class=\"bs\">'+t('shop.back_at',{time:'09:00 ET'})+'</span>'"
+  },
+  {
+   "line": 31395,
+   "find": "Balance: ${hudIcon('gem')} ${gems}",
+   "replace": "${t('shop.balance',{amt:hudIcon('gem')+' '+gems})}"
+  },
+  {
+   "line": 31398,
+   "find": "' Buy Gold'",
+   "replace": "' '+t('shop.buy_gold')"
+  },
+  {
+   "line": 31400,
+   "find": "<b style=\"color:#ffe08a\">+${amt.toLocaleString()} gold</b> per purchase",
+   "replace": "${t('shop.per_purchase',{b:'<b style=\"color:#ffe08a\">',eb:'</b>',n:amt.toLocaleString()})}"
+  },
+  {
+   "line": 31401,
+   "find": "+${amt.toLocaleString()} Gold</div>",
+   "replace": "${t('shop.plus_gold_cap',{n:amt.toLocaleString()})}</div>"
+  },
+  {
+   "line": 31401,
+   "find": "Bought today: ${n}${out?' · sold out until 09:00 ET':''}",
+   "replace": "${t('shop.bought_today',{n})}${out?' · '+t('shop.sold_out_until',{time:'09:00 ET'}):''}"
+  },
+  {
+   "line": 31402,
+   "find": "'<span class=\"bs\">Back at 09:00 ET</span>'",
+   "replace": "'<span class=\"bs\">'+t('shop.back_at',{time:'09:00 ET'})+'</span>'"
+  },
+  {
+   "line": 31404,
+   "find": "Balance: ${hudIcon('gem')} ${gems}",
+   "replace": "${t('shop.balance',{amt:hudIcon('gem')+' '+gems})}"
+  },
+  {
+   "line": 31419,
+   "find": "(free?'free':o.price)",
+   "replace": "(free?t('common.free'):o.price)"
+  },
+  {
+   "line": 31425,
+   "find": "free?'FREE':",
+   "replace": "free?t('shop.free_caps'):"
+  },
+  {
+   "line": 31428,
+   "find": ">${lab}</button>",
+   "replace": ">${({diamonds:t('shop.tab_diamonds'),packs:t('shop.tab_packs'),limited:t('shop.tab_limited'),patron:t('patron.title')})[id]||lab}</button>"
+  },
+  {
+   "line": 31430,
+   "find": ">Coming soon<small>${st2Tab==='patron'?'Patron rewards':'Limited offers'} open later</small>",
+   "replace": ">${t('shop.coming_soon')}<small>${st2Tab==='patron'?t('shop.patron_later'):t('shop.limited_later')}</small>"
+  },
+  {
+   "line": 31291,
+   "find": "<b>Patron</b>",
+   "replace": "<b>'+t('patron.title')+'</b>"
+  },
+  {
+   "line": 31291,
+   "find": "<div>Sign in to see your patron level.</div>",
+   "replace": "<div>'+t('patron.sign_in')+'</div>"
+  },
+  {
+   "line": 31297,
+   "find": "row('City attacks today',",
+   "replace": "row(t('patron.city_attacks_today'),"
+  },
+  {
+   "line": 31298,
+   "find": "row('Attack buys a day',",
+   "replace": "row(t('patron.attack_buys'),"
+  },
+  {
+   "line": 31298,
+   "find": "' · 10 for '+hudIcon('gem')+'400'",
+   "replace": "' · '+t('patron.n_for',{n:10,cost:hudIcon('gem')+'400'})"
+  },
+  {
+   "line": 31299,
+   "find": "row('Stamina purchases a day',",
+   "replace": "row(t('patron.stamina_buys'),"
+  },
+  {
+   "line": 31299,
+   "find": "row('Gold purchases a day',",
+   "replace": "row(t('patron.gold_buys'),"
+  },
+  {
+   "line": 31299,
+   "find": "' · 50% double'",
+   "replace": "' · '+t('patron.double_gold',{pct:'50%'})"
+  },
+  {
+   "line": 31300,
+   "find": "row('Elite stage resets a day',",
+   "replace": "row(t('patron.elite_resets'),"
+  },
+  {
+   "line": 31301,
+   "find": "row('Arena resets a day',",
+   "replace": "row(t('patron.arena_resets'),"
+  },
+  {
+   "line": 31302,
+   "find": "row('Vault resets a day',",
+   "replace": "row(t('patron.vault_resets'),"
+  },
+  {
+   "line": 31303,
+   "find": "row('Armies out at once',",
+   "replace": "row(t('patron.armies_out'),"
+  },
+  {
+   "line": 31304,
+   "find": "row('March speed',",
+   "replace": "row(t('patron.march_speed'),"
+  },
+  {
+   "line": 31305,
+   "find": "row('Shady Market discount',R.shadyOff+'% off 2 items today')",
+   "replace": "row(t('patron.market_discount',{market:t('bld.shady_market')}),t('patron.off_items',{pct:R.shadyOff+'%',n:2}))"
+  },
+  {
+   "line": 31306,
+   "find": "row('Rebate on purchases',",
+   "replace": "row(t('patron.rebate'),"
+  },
+  {
+   "line": 31307,
+   "find": "<i class=\"patSoon\">soon</i>",
+   "replace": "<i class=\"patSoon\">'+t('patron.soon')+'</i>"
+  },
+  {
+   "line": 31311,
+   "find": "have.toLocaleString()+' / '+next.toLocaleString()+' base '+hudIcon('gem')",
+   "replace": "t('patron.base_progress',{have:have.toLocaleString(),next:next.toLocaleString(),gem:hudIcon('gem')})"
+  },
+  {
+   "line": 31312,
+   "find": "'>+'+A.pack.n+' attacks · '+hudIcon('gem')+A.pack.cost+'</button>'",
+   "replace": "'>'+t('patron.buy_attacks',{n:A.pack.n,cost:hudIcon('gem')+A.pack.cost})+'</button>'"
+  },
+  {
+   "line": 31312,
+   "find": ">Use attack card ('+A.cards+')</button>",
+   "replace": ">'+t('patron.use_card',{n:A.cards})+'</button>"
+  },
+  {
+   "line": 31312,
+   "find": ">Reset Arena · '+hudIcon('gem')+C.arenaReset+'</button>",
+   "replace": ">'+t('patron.reset_arena',{cost:hudIcon('gem')+C.arenaReset})+'</button>"
+  },
+  {
+   "line": 31312,
+   "find": ">Prestige to EDP</button>",
+   "replace": ">'+t('patron.prestige',{edp:'EDP'})+'</button>"
+  },
+  {
+   "line": 31313,
+   "find": ">Your benefits</div>",
+   "replace": ">'+t('patron.your_benefits')+'</div>"
+  },
+  {
+   "line": 31314,
+   "find": "'+nx.label+' adds</div>",
+   "replace": "'+t('patron.level_adds',{lv:nx.label})+'</div>"
+  },
+  {
+   "line": 31314,
+   "find": ">Top level reached</div>",
+   "replace": ">'+t('patron.top_level')+'</div>"
+  },
+  {
+   "line": 31317,
+   "find": "'+'+A.pack.n+' attacks'",
+   "replace": "t('patron.plus_attacks',{n:A.pack.n})",
+   "nth": 0
+  },
+  {
+   "line": 31317,
+   "find": "'+'+A.pack.n+' attacks'",
+   "replace": "t('patron.plus_attacks',{n:A.pack.n})",
+   "nth": 1
+  },
+  {
+   "line": 31317,
+   "find": "'Arena attempts reset'",
+   "replace": "t('patron.arena_reset_done')"
+  },
+  {
+   "line": 31322,
+   "find": "'Could not reach the server.'",
+   "replace": "t('patron.server_unreachable')"
+  },
+  {
+   "line": 31814,
+   "find": "'Updating…'",
+   "replace": "t('boot.updating')"
+  },
+  {
+   "line": 31833,
+   "find": ">Updates in progress<",
+   "replace": ">${t('boot.updates_title')}<"
+  },
+  {
+   "line": 31834,
+   "find": "There is currently updates being done — please be patient with restarts. Restarting in <b style=\"color:#ffd45e\">${n}s</b>.",
+   "replace": "${t('boot.updates_body',{n:'<b style=\"color:#ffd45e\">'+n+'s</b>'})}"
+  },
+  {
+   "line": 31835,
+   "find": ">Restart now<",
+   "replace": ">${t('boot.restart_now')}<"
+  },
+  {
+   "line": 31836,
+   "find": ">Wrap up what you're doing — it restarts automatically.<",
+   "replace": ">${t('boot.wrap_up')}<"
+  },
+  {
+   "line": 32054,
+   "find": "\"● This device can't run 3D (WebGL) — try another browser\"",
+   "replace": "'● '+t('boot.no_webgl')"
+  },
+  {
+   "line": 32058,
+   "find": "'● Online'",
+   "replace": "'● '+t('boot.online')"
+  },
+  {
+   "line": 32058,
+   "find": "'● Offline — connect to play'",
+   "replace": "'● '+t('boot.offline')"
+  },
+  {
+   "line": 32058,
+   "find": "'Syncing your account…'",
+   "replace": "t('boot.syncing')"
+  },
+  {
+   "line": 32058,
+   "find": "'Checking…'",
+   "replace": "t('boot.checking')"
+  },
+  {
+   "line": 32118,
+   "find": "\"● 3D engine failed to load — reload the page, or try another browser\"",
+   "replace": "'● '+t('boot.engine_failed')"
+  },
+  {
+   "line": 32119,
+   "find": "'<h1>3D engine failed to load</h1>'",
+   "replace": "'<h1>'+t('boot.engine_failed_short')+'</h1>'"
+  },
+  {
+   "line": 31881,
+   "find": "'Server '+estTimeStr()+' · Local '+localTimeStr()",
+   "replace": "t('chat.clock',{server:estTimeStr(),local:localTimeStr()})"
+  },
+  {
+   "line": 31884,
+   "find": "alt=\"\">Chat<span",
+   "replace": "alt=\"\">${t('chat.title')}<span"
+  },
+  {
+   "line": 31884,
+   "find": ">Server —:—:—</span>",
+   "replace": ">${t('chat.server_time',{time:'—:—:—'})}</span>"
+  },
+  {
+   "line": 31886,
+   "find": "placeholder=\"Say something…\"",
+   "replace": "placeholder=\"${t('chat.say_something')}\""
+  },
+  {
+   "line": 31886,
+   "find": ">Send</button>",
+   "replace": ">${t('common.send')}</button>"
+  },
+  {
+   "line": 31907,
+   "find": "who:'{i:u:warning} offline',txt:'Not delivered — reconnect to whisper.'",
+   "replace": "who:'{i:u:warning} '+t('chat.offline'),txt:t('chat.not_delivered')"
+  },
+  {
+   "line": 31912,
+   "find": "+' World']",
+   "replace": "+' '+t('nav.world')]"
+  },
+  {
+   "line": 31912,
+   "find": "+' Region']",
+   "replace": "+' '+t('chat.tab_region')]"
+  },
+  {
+   "line": 31912,
+   "find": "+' Guild']",
+   "replace": "+' '+t('nav.guild')]"
+  },
+  {
+   "line": 31912,
+   "find": "+' Whispers']",
+   "replace": "+' '+t('chat.tab_whispers')]"
+  },
+  {
+   "line": 31917,
+   "find": ">Open whispers</div>",
+   "replace": ">'+t('chat.open_whispers')+'</div>"
+  },
+  {
+   "line": 31917,
+   "find": ">tap to open</span>",
+   "replace": ">${t('chat.tap_to_open')}</span>"
+  },
+  {
+   "line": 31917,
+   "find": ">Tap any player name in World / Region / Guild to whisper them.</div>",
+   "replace": ">'+t('chat.whisper_hint')+'</div>"
+  },
+  {
+   "line": 31918,
+   "find": ">No whispers yet. Tap a player name in a channel to start one.</div>",
+   "replace": ">'+t('chat.no_whispers')+'</div>"
+  },
+  {
+   "line": 31928,
+   "find": ">Join a guild to use guild chat.</div>",
+   "replace": ">'+t('chat.join_guild')+'</div>"
+  },
+  {
+   "line": 31930,
+   "find": "${uiIcon('play')} Watch</button>",
+   "replace": "${uiIcon('play')} ${t('chat.watch')}</button>"
+  },
+  {
+   "line": 31933,
+   "find": ">No messages yet — say hi!</div>",
+   "replace": ">'+t('chat.no_messages')+'</div>"
+  },
+  {
+   "line": 31949,
+   "find": "data-a=\"whisper\">Whisper</button>",
+   "replace": "data-a=\"whisper\">${t('chat.whisper')}</button>"
+  },
+  {
+   "line": 31949,
+   "find": "data-a=\"block\">Block</button>",
+   "replace": "data-a=\"block\">${t('chat.block')}</button>"
+  },
+  {
+   "line": 31949,
+   "find": "data-a=\"report\">Report</button>",
+   "replace": "data-a=\"report\">'+t('chat.report')+'</button>"
+  },
+  {
+   "line": 31960,
+   "find": "Report ${escapeHTML(who)}",
+   "replace": "${t('chat.report_who',{name:escapeHTML(who)})}"
+  },
+  {
+   "line": 31960,
+   "find": ">Racism</button>",
+   "replace": ">${t('chat.racism')}</button>"
+  },
+  {
+   "line": 31960,
+   "find": ">Sexual harassment</button>",
+   "replace": ">${t('chat.harassment')}</button>"
+  },
+  {
+   "line": 31960,
+   "find": ">Other</button>",
+   "replace": ">${t('chat.other')}</button>"
+  },
+  {
+   "line": 31966,
+   "find": "'Sign in to block players.'",
+   "replace": "t('chat.sign_in_block')"
+  },
+  {
+   "line": 31967,
+   "find": "'Could not block.'",
+   "replace": "t('chat.block_failed')"
+  },
+  {
+   "line": 31972,
+   "find": "'Blocked '+escapeHTML(who)+'.'",
+   "replace": "t('chat.blocked',{name:escapeHTML(who)})"
+  },
+  {
+   "line": 31974,
+   "find": "'Report sent.'",
+   "replace": "t('chat.report_sent')"
+  },
+  {
+   "line": 31974,
+   "find": "'Could not send the report.'",
+   "replace": "t('chat.report_failed')"
+  },
+  {
+   "line": 31977,
+   "find": "'This battle can’t be shared'",
+   "replace": "t('chat.cant_share')"
+  },
+  {
+   "line": 31981,
+   "find": "\\u{1F4E4} Share replay<",
+   "replace": "\\u{1F4E4} ${t('chat.share_replay')}<"
+  },
+  {
+   "line": 31982,
+   "find": ">Post this battle as a watchable chip.<",
+   "replace": ">${t('chat.share_desc')}<"
+  },
+  {
+   "line": 31984,
+   "find": "\\u{1F30D} World chat<",
+   "replace": "\\u{1F30D} ${t('chat.world_chat')}<"
+  },
+  {
+   "line": 31985,
+   "find": "\\u{1F4CD} Region chat<",
+   "replace": "\\u{1F4CD} ${t('chat.region_chat')}<"
+  },
+  {
+   "line": 31986,
+   "find": "\\u{1F6E1} Guild chat<",
+   "replace": "\\u{1F6E1} ${t('chat.guild_chat')}<"
+  },
+  {
+   "line": 31987,
+   "find": "data-sh=\"\">Cancel<",
+   "replace": "data-sh=\"\">${t('common.cancel')}<"
+  },
+  {
+   "line": 31996,
+   "find": "'Sign in to share to guild'",
+   "replace": "t('chat.sign_in_share')"
+  },
+  {
+   "line": 31998,
+   "find": "'\\u{1F4E4} Shared to guild chat'",
+   "replace": "'\\u{1F4E4} '+t('chat.shared_guild')"
+  },
+  {
+   "line": 31999,
+   "find": "'Could not share to guild — join a guild first'",
+   "replace": "t('chat.share_guild_join')"
+  },
+  {
+   "line": 32000,
+   "find": "'Could not share to guild'",
+   "replace": "t('chat.share_guild_failed')"
+  },
+  {
+   "line": 32003,
+   "find": "'\\u{1F4E4} Shared to '+(ch==='region'?'region':'world')+' chat'",
+   "replace": "'\\u{1F4E4} '+(ch==='region'?t('chat.shared_region'):t('chat.shared_world'))"
+  },
+  {
+   "line": 32042,
+   "find": "' Whisper from '+escapeHTML(from)",
+   "replace": "' '+t('chat.whisper_from',{name:escapeHTML(from)})"
+  }
+ ],
+ "notes": [
+  "LEFT ENGLISH ON PURPOSE - playBilling module (base 31216 'Diamond packs are coming soon.', 31226 'Purchase verification unavailable...', 31228 'Purchase received: ', 31230 'Purchase cancelled.' / 'Purchase could not be completed.'): tests/test_play_billing_shell.js line 72-77 slices 'const playBilling=(()=>{' .. 'async function grantGemOffer' and runs it in a bare vm context with no t/ewT, so a t() call there throws ReferenceError. Convert them once that test's client context gets t:(k)=>k (5 strings). 31223 'Purchase receipt missing.' is an internal throw, never shown.",
+  "GEM_OFFERS (31190-31196): desc/detail (and name of the 5 diamond chests) are now getters calling t(), so the text follows the current language at display time; 'Cluster Pack' / 'Burger Meal' kept English as product names; prices kept.",
+  "Left English: Dev Pack Test popup 31350-31352 (dev only, 3 strings); EGP/EDP abbreviations and the rank names 'Ember Gold Patron' / 'Ember Diamond Patron' (31273, 31287-31289, 31310, 31318 - named ranks); patron benefit lines (patUnlocked / patNextLines) come from window.PATRON_BENEFITS data (served chart, not in this range) and are regex-filtered in English - content owner; 31994 '📽 shared a battle vs X' is chat message text sent to other players over the server (stays English); 31892/31925 'You' and 32024 'Player' are chat identity fallbacks compared to sender names (left); 31375 hidden 'OK' text and 31429 aria-label='Close' kept English because KB_DISMISS / kbIsX (31117-31119) match those English words for Esc/Backspace (31375 aria-label translated, its text kept).",
+  "No patch-notes popup chrome exists in 31000-32187 (nothing to convert there). Line 31803 BUILD_ID untouched.",
+  "Tests grepped for every converted literal: no page-source asserts on the A strings (test_lang_step1.js 'Report sent' hit is Settings 'Thanks! Report sent.', not this range; test_server_down_1120 'Checking…' is the netGate at base 24001, not this range)."
+ ]
+}

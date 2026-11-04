@@ -1,0 +1,380 @@
+{
+ "keys": {
+  "stage.runs": "runs",
+  "stage.first_clear_hero": "FIRST CLEAR · {hero}",
+  "stage.n_random": "{n} RANDOM",
+  "stage.drops": "DROPS",
+  "stage.drops_loading": "loading…",
+  "stage.possible": "possible",
+  "stage.details_loading": "Loading stage details…",
+  "stage.wave": "Wave {n}",
+  "stage.boss_level_gate": "Chapter boss — required level",
+  "stage.lv": "Lv {n}",
+  "stage.gate_you_are": "Lv {n} — you are {lv}",
+  "stage.guardian_cue": "A Guardian stage — win hero fragments, with {n} rewarded runs each day.",
+  "stage.boss_cue": "A chapter boss — make a major power upgrade before challenging it.",
+  "stage.rec_power": "Recommended power",
+  "stage.yours": "· yours {n}",
+  "stage.below_rec": "Below the recommendation — level heroes, ascend a glyph or temper gear first.",
+  "stage.rec_player_level": "Recommended player level",
+  "stage.rec_glyph_quality": "Recommended glyph quality",
+  "stage.none_needed": "None needed yet",
+  "stage.hero_lv_plus": "(hero Lv {n}+)",
+  "stage.random_frags": "{n} distinct random fragments from these {m}:",
+  "stage.guaranteed": "Guaranteed:",
+  "stage.bonus": "Bonus:",
+  "stage.stamina_sweep": "Stamina · sweep",
+  "stage.sweepable_runs": "sweepable, {n} rewarded runs left today",
+  "stage.sweepable": "sweepable",
+  "stage.sweep_unlocks_at": "sweep unlocks at {stars}",
+  "stage.star_rules": "{s3} = clear with your whole squad alive · {s2} = at least half survive · {s1} = win",
+  "stage.details_failed": "Stage details could not be loaded.",
+  "stage.try_again": "Try again",
+  "stage.boss_title": "Boss Stage {code}",
+  "stage.guardian_title": "Guardian Stage {code}",
+  "stage.title": "Stage {code}",
+  "stage.mode_chapter": "{mode} · CHAPTER {n}",
+  "stage.stamina": "Stamina",
+  "stage.chances": "Chances",
+  "stage.status": "Status",
+  "stage.cleared": "Cleared",
+  "stage.new": "New",
+  "stage.reward_xp": "Reward XP",
+  "stage.potion_per_run": "One {tier} Hero XP Potion per rewarded run",
+  "stage.no_stamina": "Not enough stamina.",
+  "stage.fight_again": "Fight Again",
+  "stage.fight_now": "Fight Now",
+  "stage.reach_level": "Reach level {n}",
+  "stage.sweep": "Sweep",
+  "stage.needs": "Needs {stars}",
+  "stage.sweep_x10": "Sweep ×10",
+  "stage.reset_runs": "Reset runs",
+  "stage.back_to_map": "Back to Map",
+  "stage.daily_limit": "Daily limit reached for this stage ({n} rewarded runs/day).",
+  "stage.runs_reset": "Stage runs reset",
+  "stage.no_server": "Could not reach the server.",
+  "stage.sweep_failed": "Sweep failed — check your connection.",
+  "stage.hero_fragment": "{hero} Fragment",
+  "stage.swept": "SWEPT ×{n} — EARNED",
+  "stage.no_fragments": "no fragments",
+  "reward.gear_fragment": "Gear Fragment",
+  "reward.guaranteed": "GUARANTEED REWARD",
+  "reward.source": "Source: {s}",
+  "reward.forge_dust": "+{n} Forge Dust",
+  "reward.xp": "+{n} XP",
+  "reward.heroes_xp": "heroes +{n} XP",
+  "reward.bonus": "BONUS",
+  "recap.ult_hit": "{a}'s ultimate hit {b} for {n} — {k} actions over {r} rounds.",
+  "recap.hit": "{a} hit {b} for {n} — {k} actions over {r} rounds.",
+  "codex.ultimate": "Ultimate"
+ },
+ "edits": [
+  {
+   "line": 21549,
+   "find": "'possible'",
+   "replace": "t('stage.possible')"
+  },
+  {
+   "line": 21556,
+   "find": "' · runs <span style=\"color:'",
+   "replace": "' · '+t('stage.runs')+' <span style=\"color:'"
+  },
+  {
+   "line": 21558,
+   "find": "${vaelFirst?'FIRST CLEAR · VAEL':randomized?'2 RANDOM':'DROPS'}",
+   "replace": "${vaelFirst?t('stage.first_clear_hero',{hero:'VAEL'}):randomized?t('stage.n_random',{n:2}):t('stage.drops')}"
+  },
+  {
+   "line": 21559,
+   "find": "'<span style=\"font-size:10.5px;color:#6f7d90\">loading…</span>'",
+   "replace": "'<span style=\"font-size:10.5px;color:#6f7d90\">'+t('stage.drops_loading')+'</span>'"
+  },
+  {
+   "line": 21565,
+   "find": "Loading stage details…",
+   "replace": "'+t('stage.details_loading')+'"
+  },
+  {
+   "line": 21580,
+   "find": " Wave ${wi+1}</div>",
+   "replace": " ${t('stage.wave',{n:wi+1})}</div>"
+  },
+  {
+   "line": 21585,
+   "find": "Chapter boss — required level",
+   "replace": "${t('stage.boss_level_gate')}"
+  },
+  {
+   "line": 21586,
+   "find": "Lv ${gate}${myLv>=gate?' '+uiIcon('check'):' — you are '+myLv}",
+   "replace": "${myLv>=gate?t('stage.lv',{n:gate})+' '+uiIcon('check'):t('stage.gate_you_are',{n:gate,lv:myLv})}"
+  },
+  {
+   "line": 21593,
+   "find": "'A Guardian stage — win hero fragments, with 3 rewarded runs each day.'",
+   "replace": "t('stage.guardian_cue',{n:3})"
+  },
+  {
+   "line": 21593,
+   "find": "'A chapter boss — make a major power upgrade before challenging it.'",
+   "replace": "t('stage.boss_cue')"
+  },
+  {
+   "line": 21601,
+   "find": ">Recommended power<",
+   "replace": ">${t('stage.rec_power')}<"
+  },
+  {
+   "line": 21602,
+   "find": "· yours ${mine.toLocaleString()}",
+   "replace": "${t('stage.yours',{n:mine.toLocaleString()})}"
+  },
+  {
+   "line": 21603,
+   "find": "Below the recommendation — level heroes, ascend a glyph or temper gear first.",
+   "replace": "${t('stage.below_rec')}"
+  },
+  {
+   "line": 21605,
+   "find": ">Recommended player level<",
+   "replace": ">${t('stage.rec_player_level')}<"
+  },
+  {
+   "line": 21606,
+   "find": ">Lv ${stg.targetLevel}<",
+   "replace": ">${t('stage.lv',{n:stg.targetLevel})}<"
+  },
+  {
+   "line": 21608,
+   "find": ">Recommended glyph quality<",
+   "replace": ">${t('stage.rec_glyph_quality')}<"
+  },
+  {
+   "line": 21609,
+   "find": "'None needed yet'",
+   "replace": "t('stage.none_needed')"
+  },
+  {
+   "line": 21609,
+   "find": "(hero Lv ${stg.qualityMinHeroLevel}+)",
+   "replace": "${t('stage.hero_lv_plus',{n:stg.qualityMinHeroLevel})}"
+  },
+  {
+   "line": 21613,
+   "find": "${_random?'2 distinct random fragments from these 4:':'Guaranteed:'}",
+   "replace": "${_random?t('stage.random_frags',{n:2,m:4}):t('stage.guaranteed')}"
+  },
+  {
+   "line": 21614,
+   "find": ">Bonus:<",
+   "replace": ">${t('stage.bonus')}<"
+  },
+  {
+   "line": 21616,
+   "find": ">Stamina · sweep<",
+   "replace": ">${t('stage.stamina_sweep')}<"
+  },
+  {
+   "line": 21617,
+   "find": "'sweepable, '+stageRunsLeft(node,mode)+' rewarded runs left today'",
+   "replace": "t('stage.sweepable_runs',{n:stageRunsLeft(node,mode)})"
+  },
+  {
+   "line": 21617,
+   "find": ":'sweepable')",
+   "replace": ":t('stage.sweepable'))"
+  },
+  {
+   "line": 21617,
+   "find": "'sweep unlocks at '+uiIcon('star-filled').repeat(3)",
+   "replace": "t('stage.sweep_unlocks_at',{stars:uiIcon('star-filled').repeat(3)})"
+  },
+  {
+   "line": 21618,
+   "find": "${uiIcon('star-filled')}${uiIcon('star-filled')}${uiIcon('star-filled')} = clear with your whole squad alive · ${uiIcon('star-filled')}${uiIcon('star-filled')} = at least half survive · ${uiIcon('star-filled')} = win",
+   "replace": "${t('stage.star_rules',{s3:uiIcon('star-filled').repeat(3),s2:uiIcon('star-filled').repeat(2),s1:uiIcon('star-filled')})}"
+  },
+  {
+   "line": 21639,
+   "find": "Stage details could not be loaded. <button class=\"btn xs\" id=\"smDetRetry\">Try again</button>",
+   "replace": "'+t('stage.details_failed')+' <button class=\"btn xs\" id=\"smDetRetry\">'+t('stage.try_again')+'</button>"
+  },
+  {
+   "line": 21652,
+   "find": "boss?'Boss Stage '+stageCode(i):(elite?'Guardian Stage '+stageCode(i):'Stage '+stageCode(i))",
+   "replace": "boss?t('stage.boss_title',{code:stageCode(i)}):(elite?t('stage.guardian_title',{code:stageCode(i)}):t('stage.title',{code:stageCode(i)}))"
+  },
+  {
+   "line": 21655,
+   "find": "${PORTAL_META[mode].label.toUpperCase()} · CHAPTER ${chapterOf(i)}",
+   "replace": "${t('stage.mode_chapter',{mode:PORTAL_META[mode].label.toUpperCase(),n:chapterOf(i)})}"
+  },
+  {
+   "line": 21656,
+   "find": "<span>Stamina</span>",
+   "replace": "<span>${t('stage.stamina')}</span>"
+  },
+  {
+   "line": 21656,
+   "find": "${_eb?'Chances':'Status'}",
+   "replace": "${_eb?t('stage.chances'):t('stage.status')}"
+  },
+  {
+   "line": 21656,
+   "find": "(cleared?'Cleared':'New')",
+   "replace": "(cleared?t('stage.cleared'):t('stage.new'))"
+  },
+  {
+   "line": 21656,
+   "find": "<span>Reward XP</span>",
+   "replace": "<span>${t('stage.reward_xp')}</span>"
+  },
+  {
+   "line": 21659,
+   "find": "One ${xpPotionStageText(i,mode)} Hero XP Potion per rewarded run",
+   "replace": "${t('stage.potion_per_run',{tier:xpPotionStageText(i,mode)})}"
+  },
+  {
+   "line": 21660,
+   "find": "Not enough stamina.",
+   "replace": "'+t('stage.no_stamina')+'"
+  },
+  {
+   "line": 21661,
+   "find": "' Fight '+(cleared?'Again':'Now')",
+   "replace": "' '+(cleared?t('stage.fight_again'):t('stage.fight_now'))"
+  },
+  {
+   "line": 21661,
+   "find": "' Reach level '+_gate",
+   "replace": "' '+t('stage.reach_level',{n:_gate})"
+  },
+  {
+   "line": 21662,
+   "find": "+' Sweep':",
+   "replace": "+' '+t('stage.sweep'):"
+  },
+  {
+   "line": 21662,
+   "find": "' Needs '+uiIcon('star-filled')+uiIcon('star-filled')+uiIcon('star-filled')",
+   "replace": "' '+t('stage.needs',{stars:uiIcon('star-filled').repeat(3)})"
+  },
+  {
+   "line": 21662,
+   "find": "+' Sweep</button>'",
+   "replace": "+' '+t('stage.sweep')+'</button>'"
+  },
+  {
+   "line": 21663,
+   "find": "+' Sweep ×10':",
+   "replace": "+' '+t('stage.sweep_x10'):"
+  },
+  {
+   "line": 21663,
+   "find": "+' Sweep ×10</button>'",
+   "replace": "+' '+t('stage.sweep_x10')+'</button>'"
+  },
+  {
+   "line": 21665,
+   "find": "↺ Reset runs ·",
+   "replace": "↺ ${t('stage.reset_runs')} ·"
+  },
+  {
+   "line": 21666,
+   "find": ">Back to Map<",
+   "replace": ">${t('stage.back_to_map')}<"
+  },
+  {
+   "line": 21671,
+   "find": "'Daily limit reached for this stage (3 rewarded runs/day).'",
+   "replace": "t('stage.daily_limit',{n:3})"
+  },
+  {
+   "line": 21673,
+   "find": "bannerMsg('Stage runs reset')",
+   "replace": "bannerMsg(t('stage.runs_reset'))"
+  },
+  {
+   "line": 21674,
+   "find": "(r&&r.error)||'Could not reach the server.'",
+   "replace": "langMsg(r&&r.error)||t('stage.no_server')"
+  },
+  {
+   "line": 21690,
+   "find": "· Gear Fragment",
+   "replace": "· ${t('reward.gear_fragment')}"
+  },
+  {
+   "line": 21691,
+   "find": ">GUARANTEED REWARD<",
+   "replace": ">${t('reward.guaranteed')}<"
+  },
+  {
+   "line": 21691,
+   "find": "Source: ${escapeHTML(sourceLine)}",
+   "replace": "${t('reward.source',{s:escapeHTML(sourceLine)})}"
+  },
+  {
+   "line": 21695,
+   "find": "+${b.dust} Forge Dust",
+   "replace": "${t('reward.forge_dust',{n:b.dust})}"
+  },
+  {
+   "line": 21696,
+   "find": "`+${b.px} XP`",
+   "replace": "t('reward.xp',{n:b.px})"
+  },
+  {
+   "line": 21697,
+   "find": "`heroes +${b.heroXp} XP`",
+   "replace": "t('reward.heroes_xp',{n:b.heroXp})"
+  },
+  {
+   "line": 21698,
+   "find": ">BONUS<",
+   "replace": ">${t('reward.bonus')}<"
+  },
+  {
+   "line": 21708,
+   "find": "nm(best[2])+(best[6]?\"'s ultimate\":\"\") +' hit '+nm(best[4])+' for '+best[5]+' — '+log.length+' actions over '+(log[log.length-1][0]||1)+' rounds.'",
+   "replace": "(best[6]?t('recap.ult_hit',{a:nm(best[2]),b:nm(best[4]),n:best[5],k:log.length,r:(log[log.length-1][0]||1)}):t('recap.hit',{a:nm(best[2]),b:nm(best[4]),n:best[5],k:log.length,r:(log[log.length-1][0]||1)}))"
+  },
+  {
+   "line": 21723,
+   "find": "(r&&r.error)||'Sweep failed — check your connection.'",
+   "replace": "langMsg(r&&r.error)||t('stage.sweep_failed')"
+  },
+  {
+   "line": 21745,
+   "find": "escapeHTML((HERO_TYPES[r.eliteFrag.heroKey]||{}).name||r.eliteFrag.heroKey)+' Fragment'",
+   "replace": "t('stage.hero_fragment',{hero:escapeHTML((HERO_TYPES[r.eliteFrag.heroKey]||{}).name||r.eliteFrag.heroKey)})"
+  },
+  {
+   "line": 21748,
+   "find": "+${r.px.toLocaleString()} XP",
+   "replace": "${t('reward.xp',{n:r.px.toLocaleString()})}"
+  },
+  {
+   "line": 21752,
+   "find": "SWEPT ×${r.times} — EARNED",
+   "replace": "${t('stage.swept',{n:r.times})}"
+  },
+  {
+   "line": 21753,
+   "find": ">no fragments<",
+   "replace": ">'+t('stage.no_fragments')+'<"
+  },
+  {
+   "line": 21776,
+   "find": "t.abilityName||'Ultimate'",
+   "replace": "t.abilityName||ewT('codex.ultimate')"
+  }
+ ],
+ "notes": [
+  "Left English on purpose: XP Potion tier names in xpPotionStageText (Minor/Greater/Major/Superior, 21506-21508) and the sweep receipt ' XP Potion' item line (21746); Vael first-clear chip item names Grey Stoneheart / Rough Gravel Fragment (21548); server glyph-fragment displayNames; '+{n}g' gold suffix (21747).",
+  "Dead code skipped (nothing calls it): ROLE_META row/blurb texts (21519-21530, 18 strings, read only by roleTag) and toggleLinePanel 'More info'/'Hide' (21563).",
+  "21762-22999 is data only: monster/boss names, kit ability names, anim and death tables (~480 scan hits, names stay English, 0 UI text).",
+  "Shown as given (other owners): CHAPTER_BOSS_CUE / BOSS_CUES cue text, portalChapterLockMsg, PORTAL_META label (passed as {mode}).",
+  "21674 / 21723 use langMsg(r.error) from 00_infra so server errors show in the player's language."
+ ]
+}

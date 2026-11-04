@@ -1,0 +1,1470 @@
+{
+ "keys": {
+  "signin.already": "Already signed in today — back at {time}.",
+  "signin.not_recorded": "Sign-in could not be recorded just now.",
+  "signin.m_jan": "January",
+  "signin.m_feb": "February",
+  "signin.m_mar": "March",
+  "signin.m_apr": "April",
+  "signin.m_may": "May",
+  "signin.m_jun": "June",
+  "signin.m_jul": "July",
+  "signin.m_aug": "August",
+  "signin.m_sep": "September",
+  "signin.m_oct": "October",
+  "signin.m_nov": "November",
+  "signin.m_dec": "December",
+  "signin.dow_sun": "S",
+  "signin.dow_mon": "M",
+  "signin.dow_tue": "T",
+  "signin.dow_wed": "W",
+  "signin.dow_thu": "T",
+  "signin.dow_fri": "F",
+  "signin.dow_sat": "S",
+  "signin.week_frags": "{n} frags",
+  "signin.hero_month": "Hero of the Month: {hero}",
+  "signin.hero_month_sub": "Every Saturday earns {frags} — the last week of {month} gives {n}.",
+  "signin.n_hero_frags": "{n} {hero} fragments",
+  "signin.month_year": "{month} {y}",
+  "signin.claim_today": "Sign In — Claim Today",
+  "signin.signed_today": "Signed in today · back at {time}",
+  "tut.win11_title": "Choose your first squad",
+  "tut.win11_desc": "Open Campaign and Stage {stage}. Tap all three hero portraits; a highlighted portrait means that hero is selected. Start only after all three are highlighted, then clear the stage.",
+  "tut.quest11_title": "Collect your first quest reward",
+  "tut.quest11_desc": "Open Quests and claim the completed Stage {stage} objective. The starter quest chain awards {hero} fragments toward your fourth hero.",
+  "tut.skill_title": "Spend your first skill point",
+  "tut.skill_desc": "Open Heroes, choose a hero, and raise one skill before Stage {stage}. Skill levels make that hero’s specific job stronger.",
+  "tut.win12_title": "Test the upgrade",
+  "tut.win12_desc": "Return to Campaign and clear Stage {stage} with the same highlighted squad.",
+  "tut.quest12_title": "Claim the next {hero} fragments",
+  "tut.quest12_desc": "Open Quests and collect the Stage {stage} reward. Claimable rewards are never added automatically.",
+  "tut.rune_title": "Build {hero}’s first glyph",
+  "tut.rune_desc": "Open Heroes → {hero} → Glyphs. Tap his first empty slot and build {glyph} with the two {frag} Fragments guaranteed on your first Stage {stage} clear. Later glyphs use named Campaign stages that you can replay to farm.",
+  "tut.win13_title": "Clear the first Guardian stage",
+  "tut.win13_desc": "Return to Campaign and clear Stage {stage}. Guardian stages award hero fragments and can be replayed a limited number of times each day.",
+  "tut.quest13_title": "Collect the Guardian quest reward",
+  "tut.quest13_desc": "Open Quests and claim the Stage {stage} objective for another {hero} fragment bundle.",
+  "tut.wish_title": "Use the Wishing Pool",
+  "tut.wish_desc": "Open the Wishing Pool and use a free Gold wish. Its result is random: a hero, hero fragments, or a named glyph fragment.",
+  "tut.win14_title": "Finish recruiting your fourth hero",
+  "tut.win14_desc": "Clear Stage {stage} to complete the last starter fragment quest.",
+  "tut.quest14_title": "Recruit your fourth hero",
+  "tut.quest14_desc": "First claim the Stage {stage} reward in Quests. Then open Heroes, choose {hero} under Ready to Summon, and press Summon Now. The four starter quest rewards provide the {n} fragments she needs.",
+  "tut.vexxp_title": "Level {hero} with a {potion}",
+  "tut.vexxp_desc": "Open Heroes → {hero} → Stats. Tap {potion} once. It gives {hero} {n} hero XP and cannot level her beyond Commander level. Claim this lesson after using the potion.",
+  "tut.win15_title": "Earn your first Diamond wish",
+  "tut.win15_desc": "Clear Stage {stage} to unlock the guaranteed first Diamond wish.",
+  "tut.gemwish_title": "Claim your free Diamond wish",
+  "tut.gemwish_desc": "Open the Wishing Pool and claim the free Diamond wish you earned. Your first Diamond wish guarantees a {stars} hero and gives you your fifth hero.",
+  "tut.r_bonus_gold": "{n} bonus Gold",
+  "tut.r_bonus_gems": "{n} bonus Diamonds",
+  "tut.r_hero_frags": "{n} {hero} fragments",
+  "tut.r_hero_xp": "{n} Hero XP each",
+  "tut.r_cmd_xp": "{n} Commander XP",
+  "tut.r_potion": "{n} {potion}",
+  "tut.r_named_frags": "{n} {frag} glyph fragments for {hero}",
+  "tut.r_glyph_frags": "{n} glyph fragments",
+  "tut.r_gold_wish": "{n} free Gold-wish result",
+  "tut.r_summoned": "{hero} summoned",
+  "tut.r_claim_potion": "claim {n} {potion}",
+  "tut.r_leveled": "{hero} leveled with a claimed {tier} potion",
+  "tut.r_free_diamond_wish": "free Diamond wish",
+  "tut.r_guaranteed_hero": "guaranteed {stars} hero",
+  "tut.got_potion": "{n} {tier} XP Potion",
+  "tut.got_frags": "{n} hero frags",
+  "tut.got_hero_frags": "{n} {hero} frags",
+  "tut.skipped": "Tutorial skipped. You can start it any time from the menu.",
+  "tut.resumed": "Guided tutorial resumed.",
+  "tut.not_saved": "Tutorial choice was not saved. Please try again.",
+  "tut.complete": "Tutorial complete!",
+  "tut.step_claimed": "{step} claimed!",
+  "tut.claim_failed": "That reward could not be claimed yet.",
+  "tut.all_done": "All done!",
+  "tut.own_pace": "Learn at your own pace",
+  "tut.journey": "Your journey begins",
+  "tut.steps_complete": "{n} / {total} steps complete",
+  "tut.resume": "Resume guided tutorial",
+  "tut.skip": "Skip Tutorial",
+  "tut.rewards_ready": "Rewards ready",
+  "tut.lessons": "Lessons in progress",
+  "tut.stage_claimed": "Stage {stage} · {n}/{total} claimed",
+  "tut.reward_ready": "Reward ready",
+  "tut.next_up": "Next up",
+  "tut.locked_stage": "Locked in this stage",
+  "tut.basics_done": "You’ve got the basics — now go build the strongest region in the realm.",
+  "tut.welcome": "Welcome, Commander!",
+  "tut.offer_desc": "Start here to learn one essential system before each of the first five Campaign rounds.",
+  "tut.start": "Start Tutorial",
+  "isle.training_desc": "Daily training grounds — twelve boss fights each for gold and glyph fragments.",
+  "isle.emberdraft_desc": "Draft heroes, forge equipment, outlast seven rivals.",
+  "isle.tower_desc": "Your hero against the endless swarm — how long can you last?",
+  "isle.lv": "Lv {n}",
+  "isle.enter": "Enter",
+  "isle.intro": "Three trials drift among the clouds. Grow stronger to unlock each one.",
+  "isle.unlocks_at": "{name} unlocks at level {n}.",
+  "isle.q_frags": "{n} {q} fragments",
+  "isle.n_gold_xp": "{n} gold · +{xp} XP",
+  "isle.fragment": "Fragment",
+  "isle.account_xp": "+{n} account XP",
+  "isle.glyph_frags_upper": "GLYPH FRAGMENTS",
+  "isle.toward_glyph": "toward {hero}'s {glyph} ({q})",
+  "isle.prov_connect": "Connect to play — Training Province battles are verified by the server.",
+  "isle.stage_opens": "{name} Stage {stage} opens at account level {n}.",
+  "isle.no_plays_resets": "No plays left today — {name} resets tomorrow.",
+  "isle.no_realm": "Could not reach the realm — check your connection.",
+  "isle.fallen": "Fallen",
+  "isle.loan": "Loan",
+  "isle.well_connect": "Connect to enter {name}.",
+  "isle.well_sweep": "Sweep {path} · +{xp} XP",
+  "isle.hard": "Hard",
+  "isle.normal": "Normal",
+  "isle.standard": "Standard",
+  "isle.map_n": "Map {n}/{total}",
+  "isle.cleared": "Cleared",
+  "isle.choose_blessing": "Choose a Blessing",
+  "isle.all_heroes": "All heroes",
+  "isle.choose": "Choose",
+  "isle.xp_potions": "{n} XP potions",
+  "isle.joins_run": "{hero} joins the run",
+  "isle.n_gold": "{n} gold",
+  "isle.n_item": "{n}× {item}",
+  "isle.well_battle_connect": "Connect to play — Starless Well battles are verified by the server.",
+  "isle.well_pending": "Your last Well result is still being sent - try again in a moment.",
+  "isle.sweep_connect": "Connect to sweep — Training Province rewards are paid by the server.",
+  "isle.cue_barrowmaw": "{boss} breathes a burning grave-cone and rushes the line with a stunning charge — spread out, keep the tank in front",
+  "isle.cue_asterion": "{boss} throws a lance down the whole line and hides behind a shard guard — save your burst for when it drops",
+  "isle.cue_nymira": "{boss}'s pollen slows and poisons the field and she heals herself — step out of the cloud and bring burst",
+  "isle.cue_thorneveil": "{boss} sets the ground alight with wildfire roots, then collapses it to stun — spread out and keep a cleanse",
+  "isle.gold_desc": "Battle bosses for gold",
+  "isle.drill_desc": "Battle bosses for glyph fragments",
+  "isle.prov_intro": "Two training grounds, twelve boss fights each. Win a stage to clear it and take its reward, then sweep your best cleared stage for the same haul. Two plays each per day — a loss costs nothing. Your account level opens the higher stages.",
+  "isle.stage_n": "Stage {n}",
+  "isle.stage_of": "Stage {n}/{total}",
+  "isle.plays_left": "{n}/{total} plays left",
+  "isle.open": "Open",
+  "isle.unlocks_acct": "{name} unlocks at account level {n}.",
+  "isle.cleared_stage": "Cleared {stage}",
+  "isle.plays_today": "Plays today {n}",
+  "isle.all_cleared": "All {n} stages cleared! Sweep for daily rewards.",
+  "isle.challenge_stage": "Challenge Stage {n}",
+  "isle.waves": "{n} waves",
+  "isle.per_clear": "per clear: {rw}",
+  "isle.opens_lv": "opens at Lv {n}",
+  "isle.signin_battle": "Sign in to battle",
+  "isle.no_plays": "No plays left today",
+  "isle.no_plays_dot": "No plays left today.",
+  "isle.challenge": "Challenge",
+  "isle.sweep_stage": "Sweep Stage {n}",
+  "isle.per_sweep": "Per sweep: {rw}",
+  "isle.sweeps_from": "Stage {stage} sweeps from Lv {n}",
+  "isle.signin_sweep": "Sign in to sweep",
+  "isle.sweep_one": "Sweep (1 play)",
+  "isle.swept": "Swept Stage {n}!",
+  "isle.perk_banner": "+22% squad power for the rest of the run",
+  "isle.perk_momentum": "+6% power for every wave you clear",
+  "isle.perk_wind": "Survive your next defeat — the run continues",
+  "isle.perk_slayer": "+50% power against boss waves (every 5th)",
+  "isle.perk_treasure": "+80% rewards for the rest of the run",
+  "isle.perk_phantom": "30% chance to skip a wave entirely",
+  "isle.perk_overload": "+40% power for the next 3 waves",
+  "isle.perk_fortune": "+600 bonus gold every wave from now on",
+  "isle.loot_pending": "{name} loot pending",
+  "isle.bank_loot": "Bank saved loot",
+  "isle.loot_banked": "Loot banked.",
+  "isle.still_waiting": "Still waiting for the server. Retry when connected.",
+  "isle.gaunt_intro": "Fight endless waves; every 3 waves you pick a powerful boon. One defeat ends the run — bank your loot and climb higher next time.",
+  "isle.best_wave": "Best wave",
+  "isle.runs_left": "Runs left today",
+  "isle.begin_run": "Begin a run",
+  "isle.no_runs": "No runs left today",
+  "isle.choose_boon": "Choose a Boon",
+  "isle.wave_pick": "Wave {n} cleared — pick one to carry forward.",
+  "isle.perk_gained": "{name} gained!",
+  "isle.wave_n": "Wave {n}",
+  "isle.banked": "Banked",
+  "isle.boons": "Boons",
+  "isle.boss_upper": "BOSS",
+  "isle.enemy_power": "Enemy power",
+  "isle.your_effective": "your effective",
+  "isle.fight_wave": "Fight Wave {n}",
+  "isle.retire_bank": "Retire & bank loot",
+  "isle.retired": "Retired at wave {n} — loot banked.",
+  "isle.saved_locally": "Loot is saved locally; retry banking when connected.",
+  "isle.banking": "Banking loot…",
+  "isle.defeated": "Defeated at wave {n}. Reached wave {r} — loot banked.",
+  "isle.run_ended": "Run ended; loot is saved locally until the server confirms it.",
+  "isle.skipped_wave": "Skipped wave {n}",
+  "isle.second_wind": "{perk}! Survived wave {n}",
+  "isle.wave_cleared": "Wave {n} cleared",
+  "isle.n_bonus": "{n} bonus",
+  "isle.your_record": "your record",
+  "isle.floor_n": "Floor {n}",
+  "isle.your_power": "Your power",
+  "isle.warden_floor": "Warden of Floor {n}",
+  "isle.guardian_floor": "Guardian of Floor {n}",
+  "isle.requires_power": "Requires power",
+  "isle.elite_reinforced": "(Elite — reinforced)",
+  "isle.reward": "Reward",
+  "isle.ascend_floor": "Ascend to Floor {n}",
+  "isle.too_weak": "Squad too weak — grow stronger",
+  "isle.spire_tribute": "Spire Tribute",
+  "isle.once_daily": "(once daily)",
+  "isle.trib_desc": "Claim a daily reward scaled to your record: {rw}",
+  "isle.trib_locked": "Reach Floor {n} to unlock the tribute.",
+  "isle.claim_tribute": "Claim tribute",
+  "isle.claimed_today": "Claimed today",
+  "isle.warden_felled": "Warden felled!",
+  "isle.floor_conquered": "Floor {n} conquered!",
+  "isle.too_weak_floor": "Squad too weak for this floor.",
+  "isle.already_claimed": "Already claimed today.",
+  "isle.tribute_claimed": "Tribute claimed!",
+  "mail.now": "now",
+  "mail.ago_m": "{n}m",
+  "mail.ago_h": "{n}h",
+  "mail.ago_d": "{n}d",
+  "mail.tab_inbox": "Inbox",
+  "mail.tab_war": "War",
+  "mail.tab_mines": "Mines",
+  "mail.tab_scouts": "Scouts",
+  "mail.empty_inbox": "No messages yet. Guild and player messages appear here.",
+  "mail.empty_war": "No war reports yet. Attacks you make, raids on your castle, and defends appear here.",
+  "mail.empty_mines": "No mine reports yet. Send a squad to mine a node on the World Map.",
+  "mail.empty_scouts": "No scout reports yet. Scout a rival stronghold from the World Map.",
+  "mail.empty": "No messages.",
+  "mail.system": "System",
+  "mail.watch": "Watch",
+  "mail.share": "Share",
+  "mail.declare_war": "Declare War",
+  "mail.war_rules": "Declaring war starts a {countdown}. Nobody can attack during it — once it reaches zero the war goes {live}. A declared war lasts {hours} total, then must be re-declared. Declare war from a castle's menu on the World Map.",
+  "mail.minute_countdown": "{n}-minute countdown",
+  "mail.live": "live",
+  "mail.n_hours": "{n} hours",
+  "mail.enemies_at_war": "Enemies at war with you ({n})",
+  "mail.can_attack_you": "can attack you now",
+  "mail.preparing": "preparing — cannot attack yet",
+  "mail.until_peace": "until peace",
+  "mail.until_war": "until war begins",
+  "mail.no_enemies": "Nobody has declared war on you. You're safe from attacks.",
+  "mail.wars_declared": "Wars you declared ({n})",
+  "mail.you_can_attack": "you can attack them now",
+  "mail.until_you_attack": "until you can attack",
+  "mail.no_wars": "You haven't declared war on anyone. Open a castle on the World Map and choose {action} to attack it.",
+  "setx.tos_intro": "Last updated: {date}. {game} (the “Game”) is provided by {company} (“we”, “us”). By accepting, you agree to our {terms}, and our {privacy} explains how we handle your information. This page is a summary; the full text is at those two links.",
+  "setx.tos_terms": "Terms of Service",
+  "setx.tos_privacy": "Privacy Policy",
+  "setx.tos_h1": "Age and parental permission",
+  "setx.tos_p1": "You must be at least {min} (or older where your local law says so) to create an account. If you are under {adult}, or under the age of majority where you live, you need a parent or guardian's permission and supervision; they must agree to these Terms with you and authorize any purchases.",
+  "setx.tos_h2": "Your account and fair play",
+  "setx.tos_p2": "Keep your password private and do not share, sell or transfer accounts. Do not cheat, exploit bugs, use bots or unauthorized tools, or interfere with the Game or other players. We may restrict or suspend accounts that break the rules, and correct progress gained by cheating.",
+  "setx.tos_h3": "Names, chat and conduct",
+  "setx.tos_p3": "No harassment, threats, hate speech, sexual content involving minors, spam, impersonation or other illegal or abusive content. Report a message from chat, block players (your Blocked players list is in Settings), or email {mail}. Do not put passwords, payment details or sensitive personal information in chat.",
+  "setx.tos_h4": "Purchases and virtual items",
+  "setx.tos_p4": "Purchases in the Google Play version use Google Play Billing; the purchase screen shows the price and what you get before you confirm, and Google processes the payment. Diamonds, gold, heroes and other items are licensed for use in the Game, have no cash value and cannot be sold outside the Game. Refunds follow the law and the store's policy (Google Play's refund process); your statutory consumer rights still apply.",
+  "setx.tos_h5": "What we collect",
+  "setx.tos_p5": "Your account details (username, a salted password hash, a recovery email if you add one), your game saves and activity, chat messages and reports you send, purchase records, and technical data: IP addresses, connection times, device and app information, and error and security logs. We use it to run the Game, keep accounts secure and play fair, moderate chat, deliver purchases and fix problems. We do not sell your personal information. Other players see your name, castle, game activity and the chat you send them.",
+  "setx.tos_h6": "Storage, logs and backups",
+  "setx.tos_p6": "Your account and saves are stored on our game servers and copied to backups for recovery. Routine technical, connection, IP and diagnostic logs are kept for {days}. Backups age out on their own rotation schedule.",
+  "setx.tos_n_days": "{n} days",
+  "setx.tos_h7": "Deleting your account",
+  "setx.tos_p7": "Use {del} in Settings, or the request form at {form}, or email {mail}. The account is locked and hidden for a {grace}; signing in within those {n} days cancels the deletion. After that our servers wipe it from our database. Backups are not erased at once - they age out on their own schedule. A guest profile with no password is deleted at once.",
+  "setx.tos_grace": "{n}-day grace period",
+  "setx.tos_h8": "The Game, liability and disputes",
+  "setx.tos_p8": "The Game changes through updates and balancing and is provided “as is” to the extent the law allows. These Terms are governed by the laws of {law}; mandatory consumer rights where you live are not affected. We update the date above when the Terms change and ask you to accept again.",
+  "setx.tos_h9": "Contact",
+  "setx.tos_p9": "Questions, reports, privacy and deletion requests: {mail}.",
+  "setx.tos_review": "Please review and accept to continue signing in.",
+  "setx.tos_decline": "Decline",
+  "setx.tos_agree": "I Agree & Continue",
+  "setx.files_saved": "{n} of {total} files saved on this device",
+  "setx.mb_of": "{a} of {b}",
+  "setx.mb_allowed": "{a} of {b} allowed",
+  "setx.not_kept": "not guaranteed to be kept"
+ },
+ "edits": [
+  {
+   "line": 28500,
+   "find": ">Collect</button>",
+   "replace": ">${ewT('common.collect')}</button>"
+  },
+  {
+   "line": 28507,
+   "find": "'Already signed in today — back at 09:00.'",
+   "replace": "ewT('signin.already',{time:'09:00'})"
+  },
+  {
+   "line": 28513,
+   "find": "(r&&r.error)||'Sign-in could not be recorded just now.'",
+   "replace": "langMsg(r&&r.error)||ewT('signin.not_recorded')"
+  },
+  {
+   "line": 28521,
+   "find": "['January','February','March','April','May','June','July','August','September','October','November','December'][m]",
+   "replace": "[ewT('signin.m_jan'),ewT('signin.m_feb'),ewT('signin.m_mar'),ewT('signin.m_apr'),ewT('signin.m_may'),ewT('signin.m_jun'),ewT('signin.m_jul'),ewT('signin.m_aug'),ewT('signin.m_sep'),ewT('signin.m_oct'),ewT('signin.m_nov'),ewT('signin.m_dec')][m]"
+  },
+  {
+   "line": 28524,
+   "find": "['S','M','T','W','T','F','S']",
+   "replace": "[ewT('signin.dow_sun'),ewT('signin.dow_mon'),ewT('signin.dow_tue'),ewT('signin.dow_wed'),ewT('signin.dow_thu'),ewT('signin.dow_fri'),ewT('signin.dow_sat')]"
+  },
+  {
+   "line": 28529,
+   "find": "${rew.frag} frag${rew.frag===1?'':'s'}",
+   "replace": "${ewT('signin.week_frags',{n:rew.frag})}"
+  },
+  {
+   "line": 28533,
+   "find": "Hero of the Month: ${HERO_TYPES[hk].name}",
+   "replace": "${ewT('signin.hero_month',{hero:HERO_TYPES[hk].name})}"
+  },
+  {
+   "line": 28534,
+   "find": "Every Saturday earns <b style=\"color:#c9a2ff\">5 ${HERO_TYPES[hk].name} fragments</b> — the last week of ${monthName} gives <b style=\"color:#ffd45e\">15</b>.",
+   "replace": "${ewT('signin.hero_month_sub',{frags:`<b style=\"color:#c9a2ff\">${ewT('signin.n_hero_frags',{n:5,hero:HERO_TYPES[hk].name})}</b>`,month:monthName,n:'<b style=\"color:#ffd45e\">15</b>'})}"
+  },
+  {
+   "line": 28535,
+   "find": "${monthName} ${y}",
+   "replace": "${ewT('signin.month_year',{month:monthName,y})}"
+  },
+  {
+   "line": 28537,
+   "find": "' Sign In — Claim Today'",
+   "replace": "' '+ewT('signin.claim_today')"
+  },
+  {
+   "line": 28537,
+   "find": "' Signed in today · back at 09:00'",
+   "replace": "' '+ewT('signin.signed_today',{time:'09:00'})"
+  },
+  {
+   "line": 28546,
+   "find": "const TUTORIAL_STEPS=[",
+   "replace": "/* v1271 LANGUAGES step 2: the step texts are getters, so each read is in the player's language; the shared reward line of a Campaign step */\nfunction _tutStdRw(g){ return '{i:h:gold} '+g+' · {i:u:star-filled} '+ewT('tut.r_hero_xp',{n:30})+' · {i:u:medal} '+ewT('tut.r_cmd_xp',{n:30})+' · {i:u:res-xp-potion} '+ewT('tut.r_potion',{n:1,potion:'Minor XP Potion'}); }\nconst TUTORIAL_STEPS=["
+  },
+  {
+   "line": 28547,
+   "find": "title:'Choose your first squad', desc:'Open Campaign and Stage 1-1. Tap all three hero portraits; a highlighted portrait means that hero is selected. Start only after all three are highlighted, then clear the stage.', rewardLabel:'{i:h:gold} 500 bonus Gold'",
+   "replace": "get title(){ return ewT('tut.win11_title'); }, get desc(){ return ewT('tut.win11_desc',{stage:'1-1'}); }, get rewardLabel(){ return '{i:h:gold} '+ewT('tut.r_bonus_gold',{n:500}); }"
+  },
+  {
+   "line": 28548,
+   "find": "title:'Collect your first quest reward', desc:'Open Quests and claim the completed Stage 1-1 objective. The starter quest chain awards Vex fragments toward your fourth hero.', rewardLabel:'{i:u:star-filled} 2 Vex fragments'",
+   "replace": "get title(){ return ewT('tut.quest11_title'); }, get desc(){ return ewT('tut.quest11_desc',{stage:'1-1',hero:'Vex'}); }, get rewardLabel(){ return '{i:u:star-filled} '+ewT('tut.r_hero_frags',{n:2,hero:'Vex'}); }"
+  },
+  {
+   "line": 28549,
+   "find": "title:'Spend your first skill point', desc:'Open Heroes, choose a hero, and raise one skill before Stage 1-2. Skill levels make that hero’s specific job stronger.', rewardLabel:'{i:h:gold} 800 bonus Gold'",
+   "replace": "get title(){ return ewT('tut.skill_title'); }, get desc(){ return ewT('tut.skill_desc',{stage:'1-2'}); }, get rewardLabel(){ return '{i:h:gold} '+ewT('tut.r_bonus_gold',{n:800}); }"
+  },
+  {
+   "line": 28550,
+   "find": "title:'Test the upgrade', desc:'Return to Campaign and clear Stage 1-2 with the same highlighted squad.', rewardLabel:'{i:h:gold} 180 · {i:u:star-filled} 30 Hero XP each · {i:u:medal} 30 Commander XP · {i:u:res-xp-potion} 1 Minor XP Potion · {i:a:glyph-frag} 2 Rough Gravel glyph fragments for Vael'",
+   "replace": "get title(){ return ewT('tut.win12_title'); }, get desc(){ return ewT('tut.win12_desc',{stage:'1-2'}); }, get rewardLabel(){ return _tutStdRw(180)+' · {i:a:glyph-frag} '+ewT('tut.r_named_frags',{n:2,frag:'Rough Gravel',hero:'Vael'}); }"
+  },
+  {
+   "line": 28551,
+   "find": "title:'Claim the next Vex fragments', desc:'Open Quests and collect the Stage 1-2 reward. Claimable rewards are never added automatically.', rewardLabel:'{i:u:star-filled} 2 Vex fragments'",
+   "replace": "get title(){ return ewT('tut.quest12_title',{hero:'Vex'}); }, get desc(){ return ewT('tut.quest12_desc',{stage:'1-2'}); }, get rewardLabel(){ return '{i:u:star-filled} '+ewT('tut.r_hero_frags',{n:2,hero:'Vex'}); }"
+  },
+  {
+   "line": 28552,
+   "find": "title:'Build Vael’s first glyph', desc:'Open Heroes → Vael → Glyphs. Tap his first empty slot and build Stone Glyph with the two Rough Gravel Fragments guaranteed on your first Stage 1-2 clear. Later glyphs use named Campaign stages that you can replay to farm.', rewardLabel:'{i:h:gem} 30 bonus Diamonds'",
+   "replace": "get title(){ return ewT('tut.rune_title',{hero:'Vael'}); }, get desc(){ return ewT('tut.rune_desc',{hero:'Vael',glyph:'Stone Glyph',frag:'Rough Gravel',stage:'1-2'}); }, get rewardLabel(){ return '{i:h:gem} '+ewT('tut.r_bonus_gems',{n:30}); }"
+  },
+  {
+   "line": 28553,
+   "find": "title:'Clear the first Guardian stage', desc:'Return to Campaign and clear Stage 1-3. Guardian stages award hero fragments and can be replayed a limited number of times each day.', rewardLabel:'{i:h:gold} 210 · {i:u:star-filled} 30 Hero XP each · {i:u:medal} 30 Commander XP · {i:u:res-xp-potion} 1 Minor XP Potion · {i:a:glyph-frag} 1 glyph fragment · {i:u:hero} 2–4 Tick fragments'",
+   "replace": "get title(){ return ewT('tut.win13_title'); }, get desc(){ return ewT('tut.win13_desc',{stage:'1-3'}); }, get rewardLabel(){ return _tutStdRw(210)+' · {i:a:glyph-frag} '+ewT('tut.r_glyph_frags',{n:1})+' · {i:u:hero} '+ewT('tut.r_hero_frags',{n:'2–4',hero:'Tick'}); }"
+  },
+  {
+   "line": 28554,
+   "find": "title:'Collect the Guardian quest reward', desc:'Open Quests and claim the Stage 1-3 objective for another Vex fragment bundle.', rewardLabel:'{i:u:star-filled} 3 Vex fragments'",
+   "replace": "get title(){ return ewT('tut.quest13_title'); }, get desc(){ return ewT('tut.quest13_desc',{stage:'1-3',hero:'Vex'}); }, get rewardLabel(){ return '{i:u:star-filled} '+ewT('tut.r_hero_frags',{n:3,hero:'Vex'}); }"
+  },
+  {
+   "line": 28555,
+   "find": "title:'Use the Wishing Pool', desc:'Open the Wishing Pool and use a free Gold wish. Its result is random: a hero, hero fragments, or a named glyph fragment.', rewardLabel:'{i:a:wish-gold} 1 free Gold-wish result'",
+   "replace": "get title(){ return ewT('tut.wish_title'); }, get desc(){ return ewT('tut.wish_desc'); }, get rewardLabel(){ return '{i:a:wish-gold} '+ewT('tut.r_gold_wish',{n:1}); }"
+  },
+  {
+   "line": 28556,
+   "find": "title:'Finish recruiting your fourth hero', desc:'Clear Stage 1-4 to complete the last starter fragment quest.', rewardLabel:'{i:h:gold} 240 · {i:u:star-filled} 30 Hero XP each · {i:u:medal} 30 Commander XP · {i:u:res-xp-potion} 1 Minor XP Potion · {i:a:glyph-frag} 2 glyph fragments'",
+   "replace": "get title(){ return ewT('tut.win14_title'); }, get desc(){ return ewT('tut.win14_desc',{stage:'1-4'}); }, get rewardLabel(){ return _tutStdRw(240)+' · {i:a:glyph-frag} '+ewT('tut.r_glyph_frags',{n:2}); }"
+  },
+  {
+   "line": 28557,
+   "find": "title:'Recruit your fourth hero', desc:'First claim the Stage 1-4 reward in Quests. Then open Heroes, choose Vex under Ready to Summon, and press Summon Now. The four starter quest rewards provide the 10 fragments she needs.', rewardLabel:'{i:u:hero} Vex summoned · {i:u:res-xp-potion} claim 1 Minor XP Potion'",
+   "replace": "get title(){ return ewT('tut.quest14_title'); }, get desc(){ return ewT('tut.quest14_desc',{stage:'1-4',hero:'Vex',n:10}); }, get rewardLabel(){ return '{i:u:hero} '+ewT('tut.r_summoned',{hero:'Vex'})+' · {i:u:res-xp-potion} '+ewT('tut.r_claim_potion',{n:1,potion:'Minor XP Potion'}); }"
+  },
+  {
+   "line": 28558,
+   "find": "title:'Level Vex with a Minor XP Potion', desc:'Open Heroes → Vex → Stats. Tap Minor XP Potion once. It gives Vex 60 hero XP and cannot level her beyond Commander level. Claim this lesson after using the potion.', rewardLabel:'{i:u:check} Vex leveled with a claimed Minor potion'",
+   "replace": "get title(){ return ewT('tut.vexxp_title',{hero:'Vex',potion:'Minor XP Potion'}); }, get desc(){ return ewT('tut.vexxp_desc',{hero:'Vex',potion:'Minor XP Potion',n:60}); }, get rewardLabel(){ return '{i:u:check} '+ewT('tut.r_leveled',{hero:'Vex',tier:'Minor'}); }"
+  },
+  {
+   "line": 28559,
+   "find": "title:'Earn your first Diamond wish', desc:'Clear Stage 1-5 to unlock the guaranteed first Diamond wish.', rewardLabel:'{i:h:gold} 270 · {i:u:star-filled} 30 Hero XP each · {i:u:medal} 30 Commander XP · {i:u:res-xp-potion} 1 Minor XP Potion · {i:a:glyph-frag} 2 glyph fragments · {i:a:wish-diamond} free Diamond wish'",
+   "replace": "get title(){ return ewT('tut.win15_title'); }, get desc(){ return ewT('tut.win15_desc',{stage:'1-5'}); }, get rewardLabel(){ return _tutStdRw(270)+' · {i:a:glyph-frag} '+ewT('tut.r_glyph_frags',{n:2})+' · {i:a:wish-diamond} '+ewT('tut.r_free_diamond_wish'); }"
+  },
+  {
+   "line": 28560,
+   "find": "title:'Claim your free Diamond wish', desc:'Open the Wishing Pool and claim the free Diamond wish you earned. Your first Diamond wish guarantees a 2{i:u:star-filled} hero and gives you your fifth hero.', rewardLabel:'{i:u:hero} guaranteed 2{i:u:star-filled} hero · {i:h:gem} 140 bonus Diamonds'",
+   "replace": "get title(){ return ewT('tut.gemwish_title'); }, get desc(){ return ewT('tut.gemwish_desc',{stars:'2{i:u:star-filled}'}); }, get rewardLabel(){ return '{i:u:hero} '+ewT('tut.r_guaranteed_hero',{stars:'2{i:u:star-filled}'})+' · {i:h:gem} '+ewT('tut.r_bonus_gems',{n:140}); }"
+  },
+  {
+   "line": 28581,
+   "find": "' '+q.xpPotion.qty+' '+q.xpPotion.tier+' XP Potion'",
+   "replace": "' '+ewT('tut.got_potion',{n:q.xpPotion.qty,tier:q.xpPotion.tier})"
+  },
+  {
+   "line": 28582,
+   "find": "' '+fq+' hero frags'",
+   "replace": "' '+ewT('tut.got_frags',{n:fq})"
+  },
+  {
+   "line": 28587,
+   "find": "' '+r.frag+' '+HERO_TYPES[hk].name+' frags'",
+   "replace": "' '+ewT('tut.got_hero_frags',{n:r.frag,hero:HERO_TYPES[hk].name})"
+  },
+  {
+   "line": 28587,
+   "find": "' 1 '+r.xpPotion+' XP Potion'",
+   "replace": "' '+ewT('tut.got_potion',{n:1,tier:r.xpPotion})"
+  },
+  {
+   "line": 28608,
+   "find": "'Tutorial skipped. You can start it any time from the menu.'",
+   "replace": "ewT('tut.skipped')"
+  },
+  {
+   "line": 28609,
+   "find": "'Guided tutorial resumed.'",
+   "replace": "ewT('tut.resumed')"
+  },
+  {
+   "line": 28612,
+   "find": "'Tutorial choice was not saved. Please try again.'",
+   "replace": "ewT('tut.not_saved')"
+  },
+  {
+   "line": 28648,
+   "find": "' Tutorial complete!\\n'",
+   "replace": "' '+ewT('tut.complete')+'\\n'"
+  },
+  {
+   "line": 28648,
+   "find": "' '+s.title+' claimed!\\n'",
+   "replace": "' '+ewT('tut.step_claimed',{step:s.title})+'\\n'"
+  },
+  {
+   "line": 28649,
+   "find": "'That reward could not be claimed yet.'",
+   "replace": "ewT('tut.claim_failed')"
+  },
+  {
+   "line": 28653,
+   "find": "' All done!'",
+   "replace": "' '+ewT('tut.all_done')"
+  },
+  {
+   "line": 28653,
+   "find": "'Learn at your own pace':'Your journey begins'",
+   "replace": "ewT('tut.own_pace'):ewT('tut.journey')"
+  },
+  {
+   "line": 28654,
+   "find": "${doneCount} / ${TUTORIAL_STEPS.length} steps complete",
+   "replace": "${ewT('tut.steps_complete',{n:doneCount,total:TUTORIAL_STEPS.length})}"
+  },
+  {
+   "line": 28656,
+   "find": "'Resume guided tutorial':'Skip Tutorial'",
+   "replace": "ewT('tut.resume'):ewT('tut.skip')"
+  },
+  {
+   "line": 28662,
+   "find": "' Rewards ready'",
+   "replace": "' '+ewT('tut.rewards_ready')"
+  },
+  {
+   "line": 28662,
+   "find": "' Lessons in progress'",
+   "replace": "' '+ewT('tut.lessons')"
+  },
+  {
+   "line": 28663,
+   "find": "Stage ${g.stage} · ${g.ids.filter(id=>G.tutRewarded?.[id]).length}/${g.ids.length} claimed",
+   "replace": "${ewT('tut.stage_claimed',{stage:g.stage,n:g.ids.filter(id=>G.tutRewarded?.[id]).length,total:g.ids.length})}"
+  },
+  {
+   "line": 28670,
+   "find": ">Reward ready</span>'",
+   "replace": ">'+ewT('tut.reward_ready')+'</span>'"
+  },
+  {
+   "line": 28670,
+   "find": "(isCur?'Next up':'Locked in this stage')",
+   "replace": "(isCur?ewT('tut.next_up'):ewT('tut.locked_stage'))"
+  },
+  {
+   "line": 28671,
+   "find": ">Claim ${uiIcon('gift')}",
+   "replace": ">${ewT('common.claim')} ${uiIcon('gift')}"
+  },
+  {
+   "line": 28671,
+   "find": ">Go →</button>",
+   "replace": ">${ewT('common.go')} →</button>"
+  },
+  {
+   "line": 28672,
+   "find": "You’ve got the basics — now go build the strongest region in the realm.",
+   "replace": "${ewT('tut.basics_done')}"
+  },
+  {
+   "line": 28694,
+   "find": ">Welcome, Commander!<",
+   "replace": ">${ewT('tut.welcome')}<"
+  },
+  {
+   "line": 28695,
+   "find": ">Start here to learn one essential system before each of the first five Campaign rounds.<",
+   "replace": ">${ewT('tut.offer_desc')}<"
+  },
+  {
+   "line": 28696,
+   "find": ">Start Tutorial<",
+   "replace": ">${ewT('tut.start')}<"
+  },
+  {
+   "line": 28697,
+   "find": ">Skip Tutorial<",
+   "replace": ">${ewT('tut.skip')}<"
+  },
+  {
+   "line": 28704,
+   "find": "desc:'Daily training grounds — twelve boss fights each for gold and glyph fragments.'",
+   "replace": "get desc(){ return ewT('isle.training_desc'); }"
+  },
+  {
+   "line": 28705,
+   "find": "desc:'Draft heroes, forge equipment, outlast seven rivals.'",
+   "replace": "get desc(){ return ewT('isle.emberdraft_desc'); }"
+  },
+  {
+   "line": 28706,
+   "find": "desc:'Your hero against the endless swarm — how long can you last?'",
+   "replace": "get desc(){ return ewT('isle.tower_desc'); }"
+  },
+  {
+   "line": 28717,
+   "find": "' Lv '+f.lvl:'Enter ▸'",
+   "replace": "' '+ewT('isle.lv',{n:f.lvl}):ewT('isle.enter')+' ▸'"
+  },
+  {
+   "line": 28719,
+   "find": ">Three trials drift among the clouds. Grow stronger to unlock each one.<",
+   "replace": ">${ewT('isle.intro')}<"
+  },
+  {
+   "line": 28724,
+   "find": "' Lv '+f.lvl:'Enter ▸'",
+   "replace": "' '+ewT('isle.lv',{n:f.lvl}):ewT('isle.enter')+' ▸'"
+  },
+  {
+   "line": 28726,
+   "find": "' '+f.name+' unlocks at level '+f.lvl+'.'",
+   "replace": "' '+ewT('isle.unlocks_at',{name:f.name,n:f.lvl})"
+  },
+  {
+   "line": 28779,
+   "find": "provGoldAmt(stage).toLocaleString()+' gold · +'+PROV_ACCOUNT_XP+' XP'",
+   "replace": "ewT('isle.n_gold_xp',{n:provGoldAmt(stage).toLocaleString(),xp:PROV_ACCOUNT_XP})"
+  },
+  {
+   "line": 28781,
+   "find": "(n?'≈'+n+' ':'')+provFragQ(stage)+' fragments'",
+   "replace": "ewT('isle.q_frags',{n:n?'≈'+n:'',q:provFragQ(stage)}).trim()"
+  },
+  {
+   "line": 28784,
+   "find": "${n?'≈'+n+' ':''}${escapeHTML(q)} fragments",
+   "replace": "${ewT('isle.q_frags',{n:n?'≈'+n:'',q:escapeHTML(q)}).trim()}"
+  },
+  {
+   "line": 28788,
+   "find": "String(f.displayName||'Fragment')",
+   "replace": "String(f.displayName||ewT('isle.fragment'))"
+  },
+  {
+   "line": 28791,
+   "find": "+${rw.accountXp|0} account XP",
+   "replace": "${ewT('isle.account_xp',{n:rw.accountXp|0})}"
+  },
+  {
+   "line": 28794,
+   "find": "String(f.displayName||'Fragment')",
+   "replace": "String(f.displayName||ewT('isle.fragment'))"
+  },
+  {
+   "line": 28795,
+   "find": ">GLYPH FRAGMENTS<",
+   "replace": ">${ewT('isle.glyph_frags_upper')}<"
+  },
+  {
+   "line": 28796,
+   "find": "toward ${escapeHTML(String((HERO_TYPES[fg.hero]||{}).name||fg.hero))}'s ${escapeHTML(String(fg.name||'glyph'))} (${escapeHTML(String(fg.quality||''))})",
+   "replace": "${ewT('isle.toward_glyph',{hero:escapeHTML(String((HERO_TYPES[fg.hero]||{}).name||fg.hero)),glyph:escapeHTML(String(fg.name||'glyph')),q:escapeHTML(String(fg.quality||''))})}"
+  },
+  {
+   "line": 28801,
+   "find": "'Connect to play — Training Province battles are verified by the server.'",
+   "replace": "ewT('isle.prov_connect')"
+  },
+  {
+   "line": 28804,
+   "find": "' '+PROV_META[t].nm+' Stage '+next+' opens at account level '+gate+'.'",
+   "replace": "' '+ewT('isle.stage_opens',{name:PROV_META[t].nm,stage:next,n:gate})"
+  },
+  {
+   "line": 28805,
+   "find": "'No plays left today — '+PROV_META[t].nm+' resets tomorrow.'",
+   "replace": "ewT('isle.no_plays_resets',{name:PROV_META[t].nm})"
+  },
+  {
+   "line": 28809,
+   "find": "'Connect to play — Training Province battles are verified by the server.'",
+   "replace": "ewT('isle.prov_connect')"
+  },
+  {
+   "line": 28815,
+   "find": "(r&&r.error)||'Could not reach the realm — check your connection.'",
+   "replace": "langMsg(r&&r.error)||ewT('isle.no_realm')"
+  },
+  {
+   "line": 28828,
+   "find": "${dead?'Fallen':'HP '+pct+'%'}${loan?' · Loan':''}",
+   "replace": "${dead?ewT('isle.fallen'):'HP '+pct+'%'}${loan?' · '+ewT('isle.loan'):''}"
+  },
+  {
+   "line": 28850,
+   "find": "<h1 class=\"wlH1\">The Starless Well</h1>",
+   "replace": "<h1 class=\"wlH1\">'+ewT('bld.starless_well')+'</h1>"
+  },
+  {
+   "line": 28853,
+   "find": "'<div class=\"wlMsg\">Connect to enter The Starless Well.</div>'",
+   "replace": "'<div class=\"wlMsg\">'+ewT('isle.well_connect',{name:ewT('bld.starless_well')})+'</div>'"
+  },
+  {
+   "line": 28891,
+   "find": "'Free'",
+   "replace": "ewT('common.free')"
+  },
+  {
+   "line": 28892,
+   "find": "Sweep ${p==='hard'?'Hard':'Normal'} · +${(S.endXP[p]|0).toLocaleString()} XP",
+   "replace": "${ewT('isle.well_sweep',{path:p==='hard'?ewT('isle.hard'):ewT('isle.normal'),xp:(S.endXP[p]|0).toLocaleString()})}"
+  },
+  {
+   "line": 28901,
+   "find": "<b>${p==='hard'?'Hard':'Normal'}</b>",
+   "replace": "<b>${p==='hard'?ewT('isle.hard'):ewT('isle.normal')}</b>"
+  },
+  {
+   "line": 28901,
+   "find": "<i>Lv ${S.opensAt.hard}</i>",
+   "replace": "<i>${ewT('isle.lv',{n:S.opensAt.hard})}</i>"
+  },
+  {
+   "line": 28903,
+   "find": "<h1 class=\"wlH1\">The Starless Well</h1>",
+   "replace": "<h1 class=\"wlH1\">${ewT('bld.starless_well')}</h1>"
+  },
+  {
+   "line": 28903,
+   "find": "${S.map===1?'Standard':(S.path==='hard'?'Hard':'Normal')} · Map ${S.map}/3",
+   "replace": "${S.map===1?ewT('isle.standard'):(S.path==='hard'?ewT('isle.hard'):ewT('isle.normal'))} · ${ewT('isle.map_n',{n:S.map,total:3})}"
+  },
+  {
+   "line": 28904,
+   "find": "'<div class=\"wlDone\">Cleared</div>'",
+   "replace": "'<div class=\"wlDone\">'+ewT('isle.cleared')+'</div>'"
+  },
+  {
+   "line": 28906,
+   "find": ">Choose a Blessing<",
+   "replace": ">${ewT('isle.choose_blessing')}<"
+  },
+  {
+   "line": 28906,
+   "find": "b.cls==='All'?'All heroes':b.cls",
+   "replace": "b.cls==='All'?ewT('isle.all_heroes'):b.cls"
+  },
+  {
+   "line": 28906,
+   "find": "<i class=\"btn sm\">Choose</i>",
+   "replace": "<i class=\"btn sm\">${ewT('isle.choose')}</i>"
+  },
+  {
+   "line": 28910,
+   "find": "' · +'+(w.potions|0)+' XP potions'",
+   "replace": "' · +'+ewT('isle.xp_potions',{n:w.potions|0})"
+  },
+  {
+   "line": 28915,
+   "find": "(r&&r.error)||'Could not reach the realm — check your connection.'",
+   "replace": "langMsg(r&&r.error)||ewT('isle.no_realm')"
+  },
+  {
+   "line": 28922,
+   "find": "bannerMsg((HERO_TYPES[g.loan]?HERO_TYPES[g.loan].name:g.loan)+' joins the run')",
+   "replace": "bannerMsg(ewT('isle.joins_run',{hero:(HERO_TYPES[g.loan]?HERO_TYPES[g.loan].name:g.loan)}))"
+  },
+  {
+   "line": 28924,
+   "find": "'+'+(g.gold|0).toLocaleString()+' gold'",
+   "replace": "'+'+ewT('isle.n_gold',{n:(g.gold|0).toLocaleString()})"
+  },
+  {
+   "line": 28924,
+   "find": "' · +'+g.potions+' Superior XP Potion'+(g.potions>1?'s':'')",
+   "replace": "' · +'+ewT('isle.n_item',{n:g.potions,item:'Superior XP Potion'})"
+  },
+  {
+   "line": 28927,
+   "find": "'Connect to play — Starless Well battles are verified by the server.'",
+   "replace": "ewT('isle.well_battle_connect')"
+  },
+  {
+   "line": 28931,
+   "find": "'Your last Well result is still being sent - try again in a moment.'",
+   "replace": "ewT('isle.well_pending')"
+  },
+  {
+   "line": 28933,
+   "find": "(r&&r.error)||'Could not reach the realm — check your connection.'",
+   "replace": "langMsg(r&&r.error)||ewT('isle.no_realm')"
+  },
+  {
+   "line": 28940,
+   "find": "{error:'Connect to sweep — Training Province rewards are paid by the server.'}",
+   "replace": "{error:ewT('isle.sweep_connect')}"
+  },
+  {
+   "line": 28946,
+   "find": "{error:'Could not reach the realm — check your connection.'}",
+   "replace": "{error:ewT('isle.no_realm')}"
+  },
+  {
+   "line": 28952,
+   "find": "barrowmaw:'Barrowmaw breathes a burning grave-cone and rushes the line with a stunning charge — spread out, keep the tank in front'",
+   "replace": "barrowmaw:ewT('isle.cue_barrowmaw',{boss:'Barrowmaw'})"
+  },
+  {
+   "line": 28953,
+   "find": "asterion:'Asterion throws a lance down the whole line and hides behind a shard guard — save your burst for when it drops'",
+   "replace": "asterion:ewT('isle.cue_asterion',{boss:'Asterion'})"
+  },
+  {
+   "line": 28954,
+   "find": "nymira:'Nymira\\'s pollen slows and poisons the field and she heals herself — step out of the cloud and bring burst'",
+   "replace": "nymira:ewT('isle.cue_nymira',{boss:'Nymira'})"
+  },
+  {
+   "line": 28955,
+   "find": "thorneveil:'Thorneveil sets the ground alight with wildfire roots, then collapses it to stun — spread out and keep a cleanse'",
+   "replace": "thorneveil:ewT('isle.cue_thorneveil',{boss:'Thorneveil'})"
+  },
+  {
+   "line": 28957,
+   "find": "'Battle bosses for gold'",
+   "replace": "ewT('isle.gold_desc')"
+  },
+  {
+   "line": 28957,
+   "find": "'Battle bosses for glyph fragments'",
+   "replace": "ewT('isle.drill_desc')"
+  },
+  {
+   "line": 28960,
+   "find": ">Two training grounds, twelve boss fights each. Win a stage to clear it and take its reward, then sweep your best cleared stage for the same haul. Two plays each per day — a loss costs nothing. Your account level opens the higher stages.<",
+   "replace": ">${ewT('isle.prov_intro')}<"
+  },
+  {
+   "line": 28962,
+   "find": "` · Stage ${nx} ${hudIcon('lock')} Lv ${provGate(t,nx)}`",
+   "replace": "` · ${ewT('isle.stage_n',{n:nx})} ${hudIcon('lock')} ${ewT('isle.lv',{n:provGate(t,nx)})}`"
+  },
+  {
+   "line": 28964,
+   "find": "Stage ${st}/${PROV_STAGES} · ${provPlaysLeft(t)}/${PROV_PLAYS} plays left",
+   "replace": "${ewT('isle.stage_of',{n:st,total:PROV_STAGES})} · ${ewT('isle.plays_left',{n:provPlaysLeft(t),total:PROV_PLAYS})}"
+  },
+  {
+   "line": 28965,
+   "find": "' Lv '+rl:'Open ▸'",
+   "replace": "' '+ewT('isle.lv',{n:rl}):ewT('isle.open')+' ▸'"
+  },
+  {
+   "line": 28967,
+   "find": "' '+PROV_META[t].nm+' unlocks at account level '+rl+'.'",
+   "replace": "' '+ewT('isle.unlocks_acct',{name:PROV_META[t].nm,n:rl})"
+  },
+  {
+   "line": 28977,
+   "find": "Cleared <b style=\"color:${meta.col}\">Stage ${cleared}/${PROV_STAGES}</b>",
+   "replace": "${ewT('isle.cleared_stage',{stage:`<b style=\"color:${meta.col}\">${ewT('isle.stage_of',{n:cleared,total:PROV_STAGES})}</b>`})}"
+  },
+  {
+   "line": 28977,
+   "find": "Plays today <b style=\"color:#ffd45e\">${left}/${PROV_PLAYS}</b>",
+   "replace": "${ewT('isle.plays_today',{n:`<b style=\"color:#ffd45e\">${left}/${PROV_PLAYS}</b>`})}"
+  },
+  {
+   "line": 28977,
+   "find": "Lv <b style=\"color:#9fe6ff\">${lv}</b>",
+   "replace": "${ewT('isle.lv',{n:`<b style=\"color:#9fe6ff\">${lv}</b>`})}"
+  },
+  {
+   "line": 28978,
+   "find": "All ${PROV_STAGES} stages cleared! Sweep for daily rewards.",
+   "replace": "${ewT('isle.all_cleared',{n:PROV_STAGES})}"
+  },
+  {
+   "line": 28980,
+   "find": "Challenge Stage ${next}",
+   "replace": "${ewT('isle.challenge_stage',{n:next})}"
+  },
+  {
+   "line": 28981,
+   "find": "· 3 waves · per clear: ${provRewardHTML(t,next)}",
+   "replace": "· ${ewT('isle.waves',{n:3})} · ${ewT('isle.per_clear',{rw:provRewardHTML(t,next)})}"
+  },
+  {
+   "line": 28981,
+   "find": "opens at Lv ${gate}",
+   "replace": "${ewT('isle.opens_lv',{n:gate})}"
+  },
+  {
+   "line": 28982,
+   "find": "'Sign in to battle'",
+   "replace": "ewT('isle.signin_battle')"
+  },
+  {
+   "line": 28982,
+   "find": "' Lv '+gate",
+   "replace": "' '+ewT('isle.lv',{n:gate})"
+  },
+  {
+   "line": 28982,
+   "find": "'No plays left today'",
+   "replace": "ewT('isle.no_plays')"
+  },
+  {
+   "line": 28982,
+   "find": "' Challenge'",
+   "replace": "' '+ewT('isle.challenge')"
+  },
+  {
+   "line": 28984,
+   "find": "Sweep Stage ${sws||cleared}",
+   "replace": "${ewT('isle.sweep_stage',{n:sws||cleared})}"
+  },
+  {
+   "line": 28985,
+   "find": "Per sweep: ${provRewardHTML(t,sws)}",
+   "replace": "${ewT('isle.per_sweep',{rw:provRewardHTML(t,sws)})}"
+  },
+  {
+   "line": 28985,
+   "find": "Stage ${cleared} sweeps from Lv ${provGate(t,cleared)}",
+   "replace": "${ewT('isle.sweeps_from',{stage:cleared,n:provGate(t,cleared)})}"
+  },
+  {
+   "line": 28986,
+   "find": "'Sign in to sweep'",
+   "replace": "ewT('isle.signin_sweep')"
+  },
+  {
+   "line": 28986,
+   "find": "' Lv '+provGate(t,1)",
+   "replace": "' '+ewT('isle.lv',{n:provGate(t,1)})"
+  },
+  {
+   "line": 28986,
+   "find": "' Sweep (1 play)'",
+   "replace": "' '+ewT('isle.sweep_one')"
+  },
+  {
+   "line": 28986,
+   "find": "'No plays left today'",
+   "replace": "ewT('isle.no_plays')"
+  },
+  {
+   "line": 28992,
+   "find": "' Swept Stage '+r.stage+'! '",
+   "replace": "' '+ewT('isle.swept',{n:r.stage})+' '"
+  },
+  {
+   "line": 28992,
+   "find": "(r&&r.error)||'No plays left today.'",
+   "replace": "langMsg(r&&r.error)||ewT('isle.no_plays_dot')"
+  },
+  {
+   "line": 29001,
+   "find": "desc:'+22% squad power for the rest of the run'",
+   "replace": "get desc(){ return ewT('isle.perk_banner'); }"
+  },
+  {
+   "line": 29002,
+   "find": "desc:'+6% power for every wave you clear'",
+   "replace": "get desc(){ return ewT('isle.perk_momentum'); }"
+  },
+  {
+   "line": 29003,
+   "find": "desc:'Survive your next defeat — the run continues'",
+   "replace": "get desc(){ return ewT('isle.perk_wind'); }"
+  },
+  {
+   "line": 29004,
+   "find": "desc:'+50% power against boss waves (every 5th)'",
+   "replace": "get desc(){ return ewT('isle.perk_slayer'); }"
+  },
+  {
+   "line": 29005,
+   "find": "desc:'+80% rewards for the rest of the run'",
+   "replace": "get desc(){ return ewT('isle.perk_treasure'); }"
+  },
+  {
+   "line": 29006,
+   "find": "desc:'30% chance to skip a wave entirely'",
+   "replace": "get desc(){ return ewT('isle.perk_phantom'); }"
+  },
+  {
+   "line": 29007,
+   "find": "desc:'+40% power for the next 3 waves'",
+   "replace": "get desc(){ return ewT('isle.perk_overload'); }"
+  },
+  {
+   "line": 29008,
+   "find": "desc:'+600 bonus gold every wave from now on'",
+   "replace": "get desc(){ return ewT('isle.perk_fortune'); }"
+  },
+  {
+   "line": 29069,
+   "find": "Gauntlet loot pending",
+   "replace": "${ewT('isle.loot_pending',{name:'Gauntlet'})}"
+  },
+  {
+   "line": 29071,
+   "find": ">Bank saved loot<",
+   "replace": ">${ewT('isle.bank_loot')}<"
+  },
+  {
+   "line": 29075,
+   "find": "' Loot banked.':'Still waiting for the server. Retry when connected.'",
+   "replace": "' '+ewT('isle.loot_banked'):ewT('isle.still_waiting')"
+  },
+  {
+   "line": 29081,
+   "find": ">Fight endless waves; every 3 waves you pick a powerful boon. One defeat ends the run — bank your loot and climb higher next time.<",
+   "replace": ">${ewT('isle.gaunt_intro')}<"
+  },
+  {
+   "line": 29082,
+   "find": ">Best wave<",
+   "replace": ">${ewT('isle.best_wave')}<"
+  },
+  {
+   "line": 29082,
+   "find": ">Runs left today<",
+   "replace": ">${ewT('isle.runs_left')}<"
+  },
+  {
+   "line": 29084,
+   "find": "' Begin a run'",
+   "replace": "' '+ewT('isle.begin_run')"
+  },
+  {
+   "line": 29084,
+   "find": "' No runs left today'",
+   "replace": "' '+ewT('isle.no_runs')"
+  },
+  {
+   "line": 29092,
+   "find": " Choose a Boon<",
+   "replace": " ${ewT('isle.choose_boon')}<"
+  },
+  {
+   "line": 29092,
+   "find": "Wave ${r.wave} cleared — pick one to carry forward.",
+   "replace": "${ewT('isle.wave_pick',{n:r.wave})}"
+  },
+  {
+   "line": 29095,
+   "find": "' '+GAUNT_PERKS.find(x=>x.id===el.dataset.perk).name+' gained!'",
+   "replace": "' '+ewT('isle.perk_gained',{name:GAUNT_PERKS.find(x=>x.id===el.dataset.perk).name})"
+  },
+  {
+   "line": 29099,
+   "find": "Gauntlet · Wave ${r.wave}",
+   "replace": "Gauntlet · ${ewT('isle.wave_n',{n:r.wave})}"
+  },
+  {
+   "line": 29100,
+   "find": ">Banked<",
+   "replace": ">${ewT('isle.banked')}<"
+  },
+  {
+   "line": 29100,
+   "find": ">Boons<",
+   "replace": ">${ewT('isle.boons')}<"
+  },
+  {
+   "line": 29102,
+   "find": "${isBoss?'👹 BOSS — ':''}Wave ${nextW}",
+   "replace": "${isBoss?'👹 '+ewT('isle.boss_upper')+' — ':''}${ewT('isle.wave_n',{n:nextW})}"
+  },
+  {
+   "line": 29103,
+   "find": ">Enemy power $",
+   "replace": ">${ewT('isle.enemy_power')} $"
+  },
+  {
+   "line": 29103,
+   "find": "· your effective $",
+   "replace": "· ${ewT('isle.your_effective')} $"
+  },
+  {
+   "line": 29104,
+   "find": "Fight Wave ${nextW}",
+   "replace": "${ewT('isle.fight_wave',{n:nextW})}"
+  },
+  {
+   "line": 29105,
+   "find": "Retire &amp; bank loot",
+   "replace": "${ewT('isle.retire_bank')}"
+  },
+  {
+   "line": 29108,
+   "find": "' Retired at wave '+wave+' — loot banked.':'Loot is saved locally; retry banking when connected.'",
+   "replace": "' '+ewT('isle.retired',{n:wave}):ewT('isle.saved_locally')"
+  },
+  {
+   "line": 29108,
+   "find": "'Banking loot…'",
+   "replace": "ewT('isle.banking')"
+  },
+  {
+   "line": 29110,
+   "find": "' Defeated at wave '+(res.wave+1)+'. Reached wave '+res.wave+' — loot banked.':'Run ended; loot is saved locally until the server confirms it.'",
+   "replace": "' '+ewT('isle.defeated',{n:res.wave+1,r:res.wave}):ewT('isle.run_ended')"
+  },
+  {
+   "line": 29110,
+   "find": "'Banking loot…'",
+   "replace": "ewT('isle.banking')"
+  },
+  {
+   "line": 29112,
+   "find": "'👻 Skipped wave '+res.wave",
+   "replace": "'👻 '+ewT('isle.skipped_wave',{n:res.wave})"
+  },
+  {
+   "line": 29112,
+   "find": "'💚 Second Wind! Survived wave '+res.wave",
+   "replace": "'💚 '+ewT('isle.second_wind',{perk:'Second Wind',n:res.wave})"
+  },
+  {
+   "line": 29112,
+   "find": "' Wave '+res.wave+' cleared'",
+   "replace": "' '+ewT('isle.wave_cleared',{n:res.wave})"
+  },
+  {
+   "line": 29128,
+   "find": "' +'+bg+' bonus'",
+   "replace": "' '+ewT('isle.n_bonus',{n:'+'+bg})"
+  },
+  {
+   "line": 29278,
+   "find": "The Ascendant Spire · your record",
+   "replace": "The Ascendant Spire · ${ewT('isle.your_record')}"
+  },
+  {
+   "line": 29278,
+   "find": ">Floor ${st.floor}<",
+   "replace": ">${ewT('isle.floor_n',{n:st.floor})}<"
+  },
+  {
+   "line": 29278,
+   "find": ">Your power $",
+   "replace": ">${ewT('isle.your_power')} $"
+  },
+  {
+   "line": 29280,
+   "find": "' Warden of Floor '+next:'Guardian of Floor '+next",
+   "replace": "' '+ewT('isle.warden_floor',{n:next}):ewT('isle.guardian_floor',{n:next})"
+  },
+  {
+   "line": 29281,
+   "find": ">Requires power $",
+   "replace": ">${ewT('isle.requires_power')} $"
+  },
+  {
+   "line": 29281,
+   "find": "(Elite — reinforced)",
+   "replace": "'+ewT('isle.elite_reinforced')+'"
+  },
+  {
+   "line": 29281,
+   "find": "· Reward $",
+   "replace": "· ${ewT('isle.reward')} $"
+  },
+  {
+   "line": 29282,
+   "find": "' Ascend to Floor '+next:'Squad too weak — grow stronger'",
+   "replace": "' '+ewT('isle.ascend_floor',{n:next}):ewT('isle.too_weak')"
+  },
+  {
+   "line": 29284,
+   "find": " Spire Tribute <",
+   "replace": " ${ewT('isle.spire_tribute')} <"
+  },
+  {
+   "line": 29284,
+   "find": ">(once daily)<",
+   "replace": ">${ewT('isle.once_daily')}<"
+  },
+  {
+   "line": 29285,
+   "find": "'Claim a daily reward scaled to your record: '+hudIcon('gold')+' '+(Math.round(500*st.floor)+250*(1+Math.floor(st.floor/4))).toLocaleString():'Reach Floor 1 to unlock the tribute.'",
+   "replace": "ewT('isle.trib_desc',{rw:hudIcon('gold')+' '+(Math.round(500*st.floor)+250*(1+Math.floor(st.floor/4))).toLocaleString()}):ewT('isle.trib_locked',{n:1})"
+  },
+  {
+   "line": 29286,
+   "find": "' Claim tribute'",
+   "replace": "' '+ewT('isle.claim_tribute')"
+  },
+  {
+   "line": 29286,
+   "find": "' Claimed today':'Locked'",
+   "replace": "' '+ewT('isle.claimed_today'):ewT('common.locked')"
+  },
+  {
+   "line": 29290,
+   "find": "' Warden felled! '",
+   "replace": "' '+ewT('isle.warden_felled')+' '"
+  },
+  {
+   "line": 29290,
+   "find": "'Floor '+r.floor+' conquered! '+r.reward",
+   "replace": "ewT('isle.floor_conquered',{n:r.floor})+' '+r.reward"
+  },
+  {
+   "line": 29290,
+   "find": "'Squad too weak for this floor.'",
+   "replace": "ewT('isle.too_weak_floor')"
+  },
+  {
+   "line": 29292,
+   "find": "'Already claimed today.'",
+   "replace": "ewT('isle.already_claimed')"
+  },
+  {
+   "line": 29292,
+   "find": "' Tribute claimed! '",
+   "replace": "' '+ewT('isle.tribute_claimed')+' '"
+  },
+  {
+   "line": 29299,
+   "find": "if(s<60)return 'now'; const m=Math.floor(s/60); if(m<60)return m+'m'; const h=Math.floor(m/60); if(h<24)return h+'h'; return Math.floor(h/24)+'d';",
+   "replace": "if(s<60)return ewT('mail.now'); const m=Math.floor(s/60); if(m<60)return ewT('mail.ago_m',{n:m}); const h=Math.floor(m/60); if(h<24)return ewT('mail.ago_h',{n:h}); return ewT('mail.ago_d',{n:Math.floor(h/24)});"
+  },
+  {
+   "line": 29303,
+   "find": "' Inbox'",
+   "replace": "' '+ewT('mail.tab_inbox')"
+  },
+  {
+   "line": 29303,
+   "find": "' War'",
+   "replace": "' '+ewT('mail.tab_war')"
+  },
+  {
+   "line": 29303,
+   "find": "' Mines'",
+   "replace": "' '+ewT('mail.tab_mines')"
+  },
+  {
+   "line": 29303,
+   "find": "' Scouts'",
+   "replace": "' '+ewT('mail.tab_scouts')"
+  },
+  {
+   "line": 29307,
+   "find": "' No messages yet. Guild and player messages appear here.'",
+   "replace": "' '+ewT('mail.empty_inbox')"
+  },
+  {
+   "line": 29307,
+   "find": "' No war reports yet. Attacks you make, raids on your castle, and defends appear here.'",
+   "replace": "' '+ewT('mail.empty_war')"
+  },
+  {
+   "line": 29307,
+   "find": "' No mine reports yet. Send a squad to mine a node on the World Map.'",
+   "replace": "' '+ewT('mail.empty_mines')"
+  },
+  {
+   "line": 29307,
+   "find": "' No scout reports yet. Scout a rival stronghold from the World Map.'",
+   "replace": "' '+ewT('mail.empty_scouts')"
+  },
+  {
+   "line": 29307,
+   "find": "||'No messages.'",
+   "replace": "||ewT('mail.empty')"
+  },
+  {
+   "line": 29310,
+   "find": "m.from||'System'",
+   "replace": "m.from||ewT('mail.system')"
+  },
+  {
+   "line": 29313,
+   "find": "} Watch</button>",
+   "replace": "} ${ewT('mail.watch')}</button>"
+  },
+  {
+   "line": 29313,
+   "find": "} Share</button>",
+   "replace": "} ${ewT('mail.share')}</button>"
+  },
+  {
+   "line": 29320,
+   "find": "} Declare War</div>",
+   "replace": "} ${ewT('mail.declare_war')}</div>"
+  },
+  {
+   "line": 29320,
+   "find": "Declaring war starts a <b style=\"color:#ffd45e\">30-minute countdown</b>. Nobody can attack during it — once it reaches zero the war goes <b style=\"color:#ff8f8f\">live</b>. A declared war lasts <b style=\"color:#ff8f8f\">72 hours</b> total, then must be re-declared. Declare war from a castle's menu on the World Map.",
+   "replace": "${ewT('mail.war_rules',{countdown:'<b style=\"color:#ffd45e\">'+ewT('mail.minute_countdown',{n:30})+'</b>',live:'<b style=\"color:#ff8f8f\">'+ewT('mail.live')+'</b>',hours:'<b style=\"color:#ff8f8f\">'+ewT('mail.n_hours',{n:72})+'</b>'})}"
+  },
+  {
+   "line": 29321,
+   "find": "Enemies at war with you (${inc.length})",
+   "replace": "${ewT('mail.enemies_at_war',{n:inc.length})}"
+  },
+  {
+   "line": 29323,
+   "find": "' can attack you now'",
+   "replace": "' '+ewT('mail.can_attack_you')"
+  },
+  {
+   "line": 29323,
+   "find": "' preparing — cannot attack yet'",
+   "replace": "' '+ewT('mail.preparing')"
+  },
+  {
+   "line": 29324,
+   "find": "live?'until peace':'until war begins'",
+   "replace": "live?ewT('mail.until_peace'):ewT('mail.until_war')"
+  },
+  {
+   "line": 29325,
+   "find": ">Nobody has declared war on you. You're safe from attacks.<",
+   "replace": ">${ewT('mail.no_enemies')}<"
+  },
+  {
+   "line": 29326,
+   "find": "Wars you declared (${out.length})",
+   "replace": "${ewT('mail.wars_declared',{n:out.length})}"
+  },
+  {
+   "line": 29328,
+   "find": "' you can attack them now'",
+   "replace": "' '+ewT('mail.you_can_attack')"
+  },
+  {
+   "line": 29328,
+   "find": "' preparing — cannot attack yet'",
+   "replace": "' '+ewT('mail.preparing')"
+  },
+  {
+   "line": 29329,
+   "find": "live?'until peace':'until you can attack'",
+   "replace": "live?ewT('mail.until_peace'):ewT('mail.until_you_attack')"
+  },
+  {
+   "line": 29330,
+   "find": "You haven't declared war on anyone. Open a castle on the World Map and choose ${statusIcon('burn')} Declare War to attack it.",
+   "replace": "${ewT('mail.no_wars',{action:statusIcon('burn')+' '+ewT('mail.declare_war')})}"
+  },
+  {
+   "line": 29361,
+   "find": "Last updated: ${TOS_UPDATED}. Emberweave Heroes (the \"Game\") is provided by Xanthyr Games (\"we\", \"us\"). By accepting, you agree to our <a href=\"/terms\" target=\"_blank\" rel=\"noopener\" style=\"${a}\">Terms of Service</a>, and our <a href=\"/privacy\" target=\"_blank\" rel=\"noopener\" style=\"${a}\">Privacy Policy</a> explains how we handle your information. This page is a summary; the full text is at those two links.",
+   "replace": "${ewT('setx.tos_intro',{date:TOS_UPDATED,game:'Emberweave Heroes',company:'Xanthyr Games',terms:`<a href=\"/terms\" target=\"_blank\" rel=\"noopener\" style=\"${a}\">${ewT('setx.tos_terms')}</a>`,privacy:`<a href=\"/privacy\" target=\"_blank\" rel=\"noopener\" style=\"${a}\">${ewT('setx.tos_privacy')}</a>`})}"
+  },
+  {
+   "line": 29362,
+   "find": ">1. Age and parental permission<",
+   "replace": ">1. ${ewT('setx.tos_h1')}<"
+  },
+  {
+   "line": 29363,
+   "find": ">You must be at least 13 (or older where your local law says so) to create an account. If you are under 18, or under the age of majority where you live, you need a parent or guardian's permission and supervision; they must agree to these Terms with you and authorize any purchases.<",
+   "replace": ">${ewT('setx.tos_p1',{min:13,adult:18})}<"
+  },
+  {
+   "line": 29364,
+   "find": ">2. Your account and fair play<",
+   "replace": ">2. ${ewT('setx.tos_h2')}<"
+  },
+  {
+   "line": 29365,
+   "find": ">Keep your password private and do not share, sell or transfer accounts. Do not cheat, exploit bugs, use bots or unauthorized tools, or interfere with the Game or other players. We may restrict or suspend accounts that break the rules, and correct progress gained by cheating.<",
+   "replace": ">${ewT('setx.tos_p2')}<"
+  },
+  {
+   "line": 29366,
+   "find": ">3. Names, chat and conduct<",
+   "replace": ">3. ${ewT('setx.tos_h3')}<"
+  },
+  {
+   "line": 29367,
+   "find": ">No harassment, threats, hate speech, sexual content involving minors, spam, impersonation or other illegal or abusive content. Report a message from chat, block players (your Blocked players list is in Settings), or email ${mail}. Do not put passwords, payment details or sensitive personal information in chat.<",
+   "replace": ">${ewT('setx.tos_p3',{mail})}<"
+  },
+  {
+   "line": 29368,
+   "find": ">4. Purchases and virtual items<",
+   "replace": ">4. ${ewT('setx.tos_h4')}<"
+  },
+  {
+   "line": 29369,
+   "find": ">Purchases in the Google Play version use Google Play Billing; the purchase screen shows the price and what you get before you confirm, and Google processes the payment. Diamonds, gold, heroes and other items are licensed for use in the Game, have no cash value and cannot be sold outside the Game. Refunds follow the law and the store's policy (Google Play's refund process); your statutory consumer rights still apply.<",
+   "replace": ">${ewT('setx.tos_p4')}<"
+  },
+  {
+   "line": 29370,
+   "find": ">5. What we collect<",
+   "replace": ">5. ${ewT('setx.tos_h5')}<"
+  },
+  {
+   "line": 29371,
+   "find": ">Your account details (username, a salted password hash, a recovery email if you add one), your game saves and activity, chat messages and reports you send, purchase records, and technical data: IP addresses, connection times, device and app information, and error and security logs. We use it to run the Game, keep accounts secure and play fair, moderate chat, deliver purchases and fix problems. We do not sell your personal information. Other players see your name, castle, game activity and the chat you send them.<",
+   "replace": ">${ewT('setx.tos_p5')}<"
+  },
+  {
+   "line": 29372,
+   "find": ">6. Storage, logs and backups<",
+   "replace": ">6. ${ewT('setx.tos_h6')}<"
+  },
+  {
+   "line": 29373,
+   "find": ">Your account and saves are stored on our game servers and copied to backups for recovery. Routine technical, connection, IP and diagnostic logs are kept for <b>90 days</b>. Backups age out on their own rotation schedule.<",
+   "replace": ">${ewT('setx.tos_p6',{days:'<b>'+ewT('setx.tos_n_days',{n:90})+'</b>'})}<"
+  },
+  {
+   "line": 29374,
+   "find": ">7. Deleting your account<",
+   "replace": ">7. ${ewT('setx.tos_h7')}<"
+  },
+  {
+   "line": 29375,
+   "find": ">Use <b>Delete account</b> in Settings, or the request form at <a href=\"/privacy#delete-account\" target=\"_blank\" rel=\"noopener\" style=\"${a}\">/privacy#delete-account</a>, or email ${mail}. The account is locked and hidden for a <b>7-day grace period</b>; signing in within those 7 days cancels the deletion. After that our servers wipe it from our database. Backups are not erased at once - they age out on their own schedule. A guest profile with no password is deleted at once.<",
+   "replace": ">${ewT('setx.tos_p7',{del:'<b>'+ewT('set.delete_account')+'</b>',form:`<a href=\"/privacy#delete-account\" target=\"_blank\" rel=\"noopener\" style=\"${a}\">/privacy#delete-account</a>`,mail,grace:'<b>'+ewT('setx.tos_grace',{n:7})+'</b>',n:7})}<"
+  },
+  {
+   "line": 29376,
+   "find": ">8. The Game, liability and disputes<",
+   "replace": ">8. ${ewT('setx.tos_h8')}<"
+  },
+  {
+   "line": 29377,
+   "find": ">The Game changes through updates and balancing and is provided \"as is\" to the extent the law allows. These Terms are governed by the laws of North Carolina, United States; mandatory consumer rights where you live are not affected. We update the date above when the Terms change and ask you to accept again.<",
+   "replace": ">${ewT('setx.tos_p8',{law:'North Carolina, United States'})}<"
+  },
+  {
+   "line": 29378,
+   "find": ">9. Contact<",
+   "replace": ">9. ${ewT('setx.tos_h9')}<"
+  },
+  {
+   "line": 29379,
+   "find": ">Questions, reports, privacy and deletion requests: ${mail}.<",
+   "replace": ">${ewT('setx.tos_p9',{mail})}<"
+  },
+  {
+   "line": 29380,
+   "find": "All rights reserved.",
+   "replace": "${ewT('set.rights')}"
+  },
+  {
+   "line": 29387,
+   "find": "Terms of Service &amp; Privacy",
+   "replace": "${escapeHTML(ewT('set.terms'))}"
+  },
+  {
+   "line": 29401,
+   "find": "Terms of Service &amp; Privacy",
+   "replace": "${escapeHTML(ewT('set.terms'))}"
+  },
+  {
+   "line": 29402,
+   "find": ">Please review and accept to continue signing in.<",
+   "replace": ">${ewT('setx.tos_review')}<"
+  },
+  {
+   "line": 29405,
+   "find": ">Decline<",
+   "replace": ">${ewT('setx.tos_decline')}<"
+  },
+  {
+   "line": 29406,
+   "find": ">I Agree &amp; Continue<",
+   "replace": ">${escapeHTML(ewT('setx.tos_agree'))}<"
+  },
+  {
+   "line": 29650,
+   "find": "rep(plan.cached+' of '+plan.urls.length+' files saved on this device \\u00b7 '+fmtMB(sz.saved)+' of '+fmtMB(sz.total))",
+   "replace": "rep(ewT('setx.files_saved',{n:plan.cached,total:plan.urls.length})+' \\u00b7 '+ewT('setx.mb_of',{a:fmtMB(sz.saved),b:fmtMB(sz.total)}))"
+  },
+  {
+   "line": 29655,
+   "find": "mb=' \\u00b7 '+fmtMB(e.usage||0)+' of '+fmtMB(e.quota||0)+' allowed'",
+   "replace": "mb=' \\u00b7 '+ewT('setx.mb_allowed',{a:fmtMB(e.usage||0),b:fmtMB(e.quota||0)})"
+  },
+  {
+   "line": 29657,
+   "find": "keep=' \\u00b7 \\u26a0 not guaranteed to be kept'",
+   "replace": "keep=' \\u00b7 \\u26a0 '+ewT('setx.not_kept')"
+  },
+  {
+   "line": 29658,
+   "find": "rep(plan.cached+' of '+plan.urls.length+' files saved on this device'+mb+keep)",
+   "replace": "rep(ewT('setx.files_saved',{n:plan.cached,total:plan.urls.length})+mb+keep)"
+  },
+  {
+   "line": 29672,
+   "find": "m.textContent=(d&&d.error)||t('set.send_failed')",
+   "replace": "m.textContent=langMsg(d&&d.error)||t('set.send_failed')"
+  }
+ ],
+ "notes": [
+  "Range 28500-29899. Every call uses ewT() (many functions here have a local t: provState/provChallenge/provRewardStr/provRewardHTML/provReceiptHTML/openProvince(t), cards.map(([t,..]), timeAgo(t)).",
+  "TUTORIAL_STEPS (title/desc/rewardLabel), ISLE_FEATURES.desc and GAUNT_PERKS.desc are now getters (get title(){ return ewT(...) }) so a read after a language change is in the new language; ids, go/done/reward stay plain. A small helper _tutStdRw(gold) builds the shared Campaign-step reward line. Icon tokens {i:..} stay in code, outside the keys.",
+  "Server error text is shown via langMsg(r.error)||ewT(fallback) (signin claim, province start, well post/start, province sweep, Settings report send).",
+  "Left English on purpose - account/sign-in work (another agent): renderSettings Account card template lines 29418-29525 (33 scan hits) and the account wiring 29673-29835 (forgot/reset/create/delete/email handlers, 59 scan hits).",
+  "Left English on purpose - dev only: Settings Dev tab 29526-29567 (41 scan hits), dev wiring 29836-29856 incl. the dev-only Reset progress gameConfirm at 29839 (7 scan hits).",
+  "Left English on purpose - names: Training Province, Gold Province, Drill Province, The Swarm Spire, Emberdraft, The Gauntlet/Gauntlet, Ascendant Spire, the 8 Gauntlet boon names (War Banner .. Fortune's Favor), boss names (passed as {boss}), Vex/Vael/Tick, Stone Glyph, Rough Gravel, Minor/Superior XP Potion (passed as {potion}/{item}), Emberweave Heroes, Xanthyr Games, glyph tier names (PROV_FRAG_Q / PROV_LADDER 'Green +1' etc. - also compared by indexOf), 'HP', 'XP', the ToS date TOS_UPDATED ('October 2026', asserted by tests/test_terms_1232.js:72).",
+  "Left as data (not client text): Well blessing labels/classes b.label/b.cls (server), mail m.subj/m.body (saved data), daily reward rew.label (built before line 28500), the Daily Sign-In header at 28497 (outside range).",
+  "The Starless Well title reuses bld.starless_well; Terms header reuses set.terms, footer set.rights, Delete account set.delete_account; buttons reuse common.collect/claim/go/free/locked.",
+  "In-game ToS summary (tosBodyHTML/showTerms/requireTos) converted: straight quotes in \"Game\", \"we\", \"us\", \"as is\" became curly quotes in the key text (no \" allowed); links, <b>, the email and numbers are vars.",
+  "Tests (not edited): tests/test_death_state.js:181, tests/test_debuff_feet_1141.js:137, tests/test_memory_budget_1140.js:160 click a button whose text matches /Skip Tutorial/ - still true in English (tut.skip = 'Skip Tutorial').",
+  "Tests: tests/test_offline_art_1154.js:48/63/88 read #alMsg text expecting '<n> of <N> files saved ...' and ending ' of <T MB>' - English output of setx.files_saved + setx.mb_of is unchanged.",
+  "Tests: tests/test_terms_1232.js:72-74 assert const TOS_UPDATED='October 2026', href=\"/terms\", href=\"/privacy\" in the page source - all kept (the links are built in the replace).",
+  "Tests: tests/test_wallet_tower_claim.js runs html from 'function towerState()' to the MAIL banner in a vm without ewT; the signed-in path it runs (towerAscend/towerTribute) does not call ewT; only the offline towerFloorReward does (line 29128). tests/test_wallet_gauntlet_bank.js slice (from 'let _gaunt=null;') runs gauntStart/gauntBank - untouched."
+ ]
+}
