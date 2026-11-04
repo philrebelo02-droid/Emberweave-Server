@@ -2,7 +2,7 @@
 
 Based on live v1262, `0bfd82d37c41021c2399c15f97b9add2ba80e49e`, under Claude's 3 November 19:33–19:35 relay of Phil's instructions. Branch: `chatgpt/hero61-wire-03nov`. This branch is not merged or deployed. The working name and balance values remain proposals.
 
-`hero61.js` owns the working identity, **Caedran — The Open Gate**, in `IDENTITY`. The persistent hero key is `hero61`; renaming the display identity does not rename saves. Screen lore interpolates this identity; `server/hero61-lore.json` also retains the narration draft with a `{name}` token. No narration audio was generated or approved.
+`hero61.js` owns the identity, **Morvayne — The Open Gate** (Phil 4 Nov 2026; was the working name Caedran), in `IDENTITY`. The persistent hero key is `hero61`; renaming the display identity does not rename saves. Screen lore interpolates this identity; `server/hero61-lore.json` also retains the narration draft with a `{name}` token. No narration audio was generated or approved.
 
 ## Actual player fight and replay
 

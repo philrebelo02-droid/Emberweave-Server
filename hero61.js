@@ -1,7 +1,7 @@
 /* Hero 61: shared authored data and deterministic combat rules. No rendering or RNG. */
 (function(root,factory){const v=factory();if(typeof module==='object'&&module.exports)module.exports=v;if(root)root.HERO61=v;})(typeof globalThis!=='undefined'?globalThis:this,function(){
   'use strict';
-  const IDENTITY=Object.freeze({name:'Caedran',subname:'The Open Gate'}); // Working identity: rename here only.
+  const IDENTITY=Object.freeze({name:'Morvayne',subname:'The Open Gate'}); // Phil 4 Nov 2026: "Lets go Morvayne". Rename here only.
   const KEY='hero61';
   const PROFILE=Object.freeze({class:'Support',combatRow:'Back',damageProfile:'Healer',primaryScaling:'Ability Power + Healing Power',glyphPath:'support_tank_back',equipmentPath:'support_tank_back',formationDepth:3.4,minimumReachMeters:3.5});
   const GROWTH=Object.freeze({hp:36,dmg:0.5,apow:1,armor:10,mr:7});
