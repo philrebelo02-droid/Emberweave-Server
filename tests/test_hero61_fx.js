@@ -35,10 +35,14 @@ for(const [slot,ct]of [['green',1.5],['blue',2.5],['ult',1.2]]){
 reset();run("hero61Cast(king,'blue');king.stunned=1;castTick(king,3)");assert.equal(run('_fx1123.length'),0,'interrupted heal has no visual');
 reset();run("hero61Effect(king,friend,'ult');hero61Effect(king,friend,'green');hero61Effect(king,friend,'blue')");
 assert.equal(run('_fx1123.length'),2,'repeated heals replace their aura, preserve protection');
-assert.equal(run("hero61FxFrame(FX2_DEF.hero61_bubble,3.99)"),23,'intact source frames through the protection');
-assert.equal(run("hero61FxFrame(FX2_DEF.hero61_bubble,4.3)>24"),true,'preferred dissolve follows protection');
-assert.equal(run("hero61FxFrame(FX2_DEF.hero61_bubble,4.6)"),-1);
+assert.ok(run("hero61FxFrame(FX2_DEF.hero61_bubble,3.39)<=24"),'intact bubble before its final dissolve');
+assert.equal(run("hero61FxFrame(FX2_DEF.hero61_bubble,3.7)>24"),true,'preferred dissolve finishes with protection');
+assert.equal(run("hero61FxFrame(FX2_DEF.hero61_bubble,4)"),-1);
 assert.equal(run("hero61FxFrame(FX2_DEF.hero61_heal,2.5)"),-1);
+assert.ok(Math.abs(run("hero61FxStyle('green').size/hero61FxStyle('blue').size")-.6)<1e-9);
+assert.equal(run("hero61FxStyle('green').hero61Opacity"),.6);
+assert.equal(run("hero61FxStyle('green').hero61Life"),1.5);
+assert.equal(run("hero61FxFrame(hero61FxStyle('green'),1.5)"),-1,'short Green plays its full fade');
 for(const [slot,key]of [[1,'hero61_heal'],[0,'hero61_bubble']]){
  const p=get(`skillPreviewPlan('hero61',${slot})`);assert.equal(p.fx[0].k,key);assert.equal(p.fx[0].at,'target');assert.equal(p.fx[0].t0,p.rel);
 }

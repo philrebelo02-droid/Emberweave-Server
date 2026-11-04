@@ -148,7 +148,7 @@
         fxDraw(g,st,d,fr,X(e.hx*h),Y(e.hy*h),W*s,H*s,d.anchor[0],1-d.anchor[1]); return; }
       case 'fx16ring': { const L=e.real||6;if(lt>=L)return;const fr=Math.min(n-1,Math.floor(lt*d.fps2)),W=2*R3/d.span,H=W*d.fh/d.fw;fxDraw(g,st,d,fr,X(AX),Y(0),W*s,H*s,d.anchor[0],1-d.anchor[1]);return; }
       case 'fx16over': case 'fx16wrap': { const L=e.real||6; if(lt>=L) return; const fr=e.hero61?window.hero61FxFrame(d,tb):Math.min(n-1,Math.floor(lt*(d.fps2||12))),hh=e.kind==='fx16wrap'?h:th,H=d.size*hh,W=H*d.fw/d.fh;
-        fxDraw(g,st,d,fr,X(AX),Y((d.mid||0)*hh),W*s,H*s,d.anchor[0],1-d.anchor[1]); return; }
+        fxDraw(g,st,d,fr,X(AX),Y((d.mid||0)*hh),W*s,H*s,d.anchor[0],1-d.anchor[1],e.hero61?{a:d.hero61Opacity==null?1:d.hero61Opacity}:{}); return; }
       case 'fx16puff': case 'fx16claws': { const L=e.real||5; if(lt>=L) return; const fr=Math.min(n-1,Math.floor(lt*(d.fps2||12))), a=d.fadeR?Math.max(0,Math.min(1,(L-lt)/d.fadeR)):1;   /* v1171 Deepcleft: real time, once */
         if(e.kind==='fx16puff'){ const H=d.size*h, W=H*d.fw/d.fh, wp=d.weapon, k=wp?Math.min(1,lt/wp.t):0, ez=k*k*(3-2*k), ox=wp?wp.fwd*h:0, oy=wp?(wp.up0+(wp.up1-wp.up0)*ez)*h:0;   /* v1178 Rim Breaker: from his weapon, arcing down */
           fxDraw(g,st,d,fr,X(AX+ox),Y(oy),W*s,H*s,d.anchor[0],1-d.anchor[1],{a}); }

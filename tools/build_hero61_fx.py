@@ -21,7 +21,8 @@ def main():
         master=work/'masters'/f'hero61_{name}_1263.webp'
         G,rep=cut_fx(str(raw),str(output),str(master),dict(frames=frames,plate='black',d0=0,d1=255,ext=0,border=0,fade=[0,0,0,0]))
         key='hero61_heal' if name=='healing' else 'hero61_bubble'
-        entries[key]=dict(u='/'+output.relative_to(ROOT).as_posix()+'?v=1263fx',n=rep['n'],fw=rep['fw'],fh=rep['fh'],cols=rep['cols'],rows=rep['rows'],dur=rep['n']/12,fps2=12,anchor=[.5,.5] if name=='bubble' else [.5,.06],size=1.65 if name=='bubble' else 1.35,mid=.5 if name=='bubble' else 0,spawn=0,hero61Life=4.6 if name=='bubble' else 2.5)
+        entries[key]=dict(u='/'+output.relative_to(ROOT).as_posix()+'?v=1263fx',n=rep['n'],fw=rep['fw'],fh=rep['fh'],cols=rep['cols'],rows=rep['rows'],dur=rep['n']/12,fps2=12,anchor=[.5,.5] if name=='bubble' else [.5,.06],size=1.65 if name=='bubble' else 1.35,mid=.5 if name=='bubble' else 0,spawn=0,hero61Life=4 if name=='bubble' else 2.5)
+        if name=='bubble':entries[key].update(hero61Life=4,hero61Bubble=True)
         reports[key]=dict(source=str(video),source_sha256=digest,source_frames=frames,sheet_sha256=sha(output),master_sha256=sha(master),cut=rep)
     (work/'cut-report.json').write_text(json.dumps(reports,indent=2))
     (ROOT/'tests/fixtures/hero61-approved-fx.json').write_text(json.dumps(dict(entries=entries,provenance=reports),indent=2))

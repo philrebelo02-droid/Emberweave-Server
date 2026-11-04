@@ -34,7 +34,8 @@
       "size": 1.65,
       "mid": 0.5,
       "spawn": 0,
-      "hero61Life": 4.6
+      "hero61Life": 4,
+      "hero61Bubble": true
     }
   },
   "provenance": {
