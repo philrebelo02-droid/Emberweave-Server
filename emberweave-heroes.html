@@ -964,7 +964,11 @@
   .set-sec.set-links:not(:has(> .set-link:not([hidden]))){display:none}
   .set-links>.set-link{flex:1 1 220px;min-width:0;display:flex;flex-direction:column;align-items:center}
   .set-links>.set-link{flex:1 1 0}
-  .set-links .set-link [role="button"] svg{width:18px;height:18px;display:block}   /* Google's icon button collapses its G inside a centred column */
+  .set-links .lnkTile{position:relative;width:48px;height:48px;display:flex;align-items:center;justify-content:center;background:#fff;border:1px solid #dadce0;border-radius:10px;padding:0;cursor:pointer;box-shadow:0 1px 3px #0006}
+  .set-links .lnkTile:disabled{opacity:.6}
+  .set-links .lnkTile .lnkLogo{width:28px;height:28px;display:block;pointer-events:none}
+  .set-links .lnkTile .lnkHit{position:absolute;inset:0;opacity:.01;overflow:hidden;display:flex;align-items:center;justify-content:center}
+  .set-links .lnkTile .lnkHit>div{transform:scale(1.2)}
   .set-links>.set-link>div{margin-top:0!important;display:flex;flex-direction:column;align-items:center;gap:6px;font-size:13px}
   .set-h{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#c9a35e;}
   .set-row{display:flex;align-items:center;gap:8px;min-height:30px;font-size:12px;flex-wrap:wrap;}
@@ -2413,7 +2417,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 #authGate .agMethods.agM3{gap:6px}
 #authGate .agMethods.agM3 .agMethod{font-size:11px;padding:8px 4px}
 .fbAuthBtn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:40px;max-width:100%;padding:0 16px;border:0;border-radius:6px;background:#1877F2;color:#fff;font:700 15px Helvetica,Arial,sans-serif;cursor:pointer}
-.fbAuthBtn.fbAuthIcon{width:40px;height:40px;min-height:40px;padding:0;gap:0;border-radius:4px}.fbAuthBtn.fbAuthIcon svg{width:24px;height:24px}
+
 .fbAuthBtn svg{width:22px;height:22px;flex:none}
 .fbAuthBtn:disabled{opacity:.6;cursor:default}
 #authGate #agGoogle{display:flex;justify-content:center;min-height:48px}
@@ -24427,12 +24431,16 @@ async function mountGoogleSignin(root){
       };
       if(!tosOK()){requireTos(submit,()=>bannerMsg(t('acct2.accept_terms_sign_in')));return;}await submit();
     }});
-    window.google.accounts.id.renderButton(button,root.classList.contains('set-link')?{type:'icon',theme:'outline',size:'large',shape:'square'}:{type:'standard',theme:'outline',size:'large',text:'continue_with'});   /* v1275: square G in the Settings link row */
+    if(root.classList.contains('set-link')){ button.className='lnkTile'; button.innerHTML=LNK_G_SVG; const hit=document.createElement('div'); hit.className='lnkHit'; button.appendChild(hit);
+      window.google.accounts.id.renderButton(hit,{type:'icon',theme:'outline',size:'large',shape:'square'}); }   /* v1275: Google's own button, invisible, over the official G tile */
+    else window.google.accounts.id.renderButton(button,{type:'standard',theme:'outline',size:'large',text:'continue_with'});
   }catch(_){box.hidden=true;}
 }
 /* v1271 FACEBOOK LOGIN: the Facebook JS SDK is loaded only when a Facebook option is on screen. FB.login (scope public_profile,email) runs
    straight from the tap (popup blockers); the access token goes to /api/auth/facebook, which verifies it with Facebook server-side. */
 const FB_AUTH_SVG='<svg viewBox="0 0 36 36" aria-hidden="true"><path fill="#fff" d="M15 35.8C6.5 34.3 0 26.9 0 18 0 8.1 8.1 0 18 0s18 8.1 18 18c0 8.9-6.5 16.3-15 17.8l-1-.8h-4l-1 .8z"/><path fill="#1877F2" d="M25 23l.8-5H21v-3.5c0-1.4.5-2.5 2.7-2.5H26V7.4c-1.3-.2-2.7-.4-4-.4-4.1 0-7 2.5-7 7v4h-4.5v5H15v12.7c1 .2 2 .3 3 .3s2-.1 3-.3V23h4z"/></svg>';
+/* v1275 (Phil 4 Nov: "Use their actual icons"): the official Google G and Facebook f as matching tiles in the Settings link row */
+const LNK_G_SVG='<svg class="lnkLogo" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>', LNK_F_SVG='<svg class="lnkLogo" viewBox="0 0 36 36" aria-hidden="true"><path fill="#1877F2" d="M15 35.8C6.5 34.3 0 26.9 0 18 0 8.1 8.1 0 18 0s18 8.1 18 18c0 8.9-6.5 16.3-15 17.8l-1-.8h-4l-1 .8z"/><path fill="#fff" d="M25 23l.8-5H21v-3.5c0-1.4.5-2.5 2.7-2.5H26V7.4c-1.3-.2-2.7-.4-4-.4-4.1 0-7 2.5-7 7v4h-4.5v5H15v12.7c1 .2 2 .3 3 .3s2-.1 3-.3V23h4z"/></svg>';
 let facebookSdkScript=null;
 function loadFacebookSdk(appId){
   if(window.FB&&window._fbInitApp===appId)return Promise.resolve(window.FB);
@@ -24462,7 +24470,7 @@ async function mountFacebookSignin(root){
     }
     if(ACC.token&&!ACC.guest){const label=document.createElement('div');label.textContent=t('auth.fb_link');box.appendChild(label);}
     const button=document.createElement('button');button.type='button';button.className='fbAuthBtn';button.disabled=true;
-    if(root.classList.contains('set-link')){ button.classList.add('fbAuthIcon'); button.title=t('auth.fb_continue'); button.setAttribute('aria-label',t('auth.fb_continue')); button.innerHTML=FB_AUTH_SVG; }   /* v1275: square f beside the Google G in the Settings link row */
+    if(root.classList.contains('set-link')){ button.className='lnkTile'; button.title=t('auth.fb_continue'); button.setAttribute('aria-label',t('auth.fb_continue')); button.innerHTML=LNK_F_SVG; }   /* v1275: official f tile beside the Google G */
     else button.innerHTML=FB_AUTH_SVG+'<span>'+escapeHTML(t('auth.fb_continue'))+'</span>';box.appendChild(button);
     await loadFacebookSdk(config.appId);if(!box.isConnected)return;button.disabled=false;
     const submit=async accessToken=>{
