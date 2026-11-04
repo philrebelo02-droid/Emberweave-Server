@@ -29,7 +29,9 @@
   "roster.vs",
   "signin.month_year",
   "tech.amount",
-  "tut.r_potion"
+  "tut.r_potion",
+  "xp2.superior",
+  "world2.oasis"
  ],
  "pt-BR": [
   "arena.league_bronze",
@@ -73,7 +75,8 @@
   "res2.plus_n_item",
   "roster.vs",
   "tech.amount",
-  "tut.r_potion"
+  "tut.r_potion",
+  "xp2.superior"
  ],
  "fr": [
   "arena.league_bronze",
@@ -162,7 +165,8 @@
   "res2.plus_n_item",
   "signin.month_year",
   "tech.amount",
-  "tut.r_potion"
+  "tut.r_potion",
+  "world2.oasis"
  ],
  "de": [
   "arena.league_bronze",
@@ -593,7 +597,8 @@
   "roster.vs",
   "signin.month_year",
   "tech.amount",
-  "tut.r_potion"
+  "tut.r_potion",
+  "world2.oasis"
  ],
  "hi": [
   "arena.npc",

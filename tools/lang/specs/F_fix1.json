@@ -1,0 +1,65 @@
+{
+ "keys": {
+  "xp2.minor": "Minor",
+  "xp2.greater": "Greater",
+  "xp2.major": "Major",
+  "xp2.superior": "Superior",
+  "sky2.phase_march": "MARCH",
+  "sky2.phase_done": "DONE",
+  "world2.world_tree": "World Tree",
+  "world2.oasis": "Oasis",
+  "world2.oasis_nw": "North-west Oasis",
+  "world2.oasis_ne": "North-east Oasis",
+  "world2.oasis_sw": "South-west Oasis",
+  "world2.oasis_se": "South-east Oasis",
+  "world2.event_pending": "Event schedule pending",
+  "stage2.close_aria": "Close stage"
+ },
+ "edits": [
+  {
+   "line": 71,
+   "find": "fold-viewport.js?v=1243",
+   "replace": "fold-viewport.js?v=1271"
+  },
+  {
+   "line": 2860,
+   "find": "world-tree-countdown.js?v=wt5-roots-1228",
+   "replace": "world-tree-countdown.js?v=wt5-roots-1271"
+  },
+  {
+   "line": 2861,
+   "find": "world-tree-control-ui.js?v=wc8-ponds",
+   "replace": "world-tree-control-ui.js?v=wc8-ponds-1271"
+  },
+  {
+   "line": 2862,
+   "find": "world-tree-actions-ui.js?v=wa4-ponds",
+   "replace": "world-tree-actions-ui.js?v=wa4-ponds-1271"
+  },
+  {
+   "line": 28004,
+   "find": "const XP_POTION_LABELS=[['minor','Minor',60],['greater','Greater',300],['major','Major',1000],['superior','Superior',2500]];",
+   "replace": "const XP_POTION_LABELS=[['minor','Minor',60],['greater','Greater',300],['major','Major',1000],['superior','Superior',2500]];\nXP_POTION_LABELS.forEach(r=>{ const en=r[1]; Object.defineProperty(r,1,{get:()=>ewT('xp2.'+r[0])||en,enumerable:true}); });   /* v1271 LANGUAGES step 2: the tier word is read in the player's language wherever the row is shown */"
+  },
+  {
+   "line": 20027,
+   "find": "if(pill.textContent!==want) pill.textContent=want;",
+   "replace": "const _wl=({PREP:ewT('skyfall.col_prep'),MARCH:ewT('sky2.phase_march'),DONE:ewT('sky2.phase_done')})[want]||want; if(pill.textContent!==_wl) pill.textContent=_wl;   /* v1271: the phase word in the player's language (want stays the code value) */"
+  },
+  {
+   "line": 6334,
+   "find": "return EQ_TIERS[p.t][0]+' '+eqName(p.g,p.s,p.t)",
+   "replace": "return ewT('glyphrank.'+EQ_TIERS[p.t][0].toLowerCase())+' '+eqName(p.g,p.s,p.t)"
+  },
+  {
+   "line": 2858,
+   "find": "world-oasis-markers.js?v=om-ponds-1230",
+   "replace": "world-oasis-markers.js?v=om-ponds-1271"
+  },
+  {
+   "line": 17790,
+   "find": "${s.band}</span>",
+   "replace": "${g2QualName(s.band)}</span>"
+  }
+ ]
+}

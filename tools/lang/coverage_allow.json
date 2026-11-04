@@ -1,0 +1,33 @@
+{
+ "_why": "LANGUAGES step 2 finish check 1 (tests/test_lang_coverage.js): visible lines that are not translatable text, each with a reason. Names from the game's own tables (heroes, monsters, skills, items, places, languages) are allowed by the crawler itself.",
+ "patterns": [
+  {
+   "re": "^(#\\d+ )?[A-Z][a-z]+(caller|holt|heart|born|gate|hand|blade|fell|shade|wood|mere|crest)( \\d{3,7})?$",
+   "why": "generated bot / player names (rankings, arena opponents with their power)"
+  },
+  {
+   "re": "^\\d{1,2}:\\d{2}(:\\d{2})? ?(AM|PM)$",
+   "why": "a clock: real languages format it with toLocaleTimeString(LANG.cur); qps uses English format"
+  },
+  {
+   "re": "^Commander( ·)?$",
+   "why": "the default player name (the player's own name)"
+  },
+  {
+   "re": "^(Cinderwood|Emberite|Starsilver|Voidglass)$",
+   "why": "world-map resource names (in-game proper names)"
+  },
+  {
+   "re": "^(Emberdraft|The Swarm Spire|Skyfall|World Tree|The World Tree)$",
+   "why": "game mode / place proper names"
+  },
+  {
+   "re": "^(Rough|Grey|Green|Blue|Purple|Gold|Orange)( \\+\\d)? [A-Z][a-z]+( [A-Z][a-z]+)*( Fragment)?( ·)?$",
+   "why": "glyph item names from the server catalogue (quality + glyph name): in-game item names, not translated"
+  },
+  {
+   "re": "^[A-Za-z]+ \\d{3,7}$",
+   "why": "arena opponent: player name + power"
+  }
+ ]
+}

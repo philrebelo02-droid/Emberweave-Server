@@ -1,8 +1,9 @@
 (function(root){
   'use strict';
   const IDS=['tree','oasis-nw','oasis-ne','oasis-sw','oasis-se'];
-  const NAMES={tree:'World Tree','oasis-nw':'North-west Oasis','oasis-ne':'North-east Oasis','oasis-sw':'South-west Oasis','oasis-se':'South-east Oasis'};   // v1228: the 4 painted ponds
-  const title=id=>NAMES[id]||'Oasis';
+  const _t=(k,en)=>(typeof t==='function'&&t(k))||en;   /* v1271 LANGUAGES step 2: names through the page's t() */
+  const NAMES={get tree(){return _t('world2.world_tree','World Tree');},get 'oasis-nw'(){return _t('world2.oasis_nw','North-west Oasis');},get 'oasis-ne'(){return _t('world2.oasis_ne','North-east Oasis');},get 'oasis-sw'(){return _t('world2.oasis_sw','South-west Oasis');},get 'oasis-se'(){return _t('world2.oasis_se','South-east Oasis');}};   // v1228: the 4 painted ponds
+  const title=id=>NAMES[id]||_t('world2.oasis','Oasis');
   function colour(id){if(!id)return '#97a3b5';let hash=0;for(const c of id)hash=(Math.imul(hash,31)+c.charCodeAt(0))>>>0;return 'hsl('+(hash%360)+',75%,72%)';}
   function read(control,score,layout){
     if(!control?.ok||!score?.ok||typeof control.enabled!=='boolean'||control.enabled!==score.enabled||!Array.isArray(control.sites)||!Array.isArray(score.scores)||layout?.coordinateSpace!=='world-percent'||!Number.isInteger(layout.gridColumns)||layout.gridColumns<220||!Array.isArray(layout.sites))throw Error('Unavailable');

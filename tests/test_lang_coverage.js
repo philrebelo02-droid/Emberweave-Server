@@ -52,6 +52,9 @@ const ROOT=path.join(__dirname,'..');
       try{ CHAPTER_NAMES.forEach(add); }catch(e){}
       try{ Object.values(ZONES).forEach(z=>add(z&&z.name)); }catch(e){}
       try{ NPC_NAMES.forEach(add); ARENA_SURNAMES.forEach(add); }catch(e){}
+      try{ Object.values(WAR_LANE_NAMES).forEach(v=>typeof v==='string'?add(v):Object.values(v||{}).forEach(add)); }catch(e){}
+      try{ EW_LANGS.forEach(([c,n])=>add(n)); }catch(e){}   // each language's own name (written in that language, on purpose)
+      try{ JSON.stringify(ED_FINISHED,(k,v)=>{ if(k==='name') add(v); return v; }); JSON.stringify(ED_PURPLE,(k,v)=>{ if(k==='name') add(v); return v; }); }catch(e){}
       window.__langNames=[...N].sort((a,b)=>b.length-a.length); },(await page.evaluate(()=>{ try{ return JSON.parse(localStorage.getItem('ew_acc')).name; }catch(e){ return ''; } })));
     const collect=async where=>{ stops++;
       const found=await page.evaluate(()=>{ const out=new Set();
@@ -62,7 +65,11 @@ const ROOT=path.join(__dirname,'..');
         consider(document.body.innerText);
         for(const el of document.querySelectorAll('[title],[placeholder],[aria-label]')){ if(!el.getClientRects().length) continue;
           for(const a of ['title','placeholder','aria-label']) if(el.hasAttribute(a)) consider(el.getAttribute(a),'['+a+'] '); }
-        return [...out]; });
+        // where each leak sits (the innermost element showing exactly that line): id / class path for the next pass
+        const where=s=>{ const t0=s.replace(/^\[[a-z-]+\] /,''); let best=null; for(const el of document.querySelectorAll('body *')){ if(!el.getClientRects().length) continue; const tx=strip(el.innerText||'').replace(/\s+/g,' ').trim(); if(tx===t0) best=el; }
+          if(!best) return ''; const p=[]; for(let e=best;e&&e!==document.body&&p.length<5;e=e.parentElement) p.unshift(e.tagName.toLowerCase()+(e.id?'#'+e.id:'')+(e.className&&typeof e.className==='string'?'.'+e.className.trim().split(/\s+/).slice(0,2).join('.'):''));
+          return p.join(' > '); };
+        return [...out].map(s=>s+(window.__langWhere?'   @@ '+where(s):'')); });
       for(const f of found)(leaks[f]=leaks[f]||new Set()).add(where); };
     const tabsHere=()=>page.evaluate(()=>{ const scr=[...document.querySelectorAll('.screen.active, .modal:not([hidden]), .overlay:not([hidden])')].filter(e=>e.getClientRects().length);
       const root=scr[scr.length-1]||document.body; const c=[...root.querySelectorAll('[data-tab],[data-settab],.tab,.tabBtn,.subtab,[class*="Tab"]:not([class*="Table"]),[role=tab]')].filter(e=>e.getClientRects().length&&!e.closest('[data-lang-skip]'));
@@ -71,17 +78,27 @@ const ROOT=path.join(__dirname,'..');
     const visit=async(name,fn)=>{ try{ await page.evaluate(fn); }catch(e){ (leaks['(could not open '+name+': '+String(e.message).slice(0,80)+')']=new Set()).add(name); return; }
       await settle(); await collect(name);
       const n=Math.min(await tabsHere(),24); for(let i=0;i<n;i++){ await clickTab(i); await settle(300); await collect(name+' tab '+i); await tabsHere(); } };
+    if(process.env.LANG_COV_WHERE) await page.evaluate(()=>{ window.__langWhere=1; });
     await collect('home');
     const SCREENS=['campaign','glossary','tech','wall','world','account','arena','arenaShop','dungeon','forge','elite','skyfall','guild','temple','market','shadymarket','watchtower','rankings','wishing','online','heroesPanel','bag','settings','quest','signin','tutorial','skyisland','mail'];
     for(const s of SCREENS) await visit(s,new Function('try{ show('+JSON.stringify(s)+'); }catch(e){ popoutScreen('+JSON.stringify(s)+'); }'));
-    // every hub building (the town's hot spots), each opened from the hub
-    const hots=await page.evaluate(()=>{ show('home'); return [...document.querySelectorAll('#townHots [data-b],#townHots > *')].length; });
-    for(let i=0;i<hots;i++) await visit('building '+i,new Function('show("home"); const e=[...document.querySelectorAll("#townHots [data-b],#townHots > *")]['+i+']; if(e) e.click();'));
-    // a hero's detail (every tab)
-    await visit('heroDetail',()=>{ const k=HERO_KEYS.find(k=>G.unlocked[k]); if(typeof openHero==='function') openHero(k); else show('heroDetail'); });
+    // every hub building (the town's hot spots), each opened from the hub - the player's level raised on this page so none is locked
+    const hots=await page.evaluate(()=>{ G.playerXP=Number.MAX_SAFE_INTEGER; show('home'); try{ renderHome(); }catch(e){} return document.querySelectorAll('#townHots .hot .hit').length; });
+    for(let i=0;i<hots;i++) await visit('building '+i,new Function('show("home"); const e=document.querySelectorAll("#townHots .hot .hit")['+i+']; if(e) e.click();'));
+    // a hero's detail (every tab), the second hero too
+    for(const n of [0,1]) await visit('heroDetail '+n,new Function('detailHero=HERO_KEYS.filter(k=>G.unlocked[k])['+n+']; popoutScreen("heroDetail");'));
+    // a campaign stage: its card, the squad screen, the battle HUD and the result
+    await visit('stage card',()=>{ show('campaign'); openStageModal(1,'normal'); });
+    await page.evaluate(()=>{ const b=document.getElementById('smBattle'); if(b&&!b.disabled) b.click(); }); await settle(900); await collect('squad');
+    await page.evaluate(()=>{ const b=document.getElementById('startBtn'); if(b) b.click(); });
+    for(const s of [3,8,15]){ await settle(s*1000-(s===3?0:(s===8?3000:8000))); await collect('battle '+s+'s'); }
+    await page.evaluate(()=>{ try{ G.speed=3; }catch(e){} });
+    for(let i=0;i<60;i++){ const done=await page.evaluate(()=>{ const r=document.getElementById('result'); return !!(r&&r.classList.contains('active')); }); if(done) break; await settle(2000); }
+    await settle(1500); await collect('result');
     if(process.argv.includes('--keep')) await settle(1e9);
   } finally {
-    const list=Object.entries(leaks).map(([t,w])=>({text:t,where:[...w].slice(0,6)})).sort((a,b)=>a.text.localeCompare(b.text));
+    const AL=(JSON.parse(fs.readFileSync(path.join(ROOT,'tools','lang','coverage_allow.json'),'utf8')).patterns||[]).map(p=>new RegExp(p.re));
+    const list=Object.entries(leaks).filter(([t])=>!AL.some(r=>r.test(t.replace(/   @@ .*$/,'').replace(/^\[[a-z-]+\] /,'')))).map(([t,w])=>({text:t,where:[...w].slice(0,6)})).sort((a,b)=>a.text.localeCompare(b.text));
     fs.writeFileSync(path.join(ROOT,'tools','lang','coverage_leaks.json'),JSON.stringify(list,null,1));
     console.log('coverage: '+stops+' views, '+list.length+' untranslated visible lines'+(h.errors.length?' ; page errors: '+h.errors.slice(0,3).join(' | '):''));
     for(const l of list.slice(0,60)) console.log('  '+l.text+'   <- '+l.where.join(', '));

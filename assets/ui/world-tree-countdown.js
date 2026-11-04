@@ -13,7 +13,7 @@
     node.style.cssText='left:'+treeAnchor().x+'%;top:'+treeAnchor().y+'%;transform:translate(-50%,0);z-index:6;pointer-events:none;cursor:default';   /* v1228: just under the tree's root tips, from META.tree */
     const box=document.createElement('div');box.className='wlab';
     box.style.cssText='position:relative;left:auto;top:auto;transform:none;transform-origin:center top;background:none;border:0;padding:0;box-shadow:none;text-shadow:0 0 3px #000,0 1px 2px #000,0 0 6px #000c';   /* v899 (Phil): no box, just the text */
-    const label=document.createElement('div');label.className='nl';label.textContent='World Tree';
+    const label=document.createElement('div');label.className='nl';label.textContent=((typeof t==='function'&&t('world2.world_tree'))||'World Tree');
     const time=document.createElement('div');time.className='nl';time.style.cssText='color:#ffd45e;font-variant-numeric:tabular-nums;font-size:12px';time.textContent='Syncing event timer…';
     time.setAttribute('role','timer'); // Not an every-second screen-reader announcement.
     box.appendChild(label);box.appendChild(time);node.appendChild(box);inner.appendChild(node);
@@ -42,7 +42,7 @@
         if(typeof next.configured!=='boolean'||!Number.isSafeInteger(next.serverNow))throw new Error('Invalid event status');
         if(next.configured)root.EmberweaveWorldTreeCycle.phase(next.firstEventAt,next.serverNow);
         data=next;receivedAt=(started+performance.now())/2;
-        if(!next.configured){label.textContent='World Tree';time.textContent='Event schedule pending';delete node.dataset.phase;delete node.dataset.lifeFraction;}
+        if(!next.configured){label.textContent=((typeof t==='function'&&t('world2.world_tree'))||'World Tree');time.textContent=((typeof t==='function'&&t('world2.event_pending'))||'Event schedule pending');delete node.dataset.phase;delete node.dataset.lifeFraction;}
         draw();
       }catch(error){if(!stopped&&!data?.configured)time.textContent='Timer unavailable — reconnecting';}
       finally{clearTimeout(timeout);pending=false;}
