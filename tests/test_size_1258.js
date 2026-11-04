@@ -13,7 +13,8 @@ const S = +NEW('UNIT_SIZE'); ok(Math.abs(S - 1.15) < 1e-9, 'UNIT_SIZE is 1.15');
 ok(Math.abs(NEW('METER') / OLD('METER') - S) < 1e-9, 'the metre is x1.15 (every METER-written radius, dash, reach and row hold follows)');
 // every unit: range, reach, row hold, speed, radius, figure height - x1.15; hp / dmg / attack interval unchanged
 const keysJs = `JSON.stringify(Object.keys(HERO_TYPES).concat(Object.keys(MONSTER_TYPES)))`;
-const keys = JSON.parse(NEW(keysJs));
+const oldKeys = new Set(JSON.parse(OLD(keysJs)));   // 3 Nov 2026: a unit added after BASE (hero61) has no before to compare
+const keys = JSON.parse(NEW(keysJs)).filter(k => oldKeys.has(k));
 const pick = (run, k) => JSON.parse(run(`(()=>{ const u=makeUnit(${JSON.stringify(k)},'enemy',500,500,10,{}); return JSON.stringify({range:u.range,reach:u.reach,cd:u.combatDist,speed:u.speed,r:u.r,sprH:u.sprH,hp:u.maxHp,dmg:u.dmg,ai:u.atkInterval}); })()`));
 const near = (a, b) => Math.abs(a - b) <= 1e-6 * Math.max(1, Math.abs(b));
 let bad = [];
