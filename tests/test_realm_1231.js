@@ -21,7 +21,7 @@ let pass=0;const ok=(c,m)=>{assert(c,m);pass++;};
   ok(missing===0,'every z0 tile exists ('+missing+' missing of '+D.tiles.length+')');ok(badHash===0,'every z0 tile matches realm.json ('+badHash+' differ)');
   ok(outside===0,'every z0 tile lies inside Grok\'s detail tiles ('+outside+' outside)');
   const offLevel=D.tiles.filter(t=>{const [r,c]=t.split(',').map(Number);return !(r>=0&&c>=0&&r<D.rows&&c<D.cols);});ok(offLevel.length===0,'every z0 tile is on the level, no negative row or column (v1238: the west-edge r1c0 made c=-1 tiles; '+offLevel.length+' off: '+offLevel.slice(0,3).join(' ')+')');
-  const DETAIL_SOURCES=29;   // v1247: + r2c3 r3c2 r3c3 r4c3, r4c4-r4c7 round1b (v1246: 25); + r4c4 r4c5 r4c6 r4c7 (v1239: 21); every tile Grok has posted in detail2x NE, the latest round each (v1238: 17, v1232: 8)
+  const DETAIL_SOURCES=42;   // v1269 (4 Nov 2026): every detail2x tile Grok has posted, latest round each (9 new: r0c3 r0c4 r1c4 r2c0 r2c5 r2c6 r2c8 r3c4 r4c0); v1247: + r2c3 r3c2 r3c3 r4c3, r4c4-r4c7 round1b (v1246: 25); + r4c4 r4c5 r4c6 r4c7 (v1239: 21); every tile Grok has posted in detail2x NE, the latest round each (v1238: 17, v1232: 8)
   ok(D.sources.length===DETAIL_SOURCES&&new Set(D.sources.map(s=>s.r+','+s.c)).size===D.sources.length&&D.sources.every(s=>/^[0-9a-f]{64}$/.test(s.sha256)),'the '+D.sources.length+' detail sources (want '+DETAIL_SOURCES+') are recorded with their sha256, one file per tile position, the latest round each');
   // a view outside the detail gets no z0 tile: the client filters by the same tile set. v1238: the probe is the inside of a 4096 cell
   // no detail tile covers (r4c1 now covers the old fixed south-west probe)
