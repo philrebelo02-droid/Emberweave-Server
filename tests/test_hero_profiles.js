@@ -7,9 +7,9 @@ const sim=require(path.join(root,'server','sim.js'));
 const html=fs.readFileSync(path.join(root,'emberweave-heroes.html'),'utf8');
 function ok(v,m){ if(!v) throw new Error(m); }
 const keys=Object.keys(profiles);
-ok(keys.length===60,'expected 60 canonical hero profiles');
-ok(Object.keys(sim.HERO_BASE).length===60,'server hero count');
-ok(Object.keys(paths).length===14,'expected 14 shared progression paths');
+ok(keys.length===61,'expected 61 canonical hero profiles');
+ok(Object.keys(sim.HERO_BASE).length===61,'server hero count');
+ok(Object.keys(paths).length===15,'expected 15 shared progression paths');
 const classes=new Set(['Tank','Bruiser','Assassin','Mage','Marksman','Support']);
 const rows=new Set(['Front','Mid','Back','Other']);
 const damage=new Set(['Attack','Magic','Hybrid','Healer']);
@@ -27,11 +27,11 @@ ok(!html.includes("role:'Fighter'"),'obsolete Fighter hero remains');
 ok(/<script src="\/hero-profiles\.js(\?v=[a-z0-9]+)?"><\/script>/.test(html),'client profile source missing');   // v936: versioned so no cache keeps a stale copy
 ok(/<script src="\/hero-paths\.js(\?v=[a-z0-9]+)?"><\/script>/.test(html),'client path source missing');
 ok(html.includes("const hold=2.5*METER"),'assassin Tank leash missing');
-const out=cp.execFileSync(process.execPath,[path.resolve(root,'..','Operating procedure','tools','glyph_paths.js')],{cwd:root,encoding:'utf8',maxBuffer:20*1024*1024});
+const out=cp.execFileSync(process.execPath,[path.resolve(root,'tools','glyph_paths.js')],{cwd:root,encoding:'utf8',maxBuffer:20*1024*1024});
 const report=JSON.parse(out);
-ok(Object.keys(report.heroes).length===60,'glyph hero coverage');
-ok(Object.keys(report.archetypes).length===14,'glyph path coverage');
+ok(Object.keys(report.heroes).length===61,'glyph hero coverage');
+ok(Object.keys(report.archetypes).length===15,'glyph path coverage');
 for(const [id,p] of Object.entries(report.archetypes)) ok(p.path.length===16&&p.path.every(q=>q.slots.length===6&&q.slots.every(Boolean)),'glyph path incomplete '+id);
 const grey=report.glyphs.filter(g=>g.quality==='Grey');
 ok(grey.every(g=>g.total===2),'Grey glyph must cost 2');
-console.log('hero profiles PASS — 60 heroes, 14 shared paths, 16 glyph tiers, 9 equipment qualities');
+console.log('hero profiles PASS — 61 heroes, 15 shared paths, 16 glyph tiers, 9 equipment qualities');

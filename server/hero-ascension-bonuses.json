@@ -6900,6 +6900,121 @@
           "pct": false
         }
       ]
+    },
+    "hero61": {
+      "identityKey": "hero61",
+      "kitAbilities": [
+        "None Shall Fall",
+        "King's Mercy",
+        "Shelter of the Crown",
+        "An Open Gate"
+      ],
+      "focus": [
+        "HP",
+        "Armor",
+        "Magic Resist",
+        "Ability Power",
+        "Energy Regen",
+        "Healing Power"
+      ],
+      "steps": [
+        {
+          "quality": "Grey",
+          "stat": "HP",
+          "amount": 4.0,
+          "pct": false
+        },
+        {
+          "quality": "Green",
+          "stat": "Armor",
+          "amount": 1.02,
+          "pct": false
+        },
+        {
+          "quality": "Green +1",
+          "stat": "Magic Resist",
+          "amount": 1.05,
+          "pct": false
+        },
+        {
+          "quality": "Blue",
+          "stat": "Ability Power",
+          "amount": 3.22,
+          "pct": false
+        },
+        {
+          "quality": "Blue +1",
+          "stat": "Energy Regen",
+          "amount": 1.1,
+          "pct": false
+        },
+        {
+          "quality": "Blue +2",
+          "stat": "Healing Power",
+          "amount": 3.38,
+          "pct": false
+        },
+        {
+          "quality": "Purple",
+          "stat": "HP",
+          "amount": 4.6,
+          "pct": false
+        },
+        {
+          "quality": "Purple +1",
+          "stat": "Armor",
+          "amount": 1.18,
+          "pct": false
+        },
+        {
+          "quality": "Purple +2",
+          "stat": "Magic Resist",
+          "amount": 1.2,
+          "pct": false
+        },
+        {
+          "quality": "Purple +3",
+          "stat": "Ability Power",
+          "amount": 3.68,
+          "pct": false
+        },
+        {
+          "quality": "Gold",
+          "stat": "Energy Regen",
+          "amount": 1.25,
+          "pct": false
+        },
+        {
+          "quality": "Gold +1",
+          "stat": "Healing Power",
+          "amount": 3.82,
+          "pct": false
+        },
+        {
+          "quality": "Gold +2",
+          "stat": "HP",
+          "amount": 5.2,
+          "pct": false
+        },
+        {
+          "quality": "Gold +3",
+          "stat": "Armor",
+          "amount": 1.32,
+          "pct": false
+        },
+        {
+          "quality": "Gold +4",
+          "stat": "Magic Resist",
+          "amount": 1.35,
+          "pct": false
+        },
+        {
+          "quality": "Orange",
+          "stat": "Ability Power",
+          "amount": 4.12,
+          "pct": false
+        }
+      ]
     }
   }
 }

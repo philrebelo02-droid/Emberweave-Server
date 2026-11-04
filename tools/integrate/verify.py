@@ -61,8 +61,9 @@ def verify(cfg, check_streams=True):
             continue
         if 'Without Watermark' not in str(e.get('export', '')):
             problems.append('%s: export %r is not the official Without Watermark' % (slot, e.get('export')))
-        if e.get('frames') not in (124, None):
-            problems.append('%s: %s frames (Hailuo H3 = 124)' % (slot, e.get('frames')))
+        expected_frames = cfg.d.get('expectedSourceFrames', 124)
+        if e.get('frames') not in (expected_frames, None):
+            problems.append('%s: %s frames (expected %s)' % (slot, e.get('frames'), expected_frames))
         sp = _resolve(cfg.review_dir, e.get('silentPath'))
         if not sp:
             problems.append('%s: silent twin missing (%s)' % (slot, e.get('silentPath')))

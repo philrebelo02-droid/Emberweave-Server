@@ -1735,6 +1735,195 @@
         "atk": 110.0,
         "apow": 110.0
       }
+    },
+    {
+      "id": "H61E01",
+      "name": "Oathkeeper Mace",
+      "quality": "Grey",
+      "qi": 0,
+      "slot": "Weapon",
+      "slotFull": "Weapon / Focus",
+      "roles": "Support / Tank / Back",
+      "passive": "hp, apow, healPow",
+      "active": null,
+      "effect": "Passive stats only.",
+      "frag": "Rough Mana Dust",
+      "sub": null,
+      "subFragCost": null,
+      "stats": {
+        "hp": 93.8,
+        "apow": 6.7,
+        "healPow": 6.7
+      },
+      "artId": "E08"
+    },
+    {
+      "id": "H61E02",
+      "name": "Crown of the Open Gate",
+      "quality": "Green",
+      "qi": 1,
+      "slot": "Helm",
+      "slotFull": "Helm",
+      "roles": "Support / Tank / Back",
+      "passive": "hp, armor, mr",
+      "active": null,
+      "effect": "Passive stats only.",
+      "frag": "Verdant Mana Dust",
+      "sub": "Mercy Crown Frame",
+      "subFragCost": 3,
+      "stats": {
+        "hp": 149.9,
+        "armor": 10.7,
+        "mr": 10.7
+      },
+      "artId": "E16"
+    },
+    {
+      "id": "H61E03",
+      "name": "Watchkeeper Sabatons",
+      "quality": "Blue",
+      "qi": 2,
+      "slot": "Boots",
+      "slotFull": "Boots",
+      "roles": "Support / Tank / Back",
+      "passive": "hp, mr, energy",
+      "active": null,
+      "effect": "Passive stats only.",
+      "frag": "Azure Wind Thread",
+      "sub": "Silentstep Shoes Greave Frame",
+      "subFragCost": 4,
+      "stats": {
+        "hp": 233.8,
+        "mr": 16.7,
+        "energy": 16.7
+      },
+      "artId": "E22"
+    },
+    {
+      "id": "H61E04",
+      "name": "Blackplate of Mercy",
+      "quality": "Blue +2",
+      "qi": 3,
+      "slot": "Armor",
+      "slotFull": "Armor",
+      "roles": "Support / Tank / Back",
+      "passive": "hp, armor, healPow",
+      "active": null,
+      "effect": "Passive stats only.",
+      "frag": "Runed Azure Spirit Rune",
+      "sub": "Seraphic Robe Armor Frame",
+      "subFragCost": 5,
+      "stats": {
+        "hp": 336.0,
+        "armor": 24.0,
+        "healPow": 24.0
+      },
+      "artId": "E34"
+    },
+    {
+      "id": "H61E05",
+      "name": "Mercylight Gauntlets",
+      "quality": "Purple",
+      "qi": 4,
+      "slot": "Gloves",
+      "slotFull": "Gloves",
+      "roles": "Support / Tank / Back",
+      "passive": "apow, healPow, energy",
+      "active": null,
+      "effect": "Passive stats only.",
+      "frag": "Amethyst Spirit Rune",
+      "sub": "Guardian Wraps Glove Assembly",
+      "subFragCost": 6,
+      "stats": {
+        "apow": 33.3,
+        "healPow": 33.3,
+        "energy": 33.3
+      },
+      "artId": "E43"
+    },
+    {
+      "id": "H61E06",
+      "name": "Gatewarden Girdle",
+      "quality": "Purple +3",
+      "qi": 5,
+      "slot": "Belt",
+      "slotFull": "Belt",
+      "roles": "Support / Tank / Back",
+      "passive": "hp, armor, mr",
+      "active": null,
+      "effect": "Passive stats only.",
+      "frag": "Sovereign Amethyst Prism Shard",
+      "sub": "Scrollkeeper Sash Belt Harness",
+      "subFragCost": 7,
+      "stats": {
+        "hp": 653.8,
+        "armor": 46.7,
+        "mr": 46.7
+      },
+      "artId": "E53"
+    },
+    {
+      "id": "H61E07",
+      "name": "Open Gate Signet",
+      "quality": "Gold +1",
+      "qi": 6,
+      "slot": "Ring",
+      "slotFull": "Ring",
+      "roles": "Support / Tank / Back",
+      "passive": "armor, healPow, energy",
+      "active": null,
+      "effect": "Passive stats only.",
+      "frag": "Sunforged Prism Shard",
+      "sub": "Echo Ring Ring Setting",
+      "subFragCost": 8,
+      "stats": {
+        "armor": 63.3,
+        "healPow": 63.3,
+        "energy": 63.3
+      },
+      "artId": "E63"
+    },
+    {
+      "id": "H61E08",
+      "name": "Oathbound Pendant",
+      "quality": "Gold +4",
+      "qi": 7,
+      "slot": "Amulet",
+      "slotFull": "Amulet",
+      "roles": "Support / Tank / Back",
+      "passive": "mr, apow, healPow",
+      "active": null,
+      "effect": "Passive stats only.",
+      "frag": "Royal Sunforged Prism Shard",
+      "sub": "Quiet Star Necklace Pendant Setting",
+      "subFragCost": 9,
+      "stats": {
+        "mr": 83.3,
+        "apow": 83.3,
+        "healPow": 83.3
+      },
+      "artId": "E73"
+    },
+    {
+      "id": "H61E09",
+      "name": "The Unbarred Seal",
+      "quality": "Orange",
+      "qi": 8,
+      "slot": "Relic",
+      "slotFull": "Relic",
+      "roles": "Support / Tank / Back",
+      "passive": "hp, armor, mr",
+      "active": null,
+      "effect": "Passive stats only.",
+      "frag": "Worldfire Prism Shard",
+      "sub": "Dream Lantern Relic Core",
+      "subFragCost": 10,
+      "stats": {
+        "hp": 1540.0,
+        "armor": 110.0,
+        "mr": 110.0
+      },
+      "artId": "E83"
     }
   ]
 }

@@ -50,6 +50,7 @@
   }
   /* One explicit row per hero (all 60), slot 1 -> slot 4. Why each pick: Open Projects/The Temple of Ash/HERO BLESSINGS v1096 (09OCT2026).md */
   const HERO_BLESSING_KINDS = {
+    hero61: ["hp", "en", "arm", "heal"],
     /* Support */
     dandra:    ["dodge", "en", "heal", "cdr"], linnet:    ["as", "cdr", "hp", "heal"], lumi:      ["ctrl", "atk", "cdr", "en"],
     lysara:    ["ctrl", "heal", "en", "atk"], mellan:    ["pen", "heal", "atk", "en"], mirelle:   ["dr", "as", "heal", "en"],
@@ -91,6 +92,7 @@
      step follows the hero's damage type. Flats keep the v1094 step values; every other value is PROPOSED for Phil - a full
      200-step bar is the number in the comment. Power stays 10 x net STEPS whatever the kind. */
   const BAR_KINDS = {
+    armorMrOnly: {name:"Armor & Magic resist",icon:"armor",flat:["armor","mr"],step:{physical:7.2,magic:4.8}},
     health:          { name: "Health",               icon: "hp",       flat: ["hp"],                  step: { physical: 35, magic: 25 } },   // 7,000 / 5,000
     attack:          { name: "Attack damage",        icon: "atk",      flat: ["ad"],                  step: 2.4 },                           // 480
     abilityPower:    { name: "Ability power",        icon: "apow",     flat: ["ap"],                  step: 3.2 },                           // 640
@@ -113,6 +115,7 @@
   };
   /* One explicit row per hero (all 60), bar 1 -> bar 4. Why each pick: Open Projects/The Temple of Ash/HERO BARS v1098 (09OCT2026).md */
   const HERO_BARS = {
+    hero61: ["health", "armorMrOnly", "abilityPower", "healPow"],
     /* Support */
     dandra:    ["health", "dodge", "healPow", "energyRegen"],          linnet:    ["health", "attackSpeed", "cooldown", "healPow"],
     lumi:      ["health", "abilityPower", "ctrlRes", "energyRegen"],   lysara:    ["health", "abilityPower", "healPow", "ctrlRes"],

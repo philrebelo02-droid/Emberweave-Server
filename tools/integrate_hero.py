@@ -110,7 +110,8 @@ def stage_propose(cfg, a):
     for st in meas:
         if a.states and st not in a.states:
             continue
-        p = FR.propose(cfg.work, st, meas[st], engine_cell=(eng.get(st) or {}).get('cell'))
+        p = FR.propose(cfg.work, st, meas[st], engine_cell=(eng.get(st) or {}).get('cell'),
+                       n=need(cfg, 'verify', 'verify')['states'][st]['frames'])
         sc = cfg.st(st)
         p['config_has'] = sorted(k for k in sc if k in ('frames', 'segments', 'contactFrame', 'from', 'len', 'flinch', 'loop'))
         out[st] = p
@@ -144,7 +145,8 @@ def stage_cut(cfg, a):
         jobs.append((st, timing, dict(work=cfg.work, st=st, spec=fr, anchors=norm[st], out=out, master=master,
                                       unmix_soft=sc.get('unmixSoft', kc.get('unmixSoft', True)), ref_unmix=sc.get('refUnmix', kc.get('refUnmix')),
                                       pad=sc.get('pad', kc.get('pad', 24)), maxfig=float(sc.get('maxFig', kc.get('maxFig', 240))), ghost=bool(sc.get('ghost')),
-                                      maxfig_h=(norm[st]['f0']['sole'] - norm[st]['f0']['top']) if kc.get('maxFigOwnFrame0', True) else None)))
+                                      maxfig_h=(norm[st]['f0']['sole'] - norm[st]['f0']['top']) if kc.get('maxFigOwnFrame0', True) else None,
+                                      cell_guard=kc.get('cellGuard', 0))))
     r = cfg.run()
     rep = r.get('cut', {})
     with ProcessPoolExecutor(max_workers=min(a.jobs, len(jobs))) as ex:

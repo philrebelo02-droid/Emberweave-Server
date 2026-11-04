@@ -4,7 +4,7 @@
 // step size (flats keep the v1094 steps, % kinds PROPOSED); Power stays 10 x net steps; blessing thresholds sit on bar SLOTS 1-4;
 // the v1096 storage (health / attack / armorMr / pen) moves positionally onto the hero's own bars, once, keeping steps and dots;
 // and the same bars build the same battle unit on the server (coreRatings + applyCore) and the client (clientFlats + applyClient)
-// for all 60 heroes. Control: a client path that drops one kind must make the parity check fail.
+// for all 61 heroes. Control: a client path that drops one kind must make the parity check fail.
 // Asserts (non-zero exit).
 'use strict';
 const assert = require('assert'), fs = require('fs'), path = require('path'), vm = require('vm');
@@ -19,10 +19,10 @@ const prof = k => SIM.HERO_BASE[k].damageProfile;
 const NONE = [false, false, false, false, false], ALL = [true, true, true, true, false];
 
 /* ---- every hero has its own explicit row of four ---- */
-ok(keys.length === 60 && keys.every(k => Array.isArray(HB[k]) && HB[k].length === 4), 'all 60 heroes have their own row of 4 bars');
+ok(keys.length === 61 && keys.every(k => Array.isArray(HB[k]) && HB[k].length === 4), 'all 61 heroes have their own row of 4 bars');
 ok(Object.keys(HB).every(k => keys.includes(k)), 'control: no row for a hero that does not exist');
 ok(keys.every(k => HB[k].every(b => K[b]) && new Set(HB[k]).size === 4), 'every bar is a known kind and no hero repeats a kind');
-ok(new Set(keys.map(k => HB[k].slice().sort().join())).size === 60, 'no two heroes share the same four bars');
+ok(new Set(keys.map(k => HB[k].slice().sort().join())).size === 61, 'no two heroes share the same four bars');
 ok(keys.every(k => ['health', 'dodge', 'lifesteal'].includes(HB[k][0])) && keys.filter(k => HB[k][0] === 'health').length >= 50,
   'bar 1 is the survival stat (Health for ' + keys.filter(k => HB[k][0] === 'health').length + ' heroes, Dodge / Lifesteal for the evasive and the drainers)');
 ok(JSON.stringify(HB.oakmir) === JSON.stringify(['health', 'healPow', 'abilityPower', 'energyRegen']), 'Oakmir: Health / Healing power / Ability power / Energy regen');
@@ -91,7 +91,7 @@ ok(C.BLESSING_NEEDS.map(n => n.slot + ':' + n.need).join() === '0:35,1:70,2:130,
   ok(JSON.stringify(T.heroBonuses(legacy, 'Support', 'Healer', 'oakmir')) === JSON.stringify(T.heroBonuses({ key: 'oakmir', bars: HB.oakmir.slice(), steps: { health: 30, healPow: 33, abilityPower: 27, energyRegen: 21 }, boonsUnlocked: NONE.slice() }, 'Support', 'Healer')),
     'an unmigrated state reads the same bonuses as the migrated one (alignSteps = the migration rule)'); }
 
-/* ---- battle: all 60 heroes, server unit (coreRatings + applyCore) vs client unit (clientFlats + applyClient), identically ---- */
+/* ---- battle: all 61 heroes, server unit (coreRatings + applyCore) vs client unit (clientFlats + applyClient), identically ---- */
 const host = require('../server/sim-host.js').load(path.join(ROOT, 'emberweave-heroes.html'));
 const OPT = { level: 100, stars: 5, pips: 0, ref: 0 };
 function coreUnit(key, b) { const R = {}, X = {}; FX.coreRatings(R, X, b); return FX.applyCore(SIM.heroCombatStats(key, Object.assign({}, OPT, { ratings: R, extra: X })), b); }
@@ -111,7 +111,7 @@ function deltas(s0, s1, c0, c1) {
     dodge: [s1.eva - s0.eva, (c1.evaStat || 0) - (c0.evaStat || 0)], ctrl: [s1.ctrlRes - s0.ctrlRes, (c1.ctrlRes || 0) - (c0.ctrlRes || 0)],
   };
 }
-const MOVES = { health: ['hp'], attack: ['ad'], abilityPower: ['ap'], armorMr: ['armor', 'mr'], armor: ['armor'], magicResist: ['mr'], pen: ['aPen', 'mPen'], armorPen: ['aPen'], magicPen: ['mPen'],
+const MOVES = { armorMrOnly: ['armor', 'mr'], health: ['hp'], attack: ['ad'], abilityPower: ['ap'], armorMr: ['armor', 'mr'], armor: ['armor'], magicResist: ['mr'], pen: ['aPen', 'mPen'], armorPen: ['aPen'], magicPen: ['mPen'],
   healPow: ['heal'], energyRegen: ['energyReg'], cooldown: ['haste'], attackSpeed: ['atkSpeed'], critChance: ['crit'], critDamage: ['critDmg'], lifesteal: ['lifesteal'], dodge: ['dodge'],
   damageReduction: ['dr'], ctrlRes: ['ctrl'] };
 const RATIO = { heal: 1, haste: 1, atkSpeed: 1 };
@@ -128,10 +128,10 @@ function sweep(steps, lit) {
   return { mismatch, dead };
 }
 { const r = sweep(200, NONE);
-  ok(r.mismatch.length === 0, 'all 60 heroes, four full bars: the server unit and the client unit move by the same amounts' + (r.mismatch.length ? ' ' + r.mismatch.slice(0, 5).join('; ') : ''));
+  ok(r.mismatch.length === 0, 'all 61 heroes, four full bars: the server unit and the client unit move by the same amounts' + (r.mismatch.length ? ' ' + r.mismatch.slice(0, 5).join('; ') : ''));
   ok(r.dead.length === 0, 'every one of the 240 bars changes its hero\'s battle unit (' + (r.dead.slice(0, 5).join() || 'none dead') + ')');
   const r2 = sweep(37, ALL);
-  ok(r2.mismatch.length === 0, 'all 60 heroes, 37-step bars + four earned blessings (bar and blessing of one kind summed): server = client' + (r2.mismatch.length ? ' ' + r2.mismatch.slice(0, 5).join('; ') : '')); }
+  ok(r2.mismatch.length === 0, 'all 61 heroes, 37-step bars + four earned blessings (bar and blessing of one kind summed): server = client' + (r2.mismatch.length ? ' ' + r2.mismatch.slice(0, 5).join('; ') : '')); }
 { const b = T.heroBonuses({ key: 'oakmir', bars: HB.oakmir.slice(), steps: { health: 200, healPow: 200, abilityPower: 200, energyRegen: 200 }, boonsUnlocked: NONE.slice() }, 'Support', 'Healer', 'oakmir');
   const s0 = SIM.heroCombatStats('oakmir', OPT), s1 = coreUnit('oakmir', b), noHeal = Object.assign({}, b); delete noHeal['heal/shield strength'];
   ok(s1.maxHp === s0.maxHp + 5000 && near(s1.heal / coreUnit('oakmir', noHeal).heal, 1.2) && near(s1.energyReg - (s0.energyReg || 0), 2) && s1.atkM > s0.atkM && !b.magicPenFlat && !b.armorPenFlat,

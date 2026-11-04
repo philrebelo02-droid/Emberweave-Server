@@ -36,7 +36,7 @@ def fringe(a):
                 body_gt4=round(100 * float(((g > 4) & body).sum()) / nb, 4), body_gt24=round(100 * float(((g > 24) & body).sum()) / nb, 5))
 
 
-def cut_state(work, st, spec, anchors, out, master, unmix_soft=False, ref_unmix=None, pad=24, maxfig=240.0, ghost=False, maxfig_h=None):
+def cut_state(work, st, spec, anchors, out, master, unmix_soft=False, ref_unmix=None, pad=24, maxfig=240.0, ghost=False, maxfig_h=None, cell_guard=0):
     frames = parse_spec(spec)
     n = len(frames)
     with open(os.path.join(work, 'measure_%s.json' % st)) as f:
@@ -62,7 +62,12 @@ def cut_state(work, st, spec, anchors, out, master, unmix_soft=False, ref_unmix=
         if best is None or key > best[0]:
             best = (key, cols, rows, FW, FH)
     _, C, R, FW, FH = best
-    sx, sy = FW / Wc, FH / Hc
+    # Optional transparent atlas gutter, including when approved source pixels reach its edge.
+    # This prevents adjacent-cell sampling; it does not reconstruct clipped source artwork.
+    guard = max(0, int(cell_guard))
+    IW, IH = FW - 2 * guard, FH - 2 * guard
+    assert IW > 0 and IH > 0
+    sx, sy = IW / Wc, IH / Hc
     G = np.zeros((R * FH, C * FW, 4), np.uint8)
     K = np.array(M['key'], np.float64)
     KFULL = K[1] - max(K[0], K[2])
@@ -103,7 +108,7 @@ def cut_state(work, st, spec, anchors, out, master, unmix_soft=False, ref_unmix=
             cell = k / 255.0
             al = cell[..., 3:4]
             pm = np.concatenate([cell[..., :3] * al, al], -1)
-            ch = [np.asarray(Image.fromarray((pm[..., j] * 65535).astype(np.uint16).astype(np.int32), 'I').resize((FW, FH), Image.LANCZOS)).astype(np.float64) / 65535 for j in range(4)]
+            ch = [np.asarray(Image.fromarray((pm[..., j] * 65535).astype(np.uint16).astype(np.int32), 'I').resize((IW, IH), Image.LANCZOS)).astype(np.float64) / 65535 for j in range(4)]
             a2 = np.clip(ch[3], 0, 1)
             rgb = np.stack([np.clip(ch[j], 0, 1) for j in range(3)], -1)
             rgb = np.where(a2[..., None] > 1e-4, np.clip(rgb / np.maximum(a2[..., None], 1e-4), 0, 1), 0)
@@ -113,7 +118,7 @@ def cut_state(work, st, spec, anchors, out, master, unmix_soft=False, ref_unmix=
             px[a8 == 0, :3] = 0
             mx = np.maximum(px[..., 0], px[..., 2])
             px[..., 1] = np.minimum(px[..., 1], mx)
-            cache[f] = px
+            cache[f] = np.pad(px, ((guard, guard), (guard, guard), (0, 0))) if guard else px
         r, c = divmod(i, C)
         G[r * FH:(r + 1) * FH, c * FW:(c + 1) * FW] = cache[f]
     os.makedirs(os.path.dirname(out) or '.', exist_ok=True)
@@ -137,10 +142,10 @@ def cut_state(work, st, spec, anchors, out, master, unmix_soft=False, ref_unmix=
         ys, xs = np.where(a > 0)
         marg.append(int(min(xs.min(), ys.min(), FW - 1 - xs.max(), FH - 1 - ys.max())) if len(xs) else 999)
     figH_exact = anchors['h'] * sy
-    feet = round((anchors['sole'] - Y0) * sy)
+    feet = guard + round((anchors['sole'] - Y0) * sy)
     figH = round(figH_exact)
     top = feet - figH
-    cx = round((anchors['cx'] - X0) * sx, 1)
+    cx = guard + round((anchors['cx'] - X0) * sx, 1)
     ghost_alpha = None
     if ghost:
         ghost_alpha = []

@@ -1199,5 +1199,33 @@
     "row": "Mid",
     "armor": 15,
     "mr": 40
+  },
+  "hero61": {
+    "combatRow": "Back",
+    "damageProfile": "Healer",
+    "primaryScaling": "Ability Power + Healing Power",
+    "glyphPath": "support_tank_back",
+    "equipmentPath": "support_tank_back",
+    "formationDepth": 3.4,
+    "minimumReachMeters": 3.5,
+    "class": "Support",
+    "hp": 620,
+    "dmg": 16,
+    "apow": 30,
+    "armor": 60,
+    "mr": 40,
+    "role": "Support",
+    "row": "Back",
+    "stars": 3,
+    "healer": true,
+    "atkSpeed": 0.85,
+    "myth": true,
+    "growth": {
+      "hp": 36,
+      "dmg": 0.5,
+      "apow": 1,
+      "armor": 10,
+      "mr": 7
+    }
   }
 }

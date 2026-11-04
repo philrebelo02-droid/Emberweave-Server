@@ -1,5 +1,6 @@
 /* Canonical 14 progression paths shared by glyphs and equipment. */
 (function(root,factory){var v=factory();if(typeof module==='object'&&module.exports)module.exports=v;if(root)root.HERO_PATHS=v;})(typeof globalThis!=='undefined'?globalThis:this,function(){'use strict';return Object.freeze({
+  support_tank_back: {"label": "Support / Tank / Back", "glyphMilestones": {"vitality": [["Grey", "Gateheart"]], "bulwark": [["Grey", "Ironoath"]], "onslaught": [["Grey", "Nightveil"]], "spirit": [["Grey", "Mercylight"]], "tempo": [["Grey", "Vigil"]], "mastery": [["Grey", "Oathbloom"]]}, "equipment": ["H61E01", "H61E02", "H61E03", "H61E04", "H61E05", "H61E06", "H61E07", "H61E08", "H61E09"]},
   "tank_attack_front": {
     "label": "Tank / Attack / Front",
     "glyphMilestones": {

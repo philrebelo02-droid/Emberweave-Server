@@ -19,6 +19,7 @@ const zlib = require('zlib');   // v252 (audit P2): text responses are compresse
 const fs   = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const HERO61=require('./hero61.js');
 const HERO_PROFILES=require('./hero-profiles.js');
 const HERO_PATHS=require('./hero-paths.js');
 const HERO_PERSONAL_GLYPH_PATHS=require('./server/hero-personal-glyph-paths.json');
@@ -1295,7 +1296,7 @@ function glyphCompile(){
     if(process.env.ALLOW_DEGRADED!=='1') process.exit(1);
     GLYPHS=null; return; }
   const raw=JSON.parse(txt);   // present-but-corrupt STILL fails startup, by design (spec: unknown token = startup error)
-  if(!Array.isArray(raw)||raw.length!==218) throw new Error('glyph-source.json: expected 218 definitions, got '+(raw&&raw.length));
+  if(!Array.isArray(raw)||raw.length!==314) throw new Error('glyph-source.json: expected 314 definitions, got '+(raw&&raw.length));
   const byId={}, byName={};
   for(const d of raw){ if(byId[d.id]) throw new Error('duplicate glyph id '+d.id); byId[d.id]=d; byName[d.name]=d; }
   GLYPH_TIER_FAMS={};   // quality -> the families that EXIST at that tier (drives every drop rotation)
@@ -1341,7 +1342,7 @@ function glyphCompile(){
       else ing[0].qty+=2; }   // Orange-only family (Worldheart/Cataclysm) has no Gold +4 tier — charge the shortfall in Orange
     subs[g.key]={ key:g.key, ing };
   } } }
-  for(const d of raw){ const l=(GLYPH_TIER_FAMS[d.quality]=GLYPH_TIER_FAMS[d.quality]||[]); if(!l.includes(d.family)) l.push(d.family); }
+  for(const d of raw){ const l=(GLYPH_TIER_FAMS[d.quality]=GLYPH_TIER_FAMS[d.quality]||[]); const family=d.fragmentFamily||d.family; if(!l.includes(family)) l.push(family); }
   // canonical order: the 8 base families first (Stoneheart leads — stage 1-1 stays Stoneheart),
   // then the tier's extended families alphabetically
   for(const q in GLYPH_TIER_FAMS){ const l=GLYPH_TIER_FAMS[q];
@@ -1536,7 +1537,9 @@ function glyphBoardsView(g){ const out={};   // wire view: slots carry {blueprin
       slots:(b.slots||[]).map(iid=>{ if(!iid) return null; const inst=g.finished[iid]; const d=inst&&GLYPHS.byId[inst.definitionId];
         return d?{ blueprintId:d.id, name:d.name, family:d.family, quality:d.quality, stats:d.stats, locked:true }:null; }) }; }
   return out; }
+for(const [slot,family]of Object.entries({"vitality": "Gateheart", "bulwark": "Ironoath", "onslaught": "Nightveil", "spirit": "Mercylight", "tempo": "Vigil", "mastery": "Oathbloom"})) GLYPH_SLOT_FAMILIES[slot].push(family);
 function glyphAllowed(slotIdx, def, heroRole){ const slot=GLYPH_SLOTS[slotIdx]; if(!slot) return false;
+  if(def.id.startsWith('H61G')) return def.id.endsWith(String(slotIdx)) && heroRole==='Support';
   const ov=GLYPH_ROLE_OVERRIDES[heroRole||'']; const fams=(ov&&ov[slot])||GLYPH_SLOT_FAMILIES[slot]||[]; return fams.includes(def.family); }
 function glyphPruneConsumed(g){ // consumed instances are kept for the audit trail, but bounded
   const con=Object.entries(g.finished).filter(([id,i])=>i.status==='consumed');
@@ -1835,7 +1838,7 @@ let _heroNames;
 function heroDisplayName(k){ if(_heroNames===undefined){ _heroNames=Object.create(null); try{ const html=fs.readFileSync(GAME_FILE,'utf8');
     const a=html.indexOf('const HERO_TYPES = {'), b=a>=0?html.indexOf('for(const k in HERO_TYPES)',a):-1; const seg=a>=0&&b>a?html.slice(a,b):'';   /* the base table AND the Object.assign roster block after it */
     const re=/^\s*([a-z0-9_]+)\s*:\s*\{\s*name\s*:\s*(?:'([^']+)'|"([^"]+)")/gm; let m; while((m=re.exec(seg))) if(!_heroNames[m[1]]) _heroNames[m[1]]=m[2]||m[3]; }catch(e){} }
-  return _heroNames[String(k)]||String(k); }
+  return k===HERO61.KEY?HERO61.IDENTITY.name:(_heroNames[String(k)]||String(k)); }
 function validHero(k){ return typeof k==='string' && Object.prototype.hasOwnProperty.call(SIM.HERO_BASE, k); }
 /* v1097 (sweep 9 Oct #19): THE MARKET'S FRAGMENT OFFERS ARE THE SERVER'S. They were rolled on the device and the buy route sold any hero's
    fragments. Each hour the server lists three offers per account (two for gold, one for diamonds - the same layout, quantities and prices the
@@ -1850,7 +1853,7 @@ function marketOffersSrv(me,led,now){ const h=Math.floor(now/MARKET_HOUR_MS);
   return led.market; }
 function marketOfferView(mk){ return mk.offers.map(o=>({i:o.i,hero:o.hero,qty:o.qty,pay:o.pay,price:o.pay==='gems'?30*o.qty:550*o.qty,bought:mk.bought.includes(o.i)})); }
 /* 3 Oct Market audit #2: heroes never sold in the Market (client HERO_TYPES source:'purchase' / 'arena'). tests/test_market_harden.js keeps this set equal to the client's. */
-const HERO_NOT_SOLD=new Set(['konwu','grosk','vulmar','aureth','hurne','hollow']);
+const HERO_NOT_SOLD=new Set(['konwu','grosk','vulmar','aureth','hurne','hollow','hero61']);
 /* the Guild Shop's ledger-currency items, by the client GUILD_SHOP slot index (tests/test_guild_shop.js keeps them equal) */
 /* v1079: the arena shop catalogue (= the client's ARENA_SHOP: id, price in arena coins); day = the old /api/tx/earn daily cap / amount. */
 const ARENA_SHOP_SRV={groskfrag:{cost:500,frag:'grosk',n:5,day:12}, gold1:{cost:120,gold:5000,day:20}, gems1:{cost:300,gems:40,day:20}, stam:{cost:200,refill:200,day:10}};
@@ -4982,7 +4985,7 @@ function poolGlyphFrag(u,q,n){ const fams=glyphTierFams(q); const key=q+' '+fams
    34 % 2-4 fragments of the highest glyph tier the player has reached · 10 % a full glyph (every fragment one empty slot at that tier needs) ·
    5 % an attack card (+10 attacks today when used) · 5 % a world map shield · 5 % a teleport scroll · Temple prayers held to use later:
    4.5 % Kindled x3-6 · 3 % Stoked x2-5 · 1.2 % Blazing x1-3 · 0.3 % Inferno x1-2 (Phil 9 Oct ~10:5x; total 100 %). */
-const POOL_MYTHIC=['konwu','vulmar','aureth','hurne','hollow'], WISH_MYTH_COST=400, MYTH_UNLOCK_EGP=11;   /* Phil 9 Oct: "this should be all mythicals not just konwu" - every myth:true hero of the client */
+const POOL_MYTHIC=['konwu','vulmar','aureth','hurne','hollow','hero61'], WISH_MYTH_COST=400, MYTH_UNLOCK_EGP=11;   /* Phil 9 Oct: "this should be all mythicals not just konwu" - every myth:true hero of the client */
 const MYTH_ODDS=Object.freeze({mythHero:0.01,mythFrag:0.36,glyphFrag:0.27,glyphFull:0.10,attackCard:0.05,shield:0.05,kindled:0.05,stoked:0.035,blazing:0.015,inferno:0.01,teleport:0.05});
 const MYTH_PRAYERS=Object.freeze({kindled:[3,6],stoked:[2,5],blazing:[1,3],inferno:[1,2]});   /* Phil 9 Oct: held Temple prayers of that tier */
 function poolTopGlyphTier(u){ const led=ensureLedger(u), g=ensureGlyphs(u); let qi=0;
@@ -5207,7 +5210,7 @@ const GEAR_V2_ENABLED = String(process.env.GEAR_V2_ENABLED||'true')!=='false';
 let GEARCAT=null;
 (function(){ try{
   const raw=JSON.parse(fs.readFileSync(path.join(__dirname,'server','gear-catalog.json'),'utf8'));
-  if(!raw.items||raw.items.length!==84) throw new Error('expected 84 gear defs, got '+(raw.items&&raw.items.length));
+  if(!raw.items||raw.items.length!==93) throw new Error('expected 93 gear defs, got '+(raw.items&&raw.items.length));
   raw.byId=Object.create(null); raw.byName=Object.create(null); raw.byQuality=Object.create(null);   /* v1017 (re-audit Market #14): request ids index these - no prototype to answer for '__proto__' / 'constructor' */
   // AUDIT C4: ITEM-SPECIFIC actives — each gear id carries its own {activeId,type,params}. Temper
   // touches passives only; these definitions never scale with Temper or rarity.
@@ -5215,7 +5218,7 @@ let GEARCAT=null;
   catch(e){ console.error('gear-actives.json missing — item actives disabled: '+e.message); }
   for(const d of raw.items){ raw.byId[d.id]=d; raw.byName[d.name]=d; (raw.byQuality[d.quality]=raw.byQuality[d.quality]||[]).push(d);
     if(acts[d.id]){ d.activeId=acts[d.id].activeId; d.activeType=acts[d.id].type; d.activeParams=acts[d.id].params; } }
-  GEARCAT=raw; console.log('Gear catalog compiled: 84 items / 9 slots / 9 qualities / '+Object.keys(acts).length+' item actives. Forge '+(GEAR_V2_ENABLED?'ENABLED':'off (dev-only)'));
+  GEARCAT=raw; console.log('Gear catalog compiled: 93 items / 9 slots / 9 qualities / '+Object.keys(acts).length+' item actives. Forge '+(GEAR_V2_ENABLED?'ENABLED':'off (dev-only)'));
 }catch(e){ console.error('FORGE DISABLED — server/gear-catalog.json problem: '+e.message); } })();
 function gearEnabledFor(u){ return !!GEARCAT && (GEAR_V2_ENABLED || isDev(u)); }
 function ensureGear(u){ if(!u.gear) u.gear={ revision:1, fragments:{}, subs:{}, items:{}, equipped:{}, active:{}, seq:1 }; return u.gear; }
@@ -10457,6 +10460,7 @@ const server=http.createServer((req,res)=>{
     if(!(ra==='127.0.0.1'||ra==='::1'||ra==='::ffff:127.0.0.1')||req.headers['cf-ray']||req.headers['cf-connecting-ip']||req.headers['x-forwarded-for']) return send(res,404,{error:'not found'});
     return send(res,200,Object.assign({},GROUP_SAVE_STATS,{store:Object.assign({split:_store.split,layout:_store.layout},_store.stats)},{shed:{on:SHED.on}},FULL_TRACE?{fullCallers:FULL_CALLERS}:{})); }
   if(p==='/sw.js') return serveFile(res,'sw.js','application/javascript',null,req);
+  if(p==='/hero61.js') return serveFile(res,'hero61.js','application/javascript',null,req);
   if(p==='/hero-profiles.js') return serveFile(res,'hero-profiles.js','application/javascript',null,req);
   if(p==='/hero-paths.js') return serveFile(res,'hero-paths.js','application/javascript',null,req);
   if(p==='/world-realm.js') return serveFile(res,'world-realm.js','application/javascript',null,req);   /* v1226: the realm map's cells, shared with the server */

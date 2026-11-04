@@ -8,6 +8,7 @@
 })(typeof globalThis!=='undefined'?globalThis:this,function(){
   'use strict';
   return Object.freeze({
+  hero61: {"combatRow": "Back", "damageProfile": "Healer", "primaryScaling": "Ability Power + Healing Power", "glyphPath": "support_tank_back", "equipmentPath": "support_tank_back", "formationDepth": 3.4, "minimumReachMeters": 3.5, "class": "Support"},
   "grimsby": {
     "class": "Bruiser",
     "combatRow": "Mid",

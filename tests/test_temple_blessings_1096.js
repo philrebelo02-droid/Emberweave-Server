@@ -18,8 +18,8 @@ const ALL = [true, true, true, true, false], FIVE = [true, true, true, true, tru
 
 /* ---- every hero has its own explicit row ---- */
 const keys = fs.readdirSync(path.join(ROOT, 'assets/img/hero-cards')).filter(f => /^card-.*\.webp$/.test(f)).map(f => f.replace(/^card-/, '').replace(/\.webp$/, ''));
-ok(keys.length === 60, 'the game has 60 hero cards');
-ok(keys.every(k => Array.isArray(HB[k]) && HB[k].length === 4 && HB[k].every(r => Object.keys(r).length === 1)), 'all 60 heroes have their own 4 blessings');
+ok(keys.length === 61, 'the game has 61 hero cards');
+ok(keys.every(k => Array.isArray(HB[k]) && HB[k].length === 4 && HB[k].every(r => Object.keys(r).length === 1)), 'all 61 heroes have their own 4 blessings');
 ok(Object.keys(HB).every(k => keys.includes(k)) && keys.every(k => SIM.HERO_BASE[k]), 'control: no row for a hero that does not exist, and every hero is in the sim');
 ok(keys.every(k => new Set(KINDS[k]).size === 4), 'no hero repeats a kind across its four slots');
 ok(keys.every(k => KINDS[k].every((c, i) => { const u = UNIT[c], r = HB[k][i]; return r[u[0]] != null && near(r[u[0]], u[1] * (i + 1)); })),
@@ -32,7 +32,7 @@ ok(HB.oakmir[0]['heal/shield strength'] === 0.025 && HB.oakmir[1].health === 640
   'Oakmir\'s values: +2.5% / +640 / +1.5 / 8%');
 
 /* hero-specific, not class-specific */
-{ const ids = keys.map(k => KINDS[k].join()); ok(new Set(ids).size === 60, 'no two heroes share a blessing set');
+{ const ids = keys.map(k => KINDS[k].join()); ok(new Set(ids).size === 61, 'no two heroes share a blessing set');
   let worst = 0, pair = '';
   for (let i = 0; i < keys.length; i++) for (let j = i + 1; j < keys.length; j++) {
     const a = keys[i], b = keys[j]; if (SIM.HERO_BASE[a].role !== SIM.HERO_BASE[b].role) continue;
@@ -50,7 +50,7 @@ ok(HB.oakmir[0]['heal/shield strength'] === 0.025 && HB.oakmir[1].health === 640
   ok(T.blessingLabel({ 'energy regen': 2 }, 'magic') === 'Energy regen +2/s' && T.blessingLabel({ 'heal/shield strength': 0.075 }, 'magic') === 'Healing power +7.5%'
     && T.blessingLabel({ 'cooldown reduction': 0.06 }, 'magic') === 'Cooldown reduction 6%', 'Phil\'s examples: "Energy regen +2", "Healing power +7.5%", "Cooldown reduction 6%"');
   const rows = [].concat.apply([], keys.map(k => HB[k].map(r => T.blessingLabel(r, T.profileOf(SIM.HERO_BASE[k].damageProfile, SIM.HERO_BASE[k].role)))));
-  ok(rows.length === 240 && rows.every(s => s && !/undefined|NaN|\/(?!s$)/.test(s)), 'all 240 hero blessing labels render cleanly'); }
+  ok(rows.length === 244 && rows.every(s => s && !/undefined|NaN|\/(?!s$)/.test(s)), 'all 244 hero blessing labels render cleanly'); }
 
 /* ---- lookup: own row by key; class template only for an unknown key ---- */
 ok(JSON.stringify(T.blessingReward('Support', 0, 'oakmir')) === JSON.stringify(HB.oakmir[0]), 'blessingReward reads the hero\'s own row');
@@ -122,7 +122,7 @@ const EXPECT = { 'health': ['hp'], 'attack': ['ad', 'ap'], 'armorMr': ['armor', 
     for (const r of HB[key]) { const k = Object.keys(r)[0]; kindsSeen.add(k);
       if (!EXPECT[k].some(f => d[f] && (f === 'shield' || f === 'haste' || f === 'atkSpeed' ? d[f][0] > 1 + 1e-9 : Math.abs(d[f][0]) > 1e-9))) dead.push(key + ':' + k); }
   }
-  ok(mismatch.length === 0, 'all 60 heroes: four earned blessings move the server unit and the client unit by the same amounts' + (mismatch.length ? ' ' + mismatch.slice(0, 5).join('; ') : ''));
+  ok(mismatch.length === 0, 'all 61 heroes: four earned blessings move the server unit and the client unit by the same amounts' + (mismatch.length ? ' ' + mismatch.slice(0, 5).join('; ') : ''));
   ok(dead.length === 0, 'every earned blessing actually changes its hero\'s battle unit (' + (dead.slice(0, 5).join() || 'none dead') + ')');
   ok(kindsSeen.size === Object.keys(EXPECT).length, 'control: the 60 heroes use all ' + kindsSeen.size + ' reward kinds, so every adapter path was exercised'); }
 { const b = T.heroBonuses({ steps: steps(0, 0, 0, 0), boonsUnlocked: ALL.slice() }, 'Support', 'Healer', 'oakmir');

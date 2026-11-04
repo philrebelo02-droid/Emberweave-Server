@@ -58,7 +58,7 @@ try {
     Object.entries(files).every(([n, v]) => D.files[n] && D.files[n][0] === v.f && D.files[n][1] === v.peak) && D.v === MAN.version);
   const heroes = JSON.parse(run(`JSON.stringify(Object.keys(KITS).filter(k=>HERO_TYPES[k]&&!HERO_TYPES[k].monster))`));
   const noAtk = heroes.filter(k => !(D.heroes[k] && D.heroes[k].atk && D.files[D.heroes[k].atk]));
-  ck('every hero with a weapon type has an attack sound (' + heroes.length + ' heroes)', heroes.length === 60 && noAtk.length === 0, noAtk.join(','));
+  ck('every hero with a weapon type has an attack sound (' + heroes.length + ' heroes)', heroes.length === 61 && noAtk.length === 0, noAtk.join(','));
   ck('every ranged Magic/Healer hero plays the caster whoosh; Sloe the bow; Rafe gun + cutlass',
     JSON.parse(run(`JSON.stringify(Object.keys(KITS).filter(k=>HERO_TYPES[k]&&!HERO_TYPES[k].monster&&HERO_TYPES[k].range>60&&['Magic','Healer'].includes(HERO_TYPES[k].damageProfile)))`))
       .every(k => D.heroes[k].atk === 'LIB-ATK-CASTER-WHOOSH') && D.heroes.sloe.atk === 'LIB-ATK-BOW' && D.heroes.rafe.atk === 'LIB-ATK-GUN' && D.heroes.rafe.melee === 'LIB-ATK-BLADE-LIGHT');

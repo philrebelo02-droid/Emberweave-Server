@@ -82,6 +82,8 @@ const HERO_BASE={
   rafe:{swing:2,hp:220,dmg:33,apow:0,role:'Marksman',stars:2,healer:false,atkSpeed:1.05},
   ceraline:{swing:2,hp:190,dmg:17,apow:35,role:'Mage',stars:3,healer:false,atkSpeed:0.85}
 };
+const HERO61=require('../hero61.js');
+HERO_BASE.hero61=Object.assign({},HERO61.BASE);
 const HERO_PROFILES=require('../hero-profiles.js');
 for(const key of Object.keys(HERO_BASE)){
   const p=HERO_PROFILES[key];
@@ -135,7 +137,7 @@ const TANK_HP_GROWTH={Attack:70, Magic:54};
 /* Returns a COPY of the hero base with every stat advanced to `lvl`. Heroes whose role is missing
    from the table fall back to the old 0.05/level multiplier so nothing can resolve to null. */
 function baseAtLevel(b,lvl){
-  const n=Math.max(0,((lvl|0)||1)-1), g=ROLE_GROWTH[b.role];
+  const n=Math.max(0,((lvl|0)||1)-1), g=b.growth||ROLE_GROWTH[b.role];
   const o=Object.assign({},b);
   if(!g){ const s=1+0.05*n;
     o.hp=(b.hp||0)*s; o.dmg=(b.dmg||0)*s; o.apow=(b.apow||0)*s; o.armor=(b.armor||0)*s; o.mr=(b.mr||0)*s; return o; }

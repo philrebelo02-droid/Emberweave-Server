@@ -1,0 +1,96 @@
+{
+  "hero": "hero61",
+  "name": "Hero 61",
+  "version": "1263",
+  "archiveDir": "_Hero 61 concepts 03NOV2026/FINAL/v3",
+  "reviewDir": "C:\\Users\\Home\\Documents\\Codex\\2026-10-07\\hu\\outputs\\hero61-integration-03nov\\approved-sources",
+  "work": "C:\\Users\\Home\\Documents\\Codex\\2026-10-07\\hu\\outputs\\hero61-integration-03nov",
+  "expectedSourceFrames": 158,
+  "expectStates": [
+    "idle",
+    "walk",
+    "attack",
+    "hit",
+    "green",
+    "ult",
+    "death"
+  ],
+  "order": [
+    "idle",
+    "walk",
+    "attack",
+    "hit",
+    "green",
+    "ult",
+    "death",
+    "death2",
+    "death3",
+    "death4",
+    "death5",
+    "death6",
+    "death7",
+    "death8",
+    "death9",
+    "death10",
+    "death11",
+    "death12",
+    "death13",
+    "death14"
+  ],
+  "melee": false,
+  "key": {
+    "unmixSoft": true,
+    "pad": 24,
+    "maxFig": 239,
+    "cellGuard": 2
+  },
+  "states": {
+    "death": {
+      "frames": "0:158:3",
+      "fps": 8
+    },
+    "idle": {
+      "frames": "0:158:2",
+      "fps": 12
+    },
+    "walk": {
+      "from": 85,
+      "len": 51
+    },
+    "attack": {
+      "contact": 24,
+      "contactFrame": 78,
+      "end": 157,
+      "hold": 1
+    },
+    "hit": {
+      "flinch": [
+        66,
+        80
+      ],
+      "recover": [
+        120,
+        157
+      ]
+    },
+    "green": {
+      "n": 80,
+      "contact": 53,
+      "contactFrame": 54,
+      "end": 157,
+      "hold": 0
+    },
+    "ult": {
+      "n": 72,
+      "contact": 42,
+      "contactFrame": 35,
+      "end": 157,
+      "hold": 0
+    }
+  },
+  "slots": {
+    "death": "death"
+  },
+  "sound": {},
+  "pageNote": "Hero61 seven Phil-approved take3 clips only. Blue withheld after Phil rejected take4; take5 pending review. Existing shared key/despill/premultiplied cut pipeline. Authored longer Green/Ult sheets allow fixed 1.5/1.2 second cast contacts; logic never follows art. Death ends as ash. Working identity from HERO61.IDENTITY."
+}

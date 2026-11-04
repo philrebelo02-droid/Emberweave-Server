@@ -31,7 +31,7 @@ const run = load(HTML);
 const J = s => JSON.parse(run(s));
 const KEYS = J('JSON.stringify(HERO_KEYS.filter(k=>HERO_TYPES[k]&&!HERO_TYPES[k].monster))');
 const FXRT = run('FX_RT'), STEP = run('SIM_STEP');
-ck('all 60 heroes are checked', KEYS.length === 60, KEYS.length);
+ck('all 61 heroes are checked', KEYS.length === 61, KEYS.length);
 
 /* ---------- the checks, as functions of a runner (so the controls can run them on a broken page) ---------- */
 function checkClips(r) {
