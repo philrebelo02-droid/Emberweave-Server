@@ -1,6 +1,7 @@
 {
  "note": "Each draft item mapped to the SHIPPED note(s) in Emberweave Archive/Operating procedure/SHIPPED it came from.",
  "patches": [
+    {"ver": "1.2.0", "releases": "v1269", "items": [{"text": "Grok detail2x: 42 tiles (9 new 3-4 Nov), z0 10224 tiles.", "sources": ["SHIPPED-v1269-grok-detail2x-04-11-2026.md"]}]},
     {"ver": "1.1.9", "releases": "v1268", "items": [{"text": "Settings rebuilt into tabs (Phil 4 Nov: \"The rebuild is good\").", "sources": ["SHIPPED-v1268-settings-tabs-04-11-2026.md"]}]},
     {"ver": "1.1.8", "releases": "v1267", "items": [{"text": "Hero 61 named Morvayne (Phil 4 Nov).", "sources": ["SHIPPED-v1267-morvayne-04-11-2026.md"]}]},
     {"ver": "1.1.7", "releases": "v1266", "items": [{"text": "Hero 61 Blue cast take 5 (approved).", "sources": ["SHIPPED-v1266-hero61-blue-tests-04-11-2026.md"]}]},
