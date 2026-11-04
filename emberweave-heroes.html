@@ -2447,6 +2447,89 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 #stageModal .ew-stage-exit{position:sticky;top:-7px;display:flex;justify-content:flex-end;min-height:36px;z-index:50;background:#141b2b;}
 #stageModal .ew-stage-exit button{width:32px;height:32px;padding:0;font-size:22px;}
 </style>
+<style id="ewLangCss">
+  /* v1265 LANGUAGES step 1: Thai, Japanese, Korean, Chinese and Hindi text uses the matching Noto Sans face (loaded only for that language);
+     a hub-menu label in a longer language may wrap between words and is shrunk by langFit when one word is wider than the tile - never cut. */
+  html.ew-lang-noto body, html.ew-lang-noto body *{font-family:var(--ew-lang-font),-apple-system,"Segoe UI",Roboto,sans-serif!important;}
+  html:not([lang="en"]) .mitem .ml{white-space:normal;max-width:64px;overflow-wrap:normal;}
+</style>
+<script>
+/* v1265 LANGUAGES step 1 (Phil 3 Nov 2026: "One very very big thing we missed - Languages"; plan: Archive Open Projects/LANGUAGES -
+   LOCALIZATION PLAN). One file per language in /lang/<code>.json; English is inline here (EW_LANG_EN, the same text as lang/en.json -
+   tests/test_lang_step1.js holds them equal), so English never waits on a fetch. Only the chosen language's file is fetched, at
+   ?v=<hash of its text> (a changed file is a new URL - SHIPPING RULE 2.5), and kept in localStorage so the next open is instant.
+   t(key, vars) falls back to English for any key a language lacks and never shows a raw key. The choice: the player's own pick
+   (Settings > Language, saved in the save G.lang - synced with the cloud save, so it survives a reinstall - and in ew_lang on the
+   device), else the phone's languages (navigator.languages), else English. Hero, monster and boss names and "Emberweave" are never
+   translated (Phil's in-game-names rule). */
+const EW_LANG_EN={"bld.academy":"Academy","bld.arena":"Arena","bld.bulletin_board":"Bulletin Board","bld.campaign":"Campaign","bld.city_wall":"City Wall","bld.forge":"Forge","bld.guild_hall":"Guild Hall","bld.island_trials":"Island of Trials","bld.market":"Market","bld.shady_market":"Shady Market","bld.starless_well":"The Starless Well","bld.temple":"Temple","bld.vault":"The Vault","bld.watch_tower":"Watch Tower","bld.wishing_pool":"Wishing Pool","bld.witches_hut":"Witches Hut","common.back":"Back","common.battle":"Battle","common.buy":"Buy","common.cancel":"Cancel","common.claim":"Claim","common.claimed":"Claimed","common.close":"Close","common.collect":"Collect","common.confirm":"Confirm","common.continue":"Continue","common.done":"Done","common.fight":"Fight","common.free":"Free","common.go":"Go","common.in_progress":"In progress","common.loading":"Loading…","common.locked":"Locked","common.next":"Next","common.no":"No","common.ok":"OK","common.reset":"Reset","common.retry":"Retry","common.save":"Save","common.send":"Send","common.start":"Start","common.upgrade":"Upgrade","common.yes":"Yes","hub.research":"Research: {t}","hub.unlocks_at":"Unlocks at Lv {n}","menu.bag":"Bag","menu.heroes":"Heroes","menu.mail":"Mail","menu.menu":"Menu","menu.quests":"Quests","menu.server":"Server","menu.settings":"Settings","menu.sign_in":"Sign-In","menu.start_here":"Start Here","nav.base":"Base","nav.glossary":"Glossary","nav.guild":"Guild","nav.vault":"Vault","nav.wall":"Wall","nav.world":"World","set.arena_rank":"Arena rank #{n}","set.audio":"Audio","set.blocked_players":"Blocked players","set.bug":"Bug","set.clear_cache":"Clear cache","set.cloud_account":"Cloud Account","set.confirm_password":"Confirm password","set.create_account":"Create Account","set.create_hint":"Pick a username & password to make a cloud account you can sign into on any device.","set.delete_account":"Delete account","set.forgot":"Forgot your password?","set.fx":"FX","set.lang_auto":"Device language","set.language":"Language","set.log_out":"Log out","set.music":"Music","set.mute_all":"Mute all","set.offline_art":"Offline Art","set.offline_art_desc":"Download every hero, monster and boss animation once and keep it on this device. Battles then load instantly, even on a bad connection.","set.open_online":"Open the game through your online link to sign in.","set.password":"Password","set.report_desc":"Spotted something broken or have an idea? Send it straight to the devs.","set.report_ph":"Describe the bug or suggestion…","set.report_sent":"Thanks! Report sent.","set.report_short":"Please add a little detail.","set.report_title":"Report a bug / feedback","set.rights":"All rights reserved.","set.send_failed":"Failed to send.","set.send_report":"Send report","set.sending":"Sending…","set.sign_in":"Sign In","set.signed_in_as":"Signed in as {name}","set.signin_hint":"Sign in to load your account and sync your progress here.","set.stop_download":"Stop download","set.suggestion":"Suggestion","set.sync_note":"your progress syncs to any device you sign in on.","set.terms":"Terms of Service & Privacy","set.update_all":"Update all features","set.username":"Username","set.voices":"Voices","title.account":"Account","title.arena_shop":"Arena Shop","title.daily_signin":"Daily Sign-In","title.elite_stages":"Elite Stages","title.forge":"The Forge","title.online_arena":"Online Arena","title.technology":"Technology"};
+const EW_LANG_V={"en":"48ab615e","es":"6a3a8c60","pt-BR":"982d3fe6","fr":"ddaf8ba3","de":"492e32a9","it":"590a88e7","nl":"db2e89b5","ru":"1ed36fef","tr":"363dacfc","ja":"a316035d","ko":"4c5985a4","zh-Hans":"1e58215a","zh-Hant":"c832c2dc","th":"6d1ff83f","id":"409e39bb","hi":"e17f4f24"};
+const EW_LANGS=[['en','English'],['es','Español'],['pt-BR','Português (Brasil)'],['fr','Français'],['de','Deutsch'],['it','Italiano'],['nl','Nederlands'],
+  ['ru','Русский'],['tr','Türkçe'],['ja','日本語'],['ko','한국어'],['zh-Hans','简体中文'],['zh-Hant','繁體中文'],['th','ไทย'],['id','Bahasa Indonesia'],['hi','हिन्दी']];
+const EW_LANG_FONT={th:'Noto Sans Thai',ja:'Noto Sans JP',ko:'Noto Sans KR','zh-Hans':'Noto Sans SC','zh-Hant':'Noto Sans TC',hi:'Noto Sans Devanagari'};
+const LANG={cur:'en',pref:'',dict:null,miss:{}};
+function langCodeOf(tag){ const l=String(tag||'').trim().toLowerCase().replace(/_/g,'-'); if(!l) return '';
+  if(l==='zh'||l.startsWith('zh-')) return /^zh-(hant|tw|hk|mo)\b/.test(l)?'zh-Hant':'zh-Hans';
+  if(l==='pt'||l.startsWith('pt-')) return 'pt-BR';
+  const b=l.split('-')[0]; if(b==='in') return 'id';   // old Android tag for Indonesian
+  return EW_LANG_V[b]?b:''; }
+function langDetect(list){ for(const tag of (list||[])){ const c=langCodeOf(tag); if(c) return c; } return 'en'; }
+function langNavList(){ try{ return (navigator.languages&&navigator.languages.length)?navigator.languages:[navigator.language||'en']; }catch(e){ return ['en']; } }
+function langSavedPref(){ let p=''; try{ p=localStorage.getItem('ew_lang')||''; }catch(e){}
+  if(!p){ try{ const s=JSON.parse(localStorage.getItem('emberweave_save_v08')||'null'); if(s&&typeof s.lang==='string') p=s.lang; }catch(e){} }
+  return EW_LANG_V[p]?p:''; }
+function t(key,vars){ let s=LANG.dict&&LANG.dict[key];
+  if(typeof s!=='string'||!s) s=EW_LANG_EN[key];
+  if(typeof s!=='string'){ if(!LANG.miss[key]){ LANG.miss[key]=1; try{ console.warn('[lang] no text for',key); }catch(e){} } return ''; }   // never the raw key
+  return vars?s.replace(/\{(\w+)\}/g,(m,k)=>vars[k]!=null?String(vars[k]):''):s; }
+function langFont(code){ const fam=EW_LANG_FONT[code], root=document.documentElement; let l=document.getElementById('ewLangFont');
+  root.classList.toggle('ew-lang-noto',!!fam);
+  if(!fam){ if(l) l.remove(); root.style.removeProperty('--ew-lang-font'); return; }
+  const href='https://fonts.googleapis.com/css2?family='+fam.replace(/ /g,'+')+':wght@400;700;800&display=swap';
+  if(!l){ l=document.createElement('link'); l.id='ewLangFont'; l.rel='stylesheet'; (document.head||root).appendChild(l); }
+  if(l.getAttribute('href')!==href) l.setAttribute('href',href);
+  root.style.setProperty('--ew-lang-font','"'+fam+'"'); }
+/* a [data-i18n-fit="<px>"] label: its widest WORD must fit <px> (it may wrap between words); a longer one is set smaller, never cut.
+   Measured from the text and the computed font size, so it works while the hub menu is still closed (display:none). */
+function langWordEm(w){ let u=0; for(const ch of w){ const c=ch.codePointAt(0);
+    if((c>=0x0300&&c<=0x036F)||(c>=0x0E31&&c<=0x0E4E&&c!==0x0E32&&c!==0x0E33)||(c>=0x0900&&c<=0x0903)||(c>=0x093A&&c<=0x094F)||(c>=0x0951&&c<=0x0957)||(c>=0x0962&&c<=0x0963)) continue;   // marks take no width
+    u+=(c>=0x1100&&c<=0xFFDC)?1:(c>=0x0900&&c<=0x0E7F)?0.7:0.62; } return u; }
+function langFit(el){ const max=+el.getAttribute('data-i18n-fit')||0; el.style.fontSize=''; if(!max) return;
+  let fs=12; try{ fs=parseFloat(getComputedStyle(el).fontSize)||12; }catch(e){}
+  const em=Math.max(0,...String(el.textContent||'').split(/\s+/).map(langWordEm));
+  if(em*fs>max) el.style.fontSize=Math.max(7,max/em).toFixed(2)+'px'; }
+function langApply(root){ root=root||document;
+  root.querySelectorAll('[data-i18n]').forEach(el=>{ let s=t(el.getAttribute('data-i18n')); if(!s) return;
+    if(el.hasAttribute('data-i18n-upper')) s=s.toLocaleUpperCase(LANG.cur);
+    if(el.textContent!==s) el.textContent=s; });
+  root.querySelectorAll('[data-i18n-fit]').forEach(langFit); }
+/* redraw what is on screen in the new language: the static labels always; the town and Settings only once the game has drawn them */
+function langRefresh(rerender){ if(document.readyState==='loading') return; langApply(document);
+  try{ const hots=document.getElementById('townHots'); if(typeof renderHome==='function'&&hots&&hots.childElementCount) renderHome(); }catch(e){}
+  try{ const s=document.getElementById('settings'); if(s&&s.classList.contains('active')&&typeof renderSettings==='function') renderSettings(); }catch(e){} }
+function langLoad(code,rerender){ if(!EW_LANG_V[code]) code='en'; LANG.cur=code; document.documentElement.lang=code; langFont(code);
+  if(code==='en'){ LANG.dict=null; langRefresh(rerender); return Promise.resolve(true); }
+  const v=EW_LANG_V[code];
+  try{ const c=JSON.parse(localStorage.getItem('ew_lang_dict')||'null'); if(c&&c.code===code&&c.v===v&&c.d&&typeof c.d==='object'){ LANG.dict=c.d; langRefresh(rerender); return Promise.resolve(true); } }catch(e){}
+  LANG.dict=null; langRefresh(rerender);   // English until the file arrives
+  return fetch('/lang/'+code+'.json?v='+v).then(r=>r.ok?r.json():null).then(d=>{ if(!d||typeof d!=='object'||LANG.cur!==code) return false;
+    LANG.dict=d; try{ localStorage.setItem('ew_lang_dict',JSON.stringify({code,v,d})); }catch(e){} langRefresh(rerender); return true; }).catch(()=>false); }
+/* the player's pick ('' = follow the device). save: kept on the device and in the save (G.lang -> the cloud save on the next sync) */
+function langSet(code,opts){ opts=opts||{}; code=EW_LANG_V[code]?code:''; LANG.pref=code;
+  if(opts.save){ try{ if(code) localStorage.setItem('ew_lang',code); else localStorage.removeItem('ew_lang'); }catch(e){}
+    try{ if(typeof G!=='undefined'&&G){ if(code) G.lang=code; else delete G.lang; if(typeof saveG==='function') saveG(); } }catch(e){} }
+  return langLoad(code||langDetect(langNavList()),true); }
+/* after a cloud save replaces G (applyCloudSave): the account's pick wins; a pick made on this device before signing in is kept and
+   goes up with the next save */
+function langAdoptSave(){ if(typeof G==='undefined'||!G) return; const g=EW_LANG_V[G.lang]?G.lang:'';
+  if(g){ try{ localStorage.setItem('ew_lang',g); }catch(e){} if(g!==LANG.pref){ LANG.pref=g; langLoad(g,true); } return; }
+  if(LANG.pref) G.lang=LANG.pref; }
+function langOptionsHTML(){ const dev=langDetect(langNavList()), nm=c=>(EW_LANGS.find(x=>x[0]===c)||['',c])[1];
+  return '<option value=""'+(LANG.pref?'':' selected')+'>'+t('set.lang_auto')+' ('+nm(dev)+')</option>'
+    +EW_LANGS.map(([c,n])=>'<option value="'+c+'"'+(LANG.pref===c?' selected':'')+'>'+n+'</option>').join(''); }
+LANG.pref=langSavedPref(); langLoad(LANG.pref||langDetect(langNavList()));
+document.addEventListener('DOMContentLoaded',()=>langApply(document));
+</script>
 </head>
 <body>
 <div id="rotateGate"><div class="splashWrap"><img class="splashImg" id="splashImg" alt="Emberweave Heroes" draggable="false"><video class="splashImg" id="splashVid" autoplay muted loop playsinline></video><button class="splashPlay" id="splashPlay" aria-label="Click to Play"></button><div class="splashStatus check" id="splashStatus">Checking…</div><div class="splashStudio" id="splashStudio"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M8 5 L16 13 L24 5 L27 8 L19 16 L27 24 L24 27 L16 19 L8 27 L5 24 L13 16 L5 8 Z" fill="#d8b877"/></svg>Xanthyr Games</div><div class="splashVer" id="splashVer"></div></div></div>
@@ -2490,16 +2573,16 @@ body.ew-rotated #app{max-width:none;max-height:none;}
       <button id="guestMark" hidden aria-label="Guest account - create an account"></button>
     </div>
     <div id="hubMenu">
-      <div id="menuBtn"><img class="mbIc" src="/assets/img/ui/mi-menu.webp?v=1" alt=""><span>Menu</span><span class="chev">▾</span></div>
+      <div id="menuBtn"><img class="mbIc" src="/assets/img/ui/mi-menu.webp?v=1" alt=""><span data-i18n="menu.menu">Menu</span><span class="chev">▾</span></div>
       <div id="menuPanel">
-        <div class="mitem" data-pop data-nav="heroesPanel"><span class="mi"><img src="/assets/img/ui/mi-heroes.webp?v=1" alt=""></span><span class="ml">Heroes</span></div>
-        <div class="mitem" data-pop data-nav="bag"><span class="mi"><img src="/assets/img/ui/mi-bag.webp?v=1" alt=""></span><span class="ml">Bag</span></div>
-        <div class="mitem" data-pop data-nav="tutorial"><span class="mi"><img src="/assets/img/ui/mi-tut.webp?v=1" alt=""></span><span class="ml">Start Here</span> <span id="tutDot" class="menuDot" style="display:none">!</span></div>
-        <div class="mitem" data-pop data-nav="quest"><span class="mi"><img src="/assets/img/ui/mi-quest.webp?v=1" alt=""></span><span class="ml">Quests</span> <span id="questDot" class="menuDot" style="display:none">!</span></div>
-        <div class="mitem" data-pop data-nav="signin"><span class="mi"><img src="/assets/img/ui/mi-signin.webp?v=1" alt=""></span><span class="ml">Sign-In</span> <span id="signinDot" class="menuDot" style="display:none">!</span></div>
-        <div class="mitem" data-pop data-nav="mail"><span class="mi"><img src="/assets/img/ui/mi-mail.webp?v=1" alt=""></span><span class="ml">Mail</span> <span id="mailDot" class="menuDot" style="display:none"></span></div>
-        <div class="mitem" data-pop data-nav="settings"><span class="mi"><img src="/assets/img/ui/mi-settings.webp?v=1" alt=""></span><span class="ml">Settings</span></div>
-        <div class="mitem" id="miServer" style="display:none"><span class="mi"><img src="/assets/img/ui/mi-server.webp?v=1" alt=""></span><span class="ml">Server</span></div>
+        <div class="mitem" data-pop data-nav="heroesPanel"><span class="mi"><img src="/assets/img/ui/mi-heroes.webp?v=1" alt=""></span><span class="ml" data-i18n="menu.heroes" data-i18n-fit="64">Heroes</span></div>
+        <div class="mitem" data-pop data-nav="bag"><span class="mi"><img src="/assets/img/ui/mi-bag.webp?v=1" alt=""></span><span class="ml" data-i18n="menu.bag" data-i18n-fit="64">Bag</span></div>
+        <div class="mitem" data-pop data-nav="tutorial"><span class="mi"><img src="/assets/img/ui/mi-tut.webp?v=1" alt=""></span><span class="ml" data-i18n="menu.start_here" data-i18n-fit="64">Start Here</span> <span id="tutDot" class="menuDot" style="display:none">!</span></div>
+        <div class="mitem" data-pop data-nav="quest"><span class="mi"><img src="/assets/img/ui/mi-quest.webp?v=1" alt=""></span><span class="ml" data-i18n="menu.quests" data-i18n-fit="64">Quests</span> <span id="questDot" class="menuDot" style="display:none">!</span></div>
+        <div class="mitem" data-pop data-nav="signin"><span class="mi"><img src="/assets/img/ui/mi-signin.webp?v=1" alt=""></span><span class="ml" data-i18n="menu.sign_in" data-i18n-fit="64">Sign-In</span> <span id="signinDot" class="menuDot" style="display:none">!</span></div>
+        <div class="mitem" data-pop data-nav="mail"><span class="mi"><img src="/assets/img/ui/mi-mail.webp?v=1" alt=""></span><span class="ml" data-i18n="menu.mail" data-i18n-fit="64">Mail</span> <span id="mailDot" class="menuDot" style="display:none"></span></div>
+        <div class="mitem" data-pop data-nav="settings"><span class="mi"><img src="/assets/img/ui/mi-settings.webp?v=1" alt=""></span><span class="ml" data-i18n="menu.settings" data-i18n-fit="64">Settings</span></div>
+        <div class="mitem" id="miServer" style="display:none"><span class="mi"><img src="/assets/img/ui/mi-server.webp?v=1" alt=""></span><span class="ml" data-i18n="menu.server" data-i18n-fit="64">Server</span></div>
       </div>
     </div>
     </div><!-- /cornerHud -->
@@ -2521,8 +2604,8 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 
   <!-- CAMPAIGN ROADMAP -->
   <div class="screen hub" id="campaign" style="padding:0">
-    <button class="btn secondary sm backbtn" data-nav="home" style="display:inline-flex;position:absolute;top:8px;left:8px;z-index:6">◀ Base</button>
-    <button class="btn secondary sm" id="campGlossBtn" style="display:inline-flex;position:absolute;top:8px;right:8px;z-index:10"><img class="stIc" src="/assets/img/icons/ui/lore-book-v1.webp" alt=""> Glossary</button>
+    <button class="btn secondary sm backbtn" data-nav="home" style="display:inline-flex;position:absolute;top:8px;left:8px;z-index:6">◀ <span data-i18n="nav.base">Base</span></button>
+    <button class="btn secondary sm" id="campGlossBtn" style="display:inline-flex;position:absolute;top:8px;right:8px;z-index:10"><img class="stIc" src="/assets/img/icons/ui/lore-book-v1.webp" alt=""> <span data-i18n="nav.glossary">Glossary</span></button>
     <div id="portalTabs" style="display:flex;gap:5px;justify-content:center;padding:6px 8px 0;z-index:6;position:relative"></div>
     <div id="cmapHdr" style="display:flex;align-items:center;justify-content:center;gap:14px;width:100%;padding:9px 86px 7px 86px;box-sizing:border-box;z-index:5;position:relative"></div>
     <div id="cmapScroll"><div id="cmap"></div></div>
@@ -2533,17 +2616,17 @@ body.ew-rotated #app{max-width:none;max-height:none;}
     <button class="btn secondary sm backbtn" id="menuBack">◀</button>
     <div class="titlebar"><h1 id="menuTitle">SELECT SQUAD</h1></div>
     <div class="sub" id="menuSub" style="display:none"></div>
-    <button class="btn secondary sm" id="glossaryBtn" style="position:absolute;top:12px;right:12px;z-index:3"><img class="stIc" src="/assets/img/icons/ui/lore-book-v1.webp" alt=""> Glossary</button>
+    <button class="btn secondary sm" id="glossaryBtn" style="position:absolute;top:12px;right:12px;z-index:3"><img class="stIc" src="/assets/img/icons/ui/lore-book-v1.webp" alt=""> <span data-i18n="nav.glossary">Glossary</span></button>
     <div id="startRow" style="width:100%;max-width:560px;margin:0 auto 10px;display:flex;gap:8px;align-items:stretch">
-      <button class="btn" id="startBtn" style="flex:0 0 78%;max-width:78%">BATTLE <img class="stIc" src="/assets/img/icons/ui/play-v1.webp" alt=""></button>
-      <button class="btn secondary" id="resetCompBtn" style="flex:1 1 auto;padding:12px 6px;font-size:12px;white-space:nowrap" title="Clear the selected heroes">↺ RESET</button>
+      <button class="btn" id="startBtn" style="flex:0 0 78%;max-width:78%"><span data-i18n="common.battle" data-i18n-upper>BATTLE</span> <img class="stIc" src="/assets/img/icons/ui/play-v1.webp" alt=""></button>
+      <button class="btn secondary" id="resetCompBtn" style="flex:1 1 auto;padding:12px 6px;font-size:12px;white-space:nowrap" title="Clear the selected heroes">↺ <span data-i18n="common.reset" data-i18n-upper>RESET</span></button>
     </div>
     <div class="panel rsPanel"><div id="rosterSlots" class="rsSlots"></div><div id="rosterClass" class="rsClass"></div><div class="row rsGrid" id="roster"></div></div>
   </div>
 
   <!-- GLOSSARY (bestiary + hero codex) -->
   <div class="screen hub" id="glossary">
-    <button class="btn secondary sm backbtn" data-nav="menu">◀ Menu</button>
+    <button class="btn secondary sm backbtn" data-nav="menu">◀ <span data-i18n="menu.menu">Menu</span></button>
     <div class="titlebar"><h1>GLOSSARY</h1></div>
     <div class="sub" id="glSub">The heroes and creatures of Emberweave</div>
     <div class="glTabs">
@@ -2558,17 +2641,17 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 
   <!-- TECHNOLOGY -->
   <div class="screen hub" id="tech">
-    <button class="btn secondary sm backbtn" data-nav="home">◀ Base</button>
-    <div class="titlebar"><h1>TECHNOLOGY</h1></div>
+    <button class="btn secondary sm backbtn" data-nav="home">◀ <span data-i18n="nav.base">Base</span></button>
+    <div class="titlebar"><h1 data-i18n="title.technology" data-i18n-upper>TECHNOLOGY</h1></div>
     <div class="sub">Permanent account-wide upgrades for every hero</div>
     <div class="panel" id="techPanel"></div>
   </div>
 
   <!-- CITY WALL / PvP -->
   <div class="screen hub" id="wall">
-    <button class="btn secondary sm backbtn" data-nav="home">◀ Base</button>
-    <button class="btn secondary sm" data-nav="world" style="position:absolute;top:12px;right:12px;z-index:22">World <img class="stIc" src="/assets/img/icons/ui/play-v1.webp" alt=""></button>
-    <div class="titlebar"><h1>CITY WALL</h1></div>
+    <button class="btn secondary sm backbtn" data-nav="home">◀ <span data-i18n="nav.base">Base</span></button>
+    <button class="btn secondary sm" data-nav="world" style="position:absolute;top:12px;right:12px;z-index:22"><span data-i18n="nav.world">World</span> <img class="stIc" src="/assets/img/icons/ui/play-v1.webp" alt=""></button>
+    <div class="titlebar"><h1 data-i18n="bld.city_wall" data-i18n-upper>CITY WALL</h1></div>
     <div class="sub" id="wallSub">Set your defenders and raid rival strongholds</div>
     <div id="wallBody"></div>
   </div>
@@ -2578,86 +2661,86 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 
   <!-- ACCOUNT (login/register) -->
   <div class="screen hub" id="account">
-    <button class="btn secondary sm backbtn" data-nav="home">◀ Base</button>
-    <div class="titlebar"><h1>ACCOUNT</h1></div>
+    <button class="btn secondary sm backbtn" data-nav="home">◀ <span data-i18n="nav.base">Base</span></button>
+    <div class="titlebar"><h1 data-i18n="title.account" data-i18n-upper>ACCOUNT</h1></div>
     <div class="sub">Sign in to play online — Arena ladder & City raids</div>
     <div class="panel" id="accountBody" style="max-width:420px"></div>
   </div>
 
   <!-- ARENA (ranked auto ladder) -->
   <div class="screen hub" id="arena">
-    <button class="btn secondary sm backbtn" data-nav="home">◀ Base</button>
-    <div class="titlebar"><h1>ARENA</h1></div>
+    <button class="btn secondary sm backbtn" data-nav="home">◀ <span data-i18n="nav.base">Base</span></button>
+    <div class="titlebar"><h1 data-i18n="bld.arena" data-i18n-upper>ARENA</h1></div>
     <div id="arenaBody" style="width:100%;max-width:min(980px,100%)"></div>
   </div>
 
   <!-- ARENA SHOP -->
   <div class="screen hub" id="arenaShop">
-    <button class="btn secondary sm backbtn" data-nav="arena">◀ Arena</button>
-    <div class="titlebar"><h1>ARENA SHOP</h1></div>
+    <button class="btn secondary sm backbtn" data-nav="arena">◀ <span data-i18n="bld.arena">Arena</span></button>
+    <div class="titlebar"><h1 data-i18n="title.arena_shop" data-i18n-upper>ARENA SHOP</h1></div>
     <div id="arenaShopBody" style="width:100%;max-width:520px"></div>
   </div>
 
   <!-- DUNGEON -->
   <div class="screen hub" id="dungeon" style="padding:0">
-    <button class="btn secondary sm backbtn" data-nav="home" style="z-index:5">◀ Base</button>
+    <button class="btn secondary sm backbtn" data-nav="home" style="z-index:5">◀ <span data-i18n="nav.base">Base</span></button>
     <div id="dungeonBody" style="position:absolute;inset:0;max-width:none;margin:0"></div>
   </div>
 
   <!-- THE FORGE (gear crafting & tempering) -->
   <div class="screen hub" id="forge">
-    <button class="btn secondary sm backbtn" data-nav="home">◀ Base</button>
-    <div class="titlebar"><h1>THE FORGE</h1></div>
+    <button class="btn secondary sm backbtn" data-nav="home">◀ <span data-i18n="nav.base">Base</span></button>
+    <div class="titlebar"><h1 data-i18n="title.forge" data-i18n-upper>THE FORGE</h1></div>
     <div id="forgeBody" style="width:100%;max-width:560px"></div>
   </div>
 
   <!-- ELITE STAGES -->
   <div class="screen hub" id="elite">
     <button class="btn secondary sm backbtn" id="eliteBack">◀</button>
-    <div class="titlebar"><h1>ELITE STAGES</h1></div>
+    <div class="titlebar"><h1 data-i18n="title.elite_stages" data-i18n-upper>ELITE STAGES</h1></div>
     <div class="sub">Beat a hero's elite stage for their star shards · 3/day · 12 stamina each</div>
     <div id="eliteBody" style="width:100%;max-width:540px"></div>
   </div>
   <!-- GUILD HALL -->
   <!-- SKYFALL (the guild war board - its own screen, v697) -->
   <div class="screen hub" id="skyfall">
-    <button class="btn secondary sm backbtn" data-nav="guild">◀ Guild</button>
+    <button class="btn secondary sm backbtn" data-nav="guild">◀ <span data-i18n="nav.guild">Guild</span></button>
     <div class="titlebar"><h1>SKYFALL</h1></div>
     <div id="skyfallBody"></div>
   </div>
 
   <div class="screen hub" id="guild">
-    <button class="btn secondary sm backbtn" data-nav="home">◀ Base</button>
-    <div class="titlebar"><h1>GUILD HALL</h1></div>
+    <button class="btn secondary sm backbtn" data-nav="home">◀ <span data-i18n="nav.base">Base</span></button>
+    <div class="titlebar"><h1 data-i18n="bld.guild_hall" data-i18n-upper>GUILD HALL</h1></div>
     <div id="guildBody" style="width:100%;max-width:720px"></div>
   </div>
   <!-- TEMPLE -->
   <div class="screen hub" id="temple">
-    <button class="btn secondary sm backbtn" data-nav="home">◀ Base</button>
-    <div class="titlebar"><h1>TEMPLE</h1></div>
+    <button class="btn secondary sm backbtn" data-nav="home">◀ <span data-i18n="nav.base">Base</span></button>
+    <div class="titlebar"><h1 data-i18n="bld.temple" data-i18n-upper>TEMPLE</h1></div>
     <div class="panel" id="templeBody" style="max-width:480px"></div>
   </div>
 
   <!-- MARKET -->
   <div class="screen hub" id="market">
-    <button class="btn secondary sm backbtn" data-nav="home">◀ Base</button>
-    <div class="titlebar"><h1>MARKET</h1></div>
+    <button class="btn secondary sm backbtn" data-nav="home">◀ <span data-i18n="nav.base">Base</span></button>
+    <div class="titlebar"><h1 data-i18n="bld.market" data-i18n-upper>MARKET</h1></div>
     <div class="sub">Hero fragments · shields</div>
     <div class="panel" id="marketBody" style="max-width:520px"></div>
   </div>
 
   <!-- SHADY MARKET (diamond-only premium shop) -->
   <div class="screen hub" id="shadymarket">
-    <button class="btn secondary sm backbtn" data-nav="home">◀ Base</button>
-    <div class="titlebar"><h1>SHADY MARKET</h1></div>
+    <button class="btn secondary sm backbtn" data-nav="home">◀ <span data-i18n="nav.base">Base</span></button>
+    <div class="titlebar"><h1 data-i18n="bld.shady_market" data-i18n-upper>SHADY MARKET</h1></div>
     <div class="sub">Premium goods — diamonds only</div>
     <div class="panel" id="shadyBody" style="max-width:520px"></div>
   </div>
 
   <!-- WATCH TOWER -->
   <div class="screen hub" id="watchtower">
-    <button class="btn secondary sm backbtn" data-nav="home">◀ Base</button>
-    <div class="titlebar"><h1>WATCH TOWER</h1></div>
+    <button class="btn secondary sm backbtn" data-nav="home">◀ <span data-i18n="nav.base">Base</span></button>
+    <div class="titlebar"><h1 data-i18n="bld.watch_tower" data-i18n-upper>WATCH TOWER</h1></div>
     <div class="sub">Live guild activity on the world map</div>
     <div style="display:flex;gap:6px;justify-content:center;margin-bottom:10px" id="watchTabs">
       <button class="btn sm" data-wt="attack"><img class="stIc" src="/assets/img/icons/status/attack-v1.webp" alt=""> Attack</button>
@@ -2669,79 +2752,79 @@ body.ew-rotated #app{max-width:none;max-height:none;}
 
   <!-- SERVER RANKINGS -->
   <div class="screen hub" id="rankings">
-    <button class="btn secondary sm backbtn" data-nav="home">◀ Base</button>
-    <div class="titlebar"><h1>BULLETIN BOARD</h1></div>
+    <button class="btn secondary sm backbtn" data-nav="home">◀ <span data-i18n="nav.base">Base</span></button>
+    <div class="titlebar"><h1 data-i18n="bld.bulletin_board" data-i18n-upper>BULLETIN BOARD</h1></div>
     <div class="sub">Server rankings — arena, guilds & your standings</div>
     <div id="rankingsBody" style="width:100%;max-width:520px"></div>
   </div>
 
   <!-- WISHING POOL -->
   <div class="screen hub" id="wishing">
-    <button class="btn secondary sm backbtn" data-nav="home">◀ Base</button>
-    <div class="titlebar"><h1>WISHING POOL <button type="button" class="wishHelp" onclick="wishShowInfo()" aria-label="Pool contents and odds">?</button></h1></div>
+    <button class="btn secondary sm backbtn" data-nav="home">◀ <span data-i18n="nav.base">Base</span></button>
+    <div class="titlebar"><h1><span data-i18n="bld.wishing_pool" data-i18n-upper>WISHING POOL</span> <button type="button" class="wishHelp" onclick="wishShowInfo()" aria-label="Pool contents and odds">?</button></h1></div>
     <div class="sub">Toss a coin and make a wish — glyphs, hero fragments &amp; more</div>
     <div id="wishingBody" style="width:100%;max-width:540px"></div>
   </div>
 
   <!-- ONLINE PvP (legacy live mode, kept dormant) -->
   <div class="screen hub" id="online">
-    <button class="btn secondary sm backbtn" data-nav="home">◀ Base</button>
-    <div class="titlebar"><h1>ONLINE ARENA</h1></div>
+    <button class="btn secondary sm backbtn" data-nav="home">◀ <span data-i18n="nav.base">Base</span></button>
+    <div class="titlebar"><h1 data-i18n="title.online_arena" data-i18n-upper>ONLINE ARENA</h1></div>
     <div class="sub" id="onlineSub">Live PvP — one player hosts, the other joins by link</div>
     <div id="onlineBody" style="width:100%;max-width:520px"></div>
   </div>
 
   <!-- DRAWER PANELS -->
   <div class="screen hub" id="heroesPanel">
-    <button class="btn secondary sm backbtn" data-nav="home">◀ Base</button>
-    <div class="titlebar"><h1>HEROES</h1></div>
+    <button class="btn secondary sm backbtn" data-nav="home">◀ <span data-i18n="nav.base">Base</span></button>
+    <div class="titlebar"><h1 data-i18n="menu.heroes" data-i18n-upper>HEROES</h1></div>
     <div class="sub">Level heroes, raise quality and build glyphs</div>
     <div class="panel"><div class="row" id="heroList"></div></div>
   </div>
   <div class="screen hub" id="heroDetail">
-    <button class="btn secondary sm backbtn" data-pop data-nav="heroesPanel">◀ Heroes</button>
+    <button class="btn secondary sm backbtn" data-pop data-nav="heroesPanel">◀ <span data-i18n="menu.heroes">Heroes</span></button>
     <button class="hero-nav" id="heroPrev" aria-label="Previous hero">‹</button>
     <button class="hero-nav" id="heroNext" aria-label="Next hero">›</button>
     <div id="heroDetailBody" style="width:100%;max-width:560px;margin-top:36px;"></div>
   </div>
   <div class="screen hub" id="bag">
-    <button class="btn secondary sm backbtn" data-nav="home">◀ Base</button>
-    <div class="titlebar"><h1>BAG</h1></div>
+    <button class="btn secondary sm backbtn" data-nav="home">◀ <span data-i18n="nav.base">Base</span></button>
+    <div class="titlebar"><h1 data-i18n="menu.bag" data-i18n-upper>BAG</h1></div>
     <div class="sub">Glyph shards drop from campaign stages</div>
     <div class="panel" id="bagBody"></div>
   </div>
   <div class="screen hub" id="settings">
-    <button class="btn secondary sm backbtn" data-nav="home">◀ Base</button>
-    <div class="titlebar"><h1>SETTINGS</h1></div>
+    <button class="btn secondary sm backbtn" data-nav="home">◀ <span data-i18n="nav.base">Base</span></button>
+    <div class="titlebar"><h1 data-i18n="menu.settings" data-i18n-upper>SETTINGS</h1></div>
     <div class="panel" id="settingsBody"></div>
   </div>
   <div class="screen hub" id="quest">
-    <button class="btn secondary sm backbtn" data-nav="home">◀ Base</button>
-    <div class="titlebar"><h1>QUESTS</h1></div>
+    <button class="btn secondary sm backbtn" data-nav="home">◀ <span data-i18n="nav.base">Base</span></button>
+    <div class="titlebar"><h1 data-i18n="menu.quests" data-i18n-upper>QUESTS</h1></div>
     <div class="sub">Complete objectives to earn hero fragments, gold and diamonds.</div>
     <div class="panel" id="questBody"></div>
   </div>
   <div class="screen hub" id="signin">
-    <button class="btn secondary sm backbtn" data-nav="home">◀ Base</button>
-    <div class="titlebar"><h1>DAILY SIGN-IN</h1></div>
+    <button class="btn secondary sm backbtn" data-nav="home">◀ <span data-i18n="nav.base">Base</span></button>
+    <div class="titlebar"><h1 data-i18n="title.daily_signin" data-i18n-upper>DAILY SIGN-IN</h1></div>
     <div class="sub">Sign in each day for rewards — every week earns Hero-of-the-Month fragments.</div>
     <div class="panel" id="signinBody"></div>
   </div>
   <div class="screen hub" id="tutorial">
-    <button class="btn secondary sm backbtn" data-nav="home">◀ Base</button>
-    <div class="titlebar"><h1>START HERE</h1></div>
+    <button class="btn secondary sm backbtn" data-nav="home">◀ <span data-i18n="nav.base">Base</span></button>
+    <div class="titlebar"><h1 data-i18n="menu.start_here" data-i18n-upper>START HERE</h1></div>
     <div class="sub">Follow these steps to learn the ropes — each one hands you a reward.</div>
     <div class="panel" id="tutorialBody"></div>
   </div>
   <div class="screen hub" id="skyisland">
-    <button class="btn secondary sm backbtn" data-nav="home">◀ Base</button>
-    <div class="titlebar"><h1>ISLAND OF TRIALS</h1></div>
+    <button class="btn secondary sm backbtn" data-nav="home">◀ <span data-i18n="nav.base">Base</span></button>
+    <div class="titlebar"><h1 data-i18n="bld.island_trials" data-i18n-upper>ISLAND OF TRIALS</h1></div>
     <div class="sub">Three trials drift among the clouds.</div>
     <div class="panel" id="skyIslandBody"></div>
   </div>
   <div class="screen hub" id="mail">
-    <button class="btn secondary sm backbtn" data-nav="home">◀ Base</button>
-    <div class="titlebar"><h1>MAIL</h1></div>
+    <button class="btn secondary sm backbtn" data-nav="home">◀ <span data-i18n="nav.base">Base</span></button>
+    <div class="titlebar"><h1 data-i18n="menu.mail" data-i18n-upper>MAIL</h1></div>
     <div class="tabrow" id="mailTabs"></div>
     <div class="panel" id="mailBody"></div>
   </div>
@@ -17148,7 +17231,7 @@ function _showScreen(name){
     renderRoadmap(); }
   if(name==='menu'){
     const mb=document.getElementById('menuBack');
-    if(mb) mb.textContent=({campaign:'◀ Campaign',dungeon:'◀ Vault',arena:'◀ Arena',wall:'◀ Wall',heroesPanel:'◀ Heroes'}[menuReturn]||'◀ Back');
+    if(mb) mb.textContent='◀ '+t(({campaign:'bld.campaign',dungeon:'nav.vault',arena:'bld.arena',wall:'nav.wall',heroesPanel:'menu.heroes'})[menuReturn]||'common.back');   // v1265 languages
     renderRoster();
   }
   if(name==='tech') renderTech();
@@ -17260,23 +17343,23 @@ function renderHome(){
   // placed over them (x,y = CENTER %, w/h = size %, of the 1024x392 image). lx,ly = name-label center %.
   // hotspots over the NEW painted town map (1536×1024). x,y = CENTER %, w/h = box size %, lx/ly = label center %.
   const hots=[
-    {nav:'wall',        label:'City Wall',      x:17, y:12, w:34, h:26, lx:13, ly:24, z:1, ...lk(WALL_UNLOCK_LEVEL)},
+    {nav:'wall',        label:t('bld.city_wall'),      x:17, y:12, w:34, h:26, lx:13, ly:24, z:1, ...lk(WALL_UNLOCK_LEVEL)},
     {nav:'wall',        label:'',               x:6,  y:40, w:13, h:54, lx:6,  ly:40, z:1, ...lk(WALL_UNLOCK_LEVEL)},
-    {nav:'market',      label:'Market',         x:47, y:11, w:22, h:16, lx:47, ly:20},
-    {nav:'shadymarket', label:'Shady Market',   x:31, y:24, w:13, h:14, lx:31, ly:31},
-    {nav:'temple',      label:'Temple',         x:68, y:13, w:15, h:20, lx:68, ly:24, ...lk(50)},
-    {nav:'campaign',    label:'Campaign',       x:83, y:14, w:22, h:32, lx:83, ly:32},
-    {nav:'tech',        label:'Academy',        x:50, y:35, w:22, h:28, lx:50, ly:50, academy:true, ...lk(ACADEMY_UNLOCK_LEVEL)},
-    {nav:'rankings',    label:'Bulletin Board', x:69, y:37, w:15, h:16, lx:69, ly:46},   // v256 (80/20 §7): rankings live on the physical Bulletin Board — there is no top-nav duplicate
-    {nav:'dungeon',     label:'The Vault',      x:90, y:42, w:15, h:22, lx:87, ly:53, ...lk(10)},   /* v819 (Phil 25 Sep): "Move vault to 10" - the server opens it at VAULT_UNLOCK_LEVEL=10 */
-    {nav:'wishing',     label:'Wishing Pool',   x:64, y:57, w:10, h:16, lx:64, ly:66},
-    {nav:'arena',       label:'Arena',          x:85, y:63, w:19, h:21, lx:85, ly:74, ...lk(10)},
-    {nav:'watchtower',  label:'Watch Tower',    x:13, y:78, w:12, h:24, lx:13, ly:91, ...lk(20)},
-    {nav:'guild',       label:'Guild Hall',     x:36, y:76, w:22, h:19, lx:36, ly:87, ...lk(13)},
-    {nav:'skyisland',   label:'Island of Trials', x:73, y:85, w:15, h:22, lx:73, ly:97, ...lk(10)},   // v604 (Phil, 18 Sep): "please move island of trials to 10" — was 30, which hid the Gold Province (10) and Drill (15) inside
-    {nav:'wall',        label:'Witches Hut',    x:24, y:40, w:19, h:17, lx:24, ly:49, cauldron:true, ...lk(WALL_UNLOCK_LEVEL)},
-    {nav:'forge',       label:'Forge',          x:22, y:58, w:17, h:17, lx:22, ly:67, ...lk(25)},
-    {nav:'well',        label:'The Starless Well', x:90, y:70, w:16, h:34, lx:90, ly:88, well:true, ...lk(61)},   /* v825 Starless Well: the black hole (measured on the art: core x90 y71) */
+    {nav:'market',      label:t('bld.market'),         x:47, y:11, w:22, h:16, lx:47, ly:20},
+    {nav:'shadymarket', label:t('bld.shady_market'),   x:31, y:24, w:13, h:14, lx:31, ly:31},
+    {nav:'temple',      label:t('bld.temple'),         x:68, y:13, w:15, h:20, lx:68, ly:24, ...lk(50)},
+    {nav:'campaign',    label:t('bld.campaign'),       x:83, y:14, w:22, h:32, lx:83, ly:32},
+    {nav:'tech',        label:t('bld.academy'),        x:50, y:35, w:22, h:28, lx:50, ly:50, academy:true, ...lk(ACADEMY_UNLOCK_LEVEL)},
+    {nav:'rankings',    label:t('bld.bulletin_board'), x:69, y:37, w:15, h:16, lx:69, ly:46},   // v256 (80/20 §7): rankings live on the physical Bulletin Board — there is no top-nav duplicate
+    {nav:'dungeon',     label:t('bld.vault'),      x:90, y:42, w:15, h:22, lx:87, ly:53, ...lk(10)},   /* v819 (Phil 25 Sep): "Move vault to 10" - the server opens it at VAULT_UNLOCK_LEVEL=10 */
+    {nav:'wishing',     label:t('bld.wishing_pool'),   x:64, y:57, w:10, h:16, lx:64, ly:66},
+    {nav:'arena',       label:t('bld.arena'),          x:85, y:63, w:19, h:21, lx:85, ly:74, ...lk(10)},
+    {nav:'watchtower',  label:t('bld.watch_tower'),    x:13, y:78, w:12, h:24, lx:13, ly:91, ...lk(20)},
+    {nav:'guild',       label:t('bld.guild_hall'),     x:36, y:76, w:22, h:19, lx:36, ly:87, ...lk(13)},
+    {nav:'skyisland',   label:t('bld.island_trials'), x:73, y:85, w:15, h:22, lx:73, ly:97, ...lk(10)},   // v604 (Phil, 18 Sep): "please move island of trials to 10" — was 30, which hid the Gold Province (10) and Drill (15) inside
+    {nav:'wall',        label:t('bld.witches_hut'),    x:24, y:40, w:19, h:17, lx:24, ly:49, cauldron:true, ...lk(WALL_UNLOCK_LEVEL)},
+    {nav:'forge',       label:t('bld.forge'),          x:22, y:58, w:17, h:17, lx:22, ly:67, ...lk(25)},
+    {nav:'well',        label:t('bld.starless_well'), x:90, y:70, w:16, h:34, lx:90, ly:88, well:true, ...lk(61)},   /* v825 Starless Well: the black hole (measured on the art: core x90 y71) */
   ];
   // Anchors measured against the wide city painting; all sixteen tap targets retain their destination.
   const wideHomePositions=[
@@ -17306,8 +17389,8 @@ function renderHome(){
     if(!h.label) return;   // label-less boxes (e.g. the 2nd City Wall segment) get no label
     const lab=document.createElement('div'); lab.className='townlbl'; lab.style.left=h.lx+'%'; lab.style.top=h.ly+'%';
     let inner='<span>'+h.label+'</span>';
-    if(h.locked) inner+='<span class="lockwrap"><img class="lkIc" src="/assets/img/ui/hud-lock.webp?v=2" alt="Locked"><span class="locktip">Unlocks at Lv '+h.lockLv+'</span></span>';
-    if(h.academy){ const nl=nextLearn(); if(nl) inner+='<span class="lockwrap acatimer" data-academy-timer="1">'+uiIcon('timer')+'<span class="locktip">Research: '+fmtDur(nl-Date.now())+'</span></span>'; }
+    if(h.locked) inner+='<span class="lockwrap"><img class="lkIc" src="/assets/img/ui/hud-lock.webp?v=2" alt="Locked"><span class="locktip">'+t('hub.unlocks_at',{n:h.lockLv})+'</span></span>';
+    if(h.academy){ const nl=nextLearn(); if(nl) inner+='<span class="lockwrap acatimer" data-academy-timer="1">'+uiIcon('timer')+'<span class="locktip">'+t('hub.research',{t:fmtDur(nl-Date.now())})+'</span></span>'; }
     lab.innerHTML=inner;
     const wrapEl=lab.querySelector('.lockwrap');
     if(wrapEl && !wrapEl.classList.contains('acatimer')) townLockHold(lab, wrapEl);   // hold the name (not just the lock) to see the level
@@ -17462,7 +17545,7 @@ setInterval(()=>{
   if(collectLearns()){ renderHome(); return; }
   regenStamina(); updateHubChrome();
   const b=document.querySelector('[data-academy-timer]'), nl=nextLearn();
-  if(b&&nl){ const tip=b.querySelector('.locktip'); if(tip) tip.textContent='Research: '+fmtDur(nl-Date.now()); } else if((b&&!nl)||(!b&&nl)) renderHome();
+  if(b&&nl){ const tip=b.querySelector('.locktip'); if(tip) tip.textContent=t('hub.research',{t:fmtDur(nl-Date.now())}); } else if((b&&!nl)||(!b&&nl)) renderHome();
 },1000);
 /* ================= AETHER VAULT + SKYFALL — client (server-authoritative, render-only) ================= */
 let VAULT={ st:null, busy:false, pick:null, result:null, salv:null };
@@ -24130,7 +24213,7 @@ function showKickedNotice(){
     <div style="font-size:40px">${hudIcon('lock')}</div>
     <div style="font-weight:800;font-size:17px;margin:6px 0;color:#ffb4b4">You've been logged out</div>
     <div style="font-size:13px;color:#e8d5d5;line-height:1.55;margin-bottom:14px">Someone just logged into your account on another device, so this device has been signed out.<br><br>If that wasn't you, change your password right away — and contact a developer if you think your account was taken.</div>
-    <button class="btn" style="width:100%" id="kickedOk">OK</button></div>`;
+    <button class="btn" style="width:100%" id="kickedOk">${t('common.ok')}</button></div>`;
   document.body.appendChild(ov);
   ov.querySelector('#kickedOk').onclick=()=>ov.remove();
 }
@@ -24177,7 +24260,7 @@ try{ addEventListener('pagehide',()=>{ try{ flushCloud(); }catch(e){} });
 // game paints instantly before the profile fetch returns; it is never trusted over the cloud.
 function applyCloudSave(profile,forceLoad){ try{ const blob=profile&&profile.roster&&profile.roster.__save; if(!blob) return false;
     const cloud=JSON.parse(blob);
-    const fresh=JSON.parse(JSON.stringify(DEFAULT_G)); deepMerge(fresh,cloud); G=fresh; const granted=migrateG(); applyBetaUnlocks(); try{ if(typeof LED!=='undefined'&&LED&&LED.st) adoptLedger(LED.st); }catch(e){} saveGLocalOnly(); if(granted && ACC.token) pushSave();
+    const fresh=JSON.parse(JSON.stringify(DEFAULT_G)); deepMerge(fresh,cloud); G=fresh; const granted=migrateG(); applyBetaUnlocks(); try{ if(typeof LED!=='undefined'&&LED&&LED.st) adoptLedger(LED.st); }catch(e){} saveGLocalOnly(); if(granted && ACC.token) pushSave(); try{ langAdoptSave(); }catch(e){}   /* v1265: the account's language */
     ACAD_SYNCED=false; if(ACC.token){ try{ academySync().then(function(){ try{ updateHubChrome(); if(state==='tech') renderTech(); }catch(e){} }); }catch(e){} }   // v327: the cloud save has tech/techLearn/res stripped by the server — re-pull them or the Academy paints Lv 0
     return true;
   }catch(e){ return false; } }
@@ -25285,7 +25368,7 @@ function dropTelePin(x,y,ok){ const inner=document.getElementById('wzoneInner');
    Every message now carries the Base button, and Try again where a retry can help. */
 function worldMsg(body,text,retry){ if(!body) return;
   body.innerHTML='<div class="panel" style="text-align:center"><div>'+escapeHTML(text)+'</div><div style="display:flex;gap:8px;justify-content:center;margin-top:12px">'
-    +(retry?'<button class="btn sm" id="worldRetry">Try again</button>':'')+'<button class="btn sm secondary" id="worldMsgBack">◀ Base</button></div></div>';
+    +(retry?'<button class="btn sm" id="worldRetry">Try again</button>':'')+'<button class="btn sm secondary" id="worldMsgBack">◀ <span data-i18n="nav.base">Base</span></button></div></div>';
   const b=body.querySelector('#worldMsgBack'); if(b) b.onclick=()=>{ try{ closeCityMenu(); }catch(e){} show('home'); };
   const r=body.querySelector('#worldRetry'); if(r) r.onclick=()=>{ _worldServerPending=null; renderWorldMap(); };
   try{ muteBtnPlace(true); }catch(e){} }
@@ -26388,8 +26471,8 @@ async function openSiegePanel(siteId){ const S=siegeApi(); if(!S) return; const 
       <div id="spWhy" style="font-size:11px;color:#ff9a8b;min-height:14px;margin-top:8px"></div>
       ${ours?`<div style="display:flex;gap:8px;margin-top:10px"><button class="btn" style="flex:1" id="spDefense" ${whyDef?'disabled':''}>${statusIcon('shield')} Defense</button>
         <button class="btn" style="flex:1" id="spView">${uiIcon('rally-flag')} View Garrison</button></div>
-        <div style="display:flex;gap:8px;margin-top:8px"><button class="btn secondary" style="flex:1" id="spClose">Close</button></div>`
-      :`<div style="display:flex;gap:8px;margin-top:10px"><button class="btn secondary" style="flex:1" id="spClose">Close</button>
+        <div style="display:flex;gap:8px;margin-top:8px"><button class="btn secondary" style="flex:1" id="spClose">${t('common.close')}</button></div>`
+      :`<div style="display:flex;gap:8px;margin-top:10px"><button class="btn secondary" style="flex:1" id="spClose">${t('common.close')}</button>
         <button class="btn" style="flex:1" id="spAttack" ${why?'disabled':''}>${statusIcon('attack')} Attack</button></div>`}</div>`;
     ov.querySelector('#spName').textContent=site.name;
     ov.querySelector('#spHolder').textContent=h?(h.name+(h.type==='guild'?' (guild)':'')):'None';
@@ -26461,7 +26544,7 @@ function showCityInfo(c){ closeCityMenu();
       ${uiIcon('map-pin')} Coordinates&nbsp; <b style="color:#9fc0d6">X${cx} Y${cy}</b><br>
       ${uiIcon('trophy')} Arena rank&nbsp; <b style="color:#ffd45e">#${rank}</b>${pw!=null?'<br>'+statusIcon('attack')+' Power&nbsp; <b>'+pw+'</b>':''}
     </div>
-    <button class="btn" style="width:100%;margin-top:14px" id="ciClose">Close</button></div>`;
+    <button class="btn" style="width:100%;margin-top:14px" id="ciClose">${t('common.close')}</button></div>`;
   document.body.appendChild(ov); const close=()=>ov.remove();
   ov.addEventListener('click',e=>{ if(e.target===ov)close(); }); ov.querySelector('#ciClose').onclick=close; }
 // the attacking army = whoever is on your wall, in line order (Line 1 → 2 → 3), skipping any hero busy mining/marching
@@ -28298,7 +28381,7 @@ function renderQuests(){ const b=document.getElementById('questBody'); if(!b)ret
       <div class="qh"><div class="qt">${uiIcon('gift')} ${escapeHTML(p.name)}</div><div class="qrew">${rew} / day</div></div>
       <div class="qd">Daily reward pack — <b style="color:#ffd45e">${p.daysLeft}</b> day${p.daysLeft===1?'':'s'} remaining.</div>
       <div class="qmeta"><span>${ready?uiIcon('sparkle-new')+' Ready to claim':uiIcon('check')+' Claimed today · resets 09:00'}</span>
-        <button class="btn xs${ready?'':' secondary'}" data-pack="${p.type}" ${ready?'':'disabled'}>${ready?'Claim':'Claimed'}</button></div></div>`}); });
+        <button class="btn xs${ready?'':' secondary'}" data-pack="${p.type}" ${ready?'':'disabled'}>${ready?t('common.claim'):t('common.claimed')}</button></div></div>`}); });
   // Chained quests show only their current step. Claimed one-offs have no follow-up and disappear.
   if(!questChainDone()){ const chSteps=questChainDef(); const step=G.questChainStep||0, chReady=questChainReady();
     const st=chSteps[step], node=st.node, chProg=Math.min(node,G.campaignCleared||0);
@@ -28308,7 +28391,7 @@ function renderQuests(){ const b=document.getElementById('questBody'); if(!b)ret
       <div class="qd">Clear Stage ${stageCode(node)} of the campaign. (${step}/${chSteps.length} steps done)</div>
       <div class="qbar"><i style="width:${Math.round(chProg/node*100)}%"></i></div>
       <div class="qmeta"><span>Stage ${chProg>=1?stageCode(chProg):'—'} / ${stageCode(node)} cleared</span>
-        <button class="btn xs${chReady?'':' secondary'}" id="qcClaim" ${chReady?'':'disabled'}>${chReady?'Claim':'Locked'}</button></div></div>`}); }
+        <button class="btn xs${chReady?'':' secondary'}" id="qcClaim" ${chReady?'':'disabled'}>${chReady?t('common.claim'):t('common.locked')}</button></div></div>`}); }
   questDefs().forEach((q,questOrder)=>{ if(G.questClaimed[q.id]) return;   // claimed one-offs have no follow-up → removed from the log
     const pct=Math.round(q.prog/q.goal*100);
     cards.push({ready:!!q.ready,group:'Other quests',groupOrder:2,order:questOrder,html:`<div class="qcard${q.ready?' ready':''}">
@@ -28316,7 +28399,7 @@ function renderQuests(){ const b=document.getElementById('questBody'); if(!b)ret
       <div class="qd">${q.desc}</div>
       <div class="qbar"><i style="width:${pct}%"></i></div>
       <div class="qmeta"><span>${q.prog} / ${q.goal}</span>
-        <button class="btn xs${q.ready?'':' secondary'}" data-q="${q.id}" ${q.ready?'':'disabled'}>${q.ready?'Claim':'In progress'}</button></div></div>`}); });
+        <button class="btn xs${q.ready?'':' secondary'}" data-q="${q.id}" ${q.ready?'':'disabled'}>${q.ready?t('common.claim'):t('common.in_progress')}</button></div></div>`}); });
   // completed quests always sit at the top; claim one and the next completed quest rises up
   cards.sort((a,b)=> (b.ready?1:0)-(a.ready?1:0)||a.groupOrder-b.groupOrder||a.order-b.order);
   let prevReady=null,prevGroup=null;
@@ -28934,7 +29017,7 @@ function openGauntlet(){ gauntRestore(); const ov=isleOverlay();
       ov.innerHTML=isleCard(`<div style="font-weight:800;font-size:15px;text-align:center;margin-bottom:8px">${uiIcon('dice')} Gauntlet loot pending</div>
         <div style="font-size:12px;text-align:center;color:#ffd45e;margin-bottom:12px">${hudIcon('gold')} ${(_gaunt.gold+_gaunt.runes*300).toLocaleString()}${_gaunt.gems?' · '+hudIcon('gem')+' '+_gaunt.gems.toLocaleString():''}</div>
         <button class="btn" id="gaRetryBank" style="width:100%">Bank saved loot</button>
-        <button class="btn secondary" id="gaX" style="width:100%;margin-top:8px">Close</button>
+        <button class="btn secondary" id="gaX" style="width:100%;margin-top:8px">${t('common.close')}</button>
         ${msg?`<div style="text-align:center;font-size:12px;color:${mc};margin-top:8px">${msg}</div>`:''}`);
       ov.querySelector('#gaX').onclick=()=>ov.remove();
       ov.querySelector('#gaRetryBank').onclick=()=>{ gauntBank().then(ok=>render(ok?uiIcon('check')+' Loot banked.':'Still waiting for the server. Retry when connected.',ok?'#5ee89b':'#ff8b8b')); };
@@ -29282,7 +29365,7 @@ function renderSettings(){
   // ---- ACCOUNT: sign in / create a cloud account (syncs progress across devices) ----
   let account;
   if(!online()){
-    account=`<div class="panel"><div style="font-weight:800;font-size:13px;margin-bottom:2px">${uiIcon('cloud-sync')} Cloud Account</div><div style="font-size:12px;color:#8b98a9">Open the game through your online link to sign in.</div></div>`;
+    account=`<div class="panel"><div style="font-weight:800;font-size:13px;margin-bottom:2px">${uiIcon('cloud-sync')} ${t('set.cloud_account')}</div><div style="font-size:12px;color:#8b98a9">${t('set.open_online')}</div></div>`;
   } else if(ACC.token){
     const em=ACC.email||'';
     const emailRow = em
@@ -29292,13 +29375,13 @@ function renderSettings(){
       ? `<div id="acEmailForm" style="display:none;margin:4px 0 8px">
           <input id="acEmailIn" type="email" placeholder="you@example.com" autocomplete="email" style="${inp}" value="">
           <div style="font-size:11px;color:#8b98a9;margin-top:4px">${em?'For security, we\'ll email a 6-digit code to your <b>current</b> recovery email to confirm the change.':'We\'ll email a 6-digit code to this address to confirm you own it.'}</div>
-          <div style="display:flex;gap:6px;margin-top:6px"><button class="btn xs" id="acEmailSend" style="flex:1">Send code</button><button class="btn xs secondary" id="acEmailCancel">Cancel</button></div>
+          <div style="display:flex;gap:6px;margin-top:6px"><button class="btn xs" id="acEmailSend" style="flex:1">Send code</button><button class="btn xs secondary" id="acEmailCancel">${t('common.cancel')}</button></div>
           <div id="acEmailMsg" style="font-size:11px;margin-top:4px;min-height:13px"></div></div>`
       : `<div id="acEmailForm" style="display:block;margin:4px 0 8px;background:#0f1420;border:1px solid #33405e;border-radius:10px;padding:10px">
           <div style="font-weight:800;font-size:12px;margin-bottom:4px">${uiIcon('mail')} Confirm email change</div>
           <div style="font-size:11px;color:#8b98a9;margin-bottom:8px">Enter the 6-digit code sent to <b>${escapeHTML(_emSentTo)}</b>${_emToCurrent?' (your current recovery email)':''}. Changing to: <b>${escapeHTML(_emPending)}</b></div>
           <input id="acEmailCode" type="text" inputmode="numeric" maxlength="6" placeholder="6-digit code" autocomplete="one-time-code" style="${inp};letter-spacing:4px;text-align:center;font-size:16px">
-          <div style="display:flex;gap:6px;margin-top:6px"><button class="btn xs" id="acEmailConfirm" style="flex:1">Confirm</button><button class="btn xs secondary" id="acEmailResend">Resend</button><button class="btn xs secondary" id="acEmailCancel">Cancel</button></div>
+          <div style="display:flex;gap:6px;margin-top:6px"><button class="btn xs" id="acEmailConfirm" style="flex:1">${t('common.confirm')}</button><button class="btn xs secondary" id="acEmailResend">Resend</button><button class="btn xs secondary" id="acEmailCancel">${t('common.cancel')}</button></div>
           <div id="acEmailMsg" style="font-size:11px;margin-top:4px;min-height:13px"></div></div>`;
     const resetBlock = (pwStep==='idle')
       ? `<button class="btn sm secondary" id="acPwReset" style="width:100%;margin-bottom:6px" ${em?'':'disabled'}>${uiIcon('key')} Reset password by email${em?'':' (add an email first)'}</button>`
@@ -29310,7 +29393,7 @@ function renderSettings(){
             <input id="acRNew" type="password" placeholder="New password" autocomplete="new-password" style="${inp}">
             <input id="acRNew2" type="password" placeholder="Confirm new password" autocomplete="new-password" style="${inp}">
             <button class="btn" id="acRSubmit">Change password</button>
-            <div style="display:flex;gap:6px"><button class="btn xs secondary" id="acRResend" style="flex:1">Resend code</button><button class="btn xs secondary" id="acRCancel" style="flex:1">Cancel</button></div>
+            <div style="display:flex;gap:6px"><button class="btn xs secondary" id="acRResend" style="flex:1">Resend code</button><button class="btn xs secondary" id="acRCancel" style="flex:1">${t('common.cancel')}</button></div>
           </div>
           <div id="acRMsg" style="font-size:11px;margin-top:6px;min-height:14px"></div></div>`;
     /* v1097 (sweep #16): a signed-in guest makes an account here and KEEPS this progress (same account id, same ledger) -
@@ -29318,29 +29401,29 @@ function renderSettings(){
     const guestUp = ACC.guest ? `<div style="background:#0f1420;border:1px solid #33405e;border-radius:10px;padding:10px;margin-bottom:8px">
           <div style="font-weight:800;font-size:12px;margin-bottom:6px">Create account</div>
           <div style="display:flex;flex-direction:column;gap:6px">
-            <input id="acgName" type="text" placeholder="Username" maxlength="16" autocomplete="off" autocapitalize="off" spellcheck="false" style="${inp}">
+            <input id="acgName" type="text" placeholder="${t('set.username')}" maxlength="16" autocomplete="off" autocapitalize="off" spellcheck="false" style="${inp}">
             <input id="acgPass" type="password" placeholder="Password (8+ characters)" autocomplete="new-password" style="${inp}">
-            <input id="acgPass2" type="password" placeholder="Confirm password" autocomplete="new-password" style="${inp}">
+            <input id="acgPass2" type="password" placeholder="${t('set.confirm_password')}" autocomplete="new-password" style="${inp}">
             <button class="btn" id="acgGo">Create account</button></div>
           <div id="acgMsg" style="font-size:11px;margin-top:6px;min-height:14px"></div></div>` : '';
     /* v1097 (sweep #17, App Store): Delete account - the confirmation is typed on the page (no confirm() dialog) */
     const delBlock = (delStep!=='confirm')
-      ? `<button class="btn sm secondary" id="acDel" style="width:100%;margin-top:8px;color:#ff8b8b;border-color:#ff6b6b66">Delete account</button>`
+      ? `<button class="btn sm secondary" id="acDel" style="width:100%;margin-top:8px;color:#ff8b8b;border-color:#ff6b6b66">${t('set.delete_account')}</button>`
       : `<div style="background:#1a0f12;border:1px solid #ff6b6b88;border-radius:10px;padding:10px;margin-top:8px">
           <div style="font-weight:800;font-size:12px;color:#ff8b8b;margin-bottom:4px">Delete account</div>
           <div style="font-size:11px;color:#c3ccd8;margin-bottom:8px">${ACC.guest?`This permanently deletes guest <b>${escapeHTML(ACC.name||'')}</b> at once: progress, heroes, items and city. It cannot be undone.`:`This deletes <b>${escapeHTML(ACC.name||'')}</b>: progress, heroes, items, city, guild place and personal details. The account is locked and hidden for <b>7 days</b> - sign in again within 7 days to cancel. After that it is wiped from our database and cannot be restored (backups age out on their own schedule). <a href="/privacy#delete-account" target="_blank" rel="noopener" style="color:#9ab0d6">Privacy Policy</a>`}</div>
           <div style="display:flex;flex-direction:column;gap:6px">
             <input id="acDelConf" type="text" placeholder="Type DELETE" autocomplete="off" autocapitalize="characters" spellcheck="false" style="${inp}">
             ${ACC.guest?'':`<input id="acDelPass" type="password" placeholder="Password" autocomplete="current-password" style="${inp}">`}
-            <div style="display:flex;gap:6px"><button class="btn sm" id="acDelGo" style="flex:1;background:#ff6b6b">${ACC.guest?'Delete permanently':'Delete account'}</button><button class="btn sm secondary" id="acDelCancel" style="flex:1">Cancel</button></div></div>
+            <div style="display:flex;gap:6px"><button class="btn sm" id="acDelGo" style="flex:1;background:#ff6b6b">${ACC.guest?'Delete permanently':'Delete account'}</button><button class="btn sm secondary" id="acDelCancel" style="flex:1">${t('common.cancel')}</button></div></div>
           <div id="acDelMsg" style="font-size:11px;color:#ff8b8b;margin-top:6px;min-height:14px"></div></div>`;
-    const blockList = `<div style="margin-top:10px"><div style="font-weight:800;font-size:12px;margin-bottom:4px">Blocked players</div><div id="acBlocks" style="font-size:11px;color:#8b98a9">${_blocksHTML()}</div></div>`;
+    const blockList = `<div style="margin-top:10px"><div style="font-weight:800;font-size:12px;margin-bottom:4px">${t('set.blocked_players')}</div><div id="acBlocks" style="font-size:11px;color:#8b98a9">${_blocksHTML()}</div></div>`;
     account=`<div class="panel" style="border-color:#4aa3ff55">
-      <div style="font-weight:800;font-size:13px;margin-bottom:4px">${uiIcon('cloud-sync')} Cloud Account</div>
-      <div style="font-size:13px">Signed in as <b>${escapeHTML(ACC.name||'')}</b></div>
-      <div style="font-size:11px;color:#8b98a9;margin:4px 0 6px">Arena rank #${ACC.rank||'—'} · ${hudIcon('gold')} ${ACC.coins||0} · your progress syncs to any device you sign in on.</div>
+      <div style="font-weight:800;font-size:13px;margin-bottom:4px">${uiIcon('cloud-sync')} ${t('set.cloud_account')}</div>
+      <div style="font-size:13px">${t('set.signed_in_as',{name:'<b>'+escapeHTML(ACC.name||'')+'</b>'})}</div>
+      <div style="font-size:11px;color:#8b98a9;margin:4px 0 6px">${t('set.arena_rank',{n:ACC.rank||'—'})} · ${hudIcon('gold')} ${ACC.coins||0} · ${t('set.sync_note')}</div>
       ${ACC.guest?guestUp:(emailRow+emailForm+resetBlock)}
-      <button class="btn sm secondary" id="acLogout">Log out</button>${blockList}${delBlock}</div>`;
+      <button class="btn sm secondary" id="acLogout">${t('set.log_out')}</button>${blockList}${delBlock}</div>`;
   } else if(acctMode==='reset'){
     account=`<div class="panel" style="border-color:#c9a24a66">
       <div style="font-weight:800;font-size:13px;margin-bottom:4px">${uiIcon('key')} Your password has been reset</div>
@@ -29349,7 +29432,7 @@ function renderSettings(){
         <input id="acNew" type="password" placeholder="New password" autocomplete="off" style="${inp}">
         <input id="acNew2" type="password" placeholder="Confirm new password" autocomplete="off" style="${inp}">
         <button class="btn" id="acSetPass">Set password &amp; sign in</button>
-        <button class="btn xs secondary" id="acResetBack">Back</button>
+        <button class="btn xs secondary" id="acResetBack">${t('common.back')}</button>
       </div>
       <div id="acMsg" style="font-size:11px;color:#ff8b8b;margin-top:6px;min-height:14px"></div></div>`;
   } else if(acctMode==='forgot'){
@@ -29377,19 +29460,19 @@ function renderSettings(){
   } else {
     const create = acctMode==='create';
     account=`<div class="panel">
-      <div style="font-weight:800;font-size:13px;margin-bottom:6px">${uiIcon('cloud-sync')} Cloud Account</div>
+      <div style="font-weight:800;font-size:13px;margin-bottom:6px">${uiIcon('cloud-sync')} ${t('set.cloud_account')}</div>
       <div style="display:flex;gap:6px;margin-bottom:8px">
-        <button class="btn xs${create?' secondary':''}" id="acTabIn" style="flex:1">Sign In</button>
-        <button class="btn xs${create?'':' secondary'}" id="acTabNew" style="flex:1">Create Account</button>
+        <button class="btn xs${create?' secondary':''}" id="acTabIn" style="flex:1">${t('set.sign_in')}</button>
+        <button class="btn xs${create?'':' secondary'}" id="acTabNew" style="flex:1">${t('set.create_account')}</button>
       </div>
-      <div style="font-size:11px;color:#8b98a9;margin-bottom:8px">${create?'Pick a username &amp; password to make a cloud account you can sign into on any device.':'Sign in to load your account and sync your progress here.'}</div>
+      <div style="font-size:11px;color:#8b98a9;margin-bottom:8px">${create?t('set.create_hint'):t('set.signin_hint')}</div>
       <div style="display:flex;flex-direction:column;gap:6px">
-        <input id="acUser" type="text" placeholder="Username" maxlength="16" autocomplete="off" autocapitalize="off" spellcheck="false" style="${inp}">
-        <input id="acPass" type="password" placeholder="Password" autocomplete="off" style="${inp}">
-        ${create?`<input id="acPass2" type="password" placeholder="Confirm password" autocomplete="off" style="${inp}">`:''}
-        <button class="btn" id="acGo">${create?'Create Account':'Sign In'}</button>
+        <input id="acUser" type="text" placeholder="${t('set.username')}" maxlength="16" autocomplete="off" autocapitalize="off" spellcheck="false" style="${inp}">
+        <input id="acPass" type="password" placeholder="${t('set.password')}" autocomplete="off" style="${inp}">
+        ${create?`<input id="acPass2" type="password" placeholder="${t('set.confirm_password')}" autocomplete="off" style="${inp}">`:''}
+        <button class="btn" id="acGo">${create?t('set.create_account'):t('set.sign_in')}</button>
       </div>
-      ${create?'':`<div style="text-align:center;margin-top:8px"><a href="#" id="acForgot" style="font-size:11px;color:#9ab0d6;text-decoration:none">Forgot your password?</a></div>`}
+      ${create?'':`<div style="text-align:center;margin-top:8px"><a href="#" id="acForgot" style="font-size:11px;color:#9ab0d6;text-decoration:none">${t('set.forgot')}</a></div>`}
       <div id="acMsg" style="font-size:11px;color:#ff8b8b;margin-top:6px;min-height:14px"></div></div>`;
   }
   // ---- DEV tools: shown only when signed into a developer account ----
@@ -29438,25 +29521,25 @@ function renderSettings(){
     <button class="btn sm" id="resetBtn" style="background:#ff6b6b">Reset all progress</button>
     <div id="saveOut" style="font-size:10px;color:#55617a;word-break:break-all"></div>` : '';
   const reportCard = (online()&&ACC.token) ? `<div class="panel">
-    <div style="font-weight:800;font-size:13px;margin-bottom:4px">${uiIcon('bug')} Report a bug / feedback</div>
-    <div style="font-size:11px;color:#8b98a9;margin-bottom:6px">Spotted something broken or have an idea? Send it straight to the devs.</div>
-    <div id="rpKind" style="display:flex;gap:6px;margin-bottom:6px"><button class="btn sm" data-k="bug" style="flex:1">Bug</button><button class="btn sm" data-k="suggestion" style="flex:1">Suggestion</button></div>
-    <textarea id="rpText" rows="3" placeholder="Describe the bug or suggestion…" style="${inp};resize:vertical"></textarea>
-    <button class="btn sm" id="rpSend" style="width:100%;margin-top:6px">Send report</button>
+    <div style="font-weight:800;font-size:13px;margin-bottom:4px">${uiIcon('bug')} ${t('set.report_title')}</div>
+    <div style="font-size:11px;color:#8b98a9;margin-bottom:6px">${t('set.report_desc')}</div>
+    <div id="rpKind" style="display:flex;gap:6px;margin-bottom:6px"><button class="btn sm" data-k="bug" style="flex:1">${t('set.bug')}</button><button class="btn sm" data-k="suggestion" style="flex:1">${t('set.suggestion')}</button></div>
+    <textarea id="rpText" rows="3" placeholder="${t('set.report_ph')}" style="${inp};resize:vertical"></textarea>
+    <button class="btn sm" id="rpSend" style="width:100%;margin-top:6px">${t('set.send_report')}</button>
     <div id="rpMsg" style="font-size:11px;color:#5ee89b;margin-top:6px;min-height:14px"></div></div>` : '';
   /* v564 - OFFLINE ART (Phil): pre-download every sheet into the persistent service-worker cache so
      battles load with no network at all, plus a way to throw that cache away. Shown to any SIGNED-IN
      player; the dev panel gets the same two controls (see `dev` below) so they are reachable while
      testing without signing in and out. */
   const assetCard = (ACC.token) ? `<div class="panel">
-      <div style="font-weight:800;font-size:13px;margin-bottom:2px">\u{1F4E6} Offline Art</div>
-      <div style="font-size:11px;color:#8b98a9;margin-bottom:8px">Download every hero, monster and boss animation once and keep it on this device. Battles then load instantly, even on a bad connection.</div>
+      <div style="font-weight:800;font-size:13px;margin-bottom:2px">\u{1F4E6} ${t('set.offline_art')}</div>
+      <div style="font-size:11px;color:#8b98a9;margin-bottom:8px">${t('set.offline_art_desc')}</div>
       <div id="alBarWrap" style="display:none;margin-bottom:8px">
         <div style="height:8px;border-radius:999px;background:#0f1420;border:1px solid #2a3550;overflow:hidden"><div id="alBar" style="height:100%;width:0%;background:linear-gradient(90deg,#c9a35e,#f0c987)"></div></div>
         <div id="alTxt" style="font-size:11px;color:#8b98a9;margin-top:5px"></div></div>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <button class="btn xs" id="alDl" style="flex:1;min-width:150px">Update all features</button>
-        <button class="btn xs secondary" id="alClear" style="flex:1;min-width:110px">Clear cache</button></div>
+        <button class="btn xs" id="alDl" style="flex:1;min-width:150px">${t('set.update_all')}</button>
+        <button class="btn xs secondary" id="alClear" style="flex:1;min-width:110px">${t('set.clear_cache')}</button></div>
       <div id="alMsg" style="font-size:11px;color:#8b98a9;margin-top:6px;min-height:13px"></div>
     </div>` : '';
   /* v1049 (Phil 6 Oct): Audio - FX, Music and Voices, each with on/off and a volume scale, kept on this device. Always shown. */
@@ -29464,32 +29547,39 @@ function renderSettings(){
         <label style="display:flex;align-items:center;gap:6px;min-width:84px"><input type="checkbox" id="snd_${ch}_on" ${SND.cfg[ch].on?'checked':''}> ${name}</label>
         <input type="range" id="snd_${ch}_vol" min="0" max="100" value="${Math.round(SND.cfg[ch].vol*100)}" aria-label="${name} volume" style="flex:1;min-width:0" ${SND.cfg[ch].on?'':'disabled'}>
         <span id="snd_${ch}_pct" style="width:34px;text-align:right;color:#8b98a9;font-variant-numeric:tabular-nums">${Math.round(SND.cfg[ch].vol*100)}%</span></div>`;
+  /* v1265 LANGUAGES step 1: the language list in each language's own name; "Device language" follows the phone (navigator.languages) */
+  const langCard = `<div class="panel">
+      <div style="font-weight:800;font-size:13px">\u{1F310} ${t('set.language')}</div>
+      <select id="setLangSel" aria-label="${t('set.language')}" style="${inp};margin-top:6px;cursor:pointer">${langOptionsHTML()}</select>
+    </div>`;
   const soundCard = `<div class="panel">
-      <div style="font-weight:800;font-size:13px">${uiIcon('audio-on')} Audio</div>
-      <div style="display:flex;align-items:center;gap:8px;font-size:12px;margin-top:6px"><label style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="snd_mute" ${SND_MUTE.on?'checked':''}> Mute all</label></div>
-      ${_sndRow('fx','FX')}${_sndRow('music','Music')}${_sndRow('voice','Voices')}
+      <div style="font-weight:800;font-size:13px">${uiIcon('audio-on')} ${t('set.audio')}</div>
+      <div style="display:flex;align-items:center;gap:8px;font-size:12px;margin-top:6px"><label style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="snd_mute" ${SND_MUTE.on?'checked':''}> ${t('set.mute_all')}</label></div>
+      ${_sndRow('fx',t('set.fx'))}${_sndRow('music',t('set.music'))}${_sndRow('voice',t('set.voices'))}
     </div>`;
   b.innerHTML=`<div style="display:flex;flex-direction:column;gap:10px">
     <div style="font-size:10px;color:#8b98a9;font-weight:700;letter-spacing:.08em">XANTHYR GAMES</div>
     <div style="font-size:13px;color:#c3ccd8">Emberweave Heroes — ${BUILD_VERSION}</div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px">${account}<div class="panel" id="googleAuthPanel" hidden></div></div>
+    ${langCard}
     ${soundCard}
     ${assetCard}
     ${reportCard}
     ${saveTools}
     ${dev}
     <div style="text-align:center;margin-top:6px;font-size:11px;color:#6f7d90">
-      <a href="#" id="tosLink" style="color:#9ab0d6;text-decoration:none">Terms of Service &amp; Privacy</a>
-      <div style="margin-top:6px;color:#6f7d90">© 2026 Xanthyr Games · Emberweave Heroes™ · All rights reserved.</div>
+      <a href="#" id="tosLink" style="color:#9ab0d6;text-decoration:none">${t('set.terms')}</a>
+      <div style="margin-top:6px;color:#6f7d90">© 2026 Xanthyr Games · Emberweave Heroes™ · ${t('set.rights')}</div>
     </div>
   </div>`;
+  { const ls=b.querySelector('#setLangSel'); if(ls) ls.onchange=()=>{ langSet(ls.value,{save:true}); }; }   // v1265 languages
   { const sm=b.querySelector('#snd_mute'); if(sm) sm.onchange=()=>{ sndMuteSet(sm.checked); sndUnlock(); }; }   // v1159 master mute (same flag as the top-right button)
   SND_CH.forEach(ch=>{ const so=b.querySelector('#snd_'+ch+'_on'), sv=b.querySelector('#snd_'+ch+'_vol'), sp=b.querySelector('#snd_'+ch+'_pct');   // v1049 audio settings
     if(so) so.onchange=()=>{ sndSet(ch,{on:so.checked}); if(sv) sv.disabled=!so.checked; if(so.checked) sndUnlock(); };
     if(sv) sv.oninput=()=>{ const v=Math.max(0,Math.min(1,(+sv.value||0)/100)); sndSet(ch,{vol:v}); if(sp) sp.textContent=Math.round(v*100)+'%'; }; });
   {  // v564: Offline Art card (signed-in players) - same two actions as the dev panel's QA tab
     const alMsg=b.querySelector('#alMsg'), alBar=b.querySelector('#alBar'), alWrap=b.querySelector('#alBarWrap'), alDl=b.querySelector('#alDl');
-    const rep=(m)=>{ if(alMsg) alMsg.textContent=m; if(alDl) alDl.textContent=_alRunning?'Stop download':'Update all features'; };
+    const rep=(m)=>{ if(alMsg) alMsg.textContent=m; if(alDl) alDl.textContent=_alRunning?t('set.stop_download'):t('set.update_all'); };
     const bar={ wrap:(v)=>{ if(alWrap) alWrap.style.display=v?'block':'none'; },
                 set:(f)=>{ if(alBar) alBar.style.width=Math.round(f*100)+'%'; } };
     if(alDl) alDl.onclick=()=>runAssetDownload(rep, bar);
@@ -29520,12 +29610,12 @@ function renderSettings(){
   const rpK=b.querySelector('#rpKind'); if(rpK){ const paint=()=>rpK.querySelectorAll('button').forEach(x=>{ const on=x.dataset.k===(window._rpKind||'bug');
       x.style.background=on?'#2f6fd1':'#1c2434'; x.style.color=on?'#fff':'#8b98a9'; x.style.fontWeight=on?'800':'600'; });
     rpK.querySelectorAll('button').forEach(x=>x.onclick=()=>{ window._rpKind=x.dataset.k; paint(); }); paint(); }
-  const rpSend=b.querySelector('#rpSend'); if(rpSend) rpSend.onclick=()=>{ const t=(b.querySelector('#rpText').value||'').trim(), m=b.querySelector('#rpMsg');
-    if(t.length<3){ m.style.color='#ff8b8b'; m.textContent='Please add a little detail.'; return; }
-    m.style.color='#8b98a9'; m.textContent='Sending…';
+  const rpSend=b.querySelector('#rpSend'); if(rpSend) rpSend.onclick=()=>{ const rpT=(b.querySelector('#rpText').value||'').trim(), m=b.querySelector('#rpMsg');
+    if(rpT.length<3){ m.style.color='#ff8b8b'; m.textContent=t('set.report_short'); return; }
+    m.style.color='#8b98a9'; m.textContent=t('set.sending');
     const meta='v'+(typeof BUILD_ID!=='undefined'?BUILD_ID:'')+' · Lv'+playerLevel()+' · '+state;
     if(window._reportBusy) return; window._reportBusy=true;   /* v1002 (Account audit #13): a double tap filed the report twice */
-    api('/api/report','POST',{text:t, meta, kind:(window._rpKind==='suggestion'?'suggestion':'bug')}).then(d=>{ window._reportBusy=false; if(d&&d.ok){ m.style.color='#5ee89b'; m.textContent='Thanks! Report sent.'; b.querySelector('#rpText').value=''; } else { m.style.color='#ff8b8b'; m.textContent=(d&&d.error)||'Failed to send.'; } }); };
+    api('/api/report','POST',{text:rpT, meta, kind:(window._rpKind==='suggestion'?'suggestion':'bug')}).then(d=>{ window._reportBusy=false; if(d&&d.ok){ m.style.color='#5ee89b'; m.textContent=t('set.report_sent'); b.querySelector('#rpText').value=''; } else { m.style.color='#ff8b8b'; m.textContent=(d&&d.error)||t('set.send_failed'); } }); };
   // ---- account wiring ----
   const tabIn=b.querySelector('#acTabIn'), tabNew=b.querySelector('#acTabNew');
   if(tabIn) tabIn.onclick=()=>{ acctMode='signin'; renderSettings(); };
@@ -29738,8 +29828,8 @@ function uiConfirm(title, body, okLabel, danger, anchor){
       +'<div style="font-weight:800;font-size:14px;margin-bottom:8px">'+(title||'')+'</div>'
       +lines
       +'<div style="display:flex;gap:6px;margin-top:12px">'
-      +'<button class="btn xs" id="uiCfOk" style="flex:1">'+(okLabel||'OK')+'</button>'
-      +'<button class="btn xs secondary" id="uiCfNo" style="flex:1">Cancel</button></div></div>';
+      +'<button class="btn xs" id="uiCfOk" style="flex:1">'+(okLabel||t('common.ok'))+'</button>'
+      +'<button class="btn xs secondary" id="uiCfNo" style="flex:1">'+t('common.cancel')+'</button></div></div>';
     document.body.appendChild(ov);
     const ok=ov.querySelector('#uiCfOk');
     if(danger) ok.style.background='linear-gradient(180deg,#a8433a,#7e2f28)';
