@@ -29473,6 +29473,7 @@ function renderSettings(){
       <div class="set-row"><span class="set-lbl">${uiIcon('cloud-sync')} ${escapeHTML(ACC.name||'')}</span><span class="set-val">${t('set.arena_rank',{n:ACC.rank||'—'})}</span><button class="btn xs secondary set-act" id="acLogout">${t('set.log_out')}</button></div>
       ${ACC.guest?guestUp:(emailRow+emailForm+resetBlock)}
       ${blockList}</div>
+      <div class="set-sec" id="googleAuthPanel" hidden></div>
       <div class="set-sec set-dz"><div class="set-h set-h-dz">${t('set.danger_zone')}</div>${DEV.on?`<button class="btn sm set-danger" id="resetBtn" style="background:#ff6b6b;color:#1a0f12">${t('set.reset_progress')}</button>`:''}${delBlock}</div>`;
   } else if(acctMode==='reset'){
     account=`<div class="set-sec">
@@ -29612,7 +29613,7 @@ function renderSettings(){
   b.innerHTML=`<div class="set-wrap">
     <div class="tabrow set-tabs" role="tablist">${TABS.map(([k,l])=>`<div class="tab${setTab===k?' on':''}" role="tab" data-settab="${k}">${l}</div>`).join('')}</div>
     ${pane('general',langCard+soundCard)}
-    ${pane('account',account+'<div class="set-sec" id="googleAuthPanel" hidden></div>')}
+    ${pane('account',account+(account.indexOf('id="googleAuthPanel"')>=0?'':'<div class="set-sec" id="googleAuthPanel" hidden></div>'))}
     ${ACC.token?pane('storage',assetCard):''}
     ${pane('support',reportCard+`<div class="set-legal set-sec">
       <a href="#" id="tosLink">${t('set.terms')}</a>
