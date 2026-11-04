@@ -117,7 +117,7 @@ const SILENT = () => { const oc = AudioNode.prototype.connect;
       await pg.keyboard.press('End'); await pg.keyboard.press('Backspace'); await pg.keyboard.press('Escape'); await delay(400);
       const v = await pg.evaluate(() => [document.getElementById('cwInput').value, state]);
       ck(v[0] === 'hell' && v[1] === 'home', 'typing in chat: Backspace deletes a letter, Esc does nothing ("' + v[0] + '", ' + v[1] + ')'); }
-    await pg.evaluate(() => { try { document.activeElement.blur(); } catch (e) {} popoutScreen('settings'); }); await delay(800);
+    await pg.evaluate(() => { try { document.activeElement.blur(); } catch (e) {} popoutScreen('settings'); const sp = document.querySelector('[data-settab="support"]'); if (sp) sp.click(); }); await delay(800);   /* v1267: the report box lives on Settings > Support */
     { const r = await pg.evaluate(() => { const t = document.getElementById('rpText'); if (!t) return 'no report box'; t.focus(); t.value = 'bug!'; return document.activeElement === t ? 'ok' : 'not focused'; });
       ck(r === 'ok', 'report box focused', r);
       await pg.keyboard.press('End'); await pg.keyboard.press('Backspace'); await pg.keyboard.press('Backspace'); await pg.keyboard.press('Escape'); await delay(400);
