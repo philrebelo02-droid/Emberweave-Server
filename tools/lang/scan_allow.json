@@ -31,7 +31,7 @@
   "passDescAt": "content: shown through langDesc"
  },
  "text": {
-  "brand": ["Emberweave", "Emberweave Heroes", "Xanthyr Games", "Google", "Google Play", "Facebook", "Discord", "PvP", "EGP", "HP", "ATK", "AP", "DPS", "XP", "EXP", "Lv", "VIP", "NPC", "ID", "OK"]
+  "brand": ["Emberweave", "Emberweave Heroes", "Xanthyr Games", "Google", "Google Play", "Facebook", "Discord", "PvP", "EGP", "HP", "ATK", "AP", "DPS", "XP", "EXP", "Lv", "VIP", "NPC", "ID", "OK", "public_profile,email"]
  },
  "patterns": [],
  "lines": []

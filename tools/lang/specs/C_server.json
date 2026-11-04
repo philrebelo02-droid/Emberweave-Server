@@ -561,7 +561,11 @@
   "err.bracket_not_set_opens": "The bracket is not set yet — line placement opens {when}.",
   "err.gold_province_stage_gate": "Gold Province Stage {stage} opens at account level {level} (you are {lvl}).",
   "err.drill_province_stage_gate": "Drill Province Stage {stage} opens at account level {level} (you are {lvl}).",
-  "err.old_raid_assault_retired": "The old raid assault is retired - fight the raid boss (Guild → Raid)."
+  "err.old_raid_assault_retired": "The old raid assault is retired - fight the raid boss (Guild → Raid).",
+  "err.facebook_sign_in_is_not_configured": "Facebook sign-in is not configured.",
+  "err.sign_in_with_your_game_wide_facebook": "Sign in with your game-wide account before linking Facebook.",
+  "err.facebook_sign_in_or_linking_failed": "Facebook sign-in or linking failed. Check the Facebook account and try again.",
+  "err.facebook_sign_in_or_linking_failed_2": "Facebook sign-in or linking failed."
  },
  "edits": []
 }

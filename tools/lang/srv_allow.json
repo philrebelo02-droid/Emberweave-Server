@@ -1,6 +1,7 @@
 {
  "_why": "LANGUAGES step 2 finish check 4 (tools/lang/srvcheck.js): server error texts that are not shown to players as words, each with a reason. lower_snake tokens are skipped by the check itself (the client words them).",
  "patterns": [
+  { "re": "^(Facebook is not configured\\.|Invalid signed request\\.|Save failed\\. Please try again\\.)$", "why": "Meta-only replies: the Facebook data-deletion callback and the internal facebook-erase route answer Meta's servers / Server 1, never a player screen (v1274)" },
   { "re": "^[A-Z][A-Z0-9_]+$", "why": "machine tokens (STALE, GLYPH_LOCKED ...) the client handles in code" },
   { "re": "^(no such report|GET only|dev only|floor 1\\.\\.7|guild-war|different build)$", "why": "dev / admin routes and internal protocol replies" },
   { "re": "^(battle engine not loaded|unknown battle method)", "why": "battle worker internals (server to server)" },
