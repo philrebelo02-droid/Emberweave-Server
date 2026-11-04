@@ -60,3 +60,14 @@ The full suite runs in an isolated temporary database on port 8994, using this b
 FX validation: `tests/test_hero61_fx.js` passes release/recipient/follow/cleanup checks, interruption controls, four-second protection art, previews, source hashes, atlas limits, preloading/offline inclusion and identical seeded combat with FX enabled/disabled. Hero61 combat/art checks pass, as do 36 pipeline checks including black-to-alpha colour preservation. The actual Skills renderer was visually checked on the recipient sprite. This follow-up is on `chatgpt/hero61-approved-fx-03nov`, based on `10373830`, so the earlier full-suite checkout stays untouched. The full suite was not rerun for this visual-only follow-up.
 
 Review/release gates: Claude resolves the coarse-resolver route, reviews the commit and actual suite results, and handles any eventual merge/deploy. Phil's approval of these FX and Blue take 5 is explicit; final name/balance remain separate. This branch is not merged or live.
+
+
+## v1263 release regression fixes — 3 November 2026
+
+The Temple now has its own 444×912 transparent portrait, cropped from approved take-3 Idle frame 0 through the existing key/unmix pipeline. Crown, helmet and upper body are retained; no new character art was generated. The portrait is included in Update All. Its exact source/crop/hash and zero-green-fringe check are in `tests/fixtures/hero61-temple-provenance.json`.
+
+There are 314 finished glyph definitions but still only 218 farmable fragment types. Hero61's 96 personal glyphs reuse the existing `fragmentFamily` ingredients; the portal tables and their drop rates are unchanged. Farm-map and flow checks now distinguish finished-glyph families from raw fragments. All 96 complete recipe trees are checked against stages that actually grant their leaves. The stock-glyph regression still compares all 218 original entries against v1122, and separately checks the 96 additions. All nine personal gear recipes keep the original illustrated item's fragments/subrecipe and have an authored Vault source.
+
+The Temple module test now expects Claude's r1263 cache tag while the unchanged effects adapter remains r1123. The Veteran test's historical v1148 server control previously tried today's 314-entry catalog despite requiring 218 definitions, causing the misleading `FAIL no start`. Its matching catalogs, hero profiles and paths are now pinned to its own commit without changing its Veteran reward logic. The complete Veteran check passes: 59 checks, including the old server granting no Veteran hero fragments. This was a reproducible test-fixture mismatch, not a flaky production startup.
+
+These changes remain a release candidate. Ember owns the full suite on the new commit; Claude owns review/deployment and the main Archive Mechanics/worklog batch.

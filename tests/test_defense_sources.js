@@ -103,8 +103,12 @@ let liveAsc = null;
     ok(Math.abs(snap.defenseStat - su.defense) < 1e-12, 'client unit from the same spec (glyph + gear in tt, the Temple bonuses) = server: defenseStat ' + snap.defenseStat); }
   /* nothing else moved */
   const glyphOld = JSON.parse(show('server/glyph-source.json')), gearOld = JSON.parse(show('server/gear-catalog.json'));
-  ok(glyphOld.length === glyphNow.length && glyphOld.every((d, i) => d.family === 'Ironwall' ? glyphNow[i].passiveStats.startsWith(d.passiveStats + '; Defense +') && glyphNow[i].statFocus === 'Armor / Block / Defense'
-      : JSON.stringify(d) === JSON.stringify(glyphNow[i])), 'glyphs: every non-Ironwall glyph (Bastion included) is exactly v1122; Ironwall keeps Armor and Block and adds Defense');
+  const stockNow=glyphNow.filter(d=>!d.id.startsWith('H61G'));
+  ok(glyphOld.length === stockNow.length && glyphOld.every((d, i) => d.family === 'Ironwall' ? stockNow[i].passiveStats.startsWith(d.passiveStats + '; Defense +') && stockNow[i].statFocus === 'Armor / Block / Defense'
+      : JSON.stringify(d) === JSON.stringify(stockNow[i])), 'glyphs: every original non-Ironwall glyph (Bastion included) is exactly v1122; Ironwall keeps Armor and Block and adds Defense');
+  const personal=glyphNow.filter(d=>d.id.startsWith('H61G'));
+  ok(personal.length===96&&personal.every(d=>d.fragmentFamily&&glyphOld.some(o=>o.quality===d.quality&&o.family===d.fragmentFamily)
+    && !/Defense/.test(d.passiveStats)), 'Hero61 adds 96 personal glyphs with existing fragment families and no extra Defense');
   ok(gearOld.items.every((d, i) => { const n = gearNow.items[i]; if (!TANK_GEAR.includes(d.id)) return JSON.stringify(d) === JSON.stringify(n);
       const s = Object.assign({}, n.stats); delete s.defense; return JSON.stringify(s) === JSON.stringify(d.stats) && n.stats.defense > 0; })
     && gearNow.items.filter(d => d.stats.defense).every(d => TANK_GEAR.includes(d.id) && /^Tank \//.test(d.roles)),

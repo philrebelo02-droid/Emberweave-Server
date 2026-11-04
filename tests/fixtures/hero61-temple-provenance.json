@@ -1,0 +1,25 @@
+{
+  "source": "Approved take3 idle, frame 0",
+  "source_frame_sha256": "c0165615a0323f0183a1814ed147715eebb96ec9752c1806d9a663ac0d2bb89f",
+  "source_alpha_sha256": "c4e15614e3615cf9df1a2612ffd4d33796617789521abf506ffd3f01ec2f2094",
+  "source_crop": [
+    290,
+    260,
+    466,
+    622
+  ],
+  "output": "assets/img/temple/v2/heroes/hero61-v2.webp",
+  "output_sha256": "495ac1e86e945771d2e13477250fbe77931fed4f75716d8268bcb2efb75b1992",
+  "size": [
+    444,
+    912
+  ],
+  "fringe": {
+    "edge_px": 4018,
+    "edge_gt4": 0.0,
+    "edge_gt12": 0.0,
+    "edge_gt24": 0.0,
+    "body_gt4": 0.0,
+    "body_gt24": 0.0
+  }
+}

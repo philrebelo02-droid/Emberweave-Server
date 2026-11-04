@@ -66,7 +66,13 @@ const allowed=new Set(['HP','Armor','Magic Resist','Healing Power','Ability Powe
 const defs=require('../server/glyph-source.json').filter(d=>d.id.startsWith('H61G'));
 assert.equal(defs.length,96);for(const d of defs){assert.equal(d.passiveStats.split(';').length,1);assert.ok(allowed.has(d.statFocus));assert.ok(d.fragmentFamily);}
 for(const s of require('../server/hero-ascension-bonuses.json').heroes.hero61.steps)assert.ok(allowed.has(s.stat));
-for(const d of require('../server/gear-catalog.json').items.filter(d=>d.id.startsWith('H61E'))){assert.equal(d.active,null);assert.equal(Object.keys(d.stats).length,3);assert.ok(Object.keys(d.stats).every(k=>['hp','armor','mr','healPow','apow','energy'].includes(k)));}
+const gear=require('../server/gear-catalog.json').items,heroGear=gear.filter(d=>d.id.startsWith('H61E'));
+assert.equal(heroGear.length,9);
+for(const d of heroGear){assert.equal(d.active,null);assert.equal(Object.keys(d.stats).length,3);assert.ok(Object.keys(d.stats).every(k=>['hp','armor','mr','healPow','apow','energy'].includes(k)));
+ const original=gear.find(x=>x.id===d.artId);
+ assert.ok(original&&d.frag===original.frag&&d.sub===original.sub&&d.subFragCost===original.subFragCost,'personal gear retains existing recipe ingredients');
+ assert.ok(require('../server/vault-encounters.json').floors.some(f=>f.gearFragments.includes(d.frag)),'each Hero61 gear ingredient has a real Vault floor');
+}
 const temple=require('../server/temple-of-ash');
 assert.deepEqual(Array.from(temple.heroBars('hero61')),['health','armorMrOnly','abilityPower','healPow']);
 assert.equal(temple.CONFIG.BAR_KINDS.armorMrOnly.defenseStep,undefined);

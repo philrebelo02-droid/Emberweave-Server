@@ -98,10 +98,19 @@ ck('PORTAL COVERAGE: every (tier,family) pair including Orange has a portal sour
      for(const mode of ['normal','elite','veteran']){
        const P=S.PORTALS[mode]; if(!P) return false;
        for(const e of P.list) for(const f of e.rewards.glyphFragments) covered.add(f.key); }
-     return S.GLYPH_LADDER.every(q=>{ const fams=(S.GLYPHS.raw.filter(d=>d.quality===q).map(d=>d.family));
+     return S.GLYPH_LADDER.every(q=>{ const fams=(S.GLYPHS.raw.filter(d=>d.quality===q).map(d=>d.fragmentFamily||d.family));
        return [...new Set(fams)].every(f=>covered.has(q+' '+f)); }); })());
 ck('every pre-choice at every tier is farmable end-to-end',
-   ['vael','sylthaine','grosk','meridian','vireo'].every(h=>[0,1,2,3,4,5].every(sl=>[0,3,6,10,15].every(qi=>{ const d=S.glyphPreChoice(h,sl,qi); return d&&S.glyphSupplyOK(d); }))));
+   ['vael','sylthaine','grosk','meridian','vireo','hero61'].every(h=>[0,1,2,3,4,5].every(sl=>S.GLYPH_LADDER.every((q,qi)=>{ const d=S.glyphPreChoice(h,sl,qi); return d&&S.glyphSupplyOK(d); }))));
+ck('Hero61: every recipe leaf at all 16 tiers has a real portal stage that grants it',
+   S.GLYPH_LADDER.every((q,qi)=>[0,1,2,3,4,5].every(sl=>{
+     const d=S.glyphPreChoice('hero61',sl,qi),ls=leaves(S.glyphTreeFinished(gg,d),[]);
+     return ls.length>0&&ls.every(l=>(l.sources||[]).length>0&&l.sources.every(x=>{
+       const m=/^(\d+)-(\d+)$/.exec(String(x.stageId||''));if(!m)return false;
+       const st=S.portalStageOf(x.mode,(+m[1]-1)*10+(+m[2]));
+       return st&&st.rewards.glyphFragments.some(f=>f.key===l.key);
+     }));
+   })));
 
 // ---- ladder is frozen (no runtime mutation possible) ----
 let frozen=false; try{ S.GLYPH_LADDER.push('Grey +1'); }catch(e){ frozen=true; }

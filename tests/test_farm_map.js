@@ -42,9 +42,9 @@ ck('Veteran carries all 18 Orange families (v1148: its Orange stages cycle them)
 // the catalog is fully covered by ordinary Normal stages; Elite/Veteran remain alternate sources
 const raw=Object.values(require('../server/glyph-source.json'));
 const catalog=new Set();
-for(const d of raw){ if(d.family) catalog.add(slug(d.quality+' '+d.family)); }
+for(const d of raw){ if(d.family) catalog.add(slug(d.quality+' '+(d.fragmentFamily||d.family))); }
 const all=[...normalFragmentIds,...eliteFragmentIds,...vetIds];
-ck('the catalog defines 218 raw fragment families', catalog.size===218, String(catalog.size));
+ck('the catalog uses 218 raw fragment types (personal glyphs reuse named ingredients)', catalog.size===218, String(catalog.size));
 ck('allGlyphFragmentIds.size === 218', uniq(all).size===218, String(uniq(all).size));
 ck('every fragment has at least one source', [...catalog].every(c=>all.includes(c)),
   [...catalog].filter(c=>!all.includes(c)).slice(0,5).join(', '));

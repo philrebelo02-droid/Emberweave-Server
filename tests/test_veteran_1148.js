@@ -169,7 +169,7 @@ let rq=0; const R=()=>'v1148-'+(rq++);
   await stop();
   /* ---- v1149 control: the v1148 live server (e94e80a4) on the same data pays no Veteran hero fragments ---- */
   if(!process.env.AUD_SERVER){ const ctlFile='.ctl_v1148_server_'+process.pid+'.js';
-    try{ fs.writeFileSync(path.join(root,ctlFile), require('child_process').execFileSync('git',['show','e94e80a46b83d9882c2e6cc41f140939cd8c2c09:server.js'],{cwd:root,maxBuffer:64<<20}));
+    try{ fs.writeFileSync(path.join(root,ctlFile), require('./helpers/veteran-1148-control')());
       const keep=srvFile; child=spawn(process.execPath,[ctlFile],{cwd:root,env:{...process.env,ALLOW_NEW_GUESTS:'1',DATABASE_URL:'',PORT:String(port),DB_FILE:dbFile,RL_MUL:'1000',ADMIN_IDS:''},stdio:'ignore',windowsHide:true});
       for(let i=0;i<300;i++){ try{ if((await fetch(base+'/health')).ok)break; }catch(_){} await delay(100); }
       await editDBWith(ctlFile,u=>{ u.led.stam={v:999,t:Date.now()}; u.led.portals.veteran={cleared:160,stars:{34:3},att:null,runs:{}}; });

@@ -15,6 +15,10 @@ assert.equal(actual.death.parts.length,14);assert.equal(actual.death.dn,53);asse
 for(const k of actual.death.parts){assert.ok(actual[k].lazy);assert.ok(actual[k].n<=4);}
 assert.ok(run('deathPeakMB(deathParts(BATTLE_ANIM.hero61,BATTLE_ANIM.hero61.death))')<10,'streaming deaths hold only two small sheets');
 const urls=get('allAssetUrls()');for(const e of Object.values(actual))assert.ok(urls.includes(e.u),'offline Update All includes '+e.u);
+const bust=require('./fixtures/hero61-temple-provenance.json');
+assert.deepEqual(bust.size,[444,912]);assert.equal(bust.fringe.edge_gt24,0);
+assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT,bust.output))).digest('hex'),bust.output_sha256);
+assert.ok(urls.includes('/assets/img/temple/v2/heroes/hero61-v2.webp'),'Temple portrait is available offline');
 for(const d of require('../server/gear-catalog.json').items.filter(d=>d.id.startsWith('H61E'))){
  const html=run('gearImg('+JSON.stringify(d)+',40)');assert.ok(html.includes('/'+d.artId+'.webp'));
  assert.ok(fs.existsSync(path.join(ROOT,'assets/img/gear/items',d.artId+'.webp')),'existing gear illustration exists');
