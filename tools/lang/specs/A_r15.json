@@ -1,0 +1,5 @@
+{ "keys": {},
+  "edits": [
+  { "line": 8911, "find": "const t=ewGameElementFromPoint(ev.ewGameX,ev.ewGameY), r=t&&t.closest&&t.closest('.gsplitRoad');", "replace": "const tg=ewGameElementFromPoint(ev.ewGameX,ev.ewGameY), r=tg&&tg.closest&&tg.closest('.gsplitRoad');" },
+  { "line": 8917, "find": "const t=ewGameElementFromPoint(ev.ewGameX,ev.ewGameY), r=t&&t.closest&&t.closest('.gsplitRoad');", "replace": "const tg=ewGameElementFromPoint(ev.ewGameX,ev.ewGameY), r=tg&&tg.closest&&tg.closest('.gsplitRoad');" }
+  ] }

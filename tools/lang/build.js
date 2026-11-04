@@ -63,6 +63,17 @@ for(const c of CODES.slice(1)){ const d=JSON.parse(gitShow('lang/'+c+'.json')); 
   for(const k of Object.keys(d)) if(!(k in EN)) delete d[k];
   missing[c]=Object.keys(EN).filter(k=>!(k in d));
   out[c]=sorted(d); }
+// ---- 4b. game content (v1271): tools/lang/content/en.json = {template: area} (written by collect_content.js); a language's
+//      translations are tools/lang/content/<code>/*.json {template: translation}; lang/<code>.content.json holds the ones English still has ----
+const CDIR=path.join(__dirname,'content'); const CEN=fs.existsSync(path.join(CDIR,'en.json'))?JSON.parse(fs.readFileSync(path.join(CDIR,'en.json'),'utf8')):{};
+const ctext={}, CV={}, cmissing={}; const tokOf=s=>(String(s).match(/\{[^{}]*\}|<\/?[a-z][^>]*>/gi)||[]).sort().join(' ');
+for(const c of CODES.slice(1)){ const d={}; const dir=path.join(CDIR,c);
+  if(fs.existsSync(dir)) for(const f of fs.readdirSync(dir).filter(f=>f.endsWith('.json')).sort()){ let j; try{ j=JSON.parse(fs.readFileSync(path.join(dir,f),'utf8')); }catch(e){ die('content/'+c+'/'+f+': bad JSON '+e.message); }
+    for(const [k,v] of Object.entries(j)) if(k in CEN&&typeof v==='string'&&v.trim()){ if(tokOf(v)!==tokOf(k)) problems.push('content/'+c+'/'+f+': tokens differ for '+JSON.stringify(k.slice(0,60))); else d[k]=v; } }
+  cmissing[c]=Object.keys(CEN).filter(k=>!(k in d));
+  if(Object.keys(d).length){ ctext[c]=JSON.stringify(sorted(d)); CV[c]=crypto.createHash('sha1').update(ctext[c]).digest('hex').slice(0,8); } }
+if(problems.length) die(problems.length+' problem(s):\n  '+problems.slice(0,80).join('\n  '));
+page=page.replace(/\nconst EW_LANG_CV=\{.*?\};/,()=>'\nconst EW_LANG_CV='+JSON.stringify(CV)+';');
 const text={}; for(const c of CODES) text[c]=JSON.stringify(out[c]);
 const V={}; for(const c of CODES) V[c]=crypto.createHash('sha1').update(text[c]).digest('hex').slice(0,8);
 page=page.replace(/\nconst EW_LANG_EN=\{.*?\};\r\n/,()=>'\nconst EW_LANG_EN='+text.en+';\r\n').replace(/\nconst EW_LANG_V=\{.*?\};\r\n/,()=>'\nconst EW_LANG_V='+JSON.stringify(V)+';\r\n');
@@ -74,9 +85,13 @@ for(const m of page.matchAll(/<script>([\s\S]*?)<\/script>/g)){ try{ new vm.Scri
 
 const mc=Object.entries(missing).filter(([c,l])=>l.length).map(([c,l])=>c+' '+l.length);
 console.log('lang build: '+specFiles.length+' specs, '+edits.length+' edits, '+Object.keys(EN).length+' keys ('+(Object.keys(EN).length-Object.keys(enBase).length)+' new)'+(mc.length?'; untranslated: '+mc.join(', '):'; every language complete'));
+const cmc=Object.entries(cmissing).filter(([c,l])=>l.length).map(([c,l])=>c+' '+l.length);
+console.log('lang content: '+Object.keys(CEN).length+' templates'+(cmc.length?'; untranslated: '+cmc.join(', '):'; every language complete'));
 if(CHECK) return;
 fs.writeFileSync(path.join(ROOT,'emberweave-heroes.html'),page);
 for(const c of CODES) fs.writeFileSync(path.join(ROOT,'lang',c+'.json'),text[c]);
+for(const c of CODES.slice(1)){ const f=path.join(ROOT,'lang',c+'.content.json'); if(ctext[c]) fs.writeFileSync(f,ctext[c]); else if(fs.existsSync(f)) fs.unlinkSync(f); }
+fs.writeFileSync(path.join(__dirname,'content_missing.json'),JSON.stringify(cmissing,null,0));
 if(bid&&bid!==true){ fs.writeFileSync(path.join(ROOT,'version.json'),'{"build":"'+bid+'"}');
   const sw=path.join(ROOT,'sw.js'); fs.writeFileSync(sw,fs.readFileSync(sw,'utf8').replace(/const BUILD='\d+';/,"const BUILD='"+bid+"';")); }
 fs.writeFileSync(path.join(__dirname,'missing.json'),JSON.stringify(missing,null,0));
