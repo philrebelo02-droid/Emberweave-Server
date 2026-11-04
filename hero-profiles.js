@@ -2,13 +2,12 @@
    Class, row, damage, scaling, glyph path and equipment path must never be inferred elsewhere.
    Combat rule: Tanks establish the 1 m baseline; every non-Tank has at least 3.5 m reach. */
 (function(root,factory){
-  const value=factory();
+  const value=factory(root);
   if(typeof module==='object'&&module.exports) module.exports=value;
   if(root) root.HERO_PROFILES=value;
-})(typeof globalThis!=='undefined'?globalThis:this,function(){
+})(typeof globalThis!=='undefined'?globalThis:this,function(root){
   'use strict';
-  return Object.freeze({
-  hero61: {"combatRow": "Back", "damageProfile": "Healer", "primaryScaling": "Ability Power + Healing Power", "glyphPath": "support_tank_back", "equipmentPath": "support_tank_back", "formationDepth": 3.4, "minimumReachMeters": 3.5, "class": "Support"},
+  const P={
   "grimsby": {
     "class": "Bruiser",
     "combatRow": "Mid",
@@ -609,5 +608,12 @@
     "formationDepth": 1.35,
     "minimumReachMeters": 3.5
   }
-});
+  };
+  /* 3 Nov 2026 (Claude): Hero 61's profile exists only where Hero 61 is loaded (hero61.js in the page, or the server's require).
+     Tests load an OLDER game page as their control next to this file; with hero61 always present its 60-hero HERO_TYPES
+     failed the page's own "Canonical hero profile count mismatch" check (63 suite failures, run 1103-223307). */
+  let H61=null;
+  try{ H61=(typeof module==='object'&&module.exports&&typeof require==='function')?require('./hero61.js'):(root&&root.HERO61); }catch(e){ H61=root&&root.HERO61; }
+  if(H61) P.hero61={"combatRow": "Back", "damageProfile": "Healer", "primaryScaling": "Ability Power + Healing Power", "glyphPath": "support_tank_back", "equipmentPath": "support_tank_back", "formationDepth": 3.4, "minimumReachMeters": 3.5, "class": "Support"};
+  return Object.freeze(P);
 });
