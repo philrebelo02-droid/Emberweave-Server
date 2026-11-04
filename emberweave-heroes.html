@@ -12804,7 +12804,7 @@ function hero61FxFrame(d,t){
 }
 function hero61FxStyle(slot){
   const d=FX2_DEF[slot==='ult'?'hero61_bubble':'hero61_heal'];
-  return Object.assign({},d,slot==='green'?{size:.96,hero61Life:1.5,hero61Opacity:.6}:slot==='blue'?{size:1.6}:{});
+  return Object.assign({},d,slot==='green'?{size:.96,mid:.35,hero61Life:1.5,hero61Opacity:.6}:slot==='blue'?{size:1.6}:{});
 }
 function hero61Effect(u,target,slot){
   if(!TH||!scene||!camera||!target||!target.alive)return;

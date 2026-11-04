@@ -28,6 +28,7 @@ for(const [slot,ct]of [['green',1.5],['blue',2.5],['ult',1.2]]){
  assert.equal(run('_fx1123[0].vk'),'h61'+slot);
  run('updateFx1123(.02)');assert.equal(run('!!_fx1123[0].s'),true);
  assert.equal(run('_fx1123[0].s.renderOrder'),-1,'effect is behind the visible ally');
+ if(slot==='green')assert.ok(Math.abs(run('_fx1123[0].s.position.y/_fx22Head(friend)')-.35)<1e-9,'small heal follows recipient chest/head height');
  const before=run('_fx1123[0].s.position.x');run('friend.rx=friend.x+80;updateFx1123(.01)');
  assert.notEqual(run('_fx1123[0].s.position.x'),before,'effect follows its ally');
  run('friend.alive=false;updateFx1123(.01);updateFx1123(.3)');assert.equal(run('_fx1123.length'),0,'dead recipient releases effect');
