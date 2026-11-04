@@ -7,7 +7,8 @@ const root=path.resolve(__dirname,'../..'),html=path.join(root,'emberweave-heroe
 const base=path.join(root,'.art-18oct-base-'+process.pid+'.html');
 fs.writeFileSync(base,cp.execFileSync('git',['show','8dc5fe8d:emberweave-heroes.html'],{cwd:root,maxBuffer:64<<20}));
 const load=f=>{const h=require(path.join(root,'server/sim-host.js')).load(f);return s=>vm.runInContext(s,h.ctx);};
-const now=load(html),old=load(base);let pass=0,fail=0;
+// 4 Nov 2026: the 2 Nov global engine changes (v1254 enemy nerf, v1258 resize, v1260 wave hold) undone so base 8dc5fe8d still compares (global-1254-1260.js; test_size_1258 checks the resize)
+const now=load(require('./global-1254-1260.js').page(html)),old=load(base);let pass=0,fail=0;
 const ck=(s,ok,d)=>{console.log((ok?'ok ':'FAIL ')+hero+': '+s+(ok?'':' '+(d||'')));ok?pass++:fail++;};
 const hash=s=>crypto.createHash('sha256').update(s).digest('hex');
 const fixture=JSON.parse(fs.readFileSync(path.join(root,'tests/fixtures/'+hero+'_art_18oct.json'),'utf8'));

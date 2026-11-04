@@ -14,7 +14,7 @@ const freePort = () => new Promise(r => { const s = net.createServer(); s.listen
   try {
     fs.writeFileSync(OLD, cp.execSync('git show ' + BASE_SHA + ':emberweave-heroes.html', { cwd: ROOT, maxBuffer: 64 << 20 }));
     const load = f => { const h = require(path.join(ROOT, 'server/sim-host.js')).load(f); return src => vm.runInContext(src, h.ctx); };
-    const run = load(path.join(ROOT, 'emberweave-heroes.html')), R0 = load(OLD);
+    const run = load(require('./helpers/global-1254-1260.js').page(path.join(ROOT, 'emberweave-heroes.html'))), R0 = load(OLD);   // 4 Nov 2026: the 2 Nov global engine changes (v1254 enemy nerf, v1258 resize, v1260 wave hold) undone so BASE 0219c16c still compares (tests/helpers/global-1254-1260.js; test_size_1258 checks the resize)
     const CAST = `(()=>{ units=[]; ended=false; battleTime=0; groundHazards.length=0; seedBattle(7); const g=makeUnit('nerisse','ally',400,700,30,{owned:false,rank:3});
       const a=makeUnit('vael','ally',300,560,30,{owned:false}), b=makeUnit('tolley','ally',520,820,30,{owned:false}), e=makeUnit('umbris','enemy',1100,300,30,{owned:false});
       units=[g,a,b,e]; units.forEach(u=>{ try{ buildFigure(u); }catch(_e){} u.speed=0; u.atkCd=99; u.atkInterval=99; u.greenCd=u.blueCd=99; }); a.hp=a.maxHp*0.4; b.hp=b.maxHp*0.5; e._noTarget=true;

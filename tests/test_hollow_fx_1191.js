@@ -12,7 +12,7 @@
 (function main() {
 const path = require('path'), vm = require('vm'), fs = require('fs'), cp = require('child_process'), crypto = require('crypto');
 const ROOT = path.resolve(__dirname, '..');
-const HTML = process.env.EW_HTML || path.join(ROOT, 'emberweave-heroes.html');
+const HTML = require('./helpers/global-1254-1260.js').page(process.env.EW_HTML || path.join(ROOT, 'emberweave-heroes.html'));   // 4 Nov 2026: the 2 Nov global engine changes (v1254 enemy nerf, v1258 resize, v1260 wave hold) undone on the live page so the older BASE still compares (tests/helpers/global-1254-1260.js; test_size_1258 checks the resize)
 const VER = process.env.EW_VER || '1191';
 const BASE_SHA = process.env.EW_BASE || '659d7d2f';   // live v1190 (deaths stream, on v1189 Tessit, v1186 Kharos FX, v1181 facing), before this change
 let OLD = process.env.EW_HTML_OLD;

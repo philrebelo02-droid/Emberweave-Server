@@ -13,7 +13,7 @@
 (function main() {
 const path = require('path'), vm = require('vm'), fs = require('fs'), cp = require('child_process'), crypto = require('crypto'), os = require('os'), net = require('net');
 const ROOT = path.resolve(__dirname, '..');
-const HTML = process.env.EW_HTML || path.join(ROOT, 'emberweave-heroes.html');
+const HTML = require('./helpers/global-1254-1260.js').page(process.env.EW_HTML || path.join(ROOT, 'emberweave-heroes.html'));   // 4 Nov 2026: the 2 Nov global engine changes (v1254 enemy nerf, v1258 resize, v1260 wave hold) undone on the live page so the older BASE still compares (tests/helpers/global-1254-1260.js; test_size_1258 checks the resize)
 const BASE_SHA = process.env.EW_BASE || '1199aafe';   // live v1178 (Brannus + Quorrel), the build this change sits on
 const VER = process.env.EW_RIM_VER || '1180';
 const BD = fs.mkdtempSync(path.join(os.tmpdir(), 'rim-base-'));
@@ -152,7 +152,7 @@ const tests = async () => {
     ck('BROWSER: it spins the whole way (rotation ' + R.pts.map(q => q[3]).join(' / ') + ' plus the art\'s own roll), each cell anchored on its own wheel centre (wc) so the painted travel never shows', R.pts[1][3] !== R.pts[0][3] && R.pts[2][3] !== R.pts[1][3] && R.pts.every(q => Math.abs(q[5] - FXD.wc[q[4]][0]) < 1e-3));
     ck('BROWSER: mirrored when thrown to the left (UV window and anchor), the spin reversed: ' + JSON.stringify(Lf.pts[0]), Lf.dir === -1 && Lf.pts.every(q => q[6] === -1 && Math.abs(q[5] - (1 - FXD.wc[q[4]][0])) < 1e-3) && Math.sign(Lf.pts[1][3]) === -Math.sign(R.pts[1][3]) && R.pts.every(q => q[6] === 1));
     ck('BROWSER: and it ends on arrival (the tick returns -1 once the flight time is up)', R.end === -1 && Lf.end === -1);
-    const srvH = BRF.map(([a, f, s]) => fight(HTML, s, a, f, 1));
+    const srvH = BRF.map(([a, f, s]) => fight(process.env.EW_HTML || path.join(ROOT, 'emberweave-heroes.html'), s, a, f, 1));   // 4 Nov 2026: the live page as served (the browser runs it), not the BASE-comparison copy with the 2 Nov global changes undone
     ck('BROWSER: the client\'s run of the Brannus fights (' + web.map(w => w.casts + ' casts').join(' / ') + ') is the server replay\'s tick for tick (' + web.map(w => w.h).join(' ') + ')', web.every((w, i) => w.h === srvH[i].h && w.casts > 0), JSON.stringify({ web, srvH }));
   } finally { try { if (b) await b.close(); } catch (e) {} srv.kill(); }
 };

@@ -17,7 +17,7 @@
 (async function main() {
 const path = require('path'), vm = require('vm'), fs = require('fs'), cp = require('child_process'), net = require('net'), os = require('os');
 const ROOT = path.resolve(__dirname, '..');
-const HTML = process.env.EW_HTML || path.join(ROOT, 'emberweave-heroes.html');
+const HTML = require('./helpers/global-1254-1260.js').page(process.env.EW_HTML || path.join(ROOT, 'emberweave-heroes.html'));   // 4 Nov 2026: the 2 Nov global engine changes (v1254 enemy nerf, v1258 resize, v1260 wave hold) undone on the live page so the older BASE still compares (tests/helpers/global-1254-1260.js; test_size_1258 checks the resize)
 const BASE_SHA = process.env.EW_BASE || '25d88920';   // live v1140
 const H = fs.readFileSync(HTML, 'utf8');
 let pass = 0, fail = 0;
