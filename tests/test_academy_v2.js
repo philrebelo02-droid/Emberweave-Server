@@ -61,8 +61,8 @@ function checks(src) {
   const hrow = JSON.parse(run('JSON.stringify((TECH_TRACKS.find(t=>t[0]==="heal")||[]).slice(2,4))')), crow = JSON.parse(run('JSON.stringify((TECH_TRACKS.find(t=>t[0]==="critres")||[]).slice(2,4))'));
   add('Healing & Shielding row ("Healing and shield strength"); Crit Resist reads "Reduces critical damage taken"', hrow[0] === 'Healing & Shielding' && hrow[1] === 'Healing and shield strength' && /^Reduces critical damage taken/.test(crow[1] || ''), JSON.stringify([hrow, crow]));
   { const html = fs.readFileSync(src.htmlPath, 'utf8'), a = html.indexOf('function renderTech()'), seg = html.slice(a, html.indexOf("const card=document.createElement('div'); card.className='tw-detail';", a) + 2000);
-    const m = /let preL='', postL=' '\+desc; if\(k==='critres'\)\{ preL='crit damage taken '; postL=' pts'; perStr=perStr\.replace\('\+','-'\); nowStr=nowStr\.replace\('\+','-'\); \}/.test(seg);
-    const t = /Next level: \$\{preL\}<b style="color:#5ee89b">\$\{perStr\}<\/b>\$\{postL\} · `\}now \$\{preL\}<b style="color:#5ee89b">\$\{nowStr\}<\/b>\$\{postL\}/.test(seg);
+    /* v1273 LANGUAGES: the line is built by t('tech.critres_amount') = \"crit damage taken {n} pts\" in English */ const m = /return k==='critres'\?t\('tech\.critres_amount',\{n:b\}\):t\('tech\.amount',\{n:b,stat:desc\}\); \}; if\(k==='critres'\)\{ perStr=perStr\.replace\('\+','-'\); nowStr=nowStr\.replace\('\+','-'\); \}/.test(seg) && JSON.parse(fs.readFileSync(path.join(ROOT, 'lang', 'en.json'), 'utf8'))['tech.critres_amount'] === 'crit damage taken {n} pts';
+    const t = /t\('tech\.next_now',\{next:_amt\(perStr\),now:_amt\(nowStr\)\}\)/.test(seg) && JSON.parse(fs.readFileSync(path.join(ROOT, 'lang', 'en.json'), 'utf8'))['tech.next_now'] === 'Next level: {next} \u00b7 now {now}';
     add('Crit Resist detail line reads "crit damage taken -0.8 pts" (no "%": the Academy screen rule)', m && t, ''); }
   const CB = JSON.parse(run('JSON.stringify(TECH_BASE)'));
   add('bases ' + JSON.stringify(WANT) + ' on both tables', JSON.stringify(CB) === JSON.stringify(WANT) && JSON.stringify(Object.assign({}, S.TECH_BASE_SRV)) === JSON.stringify(WANT), JSON.stringify(CB));

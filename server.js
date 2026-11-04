@@ -525,7 +525,7 @@ let _corsReqOrigin='';   // set per-request in the server handler
 function corsHeaders(){ const h={'Content-Type':'application/json'};
   if(_corsReqOrigin && CORS_ORIGINS.has(_corsReqOrigin)){ h['Access-Control-Allow-Origin']=_corsReqOrigin; h['Vary']='Origin'; h['Access-Control-Allow-Headers']='content-type,x-token'; }
   return h; }
-function _sendNow(res, code, obj){ obj=errorCodes.attach(obj);   // v1271 LANGUAGES step 2: {error} gains {code, vars} for the client's translation (error stays English)
+function _sendNow(res, code, obj){ obj=errorCodes.attach(obj);   // v1271 LANGUAGES step 2: {error} gains {errCode, errVars} for the client's translation (error stays English; own field names - 'code' is a real field in handoff/room/invite replies)
   const b=JSON.stringify(obj), h=corsHeaders();
   /* v1141 (Phil 15 Oct, item 7 "smaller code download"): an API reply over 2 KB (the ledger, rankings, world views) goes out
      compressed when the client accepts it - brotli at quality 4 (fast; a 200 KB ledger costs ~2 ms) or gzip. res._ae is the request's

@@ -1,6 +1,6 @@
 // v1271 LANGUAGES step 2 (Phil 4 Nov 2026: "I need everything thats translatable to be translated") - a stable CODE for every
 // player-facing error text the server sends. The reply keeps {error} in English EXACTLY as before (client code and tests compare it);
-// _sendNow (server.js) adds {code} and, for a text built from values, {vars}. The client translates err.<code> with the English as
+// _sendNow (server.js) adds {errCode} and, for a text built from values, {errVars} (v1273: renamed from code/vars - a handoff reply's 'code' is the switch code). The client translates err.<code> with the English as
 // fallback; the English for each code lives in tools/lang/specs/C_server.json (tests/test_lang_server_errors.js keeps the two in step).
 // EXACT: texts sent as written.  PATTERNS: texts built with values ("Need "+n+" gems") - re captures the values in vars order.
 // A code never changes meaning: a reworded message keeps its code only if the meaning is the same, else it gets a new code.
@@ -588,10 +588,10 @@ function errorInfo(text){
 /* attach(obj): for a plain reply object with a string error and no code, returns a COPY with code (+ vars) added - the caller's object
    is never changed (it may be a cached or stored record). Anything else comes back as it was. Never throws. */
 function attach(obj){
-  try{ if(!obj||typeof obj!=='object'||Array.isArray(obj)||typeof obj.error!=='string'||obj.code!==undefined) return obj;
+  try{ if(!obj||typeof obj!=='object'||Array.isArray(obj)||typeof obj.error!=='string'||obj.errCode!==undefined) return obj;
     const p=Object.getPrototypeOf(obj); if(p!==Object.prototype&&p!==null) return obj;
     const i=errorInfo(obj.error); if(!i) return obj;
-    const out=Object.assign({},obj,{code:i.code}); if(i.vars&&obj.vars===undefined) out.vars=i.vars; return out; }catch(e){ return obj; }
+    const out=Object.assign({},obj,{errCode:i.code}); if(i.vars&&obj.errVars===undefined) out.errVars=i.vars; return out; }catch(e){ return obj; }
 }
 function table(){ return EXACT.map(([code,en])=>({code,en})).concat(PATTERNS.map(([code,en,re,vars])=>({code,en,re,vars}))); }
 module.exports={errorInfo,attach,table};

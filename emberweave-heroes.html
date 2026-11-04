@@ -2967,8 +2967,8 @@ try{ if(document.readyState==='loading') document.addEventListener('DOMContentLo
    player's language: the server sends {error, code, vars} (server/error-codes.js) and _apiRaw notes the translation of each error it sees. */
 function ewT(key,vars){ return t(key,vars); }
 const LANG_ERR=new Map();
-function langErrNote(j){ if(!j||typeof j!=='object'||typeof j.error!=='string'||!j.code) return;
-  const k='err.'+j.code; if(!(k in EW_LANG_EN)) return; LANG_ERR.set(j.error,{k,vars:j.vars||null}); }
+function langErrNote(j){ if(!j||typeof j!=='object'||typeof j.error!=='string'||!j.errCode) return;
+  const k='err.'+j.errCode; if(!(k in EW_LANG_EN)) return; LANG_ERR.set(j.error,{k,vars:j.errVars||null}); }
 function langMsg(s){ if(s==null||LANG.cur==='en') return s; const e=LANG_ERR.get(String(s)); return e?(t(e.k,e.vars)||s):s; }
 /* /v1265 LANGUAGES step 1 */
 const TH = window.THREE;

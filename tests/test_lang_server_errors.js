@@ -52,9 +52,9 @@ function tableSpecProblems(table, keys) {
 
   /* (3) */
   { const o = { error: 'Not enough gold.', ok: false }, r = EC.attach(o);
-    ck(r !== o && r.code === 'not_enough_gold' && r.error === 'Not enough gold.' && r.ok === false && o.code === undefined, 'attach: a copy gains code, the original is untouched');
-    const keep = { error: 'Not enough gold.', code: 'mine' }; ck(EC.attach(keep) === keep && keep.code === 'mine', 'attach: an existing code is kept');
-    const v = EC.attach({ error: 'You need 3 diamonds.' }); ck(v.vars && v.vars.cost === '3', 'attach: pattern adds vars');
+    ck(r !== o && r.errCode === 'not_enough_gold' && r.error === 'Not enough gold.' && r.ok === false && o.errCode === undefined, 'attach: a copy gains errCode, the original is untouched');
+    const keep = { error: 'Not enough gold.', errCode: 'mine' }; ck(EC.attach(keep) === keep && keep.errCode === 'mine', 'attach: an existing errCode is kept');
+    const v = EC.attach({ error: 'You need 3 diamonds.' }); ck(v.errVars && v.errVars.cost === '3', 'attach: pattern adds errVars');
     const un = { error: 'auth' }; ck(EC.attach(un) === un && !('code' in un), 'attach: unknown text unchanged');
     let threw = false; try { for (const x of [null, undefined, 'x', 5, [], [1], { error: 5 }, Object.freeze({ error: 'Slow down.' }), Object.create({ error: 'Slow down.' })]) EC.attach(x); } catch (e) { threw = true; }
     ck(!threw, 'attach never throws');
@@ -77,10 +77,10 @@ function tableSpecProblems(table, keys) {
     ck(up, 'server started');
     const call = async (r, b) => { const x = await fetch(base + r, { method: b ? 'POST' : 'GET', headers: { 'Content-Type': 'application/json' }, body: b ? JSON.stringify(b) : undefined }); let j = {}; try { j = await x.json(); } catch (_) {} return { status: x.status, data: j }; };
     { const r = await call('/api/register', { name: 'Ab<cd', pass: 'password1' });
-      ck(r.status === 400 && /^Names cannot use < - letters/.test(r.data.error || '') && r.data.code === 'names_cannot_use_letters_numbers_spaces' && r.data.vars && r.data.vars.bad === '<',
+      ck(r.status === 400 && /^Names cannot use < - letters/.test(r.data.error || '') && r.data.errCode === 'names_cannot_use_letters_numbers_spaces' && r.data.errVars && r.data.errVars.bad === '<',
         'route: blocked name -> English kept + code + vars', JSON.stringify(r)); }
     { const r = await call('/api/register', { name: 'Guest12', pass: 'password1' });
-      const want = EC.errorInfo(r.data.error || ''); ck(r.status === 400 && want && r.data.code === want.code && !('vars' in r.data), 'route: reserved name -> exact code ' + r.data.code, JSON.stringify(r)); }
+      const want = EC.errorInfo(r.data.error || ''); ck(r.status === 400 && want && r.data.errCode === want.code && !('errVars' in r.data), 'route: reserved name -> exact code ' + r.data.errCode, JSON.stringify(r)); }
     { const r = await call('/api/chat/blocks');
       ck(r.status === 401 && r.data.error === 'auth' && !('code' in r.data), 'route: unknown-text error carries no code', JSON.stringify(r)); }
     { const r = await call('/api/register', { name: 'LangOk1', pass: 'password1' }); ck(r.status === 200 && !('code' in r.data), 'route: a success reply is unchanged (no code)'); }
