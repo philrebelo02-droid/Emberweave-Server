@@ -959,6 +959,13 @@
   .set-pane{display:none;flex-direction:column;gap:8px;}
   .set-pane.on{display:flex;}
   .set-sec{display:flex;flex-direction:column;gap:6px;background:#0f1522;border:1px solid #26324a;border-radius:10px;padding:8px 10px;}
+  /* v1275 (Phil 4 Nov: "put the Facebook link right next to the Google one"): Google and Facebook linking share one row; the row hides when neither is on */
+  .set-sec.set-links{flex-direction:row;flex-wrap:wrap;align-items:flex-start;justify-content:center;gap:10px 16px}
+  .set-sec.set-links:not(:has(> .set-link:not([hidden]))){display:none}
+  .set-links>.set-link{flex:1 1 220px;min-width:0;display:flex;flex-direction:column;align-items:center}
+  .set-links>.set-link{flex:1 1 0}
+  .set-links .set-link [role="button"] svg{width:18px;height:18px;display:block}   /* Google's icon button collapses its G inside a centred column */
+  .set-links>.set-link>div{margin-top:0!important;display:flex;flex-direction:column;align-items:center;gap:6px;font-size:13px}
   .set-h{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#c9a35e;}
   .set-row{display:flex;align-items:center;gap:8px;min-height:30px;font-size:12px;flex-wrap:wrap;}
   .set-row + .set-row{border-top:1px solid #1d2638;padding-top:6px;}
@@ -2406,6 +2413,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 #authGate .agMethods.agM3{gap:6px}
 #authGate .agMethods.agM3 .agMethod{font-size:11px;padding:8px 4px}
 .fbAuthBtn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:40px;max-width:100%;padding:0 16px;border:0;border-radius:6px;background:#1877F2;color:#fff;font:700 15px Helvetica,Arial,sans-serif;cursor:pointer}
+.fbAuthBtn.fbAuthIcon{width:40px;height:40px;min-height:40px;padding:0;gap:0;border-radius:4px}.fbAuthBtn.fbAuthIcon svg{width:24px;height:24px}
 .fbAuthBtn svg{width:22px;height:22px;flex:none}
 .fbAuthBtn:disabled{opacity:.6;cursor:default}
 #authGate #agGoogle{display:flex;justify-content:center;min-height:48px}
@@ -24419,7 +24427,7 @@ async function mountGoogleSignin(root){
       };
       if(!tosOK()){requireTos(submit,()=>bannerMsg(t('acct2.accept_terms_sign_in')));return;}await submit();
     }});
-    window.google.accounts.id.renderButton(button,{type:'standard',theme:'outline',size:'large',text:'continue_with'});
+    window.google.accounts.id.renderButton(button,root.classList.contains('set-link')?{type:'icon',theme:'outline',size:'large',shape:'square'}:{type:'standard',theme:'outline',size:'large',text:'continue_with'});   /* v1275: square G in the Settings link row */
   }catch(_){box.hidden=true;}
 }
 /* v1271 FACEBOOK LOGIN: the Facebook JS SDK is loaded only when a Facebook option is on screen. FB.login (scope public_profile,email) runs
@@ -24454,7 +24462,8 @@ async function mountFacebookSignin(root){
     }
     if(ACC.token&&!ACC.guest){const label=document.createElement('div');label.textContent=t('auth.fb_link');box.appendChild(label);}
     const button=document.createElement('button');button.type='button';button.className='fbAuthBtn';button.disabled=true;
-    button.innerHTML=FB_AUTH_SVG+'<span>'+escapeHTML(t('auth.fb_continue'))+'</span>';box.appendChild(button);
+    if(root.classList.contains('set-link')){ button.classList.add('fbAuthIcon'); button.title=t('auth.fb_continue'); button.setAttribute('aria-label',t('auth.fb_continue')); button.innerHTML=FB_AUTH_SVG; }   /* v1275: square f beside the Google G in the Settings link row */
+    else button.innerHTML=FB_AUTH_SVG+'<span>'+escapeHTML(t('auth.fb_continue'))+'</span>';box.appendChild(button);
     await loadFacebookSdk(config.appId);if(!box.isConnected)return;button.disabled=false;
     const submit=async accessToken=>{
       if(window._authBusy)return;window._authBusy=true;
@@ -29591,8 +29600,7 @@ function renderSettings(){
       <div class="set-row"><span class="set-lbl">${uiIcon('cloud-sync')} ${escapeHTML(ACC.name||'')}</span><span class="set-val">${t('set.arena_rank',{n:ACC.rank||'—'})}</span><button class="btn xs secondary set-act" id="acLogout">${t('set.log_out')}</button></div>
       ${ACC.guest?guestUp:(emailRow+emailForm+resetBlock)}
       ${blockList}</div>
-      <div class="set-sec" id="googleAuthPanel" hidden></div>
-      <div class="set-sec" id="facebookAuthPanel" hidden></div>
+      <div class="set-sec set-links"><div id="googleAuthPanel" class="set-link" hidden></div><div id="facebookAuthPanel" class="set-link" hidden></div></div>
       <div class="set-sec set-dz"><div class="set-h set-h-dz">${t('set.danger_zone')}</div>${DEV.on?`<button class="btn sm set-danger" id="resetBtn" style="background:#ff6b6b;color:#1a0f12">${t('set.reset_progress')}</button>`:''}${delBlock}</div>`;
   } else if(acctMode==='reset'){
     account=`<div class="set-sec">
@@ -29732,7 +29740,7 @@ function renderSettings(){
   b.innerHTML=`<div class="set-wrap">
     <div class="tabrow set-tabs" role="tablist">${TABS.map(([k,l])=>`<div class="tab${setTab===k?' on':''}" role="tab" data-settab="${k}">${l}</div>`).join('')}</div>
     ${pane('general',langCard+soundCard)}
-    ${pane('account',account+(account.indexOf('id="googleAuthPanel"')>=0?'':'<div class="set-sec" id="googleAuthPanel" hidden></div>')+(account.indexOf('id="facebookAuthPanel"')>=0?'':'<div class="set-sec" id="facebookAuthPanel" hidden></div>'))}
+    ${pane('account',account+(account.indexOf('id="googleAuthPanel"')>=0?'':'<div class="set-sec set-links"><div id="googleAuthPanel" class="set-link" hidden></div><div id="facebookAuthPanel" class="set-link" hidden></div></div>'))}
     ${ACC.token?pane('storage',assetCard):''}
     ${pane('support',reportCard+`<div class="set-legal set-sec">
       <a href="#" id="tosLink">${t('set.terms')}</a>
@@ -31924,7 +31932,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1793815947210';
+const BUILD_ID = '1793818813174';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.

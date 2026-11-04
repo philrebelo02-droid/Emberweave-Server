@@ -1,6 +1,7 @@
 {
  "note": "Each draft item mapped to the SHIPPED note(s) in Emberweave Archive/Operating procedure/SHIPPED it came from.",
  "patches": [
+    {"ver": "1.2.5", "releases": "v1275", "items": [{"text": "Facebook switched on 4 Nov 14:0x; Google + Facebook link buttons in one row (Phil 4 Nov: \"put the Facebook link right next to the Google one\").", "sources": ["SHIPPED-v1275-links-row-04-11-2026.md"]}]},
     {"ver": "1.2.4", "releases": "v1274", "items": [{"text": "Facebook sign in built, OFF until FACEBOOK_APP_ID + FACEBOOK_APP_SECRET are set (Phil 4 Nov: \"lets setup facebook\").", "sources": ["SHIPPED-v1274-facebook-signin-04-11-2026.md"]}]},
     {"ver": "1.2.3", "releases": "v1273", "items": [{"text": "Languages step 2: all UI via t(), 647 content templates x15, 562 server error codes (Phil 4 Nov: \"I need everything thats translatable to be translated\").", "sources": ["SHIPPED-v1273-languages-step2-04-11-2026.md"]}]},
     {"ver": "1.2.2", "releases": "v1271, v1272", "items": [{"text": "Heroes list 4 columns, centred (SUG-0001; Phil 4 Nov: \"Make it 4 columns now\").", "sources": ["SHIPPED-v1272-heroes-4-columns-04-11-2026.md"]}, {"text": "Danger zone last in Account (Phil 4 Nov).", "sources": ["SHIPPED-v1271-danger-zone-last-04-11-2026.md"]}]},
