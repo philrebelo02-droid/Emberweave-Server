@@ -553,6 +553,8 @@
   .hero-card.locked{opacity:.45;} .hero-card:active{transform:scale(.98);}
   /* uniform 3-column grid (2 rows of 3 visible); a lone card never stretches to fill the row */
   #heroList,#roster{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;align-content:start;}
+  /* v1272 (Phil 4 Nov, player SUG-0001 "left hand wont be useless"): "Make it 4 columns now" - the Heroes list is 4 cards wide, centred, panel widened so each card keeps its size */
+  #heroesPanel>.panel{max-width:760px} #heroesPanel>.titlebar{max-width:760px} #heroList{grid-template-columns:repeat(4,minmax(0,1fr))}
   /* v1103 (Phil 9 Oct): "for all hero select screens, please make it 5 columns instead of 3 / above the heroes there will be an ALL, TANK,
      BRUISER, ASSASIN, MAGE, SUPPORT, MARKSMAN button / above that will be 5 EMPTY hero card sized slots, when you click a hero it will fill the slot" */
   .rsPanel{max-width:760px}
@@ -31801,7 +31803,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1793797671015';
+const BUILD_ID = '1793804606534';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
