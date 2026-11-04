@@ -2398,6 +2398,14 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#e9c66c!import
 #authGate .agMethod img{max-width:100%;height:34px;object-fit:contain}
 #authGate .agMethod .agG{width:30px;height:30px;background:#fff;border-radius:50%;padding:4px}
 #authGate .agMethod.on{border-color:#ffd27a;box-shadow:0 0 0 2px rgba(255,179,71,.55);color:#ffe4a8}
+#authGate .agMethod{min-width:0;text-align:center;line-height:1.15}
+#authGate .agMethod span{overflow-wrap:anywhere}
+#authGate .agMethod .agF{width:30px;height:30px}
+#authGate .agMethods.agM3{gap:6px}
+#authGate .agMethods.agM3 .agMethod{font-size:11px;padding:8px 4px}
+.fbAuthBtn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:40px;max-width:100%;padding:0 16px;border:0;border-radius:6px;background:#1877F2;color:#fff;font:700 15px Helvetica,Arial,sans-serif;cursor:pointer}
+.fbAuthBtn svg{width:22px;height:22px;flex:none}
+.fbAuthBtn:disabled{opacity:.6;cursor:default}
 #authGate #agGoogle{display:flex;justify-content:center;min-height:48px}
 #authGate .agTab{flex:1;font:800 13px Georgia,serif;padding:7px 6px;border-radius:9px;border:1px solid #b8913f;background:linear-gradient(180deg,#1f2b48,#0c1326);color:#cdb98a;cursor:pointer}
 #authGate .agTab.on{background:linear-gradient(90deg,#ffb347,#ff8a5b);color:#0b0e14;border-color:#ffd27a}
@@ -2874,8 +2882,8 @@ body.ew-rotated #app{max-width:none;max-height:none;}
    (Settings > Language, saved in the save G.lang - synced with the cloud save, so it survives a reinstall - and in ew_lang on the
    device), else the phone's languages (navigator.languages), else English. Hero, monster and boss names and "Emberweave" are never
    translated (Phil's in-game-names rule). */
-const EW_LANG_EN={"bld.academy":"Academy","bld.arena":"Arena","bld.bulletin_board":"Bulletin Board","bld.campaign":"Campaign","bld.city_wall":"City Wall","bld.forge":"Forge","bld.guild_hall":"Guild Hall","bld.island_trials":"Island of Trials","bld.market":"Market","bld.shady_market":"Shady Market","bld.starless_well":"The Starless Well","bld.temple":"Temple","bld.vault":"The Vault","bld.watch_tower":"Watch Tower","bld.wishing_pool":"Wishing Pool","bld.witches_hut":"Witches Hut","common.back":"Back","common.battle":"Battle","common.buy":"Buy","common.cancel":"Cancel","common.claim":"Claim","common.claimed":"Claimed","common.close":"Close","common.collect":"Collect","common.confirm":"Confirm","common.continue":"Continue","common.done":"Done","common.fight":"Fight","common.free":"Free","common.go":"Go","common.in_progress":"In progress","common.loading":"Loading…","common.locked":"Locked","common.next":"Next","common.no":"No","common.ok":"OK","common.reset":"Reset","common.retry":"Retry","common.save":"Save","common.send":"Send","common.start":"Start","common.upgrade":"Upgrade","common.yes":"Yes","hub.research":"Research: {t}","hub.unlocks_at":"Unlocks at Lv {n}","menu.bag":"Bag","menu.heroes":"Heroes","menu.mail":"Mail","menu.menu":"Menu","menu.quests":"Quests","menu.server":"Server","menu.settings":"Settings","menu.sign_in":"Sign-In","menu.start_here":"Start Here","nav.base":"Base","nav.glossary":"Glossary","nav.guild":"Guild","nav.vault":"Vault","nav.wall":"Wall","nav.world":"World","set.add_email":"add email","set.add_email_first":"(add an email first)","set.arena_rank":"Arena rank #{n}","set.audio":"Audio","set.blocked_players":"Blocked players","set.bug":"Bug","set.build":"Build","set.change":"change","set.clear_cache":"Clear cache","set.cloud_account":"Cloud Account","set.confirm_password":"Confirm password","set.create_account":"Create Account","set.create_hint":"Pick a username & password to make a cloud account you can sign into on any device.","set.danger_zone":"Danger zone","set.delete_account":"Delete account","set.dev_accounts":"Accounts & players","set.dev_battles":"Battles & sims","set.dev_debug":"Debug views","set.dev_economy":"Economy & grants","set.dev_servers":"Servers & deploys","set.email_add":"Add","set.email_change":"Change","set.email_none":"Not linked","set.forgot":"Forgot your password?","set.fx":"FX","set.lang_auto":"Device language","set.language":"Language","set.log_out":"Log out","set.music":"Music","set.mute_all":"Mute all","set.no_email":"No recovery email linked — add one so you can reset your password if you forget it.","set.none":"None","set.offline_art":"Offline Art","set.offline_art_desc":"Download every hero, monster and boss animation once and keep it on this device. Battles then load instantly, even on a bad connection.","set.open_online":"Open the game through your online link to sign in.","set.password":"Password","set.pw_reset":"Reset by email","set.recovery":"Recovery email","set.recovery_email":"Recovery email:","set.report_desc":"Spotted something broken or have an idea? Send it straight to the devs.","set.report_ph":"Describe the bug or suggestion…","set.report_sent":"Thanks! Report sent.","set.report_short":"Please add a little detail.","set.report_title":"Report a bug / feedback","set.reset_by_email":"Reset password by email","set.reset_progress":"Reset all progress","set.rights":"All rights reserved.","set.save_code":"Show save code","set.send_failed":"Failed to send.","set.send_report":"Send report","set.sending":"Sending…","set.sign_in":"Sign In","set.signed_in_as":"Signed in as {name}","set.signin_hint":"Sign in to load your account and sync your progress here.","set.stop_download":"Stop download","set.suggestion":"Suggestion","set.sync_note":"your progress syncs to any device you sign in on.","set.tab_account":"Account","set.tab_dev":"Dev","set.tab_general":"General","set.tab_storage":"Storage","set.tab_support":"Support","set.terms":"Terms of Service & Privacy","set.update_all":"Update all features","set.username":"Username","set.voices":"Voices","title.account":"Account","title.arena_shop":"Arena Shop","title.daily_signin":"Daily Sign-In","title.elite_stages":"Elite Stages","title.forge":"The Forge","title.online_arena":"Online Arena","title.technology":"Technology"};
-const EW_LANG_V={"en":"ba58818d","es":"4a50a7c5","pt-BR":"ce66f901","fr":"6c54d945","de":"f63a0faa","it":"7e37c9f1","nl":"45d6651f","ru":"810998e7","tr":"5780796c","ja":"5ba0adbe","ko":"31511f59","zh-Hans":"ef18b2f9","zh-Hant":"421ef601","th":"822e4cff","id":"e651d033","hi":"0d60fd12"};
+const EW_LANG_EN={"auth.fb_cancelled":"Facebook sign-in was cancelled.","auth.fb_code_err":"Could not send the unlink code.","auth.fb_code_ph":"Code from your recovery email","auth.fb_code_sent":"Enter the code sent to your recovery email.","auth.fb_confirm_unlink":"Confirm unlink","auth.fb_continue":"Continue with Facebook","auth.fb_failed":"Facebook sign-in failed.","auth.fb_link":"Link Facebook account","auth.fb_linked":"Facebook account linked","auth.fb_method":"Facebook sign in","auth.fb_send_again":"Send another code","auth.fb_terms":"Accept the Terms to sign in.","auth.fb_title":"Sign in with Facebook","auth.fb_unlink":"Unlink Facebook","auth.fb_unlink_err":"Could not unlink.","auth.fb_unlinked":"Facebook account unlinked.","bld.academy":"Academy","bld.arena":"Arena","bld.bulletin_board":"Bulletin Board","bld.campaign":"Campaign","bld.city_wall":"City Wall","bld.forge":"Forge","bld.guild_hall":"Guild Hall","bld.island_trials":"Island of Trials","bld.market":"Market","bld.shady_market":"Shady Market","bld.starless_well":"The Starless Well","bld.temple":"Temple","bld.vault":"The Vault","bld.watch_tower":"Watch Tower","bld.wishing_pool":"Wishing Pool","bld.witches_hut":"Witches Hut","common.back":"Back","common.battle":"Battle","common.buy":"Buy","common.cancel":"Cancel","common.claim":"Claim","common.claimed":"Claimed","common.close":"Close","common.collect":"Collect","common.confirm":"Confirm","common.continue":"Continue","common.done":"Done","common.fight":"Fight","common.free":"Free","common.go":"Go","common.in_progress":"In progress","common.loading":"Loading…","common.locked":"Locked","common.next":"Next","common.no":"No","common.ok":"OK","common.reset":"Reset","common.retry":"Retry","common.save":"Save","common.send":"Send","common.start":"Start","common.upgrade":"Upgrade","common.yes":"Yes","hub.research":"Research: {t}","hub.unlocks_at":"Unlocks at Lv {n}","menu.bag":"Bag","menu.heroes":"Heroes","menu.mail":"Mail","menu.menu":"Menu","menu.quests":"Quests","menu.server":"Server","menu.settings":"Settings","menu.sign_in":"Sign-In","menu.start_here":"Start Here","nav.base":"Base","nav.glossary":"Glossary","nav.guild":"Guild","nav.vault":"Vault","nav.wall":"Wall","nav.world":"World","set.add_email":"add email","set.add_email_first":"(add an email first)","set.arena_rank":"Arena rank #{n}","set.audio":"Audio","set.blocked_players":"Blocked players","set.bug":"Bug","set.build":"Build","set.change":"change","set.clear_cache":"Clear cache","set.cloud_account":"Cloud Account","set.confirm_password":"Confirm password","set.create_account":"Create Account","set.create_hint":"Pick a username & password to make a cloud account you can sign into on any device.","set.danger_zone":"Danger zone","set.delete_account":"Delete account","set.dev_accounts":"Accounts & players","set.dev_battles":"Battles & sims","set.dev_debug":"Debug views","set.dev_economy":"Economy & grants","set.dev_servers":"Servers & deploys","set.email_add":"Add","set.email_change":"Change","set.email_none":"Not linked","set.forgot":"Forgot your password?","set.fx":"FX","set.lang_auto":"Device language","set.language":"Language","set.log_out":"Log out","set.music":"Music","set.mute_all":"Mute all","set.no_email":"No recovery email linked — add one so you can reset your password if you forget it.","set.none":"None","set.offline_art":"Offline Art","set.offline_art_desc":"Download every hero, monster and boss animation once and keep it on this device. Battles then load instantly, even on a bad connection.","set.open_online":"Open the game through your online link to sign in.","set.password":"Password","set.pw_reset":"Reset by email","set.recovery":"Recovery email","set.recovery_email":"Recovery email:","set.report_desc":"Spotted something broken or have an idea? Send it straight to the devs.","set.report_ph":"Describe the bug or suggestion…","set.report_sent":"Thanks! Report sent.","set.report_short":"Please add a little detail.","set.report_title":"Report a bug / feedback","set.reset_by_email":"Reset password by email","set.reset_progress":"Reset all progress","set.rights":"All rights reserved.","set.save_code":"Show save code","set.send_failed":"Failed to send.","set.send_report":"Send report","set.sending":"Sending…","set.sign_in":"Sign In","set.signed_in_as":"Signed in as {name}","set.signin_hint":"Sign in to load your account and sync your progress here.","set.stop_download":"Stop download","set.suggestion":"Suggestion","set.sync_note":"your progress syncs to any device you sign in on.","set.tab_account":"Account","set.tab_dev":"Dev","set.tab_general":"General","set.tab_storage":"Storage","set.tab_support":"Support","set.terms":"Terms of Service & Privacy","set.update_all":"Update all features","set.username":"Username","set.voices":"Voices","title.account":"Account","title.arena_shop":"Arena Shop","title.daily_signin":"Daily Sign-In","title.elite_stages":"Elite Stages","title.forge":"The Forge","title.online_arena":"Online Arena","title.technology":"Technology"};
+const EW_LANG_V={"en":"e49be77e","es":"4b23cdb5","pt-BR":"7e4acc33","fr":"ebfd9ad9","de":"3198624d","it":"60794040","nl":"54f56ae2","ru":"1ee51dc0","tr":"3c034ca1","ja":"ea234dec","ko":"372bcdbf","zh-Hans":"41c35452","zh-Hant":"c410fc58","th":"f26af24d","id":"617801c0","hi":"87f1529e"};
 const EW_LANGS=[['en','English'],['es','Español'],['pt-BR','Português (Brasil)'],['fr','Français'],['de','Deutsch'],['it','Italiano'],['nl','Nederlands'],
   ['ru','Русский'],['tr','Türkçe'],['ja','日本語'],['ko','한국어'],['zh-Hans','简体中文'],['zh-Hant','繁體中文'],['th','ไทย'],['id','Bahasa Indonesia'],['hi','हिन्दी']];
 const EW_LANG_FONT={th:'Noto Sans Thai',ja:'Noto Sans JP',ko:'Noto Sans KR','zh-Hans':'Noto Sans SC','zh-Hant':'Noto Sans TC',hi:'Noto Sans Devanagari'};
@@ -24060,7 +24068,9 @@ function authGateRefresh(force){ let entered=false; try{ entered=_splashEntered;
   el.style.display='flex'; updateGuestMarks();
   try{ document.querySelectorAll('#tutOffer').forEach(n=>n.remove()); }catch(e){} }
 function _googleAuthProbe(){ if(window._googleAuthProbed) return; window._googleAuthProbed=true; try{ api('/api/auth/google/config').then(c=>{ window._googleAuthOn=!!(c&&c.enabled); if(window._googleAuthOn&&authGateOpen()) authGateRender(); }).catch(()=>{}); }catch(e){} }
-function authGateRender(){ _googleAuthProbe(); const el=authGateEl(), need=authGateNeed()||'out', m=AUTHG.mode, last=lastAcctGet();
+/* v1271 FACEBOOK LOGIN (Phil 4 Nov: "Can you make a Facebook link and log in also"): a third method button, shown only when the server has Facebook configured */
+function _facebookAuthProbe(){ if(window._facebookAuthProbed) return; window._facebookAuthProbed=true; try{ api('/api/auth/facebook/config').then(c=>{ window._facebookAuthOn=!!(c&&c.enabled); if(window._facebookAuthOn&&authGateOpen()) authGateRender(); }).catch(()=>{}); }catch(e){} }
+function authGateRender(){ _googleAuthProbe(); _facebookAuthProbe(); const el=authGateEl(), need=authGateNeed()||'out', m=AUTHG.mode, last=lastAcctGet();
   AUTHG.shown=need+'/'+m;
   const inp=(id,type,ph,ac,extra)=>`<input id="${id}" type="${type}" placeholder="${ph}" autocomplete="${ac}" autocapitalize="off" spellcheck="false"${extra||''}>`;
   const tabs=need==='out'&&(m==='create'||m==='signin')?`<div class="agTabs"><button class="agTab${m==='create'?' on':''}" id="agTabNew">Create account</button><button class="agTab${m==='signin'?' on':''}" id="agTabIn">Sign in</button></div>`:'';
@@ -24091,13 +24101,17 @@ function authGateRender(){ _googleAuthProbe(); const el=authGateEl(), need=authG
   /* v1270 (Phil 4 Nov: "there needs to be a quick log in with google" / "Like two sign in options, like a toggle switch" / "EMBERWEAVE SIGN IN, GOOGLE SIGN IN" / "Can use emberweave trademark logo" / "And Google trademark logo" / "As buttons"): two method buttons on top; Google shows Google's own official button (its brand rules) */
   const _gOn=!!window._googleAuthOn, _pick=(m==='create'||m==='signin'||m==='guest');
   const _gSvg='<svg class="agG" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>';
-  const methods=(_pick&&_gOn)?`<div class="agMethods"><button class="agMethod${AUTHG.method!=='google'?' on':''}" id="agMEw"><img src="/assets/img/miscellaneous/ew-logo-signin-v1.webp?v=1270" alt="Emberweave"><span>Emberweave sign in</span></button><button class="agMethod${AUTHG.method==='google'?' on':''}" id="agMG">${_gSvg}<span>Google sign in</span></button></div>`:'';
-  const gMode=_pick&&_gOn&&AUTHG.method==='google';
-  el.innerHTML=`<div class="agCard">${methods}${gMode?'<div class="agTitle">Sign in with Google</div><div id="agGoogle"></div>':tabs+body}<div id="agMsg" class="agMsg"></div></div>`;
+  const _fOn=!!window._facebookAuthOn, _meth=(AUTHG.method==='google'&&_gOn)?'google':(AUTHG.method==='facebook'&&_fOn)?'facebook':'ew';
+  const _fSvg='<svg class="agF" viewBox="0 0 36 36" aria-hidden="true"><path fill="#1877F2" d="M15 35.8C6.5 34.3 0 26.9 0 18 0 8.1 8.1 0 18 0s18 8.1 18 18c0 8.9-6.5 16.3-15 17.8l-1-.8h-4l-1 .8z"/><path fill="#fff" d="M25 23l.8-5H21v-3.5c0-1.4.5-2.5 2.7-2.5H26V7.4c-1.3-.2-2.7-.4-4-.4-4.1 0-7 2.5-7 7v4h-4.5v5H15v12.7c1 .2 2 .3 3 .3s2-.1 3-.3V23h4z"/></svg>';
+  const methods=(_pick&&(_gOn||_fOn))?`<div class="agMethods${_gOn&&_fOn?' agM3':''}"><button class="agMethod${_meth==='ew'?' on':''}" id="agMEw"><img src="/assets/img/miscellaneous/ew-logo-signin-v1.webp?v=1270" alt="Emberweave"><span>Emberweave sign in</span></button>${_gOn?`<button class="agMethod${_meth==='google'?' on':''}" id="agMG">${_gSvg}<span>Google sign in</span></button>`:''}${_fOn?`<button class="agMethod${_meth==='facebook'?' on':''}" id="agMF">${_fSvg}<span>${escapeHTML(t('auth.fb_method'))}</span></button>`:''}</div>`:'';
+  const gMode=_pick&&_meth==='google', fMode=_pick&&_meth==='facebook';
+  el.innerHTML=`<div class="agCard">${methods}${gMode?'<div class="agTitle">Sign in with Google</div><div id="agGoogle"></div>':fMode?'<div class="agTitle">'+escapeHTML(t('auth.fb_title'))+'</div><div id="agFacebook"></div>':tabs+body}<div id="agMsg" class="agMsg"></div></div>`;
   if(gMode){ try{ mountGoogleSignin(el.querySelector('#agGoogle')); }catch(e){} }
+  if(fMode){ try{ mountFacebookSignin(el.querySelector('#agFacebook')); }catch(e){} }
+  if(el.querySelector('#agMF')) el.querySelector('#agMF').onclick=()=>{ AUTHG.method='facebook'; authGateRender(); };
   if(el.querySelector('#agMEw')) el.querySelector('#agMEw').onclick=()=>{ AUTHG.method='ew'; authGateRender(); };
   if(el.querySelector('#agMG')) el.querySelector('#agMG').onclick=()=>{ AUTHG.method='google'; authGateRender(); };
-  const $=s=>el.querySelector(s), msg=(t,good)=>{ const e=$('#agMsg'); if(e){ e.style.color=good?'#8b98a9':'#ff8b8b'; e.textContent=t; } };
+  const $=s=>el.querySelector(s), msg=(text,good)=>{ const e=$('#agMsg'); if(e){ e.style.color=good?'#8b98a9':'#ff8b8b'; e.textContent=text; } };
   const to=(mode)=>{ AUTHG.mode=mode; authGateRender(); };
   if($('#agTabNew')) $('#agTabNew').onclick=()=>to('create');
   if($('#agTabIn')) $('#agTabIn').onclick=()=>to('signin');
@@ -24362,10 +24376,64 @@ async function mountGoogleSignin(root){
     window.google.accounts.id.renderButton(button,{type:'standard',theme:'outline',size:'large',text:'continue_with'});
   }catch(_){box.hidden=true;}
 }
+/* v1271 FACEBOOK LOGIN: the Facebook JS SDK is loaded only when a Facebook option is on screen. FB.login (scope public_profile,email) runs
+   straight from the tap (popup blockers); the access token goes to /api/auth/facebook, which verifies it with Facebook server-side. */
+const FB_AUTH_SVG='<svg viewBox="0 0 36 36" aria-hidden="true"><path fill="#fff" d="M15 35.8C6.5 34.3 0 26.9 0 18 0 8.1 8.1 0 18 0s18 8.1 18 18c0 8.9-6.5 16.3-15 17.8l-1-.8h-4l-1 .8z"/><path fill="#1877F2" d="M25 23l.8-5H21v-3.5c0-1.4.5-2.5 2.7-2.5H26V7.4c-1.3-.2-2.7-.4-4-.4-4.1 0-7 2.5-7 7v4h-4.5v5H15v12.7c1 .2 2 .3 3 .3s2-.1 3-.3V23h4z"/></svg>';
+let facebookSdkScript=null;
+function loadFacebookSdk(appId){
+  if(window.FB&&window._fbInitApp===appId)return Promise.resolve(window.FB);
+  if(!facebookSdkScript)facebookSdkScript=new Promise((resolve,reject)=>{
+    window.fbAsyncInit=()=>{try{window.FB.init({appId,cookie:false,xfbml:false,version:'v21.0'});window._fbInitApp=appId;resolve(window.FB);}catch(e){facebookSdkScript=null;reject(e);}};
+    const script=document.createElement('script');script.src='https://connect.facebook.net/en_US/sdk.js';script.async=true;script.defer=true;script.crossOrigin='anonymous';
+    script.onerror=()=>{facebookSdkScript=null;reject(Error('Facebook unavailable'));};document.head.appendChild(script);
+  });return facebookSdkScript;
+}
+async function mountFacebookSignin(root){
+  if(!root)return; const box=document.createElement('div');box.hidden=true;box.style.cssText='margin-top:12px;text-align:center';root.appendChild(box);
+  try{
+    const config=await api('/api/auth/facebook/config');if(!config?.enabled||!box.isConnected)return;
+    box.hidden=false;root.hidden=false;
+    if(config.linked){
+      const label=document.createElement('div');label.textContent=t('auth.fb_linked')+(config.name?' · '+config.name:'');box.appendChild(label);
+      const unlink=document.createElement('button');unlink.className='btn secondary';unlink.textContent=t('auth.fb_unlink');box.appendChild(unlink);
+      unlink.onclick=async()=>{
+        unlink.disabled=true;const requested=await api('/api/auth/facebook/unlink-request','POST',{});unlink.disabled=false;
+        if(!requested?.ok){bannerMsg(requested?.error||t('auth.fb_code_err'));return;}
+        unlink.textContent=t('auth.fb_send_again');let code=box.querySelector('input');
+        if(!code){code=document.createElement('input');code.inputMode='numeric';code.maxLength=6;code.placeholder=t('auth.fb_code_ph');box.appendChild(code);
+          const confirm=document.createElement('button');confirm.className='btn';confirm.textContent=t('auth.fb_confirm_unlink');box.appendChild(confirm);
+          confirm.onclick=async()=>{confirm.disabled=true;const r=await api('/api/auth/facebook/unlink','POST',{code:code.value});confirm.disabled=false;bannerMsg(r?.ok?t('auth.fb_unlinked'):r?.error||t('auth.fb_unlink_err'));if(r?.ok){box.remove();mountFacebookSignin(root);}};
+        }bannerMsg(t('auth.fb_code_sent'));
+      };return;
+    }
+    if(ACC.token&&!ACC.guest){const label=document.createElement('div');label.textContent=t('auth.fb_link');box.appendChild(label);}
+    const button=document.createElement('button');button.type='button';button.className='fbAuthBtn';button.disabled=true;
+    button.innerHTML=FB_AUTH_SVG+'<span>'+escapeHTML(t('auth.fb_continue'))+'</span>';box.appendChild(button);
+    await loadFacebookSdk(config.appId);if(!box.isConnected)return;button.disabled=false;
+    const submit=async accessToken=>{
+      if(window._authBusy)return;window._authBusy=true;
+      try{
+        const d=await api('/api/auth/facebook','POST',{accessToken,nonce:config.nonce,deviceId:deviceId()});
+        if(!d?.token||!d.profile){bannerMsg(d?.error||t('auth.fb_failed'));box.remove();mountFacebookSignin(root);return;}
+        const previous=ACC?.id;clearServerCaches();
+        ACC={token:d.token,name:d.profile.name,rank:d.profile.rank,coins:d.profile.coins,id:d.profile.id,email:d.profile.email||'',guest:!!d.profile.guest,created:d.profile.created||0,admin:!!d.profile.admin,login:d.profile.login||''};saveAcc();DEV.on=isDevAcct();
+        if(acctSwitchReload(previous,d.profile.id,!!d.created))return;
+        _cloudReady=true;if(applyCloudSave(d.profile,true)){loginReload();return;}pushSave();updateHubChrome();renderSettings();
+      }finally{window._authBusy=false;}
+    };
+    button.onclick=()=>{
+      window.FB.login(function(resp){
+        const token=resp&&resp.status==='connected'&&resp.authResponse&&resp.authResponse.accessToken;
+        if(!token){bannerMsg(t('auth.fb_cancelled'));return;}
+        if(!tosOK()){requireTos(()=>submit(token),()=>bannerMsg(t('auth.fb_terms')));return;}submit(token);
+      },{scope:'public_profile,email'});
+    };
+  }catch(_){box.hidden=true;}
+}
 function renderAccount(){ const b=document.getElementById('accountBody');
   if(!online()){ b.innerHTML='<div>'+uiIcon('world-online')+' Online accounts need the game opened through the host server (not the local file). See the README.</div>'; return; }
   if(ACC.token && !ACC.guest){ b.innerHTML=`<div style="text-align:center"><div style="font-size:15px">Signed in as <b>${escapeHTML(ACC.name||'')}</b></div><div style="font-size:12px;color:#8b98a9;margin:6px 0">Arena rank #${ACC.rank||'—'} · ${hudIcon('gold')} ${ACC.coins||0}</div><button class="btn sm secondary" id="logout">Log out</button></div>`;
-    b.querySelector('#logout').onclick=()=>{ signOutFully(); renderAccount(); }; mountGoogleSignin(b); return; }
+    b.querySelector('#logout').onclick=()=>{ signOutFully(); renderAccount(); }; mountGoogleSignin(b); mountFacebookSignin(b); return; }
   b.innerHTML=`${(ACC&&ACC.guest)?`<div style="background:#132033;border:1px solid #24406b;border-radius:10px;padding:9px 11px;margin-bottom:10px;font-size:12px;color:#cdd8ea;line-height:1.5">${uiIcon('guest')} <b>Playing as a guest</b> (${escapeHTML(ACC.name||'')}). Your progress is being saved. <b>Create an account</b> below to keep it safe across devices, or <b>Sign in</b> to your main account.</div>`:''}<input id="acName" placeholder="Name" maxlength="16" style="width:100%;padding:9px;margin-bottom:6px;border-radius:8px;border:1px solid #33405e;background:#0f1420;color:#e6edf3">
     <input id="acPass" type="password" placeholder="Password" style="width:100%;padding:9px;margin-bottom:8px;border-radius:8px;border:1px solid #33405e;background:#0f1420;color:#e6edf3">
     <div style="display:flex;gap:8px"><button class="btn" id="loginBtn" style="flex:1">Log in</button><button class="btn secondary" id="regBtn" style="flex:1">Register</button></div>
@@ -24383,7 +24451,7 @@ function renderAccount(){ const b=document.getElementById('accountBody');
       if(d.reset){ renderSetNewPass(name); return; }             // admin armed a password recovery for this account
       if(d.error){b.querySelector('#acMsg').textContent=d.error;return;}
       finishAuth(d,isReg); }); };
-  b.querySelector('#loginBtn').onclick=()=>go('/api/login'); b.querySelector('#regBtn').onclick=()=>go('/api/register'); mountGoogleSignin(b);
+  b.querySelector('#loginBtn').onclick=()=>go('/api/login'); b.querySelector('#regBtn').onclick=()=>go('/api/register'); mountGoogleSignin(b); mountFacebookSignin(b);
 }
 // shown when an account was flagged for password recovery — the owner sets a fresh password
 function renderSetNewPass(name){ const b=document.getElementById('accountBody'); if(!b)return;
@@ -29612,7 +29680,7 @@ function renderSettings(){
   b.innerHTML=`<div class="set-wrap">
     <div class="tabrow set-tabs" role="tablist">${TABS.map(([k,l])=>`<div class="tab${setTab===k?' on':''}" role="tab" data-settab="${k}">${l}</div>`).join('')}</div>
     ${pane('general',langCard+soundCard)}
-    ${pane('account',account+'<div class="set-sec" id="googleAuthPanel" hidden></div>')}
+    ${pane('account',account+'<div class="set-sec" id="googleAuthPanel" hidden></div><div class="set-sec" id="facebookAuthPanel" hidden></div>')}
     ${ACC.token?pane('storage',assetCard):''}
     ${pane('support',reportCard+`<div class="set-legal set-sec">
       <a href="#" id="tosLink">${t('set.terms')}</a>
@@ -29700,7 +29768,7 @@ function renderSettings(){
         bannerMsg(uiIcon('key')+' Password reset — you\'re signed in.'); }); };
     fgSubmit.onclick=doSubmit;
     ['#fgCode','#fgNew','#fgNew2'].map(s=>b.querySelector(s)).filter(Boolean).forEach(el=>el.onkeydown=(e)=>{ if(e.key==='Enter') doSubmit(); }); }
-  mountGoogleSignin(b.querySelector('#googleAuthPanel'));
+  mountGoogleSignin(b.querySelector('#googleAuthPanel')); mountFacebookSignin(b.querySelector('#facebookAuthPanel'));   /* v1271 */
   const acGo=b.querySelector('#acGo');
   if(acGo){ const go=()=>{ const msg=b.querySelector('#acMsg');
       const name=(b.querySelector('#acUser').value||'').trim(), pass=(b.querySelector('#acPass').value||'');
@@ -31800,7 +31868,7 @@ async function ewDiag(key){
 }
 try{ const _dm=/[?&]diag=([a-z0-9_]+)/i.exec(location.search); if(_dm) setTimeout(()=>ewDiag(_dm[1]),2500); }catch(e){}
 // ---- auto-update: compare this build to the server's version.json; if newer, refresh instantly ----
-const BUILD_ID = '1793797671015';
+const BUILD_ID = '1793798738699';
 let _updating=false, _updateNoticeShown=false, _pendingUpdate=false;
 // loop-breaker: if we reload for an update ≥2 times in a minute and the build still doesn't match
 // (e.g. version.json is stale / from a different host), stop trying and just play.
